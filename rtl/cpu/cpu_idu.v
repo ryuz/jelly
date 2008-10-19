@@ -1,7 +1,8 @@
 // ----------------------------------------------------------------------------
-//  MIPS like CPU for FPGA                                                     
-//                                                                             
-//                                       Copyright (C) 2008 by Ryuji Fuchikami 
+//  Jelly  -- The computing system on FPGA
+//    MIPS like CPU core
+//
+//                                       Copyright (C) 2008 by Ryuji Fuchikami
 // ----------------------------------------------------------------------------
 
 

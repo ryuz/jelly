@@ -113,6 +113,25 @@ module top
 	assign sram_d      = (~sram_ce0_n & ~sram_we_n) ? wb_dat_o : 32'hzzzzzzzz;	
 	
 	
+	// IRC
+	wire	[31:0]		irc_rdata;
+	irc
+		i_irc
+			(
+				.clk			(clk),
+				.reset			(reset),
+				
+				
+				.wb_adr_i		(wb_adr_o[8:2]),
+				.wb_dat_o		(irc_rdata),
+				.wb_dat_i		(wb_dat_o),
+				.wb_we_i		(wb_we_o),
+				.wb_sel_i		(wb_sel_i),
+				.wb_stb_i		(wb_stb_o & wb_adr_o[31:24] == 8'hf0),
+				.wb_ack_o		()
+			);
+	
+	
 	// UART
 	wire	[31:0]		uart_rdata;
 	uart
