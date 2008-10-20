@@ -30,8 +30,11 @@ module cpu_divider
 	input						reset;
 	input						clk;
 	
-	input						in_en;
-	input						in_signed;
+	input						op_div;
+	input						op_signed;
+	input						op_set_remainder;
+	input						op_set_quotient;
+	
 	input	[DATA_WIDTH-1:0]	in_data0;
 	input	[DATA_WIDTH-1:0]	in_data1;
 	
@@ -87,7 +90,7 @@ module cpu_divider
 		end
 		else begin
 			if ( !busy ) begin
-				if ( op_dev ) begin
+				if ( op_div ) begin
 					busy           <= 1'b1;
 					
 					remainder      <= {DATA_WIDTH{1'b0}};
