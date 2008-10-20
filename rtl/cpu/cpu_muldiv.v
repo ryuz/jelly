@@ -12,13 +12,9 @@
 module cpu_muldiv
 		(
 			reset, clk,
-			
 			op_mul, op_div, op_mthi, op_mtlo, op_signed,
-			
 			in_data0, in_data1,
-			
 			out_hi, out_lo,
-			
 			busy
 		);
 	
@@ -60,46 +56,55 @@ module cpu_muldiv
 	
 	// DIV
 	wire							div_out_en;
-	wire							div_out_remainder;
-	wire							div_out_quotient;
+	wire	[DATA_WIDTH-1:0]		div_out_remainder;
+	wire	[DATA_WIDTH-1:0]		div_out_quotient;
 	cpu_divider
 		i_cpu_divider
 			(
-				.reset			(reset),
-				.clk			(clk),
+				.reset				(reset),
+				.clk				(clk),
 				
-				.in_en			(op_div & ~busy),
+				.op_en				(op_div & ~busy),
+				.op_signed			(op_signed),
+				.op_set_remainder	(op_mthi),
+				.op_set_quotient	(op_mtlo),
 				
-				.in_signed		(op_signed),
+				.in_data0			(in_data0),
+				.in_data1			(in_data1),
 				
-				.in_data0		(in_data0),
-				.in_data1		(in_data1),
+				.out_en				(div_out_en),
+				.out_remainder		(div_out_remainder),
+				.out_quotient		(div_out_quotient),
 				
-				.out_en			(div_out_en),
-				.out_remainder	(div_out_remainder),
-				.out_quotient	(div_out_quotient),
-				
-				.busy			(busy)
+				.busy				(busy)
 			);
 	
 	
 	// switch
-	reg								reg_div;
+	reg								reg_mul_hi;
+	reg								reg_mul_lo;
 	always @ ( posedge clk or posedge reset ) begin
 		if ( reset ) begin
-			reg_div <= 1'b0;
+			reg_mul_hi <= 1'b0;
+			reg_mul_lo <= 1'b0;
 		end
 		else begin
 			if ( op_mul ) begin
-				reg_div <= 1'b0;
+				reg_mul_hi <= 1'b1;
+				reg_mul_lo <= 1'b1;
 			end
-			else if ( op_div ) begin
-				reg_div <= 1'b1;
+			else begin
+				if ( op_div | op_mthi ) begin
+					reg_mul_hi <= 1'b0;
+				end
+				if ( op_div | op_mtlo ) begin
+					reg_mul_lo <= 1'b0;
+				end				
 			end
 		end
 	end
 	
-	assign out_hi = reg_div ? div_out_remainder : mul_out_data[63:32];
-	assign out_lo = reg_div ? div_out_quotient  : mul_out_data[31:0];
+	assign out_hi = reg_mul_hi ? mul_out_data[63:32] : div_out_remainder;
+	assign out_lo = reg_mul_lo ? mul_out_data[31:0]  : div_out_quotient;
 	
 endmodule

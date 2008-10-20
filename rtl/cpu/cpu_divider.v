@@ -19,7 +19,7 @@
 module cpu_divider
 		(
 			reset, clk,
-			in_en, in_signed,
+			op_div, op_signed, op_set_remainder, op_set_quotient,
 			in_data0, in_data1,
 			out_en, out_remainder, out_quotient,
 			busy
@@ -87,15 +87,25 @@ module cpu_divider
 		end
 		else begin
 			if ( !busy ) begin
-				if ( in_en ) begin
+				if ( op_dev ) begin
 					busy           <= 1'b1;
 					
 					remainder      <= {DATA_WIDTH{1'b0}};
-					quotient       <= in_signed ? abs(in_data0) : in_data0;
-					divisor        <= in_signed ? abs(in_data1) : in_data1;
+					quotient       <= op_signed ? abs(in_data0) : in_data0;
+					divisor        <= op_signed ? abs(in_data1) : in_data1;
 					
-					quotient_sign  <= in_signed & (in_data0[DATA_WIDTH-1] ^ in_data1[DATA_WIDTH-1]);
-					remainder_sign <= in_signed & in_data0[DATA_WIDTH-1];
+					quotient_sign  <= op_signed & (in_data0[DATA_WIDTH-1] ^ in_data1[DATA_WIDTH-1]);
+					remainder_sign <= op_signed & in_data0[DATA_WIDTH-1];
+				end
+				else begin
+					if ( op_set_remainder ) begin
+						remainder       <= in_data0;
+						remainder_sign  <= 1'b0;
+					end
+					if ( op_set_quotient ) begin
+						quotient        <= in_data0;
+						quotient_sign   <= 1'b0;
+					end
 				end
 			end
 			else begin

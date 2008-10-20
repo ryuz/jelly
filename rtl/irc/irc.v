@@ -94,14 +94,14 @@ module irc
 			assign factor_wb_dat_o[i]      = f_wb_dat_o;
 		end
 		else begin
-			assign factor_interrupt_req[i] = f_interrupt_req | factor_interrupt_req[i];
-			assign factor_wb_dat_o[i]      = f_wb_dat_o      | factor_wb_dat_o[i];   
+			assign factor_interrupt_req[i] = f_interrupt_req | factor_interrupt_req[i-1];
+			assign factor_wb_dat_o[i]      = f_wb_dat_o      | factor_wb_dat_o[i-1];   
 		end
 	end
 	endgenerate
 	
 
-	assign interrupt_req =  factor_interrupt_req[FACTOR_NUM-1];
+	assign interrupt_req  = factor_interrupt_req[FACTOR_NUM-1];
 
 	assign wb_dat_o       =	((wb_adr_i == 0) ? FACTOR_NUM : {WB_DAT_WIDTH{1'b0}}) |
 							((wb_adr_i == 3) ? reg_mask   : {WB_DAT_WIDTH{1'b0}}) |

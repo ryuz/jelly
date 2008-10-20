@@ -154,7 +154,6 @@ module cpu_core
 	
 	// ID stage input
 	wire			id_in_stall;
-	wire			id_in_delay;
 	
 	wire			id_in_dst_reg_en;
 	wire	[4:0]	id_in_dst_reg_addr;
@@ -406,7 +405,11 @@ module cpu_core
 			id_out_cop0_mfc0   <= 1'b0;
 			id_out_cop0_mtc0   <= 1'b0;
 			id_out_cop0_eret   <= 1'b0;
-                
+
+			id_out_muldiv_div  <= 1'b0;
+			id_out_muldiv_mthi <= 1'b0;
+			id_out_muldiv_mtlo <= 1'b0;
+               
 			id_out_exp_syscall <= 1'b0;
 			id_out_exp_break   <= 1'b0;
 			
@@ -415,7 +418,6 @@ module cpu_core
 		else begin
 			if ( !interlock ) begin
 				id_out_stall           <= id_stall;
-				id_out_delay           <= id_in_delay;
 				id_out_pc              <= if_out_pc;
 				id_out_instruction     <= if_out_instruction;
 				
@@ -456,6 +458,7 @@ module cpu_core
 				id_out_muldiv_mtlo     <= id_dec_muldiv_mtlo;
 				id_out_muldiv_mfhi     <= id_dec_muldiv_mfhi;
 				id_out_muldiv_mflo     <= id_dec_muldiv_mflo;
+				id_out_muldiv_signed   <= id_dec_muldiv_signed;
 				
 				id_out_cop0_mfc0       <= id_dec_cop0_mfc0;
 				id_out_cop0_mtc0       <= id_dec_cop0_mtc0;
@@ -646,7 +649,7 @@ module cpu_core
 										(id_out_exp_break)            |
 										(id_out_exp_syscall)
 									);
-	assign ex_cop0_exception_pc = id_out_delay ? id_out_pc - 4 : id_out_pc;
+	assign ex_cop0_exception_pc = ex_out_branch_en ? id_out_pc - 4 : id_out_pc;
 	
 	assign interrupt_ack = ex_cop0_exception_en;
 	
@@ -750,9 +753,8 @@ module cpu_core
 	end
 	
 	// brench
-	assign if_in_branch_en = ex_out_branch_en | ex_out_exception_en;
-	assign if_in_branch_pc = ex_out_branch_en ? ex_out_branch_pc : ex_out_exception_pc;
-	assign id_in_delay     = ex_out_branch_en;
+	assign if_in_branch_en = ex_out_exception_en | ex_out_branch_en;
+	assign if_in_branch_pc = ex_out_exception_en ? ex_out_exception_pc : ex_out_branch_pc;
 
 	
 	
