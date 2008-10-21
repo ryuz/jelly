@@ -16,7 +16,7 @@ module cpu_cop0
 			rd_addr, sel,
 			in_en, in_data,
 			out_data,
-			exception_en, exception_cause, exception_pc, exception_eret,
+			exception_en, exception_cause, exception_pc, exception_rfe,
 			status, cause, epc
 		);
 	
@@ -36,7 +36,7 @@ module cpu_cop0
 	input			exception_en;
 	input			exception_cause;
 	input	[31:0]	exception_pc;
-	input			exception_eret;
+	input			exception_rfe;
 	
 	output	[31:0]	status;		// 12
 	output	[31:0]	cause;		// 13
@@ -67,7 +67,7 @@ module cpu_cop0
 					reg_status[2] <= reg_status[0];
 					reg_status[4] <= reg_status[2];
 				end
-				else if ( exception_eret ) begin
+				else if ( exception_rfe ) begin
 					reg_status[0] <= reg_status[2];
 					reg_status[2] <= reg_status[4];
 				end

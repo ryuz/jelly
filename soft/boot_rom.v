@@ -20,7 +20,7 @@ module boot_rom
 		12'h2:		data <= 32'h3c1c0101;
 		12'h3:		data <= 32'h279c8230;
 		12'h4:		data <= 32'h3c1d0100;
-		12'h5:		data <= 32'h37bd1000;
+		12'h5:		data <= 32'h37bd8000;
 		12'h6:		data <= 32'h3c080100;
 		12'h7:		data <= 32'h25080270;
 		12'h8:		data <= 32'h3c090100;

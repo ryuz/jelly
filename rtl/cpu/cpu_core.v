@@ -122,7 +122,7 @@ module cpu_core
 				.in_data	({32{1'b0}}),
 				
 				.out_data	(if_out_instruction),
-			
+				
 				.wb_adr_o	(wb_inst_adr_o),
 				.wb_dat_i	(wb_inst_dat_i),
 				.wb_dat_o	(wb_inst_dat_o),
@@ -209,7 +209,7 @@ module cpu_core
 
 	reg				id_out_cop0_mfc0;
 	reg				id_out_cop0_mtc0;
-	reg				id_out_cop0_eret;
+	reg				id_out_cop0_rfe;
 	
 	reg				id_out_exp_syscall;
 	reg				id_out_exp_break;
@@ -303,7 +303,7 @@ module cpu_core
 	
 	wire			id_dec_cop0_mfc0;
 	wire			id_dec_cop0_mtc0;
-	wire			id_dec_cop0_eret;
+	wire			id_dec_cop0_rfe;
 	
 	wire			id_dec_exp_syscall;
 	wire			id_dec_exp_break;
@@ -367,7 +367,7 @@ module cpu_core
 
 				.cop0_mfc0			(id_dec_cop0_mfc0),
 				.cop0_mtc0			(id_dec_cop0_mtc0),
-				.cop0_eret			(id_dec_cop0_eret),
+				.cop0_rfe			(id_dec_cop0_rfe),
                
 				.exp_syscall		(id_dec_exp_syscall),
 				.exp_break			(id_dec_exp_break),
@@ -404,7 +404,7 @@ module cpu_core
 
 			id_out_cop0_mfc0   <= 1'b0;
 			id_out_cop0_mtc0   <= 1'b0;
-			id_out_cop0_eret   <= 1'b0;
+			id_out_cop0_rfe    <= 1'b0;
 
 			id_out_muldiv_div  <= 1'b0;
 			id_out_muldiv_mthi <= 1'b0;
@@ -462,7 +462,7 @@ module cpu_core
 				
 				id_out_cop0_mfc0       <= id_dec_cop0_mfc0;
 				id_out_cop0_mtc0       <= id_dec_cop0_mtc0;
-				id_out_cop0_eret       <= id_dec_cop0_eret;
+				id_out_cop0_rfe        <= id_dec_cop0_rfe;
                 
 				id_out_exp_syscall     <= id_dec_exp_syscall;
 				id_out_exp_break       <= id_dec_exp_break;
@@ -634,9 +634,9 @@ module cpu_core
 				.out_data		(ex_cop0_out_data),
 				
 				.exception_en	(ex_cop0_exception_en),
+				.exception_rfe	(id_out_cop0_rfe),
 				.exception_cause(0),
 				.exception_pc	(ex_cop0_exception_pc),
-				.exception_eret	(id_out_cop0_eret),
 				
 				.status			(ex_cop0_status),
 				.cause			(),

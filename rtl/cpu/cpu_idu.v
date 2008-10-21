@@ -69,6 +69,7 @@
 `define FUNC_SRLV		6'b000110
 `define FUNC_BREAK		6'b001101
 `define FUNC_SYSCALL	6'b001100
+`define FUNC_RFE		6'b010000
 `define FUNC_ERET		6'b011000
 
 
@@ -117,7 +118,7 @@ module cpu_idu
 			
 			cop0_mfc0,
 			cop0_mtc0,
-			cop0_eret,
+			cop0_rfe,
 
 			exp_syscall,
 			exp_break,
@@ -181,7 +182,7 @@ module cpu_idu
 
 	output					cop0_mfc0;
 	output					cop0_mtc0;
-	output					cop0_eret;
+	output					cop0_rfe;
 
 	output					exp_syscall;
 	output					exp_break;
@@ -437,6 +438,10 @@ module cpu_idu
 	// SYSCALL
 	wire	inst_syscall;
 	assign inst_syscall = ((instruction[31:26] == `OP_SPECIAL) & (instruction[5:0] == `FUNC_SYSCALL));
+
+	// RFE
+	wire	inst_rfe;
+	assign inst_rfe = ((instruction[31:26] == `OP_COP0) & (instruction[25] == 1'b1) & (instruction[5:0] == `FUNC_RFE));
 		
 	// ERET
 	wire	inst_eret;
@@ -455,7 +460,7 @@ module cpu_idu
 	
 	assign cop0_mfc0   = inst_mfc0;
 	assign cop0_mtc0   = inst_mtc0;
-	assign cop0_eret   = inst_eret;
+	assign cop0_rfe    = inst_rfe | inst_eret;
 
 	assign exp_syscall = inst_syscall;
 	assign exp_break   = inst_break;
