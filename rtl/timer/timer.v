@@ -4,9 +4,7 @@
 module timer
 		(
 			reset, clk,
-			
 			interrupt_req,
-			
 			wb_adr_i, wb_dat_o, wb_dat_i, wb_we_i, wb_sel_i, wb_stb_i, wb_ack_o
 		);
 	
@@ -14,9 +12,12 @@ module timer
 	parameter	WB_DAT_WIDTH  = 32;
 	localparam	WB_SEL_WIDTH  = (WB_DAT_WIDTH / 8);
 	
+	// system
 	input						clk;
 	input						reset;
 	
+	// irq
+	output						interrupt_req;
 	
 	// control port (wishbone)
 	input	[WB_ADR_WIDTH-1:0]	wb_adr_i;
@@ -27,41 +28,32 @@ module timer
 	input						wb_stb_i;
 	output						wb_ack_o;
 	
+	reg		[31:0]		reg_counter;
+	reg		[31:0]		reg_compare;
 	
+	wire				compare_match;
+	assign compare_match = (reg_counter == reg_compare);
 	
-	// -------------------------
-	//  TX & RX
-	// -------------------------
+	always @ ( posedge clk or posedge reset ) begin
+		if ( reset ) begin
+			reg_counter <= 0;
+			reg_compare <= 50000 - 1;
+		end
+		else begin
+			if ( compare_match ) begin
+				reg_counter <= 0;
+			end
+			else begin
+				reg_counter <= reg_counter + 1;
+			end
+		end
+	end
 	
-	// TX
-	uart_tx
-		i_uart_tx
-			(
-				.reset			(reset),
-				.clk			(uart_clk_dv),
-				
-				.uart_tx		(uart_tx),
-				
-				.tx_en			(tx_fifo_rd_en),
-				.tx_din			(tx_fifo_rd_data), 
-				.tx_ready		(tx_fifo_rd_ready)
-			);
-	
-	uart_rx
-		i_uart_rx
-			(
-				.reset			(reset), 
-				.clk			(uart_clk_dv),
-				
-				.uart_rx		(uart_rx),
-				
-				.rx_en			(rx_fifo_wr_en),
-				.rx_dout		(rx_fifo_wr_data)
-			);
-	
-	
-	
-	
-	
+	assign interrupt_req = compare_match;
+
+
+	assign wb_dat_o = 0;
+	assign wb_ack_o = 0;
+
 endmodule
 

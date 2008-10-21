@@ -57,6 +57,8 @@ module top
 	wire				reset;
 	assign reset = reset_in | ~locked;
 	
+	// interrupt
+	wire			cpu_irq;
 
 	// cpu-bus (Whishbone)
 	wire	[31:2]	wb_adr_o;
@@ -67,6 +69,7 @@ module top
 	wire			wb_stb_o;
 	wire			wb_ack_i;
 	
+	// CPU
 	cpu_top
 		i_cpu_top
 			(
@@ -80,7 +83,7 @@ module top
 				.vect_interrupt	(32'h0000_0018),
 				.vect_exception	(32'h0000_001c),
 
-				.interrupt_req	(1'b0),
+				.interrupt_req	(cpu_irq),
 				.interrupt_ack	(),
 				
 				.wb_adr_o		(wb_adr_o),
@@ -96,16 +99,20 @@ module top
 	
 	
 	// boot rom
-	wire	[31:0]		rom_rdata;
+	wire	[31:0]		rom_wb_dat_o;
 	boot_rom
 		i_boot_rom
 			(
 				.clk			(~clk),
 				.addr			(wb_adr_o),
-				.data			(rom_rdata)
+				.data			(rom_wb_dat_o)
 			);
 	
+	
 	// sram
+	wire	[31:0]		sram_wb_dat_o;
+	assign sram_wb_dat_o = sram_d;
+	
 	assign sram_ce0_n  = ~(wb_stb_o & (wb_adr_o[31:24] == 8'h01));
 	assign sram_ce1_n  = sram_ce0_n;
 	assign sram_we_n   = ~(wb_we_o  & ~sram_ce0_n);
@@ -115,8 +122,9 @@ module top
 	assign sram_d      = (~sram_ce0_n & ~sram_we_n) ? wb_dat_o : 32'hzzzzzzzz;	
 	
 	
+	
 	// IRC
-	wire	[31:0]		irc_rdata;
+	wire	[31:0]		irc_wb_dat_o;
 	irc
 		i_irc
 			(
@@ -125,7 +133,7 @@ module top
 				
 				
 				.wb_adr_i		(wb_adr_o[8:2]),
-				.wb_dat_o		(irc_rdata),
+				.wb_dat_o		(irc_wb_dat_o),
 				.wb_dat_i		(wb_dat_o),
 				.wb_we_i		(wb_we_o),
 				.wb_sel_i		(wb_sel_i),
@@ -135,9 +143,29 @@ module top
 	
 	
 	// UART
-	wire	[31:0]		uart_rdata;
+	wire	[31:0]		timer0_wb_dat_o;
+	timer
+		i_timer0
+			(
+				.clk			(clk),
+				.reset			(reset),
+				
+				.interrupt_req	(cpu_irq),
+
+				.wb_adr_i		(wb_adr_o[4:2]),
+				.wb_dat_o		(timer0_wb_dat_o),
+				.wb_dat_i		(wb_dat_o),
+				.wb_we_i		(wb_we_o),
+				.wb_sel_i		(wb_sel_i),
+				.wb_stb_i		(wb_stb_o & wb_adr_o[31:24] == 8'hf1),
+				.wb_ack_o		()
+			);
+	
+	
+	// UART
+	wire	[31:0]		uart0_wb_dat_o;
 	uart
-		i_uart
+		i_uart0
 			(
 				.clk			(clk),
 				.reset			(reset),
@@ -147,11 +175,11 @@ module top
 				.uart_rx		(uart_rx),
 				
 				.wb_adr_i		(wb_adr_o[4:2]),
-				.wb_dat_o		(uart_rdata),
+				.wb_dat_o		(uart0_wb_dat_o),
 				.wb_dat_i		(wb_dat_o),
 				.wb_we_i		(wb_we_o),
 				.wb_sel_i		(wb_sel_i),
-				.wb_stb_i		(wb_stb_o & wb_adr_o[31:24] == 8'h02),
+				.wb_stb_i		(wb_stb_o & wb_adr_o[31:24] == 8'hf2),
 				.wb_ack_o		()
 			);
 	
@@ -159,13 +187,16 @@ module top
 	// wb_dat_i
 	always @* begin
 		case ( wb_adr_o[31:24] )
-		8'h00:		wb_dat_i <= rom_rdata;
-		8'h01:		wb_dat_i <= sram_d;
-		8'h02:		wb_dat_i <= uart_rdata;
+		8'h00:		wb_dat_i <= rom_wb_dat_o;
+		8'h01:		wb_dat_i <= sram_wb_dat_o;
+		8'hf0:		wb_dat_i <= irc_wb_dat_o;
+		8'hf1:		wb_dat_i <= timer0_wb_dat_o;
+		8'hf2:		wb_dat_i <= uart0_wb_dat_o;
 		default:	wb_dat_i <= 0;
 		endcase
 	end
 	assign wb_ack_i = 1'b1;
+	
 	
 	
 	

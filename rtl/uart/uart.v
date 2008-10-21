@@ -44,7 +44,7 @@ module uart
 			uart_clk_dv <= 1'b0;
 		end
 		else begin
-			if ( dv_counter == (27 - 1) ) begin
+			if ( dv_counter == (81 - 1) ) begin		// 38400 bps (50MHz)
 				dv_counter  <= 0;
 				uart_clk_dv <= ~uart_clk_dv;
 			end
@@ -116,31 +116,8 @@ module uart
 				.out_data	(rx_fifo_rd_data),
 				.out_ready	(rx_fifo_rd_ready)
 			);
-
-	/*
-	// fifo loop-back
-	pipeline_fifo_async
-			#(
-				.DATA_WIDTH		(8),
-				.PTR_WIDTH		(4)
-			)
-		i_fifo
-			(
-				.reset		(reset),
-
-				.in_clk		(uart_clk_dv),
-				.in_en		(rx_fifo_wr_en),
-				.in_data	(rx_fifo_wr_data),
-				.in_ready	(rx_fifo_wr_ready),
-				
-				.out_clk	(uart_clk_dv),
-				.out_en		(tx_fifo_rd_en),
-				.out_data	(tx_fifo_rd_data),
-				.out_ready	(tx_fifo_rd_ready)
-			);
-	*/
-
-
+	
+	
 	// -------------------------
 	//  TX & RX
 	// -------------------------
