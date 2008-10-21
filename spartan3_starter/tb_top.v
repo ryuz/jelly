@@ -137,11 +137,19 @@ module tb_top;
 	// UART monitor
 	always @ ( posedge i_top.i_uart0.clk ) begin
 		if ( i_top.i_uart0.tx_fifo_wr_en ) begin
-			$display("UART-TX:%h %c", i_top.i_uart0.tx_fifo_wr_data, i_top.i_uart0.tx_fifo_wr_data);
+			$display("%t UART-TX:%h %c", $time, i_top.i_uart0.tx_fifo_wr_data, i_top.i_uart0.tx_fifo_wr_data);
 		end
 	end
 
-	
-	
+	// Interrupt monitor
+	always @ ( posedge i_top.i_cpu_top.clk ) begin
+		if ( i_top.i_cpu_top.interrupt_req ) begin
+			$display("%t  interrupt_req",  $time);
+		end
+		if ( i_top.i_cpu_top.interrupt_ack ) begin
+			$display("%t  interrupt_ack",  $time);
+		end
+	end
+		
 endmodule
 

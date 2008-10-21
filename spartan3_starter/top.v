@@ -142,7 +142,8 @@ module top
 			);
 	
 	
-	// UART
+	// Timer
+	wire				timer0_irq;
 	wire	[31:0]		timer0_wb_dat_o;
 	timer
 		i_timer0
@@ -150,7 +151,7 @@ module top
 				.clk			(clk),
 				.reset			(reset),
 				
-				.interrupt_req	(cpu_irq),
+				.interrupt_req	(timer0_irq),
 
 				.wb_adr_i		(wb_adr_o[4:2]),
 				.wb_dat_o		(timer0_wb_dat_o),
@@ -160,6 +161,19 @@ module top
 				.wb_stb_i		(wb_stb_o & wb_adr_o[31:24] == 8'hf1),
 				.wb_ack_o		()
 			);
+	
+	reg		[7:0]	reg_irq;
+	always @ ( posedge clk or posedge reset ) begin
+		if ( reset ) begin
+			reg_irq <= 0;
+		end
+		else begin
+			reg_irq <= {reg_irq, timer0_irq};
+		end
+	end
+	
+	assign cpu_irq = (reg_irq != 0);
+	
 	
 	
 	// UART

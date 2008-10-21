@@ -71,7 +71,7 @@ module uart
 	pipeline_fifo_async
 			#(
 				.DATA_WIDTH		(8),
-				.PTR_WIDTH		(4)
+				.PTR_WIDTH		(11)
 			)
 		i_fifo_tx
 			(

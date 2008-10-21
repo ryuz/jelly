@@ -82,6 +82,9 @@ module cpu_top
 				.vect_reset		(vect_reset),
 				.vect_interrupt	(vect_interrupt),
 				.vect_exception	(vect_exception),
+
+				.interrupt_req	(interrupt_req),
+				.interrupt_ack	(interrupt_ack),
 				
 				.wb_inst_adr_o	(wb_inst_adr_o),
 				.wb_inst_dat_i	(wb_inst_dat_i),
@@ -98,10 +101,7 @@ module cpu_top
 				.wb_data_sel_o	(wb_data_sel_o),
 				.wb_data_stb_o	(wb_data_stb_o),
 				.wb_data_ack_i	(wb_data_ack_i),
-				
-				.interrupt_req	(interrupt_req),
-				.interrupt_ack	(interrupt_ack),
-				
+								
 				.pause			(1'b0)
 			);
 	
