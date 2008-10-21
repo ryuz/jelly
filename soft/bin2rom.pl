@@ -32,8 +32,16 @@ print <<END_OF_DATA;
 END_OF_DATA
 
 for ( $addr = 0; $addr < (1 << $addr_width); $addr++ ) {
-	sysread(IN, $buf, 4);
-	$x = unpack("L", $buf);
+	sysread(IN, $buf, 1);
+	$x0 = unpack("C", $buf);
+	sysread(IN, $buf, 1);
+	$x1 = unpack("C", $buf);
+	sysread(IN, $buf, 1);
+	$x2 = unpack("C", $buf);
+	sysread(IN, $buf, 1);
+	$x3 = unpack("C", $buf);
+	$x = ($x3 << 0) + ($x2 << 8) + ($x1 << 16) + ($x0 << 24);
+	
     printf "\t\t%d'h%x:\t\tdata <= 32'h%08x;\n", $addr_width, $addr, $x;
 }
 

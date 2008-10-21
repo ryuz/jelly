@@ -135,9 +135,9 @@ module tb_top;
 	
 	
 	// UART monitor
-	always @ ( posedge i_top.i_uart.clk ) begin
-		if ( i_top.i_uart.tx_fifo_wr_en ) begin
-			$display("UART-TX:%h %c", i_top.i_uart.tx_fifo_wr_data, i_top.i_uart.tx_fifo_wr_data);
+	always @ ( posedge i_top.i_uart0.clk ) begin
+		if ( i_top.i_uart0.tx_fifo_wr_en ) begin
+			$display("UART-TX:%h %c", i_top.i_uart0.tx_fifo_wr_data, i_top.i_uart0.tx_fifo_wr_data);
 		end
 	end
 

@@ -77,7 +77,7 @@ module top
 				.clk			(clk),
 				.clk_x2			(clk_x2),
 
-				.endian			(1'b0),
+				.endian			(1'b1),
 				
 				.vect_reset		(32'h0000_0000),
 				.vect_interrupt	(32'h0000_0018),
