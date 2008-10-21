@@ -45,10 +45,12 @@ module cpu_muldiv
 	wire signed	[(DATA_WIDTH*2)-1:0]	mul_out_data;
 	
 	always @ ( posedge clk ) begin
-		mul_in_data0[DATA_WIDTH]     <= op_signed ? in_data0[DATA_WIDTH-1] : 1'b0;
-		mul_in_data1[DATA_WIDTH]     <= op_signed ? in_data1[DATA_WIDTH-1] : 1'b0;
-		mul_in_data0[DATA_WIDTH-1:0] <= in_data0;
-		mul_in_data1[DATA_WIDTH-1:0] <= in_data1;
+		if ( op_mul ) begin
+			mul_in_data0[DATA_WIDTH]     <= op_signed ? in_data0[DATA_WIDTH-1] : 1'b0;
+			mul_in_data1[DATA_WIDTH]     <= op_signed ? in_data1[DATA_WIDTH-1] : 1'b0;
+			mul_in_data0[DATA_WIDTH-1:0] <= in_data0;
+			mul_in_data1[DATA_WIDTH-1:0] <= in_data1;
+		end
 	end
 	assign mul_out_data = mul_in_data0 * mul_in_data1;
 	
@@ -64,7 +66,7 @@ module cpu_muldiv
 				.reset				(reset),
 				.clk				(clk),
 				
-				.op_en				(op_div & ~busy),
+				.op_div				(op_div),
 				.op_signed			(op_signed),
 				.op_set_remainder	(op_mthi),
 				.op_set_quotient	(op_mtlo),

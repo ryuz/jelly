@@ -1,6 +1,6 @@
 // ----------------------------------------------------------------------------
-//  MIPS like CPU for FPGA                                                     
-//                                                                             
+//  Jelly -- The computing system for Spartan-3 Starter Kit
+//
 //                                       Copyright (C) 2008 by Ryuji Fuchikami 
 // ----------------------------------------------------------------------------
 
@@ -8,6 +8,8 @@
 `timescale 1ns / 1ps
 
 
+
+// top module
 module top
 		(
 			clk_in, reset_in,
@@ -168,18 +170,19 @@ module top
 	
 	
 	// LED
-	reg		[31:0]		clk_counter;
+	reg		[31:0]		led_counter;
 	always @ ( posedge clk or posedge reset ) begin
 		if ( reset ) begin
-			clk_counter <= 0;
+			led_counter <= 0;
 		end
 		else begin
-			clk_counter <= clk_counter + 1;
+			led_counter <= led_counter + 1;
 		end
 	end
+	assign led[7:0] = led_counter[31:24];
 	
-	assign led[7:0]   = clk_counter[31:24];
 	
+	// debug port
 	assign ext  = 0;
 	
 endmodule
