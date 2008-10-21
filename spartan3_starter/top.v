@@ -80,8 +80,8 @@ module top
 				.endian			(1'b1),
 				
 				.vect_reset		(32'h0000_0000),
-				.vect_interrupt	(32'h0000_0018),
-				.vect_exception	(32'h0000_001c),
+				.vect_interrupt	(32'h0000_0180),
+				.vect_exception	(32'h0000_0180),
 
 				.interrupt_req	(cpu_irq),
 				.interrupt_ack	(),
