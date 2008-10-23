@@ -1,13 +1,25 @@
+// ----------------------------------------------------------------------------
+//  Common components
+//   Graycode to Binary 
+//
+//                                  Copyright (C) 2007-2008 by Ryuji Fuchikami
+// ----------------------------------------------------------------------------
 
+
+`timescale 1ns / 1ps
+
+
+
+//   Graycode to Binary 
 module graycode_to_binary(
 			graycode,
 			binary
 		);
-	
 	parameter WIDTH = 4;
 	
 	input	[WIDTH-1:0]	graycode;
 	output	[WIDTH-1:0]	binary;
+	
 	
 	function [WIDTH-1:0] bin_out;
 	input	[WIDTH-1:0]	gray_in;
@@ -20,8 +32,10 @@ module graycode_to_binary(
 		end
     endfunction
 	
-	
     assign binary = bin_out(graycode);
+	
 	
 endmodule
 
+
+// End of file

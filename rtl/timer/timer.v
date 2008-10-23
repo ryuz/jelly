@@ -1,3 +1,11 @@
+// ----------------------------------------------------------------------------
+//  Jelly  -- The computing system on FPGA
+//    Interrupt controller
+//
+//                                       Copyright (C) 2008 by Ryuji Fuchikami
+// ----------------------------------------------------------------------------
+
+
 `timescale 1ns / 1ps
 
 

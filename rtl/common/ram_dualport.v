@@ -1,7 +1,15 @@
+// ----------------------------------------------------------------------------
+//  Common components
+//   Dualport-RAM
+//
+//                                  Copyright (C) 2007-2008 by Ryuji Fuchikami
+// ----------------------------------------------------------------------------
+
+
 `timescale 1ns / 1ps
 
 
-// DualPort-RAM
+// Dualport-RAM
 module ram_dualport(
 				clk0, en0, we0, addr0, din0, dout0,
 				clk1, en1, we1, addr1, din1, dout1
@@ -55,3 +63,4 @@ module ram_dualport(
 endmodule
 
 
+// End of file

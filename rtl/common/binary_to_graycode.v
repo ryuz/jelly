@@ -1,4 +1,15 @@
+// ----------------------------------------------------------------------------
+//  Common components
+//   Binary to Graycode
+//
+//                                  Copyright (C) 2007-2008 by Ryuji Fuchikami
+// ----------------------------------------------------------------------------
 
+
+`timescale 1ns / 1ps
+
+
+//   Binary to Graycode
 module binary_to_graycode(
 			binary,
 			graycode
@@ -22,6 +33,8 @@ module binary_to_graycode(
     endfunction
 	
     assign graycode = gray_out(binary);
-		
+	
 endmodule
 
+
+// End of file

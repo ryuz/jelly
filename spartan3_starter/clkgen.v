@@ -1,4 +1,15 @@
+// ----------------------------------------------------------------------------
+//  Jelly -- The computing system for Spartan-3 Starter Kit
+//
+//                                       Copyright (C) 2008 by Ryuji Fuchikami 
+// ----------------------------------------------------------------------------
 
+
+
+`timescale 1ns / 1ps
+
+
+// Clock generator
 module clkgen
 		(
 			in_reset, 

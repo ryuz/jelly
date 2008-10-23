@@ -1,3 +1,11 @@
+// ----------------------------------------------------------------------------
+//  Jelly  -- The computing system on FPGA
+//    Interrupt controller
+//
+//                                       Copyright (C) 2008 by Ryuji Fuchikami
+// ----------------------------------------------------------------------------
+
+
 `timescale 1ns / 1ps
 
 
@@ -9,6 +17,8 @@ module uart
 			
 			wb_adr_i, wb_dat_o, wb_dat_i, wb_we_i, wb_sel_i, wb_stb_i, wb_ack_o
 		);
+	parameter	TX_FIFO_PTR_WIDTH = 4;
+	parameter	RX_FIFO_PTR_WIDTH = 4;
 	
 	parameter	WB_ADR_WIDTH  = 2;
 	parameter	WB_DAT_WIDTH  = 32;
@@ -71,21 +81,23 @@ module uart
 	pipeline_fifo_async
 			#(
 				.DATA_WIDTH		(8),
-				.PTR_WIDTH		(11)
+				.PTR_WIDTH		(TX_FIFO_PTR_WIDTH)
 			)
 		i_fifo_tx
 			(
-				.reset		(reset),
+				.reset			(reset),
 
-				.in_clk		(clk),
-				.in_en		(tx_fifo_wr_en),
-				.in_data	(tx_fifo_wr_data),
-				.in_ready	(tx_fifo_wr_ready),
+				.in_clk			(clk),
+				.in_en			(tx_fifo_wr_en),
+				.in_data		(tx_fifo_wr_data),
+				.in_ready		(tx_fifo_wr_ready),
+				.in_free_num	(),
 				
-				.out_clk	(uart_clk_dv),
-				.out_en		(tx_fifo_rd_en),
-				.out_data	(tx_fifo_rd_data),
-				.out_ready	(tx_fifo_rd_ready)
+				.out_clk		(uart_clk_dv),
+				.out_en			(tx_fifo_rd_en),
+				.out_data		(tx_fifo_rd_data),
+				.out_ready		(tx_fifo_rd_ready),
+				.out_data_num	()
 			);
 	
 	// RX
@@ -100,21 +112,23 @@ module uart
 	pipeline_fifo_async
 			#(
 				.DATA_WIDTH		(8),
-				.PTR_WIDTH		(4)
+				.PTR_WIDTH		(RX_FIFO_PTR_WIDTH)
 			)
 		i_fifo_rx
 			(
-				.reset		(reset),
+				.reset			(reset),
 
-				.in_clk		(uart_clk_dv),
-				.in_en		(rx_fifo_wr_en),
-				.in_data	(rx_fifo_wr_data),
-				.in_ready	(rx_fifo_wr_ready),
+				.in_clk			(uart_clk_dv),
+				.in_en			(rx_fifo_wr_en),
+				.in_data		(rx_fifo_wr_data),
+				.in_ready		(rx_fifo_wr_ready),
+				.in_free_num	(),
 				
-				.out_clk	(clk),
-				.out_en		(rx_fifo_rd_en),
-				.out_data	(rx_fifo_rd_data),
-				.out_ready	(rx_fifo_rd_ready)
+				.out_clk		(clk),
+				.out_en			(rx_fifo_rd_en),
+				.out_data		(rx_fifo_rd_data),
+				.out_ready		(rx_fifo_rd_ready),				
+				.out_data_num	()
 			);
 	
 	

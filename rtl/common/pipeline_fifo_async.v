@@ -1,6 +1,16 @@
+// ----------------------------------------------------------------------------
+//  Common components
+//   Asyncronous FIFO for pipeline-data
+//
+//                                       Copyright (C) 2008 by Ryuji Fuchikami
+// ----------------------------------------------------------------------------
+
+
 `timescale 1ns / 1ps
 
 
+
+//   Asyncronous FIFO for pipeline-data
 module pipeline_fifo_async
 			(
 				reset,
@@ -59,7 +69,7 @@ module pipeline_fifo_async
 				.en1			(ram_rd_en),
 				.we1			(1'b0),
 				.addr1			(ram_rd_addr),
-				.din1			(0),
+				.din1			({DATA_WIDTH{1'b0}}),
 				.dout1			(ram_rd_data)
 			);	
 	
@@ -218,3 +228,6 @@ module pipeline_fifo_async
 	assign out_data_num = (rd_wptr - rd_rptr);
 	
 endmodule
+
+
+// End of file
