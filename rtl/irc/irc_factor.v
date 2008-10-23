@@ -6,19 +6,21 @@
 // ----------------------------------------------------------------------------
 
 
-
 `timescale 1ns / 1ps
-
 
 
 module irc_factor
 		(
 			reset, clk,
-			interrupt_in, interrupt_req, mask_level,
+			factor_id,
+			in_interrupt, mask,
+			reqest_send, reqest_sense, reqest_busy,
 			wb_adr_i, wb_dat_o, wb_dat_i, wb_we_i, wb_sel_i, wb_stb_i, wb_ack_o
 		);
 	
-	parameter	PRIORITY_WIDTH = 3;
+	parameter	FACTOR_ID_WIDTH = 2;
+	parameter	PRIORITY_WIDTH  = 3;
+	localparam	PACKET_WIDTH    = 1 + PRIORITY_WIDTH + FACTOR_ID_WIDTH;
 	
 	parameter	WB_ADR_WIDTH   = 2;
 	parameter	WB_DAT_WIDTH   = 32;
@@ -28,10 +30,17 @@ module irc_factor
 	input							clk;
 	input							reset;
 	
+	input	[FACTOR_ID_WIDTH-1:0]	factor_id;
+	
 	// interrupt
-	input							interrupt_in;
-	output							interrupt_req;
-	input	[PRIORITY_WIDTH-1:0]	mask_level;
+	input							in_interrupt;
+	input	[PRIORITY_WIDTH-1:0]	mask;
+	
+	// request
+	output							reqest_send;
+	input							reqest_sense;
+	input							reqest_busy;
+	
 	
 	// control port (wishbone)
 	input	[1:0]					wb_adr_i;
@@ -43,24 +52,52 @@ module irc_factor
 	output							wb_ack_o;
 	
 	
-	
-	
-	// register
+	// registers
 	reg								reg_enable;
-	reg								reg_assert;
-	reg		[PRIORITY_WIDTH-1:0]	reg_level;
-	
+	reg								reg_pending;
+	reg		[PRIORITY_WIDTH-1:0]	reg_priority;
 	
 	// interrupt
-	assign interrupt_req = (reg_level < mask_level) & reg_assert & reg_enable;
+	wire							interrupt_assert;
+	assign interrupt_assert = (reg_priority < mask) & reg_pending & reg_enable;
 	
 	
-	// register
+	// send request
+	reg								send_st_busy;
+	reg		[PACKET_WIDTH-1:0]		send_st_send;
+	reg		[PACKET_WIDTH-1:0]		send_packet;
 	always @ ( posedge clk or posedge reset ) begin
 		if ( reset ) begin
-			reg_enable <= 1'b0;
-			reg_assert <= 1'b0;
-			reg_level  <= {PRIORITY_WIDTH{1'b0}};
+			send_st_busy <= 1'b0;
+			send_packet  <= {PACKET_WIDTH{1'b1}};
+		end
+		else begin
+			if ( interrupt_assert & !send_st_busy & !reqest_busy ) begin
+				send_st_busy <= 1'b1;
+				send_packet  <= {1'b0, reg_priority, factor_id};
+			end
+			else begin
+				if ( send_st_busy ) begin
+					if ( reqest_sense != reqest_send ) begin
+						send_st_busy <= 1'b0;
+					end
+					else begin
+						send_packet <= {send_packet[PACKET_WIDTH-2:0], 1'b1};
+					end
+				end
+			end			
+		end
+	end
+	
+	assign reqest_send = send_packet[PACKET_WIDTH-1];
+	
+	
+	// registers
+	always @ ( posedge clk or posedge reset ) begin
+		if ( reset ) begin
+			reg_enable    <= 1'b0;
+			reg_pending   <= 1'b0;
+			reg_priority  <= {PRIORITY_WIDTH{1'b0}};
 		end
 		else begin
 			// enable
@@ -68,17 +105,17 @@ module irc_factor
 				reg_enable <= wb_dat_i[0];
 			end
 			
-			// assert
-			if ( interrupt_in ) begin
-				reg_assert <= 1'b1;
+			// pending
+			if ( in_interrupt ) begin
+				reg_pending <= 1'b1;
 			end
 			else if ( wb_stb_i & wb_we_i & (wb_adr_i == 1) ) begin
-				reg_assert <= wb_dat_i[0];
+				reg_pending <= wb_dat_i[0];
 			end
 			
-			// level
+			// priority
 			if ( wb_stb_i & wb_we_i & (wb_adr_i == 3) ) begin
-				reg_level  <= wb_dat_i;
+				reg_priority <= wb_dat_i;
 			end
 		end
 	end
@@ -89,11 +126,11 @@ module irc_factor
 	always @* begin
 		if ( wb_stb_i ) begin
 			case ( wb_adr_i[1:0] )
-			2'b00:		wb_dat_o <= reg_enable;
-			2'b01:		wb_dat_o <= reg_assert;
-			2'b10:		wb_dat_o <= interrupt_req;
-			2'b11:		wb_dat_o <= reg_level;
-			default:	wb_dat_o <= {WB_DAT_WIDTH{1'bx}};
+			2'b00:		wb_dat_o <= reg_enable;			// enable
+			2'b01:		wb_dat_o <= reg_pending;		// pending
+			2'b10:		wb_dat_o <= in_interrupt;		// status
+			2'b11:		wb_dat_o <= reg_priority;		// priority
+			default:	wb_dat_o <= {WB_DAT_WIDTH{1'b0}};
 			endcase
 		end
 		else begin
@@ -102,6 +139,5 @@ module irc_factor
 	end
 	
 endmodule
-
 
 
