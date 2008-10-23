@@ -197,10 +197,11 @@ module cpu_idu
 	output					dst_src_hi;
 	output					dst_src_lo;
 	output					dst_src_cop0;
-
-
+	
+	
+	
 	// -----------------------------
-	//  Support
+	//  Instruction
 	// -----------------------------
 	
 	// ADD
@@ -513,101 +514,19 @@ module cpu_idu
 	
 	
 	assign immediate_en = immediate_signed | immediate_unsigned | immediate_lui;
-
-
-
+	
+	
+	
 	// -----------------------------
-	//  Source register
+	//  register address
 	// -----------------------------
 	
-	assign rs_en = (instruction[25:21] != 6'b00000)
-					& ( inst_add
-						| inst_addi
-						| inst_addiu
-						| inst_addu
-						| inst_div
-						| inst_divu
-						| inst_mult
-						| inst_multu
-						| inst_slt
-						| inst_slti
-						| inst_sltiu
-						| inst_sltu
-						| inst_sub
-						| inst_subu
-						| inst_beq
-						| inst_bgez
-						| inst_bgezal
-						| inst_bgtz
-						| inst_blez
-						| inst_bltz
-						| inst_bltzal
-						| inst_bne
-						| inst_jalr
-						| inst_jr
-						| inst_lb
-						| inst_lbu
-						| inst_lh
-						| inst_lhu
-						| inst_lw
-						| inst_lwl
-						| inst_lwr
-						| inst_sb
-						| inst_sh
-						| inst_sw
-						| inst_swl
-						| inst_swr
-						| inst_and
-						| inst_andi
-						| inst_nor
-						| inst_or
-						| inst_ori
-						| inst_xor
-						| inst_xori
-						| inst_mthi
-						| inst_mtlo
-						| inst_sllv
-						| inst_srav
-						| inst_srlv);
-
 	assign rs_addr = instruction[25:21];
-	
-	
-	assign rt_en   = (instruction[20:16] != 6'b00000)
-					& ( inst_add
-						| inst_addu
-						| inst_div
-						| inst_divu
-						| inst_mult
-						| inst_multu
-						| inst_slt
-						| inst_sltu
-						| inst_sub
-						| inst_subu
-						| inst_lb
-						| inst_lbu
-						| inst_lh
-						| inst_lhu
-						| inst_lw
-						| inst_lwl
-						| inst_lwr
-						| inst_and
-						| inst_nor
-						| inst_or
-						| inst_xor
-						| inst_sll
-						| inst_sllv
-						| inst_sra
-						| inst_srav
-						| inst_srl
-						| inst_srlv
-						| inst_mtc0);
-
 	assign rt_addr = instruction[20:16];
-	
 	assign rd_addr = instruction[15:11];
-
-
+	
+	
+	
 	// -----------------------------
 	//  Branch
 	// -----------------------------
@@ -639,6 +558,7 @@ module cpu_idu
 							| inst_bltzal
 							| inst_bne;
 	assign branch_rs_en = inst_jr | inst_jalr;
+	
 	
 	
 	// -----------------------------
