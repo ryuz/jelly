@@ -166,15 +166,12 @@ module cpu_core
 	reg		[31:0]	id_out_instruction;
 	reg		[31:0]	id_out_pc;
 	
-	reg				id_out_rs_en;
 	reg		[4:0]	id_out_rs_addr;
-	wire	[31:0]	id_out_rs_data;
-	
-	reg				id_out_rt_en;
 	reg		[4:0]	id_out_rt_addr;
-	wire	[31:0]	id_out_rt_data;
-	
 	reg		[4:0]	id_out_rd_addr;
+	
+	wire	[31:0]	id_out_rs_data;
+	wire	[31:0]	id_out_rt_data;
 	
 	reg				id_out_immediate_en;
 	reg		[31:0]	id_out_immediate_data;
@@ -267,11 +264,9 @@ module cpu_core
 	wire			id_dec_immediate_en;
 	wire	[31:0]	id_dec_immediate_data;
 
-	wire			id_dec_rs_en;
 	wire	[4:0]	id_dec_rs_addr;
-	
-	wire			id_dec_rt_en;
 	wire	[4:0]	id_dec_rt_addr;
+	wire	[4:0]	id_dec_rd_addr;
 	
 	wire			id_dec_branch_en;
 	wire	[3:0]	id_dec_branch_func;
@@ -328,11 +323,9 @@ module cpu_core
 			(
 				.instruction		(if_out_instruction),
 				
-				.rs_en				(id_dec_rs_en),
 				.rs_addr			(id_dec_rs_addr),
-				                  
-				.rt_en				(id_dec_rt_en),
 				.rt_addr			(id_dec_rt_addr),
+				.rd_addr			(id_dec_rd_addr),
 								
 				.immediate_en		(id_dec_immediate_en),
 				.immediate_data		(id_dec_immediate_data),
@@ -395,9 +388,6 @@ module cpu_core
 			id_out_stall       <= 1'b1;
 			id_out_delay       <= 1'b0;
 			
-			id_out_rs_en       <= 1'b0;
-			id_out_rt_en       <= 1'b0;
-
 			id_out_branch_en   <= 1'b0;
 			id_out_muldiv_en   <= 1'b0;
 			id_out_mem_en      <= 1'b0;
@@ -421,12 +411,8 @@ module cpu_core
 				id_out_pc              <= if_out_pc;
 				id_out_instruction     <= if_out_instruction;
 				
-				id_out_rs_en           <= id_dec_rs_en & ~id_stall;
 				id_out_rs_addr         <= if_out_instruction[25:21];
-				
-				id_out_rt_en           <= id_dec_rt_en & ~id_stall;
 				id_out_rt_addr         <= if_out_instruction[20:16];
-				
 				id_out_rd_addr         <= if_out_instruction[15:11];
 				
 				id_out_immediate_en    <= id_dec_immediate_en;
@@ -522,7 +508,12 @@ module cpu_core
 	// stall
 	wire				ex_stall;
 	assign ex_stall = id_out_stall | ex_in_stall;
-		
+	
+	
+	// ex_exception
+	wire ex_exception;
+	
+	
 	// fowarding
 	reg		[31:0]	ex_fwd_rs_data;
 	reg		[31:0]	ex_fwd_rt_data;
@@ -595,24 +586,23 @@ module cpu_core
 				.reset			(reset),
 				.clk			(clk),
 				
-				.op_mul			(id_out_muldiv_mul),
-				.op_div			(id_out_muldiv_div),
-				.op_mthi		(id_out_muldiv_mthi),
-				.op_mtlo		(id_out_muldiv_mtlo),
+				.op_mul			(id_out_muldiv_mul & ~ex_stall & ~ex_exception),
+				.op_div			(id_out_muldiv_div & ~ex_stall & ~ex_exception),
+				.op_mthi		(id_out_muldiv_mthi & ~ex_stall & ~ex_exception),
+				.op_mtlo		(id_out_muldiv_mtlo & ~ex_stall & ~ex_exception),
 				.op_signed		(id_out_muldiv_signed),
 				
 				.in_data0		(ex_fwd_rs_data),
 				.in_data1		(ex_fwd_rt_data),
-			
+				
 				.out_hi			(ex_muldiv_out_hi),
 				.out_lo			(ex_muldiv_out_lo),
-			
+				
 				.busy			(ex_muldiv_busy)
 		);
 	
 	
 	// COP0
-	wire						ex_cop0_exception_en;
 	wire	[31:0]				ex_cop0_exception_pc;
 	wire	[31:0]				ex_cop0_out_data;
 	wire	[31:0]				ex_cop0_status;
@@ -628,13 +618,13 @@ module cpu_core
 				.rd_addr		(id_out_rd_addr),
 				.sel			(3'b000),
 				
-				.in_en			(id_out_cop0_mtc0),
+				.in_en			(id_out_cop0_mtc0 & ~ex_stall & ~ex_exception),
 				.in_data		(ex_fwd_rt_data),
 				
 				.out_data		(ex_cop0_out_data),
 				
-				.exception_en	(ex_cop0_exception_en),
-				.exception_rfe	(id_out_cop0_rfe),
+				.exception_en	(ex_exception),
+				.exception_rfe	(id_out_cop0_rfe & ~ex_stall & ~ex_exception),
 				.exception_cause(0),
 				.exception_pc	(ex_cop0_exception_pc),
 				
@@ -643,19 +633,22 @@ module cpu_core
 				.epc			()
 			);
 	
-	assign ex_cop0_exception_en = (~interlock & ~ex_stall) &
-									(
-										(interrupt_req & ex_cop0_status[0]) |
-										(id_out_exp_break)            |
-										(id_out_exp_syscall)
-									);
 	assign ex_cop0_exception_pc = ex_out_branch_en ? id_out_pc - 4 : id_out_pc;
 	
-	assign interrupt_ack = ex_cop0_exception_en;
+	
+	// exception
+	assign ex_exception = (~interlock & ~ex_stall) &
+								(
+									(interrupt_req & ex_cop0_status[0]) |
+									(id_out_exp_break) |
+									(id_out_exp_syscall)
+								);
+	assign interrupt_ack = ex_exception & interrupt_req;
 	
 	
 	// hazard
 	assign ex_out_hazard = id_out_muldiv_en & ex_muldiv_busy;
+	
 	
 	// FF
 	always @ ( posedge clk or posedge reset ) begin
@@ -680,7 +673,7 @@ module cpu_core
 		else begin
 			if ( !interlock ) begin
 				// control
-				ex_out_stall        <= ex_stall | ex_out_hazard | ex_cop0_exception_en;
+				ex_out_stall        <= ex_stall | ex_exception;
 				ex_out_instruction  <= id_out_instruction;
 				ex_out_pc           <= id_out_pc;
 				
@@ -728,18 +721,17 @@ module cpu_core
 										((id_out_branch_func[3:0] == 4'b0001) & ( ex_alu_out_negative & !ex_alu_out_zero)) |	// BLTZ, BLTZAL (rs < 0)
  										((id_out_branch_func[3:0] == 4'b1001) & (!ex_alu_out_negative |  ex_alu_out_zero))		// BGEZ, BGEZAL (rs >= 0)
 									);
-				
 				ex_out_branch_pc <= (id_out_branch_index_en ? {id_out_pc[31:28], id_out_branch_index}  : 0) |
 									(id_out_branch_imm_en   ? if_out_pc + (id_out_immediate_data << 2) : 0) |
 									(id_out_branch_rs_en    ? ex_fwd_rs_data                           : 0);
 				
 				
 				// exception
-				ex_out_exception_en <= ex_cop0_exception_en;
+				ex_out_exception_en <= ex_exception;
 				ex_out_exception_pc <= interrupt_req ? vect_interrupt : vect_exception;
 				
-				// dest
-				ex_out_dst_reg_en   <= id_out_dst_reg_en & ~ex_stall;
+				// destination
+				ex_out_dst_reg_en   <= id_out_dst_reg_en;
 				ex_out_dst_reg_addr <= id_out_dst_reg_addr;
 				ex_out_dst_reg_data <=	(id_out_dst_src_alu     ? ex_alu_out_data     : 32'h00000000) |
 										(id_out_dst_src_shifter ? ex_shifter_out_data : 32'h00000000) | 
@@ -753,15 +745,17 @@ module cpu_core
 	end
 	
 	// brench
-	assign if_in_branch_en = ex_out_exception_en | ex_out_branch_en;
+	assign if_in_branch_en = (ex_out_exception_en | ex_out_branch_en) & ~ex_out_stall;
 	assign if_in_branch_pc = ex_out_exception_en ? ex_out_exception_pc : ex_out_branch_pc;
-
+	
 	
 	
 	// -----------------------------
 	//  Memory stage
 	// -----------------------------
-
+	
+	wire				mem_in_stall;
+	
 	reg					mem_out_stall;
 	reg		[31:0]		mem_out_instruction;
 	reg		[31:0]		mem_out_pc;
@@ -773,7 +767,12 @@ module cpu_core
 	wire	[31:0]		mem_out_dst_reg_data;
 	
 	
-	// memory
+	// stall
+	wire				mem_stall;
+	assign mem_stall = ex_out_stall | mem_in_stall;
+	
+	
+	// memory access
 	wire	[31:0]		mem_read_data;
 	cpu_lsu
 			#(
@@ -789,7 +788,7 @@ module cpu_core
 				.interlock	(interlock),
 				.busy		(mem_out_hazard),
 			
-				.in_en		(ex_out_mem_en),
+				.in_en		(ex_out_mem_en & ~mem_stall),
 				.in_we		(ex_out_mem_we),
 				.in_sel		(ex_out_mem_sel),
 				.in_addr	(ex_out_mem_addr),
@@ -827,23 +826,25 @@ module cpu_core
 		end
 		else begin
 			if ( !interlock ) begin
-				mem_out_stall        <= ex_out_stall;
+				mem_out_stall        <= mem_stall;
 				mem_out_instruction  <= ex_out_instruction;
 				mem_out_pc           <= ex_out_pc;
-
-				mem_out_dst_reg_en   <= ex_out_dst_reg_en;
+				
+				mem_out_dst_reg_en   <= ex_out_dst_reg_en & ~mem_stall;
 				mem_out_dst_reg_addr <= ex_out_dst_reg_addr;
-
+				
 				mem_dst_src_mem      <= ex_out_dst_src_mem;
 				mem_addr             <= ex_out_mem_addr[1:0];
 				mem_size             <= ex_out_mem_size;
 				mem_unsigned         <= ex_out_mem_unsigned;
-
+				
 				mem_ex_data          <= ex_out_dst_reg_data;
 			end
 		end
 	end
 	
+	
+	// Read data extension
 	wire	[7:0]		mem_rdata_b;
 	wire	[15:0]		mem_rdata_h;
 	assign mem_rdata_b = (mem_addr[1:0] == (2'b00 ^ {2{endian}})) ? mem_read_data[7:0]   :
@@ -869,8 +870,7 @@ module cpu_core
 	
 	assign mem_out_dst_reg_data = mem_dst_src_mem ? mem_rdata : mem_ex_data;
 	
-	
-	
+		
 	
 	// -----------------------------
 	//  Writeback stage
@@ -880,8 +880,8 @@ module cpu_core
 	assign id_in_dst_reg_addr = mem_out_dst_reg_addr;
 	assign id_in_dst_reg_data = mem_out_dst_reg_data;
 	
-
-
+	
+	
 	// -----------------------------
 	//  Fowarding control
 	// -----------------------------
@@ -930,19 +930,21 @@ module cpu_core
 			ex_fwd_rt_data <= id_out_rt_data;
 		end
 	end
-
+	
 	
 	
 	// -----------------------------
 	//  Pipeline control
 	// -----------------------------
 	
-	assign interlock = if_out_hazard | ex_out_hazard | mem_out_hazard | pause;
+	// interlock
+	assign interlock    = if_out_hazard | ex_out_hazard | mem_out_hazard | pause;
 	
-	assign if_in_stall      = ex_out_exception_en | ex_out_branch_en;
-	assign id_in_stall      = ex_out_exception_en | ex_out_branch_en;
-	assign ex_in_stall      = ex_out_exception_en;
-	assign mem_in_stall     = 1'b0;
+	// stall
+	assign if_in_stall  = ex_out_exception_en | ex_out_branch_en;
+	assign id_in_stall  = ex_out_exception_en | ex_out_branch_en;
+	assign ex_in_stall  = ex_out_exception_en;
+	assign mem_in_stall = 1'b0;
 	
 	
 endmodule

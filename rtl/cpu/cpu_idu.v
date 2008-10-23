@@ -82,11 +82,9 @@ module cpu_idu
 			immediate_en,
 			immediate_data,
 
-			rs_en,
 			rs_addr,
-			                 
-			rt_en,
 			rt_addr,
+			rd_addr,
 			
 			branch_en,
 			branch_func,
@@ -143,11 +141,9 @@ module cpu_idu
 	
 	input	[31:0]			instruction;
 
-	output					rs_en;
 	output	[4:0]			rs_addr;
-			                 
-	output					rt_en;
 	output	[4:0]			rt_addr;
+	output	[4:0]			rd_addr;
 		
 	output					immediate_en;
 	output	[31:0]			immediate_data;
@@ -609,6 +605,8 @@ module cpu_idu
 
 	assign rt_addr = instruction[20:16];
 	
+	assign rd_addr = instruction[15:11];
+
 
 	// -----------------------------
 	//  Branch
