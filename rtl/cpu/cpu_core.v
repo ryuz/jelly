@@ -710,7 +710,8 @@ module cpu_core
 				end
 				
 				// branch
-				ex_out_branch_en <= id_out_branch_en & (
+				ex_out_branch_en <= id_out_branch_en & ~ex_stall & 
+									(
 										(id_out_branch_func[2:0]  ==  3'b000) |													// JALR
 										(id_out_branch_func[2:0]  ==  3'b010) |													// J
 										(id_out_branch_func[2:0]  ==  3'b011) |													// JAL
@@ -745,7 +746,7 @@ module cpu_core
 	end
 	
 	// brench
-	assign if_in_branch_en = (ex_out_exception_en | ex_out_branch_en) & ~ex_out_stall;
+	assign if_in_branch_en = ex_out_exception_en | ex_out_branch_en;
 	assign if_in_branch_pc = ex_out_exception_en ? ex_out_exception_pc : ex_out_branch_pc;
 	
 	
