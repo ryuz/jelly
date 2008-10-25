@@ -24,6 +24,9 @@ soft_build:
 	$(TOP_DIR)/soft/bin2rom.pl $(HOS_DIR)/sample.bin > $(TOP_DIR)/soft/boot_rom.v
 	mips-elf-objdump -D $(HOS_DIR)/sample.elf > disasm.txt 
 
+soft_clean:
+	make -C $(HOS_DIR) -f gmake.mak mostlyclean
+
 
 work_setup:
 	vlib $(WORK_DIR)
