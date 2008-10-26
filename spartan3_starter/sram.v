@@ -33,10 +33,14 @@ module sram
 	always @ ( posedge we_n ) begin
 		if ( ~dly_ce_n ) begin
 			mem[dly_addr] <= dly_data;
+//			$display("[asram] write %x %x", dly_addr, dly_data);
 		end
 	end
 	
 	assign data = (~dly_ce_n & ~dly_oe_n) ? mem[dly_addr] : {DATA_WIDTH{1'bz}};
 	
+///	always @ ( negedge oe_n ) begin
+//		$display("read %x %x", addr, mem[addr]);
+//	end
 	
 endmodule

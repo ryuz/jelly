@@ -11,7 +11,7 @@ HOS_DIR  = ~/hos-v4a/sample/mips/jelly/gcc
 VLOG_FLAGS =
 
 
-all: soft_build work_setup prj_compile
+all: soft_build $(TOP_DIR)/soft/boot_rom.v work_setup prj_compile
 	vsim -c -wlf vsim.wlf -do "run -all" -L xilinxcorelib_ver -L unisims_ver -lib work tb_top glbl
 
 clean:
@@ -21,11 +21,14 @@ clean:
 
 soft_build:
 	make -C $(HOS_DIR) -f gmake.mak
-	$(TOP_DIR)/soft/bin2rom.pl $(HOS_DIR)/sample.bin > $(TOP_DIR)/soft/boot_rom.v
-	mips-elf-objdump -D $(HOS_DIR)/sample.elf > disasm.txt 
 
 soft_clean:
 	make -C $(HOS_DIR) -f gmake.mak mostlyclean
+
+$(TOP_DIR)/soft/boot_rom.v: $(HOS_DIR)/sample.bin
+	$(TOP_DIR)/soft/bin2rom.pl $(HOS_DIR)/sample.bin > $(TOP_DIR)/soft/boot_rom.v
+	mips-elf-objdump -D $(HOS_DIR)/sample.elf > disasm.txt
+
 
 
 work_setup:
@@ -62,6 +65,7 @@ prj_compile:
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/uart/uart.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/uart/uart_tx.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/uart/uart_rx.v
+	vlog $(VLOG_FLAGS) $(RTL_DIR)/asram/asram.v
 	vlog $(VLOG_FLAGS) $(TOP_DIR)/soft/boot_rom.v
 
 

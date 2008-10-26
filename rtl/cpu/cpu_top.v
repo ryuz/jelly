@@ -115,9 +115,8 @@ module cpu_top
 			reg_busy <= 1'b0;
 		end
 		else begin
-			if ( wb_stb_o & !wb_ack_i ) begin
-				reg_busy <= wb_stb_o & !wb_ack_i;
-			end
+			reg_busy <= wb_stb_o & !wb_ack_i;
+			
 			if ( !reg_busy ) begin
 				reg_sw <= sw;
 			end

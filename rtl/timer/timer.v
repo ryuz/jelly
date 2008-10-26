@@ -1,6 +1,6 @@
 // ----------------------------------------------------------------------------
 //  Jelly  -- The computing system on FPGA
-//    Interrupt controller
+//    Timmer
 //
 //                                       Copyright (C) 2008 by Ryuji Fuchikami
 // ----------------------------------------------------------------------------
@@ -9,7 +9,7 @@
 `timescale 1ns / 1ps
 
 
-module timer
+module jelly_timer
 		(
 			reset, clk,
 			interrupt_req,
@@ -61,7 +61,7 @@ module timer
 
 
 	assign wb_dat_o = 0;
-	assign wb_ack_o = 0;
+	assign wb_ack_o = 1'b1;
 
 endmodule
 

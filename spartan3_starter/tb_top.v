@@ -47,13 +47,13 @@ module tb_top;
 			.uart_tx		(),
 			.uart_rx		(uart_rx),
 
-			.sram_ce0_n		(sram_ce0_n),
-			.sram_ce1_n		(sram_ce1_n),
-			.sram_we_n		(sram_we_n),
-			.sram_oe_n		(sram_oe_n),
-			.sram_bls_n		(sram_bls_n),
-			.sram_a			(sram_a),
-			.sram_d			(sram_d)
+			.asram_ce0_n	(sram_ce0_n),
+			.asram_ce1_n	(sram_ce1_n),
+			.asram_we_n		(sram_we_n),
+			.asram_oe_n		(sram_oe_n),
+			.asram_bls_n	(sram_bls_n),
+			.asram_a		(sram_a),
+			.asram_d		(sram_d)
 		);
 	
 	sram i_sram0 (.ce_n(sram_ce0_n), .we_n(sram_we_n | sram_bls_n[0]), .oe_n(sram_oe_n), .addr(sram_a), .data(sram_d[7:0]));
@@ -131,6 +131,17 @@ module tb_top;
 		#UART_RATE 	uart_rx = 1'b1;		// 6
 		#UART_RATE 	uart_rx = 1'b0;		// 7 : MSB		
 		#UART_RATE 	uart_rx = 1'b1;		// stop
+	end
+	
+	// PC trace
+	integer	pc_trace;
+	initial begin
+		pc_trace = $fopen("pc_trace.txt");
+	end
+	always @ ( posedge i_top.i_cpu_top.i_cpu_core.clk ) begin
+		if ( !i_top.i_cpu_top.i_cpu_core.ex_out_stall ) begin
+			$fdisplay(pc_trace, "%t %h", $time, i_top.i_cpu_top.i_cpu_core.ex_out_pc);
+		end
 	end
 	
 	
