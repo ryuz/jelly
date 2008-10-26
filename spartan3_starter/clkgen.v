@@ -111,11 +111,11 @@ module clkgen
 				.STATUS					()
 			);
 	
-	assign out_clk    = clkdv_bufg;
-	assign out_clk_x2 = clk0_bufg;
+//	assign out_clk    = clkdv_bufg;
+//	assign out_clk_x2 = clk0_bufg;
 
-//	assign out_clk      = clk0_bufg;
-//	assign out_clk_x2   = clk2x_bufg;
+	assign out_clk      = clk0_bufg;
+	assign out_clk_x2   = clk2x_bufg;
 	
 	assign out_clk_uart = clk0_bufg;
 	
