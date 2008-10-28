@@ -9,6 +9,11 @@
 `timescale 1ns / 1ps
 
 
+`define TIMER_ADR_CONTROL	2'b00
+`define TIMER_ADR_COMPARE	2'b01
+`define TIMER_ADR_COUNTER	2'b11
+
+
 module jelly_timer
 		(
 			reset, clk,
@@ -36,19 +41,39 @@ module jelly_timer
 	input						wb_stb_i;
 	output						wb_ack_o;
 	
+	reg					reg_enable;
+	reg					reg_clear;
 	reg		[31:0]		reg_counter;
 	reg		[31:0]		reg_compare;
+	
 	
 	wire				compare_match;
 	assign compare_match = (reg_counter == reg_compare);
 	
 	always @ ( posedge clk or posedge reset ) begin
 		if ( reset ) begin
+			reg_enable  <= 1'b0;
+			reg_clear   <= 1'b0;
 			reg_counter <= 0;
 			reg_compare <= 50000 - 1;
 		end
 		else begin
-			if ( compare_match ) begin
+			// control
+			if ( wb_stb_i & wb_we_i & (wb_adr_i == `TIMER_ADR_CONTROL) ) begin
+				reg_enable <= wb_dat_i[0];
+				reg_clear  <= wb_dat_i[1];
+			end
+			else begin
+				reg_clear  <= 1'b0;		// auto clear;
+			end
+			
+			// compare
+			if ( wb_stb_i & wb_we_i & (wb_adr_i == `TIMER_ADR_CONTROL) ) begin
+				reg_enable[0] <= wb_dat_i;
+			end
+			
+			// counter
+			if ( compare_match | reg_clear ) begin
 				reg_counter <= 0;
 			end
 			else begin
@@ -58,10 +83,10 @@ module jelly_timer
 	end
 	
 	assign interrupt_req = compare_match;
-
-
+	
+	
 	assign wb_dat_o = 0;
 	assign wb_ack_o = 1'b1;
-
+	
 endmodule
 

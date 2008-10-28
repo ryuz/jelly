@@ -255,8 +255,8 @@ module cpu_core
 				.w0_data		(id_in_dst_reg_data),
 				
 				.w1_en			(1'b0),
-				.w1_addr		(0),
-				.w1_data		(0)
+				.w1_addr		(5'b00000),
+				.w1_data		(32'h0000_0000)
 			);
 	
 	
@@ -556,11 +556,11 @@ module cpu_core
 	
 	// Shifter
 	wire	[31:0]		ex_shifter_in_data;
-	wire	[31:0]		ex_shifter_in_sa;
+	wire	[4:0]		ex_shifter_in_sa;
 	wire	[31:0]		ex_shifter_out_data;
 	
 	assign ex_shifter_in_data = ex_fwd_rt_data;
-	assign ex_shifter_in_sa   = id_out_shifter_sa_en ? id_out_shifter_sa_data : ex_fwd_rs_data;
+	assign ex_shifter_in_sa   = id_out_shifter_sa_en ? id_out_shifter_sa_data : ex_fwd_rs_data[4:0];
 	
 	cpu_shifter
 		i_cpu_shifter
@@ -625,7 +625,7 @@ module cpu_core
 				
 				.exception_en	(ex_exception),
 				.exception_rfe	(id_out_cop0_rfe & ~ex_stall & ~ex_exception),
-				.exception_cause(0),
+				.exception_cause(32'h0000_0000),
 				.exception_pc	(ex_cop0_exception_pc),
 				
 				.status			(ex_cop0_status),

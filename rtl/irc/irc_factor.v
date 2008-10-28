@@ -13,14 +13,14 @@ module irc_factor
 		(
 			reset, clk,
 			factor_id,
-			in_interrupt, mask,
-			reqest_send, reqest_sense, reqest_busy,
+			in_interrupt,
+			reqest_reset, reqest_start, reqest_send, reqest_sense,
 			wb_adr_i, wb_dat_o, wb_dat_i, wb_we_i, wb_sel_i, wb_stb_i, wb_ack_o
 		);
 	
 	parameter	FACTOR_ID_WIDTH = 2;
 	parameter	PRIORITY_WIDTH  = 3;
-	localparam	PACKET_WIDTH    = 1 + PRIORITY_WIDTH + FACTOR_ID_WIDTH;
+	localparam	PACKET_WIDTH    = PRIORITY_WIDTH + FACTOR_ID_WIDTH;
 	
 	parameter	WB_ADR_WIDTH   = 2;
 	parameter	WB_DAT_WIDTH   = 32;
@@ -34,12 +34,12 @@ module irc_factor
 	
 	// interrupt
 	input							in_interrupt;
-	input	[PRIORITY_WIDTH-1:0]	mask;
 	
 	// request
+	input							reqest_reset;
+	input							reqest_start;
 	output							reqest_send;
 	input							reqest_sense;
-	input							reqest_busy;
 	
 	
 	// control port (wishbone)
@@ -59,33 +59,27 @@ module irc_factor
 	
 	// interrupt
 	wire							interrupt_assert;
-	assign interrupt_assert = (reg_priority < mask) & reg_pending & reg_enable;
+	assign interrupt_assert = reg_pending & reg_enable;
 	
 	
-	// send request
-	reg								send_st_busy;
-	reg		[PACKET_WIDTH-1:0]		send_st_send;
+	// request send
 	reg		[PACKET_WIDTH-1:0]		send_packet;
 	always @ ( posedge clk or posedge reset ) begin
 		if ( reset ) begin
-			send_st_busy <= 1'b0;
 			send_packet  <= {PACKET_WIDTH{1'b1}};
 		end
 		else begin
-			if ( interrupt_assert & !send_st_busy & !reqest_busy ) begin
-				send_st_busy <= 1'b1;
-				send_packet  <= {1'b0, reg_priority, factor_id};
+			if ( reqest_reset ) begin
+				send_packet <= {PACKET_WIDTH{1'b1}};
 			end
 			else begin
-				if ( send_st_busy ) begin
-					if ( reqest_sense != reqest_send ) begin
-						send_st_busy <= 1'b0;
-					end
-					else begin
-						send_packet <= {send_packet[PACKET_WIDTH-2:0], 1'b1};
-					end
+				if ( interrupt_assert & reqest_start ) begin
+					send_packet  <= {reg_priority, factor_id};
 				end
-			end			
+				else begin
+					send_packet  <= {send_packet, 1'b1};
+				end
+			end
 		end
 	end
 	

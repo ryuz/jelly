@@ -59,74 +59,66 @@ module jelly_irc
 	output							wb_ack_o;
 	
 	
-	// interrupt request
-	reg								req_irq;
 	
 	// control register
 	reg								reg_enable;
 	reg		[PRIORITY_WIDTH-1:0]	reg_mask;
-	
+	reg		[PRIORITY_WIDTH-1:0]	reg_req_priority;
+	reg		[FACTOR_ID_WIDTH-1:0]	reg_req_factor_id;
 	
 	
 	// -----------------------------
-	//  Request recive
+	//  recive request
 	// -----------------------------
 
+	reg								prev_enable;
 	reg		[PRIORITY_WIDTH-1:0]	recv_priority;
-	reg		[FACTOR_ID_WIDTH-1:0]	recv_factor_id;
-
+	reg		[FACTOR_ID_WIDTH-2:0]	recv_factor_id;
+	
 	wire	[FACTOR_NUM-1:0]		factor_request_send;
 	wire							request_recv;
 	assign request_recv = (factor_request_send == {FACTOR_NUM{1'b1}});
 	
 	localparam	PACKET_WIDTH = (PRIORITY_WIDTH + FACTOR_ID_WIDTH);
-	reg								recv_st_busy;
-	reg		[PACKET_WIDTH-1:0]		recv_packet;
 	reg		[PACKET_WIDTH:0]		recv_counter;
 	
 	always @ ( posedge clk or posedge reset ) begin
 		if ( reset ) begin
-			req_irq        <= 1'b0;
-
-			recv_priority  <= {PRIORITY_WIDTH{1'b1}};
-			recv_factor_id <= {PRIORITY_WIDTH{1'b0}};
-
-			recv_st_busy   <= 1'b0;
-			recv_counter   <= {PACKET_WIDTH{1'b0}};
+			prev_enable       <= 1'b0;
+			reg_req_priority  <= {PRIORITY_WIDTH{1'b1}};
+			reg_req_factor_id <= {PRIORITY_WIDTH{1'b0}};
+			recv_counter      <= {{PACKET_WIDTH-1{1'b0}}, 1'b1};
 		end
 		else begin
-			if ( !recv_st_busy ) begin
-				if ( request_recv == 1'b0 ) begin
-					recv_st_busy    <= 1'b1;
-					recv_counter[0] <= 1'b1;
+			prev_enable <= reg_enable;
+			if ( reg_enable ) begin
+				// posedge reg_enable
+				if ( !prev_enable ) begin
+					reg_req_priority <= {PRIORITY_WIDTH{1'b1}};
+				end
+				
+				// state counter
+				recv_counter <= {recv_counter[PACKET_WIDTH-2:0], recv_counter[PACKET_WIDTH-1]};
+				
+				// packet receive
+				{recv_priority, recv_factor_id} <= {recv_priority, recv_factor_id, request_recv};
+				
+				// recive end
+				if ( recv_counter[PACKET_WIDTH-1] ) begin
+					reg_req_priority  <= recv_priority;
+					reg_req_factor_id <= {recv_factor_id, request_recv};
 				end
 			end
 			else begin
-				if ( recv_counter[PACKET_WIDTH] ) begin
-					if ( reg_enable ) begin
-						recv_counter <= (recv_counter << 1);
-						recv_st_busy <= 1'b0;
-						{recv_priority, recv_factor_id} <= recv_packet;
-					end
-				end
-				else begin
-					recv_counter <= (recv_counter << 1);
-				end
-			end
-			
-			if ( reg_enable & (request_recv == 1'b0) ) begin
-				req_irq <= 1'b1;
-			end
-			else if ( ~reg_enable | cpu_irq_ack ) begin
-				req_irq <= 1'b0;
+				recv_counter <= {{PACKET_WIDTH-1{1'b0}}, 1'b1};
 			end
 		end
 	end
 	
-	assign cpu_irq = req_irq & reg_enable;
+	assign cpu_irq = reg_enable & prev_enable & (reg_req_priority < reg_mask);
 	
 	
-		
+	
 	// -----------------------------
 	//  factors
 	// -----------------------------
@@ -136,7 +128,10 @@ module jelly_irc
 	generate
 	genvar	i;
 	for ( i = FACTOR_NUM - 1; i >= 0; i = i - 1 ) begin : factor
-		wire	[WB_DAT_WIDTH-1:0]		tmp_wb_dat_o;
+		wire	[FACTOR_ID_WIDTH-1:0]	f_factor_id;
+		assign f_factor_id = i;
+		
+		wire	[WB_DAT_WIDTH-1:0]		f_wb_dat_o;
 		irc_factor
 				#(
 					.FACTOR_ID_WIDTH	(FACTOR_ID_WIDTH),
@@ -148,29 +143,29 @@ module jelly_irc
 					.reset			(reset),
 					.clk			(clk),
 
-					.factor_id		(i),
+					.factor_id		(f_factor_id),
 					
 					.in_interrupt	(in_interrupt[i]),
-					.mask			(reg_mask),
 					
+					.reqest_reset	(~reg_enable),
+					.reqest_start	(recv_counter[0]),
 					.reqest_send	(factor_request_send[i]),
 					.reqest_sense	(request_recv),
-					.reqest_busy	(recv_st_busy),
 					
 					.wb_adr_i		(wb_adr_i[1:0]),
-					.wb_dat_o		(tmp_wb_dat_o),
+					.wb_dat_o		(f_wb_dat_o),
 					.wb_dat_i		(wb_dat_i),
 					.wb_we_i		(wb_we_i),
 					.wb_sel_i		(wb_sel_i),
-					.wb_stb_i		(wb_stb_i & (wb_adr_i[WB_ADR_WIDTH-1:2] == (i + `IRC_ADR_FACTOR_BASE))),
+					.wb_stb_i		(wb_stb_i & (wb_adr_i[WB_ADR_WIDTH-1:2] == (i + (`IRC_ADR_FACTOR_BASE >> 2)))),
 					.wb_ack_o		()
 				);
 		
 		if ( i == (FACTOR_NUM - 1) ) begin
-			assign factor_wb_dat_o[WB_DAT_WIDTH*(i+1)-1:WB_DAT_WIDTH*i] = tmp_wb_dat_o;
+			assign factor_wb_dat_o[WB_DAT_WIDTH*(i+1)-1:WB_DAT_WIDTH*i] = f_wb_dat_o;
 		end
 		else begin
-			assign factor_wb_dat_o[WB_DAT_WIDTH*(i+1)-1:WB_DAT_WIDTH*i] = tmp_wb_dat_o | factor_wb_dat_o[WB_DAT_WIDTH*(i+2)-1:WB_DAT_WIDTH*(i+1)];
+			assign factor_wb_dat_o[WB_DAT_WIDTH*(i+1)-1:WB_DAT_WIDTH*i] = f_wb_dat_o | factor_wb_dat_o[WB_DAT_WIDTH*(i+2)-1:WB_DAT_WIDTH*(i+1)];
 		end
 	end
 	endgenerate
@@ -204,8 +199,8 @@ module jelly_irc
 		case ( wb_adr_i )
 		`IRC_ADR_ENABLE:		wb_dat_o <= reg_enable;
 		`IRC_ADR_MASK:			wb_dat_o <= reg_mask;
-		`IRC_ADR_REQ_FACTOR_ID:	wb_dat_o <= recv_factor_id;
-		`IRC_ADR_REQ_PRIORITY:	wb_dat_o <= recv_priority;
+		`IRC_ADR_REQ_FACTOR_ID:	wb_dat_o <= reg_req_factor_id;
+		`IRC_ADR_REQ_PRIORITY:	wb_dat_o <= reg_req_priority;
 		`IRC_ADR_FACTOR_NUM:	wb_dat_o <= FACTOR_NUM;
 		`IRC_ADR_PRIORITY_MAX:	wb_dat_o <= (1 << PRIORITY_WIDTH) - 1;
 		default:				wb_dat_o <= factor_wb_dat_o[WB_DAT_WIDTH-1:0];

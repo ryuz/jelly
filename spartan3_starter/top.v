@@ -13,17 +13,16 @@
 module top
 		(
 			clk_in, reset_in,
-			uart_tx, uart_rx,
 			asram_ce0_n, asram_ce1_n, asram_we_n, asram_oe_n, asram_bls_n, asram_a, asram_d,
+			uart_tx, uart_rx,
 			ext, led
 		);
 	
+	// system
 	input				clk_in;
 	input				reset_in;
 	
-	output				uart_tx;
-	input				uart_rx;
-	
+	// asram
 	output				asram_ce0_n;
 	output				asram_ce1_n;
 	output				asram_we_n;
@@ -32,10 +31,24 @@ module top
 	output	[17:0]		asram_a;
 	inout	[31:0]		asram_d;
 
+	// uart
+	output				uart_tx;
+	input				uart_rx;
+
 	output	[30:0]		ext;
 	output	[7:0]		led;
 
-
+	
+	
+	// -------------------------
+	//  system
+	// -------------------------
+	
+	// endian
+	wire				endian;
+	assign endian = 1'b1;			// 0:little, 1:big
+	
+	
 	// clock
 	wire				clk;
 	wire				clk_x2;
@@ -44,22 +57,30 @@ module top
 	clkgen
 		i_clkgen
 			(
-				.in_reset		(reset_in), 
-				.in_clk			(clk_in), 
+				.in_reset			(reset_in), 
+				.in_clk				(clk_in), 
 			
-				.out_clk		(clk),
-				.out_clk_x2		(clk_x2),
-				.out_clk_uart	(clk_uart),
-				.locked			(locked)
+				.out_clk			(clk),
+				.out_clk_x2			(clk_x2),
+				.out_clk_uart		(clk_uart),
+				.locked				(locked)
 		);
 	
-	// system
+	// reset
 	wire				reset;
 	assign reset = reset_in | ~locked;
 	
+	
+	
+	// -------------------------
+	//  cpu
+	// -------------------------
+	
 	// interrupt
 	wire			cpu_irq;
-
+	wire			cpu_irq_ack;
+	
+	
 	// cpu-bus (Whishbone)
 	wire	[31:2]	wb_adr_o;
 	reg		[31:0]	wb_dat_i;
@@ -73,46 +94,108 @@ module top
 	cpu_top
 		i_cpu_top
 			(
-				.reset			(reset),
-				.clk			(clk),
-				.clk_x2			(clk_x2),
+				.reset				(reset),
+				.clk				(clk),
+				.clk_x2				(clk_x2),
 
-				.endian			(1'b1),
+				.endian				(endian),
 				
-				.vect_reset		(32'h0000_0000),
-				.vect_interrupt	(32'h0000_0180),
-				.vect_exception	(32'h0000_0180),
+				.vect_reset			(32'h0000_0000),
+				.vect_interrupt		(32'h0000_0180),
+				.vect_exception		(32'h0000_0180),
 
-				.interrupt_req	(cpu_irq),
-				.interrupt_ack	(),
+				.interrupt_req		(cpu_irq),
+				.interrupt_ack		(cpu_irq_ack),
 				
-				.wb_adr_o		(wb_adr_o),
-				.wb_dat_i		(wb_dat_i),
-				.wb_dat_o		(wb_dat_o),
-				.wb_we_o		(wb_we_o),
-				.wb_sel_o		(wb_sel_o),
-				.wb_stb_o		(wb_stb_o),
-				.wb_ack_i		(wb_ack_i),
+				.wb_adr_o			(wb_adr_o),
+				.wb_dat_i			(wb_dat_i),
+				.wb_dat_o			(wb_dat_o),
+				.wb_we_o			(wb_we_o),
+				.wb_sel_o			(wb_sel_o),
+				.wb_stb_o			(wb_stb_o),
+				.wb_ack_i			(wb_ack_i),
 				
-				.pause			(1'b0)
+				.pause				(1'b0)
 			);
 	
 	
-	// boot rom
+	// -------------------------
+	//  IRC
+	// -------------------------
+	
+	// irq
+	wire				timer0_irq;
+	wire				uart0_irq_rx;
+	wire				uart0_irq_tx;
+	
+	// irq map
+	wire	[7:0]		irc_interrupt;
+	assign irc_interrupt[0] = timer0_irq;
+	assign irc_interrupt[1] = 1'b0;
+	assign irc_interrupt[2] = 1'b0;
+	assign irc_interrupt[3] = 1'b0;
+	assign irc_interrupt[4] = uart0_irq_rx;
+	assign irc_interrupt[5] = uart0_irq_tx;
+	assign irc_interrupt[6] = 1'b0;
+	assign irc_interrupt[7] = 1'b0;
+	
+	// irc
+	reg					irc_wb_stb_i;
+	wire	[31:0]		irc_wb_dat_o;
+	wire				irc_wb_ack_o;
+	
+	jelly_irc
+			#(
+				.FACTOR_ID_WIDTH	(3),
+				.FACTOR_NUM			(8),
+				.PRIORITY_WIDTH		(3),
+	
+				.WB_ADR_WIDTH		(14),
+				.WB_DAT_WIDTH		(32)
+			)
+		i_irc
+			(
+				.clk				(clk),
+				.reset				(reset),
+
+				.in_interrupt		(irc_interrupt),
+
+				.cpu_irq			(cpu_irq),
+				.cpu_irq_ack		(cpu_irq_ack),
+											
+				.wb_adr_i			(wb_adr_o[15:2]),
+				.wb_dat_o			(irc_wb_dat_o),
+				.wb_dat_i			(wb_dat_o),
+				.wb_we_i			(wb_we_o),
+				.wb_sel_i			(wb_sel_o),
+				.wb_stb_i			(irc_wb_stb_i),
+				.wb_ack_o			(irc_wb_ack_o)
+			);
+	
+	
+	
+	// -------------------------
+	//  boot rom
+	// -------------------------
+	
 	reg					rom_wb_stb_i;
 	wire	[31:0]		rom_wb_dat_o;
 	wire				rom_wb_ack_o;
 	boot_rom
 		i_boot_rom
 			(
-				.clk			(~clk),
-				.addr			(wb_adr_o),
-				.data			(rom_wb_dat_o)
+				.clk				(~clk),
+				.addr				(wb_adr_o[13:2]),
+				.data				(rom_wb_dat_o)
 			);
 	assign rom_wb_ack_o = 1'b1;
 	
+
 		
-	// asram
+	// -------------------------
+	//  asram
+	// -------------------------
+
 	reg					asram_wb_stb_i;
 	wire	[31:0]		asram_wb_dat_o;
 	wire				asram_wb_ack_o;
@@ -135,7 +218,7 @@ module top
 				.asram_a		(asram_a),
 				.asram_d		(asram_d),
 				
-				.wb_adr_i		(wb_adr_o),
+				.wb_adr_i		(wb_adr_o[19:2]),
 				.wb_dat_o		(asram_wb_dat_o),
 				.wb_dat_i		(wb_dat_o),
 				.wb_we_i		(wb_we_o),
@@ -145,45 +228,13 @@ module top
 			);
 	assign asram_ce0_n  = asram_cs_n;
 	assign asram_ce1_n  = asram_cs_n;
-
-	/*
-	assign asram_wb_dat_o = asram_d;
-	assign asram_wb_ack_o = 1'b1;
-	
-	assign asram_ce0_n  = ~(asram_wb_stb_i);
-	assign asram_ce1_n  = asram_ce0_n;
-	assign asram_we_n   = ~(wb_we_o  & ~asram_ce0_n);
-	assign asram_oe_n   = ~(~wb_we_o & ~asram_ce0_n);
-	assign asram_bls_n  = ~wb_sel_o;
-	assign asram_a      = wb_adr_o;
-	assign asram_d      = (~asram_ce0_n & ~asram_we_n) ? wb_dat_o : 32'hzzzzzzzz;	
-	*/
 	
 	
-	// IRC
-	reg					irc_wb_stb_i;
-	wire	[31:0]		irc_wb_dat_o;
-	wire				irc_wb_ack_o;
-
-	jelly_irc
-		i_irc
-			(
-				.clk			(clk),
-				.reset			(reset),
-							
-				.wb_adr_i		(wb_adr_o[8:2]),
-				.wb_dat_o		(irc_wb_dat_o),
-				.wb_dat_i		(wb_dat_o),
-				.wb_we_i		(wb_we_o),
-				.wb_sel_i		(wb_sel_o),
-				.wb_stb_i		(irc_wb_stb_i),
-				.wb_ack_o		(irc_wb_ack_o)
-			);
 	
+	// -------------------------
+	//  Timer0
+	// -------------------------
 	
-	// Timer
-	wire				timer0_irq;
-
 	reg					timer0_wb_stb_i;
 	wire	[31:0]		timer0_wb_dat_o;
 	wire				timer0_wb_ack_o;
@@ -196,7 +247,7 @@ module top
 				
 				.interrupt_req	(timer0_irq),
 
-				.wb_adr_i		(wb_adr_o[4:2]),
+				.wb_adr_i		(wb_adr_o[3:2]),
 				.wb_dat_o		(timer0_wb_dat_o),
 				.wb_dat_i		(wb_dat_o),
 				.wb_we_i		(wb_we_o),
@@ -205,6 +256,7 @@ module top
 				.wb_ack_o		(timer0_wb_ack_o)
 			);
 	
+	/*
 	reg		[7:0]	reg_irq;
 	always @ ( posedge clk or posedge reset ) begin
 		if ( reset ) begin
@@ -216,10 +268,14 @@ module top
 	end
 	
 	assign cpu_irq = (reg_irq != 0);
+	*/
 	
 	
 	
-	// UART
+	// -------------------------
+	//  UART
+	// -------------------------
+	
 	reg					uart0_wb_stb_i;
 	wire	[31:0]		uart0_wb_dat_o;
 	wire				uart0_wb_ack_o;
@@ -233,8 +289,11 @@ module top
 				.uart_clk		(clk_uart),
 				.uart_tx		(uart_tx),
 				.uart_rx		(uart_rx),
+
+				.irq_rx			(uart0_irq_rx),
+				.irq_tx			(uart0_irq_tx),
 				
-				.wb_adr_i		(wb_adr_o[4:2]),
+				.wb_adr_i		(wb_adr_o[3:2]),
 				.wb_dat_o		(uart0_wb_dat_o),
 				.wb_dat_i		(wb_dat_o),
 				.wb_we_i		(wb_we_o),
@@ -245,7 +304,10 @@ module top
 	
 	
 	
-	// address decoder
+	// -------------------------
+	//  address decoder
+	// -------------------------
+	
 	always @* begin
 		rom_wb_stb_i    = 1'b0;
 		asram_wb_stb_i  = 1'b0;
@@ -299,7 +361,11 @@ module top
 	
 	
 	
-	// LED
+	
+	// -------------------------
+	//  LED
+	// -------------------------
+	
 	reg		[31:0]		led_counter;
 	always @ ( posedge clk or posedge reset ) begin
 		if ( reset ) begin
@@ -310,7 +376,6 @@ module top
 		end
 	end
 	assign led[7:0] = led_counter[31:24];
-	
 	
 	// debug port
 	assign ext  = 0;

@@ -34,7 +34,7 @@ module cpu_cop0
 	output	[31:0]	out_data;
 	
 	input			exception_en;
-	input			exception_cause;
+	input	[31:0]	exception_cause;
 	input	[31:0]	exception_pc;
 	input			exception_rfe;
 	
