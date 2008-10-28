@@ -219,10 +219,10 @@ module pipeline_fifo_async
 	end
 	
 	assign rd_empty     = (rd_wptr == rd_rptr);
-
+	
 	assign ram_rd_en    = 1'b1;	// ~rd_empty & (out_ready | ~out_en);
 	assign ram_rd_addr  = rd_rptr[PTR_WIDTH-1:0];
-
+	
 	assign out_en       = rd_data_valid | rd_valid;
 	assign out_data     = rd_data_valid ? rd_data : ram_rd_data;
 	assign out_data_num = (rd_wptr - rd_rptr);

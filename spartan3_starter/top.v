@@ -256,20 +256,6 @@ module top
 				.wb_ack_o		(timer0_wb_ack_o)
 			);
 	
-	/*
-	reg		[7:0]	reg_irq;
-	always @ ( posedge clk or posedge reset ) begin
-		if ( reset ) begin
-			reg_irq <= 0;
-		end
-		else begin
-			reg_irq <= {reg_irq, timer0_irq};
-		end
-	end
-	
-	assign cpu_irq = (reg_irq != 0);
-	*/
-	
 	
 	
 	// -------------------------
@@ -301,7 +287,6 @@ module top
 				.wb_stb_i		(uart0_wb_stb_i),
 				.wb_ack_o		(uart0_wb_ack_o)
 			);
-	
 	
 	
 	// -------------------------
@@ -358,7 +343,6 @@ module top
 			end
 		endcase
 	end
-	
 	
 	
 	

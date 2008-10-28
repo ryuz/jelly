@@ -45,17 +45,18 @@ module jelly_timer
 	reg					reg_clear;
 	reg		[31:0]		reg_counter;
 	reg		[31:0]		reg_compare;
-	
+	reg					interrupt_req;
 	
 	wire				compare_match;
 	assign compare_match = (reg_counter == reg_compare);
 	
 	always @ ( posedge clk or posedge reset ) begin
 		if ( reset ) begin
-			reg_enable  <= 1'b0;
-			reg_clear   <= 1'b0;
-			reg_counter <= 0;
-			reg_compare <= 50000 - 1;
+			reg_enable    <= 1'b0;
+			reg_clear     <= 1'b0;
+			reg_counter   <= 0;
+			reg_compare   <= 50000 - 1;
+			interrupt_req <= 1'b0;
 		end
 		else begin
 			// control
@@ -68,8 +69,8 @@ module jelly_timer
 			end
 			
 			// compare
-			if ( wb_stb_i & wb_we_i & (wb_adr_i == `TIMER_ADR_CONTROL) ) begin
-				reg_enable[0] <= wb_dat_i;
+			if ( wb_stb_i & wb_we_i & (wb_adr_i == `TIMER_ADR_COMPARE) ) begin
+				reg_compare <= wb_dat_i;
 			end
 			
 			// counter
@@ -77,15 +78,29 @@ module jelly_timer
 				reg_counter <= 0;
 			end
 			else begin
-				reg_counter <= reg_counter + 1;
+				reg_counter <= reg_counter + reg_enable;
+			end
+			
+			// interrupt
+			if ( compare_match ) begin
+				interrupt_req <= reg_enable;
+			end
+			else begin
+				interrupt_req <= 1'b0;
 			end
 		end
 	end
 	
-	assign interrupt_req = compare_match;
-	
-	
-	assign wb_dat_o = 0;
+	reg		[WB_DAT_WIDTH-1:0]	wb_dat_o;
+	always @* begin
+		case ( wb_adr_i )
+		`TIMER_ADR_CONTROL:	wb_dat_o <= {reg_clear, reg_enable};
+		`TIMER_ADR_COMPARE:	wb_dat_o <= reg_compare;
+		`TIMER_ADR_COUNTER:	wb_dat_o <= reg_counter;
+		default:			wb_dat_o <= {WB_DAT_WIDTH{1'b0}};
+		endcase
+	end
+		
 	assign wb_ack_o = 1'b1;
 	
 endmodule

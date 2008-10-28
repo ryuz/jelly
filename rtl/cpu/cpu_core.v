@@ -169,13 +169,11 @@ module cpu_core
 	reg		[4:0]	id_out_rs_addr;
 	reg		[4:0]	id_out_rt_addr;
 	reg		[4:0]	id_out_rd_addr;
+	reg		[31:0]	id_out_immediate_data;
 	
 	wire	[31:0]	id_out_rs_data;
 	wire	[31:0]	id_out_rt_data;
 	
-	reg				id_out_immediate_en;
-	reg		[31:0]	id_out_immediate_data;
-
 	reg				id_out_branch_en;
 	reg		[3:0]	id_out_branch_func;
 	reg		[27:0]	id_out_branch_index;
@@ -189,6 +187,7 @@ module cpu_core
 	reg		[1:0]	id_out_alu_logic_func;
 	reg				id_out_alu_comp_en;
 	reg		[1:0]	id_out_alu_comp_func;
+	reg				id_out_alu_imm_en;
 
 	reg				id_out_shifter_en;
 	reg		[1:0]	id_out_shifter_func;
@@ -208,8 +207,9 @@ module cpu_core
 	reg				id_out_cop0_mtc0;
 	reg				id_out_cop0_rfe;
 	
-	reg				id_out_exp_syscall;
-	reg				id_out_exp_break;
+	reg				id_out_exc_syscall;
+	reg				id_out_exc_break;
+	reg				id_out_exc_ri;
 	
 	reg				id_out_mem_en;
 	reg				id_out_mem_we;
@@ -261,12 +261,10 @@ module cpu_core
 	
 	
 	// opecode decode
-	wire			id_dec_immediate_en;
-	wire	[31:0]	id_dec_immediate_data;
-
 	wire	[4:0]	id_dec_rs_addr;
 	wire	[4:0]	id_dec_rt_addr;
 	wire	[4:0]	id_dec_rd_addr;
+	wire	[31:0]	id_dec_immediate_data;
 	
 	wire			id_dec_branch_en;
 	wire	[3:0]	id_dec_branch_func;
@@ -281,7 +279,8 @@ module cpu_core
 	wire	[1:0]	id_dec_alu_logic_func;
 	wire			id_dec_alu_comp_en;
 	wire			id_dec_alu_comp_func;
-	
+	wire			id_dec_alu_imm_en;
+
 	wire			id_dec_shifter_en;
 	wire	[1:0]	id_dec_shifter_func;
 	wire			id_dec_shifter_sa_en;
@@ -300,8 +299,9 @@ module cpu_core
 	wire			id_dec_cop0_mtc0;
 	wire			id_dec_cop0_rfe;
 	
-	wire			id_dec_exp_syscall;
-	wire			id_dec_exp_break;
+	wire			id_dec_exc_syscall;
+	wire			id_dec_exc_break;
+	wire			id_dec_exc_ri;
 	
 	wire			id_dec_mem_en;
 	wire			id_dec_mem_we;
@@ -326,8 +326,6 @@ module cpu_core
 				.rs_addr			(id_dec_rs_addr),
 				.rt_addr			(id_dec_rt_addr),
 				.rd_addr			(id_dec_rd_addr),
-								
-				.immediate_en		(id_dec_immediate_en),
 				.immediate_data		(id_dec_immediate_data),
 				
 				.branch_en			(id_dec_branch_en),
@@ -343,6 +341,7 @@ module cpu_core
 				.alu_logic_func		(id_dec_alu_logic_func),
 				.alu_comp_en		(id_dec_alu_comp_en),
 				.alu_comp_func		(id_dec_alu_comp_func),
+				.alu_imm_en			(id_dec_alu_imm_en),
 				
 				.shifter_en			(id_dec_shifter_en),
 				.shifter_func		(id_dec_shifter_func),
@@ -362,8 +361,9 @@ module cpu_core
 				.cop0_mtc0			(id_dec_cop0_mtc0),
 				.cop0_rfe			(id_dec_cop0_rfe),
                
-				.exp_syscall		(id_dec_exp_syscall),
-				.exp_break			(id_dec_exp_break),
+				.exc_syscall		(id_dec_exc_syscall),
+				.exc_break			(id_dec_exc_break),
+				.exc_ri				(id_dec_exc_ri),
 				
 				.mem_en				(id_dec_mem_en),
 				.mem_we				(id_dec_mem_we),
@@ -400,8 +400,9 @@ module cpu_core
 			id_out_muldiv_mthi <= 1'b0;
 			id_out_muldiv_mtlo <= 1'b0;
                
-			id_out_exp_syscall <= 1'b0;
-			id_out_exp_break   <= 1'b0;
+			id_out_exc_syscall <= 1'b0;
+			id_out_exc_break   <= 1'b0;
+			id_out_exc_ri      <= 1'b0;
 			
 			id_out_dst_reg_en  <= 1'b0;
 		end
@@ -411,13 +412,11 @@ module cpu_core
 				id_out_pc              <= if_out_pc;
 				id_out_instruction     <= if_out_instruction;
 				
-				id_out_rs_addr         <= if_out_instruction[25:21];
-				id_out_rt_addr         <= if_out_instruction[20:16];
-				id_out_rd_addr         <= if_out_instruction[15:11];
-				
-				id_out_immediate_en    <= id_dec_immediate_en;
+				id_out_rs_addr         <= id_dec_rs_addr;
+				id_out_rt_addr         <= id_dec_rt_addr;
+				id_out_rd_addr         <= id_dec_rd_addr;
 				id_out_immediate_data  <= id_dec_immediate_data;
-
+				
 				id_out_branch_en       <= id_dec_branch_en & ~id_stall;
 				id_out_branch_func     <= id_dec_branch_func;  
 				id_out_branch_index    <= id_dec_branch_index; 
@@ -431,6 +430,7 @@ module cpu_core
 				id_out_alu_logic_func  <= id_dec_alu_logic_func;
 				id_out_alu_comp_en     <= id_dec_alu_comp_en;
 				id_out_alu_comp_func   <= id_dec_alu_comp_func;
+				id_out_alu_imm_en      <= id_dec_alu_imm_en;
 				
 				id_out_shifter_en      <= id_dec_shifter_en;
 				id_out_shifter_func    <= id_dec_shifter_func;
@@ -450,10 +450,11 @@ module cpu_core
 				id_out_cop0_mtc0       <= id_dec_cop0_mtc0;
 				id_out_cop0_rfe        <= id_dec_cop0_rfe;
                 
-				id_out_exp_syscall     <= id_dec_exp_syscall;
-				id_out_exp_break       <= id_dec_exp_break;
+				id_out_exc_syscall     <= id_dec_exc_syscall;
+				id_out_exc_break       <= id_dec_exc_break;
+				id_out_exc_ri          <= id_dec_exc_ri;
 				
-				id_out_mem_en          <= id_dec_mem_en & ~id_stall;
+				id_out_mem_en          <= id_dec_mem_en  & ~id_stall;
 				id_out_mem_we          <= id_dec_mem_we;
 				id_out_mem_size        <= id_dec_mem_size;
 				id_out_mem_unsigned    <= id_dec_mem_unsigned;
@@ -517,7 +518,7 @@ module cpu_core
 	// fowarding
 	reg		[31:0]	ex_fwd_rs_data;
 	reg		[31:0]	ex_fwd_rt_data;
-		
+	
 	
 	// ALU
 	wire	[31:0]	ex_alu_in_data0;
@@ -529,7 +530,7 @@ module cpu_core
 	wire			ex_alu_out_zero;
 	
 	assign ex_alu_in_data0 = ex_fwd_rs_data; 
-	assign ex_alu_in_data1 = id_out_immediate_en ? id_out_immediate_data : ex_fwd_rt_data;
+	assign ex_alu_in_data1 = id_out_alu_imm_en ? id_out_immediate_data : ex_fwd_rt_data;
 	
 	cpu_alu
 		i_cpu_alu
@@ -640,8 +641,9 @@ module cpu_core
 	assign ex_exception = (~interlock & ~ex_stall) &
 								(
 									(interrupt_req & ex_cop0_status[0]) |
-									(id_out_exp_break) |
-									(id_out_exp_syscall)
+									(id_out_exc_break)   |
+									(id_out_exc_syscall) |
+									(id_out_exc_ri)
 								);
 	assign interrupt_ack = ex_exception & interrupt_req;
 	
