@@ -655,9 +655,12 @@ module cpu_idu
 	assign exc_syscall = inst_syscall;
 	
 	// break
-	assign exc_break   = inst_break;
+	assign exc_break = inst_break;
 	
 	// reserve instruction
+	assign exc_ri = 1'b0;
+	
+	/*
 	assign exc_ri = (
 						(field_op != `OP_SPECIAL) &
 						(field_op != `OP_ADDI)    &
@@ -718,5 +721,6 @@ module cpu_idu
 								(field_func != `FUNC_SYSCALL)
 							)
 						);
-
+	*/
+	
 endmodule  
