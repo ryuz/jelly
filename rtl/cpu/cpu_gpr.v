@@ -9,14 +9,14 @@
 `timescale 1ns / 1ps
 
 
-module cpu_register_files
+module cpu_gpr
 			(
 				reset, clk, clk_x2,
 				interlock,
-				r0_en, r0_addr, r0_data,
-				r1_en, r1_addr, r1_data,
 				w0_en, w0_addr, w0_data,
-				w1_en, w1_addr, w1_data
+				w1_en, w1_addr, w1_data,
+				r0_en, r0_addr, r0_data,
+				r1_en, r1_addr, r1_data
 			);
 	parameter	DATA_WIDTH = 32;
 	parameter	ADDR_WIDTH = 5;
@@ -24,16 +24,8 @@ module cpu_register_files
 	input						reset;
 	input						clk;
 	input						clk_x2;
-
-	input						interlock;
 	
-	input						r0_en;
-	input	[ADDR_WIDTH-1:0]	r0_addr;
-	output	[DATA_WIDTH-1:0]	r0_data;
-
-	input						r1_en;
-	input	[ADDR_WIDTH-1:0]	r1_addr;
-	output	[DATA_WIDTH-1:0]	r1_data;
+	input						interlock;
 	
 	input						w0_en;
 	input	[ADDR_WIDTH-1:0]	w0_addr;
@@ -42,6 +34,14 @@ module cpu_register_files
 	input						w1_en;
 	input	[ADDR_WIDTH-1:0]	w1_addr;
 	input	[DATA_WIDTH-1:0]	w1_data;
+	
+	input						r0_en;
+	input	[ADDR_WIDTH-1:0]	r0_addr;
+	output	[DATA_WIDTH-1:0]	r0_data;
+	
+	input						r1_en;
+	input	[ADDR_WIDTH-1:0]	r1_addr;
+	output	[DATA_WIDTH-1:0]	r1_data;
 	
 	
 	reg		clk_dly;

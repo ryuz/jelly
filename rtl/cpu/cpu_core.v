@@ -330,22 +330,15 @@ module cpu_core
 	wire	[4:0]	if_gpr_r1_addr;
 	wire	[31:0]	if_gpr_r1_data;
 	
-	cpu_register_files
-		i_cpu_register_files
+	cpu_gpr
+		i_cpu_gpr
 			(
 				.reset			(reset),
 				.clk			(clk),
 				.clk_x2			(clk_x2),
 				
 				.interlock 		(interlock),
-				
-				.r0_en			(if_gpr_r0_en),
-				.r0_addr		(if_gpr_r0_addr),
-				.r0_data		(if_gpr_r0_data),
-				
-				.r1_en			(if_gpr_r1_en),
-				.r1_addr		(if_gpr_r1_addr),
-				.r1_data		(if_gpr_r1_data),
+
 				
 				.w0_en			(if_gpr_w0_en),
 				.w0_addr		(if_gpr_w0_addr),
@@ -353,7 +346,15 @@ module cpu_core
 				
 				.w1_en			(1'b0),
 				.w1_addr		(5'b00000),
-				.w1_data		(32'h0000_0000)
+				.w1_data		(32'h0000_0000),
+				
+				.r0_en			(if_gpr_r0_en),
+				.r0_addr		(if_gpr_r0_addr),
+				.r0_data		(if_gpr_r0_data),
+				
+				.r1_en			(if_gpr_r1_en),
+				.r1_addr		(if_gpr_r1_addr),
+				.r1_data		(if_gpr_r1_data)
 			);
 	
 	assign if_gpr_w0_en   = dbg_gpr_en ? (dbg_gpr_en & dbg_gpr_we)  : (id_in_dst_reg_en & !interlock);
