@@ -13,7 +13,7 @@
 module jelly_uart
 		(
 			reset, clk,			
-			uart_clk, uart_tx, uart_rx,
+			uart_clk, uart_tx, uart_rx, uart_clk_dv,
 			irq_rx, irq_tx,
 			wb_adr_i, wb_dat_o, wb_dat_i, wb_we_i, wb_sel_i, wb_stb_i, wb_ack_o
 		);
@@ -33,6 +33,7 @@ module jelly_uart
 	input						uart_clk;
 	output						uart_tx;
 	input						uart_rx;
+	output						uart_clk_dv;
 	
 	output						irq_rx;
 	output						irq_tx;

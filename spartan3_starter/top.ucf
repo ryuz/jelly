@@ -3,8 +3,23 @@ NET "clk_in" LOC = T9;
 
 NET "reset_in" LOC = L14;
 
-NET "uart_tx" LOC = R13;
-NET "uart_rx" LOC = T13;
+NET "uart0_tx" LOC = R13;
+NET "uart0_rx" LOC = T13;
+
+NET "uart1_tx" LOC = T14;
+NET "uart1_rx" LOC = N10;
+
+
+# SW
+NET	"sw[0]"		LOC = "F12"  ;
+NET	"sw[1]"		LOC = "G12"  ;
+NET	"sw[2]"		LOC = "H14"  ;
+NET	"sw[3]"		LOC = "H13"  ;
+NET	"sw[4]"		LOC = "J14"  ;
+NET	"sw[5]"		LOC = "J13"  ;
+NET	"sw[6]"		LOC = "K14"  ;
+NET	"sw[7]"		LOC = "K13"  ;
+
 
 NET "led<0>" LOC = "K12";
 NET "led<1>" LOC = "P14";

@@ -19,6 +19,11 @@ clean:
 	rm -f *.vcd
 	rm -fr $(WORK_DIR)
 
+dbg: work_setup prj_compile
+	vlog $(VLOG_FLAGS) $(PRJ_DIR)/tb_uart_dbg.v
+	vsim -c -wlf vsim.wlf -do "run -all" -L xilinxcorelib_ver -L unisims_ver -lib work tb_uart_dbg glbl
+
+
 soft_build:
 	make -C $(HOS_DIR) -f gmake.mak
 
@@ -58,11 +63,14 @@ prj_compile:
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/cpu/cpu_cop0.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/cpu/cpu_register_files.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/cpu/cpu_shifter.v
+	vlog $(VLOG_FLAGS) $(RTL_DIR)/cpu/cpu_dbu.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/cpu/cpu_top.v
+	vlog $(VLOG_FLAGS) $(RTL_DIR)/cpu/dbg_uart.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/irc/irc.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/irc/irc_factor.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/timer/timer.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/uart/uart.v
+	vlog $(VLOG_FLAGS) $(RTL_DIR)/uart/uart_core.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/uart/uart_tx.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/uart/uart_rx.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/asram/asram.v

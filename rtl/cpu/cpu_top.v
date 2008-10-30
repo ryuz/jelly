@@ -17,6 +17,7 @@ module cpu_top
 			vect_reset, vect_interrupt, vect_exception,
 			interrupt_req, interrupt_ack,
 			wb_adr_o, wb_dat_i, wb_dat_o, wb_we_o, wb_sel_o, wb_stb_o, wb_ack_i,
+			wb_dbg_adr_i, wb_dbg_dat_i, wb_dbg_dat_o, wb_dbg_we_i, wb_dbg_sel_i, wb_dbg_stb_i, wb_dbg_ack_o,
 			pause
 		);
 	
@@ -37,7 +38,7 @@ module cpu_top
 	input			interrupt_req;
 	output			interrupt_ack;
 	
-	// bus (Whishbone)
+	// bus (wishbone)
 	output	[31:2]	wb_adr_o;
 	input	[31:0]	wb_dat_i;
 	output	[31:0]	wb_dat_o;
@@ -45,7 +46,16 @@ module cpu_top
 	output	[3:0]	wb_sel_o;
 	output			wb_stb_o;
 	input			wb_ack_i;
-		
+	
+	// debug port (wishbone)
+	input	[31:2]	wb_dbg_adr_i;
+	input	[31:0]	wb_dbg_dat_i;
+	output	[31:0]	wb_dbg_dat_o;
+	input			wb_dbg_we_i;
+	input	[3:0]	wb_dbg_sel_i;
+	input			wb_dbg_stb_i;
+	output			wb_dbg_ack_o;
+	
 	// control
 	input			pause;
 	
@@ -101,7 +111,15 @@ module cpu_top
 				.wb_data_sel_o	(wb_data_sel_o),
 				.wb_data_stb_o	(wb_data_stb_o),
 				.wb_data_ack_i	(wb_data_ack_i),
-								
+
+				.wb_dbg_adr_i	(wb_dbg_adr_i),
+				.wb_dbg_dat_i	(wb_dbg_dat_i),
+				.wb_dbg_dat_o	(wb_dbg_dat_o),
+				.wb_dbg_we_i	(wb_dbg_we_i),
+				.wb_dbg_sel_i	(wb_dbg_sel_i),
+				.wb_dbg_stb_i	(wb_dbg_stb_i),
+				.wb_dbg_ack_o	(wb_dbg_ack_o),
+				
 				.pause			(1'b0)
 			);
 	

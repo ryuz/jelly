@@ -28,7 +28,7 @@ module tb_top;
 	end
 	
 	
-	reg			uart_rx;
+	reg					uart_rx;
 	
 	wire				sram_ce0_n;
 	wire				sram_ce1_n;
@@ -43,9 +43,12 @@ module tb_top;
 			.clk_in			(clk),
 			.reset_in		(reset),
 			
-			.uart_tx		(),
-			.uart_rx		(uart_rx),
-
+			.uart0_tx		(),
+			.uart0_rx		(uart_rx),
+			
+			.uart1_tx		(),
+			.uart1_rx		(1'b1),
+			
 			.asram_ce0_n	(sram_ce0_n),
 			.asram_ce1_n	(sram_ce1_n),
 			.asram_we_n		(sram_we_n),
@@ -55,6 +58,7 @@ module tb_top;
 			.asram_d		(sram_d),
 			
 			.led			(),
+			.sw				(8'b0000_0000),
 			.ext			()
 		);
 	
@@ -78,6 +82,16 @@ module tb_top;
 		end
 	end
 
+	// Interrupt monitor
+	always @ ( posedge i_top.i_cpu_top.clk ) begin
+	//	if ( i_top.i_cpu_top.interrupt_req ) begin
+	//		$display("%t  interrupt_req",  $time);
+	//	end
+		if ( i_top.i_cpu_top.interrupt_ack ) begin
+			$display("%t  interrupt_ack",  $time);
+		end
+	end
+
 	
 	// UART monitor
 	always @ ( posedge i_top.i_uart0.clk ) begin
@@ -86,85 +100,59 @@ module tb_top;
 		end
 	end
 
-	// Interrupt monitor
-	always @ ( posedge i_top.i_cpu_top.clk ) begin
-		if ( i_top.i_cpu_top.interrupt_req ) begin
-			$display("%t  interrupt_req",  $time);
+
+	// dbg_uart monitor
+	always @ ( posedge i_top.i_dbg_uart.i_uart_core.clk ) begin
+		if ( i_top.i_dbg_uart.i_uart_core.tx_en ) begin
+			$display("%t dbg_uart [TX]:%h", $time, i_top.i_dbg_uart.i_uart_core.tx_data);
 		end
-		if ( i_top.i_cpu_top.interrupt_ack ) begin
-			$display("%t  interrupt_ack",  $time);
+		if ( i_top.i_dbg_uart.i_uart_core.rx_en & i_top.i_dbg_uart.i_uart_core.rx_ready ) begin
+			$display("%t dbg_uart [RX]:%h", $time, i_top.i_dbg_uart.i_uart_core.rx_data);
 		end
 	end
 	
-
+	
+	// write_dbg_uart_rx_fifo
+	task write_dbg_uart_rx_fifo;
+		input	[7:0]	data;
+		begin
+			@(negedge i_top.i_dbg_uart.i_uart_core.uart_clk);
+				force i_top.i_dbg_uart.i_uart_core.rx_fifo_wr_en   = 1'b1;
+				force i_top.i_dbg_uart.i_uart_core.rx_fifo_wr_data = data;
+			@(posedge i_top.i_dbg_uart.i_uart_core.uart_clk);
+				release i_top.i_dbg_uart.i_uart_core.rx_fifo_wr_en;
+				release i_top.i_dbg_uart.i_uart_core.rx_fifo_wr_data;
+		end
+	endtask
+	
+	
 	initial begin
-					uart_rx = 1'b1;
-		#UART_RATE 	uart_rx = 1'b1;
-		#UART_RATE 	uart_rx = 1'b1;
+	#(RATE*20);
+		$display("--- NOP ---");
+		write_dbg_uart_rx_fifo(8'h00);		// nop
 		
-		#UART_RATE 	uart_rx = 1'b0;		// start
-		#UART_RATE 	uart_rx = 1'b1;		// 0 : LSB
-		#UART_RATE 	uart_rx = 1'b0;		// 1
-		#UART_RATE 	uart_rx = 1'b1;		// 2
-		#UART_RATE 	uart_rx = 1'b0;		// 3
-		#UART_RATE 	uart_rx = 1'b0;		// 4
-		#UART_RATE 	uart_rx = 1'b1;		// 5
-		#UART_RATE 	uart_rx = 1'b1;		// 6
-		#UART_RATE 	uart_rx = 1'b1;		// 7 : MSB
-		#UART_RATE 	uart_rx = 1'b1;		// stop
-		
-		#UART_RATE 	uart_rx = 1'b1;
-		#UART_RATE 	uart_rx = 1'b1;
-		
-		#UART_RATE 	uart_rx = 1'b0;		// start
-		#UART_RATE 	uart_rx = 1'b1;		// 0 : LSB
-		#UART_RATE 	uart_rx = 1'b1;		// 1
-		#UART_RATE 	uart_rx = 1'b1;		// 2
-		#UART_RATE 	uart_rx = 1'b1;		// 3
-		#UART_RATE 	uart_rx = 1'b1;		// 4
-		#UART_RATE 	uart_rx = 1'b1;		// 5
-		#UART_RATE 	uart_rx = 1'b1;		// 6
-		#UART_RATE 	uart_rx = 1'b1;		// 7 : MSB
-		#UART_RATE 	uart_rx = 1'b1;		// stop
+	#(RATE*20);
+		$display("\n\n--- STATUS ---");
+		write_dbg_uart_rx_fifo(8'h01);		// status
 
-		#UART_RATE 	uart_rx = 1'b0;		// start
-		#UART_RATE 	uart_rx = 1'b0;		// 0 : LSB
-		#UART_RATE 	uart_rx = 1'b0;		// 1
-		#UART_RATE 	uart_rx = 1'b0;		// 2
-		#UART_RATE 	uart_rx = 1'b0;		// 3
-		#UART_RATE 	uart_rx = 1'b0;		// 4
-		#UART_RATE 	uart_rx = 1'b0;		// 5
-		#UART_RATE 	uart_rx = 1'b0;		// 6
-		#UART_RATE 	uart_rx = 1'b0;		// 7 : MSB
-		#UART_RATE 	uart_rx = 1'b1;		// stop
-
-		#UART_RATE 	uart_rx = 1'b1;
-		#UART_RATE 	uart_rx = 1'b1;
-		
-		#UART_RATE 	uart_rx = 1'b0;		// start
-		#UART_RATE 	uart_rx = 1'b0;		// 0 : LSB
-		#UART_RATE 	uart_rx = 1'b1;		// 1
-		#UART_RATE 	uart_rx = 1'b0;		// 2
-		#UART_RATE 	uart_rx = 1'b1;		// 3
-		#UART_RATE 	uart_rx = 1'b0;		// 4
-		#UART_RATE 	uart_rx = 1'b1;		// 5
-		#UART_RATE 	uart_rx = 1'b0;		// 6
-		#UART_RATE 	uart_rx = 1'b1;		// 7 : MSB
-		#UART_RATE 	uart_rx = 1'b1;		// stop
-
-		#UART_RATE 	uart_rx = 1'b1;
-		#UART_RATE 	uart_rx = 1'b1;
-		
-		#UART_RATE 	uart_rx = 1'b0;		// start
-		#UART_RATE 	uart_rx = 1'b1;		// 0 : LSB
-		#UART_RATE 	uart_rx = 1'b0;		// 1
-		#UART_RATE 	uart_rx = 1'b1;		// 2
-		#UART_RATE 	uart_rx = 1'b0;		// 3
-		#UART_RATE 	uart_rx = 1'b1;		// 4
-		#UART_RATE 	uart_rx = 1'b0;		// 5
-		#UART_RATE 	uart_rx = 1'b1;		// 6
-		#UART_RATE 	uart_rx = 1'b0;		// 7 : MSB
-		#UART_RATE 	uart_rx = 1'b1;		// stop
+	#(RATE*20);
+		$display("\n\n--- GO DEBUG MODE ---");
+		write_dbg_uart_rx_fifo(8'h02);		// write
+		write_dbg_uart_rx_fifo(8'hf0);		// dbgctl
+		write_dbg_uart_rx_fifo(8'h00);		// dat0
+		write_dbg_uart_rx_fifo(8'h00);		// dat1
+		write_dbg_uart_rx_fifo(8'h00);		// dat2
+		write_dbg_uart_rx_fifo(8'h01);		// dat3
+/*
+	#(RATE*20);
+		$display("\n\n--- MEM READ ---");
+		write_dbg_uart_rx_fifo(8'h05);		// mem read
+		write_dbg_uart_rx_fifo(8'h10);		// size
+		write_dbg_uart_rx_fifo(8'h00);		// adr0
+		write_dbg_uart_rx_fifo(8'h00);		// adr1
+		write_dbg_uart_rx_fifo(8'h00);		// adr2
+		write_dbg_uart_rx_fifo(8'h00);		// adr3
+*/
 	end
 	
 endmodule

@@ -18,6 +18,7 @@ module cpu_core
 			interrupt_req, interrupt_ack,
 			wb_inst_adr_o, wb_inst_dat_i, wb_inst_dat_o, wb_inst_we_o, wb_inst_sel_o, wb_inst_stb_o, wb_inst_ack_i,
 			wb_data_adr_o, wb_data_dat_i, wb_data_dat_o, wb_data_we_o, wb_data_sel_o, wb_data_stb_o, wb_data_ack_i,
+			wb_dbg_adr_i, wb_dbg_dat_i, wb_dbg_dat_o, wb_dbg_we_i, wb_dbg_sel_i, wb_dbg_stb_i, wb_dbg_ack_o,
 			pause
 		);
 	
@@ -38,7 +39,7 @@ module cpu_core
 	input			interrupt_req;
 	output			interrupt_ack;
 	
-	// Instruction bus (Whishbone)
+	// Instruction bus (wishbone)
 	output	[29:0]	wb_inst_adr_o;
 	input	[31:0]	wb_inst_dat_i;
 	output	[31:0]	wb_inst_dat_o;
@@ -47,7 +48,7 @@ module cpu_core
 	output			wb_inst_stb_o;
 	input			wb_inst_ack_i;
 	
-	// Data bus (Whishbone)
+	// Data bus (wishbone)
 	output	[29:0]	wb_data_adr_o;
 	input	[31:0]	wb_data_dat_i;
 	output	[31:0]	wb_data_dat_o;
@@ -55,9 +56,71 @@ module cpu_core
 	output	[3:0]	wb_data_sel_o;
 	output			wb_data_stb_o;
 	input			wb_data_ack_i;
-		
+
+	// Debug port (wishbone)
+	input	[3:0]	wb_dbg_adr_i;
+	input	[31:0]	wb_dbg_dat_i;
+	output	[31:0]	wb_dbg_dat_o;
+	input			wb_dbg_we_i;
+	input	[3:0]	wb_dbg_sel_i;
+	input			wb_dbg_stb_i;
+	output			wb_dbg_ack_o;
+	
 	// control
 	input			pause;
+	
+	
+
+	// -----------------------------
+	//  Debug signals
+	// -----------------------------
+	
+	// debug status
+	wire			dbg_enable;
+	wire			dbg_in_break;
+	
+	// d-bus control
+	wire	[31:2]	dbg_wb_data_adr_o;
+	wire	[31:0]	dbg_wb_data_dat_i;
+	wire	[31:0]	dbg_wb_data_dat_o;
+	wire			dbg_wb_data_we_o;
+	wire	[3:0]	dbg_wb_data_sel_o;
+	wire			dbg_wb_data_stb_o;
+	wire			dbg_wb_data_ack_i;
+
+	// i-bus control
+	wire	[31:2]	dbg_wb_inst_adr_o;
+	wire	[31:0]	dbg_wb_inst_dat_i;
+	wire	[3:0]	dbg_wb_inst_sel_o;
+	wire			dbg_wb_inst_stb_o;
+	wire			dbg_wb_inst_ack_i;
+	
+	// PC control
+	wire			dbg_pc_we;
+	wire	[31:0]	dbg_pc_wdata;
+	wire	[31:0]	dbg_pc_rdata;
+	
+	// gpr control
+	wire			dbg_gpr_en;
+	wire			dbg_gpr_we;
+	wire	[4:0]	dbg_gpr_addr;
+	wire	[31:0]	dbg_gpr_wdata;
+	wire	[31:0]	dbg_gpr_rdata;
+	
+	// hi/lo control
+	wire			dbg_hilo_en;
+	wire			dbg_hilo_we;
+	wire	[0:0]	dbg_hilo_addr;
+	wire	[31:0]	dbg_hilo_wdata;
+	wire	[31:0]	dbg_hilo_rdata;
+	
+	// cop0 control
+	wire			dbg_cop0_en;
+	wire			dbg_cop0_we;
+	wire	[4:0]	dbg_cop0_addr;
+	wire	[31:0]	dbg_cop0_wdata;
+	wire	[31:0]	dbg_cop0_rdata;
+	
 	
 	
 	
@@ -95,13 +158,22 @@ module cpu_core
 			if_pc <= vect_reset;
 		end
 		else begin
-			if ( !interlock ) begin
+			if ( dbg_pc_we ) begin
+				if_pc <= dbg_pc_wdata;	// debugger hook
+			end
+			else if ( !interlock ) begin
 				if_pc <= if_in_branch_en ? if_in_branch_pc : (if_pc + 4);
 			end
 		end
 	end
 	
 	
+	// load instruction
+	wire	[29:0]	if_wb_inst_adr_o;
+	wire	[31:0]	if_wb_inst_dat_i;
+	wire	[3:0]	if_wb_inst_sel_o;
+	wire			if_wb_inst_stb_o;
+	wire			if_wb_inst_ack_i;
 	cpu_lsu
 			#(
 				.ADDR_WIDTH	(32),
@@ -123,14 +195,28 @@ module cpu_core
 				
 				.out_data	(if_out_instruction),
 				
-				.wb_adr_o	(wb_inst_adr_o),
-				.wb_dat_i	(wb_inst_dat_i),
-				.wb_dat_o	(wb_inst_dat_o),
-				.wb_we_o	(wb_inst_we_o),
-				.wb_sel_o	(wb_inst_sel_o),
-				.wb_stb_o	(wb_inst_stb_o),
-				.wb_ack_i	(wb_inst_ack_i)
+				.wb_adr_o	(if_wb_inst_adr_o),
+				.wb_dat_i	(if_wb_inst_dat_i),
+				.wb_dat_o	(),
+				.wb_we_o	(),
+				.wb_sel_o	(if_wb_inst_sel_o),
+				.wb_stb_o	(if_wb_inst_stb_o),
+				.wb_ack_i	(if_wb_inst_ack_i)
 			);
+	
+	// debugger hook
+	assign wb_inst_adr_o = dbg_enable ? dbg_wb_inst_adr_o : if_wb_inst_adr_o;
+	assign wb_inst_dat_o = 32'h0000_0000;
+	assign wb_inst_we_o  = 1'b0;
+	assign wb_inst_sel_o = dbg_enable ? dbg_wb_inst_sel_o : if_wb_inst_sel_o;
+	assign wb_inst_stb_o = dbg_enable ? dbg_wb_inst_stb_o : if_wb_inst_stb_o;
+	
+	assign if_wb_inst_dat_i  = wb_inst_dat_i;
+	assign if_wb_inst_ack_i  = wb_inst_ack_i;
+	
+	assign dbg_wb_inst_dat_i = wb_inst_dat_i;
+	assign dbg_wb_inst_ack_i = wb_inst_ack_i;
+	
 	
 	// IF output
 	always @ ( posedge clk or posedge reset ) begin
@@ -231,8 +317,19 @@ module cpu_core
 	assign id_stall = if_out_stall | id_in_stall;
 
 
-	
 	// register file
+	wire			if_gpr_w0_en;
+	wire	[4:0]	if_gpr_w0_addr;
+	wire	[31:0]	if_gpr_w0_data;
+	
+	wire			if_gpr_r0_en;
+	wire	[4:0]	if_gpr_r0_addr;
+	wire	[31:0]	if_gpr_r0_data;
+	
+	wire			if_gpr_r1_en;
+	wire	[4:0]	if_gpr_r1_addr;
+	wire	[31:0]	if_gpr_r1_data;
+	
 	cpu_register_files
 		i_cpu_register_files
 			(
@@ -240,24 +337,37 @@ module cpu_core
 				.clk			(clk),
 				.clk_x2			(clk_x2),
 				
-				.interlock 		(interlock ),
+				.interlock 		(interlock),
 				
-				.r0_en			(1'b1),
-				.r0_addr		(if_out_instruction[25:21]),	// rs
-				.r0_data		(id_out_rs_data),
+				.r0_en			(if_gpr_r0_en),
+				.r0_addr		(if_gpr_r0_addr),
+				.r0_data		(if_gpr_r0_data),
 				
-				.r1_en			(1'b1),
-				.r1_addr		(if_out_instruction[20:16]),	// rt
-				.r1_data		(id_out_rt_data),
+				.r1_en			(if_gpr_r1_en),
+				.r1_addr		(if_gpr_r1_addr),
+				.r1_data		(if_gpr_r1_data),
 				
-				.w0_en			(id_in_dst_reg_en & !interlock),
-				.w0_addr		(id_in_dst_reg_addr),
-				.w0_data		(id_in_dst_reg_data),
+				.w0_en			(if_gpr_w0_en),
+				.w0_addr		(if_gpr_w0_addr),
+				.w0_data		(if_gpr_w0_data),
 				
 				.w1_en			(1'b0),
 				.w1_addr		(5'b00000),
 				.w1_data		(32'h0000_0000)
 			);
+	
+	assign if_gpr_w0_en   = dbg_gpr_en ? (dbg_gpr_en & dbg_gpr_we)  : (id_in_dst_reg_en & !interlock);
+	assign if_gpr_w0_addr = dbg_gpr_en ? dbg_gpr_addr               : id_in_dst_reg_addr;
+	assign if_gpr_w0_data = dbg_gpr_en ? dbg_gpr_wdata              : id_in_dst_reg_data;
+	
+	assign if_gpr_r0_en   = 1'b1;
+	assign if_gpr_r0_addr = dbg_gpr_en ? dbg_gpr_addr               : if_out_instruction[25:21];	//rs
+	assign id_out_rs_data = if_gpr_r0_data;
+	assign dbg_gpr_rdata  = if_gpr_r0_data;
+		
+	assign if_gpr_r1_en   = 1'b1;
+	assign if_gpr_r1_addr = if_out_instruction[20:16];	// rt
+	assign id_out_rt_data = if_gpr_r1_data;
 	
 	
 	// opecode decode
@@ -776,7 +886,15 @@ module cpu_core
 	
 	
 	// memory access
-	wire	[31:0]		mem_read_data;
+	wire	[31:0]	mem_read_data;
+	
+	wire	[29:0]	mem_wb_data_adr_o;
+	wire	[31:0]	mem_wb_data_dat_i;
+	wire	[31:0]	mem_wb_data_dat_o;
+	wire			mem_wb_data_we_o;
+	wire	[3:0]	mem_wb_data_sel_o;
+	wire			mem_wb_data_stb_o;
+	wire			mem_wb_data_ack_i;
 	cpu_lsu
 			#(
 				.ADDR_WIDTH	(32),
@@ -799,14 +917,28 @@ module cpu_core
 				
 				.out_data	(mem_read_data),
 				
-				.wb_adr_o	(wb_data_adr_o),
-				.wb_dat_i	(wb_data_dat_i),
-				.wb_dat_o	(wb_data_dat_o),
-				.wb_we_o	(wb_data_we_o),
-				.wb_sel_o	(wb_data_sel_o),
-				.wb_stb_o	(wb_data_stb_o),
-				.wb_ack_i	(wb_data_ack_i)
+				.wb_adr_o	(mem_wb_data_adr_o),
+				.wb_dat_i	(mem_wb_data_dat_i),
+				.wb_dat_o	(mem_wb_data_dat_o),
+				.wb_we_o	(mem_wb_data_we_o),
+				.wb_sel_o	(mem_wb_data_sel_o),
+				.wb_stb_o	(mem_wb_data_stb_o),
+				.wb_ack_i	(mem_wb_data_ack_i)
 			);
+	
+	// debugger hook
+	assign wb_data_adr_o = dbg_enable ? dbg_wb_data_adr_o : mem_wb_data_adr_o;
+	assign wb_data_dat_o = dbg_enable ? dbg_wb_data_dat_o : mem_wb_data_dat_o;
+	assign wb_data_we_o  = dbg_enable ? dbg_wb_data_we_o  : mem_wb_data_we_o;
+	assign wb_data_sel_o = dbg_enable ? dbg_wb_data_sel_o : mem_wb_data_sel_o;
+	assign wb_data_stb_o = dbg_enable ? dbg_wb_data_stb_o : mem_wb_data_stb_o;
+	
+	assign mem_wb_data_dat_i = wb_data_dat_i;
+	assign mem_wb_data_ack_i = wb_data_ack_i;
+	
+	assign dbg_wb_data_dat_i = wb_data_dat_i;
+	assign dbg_wb_data_ack_i = wb_data_ack_i;
+	
 	
 	// FF
 	reg					mem_dst_src_mem;
@@ -948,6 +1080,67 @@ module cpu_core
 	assign id_in_stall  = ex_out_exception_en | ex_out_branch_en;
 	assign ex_in_stall  = ex_out_exception_en;
 	assign mem_in_stall = 1'b0;
+
+
+
+
+	// -----------------------------
+	//  Debug unit
+	// -----------------------------
 	
-	
+	cpu_dbu
+		i_cpu_dbu
+			(
+				.reset			(reset),
+				.clk			(clk),
+				.endian			(endian),
+				
+				.wb_adr_i		(wb_dbg_adr_i),
+				.wb_dat_i		(wb_dbg_dat_i),
+				.wb_dat_o		(wb_dbg_dat_o),
+				.wb_we_i		(wb_dbg_we_i),
+				.wb_sel_i		(wb_dbg_sel_i),
+				.wb_stb_i		(wb_dbg_stb_i),
+				.wb_ack_o		(wb_dbg_ack_o),
+				
+				.dbg_enable		(dbg_enable),
+				.in_break		(dbg_in_break),
+				
+				.wb_data_adr_o	(dbg_wb_data_adr_o),
+				.wb_data_dat_i	(dbg_wb_data_dat_i),
+				.wb_data_dat_o	(dbg_wb_data_dat_o),
+				.wb_data_we_o	(dbg_wb_data_we_o),
+				.wb_data_sel_o	(dbg_wb_data_sel_o),
+				.wb_data_stb_o	(dbg_wb_data_stb_o),
+				.wb_data_ack_i	(dbg_wb_data_ack_i),
+				
+				.wb_inst_adr_o	(dbg_wb_inst_adr_o),
+				.wb_inst_dat_i	(dbg_wb_inst_dat_i),
+				.wb_inst_sel_o	(dbg_wb_inst_sel_o),
+				.wb_inst_stb_o	(dbg_wb_inst_stb_o),
+				.wb_inst_ack_i	(dbg_wb_inst_ack_i),
+				
+				.pc_we			(dbg_pc_we),
+				.pc_wdata		(dbg_pc_wdata),
+				.pc_rdata		(dbg_pc_rdata),
+				
+				.gpr_en			(dbg_gpr_en),
+				.gpr_we			(dbg_gpr_we),
+				.gpr_addr		(dbg_gpr_addr),
+				.gpr_wdata		(dbg_gpr_wdata),
+				.gpr_rdata		(dbg_gpr_rdata),
+				
+				.hilo_en		(dbg_hilo_en),
+				.hilo_we		(dbg_hilo_we),
+				.hilo_addr		(dbg_hilo_addr),
+				.hilo_wdata		(dbg_hilo_wdata),
+				.hilo_rdata		(dbg_hilo_rdata),
+				
+				.cop0_en		(cop0_en),
+				.cop0_we		(cop0_we),
+				.cop0_addr		(cop0_addr),
+				.cop0_wdata		(cop0_wdata),
+				.cop0_rdata		(cop0_rdata)
+			);
+
 endmodule
