@@ -135,6 +135,7 @@ module tb_top;
 		$display("\n\n--- STATUS ---");
 		write_dbg_uart_rx_fifo(8'h01);		// status
 
+/*
 	#(RATE*20);
 		$display("\n\n--- GO DEBUG MODE ---");
 		write_dbg_uart_rx_fifo(8'h02);		// write
@@ -143,7 +144,7 @@ module tb_top;
 		write_dbg_uart_rx_fifo(8'h00);		// dat1
 		write_dbg_uart_rx_fifo(8'h00);		// dat2
 		write_dbg_uart_rx_fifo(8'h01);		// dat3
-/*
+
 	#(RATE*20);
 		$display("\n\n--- MEM READ ---");
 		write_dbg_uart_rx_fifo(8'h05);		// mem read
