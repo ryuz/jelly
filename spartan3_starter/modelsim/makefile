@@ -61,7 +61,7 @@ prj_compile:
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/cpu/cpu_lsu.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/cpu/cpu_muldiv.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/cpu/cpu_cop0.v
-	vlog $(VLOG_FLAGS) $(RTL_DIR)/cpu/cpu_register_files.v
+	vlog $(VLOG_FLAGS) $(RTL_DIR)/cpu/cpu_gpr.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/cpu/cpu_shifter.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/cpu/cpu_dbu.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/cpu/cpu_top.v
