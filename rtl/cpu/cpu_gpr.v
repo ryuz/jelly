@@ -19,7 +19,7 @@ module cpu_gpr
 				r1_en, r1_addr, r1_data
 			);
 	
-	parameter	TYPE       = 0;		// 0: double-speed dp-ram 1: double dp-ram, 1: LUT, 
+	parameter	TYPE       = 1;		// 0: clk_x2 dp-ram, 1: dual dp-ram, 2: LUT, 
 	parameter	DATA_WIDTH = 32;
 	parameter	ADDR_WIDTH = 5;
 	localparam	REG_SIZE   = (1 << ADDR_WIDTH);
@@ -203,32 +203,50 @@ module cpu_gpr
 					);
 			
 			// write
-			assign ram_en0  = w0_en;
-			assign ram_we0  = 1'b1;
-			assign ram_addr = w0_addr;
-			assign ram_din0 = w0_data;
+			assign ram_en0   = w0_en & !interlock;
+			assign ram_we0   = 1'b1;
+			assign ram_addr0 = w0_addr;
+			assign ram_din0  = w0_data;
 			
 			// read
 			reg							through;
 			reg		[DATA_WIDTH-1:0]	write_data;
 			wire	[DATA_WIDTH-1:0]	read_data;
-			always @ ( posedge clk or posedge reset ) begin
-				through    <= ram_en0 & ram_we0 & (ram_addr0 == ram_addr1);
-				write_data <= ram_din0;
+			always @ ( posedge clk ) begin
+				if ( !interlock ) begin
+					through    <= ram_en0 & ram_we0 & (ram_addr0 == ram_addr1);
+					write_data <= ram_din0;
+				end
 			end
-			assign read_data = through ? write_data : ram_dout1;
+			assign read_data = through   ? write_data : ram_dout1;
+			
+			wire	[DATA_WIDTH-1:0]	ram_rdata;
+			reg							prev_interlock;
+			reg		[DATA_WIDTH-1:0]	prev_data;
+			always @ ( posedge clk or posedge reset ) begin
+				if ( reset ) begin
+					prev_interlock <= 1'b0;
+				end
+				else begin
+					prev_interlock <= interlock;
+					prev_data      <= ram_rdata;
+				end
+			end
+			assign ram_rdata = prev_interlock ? prev_data  : read_data;
 			
 			if ( i == 0 ) begin
 				assign ram_en1   = r0_en;
 				assign ram_we1   = 1'b0;
 				assign ram_addr1 = r0_addr;
-				assign r0_data   = read_data;
+				assign ram_din1  = {DATA_WIDTH{1'b0}};
+				assign r0_data   = ram_rdata;
 			end
 			else begin
 				assign ram_en1   = r1_en;
 				assign ram_we1   = 1'b0;
 				assign ram_addr1 = r1_addr;
-				assign r1_data   = read_data;
+				assign ram_din1  = {DATA_WIDTH{1'b0}};
+				assign r1_data   = ram_rdata;
 			end
 		end
 	end
@@ -243,16 +261,16 @@ module cpu_gpr
 		
 		always @ ( posedge clk ) begin
 			if ( w0_en ) begin
-				reg_gpr[w0_addr] = w0_data;
+				reg_gpr[w0_addr] <= w0_data;
 			end
 			
 			if ( !interlock ) begin
 				if ( r0_en ) begin
-					reg_read0 = reg_gpr[r0_addr];
+					reg_read0 <= w0_en & (w0_addr == r0_addr) ? w0_data : reg_gpr[r0_addr];
 				end
 				
 				if ( r1_en ) begin
-					reg_read1 = reg_gpr[r1_addr];
+					reg_read1 <= w0_en & (w0_addr == r1_addr) ? w0_data : reg_gpr[r1_addr];
 				end
 			end
 		end
