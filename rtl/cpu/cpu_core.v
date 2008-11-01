@@ -77,7 +77,8 @@ module cpu_core
 	
 	// debug status
 	wire			dbg_enable;
-	wire			dbg_in_break;
+	wire			dbg_break_req;
+	wire			dbg_break;
 	
 	// d-bus control
 	wire	[31:2]	dbg_wb_data_adr_o;
@@ -621,6 +622,11 @@ module cpu_core
 	wire				ex_stall;
 	assign ex_stall = id_out_stall | ex_in_stall;
 	
+	// debugger break
+	wire ex_break;
+	
+	// interrupt;
+	wire ex_interrupt;
 	
 	// ex_exception
 	wire ex_exception;
@@ -714,10 +720,42 @@ module cpu_core
 		);
 	
 	
+	
+	
 	// COP0
 	wire	[31:0]				ex_cop0_exception_pc;
 	wire	[31:0]				ex_cop0_out_data;
+	wire	[31:0]				ex_cop0_cause;
 	wire	[31:0]				ex_cop0_status;
+	
+	
+	// debugger break;
+	assign ex_break  = dbg_break_req & ~(interlock | ex_stall);
+	assign dbg_break = ex_break;
+	
+	// interrupt
+	assign ex_interrupt  = (interrupt_req & ex_cop0_status[0])
+								& ~(interlock | ex_stall | ex_break | id_out_exc_break | id_out_exc_syscall | id_out_exc_ri);
+	assign interrupt_ack = ex_interrupt;
+	
+	// exception
+	assign ex_exception = (id_out_exc_break | id_out_exc_syscall | id_out_exc_ri | ex_interrupt)
+								& ~(interlock | ex_stall | ex_break);
+	
+	
+	// cause
+	assign ex_cop0_cause[31]   = ex_out_branch_en;					// Branch Delay
+	assign ex_cop0_cause[30:7] = 0;
+	assign ex_cop0_cause[6:2]  = (id_out_exc_ri      ? 5'd10 : 5'd0) |
+								(id_out_exc_break   ? 5'd9  : 5'd0) |
+								(id_out_exc_syscall ? 5'd8  : 5'd0) |
+								(ex_interrupt       ? 5'd0  : 5'd0);	// ExcCode
+	assign ex_cop0_cause[1:0]  = 0;
+	
+	// EPC
+	assign ex_cop0_exception_pc = ex_out_branch_en ? id_out_pc - 4 : id_out_pc;
+	
+
 	
 	cpu_cop0
 		i_cpu_cop0
@@ -737,7 +775,7 @@ module cpu_core
 				
 				.exception_en	(ex_exception),
 				.exception_rfe	(id_out_cop0_rfe & ~ex_stall & ~ex_exception),
-				.exception_cause(32'h0000_0000),
+				.exception_cause(ex_cop0_cause),
 				.exception_pc	(ex_cop0_exception_pc),
 				
 				.status			(ex_cop0_status),
@@ -745,18 +783,10 @@ module cpu_core
 				.epc			()
 			);
 	
-	assign ex_cop0_exception_pc = ex_out_branch_en ? id_out_pc - 4 : id_out_pc;
 	
 	
-	// exception
-	assign ex_exception = (~interlock & ~ex_stall) &
-								(
-									(interrupt_req & ex_cop0_status[0]) |
-									(id_out_exc_break)   |
-									(id_out_exc_syscall) |
-									(id_out_exc_ri)
-								);
-	assign interrupt_ack = ex_exception & interrupt_req;
+	
+	
 	
 	
 	// hazard
@@ -769,7 +799,7 @@ module cpu_core
 			ex_out_stall        <= 1'b1;
 			ex_out_instruction  <= 0;
 			ex_out_pc           <= 0;
-						
+			
 			ex_out_mem_en       <= 1'b0;
 			ex_out_mem_we       <= 1'b0;
 			ex_out_mem_sel      <= 0;
@@ -779,7 +809,7 @@ module cpu_core
 			ex_out_dst_reg_en   <= 1'b0;
 			ex_out_dst_reg_addr <= 0;
 			ex_out_dst_src_mem  <= 1'b0;
-
+			
 			ex_out_branch_en    <= 1'b0;
 			ex_out_exception_en <= 1'b0;
 		end
@@ -1105,7 +1135,8 @@ module cpu_core
 				.wb_ack_o		(wb_dbg_ack_o),
 				
 				.dbg_enable		(dbg_enable),
-				.in_break		(dbg_in_break),
+				.dbg_break_req	(dbg_break_req),
+				.dbg_break		(dbg_break),
 				
 				.wb_data_adr_o	(dbg_wb_data_adr_o),
 				.wb_data_dat_i	(dbg_wb_data_dat_i),

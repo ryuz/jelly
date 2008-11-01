@@ -63,7 +63,7 @@ module cpu_dbu
 		(
 			reset, clk, endian,
 			wb_adr_i, wb_dat_i, wb_dat_o, wb_we_i, wb_sel_i, wb_stb_i, wb_ack_o,
-			dbg_enable, in_break,
+			dbg_enable, dbg_break_req, dbg_break,
 			wb_data_adr_o, wb_data_dat_i, wb_data_dat_o, wb_data_we_o, wb_data_sel_o, wb_data_stb_o, wb_data_ack_i,
 			wb_inst_adr_o, wb_inst_dat_i, wb_inst_sel_o, wb_inst_stb_o, wb_inst_ack_i,
 			pc_we, pc_wdata, pc_rdata,
@@ -89,7 +89,8 @@ module cpu_dbu
 	
 	// debug status
 	output				dbg_enable;
-	input				in_break;
+	output				dbg_break_req;
+	input				dbg_break;
 	
 	
 	// d-bus control
@@ -151,17 +152,25 @@ module cpu_dbu
 	
 	// dbgctl
 	reg					dbg_enable;
+	reg					dbg_break_req;
 	always @ ( posedge clk or posedge reset ) begin
 		if ( reset ) begin
-			dbg_enable <= 1'b0;
+			dbg_enable    <= 1'b0;
+			dbg_break_req <= 1'b0;
 		end
 		else begin
-			if ( in_break ) begin
+			// dbg_break_req
+			if ( wb_stb_i & wb_we_i & wb_sel_i[0] & (wb_adr_i == `DBG_ADR_DBG_CTL) ) begin
+				dbg_break_req <= wb_dat_i[0];
+			end
+
+			// dbg_enable
+			if ( dbg_break ) begin
 				dbg_enable <= 1'b1;
 			end
 			else begin
-				if ( wb_stb_i & wb_we_i & (wb_adr_i == `DBG_ADR_DBG_CTL) ) begin
-					if ( wb_sel_i[0] ) dbg_enable <= wb_dat_i[0];
+				if ( wb_stb_i & wb_we_i & wb_sel_i[0] & (wb_adr_i == `DBG_ADR_DBG_CTL) ) begin
+					if ( wb_sel_i[0] ) dbg_enable <= dbg_enable & wb_dat_i[1];
 				end
 			end
 		end

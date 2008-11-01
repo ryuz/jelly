@@ -19,7 +19,7 @@ module cpu_gpr
 				r1_en, r1_addr, r1_data
 			);
 	
-	parameter	TYPE       = 1;		// 0: clk_x2 dp-ram, 1: dual dp-ram, 2: LUT, 
+	parameter	TYPE       = 1;		// 0: clk_x2 dp-ram, 1: dual dp-ram, 2: LUT
 	parameter	DATA_WIDTH = 32;
 	parameter	ADDR_WIDTH = 5;
 	localparam	REG_SIZE   = (1 << ADDR_WIDTH);
