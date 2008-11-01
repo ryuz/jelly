@@ -755,7 +755,6 @@ module cpu_core
 	// EPC
 	assign ex_cop0_exception_pc = ex_out_branch_en ? id_out_pc - 4 : id_out_pc;
 	
-
 	
 	cpu_cop0
 		i_cpu_cop0
@@ -773,17 +772,19 @@ module cpu_core
 				
 				.out_data		(ex_cop0_out_data),
 				
-				.exception_en	(ex_exception),
-				.exception_rfe	(id_out_cop0_rfe & ~ex_stall & ~ex_exception),
-				.exception_cause(ex_cop0_cause),
-				.exception_pc	(ex_cop0_exception_pc),
+				.exception		(ex_exception),
+				.rfe			(id_out_cop0_rfe & ~ex_stall & ~ex_exception),
+				.dbg_break		(ex_break),
 				
-				.status			(ex_cop0_status),
-				.cause			(),
-				.epc			()
+				.in_cause		(ex_cop0_cause),
+				.in_epc			(ex_cop0_exception_pc),
+				.in_debug		(),
+				.in_depc		(ex_cop0_exception_pc),
+				
+				.out_status		(ex_cop0_status),
+				.out_cause		(),
+				.out_epc		()
 			);
-	
-	
 	
 	
 	

@@ -16,8 +16,9 @@ module cpu_cop0
 			rd_addr, sel,
 			in_en, in_data,
 			out_data,
-			exception_en, exception_cause, exception_pc, exception_rfe,
-			status, cause, epc
+			exception, rfe, dbg_break,
+			in_cause, in_epc, in_debug, in_depc,
+			out_status, out_cause, out_epc
 		);
 	
 	input			clk;
@@ -33,68 +34,105 @@ module cpu_cop0
 	
 	output	[31:0]	out_data;
 	
-	input			exception_en;
-	input	[31:0]	exception_cause;
-	input	[31:0]	exception_pc;
-	input			exception_rfe;
+	input			exception;
+	input			rfe;
+	input			dbg_break;
 	
-	output	[31:0]	status;		// 12
-	output	[31:0]	cause;		// 13
-	output	[31:0]	epc;		// 14
+	input	[31:0]	in_cause;
+	input	[31:0]	in_epc;
+	input	[31:0]	in_debug;
+	input	[31:0]	in_depc;
+	
+	output	[31:0]	out_status;
+	output	[31:0]	out_cause;
+	output	[31:0]	out_epc;
 	
 	
 	// register
-	reg		[31:0]	reg_status;
-	reg		[31:0]	reg_cause;
-	reg		[31:0]	reg_epc;
+	reg		[31:0]	reg_status;		// 12
+	reg		[31:0]	reg_cause;		// 13
+	reg		[31:0]	reg_epc;		// 14
+	reg		[31:0]	reg_debug;		// 23
+	reg		[31:0]	reg_depc;		// 24
 	
 	always @ ( posedge clk or posedge reset ) begin
 		if ( reset ) begin
 			reg_status <= {32{1'b0}};
 			reg_cause  <= {32{1'b0}};
 			reg_epc    <= {32{1'b0}};
+			reg_debug  <= {32{1'b0}};
+			reg_depc   <= {32{1'b0}};
 		end
 		else begin
 			if ( !interlock ) begin
-				// status
-				if ( in_en & (rd_addr == 5'd12) ) begin
-					reg_status[0] <= in_data[0];
-					reg_status[2] <= in_data[2]; 
-					reg_status[4] <= in_data[4];
-				end
-				else if ( exception_en ) begin
+				// status (12)
+				if ( exception ) begin
 					reg_status[0] <= 1'b0;
 					reg_status[2] <= reg_status[0];
 					reg_status[4] <= reg_status[2];
 				end
-				else if ( exception_rfe ) begin
+				else if ( rfe ) begin
 					reg_status[0] <= reg_status[2];
 					reg_status[2] <= reg_status[4];
 				end
-				
-				// epc
-				if ( in_en & (rd_addr == 5'd14) ) begin
-					reg_epc <= in_data;
+				else if ( in_en & (rd_addr == 5'd12) ) begin
+					reg_status[0] <= in_data[0];
+					reg_status[2] <= in_data[2]; 
+					reg_status[4] <= in_data[4];
 				end
-				else if ( exception_en ) begin
-					reg_epc <= exception_pc;
+
+				// cause (13)
+				if ( exception ) begin
+					reg_cause[31]  <= in_cause[31];		// BD
+					reg_cause[6:2] <= in_cause[6:2];	// ExcCode
+				end
+				else if ( in_en & (rd_addr == 5'd13) ) begin
+					reg_cause[31]  <= in_data[31];		// BD
+					reg_cause[6:2] <= in_data[6:2];		// ExcCode
+				end
+				
+				// epc (14)
+				if ( exception ) begin
+					reg_epc[31:2] <= in_epc[31:2];
+				end
+				else if ( in_en & (rd_addr == 5'd14) ) begin
+					reg_epc[31:2] <= in_data[31:2];
+				end
+				
+				// debug (23)
+				if ( dbg_break ) begin
+					reg_debug[31] <= in_debug[31];
+				end
+				else if ( in_en & (rd_addr == 5'd23) ) begin
+					reg_debug[31] <= in_data;
+				end
+				
+				// deepc (24)
+				if ( dbg_break ) begin
+					reg_depc[31:2] <= in_debug[31:2];
+				end
+				else if ( in_en & (rd_addr == 5'd24) ) begin
+					reg_depc[31:2] <= in_data[31:2];
 				end
 			end
 		end
 	end
 	
+	// output
 	reg 	[31:0]	out_data;
 	always @* begin
 		case ( rd_addr )
 		5'd12:		out_data <= reg_status;
 		5'd13:		out_data <= reg_cause;
 		5'd14:		out_data <= reg_epc;
-		default:	out_data <= {32{1'bx}};
+		5'd23:		out_data <= reg_debug;
+		5'd24:		out_data <= reg_depc;
+		default:	out_data <= {32{1'b0}};
 		endcase
 	end
 	
-	assign status = reg_status;
-	assign cause  = reg_cause;
-	assign epc    = reg_epc;
+	assign out_status = reg_status;
+	assign out_cause  = reg_cause;
+	assign out_epc    = reg_epc;
 	
 endmodule

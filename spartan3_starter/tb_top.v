@@ -84,9 +84,9 @@ module tb_top;
 
 	// Interrupt monitor
 	always @ ( posedge i_top.i_cpu_top.clk ) begin
-		if ( i_top.i_cpu_top.interrupt_req ) begin
-			$display("%t  interrupt_req",  $time);
-		end
+	//	if ( i_top.i_cpu_top.interrupt_req ) begin
+	//		$display("%t  interrupt_req",  $time);
+	//	end
 		if ( i_top.i_cpu_top.interrupt_ack ) begin
 			$display("%t  interrupt_ack",  $time);
 		end
