@@ -690,6 +690,15 @@ module cpu_core
 	
 	
 	// MULT&DIV
+	wire						ex_muldiv_op_mul;
+	wire						ex_muldiv_op_div;
+	wire						ex_muldiv_op_mthi;
+	wire						ex_muldiv_op_mtlo;
+	wire						ex_muldiv_op_signed;
+
+	wire	[31:0]				ex_muldiv_in_data0;
+	wire	[31:0]				ex_muldiv_in_data1;
+	
 	wire	[31:0]				ex_muldiv_out_hi;
 	wire	[31:0]				ex_muldiv_out_lo;
 	wire						ex_muldiv_busy;
@@ -700,14 +709,14 @@ module cpu_core
 				.reset			(reset),
 				.clk			(clk),
 				
-				.op_mul			(id_out_muldiv_mul & ~ex_stall & ~ex_exception),
-				.op_div			(id_out_muldiv_div & ~ex_stall & ~ex_exception),
-				.op_mthi		(id_out_muldiv_mthi & ~ex_stall & ~ex_exception),
-				.op_mtlo		(id_out_muldiv_mtlo & ~ex_stall & ~ex_exception),
-				.op_signed		(id_out_muldiv_signed),
+				.op_mul			(ex_muldiv_op_mul),
+				.op_div			(ex_muldiv_op_div),
+				.op_mthi		(ex_muldiv_op_mthi),
+				.op_mtlo		(ex_muldiv_op_mtlo),
+				.op_signed		(ex_muldiv_op_signed),
 				
-				.in_data0		(ex_fwd_rs_data),
-				.in_data1		(ex_fwd_rt_data),
+				.in_data0		(ex_muldiv_in_data0),
+				.in_data1		(ex_muldiv_in_data1),
 				
 				.out_hi			(ex_muldiv_out_hi),
 				.out_lo			(ex_muldiv_out_lo),
@@ -715,6 +724,17 @@ module cpu_core
 				.busy			(ex_muldiv_busy)
 		);
 	
+	assign ex_muldiv_op_mul    = (id_out_muldiv_mul & ~ex_stall & ~ex_exception);
+	assign ex_muldiv_op_div    = (id_out_muldiv_div & ~ex_stall & ~ex_exception);
+	assign ex_muldiv_op_mthi   = (id_out_muldiv_mthi & ~ex_stall & ~ex_exception);
+	assign ex_muldiv_op_mtlo   = (id_out_muldiv_mtlo & ~ex_stall & ~ex_exception);
+	assign ex_muldiv_op_signed = id_out_muldiv_signed;
+	
+	assign ex_muldiv_in_data0  = ex_fwd_rs_data;
+	assign ex_muldiv_in_data1  = ex_fwd_rt_data;
+	
+	// debbuger hook
+	assign dbg_hilo_rdata = (dbg_hilo_addr == 0) ? ex_muldiv_out_hi : ex_muldiv_out_lo;
 	
 	
 	
