@@ -104,24 +104,24 @@ module tb_top;
 	
 	initial begin
 	#(RATE*20);
+		
 		$display("--- NOP ---");
 		write_dbg_uart_rx_fifo(8'h00);		// nop
-		
 	#(RATE*20);
+
 		$display("\n\n--- STATUS ---");
 		write_dbg_uart_rx_fifo(8'h01);		// status
+	#(RATE*100);
 
-/*
-	#(RATE*20);
-		$display("\n\n--- GO DEBUG MODE ---");
+		$display("\n\n--- DEBUG BREAK ---");
 		write_dbg_uart_rx_fifo(8'h02);		// write
 		write_dbg_uart_rx_fifo(8'hf0);		// dbgctl
 		write_dbg_uart_rx_fifo(8'h00);		// dat0
 		write_dbg_uart_rx_fifo(8'h00);		// dat1
 		write_dbg_uart_rx_fifo(8'h00);		// dat2
 		write_dbg_uart_rx_fifo(8'h01);		// dat3
+	#(RATE*100);
 
-	#(RATE*20);
 		$display("\n\n--- MEM READ ---");
 		write_dbg_uart_rx_fifo(8'h05);		// mem read
 		write_dbg_uart_rx_fifo(8'h10);		// size
@@ -129,7 +129,17 @@ module tb_top;
 		write_dbg_uart_rx_fifo(8'h00);		// adr1
 		write_dbg_uart_rx_fifo(8'h00);		// adr2
 		write_dbg_uart_rx_fifo(8'h00);		// adr3
-*/
+	#(RATE*1000);
+
+		$display("\n\n--- RESTART ---");
+		write_dbg_uart_rx_fifo(8'h02);		// write
+		write_dbg_uart_rx_fifo(8'hf0);		// dbgctl
+		write_dbg_uart_rx_fifo(8'h00);		// dat0
+		write_dbg_uart_rx_fifo(8'h00);		// dat1
+		write_dbg_uart_rx_fifo(8'h00);		// dat2
+		write_dbg_uart_rx_fifo(8'h00);		// dat3
+	#(RATE*100);
+
 	end
 	
 endmodule

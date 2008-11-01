@@ -801,17 +801,17 @@ module cpu_core
 	
 	
 	// debugger break;
-	assign ex_break  = dbg_break_req & ~(interlock | ex_stall);
-	assign dbg_break = ex_break;
+	assign ex_dbg_break = (dbg_break_req & ~dbg_enable) & ~(interlock | ex_stall);
+	assign dbg_break    = ex_dbg_break;
 	
 	// interrupt
 	assign ex_interrupt  = (interrupt_req & ex_cop0_out_status[0])
-								& ~(interlock | ex_stall | ex_break | id_out_exc_break | id_out_exc_syscall | id_out_exc_ri);
+								& ~(interlock | ex_stall | ex_dbg_break | id_out_exc_break | id_out_exc_syscall | id_out_exc_ri);
 	assign interrupt_ack = ex_interrupt;
 	
 	// exception
 	assign ex_exception = (id_out_exc_break | id_out_exc_syscall | id_out_exc_ri | ex_interrupt)
-								& ~(interlock | ex_stall | ex_break);
+								& ~(interlock | ex_stall | ex_dbg_break);
 	
 	
 	
@@ -1134,9 +1134,9 @@ module cpu_core
 	assign interlock    = if_out_hazard | ex_out_hazard | mem_out_hazard | pause;
 	
 	// stall
-	assign if_in_stall  = ex_out_exception_en | ex_out_branch_en;
-	assign id_in_stall  = ex_out_exception_en | ex_out_branch_en;
-	assign ex_in_stall  = ex_out_exception_en;
+	assign if_in_stall  = dbg_enable | ex_out_exception_en | ex_out_branch_en;
+	assign id_in_stall  = dbg_enable | ex_out_exception_en | ex_out_branch_en;
+	assign ex_in_stall  = dbg_enable | ex_out_exception_en;
 	assign mem_in_stall = 1'b0;
 
 

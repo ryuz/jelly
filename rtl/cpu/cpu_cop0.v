@@ -110,7 +110,7 @@ module cpu_cop0
 				
 				// deepc (24)
 				if ( dbg_break ) begin
-					reg_depc[31:2] <= in_debug[31:2];
+					reg_depc[31:2] <= in_depc[31:2];
 				end
 				else if ( in_en & (in_addr == 5'd24) ) begin
 					reg_depc[31:2] <= in_data[31:2];
