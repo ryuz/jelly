@@ -13,8 +13,13 @@
 module top
 		(
 			clk_in, reset_in,
+			
 			uart0_tx, uart0_rx,
 			uart1_tx, uart1_rx,
+
+			ddr_sdram_a, ddr_sdram_dq, ddr_sdram_ba, ddr_sdram_cas, ddr_sdram_ck_n, ddr_sdram_ck_p, ddr_sdram_cke, ddr_sdram_cs,
+			ddr_sdram_ldm, ddr_sdram_ldqs, ddr_sdram_ras, ddr_sdram_udm, ddr_sdram_udqs, ddr_sdram_we, ddr_sdram_ck_fb,
+
 			led, sw
 		);
 	
@@ -29,6 +34,24 @@ module top
 	output				uart1_tx;
     input				uart1_rx;
 	
+	// DDR-SDRAM
+	output	[12:0]		ddr_sdram_a;
+	inout	[15:0]		ddr_sdram_dq;
+	output	[1:0]		ddr_sdram_ba;
+	output				ddr_sdram_cas;
+	output				ddr_sdram_ck_n;
+	output				ddr_sdram_ck_p;
+	output				ddr_sdram_cke;
+	output				ddr_sdram_cs;
+	output				ddr_sdram_ldm;
+	inout				ddr_sdram_ldqs;
+	output				ddr_sdram_ras;
+	output				ddr_sdram_udm;
+	inout				ddr_sdram_udqs;
+	output				ddr_sdram_we;
+	input				ddr_sdram_ck_fb;
+	
+	// UI
 	output	[7:0]		led;
 	input	[3:0]		sw;
 
@@ -39,11 +62,7 @@ module top
 	
 	wire				dbg_uart_tx;
 	wire				dbg_uart_rx;
-
-	assign uart0_tx    = ~sw[0] ? uart_tx  : dbg_uart_tx;
-	assign uart1_tx    =  sw[0] ? uart_tx  : dbg_uart_tx;
-	assign uart_rx     = ~sw[0] ? uart0_rx : uart1_rx;
-	assign dbg_uart_rx = ~sw[0] ? uart1_rx : uart0_rx;
+	
 	
 	
 	// -------------------------
@@ -75,6 +94,13 @@ module top
 	// reset
 	wire				reset;
 	assign reset = reset_in | ~locked;
+	
+
+	// UART switch
+	assign uart0_tx    = ~sw[0] ? uart_tx  : dbg_uart_tx;
+	assign uart1_tx    =  sw[0] ? uart_tx  : dbg_uart_tx;
+	assign uart_rx     = ~sw[0] ? uart0_rx : uart1_rx;
+	assign dbg_uart_rx = ~sw[0] ? uart1_rx : uart0_rx;
 	
 	
 	
@@ -404,8 +430,26 @@ module top
 	end
 	assign led[7:0] = led_counter[23:16];
 	
-	// debug port
-	assign ext  = 0;
+	
+	
+	// -------------------------
+	//  DDR-SDRAM
+	// -------------------------
+	
+	assign ddr_sdram_a    = {13{1'b0}};
+	assign ddr_sdram_dq   = {16{1'bz}};
+	assign ddr_sdram_ba   = 2'b00;
+	assign ddr_sdram_cas  = 1'b1;
+	assign ddr_sdram_ck_n = 1'b1;
+	assign ddr_sdram_ck_p = 1'b0;
+	assign ddr_sdram_cke  = 1'b0;
+	assign ddr_sdram_cs   = 1'b1;
+	assign ddr_sdram_ldm  = 1'b1;
+	assign ddr_sdram_ldqs = 1'bz;
+	assign ddr_sdram_ras  = 1'b1;
+	assign ddr_sdram_udm  = 1'b1;
+	assign ddr_sdram_udqs = 1'bz;
+	assign ddr_sdram_we   = 1'b1;
 	
 endmodule
 

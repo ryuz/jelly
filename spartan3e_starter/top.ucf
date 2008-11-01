@@ -1,32 +1,80 @@
 
-NET "clk_in" LOC = "C9";
-
-NET "reset_in" LOC = "K17";
-
-# UART
-NET "uart0_tx" LOC = "M14";
-NET "uart0_rx" LOC = "R7";
-
-NET "uart1_tx" LOC = "M13";
-NET "uart1_rx" LOC = "U8";
-
-
-# SW
-NET	"sw[0]"	LOC = "L13"  ;
-NET	"sw[1]"	LOC = "L14"  ;
-NET	"sw[2]"	LOC = "H18"  ;
-NET	"sw[3]"	LOC = "N17"  ;
-
-# LED
-NET "led<0>" LOC = "F12";
-NET "led<1>" LOC = "E12";
-NET "led<2>" LOC = "E11";
-NET "led<3>" LOC = "F11";
-NET "led<4>" LOC = "C11";
-NET "led<5>" LOC = "D11";
-NET "led<6>" LOC = "E9";
-NET "led<7>" LOC = "F9";
-
+# clock
+NET "clk_in" LOC = "C9" | IOSTANDARD = LVCMOS33 ;
 NET "clk_in" TNM_NET = clk_in;
 TIMESPEC TS_clk_in = PERIOD "clk_in" 50 MHz HIGH 50%;
 
+# reset
+NET "reset_in" LOC = "K17" | IOSTANDARD = LVTTL | PULLDOWN ;
+
+# UART
+NET "uart0_tx" LOC = "M14" | IOSTANDARD = LVTTL | DRIVE = 8 | SLEW = SLOW ;
+NET "uart0_rx" LOC = "R7"  | IOSTANDARD = LVTTL ;
+NET "uart1_tx" LOC = "M13" | IOSTANDARD = LVTTL | DRIVE = 8 | SLEW = SLOW ;
+NET "uart1_rx" LOC = "U8"  | IOSTANDARD = LVTTL ;
+
+# SW
+NET	"sw[0]"	LOC = "L13" | IOSTANDARD = LVTTL | PULLUP ;
+NET	"sw[1]"	LOC = "L14" | IOSTANDARD = LVTTL | PULLUP ;
+NET	"sw[2]"	LOC = "H18" | IOSTANDARD = LVTTL | PULLUP ;
+NET	"sw[3]"	LOC = "N17" | IOSTANDARD = LVTTL | PULLUP ;
+
+# LED
+NET "led<0>" LOC = "F12" | IOSTANDARD = LVTTL | SLEW = SLOW | DRIVE = 8 ;
+NET "led<1>" LOC = "E12" | IOSTANDARD = LVTTL | SLEW = SLOW | DRIVE = 8 ;
+NET "led<2>" LOC = "E11" | IOSTANDARD = LVTTL | SLEW = SLOW | DRIVE = 8 ;
+NET "led<3>" LOC = "F11" | IOSTANDARD = LVTTL | SLEW = SLOW | DRIVE = 8 ;
+NET "led<4>" LOC = "C11" | IOSTANDARD = LVTTL | SLEW = SLOW | DRIVE = 8 ;
+NET "led<5>" LOC = "D11" | IOSTANDARD = LVTTL | SLEW = SLOW | DRIVE = 8 ;
+NET "led<6>" LOC = "E9"  | IOSTANDARD = LVTTL | SLEW = SLOW | DRIVE = 8 ;
+NET "led<7>" LOC = "F9"  | IOSTANDARD = LVTTL | SLEW = SLOW | DRIVE = 8 ;
+
+# DDR-SDRAM 
+NET "ddr_sdram_a<12>"  LOC = "P2" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_a<11>"  LOC = "N5" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_a<10>"  LOC = "T2" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_a<9>"   LOC = "N4" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_a<8>"   LOC = "H2" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_a<7>"   LOC = "H1" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_a<6>"   LOC = "H3" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_a<5>"   LOC = "H4" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_a<4>"   LOC = "F4" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_a<3>"   LOC = "P1" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_a<2>"   LOC = "R2" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_a<1>"   LOC = "R3" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_a<0>"   LOC = "T1" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_dq<15>" LOC = "H5" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_dq<14>" LOC = "H6" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_dq<13>" LOC = "G5" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_dq<12>" LOC = "G6" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_dq<11>" LOC = "F2" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_dq<10>" LOC = "F1" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_dq<9>"  LOC = "E1" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_dq<8>"  LOC = "E2" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_dq<7>"  LOC = "M6" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_dq<6>"  LOC = "M5" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_dq<5>"  LOC = "M4" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_dq<4>"  LOC = "M3" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_dq<3>"  LOC = "L4" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_dq<2>"  LOC = "L3" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_dq<1>"  LOC = "L1" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_dq<0>"  LOC = "L2" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_ba<0>"  LOC = "K5" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_ba<1>"  LOC = "K6" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_cas"    LOC = "C2" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_ck_n"   LOC = "J4" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_ck_p"   LOC = "J5" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_cke"    LOC = "K3" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_cs"     LOC = "K4" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_ldm"    LOC = "J2" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_ldqs"   LOC = "L6" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_ras"    LOC = "C1" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_udm"    LOC = "J1" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_udqs"   LOC = "G3" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_we"     LOC = "D1" | IOSTANDARD = SSTL2_I ;
+NET "ddr_sdram_ck_fb"  LOC = "B9" | IOSTANDARD = LVCMOS33 ;
+CONFIG PROHIBIT = D2;
+CONFIG PROHIBIT = G4;
+CONFIG PROHIBIT = J6;
+CONFIG PROHIBIT = L5;
+CONFIG PROHIBIT = R4;
