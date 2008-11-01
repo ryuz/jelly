@@ -13,12 +13,11 @@ module cpu_cop0
 		(
 			reset, clk,
 			interlock,
-			rd_addr, sel,
-			in_en, in_data,
+			in_en, in_addr, in_sel, in_data,
 			out_data,
 			exception, rfe, dbg_break,
 			in_cause, in_epc, in_debug, in_depc,
-			out_status, out_cause, out_epc
+			out_status, out_cause, out_epc, out_debug, out_depc
 		);
 	
 	input			clk;
@@ -26,10 +25,10 @@ module cpu_cop0
 
 	input			interlock;
 
-	input	[4:0]	rd_addr;
-	input	[2:0]	sel;
 	
 	input			in_en;
+	input	[4:0]	in_addr;
+	input	[2:0]	in_sel;
 	input	[31:0]	in_data;
 	
 	output	[31:0]	out_data;
@@ -46,6 +45,8 @@ module cpu_cop0
 	output	[31:0]	out_status;
 	output	[31:0]	out_cause;
 	output	[31:0]	out_epc;
+	output	[31:0]	out_debug;
+	output	[31:0]	out_depc;
 	
 	
 	// register
@@ -75,7 +76,7 @@ module cpu_cop0
 					reg_status[0] <= reg_status[2];
 					reg_status[2] <= reg_status[4];
 				end
-				else if ( in_en & (rd_addr == 5'd12) ) begin
+				else if ( in_en & (in_addr == 5'd12) ) begin
 					reg_status[0] <= in_data[0];
 					reg_status[2] <= in_data[2]; 
 					reg_status[4] <= in_data[4];
@@ -86,7 +87,7 @@ module cpu_cop0
 					reg_cause[31]  <= in_cause[31];		// BD
 					reg_cause[6:2] <= in_cause[6:2];	// ExcCode
 				end
-				else if ( in_en & (rd_addr == 5'd13) ) begin
+				else if ( in_en & (in_addr == 5'd13) ) begin
 					reg_cause[31]  <= in_data[31];		// BD
 					reg_cause[6:2] <= in_data[6:2];		// ExcCode
 				end
@@ -95,7 +96,7 @@ module cpu_cop0
 				if ( exception ) begin
 					reg_epc[31:2] <= in_epc[31:2];
 				end
-				else if ( in_en & (rd_addr == 5'd14) ) begin
+				else if ( in_en & (in_addr == 5'd14) ) begin
 					reg_epc[31:2] <= in_data[31:2];
 				end
 				
@@ -103,7 +104,7 @@ module cpu_cop0
 				if ( dbg_break ) begin
 					reg_debug[31] <= in_debug[31];
 				end
-				else if ( in_en & (rd_addr == 5'd23) ) begin
+				else if ( in_en & (in_addr == 5'd23) ) begin
 					reg_debug[31] <= in_data;
 				end
 				
@@ -111,7 +112,7 @@ module cpu_cop0
 				if ( dbg_break ) begin
 					reg_depc[31:2] <= in_debug[31:2];
 				end
-				else if ( in_en & (rd_addr == 5'd24) ) begin
+				else if ( in_en & (in_addr == 5'd24) ) begin
 					reg_depc[31:2] <= in_data[31:2];
 				end
 			end
@@ -121,7 +122,7 @@ module cpu_cop0
 	// output
 	reg 	[31:0]	out_data;
 	always @* begin
-		case ( rd_addr )
+		case ( in_addr )
 		5'd12:		out_data <= reg_status;
 		5'd13:		out_data <= reg_cause;
 		5'd14:		out_data <= reg_epc;
@@ -134,5 +135,7 @@ module cpu_cop0
 	assign out_status = reg_status;
 	assign out_cause  = reg_cause;
 	assign out_epc    = reg_epc;
+	assign out_debug  = reg_debug;
+	assign out_depc   = reg_depc;
 	
 endmodule

@@ -7,7 +7,7 @@
 
 `timescale 1ns / 1ps
 
-
+// TE28F128J3D-75
 
 // top module
 module top

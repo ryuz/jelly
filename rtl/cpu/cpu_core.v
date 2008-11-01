@@ -72,7 +72,7 @@ module cpu_core
 	
 
 	// -----------------------------
-	//  Debug signals
+	//  Debugger signals
 	// -----------------------------
 	
 	// debug status
@@ -95,11 +95,6 @@ module cpu_core
 	wire	[3:0]	dbg_wb_inst_sel_o;
 	wire			dbg_wb_inst_stb_o;
 	wire			dbg_wb_inst_ack_i;
-	
-	// PC control
-	wire			dbg_pc_we;
-	wire	[31:0]	dbg_pc_wdata;
-	wire	[31:0]	dbg_pc_rdata;
 	
 	// gpr control
 	wire			dbg_gpr_en;
@@ -141,6 +136,7 @@ module cpu_core
 	wire			if_in_stall;
 	wire			if_in_branch_en;
 	wire	[31:0]	if_in_branch_pc;
+	wire	[31:0]	if_in_depc;
 	
 	// IF stage output
 	wire			if_out_hazard;
@@ -159,8 +155,8 @@ module cpu_core
 			if_pc <= vect_reset;
 		end
 		else begin
-			if ( dbg_pc_we ) begin
-				if_pc <= dbg_pc_wdata;	// debugger hook
+			if ( dbg_enable ) begin
+				if_pc <= if_in_depc;
 			end
 			else if ( !interlock ) begin
 				if_pc <= if_in_branch_en ? if_in_branch_pc : (if_pc + 4);
@@ -623,7 +619,7 @@ module cpu_core
 	assign ex_stall = id_out_stall | ex_in_stall;
 	
 	// debugger break
-	wire ex_break;
+	wire ex_dbg_break;
 	
 	// interrupt;
 	wire ex_interrupt;
@@ -723,38 +719,22 @@ module cpu_core
 	
 	
 	// COP0
-	wire	[31:0]				ex_cop0_exception_pc;
-	wire	[31:0]				ex_cop0_out_data;
-	wire	[31:0]				ex_cop0_cause;
-	wire	[31:0]				ex_cop0_status;
+	wire			ex_cop0_in_en;
+	wire	[4:0]	ex_cop0_in_addr;
+	wire	[31:0]	ex_cop0_in_data;
+	wire	[31:0]	ex_cop0_out_data;
 	
+	wire			ex_cop0_exception;
+	wire			ex_cop0_rfe;
+	wire			ex_cop0_dbg_break;
 	
-	// debugger break;
-	assign ex_break  = dbg_break_req & ~(interlock | ex_stall);
-	assign dbg_break = ex_break;
+	wire	[31:0]	ex_cop0_in_cause;
+	wire	[31:0]	ex_cop0_in_epc;
+	wire	[31:0]	ex_cop0_in_debug;
+	wire	[31:0]	ex_cop0_in_depc;
 	
-	// interrupt
-	assign ex_interrupt  = (interrupt_req & ex_cop0_status[0])
-								& ~(interlock | ex_stall | ex_break | id_out_exc_break | id_out_exc_syscall | id_out_exc_ri);
-	assign interrupt_ack = ex_interrupt;
-	
-	// exception
-	assign ex_exception = (id_out_exc_break | id_out_exc_syscall | id_out_exc_ri | ex_interrupt)
-								& ~(interlock | ex_stall | ex_break);
-	
-	
-	// cause
-	assign ex_cop0_cause[31]   = ex_out_branch_en;					// Branch Delay
-	assign ex_cop0_cause[30:7] = 0;
-	assign ex_cop0_cause[6:2]  = (id_out_exc_ri      ? 5'd10 : 5'd0) |
-								(id_out_exc_break   ? 5'd9  : 5'd0) |
-								(id_out_exc_syscall ? 5'd8  : 5'd0) |
-								(ex_interrupt       ? 5'd0  : 5'd0);	// ExcCode
-	assign ex_cop0_cause[1:0]  = 0;
-	
-	// EPC
-	assign ex_cop0_exception_pc = ex_out_branch_en ? id_out_pc - 4 : id_out_pc;
-	
+	wire	[31:0]	ex_cop0_out_status;	
+	wire	[31:0]	ex_cop0_out_depc;
 	
 	cpu_cop0
 		i_cpu_cop0
@@ -764,28 +744,74 @@ module cpu_core
 				
 				.interlock		(interlock),
 				
-				.rd_addr		(id_out_rd_addr),
-				.sel			(3'b000),
-				
-				.in_en			(id_out_cop0_mtc0 & ~ex_stall & ~ex_exception),
-				.in_data		(ex_fwd_rt_data),
-				
+				.in_en			(ex_cop0_in_en),
+				.in_sel			(3'b000),
+				.in_addr		(ex_cop0_in_addr),
+				.in_data		(ex_cop0_in_data),
 				.out_data		(ex_cop0_out_data),
 				
-				.exception		(ex_exception),
-				.rfe			(id_out_cop0_rfe & ~ex_stall & ~ex_exception),
-				.dbg_break		(ex_break),
+				.exception		(ex_cop0_exception),
+				.rfe			(ex_cop0_rfe),
+				.dbg_break		(ex_cop0_dbg_break),
 				
-				.in_cause		(ex_cop0_cause),
-				.in_epc			(ex_cop0_exception_pc),
-				.in_debug		(),
-				.in_depc		(ex_cop0_exception_pc),
+				.in_cause		(ex_cop0_in_cause),
+				.in_epc			(ex_cop0_in_epc),
+				.in_debug		(ex_cop0_in_debug),
+				.in_depc		(ex_cop0_in_depc),
 				
-				.out_status		(ex_cop0_status),
+				.out_status		(ex_cop0_out_status),
 				.out_cause		(),
-				.out_epc		()
+				.out_epc		(),
+				.out_debug		(),
+				.out_depc		(ex_cop0_out_depc)
 			);
 	
+	// register access (debugger hook)
+	assign ex_cop0_in_en   = dbg_enable ? (dbg_cop0_en & dbg_cop0_we) : (id_out_cop0_mtc0 & ~ex_stall & ~ex_exception);
+	assign ex_cop0_in_addr = dbg_enable ? dbg_cop0_addr               : id_out_rd_addr;
+	assign ex_cop0_in_data = dbg_enable ? dbg_cop0_wdata              : ex_fwd_rt_data;
+	assign dbg_cop0_rdata  = ex_cop0_out_data;
+	
+	// event
+	assign ex_cop0_exception = ex_exception;
+	assign ex_cop0_rfe       = id_out_cop0_rfe & ~ex_stall & ~ex_exception;
+	assign ex_cop0_dbg_break = ex_dbg_break;
+	
+	// cause
+	assign ex_cop0_in_cause[31]   = ex_out_branch_en;						// Branch Delay
+	assign ex_cop0_in_cause[30:7] = 0;
+	assign ex_cop0_in_cause[6:2]  = (id_out_exc_ri      ? 5'd10 : 5'd0) |
+									(id_out_exc_break   ? 5'd9  : 5'd0) |
+									(id_out_exc_syscall ? 5'd8  : 5'd0) |
+									(ex_interrupt       ? 5'd0  : 5'd0);	// ExcCode
+	assign ex_cop0_in_cause[1:0]  = 0;
+	
+	// epc
+	assign ex_cop0_in_epc = ex_out_branch_en ? id_out_pc - 4 : id_out_pc;
+	
+	// debug
+	assign ex_cop0_in_debug[31]   = ex_out_branch_en;						// Branch Delay
+	assign ex_cop0_in_debug[30:0] = {30{1'b0}};
+	
+	// depc
+	assign ex_cop0_in_depc = ex_cop0_in_epc;
+	
+	// depc feedback
+	assign if_in_depc = ex_cop0_out_depc;
+	
+	
+	// debugger break;
+	assign ex_break  = dbg_break_req & ~(interlock | ex_stall);
+	assign dbg_break = ex_break;
+	
+	// interrupt
+	assign ex_interrupt  = (interrupt_req & ex_cop0_out_status[0])
+								& ~(interlock | ex_stall | ex_break | id_out_exc_break | id_out_exc_syscall | id_out_exc_ri);
+	assign interrupt_ack = ex_interrupt;
+	
+	// exception
+	assign ex_exception = (id_out_exc_break | id_out_exc_syscall | id_out_exc_ri | ex_interrupt)
+								& ~(interlock | ex_stall | ex_break);
 	
 	
 	
@@ -1152,11 +1178,7 @@ module cpu_core
 				.wb_inst_sel_o	(dbg_wb_inst_sel_o),
 				.wb_inst_stb_o	(dbg_wb_inst_stb_o),
 				.wb_inst_ack_i	(dbg_wb_inst_ack_i),
-				
-				.pc_we			(dbg_pc_we),
-				.pc_wdata		(dbg_pc_wdata),
-				.pc_rdata		(dbg_pc_rdata),
-				
+								
 				.gpr_en			(dbg_gpr_en),
 				.gpr_we			(dbg_gpr_we),
 				.gpr_addr		(dbg_gpr_addr),

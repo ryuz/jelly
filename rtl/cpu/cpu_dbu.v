@@ -17,10 +17,9 @@
 `define DBG_ADR_IBUS_DATA		4'h7
 
 // register address
-`define REG_ADR_PC				8'b00
 `define REG_ADR_HI				8'h10
 `define REG_ADR_LO				8'h11
-`define REG_ADR_GPR				8'h20
+`define REG_ADR_R0				8'h20
 `define REG_ADR_R1				8'h21
 `define REG_ADR_R2				8'h22
 `define REG_ADR_R3				8'h23
@@ -66,7 +65,6 @@ module cpu_dbu
 			dbg_enable, dbg_break_req, dbg_break,
 			wb_data_adr_o, wb_data_dat_i, wb_data_dat_o, wb_data_we_o, wb_data_sel_o, wb_data_stb_o, wb_data_ack_i,
 			wb_inst_adr_o, wb_inst_dat_i, wb_inst_sel_o, wb_inst_stb_o, wb_inst_ack_i,
-			pc_we, pc_wdata, pc_rdata,
 			gpr_en, gpr_we, gpr_addr, gpr_wdata, gpr_rdata,
 			hilo_en, hilo_we, hilo_addr, hilo_wdata, hilo_rdata,
 			cop0_en, cop0_we, cop0_addr, cop0_wdata, cop0_rdata
@@ -108,13 +106,7 @@ module cpu_dbu
 	output	[3:0]		wb_inst_sel_o;
 	output				wb_inst_stb_o;
 	input				wb_inst_ack_i;
-	
-	
-	// PC control
-	output				pc_we;
-	output	[31:0]		pc_wdata;
-	input	[31:0]		pc_rdata;
-	
+		
 	// gpr control
 	output				gpr_en;
 	output				gpr_we;
@@ -261,10 +253,6 @@ module cpu_dbu
 	//  Register access
 	// -----------------------------
 	
-	// PC control
-	assign pc_we      = reg_en & reg_we & (reg_addr == `REG_ADR_PC);
-	assign pc_wdata   = reg_wdata;
-	
 	// hi/lo control
 	assign hilo_en    = reg_en & (reg_addr[7:1] == 7'b0001_000);
 	assign hilo_we    = reg_we;
@@ -286,11 +274,6 @@ module cpu_dbu
 	// reg_rdata
 	always @* begin
 		casex ( reg_addr )		
-		`REG_ADR_PC:			// PC
-			begin
-				reg_rdata = pc_rdata;
-			end
-		
 		8'b0001_000x:			// HI, LO
 			begin
 				reg_rdata = hilo_rdata;
