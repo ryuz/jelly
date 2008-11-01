@@ -1,0 +1,32 @@
+
+NET "clk_in" LOC = "C9";
+
+NET "reset_in" LOC = "K17";
+
+# UART
+NET "uart0_tx" LOC = "M14";
+NET "uart0_rx" LOC = "R7";
+
+NET "uart1_tx" LOC = "M13";
+NET "uart1_rx" LOC = "U8";
+
+
+# SW
+NET	"sw[0]"	LOC = "L13"  ;
+NET	"sw[1]"	LOC = "L14"  ;
+NET	"sw[2]"	LOC = "H18"  ;
+NET	"sw[3]"	LOC = "N17"  ;
+
+# LED
+NET "led<0>" LOC = "F12";
+NET "led<1>" LOC = "E12";
+NET "led<2>" LOC = "E11";
+NET "led<3>" LOC = "F11";
+NET "led<4>" LOC = "C11";
+NET "led<5>" LOC = "D11";
+NET "led<6>" LOC = "E9";
+NET "led<7>" LOC = "F9";
+
+NET "clk_in" TNM_NET = clk_in;
+TIMESPEC TS_clk_in = PERIOD "clk_in" 50 MHz HIGH 50%;
+
