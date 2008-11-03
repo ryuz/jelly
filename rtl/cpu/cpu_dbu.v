@@ -211,7 +211,7 @@ module cpu_dbu
 		casex ( wb_adr_i )
 		`DBG_ADR_DBG_CTL:	// DBG_CTL
 			begin
-				wb_dat_o = {{31{1'b0}}, dbg_enable};
+				wb_dat_o = {{30{1'b0}}, dbg_enable, dbg_break_req};
 				wb_ack_o = 1'b1;
 			end
 

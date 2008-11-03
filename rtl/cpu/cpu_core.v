@@ -22,6 +22,12 @@ module cpu_core
 			pause
 		);
 	
+	parameter	USE_DBUGGER     = 1'b1;
+	parameter	USE_EXC_SYSCALL = 1'b1;
+	parameter	USE_EXC_BREAK   = 1'b1;
+	parameter	USE_EXC_RI      = 1'b1;
+	parameter	GPR_TYPE        = 0;
+	
 	// system
 	input			reset;
 	input			clk;
@@ -56,7 +62,7 @@ module cpu_core
 	output	[3:0]	wb_data_sel_o;
 	output			wb_data_stb_o;
 	input			wb_data_ack_i;
-
+	
 	// Debug port (wishbone)
 	input	[3:0]	wb_dbg_adr_i;
 	input	[31:0]	wb_dbg_dat_i;
@@ -293,6 +299,8 @@ module cpu_core
 	reg				id_out_exc_syscall;
 	reg				id_out_exc_break;
 	reg				id_out_exc_ri;
+
+	reg				id_out_dbg_sdbbp;
 	
 	reg				id_out_mem_en;
 	reg				id_out_mem_we;
@@ -328,6 +336,9 @@ module cpu_core
 	wire	[31:0]	if_gpr_r1_data;
 	
 	cpu_gpr
+			#(
+				.TYPE			(GPR_TYPE)
+			)
 		i_cpu_gpr
 			(
 				.reset			(reset),
@@ -410,6 +421,8 @@ module cpu_core
 	wire			id_dec_exc_syscall;
 	wire			id_dec_exc_break;
 	wire			id_dec_exc_ri;
+
+	wire			id_dec_dbg_sdbbp;
 	
 	wire			id_dec_mem_en;
 	wire			id_dec_mem_we;
@@ -427,6 +440,11 @@ module cpu_core
 	wire			id_dec_dst_src_cop0;
 	
 	cpu_idu
+			#(
+				.USE_EXC_SYSCALL	(USE_EXC_SYSCALL),
+				.USE_EXC_BREAK		(USE_EXC_BREAK),
+				.USE_EXC_RI     	(USE_EXC_RI)
+			)
 		i_cpu_idu
 			(
 				.instruction		(if_out_instruction),
@@ -473,6 +491,8 @@ module cpu_core
 				.exc_break			(id_dec_exc_break),
 				.exc_ri				(id_dec_exc_ri),
 				
+				.dbg_sdbbp			(id_dec_dbg_sdbbp),
+				
 				.mem_en				(id_dec_mem_en),
 				.mem_we				(id_dec_mem_we),
 				.mem_size			(id_dec_mem_size),
@@ -511,6 +531,8 @@ module cpu_core
 			id_out_exc_syscall <= 1'b0;
 			id_out_exc_break   <= 1'b0;
 			id_out_exc_ri      <= 1'b0;
+
+			id_out_dbg_sdbbp   <= 1'b0;
 			
 			id_out_dst_reg_en  <= 1'b0;
 		end
@@ -561,6 +583,8 @@ module cpu_core
 				id_out_exc_syscall     <= id_dec_exc_syscall;
 				id_out_exc_break       <= id_dec_exc_break;
 				id_out_exc_ri          <= id_dec_exc_ri;
+				
+				id_out_dbg_sdbbp       <= id_dec_dbg_sdbbp;
 				
 				id_out_mem_en          <= id_dec_mem_en  & ~id_stall;
 				id_out_mem_we          <= id_dec_mem_we;
@@ -821,7 +845,7 @@ module cpu_core
 	
 	
 	// debugger break;
-	assign ex_dbg_break = (dbg_break_req & ~dbg_enable) & ~(interlock | ex_stall);
+	assign ex_dbg_break = ((dbg_break_req & ~dbg_enable) | id_out_dbg_sdbbp) & ~(interlock | ex_stall);
 	assign dbg_break    = ex_dbg_break;
 	
 	// interrupt
@@ -1166,56 +1190,92 @@ module cpu_core
 	//  Debug unit
 	// -----------------------------
 	
-	cpu_dbu
-		i_cpu_dbu
-			(
-				.reset			(reset),
-				.clk			(clk),
-				.endian			(endian),
-				
-				.wb_adr_i		(wb_dbg_adr_i),
-				.wb_dat_i		(wb_dbg_dat_i),
-				.wb_dat_o		(wb_dbg_dat_o),
-				.wb_we_i		(wb_dbg_we_i),
-				.wb_sel_i		(wb_dbg_sel_i),
-				.wb_stb_i		(wb_dbg_stb_i),
-				.wb_ack_o		(wb_dbg_ack_o),
-				
-				.dbg_enable		(dbg_enable),
-				.dbg_break_req	(dbg_break_req),
-				.dbg_break		(dbg_break),
-				
-				.wb_data_adr_o	(dbg_wb_data_adr_o),
-				.wb_data_dat_i	(dbg_wb_data_dat_i),
-				.wb_data_dat_o	(dbg_wb_data_dat_o),
-				.wb_data_we_o	(dbg_wb_data_we_o),
-				.wb_data_sel_o	(dbg_wb_data_sel_o),
-				.wb_data_stb_o	(dbg_wb_data_stb_o),
-				.wb_data_ack_i	(dbg_wb_data_ack_i),
-				
-				.wb_inst_adr_o	(dbg_wb_inst_adr_o),
-				.wb_inst_dat_i	(dbg_wb_inst_dat_i),
-				.wb_inst_sel_o	(dbg_wb_inst_sel_o),
-				.wb_inst_stb_o	(dbg_wb_inst_stb_o),
-				.wb_inst_ack_i	(dbg_wb_inst_ack_i),
-								
-				.gpr_en			(dbg_gpr_en),
-				.gpr_we			(dbg_gpr_we),
-				.gpr_addr		(dbg_gpr_addr),
-				.gpr_wdata		(dbg_gpr_wdata),
-				.gpr_rdata		(dbg_gpr_rdata),
-				
-				.hilo_en		(dbg_hilo_en),
-				.hilo_we		(dbg_hilo_we),
-				.hilo_addr		(dbg_hilo_addr),
-				.hilo_wdata		(dbg_hilo_wdata),
-				.hilo_rdata		(dbg_hilo_rdata),
-				
-				.cop0_en		(cop0_en),
-				.cop0_we		(cop0_we),
-				.cop0_addr		(cop0_addr),
-				.cop0_wdata		(cop0_wdata),
-				.cop0_rdata		(cop0_rdata)
-			);
+	generate
+	if ( USE_DBUGGER ) begin
+		cpu_dbu
+			i_cpu_dbu
+				(
+					.reset			(reset),
+					.clk			(clk),
+					.endian			(endian),
+					
+					.wb_adr_i		(wb_dbg_adr_i),
+					.wb_dat_i		(wb_dbg_dat_i),
+					.wb_dat_o		(wb_dbg_dat_o),
+					.wb_we_i		(wb_dbg_we_i),
+					.wb_sel_i		(wb_dbg_sel_i),
+					.wb_stb_i		(wb_dbg_stb_i),
+					.wb_ack_o		(wb_dbg_ack_o),
+					
+					.dbg_enable		(dbg_enable),
+					.dbg_break_req	(dbg_break_req),
+					.dbg_break		(dbg_break),
+					
+					.wb_data_adr_o	(dbg_wb_data_adr_o),
+					.wb_data_dat_i	(dbg_wb_data_dat_i),
+					.wb_data_dat_o	(dbg_wb_data_dat_o),
+					.wb_data_we_o	(dbg_wb_data_we_o),
+					.wb_data_sel_o	(dbg_wb_data_sel_o),
+					.wb_data_stb_o	(dbg_wb_data_stb_o),
+					.wb_data_ack_i	(dbg_wb_data_ack_i),
+					
+					.wb_inst_adr_o	(dbg_wb_inst_adr_o),
+					.wb_inst_dat_i	(dbg_wb_inst_dat_i),
+					.wb_inst_sel_o	(dbg_wb_inst_sel_o),
+					.wb_inst_stb_o	(dbg_wb_inst_stb_o),
+					.wb_inst_ack_i	(dbg_wb_inst_ack_i),
+									
+					.gpr_en			(dbg_gpr_en),
+					.gpr_we			(dbg_gpr_we),
+					.gpr_addr		(dbg_gpr_addr),
+					.gpr_wdata		(dbg_gpr_wdata),
+					.gpr_rdata		(dbg_gpr_rdata),
+					
+					.hilo_en		(dbg_hilo_en),
+					.hilo_we		(dbg_hilo_we),
+					.hilo_addr		(dbg_hilo_addr),
+					.hilo_wdata		(dbg_hilo_wdata),
+					.hilo_rdata		(dbg_hilo_rdata),
+					
+					.cop0_en		(dbg_cop0_en),
+					.cop0_we		(dbg_cop0_we),
+					.cop0_addr		(dbg_cop0_addr),
+					.cop0_wdata		(dbg_cop0_wdata),
+					.cop0_rdata		(dbg_cop0_rdata)
+				);
+	end
+	else begin
+		assign wb_dbg_dat_o      = {32{1'b0}};
+		assign wb_dbg_ack_o      = 1'b1;
+		
+		assign dbg_enable        = 1'b0;
+		assign dbg_break_req     = 1'b0;
+					
+		assign dbg_wb_data_adr_o = 0;
+		assign dbg_wb_data_dat_o = {32{1'b0}};
+		assign dbg_wb_data_we_o  = 0;
+		assign dbg_wb_data_sel_o = 0;
+		assign dbg_wb_data_stb_o = 1'b0;
+					
+		assign dbg_wb_inst_adr_o = 0;
+		assign dbg_wb_inst_sel_o = 0;
+		assign dbg_wb_inst_stb_o = 1'b0;
+									
+		assign dbg_gpr_en        = 1'b0;
+		assign dbg_gpr_we        = 1'b0;
+		assign dbg_gpr_addr      = 0;
+		assign dbg_gpr_wdata     = {32{1'b0}};
+					
+		assign dbg_hilo_en       = 1'b0;
+		assign dbg_hilo_we       = 1'b0;
+		assign dbg_hilo_addr     = 0;
+		assign dbg_hilo_wdata    = {32{1'b0}};
+					
+		assign dbg_cop0_en       = 1'b0;
+		assign dbg_cop0_we       = 1'b0;
+		assign dbg_cop0_addr     = 0;
+		assign dbg_cop0_wdata    = {32{1'b0}};
+	end
+	endgenerate
 
 endmodule

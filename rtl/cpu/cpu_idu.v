@@ -35,6 +35,7 @@
 `define OP_ORI			6'b001101
 `define OP_XORI			6'b001110
 `define OP_COP0			6'b010000
+`define OP_SPECIAL2		6'b011100
 
 // func
 `define FUNC_ADD		6'b100000
@@ -65,8 +66,11 @@
 `define FUNC_SRLV		6'b000110
 `define FUNC_BREAK		6'b001101
 `define FUNC_SYSCALL	6'b001100
+
 `define FUNC_RFE		6'b010000
 `define FUNC_ERET		6'b011000
+
+`define FUNC_SDBBP		6'b011000
 
 
 
@@ -117,6 +121,8 @@ module cpu_idu
 			exc_break,
 			exc_ri,
 			
+			dbg_sdbbp,
+			
 			mem_en,
 			mem_we,
 			mem_size,
@@ -132,6 +138,10 @@ module cpu_idu
 			dst_src_lo,
 			dst_src_cop0
 		);
+	
+	parameter	USE_EXC_SYSCALL = 1'b1;
+	parameter	USE_EXC_BREAK   = 1'b1;
+	parameter	USE_EXC_RI      = 1'b1;
 	
 	input	[31:0]			instruction;
 	
@@ -176,6 +186,8 @@ module cpu_idu
 	output					exc_syscall;
 	output					exc_break;
 	output					exc_ri;
+	
+	output					dbg_sdbbp;
 
 	output					mem_en;
 	output					mem_we;
@@ -459,8 +471,11 @@ module cpu_idu
 	wire	inst_mtc0;
 	assign inst_mtc0 = (field_op == `OP_COP0) & (instruction[25:21] == 5'b00100);
 	
+	// SDBBP
+	wire	inst_sdbbp;
+	assign inst_sdbbp = (field_op == `OP_SPECIAL2) & (field_func == `FUNC_SDBBP);
 	
-		
+	
 	
 	// -----------------------------
 	//  Immidiate
@@ -652,75 +667,82 @@ module cpu_idu
 	// -----------------------------
 	
 	// syscall
-	assign exc_syscall = inst_syscall;
+	assign exc_syscall = USE_EXC_SYSCALL & inst_syscall;
 	
 	// break
-	assign exc_break = inst_break;
+	assign exc_break   = USE_EXC_BREAK & inst_break;
 	
 	// reserve instruction
-	assign exc_ri = 1'b0;
-	
-	/*
-	assign exc_ri = (
-						(field_op != `OP_SPECIAL) &
-						(field_op != `OP_ADDI)    &
-						(field_op != `OP_ADDIU)   &
-						(field_op != `OP_SLTI)    &
-						(field_op != `OP_SLTIU)   &
-						(field_op != `OP_BEQ)     &
-						(field_op != `OP_BNE)     &
-						(field_op != `OP_REGIMM)  &
-						(field_op != `OP_BGTZ)    &
-						(field_op != `OP_BLEZ)    &
-						(field_op != `OP_J)       &
-						(field_op != `OP_JAL)     &
-						(field_op != `OP_LB)      &
-						(field_op != `OP_LBU)     &
-						(field_op != `OP_LH)      &
-						(field_op != `OP_LHU)     &
-						(field_op != `OP_LW)      &
-						(field_op != `OP_SB)      &
-						(field_op != `OP_SH)      &
-						(field_op != `OP_SW)      &
-						(field_op != `OP_ANDI)    &
-						(field_op != `OP_LUI)     &
-						(field_op != `OP_ORI)     &
-						(field_op != `OP_XORI)    &
-						(field_op != `OP_COP0)
-					) |
+	assign exc_ri = USE_EXC_RI &
 					(
-						op_special &
-							(
-								(field_func != `FUNC_ADD)     &
-								(field_func != `FUNC_ADDU)    &
-								(field_func != `FUNC_DIV)     &
-								(field_func != `FUNC_DIVU)    &
-								(field_func != `FUNC_MULT)    &
-								(field_func != `FUNC_MULTU)   &
-								(field_func != `FUNC_SLT)     &
-								(field_func != `FUNC_SLTU)    &
-								(field_func != `FUNC_SUB)     &
-								(field_func != `FUNC_SUBU)    &
-								(field_func != `FUNC_JALR)    &
-								(field_func != `FUNC_JR)      &
-								(field_func != `FUNC_AND)     &
-								(field_func != `FUNC_NOR)     &
-								(field_func != `FUNC_OR)      &	
-								(field_func != `FUNC_XOR)     &
-								(field_func != `FUNC_MFHI)    &
-								(field_func != `FUNC_MFLO)    &
-								(field_func != `FUNC_MTHI)    &
-								(field_func != `FUNC_MTLO)    &
-								(field_func != `FUNC_SLL)     &
-								(field_func != `FUNC_SLLV)    &
-								(field_func != `FUNC_SRA)     &
-								(field_func != `FUNC_SRAV)    &
-								(field_func != `FUNC_SRL)     &
-								(field_func != `FUNC_SRLV)    &
-								(field_func != `FUNC_BREAK)   &
-								(field_func != `FUNC_SYSCALL)
+						(
+							(field_op != `OP_SPECIAL)  &
+							(field_op != `OP_ADDI)     &
+							(field_op != `OP_ADDIU)    &
+							(field_op != `OP_SLTI)     &
+							(field_op != `OP_SLTIU)    &
+							(field_op != `OP_BEQ)      &
+							(field_op != `OP_BNE)      &
+							(field_op != `OP_REGIMM)   &
+							(field_op != `OP_BGTZ)     &
+							(field_op != `OP_BLEZ)     &
+							(field_op != `OP_J)        &
+							(field_op != `OP_JAL)      &
+							(field_op != `OP_LB)       &
+							(field_op != `OP_LBU)      &
+							(field_op != `OP_LH)       &
+							(field_op != `OP_LHU)      &
+							(field_op != `OP_LW)       &
+							(field_op != `OP_SB)       &
+							(field_op != `OP_SH)       &
+							(field_op != `OP_SW)       &
+							(field_op != `OP_ANDI)     &
+							(field_op != `OP_LUI)      &
+							(field_op != `OP_ORI)      &
+							(field_op != `OP_XORI)     &
+							(field_op != `OP_COP0)     &
+							(field_op != `OP_SPECIAL2)
+						) |
+						(
+							op_special &
+								(
+									(field_func != `FUNC_ADD)     &
+									(field_func != `FUNC_ADDU)    &
+									(field_func != `FUNC_DIV)     &
+									(field_func != `FUNC_DIVU)    &
+									(field_func != `FUNC_MULT)    &
+									(field_func != `FUNC_MULTU)   &
+									(field_func != `FUNC_SLT)     &
+									(field_func != `FUNC_SLTU)    &
+									(field_func != `FUNC_SUB)     &
+									(field_func != `FUNC_SUBU)    &
+									(field_func != `FUNC_JALR)    &
+									(field_func != `FUNC_JR)      &
+									(field_func != `FUNC_AND)     &
+									(field_func != `FUNC_NOR)     &
+									(field_func != `FUNC_OR)      &	
+									(field_func != `FUNC_XOR)     &
+									(field_func != `FUNC_MFHI)    &
+									(field_func != `FUNC_MFLO)    &
+									(field_func != `FUNC_MTHI)    &
+									(field_func != `FUNC_MTLO)    &
+									(field_func != `FUNC_SLL)     &
+									(field_func != `FUNC_SLLV)    &
+									(field_func != `FUNC_SRA)     &
+									(field_func != `FUNC_SRAV)    &
+									(field_func != `FUNC_SRL)     &
+									(field_func != `FUNC_SRLV)    &
+									(field_func != `FUNC_BREAK)   &
+									(field_func != `FUNC_SYSCALL)
+								)
 							)
 						);
-	*/
+
+	// -----------------------------
+	//  Debbuger
+	// -----------------------------
+
+	assign dbg_sdbbp   = inst_sdbbp;
+	
 	
 endmodule  

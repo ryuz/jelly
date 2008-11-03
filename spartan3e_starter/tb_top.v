@@ -70,9 +70,14 @@ module tb_top;
 
 	
 	// UART monitor
+	integer uart_monitor;
+	initial begin
+		uart_monitor = $fopen("uart_monitor.txt");
+	end
 	always @ ( posedge i_top.i_uart0.clk ) begin
 		if ( i_top.i_uart0.tx_fifo_wr_en ) begin
 			$display("%t UART-TX:%h %c", $time, i_top.i_uart0.tx_fifo_wr_data, i_top.i_uart0.tx_fifo_wr_data);
+			$fdisplay(uart_monitor, "%t UART-TX:%h %c", $time, i_top.i_uart0.tx_fifo_wr_data, i_top.i_uart0.tx_fifo_wr_data);
 		end
 	end
 
@@ -103,16 +108,16 @@ module tb_top;
 	
 	
 	initial begin
-	#(RATE*20);
+	#(RATE*200);
 	
-		while ( 1 ) begin
+	//	while ( 1 ) begin
 				$display("--- NOP ---");
 				write_dbg_uart_rx_fifo(8'h00);		// nop
-			#(RATE*20);
+			#(RATE*200);
 
 				$display("\n\n--- STATUS ---");
 				write_dbg_uart_rx_fifo(8'h01);		// status
-			#(RATE*100);
+			#(RATE*200);
 
 				$display("\n\n--- DEBUG BREAK ---");
 				write_dbg_uart_rx_fifo(8'h02);		// write
@@ -121,7 +126,12 @@ module tb_top;
 				write_dbg_uart_rx_fifo(8'h00);		// dat1
 				write_dbg_uart_rx_fifo(8'h00);		// dat2
 				write_dbg_uart_rx_fifo(8'h01);		// dat3
-			#(RATE*100);
+			#(RATE*200);
+
+				$display("\n\n--- DEBUG BREAK READ  ---");
+				write_dbg_uart_rx_fifo(8'h03);		// read
+				write_dbg_uart_rx_fifo(8'hf0);		// dbgctl
+			#(RATE*200);
 
 				$display("\n\n--- MEM READ ---");
 				write_dbg_uart_rx_fifo(8'h05);		// mem read
@@ -142,7 +152,7 @@ module tb_top;
 			#(RATE*100);
 
 			#(RATE*1234);
-		end
+	//	end
 
 	end
 	
