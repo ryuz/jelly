@@ -632,7 +632,6 @@ module jelly_dbg_uart
 	end
 	
 	
-	
 	// UART core
 	jelly_uart_core
 			#(
