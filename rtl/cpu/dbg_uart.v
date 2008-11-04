@@ -75,81 +75,80 @@ module jelly_dbg_uart
 	input				wb_dbg_ack_i;
 	
 	
-	
 	// state
-	parameter	ST_IDLE         = 0;
-	parameter	ST_RETURN_IDLE  = 1;
-	parameter	ST_ST_TX_ACK    = 2;
-	parameter	ST_DW_RX_ADDR   = 3;
-	parameter	ST_DW_RX_DATA   = 4;
-	parameter	ST_DW_WRITE     = 5;
-	parameter	ST_DR_RX_ADDR   = 6;
-	parameter	ST_DR_READ      = 7;
-	parameter	ST_DR_TX_DATA   = 8;
-	parameter	ST_MW_RX_SIZE   = 9;
-	parameter	ST_MW_RX_ADDR   = 10;
-	parameter	ST_MW_SET_ADDR  = 11;
-	parameter	ST_MW_WAI_ADDR  = 12;
-	parameter	ST_MW_RX_DATA   = 13;
-	parameter	ST_MW_WRITE     = 14;
-	parameter	ST_MR_RX_SIZE   = 15;
-	parameter	ST_MR_RX_ADDR   = 16;
-	parameter	ST_MR_TX_ACK    = 17;
-	parameter	ST_MR_SET_ADDR  = 18;
-	parameter	ST_MR_WAI_ADDR  = 19;
-	parameter	ST_MR_READ      = 20;
-	parameter	ST_MR_TX_DATA   = 21;
+	localparam	ST_NUM          = 26;
 	
-	
-	wire				uart_rx_en;
-	wire	[7:0]		uart_rx_data;
-	reg					uart_rx_ready;
-	
-	reg					uart_tx_en;
-	reg		[7:0]		uart_tx_data;
-	wire				uart_tx_ready;
-
-	reg		[3:0]		wb_dbg_adr_o;
-	reg		[31:0]		wb_dbg_dat_o;
-	reg					wb_dbg_we_o;
-	reg		[3:0]		wb_dbg_sel_o;
-	reg					wb_dbg_stb_o;
+	localparam	ST_IDLE         = 0;
+	localparam	ST_NOP_TX_ACK   = 1;
+	localparam	ST_STAT_TX_ACK  = 2;
+	localparam	ST_STAT_TX_STAT = 3;
+	localparam	ST_DW_RX_ADDR   = 4;
+	localparam	ST_DW_RX_DATA   = 5;
+	localparam	ST_DW_WRITE     = 6;
+	localparam	ST_DW_TX_ACK    = 7;
+	localparam	ST_DR_RX_ADDR   = 8;
+	localparam	ST_DR_READ      = 9;
+	localparam	ST_DR_TX_ACK    = 10;
+	localparam	ST_DR_TX_DATA   = 11;
+	localparam	ST_MW_RX_SIZE   = 12;
+	localparam	ST_MW_RX_ADDR   = 13;
+	localparam	ST_MW_SET_ADDR  = 14;
+	localparam	ST_MW_WAI_ADDR  = 15;
+	localparam	ST_MW_RX_DATA   = 16;
+	localparam	ST_MW_WRITE     = 17;
+	localparam	ST_MW_TX_ACK    = 18;
+	localparam	ST_MR_RX_SIZE   = 19;
+	localparam	ST_MR_RX_ADDR   = 20;
+	localparam	ST_MR_TX_ACK    = 21;
+	localparam	ST_MR_SET_ADDR  = 22;
+	localparam	ST_MR_WAI_ADDR  = 23;
+	localparam	ST_MR_READ      = 24;
+	localparam	ST_MR_TX_DATA   = 25;
 		
-	reg		[21:0]		state;
-	reg		[7:0]		counter;
+	wire					uart_rx_en;
+	wire	[7:0]			uart_rx_data;
+	reg						uart_rx_ready;
 	
-	reg		[7:0]		size;
-	reg		[31:0]		address;
-	reg		[31:0]		data;
+	reg						uart_tx_en;
+	reg		[7:0]			uart_tx_data;
+	wire					uart_tx_ready;
+
+	reg		[3:0]			wb_dbg_adr_o;
+	reg		[31:0]			wb_dbg_dat_o;
+	reg						wb_dbg_we_o;
+	reg		[3:0]			wb_dbg_sel_o;
+	reg						wb_dbg_stb_o;
 	
-	reg					next_uart_tx_en;
-	reg		[7:0]		next_uart_tx_data;
-
-	reg		[3:0]		next_wb_dbg_adr_o;
-	reg		[31:0]		next_wb_dbg_dat_o;
-	reg					next_wb_dbg_we_o;
-	reg		[3:0]		next_wb_dbg_sel_o;
-	reg					next_wb_dbg_stb_o;
-
-	reg		[21:0]		next_state;
-	reg		[7:0]		next_counter;
-
-	reg		[7:0]		next_size;
-	reg		[31:0]		next_address;
-	reg		[31:0]		next_data;
+	reg		[4:0]			state;
+	reg		[7:0]			counter;
+	
+	reg		[7:0]			size;
+	reg		[31:0]			address;
+	reg		[31:0]			read_data;
+	
+	
+	reg		[3:0]			next_wb_dbg_adr_o;
+	reg		[31:0]			next_wb_dbg_dat_o;
+	reg						next_wb_dbg_we_o;
+	reg		[3:0]			next_wb_dbg_sel_o;
+	reg						next_wb_dbg_stb_o;
+	
+	reg		[4:0]			next_state;
+	reg		[7:0]			next_counter;
+	
+	reg		[7:0]			next_size;
+	reg		[31:0]			next_address;
+	reg		[31:0]			next_read_data;
 	
 	
 	// FF
 	always @ ( posedge clk or posedge reset ) begin
 		if ( reset ) begin
-			uart_tx_en    <= 1'b0;
 			wb_dbg_stb_o  <= 1'b0;
-			state         <= 1;
+			state         <= ST_IDLE;
 			counter       <= 0;
 		end
 		else begin
-			uart_tx_en    <= next_uart_tx_en;
-			uart_tx_data  <= next_uart_tx_data;
 			wb_dbg_adr_o  <= next_wb_dbg_adr_o;
 			wb_dbg_dat_o  <= next_wb_dbg_dat_o;
 			wb_dbg_we_o   <= next_wb_dbg_we_o;
@@ -159,35 +158,34 @@ module jelly_dbg_uart
 			counter       <= next_counter;
 			size          <= next_size;
 			address       <= next_address;
-			data          <= next_data;
+			read_data     <= next_read_data;
 		end
 	end
 	
 	// combination
 	always @* begin
-		uart_rx_ready     = 1'b0;
+		// combination logic
+		uart_rx_ready = 1'b0;
+		uart_tx_en    = 1'b0;
+		uart_tx_data  = {8{1'bx}};
 		
+		// sequential logic
 		next_state        = state;
 		next_counter      = counter;
-		
-		next_uart_tx_en   = uart_tx_en;
-		next_uart_tx_data = uart_tx_data;
-		
 		next_wb_dbg_adr_o = wb_dbg_adr_o;
 		next_wb_dbg_dat_o = wb_dbg_dat_o;
 		next_wb_dbg_we_o  = wb_dbg_we_o;
 		next_wb_dbg_sel_o = wb_dbg_sel_o;
 		next_wb_dbg_stb_o = wb_dbg_stb_o;
-
 		next_size         = size;
 		next_address      = address;
-		next_data         = data;
+		next_read_data    = read_data;
 		
+		(* parallel_case *) (* full_case *)
+		casex ( state )
 		
 		//  ---- Idle ----
-		
-		// idle
-		if ( state[ST_IDLE] ) begin
+		ST_IDLE: begin
 			uart_rx_ready = 1'b1;
 			
 			// command recive & analyze
@@ -195,89 +193,89 @@ module jelly_dbg_uart
 				case ( uart_rx_data )
 				`CMD_NOP:
 					begin
-						// send ack
-						next_uart_tx_en   = 1'b1;
-						next_uart_tx_data = `ACK_NOP;	// NOP_ACK;
-						
-						// go next state
-						next_state[ST_IDLE]        = 1'b0;
-						next_state[ST_RETURN_IDLE] = 1'b1;
+						next_state = ST_NOP_TX_ACK;
 					end
 				
 				`CMD_STATUS:
 					begin
-						// send ack
-						next_uart_tx_en   = 1'b1;
-						next_uart_tx_data = `ACK_STATUS;
-						
 						// go next state
-						next_state[ST_IDLE]      = 1'b0;
-						next_state[ST_ST_TX_ACK] = 1'b1;
+						next_state = ST_STAT_TX_ACK;
 					end
 				
 				`CMD_DBG_WRITE:
 					begin
 						// go next state
-						next_state[ST_IDLE]       = 1'b0;
-						next_state[ST_DW_RX_ADDR] = 1'b1;
+						next_state = ST_DW_RX_ADDR;
 					end
 					
 				`CMD_DBG_READ:
 					begin
 						// go next state
-						next_state[ST_IDLE]       = 1'b0;
-						next_state[ST_DR_RX_ADDR] = 1'b1;						
+						next_state = ST_DR_RX_ADDR;
 					end
 
 				`CMD_MEM_WRIT:
 					begin
 						// go next state
-						next_state[ST_IDLE]       = 1'b0;
-						next_state[ST_MW_RX_SIZE] = 1'b1;						
+						next_state = ST_MW_RX_SIZE;
 					end
 					
 				`CMD_MEM_READ:
 					begin
 						// go next state
-						next_state[ST_IDLE]       = 1'b0;
-						next_state[ST_MR_RX_SIZE] = 1'b1;						
+						next_state = ST_MR_RX_SIZE;
 					end
 				endcase
 			end
 		end
 		
-		// return idle
-		if ( state[ST_RETURN_IDLE] ) begin
-			if ( !(uart_tx_en & ~uart_tx_ready) ) begin
-				next_uart_tx_en = 1'b0;
 				
+		// ---- Nop ----
+		
+		// send ack
+		ST_NOP_TX_ACK: begin
+			// send ack
+			uart_tx_en   = 1'b1;
+			uart_tx_data = `ACK_NOP;
+			if ( uart_tx_ready ) begin
 				// go next state
-				next_state[ST_RETURN_IDLE] = 1'b0;
-				next_state[ST_IDLE]        = 1'b1;
+				next_state = ST_IDLE;
 			end
 		end
 		
 		
+				
 		// ---- Status ----
 
 		// status ack
-		if ( state[ST_ST_TX_ACK] ) begin
+		ST_STAT_TX_ACK : begin
+			// send status
+			uart_tx_en   = 1'b1;
+			uart_tx_data = `ACK_STATUS;
+			
 			if ( uart_tx_ready ) begin
-				// send status
-				next_uart_tx_en   = 1'b1;
-				next_uart_tx_data = endian;
-				
 				// go next state
-				next_state[ST_ST_TX_ACK]   = 1'b0;
-				next_state[ST_RETURN_IDLE] = 1'b1;
+				next_state = ST_STAT_TX_STAT;
 			end
 		end
+		
+		// send status
+		ST_STAT_TX_STAT: begin
+			uart_tx_en   = 1'b1;
+			uart_tx_data = endian;
+			
+			if ( uart_tx_ready ) begin
+				// go next state
+				next_state = ST_IDLE;
+			end
+		end
+		
 		
 		
 		// ---- Write debug register ----
 		
 		// dbg write recv addr
-		if ( state[ST_DW_RX_ADDR] ) begin
+		ST_DW_RX_ADDR: begin
 			uart_rx_ready     = 1'b1;
 			next_wb_dbg_we_o  = 1'b1;
 			next_counter[1:0] = 2'b00;
@@ -288,13 +286,12 @@ module jelly_dbg_uart
 				next_wb_dbg_sel_o = uart_rx_data[7:4];
 				
 				// go next state
-				next_state[ST_DW_RX_ADDR] = 1'b0;
-				next_state[ST_DW_RX_DATA] = 1'b1;
+				next_state = ST_DW_RX_DATA;
 			end
 		end
 		
 		// dbg write recv data
-		if ( state[ST_DW_RX_DATA] ) begin
+		ST_DW_RX_DATA: begin
 			uart_rx_ready = 1'b1;
 			if ( uart_rx_en ) begin
 				// counter
@@ -311,26 +308,30 @@ module jelly_dbg_uart
 					next_wb_dbg_stb_o = 1'b1;
 					
 					// go next state
-					next_state[ST_DW_RX_DATA]  = 1'b0;
-					next_state[ST_DW_WRITE]    = 1'b1;
+					next_state = ST_DW_WRITE;
 				end
 			end
 		end
 		
 		// dbg write
-		if ( state[ST_DW_WRITE] ) begin
-			uart_rx_ready = 1'b0;
+		ST_DW_WRITE: begin
 			if ( wb_dbg_ack_i ) begin
 				// write end
 				next_wb_dbg_stb_o = 1'b0;
-				
-				// send ack
-				next_uart_tx_en   = 1'b1;
-				next_uart_tx_data = `ACK_DBG_WRITE;
-				
+								
 				// go next state
-				next_state[ST_DW_WRITE]    = 1'b0;
-				next_state[ST_RETURN_IDLE] = 1'b1;
+				next_state = ST_DW_TX_ACK;
+			end
+		end
+
+		ST_DW_TX_ACK: begin
+			// send ack
+			uart_tx_en   = 1'b1;
+			uart_tx_data = `ACK_DBG_WRITE;
+			
+			if ( uart_tx_ready ) begin
+				// go next state
+				next_state = ST_IDLE;
 			end
 		end
 		
@@ -338,10 +339,11 @@ module jelly_dbg_uart
 		// ---- Read debug register ----
 	
 		// dbg read
-		if ( state[ST_DR_RX_ADDR] ) begin
+		ST_DR_RX_ADDR: begin
 			uart_rx_ready     = 1'b1;
+			
 			next_wb_dbg_we_o  = 1'b0;
-			next_counter[2:0] = 0;
+			next_counter[1:0] = 2'b00;
 			
 			if ( uart_rx_en ) begin
 				// receive sel & adr
@@ -350,47 +352,48 @@ module jelly_dbg_uart
 				next_wb_dbg_stb_o = 1'b1;
 				
 				// go next state
-				next_state[ST_DR_RX_ADDR] = 1'b0;
-				next_state[ST_DR_READ]    = 1'b1;
+				next_state = ST_DR_READ;
 			end
 		end
 		
 		// dbg read
-		if ( state[ST_DR_READ] ) begin
-			uart_rx_ready    = 1'b0;
+		ST_DR_READ: begin
+			// read data
+			next_read_data = wb_dbg_dat_i;
 			
 			if ( wb_dbg_ack_i ) begin
 				// read
 				next_wb_dbg_stb_o = 1'b0;
-				next_data         = wb_dbg_dat_i;
-				
-				// send ack
-				next_uart_tx_en   = 1'b1;
-				next_uart_tx_data = `ACK_DBG_READ;
-				
+								
 				// go next state
-				next_state[ST_DR_READ]    = 1'b0;
-				next_state[ST_DR_TX_DATA] = 1'b1;
+				next_state = ST_DR_TX_ACK;
 			end
 		end
 		
-		if ( state[ST_DR_TX_DATA] ) begin
-			uart_rx_ready = 1'b0;
+		ST_DR_TX_ACK: begin
+			// send ack
+			uart_tx_en   = 1'b1;
+			uart_tx_data = `ACK_DBG_READ;
 			
 			if ( uart_tx_ready ) begin
-				// send data
-				if ( counter[1:0] == ({2{endian}} ^ 2'b00) ) next_uart_tx_data = data[7:0];
-				if ( counter[1:0] == ({2{endian}} ^ 2'b01) ) next_uart_tx_data = data[15:8];
-				if ( counter[1:0] == ({2{endian}} ^ 2'b10) ) next_uart_tx_data = data[23:16];
-				if ( counter[1:0] == ({2{endian}} ^ 2'b11) ) next_uart_tx_data = data[31:24];
-				
+				// go next state
+				next_state = ST_DR_TX_DATA;
+			end
+		end
+		
+		ST_DR_TX_DATA: begin
+			// send data
+			uart_tx_en = 1'b1;
+			if ( counter[1:0] == ({2{endian}} ^ 2'b00) ) 		uart_tx_data = read_data[7:0];
+			else if ( counter[1:0] == ({2{endian}} ^ 2'b01) )	uart_tx_data = read_data[15:8];
+			else if ( counter[1:0] == ({2{endian}} ^ 2'b10) )	uart_tx_data = read_data[23:16];
+			else if ( counter[1:0] == ({2{endian}} ^ 2'b11) )	uart_tx_data = read_data[31:24];
+			
+			if ( uart_tx_ready ) begin
 				next_counter = counter + 1;
-				if ( counter[2:0] == 3'b100 ) begin
-					next_uart_tx_en = 1'b0;
-					
+				if ( counter[1:0] == 2'b11 ) begin
 					// go to next state
-					next_state[ST_DR_TX_DATA] = 1'b0;
-					next_state[ST_IDLE]       = 1'b1;
+					next_state = ST_IDLE;
 				end
 			end
 		end
@@ -400,45 +403,40 @@ module jelly_dbg_uart
 		// ---- Write memory ----
 		
 		// memory write
-		if ( state[ST_MW_RX_SIZE] ) begin
+		ST_MW_RX_SIZE: begin
 			uart_rx_ready     = 1'b1;
 			next_counter[1:0] = 2'b00;
+			next_size = uart_rx_data;
 			
 			if ( uart_rx_en ) begin
-				// receive size
-				next_size = uart_rx_data;
-				
 				// go next state
-				next_state[ST_MW_RX_SIZE] = 1'b0;
-				next_state[ST_MW_RX_ADDR] = 1'b1;
+				next_state = ST_MW_RX_ADDR;
 			end
 		end
 		
 		// mem write recv address
-		if ( state[ST_MW_RX_ADDR] ) begin
+		ST_MW_RX_ADDR: begin
 			uart_rx_ready = 1'b1;
+			
+			// receive data
+			if ( counter[1:0] == ({2{endian}} ^ 2'b00) ) next_address[7:0]   = uart_rx_data;
+			if ( counter[1:0] == ({2{endian}} ^ 2'b01) ) next_address[15:8]  = uart_rx_data;
+			if ( counter[1:0] == ({2{endian}} ^ 2'b10) ) next_address[23:16] = uart_rx_data;
+			if ( counter[1:0] == ({2{endian}} ^ 2'b11) ) next_address[31:24] = uart_rx_data;
 			
 			if ( uart_rx_en ) begin
 				// counter
 				next_counter = counter + 1;
 				
-				// receive data
-				if ( counter[1:0] == ({2{endian}} ^ 2'b00) ) next_address[7:0]   = uart_rx_data;
-				if ( counter[1:0] == ({2{endian}} ^ 2'b01) ) next_address[15:8]  = uart_rx_data;
-				if ( counter[1:0] == ({2{endian}} ^ 2'b10) ) next_address[23:16] = uart_rx_data;
-				if ( counter[1:0] == ({2{endian}} ^ 2'b11) ) next_address[31:24] = uart_rx_data;
-				
 				if ( counter[1:0] == 2'b11 ) begin					
 					// go next state
-					next_counter = 0;
-					next_state[ST_MW_RX_ADDR]  = 1'b0;
-					next_state[ST_MW_SET_ADDR] = 1'b1;
+					next_state = ST_MW_SET_ADDR;
 				end
 			end
 		end
 		
-		if ( state[ST_MW_SET_ADDR] ) begin
-			uart_rx_ready = 1'b0;
+		ST_MW_SET_ADDR: begin
+			next_counter = 0;
 			
 			// write
 			next_wb_dbg_adr_o = 4'h2;	// DBG_ADDR
@@ -448,28 +446,25 @@ module jelly_dbg_uart
 			next_wb_dbg_stb_o = 1'b1;
 			
 			// go next state
-			next_state[ST_MW_SET_ADDR] = 1'b0;
-			next_state[ST_MW_WAI_ADDR] = 1'b1;
+			next_state = ST_MW_WAI_ADDR;
 		end
 		
-		if ( state[ST_MW_WAI_ADDR] ) begin
-			uart_rx_ready = 1'b0;
-			
+		ST_MW_WAI_ADDR: begin
 			if ( wb_dbg_ack_i ) begin
 				// write end
 				next_wb_dbg_stb_o = 1'b0;
-			
+				
 				// go next state
-				next_state[ST_MW_WAI_ADDR] = 1'b0;
-				next_state[ST_MW_RX_DATA]  = 1'b1;
+				next_state = ST_MW_RX_DATA;
 			end
 		end
 		
-		// mem write recv data
-		if ( state[ST_MW_RX_DATA] ) begin
+		// recv write data
+		ST_MW_RX_DATA: begin
 			uart_rx_ready = 1'b1;
 			
-			next_wb_dbg_adr_o = 4'h6;	// DBG_DBUS
+			next_wb_dbg_adr_o    = 4'h6;	// DBG_DBUS
+			next_wb_dbg_dat_o    = {4{uart_rx_data}};
 			next_wb_dbg_sel_o[0] = (address[1:0] == ({2{endian}} ^ 2'b00));
 			next_wb_dbg_sel_o[1] = (address[1:0] == ({2{endian}} ^ 2'b01));
 			next_wb_dbg_sel_o[2] = (address[1:0] == ({2{endian}} ^ 2'b10));
@@ -477,18 +472,14 @@ module jelly_dbg_uart
 			
 			if ( uart_rx_en ) begin
 				// write
-				next_wb_dbg_dat_o    = {4{uart_rx_data}};
-				next_wb_dbg_stb_o    = 1'b1;
+				next_wb_dbg_stb_o = 1'b1;
 				
 				// go next state
-				next_state[ST_MW_RX_DATA] = 1'b0;
-				next_state[ST_MW_WRITE]   = 1'b1;
+				next_state = ST_MW_WRITE;
 			end
 		end
 		
-		if ( state[ST_MW_WRITE] ) begin
-			uart_rx_ready = 1'b0;
-			
+		ST_MW_WRITE: begin
 			if ( wb_dbg_ack_i ) begin
 				// write end
 				next_wb_dbg_stb_o = 1'b0;
@@ -496,83 +487,77 @@ module jelly_dbg_uart
 				next_counter = counter + 1;
 				next_address = address + 1;
 				
-				if ( counter == size ) begin
-					// send ack
-					next_uart_tx_en   = 1'b1;
-					next_uart_tx_data = `ACK_MEM_WRIT;
-					
+				if ( counter == size ) begin		
 					// go next state
-					next_state[ST_MW_WRITE]    = 1'b0;
-					next_state[ST_RETURN_IDLE] = 1'b1;
+					next_state = ST_MW_TX_ACK;
 				end
 				else begin
 					// go next state
-					next_state[ST_MW_WRITE]    = 1'b0;
-					next_state[ST_MW_SET_ADDR] = 1'b1;
+					next_state = ST_MW_SET_ADDR;
 				end
 			end
 		end
 		
-
+		ST_MW_TX_ACK: begin
+			// send ack
+			uart_tx_en   = 1'b1;
+			uart_tx_data = `ACK_MEM_WRIT;
+			if ( uart_tx_ready ) begin
+				// next state
+				next_state = ST_IDLE;
+			end
+		end
+		
+		
 		//  ---- Memory read ----
 
 		// memory read
-		if ( state[ST_MR_RX_SIZE] ) begin
+		ST_MR_RX_SIZE: begin
 			uart_rx_ready     = 1'b1;
 			next_counter[1:0] = 2'b00;
+			next_size = uart_rx_data;
 			
 			if ( uart_rx_en ) begin
-				// receive size
-				next_size = uart_rx_data;
-				
 				// go next state
-				next_state[ST_MR_RX_SIZE] = 1'b0;
-				next_state[ST_MR_RX_ADDR] = 1'b1;
+				next_state = ST_MR_RX_ADDR;
 			end
 		end
 		
 		// mem read recv address
-		if ( state[ST_MR_RX_ADDR] ) begin
+		ST_MR_RX_ADDR: begin
 			uart_rx_ready = 1'b1;
+
+			// receive data
+			if ( counter[1:0] == ({2{endian}} ^ 2'b00) ) next_address[7:0]   = uart_rx_data;
+			if ( counter[1:0] == ({2{endian}} ^ 2'b01) ) next_address[15:8]  = uart_rx_data;
+			if ( counter[1:0] == ({2{endian}} ^ 2'b10) ) next_address[23:16] = uart_rx_data;
+			if ( counter[1:0] == ({2{endian}} ^ 2'b11) ) next_address[31:24] = uart_rx_data;
 			
 			if ( uart_rx_en ) begin
 				// counter
 				next_counter = counter + 1;
 				
-				// receive data
-				if ( counter[1:0] == ({2{endian}} ^ 2'b00) ) next_address[7:0]   = uart_rx_data;
-				if ( counter[1:0] == ({2{endian}} ^ 2'b01) ) next_address[15:8]  = uart_rx_data;
-				if ( counter[1:0] == ({2{endian}} ^ 2'b10) ) next_address[23:16] = uart_rx_data;
-				if ( counter[1:0] == ({2{endian}} ^ 2'b11) ) next_address[31:24] = uart_rx_data;
-				
 				if ( counter[1:0] == 2'b11 ) begin					
-					// send ack
-					next_uart_tx_en   = 1'b1;
-					next_uart_tx_data = `ACK_MEM_READ;
-
 					// go next state
-					next_counter = 0;
-					next_state[ST_MR_RX_ADDR] = 1'b0;
-					next_state[ST_MR_TX_ACK]  = 1'b1;
+					next_state = ST_MR_TX_ACK;
 				end
 			end
 		end
 		
-		if ( state[ST_MR_TX_ACK] ) begin
-			uart_rx_ready = 1'b0;
+		
+		ST_MR_TX_ACK:  begin
+			// send ack
+			uart_tx_en   = 1'b1;
+			uart_tx_data = `ACK_MEM_READ;
+			next_counter = 0;
 			
 			if ( uart_tx_ready ) begin
-				next_uart_tx_en   = 1'b0;
-				
 				// go next state
-				next_state[ST_MR_TX_ACK]   = 1'b0;		
-				next_state[ST_MR_SET_ADDR] = 1'b1;
+				next_state = ST_MR_SET_ADDR;
 			end
 		end
 		
-		if ( state[ST_MR_SET_ADDR] ) begin
-			uart_rx_ready = 1'b0;
-			
+		ST_MR_SET_ADDR: begin	
 			// write
 			next_wb_dbg_adr_o = 4'h2;	// DBG_ADDR
 			next_wb_dbg_dat_o = {address[31:2], 2'b00};
@@ -581,13 +566,10 @@ module jelly_dbg_uart
 			next_wb_dbg_stb_o = 1'b1;
 			
 			// go next state
-			next_state[ST_MR_SET_ADDR] = 1'b0;
-			next_state[ST_MR_WAI_ADDR] = 1'b1;
+			next_state = ST_MR_WAI_ADDR;
 		end
 		
-		if ( state[ST_MR_WAI_ADDR] ) begin
-			uart_rx_ready = 1'b0;
-			
+		ST_MR_WAI_ADDR: begin
 			if ( wb_dbg_ack_i ) begin
 				// read start
 				next_wb_dbg_adr_o    = 4'h6;	// DBG_DBUS
@@ -598,50 +580,44 @@ module jelly_dbg_uart
 				next_wb_dbg_sel_o[3] = (address[1:0] == ({2{endian}} ^ 2'b11));
 				
 				// go next state
-				next_state[ST_MR_WAI_ADDR] = 1'b0;
-				next_state[ST_MR_READ]     = 1'b1;
+				next_state = ST_MR_READ;
 			end
 		end
 		
 		// read
-		if ( state[ST_MR_READ] ) begin
-			uart_rx_ready = 1'b0;
+		ST_MR_READ: begin
+			next_read_data = wb_dbg_dat_i;
 			if ( wb_dbg_ack_i ) begin
 				next_wb_dbg_stb_o = 1'b0;
-				next_uart_tx_en   = 1'b1;
-				if ( address[1:0] == ({2{endian}} ^ 2'b00) ) next_uart_tx_data = wb_dbg_dat_i[7:0];
-				if ( address[1:0] == ({2{endian}} ^ 2'b01) ) next_uart_tx_data = wb_dbg_dat_i[15:8];
-				if ( address[1:0] == ({2{endian}} ^ 2'b10) ) next_uart_tx_data = wb_dbg_dat_i[23:16];
-				if ( address[1:0] == ({2{endian}} ^ 2'b11) ) next_uart_tx_data = wb_dbg_dat_i[31:24];
 				
 				// go next state
-				next_state[ST_MR_READ]    = 1'b0;
-				next_state[ST_MR_TX_DATA] = 1'b1;
+				next_state = ST_MR_TX_DATA;
 			end
 		end
 		
 		
-		if ( state[ST_MR_TX_DATA] ) begin
-			uart_rx_ready = 1'b0;
+		ST_MR_TX_DATA: begin
+			uart_tx_en   = 1'b1;
+			if ( address[1:0] == ({2{endian}} ^ 2'b00) )		uart_tx_data = read_data[7:0];
+			else if ( address[1:0] == ({2{endian}} ^ 2'b01) )	uart_tx_data = read_data[15:8];
+			else if ( address[1:0] == ({2{endian}} ^ 2'b10) )	uart_tx_data = read_data[23:16];
+			else if ( address[1:0] == ({2{endian}} ^ 2'b11) )	uart_tx_data = read_data[31:24];
 			
 			if ( uart_tx_ready ) begin
-				next_uart_tx_en = 1'b0;
-				
 				next_counter = counter + 1;
 				next_address = address + 1;
 				
 				if ( counter == size ) begin					
 					// go next state
-					next_state[ST_MR_TX_DATA]  = 1'b0;
-					next_state[ST_IDLE]        = 1'b1;
+					next_state = ST_IDLE;
 				end
 				else begin
 					// go next state
-					next_state[ST_MR_TX_DATA]  = 1'b0;
-					next_state[ST_MR_SET_ADDR] = 1'b1;
+					next_state = ST_MR_SET_ADDR;
 				end
 			end
 		end
+		endcase
 	end
 	
 	
