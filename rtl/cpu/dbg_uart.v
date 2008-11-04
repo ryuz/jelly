@@ -94,10 +94,11 @@ module jelly_dbg_uart
 	parameter	ST_MW_WRITE     = 14;
 	parameter	ST_MR_RX_SIZE   = 15;
 	parameter	ST_MR_RX_ADDR   = 16;
-	parameter	ST_MR_SET_ADDR  = 17;
-	parameter	ST_MR_WAI_ADDR  = 18;
-	parameter	ST_MR_READ      = 19;
-	parameter	ST_MR_TX_DATA   = 20;
+	parameter	ST_MR_TX_ACK    = 17;
+	parameter	ST_MR_SET_ADDR  = 18;
+	parameter	ST_MR_WAI_ADDR  = 19;
+	parameter	ST_MR_READ      = 20;
+	parameter	ST_MR_TX_DATA   = 21;
 	
 	
 	wire				uart_rx_en;
@@ -114,7 +115,7 @@ module jelly_dbg_uart
 	reg		[3:0]		wb_dbg_sel_o;
 	reg					wb_dbg_stb_o;
 		
-	reg		[20:0]		state;
+	reg		[21:0]		state;
 	reg		[7:0]		counter;
 	
 	reg		[7:0]		size;
@@ -130,7 +131,7 @@ module jelly_dbg_uart
 	reg		[3:0]		next_wb_dbg_sel_o;
 	reg					next_wb_dbg_stb_o;
 
-	reg		[20:0]		next_state;
+	reg		[21:0]		next_state;
 	reg		[7:0]		next_counter;
 
 	reg		[7:0]		next_size;
@@ -530,7 +531,7 @@ module jelly_dbg_uart
 			end
 		end
 		
-		// mem write recv address
+		// mem read recv address
 		if ( state[ST_MR_RX_ADDR] ) begin
 			uart_rx_ready = 1'b1;
 			
@@ -545,11 +546,27 @@ module jelly_dbg_uart
 				if ( counter[1:0] == ({2{endian}} ^ 2'b11) ) next_address[31:24] = uart_rx_data;
 				
 				if ( counter[1:0] == 2'b11 ) begin					
+					// send ack
+					next_uart_tx_en   = 1'b1;
+					next_uart_tx_data = `ACK_MEM_READ;
+
 					// go next state
 					next_counter = 0;
-					next_state[ST_MR_RX_ADDR]  = 1'b0;
-					next_state[ST_MR_SET_ADDR] = 1'b1;
+					next_state[ST_MR_RX_ADDR] = 1'b0;
+					next_state[ST_MR_TX_ACK]  = 1'b1;
 				end
+			end
+		end
+		
+		if ( state[ST_MR_TX_ACK] ) begin
+			uart_rx_ready = 1'b0;
+			
+			if ( uart_tx_ready ) begin
+				next_uart_tx_en   = 1'b0;
+				
+				// go next state
+				next_state[ST_MR_TX_ACK]   = 1'b0;		
+				next_state[ST_MR_SET_ADDR] = 1'b1;
 			end
 		end
 		
@@ -613,14 +630,10 @@ module jelly_dbg_uart
 				next_counter = counter + 1;
 				next_address = address + 1;
 				
-				if ( counter == size ) begin
-					// send ack
-					next_uart_tx_en   = 1'b1;
-					next_uart_tx_data = `ACK_MEM_READ;
-					
+				if ( counter == size ) begin					
 					// go next state
 					next_state[ST_MR_TX_DATA]  = 1'b0;
-					next_state[ST_RETURN_IDLE] = 1'b1;
+					next_state[ST_IDLE]        = 1'b1;
 				end
 				else begin
 					// go next state
