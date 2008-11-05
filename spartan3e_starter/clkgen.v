@@ -185,7 +185,7 @@ module clkgen
 				.PSCLK					(1'b0), 
 				.PSEN					(1'b0), 
 				.PSINCDEC				(1'b0), 
-				.RST					(in_reset),
+				.RST					(in_reset | ~dcm_locked),
 				.CLKDV					(),
 				.CLKFX					(), 
 				.CLKFX180				(), 
