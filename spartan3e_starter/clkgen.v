@@ -1,5 +1,5 @@
 // ----------------------------------------------------------------------------
-//  Jelly -- The computing system for Spartan-3 Starter Kit
+//  Jelly -- The computing system for Spartan-3e Starter Kit
 //
 //                                       Copyright (C) 2008 by Ryuji Fuchikami 
 // ----------------------------------------------------------------------------
@@ -31,6 +31,10 @@ module clkgen
 	output		locked;
 	
 	
+	// -------------------------
+	//  Input Clock
+	// -------------------------
+	
 	// clk_in
 	wire		in_clk_ibufg;
 	IBUFG
@@ -39,6 +43,12 @@ module clkgen
 				.I		(in_clk), 
 				.O		(in_clk_ibufg)
 			);
+	
+	
+	
+	// -------------------------
+	//  System Clock
+	// -------------------------
 	
 	// clk0
 	wire		clk0;
@@ -71,6 +81,7 @@ module clkgen
 			);
 	
 	// DCM
+	wire		dcm_locked;
 	DCM
 			#(
 				.CLK_FEEDBACK			("1X"),
@@ -85,7 +96,7 @@ module clkgen
 				.DLL_FREQUENCY_MODE		("LOW"),
 				.DUTY_CYCLE_CORRECTION	("TRUE"),
 				.FACTORY_JF				(16'h8080),
-				.PHASE_SHIFT			( 0),
+				.PHASE_SHIFT			(0),
 				.STARTUP_WAIT			("FALSE")
 			)
 		i_dcm
@@ -106,18 +117,91 @@ module clkgen
 				.CLK90					(), 
 				.CLK180					(), 
 				.CLK270					(), 
-				.LOCKED					(locked), 
+				.LOCKED					(dcm_locked), 
+				.PSDONE					(), 
+				.STATUS					()
+			);
+
+	
+//	assign out_clk    = clkdv_bufg;
+//	assign out_clk_x2 = clk0_bufg;
+
+	assign out_clk      = clk0_bufg;
+	assign out_clk_x2   = clk2x_bufg;
+	
+	assign out_clk_uart = clk0_bufg;
+	
+	
+	
+	
+	// -------------------------
+	//  DDR-SDRAM Clock
+	// -------------------------
+
+	// clk2x_0
+	wire		clk2x_0;
+	wire		clk2x_0_bufg;
+	BUFG
+		i_bufg_clk2x_0
+			(
+				.I		(clk2x_0), 
+				.O		(clk2x_0_bufg)
+			);
+
+	// clk2x_90
+	wire		clk2x_90;
+	wire		clk2x_90_bufg;
+	BUFG
+		i_bufg_clk2x_90
+			(
+				.I		(clk2x_90), 
+				.O		(clk2x_90_bufg)
+			);
+	
+	// DCM_x2
+	wire		dcm_x2_locked;
+	DCM
+			#(
+				.CLK_FEEDBACK			("1X"),
+				.CLKDV_DIVIDE			(2.0),
+				.CLKFX_DIVIDE			(1),
+				.CLKFX_MULTIPLY			(4),
+				.CLKIN_DIVIDE_BY_2		("FALSE"),
+				.CLKIN_PERIOD			(10.000),
+				.CLKOUT_PHASE_SHIFT		("NONE"),
+				.DESKEW_ADJUST			("SYSTEM_SYNCHRONOUS"),
+				.DFS_FREQUENCY_MODE		("LOW"),
+				.DLL_FREQUENCY_MODE		("LOW"),
+				.DUTY_CYCLE_CORRECTION	("TRUE"),
+				.FACTORY_JF				(16'h8080),
+				.PHASE_SHIFT			(0),
+				.STARTUP_WAIT			("FALSE")
+			)
+		i_dcm_x2
+			(
+				.CLKFB					(clk2x_0_bufg), 
+				.CLKIN					(clk2x_bufg), 
+				.DSSEN					(1'b0),
+				.PSCLK					(1'b0), 
+				.PSEN					(1'b0), 
+				.PSINCDEC				(1'b0), 
+				.RST					(in_reset),
+				.CLKDV					(),
+				.CLKFX					(), 
+				.CLKFX180				(), 
+				.CLK0					(clk2x_0), 
+				.CLK2X					(), 
+				.CLK2X180				(), 
+				.CLK90					(clk2x_90), 
+				.CLK180					(), 
+				.CLK270					(), 
+				.LOCKED					(dcm_x2_locked), 
 				.PSDONE					(), 
 				.STATUS					()
 			);
 	
-	assign out_clk    = clkdv_bufg;
-	assign out_clk_x2 = clk0_bufg;
+	assign locked = dcm_x2_locked & dcm_locked;
 
-//	assign out_clk      = clk0_bufg;
-//	assign out_clk_x2   = clk2x_bufg;
-	
-	assign out_clk_uart = clk0_bufg;
 	
 endmodule
 
