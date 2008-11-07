@@ -27,6 +27,9 @@ module ddr_sdram
 	parameter	SDRAM_DM_WIDTH  = SDRAM_DQ_WIDTH / 8;
 	parameter	SDRAM_DQS_WIDTH = SDRAM_DQ_WIDTH / 8;
 	
+	parameter	SDRAM_COL_WIDTH = 10;
+	parameter	SDRAM_ROW_WIDTH = 13;
+	
 	parameter	WB_ADR_WIDTH    = 10;
 	parameter	WB_DAT_WIDTH    = (SDRAM_DQ_WIDTH * 2);
 	localparam	WB_SEL_WIDTH    = (WB_DAT_WIDTH / 8);
@@ -102,18 +105,19 @@ module ddr_sdram
 			init_a         <= {SDRAM_A_WIDTH{1'b0}};
 		end
 		else begin
-			init_counter   <= init_counter - 1;
 			init_count_end <= (init_counter == 0);
 			
 			case ( init_state )
-			ST_INIT_WAIT:
-				begin
-					if ( init_count_end ) begin
-						init_counter <= 40;
-						init_cke     <= 1'b1;
-						init_state   <= ST_INIT_CKE ;
-					end
+			ST_INIT_WAIT: begin
+				if ( init_count_end ) begin
+					init_counter <= 40;
+					init_cke     <= 1'b1;
+					init_state   <= ST_INIT_CKE ;
 				end
+				else begin
+					init_counter <= init_counter - 1;
+				end
+			end
 			
 			ST_INIT_CKE:
 				begin
@@ -283,7 +287,8 @@ module ddr_sdram
 			endcase
 		end
 	end
-
+	
+	parameter	TRCD_CYCLE = 2 - 1;		15ns
 		
 	// state
 	parameter	ST_IDLE       = 0;
@@ -293,6 +298,8 @@ module ddr_sdram
 	parameter	ST_READ       = 4;
 	parameter	ST_WRITE      = 5;
 	parameter	ST_PRECHARGE  = 6;
+	
+	wire						refresh_req;
 	
 	reg		[3:0]				state;
 	reg		[3:0]				counter;
@@ -308,6 +315,10 @@ module ddr_sdram
 	
 	always @( posedge clk or posedge reset ) begin
 		if ( reset ) begin
+			state     <= ST_IDLE;
+			counter   <= 0;
+			count_end <= 1'b0;
+			
 			reg_cke       <= 1'b0;
 			reg_cs        <= 1'b1;
 			reg_ras       <= 1'b1;
@@ -327,8 +338,59 @@ module ddr_sdram
 				reg_a   <= init_a;
 			end
 			else begin
-				reg_cke <= 1'b1;
+				reg_cke   <= 1'b1;
+				counter   <= counter - 1;
+				count_end <= (counter == 1);
 				
+				case ( state )
+				ST_IDLE; begin
+					counter <= 0;
+					if ( refresh_req ) begin
+						// REF
+						reg_cs      <= 1'b0;
+						reg_ras     <= 1'b0;
+						reg_cas     <= 1'b0;
+						reg_we      <= 1'b1;
+						
+						// next state
+						counter <= 40;
+						state   <= ST_REFRESH;
+					end
+					else if ( wb_stb_i ) begin
+						// ACT
+						reg_cs      <= 1'b0;
+						reg_ras     <= 1'b0;
+						reg_cas     <= 1'b1;
+						reg_we      <= 1'b1;
+						reg_ba      <= wb_adr_i[SDRAM_BA_WIDTH+SDRAM_ROW_WIDTH+SDRAM_COL_WIDTH-2:SDRAM_COL_WIDTH+SDRAM_ROW_WIDTH-1];
+						reg_a       <= wb_adr_i[SDRAM_COL_WIDTH+SDRAM_ROW_WIDTH-2:SDRAM_COL_WIDTH-1];
+						
+						// next state
+						counter <= TRCD_CYCLE;
+						state   <= ST_REFRESH;
+					end
+					else begin
+						reg_cs      <= 1'b1;
+					end
+				end
+				
+				ST_REFRESH: begin
+					reg_cs <= 1'b1;
+					if ( 
+				end
+				
+				
+				ST_ACTIVATING
+				ST_ACTIVE    
+				ST_READ      
+				ST_WRITE     
+				ST_PRECHARGE 
+				
+				
+				
+				
+				
+					
 			end
 		end
 	end
