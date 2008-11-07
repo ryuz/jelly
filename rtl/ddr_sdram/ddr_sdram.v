@@ -65,230 +65,43 @@ module ddr_sdram
 	inout	[SDRAM_DQS_WIDTH-1:0]	ddr_sdram_dqs;
 	
 	
-	// initial state
-	parameter	ST_INIT_WAIT     = 0;
-	parameter	ST_INIT_CKE      = 1;
-	parameter	ST_INIT_PALL1    = 2;
-	parameter	ST_INIT_EMRS     = 3;
-	parameter	ST_INIT_MRS1     = 4;
-	parameter	ST_INIT_PALL2    = 5;
-	parameter	ST_INIT_REFRESH1 = 6;
-	parameter	ST_INIT_REFRESH2 = 7;
-	parameter	ST_INIT_MRS2     = 8;
 	
-	reg							init;
-	reg		[3:0]				init_state;
-	reg		[15:0]				init_counter;
-	reg							init_count_end;
-
-	reg							init_cke;
-	reg							init_cs;
-	reg							init_ras;
-	reg							init_cas;
-	reg							init_we;
-	reg		[1:0]				init_ba;
-	reg		[12:0]				init_a;
-
-	always @( posedge clk or posedge reset ) begin
-		if ( reset ) begin
-			init           <= 1'b1;
-			init_state     <= ST_INIT_WAIT;
-			init_counter   <= SIMULATION ? 100 : INIT_WAIT_CYCLE;
-			init_count_end <= 1'b0;
-
-			init_cke       <= 1'b0;
-			init_cs        <= 1'b1;
-			init_ras       <= 1'b1;
-			init_cas       <= 1'b1;
-			init_we        <= 1'b1;
-			init_ba        <= {SDRAM_BA_WIDTH{1'b0}};
-			init_a         <= {SDRAM_A_WIDTH{1'b0}};
-		end
-		else begin
-			init_count_end <= (init_counter == 0);
-			
-			case ( init_state )
-			ST_INIT_WAIT: begin
-				if ( init_count_end ) begin
-					init_counter <= 40;
-					init_cke     <= 1'b1;
-					init_state   <= ST_INIT_CKE ;
-				end
-				else begin
-					init_counter <= init_counter - 1;
-				end
-			end
-			
-			ST_INIT_CKE:
-				begin
-					if ( init_count_end ) begin
-						// PALL
-						init_cs      <= 1'b0;
-						init_ras     <= 1'b0;
-						init_cas     <= 1'b1;
-						init_we      <= 1'b0;
-						init_a[10]   <= 1'b1;
-						
-						// next state
-						init_counter <= 40;
-						init_state   <= ST_INIT_PALL1;						
-					end
-				end
-			
-			ST_INIT_PALL1:
-				begin
-					if ( init_count_end ) begin
-						// EMRS
-						init_cs      <= 1'b0;
-						init_ras     <= 1'b0;
-						init_cas     <= 1'b0;
-						init_we      <= 1'b0;
-						init_ba[1:0] <= 2'b01;
-						init_a[10]   <= 1'b0;
-						init_a[9:0]  <= 10'b00_000_0_000;
-						
-						// next state
-						init_counter <= 40;
-						init_state   <= ST_INIT_EMRS;
-					end
-					else begin
-						// DSEL
-						init_cs      <= 1'b1;
-					end
-				end
-
-			ST_INIT_EMRS:
-				begin
-					if ( init_count_end ) begin
-						// MRS (DLL reset)
-						init_cs      <= 1'b0;
-						init_ras     <= 1'b0;
-						init_cas     <= 1'b0;
-						init_we      <= 1'b0;
-						init_ba[1:0] <= 2'b00;
-						init_a[10]   <= 1'b0;
-						init_a[9:0]  <= 10'b10_010_0_001;
-						
-						// next state
-						init_counter <= 40;
-						init_state   <= ST_INIT_MRS1;
-					end
-					else begin
-						// DSEL
-						init_cs      <= 1'b1;
-					end
-				end
-			
-			ST_INIT_MRS1:
-				begin
-					if ( init_count_end ) begin
-						// PALL
-						init_cs      <= 1'b0;
-						init_ras     <= 1'b0;
-						init_cas     <= 1'b1;
-						init_we      <= 1'b0;
-						init_a[10]   <= 1'b1;
-						
-						// next state
-						init_counter <= 40;
-						init_state   <= ST_INIT_PALL2;
-					end
-					else begin
-						// DSEL
-						init_cs      <= 1'b1;
-					end
-				end
+	// initializer
+	wire							initializing;
+	wire							init_cke;
+	wire							init_cs;
+	wire							init_ras;
+	wire							init_cas;
+	wire							init_we;
+	wire		[1:0]				init_ba;
+	wire		[12:0]				init_a;
+	ddr_sdram_init
+			#(
+				.SIMULATION			(SIMULATION),
+				.CLK_RATE			(CLK_RATE),
+				.INIT_WAIT_CYCLE	(INIT_WAIT_CYCLE),
+				.SDRAM_BA_WIDTH		(SDRAM_BA_WIDTH),
+				.SDRAM_A_WIDTH		(SDRAM_A_WIDTH)
+			)
+		i_ddr_sdram_init
+			(
+				.reset				(reset),
+				.clk				(clk),
 				
-			ST_INIT_PALL2:
-				begin
-					if ( init_count_end ) begin
-						// REF
-						init_cs      <= 1'b0;
-						init_ras     <= 1'b0;
-						init_cas     <= 1'b0;
-						init_we      <= 1'b1;
-						
-						// next state
-						init_counter <= 40;
-						init_state   <= ST_INIT_REFRESH1;
-					end
-					else begin
-						// DSEL
-						init_cs      <= 1'b1;
-					end
-				end
-
-			ST_INIT_REFRESH1:
-				begin
-					if ( init_count_end ) begin
-						// REF
-						init_cs      <= 1'b0;
-						init_ras     <= 1'b0;
-						init_cas     <= 1'b0;
-						init_we      <= 1'b1;
-						
-						// next state
-						init_counter <= 40;
-						init_state   <= ST_INIT_REFRESH2;
-					end
-					else begin
-						// DSEL
-						init_cs      <= 1'b1;
-					end
-				end
-
-			ST_INIT_REFRESH2:
-				begin
-					if ( init_count_end ) begin
-						// MRS
-						init_cs      <= 1'b0;
-						init_ras     <= 1'b0;
-						init_cas     <= 1'b0;
-						init_we      <= 1'b0;
-						init_ba[1:0] <= 2'b00;
-						init_a[10]   <= 1'b0;
-						init_a[9:0]  <= 10'b00_010_0_001;
-						
-						// next state
-						init_counter <= 40;
-						init_state   <= ST_INIT_MRS2;
-					end
-					else begin
-						// DSEL
-						init_cs      <= 1'b1;
-					end
-				end
-
-			ST_INIT_MRS2:
-				begin
-					if ( init_count_end ) begin
-						init    <= 1'b0;
-					end
-					else begin
-						// DSEL
-						init_cs <= 1'b1;
-					end
-				end
+				.initializing		(initializing),
 				
-			default:
-				begin
-					init           <= 1'bx;
-					init_state     <= 3'bxxx;
-					init_counter   <= 16'hxxxx;
-					init_count_end <= 1'bx;
-					init_cke       <= 1'bx;
-					init_cs        <= 1'bx;
-					init_ras       <= 1'bx;
-					init_cas       <= 1'bx;
-					init_we        <= 1'bx;
-					init_ba        <= {SDRAM_BA_WIDTH{1'bx}};
-					init_a         <= {SDRAM_A_WIDTH{1'bx}};
-				end
-			endcase
-		end
-	end
+				.ddr_sdram_cke		(init_cke),
+				.ddr_sdram_cs		(init_cs),
+				.ddr_sdram_ras		(init_ras),
+				.ddr_sdram_cas		(init_cas),
+				.ddr_sdram_we		(init_we),
+				.ddr_sdram_ba		(init_ba),
+				.ddr_sdram_a		(init_a)
+		);
 	
-	parameter	TRCD_CYCLE = 2 - 1;		15ns
+	
+	
+	parameter	TRCD_CYCLE = 2 - 1;	//	15ns
 		
 	// state
 	parameter	ST_IDLE       = 0;
@@ -328,7 +141,7 @@ module ddr_sdram
 			reg_a         <= {SDRAM_A_WIDTH{1'b0}};
 		end
 		else begin
-			if ( init ) begin
+			if ( initializing ) begin
 				reg_cke <= init_cke;
 				reg_cs  <= init_cs;
 				reg_ras <= init_ras;
@@ -338,6 +151,11 @@ module ddr_sdram
 				reg_a   <= init_a;
 			end
 			else begin
+			end
+		end
+	end
+	
+	/*
 				reg_cke   <= 1'b1;
 				counter   <= counter - 1;
 				count_end <= (counter == 1);
@@ -394,7 +212,8 @@ module ddr_sdram
 			end
 		end
 	end
-
+	*/
+	
 
 	assign ddr_sdram_ck_p = ~clk;
 	assign ddr_sdram_ck_n = clk;
