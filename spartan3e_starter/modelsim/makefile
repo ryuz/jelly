@@ -45,6 +45,7 @@ work_setup:
 prj_compile:
 	vlog $(VLOG_FLAGS) "$(XILINX)/verilog/src/glbl.v"
 	vlog $(VLOG_FLAGS) $(PRJ_DIR)/tb_top.v
+	vlog $(VLOG_FLAGS) $(PRJ_DIR)/ddr.v
 	vlog $(VLOG_FLAGS) $(PRJ_DIR)/top.v
 	vlog $(VLOG_FLAGS) $(PRJ_DIR)/clkgen.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/common/binary_to_graycode.v
@@ -73,7 +74,7 @@ prj_compile:
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/uart/uart_tx.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/uart/uart_rx.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/asram/asram.v
-	vlog $(VLOG_FLAGS) $(RTL_DIR)/sram/sram.v
+	vlog $(VLOG_FLAGS) $(RTL_DIR)/ddr_sdram/ddr_sdram.v
 	vlog $(VLOG_FLAGS) $(TOP_DIR)/soft/boot_rom.v
 
 

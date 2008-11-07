@@ -14,9 +14,10 @@ module ddr_sdram
 		(
 			reset, clk, clk90, endian,
 			wb_adr_i, wb_dat_o, wb_dat_i, wb_we_i, wb_sel_i, wb_stb_i, wb_ack_o,
-			ddr_sdram_a, ddr_sdram_dq, ddr_sdram_ba, ddr_sdram_cas, ddr_sdram_ck_n, ddr_sdram_ck_p, ddr_sdram_cke, ddr_sdram_cs,
-			ddr_sdram_dm, ddr_sdram_dqs, ddr_sdram_ras, ddr_sdram_we
+			ddr_sdram_ck_p, ddr_sdram_ck_n, ddr_sdram_cke, ddr_sdram_cs, ddr_sdram_ras, ddr_sdram_cas, ddr_sdram_we,
+			ddr_sdram_ba, ddr_sdram_a, ddr_sdram_dm, ddr_sdram_dq, ddr_sdram_dqs
 		);
+	parameter	SIMULATION      = 1'b1;
 	parameter	CLK_RATE        = 10.0;
 	parameter	INIT_WAIT_CYCLE = (200000 + (CLK_RATE - 1)) / CLK_RATE;
 	
@@ -56,8 +57,8 @@ module ddr_sdram
 	output							ddr_sdram_we;
 	output	[SDRAM_BA_WIDTH-1:0]	ddr_sdram_ba;
 	output	[SDRAM_A_WIDTH-1:0]		ddr_sdram_a;
-	inout	[SDRAM_DQ_WIDTH-1:0]	ddr_sdram_dq;
 	output	[SDRAM_DQ_WIDTH-1:0]	ddr_sdram_dm;
+	inout	[SDRAM_DQ_WIDTH-1:0]	ddr_sdram_dq;
 	inout	[SDRAM_DQS_WIDTH-1:0]	ddr_sdram_dqs;
 	
 	
@@ -89,7 +90,7 @@ module ddr_sdram
 		if ( reset ) begin
 			init           <= 1'b1;
 			init_state     <= ST_INIT_WAIT;
-			init_counter   <= INIT_WAIT_CYCLE;
+			init_counter   <= SIMULATION ? 100 : INIT_WAIT_CYCLE;
 			init_count_end <= 1'b0;
 
 			init_cke       <= 1'b0;
@@ -160,7 +161,7 @@ module ddr_sdram
 						init_ras     <= 1'b0;
 						init_cas     <= 1'b0;
 						init_we      <= 1'b0;
-						init_ba[1:0] <= 2'b01;
+						init_ba[1:0] <= 2'b00;
 						init_a[10]   <= 1'b0;
 						init_a[9:0]  <= 10'b10_010_0_001;
 						
@@ -240,7 +241,7 @@ module ddr_sdram
 						init_ras     <= 1'b0;
 						init_cas     <= 1'b0;
 						init_we      <= 1'b0;
-						init_ba[1:0] <= 2'b01;
+						init_ba[1:0] <= 2'b00;
 						init_a[10]   <= 1'b0;
 						init_a[9:0]  <= 10'b00_010_0_001;
 						
@@ -293,7 +294,6 @@ module ddr_sdram
 	parameter	ST_WRITE      = 5;
 	parameter	ST_PRECHARGE  = 6;
 	
-	reg							init;
 	reg		[3:0]				state;
 	reg		[3:0]				counter;
 	reg							count_end;

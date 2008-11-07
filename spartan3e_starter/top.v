@@ -17,8 +17,8 @@ module top
 			uart0_tx, uart0_rx,
 			uart1_tx, uart1_rx,
 
-			ddr_sdram_a, ddr_sdram_dq, ddr_sdram_ba, ddr_sdram_cas, ddr_sdram_ck_n, ddr_sdram_ck_p, ddr_sdram_cke, ddr_sdram_cs,
-			ddr_sdram_ldm, ddr_sdram_ldqs, ddr_sdram_ras, ddr_sdram_udm, ddr_sdram_udqs, ddr_sdram_we, ddr_sdram_ck_fb,
+			ddr_sdram_ck_p, ddr_sdram_ck_n, ddr_sdram_cke, ddr_sdram_cs, ddr_sdram_ras, ddr_sdram_cas, ddr_sdram_we,
+			ddr_sdram_ba, ddr_sdram_a, ddr_sdram_udm, ddr_sdram_ldm, ddr_sdram_udqs, ddr_sdram_ldqs, ddr_sdram_dq, ddr_sdram_ck_fb,
 
 			led, sw
 		);
@@ -35,20 +35,20 @@ module top
     input				uart1_rx;
 	
 	// DDR-SDRAM
-	output	[12:0]		ddr_sdram_a;
-	inout	[15:0]		ddr_sdram_dq;
-	output	[1:0]		ddr_sdram_ba;
-	output				ddr_sdram_cas;
-	output				ddr_sdram_ck_n;
 	output				ddr_sdram_ck_p;
+	output				ddr_sdram_ck_n;
 	output				ddr_sdram_cke;
 	output				ddr_sdram_cs;
-	output				ddr_sdram_ldm;
-	inout				ddr_sdram_ldqs;
 	output				ddr_sdram_ras;
-	output				ddr_sdram_udm;
-	inout				ddr_sdram_udqs;
+	output				ddr_sdram_cas;
 	output				ddr_sdram_we;
+	output	[1:0]		ddr_sdram_ba;
+	output	[12:0]		ddr_sdram_a;
+	inout	[15:0]		ddr_sdram_dq;
+	output				ddr_sdram_udm;
+	output				ddr_sdram_ldm;
+	inout				ddr_sdram_udqs;
+	inout				ddr_sdram_ldqs;
 	input				ddr_sdram_ck_fb;
 	
 	// UI
@@ -56,14 +56,7 @@ module top
 	input	[3:0]		sw;
 
 	
-	
-	wire				uart_tx;
-	wire				uart_rx;
-	
-	wire				dbg_uart_tx;
-	wire				dbg_uart_rx;
-	
-	
+
 	
 	// -------------------------
 	//  system
@@ -78,6 +71,8 @@ module top
 	wire				clk;
 	wire				clk_x2;
 	wire				clk_uart;
+	wire				clk_sdram;
+	wire				clk90_sdram;
 	wire				locked;
 	clkgen
 		i_clkgen
@@ -87,7 +82,12 @@ module top
 			
 				.out_clk			(clk),
 				.out_clk_x2			(clk_x2),
+				
 				.out_clk_uart		(clk_uart),
+				
+				.out_clk_sdram		(clk_sdram),
+				.out_clk90_sdram	(clk90_sdram),
+				
 				.locked				(locked)
 		);
 	
@@ -96,7 +96,13 @@ module top
 	assign reset = reset_in | ~locked;
 	
 
+
 	// UART switch
+	wire				uart_tx;
+	wire				uart_rx;
+	wire				dbg_uart_tx;
+	wire				dbg_uart_rx;
+	
 	assign uart0_tx    = ~sw[0] ? uart_tx  : dbg_uart_tx;
 	assign uart1_tx    =  sw[0] ? uart_tx  : dbg_uart_tx;
 	assign uart_rx     = ~sw[0] ? uart0_rx : uart1_rx;
@@ -435,7 +441,38 @@ module top
 	// -------------------------
 	//  DDR-SDRAM
 	// -------------------------
+
+	ddr_sdram
+		i_ddr_sdram
+			(
+				.reset				(reset),
+				.clk				(clk_sdram),
+				.clk90				(clk90_sdram),
+				.endian				(endian),
+				
+				.wb_adr_i			(0),
+				.wb_dat_o			(),
+				.wb_dat_i			(0),
+				.wb_we_i			(0),
+				.wb_sel_i			(0),
+				.wb_stb_i			(0),
+				.wb_ack_o			(),
+				
+				.ddr_sdram_ck_p		(ddr_sdram_ck_p),
+				.ddr_sdram_ck_n		(ddr_sdram_ck_n),
+				.ddr_sdram_cke		(ddr_sdram_cke),
+				.ddr_sdram_cs		(ddr_sdram_cs),
+				.ddr_sdram_ras		(ddr_sdram_ras),
+				.ddr_sdram_cas		(ddr_sdram_cas),
+				.ddr_sdram_we		(ddr_sdram_we),
+				.ddr_sdram_ba		(ddr_sdram_ba),
+				.ddr_sdram_a		(ddr_sdram_a),
+				.ddr_sdram_dm		({ddr_sdram_udm, ddr_sdram_ldm}),
+				.ddr_sdram_dq		(ddr_sdram_dq),
+				.ddr_sdram_dqs		({ddr_sdram_udqs, ddr_sdram_ldqs})
+			);
 	
+	/*
 	assign ddr_sdram_a    = {13{1'b0}};
 	assign ddr_sdram_dq   = {16{1'bz}};
 	assign ddr_sdram_ba   = 2'b00;
@@ -450,6 +487,7 @@ module top
 	assign ddr_sdram_udm  = 1'b1;
 	assign ddr_sdram_udqs = 1'bz;
 	assign ddr_sdram_we   = 1'b1;
+	*/
 	
 endmodule
 

@@ -18,6 +18,10 @@ module clkgen
 			out_clk,
 			out_clk_x2,
 			out_clk_uart,
+			
+			out_clk_sdram,
+			out_clk90_sdram,
+			
 			locked
 		);
 
@@ -26,6 +30,10 @@ module clkgen
 	
 	output		out_clk;
 	output		out_clk_x2;
+
+	output		out_clk_sdram;
+	output		out_clk90_sdram;
+
 	output		out_clk_uart;
 
 	output		locked;
@@ -199,6 +207,10 @@ module clkgen
 				.PSDONE					(), 
 				.STATUS					()
 			);
+	
+	assign out_clk_sdram   = clk2x_bufg;
+	assign out_clk90_sdram = clk2x_90_bufg;
+
 	
 	assign locked = dcm_x2_locked & dcm_locked;
 

@@ -29,21 +29,75 @@ module tb_top;
 	
 	
 	reg					uart_rx;
+
+
+	wire				ddr_sdram_ck_p;
+	wire				ddr_sdram_ck_n;
+	wire				ddr_sdram_cke;
+	wire				ddr_sdram_cs;
+	wire				ddr_sdram_ras;
+	wire				ddr_sdram_cas;
+	wire				ddr_sdram_we;
+	wire	[1:0]		ddr_sdram_ba;
+	wire	[12:0]		ddr_sdram_a;
+	wire	[15:0]		ddr_sdram_dq;
+	wire				ddr_sdram_udm;
+	wire				ddr_sdram_ldm;
+	wire				ddr_sdram_udqs;
+	wire				ddr_sdram_ldqs;
+	wire				ddr_sdram_ck_fb;
 	
 	top i_top
 		(
-			.clk_in			(clk),
-			.reset_in		(reset),
+			.clk_in				(clk),
+			.reset_in			(reset),
 			
-			.uart0_tx		(),
-			.uart0_rx		(uart_rx),
+			.uart0_tx			(),
+			.uart0_rx			(uart_rx),
 			
-			.uart1_tx		(),
-			.uart1_rx		(1'b1),
+			.uart1_tx			(),
+			.uart1_rx			(1'b1),
 			
-			.led			(),
-			.sw				(4'b0000)
+			.ddr_sdram_ck_p		(ddr_sdram_ck_p),
+			.ddr_sdram_ck_n		(ddr_sdram_ck_n),
+			.ddr_sdram_cke		(ddr_sdram_cke),
+			.ddr_sdram_cs		(ddr_sdram_cs),
+			.ddr_sdram_ras		(ddr_sdram_ras),
+			.ddr_sdram_cas		(ddr_sdram_cas),
+			.ddr_sdram_we		(ddr_sdram_we),
+			.ddr_sdram_ba		(ddr_sdram_ba),
+			.ddr_sdram_a		(ddr_sdram_a),
+			.ddr_sdram_udm		(ddr_sdram_udm),
+			.ddr_sdram_ldm		(ddr_sdram_ldm),
+			.ddr_sdram_udqs		(ddr_sdram_udqs),
+			.ddr_sdram_ldqs		(ddr_sdram_ldqs),
+			.ddr_sdram_dq		(ddr_sdram_dq),
+			.ddr_sdram_ck_fb	(ddr_sdram_ck_fb),
+			
+			.led				(),
+			.sw					(4'b0000)
 		);
+	
+	// DDR
+	ddr
+		i_ddr
+			(
+				.Clk			(ddr_sdram_ck_p),
+				.Clk_n			(ddr_sdram_ck_n),
+				.Cke			(ddr_sdram_cke),
+				.Cs_n			(ddr_sdram_cs),
+				.Ras_n			(ddr_sdram_ras),
+				.Cas_n			(ddr_sdram_cas),
+				.We_n			(ddr_sdram_we),
+				.Ba				(ddr_sdram_ba),
+				.Addr			(ddr_sdram_a),
+				.Dm				({ddr_sdram_udm, ddr_sdram_ldm}),
+				.Dq				(ddr_sdram_dq),
+				.Dqs			({ddr_sdram_udqs, ddr_sdram_ldqs})
+			);
+
+	
+	
 	
 	
 	// PC trace
