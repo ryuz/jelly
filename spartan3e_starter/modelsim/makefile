@@ -76,6 +76,7 @@ prj_compile:
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/asram/asram.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/ddr_sdram/ddr_sdram.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/ddr_sdram/ddr_sdram_init.v
+	vlog $(VLOG_FLAGS) $(RTL_DIR)/ddr_sdram/ddr_sdram_io.v
 	vlog $(VLOG_FLAGS) $(TOP_DIR)/soft/boot_rom.v
 
 

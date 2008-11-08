@@ -74,7 +74,10 @@ module ddr_sdram
 	
 	
 	
-	// initializer
+	// -----------------------------
+	//  Initializer
+	// -----------------------------
+	
 	wire							initializing;
 	wire							init_cke;
 	wire							init_cs;
@@ -107,7 +110,6 @@ module ddr_sdram
 				.ddr_sdram_a		(init_a)
 		);
 	
-	
 
 	
 	// -----------------------------
@@ -139,6 +141,7 @@ module ddr_sdram
 	assign col_adr = {wb_adr_i[1 +: SDRAM_COL_WIDTH-1], 1'b0};
 	assign row_adr = wb_adr_i[SDRAM_COL_WIDTH+1 +: SDRAM_ROW_WIDTH];
 	assign ba_adr  = wb_adr_i[SDRAM_COL_WIDTH+SDRAM_ROW_WIDTH+1 +: SDRAM_BA_WIDTH];
+	
 	
 	
 	reg		[3:0]					state;
@@ -337,115 +340,109 @@ module ddr_sdram
 	end
 	
 
-	assign ddr_sdram_ck_p = ~clk;
-	assign ddr_sdram_ck_n = clk;
-	assign ddr_sdram_cke  = reg_cke;
-	assign ddr_sdram_cs   = reg_cs;
-	assign ddr_sdram_ras  = reg_ras;
-	assign ddr_sdram_cas  = reg_cas;
-	assign ddr_sdram_we   = reg_we;
-	assign ddr_sdram_ba   = reg_ba;
-	assign ddr_sdram_a    = reg_a;
-	
-	
 	
 	// -----------------------------
 	//  write
 	// -----------------------------
 	
-	wire	[SDRAM_DQ_WIDTH-1:0]	dq_odd;
-	wire	[SDRAM_DQ_WIDTH-1:0]	dq_even;
-	assign dq_odd  = wb_dat_i[0              +: SDRAM_DQ_WIDTH];
-	assign dq_even = wb_dat_i[SDRAM_DQ_WIDTH +: SDRAM_DQ_WIDTH];
-
-	wire	[SDRAM_DM_WIDTH-1:0]	dm_odd;
-	wire	[SDRAM_DM_WIDTH-1:0]	dm_even;
-	assign dm_odd  = wb_sel_i[0              +: SDRAM_DM_WIDTH];
-	assign dm_even = wb_sel_i[SDRAM_DM_WIDTH +: SDRAM_DM_WIDTH];
-
-	wire	[SDRAM_DM_WIDTH-1:0]	write_dm;
-	wire	[SDRAM_DQ_WIDTH-1:0]	write_dq;
-	
-	generate
-	genvar	i;
-	
 	// dq
-	for ( i = 0; i < SDRAM_DQ_WIDTH; i = i + 1 ) begin : dq
-		ODDR2
-				#(
-					.DDR_ALIGNMENT	("NONE"),
-					.INIT			(1'b0),
-					.SRTYPE			("SYNC")
-				)
-			i_oddr_dq
-				(
-					.Q				(write_dq[i]),
-					.C0				(clk),
-					.C1				(~clk),
-					.CE				(1'b1),
-					.D0				(dq_odd[i]),
-					.D1				(dq_even[i]),
-					.R				(1'b0),
-					.S				(1'b0)
-				);
-	end
+	wire							dq_write_en;
+	wire	[SDRAM_DQ_WIDTH-1:0]	dq_write_even;
+	wire	[SDRAM_DQ_WIDTH-1:0]	dq_write_odd;
+	assign dq_write_en   = reg_write[0];
+	assign dq_write_even = wb_dat_i[SDRAM_DQ_WIDTH +: SDRAM_DQ_WIDTH];
+	assign dq_write_odd  = wb_dat_i[0              +: SDRAM_DQ_WIDTH];
 	
 	// dm
-	for ( i = 0; i < SDRAM_DM_WIDTH; i = i + 1 ) begin : dm
-		ODDR2
-				#(
-					.DDR_ALIGNMENT	("NONE"),
-					.INIT			(1'b0),
-					.SRTYPE			("SYNC")
-				)
-			i_oddr_dq
-				(
-					.Q				(write_dm[i]),
-					.C0				(clk),
-					.C1				(~clk),
-					.CE				(1'b1),
-					.D0				(dm_odd[i]),
-					.D1				(dm_even[i]),
-					.R				(1'b0),
-					.S				(1'b0)
-				);
-	end
-	endgenerate
-
+	wire	[SDRAM_DM_WIDTH-1:0]	dm_write_even;
+	wire	[SDRAM_DM_WIDTH-1:0]	dm_write_odd;
+	assign dm_even = wb_sel_i[SDRAM_DM_WIDTH +: SDRAM_DM_WIDTH];
+	assign dm_odd  = wb_sel_i[0              +: SDRAM_DM_WIDTH];
 	
-	wire		sw_dqs;
-	reg			sw_dqs0;
-	reg			sw_dqs1;
+	// dqs
+	wire							dqs_write_en;
+	reg								dqs_write0;
+	reg								dqs_write1;
 	always @( negedge clk90 or posedge reset ) begin
 		if ( reset ) begin
-			sw_dqs0 <= 1'b0;
+			dqs_write0 <= 1'b0;
 		end
 		else begin
-			sw_dqs0 <= reg_write[1];
+			dqs_write0 <= reg_write[1];
 		end
 	end
 	always @( posedge clk90 or posedge reset ) begin
 		if ( reset ) begin
-			sw_dqs1 <= 1'b0;
+			dqs_write1 <= 1'b0;
 		end
 		else begin
-			sw_dqs1 <= sw_dqs0;
+			dqs_write1 <= dqs_write0;
 		end
 	end
-	assign sw_dqs = sw_dqs0 | sw_dqs1;
+	assign dqs_write_en = dqs_write0 | dqs_write1;
 	
 	
-	assign ddr_sdram_dm   = write_dm;
-	assign ddr_sdram_dq   = reg_write[0] ? write_dq                 : {SDRAM_DQ_WIDTH{1'bz}};
-	assign ddr_sdram_dqs  = sw_dqs       ? {SDRAM_DQS_WIDTH{clk90}} : {SDRAM_DQS_WIDTH{1'bz}};
 	
-
-
 	// -----------------------------
-	//  read
+	//  Read
 	// -----------------------------
 
+	wire	[SDRAM_DQ_WIDTH-1:0]	dq_read_even;
+	wire	[SDRAM_DQ_WIDTH-1:0]	dq_read_odd;
+	
+	
+	
+	// -----------------------------
+	//  I/O
+	// -----------------------------
 
-
+	ddr_sdram_io
+			#(
+				.SDRAM_BA_WIDTH		(SDRAM_BA_WIDTH),
+				.SDRAM_A_WIDTH		(SDRAM_A_WIDTH), 
+				.SDRAM_DQ_WIDTH		(SDRAM_DQ_WIDTH),
+				.SDRAM_DM_WIDTH		(SDRAM_DM_WIDTH),
+				.SDRAM_DQS_WIDTH	(SDRAM_DQS_WIDTH)
+			)
+		i_ddr_sdram_io
+			(
+				.reset				(reset),
+				.clk				(clk),
+				
+				.cke				(reg_cke),
+				.cs					(reg_cs),
+				.ras				(reg_ras),
+				.cas				(reg_cas),
+				.we					(reg_we),
+				.ba					(reg_ba),
+				.a					(reg_a),
+				.dq_write_en		(dq_write_en),
+				.dq_write_even		(dq_write_even),
+				.dq_write_odd		(dq_write_odd),
+				.dq_read_even		(dq_read_even),
+				.dq_read_odd		(dq_read_odd),
+				.dm_write_even		(dm_write_even),
+				.dm_write_odd		(dm_write_odd),
+				.dqs_write_en		(dqs_write_en),
+				.dqs_write			(clk90),
+				
+				.ddr_sdram_ck_p		(ddr_sdram_ck_p),
+				.ddr_sdram_ck_n		(ddr_sdram_ck_n),
+				.ddr_sdram_cke		(ddr_sdram_cke),
+				.ddr_sdram_cs		(ddr_sdram_cs),
+				.ddr_sdram_ras		(ddr_sdram_ras),
+				.ddr_sdram_cas		(ddr_sdram_cas),
+				.ddr_sdram_we		(ddr_sdram_we),
+				                   
+				.ddr_sdram_ba		(ddr_sdram_ba),
+				.ddr_sdram_a		(ddr_sdram_a),
+				.ddr_sdram_dm		(ddr_sdram_dm),
+				.ddr_sdram_dq		(ddr_sdram_dq),
+				.ddr_sdram_dqs		(ddr_sdram_dqs)
+			);
+	
+	
+	
+	
 endmodule
 

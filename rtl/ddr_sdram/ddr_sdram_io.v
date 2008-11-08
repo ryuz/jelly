@@ -8,16 +8,15 @@
 
 `timescale 1ns / 1ps
 
-// MT46V32M16TG-6T
 
 module ddr_sdram_io
 		(
-			reset, clk, clk90,
+			reset, clk,
 			cke, cs, ras, cas, we, ba, a,
 			dq_write_en, dq_write_even, dq_write_odd,
 			dq_read_even, dq_read_odd,
 			dm_write_even, dm_write_odd,
-			dqs_write_en,
+			dqs_write_en, dqs_write,
 			ddr_sdram_ck_p, ddr_sdram_ck_n, ddr_sdram_cke, ddr_sdram_cs, ddr_sdram_ras, ddr_sdram_cas, ddr_sdram_we,
 			ddr_sdram_ba, ddr_sdram_a, ddr_sdram_dm, ddr_sdram_dq, ddr_sdram_dqs
 		);
@@ -30,7 +29,6 @@ module ddr_sdram_io
 	
 	input							reset;
 	input							clk;
-	input							clk90;
 	
 	input							cke;
 	input							cs;
@@ -51,6 +49,7 @@ module ddr_sdram_io
 	input	[SDRAM_DM_WIDTH-1:0]	dm_write_odd;
 	
 	input							dqs_write_en;
+	input							dqs_write;
 	
 	output							ddr_sdram_ck_p;
 	output							ddr_sdram_ck_n;
@@ -72,9 +71,15 @@ module ddr_sdram_io
 
 
 	
-	// clock
 	assign ddr_sdram_ck_p = ~clk;
 	assign ddr_sdram_ck_n = clk;
+	assign ddr_sdram_cke  = cke;
+	assign ddr_sdram_cs   = cs;
+	assign ddr_sdram_ras  = ras;
+	assign ddr_sdram_cas  = cas;
+	assign ddr_sdram_we   = we;
+	assign ddr_sdram_ba   = ba;
+	assign ddr_sdram_a    = a;
 	
 		
 	generate
@@ -96,7 +101,7 @@ module ddr_sdram_io
 					.O					(dq_read[i]),
 					.IO					(ddr_sdram_dq[i]),
 					.I					(dq_write[i]),
-					.T					(dq_write_en)
+					.T					(~dq_write_en)
 				);
 		
 		// OUT
@@ -128,14 +133,14 @@ module ddr_sdram_io
 				)
 			i_iddr2_dq
 				(
-					.Q0					(),
-					.Q1					(),
+					.Q0					(dq_read_even[i]),
+					.Q1					(dq_read_odd[i]),
 					.C0					(clk),
 					.C1					(~clk),
 					.CE					(1'b1),
-					.D					(),
-					.R					(),
-					.S					()	
+					.D					(dq_read[i]),
+					.R					(1'b0),
+					.S					(1'b0)	
 				);
 	end
 
@@ -165,8 +170,8 @@ module ddr_sdram_io
 					.C0					(clk),
 					.C1					(~clk),
 					.CE					(1'b1),
-					.D0					(dm_write_odd[i]),
-					.D1					(dm_write_even[i]),
+					.D0					(dm_write_even[i]),
+					.D1					(dm_write_odd[i]),
 					.R					(1'b0),
 					.S					(1'b0)
 				);
@@ -183,8 +188,8 @@ module ddr_sdram_io
 			i_obuf
 				(
 					.O					(ddr_sdram_dqs[i]),
-					.I					(clk90),
-					.T					(dqs_write_en)
+					.I					(dqs_write),
+					.T					(~dqs_write_en)
 				);
 	end
 	endgenerate
