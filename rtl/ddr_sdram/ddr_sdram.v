@@ -425,7 +425,6 @@ module ddr_sdram
 				.dm_write_even		(dm_write_even),
 				.dm_write_odd		(dm_write_odd),
 				.dqs_write_en		(dqs_write_en),
-				.dqs_write			(clk90),
 				
 				.ddr_sdram_ck_p		(ddr_sdram_ck_p),
 				.ddr_sdram_ck_n		(ddr_sdram_ck_n),

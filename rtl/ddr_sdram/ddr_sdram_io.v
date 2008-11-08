@@ -16,7 +16,7 @@ module ddr_sdram_io
 			dq_write_en, dq_write_even, dq_write_odd,
 			dq_read_even, dq_read_odd,
 			dm_write_even, dm_write_odd,
-			dqs_write_en, dqs_write,
+			dqs_write_en,
 			ddr_sdram_ck_p, ddr_sdram_ck_n, ddr_sdram_cke, ddr_sdram_cs, ddr_sdram_ras, ddr_sdram_cas, ddr_sdram_we,
 			ddr_sdram_ba, ddr_sdram_a, ddr_sdram_dm, ddr_sdram_dq, ddr_sdram_dqs
 		);
@@ -50,7 +50,6 @@ module ddr_sdram_io
 	input	[SDRAM_DM_WIDTH-1:0]	dm_write_odd;
 	
 	input							dqs_write_en;
-	input							dqs_write;
 	
 	output							ddr_sdram_ck_p;
 	output							ddr_sdram_ck_n;
@@ -64,12 +63,13 @@ module ddr_sdram_io
 	output	[SDRAM_DQ_WIDTH-1:0]	ddr_sdram_dm;
 	inout	[SDRAM_DQ_WIDTH-1:0]	ddr_sdram_dq;
 	inout	[SDRAM_DQS_WIDTH-1:0]	ddr_sdram_dqs;
-
-
+	
+	
 	wire	[SDRAM_DQ_WIDTH-1:0]	dq_read;
 	reg		[SDRAM_DQ_WIDTH-1:0]	dq_read_dly;
 	wire	[SDRAM_DQ_WIDTH-1:0]	dq_write;
 	wire	[SDRAM_DM_WIDTH-1:0]	dm_write;
+	wire	[SDRAM_DQS_WIDTH-1:0]	dqs_write;
 
 
 	
@@ -186,8 +186,6 @@ module ddr_sdram_io
 	
 	// dqs
 	for ( i = 0; i < SDRAM_DQS_WIDTH; i = i + 1 ) begin : dqs
-		
-		wire		dqs_data;
 		ODDR2
 				#(
 					.DDR_ALIGNMENT		("NONE"),
@@ -196,11 +194,11 @@ module ddr_sdram_io
 				)
 			i_oddr_dq
 				(
-					.Q					(dqs_data),
+					.Q					(dqs_write),
 					.C0					(clk90),
 					.C1					(~clk90),
 					.CE					(1'b1),
-					.D0					(1'b1),
+					.D0					(dq_write_en),
 					.D1					(1'b0),
 					.R					(1'b0),
 					.S					(1'b0)
@@ -216,7 +214,7 @@ module ddr_sdram_io
 			i_obuf
 				(
 					.O					(ddr_sdram_dqs[i]),
-					.I					(dqs_data),	// (dqs_write),
+					.I					(dqs_write),
 					.T					(~dqs_write_en)
 				);
 	end
