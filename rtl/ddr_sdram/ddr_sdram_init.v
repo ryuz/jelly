@@ -115,140 +115,140 @@ module ddr_sdram_init
 	
 	
 	always @* begin
-		next_init       <= 1'b1;
-		next_state      <= reg_state;
-		next_counter    <= reg_counter - 1;
-		next_count_end  <= (reg_counter == 1);
+		next_init       = 1'b1;
+		next_state      = reg_state;
+		next_counter    = reg_counter - 1;
+		next_count_end  = (reg_counter == 1);
 
-		next_cke        <= reg_cke;
-		next_cs         <= 1'b1;
-		next_ras        <= 1'bx;
-		next_cas        <= 1'bx;
-		next_we         <= 1'bx;
-		next_ba         <= {SDRAM_BA_WIDTH{1'bx}};
-		next_a          <= {SDRAM_A_WIDTH{1'bx}};
+		next_cke        = reg_cke;
+		next_cs         = 1'b1;
+		next_ras        = 1'bx;
+		next_cas        = 1'bx;
+		next_we         = 1'bx;
+		next_ba         = {SDRAM_BA_WIDTH{1'bx}};
+		next_a          = {SDRAM_A_WIDTH{1'bx}};
 		
 		case ( reg_state )
 		INIT_ST_WAIT: begin
 			if ( reg_count_end ) begin
-				next_counter <= 40;
-				next_cke     <= 1'b1;
-				next_state   <= INIT_ST_CKE ;
+				next_counter = 40;
+				next_cke     = 1'b1;
+				next_state   = INIT_ST_CKE ;
 			end
 		end
 			
 		INIT_ST_CKE: begin
 			if ( reg_count_end ) begin
 				// PALL
-				next_cs      <= 1'b0;
-				next_ras     <= 1'b0;
-				next_cas     <= 1'b1;
-				next_we      <= 1'b0;
-				next_a[10]   <= 1'b1;
+				next_cs      = 1'b0;
+				next_ras     = 1'b0;
+				next_cas     = 1'b1;
+				next_we      = 1'b0;
+				next_a[10]   = 1'b1;
 
 				// next state
-				next_counter <= 40;
-				next_state   <= INIT_ST_PALL1;						
+				next_counter = 40;
+				next_state   = INIT_ST_PALL1;						
 			end
 		end
 			
 		INIT_ST_PALL1: begin
 			if ( reg_count_end ) begin
 				// EMRS
-				next_cs      <= 1'b0;
-				next_ras     <= 1'b0;
-				next_cas     <= 1'b0;
-				next_we      <= 1'b0;
-				next_ba[1:0] <= 2'b01;
-				next_a[10]   <= 1'b0;
-				next_a[9:0]  <= 10'b00_000_0_000;
+				next_cs      = 1'b0;
+				next_ras     = 1'b0;
+				next_cas     = 1'b0;
+				next_we      = 1'b0;
+				next_ba[1:0] = 2'b01;
+				next_a[10]   = 1'b0;
+				next_a[9:0]  = 10'b00_000_0_000;
 						
 				// next state
-				next_counter <= 40;
-				next_state   <= INIT_ST_EMRS;
+				next_counter = 40;
+				next_state   = INIT_ST_EMRS;
 			end
 		end
 
 		INIT_ST_EMRS: begin
 			if ( reg_count_end ) begin
 				// MRS (DLL reset)
-				next_cs      <= 1'b0;
-				next_ras     <= 1'b0;
-				next_cas     <= 1'b0;
-				next_we      <= 1'b0;
-				next_ba[1:0] <= 2'b00;
-				next_a[10]   <= 1'b0;
-				next_a[9:0]  <= 10'b10_010_0_001;
+				next_cs      = 1'b0;
+				next_ras     = 1'b0;
+				next_cas     = 1'b0;
+				next_we      = 1'b0;
+				next_ba[1:0] = 2'b00;
+				next_a[10]   = 1'b0;
+				next_a[9:0]  = 10'b10_010_0_001;
 						
 				// next state
-				next_counter <= 40;
-				next_state   <= INIT_ST_MRS1;
+				next_counter = 40;
+				next_state   = INIT_ST_MRS1;
 			end
 		end
 			
 		INIT_ST_MRS1: begin
 			if ( reg_count_end ) begin
 				// PALL
-				next_cs      <= 1'b0;
-				next_ras     <= 1'b0;
-				next_cas     <= 1'b1;
-				next_we      <= 1'b0;
-				next_a[10]   <= 1'b1;
+				next_cs      = 1'b0;
+				next_ras     = 1'b0;
+				next_cas     = 1'b1;
+				next_we      = 1'b0;
+				next_a[10]   = 1'b1;
 						
 				// next state
-				next_counter <= 40;
-				next_state   <= INIT_ST_PALL2;
+				next_counter = 40;
+				next_state   = INIT_ST_PALL2;
 			end
 		end
 				
 		INIT_ST_PALL2: begin
 			if ( reg_count_end ) begin
 				// REF
-				next_cs      <= 1'b0;
-				next_ras     <= 1'b0;
-				next_cas     <= 1'b0;
-				next_we      <= 1'b1;
+				next_cs      = 1'b0;
+				next_ras     = 1'b0;
+				next_cas     = 1'b0;
+				next_we      = 1'b1;
 						
 				// next state
-				next_counter <= 40;
-				next_state   <= INIT_ST_REFRESH1;
+				next_counter = 40;
+				next_state   = INIT_ST_REFRESH1;
 			end
 		end
 
 		INIT_ST_REFRESH1: begin
 			if ( reg_count_end ) begin
 				// REF
-				next_cs      <= 1'b0;
-				next_ras     <= 1'b0;
-				next_cas     <= 1'b0;
-				next_we      <= 1'b1;
+				next_cs      = 1'b0;
+				next_ras     = 1'b0;
+				next_cas     = 1'b0;
+				next_we      = 1'b1;
 						
 				// next state
-				next_counter <= 40;
-				next_state   <= INIT_ST_REFRESH2;
+				next_counter = 40;
+				next_state   = INIT_ST_REFRESH2;
 			end
 		end
 
 		INIT_ST_REFRESH2: begin
 			if ( reg_count_end ) begin
 				// MRS
-				next_cs      <= 1'b0;
-				next_ras     <= 1'b0;
-				next_cas     <= 1'b0;
-				next_we      <= 1'b0;
-				next_ba[1:0] <= 2'b00;
-				next_a[10]   <= 1'b0;
-				next_a[9:0]  <= 10'b00_010_0_001;
+				next_cs      = 1'b0;
+				next_ras     = 1'b0;
+				next_cas     = 1'b0;
+				next_we      = 1'b0;
+				next_ba[1:0] = 2'b00;
+				next_a[10]   = 1'b0;
+				next_a[9:0]  = 10'b00_010_0_001;
 						
 				// next state
-				next_counter <= 40;
-				next_state   <= INIT_ST_MRS2;
+				next_counter = 40;
+				next_state   = INIT_ST_MRS2;
 			end
 		end
 		
 		INIT_ST_MRS2: begin
 			if ( reg_count_end ) begin
-				next_init <= 1'b0;
+				next_init = 1'b0;
 			end
 		end
 		endcase

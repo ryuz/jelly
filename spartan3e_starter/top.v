@@ -450,12 +450,12 @@ module top
 				.clk90				(clk90_sdram),
 				.endian				(endian),
 				
-				.wb_adr_i			(0),
+				.wb_adr_i			(30'h1234),
 				.wb_dat_o			(),
-				.wb_dat_i			(0),
-				.wb_we_i			(0),
-				.wb_sel_i			(0),
-				.wb_stb_i			(0),
+				.wb_dat_i			(32'h12345678),
+				.wb_we_i			(1'b1),
+				.wb_sel_i			(4'b1011),
+				.wb_stb_i			(1'b1),
 				.wb_ack_o			(),
 				
 				.ddr_sdram_ck_p		(ddr_sdram_ck_p),
