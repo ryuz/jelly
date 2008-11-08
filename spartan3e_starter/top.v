@@ -454,7 +454,7 @@ module top
 				.wb_dat_o			(),
 				.wb_dat_i			(32'h12345678),
 				.wb_we_i			(1'b1),
-				.wb_sel_i			(4'b1011),
+				.wb_sel_i			(4'b1111),
 				.wb_stb_i			(1'b1),
 				.wb_ack_o			(),
 				

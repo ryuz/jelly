@@ -356,8 +356,8 @@ module ddr_sdram
 	// dm
 	wire	[SDRAM_DM_WIDTH-1:0]	dm_write_even;
 	wire	[SDRAM_DM_WIDTH-1:0]	dm_write_odd;
-	assign dm_even = wb_sel_i[SDRAM_DM_WIDTH +: SDRAM_DM_WIDTH];
-	assign dm_odd  = wb_sel_i[0              +: SDRAM_DM_WIDTH];
+	assign dm_write_even = ~wb_sel_i[SDRAM_DM_WIDTH +: SDRAM_DM_WIDTH];
+	assign dm_write_odd  = ~wb_sel_i[0              +: SDRAM_DM_WIDTH];
 	
 	// dqs
 	wire							dqs_write_en;
@@ -408,6 +408,7 @@ module ddr_sdram
 			(
 				.reset				(reset),
 				.clk				(clk),
+				.clk90				(clk90),
 				
 				.cke				(reg_cke),
 				.cs					(reg_cs),

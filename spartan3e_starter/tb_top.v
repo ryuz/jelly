@@ -47,6 +47,9 @@ module tb_top;
 	wire				ddr_sdram_ldqs;
 	wire				ddr_sdram_ck_fb;
 	
+	pulldown	(ddr_sdram_udqs);
+	pulldown	(ddr_sdram_ldqs);
+	
 	top i_top
 		(
 			.clk_in				(clk),
@@ -97,6 +100,10 @@ module tb_top;
 			);
 
 	
+	initial begin
+		#5235;
+			force i_top.i_ddr_sdram.wb_we_i = 1'b0;
+	end
 	
 	
 	

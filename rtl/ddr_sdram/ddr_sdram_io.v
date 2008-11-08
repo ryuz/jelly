@@ -11,7 +11,7 @@
 
 module ddr_sdram_io
 		(
-			reset, clk,
+			reset, clk, clk90,
 			cke, cs, ras, cas, we, ba, a,
 			dq_write_en, dq_write_even, dq_write_odd,
 			dq_read_even, dq_read_odd,
@@ -29,6 +29,7 @@ module ddr_sdram_io
 	
 	input							reset;
 	input							clk;
+	input							clk90;
 	
 	input							cke;
 	input							cs;
@@ -66,6 +67,7 @@ module ddr_sdram_io
 
 
 	wire	[SDRAM_DQ_WIDTH-1:0]	dq_read;
+	reg		[SDRAM_DQ_WIDTH-1:0]	dq_read_dly;
 	wire	[SDRAM_DQ_WIDTH-1:0]	dq_write;
 	wire	[SDRAM_DM_WIDTH-1:0]	dm_write;
 
@@ -81,7 +83,12 @@ module ddr_sdram_io
 	assign ddr_sdram_ba   = ba;
 	assign ddr_sdram_a    = a;
 	
-		
+	// simulation
+	always @* begin
+		dq_read_dly <= #3 dq_read;
+	end
+	
+	
 	generate
 	genvar	i;
 	
@@ -91,7 +98,7 @@ module ddr_sdram_io
 		IOBUF
 				#(
 					.DRIVE				(12),
-					.IBUF_DELAY_VALUE	("0"), 
+					.IBUF_DELAY_VALUE	("6"), 
 					.IFD_DELAY_VALUE	("6"),
 					.IOSTANDARD			("SSTL2_I"),
 					.SLEW				("SLOW")
@@ -138,7 +145,7 @@ module ddr_sdram_io
 					.C0					(clk),
 					.C1					(~clk),
 					.CE					(1'b1),
-					.D					(dq_read[i]),
+					.D					(dq_read_dly[i]),
 					.R					(1'b0),
 					.S					(1'b0)	
 				);
@@ -176,9 +183,30 @@ module ddr_sdram_io
 					.S					(1'b0)
 				);
 	end
-
+	
 	// dqs
 	for ( i = 0; i < SDRAM_DQS_WIDTH; i = i + 1 ) begin : dqs
+		
+		wire		dqs_data;
+		ODDR2
+				#(
+					.DDR_ALIGNMENT		("NONE"),
+					.INIT				(1'b0),
+					.SRTYPE				("SYNC")
+				)
+			i_oddr_dq
+				(
+					.Q					(dqs_data),
+					.C0					(clk90),
+					.C1					(~clk90),
+					.CE					(1'b1),
+					.D0					(1'b1),
+					.D1					(1'b0),
+					.R					(1'b0),
+					.S					(1'b0)
+				);
+	
+	
 		OBUFT
 				#(
 					.DRIVE				(12),
@@ -188,7 +216,7 @@ module ddr_sdram_io
 			i_obuf
 				(
 					.O					(ddr_sdram_dqs[i]),
-					.I					(dqs_write),
+					.I					(dqs_data),	// (dqs_write),
 					.T					(~dqs_write_en)
 				);
 	end
