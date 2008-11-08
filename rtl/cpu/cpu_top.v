@@ -20,6 +20,12 @@ module cpu_top
 			wb_dbg_adr_i, wb_dbg_dat_i, wb_dbg_dat_o, wb_dbg_we_i, wb_dbg_sel_i, wb_dbg_stb_i, wb_dbg_ack_o,
 			pause
 		);
+	parameter	USE_DBUGGER     = 1'b1;
+	parameter	USE_EXC_SYSCALL = 1'b1;
+	parameter	USE_EXC_BREAK   = 1'b1;
+	parameter	USE_EXC_RI      = 1'b1;
+	parameter	GPR_TYPE        = 0;
+
 	
 	// system
 	input			reset;
@@ -81,46 +87,53 @@ module cpu_top
 	
 	
 	cpu_core
+			#(
+				.USE_DBUGGER    	(USE_DBUGGER),
+				.USE_EXC_SYSCALL	(USE_EXC_SYSCALL),
+				.USE_EXC_BREAK		(USE_EXC_BREAK),
+				.USE_EXC_RI			(USE_EXC_RI),
+				.GPR_TYPE			(GPR_TYPE)
+			)
 		i_cpu_core
 			(
-				.reset			(reset),
-				.clk			(clk),
-				.clk_x2			(clk_x2),
+				.reset				(reset),
+				.clk				(clk),
+				.clk_x2				(clk_x2),
 
-				.endian			(endian),
+				.endian				(endian),
                               
-				.vect_reset		(vect_reset),
-				.vect_interrupt	(vect_interrupt),
-				.vect_exception	(vect_exception),
+				.vect_reset			(vect_reset),
+				.vect_interrupt		(vect_interrupt),
+				.vect_exception		(vect_exception),
 
-				.interrupt_req	(interrupt_req),
-				.interrupt_ack	(interrupt_ack),
+				.interrupt_req		(interrupt_req),
+				.interrupt_ack		(interrupt_ack),
 				
-				.wb_inst_adr_o	(wb_inst_adr_o),
-				.wb_inst_dat_i	(wb_inst_dat_i),
-				.wb_inst_dat_o	(wb_inst_dat_o),
-				.wb_inst_we_o	(wb_inst_we_o),
-				.wb_inst_sel_o	(wb_inst_sel_o),
-				.wb_inst_stb_o	(wb_inst_stb_o),
-				.wb_inst_ack_i	(wb_inst_ack_i),
+				.wb_inst_adr_o		(wb_inst_adr_o),
+				.wb_inst_dat_i		(wb_inst_dat_i),
+				.wb_inst_dat_o		(wb_inst_dat_o),
+				.wb_inst_we_o		(wb_inst_we_o),
+				.wb_inst_sel_o		(wb_inst_sel_o),
+				.wb_inst_stb_o		(wb_inst_stb_o),
+				.wb_inst_ack_i		(wb_inst_ack_i),
 				                
-				.wb_data_adr_o	(wb_data_adr_o),
-				.wb_data_dat_i	(wb_data_dat_i),
-				.wb_data_dat_o	(wb_data_dat_o),
-				.wb_data_we_o	(wb_data_we_o),
-				.wb_data_sel_o	(wb_data_sel_o),
-				.wb_data_stb_o	(wb_data_stb_o),
-				.wb_data_ack_i	(wb_data_ack_i),
+				.wb_data_adr_o		(wb_data_adr_o),
+				.wb_data_dat_i		(wb_data_dat_i),
+				.wb_data_dat_o		(wb_data_dat_o),
+				.wb_data_we_o		(wb_data_we_o),
+				.wb_data_sel_o		(wb_data_sel_o),
+				.wb_data_stb_o		(wb_data_stb_o),
+				.wb_data_ack_i		(wb_data_ack_i),
 
-				.wb_dbg_adr_i	(wb_dbg_adr_i),
-				.wb_dbg_dat_i	(wb_dbg_dat_i),
-				.wb_dbg_dat_o	(wb_dbg_dat_o),
-				.wb_dbg_we_i	(wb_dbg_we_i),
-				.wb_dbg_sel_i	(wb_dbg_sel_i),
-				.wb_dbg_stb_i	(wb_dbg_stb_i),
-				.wb_dbg_ack_o	(wb_dbg_ack_o),
+				.wb_dbg_adr_i		(wb_dbg_adr_i),
+				.wb_dbg_dat_i		(wb_dbg_dat_i),
+				.wb_dbg_dat_o		(wb_dbg_dat_o),
+				.wb_dbg_we_i		(wb_dbg_we_i),
+				.wb_dbg_sel_i		(wb_dbg_sel_i),
+				.wb_dbg_stb_i		(wb_dbg_stb_i),
+				.wb_dbg_ack_o		(wb_dbg_ack_o),
 				
-				.pause			(1'b0)
+				.pause				(pause)
 			);
 	
 	

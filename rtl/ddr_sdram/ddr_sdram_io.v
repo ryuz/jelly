@@ -194,7 +194,7 @@ module ddr_sdram_io
 				)
 			i_oddr_dq
 				(
-					.Q					(dqs_write),
+					.Q					(dqs_write[i]),
 					.C0					(clk90),
 					.C1					(~clk90),
 					.CE					(1'b1),
@@ -214,7 +214,7 @@ module ddr_sdram_io
 			i_obuf
 				(
 					.O					(ddr_sdram_dqs[i]),
-					.I					(dqs_write),
+					.I					(dqs_write[i]),
 					.T					(~dqs_write_en)
 				);
 	end

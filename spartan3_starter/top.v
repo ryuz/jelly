@@ -18,6 +18,12 @@ module top
 			uart1_tx, uart1_rx,
 			ext, led, sw
 		);
+	parameter	USE_DBUGGER     = 1'b0;
+	parameter	USE_EXC_SYSCALL = 1'b0;
+	parameter	USE_EXC_BREAK   = 1'b0;
+	parameter	USE_EXC_RI      = 1'b0;
+	parameter	GPR_TYPE        = 0;
+	
 	
 	// system
 	input				clk_in;
@@ -118,6 +124,13 @@ module top
 	
 	// CPU
 	cpu_top
+			#(
+				.USE_DBUGGER    	(USE_DBUGGER),
+				.USE_EXC_SYSCALL	(USE_EXC_SYSCALL),
+				.USE_EXC_BREAK		(USE_EXC_BREAK),
+				.USE_EXC_RI			(USE_EXC_RI),
+				.GPR_TYPE			(GPR_TYPE)
+			)
 		i_cpu_top
 			(
 				.reset				(reset),
