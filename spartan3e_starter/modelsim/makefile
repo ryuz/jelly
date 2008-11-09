@@ -75,6 +75,7 @@ prj_compile:
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/uart/uart_tx.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/uart/uart_rx.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/asram/asram.v
+	vlog $(VLOG_FLAGS) $(RTL_DIR)/sram/sram.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/ddr_sdram/ddr_sdram.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/ddr_sdram/ddr_sdram_init.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/ddr_sdram/ddr_sdram_io.v

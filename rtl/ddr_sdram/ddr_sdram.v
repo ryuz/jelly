@@ -28,7 +28,7 @@ module ddr_sdram
 	parameter	SDRAM_COL_WIDTH = 10;
 	parameter	SDRAM_ROW_WIDTH = 13;
 	
-	parameter	WB_ADR_WIDTH    = 30;
+	parameter	WB_ADR_WIDTH    = SDRAM_COL_WIDTH+SDRAM_ROW_WIDTH+SDRAM_BA_WIDTH-1;
 	parameter	WB_DAT_WIDTH    = (SDRAM_DQ_WIDTH * 2);
 	localparam	WB_SEL_WIDTH    = (WB_DAT_WIDTH / 8);
 
@@ -143,8 +143,8 @@ module ddr_sdram
 	assign ba_adr  = wb_adr_i[SDRAM_COL_WIDTH+SDRAM_ROW_WIDTH-1 +: SDRAM_BA_WIDTH];
 	
 	
-	localparam	REG_READ_WIDTH  = 2;
-	localparam	REG_WRITE_WIDTH = 5;
+	localparam	REG_WRITE_WIDTH = 2;
+	localparam	REG_READ_WIDTH  = 6;
 	
 	
 	reg		[3:0]					state;
@@ -322,7 +322,7 @@ module ddr_sdram
 					next_a     = row_adr;
 					next_a[10] = 1'b1;
 
-					next_read[4] = 1'b1;
+					next_read[REG_READ_WIDTH-1] = 1'b1;
 					
 					// next state
 					next_counter = TRAS_CYCLE + TRP_CYCLE + 1;
@@ -394,7 +394,7 @@ module ddr_sdram
 	wire	[SDRAM_DQ_WIDTH-1:0]	dq_read_odd;
 	
 	reg		[WB_DAT_WIDTH-1:0]		wb_dat_o;
-	always @( posedge clk or posedge reset ) begin
+	always @( posedge clk ) begin
 		wb_dat_o[SDRAM_DQ_WIDTH +: SDRAM_DQ_WIDTH] <= dq_read_even;
 		wb_dat_o[0              +: SDRAM_DQ_WIDTH] <= dq_read_odd;
 	end

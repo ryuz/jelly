@@ -456,14 +456,14 @@ module top
 				wb_ack_i = rom_wb_ack_o;
 			end
 		
-		32'h02xx_xxxx:	// sram
+		32'h01xx_xxxx:	// sram
 			begin
 				sram_wb_stb_i = wb_stb_o;
 				wb_dat_i = sram_wb_dat_o;
 				wb_ack_i = sram_wb_ack_o;
 			end
 
-		32'h01xx_xxxx:	// dram
+		32'h02xx_xxxx:	// dram
 			begin
 				dram_wb_stb_i = wb_stb_o;
 				wb_dat_i = dram_wb_dat_o;

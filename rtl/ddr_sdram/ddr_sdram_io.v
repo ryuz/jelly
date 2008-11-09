@@ -73,8 +73,6 @@ module ddr_sdram_io
 
 
 	
-	assign ddr_sdram_ck_p = ~clk;
-	assign ddr_sdram_ck_n = clk;
 	assign ddr_sdram_cke  = cke;
 	assign ddr_sdram_cs   = cs;
 	assign ddr_sdram_ras  = ras;
@@ -83,9 +81,51 @@ module ddr_sdram_io
 	assign ddr_sdram_ba   = ba;
 	assign ddr_sdram_a    = a;
 	
+
+
+//	assign ddr_sdram_ck_p = ~clk;
+//	assign ddr_sdram_ck_n = clk;
+	
+	ODDR2
+			#(
+				.DDR_ALIGNMENT		("NONE"),
+				.INIT				(1'b0),
+				.SRTYPE				("SYNC")
+			)
+		i_oddr_ck_p
+			(
+				.Q					(ddr_sdram_ck_p),
+				.C0					(clk),
+				.C1					(~clk),
+				.CE					(1'b1),
+				.D0					(1'b0),
+				.D1					(1'b1),
+				.R					(1'b0),
+				.S					(1'b0)
+			);
+
+	ODDR2
+			#(
+				.DDR_ALIGNMENT		("NONE"),
+				.INIT				(1'b0),
+				.SRTYPE				("SYNC")
+			)
+		i_oddr_ck_n
+			(
+				.Q					(ddr_sdram_ck_n),
+				.C0					(clk),
+				.C1					(~clk),
+				.CE					(1'b1),
+				.D0					(1'b1),
+				.D1					(1'b0),
+				.R					(1'b0),
+				.S					(1'b0)
+			);
+
+	
 	// simulation
 	always @* begin
-		dq_read_dly <= #3 dq_read;
+		dq_read_dly <= #2 dq_read;
 	end
 	
 	
@@ -96,14 +136,14 @@ module ddr_sdram_io
 	for ( i = 0; i < SDRAM_DQ_WIDTH; i = i + 1 ) begin : dq
 		// IO
 		IOBUF
-				#(
+		/*		#(
 					.DRIVE				(12),
 					.IBUF_DELAY_VALUE	("6"), 
 					.IFD_DELAY_VALUE	("6"),
 					.IOSTANDARD			("SSTL2_I"),
 					.SLEW				("SLOW")
-				)
-			i_iobuf
+				)*/
+			i_iobuf_dq
 				(
 					.O					(dq_read[i]),
 					.IO					(ddr_sdram_dq[i]),
