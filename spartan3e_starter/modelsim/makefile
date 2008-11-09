@@ -53,6 +53,7 @@ prj_compile:
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/common/pipeline_fifo_async.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/common/ram_dualport.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/common/ram_dualport_xilinx.v
+	vlog $(VLOG_FLAGS) $(RTL_DIR)/common/wishbone_clk2x.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/cpu/cpu_adder.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/cpu/cpu_alu.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/cpu/cpu_core.v

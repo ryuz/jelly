@@ -22,6 +22,7 @@ module top
 
 			led, sw
 		);
+	parameter	SIMULATION      = 1'b0;
 	
 	// system
 	input				clk_in;
@@ -173,14 +174,7 @@ module top
 				.pause				(1'b0)
 			);
 	
-	/*
-	assign wb_dbg_adr_o = 4'h0;
-	assign wb_dbg_dat_o = 32'h0000_0000;
-	assign wb_dbg_we_o  = 1'b0;
-	assign wb_dbg_sel_o = 4'b0000;
-	assign wb_dbg_stb_o = 1'b0;
-	*/
-	
+	// Debug Interface (UART)
 	wire	dbg_uart_clk;
 	jelly_dbg_uart
 		i_dbg_uart
@@ -302,6 +296,85 @@ module top
 	
 	
 	// -------------------------
+	//  DDR-SDRAM
+	// -------------------------
+
+	reg				dram_wb_stb_i;
+	wire	[25:2]	dram_wb_dat_o;
+	wire			dram_wb_ack_o;
+
+	wire	[25:2]	wb_dram_adr_o;
+	wire	[31:0]	wb_dram_dat_i;
+	wire	[31:0]	wb_dram_dat_o;
+	wire			wb_dram_we_o;
+	wire	[3:0]	wb_dram_sel_o;
+	wire			wb_dram_stb_o;
+	wire			wb_dram_ack_i;
+	
+	wishbone_clk2x
+			#(
+				.WB_ADR_WIDTH		(24),
+				.WB_DAT_WIDTH		(32)
+			)
+		i_wishbone_clk2x
+			(
+				.reset				(reset),
+				.clk				(clk),
+				.clk2x				(clk_sdram),
+				
+				.wb_adr_i			(wb_adr_o[25:2]),
+				.wb_dat_o			(dram_wb_dat_o),
+				.wb_dat_i			(wb_dat_o),
+				.wb_we_i			(wb_we_o),
+				.wb_sel_i			(wb_sel_o),
+				.wb_stb_i			(dram_wb_stb_i),
+				.wb_ack_o			(dram_wb_ack_o),
+
+				.wb_2x_adr_o		(wb_dram_adr_o),
+				.wb_2x_dat_o		(wb_dram_dat_o),
+				.wb_2x_dat_i		(wb_dram_dat_i),
+				.wb_2x_we_o			(wb_dram_we_o),
+				.wb_2x_sel_o		(wb_dram_sel_o),
+				.wb_2x_stb_o		(wb_dram_stb_o),
+				.wb_2x_ack_i		(wb_dram_ack_i)
+			);
+
+	ddr_sdram
+			#(
+				.SIMULATION			(SIMULATION)
+			)
+		i_ddr_sdram
+			(
+				.reset				(reset),
+				.clk				(clk_sdram),
+				.clk90				(clk90_sdram),
+				.endian				(endian),
+				
+				.wb_adr_i			(wb_dram_adr_o),
+				.wb_dat_o			(wb_dram_dat_i),
+				.wb_dat_i			(wb_dram_dat_o),
+				.wb_we_i			(wb_dram_we_o),
+				.wb_sel_i			(wb_dram_sel_o),
+				.wb_stb_i			(wb_dram_stb_o),
+				.wb_ack_o			(wb_dram_ack_i),
+				
+				.ddr_sdram_ck_p		(ddr_sdram_ck_p),
+				.ddr_sdram_ck_n		(ddr_sdram_ck_n),
+				.ddr_sdram_cke		(ddr_sdram_cke),
+				.ddr_sdram_cs		(ddr_sdram_cs),
+				.ddr_sdram_ras		(ddr_sdram_ras),
+				.ddr_sdram_cas		(ddr_sdram_cas),
+				.ddr_sdram_we		(ddr_sdram_we),
+				.ddr_sdram_ba		(ddr_sdram_ba),
+				.ddr_sdram_a		(ddr_sdram_a),
+				.ddr_sdram_dm		({ddr_sdram_udm, ddr_sdram_ldm}),
+				.ddr_sdram_dq		(ddr_sdram_dq),
+				.ddr_sdram_dqs		({ddr_sdram_udqs, ddr_sdram_ldqs})
+			);
+	
+	
+	
+	// -------------------------
 	//  Timer0
 	// -------------------------
 	
@@ -383,11 +456,18 @@ module top
 				wb_ack_i = rom_wb_ack_o;
 			end
 		
-		32'h01xx_xxxx:	// sram
+		32'h02xx_xxxx:	// sram
 			begin
 				sram_wb_stb_i = wb_stb_o;
 				wb_dat_i = sram_wb_dat_o;
 				wb_ack_i = sram_wb_ack_o;
+			end
+
+		32'h01xx_xxxx:	// dram
+			begin
+				dram_wb_stb_i = wb_stb_o;
+				wb_dat_i = dram_wb_dat_o;
+				wb_ack_i = dram_wb_ack_o;
 			end
 		
 		32'hf0xx_xxxx:	// irc
@@ -438,56 +518,6 @@ module top
 	
 	
 	
-	// -------------------------
-	//  DDR-SDRAM
-	// -------------------------
 
-	ddr_sdram
-		i_ddr_sdram
-			(
-				.reset				(reset),
-				.clk				(clk_sdram),
-				.clk90				(clk90_sdram),
-				.endian				(endian),
-				
-				.wb_adr_i			(30'h1234),
-				.wb_dat_o			(),
-				.wb_dat_i			(32'h12345678),
-				.wb_we_i			(1'b1),
-				.wb_sel_i			(4'b1111),
-				.wb_stb_i			(1'b1),
-				.wb_ack_o			(),
-				
-				.ddr_sdram_ck_p		(ddr_sdram_ck_p),
-				.ddr_sdram_ck_n		(ddr_sdram_ck_n),
-				.ddr_sdram_cke		(ddr_sdram_cke),
-				.ddr_sdram_cs		(ddr_sdram_cs),
-				.ddr_sdram_ras		(ddr_sdram_ras),
-				.ddr_sdram_cas		(ddr_sdram_cas),
-				.ddr_sdram_we		(ddr_sdram_we),
-				.ddr_sdram_ba		(ddr_sdram_ba),
-				.ddr_sdram_a		(ddr_sdram_a),
-				.ddr_sdram_dm		({ddr_sdram_udm, ddr_sdram_ldm}),
-				.ddr_sdram_dq		(ddr_sdram_dq),
-				.ddr_sdram_dqs		({ddr_sdram_udqs, ddr_sdram_ldqs})
-			);
-	
-	/*
-	assign ddr_sdram_a    = {13{1'b0}};
-	assign ddr_sdram_dq   = {16{1'bz}};
-	assign ddr_sdram_ba   = 2'b00;
-	assign ddr_sdram_cas  = 1'b1;
-	assign ddr_sdram_ck_n = 1'b1;
-	assign ddr_sdram_ck_p = 1'b0;
-	assign ddr_sdram_cke  = 1'b0;
-	assign ddr_sdram_cs   = 1'b1;
-	assign ddr_sdram_ldm  = 1'b1;
-	assign ddr_sdram_ldqs = 1'bz;
-	assign ddr_sdram_ras  = 1'b1;
-	assign ddr_sdram_udm  = 1'b1;
-	assign ddr_sdram_udqs = 1'bz;
-	assign ddr_sdram_we   = 1'b1;
-	*/
-	
 endmodule
 

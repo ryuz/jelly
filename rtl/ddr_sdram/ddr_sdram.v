@@ -17,7 +17,7 @@ module ddr_sdram
 			ddr_sdram_ck_p, ddr_sdram_ck_n, ddr_sdram_cke, ddr_sdram_cs, ddr_sdram_ras, ddr_sdram_cas, ddr_sdram_we,
 			ddr_sdram_ba, ddr_sdram_a, ddr_sdram_dm, ddr_sdram_dq, ddr_sdram_dqs
 		);
-	parameter	SIMULATION      = 1'b1;
+	parameter	SIMULATION      = 1'b0;
 	
 	parameter	SDRAM_BA_WIDTH  = 2;
 	parameter	SDRAM_A_WIDTH   = 13;
@@ -138,10 +138,13 @@ module ddr_sdram
 	wire	[SDRAM_ROW_WIDTH-1:0]	row_adr;
 	wire	[SDRAM_BA_WIDTH-1:0]	ba_adr;
 	
-	assign col_adr = {wb_adr_i[1 +: SDRAM_COL_WIDTH-1], 1'b0};
-	assign row_adr = wb_adr_i[SDRAM_COL_WIDTH+1 +: SDRAM_ROW_WIDTH];
-	assign ba_adr  = wb_adr_i[SDRAM_COL_WIDTH+SDRAM_ROW_WIDTH+1 +: SDRAM_BA_WIDTH];
+	assign col_adr = {wb_adr_i[0 +: SDRAM_COL_WIDTH-1], 1'b0};
+	assign row_adr = wb_adr_i[SDRAM_COL_WIDTH-1 +: SDRAM_ROW_WIDTH];
+	assign ba_adr  = wb_adr_i[SDRAM_COL_WIDTH+SDRAM_ROW_WIDTH-1 +: SDRAM_BA_WIDTH];
 	
+	
+	localparam	REG_READ_WIDTH  = 2;
+	localparam	REG_WRITE_WIDTH = 5;
 	
 	
 	reg		[3:0]					state;
@@ -159,8 +162,8 @@ module ddr_sdram
 	reg		[SDRAM_BA_WIDTH-1:0]	reg_ba;
 	reg		[SDRAM_A_WIDTH-1:0]		reg_a;
 	
-	reg		[1:0]					reg_write;
-	reg		[2:0]					reg_read;
+	reg		[REG_WRITE_WIDTH-1:0]	reg_write;
+	reg		[REG_READ_WIDTH-1:0]	reg_read;
 	
 	localparam	STATE_WIDTH   = 4;
 	localparam	COUNTER_WIDTH = 4;
@@ -179,8 +182,8 @@ module ddr_sdram
 	reg		[SDRAM_BA_WIDTH-1:0]	next_ba;
 	reg		[SDRAM_A_WIDTH-1:0]		next_a;
 	
-	reg		[1:0]					next_write;
-	reg		[2:0]					next_read;
+	reg		[REG_WRITE_WIDTH-1:0]	next_write;
+	reg		[REG_READ_WIDTH-1:0]	next_read;
 	
 	always @( posedge clk or posedge reset ) begin
 		if ( reset ) begin
@@ -319,7 +322,7 @@ module ddr_sdram
 					next_a     = row_adr;
 					next_a[10] = 1'b1;
 
-					next_read[2] = 1'b1;
+					next_read[4] = 1'b1;
 					
 					// next state
 					next_counter = TRAS_CYCLE + TRP_CYCLE + 1;
@@ -390,6 +393,14 @@ module ddr_sdram
 	wire	[SDRAM_DQ_WIDTH-1:0]	dq_read_even;
 	wire	[SDRAM_DQ_WIDTH-1:0]	dq_read_odd;
 	
+	reg		[WB_DAT_WIDTH-1:0]		wb_dat_o;
+	always @( posedge clk or posedge reset ) begin
+		wb_dat_o[SDRAM_DQ_WIDTH +: SDRAM_DQ_WIDTH] <= dq_read_even;
+		wb_dat_o[0              +: SDRAM_DQ_WIDTH] <= dq_read_odd;
+	end
+	
+	assign wb_ack_o = reg_read[0] | reg_write[0];
+	
 	
 	
 	// -----------------------------
@@ -440,8 +451,6 @@ module ddr_sdram
 				.ddr_sdram_dq		(ddr_sdram_dq),
 				.ddr_sdram_dqs		(ddr_sdram_dqs)
 			);
-	
-	
 	
 	
 endmodule

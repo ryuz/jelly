@@ -2,8 +2,10 @@
 
 
 module tb_top;
-	parameter	RATE      = 20;
-	parameter	UART_RATE = (1000000000 / 115200);
+	parameter	SIMULATION = 1'b1;
+
+	parameter	RATE       = 20;
+	parameter	UART_RATE  = (1000000000 / 115200);
 	
 	
 	initial begin
@@ -26,10 +28,8 @@ module tb_top;
 	always #(RATE/2) begin
 		clk = ~clk;
 	end
-	
-	
+		
 	reg					uart_rx;
-
 
 	wire				ddr_sdram_ck_p;
 	wire				ddr_sdram_ck_n;
@@ -50,36 +50,40 @@ module tb_top;
 	pulldown	(ddr_sdram_udqs);
 	pulldown	(ddr_sdram_ldqs);
 	
-	top i_top
-		(
-			.clk_in				(clk),
-			.reset_in			(reset),
-			
-			.uart0_tx			(),
-			.uart0_rx			(uart_rx),
-			
-			.uart1_tx			(),
-			.uart1_rx			(1'b1),
-			
-			.ddr_sdram_ck_p		(ddr_sdram_ck_p),
-			.ddr_sdram_ck_n		(ddr_sdram_ck_n),
-			.ddr_sdram_cke		(ddr_sdram_cke),
-			.ddr_sdram_cs		(ddr_sdram_cs),
-			.ddr_sdram_ras		(ddr_sdram_ras),
-			.ddr_sdram_cas		(ddr_sdram_cas),
-			.ddr_sdram_we		(ddr_sdram_we),
-			.ddr_sdram_ba		(ddr_sdram_ba),
-			.ddr_sdram_a		(ddr_sdram_a),
-			.ddr_sdram_udm		(ddr_sdram_udm),
-			.ddr_sdram_ldm		(ddr_sdram_ldm),
-			.ddr_sdram_udqs		(ddr_sdram_udqs),
-			.ddr_sdram_ldqs		(ddr_sdram_ldqs),
-			.ddr_sdram_dq		(ddr_sdram_dq),
-			.ddr_sdram_ck_fb	(ddr_sdram_ck_fb),
-			
-			.led				(),
-			.sw					(4'b0000)
-		);
+	top
+			#(
+				.SIMULATION	(SIMULATION)
+			)
+		i_top
+			(
+				.clk_in				(clk),
+				.reset_in			(reset),
+				
+				.uart0_tx			(),
+				.uart0_rx			(uart_rx),
+				
+				.uart1_tx			(),
+				.uart1_rx			(1'b1),
+				
+				.ddr_sdram_ck_p		(ddr_sdram_ck_p),
+				.ddr_sdram_ck_n		(ddr_sdram_ck_n),
+				.ddr_sdram_cke		(ddr_sdram_cke),
+				.ddr_sdram_cs		(ddr_sdram_cs),
+				.ddr_sdram_ras		(ddr_sdram_ras),
+				.ddr_sdram_cas		(ddr_sdram_cas),
+				.ddr_sdram_we		(ddr_sdram_we),
+				.ddr_sdram_ba		(ddr_sdram_ba),
+				.ddr_sdram_a		(ddr_sdram_a),
+				.ddr_sdram_udm		(ddr_sdram_udm),
+				.ddr_sdram_ldm		(ddr_sdram_ldm),
+				.ddr_sdram_udqs		(ddr_sdram_udqs),
+				.ddr_sdram_ldqs		(ddr_sdram_ldqs),
+				.ddr_sdram_dq		(ddr_sdram_dq),
+				.ddr_sdram_ck_fb	(ddr_sdram_ck_fb),
+				
+				.led				(),
+				.sw					(4'b0000)
+			);
 	
 	// DDR
 	ddr
@@ -100,10 +104,10 @@ module tb_top;
 			);
 
 	
-	initial begin
-		#5235;
-			force i_top.i_ddr_sdram.wb_we_i = 1'b0;
-	end
+//	initial begin
+//		#5235;
+//			force i_top.i_ddr_sdram.wb_we_i = 1'b0;
+//	end
 	
 	
 	
