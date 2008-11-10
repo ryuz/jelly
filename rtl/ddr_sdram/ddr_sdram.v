@@ -138,9 +138,13 @@ module ddr_sdram
 	wire	[SDRAM_ROW_WIDTH-1:0]	row_adr;
 	wire	[SDRAM_BA_WIDTH-1:0]	ba_adr;
 	
-	assign col_adr = {wb_adr_i[0 +: SDRAM_COL_WIDTH-1], 1'b0};
-	assign row_adr = wb_adr_i[SDRAM_COL_WIDTH-1 +: SDRAM_ROW_WIDTH];
-	assign ba_adr  = wb_adr_i[SDRAM_COL_WIDTH+SDRAM_ROW_WIDTH-1 +: SDRAM_BA_WIDTH];
+//	assign col_adr = {wb_adr_i[0 +: SDRAM_COL_WIDTH-1], 1'b0};
+//	assign row_adr = wb_adr_i[SDRAM_COL_WIDTH-1 +: SDRAM_ROW_WIDTH];
+//	assign ba_adr  = wb_adr_i[SDRAM_COL_WIDTH+SDRAM_ROW_WIDTH-1 +: SDRAM_BA_WIDTH];
+
+	assign col_adr = {wb_adr_i[SDRAM_COL_WIDTH-2:0], 1'b0};
+	assign row_adr =  wb_adr_i[SDRAM_COL_WIDTH+SDRAM_ROW_WIDTH-2:SDRAM_COL_WIDTH-1];
+	assign ba_adr  =  wb_adr_i[SDRAM_COL_WIDTH+SDRAM_ROW_WIDTH+SDRAM_BA_WIDTH-2:SDRAM_COL_WIDTH+SDRAM_ROW_WIDTH-1];
 	
 	
 	localparam	REG_WRITE_WIDTH = 2;
@@ -339,7 +343,7 @@ module ddr_sdram
 		endcase
 		
 		next_ref_req   = (next_ref_counter == 0);
-		next_count_end = (next_counter == 0);					
+		next_count_end = (next_counter == 0);
 	end
 	
 
@@ -353,37 +357,33 @@ module ddr_sdram
 	wire	[SDRAM_DQ_WIDTH-1:0]	dq_write_even;
 	wire	[SDRAM_DQ_WIDTH-1:0]	dq_write_odd;
 	assign dq_write_en   = reg_write[0];
-	assign dq_write_even = wb_dat_i[SDRAM_DQ_WIDTH +: SDRAM_DQ_WIDTH];
-	assign dq_write_odd  = wb_dat_i[0              +: SDRAM_DQ_WIDTH];
+//	assign dq_write_even = wb_dat_i[SDRAM_DQ_WIDTH +: SDRAM_DQ_WIDTH];
+//	assign dq_write_odd  = wb_dat_i[0              +: SDRAM_DQ_WIDTH];
+	assign dq_write_even = wb_dat_i[(SDRAM_DQ_WIDTH*2)-1:SDRAM_DQ_WIDTH*1];
+	assign dq_write_odd  = wb_dat_i[(SDRAM_DQ_WIDTH*1)-1:SDRAM_DQ_WIDTH*0];
 	
 	// dm
 	wire	[SDRAM_DM_WIDTH-1:0]	dm_write_even;
 	wire	[SDRAM_DM_WIDTH-1:0]	dm_write_odd;
-	assign dm_write_even = ~wb_sel_i[SDRAM_DM_WIDTH +: SDRAM_DM_WIDTH];
-	assign dm_write_odd  = ~wb_sel_i[0              +: SDRAM_DM_WIDTH];
+//	assign dm_write_even = ~wb_sel_i[SDRAM_DM_WIDTH +: SDRAM_DM_WIDTH];
+//	assign dm_write_odd  = ~wb_sel_i[0              +: SDRAM_DM_WIDTH];
+	assign dm_write_even = ~wb_sel_i[(SDRAM_DM_WIDTH*2)-1:SDRAM_DM_WIDTH*1];
+	assign dm_write_odd  = ~wb_sel_i[(SDRAM_DM_WIDTH*1)-1:SDRAM_DM_WIDTH*0];
 	
 	// dqs
-	wire							dqs_write_en;
-	reg								dqs_write0;
-	reg								dqs_write1;
-	always @( negedge clk90 or posedge reset ) begin
+	reg								dqs_write_en;
+	reg								dqs_write_end;
+	always @( negedge clk or posedge reset ) begin
 		if ( reset ) begin
-			dqs_write0 <= 1'b0;
+			dqs_write_en  <= 1'b0;
+			dqs_write_end <= 1'b0;
 		end
 		else begin
-			dqs_write0 <= reg_write[1];
+			dqs_write_en  <= (reg_write != 0);
+			dqs_write_end <= reg_write[0];
 		end
 	end
-	always @( posedge clk90 or posedge reset ) begin
-		if ( reset ) begin
-			dqs_write1 <= 1'b0;
-		end
-		else begin
-			dqs_write1 <= dqs_write0;
-		end
-	end
-	assign dqs_write_en = dqs_write0 | dqs_write1;
-	
+		
 	
 	
 	// -----------------------------
@@ -395,8 +395,10 @@ module ddr_sdram
 	
 	reg		[WB_DAT_WIDTH-1:0]		wb_dat_o;
 	always @( posedge clk ) begin
-		wb_dat_o[SDRAM_DQ_WIDTH +: SDRAM_DQ_WIDTH] <= dq_read_even;
-		wb_dat_o[0              +: SDRAM_DQ_WIDTH] <= dq_read_odd;
+//		wb_dat_o[SDRAM_DQ_WIDTH +: SDRAM_DQ_WIDTH] <= dq_read_even;
+//		wb_dat_o[0              +: SDRAM_DQ_WIDTH] <= dq_read_odd;
+		wb_dat_o[(SDRAM_DQ_WIDTH*2)-1:SDRAM_DQ_WIDTH*1] <= dq_read_even;
+		wb_dat_o[(SDRAM_DQ_WIDTH*1)-1:SDRAM_DQ_WIDTH*0] <= dq_read_odd;
 	end
 	
 	assign wb_ack_o = reg_read[0] | reg_write[0];
@@ -436,6 +438,7 @@ module ddr_sdram
 				.dm_write_even		(dm_write_even),
 				.dm_write_odd		(dm_write_odd),
 				.dqs_write_en		(dqs_write_en),
+				.dqs_write_end		(dqs_write_end),
 				
 				.ddr_sdram_ck_p		(ddr_sdram_ck_p),
 				.ddr_sdram_ck_n		(ddr_sdram_ck_n),

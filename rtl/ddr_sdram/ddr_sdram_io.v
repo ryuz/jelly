@@ -16,7 +16,7 @@ module ddr_sdram_io
 			dq_write_en, dq_write_even, dq_write_odd,
 			dq_read_even, dq_read_odd,
 			dm_write_even, dm_write_odd,
-			dqs_write_en,
+			dqs_write_en, dqs_write_end,
 			ddr_sdram_ck_p, ddr_sdram_ck_n, ddr_sdram_cke, ddr_sdram_cs, ddr_sdram_ras, ddr_sdram_cas, ddr_sdram_we,
 			ddr_sdram_ba, ddr_sdram_a, ddr_sdram_dm, ddr_sdram_dq, ddr_sdram_dqs
 		);
@@ -50,7 +50,8 @@ module ddr_sdram_io
 	input	[SDRAM_DM_WIDTH-1:0]	dm_write_odd;
 	
 	input							dqs_write_en;
-	
+	input							dqs_write_end;
+
 	output							ddr_sdram_ck_p;
 	output							ddr_sdram_ck_n;
 	output							ddr_sdram_cke;
@@ -224,8 +225,19 @@ module ddr_sdram_io
 				);
 	end
 	
+	
 	// dqs
 	for ( i = 0; i < SDRAM_DQS_WIDTH; i = i + 1 ) begin : dqs
+		reg		reg_dqs_en;
+		always @ ( negedge clk90 or posedge reset ) begin
+			if ( reset ) begin
+				reg_dqs_en <= 1'b0;
+			end
+			else begin
+				reg_dqs_en <= dqs_write_en & ~dqs_write_end;
+			end
+		end
+		
 		ODDR2
 				#(
 					.DDR_ALIGNMENT		("NONE"),
@@ -238,13 +250,12 @@ module ddr_sdram_io
 					.C0					(clk90),
 					.C1					(~clk90),
 					.CE					(1'b1),
-					.D0					(dq_write_en),
+					.D0					(reg_dqs_en),
 					.D1					(1'b0),
 					.R					(1'b0),
 					.S					(1'b0)
 				);
-	
-	
+		
 		OBUFT
 				#(
 					.DRIVE				(12),

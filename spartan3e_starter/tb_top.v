@@ -7,7 +7,7 @@ module tb_top;
 	parameter	RATE       = 20;
 	parameter	UART_RATE  = (1000000000 / 115200);
 	
-	
+		
 	initial begin
 		$dumpfile("tb_top.vcd");
 		$dumpvars(0, tb_top);
@@ -46,9 +46,6 @@ module tb_top;
 	wire				ddr_sdram_udqs;
 	wire				ddr_sdram_ldqs;
 	wire				ddr_sdram_ck_fb;
-	
-	pulldown	(ddr_sdram_udqs);
-	pulldown	(ddr_sdram_ldqs);
 	
 	top
 			#(
