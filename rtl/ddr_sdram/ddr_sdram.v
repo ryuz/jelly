@@ -148,7 +148,7 @@ module ddr_sdram
 	
 	
 	localparam	REG_WRITE_WIDTH = 2;
-	localparam	REG_READ_WIDTH  = 6;
+	localparam	REG_READ_WIDTH  = 5;
 	
 	
 	reg		[3:0]					state;

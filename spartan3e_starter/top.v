@@ -307,7 +307,7 @@ module top
 	// -------------------------
 
 	reg				dram_wb_stb_i;
-	wire	[25:2]	dram_wb_dat_o;
+	wire	[31:0]	dram_wb_dat_o;
 	wire			dram_wb_ack_o;
 
 	wire	[25:2]	wb_dram_adr_o;
@@ -463,14 +463,14 @@ module top
 				wb_ack_i = rom_wb_ack_o;
 			end
 		
-		32'h02xx_xxxx:	// sram
+		32'h01xx_xxxx:	// sram
 			begin
 				sram_wb_stb_i = wb_stb_o;
 				wb_dat_i = sram_wb_dat_o;
 				wb_ack_i = sram_wb_ack_o;
 			end
 
-		32'h01xx_xxxx:	// dram
+		32'h02xx_xxxx:	// dram
 			begin
 				dram_wb_stb_i = wb_stb_o;
 				wb_dat_i = dram_wb_dat_o;
