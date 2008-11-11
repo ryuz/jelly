@@ -118,7 +118,7 @@ module ddr_sdram
 	
 	// delay
 	localparam	REG_WRITE_WIDTH = 2;
-	localparam	REG_READ_WIDTH  = 6;
+	localparam	REG_READ_WIDTH  = 5;
 	
 	// cycle
 	parameter	TRCD_CYCLE  = ((TRCD  - 1) / CLK_RATE);
