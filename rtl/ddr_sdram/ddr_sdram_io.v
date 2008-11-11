@@ -126,7 +126,7 @@ module ddr_sdram_io
 	
 	// simulation
 	always @* begin
-		dq_read_dly <= #2 dq_read;
+		dq_read_dly <= #10 dq_read;
 	end
 	
 	
