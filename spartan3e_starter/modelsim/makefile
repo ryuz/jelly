@@ -54,6 +54,7 @@ prj_compile:
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/common/ram_dualport.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/common/ram_dualport_xilinx.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/common/wishbone_clk2x.v
+	vlog $(VLOG_FLAGS) $(RTL_DIR)/common/wishbone_bridge.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/cpu/cpu_adder.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/cpu/cpu_alu.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/cpu/cpu_core.v
@@ -79,6 +80,7 @@ prj_compile:
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/ddr_sdram/ddr_sdram.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/ddr_sdram/ddr_sdram_init.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/ddr_sdram/ddr_sdram_io.v
+	vlog $(VLOG_FLAGS) $(RTL_DIR)/ddr_sdram/ddr_sdram_out.v
 	vlog $(VLOG_FLAGS) $(TOP_DIR)/soft/boot_rom.v
 
 

@@ -31,21 +31,23 @@ module tb_top;
 		
 	reg					uart_rx;
 
-	wire				ddr_sdram_ck_p;
-	wire				ddr_sdram_ck_n;
-	wire				ddr_sdram_cke;
-	wire				ddr_sdram_cs;
-	wire				ddr_sdram_ras;
-	wire				ddr_sdram_cas;
-	wire				ddr_sdram_we;
-	wire	[1:0]		ddr_sdram_ba;
-	wire	[12:0]		ddr_sdram_a;
-	wire	[15:0]		ddr_sdram_dq;
-	wire				ddr_sdram_udm;
-	wire				ddr_sdram_ldm;
-	wire				ddr_sdram_udqs;
-	wire				ddr_sdram_ldqs;
-	wire				ddr_sdram_ck_fb;
+	parameter	DDR_WIRE_DELAY = 1.0;
+
+	wire			#DDR_WIRE_DELAY		ddr_sdram_ck_p;
+	wire			#DDR_WIRE_DELAY		ddr_sdram_ck_n;
+	wire			#DDR_WIRE_DELAY		ddr_sdram_cke;
+	wire			#DDR_WIRE_DELAY		ddr_sdram_cs;
+	wire			#DDR_WIRE_DELAY		ddr_sdram_ras;
+	wire			#DDR_WIRE_DELAY		ddr_sdram_cas;
+	wire			#DDR_WIRE_DELAY		ddr_sdram_we;
+	wire	[1:0]	#DDR_WIRE_DELAY		ddr_sdram_ba;
+	wire	[12:0]	#DDR_WIRE_DELAY		ddr_sdram_a;
+	wire	[15:0]	#DDR_WIRE_DELAY		ddr_sdram_dq;
+	wire			#DDR_WIRE_DELAY		ddr_sdram_udm;
+	wire			#DDR_WIRE_DELAY		ddr_sdram_ldm;
+	wire			#DDR_WIRE_DELAY		ddr_sdram_udqs;
+	wire			#DDR_WIRE_DELAY		ddr_sdram_ldqs;
+	wire			#DDR_WIRE_DELAY		ddr_sdram_ck_fb;
 	
 	top
 			#(
@@ -107,7 +109,7 @@ module tb_top;
 //	end
 	
 	
-	
+	/*
 	// PC trace
 	integer pc_trace;
 	initial begin
@@ -217,6 +219,7 @@ module tb_top;
 	//	end
 
 	end
+	*/
 	
 endmodule
 

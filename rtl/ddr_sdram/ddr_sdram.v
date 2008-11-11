@@ -116,6 +116,11 @@ module ddr_sdram
 	//  command
 	// -----------------------------
 	
+	// delay
+	localparam	REG_WRITE_WIDTH = 2;
+	localparam	REG_READ_WIDTH  = 6;
+	
+	// cycle
 	parameter	TRCD_CYCLE  = ((TRCD  - 1) / CLK_RATE);
 	parameter	TRC_CYCLE   = ((TRC   - 1) / CLK_RATE);
 	parameter	TRFC_CYCLE  = ((TRFC  - 1) / CLK_RATE);
@@ -145,11 +150,7 @@ module ddr_sdram
 	assign col_adr = {wb_adr_i[SDRAM_COL_WIDTH-2:0], 1'b0};
 	assign row_adr =  wb_adr_i[SDRAM_COL_WIDTH+SDRAM_ROW_WIDTH-2:SDRAM_COL_WIDTH-1];
 	assign ba_adr  =  wb_adr_i[SDRAM_COL_WIDTH+SDRAM_ROW_WIDTH+SDRAM_BA_WIDTH-2:SDRAM_COL_WIDTH+SDRAM_ROW_WIDTH-1];
-	
-	
-	localparam	REG_WRITE_WIDTH = 2;
-	localparam	REG_READ_WIDTH  = 6;
-	
+		
 	
 	reg		[3:0]					state;
 	reg		[3:0]					counter;
@@ -179,6 +180,7 @@ module ddr_sdram
 	reg								next_ref_req;
 	reg		[15:0]					next_ref_counter;
 
+	reg								next_cke;
 	reg								next_cs;
 	reg								next_ras;
 	reg								next_cas;
@@ -194,7 +196,7 @@ module ddr_sdram
 			state         <= ST_IDLE;
 						
 			reg_cke       <= 1'b0;
-			reg_cs        <= 1'b1;
+			reg_cs        <= 1'b0;
 			reg_ras       <= 1'b1;
 			reg_cas       <= 1'b1;
 			reg_we        <= 1'b1;
@@ -205,44 +207,23 @@ module ddr_sdram
 			reg_read      <= 0;
 		end
 		else begin
-			if ( initializing ) begin
-				state       <= ST_IDLE;
-				counter     <= {COUNTER_WIDTH{1'bx}};
-				count_end   <= 1'bx;
+			state       <= next_state;
+			counter     <= next_counter;
+			count_end   <= next_count_end;
 
-				ref_req     <= 1'b0;
-				ref_counter <= TREFI_CYCLE;
-				
-				reg_cke     <= init_cke;
-				reg_cs      <= init_cs;
-				reg_ras     <= init_ras;
-				reg_cas     <= init_cas;
-				reg_we      <= init_we;
-				reg_ba      <= init_ba;
-				reg_a       <= init_a;
-
-				reg_write   <= 0;
-				reg_read    <= 0;
-			end
-			else begin
-				state       <= next_state;
-				counter     <= next_counter;
-				count_end   <= next_count_end;
-
-				ref_req     <= next_ref_req;
-				ref_counter <= next_ref_counter;
-				
-				reg_cke     <= 1'b1;
-				reg_cs      <= next_cs;
-				reg_ras     <= next_ras;
-				reg_cas     <= next_cas;
-				reg_we      <= next_we;
-				reg_ba      <= next_ba;
-				reg_a       <= next_a;
-				
-				reg_write   <= next_write;
-				reg_read    <= next_read;
-			end
+			ref_req     <= next_ref_req;
+			ref_counter <= next_ref_counter;
+			
+			reg_cke     <= next_cke;
+			reg_cs      <= next_cs;
+			reg_ras     <= next_ras;
+			reg_cas     <= next_cas;
+			reg_we      <= next_we;
+			reg_ba      <= next_ba;
+			reg_a       <= next_a;
+			
+			reg_write   <= next_write;
+			reg_read    <= next_read;
 		end
 	end
 	
@@ -252,95 +233,115 @@ module ddr_sdram
 		
 		next_ref_counter = (ref_counter == 0) ? TREFI_CYCLE : ref_counter - 1;
 		
-		next_cs  = 1'b1;
-		next_ras = 1'bx;
-		next_cas = 1'bx;   
-		next_we  = 1'bx;
+		next_cs  = 1'b0;
+		next_ras = 1'b1;
+		next_cas = 1'b1;   
+		next_we  = 1'b1;
 		next_ba  = {SDRAM_BA_WIDTH{1'bx}};
 		next_a   = {SDRAM_A_WIDTH{1'bx}};
 		
 		next_write = (reg_write >> 1);
 		next_read  = (reg_read >> 1);
-		
-		case ( state )
-		ST_IDLE: begin
-			if ( ref_req ) begin				
-				// REF
-				next_cs  = 1'b0;
-				next_ras = 1'b0;
-				next_cas = 1'b0;
-				next_we  = 1'b1;
-				
-				next_ref_req = 1'b0;
-				
-				// next state
-				next_counter = TRFC_CYCLE;
-				next_state   = ST_REFRESH;
-			end
-			else if ( wb_stb_i ) begin
-				// ACT
-				next_cs  = 1'b0;
-				next_ras = 1'b0;
-				next_cas = 1'b1;
-				next_we  = 1'b1;
-				next_ba  = ba_adr;
-				next_a   = col_adr;
-				
-				// next state
-				next_counter = TRCD_CYCLE;
-				next_state   = ST_ACTIVE;
-			end
-		end
-		
-		ST_REFRESH: begin
-			if ( count_end ) begin
-				next_state = ST_IDLE;
-			end
-		end
-		
-		ST_ACTIVE: begin
-			if ( count_end ) begin
-				if ( wb_we_i ) begin
-					// WRITEA
-					next_cs    = 1'b0;
-					next_ras   = 1'b1;
-					next_cas   = 1'b0;
-					next_we    = 1'b0;
-					next_ba    = ba_adr;
-					next_a     = row_adr;
-					next_a[10] = 1'b1;
-					
-					next_write[1] = 1'b1;
-					
-					// next state
-					next_counter = TRAS_CYCLE + TRP_CYCLE + 1;
-					next_state   = ST_PRECHARGE;
-				end
-				else begin
-					// READA
-					next_cs    = 1'b0;
-					next_ras   = 1'b1;
-					next_cas   = 1'b0;
-					next_we    = 1'b1;
-					next_ba    = ba_adr;
-					next_a     = row_adr;
-					next_a[10] = 1'b1;
 
-					next_read[REG_READ_WIDTH-1] = 1'b1;
+		if ( initializing ) begin
+			next_state       = ST_IDLE;
+			next_counter     = {COUNTER_WIDTH{1'bx}};
+			next_count_end   = 1'bx;
+
+			next_ref_counter = TREFI_CYCLE;
+				
+			next_cke     = init_cke;
+			next_cs      = init_cs;
+			next_ras     = init_ras;
+			next_cas     = init_cas;
+			next_we      = init_we;
+			next_ba      = init_ba;
+			next_a       = init_a;
+
+			next_write   = 0;
+			next_read    = 0;
+		end
+		else begin
+			case ( state )
+			ST_IDLE: begin
+				if ( ref_req ) begin				
+					// REF
+					next_cs  = 1'b0;
+					next_ras = 1'b0;
+					next_cas = 1'b0;
+					next_we  = 1'b1;
+					
+					next_ref_req = 1'b0;
 					
 					// next state
-					next_counter = TRAS_CYCLE + TRP_CYCLE + 1;
-					next_state   = ST_PRECHARGE;				
+					next_counter = TRFC_CYCLE;
+					next_state   = ST_REFRESH;
+				end
+				else if ( wb_stb_i ) begin
+					// ACT
+					next_cs  = 1'b0;
+					next_ras = 1'b0;
+					next_cas = 1'b1;
+					next_we  = 1'b1;
+					next_ba  = ba_adr;
+					next_a   = row_adr;
+					
+					// next state
+					next_counter = TRCD_CYCLE;
+					next_state   = ST_ACTIVE;
 				end
 			end
-		end
-		
-		ST_PRECHARGE: begin
-			if ( count_end ) begin
-				next_state   = ST_IDLE;	
+			
+			ST_REFRESH: begin
+				if ( count_end ) begin
+					next_state = ST_IDLE;
+				end
 			end
+			
+			ST_ACTIVE: begin
+				if ( count_end ) begin
+					if ( wb_we_i ) begin
+						// WRITEA
+						next_cs    = 1'b0;
+						next_ras   = 1'b1;
+						next_cas   = 1'b0;
+						next_we    = 1'b0;
+						next_ba    = ba_adr;
+						next_a     = col_adr;
+						next_a[10] = 1'b1;
+						
+						next_write[1] = 1'b1;
+						
+						// next state
+						next_counter = TRAS_CYCLE + TRP_CYCLE + 1;
+						next_state   = ST_PRECHARGE;
+					end
+					else begin
+						// READA
+						next_cs    = 1'b0;
+						next_ras   = 1'b1;
+						next_cas   = 1'b0;
+						next_we    = 1'b1;
+						next_ba    = ba_adr;
+						next_a     = col_adr;
+						next_a[10] = 1'b1;
+
+						next_read[REG_READ_WIDTH-1] = 1'b1;
+						
+						// next state
+						next_counter = TRAS_CYCLE + TRP_CYCLE + 1;
+						next_state   = ST_PRECHARGE;				
+					end
+				end
+			end
+			
+			ST_PRECHARGE: begin
+				if ( count_end ) begin
+					next_state   = ST_IDLE;	
+				end
+			end
+			endcase
 		end
-		endcase
 		
 		next_ref_req   = (next_ref_counter == 0);
 		next_count_end = (next_counter == 0);
@@ -357,33 +358,25 @@ module ddr_sdram
 	wire	[SDRAM_DQ_WIDTH-1:0]	dq_write_even;
 	wire	[SDRAM_DQ_WIDTH-1:0]	dq_write_odd;
 	assign dq_write_en   = reg_write[0];
-//	assign dq_write_even = wb_dat_i[SDRAM_DQ_WIDTH +: SDRAM_DQ_WIDTH];
-//	assign dq_write_odd  = wb_dat_i[0              +: SDRAM_DQ_WIDTH];
-	assign dq_write_even = wb_dat_i[(SDRAM_DQ_WIDTH*2)-1:SDRAM_DQ_WIDTH*1];
-	assign dq_write_odd  = wb_dat_i[(SDRAM_DQ_WIDTH*1)-1:SDRAM_DQ_WIDTH*0];
+	assign dq_write_even = wb_dat_i[SDRAM_DQ_WIDTH +: SDRAM_DQ_WIDTH];
+	assign dq_write_odd  = wb_dat_i[0              +: SDRAM_DQ_WIDTH];
+//	assign dq_write_even = wb_dat_i[(SDRAM_DQ_WIDTH*2)-1:SDRAM_DQ_WIDTH*1];
+//	assign dq_write_odd  = wb_dat_i[(SDRAM_DQ_WIDTH*1)-1:SDRAM_DQ_WIDTH*0];
 	
 	// dm
 	wire	[SDRAM_DM_WIDTH-1:0]	dm_write_even;
 	wire	[SDRAM_DM_WIDTH-1:0]	dm_write_odd;
-//	assign dm_write_even = ~wb_sel_i[SDRAM_DM_WIDTH +: SDRAM_DM_WIDTH];
-//	assign dm_write_odd  = ~wb_sel_i[0              +: SDRAM_DM_WIDTH];
-	assign dm_write_even = ~wb_sel_i[(SDRAM_DM_WIDTH*2)-1:SDRAM_DM_WIDTH*1];
-	assign dm_write_odd  = ~wb_sel_i[(SDRAM_DM_WIDTH*1)-1:SDRAM_DM_WIDTH*0];
+	assign dm_write_even = ~wb_sel_i[SDRAM_DM_WIDTH +: SDRAM_DM_WIDTH];
+	assign dm_write_odd  = ~wb_sel_i[0              +: SDRAM_DM_WIDTH];
+//	assign dm_write_even = ~wb_sel_i[(SDRAM_DM_WIDTH*2)-1:SDRAM_DM_WIDTH*1];
+//	assign dm_write_odd  = ~wb_sel_i[(SDRAM_DM_WIDTH*1)-1:SDRAM_DM_WIDTH*0];
 	
 	// dqs
-	reg								dqs_write_en;
-	reg								dqs_write_end;
-	always @( negedge clk or posedge reset ) begin
-		if ( reset ) begin
-			dqs_write_en  <= 1'b0;
-			dqs_write_end <= 1'b0;
-		end
-		else begin
-			dqs_write_en  <= (reg_write != 0);
-			dqs_write_end <= reg_write[0];
-		end
-	end
-		
+	wire							dq_write_next_en;
+	wire							dqs_write_next_en;
+	assign dq_write_next_en  = reg_write[1];
+	assign dqs_write_next_en = (reg_write != 0);
+	
 	
 	
 	// -----------------------------
@@ -395,10 +388,10 @@ module ddr_sdram
 	
 	reg		[WB_DAT_WIDTH-1:0]		wb_dat_o;
 	always @( posedge clk ) begin
-//		wb_dat_o[SDRAM_DQ_WIDTH +: SDRAM_DQ_WIDTH] <= dq_read_even;
-//		wb_dat_o[0              +: SDRAM_DQ_WIDTH] <= dq_read_odd;
-		wb_dat_o[(SDRAM_DQ_WIDTH*2)-1:SDRAM_DQ_WIDTH*1] <= dq_read_even;
-		wb_dat_o[(SDRAM_DQ_WIDTH*1)-1:SDRAM_DQ_WIDTH*0] <= dq_read_odd;
+		wb_dat_o[SDRAM_DQ_WIDTH +: SDRAM_DQ_WIDTH] <= dq_read_even;
+		wb_dat_o[0              +: SDRAM_DQ_WIDTH] <= dq_read_odd;
+//		wb_dat_o[(SDRAM_DQ_WIDTH*2)-1:SDRAM_DQ_WIDTH*1] <= dq_read_even;
+//		wb_dat_o[(SDRAM_DQ_WIDTH*1)-1:SDRAM_DQ_WIDTH*0] <= dq_read_odd;
 	end
 	
 	assign wb_ack_o = reg_read[0] | reg_write[0];
@@ -423,22 +416,21 @@ module ddr_sdram
 				.clk				(clk),
 				.clk90				(clk90),
 				
-				.cke				(reg_cke),
-				.cs					(reg_cs),
-				.ras				(reg_ras),
-				.cas				(reg_cas),
-				.we					(reg_we),
-				.ba					(reg_ba),
-				.a					(reg_a),
-				.dq_write_en		(dq_write_en),
+				.cke				(next_cke),
+				.cs					(next_cs),
+				.ras				(next_ras),
+				.cas				(next_cas),
+				.we					(next_we),
+				.ba					(next_ba),
+				.a					(next_a),
+				.dq_write_next_en	(dq_write_next_en),
 				.dq_write_even		(dq_write_even),
 				.dq_write_odd		(dq_write_odd),
 				.dq_read_even		(dq_read_even),
 				.dq_read_odd		(dq_read_odd),
 				.dm_write_even		(dm_write_even),
 				.dm_write_odd		(dm_write_odd),
-				.dqs_write_en		(dqs_write_en),
-				.dqs_write_end		(dqs_write_end),
+				.dqs_write_next_en	(dqs_write_next_en),
 				
 				.ddr_sdram_ck_p		(ddr_sdram_ck_p),
 				.ddr_sdram_ck_n		(ddr_sdram_ck_n),

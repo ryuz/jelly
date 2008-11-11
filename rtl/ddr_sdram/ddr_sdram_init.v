@@ -88,7 +88,7 @@ module ddr_sdram_init
 			reg_count_end <= 1'b0;
 
 			reg_cke       <= 1'b0;
-			reg_cs        <= 1'b1;
+			reg_cs        <= 1'b0;
 			reg_ras       <= 1'b1;
 			reg_cas       <= 1'b1;
 			reg_we        <= 1'b1;
@@ -121,10 +121,10 @@ module ddr_sdram_init
 		next_count_end  = (reg_counter == 1);
 
 		next_cke        = reg_cke;
-		next_cs         = 1'b1;
-		next_ras        = 1'bx;
-		next_cas        = 1'bx;
-		next_we         = 1'bx;
+		next_cs         = 1'b0;
+		next_ras        = 1'b1;
+		next_cas        = 1'b1;
+		next_we         = 1'b1;
 		next_ba         = {SDRAM_BA_WIDTH{1'bx}};
 		next_a          = {SDRAM_A_WIDTH{1'bx}};
 		
