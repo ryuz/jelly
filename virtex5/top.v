@@ -42,7 +42,9 @@ module top
 	
 	// clock
 	wire				clk;
-	assign clk = clk_in;
+	wire				clk_uart;
+	assign clk      = clk_in;
+	assign clk_uart = clk;
 	
 	// reset
 	wire				reset;

@@ -2,8 +2,6 @@
 
 
 module tb_top;
-	parameter	SIMULATION = 1'b1;
-
 	parameter	RATE       = 10;
 	parameter	UART_RATE  = (1000000000 / 115200);
 	
@@ -109,6 +107,7 @@ module tb_top;
 	
 	
 	initial begin
+				$display("--- START ---");
 	#(RATE*200);
 	
 	//	while ( 1 ) begin

@@ -430,14 +430,13 @@ module jelly_dbg_uart
 				
 				if ( counter[1:0] == 2'b11 ) begin					
 					// go next state
-					next_state = ST_MW_SET_ADDR;
+					next_counter = 0;
+					next_state   = ST_MW_SET_ADDR;
 				end
 			end
 		end
 		
-		ST_MW_SET_ADDR: begin
-			next_counter = 0;
-			
+		ST_MW_SET_ADDR: begin			
 			// write
 			next_wb_dbg_adr_o = 4'h2;	// DBG_ADDR
 			next_wb_dbg_dat_o = {address[31:2], 2'b00};
