@@ -132,7 +132,8 @@ module tb_top;
 				write_dbg_uart_rx_fifo(8'h03);		// read
 				write_dbg_uart_rx_fifo(8'hf0);		// dbgctl
 			#(RATE*200);
-
+	
+	/*
 				$display("\n\n--- MEM WRITE  ---");
 				write_dbg_uart_rx_fifo(8'h04);		// read
 				write_dbg_uart_rx_fifo(8'h06);		// size
@@ -157,6 +158,25 @@ module tb_top;
 				write_dbg_uart_rx_fifo(8'h00);		// adr2
 				write_dbg_uart_rx_fifo(8'h00);		// adr3
 			#(RATE*1000);
+	*/
+
+
+				$display("\n\n--- DEEPC SET ---");
+				write_dbg_uart_rx_fifo(8'h02);		// write
+				write_dbg_uart_rx_fifo(8'hf2);		// dbgaddr
+				write_dbg_uart_rx_fifo(8'h00);		// dat0
+				write_dbg_uart_rx_fifo(8'h00);		// dat1
+				write_dbg_uart_rx_fifo(8'h00);		// dat2
+				write_dbg_uart_rx_fifo(8'h58);		// dat3
+			#(RATE*200);
+				write_dbg_uart_rx_fifo(8'h02);		// write
+				write_dbg_uart_rx_fifo(8'hf4);		// reg_data
+				write_dbg_uart_rx_fifo(8'h00);		// dat0
+				write_dbg_uart_rx_fifo(8'h00);		// dat1
+				write_dbg_uart_rx_fifo(8'h00);		// dat2
+				write_dbg_uart_rx_fifo(8'h00);		// dat3
+			#(RATE*200);
+	
 
 				$display("\n\n--- RESTART ---");
 				write_dbg_uart_rx_fifo(8'h02);		// write

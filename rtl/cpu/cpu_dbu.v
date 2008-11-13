@@ -54,7 +54,8 @@
 `define REG_ADR_COP0_STATUS		8'h4c
 `define REG_ADR_COP0_CAUSE		8'h4d
 `define REG_ADR_COP0_EPC		8'h4e
-
+`define REG_ADR_COP0_DEBUG		8'h57
+`define REG_ADR_COP0_DEEPC		8'h58
 
 
 // Debug Unit

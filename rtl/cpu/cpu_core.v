@@ -208,11 +208,11 @@ module cpu_core
 			);
 	
 	// debugger hook
-	assign wb_inst_adr_o = dbg_enable ? dbg_wb_inst_adr_o : if_wb_inst_adr_o;
+	assign wb_inst_adr_o = dbg_wb_inst_stb_o ? dbg_wb_inst_adr_o : if_wb_inst_adr_o;
 	assign wb_inst_dat_o = 32'h0000_0000;
 	assign wb_inst_we_o  = 1'b0;
-	assign wb_inst_sel_o = dbg_enable ? dbg_wb_inst_sel_o : if_wb_inst_sel_o;
-	assign wb_inst_stb_o = dbg_enable ? dbg_wb_inst_stb_o : if_wb_inst_stb_o;
+	assign wb_inst_sel_o = dbg_wb_inst_stb_o ? dbg_wb_inst_sel_o : if_wb_inst_sel_o;
+	assign wb_inst_stb_o = dbg_wb_inst_stb_o ? dbg_wb_inst_stb_o : if_wb_inst_stb_o;
 	
 	assign if_wb_inst_dat_i  = wb_inst_dat_i;
 	assign if_wb_inst_ack_i  = wb_inst_ack_i;
@@ -1029,11 +1029,11 @@ module cpu_core
 			);
 	
 	// debugger hook
-	assign wb_data_adr_o = dbg_enable ? dbg_wb_data_adr_o : mem_wb_data_adr_o;
-	assign wb_data_dat_o = dbg_enable ? dbg_wb_data_dat_o : mem_wb_data_dat_o;
-	assign wb_data_we_o  = dbg_enable ? dbg_wb_data_we_o  : mem_wb_data_we_o;
-	assign wb_data_sel_o = dbg_enable ? dbg_wb_data_sel_o : mem_wb_data_sel_o;
-	assign wb_data_stb_o = dbg_enable ? dbg_wb_data_stb_o : mem_wb_data_stb_o;
+	assign wb_data_adr_o = dbg_wb_data_stb_o ? dbg_wb_data_adr_o : mem_wb_data_adr_o;
+	assign wb_data_dat_o = dbg_wb_data_stb_o ? dbg_wb_data_dat_o : mem_wb_data_dat_o;
+	assign wb_data_we_o  = dbg_wb_data_stb_o ? dbg_wb_data_we_o  : mem_wb_data_we_o;
+	assign wb_data_sel_o = dbg_wb_data_stb_o ? dbg_wb_data_sel_o : mem_wb_data_sel_o;
+	assign wb_data_stb_o = dbg_wb_data_stb_o ? dbg_wb_data_stb_o : mem_wb_data_stb_o;
 	
 	assign mem_wb_data_dat_i = wb_data_dat_i;
 	assign mem_wb_data_ack_i = wb_data_ack_i;
