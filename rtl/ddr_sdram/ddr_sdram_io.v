@@ -21,7 +21,7 @@ module ddr_sdram_io
 			ddr_sdram_ck_p, ddr_sdram_ck_n, ddr_sdram_cke, ddr_sdram_cs, ddr_sdram_ras, ddr_sdram_cas, ddr_sdram_we,
 			ddr_sdram_ba, ddr_sdram_a, ddr_sdram_dm, ddr_sdram_dq, ddr_sdram_dqs
 		);
-	parameter	SIM_DQ_DELAY    = 10.0;
+	parameter	SIM_DQ_DELAY    = 2.0;
 	
 	parameter	SDRAM_BA_WIDTH  = 2;
 	parameter	SDRAM_A_WIDTH   = 13;
