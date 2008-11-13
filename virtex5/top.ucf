@@ -1,0 +1,5 @@
+
+# clock
+NET "clk_in" TNM_NET = clk_in;
+TIMESPEC TS_clk_in = PERIOD "clk_in" 50 MHz HIGH 50%;
+
