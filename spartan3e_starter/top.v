@@ -388,25 +388,34 @@ module top
 		peri_wb_stb_i = 1'b0;
 		
 		casex ( {wb_cpu_adr_o[31:2], 2'b00} )
-		32'h00xx_xxxx:	// boot rom
+		32'h00xx_xxxx:
 			begin
-				rom_wb_stb_i = wb_cpu_stb_o;
-				wb_cpu_dat_i = rom_wb_dat_o;
-				wb_cpu_ack_i = rom_wb_ack_o;
+				if ( sw[1] ) begin 
+					// boot rom
+					rom_wb_stb_i = wb_cpu_stb_o;
+					wb_cpu_dat_i = rom_wb_dat_o;
+					wb_cpu_ack_i = rom_wb_ack_o;
+				end
+				else begin
+					// dram
+					dram_wb_stb_i = wb_cpu_stb_o;
+					wb_cpu_dat_i = dram_wb_dat_o;
+					wb_cpu_ack_i = dram_wb_ack_o;
+				end
 			end
 		
-		32'h01xx_xxxx:	// sram
-			begin
-				sram_wb_stb_i = wb_cpu_stb_o;
-				wb_cpu_dat_i = sram_wb_dat_o;
-				wb_cpu_ack_i = sram_wb_ack_o;
-			end
-
-		32'h02xx_xxxx:	// dram
+		32'h01xx_xxxx:	// dram
 			begin
 				dram_wb_stb_i = wb_cpu_stb_o;
 				wb_cpu_dat_i = dram_wb_dat_o;
 				wb_cpu_ack_i = dram_wb_ack_o;
+			end
+
+		32'h02xx_xxxx:	// sram
+			begin
+				sram_wb_stb_i = wb_cpu_stb_o;
+				wb_cpu_dat_i = sram_wb_dat_o;
+				wb_cpu_ack_i = sram_wb_ack_o;
 			end
 
 		32'hfxxx_xxxx:	// peri
