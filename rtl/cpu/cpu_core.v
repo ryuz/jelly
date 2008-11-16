@@ -190,7 +190,7 @@ module cpu_core
 				.interlock	(interlock),
 				.busy		(if_out_hazard),
 			
-				.in_en		(1'b1),
+				.in_en		(dbg_enable ? dbg_wb_inst_stb_o : 1'b1),
 				.in_we		(1'b0),
 				.in_sel		(4'b1111),
 				.in_addr	(if_pc),
