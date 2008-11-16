@@ -76,7 +76,7 @@ module cpu_dbu
 	input				clk;
 	input				endian;
 
-	// Whishbone bus
+	// wishbone bus
 	input	[3:0]		wb_adr_i;
 	input	[31:0]		wb_dat_i;
 	output	[31:0]		wb_dat_o;
@@ -189,7 +189,7 @@ module cpu_dbu
 	// register control
 	assign reg_en    = wb_stb_i & (wb_adr_i == `DBG_ADR_REG_DATA);
 	assign reg_we    = wb_we_i;
-	assign reg_addr  = dbg_addr;
+	assign reg_addr  = dbg_addr[9:2];
 	assign reg_wdata = wb_dat_i;
 	
 	// d-bus control
@@ -247,46 +247,51 @@ module cpu_dbu
 			end
 		endcase
 	end
-
-
-
+	
+	
 	// -----------------------------
 	//  Register access
 	// -----------------------------
 	
 	// hi/lo control
-	assign hilo_en    = reg_en & (reg_addr[7:1] == 7'b0001_000);
 	assign hilo_we    = reg_we;
 	assign hilo_addr  = reg_addr[0];
 	assign hilo_wdata = reg_wdata;
 	
 	// gpr control
-	assign gpr_en     = reg_en & (reg_addr[7:5] == 3'b001);
 	assign gpr_we     = reg_we;
 	assign gpr_addr   = reg_addr[4:0];
 	assign gpr_wdata  = reg_wdata;
 		
 	// cop0 control
-	assign cop0_en    = reg_en & (reg_addr[7:5] == 3'b010);
 	assign cop0_we    = reg_we;
 	assign cop0_addr  = reg_addr[4:0];
 	assign cop0_wdata = reg_wdata;
 	
-	// reg_rdata
+	// address decode
+	reg				hilo_en;
+	reg				gpr_en;
+	reg				cop0_en;
 	always @* begin
-		casex ( reg_addr )		
+		hilo_en = 1'b0;
+		gpr_en  = 1'b0;
+		cop0_en = 1'b0;
+		casex ( reg_addr[7:0] )		
 		8'b0001_000x:			// HI, LO
 			begin
+				hilo_en   = reg_en;
 				reg_rdata = hilo_rdata;
 			end
 
 		8'b001x_xxxx:			// GPR
 			begin
+				gpr_en    = reg_en;
 				reg_rdata = gpr_rdata;
 			end
 
 		8'b010x_xxxx:			// COP0
 			begin
+				cop0_en   = reg_en;
 				reg_rdata = cop0_rdata;
 			end
 

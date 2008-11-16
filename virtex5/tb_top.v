@@ -108,7 +108,7 @@ module tb_top;
 	
 	initial begin
 				$display("--- START ---");
-	#(RATE*200);
+	#(RATE*2000000);
 	
 	//	while ( 1 ) begin
 				$display("--- NOP ---");
@@ -166,8 +166,8 @@ module tb_top;
 				write_dbg_uart_rx_fifo(8'hf2);		// dbgaddr
 				write_dbg_uart_rx_fifo(8'h00);		// dat0
 				write_dbg_uart_rx_fifo(8'h00);		// dat1
-				write_dbg_uart_rx_fifo(8'h00);		// dat2
-				write_dbg_uart_rx_fifo(8'h58);		// dat3
+				write_dbg_uart_rx_fifo(8'h01);		// dat2
+				write_dbg_uart_rx_fifo(8'h60);		// dat3
 			#(RATE*200);
 				write_dbg_uart_rx_fifo(8'h02);		// write
 				write_dbg_uart_rx_fifo(8'hf4);		// reg_data
