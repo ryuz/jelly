@@ -110,7 +110,7 @@ module top
 				.USE_EXC_SYSCALL	(1'b1),
 				.USE_EXC_BREAK		(1'b1),
 				.USE_EXC_RI			(1'b1),
-				.GPR_TYPE			(1)
+				.GPR_TYPE			(2)
 			)
 		i_cpu_top
 			(

@@ -22,7 +22,7 @@ module top
 
 			led, sw
 		);
-	parameter	SIMULATION      = 1'b1;
+	parameter	SIMULATION      = 1'b0;
 	
 	// system
 	input				clk_in;

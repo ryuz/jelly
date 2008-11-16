@@ -373,7 +373,7 @@ module cpu_core
 	assign if_gpr_r0_addr = dbg_gpr_en ? dbg_gpr_addr               : if_out_instruction[25:21];	//rs
 	assign id_out_rs_data = if_gpr_r0_data;
 	assign dbg_gpr_rdata  = if_gpr_r0_data;
-		
+	
 	assign if_gpr_r1_en   = 1'b1;
 	assign if_gpr_r1_addr = if_out_instruction[20:16];	// rt
 	assign id_out_rt_data = if_gpr_r1_data;

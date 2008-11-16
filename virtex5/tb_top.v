@@ -108,8 +108,8 @@ module tb_top;
 	
 	initial begin
 				$display("--- START ---");
-//	#(RATE*40000);
-	#(RATE*10000);
+	#(RATE*19990);
+//	#(RATE*10000);
 		
 	//	while ( 1 ) begin
 				$display("--- NOP ---");
@@ -132,6 +132,19 @@ module tb_top;
 				$display("\n\n--- DEBUG BREAK READ  ---");
 				write_dbg_uart_rx_fifo(8'h03);		// read
 				write_dbg_uart_rx_fifo(8'hf0);		// dbgctl
+			#(RATE*200);
+
+				$display("\n\n--- MEM WRITE  ---");
+				write_dbg_uart_rx_fifo(8'h04);		// read
+				write_dbg_uart_rx_fifo(8'h03);		// size
+				write_dbg_uart_rx_fifo(8'h00);		// adr0
+				write_dbg_uart_rx_fifo(8'h00);		// adr1
+				write_dbg_uart_rx_fifo(8'h00);		// adr2
+				write_dbg_uart_rx_fifo(8'h00);		// adr3
+				write_dbg_uart_rx_fifo(8'h00);		// dat0
+				write_dbg_uart_rx_fifo(8'h00);		// dat1
+				write_dbg_uart_rx_fifo(8'h00);		// dat2
+				write_dbg_uart_rx_fifo(8'h00);		// dat3
 			#(RATE*200);
 
 				$display("\n\n--- R8 READ  ---");
@@ -168,20 +181,6 @@ module tb_top;
 			#(RATE*200);
 				write_dbg_uart_rx_fifo(8'h03);		// read
 				write_dbg_uart_rx_fifo(8'hf4);		// reg_data
-			#(RATE*200);
-
-	
-				$display("\n\n--- MEM WRITE  ---");
-				write_dbg_uart_rx_fifo(8'h04);		// read
-				write_dbg_uart_rx_fifo(8'h03);		// size
-				write_dbg_uart_rx_fifo(8'h00);		// adr0
-				write_dbg_uart_rx_fifo(8'h00);		// adr1
-				write_dbg_uart_rx_fifo(8'h00);		// adr2
-				write_dbg_uart_rx_fifo(8'h00);		// adr3
-				write_dbg_uart_rx_fifo(8'h00);		// dat0
-				write_dbg_uart_rx_fifo(8'h00);		// dat1
-				write_dbg_uart_rx_fifo(8'h00);		// dat2
-				write_dbg_uart_rx_fifo(8'h00);		// dat3
 			#(RATE*200);
 
 	/*

@@ -70,6 +70,10 @@ module cpu_dbu
 			hilo_en, hilo_we, hilo_addr, hilo_wdata, hilo_rdata,
 			cop0_en, cop0_we, cop0_addr, cop0_wdata, cop0_rdata
 		);
+	parameter	USE_IBUS_HOOK = 1'b0;
+	parameter	USE_DBUS_HOOK = 1'b1;
+	parameter	IBUS_HOOK_FF  = 1'b0;
+	parameter	DBUS_HOOK_FF  = 1'b1;
 	
 	// system
 	input				reset;
@@ -100,14 +104,14 @@ module cpu_dbu
 	output	[3:0]		wb_data_sel_o;
 	output				wb_data_stb_o;
 	input				wb_data_ack_i;
-
+	
 	// i-bus control
 	output	[31:2]		wb_inst_adr_o;
 	input	[31:0]		wb_inst_dat_i;
 	output	[3:0]		wb_inst_sel_o;
 	output				wb_inst_stb_o;
 	input				wb_inst_ack_i;
-		
+	
 	// gpr control
 	output				gpr_en;
 	output				gpr_we;
@@ -191,18 +195,36 @@ module cpu_dbu
 	assign reg_we    = wb_we_i;
 	assign reg_addr  = dbg_addr[9:2];
 	assign reg_wdata = wb_dat_i;
-	
+
+
 	// d-bus control
-	assign wb_data_adr_o = dbg_addr[31:2];
-	assign wb_data_dat_o = wb_dat_i;
-	assign wb_data_we_o  = wb_we_i;
-	assign wb_data_sel_o = wb_sel_i;
-	assign wb_data_stb_o = wb_stb_i & (wb_adr_i == `DBG_ADR_DBUS_DATA);
+	wire	[31:2]		dbus_wb_adr_o;
+	wire	[31:0]		dbus_wb_dat_i;
+	wire	[31:0]		dbus_wb_dat_o;
+	wire				dbus_wb_we_o;
+	wire	[3:0]		dbus_wb_sel_o;
+	wire				dbus_wb_stb_o;
+	wire				dbus_wb_ack_i;
+	
+	// i-bus control
+	wire	[31:2]		ibus_wb_adr_o;
+	wire	[31:0]		ibus_wb_dat_i;
+	wire	[3:0]		ibus_wb_sel_o;
+	wire				ibus_wb_stb_o;
+	wire				ibus_wb_ack_i;
+
+
+	// d-bus control
+	assign dbus_wb_adr_o = dbg_addr[31:2];
+	assign dbus_wb_dat_o = wb_dat_i;
+	assign dbus_wb_we_o  = wb_we_i;
+	assign dbus_wb_sel_o = wb_sel_i;
+	assign dbus_wb_stb_o = wb_stb_i & (wb_adr_i == `DBG_ADR_DBUS_DATA);
 
 	// i-bus control
-	assign wb_inst_adr_o = dbg_addr[31:2];
-	assign wb_inst_sel_o = wb_sel_i;
-	assign wb_inst_stb_o = wb_stb_i & (wb_adr_i == `DBG_ADR_IBUS_DATA);
+	assign ibus_wb_adr_o = dbg_addr[31:2];
+	assign ibus_wb_sel_o = wb_sel_i;
+	assign ibus_wb_stb_o = wb_stb_i & (wb_adr_i == `DBG_ADR_IBUS_DATA);
 	
 	
 	// read
@@ -230,14 +252,14 @@ module cpu_dbu
 		
 		`DBG_ADR_DBUS_DATA:	// DBUS_DATA
 			begin
-				wb_dat_o = wb_data_dat_i;
-				wb_ack_o = wb_data_ack_i;
+				wb_dat_o = dbus_wb_dat_i;
+				wb_ack_o = dbus_wb_ack_i;
 			end
 		
 		`DBG_ADR_IBUS_DATA:	// IBUS_DATA
 			begin
-				wb_dat_o = wb_inst_dat_i;
-				wb_ack_o = wb_inst_ack_i;
+				wb_dat_o = ibus_wb_dat_i;
+				wb_ack_o = ibus_wb_ack_i;
 			end
 				
 		default:
@@ -247,6 +269,79 @@ module cpu_dbu
 			end
 		endcase
 	end
+
+
+
+	// d-bus control
+	generate
+	if ( USE_DBUS_HOOK ) begin
+		if ( DBUS_HOOK_FF ) begin
+			// insert flip-flop
+			wishbone_bridge
+					#(
+						.WB_ADR_WIDTH	(30),
+						.WB_DAT_WIDTH	(32)
+					)
+				i_wishbone_bridge_ibus
+					(
+						.reset			(reset),
+						.clk			(clk),
+						
+						.wb_in_adr_i	(dbus_wb_adr_o),
+						.wb_in_dat_o	(dbus_wb_dat_i),
+						.wb_in_dat_i	(dbus_wb_dat_o),
+						.wb_in_we_i		(dbus_wb_we_o),
+						.wb_in_sel_i	(dbus_wb_sel_o),
+						.wb_in_stb_i	(dbus_wb_stb_o),
+						.wb_in_ack_o	(dbus_wb_ack_i),
+						
+						.wb_out_adr_o	(wb_data_adr_o),
+						.wb_out_dat_i	(wb_data_dat_i),
+						.wb_out_dat_o	(wb_data_dat_o),
+						.wb_out_we_o	(wb_data_we_o),
+						.wb_out_sel_o	(wb_data_sel_o),
+						.wb_out_stb_o	(wb_data_stb_o),
+						.wb_out_ack_i	(wb_data_ack_i)
+					);
+		end
+		else begin
+			assign wb_data_adr_o = dbus_wb_adr_o;
+			assign wb_data_dat_o = dbus_wb_dat_o;
+			assign wb_data_we_o  = dbus_wb_we_o;
+			assign wb_data_sel_o = dbus_wb_sel_o;
+			assign wb_data_stb_o = dbus_wb_stb_o;
+			assign dbus_wb_dat_i = wb_data_dat_i;
+			assign dbus_wb_ack_i = wb_data_ack_i;
+		end
+	end
+	else begin
+		// no use
+		assign wb_data_adr_o = 0;
+		assign wb_data_dat_o = 0;
+		assign wb_data_we_o  = 1'b0;
+		assign wb_data_sel_o = 0;
+		assign wb_data_stb_o = 1'b0;	
+		assign dbus_wb_dat_i = 0;
+		assign dbus_wb_ack_i = 1'b1;
+	end
+	
+	// i-bus control
+	if ( USE_IBUS_HOOK ) begin
+		assign wb_inst_adr_o = ibus_wb_adr_o;
+		assign wb_inst_sel_o = ibus_wb_sel_o;
+		assign wb_inst_stb_o = ibus_wb_stb_o;
+		assign ibus_wb_dat_i = wb_inst_dat_i;
+		assign ibus_wb_ack_i = wb_inst_ack_i;
+	end
+	else begin
+		assign wb_inst_adr_o = 0;
+		assign wb_inst_sel_o = 0;
+		assign wb_inst_stb_o = 1'b0;
+		assign ibus_wb_dat_i = 0;
+		assign ibus_wb_ack_i = 1'b1;
+	end
+	endgenerate
+
 	
 	
 	// -----------------------------
