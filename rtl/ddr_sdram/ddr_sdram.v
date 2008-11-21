@@ -194,7 +194,12 @@ module ddr_sdram
 	always @( posedge clk or posedge reset ) begin
 		if ( reset ) begin
 			state         <= ST_IDLE;
-						
+			counter       <= {COUNTER_WIDTH{1'bx}};
+			count_end     <= 1'bx;
+			
+			ref_req       <= 1'bx;
+			ref_counter   <= {16{1'bx}};
+			
 			reg_cke       <= 1'b0;
 			reg_cs        <= 1'b0;
 			reg_ras       <= 1'b1;
@@ -210,7 +215,7 @@ module ddr_sdram
 			state       <= next_state;
 			counter     <= next_counter;
 			count_end   <= next_count_end;
-
+			
 			ref_req     <= next_ref_req;
 			ref_counter <= next_ref_counter;
 			

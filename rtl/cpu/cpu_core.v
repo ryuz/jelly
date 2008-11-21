@@ -914,16 +914,21 @@ module cpu_core
 			
 			ex_out_mem_en       <= 1'b0;
 			ex_out_mem_we       <= 1'b0;
+			ex_out_mem_size     <= 0;
 			ex_out_mem_sel      <= 0;
 			ex_out_mem_addr     <= 0;
 			ex_out_mem_wdata    <= 0;
 			
 			ex_out_dst_reg_en   <= 1'b0;
 			ex_out_dst_reg_addr <= 0;
+			ex_out_dst_reg_data <= {32{1'bx}};
 			ex_out_dst_src_mem  <= 1'b0;
 			
 			ex_out_branch_en    <= 1'b0;
+			ex_out_branch_pc    <= {32{1'bx}};
+			
 			ex_out_exception_en <= 1'b0;
+			ex_out_exception_pc <= {32{1'bx}};
 		end
 		else begin
 			if ( !interlock ) begin
@@ -1100,6 +1105,10 @@ module cpu_core
 			mem_out_dst_reg_addr <= 0;
 
 			mem_dst_src_mem      <= 1'b0;
+			mem_addr             <= {2{1'bx}};
+			mem_size             <= {2{1'bx}};
+			mem_unsigned         <= 1'bx;
+			
 			mem_ex_data          <= 0;
 		end
 		else begin

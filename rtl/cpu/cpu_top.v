@@ -144,6 +144,7 @@ module cpu_top
 	always @ ( posedge clk or posedge reset ) begin
 		if ( reset ) begin
 			reg_busy <= 1'b0;
+			reg_sw   <= 1'bx;
 		end
 		else begin
 			reg_busy <= wb_stb_o & !wb_ack_i;

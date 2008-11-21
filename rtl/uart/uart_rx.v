@@ -28,9 +28,10 @@ module uart_rx
 	reg							rx_wr_en;
 	always @ ( posedge clk or posedge reset ) begin
 		if ( reset ) begin
+			rx_ff_data <= 1'b1;
+			rx_data    <= {9{1'bx}};
 			rx_busy    <= 1'b0;
 			rx_count   <= 0;
-			rx_ff_data <= 1'b1;
 			rx_wr_en   <= 1'b0;
 		end
 		else begin

@@ -66,7 +66,8 @@ module jelly_asram
 			asram_we_n  <= 1'b1;
 			asram_oe_n  <= 1'b1;
 			asram_bls_n <= {WB_SEL_WIDTH{1'b1}};
-			asram_a     <= {WB_DAT_WIDTH{1'b0}};
+			asram_a     <= {WB_ADR_WIDTH{1'b0}};
+			asram_wdata <= {WB_DAT_WIDTH{1'b0}};
 		end
 		else begin
 			// state

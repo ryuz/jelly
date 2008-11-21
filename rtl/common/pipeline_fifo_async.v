@@ -191,6 +191,7 @@ module pipeline_fifo_async
 			rd_wptr                <= 0;
 			
 			rd_valid               <= 1'b0;
+			rd_data                <= {DATA_WIDTH{1'bx}};
 			rd_data_valid          <= 1'b0;
 		end
 		else begin

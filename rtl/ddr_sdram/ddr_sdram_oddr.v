@@ -9,19 +9,12 @@
 `timescale 1ns / 1ps
 
 
-module ddr_sdram_io
+module ddr_sdram_oddr
 		(
-			reset, clk, clk90,
-			cke, cs, ras, cas, we, ba, a,
-			dq_write_next_en, dq_write_even, dq_write_odd,
-			dq_read_even, dq_read_odd,
-			dm_write_even, dm_write_odd,
-			dqs_write_next_en,
-			
-			ddr_sdram_ck_p, ddr_sdram_ck_n, ddr_sdram_cke, ddr_sdram_cs, ddr_sdram_ras, ddr_sdram_cas, ddr_sdram_we,
-			ddr_sdram_ba, ddr_sdram_a, ddr_sdram_dm, ddr_sdram_dq, ddr_sdram_dqs
+			clk, in_even, in_odd, out
 		);
-	parameter	INIT   = 1'0;
+	
+	parameter	INIT   = 1'b0;
 	parameter	WIDTH  = 1;
 	
 	input					clk;
@@ -58,8 +51,8 @@ module ddr_sdram_io
 					.C0					(clk),
 					.C1					(~clk),
 					.CE					(1'b1),
-					.D0					(dm_write_even[i]),
-					.D1					(dm_write_odd[i]),
+					.D0					(in_even[i]),
+					.D1					(in_odd[i]),
 					.R					(1'b0),
 					.S					(1'b0)
 				);
@@ -67,4 +60,5 @@ module ddr_sdram_io
 	endgenerate
 	
 endmodule
+
 

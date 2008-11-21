@@ -86,7 +86,7 @@ module ddr_sdram_init
 			reg_state     <= INIT_ST_WAIT;
 			reg_counter   <= SIMULATION ? 100 : INIT_WAIT_CYCLE;
 			reg_count_end <= 1'b0;
-
+			
 			reg_cke       <= 1'b0;
 			reg_cs        <= 1'b0;
 			reg_ras       <= 1'b1;

@@ -29,6 +29,7 @@ module uart_tx
 	always @ ( posedge clk or posedge reset ) begin
 		if ( reset ) begin
 			tx_busy    <= 1'b0;
+			tx_count   <= {7{1'bx}};
 			tx_data[0] <= 1'b1;
 		end
 		else begin
