@@ -59,10 +59,21 @@ module wishbone_bridge
 	
 	always @ ( posedge clk or posedge reset ) begin
 		if ( reset ) begin
-			reg_in_ack_o    <= 1'b0;
-			wb_out_stb_o   <= 1'b0;
-			wb_out_read    <= 1'b0;
-			reg_stb_o         <= 1'b0;
+			wb_in_dat_o  <= {WB_DAT_WIDTH{1'bx}};
+			reg_in_ack_o <= 1'b0;
+			
+			wb_out_adr_o <= {WB_ADR_WIDTH{1'bx}};
+			wb_out_dat_o <= {WB_DAT_WIDTH{1'bx}};
+			wb_out_we_o  <= 1'bx;
+			wb_out_sel_o <= {WB_SEL_WIDTH{1'b0}};
+			wb_out_stb_o <= 1'b0;
+			wb_out_read  <= 1'b0;
+
+			reg_adr_o    <= {WB_ADR_WIDTH{1'bx}};
+			reg_dat_o    <= {WB_DAT_WIDTH{1'bx}};
+			reg_we_o     <= 1'bx;
+			reg_sel_o    <= {WB_SEL_WIDTH{1'bx}};
+			reg_stb_o    <= 1'b0;
 		end
 		else begin
 			// buffer

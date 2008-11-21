@@ -144,9 +144,16 @@ module jelly_dbg_uart
 	// FF
 	always @ ( posedge clk or posedge reset ) begin
 		if ( reset ) begin
+			wb_dbg_adr_o  <= {4{1'bx}};
+			wb_dbg_dat_o  <= {32{1'bx}};
+			wb_dbg_we_o   <= 1'bx;
+			wb_dbg_sel_o  <= {4{1'bx}};
 			wb_dbg_stb_o  <= 1'b0;
 			state         <= ST_IDLE;
 			counter       <= 0;
+			size          <= {8{1'bx}};
+			address       <= {32{1'bx}};
+			read_data     <= {32{1'bx}};
 		end
 		else begin
 			wb_dbg_adr_o  <= next_wb_dbg_adr_o;

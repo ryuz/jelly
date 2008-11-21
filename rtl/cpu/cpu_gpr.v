@@ -226,6 +226,7 @@ module cpu_gpr
 			always @ ( posedge clk or posedge reset ) begin
 				if ( reset ) begin
 					prev_interlock <= 1'b0;
+					prev_data      <= {DATA_WIDTH{1'bx}};
 				end
 				else begin
 					prev_interlock <= interlock;

@@ -513,28 +513,69 @@ module cpu_core
 	// ID
 	always @ ( posedge clk or posedge reset ) begin
 		if ( reset ) begin
-			id_out_stall       <= 1'b1;
-			id_out_delay       <= 1'b0;
+			id_out_stall          <= 1'b1;
+			id_out_delay          <= 1'b0;
+			id_out_instruction    <= {32{1'bx}};
+			id_out_pc             <= {32{1'bx}};
+
+			id_out_rs_addr        <= {5{1'bx}};
+			id_out_rt_addr        <= {5{1'bx}};
+			id_out_rd_addr        <= {5{1'bx}};
+			id_out_immediate_data <= {32{1'bx}};
 			
-			id_out_branch_en   <= 1'b0;
-			id_out_muldiv_en   <= 1'b0;
-			id_out_mem_en      <= 1'b0;
+			id_out_branch_en       <= 1'b0;
+			id_out_branch_func     <= {4{1'bx}};
+			id_out_branch_index    <= {27{1'bx}};
+			id_out_branch_index_en <= 1'bx;
+			id_out_branch_imm_en   <= 1'bx;
+			id_out_branch_rs_en    <= 1'bx;
 
-			id_out_cop0_mfc0   <= 1'b0;
-			id_out_cop0_mtc0   <= 1'b0;
-			id_out_cop0_rfe    <= 1'b0;
+			id_out_alu_adder_en    <= 1'bx;
+			id_out_alu_adder_func  <= {2{1'bx}};
+			id_out_alu_logic_en    <= 1'bx;
+			id_out_alu_logic_func  <= {2{1'bx}};
+			id_out_alu_comp_en     <= 1'bx;
+			id_out_alu_comp_func   <= {2{1'bx}};
+			id_out_alu_imm_en      <= 1'bx;
 
-			id_out_muldiv_div  <= 1'b0;
-			id_out_muldiv_mthi <= 1'b0;
-			id_out_muldiv_mtlo <= 1'b0;
+			id_out_shifter_en      <= 1'bx;
+			id_out_shifter_func    <= {2{1'bx}};
+			id_out_shifter_sa_en   <= 1'bx;
+			id_out_shifter_sa_data <= {5{1'bx}};
+			
+			id_out_muldiv_en       <= 1'b0;
+			id_out_muldiv_mul      <= 1'bx;
+			id_out_muldiv_div      <= 1'b0;
+			id_out_muldiv_mthi     <= 1'b0;
+			id_out_muldiv_mtlo     <= 1'bx;
+			id_out_muldiv_mfhi     <= 1'bx;
+			id_out_muldiv_mtlo     <= 1'b0;
+			id_out_muldiv_signed   <= 1'bx;
+
+			id_out_cop0_mfc0       <= 1'b0;
+			id_out_cop0_mtc0       <= 1'b0;
+			id_out_cop0_rfe        <= 1'b0;
                
-			id_out_exc_syscall <= 1'b0;
-			id_out_exc_break   <= 1'b0;
-			id_out_exc_ri      <= 1'b0;
+			id_out_exc_syscall     <= 1'b0;
+			id_out_exc_break       <= 1'b0;
+			id_out_exc_ri          <= 1'b0;
 
-			id_out_dbg_sdbbp   <= 1'b0;
-			
-			id_out_dst_reg_en  <= 1'b0;
+			id_out_dbg_sdbbp       <= 1'b0;
+
+			id_out_mem_en          <= 1'b0;
+			id_out_mem_we          <= 1'bx;
+			id_out_mem_size        <= {2{1'bx}};
+			id_out_mem_unsigned    <= 1'bx;
+		
+			id_out_dst_reg_en      <= 1'b0;
+			id_out_dst_reg_addr    <= {4{1'bx}};
+			id_out_dst_src_alu     <= 1'bx;
+			id_out_dst_src_shifter <= 1'bx;
+			id_out_dst_src_mem     <= 1'bx;
+			id_out_dst_src_pc      <= 1'bx;
+			id_out_dst_src_hi      <= 1'bx;
+			id_out_dst_src_lo      <= 1'bx;
+			id_out_dst_src_cop0    <= 1'bx;
 		end
 		else begin
 			if ( !interlock ) begin

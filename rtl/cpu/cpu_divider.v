@@ -85,8 +85,17 @@ module cpu_divider
 	
 	always @ ( posedge clk or posedge reset ) begin
 		if ( reset ) begin
-			busy    <= 1'b0;
-			counter <= 0;
+			remainder      <= {DATA_WIDTH{1'bx}};
+			quotient       <= {DATA_WIDTH{1'bx}};
+			divisor        <= {DATA_WIDTH{1'bx}};
+
+			remainder_sign <= 1'bx;
+			quotient_sign  <= 1'bx;
+
+			busy           <= 1'b0;
+			out_en         <= 1'b0;
+			
+			counter        <= 0;
 		end
 		else begin
 			if ( !busy ) begin
