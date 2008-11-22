@@ -1,15 +1,16 @@
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 //  Jelly  -- The computing system on FPGA
 //   DDR-SDRAM interface
 //
-//                                       Copyright (C) 2008 by Ryuji Fuchikami
-// ----------------------------------------------------------------------------
+//                                      Copyright (C) 2008 by Ryuji Fuchikami
+//                                      http://homepage3.nifty.com/ryuz/
+// ---------------------------------------------------------------------------
 
 
 `timescale 1ns / 1ps
 
 
-// MT46V32M16TG-6T
+// DDR-SDRAM interface
 module ddr_sdram
 		(
 			reset, clk, clk90, endian,
@@ -143,13 +144,9 @@ module ddr_sdram
 	wire	[SDRAM_ROW_WIDTH-1:0]	row_adr;
 	wire	[SDRAM_BA_WIDTH-1:0]	ba_adr;
 	
-//	assign col_adr = {wb_adr_i[0 +: SDRAM_COL_WIDTH-1], 1'b0};
-//	assign row_adr = wb_adr_i[SDRAM_COL_WIDTH-1 +: SDRAM_ROW_WIDTH];
-//	assign ba_adr  = wb_adr_i[SDRAM_COL_WIDTH+SDRAM_ROW_WIDTH-1 +: SDRAM_BA_WIDTH];
-
-	assign col_adr = {wb_adr_i[SDRAM_COL_WIDTH-2:0], 1'b0};
-	assign row_adr =  wb_adr_i[SDRAM_COL_WIDTH+SDRAM_ROW_WIDTH-2:SDRAM_COL_WIDTH-1];
-	assign ba_adr  =  wb_adr_i[SDRAM_COL_WIDTH+SDRAM_ROW_WIDTH+SDRAM_BA_WIDTH-2:SDRAM_COL_WIDTH+SDRAM_ROW_WIDTH-1];
+	assign col_adr = {wb_adr_i[0 +: SDRAM_COL_WIDTH-1], 1'b0};
+	assign row_adr = wb_adr_i[SDRAM_COL_WIDTH-1 +: SDRAM_ROW_WIDTH];
+	assign ba_adr  = wb_adr_i[SDRAM_COL_WIDTH+SDRAM_ROW_WIDTH-1 +: SDRAM_BA_WIDTH];
 		
 	
 	reg		[3:0]					state;
@@ -365,16 +362,12 @@ module ddr_sdram
 	assign dq_write_en   = reg_write[0];
 	assign dq_write_even = wb_dat_i[SDRAM_DQ_WIDTH +: SDRAM_DQ_WIDTH];
 	assign dq_write_odd  = wb_dat_i[0              +: SDRAM_DQ_WIDTH];
-//	assign dq_write_even = wb_dat_i[(SDRAM_DQ_WIDTH*2)-1:SDRAM_DQ_WIDTH*1];
-//	assign dq_write_odd  = wb_dat_i[(SDRAM_DQ_WIDTH*1)-1:SDRAM_DQ_WIDTH*0];
 	
 	// dm
 	wire	[SDRAM_DM_WIDTH-1:0]	dm_write_even;
 	wire	[SDRAM_DM_WIDTH-1:0]	dm_write_odd;
 	assign dm_write_even = ~wb_sel_i[SDRAM_DM_WIDTH +: SDRAM_DM_WIDTH];
 	assign dm_write_odd  = ~wb_sel_i[0              +: SDRAM_DM_WIDTH];
-//	assign dm_write_even = ~wb_sel_i[(SDRAM_DM_WIDTH*2)-1:SDRAM_DM_WIDTH*1];
-//	assign dm_write_odd  = ~wb_sel_i[(SDRAM_DM_WIDTH*1)-1:SDRAM_DM_WIDTH*0];
 	
 	// dqs
 	wire							dq_write_next_en;
@@ -395,8 +388,6 @@ module ddr_sdram
 	always @( posedge clk ) begin
 		wb_dat_o[SDRAM_DQ_WIDTH +: SDRAM_DQ_WIDTH] <= dq_read_even;
 		wb_dat_o[0              +: SDRAM_DQ_WIDTH] <= dq_read_odd;
-//		wb_dat_o[(SDRAM_DQ_WIDTH*2)-1:SDRAM_DQ_WIDTH*1] <= dq_read_even;
-//		wb_dat_o[(SDRAM_DQ_WIDTH*1)-1:SDRAM_DQ_WIDTH*0] <= dq_read_odd;
 	end
 	
 	assign wb_ack_o = reg_read[0] | reg_write[0];

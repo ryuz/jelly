@@ -1,10 +1,10 @@
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 //  Jelly  -- The computing system on FPGA
 //   DDR-SDRAM interface
 //
-//                                       Copyright (C) 2008 by Ryuji Fuchikami
-//                                       http://homepage3.nifty.com/ryuz
-// ----------------------------------------------------------------------------
+//                                      Copyright (C) 2008 by Ryuji Fuchikami
+//                                      http://homepage3.nifty.com/ryuz/
+// ---------------------------------------------------------------------------
 
 
 `timescale 1ns / 1ps
@@ -77,17 +77,17 @@ module ddr_sdram_io
 	wire	[SDRAM_DQS_WIDTH-1:0]	dqs_write;
 
 
-	/*
-	assign ddr_sdram_cke  = cke;
-	assign ddr_sdram_cs   = cs;
-	assign ddr_sdram_ras  = ras;
-	assign ddr_sdram_cas  = cas;
-	assign ddr_sdram_we   = we;
-	assign ddr_sdram_ba   = ba;
-	assign ddr_sdram_a    = a;
-	*/
+	// simulation
+	always @* begin
+		dq_read_dly <= #SIM_DQ_DELAY dq_read;
+	end
 	
-	// Command
+	
+	// ck
+	ddr_sdram_oddr	#(.INIT(1'b0), .WIDTH(1)) i_ddr_sdram_oddr_cl_p (.clk(clk), .in_even(1'b0), .in_odd (1'b1), .out(ddr_sdram_ck_p));
+	ddr_sdram_oddr	#(.INIT(1'b1), .WIDTH(1)) i_ddr_sdram_oddr_cl_n (.clk(clk), .in_even(1'b1), .in_odd (1'b0), .out(ddr_sdram_ck_n));
+	
+	// command
 	ddr_sdram_out #(.WIDTH(1))				i_out_cke	(.clk(clk), .in(cke), .out(ddr_sdram_cke));
 	ddr_sdram_out #(.WIDTH(1))				i_out_cs 	(.clk(clk), .in(cs),  .out(ddr_sdram_cs));
 	ddr_sdram_out #(.WIDTH(1))				i_out_ras	(.clk(clk), .in(ras), .out(ddr_sdram_ras));
@@ -95,50 +95,6 @@ module ddr_sdram_io
 	ddr_sdram_out #(.WIDTH(1))				i_out_we 	(.clk(clk), .in(we),  .out(ddr_sdram_we));
 	ddr_sdram_out #(.WIDTH(SDRAM_BA_WIDTH))	i_out_ba 	(.clk(clk), .in(ba),  .out(ddr_sdram_ba));
 	ddr_sdram_out #(.WIDTH(SDRAM_A_WIDTH))	i_out_a 	(.clk(clk), .in(a),   .out(ddr_sdram_a));
-	
-	
-//	assign ddr_sdram_ck_p = ~clk;
-//	assign ddr_sdram_ck_n = clk;
-	/*
-	ODDR2
-			#(
-				.DDR_ALIGNMENT		("NONE"),
-				.INIT				(1'b0),
-				.SRTYPE				("SYNC")
-			)
-		i_oddr_ck_p
-			(
-				.Q					(ddr_sdram_ck_p),
-				.C0					(clk),
-				.C1					(~clk),
-				.CE					(1'b1),
-				.D0					(1'b0),
-				.D1					(1'b1),
-				.R					(1'b0),
-				.S					(1'b0)
-			);
-
-	ODDR2
-			#(
-				.DDR_ALIGNMENT		("NONE"),
-				.INIT				(1'b0),
-				.SRTYPE				("SYNC")
-			)
-		i_oddr_ck_n
-			(
-				.Q					(ddr_sdram_ck_n),
-				.C0					(clk),
-				.C1					(~clk),
-				.CE					(1'b1),
-				.D0					(1'b1),
-				.D1					(1'b0),
-				.R					(1'b0),
-				.S					(1'b0)
-			);
-	*/
-	ddr_sdram_oddr	#(.INIT(1'b0), .WIDTH(1)) i_ddr_sdram_oddr_cl_p (.clk(clk), .in_even(1'b0), .in_odd (1'b1), .out(ddr_sdram_ck_p));
-	ddr_sdram_oddr	#(.INIT(1'b1), .WIDTH(1)) i_ddr_sdram_oddr_cl_n (.clk(clk), .in_even(1'b1), .in_odd (1'b0), .out(ddr_sdram_ck_n));
-
 
 	// dm
 	ddr_sdram_oddr
@@ -153,14 +109,6 @@ module ddr_sdram_io
 				.in_odd		(dm_write_odd),
 				.out		(ddr_sdram_dm)
 			);
-	
-	
-	
-	
-	// simulation
-	always @* begin
-		dq_read_dly <= #SIM_DQ_DELAY dq_read;
-	end
 	
 	
 	generate
@@ -229,39 +177,6 @@ module ddr_sdram_io
 					.S					(1'b0)	
 				);
 	end
-
-	// dm
-	/*
-	for ( i = 0; i < SDRAM_DM_WIDTH; i = i + 1 ) begin : dm
-		OBUF
-				#(
-					.IOSTANDARD			("SSTL2_I")
-				)
-			i_obuf
-				(
-					.O					(ddr_sdram_dm[i]),
-					.I					(dm_write[i])
-				);
-		
-		ODDR2
-				#(
-					.DDR_ALIGNMENT		("NONE"),
-					.INIT				(1'b0),
-					.SRTYPE				("SYNC")
-				)
-			i_oddr_dq
-				(
-					.Q					(dm_write[i]),
-					.C0					(clk),
-					.C1					(~clk),
-					.CE					(1'b1),
-					.D0					(dm_write_even[i]),
-					.D1					(dm_write_odd[i]),
-					.R					(1'b0),
-					.S					(1'b0)
-				);
-	end
-	*/
 	
 	
 	// dqs
