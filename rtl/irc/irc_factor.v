@@ -3,6 +3,7 @@
 //    Interrupt controller
 //
 //                                       Copyright (C) 2008 by Ryuji Fuchikami
+//                                       http://homepage3.nifty.com/ryuz
 // ----------------------------------------------------------------------------
 
 

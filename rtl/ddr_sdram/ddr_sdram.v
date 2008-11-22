@@ -8,8 +8,8 @@
 
 `timescale 1ns / 1ps
 
-// MT46V32M16TG-6T
 
+// MT46V32M16TG-6T
 module ddr_sdram
 		(
 			reset, clk, clk90, endian,

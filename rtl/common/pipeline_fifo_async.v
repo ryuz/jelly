@@ -3,6 +3,7 @@
 //   Asyncronous FIFO for pipeline-data
 //
 //                                       Copyright (C) 2008 by Ryuji Fuchikami
+//                                       http://homepage3.nifty.com/ryuz
 // ----------------------------------------------------------------------------
 
 
