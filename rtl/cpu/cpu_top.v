@@ -54,7 +54,7 @@ module cpu_top
 	input			wb_ack_i;
 	
 	// debug port (wishbone)
-	input	[31:2]	wb_dbg_adr_i;
+	input	[3:0]	wb_dbg_adr_i;
 	input	[31:0]	wb_dbg_dat_i;
 	output	[31:0]	wb_dbg_dat_o;
 	input			wb_dbg_we_i;

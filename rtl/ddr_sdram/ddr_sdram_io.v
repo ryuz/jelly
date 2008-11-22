@@ -98,7 +98,7 @@ module ddr_sdram_io
 	
 //	assign ddr_sdram_ck_p = ~clk;
 //	assign ddr_sdram_ck_n = clk;
-	
+	/*
 	ODDR2
 			#(
 				.DDR_ALIGNMENT		("NONE"),
@@ -133,6 +133,24 @@ module ddr_sdram_io
 				.D1					(1'b0),
 				.R					(1'b0),
 				.S					(1'b0)
+			);
+	*/
+	ddr_sdram_oddr	#(.INIT(1'b0), .WIDTH(1)) i_ddr_sdram_oddr_cl_p (.clk(clk), .in_even(1'b0), .in_odd (1'b1), .out(ddr_sdram_ck_p));
+	ddr_sdram_oddr	#(.INIT(1'b1), .WIDTH(1)) i_ddr_sdram_oddr_cl_n (.clk(clk), .in_even(1'b1), .in_odd (1'b0), .out(ddr_sdram_ck_n));
+
+
+	// dm
+	ddr_sdram_oddr
+			#(
+				.INIT		(1'b0),
+				.WIDTH		(SDRAM_DM_WIDTH)
+			)
+		i_ddr_sdram_oddr_dm
+			(
+				.clk		(clk),
+				.in_even	(dm_write_even),
+				.in_odd		(dm_write_odd),
+				.out		(ddr_sdram_dm)
 			);
 	
 	
@@ -212,6 +230,7 @@ module ddr_sdram_io
 	end
 
 	// dm
+	/*
 	for ( i = 0; i < SDRAM_DM_WIDTH; i = i + 1 ) begin : dm
 		OBUF
 				#(
@@ -241,6 +260,7 @@ module ddr_sdram_io
 					.S					(1'b0)
 				);
 	end
+	*/
 	
 	
 	// dqs
