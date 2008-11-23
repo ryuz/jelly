@@ -5,13 +5,13 @@ WORK_DIR = work
 PRJ_DIR  = ..
 TOP_DIR  = ../..
 RTL_DIR  = $(TOP_DIR)/rtl
-HOS_DIR  = ~/hos-v4a/sample/mips/jelly/gcc
+HOS_DIR  = ~/hos-v4a/aplfw/sample/mips/jelly/gcc
 
 # flags
 VLOG_FLAGS =
 
 
-all: soft_build $(TOP_DIR)/soft/boot_rom.v work_setup prj_compile
+all: soft_build disasm soft.hex work_setup prj_compile
 	vsim -c -wlf vsim.wlf -do "run -all" -L xilinxcorelib_ver -L unisims_ver -lib work tb_top glbl
 
 clean:
@@ -25,20 +25,16 @@ dbg: work_setup prj_compile
 
 
 soft_build:
-	make -C $(HOS_DIR) -f gmake.mak
+	make -C $(HOS_DIR) -f gmake.mak MEMMAP=ram
 
 soft_clean:
-	make -C $(HOS_DIR) -f gmake.mak mostlyclean
+	make -C $(HOS_DIR) -f gmake.mak MEMMAP=ram mostlyclean
 
-soft.hex: $(HOS_DIR)/sample.bin
-	$(TOP_DIR)/soft/bin2hex.pl $(HOS_DIR)/sample.bin > soft.hex
-
-$(TOP_DIR)/soft/boot_rom.v: $(HOS_DIR)/sample.bin
-	$(TOP_DIR)/soft/bin2rom.pl $(HOS_DIR)/sample.bin > $(TOP_DIR)/soft/boot_rom.v
-	mips-elf-objdump -D $(HOS_DIR)/sample.elf > disasm.txt
+soft.hex: $(HOS_DIR)/sample_ram.bin
+	$(TOP_DIR)/soft/bin2hex.pl $(HOS_DIR)/sample_ram.bin > soft.hex
 
 disasm:
-	mips-elf-objdump -D $(HOS_DIR)/sample.elf > disasm.txt
+	mips-elf-objdump -D $(HOS_DIR)/sample_ram.elf > disasm.txt
 
 
 work_setup:
