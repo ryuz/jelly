@@ -172,138 +172,144 @@ module tb_top;
 	#(RATE*200);
 	
 				$display("--- START ---");
+
 	#(RATE*1000);
-		
-	//	while ( 1 ) begin
-				$display("--- NOP ---");
-				write_dbg_uart_rx_fifo(8'h00);		// nop
-			#(RATE*200);
-
-				$display("\n\n--- STATUS ---");
-				write_dbg_uart_rx_fifo(8'h01);		// status
-			#(RATE*200);
-
-				$display("\n\n--- DEBUG BREAK ---");
-				write_dbg_uart_rx_fifo(8'h02);		// write
-				write_dbg_uart_rx_fifo(8'hf0);		// dbgctl
-				write_dbg_uart_rx_fifo(8'h00);		// dat0
-				write_dbg_uart_rx_fifo(8'h00);		// dat1
-				write_dbg_uart_rx_fifo(8'h00);		// dat2
-				write_dbg_uart_rx_fifo(8'h01);		// dat3
-			#(RATE*200);
-
-				$display("\n\n--- DEBUG BREAK READ  ---");
-				write_dbg_uart_rx_fifo(8'h03);		// read
-				write_dbg_uart_rx_fifo(8'hf0);		// dbgctl
-			#(RATE*200);
-
-				$display("\n\n--- MEM WRITE  ---");
-				write_dbg_uart_rx_fifo(8'h04);		// read
-				write_dbg_uart_rx_fifo(8'h03);		// size
-				write_dbg_uart_rx_fifo(8'h00);		// adr0
-				write_dbg_uart_rx_fifo(8'h00);		// adr1
-				write_dbg_uart_rx_fifo(8'h00);		// adr2
-				write_dbg_uart_rx_fifo(8'h00);		// adr3
-				write_dbg_uart_rx_fifo(8'h00);		// dat0
-				write_dbg_uart_rx_fifo(8'h00);		// dat1
-				write_dbg_uart_rx_fifo(8'h00);		// dat2
-				write_dbg_uart_rx_fifo(8'h00);		// dat3
-			#(RATE*200);
-
-				$display("\n\n--- R8 READ  ---");
-				write_dbg_uart_rx_fifo(8'h02);		// write
-				write_dbg_uart_rx_fifo(8'hf2);		// dbgaddr
-				write_dbg_uart_rx_fifo(8'h00);		// dat0
-				write_dbg_uart_rx_fifo(8'h00);		// dat1
-				write_dbg_uart_rx_fifo(8'h00);		// dat2
-				write_dbg_uart_rx_fifo(8'ha0);		// dat3
-			#(RATE*200);
-				write_dbg_uart_rx_fifo(8'h03);		// read
-				write_dbg_uart_rx_fifo(8'hf4);		// reg_data
-			#(RATE*200);
-
-				$display("\n\n--- R9 READ  ---");
-				write_dbg_uart_rx_fifo(8'h02);		// write
-				write_dbg_uart_rx_fifo(8'hf2);		// dbgaddr
-				write_dbg_uart_rx_fifo(8'h00);		// dat0
-				write_dbg_uart_rx_fifo(8'h00);		// dat1
-				write_dbg_uart_rx_fifo(8'h00);		// dat2
-				write_dbg_uart_rx_fifo(8'ha4);		// dat3
-			#(RATE*200);
-				write_dbg_uart_rx_fifo(8'h03);		// read
-				write_dbg_uart_rx_fifo(8'hf4);		// reg_data
-			#(RATE*200);
-
-				$display("\n\n--- HI  ---");
-				write_dbg_uart_rx_fifo(8'h02);		// write
-				write_dbg_uart_rx_fifo(8'hf2);		// dbgaddr
-				write_dbg_uart_rx_fifo(8'h00);		// dat0
-				write_dbg_uart_rx_fifo(8'h00);		// dat1
-				write_dbg_uart_rx_fifo(8'h00);		// dat2
-				write_dbg_uart_rx_fifo(8'h40);		// dat3
-			#(RATE*200);
-				write_dbg_uart_rx_fifo(8'h03);		// read
-				write_dbg_uart_rx_fifo(8'hf4);		// reg_data
-			#(RATE*200);
-
-	/*
-				$display("\n\n--- MEM READ ---");
-				write_dbg_uart_rx_fifo(8'h05);		// mem read
-				write_dbg_uart_rx_fifo(8'h10);		// size
-				write_dbg_uart_rx_fifo(8'h01);		// adr0
-				write_dbg_uart_rx_fifo(8'h00);		// adr1
-				write_dbg_uart_rx_fifo(8'h00);		// adr2
-				write_dbg_uart_rx_fifo(8'h00);		// adr3
-			#(RATE*1000);
-	*/
-
-
-				$display("\n\n--- COP_DEPC SET ---");
-				write_dbg_uart_rx_fifo(8'h02);		// write
-				write_dbg_uart_rx_fifo(8'hf2);		// dbgaddr
-				write_dbg_uart_rx_fifo(8'h00);		// dat0
-				write_dbg_uart_rx_fifo(8'h00);		// dat1
-				write_dbg_uart_rx_fifo(8'h01);		// dat2
-				write_dbg_uart_rx_fifo(8'h60);		// dat3
-			#(RATE*200);
-				write_dbg_uart_rx_fifo(8'h02);		// write
-				write_dbg_uart_rx_fifo(8'hf4);		// reg_data
-				write_dbg_uart_rx_fifo(8'h00);		// dat0
-				write_dbg_uart_rx_fifo(8'h00);		// dat1
-				write_dbg_uart_rx_fifo(8'h00);		// dat2
-				write_dbg_uart_rx_fifo(8'h00);		// dat3
-			#(RATE*200);
-	
-				$display("\n\n--- COP_STATUS SET ---");
-				write_dbg_uart_rx_fifo(8'h02);		// write
-				write_dbg_uart_rx_fifo(8'hf2);		// dbgaddr
-				write_dbg_uart_rx_fifo(8'h00);		// dat0
-				write_dbg_uart_rx_fifo(8'h00);		// dat1
-				write_dbg_uart_rx_fifo(8'h01);		// dat2
-				write_dbg_uart_rx_fifo(8'h30);		// dat3
-			#(RATE*200);
-				write_dbg_uart_rx_fifo(8'h02);		// write
-				write_dbg_uart_rx_fifo(8'hf4);		// reg_data
-				write_dbg_uart_rx_fifo(8'h00);		// dat0
-				write_dbg_uart_rx_fifo(8'h00);		// dat1
-				write_dbg_uart_rx_fifo(8'h00);		// dat2
-				write_dbg_uart_rx_fifo(8'h00);		// dat3
-			#(RATE*200);
-	
-
-				$display("\n\n--- RESTART ---");
-				write_dbg_uart_rx_fifo(8'h02);		// write
-				write_dbg_uart_rx_fifo(8'hf0);		// dbgctl
-				write_dbg_uart_rx_fifo(8'h00);		// dat0
-				write_dbg_uart_rx_fifo(8'h00);		// dat1
-				write_dbg_uart_rx_fifo(8'h00);		// dat2
-				write_dbg_uart_rx_fifo(8'h00);		// dat3
-			#(RATE*100);
 
 			#(RATE*1234);
 	//	end
 
 	end
+
+
+
+	task dbg_restart;
+	begin
+		$display("--- NOP ---");
+		write_dbg_uart_rx_fifo(8'h00);		// nop
+	#(RATE*200);
+
+		$display("\n\n--- STATUS ---");
+		write_dbg_uart_rx_fifo(8'h01);		// status
+	#(RATE*200);
+
+		$display("\n\n--- DEBUG BREAK ---");
+		write_dbg_uart_rx_fifo(8'h02);		// write
+		write_dbg_uart_rx_fifo(8'hf0);		// dbgctl
+		write_dbg_uart_rx_fifo(8'h00);		// dat0
+		write_dbg_uart_rx_fifo(8'h00);		// dat1
+		write_dbg_uart_rx_fifo(8'h00);		// dat2
+		write_dbg_uart_rx_fifo(8'h01);		// dat3
+	#(RATE*200);
+
+		$display("\n\n--- DEBUG BREAK READ  ---");
+		write_dbg_uart_rx_fifo(8'h03);		// read
+		write_dbg_uart_rx_fifo(8'hf0);		// dbgctl
+	#(RATE*200);
+
+		$display("\n\n--- MEM WRITE  ---");
+		write_dbg_uart_rx_fifo(8'h04);		// read
+		write_dbg_uart_rx_fifo(8'h03);		// size
+		write_dbg_uart_rx_fifo(8'h00);		// adr0
+		write_dbg_uart_rx_fifo(8'h00);		// adr1
+		write_dbg_uart_rx_fifo(8'h00);		// adr2
+		write_dbg_uart_rx_fifo(8'h00);		// adr3
+		write_dbg_uart_rx_fifo(8'h00);		// dat0
+		write_dbg_uart_rx_fifo(8'h00);		// dat1
+		write_dbg_uart_rx_fifo(8'h00);		// dat2
+		write_dbg_uart_rx_fifo(8'h00);		// dat3
+	#(RATE*200);
+
+		$display("\n\n--- R8 READ  ---");
+		write_dbg_uart_rx_fifo(8'h02);		// write
+		write_dbg_uart_rx_fifo(8'hf2);		// dbgaddr
+		write_dbg_uart_rx_fifo(8'h00);		// dat0
+		write_dbg_uart_rx_fifo(8'h00);		// dat1
+		write_dbg_uart_rx_fifo(8'h00);		// dat2
+		write_dbg_uart_rx_fifo(8'ha0);		// dat3
+	#(RATE*200);
+		write_dbg_uart_rx_fifo(8'h03);		// read
+		write_dbg_uart_rx_fifo(8'hf4);		// reg_data
+	#(RATE*200);
+
+		$display("\n\n--- R9 READ  ---");
+		write_dbg_uart_rx_fifo(8'h02);		// write
+		write_dbg_uart_rx_fifo(8'hf2);		// dbgaddr
+		write_dbg_uart_rx_fifo(8'h00);		// dat0
+		write_dbg_uart_rx_fifo(8'h00);		// dat1
+		write_dbg_uart_rx_fifo(8'h00);		// dat2
+		write_dbg_uart_rx_fifo(8'ha4);		// dat3
+	#(RATE*200);
+		write_dbg_uart_rx_fifo(8'h03);		// read
+		write_dbg_uart_rx_fifo(8'hf4);		// reg_data
+	#(RATE*200);
+
+		$display("\n\n--- HI  ---");
+		write_dbg_uart_rx_fifo(8'h02);		// write
+		write_dbg_uart_rx_fifo(8'hf2);		// dbgaddr
+		write_dbg_uart_rx_fifo(8'h00);		// dat0
+		write_dbg_uart_rx_fifo(8'h00);		// dat1
+		write_dbg_uart_rx_fifo(8'h00);		// dat2
+		write_dbg_uart_rx_fifo(8'h40);		// dat3
+	#(RATE*200);
+		write_dbg_uart_rx_fifo(8'h03);		// read
+		write_dbg_uart_rx_fifo(8'hf4);		// reg_data
+	#(RATE*200);
+
+
+		$display("\n\n--- MEM READ ---");
+		write_dbg_uart_rx_fifo(8'h05);		// mem read
+		write_dbg_uart_rx_fifo(8'h10);		// size
+		write_dbg_uart_rx_fifo(8'h01);		// adr0
+		write_dbg_uart_rx_fifo(8'h00);		// adr1
+		write_dbg_uart_rx_fifo(8'h00);		// adr2
+		write_dbg_uart_rx_fifo(8'h00);		// adr3
+	#(RATE*1000);
+
+
+
+		$display("\n\n--- COP_DEPC SET ---");
+		write_dbg_uart_rx_fifo(8'h02);		// write
+		write_dbg_uart_rx_fifo(8'hf2);		// dbgaddr
+		write_dbg_uart_rx_fifo(8'h00);		// dat0
+		write_dbg_uart_rx_fifo(8'h00);		// dat1
+		write_dbg_uart_rx_fifo(8'h01);		// dat2
+		write_dbg_uart_rx_fifo(8'h60);		// dat3
+	#(RATE*200);
+		write_dbg_uart_rx_fifo(8'h02);		// write
+		write_dbg_uart_rx_fifo(8'hf4);		// reg_data
+		write_dbg_uart_rx_fifo(8'h00);		// dat0
+		write_dbg_uart_rx_fifo(8'h00);		// dat1
+		write_dbg_uart_rx_fifo(8'h00);		// dat2
+		write_dbg_uart_rx_fifo(8'h00);		// dat3
+	#(RATE*200);
+
+		$display("\n\n--- COP_STATUS SET ---");
+		write_dbg_uart_rx_fifo(8'h02);		// write
+		write_dbg_uart_rx_fifo(8'hf2);		// dbgaddr
+		write_dbg_uart_rx_fifo(8'h00);		// dat0
+		write_dbg_uart_rx_fifo(8'h00);		// dat1
+		write_dbg_uart_rx_fifo(8'h01);		// dat2
+		write_dbg_uart_rx_fifo(8'h30);		// dat3
+	#(RATE*200);
+		write_dbg_uart_rx_fifo(8'h02);		// write
+		write_dbg_uart_rx_fifo(8'hf4);		// reg_data
+		write_dbg_uart_rx_fifo(8'h00);		// dat0
+		write_dbg_uart_rx_fifo(8'h00);		// dat1
+		write_dbg_uart_rx_fifo(8'h00);		// dat2
+		write_dbg_uart_rx_fifo(8'h00);		// dat3
+	#(RATE*200);
+
+
+		$display("\n\n--- RESTART ---");
+		write_dbg_uart_rx_fifo(8'h02);		// write
+		write_dbg_uart_rx_fifo(8'hf0);		// dbgctl
+		write_dbg_uart_rx_fifo(8'h00);		// dat0
+		write_dbg_uart_rx_fifo(8'h00);		// dat1
+		write_dbg_uart_rx_fifo(8'h00);		// dat2
+		write_dbg_uart_rx_fifo(8'h00);		// dat3
+	#(RATE*100);
+	end
+	endtask;
 	
 	
 endmodule

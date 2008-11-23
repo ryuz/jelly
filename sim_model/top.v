@@ -1,8 +1,7 @@
 // ----------------------------------------------------------------------------
-//  Jelly -- The computing system for Spartan-3 Starter Kit
+//  Jelly -- The computing system for FPGA
 //
 //                                       Copyright (C) 2008 by Ryuji Fuchikami 
-//                                       http://homepage3.nifty.com/ryuz
 // ----------------------------------------------------------------------------
 
 
@@ -15,14 +14,8 @@ module top
 			clk_in, reset_in,
 			
 			uart0_tx, uart0_rx,
-			uart1_tx, uart1_rx,
-
-			ddr_sdram_ck_p, ddr_sdram_ck_n, ddr_sdram_cke, ddr_sdram_cs, ddr_sdram_ras, ddr_sdram_cas, ddr_sdram_we,
-			ddr_sdram_ba, ddr_sdram_a, ddr_sdram_udm, ddr_sdram_ldm, ddr_sdram_udqs, ddr_sdram_ldqs, ddr_sdram_dq, ddr_sdram_ck_fb,
-
-			led, sw
+			uart1_tx, uart1_rx
 		);
-	parameter	SIMULATION      = 1'b0;
 	
 	// system
 	input				clk_in;
@@ -35,33 +28,11 @@ module top
 	output				uart1_tx;
     input				uart1_rx;
 	
-	// DDR-SDRAM
-	output				ddr_sdram_ck_p;
-	output				ddr_sdram_ck_n;
-	output				ddr_sdram_cke;
-	output				ddr_sdram_cs;
-	output				ddr_sdram_ras;
-	output				ddr_sdram_cas;
-	output				ddr_sdram_we;
-	output	[1:0]		ddr_sdram_ba;
-	output	[12:0]		ddr_sdram_a;
-	inout	[15:0]		ddr_sdram_dq;
-	output				ddr_sdram_udm;
-	output				ddr_sdram_ldm;
-	inout				ddr_sdram_udqs;
-	inout				ddr_sdram_ldqs;
-	input				ddr_sdram_ck_fb;
 	
-	// UI
-	output	[7:0]		led;
-	input	[3:0]		sw;
-
 	
-
-	
-	// -----------------------------
+	// -------------------------
 	//  system
-	// -----------------------------
+	// -------------------------
 	
 	// endian
 	wire				endian;
@@ -70,50 +41,33 @@ module top
 	
 	// clock
 	wire				clk;
-	wire				clk_x2;
 	wire				clk_uart;
-	wire				clk_sdram;
-	wire				clk90_sdram;
-	wire				locked;
-	clkgen
-		i_clkgen
-			(
-				.in_reset			(reset_in), 
-				.in_clk				(clk_in), 
-			
-				.out_clk			(clk),
-				.out_clk_x2			(clk_x2),
-				
-				.out_clk_uart		(clk_uart),
-				
-				.out_clk_sdram		(clk_sdram),
-				.out_clk90_sdram	(clk90_sdram),
-				
-				.locked				(locked)
-		);
+	assign clk      = clk_in;
+	assign clk_uart = clk;
 	
 	// reset
 	wire				reset;
-	assign reset = reset_in | ~locked;
+	assign reset = reset_in;
 	
 
 
-	// UART switch
+	// UART assign
 	wire				uart_tx;
 	wire				uart_rx;
 	wire				dbg_uart_tx;
 	wire				dbg_uart_rx;
 	
-	assign uart0_tx    = ~sw[0] ? uart_tx  : dbg_uart_tx;
-	assign uart1_tx    =  sw[0] ? uart_tx  : dbg_uart_tx;
-	assign uart_rx     = ~sw[0] ? uart0_rx : uart1_rx;
-	assign dbg_uart_rx = ~sw[0] ? uart1_rx : uart0_rx;
+	assign uart0_tx    = uart_tx;
+	assign uart_rx     = uart0_rx;
+
+	assign uart1_tx    = dbg_uart_tx;
+	assign dbg_uart_rx = uart1_rx;
 	
 	
 	
-	// -----------------------------
+	// -------------------------
 	//  cpu
-	// -----------------------------
+	// -------------------------
 	
 	// interrupt
 	wire			cpu_irq;
@@ -155,14 +109,14 @@ module top
 				.USE_EXC_SYSCALL	(1'b1),
 				.USE_EXC_BREAK		(1'b1),
 				.USE_EXC_RI			(1'b1),
-				.GPR_TYPE			(1)
+				.GPR_TYPE			(2)
 			)
 		i_cpu_top
 			(
 				.reset				(reset),
 				.clk				(clk),
-				.clk_x2				(clk_x2),
-
+				.clk_x2				(1'b0),
+				
 				.endian				(endian),
 				
 				.vect_reset			(32'h0000_0000),
@@ -191,6 +145,7 @@ module top
 				.pause				(1'b0)
 			);
 	
+	
 	// Debug Interface (UART)
 	wire	dbg_uart_clk;
 	jelly_dbg_uart
@@ -214,130 +169,27 @@ module top
 			);
 	
 	
-	// -----------------------------
-	//  boot rom
-	// -----------------------------
+	// -------------------------
+	//  memory
+	// -------------------------
 	
-	reg					rom_wb_stb_i;
-	wire	[31:0]		rom_wb_dat_o;
-	wire				rom_wb_ack_o;
-	boot_rom
-		i_boot_rom
-			(
-				.clk				(~clk),
-				.addr				(wb_cpu_adr_o[13:2]),
-				.data				(rom_wb_dat_o)
-			);
-	assign rom_wb_ack_o = 1'b1;
-	
-
-	
-	// -----------------------------
-	//  internal sram
-	// -----------------------------
-
-	reg					sram_wb_stb_i;
-	wire	[31:0]		sram_wb_dat_o;
-	wire				sram_wb_ack_o;
-	
-	jelly_sram
-			#(
-				.WB_ADR_WIDTH	(12),
-				.WB_DAT_WIDTH	(32)
-			)
-		i_sram
-			(
-				.reset			(reset),
-				.clk			(clk),
-				
-				.wb_adr_i		(wb_cpu_adr_o[13:2]),
-				.wb_dat_o		(sram_wb_dat_o),
-				.wb_dat_i		(wb_cpu_dat_o),
-				.wb_we_i		(wb_cpu_we_o),
-				.wb_sel_i		(wb_cpu_sel_o),
-				.wb_stb_i		(sram_wb_stb_i),
-				.wb_ack_o		(sram_wb_ack_o)
-		);
-	
-	
-	
-	// -----------------------------
-	//  DDR-SDRAM (MT46V32M16TG-6T)
-	// -----------------------------
-
-	reg				dram_wb_stb_i;
-	wire	[31:0]	dram_wb_dat_o;
-	wire			dram_wb_ack_o;
-
-	wire	[25:2]	wb_dram_adr_o;
-	wire	[31:0]	wb_dram_dat_i;
-	wire	[31:0]	wb_dram_dat_o;
-	wire			wb_dram_we_o;
-	wire	[3:0]	wb_dram_sel_o;
-	wire			wb_dram_stb_o;
-	wire			wb_dram_ack_i;
-	
-	wishbone_clk2x
-			#(
-				.WB_ADR_WIDTH		(24),
-				.WB_DAT_WIDTH		(32)
-			)
-		i_wishbone_clk2x
+	reg					ram_wb_stb_i;
+	wire	[31:0]		ram_wb_dat_o;
+	wire				ram_wb_ack_o;
+	ram_model
+		i_ram_model
 			(
 				.reset				(reset),
 				.clk				(clk),
-				.clk2x				(clk_sdram),
-				
-				.wb_adr_i			(wb_cpu_adr_o[25:2]),
-				.wb_dat_o			(dram_wb_dat_o),
+
+				.wb_adr_i			(wb_cpu_adr_o[20:2]),
+				.wb_dat_o			(ram_wb_dat_o),
 				.wb_dat_i			(wb_cpu_dat_o),
 				.wb_we_i			(wb_cpu_we_o),
 				.wb_sel_i			(wb_cpu_sel_o),
-				.wb_stb_i			(dram_wb_stb_i),
-				.wb_ack_o			(dram_wb_ack_o),
-
-				.wb_2x_adr_o		(wb_dram_adr_o),
-				.wb_2x_dat_o		(wb_dram_dat_o),
-				.wb_2x_dat_i		(wb_dram_dat_i),
-				.wb_2x_we_o			(wb_dram_we_o),
-				.wb_2x_sel_o		(wb_dram_sel_o),
-				.wb_2x_stb_o		(wb_dram_stb_o),
-				.wb_2x_ack_i		(wb_dram_ack_i)
+				.wb_stb_i			(wb_cpu_stb_o),
+				.wb_ack_o			(ram_wb_ack_o)
 			);
-
-	ddr_sdram
-			#(
-				.SIMULATION			(SIMULATION)
-			)
-		i_ddr_sdram
-			(
-				.reset				(reset),
-				.clk				(clk_sdram),
-				.clk90				(clk90_sdram),
-				.endian				(endian),
-				
-				.wb_adr_i			(wb_dram_adr_o),
-				.wb_dat_o			(wb_dram_dat_i),
-				.wb_dat_i			(wb_dram_dat_o),
-				.wb_we_i			(wb_dram_we_o),
-				.wb_sel_i			(wb_dram_sel_o),
-				.wb_stb_i			(wb_dram_stb_o),
-				.wb_ack_o			(wb_dram_ack_i),
-				
-				.ddr_sdram_ck_p		(ddr_sdram_ck_p),
-				.ddr_sdram_ck_n		(ddr_sdram_ck_n),
-				.ddr_sdram_cke		(ddr_sdram_cke),
-				.ddr_sdram_cs		(ddr_sdram_cs),
-				.ddr_sdram_ras		(ddr_sdram_ras),
-				.ddr_sdram_cas		(ddr_sdram_cas),
-				.ddr_sdram_we		(ddr_sdram_we),
-				.ddr_sdram_ba		(ddr_sdram_ba),
-				.ddr_sdram_a		(ddr_sdram_a),
-				.ddr_sdram_dm		({ddr_sdram_udm, ddr_sdram_ldm}),
-				.ddr_sdram_dq		(ddr_sdram_dq),
-				.ddr_sdram_dqs		({ddr_sdram_udqs, ddr_sdram_ldqs})
-			);
-	
 	
 	
 	// -------------------------
@@ -382,40 +234,15 @@ module top
 	// -------------------------
 	
 	always @* begin
-		rom_wb_stb_i  = 1'b0;
-		sram_wb_stb_i = 1'b0;
-		dram_wb_stb_i = 1'b0;
+		ram_wb_stb_i  = 1'b0;
 		peri_wb_stb_i = 1'b0;
 		
 		casex ( {wb_cpu_adr_o[31:2], 2'b00} )
-		32'h00xx_xxxx:
+		32'h0xxx_xxxx:	// ram
 			begin
-				if ( sw[1] ) begin 
-					// boot rom
-					rom_wb_stb_i = wb_cpu_stb_o;
-					wb_cpu_dat_i = rom_wb_dat_o;
-					wb_cpu_ack_i = rom_wb_ack_o;
-				end
-				else begin
-					// dram
-					dram_wb_stb_i = wb_cpu_stb_o;
-					wb_cpu_dat_i = dram_wb_dat_o;
-					wb_cpu_ack_i = dram_wb_ack_o;
-				end
-			end
-		
-		32'h01xx_xxxx:	// dram
-			begin
-				dram_wb_stb_i = wb_cpu_stb_o;
-				wb_cpu_dat_i = dram_wb_dat_o;
-				wb_cpu_ack_i = dram_wb_ack_o;
-			end
-
-		32'h02xx_xxxx:	// sram
-			begin
-				sram_wb_stb_i = wb_cpu_stb_o;
-				wb_cpu_dat_i = sram_wb_dat_o;
-				wb_cpu_ack_i = sram_wb_ack_o;
+				ram_wb_stb_i = wb_cpu_stb_o;
+				wb_cpu_dat_i = ram_wb_dat_o;
+				wb_cpu_ack_i = ram_wb_ack_o;
 			end
 
 		32'hfxxx_xxxx:	// peri
@@ -521,8 +348,8 @@ module top
 
 	jelly_uart
 			#(
-				.TX_FIFO_PTR_WIDTH	(2),
-				.RX_FIFO_PTR_WIDTH	(2)
+				.TX_FIFO_PTR_WIDTH	(9),
+				.RX_FIFO_PTR_WIDTH	(9)
 			)
 		i_uart0
 			(
@@ -586,22 +413,6 @@ module top
 		endcase
 	end
 	
-	
-	
-	// -------------------------
-	//  LED
-	// -------------------------
-	
-	reg		[23:0]		led_counter;
-	always @ ( posedge clk or posedge reset ) begin
-		if ( reset ) begin
-			led_counter <= 0;
-		end
-		else begin
-			led_counter <= led_counter + 1;
-		end
-	end
-	assign led[7:0] = led_counter[23:16];
 	
 endmodule
 
