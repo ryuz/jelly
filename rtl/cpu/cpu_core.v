@@ -935,7 +935,7 @@ module cpu_core
 	
 	// interrupt
 	assign ex_interrupt  = (interrupt_req & ex_cop0_out_status[0])
-								& ~(interlock | ex_stall | ex_dbg_break | id_out_exc_break | id_out_exc_syscall | id_out_exc_ri);
+								& ~(interlock | ex_stall | ex_dbg_break | id_out_exc_break | id_out_exc_syscall | id_out_exc_ri | dbg_cop0_debug[24]);
 	assign interrupt_ack = ex_interrupt;
 	
 	// exception
@@ -977,9 +977,9 @@ module cpu_core
 		else begin
 			if ( !interlock ) begin
 				// control
-				ex_out_stall        <= ex_stall | ex_exception;
-				ex_out_instruction  <= id_out_instruction;
-				ex_out_pc           <= id_out_pc;
+				ex_out_stall       <= ex_stall | ex_exception;
+				ex_out_instruction <= id_out_instruction;
+				ex_out_pc          <= id_out_pc;
 				
 				// MEM
 				if ( id_out_mem_en ) begin
