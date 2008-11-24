@@ -108,32 +108,85 @@ module tb_top;
 	
 	initial begin
 				$display("--- START ---");
-	#(RATE*19990);
+//	#(RATE*19990);
 //	#(RATE*10000);
+
+	#(RATE*100);
+		dbg_break();
+		dbg_write_dbgreg(2, 348);
+		dbg_write_dbgreg(4, 32'h0100_0000);
 		
-	//	while ( 1 ) begin
-				$display("--- NOP ---");
-				write_dbg_uart_rx_fifo(8'h00);		// nop
-			#(RATE*200);
+		while ( 1 ) begin
+		#(RATE*200);
+			dbg_write_dbgreg(0, 32'h0000_0000);
+		#(RATE*200);
+		end
 
-				$display("\n\n--- STATUS ---");
-				write_dbg_uart_rx_fifo(8'h01);		// status
-			#(RATE*200);
+	end
 
-				$display("\n\n--- DEBUG BREAK ---");
-				write_dbg_uart_rx_fifo(8'h02);		// write
-				write_dbg_uart_rx_fifo(8'hf0);		// dbgctl
-				write_dbg_uart_rx_fifo(8'h00);		// dat0
-				write_dbg_uart_rx_fifo(8'h00);		// dat1
-				write_dbg_uart_rx_fifo(8'h00);		// dat2
-				write_dbg_uart_rx_fifo(8'h01);		// dat3
-			#(RATE*200);
 
-				$display("\n\n--- DEBUG BREAK READ  ---");
-				write_dbg_uart_rx_fifo(8'h03);		// read
-				write_dbg_uart_rx_fifo(8'hf0);		// dbgctl
-			#(RATE*200);
+	task dbg_connect;
+	begin
+		$display("--- NOP ---");
+		write_dbg_uart_rx_fifo(8'h00);		// nop
+		#(RATE*200);
 
+		$display("\n\n--- STATUS ---");
+		write_dbg_uart_rx_fifo(8'h01);		// status
+		#(RATE*200);
+		
+	end
+	endtask
+	
+	
+	task dbg_break;
+	begin
+		$display("\n\n--- DEBUG BREAK ---");
+			write_dbg_uart_rx_fifo(8'h02);		// write
+			write_dbg_uart_rx_fifo(8'hf0);		// dbgctl
+			write_dbg_uart_rx_fifo(8'h00);		// dat0
+			write_dbg_uart_rx_fifo(8'h00);		// dat1
+			write_dbg_uart_rx_fifo(8'h00);		// dat2
+			write_dbg_uart_rx_fifo(8'h01);		// dat3
+		#(RATE*200);
+
+		$display("\n\n--- DEBUG BREAK READ  ---");
+			write_dbg_uart_rx_fifo(8'h03);		// read
+			write_dbg_uart_rx_fifo(8'hf0);		// dbgctl
+		#(RATE*200);
+	end
+	endtask
+	
+	
+	task dbg_write_dbgreg;
+	input	[3:0]	addr;
+	input	[31:0]	data;
+	begin
+		$display("\n\n--- Write DEB_REG (%h <- %h)", addr, data);
+			write_dbg_uart_rx_fifo(8'h02);			// write
+			write_dbg_uart_rx_fifo({4'hf, addr});	// dbgctl
+			write_dbg_uart_rx_fifo(data[31:24]);	// dat0
+			write_dbg_uart_rx_fifo(data[23:16]);	// dat1
+			write_dbg_uart_rx_fifo(data[15:8]);		// dat2
+			write_dbg_uart_rx_fifo(data[7:0]);		// dat3
+		#(RATE*200);
+	end
+	endtask
+	
+	
+	task dbg_read_dbgreg;
+	input	[3:0]	addr;
+	begin
+		$display("\n\n--- Read DEB_REG (%h)", addr);
+			write_dbg_uart_rx_fifo(8'h04);			// write
+			write_dbg_uart_rx_fifo({4'hf, addr});	// dbgctl
+		#(RATE*200);
+	end
+	endtask
+
+
+	task dbg_test;
+	begin
 				$display("\n\n--- MEM WRITE  ---");
 				write_dbg_uart_rx_fifo(8'h04);		// read
 				write_dbg_uart_rx_fifo(8'h03);		// size
@@ -238,9 +291,8 @@ module tb_top;
 			#(RATE*100);
 
 			#(RATE*1234);
-	//	end
-
 	end
+	endtask
 	
 	
 endmodule

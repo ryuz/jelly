@@ -27,6 +27,7 @@ module cpu_core
 	parameter	USE_EXC_SYSCALL = 1'b1;
 	parameter	USE_EXC_BREAK   = 1'b1;
 	parameter	USE_EXC_RI      = 1'b1;
+	parameter	USE_HW_BP       = 1'b1;
 	parameter	GPR_TYPE        = 0;
 	
 	// system
@@ -125,6 +126,15 @@ module cpu_core
 	wire	[31:0]	dbg_cop0_rdata;
 	
 	
+	// hardware breakpoint
+	wire	[31:0]	dbg_cop0_debug;
+	wire	[31:0]	dbg_cop0_depc;
+
+	wire	[31:0]	dbg_cop0_debp0;
+	wire	[31:0]	dbg_cop0_debp1;
+	wire	[31:0]	dbg_cop0_debp2;
+	wire	[31:0]	dbg_cop0_debp3;
+	
 	
 	
 	// -----------------------------
@@ -163,7 +173,7 @@ module cpu_core
 		end
 		else begin
 			if ( dbg_enable ) begin
-				if_pc <= if_in_depc;
+				if_pc <= dbg_cop0_depc;
 			end
 			else if ( !interlock ) begin
 				if_pc <= if_in_branch_en ? if_in_branch_pc : (if_pc + 4);
@@ -302,6 +312,7 @@ module cpu_core
 	reg				id_out_exc_ri;
 
 	reg				id_out_dbg_sdbbp;
+	reg				id_out_dbg_break;
 	
 	reg				id_out_mem_en;
 	reg				id_out_mem_we;
@@ -317,7 +328,8 @@ module cpu_core
 	reg				id_out_dst_src_hi;
 	reg				id_out_dst_src_lo;
 	reg				id_out_dst_src_cop0;
-
+	
+	
 	// stall
 	wire			id_stall;
 	assign id_stall = if_out_stall | id_in_stall;
@@ -562,7 +574,8 @@ module cpu_core
 			id_out_exc_ri          <= 1'b0;
 
 			id_out_dbg_sdbbp       <= 1'b0;
-
+			id_out_dbg_break       <= 1'b0;
+			
 			id_out_mem_en          <= 1'b0;
 			id_out_mem_we          <= 1'bx;
 			id_out_mem_size        <= {2{1'bx}};
@@ -627,6 +640,13 @@ module cpu_core
 				id_out_exc_ri          <= id_dec_exc_ri;
 				
 				id_out_dbg_sdbbp       <= id_dec_dbg_sdbbp;
+				id_out_dbg_break       <= USE_HW_BP &
+											(
+												(dbg_cop0_debug[0] & (dbg_cop0_debp0 == if_out_pc)) |
+												(dbg_cop0_debug[1] & (dbg_cop0_debp1 == if_out_pc)) |
+												(dbg_cop0_debug[2] & (dbg_cop0_debp2 == if_out_pc)) |
+												(dbg_cop0_debug[3] & (dbg_cop0_debp3 == if_out_pc))
+											);
 				
 				id_out_mem_en          <= id_dec_mem_en  & ~id_stall;
 				id_out_mem_we          <= id_dec_mem_we;
@@ -819,8 +839,7 @@ module cpu_core
 	wire	[31:0]	ex_cop0_in_debug;
 	wire	[31:0]	ex_cop0_in_depc;
 	
-	wire	[31:0]	ex_cop0_out_status;	
-	wire	[31:0]	ex_cop0_out_depc;
+	wire	[31:0]	ex_cop0_out_status;
 	
 	cpu_cop0
 		i_cpu_cop0
@@ -848,15 +867,22 @@ module cpu_core
 				.out_status		(ex_cop0_out_status),
 				.out_cause		(),
 				.out_epc		(),
-				.out_debug		(),
-				.out_depc		(ex_cop0_out_depc)
+				.out_debug		(dbg_cop0_debug),
+				.out_depc		(dbg_cop0_depc),
+				
+				.out_debp0		(dbg_cop0_debp0),
+				.out_debp1		(dbg_cop0_debp1),
+				.out_debp2		(dbg_cop0_debp2),
+				.out_debp3		(dbg_cop0_debp3)
 			);
+	
 	
 	// register access (debugger hook)
 	assign ex_cop0_in_en   = dbg_enable ? (dbg_cop0_en & dbg_cop0_we) : (id_out_cop0_mtc0 & ~ex_stall & ~ex_exception);
 	assign ex_cop0_in_addr = dbg_enable ? dbg_cop0_addr               : id_out_rd_addr;
 	assign ex_cop0_in_data = dbg_enable ? dbg_cop0_wdata              : ex_fwd_rt_data;
 	assign dbg_cop0_rdata  = ex_cop0_out_data;
+	
 	
 	// event
 	assign ex_cop0_exception = ex_exception;
@@ -882,12 +908,29 @@ module cpu_core
 	// depc
 	assign ex_cop0_in_depc = ex_cop0_in_epc;
 	
-	// depc feedback
-	assign if_in_depc = ex_cop0_out_depc;
-	
+
+
+	// step execution
+	reg		[1:0]	dbg_dbbp_mask;
+	always @( posedge clk or posedge reset ) begin
+		if ( reset ) begin
+			dbg_dbbp_mask <= 2'b00;
+		end
+		else begin
+			if ( dbg_enable ) begin
+				dbg_dbbp_mask[0] <= 1'b1;
+				dbg_dbbp_mask[1] <= dbg_cop0_debug[31];
+			end
+			else begin
+				if ( !(ex_stall | ex_exception) ) begin
+					dbg_dbbp_mask <= {1'b0, dbg_dbbp_mask[1]};
+				end
+			end
+		end
+	end
 	
 	// debugger break;
-	assign ex_dbg_break = ((dbg_break_req & ~dbg_enable) | id_out_dbg_sdbbp) & ~(interlock | ex_stall);
+	assign ex_dbg_break = ((dbg_break_req & ~dbg_enable) | id_out_dbg_sdbbp | id_out_dbg_break | dbg_cop0_debug[24]) & ~(dbg_dbbp_mask[0] | interlock | ex_stall);
 	assign dbg_break    = ex_dbg_break;
 	
 	// interrupt

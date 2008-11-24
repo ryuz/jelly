@@ -11,7 +11,7 @@ HOS_DIR  = ~/hos-v4a/sample/mips/jelly/gcc
 VLOG_FLAGS =
 
 
-all: soft_build $(TOP_DIR)/soft/boot_rom.v work_setup prj_compile
+all: soft_build disasm $(TOP_DIR)/soft/boot_rom.v work_setup prj_compile
 	vsim -c -wlf vsim.wlf -do "run -all" -L xilinxcorelib_ver -L unisims_ver -lib work tb_top glbl
 
 clean:
@@ -32,6 +32,8 @@ soft_clean:
 
 $(TOP_DIR)/soft/boot_rom.v: $(HOS_DIR)/sample.bin
 	$(TOP_DIR)/soft/bin2rom.pl $(HOS_DIR)/sample.bin > $(TOP_DIR)/soft/boot_rom.v
+
+disasm:
 	mips-elf-objdump -D $(HOS_DIR)/sample.elf > disasm.txt
 
 

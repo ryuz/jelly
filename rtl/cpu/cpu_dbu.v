@@ -157,19 +157,19 @@ module cpu_dbu
 			dbg_break_req <= 1'b0;
 		end
 		else begin
-			// dbg_break_req
-			if ( wb_stb_i & wb_we_i & wb_sel_i[0] & (wb_adr_i == `DBG_ADR_DBG_CTL) ) begin
-				dbg_break_req <= wb_dat_i[0];
-			end
-
 			// dbg_enable
 			if ( dbg_break ) begin
 				dbg_enable <= 1'b1;
 			end
 			else begin
 				if ( wb_stb_i & wb_we_i & wb_sel_i[0] & (wb_adr_i == `DBG_ADR_DBG_CTL) ) begin
-					if ( wb_sel_i[0] ) dbg_enable <= dbg_enable & wb_dat_i[1];
+					if ( wb_sel_i[0] ) dbg_enable <= dbg_enable & wb_dat_i[0];
 				end
+			end
+
+			// dbg_break_req
+			if ( wb_stb_i & wb_we_i & wb_sel_i[0] & (wb_adr_i == `DBG_ADR_DBG_CTL) ) begin
+				dbg_break_req <= wb_dat_i[1];
 			end
 		end
 	end
@@ -235,7 +235,7 @@ module cpu_dbu
 		casex ( wb_adr_i )
 		`DBG_ADR_DBG_CTL:	// DBG_CTL
 			begin
-				wb_dat_o = {{30{1'b0}}, dbg_enable, dbg_break_req};
+				wb_dat_o = {{30{1'b0}}, dbg_break_req, dbg_enable};
 				wb_ack_o = 1'b1;
 			end
 

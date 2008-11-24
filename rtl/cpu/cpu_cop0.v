@@ -122,8 +122,9 @@ module cpu_cop0
 					reg_debug[31] <= in_debug[31];
 				end
 				else if ( in_en & (in_addr == 5'd23) ) begin
-					reg_debug[3:0] <= in_data[3:0];
-					reg_debug[31]  <= in_data[31];
+					reg_debug[31]  <= in_data[31];		// BD
+					reg_debug[24]  <= in_data[24];		// Step Break
+					reg_debug[3:0] <= in_data[3:0];		// BP0 - BP3 enable bit
 				end
 				
 				// deepc (24)
