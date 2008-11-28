@@ -1,13 +1,15 @@
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 //  Jelly  -- The computing system on FPGA
 //    Timmer
 //
-//                                       Copyright (C) 2008 by Ryuji Fuchikami
-//                                       http://homepage3.nifty.com/ryuz
-// ----------------------------------------------------------------------------
+//                                      Copyright (C) 2008 by Ryuji Fuchikami
+//                                      http://homepage3.nifty.com/ryuz
+// ---------------------------------------------------------------------------
+
 
 
 `timescale 1ns / 1ps
+
 
 
 `define TIMER_ADR_CONTROL	2'b00
