@@ -1,16 +1,17 @@
-// ----------------------------------------------------------------------------
+// --------------------------------------------------------------------------
 //  Common components
-//   register for whishbone
+//   Register for wishbone
 //
-//                                  Copyright (C) 2007-2008 by Ryuji Fuchikami
-// ----------------------------------------------------------------------------
+//                                 Copyright (C) 2007-2008 by Ryuji Fuchikami
+//                                 http://homepage3.nifty.com/ryuz/
+// ---------------------------------------------------------------------------
 
 
 `timescale 1ns / 1ps
 
 
 
-// registe
+// register
 module wishbone_register
 		(
 			reset, clk,
