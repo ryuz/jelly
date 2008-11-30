@@ -48,7 +48,8 @@ module jelly_uart
 	output						wb_ack_o;
 	
 
-
+	
+	/*
 	// -------------------------
 	//  FIFO
 	// -------------------------
@@ -158,7 +159,7 @@ module jelly_uart
 				.rx_en			(rx_fifo_wr_en),
 				.rx_dout		(rx_fifo_wr_data)
 			);
-	
+		
 	
 	// -------------------------
 	//  register
@@ -174,6 +175,68 @@ module jelly_uart
 	
 	assign wb_dat_o = (wb_stb_i && (wb_adr_i == 0)) ? rx_fifo_rd_data                   : 32'h00000000
 					| (wb_stb_i && (wb_adr_i == 1)) ? {tx_fifo_wr_ready, rx_fifo_rd_en} : 32'h00000000;
+	assign wb_ack_o = 1'b1;
+	*/
+	
+	
+	// -------------------------
+	//   Core
+	// -------------------------
+	
+	wire				tx_en;
+	wire	[7:0]		tx_data;
+	wire				tx_ready;
+
+	wire				rx_en;
+	wire	[7:0]		rx_data;
+	wire				rx_ready;
+	
+	jelly_uart_core
+			#(
+				.TX_FIFO_PTR_WIDTH	(4),
+				.RX_FIFO_PTR_WIDTH	(4)
+			)
+		i_jelly_uart_core
+			(
+				.reset				(reset),
+				.clk				(clk),
+				
+				.uart_clk			(uart_clk),
+				.uart_tx			(uart_tx),
+				.uart_rx			(uart_rx),
+				
+				.tx_en				(tx_en),
+				.tx_data			(tx_data),
+				.tx_ready			(tx_ready),
+				
+				.rx_en				(rx_en),
+				.rx_data			(rx_data),
+				.rx_ready			(rx_ready),
+				
+				.tx_fifo_free_num	(tx_fifo_free_num),
+				.rx_fifo_data_num	(rx_fifo_data_num)
+			);
+	
+	
+	// irq
+	assign irq_tx = (tx_fifo_free_num == TX_FIFO_SIZE);
+	assign irq_rx = rx_en;
+	
+	
+	// -------------------------
+	//  register
+	// -------------------------
+	
+	// TX
+	assign tx_en    = wb_stb_i & wb_we_i & (wb_adr_i == 0);
+	assign tx_data  = wb_dat_i[7:0];
+	
+	// RX
+	assign rx_ready = wb_stb_i & !wb_we_i & (wb_adr_i == 0);
+	
+	
+	assign wb_dat_o = (wb_stb_i && (wb_adr_i == 0)) ? rx_data           : 32'h00000000
+					| (wb_stb_i && (wb_adr_i == 1)) ? {tx_ready, rx_en} : 32'h00000000;
 	assign wb_ack_o = 1'b1;
 	
 	
