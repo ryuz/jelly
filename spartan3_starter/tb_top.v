@@ -95,8 +95,11 @@ module tb_top;
 	
 	// UART monitor
 	always @ ( posedge i_top.i_uart0.clk ) begin
-		if ( i_top.i_uart0.tx_fifo_wr_en ) begin
-			$display("%t UART-TX:%h %c", $time, i_top.i_uart0.tx_fifo_wr_data, i_top.i_uart0.tx_fifo_wr_data);
+		if ( i_top.i_uart0.tx_en ) begin
+			$display("%t UART-TX:%h %c", $time, i_top.i_uart0.tx_data, i_top.i_uart0.tx_data);
+		end
+		if ( i_top.i_uart0.rx_en & i_top.i_uart0.rx_ready ) begin
+			$display("%t UART-RX:%h %c", $time, i_top.i_uart0.rx_data, i_top.i_uart0.rx_data);
 		end
 	end
 
@@ -124,9 +127,31 @@ module tb_top;
 				release i_top.i_dbg_uart.i_uart_core.rx_fifo_wr_data;
 		end
 	endtask
+
+
+	// write_dbg_uart_rx_fifo
+	task write_uart_rx_fifo;
+		input	[7:0]	data;
+		begin
+			@(negedge i_top.i_uart0.i_uart_core.uart_clk);
+				force i_top.i_uart0.i_uart_core.rx_fifo_wr_en   = 1'b1;
+				force i_top.i_uart0.i_uart_core.rx_fifo_wr_data = data;
+			@(posedge i_top.i_uart0.i_uart_core.uart_clk);
+				release i_top.i_uart0.i_uart_core.rx_fifo_wr_en;
+				release i_top.i_uart0.i_uart_core.rx_fifo_wr_data;
+		end
+	endtask
+	
 	
 	
 	initial begin
+		while ( 1 ) begin
+		#(RATE*20000);
+			write_uart_rx_fifo("X");
+		#(RATE*20000);
+			write_uart_rx_fifo("Y");
+		end
+		
 /*
 	#(RATE*20);
 		$display("--- NOP ---");

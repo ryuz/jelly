@@ -219,8 +219,8 @@ module top
 			#(
 				.FACTOR_ID_WIDTH	(2),
 				.FACTOR_NUM			(3),
-				.PRIORITY_WIDTH		(3),
-	
+				.PRIORITY_WIDTH		(2),
+				
 				.WB_ADR_WIDTH		(8),
 				.WB_DAT_WIDTH		(32)
 			)
@@ -234,7 +234,7 @@ module top
 				.cpu_irq			(cpu_irq),
 				.cpu_irq_ack		(cpu_irq_ack),
 											
-				.wb_adr_i			(wb_adr_o[15:2]),
+				.wb_adr_i			(wb_adr_o[9:2]),
 				.wb_dat_o			(irc_wb_dat_o),
 				.wb_dat_i			(wb_dat_o),
 				.wb_we_i			(wb_we_o),
