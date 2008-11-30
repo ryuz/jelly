@@ -70,7 +70,7 @@ module irc_factor
 			send_packet  <= {PACKET_WIDTH{1'b1}};
 		end
 		else begin
-			if ( reqest_reset ) begin
+			if ( reqest_reset | (reqest_send != reqest_sense) ) begin
 				send_packet <= {PACKET_WIDTH{1'b1}};
 			end
 			else begin

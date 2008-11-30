@@ -2,8 +2,8 @@
 
 # directory 
 WORK_DIR = work
-PRJ_DIR  = ..
-TOP_DIR  = ../..
+PRJ_DIR  = ../..
+TOP_DIR  = ../../..
 RTL_DIR  = $(TOP_DIR)/rtl
 HOS_DIR  = ~/hos-v4a/aplfw/sample/mips/jelly/gcc
 
@@ -13,6 +13,11 @@ VLOG_FLAGS =
 
 all: soft_build disasm soft.hex work_setup prj_compile
 	vsim -c -wlf vsim.wlf -do "run -all" -L xilinxcorelib_ver -L unisims_ver -lib work tb_top glbl
+
+irc: work_setup prj_compile
+	vlog $(VLOG_FLAGS) $(PRJ_DIR)/sim/tb_irc.v
+	vsim -c -wlf vsim.wlf -do "run -all" -L xilinxcorelib_ver -L unisims_ver -lib work tb_irc glbl
+
 
 clean:
 	make -C $(HOS_DIR) -f gmake.mak mostlyclean
@@ -45,9 +50,9 @@ work_setup:
 
 prj_compile:
 	vlog $(VLOG_FLAGS) "$(XILINX)/verilog/src/glbl.v"
-	vlog $(VLOG_FLAGS) $(PRJ_DIR)/tb_top.v
-	vlog $(VLOG_FLAGS) $(PRJ_DIR)/top.v
-	vlog $(VLOG_FLAGS) $(PRJ_DIR)/ram_model.v
+	vlog $(VLOG_FLAGS) $(PRJ_DIR)/sim/tb_top.v
+	vlog $(VLOG_FLAGS) $(PRJ_DIR)/sim/ram_model.v
+	vlog $(VLOG_FLAGS) $(PRJ_DIR)/rtl/top.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/common/binary_to_graycode.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/common/graycode_to_binary.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/common/pipeline_fifo_async.v
