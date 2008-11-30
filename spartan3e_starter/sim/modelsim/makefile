@@ -2,10 +2,11 @@
 
 # directory 
 WORK_DIR = work
-PRJ_DIR  = ..
-TOP_DIR  = ../..
+PRJ_DIR  = ../..
+TOP_DIR  = ../../..
 RTL_DIR  = $(TOP_DIR)/rtl
 HOS_DIR  = ~/hos-v4a/sample/mips/jelly/gcc
+
 
 # flags
 VLOG_FLAGS =
@@ -44,10 +45,10 @@ work_setup:
 
 prj_compile:
 	vlog $(VLOG_FLAGS) "$(XILINX)/verilog/src/glbl.v"
-	vlog $(VLOG_FLAGS) $(PRJ_DIR)/tb_top.v
-	vlog $(VLOG_FLAGS) $(PRJ_DIR)/ddr.v
-	vlog $(VLOG_FLAGS) $(PRJ_DIR)/top.v
-	vlog $(VLOG_FLAGS) $(PRJ_DIR)/clkgen.v
+	vlog $(VLOG_FLAGS) $(PRJ_DIR)/sim/tb_top.v
+	vlog $(VLOG_FLAGS) $(PRJ_DIR)/sim/ddr.v
+	vlog $(VLOG_FLAGS) $(PRJ_DIR)/rtl/top.v
+	vlog $(VLOG_FLAGS) $(PRJ_DIR)/rtl/clkgen.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/common/binary_to_graycode.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/common/graycode_to_binary.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/common/pipeline_fifo_async.v

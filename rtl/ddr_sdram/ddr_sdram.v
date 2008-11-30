@@ -69,7 +69,7 @@ module ddr_sdram
 	output							ddr_sdram_we;
 	output	[SDRAM_BA_WIDTH-1:0]	ddr_sdram_ba;
 	output	[SDRAM_A_WIDTH-1:0]		ddr_sdram_a;
-	output	[SDRAM_DQ_WIDTH-1:0]	ddr_sdram_dm;
+	output	[SDRAM_DM_WIDTH-1:0]	ddr_sdram_dm;
 	inout	[SDRAM_DQ_WIDTH-1:0]	ddr_sdram_dq;
 	inout	[SDRAM_DQS_WIDTH-1:0]	ddr_sdram_dqs;
 	

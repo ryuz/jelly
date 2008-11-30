@@ -462,7 +462,7 @@ module top
 				.FACTOR_NUM			(3),
 				.PRIORITY_WIDTH		(1),
 	
-				.WB_ADR_WIDTH		(8),
+				.WB_ADR_WIDTH		(14),
 				.WB_DAT_WIDTH		(32)
 			)
 		i_irc
