@@ -99,15 +99,14 @@ module jelly_irc
 				end
 				
 				// state counter
-				recv_counter <= {recv_counter[PACKET_WIDTH-2:0], recv_counter[PACKET_WIDTH-1]};
+				recv_counter <= {recv_counter[PACKET_WIDTH-1:0], recv_counter[PACKET_WIDTH]};
 				
 				// packet receive
 				{recv_priority, recv_factor_id} <= {recv_priority, recv_factor_id, request_recv};
 				
 				// recive end
-				if ( recv_counter[PACKET_WIDTH-1] ) begin
-					reg_req_priority  <= recv_priority;
-					reg_req_factor_id <= {recv_factor_id, request_recv};
+				if ( recv_counter[PACKET_WIDTH] ) begin
+					{reg_req_priority, reg_req_factor_id} <= {recv_priority, recv_factor_id, request_recv};
 				end
 			end
 			else begin

@@ -127,6 +127,7 @@ module tb_top;
 	
 	
 	initial begin
+/*
 	#(RATE*20);
 		$display("--- NOP ---");
 		write_dbg_uart_rx_fifo(8'h00);		// nop
@@ -135,7 +136,6 @@ module tb_top;
 		$display("\n\n--- STATUS ---");
 		write_dbg_uart_rx_fifo(8'h01);		// status
 
-/*
 	#(RATE*20);
 		$display("\n\n--- GO DEBUG MODE ---");
 		write_dbg_uart_rx_fifo(8'h02);		// write

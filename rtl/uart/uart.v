@@ -14,7 +14,7 @@
 module jelly_uart
 		(
 			reset, clk,			
-			uart_clk, uart_tx, uart_rx, uart_clk_dv,
+			uart_clk, uart_tx, uart_rx,
 			irq_rx, irq_tx,
 			wb_adr_i, wb_dat_o, wb_dat_i, wb_we_i, wb_sel_i, wb_stb_i, wb_ack_o
 		);
@@ -34,7 +34,6 @@ module jelly_uart
 	input						uart_clk;
 	output						uart_tx;
 	input						uart_rx;
-	output						uart_clk_dv;
 	
 	output						irq_rx;
 	output						irq_tx;
@@ -49,32 +48,12 @@ module jelly_uart
 	output						wb_ack_o;
 	
 
-	// -------------------------
-	//  clock divider
-	// -------------------------
-
-	reg							uart_clk_dv;
-	reg		[7:0]				dv_counter;
-	always @ ( posedge uart_clk or posedge reset ) begin
-		if ( reset ) begin
-			dv_counter  <= 0;
-			uart_clk_dv <= 1'b0;
-		end
-		else begin
-			if ( dv_counter == (81 - 1) ) begin		// 38400 bps (50MHz)
-				dv_counter  <= 0;
-				uart_clk_dv <= ~uart_clk_dv;
-			end
-			else begin
-				dv_counter  <= dv_counter + 1;
-			end
-		end
-	end
-
 
 	// -------------------------
 	//  FIFO
 	// -------------------------
+	
+	
 	
 	// TX
 	wire							tx_fifo_wr_en;
@@ -102,7 +81,7 @@ module jelly_uart
 				.in_ready		(tx_fifo_wr_ready),
 				.in_free_num	(tx_fifo_free_num),
 				
-				.out_clk		(uart_clk_dv),
+				.out_clk		(uart_clk),
 				.out_en			(tx_fifo_rd_en),
 				.out_data		(tx_fifo_rd_data),
 				.out_ready		(tx_fifo_rd_ready),
@@ -110,6 +89,7 @@ module jelly_uart
 			);
 	
 	assign irq_tx = (tx_fifo_free_num == TX_FIFO_SIZE);
+//	assign irq_tx = (tx_fifo_free_num > 0);
 	
 	
 	// RX
@@ -132,7 +112,7 @@ module jelly_uart
 			(
 				.reset			(reset),
 
-				.in_clk			(uart_clk_dv),
+				.in_clk			(uart_clk),
 				.in_en			(rx_fifo_wr_en),
 				.in_data		(rx_fifo_wr_data),
 				.in_ready		(rx_fifo_wr_ready),
@@ -158,7 +138,7 @@ module jelly_uart
 		i_uart_tx
 			(
 				.reset			(reset),
-				.clk			(uart_clk_dv),
+				.clk			(uart_clk),
 				
 				.uart_tx		(uart_tx),
 				
@@ -171,7 +151,7 @@ module jelly_uart
 		i_uart_rx
 			(
 				.reset			(reset), 
-				.clk			(uart_clk_dv),
+				.clk			(uart_clk),
 				
 				.uart_rx		(uart_rx),
 				

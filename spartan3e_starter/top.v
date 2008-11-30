@@ -200,7 +200,7 @@ module top
 				.clk				(clk),
 				.endian				(endian),
 				
-				.uart_clk			(dbg_uart_clk),
+				.uart_clk			(clk_uart),
 				.uart_tx			(dbg_uart_tx),
 				.uart_rx			(dbg_uart_rx),
 				
@@ -532,7 +532,6 @@ module top
 				.uart_clk			(clk_uart),
 				.uart_tx			(uart_tx),
 				.uart_rx			(uart_rx),
-				.uart_clk_dv		(dbg_uart_clk),
 				
 				.irq_rx				(uart0_irq_rx),
 				.irq_tx				(uart0_irq_tx),

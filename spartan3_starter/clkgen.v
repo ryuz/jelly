@@ -17,7 +17,9 @@ module clkgen
 			
 			out_clk,
 			out_clk_x2,
+			
 			out_clk_uart,
+			
 			locked
 		);
 
@@ -117,7 +119,30 @@ module clkgen
 //	assign out_clk      = clk0_bufg;
 //	assign out_clk_x2   = clk2x_bufg;
 	
-	assign out_clk_uart = clk0_bufg;
+		
+	// -------------------------
+	//  uart clock divider
+	// -------------------------
+	
+	reg							uart_clk_dv;
+	reg		[7:0]				dv_counter;
+	always @ ( posedge clk2x_bufg or posedge in_reset ) begin
+		if ( in_reset ) begin
+			dv_counter  <= 0;
+			uart_clk_dv <= 1'b0;
+		end
+		else begin
+			if ( dv_counter == (54 - 1) ) begin		// 115200 bps
+				dv_counter  <= 0;
+				uart_clk_dv <= ~uart_clk_dv;
+			end
+			else begin
+				dv_counter  <= dv_counter + 1;
+			end
+		end
+	end
+
+	assign out_clk_uart = uart_clk_dv;
 	
 endmodule
 

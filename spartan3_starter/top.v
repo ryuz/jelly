@@ -173,7 +173,6 @@ module top
 	assign wb_dbg_stb_o = 1'b0;
 	*/
 	
-	wire	dbg_uart_clk;
 	jelly_dbg_uart
 		i_dbg_uart
 			(
@@ -181,7 +180,7 @@ module top
 				.clk				(clk),
 				.endian				(endian),
 				
-				.uart_clk			(dbg_uart_clk),
+				.uart_clk			(clk_uart),
 				.uart_tx			(dbg_uart_tx),
 				.uart_rx			(dbg_uart_rx),
 				
@@ -220,7 +219,7 @@ module top
 			#(
 				.FACTOR_ID_WIDTH	(2),
 				.FACTOR_NUM			(3),
-				.PRIORITY_WIDTH		(1),
+				.PRIORITY_WIDTH		(3),
 	
 				.WB_ADR_WIDTH		(8),
 				.WB_DAT_WIDTH		(32)
@@ -351,7 +350,6 @@ module top
 				.uart_clk			(clk_uart),
 				.uart_tx			(uart_tx),
 				.uart_rx			(uart_rx),
-				.uart_clk_dv		(dbg_uart_clk),
 				
 				.irq_rx				(uart0_irq_rx),
 				.irq_tx				(uart0_irq_tx),

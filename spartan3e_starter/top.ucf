@@ -5,6 +5,7 @@
 #                                       http://homepage3.nifty.com/ryuz
 # ----------------------------------------------------------------------------
 
+
 # clock
 NET "clk_in" LOC = "C9" | IOSTANDARD = LVCMOS33 ;
 NET "clk_in" TNM_NET = clk_in;
