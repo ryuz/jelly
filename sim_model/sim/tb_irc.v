@@ -152,6 +152,24 @@ module tb_irc;
 		#(RATE * 20)	in_interrupt[2] = 1'b1;
 		#(RATE * 2)		in_interrupt[2] = 1'b0;
 		
+		#(RATE * 20)	
+						wb_write(0, 0);
+						wb_read(2);
+						wb_read(3);
+						wb_write(9  + 4*1, 0);	// pending clear
+						wb_write(0, 1);
+		#(RATE * 20)
+						wb_write(0, 0);
+						wb_read(2);
+						wb_read(3);
+						wb_write(9  + 4*2, 0);	// pending clear
+						wb_write(0, 1);
+		#(RATE * 20)				
+						wb_write(0, 0);
+						wb_read(2);
+						wb_read(3);
+						wb_write(9  + 4*0, 0);	// pending clear
+						wb_write(0, 1);
 		
 		#(RATE * 100)	$finish;
 	end
