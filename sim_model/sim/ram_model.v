@@ -37,7 +37,7 @@ module ram_model
 	
 	reg		[WB_DAT_WIDTH-1:0]	mem		[0:MEM_SIZE-1];
 	
-		
+	
 	integer		i;
 	always @( posedge clk ) begin
 		if ( wb_stb_i ) begin
@@ -48,7 +48,7 @@ module ram_model
 					end
 				end
 			end
-		end				
+		end
 	end
 	
 	assign wb_dat_o = mem[wb_adr_i];

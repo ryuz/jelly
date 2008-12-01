@@ -74,9 +74,13 @@ module tb_top;
 		uart_monitor = $fopen("uart_monitor.txt");
 	end
 	always @ ( posedge i_top.i_uart0.clk ) begin
-		if ( i_top.i_uart0.tx_fifo_wr_en ) begin
-			$display("%t UART-TX:%h %c", $time, i_top.i_uart0.tx_fifo_wr_data, i_top.i_uart0.tx_fifo_wr_data);
-			$fdisplay(uart_monitor, "%t UART-TX:%h %c", $time, i_top.i_uart0.tx_fifo_wr_data, i_top.i_uart0.tx_fifo_wr_data);
+		if ( i_top.i_uart0.tx_en ) begin
+			$display("%t UART-TX:%h %c", $time, i_top.i_uart0.tx_data, i_top.i_uart0.tx_data);
+			$fdisplay(uart_monitor, "%t UART-TX:%h %c", $time, i_top.i_uart0.tx_data, i_top.i_uart0.tx_data);
+		end
+		else if ( i_top.i_uart0.rx_en & i_top.i_uart0.rx_ready ) begin
+			$display("%t UART-RX:%h %c", $time, i_top.i_uart0.rx_data, i_top.i_uart0.rx_data);
+			$fdisplay(uart_monitor, "%t UART-RX:%h %c", $time, i_top.i_uart0.rx_data, i_top.i_uart0.rx_data);
 		end
 	end
 

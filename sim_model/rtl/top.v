@@ -147,7 +147,6 @@ module top
 	
 	
 	// Debug Interface (UART)
-	wire	dbg_uart_clk;
 	jelly_dbg_uart
 		i_dbg_uart
 			(
@@ -155,7 +154,7 @@ module top
 				.clk				(clk),
 				.endian				(endian),
 				
-				.uart_clk			(dbg_uart_clk),
+				.uart_clk			(clk_uart),
 				.uart_tx			(dbg_uart_tx),
 				.uart_rx			(dbg_uart_rx),
 				
@@ -177,12 +176,16 @@ module top
 	wire	[31:0]		ram_wb_dat_o;
 	wire				ram_wb_ack_o;
 	ram_model
+			#(
+				.WB_ADR_WIDTH		(20),
+				.WB_DAT_WIDTH		(32)
+			)
 		i_ram_model
 			(
 				.reset				(reset),
 				.clk				(clk),
 
-				.wb_adr_i			(wb_cpu_adr_o[20:2]),
+				.wb_adr_i			(wb_cpu_adr_o[21:2]),
 				.wb_dat_o			(ram_wb_dat_o),
 				.wb_dat_i			(wb_cpu_dat_o),
 				.wb_we_i			(wb_cpu_we_o),
@@ -289,7 +292,7 @@ module top
 				.FACTOR_NUM			(3),
 				.PRIORITY_WIDTH		(1),
 	
-				.WB_ADR_WIDTH		(8),
+				.WB_ADR_WIDTH		(14),
 				.WB_DAT_WIDTH		(32)
 			)
 		i_irc
@@ -359,7 +362,6 @@ module top
 				.uart_clk			(clk_uart),
 				.uart_tx			(uart_tx),
 				.uart_rx			(uart_rx),
-				.uart_clk_dv		(dbg_uart_clk),
 				
 				.irq_rx				(uart0_irq_rx),
 				.irq_tx				(uart0_irq_tx),
