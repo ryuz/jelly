@@ -460,7 +460,7 @@ module top
 			#(
 				.FACTOR_ID_WIDTH	(2),
 				.FACTOR_NUM			(3),
-				.PRIORITY_WIDTH		(1),
+				.PRIORITY_WIDTH		(2),
 	
 				.WB_ADR_WIDTH		(14),
 				.WB_DAT_WIDTH		(32)
