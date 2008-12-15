@@ -919,13 +919,15 @@ module cpu_core
 			dbg_dbbp_mask <= 2'b00;
 		end
 		else begin
-			if ( dbg_enable ) begin
-				dbg_dbbp_mask[0] <= 1'b1;
-				dbg_dbbp_mask[1] <= dbg_cop0_debug[31];
-			end
-			else begin
-				if ( !(ex_stall | ex_exception) ) begin
-					dbg_dbbp_mask <= {1'b0, dbg_dbbp_mask[1]};
+			if ( !interlock ) begin
+				if ( dbg_enable ) begin
+					dbg_dbbp_mask[0] <= 1'b1;
+					dbg_dbbp_mask[1] <= dbg_cop0_debug[31];
+				end
+				else begin
+					if ( !(ex_stall | ex_exception) ) begin
+						dbg_dbbp_mask <= {1'b0, dbg_dbbp_mask[1]};
+					end
 				end
 			end
 		end
