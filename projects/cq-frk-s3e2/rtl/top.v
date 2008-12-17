@@ -25,7 +25,7 @@ module top
 	parameter CPU_USE_EXC_BREAK   = 1'b0;
 	parameter CPU_USE_EXC_RI      = 1'b0;
 	parameter CPU_GPR_TYPE        = 0;
-	
+	parameter CPU_DBBP_NUM        = 0;
 	
 	// system
 	input				clk_in;
@@ -135,7 +135,8 @@ module top
 				.USE_EXC_SYSCALL	(CPU_USE_EXC_SYSCALL),
 				.USE_EXC_BREAK		(CPU_USE_EXC_BREAK),
 				.USE_EXC_RI			(CPU_USE_EXC_RI),
-				.GPR_TYPE			(CPU_GPR_TYPE)
+				.GPR_TYPE			(CPU_GPR_TYPE),
+				.DBBP_NUM 			(CPU_DBBP_NUM)
 			)
 		i_cpu_top
 			(

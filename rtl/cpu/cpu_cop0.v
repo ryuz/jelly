@@ -13,50 +13,42 @@
 
 
 module cpu_cop0
-		(
-			reset, clk,
-			interlock,
-			in_en, in_addr, in_sel, in_data,
-			out_data,
-			exception, rfe, dbg_break,
-			in_cause, in_epc, in_debug, in_depc,
-			out_status, out_cause, out_epc, out_debug, out_depc,
-			out_debp0, out_debp1, out_debp2, out_debp3
-		);
-	
-	input			clk;
-	input			reset;
+	#(
+		parameter				DBBP_NUM = 4		// hardware breakpoints num
+	)
+	(
+		input	wire			clk,
+		input	wire			reset,
 
-	input			interlock;
-
-	
-	input			in_en;
-	input	[4:0]	in_addr;
-	input	[2:0]	in_sel;
-	input	[31:0]	in_data;
-	
-	output	[31:0]	out_data;
-	
-	input			exception;
-	input			rfe;
-	input			dbg_break;
-	
-	input	[31:0]	in_cause;
-	input	[31:0]	in_epc;
-	input	[31:0]	in_debug;
-	input	[31:0]	in_depc;
-	
-	output	[31:0]	out_status;
-	output	[31:0]	out_cause;
-	output	[31:0]	out_epc;
-	output	[31:0]	out_debug;
-	output	[31:0]	out_depc;
-	
-	output	[31:0]	out_debp0;
-	output	[31:0]	out_debp1;
-	output	[31:0]	out_debp2;
-	output	[31:0]	out_debp3;
-	
+		input	wire			interlock,
+		
+		input	wire			in_en,
+		input	wire	[4:0]	in_addr,
+		input	wire	[2:0]	in_sel,
+		input	wire	[31:0]	in_data,
+		
+		output	reg		[31:0]	out_data,
+		
+		input	wire			exception,
+		input	wire			rfe,
+		input	wire			dbg_break,
+		
+		input	wire	[31:0]	in_cause,
+		input	wire	[31:0]	in_epc,
+		input	wire	[31:0]	in_debug,
+		input	wire	[31:0]	in_depc,
+		
+		output	wire	[31:0]	out_status,
+		output	wire	[31:0]	out_cause,
+		output	wire	[31:0]	out_epc,
+		output	wire	[31:0]	out_debug,
+		output	wire	[31:0]	out_depc,
+		
+		output	wire	[31:0]	out_debp0,
+		output	wire	[31:0]	out_debp1,
+		output	wire	[31:0]	out_debp2,
+		output	wire	[31:0]	out_debp3
+	);
 	
 	// register
 	reg		[31:0]	reg_status;		// 12
@@ -124,9 +116,12 @@ module cpu_cop0
 					reg_debug[31] <= in_debug[31];
 				end
 				else if ( in_en & (in_addr == 5'd23) ) begin
-					reg_debug[31]  <= in_data[31];		// BD
-					reg_debug[24]  <= in_data[24];		// Step Break
-					reg_debug[3:0] <= in_data[3:0];		// BP0 - BP3 enable bit
+					reg_debug[31] <= in_data[31];					// BD
+					reg_debug[24] <= in_data[24];					// Step Break
+					reg_debug[3]  <= in_data[0] & (DBBP_NUM >= 4);	// BP3 enable bit
+					reg_debug[2]  <= in_data[0] & (DBBP_NUM >= 3);	// BP2 enable bit
+					reg_debug[1]  <= in_data[0] & (DBBP_NUM >= 2);	// BP1 enable bit
+					reg_debug[0]  <= in_data[0] & (DBBP_NUM >= 1);	// BP0 enable bit
 				end
 				
 				// deepc (24)
@@ -138,16 +133,16 @@ module cpu_cop0
 				end
 				
 				// debp
-				if ( in_en & (in_addr == 5'd16) ) begin
+				if ( in_en & (in_addr == 5'd16) & (DBBP_NUM >= 1) ) begin
 					reg_debp0[31:2] <= in_data[31:2];
 				end
-				if ( in_en & (in_addr == 5'd17) ) begin
+				if ( in_en & (in_addr == 5'd17) & (DBBP_NUM >= 2) ) begin
 					reg_debp1[31:2] <= in_data[31:2];
 				end
-				if ( in_en & (in_addr == 5'd18) ) begin
+				if ( in_en & (in_addr == 5'd18) & (DBBP_NUM >= 3) ) begin
 					reg_debp2[31:2] <= in_data[31:2];
 				end
-				if ( in_en & (in_addr == 5'd19) ) begin
+				if ( in_en & (in_addr == 5'd19) & (DBBP_NUM >= 4) ) begin
 					reg_debp3[31:2] <= in_data[31:2];
 				end
 			end
@@ -155,7 +150,6 @@ module cpu_cop0
 	end
 	
 	// output
-	reg 	[31:0]	out_data;
 	always @* begin
 		case ( in_addr )
 		5'd12:		out_data <= reg_status;

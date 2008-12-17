@@ -3,8 +3,8 @@
 
 module tb_top;
 	parameter	RATE       = 10;
-	parameter	UART_RATE  = (1000000000 / 115200);
-	
+	parameter	RATE_UART = (1000000000 / (115200*16));
+		
 	
 	initial begin
 		$dumpfile("tb_top.vcd");
@@ -26,7 +26,16 @@ module tb_top;
 	always #(RATE/2) begin
 		clk = ~clk;
 	end
-		
+	
+	reg		uart_clk;
+	initial begin
+		uart_clk    = 1'b1;
+	end
+	always #(RATE_UART/2) begin
+		uart_clk = ~uart_clk;
+	end
+
+	
 	reg					uart_rx;
 
 	
@@ -35,6 +44,8 @@ module tb_top;
 			(
 				.clk_in				(clk),
 				.reset_in			(reset),
+				
+				.uart_clk			(uart_clk),
 				
 				.uart0_tx			(),
 				.uart0_rx			(uart_rx),
@@ -56,7 +67,27 @@ module tb_top;
 						$time, i_top.i_cpu_top.i_cpu_core.ex_out_pc, i_top.i_cpu_top.i_cpu_core.ex_out_instruction);
 		end
 	end
-
+	
+	
+	// bus_trace
+	integer bus_trace;
+	initial begin
+		bus_trace = $fopen("bus_trace.txt");
+	end
+	always @ ( posedge i_top.i_cpu_top.i_cpu_core.clk ) begin
+		if ( i_top.i_cpu_top.i_cpu_core.wb_data_stb_o & i_top.i_cpu_top.i_cpu_core.wb_data_ack_i ) begin
+			if ( i_top.i_cpu_top.i_cpu_core.wb_data_we_o ) begin
+				$fdisplay(bus_trace, "w %t : %h %h",
+						$time, i_top.i_cpu_top.i_cpu_core.wb_data_adr_o, i_top.i_cpu_top.i_cpu_core.wb_data_dat_o);
+			end
+			else begin
+				$fdisplay(bus_trace, "r %t : %h %h",
+						$time, i_top.i_cpu_top.i_cpu_core.wb_data_adr_o, i_top.i_cpu_top.i_cpu_core.wb_data_dat_i);
+			end
+		end
+	end
+	
+	
 	// Interrupt monitor
 	always @ ( posedge i_top.i_cpu_top.clk ) begin
 	//	if ( i_top.i_cpu_top.interrupt_req ) begin

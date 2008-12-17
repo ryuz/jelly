@@ -13,41 +13,48 @@
 
 
 module cpu_gpr
-			(
+	#(
+		parameter							TYPE       = 1,		// 0: clk_x2 dp-ram, 1: dual dp-ram, 2: LUT
+		parameter							DATA_WIDTH = 32,
+		parameter							ADDR_WIDTH = 5
+	)
+	(
+
+		input	wire						reset,
+		input	wire						clk,
+		input	wire						clk_x2,
+		
+		input	wire						interlock,
+		
+		input	wire						w0_en,
+		input	wire	[ADDR_WIDTH-1:0]	w0_addr,
+		input	wire	[DATA_WIDTH-1:0]	w0_data,
+
+		input	wire						w1_en,
+		input	wire	[ADDR_WIDTH-1:0]	w1_addr,
+		input	wire	[DATA_WIDTH-1:0]	w1_data,
+		
+		input	wire						r0_en,
+		input	wire	[ADDR_WIDTH-1:0]	r0_addr,
+		output	wire	[DATA_WIDTH-1:0]	r0_data,
+		
+		input	wire						r1_en,
+		input	wire	[ADDR_WIDTH-1:0]	r1_addr,
+		output	wire	[DATA_WIDTH-1:0]	r1_data
+	
+
+
+/*
 				reset, clk, clk_x2,
 				interlock,
 				w0_en, w0_addr, w0_data,
 				w1_en, w1_addr, w1_data,
 				r0_en, r0_addr, r0_data,
 				r1_en, r1_addr, r1_data
-			);
+			*/
+	);
 	
-	parameter	TYPE       = 1;		// 0: clk_x2 dp-ram, 1: dual dp-ram, 2: LUT
-	parameter	DATA_WIDTH = 32;
-	parameter	ADDR_WIDTH = 5;
-	localparam	REG_SIZE   = (1 << ADDR_WIDTH);
-	
-	input						reset;
-	input						clk;
-	input						clk_x2;
-	
-	input						interlock;
-	
-	input						w0_en;
-	input	[ADDR_WIDTH-1:0]	w0_addr;
-	input	[DATA_WIDTH-1:0]	w0_data;
-
-	input						w1_en;
-	input	[ADDR_WIDTH-1:0]	w1_addr;
-	input	[DATA_WIDTH-1:0]	w1_data;
-	
-	input						r0_en;
-	input	[ADDR_WIDTH-1:0]	r0_addr;
-	output	[DATA_WIDTH-1:0]	r0_data;
-	
-	input						r1_en;
-	input	[ADDR_WIDTH-1:0]	r1_addr;
-	output	[DATA_WIDTH-1:0]	r1_data;
+	localparam							REG_SIZE   = (1 << ADDR_WIDTH);
 	
 	
 	

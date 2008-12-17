@@ -31,6 +31,7 @@ module cpu_core
 	parameter	USE_EXC_RI      = 1'b1;
 	parameter	USE_HW_BP       = 1'b1;
 	parameter	GPR_TYPE        = 0;
+	parameter	DBBP_NUM        = 4;
 	
 	// system
 	input			reset;
@@ -844,6 +845,9 @@ module cpu_core
 	wire	[31:0]	ex_cop0_out_status;
 	
 	cpu_cop0
+			#(
+				.DBBP_NUM		(DBBP_NUM)
+			)
 		i_cpu_cop0
 			(
 				.reset			(reset),
