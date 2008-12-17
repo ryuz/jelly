@@ -49,34 +49,30 @@
 
 // debug uart
 module jelly_dbg_uart
+		#(
+			parameter					TX_FIFO_PTR_WIDTH = 10,
+			parameter					RX_FIFO_PTR_WIDTH = 10
+		)
 		(
-			reset, clk, endian,
-			uart_clk, uart_tx, uart_rx,
-			wb_dbg_adr_o, wb_dbg_dat_i, wb_dbg_dat_o, wb_dbg_we_o, wb_dbg_sel_o, wb_dbg_stb_o, wb_dbg_ack_i
+			// system
+			input	wire				reset,
+			input	wire				clk,
+			input	wire				endian,
+			
+			// uart
+			input	wire				uart_clk,
+			output	wire				uart_tx,
+			input	wire				uart_rx,
+			
+			// debug port (whishbone)
+			output	reg		[3:0]		wb_dbg_adr_o,
+			input	wire	[31:0]		wb_dbg_dat_i,
+			output	reg		[31:0]		wb_dbg_dat_o,
+			output	reg					wb_dbg_we_o,
+			output	reg		[3:0]		wb_dbg_sel_o,
+			output	reg					wb_dbg_stb_o,
+			input	wire				wb_dbg_ack_i
 		);
-	
-	parameter	TX_FIFO_PTR_WIDTH = 10;
-	parameter	RX_FIFO_PTR_WIDTH = 10;
-	
-	// system
-	input				reset;
-	input				clk;
-	input				endian;
-	
-	// uart
-	input				uart_clk;
-	output				uart_tx;
-	input				uart_rx;
-	
-	// debug port (whishbone)
-	output	[3:0]		wb_dbg_adr_o;
-	input	[31:0]		wb_dbg_dat_i;
-	output	[31:0]		wb_dbg_dat_o;
-	output				wb_dbg_we_o;
-	output	[3:0]		wb_dbg_sel_o;
-	output				wb_dbg_stb_o;
-	input				wb_dbg_ack_i;
-	
 	
 	// state
 	localparam	ST_NUM          = 26;
@@ -115,12 +111,6 @@ module jelly_dbg_uart
 	reg						uart_tx_en;
 	reg		[7:0]			uart_tx_data;
 	wire					uart_tx_ready;
-
-	reg		[3:0]			wb_dbg_adr_o;
-	reg		[31:0]			wb_dbg_dat_o;
-	reg						wb_dbg_we_o;
-	reg		[3:0]			wb_dbg_sel_o;
-	reg						wb_dbg_stb_o;
 	
 	reg		[4:0]			state;
 	reg		[7:0]			counter;

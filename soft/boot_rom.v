@@ -1,5 +1,7 @@
 `timescale 1ns / 1ps
 
+
+(* rom_style = "block" *)
 module boot_rom
 		(
 			clk ,

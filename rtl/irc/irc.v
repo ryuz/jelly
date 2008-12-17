@@ -23,42 +23,36 @@
 
 // Interrupt controller
 module jelly_irc
+		#(
+			parameter							FACTOR_ID_WIDTH = 2,
+			parameter							FACTOR_NUM      = (1 << FACTOR_ID_WIDTH),
+			parameter							PRIORITY_WIDTH  = 3,
+			
+			parameter							WB_ADR_WIDTH    = 16,
+			parameter							WB_DAT_WIDTH    = 32,
+			parameter							WB_SEL_WIDTH    = (WB_DAT_WIDTH / 8)
+		)
 		(
-			reset, clk,
-			in_interrupt,
-			cpu_irq, cpu_irq_ack,
-			wb_adr_i, wb_dat_o, wb_dat_i, wb_we_i, wb_sel_i, wb_stb_i, wb_ack_o
+			// system
+			input	wire						reset,
+			input	wire						clk,
+			
+			// interrupt
+			input	wire	[FACTOR_NUM-1:0]	in_interrupt,
+			
+			// connect for cpu
+			output	wire						cpu_irq,
+			input	wire						cpu_irq_ack,
+			
+			// control port (wishbone)
+			input	wire	[WB_ADR_WIDTH-1:0]	wb_adr_i,
+			output	reg		[WB_DAT_WIDTH-1:0]	wb_dat_o,
+			input	wire	[WB_DAT_WIDTH-1:0]	wb_dat_i,
+			input	wire						wb_we_i,
+			input	wire	[WB_SEL_WIDTH-1:0]	wb_sel_i,
+			input	wire						wb_stb_i,
+			output	wire						wb_ack_o
 		);
-	
-	parameter	FACTOR_ID_WIDTH = 2;
-	parameter	FACTOR_NUM      = (1 << FACTOR_ID_WIDTH);
-	parameter	PRIORITY_WIDTH  = 3;
-	
-	parameter	WB_ADR_WIDTH    = 16;
-	parameter	WB_DAT_WIDTH    = 32;
-	localparam	WB_SEL_WIDTH    = (WB_DAT_WIDTH / 8);
-	
-	
-	// system
-	input							clk;
-	input							reset;
-	
-	// interrupt
-	input	[FACTOR_NUM-1:0]		in_interrupt;
-	
-	// connect for cpu
-	output							cpu_irq;
-	input							cpu_irq_ack;
-	
-	// control port (wishbone)
-	input	[WB_ADR_WIDTH-1:0]		wb_adr_i;
-	output	[WB_DAT_WIDTH-1:0]		wb_dat_o;
-	input	[WB_DAT_WIDTH-1:0]		wb_dat_i;
-	input							wb_we_i;
-	input	[WB_SEL_WIDTH-1:0]		wb_sel_i;
-	input							wb_stb_i;
-	output							wb_ack_o;
-	
 	
 	
 	// control register
@@ -194,7 +188,6 @@ module jelly_irc
 		end
 	end
 	
-	reg		[WB_DAT_WIDTH-1:0]		wb_dat_o;
 	always @ * begin
 		case ( wb_adr_i )
 		`IRC_ADR_ENABLE:		wb_dat_o <= reg_enable;

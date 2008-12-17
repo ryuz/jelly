@@ -14,48 +14,37 @@
 
 // wishbone bridge
 module wishbone_bridge
-			(
-				reset, clk,
-				wb_in_adr_i, wb_in_dat_o, wb_in_dat_i, wb_in_we_i, wb_in_sel_i, wb_in_stb_i, wb_in_ack_o,
-				wb_out_adr_o, wb_out_dat_i, wb_out_dat_o, wb_out_we_o, wb_out_sel_o, wb_out_stb_o, wb_out_ack_i
-			);
+		#(
+			parameter							WB_ADR_WIDTH  = 31,
+			parameter							WB_DAT_WIDTH  = 32,
+			parameter							WB_SEL_WIDTH  = WB_DAT_WIDTH / 8
+		)
+		(
+			// system
+			input	wire						reset,
+			input	wire						clk,
+			
+			// input from master device
+			input	wire	[WB_ADR_WIDTH-1:0]	wb_in_adr_i,
+			output	reg		[WB_DAT_WIDTH-1:0]	wb_in_dat_o,
+			input	wire	[WB_DAT_WIDTH-1:0]	wb_in_dat_i,
+			input	wire						wb_in_we_i,
+			input	wire	[WB_SEL_WIDTH-1:0]	wb_in_sel_i,
+			input	wire						wb_in_stb_i,
+			output	wire						wb_in_ack_o,
+			
+			// output to slave device
+			output	reg		[WB_ADR_WIDTH-1:0]	wb_out_adr_o,
+			input	wire	[WB_DAT_WIDTH-1:0]	wb_out_dat_i,
+			output	reg		[WB_DAT_WIDTH-1:0]	wb_out_dat_o,
+			output	reg							wb_out_we_o,
+			output	reg		[WB_SEL_WIDTH-1:0]	wb_out_sel_o,
+			output	reg							wb_out_stb_o,
+			input	wire						wb_out_ack_i
+		);
 	
-	parameter	WB_ADR_WIDTH  = 31;
-	parameter	WB_DAT_WIDTH  = 32;
-	localparam	WB_SEL_WIDTH  = WB_DAT_WIDTH / 8;
-	
-	
-	// system
-	input						reset;
-	input						clk;
-	
-	// input from master device
-	input	[WB_ADR_WIDTH-1:0]	wb_in_adr_i;
-	output	[WB_DAT_WIDTH-1:0]	wb_in_dat_o;
-	input	[WB_DAT_WIDTH-1:0]	wb_in_dat_i;
-	input						wb_in_we_i;
-	input	[WB_SEL_WIDTH-1:0]	wb_in_sel_i;
-	input						wb_in_stb_i;
-	output						wb_in_ack_o;
-	
-	// output to slave device
-	output	[WB_ADR_WIDTH-1:0]	wb_out_adr_o;
-	input	[WB_DAT_WIDTH-1:0]	wb_out_dat_i;
-	output	[WB_DAT_WIDTH-1:0]	wb_out_dat_o;
-	output						wb_out_we_o;
-	output	[WB_SEL_WIDTH-1:0]	wb_out_sel_o;
-	output						wb_out_stb_o;
-	input						wb_out_ack_i;
-	
-	
-	reg		[WB_DAT_WIDTH-1:0]	wb_in_dat_o;
 	reg							reg_in_ack_o;
 	
-	reg		[WB_ADR_WIDTH-1:0]	wb_out_adr_o;
-	reg		[WB_DAT_WIDTH-1:0]	wb_out_dat_o;
-	reg							wb_out_we_o;
-	reg		[WB_SEL_WIDTH-1:0]	wb_out_sel_o;
-	reg							wb_out_stb_o;
 	reg							wb_out_read;
 	
 	reg		[WB_ADR_WIDTH-1:0]	reg_adr_o;

@@ -11,48 +11,42 @@
 
 
 module irc_factor
+		#(
+			parameter								FACTOR_ID_WIDTH = 2,
+			parameter								PRIORITY_WIDTH  = 3,
+			
+			parameter								WB_ADR_WIDTH    = 2,
+			parameter								WB_DAT_WIDTH    = 32,
+			parameter								WB_SEL_WIDTH    = (WB_DAT_WIDTH / 8)
+		)
 		(
-			reset, clk,
-			factor_id,
-			in_interrupt,
-			reqest_reset, reqest_start, reqest_send, reqest_sense,
-			wb_adr_i, wb_dat_o, wb_dat_i, wb_we_i, wb_sel_i, wb_stb_i, wb_ack_o
+			// system
+			input	wire							reset,
+			input	wire							clk,
+			
+			input	wire	[FACTOR_ID_WIDTH-1:0]	factor_id,
+			
+			// interrupt
+			input	wire							in_interrupt,
+			
+			// request
+			input	wire							reqest_reset,
+			input	wire							reqest_start,
+			output	wire							reqest_send,
+			input	wire							reqest_sense,
+			
+			// control port (wishbone)
+			input	wire	[1:0]					wb_adr_i,
+			output	reg		[WB_DAT_WIDTH-1:0]		wb_dat_o,
+			input	wire	[WB_DAT_WIDTH-1:0]		wb_dat_i,
+			input	wire							wb_we_i,
+			input	wire	[WB_SEL_WIDTH-1:0]		wb_sel_i,
+			input	wire							wb_stb_i,
+			output	wire							wb_ack_o
 		);
 	
-	parameter	FACTOR_ID_WIDTH = 2;
-	parameter	PRIORITY_WIDTH  = 3;
 	localparam	PACKET_WIDTH    = PRIORITY_WIDTH + FACTOR_ID_WIDTH;
-	
-	parameter	WB_ADR_WIDTH   = 2;
-	parameter	WB_DAT_WIDTH   = 32;
-	localparam	WB_SEL_WIDTH   = (WB_DAT_WIDTH / 8);
-	
-	// system
-	input							clk;
-	input							reset;
-	
-	input	[FACTOR_ID_WIDTH-1:0]	factor_id;
-	
-	// interrupt
-	input							in_interrupt;
-	
-	// request
-	input							reqest_reset;
-	input							reqest_start;
-	output							reqest_send;
-	input							reqest_sense;
-	
-	
-	// control port (wishbone)
-	input	[1:0]					wb_adr_i;
-	output	[WB_DAT_WIDTH-1:0]		wb_dat_o;
-	input	[WB_DAT_WIDTH-1:0]		wb_dat_i;
-	input							wb_we_i;
-	input	[WB_SEL_WIDTH-1:0]		wb_sel_i;
-	input							wb_stb_i;
-	output							wb_ack_o;
-	
-	
+
 	// registers
 	reg								reg_enable;
 	reg								reg_pending;
@@ -117,7 +111,6 @@ module irc_factor
 	
 	
 	// wb_dat_o
-	reg		[WB_DAT_WIDTH-1:0]		wb_dat_o;
 	always @* begin
 		if ( wb_stb_i ) begin
 			case ( wb_adr_i[1:0] )

@@ -11,51 +11,42 @@
 
 // top module
 module top
+		#(
+			parameter					SIMULATION = 1'b0
+		)
 		(
-			clk_in, reset_in,
+			// system
+			input	wire				clk_in,
+			input	wire				reset_in,
 			
-			uart0_tx, uart0_rx,
-			uart1_tx, uart1_rx,
-
-			ddr_sdram_ck_p, ddr_sdram_ck_n, ddr_sdram_cke, ddr_sdram_cs, ddr_sdram_ras, ddr_sdram_cas, ddr_sdram_we,
-			ddr_sdram_ba, ddr_sdram_a, ddr_sdram_udm, ddr_sdram_ldm, ddr_sdram_udqs, ddr_sdram_ldqs, ddr_sdram_dq, ddr_sdram_ck_fb,
-
-			led, sw
+			// uart
+			output	wire				uart0_tx,
+			input	wire				uart0_rx,
+			
+			output	wire				uart1_tx,
+			input	wire				uart1_rx,
+			
+			// DDR-SDRAM
+			output	wire				ddr_sdram_ck_p,
+			output	wire				ddr_sdram_ck_n,
+			output	wire				ddr_sdram_cke,
+			output	wire				ddr_sdram_cs,
+			output	wire				ddr_sdram_ras,
+			output	wire				ddr_sdram_cas,
+			output	wire				ddr_sdram_we,
+			output	wire	[1:0]		ddr_sdram_ba,
+			output	wire	[12:0]		ddr_sdram_a,
+			inout	wire	[15:0]		ddr_sdram_dq,
+			output	wire				ddr_sdram_udm,
+			output	wire				ddr_sdram_ldm,
+			inout	wire				ddr_sdram_udqs,
+			inout	wire				ddr_sdram_ldqs,
+			input	wire				ddr_sdram_ck_fb,
+			
+			// UI
+			output	wire	[7:0]		led,
+			input	wire	[3:0]		sw
 		);
-	parameter	SIMULATION      = 1'b0;
-	
-	// system
-	input				clk_in;
-	input				reset_in;
-	
-	// uart
-	output				uart0_tx;
-	input				uart0_rx;
-	
-	output				uart1_tx;
-    input				uart1_rx;
-	
-	// DDR-SDRAM
-	output				ddr_sdram_ck_p;
-	output				ddr_sdram_ck_n;
-	output				ddr_sdram_cke;
-	output				ddr_sdram_cs;
-	output				ddr_sdram_ras;
-	output				ddr_sdram_cas;
-	output				ddr_sdram_we;
-	output	[1:0]		ddr_sdram_ba;
-	output	[12:0]		ddr_sdram_a;
-	inout	[15:0]		ddr_sdram_dq;
-	output				ddr_sdram_udm;
-	output				ddr_sdram_ldm;
-	inout				ddr_sdram_udqs;
-	inout				ddr_sdram_ldqs;
-	input				ddr_sdram_ck_fb;
-	
-	// UI
-	output	[7:0]		led;
-	input	[3:0]		sw;
-
 	
 
 	

@@ -11,18 +11,17 @@
 
 
 module ddr_sdram_out
+		#(
+			parameter						WIDTH = 1,
+			parameter						INIT  = 0
+		)
 		(
-			clk, in, out
+			input	wire					clk,
+			
+			input	wire	[WIDTH-1:0]		in,
+			output	wire	[WIDTH-1:0]		out
 		);
-	
-	parameter	WIDTH = 1;
-	parameter	INIT  = 0;
 		
-	input							clk;
-	
-	input	[WIDTH-1:0]				in;
-	output	[WIDTH-1:0]				out;
-	
 	generate
 	genvar	i;
 	for ( i = 0; i < WIDTH; i = i + 1 ) begin : oddr2

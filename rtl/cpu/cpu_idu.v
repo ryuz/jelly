@@ -79,134 +79,73 @@
 
 // Instruction Decode Unit
 module cpu_idu
+		#(
+			parameter					USE_EXC_SYSCALL = 1'b1,
+			parameter					USE_EXC_BREAK   = 1'b1,
+			parameter					USE_EXC_RI      = 1'b1
+		)
 		(
-			instruction,
+			input	wire	[31:0]		instruction,
 			
-			rs_addr,
-			rt_addr,
-			rd_addr,
-			immediate_data,
+			output	wire	[4:0]		rs_addr,
+			output	wire	[4:0]		rt_addr,
+			output	wire	[4:0]		rd_addr,
+			output	wire	[31:0]		immediate_data,
 			
-			branch_en,
-			branch_func,
-			branch_index,
-			branch_index_en,
-			branch_imm_en,
-			branch_rs_en,
-						
-			alu_adder_en,	
-			alu_adder_func,
-			alu_logic_en,
-			alu_logic_func,
-			alu_comp_en,
-			alu_comp_func,
-			alu_imm_en,
+			output	wire				branch_en,
+			output	wire	[3:0]		branch_func,
+			output	wire	[27:0]		branch_index,
+			output	wire				branch_index_en,
+			output	wire				branch_imm_en,
+			output	wire				branch_rs_en,
 			
-			shifter_en,
-			shifter_func,
-			shifter_sa_en,
-			shifter_sa_data,
+			output	wire				alu_adder_en,
+			output	wire	[1:0]		alu_adder_func,
+			output	wire				alu_logic_en,
+			output	wire	[1:0]		alu_logic_func,
+			output	wire				alu_comp_en,
+			output	wire				alu_comp_func,
+			output	wire				alu_imm_en,
 			
-			muldiv_en,
-			muldiv_mul,
-			muldiv_div,
-			muldiv_mthi,
-			muldiv_mtlo,
-			muldiv_mfhi,
-			muldiv_mflo,
-			muldiv_signed,
+			output	wire				shifter_en,
+			output	wire	[1:0]		shifter_func,
+			output	wire				shifter_sa_en,
+			output	wire	[4:0]		shifter_sa_data,
 			
-			cop0_mfc0,
-			cop0_mtc0,
-			cop0_rfe,
+			output	wire				muldiv_en,
+			output	wire				muldiv_mul,
+			output	wire				muldiv_div,
+			output	wire				muldiv_mthi,
+			output	wire				muldiv_mtlo,
+			output	wire				muldiv_mfhi,
+			output	wire				muldiv_mflo,
+			output	wire				muldiv_signed,
 
-			exc_syscall,
-			exc_break,
-			exc_ri,
+			output	wire				cop0_mfc0,
+			output	wire				cop0_mtc0,
+			output	wire				cop0_rfe,
+
+			output	wire				exc_syscall,
+			output	wire				exc_break,
+			output	wire				exc_ri,
 			
-			dbg_sdbbp,
-			
-			mem_en,
-			mem_we,
-			mem_size,
-			mem_unsigned,
-			
-			dst_reg_en,
-			dst_reg_addr,
-			dst_src_alu,
-			dst_src_shifter,
-			dst_src_mem,
-			dst_src_pc,
-			dst_src_hi,
-			dst_src_lo,
-			dst_src_cop0
+			output	wire				dbg_sdbbp,
+
+			output	wire				mem_en,
+			output	wire				mem_we,
+			output	wire	[1:0]		mem_size,
+			output	wire				mem_unsigned,
+					
+			output	wire				dst_reg_en,
+			output	wire	[4:0]		dst_reg_addr,
+			output	wire				dst_src_alu,
+			output	wire				dst_src_shifter,
+			output	wire				dst_src_mem,
+			output	wire				dst_src_pc,
+			output	wire				dst_src_hi,
+			output	wire				dst_src_lo,
+			output	wire				dst_src_cop0
 		);
-	
-	parameter	USE_EXC_SYSCALL = 1'b1;
-	parameter	USE_EXC_BREAK   = 1'b1;
-	parameter	USE_EXC_RI      = 1'b1;
-	
-	input	[31:0]			instruction;
-	
-	output	[4:0]			rs_addr;
-	output	[4:0]			rt_addr;
-	output	[4:0]			rd_addr;
-	output	[31:0]			immediate_data;
-	
-	output					branch_en;
-	output	[3:0]			branch_func;
-	output	[27:0]			branch_index;
-	output					branch_index_en;
-	output					branch_imm_en;
-	output					branch_rs_en;
-	
-	output					alu_adder_en;
-	output	[1:0]			alu_adder_func;
-	output					alu_logic_en;
-	output	[1:0]			alu_logic_func;
-	output					alu_comp_en;
-	output					alu_comp_func;
-	output					alu_imm_en;
-	
-	output					shifter_en;
-	output	[1:0]			shifter_func;
-	output					shifter_sa_en;
-	output	[4:0]			shifter_sa_data;
-	
-	output					muldiv_en;
-	output					muldiv_mul;
-	output					muldiv_div;
-	output					muldiv_mthi;
-	output					muldiv_mtlo;
-	output					muldiv_mfhi;
-	output					muldiv_mflo;
-	output					muldiv_signed;
-
-	output					cop0_mfc0;
-	output					cop0_mtc0;
-	output					cop0_rfe;
-
-	output					exc_syscall;
-	output					exc_break;
-	output					exc_ri;
-	
-	output					dbg_sdbbp;
-
-	output					mem_en;
-	output					mem_we;
-	output	[1:0]			mem_size;
-	output					mem_unsigned;
-			
-	output					dst_reg_en;
-	output	[4:0]			dst_reg_addr;
-	output					dst_src_alu;
-	output					dst_src_shifter;
-	output					dst_src_mem;
-	output					dst_src_pc;
-	output					dst_src_hi;
-	output					dst_src_lo;
-	output					dst_src_cop0;
-	
 	
 	
 	// -----------------------------

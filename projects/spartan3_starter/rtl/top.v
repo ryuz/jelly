@@ -11,45 +11,39 @@
 
 // top module
 module top
+		#(
+			parameter					USE_DBUGGER     = 1'b0,
+			parameter					USE_EXC_SYSCALL = 1'b0,
+			parameter					USE_EXC_BREAK   = 1'b0,
+			parameter					USE_EXC_RI      = 1'b0,
+			parameter					GPR_TYPE        = 0,
+			parameter					DBBP_NUM        = 0
+		)
 		(
-			clk_in, reset_in,
-			asram_ce0_n, asram_ce1_n, asram_we_n, asram_oe_n, asram_bls_n, asram_a, asram_d,
-			uart0_tx, uart0_rx,
-			uart1_tx, uart1_rx,
-			ext, led, sw
+			// system
+			input	wire				reset_in,
+			input	wire				clk_in,
+			
+			// asram
+			output	wire				asram_ce0_n,
+			output	wire				asram_ce1_n,
+			output	wire				asram_we_n,
+			output	wire				asram_oe_n,
+			output	wire	[3:0]		asram_bls_n,
+			output	wire	[17:0]		asram_a,
+			inout	wire	[31:0]		asram_d,
+
+			// uart
+			output	wire				uart0_tx,
+			input	wire				uart0_rx,
+			
+			output	wire				uart1_tx,
+			input	wire				uart1_rx,
+			
+			output	wire	[30:0]		ext,
+			output	wire	[7:0]		led,
+			input	wire	[7:0]		sw
 		);
-	parameter	USE_DBUGGER     = 1'b0;
-	parameter	USE_EXC_SYSCALL = 1'b0;
-	parameter	USE_EXC_BREAK   = 1'b0;
-	parameter	USE_EXC_RI      = 1'b0;
-	parameter	GPR_TYPE        = 0;
-	
-	
-	// system
-	input				clk_in;
-	input				reset_in;
-	
-	// asram
-	output				asram_ce0_n;
-	output				asram_ce1_n;
-	output				asram_we_n;
-	output				asram_oe_n;
-	output	[3:0]		asram_bls_n;
-	output	[17:0]		asram_a;
-	inout	[31:0]		asram_d;
-
-	// uart
-	output				uart0_tx;
-	input				uart0_rx;
-	
-	output				uart1_tx;
-    input				uart1_rx;
-	
-	output	[30:0]		ext;
-	output	[7:0]		led;
-	input	[7:0]		sw;
-
-	
 	
 	wire				uart_tx;
 	wire				uart_rx;
@@ -129,7 +123,8 @@ module top
 				.USE_EXC_SYSCALL	(USE_EXC_SYSCALL),
 				.USE_EXC_BREAK		(USE_EXC_BREAK),
 				.USE_EXC_RI			(USE_EXC_RI),
-				.GPR_TYPE			(GPR_TYPE)
+				.GPR_TYPE			(GPR_TYPE),
+				.DBBP_NUM			(DBBP_NUM)
 			)
 		i_cpu_top
 			(
@@ -165,34 +160,43 @@ module top
 				.pause				(1'b0)
 			);
 	
-	/*
-	assign wb_dbg_adr_o = 4'h0;
-	assign wb_dbg_dat_o = 32'h0000_0000;
-	assign wb_dbg_we_o  = 1'b0;
-	assign wb_dbg_sel_o = 4'b0000;
-	assign wb_dbg_stb_o = 1'b0;
-	*/
-	
-	jelly_dbg_uart
-		i_dbg_uart
-			(
-				.reset				(reset),
-				.clk				(clk),
-				.endian				(endian),
-				
-				.uart_clk			(clk_uart),
-				.uart_tx			(dbg_uart_tx),
-				.uart_rx			(dbg_uart_rx),
-				
-				.wb_dbg_adr_o		(wb_dbg_adr_o),
-				.wb_dbg_dat_i		(wb_dbg_dat_i),
-				.wb_dbg_dat_o		(wb_dbg_dat_o),
-				.wb_dbg_we_o		(wb_dbg_we_o),
-				.wb_dbg_sel_o		(wb_dbg_sel_o),
-				.wb_dbg_stb_o		(wb_dbg_stb_o),
-				.wb_dbg_ack_i		(wb_dbg_ack_i)
-			);
-	
+	generate
+	if ( USE_DBUGGER ) begin
+		jelly_dbg_uart
+				#(
+					.TX_FIFO_PTR_WIDTH	(2),
+					.RX_FIFO_PTR_WIDTH	(2)
+				)
+			i_dbg_uart
+				(
+					.reset				(reset),
+					.clk				(clk),
+					.endian				(endian),
+					
+					.uart_clk			(clk_uart),
+					.uart_tx			(dbg_uart_tx),
+					.uart_rx			(dbg_uart_rx),
+					
+					.wb_dbg_adr_o		(wb_dbg_adr_o),
+					.wb_dbg_dat_i		(wb_dbg_dat_i),
+					.wb_dbg_dat_o		(wb_dbg_dat_o),
+					.wb_dbg_we_o		(wb_dbg_we_o),
+					.wb_dbg_sel_o		(wb_dbg_sel_o),
+					.wb_dbg_stb_o		(wb_dbg_stb_o),
+					.wb_dbg_ack_i		(wb_dbg_ack_i)
+				);
+	end
+	else begin
+		assign dbg_uart_tx  = 1'b1;
+		
+		assign wb_dbg_adr_o = 4'h0;
+		assign wb_dbg_dat_o = 32'h0000_0000;
+		assign wb_dbg_we_o  = 1'b0;
+		assign wb_dbg_sel_o = 4'b0000;
+		assign wb_dbg_stb_o = 1'b0;
+	end
+	endgenerate
+		
 	
 	
 	// -------------------------
@@ -264,7 +268,7 @@ module top
 
 		
 	// -------------------------
-	//  asram
+	//  external asram
 	// -------------------------
 
 	reg					asram_wb_stb_i;
@@ -272,22 +276,22 @@ module top
 	wire				asram_wb_ack_o;
 	
 	wire				asram_cs_n;
-	jelly_asram
+	jelly_extbus
 			#(
 				.WB_ADR_WIDTH		(18),
 				.WB_DAT_WIDTH		(32)
 			)
-		i_asram
+		i_jelly_extbus
 			(
 				.reset				(reset),
 				.clk				(clk),
 				
-				.asram_cs_n			(asram_cs_n),
-				.asram_we_n			(asram_we_n),
-				.asram_oe_n			(asram_oe_n),
-				.asram_bls_n		(asram_bls_n),
-				.asram_a			(asram_a),
-				.asram_d			(asram_d),
+				.extbus_cs_n		(asram_cs_n),
+				.extbus_we_n		(asram_we_n),
+				.extbus_oe_n		(asram_oe_n),
+				.extbus_bls_n		(asram_bls_n),
+				.extbus_a			(asram_a),
+				.extbus_d			(asram_d),
 				
 				.wb_adr_i			(wb_adr_o[19:2]),
 				.wb_dat_o			(asram_wb_dat_o),

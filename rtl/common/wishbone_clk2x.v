@@ -13,39 +13,36 @@
 
 // whishbone x2 clock bridge
 module wishbone_clk2x
+		#(
+			parameter							WB_ADR_WIDTH  = 30,
+			parameter							WB_DAT_WIDTH  = 32,
+			parameter							WB_SEL_WIDTH  = (WB_DAT_WIDTH / 8)
+		)
 		(
-			reset, clk, clk2x,
-			wb_adr_i, wb_dat_o, wb_dat_i, wb_we_i, wb_sel_i, wb_stb_i, wb_ack_o,
-			wb_2x_adr_o, wb_2x_dat_o, wb_2x_dat_i, wb_2x_we_o, wb_2x_sel_o, wb_2x_stb_o, wb_2x_ack_i
+			//system
+			input								clk,
+			input								clk2x,
+			input								reset,
+			
+			// wishbone
+			input	wire	[WB_ADR_WIDTH-1:0]	wb_adr_i,
+			output	reg		[WB_DAT_WIDTH-1:0]	wb_dat_o,
+			input	wire	[WB_DAT_WIDTH-1:0]	wb_dat_i,
+			input	wire						wb_we_i,
+			input	wire	[WB_SEL_WIDTH-1:0]	wb_sel_i,
+			input	wire						wb_stb_i,
+			output	reg							wb_ack_o,
+			
+			// wishbone
+			output	reg		[WB_ADR_WIDTH-1:0]	wb_2x_adr_o,
+			output	reg		[WB_DAT_WIDTH-1:0]	wb_2x_dat_o,
+			input	wire	[WB_DAT_WIDTH-1:0]	wb_2x_dat_i,
+			output	reg							wb_2x_we_o,
+			output	reg		[WB_SEL_WIDTH-1:0]	wb_2x_sel_o,
+			output	reg							wb_2x_stb_o,
+			input	wire						wb_2x_ack_i
 		);
-	
-	parameter	WB_ADR_WIDTH  = 30;
-	parameter	WB_DAT_WIDTH  = 32;
-	localparam	WB_SEL_WIDTH  = (WB_DAT_WIDTH / 8);
-	
-	input						clk;
-	input						clk2x;
-	input						reset;
-	
-	// wishbone
-	input	[WB_ADR_WIDTH-1:0]	wb_adr_i;
-	output	[WB_DAT_WIDTH-1:0]	wb_dat_o;
-	input	[WB_DAT_WIDTH-1:0]	wb_dat_i;
-	input						wb_we_i;
-	input	[WB_SEL_WIDTH-1:0]	wb_sel_i;
-	input						wb_stb_i;
-	output						wb_ack_o;
-	
-	// wishbone
-	output	[WB_ADR_WIDTH-1:0]	wb_2x_adr_o;
-	output	[WB_DAT_WIDTH-1:0]	wb_2x_dat_o;
-	input	[WB_DAT_WIDTH-1:0]	wb_2x_dat_i;
-	output						wb_2x_we_o;
-	output	[WB_SEL_WIDTH-1:0]	wb_2x_sel_o;
-	output						wb_2x_stb_o;
-	input						wb_2x_ack_i;
-	
-	
+	/*
 	reg		[WB_DAT_WIDTH-1:0]	wb_dat_o;
 	reg							wb_ack_o;
 	
@@ -54,7 +51,7 @@ module wishbone_clk2x
 	reg							wb_2x_we_o;
 	reg		[WB_SEL_WIDTH-1:0]	wb_2x_sel_o;
 	reg							wb_2x_stb_o;
-	
+	*/
 	
 	reg							st_idle;
 	reg							st_busy;

@@ -12,41 +12,38 @@
 
 // uart
 module jelly_uart
+		#(
+			parameter							TX_FIFO_PTR_WIDTH = 4,
+			parameter							RX_FIFO_PTR_WIDTH = 4,
+			         
+			parameter							WB_ADR_WIDTH  = 2,
+			parameter							WB_DAT_WIDTH  = 32,
+			parameter							WB_SEL_WIDTH  = (WB_DAT_WIDTH / 8)
+		)
 		(
-			reset, clk,			
-			uart_clk, uart_tx, uart_rx,
-			irq_rx, irq_tx,
-			wb_adr_i, wb_dat_o, wb_dat_i, wb_we_i, wb_sel_i, wb_stb_i, wb_ack_o
+			input	wire						reset,
+			input	wire						clk,
+			
+			// UART
+			input	wire						uart_clk,
+			output	wire						uart_tx,
+			input	wire						uart_rx,
+			
+			output	wire						irq_rx,
+			output	wire						irq_tx,
+			
+			// control
+			input	wire	[WB_ADR_WIDTH-1:0]	wb_adr_i,
+			output	wire	[WB_DAT_WIDTH-1:0]	wb_dat_o,
+			input	wire	[WB_DAT_WIDTH-1:0]	wb_dat_i,
+			input	wire						wb_we_i,
+			input	wire	[WB_SEL_WIDTH-1:0]	wb_sel_i,
+			input	wire						wb_stb_i,
+			output	wire						wb_ack_o
 		);
-	parameter	TX_FIFO_PTR_WIDTH = 4;
-	parameter	RX_FIFO_PTR_WIDTH = 4;
+
 	localparam	TX_FIFO_SIZE = (1 << TX_FIFO_PTR_WIDTH);
 	localparam	RX_FIFO_SIZE = (1 << RX_FIFO_PTR_WIDTH);
-	
-	parameter	WB_ADR_WIDTH  = 2;
-	parameter	WB_DAT_WIDTH  = 32;
-	localparam	WB_SEL_WIDTH  = (WB_DAT_WIDTH / 8);
-	
-	input						clk;
-	input						reset;
-	
-	// UART
-	input						uart_clk;
-	output						uart_tx;
-	input						uart_rx;
-	
-	output						irq_rx;
-	output						irq_tx;
-	
-	// control
-	input	[WB_ADR_WIDTH-1:0]	wb_adr_i;
-	output	[WB_DAT_WIDTH-1:0]	wb_dat_o;
-	input	[WB_DAT_WIDTH-1:0]	wb_dat_i;
-	input						wb_we_i;
-	input	[WB_SEL_WIDTH-1:0]	wb_sel_i;
-	input						wb_stb_i;
-	output						wb_ack_o;
-	
 	
 	
 	// -------------------------

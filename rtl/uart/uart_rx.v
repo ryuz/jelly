@@ -14,23 +14,18 @@
 
 module uart_rx
 		(
-			reset, clk,
-			uart_rx,
-			rx_en, rx_dout
+			// system
+			input	wire			reset,
+			input	wire			clk,
+			
+			// UART
+			input	wire			uart_rx,
+			
+			// control
+			output	wire			rx_en,
+			output	wire	[7:0]	rx_dout
 		);
 	
-	// system
-	input						reset;
-	input						clk;
-	
-	// UART
-	input						uart_rx;
-	
-	// control
-	output						rx_en;
-	output	[7:0]				rx_dout;
-	
-		
 	// recv
 	reg							rx_ff_data;
 	reg		[8:0]				rx_data;

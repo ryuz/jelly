@@ -18,37 +18,33 @@
 
 
 module jelly_timer
+		#(
+			parameter							WB_ADR_WIDTH  = 2,
+			parameter							WB_DAT_WIDTH  = 32,
+			parameter							WB_SEL_WIDTH  = (WB_DAT_WIDTH / 8)
+		)
 		(
-			reset, clk,
-			interrupt_req,
-			wb_adr_i, wb_dat_o, wb_dat_i, wb_we_i, wb_sel_i, wb_stb_i, wb_ack_o
+			// system
+			input	wire						reset,
+			input	wire						clk,
+			
+			// irq
+			output	reg							interrupt_req,
+			
+			// control port (wishbone)
+			input	wire	[WB_ADR_WIDTH-1:0]	wb_adr_i,
+			output	reg		[WB_DAT_WIDTH-1:0]	wb_dat_o,
+			input	wire	[WB_DAT_WIDTH-1:0]	wb_dat_i,
+			input	wire						wb_we_i,
+			input	wire	[WB_SEL_WIDTH-1:0]	wb_sel_i,
+			input	wire						wb_stb_i,
+			output	wire						wb_ack_o
 		);
-	
-	parameter	WB_ADR_WIDTH  = 2;
-	parameter	WB_DAT_WIDTH  = 32;
-	localparam	WB_SEL_WIDTH  = (WB_DAT_WIDTH / 8);
-	
-	// system
-	input						clk;
-	input						reset;
-	
-	// irq
-	output						interrupt_req;
-	
-	// control port (wishbone)
-	input	[WB_ADR_WIDTH-1:0]	wb_adr_i;
-	output	[WB_DAT_WIDTH-1:0]	wb_dat_o;
-	input	[WB_DAT_WIDTH-1:0]	wb_dat_i;
-	input						wb_we_i;
-	input	[WB_SEL_WIDTH-1:0]	wb_sel_i;
-	input						wb_stb_i;
-	output						wb_ack_o;
 	
 	reg					reg_enable;
 	reg					reg_clear;
 	reg		[31:0]		reg_counter;
 	reg		[31:0]		reg_compare;
-	reg					interrupt_req;
 	
 	wire				compare_match;
 	assign compare_match = (reg_counter == reg_compare);
@@ -94,7 +90,6 @@ module jelly_timer
 		end
 	end
 	
-	reg		[WB_DAT_WIDTH-1:0]	wb_dat_o;
 	always @* begin
 		case ( wb_adr_i )
 		`TIMER_ADR_CONTROL:	wb_dat_o <= {reg_clear, reg_enable};

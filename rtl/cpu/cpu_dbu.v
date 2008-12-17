@@ -63,79 +63,71 @@
 
 // Debug Unit
 module cpu_dbu
+		#(
+			parameter					USE_IBUS_HOOK = 1'b0,
+			parameter					USE_DBUS_HOOK = 1'b1,
+			parameter					IBUS_HOOK_FF  = 1'b0,
+			parameter					DBUS_HOOK_FF  = 1'b1
+		)
 		(
-			reset, clk, endian,
-			wb_adr_i, wb_dat_i, wb_dat_o, wb_we_i, wb_sel_i, wb_stb_i, wb_ack_o,
-			dbg_enable, dbg_break_req, dbg_break,
-			wb_data_adr_o, wb_data_dat_i, wb_data_dat_o, wb_data_we_o, wb_data_sel_o, wb_data_stb_o, wb_data_ack_i,
-			wb_inst_adr_o, wb_inst_dat_i, wb_inst_sel_o, wb_inst_stb_o, wb_inst_ack_i,
-			gpr_en, gpr_we, gpr_addr, gpr_wdata, gpr_rdata,
-			hilo_en, hilo_we, hilo_addr, hilo_wdata, hilo_rdata,
-			cop0_en, cop0_we, cop0_addr, cop0_wdata, cop0_rdata
+			// system
+			input	wire				reset,
+			input	wire				clk,
+			input	wire				endian,
+
+			// wishbone bus
+			input	wire	[3:0]		wb_adr_i,
+			input	wire	[31:0]		wb_dat_i,
+			output	reg		[31:0]		wb_dat_o,
+			input	wire				wb_we_i,
+			input	wire	[3:0]		wb_sel_i,
+			input	wire				wb_stb_i,
+			output	reg					wb_ack_o,
+
+			
+			// debug status
+			output	reg					dbg_enable,
+			output	reg					dbg_break_req,
+			input	wire				dbg_break,
+			
+			
+			// d-bus control
+			output	wire	[31:2]		wb_data_adr_o,
+			input	wire	[31:0]		wb_data_dat_i,
+			output	wire	[31:0]		wb_data_dat_o,
+			output	wire				wb_data_we_o,
+			output	wire	[3:0]		wb_data_sel_o,
+			output	wire				wb_data_stb_o,
+			input	wire				wb_data_ack_i,
+			
+			// i-bus control
+			output	wire	[31:2]		wb_inst_adr_o,
+			input	wire	[31:0]		wb_inst_dat_i,
+			output	wire	[3:0]		wb_inst_sel_o,
+			output	wire				wb_inst_stb_o,
+			input	wire				wb_inst_ack_i,
+			
+			// gpr control
+			output	reg					gpr_en,
+			output	wire				gpr_we,
+			output	wire	[4:0]		gpr_addr,
+			output	wire	[31:0]		gpr_wdata,
+			input	wire	[31:0]		gpr_rdata,
+			
+			// hi/lo control
+			output	reg					hilo_en,
+			output	wire				hilo_we,
+			output	wire	[0:0]		hilo_addr,
+			output	wire	[31:0]		hilo_wdata,
+			input	wire	[31:0]		hilo_rdata,
+			
+			// cop0 control
+			output	reg					cop0_en,
+			output	wire				cop0_we,
+			output	wire	[4:0]		cop0_addr,
+			output	wire	[31:0]		cop0_wdata,
+			input	wire	[31:0]		cop0_rdata
 		);
-	parameter	USE_IBUS_HOOK = 1'b0;
-	parameter	USE_DBUS_HOOK = 1'b1;
-	parameter	IBUS_HOOK_FF  = 1'b0;
-	parameter	DBUS_HOOK_FF  = 1'b1;
-	
-	// system
-	input				reset;
-	input				clk;
-	input				endian;
-
-	// wishbone bus
-	input	[3:0]		wb_adr_i;
-	input	[31:0]		wb_dat_i;
-	output	[31:0]		wb_dat_o;
-	input				wb_we_i;
-	input	[3:0]		wb_sel_i;
-	input				wb_stb_i;
-	output				wb_ack_o;
-
-	
-	// debug status
-	output				dbg_enable;
-	output				dbg_break_req;
-	input				dbg_break;
-	
-	
-	// d-bus control
-	output	[31:2]		wb_data_adr_o;
-	input	[31:0]		wb_data_dat_i;
-	output	[31:0]		wb_data_dat_o;
-	output				wb_data_we_o;
-	output	[3:0]		wb_data_sel_o;
-	output				wb_data_stb_o;
-	input				wb_data_ack_i;
-	
-	// i-bus control
-	output	[31:2]		wb_inst_adr_o;
-	input	[31:0]		wb_inst_dat_i;
-	output	[3:0]		wb_inst_sel_o;
-	output				wb_inst_stb_o;
-	input				wb_inst_ack_i;
-	
-	// gpr control
-	output				gpr_en;
-	output				gpr_we;
-	output	[4:0]		gpr_addr;
-	output	[31:0]		gpr_wdata;
-	input	[31:0]		gpr_rdata;
-	
-	// hi/lo control
-	output				hilo_en;
-	output				hilo_we;
-	output	[0:0]		hilo_addr;
-	output	[31:0]		hilo_wdata;
-	input	[31:0]		hilo_rdata;
-	
-	// cop0 control
-	output				cop0_en;
-	output				cop0_we;
-	output	[4:0]		cop0_addr;
-	output	[31:0]		cop0_wdata;
-	input	[31:0]		cop0_rdata;
-	
 	
 	// register control
 	wire				reg_en;
@@ -151,8 +143,6 @@ module cpu_dbu
 	// -----------------------------
 	
 	// dbgctl
-	reg					dbg_enable;
-	reg					dbg_break_req;
 	always @ ( posedge clk or posedge reset ) begin
 		if ( reset ) begin
 			dbg_enable    <= 1'b0;
@@ -231,8 +221,6 @@ module cpu_dbu
 	
 	
 	// read
-	reg		[31:0]		wb_dat_o;
-	reg					wb_ack_o;
 	always @* begin
 		casex ( wb_adr_i )
 		`DBG_ADR_DBG_CTL:	// DBG_CTL
@@ -367,9 +355,6 @@ module cpu_dbu
 	assign cop0_wdata = reg_wdata;
 	
 	// address decode
-	reg				hilo_en;
-	reg				gpr_en;
-	reg				cop0_en;
 	always @* begin
 		hilo_en = 1'b0;
 		gpr_en  = 1'b0;

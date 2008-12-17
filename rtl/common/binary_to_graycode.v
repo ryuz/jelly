@@ -11,17 +11,24 @@
 
 
 //   Binary to Graycode
-module binary_to_graycode(
-			binary,
-			graycode
+module binary_to_graycode
+		#(
+			parameter						WIDTH = 4
+		)
+		(
+			input	wire	[WIDTH-1:0]		binary,
+			output	reg		[WIDTH-1:0]		graycode
 		);
 	
-	parameter WIDTH = 4;
+	integer i;
+	always @* begin
+		graycode[WIDTH-1] = binary[WIDTH-1];
+		for ( i = WIDTH - 2; i >= 0; i = i-1 ) begin
+			graycode[i] = binary[i+1] ^ binary[i];
+		end
+	end
 	
-	input	[WIDTH-1:0]	binary;
-	output	[WIDTH-1:0]	graycode;
-	
-	
+	/*
 	function [WIDTH-1:0] gray_out;
 	input	[WIDTH-1:0]	bin_in;
 	integer i;
@@ -34,6 +41,7 @@ module binary_to_graycode(
     endfunction
 	
     assign graycode = gray_out(binary);
+	*/
 	
 endmodule
 

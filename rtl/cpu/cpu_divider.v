@@ -21,33 +21,27 @@
 // out_quotient  <- in_data0 / in_data1
 // out_remainder <- in_data0 % in_data1
 module cpu_divider
+		#(
+			parameter							DATA_WIDTH = 32
+		)
 		(
-			reset, clk,
-			op_div, op_signed, op_set_remainder, op_set_quotient,
-			in_data0, in_data1,
-			out_en, out_remainder, out_quotient,
-			busy
+			input	wire						reset,
+			input	wire						clk,
+			
+			input	wire						op_div,
+			input	wire						op_signed,
+			input	wire						op_set_remainder,
+			input	wire						op_set_quotient,
+			
+			input	wire	[DATA_WIDTH-1:0]	in_data0,
+			input	wire	[DATA_WIDTH-1:0]	in_data1,
+			
+			output	reg							out_en,
+			output	wire	[DATA_WIDTH-1:0]	out_quotient,
+			output	wire	[DATA_WIDTH-1:0]	out_remainder,
+			
+			output	reg							busy
 		);
-	
-	parameter DATA_WIDTH = 32;
-	
-	input						reset;
-	input						clk;
-	
-	input						op_div;
-	input						op_signed;
-	input						op_set_remainder;
-	input						op_set_quotient;
-	
-	input	[DATA_WIDTH-1:0]	in_data0;
-	input	[DATA_WIDTH-1:0]	in_data1;
-	
-	output						out_en;
-	output	[DATA_WIDTH-1:0]	out_quotient;
-	output	[DATA_WIDTH-1:0]	out_remainder;
-	
-	output						busy;
-	
 	
 	// NEG
 	function [DATA_WIDTH-1:0]	neg;
@@ -79,8 +73,6 @@ module cpu_divider
 	
 	wire	[DATA_WIDTH:0]		quotient2;
 	
-	reg							busy;
-	reg							out_en;
 	
 	reg		[4:0]				counter;
 	wire	[4:0]				counter_next;

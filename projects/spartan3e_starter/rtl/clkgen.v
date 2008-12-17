@@ -13,31 +13,19 @@
 // Clock generator
 module clkgen
 		(
-			in_reset, 
-			in_clk, 
+			input	wire		in_reset,
+			input	wire		in_clk,
 			
-			out_clk,
-			out_clk_x2,
-			out_clk_uart,
-			
-			out_clk_sdram,
-			out_clk90_sdram,
-			
-			locked
+			output	wire		out_clk,
+			output	wire		out_clk_x2,
+
+			output	wire		out_clk_sdram,
+			output	wire		out_clk90_sdram,
+
+			output	wire		out_clk_uart,
+
+			output	wire		locked
 		);
-
-	input		in_reset;
-	input		in_clk;
-	
-	output		out_clk;
-	output		out_clk_x2;
-
-	output		out_clk_sdram;
-	output		out_clk90_sdram;
-
-	output		out_clk_uart;
-
-	output		locked;
 	
 	
 	// -------------------------

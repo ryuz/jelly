@@ -11,47 +11,42 @@
 
 
 module ddr_sdram_init
+		#(
+			parameter								SIMULATION      = 1'b1,
+			parameter								CLK_RATE        = 10.0,
+			parameter								INIT_WAIT_CYCLE = (200000 + (CLK_RATE - 1)) / CLK_RATE,
+			
+			parameter								SDRAM_BA_WIDTH  = 2,
+			parameter								SDRAM_A_WIDTH   = 13
+		)
 		(
-			reset, clk,
-			initializing,
-			ddr_sdram_cke, ddr_sdram_cs, ddr_sdram_ras, ddr_sdram_cas, ddr_sdram_we, ddr_sdram_ba, ddr_sdram_a
+			// system
+			input	wire							reset,
+			input	wire							clk,
+			
+			// initializing
+			output	wire							initializing,
+			
+			// DDR-SDRAM
+			output	wire							ddr_sdram_cke,
+			output	wire							ddr_sdram_cs,
+			output	wire							ddr_sdram_ras,
+			output	wire							ddr_sdram_cas,
+			output	wire							ddr_sdram_we,
+			output	wire	[SDRAM_BA_WIDTH-1:0]	ddr_sdram_ba,
+			output	wire	[SDRAM_A_WIDTH-1:0]		ddr_sdram_a
 		);
 	
-	parameter	SIMULATION      = 1'b1;
-	parameter	CLK_RATE        = 10.0;
-	parameter	INIT_WAIT_CYCLE = (200000 + (CLK_RATE - 1)) / CLK_RATE;
-	
-	parameter	SDRAM_BA_WIDTH  = 2;
-	parameter	SDRAM_A_WIDTH   = 13;
-	
-	
-	// system
-	input							reset;
-	input							clk;
-	
-	// initializing
-	output							initializing;
-	
-	// DDR-SDRAM
-	output							ddr_sdram_cke;
-	output							ddr_sdram_cs;
-	output							ddr_sdram_ras;
-	output							ddr_sdram_cas;
-	output							ddr_sdram_we;
-	output	[SDRAM_BA_WIDTH-1:0]	ddr_sdram_ba;
-	output	[SDRAM_A_WIDTH-1:0]		ddr_sdram_a;
-	
-	
 	// initialize state
-	parameter	INIT_ST_WAIT     = 0;
-	parameter	INIT_ST_CKE      = 1;
-	parameter	INIT_ST_PALL1    = 2;
-	parameter	INIT_ST_EMRS     = 3;
-	parameter	INIT_ST_MRS1     = 4;
-	parameter	INIT_ST_PALL2    = 5;
-	parameter	INIT_ST_REFRESH1 = 6;
-	parameter	INIT_ST_REFRESH2 = 7;
-	parameter	INIT_ST_MRS2     = 8;
+	localparam	INIT_ST_WAIT     = 0;
+	localparam	INIT_ST_CKE      = 1;
+	localparam	INIT_ST_PALL1    = 2;
+	localparam	INIT_ST_EMRS     = 3;
+	localparam	INIT_ST_MRS1     = 4;
+	localparam	INIT_ST_PALL2    = 5;
+	localparam	INIT_ST_REFRESH1 = 6;
+	localparam	INIT_ST_REFRESH2 = 7;
+	localparam	INIT_ST_MRS2     = 8;
 	
 	reg							reg_init;	
 	reg		[3:0]				reg_state;

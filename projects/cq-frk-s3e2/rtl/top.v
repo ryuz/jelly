@@ -11,35 +11,29 @@
 
 // top module
 module top
+		#(
+			parameter 				CPU_USE_DBUGGER     = 1'b0,
+			parameter 				CPU_USE_EXC_SYSCALL = 1'b0,
+			parameter 				CPU_USE_EXC_BREAK   = 1'b0,
+			parameter 				CPU_USE_EXC_RI      = 1'b0,
+			parameter 				CPU_GPR_TYPE        = 0,
+			parameter 				CPU_DBBP_NUM        = 0
+		)
 		(
-			clk_in, reset_in_n,
+			// system
+			input	wire			clk_in,
+			input	wire			reset_in_n,
 			
-			uart0_tx, uart0_rx,
-			uart1_tx, uart1_rx,
-
-			led
+			// uart
+			output	wire			uart0_tx,
+			input	wire			uart0_rx,
+			
+			output	wire			uart1_tx,
+			input	wire			uart1_rx,
+			
+			// UI
+			output	wire			led
 		);
-
-	parameter CPU_USE_DBUGGER     = 1'b0;
-	parameter CPU_USE_EXC_SYSCALL =	1'b0;
-	parameter CPU_USE_EXC_BREAK   = 1'b0;
-	parameter CPU_USE_EXC_RI      = 1'b0;
-	parameter CPU_GPR_TYPE        = 0;
-	parameter CPU_DBBP_NUM        = 0;
-	
-	// system
-	input				clk_in;
-	input				reset_in_n;
-	
-	// uart
-	output				uart0_tx;
-	input				uart0_rx;
-	
-	output				uart1_tx;
-    input				uart1_rx;
-	
-	// UI
-	output				led;
 	
 	
 	
@@ -242,7 +236,7 @@ module top
 	
 	jelly_sram
 			#(
-				.WB_ADR_WIDTH	(10),
+				.WB_ADR_WIDTH	(2),
 				.WB_DAT_WIDTH	(32)
 			)
 		i_sram

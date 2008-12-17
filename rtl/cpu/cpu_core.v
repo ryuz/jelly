@@ -14,72 +14,63 @@
 
 // CPU Core
 module cpu_core
+		#(
+			parameter					USE_DBUGGER     = 1'b1,
+			parameter					USE_EXC_SYSCALL = 1'b1,
+			parameter					USE_EXC_BREAK   = 1'b1,
+			parameter					USE_EXC_RI      = 1'b1,
+			parameter					USE_HW_BP       = 1'b1,
+			parameter					GPR_TYPE        = 0,
+			parameter					DBBP_NUM        = 4
+		)
 		(
-			reset, clk, clk_x2,
-			endian,
-			vect_reset, vect_interrupt, vect_exception,
-			interrupt_req, interrupt_ack,
-			wb_inst_adr_o, wb_inst_dat_i, wb_inst_dat_o, wb_inst_we_o, wb_inst_sel_o, wb_inst_stb_o, wb_inst_ack_i,
-			wb_data_adr_o, wb_data_dat_i, wb_data_dat_o, wb_data_we_o, wb_data_sel_o, wb_data_stb_o, wb_data_ack_i,
-			wb_dbg_adr_i, wb_dbg_dat_i, wb_dbg_dat_o, wb_dbg_we_i, wb_dbg_sel_i, wb_dbg_stb_i, wb_dbg_ack_o,
-			pause
-		);
-	
-	parameter	USE_DBUGGER     = 1'b1;
-	parameter	USE_EXC_SYSCALL = 1'b1;
-	parameter	USE_EXC_BREAK   = 1'b1;
-	parameter	USE_EXC_RI      = 1'b1;
-	parameter	USE_HW_BP       = 1'b1;
-	parameter	GPR_TYPE        = 0;
-	parameter	DBBP_NUM        = 4;
-	
-	// system
-	input			reset;
-	input			clk;
-	input			clk_x2;
-	
-	// endian
-	input			endian;
-	
-	// vector
-	input	[31:0]	vect_reset;
-	input	[31:0]	vect_interrupt;
-	input	[31:0]	vect_exception;
+			// system
+			input	wire				reset,
+			input	wire				clk,
+			input	wire				clk_x2,
+			
+			// endian
+			input	wire				endian,
+			
+			// vector
+			input	wire	[31:0]		vect_reset,
+			input	wire	[31:0]		vect_interrupt,
+			input	wire	[31:0]		vect_exception,
 
-	// interrupt
-	input			interrupt_req;
-	output			interrupt_ack;
-	
-	// Instruction bus (wishbone)
-	output	[29:0]	wb_inst_adr_o;
-	input	[31:0]	wb_inst_dat_i;
-	output	[31:0]	wb_inst_dat_o;
-	output			wb_inst_we_o;
-	output	[3:0]	wb_inst_sel_o;
-	output			wb_inst_stb_o;
-	input			wb_inst_ack_i;
-	
-	// Data bus (wishbone)
-	output	[29:0]	wb_data_adr_o;
-	input	[31:0]	wb_data_dat_i;
-	output	[31:0]	wb_data_dat_o;
-	output			wb_data_we_o;
-	output	[3:0]	wb_data_sel_o;
-	output			wb_data_stb_o;
-	input			wb_data_ack_i;
-	
-	// Debug port (wishbone)
-	input	[3:0]	wb_dbg_adr_i;
-	input	[31:0]	wb_dbg_dat_i;
-	output	[31:0]	wb_dbg_dat_o;
-	input			wb_dbg_we_i;
-	input	[3:0]	wb_dbg_sel_i;
-	input			wb_dbg_stb_i;
-	output			wb_dbg_ack_o;
-	
-	// control
-	input			pause;
-	
+			// interrupt
+			input	wire				interrupt_req,
+			output	wire				interrupt_ack,
+			
+			// Instruction bus (wishbone)
+			output	wire	[29:0]		wb_inst_adr_o,
+			input	wire	[31:0]		wb_inst_dat_i,
+			output	wire	[31:0]		wb_inst_dat_o,
+			output	wire				wb_inst_we_o,
+			output	wire	[3:0]		wb_inst_sel_o,
+			output	wire				wb_inst_stb_o,
+			input	wire				wb_inst_ack_i,
+			
+			// Data bus (wishbone)
+			output	wire	[29:0]		wb_data_adr_o,
+			input	wire	[31:0]		wb_data_dat_i,
+			output	wire	[31:0]		wb_data_dat_o,
+			output	wire				wb_data_we_o,
+			output	wire	[3:0]		wb_data_sel_o,
+			output	wire				wb_data_stb_o,
+			input	wire				wb_data_ack_i,
+			
+			// Debug port (wishbone)
+			input	wire	[3:0]		wb_dbg_adr_i,
+			input	wire	[31:0]		wb_dbg_dat_i,
+			output	wire	[31:0]		wb_dbg_dat_o,
+			input	wire				wb_dbg_we_i,
+			input	wire	[3:0]		wb_dbg_sel_i,
+			input	wire				wb_dbg_stb_i,
+			output	wire				wb_dbg_ack_o,
+			
+			// control
+			input	wire				pause
+		);
 	
 
 	// -----------------------------

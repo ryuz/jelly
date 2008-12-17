@@ -14,23 +14,18 @@
 
 module uart_tx
 		(
-			reset, clk,
-			uart_tx,
-			tx_en, tx_din, tx_ready
+			// system
+			input	wire						reset,
+			input	wire						clk,
+			
+			// UART
+			output	wire						uart_tx,
+			
+			// control
+			input	wire						tx_en,
+			input	wire	[7:0]				tx_din,
+			output	wire						tx_ready
 		);
-	
-	// system
-	input						reset;
-	input						clk;
-	
-	// UART
-	output						uart_tx;
-	
-	// control
-	input						tx_en;
-	input	[7:0]				tx_din;
-	output						tx_ready;
-	
 	
 	// TX
 	reg							tx_busy;

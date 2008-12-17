@@ -11,35 +11,28 @@
 `timescale 1ns / 1ps
 
 
-
 module cpu_muldiv
+		#(
+			parameter							DATA_WIDTH = 32
+		)
 		(
-			reset, clk,
-			op_mul, op_div, op_mthi, op_mtlo, op_signed,
-			in_data0, in_data1,
-			out_hi, out_lo,
-			busy
+			input	wire						reset,
+			input	wire						clk,
+			
+			input	wire						op_mul,
+			input	wire						op_div,
+			input	wire						op_mthi,
+			input	wire						op_mtlo,
+			input	wire						op_signed,
+			
+			input	wire	[DATA_WIDTH-1:0]	in_data0,
+			input	wire	[DATA_WIDTH-1:0]	in_data1,
+			
+			output	wire	[DATA_WIDTH-1:0]	out_hi,
+			output	wire	[DATA_WIDTH-1:0]	out_lo,
+			
+			output	wire						busy
 		);
-	
-	parameter	DATA_WIDTH = 32;
-	
-	input							clk;
-	input							reset;
-	
-	input							op_mul;
-	input							op_div;
-	input							op_mthi;
-	input							op_mtlo;
-	input							op_signed;
-	
-	input	[DATA_WIDTH-1:0]		in_data0;
-	input	[DATA_WIDTH-1:0]		in_data1;
-	
-	output	[DATA_WIDTH-1:0]		out_hi;
-	output	[DATA_WIDTH-1:0]		out_lo;
-	
-	output							busy;
-	
 	
 		
 	// MUL

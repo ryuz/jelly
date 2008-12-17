@@ -12,38 +12,32 @@
 
 // uart
 module jelly_uart_core
+		#(
+			parameter	TX_FIFO_PTR_WIDTH = 4,
+			parameter	RX_FIFO_PTR_WIDTH = 4
+		)
 		(
-			reset, clk,			
-			uart_clk, uart_tx, uart_rx,
-			tx_en, tx_data, tx_ready,
-			rx_en, rx_data, rx_ready,
-			tx_fifo_free_num, rx_fifo_data_num
+			input	wire							reset,
+			input	wire							clk,
+			
+			input	wire							uart_clk,
+			output	wire							uart_tx,
+			input	wire							uart_rx,
+			
+			input	wire							tx_en,
+			input	wire	[7:0]					tx_data,
+			output	wire							tx_ready,
+			
+			output	wire							rx_en,
+			output	wire	[7:0]					rx_data,
+			input	wire							rx_ready,
+			
+			output	wire	[TX_FIFO_PTR_WIDTH:0]	tx_fifo_free_num,
+			output	wire	[RX_FIFO_PTR_WIDTH:0]	rx_fifo_data_num
 		);
 	
-	parameter	TX_FIFO_PTR_WIDTH = 4;
-	parameter	RX_FIFO_PTR_WIDTH = 4;
 	localparam	TX_FIFO_SIZE = (1 << TX_FIFO_PTR_WIDTH);
 	localparam	RX_FIFO_SIZE = (1 << RX_FIFO_PTR_WIDTH);
-	
-	
-	input							reset;
-	input							clk;
-	
-	input							uart_clk;
-	output							uart_tx;
-	input							uart_rx;
-	
-	input							tx_en;
-	input	[7:0]					tx_data;
-	output							tx_ready;
-	
-	output							rx_en;
-	output	[7:0]					rx_data;
-	input							rx_ready;
-	
-	output	[TX_FIFO_PTR_WIDTH:0]	tx_fifo_free_num;
-	output	[RX_FIFO_PTR_WIDTH:0]	rx_fifo_data_num;
-	
 	
 	
 	// -------------------------

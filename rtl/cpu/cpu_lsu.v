@@ -14,53 +14,44 @@
 
 // Load Store Unit
 module cpu_lsu
+		#(
+			parameter									ADDR_WIDTH   = 32,
+			parameter									DATA_SIZE    = 2,  				// 0:8bit, 1:16bit, 2:32bit ...
+			parameter									SEL_WIDTH    = (1 << DATA_SIZE),
+			parameter									DATA_WIDTH   = (8 << DATA_SIZE)
+		)
 		(
-			reset, clk,
-			interlock, busy,
-			in_en, in_we, in_sel, in_addr, in_data,
-			out_data,
-			wb_adr_o, wb_dat_i, wb_dat_o, wb_we_o, wb_sel_o, wb_stb_o, wb_ack_i
+			// system
+			input	wire								reset,
+			input	wire								clk,
+			
+			// pipline control
+			input	wire								interlock,
+			output	wire								busy,
+			
+			// input
+			input	wire								in_en,
+			input	wire								in_we,
+			input	wire	[SEL_WIDTH-1:0]				in_sel,
+			input	wire	[ADDR_WIDTH-1:0]			in_addr,
+			input	wire	[DATA_WIDTH-1:0]			in_data,
+			
+			// output
+			output	reg		[DATA_WIDTH-1:0]			out_data,
+			
+			// Whishbone bus
+			output	wire	[ADDR_WIDTH-1:DATA_SIZE]	wb_adr_o,
+			input	wire	[DATA_WIDTH-1:0]			wb_dat_i,
+			output	wire	[DATA_WIDTH-1:0]			wb_dat_o,
+			output	wire								wb_we_o,
+			output	wire	[SEL_WIDTH-1:0]				wb_sel_o,
+			output	wire								wb_stb_o,
+			input	wire								wb_ack_i
 		);
-	
-	parameter	ADDR_WIDTH   = 32;
-	parameter	DATA_SIZE    = 2;  				// 0:8bit, 1:16bit, 2:32bit ...
-	
-	localparam	SEL_WIDTH    = (1 << DATA_SIZE);
-	localparam	DATA_WIDTH   = (8 << DATA_SIZE);
-	
-	
-	// system
-	input								reset;
-	input								clk;
-	
-	// pipline control
-	input								interlock;
-	output								busy;
-	
-	// input
-	input								in_en;
-	input								in_we;
-	input	[SEL_WIDTH-1:0]				in_sel;
-	input	[ADDR_WIDTH-1:0]			in_addr;
-	input	[DATA_WIDTH-1:0]			in_data;
-	
-	// output
-	output	[DATA_WIDTH-1:0]			out_data;
-	
-	// Whishbone bus
-	output	[ADDR_WIDTH-1:DATA_SIZE]	wb_adr_o;
-	input	[DATA_WIDTH-1:0]			wb_dat_i;
-	output	[DATA_WIDTH-1:0]			wb_dat_o;
-	output								wb_we_o;
-	output	[SEL_WIDTH-1:0]				wb_sel_o;
-	output								wb_stb_o;
-	input								wb_ack_i;
-	
 	
 	
 	reg									tmp_en;
 	reg		[DATA_WIDTH-1:0]			tmp_data;
-	reg		[DATA_WIDTH-1:0]			out_data;
 	
 	always @ ( posedge clk or posedge reset ) begin
 		if ( reset ) begin

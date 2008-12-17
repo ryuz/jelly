@@ -18,22 +18,18 @@
 
 
 module cpu_shifter
+		#(
+			parameter							SA_WIDTH   = 5,
+			parameter							DATA_WIDTH = (1 << SA_WIDTH)
+		)
 		(
-			op_func,
+			input	wire	[1:0]				op_func,
 			
-			in_data, in_sa,
-			out_data
+			input	wire	[DATA_WIDTH-1:0]	in_data,
+			input	wire	[SA_WIDTH-1:0]		in_sa,
+			
+			output	wire	[DATA_WIDTH-1:0]	out_data
 		);
-	parameter SA_WIDTH   = 5;
-	parameter DATA_WIDTH = (1 << SA_WIDTH);
-
-	input	[1:0]				op_func;
-	
-	input	[DATA_WIDTH-1:0]	in_data;
-	input	[SA_WIDTH-1:0]		in_sa;
-	
-	output	[DATA_WIDTH-1:0]	out_data;
-	
 	
 	// shifter
 	wire	[DATA_WIDTH-1:0]	data_extend;

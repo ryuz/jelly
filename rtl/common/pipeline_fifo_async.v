@@ -14,30 +14,25 @@
 
 //   Asyncronous FIFO for pipeline-data
 module pipeline_fifo_async
-			(
-				reset,
-				in_clk, in_en, in_data, in_ready, in_free_num,
-				out_clk, out_en, out_data, out_ready, out_data_num
-			);
-	
-	parameter	DATA_WIDTH = 8;
-	parameter	PTR_WIDTH  = 8;
-	
-	
-	input						reset;
-	
-	input						in_clk;
-	input						in_en;
-	input	[DATA_WIDTH-1:0]	in_data;
-	output						in_ready;
-	output	[PTR_WIDTH:0]		in_free_num;
-	
-	input						out_clk;
-	output						out_en;
-	output	[DATA_WIDTH-1:0]	out_data;
-	input						out_ready;
-	output	[PTR_WIDTH:0]		out_data_num;
-
+		#(
+			parameter							DATA_WIDTH = 8,
+			parameter							PTR_WIDTH  = 8
+		)
+		(
+			input	wire						reset,
+			
+			input	wire						in_clk,
+			input	wire						in_en,
+			input	wire	[DATA_WIDTH-1:0]	in_data,
+			output	wire						in_ready,
+			output	wire	[PTR_WIDTH:0]		in_free_num,
+			
+			input	wire						out_clk,
+			output	wire						out_en,
+			output	wire	[DATA_WIDTH-1:0]	out_data,
+			input	wire						out_ready,
+			output	wire	[PTR_WIDTH:0]		out_data_num
+		);
 	
 	
 	// ---------------------------------

@@ -41,33 +41,9 @@ module cpu_gpr
 		input	wire						r1_en,
 		input	wire	[ADDR_WIDTH-1:0]	r1_addr,
 		output	wire	[DATA_WIDTH-1:0]	r1_data
-	
-
-
-/*
-				reset, clk, clk_x2,
-				interlock,
-				w0_en, w0_addr, w0_data,
-				w1_en, w1_addr, w1_data,
-				r0_en, r0_addr, r0_data,
-				r1_en, r1_addr, r1_data
-			*/
 	);
 	
 	localparam							REG_SIZE   = (1 << ADDR_WIDTH);
-	
-	
-	
-	reg		clk_dly;
-	always @* begin
-		clk_dly = #1 clk;
-	end
-	
-	// phase
-	reg							phase;
-	always @ ( posedge clk_x2 ) begin
-		phase <= clk_dly;
-	end
 	
 	
 	generate
@@ -75,6 +51,18 @@ module cpu_gpr
 		// ---------------------------------
 		//  x2 clock DP-RAM
 		// ---------------------------------
+
+		// clk_dly
+		reg		clk_dly;
+		always @* begin
+			clk_dly = #1 clk;
+		end
+		
+		// phase
+		reg							phase;
+		always @ ( posedge clk_x2 ) begin
+			phase <= clk_dly;
+		end
 		
 		// dualport ram
 		wire						ram_en0;

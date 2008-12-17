@@ -12,67 +12,62 @@
 
 // DDR-SDRAM interface
 module ddr_sdram
+		#(
+			parameter								SIMULATION      = 1'b0,
+			         
+			parameter								SDRAM_BA_WIDTH  = 2,
+			parameter								SDRAM_A_WIDTH   = 13,
+			parameter								SDRAM_DQ_WIDTH  = 16,
+			parameter								SDRAM_DM_WIDTH  = SDRAM_DQ_WIDTH / 8,
+			parameter								SDRAM_DQS_WIDTH = SDRAM_DQ_WIDTH / 8,
+			         
+			parameter								SDRAM_COL_WIDTH = 10,
+			parameter								SDRAM_ROW_WIDTH = 13,
+			         
+			parameter								WB_ADR_WIDTH    = SDRAM_COL_WIDTH+SDRAM_ROW_WIDTH+SDRAM_BA_WIDTH-1,
+			parameter								WB_DAT_WIDTH    = (SDRAM_DQ_WIDTH * 2),
+			parameter								WB_SEL_WIDTH    = (WB_DAT_WIDTH / 8),
+                     
+			parameter								CLK_RATE        =   10000,	// clock [ps]
+			parameter								TRCD            =   15000,	// tRCD  [ps]
+			parameter								TRC             =   60000,	// tRC   [ps]
+			parameter								TRFC            =   72000,	// tRFC  [ps]
+			parameter								TRAS            =   42000,	// tRAS  [ps]
+			parameter								TRP             =   15000,	// tRP   [ps]
+			parameter								TREFI           = 7800000,	// tREFI [ps]  
+			         
+			parameter								INIT_WAIT_CYCLE = 200000000 / CLK_RATE
+		)
 		(
-			reset, clk, clk90, endian,
-			wb_adr_i, wb_dat_o, wb_dat_i, wb_we_i, wb_sel_i, wb_stb_i, wb_ack_o,
-			ddr_sdram_ck_p, ddr_sdram_ck_n, ddr_sdram_cke, ddr_sdram_cs, ddr_sdram_ras, ddr_sdram_cas, ddr_sdram_we,
-			ddr_sdram_ba, ddr_sdram_a, ddr_sdram_dm, ddr_sdram_dq, ddr_sdram_dqs
-		);
-	parameter	SIMULATION      = 1'b0;
-	
-	parameter	SDRAM_BA_WIDTH  = 2;
-	parameter	SDRAM_A_WIDTH   = 13;
-	parameter	SDRAM_DQ_WIDTH  = 16;
-	parameter	SDRAM_DM_WIDTH  = SDRAM_DQ_WIDTH / 8;
-	parameter	SDRAM_DQS_WIDTH = SDRAM_DQ_WIDTH / 8;
-	
-	parameter	SDRAM_COL_WIDTH = 10;
-	parameter	SDRAM_ROW_WIDTH = 13;
-	
-	parameter	WB_ADR_WIDTH    = SDRAM_COL_WIDTH+SDRAM_ROW_WIDTH+SDRAM_BA_WIDTH-1;
-	parameter	WB_DAT_WIDTH    = (SDRAM_DQ_WIDTH * 2);
-	localparam	WB_SEL_WIDTH    = (WB_DAT_WIDTH / 8);
-
-	parameter	CLK_RATE        =   10000;	// clock [ps]
-	parameter	TRCD            =   15000;	// tRCD  [ps]
-	parameter	TRC             =   60000;	// tRC   [ps]
-	parameter	TRFC            =   72000;	// tRFC  [ps]
-	parameter	TRAS            =   42000;	// tRAS  [ps]
-	parameter	TRP             =   15000;	// tRP   [ps]
-	parameter	TREFI           = 7800000;	// tREFI [ps]  
-	
-	parameter	INIT_WAIT_CYCLE = 200000000 / CLK_RATE;
-	
-	
-	// system
-	input							reset;
-	input							clk;
-	input							clk90;
-	input							endian;
-	
-	// wishbone
-	input	[WB_ADR_WIDTH-1:0]		wb_adr_i;
-	output	[WB_DAT_WIDTH-1:0]		wb_dat_o;
-	input	[WB_DAT_WIDTH-1:0]		wb_dat_i;
-	input							wb_we_i;
-	input	[WB_SEL_WIDTH-1:0]		wb_sel_i;
-	input							wb_stb_i;
-	output							wb_ack_o;
-	
-	// DDR-SDRAM
-	output							ddr_sdram_ck_p;
-	output							ddr_sdram_ck_n;
-	output							ddr_sdram_cke;
-	output							ddr_sdram_cs;
-	output							ddr_sdram_ras;
-	output							ddr_sdram_cas;
-	output							ddr_sdram_we;
-	output	[SDRAM_BA_WIDTH-1:0]	ddr_sdram_ba;
-	output	[SDRAM_A_WIDTH-1:0]		ddr_sdram_a;
-	output	[SDRAM_DM_WIDTH-1:0]	ddr_sdram_dm;
-	inout	[SDRAM_DQ_WIDTH-1:0]	ddr_sdram_dq;
-	inout	[SDRAM_DQS_WIDTH-1:0]	ddr_sdram_dqs;
-	
+			// system
+			input	wire							reset,
+			input	wire							clk,
+			input	wire							clk90,
+			input	wire							endian,
+			
+			// wishbone
+			input	wire	[WB_ADR_WIDTH-1:0]		wb_adr_i,
+			output	reg		[WB_DAT_WIDTH-1:0]		wb_dat_o,
+			input	wire	[WB_DAT_WIDTH-1:0]		wb_dat_i,
+			input	wire							wb_we_i,
+			input	wire	[WB_SEL_WIDTH-1:0]		wb_sel_i,
+			input	wire							wb_stb_i,
+			output	wire							wb_ack_o,
+			
+			// DDR-SDRAM
+			output	wire							ddr_sdram_ck_p,
+			output	wire							ddr_sdram_ck_n,
+			output	wire							ddr_sdram_cke,
+			output	wire							ddr_sdram_cs,
+			output	wire							ddr_sdram_ras,
+			output	wire							ddr_sdram_cas,
+			output	wire							ddr_sdram_we,
+			output	wire	[SDRAM_BA_WIDTH-1:0]	ddr_sdram_ba,
+			output	wire	[SDRAM_A_WIDTH-1:0]		ddr_sdram_a,
+			output	wire	[SDRAM_DM_WIDTH-1:0]	ddr_sdram_dm,
+			inout	wire	[SDRAM_DQ_WIDTH-1:0]	ddr_sdram_dq,
+			inout	wire	[SDRAM_DQS_WIDTH-1:0]	ddr_sdram_dqs
+		);	
 	
 	
 	// -----------------------------
@@ -384,7 +379,6 @@ module ddr_sdram
 	wire	[SDRAM_DQ_WIDTH-1:0]	dq_read_even;
 	wire	[SDRAM_DQ_WIDTH-1:0]	dq_read_odd;
 	
-	reg		[WB_DAT_WIDTH-1:0]		wb_dat_o;
 	always @( posedge clk ) begin
 		wb_dat_o[SDRAM_DQ_WIDTH +: SDRAM_DQ_WIDTH] <= dq_read_even;
 		wb_dat_o[0              +: SDRAM_DQ_WIDTH] <= dq_read_odd;

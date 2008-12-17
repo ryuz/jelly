@@ -14,30 +14,21 @@
 
 // adder
 module cpu_adder
+		#(
+			parameter							DATA_WIDTH = 32
+		)
 		(
-			in_data0, in_data1, in_carry,
-			out_data,
+			input	wire	[DATA_WIDTH-1:0]	in_data0,
+			input	wire	[DATA_WIDTH-1:0]	in_data1,
+			input	wire						in_carry,
 			
-			out_carry,
-			out_overflow,
-			out_negative,
-			out_zero
+			output	wire	[DATA_WIDTH-1:0]	out_data,
+			
+			output	wire						out_carry,
+			output	wire						out_overflow,
+			output	wire						out_negative,
+			output	wire						out_zero
 		);
-	
-	parameter DATA_WIDTH = 32;
-	
-	
-	input	[DATA_WIDTH-1:0]	in_data0;
-	input	[DATA_WIDTH-1:0]	in_data1;
-	input						in_carry;
-	
-	output	[DATA_WIDTH-1:0]	out_data;
-	
-	output						out_carry;
-	output						out_overflow;
-	output						out_negative;
-	output						out_zero;
-	
 	
 	// add
 	wire						msb_carry;

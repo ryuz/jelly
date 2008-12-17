@@ -11,62 +11,53 @@
 
 
 module ddr_sdram_io
+		#(
+			parameter								SIM_DQ_DELAY    = 2.0,
+			         
+			parameter								SDRAM_BA_WIDTH  = 2,
+			parameter								SDRAM_A_WIDTH   = 13,
+			parameter								SDRAM_DQ_WIDTH  = 16,
+			parameter								SDRAM_DM_WIDTH  = SDRAM_DQ_WIDTH / 8,
+			parameter								SDRAM_DQS_WIDTH = SDRAM_DQ_WIDTH / 8
+		)
 		(
-			reset, clk, clk90,
-			cke, cs, ras, cas, we, ba, a,
-			dq_write_next_en, dq_write_even, dq_write_odd,
-			dq_read_even, dq_read_odd,
-			dm_write_even, dm_write_odd,
-			dqs_write_next_en,
+			input	wire							reset,
+			input	wire							clk,
+			input	wire							clk90,
 			
-			ddr_sdram_ck_p, ddr_sdram_ck_n, ddr_sdram_cke, ddr_sdram_cs, ddr_sdram_ras, ddr_sdram_cas, ddr_sdram_we,
-			ddr_sdram_ba, ddr_sdram_a, ddr_sdram_dm, ddr_sdram_dq, ddr_sdram_dqs
-		);
-	parameter	SIM_DQ_DELAY    = 2.0;
-	
-	parameter	SDRAM_BA_WIDTH  = 2;
-	parameter	SDRAM_A_WIDTH   = 13;
-	parameter	SDRAM_DQ_WIDTH  = 16;
-	parameter	SDRAM_DM_WIDTH  = SDRAM_DQ_WIDTH / 8;
-	parameter	SDRAM_DQS_WIDTH = SDRAM_DQ_WIDTH / 8;
-	
-	input							reset;
-	input							clk;
-	input							clk90;
-	
-	input							cke;
-	input							cs;
-	input							ras;
-	input							cas;
-	input							we;
-	input	[SDRAM_BA_WIDTH-1:0]	ba;
-	input	[SDRAM_A_WIDTH-1:0]		a;
-	
-	input							dq_write_next_en;
-	input	[SDRAM_DQ_WIDTH-1:0]	dq_write_even;
-	input	[SDRAM_DQ_WIDTH-1:0]	dq_write_odd;
-	
-	output	[SDRAM_DQ_WIDTH-1:0]	dq_read_even;
-	output	[SDRAM_DQ_WIDTH-1:0]	dq_read_odd;
-	
-	input	[SDRAM_DM_WIDTH-1:0]	dm_write_even;
-	input	[SDRAM_DM_WIDTH-1:0]	dm_write_odd;
-	
-	input							dqs_write_next_en;
+			input	wire							cke,
+			input	wire							cs,
+			input	wire							ras,
+			input	wire							cas,
+			input	wire							we,
+			input	wire	[SDRAM_BA_WIDTH-1:0]	ba,
+			input	wire	[SDRAM_A_WIDTH-1:0]		a,
+			
+			input	wire							dq_write_next_en,
+			input	wire	[SDRAM_DQ_WIDTH-1:0]	dq_write_even,
+			input	wire	[SDRAM_DQ_WIDTH-1:0]	dq_write_odd,
+			
+			output	wire	[SDRAM_DQ_WIDTH-1:0]	dq_read_even,
+			output	wire	[SDRAM_DQ_WIDTH-1:0]	dq_read_odd,
+			
+			input	wire	[SDRAM_DM_WIDTH-1:0]	dm_write_even,
+			input	wire	[SDRAM_DM_WIDTH-1:0]	dm_write_odd,
+			
+			input	wire							dqs_write_next_en,
 
-	output							ddr_sdram_ck_p;
-	output							ddr_sdram_ck_n;
-	output							ddr_sdram_cke;
-	output							ddr_sdram_cs;
-	output							ddr_sdram_ras;
-	output							ddr_sdram_cas;
-	output							ddr_sdram_we;
-	output	[SDRAM_BA_WIDTH-1:0]	ddr_sdram_ba;
-	output	[SDRAM_A_WIDTH-1:0]		ddr_sdram_a;
-	output	[SDRAM_DM_WIDTH-1:0]	ddr_sdram_dm;
-	inout	[SDRAM_DQ_WIDTH-1:0]	ddr_sdram_dq;
-	inout	[SDRAM_DQS_WIDTH-1:0]	ddr_sdram_dqs;
-	
+			output	wire							ddr_sdram_ck_p,
+			output	wire							ddr_sdram_ck_n,
+			output	wire							ddr_sdram_cke,
+			output	wire							ddr_sdram_cs,
+			output	wire							ddr_sdram_ras,
+			output	wire							ddr_sdram_cas,
+			output	wire							ddr_sdram_we,
+			output	wire	[SDRAM_BA_WIDTH-1:0]	ddr_sdram_ba,
+			output	wire	[SDRAM_A_WIDTH-1:0]		ddr_sdram_a,
+			output	wire	[SDRAM_DM_WIDTH-1:0]	ddr_sdram_dm,
+			inout	wire	[SDRAM_DQ_WIDTH-1:0]	ddr_sdram_dq,
+			inout	wire	[SDRAM_DQS_WIDTH-1:0]	ddr_sdram_dqs
+		);
 
 	wire	[SDRAM_DQ_WIDTH-1:0]	dq_write_t;
 	wire	[SDRAM_DQ_WIDTH-1:0]	dq_read;

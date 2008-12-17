@@ -14,40 +14,40 @@
 
 module cpu_cop0
 	#(
-		parameter				DBBP_NUM = 4		// hardware breakpoints num
+		parameter					DBBP_NUM = 4		// hardware breakpoints num
 	)
 	(
-		input	wire			clk,
-		input	wire			reset,
+		input	wire				clk,
+		input	wire				reset,
 
-		input	wire			interlock,
+		input	wire				interlock,
 		
-		input	wire			in_en,
-		input	wire	[4:0]	in_addr,
-		input	wire	[2:0]	in_sel,
-		input	wire	[31:0]	in_data,
+		input	wire				in_en,
+		input	wire	[4:0]		in_addr,
+		input	wire	[2:0]		in_sel,
+		input	wire	[31:0]		in_data,
 		
-		output	reg		[31:0]	out_data,
+		output	reg		[31:0]		out_data,
 		
-		input	wire			exception,
-		input	wire			rfe,
-		input	wire			dbg_break,
+		input	wire				exception,
+		input	wire				rfe,
+		input	wire				dbg_break,
 		
-		input	wire	[31:0]	in_cause,
-		input	wire	[31:0]	in_epc,
-		input	wire	[31:0]	in_debug,
-		input	wire	[31:0]	in_depc,
+		input	wire	[31:0]		in_cause,
+		input	wire	[31:0]		in_epc,
+		input	wire	[31:0]		in_debug,
+		input	wire	[31:0]		in_depc,
 		
-		output	wire	[31:0]	out_status,
-		output	wire	[31:0]	out_cause,
-		output	wire	[31:0]	out_epc,
-		output	wire	[31:0]	out_debug,
-		output	wire	[31:0]	out_depc,
+		output	wire	[31:0]		out_status,
+		output	wire	[31:0]		out_cause,
+		output	wire	[31:0]		out_epc,
+		output	wire	[31:0]		out_debug,
+		output	wire	[31:0]		out_depc,
 		
-		output	wire	[31:0]	out_debp0,
-		output	wire	[31:0]	out_debp1,
-		output	wire	[31:0]	out_debp2,
-		output	wire	[31:0]	out_debp3
+		output	wire	[31:0]		out_debp0,
+		output	wire	[31:0]		out_debp1,
+		output	wire	[31:0]		out_debp2,
+		output	wire	[31:0]		out_debp3
 	);
 	
 	// register

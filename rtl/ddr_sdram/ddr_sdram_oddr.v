@@ -11,21 +11,19 @@
 
 
 module ddr_sdram_oddr
+		#(
+			parameter						INIT   = 1'b0,
+			parameter						WIDTH  = 1
+		)
 		(
-			clk, in_even, in_odd, out
+			input	wire					clk,
+			
+			input	wire	[WIDTH-1:0]		in_even,
+			input	wire	[WIDTH-1:0]		in_odd,
+			output	wire	[WIDTH-1:0]		out
 		);
 	
-	parameter	INIT   = 1'b0;
-	parameter	WIDTH  = 1;
-	
-	input					clk;
-	
-	input	[WIDTH-1:0]		in_even;
-	input	[WIDTH-1:0]		in_odd;
-	output	[WIDTH-1:0]		out;
-	
 	wire	[WIDTH-1:0]		ddr_q;
-	
 	
 	generate
 	genvar	i;

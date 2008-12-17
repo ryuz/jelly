@@ -29,35 +29,29 @@
 
 // Arithmetic Logic Unit
 module cpu_alu
+		#(
+			parameter 							DATA_SIZE  = 5, 		// 3:8bit, 4:16bit, 5:32bit, ...
+			parameter							DATA_WIDTH = (1 << DATA_SIZE)
+		)
 		(
-			op_adder_en, op_adder_func,
-			op_logic_en, op_logic_func,
-			op_comp_en, op_comp_func,
+			input	wire						op_adder_en,
+			input	wire	[1:0]				op_adder_func,
+
+			input	wire						op_logic_en,
+			input	wire	[1:0]				op_logic_func,
 			
-			in_data0, in_data1,
-			out_data, out_carry, out_overflow, out_negative, out_zero
+			input	wire						op_comp_en,
+			input	wire	[1:0]				op_comp_func,
+			
+			input	wire	[DATA_WIDTH-1:0]	in_data0,
+			input	wire	[DATA_WIDTH-1:0]	in_data1,
+			
+			output	wire	[DATA_WIDTH-1:0]	out_data,
+			output	wire						out_carry,
+			output	wire						out_overflow,
+			output	wire						out_negative,
+			output	wire						out_zero
 		);
-	parameter DATA_SIZE  = 5;  					// 3:8bit, 4:16bit, 5:32bit, ...
-	parameter DATA_WIDTH = (1 << DATA_SIZE);
-
-	input						op_adder_en;
-	input	[1:0]				op_adder_func;
-
-	input						op_logic_en;
-	input	[1:0]				op_logic_func;
-	
-	input						op_comp_en;
-	input	[1:0]				op_comp_func;
-	
-	input	[DATA_WIDTH-1:0]	in_data0;
-	input	[DATA_WIDTH-1:0]	in_data1;
-	
-	output	[DATA_WIDTH-1:0]	out_data;
-	output						out_carry;
-	output						out_overflow;
-	output						out_negative;
-	output						out_zero;
-	
 	
 	// adder
 	wire	[DATA_WIDTH-1:0]	adder_in_data0;
