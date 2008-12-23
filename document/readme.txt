@@ -19,13 +19,22 @@
 
 2. 構成
 
-  +document           各種ドキュメント
+  +document              各種ドキュメント
   +rtl
-  |  +cpu             CPUコア (コアだけ欲しい方はここだけどうぞ)
-  |  +irc             割込みコントローラ (HOS-V4 Advance でサポート予定)
-  |  +ddr_sdram       DDR-SDRAMコントローラ
-  |  +uart            UART
-  +spartan3e_starter  Spartan-3E Starter Kit 用プロジェクト
+  |  +cpu                CPUコア (コアだけ欲しい方はここだけどうぞ)
+  |  +irc                割込みコントローラ (HOS-V4 Advance でサポート予定)
+  |  +ddr_sdram          DDR-SDRAMコントローラ
+  |  +sram               内蔵SRAM
+  |  +extbus             外部バス制御
+  |  +uart               UART
+  |  +timer              タイマ
+  +soft                  ROM化ソフト生成用
+  +projects
+     +spartan3e_starter  Spartan-3E Starter Kit 用プロジェクト
+     +spartan3_starter   Spartan-3 Starter Kit 用プロジェクト
+     +cq-frk-s3e2        DesignWaveおまけ Spartan-3ボード用プロジェクト
+     +sim_model          検証用シミュレーション専用プロジェクト
+     +virtex5            興味本位合成のみ(Virtex5はどれくらい速いんだろう？)
 
 
 

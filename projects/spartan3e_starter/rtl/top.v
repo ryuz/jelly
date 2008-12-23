@@ -233,21 +233,21 @@ module top
 	
 	jelly_sram
 			#(
-				.WB_ADR_WIDTH	(12),
-				.WB_DAT_WIDTH	(32)
+				.WB_ADR_WIDTH		(12),
+				.WB_DAT_WIDTH		(32)
 			)
 		i_sram
 			(
-				.reset			(reset),
-				.clk			(clk),
+				.reset				(reset),
+				.clk				(clk),
 				
-				.wb_adr_i		(wb_cpu_adr_o[13:2]),
-				.wb_dat_o		(sram_wb_dat_o),
-				.wb_dat_i		(wb_cpu_dat_o),
-				.wb_we_i		(wb_cpu_we_o),
-				.wb_sel_i		(wb_cpu_sel_o),
-				.wb_stb_i		(sram_wb_stb_i),
-				.wb_ack_o		(sram_wb_ack_o)
+				.wb_adr_i			(wb_cpu_adr_o[13:2]),
+				.wb_dat_o			(sram_wb_dat_o),
+				.wb_dat_i			(wb_cpu_dat_o),
+				.wb_we_i			(wb_cpu_we_o),
+				.wb_sel_i			(wb_cpu_sel_o),
+				.wb_stb_i			(sram_wb_stb_i),
+				.wb_ack_o			(sram_wb_ack_o)
 		);
 	
 	
