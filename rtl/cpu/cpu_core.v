@@ -330,17 +330,17 @@ module cpu_core
 
 
 	// register file
-	wire			if_gpr_w0_en;
-	wire	[4:0]	if_gpr_w0_addr;
-	wire	[31:0]	if_gpr_w0_data;
+	wire			if_gpr_write_en;
+	wire	[4:0]	if_gpr_write_addr;
+	wire	[31:0]	if_gpr_write_data;
 	
-	wire			if_gpr_r0_en;
-	wire	[4:0]	if_gpr_r0_addr;
-	wire	[31:0]	if_gpr_r0_data;
+	wire			if_gpr_read0_en;
+	wire	[4:0]	if_gpr_read0_addr;
+	wire	[31:0]	if_gpr_read0_data;
 	
-	wire			if_gpr_r1_en;
-	wire	[4:0]	if_gpr_r1_addr;
-	wire	[31:0]	if_gpr_r1_data;
+	wire			if_gpr_read1_en;
+	wire	[4:0]	if_gpr_read1_addr;
+	wire	[31:0]	if_gpr_read1_data;
 	
 	cpu_gpr
 			#(
@@ -352,38 +352,31 @@ module cpu_core
 				.clk			(clk),
 				.clk_x2			(clk_x2),
 				
-				.interlock 		(interlock),
-
+				.write_en		(if_gpr_write_en & !interlock),
+				.write_addr		(if_gpr_write_addr),
+				.write_data		(if_gpr_write_data),
 				
-				.w0_en			(if_gpr_w0_en),
-				.w0_addr		(if_gpr_w0_addr),
-				.w0_data		(if_gpr_w0_data),
+				.read0_en		(if_gpr_read0_en & !interlock),
+				.read0_addr		(if_gpr_read0_addr),
+				.read0_data		(if_gpr_read0_data),
 				
-				.w1_en			(1'b0),
-				.w1_addr		(5'b00000),
-				.w1_data		(32'h0000_0000),
-				
-				.r0_en			(if_gpr_r0_en),
-				.r0_addr		(if_gpr_r0_addr),
-				.r0_data		(if_gpr_r0_data),
-				
-				.r1_en			(if_gpr_r1_en),
-				.r1_addr		(if_gpr_r1_addr),
-				.r1_data		(if_gpr_r1_data)
+				.read1_en		(if_gpr_read1_en & !interlock),
+				.read1_addr		(if_gpr_read1_addr),
+				.read1_data		(if_gpr_read1_data)
 			);
 	
-	assign if_gpr_w0_en   = dbg_gpr_en ? (dbg_gpr_en & dbg_gpr_we)  : (id_in_dst_reg_en & !interlock);
-	assign if_gpr_w0_addr = dbg_gpr_en ? dbg_gpr_addr               : id_in_dst_reg_addr;
-	assign if_gpr_w0_data = dbg_gpr_en ? dbg_gpr_wdata              : id_in_dst_reg_data;
+	assign if_gpr_write_en   = dbg_gpr_en ? (dbg_gpr_en & dbg_gpr_we)  : (id_in_dst_reg_en & !interlock);
+	assign if_gpr_write_addr = dbg_gpr_en ? dbg_gpr_addr               : id_in_dst_reg_addr;
+	assign if_gpr_write_data = dbg_gpr_en ? dbg_gpr_wdata              : id_in_dst_reg_data;
 	
-	assign if_gpr_r0_en   = 1'b1;
-	assign if_gpr_r0_addr = dbg_gpr_en ? dbg_gpr_addr               : if_out_instruction[25:21];	//rs
-	assign id_out_rs_data = if_gpr_r0_data;
-	assign dbg_gpr_rdata  = if_gpr_r0_data;
+	assign if_gpr_read0_en   = 1'b1;
+	assign if_gpr_read0_addr = dbg_gpr_en ? dbg_gpr_addr               : if_out_instruction[25:21];	//rs
+	assign id_out_rs_data    = if_gpr_read0_data;
+	assign dbg_gpr_rdata     = if_gpr_read0_data;
 	
-	assign if_gpr_r1_en   = 1'b1;
-	assign if_gpr_r1_addr = if_out_instruction[20:16];	// rt
-	assign id_out_rt_data = if_gpr_r1_data;
+	assign if_gpr_read1_en   = 1'b1;
+	assign if_gpr_read1_addr = if_out_instruction[20:16];	// rt
+	assign id_out_rt_data    = if_gpr_read1_data;
 	
 	
 	// opecode decode
@@ -957,10 +950,11 @@ module cpu_core
 			
 			ex_out_mem_en       <= 1'b0;
 			ex_out_mem_we       <= 1'b0;
+			ex_out_mem_addr     <= 0;
 			ex_out_mem_size     <= 0;
 			ex_out_mem_sel      <= 0;
-			ex_out_mem_addr     <= 0;
 			ex_out_mem_wdata    <= 0;
+			ex_out_mem_unsigned <= 0;
 			
 			ex_out_dst_reg_en   <= 1'b0;
 			ex_out_dst_reg_addr <= 0;

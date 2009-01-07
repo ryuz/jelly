@@ -55,7 +55,9 @@ module cpu_lsu
 	
 	always @ ( posedge clk or posedge reset ) begin
 		if ( reset ) begin
-			tmp_en <= 1'b0;
+			tmp_en   <= 1'b0;
+			tmp_data <= {DATA_WIDTH{1'bx}};
+			out_data <= {DATA_WIDTH{1'bx}};
 		end
 		else begin
 			if ( !interlock ) begin
