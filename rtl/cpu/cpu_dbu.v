@@ -273,7 +273,7 @@ module cpu_dbu
 						.WB_ADR_WIDTH	(30),
 						.WB_DAT_WIDTH	(32)
 					)
-				i_wishbone_bridge_ibus
+				i_wishbone_bridge_dbus
 					(
 						.reset			(reset),
 						.clk			(clk),
