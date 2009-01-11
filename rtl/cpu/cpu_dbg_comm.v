@@ -49,10 +49,6 @@
 
 // debug comm
 module jelly_cpu_dbg_comm
-		#(
-			parameter					TX_FIFO_PTR_WIDTH = 10,
-			parameter					RX_FIFO_PTR_WIDTH = 10
-		)
 		(
 			// system
 			input	wire				reset,
@@ -60,12 +56,12 @@ module jelly_cpu_dbg_comm
 			input	wire				endian,
 			
 			// comm port
-			output	reg					comm_tx_en;
-			output	reg		[7:0]		comm_tx_data;
-			input						comm_tx_ready;
-			input	wire				comm_rx_en;
-			input	wire	[7:0]		comm_rx_data;
-			output	reg					comm_rx_ready;
+			output	reg					comm_tx_en,
+			output	reg		[7:0]		comm_tx_data,
+			input						comm_tx_ready,
+			input	wire				comm_rx_en,
+			input	wire	[7:0]		comm_rx_data,
+			output	reg					comm_rx_ready,
 			
 			// debug port (whishbone)
 			output	reg		[3:0]		wb_dbg_adr_o,
