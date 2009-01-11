@@ -40,6 +40,7 @@ module jelly_uart_core
 	localparam	RX_FIFO_SIZE = (1 << RX_FIFO_PTR_WIDTH);
 	
 	
+	
 	// -------------------------
 	//  TX
 	// -------------------------
@@ -58,7 +59,7 @@ module jelly_uart_core
 		i_fifo_tx
 			(
 				.reset			(reset),
-
+				
 				.in_clk			(clk),
 				.in_en			(tx_en),
 				.in_data		(tx_data),
@@ -73,7 +74,7 @@ module jelly_uart_core
 			);
 	
 	// transmitter
-	uart_tx
+	jelly_uart_tx
 		i_uart_tx
 			(
 				.reset			(reset),
@@ -106,7 +107,7 @@ module jelly_uart_core
 		i_fifo_rx
 			(
 				.reset			(reset),
-
+				
 				.in_clk			(uart_clk),
 				.in_en			(rx_fifo_wr_en),
 				.in_data		(rx_fifo_wr_data),
@@ -121,7 +122,7 @@ module jelly_uart_core
 			);
 	
 	// receiver
-	uart_rx
+	jelly_uart_rx
 		i_uart_rx
 			(
 				.reset			(reset), 

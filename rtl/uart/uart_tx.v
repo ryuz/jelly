@@ -12,7 +12,7 @@
 
 
 
-module uart_tx
+module jelly_uart_tx
 		(
 			// system
 			input	wire						reset,

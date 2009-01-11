@@ -183,7 +183,31 @@ module top
 			);
 	
 	// Debug Interface (UART)
-	wire	dbg_uart_clk;
+	jelly_uart_debugger
+			#(
+				.TX_FIFO_PTR_WIDTH	(10),
+				.RX_FIFO_PTR_WIDTH	(10)
+			)
+		i_uart_debugger
+			(
+				.reset				(reset),
+				.clk				(clk),
+				.endian				(endian),
+				
+				.uart_clk			(clk_uart),
+				.uart_tx			(dbg_uart_tx),
+				.uart_rx			(dbg_uart_rx),
+				
+				.wb_adr_o			(wb_dbg_adr_o),
+				.wb_dat_i			(wb_dbg_dat_i),
+				.wb_dat_o			(wb_dbg_dat_o),
+				.wb_we_o			(wb_dbg_we_o),
+				.wb_sel_o			(wb_dbg_sel_o),
+				.wb_stb_o			(wb_dbg_stb_o),
+				.wb_ack_i			(wb_dbg_ack_i)
+			);
+	
+	/*
 	jelly_dbg_uart
 		i_dbg_uart
 			(
@@ -203,7 +227,7 @@ module top
 				.wb_dbg_stb_o		(wb_dbg_stb_o),
 				.wb_dbg_ack_i		(wb_dbg_ack_i)
 			);
-	
+	*/
 	
 	// -----------------------------
 	//  boot rom
