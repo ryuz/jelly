@@ -10,7 +10,7 @@
 `timescale 1ns / 1ps
 
 
-module ddr_sdram_out
+module jelly_ddr_sdram_out
 		#(
 			parameter						WIDTH = 1,
 			parameter						INIT  = 0

@@ -10,7 +10,7 @@
 `timescale 1ns / 1ps
 
 
-module ddr_sdram_init
+module jelly_ddr_sdram_init
 		#(
 			parameter								SIMULATION      = 1'b1,
 			parameter								CLK_RATE        = 10.0,

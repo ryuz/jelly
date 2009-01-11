@@ -10,7 +10,7 @@
 `timescale 1ns / 1ps
 
 
-module ddr_sdram_oddr
+module jelly_ddr_sdram_oddr
 		#(
 			parameter						INIT   = 1'b0,
 			parameter						WIDTH  = 1

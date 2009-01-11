@@ -11,7 +11,7 @@
 
 
 // DDR-SDRAM interface
-module ddr_sdram
+module jelly_ddr_sdram
 		#(
 			parameter								SIMULATION      = 1'b0,
 			         
@@ -82,7 +82,7 @@ module ddr_sdram
 	wire							init_we;
 	wire		[1:0]				init_ba;
 	wire		[12:0]				init_a;
-	ddr_sdram_init
+	jelly_ddr_sdram_init
 			#(
 				.SIMULATION			(SIMULATION),
 				.CLK_RATE			(CLK_RATE),
@@ -117,21 +117,21 @@ module ddr_sdram
 	localparam	REG_READ_WIDTH  = 5;
 	
 	// cycle
-	parameter	TRCD_CYCLE  = ((TRCD  - 1) / CLK_RATE);
-	parameter	TRC_CYCLE   = ((TRC   - 1) / CLK_RATE);
-	parameter	TRFC_CYCLE  = ((TRFC  - 1) / CLK_RATE);
-	parameter	TRAS_CYCLE  = ((TRAS  - 1) / CLK_RATE);
-	parameter	TRP_CYCLE   = ((TRP   - 1) / CLK_RATE);
-	parameter	TREFI_CYCLE = ((TREFI - 1) / CLK_RATE);
+	localparam	TRCD_CYCLE  = ((TRCD  - 1) / CLK_RATE);
+	localparam	TRC_CYCLE   = ((TRC   - 1) / CLK_RATE);
+	localparam	TRFC_CYCLE  = ((TRFC  - 1) / CLK_RATE);
+	localparam	TRAS_CYCLE  = ((TRAS  - 1) / CLK_RATE);
+	localparam	TRP_CYCLE   = ((TRP   - 1) / CLK_RATE);
+	localparam	TREFI_CYCLE = ((TREFI - 1) / CLK_RATE);
 	
 	// state
-	parameter	ST_IDLE       = 0;
-	parameter	ST_REFRESH    = 1;
-	parameter	ST_ACTIVATING = 2;
-	parameter	ST_ACTIVE     = 3;
-	parameter	ST_READ       = 4;
-	parameter	ST_WRITE      = 5;
-	parameter	ST_PRECHARGE  = 6;
+	localparam	ST_IDLE       = 0;
+	localparam	ST_REFRESH    = 1;
+	localparam	ST_ACTIVATING = 2;
+	localparam	ST_ACTIVE     = 3;
+	localparam	ST_READ       = 4;
+	localparam	ST_WRITE      = 5;
+	localparam	ST_PRECHARGE  = 6;
 	
 	
 	// adr mapping
@@ -392,7 +392,7 @@ module ddr_sdram
 	//  I/O
 	// -----------------------------
 
-	ddr_sdram_io
+	jelly_ddr_sdram_io
 			#(
 				.SDRAM_BA_WIDTH		(SDRAM_BA_WIDTH),
 				.SDRAM_A_WIDTH		(SDRAM_A_WIDTH), 

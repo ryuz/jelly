@@ -10,7 +10,7 @@
 `timescale 1ns / 1ps
 
 
-module ddr_sdram_io
+module jelly_ddr_sdram_io
 		#(
 			parameter								SIM_DQ_DELAY    = 2.0,
 			         
@@ -75,20 +75,20 @@ module ddr_sdram_io
 	
 	
 	// ck
-	ddr_sdram_oddr	#(.INIT(1'b0), .WIDTH(1)) i_ddr_sdram_oddr_cl_p (.clk(clk), .in_even(1'b0), .in_odd (1'b1), .out(ddr_sdram_ck_p));
-	ddr_sdram_oddr	#(.INIT(1'b1), .WIDTH(1)) i_ddr_sdram_oddr_cl_n (.clk(clk), .in_even(1'b1), .in_odd (1'b0), .out(ddr_sdram_ck_n));
+	jelly_ddr_sdram_oddr	#(.INIT(1'b0), .WIDTH(1)) i_ddr_sdram_oddr_cl_p (.clk(clk), .in_even(1'b0), .in_odd (1'b1), .out(ddr_sdram_ck_p));
+	jelly_ddr_sdram_oddr	#(.INIT(1'b1), .WIDTH(1)) i_ddr_sdram_oddr_cl_n (.clk(clk), .in_even(1'b1), .in_odd (1'b0), .out(ddr_sdram_ck_n));
 	
 	// command
-	ddr_sdram_out #(.WIDTH(1))				i_out_cke	(.clk(clk), .in(cke), .out(ddr_sdram_cke));
-	ddr_sdram_out #(.WIDTH(1))				i_out_cs 	(.clk(clk), .in(cs),  .out(ddr_sdram_cs));
-	ddr_sdram_out #(.WIDTH(1))				i_out_ras	(.clk(clk), .in(ras), .out(ddr_sdram_ras));
-	ddr_sdram_out #(.WIDTH(1))				i_out_cas	(.clk(clk), .in(cas), .out(ddr_sdram_cas));
-	ddr_sdram_out #(.WIDTH(1))				i_out_we 	(.clk(clk), .in(we),  .out(ddr_sdram_we));
-	ddr_sdram_out #(.WIDTH(SDRAM_BA_WIDTH))	i_out_ba 	(.clk(clk), .in(ba),  .out(ddr_sdram_ba));
-	ddr_sdram_out #(.WIDTH(SDRAM_A_WIDTH))	i_out_a 	(.clk(clk), .in(a),   .out(ddr_sdram_a));
+	jelly_ddr_sdram_out #(.WIDTH(1))				i_out_cke	(.clk(clk), .in(cke), .out(ddr_sdram_cke));
+	jelly_ddr_sdram_out #(.WIDTH(1))				i_out_cs 	(.clk(clk), .in(cs),  .out(ddr_sdram_cs));
+	jelly_ddr_sdram_out #(.WIDTH(1))				i_out_ras	(.clk(clk), .in(ras), .out(ddr_sdram_ras));
+	jelly_ddr_sdram_out #(.WIDTH(1))				i_out_cas	(.clk(clk), .in(cas), .out(ddr_sdram_cas));
+	jelly_ddr_sdram_out #(.WIDTH(1))				i_out_we 	(.clk(clk), .in(we),  .out(ddr_sdram_we));
+	jelly_ddr_sdram_out #(.WIDTH(SDRAM_BA_WIDTH))	i_out_ba 	(.clk(clk), .in(ba),  .out(ddr_sdram_ba));
+	jelly_ddr_sdram_out #(.WIDTH(SDRAM_A_WIDTH))	i_out_a 	(.clk(clk), .in(a),   .out(ddr_sdram_a));
 
 	// dm
-	ddr_sdram_oddr
+	jelly_ddr_sdram_oddr
 			#(
 				.INIT		(1'b0),
 				.WIDTH		(SDRAM_DM_WIDTH)

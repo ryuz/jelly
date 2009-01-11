@@ -207,27 +207,6 @@ module top
 				.wb_ack_i			(wb_dbg_ack_i)
 			);
 	
-	/*
-	jelly_dbg_uart
-		i_dbg_uart
-			(
-				.reset				(reset),
-				.clk				(clk),
-				.endian				(endian),
-				
-				.uart_clk			(clk_uart),
-				.uart_tx			(dbg_uart_tx),
-				.uart_rx			(dbg_uart_rx),
-				
-				.wb_dbg_adr_o		(wb_dbg_adr_o),
-				.wb_dbg_dat_i		(wb_dbg_dat_i),
-				.wb_dbg_dat_o		(wb_dbg_dat_o),
-				.wb_dbg_we_o		(wb_dbg_we_o),
-				.wb_dbg_sel_o		(wb_dbg_sel_o),
-				.wb_dbg_stb_o		(wb_dbg_stb_o),
-				.wb_dbg_ack_i		(wb_dbg_ack_i)
-			);
-	*/
 	
 	// -----------------------------
 	//  boot rom
@@ -320,7 +299,7 @@ module top
 				.wb_2x_ack_i		(wb_dram_ack_i)
 			);
 
-	ddr_sdram
+	jelly_ddr_sdram
 			#(
 				.SIMULATION			(SIMULATION)
 			)
