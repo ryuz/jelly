@@ -89,8 +89,28 @@ module jelly_cpu_dbu
 			output	reg					dbg_enable,
 			output	reg					dbg_break_req,
 			input	wire				dbg_break,
+
+			// instruction bus control
+			output	wire				ibus_interlock,
+			output	wire				ibus_en,
+			output	wire				ibus_we,
+			output	wire	[3:0]		ibus_sel,
+			output	wire	[31:0]		ibus_addr,
+			output	wire	[31:0]		ibus_wdata,
+			input	wire	[31:0]		ibus_rdata,
+			input	wire				ibus_busy,
 			
+			// data bus control
+			output	wire				dbus_interlock,
+			output	wire				dbus_en,
+			output	wire				dbus_we,
+			output	wire	[3:0]		dbus_sel,
+			output	wire	[31:0]		dbus_addr,
+			output	wire	[31:0]		dbus_wdata,
+			input	wire	[31:0]		dbus_rdata,
+			input	wire				dbus_busy,
 			
+/*			
 			// d-bus control
 			output	wire	[31:2]		wb_data_adr_o,
 			input	wire	[31:0]		wb_data_dat_i,
@@ -106,6 +126,7 @@ module jelly_cpu_dbu
 			output	wire	[3:0]		wb_inst_sel_o,
 			output	wire				wb_inst_stb_o,
 			input	wire				wb_inst_ack_i,
+*/
 			
 			// gpr control
 			output	reg					gpr_en,
@@ -207,6 +228,42 @@ module jelly_cpu_dbu
 	wire				ibus_wb_ack_i;
 	
 	
+	// i-bus control
+	assign ibus_interlock = 1'b0;
+	assign ibus_en        = 1'b0;
+	assign ibus_we        = 1'b0;
+	assign ibus_sel       = 4'b1111;
+	assign ibus_addr      = 0;
+	assign ibus_wdata     = 0;
+//	assign ibus_rdata,
+//	assign ibus_busy,
+
+
+	// d-bus control
+	assign dbus_interlock = 1'b0;
+	assign dbus_en        = wb_stb_i & (wb_adr_i == `DBG_ADR_DBUS_DATA);
+	assign dbus_we        = wb_we_i;
+	assign dbus_sel       = wb_sel_i;
+	assign dbus_addr      = dbg_addr;
+	assign dbus_wdata     = wb_dat_i;
+//	assign dbus_rdata,
+//	assign dbus_busy,
+	wire				dbus_ack;
+	reg					dbus_reg_ack;
+	always @( posedge clk or posedge reset ) begin
+		if ( reset ) begin
+			dbus_reg_ack <= 1'b0;
+		end
+		else begin
+			if ( !dbus_busy ) begin
+				dbus_reg_ack <= dbus_en & !dbus_we;
+			end
+		end
+	end
+	assign dbus_ack = !dbus_busy & (dbus_reg_ack | dbus_we);
+	
+	
+	/*
 	// d-bus control
 	assign dbus_wb_adr_o = dbg_addr[31:2];
 	assign dbus_wb_dat_o = wb_dat_i;
@@ -218,7 +275,7 @@ module jelly_cpu_dbu
 	assign ibus_wb_adr_o = dbg_addr[31:2];
 	assign ibus_wb_sel_o = wb_sel_i;
 	assign ibus_wb_stb_o = wb_stb_i & (wb_adr_i == `DBG_ADR_IBUS_DATA);
-	
+	*/
 	
 	// read
 	always @* begin
@@ -243,14 +300,14 @@ module jelly_cpu_dbu
 		
 		`DBG_ADR_DBUS_DATA:	// DBUS_DATA
 			begin
-				wb_dat_o = dbus_wb_dat_i;
-				wb_ack_o = dbus_wb_ack_i;
+				wb_dat_o = dbus_rdata;
+				wb_ack_o = dbus_ack;
 			end
 		
 		`DBG_ADR_IBUS_DATA:	// IBUS_DATA
 			begin
-				wb_dat_o = ibus_wb_dat_i;
-				wb_ack_o = ibus_wb_ack_i;
+				wb_dat_o = 0; 	 // ibus_wb_dat_i;
+				wb_ack_o = 1'b1; // ibus_wb_ack_i;
 			end
 				
 		default:
@@ -261,7 +318,7 @@ module jelly_cpu_dbu
 		endcase
 	end
 	
-	
+	/*
 	
 	// d-bus control
 	generate
@@ -333,6 +390,7 @@ module jelly_cpu_dbu
 	end
 	endgenerate
 	
+	*/
 	
 	
 	// -----------------------------

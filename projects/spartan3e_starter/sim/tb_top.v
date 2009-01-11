@@ -144,6 +144,7 @@ module tb_top;
 
 
 	// dbg_uart monitor
+/*
 	always @ ( posedge i_top.i_dbg_uart.i_uart_core.clk ) begin
 		if ( i_top.i_dbg_uart.i_uart_core.tx_en & i_top.i_dbg_uart.i_uart_core.tx_ready ) begin
 			$display("%t dbg_uart [TX]:%h", $time, i_top.i_dbg_uart.i_uart_core.tx_data);
@@ -166,7 +167,7 @@ module tb_top;
 				release i_top.i_dbg_uart.i_uart_core.rx_fifo_wr_data;
 		end
 	endtask
-	
+*/	
 	
 	initial begin
 	#(RATE*200);
@@ -181,7 +182,7 @@ module tb_top;
 	end
 
 
-
+	/*
 	task dbg_restart;
 	begin
 		$display("--- NOP ---");
@@ -310,6 +311,7 @@ module tb_top;
 	#(RATE*100);
 	end
 	endtask	
-	
+	*/
+
 endmodule
 

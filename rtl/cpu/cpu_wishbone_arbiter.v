@@ -15,7 +15,7 @@ module jelly_cpu_wishbone_arbiter
 		#(
 			parameter							WB_ADR_WIDTH = 30,
 			parameter							WB_DAT_WIDTH = 32,
-			parameter							WB_SEL_WIDTH = (WB_DAT_WIDTH / 8),
+			parameter							WB_SEL_WIDTH = (WB_DAT_WIDTH / 8)
 		)
 		(
 			// system
@@ -47,7 +47,7 @@ module jelly_cpu_wishbone_arbiter
 			output	wire						wb_mem_we_o,
 			output	wire	[WB_SEL_WIDTH-1:0]	wb_mem_sel_o,
 			output	wire						wb_mem_stb_o,
-			input	wire						wb_mem_ack_i,
+			input	wire						wb_mem_ack_i
 		);
 	
 	
@@ -68,19 +68,19 @@ module jelly_cpu_wishbone_arbiter
 			end
 		end
 	end
-	assign sw = reg_busy ? reg_sw : wb_cpu1_stb_o;
+	assign sw = reg_busy ? reg_sw : wb_cpu1_stb_i;
 	
 	
-	assign wb_mem_adr_o = sw ? wb_cpu1_adr_o : wb_cpu0_adr_o;
-	assign wb_mem_dat_o = sw ? wb_cpu1_dat_o : wb_cpu0_dat_o;
-	assign wb_mem_we_o  = sw ? wb_cpu1_we_o  : wb_cpu0_we_o;
-	assign wb_mem_sel_o = sw ? wb_cpu1_sel_o : wb_cpu0_sel_o;
-	assign wb_mem_stb_o = sw ? wb_cpu1_stb_o : wb_cpu0_stb_o;
+	assign wb_mem_adr_o = sw ? wb_cpu1_adr_i : wb_cpu0_adr_i;
+	assign wb_mem_dat_o = sw ? wb_cpu1_dat_i : wb_cpu0_dat_i;
+	assign wb_mem_we_o  = sw ? wb_cpu1_we_i  : wb_cpu0_we_i;
+	assign wb_mem_sel_o = sw ? wb_cpu1_sel_i : wb_cpu0_sel_i;
+	assign wb_mem_stb_o = sw ? wb_cpu1_stb_i : wb_cpu0_stb_i;
 	
-	assign wb_cpu0_dat_i = wb_mem_dat_i;
-	assign wb_cpu0_ack_i = !sw ? wb_mem_ack_i : 1'b0;
+	assign wb_cpu0_dat_o = wb_mem_dat_i;
+	assign wb_cpu0_ack_o = !sw ? wb_mem_ack_i : 1'b0;
 	
-	assign wb_cpu1_dat_i = wb_mem_dat_i;
-	assign wb_cpu1_ack_i = sw ? wb_mem_ack_i : 1'b0;
+	assign wb_cpu1_dat_o = wb_mem_dat_i;
+	assign wb_cpu1_ack_o = sw ? wb_mem_ack_i : 1'b0;
 	
 endmodule

@@ -24,14 +24,14 @@ module jelly_cpu_wishbone
 			input	wire								clk,
 			
 			// CPU bus
-			input	wire								cpu_interlock,
-			input	wire								cpu_en,
-			input	wire								cpu_we,
-			input	wire	[SEL_WIDTH-1:0]				cpu_sel,
-			input	wire	[ADDR_WIDTH-1:0]			cpu_addr,
-			input	wire	[DATA_WIDTH-1:0]			cpu_wdata,
-			output	reg		[DATA_WIDTH-1:0]			cpu_rdata,
-			output	wire								cpu_busy,
+			input	wire								cpubus_interlock,
+			input	wire								cpubus_en,
+			input	wire								cpubus_we,
+			input	wire	[SEL_WIDTH-1:0]				cpubus_sel,
+			input	wire	[ADDR_WIDTH-1:0]			cpubus_addr,
+			input	wire	[DATA_WIDTH-1:0]			cpubus_wdata,
+			output	reg		[DATA_WIDTH-1:0]			cpubus_rdata,
+			output	wire								cpubus_busy,
 			
 			// WISHBONE bus
 			output	wire	[ADDR_WIDTH-1:DATA_SIZE]	wb_adr_o,
@@ -51,11 +51,11 @@ module jelly_cpu_wishbone
 		if ( reset ) begin
 			buf_en    <= 1'b0;
 			buf_data  <= {DATA_WIDTH{1'bx}};
-			cpu_rdata <= {DATA_WIDTH{1'bx}};
+			cpubus_rdata <= {DATA_WIDTH{1'bx}};
 		end
 		else begin
-			if ( !cpu_interlock ) begin
-				cpu_rdata <= buf_en ? buf_data : wb_dat_i;
+			if ( !cpubus_interlock ) begin
+				cpubus_rdata <= buf_en ? buf_data : wb_dat_i;
 				buf_en    <= 1'b0;
 			end
 			else begin
@@ -70,13 +70,13 @@ module jelly_cpu_wishbone
 		end
 	end
 	
-	assign wb_adr_o = cpu_addr[ADDR_WIDTH-1:DATA_SIZE];
-	assign wb_dat_o = cpu_wdata;
-	assign wb_we_o  = cpu_we;
-	assign wb_sel_o = cpu_sel;
-	assign wb_stb_o = cpu_en & ~buf_en;
+	assign wb_adr_o = cpubus_addr[ADDR_WIDTH-1:DATA_SIZE];
+	assign wb_dat_o = cpubus_wdata;
+	assign wb_we_o  = cpubus_we;
+	assign wb_sel_o = cpubus_sel;
+	assign wb_stb_o = cpubus_en & ~buf_en;
 	
-	assign cpu_busy = wb_stb_o & ~wb_ack_i;
+	assign cpubus_busy = wb_stb_o & ~wb_ack_i;
 	
 endmodule
 

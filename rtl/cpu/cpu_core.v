@@ -41,6 +41,27 @@ module jelly_cpu_core
 			input	wire				interrupt_req,
 			output	wire				interrupt_ack,
 			
+			// instruction bus
+			output	wire				ibus_interlock,
+			output	wire				ibus_en,
+			output	wire				ibus_we,
+			output	wire	[3:0]		ibus_sel,
+			output	wire	[31:0]		ibus_addr,
+			output	wire	[31:0]		ibus_wdata,
+			input	wire	[31:0]		ibus_rdata,
+			input	wire				ibus_busy,
+			
+			// data bus
+			output	wire				dbus_interlock,
+			output	wire				dbus_en,
+			output	wire				dbus_we,
+			output	wire	[3:0]		dbus_sel,
+			output	wire	[31:0]		dbus_addr,
+			output	wire	[31:0]		dbus_wdata,
+			input	wire	[31:0]		dbus_rdata,
+			input	wire				dbus_busy,
+			
+			/*
 			// Instruction bus (wishbone)
 			output	wire	[29:0]		wb_inst_adr_o,
 			input	wire	[31:0]		wb_inst_dat_i,
@@ -58,6 +79,7 @@ module jelly_cpu_core
 			output	wire	[3:0]		wb_data_sel_o,
 			output	wire				wb_data_stb_o,
 			input	wire				wb_data_ack_i,
+			*/
 			
 			// Debug port (wishbone)
 			input	wire	[3:0]		wb_dbg_adr_i,
@@ -82,6 +104,7 @@ module jelly_cpu_core
 	wire			dbg_break_req;
 	wire			dbg_break;
 	
+	/*
 	// d-bus control
 	wire	[31:2]	dbg_wb_data_adr_o;
 	wire	[31:0]	dbg_wb_data_dat_i;
@@ -97,6 +120,27 @@ module jelly_cpu_core
 	wire	[3:0]	dbg_wb_inst_sel_o;
 	wire			dbg_wb_inst_stb_o;
 	wire			dbg_wb_inst_ack_i;
+	*/
+	
+	// i-bus control
+	wire			dbg_ibus_interlock;
+	wire			dbg_ibus_en;
+	wire			dbg_ibus_we;
+	wire	[3:0]	dbg_ibus_sel;
+	wire	[31:0]	dbg_ibus_addr;
+	wire	[31:0]	dbg_ibus_wdata;
+	wire	[31:0]	dbg_ibus_rdata;
+	wire			dbg_ibus_busy;
+	
+	// d-bus control
+	wire			dbg_dbus_interlock;
+	wire			dbg_dbus_en;
+	wire			dbg_dbus_we;
+	wire	[3:0]	dbg_dbus_sel;
+	wire	[31:0]	dbg_dbus_addr;
+	wire	[31:0]	dbg_dbus_wdata;
+	wire	[31:0]	dbg_dbus_rdata;
+	wire			dbg_dbus_busy;
 	
 	// gpr control
 	wire			dbg_gpr_en;
@@ -175,7 +219,7 @@ module jelly_cpu_core
 		end
 	end
 	
-	
+	/*
 	// load instruction
 	wire	[29:0]	if_wb_inst_adr_o;
 	wire	[31:0]	if_wb_inst_dat_i;
@@ -224,6 +268,19 @@ module jelly_cpu_core
 	
 	assign dbg_wb_inst_dat_i = wb_inst_dat_i;
 	assign dbg_wb_inst_ack_i = wb_inst_ack_i;
+	*/
+	
+
+	assign ibus_interlock = interlock;
+	assign ibus_en        = 1'b1; // cyuui surukoto
+	assign ibus_we        = 1'b0;
+	assign ibus_sel       = 4'b1111;
+	assign ibus_addr      = if_pc;
+	assign ibus_wdata     = {32{1'b0}};
+	
+	assign if_out_instruction = ibus_rdata;
+	assign if_out_hazard      = ibus_busy;
+	
 	
 	
 	// IF output
@@ -1069,7 +1126,7 @@ module jelly_cpu_core
 	wire				mem_stall;
 	assign mem_stall = ex_out_stall | mem_in_stall;
 	
-	
+	/*
 	// memory access
 	wire	[31:0]	mem_read_data;
 	
@@ -1123,6 +1180,25 @@ module jelly_cpu_core
 	
 	assign dbg_wb_data_dat_i = wb_data_dat_i;
 	assign dbg_wb_data_ack_i = wb_data_ack_i;
+	*/
+	
+	
+	// memory access
+	wire	[31:0]	mem_read_data;
+	
+	assign dbus_interlock = dbg_dbus_en ? dbg_dbus_interlock : interlock;
+	assign dbus_en        = dbg_dbus_en ? dbg_dbus_en        : ex_out_mem_en & ~mem_stall;
+	assign dbus_we        = dbg_dbus_en ? dbg_dbus_we        : ex_out_mem_we;
+	assign dbus_sel       = dbg_dbus_en ? dbg_dbus_sel       : ex_out_mem_sel;
+	assign dbus_addr      = dbg_dbus_en ? dbg_dbus_addr      : ex_out_mem_addr;
+	assign dbus_wdata     = dbg_dbus_en ? dbg_dbus_wdata     : ex_out_mem_wdata;
+	
+	assign mem_read_data  = dbus_rdata;
+	assign mem_out_hazard = dbus_busy;
+	
+	assign dbg_dbus_rdata = dbus_rdata;
+	assign dbg_dbus_busy  = dbus_busy;
+	
 	
 	
 	// FF
@@ -1298,6 +1374,7 @@ module jelly_cpu_core
 					.dbg_break_req	(dbg_break_req),
 					.dbg_break		(dbg_break),
 					
+					/*
 					.wb_data_adr_o	(dbg_wb_data_adr_o),
 					.wb_data_dat_i	(dbg_wb_data_dat_i),
 					.wb_data_dat_o	(dbg_wb_data_dat_o),
@@ -1311,7 +1388,26 @@ module jelly_cpu_core
 					.wb_inst_sel_o	(dbg_wb_inst_sel_o),
 					.wb_inst_stb_o	(dbg_wb_inst_stb_o),
 					.wb_inst_ack_i	(dbg_wb_inst_ack_i),
-									
+					*/
+					
+					.ibus_interlock	(dbg_ibus_interlock),
+					.ibus_en		(dbg_ibus_en),
+					.ibus_we		(dbg_ibus_we),
+					.ibus_sel		(dbg_ibus_sel),
+					.ibus_addr		(dbg_ibus_addr),
+					.ibus_wdata		(dbg_ibus_wdata),
+					.ibus_rdata		(dbg_ibus_rdata),
+					.ibus_busy		(dbg_ibus_busy),
+
+					.dbus_interlock	(dbg_dbus_interlock),
+					.dbus_en		(dbg_dbus_en),
+					.dbus_we		(dbg_dbus_we),
+					.dbus_sel		(dbg_dbus_sel),
+					.dbus_addr		(dbg_dbus_addr),
+					.dbus_wdata		(dbg_dbus_wdata),
+					.dbus_rdata		(dbg_dbus_rdata),
+					.dbus_busy		(dbg_dbus_busy),
+					
 					.gpr_en			(dbg_gpr_en),
 					.gpr_we			(dbg_gpr_we),
 					.gpr_addr		(dbg_gpr_addr),
