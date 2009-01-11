@@ -17,7 +17,7 @@
 `define	SHIFT_FUNC_SRA		2'b11
 
 
-module cpu_shifter
+module jelly_cpu_shifter
 		#(
 			parameter							SA_WIDTH   = 5,
 			parameter							DATA_WIDTH = (1 << SA_WIDTH)
@@ -35,7 +35,7 @@ module cpu_shifter
 	wire	[DATA_WIDTH-1:0]	data_extend;
 	assign data_extend = op_func[1] ? {DATA_WIDTH{in_data[DATA_WIDTH-1]}} : {DATA_WIDTH{1'b0}};
 	assign out_data    = op_func[0] ? ({data_extend, in_data} >> in_sa) : (in_data << in_sa);
-
+	
 endmodule
 
 

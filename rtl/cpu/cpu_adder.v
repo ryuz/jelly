@@ -13,7 +13,7 @@
 
 
 // adder
-module cpu_adder
+module jelly_cpu_adder
 		#(
 			parameter							DATA_WIDTH = 32
 		)

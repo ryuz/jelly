@@ -13,7 +13,7 @@
 
 
 // CPU Core
-module cpu_core
+module jelly_cpu_core
 		#(
 			parameter					USE_DBUGGER     = 1'b1,
 			parameter					USE_EXC_SYSCALL = 1'b1,
@@ -182,7 +182,7 @@ module cpu_core
 	wire	[3:0]	if_wb_inst_sel_o;
 	wire			if_wb_inst_stb_o;
 	wire			if_wb_inst_ack_i;
-	cpu_lsu
+	jelly_cpu_lsu
 			#(
 				.ADDR_WIDTH	(32),
 				.DATA_SIZE	(2) 	// 0:8bit, 1:16bit, 2:32bit ...
@@ -342,7 +342,7 @@ module cpu_core
 	wire	[4:0]	if_gpr_read1_addr;
 	wire	[31:0]	if_gpr_read1_data;
 	
-	cpu_gpr
+	jelly_cpu_gpr
 			#(
 				.TYPE			(GPR_TYPE)
 			)
@@ -439,7 +439,7 @@ module cpu_core
 	wire			id_dec_dst_src_lo;
 	wire			id_dec_dst_src_cop0;
 	
-	cpu_idu
+	jelly_cpu_idu
 			#(
 				.USE_EXC_SYSCALL	(USE_EXC_SYSCALL),
 				.USE_EXC_BREAK		(USE_EXC_BREAK),
@@ -718,7 +718,7 @@ module cpu_core
 	assign ex_alu_in_data0 = ex_fwd_rs_data; 
 	assign ex_alu_in_data1 = id_out_alu_imm_en ? id_out_immediate_data : ex_fwd_rt_data;
 	
-	cpu_alu
+	jelly_cpu_alu
 		i_cpu_alu
 			(
 				.op_adder_en		(id_out_alu_adder_en),
@@ -749,7 +749,7 @@ module cpu_core
 	assign ex_shifter_in_data = ex_fwd_rt_data;
 	assign ex_shifter_in_sa   = id_out_shifter_sa_en ? id_out_shifter_sa_data : ex_fwd_rs_data[4:0];
 	
-	cpu_shifter
+	jelly_cpu_shifter
 		i_cpu_shifter
 			(
 				.op_func		(id_out_shifter_func),
@@ -776,7 +776,7 @@ module cpu_core
 	wire	[31:0]				ex_muldiv_out_lo;
 	wire						ex_muldiv_busy;
 	
-	cpu_muldiv
+	jelly_cpu_muldiv
 		i_cpu_muldiv
 			(
 				.reset			(reset),
@@ -828,7 +828,7 @@ module cpu_core
 	
 	wire	[31:0]	ex_cop0_out_status;
 	
-	cpu_cop0
+	jelly_cpu_cop0
 			#(
 				.DBBP_NUM		(DBBP_NUM)
 			)
@@ -1080,7 +1080,7 @@ module cpu_core
 	wire	[3:0]	mem_wb_data_sel_o;
 	wire			mem_wb_data_stb_o;
 	wire			mem_wb_data_ack_i;
-	cpu_lsu
+	jelly_cpu_lsu
 			#(
 				.ADDR_WIDTH	(32),
 				.DATA_SIZE	(2) 	// 0:8bit, 1:16bit, 2:32bit ...
@@ -1279,7 +1279,7 @@ module cpu_core
 	
 	generate
 	if ( USE_DBUGGER ) begin
-		cpu_dbu
+		jelly_cpu_dbu
 			i_cpu_dbu
 				(
 					.reset			(reset),

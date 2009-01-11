@@ -62,7 +62,7 @@
 
 
 // Debug Unit
-module cpu_dbu
+module jelly_cpu_dbu
 		#(
 			parameter					USE_IBUS_HOOK = 1'b0,
 			parameter					USE_DBUS_HOOK = 1'b1,
@@ -74,7 +74,7 @@ module cpu_dbu
 			input	wire				reset,
 			input	wire				clk,
 			input	wire				endian,
-
+			
 			// wishbone bus
 			input	wire	[3:0]		wb_adr_i,
 			input	wire	[31:0]		wb_dat_i,
@@ -83,7 +83,7 @@ module cpu_dbu
 			input	wire	[3:0]		wb_sel_i,
 			input	wire				wb_stb_i,
 			output	reg					wb_ack_o,
-
+			
 			
 			// debug status
 			output	reg					dbg_enable,
@@ -158,7 +158,7 @@ module cpu_dbu
 					if ( wb_sel_i[0] ) dbg_enable <= dbg_enable & wb_dat_i[0];
 				end
 			end
-
+			
 			// dbg_break_req
 			if ( wb_stb_i & wb_we_i & wb_sel_i[0] & (wb_adr_i == `DBG_ADR_DBG_CTL) ) begin
 				dbg_break_req <= wb_dat_i[1];
@@ -182,14 +182,14 @@ module cpu_dbu
 			end
 		end
 	end
-
+	
 	// register control
 	assign reg_en    = wb_stb_i & (wb_adr_i == `DBG_ADR_REG_DATA);
 	assign reg_we    = wb_we_i;
 	assign reg_addr  = dbg_addr[9:2];
 	assign reg_wdata = wb_dat_i;
-
-
+	
+	
 	// d-bus control
 	wire	[31:2]		dbus_wb_adr_o;
 	wire	[31:0]		dbus_wb_dat_i;
@@ -205,15 +205,15 @@ module cpu_dbu
 	wire	[3:0]		ibus_wb_sel_o;
 	wire				ibus_wb_stb_o;
 	wire				ibus_wb_ack_i;
-
-
+	
+	
 	// d-bus control
 	assign dbus_wb_adr_o = dbg_addr[31:2];
 	assign dbus_wb_dat_o = wb_dat_i;
 	assign dbus_wb_we_o  = wb_we_i;
 	assign dbus_wb_sel_o = wb_sel_i;
 	assign dbus_wb_stb_o = wb_stb_i & (wb_adr_i == `DBG_ADR_DBUS_DATA);
-
+	
 	// i-bus control
 	assign ibus_wb_adr_o = dbg_addr[31:2];
 	assign ibus_wb_sel_o = wb_sel_i;
@@ -228,13 +228,13 @@ module cpu_dbu
 				wb_dat_o = {{30{1'b0}}, dbg_break_req, dbg_enable};
 				wb_ack_o = 1'b1;
 			end
-
+		
 		`DBG_ADR_DBG_ADDR:	// DBG_ADDR
 			begin
 				wb_dat_o = dbg_addr;
 				wb_ack_o = 1'b1;
 			end
-
+		
 		`DBG_ADR_REG_DATA:	// REG_DATA
 			begin
 				wb_dat_o = reg_rdata;
@@ -260,9 +260,9 @@ module cpu_dbu
 			end
 		endcase
 	end
-
-
-
+	
+	
+	
 	// d-bus control
 	generate
 	if ( USE_DBUS_HOOK ) begin
@@ -332,7 +332,7 @@ module cpu_dbu
 		assign ibus_wb_ack_i = 1'b1;
 	end
 	endgenerate
-
+	
 	
 	
 	// -----------------------------
@@ -365,19 +365,19 @@ module cpu_dbu
 				hilo_en   = reg_en;
 				reg_rdata = hilo_rdata;
 			end
-
+		
 		8'b001x_xxxx:			// GPR
 			begin
 				gpr_en    = reg_en;
 				reg_rdata = gpr_rdata;
 			end
-
+		
 		8'b010x_xxxx:			// COP0
 			begin
 				cop0_en   = reg_en;
 				reg_rdata = cop0_rdata;
 			end
-
+		
 		default:
 			begin
 				reg_rdata = {32{1'b0}};

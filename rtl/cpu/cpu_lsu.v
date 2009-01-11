@@ -13,7 +13,7 @@
 
 
 // Load Store Unit
-module cpu_lsu
+module jelly_cpu_lsu
 		#(
 			parameter									ADDR_WIDTH   = 32,
 			parameter									DATA_SIZE    = 2,  				// 0:8bit, 1:16bit, 2:32bit ...
@@ -81,7 +81,7 @@ module cpu_lsu
 	assign wb_we_o  = in_we;
 	assign wb_sel_o = in_sel;
 	assign wb_stb_o = in_en & ~tmp_en;
-
+	
 	assign busy = wb_stb_o & ~wb_ack_i;
 	
 endmodule

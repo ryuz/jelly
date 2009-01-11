@@ -309,8 +309,7 @@ module tb_top;
 		write_dbg_uart_rx_fifo(8'h00);		// dat3
 	#(RATE*100);
 	end
-	endtask;
-	
+	endtask	
 	
 endmodule
 

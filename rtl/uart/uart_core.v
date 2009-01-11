@@ -50,7 +50,7 @@ module jelly_uart_core
 	wire							tx_fifo_rd_ready;
 	
 	// FIFO
-	pipeline_fifo_async
+	fifo_fwtf_async
 			#(
 				.DATA_WIDTH		(8),
 				.PTR_WIDTH		(TX_FIFO_PTR_WIDTH)
@@ -98,7 +98,7 @@ module jelly_uart_core
 	wire							rx_fifo_wr_ready;
 	
 	// FIFO
-	pipeline_fifo_async
+	fifo_fwtf_async
 			#(
 				.DATA_WIDTH		(8),
 				.PTR_WIDTH		(RX_FIFO_PTR_WIDTH)

@@ -28,7 +28,7 @@
 
 
 // Arithmetic Logic Unit
-module cpu_alu
+module jelly_cpu_alu
 		#(
 			parameter 							DATA_SIZE  = 5, 		// 3:8bit, 4:16bit, 5:32bit, ...
 			parameter							DATA_WIDTH = (1 << DATA_SIZE)
@@ -65,7 +65,7 @@ module cpu_alu
 	
 	assign adder_in_carry = (op_adder_func == `ALU_ADDER_FUNC_SUB) ? 1'b1 : 1'b0;
 	
-	cpu_adder
+	jelly_cpu_adder
 		i_cpu_adder
 			(
 				.in_data0		(adder_in_data0),

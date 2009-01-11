@@ -78,7 +78,7 @@
 
 
 // Instruction Decode Unit
-module cpu_idu
+module jelly_cpu_idu
 		#(
 			parameter					USE_EXC_SYSCALL = 1'b1,
 			parameter					USE_EXC_BREAK   = 1'b1,
@@ -120,22 +120,22 @@ module cpu_idu
 			output	wire				muldiv_mfhi,
 			output	wire				muldiv_mflo,
 			output	wire				muldiv_signed,
-
+			
 			output	wire				cop0_mfc0,
 			output	wire				cop0_mtc0,
 			output	wire				cop0_rfe,
-
+			
 			output	wire				exc_syscall,
 			output	wire				exc_break,
 			output	wire				exc_ri,
 			
 			output	wire				dbg_sdbbp,
-
+			
 			output	wire				mem_en,
 			output	wire				mem_we,
 			output	wire	[1:0]		mem_size,
 			output	wire				mem_unsigned,
-					
+			
 			output	wire				dst_reg_en,
 			output	wire	[4:0]		dst_reg_addr,
 			output	wire				dst_src_alu,
@@ -184,15 +184,15 @@ module cpu_idu
 	// ADD
 	wire	inst_add;
 	assign inst_add   = op_special & (field_func == `FUNC_ADD);
-
+	
 	// ADDI
 	wire	inst_addi;
 	assign inst_addi  = (field_op == `OP_ADDI);
-
+	
 	// ADDU
 	wire	inst_addu;
 	assign inst_addu = op_special & (field_func == `FUNC_ADDU);
-
+	
 	// ADDIU
 	wire	inst_addiu;
 	assign inst_addiu = (field_op == `OP_ADDIU);
@@ -200,39 +200,39 @@ module cpu_idu
 	// DIV
 	wire	inst_div;
 	assign inst_div  = op_special & (field_func == `FUNC_DIV);
-
+	
 	// DIVU
 	wire	inst_divu;
 	assign inst_divu  = op_special & (field_func == `FUNC_DIVU);
-
+	
 	// MULT
 	wire	inst_mult;
 	assign inst_mult = op_special & (field_func == `FUNC_MULT);
-
+	
 	// MULTU
 	wire	inst_multu;
 	assign inst_multu = op_special & (field_func == `FUNC_MULTU);
-
+	
 	// SLT
 	wire	inst_slt;
 	assign inst_slt = op_special & (field_func == `FUNC_SLT);
-
+	
 	// SLTI
 	wire	inst_slti;
 	assign inst_slti = (field_op == `OP_SLTI);
-
+	
 	// SLTU
 	wire	inst_sltu;
 	assign inst_sltu = op_special & (field_func == `FUNC_SLTU);
-
+	
 	// SLTIU
 	wire	inst_sltiu;
 	assign inst_sltiu = (field_op == `OP_SLTIU);
-
+	
 	// SUB
 	wire	inst_sub;
 	assign inst_sub = op_special & (field_func == `FUNC_SUB);
-
+	
 	// SUBU
 	wire	inst_subu;
 	assign inst_subu = op_special & (field_func == `FUNC_SUBU);
@@ -240,7 +240,7 @@ module cpu_idu
 	// BEQ
 	wire	inst_beq;
 	assign inst_beq = (field_op == `OP_BEQ);
-
+	
 	// BNE
 	wire	inst_bne;
 	assign inst_bne = (field_op == `OP_BNE);
@@ -252,7 +252,7 @@ module cpu_idu
 	// BGEZAL
 	wire	inst_bgezal;
 	assign inst_bgezal = (field_op == `OP_REGIMM) & (field_rt == 5'b10001);
-
+	
 	// BGTZ
 	wire	inst_bgtz;
 	assign inst_bgtz = (field_op == `OP_BGTZ);
@@ -260,7 +260,7 @@ module cpu_idu
 	// BLEZ
 	wire	inst_blez;
 	assign inst_blez = (field_op == `OP_BLEZ);
-
+	
 	// BLTZ
 	wire	inst_bltz;
 	assign inst_bltz = ((field_op == `OP_REGIMM ) & (field_rt == 5'b00000));
@@ -268,11 +268,11 @@ module cpu_idu
 	// BLTZAL
 	wire	inst_bltzal;
 	assign inst_bltzal = ((field_op == `OP_REGIMM ) & (field_rt == 5'b10000));
-		
+	
 	// J
 	wire	inst_j;
 	assign inst_j = (field_op == `OP_J);
-
+	
 	// JAL
 	wire	inst_jal;
 	assign inst_jal = (field_op == `OP_JAL);
@@ -284,7 +284,7 @@ module cpu_idu
 	// JR
 	wire	inst_jr;
 	assign inst_jr = op_special & (field_func == `FUNC_JR);
-
+	
 	// LB
 	wire	inst_lb;
 	assign inst_lb = (field_op == `OP_LB);
@@ -292,15 +292,15 @@ module cpu_idu
 	// LBU
 	wire	inst_lbu;
 	assign inst_lbu = (field_op == `OP_LBU);
-
+	
 	// LH
 	wire	inst_lh;
 	assign inst_lh = (field_op == `OP_LH);
-
+	
 	// LHU
 	wire	inst_lhu;
 	assign inst_lhu = (field_op == `OP_LHU);
-
+	
 	// LW
 	wire	inst_lw;
 	assign inst_lw = (field_op == `OP_LW);
@@ -308,11 +308,11 @@ module cpu_idu
 	// SB
 	wire	inst_sb;
 	assign inst_sb = (field_op == `OP_SB);
-
+	
 	// SH
 	wire	inst_sh;
 	assign inst_sh = (field_op == `OP_SH);
-
+	
 	// SW
 	wire	inst_sw;
 	assign inst_sw = (field_op == `OP_SW);
@@ -320,27 +320,27 @@ module cpu_idu
 	// AND
 	wire	inst_and;
 	assign inst_and = op_special & (field_func == `FUNC_AND);
-
+	
 	// ANDI
 	wire	inst_andi;
 	assign inst_andi = (field_op == `OP_ANDI);
-
+	
 	// LUI
 	wire	inst_lui;
 	assign inst_lui = (field_op == `OP_LUI);
-
+	
 	// NOR
 	wire	inst_nor;
 	assign inst_nor = op_special & (field_func == `FUNC_NOR);
-
+	
 	// OR
 	wire	inst_or;
 	assign inst_or = op_special & (field_func == `FUNC_OR);
-
+	
 	// ORI
 	wire	inst_ori;
 	assign inst_ori = (field_op == `OP_ORI);
-
+	
 	// XOR
 	wire	inst_xor;
 	assign inst_xor = op_special & (field_func == `FUNC_XOR);
@@ -348,15 +348,15 @@ module cpu_idu
 	// XORI
 	wire	inst_xori;
 	assign inst_xori = (field_op == `OP_XORI);
-
+	
 	// MFHI
 	wire	inst_mfhi;
 	assign inst_mfhi = op_special & (field_func == `FUNC_MFHI);
-
+	
 	// MFLO
 	wire	inst_mflo;
 	assign inst_mflo = op_special & (field_func == `FUNC_MFLO);
-
+	
 	// MTHI
 	wire	inst_mthi;
 	assign inst_mthi = op_special & (field_func == `FUNC_MTHI);
@@ -364,7 +364,7 @@ module cpu_idu
 	// MTLO
 	wire	inst_mtlo;
 	assign inst_mtlo = op_special & (field_func == `FUNC_MTLO);
-
+	
 	// SLL
 	wire	inst_sll;
 	assign inst_sll = op_special & (field_func == `FUNC_SLL);
@@ -372,23 +372,23 @@ module cpu_idu
 	// SLLV
 	wire	inst_sllv;
 	assign inst_sllv = op_special & (field_func == `FUNC_SLLV);
-
+	
 	// SRA
 	wire	inst_sra;
 	assign inst_sra = op_special & (field_func == `FUNC_SRA);
-
+	
 	// SRAV
 	wire	inst_srav;
 	assign inst_srav = op_special & (field_func == `FUNC_SRAV);
-
+	
 	// SRL
 	wire	inst_srl;
 	assign inst_srl = op_special & (field_func == `FUNC_SRL);
-
+	
 	// SRLV
 	wire	inst_srlv;
 	assign inst_srlv = op_special & (field_func == `FUNC_SRLV);
-
+	
 	// BREAK
 	wire	inst_break;
 	assign inst_break = op_special & (field_func == `FUNC_BREAK);
@@ -396,7 +396,7 @@ module cpu_idu
 	// SYSCALL
 	wire	inst_syscall;
 	assign inst_syscall = op_special & (field_func == `FUNC_SYSCALL);
-
+	
 	// RFE
 	wire	inst_rfe;
 	assign inst_rfe = (field_op == `OP_COP0) & (instruction[25] == 1'b1) & (field_func == `FUNC_RFE);
@@ -433,8 +433,8 @@ module cpu_idu
 	assign immediate_data[31:16] = immediate_lui ? ~instruction[15:0] : (immediate_unsigned ? {16{1'b0}} : {16{instruction[15]}});
 	assign immediate_data[15:0]  = immediate_lui ? ~16'h0000          : instruction[15:0];
 	
-		
-
+	
+	
 	// -----------------------------
 	//  Register address
 	// -----------------------------
@@ -456,7 +456,7 @@ module cpu_idu
 	
 	// branch function
 	assign branch_func   = {instruction[16], instruction[28:26]};
-
+	
 	// branch address
 	assign branch_imm_en   = inst_beq | inst_bne |
 								inst_bgez | inst_bgezal | inst_bgtz | inst_blez | inst_bltz | inst_bltzal;
@@ -538,7 +538,7 @@ module cpu_idu
 	assign muldiv_signed = ~instruction[0];
 	
 	assign muldiv_en     = muldiv_mul | muldiv_div | muldiv_mthi | muldiv_mtlo | muldiv_mfhi | muldiv_mflo;
-
+	
 	
 	
 	// -----------------------------
@@ -683,8 +683,9 @@ module cpu_idu
 	// -----------------------------
 	//  Debbuger
 	// -----------------------------
-
+	
 	assign dbg_sdbbp   = inst_sdbbp;
 	
 	
-endmodule  
+endmodule
+

@@ -12,7 +12,7 @@
 
 
 
-module cpu_cop0
+module jelly_cpu_cop0
 	#(
 		parameter					DBBP_NUM = 4		// hardware breakpoints num
 	)

@@ -11,7 +11,7 @@
 `timescale 1ns / 1ps
 
 
-module cpu_muldiv
+module jelly_cpu_muldiv
 		#(
 			parameter							DATA_WIDTH = 32
 		)
@@ -34,7 +34,7 @@ module cpu_muldiv
 			output	wire						busy
 		);
 	
-		
+	
 	// MUL
 	reg	signed	[DATA_WIDTH:0]			mul_in_data0;
 	reg signed	[DATA_WIDTH:0]			mul_in_data1;
@@ -56,7 +56,7 @@ module cpu_muldiv
 	wire							div_out_en;
 	wire	[DATA_WIDTH-1:0]		div_out_remainder;
 	wire	[DATA_WIDTH-1:0]		div_out_quotient;
-	cpu_divider
+	jelly_cpu_divider
 		i_cpu_divider
 			(
 				.reset				(reset),
@@ -106,3 +106,4 @@ module cpu_muldiv
 	assign out_lo = reg_mul_lo ? mul_out_data[31:0]  : div_out_quotient;
 	
 endmodule
+

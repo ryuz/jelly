@@ -204,7 +204,7 @@ module ddr_sdram_io
 				#(
 					.IOSTANDARD			("SSTL2_I")
 				)
-			i_obuf
+			i_obuft
 				(
 					.O					(ddr_sdram_dqs[i]),
 					.I					(dqs_write[i]),

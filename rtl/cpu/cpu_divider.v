@@ -20,7 +20,7 @@
 
 // out_quotient  <- in_data0 / in_data1
 // out_remainder <- in_data0 % in_data1
-module cpu_divider
+module jelly_cpu_divider
 		#(
 			parameter							DATA_WIDTH = 32
 		)
@@ -84,10 +84,10 @@ module cpu_divider
 			remainder      <= {DATA_WIDTH{1'bx}};
 			quotient       <= {DATA_WIDTH{1'bx}};
 			divisor        <= {DATA_WIDTH{1'bx}};
-
+			
 			remainder_sign <= 1'bx;
 			quotient_sign  <= 1'bx;
-
+			
 			busy           <= 1'b0;
 			out_en         <= 1'b0;
 			

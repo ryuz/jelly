@@ -11,7 +11,7 @@
 
 
 // CPU top
-module cpu_top
+module jelly_cpu_top
 		#(
 			parameter					USE_DBUGGER     = 1'b1,
 			parameter					USE_EXC_SYSCALL = 1'b1,
@@ -25,7 +25,7 @@ module cpu_top
 			input	wire				reset,
 			input	wire				clk,
 			input	wire				clk_x2,
-
+			
 			// endian
 			input	wire				endian,
 			
@@ -33,7 +33,7 @@ module cpu_top
 			input	wire	[31:0]		vect_reset,
 			input	wire	[31:0]		vect_interrupt,
 			input	wire	[31:0]		vect_exception,
-
+			
 			// interrupt
 			input	wire				interrupt_req,
 			output	wire				interrupt_ack,
@@ -79,7 +79,7 @@ module cpu_top
 	wire			wb_data_ack_i;
 	
 	
-	cpu_core
+	jelly_cpu_core
 			#(
 				.USE_DBUGGER    	(USE_DBUGGER),
 				.USE_EXC_SYSCALL	(USE_EXC_SYSCALL),
@@ -93,13 +93,13 @@ module cpu_top
 				.reset				(reset),
 				.clk				(clk),
 				.clk_x2				(clk_x2),
-
+				
 				.endian				(endian),
-                              
+				
 				.vect_reset			(vect_reset),
 				.vect_interrupt		(vect_interrupt),
 				.vect_exception		(vect_exception),
-
+				
 				.interrupt_req		(interrupt_req),
 				.interrupt_ack		(interrupt_ack),
 				
@@ -110,7 +110,7 @@ module cpu_top
 				.wb_inst_sel_o		(wb_inst_sel_o),
 				.wb_inst_stb_o		(wb_inst_stb_o),
 				.wb_inst_ack_i		(wb_inst_ack_i),
-				                
+				
 				.wb_data_adr_o		(wb_data_adr_o),
 				.wb_data_dat_i		(wb_data_dat_i),
 				.wb_data_dat_o		(wb_data_dat_o),
@@ -118,7 +118,7 @@ module cpu_top
 				.wb_data_sel_o		(wb_data_sel_o),
 				.wb_data_stb_o		(wb_data_stb_o),
 				.wb_data_ack_i		(wb_data_ack_i),
-
+				
 				.wb_dbg_adr_i		(wb_dbg_adr_i),
 				.wb_dbg_dat_i		(wb_dbg_dat_i),
 				.wb_dbg_dat_o		(wb_dbg_dat_o),
