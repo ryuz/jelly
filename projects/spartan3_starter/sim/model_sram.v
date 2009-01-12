@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 
 
-module sram
+module model_sram
 		(
 			ce_n, we_n, oe_n, addr, data
 		);

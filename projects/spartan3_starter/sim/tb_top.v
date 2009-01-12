@@ -38,35 +38,36 @@ module tb_top;
 	wire	[17:0]		sram_a;
 	wire	[31:0]		sram_d;
 	
-	top i_top
-		(
-			.clk_in			(clk),
-			.reset_in		(reset),
-			
-			.uart0_tx		(),
-			.uart0_rx		(uart_rx),
-			
-			.uart1_tx		(),
-			.uart1_rx		(1'b1),
-			
-			.asram_ce0_n	(sram_ce0_n),
-			.asram_ce1_n	(sram_ce1_n),
-			.asram_we_n		(sram_we_n),
-			.asram_oe_n		(sram_oe_n),
-			.asram_bls_n	(sram_bls_n),
-			.asram_a		(sram_a),
-			.asram_d		(sram_d),
-			
-			.led			(),
-			.sw				(8'b0000_0000),
-			.ext			()
-		);
+	top
+		i_top
+			(
+				.clk_in			(clk),
+				.reset_in		(reset),
+				
+				.uart0_tx		(),
+				.uart0_rx		(uart_rx),
+				
+				.uart1_tx		(),
+				.uart1_rx		(1'b1),
+				
+				.asram_ce0_n	(sram_ce0_n),
+				.asram_ce1_n	(sram_ce1_n),
+				.asram_we_n		(sram_we_n),
+				.asram_oe_n		(sram_oe_n),
+				.asram_bls_n	(sram_bls_n),
+				.asram_a		(sram_a),
+				.asram_d		(sram_d),
+				
+				.led			(),
+				.sw				(8'b0000_0000),
+				.ext			()
+			);
 	
 	// SRAM
-	sram i_sram0 (.ce_n(sram_ce0_n), .we_n(sram_we_n | sram_bls_n[0]), .oe_n(sram_oe_n), .addr(sram_a), .data(sram_d[7:0]));
-	sram i_sram1 (.ce_n(sram_ce0_n), .we_n(sram_we_n | sram_bls_n[1]), .oe_n(sram_oe_n), .addr(sram_a), .data(sram_d[15:8]));
-	sram i_sram2 (.ce_n(sram_ce1_n), .we_n(sram_we_n | sram_bls_n[2]), .oe_n(sram_oe_n), .addr(sram_a), .data(sram_d[23:16]));
-	sram i_sram3 (.ce_n(sram_ce1_n), .we_n(sram_we_n | sram_bls_n[3]), .oe_n(sram_oe_n), .addr(sram_a), .data(sram_d[31:24]));
+	model_sram i_sram0 (.ce_n(sram_ce0_n), .we_n(sram_we_n | sram_bls_n[0]), .oe_n(sram_oe_n), .addr(sram_a), .data(sram_d[7:0]));
+	model_sram i_sram1 (.ce_n(sram_ce0_n), .we_n(sram_we_n | sram_bls_n[1]), .oe_n(sram_oe_n), .addr(sram_a), .data(sram_d[15:8]));
+	model_sram i_sram2 (.ce_n(sram_ce1_n), .we_n(sram_we_n | sram_bls_n[2]), .oe_n(sram_oe_n), .addr(sram_a), .data(sram_d[23:16]));
+	model_sram i_sram3 (.ce_n(sram_ce1_n), .we_n(sram_we_n | sram_bls_n[3]), .oe_n(sram_oe_n), .addr(sram_a), .data(sram_d[31:24]));
 	
 	
 	
@@ -103,28 +104,27 @@ module tb_top;
 		end
 	end
 
-
+	/*
 	// dbg_uart monitor
-	always @ ( posedge i_top.i_dbg_uart.i_uart_core.clk ) begin
-		if ( i_top.i_dbg_uart.i_uart_core.tx_en ) begin
-			$display("%t dbg_uart [TX]:%h", $time, i_top.i_dbg_uart.i_uart_core.tx_data);
+	always @ ( posedge i_top.i_uart_debugger.i_uart_core.clk ) begin
+		if ( i_top.i_uart_debugger.i_uart_core.tx_en ) begin
+			$display("%t dbg_uart [TX]:%h", $time, i_top.i_uart_debugger.i_uart_core.tx_data);
 		end
-		if ( i_top.i_dbg_uart.i_uart_core.rx_en & i_top.i_dbg_uart.i_uart_core.rx_ready ) begin
-			$display("%t dbg_uart [RX]:%h", $time, i_top.i_dbg_uart.i_uart_core.rx_data);
+		if ( i_top.i_uart_debugger.i_uart_core.rx_en & i_top.i_uart_debugger.i_uart_core.rx_ready ) begin
+			$display("%t dbg_uart [RX]:%h", $time, i_top.i_uart_debugger.i_uart_core.rx_data);
 		end
 	end
-	
 	
 	// write_dbg_uart_rx_fifo
 	task write_dbg_uart_rx_fifo;
 		input	[7:0]	data;
 		begin
-			@(negedge i_top.i_dbg_uart.i_uart_core.uart_clk);
-				force i_top.i_dbg_uart.i_uart_core.rx_fifo_wr_en   = 1'b1;
-				force i_top.i_dbg_uart.i_uart_core.rx_fifo_wr_data = data;
-			@(posedge i_top.i_dbg_uart.i_uart_core.uart_clk);
-				release i_top.i_dbg_uart.i_uart_core.rx_fifo_wr_en;
-				release i_top.i_dbg_uart.i_uart_core.rx_fifo_wr_data;
+			@(negedge i_top.i_uart_debugger.i_uart_core.uart_clk);
+				force i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_en   = 1'b1;
+				force i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_data = data;
+			@(posedge i_top.i_uart_debugger.i_uart_core.uart_clk);
+				release i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_en;
+				release i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_data;
 		end
 	endtask
 
@@ -141,15 +141,13 @@ module tb_top;
 				release i_top.i_uart0.i_uart_core.rx_fifo_wr_data;
 		end
 	endtask
+	*/
 	
 	
 	
 	initial begin
 		while ( 1 ) begin
 		#(RATE*20000);
-			write_uart_rx_fifo("X");
-		#(RATE*20000);
-			write_uart_rx_fifo("Y");
 		end
 		
 /*

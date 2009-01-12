@@ -181,57 +181,6 @@ module jelly_cpu_core
 		end
 	end
 	
-	/*
-	// load instruction
-	wire	[29:0]	if_wb_inst_adr_o;
-	wire	[31:0]	if_wb_inst_dat_i;
-	wire	[3:0]	if_wb_inst_sel_o;
-	wire			if_wb_inst_stb_o;
-	wire			if_wb_inst_ack_i;
-	jelly_cpu_lsu
-			#(
-				.ADDR_WIDTH	(32),
-				.DATA_SIZE	(2) 	// 0:8bit, 1:16bit, 2:32bit ...
-			)
-		i_cpu_lsu_inst
-			(
-				.reset		(reset),
-				.clk		(clk),
-			
-				.interlock	(interlock),
-				.busy		(if_out_hazard),
-			
-				.in_en		(~dbg_enable & ~if_in_stall),
-				.in_we		(1'b0),
-				.in_sel		(4'b1111),
-				.in_addr	(if_pc),
-				.in_data	({32{1'b0}}),
-				
-				.out_data	(if_out_instruction),
-				
-				.wb_adr_o	(if_wb_inst_adr_o),
-				.wb_dat_i	(if_wb_inst_dat_i),
-				.wb_dat_o	(),
-				.wb_we_o	(),
-				.wb_sel_o	(if_wb_inst_sel_o),
-				.wb_stb_o	(if_wb_inst_stb_o),
-				.wb_ack_i	(if_wb_inst_ack_i)
-			);
-	
-	// debugger hook
-	assign wb_inst_adr_o = dbg_wb_inst_stb_o ? dbg_wb_inst_adr_o : if_wb_inst_adr_o;
-	assign wb_inst_dat_o = 32'h0000_0000;
-	assign wb_inst_we_o  = 1'b0;
-	assign wb_inst_sel_o = dbg_wb_inst_stb_o ? dbg_wb_inst_sel_o : if_wb_inst_sel_o;
-	assign wb_inst_stb_o = dbg_wb_inst_stb_o ? dbg_wb_inst_stb_o : if_wb_inst_stb_o;
-	
-	assign if_wb_inst_dat_i  = wb_inst_dat_i;
-	assign if_wb_inst_ack_i  = wb_inst_ack_i;
-	
-	assign dbg_wb_inst_dat_i = wb_inst_dat_i;
-	assign dbg_wb_inst_ack_i = wb_inst_ack_i;
-	*/
-	
 	
 	// load instruction
 	assign ibus_interlock = dbg_ibus_en ? dbg_ibus_interlock : interlock;
@@ -1091,62 +1040,6 @@ module jelly_cpu_core
 	wire				mem_stall;
 	assign mem_stall = ex_out_stall | mem_in_stall;
 	
-	/*
-	// memory access
-	wire	[31:0]	mem_read_data;
-	
-	wire	[29:0]	mem_wb_data_adr_o;
-	wire	[31:0]	mem_wb_data_dat_i;
-	wire	[31:0]	mem_wb_data_dat_o;
-	wire			mem_wb_data_we_o;
-	wire	[3:0]	mem_wb_data_sel_o;
-	wire			mem_wb_data_stb_o;
-	wire			mem_wb_data_ack_i;
-	jelly_cpu_lsu
-			#(
-				.ADDR_WIDTH	(32),
-				.DATA_SIZE	(2) 	// 0:8bit, 1:16bit, 2:32bit ...
-
-			)
-		i_cpu_lsu_data
-			(
-				.reset		(reset),
-				.clk		(clk),
-			
-				.interlock	(interlock),
-				.busy		(mem_out_hazard),
-			
-				.in_en		(ex_out_mem_en & ~mem_stall),
-				.in_we		(ex_out_mem_we),
-				.in_sel		(ex_out_mem_sel),
-				.in_addr	(ex_out_mem_addr),
-				.in_data	(ex_out_mem_wdata),
-				
-				.out_data	(mem_read_data),
-				
-				.wb_adr_o	(mem_wb_data_adr_o),
-				.wb_dat_i	(mem_wb_data_dat_i),
-				.wb_dat_o	(mem_wb_data_dat_o),
-				.wb_we_o	(mem_wb_data_we_o),
-				.wb_sel_o	(mem_wb_data_sel_o),
-				.wb_stb_o	(mem_wb_data_stb_o),
-				.wb_ack_i	(mem_wb_data_ack_i)
-			);
-	
-	// debugger hook
-	assign wb_data_adr_o = dbg_wb_data_stb_o ? dbg_wb_data_adr_o : mem_wb_data_adr_o;
-	assign wb_data_dat_o = dbg_wb_data_stb_o ? dbg_wb_data_dat_o : mem_wb_data_dat_o;
-	assign wb_data_we_o  = dbg_wb_data_stb_o ? dbg_wb_data_we_o  : mem_wb_data_we_o;
-	assign wb_data_sel_o = dbg_wb_data_stb_o ? dbg_wb_data_sel_o : mem_wb_data_sel_o;
-	assign wb_data_stb_o = dbg_wb_data_stb_o ? dbg_wb_data_stb_o : mem_wb_data_stb_o;
-	
-	assign mem_wb_data_dat_i = wb_data_dat_i;
-	assign mem_wb_data_ack_i = wb_data_ack_i;
-	
-	assign dbg_wb_data_dat_i = wb_data_dat_i;
-	assign dbg_wb_data_ack_i = wb_data_ack_i;
-	*/
-	
 	
 	// memory access
 	wire	[31:0]	mem_read_data;
@@ -1393,36 +1286,40 @@ module jelly_cpu_core
 				);
 	end
 	else begin
-		assign wb_dbg_dat_o      = {32{1'b0}};
-		assign wb_dbg_ack_o      = 1'b1;
+		assign wb_dbg_dat_o       = {32{1'b0}};
+		assign wb_dbg_ack_o       = 1'b1;
 		
-		assign dbg_enable        = 1'b0;
-		assign dbg_break_req     = 1'b0;
+		assign dbg_enable         = 1'b0;
+		assign dbg_break_req      = 1'b0;
 					
-		assign dbg_wb_data_adr_o = 0;
-		assign dbg_wb_data_dat_o = {32{1'b0}};
-		assign dbg_wb_data_we_o  = 0;
-		assign dbg_wb_data_sel_o = 0;
-		assign dbg_wb_data_stb_o = 1'b0;
+		assign dbg_ibus_interlock = 1'b0;
+		assign dbg_ibus_en        = 1'b0;
+		assign dbg_ibus_we        = 1'b0;
+		assign dbg_ibus_sel       = 4'b0000;
+		assign dbg_ibus_addr      = {32{1'b0}};
+		assign dbg_ibus_wdata     = {32{1'b0}};
+
+		assign dbg_dbus_interlock = 1'b0;
+		assign dbg_dbus_en        = 1'b0;
+		assign dbg_dbus_we        = 1'b0;
+		assign dbg_dbus_sel       = 4'b0000;
+		assign dbg_dbus_addr      = {32{1'b0}};
+		assign dbg_dbus_wdata     = {32{1'b0}};
+		
+		assign dbg_gpr_en         = 1'b0;
+		assign dbg_gpr_we         = 1'b0;
+		assign dbg_gpr_addr       = 0;
+		assign dbg_gpr_wdata      = {32{1'b0}};
 					
-		assign dbg_wb_inst_adr_o = 0;
-		assign dbg_wb_inst_sel_o = 0;
-		assign dbg_wb_inst_stb_o = 1'b0;
-									
-		assign dbg_gpr_en        = 1'b0;
-		assign dbg_gpr_we        = 1'b0;
-		assign dbg_gpr_addr      = 0;
-		assign dbg_gpr_wdata     = {32{1'b0}};
+		assign dbg_hilo_en        = 1'b0;
+		assign dbg_hilo_we        = 1'b0;
+		assign dbg_hilo_addr      = 0;
+		assign dbg_hilo_wdata     = {32{1'b0}};
 					
-		assign dbg_hilo_en       = 1'b0;
-		assign dbg_hilo_we       = 1'b0;
-		assign dbg_hilo_addr     = 0;
-		assign dbg_hilo_wdata    = {32{1'b0}};
-					
-		assign dbg_cop0_en       = 1'b0;
-		assign dbg_cop0_we       = 1'b0;
-		assign dbg_cop0_addr     = 0;
-		assign dbg_cop0_wdata    = {32{1'b0}};
+		assign dbg_cop0_en        = 1'b0;
+		assign dbg_cop0_we        = 1'b0;
+		assign dbg_cop0_addr      = 0;
+		assign dbg_cop0_wdata     = {32{1'b0}};
 	end
 	endgenerate
 

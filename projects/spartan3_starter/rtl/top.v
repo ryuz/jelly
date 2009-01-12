@@ -117,7 +117,7 @@ module top
 	wire			wb_dbg_ack_i;
 	
 	// CPU
-	cpu_top
+	jelly_cpu_top_simple
 			#(
 				.USE_DBUGGER    	(USE_DBUGGER),
 				.USE_EXC_SYSCALL	(USE_EXC_SYSCALL),
@@ -162,12 +162,12 @@ module top
 	
 	generate
 	if ( USE_DBUGGER ) begin
-		jelly_dbg_uart
+		jelly_uart_debugger
 				#(
 					.TX_FIFO_PTR_WIDTH	(2),
 					.RX_FIFO_PTR_WIDTH	(2)
 				)
-			i_dbg_uart
+			i_uart_debugger
 				(
 					.reset				(reset),
 					.clk				(clk),
@@ -281,7 +281,7 @@ module top
 				.WB_ADR_WIDTH		(18),
 				.WB_DAT_WIDTH		(32)
 			)
-		i_jelly_extbus
+		i_extbus
 			(
 				.reset				(reset),
 				.clk				(clk),
@@ -313,7 +313,7 @@ module top
 	reg					timer0_wb_stb_i;
 	wire	[31:0]		timer0_wb_dat_o;
 	wire				timer0_wb_ack_o;
-
+	
 	jelly_timer
 		i_timer0
 			(
@@ -321,7 +321,7 @@ module top
 				.reset				(reset),
 				
 				.interrupt_req		(timer0_irq),
-
+				
 				.wb_adr_i			(wb_adr_o[3:2]),
 				.wb_dat_o			(timer0_wb_dat_o),
 				.wb_dat_i			(wb_dat_o),
