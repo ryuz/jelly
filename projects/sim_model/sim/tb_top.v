@@ -45,8 +45,6 @@ module tb_top;
 				.clk_in				(clk),
 				.reset_in			(reset),
 				
-				.uart_clk			(uart_clk),
-				
 				.uart0_tx			(),
 				.uart0_rx			(uart_rx),
 				
@@ -70,6 +68,7 @@ module tb_top;
 	
 	
 	// bus_trace
+	/*
 	integer bus_trace;
 	initial begin
 		bus_trace = $fopen("bus_trace.txt");
@@ -86,7 +85,7 @@ module tb_top;
 			end
 		end
 	end
-	
+	*/
 	
 	// Interrupt monitor
 	always @ ( posedge i_top.i_cpu_top.clk ) begin
@@ -117,12 +116,12 @@ module tb_top;
 
 
 	// dbg_uart monitor
-	always @ ( posedge i_top.i_dbg_uart.i_uart_core.clk ) begin
-		if ( i_top.i_dbg_uart.i_uart_core.tx_en & i_top.i_dbg_uart.i_uart_core.tx_ready ) begin
-			$display("%t dbg_uart [TX]:%h", $time, i_top.i_dbg_uart.i_uart_core.tx_data);
+	always @ ( posedge i_top.i_uart_debugger.i_uart_core.clk ) begin
+		if ( i_top.i_uart_debugger.i_uart_core.tx_en & i_top.i_uart_debugger.i_uart_core.tx_ready ) begin
+			$display("%t dbg_uart [TX]:%h", $time, i_top.i_uart_debugger.i_uart_core.tx_data);
 		end
-		if ( i_top.i_dbg_uart.i_uart_core.rx_en & i_top.i_dbg_uart.i_uart_core.rx_ready ) begin
-			$display("%t dbg_uart [RX]:%h", $time, i_top.i_dbg_uart.i_uart_core.rx_data);
+		if ( i_top.i_uart_debugger.i_uart_core.rx_en & i_top.i_uart_debugger.i_uart_core.rx_ready ) begin
+			$display("%t dbg_uart [RX]:%h", $time, i_top.i_uart_debugger.i_uart_core.rx_data);
 		end
 	end
 	
@@ -131,12 +130,12 @@ module tb_top;
 	task write_dbg_uart_rx_fifo;
 		input	[7:0]	data;
 		begin
-			@(negedge i_top.i_dbg_uart.i_uart_core.uart_clk);
-				force i_top.i_dbg_uart.i_uart_core.rx_fifo_wr_en   = 1'b1;
-				force i_top.i_dbg_uart.i_uart_core.rx_fifo_wr_data = data;
-			@(posedge i_top.i_dbg_uart.i_uart_core.uart_clk);
-				release i_top.i_dbg_uart.i_uart_core.rx_fifo_wr_en;
-				release i_top.i_dbg_uart.i_uart_core.rx_fifo_wr_data;
+			@(negedge i_top.i_uart_debugger.i_uart_core.uart_clk);
+				force i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_en   = 1'b1;
+				force i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_data = data;
+			@(posedge i_top.i_uart_debugger.i_uart_core.uart_clk);
+				release i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_en;
+				release i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_data;
 		end
 	endtask
 	
