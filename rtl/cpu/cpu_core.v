@@ -61,27 +61,7 @@ module jelly_cpu_core
 			input	wire	[31:0]		dbus_rdata,
 			input	wire				dbus_busy,
 			
-			/*
-			// Instruction bus (wishbone)
-			output	wire	[29:0]		wb_inst_adr_o,
-			input	wire	[31:0]		wb_inst_dat_i,
-			output	wire	[31:0]		wb_inst_dat_o,
-			output	wire				wb_inst_we_o,
-			output	wire	[3:0]		wb_inst_sel_o,
-			output	wire				wb_inst_stb_o,
-			input	wire				wb_inst_ack_i,
-			
-			// Data bus (wishbone)
-			output	wire	[29:0]		wb_data_adr_o,
-			input	wire	[31:0]		wb_data_dat_i,
-			output	wire	[31:0]		wb_data_dat_o,
-			output	wire				wb_data_we_o,
-			output	wire	[3:0]		wb_data_sel_o,
-			output	wire				wb_data_stb_o,
-			input	wire				wb_data_ack_i,
-			*/
-			
-			// Debug port (wishbone)
+			// Debug port (WISHBONE)
 			input	wire	[3:0]		wb_dbg_adr_i,
 			input	wire	[31:0]		wb_dbg_dat_i,
 			output	wire	[31:0]		wb_dbg_dat_o,
@@ -103,24 +83,6 @@ module jelly_cpu_core
 	wire			dbg_enable;
 	wire			dbg_break_req;
 	wire			dbg_break;
-	
-	/*
-	// d-bus control
-	wire	[31:2]	dbg_wb_data_adr_o;
-	wire	[31:0]	dbg_wb_data_dat_i;
-	wire	[31:0]	dbg_wb_data_dat_o;
-	wire			dbg_wb_data_we_o;
-	wire	[3:0]	dbg_wb_data_sel_o;
-	wire			dbg_wb_data_stb_o;
-	wire			dbg_wb_data_ack_i;
-
-	// i-bus control
-	wire	[31:2]	dbg_wb_inst_adr_o;
-	wire	[31:0]	dbg_wb_inst_dat_i;
-	wire	[3:0]	dbg_wb_inst_sel_o;
-	wire			dbg_wb_inst_stb_o;
-	wire			dbg_wb_inst_ack_i;
-	*/
 	
 	// i-bus control
 	wire			dbg_ibus_interlock;
@@ -270,17 +232,20 @@ module jelly_cpu_core
 	assign dbg_wb_inst_ack_i = wb_inst_ack_i;
 	*/
 	
-
-	assign ibus_interlock = interlock;
-	assign ibus_en        = 1'b1; // cyuui surukoto
-	assign ibus_we        = 1'b0;
-	assign ibus_sel       = 4'b1111;
-	assign ibus_addr      = if_pc;
-	assign ibus_wdata     = {32{1'b0}};
+	
+	// load instruction
+	assign ibus_interlock = dbg_ibus_en ? dbg_ibus_interlock : interlock;
+	assign ibus_en        = dbg_ibus_en ? dbg_ibus_en        : !if_in_stall;
+	assign ibus_we        = dbg_ibus_en ? dbg_ibus_we        : 1'b0;
+	assign ibus_sel       = dbg_ibus_en ? dbg_ibus_sel       : 4'b1111;
+	assign ibus_addr      = dbg_ibus_en ? dbg_ibus_addr      : if_pc;
+	assign ibus_wdata     = dbg_ibus_en ? dbg_ibus_wdata     : {32{1'b0}};
 	
 	assign if_out_instruction = ibus_rdata;
 	assign if_out_hazard      = ibus_busy;
 	
+	assign dbg_ibus_rdata     = ibus_rdata;
+	assign dbg_ibus_busy      = ibus_busy;
 	
 	
 	// IF output

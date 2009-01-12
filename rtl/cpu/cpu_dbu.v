@@ -65,9 +65,7 @@
 module jelly_cpu_dbu
 		#(
 			parameter					USE_IBUS_HOOK = 1'b0,
-			parameter					USE_DBUS_HOOK = 1'b1,
-			parameter					IBUS_HOOK_FF  = 1'b0,
-			parameter					DBUS_HOOK_FF  = 1'b1
+			parameter					USE_DBUS_HOOK = 1'b1
 		)
 		(
 			// system
@@ -109,25 +107,7 @@ module jelly_cpu_dbu
 			output	wire	[31:0]		dbus_wdata,
 			input	wire	[31:0]		dbus_rdata,
 			input	wire				dbus_busy,
-			
-/*			
-			// d-bus control
-			output	wire	[31:2]		wb_data_adr_o,
-			input	wire	[31:0]		wb_data_dat_i,
-			output	wire	[31:0]		wb_data_dat_o,
-			output	wire				wb_data_we_o,
-			output	wire	[3:0]		wb_data_sel_o,
-			output	wire				wb_data_stb_o,
-			input	wire				wb_data_ack_i,
-			
-			// i-bus control
-			output	wire	[31:2]		wb_inst_adr_o,
-			input	wire	[31:0]		wb_inst_dat_i,
-			output	wire	[3:0]		wb_inst_sel_o,
-			output	wire				wb_inst_stb_o,
-			input	wire				wb_inst_ack_i,
-*/
-			
+						
 			// gpr control
 			output	reg					gpr_en,
 			output	wire				gpr_we,
@@ -211,71 +191,80 @@ module jelly_cpu_dbu
 	assign reg_wdata = wb_dat_i;
 	
 	
-	// d-bus control
-	wire	[31:2]		dbus_wb_adr_o;
-	wire	[31:0]		dbus_wb_dat_i;
-	wire	[31:0]		dbus_wb_dat_o;
-	wire				dbus_wb_we_o;
-	wire	[3:0]		dbus_wb_sel_o;
-	wire				dbus_wb_stb_o;
-	wire				dbus_wb_ack_i;
-	
 	// i-bus control
-	wire	[31:2]		ibus_wb_adr_o;
-	wire	[31:0]		ibus_wb_dat_i;
-	wire	[3:0]		ibus_wb_sel_o;
-	wire				ibus_wb_stb_o;
-	wire				ibus_wb_ack_i;
-	
-	
-	// i-bus control
-	assign ibus_interlock = 1'b0;
-	assign ibus_en        = 1'b0;
-	assign ibus_we        = 1'b0;
-	assign ibus_sel       = 4'b1111;
-	assign ibus_addr      = 0;
-	assign ibus_wdata     = 0;
-//	assign ibus_rdata,
-//	assign ibus_busy,
-
-
-	// d-bus control
-	assign dbus_interlock = 1'b0;
-	assign dbus_en        = wb_stb_i & (wb_adr_i == `DBG_ADR_DBUS_DATA);
-	assign dbus_we        = wb_we_i;
-	assign dbus_sel       = wb_sel_i;
-	assign dbus_addr      = dbg_addr;
-	assign dbus_wdata     = wb_dat_i;
-//	assign dbus_rdata,
-//	assign dbus_busy,
-	wire				dbus_ack;
-	reg					dbus_reg_ack;
-	always @( posedge clk or posedge reset ) begin
-		if ( reset ) begin
-			dbus_reg_ack <= 1'b0;
-		end
-		else begin
-			if ( !dbus_busy ) begin
-				dbus_reg_ack <= dbus_en & !dbus_we;
+	wire				ibus_ack;
+	generate
+	if ( USE_IBUS_HOOK ) begin
+		assign ibus_interlock = 1'b0;
+		assign ibus_en        = wb_stb_i & (wb_adr_i == `DBG_ADR_IBUS_DATA);
+		assign ibus_we        = 1'b0;
+		assign ibus_sel       = wb_sel_i;
+		assign ibus_addr      = dbg_addr;
+		assign ibus_wdata     = wb_dat_i;
+		
+		reg				ibus_reg_ack;
+		always @( posedge clk or posedge reset ) begin
+			if ( reset ) begin
+				ibus_reg_ack <= 1'b0;
+			end
+			else begin
+				if ( !dbus_busy ) begin
+					ibus_reg_ack <= ibus_en & !ibus_we;
+				end
 			end
 		end
+		assign ibus_ack = !ibus_busy & (ibus_reg_ack | ibus_we);
 	end
-	assign dbus_ack = !dbus_busy & (dbus_reg_ack | dbus_we);
-	
-	
-	/*
+	else begin
+		assign ibus_interlock = 1'b0;
+		assign ibus_en        = 1'b0;
+		assign ibus_we        = 1'b0;
+		assign ibus_sel       = 4'b1111;
+		assign ibus_addr      = 0;
+		assign ibus_wdata     = 0;
+
+		assign ibus_ack       = 1'b1;
+	end
+	endgenerate
+
+
 	// d-bus control
-	assign dbus_wb_adr_o = dbg_addr[31:2];
-	assign dbus_wb_dat_o = wb_dat_i;
-	assign dbus_wb_we_o  = wb_we_i;
-	assign dbus_wb_sel_o = wb_sel_i;
-	assign dbus_wb_stb_o = wb_stb_i & (wb_adr_i == `DBG_ADR_DBUS_DATA);
+	wire				dbus_ack;
+	generate
+	if ( USE_DBUS_HOOK ) begin
+		assign dbus_interlock = 1'b0;
+		assign dbus_en        = wb_stb_i & (wb_adr_i == `DBG_ADR_DBUS_DATA);
+		assign dbus_we        = wb_we_i;
+		assign dbus_sel       = wb_sel_i;
+		assign dbus_addr      = dbg_addr;
+		assign dbus_wdata     = wb_dat_i;
+
+		reg				dbus_reg_ack;
+		always @( posedge clk or posedge reset ) begin
+			if ( reset ) begin
+				dbus_reg_ack <= 1'b0;
+			end
+			else begin
+				if ( !dbus_busy ) begin
+					dbus_reg_ack <= dbus_en & !dbus_we;
+				end
+			end
+		end
+		assign dbus_ack = !dbus_busy & (dbus_reg_ack | dbus_we);
+	end
+	else begin
+		assign dbus_interlock = 1'b0;
+		assign dbus_en        = 1'b0;
+		assign dbus_we        = 1'b0;
+		assign dbus_sel       = 4'b0000;
+		assign dbus_addr      = 0;
+		assign dbus_wdata     = 0;
+		
+		assign dbus_ack       = 1'b1;
+	end
+	endgenerate
+		
 	
-	// i-bus control
-	assign ibus_wb_adr_o = dbg_addr[31:2];
-	assign ibus_wb_sel_o = wb_sel_i;
-	assign ibus_wb_stb_o = wb_stb_i & (wb_adr_i == `DBG_ADR_IBUS_DATA);
-	*/
 	
 	// read
 	always @* begin
@@ -306,10 +295,10 @@ module jelly_cpu_dbu
 		
 		`DBG_ADR_IBUS_DATA:	// IBUS_DATA
 			begin
-				wb_dat_o = 0; 	 // ibus_wb_dat_i;
-				wb_ack_o = 1'b1; // ibus_wb_ack_i;
+				wb_dat_o = ibus_rdata;
+				wb_ack_o = ibus_ack;
 			end
-				
+		
 		default:
 			begin
 				wb_dat_o = {32{1'b0}};
@@ -318,79 +307,6 @@ module jelly_cpu_dbu
 		endcase
 	end
 	
-	/*
-	
-	// d-bus control
-	generate
-	if ( USE_DBUS_HOOK ) begin
-		if ( DBUS_HOOK_FF ) begin
-			// insert flip-flop
-			wishbone_bridge
-					#(
-						.WB_ADR_WIDTH	(30),
-						.WB_DAT_WIDTH	(32)
-					)
-				i_wishbone_bridge_dbus
-					(
-						.reset			(reset),
-						.clk			(clk),
-						
-						.wb_in_adr_i	(dbus_wb_adr_o),
-						.wb_in_dat_o	(dbus_wb_dat_i),
-						.wb_in_dat_i	(dbus_wb_dat_o),
-						.wb_in_we_i		(dbus_wb_we_o),
-						.wb_in_sel_i	(dbus_wb_sel_o),
-						.wb_in_stb_i	(dbus_wb_stb_o),
-						.wb_in_ack_o	(dbus_wb_ack_i),
-						
-						.wb_out_adr_o	(wb_data_adr_o),
-						.wb_out_dat_i	(wb_data_dat_i),
-						.wb_out_dat_o	(wb_data_dat_o),
-						.wb_out_we_o	(wb_data_we_o),
-						.wb_out_sel_o	(wb_data_sel_o),
-						.wb_out_stb_o	(wb_data_stb_o),
-						.wb_out_ack_i	(wb_data_ack_i)
-					);
-		end
-		else begin
-			assign wb_data_adr_o = dbus_wb_adr_o;
-			assign wb_data_dat_o = dbus_wb_dat_o;
-			assign wb_data_we_o  = dbus_wb_we_o;
-			assign wb_data_sel_o = dbus_wb_sel_o;
-			assign wb_data_stb_o = dbus_wb_stb_o;
-			assign dbus_wb_dat_i = wb_data_dat_i;
-			assign dbus_wb_ack_i = wb_data_ack_i;
-		end
-	end
-	else begin
-		// no use
-		assign wb_data_adr_o = 0;
-		assign wb_data_dat_o = 0;
-		assign wb_data_we_o  = 1'b0;
-		assign wb_data_sel_o = 0;
-		assign wb_data_stb_o = 1'b0;	
-		assign dbus_wb_dat_i = 0;
-		assign dbus_wb_ack_i = 1'b1;
-	end
-	
-	// i-bus control
-	if ( USE_IBUS_HOOK ) begin
-		assign wb_inst_adr_o = ibus_wb_adr_o;
-		assign wb_inst_sel_o = ibus_wb_sel_o;
-		assign wb_inst_stb_o = ibus_wb_stb_o;
-		assign ibus_wb_dat_i = wb_inst_dat_i;
-		assign ibus_wb_ack_i = wb_inst_ack_i;
-	end
-	else begin
-		assign wb_inst_adr_o = 0;
-		assign wb_inst_sel_o = 0;
-		assign wb_inst_stb_o = 1'b0;
-		assign ibus_wb_dat_i = 0;
-		assign ibus_wb_ack_i = 1'b1;
-	end
-	endgenerate
-	
-	*/
 	
 	
 	// -----------------------------
