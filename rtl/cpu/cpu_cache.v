@@ -12,7 +12,7 @@
 
 
 
-// Cached Unit
+// Cached Load Store Unit
 module jelly_cpu_cache
 		#(
 			parameter										CPUBUS_ADDR_WIDTH  = 24,
@@ -47,7 +47,7 @@ module jelly_cpu_cache
 			input	wire	[CPUBUS_SEL_WIDTH-1:0]			cpubus_sel,
 			input	wire	[CPUBUS_ADDR_WIDTH-1:0]			cpubus_addr,
 			input	wire	[CPUBUS_DATA_WIDTH-1:0]			cpubus_wdata,
-			output	reg		[CPUBUS_DATA_WIDTH-1:0]			cpubus_rdata,
+			output	wire	[CPUBUS_DATA_WIDTH-1:0]			cpubus_rdata,
 			output	wire									cpubus_busy,
 			
 			// memory bus
@@ -106,7 +106,7 @@ module jelly_cpu_cache
 	
 	
 	// -----------------------------------------
-	//  cahce memory access stage
+	//  cache memory access stage
 	// -----------------------------------------
 	
 	reg										cha_out_cpu_en;
@@ -198,35 +198,29 @@ module jelly_cpu_cache
 	reg		[MEMBUS_DATA_WIDTH-1:0]			cmp_out_mem_wdata;
 	reg										cmp_out_mem_last;
 	
-	reg										cmp_out_wbk_en;
 	reg		[WAY-1:0]						cmp_out_wbk_we;
-	reg										cmp_out_wbk_valid;
-	reg		[ADDR_TAG_WIDTH-1:0]			cmp_out_wbk_tag;
-	reg		[DATARAM_DATA_WIDTH-1:0]		cmp_out_wbk_data;
 	
 	// compare
-	reg										cmp_cahce_hit;
-	reg		[WAY-1:0]						cmp_cahce_hit_mask;
-	reg		[MEMBUS_DATA_WIDTH-1:0]			cmp_cahce_data;
+	reg										cmp_cache_hit;
+	reg		[WAY-1:0]						cmp_cache_hit_mask;
+	reg		[MEMBUS_DATA_WIDTH-1:0]			cmp_cache_data;
 	
 	always @* begin
-		cmp_cahce_hit  = 1'b0;
-		cmp_cahce_data = {MEMBUS_DATA_WIDTH{1'b0}};
+		cmp_cache_hit  = 1'b0;
+		cmp_cache_data = {MEMBUS_DATA_WIDTH{1'b0}};
 		for ( i = 0; i < WAY; i = i + 1 ) begin : way
-			cmp_cahce_hit_mask[i] = (cha_out_cache_tag[ADDR_TAG_WIDTH*i +: ADDR_TAG_WIDTH] == cha_out_cpu_addr_tag) & cha_out_cache_valid[i];
+			cmp_cache_hit_mask[i] = (cha_out_cache_tag[ADDR_TAG_WIDTH*i +: ADDR_TAG_WIDTH] == cha_out_cpu_addr_tag) & cha_out_cache_valid[i];
 			
-			cmp_cahce_hit  = cmp_cahce_hit | cmp_cahce_hit_mask[i];
-			cmp_cahce_data = cmp_cahce_data | (cmp_cahce_hit_mask[i] ? cha_out_cache_data[DATARAM_DATA_WIDTH*i +: DATARAM_DATA_WIDTH] : {MEMBUS_DATA_WIDTH{1'b0}});
+			cmp_cache_hit  = cmp_cache_hit | cmp_cache_hit_mask[i];
+			cmp_cache_data = cmp_cache_data | (cmp_cache_hit_mask[i] ? cha_out_cache_data[DATARAM_DATA_WIDTH*i +: DATARAM_DATA_WIDTH] : {MEMBUS_DATA_WIDTH{1'b0}});
 		end
 	end
 	
 	
 	reg							cmp_last;
-	reg		[LINE_SIZE-1:0]		cmp_counter;
 	
 	always @ ( posedge clk or posedge reset ) begin
 		if ( reset ) begin
-			cmp_counter             <= 0;
 			cmp_out_mem_en          <= 1'b0;
 			cmp_out_mem_we          <= 1'bx;
 			cmp_out_mem_addr_offset <= {ADDR_OFFSET_WIDTH{1'bx}};
@@ -235,20 +229,20 @@ module jelly_cpu_cache
 			cmp_out_mem_sel         <= {MEMBUS_SEL_WIDTH{1'bx}};
 			cmp_out_mem_wdata       <= {MEMBUS_DATA_WIDTH{1'bx}};
 			cmp_out_mem_last        <= 1'b1;
+			cmp_out_wbk_we          <= {WAY{1'bx}};
 		end
 		else begin
 			if ( !membus_busy ) begin
-				cmp_out_wbk_addr <= 1'b0;
 				if ( !cmp_out_mem_en | cmp_out_mem_last ) begin
 					if ( cha_out_cpu_en & cha_out_cpu_we ) begin	// write through
 						// write
-						cmp_out_mem_en          <= (cha_out_cpu_en & (!cmp_cahce_hit | cha_out_cpu_we) | cmp_busy;
+						cmp_out_mem_en          <= 1'b1;
 						cmp_out_mem_we          <= 1'b1;
-						cmp_out_mem_addr_offset <= cmp_out_mem_addr_offset;
-						cmp_out_mem_addr_index  <= cmp_out_mem_addr_index;
-						cmp_out_mem_addr_tag    <= cmp_out_mem_addr_tag;
+						cmp_out_mem_addr_offset <= cha_out_cpu_addr_offset;
+						cmp_out_mem_addr_index  <= cha_out_cpu_addr_index;
+						cmp_out_mem_addr_tag    <= cha_out_cpu_addr_tag;
 						for ( i = 0; i < BUS_WIDTH_RATE; i = i + 1 ) begin
-							if ( (cmp_out_mem_addr_select ^ {BUS_SIZE_RATE{endian}}) == i ) begin
+							if ( (cha_out_cpu_addr_select ^ {BUS_SIZE_RATE{endian}}) == i ) begin
 								cmp_out_mem_sel[CPUBUS_SEL_WIDTH*i +: CPUBUS_SEL_WIDTH] <= cha_out_cpu_sel;
 								for ( j = 0; j < CPUBUS_SEL_WIDTH; j = j + 1 ) begin
 									if ( cha_out_cpu_sel[i] ) begin
@@ -261,35 +255,39 @@ module jelly_cpu_cache
 							end
 							else begin
 								cmp_out_mem_sel[CPUBUS_SEL_WIDTH*i +: CPUBUS_SEL_WIDTH]     <= {CPUBUS_SEL_WIDTH{1'b0}};
-								cmp_out_mem_wdata[CPUBUS_DATA_WIDTH*i +: CPUBUS_DATA_WIDTH] <= cha_out_cache_dataCPUBUS_DATA_WIDTH*i +: CPUBUS_DATA_WIDTH];
+								cmp_out_mem_wdata[CPUBUS_DATA_WIDTH*i +: CPUBUS_DATA_WIDTH] <= cha_out_cache_data[CPUBUS_DATA_WIDTH*i +: CPUBUS_DATA_WIDTH];
 							end
 						end
 						cmp_out_mem_last <= 1'b1;
+						cmp_out_wbk_we   <= cmp_cache_hit_mask;
 					end
-					else if ( cha_out_cpu_en & !cha_out_cpu_we & !cmp_cahce_hit ) begin		// read miss-hit
+					else if ( cha_out_cpu_en & !cha_out_cpu_we & !cmp_cache_hit ) begin		// read miss-hit
 						// read start
-						cmp_out_mem_en    <= 1'b1;
-						cmp_out_mem_we    <= 1'b0;
-						cmp_out_mem_sel   <= {MEM_SEL_WIDTH{1'b1}};
-						cmp_out_mem_addr  <= {cmp_out_mem_addr[CPU_ADDR_WIDTH-1:SIZE_RATE+LINE_SIZE], {LINE_SIZE{1'b0}}};
-						cmp_out_mem_wdata <= {WIDTH_RATE{1'bx}};
-						cmp_out_mem_last  <= 1'b1;
-						cmp_counter       <= 0;
+						cmp_out_mem_en          <= 1'b1;
+						cmp_out_mem_we          <= 1'b0;
+						cmp_out_mem_sel         <= {MEMBUS_SEL_WIDTH{1'b1}};
+						cmp_out_mem_addr_offset <= {ADDR_OFFSET_WIDTH{1'b0}};
+						cmp_out_mem_addr_index  <= cha_out_cpu_addr_index;
+						cmp_out_mem_addr_tag    <= cha_out_cpu_addr_tag;
+						cmp_out_mem_wdata       <= {BUS_WIDTH_RATE{1'bx}};
+						cmp_out_mem_last        <= 1'b1;
+						cmp_out_wbk_we          <= cmp_cache_hit_mask;
 					end
 					else begin
 						// read continue
-						cmp_out_mem_en    <= 1'b0;
-						cmp_out_mem_addr  <= cmp_out_mem_addr + 1;
-						cmp_counter       <= cmp_counter + 1;
-						cmp_out_mem_last  <= ((cmp_counter + 1) == {LINE_SIZE{1'b1}});
+						cmp_out_mem_en          <= 1'b0;
+						cmp_out_mem_addr_offset <= cmp_out_mem_addr_offset + 1;
+						cmp_out_mem_last        <= ((cmp_out_mem_addr_offset + 1) == {ADDR_OFFSET_WIDTH{1'b1}});
 					end
 				end
 				else begin
-					cmp_out_mem_en    <= 1'b0;
-					cmp_out_mem_we    <= 1'bx;
-					cmp_out_mem_addr  <= {CPU_SEL_WIDTH{1'bx}};
-					cmp_out_mem_sel   <= {CPU_ADDR_WIDTH{1'bx}};
-					cmp_out_mem_wdata <= {CPU_DATA_WIDTH{1'bx}};				
+					cmp_out_mem_en          <= 1'b0;
+					cmp_out_mem_we          <= 1'bx;
+					cmp_out_mem_addr_offset <= {ADDR_OFFSET_WIDTH{1'bx}};
+					cmp_out_mem_addr_index  <= {ADDR_INDEX_WIDTH{1'bx}};
+					cmp_out_mem_addr_tag    <= {ADDR_TAG_WIDTH{1'bx}};
+					cmp_out_mem_sel         <= {CPUBUS_ADDR_WIDTH{1'bx}};
+					cmp_out_mem_wdata       <= {CPUBUS_DATA_WIDTH{1'bx}};				
 				end
 			end
 		end
@@ -300,14 +298,14 @@ module jelly_cpu_cache
 	//  memory stage
 	// -----------------------------------------
 	
-	reg									mem_out_en;
-	reg									mem_out_we;
-	reg		[ADDR_OFFSET_WIDTH-1:0]		mem_out_addr_offset;
-	reg		[ADDR_INDEX_WIDTH-1:0]		mem_out_addr_index;
-	reg		[ADDR_TAG_WIDTH-1:0]		mem_out_addr_tag;
-	reg		[MEMBUS_SEL_WIDTH-1:0]		mem_out_sel;
-	reg		[MEMBUS_DATA_WIDTH-1:0]		mem_out_wdata;
-	wire	[MEMBUS_DATA_WIDTH-1:0]		mem_out_rdata;
+	reg									mem_out_mem_we;
+	reg									mem_out_wbk_en;
+	reg		[WAY-1:0]					mem_out_wbk_we;
+	reg		[ADDR_OFFSET_WIDTH-1:0]		mem_out_wbk_addr_offset;
+	reg		[ADDR_INDEX_WIDTH-1:0]		mem_out_wbk_addr_index;
+	reg		[ADDR_TAG_WIDTH-1:0]		mem_out_wbk_addr_tag;
+	reg		[MEMBUS_DATA_WIDTH-1:0]		mem_out_wbk_wdata;
+	wire	[MEMBUS_DATA_WIDTH-1:0]		mem_out_wbk_rdata;
 	
 	// memory bus
 	assign membus_interlock = 1'b0;
@@ -317,32 +315,46 @@ module jelly_cpu_cache
 	assign membus_sel       = cmp_out_mem_sel;
 	assign membus_wdata     = cmp_out_mem_wdata;
 	
-	always @ ( posedge clk or negedge reset_n ) begin
-		if ( ~reset_n ) begin
-			mem_out_en    <= 1'b0;
-			mem_out_we    <= 1'bx;
-			mem_out_wdata <= {MEMBUS_DATA_WIDTH{1'bx}};
+	always @ ( posedge clk or negedge reset ) begin
+		if ( reset ) begin
+			mem_out_mem_we          <= 1'b0;
+			mem_out_wbk_en          <= 1'b0;
+			mem_out_wbk_we          <= {WAY{1'bx}};
+			mem_out_wbk_addr_offset <= {ADDR_OFFSET_WIDTH{1'bx}};
+			mem_out_wbk_addr_index  <= {ADDR_INDEX_WIDTH{1'bx}};
+			mem_out_wbk_addr_tag    <= {ADDR_TAG_WIDTH{1'bx}};
+			mem_out_wbk_wdata       <= {MEMBUS_DATA_WIDTH{1'bx}};
 		end
 		else begin
-			mem_out_en    <= cmp_out_mem_en;
-			mem_out_we    <= cmp_out_mem_we;
-			mem_out_wdata <= cmp_out_mem_addr;
+			mem_out_mem_we          <= cmp_out_mem_we;
+			mem_out_wbk_en          <= cmp_out_mem_en;
+			mem_out_wbk_we          <= cmp_out_wbk_we;
+			mem_out_wbk_addr_offset <= cmp_out_mem_addr_offset;
+			mem_out_wbk_addr_index  <= cmp_out_mem_addr_index;
+			mem_out_wbk_addr_tag    <= cmp_out_mem_addr_tag;
+			mem_out_wbk_wdata       <= cmp_out_mem_wdata;
 		end
-	end	
-	assign mem_out_rdata    = mem_out_rdata;
+	end
+	assign mmem_out_wbk_rdata = membus_rdata;
 	
 	
 	// -----------------------------------------
 	//  writeback stage
 	// -----------------------------------------
 	
-	assign wbk_out_en          = mem_out_en;
-	assign wbk_out_addr_offset = cmp_out_mem_addr_offset;
-	assign wbk_out_addr_index  = cmp_out_mem_addr_index;
-//	wire	[WAY-1:0]						wbk_out_we;
+	assign wbk_out_en          = mem_out_wbk_en;
+	assign wbk_out_we          = mem_out_wbk_we;
+	assign wbk_out_addr_offset = mem_out_wbk_addr_offset;
+	assign wbk_out_addr_index  = mem_out_wbk_addr_index;
 	assign wbk_out_valid       = 1'b1;
-	assign wbk_out_tag         = cmp_out_mem_addr_tag;
-	assign wbk_out_data        = mem_out_we ? mem_out_wdata ? mem_out_rdata;
+	assign wbk_out_tag         = mem_out_wbk_addr_tag;
+	assign wbk_out_data        = mem_out_mem_we ? mem_out_wbk_wdata : mem_out_wbk_rdata;
+	
+		
+	// -----------------------------------------
+	//  
+	// -----------------------------------------
+	
+	assign cpubus_rdata = cmp_cache_hit ? cmp_cache_data : wbk_out_data;
 	
 endmodule
-

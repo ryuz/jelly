@@ -11,6 +11,7 @@
 
 
 // Dualport-RAM
+(* ram_style="distributed" *)
 module ram_dualport
 		#(
 			parameter							DATA_WIDTH = 8,

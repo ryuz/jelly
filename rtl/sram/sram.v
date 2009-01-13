@@ -16,7 +16,8 @@ module jelly_sram
 		#(
 			parameter							WB_ADR_WIDTH  = 10,
 			parameter							WB_DAT_WIDTH  = 32,
-			parameter							WB_SEL_WIDTH  = (WB_DAT_WIDTH / 8)
+			parameter							WB_SEL_WIDTH  = (WB_DAT_WIDTH / 8),
+			parameter							CYCLE         = 0
 		)
 		(
 			input	wire						reset,
@@ -34,32 +35,54 @@ module jelly_sram
 	
 	generate
 	genvar	i;
-	for ( i = 0; i < WB_SEL_WIDTH; i = i + 1 ) begin : ram
-		ram_dualport
-				#(
-					.DATA_WIDTH	(8),
-					.ADDR_WIDTH	(WB_ADR_WIDTH)
-				)
-			i_ram_dualport
-				(
-					.clk0		(~clk),
-					.en0		(wb_stb_i),
-					.we0		(wb_we_i & wb_sel_i[i]),
-					.addr0		(wb_adr_i),
-					.din0		(wb_dat_i[i*8 +: 8]),
-					.dout0		(wb_dat_o[i*8 +: 8]),
-					
-					.clk1		(1'b0),
-					.en1		(1'b0),
-					.we1		(1'b0),
-					.addr1		({WB_ADR_WIDTH{1'b0}}),
-					.din1		(8'h00),
-					.dout1		()
-				);
+	if ( CYCLE == 0 ) begin
+		for ( i = 0; i < WB_SEL_WIDTH; i = i + 1 ) begin : ram
+			ram_singleport
+					#(
+						.DATA_WIDTH		(8),
+						.ADDR_WIDTH		(WB_ADR_WIDTH)
+					)
+				i_ram_singleport
+					(
+						.clk			(~clk),
+						.en				(wb_stb_i),
+						.we				(wb_we_i & wb_sel_i[i]),
+						.addr			(wb_adr_i),
+						.din			(wb_dat_i[i*8 +: 8]),
+						.dout			(wb_dat_o[i*8 +: 8])
+					);
+		end
+		assign wb_ack_o = 1'b1;
+	end
+	else begin
+		for ( i = 0; i < WB_SEL_WIDTH; i = i + 1 ) begin : ram
+			ram_singleport
+					#(
+						.DATA_WIDTH		(8),
+						.ADDR_WIDTH		(WB_ADR_WIDTH)
+					)
+				i_ram_singleport
+					(
+						.clk			(clk),
+						.en				(wb_stb_i),
+						.we				(wb_we_i & wb_sel_i[i]),
+						.addr			(wb_adr_i),
+						.din			(wb_dat_i[i*8 +: 8]),
+						.dout			(wb_dat_o[i*8 +: 8])
+					);
+		end
+		
+		reg		read;
+		always @ ( posedge clk or posedge reset ) begin
+		if ( reset ) begin
+				read <= 1'b0;
+			end
+			else begin
+				read <= !read & wb_stb_i & !wb_we_i;
+			end
+		end
+		assign wb_ack_o = wb_we_i | read;
 	end
 	endgenerate
 	
-	assign wb_ack_o = 1'b1;
-	
 endmodule
-
