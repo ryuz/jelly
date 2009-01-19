@@ -12,7 +12,7 @@
 
 
 // whishbone x2 clock bridge
-module wishbone_clk2x
+module jelly_wishbone_clk2x
 		#(
 			parameter							WB_ADR_WIDTH  = 30,
 			parameter							WB_DAT_WIDTH  = 32,

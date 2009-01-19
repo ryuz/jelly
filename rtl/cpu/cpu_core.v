@@ -21,6 +21,7 @@ module jelly_cpu_core
 			parameter					USE_EXC_RI      = 1'b1,
 			parameter					USE_HW_BP       = 1'b1,
 			parameter					GPR_TYPE        = 0,
+			parameter					MUL_CYCLE       = 0,
 			parameter					DBBP_NUM        = 4
 		)
 		(
@@ -748,6 +749,9 @@ module jelly_cpu_core
 	wire						ex_muldiv_busy;
 	
 	jelly_cpu_muldiv
+			#(
+				.MUL_CYCLE		(MUL_CYCLE)
+			)
 		i_cpu_muldiv
 			(
 				.reset			(reset),

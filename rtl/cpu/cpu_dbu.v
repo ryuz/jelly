@@ -229,9 +229,39 @@ module jelly_cpu_dbu
 
 
 	// d-bus control
-	wire				dbus_ack;
+	wire	[31:0]		dbus_wb_dat;
+	wire				dbus_wb_ack;
 	generate
 	if ( USE_DBUS_HOOK ) begin
+		jelly_cpu_wishbone_cpubus
+				#(
+					.ADDR_WIDTH			(32),
+					.DATA_SIZE			(2),  	// 0:8bit, 1:16bit, 2:32bit ...
+					.PIPELINE			(1)
+				)
+			i_jelly_cpu_wishbone_cpubus
+				(
+					.reset				(reset),
+					.clk				(clk),
+					
+					.wb_adr_i			(dbg_addr[31:2]),
+					.wb_dat_i			(wb_dat_i),
+					.wb_dat_o			(dbus_wb_dat),
+					.wb_we_i			(wb_we_i),
+					.wb_sel_i			(wb_sel_i),
+					.wb_stb_i			(wb_stb_i & (wb_adr_i == `DBG_ADR_DBUS_DATA)),
+					.wb_ack_o			(dbus_wb_ack),
+					
+					.cpubus_interlock	(dbus_interlock),
+					.cpubus_en			(dbus_en),
+					.cpubus_we			(dbus_we),
+					.cpubus_sel			(dbus_sel),
+					.cpubus_addr		(dbus_addr),
+					.cpubus_wdata		(dbus_wdata),
+					.cpubus_rdata		(dbus_rdata),
+					.cpubus_busy		(dbus_busy)
+				);
+		/*
 		assign dbus_interlock = 1'b0;
 		assign dbus_en        = wb_stb_i & (wb_adr_i == `DBG_ADR_DBUS_DATA);
 		assign dbus_we        = wb_we_i;
@@ -251,6 +281,7 @@ module jelly_cpu_dbu
 			end
 		end
 		assign dbus_ack = !dbus_busy & (dbus_reg_ack | dbus_we);
+		*/
 	end
 	else begin
 		assign dbus_interlock = 1'b0;
@@ -263,7 +294,7 @@ module jelly_cpu_dbu
 		assign dbus_ack       = 1'b1;
 	end
 	endgenerate
-		
+	
 	
 	
 	// read
@@ -289,8 +320,8 @@ module jelly_cpu_dbu
 		
 		`DBG_ADR_DBUS_DATA:	// DBUS_DATA
 			begin
-				wb_dat_o = dbus_rdata;
-				wb_ack_o = dbus_ack;
+				wb_dat_o = dbus_wb_dat;
+				wb_ack_o = dbus_wb_ack;
 			end
 		
 		`DBG_ADR_IBUS_DATA:	// IBUS_DATA

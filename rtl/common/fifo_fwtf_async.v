@@ -13,7 +13,7 @@
 
 
 // First-Word Fall-Through mode asyncronous FIFO
-module fifo_fwtf_async
+module jelly_fifo_fwtf_async
 		#(
 			parameter							DATA_WIDTH = 8,
 			parameter							PTR_WIDTH  = 8
@@ -48,7 +48,7 @@ module fifo_fwtf_async
 	wire	[DATA_WIDTH-1:0]	ram_rd_data;
 	
 	// ram
-	ram_dualport
+	jelly_ram_dualport
 			#(
 				.DATA_WIDTH		(DATA_WIDTH),
 				.ADDR_WIDTH		(PTR_WIDTH)
@@ -101,7 +101,7 @@ module fifo_fwtf_async
 	
 	
 	// write pointer
-	binary_to_graycode
+	jelly_binary_to_graycode
 			#(
 				.WIDTH		(PTR_WIDTH+1)
 			)
@@ -111,7 +111,7 @@ module fifo_fwtf_async
 				.graycode	(wr_wptr_gray)
 			);
 	
-	graycode_to_binary
+	jelly_graycode_to_binary
 			#(
 				.WIDTH		(PTR_WIDTH+1)
 			)
@@ -155,7 +155,7 @@ module fifo_fwtf_async
 	
 		
 	// read pointer
-	binary_to_graycode
+	jelly_binary_to_graycode
 			#(
 				.WIDTH		(PTR_WIDTH+1)
 			)
@@ -165,7 +165,7 @@ module fifo_fwtf_async
 				.graycode	(rd_rptr_gray)
 			);
 	
-	graycode_to_binary
+	jelly_graycode_to_binary
 			#(
 				.WIDTH		(PTR_WIDTH+1)
 			)

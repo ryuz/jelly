@@ -28,7 +28,7 @@ module jelly_cpu_multiplier
 			input	wire	[DATA_WIDTH-1:0]	in_data0,
 			input	wire	[DATA_WIDTH-1:0]	in_data1,
 			
-			output	reg							out_en,
+			output	wire						out_en,
 			output	wire	[DATA_WIDTH-1:0]	out_hi,
 			output	wire	[DATA_WIDTH-1:0]	out_lo,
 			
@@ -40,17 +40,17 @@ module jelly_cpu_multiplier
 	wire	signed	[DATA_WIDTH:0]			signed_data0;
 	wire	signed	[DATA_WIDTH:0]			signed_data1;
 	
-	assign signed_data0[DATA_WIDT]     = op_signed ? in_data0[DATA_WIDTH-1] : op_signed;
-	assign signed_data0[DATA_WIDT-1:0] = in_data0[DATA_WIDTH-1:0];
-	assign signed_data1[DATA_WIDT]     = op_signed ? in_data1[DATA_WIDTH-1] : op_signed;
-	assign signed_data1[DATA_WIDT-1:0] = in_data1[DATA_WIDTH-1:0];
+	assign signed_data0[DATA_WIDTH]     = op_signed ? in_data0[DATA_WIDTH-1] : op_signed;
+	assign signed_data0[DATA_WIDTH-1:0] = in_data0[DATA_WIDTH-1:0];
+	assign signed_data1[DATA_WIDTH]     = op_signed ? in_data1[DATA_WIDTH-1] : op_signed;
+	assign signed_data1[DATA_WIDTH-1:0] = in_data1[DATA_WIDTH-1:0];
 	
 	
 	generate
 	genvar		i;
 	if ( CYCLE ==0 ) begin
 		// multiplier
-		assign {out_hi, out_lo} = signed_data * signed_data1;
+		assign {out_hi, out_lo} = signed_data0 * signed_data1;
 		assign out_en           = op_mul;
 		assign busy             = 1'b0;
 	end
@@ -72,22 +72,23 @@ module jelly_cpu_multiplier
 		wire	[CYCLE-1:0]			next_busy;
 		assign next_busy = (reg_busy >> 1);
 		always @ ( posedge clk or posedge reset ) begin
-		if ( reset ) begin
-			reg_busy   <= {CYCLE{1'b0}};
-			reg_out_en <= 1'b0;
-		end
-		else begin
-			if ( op_mul ) begin
-				reg_busy <= {CYCLE{1'b1}};
+			if ( reset ) begin
+				reg_busy   <= {CYCLE{1'b0}};
+				reg_out_en <= 1'b0;
 			end
 			else begin
-				reg_busy <= next_busy;
+				if ( op_mul ) begin
+					reg_busy <= {CYCLE{1'b1}};
+				end
+				else begin
+					reg_busy <= next_busy;
+				end
+				
+				reg_out_en <= reg_busy[0] & !next_busy[0];
 			end
-			
-			reg_out_en <= reg_busy[0] & !next_busy[0];
 		end
-		assign out_en   = reg_out_en;
-		assign reg_busy = reg_busy[0];
+		assign out_en = reg_out_en;
+		assign busy   = reg_busy[0];
 	end
 	else begin
 		// adder multiplier
@@ -135,12 +136,13 @@ module jelly_cpu_multiplier
 					end
 				end
 			end
-			
-			assign out_en           = reg_busy & (reg_in_data0 == 0);
-			assign {out_hi, out_lo} = reg_negative ? -reg_out_data : reg_out_data;
-			assign busy             = reg_busy;
 		end
+			
+		assign out_en           = reg_busy & (reg_in_data0 == 0);
+		assign {out_hi, out_lo} = reg_negative ? -reg_out_data : reg_out_data;
+		assign busy             = reg_busy;
 	end
+	endgenerate
 	
 endmodule
 

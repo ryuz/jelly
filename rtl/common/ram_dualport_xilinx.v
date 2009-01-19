@@ -13,7 +13,7 @@
 
 
 // DualPort-RAM
-module ram_dualport_xilinx
+module jelly_ram_dualport_xilinx
 		#(
 			parameter							DATA_WIDTH = 32,
 			parameter							ADDR_WIDTH = 5,

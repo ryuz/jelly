@@ -13,7 +13,7 @@
 
 // Singleport-RAM
 (* ram_style = "block" *)
-module ram_singleport
+module jelly_ram_singleport
 		#(
 			parameter							DATA_WIDTH  = 8,
 			parameter							ADDR_WIDTH  = 8,

@@ -69,11 +69,10 @@ module jelly_cpu_gpr
 		wire	[DATA_WIDTH-1:0]	ram_din1;
 		wire	[DATA_WIDTH-1:0]	ram_dout1;
 		
-		ram_dualport_xilinx
+		jelly_ram_dualport
 				#(
 					.DATA_WIDTH		(DATA_WIDTH),
-					.ADDR_WIDTH		(ADDR_WIDTH),
-					.MEM_SIZE		((1 << (ADDR_WIDTH)))
+					.ADDR_WIDTH		(ADDR_WIDTH)
 				)
 			i_ram_dualport
 				(
@@ -156,7 +155,7 @@ module jelly_cpu_gpr
 			wire	[ADDR_WIDTH-1:0]	ram_read_addr;
 			wire	[DATA_WIDTH-1:0]	ram_read_data;
 			
-			ram_dualport
+			jelly_ram_dualport
 					#(
 						.DATA_WIDTH		(DATA_WIDTH),
 						.ADDR_WIDTH		(ADDR_WIDTH),

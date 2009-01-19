@@ -12,7 +12,7 @@
 
 
 // register
-module wishbone_register
+module jelly_wishbone_register
 		#(
 			parameter	DATA_WIDTH    = 32,
 			parameter	INITIAL_VALUE = 0,

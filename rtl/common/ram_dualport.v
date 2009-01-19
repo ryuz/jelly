@@ -11,8 +11,8 @@
 
 
 // Dualport-RAM
-(* ram_style="distributed" *)
-module ram_dualport
+(* ram_style="auto" *)
+module jelly_ram_dualport
 		#(
 			parameter							DATA_WIDTH = 8,
 			parameter							ADDR_WIDTH = 8,

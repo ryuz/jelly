@@ -11,7 +11,7 @@
 
 
 //   Binary to Graycode
-module binary_to_graycode
+module jelly_binary_to_graycode
 		#(
 			parameter						WIDTH = 4
 		)

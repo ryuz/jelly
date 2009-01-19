@@ -14,7 +14,8 @@
 module jelly_uart_core
 		#(
 			parameter	TX_FIFO_PTR_WIDTH = 4,
-			parameter	RX_FIFO_PTR_WIDTH = 4
+			parameter	RX_FIFO_PTR_WIDTH = 4,
+			parameter	DEBUG             = 1
 		)
 		(
 			input	wire							reset,
@@ -51,7 +52,7 @@ module jelly_uart_core
 	wire							tx_fifo_rd_ready;
 	
 	// FIFO
-	fifo_fwtf_async
+	jelly_fifo_fwtf_async
 			#(
 				.DATA_WIDTH		(8),
 				.PTR_WIDTH		(TX_FIFO_PTR_WIDTH)
@@ -99,7 +100,7 @@ module jelly_uart_core
 	wire							rx_fifo_wr_ready;
 	
 	// FIFO
-	fifo_fwtf_async
+	jelly_fifo_fwtf_async
 			#(
 				.DATA_WIDTH		(8),
 				.PTR_WIDTH		(RX_FIFO_PTR_WIDTH)
@@ -133,6 +134,22 @@ module jelly_uart_core
 				.rx_en			(rx_fifo_wr_en),
 				.rx_dout		(rx_fifo_wr_data)
 			);
+	
+	
+	// -------------------------
+	//  Debug
+	// -------------------------
+
+	always @ ( posedge clk ) begin
+		if ( DEBUG ) begin
+			if ( rx_en & rx_ready ) begin
+				$display("%m : [UART-RX] %h %c", rx_data, rx_data);
+			end			
+			if ( tx_en & tx_ready ) begin
+				$display("%m : [UART-TX] %h %c", tx_data, tx_data);
+			end			
+		end
+	end
 	
 endmodule
 

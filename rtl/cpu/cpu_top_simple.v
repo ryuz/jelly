@@ -18,6 +18,7 @@ module jelly_cpu_top_simple
 			parameter					USE_EXC_BREAK   = 1'b1,
 			parameter					USE_EXC_RI      = 1'b1,
 			parameter					GPR_TYPE        = 0,
+			parameter					MUL_CYCLE       = 0,
 			parameter					DBBP_NUM        = 4
 		)
 		(
@@ -93,6 +94,7 @@ module jelly_cpu_top_simple
 				.USE_EXC_BREAK		(USE_EXC_BREAK),
 				.USE_EXC_RI			(USE_EXC_RI),
 				.GPR_TYPE			(GPR_TYPE),
+				.MUL_CYCLE			(MUL_CYCLE),
 				.DBBP_NUM			(DBBP_NUM)
 			)
 		i_cpu_core

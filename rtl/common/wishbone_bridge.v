@@ -13,7 +13,7 @@
 
 
 // wishbone bridge
-module wishbone_bridge
+module jelly_wishbone_bridge
 		#(
 			parameter							WB_ADR_WIDTH  = 31,
 			parameter							WB_DAT_WIDTH  = 32,

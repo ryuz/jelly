@@ -12,7 +12,7 @@
 
 
 // Singleport-RAM
-module ram_singleport_xilinx
+module jelly_ram_singleport_xilinx
 		#(
 			parameter							DATA_WIDTH  = 8,
 			parameter							ADDR_WIDTH  = 8,

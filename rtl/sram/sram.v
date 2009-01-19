@@ -37,7 +37,7 @@ module jelly_sram
 	genvar	i;
 	if ( CYCLE == 0 ) begin
 		for ( i = 0; i < WB_SEL_WIDTH; i = i + 1 ) begin : ram
-			ram_singleport
+			jelly_ram_singleport
 					#(
 						.DATA_WIDTH		(8),
 						.ADDR_WIDTH		(WB_ADR_WIDTH)
@@ -56,7 +56,7 @@ module jelly_sram
 	end
 	else begin
 		for ( i = 0; i < WB_SEL_WIDTH; i = i + 1 ) begin : ram
-			ram_singleport
+			jelly_ram_singleport
 					#(
 						.DATA_WIDTH		(8),
 						.ADDR_WIDTH		(WB_ADR_WIDTH)
