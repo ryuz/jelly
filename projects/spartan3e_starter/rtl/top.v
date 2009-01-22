@@ -271,7 +271,7 @@ module top
 	wire			wb_dram_stb_o;
 	wire			wb_dram_ack_i;
 	
-	wishbone_clk2x
+	jelly_wishbone_clk2x
 			#(
 				.WB_ADR_WIDTH		(24),
 				.WB_DAT_WIDTH		(32)
@@ -342,7 +342,7 @@ module top
 	wire	[31:0]	peri_wb_dat_o;
 	wire			peri_wb_ack_o;
 	
-	wishbone_bridge
+	jelly_wishbone_bridge
 			#(
 				.WB_ADR_WIDTH		(30),
 				.WB_DAT_WIDTH		(32)
