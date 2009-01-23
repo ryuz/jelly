@@ -17,6 +17,7 @@ module top
 			parameter					USE_EXC_BREAK   = 1'b0,
 			parameter					USE_EXC_RI      = 1'b0,
 			parameter					GPR_TYPE        = 0,
+			parameter					MUL_CYCLE       = 0,
 			parameter					DBBP_NUM        = 0
 		)
 		(
@@ -124,6 +125,7 @@ module top
 				.USE_EXC_BREAK		(USE_EXC_BREAK),
 				.USE_EXC_RI			(USE_EXC_RI),
 				.GPR_TYPE			(GPR_TYPE),
+				.MUL_CYCLE			(MUL_CYCLE),
 				.DBBP_NUM			(DBBP_NUM)
 			)
 		i_cpu_top
@@ -265,12 +267,12 @@ module top
 			);
 	assign rom_wb_ack_o = 1'b1;
 	
-
-		
+	
+	
 	// -------------------------
 	//  external asram
 	// -------------------------
-
+	
 	reg					asram_wb_stb_i;
 	wire	[31:0]		asram_wb_dat_o;
 	wire				asram_wb_ack_o;
@@ -343,7 +345,7 @@ module top
 
 	jelly_uart
 			#(
-				.TX_FIFO_PTR_WIDTH	(2),
+				.TX_FIFO_PTR_WIDTH	(10),
 				.RX_FIFO_PTR_WIDTH	(2)
 			)
 		i_uart0

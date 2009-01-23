@@ -107,11 +107,12 @@ module jelly_cpu_muldiv
 		assign out_lo = reg_mul_lo ? mul_out_data[31:0]  : div_out_quotient;
 	end
 	else begin
+		
 		// MULT
 		wire							mul_out_en;
 		wire	[DATA_WIDTH-1:0]		mul_out_hi;
 		wire	[DATA_WIDTH-1:0]		mul_out_lo;
-		wire	[DATA_WIDTH-1:0]		mul_out_busy;
+		wire							mul_out_busy;
 		jelly_cpu_multiplier
 				#(
 					.DATA_WIDTH			(DATA_WIDTH),
@@ -121,7 +122,7 @@ module jelly_cpu_muldiv
 				(
 					.reset				(reset),
 					.clk				(clk),
-
+					
 					.op_mul				(op_mul),
 					.op_signed			(op_signed),
 
@@ -162,35 +163,51 @@ module jelly_cpu_muldiv
 				);
 		
 		// register
+		reg							reg_busy;
 		reg		[DATA_WIDTH-1:0]	reg_hi;
 		reg		[DATA_WIDTH-1:0]	reg_lo;
-		always @ ( posedge clk ) begin
-			// hi
-			if ( op_mthi ) begin
-				reg_hi <= in_data0;
+		always @ ( posedge clk or posedge reset ) begin
+			if ( reset ) begin
+				reg_busy <= 1'b0;
+				reg_hi   <= {DATA_WIDTH{1'bx}};
+		        reg_lo   <= {DATA_WIDTH{1'bx}};
 			end
-			else if ( mul_out_en ) begin
-				reg_hi <= mul_out_hi;
-			end
-			else if ( div_out_en ) begin
-				reg_hi <= div_out_remainder;
-			end
-			
-			// lo
-			if ( op_mtlo ) begin
-				reg_lo <= in_data0;
-			end
-			else if ( mul_out_en ) begin
-				reg_lo <= mul_out_lo;
-			end
-			else if ( div_out_en ) begin
-				reg_lo <= div_out_quotient;
+			else begin
+				// busy
+				if ( !reg_busy ) begin
+					reg_busy <= (op_mul & !mul_out_en) | (op_div & !div_out_en);
+				end
+				else if ( mul_out_en | div_out_en ) begin
+					reg_busy <= 1'b0;
+				end
+					
+				// hi
+				if ( op_mthi ) begin
+					reg_hi <= in_data0;
+				end
+				else if ( mul_out_en ) begin
+					reg_hi <= mul_out_hi;
+				end
+				else if ( div_out_en ) begin
+					reg_hi <= div_out_remainder;
+				end
+					
+				// lo
+				if ( op_mtlo ) begin
+					reg_lo <= in_data0;
+				end
+				else if ( mul_out_en ) begin
+					reg_lo <= mul_out_lo;
+				end
+				else if ( div_out_en ) begin
+					reg_lo <= div_out_quotient;
+				end
 			end
 		end
-				
+		
 		assign out_hi = reg_hi;
 		assign out_lo = reg_lo;
-		assign busy   = mul_out_busy | div_out_busy;
+		assign busy   = reg_busy;	// mul_out_busy | div_out_busy;
 	end
 	endgenerate
 	

@@ -757,10 +757,10 @@ module jelly_cpu_core
 				.reset			(reset),
 				.clk			(clk),
 				
-				.op_mul			(ex_muldiv_op_mul),
-				.op_div			(ex_muldiv_op_div),
-				.op_mthi		(ex_muldiv_op_mthi),
-				.op_mtlo		(ex_muldiv_op_mtlo),
+				.op_mul			(ex_muldiv_op_mul & !interlock),
+				.op_div			(ex_muldiv_op_div & !interlock),
+				.op_mthi		(ex_muldiv_op_mthi & !interlock),
+				.op_mtlo		(ex_muldiv_op_mtlo & !interlock),
 				.op_signed		(ex_muldiv_op_signed),
 				
 				.in_data0		(ex_muldiv_in_data0),
@@ -1235,22 +1235,6 @@ module jelly_cpu_core
 					.dbg_enable		(dbg_enable),
 					.dbg_break_req	(dbg_break_req),
 					.dbg_break		(dbg_break),
-					
-					/*
-					.wb_data_adr_o	(dbg_wb_data_adr_o),
-					.wb_data_dat_i	(dbg_wb_data_dat_i),
-					.wb_data_dat_o	(dbg_wb_data_dat_o),
-					.wb_data_we_o	(dbg_wb_data_we_o),
-					.wb_data_sel_o	(dbg_wb_data_sel_o),
-					.wb_data_stb_o	(dbg_wb_data_stb_o),
-					.wb_data_ack_i	(dbg_wb_data_ack_i),
-					
-					.wb_inst_adr_o	(dbg_wb_inst_adr_o),
-					.wb_inst_dat_i	(dbg_wb_inst_dat_i),
-					.wb_inst_sel_o	(dbg_wb_inst_sel_o),
-					.wb_inst_stb_o	(dbg_wb_inst_stb_o),
-					.wb_inst_ack_i	(dbg_wb_inst_ack_i),
-					*/
 					
 					.ibus_interlock	(dbg_ibus_interlock),
 					.ibus_en		(dbg_ibus_en),

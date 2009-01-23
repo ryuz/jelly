@@ -6,7 +6,7 @@ module tb_top;
 
 	parameter	RATE       = 20;
 	parameter	UART_RATE  = (1000000000 / 115200);
-	
+
 	
 	initial begin
 		$dumpfile("tb_top.vcd");

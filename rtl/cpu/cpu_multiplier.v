@@ -109,14 +109,16 @@ module jelly_cpu_multiplier
 			else begin
 				if ( !reg_busy ) begin
 					if ( op_mul ) begin
+						// start
 						reg_busy                                <= 1'b1;
-						reg_negative                            <= op_signed & (reg_in_data0[DATA_WIDTH-1] ^ reg_in_data1[DATA_WIDTH-1]);
-						reg_in_data0                            <= op_signed & reg_in_data0[DATA_WIDTH-1] ? -reg_in_data0 : reg_in_data0;
-						reg_in_data1[DATA_WIDTH-1:0]            <= op_signed & reg_in_data1[DATA_WIDTH-1] ? -reg_in_data1 : reg_in_data1;
+						reg_negative                            <= op_signed & (in_data0[DATA_WIDTH-1] ^ in_data1[DATA_WIDTH-1]);
+						reg_in_data0                            <= op_signed & in_data0[DATA_WIDTH-1] ? -signed_data0 : signed_data0;
+						reg_in_data1[DATA_WIDTH-1:0]            <= op_signed & in_data1[DATA_WIDTH-1] ? -signed_data1 : signed_data1;
 						reg_in_data1[DATA_WIDTH*2-1:DATA_WIDTH] <= {DATA_WIDTH{1'b0}};
 						reg_out_data                            <= {(DATA_WIDTH*2){1'b0}};
 					end
 					else begin
+						// idle
 						reg_busy     <= reg_busy;
 						reg_negative <= 1'bx;
 						reg_in_data0 <= {DATA_WIDTH{1'bx}};
@@ -125,8 +127,8 @@ module jelly_cpu_multiplier
 					end
 				end
 				else begin
-					if ( reg_in_data0[DATA_WIDTH-1:1] == 0 ) begin
-						reg_busy <= 1'b0;
+					if ( reg_in_data0[DATA_WIDTH-1:0] == 0 ) begin
+						reg_busy   <= 1'b0;
 					end
 					reg_negative <= reg_negative;
 					reg_in_data0 <= (reg_in_data0 >> 1);
@@ -137,8 +139,8 @@ module jelly_cpu_multiplier
 				end
 			end
 		end
-			
-		assign out_en           = reg_busy & (reg_in_data0 == 0);
+		
+		assign out_en           = reg_busy & (reg_in_data0[DATA_WIDTH-1:0] == 0);
 		assign {out_hi, out_lo} = reg_negative ? -reg_out_data : reg_out_data;
 		assign busy             = reg_busy;
 	end

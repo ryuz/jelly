@@ -16,7 +16,7 @@ module top
 			parameter 				CPU_USE_EXC_SYSCALL = 1'b0,
 			parameter 				CPU_USE_EXC_BREAK   = 1'b0,
 			parameter 				CPU_USE_EXC_RI      = 1'b0,
-			parameter 				CPU_GPR_TYPE        = 0,
+			parameter 				CPU_GPR_TYPE        = 2,
 			parameter 				CPU_DBBP_NUM        = 0
 		)
 		(
@@ -123,16 +123,17 @@ module top
 	
 	
 	// CPU
-	cpu_top
+	jelly_cpu_top_simple
 			#(
 				.USE_DBUGGER		(CPU_USE_DBUGGER),
 				.USE_EXC_SYSCALL	(CPU_USE_EXC_SYSCALL),
 				.USE_EXC_BREAK		(CPU_USE_EXC_BREAK),
 				.USE_EXC_RI			(CPU_USE_EXC_RI),
 				.GPR_TYPE			(CPU_GPR_TYPE),
+				.MUL_CYCLE			(33),
 				.DBBP_NUM 			(CPU_DBBP_NUM)
 			)
-		i_cpu_top
+		i_cpu_top_simple
 			(
 				.reset				(reset),
 				.clk				(clk),
@@ -171,12 +172,12 @@ module top
 	generate
 	if ( CPU_USE_DBUGGER ) begin
 		wire	dbg_uart_clk;
-		jelly_dbg_uart
+		jelly_uart_debugger
 				#(
 					.TX_FIFO_PTR_WIDTH	(2),
 					.RX_FIFO_PTR_WIDTH	(2)
 				)
-			i_dbg_uart
+			i_uart_debugger
 				(
 					.reset				(reset),
 					.clk				(clk),
@@ -186,13 +187,13 @@ module top
 					.uart_tx			(dbg_uart_tx),
 					.uart_rx			(dbg_uart_rx),
 					
-					.wb_dbg_adr_o		(wb_dbg_adr_o),
-					.wb_dbg_dat_i		(wb_dbg_dat_i),
-					.wb_dbg_dat_o		(wb_dbg_dat_o),
-					.wb_dbg_we_o		(wb_dbg_we_o),
-					.wb_dbg_sel_o		(wb_dbg_sel_o),
-					.wb_dbg_stb_o		(wb_dbg_stb_o),
-					.wb_dbg_ack_i		(wb_dbg_ack_i)
+					.wb_adr_o			(wb_dbg_adr_o),
+					.wb_dat_i			(wb_dbg_dat_i),
+					.wb_dat_o			(wb_dbg_dat_o),
+					.wb_we_o			(wb_dbg_we_o),
+					.wb_sel_o			(wb_dbg_sel_o),
+					.wb_stb_o			(wb_dbg_stb_o),
+					.wb_ack_i			(wb_dbg_ack_i)
 				);
 	end
 	else begin
@@ -214,15 +215,22 @@ module top
 	
 	reg					rom_wb_stb_i;
 	wire	[31:0]		rom_wb_dat_o;
-	wire				rom_wb_ack_o;
+	reg					rom_wb_ack_o;
 	boot_rom
 		i_boot_rom
 			(
-				.clk				(~clk),
+				.clk				(clk),
 				.addr				(wb_cpu_adr_o[13:2]),
 				.data				(rom_wb_dat_o)
 			);
-	assign rom_wb_ack_o = 1'b1;
+	always @ ( posedge clk or posedge reset ) begin
+		if ( reset ) begin
+			rom_wb_ack_o <= 1'b0;
+		end
+		else begin
+			rom_wb_ack_o <= rom_wb_stb_i & !rom_wb_ack_o;
+		end
+	end
 	
 	
 	
@@ -236,15 +244,16 @@ module top
 	
 	jelly_sram
 			#(
-				.WB_ADR_WIDTH	(2),
-				.WB_DAT_WIDTH	(32)
+				.WB_ADR_WIDTH	(10),
+				.WB_DAT_WIDTH	(32),
+				.CYCLE			(1)
 			)
 		i_sram
 			(
 				.reset			(reset),
 				.clk			(clk),
 				
-				.wb_adr_i		(wb_cpu_adr_o[13:2]),
+				.wb_adr_i		(wb_cpu_adr_o[11:2]),
 				.wb_dat_o		(sram_wb_dat_o),
 				.wb_dat_i		(wb_cpu_dat_o),
 				.wb_we_i		(wb_cpu_we_o),
@@ -262,7 +271,7 @@ module top
 	wire	[31:0]	peri_wb_dat_o;
 	wire			peri_wb_ack_o;
 	
-	wishbone_bridge
+	jelly_wishbone_bridge
 			#(
 				.WB_ADR_WIDTH		(30),
 				.WB_DAT_WIDTH		(32)
