@@ -142,32 +142,20 @@ module tb_top;
 		end
 	end
 
-
-	// dbg_uart monitor
-/*
-	always @ ( posedge i_top.i_dbg_uart.i_uart_core.clk ) begin
-		if ( i_top.i_dbg_uart.i_uart_core.tx_en & i_top.i_dbg_uart.i_uart_core.tx_ready ) begin
-			$display("%t dbg_uart [TX]:%h", $time, i_top.i_dbg_uart.i_uart_core.tx_data);
-		end
-		if ( i_top.i_dbg_uart.i_uart_core.rx_en & i_top.i_dbg_uart.i_uart_core.rx_ready ) begin
-			$display("%t dbg_uart [RX]:%h", $time, i_top.i_dbg_uart.i_uart_core.rx_data);
-		end
-	end
-	
 	
 	// write_dbg_uart_rx_fifo
 	task write_dbg_uart_rx_fifo;
 		input	[7:0]	data;
 		begin
-			@(negedge i_top.i_dbg_uart.i_uart_core.uart_clk);
-				force i_top.i_dbg_uart.i_uart_core.rx_fifo_wr_en   = 1'b1;
-				force i_top.i_dbg_uart.i_uart_core.rx_fifo_wr_data = data;
-			@(posedge i_top.i_dbg_uart.i_uart_core.uart_clk);
-				release i_top.i_dbg_uart.i_uart_core.rx_fifo_wr_en;
-				release i_top.i_dbg_uart.i_uart_core.rx_fifo_wr_data;
+			@(negedge i_top.i_uart_debugger.i_uart_core.uart_clk);
+				force i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_en   = 1'b1;
+				force i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_data = data;
+			@(posedge i_top.i_uart_debugger.i_uart_core.uart_clk);
+				release i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_en;
+				release i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_data;
 		end
 	endtask
-*/	
+
 	
 	initial begin
 	#(RATE*200);
@@ -182,7 +170,7 @@ module tb_top;
 	end
 
 
-	/*
+	
 	task dbg_restart;
 	begin
 		$display("--- NOP ---");
@@ -311,7 +299,7 @@ module tb_top;
 	#(RATE*100);
 	end
 	endtask	
-	*/
+	
 
 endmodule
 
