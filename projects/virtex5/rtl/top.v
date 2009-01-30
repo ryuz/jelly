@@ -104,7 +104,7 @@ module top
 	
 	
 	// CPU
-	cpu_top
+	jelly_cpu_top_simple
 			#(
 				.USE_DBUGGER		(1'b1),
 				.USE_EXC_SYSCALL	(1'b1),
@@ -147,25 +147,24 @@ module top
 			);
 	
 	// Debug Interface (UART)
-	wire	dbg_uart_clk;
-	jelly_dbg_uart
-		i_dbg_uart
+	jelly_uart_debugger
+		i_uart_debugger
 			(
 				.reset				(reset),
 				.clk				(clk),
 				.endian				(endian),
 				
-				.uart_clk			(dbg_uart_clk),
+				.uart_clk			(clk_uart),
 				.uart_tx			(dbg_uart_tx),
 				.uart_rx			(dbg_uart_rx),
 				
-				.wb_dbg_adr_o		(wb_dbg_adr_o),
-				.wb_dbg_dat_i		(wb_dbg_dat_i),
-				.wb_dbg_dat_o		(wb_dbg_dat_o),
-				.wb_dbg_we_o		(wb_dbg_we_o),
-				.wb_dbg_sel_o		(wb_dbg_sel_o),
-				.wb_dbg_stb_o		(wb_dbg_stb_o),
-				.wb_dbg_ack_i		(wb_dbg_ack_i)
+				.wb_adr_o			(wb_dbg_adr_o),
+				.wb_dat_i			(wb_dbg_dat_i),
+				.wb_dat_o			(wb_dbg_dat_o),
+				.wb_we_o			(wb_dbg_we_o),
+				.wb_sel_o			(wb_dbg_sel_o),
+				.wb_stb_o			(wb_dbg_stb_o),
+				.wb_ack_i			(wb_dbg_ack_i)
 			);
 	
 	
@@ -224,7 +223,7 @@ module top
 	wire	[31:0]	peri_wb_dat_o;
 	wire			peri_wb_ack_o;
 	
-	wishbone_bridge
+	jelly_wishbone_bridge
 			#(
 				.WB_ADR_WIDTH		(30),
 				.WB_DAT_WIDTH		(32)

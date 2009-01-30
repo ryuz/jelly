@@ -56,61 +56,47 @@ module tb_top;
 						$time, i_top.i_cpu_top.i_cpu_core.ex_out_pc, i_top.i_cpu_top.i_cpu_core.ex_out_instruction);
 		end
 	end
-
+	
 	// Interrupt monitor
 	always @ ( posedge i_top.i_cpu_top.clk ) begin
-	//	if ( i_top.i_cpu_top.interrupt_req ) begin
-	//		$display("%t  interrupt_req",  $time);
-	//	end
 		if ( i_top.i_cpu_top.interrupt_ack ) begin
 			$display("%t  interrupt_ack",  $time);
 		end
 	end
-
 	
-	// UART monitor
-	integer uart_monitor;
-	initial begin
-		uart_monitor = $fopen("uart_monitor.txt");
-	end
-	always @ ( posedge i_top.i_uart0.clk ) begin
-		if ( i_top.i_uart0.tx_fifo_wr_en ) begin
-			$display("%t UART-TX:%h %c", $time, i_top.i_uart0.tx_fifo_wr_data, i_top.i_uart0.tx_fifo_wr_data);
-			$fdisplay(uart_monitor, "%t UART-TX:%h %c", $time, i_top.i_uart0.tx_fifo_wr_data, i_top.i_uart0.tx_fifo_wr_data);
-		end
-	end
-
-
-	// dbg_uart monitor
-	always @ ( posedge i_top.i_dbg_uart.i_uart_core.clk ) begin
-		if ( i_top.i_dbg_uart.i_uart_core.tx_en & i_top.i_dbg_uart.i_uart_core.tx_ready ) begin
-			$display("%t dbg_uart [TX]:%h", $time, i_top.i_dbg_uart.i_uart_core.tx_data);
-		end
-		if ( i_top.i_dbg_uart.i_uart_core.rx_en & i_top.i_dbg_uart.i_uart_core.rx_ready ) begin
-			$display("%t dbg_uart [RX]:%h", $time, i_top.i_dbg_uart.i_uart_core.rx_data);
-		end
-	end
 	
 	
 	// write_dbg_uart_rx_fifo
 	task write_dbg_uart_rx_fifo;
 		input	[7:0]	data;
 		begin
-			@(negedge i_top.i_dbg_uart.i_uart_core.uart_clk);
-				force i_top.i_dbg_uart.i_uart_core.rx_fifo_wr_en   = 1'b1;
-				force i_top.i_dbg_uart.i_uart_core.rx_fifo_wr_data = data;
-			@(posedge i_top.i_dbg_uart.i_uart_core.uart_clk);
-				release i_top.i_dbg_uart.i_uart_core.rx_fifo_wr_en;
-				release i_top.i_dbg_uart.i_uart_core.rx_fifo_wr_data;
+			@(negedge i_top.i_uart_debugger.i_uart_core.uart_clk);
+				force i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_en   = 1'b1;
+				force i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_data = data;
+			@(posedge i_top.i_uart_debugger.i_uart_core.uart_clk);
+				release i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_en;
+				release i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_data;
 		end
 	endtask
 	
 	
 	initial begin
-				$display("--- START ---");
-//	#(RATE*19990);
-//	#(RATE*10000);
-
+	#(RATE*100);
+		$display("--- START ---");
+		dbg_connect();
+		dbg_break();
+		dbg_write_mem(32'h0100_0000, 32'h01234_5678);
+		dbg_read_mem(32'h0100_0000);
+		
+	#(RATE*1000);
+		$finish;
+	
+	
+	
+	#(RATE*100);
+		dbg_break();
+		dbg_test();
+		
 	#(RATE*100);
 		dbg_break();
 		dbg_write_dbgreg(2, 348);
@@ -131,26 +117,25 @@ module tb_top;
 		write_dbg_uart_rx_fifo(8'h00);		// nop
 		#(RATE*200);
 
-		$display("\n\n--- STATUS ---");
+		$display("--- STATUS ---");
 		write_dbg_uart_rx_fifo(8'h01);		// status
 		#(RATE*200);
-		
 	end
 	endtask
 	
 	
 	task dbg_break;
 	begin
-		$display("\n\n--- DEBUG BREAK ---");
+		$display("-- DEBUG BREAK ---");
 			write_dbg_uart_rx_fifo(8'h02);		// write
-			write_dbg_uart_rx_fifo(8'hf0);		// dbgctl
+			write_dbg_uart_rx_fifo(8'hf0);		// sel+addr  (dbgctl)
 			write_dbg_uart_rx_fifo(8'h00);		// dat0
 			write_dbg_uart_rx_fifo(8'h00);		// dat1
 			write_dbg_uart_rx_fifo(8'h00);		// dat2
-			write_dbg_uart_rx_fifo(8'h01);		// dat3
+			write_dbg_uart_rx_fifo(8'h02);		// dat3
 		#(RATE*200);
 
-		$display("\n\n--- DEBUG BREAK READ  ---");
+		$display("-- DEBUG BREAK READ  ---");
 			write_dbg_uart_rx_fifo(8'h03);		// read
 			write_dbg_uart_rx_fifo(8'hf0);		// dbgctl
 		#(RATE*200);
@@ -162,9 +147,9 @@ module tb_top;
 	input	[3:0]	addr;
 	input	[31:0]	data;
 	begin
-		$display("\n\n--- Write DEB_REG (%h <- %h)", addr, data);
+		$display("--- Write DEB_REG (%h <- %h)", addr, data);
 			write_dbg_uart_rx_fifo(8'h02);			// write
-			write_dbg_uart_rx_fifo({4'hf, addr});	// dbgctl
+			write_dbg_uart_rx_fifo({4'hf, addr});	// sel+addr
 			write_dbg_uart_rx_fifo(data[31:24]);	// dat0
 			write_dbg_uart_rx_fifo(data[23:16]);	// dat1
 			write_dbg_uart_rx_fifo(data[15:8]);		// dat2
@@ -177,10 +162,31 @@ module tb_top;
 	task dbg_read_dbgreg;
 	input	[3:0]	addr;
 	begin
-		$display("\n\n--- Read DEB_REG (%h)", addr);
-			write_dbg_uart_rx_fifo(8'h04);			// write
-			write_dbg_uart_rx_fifo({4'hf, addr});	// dbgctl
+		$display("--- Read DEB_REG (%h)", addr);
+			write_dbg_uart_rx_fifo(8'h03);			// read
+			write_dbg_uart_rx_fifo({4'hf, addr});	// sel+addr
 		#(RATE*200);
+	end
+	endtask
+
+	task dbg_write_mem;
+	input	[31:0]	addr;
+	input	[31:0]	data;
+	begin
+		$display("\n\n==== Write Mem (%h <= %h) ====", addr, data);
+		dbg_write_dbgreg(2, addr);
+		dbg_write_dbgreg(6, data);
+		$display("\n\n==============================");
+	end
+	endtask
+
+	task dbg_read_mem;
+	input	[31:0]	addr;
+	begin
+		$display("\n\n==== Read Mem (%h) ====", addr);
+		dbg_write_dbgreg(2, addr);
+		dbg_read_dbgreg(6);
+		$display("\n\n==============================");
 	end
 	endtask
 
@@ -236,7 +242,7 @@ module tb_top;
 				write_dbg_uart_rx_fifo(8'hf4);		// reg_data
 			#(RATE*200);
 
-	/*
+	
 				$display("\n\n--- MEM READ ---");
 				write_dbg_uart_rx_fifo(8'h05);		// mem read
 				write_dbg_uart_rx_fifo(8'h10);		// size
@@ -245,7 +251,7 @@ module tb_top;
 				write_dbg_uart_rx_fifo(8'h00);		// adr2
 				write_dbg_uart_rx_fifo(8'h00);		// adr3
 			#(RATE*1000);
-	*/
+	
 
 
 				$display("\n\n--- COP_DEPC SET ---");
@@ -293,7 +299,6 @@ module tb_top;
 			#(RATE*1234);
 	end
 	endtask
-	
 	
 endmodule
 

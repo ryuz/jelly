@@ -89,12 +89,15 @@ module jelly_cpu_wishbone_cpubus
 			end
 			else begin
 				if ( !cpubus_busy ) begin
-					cpubus_reg_en    <= wb_stb_i & !cpubus_reg_en;
+					cpubus_reg_en    <= wb_stb_i & !wb_ack_o & !cpubus_reg_en;
 					cpubus_reg_we    <= wb_we_i;
 				 	cpubus_reg_sel   <= wb_sel_i;
-					cpubus_reg_addr  <= wb_adr_i;
+					cpubus_reg_addr  <= {wb_adr_i, {DATA_SIZE{1'b0}}};
 					cpubus_reg_wdata <= wb_dat_i;
 					cpubus_reg_ack   <= cpubus_en;
+				end
+				else begin
+					cpubus_reg_ack   <= 1'b0;
 				end
 			end
 		end

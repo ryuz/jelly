@@ -5,7 +5,6 @@ module tb_top;
 	parameter	RATE      = 20;
 	parameter	UART_RATE = (1000000000 / 115200);
 	
-	
 	initial begin
 		$dumpfile("tb_top.vcd");
 		$dumpvars(0, tb_top);
@@ -70,7 +69,6 @@ module tb_top;
 	model_sram i_sram3 (.ce_n(sram_ce1_n), .we_n(sram_we_n | sram_bls_n[3]), .oe_n(sram_oe_n), .addr(sram_a), .data(sram_d[31:24]));
 	
 	
-	
 	// PC trace
 	integer pc_trace;
 	initial begin
@@ -82,101 +80,18 @@ module tb_top;
 						$time, i_top.i_cpu_top.i_cpu_core.ex_out_pc, i_top.i_cpu_top.i_cpu_core.ex_out_instruction);
 		end
 	end
-
+	
 	// Interrupt monitor
 	always @ ( posedge i_top.i_cpu_top.clk ) begin
-	//	if ( i_top.i_cpu_top.interrupt_req ) begin
-	//		$display("%t  interrupt_req",  $time);
-	//	end
 		if ( i_top.i_cpu_top.interrupt_ack ) begin
 			$display("%t  interrupt_ack",  $time);
 		end
 	end
-
-	
-	// UART monitor
-	always @ ( posedge i_top.i_uart0.clk ) begin
-		if ( i_top.i_uart0.tx_en ) begin
-			$display("%t UART-TX:%h %c", $time, i_top.i_uart0.tx_data, i_top.i_uart0.tx_data);
-		end
-		if ( i_top.i_uart0.rx_en & i_top.i_uart0.rx_ready ) begin
-			$display("%t UART-RX:%h %c", $time, i_top.i_uart0.rx_data, i_top.i_uart0.rx_data);
-		end
-	end
-
-	/*
-	// dbg_uart monitor
-	always @ ( posedge i_top.i_uart_debugger.i_uart_core.clk ) begin
-		if ( i_top.i_uart_debugger.i_uart_core.tx_en ) begin
-			$display("%t dbg_uart [TX]:%h", $time, i_top.i_uart_debugger.i_uart_core.tx_data);
-		end
-		if ( i_top.i_uart_debugger.i_uart_core.rx_en & i_top.i_uart_debugger.i_uart_core.rx_ready ) begin
-			$display("%t dbg_uart [RX]:%h", $time, i_top.i_uart_debugger.i_uart_core.rx_data);
-		end
-	end
-	
-	// write_dbg_uart_rx_fifo
-	task write_dbg_uart_rx_fifo;
-		input	[7:0]	data;
-		begin
-			@(negedge i_top.i_uart_debugger.i_uart_core.uart_clk);
-				force i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_en   = 1'b1;
-				force i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_data = data;
-			@(posedge i_top.i_uart_debugger.i_uart_core.uart_clk);
-				release i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_en;
-				release i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_data;
-		end
-	endtask
-
-
-	// write_dbg_uart_rx_fifo
-	task write_uart_rx_fifo;
-		input	[7:0]	data;
-		begin
-			@(negedge i_top.i_uart0.i_uart_core.uart_clk);
-				force i_top.i_uart0.i_uart_core.rx_fifo_wr_en   = 1'b1;
-				force i_top.i_uart0.i_uart_core.rx_fifo_wr_data = data;
-			@(posedge i_top.i_uart0.i_uart_core.uart_clk);
-				release i_top.i_uart0.i_uart_core.rx_fifo_wr_en;
-				release i_top.i_uart0.i_uart_core.rx_fifo_wr_data;
-		end
-	endtask
-	*/
-	
 	
 	
 	initial begin
-		while ( 1 ) begin
-		#(RATE*20000);
-		end
-		
-/*
-	#(RATE*20);
-		$display("--- NOP ---");
-		write_dbg_uart_rx_fifo(8'h00);		// nop
-		
-	#(RATE*20);
-		$display("\n\n--- STATUS ---");
-		write_dbg_uart_rx_fifo(8'h01);		// status
-
-	#(RATE*20);
-		$display("\n\n--- GO DEBUG MODE ---");
-		write_dbg_uart_rx_fifo(8'h02);		// write
-		write_dbg_uart_rx_fifo(8'hf0);		// dbgctl
-		write_dbg_uart_rx_fifo(8'h00);		// dat0
-		write_dbg_uart_rx_fifo(8'h00);		// dat1
-		write_dbg_uart_rx_fifo(8'h00);		// dat2
-		write_dbg_uart_rx_fifo(8'h01);		// dat3
-
-	#(RATE*20);
-		$display("\n\n--- MEM READ ---");
-		write_dbg_uart_rx_fifo(8'h05);		// mem read
-		write_dbg_uart_rx_fifo(8'h10);		// size
-		write_dbg_uart_rx_fifo(8'h00);		// adr0
-		write_dbg_uart_rx_fifo(8'h00);		// adr1
-		write_dbg_uart_rx_fifo(8'h00);		// adr2
-		write_dbg_uart_rx_fifo(8'h00);		// adr3
-*/
+		#(RATE*200000)
+			$finish;
 	end
 	
 endmodule
