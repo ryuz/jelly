@@ -34,9 +34,10 @@ module jelly_uart_tx
 	
 	always @ ( posedge clk or posedge reset ) begin
 		if ( reset ) begin
-			tx_busy    <= 1'b0;
-			tx_count   <= {7{1'bx}};
-			tx_data[0] <= 1'b1;
+			tx_busy      <= 1'b0;
+			tx_count     <= {7{1'bx}};
+			tx_data[0]   <= 1'b1;
+			tx_data[8:1] <= {8{1'bx}};
 		end
 		else begin
 			if ( !tx_busy ) begin

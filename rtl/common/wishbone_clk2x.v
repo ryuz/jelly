@@ -42,16 +42,6 @@ module jelly_wishbone_clk2x
 			output	reg							wb_2x_stb_o,
 			input	wire						wb_2x_ack_i
 		);
-	/*
-	reg		[WB_DAT_WIDTH-1:0]	wb_dat_o;
-	reg							wb_ack_o;
-	
-	reg		[WB_ADR_WIDTH-1:0]	wb_2x_adr_o;
-	reg		[WB_DAT_WIDTH-1:0]	wb_2x_dat_o;
-	reg							wb_2x_we_o;
-	reg		[WB_SEL_WIDTH-1:0]	wb_2x_sel_o;
-	reg							wb_2x_stb_o;
-	*/
 	
 	reg							st_idle;
 	reg							st_busy;
@@ -78,6 +68,10 @@ module jelly_wishbone_clk2x
 			st_busy <= 1'b0;
 			st_end  <= 1'b0;
 			
+			wb_2x_adr_o <= {WB_ADR_WIDTH{1'bx}};
+			wb_2x_dat_o <= {WB_DAT_WIDTH{1'bx}};
+			wb_2x_we_o  <= 1'bx;
+			wb_2x_sel_o <= {WB_SEL_WIDTH{1'bx}};
 			wb_2x_stb_o <= 1'b0;
 		end
 		else begin
