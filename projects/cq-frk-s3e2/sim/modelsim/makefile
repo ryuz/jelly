@@ -1,6 +1,6 @@
 
 
-# directory 
+# directory
 WORK_DIR = work
 PRJ_DIR  = ../..
 TOP_DIR  = ../../../..

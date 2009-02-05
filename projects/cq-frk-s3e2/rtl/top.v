@@ -133,7 +133,7 @@ module top
 				.MUL_CYCLE			(33),
 				.DBBP_NUM 			(CPU_DBBP_NUM)
 			)
-		i_cpu_top_simple
+		i_cpu_top
 			(
 				.reset				(reset),
 				.clk				(clk),
