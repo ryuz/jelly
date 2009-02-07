@@ -5,7 +5,7 @@ WORK_DIR = work
 PRJ_DIR  = ../..
 TOP_DIR  = ../../../..
 RTL_DIR  = $(TOP_DIR)/rtl
-HOS_DIR  = ~/hos-v4a/sample/mips/jelly_mini/gcc
+HOS_DIR  = ~/hos-v4a/sample/mips/jelly/gcc
 
 # flags
 VLOG_FLAGS =
@@ -49,7 +49,6 @@ prj_compile:
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/common/graycode_to_binary.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/common/fifo_fwtf_async.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/common/ram_dualport.v
-	vlog $(VLOG_FLAGS) $(RTL_DIR)/common/ram_dualport_xilinx.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/cpu/cpu_top_simple.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/cpu/cpu_core.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/cpu/cpu_idu.v
