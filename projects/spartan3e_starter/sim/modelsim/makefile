@@ -41,8 +41,6 @@ work_setup:
 	vlib $(WORK_DIR)
 
 
-#	vlog $(VLOG_FLAGS) "$(XILINX) C:/Xilinx/10.1/ISE/verilog/src/glbl.v"
-
 prj_compile:
 	vlog $(VLOG_FLAGS) "$(XILINX)/verilog/src/glbl.v"
 	vlog $(VLOG_FLAGS) $(PRJ_DIR)/sim/tb_top.v
@@ -54,7 +52,6 @@ prj_compile:
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/common/fifo_fwtf_async.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/common/ram_singleport.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/common/ram_dualport.v
-	vlog $(VLOG_FLAGS) $(RTL_DIR)/common/ram_dualport_xilinx.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/common/wishbone_clk2x.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/common/wishbone_bridge.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/cpu/cpu_adder.v
