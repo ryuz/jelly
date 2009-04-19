@@ -19,6 +19,10 @@ module top
 			input	wire				clk_in,
 			input	wire				reset_in,
 			
+			// GPIO
+			inout	wire	[3:0]		gpio_a,
+			inout	wire	[3:0]		gpio_b,
+			
 			// uart
 			output	wire				uart0_tx,
 			input	wire				uart0_rx,
@@ -540,6 +544,71 @@ module top
 			);
 	
 	
+
+	// -------------------------
+	//  GPIO A
+	// -------------------------
+
+	reg					gpioa_wb_stb_i;
+	wire	[31:0]		gpioa_wb_dat_o;
+	wire				gpioa_wb_ack_o;
+	
+	jelly_gpio
+			#(
+				.PORT_WIDTH			(4),
+				.INIT_DIRECTION		(4'b0000),
+				.INIT_OUTPUT		(4'b0000)
+			)
+		i_gpio_a
+			(
+				.reset				(reset),
+				.clk				(clk),
+
+
+				.port				(gpio_port_a),
+
+				.wb_adr_i			(wb_peri_adr_o[3:2]),
+				.wb_dat_o			(gpioa_wb_dat_o),
+				.wb_dat_i			(wb_peri_dat_o),
+				.wb_we_i			(wb_peri_we_o),
+				.wb_sel_i			(wb_peri_sel_o),
+				.wb_stb_i			(gpioa_wb_stb_i),
+				.wb_ack_o			(gpioa_wb_ack_o)	
+			);
+	
+
+	// -------------------------
+	//  GPIO B
+	// -------------------------
+
+	reg					gpiob_wb_stb_i;
+	wire	[31:0]		gpiob_wb_dat_o;
+	wire				gpiob_wb_ack_o;
+	
+	jelly_gpio
+			#(
+				.PORT_WIDTH			(4),
+				.INIT_DIRECTION		(4'b0000),
+				.INIT_OUTPUT		(4'b0000)
+			)
+		i_gpio_b
+			(
+				.reset				(reset),
+				.clk				(clk),
+
+				.port				(gpio_port_b),
+
+				.wb_adr_i			(wb_peri_adr_o[3:2]),
+				.wb_dat_o			(gpiob_wb_dat_o),
+				.wb_dat_i			(wb_peri_dat_o),
+				.wb_we_i			(wb_peri_we_o),
+				.wb_sel_i			(wb_peri_sel_o),
+				.wb_stb_i			(gpiob_wb_stb_i),
+				.wb_ack_o			(gpiob_wb_ack_o)	
+			);
+	
+	
+	
 	// -------------------------
 	//  peri bus address decoder
 	// -------------------------
@@ -569,6 +638,20 @@ module top
 				uart0_wb_stb_i = wb_peri_stb_o;
 				wb_peri_dat_i = uart0_wb_dat_o;
 				wb_peri_ack_i = uart0_wb_ack_o;
+			end
+
+		32'hf300_000x:	// gpio-a
+			begin
+				gpioa_wb_stb_i = wb_peri_stb_o;
+				wb_peri_dat_i = gpioa_wb_dat_o;
+				wb_peri_ack_i = gpioa_wb_ack_o;
+			end
+
+		32'hf300_001x:	// gpio-b
+			begin
+				gpiob_wb_stb_i = wb_peri_stb_o;
+				wb_peri_dat_i = gpiob_wb_dat_o;
+				wb_peri_ack_i = gpiob_wb_ack_o;
 			end
 			
 		default:
