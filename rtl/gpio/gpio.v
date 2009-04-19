@@ -14,7 +14,7 @@
 
 `define GPIO_ADR_DIRECTION	2'b00
 `define GPIO_ADR_INPUT		2'b01
-`define GPIO_ADR_OUTPUT		2'b11
+`define GPIO_ADR_OUTPUT		2'b10
 
 
 module jelly_gpio
