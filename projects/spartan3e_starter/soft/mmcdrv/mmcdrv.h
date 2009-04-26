@@ -2,9 +2,9 @@
  *  Hyper Operating System  Application Framework
  *
  * @file  mmcdrv.h
- * @brief %jp{メモリマップドファイル用デバイスドライバ}
+ * @brief %jp{MMC用デバイスドライバ}
  *
- * Copyright (C) 2006-2007 by Project HOS
+ * Copyright (C) 2006-2009 by Project HOS
  * http://sourceforge.jp/projects/hos/
  */
 

@@ -17,11 +17,11 @@
 void MmcDrv_Close(C_DRVOBJ *pDrvObj, C_FILEOBJ *pFileObj)
 {
 	C_MMCDRV	*self;
-	C_MEMFILE	*pFile;
+	C_MMCFILE	*pFile;
 	
 	/* upper cast */
 	self  = (C_MMCDRV *)pDrvObj;
-	pFile = (C_MEMFILE *)pFileObj;
+	pFile = (C_MMCFILE *)pFileObj;
 
 	SysMtx_Lock(self->hMtx);
 	

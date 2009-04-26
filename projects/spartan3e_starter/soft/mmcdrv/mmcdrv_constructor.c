@@ -2,7 +2,7 @@
  *  Hyper Operating System  Application Framework
  *
  * @file  mmcdrv.h
- * @brief %jp{メモリマップドファイル用デバイスドライバ}
+ * @brief %jp{MMC用デバイスドライバ}
  *
  * Copyright (C) 2006-2007 by Project HOS
  * http://sourceforge.jp/projects/hos/
@@ -40,10 +40,6 @@ void MmcDrv_Constructor(C_MMCDRV *self, const T_DRVOBJ_METHODS *pMethods, void *
 	
 	/* メンバ変数初期化 */
 	self->iOpenCount = 0;
-	self->pubMemAddr = pMemAddr;	/* メモリの先頭アドレス */
-	self->MemSize    = MemSize;		/* メモリサイズ */
-	self->FileSize   = IniSize;		/* ファイルとしてのサイズ */
-	self->iAttr      = iAttr;		/* 属性 */
 	
 	/* ミューテックス生成 */
 	self->hMtx = SysMtx_Create(SYSMTX_ATTR_NORMAL);

@@ -15,11 +15,11 @@
 FILE_POS MmcDrv_Seek(C_DRVOBJ *pDrvObj, C_FILEOBJ *pFileObj, FILE_POS Offset, int iOrign)
 {
 	C_MMCDRV	*self;
-	C_MEMFILE	*pFile;
+	C_MMCFILE	*pFile;
 	
 	/* upper cast */
 	self  = (C_MMCDRV *)pDrvObj;
-	pFile = (C_MEMFILE *)pFileObj;
+	pFile = (C_MMCFILE *)pFileObj;
 	
 	/* ÉVÅ[ÉN */
 	switch ( iOrign )

@@ -1,7 +1,7 @@
 /** 
  * Hyper Operating System  Application Framework
  *
- * @file  memfile.h
+ * @file  mmcfile.h
  * @brief %jp{memory file 公開ヘッダファイル}%en{Memory File public header file}
  *
  * Copyright (C) 2008 by Project HOS
@@ -9,27 +9,27 @@
  */
 
 
-#include "memfile_local.h"
+#include "mmcfile_local.h"
 
 
-static const T_FILEOBJ_METHODS MemFile_FileObjMethods =
+static const T_FILEOBJ_METHODS MmcFile_FileObjMethods =
 	{
 		{File_Close},	/* デストラクタ */
 	};
 
 
-HANDLE MemFile_Create(C_MMCDRV *pMemVol, int iMode)
+HANDLE MmcFile_Create(C_MMCDRV *pMemVol, int iMode)
 {
-	C_MEMFILE *self;
+	C_MMCFILE *self;
 
 	/* create file descriptor */
-	if ( (self = (C_MEMFILE *)SysMem_Alloc(sizeof(C_MEMFILE))) == NULL )
+	if ( (self = (C_MMCFILE *)SysMem_Alloc(sizeof(C_MMCFILE))) == NULL )
 	{
 		return HANDLE_NULL;
 	}
 	
 	/* コンストラクタ呼び出し */
-	MemFile_Constructor(self, &MemFile_FileObjMethods, pMemVol, iMode);
+	MmcFile_Constructor(self, &MmcFile_FileObjMethods, pMemVol, iMode);
 	
 	return (HANDLE)self;
 }

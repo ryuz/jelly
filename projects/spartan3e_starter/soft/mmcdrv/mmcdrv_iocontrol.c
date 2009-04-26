@@ -16,11 +16,11 @@
 FILE_ERR  MmcDrv_IoControl(C_DRVOBJ *pDrvObj, C_FILEOBJ *pFileObj, int iFunc, void *pInBuf, FILE_SIZE InSize, const void *pOutBuf, FILE_SIZE OutSize)
 {
 	C_MMCDRV	*self;
-	C_MEMFILE	*pFile;
+	C_MMCFILE	*pFile;
 	
 	/* upper cast */
 	self  = (C_MMCDRV *)pDrvObj;
-	pFile = (C_MEMFILE *)pFileObj;
+	pFile = (C_MMCFILE *)pFileObj;
 
 	return FILE_ERR_NG;
 }

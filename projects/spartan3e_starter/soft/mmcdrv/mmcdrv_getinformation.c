@@ -20,16 +20,7 @@ FILE_ERR MmcDrv_GetInformation(C_DRVOBJ *pDrvObj, char *pszInformation, int iLen
 	
 	/* upper cast */
 	self = (C_MMCDRV *)pDrvObj;
-	
-	StringFormat_FormatString
-						(
-							pszInformation, iLen,
-							"addr:%lx size:%ld max-size:%ld",
-							(unsigned long)self->pubMemAddr,
-							(unsigned long)self->FileSize,
-							(unsigned long)self->MemSize
-						);
-	
+		
 	return FILE_ERR_OK;
 }
 

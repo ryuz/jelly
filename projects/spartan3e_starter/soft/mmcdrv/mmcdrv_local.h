@@ -24,16 +24,13 @@ typedef struct c_mmcdrv
 	C_DRVOBJ		DrvObj;			/* デバイスドライバを継承 */
 
 	int				iOpenCount;		/* オープンカウンタ */
-	unsigned char	*pubMemAddr;	/* メモリの先頭アドレス */
-	FILE_POS		MemSize;		/* メモリサイズ */
-	FILE_POS		FileSize;		/* ファイルとしてのサイズ */
-	int				iAttr;			/* 属性 */
-	
+	FILE_SIZE		FileSize;
+
 	SYSMTX_HANDLE	hMtx;			/* 排他制御用ミューテックス */
 } C_MMCDRV;
 
 
-#include "memfile_local.h"
+#include "mmcfile_local.h"
 
 
 #ifdef __cplusplus
@@ -51,6 +48,10 @@ FILE_SIZE MmcDrv_Read(C_DRVOBJ *pDrvObj, C_FILEOBJ *pFileObj, void *pBuf, FILE_S
 FILE_SIZE MmcDrv_Write(C_DRVOBJ *pDrvObj, C_FILEOBJ *pFileObj, const void *pData, FILE_SIZE Size);
 FILE_ERR  MmcDrv_Flush(C_DRVOBJ *pDrvObj, C_FILEOBJ *pFileObj);
 FILE_ERR  MmcDrv_GetInformation(C_DRVOBJ *pDrvObj, char *pszInformation, int iLen);
+
+int       MmcDrv_CardInit(C_MMCDRV *self);
+FILE_SIZE MmcDrv_BlockRead(C_MMCDRV *self, unsigned long uwAddr, void *pBuf);
+FILE_SIZE MmcDrv_BlockWrite(C_MMCDRV *self, unsigned long uwAddr, const void *pBuf);
 
 #ifdef __cplusplus
 }

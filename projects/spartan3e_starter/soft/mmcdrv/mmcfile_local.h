@@ -1,7 +1,7 @@
 /** 
  * Hyper Operating System  Application Framework
  *
- * @file  memfile.h
+ * @file  mmcfile.h
  * @brief %jp{memory file ローカルヘッダファイル}%en{Memory File private header file}
  *
  * Copyright (C) 2008 by Project HOS
@@ -9,30 +9,30 @@
  */
 
 
-#ifndef __HOS__memfile_local_h__
-#define __HOS__memfile_local_h__
+#ifndef __HOS__mmcfile_local_h__
+#define __HOS__mmcfile_local_h__
 
 
-#include "memfile.h"
+#include "mmcfile.h"
 #include "system/file/fileobj_local.h"
 #include "system/sysapi/sysapi.h"
 
 
 /* ファイルディスクリプタ */
-typedef struct c_memfile
+typedef struct c_mmcfile
 {
 	C_FILEOBJ	FileObj;			/* 継承 */
 
 	FILE_POS	FilePos;
-} C_MEMFILE;
+} C_MMCFILE;
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void  MemFile_Constructor(C_MEMFILE *self, const T_FILEOBJ_METHODS *pMethods, C_MMCDRV *pMmcDrv, int iMode);
-void  MemFile_Destructor(C_MEMFILE *self);
+void  MmcFile_Constructor(C_MMCFILE *self, const T_FILEOBJ_METHODS *pMethods, C_MMCDRV *pMmcDrv, int iMode);
+void  MmcFile_Destructor(C_MMCFILE *self);
 
 #ifdef __cplusplus
 }
@@ -40,7 +40,7 @@ void  MemFile_Destructor(C_MEMFILE *self);
 
 
 
-#endif	/*  __HOS__memfile_local_h__ */
+#endif	/*  __HOS__mmcfile_local_h__ */
 
 
 /* end of file */
