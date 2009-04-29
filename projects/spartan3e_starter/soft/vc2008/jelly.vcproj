@@ -217,6 +217,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\mmcdrv\mmcdrv_sdio.c"
+				>
+			</File>
+			<File
 				RelativePath="..\mmcdrv\mmcdrv_seek.c"
 				>
 			</File>

@@ -49,7 +49,7 @@ FILE_SIZE MmcDrv_Write(C_DRVOBJ *pDrvObj, C_FILEOBJ *pFileObj, const void *pData
 FILE_ERR  MmcDrv_Flush(C_DRVOBJ *pDrvObj, C_FILEOBJ *pFileObj);
 FILE_ERR  MmcDrv_GetInformation(C_DRVOBJ *pDrvObj, char *pszInformation, int iLen);
 
-int       MmcDrv_CardInit(C_MMCDRV *self);
+FILE_ERR  MmcDrv_CardInitialize(C_MMCDRV *self);
 FILE_SIZE MmcDrv_BlockRead(C_MMCDRV *self, unsigned long uwAddr, void *pBuf);
 FILE_SIZE MmcDrv_BlockWrite(C_MMCDRV *self, unsigned long uwAddr, const void *pBuf);
 

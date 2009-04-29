@@ -565,7 +565,7 @@ module top
 				.clk				(clk),
 
 
-				.port				(gpio_port_a),
+				.port				(gpio_a),
 
 				.wb_adr_i			(wb_peri_adr_o[3:2]),
 				.wb_dat_o			(gpioa_wb_dat_o),
@@ -596,7 +596,7 @@ module top
 				.reset				(reset),
 				.clk				(clk),
 
-				.port				(gpio_port_b),
+				.port				(gpio_b),
 
 				.wb_adr_i			(wb_peri_adr_o[3:2]),
 				.wb_dat_o			(gpiob_wb_dat_o),
