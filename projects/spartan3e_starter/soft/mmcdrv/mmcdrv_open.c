@@ -38,7 +38,8 @@ HANDLE MmcDrv_Open(C_DRVOBJ *pDrvObj, const char *pszPath, int iMode)
 	{
 		MmcDrv_CardInitialize(self);
 	}
-	
+	self->FileSize = 16*1024*1024;
+
 	SysMtx_Unlock(self->hMtx);
 	
 	return hFile;

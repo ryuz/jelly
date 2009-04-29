@@ -73,7 +73,7 @@ module jelly_gpio
 	generate
 	genvar	i;
 	for ( i = 0; i < PORT_WIDTH; i = i + 1 ) begin : io
-		assign port[i] = reg_direction[i] ? reg_output : 1'bz;
+		assign port[i] = reg_direction[i] ? reg_output[i] : 1'bz;
 	end
 	endgenerate
 	

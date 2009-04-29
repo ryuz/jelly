@@ -32,11 +32,12 @@ FILE_SIZE MmcDrv_Read(C_DRVOBJ *pDrvObj, C_FILEOBJ *pFileObj, void *pBuf, FILE_S
 	while ( Size >= 512 )
 	{
 		ReadSize = MmcDrv_BlockRead(self, (unsigned long)pFile->FilePos, (void *)pubBuf);
-		Size      -= ReadSize;
-		TotalSize += ReadSize;
-		pubBuf    += ReadSize;
+		Size           -= ReadSize;
+		TotalSize      += ReadSize;
+		pubBuf         += ReadSize;
+		pFile->FilePos += ReadSize;
 	}
-
+	
 	SysMtx_Unlock(self->hMtx);
 	
 	return TotalSize;

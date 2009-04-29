@@ -50,7 +50,7 @@ long	g_SystemHeap[128 * 1024 / sizeof(long)];
 #else
 
 #define SYSTEM_HEAP_ADDR	((void *)0x00200000)
-#define SYSTEM_HEAP_SIZE	0x00100000
+#define SYSTEM_HEAP_SIZE	0x00200000
 
 #endif
 

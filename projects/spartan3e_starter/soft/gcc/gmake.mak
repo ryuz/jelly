@@ -110,7 +110,7 @@ CSRCS += ../mmcdrv/mmcdrv_getinformation.c
 CSRCS += ../mmcdrv/mmcdrv_iocontrol.c
 CSRCS += ../mmcdrv/mmcdrv_open.c
 CSRCS += ../mmcdrv/mmcdrv_read.c
-CSRCS += ../mmcdrv/mmcdrv_sdio.c
+CSRCS += ../mmcdrv/mmcdrv_spictl.c
 CSRCS += ../mmcdrv/mmcdrv_seek.c
 CSRCS += ../mmcdrv/mmcdrv_write.c
 CSRCS += ../mmcdrv/mmcfile_create.c
@@ -132,7 +132,7 @@ LIBS += $(APLFW_LIB) -lc
 all: kernel_make make_subprj makeexe_all $(TARGET_EXE) $(TARGET_MOT) $(TARGET_HEX) $(TARGET_BIN)
 
 .PHONY : run
-run: $(TARGET_BIN)
+run: all
 	jelly_loader -r $(TARGET_BIN)
 
 

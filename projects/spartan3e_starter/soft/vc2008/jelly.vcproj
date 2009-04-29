@@ -217,11 +217,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\mmcdrv\mmcdrv_sdio.c"
+				RelativePath="..\mmcdrv\mmcdrv_seek.c"
 				>
 			</File>
 			<File
-				RelativePath="..\mmcdrv\mmcdrv_seek.c"
+				RelativePath="..\mmcdrv\mmcdrv_spictl.c"
 				>
 			</File>
 			<File
