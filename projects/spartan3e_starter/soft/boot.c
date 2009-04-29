@@ -21,9 +21,15 @@
 #include "system/command/command.h"
 #include "driver/serial/jelly/jellyuartdrv.h"
 #include "driver/console/vt100/vt100drv.h"
-#include "application//syscmd/shell/shell.h"
-#include "application//syscmd/commandlist/commandlist.h"
-#include "application//syscmd/processlist/processlist.h"
+#include "driver/volume/fat/fatvol.h"
+#include "application/syscmd/shell/shell.h"
+#include "application/syscmd/commandlist/commandlist.h"
+#include "application/syscmd/processlist/processlist.h"
+#include "application/filecmd/filelist/filelist.h"
+#include "application/filecmd/filecopy/filecopy.h"
+#include "application/filecmd/filedump/filedump.h"
+#include "application/filecmd/filecat/filecat.h"
+#include "application/fatcmd/fatmount/fatmount.h"
 #include "application/utility/timecmd/timecmd.h"
 #include "application/utility/memdump/memdump.h"
 #include "application/utility/memwrite/memwrite.h"
@@ -32,6 +38,7 @@
 #include "application/example/hello/hello.h"
 #include "boot.h"
 #include "ostimer.h"
+#include "mmcdrv/mmcdrv.h"
 
 
 #if 0
@@ -217,11 +224,15 @@ int Boot_Process(VPARAM Param)
 	
 	/* タイマ初期化 */	
 	OsTimer_Initialize();
-	
+
+	/* MMCドライバ生成 */
+	hDriver = MmcDrv_Create();
+	File_AddDevice("mmc0", hDriver);
+
 	/* Jelly UART デバドラ生成 (/dev/com0 に登録) */
 	hDriver = JellyUartDrv_Create((void *)0xf2000000, 1, 2, 64);
 	File_AddDevice("com0", hDriver);
-	
+
 	/* シリアルを開く */
 	hTty = File_Open("/dev/com0", FILE_OPEN_READ | FILE_OPEN_WRITE);
 	
@@ -232,6 +243,7 @@ int Boot_Process(VPARAM Param)
 	/* コンソールを開く */
 	hCon = File_Open("/dev/con0", FILE_OPEN_READ | FILE_OPEN_WRITE);
 	
+
 	
 	/*************************/
 	/*     標準入出力設定    */
@@ -257,8 +269,14 @@ int Boot_Process(VPARAM Param)
 	Command_AddCommand("memtest",  MemTest_Main);
 	Command_AddCommand("keytest",  KeyTest_Main);
 	Command_AddCommand("hello",    Hello_Main);
+	Command_AddCommand("ls",       FileList_Main);
+	Command_AddCommand("cp",       FileCopy_Main);
+	Command_AddCommand("cat",      FileCat_Main);
+	Command_AddCommand("fatmount", FatMount_Main);
+
 	Command_AddCommand("test",     test_main);
 	
+
 	/*************************/
 	/*    起動メッセージ     */
 	/*************************/

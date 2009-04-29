@@ -15,7 +15,7 @@
 
 
 /** 生成 */
-HANDLE MmcDrv_Create(void *pMemAddr, FILE_POS MemSize, FILE_POS IniSize, int iAttr)
+HANDLE MmcDrv_Create(void)
 {
 	C_MMCDRV *self;
 	
@@ -26,7 +26,7 @@ HANDLE MmcDrv_Create(void *pMemAddr, FILE_POS MemSize, FILE_POS IniSize, int iAt
 	}
 	
 	/* コンストラクタ呼び出し */
-	MmcDrv_Constructor(self, NULL, pMemAddr, MemSize, IniSize, iAttr);
+	MmcDrv_Constructor(self, NULL);
 	
 	return (HANDLE)self;
 }

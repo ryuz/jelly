@@ -28,7 +28,7 @@ static const T_DRVOBJ_METHODS MmcDrv_Methods =
 
 
 /** コンストラクタ */
-void MmcDrv_Constructor(C_MMCDRV *self, const T_DRVOBJ_METHODS *pMethods, void *pMemAddr, FILE_POS MemSize, FILE_POS IniSize, int iAttr)
+void MmcDrv_Constructor(C_MMCDRV *self, const T_DRVOBJ_METHODS *pMethods)
 {
 	if ( pMethods == NULL )
 	{

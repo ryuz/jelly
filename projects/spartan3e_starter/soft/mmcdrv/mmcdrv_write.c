@@ -1,4 +1,4 @@
-/** 
+/**
  *  Hyper Operating System  Application Framework
  *
  * @file  mmcdrv.h
@@ -28,8 +28,6 @@ FILE_SIZE MmcDrv_Write(C_DRVOBJ *pDrvObj, C_FILEOBJ *pFileObj, const void *pData
 	
 	/* サイズクリップ */
 	
-	/* 書込み */
-	pFile->FilePos += Size;
 	
 	SysMtx_Unlock(self->hMtx);
 	

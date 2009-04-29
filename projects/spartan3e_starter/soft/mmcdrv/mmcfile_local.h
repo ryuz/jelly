@@ -23,7 +23,7 @@ typedef struct c_mmcfile
 {
 	C_FILEOBJ	FileObj;			/* 継承 */
 
-	FILE_POS	FilePos;
+	FILE_POS	FilePos;			/* ファイルポインタ */
 } C_MMCFILE;
 
 

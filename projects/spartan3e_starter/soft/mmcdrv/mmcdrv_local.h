@@ -37,8 +37,8 @@ typedef struct c_mmcdrv
 extern "C" {
 #endif
 
-void      MmcDrv_Constructor(C_MMCDRV *self, const T_DRVOBJ_METHODS *pMethods, void *pMemAddr, FILE_POS MemSize, FILE_POS IniSize, int iAttr);	/** コンストラクタ */
-void      MmcDrv_Destructor(C_MMCDRV *self);																									/** デストラクタ */
+void      MmcDrv_Constructor(C_MMCDRV *self, const T_DRVOBJ_METHODS *pMethods);	/**< コンストラクタ */
+void      MmcDrv_Destructor(C_MMCDRV *self);									/**< デストラクタ */
 
 HANDLE    MmcDrv_Open(C_DRVOBJ *pDrvObj, const char *pszPath, int iMode);
 void      MmcDrv_Close(C_DRVOBJ *pDrvObj, C_FILEOBJ *pFileObj);

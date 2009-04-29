@@ -20,8 +20,8 @@
 extern "C" {
 #endif
 
-HANDLE MmcDrv_Create(void *pMemAddr, FILE_POS MemSize, FILE_POS IniSize, int iAttr);	/**< ¶¬ */
-void   MmcDrv_Delete(HANDLE hDriver);													/**< íœ */
+HANDLE MmcDrv_Create(void);				/**< ¶¬ */
+void   MmcDrv_Delete(HANDLE hDriver);	/**< íœ */
 
 #ifdef __cplusplus
 }

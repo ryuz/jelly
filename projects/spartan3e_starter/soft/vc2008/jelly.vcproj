@@ -253,6 +253,42 @@
 				>
 			</File>
 		</Filter>
+		<File
+			RelativePath="..\boot.c"
+			>
+		</File>
+		<File
+			RelativePath="..\boot.h"
+			>
+		</File>
+		<File
+			RelativePath="..\kernel_cfg.c"
+			>
+		</File>
+		<File
+			RelativePath="..\kernel_id.h"
+			>
+		</File>
+		<File
+			RelativePath="..\main.c"
+			>
+		</File>
+		<File
+			RelativePath="..\ostimer.c"
+			>
+		</File>
+		<File
+			RelativePath="..\ostimer.h"
+			>
+		</File>
+		<File
+			RelativePath="..\system.cfg"
+			>
+		</File>
+		<File
+			RelativePath="..\system.i"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>
