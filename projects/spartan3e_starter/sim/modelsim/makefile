@@ -73,6 +73,7 @@ prj_compile:
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/irc/irc.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/irc/irc_factor.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/timer/timer.v
+	vlog $(VLOG_FLAGS) $(RTL_DIR)/gpio/gpio.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/uart/uart.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/uart/uart_debugger.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/uart/uart_core.v

@@ -199,9 +199,12 @@
     <property xil_pn:name="Create ReadBack Data Files" xil_pn:value="true"/>
     <property xil_pn:name="Device" xil_pn:value="xc3s500e"/>
     <property xil_pn:name="Device Family" xil_pn:value="Spartan3E"/>
+    <property xil_pn:name="Extra Effort" xil_pn:value="Continue on Impossible"/>
+    <property xil_pn:name="Extra Effort (Highest PAR level only)" xil_pn:value="Continue on Impossible"/>
     <property xil_pn:name="Fitter Report Format" xil_pn:value="HTML"/>
     <property xil_pn:name="Implementation Top" xil_pn:value="Module|top"/>
     <property xil_pn:name="Implementation Top Instance Path" xil_pn:value="/top"/>
+    <property xil_pn:name="Map Effort Level" xil_pn:value="High"/>
     <property xil_pn:name="Optimization Effort" xil_pn:value="High"/>
     <property xil_pn:name="Overwrite Compiled Libraries" xil_pn:value="true"/>
     <property xil_pn:name="PROP_BehavioralSimTop" xil_pn:value="Module|tb_top"/>
@@ -211,9 +214,13 @@
     <property xil_pn:name="PROP_PostSynthSimTop" xil_pn:value="Module|tb_top"/>
     <property xil_pn:name="PROP_PostXlateSimTop" xil_pn:value="Module|tb_top"/>
     <property xil_pn:name="Package" xil_pn:value="fg320"/>
+    <property xil_pn:name="Perform Timing-Driven Packing" xil_pn:value="true"/>
+    <property xil_pn:name="Place &amp; Route Effort Level (Overall)" xil_pn:value="High"/>
+    <property xil_pn:name="Placer Effort Level (Overrides Overall Level)" xil_pn:value="High"/>
     <property xil_pn:name="Preferred Language" xil_pn:value="Verilog"/>
     <property xil_pn:name="Report Fastest Path(s) in Each Constraint" xil_pn:value="false"/>
     <property xil_pn:name="Report Fastest Path(s) in Each Constraint Post Trace" xil_pn:value="false"/>
+    <property xil_pn:name="Router Effort Level (Overrides Overall Level)" xil_pn:value="High"/>
     <property xil_pn:name="Simulator" xil_pn:value="ISim (VHDL/Verilog)"/>
     <property xil_pn:name="Speed Grade" xil_pn:value="-4"/>
     <property xil_pn:name="Synthesis Tool" xil_pn:value="XST (VHDL/Verilog)"/>
