@@ -273,10 +273,10 @@ int Boot_Process(VPARAM Param)
 	Command_AddCommand("cp",       FileCopy_Main);
 	Command_AddCommand("cat",      FileCat_Main);
 	Command_AddCommand("fatmount", FatMount_Main);
-
+	
 	Command_AddCommand("test",     test_main);
 	
-
+	
 	/*************************/
 	/*    起動メッセージ     */
 	/*************************/
@@ -297,7 +297,7 @@ int Boot_Process(VPARAM Param)
 	
 	/* プロセスの生成*/
 	ProcInf.pszCommandLine = "sh -i";								/* 実行コマンド */
-	ProcInf.pszCurrentDir  = "";									/* 起動ディレクトリ */
+	ProcInf.pszCurrentDir  = "/";									/* 起動ディレクトリ */
 	ProcInf.pfncEntry      = NULL;									/* 起動アドレス */
 	ProcInf.Param          = 0;										/* ユーザーパラメータ */
 	ProcInf.StackSize      = 2048;									/* スタックサイズ */

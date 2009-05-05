@@ -130,6 +130,7 @@ LIBS += $(APLFW_LIB) -lc
 
 .PHONY : all
 all: kernel_make make_subprj makeexe_all $(TARGET_EXE) $(TARGET_MOT) $(TARGET_HEX) $(TARGET_BIN)
+	mips-elf-objdump -D $(TARGET_EXE) > $(TARGET)_disasm.txt
 
 .PHONY : run
 run: all
