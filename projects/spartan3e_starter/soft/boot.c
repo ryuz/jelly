@@ -230,7 +230,7 @@ int Boot_Process(VPARAM Param)
 	File_AddDevice("mmc0", hDriver);
 
 	/* Jelly UART デバドラ生成 (/dev/com0 に登録) */
-	hDriver = JellyUartDrv_Create((void *)0xf2000000, 1, 2, 64);
+	hDriver = JellyUartDrv_Create((void *)0xf2000000, 1, 2, 256);
 	File_AddDevice("com0", hDriver);
 
 	/* シリアルを開く */
@@ -272,6 +272,7 @@ int Boot_Process(VPARAM Param)
 	Command_AddCommand("ls",       FileList_Main);
 	Command_AddCommand("cp",       FileCopy_Main);
 	Command_AddCommand("cat",      FileCat_Main);
+	Command_AddCommand("filedump", FileDump_Main);
 	Command_AddCommand("fatmount", FatMount_Main);
 	
 	Command_AddCommand("test",     test_main);
@@ -280,6 +281,7 @@ int Boot_Process(VPARAM Param)
 	/*************************/
 	/*    起動メッセージ     */
 	/*************************/
+
 	StdIo_PutString(
 			"\n\n"
 			"================================================================\n"

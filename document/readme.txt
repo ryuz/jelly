@@ -1,10 +1,9 @@
 -------------------------------------------------------------------------------
  Jelly -- MIPSライクFPGA用プロセッシングシステム
 
-                                         Copyright (C) 2008 by Ryuji Fuchikami 
-                                         http://homepage3.nifty.com/ryuz
+                                    Copyright (C) 2008-2009 by Ryuji Fuchikami 
+                                    http://homepage3.nifty.com/ryuz
 -------------------------------------------------------------------------------
-
 
 
 1. はじめに
@@ -33,9 +32,6 @@
      +spartan3e_starter  Spartan-3E Starter Kit 用プロジェクト
      +spartan3_starter   Spartan-3 Starter Kit 用プロジェクト
      +cq-frk-s3e2        DesignWaveおまけ Spartan-3ボード用プロジェクト
-     +sim_model          検証用シミュレーション専用プロジェクト
-     +virtex5            興味本位合成のみ(Virtex5はどれくらい速いんだろう？)
-
 
 
 
