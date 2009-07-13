@@ -287,7 +287,7 @@ module jelly_cpu_cache
 					cmp_out_mem_addr_index  <= {ADDR_INDEX_WIDTH{1'bx}};
 					cmp_out_mem_addr_tag    <= {ADDR_TAG_WIDTH{1'bx}};
 					cmp_out_mem_sel         <= {CPUBUS_ADDR_WIDTH{1'bx}};
-					cmp_out_mem_wdata       <= {CPUBUS_DATA_WIDTH{1'bx}};				
+					cmp_out_mem_wdata       <= {CPUBUS_DATA_WIDTH{1'bx}};
 				end
 			end
 		end
@@ -350,7 +350,7 @@ module jelly_cpu_cache
 	assign wbk_out_tag         = mem_out_wbk_addr_tag;
 	assign wbk_out_data        = mem_out_mem_we ? mem_out_wbk_wdata : mem_out_wbk_rdata;
 	
-		
+	
 	// -----------------------------------------
 	//  
 	// -----------------------------------------
