@@ -76,8 +76,8 @@ module clkgen
 	BUFG
 		i_bufg_sys_clk_2x
 			(
-				.I		(clk2x), 
-				.O		(clk2x_bufg)
+				.I		(sys_clk_2x), 
+				.O		(sys_clk_2x_bufg)
 			);
 	
 	// DCM
@@ -216,7 +216,7 @@ module clkgen
 				.PHASE_SHIFT			(0),
 				.STARTUP_WAIT			("FALSE")
 			)
-		i_dcm_x2
+		i_dcm_sdram
 			(
 				.CLKFB					(sdram_clk_0_bufg), 
 				.CLKIN					(sys_clk_2x_bufg), 
