@@ -70,26 +70,27 @@ module top
 	wire				clk_sdram;
 	wire				clk90_sdram;
 	wire				locked;
+	
+	// reset
+	wire				reset;
+
 	clkgen
 		i_clkgen
 			(
 				.in_reset			(reset_in), 
 				.in_clk				(clk_in), 
 			
-				.out_clk			(clk),
-				.out_clk_x2			(clk_x2),
+				.out_sys_clk		(clk),
+				.out_sys_clk_x2		(clk_x2),
+				.out_sys_reset		(reset),
 				
-				.out_clk_uart		(clk_uart),
+				.out_uart_clk		(clk_uart),
 				
-				.out_clk_sdram		(clk_sdram),
-				.out_clk90_sdram	(clk90_sdram),
+				.out_sdram_clk		(clk_sdram),
+				.out_sdram_clk90	(clk90_sdram),
 				
 				.locked				(locked)
 		);
-	
-	// reset
-	wire				reset;
-	assign reset = reset_in | ~locked;
 	
 
 
