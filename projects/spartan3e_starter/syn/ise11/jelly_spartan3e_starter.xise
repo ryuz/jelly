@@ -12,7 +12,7 @@
     <!-- Copyright (c) 1995-2009 Xilinx, Inc.  All rights reserved. -->
   </header>
 
-  <version xil_pn:ise_version="11.1" xil_pn:schema_version="2"/>
+  <version xil_pn:ise_version="11.3" xil_pn:schema_version="2"/>
 
   <files>
     <file xil_pn:name="../../../../rtl/ddr_sdram/ddr_sdram.v" xil_pn:type="FILE_VERILOG">
@@ -33,8 +33,8 @@
     </file>
     <file xil_pn:name="../../sim/tb_top.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="PostRouteSimulation"/>
       <association xil_pn:name="PostMapSimulation"/>
+      <association xil_pn:name="PostRouteSimulation"/>
       <association xil_pn:name="PostTranslateSimulation"/>
     </file>
     <file xil_pn:name="../../../../rtl/cpu/cpu_adder.v" xil_pn:type="FILE_VERILOG">
@@ -107,8 +107,8 @@
     </file>
     <file xil_pn:name="../../sim/ddr.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="PostRouteSimulation"/>
       <association xil_pn:name="PostMapSimulation"/>
+      <association xil_pn:name="PostRouteSimulation"/>
       <association xil_pn:name="PostTranslateSimulation"/>
     </file>
     <file xil_pn:name="../../../../rtl/cpu/cpu_dbu.v" xil_pn:type="FILE_VERILOG">
@@ -193,47 +193,51 @@
   </files>
 
   <properties>
-    <property xil_pn:name="Auto Implementation Top" xil_pn:value="false"/>
-    <property xil_pn:name="Constraints Entry" xil_pn:value="Text Editor"/>
-    <property xil_pn:name="Create Mask File" xil_pn:value="true"/>
-    <property xil_pn:name="Create ReadBack Data Files" xil_pn:value="true"/>
-    <property xil_pn:name="Device" xil_pn:value="xc3s500e"/>
-    <property xil_pn:name="Device Family" xil_pn:value="Spartan3E"/>
-    <property xil_pn:name="Extra Effort" xil_pn:value="Continue on Impossible"/>
-    <property xil_pn:name="Extra Effort (Highest PAR level only)" xil_pn:value="Continue on Impossible"/>
-    <property xil_pn:name="Fitter Report Format" xil_pn:value="HTML"/>
-    <property xil_pn:name="Implementation Top" xil_pn:value="Module|top"/>
-    <property xil_pn:name="Implementation Top Instance Path" xil_pn:value="/top"/>
-    <property xil_pn:name="Map Effort Level" xil_pn:value="High"/>
-    <property xil_pn:name="Optimization Effort" xil_pn:value="High"/>
-    <property xil_pn:name="Overwrite Compiled Libraries" xil_pn:value="true"/>
-    <property xil_pn:name="PROP_BehavioralSimTop" xil_pn:value="Module|tb_top"/>
-    <property xil_pn:name="PROP_DesignName" xil_pn:value="spartan3e_starter"/>
-    <property xil_pn:name="PROP_PostMapSimTop" xil_pn:value="Module|tb_top"/>
-    <property xil_pn:name="PROP_PostParSimTop" xil_pn:value="Module|tb_top"/>
-    <property xil_pn:name="PROP_PostSynthSimTop" xil_pn:value="Module|tb_top"/>
-    <property xil_pn:name="PROP_PostXlateSimTop" xil_pn:value="Module|tb_top"/>
-    <property xil_pn:name="Package" xil_pn:value="fg320"/>
-    <property xil_pn:name="Perform Timing-Driven Packing" xil_pn:value="true"/>
-    <property xil_pn:name="Place &amp; Route Effort Level (Overall)" xil_pn:value="High"/>
-    <property xil_pn:name="Placer Effort Level (Overrides Overall Level)" xil_pn:value="High"/>
-    <property xil_pn:name="Preferred Language" xil_pn:value="Verilog"/>
-    <property xil_pn:name="Report Fastest Path(s) in Each Constraint" xil_pn:value="false"/>
-    <property xil_pn:name="Report Fastest Path(s) in Each Constraint Post Trace" xil_pn:value="false"/>
-    <property xil_pn:name="Router Effort Level (Overrides Overall Level)" xil_pn:value="High"/>
-    <property xil_pn:name="Simulator" xil_pn:value="ISim (VHDL/Verilog)"/>
-    <property xil_pn:name="Speed Grade" xil_pn:value="-4"/>
-    <property xil_pn:name="Synthesis Tool" xil_pn:value="XST (VHDL/Verilog)"/>
-    <property xil_pn:name="Top-Level Source Type" xil_pn:value="HDL"/>
-    <property xil_pn:name="Verbose Property Persistence" xil_pn:value="false"/>
+    <property xil_pn:name="Auto Implementation Top" xil_pn:value="false" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Constraints Entry" xil_pn:value="Text Editor" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Create Mask File" xil_pn:value="true" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Create ReadBack Data Files" xil_pn:value="true" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Device" xil_pn:value="xc3s500e" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Device Family" xil_pn:value="Spartan3E" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Extra Effort" xil_pn:value="Continue on Impossible" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Extra Effort (Highest PAR level only)" xil_pn:value="Continue on Impossible" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Fitter Report Format" xil_pn:value="HTML" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Implementation Top" xil_pn:value="Module|top" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Implementation Top Instance Path" xil_pn:value="/top" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Map Effort Level" xil_pn:value="High" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Optimization Effort" xil_pn:value="High" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Overwrite Compiled Libraries" xil_pn:value="true" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Package" xil_pn:value="fg320" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Place &amp; Route Effort Level (Overall)" xil_pn:value="High" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Placer Effort Level (Overrides Overall Level)" xil_pn:value="High" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Preferred Language" xil_pn:value="Verilog" xil_pn:valueState="default"/>
+    <property xil_pn:name="Property Specification in Project File" xil_pn:value="Store all values" xil_pn:valueState="default"/>
+    <property xil_pn:name="Report Fastest Path(s) in Each Constraint" xil_pn:value="false" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Report Fastest Path(s) in Each Constraint Post Trace" xil_pn:value="false" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Router Effort Level (Overrides Overall Level)" xil_pn:value="High" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Selected Simulation Root Source Node Behavioral" xil_pn:value="Module|tb_top" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Simulator" xil_pn:value="ISim (VHDL/Verilog)" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Speed Grade" xil_pn:value="-4" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Synthesis Tool" xil_pn:value="XST (VHDL/Verilog)" xil_pn:valueState="default"/>
+    <property xil_pn:name="Top-Level Source Type" xil_pn:value="HDL" xil_pn:valueState="default"/>
+    <!--                                                                                  -->
+    <!-- The following properties are for internal use only. These should not be modified.-->
+    <!--                                                                                  -->
+    <property xil_pn:name="PROP_BehavioralSimTop" xil_pn:value="Module|tb_top" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="PROP_DesignName" xil_pn:value="spartan3e_starter" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="PROP_DevFamilyPMName" xil_pn:value="spartan3e" xil_pn:valueState="default"/>
+    <property xil_pn:name="PROP_PostMapSimTop" xil_pn:value="Module|tb_top" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="PROP_PostParSimTop" xil_pn:value="Module|tb_top" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="PROP_PostSynthSimTop" xil_pn:value="Module|tb_top" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="PROP_PostXlateSimTop" xil_pn:value="Module|tb_top" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="PROP_intWorkingDirLocWRTProjDir" xil_pn:value="Same" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="PROP_intWorkingDirUsed" xil_pn:value="No" xil_pn:valueState="non-default"/>
   </properties>
 
   <bindings/>
 
   <libraries/>
 
-  <partitions>
-    <partition xil_pn:name="/top"/>
-  </partitions>
+  <partitions/>
 
 </project>

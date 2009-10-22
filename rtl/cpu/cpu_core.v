@@ -15,14 +15,19 @@
 // CPU Core
 module jelly_cpu_core
 		#(
-			parameter					USE_DBUGGER     = 1'b1,
-			parameter					USE_EXC_SYSCALL = 1'b1,
-			parameter					USE_EXC_BREAK   = 1'b1,
-			parameter					USE_EXC_RI      = 1'b1,
-			parameter					USE_HW_BP       = 1'b1,
-			parameter					GPR_TYPE        = 0,
-			parameter					MUL_CYCLE       = 0,
-			parameter					DBBP_NUM        = 4
+			parameter					USE_DBUGGER         = 1'b1,
+			parameter					USE_EXC_SYSCALL     = 1'b1,
+			parameter					USE_EXC_BREAK       = 1'b1,
+			parameter					USE_EXC_RI          = 1'b1,
+			parameter					USE_HW_BP           = 1'b1,
+			parameter					GPR_TYPE            = 0,
+			parameter					MUL_CYCLE           = 0,
+			parameter					DBBP_NUM            = 4,
+			
+			parameter					SIM_PC_TRACE        = 1,
+			parameter					SIM_DBUS_TRACE      = 1,
+			parameter	[8*127:1]		SIM_PC_TRACE_FILE   = "pc_trace.txt",
+			parameter	[8*127:1]		SIM_DBUS_TRACE_FILE = "dbus_trace.txt"
 		)
 		(
 			// system
@@ -1311,4 +1316,53 @@ module jelly_cpu_core
 	end
 	endgenerate
 
+
+	// -----------------------------
+	//  simulation
+	// -----------------------------
+	
+	generate 
+	if ( SIM_PC_TRACE ) begin
+		integer	pc_trace_file;
+		initial begin
+			pc_trace_file = $fopen(SIM_PC_TRACE_FILE);
+		end
+		
+		always @ ( posedge clk ) begin
+			if ( !reset ) begin
+				if ( !interlock & !ex_out_stall ) begin
+					$fdisplay(pc_trace_file, "%t : %h %h", $time, ex_out_pc, ex_out_instruction);
+				end
+			end
+		end
+	end
+
+	if ( SIM_DBUS_TRACE ) begin
+		integer	dbus_trace_file;
+		initial begin
+			dbus_trace_file = $fopen(SIM_DBUS_TRACE_FILE);
+		end
+		
+		reg				reg_dbus_read;
+		reg		[31:0]	reg_dbus_addr;
+		always @ ( posedge clk ) begin
+			if ( reset ) begin
+				reg_dbus_read <= 1'b0;
+			end
+			else begin
+				if ( !dbus_interlock & !dbus_busy ) begin
+					reg_dbus_read <= dbus_en & !dbus_we;
+					reg_dbus_addr <= dbus_addr;
+					if ( reg_dbus_read ) begin
+						$fdisplay(dbus_trace_file, "%t : r %h %h", $time, reg_dbus_addr, dbus_rdata);
+					end
+					if ( dbus_en & dbus_we ) begin
+						$fdisplay(dbus_trace_file, "%t : w %h %h %b", $time, dbus_addr, dbus_wdata, dbus_sel);
+					end
+				end
+			end
+		end
+	end
+	endgenerate
+	
 endmodule

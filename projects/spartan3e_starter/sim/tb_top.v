@@ -108,6 +108,7 @@ module tb_top;
 	
 	
 	// PC trace
+	/*
 	integer pc_trace;
 	initial begin
 		pc_trace = $fopen("pc_trace.txt");
@@ -118,6 +119,7 @@ module tb_top;
 						$time, i_top.i_cpu_top.i_cpu_core.ex_out_pc, i_top.i_cpu_top.i_cpu_core.ex_out_instruction);
 		end
 	end
+	*/
 
 	// Interrupt monitor
 	always @ ( posedge i_top.i_cpu_top.clk ) begin
