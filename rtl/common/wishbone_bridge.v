@@ -54,7 +54,7 @@ module jelly_wishbone_bridge
 	reg							reg_stb_o;
 	
 	
-	always @ ( posedge clk or posedge reset ) begin
+	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			wb_in_dat_o  <= {WB_DAT_WIDTH{1'bx}};
 			reg_in_ack_o <= 1'b0;

@@ -183,7 +183,7 @@ module jelly_ddr_sdram
 	reg		[REG_WRITE_WIDTH-1:0]	next_write;
 	reg		[REG_READ_WIDTH-1:0]	next_read;
 	
-	always @( posedge clk or posedge reset ) begin
+	always @( posedge clk ) begin
 		if ( reset ) begin
 			state         <= ST_IDLE;
 			counter       <= {COUNTER_WIDTH{1'bx}};

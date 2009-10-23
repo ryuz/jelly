@@ -47,7 +47,7 @@ module jelly_wishbone_clk2x
 	reg							st_busy;
 	reg							st_end;
 
-	always @( posedge clk or posedge reset ) begin
+	always @( posedge clk ) begin
 		if ( reset ) begin
 			wb_ack_o <= 1'b0;
 		end
@@ -62,7 +62,7 @@ module jelly_wishbone_clk2x
 	end
 	
 	
-	always @( posedge clk2x or posedge reset ) begin
+	always @( posedge clk2x ) begin
 		if ( reset ) begin
 			st_idle <= 1'b1;
 			st_busy <= 1'b0;

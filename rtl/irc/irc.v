@@ -77,7 +77,7 @@ module jelly_irc
 	localparam	PACKET_WIDTH = (PRIORITY_WIDTH + FACTOR_ID_WIDTH);
 	reg		[PACKET_WIDTH:0]		recv_counter;
 	
-	always @ ( posedge clk or posedge reset ) begin
+	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			prev_enable       <= 1'b0;
 			reg_req_priority  <= {PRIORITY_WIDTH{1'b1}};
@@ -170,7 +170,7 @@ module jelly_irc
 	//  register access
 	// -----------------------------
 	
-	always @ ( posedge clk or posedge reset ) begin
+	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			reg_enable <= 1'b0;
 			reg_mask   <= {PRIORITY_WIDTH{1'b1}};

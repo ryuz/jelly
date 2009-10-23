@@ -155,7 +155,7 @@ module jelly_cpu_cache
 	end
 	
 	// ff
-	always @ ( posedge clk or posedge reset ) begin
+	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			cha_out_cpu_en          <= 1'b0;
 			cha_out_cpu_we          <= 1'bx;
@@ -219,7 +219,7 @@ module jelly_cpu_cache
 	
 	reg							cmp_last;
 	
-	always @ ( posedge clk or posedge reset ) begin
+	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			cmp_out_mem_en          <= 1'b0;
 			cmp_out_mem_we          <= 1'bx;
@@ -315,7 +315,7 @@ module jelly_cpu_cache
 	assign membus_sel       = cmp_out_mem_sel;
 	assign membus_wdata     = cmp_out_mem_wdata;
 	
-	always @ ( posedge clk or negedge reset ) begin
+	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			mem_out_mem_we          <= 1'b0;
 			mem_out_wbk_en          <= 1'b0;

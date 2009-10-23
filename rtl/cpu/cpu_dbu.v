@@ -144,7 +144,7 @@ module jelly_cpu_dbu
 	// -----------------------------
 	
 	// dbgctl
-	always @ ( posedge clk or posedge reset ) begin
+	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			dbg_enable    <= 1'b0;
 			dbg_break_req <= 1'b0;
@@ -170,7 +170,7 @@ module jelly_cpu_dbu
 	
 	// dbg_addr
 	reg		[31:0]		dbg_addr;
-	always @ ( posedge clk or posedge reset ) begin
+	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			dbg_addr <= {32{1'b0}};
 		end
@@ -203,7 +203,7 @@ module jelly_cpu_dbu
 		assign ibus_wdata     = wb_dat_i;
 		
 		reg				ibus_reg_ack;
-		always @( posedge clk or posedge reset ) begin
+		always @( posedge clk ) begin
 			if ( reset ) begin
 				ibus_reg_ack <= 1'b0;
 			end
@@ -270,7 +270,7 @@ module jelly_cpu_dbu
 		assign dbus_wdata     = wb_dat_i;
 
 		reg				dbus_reg_ack;
-		always @( posedge clk or posedge reset ) begin
+		always @( posedge clk ) begin
 			if ( reset ) begin
 				dbus_reg_ack <= 1'b0;
 			end
@@ -391,7 +391,7 @@ module jelly_cpu_dbu
 	end
 	
 	// reg_ack (1 cycle wait)
-	always @ ( posedge clk or posedge reset ) begin
+	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			reg_ack <= 1'b0;
 		end

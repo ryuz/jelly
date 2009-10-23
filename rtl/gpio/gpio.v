@@ -48,7 +48,7 @@ module jelly_gpio
 	reg		[PORT_WIDTH-1:0]	reg_input;
 	reg		[PORT_WIDTH-1:0]	reg_output;
 	
-	always @ ( posedge clk or posedge reset ) begin
+	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			reg_direction <= INIT_DIRECTION;
 			reg_input     <= {PORT_WIDTH{1'bx}};

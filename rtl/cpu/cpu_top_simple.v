@@ -265,7 +265,7 @@ module jelly_cpu_top_simple
 	reg		reg_busy;
 	reg		reg_sw;
 	wire	sw;
-	always @ ( posedge clk or posedge reset ) begin
+	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			reg_busy <= 1'b0;
 			reg_sw   <= 1'bx;

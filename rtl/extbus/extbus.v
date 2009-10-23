@@ -55,7 +55,7 @@ module jelly_extbus
 	reg		[ACCESS_CYCLE-1:0]	st_access;
 	reg							st_end;
 	
-	always @ ( posedge clk or posedge reset ) begin
+	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			st_idle     <= 1'b1;
 			st_access   <= {ACCESS_CYCLE{1'b0}};
@@ -121,7 +121,7 @@ module jelly_extbus
 	
 	/*
 	reg							busy;
-	always @ ( posedge clk or posedge reset ) begin
+	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			busy  <= 1'b0;
 		end

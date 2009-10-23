@@ -47,7 +47,7 @@ module jelly_cpu_wishbone
 	reg									buf_en;
 	reg		[DATA_WIDTH-1:0]			buf_data;
 	
-	always @ ( posedge clk or posedge reset ) begin
+	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			buf_en    <= 1'b0;
 			buf_data  <= {DATA_WIDTH{1'bx}};

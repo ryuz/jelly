@@ -59,7 +59,7 @@ module irc_factor
 	
 	// request send
 	reg		[PACKET_WIDTH-1:0]		send_packet;
-	always @ ( posedge clk or posedge reset ) begin
+	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			send_packet  <= {PACKET_WIDTH{1'b1}};
 		end
@@ -82,7 +82,7 @@ module irc_factor
 	
 	
 	// registers
-	always @ ( posedge clk or posedge reset ) begin
+	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			reg_enable    <= 1'b0;
 			reg_pending   <= 1'b0;

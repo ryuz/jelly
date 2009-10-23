@@ -63,7 +63,7 @@ module jelly_cpu_cop0
 	reg		[31:0]	reg_debp3;		// 19
 	
 	
-	always @ ( posedge clk or posedge reset ) begin
+	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			reg_status <= {32{1'b0}};
 			reg_cause  <= {32{1'b0}};

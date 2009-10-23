@@ -55,7 +55,7 @@ module jelly_cpu_wishbone_cpubus
 		assign cpubus_wdata     = wb_dat_i;
 		
 		reg							cpubus_reg_ack;
-		always @( posedge clk or posedge reset ) begin
+		always @( posedge clk ) begin
 			if ( reset ) begin
 				cpubus_reg_ack <= 1'b0;
 			end
@@ -78,7 +78,7 @@ module jelly_cpu_wishbone_cpubus
 		reg		[DATA_WIDTH-1:0]	cpubus_reg_wdata;
 		reg							cpubus_reg_ack;
 		
-		always @( posedge clk or posedge reset ) begin
+		always @( posedge clk ) begin
 			if ( reset ) begin
 				cpubus_reg_en    <= 1'b0;
 				cpubus_reg_we    <= 1'bx;

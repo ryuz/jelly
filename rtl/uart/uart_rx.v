@@ -65,6 +65,6 @@ module jelly_uart_rx
 	
 	assign rx_en   = rx_wr_en;
 	assign rx_dout = rx_data[7:0];
-		
+	
 endmodule
 

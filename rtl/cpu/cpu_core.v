@@ -173,7 +173,7 @@ module jelly_cpu_core
 	reg		[31:0]	if_pc;
 	wire			if_branch;
 	
-	always @ ( posedge clk or posedge reset ) begin
+	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			if_pc <= vect_reset;
 		end
@@ -204,7 +204,7 @@ module jelly_cpu_core
 	
 	
 	// IF output
-	always @ ( posedge clk or posedge reset ) begin
+	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			if_out_stall <= 1'b1;
 			if_out_pc    <= 32'h00000000;
@@ -488,7 +488,7 @@ module jelly_cpu_core
 	
 	
 	// ID
-	always @ ( posedge clk or posedge reset ) begin
+	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			id_out_stall          <= 1'b1;
 			id_out_delay          <= 1'b0;
@@ -882,7 +882,7 @@ module jelly_cpu_core
 
 	// step execution
 	reg		[1:0]	dbg_dbbp_mask;
-	always @( posedge clk or posedge reset ) begin
+	always @( posedge clk ) begin
 		if ( reset ) begin
 			dbg_dbbp_mask <= 2'b00;
 		end
@@ -922,7 +922,7 @@ module jelly_cpu_core
 	
 	
 	// FF
-	always @ ( posedge clk or posedge reset ) begin
+	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			ex_out_stall        <= 1'b1;
 			ex_out_instruction  <= 0;
@@ -1075,7 +1075,7 @@ module jelly_cpu_core
 	reg					mem_unsigned;
 	reg		[31:0]		mem_ex_data;
 	
-	always @ ( posedge clk or posedge reset ) begin
+	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			mem_out_stall        <= 1'b0;
 			mem_out_instruction  <= 0;
@@ -1157,7 +1157,7 @@ module jelly_cpu_core
 	reg				fwd_rs_hit_mem;
 	reg				fwd_rt_hit_ex;
 	reg				fwd_rt_hit_mem;
-	always @ ( posedge clk or posedge reset ) begin
+	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			fwd_rs_hit_ex  <= 1'b0;
 	        fwd_rs_hit_mem <= 1'b0;

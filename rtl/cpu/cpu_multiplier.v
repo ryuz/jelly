@@ -58,7 +58,7 @@ module jelly_cpu_multiplier
 		// pipelined multiplier
 		reg		[(DATA_WIDTH*2)-1:0]	reg_out_data	[0:CYCLE-1];
 		integer							j;
-		always @ ( posedge clk or posedge reset ) begin
+		always @ ( posedge clk ) begin
 			reg_out_data[0] <= signed_data0 * signed_data1;
 			for ( j = 1; j < CYCLE; j = j + 1 ) begin
 				reg_out_data[j] <= reg_out_data[j-1];
@@ -71,7 +71,7 @@ module jelly_cpu_multiplier
 		reg		[CYCLE-1:0]			reg_busy;
 		wire	[CYCLE-1:0]			next_busy;
 		assign next_busy = (reg_busy >> 1);
-		always @ ( posedge clk or posedge reset ) begin
+		always @ ( posedge clk ) begin
 			if ( reset ) begin
 				reg_busy   <= {CYCLE{1'b0}};
 				reg_out_en <= 1'b0;
@@ -98,7 +98,7 @@ module jelly_cpu_multiplier
 		reg		[(DATA_WIDTH*2)-1:0]			reg_in_data1;
 		reg		[(DATA_WIDTH*2)-1:0]			reg_out_data;
 		
-		always @ ( posedge clk or posedge reset ) begin
+		always @ ( posedge clk ) begin
 			if ( reset ) begin
 				reg_busy     <= 1'b0;
 				reg_negative <= 1'bx;

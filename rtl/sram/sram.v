@@ -73,7 +73,7 @@ module jelly_sram
 		end
 		
 		reg		read;
-		always @ ( posedge clk or posedge reset ) begin
+		always @ ( posedge clk ) begin
 		if ( reset ) begin
 				read <= 1'b0;
 			end

@@ -127,7 +127,7 @@ module jelly_cpu_dbg_comm
 	
 	
 	// FF
-	always @ ( posedge clk or posedge reset ) begin
+	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			wb_dbg_adr_o  <= {4{1'bx}};
 			wb_dbg_dat_o  <= {32{1'bx}};

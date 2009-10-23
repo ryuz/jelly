@@ -46,7 +46,7 @@ module jelly_wishbone_register
 	
 	
 	// register
-	always @ ( posedge clk or posedge reset ) begin
+	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			reg_data <= INITIAL_VALUE;
 		end

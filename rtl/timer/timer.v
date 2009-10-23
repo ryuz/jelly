@@ -49,7 +49,7 @@ module jelly_timer
 	wire				compare_match;
 	assign compare_match = (reg_counter == reg_compare);
 	
-	always @ ( posedge clk or posedge reset ) begin
+	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			reg_enable    <= 1'b0;
 			reg_clear     <= 1'b0;

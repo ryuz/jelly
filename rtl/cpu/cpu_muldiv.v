@@ -82,7 +82,7 @@ module jelly_cpu_muldiv
 		// switch
 		reg								reg_mul_hi;
 		reg								reg_mul_lo;
-		always @ ( posedge clk or posedge reset ) begin
+		always @ ( posedge clk ) begin
 			if ( reset ) begin
 				reg_mul_hi <= 1'b0;
 				reg_mul_lo <= 1'b0;
@@ -166,7 +166,7 @@ module jelly_cpu_muldiv
 		reg							reg_busy;
 		reg		[DATA_WIDTH-1:0]	reg_hi;
 		reg		[DATA_WIDTH-1:0]	reg_lo;
-		always @ ( posedge clk or posedge reset ) begin
+		always @ ( posedge clk ) begin
 			if ( reset ) begin
 				reg_busy <= 1'b0;
 				reg_hi   <= {DATA_WIDTH{1'bx}};

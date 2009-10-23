@@ -76,7 +76,7 @@ module jelly_ddr_sdram_init
 	reg		[12:0]				next_a;
 	
 	
-	always @( posedge clk or posedge reset ) begin
+	always @( posedge clk ) begin
 		if ( reset ) begin
 			reg_init      <= 1'b1;
 			reg_state     <= INIT_ST_WAIT;

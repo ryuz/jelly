@@ -79,7 +79,7 @@ module jelly_cpu_divider
 	
 	assign counter_next = counter + 1;
 	
-	always @ ( posedge clk or posedge reset ) begin
+	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			remainder      <= {DATA_WIDTH{1'bx}};
 			quotient       <= {DATA_WIDTH{1'bx}};

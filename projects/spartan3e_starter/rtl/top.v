@@ -64,15 +64,19 @@ module top
 	
 	
 	// clock
+	wire				reset;
 	wire				clk;
 	wire				clk_x2;
-	wire				clk_uart;
-	wire				clk_sdram;
-	wire				clk90_sdram;
+
+	wire				sdram_clk;
+	wire				sdram_clk_90;
+	wire				sdram_reset;
+	
+	wire				uart_clk;
+
 	wire				locked;
 	
 	// reset
-	wire				reset;
 
 	clkgen
 		i_clkgen
@@ -84,16 +88,18 @@ module top
 				.out_sys_clk_x2		(clk_x2),
 				.out_sys_reset		(reset),
 				
-				.out_uart_clk		(clk_uart),
+				.out_uart_clk		(uart_clk),
+				.out_uart_reset		(),
 				
-				.out_sdram_clk		(clk_sdram),
-				.out_sdram_clk90	(clk90_sdram),
+				.out_sdram_clk		(sdram_clk),
+				.out_sdram_clk_90	(sdram_clk_90),
+				.out_sdram_reset	(sdram_reset),
 				
 				.locked				(locked)
 		);
 	
-
-
+	
+	
 	// UART switch
 	wire				uart_tx;
 	wire				uart_rx;
@@ -199,7 +205,7 @@ module top
 				.clk				(clk),
 				.endian				(endian),
 				
-				.uart_clk			(clk_uart),
+				.uart_clk			(uart_clk),
 				.uart_tx			(dbg_uart_tx),
 				.uart_rx			(dbg_uart_rx),
 				
@@ -283,9 +289,9 @@ module top
 			)
 		i_wishbone_clk2x
 			(
-				.reset				(reset),
+				.reset				(sdram_reset),
 				.clk				(clk),
-				.clk2x				(clk_sdram),
+				.clk2x				(sdram_clk),
 				
 				.wb_adr_i			(wb_cpu_adr_o[25:2]),
 				.wb_dat_o			(dram_wb_dat_o),
@@ -310,9 +316,9 @@ module top
 			)
 		i_ddr_sdram
 			(
-				.reset				(reset),
-				.clk				(clk_sdram),
-				.clk90				(clk90_sdram),
+				.reset				(sdram_reset),
+				.clk				(sdram_clk),
+				.clk90				(sdram_clk_90),
 				.endian				(endian),
 				
 				.wb_adr_i			(wb_dram_adr_o),
@@ -528,7 +534,7 @@ module top
 				.clk				(clk),
 				.reset				(reset),
 				
-				.uart_clk			(clk_uart),
+				.uart_clk			(uart_clk),
 				.uart_tx			(uart_tx),
 				.uart_rx			(uart_rx),
 				
@@ -670,7 +676,7 @@ module top
 	// -------------------------
 	
 	reg		[23:0]		led_counter;
-	always @ ( posedge clk or posedge reset ) begin
+	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			led_counter <= 0;
 		end

@@ -102,7 +102,7 @@ module jelly_cpu_gpr
 		assign ram_din1  = {DATA_WIDTH{1'b0}};
 		
 		reg		[DATA_WIDTH-1:0]	r0_rdata;	
-		always @ ( posedge clk or posedge reset ) begin
+		always @ ( posedge clk ) begin
 			if ( reset ) begin
 				r0_rdata <= 0;
 			end
@@ -119,7 +119,7 @@ module jelly_cpu_gpr
 		end
 		
 		reg		[DATA_WIDTH-1:0]	r1_rdata;
-		always @ ( posedge clk or posedge reset ) begin
+		always @ ( posedge clk ) begin
 			if ( reset ) begin
 				r1_rdata <= 0;
 			end

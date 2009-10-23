@@ -60,9 +60,11 @@ module tb_top;
 				
 				.uart0_tx			(),
 				.uart0_rx			(uart_rx),
-				
 				.uart1_tx			(),
 				.uart1_rx			(1'b1),
+
+				.gpio_a				(),
+				.gpio_b				(),
 				
 				.ddr_sdram_ck_p		(ddr_sdram_ck_p),
 				.ddr_sdram_ck_n		(ddr_sdram_ck_n),
@@ -106,20 +108,6 @@ module tb_top;
 			);
 
 	
-	
-	// PC trace
-	/*
-	integer pc_trace;
-	initial begin
-		pc_trace = $fopen("pc_trace.txt");
-	end
-	always @ ( posedge i_top.i_cpu_top.i_cpu_core.clk ) begin
-		if ( !i_top.i_cpu_top.i_cpu_core.interlock & !i_top.i_cpu_top.i_cpu_core.ex_out_stall ) begin
-			$fdisplay(pc_trace, "%t : %h %h",
-						$time, i_top.i_cpu_top.i_cpu_core.ex_out_pc, i_top.i_cpu_top.i_cpu_core.ex_out_instruction);
-		end
-	end
-	*/
 
 	// Interrupt monitor
 	always @ ( posedge i_top.i_cpu_top.clk ) begin
@@ -133,6 +121,7 @@ module tb_top;
 
 	
 	// UART monitor
+	/*
 	integer uart_monitor;
 	initial begin
 		uart_monitor = $fopen("uart_monitor.txt");
@@ -143,7 +132,8 @@ module tb_top;
 			$fdisplay(uart_monitor, "%t UART-TX:%h %c", $time, i_top.i_uart0.tx_data, i_top.i_uart0.tx_data);
 		end
 	end
-
+	*/
+	
 	
 	// write_dbg_uart_rx_fifo
 	task write_dbg_uart_rx_fifo;
