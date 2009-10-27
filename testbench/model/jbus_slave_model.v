@@ -52,21 +52,18 @@ module jbus_slave_model
 	end
 	endgenerate
 
+	wire	rand;
 	jelly_rand_gen
 		i_rand_gen
 			(
 				.clk		(clk),
 				.reset		(reset),
 				.seed		(16'h1234),
-				.out		(jbus_slave_ready)
+				.out		(rand)
 			);
-
-	/*	
-	initial jbus_slave_ready = 0;
-	always @( posedge clk ) begin
-		jbus_slave_ready <= !jbus_slave_ready;
-	end
-	*/
+//	assign jbus_slave_ready = rand;
+	assign jbus_slave_ready = 1'b1;
+	
 	
 endmodule
 

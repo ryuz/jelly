@@ -220,7 +220,7 @@ module jelly_bus_cahce
 	reg									reg_master_read;
 	
 	wire								jbus_master_busy;
-	assign jbus_master_busy = (jbus_master_en & !jbus_master_ready) | (reg_master_read & !read_end);
+	assign jbus_master_busy = (jbus_master_en & !jbus_master_ready) | reg_master_read;
 	
 	always @ ( posedge clk ) begin
 		if ( reset ) begin
