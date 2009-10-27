@@ -108,7 +108,7 @@ module jelly_bus_cahce
 			reg_slave_wdata  <= {SLAVE_DATA_WIDTH{1'bx}};
 		end
 		else begin
-			if ( jbus_slave_en & jbus_slave_ready ) begin
+			if ( /*jbus_slave_en &*/ jbus_slave_ready ) begin
 				reg_slave_re     <= jbus_slave_en & !jbus_slave_we;
 				reg_slave_we     <= jbus_slave_en & jbus_slave_we;
 				reg_slave_offset <= jbus_slave_offset;
@@ -130,13 +130,13 @@ module jelly_bus_cahce
 			reg_write_hit_end <= 1'b0;
 		end
 		else begin
-			if ( jbus_slave_en & jbus_slave_ready ) begin
-				if ( reg_write_hit_end ) begin
+			if ( reg_write_hit_end ) begin
+				if ( jbus_master_ready ) begin
 					reg_write_hit_end <= 1'b0;
 				end
-				else begin
-					reg_write_hit_end <= cache_write_hit;
-				end
+			end
+			else begin
+				reg_write_hit_end <= cache_write_hit;
 			end
 		end
 	end
@@ -195,7 +195,6 @@ module jelly_bus_cahce
 	
 	
 	// read end monitor
-	wire			write_end;
 	wire			read_end;
 	reg				reg_read_busy;
 	always @ ( posedge clk ) begin
@@ -208,7 +207,6 @@ module jelly_bus_cahce
 			end
 		end
 	end
-	assign write_end = jbus_master_en & jbus_master_we & jbus_master_ready;
 	assign read_end  = reg_read_busy & jbus_master_ready;
 	
 	
@@ -219,8 +217,10 @@ module jelly_bus_cahce
 	reg		[MASTER_BLS_WIDTH-1:0]		reg_master_bls;
 	reg		[MASTER_DATA_WIDTH-1:0]		reg_master_wdata;
 	
-	reg									reg_master_write;
 	reg									reg_master_read;
+	
+	wire								jbus_master_busy;
+	assign jbus_master_busy = (jbus_master_en & !jbus_master_ready) | (reg_master_read & !read_end);
 	
 	always @ ( posedge clk ) begin
 		if ( reset ) begin
@@ -229,22 +229,18 @@ module jelly_bus_cahce
 			reg_master_addr  <= {MASTER_ADDR_WIDTH{1'bx}};
 			reg_master_bls   <= {MASTER_BLS_WIDTH{1'bx}};
 			reg_master_wdata <= {MASTER_DATA_WIDTH{1'bx}};
-			reg_master_write <= 1'b0;
 			reg_master_read  <= 1'b0;
 		end
 		else begin
-			if ( (!reg_master_en | jbus_master_ready) & (cache_read_miss & !reg_read_busy) ) begin
-				reg_master_read <= 1'b1;
+			if ( !jbus_master_busy ) begin
+				reg_master_read <= cache_read_miss;
 			end
 			else if ( read_end ) begin
 				reg_master_read <= 1'b0;
 			end
 			
-			if ( (!reg_master_write | jbus_master_ready) & (!reg_master_read | read_end) ) begin
-				reg_master_write <= (reg_slave_we    & !reg_master_write);
-				reg_master_read  <= (cache_read_miss & !reg_master_read);
-				
-				reg_master_en    <= (reg_slave_we & !reg_master_write) | (cache_read_miss & !reg_master_read);
+			if ( !jbus_master_busy ) begin
+				reg_master_en    <= (reg_slave_we & !reg_write_hit_end) | cache_read_miss;
 				reg_master_we    <= reg_slave_we;
 				reg_master_addr  <= {reg_slave_tagadr, reg_slave_index};
 				reg_master_bls   <= write_bls;
@@ -253,10 +249,6 @@ module jelly_bus_cahce
 			else begin
 				if ( jbus_master_ready ) begin
 					reg_master_en <= 1'b0;
-				end
-				
-				if ( jbus_master_ready ) begin
-					reg_master_write <= 1'b0;
 				end
 				if ( read_end ) begin
 					reg_master_read  <= 1'b0;
@@ -279,7 +271,7 @@ module jelly_bus_cahce
 	assign ram_write_data    = read_end ? jbus_master_rdata : ((write_data_mask & write_data) | (~write_data_mask & ram_read_data));
 	
 	assign jbus_slave_rdata  = cache_rdata;
-	assign jbus_slave_ready  = !((reg_master_en & !jbus_master_ready) | cache_read_miss | (cache_write_hit & !write_end));
+	assign jbus_slave_ready  = !((reg_master_en & !jbus_master_ready) | cache_read_miss | cache_write_hit);
 	
 endmodule
 

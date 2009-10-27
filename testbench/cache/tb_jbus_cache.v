@@ -226,7 +226,7 @@ module tb_jbus_cache;
 		test_table[index] = {1'b0, 1'b1, 1'b1, 12'h000, 4'b1010, 32'haabb_ccdd};	index = index + 1;
 		test_table[index] = {1'b0, 1'b1, 1'b0, 12'h000, 4'bxxxx, 32'hxxxx_xxxx};	index = index + 1;
 		test_table[index] = {1'b0, 1'b1, 1'b0, 12'h000, 4'bxxxx, 32'hxxxx_xxxx};	index = index + 1;
-		test_table[index] = {1'b0, 1'b1, 1'b1, 12'h000, 4'b0010, 32'haabb_ccdd};	index = index + 1;
+		test_table[index] = {1'b0, 1'b1, 1'b1, 12'h000, 4'b1010, 32'haabb_ccdd};	index = index + 1;
 		test_table[index] = {1'b0, 1'b1, 1'b1, 12'h000, 4'b0101, 32'haabb_ccdd};	index = index + 1;
 		
 		test_table[index] = {1'b0, 1'b0, 1'b0, 12'hxxx, 4'bxxxx, 32'hxxxx_xxxx};	index = index + 1;

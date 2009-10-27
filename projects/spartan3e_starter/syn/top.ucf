@@ -7,12 +7,12 @@
 
 
 # clock
-NET "clk_in" LOC = "C9" | IOSTANDARD = LVCMOS33 ;
-NET "clk_in" TNM_NET = clk_in;
-TIMESPEC TS_clk_in = PERIOD "clk_in" 50 MHz HIGH 50%;
+NET "in_clk" LOC = "C9" | IOSTANDARD = LVCMOS33 ;
+NET "in_clk" TNM_NET = clk_in;
+TIMESPEC TS_clk_in = PERIOD "in_clk" 50 MHz HIGH 50%;
 
 # reset
-NET "reset_in" LOC = "K17" | IOSTANDARD = LVTTL | PULLDOWN ;
+NET "in_reset" LOC = "K17" | IOSTANDARD = LVTTL | PULLDOWN ;
 
 # UART
 NET "uart0_tx" LOC = "M14" | IOSTANDARD = LVTTL | DRIVE = 8 | SLEW = SLOW ;

@@ -16,8 +16,8 @@ module top
 		)
 		(
 			// system
-			input	wire				clk_in,
-			input	wire				reset_in,
+			input	wire				in_clk,
+			input	wire				in_reset,
 			
 			// GPIO
 			inout	wire	[3:0]		gpio_a,
@@ -81,8 +81,8 @@ module top
 	clkgen
 		i_clkgen
 			(
-				.in_reset			(reset_in), 
-				.in_clk				(clk_in), 
+				.in_reset			(in_reset), 
+				.in_clk				(in_clk), 
 			
 				.out_sys_clk		(clk),
 				.out_sys_clk_x2		(clk_x2),
