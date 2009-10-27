@@ -21,22 +21,22 @@ module jelly_wishbone_register
 		)
 		(
 			// system
-			input	wire						clk;
-			input	wire						reset;
+			input	wire						clk,
+			input	wire						reset,
 			
-			input	wire	[WB_DAT_WIDTH-1:0]	readonly_mask;
+			input	wire	[WB_DAT_WIDTH-1:0]	readonly_mask,
 			
 			// wishbone
-			output	wire	[WB_DAT_WIDTH-1:0]	wb_dat_o;
-			input	wire	[WB_DAT_WIDTH-1:0]	wb_dat_i;
-			input	wire						wb_we_i;
-			input	wire	[WB_SEL_WIDTH-1:0]	wb_sel_i;
-			input	wire						wb_stb_i;
+			output	wire	[WB_DAT_WIDTH-1:0]	wb_dat_o,
+			input	wire	[WB_DAT_WIDTH-1:0]	wb_dat_i,
+			input	wire						wb_we_i,
+			input	wire	[WB_SEL_WIDTH-1:0]	wb_sel_i,
+			input	wire						wb_stb_i,
 			
 			// data port
-			input	wire	[WB_DAT_WIDTH-1:0]	data_we;
-			input	wire	[WB_DAT_WIDTH-1:0]	data_in;
-			output	wire	[WB_DAT_WIDTH-1:0]	data_out;
+			input	wire	[WB_DAT_WIDTH-1:0]	data_we,
+			input	wire	[WB_DAT_WIDTH-1:0]	data_in,
+			output	wire	[WB_DAT_WIDTH-1:0]	data_out
 		);
 	
 	// register

@@ -15,17 +15,21 @@
 (* ram_style = "block" *)
 module jelly_ram_singleport
 		#(
-			parameter							DATA_WIDTH  = 8,
-			parameter							ADDR_WIDTH  = 8,
-			parameter							MEM_SIZE    = (1 << ADDR_WIDTH),
-			parameter							WRITE_FIRST = 0,
+			parameter							ADDR_WIDTH   = 8,
+			parameter							DATA_WIDTH   = 8,
+			parameter							MEM_SIZE     = (1 << ADDR_WIDTH),
+			parameter							WRITE_FIRST  = 0,
+			parameter							INIT_DOUT    = 0,
 			
-			parameter							READMEMB      = 0,
-			parameter							READMEMH      = 0,
-			parameter	[128*8:1]				READMEM_FIlE  = ""
+			parameter							FILLMEM      = 0,
+			parameter							FILLMEM_DATA = 0,
+			parameter							READMEMB     = 0,
+			parameter							READMEMH     = 0,
+			parameter	[128*8:1]				READMEM_FIlE = ""
 		)
 		(
 			input	wire						clk,
+			input	wire						reset,
 			input	wire						en,
 			input	wire						we,
 			input	wire	[ADDR_WIDTH-1:0]	addr,
@@ -44,10 +48,18 @@ module jelly_ram_singleport
 			if ( en ) begin
 				if ( we ) begin
 					mem[addr] <= din;
-					dout      <= din;
+				end
+				
+				if ( reset ) begin
+					dout <= INIT_DOUT;
 				end
 				else begin
-					dout <= mem[addr];
+					if ( we ) begin
+						dout <= din;
+					end
+					else begin
+						dout <= mem[addr];
+					end
 				end
 			end
 		end
@@ -59,14 +71,27 @@ module jelly_ram_singleport
 				if ( we ) begin
 					mem[addr] <= din;
 				end
-				dout <= mem[addr];
+				
+				if ( reset ) begin
+					dout <= INIT_DOUT;
+				end
+				else begin
+					dout <= mem[addr];
+				end
 			end
 		end
 	end
 	endgenerate
 	
 	// initialize
+	integer	i;
 	initial begin
+		if ( FILLMEM ) begin
+			for ( i = 0; i < MEM_SIZE; i = i + 1 ) begin
+				mem[i] = FILLMEM_DATA;
+			end
+		end
+
 		if ( READMEMB ) begin
 			$readmemb(READMEM_FIlE, mem);
 		end
@@ -74,8 +99,7 @@ module jelly_ram_singleport
 			$readmemh(READMEM_FIlE, mem);
 		end
 	end
-	
-	
+		
 endmodule
 
 

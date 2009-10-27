@@ -52,7 +52,7 @@ module top
 			input	wire	[3:0]		sw
 		);
 	
-
+	
 	
 	// -----------------------------
 	//  system

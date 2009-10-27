@@ -17,7 +17,7 @@ module jelly_multiplexer
 			parameter	SEL_WIDTH = 2,
 			parameter	NUM       = (1 << SEL_WIDTH),
 			parameter	OUT_WIDTH = 8,
-			parameter	IN_WIDTH  = (OUT_WIDTH * NUM),
+			parameter	IN_WIDTH  = (OUT_WIDTH * NUM)
 		)
 		(
 			input	wire						endian,
