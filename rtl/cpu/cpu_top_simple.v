@@ -67,24 +67,22 @@ module jelly_cpu_top_simple
 	// ---------------------------------
 	
 	// instruction bus
-	wire				ibus_interlock;
-	wire				ibus_en;
-	wire				ibus_we;
-	wire	[3:0]		ibus_sel;
-	wire	[31:0]		ibus_addr;
-	wire	[31:0]		ibus_wdata;
-	wire	[31:0]		ibus_rdata;
-	wire				ibus_busy;
+	wire				jbus_inst_en;
+	wire				jbus_inst_we;
+	wire	[3:0]		jbus_inst_sel;
+	wire	[31:2]		jbus_inst_addr;
+	wire	[31:0]		jbus_inst_wdata;
+	wire	[31:0]		jbus_inst_rdata;
+	wire				jbus_inst_ready;
 			
 	// data bus
-	wire				dbus_interlock;
-	wire				dbus_en;
-	wire				dbus_we;
-	wire	[3:0]		dbus_sel;
-	wire	[31:0]		dbus_addr;
-	wire	[31:0]		dbus_wdata;
-	wire	[31:0]		dbus_rdata;
-	wire				dbus_busy;
+	wire				jbus_data_en;
+	wire				jbus_data_we;
+	wire	[3:0]		jbus_data_sel;
+	wire	[31:0]		jbus_data_addr;
+	wire	[31:0]		jbus_data_wdata;
+	wire	[31:0]		jbus_data_rdata;
+	wire				jbus_data_ready;
 	
 	// CPU core
 	jelly_cpu_core
@@ -112,23 +110,21 @@ module jelly_cpu_top_simple
 				.interrupt_req		(interrupt_req),
 				.interrupt_ack		(interrupt_ack),
 				
-				.ibus_interlock		(ibus_interlock),
-				.ibus_en			(ibus_en),
-				.ibus_we			(ibus_we),
-				.ibus_sel			(ibus_sel),
-				.ibus_addr			(ibus_addr),
-				.ibus_wdata			(ibus_wdata),
-				.ibus_rdata			(ibus_rdata),
-				.ibus_busy			(ibus_busy),
-                                 
-				.dbus_interlock		(dbus_interlock),
-				.dbus_en			(dbus_en),
-				.dbus_we			(dbus_we),
-				.dbus_sel			(dbus_sel),
-				.dbus_addr			(dbus_addr),
-				.dbus_wdata			(dbus_wdata),
-				.dbus_rdata			(dbus_rdata),
-				.dbus_busy			(dbus_busy),
+				.jbus_inst_en		(jbus_inst_en),
+				.jbus_inst_we		(jbus_inst_we),
+				.jbus_inst_sel		(jbus_inst_sel),
+				.jbus_inst_addr		(jbus_inst_addr),
+				.jbus_inst_wdata	(jbus_inst_wdata),
+				.jbus_inst_rdata	(jbus_inst_rdata),
+				.jbus_inst_ready	(jbus_inst_ready),
+                
+				.jbus_data_en		(jbus_data_en),
+				.jbus_data_we		(jbus_data_we),
+				.jbus_data_sel		(jbus_data_sel),
+				.jbus_data_addr		(jbus_data_addr),
+				.jbus_data_wdata	(jbus_data_wdata),
+				.jbus_data_rdata	(jbus_data_rdata),
+				.jbus_data_ready	(jbus_data_ready),
 				
 				.wb_dbg_adr_i		(wb_dbg_adr_i),
 				.wb_dbg_dat_i		(wb_dbg_dat_i),
@@ -164,60 +160,58 @@ module jelly_cpu_top_simple
 	wire			wb_data_stb_o;
 	wire			wb_data_ack_i;
 		
-	jelly_cpu_wishbone
+	jelly_jbus_to_wishbone
 			#(
-				.ADDR_WIDTH			(32),
+				.ADDR_WIDTH			(30),
 				.DATA_SIZE			(2) 	// 0:8bit, 1:16bit, 2:32bit ...
 			)
-		i_cpu_wishbone_inst
+		i_jbus_to_wishbone_inst
+			(
+				.reset				(reset),
+				.clk				(clk),
+				
+				.jbus_slave_en		(jbus_inst_en),
+				.jbus_slave_we		(jbus_inst_we),
+				.jbus_slave_sel		(jbus_inst_sel),
+				.jbus_slave_addr	(jbus_inst_addr),
+				.jbus_slave_wdata	(jbus_inst_wdata),
+				.jbus_slave_rdata	(jbus_inst_rdata),
+				.jbus_slave_ready	(jbus_inst_ready),
+
+				.wb_master_adr_o	(wb_inst_adr_o),
+				.wb_master_dat_i	(wb_inst_dat_i),
+				.wb_master_dat_o	(wb_inst_dat_o),
+				.wb_master_we_o		(wb_inst_we_o),
+				.wb_master_sel_o	(wb_inst_sel_o),
+				.wb_master_stb_o	(wb_inst_stb_o),
+				.wb_master_ack_i	(wb_inst_ack_i)
+			);
+	
+	jelly_jbus_to_wishbone
+			#(
+				.ADDR_WIDTH			(30),
+				.DATA_SIZE			(2) 	// 0:8bit, 1:16bit, 2:32bit ...
+			)
+		i_jbus_to_wishbone_data
 			(
 				.reset				(reset),
 				.clk				(clk),
 							
-				.cpubus_interlock	(ibus_interlock),
-				.cpubus_en			(ibus_en),
-				.cpubus_we			(ibus_we),
-				.cpubus_sel			(ibus_sel),
-				.cpubus_addr		(ibus_addr),
-				.cpubus_wdata		(ibus_wdata),
-				.cpubus_rdata		(ibus_rdata),
-				.cpubus_busy		(ibus_busy),
+				.jbus_slave_en		(jbus_data_en),
+				.jbus_slave_we		(jbus_data_we),
+				.jbus_slave_sel		(jbus_data_sel),
+				.jbus_slave_addr	(jbus_data_addr),
+				.jbus_slave_wdata	(jbus_data_wdata),
+				.jbus_slave_rdata	(jbus_data_rdata),
+				.jbus_slave_ready	(jbus_data_ready),
 
-				.wb_adr_o			(wb_inst_adr_o),
-				.wb_dat_i			(wb_inst_dat_i),
-				.wb_dat_o			(wb_inst_dat_o),
-				.wb_we_o			(wb_inst_we_o),
-				.wb_sel_o			(wb_inst_sel_o),
-				.wb_stb_o			(wb_inst_stb_o),
-				.wb_ack_i			(wb_inst_ack_i)
-		);
-
-	jelly_cpu_wishbone
-			#(
-				.ADDR_WIDTH			(32),
-				.DATA_SIZE			(2) 	// 0:8bit, 1:16bit, 2:32bit ...
-			)
-		i_cpu_wishbone_data
-			(
-				.reset				(reset),
-				.clk				(clk),
-							
-				.cpubus_interlock	(dbus_interlock),
-				.cpubus_en			(dbus_en),
-				.cpubus_we			(dbus_we),
-				.cpubus_sel			(dbus_sel),
-				.cpubus_addr		(dbus_addr),
-				.cpubus_wdata		(dbus_wdata),
-				.cpubus_rdata		(dbus_rdata),
-				.cpubus_busy		(dbus_busy),
-
-				.wb_adr_o			(wb_data_adr_o),
-				.wb_dat_i			(wb_data_dat_i),
-				.wb_dat_o			(wb_data_dat_o),
-				.wb_we_o			(wb_data_we_o),
-				.wb_sel_o			(wb_data_sel_o),
-				.wb_stb_o			(wb_data_stb_o),
-				.wb_ack_i			(wb_data_ack_i)
+				.wb_master_adr_o	(wb_data_adr_o),
+				.wb_master_dat_i	(wb_data_dat_i),
+				.wb_master_dat_o	(wb_data_dat_o),
+				.wb_master_we_o		(wb_data_we_o),
+				.wb_master_sel_o	(wb_data_sel_o),
+				.wb_master_stb_o	(wb_data_stb_o),
+				.wb_master_ack_i	(wb_data_ack_i)
 		);
 	
 	

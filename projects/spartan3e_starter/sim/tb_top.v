@@ -55,8 +55,8 @@ module tb_top;
 			)
 		i_top
 			(
-				.clk_in				(clk),
-				.reset_in			(reset),
+				.in_clk				(clk),
+				.in_reset			(reset),
 				
 				.uart0_tx			(),
 				.uart0_rx			(uart_rx),

@@ -48,27 +48,25 @@ module jelly_cpu_core
 			output	wire				interrupt_ack,
 			
 			// instruction bus
-			output	wire				ibus_interlock,
-			output	wire				ibus_en,
-			output	wire				ibus_we,
-			output	wire	[3:0]		ibus_sel,
-			output	wire	[31:0]		ibus_addr,
-			output	wire	[31:0]		ibus_wdata,
-			input	wire	[31:0]		ibus_rdata,
-			input	wire				ibus_busy,
+			output	wire				jbus_inst_en,
+			output	wire				jbus_inst_we,
+			output	wire	[3:0]		jbus_inst_sel,
+			output	wire	[31:2]		jbus_inst_addr,
+			output	wire	[31:0]		jbus_inst_wdata,
+			input	wire	[31:0]		jbus_inst_rdata,
+			input	wire				jbus_inst_ready,
 			
 			// data bus
-			output	wire				dbus_interlock,
-			output	wire				dbus_en,
-			output	wire				dbus_we,
-			output	wire	[3:0]		dbus_sel,
-			output	wire	[31:0]		dbus_addr,
-			output	wire	[31:0]		dbus_wdata,
-			input	wire	[31:0]		dbus_rdata,
-			input	wire				dbus_busy,
+			output	wire				jbus_data_en,
+			output	wire				jbus_data_we,
+			output	wire	[3:0]		jbus_data_sel,
+			output	wire	[31:2]		jbus_data_addr,
+			output	wire	[31:0]		jbus_data_wdata,
+			input	wire	[31:0]		jbus_data_rdata,
+			input	wire				jbus_data_ready,
 			
-			// Debug port (WISHBONE)
-			input	wire	[3:0]		wb_dbg_adr_i,
+			// debuger port (WISHBONE)
+			input	wire	[5:2]		wb_dbg_adr_i,
 			input	wire	[31:0]		wb_dbg_dat_i,
 			output	wire	[31:0]		wb_dbg_dat_o,
 			input	wire				wb_dbg_we_i,
@@ -91,24 +89,22 @@ module jelly_cpu_core
 	wire			dbg_break;
 	
 	// i-bus control
-	wire			dbg_ibus_interlock;
-	wire			dbg_ibus_en;
-	wire			dbg_ibus_we;
-	wire	[3:0]	dbg_ibus_sel;
-	wire	[31:0]	dbg_ibus_addr;
-	wire	[31:0]	dbg_ibus_wdata;
-	wire	[31:0]	dbg_ibus_rdata;
-	wire			dbg_ibus_busy;
+	wire			dbg_jbus_inst_en;
+	wire			dbg_jbus_inst_we;
+	wire	[3:0]	dbg_jbus_inst_sel;
+	wire	[31:2]	dbg_jbus_inst_addr;
+	wire	[31:0]	dbg_jbus_inst_wdata;
+	wire	[31:0]	dbg_jbus_inst_rdata;
+	wire			dbg_jbus_inst_ready;
 	
 	// d-bus control
-	wire			dbg_dbus_interlock;
-	wire			dbg_dbus_en;
-	wire			dbg_dbus_we;
-	wire	[3:0]	dbg_dbus_sel;
-	wire	[31:0]	dbg_dbus_addr;
-	wire	[31:0]	dbg_dbus_wdata;
-	wire	[31:0]	dbg_dbus_rdata;
-	wire			dbg_dbus_busy;
+	wire			dbg_jbus_data_en;
+	wire			dbg_jbus_data_we;
+	wire	[3:0]	dbg_jbus_data_sel;
+	wire	[31:2]	dbg_jbus_data_addr;
+	wire	[31:0]	dbg_jbus_data_wdata;
+	wire	[31:0]	dbg_jbus_data_rdata;
+	wire			dbg_jbus_data_ready;
 	
 	// gpr control
 	wire			dbg_gpr_en;
@@ -189,18 +185,17 @@ module jelly_cpu_core
 	
 	
 	// load instruction
-	assign ibus_interlock = dbg_ibus_en ? dbg_ibus_interlock : interlock;
-	assign ibus_en        = dbg_ibus_en ? dbg_ibus_en        : !if_in_stall;
-	assign ibus_we        = dbg_ibus_en ? dbg_ibus_we        : 1'b0;
-	assign ibus_sel       = dbg_ibus_en ? dbg_ibus_sel       : 4'b1111;
-	assign ibus_addr      = dbg_ibus_en ? dbg_ibus_addr      : if_pc;
-	assign ibus_wdata     = dbg_ibus_en ? dbg_ibus_wdata     : {32{1'b0}};
+	assign jbus_inst_en        = dbg_jbus_inst_en ? dbg_jbus_inst_en    : !reset & !if_in_stall & !(jbus_inst_ready & interlock);
+	assign jbus_inst_we        = dbg_jbus_inst_en ? dbg_jbus_inst_we    : 1'b0;
+	assign jbus_inst_sel       = dbg_jbus_inst_en ? dbg_jbus_inst_sel   : 4'b1111;
+	assign jbus_inst_addr      = dbg_jbus_inst_en ? dbg_jbus_inst_addr  : if_pc[31:2];
+	assign jbus_inst_wdata     = dbg_jbus_inst_en ? dbg_jbus_inst_wdata : {32{1'b0}};
 	
-	assign if_out_instruction = ibus_rdata;
-	assign if_out_hazard      = ibus_busy;
+	assign if_out_instruction  = jbus_inst_rdata;
+	assign if_out_hazard       = !jbus_inst_ready;
 	
-	assign dbg_ibus_rdata     = ibus_rdata;
-	assign dbg_ibus_busy      = ibus_busy;
+	assign dbg_jbus_inst_rdata = jbus_inst_rdata;
+	assign dbg_jbus_inst_ready = jbus_inst_ready;
 	
 	
 	// IF output
@@ -1053,18 +1048,17 @@ module jelly_cpu_core
 	// memory access
 	wire	[31:0]	mem_read_data;
 	
-	assign dbus_interlock = dbg_dbus_en ? dbg_dbus_interlock : interlock;
-	assign dbus_en        = dbg_dbus_en ? dbg_dbus_en        : ex_out_mem_en & ~mem_stall;
-	assign dbus_we        = dbg_dbus_en ? dbg_dbus_we        : ex_out_mem_we;
-	assign dbus_sel       = dbg_dbus_en ? dbg_dbus_sel       : ex_out_mem_sel;
-	assign dbus_addr      = dbg_dbus_en ? dbg_dbus_addr      : ex_out_mem_addr;
-	assign dbus_wdata     = dbg_dbus_en ? dbg_dbus_wdata     : ex_out_mem_wdata;
+	assign jbus_data_en    = dbg_jbus_data_en ? dbg_jbus_data_en    : ex_out_mem_en & !mem_stall & !(jbus_data_ready & interlock);
+	assign jbus_data_we    = dbg_jbus_data_en ? dbg_jbus_data_we    : ex_out_mem_we;
+	assign jbus_data_sel   = dbg_jbus_data_en ? dbg_jbus_data_sel   : ex_out_mem_sel;
+	assign jbus_data_addr  = dbg_jbus_data_en ? dbg_jbus_data_addr  : ex_out_mem_addr[31:2];
+	assign jbus_data_wdata = dbg_jbus_data_en ? dbg_jbus_data_wdata : ex_out_mem_wdata;
 	
-	assign mem_read_data  = dbus_rdata;
-	assign mem_out_hazard = dbus_busy;
+	assign mem_read_data   = jbus_data_rdata;
+	assign mem_out_hazard  = !jbus_data_ready;
 	
-	assign dbg_dbus_rdata = dbus_rdata;
-	assign dbg_dbus_busy  = dbus_busy;
+	assign dbg_jbus_data_rdata = jbus_data_rdata;
+	assign dbg_jbus_data_ready = jbus_data_ready;
 	
 	
 	
@@ -1241,23 +1235,21 @@ module jelly_cpu_core
 					.dbg_break_req	(dbg_break_req),
 					.dbg_break		(dbg_break),
 					
-					.ibus_interlock	(dbg_ibus_interlock),
-					.ibus_en		(dbg_ibus_en),
-					.ibus_we		(dbg_ibus_we),
-					.ibus_sel		(dbg_ibus_sel),
-					.ibus_addr		(dbg_ibus_addr),
-					.ibus_wdata		(dbg_ibus_wdata),
-					.ibus_rdata		(dbg_ibus_rdata),
-					.ibus_busy		(dbg_ibus_busy),
+					.ibus_en		(dbg_jbus_inst_en),
+					.ibus_we		(dbg_jbus_inst_we),
+					.ibus_sel		(dbg_jbus_inst_sel),
+					.ibus_addr		(dbg_jbus_inst_addr),
+					.ibus_wdata		(dbg_jbus_inst_wdata),
+					.ibus_rdata		(dbg_jbus_inst_rdata),
+					.ibus_ready		(dbg_jbus_inst_ready),
 
-					.dbus_interlock	(dbg_dbus_interlock),
-					.dbus_en		(dbg_dbus_en),
-					.dbus_we		(dbg_dbus_we),
-					.dbus_sel		(dbg_dbus_sel),
-					.dbus_addr		(dbg_dbus_addr),
-					.dbus_wdata		(dbg_dbus_wdata),
-					.dbus_rdata		(dbg_dbus_rdata),
-					.dbus_busy		(dbg_dbus_busy),
+					.dbus_en		(dbg_jbus_data_en),
+					.dbus_we		(dbg_jbus_data_we),
+					.dbus_sel		(dbg_jbus_data_sel),
+					.dbus_addr		(dbg_jbus_data_addr),
+					.dbus_wdata		(dbg_jbus_data_wdata),
+					.dbus_rdata		(dbg_jbus_data_rdata),
+					.dbus_ready		(dbg_jbus_data_ready),
 					
 					.gpr_en			(dbg_gpr_en),
 					.gpr_we			(dbg_gpr_we),
@@ -1285,12 +1277,12 @@ module jelly_cpu_core
 		assign dbg_enable         = 1'b0;
 		assign dbg_break_req      = 1'b0;
 					
-		assign dbg_ibus_interlock = 1'b0;
-		assign dbg_ibus_en        = 1'b0;
-		assign dbg_ibus_we        = 1'b0;
-		assign dbg_ibus_sel       = 4'b0000;
-		assign dbg_ibus_addr      = {32{1'b0}};
-		assign dbg_ibus_wdata     = {32{1'b0}};
+		assign dbg_jbus_inst_interlock = 1'b0;
+		assign dbg_jbus_inst_en        = 1'b0;
+		assign dbg_jbus_inst_we        = 1'b0;
+		assign dbg_jbus_inst_sel       = 4'b0000;
+		assign dbg_jbus_inst_addr      = {32{1'b0}};
+		assign dbg_jbus_inst_wdata     = {32{1'b0}};
 
 		assign dbg_dbus_interlock = 1'b0;
 		assign dbg_dbus_en        = 1'b0;
@@ -1336,7 +1328,7 @@ module jelly_cpu_core
 			end
 		end
 	end
-
+/*
 	if ( SIM_DBUS_TRACE ) begin
 		integer	dbus_trace_file;
 		initial begin
@@ -1363,6 +1355,7 @@ module jelly_cpu_core
 			end
 		end
 	end
+*/
 	endgenerate
 	
 endmodule

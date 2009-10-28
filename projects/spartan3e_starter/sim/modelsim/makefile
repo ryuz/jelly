@@ -47,6 +47,7 @@ prj_compile:
 	vlog $(VLOG_FLAGS) $(PRJ_DIR)/sim/ddr.v
 	vlog $(VLOG_FLAGS) $(PRJ_DIR)/rtl/top.v
 	vlog $(VLOG_FLAGS) $(PRJ_DIR)/rtl/clkgen.v
+	vlog $(VLOG_FLAGS) $(RTL_DIR)/bus/*.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/common/binary_to_graycode.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/common/graycode_to_binary.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/common/fifo_fwtf_async.v

@@ -89,14 +89,13 @@ module jelly_cpu_dbu
 			input	wire				dbg_break,
 
 			// instruction bus control
-			output	wire				ibus_interlock,
 			output	wire				ibus_en,
 			output	wire				ibus_we,
 			output	wire	[3:0]		ibus_sel,
 			output	wire	[31:0]		ibus_addr,
 			output	wire	[31:0]		ibus_wdata,
 			input	wire	[31:0]		ibus_rdata,
-			input	wire				ibus_busy,
+			input	wire				ibus_ready,
 			
 			// data bus control
 			output	wire				dbus_interlock,
@@ -106,7 +105,7 @@ module jelly_cpu_dbu
 			output	wire	[31:0]		dbus_addr,
 			output	wire	[31:0]		dbus_wdata,
 			input	wire	[31:0]		dbus_rdata,
-			input	wire				dbus_busy,
+			input	wire				dbus_ready,
 						
 			// gpr control
 			output	reg					gpr_en,
@@ -208,12 +207,12 @@ module jelly_cpu_dbu
 				ibus_reg_ack <= 1'b0;
 			end
 			else begin
-				if ( !dbus_busy ) begin
+				if ( dbus_ready ) begin
 					ibus_reg_ack <= ibus_en & !ibus_we;
 				end
 			end
 		end
-		assign ibus_ack = !ibus_busy & (ibus_reg_ack | ibus_we);
+		assign ibus_ack = ibus_ready & (ibus_reg_ack | ibus_we);
 	end
 	else begin
 		assign ibus_interlock = 1'b0;
@@ -233,33 +232,32 @@ module jelly_cpu_dbu
 	wire				dbus_wb_ack;
 	generate
 	if ( USE_DBUS_HOOK ) begin
-		jelly_cpu_wishbone_cpubus
+		jelly_wishbone_to_jbus
 				#(
-					.ADDR_WIDTH			(32),
+					.ADDR_WIDTH			(30),
 					.DATA_SIZE			(2),  	// 0:8bit, 1:16bit, 2:32bit ...
 					.PIPELINE			(1)
 				)
-			i_jelly_cpu_wishbone_cpubus
+			i_wishbone_to_jbus_data
 				(
 					.reset				(reset),
 					.clk				(clk),
 					
-					.wb_adr_i			(dbg_addr[31:2]),
-					.wb_dat_i			(wb_dat_i),
-					.wb_dat_o			(dbus_wb_dat),
-					.wb_we_i			(wb_we_i),
-					.wb_sel_i			(wb_sel_i),
-					.wb_stb_i			(wb_stb_i & (wb_adr_i == `DBG_ADR_DBUS_DATA)),
-					.wb_ack_o			(dbus_wb_ack),
+					.wb_slave_adr_i			(dbg_addr[31:2]),
+					.wb_slave_dat_i			(wb_dat_i),
+					.wb_slave_dat_o			(dbus_wb_dat),
+					.wb_slave_we_i			(wb_we_i),
+					.wb_slave_sel_i			(wb_sel_i),
+					.wb_slave_stb_i			(wb_stb_i & (wb_adr_i == `DBG_ADR_DBUS_DATA)),
+					.wb_slave_ack_o			(dbus_wb_ack),
 					
-					.cpubus_interlock	(dbus_interlock),
-					.cpubus_en			(dbus_en),
-					.cpubus_we			(dbus_we),
-					.cpubus_sel			(dbus_sel),
-					.cpubus_addr		(dbus_addr),
-					.cpubus_wdata		(dbus_wdata),
-					.cpubus_rdata		(dbus_rdata),
-					.cpubus_busy		(dbus_busy)
+					.jbus_master_en			(dbus_en),
+					.jbus_master_we			(dbus_we),
+					.jbus_master_sel		(dbus_sel),
+					.jbus_master_addr		(dbus_addr),
+					.jbus_master_wdata		(dbus_wdata),
+					.jbus_master_rdata		(dbus_rdata),
+					.jbus_master_ready		(dbus_ready)
 				);
 		/*
 		assign dbus_interlock = 1'b0;
