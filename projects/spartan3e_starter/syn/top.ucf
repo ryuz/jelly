@@ -8,8 +8,8 @@
 
 # clock
 NET "in_clk" LOC = "C9" | IOSTANDARD = LVCMOS33 ;
-NET "in_clk" TNM_NET = clk_in;
-TIMESPEC TS_clk_in = PERIOD "in_clk" 50 MHz HIGH 50%;
+NET "in_clk" TNM_NET = in_clk;
+TIMESPEC TS_in_clk = PERIOD "in_clk" 50 MHz HIGH 50%;
 
 # reset
 NET "in_reset" LOC = "K17" | IOSTANDARD = LVTTL | PULLDOWN ;

@@ -12,7 +12,7 @@ VLOG_FLAGS =
 
 
 all: work_setup rtl_compile
-	vsim -c -wlf vsim.wlf -do "run -all" -L xilinxcorelib_ver -L unisims_ver -lib work tb_jbus_cache glbl
+	vsim -c -wlf vsim.wlf -do "run -all" -L xilinxcorelib_ver -L unisims_ver -lib work tb_wishbone_cache glbl
 
 clean:
 	rm -f *.vcd
@@ -24,7 +24,7 @@ work_setup:
 
 rtl_compile:
 	vlog $(VLOG_FLAGS) "$(XILINX)/verilog/src/glbl.v"
-	vlog $(VLOG_FLAGS) $(TB_DIR)/cache/tb_jbus_cache.v
+	vlog $(VLOG_FLAGS) $(TB_DIR)/cache/tb_wishbone_cache.v
 	vlog $(VLOG_FLAGS) $(TB_DIR)/model/*.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/common/*.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/common/binary_to_graycode.v

@@ -90,21 +90,22 @@ module jelly_cpu_dbu
 
 			// instruction bus control
 			output	wire				ibus_en,
-			output	wire				ibus_we,
-			output	wire	[3:0]		ibus_sel,
 			output	wire	[31:0]		ibus_addr,
 			output	wire	[31:0]		ibus_wdata,
 			input	wire	[31:0]		ibus_rdata,
+			output	wire				ibus_we,
+			output	wire	[3:0]		ibus_sel,
+			output	wire				ibus_valid,
 			input	wire				ibus_ready,
 			
 			// data bus control
-			output	wire				dbus_interlock,
 			output	wire				dbus_en,
-			output	wire				dbus_we,
-			output	wire	[3:0]		dbus_sel,
 			output	wire	[31:0]		dbus_addr,
 			output	wire	[31:0]		dbus_wdata,
 			input	wire	[31:0]		dbus_rdata,
+			output	wire				dbus_we,
+			output	wire	[3:0]		dbus_sel,
+			output	wire				dbus_valid,
 			input	wire				dbus_ready,
 						
 			// gpr control
@@ -194,12 +195,12 @@ module jelly_cpu_dbu
 	wire				ibus_ack;
 	generate
 	if ( USE_IBUS_HOOK ) begin
-		assign ibus_interlock = 1'b0;
-		assign ibus_en        = wb_stb_i & (wb_adr_i == `DBG_ADR_IBUS_DATA);
+		assign ibus_en        = 1'b1;
 		assign ibus_we        = 1'b0;
 		assign ibus_sel       = wb_sel_i;
 		assign ibus_addr      = dbg_addr;
 		assign ibus_wdata     = wb_dat_i;
+		assign ibus_valid     = wb_stb_i & (wb_adr_i == `DBG_ADR_IBUS_DATA);
 		
 		reg				ibus_reg_ack;
 		always @( posedge clk ) begin
@@ -215,14 +216,12 @@ module jelly_cpu_dbu
 		assign ibus_ack = ibus_ready & (ibus_reg_ack | ibus_we);
 	end
 	else begin
-		assign ibus_interlock = 1'b0;
-		assign ibus_en        = 1'b0;
-		assign ibus_we        = 1'b0;
-		assign ibus_sel       = 4'b1111;
-		assign ibus_addr      = 0;
-		assign ibus_wdata     = 0;
-
-		assign ibus_ack       = 1'b1;
+		assign ibus_en    = 1'b0;
+		assign ibus_we    = 1'b0;
+		assign ibus_sel   = 4'b1111;
+		assign ibus_addr  = 0;
+		assign ibus_wdata = 0;
+		assign ibus_valid = 1'b0;
 	end
 	endgenerate
 
@@ -252,11 +251,12 @@ module jelly_cpu_dbu
 					.wb_slave_ack_o			(dbus_wb_ack),
 					
 					.jbus_master_en			(dbus_en),
-					.jbus_master_we			(dbus_we),
-					.jbus_master_sel		(dbus_sel),
 					.jbus_master_addr		(dbus_addr),
 					.jbus_master_wdata		(dbus_wdata),
 					.jbus_master_rdata		(dbus_rdata),
+					.jbus_master_we			(dbus_we),
+					.jbus_master_sel		(dbus_sel),
+					.jbus_master_valid		(dbus_valid),
 					.jbus_master_ready		(dbus_ready)
 				);
 		/*

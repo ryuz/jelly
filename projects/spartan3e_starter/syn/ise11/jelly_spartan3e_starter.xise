@@ -27,10 +27,6 @@
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
-    <file xil_pn:name="../../../../rtl/cpu/cpu_wishbone.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
     <file xil_pn:name="../../sim/tb_top.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="PostMapSimulation"/>
@@ -115,9 +111,6 @@
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
-    <file xil_pn:name="../top.ucf" xil_pn:type="FILE_UCF">
-      <association xil_pn:name="Implementation"/>
-    </file>
     <file xil_pn:name="../../../../rtl/common/binary_to_graycode.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
@@ -127,10 +120,6 @@
       <association xil_pn:name="Implementation"/>
     </file>
     <file xil_pn:name="../../../../rtl/cpu/cpu_muldiv.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
-    <file xil_pn:name="../../../../rtl/cpu/cpu_wishbone_cpubus.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
@@ -191,37 +180,24 @@
       <association xil_pn:name="Implementation"/>
     </file>
     <file xil_pn:name="../../../../rtl/bus/jelly_bus_cache.v" xil_pn:type="FILE_VERILOG"/>
-    <file xil_pn:name="../../../../rtl/common/multiplexer.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
-    <file xil_pn:name="../../../../rtl/common/demultiplexer.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
-    <file xil_pn:name="../../../../rtl/common/deselector.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
-    <file xil_pn:name="../../../../testbench/model/jbus_slave_model.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
     <file xil_pn:name="../../../../testbench/cache/tb_jbus_cache.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="PostMapSimulation"/>
       <association xil_pn:name="PostRouteSimulation"/>
       <association xil_pn:name="PostTranslateSimulation"/>
     </file>
-    <file xil_pn:name="../../../../rtl/common/selector.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../../rtl/bus/jelly_jbus_to_wishbone.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
-    <file xil_pn:name="../../../../rtl/common/wishbone_register.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../../rtl/bus/jelly_wishbone_to_jbus.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
-    <file xil_pn:name="../../../../rtl/common/rand_gen.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../top.ucf" xil_pn:type="FILE_UCF">
+      <association xil_pn:name="Implementation"/>
+    </file>
+    <file xil_pn:name="../../../../rtl/bus/jelly_cache_wishbone.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
@@ -229,12 +205,19 @@
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
-    <file xil_pn:name="../../../../rtl/bus/wishbone_cache.v" xil_pn:type="FILE_VERILOG"/>
-    <file xil_pn:name="../../../../rtl/bus/jelly_jbus_to_wishbone.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../../rtl/bus/jelly_cache_jbus.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
-    <file xil_pn:name="../../../../rtl/bus/jelly_wishbone_to_jbus.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../../testbench/model/jelly_wishbone_logger.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation"/>
+      <association xil_pn:name="Implementation"/>
+    </file>
+    <file xil_pn:name="../../../../testbench/cache/tb_wishbone_cache.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation"/>
+      <association xil_pn:name="Implementation"/>
+    </file>
+    <file xil_pn:name="../../../../testbench/model/jelly_wishbone_slave_model.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
@@ -265,7 +248,7 @@
     <property xil_pn:name="Change Device Speed To Post Trace" xil_pn:value="-4" xil_pn:valueState="default"/>
     <property xil_pn:name="Combinatorial Logic Optimization" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Command line syntax" xil_pn:value="" xil_pn:valueState="default"/>
-    <property xil_pn:name="Compile EDK Simulation Library" xil_pn:value="false" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Compile EDK Simulation Library" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Compile SIMPRIM (Timing) Simulation Library" xil_pn:value="true" xil_pn:valueState="default"/>
     <property xil_pn:name="Compile UNISIM (Functional) Simulation Library" xil_pn:value="true" xil_pn:valueState="default"/>
     <property xil_pn:name="Compile XilinxCoreLib (CORE Generator) Simulation Library" xil_pn:value="true" xil_pn:valueState="default"/>
@@ -312,7 +295,7 @@
     <property xil_pn:name="Enable Message Filtering" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Enable Outputs (Output Events)" xil_pn:value="Default (5)" xil_pn:valueState="default"/>
     <property xil_pn:name="Equivalent Register Removal XST" xil_pn:value="true" xil_pn:valueState="default"/>
-    <property xil_pn:name="Exclude Compilation of Deprecated EDK Cores" xil_pn:value="false" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Exclude Compilation of Deprecated EDK Cores" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Exclude Compilation of EDK Sub-Libraries" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Extra Effort" xil_pn:value="Continue on Impossible" xil_pn:valueState="non-default"/>
     <property xil_pn:name="Extra Effort (Highest PAR level only)" xil_pn:value="Continue on Impossible" xil_pn:valueState="non-default"/>
@@ -473,7 +456,7 @@
     <property xil_pn:name="SDK Export Directory" xil_pn:value="SDK_Export" xil_pn:valueState="default"/>
     <property xil_pn:name="Safe Implementation" xil_pn:value="No" xil_pn:valueState="default"/>
     <property xil_pn:name="Security" xil_pn:value="Enable Readback and Reconfiguration" xil_pn:valueState="default"/>
-    <property xil_pn:name="Selected Simulation Root Source Node Behavioral" xil_pn:value="Module|jelly_bus_cahce" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Selected Simulation Root Source Node Behavioral" xil_pn:value="Module|tb_wishbone_cache" xil_pn:valueState="non-default"/>
     <property xil_pn:name="Selected Simulation Source Node" xil_pn:value="UUT" xil_pn:valueState="default"/>
     <property xil_pn:name="Setting Output File" xil_pn:value="" xil_pn:valueState="default"/>
     <property xil_pn:name="Shift Register Extraction" xil_pn:value="true" xil_pn:valueState="default"/>
@@ -483,7 +466,7 @@
     <property xil_pn:name="Simulation Resolution" xil_pn:value="Default (1 ps)" xil_pn:valueState="default"/>
     <property xil_pn:name="Simulation Run Time Modelsim" xil_pn:value="1000ns" xil_pn:valueState="default"/>
     <property xil_pn:name="Simulator" xil_pn:value="Modelsim-SE Mixed" xil_pn:valueState="default"/>
-    <property xil_pn:name="Simulator Path" xil_pn:value="C:/Modeltech_xe/win32xoem" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Simulator Path" xil_pn:value="C:/Modeltech_xe/win32xoem" xil_pn:valueState="default"/>
     <property xil_pn:name="Slice Packing" xil_pn:value="true" xil_pn:valueState="default"/>
     <property xil_pn:name="Slice Utilization Ratio" xil_pn:value="100" xil_pn:valueState="default"/>
     <property xil_pn:name="Smart Guide File Name" xil_pn:value="top_guide.ncd" xil_pn:valueState="default"/>
@@ -553,7 +536,7 @@
   </properties>
 
   <bindings>
-    <binding xil_pn:location="/jelly_bus_cahce" xil_pn:name="../top.ucf"/>
+    <binding xil_pn:location="/top" xil_pn:name="../top.ucf"/>
   </bindings>
 
   <libraries/>

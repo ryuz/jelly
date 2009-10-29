@@ -9,7 +9,7 @@
 `timescale 1ns / 1ps
 
 
-module jelly_wishbone_cahce
+module jelly_wishbone_cache
 		#(
 			parameter	LINE_SIZE         = 2,		// 2^n (0:1words, 1:2words, 2:4words ...)
 			parameter	ARRAY_SIZE        = 8,		// 2^n (1:2lines, 2:4lines 3:8lines ...)
@@ -18,7 +18,7 @@ module jelly_wishbone_cahce
 			parameter	SLAVE_ADDR_WIDTH  = 24,
 			parameter	SLAVE_DATA_SIZE   = 2,		// 2^n (0:8bit, 1:16bit, 2:32bit ...)
 			parameter	SLAVE_DATA_WIDTH  = (8 << SLAVE_DATA_SIZE),
-			parameter	SLAVE_BLS_WIDTH   = (1 << SLAVE_DATA_SIZE),
+			parameter	SLAVE_SEL_WIDTH   = (1 << SLAVE_DATA_SIZE),
 			
 			parameter	MASTER_ADR_WIDTH  = SLAVE_ADDR_WIDTH - LINE_SIZE,
 			parameter	MASTER_DAT_SIZE   = SLAVE_DATA_SIZE + LINE_SIZE,
@@ -41,11 +41,12 @@ module jelly_wishbone_cahce
 			
 			// slave port
 			input	wire							jbus_slave_en,
-			input	wire							jbus_slave_we,
 			input	wire	[SLAVE_ADDR_WIDTH-1:0]	jbus_slave_addr,
-			input	wire	[SLAVE_BLS_WIDTH-1:0]	jbus_slave_bls,
 			input	wire	[SLAVE_DATA_WIDTH-1:0]	jbus_slave_wdata,
 			output	wire	[SLAVE_DATA_WIDTH-1:0]	jbus_slave_rdata,
+			input	wire							jbus_slave_we,
+			input	wire	[SLAVE_SEL_WIDTH-1:0]	jbus_slave_sel,
+			input	wire							jbus_slave_valid,
 			output	wire							jbus_slave_ready,
 			
 			// master port
@@ -95,7 +96,7 @@ module jelly_wishbone_cahce
 	reg		[CACHE_OFFSET_WIDTH-1:0]	reg_slave_offset;
 	reg		[CACHE_INDEX_WIDTH-1:0]		reg_slave_index;
 	reg		[CACHE_TAGADR_WIDTH-1:0]	reg_slave_tagadr;
-	reg		[SLAVE_BLS_WIDTH-1:0]		reg_slave_bls;
+	reg		[SLAVE_SEL_WIDTH-1:0]		reg_slave_sel;
 	reg		[SLAVE_DATA_WIDTH-1:0]		reg_slave_wdata;
 	always @ ( posedge clk ) begin
 		if ( reset ) begin
@@ -104,17 +105,17 @@ module jelly_wishbone_cahce
 			reg_slave_offset <= {CACHE_OFFSET_WIDTH{1'bx}};
 			reg_slave_index  <= {CACHE_INDEX_WIDTH{1'bx}};
 			reg_slave_tagadr <= {CACHE_TAGADR_WIDTH{1'bx}};	
-			reg_slave_bls    <= {SLAVE_BLS_WIDTH{1'bx}};
+			reg_slave_sel    <= {SLAVE_SEL_WIDTH{1'bx}};
 			reg_slave_wdata  <= {SLAVE_DATA_WIDTH{1'bx}};
 		end
 		else begin
-			if ( jbus_slave_ready ) begin
-				reg_slave_re     <= jbus_slave_en & !jbus_slave_we;
-				reg_slave_we     <= jbus_slave_en & jbus_slave_we;
+			if ( jbus_slave_en & jbus_slave_ready ) begin
+				reg_slave_re     <= jbus_slave_valid & !jbus_slave_we;
+				reg_slave_we     <= jbus_slave_valid & jbus_slave_we;
 				reg_slave_offset <= jbus_slave_offset;
 				reg_slave_index  <= jbus_slave_index;
 				reg_slave_tagadr <= jbus_slave_tagadr;
-				reg_slave_bls    <= jbus_slave_bls;
+				reg_slave_sel    <= jbus_slave_sel;
 				reg_slave_wdata  <= jbus_slave_wdata;
 			end
 		end
@@ -162,21 +163,21 @@ module jelly_wishbone_cahce
 			);
 	
 	// write bls
-	wire	[MASTER_SEL_WIDTH-1:0]		write_bls;
+	wire	[MASTER_SEL_WIDTH-1:0]		write_sel;
 	wire	[MASTER_DAT_WIDTH-1:0]		write_data_mask;
 	wire	[MASTER_DAT_WIDTH-1:0]		write_data;
 	
 	jelly_demultiplexer
 			#(
 				.SEL_WIDTH		(CACHE_OFFSET_WIDTH),
-				.IN_WIDTH		(SLAVE_BLS_WIDTH)
+				.IN_WIDTH		(SLAVE_SEL_WIDTH)
 			)
-		i_demultiplexer_bls
+		i_demultiplexer_sel
 			(
 				.endian			(endian),
 				.sel			(reg_slave_offset),
-				.din			(reg_slave_bls),
-				.dout			(write_bls)
+				.din			(reg_slave_sel),
+				.dout			(write_sel)
 			);
 	
 	jelly_deselector
@@ -184,9 +185,9 @@ module jelly_wishbone_cahce
 				.SEL_WIDTH		(MASTER_SEL_WIDTH),
 				.IN_WIDTH		(8)
 			)
-		i_deselector_bls_mask
+		i_deselector_sel_mask
 			(
-				.sel			(write_bls),
+				.sel			(write_sel),
 				.din			(8'hff),
 				.dout			(write_data_mask)
 			);
@@ -196,7 +197,16 @@ module jelly_wishbone_cahce
 	
 	// read end monitor
 	wire			read_end;
-	assign read_end = wb_master_stb_o & wb_master_we_o & wb_master_ack_i;
+	reg				read_end_mask;
+	always @( posedge clk ) begin
+		if ( reset ) begin
+			read_end_mask <= 1'b0;
+		end
+		else begin
+			read_end_mask <= read_end;
+		end
+	end
+	assign read_end = !read_end_mask & (wb_master_stb_o & !wb_master_we_o & wb_master_ack_i);
 	
 	
 	// master output
@@ -219,7 +229,7 @@ module jelly_wishbone_cahce
 				reg_master_stb_o <= (reg_slave_we & !reg_write_hit_end) | cache_read_miss;
 				reg_master_we_o  <= reg_slave_we;
 				reg_master_adr_o <= {reg_slave_tagadr, reg_slave_index};
-				reg_master_sel_o <= write_bls;
+				reg_master_sel_o <= write_sel;
 				reg_master_dat_o <= {LINE_WORDS{reg_slave_wdata}};
 			end
 			else begin
@@ -233,10 +243,10 @@ module jelly_wishbone_cahce
 	assign wb_master_adr_o = reg_master_adr_o;
 	assign wb_master_dat_o = reg_master_dat_o;
 	assign wb_master_we_o  = reg_master_we_o;
-	assign wb_master_bls_o = reg_master_sel_o;
+	assign wb_master_sel_o = reg_master_sel_o;
 	assign wb_master_stb_o = reg_master_stb_o;
 	
-	assign ram_en            = read_end | cache_write_hit | (jbus_slave_en & jbus_slave_ready);
+	assign ram_en            = read_end | cache_write_hit | (jbus_slave_en & jbus_slave_valid & jbus_slave_ready);
 	assign ram_we            = read_end | cache_write_hit;
 	assign ram_addr          = ram_we ? reg_slave_index : jbus_slave_index;
 	assign ram_write_valid   = 1'b1;
@@ -244,7 +254,7 @@ module jelly_wishbone_cahce
 	assign ram_write_data    = read_end ? wb_master_dat_i : ((write_data_mask & write_data) | (~write_data_mask & ram_read_data));
 	
 	assign jbus_slave_rdata  = cache_rdata;
-	assign jbus_slave_ready  = (wb_master_stb_o & !wb_master_ack_i) | cache_read_miss | cache_write_hit;
+	assign jbus_slave_ready  = !((wb_master_stb_o & !wb_master_ack_i) | cache_read_miss | cache_write_hit);
 	
 endmodule
 

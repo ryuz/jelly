@@ -68,20 +68,22 @@ module jelly_cpu_top_simple
 	
 	// instruction bus
 	wire				jbus_inst_en;
-	wire				jbus_inst_we;
-	wire	[3:0]		jbus_inst_sel;
 	wire	[31:2]		jbus_inst_addr;
 	wire	[31:0]		jbus_inst_wdata;
 	wire	[31:0]		jbus_inst_rdata;
+	wire				jbus_inst_we;
+	wire	[3:0]		jbus_inst_sel;
+	wire				jbus_inst_valid;
 	wire				jbus_inst_ready;
-			
+	
 	// data bus
 	wire				jbus_data_en;
-	wire				jbus_data_we;
-	wire	[3:0]		jbus_data_sel;
-	wire	[31:0]		jbus_data_addr;
+	wire	[31:2]		jbus_data_addr;
 	wire	[31:0]		jbus_data_wdata;
 	wire	[31:0]		jbus_data_rdata;
+	wire				jbus_data_we;
+	wire	[3:0]		jbus_data_sel;
+	wire				jbus_data_valid;
 	wire				jbus_data_ready;
 	
 	// CPU core
@@ -111,19 +113,21 @@ module jelly_cpu_top_simple
 				.interrupt_ack		(interrupt_ack),
 				
 				.jbus_inst_en		(jbus_inst_en),
-				.jbus_inst_we		(jbus_inst_we),
-				.jbus_inst_sel		(jbus_inst_sel),
 				.jbus_inst_addr		(jbus_inst_addr),
 				.jbus_inst_wdata	(jbus_inst_wdata),
 				.jbus_inst_rdata	(jbus_inst_rdata),
+				.jbus_inst_we		(jbus_inst_we),
+				.jbus_inst_sel		(jbus_inst_sel),
+				.jbus_inst_valid	(jbus_inst_valid),
 				.jbus_inst_ready	(jbus_inst_ready),
                 
 				.jbus_data_en		(jbus_data_en),
-				.jbus_data_we		(jbus_data_we),
-				.jbus_data_sel		(jbus_data_sel),
 				.jbus_data_addr		(jbus_data_addr),
 				.jbus_data_wdata	(jbus_data_wdata),
 				.jbus_data_rdata	(jbus_data_rdata),
+				.jbus_data_we		(jbus_data_we),
+				.jbus_data_sel		(jbus_data_sel),
+				.jbus_data_valid	(jbus_data_valid),
 				.jbus_data_ready	(jbus_data_ready),
 				
 				.wb_dbg_adr_i		(wb_dbg_adr_i),
@@ -171,11 +175,12 @@ module jelly_cpu_top_simple
 				.clk				(clk),
 				
 				.jbus_slave_en		(jbus_inst_en),
-				.jbus_slave_we		(jbus_inst_we),
-				.jbus_slave_sel		(jbus_inst_sel),
 				.jbus_slave_addr	(jbus_inst_addr),
 				.jbus_slave_wdata	(jbus_inst_wdata),
 				.jbus_slave_rdata	(jbus_inst_rdata),
+				.jbus_slave_we		(jbus_inst_we),
+				.jbus_slave_sel		(jbus_inst_sel),
+				.jbus_slave_valid	(jbus_inst_valid),
 				.jbus_slave_ready	(jbus_inst_ready),
 
 				.wb_master_adr_o	(wb_inst_adr_o),
@@ -198,13 +203,14 @@ module jelly_cpu_top_simple
 				.clk				(clk),
 							
 				.jbus_slave_en		(jbus_data_en),
-				.jbus_slave_we		(jbus_data_we),
-				.jbus_slave_sel		(jbus_data_sel),
 				.jbus_slave_addr	(jbus_data_addr),
 				.jbus_slave_wdata	(jbus_data_wdata),
 				.jbus_slave_rdata	(jbus_data_rdata),
+				.jbus_slave_we		(jbus_data_we),
+				.jbus_slave_sel		(jbus_data_sel),
+				.jbus_slave_valid	(jbus_data_valid),
 				.jbus_slave_ready	(jbus_data_ready),
-
+				
 				.wb_master_adr_o	(wb_data_adr_o),
 				.wb_master_dat_i	(wb_data_dat_i),
 				.wb_master_dat_o	(wb_data_dat_o),
@@ -229,7 +235,7 @@ module jelly_cpu_top_simple
 			(
 				.reset				(reset),
 				.clk				(clk),
-
+				
 				.wb_cpu0_adr_i		(wb_inst_adr_o),
 				.wb_cpu0_dat_i		(wb_inst_dat_o),
 				.wb_cpu0_dat_o		(wb_inst_dat_i),
@@ -237,7 +243,7 @@ module jelly_cpu_top_simple
 				.wb_cpu0_sel_i		(wb_inst_sel_o),
 				.wb_cpu0_stb_i		(wb_inst_stb_o),
 				.wb_cpu0_ack_o		(wb_inst_ack_i),
-
+				
 				.wb_cpu1_adr_i		(wb_data_adr_o),
 				.wb_cpu1_dat_i		(wb_data_dat_o),
 				.wb_cpu1_dat_o		(wb_data_dat_i),
@@ -245,7 +251,7 @@ module jelly_cpu_top_simple
 				.wb_cpu1_sel_i		(wb_data_sel_o),
 				.wb_cpu1_stb_i		(wb_data_stb_o),
 				.wb_cpu1_ack_o		(wb_data_ack_i),
-
+				
 				.wb_mem_adr_o		(wb_adr_o),
 				.wb_mem_dat_i		(wb_dat_i),
 				.wb_mem_dat_o		(wb_dat_o),

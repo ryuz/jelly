@@ -34,22 +34,23 @@ module jelly_wishbone_to_jbus
 			
 			// CPU bus
 			output	wire								jbus_master_en,
-			output	wire								jbus_master_we,
-			output	wire	[SEL_WIDTH-1:0]				jbus_master_sel,
 			output	wire	[ADDR_WIDTH-1:0]			jbus_master_addr,
 			output	wire	[DATA_WIDTH-1:0]			jbus_master_wdata,
 			input	wire	[DATA_WIDTH-1:0]			jbus_master_rdata,
+			output	wire								jbus_master_we,
+			output	wire	[SEL_WIDTH-1:0]				jbus_master_sel,
+			output	wire								jbus_master_valid,
 			input	wire								jbus_master_ready
 		);
 	
 	generate
 	if ( PIPELINE == 0 ) begin
 		// no wait
-		assign jbus_master_en    = wb_slave_stb_i;
-		assign jbus_master_we    = wb_slave_we_i;
-		assign jbus_master_sel   = wb_slave_sel_i;
 		assign jbus_master_addr  = wb_slave_adr_i;
 		assign jbus_master_wdata = wb_slave_dat_i;
+		assign jbus_master_we    = wb_slave_we_i;
+		assign jbus_master_sel   = wb_slave_sel_i;
+		assign jbus_master_valid = wb_slave_stb_i;
 		
 		reg							reg_master_re;
 		always @( posedge clk ) begin
@@ -68,44 +69,48 @@ module jelly_wishbone_to_jbus
 	end
 	else begin
 		// insert FF
-		reg							reg_jbus_en;
+		reg							reg_jbus_valid;
 		reg							reg_jbus_we;
  		reg		[SEL_WIDTH-1:0]		reg_jbus_sel;
 		reg		[ADDR_WIDTH-1:0]	reg_jbus_addr;
 		reg		[DATA_WIDTH-1:0]	reg_jbus_wdata;
-		reg							reg_jbus_ack;
+		reg							reg_wb_ack;
 		
 		always @( posedge clk ) begin
 			if ( reset ) begin
-				reg_jbus_en    <= 1'b0;
-				reg_jbus_we    <= 1'bx;
-			 	reg_jbus_sel   <= {SEL_WIDTH{1'bx}};
 				reg_jbus_addr  <= {ADDR_WIDTH{1'bx}};
 				reg_jbus_wdata <= {DATA_WIDTH{1'bx}};
-				reg_jbus_ack   <= 1'b0;
+				reg_jbus_we    <= 1'bx;
+			 	reg_jbus_sel   <= {SEL_WIDTH{1'bx}};
+				reg_jbus_valid <= 1'b0;
+
+				reg_wb_ack     <= 1'b0;
 			end
 			else begin
 				if ( jbus_master_ready ) begin
-					reg_jbus_en    <= wb_slave_stb_i & !wb_slave_ack_o & !reg_jbus_en;
+					reg_jbus_addr  <= wb_slave_adr_i;
+					reg_jbus_wdata <= wb_slave_dat_i;
 					reg_jbus_we    <= wb_slave_we_i;
 				 	reg_jbus_sel   <= wb_slave_sel_i;
-					reg_jbus_addr  <= {wb_slave_adr_i, {DATA_SIZE{1'b0}}};
-					reg_jbus_wdata <= wb_slave_dat_i;
-					reg_jbus_ack   <= jbus_master_en;
+					reg_jbus_valid <= wb_slave_stb_i & !wb_slave_ack_o & !reg_jbus_valid;
+					
+					reg_wb_ack     <= jbus_master_en;
 				end
 				else begin
-					reg_jbus_ack   <= 1'b0;
+					reg_wb_ack     <= 1'b0;
 				end
 			end
 		end
-		assign jbus_master_en    = reg_jbus_en;
-		assign jbus_master_we    = reg_jbus_we;
-		assign jbus_master_sel   = reg_jbus_sel;
+		
+		assign jbus_master_en    = jbus_master_ready;
 		assign jbus_master_addr  = reg_jbus_addr;
 		assign jbus_master_wdata = reg_jbus_wdata;
+		assign jbus_master_we    = reg_jbus_we;
+		assign jbus_master_sel   = reg_jbus_sel;
+		assign jbus_master_valid = reg_jbus_valid;
 		
 		assign wb_slave_dat_o    = jbus_master_rdata;
-		assign wb_slave_ack_o    = reg_jbus_ack;
+		assign wb_slave_ack_o    = reg_wb_ack;
 	end
 	endgenerate
 	

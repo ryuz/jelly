@@ -25,11 +25,12 @@ module jelly_jbus_to_wishbone
 			
 			// slave port (jelly bus)
 			input	wire						jbus_slave_en,
-			input	wire						jbus_slave_we,
-			input	wire	[SEL_WIDTH-1:0]		jbus_slave_sel,
 			input	wire	[ADDR_WIDTH-1:0]	jbus_slave_addr,
 			input	wire	[DATA_WIDTH-1:0]	jbus_slave_wdata,
-			output	reg		[DATA_WIDTH-1:0]	jbus_slave_rdata,
+			output	wire	[DATA_WIDTH-1:0]	jbus_slave_rdata,
+			input	wire						jbus_slave_we,
+			input	wire	[SEL_WIDTH-1:0]		jbus_slave_sel,
+			input	wire						jbus_slave_valid,
 			output	wire						jbus_slave_ready,
 			
 			// master port (WISHBONE bus)
@@ -41,15 +42,30 @@ module jelly_jbus_to_wishbone
 			output	wire						wb_master_stb_o,
 			input	wire						wb_master_ack_i
 		);
-	
+
+	reg							reg_buf_en;
+	reg		[DATA_WIDTH-1:0]	reg_buf_rdata;
+	reg		[DATA_WIDTH-1:0]	reg_rdata;
 	
 	always @ ( posedge clk ) begin
 		if ( reset ) begin
-			jbus_slave_rdata <= {DATA_WIDTH{1'bx}};
+			reg_buf_en    <= 1'b0;
+			reg_buf_rdata <= {DATA_WIDTH{1'bx}};
 		end
 		else begin
-			if ( jbus_slave_ready ) begin
-				jbus_slave_rdata <= wb_master_dat_i;
+			if ( jbus_slave_en ) begin
+				reg_rdata  <= reg_buf_en ? reg_buf_rdata : wb_master_dat_i;
+				reg_buf_en <= 1'b0;
+			end
+			else begin
+				// –³Œø’†‚É—ˆ‚½ƒf[ƒ^‚ð•Û‘¶
+				if ( wb_master_stb_o & wb_master_ack_i ) begin
+					reg_buf_en <= 1'b1;
+				end
+			end
+			
+			if ( !reg_buf_en ) begin
+				reg_buf_rdata <= wb_master_dat_i;
 			end
 		end
 	end
@@ -58,8 +74,9 @@ module jelly_jbus_to_wishbone
 	assign wb_master_dat_o  = jbus_slave_wdata;
 	assign wb_master_we_o   = jbus_slave_we;
 	assign wb_master_sel_o  = jbus_slave_sel;
-	assign wb_master_stb_o  = jbus_slave_en;
+	assign wb_master_stb_o  = jbus_slave_valid & !reg_buf_en;
 	
+	assign jbus_slave_rdata = reg_rdata;
 	assign jbus_slave_ready = !wb_master_stb_o | wb_master_ack_i;
 	
 endmodule
