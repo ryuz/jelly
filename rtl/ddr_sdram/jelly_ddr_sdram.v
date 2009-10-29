@@ -143,9 +143,12 @@ module jelly_ddr_sdram
 	assign row_adr = wb_adr_i[SDRAM_COL_WIDTH-1 +: SDRAM_ROW_WIDTH];
 	assign ba_adr  = wb_adr_i[SDRAM_COL_WIDTH+SDRAM_ROW_WIDTH-1 +: SDRAM_BA_WIDTH];
 		
+
+	localparam	STATE_WIDTH   = 4;
+	localparam	COUNTER_WIDTH = 4;
 	
-	reg		[3:0]					state;
-	reg		[3:0]					counter;
+	reg		[STATE_WIDTH-1:0]		state;
+	reg		[COUNTER_WIDTH-1:0]		counter;
 	reg								count_end;
 
 	reg								ref_req;
@@ -162,8 +165,6 @@ module jelly_ddr_sdram
 	reg		[REG_WRITE_WIDTH-1:0]	reg_write;
 	reg		[REG_READ_WIDTH-1:0]	reg_read;
 	
-	localparam	STATE_WIDTH   = 4;
-	localparam	COUNTER_WIDTH = 4;
 	
 	reg		[STATE_WIDTH-1:0]		next_state;
 	reg		[COUNTER_WIDTH-1:0]		next_counter;
