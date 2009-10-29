@@ -11,7 +11,7 @@
 
 
 // CPU top
-module jelly_cpu_top_simple
+module jelly_cpu_simple_top
 		#(
 			parameter					USE_DBUGGER     = 1'b1,
 			parameter					USE_EXC_SYSCALL = 1'b1,
