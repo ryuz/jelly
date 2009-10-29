@@ -45,6 +45,7 @@ module jelly_sram
 				i_ram_singleport
 					(
 						.clk			(~clk),
+						.reset			(1'b0),
 						.en				(wb_stb_i),
 						.we				(wb_we_i & wb_sel_i[i]),
 						.addr			(wb_adr_i),
@@ -64,6 +65,7 @@ module jelly_sram
 				i_ram_singleport
 					(
 						.clk			(clk),
+						.reset			(1'b0),
 						.en				(wb_stb_i),
 						.we				(wb_we_i & wb_sel_i[i]),
 						.addr			(wb_adr_i),

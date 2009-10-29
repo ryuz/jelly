@@ -151,7 +151,7 @@ module top
 	
 	
 	// CPU
-	jelly_cpu_top_simple
+	jelly_cpu_simple_top
 			#(
 				.USE_DBUGGER		(1'b1),
 				.USE_EXC_SYSCALL	(1'b1),
