@@ -15,17 +15,17 @@
 (* ram_style = "block" *)
 module jelly_ram_singleport
 		#(
-			parameter							ADDR_WIDTH   = 8,
-			parameter							DATA_WIDTH   = 8,
-			parameter							MEM_SIZE     = (1 << ADDR_WIDTH),
-			parameter							WRITE_FIRST  = 0,
-			parameter							INIT_DOUT    = 0,
+			parameter	ADDR_WIDTH   = 8,
+			parameter	DATA_WIDTH   = 8,
+			parameter	MEM_SIZE     = (1 << ADDR_WIDTH),
+			parameter	WRITE_FIRST  = 0,
+			parameter	INIT_DOUT    = 0,
 			
-			parameter							FILLMEM      = 0,
-			parameter							FILLMEM_DATA = 0,
-			parameter							READMEMB     = 0,
-			parameter							READMEMH     = 0,
-			parameter	[128*8:1]				READMEM_FIlE = ""
+			parameter	FILLMEM      = 0,
+			parameter	FILLMEM_DATA = 0,
+			parameter	READMEMB     = 0,
+			parameter	READMEMH     = 0,
+			parameter	READMEM_FIlE = ""
 		)
 		(
 			input	wire						clk,
@@ -99,7 +99,7 @@ module jelly_ram_singleport
 			$readmemh(READMEM_FIlE, mem);
 		end
 	end
-		
+	
 endmodule
 
 

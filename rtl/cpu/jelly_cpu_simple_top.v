@@ -226,7 +226,7 @@ module jelly_cpu_simple_top
 	// ---------------------------------
 	
 	// arbiter
-	jelly_cpu_wishbone_arbiter
+	jelly_wishbone_arbiter
 			#(
 				.WB_ADR_WIDTH		(30),
 				.WB_DAT_WIDTH		(32)
@@ -261,37 +261,8 @@ module jelly_cpu_simple_top
 				.wb_mem_ack_i		(wb_ack_i)
 			);
 	
-	/*
-	reg		reg_busy;
-	reg		reg_sw;
-	wire	sw;
-	always @ ( posedge clk ) begin
-		if ( reset ) begin
-			reg_busy <= 1'b0;
-			reg_sw   <= 1'bx;
-		end
-		else begin
-			reg_busy <= wb_stb_o & !wb_ack_i;
-			
-			if ( !reg_busy ) begin
-				reg_sw <= sw;
-			end
-		end
-	end
-	assign sw = reg_busy ? reg_sw : wb_data_stb_o;
-	
-	
-	assign wb_adr_o = sw ? wb_data_adr_o : wb_inst_adr_o;
-	assign wb_dat_o = sw ? wb_data_dat_o : wb_inst_dat_o;
-	assign wb_we_o  = sw ? wb_data_we_o  : wb_inst_we_o;
-	assign wb_sel_o = sw ? wb_data_sel_o : wb_inst_sel_o;
-	assign wb_stb_o = sw ? wb_data_stb_o : wb_inst_stb_o;
-	
-	assign wb_inst_dat_i = wb_dat_i;
-	assign wb_inst_ack_i = !sw ? wb_ack_i : 1'b0;
-	
-	assign wb_data_dat_i = wb_dat_i;
-	assign wb_data_ack_i = sw ? wb_ack_i : 1'b0;
-	*/
 	
 endmodule
+
+
+// end of file
