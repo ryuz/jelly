@@ -56,6 +56,7 @@ module jelly_fifo_fwtf_async
 		i_ram_dualport
 			(
 				.clk0			(in_clk),
+				.reset0			(1'b0),
 				.en0			(ram_wr_en),
 				.we0			(1'b1),
 				.addr0			(ram_wr_addr),
@@ -63,6 +64,7 @@ module jelly_fifo_fwtf_async
 				.dout0			(),
 				
 				.clk1			(out_clk),
+				.reset1			(1'b0),
 				.en1			(ram_rd_en),
 				.we1			(1'b0),
 				.addr1			(ram_rd_addr),

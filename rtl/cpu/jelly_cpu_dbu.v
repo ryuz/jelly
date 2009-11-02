@@ -90,7 +90,7 @@ module jelly_cpu_dbu
 
 			// instruction bus control
 			output	wire				ibus_en,
-			output	wire	[31:0]		ibus_addr,
+			output	wire	[31:2]		ibus_addr,
 			output	wire	[31:0]		ibus_wdata,
 			input	wire	[31:0]		ibus_rdata,
 			output	wire				ibus_we,
@@ -100,7 +100,7 @@ module jelly_cpu_dbu
 			
 			// data bus control
 			output	wire				dbus_en,
-			output	wire	[31:0]		dbus_addr,
+			output	wire	[31:2]		dbus_addr,
 			output	wire	[31:0]		dbus_wdata,
 			input	wire	[31:0]		dbus_rdata,
 			output	wire				dbus_we,
@@ -198,7 +198,7 @@ module jelly_cpu_dbu
 		assign ibus_en        = 1'b1;
 		assign ibus_we        = 1'b0;
 		assign ibus_sel       = wb_sel_i;
-		assign ibus_addr      = dbg_addr;
+		assign ibus_addr      = dbg_addr[31:2];
 		assign ibus_wdata     = wb_dat_i;
 		assign ibus_valid     = wb_stb_i & (wb_adr_i == `DBG_ADR_IBUS_DATA);
 		
@@ -242,22 +242,22 @@ module jelly_cpu_dbu
 					.reset				(reset),
 					.clk				(clk),
 					
-					.wb_slave_adr_i			(dbg_addr[31:2]),
-					.wb_slave_dat_i			(wb_dat_i),
-					.wb_slave_dat_o			(dbus_wb_dat),
-					.wb_slave_we_i			(wb_we_i),
-					.wb_slave_sel_i			(wb_sel_i),
-					.wb_slave_stb_i			(wb_stb_i & (wb_adr_i == `DBG_ADR_DBUS_DATA)),
-					.wb_slave_ack_o			(dbus_wb_ack),
+					.wb_slave_adr_i		(dbg_addr[31:2]),
+					.wb_slave_dat_i		(wb_dat_i),
+					.wb_slave_dat_o		(dbus_wb_dat),
+					.wb_slave_we_i		(wb_we_i),
+					.wb_slave_sel_i		(wb_sel_i),
+					.wb_slave_stb_i		(wb_stb_i & (wb_adr_i == `DBG_ADR_DBUS_DATA)),
+					.wb_slave_ack_o		(dbus_wb_ack),
 					
-					.jbus_master_en			(dbus_en),
-					.jbus_master_addr		(dbus_addr),
-					.jbus_master_wdata		(dbus_wdata),
-					.jbus_master_rdata		(dbus_rdata),
-					.jbus_master_we			(dbus_we),
-					.jbus_master_sel		(dbus_sel),
-					.jbus_master_valid		(dbus_valid),
-					.jbus_master_ready		(dbus_ready)
+					.jbus_master_en		(dbus_en),
+					.jbus_master_addr	(dbus_addr),
+					.jbus_master_wdata	(dbus_wdata),
+					.jbus_master_rdata	(dbus_rdata),
+					.jbus_master_we		(dbus_we),
+					.jbus_master_sel	(dbus_sel),
+					.jbus_master_valid	(dbus_valid),
+					.jbus_master_ready	(dbus_ready)
 				);
 		/*
 		assign dbus_interlock = 1'b0;

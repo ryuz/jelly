@@ -77,6 +77,7 @@ module jelly_cpu_gpr
 			i_ram_dualport
 				(
 					.clk0			(clk_x2),
+					.reset0			(1'b0),
 					.en0			(ram_en0),
 					.we0			(ram_we0),
 					.addr0			(ram_addr0),
@@ -84,6 +85,7 @@ module jelly_cpu_gpr
 					.dout0			(ram_dout0),
 					
 					.clk1			(clk_x2),
+					.reset1			(1'b0),
 					.en1			(ram_en1),
 					.we1			(ram_we1),
 					.addr1			(ram_addr1),
@@ -164,6 +166,7 @@ module jelly_cpu_gpr
 				i_ram_dualport
 					(
 						.clk0			(clk),
+						.reset0			(1'b0),
 						.en0			(ram_write_en),
 						.we0			(1'b1),
 						.addr0			(ram_write_addr),
@@ -171,6 +174,7 @@ module jelly_cpu_gpr
 						.dout0			(),
 						
 						.clk1			(clk),
+						.reset1			(1'b0),
 						.en1			(ram_read_en),
 						.we1			(1'b0),
 						.addr1			(ram_read_addr),
