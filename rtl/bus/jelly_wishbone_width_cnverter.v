@@ -46,7 +46,7 @@ module jelly_wishbone_width_cnverter
 			input	wire							wb_master_ack_i
 		);
 	
-	localparam	RATE = (SLAVE_DAT_SIZE - MASTER_DAT_SIZE);
+	localparam	RATE = (SLAVE_DAT_SIZE > MASTER_DAT_SIZE) ? (SLAVE_DAT_SIZE - MASTER_DAT_SIZE) : (MASTER_DAT_SIZE - SLAVE_DAT_SIZE);
 	
 	generate
 	if ( MASTER_DAT_SIZE < SLAVE_DAT_SIZE ) begin
@@ -59,7 +59,7 @@ module jelly_wishbone_width_cnverter
 				reg_counter <= {RATE{1'b0}};
 			end
 			else begin
-				if ( wb_slave_stb_i & ((wb_master_we_o & (wb_master_sel_o == 0)) | wb_master_ack_i) ) begin
+				if ( wb_slave_stb_i & ((wb_master_sel_o == 0) | wb_master_ack_i) ) begin
 					reg_counter <= reg_counter;
 				end
 			end
@@ -103,14 +103,14 @@ module jelly_wishbone_width_cnverter
 				end
 			end			
 		end
-			
+		
 		assign wb_master_adr_o = {wb_slave_adr_i, reg_counter};
 		assign wb_master_dat_o = tmp_master_dat_o;
 		assign wb_master_sel_o = tmp_master_sel_o;
 		assign wb_master_stb_o = wb_master_stb_o & (tmp_master_sel_o != 0);
 		
 		assign wb_slave_dat_o  = tmp_slave_dat_o;
-		assign wb_slave_ack_o  = (reg_counter == {RATE{1'b1}}) & ((wb_master_we_o & (wb_master_sel_o == 0)) | wb_master_ack_i); 
+		assign wb_slave_ack_o  = (reg_counter == {RATE{1'b1}}) & ((wb_master_sel_o == 0) | wb_master_ack_i); 
 	end
 	else if ( MASTER_DAT_SIZE > SLAVE_DAT_SIZE ) begin
 		// to wide
