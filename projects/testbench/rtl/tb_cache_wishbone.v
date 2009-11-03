@@ -48,14 +48,14 @@ module tb_wishbone_cache;
 	wire	[3+127:0]	ram_wdata;
 	wire	[3+127:0]	ram_rdata;
 	
-	jelly_wishbone_cache
+	jelly_cache_wishbone
 			#(
 				.LINE_SIZE			(2),	// 2^n (0:1words, 1:2words, 2:4words ...)
 				.ARRAY_SIZE			(8),	// 2^n (1:2lines, 2:4lines 3:8lines ...)
 				.SLAVE_ADDR_WIDTH	(12),
 				.SLAVE_DATA_SIZE	(2)		// 2^n (0:8bit, 1:16bit, 2:32bit ...)
 			)
-		i_wishbone_cache
+		i_cache_wishbone
 			(
 				.clk				(clk),
 				.reset				(reset),
@@ -124,7 +124,7 @@ module tb_wishbone_cache;
 				.wb_slave_ack_o		(wb_master_ack_i)
 			);                     
 	
-	jelly_jbus_tracer
+	jelly_jbus_logger
 			#(
 				.ADDR_WIDTH		(12),
 				.DATA_SIZE		(2),				// 2^n (0:8bit, 1:16bit, 2:32bit ...)
