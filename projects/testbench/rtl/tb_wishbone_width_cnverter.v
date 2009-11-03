@@ -106,8 +106,8 @@ module tb_wishbone_width_cnverter;
 	
 	jelly_wishbone_slave_model
 			#(
-				.ADR_WIDTH			(10),
-				.DAT_SIZE			(4),		// 2^n (0:8bit, 1:16bit, 2:32bit ...)
+				.ADR_WIDTH			(MASTER_ADR_WIDTH),
+				.DAT_SIZE			(MASTER_DAT_SIZE),		// 2^n (0:8bit, 1:16bit, 2:32bit ...)
 				.MEM_WIDTH			(65536)
 			)
 		i_wishbone_slave_model

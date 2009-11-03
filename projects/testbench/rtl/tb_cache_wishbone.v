@@ -1,12 +1,12 @@
 `timescale 1ns / 1ps
 
 
-module tb_wishbone_cache;
+module tb_cache_wishbone;
 	parameter	RATE       = 20;
 		
 	initial begin
-		$dumpfile("tb_wishbone_cache.vcd");
-		$dumpvars(0, tb_wishbone_cache);
+		$dumpfile("tb_cache_wishbone.vcd");
+		$dumpvars(0, tb_cache_wishbone);
 	end
 	
 	// reset
@@ -143,7 +143,7 @@ module tb_wishbone_cache;
 				.jbus_sel		(jbus_slave_sel),
 				.jbus_valid		(jbus_slave_valid),
 				.jbus_ready		(jbus_slave_ready)
-			);                 
+			);
 	
 	jelly_wishbone_logger
 			#(
@@ -163,7 +163,7 @@ module tb_wishbone_cache;
 				.wb_sel_o		(wb_master_sel_o),
 				.wb_stb_o		(wb_master_stb_o),
 				.wb_ack_i		(wb_master_ack_i)
-			);                 
+			);
 	
 	initial begin
 		jbus_slave_en    <= 1'b1;

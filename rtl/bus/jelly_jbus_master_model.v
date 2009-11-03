@@ -9,7 +9,7 @@
 `timescale 1ns / 1ps
 
 
-module jelly_wishbone_master_model
+module jelly_jbus_master_model
 		#(
 			parameter	ADR_WIDTH  = 12,
 			parameter	DAT_SIZE   = 2,		// 2^n (0:8bit, 1:16bit, 2:32bit ...)

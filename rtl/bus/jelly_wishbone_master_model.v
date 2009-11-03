@@ -62,7 +62,7 @@ module jelly_wishbone_master_model
 	assign wb_master_we_o  = test_pattern[WE_POS];
 	assign wb_master_adr_o = test_pattern[ADR_POS +: ADR_WIDTH];
 	assign wb_master_sel_o = test_pattern[SEL_POS +: SEL_WIDTH];
-	assign wb_master_dat_o = test_dat; //wb_master_we_o ? test_table[index][DAT_POS +: DAT_WIDTH] : {DAT_WIDTH{1'bx}};
+	assign wb_master_dat_o = wb_master_we_o ? test_dat : {DAT_WIDTH{1'bx}};
 	
 	function cmp_data;
 	input	[DAT_WIDTH-1:0]	dat;
@@ -89,7 +89,7 @@ module jelly_wishbone_master_model
 				end
 			end
 			if ( !wb_master_we_o & wb_master_stb_o & wb_master_ack_i ) begin
-				if ( !cmp_data(wb_master_dat_i, test_table[index][DAT_POS +: DAT_WIDTH]) ) begin
+				if ( !cmp_data(wb_master_dat_i, test_dat) ) begin
 					$display("%t read error", $time);
 				end
 			end
