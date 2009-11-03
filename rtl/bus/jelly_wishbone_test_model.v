@@ -9,7 +9,7 @@
 `timescale 1ns / 1ps
 
 
-module jelly_wishbone_test_model
+module jelly_wishbone_master_model
 		#(
 			parameter	ADR_WIDTH  = 12,
 			parameter	DAT_SIZE   = 2,		// 2^n (0:8bit, 1:16bit, 2:32bit ...)
@@ -24,13 +24,13 @@ module jelly_wishbone_test_model
 			input	wire						reset,
 			
 			// wishbone
-			output	wire	[ADR_WIDTH-1:0]		wb_adr_o,
-			output	wire	[DAT_WIDTH-1:0]		wb_dat_o,
-			input	wire	[DAT_WIDTH-1:0]		wb_dat_i,
-			output	wire						wb_we_o,
-			output	wire	[SEL_WIDTH-1:0]		wb_sel_o,
-			output	wire						wb_stb_o,
-			input	wire						wb_ack_i
+			output	wire	[ADR_WIDTH-1:0]		wb_master_adr_o,
+			output	wire	[DAT_WIDTH-1:0]		wb_master_dat_o,
+			input	wire	[DAT_WIDTH-1:0]		wb_master_dat_i,
+			output	wire						wb_master_we_o,
+			output	wire	[SEL_WIDTH-1:0]		wb_master_sel_o,
+			output	wire						wb_master_stb_o,
+			input	wire						wb_master_ack_i
 		);
 	
 	
@@ -42,7 +42,8 @@ module jelly_wishbone_test_model
 	localparam DAT_POS     = 0;
 	localparam SEL_POS     = DAT_POS + DAT_WIDTH;
 	localparam ADR_POS     = SEL_POS + SEL_WIDTH;
-	localparam STB_POS     = ADR_POS + ADR_WIDTH;
+	localparam WE_POS      = ADR_POS + ADR_WIDTH;
+	localparam STB_POS     = WE_POS  + 1;
 	localparam END_POS     = STB_POS + 1;
 	localparam TABLE_WIDTH = END_POS + 1;
 	
@@ -51,14 +52,21 @@ module jelly_wishbone_test_model
 		$readmemb(TABLE_FILE, test_table);
 	end
 	
-	assign wb_stb_o = test_table[index][STB_POS];
-	assign wb_adr   = test_table[index][ADR_POS +: ADR_WIDTH];
-	assign wb_sel_o = test_table[index][DAT_POS +: DAT_WIDTH];
-	assign wb_dat_o = wb_we_o ? test_table[index][DAT_POS +: DAT_WIDTH] : {DAT_WIDTH{1'bx}};
+	wire	[TABLE_WIDTH-1:0]	test_pattern;
+	assign test_pattern = test_table[index];
+	wire	[DAT_WIDTH-1:0]		test_dat;
+	assign test_dat = test_pattern[DAT_POS +: DAT_WIDTH];
+	
+	
+	assign wb_master_stb_o = test_pattern[STB_POS];
+	assign wb_master_we_o  = test_pattern[WE_POS];
+	assign wb_master_adr_o = test_pattern[ADR_POS +: ADR_WIDTH];
+	assign wb_master_sel_o = test_pattern[SEL_POS +: SEL_WIDTH];
+	assign wb_master_dat_o = test_dat; //wb_master_we_o ? test_table[index][DAT_POS +: DAT_WIDTH] : {DAT_WIDTH{1'bx}};
 	
 	function cmp_data;
-	input	[DAT_WIDTH]		dat;
-	input	[DAT_WIDTH]		exp;
+	input	[DAT_WIDTH-1:0]	dat;
+	input	[DAT_WIDTH-1:0]	exp;
 	integer					i;
 	begin
 		cmp_data = 1'b1;
@@ -75,13 +83,13 @@ module jelly_wishbone_test_model
 			index <= 0;
 		end
 		else begin
-			if ( !wb_stb_o | wb_ack_i ) begin
+			if ( !wb_master_stb_o | wb_master_ack_i ) begin
 				if ( !test_table[index][END_POS] ) begin
 					index <= index + 1;
 				end
 			end
-			if ( !wb_we_o & wb_stb_o & wb_ack_i ) begin
-				if ( !cmp_data(wb_dat_i, test_table[index][DAT_POS +: DAT_WIDTH]) ) begin
+			if ( !wb_master_we_o & wb_master_stb_o & wb_master_ack_i ) begin
+				if ( !cmp_data(wb_master_dat_i, test_table[index][DAT_POS +: DAT_WIDTH]) ) begin
 					$display("%t read error", $time);
 				end
 			end

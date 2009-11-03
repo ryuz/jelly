@@ -16,7 +16,7 @@ module jelly_wishbone_width_cnverter
 			parameter	SLAVE_ADR_WIDTH  = 29,
 			parameter	SLAVE_DAT_WIDTH  = (8 << SLAVE_DAT_SIZE),
 			parameter	SLAVE_SEL_WIDTH  = (1 << SLAVE_DAT_SIZE),
-			parameter	MASTER_ADR_WIDTH = SLAVE_ADR_WIDTH + MASTER_DAT_SIZE - SLAVE_DAT_SIZE,
+			parameter	MASTER_ADR_WIDTH = SLAVE_ADR_WIDTH + SLAVE_DAT_SIZE - MASTER_DAT_SIZE,
 			parameter	MASTER_DAT_WIDTH = (8 << MASTER_DAT_SIZE),
 			parameter	MASTER_SEL_WIDTH = (1 << MASTER_DAT_SIZE)
 		)
@@ -60,7 +60,7 @@ module jelly_wishbone_width_cnverter
 			end
 			else begin
 				if ( wb_slave_stb_i & ((wb_master_sel_o == 0) | wb_master_ack_i) ) begin
-					reg_counter <= reg_counter;
+					reg_counter <= reg_counter + 1;
 				end
 			end
 			
@@ -74,8 +74,7 @@ module jelly_wishbone_width_cnverter
 		end
 		
 		reg		[MASTER_DAT_WIDTH-1:0]	tmp_master_dat_o;
-		reg		[MASTER_DAT_WIDTH-1:0]	tmp_master_sel_o;
-		reg		[MASTER_DAT_WIDTH-1:0]	tmp_master_dat_i	[0:(1 << RATE)-2];
+		reg		[MASTER_SEL_WIDTH-1:0]	tmp_master_sel_o;
 		reg		[SLAVE_DAT_WIDTH-1:0]	tmp_slave_dat_o;
 		integer							i1, j1;
 		always @( reg_counter or wb_slave_dat_i or wb_master_dat_i or reg_master_dat_i ) begin
@@ -106,8 +105,9 @@ module jelly_wishbone_width_cnverter
 		
 		assign wb_master_adr_o = {wb_slave_adr_i, reg_counter};
 		assign wb_master_dat_o = tmp_master_dat_o;
+		assign wb_master_we_o  = wb_slave_we_i;
 		assign wb_master_sel_o = tmp_master_sel_o;
-		assign wb_master_stb_o = wb_master_stb_o & (tmp_master_sel_o != 0);
+		assign wb_master_stb_o = wb_slave_stb_i & (tmp_master_sel_o != 0);
 		
 		assign wb_slave_dat_o  = tmp_slave_dat_o;
 		assign wb_slave_ack_o  = (reg_counter == {RATE{1'b1}}) & ((wb_master_sel_o == 0) | wb_master_ack_i); 

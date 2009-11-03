@@ -9,7 +9,7 @@
 `timescale 1ns / 1ps
 
 
-module jelly_wishbone_cache
+module jelly_cache_wishbone
 		#(
 			parameter	LINE_SIZE         = 2,		// 2^n (0:1words, 1:2words, 2:4words ...)
 			parameter	ARRAY_SIZE        = 8,		// 2^n (1:2lines, 2:4lines 3:8lines ...)

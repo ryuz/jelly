@@ -173,7 +173,7 @@ module tb_jbus_cache;
 		jbus_slave_en    <= 0;
 		jbus_slave_we    <= 0;
 		jbus_slave_addr  <= 0;
-		jbus_slave_bls   <= 0;
+		jbus_slave_sel   <= 0;
 		jbus_slave_wdata <= 0;
 	end
 	
@@ -190,7 +190,7 @@ module tb_jbus_cache;
 					jbus_slave_en    <= test_table[i][49];
 					jbus_slave_we    <= test_table[i][48];
 					jbus_slave_addr  <= test_table[i][47:36];
-					jbus_slave_bls   <= test_table[i][35:32];
+					jbus_slave_sel   <= test_table[i][35:32];
 					jbus_slave_wdata <= test_table[i][31:0];
 					i <= i + 1;
 				end

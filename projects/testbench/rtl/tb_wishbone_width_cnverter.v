@@ -10,7 +10,7 @@ module tb_wishbone_width_cnverter;
 	parameter	SLAVE_ADR_WIDTH  = 30;
 	parameter	SLAVE_DAT_WIDTH  = (8 << SLAVE_DAT_SIZE);
 	parameter	SLAVE_SEL_WIDTH  = (1 << SLAVE_DAT_SIZE);
-	parameter	MASTER_ADR_WIDTH = SLAVE_ADR_WIDTH + MASTER_DAT_SIZE - SLAVE_DAT_SIZE;
+	parameter	MASTER_ADR_WIDTH = SLAVE_ADR_WIDTH + SLAVE_DAT_SIZE - MASTER_DAT_SIZE;
 	parameter	MASTER_DAT_WIDTH = (8 << MASTER_DAT_SIZE);
 	parameter	MASTER_SEL_WIDTH = (1 << MASTER_DAT_SIZE);
 
@@ -77,7 +77,7 @@ module tb_wishbone_width_cnverter;
 				.wb_master_adr_o	(wb_master_adr_o),
 				.wb_master_dat_o	(wb_master_dat_o),
 				.wb_master_dat_i	(wb_master_dat_i),
-				.wb_master_we_o		(wb_master_we_o	),
+				.wb_master_we_o		(wb_master_we_o),
 				.wb_master_sel_o	(wb_master_sel_o),
 				.wb_master_stb_o	(wb_master_stb_o),
 				.wb_master_ack_i	(wb_master_ack_i)
@@ -85,19 +85,19 @@ module tb_wishbone_width_cnverter;
 	
 	jelly_wishbone_master_model
 			#(
-				.ADR_WIDTH			(MASTER_ADR_WIDTH),
-				.DAT_SIZE			(MASTER_DAT_SIZE),
-				.TABLE_FILE			("widthconv.dat"),
+				.ADR_WIDTH			(SLAVE_ADR_WIDTH),
+				.DAT_SIZE			(SLAVE_DAT_SIZE),
+				.TABLE_FILE			("wishbone_width_cnverter.dat"),
 				.TABLE_SIZE			(256)
 			)
-		jelly_wishbone_test_model
+		i_wishbone_master_model
 			(
 				.clk				(clk),
 				.reset				(reset),
 				
 				.wb_master_adr_o	(wb_slave_adr_i),
-				.wb_master_dat_o	(wb_slave_dat_o),
-				.wb_master_dat_i	(wb_slave_dat_i),
+				.wb_master_dat_o	(wb_slave_dat_i),
+				.wb_master_dat_i	(wb_slave_dat_o),
 				.wb_master_we_o		(wb_slave_we_i),
 				.wb_master_sel_o	(wb_slave_sel_i),
 				.wb_master_stb_o	(wb_slave_stb_i),
@@ -107,7 +107,8 @@ module tb_wishbone_width_cnverter;
 	jelly_wishbone_slave_model
 			#(
 				.ADR_WIDTH			(10),
-				.DAT_SIZE			(4)		// 2^n (0:8bit, 1:16bit, 2:32bit ...)
+				.DAT_SIZE			(4),		// 2^n (0:8bit, 1:16bit, 2:32bit ...)
+				.MEM_WIDTH			(65536)
 			)
 		i_wishbone_slave_model
 			(
