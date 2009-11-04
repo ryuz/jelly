@@ -118,7 +118,7 @@ module top
 	wire			wb_dbg_ack_i;
 	
 	// CPU
-	jelly_cpu_top_simple
+	jelly_cpu_simple_top
 			#(
 				.USE_DBUGGER    	(USE_DBUGGER),
 				.USE_EXC_SYSCALL	(USE_EXC_SYSCALL),
