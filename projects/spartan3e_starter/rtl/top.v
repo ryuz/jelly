@@ -12,7 +12,7 @@
 // top module
 module top
 		#(
-			parameter					SIMULATION = 1'b0
+			parameter	SIMULATION = 1'b0
 		)
 		(
 			// system
@@ -77,7 +77,6 @@ module top
 	wire				locked;
 	
 	// reset
-
 	clkgen
 		i_clkgen
 			(
@@ -97,8 +96,7 @@ module top
 				
 				.locked				(locked)
 		);
-	
-	
+		
 	
 	// UART switch
 	wire				uart_tx;

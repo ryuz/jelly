@@ -2,8 +2,8 @@
 //  Jelly  -- The computing system on FPGA
 //    MIPS like CPU core
 //
-//                                      Copyright (C) 2008 by Ryuji Fuchikami
-//                                      http://homepage3.nifty.com/ryuz/
+//                                 Copyright (C) 2008-2009 by Ryuji Fuchikami
+//                                 http://homepage3.nifty.com/ryuz/
 // ---------------------------------------------------------------------------
 
 
@@ -53,7 +53,7 @@ module jelly_cpu_cache_top
 			
 			// WISHBONE memory bus (cached)
 			output	wire	[31:MEM_DAT_SIZE]	wb_mem_adr_o,
-			input	wire	[MEM_DAT_SIZE-1:0]	wb_mem_dat_i,
+			input	wire	[MEM_DAT_WIDTH-1:0]	wb_mem_dat_i,
 			output	wire	[MEM_DAT_WIDTH-1:0]	wb_mem_dat_o,
 			output	wire						wb_mem_we_o,
 			output	wire	[MEM_SEL_WIDTH-1:0]	wb_mem_sel_o,
@@ -292,7 +292,7 @@ module jelly_cpu_cache_top
 	//  Cache
 	// ---------------------------------
 	
-	jelly_cpu_unified_cache
+	jelly_cache_unified
 			#(
 				.LINE_SIZE			(CACHE_LINE_SIZE),		// 2^n (0:1words, 1:2words, 2:4words ...)
 				.ARRAY_SIZE			(CACHE_ARRAY_SIZE),		// 2^n (1:2lines, 2:4lines 3:8lines ...)
@@ -394,7 +394,7 @@ module jelly_cpu_cache_top
 				
 				.jbus_slave_en		(jbus_dperi_en),
 				.jbus_slave_addr	(jbus_dperi_addr),
-				.jbus_slave_wdata	(jbus_dderi_wdata),
+				.jbus_slave_wdata	(jbus_dperi_wdata),
 				.jbus_slave_rdata	(jbus_dperi_rdata),
 				.jbus_slave_we		(jbus_dperi_we),
 				.jbus_slave_sel		(jbus_dperi_sel),
@@ -437,13 +437,13 @@ module jelly_cpu_cache_top
 				.wb_slave1_stb_i	(wb_dperi_stb_o),
 				.wb_slave1_ack_o	(wb_dperi_ack_i),
 				
-				.wb_master_adr_o	(wb_master_adr_o),
-				.wb_master_dat_i	(wb_master_dat_i),
-				.wb_master_dat_o	(wb_master_dat_o),
-				.wb_master_we_o		(wb_master_we_o),
-				.wb_master_sel_o	(wb_master_sel_o),
-				.wb_master_stb_o	(wb_master_stb_o),
-				.wb_master_ack_i	(wb_master_ack_i)
+				.wb_master_adr_o	(wb_peri_adr_o),
+				.wb_master_dat_i	(wb_peri_dat_i),
+				.wb_master_dat_o	(wb_peri_dat_o),
+				.wb_master_we_o		(wb_peri_we_o),
+				.wb_master_sel_o	(wb_peri_sel_o),
+				.wb_master_stb_o	(wb_peri_stb_o),
+				.wb_master_ack_i	(wb_peri_ack_i)
 			);
 	
 endmodule

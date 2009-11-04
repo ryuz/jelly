@@ -1,12 +1,12 @@
 `timescale 1ns / 1ps
 
 
-module tb_cache_wishbone;
+module tb_cache_core;
 	parameter	RATE       = 20;
 		
 	initial begin
-		$dumpfile("tb_cache_wishbone.vcd");
-		$dumpvars(0, tb_cache_wishbone);
+		$dumpfile("tb_cache_core.vcd");
+		$dumpvars(0, tb_cache_core);
 	end
 	
 	// reset
@@ -48,14 +48,14 @@ module tb_cache_wishbone;
 	wire	[3+127:0]	ram_wdata;
 	wire	[3+127:0]	ram_rdata;
 	
-	jelly_cache_wishbone
+	jelly_cache_core
 			#(
 				.LINE_SIZE			(2),	// 2^n (0:1words, 1:2words, 2:4words ...)
 				.ARRAY_SIZE			(8),	// 2^n (1:2lines, 2:4lines 3:8lines ...)
 				.SLAVE_ADDR_WIDTH	(12),
 				.SLAVE_DATA_SIZE	(2)		// 2^n (0:8bit, 1:16bit, 2:32bit ...)
 			)
-		i_cache_wishbone
+		i_cache_core
 			(
 				.clk				(clk),
 				.reset				(reset),

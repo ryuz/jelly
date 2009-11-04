@@ -9,7 +9,7 @@
 `timescale 1ns / 1ps
 
 
-module jelly_wishbone_width_cnverter
+module jelly_wishbone_width_converter
 		#(
 			parameter	SLAVE_DAT_SIZE   = 3,	// 2^n (0:8bit, 1:16bit, 2:32bit ...)
 			parameter	MASTER_DAT_SIZE  = 2,	// 2^n (0:8bit, 1:16bit, 2:32bit ...)
@@ -77,7 +77,7 @@ module jelly_wishbone_width_cnverter
 		reg		[MASTER_SEL_WIDTH-1:0]	tmp_master_sel_o;
 		reg		[SLAVE_DAT_WIDTH-1:0]	tmp_slave_dat_o;
 		integer							i1, j1;
-		always @( reg_counter or wb_slave_dat_i or wb_master_dat_i or reg_master_dat_i ) begin
+		always @* begin
 			for ( i1 = 0; i1 < (1 << RATE); i1 = i1 + 1 ) begin
 				if ( i1 == (reg_counter ^ {RATE{endian}}) ) begin
 					for ( j1 = 0; j1 < MASTER_DAT_WIDTH; j1 = j1 + 1 ) begin

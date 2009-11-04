@@ -15,19 +15,19 @@
 // CPU Core
 module jelly_cpu_core
 		#(
-			parameter					USE_DBUGGER         = 1'b1,
-			parameter					USE_EXC_SYSCALL     = 1'b1,
-			parameter					USE_EXC_BREAK       = 1'b1,
-			parameter					USE_EXC_RI          = 1'b1,
-			parameter					USE_HW_BP           = 1'b1,
-			parameter					GPR_TYPE            = 0,
-			parameter					MUL_CYCLE           = 0,
-			parameter					DBBP_NUM            = 4,
+			parameter	USE_DBUGGER         = 1'b1,
+			parameter	USE_EXC_SYSCALL     = 1'b1,
+			parameter	USE_EXC_BREAK       = 1'b1,
+			parameter	USE_EXC_RI          = 1'b1,
+			parameter	USE_HW_BP           = 1'b1,
+			parameter	GPR_TYPE            = 0,
+			parameter	MUL_CYCLE           = 0,
+			parameter	DBBP_NUM            = 4,
 			
-			parameter					SIM_PC_TRACE        = 1,
-			parameter					SIM_DBUS_TRACE      = 1,
-			parameter	[8*127:1]		SIM_PC_TRACE_FILE   = "pc_trace.txt",
-			parameter	[8*127:1]		SIM_DBUS_TRACE_FILE = "dbus_trace.txt"
+			parameter	SIM_PC_TRACE        = 1,
+			parameter	SIM_DBUS_TRACE      = 1,
+			parameter	SIM_PC_TRACE_FILE   = "pc_trace.txt",
+			parameter	SIM_DBUS_TRACE_FILE = "dbus_trace.txt"
 		)
 		(
 			// system
@@ -1061,7 +1061,7 @@ module jelly_cpu_core
 	assign jbus_data_valid = dbg_jbus_data_valid ? dbg_jbus_data_valid : ex_out_mem_en & !mem_stall;
 	
 	assign mem_read_data   = jbus_data_rdata;
-	assign mem_out_hazard  = (jbus_data_en & !jbus_data_ready);
+	assign mem_out_hazard  = !jbus_data_ready;
 	
 	assign dbg_jbus_data_rdata = jbus_data_rdata;
 	assign dbg_jbus_data_ready = jbus_data_ready;
@@ -1331,39 +1331,36 @@ module jelly_cpu_core
 		always @ ( posedge clk ) begin
 			if ( !reset ) begin
 				if ( !interlock & !ex_out_stall ) begin
-					$fdisplay(pc_trace_file, "%t : %h %h", $time, ex_out_pc, ex_out_instruction);
+					$fdisplay(pc_trace_file, "%h %h %d", ex_out_pc, ex_out_instruction, $time);
 				end
 			end
 		end
 	end
-/*
+	
 	if ( SIM_DBUS_TRACE ) begin
-		integer	dbus_trace_file;
-		initial begin
-			dbus_trace_file = $fopen(SIM_DBUS_TRACE_FILE);
-		end
-		
-		reg				reg_dbus_read;
-		reg		[31:0]	reg_dbus_addr;
-		always @ ( posedge clk ) begin
-			if ( reset ) begin
-				reg_dbus_read <= 1'b0;
-			end
-			else begin
-				if ( !dbus_interlock & !dbus_busy ) begin
-					reg_dbus_read <= dbus_en & !dbus_we;
-					reg_dbus_addr <= dbus_addr;
-					if ( reg_dbus_read ) begin
-						$fdisplay(dbus_trace_file, "%t : r %h %h", $time, reg_dbus_addr, dbus_rdata);
-					end
-					if ( dbus_en & dbus_we ) begin
-						$fdisplay(dbus_trace_file, "%t : w %h %h %b", $time, dbus_addr, dbus_wdata, dbus_sel);
-					end
-				end
-			end
-		end
+		jelly_jbus_logger
+				#(
+					.ADDR_WIDTH		(32),
+					.DATA_SIZE		(2),	// 2^n (0:8bit, 1:16bit, 2:32bit ...)
+					.FILE_NAME		(SIM_DBUS_TRACE_FILE),
+					.DISPLAY		(0),
+					.MESSAGE		("")
+				)
+			i_jbus_logger_data
+				(
+					.clk			(clk),
+					.reset			(reset),
+					
+					.jbus_en		(jbus_data_en),
+					.jbus_addr		({jbus_data_addr, 2'b00}),
+					.jbus_wdata		(jbus_data_wdata),
+					.jbus_rdata		(jbus_data_rdata),
+					.jbus_we		(jbus_data_we),
+					.jbus_sel		(jbus_data_sel),
+					.jbus_valid		(jbus_data_valid),
+					.jbus_ready		(jbus_data_ready)
+				);
 	end
-*/
 	endgenerate
 	
 endmodule

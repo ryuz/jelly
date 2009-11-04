@@ -43,6 +43,10 @@ module jelly_jbus_logger
 	
 	initial begin
 		read_busy = 1'b0;
+		if ( FILE_NAME != "" ) begin
+			file = $fopen(FILE_NAME, "w");
+			$fclose(file);
+		end
 	end
 	
 	always @(posedge clk) begin
@@ -68,7 +72,7 @@ module jelly_jbus_logger
 					$display("r %h %h %h %d %s", read_addr, jbus_rdata, read_sel, $time, MESSAGE);
 				end
 				if ( FILE_NAME != "" ) begin
-					file = $fopen(FILE_NAME);
+					file = $fopen(FILE_NAME, "a");
 					$fdisplay(file, "r %h %h %h %d %s", read_addr, jbus_rdata, read_sel, $time, MESSAGE);
 					$fclose(file);
 				end
@@ -79,7 +83,7 @@ module jelly_jbus_logger
 					$display("w %h %h %h %d %s", jbus_addr, jbus_wdata, jbus_sel, $time, MESSAGE);
 				end
 				if ( FILE_NAME != "" ) begin
-					file = $fopen(FILE_NAME);
+					file = $fopen(FILE_NAME, "a");
 					$fdisplay(file, "w %h %h %h %d %s", jbus_addr, jbus_wdata, jbus_sel, $time, MESSAGE);
 					$fclose(file);
 				end

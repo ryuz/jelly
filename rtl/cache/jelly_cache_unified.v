@@ -11,7 +11,7 @@
 
 
 
-module jelly_cpu_unified_cache
+module jelly_cache_unified
 		#(
 			parameter	LINE_SIZE         = 2,		// 2^n (0:1words, 1:2words, 2:4words ...)
 			parameter	ARRAY_SIZE        = 8,		// 2^n (1:2lines, 2:4lines 3:8lines ...)
@@ -102,14 +102,14 @@ module jelly_cpu_unified_cache
 	wire	[RAM_DATA_WIDTH-1:0]	ram1_rdata;
 	
 	// cache0
-	jelly_wishbone_cache
+	jelly_cache_core
 			#(
 				.LINE_SIZE			(LINE_SIZE),
 				.ARRAY_SIZE			(ARRAY_SIZE),
 				.SLAVE_ADDR_WIDTH	(SLAVE_ADDR_WIDTH),
 				.SLAVE_DATA_SIZE	(SLAVE_DATA_SIZE)
 			)
-		i_wishbone_cache_0
+		i_cache_core_0
 			(
 				.clk				(clk),
 				.reset				(reset),
@@ -140,14 +140,14 @@ module jelly_cpu_unified_cache
 			);
 	
 	// cache1
-	jelly_wishbone_cache
+	jelly_cache_core
 			#(
 				.LINE_SIZE			(LINE_SIZE),
 				.ARRAY_SIZE			(ARRAY_SIZE),
 				.SLAVE_ADDR_WIDTH	(SLAVE_ADDR_WIDTH),
 				.SLAVE_DATA_SIZE	(SLAVE_DATA_SIZE)
 			)
-		i_wishbone_cache_1
+		i_cache_core_1
 			(
 				.clk				(clk),
 				.reset				(reset),
@@ -180,12 +180,16 @@ module jelly_cpu_unified_cache
 	// ram
 	jelly_ram_dualport
 			#(
+				.ADDR_WIDTH			(RAM_ADDR_WIDTH),
 				.DATA_WIDTH			(RAM_DATA_WIDTH),
-				.ADDR_WIDTH			(RAM_ADDR_WIDTH)
+				.WRITE_FIRST		(1),
+				.FILLMEM			(1),
+				.FILLMEM_DATA		({RAM_DATA_WIDTH{1'b0}})
 			)
 		i_ram_dualport
 			(
 				.clk0				(clk),
+				.reset0				(1'b0),
 				.en0				(ram0_en),
 				.we0				(ram0_we),
 				.addr0				(ram0_addr),
@@ -193,6 +197,7 @@ module jelly_cpu_unified_cache
 				.dout0				(ram0_rdata),
 
 				.clk1				(clk),
+				.reset1				(1'b0),
 				.en1				(ram1_en),
 				.we1				(ram1_we),
 				.addr1				(ram1_addr),
@@ -203,8 +208,8 @@ module jelly_cpu_unified_cache
 	// arbiter
 	jelly_wishbone_arbiter
 			#(
-				.WB_ADR_WIDTH		(30),
-				.WB_DAT_WIDTH		(32)
+				.WB_ADR_WIDTH		(MASTER_ADR_WIDTH),
+				.WB_DAT_WIDTH		(MASTER_DAT_WIDTH)
 			)
 		i_wishbone_arbiter
 			(
