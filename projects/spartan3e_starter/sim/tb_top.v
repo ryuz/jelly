@@ -150,15 +150,9 @@ module tb_top;
 
 	
 	initial begin
-	#(RATE*200);
-	
-				$display("--- START ---");
-
+		$display("--- START ---");
 	#(RATE*1000);
-
-			#(RATE*1234);
-	//	end
-
+		
 	end
 
 

@@ -15,13 +15,13 @@
 module jelly_ddr_sdram
 		#(
 			parameter								SIMULATION      = 1'b0,
-			         
+			
 			parameter								SDRAM_BA_WIDTH  = 2,
 			parameter								SDRAM_A_WIDTH   = 13,
 			parameter								SDRAM_DQ_WIDTH  = 16,
 			parameter								SDRAM_DM_WIDTH  = SDRAM_DQ_WIDTH / 8,
 			parameter								SDRAM_DQS_WIDTH = SDRAM_DQ_WIDTH / 8,
-			         
+			
 			parameter								SDRAM_COL_WIDTH = 10,
 			parameter								SDRAM_ROW_WIDTH = 13,
 			         
@@ -36,7 +36,7 @@ module jelly_ddr_sdram
 			parameter								TRAS            =   42000,	// tRAS  [ps]
 			parameter								TRP             =   15000,	// tRP   [ps]
 			parameter								TREFI           = 7800000,	// tREFI [ps]  
-			         
+			
 			parameter								INIT_WAIT_CYCLE = 200000000 / CLK_RATE
 		)
 		(

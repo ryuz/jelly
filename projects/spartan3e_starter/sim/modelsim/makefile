@@ -43,11 +43,10 @@ work_setup:
 
 prj_compile:
 	vlog $(VLOG_FLAGS) "$(XILINX)/verilog/src/glbl.v"
-	vlog $(VLOG_FLAGS) $(PRJ_DIR)/sim/tb_top.v
-	vlog $(VLOG_FLAGS) $(PRJ_DIR)/sim/ddr.v
-	vlog $(VLOG_FLAGS) $(PRJ_DIR)/rtl/top.v
-	vlog $(VLOG_FLAGS) $(PRJ_DIR)/rtl/clkgen.v
+	vlog $(VLOG_FLAGS) $(PRJ_DIR)/sim/*.v
+	vlog $(VLOG_FLAGS) $(PRJ_DIR)/rtl/*.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/bus/*.v
+	vlog $(VLOG_FLAGS) $(RTL_DIR)/cache/*.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/library/*.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/cpu/*.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/irc/*.v

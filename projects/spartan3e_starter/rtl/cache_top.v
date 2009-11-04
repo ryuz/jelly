@@ -273,16 +273,16 @@ module cache_top
 				.wb_slave_adr_i		(wb_rom_adr_i),
 				.wb_slave_dat_o		(wb_rom_dat_o),
 				.wb_slave_dat_i		(wb_rom_dat_i),
-				.wb_slave_we_i		(wb_rom_sel_i),
-				.wb_slave_sel_i		(wb_rom_we_i),
+				.wb_slave_we_i		(wb_rom_we_i),
+				.wb_slave_sel_i		(wb_rom_sel_i),
 				.wb_slave_stb_i		(wb_rom_stb_i),
 				.wb_slave_ack_o		(wb_rom_ack_o),
                                  
 				.wb_master_adr_o	(wb_rom32_adr_o),
 				.wb_master_dat_o	(wb_rom32_dat_o),
 				.wb_master_dat_i	(wb_rom32_dat_i),
-				.wb_master_we_o		(wb_rom32_sel_o),
-				.wb_master_sel_o	(wb_rom32_we_o),
+				.wb_master_we_o		(wb_rom32_we_o),
+				.wb_master_sel_o	(wb_rom32_sel_o),
 				.wb_master_stb_o	(wb_rom32_stb_o),
 				.wb_master_ack_i	(wb_rom32_ack_i)
 			);
@@ -317,7 +317,7 @@ module cache_top
 	wire				wb_dram2x_we_o;
 	wire				wb_dram2x_stb_o;
 	wire				wb_dram2x_ack_i;
-		
+	
 	jelly_wishbone_clk2x
 			#(
 				.WB_ADR_WIDTH		(29),
@@ -493,8 +493,8 @@ module cache_top
 				.wb_adr_i			(wb_irc_adr_i[15:2]),
 				.wb_dat_o			(wb_irc_dat_o),
 				.wb_dat_i			(wb_irc_dat_i),
-				.wb_we_i			(wb_irc_sel_i),
-				.wb_sel_i			(wb_irc_we_i),
+				.wb_we_i			(wb_irc_we_i),
+				.wb_sel_i			(wb_irc_sel_i),
 				.wb_stb_i			(wb_irc_stb_i),
 				.wb_ack_o			(wb_irc_ack_o)
 			);                     
@@ -523,8 +523,8 @@ module cache_top
 				.wb_adr_i			(wb_timer0_adr_i[3:2]),
 				.wb_dat_o			(wb_timer0_dat_o),
 				.wb_dat_i			(wb_timer0_dat_i),
-				.wb_we_i			(wb_timer0_sel_i),
-				.wb_sel_i			(wb_timer0_we_i),
+				.wb_we_i			(wb_timer0_we_i),
+				.wb_sel_i			(wb_timer0_sel_i),
 				.wb_stb_i			(wb_timer0_stb_i),
 				.wb_ack_o			(wb_timer0_ack_o)
 			);                     
@@ -562,8 +562,8 @@ module cache_top
 				.wb_adr_i			(wb_uart0_adr_i[3:2]),
 				.wb_dat_o			(wb_uart0_dat_o),
 				.wb_dat_i			(wb_uart0_dat_i),
-				.wb_we_i			(wb_uart0_sel_i),
-				.wb_sel_i			(wb_uart0_we_i),
+				.wb_we_i			(wb_uart0_we_i),
+				.wb_sel_i			(wb_uart0_sel_i),
 				.wb_stb_i			(wb_uart0_stb_i),
 				.wb_ack_o			(wb_uart0_ack_o)
 			);                     
@@ -592,17 +592,16 @@ module cache_top
 			(
 				.reset				(reset),
 				.clk				(clk),
-
-
+				
 				.port				(gpio_a),
-
+				
 				.wb_adr_i			(wb_gpioa_adr_i[3:2]),
 				.wb_dat_o			(wb_gpioa_dat_o),
 				.wb_dat_i			(wb_gpioa_dat_i),
-				.wb_we_i			(wb_gpioa_sel_i),
-				.wb_sel_i			(wb_gpioa_we_i),
+				.wb_we_i			(wb_gpioa_we_i),
+				.wb_sel_i			(wb_gpioa_sel_i),
 				.wb_stb_i			(wb_gpioa_stb_i),
-				.wb_ack_o			(wb_gpioa_ack_o)	
+				.wb_ack_o			(wb_gpioa_ack_o)
 			);                     
 	
 
@@ -635,13 +634,12 @@ module cache_top
 				.wb_adr_i			(wb_gpiob_adr_i[3:2]),
 				.wb_dat_o			(wb_gpiob_dat_o),
 				.wb_dat_i			(wb_gpiob_dat_i),
-				.wb_we_i			(wb_gpiob_sel_i),
-				.wb_sel_i			(wb_gpiob_we_i),
+				.wb_we_i			(wb_gpiob_we_i),
+				.wb_sel_i			(wb_gpiob_sel_i),
 				.wb_stb_i			(wb_gpiob_stb_i),
 				.wb_ack_o			(wb_gpiob_ack_o)	
 			);
-	
-	
+		
 	
 	// -----------------------------
 	//  peri bus address decoder
