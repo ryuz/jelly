@@ -164,7 +164,7 @@ module cache_top
 				
 				.CACHE_ADDR_MASK	(30'b1111_1110_0000_0000__0000_0000_0000_00),
 				.CACHE_ADDR_VALUE	(30'b0000_0000_0000_0000__0000_0000_0000_00),
-				.CACHE_ADDR_WIDTH	(23),
+				.CACHE_ADDR_WIDTH	(30),
 				
 				.MEM_ADR_WIDTH		(23)
 			)
@@ -310,13 +310,13 @@ module cache_top
 	wire				wb_dram_stb_i;
 	wire				wb_dram_ack_o;
 		
-	wire	[31:3]		wb_dram2x_adr_i;
-	wire	[63:0]		wb_dram2x_dat_o;
+	wire	[31:3]		wb_dram2x_adr_o;
 	wire	[63:0]		wb_dram2x_dat_i;
-	wire	[7:0]		wb_dram2x_sel_i;
-	wire				wb_dram2x_we_i;
-	wire				wb_dram2x_stb_i;
-	wire				wb_dram2x_ack_o;
+	wire	[63:0]		wb_dram2x_dat_o;
+	wire	[7:0]		wb_dram2x_sel_o;
+	wire				wb_dram2x_we_o;
+	wire				wb_dram2x_stb_o;
+	wire				wb_dram2x_ack_i;
 		
 	jelly_wishbone_clk2x
 			#(
@@ -332,8 +332,8 @@ module cache_top
 				.wb_adr_i			(wb_dram_adr_i),
 				.wb_dat_o			(wb_dram_dat_o),
 				.wb_dat_i			(wb_dram_dat_i),
-				.wb_we_i			(wb_dram_sel_i),
-				.wb_sel_i			(wb_dram_we_i),
+				.wb_we_i			(wb_dram_we_i),
+				.wb_sel_i			(wb_dram_sel_i),
 				.wb_stb_i			(wb_dram_stb_i),
 				.wb_ack_o			(wb_dram_ack_o),
                 
@@ -371,16 +371,16 @@ module cache_top
 				.wb_slave_adr_i		(wb_dram2x_adr_o),
 				.wb_slave_dat_o		(wb_dram2x_dat_i),
 				.wb_slave_dat_i		(wb_dram2x_dat_o),
-				.wb_slave_we_i		(wb_dram2x_sel_o),
-				.wb_slave_sel_i		(wb_dram2x_we_o),
+				.wb_slave_we_i		(wb_dram2x_we_o),
+				.wb_slave_sel_i		(wb_dram2x_sel_o),
 				.wb_slave_stb_i		(wb_dram2x_stb_o),
 				.wb_slave_ack_o		(wb_dram2x_ack_i),
                                         
 				.wb_master_adr_o	(wb_dram32_adr_o),
 				.wb_master_dat_o	(wb_dram32_dat_o),
 				.wb_master_dat_i	(wb_dram32_dat_i),
-				.wb_master_we_o		(wb_dram32_sel_o),
-				.wb_master_sel_o	(wb_dram32_we_o),
+				.wb_master_we_o		(wb_dram32_we_o),
+				.wb_master_sel_o	(wb_dram32_sel_o),
 				.wb_master_stb_o	(wb_dram32_stb_o),
 				.wb_master_ack_i	(wb_dram32_ack_i)
 			);                       

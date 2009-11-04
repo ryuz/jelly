@@ -29,10 +29,7 @@
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
-    <file xil_pn:name="../../../../rtl/bus/jelly_wishbone_width_cnverter.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
+    <file xil_pn:name="../../../../rtl/bus/jelly_wishbone_width_cnverter.v" xil_pn:type="FILE_VERILOG"/>
     <file xil_pn:name="../../../../rtl/bus/jelly_jbus_logger.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>

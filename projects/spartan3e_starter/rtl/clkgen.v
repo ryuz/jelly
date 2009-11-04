@@ -129,7 +129,7 @@ module clkgen
 			reg_sys_reset <= 2'b11;
 		end
 		else begin
-			if ( !sys_dcm_locked ) begin
+			if ( !locked ) begin
 				reg_sys_reset <= 2'b11;
 			end
 			else begin
@@ -224,7 +224,7 @@ module clkgen
 				.PSCLK					(1'b0), 
 				.PSEN					(1'b0), 
 				.PSINCDEC				(1'b0), 
-				.RST					(out_sys_reset),
+				.RST					(in_reset | !sys_dcm_locked),
 				.CLKDV					(),
 				.CLKFX					(), 
 				.CLKFX180				(), 
@@ -246,7 +246,7 @@ module clkgen
 			reg_sdram_reset <= 2'b11;
 		end
 		else begin
-			if ( !sdram_dcm_locked ) begin
+			if ( !locked ) begin
 				reg_sdram_reset <= 2'b11;
 			end
 			else begin
@@ -261,7 +261,6 @@ module clkgen
 	
 	
 	assign locked = sys_dcm_locked & sdram_dcm_locked;
-
 	
 endmodule
 

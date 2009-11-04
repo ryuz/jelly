@@ -49,7 +49,7 @@ module tb_top;
 	wire			#DDR_WIRE_DELAY		ddr_sdram_ldqs;
 	wire			#DDR_WIRE_DELAY		ddr_sdram_ck_fb;
 	
-	top
+	cache_top
 			#(
 				.SIMULATION	(SIMULATION)
 			)
