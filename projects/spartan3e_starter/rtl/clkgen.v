@@ -139,10 +139,6 @@ module clkgen
 	end
 	
 	
-	// system clock & reset
-	assign out_sys_clk    = sys_clk_0_bufg;
-	assign out_sys_clk_x2 = sys_clk_2x_bufg;
-	assign out_sys_reset  = reg_sys_reset[0];
 	
 	
 	
@@ -187,6 +183,16 @@ module clkgen
 				.O		(sdram_clk_0_bufg)
 			);
 
+	// clk2x_0
+	wire		sdram_clk_dv;
+	wire		sdram_clk_dv_bufg;
+	BUFG
+		i_bufg_sdram_clk_dv
+			(
+				.I		(sdram_clk_dv), 
+				.O		(sdram_clk_dv_bufg)
+			);
+	
 	// clk2x_90
 	wire		sdram_clk_90;
 	wire		sdram_clk_90_bufg;
@@ -225,7 +231,7 @@ module clkgen
 				.PSEN					(1'b0), 
 				.PSINCDEC				(1'b0), 
 				.RST					(in_reset | !sys_dcm_locked),
-				.CLKDV					(),
+				.CLKDV					(sdram_clk_dv),
 				.CLKFX					(), 
 				.CLKFX180				(), 
 				.CLK0					(sdram_clk_0), 
@@ -254,6 +260,16 @@ module clkgen
 			end
 		end
 	end
+	
+
+	// system clock & reset
+//	assign out_sys_clk    = sys_clk_0_bufg;
+//	assign out_sys_clk_x2 = sys_clk_2x_bufg;
+//	assign out_sys_reset  = reg_sys_reset[0];
+
+	assign out_sys_clk    = sdram_clk_dv_bufg;
+	assign out_sys_clk_x2 = sdram_clk_0_bufg;
+	assign out_sys_reset  = reg_sdram_reset[0];
 	
 	assign out_sdram_clk    = sdram_clk_0_bufg;
 	assign out_sdram_clk_90 = sdram_clk_90_bufg;
