@@ -9,7 +9,7 @@
 # clock
 NET "in_clk" LOC = "C9" | IOSTANDARD = LVCMOS33 ;
 NET "in_clk" TNM_NET = in_clk;
-TIMESPEC TS_in_clk = PERIOD "in_clk" 50 MHz HIGH 50%;
+TIMESPEC TS_in_clk = PERIOD "in_clk" 20.0 ns HIGH 50%;
 
 # reset
 NET "in_reset" LOC = "K17" | IOSTANDARD = LVTTL | PULLDOWN ;
@@ -101,5 +101,5 @@ CONFIG PROHIBIT = R4;
 # Async
 INST "*__async_tx*" TNM = "ASYNC_TX";
 INST "*__async_rx*" TNM = "ASYNC_RX";
-TIMESPEC "TS_ASYNC" = FROM "ASYNC_TX" TO "ASYNC_RX" TIG;
+TIMESPEC "TS_ASYNC" = FROM "ASYNC_TX" TO "ASYNC_RX" TS_in_clk;
 
