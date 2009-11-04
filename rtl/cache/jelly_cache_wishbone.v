@@ -118,6 +118,9 @@ module jelly_cache_wishbone
 				reg_slave_sel    <= jbus_slave_sel;
 				reg_slave_wdata  <= jbus_slave_wdata;
 			end
+			else if ( jbus_slave_ready ) begin
+				reg_slave_we     <= 1'b0;
+			end
 		end
 	end
 	
@@ -226,10 +229,10 @@ module jelly_cache_wishbone
 		end
 		else begin
 			if ( !(wb_master_stb_o & !wb_master_ack_i) ) begin
-				reg_master_stb_o <= (reg_slave_we & !reg_write_hit_end) | cache_read_miss;
+				reg_master_stb_o <= (reg_slave_we & !reg_write_hit_end) | (cache_read_miss & !read_end);
 				reg_master_we_o  <= reg_slave_we;
 				reg_master_adr_o <= {reg_slave_tagadr, reg_slave_index};
-				reg_master_sel_o <= write_sel;
+				reg_master_sel_o <= reg_slave_we ? write_sel : {MASTER_SEL_WIDTH{1'b1}};
 				reg_master_dat_o <= {LINE_WORDS{reg_slave_wdata}};
 			end
 			else begin
