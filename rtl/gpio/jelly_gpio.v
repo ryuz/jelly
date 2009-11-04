@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-//  Jelly  -- The computing system on FPGA
+//  Jelly  -- the soft-core processor system
 //    GPIO
 //
 //                                      Copyright (C) 2009 by Ryuji Fuchikami

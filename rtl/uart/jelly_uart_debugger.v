@@ -1,9 +1,9 @@
 // ---------------------------------------------------------------------------
-//  Jelly  -- The computing system on FPGA
-//    MIPS like CPU core
+//  Jelly  -- the soft-core processor system
+//    UART
 //
-//                                      Copyright (C) 2008 by Ryuji Fuchikami
-//                                      http://homepage3.nifty.com/ryuz/
+//                                  Copyright (C) 2008-2009 by Ryuji Fuchikami
+//                                      http://homepage3.nifty.com/ryuz
 // ---------------------------------------------------------------------------
 
 

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-//  Common components
+//  Jelly  -- the soft-core processor system
 //   demultiplexer
 //
 //                                 Copyright (C) 2009 by Ryuji Fuchikami

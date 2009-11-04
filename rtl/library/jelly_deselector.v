@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------------
-//  Common components
-//   demultiplexer
+//  Jelly  -- the soft-core processor system
+//   deselector
 //
 //                                 Copyright (C) 2009 by Ryuji Fuchikami
 //                                 http://homepage3.nifty.com/ryuz/
@@ -11,7 +11,7 @@
 
 
 
-// demultiplexer
+// deselector
 module jelly_deselector
 		#(
 			parameter	SEL_WIDTH = 2,

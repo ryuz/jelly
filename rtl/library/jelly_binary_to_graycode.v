@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-//  Common components
+//  Jelly  -- the soft-core processor system
 //   Binary to Graycode
 //
 //                                 Copyright (C) 2007-2008 by Ryuji Fuchikami

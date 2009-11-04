@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-//  Common components
+//  Jelly  -- the soft-core processor system
 //   Dualport-RAM
 //
 //                                 Copyright (C) 2007-2008 by Ryuji Fuchikami

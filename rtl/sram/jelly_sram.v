@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-//  Jelly  -- The computing system on FPGA
+//  Jelly  -- the soft-core processor system
 //    block sram interface
 //
 //                                      Copyright (C) 2008 by Ryuji Fuchikami

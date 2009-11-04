@@ -1,8 +1,8 @@
 // ---------------------------------------------------------------------------
-//  Jelly  -- The computing system on FPGA
+//  Jelly  -- the soft-core processor system
 //    UART
 //
-//                                      Copyright (C) 2008 by Ryuji Fuchikami
+//                                  Copyright (C) 2008-2009 by Ryuji Fuchikami
 //                                      http://homepage3.nifty.com/ryuz
 // ---------------------------------------------------------------------------
 

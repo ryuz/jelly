@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-//  Common components
+//  Jelly  -- the soft-core processor system
 //   First-Word Fall-Through mode asyncronous FIFO
 //
 //                                 Copyright (C) 2008-2009 by Ryuji Fuchikami

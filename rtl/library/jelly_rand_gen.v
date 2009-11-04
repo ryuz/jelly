@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-//  Common components
+//  Jelly  -- the soft-core processor system
 //   random generator
 //
 //                                 Copyright (C) 2009 by Ryuji Fuchikami
