@@ -44,9 +44,10 @@ module jelly_gpio
 			output	wire						wb_ack_o
 		);
 	
-	reg		[PORT_WIDTH-1:0]	reg_direction;
-	reg		[PORT_WIDTH-1:0]	reg_input;
-	reg		[PORT_WIDTH-1:0]	reg_output;
+	
+	(* IOB = "TRUE" *)	reg		[PORT_WIDTH-1:0]	reg_direction;
+	(* IOB = "TRUE" *)	reg		[PORT_WIDTH-1:0]	reg_input;
+	(* IOB = "TRUE" *)	reg		[PORT_WIDTH-1:0]	reg_output;
 	
 	always @ ( posedge clk ) begin
 		if ( reset ) begin

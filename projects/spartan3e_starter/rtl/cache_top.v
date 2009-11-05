@@ -67,13 +67,9 @@ module cache_top
 	wire				reset;
 	wire				clk;
 	wire				clk_x2;
-
-	wire				sdram_clk;
-	wire				sdram_clk_90;
-	wire				sdram_reset;
+	wire				clk_x2_90;
+	wire				clk_uart;
 	
-	wire				uart_clk;
-
 	wire				locked;
 	
 	// reset
@@ -84,16 +80,11 @@ module cache_top
 				.in_reset			(in_reset), 
 				.in_clk				(in_clk), 
 			
-				.out_sys_clk		(clk),
-				.out_sys_clk_x2		(clk_x2),
-				.out_sys_reset		(reset),
-				
-				.out_uart_clk		(uart_clk),
-				.out_uart_reset		(),
-				
-				.out_sdram_clk		(sdram_clk),
-				.out_sdram_clk_90	(sdram_clk_90),
-				.out_sdram_reset	(sdram_reset),
+				.out_clk			(clk),
+				.out_clk_x2			(clk_x2),
+				.out_clk_x2_90		(clk_x2_90),
+				.out_clk_uart		(clk_uart),
+				.out_reset			(reset),
 				
 				.locked				(locked)
 		);
@@ -222,7 +213,7 @@ module cache_top
 				.clk				(clk),
 				.endian				(endian),
 				
-				.uart_clk			(uart_clk),
+				.uart_clk			(clk_uart),
 				.uart_tx			(dbg_uart_tx),
 				.uart_rx			(dbg_uart_rx),
 				
@@ -325,9 +316,9 @@ module cache_top
 			)
 		i_wishbone_clk2x
 			(
-				.reset				(sdram_reset),
+				.reset				(reset),
 				.clk				(clk),
-				.clk2x				(sdram_clk),
+				.clk2x				(clk_x2),
 				
 				.wb_adr_i			(wb_dram_adr_i),
 				.wb_dat_o			(wb_dram_dat_o),
@@ -363,7 +354,7 @@ module cache_top
 			)
 		i_wishbone_width_converter_sdram
 			(
-				.clk				(sdram_clk),
+				.clk				(clk_x2),
 				.reset				(reset),
 
 				.endian				(endian),
@@ -391,9 +382,10 @@ module cache_top
 			)
 		i_ddr_sdram
 			(
-				.reset				(sdram_reset),
-				.clk				(sdram_clk),
-				.clk90				(sdram_clk_90),
+				.reset				(reset),
+				.clk				(clk_x2),
+				.clk90				(clk_x2_90),
+				
 				.endian				(endian),
 				
 				.wb_adr_i			(wb_dram32_adr_o[25:2]),
@@ -427,21 +419,21 @@ module cache_top
 	assign wb_rom_dat_i   = wb_mem_dat_o;
 	assign wb_rom_sel_i   = wb_mem_sel_o;
 	assign wb_rom_we_i    = wb_mem_we_o;
-	assign wb_rom_stb_i   = wb_mem_stb_o & (wb_mem_adr_o[31:24] == 8'h00);
+	assign wb_rom_stb_i   = wb_mem_stb_o & (wb_mem_adr_o[31:24] == 8'h00) & sw[1];
 
 	assign wb_dram_adr_i = wb_mem_adr_o;
 	assign wb_dram_dat_i = wb_mem_dat_o;
 	assign wb_dram_sel_i = wb_mem_sel_o;
 	assign wb_dram_we_i  = wb_mem_we_o;
-	assign wb_dram_stb_i = wb_mem_stb_o & (wb_mem_adr_o[31:24] == 8'h01);
+	assign wb_dram_stb_i = wb_mem_stb_o & !wb_rom_stb_i; // (wb_mem_adr_o[31:24] == 8'h01);
 	
-	assign wb_mem_dat_i   = wb_rom_stb_i   ? wb_rom_dat_o   :
-						    wb_dram_stb_i ? wb_dram_dat_o :
-							64'hxxxx_xxxx_xxxx_xxxx;
+	assign wb_mem_dat_i  = wb_rom_stb_i  ? wb_rom_dat_o  :
+						   wb_dram_stb_i ? wb_dram_dat_o :
+						   64'hxxxx_xxxx_xxxx_xxxx;
 
-	assign wb_mem_ack_i   = wb_rom_stb_i  ? wb_rom_ack_o   :
-						    wb_dram_stb_i ? wb_dram_ack_o :
-							1'b1;
+	assign wb_mem_ack_i  = wb_rom_stb_i  ? wb_rom_ack_o  :
+						   wb_dram_stb_i ? wb_dram_ack_o :
+						   1'b1;
 	
 	
 	
@@ -552,7 +544,7 @@ module cache_top
 				.clk				(clk),
 				.reset				(reset),
 				
-				.uart_clk			(uart_clk),
+				.uart_clk			(clk_uart),
 				.uart_tx			(uart_tx),
 				.uart_rx			(uart_rx),
 				

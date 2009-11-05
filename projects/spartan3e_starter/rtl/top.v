@@ -63,40 +63,32 @@ module top
 	assign endian = 1'b1;			// 0:little, 1:big
 	
 	
+	
 	// clock
-	wire				reset;
 	wire				clk;
 	wire				clk_x2;
-
-	wire				sdram_clk;
-	wire				sdram_clk_90;
-	wire				sdram_reset;
-	
-	wire				uart_clk;
+	wire				clk_x2_90;
+	wire				clk_uart;
+	wire				reset;
 
 	wire				locked;
 	
-	// reset
+	// clock generater
 	clkgen
 		i_clkgen
 			(
 				.in_reset			(in_reset), 
 				.in_clk				(in_clk), 
-			
-				.out_sys_clk		(clk),
-				.out_sys_clk_x2		(clk_x2),
-				.out_sys_reset		(reset),
 				
-				.out_uart_clk		(uart_clk),
-				.out_uart_reset		(),
-				
-				.out_sdram_clk		(sdram_clk),
-				.out_sdram_clk_90	(sdram_clk_90),
-				.out_sdram_reset	(sdram_reset),
+				.out_clk			(clk),
+				.out_clk_x2			(clk_x2),
+				.out_clk_x2_90		(clk_x2_90),
+				.out_clk_uart		(clk_uart),
+				.out_reset			(reset),
 				
 				.locked				(locked)
 		);
-		
+	
 	
 	// UART switch
 	wire				uart_tx;
@@ -203,7 +195,7 @@ module top
 				.clk				(clk),
 				.endian				(endian),
 				
-				.uart_clk			(uart_clk),
+				.uart_clk			(clk_uart),
 				.uart_tx			(dbg_uart_tx),
 				.uart_rx			(dbg_uart_rx),
 				
@@ -287,9 +279,9 @@ module top
 			)
 		i_wishbone_clk2x
 			(
-				.reset				(sdram_reset),
+				.reset				(reset),
 				.clk				(clk),
-				.clk2x				(sdram_clk),
+				.clk2x				(clk_x2),
 				
 				.wb_adr_i			(wb_cpu_adr_o[25:2]),
 				.wb_dat_o			(dram_wb_dat_o),
@@ -307,16 +299,17 @@ module top
 				.wb_2x_stb_o		(wb_dram_stb_o),
 				.wb_2x_ack_i		(wb_dram_ack_i)
 			);
-
+	
 	jelly_ddr_sdram
 			#(
 				.SIMULATION			(SIMULATION)
 			)
 		i_ddr_sdram
 			(
-				.reset				(sdram_reset),
-				.clk				(sdram_clk),
-				.clk90				(sdram_clk_90),
+				.reset				(reset),
+				.clk				(clk_x2),
+				.clk90				(clk_x2_90),
+				
 				.endian				(endian),
 				
 				.wb_adr_i			(wb_dram_adr_o),
@@ -472,12 +465,12 @@ module top
 			(
 				.clk				(clk),
 				.reset				(reset),
-
+				
 				.in_interrupt		(irc_interrupt),
-
+				
 				.cpu_irq			(cpu_irq),
 				.cpu_irq_ack		(cpu_irq_ack),
-											
+				
 				.wb_adr_i			(wb_peri_adr_o[15:2]),
 				.wb_dat_o			(irc_wb_dat_o),
 				.wb_dat_i			(wb_peri_dat_o),
@@ -532,7 +525,7 @@ module top
 				.clk				(clk),
 				.reset				(reset),
 				
-				.uart_clk			(uart_clk),
+				.uart_clk			(clk_uart),
 				.uart_tx			(uart_tx),
 				.uart_rx			(uart_rx),
 				

@@ -212,6 +212,24 @@ module jelly_cache_core
 	end
 	assign read_end = !read_end_mask & (wb_master_stb_o & !wb_master_we_o & wb_master_ack_i);
 	
+	// write end monitor
+	reg				write_end;
+	always @( posedge clk ) begin
+		if ( reset ) begin
+			write_end <= 1'b0;
+		end
+		else begin
+			if ( jbus_slave_en & jbus_slave_ready ) begin
+				write_end <= 1'b0;
+			end
+			else begin
+				if ( wb_master_stb_o & wb_master_we_o & wb_master_ack_i ) begin
+					write_end <= 1'b1;
+				end
+			end
+		end
+	end
+	
 	
 	// master output
 	reg		[MASTER_ADR_WIDTH-1:0]		reg_master_adr_o;
@@ -230,7 +248,7 @@ module jelly_cache_core
 		end
 		else begin
 			if ( !(wb_master_stb_o & !wb_master_ack_i) ) begin
-				reg_master_stb_o <= (reg_slave_we & !reg_write_hit_end) | (cache_read_miss & !read_end);
+				reg_master_stb_o <= (reg_slave_we & !write_end) | (cache_read_miss & !read_end);
 				reg_master_we_o  <= reg_slave_we;
 				reg_master_adr_o <= {reg_slave_tagadr, reg_slave_index};
 				reg_master_sel_o <= reg_slave_we ? write_sel : {MASTER_SEL_WIDTH{1'b1}};

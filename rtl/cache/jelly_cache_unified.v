@@ -183,22 +183,23 @@ module jelly_cache_unified
 				.DATA_WIDTH			(RAM_DATA_WIDTH),
 				.WRITE_FIRST		(1),
 				.FILLMEM			(1),
-				.FILLMEM_DATA		({RAM_DATA_WIDTH{1'b0}})
+				.FILLMEM_DATA		({RAM_DATA_WIDTH{1'b0}}),
+				.INIT_DOUT			({RAM_DATA_WIDTH{1'b0}})
 			)
 		i_ram_dualport
 			(
 				.clk0				(clk),
 				.reset0				(1'b0),
 				.en0				(ram0_en),
-				.we0				(ram0_we),
+				.we0				(ram0_we & !reset),
 				.addr0				(ram0_addr),
 				.din0				(ram0_wdata),
 				.dout0				(ram0_rdata),
-
+				
 				.clk1				(clk),
 				.reset1				(1'b0),
 				.en1				(ram1_en),
-				.we1				(ram1_we),
+				.we1				(ram1_we & !reset),
 				.addr1				(ram1_addr),
 				.din1				(ram1_wdata),
 				.dout1				(ram1_rdata)

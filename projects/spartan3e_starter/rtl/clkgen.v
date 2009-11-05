@@ -10,22 +10,17 @@
 `timescale 1ns / 1ps
 
 
-// Clock generator
+// clock generator
 module clkgen
 		(
 			input	wire		in_reset,
 			input	wire		in_clk,
 			
-			output	wire		out_sys_clk,
-			output	wire		out_sys_clk_x2,
-			output	wire		out_sys_reset,
-			
-			output	wire		out_sdram_clk,
-			output	wire		out_sdram_clk_90,
-			output	wire		out_sdram_reset,
-			
-			output	wire		out_uart_clk,
-			output	wire		out_uart_reset,
+			output	wire		out_clk,
+			output	wire		out_clk_x2,
+			output	wire		out_clk_x2_90,
+			output	wire		out_clk_uart,
+			output	wire		out_reset,
 			
 			output	wire		locked
 		);
@@ -36,58 +31,47 @@ module clkgen
 	// -------------------------
 	
 	// clk_in
-	wire		in_clk_ibufg;
+	wire		in_clk_bufg;
 	IBUFG
 		i_ibufg_clkin
 			(
 				.I		(in_clk), 
-				.O		(in_clk_ibufg)
+				.O		(in_clk_bufg)
 			);
 	
 	
-	
 	// -------------------------
-	//  System Clock
+	//  DCM 0
 	// -------------------------
 	
 	// clk0
-	wire		sys_clk_0;
-	wire		sys_clk_0_bufg;
+	wire		dcm0_clk_0;
+	wire		dcm0_clk_0_bufg;
 	BUFG
-		i_bufg_sys_clk_0
+		i_bufg_dcm0_clk_0
 			(
-				.I		(sys_clk_0), 
-				.O		(sys_clk_0_bufg)
+				.I		(dcm0_clk_0), 
+				.O		(dcm0_clk_0_bufg)
 			);
 	
-	// clkdv
-	wire		sys_clk_dv;
-	wire		sys_clk_dv_bufg;
-	BUFG
-		i_bufg_sys_clk_dv
-			(
-				.I		(sys_clk_dv), 
-				.O		(sys_clk_dv_bufg)
-			);
-
-	// clk2x
-	wire		sys_clk_2x;
-	wire		sys_clk_2x_bufg;
+	// clk_2x
+	wire		dcm0_clk_2x;
+	wire		dcm0_clk_2x_bufg;
 	BUFG
 		i_bufg_sys_clk_2x
 			(
-				.I		(sys_clk_2x), 
-				.O		(sys_clk_2x_bufg)
+				.I		(dcm0_clk_2x), 
+				.O		(dcm0_clk_2x_bufg)
 			);
 	
 	// DCM
-	wire		sys_dcm_locked;
+	wire		dcm0_locked;
 	DCM
 			#(
 				.CLK_FEEDBACK			("1X"),
 				.CLKDV_DIVIDE			(2.0),
 				.CLKFX_DIVIDE			(1),
-				.CLKFX_MULTIPLY			(4),
+				.CLKFX_MULTIPLY			(2),
 				.CLKIN_DIVIDE_BY_2		("FALSE"),
 				.CLKIN_PERIOD			(20.000),
 				.CLKOUT_PHASE_SHIFT		("NONE"),
@@ -99,112 +83,66 @@ module clkgen
 				.PHASE_SHIFT			(0),
 				.STARTUP_WAIT			("FALSE")
 			)
-		i_dcm
+		i_dcm_0
 			(
-				.CLKFB					(sys_clk_0_bufg), 
-				.CLKIN					(in_clk_ibufg), 
+				.CLKFB					(dcm0_clk_0_bufg), 
+				.CLKIN					(in_clk_bufg), 
 				.DSSEN					(1'b0),
 				.PSCLK					(1'b0), 
 				.PSEN					(1'b0), 
 				.PSINCDEC				(1'b0), 
 				.RST					(in_reset),
-				.CLKDV					(sys_clk_dv),
+				.CLKDV					(),
 				.CLKFX					(), 
 				.CLKFX180				(), 
-				.CLK0					(sys_clk_0), 
-				.CLK2X					(sys_clk_2x), 
+				.CLK0					(dcm0_clk_0), 
+				.CLK2X					(dcm0_clk_2x), 
 				.CLK2X180				(), 
 				.CLK90					(), 
 				.CLK180					(), 
 				.CLK270					(), 
-				.LOCKED					(sys_dcm_locked), 
+				.LOCKED					(dcm0_locked), 
 				.PSDONE					(), 
 				.STATUS					()
 			);
 	
-	// system reset
-	reg		[1:0]	reg_sys_reset;
-	always @( posedge sys_clk_dv_bufg or posedge in_reset ) begin
-		if ( in_reset ) begin
-			reg_sys_reset <= 2'b11;
-		end
-		else begin
-			if ( !locked ) begin
-				reg_sys_reset <= 2'b11;
-			end
-			else begin
-				reg_sys_reset <= {1'b0, reg_sys_reset[1]};
-			end
-		end
-	end
-	
-	
-	
-	
 	
 	// -------------------------
-	//  uart clock divider
-	// -------------------------
-	
-	reg							uart_clk_dv;
-	reg		[7:0]				dv_counter;
-	always @ ( posedge out_sys_clk_x2 ) begin
-		if ( out_sys_reset ) begin
-			dv_counter  <= 0;
-			uart_clk_dv <= 1'b0;
-		end
-		else begin
-			if ( dv_counter == (54 - 1) ) begin		// 115200 bps
-				dv_counter  <= 0;
-				uart_clk_dv <= ~uart_clk_dv;
-			end
-			else begin
-				dv_counter  <= dv_counter + 1;
-			end
-		end
-	end
-
-	assign out_uart_clk   = uart_clk_dv;
-	assign out_uart_reset = out_sys_reset;
-	
-	
-	
-	// -------------------------
-	//  DDR-SDRAM Clock
+	//  DCM 1
 	// -------------------------
 
-	// clk2x_0
-	wire		sdram_clk_0;
-	wire		sdram_clk_0_bufg;
+	// clk_0
+	wire		dcm1_clk_0;
+	wire		dcm1_clk_0_bufg;
 	BUFG
-		i_bufg_sdram_clk_0
+		i_bufg_dcm1_clk_0
 			(
-				.I		(sdram_clk_0), 
-				.O		(sdram_clk_0_bufg)
+				.I		(dcm1_clk_0), 
+				.O		(dcm1_clk_0_bufg)
 			);
 
-	// clk2x_0
-	wire		sdram_clk_dv;
-	wire		sdram_clk_dv_bufg;
+	// clk_dv
+	wire		dcm1_clk_dv;
+	wire		dcm1_clk_dv_bufg;
 	BUFG
-		i_bufg_sdram_clk_dv
+		i_bufg_dcm1_clk_dv
 			(
-				.I		(sdram_clk_dv), 
-				.O		(sdram_clk_dv_bufg)
+				.I		(dcm1_clk_dv), 
+				.O		(dcm1_clk_dv_bufg)
 			);
 	
-	// clk2x_90
-	wire		sdram_clk_90;
-	wire		sdram_clk_90_bufg;
+	// clk_90
+	wire		dcm1_clk_90;
+	wire		dcm1_clk_90_bufg;
 	BUFG
-		i_bufg_sdram_clk_90
+		i_bufg_dcm1_clk_90
 			(
-				.I		(sdram_clk_90), 
-				.O		(sdram_clk_90_bufg)
+				.I		(dcm1_clk_90), 
+				.O		(dcm1_clk_90_bufg)
 			);
 	
-	// DCM_x2
-	wire		sdram_dcm_locked;
+	// DCM
+	wire		dcm1_locked;
 	DCM
 			#(
 				.CLK_FEEDBACK			("1X"),
@@ -224,59 +162,83 @@ module clkgen
 			)
 		i_dcm_sdram
 			(
-				.CLKFB					(sdram_clk_0_bufg), 
-				.CLKIN					(sys_clk_2x_bufg), 
+				.CLKFB					(dcm1_clk_0_bufg), 
+				.CLKIN					(dcm0_clk_2x_bufg), 
 				.DSSEN					(1'b0),
 				.PSCLK					(1'b0), 
 				.PSEN					(1'b0), 
 				.PSINCDEC				(1'b0), 
-				.RST					(in_reset | !sys_dcm_locked),
-				.CLKDV					(sdram_clk_dv),
+				.RST					(in_reset | !dcm0_locked),
+				.CLKDV					(dcm1_clk_dv),
 				.CLKFX					(), 
 				.CLKFX180				(), 
-				.CLK0					(sdram_clk_0), 
+				.CLK0					(dcm1_clk_0), 
 				.CLK2X					(), 
 				.CLK2X180				(), 
-				.CLK90					(sdram_clk_90), 
+				.CLK90					(dcm1_clk_90), 
 				.CLK180					(), 
 				.CLK270					(), 
-				.LOCKED					(sdram_dcm_locked), 
+				.LOCKED					(dcm1_locked), 
 				.PSDONE					(), 
 				.STATUS					()
 			);
 	
-	// sdram reset
-	reg		[1:0]	reg_sdram_reset;
-	always @( posedge sdram_clk_0_bufg or posedge in_reset ) begin
+	
+	// -------------------------
+	//  synchronous reset
+	// -------------------------
+	
+	reg		[1:0]	reg_reset;
+	always @( posedge out_clk or posedge in_reset ) begin
 		if ( in_reset ) begin
-			reg_sdram_reset <= 2'b11;
+			reg_reset <= 2'b11;
 		end
 		else begin
 			if ( !locked ) begin
-				reg_sdram_reset <= 2'b11;
+				reg_reset <= 2'b11;
 			end
 			else begin
-				reg_sdram_reset <= {1'b0, reg_sdram_reset[1]};
+				reg_reset <= {1'b0, reg_reset[1]};
 			end
 		end
 	end
 	
-
-	// system clock & reset
-//	assign out_sys_clk    = sys_clk_0_bufg;
-//	assign out_sys_clk_x2 = sys_clk_2x_bufg;
-//	assign out_sys_reset  = reg_sys_reset[0];
-
-	assign out_sys_clk    = sdram_clk_dv_bufg;
-	assign out_sys_clk_x2 = sdram_clk_0_bufg;
-	assign out_sys_reset  = reg_sdram_reset[0];
 	
-	assign out_sdram_clk    = sdram_clk_0_bufg;
-	assign out_sdram_clk_90 = sdram_clk_90_bufg;
-	assign out_sdram_reset  = reg_sdram_reset[0];
+	// -------------------------
+	//  uart clock divider
+	// -------------------------
+	
+	reg							uart_clk_dv;
+	reg		[7:0]				dv_counter;
+	always @ ( posedge out_clk_x2 ) begin
+		if ( out_reset ) begin
+			dv_counter  <= 0;
+			uart_clk_dv <= 1'b0;
+		end
+		else begin
+			if ( dv_counter == (54 - 1) ) begin		// 115200 bps
+				dv_counter  <= 0;
+				uart_clk_dv <= ~uart_clk_dv;
+			end
+			else begin
+				dv_counter  <= dv_counter + 1;
+			end
+		end
+	end
 	
 	
-	assign locked = sys_dcm_locked & sdram_dcm_locked;
+	// -------------------------
+	//  assign
+	// -------------------------
+	
+	assign out_clk       = dcm1_clk_dv_bufg;
+	assign out_clk_x2    = dcm1_clk_0_bufg;
+	assign out_clk_x2_90 = dcm1_clk_90_bufg;
+	assign out_clk_uart  = uart_clk_dv;
+	assign out_reset     = reg_reset[0];
+	
+	assign locked        = dcm0_locked & dcm1_locked;
+	
 	
 endmodule
 
