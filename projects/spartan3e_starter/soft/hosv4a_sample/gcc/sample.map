@@ -1,0 +1,654 @@
+Archive member included because of file (symbol)
+
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(val_int.o)
+                              objs_sample/kernel_cfg.o (_kernel_ictxcb)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(ena_int.o)
+                              objs_sample/ostimer.o (ena_int)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(vclr_int.o)
+                              objs_sample/ostimer.o (vclr_int)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(cre_hep.o)
+                              objs_sample/kernel_cfg.o (_kernel_cre_hep)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sta_knl.o)
+                              objs_sample/main.o (vsta_knl)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(act_tsk.o)
+                              objs_sample/sample.o (act_tsk)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dly_tsk.o)
+                              objs_sample/sample.o (dly_tsk)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_sem.o)
+                              objs_sample/sample.o (sig_sem)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(wai_sem.o)
+                              objs_sample/sample.o (wai_sem)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(pol_sem.o)
+                              objs_sample/sample.o (pol_sem)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(twai_sem.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(wai_sem.o) (_kernel_wai_sem)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(isig_tim.o)
+                              objs_sample/ostimer.o (isig_tim)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(acre_isr.o)
+                              objs_sample/ostimer.o (acre_isr)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kcre_isr.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(acre_isr.o) (_kernel_cre_isr)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kdis_int.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sta_knl.o) (_kernel_dis_int)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kena_int.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sta_knl.o) (_kernel_ena_int)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kcre_ctx.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sta_knl.o) (_kernel_cre_ctx)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kswi_ctx.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sta_knl.o) (_kernel_sta_ctx)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kexc_hdr.o)
+                              objs_sample/crt0.o (_kernel_exc_hdr)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kini_irc.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sta_knl.o) (_kernel_ini_irc)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(ent_tsk.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(act_tsk.o) (_kernel_ent_tsk)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(idl_lop.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sta_knl.o) (_kernel_idl_lop)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_tsk.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sta_knl.o) (_kernel_dsp_tsk)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_sta.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(act_tsk.o) (_kernel_dsp_sta_tsk)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_wai.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dly_tsk.o) (_kernel_dsp_wai_tsk)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_wup.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_sem.o) (_kernel_dsp_wup_tsk)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(add_que.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(twai_sem.o) (_kernel_add_que)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(adf_que.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(add_que.o) (_kernel_adf_que)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(adp_que.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_sta.o) (_kernel_adp_que)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(rmv_que.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_wai.o) (_kernel_rmv_que)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(rmh_que.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_sem.o) (_kernel_rmh_que)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_tim.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(isig_tim.o) (_kernel_sig_tim)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_toq.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(isig_tim.o) (_kernel_sig_toq)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(add_toq.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dly_tsk.o) (_kernel_add_toq)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(rmv_toq.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_sem.o) (_kernel_rmv_toq)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_tmq.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(isig_tim.o) (_kernel_sig_tmq)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(alc_hep.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kcre_isr.o) (_kernel_alc_hep)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(ext_tsk.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(ent_tsk.o) (ext_tsk)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kexe_tex.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_tsk.o) (_kernel_exe_tex)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(krmv_mtx.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(ext_tsk.o) (_kernel_rmv_mtx)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sta_inh.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kexc_hdr.o) (_kernel_sta_inh)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(exe_inh.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kexc_hdr.o) (_kernel_exe_inh)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(end_inh.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kexc_hdr.o) (_kernel_end_inh)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kwai_int.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(idl_lop.o) (_kernel_wai_int)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(krst_ctx.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(ext_tsk.o) (_kernel_rst_ctx)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kexe_irc.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(exe_inh.o) (_kernel_exe_irc)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_ext.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(ext_tsk.o) (_kernel_dsp_ext_tsk)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kadd_mtx.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(krmv_mtx.o) (_kernel_add_mtx)
+/home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(exe_isr.o)
+                              /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kexe_irc.o) (_kernel_exe_isr)
+
+Allocating common symbols
+Common symbol       size              file
+
+_kernel_int_stkblk  0x100             objs_sample/kernel_cfg.o
+_kernel_int_tbl     0x400             objs_sample/kernel_cfg.o
+_kernel_isrcb_tbl   0x8               objs_sample/kernel_cfg.o
+_kernel_hep_memblk  0x80              objs_sample/kernel_cfg.o
+_kernel_syscb       0x44              objs_sample/kernel_cfg.o
+_kernel_sys_stkblk  0x100             objs_sample/kernel_cfg.o
+_kernel_ictxcb      0x8               /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(val_int.o)
+
+Discarded input sections
+
+ .reginfo       0x0000000000000000        0x0 objs_sample/main.o
+ .reginfo       0x0000000000000000        0x0 objs_sample/kernel_cfg.o
+ .reginfo       0x0000000000000000        0x0 objs_sample/sample.o
+ .reginfo       0x0000000000000000        0x0 objs_sample/uart.o
+ .reginfo       0x0000000000000000        0x0 objs_sample/ostimer.o
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(val_int.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(ena_int.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(vclr_int.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(cre_hep.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sta_knl.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(act_tsk.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dly_tsk.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_sem.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(wai_sem.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(pol_sem.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(twai_sem.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(isig_tim.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(acre_isr.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kcre_isr.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kdis_int.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kena_int.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kcre_ctx.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kswi_ctx.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kexc_hdr.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kini_irc.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(ent_tsk.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(idl_lop.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_tsk.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_sta.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_wai.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_wup.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(add_que.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(adf_que.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(adp_que.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(rmv_que.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(rmh_que.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_tim.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_toq.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(add_toq.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(rmv_toq.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_tmq.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(alc_hep.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(ext_tsk.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kexe_tex.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(krmv_mtx.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sta_inh.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(exe_inh.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(end_inh.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kwai_int.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(krst_ctx.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kexe_irc.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_ext.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kadd_mtx.o)
+ .reginfo       0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(exe_isr.o)
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+rom              0x0000000000000000 0x0000000000010000
+ram              0x0000000001000000 0x0000000000001000
+*default*        0x0000000000000000 0xffffffffffffffff
+
+Linker script and memory map
+
+
+.text           0x0000000000000000     0x22a8
+                0x0000000000000000                ___text = .
+ */crt0.o(.text)
+ .text          0x0000000000000000      0x190 objs_sample/crt0.o
+                0x0000000000000000                _reset_handler
+                0x0000000000000180                _exception_handler
+ *(.text)
+ .text          0x0000000000000190       0x20 objs_sample/main.o
+                0x0000000000000190                main
+ .text          0x00000000000001b0       0x80 objs_sample/kernel_cfg.o
+                0x0000000000000210                _kernel_cfg_sta
+                0x00000000000001b0                _kernel_cfg_ini
+ .text          0x0000000000000230      0x2f8 objs_sample/sample.o
+                0x0000000000000230                Sample_Initialize
+                0x00000000000002ec                Sample_PrintSatet
+                0x0000000000000270                Sample_RandWait
+                0x00000000000003a8                Sample_Task
+ .text          0x0000000000000528      0x1b0 objs_sample/uart.o
+                0x0000000000000560                Uart_PutChar
+                0x0000000000000530                Uart_GetChar
+                0x00000000000006ac                Uart_PutHexWord
+                0x0000000000000674                Uart_PutHexHalfWord
+                0x0000000000000608                Uart_hex2asc
+                0x0000000000000630                Uart_PutHexByte
+                0x0000000000000528                Uart_Initialize
+                0x0000000000000588                Uart_PutString
+ .text          0x00000000000006d8       0x80 objs_sample/ostimer.o
+                0x00000000000006d8                OsTimer_Initialize
+ .text          0x0000000000000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(val_int.o)
+ .text          0x0000000000000758       0x54 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(ena_int.o)
+                0x0000000000000758                ena_int
+ .text          0x00000000000007ac       0x50 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(vclr_int.o)
+                0x00000000000007ac                vclr_int
+ .text          0x00000000000007fc       0x50 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(cre_hep.o)
+                0x00000000000007fc                _kernel_cre_hep
+ .text          0x000000000000084c       0xfc /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sta_knl.o)
+                0x000000000000084c                vsta_knl
+ .text          0x0000000000000948      0x19c /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(act_tsk.o)
+                0x0000000000000948                act_tsk
+ .text          0x0000000000000ae4      0x110 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dly_tsk.o)
+                0x0000000000000ae4                dly_tsk
+ .text          0x0000000000000bf4      0x168 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_sem.o)
+                0x0000000000000bf4                sig_sem
+ .text          0x0000000000000d5c        0x8 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(wai_sem.o)
+                0x0000000000000d5c                wai_sem
+ .text          0x0000000000000d64        0x8 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(pol_sem.o)
+                0x0000000000000d64                pol_sem
+ .text          0x0000000000000d6c      0x1dc /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(twai_sem.o)
+                0x0000000000000d6c                _kernel_wai_sem
+                0x0000000000000f40                twai_sem
+ .text          0x0000000000000f48       0x7c /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(isig_tim.o)
+                0x0000000000000f48                isig_tim
+ .text          0x0000000000000fc4      0x13c /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(acre_isr.o)
+                0x0000000000000fc4                acre_isr
+ .text          0x0000000000001100       0xc4 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kcre_isr.o)
+                0x0000000000001100                _kernel_cre_isr
+ .text          0x00000000000011c4       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kdis_int.o)
+                0x00000000000011c4                _kernel_dis_int
+ .text          0x00000000000011e4       0x24 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kena_int.o)
+                0x00000000000011e4                _kernel_ena_int
+ .text          0x0000000000001208       0x34 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kcre_ctx.o)
+                0x0000000000001208                _kernel_cre_ctx
+ .text          0x000000000000123c       0x68 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kswi_ctx.o)
+                0x000000000000123c                _kernel_swi_ctx
+                0x000000000000126c                _kernel_sta_ctx
+ .text          0x00000000000012a4      0x144 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kexc_hdr.o)
+                0x00000000000012a4                _kernel_exc_hdr
+ .text          0x00000000000013e8       0x54 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kini_irc.o)
+                0x00000000000013e8                _kernel_ini_irc
+ .text          0x000000000000143c       0x4c /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(ent_tsk.o)
+                0x000000000000143c                _kernel_ent_tsk
+ .text          0x0000000000001488       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(idl_lop.o)
+                0x0000000000001488                _kernel_idl_lop
+ .text          0x00000000000014a8       0xf8 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_tsk.o)
+                0x00000000000014a8                _kernel_dsp_tsk
+ .text          0x00000000000015a0       0x2c /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_sta.o)
+                0x00000000000015a0                _kernel_dsp_sta_tsk
+ .text          0x00000000000015cc       0x2c /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_wai.o)
+                0x00000000000015cc                _kernel_dsp_wai_tsk
+ .text          0x00000000000015f8       0x5c /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_wup.o)
+                0x00000000000015f8                _kernel_dsp_wup_tsk
+ .text          0x0000000000001654       0x1c /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(add_que.o)
+                0x0000000000001654                _kernel_add_que
+ .text          0x0000000000001670       0x58 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(adf_que.o)
+                0x0000000000001670                _kernel_adf_que
+ .text          0x00000000000016c8       0xac /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(adp_que.o)
+                0x00000000000016c8                _kernel_adp_que
+ .text          0x0000000000001774       0xb0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(rmv_que.o)
+                0x0000000000001774                _kernel_rmv_que
+ .text          0x0000000000001824       0x60 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(rmh_que.o)
+                0x0000000000001824                _kernel_rmh_que
+ .text          0x0000000000001884       0x78 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_tim.o)
+                0x0000000000001884                _kernel_sig_tim
+ .text          0x00000000000018fc      0x100 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_toq.o)
+                0x00000000000018fc                _kernel_sig_toq
+ .text          0x00000000000019fc       0xe4 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(add_toq.o)
+                0x00000000000019fc                _kernel_add_toq
+ .text          0x0000000000001ae0       0x9c /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(rmv_toq.o)
+                0x0000000000001ae0                _kernel_rmv_toq
+ .text          0x0000000000001b7c       0xac /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_tmq.o)
+                0x0000000000001b7c                _kernel_sig_tmq
+ .text          0x0000000000001c28       0xac /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(alc_hep.o)
+                0x0000000000001c28                _kernel_alc_hep
+ .text          0x0000000000001cd4      0x110 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(ext_tsk.o)
+                0x0000000000001cd4                ext_tsk
+ .text          0x0000000000001de4      0x10c /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kexe_tex.o)
+                0x0000000000001de4                _kernel_exe_tex
+ .text          0x0000000000001ef0      0x110 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(krmv_mtx.o)
+                0x0000000000001ef0                _kernel_rmv_mtx
+ .text          0x0000000000002000       0x1c /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sta_inh.o)
+                0x0000000000002000                _kernel_sta_inh
+ .text          0x000000000000201c       0x6c /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(exe_inh.o)
+                0x000000000000201c                _kernel_exe_inh
+ .text          0x0000000000002088       0x30 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(end_inh.o)
+                0x0000000000002088                _kernel_end_inh
+ .text          0x00000000000020b8        0x8 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kwai_int.o)
+                0x00000000000020b8                _kernel_wai_int
+ .text          0x00000000000020c0        0x8 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(krst_ctx.o)
+                0x00000000000020c0                _kernel_rst_ctx
+ .text          0x00000000000020c8       0x74 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kexe_irc.o)
+                0x00000000000020c8                _kernel_exe_irc
+ .text          0x000000000000213c       0x2c /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_ext.o)
+                0x000000000000213c                _kernel_dsp_ext_tsk
+ .text          0x0000000000002168       0x7c /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kadd_mtx.o)
+                0x0000000000002168                _kernel_add_mtx
+ .text          0x00000000000021e4       0x7c /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(exe_isr.o)
+                0x00000000000021e4                _kernel_exe_isr
+ *(.strings)
+ *(.rodata*)
+ .rodata        0x0000000000002260       0x2c objs_sample/kernel_cfg.o
+                0x000000000000226c                _kernel_max_cycid
+                0x0000000000002264                _kernel_max_intno
+                0x0000000000002280                _kernel_max_semid
+                0x0000000000002284                _kernel_max_tskid
+                0x0000000000002260                _kernel_max_isrid
+                0x0000000000002268                _kernel_min_intno
+                0x0000000000002270                _kernel_syscb_ro
+                0x0000000000002288                _kernel_int_isp
+                0x000000000000227c                _kernel_max_mtxid
+ .rodata.str1.4
+                0x000000000000228c       0x1c objs_sample/sample.o
+ *(.glue*)
+                0x00000000000022a8                ___text_end = .
+
+.rel.dyn        0x0000000000000000        0x0
+ .rel.dyn       0x0000000000000000        0x0 objs_sample/kernel_cfg.o
+
+.tors           0x00000000000022a8        0x0
+                0x00000000000022a8                . = ALIGN (0x4)
+                0x00000000000022a8                ___ctors = .
+ *(.ctors)
+                0x00000000000022a8                ___ctors_end = .
+                0x00000000000022a8                ___dtors = .
+ *(.dtors)
+                0x00000000000022a8                ___dtors_end = .
+
+.data           0x0000000001000000      0x210 load address 0x00000000000022a8
+                0x00000000000022a8                ___data_rom = (ADDR (.tors) + SIZEOF (.tors))
+                0x0000000001000000                ___data = .
+ *(.data)
+ .data          0x0000000001000000        0x0 objs_sample/crt0.o
+ .data          0x0000000001000000        0x0 objs_sample/main.o
+ .data          0x0000000001000000      0x20c objs_sample/kernel_cfg.o
+                0x0000000001000000                _kernel_semcb_tbl
+                0x00000000010001c4                _kernel_tcb_blk_1
+                0x000000000100003c                _kernel_semcb_blk_5
+                0x000000000100004c                _kernel_semcb_blk_4
+                0x000000000100002c                _kernel_semcb_blk_6
+                0x000000000100008c                _kernel_tcb_tbl
+                0x000000000100006c                _kernel_semcb_blk_2
+                0x0000000001000134                _kernel_tcb_blk_3
+                0x00000000010000ec                _kernel_tcb_blk_4
+                0x000000000100005c                _kernel_semcb_blk_3
+                0x000000000100001c                _kernel_semcb_blk_7
+                0x000000000100017c                _kernel_tcb_blk_2
+                0x00000000010000a4                _kernel_tcb_blk_5
+                0x000000000100007c                _kernel_semcb_blk_1
+ .data          0x000000000100020c        0x4 objs_sample/sample.o
+ .data          0x0000000001000210        0x0 objs_sample/uart.o
+ .data          0x0000000001000210        0x0 objs_sample/ostimer.o
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(val_int.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(ena_int.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(vclr_int.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(cre_hep.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sta_knl.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(act_tsk.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dly_tsk.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_sem.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(wai_sem.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(pol_sem.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(twai_sem.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(isig_tim.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(acre_isr.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kcre_isr.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kdis_int.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kena_int.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kcre_ctx.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kswi_ctx.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kexc_hdr.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kini_irc.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(ent_tsk.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(idl_lop.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_tsk.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_sta.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_wai.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_wup.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(add_que.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(adf_que.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(adp_que.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(rmv_que.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(rmh_que.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_tim.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_toq.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(add_toq.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(rmv_toq.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_tmq.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(alc_hep.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(ext_tsk.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kexe_tex.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(krmv_mtx.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sta_inh.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(exe_inh.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(end_inh.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kwai_int.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(krst_ctx.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kexe_irc.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_ext.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kadd_mtx.o)
+ .data          0x0000000001000210        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(exe_isr.o)
+                0x0000000001008200                _gp = (ALIGN (0x10) + 0x7ff0)
+ *(.sdata)
+                0x0000000001000210                ___data_end = .
+
+.bss            0x0000000001000210      0xc1c load address 0x00000000000024b8
+                0x0000000001000210                ___bss = .
+ *(.sbss)
+ *(.bss)
+ .bss           0x0000000001000210        0x0 objs_sample/crt0.o
+ .bss           0x0000000001000210        0x0 objs_sample/main.o
+ .bss           0x0000000001000210      0x548 objs_sample/kernel_cfg.o
+                0x0000000001000210                _kernel_inh_tbl
+                0x0000000001000254                _kernel_mtxcb_tbl
+                0x0000000001000218                _kernel_cyccb_tbl
+ .bss           0x0000000001000758        0x0 objs_sample/sample.o
+ .bss           0x0000000001000758        0x0 objs_sample/uart.o
+ .bss           0x0000000001000758        0x0 objs_sample/ostimer.o
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(val_int.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(ena_int.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(vclr_int.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(cre_hep.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sta_knl.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(act_tsk.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dly_tsk.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_sem.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(wai_sem.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(pol_sem.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(twai_sem.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(isig_tim.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(acre_isr.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kcre_isr.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kdis_int.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kena_int.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kcre_ctx.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kswi_ctx.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kexc_hdr.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kini_irc.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(ent_tsk.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(idl_lop.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_tsk.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_sta.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_wai.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_wup.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(add_que.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(adf_que.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(adp_que.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(rmv_que.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(rmh_que.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_tim.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_toq.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(add_toq.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(rmv_toq.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_tmq.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(alc_hep.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(ext_tsk.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kexe_tex.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(krmv_mtx.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sta_inh.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(exe_inh.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(end_inh.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kwai_int.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(krst_ctx.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kexe_irc.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_ext.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kadd_mtx.o)
+ .bss           0x0000000001000758        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(exe_isr.o)
+ *(COMMON)
+ COMMON         0x0000000001000758      0x6cc objs_sample/kernel_cfg.o
+                0x0000000001000758                _kernel_int_stkblk
+                0x0000000001000858                _kernel_int_tbl
+                0x0000000001000c58                _kernel_isrcb_tbl
+                0x0000000001000c60                _kernel_hep_memblk
+                0x0000000001000ce0                _kernel_syscb
+                0x0000000001000d24                _kernel_sys_stkblk
+ COMMON         0x0000000001000e24        0x8 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(val_int.o)
+                0x0000000001000e24                _kernel_ictxcb
+ *(.scommon)
+                0x0000000001000e2c                ___bss_end = .
+LOAD objs_sample/crt0.o
+LOAD objs_sample/main.o
+LOAD objs_sample/kernel_cfg.o
+LOAD objs_sample/sample.o
+LOAD objs_sample/uart.o
+LOAD objs_sample/ostimer.o
+LOAD /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a
+LOAD /usr/local/cross/mips-elf/lib/gcc/mips-elf/4.0.2/soft-float/libgcc.a
+LOAD /usr/local/cross/mips-elf/lib/gcc/mips-elf/4.0.2/soft-float/libgcc.a
+OUTPUT(sample.elf elf32-bigmips)
+
+.reginfo        0x0000000000000000       0x18
+ .reginfo       0x0000000000000000       0x18 objs_sample/crt0.o
+
+.pdr            0x0000000000000000      0x8a0
+ .pdr           0x0000000000000000       0x40 objs_sample/crt0.o
+ .pdr           0x0000000000000040       0x20 objs_sample/main.o
+ .pdr           0x0000000000000060       0x40 objs_sample/kernel_cfg.o
+ .pdr           0x00000000000000a0       0x80 objs_sample/sample.o
+ .pdr           0x0000000000000120      0x100 objs_sample/uart.o
+ .pdr           0x0000000000000220       0x40 objs_sample/ostimer.o
+ .pdr           0x0000000000000260        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(val_int.o)
+ .pdr           0x0000000000000260       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(ena_int.o)
+ .pdr           0x0000000000000280       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(vclr_int.o)
+ .pdr           0x00000000000002a0       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(cre_hep.o)
+ .pdr           0x00000000000002c0       0x40 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sta_knl.o)
+ .pdr           0x0000000000000300       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(act_tsk.o)
+ .pdr           0x0000000000000320       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dly_tsk.o)
+ .pdr           0x0000000000000340       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_sem.o)
+ .pdr           0x0000000000000360       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(wai_sem.o)
+ .pdr           0x0000000000000380       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(pol_sem.o)
+ .pdr           0x00000000000003a0       0x40 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(twai_sem.o)
+ .pdr           0x00000000000003e0       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(isig_tim.o)
+ .pdr           0x0000000000000400       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(acre_isr.o)
+ .pdr           0x0000000000000420       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kcre_isr.o)
+ .pdr           0x0000000000000440       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kdis_int.o)
+ .pdr           0x0000000000000460       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kena_int.o)
+ .pdr           0x0000000000000480       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kcre_ctx.o)
+ .pdr           0x00000000000004a0       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kswi_ctx.o)
+ .pdr           0x00000000000004c0       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kexc_hdr.o)
+ .pdr           0x00000000000004e0       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kini_irc.o)
+ .pdr           0x0000000000000500       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(ent_tsk.o)
+ .pdr           0x0000000000000520       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(idl_lop.o)
+ .pdr           0x0000000000000540       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_tsk.o)
+ .pdr           0x0000000000000560       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_sta.o)
+ .pdr           0x0000000000000580       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_wai.o)
+ .pdr           0x00000000000005a0       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_wup.o)
+ .pdr           0x00000000000005c0       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(add_que.o)
+ .pdr           0x00000000000005e0       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(adf_que.o)
+ .pdr           0x0000000000000600       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(adp_que.o)
+ .pdr           0x0000000000000620       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(rmv_que.o)
+ .pdr           0x0000000000000640       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(rmh_que.o)
+ .pdr           0x0000000000000660       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_tim.o)
+ .pdr           0x0000000000000680       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_toq.o)
+ .pdr           0x00000000000006a0       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(add_toq.o)
+ .pdr           0x00000000000006c0       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(rmv_toq.o)
+ .pdr           0x00000000000006e0       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_tmq.o)
+ .pdr           0x0000000000000700       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(alc_hep.o)
+ .pdr           0x0000000000000720       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(ext_tsk.o)
+ .pdr           0x0000000000000740       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kexe_tex.o)
+ .pdr           0x0000000000000760       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(krmv_mtx.o)
+ .pdr           0x0000000000000780       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sta_inh.o)
+ .pdr           0x00000000000007a0       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(exe_inh.o)
+ .pdr           0x00000000000007c0       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(end_inh.o)
+ .pdr           0x00000000000007e0       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kwai_int.o)
+ .pdr           0x0000000000000800       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(krst_ctx.o)
+ .pdr           0x0000000000000820       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kexe_irc.o)
+ .pdr           0x0000000000000840       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_ext.o)
+ .pdr           0x0000000000000860       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kadd_mtx.o)
+ .pdr           0x0000000000000880       0x20 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(exe_isr.o)
+
+.mdebug.abi32   0x0000000000000000        0x0
+ .mdebug.abi32  0x0000000000000000        0x0 objs_sample/main.o
+ .mdebug.abi32  0x0000000000000000        0x0 objs_sample/kernel_cfg.o
+ .mdebug.abi32  0x0000000000000000        0x0 objs_sample/sample.o
+ .mdebug.abi32  0x0000000000000000        0x0 objs_sample/uart.o
+ .mdebug.abi32  0x0000000000000000        0x0 objs_sample/ostimer.o
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(val_int.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(ena_int.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(vclr_int.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(cre_hep.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sta_knl.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(act_tsk.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dly_tsk.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_sem.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(wai_sem.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(pol_sem.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(twai_sem.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(isig_tim.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(acre_isr.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kcre_isr.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kini_irc.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(ent_tsk.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(idl_lop.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_tsk.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_sta.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_wai.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_wup.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(add_que.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(adf_que.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(adp_que.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(rmv_que.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(rmh_que.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_tim.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_toq.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(add_toq.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(rmv_toq.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_tmq.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(alc_hep.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(ext_tsk.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kexe_tex.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(krmv_mtx.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sta_inh.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(exe_inh.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(end_inh.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kexe_irc.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_ext.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kadd_mtx.o)
+ .mdebug.abi32  0x0000000000000000        0x0 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(exe_isr.o)
+
+.comment        0x0000000000000000      0x34e
+ .comment       0x0000000000000000       0x12 objs_sample/main.o
+ .comment       0x0000000000000012       0x12 objs_sample/kernel_cfg.o
+ .comment       0x0000000000000024       0x12 objs_sample/sample.o
+ .comment       0x0000000000000036       0x12 objs_sample/uart.o
+ .comment       0x0000000000000048       0x12 objs_sample/ostimer.o
+ .comment       0x000000000000005a       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(val_int.o)
+ .comment       0x000000000000006c       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(ena_int.o)
+ .comment       0x000000000000007e       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(vclr_int.o)
+ .comment       0x0000000000000090       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(cre_hep.o)
+ .comment       0x00000000000000a2       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sta_knl.o)
+ .comment       0x00000000000000b4       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(act_tsk.o)
+ .comment       0x00000000000000c6       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dly_tsk.o)
+ .comment       0x00000000000000d8       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_sem.o)
+ .comment       0x00000000000000ea       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(wai_sem.o)
+ .comment       0x00000000000000fc       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(pol_sem.o)
+ .comment       0x000000000000010e       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(twai_sem.o)
+ .comment       0x0000000000000120       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(isig_tim.o)
+ .comment       0x0000000000000132       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(acre_isr.o)
+ .comment       0x0000000000000144       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kcre_isr.o)
+ .comment       0x0000000000000156       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kini_irc.o)
+ .comment       0x0000000000000168       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(ent_tsk.o)
+ .comment       0x000000000000017a       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(idl_lop.o)
+ .comment       0x000000000000018c       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_tsk.o)
+ .comment       0x000000000000019e       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_sta.o)
+ .comment       0x00000000000001b0       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_wai.o)
+ .comment       0x00000000000001c2       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_wup.o)
+ .comment       0x00000000000001d4       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(add_que.o)
+ .comment       0x00000000000001e6       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(adf_que.o)
+ .comment       0x00000000000001f8       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(adp_que.o)
+ .comment       0x000000000000020a       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(rmv_que.o)
+ .comment       0x000000000000021c       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(rmh_que.o)
+ .comment       0x000000000000022e       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_tim.o)
+ .comment       0x0000000000000240       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_toq.o)
+ .comment       0x0000000000000252       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(add_toq.o)
+ .comment       0x0000000000000264       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(rmv_toq.o)
+ .comment       0x0000000000000276       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sig_tmq.o)
+ .comment       0x0000000000000288       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(alc_hep.o)
+ .comment       0x000000000000029a       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(ext_tsk.o)
+ .comment       0x00000000000002ac       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kexe_tex.o)
+ .comment       0x00000000000002be       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(krmv_mtx.o)
+ .comment       0x00000000000002d0       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(sta_inh.o)
+ .comment       0x00000000000002e2       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(exe_inh.o)
+ .comment       0x00000000000002f4       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(end_inh.o)
+ .comment       0x0000000000000306       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kexe_irc.o)
+ .comment       0x0000000000000318       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(dsp_ext.o)
+ .comment       0x000000000000032a       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(kadd_mtx.o)
+ .comment       0x000000000000033c       0x12 /home/ryuji/hos-v4a/kernel/build/mips/jelly/gcc/libhosv4a.a(exe_isr.o)
