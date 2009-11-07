@@ -41,27 +41,27 @@ module jelly_sram
 	
 	jelly_wishbone_to_ram
 			#(
-				.ADR_WIDTH		(ADR_WIDTH),
-				.DAT_WIDTH		(DAT_WIDTH)
+				.WB_ADR_WIDTH	(WB_ADR_WIDTH),
+				.WB_DAT_WIDTH	(WB_DAT_WIDTH)
 			)
 		i_wishbone_to_ram
 			(
-				reset			(reset),
-				clk				(clk),
+				.reset			(reset),
+				.clk			(clk),
 				
-				wb_adr_i		(wb_adr_i),
-				wb_dat_o		(wb_dat_o),
-				wb_dat_i		(wb_dat_i),
-				wb_we_i			(wb_we_i),
-				wb_sel_i		(wb_sel_i),
-				wb_stb_i		(wb_stb_i),
-				wb_ack_o		(wb_ack_o),
+				.wb_adr_i		(wb_adr_i),
+				.wb_dat_o		(wb_dat_o),
+				.wb_dat_i		(wb_dat_i),
+				.wb_we_i		(wb_we_i),
+				.wb_sel_i		(wb_sel_i),
+				.wb_stb_i		(wb_stb_i),
+				.wb_ack_o		(wb_ack_o),
 				
-				ram_en			(ram_en),
-				ram_we			(ram_we),
-				ram_addr		(ram_addr),
-				ram_wdata		(ram_wdata),
-				ram_rdata		(ram_rdata)
+				.ram_en			(ram_en),
+				.ram_we			(ram_we),
+				.ram_addr		(ram_addr),
+				.ram_wdata		(ram_wdata),
+				.ram_rdata		(ram_rdata)
 			);                 
 	
 	jelly_ram_singleport

@@ -276,7 +276,12 @@ module jelly_cache_core
 	assign ram_write_data    = read_end ? wb_master_dat_i : ((write_data_mask & write_data) | (~write_data_mask & ram_read_data));
 	
 	assign jbus_slave_rdata  = cache_rdata;
-	assign jbus_slave_ready  = !((wb_master_stb_o & !wb_master_ack_i) | cache_read_miss | cache_write_hit);
+//	assign jbus_slave_ready  = !((wb_master_stb_o & !wb_master_ack_i) | cache_read_miss | cache_write_hit);
+	assign jbus_slave_ready  = !(
+									((wb_master_stb_o & !wb_master_ack_i) &((reg_slave_we & !write_end) | (cache_read_miss & !read_end)))
+									| cache_read_miss
+									| cache_write_hit
+								);
 	
 endmodule
 

@@ -45,7 +45,7 @@ module jelly_wishbone_to_ram
 	input	[WB_SEL_WIDTH-1:0]	sel;
 	integer					i, j;
 	begin
-		for ( i = 0; i < SEL_WIDTH; i = i + 1 ) begin
+		for ( i = 0; i < WB_SEL_WIDTH; i = i + 1 ) begin
 			for ( j = 0; j < 8; j = j + 1 ) begin
 				make_write_mask[i*8 + j] = sel[i];
 			end

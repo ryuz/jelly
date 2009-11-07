@@ -1316,10 +1316,13 @@ module jelly_cpu_core
 	end
 	endgenerate
 
-
+	
+	
 	// -----------------------------
 	//  simulation
 	// -----------------------------
+
+`ifdef simulation
 	
 	generate 
 	if ( SIM_PC_TRACE ) begin
@@ -1362,5 +1365,7 @@ module jelly_cpu_core
 				);
 	end
 	endgenerate
-	
+
+`endif
+
 endmodule

@@ -10,24 +10,24 @@
 TARGET ?= sample
 
 # %jp{ツール定義}
-GCC_ARCH     ?= mips-elf-
-CMD_CC       ?= $(GCC_ARCH)gcc
-CMD_ASM      ?= $(GCC_ARCH)gcc
-CMD_LINK     ?= $(GCC_ARCH)gcc
-CMD_OBJCNV   ?= $(GCC_ARCH)objcopy
-
+GCC_ARCH    ?= mips-elf-
+CMD_CC      ?= $(GCC_ARCH)gcc
+CMD_ASM     ?= $(GCC_ARCH)gcc
+CMD_LINK    ?= $(GCC_ARCH)gcc
+CMD_OBJCNV  ?= $(GCC_ARCH)objcopy
+CMD_OBJDUMP ?= $(GCC_ARCH)objdump
 
 # %jp{ディレクトリ}
-OS_DIR            = /home/ryuji/hos-v4a
-KERNEL_DIR        = $(OS_DIR)/kernel
-KERNEL_CFGRTR_DIR = $(OS_DIR)/cfgrtr/build/gcc
+HOS_DIR           = $(HOME)/hos-v4a
+KERNEL_DIR        = $(HOS_DIR)/kernel
+KERNEL_CFGRTR_DIR = $(HOS_DIR)/cfgrtr/build/gcc
 KERNEL_MAKINC_DIR = $(KERNEL_DIR)/build/common/gmake
 KERNEL_BUILD_DIR  = $(KERNEL_DIR)/build/mips/jelly/gcc
-APLFW_DIR         = $(OS_DIR)/aplfw
+APLFW_DIR         = $(HOS_DIR)/aplfw
 APLFW_INC_DIR     = $(APLFW_DIR)
 APLFW_BUILD_DIR   = $(APLFW_DIR)/build/mips/jelly/gcc
+TOOLS_DIR         = ../../../../../tools
 OBJS_DIR          = objs_$(TARGET)
-
 
 # %jp{カーネル設定}
 KERNEL_HOK_TSK = Yes
@@ -71,10 +71,10 @@ LNFLAGS = -march=mips1 -msoft-float -G 0 -nostartfiles -Wl,-Map,$(TARGET).map,-T
 
 
 # %jp{出力ファイル名}
-TARGET_EXE = $(TARGET).elf
-TARGET_MOT = $(TARGET).mot
-TARGET_HEX = $(TARGET).hex
-TARGET_BIN = $(TARGET).bin
+TARGET_EXE = $(TARGET).$(EXT_EXE)
+TARGET_BIN = $(TARGET).$(EXT_BIN)
+
+TARGETS = $(TARGET_EXE) $(TARGET_BIN)
 
 
 # %jp{gcc用の設定読込み}
@@ -129,8 +129,9 @@ LIBS += $(APLFW_LIB) -lc
 # --------------------------------------
 
 .PHONY : all
-all: kernel_make make_subprj makeexe_all $(TARGET_EXE) $(TARGET_MOT) $(TARGET_HEX) $(TARGET_BIN)
-	mips-elf-objdump -D $(TARGET_EXE) > $(TARGET)_disasm.txt
+all: kernel_make make_subprj makeexe_all $(TARGETS)
+	$(CMD_OBJDUMP) -D $(TARGET_EXE)             > $(TARGET).das
+	$(TOOLS_DIR)/bin2hex.pl $(TARGET_BIN) 32768 > $(TARGET).hex
 
 .PHONY : run
 run: all
@@ -143,7 +144,7 @@ make_subprj:
 
 .PHONY : clean
 clean: makeexe_clean
-	rm -f $(TARGET_EXE) $(TARGET_EXE) $(OBJS) ../kernel_cfg.c ../kernel_id.h
+	rm -f  $(TARGETS) $(OBJS) ../kernel_cfg.c ../kernel_id.h
 
 .PHONY : depend
 depend: makeexe_depend

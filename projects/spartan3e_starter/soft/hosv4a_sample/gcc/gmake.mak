@@ -32,12 +32,12 @@ EXT_EXE   ?= elf
 
 
 # %jp{ディレクトリ定義}%en{directories}
-TOOLS_DIR         = ../../../../../tools
 HOS_DIR           = $(HOME)/hos-v4a
 KERNEL_DIR        = $(HOS_DIR)/kernel
 KERNEL_CFGRTR_DIR = $(HOS_DIR)/cfgrtr/build/gcc
 KERNEL_MAKINC_DIR = $(KERNEL_DIR)/build/common/gmake
 KERNEL_BUILD_DIR  = $(KERNEL_DIR)/build/mips/jelly/gcc
+TOOLS_DIR         = ../../../../../tools
 
 
 # %jp{コンフィギュレータ定義}

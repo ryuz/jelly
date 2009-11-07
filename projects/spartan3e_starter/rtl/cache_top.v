@@ -153,11 +153,11 @@ module cache_top
 				.CACHE_LINE_SIZE	(1),	// 2^n (0:1words, 1:2words, 2:4words ...)
 				.CACHE_ARRAY_SIZE	(9),	// 2^n (1:2lines, 2:4lines 3:8lines ...)
 				
-				.CACHE_ADDR_MASK	(30'b1111_1110_0000_0000__0000_0000_0000_00),
+				.CACHE_ADDR_MASK	(30'b1110_0000_0000_0000__0000_0000_0000_00),
 				.CACHE_ADDR_VALUE	(30'b0000_0000_0000_0000__0000_0000_0000_00),
 				.CACHE_ADDR_WIDTH	(30),
 				
-				.MEM_ADR_WIDTH		(23)
+				.MEM_ADR_WIDTH		(25)
 			)
 		i_cpu_top
 			(
@@ -278,6 +278,28 @@ module cache_top
 				.wb_master_ack_i	(wb_rom32_ack_i)
 			);
 	
+	jelly_sram
+			#(
+				.WB_ADR_WIDTH		(16), // (12),
+				.WB_DAT_WIDTH		(32),
+				.READMEMH			(1),
+				.READMEM_FILE		("sample.hex")
+			)
+		i_sram_rom
+			(
+				.reset				(reset),
+				.clk				(clk),
+				
+				.wb_adr_i			(wb_rom32_adr_o[17:2]), // [13:2]),
+				.wb_dat_o			(wb_rom32_dat_i),
+				.wb_dat_i			(wb_rom32_dat_o),
+				.wb_we_i			(wb_rom32_we_o),
+				.wb_sel_i			(wb_rom32_sel_o),
+				.wb_stb_i			(wb_rom32_stb_o),
+				.wb_ack_o			(wb_rom32_ack_i)
+			);
+	
+	/*
 	boot_rom
 		i_boot_rom
 			(
@@ -286,7 +308,7 @@ module cache_top
 				.data				(wb_rom32_dat_i)
 			);
 	assign wb_rom32_ack_i = 1'b1;
-	
+	*/
 	
 	
 	// -----------------------------

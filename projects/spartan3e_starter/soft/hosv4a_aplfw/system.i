@@ -3,7 +3,7 @@
 # 1 "<command line>"
 # 1 "../system.cfg"
 # 14 "../system.cfg"
-KERNEL_HEP_MEM(0x100000, 0x100000);
+KERNEL_HEP_MEM(0x100000, 0x01200000);
 KERNEL_INT_STK(2048, NULL);
 KERNEL_SYS_STK(2048, NULL);
 KERNEL_MAX_TSKID(32);
