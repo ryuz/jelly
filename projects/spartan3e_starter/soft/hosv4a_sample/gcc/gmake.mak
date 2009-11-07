@@ -16,11 +16,13 @@ TARGET ?= sample
 
 
 # %jp{ツール定義}%en{tools}
-GCC_ARCH   ?= mips-elf-
-CMD_CC     ?= $(GCC_ARCH)gcc
-CMD_ASM    ?= $(GCC_ARCH)gcc
-CMD_LINK   ?= $(GCC_ARCH)gcc
-CMD_OBJCNV ?= $(GCC_ARCH)objcopy
+GCC_ARCH    ?= mips-elf-
+CMD_CC      ?= $(GCC_ARCH)gcc
+CMD_ASM     ?= $(GCC_ARCH)gcc
+CMD_LINK    ?= $(GCC_ARCH)gcc
+CMD_OBJCNV  ?= $(GCC_ARCH)objcopy
+CMD_OBJDUMP ?= $(GCC_ARCH)objdump
+
 
 
 # %jp{アーキテクチャ定義}%en{architecture}
@@ -30,9 +32,10 @@ EXT_EXE   ?= elf
 
 
 # %jp{ディレクトリ定義}%en{directories}
-TOP_DIR           = $(HOME)/hos-v4a
-KERNEL_DIR        = $(TOP_DIR)/kernel
-KERNEL_CFGRTR_DIR = $(TOP_DIR)/cfgrtr/build/gcc
+TOOLS_DIR         = ../../../../../tools
+HOS_DIR           = $(HOME)/hos-v4a
+KERNEL_DIR        = $(HOS_DIR)/kernel
+KERNEL_CFGRTR_DIR = $(HOS_DIR)/cfgrtr/build/gcc
 KERNEL_MAKINC_DIR = $(KERNEL_DIR)/build/common/gmake
 KERNEL_BUILD_DIR  = $(KERNEL_DIR)/build/mips/jelly/gcc
 
@@ -76,9 +79,9 @@ include $(KERNEL_MAKINC_DIR)/makexe_d.inc
 
 # %jp{出力ファイル名}%en{output files}
 TARGET_EXE = $(TARGET).$(EXT_EXE)
-TARGET_MOT = $(TARGET).$(EXT_MOT)
-TARGET_HEX = $(TARGET).$(EXT_HEX)
 TARGET_BIN = $(TARGET).$(EXT_BIN)
+
+TARGETS = $(TARGET_EXE) $(TARGET_BIN)
 
 
 
@@ -105,7 +108,9 @@ CSRCS += ../ostimer.c
 
 # %jp{ALL}%en{all}
 .PHONY : all
-all: kernel_make makeexe_all $(TARGET_EXE) $(TARGET_MOT) $(TARGET_HEX) $(TARGET_BIN)
+all: kernel_make makeexe_all $(TARGETS)
+	$(CMD_OBJDUMP) -D $(TARGET_EXE)            > $(TARGET).das
+	$(TOOLS_DIR)/bin2hex.pl $(TARGET_BIN) 4096 > $(TARGET).hex
 
 .PHONY : run
 run: $(TARGET_BIN)
@@ -114,7 +119,7 @@ run: $(TARGET_BIN)
 # %jp{クリーン}%en{clean}
 .PHONY : clean
 clean: makeexe_clean
-	rm -f $(TARGET_EXE) $(TARGET_EXE) $(OBJS) ../kernel_cfg.c ../kernel_id.h
+	rm -f $(TARGETS) $(TARGET).hex $(OBJS) ../kernel_cfg.c ../kernel_id.h
 
 # %jp{依存関係更新}%en{depend}
 .PHONY : depend

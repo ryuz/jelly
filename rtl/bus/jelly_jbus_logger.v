@@ -12,13 +12,17 @@
 
 module jelly_jbus_logger
 		#(
-			parameter	ADDR_WIDTH = 12,
-			parameter	DATA_SIZE  = 2,		// 2^n (0:8bit, 1:16bit, 2:32bit ...)
-			parameter	DATA_WIDTH = (8 << DATA_SIZE),
-			parameter	SEL_WIDTH  = (DATA_WIDTH / 8),
-			parameter	FILE_NAME  = "",
-			parameter	DISPLAY    = 1,
-			parameter	MESSAGE    = "[jbus trace]"
+			parameter	ADDR_WIDTH      = 12,
+			parameter	DATA_SIZE       = 2,		// 2^n (0:8bit, 1:16bit, 2:32bit ...)
+			parameter	DATA_WIDTH      = (8 << DATA_SIZE),
+			parameter	SEL_WIDTH       = (DATA_WIDTH / 8),
+			parameter	FILE_NAME       = "",
+			parameter	DISPLAY         = 1,
+			parameter	MESSAGE         = "[jbus trace]",
+			parameter	CHECK_DATA      = 0,
+			parameter	CHECK_ADR_MASK  = 32'hf000_0000,
+			parameter	CHECK_ADR_VALUE = 32'h0000_0000,
+			parameter	CHECK_MEM_SIZE  = 256*1024
 		)
 		(
 			// system
@@ -68,6 +72,7 @@ module jelly_jbus_logger
 				read_sel  <= {SEL_WIDTH{1'bx}};
 			end
 			
+			// read
 			if ( read_busy & jbus_ready ) begin
 				if ( DISPLAY ) begin
 					$display("r %h %h %h %d %s", read_addr, jbus_rdata, read_sel, $time, MESSAGE);
@@ -79,6 +84,7 @@ module jelly_jbus_logger
 				end
 			end
 			
+			// write
 			if ( jbus_en & jbus_we & jbus_valid & jbus_ready ) begin
 				if ( DISPLAY ) begin
 					$display("w %h %h %h %d %s", jbus_addr, jbus_wdata, jbus_sel, $time, MESSAGE);
@@ -91,6 +97,94 @@ module jelly_jbus_logger
 			end
 		end
 	end
+	
+	generate
+	if ( CHECK_DATA ) begin
+		reg		[ADDR_WIDTH-1:0]	table_addr		[0:CHECK_MEM_SIZE-1];
+		reg		[DATA_WIDTH-1:0]	table_data		[0:CHECK_MEM_SIZE-1];
+		integer						table_size = 0;
+		
+		// write
+		task write_table;
+		input	[ADDR_WIDTH-1:0]	addr;
+		input	[DATA_WIDTH-1:0]	data;
+		input	[SEL_WIDTH-1:0]		sel;
+		integer						i, j;
+		integer						index;
+		begin
+			if ( (addr & CHECK_ADR_MASK) == CHECK_ADR_VALUE ) begin
+				index = -1;
+				for ( i = 0; i < table_size; i = i + 1 ) begin
+					if ( table_addr[i] == addr ) begin
+						index = i;
+					end
+				end
+				if ( index < 0 && table_size + 1 < CHECK_MEM_SIZE ) begin
+					index      = table_size;
+					table_size = table_size + 1;
+				end
+				if ( index >= 0 ) begin
+					table_addr[index] = addr;
+					for ( i = 0; i < SEL_WIDTH; i = i + 1 ) begin
+						if ( sel[i] ) begin
+							for ( j = 0; j < SEL_WIDTH; j = j + 1 ) begin
+								table_data[index][i*8+j] = data[i*8+j];
+							end
+						end
+					end
+				end
+			end
+		end
+		endtask
+		
+		// read
+		task read_table;
+		input	[ADDR_WIDTH-1:0]	addr;
+		input	[DATA_WIDTH-1:0]	data;
+		input	[SEL_WIDTH-1:0]		sel;
+		integer						i, j;
+		integer						index;
+		begin
+			if ( (addr & CHECK_ADR_MASK) == CHECK_ADR_VALUE ) begin
+				index = -1;
+				for ( i = 0; i < table_size; i = i + 1 ) begin
+					if ( table_addr[i] == addr ) begin
+						index = i;
+					end
+				end
+				if ( index >= 0 ) begin
+					table_addr[index] = addr;
+					for ( i = 0; i < SEL_WIDTH; i = i + 1 ) begin
+						if ( sel[i] ) begin
+							for ( j = 0; j < SEL_WIDTH; j = j + 1 ) begin
+								if ( table_data[index][i*8+j] !== 1'bx && table_data[index][i*8+j] !== data[i*8+j] ) begin
+									$display("read miss match: %h %h %h  %d", addr, data ,sel, $time);
+								end
+							end
+						end
+					end
+				end
+				write_table(addr, data, sel);
+			end
+		end
+		endtask
+		
+		always @( posedge clk ) begin
+			if ( !reset ) begin
+				// read
+				if ( read_busy & jbus_ready ) begin
+					read_table(read_addr, jbus_rdata, read_sel);
+				end
+				
+				// write
+				if ( jbus_en & jbus_we & jbus_valid & jbus_ready ) begin
+					write_table(jbus_addr, jbus_wdata, jbus_sel);
+				end
+			end
+		end
+	end
+	endgenerate
+	
 	
 endmodule
 

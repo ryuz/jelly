@@ -19,17 +19,15 @@ module jelly_ram_singleport
 			parameter	DATA_WIDTH   = 8,
 			parameter	MEM_SIZE     = (1 << ADDR_WIDTH),
 			parameter	WRITE_FIRST  = 0,
-			parameter	INIT_DOUT    = 0,
 			
 			parameter	FILLMEM      = 0,
 			parameter	FILLMEM_DATA = 0,
 			parameter	READMEMB     = 0,
 			parameter	READMEMH     = 0,
-			parameter	READMEM_FIlE = ""
+			parameter	READMEM_FILE = ""
 		)
 		(
 			input	wire						clk,
-			input	wire						reset,
 			input	wire						en,
 			input	wire						we,
 			input	wire	[ADDR_WIDTH-1:0]	addr,
@@ -50,16 +48,11 @@ module jelly_ram_singleport
 					mem[addr] <= din;
 				end
 				
-				if ( reset ) begin
-					dout <= INIT_DOUT;
+				if ( we ) begin
+					dout <= din;
 				end
 				else begin
-					if ( we ) begin
-						dout <= din;
-					end
-					else begin
-						dout <= mem[addr];
-					end
+					dout <= mem[addr];
 				end
 			end
 		end
@@ -71,13 +64,7 @@ module jelly_ram_singleport
 				if ( we ) begin
 					mem[addr] <= din;
 				end
-				
-				if ( reset ) begin
-					dout <= INIT_DOUT;
-				end
-				else begin
-					dout <= mem[addr];
-				end
+				dout <= mem[addr];
 			end
 		end
 	end
@@ -93,10 +80,10 @@ module jelly_ram_singleport
 		end
 
 		if ( READMEMB ) begin
-			$readmemb(READMEM_FIlE, mem);
+			$readmemb(READMEM_FILE, mem);
 		end
 		if ( READMEMH ) begin
-			$readmemh(READMEM_FIlE, mem);
+			$readmemh(READMEM_FILE, mem);
 		end
 	end
 	

@@ -7,17 +7,17 @@
 // ---------------------------------------------------------------------------
 
 
-
 `timescale 1ns / 1ps
-
 
 
 module jelly_sram
 		#(
-			parameter							WB_ADR_WIDTH  = 10,
-			parameter							WB_DAT_WIDTH  = 32,
-			parameter							WB_SEL_WIDTH  = (WB_DAT_WIDTH / 8),
-			parameter							CYCLE         = 0
+			parameter	WB_ADR_WIDTH  = 10,
+			parameter	WB_DAT_WIDTH  = 32,
+			parameter	WB_SEL_WIDTH  = (WB_DAT_WIDTH / 8),
+			parameter	READMEMB      = 0,
+			parameter	READMEMH      = 0,
+			parameter	READMEM_FILE  = ""
 		)
 		(
 			input	wire						reset,
@@ -33,58 +33,56 @@ module jelly_sram
 			output	wire						wb_ack_o
 		);
 	
-	generate
-	genvar	i;
-	if ( CYCLE == 0 ) begin
-		for ( i = 0; i < WB_SEL_WIDTH; i = i + 1 ) begin : ram
-			jelly_ram_singleport
-					#(
-						.DATA_WIDTH		(8),
-						.ADDR_WIDTH		(WB_ADR_WIDTH)
-					)
-				i_ram_singleport
-					(
-						.clk			(~clk),
-						.reset			(1'b0),
-						.en				(wb_stb_i),
-						.we				(wb_we_i & wb_sel_i[i]),
-						.addr			(wb_adr_i),
-						.din			(wb_dat_i[i*8 +: 8]),
-						.dout			(wb_dat_o[i*8 +: 8])
-					);
-		end
-		assign wb_ack_o = 1'b1;
-	end
-	else begin
-		for ( i = 0; i < WB_SEL_WIDTH; i = i + 1 ) begin : ram
-			jelly_ram_singleport
-					#(
-						.DATA_WIDTH		(8),
-						.ADDR_WIDTH		(WB_ADR_WIDTH)
-					)
-				i_ram_singleport
-					(
-						.clk			(clk),
-						.reset			(1'b0),
-						.en				(wb_stb_i),
-						.we				(wb_we_i & wb_sel_i[i]),
-						.addr			(wb_adr_i),
-						.din			(wb_dat_i[i*8 +: 8]),
-						.dout			(wb_dat_o[i*8 +: 8])
-					);
-		end
-		
-		reg		read;
-		always @ ( posedge clk ) begin
-		if ( reset ) begin
-				read <= 1'b0;
-			end
-			else begin
-				read <= !read & wb_stb_i & !wb_we_i;
-			end
-		end
-		assign wb_ack_o = wb_we_i | read;
-	end
-	endgenerate
+	wire						ram_en;
+	wire						ram_we;
+	wire	[WB_ADR_WIDTH-1:0]	ram_addr;
+	wire	[WB_DAT_WIDTH-1:0]	ram_wdata;
+	wire	[WB_DAT_WIDTH-1:0]	ram_rdata;
 	
+	jelly_wishbone_to_ram
+			#(
+				.ADR_WIDTH		(ADR_WIDTH),
+				.DAT_WIDTH		(DAT_WIDTH)
+			)
+		i_wishbone_to_ram
+			(
+				reset			(reset),
+				clk				(clk),
+				
+				wb_adr_i		(wb_adr_i),
+				wb_dat_o		(wb_dat_o),
+				wb_dat_i		(wb_dat_i),
+				wb_we_i			(wb_we_i),
+				wb_sel_i		(wb_sel_i),
+				wb_stb_i		(wb_stb_i),
+				wb_ack_o		(wb_ack_o),
+				
+				ram_en			(ram_en),
+				ram_we			(ram_we),
+				ram_addr		(ram_addr),
+				ram_wdata		(ram_wdata),
+				ram_rdata		(ram_rdata)
+			);                 
+	
+	jelly_ram_singleport
+			#(
+				.ADDR_WIDTH		(WB_ADR_WIDTH),
+				.DATA_WIDTH		(WB_DAT_WIDTH),
+				.WRITE_FIRST	(0),
+				.FILLMEM		(0),
+				.FILLMEM_DATA	({WB_DAT_WIDTH{1'b0}}),
+				.READMEMB		(READMEMB),
+				.READMEMH		(READMEMH),
+				.READMEM_FILE	(READMEM_FILE)
+			)
+		i_ram_singleport
+			(
+				.clk			(clk),
+				.en				(ram_en),
+				.we				(ram_we),
+				.addr			(ram_addr),
+				.din			(ram_wdata),
+				.dout			(ram_rdata)
+			);                 
+			
 endmodule
