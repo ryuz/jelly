@@ -60,9 +60,10 @@ module jelly_jbus_decoder
 	wire	sw;
 	assign	sw = ((jbus_slave_addr & DEC_ADDR_MASK) == DEC_ADDR_VALUE);
 	
-	reg		read_busy;
+	wire	read_ready;
 	reg		read_sw;
 	
+	reg		read_busy;
 	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			read_busy <= 1'b0;
@@ -79,24 +80,24 @@ module jelly_jbus_decoder
 			end
 		end
 	end
+	assign read_ready = read_busy ? (read_sw ? jbus_decode_ready : jbus_master_ready) : 1'b1;
 	
-	assign jbus_master_en    = jbus_slave_en;
-	assign jbus_master_addr  = jbus_slave_addr; 
+	assign jbus_master_en    = jbus_slave_en & read_ready;
+	assign jbus_master_addr  = jbus_slave_addr;
 	assign jbus_master_wdata = jbus_slave_wdata; 
 	assign jbus_master_we    = jbus_slave_we;
 	assign jbus_master_sel   = jbus_slave_sel;
-	assign jbus_master_valid = jbus_slave_valid & !sw & !(read_busy & read_sw);
+	assign jbus_master_valid = jbus_slave_valid & !sw;
 	
-	assign jbus_decode_en    = jbus_slave_en;
+	assign jbus_decode_en    = jbus_slave_en & read_ready;
 	assign jbus_decode_addr  = jbus_slave_addr; 
 	assign jbus_decode_wdata = jbus_slave_wdata; 
 	assign jbus_decode_we    = jbus_slave_we;
 	assign jbus_decode_sel   = jbus_slave_sel;
-	assign jbus_decode_valid = jbus_slave_valid & sw & !(read_busy & !read_sw);
+	assign jbus_decode_valid = jbus_slave_valid & sw;
 	
 	assign jbus_slave_rdata = read_sw ? jbus_decode_rdata : jbus_master_rdata;
-	assign jbus_slave_ready = (sw ? jbus_decode_ready : jbus_master_ready)
-								& (!read_busy | (read_sw ? jbus_decode_ready : jbus_master_ready));
+	assign jbus_slave_ready = (sw ? jbus_decode_ready : jbus_master_ready) & read_ready;
 	
 endmodule
 

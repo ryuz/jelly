@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
 	{
 		return 1;
 	}
-
+	
 	if ( (fp = fopen(argv[1], "r")) == NULL )
 	{
 		return 1;
@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 	ReadDisAsm(fp);
 	fclose(fp);
 	
-
+	
 	if ( (fp = fopen(argv[2], "r")) == NULL )
 	{
 		return 1;
@@ -126,8 +126,8 @@ int main(int argc, char *argv[])
 		}
 	}
 	fclose(fp);
-
-
+	
+	
 	return 0;
 }
 

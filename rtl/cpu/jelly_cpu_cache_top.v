@@ -21,7 +21,7 @@ module jelly_cpu_cache_top
 			parameter	GPR_TYPE         = 0,
 			parameter	MUL_CYCLE        = 0,
 			parameter	DBBP_NUM         = 4,
-
+			
 			parameter	CACHE_LINE_SIZE  = 2,		// 2^n (0:1words, 1:2words, 2:4words ...)
 			parameter	CACHE_ARRAY_SIZE = 9,		// 2^n (1:2lines, 2:4lines 3:8lines ...)
 			
@@ -32,7 +32,9 @@ module jelly_cpu_cache_top
 			parameter	MEM_ADR_WIDTH    = 30 - CACHE_LINE_SIZE,
 			parameter	MEM_DAT_SIZE     = 2 + CACHE_LINE_SIZE,
 			parameter	MEM_DAT_WIDTH    = (8 << MEM_DAT_SIZE),
-			parameter	MEM_SEL_WIDTH    = (1 << MEM_DAT_SIZE)
+			parameter	MEM_SEL_WIDTH    = (1 << MEM_DAT_SIZE),
+			
+			parameter	SIMULATION       = 0
 		)
 		(
 			// system
@@ -118,7 +120,8 @@ module jelly_cpu_cache_top
 				.USE_EXC_RI			(USE_EXC_RI),
 				.GPR_TYPE			(GPR_TYPE),
 				.MUL_CYCLE			(MUL_CYCLE),
-				.DBBP_NUM			(DBBP_NUM)
+				.DBBP_NUM			(DBBP_NUM),
+				.SIMULATION 		(SIMULATION)
 			)
 		i_cpu_core
 			(

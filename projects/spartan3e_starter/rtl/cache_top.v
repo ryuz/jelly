@@ -157,7 +157,9 @@ module cache_top
 				.CACHE_ADDR_VALUE	(30'b0000_0000_0000_0000__0000_0000_0000_00),
 				.CACHE_ADDR_WIDTH	(30),
 				
-				.MEM_ADR_WIDTH		(25)
+				.MEM_ADR_WIDTH		(25),
+				
+				.SIMULATION			(SIMULATION)
 			)
 		i_cpu_top
 			(
@@ -280,7 +282,7 @@ module cache_top
 	
 	jelly_sram
 			#(
-				.WB_ADR_WIDTH		(16), // (12),
+				.WB_ADR_WIDTH		(12),
 				.WB_DAT_WIDTH		(32),
 				.READMEMH			(1),
 				.READMEM_FILE		("sample.hex")

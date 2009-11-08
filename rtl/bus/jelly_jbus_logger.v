@@ -40,8 +40,6 @@ module jelly_jbus_logger
 			input	wire						jbus_ready
 		);
 
-`ifdef simulation
-
 	reg							read_busy;
 	reg		[ADDR_WIDTH-1:0]	read_addr;
 	reg		[SEL_WIDTH-1:0]		read_sel;
@@ -146,24 +144,29 @@ module jelly_jbus_logger
 		input	[SEL_WIDTH-1:0]		sel;
 		integer						i, j;
 		integer						index;
+		integer						result;
 		begin
 			if ( (addr & CHECK_ADR_MASK) == CHECK_ADR_VALUE ) begin
-				index = -1;
+				index  = -1;
 				for ( i = 0; i < table_size; i = i + 1 ) begin
 					if ( table_addr[i] == addr ) begin
 						index = i;
 					end
 				end
 				if ( index >= 0 ) begin
+					result = 1;
 					table_addr[index] = addr;
 					for ( i = 0; i < SEL_WIDTH; i = i + 1 ) begin
 						if ( sel[i] ) begin
 							for ( j = 0; j < SEL_WIDTH; j = j + 1 ) begin
 								if ( table_data[index][i*8+j] !== 1'bx && table_data[index][i*8+j] !== data[i*8+j] ) begin
-									$display("read miss match: %h %h %h  %d", addr, data ,sel, $time);
+									result = 0;
 								end
 							end
 						end
+					end
+					if ( !result ) begin
+						$display("read miss match: %h %h %h (exp:%h) %d", addr, data ,sel, table_data[index], $time);
 					end
 				end
 				write_table(addr, data, sel);
@@ -186,8 +189,6 @@ module jelly_jbus_logger
 		end
 	end
 	endgenerate
-	
-`endif
 	
 endmodule
 

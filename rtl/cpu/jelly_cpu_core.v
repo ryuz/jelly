@@ -24,10 +24,13 @@ module jelly_cpu_core
 			parameter	MUL_CYCLE           = 0,
 			parameter	DBBP_NUM            = 4,
 			
-			parameter	SIM_PC_TRACE        = 1,
-			parameter	SIM_DBUS_TRACE      = 1,
-			parameter	SIM_PC_TRACE_FILE   = "pc_trace.txt",
-			parameter	SIM_DBUS_TRACE_FILE = "dbus_trace.txt"
+			parameter	SIMULATION          = 0,
+			parameter	SIM_TRACE_PC        = 1,
+			parameter	SIM_TRACE_GPR       = 1,
+			parameter	SIM_TRACE_DBUS      = 1,
+			parameter	SIM_TRACE_PC_FILE   = "trace.txt",
+			parameter	SIM_TRACE_GPR_FILE  = "trace.txt",
+			parameter	SIM_TRACE_DBUS_FILE = "trace.txt"
 		)
 		(
 			// system
@@ -1321,51 +1324,73 @@ module jelly_cpu_core
 	// -----------------------------
 	//  simulation
 	// -----------------------------
-
-`ifdef simulation
 	
 	generate 
-	if ( SIM_PC_TRACE ) begin
-		integer	pc_trace_file;
-		initial begin
-			pc_trace_file = $fopen(SIM_PC_TRACE_FILE);
-		end
-		
-		always @ ( posedge clk ) begin
-			if ( !reset ) begin
-				if ( !interlock & !ex_out_stall ) begin
-					$fdisplay(pc_trace_file, "%h %h %d", ex_out_pc, ex_out_instruction, $time);
+	if ( SIMULATION ) begin
+		// PC trace
+		if ( SIM_TRACE_PC ) begin
+			integer	pc_trace_file;
+			initial begin
+				pc_trace_file = $fopen(SIM_TRACE_PC_FILE, "w");
+				$fclose(pc_trace_file); 
+			end
+			
+			always @ ( posedge clk ) begin
+				if ( !reset ) begin
+					if ( !interlock & !ex_out_stall ) begin
+						pc_trace_file = $fopen(SIM_TRACE_PC_FILE, "a");
+						$fdisplay(pc_trace_file, "p %h %h %d  [pc]", ex_out_pc, ex_out_instruction, $time);
+						$fclose(pc_trace_file);
+					end
 				end
 			end
 		end
-	end
-	
-	if ( SIM_DBUS_TRACE ) begin
-		jelly_jbus_logger
-				#(
-					.ADDR_WIDTH		(32),
-					.DATA_SIZE		(2),	// 2^n (0:8bit, 1:16bit, 2:32bit ...)
-					.FILE_NAME		(SIM_DBUS_TRACE_FILE),
-					.DISPLAY		(0),
-					.MESSAGE		("")
-				)
-			i_jbus_logger_data
-				(
-					.clk			(clk),
-					.reset			(reset),
-					
-					.jbus_en		(jbus_data_en),
-					.jbus_addr		({jbus_data_addr, 2'b00}),
-					.jbus_wdata		(jbus_data_wdata),
-					.jbus_rdata		(jbus_data_rdata),
-					.jbus_we		(jbus_data_we),
-					.jbus_sel		(jbus_data_sel),
-					.jbus_valid		(jbus_data_valid),
-					.jbus_ready		(jbus_data_ready)
-				);
+		
+		// GPR trace
+		if ( SIM_TRACE_GPR ) begin
+			integer	pc_trace_file;
+			initial begin
+				pc_trace_file = $fopen(SIM_TRACE_GPR_FILE, "w");
+				$fclose(pc_trace_file); 
+			end
+			
+			always @ ( posedge clk ) begin
+				if ( !reset ) begin
+					if ( !interlock & if_gpr_write_en ) begin
+						pc_trace_file = $fopen(SIM_TRACE_GPR_FILE, "a");
+						$fdisplay(pc_trace_file, "g %h %h %d [gpr]", if_gpr_write_addr, if_gpr_write_data, $time);
+						$fclose(pc_trace_file);
+					end
+				end
+			end
+		end
+		
+		// data-bus trace
+		if ( SIM_TRACE_DBUS ) begin
+			jelly_jbus_logger
+					#(
+						.ADDR_WIDTH		(32),
+						.DATA_SIZE		(2),	// 2^n (0:8bit, 1:16bit, 2:32bit ...)
+						.FILE_NAME		(SIM_TRACE_DBUS_FILE),
+						.DISPLAY		(0),
+						.MESSAGE		("[dbus]")
+					)
+				i_jbus_logger_data
+					(
+						.clk			(clk),
+						.reset			(reset),
+						
+						.jbus_en		(jbus_data_en),
+						.jbus_addr		({jbus_data_addr, 2'b00}),
+						.jbus_wdata		(jbus_data_wdata),
+						.jbus_rdata		(jbus_data_rdata),
+						.jbus_we		(jbus_data_we),
+						.jbus_sel		(jbus_data_sel),
+						.jbus_valid		(jbus_data_valid),
+						.jbus_ready		(jbus_data_ready)
+					);
+		end
 	end
 	endgenerate
-
-`endif
-
+	
 endmodule
