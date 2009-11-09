@@ -72,12 +72,12 @@ module jelly_cpu_gpr
 		jelly_ram_dualport
 				#(
 					.DATA_WIDTH		(DATA_WIDTH),
-					.ADDR_WIDTH		(ADDR_WIDTH)
+					.ADDR_WIDTH		(ADDR_WIDTH),
+					.WRITE_FIRST	(0)
 				)
 			i_ram_dualport
 				(
 					.clk0			(clk_x2),
-					.reset0			(1'b0),
 					.en0			(ram_en0),
 					.we0			(ram_we0),
 					.addr0			(ram_addr0),
@@ -85,7 +85,6 @@ module jelly_cpu_gpr
 					.dout0			(ram_dout0),
 					
 					.clk1			(clk_x2),
-					.reset1			(1'b0),
 					.en1			(ram_en1),
 					.we1			(ram_we1),
 					.addr1			(ram_addr1),

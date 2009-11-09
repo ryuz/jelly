@@ -73,7 +73,6 @@ module cache_top
 	wire				locked;
 	
 	// reset
-
 	clkgen
 		i_clkgen
 			(
@@ -140,7 +139,7 @@ module cache_top
 	wire			wb_dbg_ack_i;
 		
 	// CPU
-	jelly_cpu_cache_top
+	jelly_cpu_top
 			#(
 				.USE_DBUGGER		(1'b1),
 				.USE_EXC_SYSCALL	(1'b1),
@@ -150,14 +149,14 @@ module cache_top
 				.MUL_CYCLE			(0),
 				.DBBP_NUM			(4),
 				
-				.CACHE_LINE_SIZE	(1),	// 2^n (0:1words, 1:2words, 2:4words ...)
-				.CACHE_ARRAY_SIZE	(9),	// 2^n (1:2lines, 2:4lines 3:8lines ...)
-				
+				.CACHE_ENABLE		(1),
 				.CACHE_ADDR_MASK	(30'b1110_0000_0000_0000__0000_0000_0000_00),
 				.CACHE_ADDR_VALUE	(30'b0000_0000_0000_0000__0000_0000_0000_00),
 				.CACHE_ADDR_WIDTH	(30),
+				.CACHE_LINE_SIZE	(1),	// 2^n (0:1words, 1:2words, 2:4words ...)
+				.CACHE_ARRAY_SIZE	(9),	// 2^n (1:2lines, 2:4lines 3:8lines ...)
 				
-				.MEM_ADR_WIDTH		(25),
+				.WB_MEM_ADR_WIDTH	(26),
 				
 				.SIMULATION			(SIMULATION)
 			)
@@ -252,17 +251,17 @@ module cache_top
 	
 	jelly_wishbone_width_converter
 			#(
-				.SLAVE_DAT_SIZE		(3),	// 2^n (0:8bit, 1:16bit, 2:32bit ...)
-				.MASTER_DAT_SIZE	(2),	// 2^n (0:8bit, 1:16bit, 2:32bit ...)
-				.SLAVE_ADR_WIDTH	(29)
+				.WB_SLAVE_DAT_SIZE	(3),	// 2^n (0:8bit, 1:16bit, 2:32bit ...)
+				.WB_MASTER_DAT_SIZE	(2),	// 2^n (0:8bit, 1:16bit, 2:32bit ...)
+				.WB_SLAVE_ADR_WIDTH	(29)
 			)
 		i_wishbone_width_converter_rom
 			(
 				.clk				(clk),
 				.reset				(reset),
-
+				
 				.endian				(endian),
-
+				
 				.wb_slave_adr_i		(wb_rom_adr_i),
 				.wb_slave_dat_o		(wb_rom_dat_o),
 				.wb_slave_dat_i		(wb_rom_dat_i),
@@ -300,17 +299,6 @@ module cache_top
 				.wb_stb_i			(wb_rom32_stb_o),
 				.wb_ack_o			(wb_rom32_ack_i)
 			);
-	
-	/*
-	boot_rom
-		i_boot_rom
-			(
-				.clk				(~clk),
-				.addr				(wb_rom32_adr_o[13:2]),
-				.data				(wb_rom32_dat_i)
-			);
-	assign wb_rom32_ack_i = 1'b1;
-	*/
 	
 	
 	// -----------------------------
@@ -372,9 +360,9 @@ module cache_top
 	
 	jelly_wishbone_width_converter
 			#(
-				.SLAVE_DAT_SIZE		(3),	// 2^n (0:8bit, 1:16bit, 2:32bit ...)
-				.MASTER_DAT_SIZE	(2),	// 2^n (0:8bit, 1:16bit, 2:32bit ...)
-				.SLAVE_ADR_WIDTH	(29)
+				.WB_SLAVE_DAT_SIZE	(3),	// 2^n (0:8bit, 1:16bit, 2:32bit ...)
+				.WB_MASTER_DAT_SIZE	(2),	// 2^n (0:8bit, 1:16bit, 2:32bit ...)
+				.WB_SLAVE_ADR_WIDTH	(29)
 			)
 		i_wishbone_width_converter_sdram
 			(

@@ -28,6 +28,9 @@ module jelly_cpu_top
 			parameter	TCM_ADDR_MASK    = 30'b1111_1111_1111_1111__1111_1100_0000_00,
 			parameter	TCM_ADDR_VALUE   = 30'b0000_0000_0000_0000__0000_0000_0000_00,
 			parameter	TCM_ADDR_WIDTH   = 8,
+			parameter	TCM_MEM_SIZE     = (1 << TCM_ADDR_WIDTH),
+			parameter	READMEMH         = 0,
+			parameter	READMEM_FIlE     = "",
 			
 			// L1 Cache
 			parameter	CACHE_ENABLE     = 0,
@@ -38,62 +41,61 @@ module jelly_cpu_top
 			parameter	CACHE_ARRAY_SIZE = 9,		// 2^n (1:2lines, 2:4lines 3:8lines ...)
 			
 			// memory bus (WISHBONE)
-			parameter	WB_MEM_ADR_WIDTH    = 30 - CACHE_LINE_SIZE,
-			parameter	WB_MEM_DAT_SIZE     = 2 + CACHE_LINE_SIZE,
-			parameter	WB_MEM_DAT_WIDTH    = (8 << MEM_DAT_SIZE),
-			parameter	WB_MEM_SEL_WIDTH    = (1 << MEM_DAT_SIZE),
+			parameter	WB_MEM_ADR_WIDTH = 30 - CACHE_LINE_SIZE,
+			parameter	WB_MEM_DAT_SIZE  = 2 + CACHE_LINE_SIZE,
+			parameter	WB_MEM_DAT_WIDTH = (8 << WB_MEM_DAT_SIZE),
+			parameter	WB_MEM_SEL_WIDTH = (1 << WB_MEM_DAT_SIZE),
 			
 			// simulation
 			parameter	SIMULATION       = 0
 		)
 		(
 			// system
-			input	wire						reset,
-			input	wire						clk,
-			input	wire						clk_x2,
+			input	wire							reset,
+			input	wire							clk,
+			input	wire							clk_x2,
 			
 			// endian
-			input	wire						endian,
+			input	wire							endian,
 						
 			// vector
-			input	wire	[31:0]				vect_reset,
-			input	wire	[31:0]				vect_interrupt,
-			input	wire	[31:0]				vect_exception,
+			input	wire	[31:0]					vect_reset,
+			input	wire	[31:0]					vect_interrupt,
+			input	wire	[31:0]					vect_exception,
 			
 			// interrupt
-			input	wire						interrupt_req,
-			output	wire						interrupt_ack,
+			input	wire							interrupt_req,
+			output	wire							interrupt_ack,
 			
 			// control
-			input	wire						pause,
+			input	wire							pause,
 			
 			// WISHBONE memory bus (cached)
-			output	wire	[31:MEM_DAT_SIZE]	wb_mem_adr_o,
-			input	wire	[MEM_DAT_WIDTH-1:0]	wb_mem_dat_i,
-			output	wire	[MEM_DAT_WIDTH-1:0]	wb_mem_dat_o,
-			output	wire						wb_mem_we_o,
-			output	wire	[MEM_SEL_WIDTH-1:0]	wb_mem_sel_o,
-			output	wire						wb_mem_stb_o,
-			input	wire						wb_mem_ack_i,
+			output	wire	[31:WB_MEM_DAT_SIZE]	wb_mem_adr_o,
+			input	wire	[WB_MEM_DAT_WIDTH-1:0]	wb_mem_dat_i,
+			output	wire	[WB_MEM_DAT_WIDTH-1:0]	wb_mem_dat_o,
+			output	wire							wb_mem_we_o,
+			output	wire	[WB_MEM_SEL_WIDTH-1:0]	wb_mem_sel_o,
+			output	wire							wb_mem_stb_o,
+			input	wire							wb_mem_ack_i,
 			
 			// WISHBONE peripheral bus (non-cached)
-			output	wire	[31:2]				wb_peri_adr_o,
-			input	wire	[31:0]				wb_peri_dat_i,
-			output	wire	[31:0]				wb_peri_dat_o,
-			output	wire						wb_peri_we_o,
-			output	wire	[3:0]				wb_peri_sel_o,
-			output	wire						wb_peri_stb_o,
-			input	wire						wb_peri_ack_i,
-			
-			
+			output	wire	[31:2]					wb_peri_adr_o,
+			input	wire	[31:0]					wb_peri_dat_i,
+			output	wire	[31:0]					wb_peri_dat_o,
+			output	wire							wb_peri_we_o,
+			output	wire	[3:0]					wb_peri_sel_o,
+			output	wire							wb_peri_stb_o,
+			input	wire							wb_peri_ack_i,
+						
 			// WISHBONE debug port
-			input	wire	[3:0]				wb_dbg_adr_i,
-			input	wire	[31:0]				wb_dbg_dat_i,
-			output	wire	[31:0]				wb_dbg_dat_o,
-			input	wire						wb_dbg_we_i,
-			input	wire	[3:0]				wb_dbg_sel_i,
-			input	wire						wb_dbg_stb_i,
-			output	wire						wb_dbg_ack_o			
+			input	wire	[3:0]					wb_dbg_adr_i,
+			input	wire	[31:0]					wb_dbg_dat_i,
+			output	wire	[31:0]					wb_dbg_dat_o,
+			input	wire							wb_dbg_we_i,
+			input	wire	[3:0]					wb_dbg_sel_i,
+			input	wire							wb_dbg_stb_i,
+			output	wire							wb_dbg_ack_o			
 		);
 	
 	
@@ -309,24 +311,95 @@ module jelly_cpu_top
 					.jbus_decode_ready	(jbus_dtcm_ready)
 				);                         
 		
+		
+		wire							ram_itcm_en;
+		wire							ram_itcm_we;
+		wire	[TCM_ADDR_WIDTH-1:0]	ram_itcm_addr;
+		wire	[31:0]					ram_itcm_wdata;
+		wire	[31:0]					ram_itcm_rdata;
+
+		wire							ram_dtcm_en;
+		wire							ram_dtcm_we;
+		wire	[TCM_ADDR_WIDTH-1:0]	ram_dtcm_addr;
+		wire	[31:0]					ram_dtcm_wdata;
+		wire	[31:0]					ram_dtcm_rdata;
+		
 		jelly_jbus_to_ram
 				#(
-				);
+					.ADDR_WIDTH			(TCM_ADDR_WIDTH),
+					.DATA_WIDTH			(32)
+				)
 			i_jbus_to_ram_inst
 				(
-				);
-	
+					.reset				(reset),
+					.clk				(clk),
+					
+					.jbus_en			(jbus_itcm_en),
+					.jbus_addr			(jbus_itcm_addr),
+					.jbus_wdata			(jbus_itcm_wdata),
+					.jbus_rdata			(jbus_itcm_rdata),
+					.jbus_we			(jbus_itcm_we),
+					.jbus_sel			(jbus_itcm_sel),
+					.jbus_valid			(jbus_itcm_valid),
+					.jbus_ready			(jbus_itcm_ready),
+					
+					.ram_en				(ram_itcm_en),
+					.ram_we				(ram_itcm_we),
+					.ram_addr			(ram_itcm_addr),
+					.ram_wdata			(ram_itcm_wdata),
+					.ram_rdata			(ram_itcm_rdata)
+				);                     
+
 		jelly_jbus_to_ram
 				#(
-				);
+					.ADDR_WIDTH			(TCM_ADDR_WIDTH),
+					.DATA_WIDTH			(32)
+				)
 			i_jbus_to_ram_data
 				(
-				);
-	
+					.reset				(reset),
+					.clk				(clk),
+					
+					.jbus_en			(jbus_dtcm_en),
+					.jbus_addr			(jbus_dtcm_addr),
+					.jbus_wdata			(jbus_dtcm_wdata),
+					.jbus_rdata			(jbus_dtcm_rdata),
+					.jbus_we			(jbus_dtcm_we),
+					.jbus_sel			(jbus_dtcm_sel),
+					.jbus_valid			(jbus_dtcm_valid),
+					.jbus_ready			(jbus_dtcm_ready),
+					
+					.ram_en				(ram_dtcm_en),
+					.ram_we				(ram_dtcm_we),
+					.ram_addr			(ram_dtcm_addr),
+					.ram_wdata			(ram_dtcm_wdata),
+					.ram_rdata			(ram_dtcm_rdata)
+				);                     
+		
 		jelly_ram_dualport
+				#(
+					.ADDR_WIDTH			(TCM_ADDR_WIDTH),
+					.DATA_WIDTH			(32),
+					.WRITE_FIRST		(0),
+					.READMEMH			(0),
+					.READMEM_FIlE		("")
+				)
 			i_ram_dualport_tcm
 				(
-				);
+					.clk0				(clk),
+					.en0				(ram_itcm_en),
+					.we0				(ram_itcm_we),
+					.addr0				(ram_itcm_addr),
+					.din0				(ram_itcm_wdata),
+					.dout0				(ram_itcm_rdata),
+					
+					.clk1				(clk),
+					.en1				(ram_dtcm_en),
+					.we1				(ram_dtcm_we),
+					.addr1				(ram_dtcm_addr),
+					.din1				(ram_dtcm_wdata),
+					.dout1				(ram_dtcm_rdata)
+				);                     
 	end
 	else begin
 		assign jbus_inst0_en    = jbus_inst_en;
