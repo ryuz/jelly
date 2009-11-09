@@ -211,8 +211,8 @@
     <property xil_pn:name="Create I/O Pads from Ports" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Create IEEE 1532 Configuration File" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Create Logic Allocation File" xil_pn:value="false" xil_pn:valueState="default"/>
-    <property xil_pn:name="Create Mask File" xil_pn:value="false" xil_pn:valueState="default"/>
-    <property xil_pn:name="Create ReadBack Data Files" xil_pn:value="false" xil_pn:valueState="default"/>
+    <property xil_pn:name="Create Mask File" xil_pn:value="true" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Create ReadBack Data Files" xil_pn:value="true" xil_pn:valueState="non-default"/>
     <property xil_pn:name="Cross Clock Analysis" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Current Floorplan File" xil_pn:value="" xil_pn:valueState="default"/>
     <property xil_pn:name="Custom Compile File List Behavioral" xil_pn:value="" xil_pn:valueState="default"/>
@@ -251,7 +251,7 @@
     <property xil_pn:name="Exclude Compilation of EDK Sub-Libraries" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Extra Effort" xil_pn:value="None" xil_pn:valueState="default"/>
     <property xil_pn:name="Extra Effort (Highest PAR level only)" xil_pn:value="Continue on Impossible" xil_pn:valueState="non-default"/>
-    <property xil_pn:name="FPGA Start-Up Clock" xil_pn:value="CCLK" xil_pn:valueState="default"/>
+    <property xil_pn:name="FPGA Start-Up Clock" xil_pn:value="JTAG Clock" xil_pn:valueState="non-default"/>
     <property xil_pn:name="FSM Encoding Algorithm" xil_pn:value="Auto" xil_pn:valueState="default"/>
     <property xil_pn:name="FSM Style" xil_pn:value="LUT" xil_pn:valueState="default"/>
     <property xil_pn:name="Filter Files From Compile Order" xil_pn:value="true" xil_pn:valueState="default"/>

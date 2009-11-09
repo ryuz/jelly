@@ -42,9 +42,10 @@ module top
 			output	wire				uart1_tx,
 			input	wire				uart1_rx,
 			
-			output	wire	[30:0]		ext,
 			output	wire	[7:0]		led,
-			input	wire	[7:0]		sw
+			input	wire	[7:0]		sw,
+			
+			output	wire	[30:0]		ext
 		);
 	
 	wire				uart_tx;
