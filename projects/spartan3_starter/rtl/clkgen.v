@@ -1,7 +1,7 @@
 // ----------------------------------------------------------------------------
 //  Jelly -- The computing system for Spartan-3 Starter Kit
 //
-//                                       Copyright (C) 2008 by Ryuji Fuchikami 
+//                                  Copyright (C) 2008-2009 by Ryuji Fuchikami 
 // ----------------------------------------------------------------------------
 
 
@@ -12,26 +12,17 @@
 // Clock generator
 module clkgen
 		(
-			in_reset, 
-			in_clk, 
+			input		in_reset,
+			input		in_clk,
 			
-			out_clk,
-			out_clk_x2,
-			
-			out_clk_uart,
-			
-			locked
+			output		out_clk,
+			output		out_clk_x2,
+			output		out_clk_uart,
+			output		out_reset,
+
+			output		locked
 		);
 
-	input		in_reset;
-	input		in_clk;
-	
-	output		out_clk;
-	output		out_clk_x2;
-	output		out_clk_uart;
-
-	output		locked;
-	
 	
 	// clk_in
 	wire		in_clk_ibufg;
@@ -113,11 +104,26 @@ module clkgen
 				.STATUS					()
 			);
 	
-	assign out_clk    = clkdv_bufg;
-	assign out_clk_x2 = clk0_bufg;
-
-//	assign out_clk      = clk0_bufg;
-//	assign out_clk_x2   = clk2x_bufg;
+	
+	// -------------------------
+	//  reset
+	// -------------------------
+	
+	reg		[1:0]	reg_reset;
+	always @( posedge clkdv_bufg or posedge in_reset ) begin
+		if ( in_reset ) begin
+			reg_reset <= 2'b11;
+		end
+		else begin
+			if ( !locked ) begin
+				reg_reset <= 2'b11;
+			end
+			else begin
+				reg_reset <= {1'b0, reg_reset[1]};
+			end
+		end
+	end
+	
 	
 		
 	// -------------------------
@@ -142,7 +148,10 @@ module clkgen
 		end
 	end
 
+	assign out_clk      = clkdv_bufg;
+	assign out_clk_x2   = clk0_bufg;
 	assign out_clk_uart = uart_clk_dv;
+	assign out_reset    = reg_reset[0];
 	
 endmodule
 

@@ -40,11 +40,11 @@ module tb_top;
 	top
 		i_top
 			(
-				.clk_in			(clk),
-				.reset_in		(reset),
+				.in_clk			(clk),
+				.in_reset		(reset),
 				
 				.uart0_tx		(),
-				.uart0_rx		(uart_rx),
+				.uart0_rx		(1'b1),
 				
 				.uart1_tx		(),
 				.uart1_rx		(1'b1),
@@ -68,18 +68,6 @@ module tb_top;
 	model_sram i_sram2 (.ce_n(sram_ce1_n), .we_n(sram_we_n | sram_bls_n[2]), .oe_n(sram_oe_n), .addr(sram_a), .data(sram_d[23:16]));
 	model_sram i_sram3 (.ce_n(sram_ce1_n), .we_n(sram_we_n | sram_bls_n[3]), .oe_n(sram_oe_n), .addr(sram_a), .data(sram_d[31:24]));
 	
-	
-	// PC trace
-	integer pc_trace;
-	initial begin
-		pc_trace = $fopen("pc_trace.txt");
-	end
-	always @ ( posedge i_top.i_cpu_top.i_cpu_core.clk ) begin
-		if ( !i_top.i_cpu_top.i_cpu_core.interlock & !i_top.i_cpu_top.i_cpu_core.ex_out_stall ) begin
-			$fdisplay(pc_trace, "%t : %h %h",
-						$time, i_top.i_cpu_top.i_cpu_core.ex_out_pc, i_top.i_cpu_top.i_cpu_core.ex_out_instruction);
-		end
-	end
 	
 	// Interrupt monitor
 	always @ ( posedge i_top.i_cpu_top.clk ) begin

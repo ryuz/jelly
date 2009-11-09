@@ -12,18 +12,19 @@
 // top module
 module top
 		#(
-			parameter					USE_DBUGGER     = 1'b0,
-			parameter					USE_EXC_SYSCALL = 1'b0,
-			parameter					USE_EXC_BREAK   = 1'b0,
-			parameter					USE_EXC_RI      = 1'b0,
-			parameter					GPR_TYPE        = 0,
-			parameter					MUL_CYCLE       = 0,
-			parameter					DBBP_NUM        = 0
+			parameter	USE_DBUGGER     = 1'b0,
+			parameter	USE_EXC_SYSCALL = 1'b0,
+			parameter	USE_EXC_BREAK   = 1'b0,
+			parameter	USE_EXC_RI      = 1'b0,
+			parameter	GPR_TYPE        = 0,
+			parameter	MUL_CYCLE       = 0,
+			parameter	DBBP_NUM        = 0,
+			parameter	SIMULATION      = 0
 		)
 		(
 			// system
-			input	wire				reset_in,
-			input	wire				clk_in,
+			input	wire				in_reset,
+			input	wire				in_clk,
 			
 			// asram
 			output	wire				asram_ce0_n,
@@ -33,7 +34,7 @@ module top
 			output	wire	[3:0]		asram_bls_n,
 			output	wire	[17:0]		asram_a,
 			inout	wire	[31:0]		asram_d,
-
+			
 			// uart
 			output	wire				uart0_tx,
 			input	wire				uart0_rx,
@@ -68,6 +69,7 @@ module top
 	
 	
 	// clock
+	wire				reset;
 	wire				clk;
 	wire				clk_x2;
 	wire				clk_uart;
@@ -75,19 +77,16 @@ module top
 	clkgen
 		i_clkgen
 			(
-				.in_reset			(reset_in), 
-				.in_clk				(clk_in), 
+				.in_reset			(in_reset), 
+				.in_clk				(in_clk),
 			
 				.out_clk			(clk),
 				.out_clk_x2			(clk_x2),
 				.out_clk_uart		(clk_uart),
+				.out_reset			(reset),
+				
 				.locked				(locked)
 		);
-	
-	// reset
-	wire				reset;
-	assign reset = reset_in | ~locked;
-	
 	
 	
 	// -------------------------

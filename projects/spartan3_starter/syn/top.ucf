@@ -1,26 +1,29 @@
 
-NET "clk_in" LOC = T9;
+# clock
+NET "in_clk"   LOC = "T9" ;
+NET "in_clk" TNM_NET = clk_in;
+TIMESPEC TS_in_clk = PERIOD "in_clk" 20.0 ns HIGH 50%;
 
-NET "reset_in" LOC = L14;
+# reset
+NET "in_reset" LOC = "L14" ;
 
-NET "uart0_tx" LOC = R13;
-NET "uart0_rx" LOC = T13;
-
-NET "uart1_tx" LOC = T14;
-NET "uart1_rx" LOC = N10;
-
+# UART
+NET "uart0_tx" LOC = "R13" ;
+NET "uart0_rx" LOC = "T13" ;
+NET "uart1_tx" LOC = "T14" ;
+NET "uart1_rx" LOC = "N10" ;
 
 # SW
-NET	"sw[0]"		LOC = "F12"  ;
-NET	"sw[1]"		LOC = "G12"  ;
-NET	"sw[2]"		LOC = "H14"  ;
-NET	"sw[3]"		LOC = "H13"  ;
-NET	"sw[4]"		LOC = "J14"  ;
-NET	"sw[5]"		LOC = "J13"  ;
-NET	"sw[6]"		LOC = "K14"  ;
-NET	"sw[7]"		LOC = "K13"  ;
+NET	"sw[0]"		LOC = "F12" ;
+NET	"sw[1]"		LOC = "G12" ;
+NET	"sw[2]"		LOC = "H14" ;
+NET	"sw[3]"		LOC = "H13" ;
+NET	"sw[4]"		LOC = "J14" ;
+NET	"sw[5]"		LOC = "J13" ;
+NET	"sw[6]"		LOC = "K14" ;
+NET	"sw[7]"		LOC = "K13" ;
 
-
+# LED
 NET "led<0>" LOC = "K12";
 NET "led<1>" LOC = "P14";
 NET "led<2>" LOC = "L12";
@@ -30,6 +33,7 @@ NET "led<5>" LOC = "N12";
 NET "led<6>" LOC = "P12";
 NET "led<7>" LOC = "P11";
 
+# ASRAM
 NET "asram_a<0>" LOC = "L5";
 NET "asram_a<1>" LOC = "N3";
 NET "asram_a<2>" LOC = "M4";
@@ -121,6 +125,3 @@ NET "ext<28>" LOC = "B13";
 NET "ext<29>" LOC = "A13";
 NET "ext<30>" LOC = "B14";
 
-
-NET "clk_in" TNM_NET = clk_in;
-TIMESPEC TS_clk_in = PERIOD "clk_in" 50 MHz HIGH 50%;

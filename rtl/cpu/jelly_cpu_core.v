@@ -1282,25 +1282,25 @@ module jelly_cpu_core
 				);
 	end
 	else begin
-		assign wb_dbg_dat_o       = {32{1'b0}};
-		assign wb_dbg_ack_o       = 1'b1;
+		assign wb_dbg_dat_o        = {32{1'b0}};
+		assign wb_dbg_ack_o        = 1'b1;
 		
-		assign dbg_enable         = 1'b0;
-		assign dbg_break_req      = 1'b0;
-					
-		assign dbg_jbus_inst_interlock = 1'b0;
-		assign dbg_jbus_inst_en        = 1'b0;
-		assign dbg_jbus_inst_we        = 1'b0;
-		assign dbg_jbus_inst_sel       = 4'b0000;
-		assign dbg_jbus_inst_addr      = {32{1'b0}};
-		assign dbg_jbus_inst_wdata     = {32{1'b0}};
-
-		assign dbg_dbus_interlock = 1'b0;
-		assign dbg_dbus_en        = 1'b0;
-		assign dbg_dbus_we        = 1'b0;
-		assign dbg_dbus_sel       = 4'b0000;
-		assign dbg_dbus_addr      = {32{1'b0}};
-		assign dbg_dbus_wdata     = {32{1'b0}};
+		assign dbg_enable          = 1'b0;
+		assign dbg_break_req       = 1'b0;
+		
+		assign dbg_jbus_inst_en    = 1'b0;
+		assign dbg_jbus_inst_we    = 1'b0;
+		assign dbg_jbus_inst_sel   = 4'b0000;
+		assign dbg_jbus_inst_addr  = {30{1'b0}};
+		assign dbg_jbus_inst_wdata = {32{1'b0}};
+		assign dbg_jbus_inst_valid = 1'b0;
+		
+		assign dbg_jbus_data_en    = 1'b0;
+		assign dbg_jbus_data_we    = 1'b0;
+		assign dbg_jbus_data_sel   = 4'b0000;
+		assign dbg_jbus_data_addr  = {30{1'b0}};
+		assign dbg_jbus_data_wdata = {32{1'b0}};
+		assign dbg_jbus_data_valid = 1'b0;
 		
 		assign dbg_gpr_en         = 1'b0;
 		assign dbg_gpr_we         = 1'b0;
