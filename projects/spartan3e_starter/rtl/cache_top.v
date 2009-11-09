@@ -643,7 +643,7 @@ module cache_top
 				.wb_stb_i			(wb_gpiob_stb_i),
 				.wb_ack_o			(wb_gpiob_ack_o)	
 			);
-		
+	
 	
 	// -----------------------------
 	//  peri bus address decoder
