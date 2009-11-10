@@ -37,7 +37,7 @@ module jelly_cpu_top
 			parameter	CACHE_ADDR_MASK  = 30'b1111_0000_0000_0000__0000_0000_0000_00,
 			parameter	CACHE_ADDR_VALUE = 30'b0000_0000_0000_0000__0000_0000_0000_00,
 			parameter	CACHE_ADDR_WIDTH = 24,
-			parameter	CACHE_LINE_SIZE  = 2,		// 2^n (0:1words, 1:2words, 2:4words ...)
+			parameter	CACHE_LINE_SIZE  = 1,		// 2^n (0:1words, 1:2words, 2:4words ...)
 			parameter	CACHE_ARRAY_SIZE = 9,		// 2^n (1:2lines, 2:4lines 3:8lines ...)
 			
 			// memory bus (WISHBONE)

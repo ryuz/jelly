@@ -134,10 +134,6 @@
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
-    <file xil_pn:name="../../../../soft/boot_rom.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
     <file xil_pn:name="../../../../rtl/library/jelly_binary_to_graycode.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
@@ -179,6 +175,10 @@
       <association xil_pn:name="PostMapSimulation"/>
       <association xil_pn:name="PostRouteSimulation"/>
       <association xil_pn:name="PostTranslateSimulation"/>
+    </file>
+    <file xil_pn:name="../../rtl/boot_rom.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation"/>
+      <association xil_pn:name="Implementation"/>
     </file>
   </files>
 
@@ -427,7 +427,7 @@
     <property xil_pn:name="SDK Export Directory" xil_pn:value="SDK_Export" xil_pn:valueState="default"/>
     <property xil_pn:name="Safe Implementation" xil_pn:value="No" xil_pn:valueState="default"/>
     <property xil_pn:name="Security" xil_pn:value="Enable Readback and Reconfiguration" xil_pn:valueState="default"/>
-    <property xil_pn:name="Selected Simulation Root Source Node Behavioral" xil_pn:value="Module|top" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Selected Simulation Root Source Node Behavioral" xil_pn:value="Module|tb_top" xil_pn:valueState="non-default"/>
     <property xil_pn:name="Selected Simulation Root Source Node Post-Route" xil_pn:value="" xil_pn:valueState="default"/>
     <property xil_pn:name="Selected Simulation Source Node" xil_pn:value="UUT" xil_pn:valueState="default"/>
     <property xil_pn:name="Setting Output File" xil_pn:value="Default" xil_pn:valueState="non-default"/>
@@ -450,7 +450,7 @@
     <property xil_pn:name="Specify Search Directories for 'Include" xil_pn:value="" xil_pn:valueState="default"/>
     <property xil_pn:name="Specify Search Directories for 'Include Check Syntax" xil_pn:value="" xil_pn:valueState="default"/>
     <property xil_pn:name="Specify Source Libraries Path" xil_pn:value="Search in Path" xil_pn:valueState="default"/>
-    <property xil_pn:name="Specify Top Level Instance Names Behavioral" xil_pn:value="top" xil_pn:valueState="default"/>
+    <property xil_pn:name="Specify Top Level Instance Names Behavioral" xil_pn:value="tb_top" xil_pn:valueState="default"/>
     <property xil_pn:name="Specify Top Level Instance Names Post-Route" xil_pn:value="Default" xil_pn:valueState="default"/>
     <property xil_pn:name="Speed Grade" xil_pn:value="-4" xil_pn:valueState="non-default"/>
     <property xil_pn:name="Stamp Timing Model Filename" xil_pn:value="" xil_pn:valueState="default"/>
@@ -499,7 +499,7 @@
     <property xil_pn:name="Verilog Macros" xil_pn:value="" xil_pn:valueState="default"/>
     <property xil_pn:name="Wait for DLL Lock (Output Events)" xil_pn:value="Default (NoWait)" xil_pn:valueState="default"/>
     <property xil_pn:name="Wave window" xil_pn:value="true" xil_pn:valueState="default"/>
-    <property xil_pn:name="Waveform Database Filename Behavioral" xil_pn:value="top_isim_beh.wdb" xil_pn:valueState="default"/>
+    <property xil_pn:name="Waveform Database Filename Behavioral" xil_pn:value="tb_top_isim_beh.wdb" xil_pn:valueState="default"/>
     <property xil_pn:name="Waveform Database Filename Post-Route" xil_pn:value="top_isim_par.wdb" xil_pn:valueState="default"/>
     <property xil_pn:name="Work Directory" xil_pn:value="xst" xil_pn:valueState="default"/>
     <property xil_pn:name="Working Directory" xil_pn:value="" xil_pn:valueState="default"/>
