@@ -176,7 +176,7 @@ module jelly_fifo_fwtf_async
 			);
 	
 	reg							rd_valid;
-	reg		[DATA_WIDTH:0]		rd_data;
+	reg		[DATA_WIDTH-1:0]	rd_data;
 	reg							rd_data_valid;
 	always @ ( posedge out_clk or posedge reset ) begin
 		if ( reset ) begin
