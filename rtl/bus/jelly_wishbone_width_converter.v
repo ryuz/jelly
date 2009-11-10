@@ -80,6 +80,9 @@ module jelly_wishbone_width_converter
 		reg		[WB_SLAVE_DAT_WIDTH-1:0]	tmp_slave_dat_o;
 		integer								i1, j1;
 		always @* begin
+			tmp_master_dat_o = {WB_MASTER_DAT_WIDTH{1'b0}};
+			tmp_master_sel_o = {WB_MASTER_SEL_WIDTH{1'b0}}; 
+			tmp_slave_dat_o  = {WB_SLAVE_DAT_WIDTH-1{1'b0}};
 			for ( i1 = 0; i1 < (1 << RATE); i1 = i1 + 1 ) begin
 				if ( i1 == (reg_counter ^ {RATE{endian}}) ) begin
 					for ( j1 = 0; j1 < WB_MASTER_DAT_WIDTH; j1 = j1 + 1 ) begin
@@ -117,25 +120,25 @@ module jelly_wishbone_width_converter
 	else if ( WB_MASTER_DAT_SIZE > WB_SLAVE_DAT_SIZE ) begin
 		// to wide
 		reg		[WB_MASTER_SEL_WIDTH-1:0]	tmp_master_sel_o;
-		reg		[WB_SLAVE_DAT_WIDTH-1:0]	tmp_slave_dat_i;
+		reg		[WB_SLAVE_DAT_WIDTH-1:0]	tmp_slave_dat_o;
 		integer								i, j;
 		always @* begin
 		    tmp_master_sel_o = {WB_MASTER_SEL_WIDTH{1'b0}};
-		    tmp_slave_dat_i  = {WB_SLAVE_DAT_WIDTH{1'b0}};
+		    tmp_slave_dat_o  = {WB_SLAVE_DAT_WIDTH{1'b0}};
 			for ( i = 0; i < (1 << RATE); i = i + 1 ) begin
 				if ( i == (wb_slave_adr_i[RATE-1:0] ^ {RATE{endian}}) ) begin
 					for ( j = 0; j < WB_SLAVE_SEL_WIDTH; j = j + 1 ) begin
 						tmp_master_sel_o[WB_SLAVE_SEL_WIDTH*i + j] = wb_slave_sel_i[j];
 					end
 					for ( j = 0; j < WB_SLAVE_DAT_WIDTH; j = j + 1 ) begin
-						tmp_slave_dat_i[j] = wb_master_dat_i[WB_SLAVE_DAT_WIDTH*i + j];
+						tmp_slave_dat_o[j] = wb_master_dat_i[WB_SLAVE_DAT_WIDTH*i + j];
 					end					
 				end
 			end
 		end
 		assign wb_master_adr_o = (wb_slave_adr_i >> RATE);
-		assign wb_master_dat_o = {(1 << RATE){wb_slave_dat_o}};
-		assign wb_slave_dat_i  = tmp_slave_dat_i;
+		assign wb_master_dat_o = {(1 << RATE){wb_slave_dat_i}};
+		assign wb_slave_dat_o  = tmp_slave_dat_o;
 		assign wb_master_we_o  = wb_slave_we_i;
 		assign wb_master_sel_o = tmp_master_sel_o;
 		assign wb_master_stb_o = wb_slave_stb_i;
