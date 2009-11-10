@@ -12,7 +12,7 @@
 # --------------------------------------
 
 # %jp{ターゲット名}%en{target name}
-TARGET ?= sample
+TARGET ?= hosv4a_sample
 
 
 # %jp{ツール定義}%en{tools}
@@ -37,7 +37,7 @@ KERNEL_DIR        = $(HOS_DIR)/kernel
 KERNEL_CFGRTR_DIR = $(HOS_DIR)/cfgrtr/build/gcc
 KERNEL_MAKINC_DIR = $(KERNEL_DIR)/build/common/gmake
 KERNEL_BUILD_DIR  = $(KERNEL_DIR)/build/mips/jelly/gcc
-TOOLS_DIR         = ../../../../../tools
+TOOLS_DIR         = ../../../tools
 
 
 # %jp{コンフィギュレータ定義}

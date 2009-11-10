@@ -7,7 +7,7 @@
 
 
 # %jp{ターゲット名}
-TARGET ?= sample
+TARGET ?= hosv4a_aplfw
 
 # %jp{ツール定義}
 GCC_ARCH    ?= mips-elf-
@@ -26,7 +26,7 @@ KERNEL_BUILD_DIR  = $(KERNEL_DIR)/build/mips/jelly/gcc
 APLFW_DIR         = $(HOS_DIR)/aplfw
 APLFW_INC_DIR     = $(APLFW_DIR)
 APLFW_BUILD_DIR   = $(APLFW_DIR)/build/mips/jelly/gcc
-TOOLS_DIR         = ../../../../../tools
+TOOLS_DIR         = ../../../tools
 OBJS_DIR          = objs_$(TARGET)
 
 # %jp{カーネル設定}
