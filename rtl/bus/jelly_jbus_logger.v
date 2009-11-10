@@ -18,7 +18,7 @@ module jelly_jbus_logger
 			parameter	SEL_WIDTH       = (DATA_WIDTH / 8),
 			parameter	FILE_NAME       = "",
 			parameter	DISPLAY         = 1,
-			parameter	MESSAGE         = "[jbus trace]",
+			parameter	MESSAGE         = "[jbus]",
 			parameter	CHECK_DATA      = 0,
 			parameter	CHECK_ADR_MASK  = 32'hf000_0000,
 			parameter	CHECK_ADR_VALUE = 32'h0000_0000,
@@ -75,11 +75,11 @@ module jelly_jbus_logger
 			// read
 			if ( read_busy & jbus_ready ) begin
 				if ( DISPLAY ) begin
-					$display("r %h %h %h %d %s", read_addr, jbus_rdata, read_sel, $time, MESSAGE);
+					$display(" %d %s r %h %h %h", $time, MESSAGE, read_addr, jbus_rdata, read_sel);
 				end
 				if ( FILE_NAME != "" ) begin
 					file = $fopen(FILE_NAME, "a");
-					$fdisplay(file, "r %h %h %h %d %s", read_addr, jbus_rdata, read_sel, $time, MESSAGE);
+					$fdisplay(file, "%d %s r %h %h %h", $time, MESSAGE, read_addr, jbus_rdata, read_sel);
 					$fclose(file);
 				end
 			end
@@ -87,11 +87,11 @@ module jelly_jbus_logger
 			// write
 			if ( jbus_en & jbus_we & jbus_valid & jbus_ready ) begin
 				if ( DISPLAY ) begin
-					$display("w %h %h %h %d %s", jbus_addr, jbus_wdata, jbus_sel, $time, MESSAGE);
+					$display("%d %s w %h %h %h", $time, MESSAGE, jbus_addr, jbus_wdata, jbus_sel);
 				end
 				if ( FILE_NAME != "" ) begin
 					file = $fopen(FILE_NAME, "a");
-					$fdisplay(file, "w %h %h %h %d %s", jbus_addr, jbus_wdata, jbus_sel, $time, MESSAGE);
+					$fdisplay(file, "%d %s w %h %h %h", $time, MESSAGE, jbus_addr, jbus_wdata, jbus_sel);
 					$fclose(file);
 				end
 			end

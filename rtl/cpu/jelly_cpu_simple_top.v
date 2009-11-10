@@ -29,8 +29,8 @@ module jelly_cpu_simple_top
 			parameter	TCM_ADDR_VALUE   = 30'b0000_0000_0000_0000__0000_0000_0000_00,
 			parameter	TCM_ADDR_WIDTH   = 8,
 			parameter	TCM_MEM_SIZE     = (1 << TCM_ADDR_WIDTH),
-			parameter	READMEMH         = 0,
-			parameter	READMEM_FIlE     = "",
+			parameter	TCM_READMEMH     = 0,
+			parameter	TCM_READMEM_FIlE = "",
 
 			// simulation
 			parameter	SIMULATION       = 0
@@ -95,8 +95,8 @@ module jelly_cpu_simple_top
 				.TCM_ADDR_VALUE		(TCM_ADDR_VALUE),
 				.TCM_ADDR_WIDTH		(TCM_ADDR_WIDTH),
 				.TCM_MEM_SIZE		(TCM_MEM_SIZE),
-				.READMEMH			(READMEMH),
-				.READMEM_FIlE		(READMEM_FIlE),
+				.TCM_READMEMH		(TCM_READMEMH),
+				.TCM_READMEM_FIlE	(TCM_READMEM_FIlE),
 				
 				.CACHE_ENABLE		(0),
 				

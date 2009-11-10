@@ -29,8 +29,8 @@ module jelly_cpu_top
 			parameter	TCM_ADDR_VALUE   = 30'b0000_0000_0000_0000__0000_0000_0000_00,
 			parameter	TCM_ADDR_WIDTH   = 8,
 			parameter	TCM_MEM_SIZE     = (1 << TCM_ADDR_WIDTH),
-			parameter	READMEMH         = 0,
-			parameter	READMEM_FIlE     = "",
+			parameter	TCM_READMEMH     = 0,
+			parameter	TCM_READMEM_FIlE = "",
 			
 			// L1 Cache
 			parameter	CACHE_ENABLE     = 0,
@@ -278,7 +278,7 @@ module jelly_cpu_top
 					.DEC_ADDR_VALUE		(TCM_ADDR_VALUE),
 					.DEC_ADDR_WIDTH		(TCM_ADDR_WIDTH)
 				)
-			jbus_decoder_tcm_data
+			i_jbus_decoder_tcm_data
 				(
 					.reset				(reset),
 					.clk				(clk),
@@ -381,8 +381,8 @@ module jelly_cpu_top
 					.ADDR_WIDTH			(TCM_ADDR_WIDTH),
 					.DATA_WIDTH			(32),
 					.WRITE_FIRST		(0),
-					.READMEMH			(0),
-					.READMEM_FIlE		("")
+					.READMEMH			(TCM_READMEMH),
+					.READMEM_FIlE		(TCM_READMEM_FIlE)
 				)
 			i_ram_dualport_tcm
 				(
@@ -521,7 +521,7 @@ module jelly_cpu_top
 					.DEC_ADDR_VALUE		(CACHE_ADDR_VALUE),
 					.DEC_ADDR_WIDTH		(CACHE_ADDR_WIDTH)
 				)
-			jbus_decoder_data
+			i_jbus_decoder_data
 				(
 					.reset				(reset),
 					.clk				(clk),

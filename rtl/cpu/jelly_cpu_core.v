@@ -1339,7 +1339,7 @@ module jelly_cpu_core
 				if ( !reset ) begin
 					if ( !interlock & !ex_out_stall ) begin
 						pc_trace_file = $fopen(SIM_TRACE_PC_FILE, "a");
-						$fdisplay(pc_trace_file, "p %h %h %d  [pc]", ex_out_pc, ex_out_instruction, $time);
+						$fdisplay(pc_trace_file, "%d [pc]   p %h %h", $time, ex_out_pc, ex_out_instruction);
 						$fclose(pc_trace_file);
 					end
 				end
@@ -1358,7 +1358,7 @@ module jelly_cpu_core
 				if ( !reset ) begin
 					if ( !interlock & if_gpr_write_en ) begin
 						pc_trace_file = $fopen(SIM_TRACE_GPR_FILE, "a");
-						$fdisplay(pc_trace_file, "g %h %h %d [gpr]", if_gpr_write_addr, if_gpr_write_data, $time);
+						$fdisplay(pc_trace_file, "%d [gpr]  g %h %h", $time, if_gpr_write_addr, if_gpr_write_data);
 						$fclose(pc_trace_file);
 					end
 				end

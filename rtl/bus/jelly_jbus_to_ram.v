@@ -42,6 +42,7 @@ module jelly_jbus_to_ram
 	
 	// write control
 	reg							reg_we;
+	reg		[ADDR_WIDTH-1:0]	reg_addr;
 	reg		[SEL_WIDTH-1:0]		reg_sel;
 	reg		[DATA_WIDTH-1:0]	reg_wdata;
 	always @( posedge clk ) begin
@@ -53,8 +54,12 @@ module jelly_jbus_to_ram
 		else begin
 			if ( jbus_en & jbus_ready ) begin
 				reg_we    <= jbus_valid & jbus_we;
+				reg_addr  <= jbus_addr;
 				reg_sel   <= jbus_sel;
 				reg_wdata <= jbus_wdata;
+			end
+			else begin
+				reg_we    <= 1'b0; 
 			end
 		end
 	end
@@ -72,15 +77,15 @@ module jelly_jbus_to_ram
 	end
 	endfunction
 	
-	wire	write_mask;
+	wire	[DATA_WIDTH-1:0]	write_mask;
 	assign write_mask = make_write_mask(reg_sel);
 	
 	assign jbus_rdata = ram_rdata;
 	assign jbus_ready = !(jbus_valid & reg_we);
 	
-	assign ram_en     = jbus_en & (jbus_valid | reg_we);
+	assign ram_en     = (jbus_en & jbus_valid) | reg_we;
 	assign ram_we     = reg_we;
-	assign ram_addr   = jbus_addr;
+	assign ram_addr   = reg_we ? reg_addr : jbus_addr;
 	assign ram_wdata  = (ram_rdata & ~write_mask) | (reg_wdata & write_mask);
 	
 endmodule
