@@ -79,7 +79,7 @@ module jelly_wishbone_to_jbus
 		reg							reg_jbus_we;
  		reg		[SEL_WIDTH-1:0]		reg_jbus_sel;
 		reg							reg_jbus_valid;
-		reg							reg_wb_dat_o;
+		reg		[DATA_WIDTH-1:0]	reg_wb_dat_o;
 		reg							reg_wb_ack_o;
 		
 		always @( posedge clk ) begin

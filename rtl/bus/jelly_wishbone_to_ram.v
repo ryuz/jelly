@@ -53,10 +53,9 @@ module jelly_wishbone_to_ram
 	end
 	endfunction
 	
-	wire	write_mask;
+	wire	[WB_DAT_WIDTH-1:0]	write_mask;
 	assign write_mask = make_write_mask(wb_sel_i);
-	
-	
+		
 	reg			reg_ack;
 	always @( posedge clk ) begin
 		if ( reset ) begin
