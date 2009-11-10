@@ -19,7 +19,7 @@ module jelly_jbus_logger
 			parameter	FILE_NAME       = "",
 			parameter	DISPLAY         = 1,
 			parameter	MESSAGE         = "[jbus trace]",
-			parameter	CHECK_DATA      = 1,
+			parameter	CHECK_DATA      = 0,
 			parameter	CHECK_ADR_MASK  = 32'hf000_0000,
 			parameter	CHECK_ADR_VALUE = 32'h0000_0000,
 			parameter	CHECK_MEM_SIZE  = 256*1024
