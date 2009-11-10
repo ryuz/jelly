@@ -8,12 +8,12 @@
 
 
 # clock
-NET "clk_in" LOC = "P88" | IOSTANDARD = LVCMOS33 ;
-NET "clk_in" TNM_NET = clk_in;
-TIMESPEC TS_clk_in = PERIOD "clk_in" 50 MHz HIGH 50%;
+NET "in_clk" LOC = "P88" | IOSTANDARD = LVCMOS33 ;
+NET "in_clk" TNM_NET = in_clk;
+TIMESPEC TS_in_clk = PERIOD "in_clk" 50 MHz HIGH 50%;
 
 # reset
-NET "reset_in_n" LOC = "P89" | IOSTANDARD = LVCMOS33 | PULLDOWN ;
+NET "in_reset_n" LOC = "P89" | IOSTANDARD = LVCMOS33 | PULLDOWN ;
 
 # LED
 NET "led" LOC = "P98" | IOSTANDARD = LVCMOS33 ;

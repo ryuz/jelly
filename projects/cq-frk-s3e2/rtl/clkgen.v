@@ -19,6 +19,7 @@ module clkgen
 			output	wire	out_clk,
 			output	wire	out_clk_x2,
 			output	wire	out_clk_uart,
+			output	wire	out_reset,
 			
 			output	wire	locked
 		);
@@ -115,12 +116,24 @@ module clkgen
 				.STATUS					()
 			);
 
+	// -------------------------
+	//  reset
+	// -------------------------
 	
-//	assign out_clk    = clkdv_bufg;
-//	assign out_clk_x2 = clk0_bufg;
-
-	assign out_clk      = clk0_bufg;
-	assign out_clk_x2   = clk2x_bufg;
+	reg		[1:0]		reg_reset;
+	always @ ( posedge clk0_bufg or posedge in_reset ) begin
+		if ( in_reset ) begin
+			reg_reset <= 2'b11;
+		end
+		else begin
+			if ( !dcm_locked ) begin
+				reg_reset <= 2'b11;
+			end
+			else begin
+				reg_reset <= {1'b0, reg_reset[1]};
+			end
+		end
+	end
 	
 	
 	// -------------------------
@@ -144,11 +157,15 @@ module clkgen
 			end
 		end
 	end
-
-	assign out_clk_uart = uart_clk_dv;
-
 	
-	assign locked = dcm_locked;
+	
+	
+	assign out_clk      = clk0_bufg;
+	assign out_clk_x2   = clk2x_bufg;
+	assign out_clk_uart = uart_clk_dv;
+	assign out_reset    = reg_reset[0];
+	
+	assign locked       = dcm_locked;
 
 	
 endmodule

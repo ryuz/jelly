@@ -1,8 +1,8 @@
 // ---------------------------------------------------------------------------
-//  Jelly -- The computing system for Spartan-3 Starter Kit
+//  Jelly  -- the soft-core processor system
 //
-//                                      Copyright (C) 2008 by Ryuji Fuchikami 
-//                                      http://homepage3.nifty.com/ryuz
+//                                 Copyright (C) 2008-2009 by Ryuji Fuchikami 
+//                                 http://homepage3.nifty.com/ryuz
 // ---------------------------------------------------------------------------
 
 
@@ -12,17 +12,27 @@
 // top module
 module top
 		#(
-			parameter 				CPU_USE_DBUGGER     = 1'b0,
-			parameter 				CPU_USE_EXC_SYSCALL = 1'b0,
-			parameter 				CPU_USE_EXC_BREAK   = 1'b0,
-			parameter 				CPU_USE_EXC_RI      = 1'b0,
-			parameter 				CPU_GPR_TYPE        = 2,
-			parameter 				CPU_DBBP_NUM        = 0
+			parameter	CPU_USE_DBUGGER     = 1'b0,
+			parameter	CPU_USE_EXC_SYSCALL = 1'b0,
+			parameter	CPU_USE_EXC_BREAK   = 1'b0,
+			parameter	CPU_USE_EXC_RI      = 1'b0,
+			parameter	CPU_GPR_TYPE        = 2,
+			parameter	CPU_DBBP_NUM        = 0,
+
+			parameter	TCM_ENABLE          = 1,
+			parameter	TCM_ADDR_MASK       = 30'b1111_1111_1111_1111__0000_0000_0000_00,
+			parameter	TCM_ADDR_VALUE      = 30'b0000_0000_0000_0000__0000_0000_0000_00,
+			parameter	TCM_ADDR_WIDTH      = 12,
+			parameter	TCM_MEM_SIZE        = (1 << TCM_ADDR_WIDTH),
+			parameter	TCM_READMEMH        = 1,
+			parameter	TCM_READMEM_FIlE    = "hosv4a_sample_ram.hex",
+
+			parameter	SIMULATION          = 0
 		)
 		(
 			// system
-			input	wire			clk_in,
-			input	wire			reset_in_n,
+			input	wire			in_clk,
+			input	wire			in_reset_n,
 			
 			// uart
 			output	wire			uart0_tx,
@@ -54,21 +64,16 @@ module top
 	clkgen
 		i_clkgen
 			(
-				.in_reset			(~reset_in_n), 
-				.in_clk				(clk_in), 
+				.in_reset			(!in_reset_n), 
+				.in_clk				(in_clk), 
 			
 				.out_clk			(clk),
 				.out_clk_x2			(clk_x2),
-				
 				.out_clk_uart		(clk_uart),
-				
+				.out_reset			(reset),
+
 				.locked				(locked)
 		);
-	
-	// reset
-	wire				reset;
-	assign reset = ~reset_in_n | ~locked;
-	
 	
 	
 	// UART assign
@@ -86,7 +91,7 @@ module top
 	
 	
 	// -----------------------------
-	//  cpu
+	//  CPU
 	// -----------------------------
 	
 	// interrupt
@@ -96,12 +101,12 @@ module top
 	
 	// cpu-bus (Whishbone)
 	wire	[31:2]	wb_cpu_adr_o;
-	reg		[31:0]	wb_cpu_dat_i;
+	wire	[31:0]	wb_cpu_dat_i;
 	wire	[31:0]	wb_cpu_dat_o;
 	wire			wb_cpu_we_o;
 	wire	[3:0]	wb_cpu_sel_o;
 	wire			wb_cpu_stb_o;
-	reg				wb_cpu_ack_i;
+	wire			wb_cpu_ack_i;
 	
 	// cpu debug port
 	wire	[3:0]	wb_dbg_adr_o;
@@ -112,6 +117,7 @@ module top
 	wire			wb_dbg_stb_o;
 	wire			wb_dbg_ack_i;
 	
+	/*
 	// peripheral-bus
 	wire	[31:2]	wb_peri_adr_o;
 	reg		[31:0]	wb_peri_dat_i;
@@ -120,7 +126,7 @@ module top
 	wire	[3:0]	wb_peri_sel_o;
 	wire			wb_peri_stb_o;
 	reg				wb_peri_ack_i;
-	
+	*/
 	
 	// CPU
 	jelly_cpu_simple_top
@@ -131,7 +137,17 @@ module top
 				.USE_EXC_RI			(CPU_USE_EXC_RI),
 				.GPR_TYPE			(CPU_GPR_TYPE),
 				.MUL_CYCLE			(33),
-				.DBBP_NUM 			(CPU_DBBP_NUM)
+				.DBBP_NUM 			(CPU_DBBP_NUM),
+				
+				.TCM_ENABLE			(TCM_ENABLE),
+				.TCM_ADDR_MASK		(TCM_ADDR_MASK),
+				.TCM_ADDR_VALUE		(TCM_ADDR_VALUE),
+				.TCM_ADDR_WIDTH		(TCM_ADDR_WIDTH),
+				.TCM_MEM_SIZE		(TCM_MEM_SIZE),
+				.TCM_READMEMH		(TCM_READMEMH),
+				.TCM_READMEM_FIlE	(TCM_READMEM_FIlE),
+				
+				.SIMULATION			(SIMULATION)
 			)
 		i_cpu_top
 			(
@@ -208,141 +224,9 @@ module top
 	endgenerate
 	
 	
-	
 	// -----------------------------
-	//  boot rom
-	// -----------------------------
-	
-	reg					rom_wb_stb_i;
-	wire	[31:0]		rom_wb_dat_o;
-	reg					rom_wb_ack_o;
-	boot_rom
-		i_boot_rom
-			(
-				.clk				(clk),
-				.addr				(wb_cpu_adr_o[13:2]),
-				.data				(rom_wb_dat_o)
-			);
-	always @ ( posedge clk or posedge reset ) begin
-		if ( reset ) begin
-			rom_wb_ack_o <= 1'b0;
-		end
-		else begin
-			rom_wb_ack_o <= rom_wb_stb_i & !rom_wb_ack_o;
-		end
-	end
-	
-	
-	
-	// -----------------------------
-	//  internal sram
-	// -----------------------------
-
-	reg					sram_wb_stb_i;
-	wire	[31:0]		sram_wb_dat_o;
-	wire				sram_wb_ack_o;
-	
-	jelly_sram
-			#(
-				.WB_ADR_WIDTH	(10),
-				.WB_DAT_WIDTH	(32)
-			)
-		i_sram
-			(
-				.reset			(reset),
-				.clk			(clk),
-				
-				.wb_adr_i		(wb_cpu_adr_o[11:2]),
-				.wb_dat_o		(sram_wb_dat_o),
-				.wb_dat_i		(wb_cpu_dat_o),
-				.wb_we_i		(wb_cpu_we_o),
-				.wb_sel_i		(wb_cpu_sel_o),
-				.wb_stb_i		(sram_wb_stb_i),
-				.wb_ack_o		(sram_wb_ack_o)
-		);
-	
-	
-	// -------------------------
-	//  peripheral bus
-	// -------------------------
-
-	reg				peri_wb_stb_i;
-	wire	[31:0]	peri_wb_dat_o;
-	wire			peri_wb_ack_o;
-	
-	jelly_wishbone_bridge
-			#(
-				.WB_ADR_WIDTH		(30),
-				.WB_DAT_WIDTH		(32)
-			)
-		i_wishbone_bridge
-			(
-				.reset				(reset),
-				.clk				(clk),
-				
-				.wb_in_adr_i		(wb_cpu_adr_o),
-				.wb_in_dat_o		(peri_wb_dat_o),
-				.wb_in_dat_i		(wb_cpu_dat_o),
-				.wb_in_we_i			(wb_cpu_we_o),
-				.wb_in_sel_i		(wb_cpu_sel_o),
-				.wb_in_stb_i		(peri_wb_stb_i),
-				.wb_in_ack_o		(peri_wb_ack_o),
-				
-				.wb_out_adr_o		(wb_peri_adr_o),
-				.wb_out_dat_i		(wb_peri_dat_i),
-				.wb_out_dat_o		(wb_peri_dat_o),
-				.wb_out_we_o		(wb_peri_we_o),
-				.wb_out_sel_o		(wb_peri_sel_o),
-				.wb_out_stb_o		(wb_peri_stb_o),
-				.wb_out_ack_i		(wb_peri_ack_i)
-			);
-	
-	
-	
-	// -------------------------
-	//  cpu bus address decoder
-	// -------------------------
-	
-	always @* begin
-		rom_wb_stb_i  = 1'b0;
-		sram_wb_stb_i = 1'b0;
-		peri_wb_stb_i = 1'b0;
-		
-		casex ( {wb_cpu_adr_o[31:2], 2'b00} )
-		32'h00xx_xxxx:	// boot rom
-			begin
-				rom_wb_stb_i = wb_cpu_stb_o;
-				wb_cpu_dat_i = rom_wb_dat_o;
-				wb_cpu_ack_i = rom_wb_ack_o;
-			end
-
-		32'h01xx_xxxx:	// sram
-			begin
-				sram_wb_stb_i = wb_cpu_stb_o;
-				wb_cpu_dat_i = sram_wb_dat_o;
-				wb_cpu_ack_i = sram_wb_ack_o;
-			end
-
-		32'hfxxx_xxxx:	// peri
-			begin
-				peri_wb_stb_i = wb_cpu_stb_o;
-				wb_cpu_dat_i  = peri_wb_dat_o;
-				wb_cpu_ack_i  = peri_wb_ack_o;
-			end
-			
-		default:
-			begin
-				wb_cpu_dat_i = {32{1'b0}};
-				wb_cpu_ack_i = 1'b1;
-			end
-		endcase
-	end
-	
-	
-	
-	// -------------------------
 	//  IRC
-	// -------------------------
+	// -----------------------------
 	
 	// irq
 	wire				timer0_irq;
@@ -355,10 +239,15 @@ module top
 	assign irc_interrupt[1] = uart0_irq_rx;
 	assign irc_interrupt[2] = uart0_irq_tx;
 	
+
 	// irc
-	reg					irc_wb_stb_i;
-	wire	[31:0]		irc_wb_dat_o;
-	wire				irc_wb_ack_o;
+	wire	[31:2]		wb_irc_adr_i;
+	wire	[31:0]		wb_irc_dat_i;
+	wire	[31:0]		wb_irc_dat_o;
+	wire	[3:0]		wb_irc_sel_i;
+	wire				wb_irc_we_i;
+	wire				wb_irc_stb_i;
+	wire				wb_irc_ack_o;
 	
 	jelly_irc
 			#(
@@ -366,7 +255,7 @@ module top
 				.FACTOR_NUM			(3),
 				.PRIORITY_WIDTH		(2),
 	
-				.WB_ADR_WIDTH		(14),
+				.WB_ADR_WIDTH		(8),
 				.WB_DAT_WIDTH		(32)
 			)
 		i_irc
@@ -379,25 +268,28 @@ module top
 				.cpu_irq			(cpu_irq),
 				.cpu_irq_ack		(cpu_irq_ack),
 											
-				.wb_adr_i			(wb_peri_adr_o[15:2]),
-				.wb_dat_o			(irc_wb_dat_o),
-				.wb_dat_i			(wb_peri_dat_o),
-				.wb_we_i			(wb_peri_we_o),
-				.wb_sel_i			(wb_peri_sel_o),
-				.wb_stb_i			(irc_wb_stb_i),
-				.wb_ack_o			(irc_wb_ack_o)
-			);
+				.wb_adr_i			(wb_irc_adr_i[9:2]),
+				.wb_dat_o			(wb_irc_dat_o),
+				.wb_dat_i			(wb_irc_dat_i),
+				.wb_we_i			(wb_irc_we_i),
+				.wb_sel_i			(wb_irc_sel_i),
+				.wb_stb_i			(wb_irc_stb_i),
+				.wb_ack_o			(wb_irc_ack_o)
+			);                     
 	
 	
-	
-	// -------------------------
+	// -----------------------------
 	//  Timer0
-	// -------------------------
+	// -----------------------------
 	
-	reg					timer0_wb_stb_i;
-	wire	[31:0]		timer0_wb_dat_o;
-	wire				timer0_wb_ack_o;
-
+	wire	[31:2]		wb_timer0_adr_i;
+	wire	[31:0]		wb_timer0_dat_i;
+	wire	[31:0]		wb_timer0_dat_o;
+	wire	[3:0]		wb_timer0_sel_i;
+	wire				wb_timer0_we_i;
+	wire				wb_timer0_stb_i;
+	wire				wb_timer0_ack_o;
+	
 	jelly_timer
 		i_timer0
 			(
@@ -406,24 +298,28 @@ module top
 				
 				.interrupt_req		(timer0_irq),
 
-				.wb_adr_i			(wb_peri_adr_o[3:2]),
-				.wb_dat_o			(timer0_wb_dat_o),
-				.wb_dat_i			(wb_peri_dat_o),
-				.wb_we_i			(wb_peri_we_o),
-				.wb_sel_i			(wb_peri_sel_o),
-				.wb_stb_i			(timer0_wb_stb_i),
-				.wb_ack_o			(timer0_wb_ack_o)
-			);
+				.wb_adr_i			(wb_timer0_adr_i[3:2]),
+				.wb_dat_o			(wb_timer0_dat_o),
+				.wb_dat_i			(wb_timer0_dat_i),
+				.wb_we_i			(wb_timer0_we_i),
+				.wb_sel_i			(wb_timer0_sel_i),
+				.wb_stb_i			(wb_timer0_stb_i),
+				.wb_ack_o			(wb_timer0_ack_o)
+			);                     
 	
 	
 	
-	// -------------------------
+	// -----------------------------
 	//  UART
-	// -------------------------
+	// -----------------------------
 	
-	reg					uart0_wb_stb_i;
-	wire	[31:0]		uart0_wb_dat_o;
-	wire				uart0_wb_ack_o;
+	wire	[31:2]		wb_uart0_adr_i;
+	wire	[31:0]		wb_uart0_dat_i;
+	wire	[31:0]		wb_uart0_dat_o;
+	wire	[3:0]		wb_uart0_sel_i;
+	wire				wb_uart0_we_i;
+	wire				wb_uart0_stb_i;
+	wire				wb_uart0_ack_o;
 
 	jelly_uart
 			#(
@@ -442,56 +338,48 @@ module top
 				.irq_rx				(uart0_irq_rx),
 				.irq_tx				(uart0_irq_tx),
 				
-				.wb_adr_i			(wb_peri_adr_o[3:2]),
-				.wb_dat_o			(uart0_wb_dat_o),
-				.wb_dat_i			(wb_peri_dat_o),
-				.wb_we_i			(wb_peri_we_o),
-				.wb_sel_i			(wb_peri_sel_o),
-				.wb_stb_i			(uart0_wb_stb_i),
-				.wb_ack_o			(uart0_wb_ack_o)
-			);
+				.wb_adr_i			(wb_uart0_adr_i[3:2]),
+				.wb_dat_o			(wb_uart0_dat_o),
+				.wb_dat_i			(wb_uart0_dat_i),
+				.wb_we_i			(wb_uart0_we_i),
+				.wb_sel_i			(wb_uart0_sel_i),
+				.wb_stb_i			(wb_uart0_stb_i),
+				.wb_ack_o			(wb_uart0_ack_o)
+			);                     
 	
 	
 	
-	// -------------------------
-	//  peri bus address decoder
-	// -------------------------
+	// -----------------------------
+	//  address decoder
+	// -----------------------------
 	
-	always @* begin
-		irc_wb_stb_i    = 1'b0;
-		timer0_wb_stb_i = 1'b0;
-		uart0_wb_stb_i  = 1'b0;
-		
-		casex ( {wb_peri_adr_o[31:2], 2'b00} )
-		32'hf0xx_xxxx:	// irc
-			begin
-				irc_wb_stb_i = wb_peri_stb_o;
-				wb_peri_dat_i = irc_wb_dat_o;
-				wb_peri_ack_i = irc_wb_ack_o;
-			end
-			
-		32'hf1xx_xxxx:	// timer0
-			begin
-				timer0_wb_stb_i = wb_peri_stb_o;
-				wb_peri_dat_i = timer0_wb_dat_o;
-				wb_peri_ack_i = timer0_wb_ack_o;
-			end
-		
-		32'hf2xx_xxxx:	// uart0
-			begin
-				uart0_wb_stb_i = wb_peri_stb_o;
-				wb_peri_dat_i = uart0_wb_dat_o;
-				wb_peri_ack_i = uart0_wb_ack_o;
-			end
-			
-		default:
-			begin
-				wb_peri_dat_i = {32{1'b0}};
-				wb_peri_ack_i = 1'b1;
-			end
-		endcase
-	end
+	assign wb_irc_adr_i    = wb_cpu_adr_o;
+	assign wb_irc_dat_i    = wb_cpu_dat_o;
+	assign wb_irc_sel_i    = wb_cpu_sel_o;
+	assign wb_irc_we_i     = wb_cpu_we_o;
+	assign wb_irc_stb_i    = wb_cpu_stb_o & (wb_cpu_adr_o[31:24] == 8'hf0);
+
+	assign wb_timer0_adr_i = wb_cpu_adr_o;
+	assign wb_timer0_dat_i = wb_cpu_dat_o;
+	assign wb_timer0_sel_i = wb_cpu_sel_o;
+	assign wb_timer0_we_i  = wb_cpu_we_o;
+	assign wb_timer0_stb_i = wb_cpu_stb_o & (wb_cpu_adr_o[31:24] == 8'hf1);
+
+	assign wb_uart0_adr_i  = wb_cpu_adr_o;
+	assign wb_uart0_dat_i  = wb_cpu_dat_o;
+	assign wb_uart0_sel_i  = wb_cpu_sel_o;
+	assign wb_uart0_we_i   = wb_cpu_we_o;
+	assign wb_uart0_stb_i  = wb_cpu_stb_o & (wb_cpu_adr_o[31:24] == 8'hf2);
 	
+	assign wb_cpu_dat_i    = wb_irc_stb_i    ? wb_irc_dat_o    :
+						     wb_timer0_stb_i ? wb_timer0_dat_o :
+						     wb_uart0_stb_i  ? wb_uart0_dat_o  :
+							 32'hxxxx_xxxx;       
+
+	assign wb_cpu_ack_i    = wb_irc_stb_i    ? wb_irc_ack_o    :
+						     wb_timer0_stb_i ? wb_timer0_ack_o :
+						     wb_uart0_stb_i  ? wb_uart0_ack_o  :
+							 1'b1;
 	
 	
 	// -------------------------

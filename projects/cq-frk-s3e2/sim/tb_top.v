@@ -30,10 +30,13 @@ module tb_top;
 	end
 	
 	top
+			#(
+				.SIMULATION			(SIMULATION)
+			)
 		i_top
 			(
-				.clk_in				(clk),
-				.reset_in_n			(!reset),
+				.in_clk				(clk),
+				.in_reset_n			(!reset),
 				
 				.uart0_tx			(),
 				.uart0_rx			(1'b1),
