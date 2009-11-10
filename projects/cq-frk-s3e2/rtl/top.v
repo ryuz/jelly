@@ -245,8 +245,7 @@ module top
 	jelly_sram
 			#(
 				.WB_ADR_WIDTH	(10),
-				.WB_DAT_WIDTH	(32),
-				.CYCLE			(1)
+				.WB_DAT_WIDTH	(32)
 			)
 		i_sram
 			(

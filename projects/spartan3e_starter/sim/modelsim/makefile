@@ -5,7 +5,7 @@ WORK_DIR = work
 PRJ_DIR  = ../..
 TOP_DIR  = ../../../..
 RTL_DIR  = $(TOP_DIR)/rtl
-HOS_DIR  = ~/hos-v4a/sample/mips/jelly/gcc
+HOS_DIR  = $(HOME)/hos-v4a/sample/mips/jelly/gcc
 
 
 # flags

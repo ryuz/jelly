@@ -10,7 +10,7 @@
 `timescale 1ns / 1ps
 
 
-module jbus_slave_model
+module jelly_jbus_slave_model
 		#(
 			parameter	ADDR_WIDTH = 12,
 			parameter	DATA_SIZE  = 2,		// 2^n (0:8bit, 1:16bit, 2:32bit ...)

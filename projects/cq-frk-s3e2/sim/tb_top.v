@@ -45,30 +45,8 @@ module tb_top;
 			);
 	
 	
-	// PC trace
-	integer pc_trace;
 	initial begin
-		pc_trace = $fopen("pc_trace.txt");
-	end
-	always @ ( posedge i_top.i_cpu_top.i_cpu_core.clk ) begin
-		if ( !i_top.i_cpu_top.i_cpu_core.interlock & !i_top.i_cpu_top.i_cpu_core.ex_out_stall ) begin
-			$fdisplay(pc_trace, "%t : %h %h",
-						$time, i_top.i_cpu_top.i_cpu_core.ex_out_pc, i_top.i_cpu_top.i_cpu_core.ex_out_instruction);
-		end
-	end
-
-	// Interrupt monitor
-	always @ ( posedge i_top.i_cpu_top.clk ) begin
-		if ( i_top.i_cpu_top.interrupt_ack ) begin
-			$display("%t  interrupt_ack",  $time);
-		end
-	end
-	
-	
-	initial begin
-	#(RATE*200);
 				$display("--- START ---");
-
 	#(RATE*100000);
 				$finish;
 	end	
