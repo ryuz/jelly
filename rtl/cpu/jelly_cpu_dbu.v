@@ -282,14 +282,14 @@ module jelly_cpu_dbu
 		*/
 	end
 	else begin
-		assign dbus_interlock = 1'b0;
 		assign dbus_en        = 1'b0;
-		assign dbus_we        = 1'b0;
-		assign dbus_sel       = 4'b0000;
 		assign dbus_addr      = 0;
 		assign dbus_wdata     = 0;
+		assign dbus_sel       = 4'b0000;
+		assign dbus_we        = 1'b0;
+		assign dbus_valid     = 1'b0;
 		
-		assign dbus_ack       = 1'b1;
+		assign dbus_wb_ack    = 1'b1;
 	end
 	endgenerate
 	

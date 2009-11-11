@@ -32,6 +32,7 @@ module jelly_register_wishbone
 			input	wire						wb_we_i,
 			input	wire	[WB_SEL_WIDTH-1:0]	wb_sel_i,
 			input	wire						wb_stb_i,
+			output	wire						wb_ack_o,
 			
 			// data port
 			input	wire	[WB_DAT_WIDTH-1:0]	data_we,
@@ -80,7 +81,7 @@ module jelly_register_wishbone
 	end
 	
 	assign wb_dat_o = wb_stb_i ? reg_data_next : {WB_DAT_WIDTH{1'b0}};
-	assign wb_ack_i = 1'b1;
+	assign wb_ack_o = 1'b1;
 	
 endmodule
 

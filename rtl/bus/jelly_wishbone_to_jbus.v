@@ -69,8 +69,8 @@ module jelly_wishbone_to_jbus
 		assign jbus_master_sel   = wb_slave_sel_i;
 		assign jbus_master_valid = wb_slave_stb_i & !reg_master_read;
 		
-		assign wb_dat_o = jbus_master_rdata;
-		assign wb_ack_o = jbus_master_ready & (reg_master_read | jbus_master_we);
+		assign wb_slave_dat_o = jbus_master_rdata;
+		assign wb_slave_ack_o = jbus_master_ready & (reg_master_read | jbus_master_we);
 	end
 	else begin
 		// insert FF

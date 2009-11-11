@@ -148,7 +148,7 @@ module jelly_wishbone_width_converter
 		// same width
 		assign wb_master_adr_o = wb_slave_adr_i;
 		assign wb_master_dat_o = wb_slave_dat_o;
-		assign wb_slave_dat_i  = wb_master_dat_i;
+		assign wb_slave_dat_o  = wb_master_dat_i;
 		assign wb_master_we_o  = wb_slave_we_i;
 		assign wb_master_sel_o = wb_slave_sel_i;
 		assign wb_master_stb_o = wb_slave_stb_i;

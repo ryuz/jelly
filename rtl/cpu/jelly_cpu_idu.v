@@ -423,7 +423,7 @@ module jelly_cpu_idu
 	//  Immidiate
 	// -----------------------------
 	
-	wire					immediate_signed;
+	wire					immediate_unsigned;
 	wire					immediate_lui;
 	
 	

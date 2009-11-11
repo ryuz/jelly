@@ -126,6 +126,8 @@ module irc_factor
 		end
 	end
 	
+	assign wb_ack_o = 1'b1;
+	
 endmodule
 
 
