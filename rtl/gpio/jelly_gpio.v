@@ -19,12 +19,12 @@
 
 module jelly_gpio
 		#(
-			parameter							WB_ADR_WIDTH   = 2,
-			parameter							WB_DAT_WIDTH   = 32,
-			parameter							WB_SEL_WIDTH   = (WB_DAT_WIDTH / 8),
-			parameter							PORT_WIDTH     = 8,
-			parameter							INIT_DIRECTION = 0,
-			parameter							INIT_OUTPUT    = 0
+			parameter	WB_ADR_WIDTH   = 2,
+			parameter	WB_DAT_WIDTH   = 32,
+			parameter	WB_SEL_WIDTH   = (WB_DAT_WIDTH / 8),
+			parameter	PORT_WIDTH     = 8,
+			parameter	INIT_DIRECTION = 0,
+			parameter	INIT_OUTPUT    = 0
 		)
 		(
 			// system

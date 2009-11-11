@@ -285,14 +285,14 @@ module top
 				.WB_ADR_WIDTH		(12),
 				.WB_DAT_WIDTH		(32),
 				.READMEMH			(1),
-				.READMEM_FILE		("sample.hex")
+				.READMEM_FILE		("hosv4a_sample.hex")
 			)
 		i_sram_rom
 			(
 				.reset				(reset),
 				.clk				(clk),
 				
-				.wb_adr_i			(wb_rom32_adr_o[17:2]), // [13:2]),
+				.wb_adr_i			(wb_rom32_adr_o[13:2]),
 				.wb_dat_o			(wb_rom32_dat_i),
 				.wb_dat_i			(wb_rom32_dat_o),
 				.wb_we_i			(wb_rom32_we_o),
@@ -672,13 +672,13 @@ module top
 	assign wb_gpioa_dat_i  = wb_peri_dat_o;
 	assign wb_gpioa_sel_i  = wb_peri_sel_o;
 	assign wb_gpioa_we_i   = wb_peri_we_o;
-	assign wb_gpioa_stb_i  = wb_peri_stb_o & (wb_peri_adr_o[31:8] == 28'hf300_000);
+	assign wb_gpioa_stb_i  = wb_peri_stb_o & (wb_peri_adr_o[31:4] == 28'hf300_000);
 
 	assign wb_gpiob_adr_i  = wb_peri_adr_o;
 	assign wb_gpiob_dat_i  = wb_peri_dat_o;
 	assign wb_gpiob_sel_i  = wb_peri_sel_o;
 	assign wb_gpiob_we_i   = wb_peri_we_o;
-	assign wb_gpiob_stb_i  = wb_peri_stb_o & (wb_peri_adr_o[31:8] == 28'hf300_001);
+	assign wb_gpiob_stb_i  = wb_peri_stb_o & (wb_peri_adr_o[31:4] == 28'hf300_001);
 	
 	assign wb_peri_dat_i   = wb_irc_stb_i    ? wb_irc_dat_o    :
 						     wb_timer0_stb_i ? wb_timer0_dat_o :

@@ -64,41 +64,64 @@ module jelly_wishbone_clk2x
 	
 	reg									reg_2nd;
 	reg									reg_end;
-	reg		[WB_SLAVE_DAT_WIDTH-1:0]	reg_dat;
+	reg		[WB_MASTER_DAT_WIDTH-1:0]	reg_read_dat1;
+	reg		[WB_MASTER_DAT_WIDTH-1:0]	reg_read_dat2;
+	
 	
 	always @( posedge clk_x2 ) begin
 		if ( reset ) begin
-			reg_2nd <= 1'b0;
-			reg_end <= 1'b0;
-			reg_dat <= {WB_SLAVE_DAT_WIDTH{1'bx}};
+			reg_2nd  <= 1'b0;
+			reg_end  <= 1'b0;
+			reg_dat1 <= {WB_SLAVE_DAT_WIDTH{1'bx}};
+			reg_dat2 <= {WB_SLAVE_DAT_WIDTH{1'bx}};
 		end
 		else begin
 			if ( reg_end ) begin
 				if ( reg_phase == 1'b1 ) begin
-					reg_end <= 1'b0;
-					reg_dat <= {WB_SLAVE_DAT_WIDTH{1'bx}};
+					reg_end  <= 1'b0;
 				end
 			end
 			else begin
-				reg_2nd <= !reg_2nd & wb_master_stb_o & wb_master_ack_i;
-				if ( reg_2nd & wb_master_ack_i & !reg_phase ) begin
+				reg_2nd <= !reg_2nd & wb_slave_stb_o & ((wb_master_sel_o == 0) | wb_master_ack_i);
+				
+				if ( reg_2nd & ((wb_master_sel_o == 0) | wb_master_ack_i) & !reg_phase ) begin
 					reg_end <= 1'b1;
-					reg_dat <= endian ? wb_master_dat_i[0 +: WB_SLAVE_DAT_WIDTH] : wb_master_dat_i[WB_SLAVE_DAT_WIDTH +: WB_SLAVE_DAT_WIDTH];
 				end
+				
+				if ( reg_2nd == 1'b0 ) begin
+					reg_dat1 <= wb_master_dat_i;
+				end
+				else begin
+					reg_dat2 <= wb_master_dat_i;
+				end
+				
 			end
 		end
 	end
 	
+	wire	[WB_MASTER_DAT_WIDTH-1:0]	read_dat1;
+	wire	[WB_MASTER_DAT_WIDTH-1:0]	read_dat2;
+	assign read_dat1 = reg_read_dat1;
+	assign read_dat2 = reg_end ? reg_read_dat2 : wb_master_dat_i;
+	
+	wire	[WB_MASTER_DAT_WIDTH-1:0]	write_dat1;
+	wire	[WB_MASTER_DAT_WIDTH-1:0]	write_dat2;
+	wire	[WB_MASTER_SEL_WIDTH-1:0]	write_sel1;
+	wire	[WB_MASTER_SEL_WIDTH-1:0]	write_sel2;
+	assign write_dat1 = endian ? wb_slave_dat_i[WB_MASTER_DAT_WIDTH +: WB_MASTER_DAT_WIDTH] : wb_slave_dat_i[0 +: WB_MASTER_DAT_WIDTH];
+	assign write_dat2 = endian ? wb_slave_dat_i[0 +: WB_MASTER_DAT_WIDTH] : wb_slave_dat_i[WB_MASTER_DAT_WIDTH +: WB_MASTER_DAT_WIDTH];
+	assign write_sel1 = endian ? wb_slave_sel_i[WB_MASTER_SEL_WIDTH +: WB_MASTER_SEL_WIDTH] : wb_slave_sel_i[0 +: WB_MASTER_SEL_WIDTH];
+	assign write_sel2 = endian ? wb_slave_sel_i[0 +: WB_MASTER_SEL_WIDTH] : wb_slave_sel_i[WB_MASTER_SEL_WIDTH +: WB_MASTER_SEL_WIDTH];
+	
+	
 	assign wb_master_adr_o = {wb_slave_adr_i, reg_2nd};
-	assign wb_master_dat_o = reg_2nd ^ endian ? wb_slave_dat_i[0 +: WB_MASTER_DAT_WIDTH] : wb_slave_dat_i[WB_MASTER_DAT_WIDTH +: WB_MASTER_DAT_WIDTH];
+	assign wb_master_dat_o = reg_2nd ? write_dat2 : write_dat1;
 	assign wb_master_we_o  = wb_slave_we_i;
-	assign wb_master_sel_o = reg_2nd ^ endian ? wb_slave_sel_i[0 +: WB_MASTER_SEL_WIDTH] : wb_slave_sel_i[WB_MASTER_SEL_WIDTH +: WB_MASTER_SEL_WIDTH];
-	assign wb_master_stb_o = wb_slave_stb_i & !reg_end;
+	assign wb_master_sel_o = reg_2nd ? write_sel2 : write_sel1;
+	assign wb_master_stb_o = wb_slave_stb_i & (wb_master_sel_o != 0) & !reg_end;
 	
-	assign wb_slave_dat_i[0 +: WB_MASTER_DAT_WIDTH]  = 
-	
-	assign wb_slave_ack_o = reg_end | (reg_2nd & wb_master_ack_i);
-	
+	assign wb_slave_dat_i  = endian ? {read_dat1, read_dat2} : {read_dat2 : read_dat1};
+	assign wb_slave_ack_o  = reg_end | (reg_2nd & ((wb_master_sel_o == 0) | wb_master_ack_i));
 	
 	
 endmodule

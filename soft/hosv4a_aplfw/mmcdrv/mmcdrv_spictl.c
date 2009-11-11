@@ -23,6 +23,9 @@
 #define MMC_DO			0x08
 
 
+#define MMC_WAIT() do{ volatile int v; for(v=0;v<2;v++); } while (0)
+
+
 static unsigned char MmcDrv_SendData(unsigned char ubData)
 {
 	unsigned char	ubRead = 0;
@@ -37,14 +40,18 @@ static unsigned char MmcDrv_SendData(unsigned char ubData)
 		if ( ubData & 0x80 )
 		{
 			*GPIOA_OUPUT = c | MMC_DI;
+			MMC_WAIT();
 			ubRead |= (*GPIOA_INPUT & MMC_DO) ? 1 : 0;
 			*GPIOA_OUPUT = c | MMC_DI | MMC_CLK;
+			MMC_WAIT();
 		}
 		else
 		{
 			*GPIOA_OUPUT = c;
+			MMC_WAIT();
 			ubRead |= (*GPIOA_INPUT & MMC_DO) ? 1 : 0;
 			*GPIOA_OUPUT = c | MMC_CLK;
+			MMC_WAIT();
 		}
 		ubData <<= 1;
 	}

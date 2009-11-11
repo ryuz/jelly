@@ -35,7 +35,6 @@ _reset_handler:
 				nop
 				
 				la		$gp, _gp
-	//			la		$sp, 0x01008000
 				la		$8, _kernel_int_isp
 				lw		$sp, ($8)
 				
