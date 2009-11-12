@@ -19,10 +19,10 @@
 // status_ack          8'h81 status
 //
 // dbg_write     8'h02 sel+adr dat0 dat1 dat2 dat3
-// dbg_write_ack                                    8'h81
+// dbg_write_ack                                    8'h82
 //
 // dbg_read      8'h03 sel+adr
-// dbg_write_ack                8'h82 dat0 dat1 dat2 dat3
+// dbg_write_ack                8'h83 dat0 dat1 dat2 dat3
 //
 // mem_write     8'h04 size adr0 adr1 adr2 adr3 dat0 dat1 dat2 dat3 ....
 // mem_write_ack                                                          8'h84

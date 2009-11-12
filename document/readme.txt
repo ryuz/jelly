@@ -20,19 +20,23 @@
 
   +document              各種ドキュメント
   +rtl
-  |  +cpu                CPUコア (コアだけ欲しい方はここだけどうぞ)
-  |  +irc                割込みコントローラ (HOS-V4 Advance でサポート予定)
+  |  +cpu                CPUコア
+  |  +cache              キャッシュメモリ
+  |  +bus                バス変換などのモジュール
+  |  +library            各種ライブラリ的モジュール
+  |  +irc                割込みコントローラ
   |  +ddr_sdram          DDR-SDRAMコントローラ
   |  +sram               内蔵SRAM
   |  +extbus             外部バス制御
   |  +uart               UART
   |  +timer              タイマ
-  +soft                  ROM化ソフト生成用
+  |  +gpio               GPIO
   +projects
-     +spartan3e_starter  Spartan-3E Starter Kit 用プロジェクト
-     +spartan3_starter   Spartan-3 Starter Kit 用プロジェクト
-     +cq-frk-s3e2        DesignWaveおまけ Spartan-3ボード用プロジェクト
-
+  |  +spartan3e_starter  Spartan-3E Starter Kit 用プロジェクト
+  |  +spartan3_starter   Spartan-3 Starter Kit 用プロジェクト
+  |  +cq-frk-s3e2        DesignWaveおまけ Spartan-3ボード用プロジェクト
+  +soft                  ROM化ソフト生成用
+  +tools                 ツール類
 
 
 
