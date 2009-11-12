@@ -119,13 +119,13 @@ module top
 	// CPU
 	jelly_cpu_simple_top
 			#(
-				.USE_DBUGGER    	(USE_DBUGGER),
-				.USE_EXC_SYSCALL	(USE_EXC_SYSCALL),
-				.USE_EXC_BREAK		(USE_EXC_BREAK),
-				.USE_EXC_RI			(USE_EXC_RI),
-				.GPR_TYPE			(GPR_TYPE),
-				.MUL_CYCLE			(MUL_CYCLE),
-				.DBBP_NUM			(DBBP_NUM)
+				.CPU_USE_DBUGGER   	(USE_DBUGGER),
+				.CPU_USE_EXC_SYSCALL(USE_EXC_SYSCALL),
+				.CPU_USE_EXC_BREAK	(USE_EXC_BREAK),
+				.CPU_USE_EXC_RI		(USE_EXC_RI),
+				.CPU_GPR_TYPE		(GPR_TYPE),
+				.CPU_MUL_CYCLE		(MUL_CYCLE),
+				.CPU_DBBP_NUM		(DBBP_NUM)
 			)
 		i_cpu_top
 			(
@@ -213,7 +213,29 @@ module top
 	wire				wb_rom_stb_i;
 	wire				wb_rom_ack_o;
 	
-	boot_rom
+	jelly_sram
+			#(
+				.WB_ADR_WIDTH	(12),
+				.WB_DAT_WIDTH	(32),
+				.READMEMH		(1),
+				.READMEM_FILE	("hosv4a_sample_ram.hex")
+			)
+		i_sram_boot
+			(
+				.reset			(reset),
+				.clk			(clk),
+				
+				.wb_adr_i		(wb_rom_adr_i[13:2]),
+				.wb_dat_o		(wb_rom_dat_o),
+				.wb_dat_i		(wb_rom_dat_i),
+				.wb_we_i		(wb_rom_we_i),
+				.wb_sel_i		(wb_rom_sel_i),
+				.wb_stb_i		(wb_rom_stb_i),
+				.wb_ack_o		(wb_rom_ack_o)
+			);
+	
+	/*
+	jelly_sram
 		i_boot_rom
 			(
 				.clk				(~clk),
@@ -221,7 +243,7 @@ module top
 				.data				(wb_rom_dat_o)
 			);
 	assign wb_rom_ack_o = 1'b1;
-	
+	*/
 	
 	
 	// -------------------------

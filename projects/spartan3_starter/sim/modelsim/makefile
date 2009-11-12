@@ -11,6 +11,7 @@ VLOG_FLAGS =
 
 
 all: work_setup prj_compile
+	cp ../../syn/ise11/hosv4a_sample_ram.hex .
 	vsim -c -wlf vsim.wlf -do "run -all" -L xilinxcorelib_ver -L unisims_ver -lib work tb_top glbl
 
 clean:
@@ -28,6 +29,7 @@ prj_compile:
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/bus/*.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/cpu/*.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/irc/*.v
+	vlog $(VLOG_FLAGS) $(RTL_DIR)/sram/*.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/timer/*.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/uart/*.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/extbus/*.v
