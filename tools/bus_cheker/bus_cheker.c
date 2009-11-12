@@ -74,9 +74,11 @@ int read_table(unsigned long addr, unsigned long data, unsigned long sel)
 int main(int argc, char *argv[])
 {
 	FILE			*fp;
+	unsigned long	time;
 	unsigned long	addr;
 	unsigned long	data;
 	unsigned long	sel;
+	char			module[256];
 	char			buf[256];
 	char			c;
 	
@@ -110,7 +112,7 @@ int main(int argc, char *argv[])
 		fclose(fp);
 	}
 	
-
+	
 	// チェック
 	if ( (fp = fopen(argv[1], "r")) == NULL )
 	{
@@ -118,7 +120,7 @@ int main(int argc, char *argv[])
 	}
 	while ( fgets(buf, sizeof(buf), fp) != NULL )
 	{
-		if ( sscanf(buf, "%c %lx %lx %lx", &c, &addr, &data, &sel) != 4 )
+		if ( sscanf(buf, "%ld %s %c %lx %lx %lx", &time, &module, &c, &addr, &data, &sel) != 6 )
 		{
 			printf("%s", buf);
 		}
