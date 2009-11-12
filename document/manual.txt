@@ -1,7 +1,7 @@
 
-モジュール jelly_cpu_top
-  パラメータ
 
+【jelly_cpu_top モジュール】
+  [パラメータ]
     CPU_USE_DBUGGER
       デバッガを有効にするかどうかを指定します。
       0: 無効  1:有効 (デフォルト)
@@ -106,81 +106,153 @@
      充填できます。デフォルトでキャッシュラインの幅となります。
 
 
-			// L1 Cache
-			parameter	CACHE_ENABLE         = 0,
-			parameter	CACHE_LINE_SIZE      = 1,	// 2^n (0:1words, 1:2words, 2:4words, ...)
-			parameter	CACHE_ARRAY_SIZE     = 9,	// 2^n (1:2lines, 2:4lines, 3:8lines, ...)
-			
-			// bridge
-			parameter	CACHE_BRIDGE         = 0,
-			parameter	THROUGH_BRIDGE       = 0,
-			
-			// cached access port (WISHBONE)
-			parameter	WB_CACHE_ADR_WIDTH   = 30 - CACHE_LINE_SIZE,
-			parameter	WB_CACHE_DAT_SIZE    = 2 + CACHE_LINE_SIZE,
-			parameter	WB_CACHE_DAT_WIDTH   = (8 << WB_CACHE_DAT_SIZE),
-			parameter	WB_CACHE_SEL_WIDTH   = (1 << WB_CACHE_DAT_SIZE),
-			
-			// non-cached access port ()
-			parameter	WB_THROUGH_ADR_WIDTH = 30,
-			parameter	WB_THROUGH_DAT_SIZE  = 2,	// 8^n (0:8bit, 1:16bit, 3:32bit ...)
-			parameter	WB_THROUGH_DAT_WIDTH = (8 << WB_THROUGH_DAT_SIZE),
-			parameter	WB_THROUGH_SEL_WIDTH = (1 << WB_THROUGH_DAT_SIZE),
-			
-			// simulation
-			parameter	SIMULATION       = 0
-		)
-		(
-			// system
-			input	wire								reset,
-			input	wire								clk,
-			input	wire								clk_x2,
-			
-			// endian
-			input	wire								endian,
-			
-			// vector
-			input	wire	[31:0]						vect_reset,
-			input	wire	[31:0]						vect_interrupt,
-			input	wire	[31:0]						vect_exception,
-			
-			// interrupt
-			input	wire								interrupt_req,
-			output	wire								interrupt_ack,
-			
-			// control
-			input	wire								pause,
-			
-			// address decode
-			input	wire	[31:0]						tcm_addr_mask,
-			input	wire	[31:0]						tcm_addr_value,
-			input	wire	[31:0]						cache_addr_mask,
-			input	wire	[31:0]						cache_addr_value,
-			
-			// WISHBONE memory bus (cached)
-			output	wire	[WB_CACHE_ADR_WIDTH-1:0]	wb_cache_adr_o,
-			input	wire	[WB_CACHE_DAT_WIDTH-1:0]	wb_cache_dat_i,
-			output	wire	[WB_CACHE_DAT_WIDTH-1:0]	wb_cache_dat_o,
-			output	wire								wb_cache_we_o,
-			output	wire	[WB_CACHE_SEL_WIDTH-1:0]	wb_cache_sel_o,
-			output	wire								wb_cache_stb_o,
-			input	wire								wb_cache_ack_i,
-			
-			// WISHBONE peripheral bus (non-cached)
-			output	wire	[WB_THROUGH_ADR_WIDTH-1:0]	wb_through_adr_o,
-			input	wire	[WB_THROUGH_DAT_WIDTH-1:0]	wb_through_dat_i,
-			output	wire	[WB_THROUGH_DAT_WIDTH-1:0]	wb_through_dat_o,
-			output	wire								wb_through_we_o,
-			output	wire	[WB_THROUGH_SEL_WIDTH-1:0]	wb_through_sel_o,
-			output	wire								wb_through_stb_o,
-			input	wire								wb_through_ack_i,
-			
-			// debug port (WISHBONE)
-			input	wire	[5:2]						wb_dbg_adr_i,
-			input	wire	[31:0]						wb_dbg_dat_i,
-			output	wire	[31:0]						wb_dbg_dat_o,
-			input	wire								wb_dbg_we_i,
-			input	wire	[3:0]						wb_dbg_sel_i,
-			input	wire								wb_dbg_stb_i,
-			output	wire								wb_dbg_ack_o			
-		);
+    WB_THROUGH_ADR_WIDTH
+      非 キャッシュ対象ポートのアドレスビット数を指定します。
+      デフォルトは 30 です。
+
+    WB_THROUGH_ADR_WIDTH
+      非 キャッシュ対象ポートのバスの幅を2のべき乗で指定します。
+      0:8bit, 1:16bit, 3:32bit, ... というように指定します。
+      デフォルトは 2 (32bit) です。
+
+    SIMULATION
+      シミュレーション実行を指定します。
+      0:合成時(デフォルト)  1:シュミレーション
+      PCトレースをファイルに落とすなどのシュミレーション時固有機能が有効になります。
+
+  [ポート信号]
+    reset  (input)
+      リセット信号を指定します。1でリセットが有効です。
+        同期リセットですので、リセット有効状態で最低1サイクルのクロックを入れて
+      初期化する必要があります。
+        リセット解除は clk の立ち上がりに同期して行ってください。
+
+    clk  (input)
+      基本クロックです。
+
+    clk_x2  (input)
+      倍速クロックです。clkと位相のそろった倍速クロックを入れてください。
+      汎用レジスタに倍速クロックを指定した場合にのみ必要です。
+
+    endian  (input)
+      エンディアンを指定します。
+      0:リトルエンディアン  1: ビッグエンディアン
+      動作途中での切り替えは行わないでください。
+
+    vect_reset[31:0]  (input)
+      リセットベクタのアドレスを指定します。
+      リセット解除後、PCはこの値になります。
+      下位2bitは必ず0にしてください。
+
+    vect_interrupt[31:0]  (input)
+      割込みベクタのアドレスを指定します。
+      割込み受付時、PCはこの値に分岐します。
+      下位2bitは必ず0にしてください。
+
+    vect_exception[31:0]  (input)
+      例外ベクタのアドレスを指定します。
+      例外発生時、PCはこの値に分岐します。
+      下位2bitは必ず0にしてください。
+
+    interrupt_req  (input)
+      割込み要求信号です。1で割り込みを要求します。
+
+    interrupt_req  (output)
+      割込みを受け付けたタイミングで1を出力します。
+      必要なければ特に監視する必要はありません。
+
+    pause  (input)
+      外部から強制的にCPUをインターロックさせます。
+      1で停止し、0で動作を再開します。
+      利用しない場合は常時 0 としてください。
+
+    tcm_addr_mask[31:0]  (input)
+    tcm_addr_value[31:0]  (input)
+      TCMに割り当てるアドレスを指定します。
+      バイトアドレスなのでご注意ください。下位2bitは必ず0にしてください。
+        (address & tcm_addr_mask) == tcm_addr_value
+      となるアドレスが、TCM領域として割り当てられます。
+      動作中の変更は行わないでください。
+
+   cache_addr_mask[31:0]  (input)
+   cache_addr_value[31:0]  (input)
+      キャッシュ対象とするアドレスを指定します。
+      バイトアドレスなのでご注意ください。下位2bitは必ず0にしてください。
+        (address & cache_addr_mask) == cache_addr_value
+      となるアドレスが、キャッシュ対象となります。
+      動作中の変更は行わないでください。
+
+   wb_cache_adr_o (output)
+   wb_cache_dat_i  (input)
+   wb_cache_dat_o (output)
+   wb_cache_we_o (output)
+   wb_cache_sel_o (output)
+   wb_cache_stb_o (output)
+   wb_cache_ack_i (input)
+      キャッシュ対象ポートのWISHBONEバスです。
+      キャッシュ領域への書き込みや、キャッシュミスがこのポートから
+    アクセスされます。
+      アドレスはバイトアドレスではなく、指定したデータバスのサイズが
+    単位となります。
+
+   wb_through_adr_o (output)
+   wb_through_dat_i  (input)
+   wb_through_dat_o (output)
+   wb_through_we_o (output)
+   wb_through_sel_o (output)
+   wb_through_stb_o (output)
+   wb_through_ack_i (input)
+      非キャッシュ対象ポートのWISHBONEバスです。
+      TCMでもキャッシュでもないアドレスにロード/ストアを行うとこのポートから
+    アクセスされます。
+      アドレスはバイトアドレスではなく、指定したデータバスのサイズが
+    単位となります。
+
+   wb_dbg_adr_i[5:2] (input)
+   wb_dbg_dat_i[31:0] (input)
+   wb_dbg_dat_o[31:0] (output)
+   wb_dbg_we_i (input)
+   wb_dbg_sel_i[3:0] (input)
+   wb_dbg_stb_i (input)
+   wb_dbg_ack_o (output)
+     外部からCPU内のデバッグユニットにアクセスするためのポートです。
+     WISHBONEバス仕様です。
+
+
+
+【WISHBONEバス】
+  Jellyでは OpenCores(http://www.opencores.org/) の定めるWISBONEバスを
+利用しています。
+  WISHBONEバス規格は多岐にわたっていますが、Jellyではシングルアクセスに
+必要な最小限の信号のみ利用しています。
+  以下に利用している信号のみ簡単に説明します。
+
+   adr_o
+     アクセスするアドレスを指定します。
+     バイト単位ではなくデータバスの単位となります。
+     したがって、32bitデータバスの場合、アドレスバス幅は30bit幅で4Gbyteのメモリ空間を
+    カバーします。
+
+   dat_o
+   dat_i
+     データの入出力を行う信号です。ライト/リードの信号が流れます。
+
+   we_o
+     リード/ライトの指定を行う信号です。
+     0:read 1:write となります。
+
+   sel_o
+     リード/ライト時のデータバスの有効なレーンを示します。
+     Jellyの場合、レーンサイズは8bit固定です。
+     32bitバスの場合、4bit幅の信号となります。
+
+   stb_o
+     マスター側がアクセスを要求していることを示します。
+     アクセスが完了するまで 1 をキープします。
+
+   ack_i
+     スレーブ側がアクセスを完了させたことを示します。
+     組合せ回路に stb_o を含むことができ、アクセス要求と同じサイクルで
+    アクノリッジを返すことが可能です。
+
+
