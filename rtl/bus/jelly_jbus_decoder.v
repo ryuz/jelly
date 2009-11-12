@@ -18,14 +18,16 @@ module jelly_jbus_decoder
 			parameter	SLAVE_DATA_WIDTH   = (8 << SLAVE_DATA_SIZE),
 			parameter	SLAVE_SEL_WIDTH    = (SLAVE_DATA_WIDTH / 8),
 			
-			parameter	DEC_ADDR_MASK      = 30'b1111_0000_0000_0000__0000_0000_0000_00,
-			parameter	DEC_ADDR_VALUE     = 30'b0000_0000_0000_0000__0000_0000_0000_00,
 			parameter	DEC_ADDR_WIDTH     = SLAVE_ADDR_WIDTH
 		)
 		(
 			// system
 			input	wire							reset,
 			input	wire							clk,
+			
+			// decode address
+			input	wire	[SLAVE_ADDR_WIDTH-1:0]	addr_mask,
+			input	wire	[SLAVE_ADDR_WIDTH-1:0]	addr_value,
 			
 			// slave port (jelly bus)
 			input	wire							jbus_slave_en,
@@ -37,6 +39,7 @@ module jelly_jbus_decoder
 			input	wire							jbus_slave_valid,
 			output	wire							jbus_slave_ready,
 			
+			// master port (jelly bus)
 			output	wire							jbus_master_en,
 			output	wire	[SLAVE_ADDR_WIDTH-1:0]	jbus_master_addr,
 			output	wire	[SLAVE_DATA_WIDTH-1:0]	jbus_master_wdata,
@@ -46,6 +49,7 @@ module jelly_jbus_decoder
 			output	wire							jbus_master_valid,
 			input	wire							jbus_master_ready,
 			
+			// decoded port (jelly bus)
 			output	wire							jbus_decode_en,
 			output	wire	[DEC_ADDR_WIDTH-1:0]	jbus_decode_addr,
 			output	wire	[SLAVE_DATA_WIDTH-1:0]	jbus_decode_wdata,
@@ -58,7 +62,7 @@ module jelly_jbus_decoder
 	
 	
 	wire	sw;
-	assign	sw = ((jbus_slave_addr & DEC_ADDR_MASK) == DEC_ADDR_VALUE);
+	assign	sw = ((jbus_slave_addr & addr_mask) == addr_value);
 	
 	wire	read_ready;
 	reg		read_sw;

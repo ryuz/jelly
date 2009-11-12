@@ -11,7 +11,7 @@ RTL_DIR  = $(TOP_DIR)/rtl
 VLOG_FLAGS =
 
 
-all: soft_build $(TOP_DIR)/soft/boot_rom.v work_setup prj_compile
+all: work_setup prj_compile
 	vsim -c -wlf vsim.wlf -do "run -all" -L xilinxcorelib_ver -L unisims_ver -lib work tb_top glbl
 
 clean:
