@@ -1,0 +1,186 @@
+
+モジュール jelly_cpu_top
+  パラメータ
+
+    CPU_USE_DBUGGER
+      デバッガを有効にするかどうかを指定します。
+      0: 無効  1:有効 (デフォルト)
+
+    CPU_USE_EXC_SYSCALL
+      syscall 命令を有効にするかどうかを指定します。
+      0: 無効  1:有効 (デフォルト)
+
+    CPU_USE_EXC_BREAK
+      break 命令を有効にするかどうかを指定します。
+      0: 無効  1:有効 (デフォルト)
+
+    CPU_USE_EXC_RI
+      予約命令例外(Reserve Instruction)を発生させるかどうかを指定します。
+      0: 無効  1:有効 (デフォルト)
+
+    CPU_USE_HW_BP
+      ハードウェアブレークを利用するかどうかを指定します。
+      0: 無効  1:有効 (デフォルト)
+
+    CPU_GPR_TYPE
+      汎用レジスタの実装タイプを指定します。
+       0: デュアルポートRAMを倍速クロックで利用 (デフォルト)
+       1: デュアルポートRAMを２個利用
+       2: フリップフロップ記述(合成依存)
+
+    CPU_MUL_CYCLE
+       乗算命令のパイプライン段数を指定します。
+       デフォルトは0です。
+       数を増やすと実行効率は落ちますが高周波でのタイミング制約が
+     満たしやすくなります。
+       33以上に指定すると加算器の繰り返しに切り替わり、ハードウェア乗算器
+     資源が節約できます。
+
+    CPU_DBBP_NUM
+      ハードウェアブレークポイントの個数を1～4で指定します。
+      デフォルトは 4 です。
+
+
+    TCM_ENABLE           = 0,
+      密結合メモリ(TCM:Tightly Coupled Memory)を有効/無効を指定します。
+      0: 無効(デフォルト)  1:有効 
+
+    TCM_ADDR_WIDTH
+      TCMを有効にする場合、TCMの32bitでのメモリビット幅を指定します。
+      デフォルトは8で、32bit で 2^8 = 256 word (1024 byte) です。
+
+    TCM_MEM_SIZE
+      TCMを有効にする場合、TCMの32bitでのメモリサイズを指定します。
+      デフォルトで (1 << TCM_ADDR_WIDTH) となります。
+
+    TCM_READMEMH
+      TCMを有効にする場合、初期値の読み込みを $memreadh 命令で行うか
+      どうかを指定します。
+      0: 無効(デフォルト)  1:有効 
+      Xilinx のISE付属のXSTで合成する場合、$memreadh でメモリの初期化が可能です。
+
+    TCM_READMEM_FIlE
+      TCMを有効にする場合、$memreadh 命令読み込むファイルを指定します。
+      32bitワードで16進数のファイルをメモリサイズ分準備してください。
+
+	CACHE_ENABLE
+      キャッシュメモリを有効にするかどうかを指定します。
+      0: 無効(デフォルト)  1:有効 
+
+    CACHE_LINE_SIZE
+      キャッシュ１ラインのワード数を2のべき乗で指定します。
+      0:1words, 1:2words, 2:4words, ... というように指定します。
+      デフォルトは 1 で、2^1 = 2 word です。
+      キャッシュミス時、１ライン分のデータが読み込まれます。
+
+    CACHE_ARRAY_SIZE
+      キャッシュアレイのサイズを2のべき乗で指定します。
+      1:2lines, 2:4lines, 3:8lines, ... というように指定します。
+      CACHE_LINE_SIZEとこの値でキャッシュの総サイズが決定されます。
+
+
+    CACHE_BRIDGE
+       キャッシュ対象ポートのI/Fにブリッジ回路を挿入するかどうかを
+     指定します。
+      0: 無効(デフォルト)  1:有効 
+       ブリッジを挟むとアクセスサイクルが１サイクル伸びますが、
+      高周波でのタイミング制約が満たしやすくなります。
+
+    THROUGH_BRIDGE
+       非キャッシュ対象ポートのI/Fにブリッジ回路を挿入するかどうかを
+     指定します。
+      0: 無効(デフォルト)  1:有効 
+       ブリッジを挟むとアクセスサイクルが１サイクル伸びますが、
+      高周波でのタイミング制約が満たしやすくなります。
+
+
+    WB_CACHE_ADR_WIDTH
+      キャッシュ対象ポートのアドレスバスの幅を指定します。
+      4Gのメモリ空間をすべてキャッシュ対象とする場合を除き、必要量の
+     アドレスバス数に減らすことで、キャッシュのタグRAMを節約できます。
+
+    WB_CACHE_DAT_SIZE
+      キャッシュ対象ポートデータバスの幅を2のべき乗で指定します。
+      0:8bit, 1:16bit, 3:32bit, ... というように指定します。
+      32bit より大きいバスを使うことで、キャッシュラインを一気に
+     充填できます。デフォルトでキャッシュラインの幅となります。
+
+
+			// L1 Cache
+			parameter	CACHE_ENABLE         = 0,
+			parameter	CACHE_LINE_SIZE      = 1,	// 2^n (0:1words, 1:2words, 2:4words, ...)
+			parameter	CACHE_ARRAY_SIZE     = 9,	// 2^n (1:2lines, 2:4lines, 3:8lines, ...)
+			
+			// bridge
+			parameter	CACHE_BRIDGE         = 0,
+			parameter	THROUGH_BRIDGE       = 0,
+			
+			// cached access port (WISHBONE)
+			parameter	WB_CACHE_ADR_WIDTH   = 30 - CACHE_LINE_SIZE,
+			parameter	WB_CACHE_DAT_SIZE    = 2 + CACHE_LINE_SIZE,
+			parameter	WB_CACHE_DAT_WIDTH   = (8 << WB_CACHE_DAT_SIZE),
+			parameter	WB_CACHE_SEL_WIDTH   = (1 << WB_CACHE_DAT_SIZE),
+			
+			// non-cached access port ()
+			parameter	WB_THROUGH_ADR_WIDTH = 30,
+			parameter	WB_THROUGH_DAT_SIZE  = 2,	// 8^n (0:8bit, 1:16bit, 3:32bit ...)
+			parameter	WB_THROUGH_DAT_WIDTH = (8 << WB_THROUGH_DAT_SIZE),
+			parameter	WB_THROUGH_SEL_WIDTH = (1 << WB_THROUGH_DAT_SIZE),
+			
+			// simulation
+			parameter	SIMULATION       = 0
+		)
+		(
+			// system
+			input	wire								reset,
+			input	wire								clk,
+			input	wire								clk_x2,
+			
+			// endian
+			input	wire								endian,
+			
+			// vector
+			input	wire	[31:0]						vect_reset,
+			input	wire	[31:0]						vect_interrupt,
+			input	wire	[31:0]						vect_exception,
+			
+			// interrupt
+			input	wire								interrupt_req,
+			output	wire								interrupt_ack,
+			
+			// control
+			input	wire								pause,
+			
+			// address decode
+			input	wire	[31:0]						tcm_addr_mask,
+			input	wire	[31:0]						tcm_addr_value,
+			input	wire	[31:0]						cache_addr_mask,
+			input	wire	[31:0]						cache_addr_value,
+			
+			// WISHBONE memory bus (cached)
+			output	wire	[WB_CACHE_ADR_WIDTH-1:0]	wb_cache_adr_o,
+			input	wire	[WB_CACHE_DAT_WIDTH-1:0]	wb_cache_dat_i,
+			output	wire	[WB_CACHE_DAT_WIDTH-1:0]	wb_cache_dat_o,
+			output	wire								wb_cache_we_o,
+			output	wire	[WB_CACHE_SEL_WIDTH-1:0]	wb_cache_sel_o,
+			output	wire								wb_cache_stb_o,
+			input	wire								wb_cache_ack_i,
+			
+			// WISHBONE peripheral bus (non-cached)
+			output	wire	[WB_THROUGH_ADR_WIDTH-1:0]	wb_through_adr_o,
+			input	wire	[WB_THROUGH_DAT_WIDTH-1:0]	wb_through_dat_i,
+			output	wire	[WB_THROUGH_DAT_WIDTH-1:0]	wb_through_dat_o,
+			output	wire								wb_through_we_o,
+			output	wire	[WB_THROUGH_SEL_WIDTH-1:0]	wb_through_sel_o,
+			output	wire								wb_through_stb_o,
+			input	wire								wb_through_ack_i,
+			
+			// debug port (WISHBONE)
+			input	wire	[5:2]						wb_dbg_adr_i,
+			input	wire	[31:0]						wb_dbg_dat_i,
+			output	wire	[31:0]						wb_dbg_dat_o,
+			input	wire								wb_dbg_we_i,
+			input	wire	[3:0]						wb_dbg_sel_i,
+			input	wire								wb_dbg_stb_i,
+			output	wire								wb_dbg_ack_o			
+		);

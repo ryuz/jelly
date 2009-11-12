@@ -20,8 +20,8 @@ module top
 			parameter	CPU_DBBP_NUM        = 0,
 
 			parameter	TCM_ENABLE          = 1,
-			parameter	TCM_ADDR_MASK       = 30'b1111_1111_1111_1111__0000_0000_0000_00,
-			parameter	TCM_ADDR_VALUE      = 30'b0000_0000_0000_0000__0000_0000_0000_00,
+			parameter	TCM_ADDR_MASK       = 32'b1111_1111_1111_1111__0000_0000_0000_0000,
+			parameter	TCM_ADDR_VALUE      = 32'b0000_0000_0000_0000__0000_0000_0000_0000,
 			parameter	TCM_ADDR_WIDTH      = 12,
 			parameter	TCM_MEM_SIZE        = (1 << TCM_ADDR_WIDTH),
 			parameter	TCM_READMEMH        = 1,
@@ -116,28 +116,17 @@ module top
 	wire	[3:0]	wb_dbg_sel_o;
 	wire			wb_dbg_stb_o;
 	wire			wb_dbg_ack_i;
-	
-	/*
-	// peripheral-bus
-	wire	[31:2]	wb_peri_adr_o;
-	reg		[31:0]	wb_peri_dat_i;
-	wire	[31:0]	wb_peri_dat_o;
-	wire			wb_peri_we_o;
-	wire	[3:0]	wb_peri_sel_o;
-	wire			wb_peri_stb_o;
-	reg				wb_peri_ack_i;
-	*/
-	
+		
 	// CPU
 	jelly_cpu_simple_top
 			#(
-				.USE_DBUGGER		(CPU_USE_DBUGGER),
-				.USE_EXC_SYSCALL	(CPU_USE_EXC_SYSCALL),
-				.USE_EXC_BREAK		(CPU_USE_EXC_BREAK),
-				.USE_EXC_RI			(CPU_USE_EXC_RI),
-				.GPR_TYPE			(CPU_GPR_TYPE),
-				.MUL_CYCLE			(33),
-				.DBBP_NUM 			(CPU_DBBP_NUM),
+				.CPU_USE_DBUGGER	(CPU_USE_DBUGGER),
+				.CPU_USE_EXC_SYSCALL(CPU_USE_EXC_SYSCALL),
+				.CPU_USE_EXC_BREAK	(CPU_USE_EXC_BREAK),
+				.CPU_USE_EXC_RI		(CPU_USE_EXC_RI),
+				.CPU_GPR_TYPE		(CPU_GPR_TYPE),
+				.CPU_MUL_CYCLE		(33),
+				.CPU_DBBP_NUM 		(CPU_DBBP_NUM),
 				
 				.TCM_ENABLE			(TCM_ENABLE),
 				.TCM_ADDR_MASK		(TCM_ADDR_MASK),

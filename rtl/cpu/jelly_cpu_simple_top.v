@@ -15,23 +15,23 @@
 module jelly_cpu_simple_top
 		#(
 			// CPU core
-			parameter	USE_DBUGGER      = 1'b1,
-			parameter	USE_EXC_SYSCALL  = 1'b1,
-			parameter	USE_EXC_BREAK    = 1'b1,
-			parameter	USE_EXC_RI       = 1'b1,
-			parameter	GPR_TYPE         = 0,
-			parameter	MUL_CYCLE        = 0,
-			parameter	DBBP_NUM         = 4,
+			parameter	CPU_USE_DBUGGER     = 0,
+			parameter	CPU_USE_EXC_SYSCALL = 1,
+			parameter	CPU_USE_EXC_BREAK   = 1,
+			parameter	CPU_USE_EXC_RI      = 1,
+			parameter	CPU_GPR_TYPE        = 0,
+			parameter	CPU_MUL_CYCLE       = 33,
+			parameter	CPU_DBBP_NUM        = 4,
 			
 			// Tightly Coupled Memory
 			parameter	TCM_ENABLE       = 0,
-			parameter	TCM_ADDR_MASK    = 30'b1111_1111_1111_1111__1111_1100_0000_00,
-			parameter	TCM_ADDR_VALUE   = 30'b0000_0000_0000_0000__0000_0000_0000_00,
+			parameter	TCM_ADDR_MASK    = 32'b1111_1111_1111_1111__1111_1100_0000_0000,
+			parameter	TCM_ADDR_VALUE   = 32'b0000_0000_0000_0000__0000_0000_0000_0000,
 			parameter	TCM_ADDR_WIDTH   = 8,
 			parameter	TCM_MEM_SIZE     = (1 << TCM_ADDR_WIDTH),
 			parameter	TCM_READMEMH     = 0,
 			parameter	TCM_READMEM_FIlE = "",
-
+			
 			// simulation
 			parameter	SIMULATION       = 0
 		)
@@ -82,17 +82,15 @@ module jelly_cpu_simple_top
 	
 	jelly_cpu_top
 			#(
-				.USE_DBUGGER		(USE_DBUGGER),
-				.USE_EXC_SYSCALL	(USE_EXC_SYSCALL),
-				.USE_EXC_BREAK		(USE_EXC_BREAK),
-				.USE_EXC_RI			(USE_EXC_RI),
-				.GPR_TYPE			(GPR_TYPE),
-				.MUL_CYCLE			(MUL_CYCLE),
-				.DBBP_NUM			(DBBP_NUM),
+				.CPU_USE_DBUGGER	(CPU_USE_DBUGGER),
+				.CPU_USE_EXC_SYSCALL(CPU_USE_EXC_SYSCALL),
+				.CPU_USE_EXC_BREAK	(CPU_USE_EXC_BREAK),
+				.CPU_USE_EXC_RI		(CPU_USE_EXC_RI),
+				.CPU_GPR_TYPE		(CPU_GPR_TYPE),
+				.CPU_MUL_CYCLE		(CPU_MUL_CYCLE),
+				.CPU_DBBP_NUM		(CPU_DBBP_NUM),
 				
 				.TCM_ENABLE			(TCM_ENABLE),
-				.TCM_ADDR_MASK		(TCM_ADDR_MASK),
-				.TCM_ADDR_VALUE		(TCM_ADDR_VALUE),
 				.TCM_ADDR_WIDTH		(TCM_ADDR_WIDTH),
 				.TCM_MEM_SIZE		(TCM_MEM_SIZE),
 				.TCM_READMEMH		(TCM_READMEMH),
@@ -116,25 +114,30 @@ module jelly_cpu_simple_top
 									 
 				.interrupt_req		(interrupt_req),
 				.interrupt_ack		(interrupt_ack),
-									 
+
 				.pause				(pause),
-								   
-				.wb_mem_adr_o		(),
-				.wb_mem_dat_i		({64{1'b0}}),
-				.wb_mem_dat_o		(),
-				.wb_mem_we_o		(),
-				.wb_mem_sel_o		(),
-				.wb_mem_stb_o		(),
-				.wb_mem_ack_i		(1'b1),
 				
-				.wb_peri_adr_o		(wb_adr_o),
-				.wb_peri_dat_i		(wb_dat_i),
-				.wb_peri_dat_o		(wb_dat_o),
-				.wb_peri_we_o		(wb_we_o),
-				.wb_peri_sel_o		(wb_sel_o),
-				.wb_peri_stb_o		(wb_stb_o),
-				.wb_peri_ack_i		(wb_ack_i),
-									 
+				.tcm_addr_mask		(TCM_ADDR_MASK),
+				.tcm_addr_value		(TCM_ADDR_VALUE),
+				.cache_addr_mask	(32'h00000000),
+				.cache_addr_value	(32'h00000000),
+								   
+				.wb_cache_adr_o		(),
+				.wb_cache_dat_i		({64{1'b0}}),
+				.wb_cache_dat_o		(),
+				.wb_cache_we_o		(),
+				.wb_cache_sel_o		(),
+				.wb_cache_stb_o		(),
+				.wb_cache_ack_i		(1'b1),
+				    
+				.wb_through_adr_o	(wb_adr_o),
+				.wb_through_dat_i	(wb_dat_i),
+				.wb_through_dat_o	(wb_dat_o),
+				.wb_through_we_o	(wb_we_o),
+				.wb_through_sel_o	(wb_sel_o),
+				.wb_through_stb_o	(wb_stb_o),
+				.wb_through_ack_i	(wb_ack_i),
+				
 				.wb_dbg_adr_i		(wb_dbg_adr_i),
 				.wb_dbg_dat_i		(wb_dbg_dat_i),
 				.wb_dbg_dat_o		(wb_dbg_dat_o),
