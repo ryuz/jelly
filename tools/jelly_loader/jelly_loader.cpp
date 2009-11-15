@@ -86,11 +86,11 @@ int main(int argc, char *argv[])
 	
 	// create controler
 	CJellyControl	ctrl(&remote);
-
+	
 	
 	// break;
 	ctrl.Break();
-
+	
 	// load
 	if ( pszFileName != NULL )
 	{

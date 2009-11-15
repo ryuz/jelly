@@ -41,7 +41,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I "../common" /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
+# ADD CPP /nologo /W3 /GX /O2 /I "../common" /I "../jelly_dbg" /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
 # ADD BASE RSC /l 0x411 /d "NDEBUG"
 # ADD RSC /l 0x411 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -65,7 +65,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "../common" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "../jelly_dbg" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x411 /d "_DEBUG"
 # ADD RSC /l 0x411 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -86,11 +86,7 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=..\common\DebugControl.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\common\DebugControl.h
+SOURCE=..\jelly_dbg\DebugControl.cpp
 # End Source File
 # Begin Source File
 
@@ -98,19 +94,15 @@ SOURCE=.\jelly_loader.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\common\JellyControl.cpp
+SOURCE=..\jelly_dbg\JellyControl.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\common\JellyControl.h
+SOURCE=..\jelly_dbg\RemotePort.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\common\RemotePort.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\common\RemoteUart.cpp
+SOURCE=..\jelly_dbg\RemoteUart.cpp
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -118,11 +110,19 @@ SOURCE=..\common\RemoteUart.cpp
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=..\common\RemotePort.h
+SOURCE=..\jelly_dbg\DebugControl.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\common\RemoteUart.h
+SOURCE=..\jelly_dbg\JellyControl.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\jelly_dbg\RemotePort.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\jelly_dbg\RemoteUart.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"

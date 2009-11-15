@@ -87,15 +87,58 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
+SOURCE=..\jelly_dbg\DebugControl.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\gdb_svr.cpp
+
+!IF  "$(CFG)" == "gdb_svr - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "gdb_svr - Win32 Debug"
+
+# ADD CPP /I "../jelly_dbg"
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
 SOURCE=.\GdbServer.cpp
+
+!IF  "$(CFG)" == "gdb_svr - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "gdb_svr - Win32 Debug"
+
+# ADD CPP /I "../jelly_dbg"
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
 SOURCE=.\GdbServerTcp.cpp
+
+!IF  "$(CFG)" == "gdb_svr - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "gdb_svr - Win32 Debug"
+
+# ADD CPP /I "../jelly_dbg"
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=..\jelly_dbg\JellyControl.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\jelly_dbg\RemotePort.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\jelly_dbg\RemoteUart.cpp
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -103,11 +146,27 @@ SOURCE=.\GdbServerTcp.cpp
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
+SOURCE=..\jelly_dbg\DebugControl.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\GdbServer.h
 # End Source File
 # Begin Source File
 
 SOURCE=.\GdbServerTcp.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\jelly_dbg\JellyControl.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\jelly_dbg\RemotePort.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\jelly_dbg\RemoteUart.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"

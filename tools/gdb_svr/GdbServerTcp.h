@@ -11,13 +11,13 @@
 class CGdbServerTcp : public CGdbServer
 {
 public:
-	CGdbServerTcp(int port);
+	CGdbServerTcp(CDebugControl* pDbgCtl, int port);
 	virtual ~CGdbServerTcp();
 	
 protected:
-	int				RemoteGetChar(void);
-	int				RemotePutChar(char c);
-	virtual int		RemodePeekChar(void);
+	virtual int		RemoteGetChar(void);
+	virtual int		RemotePutChar(char c);
+//	virtual int		RemotePeekChar(void);
 	
 	bool				m_blConected;
 

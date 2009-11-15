@@ -26,10 +26,15 @@ public:
 	
 	virtual unsigned long	GetPc(void) = 0;
 	virtual bool			SetPc(unsigned long ulAddr) = 0;
-
+	
 	virtual int				GetRegisterNum(void) = 0;
 	virtual const char*		GetRegisterName(int iIndex) = 0;
 	virtual unsigned long	GetRegisterValue(int iIndex) = 0;
+	virtual bool			SetRegisterValue(int iIndex, unsigned long ulData) = 0;
+
+	virtual int				GetRegisterIndex(const char *pszName);
+	virtual unsigned long	GetRegisterValue(const char *pszName);
+	virtual bool			SetRegisterValue(const char *pszName, unsigned long ulData);
 	
 	virtual int				SetBreakPoint(unsigned long ulAddr) = 0;
 	virtual bool			ClearBreakPoint(int iIndex) = 0;

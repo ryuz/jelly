@@ -111,7 +111,6 @@
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
-    <file xil_pn:name="../../../../rtl/bus/jelly_wishbone_clk2x.v" xil_pn:type="FILE_VERILOG"/>
     <file xil_pn:name="../../../../rtl/uart/jelly_uart.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>

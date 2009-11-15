@@ -5,7 +5,7 @@
 
 
 // コンストラクタ
-CGdbServerTcp::CGdbServerTcp(int port)
+CGdbServerTcp::CGdbServerTcp(CDebugControl* pDbgCtl, int port) : CGdbServer(pDbgCtl)
 {
 	m_blConected = false;
 	

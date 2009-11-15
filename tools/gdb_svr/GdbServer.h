@@ -5,12 +5,13 @@
 
 
 #include <stdarg.h>
+#include "JellyControl.h"
 
 
 class CGdbServer
 {
 public:
-	CGdbServer();
+	CGdbServer(CDebugControl* pDbgCtl);
 	virtual ~CGdbServer();
 	
 	void	RunServer(void);
@@ -24,11 +25,14 @@ protected:
 	
 	static char		HexToChar(char c);
 	static int		CharToHex(char c);
+	int				SetWordString(char *buf, unsigned long word);
 
 	int				RemoteSendPacket(char *buf, int len);
+	
+	CDebugControl*	m_pDbgCtl;
 
-	bool	m_blLogEnable;
-	bool	m_blBigEndian;
+	bool			m_blLogEnable;
+	bool			m_blBigEndian;
 };
 
 

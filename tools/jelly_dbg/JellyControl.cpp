@@ -230,6 +230,13 @@ unsigned long CJellyControl::GetRegisterValue(int iIndex)
 }
 
 
+bool CJellyControl::SetRegisterValue(int iIndex, unsigned long ulData)
+{
+	return m_pPort->CpuRegWrite(JellyRegister[iIndex].ulAddr, ulData);
+}
+
+
+
 int CJellyControl::SetBreakPoint(unsigned long ulAddr)
 {
 	int i;

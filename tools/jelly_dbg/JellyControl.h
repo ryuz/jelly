@@ -30,6 +30,7 @@ public:
 	virtual int				GetRegisterNum(void);
 	virtual const char*		GetRegisterName(int iIndex);
 	virtual unsigned long	GetRegisterValue(int iIndex);
+	virtual bool			SetRegisterValue(int iIndex, unsigned long ulData);
 	
 	virtual int				SetBreakPoint(unsigned long ulAddr);
 	virtual bool			ClearBreakPoint(int iIndex);

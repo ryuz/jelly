@@ -16,6 +16,8 @@ module jelly_cache_unified
 			parameter	ARRAY_SIZE        = 8,		// 2^n (1:2lines, 2:4lines 3:8lines ...)
 			parameter	LINE_WORDS        = (1 << LINE_SIZE),
 			
+			parameter	RESET_INIT_RAM    = 1,
+			
 			parameter	SLAVE_ADDR_WIDTH  = 24,
 			parameter	SLAVE_DATA_SIZE   = 2,		// 2^n (0:8bit, 1:16bit, 2:32bit ...)
 			parameter	SLAVE_DATA_WIDTH  = (8 << SLAVE_DATA_SIZE),
@@ -100,7 +102,41 @@ module jelly_cache_unified
 	wire	[RAM_DATA_WIDTH-1:0]	ram1_wdata;
 	wire	[RAM_DATA_WIDTH-1:0]	ram1_rdata;
 	
+	
+	// RAM initialize
+	wire							ram_init_busy;
+	wire	[RAM_ADDR_WIDTH-1:0]	ram_init_addr;
+	
+	generate
+	if ( RESET_INIT_RAM ) begin
+		reg							reg_init_busy;
+		reg	[RAM_ADDR_WIDTH-1:0]	reg_init_addr;
+		always @( posedge clk ) begin
+			if ( reset ) begin
+				reg_init_busy <= 1'b1;
+				reg_init_addr <= {RAM_ADDR_WIDTH{1'b0}};
+			end
+			else begin
+				if ( reg_init_busy ) begin
+					reg_init_addr <= reg_init_addr + 1;
+					if ( reg_init_addr == {RAM_ADDR_WIDTH{1'b1}} ) begin
+						reg_init_busy <= 1'b0;
+					end
+				end
+			end
+		end
+		assign ram_init_busy = reg_init_busy;
+		assign ram_init_addr = reg_init_addr;
+	end
+	else begin
+		assign ram_init_busy = 1'b0;
+		assign ram_init_addr = {RAM_ADDR_WIDTH{1'b0}};
+	end
+	endgenerate
+	
+	
 	// cache0
+	wire		jbus_slave0_ready_tmp;
 	jelly_cache_core
 			#(
 				.LINE_SIZE			(LINE_SIZE),
@@ -111,7 +147,7 @@ module jelly_cache_unified
 		i_cache_core_0
 			(
 				.clk				(clk),
-				.reset				(reset),
+				.reset				(reset | ram_init_busy),
 				.endian				(endian),
 				
 				.jbus_slave_en		(jbus_slave0_en),
@@ -121,7 +157,7 @@ module jelly_cache_unified
 				.jbus_slave_we		(jbus_slave0_we),
 				.jbus_slave_sel		(jbus_slave0_sel),
 				.jbus_slave_valid	(jbus_slave0_valid),
-				.jbus_slave_ready	(jbus_slave0_ready),
+				.jbus_slave_ready	(jbus_slave0_ready_tmp),
 				
 				.wb_master_adr_o	(wb_master0_adr_o),
 				.wb_master_dat_o	(wb_master0_dat_o),
@@ -137,8 +173,10 @@ module jelly_cache_unified
 				.ram_wdata			(ram0_wdata),
 				.ram_rdata			(ram0_rdata)
 			);
+	assign jbus_slave0_ready = jbus_slave0_ready_tmp & !ram_init_busy;
 	
 	// cache1
+	wire		jbus_slave1_ready_tmp;
 	jelly_cache_core
 			#(
 				.LINE_SIZE			(LINE_SIZE),
@@ -149,7 +187,7 @@ module jelly_cache_unified
 		i_cache_core_1
 			(
 				.clk				(clk),
-				.reset				(reset),
+				.reset				(reset | ram_init_busy),
 				.endian				(endian),
 				
 				.jbus_slave_en		(jbus_slave1_en),
@@ -159,7 +197,7 @@ module jelly_cache_unified
 				.jbus_slave_we		(jbus_slave1_we),
 				.jbus_slave_sel		(jbus_slave1_sel),
 				.jbus_slave_valid	(jbus_slave1_valid),
-				.jbus_slave_ready	(jbus_slave1_ready),
+				.jbus_slave_ready	(jbus_slave1_ready_tmp),
 				
 				.wb_master_adr_o	(wb_master1_adr_o),
 				.wb_master_dat_o	(wb_master1_dat_o),
@@ -175,6 +213,7 @@ module jelly_cache_unified
 				.ram_wdata			(ram1_wdata),
 				.ram_rdata			(ram1_rdata)
 			);
+	assign jbus_slave1_ready = jbus_slave1_ready_tmp & !ram_init_busy;
 	
 	// ram
 	jelly_ram_dualport
@@ -188,20 +227,21 @@ module jelly_cache_unified
 		i_ram_dualport
 			(
 				.clk0				(clk),
-				.en0				(ram0_en),
-				.we0				(ram0_we),
-				.addr0				(ram0_addr),
-				.din0				(ram0_wdata),
+				.en0				(ram_init_busy ? 1'b1                   : ram0_en),
+				.we0				(ram_init_busy ? 1'b1                   : ram0_we),
+				.addr0				(ram_init_busy ? ram_init_addr          : ram0_addr),
+				.din0				(ram_init_busy ? {RAM_DATA_WIDTH{1'b0}} : ram0_wdata),
 				.dout0				(ram0_rdata),
 				
 				.clk1				(clk),
-				.en1				(ram1_en),
+				.en1				(ram1_en & !ram_init_busy),
 				.we1				(ram1_we),
 				.addr1				(ram1_addr),
 				.din1				(ram1_wdata),
 				.dout1				(ram1_rdata)
 			);
-
+	
+	
 	// arbiter
 	jelly_wishbone_arbiter
 			#(
@@ -218,7 +258,7 @@ module jelly_cache_unified
 				.wb_slave0_dat_o	(wb_master0_dat_i),
 				.wb_slave0_we_i		(wb_master0_we_o),
 				.wb_slave0_sel_i	(wb_master0_sel_o),
-				.wb_slave0_stb_i	(wb_master0_stb_o),
+				.wb_slave0_stb_i	(wb_master0_stb_o & !ram_init_busy),
 				.wb_slave0_ack_o	(wb_master0_ack_i),
 				
 				.wb_slave1_adr_i	(wb_master1_adr_o),
@@ -226,7 +266,7 @@ module jelly_cache_unified
 				.wb_slave1_dat_o	(wb_master1_dat_i),
 				.wb_slave1_we_i		(wb_master1_we_o),
 				.wb_slave1_sel_i	(wb_master1_sel_o),
-				.wb_slave1_stb_i	(wb_master1_stb_o),
+				.wb_slave1_stb_i	(wb_master1_stb_o & !ram_init_busy),
 				.wb_slave1_ack_o	(wb_master1_ack_i),
 				
 				.wb_master_adr_o	(wb_master_adr_o),
