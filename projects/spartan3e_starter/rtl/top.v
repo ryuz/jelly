@@ -471,7 +471,7 @@ module top
 	assign wb_rom_sel_i   = wb_mem_sel_o;
 	assign wb_rom_we_i    = wb_mem_we_o;
 	assign wb_rom_stb_i   = wb_mem_stb_o & (wb_mem_adr_o[31:24] == 8'h00) & sw[1];
-
+	
 	assign wb_dram_adr_i = wb_mem_adr_o;
 	assign wb_dram_dat_i = wb_mem_dat_o;
 	assign wb_dram_sel_i = wb_mem_sel_o;

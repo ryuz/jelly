@@ -54,7 +54,7 @@ module jelly_wishbone_bridge
 		assign wb_slave_ack_o  = wb_master_ack_i;
 	end
 	else begin
-		reg							reg_slave_dat_o;
+		reg		[WB_DAT_WIDTH-1:0]	reg_slave_dat_o;
 		reg							reg_slave_ack_o;
 		
 		reg							reg_master_read;
