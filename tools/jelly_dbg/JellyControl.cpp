@@ -57,7 +57,7 @@ static TJellyRegister	JellyRegister[] =
 		{"R31",	0x3f},
 		{"HI",	0x10},
 		{"LO",	0x11},
-		{"COP0_STATU",	0x4c},
+		{"COP0_STATUS",	0x4c},
 		{"COP0_CAUSE",	0x4d},
 		{"COP0_EPC",	0x4e},
 		{"COP0_DBBP0",	0x50},

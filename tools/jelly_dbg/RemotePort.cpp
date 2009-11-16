@@ -218,6 +218,7 @@ int CRemotePort::MemWrite(unsigned long ulAddr, const void* pData, int iSize)
 		}
 		
 		pData       = (const char *)pData + iWriteSize;
+		ulAddr     += iWriteSize;
 		iSize      -= iWriteSize;
 		iTotalSize += iWriteSize;
 	}
@@ -268,6 +269,7 @@ int CRemotePort::MemRead(unsigned long ulAddr, void* pBuf, int iSize)
 		
 		memcpy(pBuf, &ubRecvBuf[1], iReadSize);
 		pBuf        = (char *)pBuf + iReadSize;
+		ulAddr     += iReadSize;
 		iSize      -= iReadSize;
 		iTotalSize += iReadSize;
 	}

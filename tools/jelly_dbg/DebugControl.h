@@ -50,7 +50,7 @@ public:
 	bool	MemWriteHalfWord(unsigned long ulAddr, unsigned short ulData);
 	bool	MemWriteByte(unsigned long ulAddr, unsigned char ulData);
 	
-	int		MemRead(unsigned long ulAddr, void* pBuf, int iSize)			{ return m_pPort->MemWrite(ulAddr, pBuf, iSize); }
+	int		MemRead(unsigned long ulAddr, void* pBuf, int iSize)			{ return m_pPort->MemRead(ulAddr, pBuf, iSize); }
 	bool	MemReadWord(unsigned long ulAddr, unsigned long* pulData);
 	bool	MemReadHalfWord(unsigned long ulAddr, unsigned short* pulData);
 	bool	MemReadByte(unsigned long ulAddr, unsigned char* pulData);

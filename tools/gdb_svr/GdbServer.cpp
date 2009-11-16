@@ -1,5 +1,5 @@
 
-
+#include <windows.h>
 #include <stdio.h>
 #include "GdbServer.h"
 
@@ -119,6 +119,75 @@ int CGdbServer::SetWordString(char *buf, unsigned long word)
 }
 
 
+int CGdbServer::GetWordString(char *buf, unsigned long *word)
+{
+	int	len = 0;
+
+	if ( m_blBigEndian )
+	{
+		*word  = CharToHex(buf[len++]) << 28;
+		*word |= CharToHex(buf[len++]) << 24;
+		*word |= CharToHex(buf[len++]) << 20;
+		*word |= CharToHex(buf[len++]) << 16;
+		*word |= CharToHex(buf[len++]) << 12;
+		*word |= CharToHex(buf[len++]) <<  8;
+		*word |= CharToHex(buf[len++]) <<  4;
+		*word |= CharToHex(buf[len++]) <<  0;
+	}
+	else
+	{
+		*word  = CharToHex(buf[len++]) <<  0;
+		*word |= CharToHex(buf[len++]) <<  4;
+		*word |= CharToHex(buf[len++]) <<  8;
+		*word |= CharToHex(buf[len++]) << 12;
+		*word |= CharToHex(buf[len++]) << 16;
+		*word |= CharToHex(buf[len++]) << 20;
+		*word |= CharToHex(buf[len++]) << 24;
+		*word |= CharToHex(buf[len++]) << 28;
+	}
+	
+	return len;
+}
+
+
+
+void CGdbServer::SendThreadId(void)
+{
+	char	send_packt[256];
+	int		send_len;
+
+	send_len = 0;
+	send_packt[send_len++] = 'T';
+	send_packt[send_len++] = '0';
+	send_packt[send_len++] = '5';
+	
+	// PC
+	send_packt[send_len++] = '2';
+	send_packt[send_len++] = '5';
+	send_packt[send_len++] = ':';
+	send_len += SetWordString(&send_packt[send_len], m_pDbgCtl->GetRegisterValue("COP0_DEEPC"));
+	send_packt[send_len++] = ';';
+
+	// frame pointer
+	send_packt[send_len++] = '4';
+	send_packt[send_len++] = '8';
+	send_packt[send_len++] = ':';
+	send_len += SetWordString(&send_packt[send_len], m_pDbgCtl->GetRegisterValue("30"));
+	send_packt[send_len++] = ';';
+
+	// stack pointer
+	send_packt[send_len++] = '1';
+	send_packt[send_len++] = 'd';
+	send_packt[send_len++] = ':';
+	send_len += SetWordString(&send_packt[send_len], m_pDbgCtl->GetRegisterValue("29"));	
+	send_packt[send_len++] = ';';
+	
+	RemoteSendPacket(send_packt, send_len);
+}
+
+
+
+
 
 void CGdbServer::RunServer(void)
 {	
@@ -174,7 +243,53 @@ void CGdbServer::RunServer(void)
 			// シグナル状態
 			RemoteSendPacket("S05", 3);
 		}
-		if ( recv_packt[0] == 'g' )
+		if ( recv_packt[0] == 'G' )
+		{
+			// レジスタ設定
+			unsigned long	ulValue;
+			int				ptr = 1;
+			ptr += GetWordString(&recv_packt[ptr], &ulValue); // m_pDbgCtl->GetRegisterValue("R0")
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R1");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R2");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R3");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R4");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R5");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R6");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R7");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R8");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R9");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R10");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R11");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R12");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R13");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R14");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R15");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R16");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R17");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R18");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R19");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R20");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R21");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R22");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R23");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R24");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R25");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R26");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R27");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R28");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R29");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R30");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R31");
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("COP0_STATUS");	// SR
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("HI");			// LO
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("LO");			// HI
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);												// BAD
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("COP0_CAUSE");	// CAUSE
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("COP0_DEEPC");	// PC
+			
+			RemoteSendPacket("OK", 2);
+		}
+		else if ( recv_packt[0] == 'g' )
 		{
 			// レジスタ取得
 			send_len = 0;
@@ -211,11 +326,11 @@ void CGdbServer::RunServer(void)
 			send_len += SetWordString(&send_packt[send_len], m_pDbgCtl->GetRegisterValue("R30"));
 			send_len += SetWordString(&send_packt[send_len], m_pDbgCtl->GetRegisterValue("R31"));
 
-			send_len += SetWordString(&send_packt[send_len], 0);											// SR
+			send_len += SetWordString(&send_packt[send_len], m_pDbgCtl->GetRegisterValue("COP0_STATUS"));	// SR
 			send_len += SetWordString(&send_packt[send_len], m_pDbgCtl->GetRegisterValue("LO"));			// LO
 			send_len += SetWordString(&send_packt[send_len], m_pDbgCtl->GetRegisterValue("HI"));			// HI
 			send_len += SetWordString(&send_packt[send_len], 0);											// BAD
-			send_len += SetWordString(&send_packt[send_len], 0);											// CAUSE
+			send_len += SetWordString(&send_packt[send_len], m_pDbgCtl->GetRegisterValue("COP0_CAUSE"));	// CAUSE
 			send_len += SetWordString(&send_packt[send_len], m_pDbgCtl->GetRegisterValue("COP0_DEEPC"));	// PC
 			
 			for ( i = 0; i < 90 - (32 + 6); i++ )
@@ -226,6 +341,7 @@ void CGdbServer::RunServer(void)
 		}
 		else if ( recv_packt[0] == 'M' )
 		{
+			// メモリ書き込み
 			unsigned char	ubBuf[4096];
 			unsigned long	ulAddr = 0;
 			unsigned long	ulSize = 0;
@@ -238,7 +354,7 @@ void CGdbServer::RunServer(void)
 				ulAddr = (ulAddr << 4) + CharToHex(c);
 			}
 
-			// アドレス
+			// サイズ
 			while ( ptr < recv_len && (c = recv_packt[ptr++]) != ':' )
 			{
 				ulSize = (ulSize << 4) + CharToHex(c);
@@ -250,12 +366,63 @@ void CGdbServer::RunServer(void)
 				ubBuf[i]  = CharToHex(recv_packt[ptr++]) * 16;
 				ubBuf[i] += CharToHex(recv_packt[ptr++]);
 			}
-
+			
 			// 書き込み
 			m_pDbgCtl->MemWrite(ulAddr, ubBuf, ulSize);
-
-			
+						
 			RemoteSendPacket("OK", 2);
+		}
+		else if ( recv_packt[0] == 'm' )
+		{
+			// メモリ読み込み
+			unsigned char	ubBuf[4096];
+			unsigned long	ulAddr = 0;
+			unsigned long	ulSize = 0;
+			int				ptr = 1;
+			char			c;
+			
+			// アドレス
+			while ( ptr < recv_len && (c = recv_packt[ptr++]) != ',' )
+			{
+				ulAddr = (ulAddr << 4) + CharToHex(c);
+			}
+			
+			// サイズ
+			while ( ptr < recv_len && (c = recv_packt[ptr++]) != ':' )
+			{
+				ulSize = (ulSize << 4) + CharToHex(c);
+			}
+			if ( ulSize > sizeof(ubBuf) )
+			{
+				printf("size error\n");
+				ulSize = sizeof(ubBuf);
+			}
+
+			// 読み込み
+			m_pDbgCtl->MemRead(ulAddr, ubBuf, ulSize);
+			
+			// データ
+			for ( i = 0; i < ulSize; i++ )
+			{
+				send_packt[i*2+0] = HexToChar((ubBuf[i] >> 4) & 0xf);
+				send_packt[i*2+1] = HexToChar((ubBuf[i] >> 0) & 0xf);
+			}
+			
+			RemoteSendPacket(send_packt, ulSize*2);
+		}
+		else if ( recv_packt[0] == 'k' )
+		{
+			m_pDbgCtl->Run();
+			while ( !m_pDbgCtl->GetStatus() )
+			{
+				Sleep(100);
+			}
+			SendThreadId();
+		}
+		else if ( recv_packt[0] == 's' )
+		{
+			m_pDbgCtl->Step();
+			SendThreadId();
 		}
 		else
 		{

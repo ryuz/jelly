@@ -43,7 +43,7 @@ public:
 	
 	bool	CpuRegWrite(int iAddr, unsigned long ulData);
 	bool	CpuRegRead(int iAddr, unsigned long *pulData);
-
+	
 	int		MemWrite(unsigned long ulAddr, const void* pData, int iSize);
 	bool	MemWriteWord(unsigned long ulAddr, unsigned long ulData);
 	bool	MemWriteHalfWord(unsigned long ulAddr, unsigned short ulData);
