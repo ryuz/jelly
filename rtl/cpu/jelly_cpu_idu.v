@@ -73,7 +73,7 @@
 `define FUNC_RFE		6'b010000
 `define FUNC_ERET		6'b011000
 
-`define FUNC_SDBBP		6'b011000
+`define FUNC_SDBBP		6'b111111
 
 
 

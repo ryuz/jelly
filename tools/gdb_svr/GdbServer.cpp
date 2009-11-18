@@ -248,44 +248,44 @@ void CGdbServer::RunServer(void)
 			// レジスタ設定
 			unsigned long	ulValue;
 			int				ptr = 1;
-			ptr += GetWordString(&recv_packt[ptr], &ulValue); // m_pDbgCtl->GetRegisterValue("R0")
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R1");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R2");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R3");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R4");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R5");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R6");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R7");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R8");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R9");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R10");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R11");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R12");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R13");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R14");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R15");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R16");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R17");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R18");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R19");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R20");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R21");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R22");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R23");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R24");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R25");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R26");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R27");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R28");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R29");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R30");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("R31");
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("COP0_STATUS");	// SR
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("HI");			// LO
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("LO");			// HI
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);												// BAD
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("COP0_CAUSE");	// CAUSE
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->GetRegisterValue("COP0_DEEPC");	// PC
+			ptr += GetWordString(&recv_packt[ptr], &ulValue); // m_pDbgCtl->SetRegisterValue("R0", ulValue)
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R1", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R2", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R3", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R4", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R5", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R6", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R7", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R8", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R9", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R10", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R11", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R12", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R13", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R14", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R15", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R16", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R17", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R18", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R19", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R20", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R21", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R22", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R23", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R24", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R25", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R26", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R27", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R28", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R29", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R30", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("R31", ulValue);
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("COP0_STATUS", ulValue);	// SR
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("HI", ulValue);			// LO
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("LO", ulValue);			// HI
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);														// BAD
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("COP0_CAUSE", ulValue);	// CAUSE
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("COP0_DEEPC", ulValue);	// PC
 			
 			RemoteSendPacket("OK", 2);
 		}
@@ -410,8 +410,35 @@ void CGdbServer::RunServer(void)
 			
 			RemoteSendPacket(send_packt, ulSize*2);
 		}
-		else if ( recv_packt[0] == 'k' )
+		else if ( recv_packt[0] == 'Z' )
 		{
+			// ブレークポイント挿入
+			unsigned char	ubBuf[4096];
+			unsigned long	ulAddr = 0;
+			unsigned long	ulSize = 0;
+			int				ptr = 3;
+			char			c;
+			
+			// アドレス
+			while ( ptr < recv_len && (c = recv_packt[ptr++]) != ',' )
+			{
+				ulAddr = (ulAddr << 4) + CharToHex(c);
+			}
+
+			// サイズ
+			while ( ptr < recv_len && (c = recv_packt[ptr++]) != ':' )
+			{
+				ulSize = (ulSize << 4) + CharToHex(c);
+			}
+
+			// ブレーク設定
+			m_pDbgCtl->MemWrite(ulAddr, "\x70\x00\x00\x3f", 4);
+			
+			RemoteSendPacket("OK", 2);
+		}
+		else if ( recv_packt[0] == 'k' || recv_packt[0] == 'c' )
+		{
+			printf("\n==== run ====\n");
 			m_pDbgCtl->Run();
 			while ( !m_pDbgCtl->GetStatus() )
 			{
