@@ -46,12 +46,12 @@ public:
 	void	Disconnect(void) { m_pPort->Disconnect(); }
 	
 	int		MemWrite(unsigned long ulAddr, const void* pData, int iSize)	{ return m_pPort->MemWrite(ulAddr, pData, iSize); }
-	bool	MemWriteWord(unsigned long ulAddr, unsigned long ulData);
+	bool	MemWriteWord(unsigned long ulAddr, unsigned long ulData)		{ return m_pPort->MemWriteWord(ulAddr, ulData); }
 	bool	MemWriteHalfWord(unsigned long ulAddr, unsigned short ulData);
 	bool	MemWriteByte(unsigned long ulAddr, unsigned char ulData);
 	
 	int		MemRead(unsigned long ulAddr, void* pBuf, int iSize)			{ return m_pPort->MemRead(ulAddr, pBuf, iSize); }
-	bool	MemReadWord(unsigned long ulAddr, unsigned long* pulData);
+	bool	MemReadWord(unsigned long ulAddr, unsigned long* pulData)		{ return m_pPort->MemReadWord(ulAddr, pulData); }
 	bool	MemReadHalfWord(unsigned long ulAddr, unsigned short* pulData);
 	bool	MemReadByte(unsigned long ulAddr, unsigned char* pulData);
 	

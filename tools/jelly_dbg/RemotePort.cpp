@@ -16,16 +16,24 @@
 // status_ack          8'h81 status
 //
 // dbg_write     8'h02 sel+adr dat0 dat1 dat2 dat3
-// dbg_write_ack                                    8'h81
+// dbg_write_ack                                    8'h82
 //
 // dbg_read      8'h03 sel+adr
-// dbg_write_ack                8'h82 dat0 dat1 dat2 dat3
+// dbg_write_ack                8'h83 dat0 dat1 dat2 dat3
 //
 // mem_write     8'h04 size adr0 adr1 adr2 adr3 dat0 dat1 dat2 dat3 ....
 // mem_write_ack                                                          8'h84
 //
 // mem_read      8'h05 size adr0 adr1 adr2 adr3 
 // mem_write_ack                                 8'h85 dat0 dat1 dat2 dat3 ....
+
+
+#define DBG_ADR_DBG_CTL			0
+#define DBG_ADR_DBG_ADDR		2
+#define DBG_ADR_REG_DATA		4
+#define DBG_ADR_DBUS_DATA		6
+#define DBG_ADR_IBUS_DATA		7
+
 
 
 CRemotePort::CRemotePort()
@@ -143,13 +151,13 @@ bool CRemotePort::DbgRegRead(int iAddr, unsigned long *pulData)
 bool CRemotePort::CpuRegWrite(int iAddr, unsigned long ulData)
 {
 	// ADDR
-	if ( !DbgRegWrite(2, iAddr * 4) )
+	if ( !DbgRegWrite(DBG_ADR_DBG_ADDR, iAddr * 4) )
 	{
 		return false;
 	}
 	
 	// DATA
-	if ( !DbgRegWrite(4, ulData) )
+	if ( !DbgRegWrite(DBG_ADR_REG_DATA, ulData) )
 	{
 		return false;
 	}
@@ -161,19 +169,56 @@ bool CRemotePort::CpuRegWrite(int iAddr, unsigned long ulData)
 bool CRemotePort::CpuRegRead(int iAddr, unsigned long *pulData)
 {
 	// ADDR
-	if ( !DbgRegWrite(2, iAddr * 4) )
+	if ( !DbgRegWrite(DBG_ADR_DBG_ADDR, iAddr * 4) )
 	{
 		return false;
 	}
 	
 	// DATA
-	if ( !DbgRegRead(4, pulData) )
+	if ( !DbgRegRead(DBG_ADR_REG_DATA, pulData) )
 	{
 		return false;
 	}
 	
 	return true;
 }
+
+
+bool CRemotePort::MemWriteWord(unsigned long ulAddr, unsigned long ulData)
+{
+	// ADDR
+	if ( !DbgRegWrite(DBG_ADR_DBG_ADDR, ulAddr) )
+	{
+		return false;
+	}
+	
+	// DATA
+	if ( !DbgRegWrite(DBG_ADR_DBUS_DATA, ulData) )
+	{
+		return false;
+	}
+	
+	return true;
+}
+
+
+bool CRemotePort::MemReadWord(unsigned long ulAddr, unsigned long* pulData)
+{
+	// ADDR
+	if ( !DbgRegWrite(DBG_ADR_DBG_ADDR, ulAddr * 4) )
+	{
+		return false;
+	}
+	
+	// DATA
+	if ( !DbgRegRead(DBG_ADR_DBUS_DATA, pulData) )
+	{
+		return false;
+	}
+
+	return true;
+}
+
 
 
 int CRemotePort::MemWrite(unsigned long ulAddr, const void* pData, int iSize)

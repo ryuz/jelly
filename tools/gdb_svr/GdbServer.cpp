@@ -7,10 +7,17 @@
 // コンストラクタ
 CGdbServer::CGdbServer(CDebugControl* pDbgCtl)
 {
+	int i;
+
 	m_pDbgCtl = pDbgCtl;
 
 	m_blLogEnable = true;
 	m_blBigEndian = true;
+	
+	for ( i = 0; i < GDBSERVER_MAX_BP_NUM; i++ )
+	{
+		m_BpTable[i].blValid = false;
+	}
 }
 
 
@@ -67,6 +74,43 @@ int CGdbServer::CharToHex(char c)
 		return c - 'A' + 10;
 	}
 	return 0;
+}
+
+
+bool CGdbServer::SaveBp(unsigned long ulAddr, unsigned long ulInst)
+{
+	int i;
+
+	for ( i = 0; i < GDBSERVER_MAX_BP_NUM; i++ )
+	{
+		if ( !m_BpTable[i].blValid )
+		{
+			m_BpTable[i].blValid = true;
+			m_BpTable[i].ulAddr  = ulAddr;
+			m_BpTable[i].ulInst  = ulInst;
+			return true;
+		}
+	}
+	
+	return false;
+}
+
+
+bool CGdbServer::RemoveBp(unsigned long ulAddr, unsigned long* pulInst)
+{
+	int i;
+
+	for ( i = 0; i < GDBSERVER_MAX_BP_NUM; i++ )
+	{
+		if ( m_BpTable[i].blValid && m_BpTable[i].ulAddr == ulAddr )
+		{
+			*pulInst = m_BpTable[i].ulInst;
+			m_BpTable[i].blValid = false;
+			return true;
+		}
+	}
+	
+	return false;
 }
 
 
@@ -361,7 +405,7 @@ void CGdbServer::RunServer(void)
 			}
 			
 			// データ
-			for ( i = 0; ptr < recv_len && i < ulSize; i++ )
+			for ( i = 0; ptr < recv_len && i < (int)ulSize; i++ )
 			{
 				ubBuf[i]  = CharToHex(recv_packt[ptr++]) * 16;
 				ubBuf[i] += CharToHex(recv_packt[ptr++]);
@@ -402,7 +446,7 @@ void CGdbServer::RunServer(void)
 			m_pDbgCtl->MemRead(ulAddr, ubBuf, ulSize);
 			
 			// データ
-			for ( i = 0; i < ulSize; i++ )
+			for ( i = 0; i < (int)ulSize; i++ )
 			{
 				send_packt[i*2+0] = HexToChar((ubBuf[i] >> 4) & 0xf);
 				send_packt[i*2+1] = HexToChar((ubBuf[i] >> 0) & 0xf);
@@ -410,10 +454,43 @@ void CGdbServer::RunServer(void)
 			
 			RemoteSendPacket(send_packt, ulSize*2);
 		}
-		else if ( recv_packt[0] == 'Z' )
+		else if ( recv_packt[0] == 'Z' && recv_packt[2] == ',' )
 		{
 			// ブレークポイント挿入
-			unsigned char	ubBuf[4096];
+			unsigned long	ulAddr = 0;
+			unsigned long	ulSize = 0;
+			int				ptr = 3;
+			char			c;
+			
+			// アドレス
+			while ( ptr < recv_len && (c = recv_packt[ptr++]) != ',' )
+			{
+				ulAddr = (ulAddr << 4) + CharToHex(c);
+			}
+
+			// サイズ
+			while ( ptr < recv_len && (c = recv_packt[ptr++]) != ':' )
+			{
+				ulSize = (ulSize << 4) + CharToHex(c);
+			}
+			
+			// 既存コード退避
+			unsigned char buf[4];
+			m_pDbgCtl->MemRead(ulAddr, buf, 4);
+			SaveBp(ulAddr, (buf[0]<<24)|(buf[1]<<16)|(buf[2]<<8)|buf[3]);
+
+	//		unsigned long	ulInst;
+	//		m_pDbgCtl->MemReadWord(ulAddr, &ulInst);
+	//		SaveBp(ulAddr, ulInst);
+			
+			// ブレーク設定
+			m_pDbgCtl->MemWriteWord(ulAddr, 0x7000003f);
+			
+			RemoteSendPacket("OK", 2);
+		}
+		else if ( recv_packt[0] == 'z' && recv_packt[2] == ',' )
+		{
+			// ブレークポイント解除
 			unsigned long	ulAddr = 0;
 			unsigned long	ulSize = 0;
 			int				ptr = 3;
@@ -431,8 +508,11 @@ void CGdbServer::RunServer(void)
 				ulSize = (ulSize << 4) + CharToHex(c);
 			}
 
-			// ブレーク設定
-			m_pDbgCtl->MemWrite(ulAddr, "\x70\x00\x00\x3f", 4);
+			// 既存コード復帰
+			unsigned long	ulInst;
+			RemoveBp(ulAddr, &ulInst);
+			m_pDbgCtl->MemWriteWord(ulAddr, ulInst);
+
 			
 			RemoteSendPacket("OK", 2);
 		}

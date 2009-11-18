@@ -8,6 +8,17 @@
 #include "JellyControl.h"
 
 
+#define	GDBSERVER_MAX_BP_NUM	4096
+
+
+struct TGdbServerBp
+{
+	bool			blValid;
+	unsigned long	ulAddr;
+	unsigned long	ulInst;
+};
+
+
 class CGdbServer
 {
 public:
@@ -29,13 +40,18 @@ protected:
 	int				GetWordString(char *buf, unsigned long *word);
 
 	int				RemoteSendPacket(char *buf, int len);
-
+	
 	void			SendThreadId(void);
-
+	
+	bool			SaveBp(unsigned long ulAddr, unsigned long ulInst);
+	bool			RemoveBp(unsigned long ulAddr, unsigned long* pulInst);
+	
 	CDebugControl*	m_pDbgCtl;
 
 	bool			m_blLogEnable;
 	bool			m_blBigEndian;
+	
+	TGdbServerBp	m_BpTable[GDBSERVER_MAX_BP_NUM];
 };
 
 
