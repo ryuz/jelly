@@ -953,7 +953,7 @@ module jelly_cpu_core
 		else begin
 			if ( !interlock ) begin
 				// control
-				ex_out_stall       <= ex_stall | ex_exception;
+				ex_out_stall       <= ex_stall | ex_exception | ex_dbg_break;
 				ex_out_instruction <= id_out_instruction;
 				ex_out_pc          <= id_out_pc;
 				
