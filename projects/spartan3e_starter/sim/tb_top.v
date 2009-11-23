@@ -83,7 +83,7 @@ module tb_top;
 				.ddr_sdram_ck_fb	(ddr_sdram_ck_fb),
 				
 				.led				(),
-				.sw					(4'b0010)
+				.sw					(4'b0000)
 			);
 	
 	// DDR
@@ -120,43 +120,201 @@ module tb_top;
 	end
 
 	
-	// UART monitor
-	/*
-	integer uart_monitor;
-	initial begin
-		uart_monitor = $fopen("uart_monitor.txt");
-	end
-	always @ ( posedge i_top.i_uart0.clk ) begin
-		if ( i_top.i_uart0.tx_en ) begin
-			$display("%t UART-TX:%h %c", $time, i_top.i_uart0.tx_data, i_top.i_uart0.tx_data);
-			$fdisplay(uart_monitor, "%t UART-TX:%h %c", $time, i_top.i_uart0.tx_data, i_top.i_uart0.tx_data);
-		end
-	end
-	*/
 	
-	
-	// write_dbg_uart_rx_fifo
-	task write_dbg_uart_rx_fifo;
-		input	[7:0]	data;
-		begin
-			@(negedge i_top.i_uart_debugger.i_uart_core.uart_clk);
-				force i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_en   = 1'b1;
-				force i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_data = data;
-			@(posedge i_top.i_uart_debugger.i_uart_core.uart_clk);
-				release i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_en;
-				release i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_data;
-		end
-	endtask
-
 	
 	initial begin
 		$display("--- START ---");
-	#(RATE*1000);
+
+	#(RATE*1);
+		sdram_load("hosv4a_sample_ram.hex");
+		sdram_dump();
+
+	#(RATE*100);
+		$display("--- break ---");
+		dbg_break();
+		dbg_reset();
+
+		$display("--- set bp ---");
+		dbg_read_mem(32'h00000198, 4'b1111);
+		dbg_write_mem(32'h00000198, 4'b1111, 32'h7000003f);
+		$display("--- run ---");
+		dbg_run();
+	#(RATE*100);	
 		
+		$display("--- wait break ----");
+		dbg_wait_break();
+		
+		$display("--- remove bp ---");
+		dbg_write_mem(32'h00000198, 4'b1111, 32'h0c000213);
+		
+		$display("--- set_step ---");
+		dbg_write_reg(4'h2, 4'b1111, 32'h0000015c);		// dbgaddr <= COP_DEBUG
+		dbg_write_reg(4'h4, 4'b1111, 32'h01000000);		// dbg_reg <= 0
+		
+		$display("--- run ---");
+		dbg_run();
+		dbg_wait_break();
+
+//		$display("--- set bp ---");
+//		dbg_write_mem(32'h00000198, 4'b1111, 32'h7000003f);
+
+		$display("--- run ---");
+		dbg_run();
+		dbg_wait_break();
+
+		$display("--- run ---");
+		dbg_run();
+		dbg_wait_break();
+
+		$display("--- run ---");
+		dbg_run();
+		dbg_wait_break();
+
+		$display("--- run ---");
+		dbg_run();
+		dbg_wait_break();
+
+		$display("--- run ---");
+		dbg_run();
+		dbg_wait_break();
+		
+		dbg_write_reg(4'h2, 4'b1111, 32'h0000015c);		// dbgaddr <= COP_DEBUG
+		dbg_write_reg(4'h4, 4'b1111, 32'h00000000);		// dbg_reg <= 0
+		dbg_run();
+		
+	#(RATE*2000);
+//		$finish;
 	end
-
-
 	
+	
+	// write dbg uart
+	task dbg_write_uart_rx_fifo;
+	input	[7:0]	data;
+	begin
+		@(negedge i_top.i_uart_debugger.i_uart_core.uart_clk);
+			force i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_en   = 1'b1;
+			force i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_data = data;
+		@(negedge i_top.i_uart_debugger.i_uart_core.uart_clk);
+			release i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_en;
+			release i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_data;
+	end
+	endtask
+	
+	// wait break
+	task dbg_wait_break;
+	begin
+		if ( !i_top.i_cpu_top.i_cpu_core.dbg_enable ) begin
+			@(posedge i_top.i_cpu_top.i_cpu_core.dbg_enable);
+		end
+	end
+	endtask
+	
+	// write reg
+	task dbg_write_reg;
+	input	[3:0]		addr;
+	input	[3:0]		sel;
+	input	[31:0]		data;
+	begin
+		dbg_write_uart_rx_fifo(8'h02);			// write
+		dbg_write_uart_rx_fifo({sel, addr});	// sel + addr
+		dbg_write_uart_rx_fifo(data[31:24]);	// dat0
+		dbg_write_uart_rx_fifo(data[23:16]);	// dat1
+		dbg_write_uart_rx_fifo(data[15:8]);		// dat2
+		dbg_write_uart_rx_fifo(data[7:0]);		// dat3
+	end 
+	endtask
+
+	// read reg
+	task dbg_read_reg;
+	input	[3:0]		addr;
+	input	[3:0]		sel;
+	begin
+		dbg_write_uart_rx_fifo(8'h03);					// read
+		dbg_write_uart_rx_fifo({sel, addr});			// dbgctl
+	end 
+	endtask
+	
+	// break
+	task dbg_break;
+	begin
+		dbg_write_reg(4'h0, 4'b1111, 32'h00000002);	
+	end
+	endtask
+	
+	// run
+	task dbg_run;
+	begin
+		dbg_write_reg(4'h0, 4'b1111, 32'h00000000);
+		#(RATE);
+	end
+	endtask
+	
+	// reset
+	task dbg_reset;
+	begin
+		dbg_write_reg(4'h2, 4'b1111, 32'h0000015c);		// dbgaddr <= COP_DEBUG
+		dbg_write_reg(4'h4, 4'b1111, 32'h00000000);		// dbg_reg <= 0
+
+		dbg_write_reg(4'h2, 4'b1111, 32'h00000160);		// dbgaddr <= COP_DEPC
+		dbg_write_reg(4'h4, 4'b1111, 32'h00000000);		// dbg_reg <= 0
+	end
+	endtask
+	
+	// write mem
+	task dbg_write_mem;
+	input	[31:0]		addr;
+	input	[3:0]		sel;
+	input	[31:0]		data;
+	begin
+		dbg_write_reg(4'h2, 4'b1111, addr);		// dbgaddr <= addr
+		dbg_write_reg(4'h6, sel, data);			// dbus    <= data
+	end
+	endtask
+	
+	// read mem
+	task dbg_read_mem;
+	input	[31:0]		addr;
+	input	[3:0]		sel;
+	begin
+		dbg_write_reg(4'h2, 4'b1111, addr);		// dbgaddr <= addr
+		dbg_read_reg(4'h6, sel);				// dbus    <= data
+	end
+	endtask
+	
+	
+	// sdram dump
+	task sdram_dump;
+	integer	fp;
+	integer	i;
+	begin
+		fp = $fopen("sdram_dump.txt");
+		for ( i = 0; i < i_ddr.mem_used; i = i + 1 ) begin
+			$fdisplay(fp, "%h %h", i_ddr.addr_array[i], i_ddr.mem_array[i]);
+		end
+		$fclose(fp);
+	end
+	endtask
+
+	// sdram load
+	task sdram_load;
+	input	[256:1]	filename;
+	reg		[31:0]	data;
+	integer	fp;
+	integer	addr;
+	begin
+		fp = $fopen(filename, "r");
+		addr = 0;
+		while ( $fscanf(fp, "%h", data) == 1 ) begin
+			i_ddr.addr_array[addr] = addr; i_ddr.mem_array[addr] = data[31:16]; addr = addr + 1;
+			i_ddr.addr_array[addr] = addr; i_ddr.mem_array[addr] = data[15:0];  addr = addr + 1;
+			i_ddr.mem_used = addr;
+		end
+		$fclose(fp);
+	end
+	endtask
+	
+	
+	/*
 	task dbg_restart;
 	begin
 		$display("--- NOP ---");
@@ -285,7 +443,7 @@ module tb_top;
 	#(RATE*100);
 	end
 	endtask	
-	
+	*/
 
 endmodule
 

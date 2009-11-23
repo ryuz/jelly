@@ -30,6 +30,7 @@
 #include "application/filecmd/filedump/filedump.h"
 #include "application/filecmd/filecat/filecat.h"
 #include "application/fatcmd/fatmount/fatmount.h"
+#include "application/flashcmd/norflashcmd/norflashcmd.h"
 #include "application/utility/timecmd/timecmd.h"
 #include "application/utility/memdump/memdump.h"
 #include "application/utility/memwrite/memwrite.h"
@@ -274,6 +275,7 @@ int Boot_Process(VPARAM Param)
 	Command_AddCommand("cat",      FileCat_Main);
 	Command_AddCommand("filedump", FileDump_Main);
 	Command_AddCommand("fatmount", FatMount_Main);
+	Command_AddCommand("norflash", NorFlashCmd_Main);
 	
 	Command_AddCommand("test",     test_main);
 	

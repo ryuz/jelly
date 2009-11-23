@@ -31,6 +31,15 @@ module top
 			output	wire				uart1_tx,
 			input	wire				uart1_rx,
 			
+			// NOR FLASH
+			inout	wire				flash_sts,
+			output	wire				flash_byte_n,
+			output	wire				flash_cs_n,  
+			output	wire				flash_oe_n, 
+			output	wire				flash_we_n,
+			output	wire	[24:0]		flash_a,
+			inout	wire	[15:0]		flash_d,
+			
 			// DDR-SDRAM
 			output	wire				ddr_sdram_ck_p,
 			output	wire				ddr_sdram_ck_n,
@@ -89,18 +98,34 @@ module top
 				.locked				(locked)
 		);
 	
+
+	// -----------------------------
+	//  option switch
+	// -----------------------------
+	
+	wire				option_uart_swap;
+	reg					option_ram_swap;
+
+	assign option_uart_swap = sw[0];
+	always @ ( posedge clk ) begin
+		if ( reset ) begin
+			option_ram_swap <= sw[1];
+		end
+	end
 	
 	
-	// UART switch
+	// -----------------------------
+	//  UART switch
+	// -----------------------------
 	wire				uart_tx;
 	wire				uart_rx;
 	wire				dbg_uart_tx;
 	wire				dbg_uart_rx;
 	
-	assign uart0_tx    = ~sw[0] ? uart_tx  : dbg_uart_tx;
-	assign uart1_tx    =  sw[0] ? uart_tx  : dbg_uart_tx;
-	assign uart_rx     = ~sw[0] ? uart0_rx : uart1_rx;
-	assign dbg_uart_rx = ~sw[0] ? uart1_rx : uart0_rx;
+	assign uart0_tx    = (option_uart_swap == 1'b0) ? uart_tx  : dbg_uart_tx;
+	assign uart1_tx    = (option_uart_swap == 1'b1) ? uart_tx  : dbg_uart_tx;
+	assign uart_rx     = (option_uart_swap == 1'b0) ? uart0_rx : uart1_rx;
+	assign dbg_uart_rx = (option_uart_swap == 1'b0) ? uart1_rx : uart0_rx;
 	
 	
 	
@@ -470,7 +495,7 @@ module top
 	assign wb_rom_dat_i   = wb_mem_dat_o;
 	assign wb_rom_sel_i   = wb_mem_sel_o;
 	assign wb_rom_we_i    = wb_mem_we_o;
-	assign wb_rom_stb_i   = wb_mem_stb_o & (wb_mem_adr_o[31:24] == 8'h00) & sw[1];
+	assign wb_rom_stb_i   = wb_mem_stb_o & (wb_mem_adr_o[31:24] == 8'h00) & (option_ram_swap == 1'b1);
 	
 	assign wb_dram_adr_i = wb_mem_adr_o;
 	assign wb_dram_dat_i = wb_mem_dat_o;
@@ -685,6 +710,89 @@ module top
 	
 	
 	// -----------------------------
+	//  nor flash
+	// -----------------------------
+	
+	wire	[31:2]		wb_flash_adr_i;
+	wire	[31:0]		wb_flash_dat_i;
+	wire	[31:0]		wb_flash_dat_o;
+	wire	[3:0]		wb_flash_sel_i;
+	wire				wb_flash_we_i;
+	wire				wb_flash_stb_i;
+	wire				wb_flash_ack_o;
+	
+	wire	[31:1]		wb_flash16_adr_o;
+	wire	[15:0]		wb_flash16_dat_o;
+	wire	[15:0]		wb_flash16_dat_i;
+	wire	[1:0]		wb_flash16_sel_o;
+	wire				wb_flash16_we_o;
+	wire				wb_flash16_stb_o;
+	wire				wb_flash16_ack_i;
+	
+	jelly_wishbone_width_converter
+			#(
+				.WB_SLAVE_DAT_SIZE	(2),	// 2^n (0:8bit, 1:16bit, 2:32bit ...)
+				.WB_MASTER_DAT_SIZE	(1),	// 2^n (0:8bit, 1:16bit, 2:32bit ...)
+				.WB_SLAVE_ADR_WIDTH	(30)
+			)
+		i_wishbone_width_converter_flash
+			(
+				.clk				(clk),
+				.reset				(reset),
+				
+				.endian				(endian),
+				
+				.wb_slave_adr_i		(wb_flash_adr_i),
+				.wb_slave_dat_o		(wb_flash_dat_o),
+				.wb_slave_dat_i		(wb_flash_dat_i),
+				.wb_slave_we_i		(wb_flash_we_i),
+				.wb_slave_sel_i		(wb_flash_sel_i),
+				.wb_slave_stb_i		(wb_flash_stb_i),
+				.wb_slave_ack_o		(wb_flash_ack_o),
+                                        
+				.wb_master_adr_o	(wb_flash16_adr_o),
+				.wb_master_dat_o	(wb_flash16_dat_o),
+				.wb_master_dat_i	(wb_flash16_dat_i),
+				.wb_master_we_o		(wb_flash16_we_o),
+				.wb_master_sel_o	(wb_flash16_sel_o),
+				.wb_master_stb_o	(wb_flash16_stb_o),
+				.wb_master_ack_i	(wb_flash16_ack_i)
+			);                       
+	
+	jelly_extbus
+			#(
+				.ACCESS_CYCLE		(4),
+				.WB_ADR_WIDTH		(24),
+				.WB_DAT_WIDTH		(16)
+			)
+		i_extbus_flash
+			(
+				.reset				(reset),
+				.clk				(clk),
+								
+				.extbus_cs_n		(flash_cs_n),
+				.extbus_we_n		(flash_we_n),
+				.extbus_oe_n		(flash_oe_n),
+				.extbus_bls_n		(),
+				.extbus_a			(flash_a[24:1]),
+				.extbus_d			(flash_d),
+				
+				.wb_adr_i			(wb_flash16_adr_o[24:1]),
+				.wb_dat_o			(wb_flash16_dat_i),
+				.wb_dat_i			(wb_flash16_dat_o),
+				.wb_we_i			(wb_flash16_we_o),
+				.wb_sel_i			(wb_flash16_sel_o),
+				.wb_stb_i			(wb_flash16_stb_o),
+				.wb_ack_o			(wb_flash16_ack_i)
+			);
+	
+	assign flash_sts    = 1'bz;
+	assign flash_byte_n = 1'b1;
+	assign flash_a[0]   = 1'b0;
+	
+	
+	
+	// -----------------------------
 	//  peri bus address decoder
 	// -----------------------------
 
@@ -717,12 +825,19 @@ module top
 	assign wb_gpiob_sel_i  = wb_peri_sel_o;
 	assign wb_gpiob_we_i   = wb_peri_we_o;
 	assign wb_gpiob_stb_i  = wb_peri_stb_o & (wb_peri_adr_o[31:4] == 28'hf300_001);
+
+	assign wb_flash_adr_i  = wb_peri_adr_o;
+	assign wb_flash_dat_i  = wb_peri_dat_o;
+	assign wb_flash_sel_i  = wb_peri_sel_o;
+	assign wb_flash_we_i   = wb_peri_we_o;
+	assign wb_flash_stb_i  = wb_peri_stb_o & (wb_peri_adr_o[31:24] == 28'h80);
 	
 	assign wb_peri_dat_i   = wb_irc_stb_i    ? wb_irc_dat_o    :
 						     wb_timer0_stb_i ? wb_timer0_dat_o :
 						     wb_uart0_stb_i  ? wb_uart0_dat_o  :
 						     wb_gpioa_stb_i  ? wb_gpioa_dat_o  :
 						     wb_gpiob_stb_i  ? wb_gpiob_dat_o  :
+							 wb_flash_stb_i  ? wb_flash_dat_o  :
 							 32'hxxxx_xxxx;       
 
 	assign wb_peri_ack_i   = wb_irc_stb_i    ? wb_irc_ack_o    :
@@ -730,6 +845,7 @@ module top
 						     wb_uart0_stb_i  ? wb_uart0_ack_o  :
 						     wb_gpioa_stb_i  ? wb_gpioa_ack_o  :
 						     wb_gpiob_stb_i  ? wb_gpiob_ack_o  :
+							 wb_flash_stb_i  ? wb_flash_ack_o  :
 							 1'b1;
 	
 	

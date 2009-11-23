@@ -16,6 +16,8 @@ CMD_ASM     ?= $(GCC_ARCH)gcc
 CMD_LINK    ?= $(GCC_ARCH)gcc
 CMD_OBJCNV  ?= $(GCC_ARCH)objcopy
 CMD_OBJDUMP ?= $(GCC_ARCH)objdump
+CMD_GDB     ?= $(GCC_ARCH)gdb
+
 
 # %jp{ディレクトリ}
 HOS_DIR           = $(HOME)/hos-v4a
@@ -136,6 +138,10 @@ all: kernel_make make_subprj makeexe_all $(TARGETS)
 .PHONY : run
 run: all
 	jelly_loader -r $(TARGET_BIN)
+
+.PHONY : gdb
+gdb: all
+	$(CMD_GDB) $(TARGET_EXE)
 
 
 .PHONY : make_subprj

@@ -77,17 +77,24 @@ int CGdbServer::CharToHex(char c)
 }
 
 
-bool CGdbServer::SaveBp(unsigned long ulAddr, unsigned long ulInst)
+bool CGdbServer::AddBp(unsigned long ulAddr)
 {
 	int i;
-
+	
+	for ( i = 0; i < GDBSERVER_MAX_BP_NUM; i++ )
+	{
+		if ( m_BpTable[i].blValid && m_BpTable[i].ulAddr == ulAddr )
+		{
+			return true;
+		}
+	}
+	
 	for ( i = 0; i < GDBSERVER_MAX_BP_NUM; i++ )
 	{
 		if ( !m_BpTable[i].blValid )
 		{
 			m_BpTable[i].blValid = true;
 			m_BpTable[i].ulAddr  = ulAddr;
-			m_BpTable[i].ulInst  = ulInst;
 			return true;
 		}
 	}
@@ -96,7 +103,7 @@ bool CGdbServer::SaveBp(unsigned long ulAddr, unsigned long ulInst)
 }
 
 
-bool CGdbServer::RemoveBp(unsigned long ulAddr, unsigned long* pulInst)
+bool CGdbServer::RemoveBp(unsigned long ulAddr)
 {
 	int i;
 
@@ -104,7 +111,6 @@ bool CGdbServer::RemoveBp(unsigned long ulAddr, unsigned long* pulInst)
 	{
 		if ( m_BpTable[i].blValid && m_BpTable[i].ulAddr == ulAddr )
 		{
-			*pulInst = m_BpTable[i].ulInst;
 			m_BpTable[i].blValid = false;
 			return true;
 		}
@@ -112,6 +118,36 @@ bool CGdbServer::RemoveBp(unsigned long ulAddr, unsigned long* pulInst)
 	
 	return false;
 }
+
+void CGdbServer::LoadBp(void)
+{
+	int i;
+
+	for ( i = 0; i < GDBSERVER_MAX_BP_NUM; i++ )
+	{
+		if ( m_BpTable[i].blValid )
+		{
+			m_pDbgCtl->MemReadWord(m_BpTable[i].ulAddr, &m_BpTable[i].ulInst);
+			m_pDbgCtl->MemWriteWord(m_BpTable[i].ulAddr, 0x7000003f);
+			LogPrint("load bp addr:%08x inst:%08x\n", m_BpTable[i].ulAddr, m_BpTable[i].ulInst);
+		}
+	}
+}
+
+void CGdbServer::UnloadBp(void)
+{
+	int i;
+	
+	for ( i = 0; i < GDBSERVER_MAX_BP_NUM; i++ )
+	{
+		if ( m_BpTable[i].blValid )
+		{
+			m_pDbgCtl->MemWriteWord(m_BpTable[i].ulAddr, m_BpTable[i].ulInst);
+			LogPrint("unload bp addr:%08x inst:%08x\n", m_BpTable[i].ulAddr, m_BpTable[i].ulInst);
+		}
+	}
+}
+
 
 
 int CGdbServer::RemoteSendPacket(char *buf, int len)
@@ -474,18 +510,10 @@ void CGdbServer::RunServer(void)
 				ulSize = (ulSize << 4) + CharToHex(c);
 			}
 			
-			// 既存コード退避
-			unsigned char buf[4];
-			m_pDbgCtl->MemRead(ulAddr, buf, 4);
-			SaveBp(ulAddr, (buf[0]<<24)|(buf[1]<<16)|(buf[2]<<8)|buf[3]);
-
-	//		unsigned long	ulInst;
-	//		m_pDbgCtl->MemReadWord(ulAddr, &ulInst);
-	//		SaveBp(ulAddr, ulInst);
-			
 			// ブレーク設定
-			m_pDbgCtl->MemWriteWord(ulAddr, 0x7000003f);
+			AddBp(ulAddr);
 			
+			// ACK
 			RemoteSendPacket("OK", 2);
 		}
 		else if ( recv_packt[0] == 'z' && recv_packt[2] == ',' )
@@ -508,26 +536,27 @@ void CGdbServer::RunServer(void)
 				ulSize = (ulSize << 4) + CharToHex(c);
 			}
 
-			// 既存コード復帰
-			unsigned long	ulInst;
-			RemoveBp(ulAddr, &ulInst);
-			m_pDbgCtl->MemWriteWord(ulAddr, ulInst);
+			// ブレーク削除
+			RemoveBp(ulAddr);
 
-			
+			// ACK
 			RemoteSendPacket("OK", 2);
 		}
 		else if ( recv_packt[0] == 'k' || recv_packt[0] == 'c' )
 		{
-			printf("\n==== run ====\n");
+			LoadBp();
+			LogPrint("\n==== run ====\n");
 			m_pDbgCtl->Run();
 			while ( !m_pDbgCtl->GetStatus() )
 			{
 				Sleep(100);
 			}
+			UnloadBp();
 			SendThreadId();
 		}
 		else if ( recv_packt[0] == 's' )
 		{
+			LogPrint("\n==== step ====\n");
 			m_pDbgCtl->Step();
 			SendThreadId();
 		}

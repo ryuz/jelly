@@ -205,7 +205,7 @@ bool CRemotePort::MemWriteWord(unsigned long ulAddr, unsigned long ulData)
 bool CRemotePort::MemReadWord(unsigned long ulAddr, unsigned long* pulData)
 {
 	// ADDR
-	if ( !DbgRegWrite(DBG_ADR_DBG_ADDR, ulAddr * 4) )
+	if ( !DbgRegWrite(DBG_ADR_DBG_ADDR, ulAddr) )
 	{
 		return false;
 	}

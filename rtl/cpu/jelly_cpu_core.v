@@ -905,7 +905,7 @@ module jelly_cpu_core
 	end
 	
 	// debugger break;
-	assign ex_dbg_break = ((dbg_break_req & ~dbg_enable) | id_out_dbg_sdbbp | id_out_dbg_break | dbg_cop0_debug[24]) & ~(dbg_dbbp_mask[0] | interlock | ex_stall);
+	assign ex_dbg_break = ((dbg_break_req & ~dbg_enable) | id_out_dbg_sdbbp | ((id_out_dbg_break | dbg_cop0_debug[24]) & !dbg_dbbp_mask[0])) & !(interlock | ex_stall);
 	assign dbg_break    = ex_dbg_break;
 	
 	// interrupt

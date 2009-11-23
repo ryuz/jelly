@@ -43,8 +43,11 @@ protected:
 	
 	void			SendThreadId(void);
 	
-	bool			SaveBp(unsigned long ulAddr, unsigned long ulInst);
-	bool			RemoveBp(unsigned long ulAddr, unsigned long* pulInst);
+	bool			AddBp(unsigned long ulAddr);
+	bool			RemoveBp(unsigned long ulAddr);
+	void			LoadBp(void);
+	void			UnloadBp(void);
+	
 	
 	CDebugControl*	m_pDbgCtl;
 

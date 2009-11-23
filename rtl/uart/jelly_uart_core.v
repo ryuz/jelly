@@ -140,17 +140,30 @@ module jelly_uart_core
 	// -------------------------
 	//  Debug
 	// -------------------------
-
-	always @ ( posedge clk ) begin
-		if ( DEBUG ) begin
+	
+	generate
+	if ( DEBUG ) begin
+		always @ ( posedge clk ) begin
 			if ( rx_en & rx_ready ) begin
-				$display("%m : [UART-RX] %h %c", rx_data, rx_data);
-			end			
+				if ( rx_data >= 8'h20 && rx_data <= 8'h7e ) begin
+					$display("%m : [UART-RX] %h %c", rx_data, rx_data);
+				end
+				else begin
+					$display("%m : [UART-RX] %h", rx_data);
+				end
+			end
+			
 			if ( tx_en & tx_ready ) begin
-				$display("%m : [UART-TX] %h %c", tx_data, tx_data);
-			end			
+				if ( tx_data >= 8'h20 && tx_data <= 8'h7e ) begin
+					$display("%m : [UART-TX] %h %c", tx_data, tx_data);
+				end
+				else begin
+					$display("%m : [UART-TX] %h", tx_data);
+				end
+			end
 		end
 	end
+	endgenerate
 	
 endmodule
 
