@@ -3,15 +3,15 @@
 #include <string.h>
 
 
-#define	DISASM_TABLE_SIZE	(2*1024*1024)
+#define	DISASM_TABLE_SIZE	(512*1024)
 
 
 struct T_DISASM
 {
 	unsigned long	ulAddr;
 	unsigned long	ulInst;
-	char			szLabel[256];
-	char			szAsm[256];
+	char			szLabel[128];
+	char			szAsm[128];
 };
 
 
@@ -73,7 +73,6 @@ int main(int argc, char *argv[])
 {
 	FILE *fp;
 	char	szBuf[1024];
-	int i;
 	
 	if ( argc < 3 )
 	{
@@ -94,9 +93,12 @@ int main(int argc, char *argv[])
 	}
 	while ( fgets(szBuf, sizeof(szBuf), fp) != NULL )
 	{
-		unsigned int	ulAddr;
-		unsigned int	ulInst;
-		if ( szBuf[0] == 'p' && (sscanf(&szBuf[1], "%lx %lx", &ulAddr, &ulInst) == 2) )
+		unsigned long	ulTime;
+		char			cType;
+		char			szText[256];
+		unsigned long	ulAddr;
+		unsigned long	ulInst;
+		if ( (sscanf(szBuf, "%ld %s %c %lx %lx", &ulTime, szText, &cType, &ulAddr, &ulInst) == 5) && (cType == 'p') )
 		{
 			int iLen = strlen(szBuf);
 			if ( szBuf[iLen-1] == '\n' ) { szBuf[iLen-1] = '\0'; }
