@@ -43,6 +43,66 @@ CGdbServerTcp::~CGdbServerTcp()
 }
 
 
+int CGdbServerTcp::RemotePeekChar(void)
+{
+	// 接続
+	if ( !m_blConected )
+	{
+		int len = sizeof(m_client);
+		m_sock = accept(m_sock0, (struct sockaddr *)&m_client, &len);
+		if (m_sock == INVALID_SOCKET)
+		{
+			printf("accept : %d\n", WSAGetLastError());
+			return -1;
+		}
+		
+		u_long val=1;
+		ioctlsocket(m_sock, FIONBIO, &val);
+		
+		m_blConected = true;
+	}
+	
+	// 受信
+	int		n;
+	char	c;
+	if ( (n = recv(m_sock, &c, 1, 0)) == 1 )
+	{
+		// 受信ログ
+		LogPrint("%c", c);
+		
+		return (int)(unsigned int)c;
+	}	
+	
+	if ( n < 0 )
+	{
+		if ( WSAGetLastError() != WSAEWOULDBLOCK )
+		{
+			closesocket(m_sock);
+			m_blConected = false;
+			return -2;
+		}
+	}
+
+	return -1;
+}
+
+
+int CGdbServerTcp::RemoteGetChar(void)
+{
+	int c;
+	while ( (c = RemotePeekChar()) < 0 )
+	{
+		if ( c < -1 )
+		{
+			return c;
+		}
+		Sleep(10);
+	}
+	
+	return c;
+}
+
+/*
 int CGdbServerTcp::RemoteGetChar(void)
 {
 	// 接続
@@ -56,21 +116,35 @@ int CGdbServerTcp::RemoteGetChar(void)
 			return -1;
 		}
 		
+		u_long val=1;
+		ioctlsocket(m_sock, FIONBIO, &val);
+		
 		m_blConected = true;
 	}
 	
 	// 受信
+	int		n;
 	char	c;
-	while ( recv(m_sock, &c, 1, 0) != 1 )
+	while ( (n = recv(m_sock, &c, 1, 0)) != 1 )
 	{
+		if ( n < 0 )
+		{
+			if ( WSAGetLastError() != WSAEWOULDBLOCK )
+			{
+				closesocket(m_sock);
+				m_blConected = false;
+				return -1;
+			}
+		}
 		Sleep(10);
 	}
-
+	
 	// 受信ログ
 	LogPrint("%c", c);
 	
 	return (int)(unsigned int)c;
 }
+*/
 
 
 int CGdbServerTcp::RemotePutChar(char c)

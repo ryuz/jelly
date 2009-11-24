@@ -16,8 +16,8 @@ public:
 	
 protected:
 	virtual int		RemoteGetChar(void);
+	virtual int		RemotePeekChar(void);
 	virtual int		RemotePutChar(char c);
-//	virtual int		RemotePeekChar(void);
 	
 	bool				m_blConected;
 

@@ -37,7 +37,7 @@ int main()
 	JellCtl.Break();
 
 
-	CGdbServerTcp	srv(&JellCtl, 12345);
+	CGdbServerTcp	srv(&JellCtl, 2345);
 	srv.RunServer();
 	
 

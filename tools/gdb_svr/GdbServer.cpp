@@ -550,6 +550,15 @@ void CGdbServer::RunServer(void)
 			while ( !m_pDbgCtl->GetStatus() )
 			{
 				Sleep(100);
+				int c;
+				if ( (c = RemotePeekChar()) < -1 )
+				{
+					break;
+				}
+				if ( c == 0x03 )
+				{
+					m_pDbgCtl->Break();
+				}
 			}
 			UnloadBp();
 			SendThreadId();

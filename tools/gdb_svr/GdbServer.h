@@ -29,6 +29,7 @@ public:
 
 protected:
 	virtual int		RemotePutChar(char c) = 0;
+	virtual int		RemotePeekChar(void) = 0;
 	virtual int		RemoteGetChar(void) = 0;
 
 	virtual void	LogPrint(const char *fmt, ...);
