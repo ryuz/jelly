@@ -83,7 +83,7 @@ module tb_top;
 				.ddr_sdram_ck_fb	(ddr_sdram_ck_fb),
 				
 				.led				(),
-				.sw					(4'b0000)
+				.sw					(4'b0010)
 			);
 	
 	// DDR
@@ -119,11 +119,30 @@ module tb_top;
 		end
 	end
 
-	
-	
+
 	
 	initial begin
 		$display("--- START ---");
+		
+	#(RATE*40000);
+			$display("break");
+			dbg_break();
+			dbg_reset();
+			dbg_run();
+
+	#(RATE*40000);
+			$display("break");
+			dbg_break();
+			dbg_reset();
+			dbg_run();
+	#(RATE*40000);
+			$display("break");
+			dbg_break();
+			dbg_reset();
+			dbg_run();
+	#(RATE*40000);
+		$finish;
+
 
 	#(RATE*1);
 		sdram_load("hosv4a_sample_ram.hex");

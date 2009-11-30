@@ -141,7 +141,7 @@ run: all
 
 .PHONY : gdb
 gdb: all
-	$(CMD_GDB) $(TARGET_EXE)
+	$(CMD_GDB) $(TARGET_EXE) -x gdb.txt
 
 
 .PHONY : make_subprj

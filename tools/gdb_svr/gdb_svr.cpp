@@ -1,13 +1,36 @@
 
 #include <stdio.h>
+#include <stdarg.h>
 #include <winsock2.h>
 #include "GdbServerTcp.h"
 #include "RemoteUart.h"
+
+
+
+void StatusPrint(const char *fmt, ...)
+{
+    va_list args;
+
+    va_start(args, fmt);
+	vprintf(fmt, args);
+    va_end(args);
+}
+
 
 int main()
 {
 	WSADATA wsaData;
 	
+	StatusPrint(
+			"======================================================\n"
+			" Jelly GDB server ver. 0.01\n"
+			"\n"
+			"               Copy right (C) 2009 by Ryuji Fuchikami \n"
+			"               http://homepage3.nifty.com/ryuz/\n"
+			"======================================================\n\n"
+		);
+	
+	// Initialize Socket
 	if ( WSAStartup(MAKEWORD(2,0), &wsaData) != 0 )
 	{
 		return 1;
@@ -23,6 +46,8 @@ int main()
 		return 1;
 	}
 	
+	StatusPrint("COM opened.\n");
+	
 	// connect
 	if ( !UartPort.Connect() )
 	{
@@ -35,7 +60,9 @@ int main()
 	
 	// break;
 	JellCtl.Break();
-
+	
+	
+	StatusPrint("Jelly connected.\n");
 
 	CGdbServerTcp	srv(&JellCtl, 2345);
 	srv.RunServer();

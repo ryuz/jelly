@@ -1,6 +1,7 @@
 
 
 #include <stdio.h>
+#include "gdb_svr.h"
 #include "GdbServerTcp.h"
 
 
@@ -12,7 +13,7 @@ CGdbServerTcp::CGdbServerTcp(CDebugControl* pDbgCtl, int port) : CGdbServer(pDbg
 	m_sock0 = socket(AF_INET, SOCK_STREAM, 0);
 	if ( m_sock0 == INVALID_SOCKET)
 	{
-		printf("socket : %d\n", WSAGetLastError());
+		StatusPrint("socket : %d\n", WSAGetLastError());
 		exit(1);
 	}
 	m_addr.sin_family = AF_INET;
@@ -21,13 +22,13 @@ CGdbServerTcp::CGdbServerTcp(CDebugControl* pDbgCtl, int port) : CGdbServer(pDbg
 	
 	if ( bind(m_sock0, (struct sockaddr *)&m_addr, sizeof(m_addr)) != 0 )
 	{
-		printf("bind : %d\n", WSAGetLastError());
+		StatusPrint("bind : %d\n", WSAGetLastError());
 		exit(1);
 	}
 	
 	if ( listen(m_sock0, 5) != 0 )
 	{
-		printf("listen : %d\n", WSAGetLastError());
+		StatusPrint("listen : %d\n", WSAGetLastError());
 		exit(1);
 	}
 }
@@ -55,6 +56,7 @@ int CGdbServerTcp::RemotePeekChar(void)
 			printf("accept : %d\n", WSAGetLastError());
 			return -1;
 		}
+		StatusPrint("TCP connected.\n");
 		
 		u_long val=1;
 		ioctlsocket(m_sock, FIONBIO, &val);
@@ -73,12 +75,13 @@ int CGdbServerTcp::RemotePeekChar(void)
 		return (int)(unsigned int)c;
 	}	
 	
-	if ( n < 0 )
+	if ( n <= 0 )
 	{
 		if ( WSAGetLastError() != WSAEWOULDBLOCK )
 		{
 			closesocket(m_sock);
 			m_blConected = false;
+			StatusPrint("TCP disconnected.\n");
 			return -2;
 		}
 	}

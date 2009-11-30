@@ -191,19 +191,59 @@ bool CJellyControl::Step(void)
 unsigned long CJellyControl::GetPc(void)
 {
 	unsigned long ulCop0Deepc;
-
+	unsigned long ulCop0Debug;
+	
 	if ( !m_pPort->CpuRegRead(0x58, &ulCop0Deepc) )
 	{
 		return -1;
 	}
-
+	if ( !m_pPort->CpuRegRead(0x57, &ulCop0Debug) )
+	{
+		return -1;
+	}
+	if ( ulCop0Debug & 0x80000000 )
+	{
+		ulCop0Deepc += 4;
+	}
+	
 	return ulCop0Deepc;
 }
 
 
 bool CJellyControl::SetPc(unsigned long ulAddr)
 {
-	return m_pPort->CpuRegWrite(0x58, ulAddr);
+	unsigned long ulCop0Deepc;
+	unsigned long ulCop0Debug;
+	
+	// Œ»Ý‚ÌPCŽæ“¾
+	if ( !m_pPort->CpuRegRead(0x58, &ulCop0Deepc) )
+	{
+		return false;
+	}
+	if ( !m_pPort->CpuRegRead(0x57, &ulCop0Debug) )
+	{
+		return false;
+	}
+	if ( ulCop0Debug & 0x80000000 )
+	{
+		ulCop0Deepc += 4;
+	}
+	
+	// •Ï‰»‚ª‚ ‚ê‚ÎÄÝ’è
+	if ( ulCop0Deepc != ulAddr)
+	{
+		ulCop0Debug &= ~0x80000000;
+		if ( !m_pPort->CpuRegWrite(0x57, ulCop0Debug) )
+		{
+			return false;
+		}
+		if ( !m_pPort->CpuRegWrite(0x58, ulAddr) )
+		{
+			return false;
+		}
+	}
+
+	return true;
 }
 
 

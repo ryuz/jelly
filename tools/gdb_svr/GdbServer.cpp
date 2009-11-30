@@ -1,6 +1,7 @@
 
 #include <windows.h>
 #include <stdio.h>
+#include "gdb_svr.h"
 #include "GdbServer.h"
 
 
@@ -245,7 +246,7 @@ void CGdbServer::SendThreadId(void)
 	send_packt[send_len++] = '2';
 	send_packt[send_len++] = '5';
 	send_packt[send_len++] = ':';
-	send_len += SetWordString(&send_packt[send_len], m_pDbgCtl->GetRegisterValue("COP0_DEEPC"));
+	send_len += SetWordString(&send_packt[send_len], m_pDbgCtl->GetPc()); // m_pDbgCtl->GetRegisterValue("COP0_DEEPC"));
 	send_packt[send_len++] = ';';
 
 	// frame pointer
@@ -365,7 +366,7 @@ void CGdbServer::RunServer(void)
 			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("LO", ulValue);			// HI
 			ptr += GetWordString(&recv_packt[ptr], &ulValue);														// BAD
 			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("COP0_CAUSE", ulValue);	// CAUSE
-			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetRegisterValue("COP0_DEEPC", ulValue);	// PC
+			ptr += GetWordString(&recv_packt[ptr], &ulValue);  m_pDbgCtl->SetPc(ulValue);	// m_pDbgCtl->SetRegisterValue("COP0_DEEPC", ulValue);	// PC
 			
 			RemoteSendPacket("OK", 2);
 		}
@@ -411,7 +412,7 @@ void CGdbServer::RunServer(void)
 			send_len += SetWordString(&send_packt[send_len], m_pDbgCtl->GetRegisterValue("HI"));			// HI
 			send_len += SetWordString(&send_packt[send_len], 0);											// BAD
 			send_len += SetWordString(&send_packt[send_len], m_pDbgCtl->GetRegisterValue("COP0_CAUSE"));	// CAUSE
-			send_len += SetWordString(&send_packt[send_len], m_pDbgCtl->GetRegisterValue("COP0_DEEPC"));	// PC
+			send_len += SetWordString(&send_packt[send_len], m_pDbgCtl->GetPc());	// m_pDbgCtl->GetRegisterValue("COP0_DEEPC"));	// PC
 			
 			for ( i = 0; i < 90 - (32 + 6); i++ )
 			{
@@ -545,7 +546,7 @@ void CGdbServer::RunServer(void)
 		else if ( recv_packt[0] == 'k' || recv_packt[0] == 'c' )
 		{
 			LoadBp();
-			LogPrint("\n==== run ====\n");
+			StatusPrint("\n==== run ====\n");
 			m_pDbgCtl->Run();
 			while ( !m_pDbgCtl->GetStatus() )
 			{
@@ -553,7 +554,7 @@ void CGdbServer::RunServer(void)
 				int c;
 				if ( (c = RemotePeekChar()) < -1 )
 				{
-					break;
+					goto run_disconect;
 				}
 				if ( c == 0x03 )
 				{
@@ -562,6 +563,8 @@ void CGdbServer::RunServer(void)
 			}
 			UnloadBp();
 			SendThreadId();
+run_disconect:
+			;
 		}
 		else if ( recv_packt[0] == 's' )
 		{
