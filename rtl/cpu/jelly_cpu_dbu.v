@@ -289,7 +289,7 @@ module jelly_cpu_dbu
 		assign dbus_we        = 1'b0;
 		assign dbus_valid     = 1'b0;
 		
-		assign dbus_wb_ack    = 1'b1;
+		assign dbus_wb_ack    = wb_stb_i & (wb_adr_i == `DBG_ADR_DBUS_DATA);
 	end
 	endgenerate
 	

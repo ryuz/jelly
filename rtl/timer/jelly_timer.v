@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- the soft-core processor system
-//    Timmer
+//    Timer
 //
 //                                      Copyright (C) 2008 by Ryuji Fuchikami
 //                                      http://homepage3.nifty.com/ryuz
@@ -99,7 +99,7 @@ module jelly_timer
 		endcase
 	end
 		
-	assign wb_ack_o = 1'b1;
+	assign wb_ack_o = wb_stb_i;
 	
 endmodule
 

@@ -16,7 +16,17 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "dhry.h"
+
+
+#include "hosaplfw.h"
+double dtime(void)
+{
+	return (double)Time_GetSystemTime() / 1000.0;
+}
+
 
 /* Global Variables: */
 
@@ -31,7 +41,7 @@ int             Arr_2_Glob [50] [50];
 
 char Reg_Define[] = "Register option selected.";
 
-extern char     *malloc ();
+/*extern char     *malloc ();	*/
 Enumeration     Func_1 ();
   /* forward declaration necessary since Enumeration may not simply be int */
 
@@ -75,15 +85,12 @@ double          Microseconds,
 /* end of variables for time measurement */
 
 
-void
-main (void)
+int dhrystone_main(int argc, char *argv[])
 /*****/
 
   /* main program, corresponds to procedures        */
   /* Main and Proc_0 in the Ada version             */
 {
-  double   dtime();
-
         One_Fifty       Int_1_Loc;
   REG   One_Fifty       Int_2_Loc = 0;
         One_Fifty       Int_3_Loc;
@@ -94,21 +101,23 @@ main (void)
   REG   int             Run_Index;
   REG   int             Number_Of_Runs;
 
-        FILE            *Ap;
+/*        FILE            *Ap;	*/
 
   /* Initializations */
+  /*
  #ifdef riscos
   if ((Ap = fopen("dhry/res","a+")) == NULL)
  #else
   if ((Ap = fopen("dhry.res","a+")) == NULL)
  #endif
     {
-       printf("Can not open dhry.res\n\n");
+       StdIo_PrintFormat("Can not open dhry.res\n\n");
        exit(1);
     }
-
-  Next_Ptr_Glob = (Rec_Pointer) malloc (sizeof (Rec_Type));
-  Ptr_Glob = (Rec_Pointer) malloc (sizeof (Rec_Type));
+  */
+  
+  Next_Ptr_Glob = (Rec_Pointer) Memory_Alloc (sizeof (Rec_Type));
+  Ptr_Glob = (Rec_Pointer) Memory_Alloc (sizeof (Rec_Type));
 
   Ptr_Glob->Ptr_Comp                    = Next_Ptr_Glob;
   Ptr_Glob->Discr                       = Ident_1;
@@ -124,30 +133,40 @@ main (void)
         /* Warning: With 16-Bit processors and Number_Of_Runs > 32000,  */
         /* overflow may occur for this array element.                   */
 
-  printf ("\n");
-  printf ("Dhrystone Benchmark, Version 2.1 (Language: C)\n");
-  printf ("\n");
+  StdIo_PrintFormat ("\n");
+  StdIo_PrintFormat ("Dhrystone Benchmark, Version 2.1 (Language: C)\n");
+  StdIo_PrintFormat ("\n");
 /*
   if (Reg)
   {
-    printf ("Program compiled with 'register' attribute\n");
-    printf ("\n");
+    StdIo_PrintFormat ("Program compiled with 'register' attribute\n");
+    StdIo_PrintFormat ("\n");
   }
   else
   {
-    printf ("Program compiled without 'register' attribute\n");
-    printf ("\n");
+    StdIo_PrintFormat ("Program compiled without 'register' attribute\n");
+    StdIo_PrintFormat ("\n");
   }
 */
-  printf ("Please give the number of runs through the benchmark: ");
+/*
+  StdIo_PrintFormat ("Please give the number of runs through the benchmark: ");
   {
     int n;
     scanf ("%d", &n);
     Number_Of_Runs = n;
   }
-  printf ("\n");
+  StdIo_PrintFormat ("\n");
+*/
+  if ( argc >= 2 )
+  {
+    Number_Of_Runs = strtoul(argv[1], 0, 0);
+  }
+  else
+  {
+    Number_Of_Runs = 500000;
+  }
 
-  printf ("Execution starts, %d runs through Dhrystone\n",Number_Of_Runs);
+  StdIo_PrintFormat ("Execution starts, %d runs through Dhrystone\n",Number_Of_Runs);
 
   /***************/
   /* Start timer */
@@ -207,95 +226,100 @@ main (void)
 
   End_Time = dtime();
 
-  printf ("Execution ends\n");
-  printf ("\n");
-  printf ("Final values of the variables used in the benchmark:\n");
-  printf ("\n");
-  printf ("Int_Glob:            %d\n", Int_Glob);
-  printf ("        should be:   %d\n", 5);
-  printf ("Bool_Glob:           %d\n", Bool_Glob);
-  printf ("        should be:   %d\n", 1);
-  printf ("Ch_1_Glob:           %c\n", Ch_1_Glob);
-  printf ("        should be:   %c\n", 'A');
-  printf ("Ch_2_Glob:           %c\n", Ch_2_Glob);
-  printf ("        should be:   %c\n", 'B');
-  printf ("Arr_1_Glob[8]:       %d\n", Arr_1_Glob[8]);
-  printf ("        should be:   %d\n", 7);
-  printf ("Arr_2_Glob[8][7]:    %d\n", Arr_2_Glob[8][7]);
-  printf ("        should be:   Number_Of_Runs + 10\n");
-  printf ("Ptr_Glob->\n");
-  printf ("  Ptr_Comp:          %d\n", (int) Ptr_Glob->Ptr_Comp);
-  printf ("        should be:   (implementation-dependent)\n");
-  printf ("  Discr:             %d\n", Ptr_Glob->Discr);
-  printf ("        should be:   %d\n", 0);
-  printf ("  Enum_Comp:         %d\n", Ptr_Glob->variant.var_1.Enum_Comp);
-  printf ("        should be:   %d\n", 2);
-  printf ("  Int_Comp:          %d\n", Ptr_Glob->variant.var_1.Int_Comp);
-  printf ("        should be:   %d\n", 17);
-  printf ("  Str_Comp:          %s\n", Ptr_Glob->variant.var_1.Str_Comp);
-  printf ("        should be:   DHRYSTONE PROGRAM, SOME STRING\n");
-  printf ("Next_Ptr_Glob->\n");
-  printf ("  Ptr_Comp:          %d\n", (int) Next_Ptr_Glob->Ptr_Comp);
-  printf ("        should be:   (implementation-dependent), same as above\n");
-  printf ("  Discr:             %d\n", Next_Ptr_Glob->Discr);
-  printf ("        should be:   %d\n", 0);
-  printf ("  Enum_Comp:         %d\n", Next_Ptr_Glob->variant.var_1.Enum_Comp);
-  printf ("        should be:   %d\n", 1);
-  printf ("  Int_Comp:          %d\n", Next_Ptr_Glob->variant.var_1.Int_Comp);
-  printf ("        should be:   %d\n", 18);
-  printf ("  Str_Comp:          %s\n", Next_Ptr_Glob->variant.var_1.Str_Comp);
-  printf ("        should be:   DHRYSTONE PROGRAM, SOME STRING\n");
-  printf ("Int_1_Loc:           %d\n", Int_1_Loc);
-  printf ("        should be:   %d\n", 5);
-  printf ("Int_2_Loc:           %d\n", Int_2_Loc);
-  printf ("        should be:   %d\n", 13);
-  printf ("Int_3_Loc:           %d\n", Int_3_Loc);
-  printf ("        should be:   %d\n", 7);
-  printf ("Enum_Loc:            %d\n", Enum_Loc);
-  printf ("        should be:   %d\n", 1);
-  printf ("Str_1_Loc:           %s\n", Str_1_Loc);
-  printf ("        should be:   DHRYSTONE PROGRAM, 1'ST STRING\n");
-  printf ("Str_2_Loc:           %s\n", Str_2_Loc);
-  printf ("        should be:   DHRYSTONE PROGRAM, 2'ND STRING\n");
-  printf ("\n");
+  StdIo_PrintFormat ("Execution ends\n");
+  StdIo_PrintFormat ("\n");
+  StdIo_PrintFormat ("Final values of the variables used in the benchmark:\n");
+  StdIo_PrintFormat ("\n");
+  StdIo_PrintFormat ("Int_Glob:            %d\n", Int_Glob);
+  StdIo_PrintFormat ("        should be:   %d\n", 5);
+  StdIo_PrintFormat ("Bool_Glob:           %d\n", Bool_Glob);
+  StdIo_PrintFormat ("        should be:   %d\n", 1);
+  StdIo_PrintFormat ("Ch_1_Glob:           %c\n", Ch_1_Glob);
+  StdIo_PrintFormat ("        should be:   %c\n", 'A');
+  StdIo_PrintFormat ("Ch_2_Glob:           %c\n", Ch_2_Glob);
+  StdIo_PrintFormat ("        should be:   %c\n", 'B');
+  StdIo_PrintFormat ("Arr_1_Glob[8]:       %d\n", Arr_1_Glob[8]);
+  StdIo_PrintFormat ("        should be:   %d\n", 7);
+  StdIo_PrintFormat ("Arr_2_Glob[8][7]:    %d\n", Arr_2_Glob[8][7]);
+  StdIo_PrintFormat ("        should be:   Number_Of_Runs + 10\n");
+  StdIo_PrintFormat ("Ptr_Glob->\n");
+  StdIo_PrintFormat ("  Ptr_Comp:          %d\n", (int) Ptr_Glob->Ptr_Comp);
+  StdIo_PrintFormat ("        should be:   (implementation-dependent)\n");
+  StdIo_PrintFormat ("  Discr:             %d\n", Ptr_Glob->Discr);
+  StdIo_PrintFormat ("        should be:   %d\n", 0);
+  StdIo_PrintFormat ("  Enum_Comp:         %d\n", Ptr_Glob->variant.var_1.Enum_Comp);
+  StdIo_PrintFormat ("        should be:   %d\n", 2);
+  StdIo_PrintFormat ("  Int_Comp:          %d\n", Ptr_Glob->variant.var_1.Int_Comp);
+  StdIo_PrintFormat ("        should be:   %d\n", 17);
+  StdIo_PrintFormat ("  Str_Comp:          %s\n", Ptr_Glob->variant.var_1.Str_Comp);
+  StdIo_PrintFormat ("        should be:   DHRYSTONE PROGRAM, SOME STRING\n");
+  StdIo_PrintFormat ("Next_Ptr_Glob->\n");
+  StdIo_PrintFormat ("  Ptr_Comp:          %d\n", (int) Next_Ptr_Glob->Ptr_Comp);
+  StdIo_PrintFormat ("        should be:   (implementation-dependent), same as above\n");
+  StdIo_PrintFormat ("  Discr:             %d\n", Next_Ptr_Glob->Discr);
+  StdIo_PrintFormat ("        should be:   %d\n", 0);
+  StdIo_PrintFormat ("  Enum_Comp:         %d\n", Next_Ptr_Glob->variant.var_1.Enum_Comp);
+  StdIo_PrintFormat ("        should be:   %d\n", 1);
+  StdIo_PrintFormat ("  Int_Comp:          %d\n", Next_Ptr_Glob->variant.var_1.Int_Comp);
+  StdIo_PrintFormat ("        should be:   %d\n", 18);
+  StdIo_PrintFormat ("  Str_Comp:          %s\n", Next_Ptr_Glob->variant.var_1.Str_Comp);
+  StdIo_PrintFormat ("        should be:   DHRYSTONE PROGRAM, SOME STRING\n");
+  StdIo_PrintFormat ("Int_1_Loc:           %d\n", Int_1_Loc);
+  StdIo_PrintFormat ("        should be:   %d\n", 5);
+  StdIo_PrintFormat ("Int_2_Loc:           %d\n", Int_2_Loc);
+  StdIo_PrintFormat ("        should be:   %d\n", 13);
+  StdIo_PrintFormat ("Int_3_Loc:           %d\n", Int_3_Loc);
+  StdIo_PrintFormat ("        should be:   %d\n", 7);
+  StdIo_PrintFormat ("Enum_Loc:            %d\n", Enum_Loc);
+  StdIo_PrintFormat ("        should be:   %d\n", 1);
+  StdIo_PrintFormat ("Str_1_Loc:           %s\n", Str_1_Loc);
+  StdIo_PrintFormat ("        should be:   DHRYSTONE PROGRAM, 1'ST STRING\n");
+  StdIo_PrintFormat ("Str_2_Loc:           %s\n", Str_2_Loc);
+  StdIo_PrintFormat ("        should be:   DHRYSTONE PROGRAM, 2'ND STRING\n");
+  StdIo_PrintFormat ("\n");
 
   User_Time = End_Time - Begin_Time;
 
   if (User_Time < Too_Small_Time)
   {
-    printf ("Measured time too small to obtain meaningful results\n");
-    printf ("Please increase number of runs\n");
-    printf ("\n");
+    StdIo_PrintFormat ("Measured time too small to obtain meaningful results\n");
+    StdIo_PrintFormat ("Please increase number of runs\n");
+    StdIo_PrintFormat ("\n");
   }
   else
   {
+    StdIo_PrintFormat ("User_Time:%d.%03d seconds\n", (int)User_Time, (int)(User_Time*1000));
     Microseconds = User_Time * Mic_secs_Per_Second
                         / (double) Number_Of_Runs;
     Dhrystones_Per_Second = (double) Number_Of_Runs / User_Time;
     Vax_Mips = Dhrystones_Per_Second / 1757.0;
 
 #ifdef ROPT
-    printf ("Register option selected?  YES\n");
+    StdIo_PrintFormat ("Register option selected?  YES\n");
 #else
-    printf ("Register option selected?  NO\n");
+    StdIo_PrintFormat ("Register option selected?  NO\n");
     strcpy(Reg_Define, "Register option not selected.");
 #endif
-    printf ("Microseconds for one run through Dhrystone: ");
-    printf ("%7.1f \n", Microseconds);
-    printf ("Dhrystones per Second:                      ");
-    printf ("%10.1f \n", Dhrystones_Per_Second);
-    printf ("VAX MIPS rating = %10.3f \n",Vax_Mips);
-    printf ("\n");
+    StdIo_PrintFormat ("Microseconds for one run through Dhrystone: ");
+    StdIo_PrintFormat ("%d \n", (long)Microseconds);
+    StdIo_PrintFormat ("Dhrystones per Second:                      ");
+    StdIo_PrintFormat ("%d \n", (long)Dhrystones_Per_Second);
+    StdIo_PrintFormat ("VAX MIPS rating = %d.%03d\n", (long)Vax_Mips, (long)(Vax_Mips*100));
+    StdIo_PrintFormat ("\n");
 
-  fprintf(Ap,"\n");
-  fprintf(Ap,"Dhrystone Benchmark, Version 2.1 (Language: C)\n");
-  fprintf(Ap,"%s\n",Reg_Define);
-  fprintf(Ap,"Microseconds for one loop: %7.1f\n",Microseconds);
-  fprintf(Ap,"Dhrystones per second: %10.1f\n",Dhrystones_Per_Second);
-  fprintf(Ap,"VAX MIPS rating: %10.3f\n",Vax_Mips);
+/*
+  fStdIo_PrintFormat(Ap,"\n");
+  fStdIo_PrintFormat(Ap,"Dhrystone Benchmark, Version 2.1 (Language: C)\n");
+  fStdIo_PrintFormat(Ap,"%s\n",Reg_Define);
+  fStdIo_PrintFormat(Ap,"Microseconds for one loop: %7.1f\n",Microseconds);
+  fStdIo_PrintFormat(Ap,"Dhrystones per second: %10.1f\n",Dhrystones_Per_Second);
+  fStdIo_PrintFormat(Ap,"VAX MIPS rating: %10.3f\n",Vax_Mips);
   fclose(Ap);
+*/
 
   }
+  
+  return 0;
 
 }
 

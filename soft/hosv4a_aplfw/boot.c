@@ -42,6 +42,9 @@
 #include "mmcdrv/mmcdrv.h"
 
 
+int dhrystone_main(int argc, char *argv[]);
+
+
 #if 0
 
 long	g_SystemHeap[128 * 1024 / sizeof(long)];
@@ -277,6 +280,7 @@ int Boot_Process(VPARAM Param)
 	Command_AddCommand("fatmount", FatMount_Main);
 	Command_AddCommand("norflash", NorFlashCmd_Main);
 	
+	Command_AddCommand("dhry",     dhrystone_main);
 	Command_AddCommand("test",     test_main);
 	
 	

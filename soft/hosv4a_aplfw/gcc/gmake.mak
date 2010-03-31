@@ -87,7 +87,7 @@ include $(KERNEL_MAKINC_DIR)/gcc_d.inc
 INC_DIRS += $(APLFW_INC_DIR)
 
 # %jp{ソースディレクトリ}
-SRC_DIRS += . .. ../mmcdrv
+SRC_DIRS += . ..
 
 
 # %jp{アセンブラファイルの追加}
@@ -102,6 +102,7 @@ CSRCS += ../ostimer.c
 CSRCS += memcpy.c
 CSRCS += strlen.c
 
+SRC_DIRS +=  ../mmcdrv
 CSRCS += ../mmcdrv/mmcdrv_create.c
 CSRCS += ../mmcdrv/mmcdrv_delete.c
 CSRCS += ../mmcdrv/mmcdrv_constructor.c
@@ -120,6 +121,10 @@ CSRCS += ../mmcdrv/mmcfile_delete.c
 CSRCS += ../mmcdrv/mmcfile_constructor.c
 CSRCS += ../mmcdrv/mmcfile_destructor.c
 
+SRC_DIRS +=  ../dhrystone
+CSRCS += ../dhrystone/dhry21a.c
+CSRCS += ../dhrystone/dhry21b.c
+# CSRCS += ../dhrystone/timers.c
 
 # %jp{ライブラリファイルの追加}
 LIBS += $(APLFW_LIB) -lc

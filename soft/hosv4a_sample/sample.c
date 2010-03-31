@@ -27,6 +27,7 @@ void Sample_Initialize(VP_INT exinf)
 	Uart_Initialize();
 	
 	/* %jp{タスク起動} */
+	act_tsk(TSKID_PRINT);
 	act_tsk(TSKID_SAMPLE1);
 	act_tsk(TSKID_SAMPLE2);
 	act_tsk(TSKID_SAMPLE3);
@@ -58,20 +59,32 @@ void Sample_PrintSatet(int num, const char *text)
 	wai_sem(SEMID_UART);
 	
 	/* %jp{文字列出力} */
-	Uart_PutChar('0' + num);
-	Uart_PutChar(' ');
-	Uart_PutChar(':');
-	Uart_PutChar(' ');
+	snd_dtq(DTQID_SAMPLE, (VP_INT)('0' + num));
+	snd_dtq(DTQID_SAMPLE, (VP_INT)' ');
+	snd_dtq(DTQID_SAMPLE, (VP_INT)':');
+	snd_dtq(DTQID_SAMPLE, (VP_INT)' ');
 	for ( i = 0; text[i] != '\0'; i++ )
 	{
-		Uart_PutChar(text[i]);
+		snd_dtq(DTQID_SAMPLE, (VP_INT)text[i]);
 	}
-	Uart_PutChar('\r');
-	Uart_PutChar('\n');
+	snd_dtq(DTQID_SAMPLE, (VP_INT)'\r');
+	snd_dtq(DTQID_SAMPLE, (VP_INT)'\n');
 	
 	sig_sem(SEMID_UART);
 }
 
+
+void Sample_Print(VP_INT exinf)
+{
+	VP_INT data;
+	
+	for ( ; ; )
+	{
+		rcv_dtq(DTQID_SAMPLE, &data);
+		Uart_PutChar(' ');
+		Uart_PutChar((int)data);
+	}
+}
 
 
 /** %jp{サンプルタスク} */

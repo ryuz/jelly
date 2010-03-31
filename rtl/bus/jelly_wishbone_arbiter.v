@@ -68,7 +68,7 @@ module jelly_wishbone_arbiter
 			end
 		end
 	end
-	assign sw = reg_busy ? reg_sw : wb_slave1_stb_i;
+	assign sw = reg_busy ? reg_sw : !wb_slave0_stb_i;
 	
 	
 	assign wb_master_adr_o = sw ? wb_slave1_adr_i : wb_slave0_adr_i;

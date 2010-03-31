@@ -569,6 +569,34 @@ module top
 	
 	
 	// -----------------------------
+	//  CPU Timer (64bit counter)
+	// -----------------------------
+	
+	wire	[31:2]		wb_cputim_adr_i;
+	wire	[31:0]		wb_cputim_dat_i;
+	wire	[31:0]		wb_cputim_dat_o;
+	wire	[3:0]		wb_cputim_sel_i;
+	wire				wb_cputim_we_i;
+	wire				wb_cputim_stb_i;
+	wire				wb_cputim_ack_o;
+	
+	jelly_time_counter
+		i_time_counter
+			(
+				.clk				(clk),
+				.reset				(reset),
+				
+				.wb_adr_i			(wb_cputim_adr_i[4:2]),
+				.wb_dat_o			(wb_cputim_dat_o),
+				.wb_dat_i			(wb_cputim_dat_i),
+				.wb_we_i			(wb_cputim_we_i),
+				.wb_sel_i			(wb_cputim_sel_i),
+				.wb_stb_i			(wb_cputim_stb_i),
+				.wb_ack_o			(wb_cputim_ack_o)
+			);       	              
+	
+	
+	// -----------------------------
 	//  Timer0
 	// -----------------------------
 	
@@ -800,19 +828,25 @@ module top
 	assign wb_irc_dat_i    = wb_peri_dat_o;
 	assign wb_irc_sel_i    = wb_peri_sel_o;
 	assign wb_irc_we_i     = wb_peri_we_o;
-	assign wb_irc_stb_i    = wb_peri_stb_o & (wb_peri_adr_o[31:24] == 8'hf0);
+	assign wb_irc_stb_i    = wb_peri_stb_o & (wb_peri_adr_o[31:16] == 16'hf000);
+
+	assign wb_cputim_adr_i = wb_peri_adr_o;
+	assign wb_cputim_dat_i = wb_peri_dat_o;
+	assign wb_cputim_sel_i = wb_peri_sel_o;
+	assign wb_cputim_we_i  = wb_peri_we_o;
+	assign wb_cputim_stb_i = wb_peri_stb_o & (wb_peri_adr_o[31:16] == 16'hf010);
 
 	assign wb_timer0_adr_i = wb_peri_adr_o;
 	assign wb_timer0_dat_i = wb_peri_dat_o;
 	assign wb_timer0_sel_i = wb_peri_sel_o;
 	assign wb_timer0_we_i  = wb_peri_we_o;
-	assign wb_timer0_stb_i = wb_peri_stb_o & (wb_peri_adr_o[31:24] == 8'hf1);
+	assign wb_timer0_stb_i = wb_peri_stb_o & (wb_peri_adr_o[31:16] == 16'hf100);
 
 	assign wb_uart0_adr_i  = wb_peri_adr_o;
 	assign wb_uart0_dat_i  = wb_peri_dat_o;
 	assign wb_uart0_sel_i  = wb_peri_sel_o;
 	assign wb_uart0_we_i   = wb_peri_we_o;
-	assign wb_uart0_stb_i  = wb_peri_stb_o & (wb_peri_adr_o[31:24] == 8'hf2);
+	assign wb_uart0_stb_i  = wb_peri_stb_o & (wb_peri_adr_o[31:16] == 16'hf200);
 
 	assign wb_gpioa_adr_i  = wb_peri_adr_o;
 	assign wb_gpioa_dat_i  = wb_peri_dat_o;
@@ -830,9 +864,10 @@ module top
 	assign wb_flash_dat_i  = wb_peri_dat_o;
 	assign wb_flash_sel_i  = wb_peri_sel_o;
 	assign wb_flash_we_i   = wb_peri_we_o;
-	assign wb_flash_stb_i  = wb_peri_stb_o & (wb_peri_adr_o[31:24] == 28'h80);
+	assign wb_flash_stb_i  = wb_peri_stb_o & (wb_peri_adr_o[31:16] == 16'h8000);
 	
 	assign wb_peri_dat_i   = wb_irc_stb_i    ? wb_irc_dat_o    :
+						     wb_cputim_stb_i ? wb_cputim_dat_o :
 						     wb_timer0_stb_i ? wb_timer0_dat_o :
 						     wb_uart0_stb_i  ? wb_uart0_dat_o  :
 						     wb_gpioa_stb_i  ? wb_gpioa_dat_o  :
@@ -841,14 +876,14 @@ module top
 							 32'hxxxx_xxxx;       
 
 	assign wb_peri_ack_i   = wb_irc_stb_i    ? wb_irc_ack_o    :
+						     wb_cputim_stb_i ? wb_cputim_ack_o :
 						     wb_timer0_stb_i ? wb_timer0_ack_o :
 						     wb_uart0_stb_i  ? wb_uart0_ack_o  :
 						     wb_gpioa_stb_i  ? wb_gpioa_ack_o  :
 						     wb_gpiob_stb_i  ? wb_gpiob_ack_o  :
 							 wb_flash_stb_i  ? wb_flash_ack_o  :
 							 1'b1;
-	
-	
+		
 	
 	// -----------------------------
 	//  LED

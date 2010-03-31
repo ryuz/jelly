@@ -182,7 +182,7 @@ module top
 				.addr				(wb_cpu_adr_o[13:2]),
 				.data				(rom_wb_dat_o)
 			);
-	assign rom_wb_ack_o = 1'b1;
+	assign rom_wb_ack_o = rom_wb_stb_i;
 	
 
 	
@@ -286,7 +286,7 @@ module top
 		default:
 			begin
 				wb_cpu_dat_i = {32{1'b0}};
-				wb_cpu_ack_i = 1'b1;
+				wb_cpu_ack_i = wb_cpu_stb_o;
 			end
 		endcase
 	end
@@ -438,7 +438,7 @@ module top
 		default:
 			begin
 				wb_peri_dat_i = {32{1'b0}};
-				wb_peri_ack_i = 1'b1;
+				wb_peri_ack_i = wb_peri_stb_o;
 			end
 		endcase
 	end

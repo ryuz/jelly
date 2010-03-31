@@ -1283,7 +1283,7 @@ module jelly_cpu_core
 	end
 	else begin
 		assign wb_dbg_dat_o        = {32{1'b0}};
-		assign wb_dbg_ack_o        = 1'b1;
+		assign wb_dbg_ack_o        = wb_dbg_stb_i;
 		
 		assign dbg_enable          = 1'b0;
 		assign dbg_break_req       = 1'b0;

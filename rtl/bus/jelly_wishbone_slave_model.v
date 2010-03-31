@@ -62,7 +62,7 @@ module jelly_wishbone_slave_model
 				.out		(rand)
 			);
 //	assign wb_slave_ack_o = rand;
-	assign wb_slave_ack_o = 1'b1;
+	assign wb_slave_ack_o = wb_slave_stb_i;
 	
 	
 endmodule

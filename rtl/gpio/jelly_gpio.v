@@ -88,7 +88,7 @@ module jelly_gpio
 		endcase
 	end
 		
-	assign wb_ack_o = 1'b1;
+	assign wb_ack_o = wb_stb_i;
 	
 endmodule
 

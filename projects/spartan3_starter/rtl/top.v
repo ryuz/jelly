@@ -242,7 +242,7 @@ module top
 				.addr				(wb_rom_adr_i[13:2]),
 				.data				(wb_rom_dat_o)
 			);
-	assign wb_rom_ack_o = 1'b1;
+	assign wb_rom_ack_o = wb_rom_stb_i;
 	*/
 	
 	

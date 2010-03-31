@@ -80,8 +80,10 @@ module jelly_irc
 	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			prev_enable       <= 1'b0;
+			recv_priority     <= {PRIORITY_WIDTH{1'bx}};
+			recv_factor_id    <= {(FACTOR_ID_WIDTH-1){1'bx}};
 			reg_req_priority  <= {PRIORITY_WIDTH{1'b1}};
-			reg_req_factor_id <= {PRIORITY_WIDTH{1'b0}};
+			reg_req_factor_id <= {PRIORITY_WIDTH{1'b0}};			
 			recv_counter      <= {{PACKET_WIDTH-1{1'b0}}, 1'b1};
 		end
 		else begin
@@ -200,7 +202,7 @@ module jelly_irc
 		endcase
 	end
 	
-	assign wb_ack_o = 1'b1;
+	assign wb_ack_o = wb_stb_i;
 	
 endmodule
 

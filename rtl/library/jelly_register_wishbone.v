@@ -81,7 +81,7 @@ module jelly_register_wishbone
 	end
 	
 	assign wb_dat_o = wb_stb_i ? reg_data_next : {WB_DAT_WIDTH{1'b0}};
-	assign wb_ack_o = 1'b1;
+	assign wb_ack_o = wb_stb_i;
 	
 endmodule
 
