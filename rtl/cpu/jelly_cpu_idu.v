@@ -30,9 +30,13 @@
 `define OP_LH			6'b100001
 `define OP_LHU			6'b100101
 `define OP_LW			6'b100011
+`define OP_LWL			6'b100010
+`define OP_LWR			6'b100110
 `define OP_SB			6'b101000
 `define OP_SH			6'b101001
 `define OP_SW			6'b101011
+`define OP_SWL			6'b101010
+`define OP_SWR			6'b101110
 `define OP_ANDI			6'b001100
 `define OP_LUI			6'b001111
 `define OP_ORI			6'b001101
@@ -80,6 +84,7 @@
 // Instruction Decode Unit
 module jelly_cpu_idu
 		#(
+			parameter					USE_INST_LSWLR  = 1'b1,
 			parameter					USE_EXC_SYSCALL = 1'b1,
 			parameter					USE_EXC_BREAK   = 1'b1,
 			parameter					USE_EXC_RI      = 1'b1
@@ -304,6 +309,14 @@ module jelly_cpu_idu
 	// LW
 	wire	inst_lw;
 	assign inst_lw = (field_op == `OP_LW);
+
+	// LWL
+	wire	inst_lwl;
+	assign inst_lwl = (field_op == `OP_LWL) & USE_INST_LSWLR;
+	
+	// LWR
+	wire	inst_lwr;
+	assign inst_lwr = (field_op == `OP_LWR) & USE_INST_LSWLR;
 	
 	// SB
 	wire	inst_sb;
@@ -316,6 +329,14 @@ module jelly_cpu_idu
 	// SW
 	wire	inst_sw;
 	assign inst_sw = (field_op == `OP_SW);
+
+	// SWL
+	wire	inst_swl;
+	assign inst_swl = (field_op == `OP_SWL) & USE_INST_LSWLR;
+
+	// SWR
+	wire	inst_swr;
+	assign inst_swr = (field_op == `OP_SWR) & USE_INST_LSWLR;
 	
 	// AND
 	wire	inst_and;
@@ -555,9 +576,8 @@ module jelly_cpu_idu
 	//  Memory
 	// -----------------------------
 	
-	assign mem_en = instruction[31];
-//	assign mem_en = inst_lb | inst_lbu | inst_lh | inst_lhu | inst_lw | inst_sb | inst_sh | inst_sw;
-	
+//	assign mem_en = instruction[31];
+	assign mem_en = inst_lb | inst_lbu | inst_lh | inst_lhu | inst_lw | inst_lwl | inst_lwr | inst_sb | inst_sh | inst_sw | inst_swl | inst_swr;
 	assign mem_we       = instruction[29];
 	assign mem_size     = instruction[27:26];
 	assign mem_unsigned = instruction[28];
@@ -615,70 +635,69 @@ module jelly_cpu_idu
 	assign exc_break   = USE_EXC_BREAK & inst_break;
 	
 	// reserve instruction
-	assign exc_ri = USE_EXC_RI &
-					(
-						(
-							(field_op != `OP_SPECIAL)  &
-							(field_op != `OP_ADDI)     &
-							(field_op != `OP_ADDIU)    &
-							(field_op != `OP_SLTI)     &
-							(field_op != `OP_SLTIU)    &
-							(field_op != `OP_BEQ)      &
-							(field_op != `OP_BNE)      &
-							(field_op != `OP_REGIMM)   &
-							(field_op != `OP_BGTZ)     &
-							(field_op != `OP_BLEZ)     &
-							(field_op != `OP_J)        &
-							(field_op != `OP_JAL)      &
-							(field_op != `OP_LB)       &
-							(field_op != `OP_LBU)      &
-							(field_op != `OP_LH)       &
-							(field_op != `OP_LHU)      &
-							(field_op != `OP_LW)       &
-							(field_op != `OP_SB)       &
-							(field_op != `OP_SH)       &
-							(field_op != `OP_SW)       &
-							(field_op != `OP_ANDI)     &
-							(field_op != `OP_LUI)      &
-							(field_op != `OP_ORI)      &
-							(field_op != `OP_XORI)     &
-							(field_op != `OP_COP0)     &
-							(field_op != `OP_SPECIAL2)
-						) |
-						(
-							op_special &
-								(
-									(field_func != `FUNC_ADD)     &
-									(field_func != `FUNC_ADDU)    &
-									(field_func != `FUNC_DIV)     &
-									(field_func != `FUNC_DIVU)    &
-									(field_func != `FUNC_MULT)    &
-									(field_func != `FUNC_MULTU)   &
-									(field_func != `FUNC_SLT)     &
-									(field_func != `FUNC_SLTU)    &
-									(field_func != `FUNC_SUB)     &
-									(field_func != `FUNC_SUBU)    &
-									(field_func != `FUNC_JALR)    &
-									(field_func != `FUNC_JR)      &
-									(field_func != `FUNC_AND)     &
-									(field_func != `FUNC_NOR)     &
-									(field_func != `FUNC_OR)      &	
-									(field_func != `FUNC_XOR)     &
-									(field_func != `FUNC_MFHI)    &
-									(field_func != `FUNC_MFLO)    &
-									(field_func != `FUNC_MTHI)    &
-									(field_func != `FUNC_MTLO)    &
-									(field_func != `FUNC_SLL)     &
-									(field_func != `FUNC_SLLV)    &
-									(field_func != `FUNC_SRA)     &
-									(field_func != `FUNC_SRAV)    &
-									(field_func != `FUNC_SRL)     &
-									(field_func != `FUNC_SRLV)    &
-									(field_func != `FUNC_BREAK)   &
-									(field_func != `FUNC_SYSCALL)
-								)
-							)
-						);
+	assign exc_ri = !(inst_add
+					| inst_addi
+					| inst_addu
+					| inst_addiu
+					| inst_div
+					| inst_divu
+					| inst_mult
+					| inst_multu
+					| inst_slt
+					| inst_slti
+					| inst_sltu
+					| inst_sltiu
+					| inst_sub
+					| inst_subu
+					| inst_beq
+					| inst_bne
+					| inst_bgez
+					| inst_bgezal
+					| inst_bgtz
+					| inst_blez
+					| inst_bltz
+					| inst_bltzal
+					| inst_j
+					| inst_jal
+					| inst_jalr
+					| inst_jr
+					| inst_lb
+					| inst_lbu
+					| inst_lh
+					| inst_lhu
+					| inst_lw
+					| inst_lwl
+					| inst_lwr
+					| inst_sb
+					| inst_sh
+					| inst_sw
+					| inst_swl
+					| inst_swr
+					| inst_and
+					| inst_andi
+					| inst_lui
+					| inst_nor
+					| inst_or
+					| inst_ori
+					| inst_xor
+					| inst_xori
+					| inst_mfhi
+					| inst_mflo
+					| inst_mthi
+					| inst_mtlo
+					| inst_sll
+					| inst_sllv
+					| inst_sra
+					| inst_srav
+					| inst_srl
+					| inst_srlv
+					| inst_break
+					| inst_syscall
+					| inst_rfe
+					| inst_eret
+					| inst_mfc0
+					| inst_mtc0
+					| inst_sdbbp) & USE_EXC_RI;
 
 	// -----------------------------
 	//  Debbuger
