@@ -2,7 +2,7 @@
 //  Jelly  -- the soft-core processor system
 //    MIPS like CPU core
 //
-//                                  Copyright (C) 2008-2009 by Ryuji Fuchikami
+//                                  Copyright (C) 2008-2010 by Ryuji Fuchikami
 //                                  http://homepage3.nifty.com/ryuz/
 // ---------------------------------------------------------------------------
 
@@ -16,6 +16,7 @@
 module jelly_cpu_core
 		#(
 			parameter	USE_DBUGGER         = 1'b1,
+			parameter	USE_INST_LSWLR      = 1'b1,
 			parameter	USE_EXC_SYSCALL     = 1'b1,
 			parameter	USE_EXC_BREAK       = 1'b1,
 			parameter	USE_EXC_RI          = 1'b1,
@@ -421,6 +422,7 @@ module jelly_cpu_core
 	
 	jelly_cpu_idu
 			#(
+				.USE_INST_LSWLR		(USE_INST_LSWLR),
 				.USE_EXC_SYSCALL	(USE_EXC_SYSCALL),
 				.USE_EXC_BREAK		(USE_EXC_BREAK),
 				.USE_EXC_RI     	(USE_EXC_RI)
@@ -654,6 +656,9 @@ module jelly_cpu_core
 	reg		[3:0]	ex_out_mem_sel;
 	reg		[31:0]	ex_out_mem_addr;
 	reg		[31:0]	ex_out_mem_wdata;
+	reg		[31:0]	ex_out_mem_rs_data;
+	reg		[3:0]	ex_out_mem_lr_mask;
+	reg		[1:0]	ex_out_mem_lr_shift;
 	
 	reg				ex_out_dst_reg_en;
 	reg		[4:0]	ex_out_dst_reg_addr;
@@ -793,6 +798,31 @@ module jelly_cpu_core
 	assign dbg_hilo_rdata = (dbg_hilo_addr == 0) ? ex_muldiv_out_hi : ex_muldiv_out_lo;
 	
 	
+	// memory access encode
+	wire	[3:0]		ex_mem_sel;
+	wire	[31:0]		ex_mem_wdata;
+	wire	[3:0]		ex_mem_lr_mask;
+	wire	[1:0]		ex_mem_lr_shift;
+	
+	jelly_cpu_memenc
+			#(
+				.USE_INST_LSWLR	(USE_INST_LSWLR)
+			)
+		i_cpu_memenc
+			(
+				.endian			(endian),
+				
+				.in_addr		(ex_alu_out_data),
+				.in_wdata		(ex_fwd_rt_data),
+				.in_size		(id_out_mem_size),
+				.in_unsigned	(id_out_mem_unsigned),
+
+				.out_sel		(ex_mem_sel),
+				.out_wdata		(ex_mem_wdata),
+				.out_lr_mask	(ex_mem_lr_mask),
+				.out_lr_shift	(ex_mem_lr_shift)
+			);                 
+	
 	
 	// COP0
 	wire			ex_cop0_in_en;
@@ -928,17 +958,29 @@ module jelly_cpu_core
 	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			ex_out_stall        <= 1'b1;
-			ex_out_instruction  <= 0;
-			ex_out_pc           <= 0;
+			ex_out_instruction  <= {32{1'bx}};
+			ex_out_pc           <= {32{1'bx}};
 			
 			ex_out_mem_en       <= 1'b0;
+			ex_out_mem_we       <= 1'bx;
+			ex_out_mem_addr     <= {32{1'bx}};
+			ex_out_mem_size     <= {2{1'bx}};
+			ex_out_mem_sel      <= {4{1'bx}};
+			ex_out_mem_wdata    <= {32{1'bx}};
+			ex_out_mem_unsigned <= 1'bx;
+			/*
 			ex_out_mem_we       <= 1'b0;
 			ex_out_mem_addr     <= 0;
 			ex_out_mem_size     <= 0;
 			ex_out_mem_sel      <= 0;
 			ex_out_mem_wdata    <= 0;
 			ex_out_mem_unsigned <= 0;
+			*/
 			
+			ex_out_mem_rs_data  <= {32{1'bx}};
+			ex_out_mem_lr_mask  <= {4{1'bx}};
+			ex_out_mem_lr_shift <= {2{1'bx}};
+
 			ex_out_dst_reg_en   <= 1'b0;
 			ex_out_dst_reg_addr <= 0;
 			ex_out_dst_reg_data <= {32{1'bx}};
@@ -958,6 +1000,81 @@ module jelly_cpu_core
 				ex_out_pc          <= id_out_pc;
 				
 				// MEM
+				ex_out_mem_en       <= id_out_mem_en & ~ex_stall;
+				ex_out_mem_we       <= id_out_mem_we;
+				ex_out_mem_addr     <= ex_alu_out_data;
+				ex_out_mem_size     <= id_out_mem_size;
+				ex_out_mem_unsigned <= id_out_mem_unsigned;
+				if ( id_out_mem_size == 2'b00 ) begin
+					if ( endian ) begin
+						// byte big-endian
+						ex_out_mem_sel      <= (4'b1000 >> ex_alu_out_data[1:0]);
+						ex_out_mem_wdata    <= {4{ex_fwd_rt_data[7:0]}};
+						ex_out_mem_lr_mask  <= 4'b1111;
+						ex_out_mem_lr_shift <= 3 - ex_alu_out_data[1:0];
+					end
+					else begin
+						ex_out_mem_sel      <= (4'b0001 << ex_alu_out_data[1:0]);
+						ex_out_mem_wdata    <= {4{ex_fwd_rt_data[7:0]}};
+						ex_out_mem_lr_mask  <= 4'b1111;
+						ex_out_mem_lr_shift <= 3 - ex_alu_out_data[1:0];
+					end
+					
+					/*
+					ex_out_mem_sel[0] <= (ex_alu_out_data[1:0] == (2'b00 ^ {2{endian}}));
+					ex_out_mem_sel[1] <= (ex_alu_out_data[1:0] == (2'b01 ^ {2{endian}}));
+					ex_out_mem_sel[2] <= (ex_alu_out_data[1:0] == (2'b10 ^ {2{endian}}));
+					ex_out_mem_sel[3] <= (ex_alu_out_data[1:0] == (2'b11 ^ {2{endian}}));
+					ex_out_mem_wdata  <= {4{ex_fwd_rt_data[7:0]}};
+					*/
+				end
+				else if ( id_out_mem_size == 2'b01 ) begin
+					ex_out_mem_sel[0] <= (ex_alu_out_data[1] == (1'b0 ^ {1{endian}}));
+					ex_out_mem_sel[1] <= (ex_alu_out_data[1] == (1'b0 ^ {1{endian}}));
+					ex_out_mem_sel[2] <= (ex_alu_out_data[1] == (1'b1 ^ {1{endian}}));
+					ex_out_mem_sel[3] <= (ex_alu_out_data[1] == (1'b1 ^ {1{endian}}));
+					ex_out_mem_wdata  <= {2{ex_fwd_rt_data[15:0]}};
+				end
+				else if ( id_out_mem_size == 2'b10 ) begin
+					if ( ex_out_mem_unsigned == 1'b0 ) begin
+						if ( endian ) begin
+							// left big-endian
+							ex_out_mem_sel      <= (4'b1111 >> ex_alu_out_data[1:0]);
+							ex_out_mem_wdata    <= (ex_fwd_rt_data[31:0] >> (ex_alu_out_data[1:0] * 8));
+							ex_out_mem_lr_mask  <= (4'b1111 << ex_alu_out_data[1:0]);
+							ex_out_mem_lr_shift <= 3 - ex_alu_out_data[1:0];
+						end
+						else begin
+							// left little-endian
+							ex_out_mem_sel      <= (4'b1111 >> (3 - ex_alu_out_data[1:0]));
+							ex_out_mem_wdata    <= (ex_fwd_rt_data[31:0] >> ((3 - ex_alu_out_data[1:0]) * 8));
+							ex_out_mem_lr_mask  <= (4'b1111 << (3 - ex_alu_out_data[1:0]));
+							ex_out_mem_lr_shift <= ex_alu_out_data[1:0];
+						end
+					end
+					else begin
+						if ( endian ) begin
+							// right big-endian
+							ex_out_mem_sel      <= (4'b1111 << (3 - ex_alu_out_data[1:0]));
+							ex_out_mem_wdata    <= (ex_fwd_rt_data[31:0] << ((3 - ex_alu_out_data[1:0]) * 8));
+							ex_out_mem_lr_mask  <= (4'b1111 >> (3 - ex_alu_out_data[1:0]));
+							ex_out_mem_lr_shift <= 3 - ex_alu_out_data[1:0];
+						end
+						else begin
+							// right little-endian
+							ex_out_mem_sel      <= (4'b1111 << ex_alu_out_data[1:0]);
+							ex_out_mem_wdata    <= (ex_fwd_rt_data[31:0] << (ex_alu_out_data[1:0] * 8));
+							ex_out_mem_lr_mask  <= (4'b1111 >> ex_alu_out_data[1:0]);
+							ex_out_mem_lr_shift <= ex_alu_out_data[1:0];
+						end
+					end
+				end
+				else begin
+					ex_out_mem_sel    <= 4'b1111;
+					ex_out_mem_wdata  <= ex_fwd_rt_data;
+				end
+				
+				/*
 				if ( id_out_mem_en ) begin
 					ex_out_mem_en       <= 1'b1 & ~ex_stall;
 					ex_out_mem_we       <= id_out_mem_we;
@@ -988,6 +1105,7 @@ module jelly_cpu_core
 					ex_out_mem_we  <= 1'b0;
 					ex_out_mem_sel <= 4'b0000;
 				end
+				*/
 				
 				// branch
 				ex_out_branch_en <= id_out_branch_en & ~ex_stall & 
