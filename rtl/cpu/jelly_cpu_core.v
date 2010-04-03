@@ -656,7 +656,7 @@ module jelly_cpu_core
 	reg		[3:0]	ex_out_mem_sel;
 	reg		[31:0]	ex_out_mem_addr;
 	reg		[31:0]	ex_out_mem_wdata;
-	reg		[31:0]	ex_out_mem_rs_data;
+	reg		[31:0]	ex_out_mem_rt_data;
 	reg		[3:0]	ex_out_mem_lr_mask;
 	reg		[1:0]	ex_out_mem_lr_shift;
 	
@@ -977,7 +977,7 @@ module jelly_cpu_core
 			ex_out_mem_unsigned <= 0;
 			*/
 			
-			ex_out_mem_rs_data  <= {32{1'bx}};
+			ex_out_mem_rt_data  <= {32{1'bx}};
 			ex_out_mem_lr_mask  <= {4{1'bx}};
 			ex_out_mem_lr_shift <= {2{1'bx}};
 
@@ -1005,6 +1005,13 @@ module jelly_cpu_core
 				ex_out_mem_addr     <= ex_alu_out_data;
 				ex_out_mem_size     <= id_out_mem_size;
 				ex_out_mem_unsigned <= id_out_mem_unsigned;
+				ex_out_mem_sel      <= ex_mem_sel;
+				ex_out_mem_wdata    <= ex_mem_wdata;
+				ex_out_mem_lr_mask  <= ex_mem_lr_mask;
+				ex_out_mem_lr_shift <= ex_mem_lr_shift;
+				ex_out_mem_rt_data  <= ex_fwd_rt_data;
+				
+				/*
 				if ( id_out_mem_size == 2'b00 ) begin
 					if ( endian ) begin
 						// byte big-endian
@@ -1020,14 +1027,7 @@ module jelly_cpu_core
 						ex_out_mem_lr_shift <= 3 - ex_alu_out_data[1:0];
 					end
 					
-					/*
-					ex_out_mem_sel[0] <= (ex_alu_out_data[1:0] == (2'b00 ^ {2{endian}}));
-					ex_out_mem_sel[1] <= (ex_alu_out_data[1:0] == (2'b01 ^ {2{endian}}));
-					ex_out_mem_sel[2] <= (ex_alu_out_data[1:0] == (2'b10 ^ {2{endian}}));
-					ex_out_mem_sel[3] <= (ex_alu_out_data[1:0] == (2'b11 ^ {2{endian}}));
-					ex_out_mem_wdata  <= {4{ex_fwd_rt_data[7:0]}};
-					*/
-				end
+					end
 				else if ( id_out_mem_size == 2'b01 ) begin
 					ex_out_mem_sel[0] <= (ex_alu_out_data[1] == (1'b0 ^ {1{endian}}));
 					ex_out_mem_sel[1] <= (ex_alu_out_data[1] == (1'b0 ^ {1{endian}}));
@@ -1073,6 +1073,7 @@ module jelly_cpu_core
 					ex_out_mem_sel    <= 4'b1111;
 					ex_out_mem_wdata  <= ex_fwd_rt_data;
 				end
+				*/
 				
 				/*
 				if ( id_out_mem_en ) begin
@@ -1187,13 +1188,15 @@ module jelly_cpu_core
 	assign dbg_jbus_data_rdata = jbus_data_rdata;
 	assign dbg_jbus_data_ready = jbus_data_ready;
 	
-	
-	
+		
 	// FF
 	reg					mem_dst_src_mem;
 	reg		[1:0]		mem_addr;
 	reg		[1:0]		mem_size;
 	reg					mem_unsigned;
+	reg		[3:0]		mem_lr_mask;
+	reg		[1:0]		mem_lr_shift;
+	reg		[31:0]		mem_rt_data;
 	reg		[31:0]		mem_ex_data;
 	
 	always @ ( posedge clk ) begin
@@ -1202,15 +1205,18 @@ module jelly_cpu_core
 			mem_out_instruction  <= 0;
 			mem_out_pc           <= 0;
 
-			mem_out_dst_reg_en   <= 1'b1;
-			mem_out_dst_reg_addr <= 0;
+			mem_out_dst_reg_en   <= 1'b1;		// write r0
+			mem_out_dst_reg_addr <= 0;			// write r0
 
-			mem_dst_src_mem      <= 1'b0;
+			mem_dst_src_mem      <= 1'b0;		// write r0
 			mem_addr             <= {2{1'bx}};
 			mem_size             <= {2{1'bx}};
 			mem_unsigned         <= 1'bx;
+			mem_lr_mask          <= {4{1'bx}};
+			mem_lr_shift         <= {2{1'bx}};
+			mem_rt_data          <= {31{1'bx}};
 			
-			mem_ex_data          <= 0;
+			mem_ex_data          <= 0;			// write r0
 		end
 		else begin
 			if ( !interlock ) begin
@@ -1225,11 +1231,31 @@ module jelly_cpu_core
 				mem_addr             <= ex_out_mem_addr[1:0];
 				mem_size             <= ex_out_mem_size;
 				mem_unsigned         <= ex_out_mem_unsigned;
+				mem_lr_mask          <= ex_out_mem_lr_mask;
+				mem_lr_shift         <= ex_out_mem_lr_shift;
+				mem_rt_data          <= ex_out_mem_rt_data;
 				
 				mem_ex_data          <= ex_out_dst_reg_data;
 			end
 		end
 	end
+	
+	
+	// memory access decoder
+	
+	jelly_cpu_memdec
+		i_cpu_memdec
+			(
+				.in_rdata		(mem_read_data),
+				.in_size		(mem_size),
+				.in_unsigned	(mem_unsigned),
+				.in_lr_mask		(mem_lr_mask),
+				.in_lr_shift	(mem_lr_shift),
+				.in_rs_data		(mem_ex_data),
+				
+				.out_rdata		()
+			);
+	
 	
 	
 	// Read data extension
@@ -1258,7 +1284,7 @@ module jelly_cpu_core
 	
 	assign mem_out_dst_reg_data = mem_dst_src_mem ? mem_rdata : mem_ex_data;
 	
-		
+	
 	
 	// -----------------------------
 	//  Writeback stage

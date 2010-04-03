@@ -108,7 +108,7 @@ module jelly_cpu_memenc
 			// word
 			tmp_sel      = 4'b1111;
 			tmp_wdata    = in_wdata;
-			tmp_lr_mask  = 1'b1111;
+			tmp_lr_mask  = 4'b1111;
 			tmp_lr_shift = 0;
 		end
 		

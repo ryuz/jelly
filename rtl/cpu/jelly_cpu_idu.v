@@ -576,8 +576,7 @@ module jelly_cpu_idu
 	//  Memory
 	// -----------------------------
 	
-//	assign mem_en = instruction[31];
-	assign mem_en = inst_lb | inst_lbu | inst_lh | inst_lhu | inst_lw | inst_lwl | inst_lwr | inst_sb | inst_sh | inst_sw | inst_swl | inst_swr;
+	assign mem_en       = inst_lb | inst_lbu | inst_lh | inst_lhu | inst_lw | inst_lwl | inst_lwr | inst_sb | inst_sh | inst_sw | inst_swl | inst_swr;
 	assign mem_we       = instruction[29];
 	assign mem_size     = instruction[27:26];
 	assign mem_unsigned = instruction[28];
@@ -594,7 +593,7 @@ module jelly_cpu_idu
 	
 	assign dst_reg_rt = inst_addi | inst_addiu |
 						inst_slti | inst_sltiu | inst_andi | inst_ori | inst_xori |
-						inst_lb | inst_lbu | inst_lh | inst_lhu | inst_lw | inst_lui |
+						inst_lb | inst_lbu | inst_lh | inst_lhu | inst_lw | inst_lwl | inst_lwr | inst_lui |
 						inst_mfc0;
 	
 	assign dst_reg_rd = inst_add | inst_addu | inst_slt | inst_sltu | inst_sub | inst_subu |
