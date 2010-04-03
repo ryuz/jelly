@@ -495,8 +495,8 @@ module jelly_cpu_idu
 	
 	// adder
 	assign alu_adder_en = inst_add | inst_addi | inst_addu | inst_addiu | inst_sub | inst_subu |
-							inst_lb | inst_lbu | inst_lh | inst_lhu | inst_lw |
-							inst_sb | inst_sh | inst_sw;
+							inst_lb | inst_lbu | inst_lh | inst_lhu | inst_lw | inst_lwl | inst_lwr |
+							inst_sb | inst_sh | inst_sw | inst_swl | inst_swr;
 	
 	// adder function (2'b00:add, 2'b01:sub, 2'b1x:comp-zero)
 	assign alu_adder_func[0] = inst_sub | inst_subu | inst_beq | inst_bne | alu_comp_en;

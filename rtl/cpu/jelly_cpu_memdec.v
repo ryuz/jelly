@@ -20,7 +20,7 @@ module jelly_cpu_memdec
 			input	wire				in_unsigned,
 			input	wire	[3:0]		in_lr_mask,
 			input	wire	[1:0]		in_lr_shift,
-			input	wire	[31:0]		in_rs_data,
+			input	wire	[31:0]		in_rt_data,
 			
 			output	wire	[31:0]		out_rdata
 		);
@@ -40,10 +40,10 @@ module jelly_cpu_memdec
 		endcase
 		
 		// mask
-		if ( !in_lr_mask[0] ) begin tmp_rdata[7:0]   = in_rs_data[7:0];   end
-		if ( !in_lr_mask[1] ) begin tmp_rdata[15:8]  = in_rs_data[15:8];  end
-		if ( !in_lr_mask[2] ) begin tmp_rdata[23:16] = in_rs_data[23:16]; end
-		if ( !in_lr_mask[3] ) begin tmp_rdata[31:24] = in_rs_data[31:24]; end
+		if ( !in_lr_mask[0] ) begin tmp_rdata[7:0]   = in_rt_data[7:0];   end
+		if ( !in_lr_mask[1] ) begin tmp_rdata[15:8]  = in_rt_data[15:8];  end
+		if ( !in_lr_mask[2] ) begin tmp_rdata[23:16] = in_rt_data[23:16]; end
+		if ( !in_lr_mask[3] ) begin tmp_rdata[31:24] = in_rt_data[31:24]; end
 		
 		if ( in_size == 2'b00 ) begin
 			// byte
