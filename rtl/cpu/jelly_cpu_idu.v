@@ -505,15 +505,7 @@ module jelly_cpu_idu
 	
 	// logic enable
 	assign alu_logic_en   = inst_and | inst_andi | inst_lui | inst_nor | inst_or | inst_ori | inst_xor | inst_xori;
-							/*
-							(op_special & (field_func == `FUNC_AND))
-							| (field_op == `OP_ANDI)
-							| (field_op == `OP_LUI)
-							| (op_special & (field_func == `FUNC_NOR))
-							| (op_special & (field_func == `FUNC_OR))
-							| (field_op == `OP_ORI)
-							| (op_special & (field_func == `FUNC_XOR))
-							| (field_op == `OP_XORI);	*/
+	
 	
 	// logic function (2'b00:AND, 2'b01:OR, 2'b10:XOR, 2'b11:NOR)
 	assign alu_logic_func = (instruction[28] == 1'b0) ? instruction[1:0] : instruction[27:26];
