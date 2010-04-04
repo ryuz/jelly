@@ -464,11 +464,11 @@ module jelly_cpu_core
 				.muldiv_mfhi		(id_dec_muldiv_mfhi),
 				.muldiv_mflo		(id_dec_muldiv_mflo),
 				.muldiv_signed		(id_dec_muldiv_signed),
-
+				
 				.cop0_mfc0			(id_dec_cop0_mfc0),
 				.cop0_mtc0			(id_dec_cop0_mtc0),
 				.cop0_rfe			(id_dec_cop0_rfe),
-               
+				
 				.exc_syscall		(id_dec_exc_syscall),
 				.exc_break			(id_dec_exc_break),
 				.exc_ri				(id_dec_exc_ri),
@@ -1089,6 +1089,8 @@ module jelly_cpu_core
 	reg		[31:0]		mem_rt_data;
 	reg		[31:0]		mem_ex_data;
 	
+	wire	[31:0]		mem_rdata;
+	
 	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			mem_out_stall        <= 1'b0;
@@ -1121,16 +1123,21 @@ module jelly_cpu_core
 				mem_unsigned         <= ex_out_mem_unsigned;
 				mem_mask             <= ex_out_mem_mask;
 				mem_shift            <= ex_out_mem_shift;
-				mem_rt_data          <= ex_out_mem_rt_data;
-				
 				mem_ex_data          <= ex_out_dst_reg_data;
+				
+				// mem fowarding
+				if ( USE_INST_LSWLR && mem_out_dst_reg_en && (mem_out_dst_reg_addr == ex_out_dst_reg_addr) ) begin
+					mem_rt_data <= mem_rdata;	// fowarding
+				end
+				else begin
+					mem_rt_data <= ex_out_mem_rt_data;
+				end				
 			end
 		end
 	end
 	
 	
 	// memory access decoder
-	wire	[31:0]		mem_rdata;
 	jelly_cpu_memdec
 		i_cpu_memdec
 			(
