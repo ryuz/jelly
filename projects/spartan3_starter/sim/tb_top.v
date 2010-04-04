@@ -38,6 +38,10 @@ module tb_top;
 	wire	[31:0]		sram_d;
 	
 	top
+			#
+			(
+				.SIMULATION		(1)
+			)
 		i_top
 			(
 				.in_clk			(clk),
