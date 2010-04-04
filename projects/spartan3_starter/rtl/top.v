@@ -125,7 +125,8 @@ module top
 				.CPU_USE_EXC_RI		(USE_EXC_RI),
 				.CPU_GPR_TYPE		(GPR_TYPE),
 				.CPU_MUL_CYCLE		(MUL_CYCLE),
-				.CPU_DBBP_NUM		(DBBP_NUM)
+				.CPU_DBBP_NUM		(DBBP_NUM),
+				.SIMULATION 		(SIMULATION)
 			)
 		i_cpu_top
 			(
