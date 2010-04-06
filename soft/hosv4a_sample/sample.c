@@ -81,7 +81,6 @@ void Sample_Print(VP_INT exinf)
 	for ( ; ; )
 	{
 		rcv_dtq(DTQID_SAMPLE, &data);
-		Uart_PutChar(' ');
 		Uart_PutChar((int)data);
 	}
 }
