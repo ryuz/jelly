@@ -77,14 +77,14 @@ module jelly_cpu_memenc
 					tmp_sel   = (4'b1111 >> in_addr[1:0]);
 					tmp_wdata = (in_wdata[31:0] >> {in_addr[1:0], 3'b000});
 					tmp_mask  = (4'b1111 << in_addr[1:0]);
-					tmp_shift = ~in_addr[1:0];
+					tmp_shift = -in_addr[1:0];
 				end 
 				else begin
 					// word left little-endian
 					tmp_sel   = (4'b1111 >> ~in_addr[1:0]);
 					tmp_wdata = (in_wdata[31:0] >> {~in_addr[1:0], 3'b000});
 					tmp_mask  = (4'b1111 << ~in_addr[1:0]);
-					tmp_shift = in_addr[1:0];
+					tmp_shift = ~in_addr[1:0];
 				end 
 			end
 			else begin
