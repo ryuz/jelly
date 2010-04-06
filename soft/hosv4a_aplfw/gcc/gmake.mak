@@ -99,8 +99,8 @@ CSRCS += ../kernel_cfg.c
 CSRCS += ../main.c
 CSRCS += ../boot.c
 CSRCS += ../ostimer.c
-CSRCS += memcpy.c
-CSRCS += strlen.c
+#CSRCS += memcpy.c
+#CSRCS += strlen.c
 
 SRC_DIRS +=  ../mmcdrv
 CSRCS += ../mmcdrv/mmcdrv_create.c
