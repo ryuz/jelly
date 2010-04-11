@@ -190,12 +190,12 @@ module jelly_simd_mul
 				begin
 					reg_mul0_src0 <= {{2{1'b0}}, reg_split_data0_w[15:0]};
 					reg_mul0_src1 <= {{2{1'b0}}, reg_split_data1_w[15:0]};
-					reg_mul1_src0 <= {{2{reg_isplit_data0[31]}}, reg_in_data0_w[31:16]};
+					reg_mul1_src0 <= {{2{reg_split_data0_w[31]}}, reg_split_data0_w[31:16]};
 					reg_mul1_src1 <= {{2{1'b0}}, reg_split_data1_w[15:0]};
 					reg_mul2_src0 <= {{2{1'b0}}, reg_split_data0_w[15:0]};
-					reg_mul2_src1 <= {{2{reg_isplit_data0[31]}}, reg_in_data1_w[31:16]};
-					reg_mul3_src0 <= {{2{reg_isplit_data0[31]}}, reg_in_data0_w[31:16]};
-					reg_mul3_src1 <= {{2{reg_isplit_data0[31]}}, reg_in_data1_w[31:16]};
+					reg_mul2_src1 <= {{2{reg_split_data1_w[31]}}, reg_split_data1_w[31:16]};
+					reg_mul3_src0 <= {{2{reg_split_data0_w[31]}}, reg_split_data0_w[31:16]};
+					reg_mul3_src1 <= {{2{reg_split_data1_w[31]}}, reg_split_data1_w[31:16]};
 				end
 			endcase
 		end		
