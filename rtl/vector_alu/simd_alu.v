@@ -32,34 +32,6 @@ module jelly_simd_mul
 			output	wire	[31:0]				out_valid,
 			output	wire	[63:0]				out_data
 		);
-
-	// dymmy
-	reg						reg_d_valid;
-	reg						reg_d_signed;
-	reg		[1:0]			reg_d_size;
-	reg						reg_d_mac;
-	reg		[31:0]			reg_d_data0;
-	reg		[31:0]			reg_d_data1;
-	always @( posedge clk ) begin
-		if ( reset ) begin
-			reg_d_valid  <= 1'b0;
-			reg_d_signed <= 1'bx;
-			reg_d_size   <= {2{1'bx}};
-			reg_d_mac    <= 1'bx;
-			reg_d_data0  <= {32{1'bx}};
-			reg_d_data1  <= {32{1'bx}};
-		end
-		else begin
-			reg_d_valid  <= in_valid;
-			reg_d_signed <= in_signed;
-			reg_d_size   <= in_size;
-			reg_d_mac    <= in_mac; 
-			reg_d_data0  <= in_data0;
-			reg_d_data1  <= in_data1;
-		end                
-	end
-	
-	
 	
 	// input
 	reg						reg_in_valid;
@@ -78,15 +50,77 @@ module jelly_simd_mul
 			reg_in_data1  <= {32{1'bx}};
 		end
 		else begin
-			reg_in_valid  <= reg_d_valid;
-			reg_in_signed <= reg_d_signed;
-			reg_in_size   <= reg_d_size;
-			reg_in_mac    <= reg_d_mac; 
-			reg_in_data0  <= reg_d_data0;
-			reg_in_data1  <= reg_d_data1;
+			reg_in_valid  <= in_valid;
+			reg_in_signed <= in_signed;
+			reg_in_size   <= in_size;
+			reg_in_mac    <= in_mac; 
+			reg_in_data0  <= in_data0;
+			reg_in_data1  <= in_data1;
 		end                
 	end
 	
+	// simd split
+	reg						reg_split_valid;
+	reg						reg_split_signed;
+	reg				[1:0]	reg_split_size;
+	reg						reg_split_mac;
+	reg		signed [32:0]	reg_split_data0_b0;
+	reg		signed [32:0]	reg_split_data0_b1;
+	reg		signed [32:0]	reg_split_data0_b2;
+	reg		signed [32:0]	reg_split_data0_b3;
+	reg		signed [32:0]	reg_split_data0_h0;
+	reg		signed [32:0]	reg_split_data0_h1;
+	reg		signed [32:0]	reg_split_data0_w;
+	reg		signed [32:0]	reg_split_data1_b0;
+	reg		signed [32:0]	reg_split_data1_b1;
+	reg		signed [32:0]	reg_split_data1_b2;
+	reg		signed [32:0]	reg_split_data1_b3;
+	reg		signed [32:0]	reg_split_data1_h0;
+	reg		signed [32:0]	reg_split_data1_h1;
+	reg		signed [32:0]	reg_split_data1_w;
+	always @( posedge clk ) begin
+		if ( reset ) begin
+			reg_split_valid    <= 1'b0;
+			reg_split_signed   <= 1'bx;
+			reg_split_size     <= {2{1'bx}};
+			reg_split_mac      <= 1'bx;
+			reg_split_data0_b0 <= {33{1'bx}};
+			reg_split_data0_b1 <= {33{1'bx}};
+			reg_split_data0_b2 <= {33{1'bx}};
+			reg_split_data0_b3 <= {33{1'bx}};
+			reg_split_data0_h0 <= {33{1'bx}};
+			reg_split_data0_h1 <= {33{1'bx}};
+			reg_split_data0_w  <= {33{1'bx}};
+			reg_split_data1_b0 <= {33{1'bx}};
+			reg_split_data1_b1 <= {33{1'bx}};
+			reg_split_data1_b2 <= {33{1'bx}};
+			reg_split_data1_b3 <= {33{1'bx}};
+			reg_split_data1_h0 <= {33{1'bx}};
+			reg_split_data1_h1 <= {33{1'bx}};
+			reg_split_data1_w  <= {33{1'bx}};
+		end
+		else begin
+			reg_split_valid    <= reg_in_valid;
+			reg_split_signed   <= reg_in_signed;
+			reg_split_size     <= reg_in_size;
+			reg_split_mac      <= reg_in_mac;
+			reg_split_data0_b0 <= {(reg_in_signed ? {25{reg_in_data0[7]}}  : {25{1'b0}}), reg_in_data0[7:0]};
+			reg_split_data0_b1 <= {(reg_in_signed ? {25{reg_in_data0[15]}} : {25{1'b0}}), reg_in_data0[15:8]};
+			reg_split_data0_b2 <= {(reg_in_signed ? {25{reg_in_data0[23]}} : {25{1'b0}}), reg_in_data0[23:16]};
+			reg_split_data0_b3 <= {(reg_in_signed ? {25{reg_in_data0[31]}} : {25{1'b0}}), reg_in_data0[31:24]};
+			reg_split_data0_h0 <= {(reg_in_signed ? {17{reg_in_data0[15]}} : {17{1'b0}}), reg_in_data0[15:0]};
+			reg_split_data0_h1 <= {(reg_in_signed ? {17{reg_in_data0[31]}} : {17{1'b0}}), reg_in_data0[31:16]};
+			reg_split_data0_w  <= {(reg_in_signed ? {1{reg_in_data0[31]}}  : {1{1'b0}}),  reg_in_data0[31:0]};
+			reg_split_data1_b0 <= {(reg_in_signed ? {25{reg_in_data1[7]}}  : {25{1'b0}}), reg_in_data1[7:0]};
+			reg_split_data1_b1 <= {(reg_in_signed ? {25{reg_in_data1[15]}} : {25{1'b0}}), reg_in_data1[15:8]};
+			reg_split_data1_b2 <= {(reg_in_signed ? {25{reg_in_data1[23]}} : {25{1'b0}}), reg_in_data1[23:16]};
+			reg_split_data1_b3 <= {(reg_in_signed ? {25{reg_in_data1[31]}} : {25{1'b0}}), reg_in_data1[31:24]};
+			reg_split_data1_h0 <= {(reg_in_signed ? {17{reg_in_data1[15]}} : {17{1'b0}}), reg_in_data1[15:0]};
+			reg_split_data1_h1 <= {(reg_in_signed ? {17{reg_in_data1[31]}} : {17{1'b0}}), reg_in_data1[31:16]};
+			reg_split_data1_w  <= {(reg_in_signed ? {1{reg_in_data1[31]}}  : {1{1'b0}}),  reg_in_data1[31:0]};
+		end                
+	end
+		
 	// multiply source
 	reg						reg_mul_src_valid;
 	reg						reg_mul_src_mac;
@@ -112,32 +146,32 @@ module jelly_simd_mul
 			reg_mul3_src1     <= {18{1'bx}};
 		end
 		else begin
-			reg_mul_src_valid <= reg_in_valid;
-			reg_mul_src_mac   <= reg_in_mac;
+			reg_mul_src_valid <= reg_split_valid;
+			reg_mul_src_mac   <= reg_split_mac;
 			
 			case ( reg_in_size )
 			2'b00:	// 8bit
 				begin
-					reg_mul0_src0 <= {(reg_in_signed ? {10{reg_in_data0[7]}}  : {10{1'b0}}), reg_in_data0[7:0]};
-					reg_mul0_src1 <= {(reg_in_signed ? {10{reg_in_data1[7]}}  : {10{1'b0}}), reg_in_data1[7:0]};
-					reg_mul1_src0 <= {(reg_in_signed ? {10{reg_in_data0[15]}} : {10{1'b0}}), reg_in_data0[15:8]};
-					reg_mul1_src1 <= {(reg_in_signed ? {10{reg_in_data1[15]}} : {10{1'b0}}), reg_in_data1[15:8]};
-					reg_mul2_src0 <= {(reg_in_signed ? {10{reg_in_data0[23]}} : {10{1'b0}}), reg_in_data0[23:16]};
-					reg_mul2_src1 <= {(reg_in_signed ? {10{reg_in_data1[23]}} : {10{1'b0}}), reg_in_data1[23:16]};
-					reg_mul3_src0 <= {(reg_in_signed ? {10{reg_in_data0[31]}} : {10{1'b0}}), reg_in_data0[31:24]};
-					reg_mul3_src1 <= {(reg_in_signed ? {10{reg_in_data1[31]}} : {10{1'b0}}), reg_in_data1[31:24]};
+					reg_mul0_src0 <= reg_split_data0_b0;
+					reg_mul0_src1 <= reg_split_data1_b0;
+					reg_mul1_src0 <= reg_split_data0_b1;
+					reg_mul1_src1 <= reg_split_data1_b1;
+					reg_mul2_src0 <= reg_split_data0_b2;
+					reg_mul2_src1 <= reg_split_data1_b2;
+					reg_mul3_src0 <= reg_split_data0_b3;
+					reg_mul3_src1 <= reg_split_data1_b3;
 				end
 			
 			2'b01:	// 16bit
 				begin
-					reg_mul0_src0 <= {{2{1'b0}}, reg_in_data0[15:0]};
-					reg_mul0_src1 <= {{2{1'b0}}, reg_in_data1[15:0]};
+					reg_mul0_src0 <= reg_split_data0_h0;
+					reg_mul0_src1 <= reg_split_data1_h0;
 					reg_mul1_src0 <= {18{1'bx}};
 					reg_mul1_src1 <= {18{1'bx}};
 					reg_mul2_src0 <= {18{1'bx}};
 					reg_mul2_src1 <= {18{1'bx}};
-					reg_mul3_src0 <= {(reg_in_signed ? {2{reg_in_data0[31]}} : {2{1'b0}}), reg_in_data0[31:16]};
-					reg_mul3_src1 <= {(reg_in_signed ? {2{reg_in_data1[31]}} : {2{1'b0}}), reg_in_data1[31:16]};
+					reg_mul0_src0 <= reg_split_data0_h1;
+					reg_mul0_src1 <= reg_split_data1_h1;
 				end
 
 			2'b10:	// reserve
@@ -154,14 +188,14 @@ module jelly_simd_mul
 			
 			2'b11:	// 32bit
 				begin
-					reg_mul0_src0 <= {{2{1'b0}}, reg_in_data0[15:0]};
-					reg_mul0_src1 <= {{2{1'b0}}, reg_in_data1[15:0]};
-					reg_mul1_src0 <= {(reg_in_signed ? {2{reg_in_data0[31]}} : {2{1'b0}}), reg_in_data0[31:16]};
-					reg_mul1_src1 <= {{2{1'b0}}, reg_in_data1[15:0]};
-					reg_mul2_src0 <= {{2{1'b0}}, reg_in_data1[15:0]};
-					reg_mul2_src1 <= {(reg_in_signed ? {2{reg_in_data1[31]}} : {2{1'b0}}), reg_in_data1[31:16]};
-					reg_mul3_src0 <= {(reg_in_signed ? {2{reg_in_data0[31]}} : {2{1'b0}}), reg_in_data0[31:16]};
-					reg_mul3_src1 <= {(reg_in_signed ? {2{reg_in_data1[31]}} : {2{1'b0}}), reg_in_data1[31:16]};
+					reg_mul0_src0 <= {{2{1'b0}}, reg_split_data0_w[15:0]};
+					reg_mul0_src1 <= {{2{1'b0}}, reg_split_data1_w[15:0]};
+					reg_mul1_src0 <= {{2{reg_isplit_data0[31]}}, reg_in_data0_w[31:16]};
+					reg_mul1_src1 <= {{2{1'b0}}, reg_split_data1_w[15:0]};
+					reg_mul2_src0 <= {{2{1'b0}}, reg_split_data0_w[15:0]};
+					reg_mul2_src1 <= {{2{reg_isplit_data0[31]}}, reg_in_data1_w[31:16]};
+					reg_mul3_src0 <= {{2{reg_isplit_data0[31]}}, reg_in_data0_w[31:16]};
+					reg_mul3_src1 <= {{2{reg_isplit_data0[31]}}, reg_in_data1_w[31:16]};
 				end
 			endcase
 		end		
