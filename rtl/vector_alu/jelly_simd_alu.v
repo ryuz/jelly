@@ -14,7 +14,7 @@
 
 
 // Arithmetic Logic Unit
-module jelly_simd_mul
+module jelly_simd_alu
 		#(
 			parameter 							EXT_WIDTH  = 1
 		)
@@ -201,7 +201,82 @@ module jelly_simd_mul
 		end		
 	end
 	
+	
+	wire	[47:0]			mac_out_data0;
+	wire	[47:0]			mac_out_data1;
+	wire	[47:0]			mac_out_data2;
+	wire	[47:0]			mac_out_data3;
+	jelly_mac16x16
+		i_mac16x16_0
+			(
+				.reset		(reset),
+				.clk		(clk),
+				.enable		(1'b1),
+				
+				.op_mac		(reg_mul_src_mac),
+				.op_sub		(1'b0),
+				
+				.in_data0	(reg_mul0_src0),
+				.in_data1	(reg_mul0_src1),
+				.in_data2	(48'd0),
+				
+				.out_data	(mac_out_data0)
+			);
+	
+	jelly_mac16x16
+		i_mac16x16_1
+			(
+				.reset		(reset),
+				.clk		(clk),
+				.enable		(1'b1),
+				
+				.op_mac		(reg_mul_src_mac),
+				.op_sub		(1'b0),
+				
+				.in_data0	(reg_mul1_src0),
+				.in_data1	(reg_mul1_src1),
+				.in_data2	(48'd0),
+				
+				.out_data	(mac_out_data1)
+			);
+		
+	jelly_mac16x16
+		i_mac16x16_2
+			(
+				.reset		(reset),
+				.clk		(clk),
+				.enable		(1'b1),
+				
+				.op_mac		(reg_mul_src_mac),
+				.op_sub		(1'b0),
+				
+				.in_data0	(reg_mul2_src0),
+				.in_data1	(reg_mul2_src1),
+				.in_data2	(48'd0),
+				
+				.out_data	(mac_out_data2)
+			);
+	
+	jelly_mac16x16
+		i_mac16x16_3
+			(
+				.reset		(reset),
+				.clk		(clk),
+				.enable		(1'b1),
+				
+				.op_mac		(reg_mul_src_mac),
+				.op_sub		(1'b0),
+				
+				.in_data0	(reg_mul3_src0),
+				.in_data1	(reg_mul3_src1),
+				.in_data2	(48'd0),
+				
+				.out_data	(mac_out_data3)
+			);
+	
+
 	// multiply destination
+	/*
 	reg						reg_mul_dst_valid;
 	reg						reg_mul_dst_mac;
 	reg		signed	[35:0]	reg_mul0_dst;
@@ -226,6 +301,15 @@ module jelly_simd_mul
 			reg_mul3_dst      <= reg_mul3_src0 * reg_mul3_src1;
 		end
 	end
+
+	
+	reg						reg_mul_dst_valid;
+	reg						reg_mul_dst_mac;
+	reg		signed	[35:0]	reg_mul0_dst;
+	reg		signed	[35:0]	reg_mul1_dst;
+	reg		signed	[35:0]	reg_mul2_dst;
+	reg		signed	[35:0]	reg_mul3_dst;
+	
 	
 	// mac
 	reg						reg_mac_valid;
@@ -252,7 +336,10 @@ module jelly_simd_mul
 	
 	assign out_valid = reg_mac_valid;
 	assign out_data  = reg_mac0_data | reg_mac1_data | reg_mac2_data | reg_mac3_data;
+	*/
 	
+	assign out_valid = reg_mul_src_valid;
+	assign out_data  = mac_out_data0 | mac_out_data1 | mac_out_data2 | mac_out_data3;
 	
 	
 endmodule

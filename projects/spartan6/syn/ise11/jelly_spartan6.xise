@@ -12,138 +12,103 @@
     <!-- Copyright (c) 1995-2009 Xilinx, Inc.  All rights reserved. -->
   </header>
 
-  <version xil_pn:ise_version="11.2" xil_pn:schema_version="2"/>
+  <version xil_pn:ise_version="11.5" xil_pn:schema_version="2"/>
 
   <files>
-    <file xil_pn:name="../../../../rtl/cpu/cpu_shifter.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
-    <file xil_pn:name="../../../../rtl/cpu/cpu_adder.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
-    <file xil_pn:name="../../../../rtl/cpu/cpu_divider.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
-    <file xil_pn:name="../../../../rtl/common/wishbone_bridge.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
-    <file xil_pn:name="../../../../rtl/uart/uart.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
-    <file xil_pn:name="../../../../rtl/uart/uart_core.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
-    <file xil_pn:name="../../../../rtl/cpu/cpu_alu.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
-    <file xil_pn:name="../../../../rtl/irc/irc.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
-    <file xil_pn:name="../../../../soft/boot_rom.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
-    <file xil_pn:name="../../../../rtl/uart/uart_rx.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
-    <file xil_pn:name="../../../../rtl/cpu/cpu_dbu.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
-    <file xil_pn:name="../../../../rtl/cpu/cpu_idu.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
-    <file xil_pn:name="../../../../rtl/cpu/cpu_muldiv.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
-    <file xil_pn:name="../../../../rtl/uart/uart_tx.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
-    <file xil_pn:name="../../../../rtl/cpu/cpu_gpr.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
-    <file xil_pn:name="../../../../rtl/cpu/cpu_cop0.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
-    <file xil_pn:name="../../../../rtl/sram/sram.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
-    <file xil_pn:name="../../../../rtl/cpu/cpu_core.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
-    <file xil_pn:name="../../../../rtl/timer/timer.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
-    <file xil_pn:name="../../../../rtl/common/ram_dualport.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
-    <file xil_pn:name="../../../../rtl/irc/irc_factor.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
     <file xil_pn:name="../../rtl/top.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
-    <file xil_pn:name="../../../../rtl/cpu/cpu_wishbone_cpubus.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../../rtl/cpu/jelly_cpu_top.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
-    <file xil_pn:name="../../../../rtl/cpu/cpu_dbg_comm.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../../rtl/cpu/jelly_cpu_adder.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
-    <file xil_pn:name="../../../../rtl/cpu/cpu_multiplier.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../../rtl/cpu/jelly_cpu_alu.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
-    <file xil_pn:name="../../../../rtl/cpu/cpu_top_simple.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../../rtl/cpu/jelly_cpu_cop0.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
-    <file xil_pn:name="../../../../rtl/cpu/cpu_wishbone.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../../rtl/cpu/jelly_cpu_core.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
-    <file xil_pn:name="../../../../rtl/cpu/cpu_wishbone_arbiter.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../../rtl/cpu/jelly_cpu_dbg_comm.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
-    <file xil_pn:name="../../../../rtl/uart/uart_debugger.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../../rtl/cpu/jelly_cpu_dbu.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
-    <file xil_pn:name="../../../../rtl/common/fifo_fwtf_async.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../../rtl/cpu/jelly_cpu_divider.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
-    <file xil_pn:name="../../../../rtl/common/binary_to_graycode.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../../rtl/cpu/jelly_cpu_gpr.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
-    <file xil_pn:name="../../../../rtl/common/graycode_to_binary.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../../rtl/cpu/jelly_cpu_idu.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
-    <file xil_pn:name="../../../../rtl/common/ram_singleport.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../../rtl/cpu/jelly_cpu_memdec.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation"/>
+      <association xil_pn:name="Implementation"/>
+    </file>
+    <file xil_pn:name="../../../../rtl/cpu/jelly_cpu_memenc.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation"/>
+      <association xil_pn:name="Implementation"/>
+    </file>
+    <file xil_pn:name="../../../../rtl/cpu/jelly_cpu_muldiv.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation"/>
+      <association xil_pn:name="Implementation"/>
+    </file>
+    <file xil_pn:name="../../../../rtl/cpu/jelly_cpu_multiplier.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation"/>
+      <association xil_pn:name="Implementation"/>
+    </file>
+    <file xil_pn:name="../../../../rtl/cpu/jelly_cpu_shifter.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation"/>
+      <association xil_pn:name="Implementation"/>
+    </file>
+    <file xil_pn:name="../../../../rtl/cpu/jelly_cpu_simple_top.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation"/>
+      <association xil_pn:name="Implementation"/>
+    </file>
+    <file xil_pn:name="../../../../rtl/uart/jelly_uart.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation"/>
+      <association xil_pn:name="Implementation"/>
+    </file>
+    <file xil_pn:name="../../../../rtl/uart/jelly_uart_core.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation"/>
+      <association xil_pn:name="Implementation"/>
+    </file>
+    <file xil_pn:name="../../../../rtl/uart/jelly_uart_debugger.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation"/>
+      <association xil_pn:name="Implementation"/>
+    </file>
+    <file xil_pn:name="../../../../rtl/uart/jelly_uart_rx.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation"/>
+      <association xil_pn:name="Implementation"/>
+    </file>
+    <file xil_pn:name="../../../../rtl/uart/jelly_uart_tx.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation"/>
+      <association xil_pn:name="Implementation"/>
+    </file>
+    <file xil_pn:name="../../../../rtl/vector_alu/simd_alu.v" xil_pn:type="FILE_VERILOG"/>
+    <file xil_pn:name="../../../../rtl/vector_alu/jelly_mac18x18.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation"/>
+      <association xil_pn:name="Implementation"/>
+    </file>
+    <file xil_pn:name="../../../../rtl/vector_alu/jelly_simd_alu.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
@@ -153,42 +118,46 @@
   </files>
 
   <properties>
-    <property xil_pn:name="Auto Implementation Top" xil_pn:value="false"/>
-    <property xil_pn:name="Constraints Entry" xil_pn:value="Text Editor"/>
-    <property xil_pn:name="Create Mask File" xil_pn:value="true"/>
-    <property xil_pn:name="Create ReadBack Data Files" xil_pn:value="true"/>
-    <property xil_pn:name="Cycles for First BPI Page Read" xil_pn:value="2"/>
-    <property xil_pn:name="Device" xil_pn:value="xc6slx16"/>
-    <property xil_pn:name="Device Family" xil_pn:value="Spartan6"/>
-    <property xil_pn:name="Extra Effort (Highest PAR level only)" xil_pn:value="Continue on Impossible"/>
-    <property xil_pn:name="Fitter Report Format" xil_pn:value="HTML"/>
-    <property xil_pn:name="Implementation Top" xil_pn:value="Module|top"/>
-    <property xil_pn:name="Implementation Top Instance Path" xil_pn:value="/top"/>
-    <property xil_pn:name="Optimization Effort" xil_pn:value="High"/>
-    <property xil_pn:name="Overwrite Compiled Libraries" xil_pn:value="true"/>
-    <property xil_pn:name="PROP_BehavioralSimTop" xil_pn:value="Module|tb_top"/>
-    <property xil_pn:name="PROP_DesignName" xil_pn:value="spartan3e_starter"/>
-    <property xil_pn:name="PROP_DevFamilyPMName" xil_pn:value="spartan6"/>
-    <property xil_pn:name="PROP_PostMapSimTop" xil_pn:value="Module|tb_top"/>
-    <property xil_pn:name="PROP_PostParSimTop" xil_pn:value="Module|tb_top"/>
-    <property xil_pn:name="PROP_PostSynthSimTop" xil_pn:value="Module|tb_top"/>
-    <property xil_pn:name="PROP_PostXlateSimTop" xil_pn:value="Module|tb_top"/>
-    <property xil_pn:name="Package" xil_pn:value="csg324"/>
-    <property xil_pn:name="Place &amp; Route Effort Level (Overall)" xil_pn:value="High"/>
-    <property xil_pn:name="Placer Effort Level Map" xil_pn:value="High"/>
-    <property xil_pn:name="Placer Extra Effort Map" xil_pn:value="Continue on Impossible"/>
-    <property xil_pn:name="Preferred Language" xil_pn:value="Verilog"/>
-    <property xil_pn:name="Property Specification in Project File" xil_pn:value="Store non-default values only"/>
-    <property xil_pn:name="Report Fastest Path(s) in Each Constraint" xil_pn:value="false"/>
-    <property xil_pn:name="Report Fastest Path(s) in Each Constraint Post Trace" xil_pn:value="false"/>
-    <property xil_pn:name="Simulator" xil_pn:value="ISim (VHDL/Verilog)"/>
-    <property xil_pn:name="Speed Grade" xil_pn:value="-2"/>
-    <property xil_pn:name="Synthesis Tool" xil_pn:value="XST (VHDL/Verilog)"/>
-    <property xil_pn:name="Top-Level Source Type" xil_pn:value="HDL"/>
+    <property xil_pn:name="Auto Implementation Top" xil_pn:value="false" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Create Mask File" xil_pn:value="true" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Create ReadBack Data Files" xil_pn:value="true" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Device" xil_pn:value="xc6slx16" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Device Family" xil_pn:value="Spartan6" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Extra Effort (Highest PAR level only)" xil_pn:value="Continue on Impossible" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Global Optimization map" xil_pn:value="Speed" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Implementation Top" xil_pn:value="Module|jelly_simd_alu" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Implementation Top Instance Path" xil_pn:value="/jelly_simd_alu" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Optimization Effort" xil_pn:value="High" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Overwrite Compiled Libraries" xil_pn:value="true" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Package" xil_pn:value="csg324" xil_pn:valueState="default"/>
+    <property xil_pn:name="Placer Extra Effort Map" xil_pn:value="Continue on Impossible" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Preferred Language" xil_pn:value="Verilog" xil_pn:valueState="default"/>
+    <property xil_pn:name="Property Specification in Project File" xil_pn:value="Store non-default values only" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Register Balancing" xil_pn:value="Yes" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Register Duplication Map" xil_pn:value="On" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Report Fastest Path(s) in Each Constraint" xil_pn:value="false" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Report Fastest Path(s) in Each Constraint Post Trace" xil_pn:value="false" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Retiming Map" xil_pn:value="true" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Simulator" xil_pn:value="ISim (VHDL/Verilog)" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Speed Grade" xil_pn:value="-2" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Synthesis Tool" xil_pn:value="XST (VHDL/Verilog)" xil_pn:valueState="default"/>
+    <property xil_pn:name="Top-Level Source Type" xil_pn:value="HDL" xil_pn:valueState="default"/>
+    <!--                                                                                  -->
+    <!-- The following properties are for internal use only. These should not be modified.-->
+    <!--                                                                                  -->
+    <property xil_pn:name="PROP_BehavioralSimTop" xil_pn:value="Module|tb_top" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="PROP_DesignName" xil_pn:value="spartan3e_starter" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="PROP_DevFamilyPMName" xil_pn:value="spartan6" xil_pn:valueState="default"/>
+    <property xil_pn:name="PROP_PostMapSimTop" xil_pn:value="Module|tb_top" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="PROP_PostParSimTop" xil_pn:value="Module|tb_top" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="PROP_PostSynthSimTop" xil_pn:value="Module|tb_top" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="PROP_PostXlateSimTop" xil_pn:value="Module|tb_top" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="PROP_intWorkingDirLocWRTProjDir" xil_pn:value="Same" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="PROP_intWorkingDirUsed" xil_pn:value="No" xil_pn:valueState="non-default"/>
   </properties>
 
   <bindings>
-    <binding xil_pn:location="/top" xil_pn:name="../top.ucf"/>
+    <binding xil_pn:location="/jelly_simd_alu" xil_pn:name="../top.ucf"/>
   </bindings>
 
   <libraries/>

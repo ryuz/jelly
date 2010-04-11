@@ -179,7 +179,7 @@ module top
 				
 				.CACHE_ENABLE		(1),
 				.CACHE_LINE_SIZE	(1),	// 2^n (0:1words, 1:2words, 2:4words ...)
-				.CACHE_ARRAY_SIZE	(9),	// 2^n (1:2lines, 2:4lines 3:8lines ...)
+				.CACHE_ARRAY_SIZE	(10),	// 2^n (1:2lines, 2:4lines 3:8lines ...)
 				
 				.WB_CACHE_ADR_WIDTH	(29),
 				

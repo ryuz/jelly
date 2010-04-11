@@ -1,4 +1,4 @@
 
 # clock
-NET "clk_in" TNM_NET = clk_in;
-TIMESPEC TS_clk_in = PERIOD "clk_in" 60 MHz HIGH 50%;
+NET "clk" TNM_NET = clk;
+TIMESPEC TS_clk = PERIOD "clk" 300 MHz HIGH 50%;
