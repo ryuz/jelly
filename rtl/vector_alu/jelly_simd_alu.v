@@ -120,7 +120,7 @@ module jelly_simd_alu
 			reg_split_data1_w  <= {(reg_in_signed ? {1{reg_in_data1[31]}}  : {1{1'b0}}),  reg_in_data1[31:0]};
 		end                
 	end
-		
+	
 	// multiply source
 	reg						reg_mul_src_valid;
 	reg						reg_mul_src_mac;
@@ -206,8 +206,8 @@ module jelly_simd_alu
 	wire	[47:0]			mac_out_data1;
 	wire	[47:0]			mac_out_data2;
 	wire	[47:0]			mac_out_data3;
-	jelly_mac16x16
-		i_mac16x16_0
+	jelly_mac18x18
+		i_mac18x18_0
 			(
 				.reset		(reset),
 				.clk		(clk),
@@ -223,8 +223,8 @@ module jelly_simd_alu
 				.out_data	(mac_out_data0)
 			);
 	
-	jelly_mac16x16
-		i_mac16x16_1
+	jelly_mac18x18
+		i_mac18x18_1
 			(
 				.reset		(reset),
 				.clk		(clk),
@@ -240,8 +240,8 @@ module jelly_simd_alu
 				.out_data	(mac_out_data1)
 			);
 		
-	jelly_mac16x16
-		i_mac16x16_2
+	jelly_mac18x18
+		i_mac18x18_2
 			(
 				.reset		(reset),
 				.clk		(clk),
@@ -257,8 +257,8 @@ module jelly_simd_alu
 				.out_data	(mac_out_data2)
 			);
 	
-	jelly_mac16x16
-		i_mac16x16_3
+	jelly_mac18x18
+		i_mac18x18_3
 			(
 				.reset		(reset),
 				.clk		(clk),
@@ -337,6 +337,14 @@ module jelly_simd_alu
 	assign out_valid = reg_mac_valid;
 	assign out_data  = reg_mac0_data | reg_mac1_data | reg_mac2_data | reg_mac3_data;
 	*/
+	
+	
+	reg		signed	[76:0]	reg_mac0_data;
+	reg		signed	[47:0]	reg_mac1_data;
+	reg		signed	[47:0]	reg_mac2_data;
+	reg		signed	[47:0]	reg_mac3_data;
+	always @( posedge clk ) begin
+		
 	
 	assign out_valid = reg_mul_src_valid;
 	assign out_data  = mac_out_data0 | mac_out_data1 | mac_out_data2 | mac_out_data3;
