@@ -29,7 +29,7 @@ module jelly_simd_alu
 			input	wire	[31:0]				in_data0,
 			input	wire	[31:0]				in_data1,
 			
-			output	wire	[31:0]				out_valid,
+			output	wire						out_valid,
 			output	wire	[63:0]				out_data
 		);
 	
@@ -343,7 +343,7 @@ module jelly_simd_alu
 	reg		signed	[47:0]	reg_mac1_data;
 	reg		signed	[47:0]	reg_mac2_data;
 	reg		signed	[47:0]	reg_mac3_data;
-	always @( posedge clk ) begin
+//	always @( posedge clk ) begin
 		
 	
 	assign out_valid = reg_mul_src_valid;

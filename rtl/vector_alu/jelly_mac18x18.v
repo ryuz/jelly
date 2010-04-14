@@ -248,22 +248,25 @@ module jelly_mac18x18
 				end 
 				else begin
 					if ( mul_mac ) begin
-						output_reg_data <= output_reg_data + (mul_sub ? -mul_reg_data01 : mul_reg_data01);
+						output_reg_data <= mul_sub ? (output_reg_data - mul_data01) : (output_reg_data + mul_data01);
 					end
 					else begin
-						output_reg_data <= mul_reg_data2   + (mul_sub ? -mul_reg_data01 : mul_reg_data01);
+						output_reg_data <= mul_sub ? (mul_data2 - mul_data01) : (mul_data2 + mul_data01);
 					end
 				end
 			end
 		end
 		assign out_data = output_reg_data;
-	end                   
+	end
 	else begin
-		assign out_data = mul_reg_data2 + (mul_sub ? -mul_reg_data01 : mul_reg_data01);
-	end                    
+		assign out_data = mul_data2 + mul_sub ? (mul_data2 - mul_data01) : (mul_data2 + mul_data01);
+	end
 	endgenerate
 	
 endmodule
+
+`endif
+
 
 `default_nettype	wire
 
