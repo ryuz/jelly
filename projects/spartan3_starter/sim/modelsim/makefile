@@ -11,8 +11,8 @@ VLOG_FLAGS =
 
 
 all: work_setup prj_compile
-	cp ../../syn/ise11/hosv4a_sample_ram.hex .
 	vsim -c -wlf vsim.wlf -do "run -all" -L xilinxcorelib_ver -L unisims_ver -lib work tb_top glbl
+#	cp ../../syn/ise11/hosv4a_sample_ram.hex .
 
 clean:
 	rm -f *.vcd

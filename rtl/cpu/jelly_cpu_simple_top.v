@@ -2,7 +2,7 @@
 //  Jelly  -- the soft-core processor system
 //    MIPS like CPU core
 //
-//                                  Copyright (C) 2008-2009 by Ryuji Fuchikami
+//                                  Copyright (C) 2008-2010 by Ryuji Fuchikami
 //                                  http://homepage3.nifty.com/ryuz/
 // ---------------------------------------------------------------------------
 
@@ -54,6 +54,9 @@ module jelly_cpu_simple_top
 			input	wire				interrupt_req,
 			output	wire				interrupt_ack,
 			
+			// control
+			input	wire				pause,
+			
 			// bus (wishbone)
 			output	wire	[31:2]		wb_adr_o,
 			input	wire	[31:0]		wb_dat_i,
@@ -72,8 +75,10 @@ module jelly_cpu_simple_top
 			input	wire				wb_dbg_stb_i,
 			output	wire				wb_dbg_ack_o,
 			
-			// control
-			input	wire				pause
+			// pc trace
+			output	wire				trace_valid,
+			output	wire	[31:0]		trace_pc,
+			output	wire	[31:0]		trace_instruction
 		);
 	
 	
@@ -106,23 +111,23 @@ module jelly_cpu_simple_top
 				.reset				(reset),
 				.clk				(clk),
 				.clk_x2				(clk_x2),
-									 
+				
 				.endian				(endian),
-									 
+				
 				.vect_reset			(vect_reset),
 				.vect_interrupt		(vect_interrupt),
 				.vect_exception		(vect_exception),
-									 
+				
 				.interrupt_req		(interrupt_req),
 				.interrupt_ack		(interrupt_ack),
-
+				
 				.pause				(pause),
 				
 				.tcm_addr_mask		(TCM_ADDR_MASK),
 				.tcm_addr_value		(TCM_ADDR_VALUE),
 				.cache_addr_mask	(32'h00000000),
 				.cache_addr_value	(32'h00000000),
-								   
+				
 				.wb_cache_adr_o		(),
 				.wb_cache_dat_i		({64{1'b0}}),
 				.wb_cache_dat_o		(),
@@ -130,7 +135,7 @@ module jelly_cpu_simple_top
 				.wb_cache_sel_o		(),
 				.wb_cache_stb_o		(),
 				.wb_cache_ack_i		(1'b1),
-				    
+				   
 				.wb_through_adr_o	(wb_adr_o),
 				.wb_through_dat_i	(wb_dat_i),
 				.wb_through_dat_o	(wb_dat_o),
@@ -145,7 +150,11 @@ module jelly_cpu_simple_top
 				.wb_dbg_we_i		(wb_dbg_we_i),
 				.wb_dbg_sel_i		(wb_dbg_sel_i),
 				.wb_dbg_stb_i		(wb_dbg_stb_i),
-				.wb_dbg_ack_o		(wb_dbg_ack_o)			
+				.wb_dbg_ack_o		(wb_dbg_ack_o),
+				
+				.trace_valid		(trace_valid),
+				.trace_pc			(trace_pc),
+				.trace_instruction	(trace_instruction)
 			);
 	
 endmodule

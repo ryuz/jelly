@@ -8,7 +8,8 @@
 
 
 
-`timescale 1ns / 1ps
+`timescale       1ns / 1ps
+`default_nettype none
 
 
 
@@ -699,3 +700,10 @@ module jelly_cpu_idu
 	
 endmodule
 
+
+
+`default_nettype wire
+
+
+
+// end of file

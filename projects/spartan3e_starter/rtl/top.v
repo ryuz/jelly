@@ -2,12 +2,13 @@
 //  Jelly  -- the soft-core processor system
 //    Spartan-3 Starter Kit
 //
-//                                 Copyright (C) 2008-2009 by Ryuji Fuchikami 
+//                                 Copyright (C) 2008-2010 by Ryuji Fuchikami 
 //                                 http://homepage3.nifty.com/ryuz
 // ---------------------------------------------------------------------------
 
 
-`timescale 1ns / 1ps
+`timescale       1ns / 1ps
+`default_nettype none
 
 
 // top module
@@ -229,8 +230,13 @@ module top
 				.wb_dbg_we_i		(wb_dbg_we_o),
 				.wb_dbg_sel_i		(wb_dbg_sel_o),
 				.wb_dbg_stb_i		(wb_dbg_stb_o),
-				.wb_dbg_ack_o		(wb_dbg_ack_i)
+				.wb_dbg_ack_o		(wb_dbg_ack_i),
+
+				.trace_valid		(),
+				.trace_pc			(),
+				.trace_instruction	()
 			);
+	
 	
 	// Debug Interface (UART)
 	jelly_uart_debugger
@@ -520,14 +526,16 @@ module top
 	
 	// irq
 	wire				timer0_irq;
+	wire				timer1_irq;
 	wire				uart0_irq_rx;
 	wire				uart0_irq_tx;
 	
 	// irq map
-	wire	[2:0]		irc_interrupt;
+	wire	[3:0]		irc_interrupt;
 	assign irc_interrupt[0] = timer0_irq;
 	assign irc_interrupt[1] = uart0_irq_rx;
 	assign irc_interrupt[2] = uart0_irq_tx;
+	assign irc_interrupt[3] = timer1_irq;
 	
 	
 	// irc
@@ -542,7 +550,7 @@ module top
 	jelly_irc
 			#(
 				.FACTOR_ID_WIDTH	(2),
-				.FACTOR_NUM			(3),
+				.FACTOR_NUM			(4),
 				.PRIORITY_WIDTH		(2),
 	
 				.WB_ADR_WIDTH		(14),
@@ -623,6 +631,36 @@ module top
 				.wb_sel_i			(wb_timer0_sel_i),
 				.wb_stb_i			(wb_timer0_stb_i),
 				.wb_ack_o			(wb_timer0_ack_o)
+			);                     
+	
+	
+	// -----------------------------
+	//  Timer1
+	// -----------------------------
+	
+	wire	[31:2]		wb_timer1_adr_i;
+	wire	[31:0]		wb_timer1_dat_i;
+	wire	[31:0]		wb_timer1_dat_o;
+	wire	[3:0]		wb_timer1_sel_i;
+	wire				wb_timer1_we_i;
+	wire				wb_timer1_stb_i;
+	wire				wb_timer1_ack_o;
+	
+	jelly_timer
+		i_timer1
+			(
+				.clk				(clk),
+				.reset				(reset),
+				
+				.interrupt_req		(timer1_irq),
+				
+				.wb_adr_i			(wb_timer1_adr_i[3:2]),
+				.wb_dat_o			(wb_timer1_dat_o),
+				.wb_dat_i			(wb_timer1_dat_i),
+				.wb_we_i			(wb_timer1_we_i),
+				.wb_sel_i			(wb_timer1_sel_i),
+				.wb_stb_i			(wb_timer1_stb_i),
+				.wb_ack_o			(wb_timer1_ack_o)
 			);                     
 	
 	
@@ -841,7 +879,13 @@ module top
 	assign wb_timer0_sel_i = wb_peri_sel_o;
 	assign wb_timer0_we_i  = wb_peri_we_o;
 	assign wb_timer0_stb_i = wb_peri_stb_o & (wb_peri_adr_o[31:16] == 16'hf100);
-
+	
+	assign wb_timer1_adr_i = wb_peri_adr_o;
+	assign wb_timer1_dat_i = wb_peri_dat_o;
+	assign wb_timer1_sel_i = wb_peri_sel_o;
+	assign wb_timer1_we_i  = wb_peri_we_o;
+	assign wb_timer1_stb_i = wb_peri_stb_o & (wb_peri_adr_o[31:16] == 16'hf101);
+	
 	assign wb_uart0_adr_i  = wb_peri_adr_o;
 	assign wb_uart0_dat_i  = wb_peri_dat_o;
 	assign wb_uart0_sel_i  = wb_peri_sel_o;
@@ -869,6 +913,7 @@ module top
 	assign wb_peri_dat_i   = wb_irc_stb_i    ? wb_irc_dat_o    :
 						     wb_cputim_stb_i ? wb_cputim_dat_o :
 						     wb_timer0_stb_i ? wb_timer0_dat_o :
+						     wb_timer1_stb_i ? wb_timer1_dat_o :
 						     wb_uart0_stb_i  ? wb_uart0_dat_o  :
 						     wb_gpioa_stb_i  ? wb_gpioa_dat_o  :
 						     wb_gpiob_stb_i  ? wb_gpiob_dat_o  :
@@ -878,13 +923,13 @@ module top
 	assign wb_peri_ack_i   = wb_irc_stb_i    ? wb_irc_ack_o    :
 						     wb_cputim_stb_i ? wb_cputim_ack_o :
 						     wb_timer0_stb_i ? wb_timer0_ack_o :
+						     wb_timer1_stb_i ? wb_timer1_ack_o :
 						     wb_uart0_stb_i  ? wb_uart0_ack_o  :
 						     wb_gpioa_stb_i  ? wb_gpioa_ack_o  :
 						     wb_gpiob_stb_i  ? wb_gpiob_ack_o  :
 							 wb_flash_stb_i  ? wb_flash_ack_o  :
 							 1'b1;
 		
-	
 	// -----------------------------
 	//  LED
 	// -----------------------------
@@ -902,3 +947,9 @@ module top
 	
 endmodule
 
+
+
+`default_nettype wire
+
+
+// end of file

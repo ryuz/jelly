@@ -2,16 +2,17 @@
 //  Jelly  -- the soft-core processor system
 //    MIPS like CPU core
 //
-//                                  Copyright (C) 2008-2009 by Ryuji Fuchikami
+//                                  Copyright (C) 2008-2010 by Ryuji Fuchikami
 //                                  http://homepage3.nifty.com/ryuz/
 // ---------------------------------------------------------------------------
 
 
 
-`timescale 1ns / 1ps
+`timescale       1ns / 1ps
+`default_nettype none
 
 
-
+// example
 //  7 /  3 =  2,  7 %  3 =  1
 //  7 / -3 = -2,  7 % -3 =  1
 // -7 /  3 = -2, -7 %  3 = -1
@@ -140,3 +141,10 @@ module jelly_cpu_divider
 	
 endmodule
 
+
+
+`default_nettype wire
+
+
+
+// end of file

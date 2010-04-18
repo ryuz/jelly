@@ -2,13 +2,14 @@
 //  Jelly  -- the soft-core processor system
 //    MIPS like CPU core
 //
-//                                  Copyright (C) 2008-2009 by Ryuji Fuchikami
+//                                  Copyright (C) 2008-2010 by Ryuji Fuchikami
 //                                  http://homepage3.nifty.com/ryuz/
 // ---------------------------------------------------------------------------
 
 
 
-`timescale 1ns / 1ps
+`timescale       1ns / 1ps
+`default_nettype none
 
 
 
@@ -197,7 +198,6 @@ module jelly_cpu_gpr
 			// read
 			if ( i == 0 ) begin
 				assign ram_read_en   = read0_en;
-				assign ram_we1       = 1'b0;
 				assign ram_read_addr = read0_addr;
 				assign read0_data    = write_through_hit ? write_through_data : ram_read_data;
 			end
@@ -238,4 +238,12 @@ module jelly_cpu_gpr
 	endgenerate
 	
 endmodule
+
+
+
+`default_nettype wire
+
+
+
+// end of file
 

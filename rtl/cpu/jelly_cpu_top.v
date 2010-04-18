@@ -2,13 +2,15 @@
 //  Jelly  -- the soft-core processor system
 //    MIPS like CPU core
 //
-//                                  Copyright (C) 2008-2009 by Ryuji Fuchikami
+//                                  Copyright (C) 2008-2010 by Ryuji Fuchikami
 //                                  http://homepage3.nifty.com/ryuz/
 // ---------------------------------------------------------------------------
 
 
 
-`timescale 1ns / 1ps
+`timescale       1ns / 1ps
+`default_nettype none
+
 
 
 // CPU top
@@ -107,7 +109,12 @@ module jelly_cpu_top
 			input	wire								wb_dbg_we_i,
 			input	wire	[3:0]						wb_dbg_sel_i,
 			input	wire								wb_dbg_stb_i,
-			output	wire								wb_dbg_ack_o			
+			output	wire								wb_dbg_ack_o,
+			
+			// pc trace
+			output	wire								trace_valid,
+			output	wire	[31:0]						trace_pc,
+			output	wire	[31:0]						trace_instruction
 		);
 	
 	// internal cache bus width
@@ -196,9 +203,13 @@ module jelly_cpu_top
 				.wb_dbg_we_i		(wb_dbg_we_i),
 				.wb_dbg_sel_i		(wb_dbg_sel_i),
 				.wb_dbg_stb_i		(wb_dbg_stb_i),
-				.wb_dbg_ack_o		(wb_dbg_ack_o)				
-			);
-		
+				.wb_dbg_ack_o		(wb_dbg_ack_o),
+
+				.trace_valid		(trace_valid),
+				.trace_pc			(trace_pc),
+				.trace_instruction	(trace_instruction)
+			);                     
+	
 	
 	
 	// ---------------------------------
@@ -915,3 +926,11 @@ module jelly_cpu_top
 			);
 	
 endmodule
+
+
+
+`default_nettype wire
+
+
+
+// end of file

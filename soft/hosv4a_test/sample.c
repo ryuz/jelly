@@ -49,7 +49,7 @@ void Sample_Initialize(VP_INT exinf)
 	acre_isr(&cisr);
 	
 	/* ŠJŽn */
-	*TIMER1_COMPARE = (50000 - 1);		/* 50Mhz / 50000 = 1kHz (1ms) */
+	*TIMER1_COMPARE = (5000 - 1);		/* 50Mhz / 50000 = 1kHz (1ms) */
 	*TIMER1_CONTROL = 0x0002;			/* clear */
 	*TIMER1_CONTROL = 0x0001;			/* start */
 	
@@ -132,7 +132,7 @@ void Sample_Task(VP_INT exinf)
 	
 	for ( ; ; )
 	{
-		dly_tsk(1000);
+		dly_tsk(97);
 		snd_dtq(DTQID_SAMPLE, (VP_INT)((tim1 / 1000000000) % 10 + '0'));
 		snd_dtq(DTQID_SAMPLE, (VP_INT)((tim1 / 100000000 ) % 10 + '0'));
 		snd_dtq(DTQID_SAMPLE, (VP_INT)((tim1 / 10000000  ) % 10 + '0'));
@@ -145,6 +145,7 @@ void Sample_Task(VP_INT exinf)
 		snd_dtq(DTQID_SAMPLE, (VP_INT)((tim1             ) % 10 + '0'));
 		snd_dtq(DTQID_SAMPLE, (VP_INT)'\r');
 		snd_dtq(DTQID_SAMPLE, (VP_INT)'\n');
+	//	tim1 += 100000;
 	}
 	
 	num = (int)exinf;

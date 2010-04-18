@@ -3,8 +3,8 @@ ENTRY(_reset_handler)
 
 MEMORY
 {
-	ro_area : o = 0x00000000, l = 0x00003000
-	rw_area : o = 0x00003000, l = 0x00001000
+	ro_area : o = 0x00000000, l = 0x00004000
+	rw_area : o = 0x00004000, l = 0x00004000
 }
 
 SECTIONS

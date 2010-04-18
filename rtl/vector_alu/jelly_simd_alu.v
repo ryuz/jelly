@@ -337,17 +337,29 @@ module jelly_simd_alu
 	assign out_valid = reg_mac_valid;
 	assign out_data  = reg_mac0_data | reg_mac1_data | reg_mac2_data | reg_mac3_data;
 	*/
-	
-	
-	reg		signed	[76:0]	reg_mac0_data;
-	reg		signed	[47:0]	reg_mac1_data;
-	reg		signed	[47:0]	reg_mac2_data;
-	reg		signed	[47:0]	reg_mac3_data;
-//	always @( posedge clk ) begin
-		
-	
+
+
 	assign out_valid = reg_mul_src_valid;
-	assign out_data  = mac_out_data0 | mac_out_data1 | mac_out_data2 | mac_out_data3;
+//	assign out_data  = mac_out_data0 | mac_out_data1 | mac_out_data2 | mac_out_data3;
+	
+	
+	reg		signed	[63:0]	reg_mac0_data;
+	reg		signed	[63:0]	reg_mac1_data;
+	reg		signed	[63:0]	reg_mac2_data;
+	reg		signed	[63:0]	reg_mac3_data;
+	reg		signed	[63:0]	reg_mac01_data;
+	reg		signed	[63:0]	reg_mac23_data;
+	reg		signed	[63:0]	reg_mac4_data;
+	always @( posedge clk ) begin
+		reg_mac0_data  <= mac_out_data0;
+		reg_mac1_data  <= mac_out_data1;
+		reg_mac2_data  <= mac_out_data2;
+		reg_mac3_data  <= mac_out_data3;
+		reg_mac01_data <= (reg_mac0_data <<  0) + (reg_mac1_data << 16);
+		reg_mac23_data <= (reg_mac2_data << 16) + (reg_mac3_data << 32);
+		reg_mac4_data  <= reg_mac01_data + reg_mac23_data;
+	end
+	assign out_data  = reg_mac4_data;
 	
 	
 endmodule

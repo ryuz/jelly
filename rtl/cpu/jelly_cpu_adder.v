@@ -2,13 +2,14 @@
 //  Jelly  -- the soft-core processor system
 //    MIPS like CPU core
 //
-//                                  Copyright (C) 2008-2009 by Ryuji Fuchikami
+//                                  Copyright (C) 2008-2010 by Ryuji Fuchikami
 //                                  http://homepage3.nifty.com/ryuz/
 // ---------------------------------------------------------------------------
 
 
 
-`timescale 1ns / 1ps
+`timescale       1ns / 1ps
+`default_nettype none
 
 
 
@@ -48,3 +49,9 @@ module jelly_cpu_adder
 	
 endmodule
 
+
+
+`default_nettype wire
+
+
+// end of file

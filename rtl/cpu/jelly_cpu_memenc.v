@@ -8,7 +8,8 @@
 
 
 
-`timescale 1ns / 1ps
+`timescale       1ns / 1ps
+`default_nettype none
 
 
 
@@ -124,3 +125,11 @@ module jelly_cpu_memenc
 	assign out_shift = tmp_shift;
 	
 endmodule
+
+
+
+`default_nettype wire
+
+
+
+// end of file

@@ -8,8 +8,8 @@
 
 
 
-`timescale 1ns / 1ps
-
+`timescale       1ns / 1ps
+`default_nettype none
 
 
 // CPU Core
@@ -46,10 +46,13 @@ module jelly_cpu_core
 			input	wire	[31:0]		vect_reset,
 			input	wire	[31:0]		vect_interrupt,
 			input	wire	[31:0]		vect_exception,
-
+			
 			// interrupt
 			input	wire				interrupt_req,
 			output	wire				interrupt_ack,
+			
+			// control
+			input	wire				pause,
 			
 			// instruction bus
 			output	wire				jbus_inst_en,
@@ -79,9 +82,11 @@ module jelly_cpu_core
 			input	wire	[3:0]		wb_dbg_sel_i,
 			input	wire				wb_dbg_stb_i,
 			output	wire				wb_dbg_ack_o,
-			
-			// control
-			input	wire				pause
+						
+			// pc trace
+			output	wire				trace_valid,
+			output	wire	[31:0]		trace_pc,
+			output	wire	[31:0]		trace_instruction
 		);
 	
 
@@ -1229,9 +1234,8 @@ module jelly_cpu_core
 	assign ex_in_stall  = dbg_enable | ex_out_exception_en;
 	assign mem_in_stall = 1'b0;
 
-
-
-
+	
+	
 	// -----------------------------
 	//  Debug unit
 	// -----------------------------
@@ -1331,13 +1335,21 @@ module jelly_cpu_core
 		assign dbg_cop0_wdata     = {32{1'b0}};
 	end
 	endgenerate
-
+	
+	
+	// -----------------------------
+	//  PC trace
+	// -----------------------------
+	
+	assign trace_valid       = !interlock & !ex_out_stall;
+	assign trace_pc          = ex_out_pc;
+	assign trace_instruction = ex_out_instruction;
 	
 	
 	// -----------------------------
 	//  simulation
 	// -----------------------------
-	
+		
 	generate 
 	if ( SIMULATION ) begin
 		// PC trace
@@ -1407,3 +1419,9 @@ module jelly_cpu_core
 	endgenerate
 	
 endmodule
+
+
+`default_nettype wire
+
+
+// end of file

@@ -2,13 +2,14 @@
 //  Jelly  -- the soft-core processor system
 //    MIPS like CPU core
 //
-//                                  Copyright (C) 2008-2009 by Ryuji Fuchikami
+//                                  Copyright (C) 2008-2010 by Ryuji Fuchikami
 //                                  http://homepage3.nifty.com/ryuz/
 // ---------------------------------------------------------------------------
 
 
 
-`timescale 1ns / 1ps
+`timescale       1ns / 1ps
+`default_nettype none
 
 
 
@@ -58,7 +59,7 @@ module jelly_cpu_dbg_comm
 			// comm port
 			output	reg					comm_tx_en,
 			output	reg		[7:0]		comm_tx_data,
-			input						comm_tx_ready,
+			input	wire				comm_tx_ready,
 			input	wire				comm_rx_en,
 			input	wire	[7:0]		comm_rx_data,
 			output	reg					comm_rx_ready,
@@ -614,3 +615,10 @@ module jelly_cpu_dbg_comm
 	
 endmodule
 
+
+
+`default_nettype wire
+
+
+
+// end of file

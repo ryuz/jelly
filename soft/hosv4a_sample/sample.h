@@ -20,7 +20,6 @@ extern "C" {
 
 void Sample_Initialize(VP_INT exinf);
 void Sample_Task(VP_INT exinf);
-void Sample_Print(VP_INT exinf);
 
 #ifdef __cplusplus
 }

@@ -124,6 +124,10 @@ module tb_top;
 	initial begin
 		$display("--- START ---");
 		
+		forever
+			#(RATE*40000);
+		
+		
 	#(RATE*40000);
 			$display("break");
 			dbg_break();

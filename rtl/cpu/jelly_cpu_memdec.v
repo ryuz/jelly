@@ -8,7 +8,8 @@
 
 
 
-`timescale 1ns / 1ps
+`timescale       1ns / 1ps
+`default_nettype none
 
 
 
@@ -57,3 +58,11 @@ module jelly_cpu_memdec
 	assign out_rdata = tmp_rdata;
 		
 endmodule
+
+
+
+`default_nettype wire
+
+
+
+// end of file
