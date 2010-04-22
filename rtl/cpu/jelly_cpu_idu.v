@@ -545,10 +545,10 @@ module jelly_cpu_idu
 	
 	assign muldiv_mul    = inst_mult | inst_multu;
 	assign muldiv_div    = inst_div | inst_divu;
-	assign muldiv_mthi   = inst_mtlo;
-	assign muldiv_mtlo   = inst_mthi;
-	assign muldiv_mfhi   = inst_mflo;
-	assign muldiv_mflo   = inst_mfhi;
+	assign muldiv_mthi   = inst_mthi;
+	assign muldiv_mtlo   = inst_mtlo;
+	assign muldiv_mfhi   = inst_mfhi;
+	assign muldiv_mflo   = inst_mflo;
 	assign muldiv_signed = ~instruction[0];
 	
 	assign muldiv_en     = muldiv_mul | muldiv_div | muldiv_mthi | muldiv_mtlo | muldiv_mfhi | muldiv_mflo;
