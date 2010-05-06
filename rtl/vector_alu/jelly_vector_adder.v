@@ -24,8 +24,13 @@ module jelly_adder48
 		)
 		(
 			input	wire			reset,
-			input	wire			enable,
 			input	wire			clk,
+			input	wire			cke0,
+			input	wire			cke1,
+			input	wire			cke2,
+			input	wire			cke3,
+			input	wire			cke4,
+			input	wire			cke5,
 			
 			input	wire			in_feedback,
 			input	wire			in_negative,

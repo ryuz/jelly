@@ -25,9 +25,11 @@ module jelly_crossbar
 			parameter	STAGE2_REG      = 1
 		)
 		(
-			input	wire									clk,
-			input	wire	[2:0]							cke,
 			input	wire									reset,
+			input	wire									clk,
+			input	wire									cke0,
+			input	wire									cke1,
+			input	wire									cke2,
 			
 			input	wire	[SRC_NUM-1:0]					in_valid,
 			input	wire	[SRC_NUM*DST_INDEX_WIDTH-1:0]	in_dst_index,
@@ -37,7 +39,7 @@ module jelly_crossbar
 			output	wire	[DST_NUM*SRC_INDEX_WIDTH-1:0]	out_src_index,
 			output	wire	[DST_NUM*DATA_WIDTH-1:0]		out_data
 		);
-
+	
 	integer		i, j, k;
 	
 	// stage0	
@@ -62,8 +64,8 @@ module jelly_crossbar
 		i_pipeline_ff_stage0
 			(
 				.reset		(reset),
-				.enable		(cke[0]),
 				.clk		(clk),
+				.cke		(cke0),
                 
 				.in_data	({stage0_in_valid,  stage0_in_dst_index,  stage0_in_data}),
 				.out_data	({stage0_out_valid, stage0_out_dst_index, stage0_out_data})		
@@ -95,8 +97,8 @@ module jelly_crossbar
 		i_pipeline_ff_stage1
 			(
 				.reset		(reset),
-				.enable		(cke[1]),
 				.clk		(clk),
+				.cke		(cke1),
                 
 				.in_data	({stage1_in_valid_map,  stage1_in_data}),
 				.out_data	({stage1_out_valid_map, stage1_out_data})		
@@ -139,8 +141,8 @@ module jelly_crossbar
 		i_pipeline_ff_stage2
 			(
 				.reset		(reset),
-				.enable		(cke[2]),
 				.clk		(clk),
+				.cke		(cke2),
                 
 				.in_data	({stage2_in_valid,  stage2_in_src_index,  stage2_in_data}),
 				.out_data	({stage2_out_valid, stage2_out_src_index, stage2_out_data})		
@@ -149,7 +151,7 @@ module jelly_crossbar
 	assign out_valid     = stage2_out_valid;
 	assign out_src_index = stage2_out_src_index;
 	assign out_data      = stage2_out_data;
-		
+	
 endmodule
 
 

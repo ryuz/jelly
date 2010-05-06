@@ -1,8 +1,8 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- the soft-core processor system
-//    MIPS like CPU core
+//    pipeline flip-flop
 //
-//                                  Copyright (C) 2008-2009 by Ryuji Fuchikami
+//                                  Copyright (C) 2008-2010 by Ryuji Fuchikami
 //                                  http://homepage3.nifty.com/ryuz/
 // ---------------------------------------------------------------------------
 
@@ -12,18 +12,17 @@
 `default_nettype none
 
 
-
 // pipeline flip-flop
 module jelly_pipeline_ff
 		#(
-			parameter	REG   = 0,
+			parameter	REG   = 1,
 			parameter	WIDTH = 32,
 			parameter	INIT  = 0
 		)
 		(
 			input	wire					reset,
-			input	wire					enable,
 			input	wire					clk,
+			input	wire					cke,
 			
 			input	wire	[WIDTH-1:0]		in_data,
 			output	wire	[WIDTH-1:0]		out_data
@@ -35,13 +34,13 @@ module jelly_pipeline_ff
 		reg		[WIDTH-1:0]		reg_data	[0:REG-1];
 		integer					i;
 		always @(posedge clk) begin
-			if ( enable ) begin
-				if ( reset ) begin
-					for ( i = 0; i < REG; i = i + 1 ) begin
-						reg_data[i] <= INIT;
-					end
+			if ( reset ) begin
+				for ( i = 0; i < REG; i = i + 1 ) begin
+					reg_data[i] <= INIT;
 				end
-				else begin
+			end
+			else begin
+				if ( cke ) begin
 					reg_data[0] <= in_data;
 					for ( i = 1; i < REG; i = i + 1 ) begin
 						reg_data[i] <= reg_data[i-1];
@@ -55,7 +54,6 @@ module jelly_pipeline_ff
 		assign out_data = in_data;
 	end
 	endgenerate
-	
 	
 endmodule
 

@@ -27,7 +27,9 @@ module jelly_vector_reg
 			parameter	STAGE2_REG = 1,
 			parameter	STAGE3_REG = 1,
 			parameter	STAGE4_REG = 1,
-			parameter	STAGE5_REG = 1
+			parameter	STAGE5_REG = 1,
+			parameter	STAGE6_REG = 1,
+			parameter	STAGE7_REG = 1
 		)
 		(
 			input	wire								clk,
@@ -72,9 +74,9 @@ module jelly_vector_reg
 			)
 		i_pipeline_ff_stage0
 			(
-				.reset		(reset),
-				.enable		(cke),
 				.clk		(clk),
+				.cke		(cke),
+				.reset		(reset),
                 
 				.in_data	({stage0_in_valid,  stage0_in_port,  stage0_in_index,  stage0_in_we,  stage0_in_addr,  stage0_in_din}),
 				.out_data	({stage0_out_valid, stage0_out_port, stage0_out_index, stage0_out_we, stage0_out_addr, stage0_out_din})		
@@ -93,8 +95,8 @@ module jelly_vector_reg
 	wire	[PORT_NUM-1:0]							crossbar_in_valid;
 	wire	[PORT_NUM*CROSSBAR_INDEX_WIDTH-1:0]		crossbar_in_index;
 	wire	[PORT_NUM*CROSSBAR_DATA_WIDTH-1:0]		crossbar_in_data;
-	wire	[2*REG_NUM*-1:0]						crossbar_out_valid;
-	wire	[2*REG_NUM*DATA_WIDTH-1:0]				crossbar_out_data;
+	wire	[2*REG_NUM-1:0]							crossbar_out_valid;
+	wire	[2*REG_NUM*CROSSBAR_DATA_WIDTH-1:0]		crossbar_out_data;
 
 	jelly_crossbar
 			#(
@@ -110,9 +112,11 @@ module jelly_vector_reg
 		i_crossbar
 			(
 				.clk				(clk),
-				.cke				({3{cke}}),
+				.cke0				(cke),
+				.cke1				(cke),
+				.cke2				(cke),
 				.reset				(reset),
-			
+				
 				.in_valid			(crossbar_in_valid),
 				.in_dst_index		(crossbar_in_index),
 				.in_data			(crossbar_in_data),
@@ -139,7 +143,7 @@ module jelly_vector_reg
 	end
 	
 	for ( i = 0; i < 2*REG_NUM; i = i + 1 ) begin : crossbar_out
-		assign stage3_out_valid[i] = crossbar_out_valid[i]
+		assign stage3_out_valid[i] = crossbar_out_valid[i];
 		assign {
 					stage3_out_we[i*WE_WIDTH +: WE_WIDTH],
 					stage3_out_addr[i*ADDR_WIDTH +: ADDR_WIDTH],
@@ -162,16 +166,16 @@ module jelly_vector_reg
 			)
 		i_pipeline_ff_stage3
 			(
-				.reset		(reset),
-				.enable		(cke),
 				.clk		(clk),
+				.cke		(cke),
+				.reset		(reset),
                 
 				.in_data	({stage0_out_port, stage0_out_index}),
 				.out_data	({stage6_out_port, stage6_out_index})		
 			);		
 	
 	generate
-	for ( i = 0; i < 2*REG_NUM; i = i + 1 ) begin : crossbar_out
+	for ( i = 0; i < REG_NUM; i = i + 1 ) begin : dpram
 		jelly_dpram_32x512
 				#(
 					.PORT0_INPUT_REG	(STAGE4_REG),
@@ -183,107 +187,34 @@ module jelly_vector_reg
 				)
 			i_dpram_32x512
 				(
-					.port0_reset		(reset),			
 					.port0_clk			(clk),
-					.port0_enable		(enable),
+					.port0_cke0			(cke),
+					.port0_cke1			(cke),
+					.port0_cke2			(cke),
+					.port0_reset		(reset),			
 					.port0_valid		(stage3_out_valid[i]),
 					.port0_we			(stage3_out_we[i*WE_WIDTH +: WE_WIDTH]),
 					.port0_addr			(stage3_out_addr[i*ADDR_WIDTH +: ADDR_WIDTH]),
 					.port0_din			(stage3_out_din[i*DATA_WIDTH +: DATA_WIDTH]),
 					.port0_dout			(stage6_out_port0_dout[i*DATA_WIDTH +: DATA_WIDTH]),
 					
-					.port1_reset		(reset),
 					.port1_clk			(clk),
-					.port1_enable		(enable),
-					.port0_valid		(stage3_out_valid[REG_NUM+i]),
-					.port0_we			(stage3_out_we[(REG_NUM+i)*WE_WIDTH +: WE_WIDTH]),
-					.port0_addr			(stage3_out_addr[(REG_NUM+i)*ADDR_WIDTH +: ADDR_WIDTH]),
-					.port0_din			(stage3_out_din[(REG_NUM+i)*DATA_WIDTH +: DATA_WIDTH]),
-					.port1_dout			(stage6_out_port1_dout[(REG_NUM+i)*DATA_WIDTH +: DATA_WIDTH])
-				);
-	end
-	endgenerate
-		
-
-
-
-
-	
-	// register
-	genvar	i;
-	generate
-	for ( i = 0; i < REG_NUM; i = i + 1 ) begin : register
-		integer		j;
-		
-		reg							stage1_port0_valid;
-		reg							stage1_port0_we;
-		reg		[ADDR_WIDTH-1:0]	stage1_port0_addr;
-		reg		[DATA_WIDTH-1:0]	stage1_port0_din;
-		reg							stage1_port1_valid;
-		reg							stage1_port1_we;
-		reg		[ADDR_WIDTH-1:0]	stage1_port1_addr;
-		reg		[DATA_WIDTH-1:0]	stage1_port1_din;
-		
-		always @* begin
-			stage1_port0_valid = 1'b0;
-			stage1_port0_we    = 1'bx;
-			stage1_port0_addr  = {ADDR_WIDTH{1'bx}};
-			stage1_port0_din   = {ADDR_WIDTH{1'bx}};
-			stage1_port1_valid = 1'b0;
-			stage1_port1_we    = 1'bx;
-			stage1_port1_addr  = {ADDR_WIDTH{1'bx}};
-			stage1_port1_din   = {ADDR_WIDTH{1'bx}};
-			for ( j = 0; j < PORT_NUM; j = j + 1 ) begin
-				if ( stage0_out_valid[j] && (stage0_out_index[INDEX_WIDTH*j +:INDEX_WIDTH] == i) ) begin
-					if ( stage0_out_port[j] == 1'b0 ) begin
-						stage1_port0_valid = 1'b1;
-						stage1_port0_we    = stage0_out_we[j];
-						stage1_port0_addr  = stage0_out_addr[ADDR_WIDTH*j +: ADDR_WIDTH];
-						stage1_port0_din   = stage0_out_din[ADDR_WIDTH*j +: ADDR_WIDTH];
-					end
-					else begin
-						stage1_port1_valid = 1'b1;
-						stage1_port1_we    = stage0_out_we[j];
-						stage1_port1_addr  = stage0_out_addr[ADDR_WIDTH*j +: ADDR_WIDTH];
-						stage1_port1_din   = stage0_out_din[ADDR_WIDTH*j +: ADDR_WIDTH];
-					end
-				end
-			end
-		end
-		
-		jelly_dpram_32x512
-				#(
-					.PORT0_INPUT_REG	(1),
-					.PORT0_OUTPUT_REG	(1),
-					.PORT1_INPUT_REG	(1),
-					.PORT1_OUTPUT_REG	(1)
-				)
-			i_dpram_32x512
-				(
-					.port0_reset		(reset),			
-					.port0_clk			(clk),
-					.port0_enable		(enable),
-					.port0_valid		(stage1_port0_valid),
-					.port0_we			(stage1_port0_we),
-					.port0_addr			(stage1_port0_addr),
-					.port0_din			(stage1_port0_din),
-					.port0_dout			(stage3_out_port0_dout[i*DATA_WIDTH +: DATA_WIDTH]),
-					
+					.port1_cke0			(cke),
+					.port1_cke1			(cke),
+					.port1_cke2			(cke),
 					.port1_reset		(reset),
-					.port1_clk			(clk),
-					.port1_enable		(enable),
-					.port1_valid		(stage1_port1_valid),
-					.port1_we			(stage1_port1_we),
-					.port1_addr			(stage1_port1_addr),
-					.port1_din			(stage1_port1_din),
-					.port1_dout			(stage3_out_port1_dout[i*DATA_WIDTH +: DATA_WIDTH])
+					.port1_valid		(stage3_out_valid[REG_NUM+i]),
+					.port1_we			(stage3_out_we[(REG_NUM+i)*WE_WIDTH +: WE_WIDTH]),
+					.port1_addr			(stage3_out_addr[(REG_NUM+i)*ADDR_WIDTH +: ADDR_WIDTH]),
+					.port1_din			(stage3_out_din[(REG_NUM+i)*DATA_WIDTH +: DATA_WIDTH]),
+					.port1_dout			(stage6_out_port1_dout[i*DATA_WIDTH +: DATA_WIDTH])
 				);
 	end
 	endgenerate
 	
-	// stage4
-	wire	[PORT_NUM*DATA_WIDTH-1:0]	stage4_in_dout;
-	wire	[PORT_NUM*DATA_WIDTH-1:0]	stage4_out_dout;
+	// stage7
+	wire	[PORT_NUM*DATA_WIDTH-1:0]	stage7_in_dout;
+	wire	[PORT_NUM*DATA_WIDTH-1:0]	stage7_out_dout;
 	generate
 	for ( i = 0; i < PORT_NUM; i = i + 1 ) begin : out_mux
 		jelly_multiplexer
@@ -295,9 +226,9 @@ module jelly_vector_reg
 			i_multiplexer_output
 				(
 					.endian			(1'b0),
-					.sel			({stage3_out_port[i], stage3_out_index[i*INDEX_WIDTH +: INDEX_WIDTH]}),
-					.din			({stage3_out_port1_dout, stage3_out_port0_dout}),
-					.dout			(stage4_in_dout[i*DATA_WIDTH +: DATA_WIDTH])
+					.sel			({stage6_out_port[i], stage6_out_index[i*INDEX_WIDTH +: INDEX_WIDTH]}),
+					.din			({stage6_out_port1_dout, stage6_out_port0_dout}),
+					.dout			(stage7_in_dout[i*DATA_WIDTH +: DATA_WIDTH])
 				);
 	end
 	endgenerate
@@ -307,17 +238,17 @@ module jelly_vector_reg
 				.WIDTH		(PORT_NUM*DATA_WIDTH),
 				.REG		(1)
 			)
-		i_pipeline_ff_stage4
+		i_pipeline_ff_stage7
 			(
-				.reset		(reset),
-				.enable		(enable),
 				.clk		(clk),
+				.cke		(cke),
+				.reset		(reset),
                 
-				.in_data	(stage4_in_dout),
-				.out_data	(stage4_out_dout)		
+				.in_data	(stage7_in_dout),
+				.out_data	(stage7_out_dout)		
 			);
 	
-	assign dout = stage4_out_dout;
+	assign dout = stage7_out_dout;
 	
 endmodule
 
