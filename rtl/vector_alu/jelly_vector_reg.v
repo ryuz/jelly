@@ -15,9 +15,9 @@
 // Arithmetic Logic Unit
 module jelly_vector_reg
 		#(
-			parameter	PORT_NUM    = 8,
+			parameter	PORT_NUM    = 2,
 			parameter	REG_NUM     = 8,
-			parameter	INDEX_WIDTH = 4,
+			parameter	INDEX_WIDTH = 3,
 			parameter	WE_WIDTH    = 1,
 			parameter	ADDR_WIDTH  = 9,
 			parameter	DATA_WIDTH  = 32,
@@ -29,7 +29,8 @@ module jelly_vector_reg
 			parameter	STAGE4_REG = 1,
 			parameter	STAGE5_REG = 1,
 			parameter	STAGE6_REG = 1,
-			parameter	STAGE7_REG = 1
+			parameter	STAGE7_REG = 1,
+			parameter	STAGE8_REG = 1
 		)
 		(
 			input	wire								clk,
@@ -100,11 +101,11 @@ module jelly_vector_reg
 
 	jelly_crossbar
 			#(
-				.DATA_WIDTH			(32),
+				.DATA_WIDTH			(CROSSBAR_DATA_WIDTH),
 				.SRC_NUM			(PORT_NUM),
 				.DST_NUM			(2*REG_NUM),
-				.SRC_INDEX_WIDTH	(CROSSBAR_INDEX_WIDTH),
-				.DST_INDEX_WIDTH	(16),
+				.SRC_INDEX_WIDTH	(16),
+				.DST_INDEX_WIDTH	(CROSSBAR_INDEX_WIDTH),
 				.STAGE0_REG			(STAGE1_REG),
 				.STAGE1_REG			(STAGE2_REG),
 				.STAGE2_REG			(STAGE3_REG)
@@ -120,7 +121,7 @@ module jelly_vector_reg
 				.in_valid			(crossbar_in_valid),
 				.in_dst_index		(crossbar_in_index),
 				.in_data			(crossbar_in_data),
-			
+				
 				.out_valid			(crossbar_out_valid),
 				.out_src_index		(),
 				.out_data			(crossbar_out_data)
@@ -129,6 +130,7 @@ module jelly_vector_reg
 	genvar	i;
 	generate
 	for ( i = 0; i < PORT_NUM; i = i + 1 ) begin : crossbar_in
+		assign crossbar_in_valid[i] = stage0_out_valid[i];
 		assign crossbar_in_index[i*CROSSBAR_INDEX_WIDTH +: CROSSBAR_INDEX_WIDTH] =
 				{
 					stage0_out_port[i],
@@ -136,9 +138,9 @@ module jelly_vector_reg
 				};
 		assign crossbar_in_data[i*CROSSBAR_DATA_WIDTH +: CROSSBAR_DATA_WIDTH]  =
 				{
-					stage0_in_we[i*WE_WIDTH +: WE_WIDTH],
-					stage0_in_addr[i*ADDR_WIDTH +: ADDR_WIDTH],
-					stage0_in_din[i*DATA_WIDTH +: DATA_WIDTH]
+					stage0_out_we[i*WE_WIDTH +: WE_WIDTH],
+					stage0_out_addr[i*ADDR_WIDTH +: ADDR_WIDTH],
+					stage0_out_din[i*DATA_WIDTH +: DATA_WIDTH]
 				};
 	end
 	
@@ -213,8 +215,30 @@ module jelly_vector_reg
 	endgenerate
 	
 	// stage7
-	wire	[PORT_NUM*DATA_WIDTH-1:0]	stage7_in_dout;
-	wire	[PORT_NUM*DATA_WIDTH-1:0]	stage7_out_dout;
+	wire	[PORT_NUM-1:0]				stage7_out_port;
+	wire	[PORT_NUM*INDEX_WIDTH-1:0]	stage7_out_index;
+	wire	[REG_NUM*DATA_WIDTH-1:0]	stage7_out_port0_dout;
+	wire	[REG_NUM*DATA_WIDTH-1:0]	stage7_out_port1_dout;
+	jelly_pipeline_ff
+			#(
+				.WIDTH		(PORT_NUM + PORT_NUM*INDEX_WIDTH + REG_NUM*DATA_WIDTH + REG_NUM*DATA_WIDTH),
+				.REG		(STAGE7_REG)
+			)
+		i_pipeline_ff_stage7
+			(
+				.clk		(clk),
+				.cke		(cke),
+				.reset		(reset),
+                
+				.in_data	({stage6_out_port, stage6_out_index, stage6_out_port0_dout, stage6_out_port1_dout}),
+				.out_data	({stage7_out_port, stage7_out_index, stage7_out_port0_dout, stage7_out_port1_dout})		
+			);
+	
+	
+	// stage8
+	wire	[PORT_NUM*DATA_WIDTH-1:0]	stage8_in_dout;
+	wire	[PORT_NUM*DATA_WIDTH-1:0]	stage8_out_dout;
+	
 	generate
 	for ( i = 0; i < PORT_NUM; i = i + 1 ) begin : out_mux
 		jelly_multiplexer
@@ -226,9 +250,9 @@ module jelly_vector_reg
 			i_multiplexer_output
 				(
 					.endian			(1'b0),
-					.sel			({stage6_out_port[i], stage6_out_index[i*INDEX_WIDTH +: INDEX_WIDTH]}),
-					.din			({stage6_out_port1_dout, stage6_out_port0_dout}),
-					.dout			(stage7_in_dout[i*DATA_WIDTH +: DATA_WIDTH])
+					.sel			({stage7_out_port[i], stage7_out_index[i*INDEX_WIDTH +: INDEX_WIDTH]}),
+					.din			({stage7_out_port1_dout, stage7_out_port0_dout}),
+					.dout			(stage8_in_dout[i*DATA_WIDTH +: DATA_WIDTH])
 				);
 	end
 	endgenerate
@@ -236,19 +260,19 @@ module jelly_vector_reg
 	jelly_pipeline_ff
 			#(
 				.WIDTH		(PORT_NUM*DATA_WIDTH),
-				.REG		(1)
+				.REG		(STAGE8_REG)
 			)
-		i_pipeline_ff_stage7
+		i_pipeline_ff_stage8
 			(
 				.clk		(clk),
 				.cke		(cke),
 				.reset		(reset),
                 
-				.in_data	(stage7_in_dout),
-				.out_data	(stage7_out_dout)		
+				.in_data	(stage8_in_dout),
+				.out_data	(stage8_out_dout)		
 			);
 	
-	assign dout = stage7_out_dout;
+	assign dout = stage8_out_dout;
 	
 endmodule
 
