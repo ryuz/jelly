@@ -15,12 +15,12 @@
 // Arithmetic Logic Unit
 module jelly_vector_addr
 		#(
-			parameter	PORT_NUM    = 2,
+	/*		parameter	PORT_NUM    = 2,
 			parameter	REG_NUM     = 8,
 			parameter	INDEX_WIDTH = 3,
 			parameter	WE_WIDTH    = 1,
 			parameter	ADDR_WIDTH  = 9,
-			parameter	DATA_WIDTH  = 32,
+			parameter	DATA_WIDTH  = 32,	*/
 			
 			parameter	STAGE0_REG = 1,
 			parameter	STAGE1_REG = 1,
@@ -67,7 +67,7 @@ module jelly_vector_addr
 			output	wire	[31:0]		port1_din,
 			input	wire	[31:0]		port1_dout
 		);
-	
+			
 	// stage 0
 	reg					stage0_out_valid;
 	reg		[31:0]		stage0_out_addr;

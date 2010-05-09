@@ -14,23 +14,25 @@
 
 
 // Arithmetic Logic Unit
-module jelly_simd_alu
+module jelly_vector_simd
 		#(
 			parameter 							EXT_WIDTH  = 1
 		)
 		(
 			input	wire						reset,
 			input	wire						clk,
+			input	wire						cke,
 			
 			input	wire						in_valid,
-			input	wire						in_signed,
+			input	wire	[7:0]				in_op,
 			input	wire	[1:0]				in_size,
-			input	wire						in_mac,
-			input	wire	[31:0]				in_data0,
-			input	wire	[31:0]				in_data1,
+			input	wire						in_src0_sign,
+			input	wire						in_src1_sign,
+			input	wire						in_dst_sign,
+			input	wire	[31:0]				in_src0_data,
+			input	wire	[31:0]				in_src1_data,
 			
-			output	wire						out_valid,
-			output	wire	[63:0]				out_data
+			output	wire	[31:0]				out_dst_data
 		);
 	
 	// input

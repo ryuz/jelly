@@ -46,40 +46,40 @@ module jelly_mac18x18
 				.AREG								(1), // Number of pipeline registers on the A input, 0, 1 or 2
 				.AUTORESET_PATTERN_DETECT			("FALSE"), // Auto-reset upon pattern detect, "TRUE" or "FALSE"
 				.AUTORESET_PATTERN_DETECT_OPTINV	("MATCH"), // Reset if "MATCH" or "NOMATCH"
-				.A_INPUT			("DIRECT"), // Selects A input used, "DIRECT" (A port) or "CASCADE" (ACIN port)
-				.BCASCREG			(1), // Number of pipeline registers between B/BCIN input and BCOUT output, 0, 1, or 2
-				.BREG				(1), // Number of pipeline registers on the B input, 0, 1 or 2
-				.B_INPUT			("DIRECT"), // Selects B input used, "DIRECT" (B port) or "CASCADE" (BCIN port)
-				.CARRYINREG			(1), // Number of pipeline registers for the CARRYIN input, 0 or 1
-				.CARRYINSELREG		(1), // Number of pipeline registers for the CARRYINSEL input, 0 or 1
-				.CREG				(1), // Number of pipeline registers on the C input, 0 or 1
-				.MASK				(48'h3fffffffffff), // 48-bit Mask value for pattern detect
-				.MREG				(1), // Number of multiplier pipeline registers, 0 or 1
-				.MULTCARRYINREG		(1), // Number of pipeline registers for multiplier carry in bit, 0 or 1
-				.OPMODEREG			(1), // Number of pipeline registers on OPMODE input, 0 or 1
-				.PATTERN			(48fh000000000000), // 48-bit Pattern match for pattern detect
-				.PREG				(1), // Number of pipeline registers on the P output, 0 or 1
-				.SEL_MASK			("MASK"), // Select mask value between the "MASK" value or the value on the "C" port
-				.SEL_PATTERN		("PATTERN"), // Select pattern value between the "PATTERN" value or the value on the "C" port
-				.SEL_ROUNDING_MASK	("SEL_MASK"), // "SEL_MASK", "MODE1", "MODE2"
-				.USE_MULT			("MULT_S"), // Select multiplier usage, "MULT" (MREG => 0), "MULT_S" (MREG => 1), "NONE" (no multiplier)
-				.USE_PATTERN_DETECT	("NO_PATDET"), // Enable pattern detect, "PATDET", "NO_PATDET"
-				.USE_SIMD			("ONE48") // SIMD selection, "ONE48", "TWO24", "FOUR12"
+				.A_INPUT							("DIRECT"), // Selects A input used, "DIRECT" (A port) or "CASCADE" (ACIN port)
+				.BCASCREG							(1), // Number of pipeline registers between B/BCIN input and BCOUT output, 0, 1, or 2
+				.BREG								(1), // Number of pipeline registers on the B input, 0, 1 or 2
+				.B_INPUT							("DIRECT"), // Selects B input used, "DIRECT" (B port) or "CASCADE" (BCIN port)
+				.CARRYINREG							(1), // Number of pipeline registers for the CARRYIN input, 0 or 1
+				.CARRYINSELREG						(1), // Number of pipeline registers for the CARRYINSEL input, 0 or 1
+				.CREG								(1), // Number of pipeline registers on the C input, 0 or 1
+				.MASK								(48'h3fffffffffff), // 48-bit Mask value for pattern detect
+				.MREG								(1), // Number of multiplier pipeline registers, 0 or 1
+				.MULTCARRYINREG						(1), // Number of pipeline registers for multiplier carry in bit, 0 or 1
+				.OPMODEREG							(1), // Number of pipeline registers on OPMODE input, 0 or 1
+				.PATTERN							(48fh000000000000), // 48-bit Pattern match for pattern detect
+				.PREG								(1), // Number of pipeline registers on the P output, 0 or 1
+				.SEL_MASK							("MASK"), // Select mask value between the "MASK" value or the value on the "C" port
+				.SEL_PATTERN						("PATTERN"), // Select pattern value between the "PATTERN" value or the value on the "C" port
+				.SEL_ROUNDING_MASK					("SEL_MASK"), // "SEL_MASK", "MODE1", "MODE2"
+				.USE_MULT							("MULT_S"), // Select multiplier usage, "MULT" (MREG => 0), "MULT_S" (MREG => 1), "NONE" (no multiplier)
+				.USE_PATTERN_DETECT					("NO_PATDET"), // Enable pattern detect, "PATDET", "NO_PATDET"
+				.USE_SIMD							("ONE48") // SIMD selection, "ONE48", "TWO24", "FOUR12"
 			)
 		i_dsp48e
 			)
-				.ACOUT(ACOUT), // 30-bit A port cascade output
-				.BCOUT(BCOUT), // 18-bit B port cascade output
-				.CARRYCASCOUT(CARRYCASCOUT), // 1-bit cascade carry output
-				.CARRYOUT(CARRYOUT), // 4-bit carry output
-				.MULTSIGNOUT(MULTSIGNOUT), // 1-bit multiplier sign cascade output
-				.OVERFLOW(OVERFLOW), // 1-bit overflow in add/acc output
-				.P(P), // 48-bit output
-				.PATTERNBDETECT(PATTERNBDETECT), // 1-bit active high pattern bar detect output
-				.PATTERNDETECT(PATTERNDETECT), // 1-bit active high pattern detect output
-				.PCOUT(PCOUT), // 48-bit cascade output
-				.UNDERFLOW(UNDERFLOW), // 1-bit active high underflow in add/acc output
-				.A(A), // 30-bit A data input
+				.ACOUT								(ACOUT), // 30-bit A port cascade output
+				.BCOUT								(BCOUT), // 18-bit B port cascade output
+				.CARRYCASCOUT						(CARRYCASCOUT), // 1-bit cascade carry output
+				.CARRYOUT								(CARRYOUT), // 4-bit carry output
+				.MULTSIGNOUT								(MULTSIGNOUT), // 1-bit multiplier sign cascade output
+				.OVERFLOW								(OVERFLOW), // 1-bit overflow in add/acc output
+				.P								(P), // 48-bit output
+				.PATTERNBDETECT								(PATTERNBDETECT), // 1-bit active high pattern bar detect output
+				.PATTERNDETECT								(PATTERNDETECT), // 1-bit active high pattern detect output
+				.PCOUT								(PCOUT), // 48-bit cascade output
+				.UNDERFLOW								(UNDERFLOW), // 1-bit active high underflow in add/acc output
+				.A								(A), // 30-bit A data input
 				.ACIN(ACIN), // 30-bit A cascade data input
 				.ALUMODE(ALUMODE), // 4-bit ALU control input
 				.B(B), // 18-bit B data input
