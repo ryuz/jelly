@@ -191,17 +191,17 @@ module jelly_vector_mac
 	assign stage1_in_src1_h0  = {(stage0_out_src1_sign ? {17{stage0_out_src1_data[15]}} : {17{1'b0}}), stage0_out_src1_data[15:0]};
 	assign stage1_in_src1_h1  = {(stage0_out_src1_sign ? {17{stage0_out_src1_data[31]}} : {17{1'b0}}), stage0_out_src1_data[31:16]};
 	assign stage1_in_src1_w   = {(stage0_out_src1_sign ? { 1{stage0_out_src1_data[31]}} : {1{1'b0}}),  stage0_out_src1_data[31:0]};
-	assign stage1_in_src1_b0  = {(stage0_out_src2_sign ? {25{stage0_out_src2_data[7]}}  : {25{1'b0}}), stage0_out_src2_data[7:0]};
-	assign stage1_in_src1_b1  = {(stage0_out_src2_sign ? {25{stage0_out_src2_data[15]}} : {25{1'b0}}), stage0_out_src2_data[15:8]};
-	assign stage1_in_src1_b2  = {(stage0_out_src2_sign ? {25{stage0_out_src2_data[23]}} : {25{1'b0}}), stage0_out_src2_data[23:16]};
-	assign stage1_in_src1_b3  = {(stage0_out_src2_sign ? {25{stage0_out_src2_data[31]}} : {25{1'b0}}), stage0_out_src2_data[31:24]};
-	assign stage1_in_src1_h0  = {(stage0_out_src2_sign ? {17{stage0_out_src2_data[15]}} : {17{1'b0}}), stage0_out_src2_data[15:0]};
-	assign stage1_in_src1_h1  = {(stage0_out_src2_sign ? {17{stage0_out_src2_data[31]}} : {17{1'b0}}), stage0_out_src2_data[31:16]};
-	assign stage1_in_src1_w   = {(stage0_out_src2_sign ? { 1{stage0_out_src2_data[31]}} : { 1{1'b0}}), stage0_out_src2_data[31:0]};
+	assign stage1_in_src2_b0  = {(stage0_out_src2_sign ? {25{stage0_out_src2_data[7]}}  : {25{1'b0}}), stage0_out_src2_data[7:0]};
+	assign stage1_in_src2_b1  = {(stage0_out_src2_sign ? {25{stage0_out_src2_data[15]}} : {25{1'b0}}), stage0_out_src2_data[15:8]};
+	assign stage1_in_src2_b2  = {(stage0_out_src2_sign ? {25{stage0_out_src2_data[23]}} : {25{1'b0}}), stage0_out_src2_data[23:16]};
+	assign stage1_in_src2_b3  = {(stage0_out_src2_sign ? {25{stage0_out_src2_data[31]}} : {25{1'b0}}), stage0_out_src2_data[31:24]};
+	assign stage1_in_src2_h0  = {(stage0_out_src2_sign ? {17{stage0_out_src2_data[15]}} : {17{1'b0}}), stage0_out_src2_data[15:0]};
+	assign stage1_in_src2_h1  = {(stage0_out_src2_sign ? {17{stage0_out_src2_data[31]}} : {17{1'b0}}), stage0_out_src2_data[31:16]};
+	assign stage1_in_src2_w   = {(stage0_out_src2_sign ? { 1{stage0_out_src2_data[31]}} : { 1{1'b0}}), stage0_out_src2_data[31:0]};
 	
 	jelly_pipeline_ff
 			#(
-				.WIDTH		(2+1+1+6+1+1+(33*14)),
+				.WIDTH		(2+1+1+6+1+1+(33*21)),
 				.REG		(STAGE1_REG),
 				.INIT		({1'b0, {(2+1+6+1+1+(33*21)){1'bx}}})
 			)
@@ -498,94 +498,95 @@ module jelly_vector_mac
 	
 	jelly_mac18x18
 			#(
-				.INPUT_REG 	(STAGE3_REG),
-				.MUL_REG   	(STAGE4_REG),	
-				.OUTPUT_REG	(STAGE5_REG)
+				.INPUT_REG 		(STAGE3_REG),
+				.MUL_REG   		(STAGE4_REG),	
+				.OUTPUT_REG		(STAGE5_REG)
 			)
 		i_mac18x18_0
 			(
-				.reset		(reset),
-				.clk		(clk),
-				.enable		(1'b1),
+				.reset			(reset),
+				.clk			(clk),
+				.cke			(cke),
 				
-				.op_mac		(stage2_out_addsub),
-				.op_sub		(stage2_out_feedback),
+				.op_addsub		(stage2_out_addsub),
+				.op_feedback	(stage2_out_feedback),
+			
+				.in_data0		(stage2_out_mul0_src0),
+				.in_data1		(stage2_out_mul0_src1),
+				.in_data2		({{30{stage2_out_mul0_src2[17]}}, stage2_out_mul0_src2}),
 				
-				.in_data0	(stage2_out_mul0_src0),
-				.in_data1	(stage2_out_mul0_src1),
-				.in_data2	(stage2_out_mul0_src2),
-				
-				.out_data	(stage5_out_data0)
+				.out_data		(stage5_out_data0)
 			);
 	
 	jelly_mac18x18
 			#(
-				.INPUT_REG 	(STAGE3_REG),
-				.MUL_REG   	(STAGE4_REG),	
-				.OUTPUT_REG	(STAGE5_REG)
+				.INPUT_REG 		(STAGE3_REG),
+				.MUL_REG   		(STAGE4_REG),	
+				.OUTPUT_REG		(STAGE5_REG)
 			)
 		i_mac18x18_1
 			(
-				.reset		(reset),
-				.clk		(clk),
-				.enable		(1'b1),
+				.reset			(reset),
+				.clk			(clk),
+				.cke			(cke),
 				
-				.op_mac		(stage2_out_addsub),
-				.op_sub		(stage2_out_feedback),
+				.op_addsub		(stage2_out_addsub),
+				.op_feedback	(stage2_out_feedback),
 				
-				.in_data0	(stage2_out_mul1_src0),
-				.in_data1	(stage2_out_mul1_src1),
-				.in_data2	(stage2_out_mul1_src2),
+				.in_data0		(stage2_out_mul1_src0),
+				.in_data1		(stage2_out_mul1_src1),
+				.in_data2		({{30{stage2_out_mul1_src2[17]}}, stage2_out_mul1_src2}),
 				
-				.out_data	(stage5_out_data1)
+				.out_data		(stage5_out_data1)
 			);
 	
 	jelly_mac18x18
 			#(
-				.INPUT_REG 	(STAGE3_REG),
-				.MUL_REG   	(STAGE4_REG),	
-				.OUTPUT_REG	(STAGE5_REG)
+				.INPUT_REG 		(STAGE3_REG),
+				.MUL_REG   		(STAGE4_REG),	
+				.OUTPUT_REG		(STAGE5_REG)
 			)
 		i_mac18x18_2
 			(
-				.reset		(reset),
-				.clk		(clk),
-				.enable		(1'b1),
+				.reset			(reset),
+				.clk			(clk),
+				.cke			(cke),
 				
-				.op_mac		(stage2_out_addsub),
-				.op_sub		(stage2_out_feedback),
+				.op_addsub		(stage2_out_addsub),
+				.op_feedback	(stage2_out_feedback),
 				
-				.in_data0	(stage2_out_mul2_src0),
-				.in_data1	(stage2_out_mul2_src1),
-				.in_data2	(stage2_out_mul2_src2),
+				.in_data0		(stage2_out_mul2_src0),
+				.in_data1		(stage2_out_mul2_src1),
+				.in_data2		({{30{stage2_out_mul2_src2[17]}}, stage2_out_mul2_src2}),
 				
-				.out_data	(stage5_out_data2)
+				.out_data		(stage5_out_data2)
 			);
 	
 	jelly_mac18x18
 			#(
-				.INPUT_REG 	(STAGE3_REG),
-				.MUL_REG   	(STAGE4_REG),	
-				.OUTPUT_REG	(STAGE5_REG)
+				.INPUT_REG 		(STAGE3_REG),
+				.MUL_REG   		(STAGE4_REG),	
+				.OUTPUT_REG		(STAGE5_REG)
 			)
 		i_mac18x18_3
 			(
-				.reset		(reset),
-				.clk		(clk),
-				.enable		(1'b1),
+				.reset			(reset),
+				.clk			(clk),
+				.cke			(cke),
 				
-				.op_mac		(stage2_out_addsub),
-				.op_sub		(stage2_out_feedback),
+				.op_addsub		(stage2_out_addsub),
+				.op_feedback	(stage2_out_feedback),
 				
-				.in_data0	(stage2_out_mul2_src0),
-				.in_data1	(stage2_out_mul2_src1),
-				.in_data2	(stage2_out_mul2_src2),
+				.in_data0		(stage2_out_mul3_src0),
+				.in_data1		(stage2_out_mul3_src1),
+				.in_data2		({{30{stage2_out_mul3_src2[17]}}, stage2_out_mul3_src2}),
 				
-				.out_data	(stage5_out_data3)
+				.out_data		(stage5_out_data3)
 			);
 	
 	
 	
+	assign out_dst_data = stage5_out_data0 | stage5_out_data1 | stage5_out_data2 | stage5_out_data3;
 	
 	// multiply destination
 	/*
