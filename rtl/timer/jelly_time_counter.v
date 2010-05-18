@@ -90,7 +90,7 @@ module jelly_time_counter
 		default:				wb_dat_o <= {WB_DAT_WIDTH{1'b0}};
 		endcase
 	end
-		
+	
 	assign wb_ack_o = wb_stb_i;
 	
 endmodule
