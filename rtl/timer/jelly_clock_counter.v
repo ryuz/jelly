@@ -19,7 +19,7 @@
 `define TIMER_ADR_COUNTER_L		3'b111
 
 
-module jelly_time_counter
+module jelly_clock_counter
 		#(
 			parameter							WB_ADR_WIDTH  = 3,
 			parameter							WB_DAT_WIDTH  = 32,

@@ -14,9 +14,9 @@
 #include "ostimer.h"
 
 
-#define TIMER0_CONTROL	((volatile unsigned long *)0xf1000000)
-#define TIMER0_COMPARE	((volatile unsigned long *)0xf1000004)
-#define TIMER0_COUNTER	((volatile unsigned long *)0xf100000c)
+#define TIMER0_CONTROL	((volatile unsigned long *)0xfffff100)
+#define TIMER0_COMPARE	((volatile unsigned long *)0xfffff104)
+#define TIMER0_COUNTER	((volatile unsigned long *)0xfffff10c)
 
 #define INTNO_TIMER0	0
 

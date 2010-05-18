@@ -11,6 +11,49 @@
 `default_nettype none
 
 
+// memory map
+`define	MAP_TABLE_ADDR		32'hffff0000
+`define	MAP_IRC_ADDR		32'hffff8000
+`define	MAP_CPUTIM_ADDR		32'hfffff000
+`define	MAP_TIMER0_ADDR		32'hfffff100
+`define	MAP_TIMER1_ADDR		32'hfffff110
+`define	MAP_UART0_ADDR		32'hfffff200
+`define	MAP_GPIO0_ADDR		32'hfffff300
+`define	MAP_GPIO1_ADDR		32'hfffff310
+`define	MAP_EXTROM_ADDR		32'h80000000
+
+`define	MAP_TABLE_MASK		32'hffffe000
+`define	MAP_IRC_MASK		32'hffffe000
+`define	MAP_CPUTIM_MASK		32'hfffffff0
+`define	MAP_TIMER0_MASK		32'hfffffff0
+`define	MAP_TIMER1_MASK		32'hfffffff0
+`define	MAP_TIMER1_MASK		32'hfffffff0
+`define	MAP_UART0_MASK		32'hfffffff0
+`define	MAP_GPIO0_MASK		32'hfffffff0
+`define	MAP_GPIO1_MASK		32'hfffffff0
+`define	MAP_EXTROM_MASK		32'hc0000000
+
+`define	MAP_IRC_TYPE		32'h00010001
+`define	MAP_IRC_ATTR		32'h00000000
+`define	MAP_IRC_SIZE		32'h00002000
+
+`define	MAP_CPUTIM_TYPE		32'h00010018
+`define	MAP_CPUTIM_ATTR		32'h00000000
+`define	MAP_CPUTIM_SIZE		32'h00000010
+
+`define	MAP_TIMER0_TYPE		32'h00010010
+`define	MAP_TIMER0_ATTR		32'h00000000
+`define	MAP_TIMER0_SIZE		32'h00000010
+
+`define	MAP_TIMER1_TYPE		32'h00010010
+`define	MAP_TIMER1_ATTR		32'h00000000
+`define	MAP_TIMER1_SIZE		32'h00000010
+
+`define	MAP_UART0_TYPE		32'h00010020
+`define	MAP_UART0_ATTR		32'h00000000
+`define	MAP_UART0_SIZE		32'h00000010
+
+
 // top module
 module top
 		#(
@@ -519,6 +562,51 @@ module top
 	
 	
 	
+	// -----------------------------
+	//  memory map table
+	// -----------------------------
+	
+	wire	[31:2]		wb_map_adr_i;
+	wire	[31:0]		wb_map_dat_i;
+	reg		[31:0]		wb_map_dat_o;
+	wire	[3:0]		wb_map_sel_i;
+	wire				wb_map_we_i;
+	wire				wb_map_stb_i;
+	reg					wb_map_ack_o;
+	
+	always @(posedge clk) begin
+		if ( reset ) begin
+			wb_map_dat_o <= {32{1'bx}};
+			wb_map_ack_o <= 1'b0;
+		end
+		else begin
+			wb_map_ack_o <= !wb_map_ack_o & wb_map_stb_i;
+			case ( wb_map_adr_i[9:2] )
+			8'h00:		wb_map_dat_o <= `MAP_IRC_TYPE;
+			8'h01:		wb_map_dat_o <= `MAP_IRC_ATTR;
+			8'h02:		wb_map_dat_o <= `MAP_IRC_ADDR;
+			8'h03:		wb_map_dat_o <= `MAP_IRC_SIZE;
+			8'h04:		wb_map_dat_o <= `MAP_CPUTIM_TYPE;
+			8'h05:		wb_map_dat_o <= `MAP_CPUTIM_ATTR;
+			8'h06:		wb_map_dat_o <= `MAP_CPUTIM_ADDR;
+			8'h07:		wb_map_dat_o <= `MAP_CPUTIM_SIZE;
+			8'h08:		wb_map_dat_o <= `MAP_TIMER0_TYPE;
+			8'h09:		wb_map_dat_o <= `MAP_TIMER0_ATTR;
+			8'h0a:		wb_map_dat_o <= `MAP_TIMER0_ADDR;
+			8'h0b:		wb_map_dat_o <= `MAP_TIMER0_SIZE;
+			8'h0c:		wb_map_dat_o <= `MAP_TIMER1_TYPE;
+			8'h0d:		wb_map_dat_o <= `MAP_TIMER1_ATTR;
+			8'h0e:		wb_map_dat_o <= `MAP_TIMER1_ADDR;
+			8'h0f:		wb_map_dat_o <= `MAP_TIMER1_SIZE;
+			8'h10:		wb_map_dat_o <= `MAP_UART0_TYPE;
+			8'h11:		wb_map_dat_o <= `MAP_UART0_ATTR;
+			8'h12:		wb_map_dat_o <= `MAP_UART0_ADDR;
+			8'h13:		wb_map_dat_o <= `MAP_UART0_SIZE;
+			default:	wb_map_dat_o <= 32'h0000_0000;
+			endcase
+		end
+	end
+	
 	
 	// -----------------------------
 	//  IRC
@@ -588,8 +676,8 @@ module top
 	wire				wb_cputim_stb_i;
 	wire				wb_cputim_ack_o;
 	
-	jelly_time_counter
-		i_time_counter
+	jelly_clock_counter
+		i_clock_counter
 			(
 				.clk				(clk),
 				.reset				(reset),
@@ -616,8 +704,8 @@ module top
 	wire				wb_timer0_stb_i;
 	wire				wb_timer0_ack_o;
 	
-	jelly_timer
-		i_timer0
+	jelly_interval_timer
+		i_interval_timer0
 			(
 				.clk				(clk),
 				.reset				(reset),
@@ -646,8 +734,8 @@ module top
 	wire				wb_timer1_stb_i;
 	wire				wb_timer1_ack_o;
 	
-	jelly_timer
-		i_timer1
+	jelly_interval_timer
+		i_interval_timer1
 			(
 				.clk				(clk),
 				.reset				(reset),
@@ -708,13 +796,13 @@ module top
 	//  GPIO A
 	// -----------------------------
 
-	wire	[31:2]		wb_gpioa_adr_i;
-	wire	[31:0]		wb_gpioa_dat_i;
-	wire	[31:0]		wb_gpioa_dat_o;
-	wire	[3:0]		wb_gpioa_sel_i;
-	wire				wb_gpioa_we_i;
-	wire				wb_gpioa_stb_i;
-	wire				wb_gpioa_ack_o;
+	wire	[31:2]		wb_gpio0_adr_i;
+	wire	[31:0]		wb_gpio0_dat_i;
+	wire	[31:0]		wb_gpio0_dat_o;
+	wire	[3:0]		wb_gpio0_sel_i;
+	wire				wb_gpio0_we_i;
+	wire				wb_gpio0_stb_i;
+	wire				wb_gpio0_ack_o;
 	
 	jelly_gpio
 			#(
@@ -729,13 +817,13 @@ module top
 				
 				.port				(gpio_a),
 				
-				.wb_adr_i			(wb_gpioa_adr_i[3:2]),
-				.wb_dat_o			(wb_gpioa_dat_o),
-				.wb_dat_i			(wb_gpioa_dat_i),
-				.wb_we_i			(wb_gpioa_we_i),
-				.wb_sel_i			(wb_gpioa_sel_i),
-				.wb_stb_i			(wb_gpioa_stb_i),
-				.wb_ack_o			(wb_gpioa_ack_o)
+				.wb_adr_i			(wb_gpio0_adr_i[3:2]),
+				.wb_dat_o			(wb_gpio0_dat_o),
+				.wb_dat_i			(wb_gpio0_dat_i),
+				.wb_we_i			(wb_gpio0_we_i),
+				.wb_sel_i			(wb_gpio0_sel_i),
+				.wb_stb_i			(wb_gpio0_stb_i),
+				.wb_ack_o			(wb_gpio0_ack_o)
 			);                     
 	
 
@@ -743,13 +831,13 @@ module top
 	//  GPIO B
 	// -----------------------------
 
-	wire	[31:2]		wb_gpiob_adr_i;
-	wire	[31:0]		wb_gpiob_dat_i;
-	wire	[31:0]		wb_gpiob_dat_o;
-	wire	[3:0]		wb_gpiob_sel_i;
-	wire				wb_gpiob_we_i;
-	wire				wb_gpiob_stb_i;
-	wire				wb_gpiob_ack_o;
+	wire	[31:2]		wb_gpio1_adr_i;
+	wire	[31:0]		wb_gpio1_dat_i;
+	wire	[31:0]		wb_gpio1_dat_o;
+	wire	[3:0]		wb_gpio1_sel_i;
+	wire				wb_gpio1_we_i;
+	wire				wb_gpio1_stb_i;
+	wire				wb_gpio1_ack_o;
 	
 	jelly_gpio
 			#(
@@ -765,13 +853,13 @@ module top
 				.port				(gpio_b),
 
 
-				.wb_adr_i			(wb_gpiob_adr_i[3:2]),
-				.wb_dat_o			(wb_gpiob_dat_o),
-				.wb_dat_i			(wb_gpiob_dat_i),
-				.wb_we_i			(wb_gpiob_we_i),
-				.wb_sel_i			(wb_gpiob_sel_i),
-				.wb_stb_i			(wb_gpiob_stb_i),
-				.wb_ack_o			(wb_gpiob_ack_o)	
+				.wb_adr_i			(wb_gpio1_adr_i[3:2]),
+				.wb_dat_o			(wb_gpio1_dat_o),
+				.wb_dat_i			(wb_gpio1_dat_i),
+				.wb_we_i			(wb_gpio1_we_i),
+				.wb_sel_i			(wb_gpio1_sel_i),
+				.wb_stb_i			(wb_gpio1_stb_i),
+				.wb_ack_o			(wb_gpio1_ack_o)	
 			);
 	
 	
@@ -866,67 +954,67 @@ module top
 	assign wb_irc_dat_i    = wb_peri_dat_o;
 	assign wb_irc_sel_i    = wb_peri_sel_o;
 	assign wb_irc_we_i     = wb_peri_we_o;
-	assign wb_irc_stb_i    = wb_peri_stb_o & (wb_peri_adr_o[31:16] == 16'hf000);
+	assign wb_irc_stb_i    = wb_peri_stb_o & (({wb_peri_adr_o, 2'b00} & `MAP_IRC_MASK) == `MAP_IRC_ADDR);
 
 	assign wb_cputim_adr_i = wb_peri_adr_o;
 	assign wb_cputim_dat_i = wb_peri_dat_o;
 	assign wb_cputim_sel_i = wb_peri_sel_o;
 	assign wb_cputim_we_i  = wb_peri_we_o;
-	assign wb_cputim_stb_i = wb_peri_stb_o & (wb_peri_adr_o[31:16] == 16'hf010);
+	assign wb_cputim_stb_i = wb_peri_stb_o & (({wb_peri_adr_o, 2'b00} & `MAP_CPUTIM_MASK) == `MAP_CPUTIM_ADDR);
 
 	assign wb_timer0_adr_i = wb_peri_adr_o;
 	assign wb_timer0_dat_i = wb_peri_dat_o;
 	assign wb_timer0_sel_i = wb_peri_sel_o;
 	assign wb_timer0_we_i  = wb_peri_we_o;
-	assign wb_timer0_stb_i = wb_peri_stb_o & (wb_peri_adr_o[31:16] == 16'hf100);
+	assign wb_timer0_stb_i = wb_peri_stb_o & (({wb_peri_adr_o, 2'b00} & `MAP_TIMER0_MASK) == `MAP_TIMER0_ADDR);
 	
 	assign wb_timer1_adr_i = wb_peri_adr_o;
 	assign wb_timer1_dat_i = wb_peri_dat_o;
 	assign wb_timer1_sel_i = wb_peri_sel_o;
 	assign wb_timer1_we_i  = wb_peri_we_o;
-	assign wb_timer1_stb_i = wb_peri_stb_o & (wb_peri_adr_o[31:16] == 16'hf101);
+	assign wb_timer1_stb_i = wb_peri_stb_o & (({wb_peri_adr_o, 2'b00} & `MAP_TIMER1_MASK) == `MAP_TIMER1_ADDR);
 	
 	assign wb_uart0_adr_i  = wb_peri_adr_o;
 	assign wb_uart0_dat_i  = wb_peri_dat_o;
 	assign wb_uart0_sel_i  = wb_peri_sel_o;
 	assign wb_uart0_we_i   = wb_peri_we_o;
-	assign wb_uart0_stb_i  = wb_peri_stb_o & (wb_peri_adr_o[31:16] == 16'hf200);
+	assign wb_uart0_stb_i  = wb_peri_stb_o & (({wb_peri_adr_o, 2'b00} & `MAP_UART0_MASK) == `MAP_UART0_ADDR);
 
-	assign wb_gpioa_adr_i  = wb_peri_adr_o;
-	assign wb_gpioa_dat_i  = wb_peri_dat_o;
-	assign wb_gpioa_sel_i  = wb_peri_sel_o;
-	assign wb_gpioa_we_i   = wb_peri_we_o;
-	assign wb_gpioa_stb_i  = wb_peri_stb_o & (wb_peri_adr_o[31:4] == 28'hf300_000);
+	assign wb_gpio0_adr_i  = wb_peri_adr_o;
+	assign wb_gpio0_dat_i  = wb_peri_dat_o;
+	assign wb_gpio0_sel_i  = wb_peri_sel_o;
+	assign wb_gpio0_we_i   = wb_peri_we_o;
+	assign wb_gpio0_stb_i  = wb_peri_stb_o & (({wb_peri_adr_o, 2'b00} & `MAP_GPIO0_MASK) == `MAP_GPIO0_ADDR);
 
-	assign wb_gpiob_adr_i  = wb_peri_adr_o;
-	assign wb_gpiob_dat_i  = wb_peri_dat_o;
-	assign wb_gpiob_sel_i  = wb_peri_sel_o;
-	assign wb_gpiob_we_i   = wb_peri_we_o;
-	assign wb_gpiob_stb_i  = wb_peri_stb_o & (wb_peri_adr_o[31:4] == 28'hf300_001);
+	assign wb_gpio1_adr_i  = wb_peri_adr_o;
+	assign wb_gpio1_dat_i  = wb_peri_dat_o;
+	assign wb_gpio1_sel_i  = wb_peri_sel_o;
+	assign wb_gpio1_we_i   = wb_peri_we_o;
+	assign wb_gpio1_stb_i  = wb_peri_stb_o & (({wb_peri_adr_o, 2'b00} & `MAP_GPIO1_MASK) == `MAP_GPIO1_ADDR);
 
 	assign wb_flash_adr_i  = wb_peri_adr_o;
 	assign wb_flash_dat_i  = wb_peri_dat_o;
 	assign wb_flash_sel_i  = wb_peri_sel_o;
 	assign wb_flash_we_i   = wb_peri_we_o;
-	assign wb_flash_stb_i  = wb_peri_stb_o & (wb_peri_adr_o[31:16] == 16'h8000);
+	assign wb_flash_stb_i  = wb_peri_stb_o & (({wb_peri_adr_o, 2'b00} & `MAP_EXTROM_MASK) == `MAP_EXTROM_ADDR);
 	
 	assign wb_peri_dat_i   = wb_irc_stb_i    ? wb_irc_dat_o    :
 						     wb_cputim_stb_i ? wb_cputim_dat_o :
 						     wb_timer0_stb_i ? wb_timer0_dat_o :
 						     wb_timer1_stb_i ? wb_timer1_dat_o :
 						     wb_uart0_stb_i  ? wb_uart0_dat_o  :
-						     wb_gpioa_stb_i  ? wb_gpioa_dat_o  :
-						     wb_gpiob_stb_i  ? wb_gpiob_dat_o  :
+						     wb_gpio0_stb_i  ? wb_gpio0_dat_o  :
+						     wb_gpio1_stb_i  ? wb_gpio1_dat_o  :
 							 wb_flash_stb_i  ? wb_flash_dat_o  :
 							 32'hxxxx_xxxx;       
-
+	
 	assign wb_peri_ack_i   = wb_irc_stb_i    ? wb_irc_ack_o    :
 						     wb_cputim_stb_i ? wb_cputim_ack_o :
 						     wb_timer0_stb_i ? wb_timer0_ack_o :
 						     wb_timer1_stb_i ? wb_timer1_ack_o :
 						     wb_uart0_stb_i  ? wb_uart0_ack_o  :
-						     wb_gpioa_stb_i  ? wb_gpioa_ack_o  :
-						     wb_gpiob_stb_i  ? wb_gpiob_ack_o  :
+						     wb_gpio0_stb_i  ? wb_gpio0_ack_o  :
+						     wb_gpio1_stb_i  ? wb_gpio1_ack_o  :
 							 wb_flash_stb_i  ? wb_flash_ack_o  :
 							 1'b1;
 		

@@ -206,14 +206,8 @@
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
-    <file xil_pn:name="../../../../rtl/timer/jelly_time_counter.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
-    <file xil_pn:name="../../../../rtl/timer/jelly_timer.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
+    <file xil_pn:name="../../../../rtl/timer/jelly_time_counter.v" xil_pn:type="FILE_VERILOG"/>
+    <file xil_pn:name="../../../../rtl/timer/jelly_timer.v" xil_pn:type="FILE_VERILOG"/>
     <file xil_pn:name="../../../../rtl/uart/jelly_uart.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
@@ -239,6 +233,14 @@
       <association xil_pn:name="PostMapSimulation"/>
       <association xil_pn:name="PostRouteSimulation"/>
       <association xil_pn:name="PostTranslateSimulation"/>
+    </file>
+    <file xil_pn:name="../../../../rtl/timer/jelly_clock_counter.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation"/>
+      <association xil_pn:name="Implementation"/>
+    </file>
+    <file xil_pn:name="../../../../rtl/timer/jelly_interval_timer.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation"/>
+      <association xil_pn:name="Implementation"/>
     </file>
   </files>
 

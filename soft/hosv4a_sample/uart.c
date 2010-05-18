@@ -12,8 +12,8 @@
 #include "kernel.h"
 
 
-#define UART0_DATA	((volatile UW *)0xf2000000)
-#define UART0_STAT	((volatile UW *)0xf2000004)
+#define UART0_DATA	((volatile UW *)0xfffff200)
+#define UART0_STAT	((volatile UW *)0xfffff204)
 
 
 

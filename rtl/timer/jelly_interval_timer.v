@@ -17,7 +17,7 @@
 `define TIMER_ADR_COUNTER	2'b11
 
 
-module jelly_timer
+module jelly_interval_timer
 		#(
 			parameter							WB_ADR_WIDTH  = 2,
 			parameter							WB_DAT_WIDTH  = 32,

@@ -63,9 +63,9 @@ extern SYSTIM_CPUTIME		SysTim_TimeCounter;		/* デフォルトのタイマカウンタ */
 
 
 
-#define GPIOA_DIR		((volatile unsigned long *)0xf3000000)
-#define GPIOA_INPUT 	((volatile unsigned long *)0xf3000004)
-#define GPIOA_OUPUT 	((volatile unsigned long *)0xf3000008)
+#define GPIOA_DIR		((volatile unsigned long *)0xfffff300)
+#define GPIOA_INPUT 	((volatile unsigned long *)0xfffff304)
+#define GPIOA_OUPUT 	((volatile unsigned long *)0xfffff308)
 
 #define MMC_CS			0x01
 #define MMC_DI			0x02
@@ -234,7 +234,7 @@ int Boot_Process(VPARAM Param)
 	File_AddDevice("mmc0", hDriver);
 
 	/* Jelly UART デバドラ生成 (/dev/com0 に登録) */
-	hDriver = JellyUartDrv_Create((void *)0xf2000000, 1, 2, 256);
+	hDriver = JellyUartDrv_Create((void *)0xfffff200, 1, 2, 256);
 	File_AddDevice("com0", hDriver);
 
 	/* シリアルを開く */
