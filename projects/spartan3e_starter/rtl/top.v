@@ -24,14 +24,14 @@
 
 `define	MAP_TABLE_MASK		32'hffffe000
 `define	MAP_IRC_MASK		32'hffffe000
-`define	MAP_CPUTIM_MASK		32'hfffffff0
+`define	MAP_CPUTIM_MASK		32'hffffffe0
 `define	MAP_TIMER0_MASK		32'hfffffff0
 `define	MAP_TIMER1_MASK		32'hfffffff0
 `define	MAP_TIMER1_MASK		32'hfffffff0
 `define	MAP_UART0_MASK		32'hfffffff0
 `define	MAP_GPIO0_MASK		32'hfffffff0
 `define	MAP_GPIO1_MASK		32'hfffffff0
-`define	MAP_EXTROM_MASK		32'hc0000000
+`define	MAP_EXTROM_MASK		32'hf0000000
 
 `define	MAP_IRC_TYPE		32'h00010001
 `define	MAP_IRC_ATTR		32'h00000000
@@ -39,7 +39,7 @@
 
 `define	MAP_CPUTIM_TYPE		32'h00010018
 `define	MAP_CPUTIM_ATTR		32'h00000000
-`define	MAP_CPUTIM_SIZE		32'h00000010
+`define	MAP_CPUTIM_SIZE		32'h00000020
 
 `define	MAP_TIMER0_TYPE		32'h00010010
 `define	MAP_TIMER0_ATTR		32'h00000000
@@ -641,7 +641,7 @@ module top
 				.FACTOR_NUM			(4),
 				.PRIORITY_WIDTH		(2),
 	
-				.WB_ADR_WIDTH		(14),
+				.WB_ADR_WIDTH		(12),
 				.WB_DAT_WIDTH		(32)
 			)
 		i_irc
@@ -654,7 +654,7 @@ module top
 				.cpu_irq			(cpu_irq),
 				.cpu_irq_ack		(cpu_irq_ack),
 											
-				.wb_adr_i			(wb_irc_adr_i[15:2]),
+				.wb_adr_i			(wb_irc_adr_i[13:2]),
 				.wb_dat_o			(wb_irc_dat_o),
 				.wb_dat_i			(wb_irc_dat_i),
 				.wb_we_i			(wb_irc_we_i),
