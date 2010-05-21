@@ -33,6 +33,7 @@
 `define	MAP_GPIO1_MASK		32'hfffffff0
 `define	MAP_EXTROM_MASK		32'hf0000000
 
+
 `define	MAP_IRC_TYPE		32'h00010001
 `define	MAP_IRC_ATTR		32'h00000000
 `define	MAP_IRC_SIZE		32'h00002000

@@ -376,3 +376,8 @@ module jelly_vector_simd
 	
 endmodule
 
+
+`default_nettype wire
+
+
+// end of file

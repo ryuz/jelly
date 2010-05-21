@@ -4,7 +4,7 @@ ENTRY(_reset_handler)
 MEMORY
 {
 	rom    : o = 0x00000000, l = 0x00010000
-	ram    : o = 0x10000000, l = 0x00001000
+	ram    : o = 0x10000000, l = 0x00010000
 }
 
 SECTIONS

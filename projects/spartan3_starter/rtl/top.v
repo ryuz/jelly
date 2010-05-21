@@ -1,17 +1,32 @@
 // ----------------------------------------------------------------------------
 //  Jelly -- The computing system for Spartan-3 Starter Kit
 //
-//                                       Copyright (C) 2008 by Ryuji Fuchikami 
+//                                  Copyright (C) 2008-2010 by Ryuji Fuchikami 
 // ----------------------------------------------------------------------------
 
 
 `timescale 1ns / 1ps
+`default_nettype none
 
+
+// memory map
+`define	MAP_ROM_ADDR		32'h00000000
+`define	MAP_EXTSRAM_ADDR	32'h10000000
+`define	MAP_IRC_ADDR		32'hffff8000
+`define	MAP_TIMER0_ADDR		32'hfffff100
+`define	MAP_UART0_ADDR		32'hfffff200
+
+`define	MAP_ROM_MASK		32'hf0000000
+`define	MAP_EXTSRAM_MASK	32'hf0000000
+`define	MAP_IRC_MASK		32'hffffe000
+`define	MAP_TIMER0_MASK		32'hfffffff0
+`define	MAP_UART0_MASK		32'hfffffff0
 
 
 // top module
 module top
 		#(
+			parameter	BOOT_ROM_FILE   = "hosv4a_sample.hex",
 			parameter	USE_DBUGGER     = 1'b0,
 			parameter	USE_EXC_SYSCALL = 1'b0,
 			parameter	USE_EXC_BREAK   = 1'b0,
@@ -219,7 +234,7 @@ module top
 				.WB_ADR_WIDTH	(12),
 				.WB_DAT_WIDTH	(32),
 				.READMEMH		(1),
-				.READMEM_FILE	("hosv4a_sample_ram.hex")
+				.READMEM_FILE	(BOOT_ROM_FILE)
 			)
 		i_sram_boot
 			(
@@ -356,8 +371,8 @@ module top
 	wire				wb_timer0_stb_i;
 	wire				wb_timer0_ack_o;
 	
-	jelly_timer
-		i_timer0
+	jelly_interval_timer
+		i_interval_timer0
 			(
 				.clk				(clk),
 				.reset				(reset),
@@ -423,31 +438,31 @@ module top
 	assign wb_rom_dat_i    = wb_cpu_dat_o;
 	assign wb_rom_sel_i    = wb_cpu_sel_o;
 	assign wb_rom_we_i     = wb_cpu_we_o;
-	assign wb_rom_stb_i    = wb_cpu_stb_o & (wb_cpu_adr_o[31:24] == 8'h00);
+	assign wb_rom_stb_i    = wb_cpu_stb_o & (({wb_cpu_adr_o, 2'b00} & `MAP_ROM_MASK) == `MAP_ROM_ADDR);
 	
 	assign wb_asram_adr_i  = wb_cpu_adr_o;
 	assign wb_asram_dat_i  = wb_cpu_dat_o;
 	assign wb_asram_sel_i  = wb_cpu_sel_o;
 	assign wb_asram_we_i   = wb_cpu_we_o;
-	assign wb_asram_stb_i  = wb_cpu_stb_o & (wb_cpu_adr_o[31:24] == 8'h01);
+	assign wb_asram_stb_i  = wb_cpu_stb_o & (({wb_cpu_adr_o, 2'b00} & `MAP_EXTSRAM_MASK) == `MAP_EXTSRAM_ADDR);
 	
 	assign wb_irc_adr_i    = wb_cpu_adr_o;
 	assign wb_irc_dat_i    = wb_cpu_dat_o;
 	assign wb_irc_sel_i    = wb_cpu_sel_o;
 	assign wb_irc_we_i     = wb_cpu_we_o;
-	assign wb_irc_stb_i    = wb_cpu_stb_o & (wb_cpu_adr_o[31:24] == 8'hf0);
-
+	assign wb_irc_stb_i    = wb_cpu_stb_o & (({wb_cpu_adr_o, 2'b00} & `MAP_IRC_MASK) == `MAP_IRC_ADDR);
+	
 	assign wb_timer0_adr_i = wb_cpu_adr_o;
 	assign wb_timer0_dat_i = wb_cpu_dat_o;
 	assign wb_timer0_sel_i = wb_cpu_sel_o;
 	assign wb_timer0_we_i  = wb_cpu_we_o;
-	assign wb_timer0_stb_i = wb_cpu_stb_o & (wb_cpu_adr_o[31:24] == 8'hf1);
-
+	assign wb_timer0_stb_i = wb_cpu_stb_o & (({wb_cpu_adr_o, 2'b00} & `MAP_TIMER0_MASK) == `MAP_TIMER0_ADDR);
+	
 	assign wb_uart0_adr_i  = wb_cpu_adr_o;
 	assign wb_uart0_dat_i  = wb_cpu_dat_o;
 	assign wb_uart0_sel_i  = wb_cpu_sel_o;
 	assign wb_uart0_we_i   = wb_cpu_we_o;
-	assign wb_uart0_stb_i  = wb_cpu_stb_o & (wb_cpu_adr_o[31:24] == 8'hf2);
+	assign wb_uart0_stb_i  = wb_cpu_stb_o & (({wb_cpu_adr_o, 2'b00} & `MAP_UART0_MASK) == `MAP_UART0_ADDR);
 	
 	assign wb_cpu_dat_i    = wb_rom_stb_i    ? wb_rom_dat_o    :
 						     wb_asram_stb_i  ? wb_asram_dat_o  :
@@ -461,7 +476,7 @@ module top
 						     wb_irc_stb_i    ? wb_irc_ack_o    :
 						     wb_timer0_stb_i ? wb_timer0_ack_o :
 						     wb_uart0_stb_i  ? wb_uart0_ack_o  :
-							 1'b1;
+							 wb_cpu_stb_o;
 	
 	
 	
@@ -485,3 +500,8 @@ module top
 	
 endmodule
 
+
+`default_nettype	wire
+
+
+// end of file

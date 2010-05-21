@@ -688,3 +688,8 @@ module jelly_vector_mac
 	
 endmodule
 
+
+`default_nettype wire
+
+
+// end of file

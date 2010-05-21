@@ -8,8 +8,8 @@
 
 
 
-`timescale			1ns / 1ps
-`default_nettype	none
+`timescale 1ns / 1ps
+`default_nettype none
 
 
 // CPU top
@@ -158,6 +158,10 @@ module jelly_cpu_simple_top
 			);
 	
 endmodule
+
+
+
+`default_nettype wire
 
 
 // end of file
