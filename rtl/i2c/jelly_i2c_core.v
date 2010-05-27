@@ -1,115 +1,207 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- the soft-core processor system
-//    UART
+//    I2C
 //
-//                                  Copyright (C) 2008-2009 by Ryuji Fuchikami
+//                                  Copyright (C) 2008-2010 by Ryuji Fuchikami
 //                                      http://homepage3.nifty.com/ryuz
 // ---------------------------------------------------------------------------
 
 
-
-`timescale 1ns / 1ps
+`timescale       1ns / 1ps
+`default_nettype none
 
 
 // uart
 module jelly_i2c_core
 		#(
-			parameter							TX_FIFO_PTR_WIDTH = 4,
-			parameter							RX_FIFO_PTR_WIDTH = 4,
-			         
-			parameter							WB_ADR_WIDTH  = 2,
-			parameter							WB_DAT_WIDTH  = 32,
-			parameter							WB_SEL_WIDTH  = (WB_DAT_WIDTH / 8)
+			parameter							DIVIDER_WIDTH = 16
 		)
 		(
 			input	wire						reset,
 			input	wire						clk,
 			
-			// UART
-			input	wire						uart_clk,
-			output	wire						uart_tx,
-			input	wire						uart_rx,
+			input	wire	[DIVIDER_WIDTH-1:0]	clk_dvider,
 			
-			output	wire						irq_rx,
-			output	wire						irq_tx,
+			output	wire						i2c_scl_t,
+			input	wire						i2c_scl_i,
+			output	wire						i2c_sda_t,
+			input	wire						i2c_sda_i,
 			
-			// control
-			input	wire	[WB_ADR_WIDTH-1:0]	wb_adr_i,
-			output	wire	[WB_DAT_WIDTH-1:0]	wb_dat_o,
-			input	wire	[WB_DAT_WIDTH-1:0]	wb_dat_i,
-			input	wire						wb_we_i,
-			input	wire	[WB_SEL_WIDTH-1:0]	wb_sel_i,
-			input	wire						wb_stb_i,
-			output	wire						wb_ack_o
+			input	wire						cmd_start,
+			input	wire						cmd_stop,
+			input	wire						cmd_send,
+			input	wire						cmd_recv,
+			
+			input	wire	[7:0]				send_data,
+			output	wire	[7:0]				recv_data,
+			
+			output	wire						busy
 		);
+	
+	
+	// state
+	localparam	[1:0]	ST_START = 2'b00, ST_STOP = 2'b01, ST_SEND = 2'b10, ST_RECV = 2'b11;
+	
+	reg								reg_busy;
+	reg		[1:0]					reg_state;
+	reg		[5:0]					reg_counter;
+	
+	// output register
+	reg								reg_sda_t;
+	reg								reg_scl_t;
+	
+	// input double latch
+	reg								reg_scl0_i;
+	reg								reg_sda0_i;
+	reg								reg_scl_i;
+	reg								reg_sda_i;
 
-	localparam	TX_FIFO_SIZE = (1 << TX_FIFO_PTR_WIDTH);
-	localparam	RX_FIFO_SIZE = (1 << RX_FIFO_PTR_WIDTH);
+	// clock dvider
+	reg		[DIVIDER_WIDTH-1:0]		reg_clk_counter;
+	reg								reg_clk_triger;
+		
+	
+	// input double latch
+	always @ (posedge clk) begin
+		if ( reset ) begin
+			reg_scl0_i <= 1'b1;
+			reg_sda0_i <= 1'b1;
+			reg_scl_i  <= 1'b1;
+			reg_sda_i  <= 1'b1;
+		end
+		else begin
+			reg_scl0_i <= i2c_scl_i;
+			reg_sda0_i <= i2c_sda_i;
+			reg_scl_i  <= reg_scl0_i;
+			reg_sda_i  <= reg_sda0_i;
+		end
+	end
+	
+	// clock dvider
+	always @( posedge clk ) begin
+		if ( reset ) begin
+			reg_clk_counter <= 0;
+			reg_clk_triger  <= 1'b0;
+		end
+		else begin
+			if ( reg_busy ) begin
+				if ( !(reg_scl_t == 1'b1 && reg_scl_i == 1'b0) ) begin
+					if ( reg_clk_counter == 0 ) begin
+						reg_clk_counter <= clk_dvider;
+						reg_clk_triger  <= 1'b1;
+					end
+					else begin
+						reg_clk_counter <= reg_clk_counter - 1'b1;
+						reg_clk_triger  <= 1'b0;						
+					end
+				end
+				else begin
+					reg_clk_triger  <= 1'b0;
+				end
+			end
+			else begin
+				// idle
+				reg_clk_counter <= clk_dvider;
+				reg_clk_triger  <= 1'b0;
+			end
+		end
+	end
 	
 	
-	// -------------------------
-	//   Core
-	// -------------------------
+	// state machine
+	reg		[7:0]	reg_send_data;
+	reg		[7:0]	reg_recv_data;
+	always @( posedge clk ) begin
+		if ( reset ) begin
+			reg_busy      <= 1'b0;
+			reg_state     <= 2'bxx;
+			reg_counter   <= 0;
+			reg_send_data <= 8'hxx;
+			reg_recv_data <= 8'hxx;
+		end
+		else begin
+			if ( !reg_busy ) begin
+				if ( cmd_start | cmd_stop | cmd_send | cmd_recv ) begin
+					reg_busy    <= 1'b1;
+					reg_state   <= cmd_stop ? ST_STOP : cmd_start ? ST_START : cmd_recv ? ST_RECV : ST_SEND;
+				end
+				reg_send_data <= send_data;
+				reg_counter   <= 0;
+			end
+			else begin
+				if ( reg_clk_triger ) begin
+					reg_counter <= reg_counter + 1'b1;
+					case ( reg_state )
+					ST_START:	if (reg_counter[1:0] >= 2)  reg_busy <= 1'b0;
+					ST_STOP:	if (reg_counter[1:0] >= 2)  reg_busy <= 1'b0;
+					ST_SEND:	if (reg_counter >= 35) reg_busy <= 1'b0;
+					ST_RECV:	if (reg_counter >= 35) reg_busy <= 1'b0;
+					endcase
+					
+					if ( reg_counter[1:0] == 2'b11 ) begin
+						reg_send_data[7:0] <= {reg_send_data[6:0], 1'b1};
+					end
+					if ( reg_counter[1:0] == 2'b01 && !reg_counter[5] ) begin
+						reg_recv_data <= {reg_recv_data[6:0], reg_sda_i};
+					end
+				end
+			end
+		end
+	end
 	
-	wire							tx_en;
-	wire	[7:0]					tx_data;
-	wire							tx_ready;
+	// output
+	always @( posedge clk ) begin
+		if ( reset ) begin
+			reg_scl_t     <= 1'b1;
+			reg_sda_t     <= 1'b1;
+		end
+		else begin
+			if ( reg_busy ) begin
+				case ( reg_state )
+				ST_START:
+					case ( reg_counter[1:0] )
+					2'b00: begin reg_scl_t <= 1'b1;  reg_sda_t <= 1'b1; end
+					2'b01: begin reg_scl_t <= 1'b1;  reg_sda_t <= 1'b0; end
+					2'b10: begin reg_scl_t <= 1'b0;  reg_sda_t <= 1'b0; end
+					endcase
+				
+				ST_STOP:
+					case ( reg_counter[1:0] )
+					2'b00: begin reg_scl_t <= 1'b0;  reg_sda_t <= 1'b0; end
+					2'b01: begin reg_scl_t <= 1'b1;  reg_sda_t <= 1'b0; end
+					2'b10: begin reg_scl_t <= 1'b1;  reg_sda_t <= 1'b1; end
+					endcase
 
-	wire							rx_en;
-	wire	[7:0]					rx_data;
-	wire							rx_ready;
-	
-	wire	[TX_FIFO_PTR_WIDTH:0]	tx_fifo_free_num;
-	wire	[RX_FIFO_PTR_WIDTH:0]	rx_fifo_data_num;
-	
-	jelly_uart_core
-			#(
-				.TX_FIFO_PTR_WIDTH	(TX_FIFO_PTR_WIDTH),
-				.RX_FIFO_PTR_WIDTH	(RX_FIFO_PTR_WIDTH)
-			)
-		i_uart_core
-			(
-				.reset				(reset),
-				.clk				(clk),
+				ST_SEND:
+					case ( reg_counter[1:0] )
+					2'b00: begin reg_scl_t <= 1'b0; reg_sda_t <= reg_send_data[7]; end
+					2'b01: begin reg_scl_t <= 1'b1; end
+					2'b10: begin reg_scl_t <= 1'b1; end
+					2'b11: begin reg_scl_t <= 1'b0; end
+					endcase
 				
-				.uart_clk			(uart_clk),
-				.uart_tx			(uart_tx),
-				.uart_rx			(uart_rx),
-				
-				.tx_en				(tx_en),
-				.tx_data			(tx_data),
-				.tx_ready			(tx_ready),
-				
-				.rx_en				(rx_en),
-				.rx_data			(rx_data),
-				.rx_ready			(rx_ready),
-				
-				.tx_fifo_free_num	(tx_fifo_free_num),
-				.rx_fifo_data_num	(rx_fifo_data_num)
-			);
+				ST_RECV:
+					case ( reg_counter[1:0] )
+					2'b00: begin reg_scl_t <= 1'b0; reg_sda_t <= ~reg_counter[5]; end
+					2'b01: begin reg_scl_t <= 1'b1; reg_sda_t <= ~reg_counter[5]; end
+					2'b10: begin reg_scl_t <= 1'b1; reg_sda_t <= ~reg_counter[5]; end
+					2'b11: begin reg_scl_t <= 1'b0; reg_sda_t <= ~reg_counter[5]; end
+					endcase
+				endcase
+			end
+		end
+	end
 	
-	
-	// irq
-	assign irq_tx = (tx_fifo_free_num == TX_FIFO_SIZE);
-	assign irq_rx = rx_en;
-	
-	
-	// -------------------------
-	//  register
-	// -------------------------
-	
-	// TX
-	assign tx_en    = wb_stb_i & wb_we_i & (wb_adr_i == 0);
-	assign tx_data  = wb_dat_i[7:0];
-	
-	// RX
-	assign rx_ready = wb_stb_i & !wb_we_i & (wb_adr_i == 0);
-	
-	
-	assign wb_dat_o = (wb_stb_i && (wb_adr_i == 0)) ? rx_data           : 32'h00000000
-					| (wb_stb_i && (wb_adr_i == 1)) ? {tx_ready, rx_en} : 32'h00000000;
-	assign wb_ack_o = 1'b1;
-	
+	assign i2c_scl_t = reg_scl_t;
+	assign i2c_sda_t = reg_sda_t;
+	assign recv_data = reg_recv_data;
+	assign busy      = reg_busy;
 	
 endmodule
+
+
+`default_nettype wire
+
+
+// end of file
 

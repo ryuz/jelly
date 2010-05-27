@@ -2,123 +2,121 @@
 //  Jelly  -- the soft-core processor system
 //    I2C
 //
-//                                  Copyright (C) 2008-2010 by Ryuji Fuchikami
+//                                  Copyright (C) 2008-2009 by Ryuji Fuchikami
 //                                      http://homepage3.nifty.com/ryuz
 // ---------------------------------------------------------------------------
 
 
+`timescale 1ns / 1ps
 
-`timescale       1ns / 1ps
-`default_nettype none
 
-// uart
+`define I2C_STATUS		3'b000
+`define I2C_CONTROL		3'b001
+`define I2C_SEND		3'b010
+`define I2C_RECV		3'b011
+`define I2C_DIVIDER		3'b100
+
+`define CONTROL_START	0
+`define CONTROL_STOP	1
+`define CONTROL_RECV	2
+
+
+// I2C
 module jelly_i2c
 		#(
-			parameter							DIVIDER_WIDTH = 16
+			parameter							DIVIDER_WIDTH = 16,
+			parameter							DIVIDER_INIT  = 2000,
+			
+			parameter							WB_ADR_WIDTH  = 3,
+			parameter							WB_DAT_WIDTH  = 32,
+			parameter							WB_SEL_WIDTH  = (WB_DAT_WIDTH / 8)
 		)
 		(
+			// system
 			input	wire						reset,
 			input	wire						clk,
 			
-			input	wire	[DIVIDER_WIDTH-1:0]	clk_dvider,
-			
+			// I2C
 			output	wire						i2c_scl_t,
 			input	wire						i2c_scl_i,
 			output	wire						i2c_sda_t,
 			input	wire						i2c_sda_i,
 			
-			input	wire						ctl_start,
-			input	wire						ctl_end,
-			input	wire						ctl_send,
-			input	wire						ctl_recv,
-			input	wire	[7:0]				send_data,
-			output	wire	[7:0]				recv_data,
-			
-			output	wire						busy,			
+			// WISHBONE
+			input	wire	[WB_ADR_WIDTH-1:0]	wb_adr_i,
+			output	wire	[WB_DAT_WIDTH-1:0]	wb_dat_o,
+			input	wire	[WB_DAT_WIDTH-1:0]	wb_dat_i,
+			input	wire						wb_we_i,
+			input	wire	[WB_SEL_WIDTH-1:0]	wb_sel_i,
+			input	wire						wb_stb_i,
+			output	wire						wb_ack_o
 		);
-
-	reg		[DIVIDER_WIDTH-1:0]		reg_clk_counter;
-	reg								reg_clk_trig;
-	reg								reg_scl_t;
-	reg								reg_scl_i;
-	reg								reg_sda_t;
-	reg								reg_sda_i;
-	reg		[7:0]					reg_send_data;
-	reg		[7:0]					reg_read_data;
-	reg		[1:0]					reg_busy;
-	reg		[1:0]					reg_state;
-	reg		[3:0]					reg_counter;
 	
-	parameter	[1:0]	ST_START = 2'd0, ST_END = 2'd1, ST_START = 2'd2, ST_START = 2'd3;
 	
-	always @( posedge clk ) begin
-		if ( reset ) begin
+	// -------------------------
+	//   Core
+	// -------------------------
 			
+	reg		[DIVIDER_WIDTH-1:0]	clk_dvider;
+	wire						cmd_start;
+	wire						cmd_stop;
+	wire						cmd_send;
+	wire						cmd_recv;
+	wire	[7:0]				send_data;
+	wire	[7:0]				recv_data;
+	wire						busy;
+	
+	jelly_i2c_core
+			#(
+				.DIVIDER_WIDTH		(DIVIDER_WIDTH)
+			)
+		i_i2c_core
+			(
+				.reset				(reset),
+				.clk				(clk),
+				
+				.clk_dvider			(clk_dvider),
+				
+				.i2c_scl_t			(i2c_scl_t),
+				.i2c_scl_i			(i2c_scl_i),
+				.i2c_sda_t			(i2c_sda_t),
+				.i2c_sda_i			(i2c_sda_i),
+				
+				.cmd_start			(cmd_start),
+				.cmd_stop			(cmd_stop),
+				.cmd_send			(cmd_send),
+				.cmd_recv			(cmd_recv),
+				.send_data			(send_data),
+				.recv_data			(recv_data),
+				
+				.busy				(busy)
+			);
+	
+	// -------------------------
+	//  register
+	// -------------------------
+
+	always @(posedge clk) begin
+		if ( reset ) begin
+			clk_dvider <= DIVIDER_INIT;
 		end
 		else begin
-			// input
-			reg_scl_i <= 2c_scl_i;
-			reg_sda_i <= 2c_sad_i; 
-			
-			// wait pullup voltage
-			if ( !(reg_scl_t == 1'b1 && reg_scl_i == 1'b0) ) begin
-				// counter
-				reg_clk_trig    <= (reg_clk_counter == 0);
-				reg_clk_counter <= (reg_clk_counter == 0) ? clk_dvider : reg_clk_counter - 1;
-				
-				if ( reg_clk_trig ) begin
-					if ( !reg_busy ) begin
-						if ( ctl_start ) begin
-							reg_busy      <= 1'b1;
-							reg_state     <= ST_START;
-							reg_send_data <= 8'hxx;
-							reg_counter   <= 0;
-						end
-						else if ( ctl_start ) begin
-							reg_busy      <= 1'b1;
-							reg_state     <= ST_END;
-							reg_send_data <= 8'hxx;
-							reg_counter   <= 0;
-						end
-						else if ( ctl_send ) begin
-							reg_busy      <= 1'b1;
-							reg_state     <= ST_SEND;
-							reg_send_data <= send_data;
-							reg_counter   <= 0;
-						end
-						else if ( ctl_recv ) begin
-							reg_busy      <= 1'b1;
-							reg_state     <= ST_START;
-							reg_send_data <= 8'hxx;
-							reg_counter   <= 0;
-						end
-					end
-					else begin
-						reg_counter <= reg_counter + 1;
-						case ( reg_state )
-						ST_START:
-							begin
-								case ()
-							end
-						
-						ST_END:
-						ST_START:
-						ST_START:
-						endcase
-					end
-				end
-				else begin
-				end
+			if ( (wb_adr_i == `I2C_DIVIDER) & wb_stb_i & wb_we_i ) begin
+				clk_dvider <= wb_dat_i;
 			end
 		end
 	end
 	
+	assign cmd_start = (wb_adr_i == `I2C_CONTROL) & wb_stb_i & wb_we_i & wb_sel_i[0] & wb_dat_i[`CONTROL_START];
+	assign cmd_stop  = (wb_adr_i == `I2C_CONTROL) & wb_stb_i & wb_we_i & wb_sel_i[0] & wb_dat_i[`CONTROL_STOP];
+	assign cmd_recv  = (wb_adr_i == `I2C_CONTROL) & wb_stb_i & wb_we_i & wb_sel_i[0] & wb_dat_i[`CONTROL_RECV];
+	assign cmd_send  = (wb_adr_i == `I2C_SEND)    & wb_stb_i & wb_we_i & wb_sel_i[0];
+	assign send_data = wb_dat_i[7:0];
+	
+	assign wb_dat_o  = (wb_adr_i == `I2C_STATUS) ? {i2c_scl_i, i2c_sda_i, i2c_scl_t, i2c_sda_t, 3'b000, busy} :
+					   (wb_adr_i == `I2C_RECV)   ? recv_data : 0;
+	
+	assign wb_ack_o  = wb_stb_i;
 	
 endmodule
-
-
-`default_nettype wire
-
-
-// end of file
 
