@@ -13,7 +13,7 @@ VLOG_FLAGS =
 
 all: work_setup rtl_compile
 	cp $(PRJ_DIR)/rtl/*.dat .
-	vsim -c -wlf vsim.wlf -do "run -all" -L xilinxcorelib_ver -L unisims_ver -lib work tb_wishbone_width_cnverter glbl
+	vsim -c -wlf vsim.wlf -do "run -all" -L xilinxcorelib_ver -L unisims_ver -lib work tb_i2c glbl
 
 clean:
 	rm -f *.vcd
@@ -32,6 +32,7 @@ rtl_compile:
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/timer/*.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/gpio/*.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/uart/*.v
+	vlog $(VLOG_FLAGS) $(RTL_DIR)/i2c/*.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/sram/*.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/ddr_sdram/*.v
 

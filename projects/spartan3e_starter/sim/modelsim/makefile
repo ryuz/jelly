@@ -37,6 +37,7 @@ prj_compile:
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/gpio/*.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/uart/*.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/sram/*.v
+	vlog $(VLOG_FLAGS) $(RTL_DIR)/extbus/*.v
 	vlog $(VLOG_FLAGS) $(RTL_DIR)/ddr_sdram/*.v
 
 
