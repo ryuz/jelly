@@ -20,6 +20,7 @@
 `define	MAP_UART0_ADDR		32'hfffff200
 `define	MAP_GPIO0_ADDR		32'hfffff300
 `define	MAP_GPIO1_ADDR		32'hfffff310
+`define	MAP_I2C0_ADDR		32'hfffff400
 `define	MAP_EXTROM_ADDR		32'h80000000
 
 `define	MAP_TABLE_MASK		32'hffffe000
@@ -31,8 +32,8 @@
 `define	MAP_UART0_MASK		32'hfffffff0
 `define	MAP_GPIO0_MASK		32'hfffffff0
 `define	MAP_GPIO1_MASK		32'hfffffff0
+`define	MAP_I2C0_MASK		32'hffffffe0
 `define	MAP_EXTROM_MASK		32'hf0000000
-
 
 `define	MAP_IRC_TYPE		32'h00010001
 `define	MAP_IRC_ATTR		32'h00000000
@@ -789,10 +790,48 @@ module top
 				.wb_sel_i			(wb_uart0_sel_i),
 				.wb_stb_i			(wb_uart0_stb_i),
 				.wb_ack_o			(wb_uart0_ack_o)
-			);                     
+			);
 	
 	
-
+	// -----------------------------
+	//  I2C
+	// -----------------------------
+	
+	wire	[31:2]		wb_i2c0_adr_i;
+	wire	[31:0]		wb_i2c0_dat_i;
+	wire	[31:0]		wb_i2c0_dat_o;
+	wire	[3:0]		wb_i2c0_sel_i;
+	wire				wb_i2c0_we_i;
+	wire				wb_i2c0_stb_i;
+	wire				wb_i2c0_ack_o;
+	
+	jelly_i2c
+			#(
+				.DIVIDER_WIDTH		(16),
+				.DIVIDER_INIT		(500),
+				.WB_ADR_WIDTH		(3),
+				.WB_DAT_WIDTH		(32)
+			)
+		i_i2c0
+			(
+				.clk				(clk),
+				.reset				(reset),
+				
+				.i2c_scl_t			(),
+				.i2c_scl_i			(1'b1),
+				.i2c_sda_t			(),
+				.i2c_sda_i			(1'b1),
+				
+				.wb_adr_i			(wb_i2c0_adr_i[3:2]),
+				.wb_dat_o			(wb_i2c0_dat_o),
+				.wb_dat_i			(wb_i2c0_dat_i),
+				.wb_we_i			(wb_i2c0_we_i),
+				.wb_sel_i			(wb_i2c0_sel_i),
+				.wb_stb_i			(wb_i2c0_stb_i),
+				.wb_ack_o			(wb_i2c0_ack_o)
+			);
+	
+	
 	// -----------------------------
 	//  GPIO A
 	// -----------------------------
@@ -980,7 +1019,13 @@ module top
 	assign wb_uart0_sel_i  = wb_peri_sel_o;
 	assign wb_uart0_we_i   = wb_peri_we_o;
 	assign wb_uart0_stb_i  = wb_peri_stb_o & (({wb_peri_adr_o, 2'b00} & `MAP_UART0_MASK) == `MAP_UART0_ADDR);
-
+	
+	assign wb_i2c0_adr_i   = wb_peri_adr_o;
+	assign wb_i2c0_dat_i   = wb_peri_dat_o;
+	assign wb_i2c0_sel_i   = wb_peri_sel_o;
+	assign wb_i2c0_we_i    = wb_peri_we_o;
+	assign wb_i2c0_stb_i   = wb_peri_stb_o & (({wb_peri_adr_o, 2'b00} & `MAP_I2C0_MASK) == `MAP_I2C0_ADDR);
+	
 	assign wb_gpio0_adr_i  = wb_peri_adr_o;
 	assign wb_gpio0_dat_i  = wb_peri_dat_o;
 	assign wb_gpio0_sel_i  = wb_peri_sel_o;
@@ -1004,6 +1049,7 @@ module top
 						     wb_timer0_stb_i ? wb_timer0_dat_o :
 						     wb_timer1_stb_i ? wb_timer1_dat_o :
 						     wb_uart0_stb_i  ? wb_uart0_dat_o  :
+						     wb_i2c0_stb_i   ? wb_i2c0_dat_o   :
 						     wb_gpio0_stb_i  ? wb_gpio0_dat_o  :
 						     wb_gpio1_stb_i  ? wb_gpio1_dat_o  :
 							 wb_flash_stb_i  ? wb_flash_dat_o  :
@@ -1014,6 +1060,7 @@ module top
 						     wb_timer0_stb_i ? wb_timer0_ack_o :
 						     wb_timer1_stb_i ? wb_timer1_ack_o :
 						     wb_uart0_stb_i  ? wb_uart0_ack_o  :
+						     wb_i2c0_stb_i   ? wb_i2c0_ack_o  :
 						     wb_gpio0_stb_i  ? wb_gpio0_ack_o  :
 						     wb_gpio1_stb_i  ? wb_gpio1_ack_o  :
 							 wb_flash_stb_i  ? wb_flash_ack_o  :
