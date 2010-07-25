@@ -86,7 +86,6 @@ module jelly_comm_to_wishbone
 	reg		[3:0]		reg_wb_sel_o, next_wb_sel_o;
 	reg					reg_wb_stb_o, next_wb_stb_o;
 	
-	// FF
 	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			reg_state    <= ST_IDLE;
@@ -104,34 +103,65 @@ module jelly_comm_to_wishbone
 			reg_wb_stb_o <= 1'b0;
 		end
 		else begin
+			reg_state    <= next_state;
+			reg_cmd      <= next_cmd;
+			reg_size     <= next_size;
+			reg_count    <= next_count;
+			                
+			reg_tx_valid <= next_tx_valid;
+			reg_tx_data  <= next_tx_data;
+			                
+			reg_wb_adr_o <= next_wb_adr_o;
+			reg_wb_dat_o <= next_wb_dat_o;
+			reg_wb_we_o  <= next_wb_we_o;
+			reg_wb_sel_o <= next_wb_sel_o;
+			reg_wb_stb_o <= next_wb_stb_o;
+		end
+	end
+	
+	
+	always @* begin
+		next_state    = reg_state;
+		next_cmd      = reg_cmd;
+		next_size     = reg_size;
+		next_count    = reg_count;
 		
+		next_tx_valid = reg_tx_valid;
+		next_tx_data  = reg_tx_data;
 		
+		next_wb_adr_o = reg_wb_adr_o;
+		next_wb_dat_o = reg_wb_dat_o;
+		next_wb_we_o  = reg_wb_we_o;
+		next_wb_sel_o = reg_wb_sel_o;
+		next_wb_stb_o = reg_wb_stb_o;
 		
-			case ( reg_state )
+		if ( wb_ack_i ) begin
+			next_wb_stb_o = 1'b0;
+		end
+		
+		case ( reg_state )
 			ST_IDLE:
 				begin
-					reg_cmd      <= comm_rx_data[7:4];
-					reg_tx_data  <= {1'b1, comm_rx_data[6:4], 4'h0};
-					reg_wb_sel_o <= comm_rx_data[3:0];
+					next_cmd      = comm_rx_data[7:4];
+					next_tx_data  = {1'b1, comm_rx_data[6:4], 4'h0};
+					next_wb_sel_o = comm_rx_data[3:0];
 					if ( comm_rx_valid ) begin
-						reg_state    <= ST_ACK;
-						reg_tx_valid <= 1'b1;
+						next_state    <= ST_ACK;
+						next_tx_valid <= 1'b1;
 					end
-					reg_count <= {2{1'bx}};
 				end
-			
+				
 			ST_ACK:
 				begin
 					if ( comm_tx_ready ) begin
 						case ( reg_cmd )
-						`COMM_CMD_NOP:		begin reg_state <= ST_IDLE;   reg_tx_valid   <= 1'b0;   end
-						`COMM_CMD_STATUS:	begin reg_state <= ST_STATUS; reg_tx_data <= endian; end
-						`COMM_CMD_WRITE:	begin reg_state <= ST_SIZE;   reg_tx_valid   <= 1'b0;   end
-						`COMM_CMD_READ:		begin reg_state <= ST_SIZE;   reg_tx_valid   <= 1'b0;   end
-						default:			begin reg_state <= ST_IDLE;   reg_tx_valid   <= 1'b0;   end
+						`COMM_CMD_NOP:		begin next_state <= ST_IDLE;   next_tx_valid   <= 1'b0;   end
+						`COMM_CMD_STATUS:	begin next_state <= ST_STATUS; next_tx_data    <= endian; end
+						`COMM_CMD_WRITE:	begin next_state <= ST_SIZE;   next_tx_valid   <= 1'b0;   end
+						`COMM_CMD_READ:		begin next_state <= ST_SIZE;   next_tx_valid   <= 1'b0;   end
+						default:			begin next_state <= ST_IDLE;   next_tx_valid   <= 1'b0;   end
 						endcase
 					end
-					reg_count <= {2{1'bx}};
 				end
 			
 			ST_STATUS:
@@ -140,7 +170,6 @@ module jelly_comm_to_wishbone
 						reg_state <= ST_IDLE;
 						reg_tx_valid <= 1'b0;
 					end
-					reg_count <= {2{1'bx}};
 				end
 
 			ST_SIZE:

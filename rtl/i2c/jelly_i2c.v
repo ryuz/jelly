@@ -8,6 +8,7 @@
 
 
 `timescale 1ns / 1ps
+`default_nettype none
 
 
 `define I2C_STATUS		3'b000
@@ -113,10 +114,15 @@ module jelly_i2c
 	assign cmd_send  = (wb_adr_i == `I2C_SEND)    & wb_stb_i & wb_we_i & wb_sel_i[0];
 	assign send_data = wb_dat_i[7:0];
 	
-	assign wb_dat_o  = (wb_adr_i == `I2C_STATUS) ? {i2c_scl_i, i2c_sda_i, i2c_scl_t, i2c_sda_t, 3'b000, busy} :
-					   (wb_adr_i == `I2C_RECV)   ? recv_data : 0;
+	assign wb_dat_o  = (wb_adr_i == `I2C_STATUS)  ? {i2c_scl_i, i2c_sda_i, i2c_scl_t, i2c_sda_t, 3'b000, busy} :
+					   (wb_adr_i == `I2C_RECV)    ? recv_data  :
+					   (wb_adr_i == `I2C_DIVIDER) ? clk_dvider : 0;
 	
 	assign wb_ack_o  = wb_stb_i;
 	
 endmodule
 
+
+`default_nettype wire
+
+// end of file
