@@ -201,7 +201,7 @@ module jelly_comm_to_wishbone
 				tmp_read_first_mask = ~({WB_SEL_WIDTH{1'b1}} << ((1 << WB_DAT_SIZE) - reg_wb_adr_o[ADR_SEL_BITS-1:0]));
 			end
 		end
-		if ( WB_DAT_SIZE > 0 ) begin
+		if ( reg_read_last && (WB_DAT_SIZE > 0) ) begin
 			if ( endian ) begin
 				tmp_read_last_mask = ~({WB_SEL_WIDTH{1'b1}} >> reg_size[WB_DAT_SIZE-1:0]);
 			end
