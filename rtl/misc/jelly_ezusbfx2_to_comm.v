@@ -21,7 +21,6 @@ module jelly_ezusbfx2_to_comm
 			parameter	FX2_SLWR_NEGATIVE  = 0,
 			parameter	FX2_SLRD_NEGATIVE  = 0,
 			parameter	FX2_SLOE_NEGATIVE  = 0,
-			parameter	FX2_EMPTY_NEGATIVE = 0,
 			parameter	FX2_FADDR_RD       = 2'b00,
 			parameter	FX2_FADDR_WR       = 2'b01
 		)
@@ -37,7 +36,7 @@ module jelly_ezusbfx2_to_comm
 			output	wire						fx2_slrd,
 			output	wire						fx2_sloe,
 			output	wire	[1:0]				fx2_faddr,
-			output	wire						fx2_fd_t,	
+			output	wire	[DATA_WIDTH-1:0]	fx2_fd_t,	
 			output	wire	[DATA_WIDTH-1:0]	fx2_fd_o,
 			input	wire	[DATA_WIDTH-1:0]	fx2_fd_i,
 			
@@ -52,28 +51,32 @@ module jelly_ezusbfx2_to_comm
 		);
 	
 	// state
-	localparam	[1:0]	STATE_IDLE = 2'b00, STATE_WRITE = 1'b01, STATE_READ = 1'b10; 
+	localparam	[1:0]	STATE_IDLE = 2'b00, STATE_WRITE = 2'b01, STATE_READ = 2'b10; 
 	reg			[1:0]	reg_state;
 
 	
 	// flag
-	wire						signal_empty;
-	wire						signal_full;
-	assign flag_empty = (fx2_empty ^ FX2_EMPTY_NEGATIVE);
-	assign flag_full  = (fx2_full  ^ FX2_FULL_NEGATIVE);
+	wire						flag_empty;
+	wire						flag_full;
+	assign flag_empty = FX2_EMPTY_NEGATIVE ? ~fx2_empty : fx2_empty;
+	assign flag_full  = FX2_FULL_NEGATIVE  ? ~fx2_full  : fx2_full;
 	
+	// FX2 I/F
 	(* IOB="TRUE" *)	reg							reg_slwr;
 	(* IOB="TRUE" *)	reg							reg_slrd;
 	(* IOB="TRUE" *)	reg							reg_sloe;
 	(* IOB="TRUE" *)	reg		[1:0]				reg_faddr;
-	(* IOB="TRUE" *)	reg							reg_fd_t;	
+	(* IOB="TRUE" *)	reg		[DATA_WIDTH-1:0]	reg_fd_t;	
 	(* IOB="TRUE" *)	reg		[DATA_WIDTH-1:0]	reg_fd_o;
 	(* IOB="TRUE" *)	reg		[DATA_WIDTH-1:0]	reg_fd_i;
-		
+	
+	// comm I/F
 	reg							reg_tx_ready;
 	
 	reg		[DATA_WIDTH-1:0]	reg_rx_data;
 	reg							reg_rx_valid;
+
+	reg							reg_rd_valid;
 
 	reg		[DATA_WIDTH-1:0]	reg_buf_data;
 	reg							reg_buf_valid;
@@ -85,24 +88,31 @@ module jelly_ezusbfx2_to_comm
 	assign fx2_fd_t  = reg_fd_t;
 	assign fx2_fd_o  = reg_fd_o;
 	
-	assign comm_tx_ready <= reg_tx_ready & !flag_full;
-	assign comm_rx_data  <= reg_rx_data;
-	assign comm_rx_valid <= reg_rx_valid;
+	assign comm_tx_ready = reg_tx_ready & !flag_full;
+	assign comm_rx_data  = reg_rx_data;
+	assign comm_rx_valid = reg_rx_valid;
 	
 	
 	always @(posedge clk or posedge reset) begin
 		if ( reset ) begin
-			reg_state    <= STATE_IDLE;
+			reg_state     <= STATE_IDLE;
 			
-			reg_slwr     <= 1'b0 ^ FX2_SLWR_NEGATIVE;
-			reg_slrd     <= 1'b0 ^ FX2_SLRD_NEGATIVE;
-			reg_sloe     <= 1'b0 ^ FX2_SLOE_NEGATIVE;
-			reg_faddr    <= 2'bxx;
-			reg_fd_t     <= 1'b1;
-			reg_fd_o     <= {DATA_WIDTH{1'b0}};
-			reg_fd_i     <= {DATA_WIDTH{1'b0}};
-			reg_rx_data  <= {DATA_WIDTH{1'b0}};
-			reg_tx_ready <= 1'b1;
+			reg_slwr      <= FX2_SLWR_NEGATIVE ? 1'b1 : 1'b0;
+			reg_slrd      <= FX2_SLRD_NEGATIVE ? 1'b1 : 1'b0;
+			reg_sloe      <= FX2_SLOE_NEGATIVE ? 1'b1 : 1'b0;
+			reg_faddr     <= 2'bxx;
+			reg_fd_t      <= {DATA_WIDTH{1'b1}};
+			reg_fd_o      <= {DATA_WIDTH{1'b0}};
+			reg_fd_i      <= {DATA_WIDTH{1'b0}};
+			
+			reg_tx_ready  <= 1'b0;
+			reg_rx_data   <= {DATA_WIDTH{1'b0}};
+			reg_rx_valid  <= 1'b0;
+			
+			reg_rd_valid  <= 1'b0;
+			reg_buf_data  <= {DATA_WIDTH{1'b0}};
+			reg_buf_valid <= 1'b0;
+
 		end
 		else begin
 			// state machine
@@ -112,17 +122,19 @@ module jelly_ezusbfx2_to_comm
 					if ( comm_tx_valid & ~flag_full ) begin
 						reg_state    <= STATE_WRITE;
 						reg_tx_ready <= 1'b1;
-						reg_slwr     <= 1'b1 ^ FX2_SLWR_NEGATIVE; 
-						reg_slrd     <= 1'b0 ^ FX2_SLRD_NEGATIVE;
-						reg_sloe     <= 1'b0 ^ FX2_SLOE_NEGATIVE;
-						reg_fd_t     <= 1'b0;
+						reg_faddr    <= FX2_FADDR_WR;
+						reg_slwr     <= FX2_SLWR_NEGATIVE ? 1'b0 : 1'b1;
+						reg_slrd     <= FX2_SLRD_NEGATIVE ? 1'b1 : 1'b0;
+						reg_sloe     <= FX2_SLOE_NEGATIVE ? 1'b1 : 1'b0;
+						reg_fd_t     <= {DATA_WIDTH{1'b0}};
 						reg_fd_o     <= comm_tx_data;						
 					end
 					else if ( ~flag_empty ) begin
 						reg_state    <= STATE_READ;
-						reg_slwr     <= 1'b0 ^ FX2_SLWR_NEGATIVE; 
-						reg_slrd     <= 1'b1 ^ FX2_SLRD_NEGATIVE;
-						reg_sloe     <= 1'b1 ^ FX2_SLOE_NEGATIVE;
+						reg_faddr    <= FX2_FADDR_RD;
+						reg_slwr     <= FX2_SLWR_NEGATIVE ? 1'b1 : 1'b0;
+						reg_slrd     <= FX2_SLRD_NEGATIVE ? 1'b0 : 1'b1;
+						reg_sloe     <= FX2_SLOE_NEGATIVE ? 1'b0 : 1'b1;
 					end
 				end
 			
@@ -130,10 +142,12 @@ module jelly_ezusbfx2_to_comm
 				begin
 					if ( !(comm_tx_valid & comm_tx_ready) & !flag_full ) begin
 						reg_state    <= STATE_IDLE;
+						reg_faddr    <= FX2_FADDR_RD;
 						reg_tx_ready <= 1'b0;
-						reg_slwr     <= 1'b0 ^ FX2_SLWR_NEGATIVE; 
-						reg_slrd     <= 1'b0 ^ FX2_SLRD_NEGATIVE;
-						reg_sloe     <= 1'b0 ^ FX2_SLOE_NEGATIVE;
+						reg_slwr     <= FX2_SLWR_NEGATIVE ? 1'b1 : 1'b0;
+						reg_slrd     <= FX2_SLRD_NEGATIVE ? 1'b1 : 1'b0;
+						reg_sloe     <= FX2_SLOE_NEGATIVE ? 1'b1 : 1'b0;
+						reg_fd_t     <= {DATA_WIDTH{1'b1}};
 					end
 					else begin
 						reg_tx_ready <= !flag_full;
@@ -147,9 +161,9 @@ module jelly_ezusbfx2_to_comm
 				begin
 					if ( flag_empty | comm_tx_valid | reg_buf_valid ) begin
 						reg_state <= STATE_IDLE;
-						reg_slwr  <= 1'b0 ^ FX2_SLWR_NEGATIVE; 
-						reg_slrd  <= 1'b0 ^ FX2_SLRD_NEGATIVE;
-						reg_sloe  <= 1'b0 ^ FX2_SLOE_NEGATIVE;
+						reg_slwr  <= FX2_SLWR_NEGATIVE ? 1'b1 : 1'b0;
+						reg_slrd  <= FX2_SLRD_NEGATIVE ? 1'b1 : 1'b0;
+						reg_sloe  <= FX2_SLOE_NEGATIVE ? 1'b1 : 1'b0;
 					end
 				end
 			endcase
@@ -157,14 +171,27 @@ module jelly_ezusbfx2_to_comm
 			// read data
 			reg_rd_valid <= (reg_state == STATE_READ) & ~flag_empty;
 			reg_fd_i     <= fx2_fd_i;
-			if ( reg_buf_valid
 			
+			if ( comm_rx_valid & !comm_rx_ready ) begin
+				reg_buf_valid <= reg_rd_valid;
+				reg_rx_data   <= reg_fd_i;
+			end
+			else if ( comm_rx_ready ) begin
+				reg_buf_valid <= 1'b0;
+			end
 			
+			if ( comm_rx_ready ) begin
+				if ( reg_buf_valid ) begin
+					reg_rx_valid <= reg_buf_valid;
+					reg_rx_data  <= reg_buf_data;
+				end
+				else begin
+					reg_rx_valid <= reg_rd_valid;
+					reg_rx_data  <= reg_fd_i;
+				end
+			end
 		end
 	end
-	
-	
-	
 	
 endmodule
 
