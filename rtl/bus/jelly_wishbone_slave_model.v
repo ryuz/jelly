@@ -16,7 +16,8 @@ module jelly_wishbone_slave_model
 			parameter	DAT_SIZE  = 2,		// 2^n (0:8bit, 1:16bit, 2:32bit ...)
 			parameter	DAT_WIDTH = (8 << DAT_SIZE),
 			parameter	SEL_WIDTH = (1 << DAT_SIZE),
-			parameter	MEM_WIDTH = (1 << ADR_WIDTH)
+			parameter	MEM_WIDTH = (1 << ADR_WIDTH),
+			parameter	RAND_BUSY = 1
 		)
 		(
 			// system
@@ -61,8 +62,8 @@ module jelly_wishbone_slave_model
 				.seed		(16'h1234),
 				.out		(rand)
 			);
-//	assign wb_slave_ack_o = rand;
-	assign wb_slave_ack_o = wb_slave_stb_i;
+	
+	assign wb_slave_ack_o = wb_slave_stb_i & (RAND_BUSY & rand);
 	
 	
 endmodule

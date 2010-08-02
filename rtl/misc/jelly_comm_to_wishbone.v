@@ -107,7 +107,7 @@ module jelly_comm_to_wishbone
 	reg							reg_wb_stb_o,   next_wb_stb_o;
 
 	reg		[WB_DAT_WIDTH-1:0]	reg_read_data,  next_read_data;
-	reg							reg_read_valid, next_read_valid;
+//	reg							reg_read_valid, next_read_valid;
 	reg							reg_read_last,  next_read_last;
 	
 	reg		[WB_SEL_WIDTH-1:0]	tmp_read_first_mask;
@@ -134,7 +134,7 @@ module jelly_comm_to_wishbone
 			reg_wb_sel_o   <= {WB_SEL_WIDTH{1'bx}};
 			reg_wb_stb_o   <= 1'b0;
 			
-			reg_read_valid <= 1'bx;
+//			reg_read_valid <= 1'bx;
 			reg_read_data  <= {WB_DAT_WIDTH{1'bx}};
 			reg_read_last  <= 1'bx;
 		end
@@ -156,7 +156,7 @@ module jelly_comm_to_wishbone
 			reg_wb_sel_o   <= next_wb_sel_o;
 			reg_wb_stb_o   <= next_wb_stb_o;
 			
-			reg_read_valid <= next_read_valid;
+//			reg_read_valid <= next_read_valid;
 			reg_read_data  <= next_read_data;
 			reg_read_last  <= next_read_last;
 		end
@@ -181,14 +181,14 @@ module jelly_comm_to_wishbone
 		next_wb_sel_o   = reg_wb_sel_o;
 		next_wb_stb_o   = reg_wb_stb_o;
 		
-		next_read_valid = reg_read_valid;
+//		next_read_valid = reg_read_valid;
 		next_read_data  = reg_read_data;
 		next_read_last  = reg_read_last;
 		
 		
 		// wishbone access end
 		if ( wb_ack_i ) begin
-			next_read_valid = 1'b1;
+//			next_read_valid = 1'b1;
 			next_read_data  = wb_dat_i;
 			next_wb_adr_o   = reg_wb_adr_o + 1;
 			next_wb_sel_o   = 4'b0000;
@@ -273,7 +273,7 @@ module jelly_comm_to_wishbone
 					if ( reg_count == (ADR_BYTES-1) ) begin
 						next_state = ST_SIZE;
 					end
-					next_count <= reg_count + 1;
+					next_count = reg_count + 1;
 				end
 			end
 			
@@ -327,7 +327,7 @@ module jelly_comm_to_wishbone
 				if ( comm_tx_ready ) begin
 					next_tx_valid   = 1'b0;
 					next_rx_ready   = 1'b1;
-					next_read_valid = 1'b0;
+//					next_read_valid = 1'b0;
 					next_state      = ST_IDLE;
 				end
 			end
