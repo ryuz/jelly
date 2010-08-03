@@ -129,7 +129,7 @@ module jelly_ezusbfx2_to_comm
 						reg_fd_t     <= {DATA_WIDTH{1'b0}};
 						reg_fd_o     <= comm_tx_data;						
 					end
-					else if ( ~flag_empty ) begin
+					else if ( ~flag_empty & ~comm_rx_valid ) begin
 						reg_state    <= STATE_READ;
 						reg_faddr    <= FX2_FADDR_RD;
 						reg_slwr     <= FX2_SLWR_NEGATIVE ? 1'b1 : 1'b0;
@@ -159,7 +159,7 @@ module jelly_ezusbfx2_to_comm
 				
 			STATE_READ:
 				begin
-					if ( flag_empty | comm_tx_valid | reg_buf_valid ) begin
+					if ( flag_empty | comm_tx_valid | (comm_rx_valid & !comm_rx_ready) ) begin
 						reg_state <= STATE_IDLE;
 						reg_slwr  <= FX2_SLWR_NEGATIVE ? 1'b1 : 1'b0;
 						reg_slrd  <= FX2_SLRD_NEGATIVE ? 1'b1 : 1'b0;
@@ -169,17 +169,21 @@ module jelly_ezusbfx2_to_comm
 			endcase
 			
 			// read data
-			reg_rd_valid <= (reg_state == STATE_READ) & ~flag_empty;
-			reg_fd_i     <= fx2_fd_i;
+			if ( (reg_state == STATE_READ) & ~flag_empty ) begin
+				reg_rd_valid <= 1'b1;
+				reg_fd_i     <= fx2_fd_i;
+			end
+			else if ( comm_rx_ready | !reg_rx_valid | !reg_buf_valid ) begin
+				reg_rd_valid <= 1'b0;
+			end
 			
-			if ( comm_rx_valid & !comm_rx_ready ) begin
+			// buf
+			if ( (!reg_buf_valid & comm_rx_valid & !comm_rx_ready) | (reg_buf_valid & comm_rx_ready) ) begin
 				reg_buf_valid <= reg_rd_valid;
-				reg_rx_data   <= reg_fd_i;
-			end
-			else if ( comm_rx_ready ) begin
-				reg_buf_valid <= 1'b0;
+				reg_buf_data  <= reg_fd_i;
 			end
 			
+			// comm_rx
 			if ( comm_rx_ready ) begin
 				if ( reg_buf_valid ) begin
 					reg_rx_valid <= reg_buf_valid;
