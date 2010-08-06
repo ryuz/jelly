@@ -224,7 +224,7 @@ module jelly_comm_to_wishbone
 		ST_IDLE:
 			begin
 				next_cmd     = comm_rx_data;
-				next_tx_data = (next_cmd | 8'h80);
+				next_tx_data = (next_cmd ^ 8'h80);
 				if ( comm_rx_valid ) begin
 					next_tx_valid = 1'b1;
 					next_rx_ready = 1'b0;
@@ -238,7 +238,7 @@ module jelly_comm_to_wishbone
 				if ( comm_tx_ready ) begin
 					case ( reg_cmd )
 					`COMM_CMD_NOP:		begin next_state = ST_IDLE;   next_tx_valid = 1'b0; next_rx_ready = 1'b1; end
-					`COMM_CMD_STATUS:	begin next_state = ST_STATUS; next_tx_data  = status_data;                end
+					`COMM_CMD_STATUS:	begin next_state = ST_STATUS; next_tx_valid = 1'b1; next_tx_data  = status_data; next_rx_ready = 1'b0; end
 					`COMM_CMD_WRITE:	begin next_state = ST_ADR;    next_tx_valid = 1'b0; next_rx_ready = 1'b1; end
 					`COMM_CMD_READ:		begin next_state = ST_ADR;    next_tx_valid = 1'b0; next_rx_ready = 1'b1; end
 					default:			begin next_state = ST_IDLE;   next_tx_valid = 1'b0; next_rx_ready = 1'b1; end
@@ -283,11 +283,11 @@ module jelly_comm_to_wishbone
 					next_size  = comm_rx_data;
 					if ( reg_cmd[0] ) begin
 						next_wb_sel_o  = 0;
-						next_rx_ready  = 1'b1;
 						next_state     = ST_WRITE;
 					end
 					else begin
 						next_state     = ST_READ_START;
+						next_rx_ready  = 1'b0;
 						next_read_last = (((reg_wb_adr_o + comm_rx_data) >> WB_DAT_SIZE) == (reg_wb_adr_o >> WB_DAT_SIZE));
 					end
 				end

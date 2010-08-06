@@ -16,13 +16,13 @@
 module jelly_ezusbfx2_to_comm
 		#(
 			parameter	DATA_WIDTH         = 8,
-			parameter	FX2_EMPTY_NEGATIVE = 0,
-			parameter	FX2_FULL_NEGATIVE  = 0,
-			parameter	FX2_SLWR_NEGATIVE  = 0,
-			parameter	FX2_SLRD_NEGATIVE  = 0,
-			parameter	FX2_SLOE_NEGATIVE  = 0,
+			parameter	FX2_EMPTY_NEGATIVE = 1,
+			parameter	FX2_FULL_NEGATIVE  = 1,
+			parameter	FX2_SLWR_NEGATIVE  = 1,
+			parameter	FX2_SLRD_NEGATIVE  = 1,
+			parameter	FX2_SLOE_NEGATIVE  = 1,
 			parameter	FX2_FADDR_RD       = 2'b00,
-			parameter	FX2_FADDR_WR       = 2'b01
+			parameter	FX2_FADDR_WR       = 2'b10
 		)
 		(
 			// system
@@ -35,6 +35,7 @@ module jelly_ezusbfx2_to_comm
 			output	wire						fx2_slwr,
 			output	wire						fx2_slrd,
 			output	wire						fx2_sloe,
+			output	wire						fx2_pktend,
 			output	wire	[1:0]				fx2_faddr,
 			output	wire	[DATA_WIDTH-1:0]	fx2_fd_t,	
 			output	wire	[DATA_WIDTH-1:0]	fx2_fd_o,
@@ -49,6 +50,8 @@ module jelly_ezusbfx2_to_comm
 			output	wire						comm_rx_valid,
 			input	wire						comm_rx_ready
 		);
+	
+	assign fx2_pktend = 1'b0;
 	
 	// state
 	localparam	[1:0]	STATE_IDLE = 2'b00, STATE_WRITE = 2'b01, STATE_READ = 2'b10; 
@@ -88,7 +91,7 @@ module jelly_ezusbfx2_to_comm
 	assign fx2_fd_t  = reg_fd_t;
 	assign fx2_fd_o  = reg_fd_o;
 	
-	assign comm_tx_ready = reg_tx_ready & !flag_full;
+	assign comm_tx_ready = (reg_state == STATE_WRITE || reg_state == STATE_IDLE) & !flag_full;
 	assign comm_rx_data  = reg_rx_data;
 	assign comm_rx_valid = reg_rx_valid;
 	
@@ -129,7 +132,7 @@ module jelly_ezusbfx2_to_comm
 						reg_fd_t     <= {DATA_WIDTH{1'b0}};
 						reg_fd_o     <= comm_tx_data;						
 					end
-					else if ( ~flag_empty & ~comm_rx_valid ) begin
+					else if ( ~flag_empty & ~reg_rd_valid & ~reg_buf_valid & ~comm_rx_valid ) begin
 						reg_state    <= STATE_READ;
 						reg_faddr    <= FX2_FADDR_RD;
 						reg_slwr     <= FX2_SLWR_NEGATIVE ? 1'b1 : 1'b0;
@@ -184,7 +187,7 @@ module jelly_ezusbfx2_to_comm
 			end
 			
 			// comm_rx
-			if ( comm_rx_ready ) begin
+			if ( !comm_rx_valid | comm_rx_ready ) begin
 				if ( reg_buf_valid ) begin
 					reg_rx_valid <= reg_buf_valid;
 					reg_rx_data  <= reg_buf_data;
