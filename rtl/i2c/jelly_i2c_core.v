@@ -29,8 +29,10 @@ module jelly_i2c_core
 			
 			input	wire						cmd_start,
 			input	wire						cmd_stop,
-			input	wire						cmd_send,
+			input	wire						cmd_ack,
+			input	wire						cmd_nak,
 			input	wire						cmd_recv,
+			input	wire						cmd_send,
 			
 			input	wire	[7:0]				send_data,
 			output	wire	[7:0]				recv_data,
@@ -40,10 +42,10 @@ module jelly_i2c_core
 	
 	
 	// state
-	localparam	[1:0]	ST_START = 2'b00, ST_STOP = 2'b01, ST_SEND = 2'b10, ST_RECV = 2'b11;
+	localparam	[2:0]	ST_START = 3'd0, ST_STOP = 3'd1, ST_ACK = 3'd2, ST_NAK = 3'd3, ST_SEND = 3'd4, ST_RECV = 3'd5;
 	
 	reg								reg_busy;
-	reg		[1:0]					reg_state;
+	reg		[2:0]					reg_state;
 	reg		[5:0]					reg_counter;
 	
 	// output register
@@ -59,7 +61,7 @@ module jelly_i2c_core
 	// clock dvider
 	reg		[DIVIDER_WIDTH-1:0]		reg_clk_counter;
 	reg								reg_clk_triger;
-		
+	
 	
 	// input double latch
 	always @ (posedge clk) begin
@@ -111,10 +113,14 @@ module jelly_i2c_core
 	// state machine
 	reg		[7:0]	reg_send_data;
 	reg		[7:0]	reg_recv_data;
+	
+	wire	[5:0]	next_counter;
+	assign next_counter = reg_clk_counter + 1'b1;
+	
 	always @( posedge clk ) begin
 		if ( reset ) begin
 			reg_busy      <= 1'b0;
-			reg_state     <= 2'bxx;
+			reg_state     <= 3'bxxx;
 			reg_counter   <= 0;
 			reg_send_data <= 8'hxx;
 			reg_recv_data <= 8'hxx;
@@ -126,16 +132,19 @@ module jelly_i2c_core
 					reg_state   <= cmd_stop ? ST_STOP : cmd_start ? ST_START : cmd_recv ? ST_RECV : ST_SEND;
 				end
 				reg_send_data <= send_data;
-				reg_counter   <= 0;
+				reg_counter   <= 6'd0;
 			end
 			else begin
 				if ( reg_clk_triger ) begin
-					reg_counter <= reg_counter + 1'b1;
+					reg_counter <= next_counter;
 					case ( reg_state )
-					ST_START:	if (reg_counter[1:0] >= 2)  reg_busy <= 1'b0;
-					ST_STOP:	if (reg_counter[1:0] >= 2)  reg_busy <= 1'b0;
-					ST_SEND:	if (reg_counter >= 35) reg_busy <= 1'b0;
-					ST_RECV:	if (reg_counter >= 35) reg_busy <= 1'b0;
+					ST_START:	if ( next_counter[2] )                  reg_busy <= 1'b0;	// reg_counter == 3
+					ST_STOP:	if ( next_counter[2] )                  reg_busy <= 1'b0;	// reg_counter == 3
+					ST_ACK:		if ( next_counter[2] )                  reg_busy <= 1'b0;	// reg_counter == 3
+					ST_NAK:		if ( next_counter[2] )                  reg_busy <= 1'b0;	// reg_counter == 3
+					ST_SEND:	if ( next_counter[2] & reg_counter[5] ) reg_busy <= 1'b0;	// reg_counter == 35
+					ST_RECV:	if ( next_counter[5])                   reg_busy <= 1'b0;	// reg_counter == 31
+					default:                                            reg_busy <= 1'bx;
 					endcase
 					
 					if ( reg_counter[1:0] == 2'b11 ) begin
@@ -160,32 +169,50 @@ module jelly_i2c_core
 				case ( reg_state )
 				ST_START:
 					case ( reg_counter[1:0] )
-					2'b00: begin reg_scl_t <= 1'b1;  reg_sda_t <= 1'b1; end
-					2'b01: begin reg_scl_t <= 1'b1;  reg_sda_t <= 1'b0; end
-					2'b10: begin reg_scl_t <= 1'b0;  reg_sda_t <= 1'b0; end
+					2'b00:   begin reg_scl_t <= 1'b1;  reg_sda_t <= 1'b1; end
+					2'b01:   begin reg_scl_t <= 1'b1;  reg_sda_t <= 1'b0; end
+					2'b10:   begin reg_scl_t <= 1'b1;  reg_sda_t <= 1'b0; end
+					2'b11:   begin reg_scl_t <= 1'b0;  reg_sda_t <= 1'b0; end
 					endcase
 				
 				ST_STOP:
 					case ( reg_counter[1:0] )
-					2'b00: begin reg_scl_t <= 1'b0;  reg_sda_t <= 1'b0; end
-					2'b01: begin reg_scl_t <= 1'b1;  reg_sda_t <= 1'b0; end
-					2'b10: begin reg_scl_t <= 1'b1;  reg_sda_t <= 1'b1; end
+					2'b00:   begin reg_scl_t <= 1'b0;  reg_sda_t <= 1'b0; end
+					2'b01:   begin reg_scl_t <= 1'b1;  reg_sda_t <= 1'b0; end
+					2'b10:   begin reg_scl_t <= 1'b1;  reg_sda_t <= 1'b0; end
+					2'b11:   begin reg_scl_t <= 1'b1;  reg_sda_t <= 1'b1; end
+					endcase
+
+				ST_ACK:
+					case ( reg_counter[1:0] )
+					2'b00:   begin reg_scl_t <= 1'b0;  reg_sda_t <= 1'b0; end
+					2'b01:   begin reg_scl_t <= 1'b1;  reg_sda_t <= 1'b0; end
+					2'b10:   begin reg_scl_t <= 1'b1;  reg_sda_t <= 1'b0; end
+					2'b11:   begin reg_scl_t <= 1'b0;  reg_sda_t <= 1'b0; end
+					endcase
+				
+				ST_NAK:
+					case ( reg_counter[1:0] )
+					2'b00:   begin reg_scl_t <= 1'b0;  reg_sda_t <= 1'b1; end
+					2'b01:   begin reg_scl_t <= 1'b1;  reg_sda_t <= 1'b1; end
+					2'b10:   begin reg_scl_t <= 1'b1;  reg_sda_t <= 1'b1; end
+					2'b11:   begin reg_scl_t <= 1'b0;  reg_sda_t <= 1'b1; end
 					endcase
 
 				ST_SEND:
 					case ( reg_counter[1:0] )
-					2'b00: begin reg_scl_t <= 1'b0; reg_sda_t <= reg_send_data[7]; end
-					2'b01: begin reg_scl_t <= 1'b1; end
-					2'b10: begin reg_scl_t <= 1'b1; end
-					2'b11: begin reg_scl_t <= 1'b0; end
+					2'b00:   begin reg_scl_t <= 1'b0; reg_sda_t <= reg_send_data[7]; end
+					2'b01:   begin reg_scl_t <= 1'b1; reg_sda_t <= reg_send_data[7]; end
+					2'b10:   begin reg_scl_t <= 1'b1; reg_sda_t <= reg_send_data[7]; end
+					2'b11:   begin reg_scl_t <= 1'b0; reg_sda_t <= reg_send_data[7]; end
 					endcase
 				
 				ST_RECV:
 					case ( reg_counter[1:0] )
-					2'b00: begin reg_scl_t <= 1'b0; reg_sda_t <= ~reg_counter[5]; end
-					2'b01: begin reg_scl_t <= 1'b1; reg_sda_t <= ~reg_counter[5]; end
-					2'b10: begin reg_scl_t <= 1'b1; reg_sda_t <= ~reg_counter[5]; end
-					2'b11: begin reg_scl_t <= 1'b0; reg_sda_t <= ~reg_counter[5]; end
+					2'b00:   begin reg_scl_t <= 1'b0; reg_sda_t <= 1'b1; end
+					2'b01:   begin reg_scl_t <= 1'b1; reg_sda_t <= 1'b1; end
+					2'b10:   begin reg_scl_t <= 1'b1; reg_sda_t <= 1'b1; end
+					2'b11:   begin reg_scl_t <= 1'b0; reg_sda_t <= 1'b1; end
 					endcase
 				endcase
 			end

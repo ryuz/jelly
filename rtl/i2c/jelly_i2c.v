@@ -19,7 +19,9 @@
 
 `define CONTROL_START	0
 `define CONTROL_STOP	1
-`define CONTROL_RECV	2
+`define CONTROL_ACK		2
+`define CONTROL_NAK		3
+`define CONTROL_RECV	4
 
 
 // I2C
@@ -61,8 +63,10 @@ module jelly_i2c
 	reg		[DIVIDER_WIDTH-1:0]	clk_dvider;
 	wire						cmd_start;
 	wire						cmd_stop;
-	wire						cmd_send;
+	wire						cmd_ack;
+	wire						cmd_nak;
 	wire						cmd_recv;
+	wire						cmd_send;
 	wire	[7:0]				send_data;
 	wire	[7:0]				recv_data;
 	wire						busy;
@@ -85,8 +89,10 @@ module jelly_i2c
 				
 				.cmd_start			(cmd_start),
 				.cmd_stop			(cmd_stop),
-				.cmd_send			(cmd_send),
+				.cmd_ack			(cmd_ack),
+				.cmd_nak			(cmd_nak),
 				.cmd_recv			(cmd_recv),
+				.cmd_send			(cmd_send),
 				.send_data			(send_data),
 				.recv_data			(recv_data),
 				
@@ -110,6 +116,8 @@ module jelly_i2c
 	
 	assign cmd_start = (wb_adr_i == `I2C_CONTROL) & wb_stb_i & wb_we_i & wb_sel_i[0] & wb_dat_i[`CONTROL_START];
 	assign cmd_stop  = (wb_adr_i == `I2C_CONTROL) & wb_stb_i & wb_we_i & wb_sel_i[0] & wb_dat_i[`CONTROL_STOP];
+	assign cmd_ack   = (wb_adr_i == `I2C_CONTROL) & wb_stb_i & wb_we_i & wb_sel_i[0] & wb_dat_i[`CONTROL_ACK]; 
+	assign cmd_nak   = (wb_adr_i == `I2C_CONTROL) & wb_stb_i & wb_we_i & wb_sel_i[0] & wb_dat_i[`CONTROL_NAK];
 	assign cmd_recv  = (wb_adr_i == `I2C_CONTROL) & wb_stb_i & wb_we_i & wb_sel_i[0] & wb_dat_i[`CONTROL_RECV];
 	assign cmd_send  = (wb_adr_i == `I2C_SEND)    & wb_stb_i & wb_we_i & wb_sel_i[0];
 	assign send_data = wb_dat_i[7:0];
