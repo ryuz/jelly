@@ -769,7 +769,9 @@ module top
 	jelly_uart
 			#(
 				.TX_FIFO_PTR_WIDTH	(2),
-				.RX_FIFO_PTR_WIDTH	(2)
+				.RX_FIFO_PTR_WIDTH	(2),
+				.SIMULATION			(SIMULATION),
+				.DEBUG				(1)
 			)
 		i_uart0
 			(

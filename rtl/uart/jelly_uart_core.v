@@ -16,6 +16,7 @@ module jelly_uart_core
 		#(
 			parameter	TX_FIFO_PTR_WIDTH = 4,
 			parameter	RX_FIFO_PTR_WIDTH = 4,
+			parameter	SIMULATION        = 0,
 			parameter	DEBUG             = 1
 		)
 		(
@@ -142,7 +143,7 @@ module jelly_uart_core
 	// -------------------------
 	
 	generate
-	if ( DEBUG ) begin
+	if ( SIMULATION & DEBUG ) begin
 		always @ ( posedge clk ) begin
 			if ( rx_en & rx_ready ) begin
 				if ( rx_data >= 8'h20 && rx_data <= 8'h7e ) begin

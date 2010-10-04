@@ -9,12 +9,12 @@
 
 
 `timescale 1ns / 1ps
+`default_nettype none
 
 
-
-`define TIMER_ADR_CONTROL	2'b00
-`define TIMER_ADR_COMPARE	2'b01
-`define TIMER_ADR_COUNTER	2'b11
+`define INTERVAL_TIMER_ADR_CONTROL	2'b00
+`define INTERVAL_TIMER_ADR_COMPARE	2'b01
+`define INTERVAL_TIMER_ADR_COUNTER	2'b11
 
 
 module jelly_interval_timer
@@ -59,7 +59,7 @@ module jelly_interval_timer
 		end
 		else begin
 			// control
-			if ( wb_stb_i & wb_we_i & (wb_adr_i == `TIMER_ADR_CONTROL) ) begin
+			if ( wb_stb_i & wb_we_i & (wb_adr_i == `INTERVAL_TIMER_ADR_CONTROL) ) begin
 				reg_enable <= wb_dat_i[0];
 				reg_clear  <= wb_dat_i[1];
 			end
@@ -68,7 +68,7 @@ module jelly_interval_timer
 			end
 			
 			// compare
-			if ( wb_stb_i & wb_we_i & (wb_adr_i == `TIMER_ADR_COMPARE) ) begin
+			if ( wb_stb_i & wb_we_i & (wb_adr_i == `INTERVAL_TIMER_ADR_COMPARE) ) begin
 				reg_compare <= wb_dat_i;
 			end
 			
@@ -92,10 +92,10 @@ module jelly_interval_timer
 	
 	always @* begin
 		case ( wb_adr_i )
-		`TIMER_ADR_CONTROL:	wb_dat_o <= {reg_clear, reg_enable};
-		`TIMER_ADR_COMPARE:	wb_dat_o <= reg_compare;
-		`TIMER_ADR_COUNTER:	wb_dat_o <= reg_counter;
-		default:			wb_dat_o <= {WB_DAT_WIDTH{1'b0}};
+		`INTERVAL_TIMER_ADR_CONTROL:	wb_dat_o <= {reg_clear, reg_enable};
+		`INTERVAL_TIMER_ADR_COMPARE:	wb_dat_o <= reg_compare;
+		`INTERVAL_TIMER_ADR_COUNTER:	wb_dat_o <= reg_counter;
+		default:						wb_dat_o <= {WB_DAT_WIDTH{1'b0}};
 		endcase
 	end
 		
@@ -103,3 +103,8 @@ module jelly_interval_timer
 	
 endmodule
 
+
+`default_nettype wire
+
+
+//  end of file

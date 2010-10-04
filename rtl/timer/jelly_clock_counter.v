@@ -9,14 +9,14 @@
 
 
 `timescale 1ns / 1ps
+`default_nettype none
 
 
-
-`define TIMER_ADR_CONTROL		3'b000
-`define TIMER_ADR_MONITOR_H		3'b010
-`define TIMER_ADR_MONITOR_L		3'b011
-`define TIMER_ADR_COUNTER_H		3'b110
-`define TIMER_ADR_COUNTER_L		3'b111
+`define CLOCK_COUNTER_ADR_CONTROL		3'b000
+`define CLOCK_COUNTER_ADR_MONITOR_H		3'b010
+`define CLOCK_COUNTER_ADR_MONITOR_L		3'b011
+`define CLOCK_COUNTER_ADR_COUNTER_H		3'b110
+`define CLOCK_COUNTER_ADR_COUNTER_L		3'b111
 
 
 module jelly_clock_counter
@@ -56,7 +56,7 @@ module jelly_clock_counter
 		end
 		else begin
 			// control
-			if ( wb_stb_i & wb_we_i & wb_sel_i[0] & (wb_adr_i == `TIMER_ADR_CONTROL) ) begin
+			if ( wb_stb_i & wb_we_i & wb_sel_i[0] & (wb_adr_i == `CLOCK_COUNTER_ADR_CONTROL) ) begin
 				reg_copy_mon <= wb_dat_i[0];
 				reg_clear    <= wb_dat_i[7];
 			end
@@ -82,12 +82,12 @@ module jelly_clock_counter
 	
 	always @* begin
 		case ( wb_adr_i )
-		`TIMER_ADR_CONTROL:		wb_dat_o <= {reg_clear, 6'd0, reg_copy_mon};
-		`TIMER_ADR_MONITOR_H:	wb_dat_o <= reg_monitor[63:32];
-		`TIMER_ADR_MONITOR_L:	wb_dat_o <= reg_monitor[31:0];
-		`TIMER_ADR_COUNTER_H:	wb_dat_o <= reg_counter[63:32];
-		`TIMER_ADR_COUNTER_L:	wb_dat_o <= reg_counter[31:0];
-		default:				wb_dat_o <= {WB_DAT_WIDTH{1'b0}};
+		`CLOCK_COUNTER_ADR_CONTROL:		wb_dat_o <= {reg_clear, 6'd0, reg_copy_mon};
+		`CLOCK_COUNTER_ADR_MONITOR_H:	wb_dat_o <= reg_monitor[63:32];
+		`CLOCK_COUNTER_ADR_MONITOR_L:	wb_dat_o <= reg_monitor[31:0];
+		`CLOCK_COUNTER_ADR_COUNTER_H:	wb_dat_o <= reg_counter[63:32];
+		`CLOCK_COUNTER_ADR_COUNTER_L:	wb_dat_o <= reg_counter[31:0];
+		default:						wb_dat_o <= {WB_DAT_WIDTH{1'b0}};
 		endcase
 	end
 	
@@ -95,3 +95,8 @@ module jelly_clock_counter
 	
 endmodule
 
+
+`default_nettype wire
+
+
+//  end of file

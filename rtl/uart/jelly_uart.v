@@ -14,12 +14,15 @@
 // uart
 module jelly_uart
 		#(
-			parameter							TX_FIFO_PTR_WIDTH = 4,
-			parameter							RX_FIFO_PTR_WIDTH = 4,
-			         
-			parameter							WB_ADR_WIDTH  = 2,
-			parameter							WB_DAT_WIDTH  = 32,
-			parameter							WB_SEL_WIDTH  = (WB_DAT_WIDTH / 8)
+			parameter	TX_FIFO_PTR_WIDTH = 4,
+			parameter	RX_FIFO_PTR_WIDTH = 4,
+			
+			parameter	WB_ADR_WIDTH      = 2,
+			parameter	WB_DAT_WIDTH      = 32,
+			parameter	WB_SEL_WIDTH      = (WB_DAT_WIDTH / 8),
+			
+			parameter	SIMULATION        = 0,
+			parameter	DEBUG             = 1
 		)
 		(
 			input	wire						reset,
@@ -65,7 +68,9 @@ module jelly_uart
 	jelly_uart_core
 			#(
 				.TX_FIFO_PTR_WIDTH	(TX_FIFO_PTR_WIDTH),
-				.RX_FIFO_PTR_WIDTH	(RX_FIFO_PTR_WIDTH)
+				.RX_FIFO_PTR_WIDTH	(RX_FIFO_PTR_WIDTH),
+				.SIMULATION			(SIMULATION),
+				.DEBUG				(DEBUG)
 			)
 		i_uart_core
 			(

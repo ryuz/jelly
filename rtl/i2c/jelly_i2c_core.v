@@ -34,8 +34,9 @@ module jelly_i2c_core
 			input	wire						cmd_recv,
 			input	wire						cmd_send,
 			
-			input	wire	[7:0]				send_data,
 			output	wire	[7:0]				recv_data,
+			input	wire	[7:0]				send_data,
+			output	wire						ack_status,
 			
 			output	wire						busy
 		);
@@ -111,26 +112,31 @@ module jelly_i2c_core
 	
 	
 	// state machine
-	reg		[7:0]	reg_send_data;
 	reg		[7:0]	reg_recv_data;
+	reg		[7:0]	reg_send_data;
+	reg				reg_ack_status;
 	
 	wire	[5:0]	next_counter;
-	assign next_counter = reg_clk_counter + 1'b1;
+	assign next_counter = reg_counter + 1'b1;
 	
 	always @( posedge clk ) begin
 		if ( reset ) begin
-			reg_busy      <= 1'b0;
-			reg_state     <= 3'bxxx;
-			reg_counter   <= 0;
-			reg_send_data <= 8'hxx;
-			reg_recv_data <= 8'hxx;
+			reg_busy       <= 1'b0;
+			reg_state      <= 3'bxxx;
+			reg_counter    <= 0;
+			reg_recv_data  <= 8'hxx;
+			reg_send_data  <= 8'hxx;
+			reg_ack_status <= 1'b0;
 		end
 		else begin
 			if ( !reg_busy ) begin
-				if ( cmd_start | cmd_stop | cmd_send | cmd_recv ) begin
-					reg_busy    <= 1'b1;
-					reg_state   <= cmd_stop ? ST_STOP : cmd_start ? ST_START : cmd_recv ? ST_RECV : ST_SEND;
-				end
+				if      ( cmd_stop  ) begin reg_state <= ST_STOP;  reg_busy <= 1'b1; end
+				else if ( cmd_start ) begin reg_state <= ST_START; reg_busy <= 1'b1; end
+				else if ( cmd_ack   ) begin reg_state <= ST_ACK;   reg_busy <= 1'b1; end
+				else if ( cmd_nak   ) begin reg_state <= ST_NAK;   reg_busy <= 1'b1; end
+				else if ( cmd_recv  ) begin reg_state <= ST_RECV;  reg_busy <= 1'b1; end
+				else if ( cmd_send  ) begin reg_state <= ST_SEND;  reg_busy <= 1'b1; end
+				
 				reg_send_data <= send_data;
 				reg_counter   <= 6'd0;
 			end
@@ -147,11 +153,14 @@ module jelly_i2c_core
 					default:                                            reg_busy <= 1'bx;
 					endcase
 					
+					if ( reg_counter[1:0] == 2'b01 && !reg_counter[5] ) begin
+						reg_recv_data <= {reg_recv_data[6:0], reg_sda_i};
+					end
 					if ( reg_counter[1:0] == 2'b11 ) begin
 						reg_send_data[7:0] <= {reg_send_data[6:0], 1'b1};
 					end
-					if ( reg_counter[1:0] == 2'b01 && !reg_counter[5] ) begin
-						reg_recv_data <= {reg_recv_data[6:0], reg_sda_i};
+					if ( reg_counter[5] && reg_counter[1:0] == 2'b01 ) begin
+						reg_ack_status <= reg_sda_i;
 					end
 				end
 			end
@@ -219,10 +228,11 @@ module jelly_i2c_core
 		end
 	end
 	
-	assign i2c_scl_t = reg_scl_t;
-	assign i2c_sda_t = reg_sda_t;
-	assign recv_data = reg_recv_data;
-	assign busy      = reg_busy;
+	assign i2c_scl_t  = reg_scl_t;
+	assign i2c_sda_t  = reg_sda_t;
+	assign recv_data  = reg_recv_data;
+	assign ack_status = reg_ack_status;
+	assign busy       = reg_busy;
 	
 endmodule
 

@@ -52,7 +52,9 @@ module jelly_i2c
 			input	wire						wb_we_i,
 			input	wire	[WB_SEL_WIDTH-1:0]	wb_sel_i,
 			input	wire						wb_stb_i,
-			output	wire						wb_ack_o
+			output	wire						wb_ack_o,
+			
+			output	wire						irq
 		);
 	
 	
@@ -67,8 +69,9 @@ module jelly_i2c
 	wire						cmd_nak;
 	wire						cmd_recv;
 	wire						cmd_send;
-	wire	[7:0]				send_data;
 	wire	[7:0]				recv_data;
+	wire	[7:0]				send_data;
+	wire						ack_status;
 	wire						busy;
 	
 	jelly_i2c_core
@@ -93,8 +96,9 @@ module jelly_i2c
 				.cmd_nak			(cmd_nak),
 				.cmd_recv			(cmd_recv),
 				.cmd_send			(cmd_send),
-				.send_data			(send_data),
 				.recv_data			(recv_data),
+				.send_data			(send_data),
+				.ack_status			(ack_status),
 				
 				.busy				(busy)
 			);
@@ -122,11 +126,13 @@ module jelly_i2c
 	assign cmd_send  = (wb_adr_i == `I2C_SEND)    & wb_stb_i & wb_we_i & wb_sel_i[0];
 	assign send_data = wb_dat_i[7:0];
 	
-	assign wb_dat_o  = (wb_adr_i == `I2C_STATUS)  ? {i2c_scl_i, i2c_sda_i, i2c_scl_t, i2c_sda_t, 3'b000, busy} :
+	assign wb_dat_o  = (wb_adr_i == `I2C_STATUS)  ? {i2c_scl_i, i2c_sda_i, i2c_scl_t, i2c_sda_t, ack_status, 2'b00, busy} :
 					   (wb_adr_i == `I2C_RECV)    ? recv_data  :
 					   (wb_adr_i == `I2C_DIVIDER) ? clk_dvider : 0;
 	
 	assign wb_ack_o  = wb_stb_i;
+	
+	assign irq       = ~busy;
 	
 endmodule
 
