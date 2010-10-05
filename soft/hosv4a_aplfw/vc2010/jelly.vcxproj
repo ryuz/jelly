@@ -1,0 +1,128 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{DAE95D1B-8DFF-47D1-BEA4-8FD2DE6C5C02}</ProjectGuid>
+    <RootNamespace>jelly</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>C:\home\ryuji\git_work\sfjp\hos-v4a\kernel\include;C:\home\ryuji\git_work\sfjp\hos-v4a\aplfw;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessToFile>false</PreprocessToFile>
+      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\mmcdrv\mmcdrv.h" />
+    <ClInclude Include="..\mmcdrv\mmcdrv_local.h" />
+    <ClInclude Include="..\mmcdrv\mmcfile.h" />
+    <ClInclude Include="..\mmcdrv\mmcfile_local.h" />
+    <ClInclude Include="..\boot.h" />
+    <ClInclude Include="..\kernel_id.h" />
+    <ClInclude Include="..\ostimer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\mmcdrv\mmcdrv_close.c" />
+    <ClCompile Include="..\mmcdrv\mmcdrv_constructor.c">
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\home\ryuji\cvs_work\sf_hos\hos\hos-v4a\kernel\include;C:\home\ryuji\cvs_work\sf_hos\hos\hos-v4a\aplfw;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <ClCompile Include="..\mmcdrv\mmcdrv_create.c" />
+    <ClCompile Include="..\mmcdrv\mmcdrv_delete.c" />
+    <ClCompile Include="..\mmcdrv\mmcdrv_destructor.c" />
+    <ClCompile Include="..\mmcdrv\mmcdrv_flush.c" />
+    <ClCompile Include="..\mmcdrv\mmcdrv_getinformation.c" />
+    <ClCompile Include="..\mmcdrv\mmcdrv_iocontrol.c" />
+    <ClCompile Include="..\mmcdrv\mmcdrv_open.c" />
+    <ClCompile Include="..\mmcdrv\mmcdrv_read.c" />
+    <ClCompile Include="..\mmcdrv\mmcdrv_seek.c" />
+    <ClCompile Include="..\mmcdrv\mmcdrv_spictl.c" />
+    <ClCompile Include="..\mmcdrv\mmcdrv_write.c" />
+    <ClCompile Include="..\mmcdrv\mmcfile_constructor.c" />
+    <ClCompile Include="..\mmcdrv\mmcfile_create.c" />
+    <ClCompile Include="..\mmcdrv\mmcfile_delete.c" />
+    <ClCompile Include="..\mmcdrv\mmcfile_destructor.c" />
+    <ClCompile Include="..\boot.c" />
+    <ClCompile Include="..\kernel_cfg.c" />
+    <ClCompile Include="..\main.c" />
+    <ClCompile Include="..\ostimer.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\system.cfg" />
+    <None Include="..\system.i" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="jelly.vcxproj">
+      <Project>{dae95d1b-8dff-47d1-bea4-8fd2de6c5c02}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

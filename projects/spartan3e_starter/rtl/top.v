@@ -77,6 +77,10 @@ module top
 			output	wire				uart1_tx,
 			input	wire				uart1_rx,
 			
+			// I2C
+			inout	wire				i2c0_scl,
+			inout	wire				i2c0_sda,
+			
 			// NOR FLASH
 			inout	wire				flash_sts,
 			output	wire				flash_byte_n,
@@ -807,6 +811,9 @@ module top
 	wire				wb_i2c0_stb_i;
 	wire				wb_i2c0_ack_o;
 	
+	wire				i2c0_scl_t;
+	wire				i2c0_sda_t;
+	
 	jelly_i2c
 			#(
 				.DIVIDER_WIDTH		(16),
@@ -819,10 +826,10 @@ module top
 				.clk				(clk),
 				.reset				(reset),
 				
-				.i2c_scl_t			(),
-				.i2c_scl_i			(1'b1),
-				.i2c_sda_t			(),
-				.i2c_sda_i			(1'b1),
+				.i2c_scl_t			(i2c0_scl_t),
+				.i2c_scl_i			(i2c0_scl),
+				.i2c_sda_t			(i2c0_sda_t),
+				.i2c_sda_i			(i2c0_sda),
 				
 				.wb_adr_i			(wb_i2c0_adr_i[3:2]),
 				.wb_dat_o			(wb_i2c0_dat_o),
@@ -832,6 +839,9 @@ module top
 				.wb_stb_i			(wb_i2c0_stb_i),
 				.wb_ack_o			(wb_i2c0_ack_o)
 			);
+	
+	assign i2c0_scl = i2c0_scl_t ? 1'bz : 1'b0;
+	assign i2c0_sda = i2c0_sda_t ? 1'bz : 1'b0;
 	
 	
 	// -----------------------------

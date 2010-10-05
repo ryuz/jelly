@@ -19,6 +19,7 @@
 #include "system/file/console.h"
 #include "system/process/process.h"
 #include "system/command/command.h"
+#include "driver/i2c/jelly/jellyi2cdrv.h"
 #include "driver/serial/jelly/jellyuartdrv.h"
 #include "driver/console/vt100/vt100drv.h"
 #include "driver/volume/fat/fatvol.h"
@@ -36,6 +37,7 @@
 #include "application/utility/memwrite/memwrite.h"
 #include "application/utility/memtest/memtest.h"
 #include "application/utility/keytest/keytest.h"
+#include "application/utility/i2ccmd/i2ccmd.h"
 #include "application/example/hello/hello.h"
 #include "boot.h"
 #include "ostimer.h"
@@ -233,6 +235,10 @@ int Boot_Process(VPARAM Param)
 	hDriver = MmcDrv_Create();
 	File_AddDevice("mmc0", hDriver);
 
+	/* I2Cドライバ生成 */
+	hDriver = JellyI2cDrv_Create((void *)0xfffff400, 50000000);
+	File_AddDevice("i2c0", hDriver);
+
 	/* Jelly UART デバドラ生成 (/dev/com0 に登録) */
 	hDriver = JellyUartDrv_Create((void *)0xfffff200, 1, 2, 256);
 	File_AddDevice("com0", hDriver);
@@ -272,6 +278,7 @@ int Boot_Process(VPARAM Param)
 	Command_AddCommand("memwrite", MemWrite_Main);
 	Command_AddCommand("memtest",  MemTest_Main);
 	Command_AddCommand("keytest",  KeyTest_Main);
+	Command_AddCommand("i2c",      I2cCmd_Main);
 	Command_AddCommand("hello",    Hello_Main);
 	Command_AddCommand("ls",       FileList_Main);
 	Command_AddCommand("cp",       FileCopy_Main);
