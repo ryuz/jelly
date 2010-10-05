@@ -1,0 +1,45 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual C++ Express 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "jelly", "jelly.vcxproj", "{DAE95D1B-8DFF-47D1-BEA4-8FD2DE6C5C02}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hosaplfw", "..\..\..\..\..\git_work\sfjp\hos-v4a\aplfw\build\win\win32\vc2010\hosaplfw.vcxproj", "{452F2A61-BECE-429E-8CE4-C57DF3A259CD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4BF8992D-EEF4-4895-82AB-2BB59BB1A803} = {4BF8992D-EEF4-4895-82AB-2BB59BB1A803}
+		{6F535A30-2F71-4FF1-AC7F-FE5ADC7BEE0C} = {6F535A30-2F71-4FF1-AC7F-FE5ADC7BEE0C}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hosv4a", "..\..\..\..\..\git_work\sfjp\hos-v4a\kernel\build\win\win32\vc2010\hosv4a.vcxproj", "{4BF8992D-EEF4-4895-82AB-2BB59BB1A803}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6F535A30-2F71-4FF1-AC7F-FE5ADC7BEE0C} = {6F535A30-2F71-4FF1-AC7F-FE5ADC7BEE0C}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "h4acfg", "..\..\..\..\..\git_work\sfjp\hos-v4a\cfgrtr\build\vc2010\h4acfg.vcxproj", "{6F535A30-2F71-4FF1-AC7F-FE5ADC7BEE0C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DAE95D1B-8DFF-47D1-BEA4-8FD2DE6C5C02}.Debug|Win32.ActiveCfg = Debug|Win32
+		{DAE95D1B-8DFF-47D1-BEA4-8FD2DE6C5C02}.Debug|Win32.Build.0 = Debug|Win32
+		{DAE95D1B-8DFF-47D1-BEA4-8FD2DE6C5C02}.Release|Win32.ActiveCfg = Release|Win32
+		{DAE95D1B-8DFF-47D1-BEA4-8FD2DE6C5C02}.Release|Win32.Build.0 = Release|Win32
+		{452F2A61-BECE-429E-8CE4-C57DF3A259CD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{452F2A61-BECE-429E-8CE4-C57DF3A259CD}.Debug|Win32.Build.0 = Debug|Win32
+		{452F2A61-BECE-429E-8CE4-C57DF3A259CD}.Release|Win32.ActiveCfg = Release|Win32
+		{452F2A61-BECE-429E-8CE4-C57DF3A259CD}.Release|Win32.Build.0 = Release|Win32
+		{4BF8992D-EEF4-4895-82AB-2BB59BB1A803}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4BF8992D-EEF4-4895-82AB-2BB59BB1A803}.Debug|Win32.Build.0 = Debug|Win32
+		{4BF8992D-EEF4-4895-82AB-2BB59BB1A803}.Release|Win32.ActiveCfg = Release|Win32
+		{4BF8992D-EEF4-4895-82AB-2BB59BB1A803}.Release|Win32.Build.0 = Release|Win32
+		{6F535A30-2F71-4FF1-AC7F-FE5ADC7BEE0C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6F535A30-2F71-4FF1-AC7F-FE5ADC7BEE0C}.Debug|Win32.Build.0 = Debug|Win32
+		{6F535A30-2F71-4FF1-AC7F-FE5ADC7BEE0C}.Release|Win32.ActiveCfg = Release|Win32
+		{6F535A30-2F71-4FF1-AC7F-FE5ADC7BEE0C}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
