@@ -69,7 +69,8 @@ module jelly_ram_singleport
 		end
 	end
 	endgenerate
-	
+
+`ifndef ALTERA
 	// initialize
 	integer	i;
 	initial begin
@@ -78,7 +79,7 @@ module jelly_ram_singleport
 				mem[i] = FILLMEM_DATA;
 			end
 		end
-
+		
 		if ( READMEMB ) begin
 			$readmemb(READMEM_FILE, mem);
 		end
@@ -86,6 +87,7 @@ module jelly_ram_singleport
 			$readmemh(READMEM_FILE, mem);
 		end
 	end
+`endif
 	
 endmodule
 

@@ -112,6 +112,7 @@ module jelly_ram_dualport
 	endgenerate
 	
 	// initialize
+`ifndef ALTERA
 	integer	i;
 	initial begin
 		if ( FILLMEM ) begin
@@ -127,6 +128,7 @@ module jelly_ram_dualport
 			$readmemh(READMEM_FIlE, mem);
 		end
 	end
+`endif
 	
 endmodule
 
