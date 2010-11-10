@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-// First-Word Fall-Through mode asyncronous FIFO
+// asyncronous FIFO
 module jelly_fifo_async
 		#(
 			parameter							DATA_WIDTH = 8,
@@ -83,8 +83,7 @@ module jelly_fifo_async
 	
 	reg		[PTR_WIDTH:0]		wr_rptr_gray__async_rx;
 	reg		[PTR_WIDTH:0]		wr_rptr_gray_in;
-	wire	[PTR_WIDTH:0]		wr_rptr_in;
-	reg		[PTR_WIDTH:0]		wr_rptr;
+	wire	[PTR_WIDTH:0]		wr_rptr;
 	
 	
 	// read
@@ -94,8 +93,7 @@ module jelly_fifo_async
 	
 	reg		[PTR_WIDTH:0]		rd_wptr_gray__async_rx;
 	reg		[PTR_WIDTH:0]		rd_wptr_gray_in;
-	wire	[PTR_WIDTH:0]		rd_wptr_in;
-	reg		[PTR_WIDTH:0]		rd_wptr;
+	wire	[PTR_WIDTH:0]		rd_wptr;
 	
 	
 	// write pointer
@@ -116,7 +114,7 @@ module jelly_fifo_async
 		i_graycode_to_binary_wr
 			(
 				.graycode	(wr_rptr_gray_in),
-				.binary		(wr_rptr_in)
+				.binary		(wr_rptr)
 			);
 	
 	reg		[PTR_WIDTH:0]	next_wr_wptr;
@@ -142,7 +140,6 @@ module jelly_fifo_async
 			
 			wr_rptr_gray__async_rx <= 0;
 			wr_rptr_gray_in        <= 0;
-			wr_rptr                <= 0;
 			
 			wr_full                <= 1'b1;
 			wr_free_num            <= 0;
@@ -152,7 +149,6 @@ module jelly_fifo_async
 			wr_wptr_gray__async_tx <= wr_wptr_gray;
 			wr_rptr_gray__async_rx <= rd_rptr_gray__async_tx;
 			wr_rptr_gray_in        <= wr_rptr_gray__async_rx;
-			wr_rptr                <= wr_rptr_in;
 			
 			// pinter logic
 			wr_wptr                <= next_wr_wptr;
@@ -185,7 +181,7 @@ module jelly_fifo_async
 		i_graycode_to_binary_rd
 			(
 				.graycode	(rd_wptr_gray_in),
-				.binary		(rd_wptr_in)
+				.binary		(rd_wptr)
 			);
 	
 	
@@ -212,7 +208,6 @@ module jelly_fifo_async
 			
 			rd_wptr_gray__async_rx <= 0;
 			rd_wptr_gray_in        <= 0;
-			rd_wptr                <= 0;
 			
 			rd_empty               <= 1'b1;
 			rd_data_num            <= 0;
@@ -222,7 +217,6 @@ module jelly_fifo_async
 			rd_rptr_gray__async_tx <= rd_rptr_gray;
 			rd_wptr_gray__async_rx <= wr_wptr_gray__async_tx;
 			rd_wptr_gray_in        <= rd_wptr_gray__async_rx;
-			rd_wptr                <= rd_wptr_in;
 			
 			// read pointer logic
 			rd_rptr                <= next_rd_rptr;

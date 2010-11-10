@@ -221,6 +221,16 @@
       <association xil_pn:name="PostRouteSimulation"/>
       <association xil_pn:name="PostTranslateSimulation"/>
     </file>
+    <file xil_pn:name="../../../../rtl/library/jelly_fifo_async_fwtf.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation"/>
+      <association xil_pn:name="Implementation"/>
+    </file>
+    <file xil_pn:name="../../rtl/tb_fifo_async_fwtf.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation"/>
+      <association xil_pn:name="PostMapSimulation"/>
+      <association xil_pn:name="PostRouteSimulation"/>
+      <association xil_pn:name="PostTranslateSimulation"/>
+    </file>
   </files>
 
   <properties>
@@ -388,7 +398,7 @@
     <property xil_pn:name="Implementation Stop View" xil_pn:value="AbstractSynthesis" xil_pn:valueState="default"/>
     <property xil_pn:name="Implementation Top" xil_pn:value="Module|jelly_fifo_async" xil_pn:valueState="non-default"/>
     <property xil_pn:name="Implementation Top File" xil_pn:value="../../../../rtl/library/jelly_fifo_async.v" xil_pn:valueState="non-default"/>
-    <property xil_pn:name="Implementation Top Instance Path" xil_pn:value="/jelly_fifo_async" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Implementation Top Instance Path" xil_pn:value="/jelly_fifo_async_fwtf/i_fifo_async" xil_pn:valueState="non-default"/>
     <property xil_pn:name="Include 'uselib Directive in Verilog File" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Include SIMPRIM Models in Verilog File" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Include UNISIM Models in Verilog File" xil_pn:value="false" xil_pn:valueState="default"/>
@@ -557,8 +567,8 @@
     <property xil_pn:name="Safe Implementation" xil_pn:value="No" xil_pn:valueState="default"/>
     <property xil_pn:name="Security" xil_pn:value="Enable Readback and Reconfiguration" xil_pn:valueState="default"/>
     <property xil_pn:name="SelectMAP Abort Sequence" xil_pn:value="Enable" xil_pn:valueState="default"/>
-    <property xil_pn:name="Selected Module Instance Name" xil_pn:value="/tb_fifo_async" xil_pn:valueState="non-default"/>
-    <property xil_pn:name="Selected Simulation Root Source Node Behavioral" xil_pn:value="work.tb_fifo_async" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Selected Module Instance Name" xil_pn:value="/tb_fifo_async_fwtf" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Selected Simulation Root Source Node Behavioral" xil_pn:value="work.tb_fifo_async_fwtf" xil_pn:valueState="non-default"/>
     <property xil_pn:name="Selected Simulation Root Source Node Post-Map" xil_pn:value="" xil_pn:valueState="default"/>
     <property xil_pn:name="Selected Simulation Root Source Node Post-Route" xil_pn:value="" xil_pn:valueState="default"/>
     <property xil_pn:name="Selected Simulation Root Source Node Post-Translate" xil_pn:value="" xil_pn:valueState="default"/>
