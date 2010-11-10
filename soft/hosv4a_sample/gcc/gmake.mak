@@ -113,7 +113,7 @@ all: kernel_make makeexe_all $(TARGETS)
 	$(TOOLS_DIR)/bin2hex.pl $(TARGET_BIN) 4096 > $(TARGET).hex
 
 .PHONY : run
-run: $(TARGET_BIN)
+run: all $(TARGET_BIN)
 	jelly_loader -r $(TARGET_BIN)
 
 # %jp{ÉNÉäÅ[Éì}%en{clean}
