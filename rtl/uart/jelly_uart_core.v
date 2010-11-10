@@ -9,6 +9,7 @@
 
 
 `timescale 1ns / 1ps
+`default_nettype none
 
 
 // uart
@@ -27,12 +28,12 @@ module jelly_uart_core
 			output	wire							uart_tx,
 			input	wire							uart_rx,
 			
-			input	wire							tx_en,
 			input	wire	[7:0]					tx_data,
+			input	wire							tx_valid,
 			output	wire							tx_ready,
 			
-			output	wire							rx_en,
 			output	wire	[7:0]					rx_data,
+			output	wire							rx_valid,
 			input	wire							rx_ready,
 			
 			output	wire	[TX_FIFO_PTR_WIDTH:0]	tx_fifo_free_num,
@@ -49,31 +50,31 @@ module jelly_uart_core
 	// -------------------------
 	
 	// TX
-	wire							tx_fifo_rd_en;
 	wire	[7:0]					tx_fifo_rd_data;
+	wire							tx_fifo_rd_valid;
 	wire							tx_fifo_rd_ready;
 	
 	// FIFO
-	jelly_fifo_fwtf_async
+	jelly_fifo_async_fwtf
 			#(
 				.DATA_WIDTH		(8),
 				.PTR_WIDTH		(TX_FIFO_PTR_WIDTH)
 			)
 		i_fifo_tx
 			(
-				.reset			(reset),
+				.wr_reset		(reset),				
+				.wr_clk			(clk),
+				.wr_data		(tx_data),
+				.wr_valid		(tx_valid),
+				.wr_ready		(tx_ready),
+				.wr_free_num	(tx_fifo_free_num),
 				
-				.in_clk			(clk),
-				.in_en			(tx_en),
-				.in_data		(tx_data),
-				.in_ready		(tx_ready),
-				.in_free_num	(tx_fifo_free_num),
-				
-				.out_clk		(uart_clk),
-				.out_en			(tx_fifo_rd_en),
-				.out_data		(tx_fifo_rd_data),
-				.out_ready		(tx_fifo_rd_ready),
-				.out_data_num	()
+				.rd_reset		(reset),
+				.rd_clk			(uart_clk),
+				.rd_data		(tx_fifo_rd_data),
+				.rd_valid		(tx_fifo_rd_valid),
+				.rd_ready		(tx_fifo_rd_ready),
+				.rd_data_num	()
 			);
 	
 	// transmitter
@@ -85,8 +86,8 @@ module jelly_uart_core
 				
 				.uart_tx		(uart_tx),
 				
-				.tx_en			(tx_fifo_rd_en),
-				.tx_din			(tx_fifo_rd_data), 
+				.tx_valid		(tx_fifo_rd_valid),
+				.tx_data		(tx_fifo_rd_data), 
 				.tx_ready		(tx_fifo_rd_ready)
 			);
 	
@@ -97,31 +98,31 @@ module jelly_uart_core
 	//  RX
 	// -------------------------
 	
-	wire							rx_fifo_wr_en;
 	wire	[7:0]					rx_fifo_wr_data;
+	wire							rx_fifo_wr_valid;
 	wire							rx_fifo_wr_ready;
 	
 	// FIFO
-	jelly_fifo_fwtf_async
+	jelly_fifo_async_fwtf
 			#(
 				.DATA_WIDTH		(8),
 				.PTR_WIDTH		(RX_FIFO_PTR_WIDTH)
 			)
 		i_fifo_rx
 			(
-				.reset			(reset),
+				.wr_reset		(reset),
+				.wr_clk			(uart_clk),
+				.wr_data		(rx_fifo_wr_data),
+				.wr_valid		(rx_fifo_wr_valid),
+				.wr_ready		(rx_fifo_wr_ready),
+				.wr_free_num	(),
 				
-				.in_clk			(uart_clk),
-				.in_en			(rx_fifo_wr_en),
-				.in_data		(rx_fifo_wr_data),
-				.in_ready		(rx_fifo_wr_ready),
-				.in_free_num	(),
-				
-				.out_clk		(clk),
-				.out_en			(rx_en),
-				.out_data		(rx_data),
-				.out_ready		(rx_ready),
-				.out_data_num	(rx_fifo_data_num)
+				.rd_reset		(reset),
+				.rd_clk			(clk),
+				.rd_data		(rx_data),
+				.rd_valid		(rx_valid),
+				.rd_ready		(rx_ready),
+				.rd_data_num	(rx_fifo_data_num)
 			);
 	
 	// receiver
@@ -133,8 +134,8 @@ module jelly_uart_core
 				
 				.uart_rx		(uart_rx),
 				
-				.rx_en			(rx_fifo_wr_en),
-				.rx_dout		(rx_fifo_wr_data)
+				.rx_valid		(rx_fifo_wr_valid),
+				.rx_data		(rx_fifo_wr_data)
 			);
 	
 	
@@ -145,7 +146,7 @@ module jelly_uart_core
 	generate
 	if ( SIMULATION & DEBUG ) begin
 		always @ ( posedge clk ) begin
-			if ( rx_en & rx_ready ) begin
+			if ( rx_valid & rx_ready ) begin
 				if ( rx_data >= 8'h20 && rx_data <= 8'h7e ) begin
 					$display("%m : [UART-RX] %h %c", rx_data, rx_data);
 				end
@@ -154,7 +155,7 @@ module jelly_uart_core
 				end
 			end
 			
-			if ( tx_en & tx_ready ) begin
+			if ( tx_valid & tx_ready ) begin
 				if ( tx_data >= 8'h20 && tx_data <= 8'h7e ) begin
 					$display("%m : [UART-TX] %h %c", tx_data, tx_data);
 				end
@@ -167,4 +168,10 @@ module jelly_uart_core
 	endgenerate
 	
 endmodule
+
+
+`default_nettype wire
+
+
+// end of file
 

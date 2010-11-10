@@ -182,10 +182,6 @@
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
-    <file xil_pn:name="../../../../rtl/library/jelly_fifo_fwtf_async.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="Implementation"/>
-    </file>
     <file xil_pn:name="../../../../rtl/library/jelly_graycode_to_binary.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
@@ -245,6 +241,14 @@
       <association xil_pn:name="Implementation"/>
     </file>
     <file xil_pn:name="../../../../rtl/i2c/jelly_i2c_core.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation"/>
+      <association xil_pn:name="Implementation"/>
+    </file>
+    <file xil_pn:name="../../../../rtl/library/jelly_fifo_async_fwtf.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation"/>
+      <association xil_pn:name="Implementation"/>
+    </file>
+    <file xil_pn:name="../../../../rtl/library/jelly_fifo_async.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
@@ -327,6 +331,7 @@
     <property xil_pn:name="Enable Cyclic Redundancy Checking (CRC)" xil_pn:value="true" xil_pn:valueState="default"/>
     <property xil_pn:name="Enable Debugging of Serial Mode BitStream" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Enable Enhanced Design Summary" xil_pn:value="true" xil_pn:valueState="default"/>
+    <property xil_pn:name="Enable Hardware Co-Simulation" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Enable Internal Done Pipe" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Enable Message Filtering" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Enable Multi-Threading" xil_pn:value="Off" xil_pn:valueState="default"/>

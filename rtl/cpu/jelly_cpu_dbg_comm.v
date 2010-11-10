@@ -57,11 +57,11 @@ module jelly_cpu_dbg_comm
 			input	wire				endian,
 			
 			// comm port
-			output	reg					comm_tx_en,
 			output	reg		[7:0]		comm_tx_data,
+			output	reg					comm_tx_valid,
 			input	wire				comm_tx_ready,
-			input	wire				comm_rx_en,
 			input	wire	[7:0]		comm_rx_data,
+			input	wire				comm_rx_valid,
 			output	reg					comm_rx_ready,
 			
 			// debug port (whishbone)
@@ -159,7 +159,7 @@ module jelly_cpu_dbg_comm
 	always @* begin
 		// combination logic
 		comm_rx_ready = 1'b0;
-		comm_tx_en    = 1'b0;
+		comm_tx_valid    = 1'b0;
 		comm_tx_data  = {8{1'bx}};
 		
 		// sequential logic
@@ -182,7 +182,7 @@ module jelly_cpu_dbg_comm
 			comm_rx_ready = 1'b1;
 			
 			// command recive & analyze
-			if ( comm_rx_en ) begin
+			if ( comm_rx_valid ) begin
 				case ( comm_rx_data )
 				`CMD_NOP:
 					begin
@@ -228,7 +228,7 @@ module jelly_cpu_dbg_comm
 		// send ack
 		ST_NOP_TX_ACK: begin
 			// send ack
-			comm_tx_en   = 1'b1;
+			comm_tx_valid   = 1'b1;
 			comm_tx_data = `ACK_NOP;
 			if ( comm_tx_ready ) begin
 				// go next state
@@ -243,7 +243,7 @@ module jelly_cpu_dbg_comm
 		// status ack
 		ST_STAT_TX_ACK : begin
 			// send status
-			comm_tx_en   = 1'b1;
+			comm_tx_valid   = 1'b1;
 			comm_tx_data = `ACK_STATUS;
 			
 			if ( comm_tx_ready ) begin
@@ -254,7 +254,7 @@ module jelly_cpu_dbg_comm
 		
 		// send status
 		ST_STAT_TX_STAT: begin
-			comm_tx_en   = 1'b1;
+			comm_tx_valid   = 1'b1;
 			comm_tx_data = endian;
 			
 			if ( comm_tx_ready ) begin
@@ -273,7 +273,7 @@ module jelly_cpu_dbg_comm
 			next_wb_dbg_we_o  = 1'b1;
 			next_counter[1:0] = 2'b00;
 			
-			if ( comm_rx_en ) begin
+			if ( comm_rx_valid ) begin
 				// receive sel & adr
 				next_wb_dbg_adr_o = comm_rx_data[3:0];
 				next_wb_dbg_sel_o = comm_rx_data[7:4];
@@ -286,7 +286,7 @@ module jelly_cpu_dbg_comm
 		// dbg write recv data
 		ST_DW_RX_DATA: begin
 			comm_rx_ready = 1'b1;
-			if ( comm_rx_en ) begin
+			if ( comm_rx_valid ) begin
 				// counter
 				next_counter = counter + 1;
 				
@@ -319,7 +319,7 @@ module jelly_cpu_dbg_comm
 
 		ST_DW_TX_ACK: begin
 			// send ack
-			comm_tx_en   = 1'b1;
+			comm_tx_valid   = 1'b1;
 			comm_tx_data = `ACK_DBG_WRITE;
 			
 			if ( comm_tx_ready ) begin
@@ -338,7 +338,7 @@ module jelly_cpu_dbg_comm
 			next_wb_dbg_we_o  = 1'b0;
 			next_counter[1:0] = 2'b00;
 			
-			if ( comm_rx_en ) begin
+			if ( comm_rx_valid ) begin
 				// receive sel & adr
 				next_wb_dbg_adr_o = comm_rx_data[3:0];
 				next_wb_dbg_sel_o = comm_rx_data[7:4];
@@ -365,7 +365,7 @@ module jelly_cpu_dbg_comm
 		
 		ST_DR_TX_ACK: begin
 			// send ack
-			comm_tx_en   = 1'b1;
+			comm_tx_valid   = 1'b1;
 			comm_tx_data = `ACK_DBG_READ;
 			
 			if ( comm_tx_ready ) begin
@@ -376,7 +376,7 @@ module jelly_cpu_dbg_comm
 		
 		ST_DR_TX_DATA: begin
 			// send data
-			comm_tx_en = 1'b1;
+			comm_tx_valid = 1'b1;
 			if ( counter[1:0] == ({2{endian}} ^ 2'b00) ) 		comm_tx_data = read_data[7:0];
 			else if ( counter[1:0] == ({2{endian}} ^ 2'b01) )	comm_tx_data = read_data[15:8];
 			else if ( counter[1:0] == ({2{endian}} ^ 2'b10) )	comm_tx_data = read_data[23:16];
@@ -401,7 +401,7 @@ module jelly_cpu_dbg_comm
 			next_counter[1:0] = 2'b00;
 			next_size = comm_rx_data;
 			
-			if ( comm_rx_en ) begin
+			if ( comm_rx_valid ) begin
 				// go next state
 				next_state = ST_MW_RX_ADDR;
 			end
@@ -417,7 +417,7 @@ module jelly_cpu_dbg_comm
 			if ( counter[1:0] == ({2{endian}} ^ 2'b10) ) next_address[23:16] = comm_rx_data;
 			if ( counter[1:0] == ({2{endian}} ^ 2'b11) ) next_address[31:24] = comm_rx_data;
 			
-			if ( comm_rx_en ) begin
+			if ( comm_rx_valid ) begin
 				// counter
 				next_counter = counter + 1;
 				
@@ -462,7 +462,7 @@ module jelly_cpu_dbg_comm
 			next_wb_dbg_sel_o[2] = (address[1:0] == ({2{endian}} ^ 2'b10));
 			next_wb_dbg_sel_o[3] = (address[1:0] == ({2{endian}} ^ 2'b11));
 			
-			if ( comm_rx_en ) begin
+			if ( comm_rx_valid ) begin
 				// write
 				next_wb_dbg_stb_o = 1'b1;
 				
@@ -492,7 +492,7 @@ module jelly_cpu_dbg_comm
 		
 		ST_MW_TX_ACK: begin
 			// send ack
-			comm_tx_en   = 1'b1;
+			comm_tx_valid   = 1'b1;
 			comm_tx_data = `ACK_MEM_WRIT;
 			if ( comm_tx_ready ) begin
 				// next state
@@ -509,7 +509,7 @@ module jelly_cpu_dbg_comm
 			next_counter[1:0] = 2'b00;
 			next_size = comm_rx_data;
 			
-			if ( comm_rx_en ) begin
+			if ( comm_rx_valid ) begin
 				// go next state
 				next_state = ST_MR_RX_ADDR;
 			end
@@ -525,7 +525,7 @@ module jelly_cpu_dbg_comm
 			if ( counter[1:0] == ({2{endian}} ^ 2'b10) ) next_address[23:16] = comm_rx_data;
 			if ( counter[1:0] == ({2{endian}} ^ 2'b11) ) next_address[31:24] = comm_rx_data;
 			
-			if ( comm_rx_en ) begin
+			if ( comm_rx_valid ) begin
 				// counter
 				next_counter = counter + 1;
 				
@@ -539,7 +539,7 @@ module jelly_cpu_dbg_comm
 		
 		ST_MR_TX_ACK:  begin
 			// send ack
-			comm_tx_en   = 1'b1;
+			comm_tx_valid   = 1'b1;
 			comm_tx_data = `ACK_MEM_READ;
 			next_counter = 0;
 			
@@ -589,7 +589,7 @@ module jelly_cpu_dbg_comm
 		
 		
 		ST_MR_TX_DATA: begin
-			comm_tx_en   = 1'b1;
+			comm_tx_valid   = 1'b1;
 			if ( address[1:0] == ({2{endian}} ^ 2'b00) )		comm_tx_data = read_data[7:0];
 			else if ( address[1:0] == ({2{endian}} ^ 2'b01) )	comm_tx_data = read_data[15:8];
 			else if ( address[1:0] == ({2{endian}} ^ 2'b10) )	comm_tx_data = read_data[23:16];

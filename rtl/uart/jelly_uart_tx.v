@@ -2,14 +2,14 @@
 //  Jelly  -- the soft-core processor system
 //    UART
 //
-//                                  Copyright (C) 2008-2009 by Ryuji Fuchikami
+//                                  Copyright (C) 2008-2010 by Ryuji Fuchikami
 //                                      http://homepage3.nifty.com/ryuz
 // ---------------------------------------------------------------------------
 
 
 
 `timescale 1ns / 1ps
-
+`default_nettype none
 
 
 module jelly_uart_tx
@@ -22,36 +22,36 @@ module jelly_uart_tx
 			output	wire						uart_tx,
 			
 			// control
-			input	wire						tx_en,
-			input	wire	[7:0]				tx_din,
+			input	wire	[7:0]				tx_data,
+			input	wire						tx_valid,
 			output	wire						tx_ready
 		);
 	
 	// TX
 	reg							tx_busy;
 	reg		[6:0]				tx_count;
-	reg		[8:0]				tx_data;
+	reg		[8:0]				tx_buf;
 	
 	always @ ( posedge clk or posedge reset ) begin
 		if ( reset ) begin
 			tx_busy      <= 1'b0;
 			tx_count     <= {7{1'bx}};
-			tx_data[0]   <= 1'b1;
-			tx_data[8:1] <= {8{1'bx}};
+			tx_buf[0]    <= 1'b1;
+			tx_buf[8:1]  <= {8{1'bx}};
 		end
 		else begin
 			if ( !tx_busy ) begin
-				if ( tx_en ) begin
+				if ( tx_valid ) begin
 					tx_busy      <= 1'b1;
-					tx_data[0]   <= 1'b0;
-					tx_data[8:1] <= tx_din;
+					tx_buf[0]    <= 1'b0;
+					tx_buf[8:1]  <= tx_data;
 					tx_count     <= 7'h00;
 				end
 			end
 			else begin
 				tx_count <= tx_count + 1;
 				if ( tx_count[2:0] == 4'h7 ) begin
-					tx_data <= {1'b1, tx_data[8:1]};
+					tx_buf <= {1'b1, tx_buf[8:1]};
 					if ( tx_count[6:3] == 4'ha ) begin
 						tx_busy <= 1'b0;
 					end
@@ -61,7 +61,12 @@ module jelly_uart_tx
 	end
 	
 	assign tx_ready = ~tx_busy;
-	assign uart_tx  = tx_data[0];
+	assign uart_tx  = tx_buf[0];
 	
 endmodule
 
+
+`default_nettype wire
+
+
+// end of file

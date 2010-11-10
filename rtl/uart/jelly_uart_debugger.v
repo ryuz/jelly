@@ -40,12 +40,12 @@ module jelly_uart_debugger
 		);
 	
 	
-	wire			uart_tx_en;
 	wire	[7:0]	uart_tx_data;
+	wire			uart_tx_valid;
 	wire			uart_tx_ready;
 					   
-	wire			uart_rx_en;
 	wire	[7:0]	uart_rx_data;
+	wire			uart_rx_valid;
 	wire			uart_rx_ready;
 	
 	
@@ -64,12 +64,12 @@ module jelly_uart_debugger
 				.uart_tx			(uart_tx),
 				.uart_rx			(uart_rx),
 				
-				.tx_en				(uart_tx_en),
 				.tx_data			(uart_tx_data),
+				.tx_valid			(uart_tx_valid),
 				.tx_ready			(uart_tx_ready),
 				
-				.rx_en				(uart_rx_en),
 				.rx_data			(uart_rx_data),
+				.rx_valid			(uart_rx_valid),
 				.rx_ready			(uart_rx_ready),
 				
 				.tx_fifo_free_num	(),
@@ -85,11 +85,11 @@ module jelly_uart_debugger
 				.clk				(clk),
 				.endian				(endian),
 				
-				.comm_tx_en			(uart_tx_en),
 				.comm_tx_data		(uart_tx_data),
+				.comm_tx_valid		(uart_tx_valid),
 				.comm_tx_ready		(uart_tx_ready),
-				.comm_rx_en			(uart_rx_en),
 				.comm_rx_data		(uart_rx_data),
+				.comm_rx_valid		(uart_rx_valid),
 				.comm_rx_ready		(uart_rx_ready),
 				
 				.wb_dbg_adr_o		(wb_adr_o),

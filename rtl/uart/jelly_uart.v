@@ -54,12 +54,12 @@ module jelly_uart
 	//   Core
 	// -------------------------
 	
-	wire							tx_en;
 	wire	[7:0]					tx_data;
+	wire							tx_valid;
 	wire							tx_ready;
 
-	wire							rx_en;
 	wire	[7:0]					rx_data;
+	wire							rx_valid;
 	wire							rx_ready;
 	
 	wire	[TX_FIFO_PTR_WIDTH:0]	tx_fifo_free_num;
@@ -81,12 +81,12 @@ module jelly_uart
 				.uart_tx			(uart_tx),
 				.uart_rx			(uart_rx),
 				
-				.tx_en				(tx_en),
 				.tx_data			(tx_data),
+				.tx_valid			(tx_valid),
 				.tx_ready			(tx_ready),
 				
-				.rx_en				(rx_en),
 				.rx_data			(rx_data),
+				.rx_valid			(rx_valid),
 				.rx_ready			(rx_ready),
 				
 				.tx_fifo_free_num	(tx_fifo_free_num),
@@ -96,7 +96,7 @@ module jelly_uart
 	
 	// irq
 	assign irq_tx = (tx_fifo_free_num == TX_FIFO_SIZE);
-	assign irq_rx = rx_en;
+	assign irq_rx = rx_valid;
 	
 	
 	// -------------------------
@@ -104,15 +104,15 @@ module jelly_uart
 	// -------------------------
 	
 	// TX
-	assign tx_en    = wb_stb_i & wb_we_i & (wb_adr_i == 0);
+	assign tx_valid = wb_stb_i & wb_we_i & (wb_adr_i == 0);
 	assign tx_data  = wb_dat_i[7:0];
 	
 	// RX
 	assign rx_ready = wb_stb_i & !wb_we_i & (wb_adr_i == 0);
 	
 	
-	assign wb_dat_o = (wb_stb_i && (wb_adr_i == 0)) ? rx_data           : 32'h00000000
-					| (wb_stb_i && (wb_adr_i == 1)) ? {tx_ready, rx_en} : 32'h00000000;
+	assign wb_dat_o = (wb_stb_i && (wb_adr_i == 0)) ? rx_data              : 32'h00000000
+					| (wb_stb_i && (wb_adr_i == 1)) ? {tx_ready, rx_valid} : 32'h00000000;
 	assign wb_ack_o = 1'b1;
 	
 	

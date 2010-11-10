@@ -9,7 +9,7 @@
 
 
 `timescale 1ns / 1ps
-
+`default_nettype none
 
 
 module jelly_uart_rx
@@ -22,30 +22,30 @@ module jelly_uart_rx
 			input	wire			uart_rx,
 			
 			// control
-			output	wire			rx_en,
-			output	wire	[7:0]	rx_dout
+			output	wire	[7:0]	rx_data,
+			output	wire			rx_valid
 		);
 	
 	// recv
-	reg							rx_ff_data;
-	reg		[8:0]				rx_data;
+	reg							rx_ff_buf;
+	reg		[8:0]				rx_buf;
 	reg							rx_busy;
 	reg		[7:0]				rx_count;
-	reg							rx_wr_en;
+	reg							rx_wr_valid;
 	always @ ( posedge clk or posedge reset ) begin
 		if ( reset ) begin
-			rx_ff_data <= 1'b1;
-			rx_data    <= {9{1'bx}};
-			rx_busy    <= 1'b0;
-			rx_count   <= 0;
-			rx_wr_en   <= 1'b0;
+			rx_ff_buf   <= 1'b1;
+			rx_buf      <= {9{1'bx}};
+			rx_busy     <= 1'b0;
+			rx_count    <= 0;
+			rx_wr_valid <= 1'b0;
 		end
 		else begin
-			rx_ff_data <= uart_rx;
+			rx_ff_buf <= uart_rx;
 			
 			if ( !rx_busy ) begin
-				rx_wr_en <= 1'b0;
-				if ( rx_ff_data == 1'b0 ) begin
+				rx_wr_valid <= 1'b0;
+				if ( rx_ff_buf == 1'b0 ) begin
 					rx_busy  <= 1'b1;
 					rx_count <= 0;
 				end
@@ -53,18 +53,23 @@ module jelly_uart_rx
 			else begin
 				rx_count <= rx_count + 1;
 				if ( rx_count[2:0] == 3'h3 ) begin
-					rx_data <= {rx_ff_data, rx_data[8:1]};
+					rx_buf <= {rx_ff_buf, rx_buf[8:1]};
 					if ( rx_count[6:3] == 9 ) begin
-						rx_busy  <= 1'b0;
-						rx_wr_en <= 1'b1;
+						rx_busy     <= 1'b0;
+						rx_wr_valid <= 1'b1;
 					end
 				end
 			end
 		end
 	end
 	
-	assign rx_en   = rx_wr_en;
-	assign rx_dout = rx_data[7:0];
+	assign rx_valid = rx_wr_valid;
+	assign rx_data  = rx_buf[7:0];
 	
 endmodule
 
+
+`default_nettype wire
+
+
+// end of file
