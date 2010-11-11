@@ -11,24 +11,18 @@
 `default_nettype none
 
 
-`define I2C_STATUS		3'b000
-`define I2C_CONTROL		3'b001
-`define I2C_SEND		3'b010
-`define I2C_RECV		3'b011
-`define I2C_DIVIDER		3'b100
-
-`define CONTROL_START	0
-`define CONTROL_STOP	1
-`define CONTROL_ACK		2
-`define CONTROL_NAK		3
-`define CONTROL_RECV	4
+`define SPI_STATUS		3'b000
+`define SPI_CONTROL		3'b001
+`define SPI_SEND		3'b010
+`define SPI_RECV		3'b011
+`define SPI_DIVIDER		3'b100
 
 
-// I2C
-module jelly_i2c
+// SPI
+module jelly_spi
 		#(
 			parameter							DIVIDER_WIDTH = 16,
-			parameter							DIVIDER_INIT  = 2000,
+			parameter							DIVIDER_INIT  = 100,
 			
 			parameter							WB_ADR_WIDTH  = 3,
 			parameter							WB_DAT_WIDTH  = 32,
@@ -39,11 +33,11 @@ module jelly_i2c
 			input	wire						reset,
 			input	wire						clk,
 			
-			// I2C
-			output	wire						i2c_scl_t,
-			input	wire						i2c_scl_i,
-			output	wire						i2c_sda_t,
-			input	wire						i2c_sda_i,
+			// SPI
+			output	wire						spi_cs_n,
+			output	wire						spi_clk,
+			output	wire						spi_di,
+			input	wire						spi_do,
 			
 			// WISHBONE
 			input	wire	[WB_ADR_WIDTH-1:0]	wb_adr_i,
@@ -61,78 +55,70 @@ module jelly_i2c
 	// -------------------------
 	//   Core
 	// -------------------------
-			
+	
 	reg		[DIVIDER_WIDTH-1:0]	clk_dvider;
-	wire						cmd_start;
-	wire						cmd_stop;
-	wire						cmd_ack;
-	wire						cmd_nak;
-	wire						cmd_recv;
-	wire						cmd_send;
-	wire	[7:0]				recv_data;
-	wire	[7:0]				send_data;
-	wire						ack_status;
+	reg							reg_spi_cs_n;
+	wire	[7:0]				tx_data;
+	wire						tx_valid;
+	wire	[7:0]				rx_data;
+	wire						rx_valid;
 	wire						busy;
 	
-	jelly_i2c_core
+	jelly_spi_core
 			#(
 				.DIVIDER_WIDTH		(DIVIDER_WIDTH)
 			)
-		i_i2c_core
+		i_spi_core
 			(
 				.reset				(reset),
 				.clk				(clk),
 				
 				.clk_dvider			(clk_dvider),
 				
-				.i2c_scl_t			(i2c_scl_t),
-				.i2c_scl_i			(i2c_scl_i),
-				.i2c_sda_t			(i2c_sda_t),
-				.i2c_sda_i			(i2c_sda_i),
+				.spi_clk			(spi_clk),
+				.spi_di				(spi_di),
+				.spi_do				(spi_do),
 				
-				.cmd_start			(cmd_start),
-				.cmd_stop			(cmd_stop),
-				.cmd_ack			(cmd_ack),
-				.cmd_nak			(cmd_nak),
-				.cmd_recv			(cmd_recv),
-				.cmd_send			(cmd_send),
-				.recv_data			(recv_data),
-				.send_data			(send_data),
-				.ack_status			(ack_status),
+				.tx_data			(tx_data),
+				.tx_valid			(tx_valid),
+				.tx_ready			(),
+				.rx_data			(rx_data),
+				.rx_valid			(rx_valid),
 				
 				.busy				(busy)
 			);
 	
+	
 	// -------------------------
 	//  register
 	// -------------------------
-
+	
 	always @(posedge clk) begin
 		if ( reset ) begin
-			clk_dvider <= DIVIDER_INIT;
+			clk_dvider   <= DIVIDER_INIT;
+			reg_spi_cs_n <= 1'b1;
 		end
 		else begin
-			if ( (wb_adr_i == `I2C_DIVIDER) & wb_stb_i & wb_we_i ) begin
-				clk_dvider <= wb_dat_i;
+			if ( wb_stb_i & wb_we_i ) begin
+				if ( wb_adr_i == `SPI_CONTROL ) begin
+					reg_spi_cs_n <= wb_dat_i[0];
+				end
+				if ( wb_adr_i == `SPI_DIVIDER ) begin
+					clk_dvider   <= wb_dat_i;
+				end
 			end
 		end
 	end
 	
-	assign cmd_start = (wb_adr_i == `I2C_CONTROL) & wb_stb_i & wb_we_i & wb_sel_i[0] & wb_dat_i[`CONTROL_START];
-	assign cmd_stop  = (wb_adr_i == `I2C_CONTROL) & wb_stb_i & wb_we_i & wb_sel_i[0] & wb_dat_i[`CONTROL_STOP];
-	assign cmd_ack   = (wb_adr_i == `I2C_CONTROL) & wb_stb_i & wb_we_i & wb_sel_i[0] & wb_dat_i[`CONTROL_ACK]; 
-	assign cmd_nak   = (wb_adr_i == `I2C_CONTROL) & wb_stb_i & wb_we_i & wb_sel_i[0] & wb_dat_i[`CONTROL_NAK];
-	assign cmd_recv  = (wb_adr_i == `I2C_CONTROL) & wb_stb_i & wb_we_i & wb_sel_i[0] & wb_dat_i[`CONTROL_RECV];
-	assign cmd_send  = (wb_adr_i == `I2C_SEND)    & wb_stb_i & wb_we_i & wb_sel_i[0];
-	assign send_data = wb_dat_i[7:0];
+	assign tx_valid = (wb_adr_i == `SPI_SEND) & wb_stb_i & wb_we_i & wb_sel_i[0];
+	assign tx_data  = wb_dat_i[7:0];
 	
-	assign wb_dat_o  = (wb_adr_i == `I2C_STATUS)  ? {i2c_scl_i, i2c_sda_i, i2c_scl_t, i2c_sda_t, ack_status, 2'b00, busy} :
-					   (wb_adr_i == `I2C_RECV)    ? recv_data  :
-					   (wb_adr_i == `I2C_DIVIDER) ? clk_dvider : 0;
-	
+	assign wb_dat_o  = (wb_adr_i == `SPI_STATUS)  ? busy       :
+					   (wb_adr_i == `SPI_RECV)    ? rx_data    :
+					   (wb_adr_i == `SPI_DIVIDER) ? clk_dvider : 0;	
 	assign wb_ack_o  = wb_stb_i;
 	
-	assign irq       = ~busy;
+	assign irq       = rx_valid;
 	
 endmodule
 
