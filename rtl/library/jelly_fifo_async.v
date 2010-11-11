@@ -19,14 +19,14 @@ module jelly_fifo_async
 			parameter							PTR_WIDTH  = 10
 		)
 		(
-			input	wire						wr_reset,			
+			input	wire						wr_reset,
 			input	wire						wr_clk,
 			input	wire						wr_en,
 			input	wire	[DATA_WIDTH-1:0]	wr_data,
 			output	reg							wr_full,
 			output	reg		[PTR_WIDTH:0]		wr_free_num,
 			
-			input	wire						rd_reset,			
+			input	wire						rd_reset,
 			input	wire						rd_clk,
 			input	wire						rd_en,
 			output	wire	[DATA_WIDTH-1:0]	rd_data,
@@ -157,7 +157,7 @@ module jelly_fifo_async
 		end
 	end
 	
-	assign ram_wr_en   = wr_en & !wr_full;
+	assign ram_wr_en   = wr_en & ~wr_full;
 	assign ram_wr_addr = wr_wptr[PTR_WIDTH-1:0];
 	assign ram_wr_data = wr_data;
 	
@@ -203,7 +203,7 @@ module jelly_fifo_async
 	
 	always @ ( posedge rd_clk ) begin
 		if ( rd_reset ) begin
-			rd_rptr                <= 0;			
+			rd_rptr                <= 0;
 			rd_rptr_gray__async_tx <= 0;
 			
 			rd_wptr_gray__async_rx <= 0;
