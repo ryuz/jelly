@@ -86,6 +86,15 @@ module tb_spi;
 		@(negedge clk);
 		@(negedge clk);
 		@(negedge clk);
+
+			// cs_n <= 0
+			wb_adr_i = 1; 
+			wb_dat_i = 8'h00;
+			wb_we_i  = 1; 
+			wb_stb_i = 1; 
+		@(negedge clk);
+			wb_stb_i = 0; 
+			wait_busy();
 		
 			// write
 			wb_adr_i = 2; 
@@ -95,10 +104,33 @@ module tb_spi;
 		@(negedge clk);
 			wb_stb_i = 0; 
 			wait_busy();
+
+			// read
+			wb_adr_i = 3; 
+			wb_we_i  = 0; 
+			wb_stb_i = 1; 
+		@(negedge clk);
+			wb_stb_i = 0; 
 		
 			// write
 			wb_adr_i = 2; 
 			wb_dat_i = 8'haa;
+			wb_we_i  = 1; 
+			wb_stb_i = 1; 
+		@(negedge clk);
+			wb_stb_i = 0; 
+			wait_busy();
+
+			// read
+			wb_adr_i = 3; 
+			wb_we_i  = 0; 
+			wb_stb_i = 1; 
+		@(negedge clk);
+			wb_stb_i = 0; 
+
+			// cs_n <= 1
+			wb_adr_i = 1; 
+			wb_dat_i = 8'h01;
 			wb_we_i  = 1; 
 			wb_stb_i = 1; 
 		@(negedge clk);
