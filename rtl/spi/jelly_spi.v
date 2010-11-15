@@ -118,6 +118,8 @@ module jelly_spi
 					   (wb_adr_i == `SPI_DIVIDER) ? clk_dvider : 0;	
 	assign wb_ack_o  = wb_stb_i;
 	
+	assign spi_cs_n  = reg_spi_cs_n;
+	
 	assign irq       = rx_valid;
 	
 endmodule

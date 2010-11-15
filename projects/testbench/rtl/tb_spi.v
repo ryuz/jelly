@@ -6,7 +6,7 @@ module tb_spi;
 	
 	initial begin
 		$dumpfile("tb_spi.vcd");
-		$dumpvars(0, tb_i2c);
+		$dumpvars(0, tb_spi);
 	end
 	
 	
@@ -86,9 +86,10 @@ module tb_spi;
 		@(negedge clk);
 		@(negedge clk);
 		@(negedge clk);
-			// start
-			wb_adr_i = 1; 
-			wb_dat_i = 1; 
+		
+			// write
+			wb_adr_i = 2; 
+			wb_dat_i = 8'h55;
 			wb_we_i  = 1; 
 			wb_stb_i = 1; 
 		@(negedge clk);
@@ -96,38 +97,13 @@ module tb_spi;
 			wait_busy();
 		
 			// write
-		@(negedge clk);
 			wb_adr_i = 2; 
-			wb_dat_i = 8'h9a; 
+			wb_dat_i = 8'haa;
 			wb_we_i  = 1; 
 			wb_stb_i = 1; 
 		@(negedge clk);
-			wb_stb_i = 0;
-		#(RATE*200);
-			force i2c_scl = 1'b0;
-		#(RATE*200);
-			release i2c_scl;
-			
+			wb_stb_i = 0; 
 			wait_busy();
-
-			// read
-		@(negedge clk);
-			wb_adr_i = 1; 
-			wb_dat_i = 4; 
-			wb_we_i  = 1; 
-			wb_stb_i = 1; 
-		@(negedge clk);
-			wb_stb_i = 0; 
-		
-		wait_busy();
-
-		@(negedge clk);
-			wb_adr_i = 1; 
-			wb_dat_i = 2; 
-			wb_we_i  = 1; 
-			wb_stb_i = 1; 
-		@(negedge clk);
-			wb_stb_i = 0; 
 		
 	end
 
