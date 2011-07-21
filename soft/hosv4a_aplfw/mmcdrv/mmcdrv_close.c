@@ -2,7 +2,7 @@
  *  Hyper Operating System  Application Framework
  *
  * @file  mmcdrv.h
- * @brief %jp{ƒƒ‚ƒŠƒ}ƒbƒvƒhƒtƒ@ƒCƒ‹—pƒfƒoƒCƒXƒhƒ‰ƒCƒo}
+ * @brief %jp{ãƒ¡ãƒ¢ãƒªãƒžãƒƒãƒ—ãƒ‰ãƒ•ã‚¡ã‚¤ãƒ«ç”¨ãƒ‡ãƒã‚¤ã‚¹ãƒ‰ãƒ©ã‚¤ãƒ}
  *
  * Copyright (C) 2006-2007 by Project HOS
  * http://sourceforge.jp/projects/hos/
@@ -13,7 +13,7 @@
 #include "system/sysapi/sysapi.h"
 
 
-/** ƒNƒ[ƒY */
+/** ã‚¯ãƒ­ãƒ¼ã‚º */
 void MmcDrv_Close(C_DRVOBJ *pDrvObj, C_FILEOBJ *pFileObj)
 {
 	C_MMCDRV	*self;
@@ -25,10 +25,10 @@ void MmcDrv_Close(C_DRVOBJ *pDrvObj, C_FILEOBJ *pFileObj)
 
 	SysMtx_Lock(self->hMtx);
 	
-	/* ƒNƒ[ƒYˆ— */
+	/* ã‚¯ãƒ­ãƒ¼ã‚ºå‡¦ç† */
 	--self->iOpenCount;
 	
-	/* ƒfƒBƒXƒNƒŠƒvƒ^íœ */
+	/* ãƒ‡ã‚£ã‚¹ã‚¯ãƒªãƒ—ã‚¿å‰Šé™¤ */
 	FileObj_Delete((C_FILEOBJ *)pFile);	
 	SysMem_Free(pFile);
 

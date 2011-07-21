@@ -25,40 +25,40 @@ bool CRemoteUart::Open(const char* szName)
 {
 	DCB		dcb;
 
-	/* COM�|�[�g�I�[�v�� */
+	/* COMポートオープン */
 	m_hCom = CreateFile(szName, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if ( m_hCom == INVALID_HANDLE_VALUE )
 	{
 		return false;
 	}
 	
-	/* COM�ݒ� */
+	/* COM設定 */
 	memset(&dcb, 0, sizeof(dcb));
 	dcb.DCBlength = sizeof(dcb);
 	GetCommState(m_hCom, &dcb);
-	dcb.BaudRate          = m_lSpeed;				/* �ʐM���x */
-	dcb.fBinary           = TRUE;					/* �o�C�i�����[�h�̐ݒ� */
-    dcb.fParity           = FALSE;					/* �p���e�B�̐ݒ� */
-    dcb.fOutxCtsFlow      = FALSE;					/* CTS�o�̓t���[�R���g���[���̐ݒ� */
-    dcb.fOutxDsrFlow      = FALSE;					/* DSR�o�̓t���[�R���g���[���̐ݒ� */
-    dcb.fDtrControl       = DTR_CONTROL_DISABLE;	/* DTR�t���[�R���g���[���̎�� */
-    dcb.fDsrSensitivity   = FALSE;					/* DSR�M�������̐ݒ� */
-    dcb.fTXContinueOnXoff = FALSE;					/* XOFF���M��̏����̐ݒ� */
-    dcb.fOutX             = FALSE;					/* XON/XOFF�o�̓t���[�R���g���[���̐ݒ� */
-    dcb.fInX              = FALSE;					/* XON/XOFF���̓t���[�R���g���[���̐ݒ� */
-    dcb.fErrorChar        = 0;						/* �p���e�B�G���[�̑�֕����̐ݒ� */
-    dcb.fNull             = FALSE;                  /* NULL�o�C�g�̔j�� */
-    dcb.fRtsControl       = RTS_CONTROL_DISABLE;	/* RTS�t���[�R���g���[���̐ݒ� */
-    dcb.fAbortOnError     = FALSE;			        /* �G���[���̓��� */
-    dcb.ByteSize          = 8;						/* 1�o�C�g�̃T�C�Y */
-    dcb.Parity            = NOPARITY;				/* �p���e�B�̎�� */
-    dcb.StopBits          = ONESTOPBIT;				/* �X�g�b�v�r�b�g�̎�� */
+	dcb.BaudRate          = m_lSpeed;				/* 通信速度 */
+	dcb.fBinary           = TRUE;					/* バイナリモードの設定 */
+    dcb.fParity           = FALSE;					/* パリティの設定 */
+    dcb.fOutxCtsFlow      = FALSE;					/* CTS出力フローコントロールの設定 */
+    dcb.fOutxDsrFlow      = FALSE;					/* DSR出力フローコントロールの設定 */
+    dcb.fDtrControl       = DTR_CONTROL_DISABLE;	/* DTRフローコントロールの種類 */
+    dcb.fDsrSensitivity   = FALSE;					/* DSR信号処理の設定 */
+    dcb.fTXContinueOnXoff = FALSE;					/* XOFF送信後の処理の設定 */
+    dcb.fOutX             = FALSE;					/* XON/XOFF出力フローコントロールの設定 */
+    dcb.fInX              = FALSE;					/* XON/XOFF入力フローコントロールの設定 */
+    dcb.fErrorChar        = 0;						/* パリティエラーの代替文字の設定 */
+    dcb.fNull             = FALSE;                  /* NULLバイトの破棄 */
+    dcb.fRtsControl       = RTS_CONTROL_DISABLE;	/* RTSフローコントロールの設定 */
+    dcb.fAbortOnError     = FALSE;			        /* エラー時の動作 */
+    dcb.ByteSize          = 8;						/* 1バイトのサイズ */
+    dcb.Parity            = NOPARITY;				/* パリティの種類 */
+    dcb.StopBits          = ONESTOPBIT;				/* ストップビットの種類 */
 	if ( !SetCommState(m_hCom, &dcb) )
 	{
 		return false;
 	}
 	
-	/* COM�^�C���A�E�g�ݒ� */	
+	/* COMタイムアウト設定 */	
 	COMMTIMEOUTS cto;
 	memset(&cto, 0, sizeof(cto));
 	GetCommTimeouts(m_hCom, &cto);
@@ -69,13 +69,13 @@ bool CRemoteUart::Open(const char* szName)
 	cto.WriteTotalTimeoutConstant   = 1000;
 	SetCommTimeouts(m_hCom, &cto);
 	
-	/* COM�o�b�t�@�ݒ� */
+	/* COMバッファ設定 */
 	SetupComm(m_hCom, 256 * 1024, 256 * 1024);
 	
 	return true;
 }
 
-// ����
+// 閉じる
 void CRemoteUart::Close(void)
 {
 	if ( m_hCom != INVALID_HANDLE_VALUE )
@@ -85,7 +85,7 @@ void CRemoteUart::Close(void)
 	m_hCom = INVALID_HANDLE_VALUE;
 }
 
-// ���M
+// 送信
 int CRemoteUart::Send(const unsigned char *pbyData, int iSize)
 {
 	if ( m_hCom == INVALID_HANDLE_VALUE )
@@ -102,7 +102,7 @@ int CRemoteUart::Send(const unsigned char *pbyData, int iSize)
 	return (int)dwWriteSize;
 }
 
-// ��M
+// 受信
 int CRemoteUart::Recv(unsigned char *pbyBuf, int iSize)
 {
 	if ( m_hCom == INVALID_HANDLE_VALUE )

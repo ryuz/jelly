@@ -2,7 +2,7 @@
  *  Hyper Operating System  Application Framework
  *
  * @file  mmcdrv.h
- * @brief %jp{MMC—pƒfƒoƒCƒXƒhƒ‰ƒCƒo}
+ * @brief %jp{MMCç”¨ãƒ‡ãƒã‚¤ã‚¹ãƒ‰ãƒ©ã‚¤ãƒ}
  *
  * Copyright (C) 2006-2009 by Project HOS
  * http://sourceforge.jp/projects/hos/
@@ -20,8 +20,8 @@
 extern "C" {
 #endif
 
-HANDLE MmcDrv_Create(void);				/**< ¶¬ */
-void   MmcDrv_Delete(HANDLE hDriver);	/**< íœ */
+HANDLE MmcDrv_Create(void);				/**< ç”Ÿæˆ */
+void   MmcDrv_Delete(HANDLE hDriver);	/**< å‰Šé™¤ */
 
 #ifdef __cplusplus
 }

@@ -2,7 +2,7 @@
  *  Hyper Operating System  Application Framework
  *
  * @file  mmcdrv.h
- * @brief %jp{ƒƒ‚ƒŠƒ}ƒbƒvƒhƒtƒ@ƒCƒ‹—pƒfƒoƒCƒXƒhƒ‰ƒCƒo}
+ * @brief %jp{ãƒ¡ãƒ¢ãƒªãƒãƒƒãƒ—ãƒ‰ãƒ•ã‚¡ã‚¤ãƒ«ç”¨ãƒ‡ãƒã‚¤ã‚¹ãƒ‰ãƒ©ã‚¤ãƒ}
  *
  * Copyright (C) 2006-2007 by Project HOS
  * http://sourceforge.jp/projects/hos/
@@ -12,7 +12,7 @@
 #include "mmcdrv_local.h"
 
 
-/** íœ */
+/** å‰Šé™¤ */
 void MmcDrv_Delete(HANDLE hDriver)
 {
 	C_MMCDRV	*self;
@@ -20,10 +20,10 @@ void MmcDrv_Delete(HANDLE hDriver)
 	/* upper cast */
 	self = (C_MMCDRV *)hDriver;
 
-	/* ƒfƒXƒgƒ‰ƒNƒ^ŒÄ‚Ño‚µ */
+	/* ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿å‘¼ã³å‡ºã— */
 	MmcDrv_Destructor(self);
 	
-	/* ƒƒ‚ƒŠíœ */
+	/* ãƒ¡ãƒ¢ãƒªå‰Šé™¤ */
 	SysMem_Free(self);
 }
 

@@ -2,7 +2,7 @@
  *  Sample program for Hyper Operating System V4 Advance
  *
  * @file  ostimer.c
- * @brief %jp{OSタイマ}%en{OS timer}
+ * @brief %jp{OS繧ｿ繧､繝栲%en{OS timer}
  *
  * Copyright (C) 1998-2006 by Project HOS
  * http://sourceforge.jp/projects/hos/
@@ -17,7 +17,7 @@
 extern "C" {
 #endif
 
-/** %jp{OS用タイマ初期化ルーチン} */
+/** %jp{OS逕ｨ繧ｿ繧､繝槫�晄悄蛹悶Ν繝ｼ繝√Φ} */
 void OsTimer_Initialize(void);
 
 #ifdef __cplusplus

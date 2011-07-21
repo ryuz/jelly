@@ -2,7 +2,7 @@
  *  Sample program for Hyper Operating System V4 Advance
  *
  * @file  sample.c
- * @brief %jp{サンプルプログラム}%en{Sample program}
+ * @brief %jp{繧ｵ繝ｳ繝励Ν繝励Ο繧ｰ繝ｩ繝}%en{Sample program}
  *
  * Copyright (C) 1998-2008 by Project HOS
  * http://sourceforge.jp/projects/hos/

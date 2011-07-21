@@ -6,10 +6,10 @@
 # ----------------------------------------------------------------------------
 
 
-# %jp{ƒ^[ƒQƒbƒg–¼}
+# %jp{ã‚¿ãƒ¼ã‚²ãƒƒãƒˆå}
 TARGET ?= hosv4a_aplfw
 
-# %jp{ƒc[ƒ‹’è‹`}
+# %jp{ãƒ„ãƒ¼ãƒ«å®šç¾©}
 GCC_ARCH    ?= mips-elf-
 CMD_CC      ?= $(GCC_ARCH)gcc
 CMD_ASM     ?= $(GCC_ARCH)gcc
@@ -19,7 +19,7 @@ CMD_OBJDUMP ?= $(GCC_ARCH)objdump
 CMD_GDB     ?= $(GCC_ARCH)gdb
 
 
-# %jp{ƒfƒBƒŒƒNƒgƒŠ}
+# %jp{ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª}
 HOS_DIR           = $(HOME)/hos-v4a
 KERNEL_DIR        = $(HOS_DIR)/kernel
 KERNEL_CFGRTR_DIR = $(HOS_DIR)/cfgrtr/build/gcc
@@ -31,70 +31,70 @@ APLFW_BUILD_DIR   = $(APLFW_DIR)/build/mips/jelly/gcc
 TOOLS_DIR         = ../../../tools
 OBJS_DIR          = objs_$(TARGET)
 
-# %jp{ƒJ[ƒlƒ‹Ý’è}
+# %jp{ã‚«ãƒ¼ãƒãƒ«è¨­å®š}
 KERNEL_HOK_TSK = Yes
 KERNEL_HOK_ISR = Yes
 
 
-# %jp{‹¤’Ê’è‹`“Çž‚Ý}
+# %jp{å…±é€šå®šç¾©èª­è¾¼ã¿}
 include $(KERNEL_MAKINC_DIR)/common.inc
 
 
-# %jp{ƒRƒ“ƒtƒBƒMƒ…ƒŒ[ƒ^’è‹`}
+# %jp{ã‚³ãƒ³ãƒ•ã‚£ã‚®ãƒ¥ãƒ¬ãƒ¼ã‚¿å®šç¾©}
 KERNEL_CFGRTR = $(KERNEL_CFGRTR_DIR)/h4acfg-jelly
 
 
-# %jp{ƒ‰ƒCƒuƒ‰ƒŠ’è‹`}
+# %jp{ãƒ©ã‚¤ãƒ–ãƒ©ãƒªå®šç¾©}
 APLFW_LIB = $(APLFW_BUILD_DIR)/hosaplfw.a
 
 
-# %jp{ƒfƒoƒbƒO”Å‚Ì’è‹`•ÏX}
+# %jp{ãƒ‡ãƒãƒƒã‚°ç‰ˆã®å®šç¾©å¤‰æ›´}
 ifeq ($(DEBUG),Yes)
 TARGET := $(TARGET)dbg
 APLFW_LIB = $(APLFW_BUILD_DIR)/hosaplfwdbg.a
 endif
 
 
-# %jp{ƒƒ‚ƒŠƒ}ƒbƒv}
+# %jp{ãƒ¡ãƒ¢ãƒªãƒžãƒƒãƒ—}
 ifeq ($(MEMMAP),ram)
-# %jp{“à‘ RAM}
+# %jp{å†…è”µRAM}
 TARGET       := $(TARGET)_ram
 LINK_SCRIPT = ram.lds
 else
-# %jp{“à‘ ROM}
+# %jp{å†…è”µROM}
 LINK_SCRIPT = rom.lds
 endif
 
 
-# %jp{ƒtƒ‰ƒOÝ’è}
+# %jp{ãƒ•ãƒ©ã‚°è¨­å®š}
 CFLAGS  = -march=mips1 -msoft-float -G 0
 AFLAGS  = -march=mips1 -msoft-float -G 0
 LNFLAGS = -march=mips1 -msoft-float -G 0 -nostartfiles -Wl,-Map,$(TARGET).map,-T$(LINK_SCRIPT)
 
 
-# %jp{o—Íƒtƒ@ƒCƒ‹–¼}
+# %jp{å‡ºåŠ›ãƒ•ã‚¡ã‚¤ãƒ«å}
 TARGET_EXE = $(TARGET).$(EXT_EXE)
 TARGET_BIN = $(TARGET).$(EXT_BIN)
 
 TARGETS = $(TARGET_EXE) $(TARGET_BIN)
 
 
-# %jp{gcc—p‚ÌÝ’è“Çž‚Ý}
+# %jp{gccç”¨ã®è¨­å®šèª­è¾¼ã¿}
 include $(KERNEL_MAKINC_DIR)/gcc_d.inc
 
 
-# %jp{ƒCƒ“ƒNƒ‹[ƒhƒfƒBƒŒƒNƒgƒŠ}
+# %jp{ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª}
 INC_DIRS += $(APLFW_INC_DIR)
 
-# %jp{ƒ\[ƒXƒfƒBƒŒƒNƒgƒŠ}
+# %jp{ã‚½ãƒ¼ã‚¹ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª}
 SRC_DIRS += . ..
 
 
-# %jp{ƒAƒZƒ“ƒuƒ‰ƒtƒ@ƒCƒ‹‚Ì’Ç‰Á}
+# %jp{ã‚¢ã‚»ãƒ³ãƒ–ãƒ©ãƒ•ã‚¡ã‚¤ãƒ«ã®è¿½åŠ }
 ASRCS += ./crt0.S
 
 
-# %jp{CŒ¾Œêƒtƒ@ƒCƒ‹‚Ì’Ç‰Á}
+# %jp{Cè¨€èªžãƒ•ã‚¡ã‚¤ãƒ«ã®è¿½åŠ }
 CSRCS += ../kernel_cfg.c
 CSRCS += ../main.c
 CSRCS += ../boot.c
@@ -126,13 +126,13 @@ CSRCS += ../dhrystone/dhry21a.c
 CSRCS += ../dhrystone/dhry21b.c
 # CSRCS += ../dhrystone/timers.c
 
-# %jp{ƒ‰ƒCƒuƒ‰ƒŠƒtƒ@ƒCƒ‹‚Ì’Ç‰Á}
+# %jp{ãƒ©ã‚¤ãƒ–ãƒ©ãƒªãƒ•ã‚¡ã‚¤ãƒ«ã®è¿½åŠ }
 LIBS += $(APLFW_LIB) -lc
 
 
 
 # --------------------------------------
-#  %jp{ƒ‹[ƒ‹}
+#  %jp{ãƒ«ãƒ¼ãƒ«}
 # --------------------------------------
 
 .PHONY : all
@@ -177,16 +177,16 @@ mostlydepend: depend
 $(TARGET_EXE): $(LINK_SCRIPT)
 
 
-# %jp{ƒ‰ƒCƒuƒ‰ƒŠ¶¬—pÝ’è“Çž‚Ý}
+# %jp{ãƒ©ã‚¤ãƒ–ãƒ©ãƒªç”Ÿæˆç”¨è¨­å®šèª­è¾¼ã¿}
 include $(KERNEL_MAKINC_DIR)/makeexe.inc
 
-# %jp{gcc—p‚Ìƒ‹[ƒ‹’è‹`“Çž‚Ý}
+# %jp{gccç”¨ã®ãƒ«ãƒ¼ãƒ«å®šç¾©èª­è¾¼ã¿}
 include $(KERNEL_MAKINC_DIR)/gcc_r.inc
 
 
 
 # --------------------------------------
-#  %jp{ˆË‘¶ŠÖŒW}
+#  %jp{ä¾å­˜é–¢ä¿‚}
 # --------------------------------------
 
 $(OBJS_DIR)/sample.obj: ../sample.c ../kernel_id.h

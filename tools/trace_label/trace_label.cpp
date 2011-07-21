@@ -46,14 +46,14 @@ void ReadDisAsm(FILE * fp)
 			continue;
 		}
 		
-		// ƒ‰ƒxƒ‹ŒŸo
+		// ãƒ©ãƒ™ãƒ«æ¤œå‡º
 		if ( sscanf(szBuf, "%x <%[_a-zA-Z0-9]>:", &ulAddr, szText) == 2 )
 		{
 			strcpy(szLabel, szText);
 			continue;
 		}
 		
-		// ‹tŠ¾•”
+		// é€†æ±—éƒ¨
 		if ( sscanf(szBuf, "%lx:\t%lx\t%n", &ulAddr, &ulInst, &iPos) == 2 )
 		{
 			if ( DisAsm_Num < DISASM_TABLE_SIZE )
@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
 			int iLen = strlen(szBuf);
 			if ( szBuf[iLen-1] == '\n' ) { szBuf[iLen-1] = '\0'; }
 			
-			// ’Tõ
+			// æ¢ç´¢
 			int i;
 			for ( i = 0; i < DisAsm_Num; i++ )
 			{

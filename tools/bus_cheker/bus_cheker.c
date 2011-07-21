@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 	
-	// 初期値読み込み
+	// 蛻晄悄蛟､隱ｭ縺ｿ霎ｼ縺ｿ
 	if ( argc >= 3 )
 	{
 		if ( (fp = fopen(argv[2], "r")) == NULL )
@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
 	}
 	
 	
-	// チェック
+	// 繝√ぉ繝�繧ｯ
 	if ( (fp = fopen(argv[1], "r")) == NULL )
 	{
 		return 1;

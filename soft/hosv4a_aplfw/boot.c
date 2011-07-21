@@ -2,7 +2,7 @@
  *  Sample program for Hyper Operating System V4 Advance
  *
  * @file  sample.c
- * @brief %jp{ƒTƒ“ƒvƒ‹ƒvƒƒOƒ‰ƒ€}%en{Sample program}
+ * @brief %jp{ã‚µãƒ³ãƒ—ãƒ«ãƒ—ãƒ­ã‚°ãƒ©ãƒ }%en{Sample program}
  *
  * Copyright (C) 1998-2008 by Project HOS
  * http://sourceforge.jp/projects/hos/
@@ -61,7 +61,7 @@ long	g_SystemHeap[128 * 1024 / sizeof(long)];
 #endif
 
 
-extern SYSTIM_CPUTIME		SysTim_TimeCounter;		/* ƒfƒtƒHƒ‹ƒg‚Ìƒ^ƒCƒ}ƒJƒEƒ“ƒ^ */
+extern SYSTIM_CPUTIME		SysTim_TimeCounter;		/* ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã®ã‚¿ã‚¤ãƒã‚«ã‚¦ãƒ³ã‚¿ */
 
 
 
@@ -113,7 +113,7 @@ int test_main(int argc, char *argv[])
 	*GPIOA_DIR   = 0x07;
 	*GPIOA_OUPUT = 0x07;
 	
-	/* ‰Šú‰» */
+	/* åˆæœŸåŒ– */
 	for ( i = 0; i < 80; i++ )
 	{
 		*GPIOA_OUPUT &= ~MMC_CLK;
@@ -197,10 +197,10 @@ void Boot_Task(VP_INT exinf)
 	
 	
 	/*************************/
-	/*       ‰Šú‰»          */
+	/*       åˆæœŸåŒ–          */
 	/*************************/
 	
-	/* ƒVƒXƒeƒ€‰Šú‰» */
+	/* ã‚·ã‚¹ãƒ†ãƒ åˆæœŸåŒ– */
 	memset(&SysInf, 0, sizeof(SysInf));
 	SysInf.pSysMemBase     = SYSTEM_HEAP_ADDR;
 	SysInf.SysMemSize      = SYSTEM_HEAP_SIZE;
@@ -214,7 +214,7 @@ void Boot_Task(VP_INT exinf)
 }
 
 
-/* ƒu[ƒgƒvƒƒZƒX */
+/* ãƒ–ãƒ¼ãƒˆãƒ—ãƒ­ã‚»ã‚¹ */
 int Boot_Process(VPARAM Param)
 {
 	T_PROCESS_CREATE_INF	ProcInf;
@@ -225,38 +225,38 @@ int Boot_Process(VPARAM Param)
 	
 	
 	/*************************/
-	/*   ƒfƒoƒCƒXƒhƒ‰ƒCƒo    */
+	/*   ãƒ‡ãƒã‚¤ã‚¹ãƒ‰ãƒ©ã‚¤ãƒ    */
 	/*************************/
 	
-	/* ƒ^ƒCƒ}‰Šú‰» */	
+	/* ã‚¿ã‚¤ãƒåˆæœŸåŒ– */	
 	OsTimer_Initialize();
 
-	/* MMCƒhƒ‰ƒCƒo¶¬ */
+	/* MMCãƒ‰ãƒ©ã‚¤ãƒç”Ÿæˆ */
 	hDriver = MmcDrv_Create();
 	File_AddDevice("mmc0", hDriver);
 
-	/* I2Cƒhƒ‰ƒCƒo¶¬ */
+	/* I2Cãƒ‰ãƒ©ã‚¤ãƒç”Ÿæˆ */
 	hDriver = JellyI2cDrv_Create((void *)0xfffff400, 50000000);
 	File_AddDevice("i2c0", hDriver);
 
-	/* Jelly UART ƒfƒoƒhƒ‰¶¬ (/dev/com0 ‚É“o˜^) */
+	/* Jelly UART ãƒ‡ãƒãƒ‰ãƒ©ç”Ÿæˆ (/dev/com0 ã«ç™»éŒ²) */
 	hDriver = JellyUartDrv_Create((void *)0xfffff200, 1, 2, 256);
 	File_AddDevice("com0", hDriver);
 
-	/* ƒVƒŠƒAƒ‹‚ğŠJ‚­ */
+	/* ã‚·ãƒªã‚¢ãƒ«ã‚’é–‹ã */
 	hTty = File_Open("/dev/com0", FILE_OPEN_READ | FILE_OPEN_WRITE);
 	
-	/* ƒVƒŠƒAƒ‹ã‚ÉƒRƒ“ƒ\[ƒ‹‚ğ¶¬( /dev/con0 ‚É“o˜^) */
+	/* ã‚·ãƒªã‚¢ãƒ«ä¸Šã«ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ã‚’ç”Ÿæˆ( /dev/con0 ã«ç™»éŒ²) */
 	hDriver = Vt100Drv_Create(hTty);
 	File_AddDevice("con0", hDriver);
 	
-	/* ƒRƒ“ƒ\[ƒ‹‚ğŠJ‚­ */
+	/* ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ã‚’é–‹ã */
 	hCon = File_Open("/dev/con0", FILE_OPEN_READ | FILE_OPEN_WRITE);
 	
 
 	
 	/*************************/
-	/*     •W€“üo—Íİ’è    */
+	/*     æ¨™æº–å…¥å‡ºåŠ›è¨­å®š    */
 	/*************************/
 	
 	Process_SetTerminal(HANDLE_NULL, hTty);
@@ -268,7 +268,7 @@ int Boot_Process(VPARAM Param)
 	
 	
 	/*************************/
-	/*     ƒRƒ}ƒ“ƒh“o˜^      */
+	/*     ã‚³ãƒãƒ³ãƒ‰ç™»éŒ²      */
 	/*************************/
 	Command_AddCommand("sh",       Shell_Main);
 	Command_AddCommand("ps",       ProcessList_Main);
@@ -292,7 +292,7 @@ int Boot_Process(VPARAM Param)
 	
 	
 	/*************************/
-	/*    ‹N“®ƒƒbƒZ[ƒW     */
+	/*    èµ·å‹•ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸     */
 	/*************************/
 
 	StdIo_PutString(
@@ -307,22 +307,22 @@ int Boot_Process(VPARAM Param)
 	
 	
 	/*************************/
-	/*      ƒVƒFƒ‹‹N“®       */
+	/*      ã‚·ã‚§ãƒ«èµ·å‹•       */
 	/*************************/
 	
-	/* ƒvƒƒZƒX‚Ì¶¬*/
-	ProcInf.pszCommandLine = "sh -i";								/* ÀsƒRƒ}ƒ“ƒh */
-	ProcInf.pszCurrentDir  = "/";									/* ‹N“®ƒfƒBƒŒƒNƒgƒŠ */
-	ProcInf.pfncEntry      = NULL;									/* ‹N“®ƒAƒhƒŒƒX */
-	ProcInf.Param          = 0;										/* ƒ†[ƒU[ƒpƒ‰ƒ[ƒ^ */
-	ProcInf.StackSize      = 2048;									/* ƒXƒ^ƒbƒNƒTƒCƒY */
-	ProcInf.Priority       = PROCESS_PRIORITY_NORMAL;				/* ƒvƒƒZƒX—Dæ“x */
-	ProcInf.hTerminal      = Process_GetTerminal(HANDLE_NULL);		/* ƒ^[ƒ~ƒiƒ‹ */
-	ProcInf.hConIn         = Process_GetConIn(HANDLE_NULL);			/* ƒRƒ“ƒ\[ƒ‹“ü—Í */
-	ProcInf.hConOut        = Process_GetConOut(HANDLE_NULL);		/* ƒRƒ“ƒ\[ƒ‹o—Í */
-	ProcInf.hStdIn         = Process_GetStdIn(HANDLE_NULL);			/* •W€“ü—Í */
-	ProcInf.hStdOut        = Process_GetStdOut(HANDLE_NULL);		/* •W€o—Í */
-	ProcInf.hStdErr        = Process_GetStdErr(HANDLE_NULL);		/* •W€ƒGƒ‰[o—Í */
+	/* ãƒ—ãƒ­ã‚»ã‚¹ã®ç”Ÿæˆ*/
+	ProcInf.pszCommandLine = "sh -i";								/* å®Ÿè¡Œã‚³ãƒãƒ³ãƒ‰ */
+	ProcInf.pszCurrentDir  = "/";									/* èµ·å‹•ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª */
+	ProcInf.pfncEntry      = NULL;									/* èµ·å‹•ã‚¢ãƒ‰ãƒ¬ã‚¹ */
+	ProcInf.Param          = 0;										/* ãƒ¦ãƒ¼ã‚¶ãƒ¼ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ */
+	ProcInf.StackSize      = 2048;									/* ã‚¹ã‚¿ãƒƒã‚¯ã‚µã‚¤ã‚º */
+	ProcInf.Priority       = PROCESS_PRIORITY_NORMAL;				/* ãƒ—ãƒ­ã‚»ã‚¹å„ªå…ˆåº¦ */
+	ProcInf.hTerminal      = Process_GetTerminal(HANDLE_NULL);		/* ã‚¿ãƒ¼ãƒŸãƒŠãƒ« */
+	ProcInf.hConIn         = Process_GetConIn(HANDLE_NULL);			/* ã‚³ãƒ³ã‚½ãƒ¼ãƒ«å…¥åŠ› */
+	ProcInf.hConOut        = Process_GetConOut(HANDLE_NULL);		/* ã‚³ãƒ³ã‚½ãƒ¼ãƒ«å‡ºåŠ› */
+	ProcInf.hStdIn         = Process_GetStdIn(HANDLE_NULL);			/* æ¨™æº–å…¥åŠ› */
+	ProcInf.hStdOut        = Process_GetStdOut(HANDLE_NULL);		/* æ¨™æº–å‡ºåŠ› */
+	ProcInf.hStdErr        = Process_GetStdErr(HANDLE_NULL);		/* æ¨™æº–ã‚¨ãƒ©ãƒ¼å‡ºåŠ› */
 	for ( ; ; )
 	{
 		hProcess = Process_CreateEx(&ProcInf);

@@ -2,7 +2,7 @@
  * Hyper Operating System  Application Framework
  *
  * @file  mmcfile_constructor.c
- * @brief %jp{memory file ƒRƒ“ƒXƒgƒ‰ƒNƒ^}%en{Memory File  constructor}
+ * @brief %jp{memory file ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿}%en{Memory File  constructor}
  *
  * Copyright (C) 2008 by Project HOS
  * http://sourceforge.jp/projects/hos/
@@ -68,7 +68,7 @@ int MmcDrv_CardInitialize(C_MMCDRV *self)
 	*GPIOA_DIR   = 0x07;
 	*GPIOA_OUPUT = 0x07;
 	
-	/* ‰Šú‰» */
+	/* åˆæœŸåŒ– */
 	for ( i = 0; i < 80; i++ )
 	{
 		*GPIOA_OUPUT &= ~MMC_CLK;

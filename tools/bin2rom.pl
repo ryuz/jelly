@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 
-open(IN, $ARGV[0]) || die "ƒtƒ@ƒCƒ‹‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ" ;
+open(IN, $ARGV[0]) || die "ãƒ•ã‚¡ã‚¤ãƒ«ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“" ;
 binmode(IN);
 
 

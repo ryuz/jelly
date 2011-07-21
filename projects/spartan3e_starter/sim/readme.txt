@@ -1,1 +1,1 @@
-ddr.v ‚Í MicronŽÐ‚ÌWeb‚©‚ç“üŽè‚Å‚«‚Ü‚·B
+ddr.v ã¯ Micronç¤¾ã®Webã‹ã‚‰å…¥æ‰‹ã§ãã¾ã™ã€‚

@@ -2,7 +2,7 @@
  * Hyper Operating System  Application Framework
  *
  * @file  mmcfile.h
- * @brief %jp{memory file ローカルヘッダファイル}%en{Memory File private header file}
+ * @brief %jp{memory file 繝ｭ繝ｼ繧ｫ繝ｫ繝倥ャ繝繝輔ぃ繧､繝ｫ}%en{Memory File private header file}
  *
  * Copyright (C) 2008 by Project HOS
  * http://sourceforge.jp/projects/hos/
@@ -18,12 +18,12 @@
 #include "system/sysapi/sysapi.h"
 
 
-/* ファイルディスクリプタ */
+/* 繝輔ぃ繧､繝ｫ繝�繧｣繧ｹ繧ｯ繝ｪ繝励ち */
 typedef struct c_mmcfile
 {
-	C_FILEOBJ	FileObj;			/* 継承 */
+	C_FILEOBJ	FileObj;			/* 邯呎価 */
 
-	FILE_POS	FilePos;			/* ファイルポインタ */
+	FILE_POS	FilePos;			/* 繝輔ぃ繧､繝ｫ繝昴う繝ｳ繧ｿ */
 } C_MMCFILE;
 
 

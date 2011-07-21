@@ -5,7 +5,7 @@
 #include "GdbServerTcp.h"
 
 
-// ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+// ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 CGdbServerTcp::CGdbServerTcp(CDebugControl* pDbgCtl, int port) : CGdbServer(pDbgCtl)
 {
 	m_blConected = false;
@@ -34,7 +34,7 @@ CGdbServerTcp::CGdbServerTcp(CDebugControl* pDbgCtl, int port) : CGdbServer(pDbg
 }
 
 
-// ƒfƒXƒgƒ‰ƒNƒ^
+// ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 CGdbServerTcp::~CGdbServerTcp()
 {
 	if ( m_blConected )
@@ -46,7 +46,7 @@ CGdbServerTcp::~CGdbServerTcp()
 
 int CGdbServerTcp::RemotePeekChar(void)
 {
-	// Ú‘±
+	// æ¥ç¶š
 	if ( !m_blConected )
 	{
 		int len = sizeof(m_client);
@@ -64,12 +64,12 @@ int CGdbServerTcp::RemotePeekChar(void)
 		m_blConected = true;
 	}
 	
-	// óM
+	// å—ä¿¡
 	int		n;
 	char	c;
 	if ( (n = recv(m_sock, &c, 1, 0)) == 1 )
 	{
-		// óMƒƒO
+		// å—ä¿¡ãƒ­ã‚°
 		LogPrint("%c", c);
 		
 		return (int)(unsigned int)c;
@@ -108,7 +108,7 @@ int CGdbServerTcp::RemoteGetChar(void)
 /*
 int CGdbServerTcp::RemoteGetChar(void)
 {
-	// Ú‘±
+	// æ¥ç¶š
 	if ( !m_blConected )
 	{
 		int len = sizeof(m_client);
@@ -125,7 +125,7 @@ int CGdbServerTcp::RemoteGetChar(void)
 		m_blConected = true;
 	}
 	
-	// óM
+	// å—ä¿¡
 	int		n;
 	char	c;
 	while ( (n = recv(m_sock, &c, 1, 0)) != 1 )
@@ -142,7 +142,7 @@ int CGdbServerTcp::RemoteGetChar(void)
 		Sleep(10);
 	}
 	
-	// óMƒƒO
+	// å—ä¿¡ãƒ­ã‚°
 	LogPrint("%c", c);
 	
 	return (int)(unsigned int)c;
@@ -157,10 +157,10 @@ int CGdbServerTcp::RemotePutChar(char c)
 		return 0;
 	}
 
-	// ‘—MƒƒO
+	// é€ä¿¡ãƒ­ã‚°
 	LogPrint("%c", c);
 	
-	// ‘—M
+	// é€ä¿¡
 	return (send(m_sock, &c, 1, 0) == 1);
 }
 

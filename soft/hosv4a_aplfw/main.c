@@ -2,7 +2,7 @@
  *  Sample program for Hyper Operating System V4 Advance
  *
  * @file  main.c
- * @brief %jp{メイン関数}%en{main}
+ * @brief %jp{繝｡繧､繝ｳ髢｢謨ｰ}%en{main}
  *
  * Copyright (C) 1998-2006 by Project HOS
  * http://sourceforge.jp/projects/hos/
@@ -13,10 +13,10 @@
 
 
 
-/** %jp{メイン関数} */
+/** %jp{繝｡繧､繝ｳ髢｢謨ｰ} */
 int main()
 {
-	/* %jp{カーネルの動作開始} */
+	/* %jp{繧ｫ繝ｼ繝阪Ν縺ｮ蜍穂ｽ憺幕蟋急 */
 	vsta_knl();
 	
 	return 0;

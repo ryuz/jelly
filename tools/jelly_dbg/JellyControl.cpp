@@ -215,7 +215,7 @@ bool CJellyControl::SetPc(unsigned long ulAddr)
 	unsigned long ulCop0Deepc;
 	unsigned long ulCop0Debug;
 	
-	// Œ»İ‚ÌPCæ“¾
+	// ç¾åœ¨ã®PCå–å¾—
 	if ( !m_pPort->CpuRegRead(0x58, &ulCop0Deepc) )
 	{
 		return false;
@@ -229,7 +229,7 @@ bool CJellyControl::SetPc(unsigned long ulAddr)
 		ulCop0Deepc += 4;
 	}
 	
-	// •Ï‰»‚ª‚ ‚ê‚ÎÄİ’è
+	// å¤‰åŒ–ãŒã‚ã‚Œã°å†è¨­å®š
 	if ( ulCop0Deepc != ulAddr)
 	{
 		ulCop0Debug &= ~0x80000000;

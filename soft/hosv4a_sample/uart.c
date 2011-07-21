@@ -2,7 +2,7 @@
  *  Sample program for Hyper Operating System V4 Advance
  *
  * @file  uart.c
- * @brief %jp{UART‚Ö‚Ìo—Í}%en{UART device driver}
+ * @brief %jp{UARTã¸ã®å‡ºåŠ›}%en{UART device driver}
  *
  * Copyright (C) 1998-2006 by Project HOS
  * http://sourceforge.jp/projects/hos/
@@ -17,13 +17,13 @@
 
 
 
-/* %jp{UART‚Ì‰Šú‰»} */
+/* %jp{UARTã®åˆæœŸåŒ–} */
 void Uart_Initialize(void)
 {
 }
 
 
-/* %jp{1•¶š“ü—Í} */
+/* %jp{1æ–‡å­—å…¥åŠ›} */
 char Uart_GetChar(void)
 {
 	while ( !(*UART0_STAT & 0x01) )
@@ -33,7 +33,7 @@ char Uart_GetChar(void)
 }
 
 
-/* %jp{1•¶šo—Í} */
+/* %jp{1æ–‡å­—å‡ºåŠ›} */
 void Uart_PutChar(int c)
 {
 	while ( !(*UART0_STAT & 0x02) )
@@ -43,7 +43,7 @@ void Uart_PutChar(int c)
 }
 
 
-/* %jp{•¶š—ño—Í} */
+/* %jp{æ–‡å­—åˆ—å‡ºåŠ›} */
 void Uart_PutString(const char *text)
 {
 	while ( *text != '\0' )

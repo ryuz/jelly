@@ -2,7 +2,7 @@
  *  Hyper Operating System  Application Framework
  *
  * @file  mmcdrv.h
- * @brief %jp{MMC—pƒfƒoƒCƒXƒhƒ‰ƒCƒo}
+ * @brief %jp{MMCç”¨ãƒ‡ãƒã‚¤ã‚¹ãƒ‰ãƒ©ã‚¤ãƒ}
  *
  * Copyright (C) 2006-2007 by Project HOS
  * http://sourceforge.jp/projects/hos/
@@ -12,7 +12,7 @@
 #include "mmcdrv_local.h"
 
 
-/* ‰¼‘zŠÖ”ƒe[ƒuƒ‹ */
+/* ä»®æƒ³é–¢æ•°ãƒ†ãƒ¼ãƒ–ãƒ« */
 static const T_DRVOBJ_METHODS MmcDrv_Methods = 
 	{
 		{ MmcDrv_Delete },
@@ -27,7 +27,7 @@ static const T_DRVOBJ_METHODS MmcDrv_Methods =
 	};
 
 
-/** ƒRƒ“ƒXƒgƒ‰ƒNƒ^ */
+/** ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ */
 void MmcDrv_Constructor(C_MMCDRV *self, const T_DRVOBJ_METHODS *pMethods)
 {
 	if ( pMethods == NULL )
@@ -35,13 +35,13 @@ void MmcDrv_Constructor(C_MMCDRV *self, const T_DRVOBJ_METHODS *pMethods)
 		pMethods = &MmcDrv_Methods;
 	}
 	
-	/* eƒNƒ‰ƒXƒRƒ“ƒXƒgƒ‰ƒNƒ^ŒÄ‚Ño‚µ */
+	/* è¦ªã‚¯ãƒ©ã‚¹ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿å‘¼ã³å‡ºã— */
 	DrvObj_Constructor(&self->DrvObj, pMethods);
 	
-	/* ƒƒ“ƒo•Ï”‰Šú‰» */
+	/* ãƒ¡ãƒ³ãƒå¤‰æ•°åˆæœŸåŒ– */
 	self->iOpenCount = 0;
 	
-	/* ƒ~ƒ…[ƒeƒbƒNƒX¶¬ */
+	/* ãƒŸãƒ¥ãƒ¼ãƒ†ãƒƒã‚¯ã‚¹ç”Ÿæˆ */
 	self->hMtx = SysMtx_Create(SYSMTX_ATTR_NORMAL);
 }
 

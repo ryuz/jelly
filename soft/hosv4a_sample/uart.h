@@ -2,7 +2,7 @@
  *  Sample program for Hyper Operating System V4 Advance
  *
  * @file  uart.h
- * @brief %jp{UART‚Ö‚Ìo—Í}%en{UART device driver}
+ * @brief %jp{UARTã¸ã®å‡ºåŠ›}%en{UART device driver}
  *
  * Copyright (C) 1998-2006 by Project HOS
  * http://sourceforge.jp/projects/hos/
@@ -17,9 +17,9 @@
 extern "C" {
 #endif
 
-void Uart_Initialize(void);					/* %jp{UART ‚Ì‰Šú‰»} */
-void Uart_PutChar(int c);					/* %jp{1•¶šo—Í} */
-void Uart_PutString(const char *text);		/* %jp{•¶š—ño—Í} */
+void Uart_Initialize(void);					/* %jp{UART ã®åˆæœŸåŒ–} */
+void Uart_PutChar(int c);					/* %jp{1æ–‡å­—å‡ºåŠ›} */
+void Uart_PutString(const char *text);		/* %jp{æ–‡å­—åˆ—å‡ºåŠ›} */
 
 void Uart_PutHexByte(char c);
 void Uart_PutHexHalfWord(unsigned short h);

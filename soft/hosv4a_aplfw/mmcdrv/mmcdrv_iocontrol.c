@@ -2,7 +2,7 @@
  *  Hyper Operating System  Application Framework
  *
  * @file  mmcdrv.h
- * @brief %jp{メモリマップドファイル用デバイスドライバ}
+ * @brief %jp{繝｡繝｢繝ｪ繝槭ャ繝励ラ繝輔ぃ繧､繝ｫ逕ｨ繝�繝舌う繧ｹ繝峨Λ繧､繝図
  *
  * Copyright (C) 2006-2007 by Project HOS
  * http://sourceforge.jp/projects/hos/

@@ -2,7 +2,7 @@
  * Hyper Operating System  Application Framework
  *
  * @file  mmcfile.h
- * @brief %jp{memory file オブジェクト削除}%en{Memory File  delete}
+ * @brief %jp{memory file 繧ｪ繝悶ず繧ｧ繧ｯ繝亥炎髯､}%en{Memory File  delete}
  *
  * Copyright (C) 2008 by Project HOS
  * http://sourceforge.jp/projects/hos/
@@ -18,10 +18,10 @@ void MmcFile_Delete(HANDLE hFile)
 	
 	self = (C_MMCFILE *)hFile;
 	
-	/* デストラクタ */
+	/* 繝�繧ｹ繝医Λ繧ｯ繧ｿ */
 	MmcFile_Destructor(self);
 	
-	/* メモリ削除 */
+	/* 繝｡繝｢繝ｪ蜑企勁 */
 	SysMem_Free(self);
 }
 

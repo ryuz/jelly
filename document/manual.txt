@@ -1,205 +1,205 @@
 -------------------------------------------------------------------------------
- Jelly -- �\�t�g�R�A�v���Z�b�V���O�V�X�e��
+ Jelly -- ソフトコアプロセッシングシステム
 
                                     Copyright (C) 2008-2009 by Ryuji Fuchikami 
                                     http://homepage3.nifty.com/ryuz
 -------------------------------------------------------------------------------
 
 
-�y�T�v�z
-  Jelly �Ƃ́AFPGA������ MIPS-I ���C�N�Ȗ��߃Z�b�g�̃R�A��L�����\�t�g�R�A
-�v���Z�b�V���O�V�X�e���ł��B
+【概要】
+  Jelly とは、FPGA向けの MIPS-I ライクな命令セットのコアを有したソフトコア
+プロセッシングシステムです。
 
 
-�yCPU�R�A�̊T�v�z
-  Jelly �̔����� CPU �R�A�͖��߃Z�b�g�Ƃ��ẮA MIPS-I ���C�N�Ȗ��߃Z�b�g��
-�����Ă���Agcc �Ȃǂɂ��J�����\�ł��B
-  �������Alwl, lwr, swl, swr ���߂͔����Ă��Ȃ��̂Œ��ӂ��K�v�ł��B
-  �����݂Ȃǂ̖��߃Z�b�g�ȊO�̋@�\�͊�{�I�ɓƎ��d�l�Ȃ̂ł����܂�
-�R���p�C�������p�ł���Ƃ����ȊO��MIPS�V�X�e���ƌ݊����͂���܂���B
+【CPUコアの概要】
+  Jelly の備える CPU コアは命令セットとしては、 MIPS-I ライクな命令セットを
+備えており、gcc などによる開発が可能です。
+  ただし、lwl, lwr, swl, swr 命令は備えていないので注意が必要です。
+  割込みなどの命令セット以外の機能は基本的に独自仕様なのであくまで
+コンパイラが流用できるという以外はMIPSシステムと互換性はありません。
 
 
-�yjelly_cpu_top ���W���[���z
-  [�p�����[�^]
+【jelly_cpu_top モジュール】
+  [パラメータ]
     CPU_USE_DBUGGER
-      �f�o�b�K��L���ɂ��邩�ǂ������w�肵�܂��B
-      0: ����  1:�L�� (�f�t�H���g)
+      デバッガを有効にするかどうかを指定します。
+      0: 無効  1:有効 (デフォルト)
 
     CPU_USE_EXC_SYSCALL
-      syscall ���߂�L���ɂ��邩�ǂ������w�肵�܂��B
-      0: ����  1:�L�� (�f�t�H���g)
+      syscall 命令を有効にするかどうかを指定します。
+      0: 無効  1:有効 (デフォルト)
 
     CPU_USE_EXC_BREAK
-      break ���߂�L���ɂ��邩�ǂ������w�肵�܂��B
-      0: ����  1:�L�� (�f�t�H���g)
+      break 命令を有効にするかどうかを指定します。
+      0: 無効  1:有効 (デフォルト)
 
     CPU_USE_EXC_RI
-      �\�񖽗ߗ�O(Reserve Instruction)�𔭐������邩�ǂ������w�肵�܂��B
-      0: ����  1:�L�� (�f�t�H���g)
+      予約命令例外(Reserve Instruction)を発生させるかどうかを指定します。
+      0: 無効  1:有効 (デフォルト)
 
     CPU_USE_HW_BP
-      �n�[�h�E�F�A�u���[�N�𗘗p���邩�ǂ������w�肵�܂��B
-      0: ����  1:�L�� (�f�t�H���g)
+      ハードウェアブレークを利用するかどうかを指定します。
+      0: 無効  1:有効 (デフォルト)
 
     CPU_GPR_TYPE
-      �ėp���W�X�^�̎����^�C�v���w�肵�܂��B
-       0: �f���A���|�[�gRAM��{���N���b�N�ŗ��p (�f�t�H���g)
-       1: �f���A���|�[�gRAM���Q���p
-       2: �t���b�v�t���b�v�L�q(�����ˑ�)
+      汎用レジスタの実装タイプを指定します。
+       0: デュアルポートRAMを倍速クロックで利用 (デフォルト)
+       1: デュアルポートRAMを２個利用
+       2: フリップフロップ記述(合成依存)
 
     CPU_MUL_CYCLE
-       ��Z���߂̃p�C�v���C���i�����w�肵�܂��B
-       �f�t�H���g��0�ł��B
-       ���𑝂₷�Ǝ��s�����͗����܂��������g�ł̃^�C�~���O����
-     �������₷���Ȃ�܂��B
-       33�ȏ�Ɏw�肷��Ɖ��Z��̌J��Ԃ��ɐ؂�ւ��A�n�[�h�E�F�A��Z��
-     �������ߖ�ł��܂��B
+       乗算命令のパイプライン段数を指定します。
+       デフォルトは0です。
+       数を増やすと実行効率は落ちますが高周波でのタイミング制約が
+     満たしやすくなります。
+       33以上に指定すると加算器の繰り返しに切り替わり、ハードウェア乗算器
+     資源が節約できます。
 
     CPU_DBBP_NUM
-      �n�[�h�E�F�A�u���[�N�|�C���g�̌���1�`4�Ŏw�肵�܂��B
-      �f�t�H���g�� 4 �ł��B
+      ハードウェアブレークポイントの個数を1〜4で指定します。
+      デフォルトは 4 です。
 
 
     TCM_ENABLE           = 0,
-      ������������(TCM:Tightly Coupled Memory)��L��/�������w�肵�܂��B
-      0: ����(�f�t�H���g)  1:�L�� 
+      密結合メモリ(TCM:Tightly Coupled Memory)を有効/無効を指定します。
+      0: 無効(デフォルト)  1:有効 
 
     TCM_ADDR_WIDTH
-      TCM��L���ɂ���ꍇ�ATCM��32bit�ł̃������r�b�g�����w�肵�܂��B
-      �f�t�H���g��8�ŁA32bit �� 2^8 = 256 word (1024 byte) �ł��B
+      TCMを有効にする場合、TCMの32bitでのメモリビット幅を指定します。
+      デフォルトは8で、32bit で 2^8 = 256 word (1024 byte) です。
 
     TCM_MEM_SIZE
-      TCM��L���ɂ���ꍇ�ATCM��32bit�ł̃������T�C�Y���w�肵�܂��B
-      �f�t�H���g�� (1 << TCM_ADDR_WIDTH) �ƂȂ�܂��B
+      TCMを有効にする場合、TCMの32bitでのメモリサイズを指定します。
+      デフォルトで (1 << TCM_ADDR_WIDTH) となります。
 
     TCM_READMEMH
-      TCM��L���ɂ���ꍇ�A�����l�̓ǂݍ��݂� $memreadh ���߂ōs����
-      �ǂ������w�肵�܂��B
-      0: ����(�f�t�H���g)  1:�L�� 
-      Xilinx ��ISE�t����XST�ō�������ꍇ�A$memreadh �Ń������̏��������\�ł��B
+      TCMを有効にする場合、初期値の読み込みを $memreadh 命令で行うか
+      どうかを指定します。
+      0: 無効(デフォルト)  1:有効 
+      Xilinx のISE付属のXSTで合成する場合、$memreadh でメモリの初期化が可能です。
 
     TCM_READMEM_FIlE
-      TCM��L���ɂ���ꍇ�A$memreadh ���ߓǂݍ��ރt�@�C�����w�肵�܂��B
-      32bit���[�h��16�i���̃t�@�C�����������T�C�Y���������Ă��������B
+      TCMを有効にする場合、$memreadh 命令読み込むファイルを指定します。
+      32bitワードで16進数のファイルをメモリサイズ分準備してください。
 
 	CACHE_ENABLE
-      �L���b�V����������L���ɂ��邩�ǂ������w�肵�܂��B
-      0: ����(�f�t�H���g)  1:�L�� 
+      キャッシュメモリを有効にするかどうかを指定します。
+      0: 無効(デフォルト)  1:有効 
 
     CACHE_LINE_SIZE
-      �L���b�V���P���C���̃��[�h����2�ׂ̂���Ŏw�肵�܂��B
-      0:1words, 1:2words, 2:4words, ... �Ƃ����悤�Ɏw�肵�܂��B
-      �f�t�H���g�� 1 �ŁA2^1 = 2 word �ł��B
-      �L���b�V���~�X���A�P���C�����̃f�[�^���ǂݍ��܂�܂��B
+      キャッシュ１ラインのワード数を2のべき乗で指定します。
+      0:1words, 1:2words, 2:4words, ... というように指定します。
+      デフォルトは 1 で、2^1 = 2 word です。
+      キャッシュミス時、１ライン分のデータが読み込まれます。
 
     CACHE_ARRAY_SIZE
-      �L���b�V���A���C�̃T�C�Y��2�ׂ̂���Ŏw�肵�܂��B
-      1:2lines, 2:4lines, 3:8lines, ... �Ƃ����悤�Ɏw�肵�܂��B
-      CACHE_LINE_SIZE�Ƃ��̒l�ŃL���b�V���̑��T�C�Y�����肳��܂��B
+      キャッシュアレイのサイズを2のべき乗で指定します。
+      1:2lines, 2:4lines, 3:8lines, ... というように指定します。
+      CACHE_LINE_SIZEとこの値でキャッシュの総サイズが決定されます。
 
 
     CACHE_BRIDGE
-       �L���b�V���Ώۃ|�[�g��I/F�Ƀu���b�W��H��}�����邩�ǂ�����
-     �w�肵�܂��B
-      0: ����(�f�t�H���g)  1:�L�� 
-       �u���b�W�����ނƃA�N�Z�X�T�C�N�����P�T�C�N���L�т܂����A
-      �����g�ł̃^�C�~���O���񂪖������₷���Ȃ�܂��B
+       キャッシュ対象ポートのI/Fにブリッジ回路を挿入するかどうかを
+     指定します。
+      0: 無効(デフォルト)  1:有効 
+       ブリッジを挟むとアクセスサイクルが１サイクル伸びますが、
+      高周波でのタイミング制約が満たしやすくなります。
 
     THROUGH_BRIDGE
-       ��L���b�V���Ώۃ|�[�g��I/F�Ƀu���b�W��H��}�����邩�ǂ�����
-     �w�肵�܂��B
-      0: ����(�f�t�H���g)  1:�L�� 
-       �u���b�W�����ނƃA�N�Z�X�T�C�N�����P�T�C�N���L�т܂����A
-      �����g�ł̃^�C�~���O���񂪖������₷���Ȃ�܂��B
+       非キャッシュ対象ポートのI/Fにブリッジ回路を挿入するかどうかを
+     指定します。
+      0: 無効(デフォルト)  1:有効 
+       ブリッジを挟むとアクセスサイクルが１サイクル伸びますが、
+      高周波でのタイミング制約が満たしやすくなります。
 
 
     WB_CACHE_ADR_WIDTH
-      �L���b�V���Ώۃ|�[�g�̃A�h���X�o�X�̕����w�肵�܂��B
-      4G�̃�������Ԃ����ׂăL���b�V���ΏۂƂ���ꍇ�������A�K�v�ʂ�
-     �A�h���X�o�X���Ɍ��炷���ƂŁA�L���b�V���̃^�ORAM��ߖ�ł��܂��B
+      キャッシュ対象ポートのアドレスバスの幅を指定します。
+      4Gのメモリ空間をすべてキャッシュ対象とする場合を除き、必要量の
+     アドレスバス数に減らすことで、キャッシュのタグRAMを節約できます。
 
     WB_CACHE_DAT_SIZE
-      �L���b�V���Ώۃ|�[�g�f�[�^�o�X�̕���2�ׂ̂���Ŏw�肵�܂��B
-      0:8bit, 1:16bit, 3:32bit, ... �Ƃ����悤�Ɏw�肵�܂��B
-      32bit ���傫���o�X���g�����ƂŁA�L���b�V�����C������C��
-     �[�U�ł��܂��B�f�t�H���g�ŃL���b�V�����C���̕��ƂȂ�܂��B
+      キャッシュ対象ポートデータバスの幅を2のべき乗で指定します。
+      0:8bit, 1:16bit, 3:32bit, ... というように指定します。
+      32bit より大きいバスを使うことで、キャッシュラインを一気に
+     充填できます。デフォルトでキャッシュラインの幅となります。
 
 
     WB_THROUGH_ADR_WIDTH
-      �� �L���b�V���Ώۃ|�[�g�̃A�h���X�r�b�g�����w�肵�܂��B
-      �f�t�H���g�� 30 �ł��B
+      非 キャッシュ対象ポートのアドレスビット数を指定します。
+      デフォルトは 30 です。
 
     WB_THROUGH_ADR_WIDTH
-      �� �L���b�V���Ώۃ|�[�g�̃o�X�̕���2�ׂ̂���Ŏw�肵�܂��B
-      0:8bit, 1:16bit, 3:32bit, ... �Ƃ����悤�Ɏw�肵�܂��B
-      �f�t�H���g�� 2 (32bit) �ł��B
+      非 キャッシュ対象ポートのバスの幅を2のべき乗で指定します。
+      0:8bit, 1:16bit, 3:32bit, ... というように指定します。
+      デフォルトは 2 (32bit) です。
 
     SIMULATION
-      �V�~�����[�V�������s���w�肵�܂��B
-      0:������(�f�t�H���g)  1:�V���~���[�V����
-      PC�g���[�X���t�@�C���ɗ��Ƃ��Ȃǂ̃V���~���[�V�������ŗL�@�\���L���ɂȂ�܂��B
+      シミュレーション実行を指定します。
+      0:合成時(デフォルト)  1:シュミレーション
+      PCトレースをファイルに落とすなどのシュミレーション時固有機能が有効になります。
 
-  [�|�[�g�M��]
+  [ポート信号]
     reset  (input)
-      ���Z�b�g�M�����w�肵�܂��B1�Ń��Z�b�g���L���ł��B
-        �������Z�b�g�ł��̂ŁA���Z�b�g�L����ԂōŒ�1�T�C�N���̃N���b�N������
-      ����������K�v������܂��B
-        ���Z�b�g������ clk �̗����オ��ɓ������čs���Ă��������B
+      リセット信号を指定します。1でリセットが有効です。
+        同期リセットですので、リセット有効状態で最低1サイクルのクロックを入れて
+      初期化する必要があります。
+        リセット解除は clk の立ち上がりに同期して行ってください。
 
     clk  (input)
-      ��{�N���b�N�ł��B
+      基本クロックです。
 
     clk_x2  (input)
-      �{���N���b�N�ł��Bclk�ƈʑ��̂�������{���N���b�N�����Ă��������B
-      �ėp���W�X�^�ɔ{���N���b�N���w�肵���ꍇ�ɂ̂ݕK�v�ł��B
+      倍速クロックです。clkと位相のそろった倍速クロックを入れてください。
+      汎用レジスタに倍速クロックを指定した場合にのみ必要です。
 
     endian  (input)
-      �G���f�B�A�����w�肵�܂��B
-      0:���g���G���f�B�A��  1: �r�b�O�G���f�B�A��
-      ����r���ł̐؂�ւ��͍s��Ȃ��ł��������B
+      エンディアンを指定します。
+      0:リトルエンディアン  1: ビッグエンディアン
+      動作途中での切り替えは行わないでください。
 
     vect_reset[31:0]  (input)
-      ���Z�b�g�x�N�^�̃A�h���X���w�肵�܂��B
-      ���Z�b�g������APC�͂��̒l�ɂȂ�܂��B
-      ����2bit�͕K��0�ɂ��Ă��������B
+      リセットベクタのアドレスを指定します。
+      リセット解除後、PCはこの値になります。
+      下位2bitは必ず0にしてください。
 
     vect_interrupt[31:0]  (input)
-      �����݃x�N�^�̃A�h���X���w�肵�܂��B
-      �����ݎ�t���APC�͂��̒l�ɕ��򂵂܂��B
-      ����2bit�͕K��0�ɂ��Ă��������B
+      割込みベクタのアドレスを指定します。
+      割込み受付時、PCはこの値に分岐します。
+      下位2bitは必ず0にしてください。
 
     vect_exception[31:0]  (input)
-      ��O�x�N�^�̃A�h���X���w�肵�܂��B
-      ��O�������APC�͂��̒l�ɕ��򂵂܂��B
-      ����2bit�͕K��0�ɂ��Ă��������B
+      例外ベクタのアドレスを指定します。
+      例外発生時、PCはこの値に分岐します。
+      下位2bitは必ず0にしてください。
 
     interrupt_req  (input)
-      �����ݗv���M���ł��B1�Ŋ��荞�݂�v�����܂��B
+      割込み要求信号です。1で割り込みを要求します。
 
     interrupt_req  (output)
-      �����݂��󂯕t�����^�C�~���O��1���o�͂��܂��B
-      �K�v�Ȃ���Γ��ɊĎ�����K�v�͂���܂���B
+      割込みを受け付けたタイミングで1を出力します。
+      必要なければ特に監視する必要はありません。
 
     pause  (input)
-      �O�����狭���I��CPU���C���^�[���b�N�����܂��B
-      1�Œ�~���A0�œ�����ĊJ���܂��B
-      ���p���Ȃ��ꍇ�͏펞 0 �Ƃ��Ă��������B
+      外部から強制的にCPUをインターロックさせます。
+      1で停止し、0で動作を再開します。
+      利用しない場合は常時 0 としてください。
 
     tcm_addr_mask[31:0]  (input)
     tcm_addr_value[31:0]  (input)
-      TCM�Ɋ��蓖�Ă�A�h���X���w�肵�܂��B
-      �o�C�g�A�h���X�Ȃ̂ł����ӂ��������B����2bit�͕K��0�ɂ��Ă��������B
+      TCMに割り当てるアドレスを指定します。
+      バイトアドレスなのでご注意ください。下位2bitは必ず0にしてください。
         (address & tcm_addr_mask) == tcm_addr_value
-      �ƂȂ�A�h���X���ATCM�̈�Ƃ��Ċ��蓖�Ă��܂��B
-      ���쒆�̕ύX�͍s��Ȃ��ł��������B
+      となるアドレスが、TCM領域として割り当てられます。
+      動作中の変更は行わないでください。
 
    cache_addr_mask[31:0]  (input)
    cache_addr_value[31:0]  (input)
-      �L���b�V���ΏۂƂ���A�h���X���w�肵�܂��B
-      �o�C�g�A�h���X�Ȃ̂ł����ӂ��������B����2bit�͕K��0�ɂ��Ă��������B
+      キャッシュ対象とするアドレスを指定します。
+      バイトアドレスなのでご注意ください。下位2bitは必ず0にしてください。
         (address & cache_addr_mask) == cache_addr_value
-      �ƂȂ�A�h���X���A�L���b�V���ΏۂƂȂ�܂��B
-      ���쒆�̕ύX�͍s��Ȃ��ł��������B
+      となるアドレスが、キャッシュ対象となります。
+      動作中の変更は行わないでください。
 
    wb_cache_adr_o (output)
    wb_cache_dat_i  (input)
@@ -208,11 +208,11 @@
    wb_cache_sel_o (output)
    wb_cache_stb_o (output)
    wb_cache_ack_i (input)
-      �L���b�V���Ώۃ|�[�g��WISHBONE�o�X�ł��B
-      �L���b�V���̈�ւ̏������݂�A�L���b�V���~�X�����̃|�[�g����
-    �A�N�Z�X����܂��B
-      �A�h���X�̓o�C�g�A�h���X�ł͂Ȃ��A�w�肵���f�[�^�o�X�̃T�C�Y��
-    �P�ʂƂȂ�܂��B
+      キャッシュ対象ポートのWISHBONEバスです。
+      キャッシュ領域への書き込みや、キャッシュミスがこのポートから
+    アクセスされます。
+      アドレスはバイトアドレスではなく、指定したデータバスのサイズが
+    単位となります。
 
    wb_through_adr_o (output)
    wb_through_dat_i  (input)
@@ -221,11 +221,11 @@
    wb_through_sel_o (output)
    wb_through_stb_o (output)
    wb_through_ack_i (input)
-      ��L���b�V���Ώۃ|�[�g��WISHBONE�o�X�ł��B
-      TCM�ł��L���b�V���ł��Ȃ��A�h���X�Ƀ��[�h/�X�g�A���s���Ƃ��̃|�[�g����
-    �A�N�Z�X����܂��B
-      �A�h���X�̓o�C�g�A�h���X�ł͂Ȃ��A�w�肵���f�[�^�o�X�̃T�C�Y��
-    �P�ʂƂȂ�܂��B
+      非キャッシュ対象ポートのWISHBONEバスです。
+      TCMでもキャッシュでもないアドレスにロード/ストアを行うとこのポートから
+    アクセスされます。
+      アドレスはバイトアドレスではなく、指定したデータバスのサイズが
+    単位となります。
 
    wb_dbg_adr_i[5:2] (input)
    wb_dbg_dat_i[31:0] (input)
@@ -234,172 +234,172 @@
    wb_dbg_sel_i[3:0] (input)
    wb_dbg_stb_i (input)
    wb_dbg_ack_o (output)
-     �O������CPU���̃f�o�b�O���j�b�g�ɃA�N�Z�X���邽�߂̃|�[�g�ł��B
-     WISHBONE�o�X�d�l�ł��B
+     外部からCPU内のデバッグユニットにアクセスするためのポートです。
+     WISHBONEバス仕様です。
 
 
 
-�yCPU�f�o�b�O�|�[�g�z
-  �f�o�b�O�|�[�g���牺�L�̃A�h���X�ɃA�N�Z�X�ł��܂��B
+【CPUデバッグポート】
+  デバッグポートから下記のアドレスにアクセスできます。
 
- [���W�X�^�d�l]
-   DBG_CTL  �A�h���X: 0x0 (�o�C�g�A�h���X 0x00)
-     �f�o�b�O���䃌�W�X�^�ł��B
-       bit0 [Read Only]  : �u���[�N��� (�u���[�N���󂯕t������~�����1�ɂȂ�)
-       bit1 [Read/Write] : �u���[�N�v�� (1��CPU�ɒ�~��v�� )
+ [レジスタ仕様]
+   DBG_CTL  アドレス: 0x0 (バイトアドレス 0x00)
+     デバッグ制御レジスタです。
+       bit0 [Read Only]  : ブレーク状態 (ブレークが受け付けられ停止すると1になる)
+       bit1 [Read/Write] : ブレーク要求 (1でCPUに停止を要求 )
 
-   DBG_ADDR �A�h���X: 0x2 (�o�C�g�A�h���X 0x08)
-       bit0�`bit31 [Read/Write]
-     �f�o�b�O�A�N�Z�X���s���A�h���X���w�肵�܂��B
+   DBG_ADDR アドレス: 0x2 (バイトアドレス 0x08)
+       bit0〜bit31 [Read/Write]
+     デバッグアクセスを行うアドレスを指定します。
 
-   REG_DATA �A�h���X: 0x4 (�o�C�g�A�h���X 0x10)
-       bit0�`bit31 [Read/Write]
-     DBG_ADDR�Ŏ������A�h���X�ɂ���ACPU�̓������W�X�^������
-    �A�h���X�o�R�œǂݏ����ł��܂��B
+   REG_DATA アドレス: 0x4 (バイトアドレス 0x10)
+       bit0〜bit31 [Read/Write]
+     DBG_ADDRで示されるアドレスにある、CPUの内部レジスタがこの
+    アドレス経由で読み書きできます。
 
-   DBUS_DATA �A�h���X: 0x6 (�o�C�g�A�h���X 0x18)
-       bit0�`bit31 [Read/Write]
-     DBG_ADDR�Ŏ�����郁�����A�h���X�ɂ��̃A�h���X�o�R��
-    �ǂݏ����ł��܂��B
-     �A�N�Z�X�̓f�[�^�o�X�o�R�ōs���܂��B
+   DBUS_DATA アドレス: 0x6 (バイトアドレス 0x18)
+       bit0〜bit31 [Read/Write]
+     DBG_ADDRで示されるメモリアドレスにこのアドレス経由で
+    読み書きできます。
+     アクセスはデータバス経由で行われます。
 
-   IBUS_DATA �A�h���X: 0x7 (�o�C�g�A�h���X 0x1c) [�I�v�V����]
-       bit0�`bit31 [Read/Write]
-     DBG_ADDR�Ŏ�����郁�����A�h���X�ɂ��̃A�h���X�o�R��
-    �ǂݏ����ł��܂��B
-     �A�N�Z�X�͖��߃o�X�o�R�ōs���܂��B
-    �����̃n�[�o�[�h�A�[�L�e�N�`���ɑ΂���\���I�@�\�ł��B
-
-
-
-�yUART�o�R�f�o�b�O����z
-   Jelly �ł́A��L��CPU�f�o�b�O�|�[�g�� UART �o�R�Ő��䂷��
- ���W���[����p�ӂ��Ă��܂��B
-   UART�v���g�R���͈ȉ��̂Ƃ���B
-
-  �ڑ��m�F(nop)
-    �v���p�P�b�g  0x00
-    �����p�P�b�g  0x80
-   �P���ɉ����̂ݍs���܂�
-
-  ��Ԋm�F(statu)
-    �v���p�P�b�g  0x01
-    �����p�P�b�g  0x81 status
-
-    0x81 �ɑ����āAstatus 1�o�C�g���Ԃ���܂��B
-    status �� 0bit�ڂɁA�G���f�B�A�����Ԃ���܂��B
-    ���̃r�b�g�͌��ݗ\��bit�ł�
-
-  �f�o�b�K���C�g(dbg_write)
-    CPU�f�o�b�O�|�[�g�̎w��A�h���X�ɃV���O�����C�g���s��
-      �v���p�P�b�g  0x02 sel+adr dat0 dat1 dat2 dat3
-      �����p�P�b�g  0x82
-    (���F�A�h���X4bit�ƁA���[���Z���N�g4bit ��1�o�C�g)
-
-  �f�o�b�K���[�h(dbg_read)
-      �v���p�P�b�g  0x03 sel+adr
-      �����p�P�b�g  0x83 dat0 dat1 dat2 dat3
-    (���F�A�h���X4bit�ƁA���[���Z���N�g4bit ��1�o�C�g)
-
-  ���������C�g(mem_write)
-      �v���p�P�b�g 0x04 size adr0 adr1 adr2 adr3 dat0 dat1 dat2 dat3 ....
-      �����p�P�b�g 0x84
-
-    �T�C�Y�A�A�h���X�̌�Ƀf�[�^�𑗂�܂��B
-    �P�p�P�b�g�ōő��256�o�C�g�܂ő��邱�Ƃ��o���܂��B
-    ���ׂĂ̑��M���I���Ɖ����p�P�b�g���Ԃ�܂�
-
-  ���������[�h(mem_read)
-      �v���p�P�b�g 0x05 size adr0 adr1 adr2 adr3
-      �����p�P�b�g 0x85 dat0 dat1 dat2 dat3 ....
-
-    �T�C�Y�A�A�h���X�𑗂�Ɖ����p�P�b�g�����܂��B
-    �P�p�P�b�g�ōő��256�o�C�g�܂ő��邱�Ƃ��o���܂��B
+   IBUS_DATA アドレス: 0x7 (バイトアドレス 0x1c) [オプション]
+       bit0〜bit31 [Read/Write]
+     DBG_ADDRで示されるメモリアドレスにこのアドレス経由で
+    読み書きできます。
+     アクセスは命令バス経由で行われます。
+    将来のハーバードアーキテクチャに対する予備的機能です。
 
 
 
+【UART経由デバッグ制御】
+   Jelly では、上記のCPUデバッグポートを UART 経由で制御する
+ モジュールを用意しています。
+   UARTプロトコルは以下のとおり。
 
-�yWISHBONE�o�X�z
-   Jelly�ł� OpenCores(http://www.opencores.org/) �̒�߂�WISBONE�o�X��
-  ���p���Ă��܂��B
-    WISHBONE�o�X�K�i�͑���ɂ킽���Ă��܂����AJelly�ł̓V���O���A�N�Z�X��
-  �K�v�ȍŏ����̐M���̂ݗ��p���Ă��܂��B
-    �ȉ��ɗ��p���Ă���M���̂݊ȒP�ɐ������܂��B
+  接続確認(nop)
+    要求パケット  0x00
+    応答パケット  0x80
+   単純に応答のみ行います
+
+  状態確認(statu)
+    要求パケット  0x01
+    応答パケット  0x81 status
+
+    0x81 に続いて、status 1バイトが返されます。
+    status の 0bit目に、エンディアンが返されます。
+    他のビットは現在予約bitです
+
+  デバッガライト(dbg_write)
+    CPUデバッグポートの指定アドレスにシングルライトを行う
+      要求パケット  0x02 sel+adr dat0 dat1 dat2 dat3
+      応答パケット  0x82
+    (注：アドレス4bitと、レーンセレクト4bit で1バイト)
+
+  デバッガリード(dbg_read)
+      要求パケット  0x03 sel+adr
+      応答パケット  0x83 dat0 dat1 dat2 dat3
+    (注：アドレス4bitと、レーンセレクト4bit で1バイト)
+
+  メモリライト(mem_write)
+      要求パケット 0x04 size adr0 adr1 adr2 adr3 dat0 dat1 dat2 dat3 ....
+      応答パケット 0x84
+
+    サイズ、アドレスの後にデータを送ります。
+    １パケットで最大で256バイトまで送ることが出来ます。
+    すべての送信が終わると応答パケットが返ります
+
+  メモリリード(mem_read)
+      要求パケット 0x05 size adr0 adr1 adr2 adr3
+      応答パケット 0x85 dat0 dat1 dat2 dat3 ....
+
+    サイズ、アドレスを送ると応答パケットが来ます。
+    １パケットで最大で256バイトまで送ることが出来ます。
+
+
+
+
+【WISHBONEバス】
+   Jellyでは OpenCores(http://www.opencores.org/) の定めるWISBONEバスを
+  利用しています。
+    WISHBONEバス規格は多岐にわたっていますが、Jellyではシングルアクセスに
+  必要な最小限の信号のみ利用しています。
+    以下に利用している信号のみ簡単に説明します。
 
    adr_o
-     �A�N�Z�X����A�h���X���w�肵�܂��B
-     �o�C�g�P�ʂł͂Ȃ��f�[�^�o�X�̒P�ʂƂȂ�܂��B
-     ���������āA32bit�f�[�^�o�X�̏ꍇ�A�A�h���X�o�X����30bit����4Gbyte�̃�������Ԃ�
-    �J�o�[���܂��B
+     アクセスするアドレスを指定します。
+     バイト単位ではなくデータバスの単位となります。
+     したがって、32bitデータバスの場合、アドレスバス幅は30bit幅で4Gbyteのメモリ空間を
+    カバーします。
 
    dat_o
    dat_i
-     �f�[�^�̓��o�͂��s���M���ł��B���C�g/���[�h�̐M��������܂��B
+     データの入出力を行う信号です。ライト/リードの信号が流れます。
 
    we_o
-     ���[�h/���C�g�̎w����s���M���ł��B
-     0:read 1:write �ƂȂ�܂��B
+     リード/ライトの指定を行う信号です。
+     0:read 1:write となります。
 
    sel_o
-     ���[�h/���C�g���̃f�[�^�o�X�̗L���ȃ��[���������܂��B
-     Jelly�̏ꍇ�A���[���T�C�Y��8bit�Œ�ł��B
-     32bit�o�X�̏ꍇ�A4bit���̐M���ƂȂ�܂��B
+     リード/ライト時のデータバスの有効なレーンを示します。
+     Jellyの場合、レーンサイズは8bit固定です。
+     32bitバスの場合、4bit幅の信号となります。
 
    stb_o
-     �}�X�^�[�����A�N�Z�X��v�����Ă��邱�Ƃ������܂��B
-     �A�N�Z�X����������܂� 1 ���L�[�v���܂��B
+     マスター側がアクセスを要求していることを示します。
+     アクセスが完了するまで 1 をキープします。
 
    ack_i
-     �X���[�u�����A�N�Z�X���������������Ƃ������܂��B
-     �g������H�� stb_o ���܂ނ��Ƃ��ł��A�A�N�Z�X�v���Ɠ����T�C�N����
-    �A�N�m���b�W��Ԃ����Ƃ��\�ł��B
+     スレーブ側がアクセスを完了させたことを示します。
+     組合せ回路に stb_o を含むことができ、アクセス要求と同じサイクルで
+    アクノリッジを返すことが可能です。
 
 
 
-�yJelly bus�z
-    WISHBONE�o�X�̓T�C�N�����Ńg�����U�N�V�������������邽�ߑ����̏ꍇ
-  �֗��ł����AFPGA�̓���SRAM�̗l��READ���ʂ̎擾�����T�C�N���ƂȂ�A
-  ��������CPU�R�A�𒼌�����ꍇ�ɑ����������ł��B
-    �����ŉ��L�̂悤�ȓƎ��o�X�� jbus �Ƃ��Ē�`���Ă��܂��B
+【Jelly bus】
+    WISHBONEバスはサイクル内でトランザクションが完結するため多くの場合
+  便利ですが、FPGAの内蔵SRAMの様にREAD結果の取得が次サイクルとなり、
+  メモリにCPUコアを直結する場合に相性が悪いです。
+    そこで下記のような独自バスを jbus として定義しています。
 
    en [master]
-     �o�X�̃C�l�[�u��
-     �g���킹��H�� ready ���܂�ł��悢
+     バスのイネーブル
+     組合わせ回路に ready を含んでもよい
    
    addr [master]
-     �A�h���X�l
-     �N���b�N�̗����オ��� en & valid & ready �� 1 �̂Ƃ��󂯕t������
-     master �� en �܂��� ready �� 0 �̃T�C�N���Œl��ω������Ă͂Ȃ�Ȃ�
+     アドレス値
+     クロックの立ち上がりで en & valid & ready が 1 のとき受け付けられる
+     master は en または ready が 0 のサイクルで値を変化させてはならない
    
    we [master]
-     1�ŏ������݂�����
-     �N���b�N�̗����オ��� en & valid & ready �� 1 �̂Ƃ��󂯕t������
-     master �� en �܂��� ready �� 0 �̃T�C�N���Œl��ω������Ă͂Ȃ�Ȃ�
+     1で書き込みを示す
+     クロックの立ち上がりで en & valid & ready が 1 のとき受け付けられる
+     master は en または ready が 0 のサイクルで値を変化させてはならない
    
    sel [master]
-     �o�C�g�Z���N�g�B1�ŗL���o�C�g
-     �N���b�N�̗����オ��� en & valid & ready �� 1 �̂Ƃ��󂯕t������
-     master �� en �܂��� ready �� 0 �̃T�C�N���Œl��ω������Ă͂Ȃ�Ȃ�
+     バイトセレクト。1で有効バイト
+     クロックの立ち上がりで en & valid & ready が 1 のとき受け付けられる
+     master は en または ready が 0 のサイクルで値を変化させてはならない
    
    wdata [master]
-     �������݃f�[�^
-     �N���b�N�̗����オ��� en & valid & ready �� 1 �̂Ƃ��󂯕t������
-     master �� en �܂��� ready �� 0 �̃T�C�N���Œl��ω������Ă͂Ȃ�Ȃ�
+     書き込みデータ
+     クロックの立ち上がりで en & valid & ready が 1 のとき受け付けられる
+     master は en または ready が 0 のサイクルで値を変化させてはならない
    
    rdata [slave]
-     �ǂݏo���f�[�^
-     �N���b�N�̗����オ��� en & valid & ready �� 1 �̂Ƃ��󂯕t������
-     �ǂݏo���v�����󂯕t����ꂽ��Aen & ready �̎��f�[�^���o�͂����
-     slave �� en �� 0 �̃T�C�N���Œl��ω������Ă͂Ȃ�Ȃ�
+     読み出しデータ
+     クロックの立ち上がりで en & valid & ready が 1 のとき受け付けられる
+     読み出し要求が受け付けられた後、en & ready の時データが出力される
+     slave は en が 0 のサイクルで値を変化させてはならない
    
    valid [master]
-     �A�N�Z�X�v��
-     master �� en �܂��� ready �� 0 �̃T�C�N���Œl��ω������Ă͂Ȃ�Ȃ�
-     �g���킹��H�� ready ���܂�ł͂Ȃ�Ȃ�
+     アクセス要求
+     master は en または ready が 0 のサイクルで値を変化させてはならない
+     組合わせ回路に ready を含んではならない
    
    ready [slave]
-     �A�N�Z�X����
-     �g���킹��H�� valid ���܂�ł��悢���Aen ���܂�ł͂Ȃ�Ȃ�
+     アクセス許可
+     組合わせ回路に valid を含んでもよいが、en を含んではならない
 
 
 

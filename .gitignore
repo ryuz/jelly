@@ -1,0 +1,10 @@
+*.*
+
+!.gitignore
+!README
+!*.v
+!*.xise
+!*.ucf
+!*.pl
+!*.c
+!*.cpp

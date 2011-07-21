@@ -2,7 +2,7 @@
  *  Sample program for Hyper Operating System V4 Advance
  *
  * @file  ostimer.c
- * @brief %jp{OSƒ^ƒCƒ}}%en{OS timer}
+ * @brief %jp{OSã‚¿ã‚¤ãƒž}%en{OS timer}
  *
  * Copyright (C) 1998-2008 by Project HOS
  * http://sourceforge.jp/projects/hos/
@@ -22,43 +22,43 @@
 
 
 
-static void OsTimer_Isr(VPARAM Param);		/**< %jp{ƒ^ƒCƒ}Š„ž‚ÝƒT[ƒrƒXƒ‹[ƒ`ƒ“} */
+static void OsTimer_Isr(VPARAM Param);		/**< %jp{ã‚¿ã‚¤ãƒžå‰²è¾¼ã¿ã‚µãƒ¼ãƒ“ã‚¹ãƒ«ãƒ¼ãƒãƒ³} */
 
 
-/** %jp{OS—pƒ^ƒCƒ}‰Šú‰»ƒ‹[ƒ`ƒ“} */
+/** %jp{OSç”¨ã‚¿ã‚¤ãƒžåˆæœŸåŒ–ãƒ«ãƒ¼ãƒãƒ³} */
 void OsTimer_Initialize(void)
 {
-	/* %jp{Š„ž‚ÝƒT[ƒrƒXƒ‹[ƒ`ƒ“¶¬} */
+	/* %jp{å‰²è¾¼ã¿ã‚µãƒ¼ãƒ“ã‚¹ãƒ«ãƒ¼ãƒãƒ³ç”Ÿæˆ} */
 	SysIsr_Create(INTNO_TIMER0, OsTimer_Isr, (VPARAM)0);
 	
-	/* %jp{ŠJŽn} */
+	/* %jp{é–‹å§‹} */
 	*TIMER0_COMPARE = (50000 - 1);		/* 50Mhz / 50000 = 1kHz (1ms) */
 	*TIMER0_CONTROL = 0x0002;			/* clear */
 	*TIMER0_CONTROL = 0x0001;			/* start */
 	
-	/* %jp{Š„ž‚Ý‹–‰Â} */
+	/* %jp{å‰²è¾¼ã¿è¨±å¯} */
 	SysInt_Enable(INTNO_TIMER0);
 }
 
 
-/** %jp{ƒ^ƒCƒ}Š„ž‚Ýƒnƒ“ƒhƒ‰} */
+/** %jp{ã‚¿ã‚¤ãƒžå‰²è¾¼ã¿ãƒãƒ³ãƒ‰ãƒ©} */
 void OsTimer_Isr(VPARAM Param)
 {
-	/* %jp{—vˆöƒNƒŠƒA} */
+	/* %jp{è¦å› ã‚¯ãƒªã‚¢} */
 	SysInt_Clear(INTNO_TIMER0);
 	
-	/* %jp{ƒ^ƒCƒ€ƒeƒBƒbƒN‹Ÿ‹‹} */
+	/* %jp{ã‚¿ã‚¤ãƒ ãƒ†ã‚£ãƒƒã‚¯ä¾›çµ¦} */
 	SysTim_Signal(1000000);		/* 1ms = 1,000,000 ns */
 }
 
 
-/** ƒVƒXƒeƒ€Žž‚ðƒiƒm•b‚ÉŠ·ŽZ(ƒVƒXƒeƒ€—p) */
+/** ã‚·ã‚¹ãƒ†ãƒ æ™‚åˆ»ã‚’ãƒŠãƒŽç§’ã«æ›ç®—(ã‚·ã‚¹ãƒ†ãƒ ç”¨) */
 unsigned long SysTim_SysTimeToNanosecond(SYSTIM_SYSTIME SysTime)
 {
 	return (unsigned long)(SysTime % 1000000000);
 }
 
-/* ƒVƒXƒeƒ€Žž‚ð•b‚ÉŠ·ŽZ(ƒVƒXƒeƒ€—p) */
+/* ã‚·ã‚¹ãƒ†ãƒ æ™‚åˆ»ã‚’ç§’ã«æ›ç®—(ã‚·ã‚¹ãƒ†ãƒ ç”¨) */
 unsigned long  SysTim_SysTimeToSecond(SYSTIM_SYSTIME SysTime)
 {
 	return (unsigned long)(SysTime / 1000000000);

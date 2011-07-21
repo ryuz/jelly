@@ -2,7 +2,7 @@
  *  Hyper Operating System  Application Framework
  *
  * @file  mmcdrv.h
- * @brief %jp{ƒƒ‚ƒŠƒ}ƒbƒvƒhƒtƒ@ƒCƒ‹—pƒfƒoƒCƒXƒhƒ‰ƒCƒo}
+ * @brief %jp{ãƒ¡ãƒ¢ãƒªãƒžãƒƒãƒ—ãƒ‰ãƒ•ã‚¡ã‚¤ãƒ«ç”¨ãƒ‡ãƒã‚¤ã‚¹ãƒ‰ãƒ©ã‚¤ãƒ}
  *
  * Copyright (C) 2006-2007 by Project HOS
  * http://sourceforge.jp/projects/hos/
@@ -21,7 +21,7 @@ FILE_POS MmcDrv_Seek(C_DRVOBJ *pDrvObj, C_FILEOBJ *pFileObj, FILE_POS Offset, in
 	self  = (C_MMCDRV *)pDrvObj;
 	pFile = (C_MMCFILE *)pFileObj;
 	
-	/* ƒV[ƒN */
+	/* ã‚·ãƒ¼ã‚¯ */
 	switch ( iOrign )
 	{
 	case FILE_SEEK_SET:
@@ -40,7 +40,7 @@ FILE_POS MmcDrv_Seek(C_DRVOBJ *pDrvObj, C_FILEOBJ *pFileObj, FILE_POS Offset, in
 		return FILE_ERR_NG;
 	}
 	
-	/* ”ÍˆÍƒNƒŠƒbƒv */
+	/* ç¯„å›²ã‚¯ãƒªãƒƒãƒ— */
 	if ( pFile->FilePos < 0 )
 	{
 		pFile->FilePos = 0;

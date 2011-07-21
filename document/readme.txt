@@ -1,42 +1,42 @@
 -------------------------------------------------------------------------------
- Jelly -- ƒ\ƒtƒgƒRƒAƒvƒƒZƒbƒVƒ“ƒOƒVƒXƒeƒ€
+ Jelly -- ã‚½ãƒ•ãƒˆã‚³ã‚¢ãƒ—ãƒ­ã‚»ãƒƒã‚·ãƒ³ã‚°ã‚·ã‚¹ãƒ†ãƒ 
 
                                     Copyright (C) 2008-2009 by Ryuji Fuchikami 
                                     http://homepage3.nifty.com/ryuz
 -------------------------------------------------------------------------------
 
 
-1. ‚Í‚¶‚ß‚É
+1. ã¯ã˜ã‚ã«
 
-  Jelly ‚Æ‚ÍAFPGAŒü‚¯‚Ì MIPS-I ƒ‰ƒCƒN‚È–½—ßƒZƒbƒg‚ÌƒRƒA‚ð—L‚µ‚½ƒ\ƒtƒgƒRƒA
-ƒvƒƒZƒbƒVƒ“ƒOƒVƒXƒeƒ€‚Å‚·B
-  ]—ˆƒ}ƒCƒRƒ“‚Å§Œä‚µ‚Ä‚¢‚½•ª–ì‚ÅAƒƒ“ƒ`ƒbƒvƒ}ƒCƒRƒ“‚ðFPGA‚Å’u‚«Š·‚¦‚é
-ƒP[ƒX‚ª‘‚¦‚Ä‚«‚Ü‚µ‚½B
-  ‚»‚Ì‚æ‚¤‚ÈƒP[ƒX‚ð‘z’è‚µ‚ÄA‘gž‚Ýƒ\ƒtƒgŠJ”­‚ÌŽ‹“_‚©‚çŽg‚¢‚â‚·‚¢ƒVƒXƒeƒ€‚ð
-–ÚŽw‚µ‚ÄŠJ”­‚ðs‚Á‚Ä‚¨‚è‚Ü‚·B
+  Jelly ã¨ã¯ã€FPGAå‘ã‘ã® MIPS-I ãƒ©ã‚¤ã‚¯ãªå‘½ä»¤ã‚»ãƒƒãƒˆã®ã‚³ã‚¢ã‚’æœ‰ã—ãŸã‚½ãƒ•ãƒˆã‚³ã‚¢
+ãƒ—ãƒ­ã‚»ãƒƒã‚·ãƒ³ã‚°ã‚·ã‚¹ãƒ†ãƒ ã§ã™ã€‚
+  å¾“æ¥ãƒžã‚¤ã‚³ãƒ³ã§åˆ¶å¾¡ã—ã¦ã„ãŸåˆ†é‡Žã§ã€ãƒ¯ãƒ³ãƒãƒƒãƒ—ãƒžã‚¤ã‚³ãƒ³ã‚’FPGAã§ç½®ãæ›ãˆã‚‹
+ã‚±ãƒ¼ã‚¹ãŒå¢—ãˆã¦ãã¾ã—ãŸã€‚
+  ãã®ã‚ˆã†ãªã‚±ãƒ¼ã‚¹ã‚’æƒ³å®šã—ã¦ã€çµ„è¾¼ã¿ã‚½ãƒ•ãƒˆé–‹ç™ºã®è¦–ç‚¹ã‹ã‚‰ä½¿ã„ã‚„ã™ã„ã‚·ã‚¹ãƒ†ãƒ ã‚’
+ç›®æŒ‡ã—ã¦é–‹ç™ºã‚’è¡Œã£ã¦ãŠã‚Šã¾ã™ã€‚
 
 
-2. \¬
+2. æ§‹æˆ
 
-  +document              ŠeŽíƒhƒLƒ…ƒƒ“ƒg
+  +document              å„ç¨®ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆ
   +rtl
-  |  +cpu                CPUƒRƒA
-  |  +cache              ƒLƒƒƒbƒVƒ…ƒƒ‚ƒŠ
-  |  +bus                ƒoƒX•ÏŠ·‚È‚Ç‚Ìƒ‚ƒWƒ…[ƒ‹
-  |  +library            ŠeŽíƒ‰ƒCƒuƒ‰ƒŠ“Iƒ‚ƒWƒ…[ƒ‹
-  |  +irc                Š„ž‚ÝƒRƒ“ƒgƒ[ƒ‰
-  |  +ddr_sdram          DDR-SDRAMƒRƒ“ƒgƒ[ƒ‰
-  |  +sram               “à‘ SRAM
-  |  +extbus             ŠO•”ƒoƒX§Œä
+  |  +cpu                CPUã‚³ã‚¢
+  |  +cache              ã‚­ãƒ£ãƒƒã‚·ãƒ¥ãƒ¡ãƒ¢ãƒª
+  |  +bus                ãƒã‚¹å¤‰æ›ãªã©ã®ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«
+  |  +library            å„ç¨®ãƒ©ã‚¤ãƒ–ãƒ©ãƒªçš„ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«
+  |  +irc                å‰²è¾¼ã¿ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©
+  |  +ddr_sdram          DDR-SDRAMã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©
+  |  +sram               å†…è”µSRAM
+  |  +extbus             å¤–éƒ¨ãƒã‚¹åˆ¶å¾¡
   |  +uart               UART
-  |  +timer              ƒ^ƒCƒ}
+  |  +timer              ã‚¿ã‚¤ãƒž
   |  +gpio               GPIO
   +projects
-  |  +spartan3e_starter  Spartan-3E Starter Kit —pƒvƒƒWƒFƒNƒg
-  |  +spartan3_starter   Spartan-3 Starter Kit —pƒvƒƒWƒFƒNƒg
-  |  +cq-frk-s3e2        DesignWave‚¨‚Ü‚¯ Spartan-3ƒ{[ƒh—pƒvƒƒWƒFƒNƒg
-  +soft                  ROM‰»ƒ\ƒtƒg¶¬—p
-  +tools                 ƒc[ƒ‹—Þ
+  |  +spartan3e_starter  Spartan-3E Starter Kit ç”¨ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆ
+  |  +spartan3_starter   Spartan-3 Starter Kit ç”¨ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆ
+  |  +cq-frk-s3e2        DesignWaveãŠã¾ã‘ Spartan-3ãƒœãƒ¼ãƒ‰ç”¨ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆ
+  +soft                  ROMåŒ–ã‚½ãƒ•ãƒˆç”Ÿæˆç”¨
+  +tools                 ãƒ„ãƒ¼ãƒ«é¡ž
 
 
 

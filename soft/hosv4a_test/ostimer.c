@@ -2,7 +2,7 @@
  *  Sample program for Hyper Operating System V4 Advance
  *
  * @file  ostimer.c
- * @brief %jp{OSƒ^ƒCƒ}}%en{OS timer}
+ * @brief %jp{OSã‚¿ã‚¤ãƒž}%en{OS timer}
  *
  * Copyright (C) 1998-2008 by Project HOS
  * http://sourceforge.jp/projects/hos/
@@ -21,38 +21,38 @@
 
 
 
-static void OsTimer_Isr(VP_INT exinf);		/**< %jp{ƒ^ƒCƒ}Š„ž‚ÝƒT[ƒrƒXƒ‹[ƒ`ƒ“} */
+static void OsTimer_Isr(VP_INT exinf);		/**< %jp{ã‚¿ã‚¤ãƒžå‰²è¾¼ã¿ã‚µãƒ¼ãƒ“ã‚¹ãƒ«ãƒ¼ãƒãƒ³} */
 
 
-/** %jp{OS—pƒ^ƒCƒ}‰Šú‰»ƒ‹[ƒ`ƒ“} */
+/** %jp{OSç”¨ã‚¿ã‚¤ãƒžåˆæœŸåŒ–ãƒ«ãƒ¼ãƒãƒ³} */
 void OsTimer_Initialize(VP_INT exinf)
 {
 	T_CISR cisr;
 	
-	/* %jp{Š„ž‚ÝƒT[ƒrƒXƒ‹[ƒ`ƒ“¶¬} */
+	/* %jp{å‰²è¾¼ã¿ã‚µãƒ¼ãƒ“ã‚¹ãƒ«ãƒ¼ãƒãƒ³ç”Ÿæˆ} */
 	cisr.isratr = TA_HLNG;
 	cisr.exinf  = 0;
 	cisr.intno  = INTNO_TIMER0;
 	cisr.isr    = (FP)OsTimer_Isr;
 	acre_isr(&cisr);
 	
-	/* ŠJŽn */
+	/* é–‹å§‹ */
 	*TIMER0_COMPARE = (50000 - 1);		/* 50Mhz / 50000 = 1kHz (1ms) */
 	*TIMER0_CONTROL = 0x0002;			/* clear */
 	*TIMER0_CONTROL = 0x0001;			/* start */
 	
-	/* Š„ž‚Ý‹–‰Â */
+	/* å‰²è¾¼ã¿è¨±å¯ */
 	ena_int(INTNO_TIMER0);
 }
 
 
-/** %jp{ƒ^ƒCƒ}Š„ž‚Ýƒnƒ“ƒhƒ‰} */
+/** %jp{ã‚¿ã‚¤ãƒžå‰²è¾¼ã¿ãƒãƒ³ãƒ‰ãƒ©} */
 void OsTimer_Isr(VP_INT exinf)
 {
-	/* %jp{—vˆöƒNƒŠƒA} */
+	/* %jp{è¦å› ã‚¯ãƒªã‚¢} */
 	vclr_int(INTNO_TIMER0);
 	
-	/* %jp{ƒ^ƒCƒ€ƒeƒBƒbƒN‹Ÿ‹‹} */
+	/* %jp{ã‚¿ã‚¤ãƒ ãƒ†ã‚£ãƒƒã‚¯ä¾›çµ¦} */
 	isig_tim();
 }
 

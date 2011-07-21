@@ -2,7 +2,7 @@
  * Hyper Operating System  Application Framework
  *
  * @file  mmcfile_constructor.c
- * @brief %jp{memory file ƒRƒ“ƒXƒgƒ‰ƒNƒ^}%en{Memory File  constructor}
+ * @brief %jp{memory file ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿}%en{Memory File  constructor}
  *
  * Copyright (C) 2008 by Project HOS
  * http://sourceforge.jp/projects/hos/
@@ -14,10 +14,10 @@
 
 void MmcFile_Constructor(C_MMCFILE *self, const T_FILEOBJ_METHODS *pMethods, C_MMCDRV *pMmcDrv, int iMode)
 {
-	/* eƒNƒ‰ƒXƒRƒ“ƒXƒgƒ‰ƒNƒ^ */
+	/* è¦ªã‚¯ãƒ©ã‚¹ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ */
 	FileObj_Constructor(&self->FileObj, pMethods, &pMmcDrv->DrvObj, iMode);
 	
-	/* ƒƒ“ƒo•Ï”‰Šú‰» */
+	/* ãƒ¡ãƒ³ãƒå¤‰æ•°åˆæœŸåŒ– */
 	self->FilePos = 0;
 }
 

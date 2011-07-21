@@ -2,7 +2,7 @@
  * Hyper Operating System  Application Framework
  *
  * @file  mmcfile.h
- * @brief %jp{memory file ŒöŠJƒwƒbƒ_ƒtƒ@ƒCƒ‹}%en{Memory File public header file}
+ * @brief %jp{memory file å…¬é–‹ãƒ˜ãƒƒãƒ€ãƒ•ã‚¡ã‚¤ãƒ«}%en{Memory File public header file}
  *
  * Copyright (C) 2008 by Project HOS
  * http://sourceforge.jp/projects/hos/
@@ -14,7 +14,7 @@
 
 static const T_FILEOBJ_METHODS MmcFile_FileObjMethods =
 	{
-		{File_Close},	/* ƒfƒXƒgƒ‰ƒNƒ^ */
+		{File_Close},	/* ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ */
 	};
 
 
@@ -28,7 +28,7 @@ HANDLE MmcFile_Create(C_MMCDRV *pMemVol, int iMode)
 		return HANDLE_NULL;
 	}
 	
-	/* ƒRƒ“ƒXƒgƒ‰ƒNƒ^ŒÄ‚Ño‚µ */
+	/* ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿å‘¼ã³å‡ºã— */
 	MmcFile_Constructor(self, &MmcFile_FileObjMethods, pMemVol, iMode);
 	
 	return (HANDLE)self;

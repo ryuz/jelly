@@ -2,7 +2,7 @@
  * Hyper Operating System  Application Framework
  *
  * @file  mmcfile.h
- * @brief %jp{memory file 公開ヘッダファイル}%en{Memory File public header file}
+ * @brief %jp{memory file 蜈ｬ髢九�倥ャ繝繝輔ぃ繧､繝ｫ}%en{Memory File public header file}
  *
  * Copyright (C) 2008 by Project HOS
  * http://sourceforge.jp/projects/hos/

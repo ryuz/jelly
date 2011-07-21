@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
 	// auto run
 	if ( blAutoRun )
 	{
-		// ƒŠƒZƒbƒg
+		// ãƒªã‚»ãƒƒãƒˆ
 		remote.DbgRegWrite(2, 0x0000130);	// ADDR:STATUS
 		remote.DbgRegWrite(4, 0x0000000);	// WRITE:0
 		remote.DbgRegWrite(2, 0x0000160);	// ADDR:DEPC
@@ -145,7 +145,7 @@ int main(int argc, char *argv[])
 
 		else if ( stricmp(szCommand, "reset") == 0 )
 		{
-			// ƒŠƒZƒbƒg
+			// ãƒªã‚»ãƒƒãƒˆ
 			remote.DbgRegWrite(2, 0x0000130);	// ADDR:STATUS
 			remote.DbgRegWrite(4, 0x0000000);	// WRITE:0
 
@@ -167,7 +167,7 @@ int main(int argc, char *argv[])
 			PrintReg(&ctrl);
 		}
 		
-		// ƒƒ‚ƒŠƒŠ[ƒh
+		// ãƒ¡ãƒ¢ãƒªãƒªãƒ¼ãƒ‰
 		else if ( strncmp(szCommand, "m ", 2) == 0 )
 		{
 			unsigned long ulAddr = strtoul(&szCommand[2], 0, 0);

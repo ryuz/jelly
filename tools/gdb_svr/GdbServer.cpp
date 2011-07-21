@@ -5,7 +5,7 @@
 #include "GdbServer.h"
 
 
-// ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+// ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 CGdbServer::CGdbServer(CDebugControl* pDbgCtl)
 {
 	int i;
@@ -22,7 +22,7 @@ CGdbServer::CGdbServer(CDebugControl* pDbgCtl)
 }
 
 
-// ƒfƒXƒgƒ‰ƒNƒ^
+// ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 CGdbServer::~CGdbServer()
 {
 }
@@ -287,11 +287,11 @@ void CGdbServer::RunServer(void)
 		{
 			printf("\n");
 
-			// '$' ‚ğ‘Ò‚Â
+			// '$' ã‚’å¾…ã¤
 			while ( RemoteGetChar() != '$' )
 				;
 
-			// ƒpƒPƒbƒgóM
+			// ãƒ‘ã‚±ãƒƒãƒˆå—ä¿¡
 			recv_len = 0;
 			recv_sum = 0;
 			for ( ; ; )
@@ -321,12 +321,12 @@ void CGdbServer::RunServer(void)
 		
 		if ( recv_packt[0] == '?' )
 		{
-			// ƒVƒOƒiƒ‹ó‘Ô
+			// ã‚·ã‚°ãƒŠãƒ«çŠ¶æ…‹
 			RemoteSendPacket("S05", 3);
 		}
 		if ( recv_packt[0] == 'G' )
 		{
-			// ƒŒƒWƒXƒ^İ’è
+			// ãƒ¬ã‚¸ã‚¹ã‚¿è¨­å®š
 			unsigned long	ulValue;
 			int				ptr = 1;
 			ptr += GetWordString(&recv_packt[ptr], &ulValue); // m_pDbgCtl->SetRegisterValue("R0", ulValue)
@@ -372,7 +372,7 @@ void CGdbServer::RunServer(void)
 		}
 		else if ( recv_packt[0] == 'g' )
 		{
-			// ƒŒƒWƒXƒ^æ“¾
+			// ãƒ¬ã‚¸ã‚¹ã‚¿å–å¾—
 			send_len = 0;
 			send_len += SetWordString(&send_packt[send_len], m_pDbgCtl->GetRegisterValue("R0"));
 			send_len += SetWordString(&send_packt[send_len], m_pDbgCtl->GetRegisterValue("R1"));
@@ -422,53 +422,53 @@ void CGdbServer::RunServer(void)
 		}
 		else if ( recv_packt[0] == 'M' )
 		{
-			// ƒƒ‚ƒŠ‘‚«‚İ
+			// ãƒ¡ãƒ¢ãƒªæ›¸ãè¾¼ã¿
 			unsigned char	ubBuf[4096];
 			unsigned long	ulAddr = 0;
 			unsigned long	ulSize = 0;
 			int				ptr = 1;
 			char			c;
 
-			// ƒAƒhƒŒƒX
+			// ã‚¢ãƒ‰ãƒ¬ã‚¹
 			while ( ptr < recv_len && (c = recv_packt[ptr++]) != ',' )
 			{
 				ulAddr = (ulAddr << 4) + CharToHex(c);
 			}
 
-			// ƒTƒCƒY
+			// ã‚µã‚¤ã‚º
 			while ( ptr < recv_len && (c = recv_packt[ptr++]) != ':' )
 			{
 				ulSize = (ulSize << 4) + CharToHex(c);
 			}
 			
-			// ƒf[ƒ^
+			// ãƒ‡ãƒ¼ã‚¿
 			for ( i = 0; ptr < recv_len && i < (int)ulSize; i++ )
 			{
 				ubBuf[i]  = CharToHex(recv_packt[ptr++]) * 16;
 				ubBuf[i] += CharToHex(recv_packt[ptr++]);
 			}
 			
-			// ‘‚«‚İ
+			// æ›¸ãè¾¼ã¿
 			m_pDbgCtl->MemWrite(ulAddr, ubBuf, ulSize);
 						
 			RemoteSendPacket("OK", 2);
 		}
 		else if ( recv_packt[0] == 'm' )
 		{
-			// ƒƒ‚ƒŠ“Ç‚İ‚İ
+			// ãƒ¡ãƒ¢ãƒªèª­ã¿è¾¼ã¿
 			unsigned char	ubBuf[4096];
 			unsigned long	ulAddr = 0;
 			unsigned long	ulSize = 0;
 			int				ptr = 1;
 			char			c;
 			
-			// ƒAƒhƒŒƒX
+			// ã‚¢ãƒ‰ãƒ¬ã‚¹
 			while ( ptr < recv_len && (c = recv_packt[ptr++]) != ',' )
 			{
 				ulAddr = (ulAddr << 4) + CharToHex(c);
 			}
 			
-			// ƒTƒCƒY
+			// ã‚µã‚¤ã‚º
 			while ( ptr < recv_len && (c = recv_packt[ptr++]) != ':' )
 			{
 				ulSize = (ulSize << 4) + CharToHex(c);
@@ -479,10 +479,10 @@ void CGdbServer::RunServer(void)
 				ulSize = sizeof(ubBuf);
 			}
 
-			// “Ç‚İ‚İ
+			// èª­ã¿è¾¼ã¿
 			m_pDbgCtl->MemRead(ulAddr, ubBuf, ulSize);
 			
-			// ƒf[ƒ^
+			// ãƒ‡ãƒ¼ã‚¿
 			for ( i = 0; i < (int)ulSize; i++ )
 			{
 				send_packt[i*2+0] = HexToChar((ubBuf[i] >> 4) & 0xf);
@@ -493,25 +493,25 @@ void CGdbServer::RunServer(void)
 		}
 		else if ( recv_packt[0] == 'Z' && recv_packt[2] == ',' )
 		{
-			// ƒuƒŒ[ƒNƒ|ƒCƒ“ƒg‘}“ü
+			// ãƒ–ãƒ¬ãƒ¼ã‚¯ãƒã‚¤ãƒ³ãƒˆæŒ¿å…¥
 			unsigned long	ulAddr = 0;
 			unsigned long	ulSize = 0;
 			int				ptr = 3;
 			char			c;
 			
-			// ƒAƒhƒŒƒX
+			// ã‚¢ãƒ‰ãƒ¬ã‚¹
 			while ( ptr < recv_len && (c = recv_packt[ptr++]) != ',' )
 			{
 				ulAddr = (ulAddr << 4) + CharToHex(c);
 			}
 
-			// ƒTƒCƒY
+			// ã‚µã‚¤ã‚º
 			while ( ptr < recv_len && (c = recv_packt[ptr++]) != ':' )
 			{
 				ulSize = (ulSize << 4) + CharToHex(c);
 			}
 			
-			// ƒuƒŒ[ƒNİ’è
+			// ãƒ–ãƒ¬ãƒ¼ã‚¯è¨­å®š
 			AddBp(ulAddr);
 			
 			// ACK
@@ -519,25 +519,25 @@ void CGdbServer::RunServer(void)
 		}
 		else if ( recv_packt[0] == 'z' && recv_packt[2] == ',' )
 		{
-			// ƒuƒŒ[ƒNƒ|ƒCƒ“ƒg‰ğœ
+			// ãƒ–ãƒ¬ãƒ¼ã‚¯ãƒã‚¤ãƒ³ãƒˆè§£é™¤
 			unsigned long	ulAddr = 0;
 			unsigned long	ulSize = 0;
 			int				ptr = 3;
 			char			c;
 			
-			// ƒAƒhƒŒƒX
+			// ã‚¢ãƒ‰ãƒ¬ã‚¹
 			while ( ptr < recv_len && (c = recv_packt[ptr++]) != ',' )
 			{
 				ulAddr = (ulAddr << 4) + CharToHex(c);
 			}
 
-			// ƒTƒCƒY
+			// ã‚µã‚¤ã‚º
 			while ( ptr < recv_len && (c = recv_packt[ptr++]) != ':' )
 			{
 				ulSize = (ulSize << 4) + CharToHex(c);
 			}
 
-			// ƒuƒŒ[ƒNíœ
+			// ãƒ–ãƒ¬ãƒ¼ã‚¯å‰Šé™¤
 			RemoveBp(ulAddr);
 
 			// ACK

@@ -2,7 +2,7 @@
  *  Hyper Operating System  Application Framework
  *
  * @file  mmcdrv_local.h
- * @brief %jp{ƒƒ‚ƒŠƒ}ƒbƒvƒhƒtƒ@ƒCƒ‹—pƒfƒoƒCƒXƒhƒ‰ƒCƒo ƒ[ƒJƒ‹ƒwƒbƒ_ƒtƒ@ƒCƒ‹}
+ * @brief %jp{ãƒ¡ãƒ¢ãƒªãƒãƒƒãƒ—ãƒ‰ãƒ•ã‚¡ã‚¤ãƒ«ç”¨ãƒ‡ãƒã‚¤ã‚¹ãƒ‰ãƒ©ã‚¤ãƒ ãƒ­ãƒ¼ã‚«ãƒ«ãƒ˜ãƒƒãƒ€ãƒ•ã‚¡ã‚¤ãƒ«}
  *
  * Copyright (C) 2006-2007 by Project HOS
  * http://sourceforge.jp/projects/hos/
@@ -18,15 +18,15 @@
 #include "system/sysapi/sysapi.h"
 
 
-/* ƒhƒ‰ƒCƒo§Œä•” */
+/* ãƒ‰ãƒ©ã‚¤ãƒåˆ¶å¾¡éƒ¨ */
 typedef struct c_mmcdrv
 {
-	C_DRVOBJ		DrvObj;			/* ƒfƒoƒCƒXƒhƒ‰ƒCƒo‚ğŒp³ */
+	C_DRVOBJ		DrvObj;			/* ãƒ‡ãƒã‚¤ã‚¹ãƒ‰ãƒ©ã‚¤ãƒã‚’ç¶™æ‰¿ */
 
-	int				iOpenCount;		/* ƒI[ƒvƒ“ƒJƒEƒ“ƒ^ */
+	int				iOpenCount;		/* ã‚ªãƒ¼ãƒ—ãƒ³ã‚«ã‚¦ãƒ³ã‚¿ */
 	FILE_SIZE		FileSize;
 
-	SYSMTX_HANDLE	hMtx;			/* ”r‘¼§Œä—pƒ~ƒ…[ƒeƒbƒNƒX */
+	SYSMTX_HANDLE	hMtx;			/* æ’ä»–åˆ¶å¾¡ç”¨ãƒŸãƒ¥ãƒ¼ãƒ†ãƒƒã‚¯ã‚¹ */
 } C_MMCDRV;
 
 
@@ -37,8 +37,8 @@ typedef struct c_mmcdrv
 extern "C" {
 #endif
 
-void      MmcDrv_Constructor(C_MMCDRV *self, const T_DRVOBJ_METHODS *pMethods);	/**< ƒRƒ“ƒXƒgƒ‰ƒNƒ^ */
-void      MmcDrv_Destructor(C_MMCDRV *self);									/**< ƒfƒXƒgƒ‰ƒNƒ^ */
+void      MmcDrv_Constructor(C_MMCDRV *self, const T_DRVOBJ_METHODS *pMethods);	/**< ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ */
+void      MmcDrv_Destructor(C_MMCDRV *self);									/**< ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ */
 
 HANDLE    MmcDrv_Open(C_DRVOBJ *pDrvObj, const char *pszPath, int iMode);
 void      MmcDrv_Close(C_DRVOBJ *pDrvObj, C_FILEOBJ *pFileObj);

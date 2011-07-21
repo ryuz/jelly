@@ -2,7 +2,7 @@
  *  Hyper Operating System  Application Framework
  *
  * @file  mmcdrv.h
- * @brief %jp{ƒƒ‚ƒŠƒ}ƒbƒvƒhƒtƒ@ƒCƒ‹—pƒfƒoƒCƒXƒhƒ‰ƒCƒo}
+ * @brief %jp{ãƒ¡ãƒ¢ãƒªãƒãƒƒãƒ—ãƒ‰ãƒ•ã‚¡ã‚¤ãƒ«ç”¨ãƒ‡ãƒã‚¤ã‚¹ãƒ‰ãƒ©ã‚¤ãƒ}
  *
  * Copyright (C) 2006-2007 by Project HOS
  * http://sourceforge.jp/projects/hos/
@@ -14,18 +14,18 @@
 
 
 
-/** ¶¬ */
+/** ç”Ÿæˆ */
 HANDLE MmcDrv_Create(void)
 {
 	C_MMCDRV *self;
 	
-	/* ƒƒ‚ƒŠŠm•Û */
+	/* ãƒ¡ãƒ¢ãƒªç¢ºä¿ */
 	if ( (self = (C_MMCDRV *)SysMem_Alloc(sizeof(C_MMCDRV))) == NULL )
 	{
 		return HANDLE_NULL;
 	}
 	
-	/* ƒRƒ“ƒXƒgƒ‰ƒNƒ^ŒÄ‚Ño‚µ */
+	/* ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿å‘¼ã³å‡ºã— */
 	MmcDrv_Constructor(self, NULL);
 	
 	return (HANDLE)self;

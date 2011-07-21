@@ -8,14 +8,14 @@
 
 
 # --------------------------------------
-#  %jp{ŠeŽíÝ’è}{setting}
+#  %jp{å„ç¨®è¨­å®š}{setting}
 # --------------------------------------
 
-# %jp{ƒ^[ƒQƒbƒg–¼}%en{target name}
+# %jp{ã‚¿ãƒ¼ã‚²ãƒƒãƒˆå}%en{target name}
 TARGET ?= hosv4a_sample
 
 
-# %jp{ƒc[ƒ‹’è‹`}%en{tools}
+# %jp{ãƒ„ãƒ¼ãƒ«å®šç¾©}%en{tools}
 GCC_ARCH    ?= mips-elf-
 CMD_CC      ?= $(GCC_ARCH)gcc
 CMD_ASM     ?= $(GCC_ARCH)gcc
@@ -25,13 +25,13 @@ CMD_OBJDUMP ?= $(GCC_ARCH)objdump
 
 
 
-# %jp{ƒA[ƒLƒeƒNƒ`ƒƒ’è‹`}%en{architecture}
+# %jp{ã‚¢ãƒ¼ã‚­ãƒ†ã‚¯ãƒãƒ£å®šç¾©}%en{architecture}
 ARCH_NAME ?= jelly
 ARCH_CC   ?= gcc
 EXT_EXE   ?= elf
 
 
-# %jp{ƒfƒBƒŒƒNƒgƒŠ’è‹`}%en{directories}
+# %jp{ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå®šç¾©}%en{directories}
 HOS_DIR           = $(HOME)/hos-v4a
 KERNEL_DIR        = $(HOS_DIR)/kernel
 KERNEL_CFGRTR_DIR = $(HOS_DIR)/cfgrtr/build/gcc
@@ -40,44 +40,44 @@ KERNEL_BUILD_DIR  = $(KERNEL_DIR)/build/mips/jelly/gcc
 TOOLS_DIR         = ../../../tools
 
 
-# %jp{ƒRƒ“ƒtƒBƒMƒ…ƒŒ[ƒ^’è‹`}
+# %jp{ã‚³ãƒ³ãƒ•ã‚£ã‚®ãƒ¥ãƒ¬ãƒ¼ã‚¿å®šç¾©}
 KERNEL_CFGRTR = $(KERNEL_CFGRTR_DIR)/h4acfg-$(ARCH_NAME)
 
 
-# %jp{‹¤’Ê’è‹`“Çž‚Ý}%jp{common setting}
+# %jp{å…±é€šå®šç¾©èª­è¾¼ã¿}%jp{common setting}
 include $(KERNEL_MAKINC_DIR)/common.inc
 
 
-# %jp{ƒŠƒ“ƒJƒXƒNƒŠƒvƒg}%en{linker script}
+# %jp{ãƒªãƒ³ã‚«ã‚¹ã‚¯ãƒªãƒ—ãƒˆ}%en{linker script}
 LINK_SCRIPT = rom.lds
 
 
-# %jp{“à‘ RAM}%en{internal RAM}
+# %jp{å†…è”µRAM}%en{internal RAM}
 ifeq ($(MEMMAP),ram)
 LINK_SCRIPT  = ram.lds
 TARGET      := $(TARGET)_ram
 endif
 
 
-# %jp{ƒpƒXÝ’è}%en{add source directories}
+# %jp{ãƒ‘ã‚¹è¨­å®š}%en{add source directories}
 INC_DIRS += . ..
 SRC_DIRS += . ..
 
 
-# %jp{ƒIƒvƒVƒ‡ƒ“ƒtƒ‰ƒO}%en{option flags}
+# %jp{ã‚ªãƒ—ã‚·ãƒ§ãƒ³ãƒ•ãƒ©ã‚°}%en{option flags}
 AFLAGS  = -march=mips1 -msoft-float -G 0
 CFLAGS  = -march=mips1 -msoft-float -G 0
 LNFLAGS = -march=mips1 -msoft-float -G 0 -nostartfiles -Wl,-Map,$(TARGET).map,-T$(LINK_SCRIPT)
 
 
-# %jp{ƒRƒ“ƒpƒCƒ‰ˆË‘¶‚ÌÝ’è“Çž‚Ý}%en{compiler dependent definitions}
+# %jp{ã‚³ãƒ³ãƒ‘ã‚¤ãƒ©ä¾å­˜ã®è¨­å®šèª­è¾¼ã¿}%en{compiler dependent definitions}
 include $(KERNEL_MAKINC_DIR)/$(ARCH_CC)_d.inc
 
-# %jp{ŽÀsƒtƒ@ƒCƒ‹¶¬—pÝ’è“Çž‚Ý}%en{definitions for exection file}
+# %jp{å®Ÿè¡Œãƒ•ã‚¡ã‚¤ãƒ«ç”Ÿæˆç”¨è¨­å®šèª­è¾¼ã¿}%en{definitions for exection file}
 include $(KERNEL_MAKINC_DIR)/makexe_d.inc
 
 
-# %jp{o—Íƒtƒ@ƒCƒ‹–¼}%en{output files}
+# %jp{å‡ºåŠ›ãƒ•ã‚¡ã‚¤ãƒ«å}%en{output files}
 TARGET_EXE = $(TARGET).$(EXT_EXE)
 TARGET_BIN = $(TARGET).$(EXT_BIN)
 
@@ -86,14 +86,14 @@ TARGETS = $(TARGET_EXE) $(TARGET_BIN)
 
 
 # --------------------------------------
-#  %jp{ƒ\[ƒXƒtƒ@ƒCƒ‹}%en{source files}
+#  %jp{ã‚½ãƒ¼ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«}%en{source files}
 # --------------------------------------
 
-# %jp{ƒAƒZƒ“ƒuƒ‰ƒtƒ@ƒCƒ‹‚Ì’Ç‰Á}%en{assembry sources}
+# %jp{ã‚¢ã‚»ãƒ³ãƒ–ãƒ©ãƒ•ã‚¡ã‚¤ãƒ«ã®è¿½åŠ }%en{assembry sources}
 ASRCS += ./crt0.S
 
 
-# %jp{CŒ¾Œêƒtƒ@ƒCƒ‹‚Ì’Ç‰Á}%en{C sources}
+# %jp{Cè¨€èªžãƒ•ã‚¡ã‚¤ãƒ«ã®è¿½åŠ }%en{C sources}
 CSRCS += ../main.c
 CSRCS += ../kernel_cfg.c
 CSRCS += ../sample.c
@@ -103,7 +103,7 @@ CSRCS += ../ostimer.c
 
 
 # --------------------------------------
-#  %jp{ƒ‹[ƒ‹’è‹`}%en{rules}
+#  %jp{ãƒ«ãƒ¼ãƒ«å®šç¾©}%en{rules}
 # --------------------------------------
 
 # %jp{ALL}%en{all}
@@ -116,41 +116,41 @@ all: kernel_make makeexe_all $(TARGETS)
 run: all $(TARGET_BIN)
 	jelly_loader -r $(TARGET_BIN)
 
-# %jp{ƒNƒŠ[ƒ“}%en{clean}
+# %jp{ã‚¯ãƒªãƒ¼ãƒ³}%en{clean}
 .PHONY : clean
 clean: makeexe_clean
 	rm -f $(TARGETS) $(TARGET).hex $(OBJS) ../kernel_cfg.c ../kernel_id.h
 
-# %jp{ˆË‘¶ŠÖŒWXV}%en{depend}
+# %jp{ä¾å­˜é–¢ä¿‚æ›´æ–°}%en{depend}
 .PHONY : depend
 depend: makeexe_depend
 
-# %jp{ƒ\[ƒXˆêŠ‡ƒRƒs[}%en{source files copy}
+# %jp{ã‚½ãƒ¼ã‚¹ä¸€æ‹¬ã‚³ãƒ”ãƒ¼}%en{source files copy}
 .PHONY : srccpy
 srccpy: makeexe_srccpy
 
-# %jp{ƒJ[ƒlƒ‹‚²‚ÆƒNƒŠ[ƒ“}%en{mostlyclean}
+# %jp{ã‚«ãƒ¼ãƒãƒ«ã”ã¨ã‚¯ãƒªãƒ¼ãƒ³}%en{mostlyclean}
 .PHONY : mostlyclean
 mostlyclean: clean kernel_clean
 
 
-# %jp{ƒRƒ“ƒtƒBƒMƒ…ƒŒ[ƒ^ŽÀs}%en{configurator}
+# %jp{ã‚³ãƒ³ãƒ•ã‚£ã‚®ãƒ¥ãƒ¬ãƒ¼ã‚¿å®Ÿè¡Œ}%en{configurator}
 ../kernel_cfg.c ../kernel_id.h: ../system.cfg $(KERNEL_CFGRTR)
 	cpp -E ../system.cfg ../system.i
 	$(KERNEL_CFGRTR) ../system.i -c ../kernel_cfg.c -i ../kernel_id.h
 
 
-# %jp{ŽÀsƒtƒ@ƒCƒ‹¶¬—pÝ’è“Çž‚Ý}%en{rules for exection file}
+# %jp{å®Ÿè¡Œãƒ•ã‚¡ã‚¤ãƒ«ç”Ÿæˆç”¨è¨­å®šèª­è¾¼ã¿}%en{rules for exection file}
 include $(KERNEL_MAKINC_DIR)/makexe_r.inc
 
-# %jp{ƒRƒ“ƒpƒCƒ‰ˆË‘¶‚Ìƒ‹[ƒ‹’è‹`“Çž‚Ý}%en{rules for compiler}
+# %jp{ã‚³ãƒ³ãƒ‘ã‚¤ãƒ©ä¾å­˜ã®ãƒ«ãƒ¼ãƒ«å®šç¾©èª­è¾¼ã¿}%en{rules for compiler}
 include $(KERNEL_MAKINC_DIR)/$(ARCH_CC)_r.inc
 
 
 
 
 # --------------------------------------
-#  %jp{ˆË‘¶ŠÖŒW}%en{dependency}
+#  %jp{ä¾å­˜é–¢ä¿‚}%en{dependency}
 # --------------------------------------
 
 $(TARGET_EXE): $(LINK_SCRIPT)

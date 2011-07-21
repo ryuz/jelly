@@ -2,7 +2,7 @@
  *  Sample program for Hyper Operating System V4 Advance
  *
  * @file  sample.c
- * @brief %jp{�T���v���v���O����}%en{Sample program}
+ * @brief %jp{サンプルプログラム}%en{Sample program}
  *
  * Copyright (C) 1998-2009 by Project HOS
  * http://sourceforge.jp/projects/hos/
@@ -20,13 +20,13 @@
 #define RIGHT(num)	((num) >= 5 ? 1 : (num) + 1)
 
 
-/** %jp{�������n���h��} */
+/** %jp{初期化ハンドラ} */
 void Sample_Initialize(VP_INT exinf)
 {
-	/* %jp{UART������} */
+	/* %jp{UART初期化} */
 	Uart_Initialize();
 	
-	/* %jp{�^�X�N�N��} */
+	/* %jp{タスク起動} */
 	act_tsk(TSKID_SAMPLE1);
 	act_tsk(TSKID_SAMPLE2);
 	act_tsk(TSKID_SAMPLE3);
@@ -35,7 +35,7 @@ void Sample_Initialize(VP_INT exinf)
 }
 
 
-/** %jp{�K���Ȏ��ԑ҂�} */
+/** %jp{適当な時間待つ} */
 void Sample_RandWait(void)
 {
 	static unsigned long seed = 12345;
@@ -50,14 +50,14 @@ void Sample_RandWait(void)
 }
 
 
-/** %jp{��ԕ\��} */
+/** %jp{状態表示} */
 void Sample_PrintSatet(int num, const char *text)
 {
 	int	i;
 	
 	wai_sem(SEMID_UART);
 	
-	/* %jp{������o��} */
+	/* %jp{文字列出力} */
 	Uart_PutChar('0' + num);
 	Uart_PutChar(' ');
 	Uart_PutChar(':');
@@ -73,53 +73,53 @@ void Sample_PrintSatet(int num, const char *text)
 }
 
 
-/** %jp{�T���v���^�X�N} */
+/** %jp{サンプルタスク} */
 void Sample_Task(VP_INT exinf)
 {
 	int num;
 	
 	num = (int)exinf;
 	
-	/* %jp{������N�w�҂̐H���̖��} */
+	/* %jp{いわゆる哲学者の食事の問題} */
 	for ( ; ; )
 	{
-		/* %jp{�K���Ȏ��ԍl����} */
+		/* %jp{適当な時間考える} */
 		Sample_PrintSatet(num, "thinking");
 		Sample_RandWait();
 		
-		/* %jp{���E�̃t�H�[�N�����܂Ń��[�v} */
+		/* %jp{左右のフォークを取るまでループ} */
 		for ( ; ; )
 		{
-			/* %jp{�����珇�Ɏ��} */
+			/* %jp{左から順に取る} */
 			wai_sem(LEFT(num));
 			if ( pol_sem(RIGHT(num)) == E_OK )
 			{
-				break;	/* %jp{������ꂽ} */
+				break;	/* %jp{両方取れた} */
 			}
-			sig_sem(LEFT(num));	/* %jp{���Ȃ���Η���} */
+			sig_sem(LEFT(num));	/* %jp{取れなければ離す} */
 			
-			/* %jp{�K���Ȏ��ԑ҂�} */
+			/* %jp{適当な時間待つ} */
 			Sample_PrintSatet(num, "hungry");
 			Sample_RandWait();
 			
-			/* %jp{�E���珇�Ɏ��} */
+			/* %jp{右から順に取る} */
 			wai_sem(RIGHT(num));
 			if ( pol_sem(LEFT(num)) == E_OK )
 			{
-				break;	/* %jp{������ꂽ} */
+				break;	/* %jp{両方取れた} */
 			}
-			sig_sem(RIGHT(num));	/* %jp{���Ȃ���Η���} */
+			sig_sem(RIGHT(num));	/* %jp{取れなければ離す} */
 			
-			/* %jp{�K���Ȏ��ԑ҂�} */
+			/* %jp{適当な時間待つ} */
 			Sample_PrintSatet(num, "hungry");
 			Sample_RandWait();
 		}
 		
-		/* %jp{�K���Ȏ��ԁA�H�ׂ�} */
+		/* %jp{適当な時間、食べる} */
 		Sample_PrintSatet(num, "eating");
 		Sample_RandWait();
 		
-		/* %jp{�t�H�[�N��u��} */
+		/* %jp{フォークを置く} */
 		sig_sem(LEFT(num));
 		sig_sem(RIGHT(num));
 	}

@@ -2,7 +2,7 @@
  *  Hyper Operating System  Application Framework
  *
  * @file  mmcdrv.h
- * @brief %jp{メモリマップドファイル用デバイスドライバ}
+ * @brief %jp{繝｡繝｢繝ｪ繝槭ャ繝励ラ繝輔ぃ繧､繝ｫ逕ｨ繝�繝舌う繧ｹ繝峨Λ繧､繝図
  *
  * Copyright (C) 2006-2007 by Project HOS
  * http://sourceforge.jp/projects/hos/
@@ -14,7 +14,7 @@
 #include "mmcfile.h"
 
 
-/** オープン */
+/** 繧ｪ繝ｼ繝励Φ */
 HANDLE MmcDrv_Open(C_DRVOBJ *pDrvObj, const char *pszPath, int iMode)
 {
 	C_MMCDRV	*self;
@@ -33,7 +33,7 @@ HANDLE MmcDrv_Open(C_DRVOBJ *pDrvObj, const char *pszPath, int iMode)
 		return HANDLE_NULL;
 	}
 	
-	/* オープン処理 */
+	/* 繧ｪ繝ｼ繝励Φ蜃ｦ逅� */
 	if ( self->iOpenCount++ == 0 )
 	{
 		MmcDrv_CardInitialize(self);

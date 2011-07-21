@@ -2,7 +2,7 @@
  * Hyper Operating System  Application Framework
  *
  * @file  mmcfile_destructor.c
- * @brief %jp{memory file デストラクタ}%en{Memory File  destructor}
+ * @brief %jp{memory file 繝�繧ｹ繝医Λ繧ｯ繧ｿ}%en{Memory File  destructor}
  *
  * Copyright (C) 2008 by Project HOS
  * http://sourceforge.jp/projects/hos/
@@ -14,7 +14,7 @@
 
 void  MmcFile_Destructor(C_MMCFILE *self)
 {
-	/* 親クラスデストラクタ */		
+	/* 隕ｪ繧ｯ繝ｩ繧ｹ繝�繧ｹ繝医Λ繧ｯ繧ｿ */		
 	FileObj_Destructor(&self->FileObj);
 }
 

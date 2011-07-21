@@ -2,7 +2,7 @@
  *  Sample program for Hyper Operating System V4 Advance
  *
  * @file  sample.c
- * @brief %jp{ƒTƒ“ƒvƒ‹ƒvƒƒOƒ‰ƒ€}%en{Sample program}
+ * @brief %jp{ã‚µãƒ³ãƒ—ãƒ«ãƒ—ãƒ­ã‚°ãƒ©ãƒ }%en{Sample program}
  *
  * Copyright (C) 1998-2009 by Project HOS
  * http://sourceforge.jp/projects/hos/
@@ -36,32 +36,32 @@ void Timer1_Isr()
 }
 
 
-/** %jp{‰Šú‰»ƒnƒ“ƒhƒ‰} */
+/** %jp{åˆæœŸåŒ–ãƒãƒ³ãƒ‰ãƒ©} */
 void Sample_Initialize(VP_INT exinf)
 {
 	T_CISR cisr;
 	
-	/* %jp{Š„‚İƒT[ƒrƒXƒ‹[ƒ`ƒ“¶¬} */
+	/* %jp{å‰²è¾¼ã¿ã‚µãƒ¼ãƒ“ã‚¹ãƒ«ãƒ¼ãƒãƒ³ç”Ÿæˆ} */
 	cisr.isratr = TA_HLNG;
 	cisr.exinf  = 0;
 	cisr.intno  = INTNO_TIMER1;
 	cisr.isr    = (FP)Timer1_Isr;
 	acre_isr(&cisr);
 	
-	/* ŠJn */
+	/* é–‹å§‹ */
 	*TIMER1_COMPARE = (5000 - 1);		/* 50Mhz / 50000 = 1kHz (1ms) */
 	*TIMER1_CONTROL = 0x0002;			/* clear */
 	*TIMER1_CONTROL = 0x0001;			/* start */
 	
-	/* Š„‚İ‹–‰Â */
+	/* å‰²è¾¼ã¿è¨±å¯ */
 	ena_int(INTNO_TIMER1);
 	
 	
 	
-	/* %jp{UART‰Šú‰»} */
+	/* %jp{UARTåˆæœŸåŒ–} */
 	Uart_Initialize();
 	
-	/* %jp{ƒ^ƒXƒN‹N“®} */
+	/* %jp{ã‚¿ã‚¹ã‚¯èµ·å‹•} */
 	act_tsk(TSKID_PRINT);
 	act_tsk(TSKID_SAMPLE1);
 /*	act_tsk(TSKID_SAMPLE2);
@@ -71,7 +71,7 @@ void Sample_Initialize(VP_INT exinf)
 }
 
 
-/** %jp{“K“–‚ÈŠÔ‘Ò‚Â} */
+/** %jp{é©å½“ãªæ™‚é–“å¾…ã¤} */
 void Sample_RandWait(void)
 {
 	static unsigned long seed = 12345;
@@ -86,14 +86,14 @@ void Sample_RandWait(void)
 }
 
 
-/** %jp{ó‘Ô•\¦} */
+/** %jp{çŠ¶æ…‹è¡¨ç¤º} */
 void Sample_PrintSatet(int num, const char *text)
 {
 	int	i;
 	
 	wai_sem(SEMID_UART);
 	
-	/* %jp{•¶š—ño—Í} */
+	/* %jp{æ–‡å­—åˆ—å‡ºåŠ›} */
 	snd_dtq(DTQID_SAMPLE, (VP_INT)('0' + num));
 	snd_dtq(DTQID_SAMPLE, (VP_INT)' ');
 	snd_dtq(DTQID_SAMPLE, (VP_INT)':');
@@ -121,7 +121,7 @@ void Sample_Print(VP_INT exinf)
 }
 
 
-/** %jp{ƒTƒ“ƒvƒ‹ƒ^ƒXƒN} */
+/** %jp{ã‚µãƒ³ãƒ—ãƒ«ã‚¿ã‚¹ã‚¯} */
 void Sample_Task(VP_INT exinf)
 {
 	int num;
@@ -150,46 +150,46 @@ void Sample_Task(VP_INT exinf)
 	
 	num = (int)exinf;
 	
-	/* %jp{‚¢‚í‚ä‚é“NŠwÒ‚ÌH–‚Ì–â‘è} */
+	/* %jp{ã„ã‚ã‚†ã‚‹å“²å­¦è€…ã®é£Ÿäº‹ã®å•é¡Œ} */
 	for ( ; ; )
 	{
-		/* %jp{“K“–‚ÈŠÔl‚¦‚é} */
+		/* %jp{é©å½“ãªæ™‚é–“è€ƒãˆã‚‹} */
 		Sample_PrintSatet(num, "thinking");
 		Sample_RandWait();
 		
-		/* %jp{¶‰E‚ÌƒtƒH[ƒN‚ğæ‚é‚Ü‚Åƒ‹[ƒv} */
+		/* %jp{å·¦å³ã®ãƒ•ã‚©ãƒ¼ã‚¯ã‚’å–ã‚‹ã¾ã§ãƒ«ãƒ¼ãƒ—} */
 		for ( ; ; )
 		{
-			/* %jp{¶‚©‚ç‡‚Éæ‚é} */
+			/* %jp{å·¦ã‹ã‚‰é †ã«å–ã‚‹} */
 			wai_sem(LEFT(num));
 			if ( pol_sem(RIGHT(num)) == E_OK )
 			{
-				break;	/* %jp{—¼•ûæ‚ê‚½} */
+				break;	/* %jp{ä¸¡æ–¹å–ã‚ŒãŸ} */
 			}
-			sig_sem(LEFT(num));	/* %jp{æ‚ê‚È‚¯‚ê‚Î—£‚·} */
+			sig_sem(LEFT(num));	/* %jp{å–ã‚Œãªã‘ã‚Œã°é›¢ã™} */
 			
-			/* %jp{“K“–‚ÈŠÔ‘Ò‚Â} */
+			/* %jp{é©å½“ãªæ™‚é–“å¾…ã¤} */
 			Sample_PrintSatet(num, "hungry");
 			Sample_RandWait();
 			
-			/* %jp{‰E‚©‚ç‡‚Éæ‚é} */
+			/* %jp{å³ã‹ã‚‰é †ã«å–ã‚‹} */
 			wai_sem(RIGHT(num));
 			if ( pol_sem(LEFT(num)) == E_OK )
 			{
-				break;	/* %jp{—¼•ûæ‚ê‚½} */
+				break;	/* %jp{ä¸¡æ–¹å–ã‚ŒãŸ} */
 			}
-			sig_sem(RIGHT(num));	/* %jp{æ‚ê‚È‚¯‚ê‚Î—£‚·} */
+			sig_sem(RIGHT(num));	/* %jp{å–ã‚Œãªã‘ã‚Œã°é›¢ã™} */
 			
-			/* %jp{“K“–‚ÈŠÔ‘Ò‚Â} */
+			/* %jp{é©å½“ãªæ™‚é–“å¾…ã¤} */
 			Sample_PrintSatet(num, "hungry");
 			Sample_RandWait();
 		}
 		
-		/* %jp{“K“–‚ÈŠÔAH‚×‚é} */
+		/* %jp{é©å½“ãªæ™‚é–“ã€é£Ÿã¹ã‚‹} */
 		Sample_PrintSatet(num, "eating");
 		Sample_RandWait();
 		
-		/* %jp{ƒtƒH[ƒN‚ğ’u‚­} */
+		/* %jp{ãƒ•ã‚©ãƒ¼ã‚¯ã‚’ç½®ã} */
 		sig_sem(LEFT(num));
 		sig_sem(RIGHT(num));
 	}
