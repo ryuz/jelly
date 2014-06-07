@@ -770,6 +770,40 @@ module top
 	wire				wb_uart0_stb_i;
 	wire				wb_uart0_ack_o;
 
+	jelly_uart_v2
+			#(
+				.TX_FIFO_PTR_WIDTH	(2),
+				.RX_FIFO_PTR_WIDTH	(2),
+				
+				.DIVIDER_WIDTH		(8),
+				.DIVIDER_INIT		(54-1),
+								
+				.SIMULATION			(SIMULATION),
+				.DEBUG				(1)
+			)
+		i_uart0
+			(
+				.clk				(clk),
+				.reset				(reset),
+				
+				.uart_reset			(reset),
+				.uart_clk			(clk_x2),
+				.uart_tx			(uart_tx),
+				.uart_rx			(uart_rx),
+				
+				.irq_rx				(uart0_irq_rx),
+				.irq_tx				(uart0_irq_tx),
+				
+				.wb_adr_i			(wb_uart0_adr_i[3:2]),
+				.wb_dat_o			(wb_uart0_dat_o),
+				.wb_dat_i			(wb_uart0_dat_i),
+				.wb_we_i			(wb_uart0_we_i),
+				.wb_sel_i			(wb_uart0_sel_i),
+				.wb_stb_i			(wb_uart0_stb_i),
+				.wb_ack_o			(wb_uart0_ack_o)
+			);
+	
+	/*
 	jelly_uart
 			#(
 				.TX_FIFO_PTR_WIDTH	(2),
@@ -797,6 +831,7 @@ module top
 				.wb_stb_i			(wb_uart0_stb_i),
 				.wb_ack_o			(wb_uart0_ack_o)
 			);
+	*/
 	
 	
 	// -----------------------------
