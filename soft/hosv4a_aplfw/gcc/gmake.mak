@@ -142,7 +142,7 @@ all: kernel_make make_subprj makeexe_all $(TARGETS)
 
 .PHONY : run
 run: all
-	jelly_loader -r $(TARGET_BIN)
+	jelly_loader -c 4 -r $(TARGET_BIN)
 
 .PHONY : gdb
 gdb: all
@@ -151,7 +151,7 @@ gdb: all
 
 .PHONY : make_subprj
 make_subprj:
-	$(MAKE) -C $(APLFW_BUILD_DIR) -f gmake.mak
+	$(MAKE) -C $(APLFW_BUILD_DIR)
 
 .PHONY : clean
 clean: makeexe_clean
@@ -162,11 +162,11 @@ depend: makeexe_depend
 
 .PHONY : mostlyclean
 mostlyclean: clean kernel_clean
-	$(MAKE) -C $(APLFW_BUILD_DIR) -f gmake.mak clean
+	$(MAKE) -C $(APLFW_BUILD_DIR) clean
 
 .PHONY : mostlydepend
 mostlydepend: depend
-	$(MAKE) -C $(APLFW_BUILD_DIR) -f gmake.mak depend
+	$(MAKE) -C $(APLFW_BUILD_DIR) depend
 
 
 ../kernel_cfg.c ../kernel_id.h: ../system.cfg
@@ -178,7 +178,7 @@ $(TARGET_EXE): $(LINK_SCRIPT)
 
 
 # %jp{ライブラリ生成用設定読込み}
-include $(KERNEL_MAKINC_DIR)/makeexe.inc
+include $(KERNEL_MAKINC_DIR)/makexe_r.inc
 
 # %jp{gcc用のルール定義読込み}
 include $(KERNEL_MAKINC_DIR)/gcc_r.inc

@@ -215,10 +215,10 @@ module tb_top;
 	input	[7:0]	data;
 	begin
 		@(negedge i_top.i_uart_debugger.i_uart_core.uart_clk);
-			force i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_en   = 1'b1;
-			force i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_data = data;
+			force i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_valid = 1'b1;
+			force i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_data  = data;
 		@(negedge i_top.i_uart_debugger.i_uart_core.uart_clk);
-			release i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_en;
+			release i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_valid;
 			release i_top.i_uart_debugger.i_uart_core.rx_fifo_wr_data;
 	end
 	endtask

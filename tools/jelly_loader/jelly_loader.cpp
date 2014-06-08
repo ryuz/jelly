@@ -21,6 +21,7 @@ void PrintReg(CJellyControl* pCtrl);
 // loader
 int main(int argc, char *argv[])
 {
+	char			szComPort[32];
 	const char		*pszComPort  = "COM1";
 	unsigned long	ulBitRate    = CBR_115200;
 	unsigned long	ulStartAddr  = 0x00000000;
@@ -29,7 +30,7 @@ int main(int argc, char *argv[])
 	int				i;
 	
 	
-	printf("Jelly Loader Ver 0.01  Copyright (C) 2008 by Ryuji Fuchikami\n");
+	printf("Jelly Loader Ver 0.02  Copyright (C) 2008-2014 by Ryuji Fuchikami\n");
 	
 	// command line
 	for ( i = 1; i < argc; i++ )
@@ -44,6 +45,13 @@ int main(int argc, char *argv[])
 			else if ( strcmp(&argv[i][1], "r") == 0 )
 			{
 				blAutoRun = true;
+			}
+			else if ( strcmp(&argv[i][1], "c") == 0 && i+1 < argc )
+			{
+				i++;
+				int iPort = strtol(argv[i], NULL, 0);
+				sprintf(szComPort, "\\\\.\\COM%d", iPort);
+				pszComPort = szComPort;
 			}
 			else if ( strcmp(&argv[i][1], "p") == 0 && i+1 < argc )
 			{
@@ -100,7 +108,7 @@ int main(int argc, char *argv[])
 	// auto run
 	if ( blAutoRun )
 	{
-		// ãƒªã‚»ãƒƒãƒˆ
+		// ƒŠƒZƒbƒg
 		remote.DbgRegWrite(2, 0x0000130);	// ADDR:STATUS
 		remote.DbgRegWrite(4, 0x0000000);	// WRITE:0
 		remote.DbgRegWrite(2, 0x0000160);	// ADDR:DEPC
@@ -145,7 +153,7 @@ int main(int argc, char *argv[])
 
 		else if ( stricmp(szCommand, "reset") == 0 )
 		{
-			// ãƒªã‚»ãƒƒãƒˆ
+			// ƒŠƒZƒbƒg
 			remote.DbgRegWrite(2, 0x0000130);	// ADDR:STATUS
 			remote.DbgRegWrite(4, 0x0000000);	// WRITE:0
 
@@ -167,7 +175,7 @@ int main(int argc, char *argv[])
 			PrintReg(&ctrl);
 		}
 		
-		// ãƒ¡ãƒ¢ãƒªãƒªãƒ¼ãƒ‰
+		// ƒƒ‚ƒŠƒŠ[ƒh
 		else if ( strncmp(szCommand, "m ", 2) == 0 )
 		{
 			unsigned long ulAddr = strtoul(&szCommand[2], 0, 0);

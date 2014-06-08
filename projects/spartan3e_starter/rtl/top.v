@@ -776,18 +776,18 @@ module top
 				.RX_FIFO_PTR_WIDTH	(2),
 				
 				.DIVIDER_WIDTH		(8),
-				.DIVIDER_INIT		(54-1),
+				.DIVIDER_INIT		(54-1),			// 115.2kbps @ 50MHz
 								
 				.SIMULATION			(SIMULATION),
 				.DEBUG				(1)
 			)
 		i_uart0
 			(
-				.clk				(clk),
 				.reset				(reset),
+				.clk				(clk),
 				
 				.uart_reset			(reset),
-				.uart_clk			(clk_x2),
+				.uart_clk			(clk),
 				.uart_tx			(uart_tx),
 				.uart_rx			(uart_rx),
 				
