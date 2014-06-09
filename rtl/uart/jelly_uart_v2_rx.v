@@ -52,7 +52,7 @@ module jelly_uart_v2_rx
 				end
 			end
 			else begin
-				rx_count <= rx_count + 1;
+				rx_count <= rx_count + 1'b1;
 				if ( rx_count[2:0] == 3'h3 ) begin
 					rx_buf <= {rx_ff_buf, rx_buf[8:1]};
 					if ( rx_count[6:3] == 9 ) begin

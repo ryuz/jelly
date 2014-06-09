@@ -288,10 +288,11 @@ module top
 	
 	
 	// Debug Interface (UART)
-	jelly_uart_debugger
+	jelly_uart_v2_debugger
 			#(
 				.TX_FIFO_PTR_WIDTH	(10),
-				.RX_FIFO_PTR_WIDTH	(10)
+				.RX_FIFO_PTR_WIDTH	(10),
+				.DIVIDER_WIDTH		(8)
 			)
 		i_uart_debugger
 			(
@@ -299,9 +300,11 @@ module top
 				.clk				(clk),
 				.endian				(endian),
 				
-				.uart_clk			(clk_uart),
+				.uart_reset			(reset),
+				.uart_clk			(clk),
 				.uart_tx			(dbg_uart_tx),
 				.uart_rx			(dbg_uart_rx),
+				.divider			(8'd54 - 1'd1),
 				
 				.wb_adr_o			(wb_dbg_adr_o),
 				.wb_dat_i			(wb_dbg_dat_i),

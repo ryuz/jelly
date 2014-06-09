@@ -69,7 +69,7 @@ module jelly_uart_v2
 	wire							rx_ready;
 	
 	wire	[TX_FIFO_PTR_WIDTH:0]	tx_fifo_free_num;
-	wire	[RX_FIFO_PTR_WIDTH:0]	rx_fifo_data_num;
+//	wire	[RX_FIFO_PTR_WIDTH:0]	rx_fifo_data_num;
 	
 	jelly_uart_v2_core
 			#(
@@ -99,7 +99,7 @@ module jelly_uart_v2
 				.rx_ready			(rx_ready),
 				
 				.tx_fifo_free_num	(tx_fifo_free_num),
-				.rx_fifo_data_num	(rx_fifo_data_num)
+				.rx_fifo_data_num	()//(rx_fifo_data_num)
 			);
 	
 	

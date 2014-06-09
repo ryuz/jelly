@@ -128,7 +128,7 @@ module jelly_fifo_async
 		next_wr_free_num = wr_free_num;
 		
 		if ( ram_wr_en ) begin
-			next_wr_wptr = wr_wptr + 1;
+			next_wr_wptr = wr_wptr + 1'b1;
 		end
 		
 		next_wr_full     = (next_wr_wptr[PTR_WIDTH] != wr_rptr[PTR_WIDTH]) && (next_wr_wptr[PTR_WIDTH-1:0] == wr_rptr[PTR_WIDTH-1:0]);
@@ -198,7 +198,7 @@ module jelly_fifo_async
 		next_rd_data_num = rd_data_num;
 		
 		if ( ram_rd_en ) begin
-			next_rd_rptr = rd_rptr + 1;
+			next_rd_rptr = rd_rptr + 1'b1;
 		end
 		
 		next_rd_empty    = (rd_wptr == next_rd_rptr);

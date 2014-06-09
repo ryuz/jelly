@@ -52,8 +52,8 @@ module jelly_uart_v2_core
 	//  Clock divider
 	// -------------------------
 	
-	reg							dv_pulse;
-	reg		[7:0]				dv_counter;
+	reg								dv_pulse;
+	reg		[DIVIDER_WIDTH-1:0]		dv_counter;
 	always @ ( posedge uart_clk ) begin
 		if ( uart_reset ) begin
 			dv_pulse   <= 1'b0;
@@ -128,7 +128,7 @@ module jelly_uart_v2_core
 	
 	wire	[7:0]					rx_fifo_wr_data;
 	wire							rx_fifo_wr_valid;
-	wire							rx_fifo_wr_ready;
+//	wire							rx_fifo_wr_ready;
 	
 	// FIFO
 	jelly_fifo_async_fwtf
@@ -142,7 +142,7 @@ module jelly_uart_v2_core
 				.wr_clk			(uart_clk),
 				.wr_data		(rx_fifo_wr_data),
 				.wr_valid		(rx_fifo_wr_valid),
-				.wr_ready		(rx_fifo_wr_ready),
+				.wr_ready		(),
 				.wr_free_num	(),
 				
 				.rd_reset		(reset),
