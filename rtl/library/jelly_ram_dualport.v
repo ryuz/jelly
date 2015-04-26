@@ -11,7 +11,6 @@
 
 
 // Dualport-RAM
-(* ram_style="auto" *)
 module jelly_ram_dualport
 		#(
 			parameter	ADDR_WIDTH   = 8,
