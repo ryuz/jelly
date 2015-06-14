@@ -67,9 +67,10 @@ module jelly_float_step
 
 	reg									st3_base_sign;
 	reg				[EXP_WIDTH-1:0]		st3_base_exp;
-	reg		signed	[FRAC_WIDTH+1:0]	st3_base_frac;
+	reg		signed	[FRAC_WIDTH+2:0]	st3_base_frac;
 	reg		signed	[FRAC_WIDTH+1:0]	st3_step_frac;
-	wire	signed	[FRAC_WIDTH+2:0]	st3_inc_frac = st3_base_frac + st3_step_frac;
+	reg									st3_shift;
+	wire	signed	[FRAC_WIDTH+2:0]	st3_inc_frac = ((st3_base_frac >>> st3_shift) + st3_step_frac);
 	reg									st3_valid;
 	
 	reg									st4_sign;
@@ -130,28 +131,22 @@ module jelly_float_step
 				st3_base_exp  <= st2_init_exp;
 				st3_base_frac <= {1'b0, st2_init_frac};
 				st3_step_frac <= (st2_init_sign == st2_step_sign) ? {1'b0, st2_step_frac} : -{1'b0, st2_step_frac};
+				st3_shift     <= 1'b0;
 			end
 			else if ( st2_increment ) begin
 				// インクリメント
-				if ( (st3_inc_frac[FRAC_WIDTH+2] != st3_inc_frac[FRAC_WIDTH+1])
-						|| (st3_inc_frac[FRAC_WIDTH+1] && st3_inc_frac[FRAC_WIDTH:0] == 0) ) begin
-					// 桁上がりあり
-					st3_base_exp  <= st3_base_exp + 1'b1;
-					st3_base_frac <= (st3_inc_frac >>> 1);
-				end
-				else begin
-					// 桁上がり無し
-					st3_base_exp  <= st3_base_exp;
-					st3_base_frac <= st3_inc_frac[FRAC_WIDTH+1:0];
-				end
+				st3_shift <= (st3_inc_frac[FRAC_WIDTH+2] != st3_inc_frac[FRAC_WIDTH+1])
+								|| (st3_inc_frac[FRAC_WIDTH+1] && st3_inc_frac[FRAC_WIDTH:0] == 0);
+				st3_base_exp  <= st3_base_exp + st3_shift;
+				st3_base_frac <= st3_inc_frac;
 			end
 			st3_valid <= st2_valid;
 			
 			
 			// stage4 (符号整形)
-			st4_sign  <= st3_base_frac[FRAC_WIDTH+1] ? ~st3_base_sign : st3_base_sign;
-			st4_exp   <= st3_base_exp;
-			st4_frac  <= st3_base_frac[FRAC_WIDTH+1] ? -st3_base_frac[FRAC_WIDTH:0] : st3_base_frac[FRAC_WIDTH:0];
+			st4_sign  <= st3_base_frac[FRAC_WIDTH+2] ? ~st3_base_sign : st3_base_sign ;
+			st4_exp   <= st3_base_exp + st3_shift;
+			st4_frac  <= st3_base_frac[FRAC_WIDTH+1] ? -(st3_base_frac >>> st3_shift) : (st3_base_frac >>> st3_shift);
 			st4_valid <= st3_valid;
 			
 			
