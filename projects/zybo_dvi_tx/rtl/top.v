@@ -270,7 +270,7 @@ module top
 	wire					wb_gpio_stb_i;
 	wire					wb_gpio_ack_o;
 	
-	jelly_gpio
+	jelly_gpio_v2
 			#(
 				.WB_ADR_WIDTH		(2),
 				.WB_DAT_WIDTH		(32),
@@ -284,7 +284,9 @@ module top
 				.reset				(wb_rst_o),
 				.clk				(wb_clk_o),
 				
-				.port				(led),
+				.port_i				(led),
+				.port_o				(led),
+				.port_t				(),
 				
 				.wb_adr_i			(wb_host_adr_o[2 +: 2]),
 				.wb_dat_o			(wb_gpio_dat_o),

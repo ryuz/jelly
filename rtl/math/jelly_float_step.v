@@ -1,8 +1,8 @@
 // ---------------------------------------------------------------------------
-//  Jelly  -- the soft-core processor system
+//  Jelly  -- the system on fpga system
 //   浮動小数点の順次インクリメント/デクリメント値生成コア
 //
-//                                 Copyright (C) 2008-2010 by Ryuji Fuchikami
+//                                 Copyright (C) 2015 by Ryuji Fuchikami
 //                                 http://homepage3.nifty.com/ryuz/
 // ---------------------------------------------------------------------------
 
@@ -58,9 +58,9 @@ module jelly_float_step
 	
 	reg									st2_init_sign;
 	reg				[EXP_WIDTH-1:0]		st2_init_exp;
-	reg				[FRAC_WIDTH-1:0]	st2_init_frac;
+	reg				[FRAC_WIDTH:0]		st2_init_frac;
 	reg									st2_step_sign;
-	reg				[FRAC_WIDTH-1:0]	st2_step_frac;
+	reg				[FRAC_WIDTH:0]		st2_step_frac;
 	reg									st2_set_param;
 	reg									st2_increment;
 	reg									st2_valid;
@@ -85,14 +85,14 @@ module jelly_float_step
 			st1_step_sign <= st0_step_sign;
 			st1_step_frac <= st0_step_frac;
 			if ( st0_init_exp >= st0_step_exp ) begin
-				st1_init_shift <= st0_init_exp - st0_step_exp;
 				st1_init_exp   <= st0_init_exp;
-				st1_step_shift <= 0;
+				st1_init_shift <= 0;
+				st1_step_shift <= st0_init_exp - st0_step_exp;
 			end
 			else begin
 				st1_init_exp   <= st0_step_exp;
-				st1_init_shift <= 0;
-				st1_step_shift <= st0_step_exp - st0_init_exp;
+				st1_init_shift <= st0_step_exp - st0_init_exp;
+				st1_step_shift <= 0;
 			end
 			st1_set_param <= st0_set_param;
 			st1_increment <= st0_increment;
@@ -106,7 +106,7 @@ module jelly_float_step
 			st2_step_sign <= st1_step_sign;
 			st2_step_frac <= ({1'b1, st1_step_frac} >> st1_step_shift);
 			st2_set_param <= st1_set_param;
-			st2_increment <= st1_increment & st1_valid;
+			st2_increment <= st1_increment; // & st1_valid;
 			st2_valid     <= st1_valid;
 			
 			
@@ -115,19 +115,19 @@ module jelly_float_step
 				// 初期化
 				st3_base_sign <= st2_init_sign;
 				st3_base_exp  <= st2_init_exp;
-				st3_base_frac <= {2'b01, st2_init_frac};
-				st3_step_frac <= (st2_init_sign == st2_step_sign) ? {2'b01, st2_step_frac} : -{2'b01, st2_step_frac};
+				st3_base_frac <= {1'b0, st2_init_frac};
+				st3_step_frac <= (st2_init_sign == st2_step_sign) ? {1'b0, st2_step_frac} : -{1'b0, st2_step_frac};
 			end
 			else if ( st2_increment ) begin
 				// インクリメント
-				if ( st3_inc_frac[FRAC_WIDTH+1] == st3_inc_frac[FRAC_WIDTH] ) begin
+				if ( st3_inc_frac[FRAC_WIDTH+1] != st3_inc_frac[FRAC_WIDTH] ) begin
 					// 桁上がり無し
-					st3_base_exp  <= st2_init_exp;
+					st3_base_exp  <= st3_base_exp;
 					st3_base_frac <= st3_inc_frac;
 				end
 				else begin
 					// 桁上がりあり
-					st3_base_exp  <= st2_init_exp + 1'b1;
+					st3_base_exp  <= st3_base_exp + 1'b1;
 					st3_base_frac <= (st3_inc_frac >>> 1);
 				end
 			end

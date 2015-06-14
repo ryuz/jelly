@@ -39,7 +39,7 @@ module jelly_dvi_tx
 	wire	[9:0]	enc_data1;
 	wire	[9:0]	enc_data2;
 	
-	dvi_tx_encode
+	jelly_dvi_tx_encode
 		i_dvi_tx_encode_0
 			(
 				.reset		(reset),
@@ -53,7 +53,7 @@ module jelly_dvi_tx
 				.out_d		(enc_data0)
 			);
 	
-	dvi_tx_encode
+	jelly_dvi_tx_encode
 		i_dvi_tx_encode_1
 			(
 				.reset		(reset),
@@ -67,7 +67,7 @@ module jelly_dvi_tx
 				.out_d		(enc_data1)
 			);
 	
-	dvi_tx_encode
+	jelly_dvi_tx_encode
 		i_dvi_tx_encode_2
 			(
 				.reset		(reset),
@@ -91,7 +91,7 @@ module jelly_dvi_tx
 	wire	serdes_data1;
 	wire	serdes_data2;
 
-	serdes_10to1_7series
+	jelly_serdes_10to1_7series
 		i_serdes_10to1_clk
 			(
 				.reset		(reset),
@@ -103,7 +103,7 @@ module jelly_dvi_tx
 				.out_data	(serdes_clk)
 			);
 	
-	serdes_10to1_7series
+	jelly_serdes_10to1_7series
 		i_serdes_10to1_0
 			(
 				.reset		(reset),
@@ -115,7 +115,7 @@ module jelly_dvi_tx
 				.out_data	(serdes_data0)
 			);
 	
-	serdes_10to1_7series
+	jelly_serdes_10to1_7series
 		i_serdes_10to1_1
 			(
 				.reset		(reset),
@@ -127,7 +127,7 @@ module jelly_dvi_tx
 				.out_data	(serdes_data1)
 			);
 
-	serdes_10to1_7series
+	jelly_serdes_10to1_7series
 		i_serdes_10to1_2
 			(
 				.reset		(reset),

@@ -158,7 +158,7 @@ module jelly_vsync_generator
 	//  Core
 	// ---------------------------------
 	
-	vsync_generator_core
+	jelly_vsync_generator_core
 			#(
 				.V_COUNTER_WIDTH	(V_COUNTER_WIDTH),
 				.H_COUNTER_WIDTH	(H_COUNTER_WIDTH)

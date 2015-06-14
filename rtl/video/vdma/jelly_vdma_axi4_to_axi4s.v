@@ -175,7 +175,7 @@ module jelly_vdma_axi4_to_axi4s
 	//  Core
 	// ---------------------------------
 	
-	vdma_axi4_to_axi4s_core
+	jelly_vdma_axi4_to_axi4s_core
 			#(
 				.AXI4_ID_WIDTH		(AXI4_ID_WIDTH),
 				.AXI4_ADDR_WIDTH	(AXI4_ADDR_WIDTH),
