@@ -58,7 +58,7 @@ module jelly_axi4l_to_wishbone
 	reg		[AXI4L_DATA_WIDTH-1:0]	reg_rdata;
 	reg								reg_bvalid;
 	
-	always @(posedge m_wb_clk_o or posedge m_wb_rst_o) begin
+	always @( posedge m_wb_clk_o ) begin
 		if ( m_wb_rst_o ) begin
 			reg_rvalid <= 1'b0;
 			reg_rdata  <= {AXI4L_DATA_WIDTH{1'bx}};

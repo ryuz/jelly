@@ -279,7 +279,7 @@ module top
 	wire				wb_timer0_stb_i;
 	wire				wb_timer0_ack_o;
 	
-	jelly_timer
+	jelly_interval_timer
 		i_timer0
 			(
 				.clk				(clk),

@@ -1,4 +1,0 @@
-
-# clock
-NET "clk" TNM_NET = clk;
-TIMESPEC TS_clk = PERIOD "clk" 140 MHz HIGH 50%;
