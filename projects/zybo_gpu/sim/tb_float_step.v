@@ -74,16 +74,16 @@ module tb_float_step();
 	
 	
 	initial begin
-		$display("%f %f", 1.0, $bitstoreal(float_to_double(double_to_float($realtobits(1.0)))) );
-		$display("%f %f", 1.2, $bitstoreal(float_to_double(double_to_float($realtobits(1.2)))) );
-		$display("%f %f", 1.3, $bitstoreal(float_to_double(double_to_float($realtobits(1.3)))) );
-		$display("%f %f", -1.4, $bitstoreal(float_to_double(double_to_float($realtobits(-1.4)))) );
+//		$display("%f %f", 1.0, $bitstoreal(float_to_double(double_to_float($realtobits(1.0)))) );
+//		$display("%f %f", 1.2, $bitstoreal(float_to_double(double_to_float($realtobits(1.2)))) );
+//		$display("%f %f", 1.3, $bitstoreal(float_to_double(double_to_float($realtobits(1.3)))) );
+//		$display("%f %f", -1.4, $bitstoreal(float_to_double(double_to_float($realtobits(-1.4)))) );
 		
 		#200
 		
 		@(negedge clk)
-			param_init = double_to_float($realtobits(1.2));
-			param_step = double_to_float($realtobits(0.1));
+			param_init = double_to_float($realtobits(1.25));
+			param_step = double_to_float($realtobits(-0.25));
 			set_param  = 1'b1;
 			increment  = 1'b1;
 			valid      = 1'b1;
@@ -98,9 +98,13 @@ module tb_float_step();
 		@(negedge clk)
 			increment  = 1'b1;
 			valid      = 1'b1;
-		
+			
 		@(negedge clk)
-			increment  = 1'b0;
+			increment  = 1'b1;
+			valid      = 1'b1;
+			
+		@(negedge clk)
+			increment  = 1'b1;
 			valid      = 1'b1;
 			
 		@(negedge clk)
@@ -110,14 +114,21 @@ module tb_float_step();
 		@(negedge clk)
 			increment  = 1'b1;
 			valid      = 1'b1;
-
-		@(negedge clk)
-			increment  = 1'b1;
-			valid      = 1'b0;
-
+			
 		@(negedge clk)
 			increment  = 1'b1;
 			valid      = 1'b1;
+		@(negedge clk)
+		@(negedge clk)
+		@(negedge clk)
+		@(negedge clk)
+		@(negedge clk)
+		@(negedge clk)
+		@(negedge clk)
+		@(negedge clk)
+		@(negedge clk)
+		@(negedge clk)
+		@(negedge clk)
 
 		@(negedge clk)
 			increment  = 1'b0;

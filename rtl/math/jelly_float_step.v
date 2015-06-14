@@ -69,14 +69,27 @@ module jelly_float_step
 	reg				[EXP_WIDTH-1:0]		st3_base_exp;
 	reg		signed	[FRAC_WIDTH+1:0]	st3_base_frac;
 	reg		signed	[FRAC_WIDTH+1:0]	st3_step_frac;
-	wire	signed	[FRAC_WIDTH+1:0]	st3_inc_frac = st3_base_frac + st3_step_frac;
+	wire	signed	[FRAC_WIDTH+2:0]	st3_inc_frac = st3_base_frac + st3_step_frac;
 	reg									st3_valid;
-
-	reg									st4_out_sign;
-	reg				[EXP_WIDTH-1:0]		st4_out_exp;
-	reg				[FRAC_WIDTH-1:0]	st4_out_frac;
+	
+	reg									st4_sign;
+	reg				[EXP_WIDTH-1:0]		st4_exp;
+	reg				[FRAC_WIDTH:0]		st4_frac;
 	reg									st4_valid;
-		
+	
+	reg									st5_sign;
+	reg				[EXP_WIDTH-1:0]		st5_exp;
+	reg				[FRAC_WIDTH:0]		st5_frac;
+	reg				[EXP_WIDTH-1:0]		st5_shift;
+	reg									st5_valid;
+	
+	reg									st6_sign;
+	reg				[EXP_WIDTH-1:0]		st6_exp;
+	reg				[FRAC_WIDTH-1:0]	st6_frac;
+	reg									st6_valid;
+
+	integer								i;
+	
 	always @(posedge clk) begin
 		if ( cke ) begin
 			// stage 1 (指数部をどちらに合わせるか判別)
@@ -120,29 +133,54 @@ module jelly_float_step
 			end
 			else if ( st2_increment ) begin
 				// インクリメント
-				if ( st3_inc_frac[FRAC_WIDTH+1] != st3_inc_frac[FRAC_WIDTH] ) begin
-					// 桁上がり無し
-					st3_base_exp  <= st3_base_exp;
-					st3_base_frac <= st3_inc_frac;
-				end
-				else begin
+				if ( (st3_inc_frac[FRAC_WIDTH+2] != st3_inc_frac[FRAC_WIDTH+1])
+						|| (st3_inc_frac[FRAC_WIDTH+1] && st3_inc_frac[FRAC_WIDTH:0] == 0) ) begin
 					// 桁上がりあり
 					st3_base_exp  <= st3_base_exp + 1'b1;
 					st3_base_frac <= (st3_inc_frac >>> 1);
 				end
+				else begin
+					// 桁上がり無し
+					st3_base_exp  <= st3_base_exp;
+					st3_base_frac <= st3_inc_frac[FRAC_WIDTH+1:0];
+				end
 			end
 			st3_valid <= st2_valid;
 			
+			
 			// stage4 (符号整形)
-			st4_out_sign <= st3_base_frac[FRAC_WIDTH+1] ? ~st3_base_sign : st3_base_sign;
-			st4_out_exp  <= st3_base_exp;
-			st4_out_frac <= st3_base_frac[FRAC_WIDTH+1] ? -st3_base_frac : st3_base_frac;
-			st4_valid    <= st3_valid;
+			st4_sign  <= st3_base_frac[FRAC_WIDTH+1] ? ~st3_base_sign : st3_base_sign;
+			st4_exp   <= st3_base_exp;
+			st4_frac  <= st3_base_frac[FRAC_WIDTH+1] ? -st3_base_frac[FRAC_WIDTH:0] : st3_base_frac[FRAC_WIDTH:0];
+			st4_valid <= st3_valid;
+			
+			
+			// stage5 (桁落ち検出)
+			st5_sign  <= st4_sign;
+			st5_exp   <= st4_exp;
+			st5_frac  <= st4_frac;
+			st5_shift <= 0;
+			for ( i = FRAC_WIDTH; i >= 0; i = i - 1 ) begin
+				if ( st4_frac[FRAC_WIDTH - i] ) begin
+					st5_shift <= i;
+				end
+			end
+			st5_valid <= st4_valid;
+			
+			
+			// stage6 (桁落ち補正)
+			st6_sign  <= st5_sign;
+			st6_exp   <= st5_exp - st5_shift;
+			if ( st5_frac == 0 ) begin
+				st6_exp   <= 0;
+			end
+			st6_frac  <= (st5_frac << st5_shift);
+			st6_valid <= st5_valid;
 		end
 	end
 	
-	assign out_data  = {st4_out_sign, st4_out_exp, st4_out_frac[FRAC_WIDTH-1:0]};
-	assign out_valid = st4_valid;
+	assign out_data  = {st6_sign, st6_exp, st6_frac};
+	assign out_valid = st6_valid;
 	
 endmodule
 
