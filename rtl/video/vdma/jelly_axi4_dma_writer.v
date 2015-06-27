@@ -117,11 +117,7 @@ module jelly_axi4_dma_writer
 	always @* begin
 		next_wbusy  = reg_wbusy;
 		next_wcount = reg_wcount;
-		
-		if ( m_axi4_wvalid && m_axi4_wready && m_axi4_wlast ) begin
-			next_wbusy = 1'b0;
-		end
-		
+				
 		if ( cmd_valid && cmd_ready ) begin
 			next_wbusy  = 1'b1;
 			next_wcount = cmd_len;
@@ -130,6 +126,10 @@ module jelly_axi4_dma_writer
 		if ( m_axi4_wvalid && m_axi4_wready ) begin
 			next_wcount = next_wcount - 1'b1;
 		end		
+		
+		if ( m_axi4_wvalid && m_axi4_wready && m_axi4_wlast ) begin
+			next_wbusy = 1'b0;
+		end
 	end
 	
 	always @(posedge aclk) begin

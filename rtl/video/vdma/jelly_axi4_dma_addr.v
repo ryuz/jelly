@@ -159,7 +159,7 @@ module jelly_axi4_dma_addr
 	assign m_cmd_len    = reg_axi4_len;
 	assign m_cmd_valid  = reg_cmd_valid;
 	
-	assign m_axi4_addr  = reg_axi4_addr;
+	assign m_axi4_addr  = {reg_axi4_addr, {AXI4_DATA_SIZE{1'b0}}};
 	assign m_axi4_len   = reg_axi4_len;
 	assign m_axi4_valid = reg_axi4_valid;
 	
