@@ -35,7 +35,8 @@ module jelly_pipeline_insert_ff
 			input	wire						m_ready,
 			
 			// status
-			output	wire						buffered
+			output	wire						buffered,
+			output	wire						s_ready_next
 		);
 	
 	// internal signal
@@ -46,43 +47,55 @@ module jelly_pipeline_insert_ff
 	// slave port
 	generate
 	if ( SLAVE_REGS ) begin
-		reg							reg_s_ready;
-		reg		[DATA_WIDTH-1:0]	buf_data;
-		reg							buf_valid;
+		reg							reg_s_ready,   next_s_ready;
+		reg		[DATA_WIDTH-1:0]	reg_buf_data,  next_buf_data;
+		reg							reg_buf_valid, next_buf_valid;
+		
+		always @* begin
+			next_s_ready   = reg_s_ready;
+			next_buf_data  = reg_buf_data;
+			next_buf_valid = reg_buf_valid;
+			
+			if ( !reg_buf_valid && s_valid && !internal_ready ) begin
+				// 次のステージに送れない状況でバッファリング
+				next_s_ready   = 1'b0;
+				next_buf_data  = s_data;
+				next_buf_valid = 1'b1;
+			end
+			else begin
+				if ( internal_ready ) begin
+					next_buf_valid <= 1'b0;
+				end
+				if ( !internal_valid || internal_ready ) begin
+					next_s_ready <= 1'b1;
+				end
+			end
+		end
 		
 		always @ ( posedge clk ) begin
 			if ( reset ) begin
 				reg_s_ready <= 1'b0;
-				buf_valid   <= 1'b0;
-				buf_data    <= INIT_DATA;
+				reg_buf_valid   <= 1'b0;
+				reg_buf_data    <= INIT_DATA;
 			end
 			else begin
-				if ( !buf_valid && s_valid && !internal_ready ) begin
-					// 次のステージに送れない状況でバッファリング
-					reg_s_ready <= 1'b0;
-					buf_data    <= s_data;
-					buf_valid   <= 1'b1;
-				end
-				else begin
-					if ( internal_ready ) begin
-						buf_valid   <= 1'b0;
-					end
-					if ( !internal_valid || internal_ready ) begin
-						reg_s_ready <= 1'b1;
-					end
-				end
+				reg_s_ready   <= next_s_ready;
+				reg_buf_data  <= next_buf_data;
+				reg_buf_valid <= next_buf_valid;
 			end
 		end
-		assign internal_data   = buf_valid ? buf_data : s_data;
-		assign internal_valid  = buf_valid ? 1'b1     : s_valid;
+		assign internal_data   = reg_buf_valid ? reg_buf_data : s_data;
+		assign internal_valid  = reg_buf_valid ? 1'b1         : s_valid;
 		assign s_ready         = reg_s_ready;
-		assign buffered        = buf_valid;
+		assign buffered        = reg_buf_valid;
+		assign s_ready_next    = next_s_ready;
 	end
 	else begin
 		assign internal_data   = s_data;
 		assign internal_valid  = s_valid;
 		assign s_ready         = internal_ready;
 		assign buffered        = 1'b0;
+		assign s_ready_next    = 1'bx;
 	end
 	endgenerate
 	
