@@ -2,7 +2,7 @@
 //  Jelly  -- the soft-core processor system
 //    UART
 //
-//                                  Copyright (C) 2008-2009 by Ryuji Fuchikami
+//                                  Copyright (C) 2008-2015 by Ryuji Fuchikami
 //                                      http://homepage3.nifty.com/ryuz
 // ---------------------------------------------------------------------------
 
@@ -15,28 +15,32 @@
 // UART debuger interface
 module jelly_uart_debugger
 		#(
-			parameter					TX_FIFO_PTR_WIDTH = 10,
-			parameter					RX_FIFO_PTR_WIDTH = 10
+			parameter	TX_FIFO_PTR_WIDTH = 10,
+			parameter	RX_FIFO_PTR_WIDTH = 10,
+			parameter	DIVIDER_WIDTH     = 8
 		)
 		(
 			// system
-			input	wire				reset,
-			input	wire				clk,
-			input	wire				endian,
+			input	wire						reset,
+			input	wire						clk,
+			input	wire						endian,
+
+			input	wire	[DIVIDER_WIDTH-1:0]	divider,
 			
 			// uart
-			input	wire				uart_clk,
-			output	wire				uart_tx,
-			input	wire				uart_rx,
+			input	wire						uart_reset,
+			input	wire						uart_clk,
+			output	wire						uart_tx,
+			input	wire						uart_rx,
 			
 			// debug port (whishbone)
-			output	wire	[3:0]		wb_adr_o,
-			input	wire	[31:0]		wb_dat_i,
-			output	wire	[31:0]		wb_dat_o,
-			output	wire				wb_we_o,
-			output	wire	[3:0]		wb_sel_o,
-			output	wire				wb_stb_o,
-			input	wire				wb_ack_i
+			output	wire	[3:0]				wb_adr_o,
+			input	wire	[31:0]				wb_dat_i,
+			output	wire	[31:0]				wb_dat_o,
+			output	wire						wb_we_o,
+			output	wire	[3:0]				wb_sel_o,
+			output	wire						wb_stb_o,
+			input	wire						wb_ack_i
 		);
 	
 	
@@ -53,16 +57,19 @@ module jelly_uart_debugger
 	jelly_uart_core
 			#(
 				.TX_FIFO_PTR_WIDTH	(TX_FIFO_PTR_WIDTH),
-				.RX_FIFO_PTR_WIDTH	(RX_FIFO_PTR_WIDTH)
+				.RX_FIFO_PTR_WIDTH	(RX_FIFO_PTR_WIDTH),
+				.DIVIDER_WIDTH		(DIVIDER_WIDTH)
 			)
 		i_uart_core
 			(
 				.reset				(reset),
 				.clk				(clk),
 				
+				.uart_reset			(uart_reset),
 				.uart_clk			(uart_clk),
 				.uart_tx			(uart_tx),
 				.uart_rx			(uart_rx),
+				.divider			(divider),
 				
 				.tx_data			(uart_tx_data),
 				.tx_valid			(uart_tx_valid),
@@ -72,8 +79,8 @@ module jelly_uart_debugger
 				.rx_valid			(uart_rx_valid),
 				.rx_ready			(uart_rx_ready),
 				
-				.tx_fifo_free_num	(),
-				.rx_fifo_data_num	()
+				.tx_fifo_free_count	(),
+				.rx_fifo_data_count	()
 			);
 
 

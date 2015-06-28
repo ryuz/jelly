@@ -33,7 +33,9 @@ module jelly_gpio
 			input	wire						clk,
 			
 			// port
-			inout	wire	[PORT_WIDTH-1:0]	port,
+			input	wire	[PORT_WIDTH-1:0]	port_i,
+			output	wire	[PORT_WIDTH-1:0]	port_o,
+			output	wire	[PORT_WIDTH-1:0]	port_t,
 			
 			// control port (wishbone)
 			input	wire	[WB_ADR_WIDTH-1:0]	wb_adr_i,
@@ -46,14 +48,12 @@ module jelly_gpio
 		);
 	
 	
-	(* IOB = "TRUE" *)	reg		[PORT_WIDTH-1:0]	reg_direction;
-	(* IOB = "TRUE" *)	reg		[PORT_WIDTH-1:0]	reg_input;
-	(* IOB = "TRUE" *)	reg		[PORT_WIDTH-1:0]	reg_output;
+	reg		[PORT_WIDTH-1:0]	reg_direction;
+	reg		[PORT_WIDTH-1:0]	reg_output;
 	
 	always @ ( posedge clk ) begin
 		if ( reset ) begin
 			reg_direction <= INIT_DIRECTION;
-			reg_input     <= {PORT_WIDTH{1'bx}};
 			reg_output    <= INIT_OUTPUT;
 		end
 		else begin
@@ -66,29 +66,21 @@ module jelly_gpio
 			if ( wb_stb_i & wb_we_i & (wb_adr_i == `GPIO_ADR_OUTPUT) ) begin
 				reg_output <= wb_dat_i[PORT_WIDTH-1:0];
 			end
-			
-			// input
-			reg_input <= port;
 		end
 	end
 	
-	generate
-	genvar	i;
-	for ( i = 0; i < PORT_WIDTH; i = i + 1 ) begin : io
-		assign port[i] = reg_direction[i] ? reg_output[i] : 1'bz;
-	end
-	endgenerate
-	
+	assign port_o = reg_output;
+	assign port_t = ~reg_direction;
 	
 	always @* begin
 		case ( wb_adr_i )
 		`GPIO_ADR_DIRECTION:	wb_dat_o <= reg_direction;
-		`GPIO_ADR_INPUT:		wb_dat_o <= reg_input;
+		`GPIO_ADR_INPUT:		wb_dat_o <= port_i;
 		`GPIO_ADR_OUTPUT:		wb_dat_o <= reg_output;
 		default:				wb_dat_o <= {WB_DAT_WIDTH{1'b0}};
 		endcase
 	end
-		
+	
 	assign wb_ack_o = wb_stb_i;
 	
 endmodule

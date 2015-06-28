@@ -68,7 +68,7 @@ module jelly_sram
 			#(
 				.ADDR_WIDTH		(WB_ADR_WIDTH),
 				.DATA_WIDTH		(WB_DAT_WIDTH),
-				.WRITE_FIRST	(0),
+				.MODE			("WRITE_FIRST"),
 				.FILLMEM		(0),
 				.FILLMEM_DATA	({WB_DAT_WIDTH{1'b0}}),
 				.READMEMB		(READMEMB),

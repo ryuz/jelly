@@ -220,7 +220,8 @@ module jelly_cache_unified
 			#(
 				.ADDR_WIDTH			(RAM_ADDR_WIDTH),
 				.DATA_WIDTH			(RAM_DATA_WIDTH),
-				.WRITE_FIRST		(1),
+				.MODE0				("WRITE_FIRST"),
+				.MODE1				("WRITE_FIRST"),
 				.FILLMEM			(1),
 				.FILLMEM_DATA		({RAM_DATA_WIDTH{1'b0}})
 			)

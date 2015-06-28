@@ -17,7 +17,8 @@ module jelly_fifo_fwtf
 		#(
 			parameter	DATA_WIDTH = 8,
 			parameter	PTR_WIDTH  = 10,
-			parameter	DOUT_REGS  = 0
+			parameter	DOUT_REGS  = 0,
+			parameter	RAM_TYPE   = "block"
 		)
 		(
 			// system
@@ -37,11 +38,7 @@ module jelly_fifo_fwtf
 			output	wire	[PTR_WIDTH:0]		m_data_count
 		);
 	
-	
-	// ---------------------------------
 	//  FIFO
-	// ---------------------------------
-	
 	wire						fifo_wr_en;
 	wire	[DATA_WIDTH-1:0]	fifo_wr_data;
 	
@@ -58,7 +55,8 @@ module jelly_fifo_fwtf
 			#(
 				.DATA_WIDTH		(DATA_WIDTH),
 				.PTR_WIDTH		(PTR_WIDTH),
-				.DOUT_REGS		(DOUT_REGS)
+				.DOUT_REGS		(DOUT_REGS),
+				.RAM_TYPE		(RAM_TYPE)
 			)
 		i_fifo
 			(
@@ -78,11 +76,13 @@ module jelly_fifo_fwtf
 				.data_count		(fifo_data_count)
 			);
 	
+	
 	// write(slave port)
 	assign fifo_wr_en   = s_valid & s_ready;
 	assign fifo_wr_data = s_data;
 	assign s_ready      = ~fifo_full;
 	assign s_free_count = fifo_free_count;
+	
 	
 	// read (master port)
 	jelly_fifo_read_fwtf

@@ -2,7 +2,7 @@
 //  Jelly  -- the soft-core processor system
 //   FIFO
 //
-//                                 Copyright (C) 2008-2010 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
 //                                 http://homepage3.nifty.com/ryuz/
 // ---------------------------------------------------------------------------
 

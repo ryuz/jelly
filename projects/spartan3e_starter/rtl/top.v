@@ -112,6 +112,7 @@ module top
 			input	wire	[3:0]		sw
 		);
 	
+	genvar		i;
 	
 	
 	// -----------------------------
@@ -288,7 +289,7 @@ module top
 	
 	
 	// Debug Interface (UART)
-	jelly_uart_v2_debugger
+	jelly_uart_debugger
 			#(
 				.TX_FIFO_PTR_WIDTH	(10),
 				.RX_FIFO_PTR_WIDTH	(10),
@@ -773,7 +774,7 @@ module top
 	wire				wb_uart0_stb_i;
 	wire				wb_uart0_ack_o;
 
-	jelly_uart_v2
+	jelly_uart
 			#(
 				.TX_FIFO_PTR_WIDTH	(2),
 				.RX_FIFO_PTR_WIDTH	(2),
@@ -894,6 +895,10 @@ module top
 	wire				wb_gpio0_stb_i;
 	wire				wb_gpio0_ack_o;
 	
+	wire	[3:0]		gpio_a_i;
+	wire	[3:0]		gpio_a_o;
+	wire	[3:0]		gpio_a_t;
+	
 	jelly_gpio
 			#(
 				.PORT_WIDTH			(4),
@@ -905,7 +910,9 @@ module top
 				.reset				(reset),
 				.clk				(clk),
 				
-				.port				(gpio_a),
+				.port_i				(gpio_a_i),
+				.port_o				(gpio_a_o),
+				.port_t				(gpio_a_t),
 				
 				.wb_adr_i			(wb_gpio0_adr_i[3:2]),
 				.wb_dat_o			(wb_gpio0_dat_o),
@@ -916,7 +923,13 @@ module top
 				.wb_ack_o			(wb_gpio0_ack_o)
 			);                     
 	
-
+	generate
+	for ( i = 0; i < 4; i = i+1 ) begin : gpio_a_loop 
+		IOBUF	i_iob_gpioa(.I(gpio_a_o[i]), .O(gpio_a_i[i]), .T(gpio_a_t[i]), .IO(gpio_a[i]));
+	end
+	endgenerate
+	
+	
 	// -----------------------------
 	//  GPIO B
 	// -----------------------------
@@ -929,6 +942,10 @@ module top
 	wire				wb_gpio1_stb_i;
 	wire				wb_gpio1_ack_o;
 	
+	wire	[3:0]		gpio_b_i;
+	wire	[3:0]		gpio_b_o;
+	wire	[3:0]		gpio_b_t;
+	
 	jelly_gpio
 			#(
 				.PORT_WIDTH			(4),
@@ -940,8 +957,9 @@ module top
 				.reset				(reset),
 				.clk				(clk),
 
-				.port				(gpio_b),
-
+				.port_i				(gpio_b_i),
+				.port_o				(gpio_b_o),
+				.port_t				(gpio_b_t),
 
 				.wb_adr_i			(wb_gpio1_adr_i[3:2]),
 				.wb_dat_o			(wb_gpio1_dat_o),
@@ -951,6 +969,12 @@ module top
 				.wb_stb_i			(wb_gpio1_stb_i),
 				.wb_ack_o			(wb_gpio1_ack_o)	
 			);
+	
+	generate
+	for ( i = 0; i < 4; i = i+1 ) begin : gpio_b_loop 
+		IOBUF	i_iob_gpiob(.I(gpio_b_o[i]), .O(gpio_b_i[i]), .T(gpio_b_t[i]), .IO(gpio_b[i]));
+	end
+	endgenerate
 	
 	
 	// -----------------------------

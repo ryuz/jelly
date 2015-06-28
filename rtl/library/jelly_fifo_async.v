@@ -2,7 +2,7 @@
 //  Jelly  -- the soft-core processor system
 //   First-Word Fall-Through mode asyncronous FIFO
 //
-//                                 Copyright (C) 2008-2010 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
 //                                 http://homepage3.nifty.com/ryuz/
 // ---------------------------------------------------------------------------
 
@@ -15,8 +15,10 @@
 // asyncronous FIFO
 module jelly_fifo_async
 		#(
-			parameter							DATA_WIDTH = 8,
-			parameter							PTR_WIDTH  = 10
+			parameter	DATA_WIDTH = 8,
+			parameter	PTR_WIDTH  = 10,
+			parameter	DOUT_REGS  = 0,
+			parameter	RAM_TYPE   = "block"
 		)
 		(
 			input	wire						wr_reset,
@@ -24,14 +26,15 @@ module jelly_fifo_async
 			input	wire						wr_en,
 			input	wire	[DATA_WIDTH-1:0]	wr_data,
 			output	reg							wr_full,
-			output	reg		[PTR_WIDTH:0]		wr_free_num,
+			output	reg		[PTR_WIDTH:0]		wr_free_count,
 			
 			input	wire						rd_reset,
 			input	wire						rd_clk,
 			input	wire						rd_en,
+			input	wire						rd_regcke,
 			output	wire	[DATA_WIDTH-1:0]	rd_data,
 			output	reg							rd_empty,
-			output	reg		[PTR_WIDTH:0]		rd_data_num
+			output	reg		[PTR_WIDTH:0]		rd_data_count
 		);
 	
 	
@@ -51,12 +54,15 @@ module jelly_fifo_async
 	jelly_ram_dualport
 			#(
 				.DATA_WIDTH		(DATA_WIDTH),
-				.ADDR_WIDTH		(PTR_WIDTH)
+				.ADDR_WIDTH		(PTR_WIDTH),
+				.DOUT_REGS1		(DOUT_REGS),
+				.RAM_TYPE		(RAM_TYPE)
 			)
 		i_ram_dualport
 			(
 				.clk0			(wr_clk),
 				.en0			(ram_wr_en),
+				.regcke0		(1'b0),
 				.we0			(1'b1),
 				.addr0			(ram_wr_addr),
 				.din0			(ram_wr_data),
@@ -64,6 +70,7 @@ module jelly_fifo_async
 				
 				.clk1			(rd_clk),
 				.en1			(ram_rd_en),
+				.regcke1		(rd_regcke),
 				.we1			(1'b0),
 				.addr1			(ram_rd_addr),
 				.din1			({DATA_WIDTH{1'b0}}),
@@ -121,18 +128,18 @@ module jelly_fifo_async
 	
 	reg		[PTR_WIDTH:0]	next_wr_wptr;
 	reg						next_wr_full;
-	reg		[PTR_WIDTH:0]	next_wr_free_num;
+	reg		[PTR_WIDTH:0]	next_wr_free_count;
 	always @* begin
-		next_wr_wptr     = wr_wptr;
-		next_wr_full     = wr_full;
-		next_wr_free_num = wr_free_num;
+		next_wr_wptr       = wr_wptr;
+		next_wr_full       = wr_full;
+		next_wr_free_count = wr_free_count;
 		
 		if ( ram_wr_en ) begin
 			next_wr_wptr = wr_wptr + 1'b1;
 		end
 		
-		next_wr_full     = (next_wr_wptr[PTR_WIDTH] != wr_rptr[PTR_WIDTH]) && (next_wr_wptr[PTR_WIDTH-1:0] == wr_rptr[PTR_WIDTH-1:0]);
-		next_wr_free_num = ((wr_rptr - next_wr_wptr) + (1 << PTR_WIDTH));
+		next_wr_full       = (next_wr_wptr[PTR_WIDTH] != wr_rptr[PTR_WIDTH]) && (next_wr_wptr[PTR_WIDTH-1:0] == wr_rptr[PTR_WIDTH-1:0]);
+		next_wr_free_count = ((wr_rptr - next_wr_wptr) + (1 << PTR_WIDTH));
 	end
 	
 	always @ ( posedge wr_clk ) begin
@@ -145,7 +152,7 @@ module jelly_fifo_async
 			wr_rptr                <= 0;
 			
 			wr_full                <= 1'b1;
-			wr_free_num            <= 0;
+			wr_free_count          <= 0;
 		end
 		else begin
 			// async (double ratch)
@@ -157,7 +164,7 @@ module jelly_fifo_async
 			// pinter logic
 			wr_wptr                <= next_wr_wptr;
 			wr_full                <= next_wr_full;
-			wr_free_num            <= next_wr_free_num;
+			wr_free_count          <= next_wr_free_count;
 		end
 	end
 	
@@ -191,18 +198,18 @@ module jelly_fifo_async
 	
 	reg		[PTR_WIDTH:0]	next_rd_rptr;
 	reg						next_rd_empty;
-	reg		[PTR_WIDTH:0]	next_rd_data_num;
+	reg		[PTR_WIDTH:0]	next_rd_data_count;
 	always @* begin
-		next_rd_rptr     = rd_rptr;
-		next_rd_empty    = rd_empty;
-		next_rd_data_num = rd_data_num;
+		next_rd_rptr       = rd_rptr;
+		next_rd_empty      = rd_empty;
+		next_rd_data_count = rd_data_count;
 		
 		if ( ram_rd_en ) begin
 			next_rd_rptr = rd_rptr + 1'b1;
 		end
 		
-		next_rd_empty    = (rd_wptr == next_rd_rptr);
-		next_rd_data_num = (rd_wptr - next_rd_rptr);
+		next_rd_empty      = (rd_wptr == next_rd_rptr);
+		next_rd_data_count = (rd_wptr - next_rd_rptr);
 	end
 	
 	always @ ( posedge rd_clk ) begin
@@ -215,7 +222,7 @@ module jelly_fifo_async
 			rd_wptr                <= 0;
 			
 			rd_empty               <= 1'b1;
-			rd_data_num            <= 0;
+			rd_data_count          <= 0;
 		end
 		else begin
 			// async (double ratch)
@@ -227,7 +234,7 @@ module jelly_fifo_async
 			// read pointer logic
 			rd_rptr                <= next_rd_rptr;
 			rd_empty               <= next_rd_empty;
-			rd_data_num            <= next_rd_data_num;
+			rd_data_count          <= next_rd_data_count;
 		end
 	end
 		
