@@ -21,6 +21,7 @@ module jelly_vdma_axi4_to_axi4s
 			parameter	STRIDE_WIDTH     = 14,
 			parameter	H_WIDTH          = 12,
 			parameter	V_WIDTH          = 12,
+			parameter	SIZE_WIDTH       = H_WIDTH + V_WIDTH,
 			
 			parameter	WB_ADR_WIDTH     = 8,
 			parameter	WB_DAT_WIDTH     = 32,
@@ -31,7 +32,8 @@ module jelly_vdma_axi4_to_axi4s
 			parameter	INIT_PARAM_STRIDE = 4096,
 			parameter	INIT_PARAM_WIDTH  = 640,
 			parameter	INIT_PARAM_HEIGHT = 480,
-			parameter	INIT_PARAM_ARLEN  = 7
+			parameter	INIT_PARAM_SIZE   = INIT_PARAM_WIDTH * INIT_PARAM_HEIGHT,
+			parameter	INIT_PARAM_ARLEN  = 8'hff
 		)
 		(
 			// clk/reset
@@ -77,6 +79,8 @@ module jelly_vdma_axi4_to_axi4s
 			output	wire							s_wb_ack_o
 		);
 	
+	// address mask
+	localparam	[AXI4_ADDR_WIDTH-1:0]	ADDR_MASK = ~((1 << AXI4_DATA_SIZE) - 1);
 	
 	
 	// ---------------------------------
@@ -95,13 +99,15 @@ module jelly_vdma_axi4_to_axi4s
 	localparam	REGOFFSET_PARAM_STRIDE   = 32'h0000_0024 >> 2;
 	localparam	REGOFFSET_PARAM_WIDTH    = 32'h0000_0028 >> 2;
 	localparam	REGOFFSET_PARAM_HEIGHT   = 32'h0000_002c >> 2;
-	localparam	REGOFFSET_PARAM_ARLEN    = 32'h0000_0030 >> 2;
+	localparam	REGOFFSET_PARAM_SIZE     = 32'h0000_0030 >> 2;
+	localparam	REGOFFSET_PARAM_ARLEN    = 32'h0000_003c >> 2;
 	
 	localparam	REGOFFSET_MONITOR_ADDR   = 32'h0000_0040 >> 2;
 	localparam	REGOFFSET_MONITOR_STRIDE = 32'h0000_0044 >> 2;
 	localparam	REGOFFSET_MONITOR_WIDTH  = 32'h0000_0048 >> 2;
 	localparam	REGOFFSET_MONITOR_HEIGHT = 32'h0000_004c >> 2;
-	localparam	REGOFFSET_MONITOR_ARLEN  = 32'h0000_0050 >> 2;
+	localparam	REGOFFSET_MONITOR_SIZE   = 32'h0000_0050 >> 2;
+	localparam	REGOFFSET_MONITOR_ARLEN  = 32'h0000_005c >> 2;
 	
 	// registers
 	reg		[1:0]					reg_ctl_control;
@@ -112,33 +118,38 @@ module jelly_vdma_axi4_to_axi4s
 	reg		[STRIDE_WIDTH-1:0]		reg_param_stride;
 	reg		[H_WIDTH-1:0]			reg_param_width;
 	reg		[V_WIDTH-1:0]			reg_param_height;
+	reg		[SIZE_WIDTH-1:0]		reg_param_size;
 	reg		[AXI4_LEN_WIDTH-1:0]	reg_param_arlen;
 	
 	wire	[AXI4_ADDR_WIDTH-1:0]	sig_monitor_addr;
 	wire	[STRIDE_WIDTH-1:0]		sig_monitor_stride;
 	wire	[H_WIDTH-1:0]			sig_monitor_width;
 	wire	[V_WIDTH-1:0]			sig_monitor_height;
+	wire	[SIZE_WIDTH-1:0]		sig_monitor_size;
 	wire	[AXI4_LEN_WIDTH-1:0]	sig_monitor_arlen;
 	
 	reg								reg_prev_index;
 	
+	
 	always @(posedge s_wb_clk_i ) begin
 		if ( s_wb_rst_i ) begin
 			reg_ctl_control  <= INIT_CTL_CONTROL;
-			reg_param_addr   <= INIT_PARAM_ADDR;
-			reg_param_stride <= INIT_PARAM_STRIDE;
+			reg_param_addr   <= INIT_PARAM_ADDR   & ADDR_MASK;
+			reg_param_stride <= INIT_PARAM_STRIDE & ADDR_MASK;
 			reg_param_width  <= INIT_PARAM_WIDTH;
 			reg_param_height <= INIT_PARAM_HEIGHT;
+			reg_param_size   <= INIT_PARAM_SIZE;
 			reg_param_arlen  <= INIT_PARAM_ARLEN;
 			reg_prev_index   <= 1'b0;
 		end
 		else if ( s_wb_stb_i && s_wb_we_i ) begin
 			case ( s_wb_adr_i )
 			REGOFFSET_CTL_CONTROL:	reg_ctl_control  <= s_wb_dat_i[1:0];
-			REGOFFSET_PARAM_ADDR:	reg_param_addr   <= s_wb_dat_i[AXI4_ADDR_WIDTH-1:0];
-			REGOFFSET_PARAM_STRIDE:	reg_param_stride <= s_wb_dat_i[STRIDE_WIDTH-1:0];
+			REGOFFSET_PARAM_ADDR:	reg_param_addr   <= s_wb_dat_i[AXI4_ADDR_WIDTH-1:0] & ADDR_MASK;
+			REGOFFSET_PARAM_STRIDE:	reg_param_stride <= s_wb_dat_i[STRIDE_WIDTH-1:0]    & ADDR_MASK;
 			REGOFFSET_PARAM_WIDTH:	reg_param_width  <= s_wb_dat_i[H_WIDTH-1:0];
 			REGOFFSET_PARAM_HEIGHT:	reg_param_height <= s_wb_dat_i[V_WIDTH-1:0];
+			REGOFFSET_PARAM_SIZE:	reg_param_size   <= s_wb_dat_i[SIZE_WIDTH-1:0];
 			REGOFFSET_PARAM_ARLEN:	reg_param_arlen  <= s_wb_dat_i[AXI4_LEN_WIDTH-1:0];
 			endcase
 		end
@@ -159,6 +170,7 @@ module jelly_vdma_axi4_to_axi4s
 	                    (s_wb_adr_i == REGOFFSET_PARAM_STRIDE)   ? reg_param_stride   :
 	                    (s_wb_adr_i == REGOFFSET_PARAM_WIDTH)    ? reg_param_width    :
 	                    (s_wb_adr_i == REGOFFSET_PARAM_HEIGHT)   ? reg_param_height   :
+	                    (s_wb_adr_i == REGOFFSET_PARAM_SIZE)     ? reg_param_size     :
 	                    (s_wb_adr_i == REGOFFSET_PARAM_ARLEN)    ? reg_param_arlen    :
 	                    (s_wb_adr_i == REGOFFSET_MONITOR_ADDR)   ? sig_monitor_addr   :
 	                    (s_wb_adr_i == REGOFFSET_MONITOR_STRIDE) ? sig_monitor_stride :
@@ -188,7 +200,8 @@ module jelly_vdma_axi4_to_axi4s
 				.STRIDE_WIDTH		(STRIDE_WIDTH),
 				.INDEX_WIDTH		(INDEX_WIDTH),
 				.H_WIDTH			(H_WIDTH),
-				.V_WIDTH			(V_WIDTH)
+				.V_WIDTH			(V_WIDTH),
+				.SIZE_WIDTH			(SIZE_WIDTH)
 			)
 		i_vdma_axi4_to_axi4s_core
 			(
@@ -204,12 +217,14 @@ module jelly_vdma_axi4_to_axi4s
 				.param_stride		(reg_param_stride),
 				.param_width		(reg_param_width),
 				.param_height		(reg_param_height),
+				.param_size			(reg_param_size),
 				.param_arlen		(reg_param_arlen),
 				
 				.monitor_addr		(sig_monitor_addr),
 				.monitor_stride		(sig_monitor_stride),
 				.monitor_width		(sig_monitor_width),
 				.monitor_height		(sig_monitor_height),
+				.monitor_size		(sig_monitor_size),
 				.monitor_arlen		(sig_monitor_arlen),
 				
 				.m_axi4_arid		(m_axi4_arid),

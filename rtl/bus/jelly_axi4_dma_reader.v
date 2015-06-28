@@ -99,14 +99,14 @@ module jelly_axi4_dma_reader
 				.m_axi4_ready		(m_axi4_arready)
 			);
 	
-	assign m_axi4_arburst = 2'b01;
-	assign m_axi4_arcache = 4'b0001;
-	assign m_axi4_arlock  = 1'b0;
-	assign m_axi4_arprot  = 3'b000;
-	assign m_axi4_arqos   = 0;
+	assign m_axi4_arid     = 0;
+	assign m_axi4_arburst  = 2'b01;
+	assign m_axi4_arcache  = 4'b0001;
+	assign m_axi4_arlock   = 1'b0;
+	assign m_axi4_arprot   = 3'b000;
+	assign m_axi4_arqos    = 0;
 	assign m_axi4_arregion = 4'b0000;
 	assign m_axi4_arsize   = AXI4_DATA_SIZE;
-	
 	
 	reg							reg_rbusy;
 	reg		[COUNT_WIDTH-1:0]	reg_rcount;

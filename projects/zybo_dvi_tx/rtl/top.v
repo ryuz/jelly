@@ -270,7 +270,7 @@ module top
 	wire					wb_gpio_stb_i;
 	wire					wb_gpio_ack_o;
 	
-	jelly_gpio_v2
+	jelly_gpio
 			#(
 				.WB_ADR_WIDTH		(2),
 				.WB_DAT_WIDTH		(32),
@@ -490,19 +490,19 @@ module top
 			)
 		i_fifo_async_fwtf
 			(
-				.wr_reset			(~mem_aresetn),
-				.wr_clk				(mem_aclk),
-				.wr_data			({axi4s_memr_tuser[0], axi4s_memr_tlast, axi4s_memr_tdata}),
-				.wr_valid			(axi4s_memr_tvalid),
-				.wr_ready			(axi4s_memr_tready),
-				.wr_free_num		(),
+				.s_reset			(~mem_aresetn),
+				.s_clk				(mem_aclk),
+				.s_data				({axi4s_memr_tuser[0], axi4s_memr_tlast, axi4s_memr_tdata}),
+				.s_valid			(axi4s_memr_tvalid),
+				.s_ready			(axi4s_memr_tready),
+				.s_free_count		(),
 				
-				.rd_reset			(video_reset),
-				.rd_clk				(video_clk),
-				.rd_data			({axi4s_vout_tuser[0], axi4s_vout_tlast, axi4s_vout_tdata}),
-				.rd_valid			(axi4s_vout_tvalid),
-				.rd_ready			(axi4s_vout_tready),
-				.rd_data_num		()
+				.m_reset			(video_reset),
+				.m_clk				(video_clk),
+				.m_data				({axi4s_vout_tuser[0], axi4s_vout_tlast, axi4s_vout_tdata}),
+				.m_valid			(axi4s_vout_tvalid),
+				.m_ready			(axi4s_vout_tready),
+				.m_data_count		()
 			);
 	
 	
