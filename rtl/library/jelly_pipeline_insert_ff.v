@@ -64,19 +64,19 @@ module jelly_pipeline_insert_ff
 			end
 			else begin
 				if ( internal_ready ) begin
-					next_buf_valid <= 1'b0;
+					next_buf_valid = 1'b0;
 				end
 				if ( !internal_valid || internal_ready ) begin
-					next_s_ready <= 1'b1;
+					next_s_ready = 1'b1;
 				end
 			end
 		end
 		
 		always @ ( posedge clk ) begin
 			if ( reset ) begin
-				reg_s_ready <= 1'b0;
-				reg_buf_valid   <= 1'b0;
-				reg_buf_data    <= INIT_DATA;
+				reg_s_ready   <= 1'b0;
+				reg_buf_valid <= 1'b0;
+				reg_buf_data  <= INIT_DATA;
 			end
 			else begin
 				reg_s_ready   <= next_s_ready;

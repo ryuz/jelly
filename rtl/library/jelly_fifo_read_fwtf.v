@@ -16,13 +16,15 @@
 module jelly_fifo_read_fwtf
 		#(
 			parameter	DATA_WIDTH  = 8,
-			parameter	PTR_WIDTH   = 8
+			parameter	PTR_WIDTH   = 8,
+			parameter	DOUT_REGS   = 0
 		)
 		(
 			input	wire						reset,
 			input	wire						clk,
 			
 			output	wire						rd_en,
+			output	wire						rd_regcke,
 			input	wire	[DATA_WIDTH-1:0]	rd_data,
 			input	wire						rd_empty,
 			input	wire	[PTR_WIDTH:0]		rd_count,
@@ -33,6 +35,56 @@ module jelly_fifo_read_fwtf
 			output	wire	[PTR_WIDTH:0]		m_count
 		);
 	
+	localparam PIPELINE_STAGES = 1 + DOUT_REGS;
+
+	wire	[PIPELINE_STAGES-1:0]	stage_cke;
+	wire	[PIPELINE_STAGES-1:0]	stage_valid;
+	wire							buffered;
+	
+	jelly_pipeline_control
+			#(
+				.PIPELINE_STAGES	(PIPELINE_STAGES),
+				.S_DATA_WIDTH		(1),
+				.M_DATA_WIDTH		(DATA_WIDTH),
+				.AUTO_VALID			(1)
+			)
+		i_pipeline_control
+			(
+				.reset				(reset),
+				.clk				(clk),
+				
+				.s_data				(1'b0),
+				.s_valid			(!rd_empty),
+				.s_ready			(),
+				
+				.m_data				(m_data),
+				.m_valid			(m_valid),
+				.m_ready			(m_ready),
+				
+				.stage_cke			(stage_cke),
+				.stage_valid		(stage_valid),
+				.next_valid			({PIPELINE_STAGES{1'bx}}),
+				.src_data			(),
+				.src_valid			(),
+				.sink_data			(rd_data),
+				.buffered			(buffered)
+			);
+			
+	assign rd_en   = stage_cke[0];
+		
+	generate
+	if ( DOUT_REGS ) begin
+		assign rd_regcke = stage_cke[1];
+		assign m_count   = rd_count + m_valid + buffered + stage_valid[0] + stage_valid[1];
+	end
+	else begin
+		assign rd_regcke = 1'b0;		
+		assign m_count   = rd_count + m_valid + buffered + stage_valid[0];
+	end
+	endgenerate
+	
+	
+/*	
 	reg							reg_rd_en;
 	reg							reg_rd_valid;
 	
@@ -77,6 +129,7 @@ module jelly_fifo_read_fwtf
 	assign m_data  = reg_data;
 	assign m_valid = reg_valid;
 	assign m_count = rd_count + reg_rd_valid + buf_valid + reg_valid;
+*/
 	
 endmodule
 

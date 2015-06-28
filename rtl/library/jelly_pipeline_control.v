@@ -18,6 +18,7 @@ module jelly_pipeline_control
 			parameter	PIPELINE_STAGES   = 2,
 			parameter	S_DATA_WIDTH      = 8,
 			parameter	M_DATA_WIDTH      = 8,
+			parameter	AUTO_VALID        = 0,
 			parameter	INIT_DATA         = {M_DATA_WIDTH{1'bx}},
 			parameter	MASTER_REGS       = 1
 		)
@@ -45,6 +46,21 @@ module jelly_pipeline_control
 			output	wire							buffered
 		);
 	
+	// auto valid control
+	genvar							j;
+	wire	[PIPELINE_STAGES-1:0]	tmp_next_valid;
+	generate
+	if ( AUTO_VALID ) begin
+		assign tmp_next_valid[0] = src_valid;
+		for ( j = 1; j < PIPELINE_STAGES; j = j+1 ) begin : balid_loop
+			assign tmp_next_valid[j] = stage_valid[j-1];
+		end
+	end
+	else begin
+		assign tmp_next_valid = next_valid;
+	end
+	endgenerate
+	
 	
 	// cke
 	integer							i;
@@ -52,9 +68,9 @@ module jelly_pipeline_control
 	reg		[PIPELINE_STAGES-1:0]	reg_cke,     next_cke;
 	reg								reg_s_ready, next_s_ready;
 	always @* begin
-		next_cke[PIPELINE_STAGES-1] = (sink_ready_next || (!stage_valid[PIPELINE_STAGES-1] && !next_valid[PIPELINE_STAGES-1]));
+		next_cke[PIPELINE_STAGES-1] = (sink_ready_next || (!stage_valid[PIPELINE_STAGES-1] && !tmp_next_valid[PIPELINE_STAGES-1]));
 		for ( i = PIPELINE_STAGES-2; i >= 0; i = i-1 ) begin
-			next_cke[i] = (next_cke[i+1] || (!stage_valid[i] && !next_valid[i]));
+			next_cke[i] = (next_cke[i+1] || (!stage_valid[i] && !tmp_next_valid[i]));
 		end
 		next_s_ready = next_cke[0];
 	end
@@ -78,7 +94,7 @@ module jelly_pipeline_control
 				reg_valid[i] <= 1'b0;
 			end
 			else if ( reg_cke[i] ) begin
-				reg_valid[i] <= next_valid[i];
+				reg_valid[i] <= tmp_next_valid[i];
 			end
 		end
 	end
@@ -87,7 +103,6 @@ module jelly_pipeline_control
 	assign s_ready = reg_s_ready;
 	
 	// master port
-	wire						sink_ready;
 	jelly_pipeline_insert_ff
 			#(
 				.DATA_WIDTH		(M_DATA_WIDTH),
@@ -102,7 +117,7 @@ module jelly_pipeline_control
 				
 				.s_data			(sink_data),
 				.s_valid		(stage_valid[PIPELINE_STAGES-1]),
-				.s_ready		(sink_ready),
+				.s_ready		(),
 				
 				.m_data			(m_data),
 				.m_valid		(m_valid),

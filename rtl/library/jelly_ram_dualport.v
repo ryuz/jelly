@@ -16,7 +16,11 @@ module jelly_ram_dualport
 			parameter	ADDR_WIDTH   = 8,
 			parameter	DATA_WIDTH   = 8,
 			parameter	MEM_SIZE     = (1 << ADDR_WIDTH),
-			parameter	WRITE_FIRST  = 0,
+			parameter	RAM_TYPE     = "block",
+			parameter	DOUT_REGS0   = 0,
+			parameter	DOUT_REGS1   = 0,
+			parameter	MODE0        = "WRITE_FIRST",
+			parameter	MODE1        = "WRITE_FIRST",
 			
 			parameter	FILLMEM      = 0,
 			parameter	FILLMEM_DATA = 0,
@@ -28,27 +32,33 @@ module jelly_ram_dualport
 			// port0
 			input	wire						clk0,
 			input	wire						en0,
+			input	wire						regcke0,
 			input	wire						we0,
 			input	wire	[ADDR_WIDTH-1:0]	addr0,
 			input	wire	[DATA_WIDTH-1:0]	din0,
-			output	reg		[DATA_WIDTH-1:0]	dout0,
+			output	wire	[DATA_WIDTH-1:0]	dout0,
 			
 			// port1
 			input	wire						clk1,
 			input	wire						en1,
+			input	wire						regcke1,
 			input	wire						we1,
 			input	wire	[ADDR_WIDTH-1:0]	addr1,
 			input	wire	[DATA_WIDTH-1:0]	din1,
-			output	reg		[DATA_WIDTH-1:0]	dout1
+			output	wire	[DATA_WIDTH-1:0]	dout1
 		);
 	
 	// memory
+	(* ram_style = RAM_TYPE *)
 	reg		[DATA_WIDTH-1:0]	mem	[0:MEM_SIZE-1];
 	
+	// dout
+	reg		[DATA_WIDTH-1:0]	tmp_dout0;
+	reg		[DATA_WIDTH-1:0]	tmp_dout1;
 	
 	// port0
 	generate
-	if ( WRITE_FIRST ) begin
+	if ( MODE0 == "WRITE_FIRST" ) begin
 		// write first
 		always @ ( posedge clk0 ) begin
 			if ( en0 ) begin
@@ -57,10 +67,10 @@ module jelly_ram_dualport
 				end
 				
 				if ( we0 ) begin
-					dout0 <= din0;
+					tmp_dout0 <= din0;
 				end
 				else begin
-					dout0 <= mem[addr0];
+					tmp_dout0 <= mem[addr0];
 				end
 			end
 		end
@@ -72,15 +82,32 @@ module jelly_ram_dualport
 				if ( we0 ) begin
 					mem[addr0] <= din0;
 				end
-				dout0 <= mem[addr0];
+				tmp_dout0 <= mem[addr0];
 			end
 		end
 	end
+	
+	// DOUT FF insert
+	if ( DOUT_REGS0 ) begin
+		reg		[DATA_WIDTH-1:0]	reg_dout0;
+		always @(posedge clk0) begin
+			if ( regcke0 ) begin
+				reg_dout0 <= tmp_dout0;
+			end
+		end
+		assign dout0 = reg_dout0;
+	end
+	else begin
+		assign dout0 = tmp_dout0;
+	end
+	
 	endgenerate
+	
+	
 	
 	// port1
 	generate
-	if ( WRITE_FIRST ) begin
+	if ( MODE1 == "WRITE_FIRST" ) begin
 		// write first
 		always @ ( posedge clk1 ) begin
 			if ( en1 ) begin
@@ -89,10 +116,10 @@ module jelly_ram_dualport
 				end
 				
 				if ( we1 ) begin
-					dout1 <= din1;
+					tmp_dout1 <= din1;
 				end
 				else begin
-					dout1 <= mem[addr1];
+					tmp_dout1 <= mem[addr1];
 				end
 			end
 		end
@@ -104,11 +131,26 @@ module jelly_ram_dualport
 				if ( we1 ) begin
 					mem[addr1] <= din1;
 				end
-				dout1 <= mem[addr1];
+				tmp_dout1 <= mem[addr1];
 			end
 		end
 	end
+	
+	// DOUT FF insert
+	if ( DOUT_REGS1 ) begin
+		reg		[DATA_WIDTH-1:0]	reg_dout1;
+		always @(posedge clk1) begin
+			if ( regcke1 ) begin
+				reg_dout1 <= tmp_dout1;
+			end
+		end
+		assign dout1 = reg_dout1;
+	end
+	else begin
+		assign dout1 = tmp_dout1;
+	end
 	endgenerate
+	
 	
 	// initialize
 `ifndef ALTERA
