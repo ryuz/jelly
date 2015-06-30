@@ -80,7 +80,7 @@ module jelly_fifo_async_fwtf
 	assign fifo_wr_en   = s_valid & s_ready;
 	assign fifo_wr_data = s_data;
 	assign s_ready      = ~fifo_wr_full;
-	assign s_free_count = ~fifo_wr_free_count;
+	assign s_free_count = fifo_wr_free_count;
 	
 	// read (master port)
 	jelly_fifo_read_fwtf
