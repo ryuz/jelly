@@ -204,6 +204,13 @@ module jelly_vdma_axi4_to_axi4s_core
 	assign ctl_busy      = reg_busy;
 	assign ctl_index     = reg_index;
 	
+	assign monitor_addr   = reg_param_addr;
+	assign monitor_stride = reg_param_stride;
+	assign monitor_width  = reg_param_width;
+	assign monitor_height = reg_param_height;
+	assign monitor_size   = reg_param_size;
+	assign monitor_arlen  = reg_param_arlen;
+	
 	assign m_axi4s_tuser = reg_tuser;
 	
 	
