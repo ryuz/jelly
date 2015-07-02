@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-module jelly_uart_v2_rx
+module jelly_uart_rx
 		(
 			// system
 			input	wire			reset,

@@ -165,8 +165,8 @@ module jelly_uart_core
 	end
 	
 	// receiver
-	jelly_uart_v2_rx
-		i_uart_v2_rx
+	jelly_uart_rx
+		i_uart_rx
 			(
 				.reset			(uart_reset), 
 				.clk			(uart_clk),
