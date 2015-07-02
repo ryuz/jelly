@@ -107,7 +107,7 @@ module jelly_axi4_dma_addr
 				if ( m_cmd_valid && !m_cmd_ready ) begin
 					reg_axi4_valid <= 1'b0;
 				end
-				else begin
+				else if ( m_cmd_ready ) begin
 					if ( reg_setup ) begin
 						// setup length
 						reg_setup      <= 1'b0;
