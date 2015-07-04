@@ -40,18 +40,18 @@ module jelly_axi4_dma_writer
 			// master AXI4 (write)
 			output	wire	[AXI4_ID_WIDTH-1:0]		m_axi4_awid,
 			output	wire	[AXI4_ADDR_WIDTH-1:0]	m_axi4_awaddr,
-			output	wire	[1:0]					m_axi4_awburst,
-			output	wire	[3:0]					m_axi4_awcache,
 			output	wire	[AXI4_LEN_WIDTH-1:0]	m_axi4_awlen,
+			output	wire	[2:0]					m_axi4_awsize,
+			output	wire	[1:0]					m_axi4_awburst,
 			output	wire	[0:0]					m_axi4_awlock,
+			output	wire	[3:0]					m_axi4_awcache,
 			output	wire	[2:0]					m_axi4_awprot,
 			output	wire	[AXI4_QOS_WIDTH-1:0]	m_axi4_awqos,
 			output	wire	[3:0]					m_axi4_awregion,
-			output	wire	[2:0]					m_axi4_awsize,
 			output	wire							m_axi4_awvalid,
 			input	wire							m_axi4_awready,
-			output	wire	[AXI4_STRB_WIDTH-1:0]	m_axi4_wstrb,
 			output	wire	[AXI4_DATA_WIDTH-1:0]	m_axi4_wdata,
+			output	wire	[AXI4_STRB_WIDTH-1:0]	m_axi4_wstrb,
 			output	wire							m_axi4_wlast,
 			output	wire							m_axi4_wvalid,
 			input	wire							m_axi4_wready,
@@ -103,8 +103,8 @@ module jelly_axi4_dma_writer
 			);
 	
 	assign m_axi4_awburst = 2'b01;
-	assign m_axi4_awcache = 4'b0001;
 	assign m_axi4_awlock  = 1'b0;
+	assign m_axi4_awcache = 4'b0001;
 	assign m_axi4_awprot  = 3'b000;
 	assign m_axi4_awqos   = 0;
 	assign m_axi4_awregion = 4'b0000;

@@ -57,27 +57,27 @@ module jelly_vdma_axi4_to_axi4s_core
 			// master AXI4 (read)
 			output	wire	[AXI4_ID_WIDTH-1:0]		m_axi4_arid,
 			output	wire	[AXI4_ADDR_WIDTH-1:0]	m_axi4_araddr,
-			output	wire	[1:0]					m_axi4_arburst,
-			output	wire	[3:0]					m_axi4_arcache,
 			output	wire	[AXI4_LEN_WIDTH-1:0]	m_axi4_arlen,
+			output	wire	[2:0]					m_axi4_arsize,
+			output	wire	[1:0]					m_axi4_arburst,
 			output	wire	[0:0]					m_axi4_arlock,
+			output	wire	[3:0]					m_axi4_arcache,
 			output	wire	[2:0]					m_axi4_arprot,
 			output	wire	[AXI4_QOS_WIDTH-1:0]	m_axi4_arqos,
 			output	wire	[3:0]					m_axi4_arregion,
-			output	wire	[2:0]					m_axi4_arsize,
 			output	wire							m_axi4_arvalid,
 			input	wire							m_axi4_arready,
 			input	wire	[AXI4_ID_WIDTH-1:0]		m_axi4_rid,
-			input	wire	[1:0]					m_axi4_rresp,
 			input	wire	[AXI4_DATA_WIDTH-1:0]	m_axi4_rdata,
+			input	wire	[1:0]					m_axi4_rresp,
 			input	wire							m_axi4_rlast,
 			input	wire							m_axi4_rvalid,
 			output	wire							m_axi4_rready,
 			
 			// master AXI4-Stream (output)
-			output	wire	[AXI4S_USER_WIDTH-1:0]	m_axi4s_tuser,
-			output	wire							m_axi4s_tlast,
 			output	wire	[AXI4S_DATA_WIDTH-1:0]	m_axi4s_tdata,
+			output	wire							m_axi4s_tlast,
+			output	wire	[AXI4S_USER_WIDTH-1:0]	m_axi4s_tuser,
 			output	wire							m_axi4s_tvalid,
 			input	wire							m_axi4s_tready
 		);
@@ -162,7 +162,7 @@ module jelly_vdma_axi4_to_axi4s_core
 						
 						reg_arhcount <= param_width;
 						reg_arvcount <= param_height;
-						if ( (param_width != 0) && (param_width << AXI4_DATA_SIZE) == param_stride ) begin
+						if ( (param_size != 0) && (param_width << AXI4_DATA_SIZE) == param_stride ) begin
 							reg_arhcount <= param_size;
 							reg_arvcount <= 1;
 						end
@@ -246,25 +246,25 @@ module jelly_vdma_axi4_to_axi4s_core
 				
 				.m_axi4_arid		(m_axi4_arid),
 				.m_axi4_araddr		(m_axi4_araddr),
-				.m_axi4_arburst		(m_axi4_arburst),
-				.m_axi4_arcache		(m_axi4_arcache),
 				.m_axi4_arlen		(m_axi4_arlen),
+				.m_axi4_arsize		(m_axi4_arsize),
+				.m_axi4_arburst		(m_axi4_arburst),
 				.m_axi4_arlock		(m_axi4_arlock),
+				.m_axi4_arcache		(m_axi4_arcache),
 				.m_axi4_arprot		(m_axi4_arprot),
 				.m_axi4_arqos		(m_axi4_arqos),
 				.m_axi4_arregion	(m_axi4_arregion),
-				.m_axi4_arsize		(m_axi4_arsize),
 				.m_axi4_arvalid		(m_axi4_arvalid),
 				.m_axi4_arready		(m_axi4_arready),
 				.m_axi4_rid			(m_axi4_rid),
-				.m_axi4_rresp		(m_axi4_rresp),
 				.m_axi4_rdata		(m_axi4_rdata),
+				.m_axi4_rresp		(m_axi4_rresp),
 				.m_axi4_rlast		(m_axi4_rlast),
 				.m_axi4_rvalid		(m_axi4_rvalid),
 				.m_axi4_rready		(m_axi4_rready),
 				
-				.m_axi4s_tlast		(m_axi4s_tlast),
 				.m_axi4s_tdata		(m_axi4s_tdata),
+				.m_axi4s_tlast		(m_axi4s_tlast),
 				.m_axi4s_tvalid		(m_axi4s_tvalid),
 				.m_axi4s_tready		(m_axi4s_tready)
 			);

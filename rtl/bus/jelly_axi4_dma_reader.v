@@ -43,26 +43,26 @@ module jelly_axi4_dma_reader
 			// master AXI4 (read)
 			output	wire	[AXI4_ID_WIDTH-1:0]		m_axi4_arid,
 			output	wire	[AXI4_ADDR_WIDTH-1:0]	m_axi4_araddr,
-			output	wire	[1:0]					m_axi4_arburst,
-			output	wire	[3:0]					m_axi4_arcache,
 			output	wire	[AXI4_LEN_WIDTH-1:0]	m_axi4_arlen,
+			output	wire	[2:0]					m_axi4_arsize,
+			output	wire	[1:0]					m_axi4_arburst,
 			output	wire	[0:0]					m_axi4_arlock,
+			output	wire	[3:0]					m_axi4_arcache,
 			output	wire	[2:0]					m_axi4_arprot,
 			output	wire	[AXI4_QOS_WIDTH-1:0]	m_axi4_arqos,
 			output	wire	[3:0]					m_axi4_arregion,
-			output	wire	[2:0]					m_axi4_arsize,
 			output	wire							m_axi4_arvalid,
 			input	wire							m_axi4_arready,
 			input	wire	[AXI4_ID_WIDTH-1:0]		m_axi4_rid,
-			input	wire	[1:0]					m_axi4_rresp,
 			input	wire	[AXI4_DATA_WIDTH-1:0]	m_axi4_rdata,
+			input	wire	[1:0]					m_axi4_rresp,
 			input	wire							m_axi4_rlast,
 			input	wire							m_axi4_rvalid,
 			output	wire							m_axi4_rready,
 			
 			// master AXI4-Stream
-			output	wire							m_axi4s_tlast,
 			output	wire	[AXI4S_DATA_WIDTH-1:0]	m_axi4s_tdata,
+			output	wire							m_axi4s_tlast,
 			output	wire							m_axi4s_tvalid,
 			input	wire							m_axi4s_tready
 		);

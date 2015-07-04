@@ -122,12 +122,12 @@
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
-        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="hdl/ps_core.hwdef"/>
-        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="hw_handoff/ps_core_bd.tcl"/>
+        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="hw_handoff/ps_core.hwh"/>
         <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ps_core_ooc.xdc"/>
         <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="hdl/ps_core.v"/>
+        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="hdl/ps_core.hwdef"/>
+        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="hw_handoff/ps_core_bd.tcl"/>
         <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_auto_pc_0/ps_core_auto_pc_0.xci"/>
-        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="hw_handoff/ps_core.hwh"/>
         <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_processing_system7_0_0_1/ps_core_processing_system7_0_0.xci"/>
         <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_proc_sys_reset_video_0_1/ps_core_proc_sys_reset_video_0.xci"/>
         <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_proc_sys_reset_peri_0_1/ps_core_proc_sys_reset_peri_0.xci"/>
