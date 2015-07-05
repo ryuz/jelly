@@ -14,7 +14,8 @@ module jelly_axi4_slave_model
 			parameter	AXI_DATA_SIZE         = 2,		// 0:8bit, 1:16bit, 2:32bit, 4:64bit...
 			parameter	AXI_DATA_WIDTH        = (8 << AXI_DATA_SIZE),
 			parameter	AXI_STRB_WIDTH        = (1 << AXI_DATA_SIZE),
-			parameter	MEM_SIZE              = 4096,
+			parameter	MEM_WIDTH             = 16,
+			parameter	MEM_SIZE              = (1 << MEM_WIDTH),
 			
 			parameter	WRITE_LOG_FILE        = "",
 			parameter	READ_LOG_FILE         = "",
@@ -319,6 +320,7 @@ module jelly_axi4_slave_model
 	
 	
 	// memory
+	localparam	MEM_ADDR_MASK = ((1 << MEM_WIDTH) - 1);
 	reg		[AXI_DATA_WIDTH-1:0]	mem		[MEM_SIZE-1:0];
 		
 	// write
@@ -461,8 +463,9 @@ module jelly_axi4_slave_model
 	
 	assign axi4_rid     = axi4_rvalid ? reg_arid : {AXI_ID_WIDTH{1'bx}};
 //	assign axi4_rdata   = (axi4_rvalid && ((reg_araddr >> AXI_DATA_SIZE) < MEM_SIZE)) ? mem[reg_araddr >> AXI_DATA_SIZE] : {AXI_DATA_WIDTH{1'bx}};
-//	assign axi4_rdata   = mem[reg_araddr >> AXI_DATA_SIZE];
-	assign axi4_rdata   = reg_araddr;
+
+	assign axi4_rdata   = mem[MEM_ADDR_MASK & (reg_araddr >> AXI_DATA_SIZE)];
+//	assign axi4_rdata   = reg_araddr;
 	assign axi4_rlast   = axi4_rvalid ? reg_rlast : 1'bx;
 	assign axi4_rvalid  = reg_rvalid;
 	

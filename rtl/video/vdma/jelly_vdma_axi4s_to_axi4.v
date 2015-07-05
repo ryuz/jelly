@@ -1,6 +1,6 @@
 
 
-`timescale 1n/1p
+`timescale 1ns/1ps
 `default_nettype none
 
 
