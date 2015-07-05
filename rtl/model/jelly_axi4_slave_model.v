@@ -14,7 +14,28 @@ module jelly_axi4_slave_model
 			parameter	AXI_DATA_SIZE         = 2,		// 0:8bit, 1:16bit, 2:32bit, 4:64bit...
 			parameter	AXI_DATA_WIDTH        = (8 << AXI_DATA_SIZE),
 			parameter	AXI_STRB_WIDTH        = (1 << AXI_DATA_SIZE),
-			parameter	MEM_SIZE              = 4096
+			parameter	MEM_SIZE              = 4096,
+			
+			parameter	WRITE_LOG_FILE        = "",
+			parameter	READ_LOG_FILE         = "",
+			
+			parameter	AW_FIFO_PTR_WIDTH     = 0,
+			parameter	W_FIFO_PTR_WIDTH      = 0,
+			parameter	B_FIFO_PTR_WIDTH      = 0,
+			parameter	AR_FIFO_PTR_WIDTH     = 0,
+			parameter	R_FIFO_PTR_WIDTH      = 0,
+			
+			parameter	AW_BUSY_RATE          = 0,
+			parameter	W_BUSY_RATE           = 0,
+			parameter	B_BUSY_RATE           = 0,
+			parameter	AR_BUSY_RATE          = 0,
+			parameter	R_BUSY_RATE           = 0,
+			
+			parameter	AW_BUSY_RAND          = 0,
+			parameter	W_BUSY_RAND           = 1,
+			parameter	B_BUSY_RAND           = 2,
+			parameter	AR_BUSY_RAND          = 3,
+			parameter	R_BUSY_RAND           = 4
 		)
 		(
 			input	wire							aresetn,
@@ -63,9 +84,236 @@ module jelly_axi4_slave_model
 			input	wire							s_axi4_rready
 		);
 	
+	// -------------------------------------
+	//  generate busy
+	// -------------------------------------
+	
+	reg								reg_busy_aw = 1'b0;
+	reg								reg_busy_w  = 1'b0;
+	reg								reg_busy_b  = 1'b0;
+	reg								reg_busy_ar = 1'b0;
+	reg								reg_busy_r  = 1'b0;
+	reg		[31:0]					reg_rand_aw = AW_BUSY_RAND;
+	reg		[31:0]					reg_rand_w  = W_BUSY_RAND;
+	reg		[31:0]					reg_rand_b  = B_BUSY_RAND;
+	reg		[31:0]					reg_rand_ar = AR_BUSY_RAND;
+	reg		[31:0]					reg_rand_r  = R_BUSY_RAND;
+	always @(posedge aclk) begin
+		reg_busy_aw <= 1'b0;
+		if ( !s_axi4_awvalid || s_axi4_awready ) begin
+			reg_busy_aw <= (({$random(reg_rand_aw)} % 99) < AW_BUSY_RATE);
+		end
+		
+		reg_busy_w <= 1'b0;
+		if ( !s_axi4_wvalid || s_axi4_wready ) begin
+			reg_busy_w  <= (({$random(reg_rand_w)} % 99)  < W_BUSY_RATE);
+		end
+		
+		reg_busy_b <= 1'b0;
+		if ( !s_axi4_bvalid || s_axi4_bready ) begin
+			reg_busy_b  <= (({$random(reg_rand_b)} % 99)  < B_BUSY_RATE);
+		end
+		
+		reg_busy_ar <= 1'b0;
+		if ( !s_axi4_arvalid || s_axi4_arready ) begin
+			reg_busy_ar <= (({$random(reg_rand_ar)} % 99) < AR_BUSY_RATE);
+		end
+		
+		reg_busy_r <= 1'b0;
+		if ( !s_axi4_rvalid || s_axi4_rready ) begin
+			reg_busy_r  <= (({$random(reg_rand_r)} % 99)  < R_BUSY_RATE);
+		end
+	end
+	
+	
+	// -------------------------------------
+	//  insert fifo
+	// -------------------------------------
+	
+	wire	[AXI_ID_WIDTH-1:0]		axi4_awid;
+	wire	[AXI_ADDR_WIDTH-1:0]	axi4_awaddr;
+	wire	[AXI_LEN_WIDTH-1:0]		axi4_awlen;
+	wire	[2:0]					axi4_awsize;
+	wire	[1:0]					axi4_awburst;
+	wire	[0:0]					axi4_awlock;
+	wire	[3:0]					axi4_awcache;
+	wire	[2:0]					axi4_awprot;
+	wire	[AXI_QOS_WIDTH-1:0]		axi4_awqos;
+	wire							axi4_awvalid;
+	wire							axi4_awready;
+	
+	wire	[AXI_DATA_WIDTH-1:0]	axi4_wdata;
+	wire	[AXI_STRB_WIDTH-1:0]	axi4_wstrb;
+	wire							axi4_wlast;
+	wire							axi4_wvalid;
+	wire							axi4_wready;
+	
+	wire	[AXI_ID_WIDTH-1:0]		axi4_bid;
+	wire	[1:0]					axi4_bresp;
+	wire							axi4_bvalid;
+	wire							axi4_bready;
+	
+	wire	[AXI_ID_WIDTH-1:0]		axi4_arid;
+	wire	[AXI_ADDR_WIDTH-1:0]	axi4_araddr;
+	wire	[AXI_LEN_WIDTH-1:0]		axi4_arlen;
+	wire	[2:0]					axi4_arsize;
+	wire	[1:0]					axi4_arburst;
+	wire	[0:0]					axi4_arlock;
+	wire	[3:0]					axi4_arcache;
+	wire	[2:0]					axi4_arprot;
+	wire	[AXI_QOS_WIDTH-1:0]		axi4_arqos;
+	wire		 					axi4_arvalid;
+	wire		 					axi4_arready;
+	
+	wire	[AXI_ID_WIDTH-1:0]		axi4_rid;
+	wire	[AXI_DATA_WIDTH-1:0]	axi4_rdata;
+	wire	[1:0]					axi4_rresp;
+	wire							axi4_rlast;
+	wire							axi4_rvalid;
+	wire							axi4_rready;
+	
+	// aw
+	jelly_fifo_fwtf
+			#(
+				.DATA_WIDTH			(AXI_ID_WIDTH+AXI_ADDR_WIDTH+AXI_LEN_WIDTH),
+				.PTR_WIDTH			(AW_FIFO_PTR_WIDTH)
+			)
+		i_fifo_fwtf_aw
+			(
+				.reset				(~aresetn),
+				.clk				(aclk),
+				
+				.s_data				({s_axi4_awid, s_axi4_awaddr, s_axi4_awlen}),
+				.s_valid			(s_axi4_awvalid),
+				.s_ready			(s_axi4_awready),
+				.s_free_count		(),
+				
+				.m_data				({axi4_awid, axi4_awaddr, axi4_awlen}),
+				.m_valid			(axi4_awvalid),
+				.m_ready			(axi4_awready),
+				.m_data_count		()
+			);
+	
+	// w
+	wire							s_axi4_wready_tmp;
+
+	jelly_fifo_fwtf
+			#(
+				.DATA_WIDTH			(AXI_DATA_WIDTH+AXI_STRB_WIDTH+1),
+				.PTR_WIDTH			(W_FIFO_PTR_WIDTH)
+			)
+		i_fifo_fwtf_w
+			(
+				.reset				(~aresetn),
+				.clk				(aclk),
+				
+				.s_data				({s_axi4_wdata, s_axi4_wstrb, s_axi4_wlast}),
+				.s_valid			(s_axi4_wvalid & !reg_busy_w),
+				.s_ready			(s_axi4_wready_tmp),
+				.s_free_count		(),
+				
+				.m_data				({axi4_wdata, axi4_wstrb, axi4_wlast}),
+				.m_valid			(axi4_wvalid),
+				.m_ready			(axi4_wready),
+				.m_data_count		()
+			);
+	
+	assign s_axi4_wready = (s_axi4_wready_tmp & !reg_busy_w);
+	
+	
+	// b
+	jelly_fifo_fwtf
+			#(
+				.DATA_WIDTH			(AXI_ID_WIDTH),
+				.PTR_WIDTH			(B_FIFO_PTR_WIDTH)
+			)
+		i_fifo_fwtf_b
+			(
+				.reset				(~aresetn),
+				.clk				(aclk),
+				
+				.s_data				(axi4_bid),
+				.s_valid			(axi4_bvalid),
+				.s_ready			(axi4_bready),
+				.s_free_count		(),
+				
+				.m_data				(s_axi4_bid),
+				.m_valid			(s_axi4_bvalid),
+				.m_ready			(s_axi4_bready),
+				.m_data_count		()
+			);
+	
+	assign s_axi4_bresp   = s_axi4_bvalid ? 2'b00 : 2'bxx;
+	
+	
+	// ar
+	jelly_fifo_fwtf
+			#(
+				.DATA_WIDTH			(AXI_ID_WIDTH+AXI_ADDR_WIDTH+AXI_LEN_WIDTH),
+				.PTR_WIDTH			(AR_FIFO_PTR_WIDTH)
+			)
+		i_fifo_fwtf_ar
+			(
+				.reset				(~aresetn),
+				.clk				(aclk),
+				
+				.s_data				({s_axi4_arid, s_axi4_araddr, s_axi4_arlen}),
+				.s_valid			(s_axi4_arvalid),
+				.s_ready			(s_axi4_arready),
+				.s_free_count		(),
+				
+				.m_data				({axi4_arid, axi4_araddr, axi4_arlen}),
+				.m_valid			(axi4_arvalid),
+				.m_ready			(axi4_arready),
+				.m_data_count		()
+			);
+	
+	// r
+	jelly_fifo_fwtf
+			#(
+				.DATA_WIDTH			(AXI_ID_WIDTH+AXI_DATA_WIDTH+1),
+				.PTR_WIDTH			(R_FIFO_PTR_WIDTH)
+			)
+		i_fifo_fwtf_r
+			(
+				.reset				(~aresetn),
+				.clk				(aclk),
+				
+				.s_data				({axi4_rid, axi4_rdata, axi4_rlast}),
+				.s_valid			(axi4_rvalid),
+				.s_ready			(axi4_rready),
+				.s_free_count		(),
+				
+				.m_data				({s_axi4_rid, s_axi4_rdata, s_axi4_rlast}),
+				.m_valid			(s_axi4_rvalid),
+				.m_ready			(s_axi4_rready),
+				.m_data_count		()
+			);
+	
+	assign s_axi4_rresp = s_axi4_rvalid ? 2'b00 : 2'bxx;
+	
+	
+	// -------------------------------------
+	//  AXI access
+	// -------------------------------------
+	
+	integer	w_fp = 0;
+	integer	r_fp = 0;
+	
+	initial begin
+		if ( WRITE_LOG_FILE != "" ) begin
+			w_fp = $fopen(WRITE_LOG_FILE, "w");
+		end
+		
+		if ( READ_LOG_FILE != "" ) begin
+			r_fp = $fopen(READ_LOG_FILE, "w");
+		end
+	end
+	
+	
 	// memory
 	reg		[AXI_DATA_WIDTH-1:0]	mem		[MEM_SIZE-1:0];
-	
+		
 	// write
 	reg								reg_awbusy;
 	reg		[AXI_ID_WIDTH-1:0]		reg_awid;
@@ -82,27 +330,27 @@ module jelly_axi4_slave_model
 			reg_bvalid <= 1'b0;
 		end
 		else begin
-			if ( s_axi4_bready ) begin
+			if ( axi4_bready ) begin
 				reg_bvalid <= 1'b0;
 			end
 			
-			if ( s_axi4_awready && s_axi4_wready ) begin
+			if ( axi4_awready && axi4_wready ) begin
 				reg_awbusy <= 1'b1;
-				reg_awid   <= s_axi4_awid;
-				reg_awaddr <= s_axi4_awaddr;
-				reg_awlen  <= s_axi4_awlen;
-				if ( s_axi4_wvalid && s_axi4_wready ) begin
-					if ( s_axi4_awlen == 0 ) begin
+				reg_awid   <= axi4_awid;
+				reg_awaddr <= axi4_awaddr;
+				reg_awlen  <= axi4_awlen;
+				if ( axi4_wvalid && axi4_wready ) begin
+					if ( axi4_awlen == 0 ) begin
 						reg_bvalid <= 1'b1;
 						reg_awbusy <= 1'b0;
 					end
 					else begin
-						reg_awlen  <= s_axi4_awlen - 1;
-						reg_awaddr <= s_axi4_awaddr + (1 << AXI_DATA_SIZE);
+						reg_awlen  <= axi4_awlen - 1;
+						reg_awaddr <= axi4_awaddr + (1 << AXI_DATA_SIZE);
 					end
 				end
 			end
-			else if ( s_axi4_wvalid && s_axi4_wready ) begin
+			else if ( axi4_wvalid && axi4_wready ) begin
 				if ( reg_awlen == 0 ) begin
 					reg_bvalid <= 1'b1;
 					reg_awbusy <= 1'b0;
@@ -112,31 +360,44 @@ module jelly_axi4_slave_model
 					reg_awaddr <= reg_awaddr + (1 << AXI_DATA_SIZE);
 				end
 			end
-		end
-	end
-	
-	// memory write
-	wire	[AXI_ADDR_WIDTH-1:0]	sig_awaddr = reg_awbusy ? reg_awaddr : s_axi4_awaddr;
-	integer							i;
-	always @( posedge aclk ) begin
-		if ( aresetn && s_axi4_wvalid && s_axi4_wready ) begin
-			if ( (sig_awaddr >> AXI_DATA_SIZE) < MEM_SIZE ) begin
-				for ( i = 0; i < AXI_STRB_WIDTH; i = i + 1 ) begin
-					if ( s_axi4_wstrb[i] ) begin
-						mem[sig_awaddr >> AXI_DATA_SIZE][i*8 +: 8] <= s_axi4_wdata[i*8 +: 8];
-					end
+			
+			// wlast check
+			if ( axi4_wvalid && axi4_wready ) begin
+				if ( ((axi4_awvalid && axi4_awready) && (axi4_wlast != (axi4_awlen == 0)))
+					|| (!(axi4_awvalid && axi4_awready) && (axi4_wlast != (reg_awlen == 0))) ) begin
+					$display("[%m(%t)] wlast error!", $time);
 				end
 			end
 		end
 	end
 	
-	// write assign
-	assign s_axi4_awready = !reg_awbusy && !(s_axi4_bvalid && !s_axi4_bready);
-	assign s_axi4_wready  = (reg_awbusy || s_axi4_awvalid) && !(s_axi4_bvalid && !s_axi4_bready);
 	
-	assign s_axi4_bid     = s_axi4_bvalid ? reg_awid : {AXI_ID_WIDTH{1'bx}};
-	assign s_axi4_bresp   = s_axi4_bvalid ? 2'b00 : 2'bxx;
-	assign s_axi4_bvalid  = reg_bvalid;
+	// memory write
+	wire	[AXI_ADDR_WIDTH-1:0]	sig_awaddr = reg_awbusy ? reg_awaddr : axi4_awaddr;
+	integer							i;
+	always @( posedge aclk ) begin
+		if ( aresetn && axi4_wvalid && axi4_wready ) begin
+			if ( (sig_awaddr >> AXI_DATA_SIZE) < MEM_SIZE ) begin
+				for ( i = 0; i < AXI_STRB_WIDTH; i = i + 1 ) begin
+					if ( axi4_wstrb[i] ) begin
+						mem[sig_awaddr >> AXI_DATA_SIZE][i*8 +: 8] <= axi4_wdata[i*8 +: 8];
+					end
+				end
+			end
+			
+			if ( w_fp != 0 ) begin
+				$fdisplay(w_fp, "%h %h %h", sig_awaddr, axi4_wdata, axi4_wstrb);
+			end
+		end
+	end
+	
+	
+	// write assign
+	assign axi4_awready = !reg_awbusy && !(axi4_bvalid && !axi4_bready);
+	assign axi4_wready  = (reg_awbusy || axi4_awvalid) && !(axi4_bvalid && !axi4_bready);
+	
+	assign axi4_bid     = axi4_bvalid ? reg_awid : {AXI_ID_WIDTH{1'bx}};
+	assign axi4_bvalid  = reg_bvalid;
 	
 	
 	
@@ -160,7 +421,7 @@ module jelly_axi4_slave_model
 			reg_rvalid <= 0;
 		end
 		else begin
-			if ( s_axi4_rvalid & s_axi4_rready ) begin
+			if ( axi4_rvalid & axi4_rready ) begin
 				reg_araddr <= reg_araddr + (1 << AXI_DATA_SIZE);
 				reg_arlen  <= reg_arlen - 1'b1;
 				reg_rlast  <= ((reg_arlen - 1'b1) == 0);
@@ -170,28 +431,27 @@ module jelly_axi4_slave_model
 				end
 			end
 			
-			if ( s_axi4_arvalid & s_axi4_arready ) begin
-				reg_arbusy <= (s_axi4_arlen != 0);
-				reg_arid   <= s_axi4_arid;
-				reg_araddr <= s_axi4_araddr;
-				reg_arlen  <= s_axi4_arlen;
+			if ( axi4_arvalid & axi4_arready ) begin
+				reg_arbusy <= (axi4_arlen != 0);
+				reg_arid   <= axi4_arid;
+				reg_araddr <= axi4_araddr;
+				reg_arlen  <= axi4_arlen;
 				
-				reg_rlast  <= (s_axi4_arlen == 0);
+				reg_rlast  <= (axi4_arlen == 0);
 				reg_rvalid <= 1'b1;
 			end
 		end
 	end
 	
 	
-	assign s_axi4_arready = !reg_arbusy || (reg_rlast && s_axi4_rvalid && s_axi4_rready);
+	assign axi4_arready = !reg_arbusy || (reg_rlast && axi4_rvalid && axi4_rready);
 	
-	assign s_axi4_rid     = s_axi4_rvalid ? reg_arid : {AXI_ID_WIDTH{1'bx}};
-//	assign s_axi4_rdata   = (s_axi4_rvalid && ((reg_araddr >> AXI_DATA_SIZE) < MEM_SIZE)) ? mem[reg_araddr >> AXI_DATA_SIZE] : {AXI_DATA_WIDTH{1'bx}};
-//	assign s_axi4_rdata   = mem[reg_araddr >> AXI_DATA_SIZE];
-	assign s_axi4_rdata   = reg_araddr;
-	assign s_axi4_rresp   = s_axi4_rvalid ? 2'b00 : 2'bxx;
-	assign s_axi4_rlast   = s_axi4_rvalid ? reg_rlast : 1'bx;
-	assign s_axi4_rvalid  = reg_rvalid;
+	assign axi4_rid     = axi4_rvalid ? reg_arid : {AXI_ID_WIDTH{1'bx}};
+//	assign axi4_rdata   = (axi4_rvalid && ((reg_araddr >> AXI_DATA_SIZE) < MEM_SIZE)) ? mem[reg_araddr >> AXI_DATA_SIZE] : {AXI_DATA_WIDTH{1'bx}};
+//	assign axi4_rdata   = mem[reg_araddr >> AXI_DATA_SIZE];
+	assign axi4_rdata   = reg_araddr;
+	assign axi4_rlast   = axi4_rvalid ? reg_rlast : 1'bx;
+	assign axi4_rvalid  = reg_rvalid;
 	
 endmodule
 
