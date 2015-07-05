@@ -28,7 +28,8 @@ module jelly_axi4_dma_writer
 			parameter	AXI4_W_REGS      = 1,
 			parameter	AXI4S_REGS       = 1,
 			
-			parameter	AXI4_SIZE        = AXI4_DATA_SIZE,
+			parameter	AXI4_AWID        = {AXI4_ID_WIDTH{1'b0}},
+			parameter	AXI4_AWSIZE      = AXI4_DATA_SIZE,
 			parameter	AXI4_AWBURST     = 2'b01,
 			parameter	AXI4_AWLOCK      = 1'b0,
 			parameter	AXI4_AWCACHE     = 4'b0001,
@@ -48,6 +49,7 @@ module jelly_axi4_dma_writer
 			input	wire	[AXI4_ADDR_WIDTH-1:0]	param_addr,
 			input	wire	[COUNT_WIDTH-1:0]		param_count,
 			input	wire	[AXI4_LEN_WIDTH-1:0]	param_maxlen,
+			input	wire	[AXI4_STRB_WIDTH-1:0]	param_wstrb,
 			
 			// master AXI4 (write)
 			output	wire	[AXI4_ID_WIDTH-1:0]		m_axi4_awid,
@@ -83,28 +85,20 @@ module jelly_axi4_dma_writer
 	//  insert FF
 	// -----------------------------
 	
-//	wire	[AXI4_ID_WIDTH-1:0]		axi4_awid;
 	wire	[AXI4_ADDR_WIDTH-1:0]	axi4_awaddr;
 	wire	[AXI4_LEN_WIDTH-1:0]	axi4_awlen;
-//	wire	[2:0]					axi4_awsize;
-//	wire	[1:0]					axi4_awburst;
-//	wire	[0:0]					axi4_awlock;
-//	wire	[3:0]					axi4_awcache;
-//	wire	[2:0]					axi4_awprot;
-//	wire	[AXI4_QOS_WIDTH-1:0]	axi4_awqos;
-//	wire	[3:0]					axi4_awregion;
 	wire							axi4_awvalid;
 	wire							axi4_awready;
-//	wire	[AXI4_DATA_WIDTH-1:0]	axi4_wdata;
-//	wire	[AXI4_STRB_WIDTH-1:0]	axi4_wstrb;
-//	wire							axi4_wlast;
-//	wire							axi4_wvalid;
-//	wire							axi4_wready;
-//	wire	[AXI4_ID_WIDTH-1:0]		axi4_bid;
-//	wire	[1:0]					axi4_bresp;
-//	wire							axi4_bvalid;
-//	wire							axi4_bready;
+	wire	[AXI4_DATA_WIDTH-1:0]	axi4_wdata;
+	wire							axi4_wlast;
+	wire							axi4_wvalid;
+	wire							axi4_wready;
+
+	wire	[AXI4S_DATA_WIDTH-1:0]	axi4s_tdata;
+	wire							axi4s_tvalid;
+	wire							axi4s_tready;
 	
+	// AXI4 aw
 	jelly_pipeline_insert_ff
 			#(
 				.DATA_WIDTH			(AXI4_ADDR_WIDTH+AXI4_LEN_WIDTH),
@@ -127,9 +121,8 @@ module jelly_axi4_dma_writer
 				.buffered			(),
 				.s_ready_next		()
 			);
-	
-	assign m_axi4_awsize   = AXI4_DATA_SIZE;
-	
+	assign m_axi4_awid     = AXI4_AWID;
+	assign m_axi4_awsize   = AXI4_AWSIZE;
 	assign m_axi4_awburst  = AXI4_AWBURST;
 	assign m_axi4_awlock   = AXI4_AWLOCK;
 	assign m_axi4_awcache  = AXI4_AWCACHE;
@@ -138,9 +131,64 @@ module jelly_axi4_dma_writer
 	assign m_axi4_awregion = AXI4_AWREGION;
 	
 	
+	// AXI4 w
+	jelly_pipeline_insert_ff
+			#(
+				.DATA_WIDTH			(AXI4_DATA_WIDTH+1),
+				.SLAVE_REGS			(AXI4_W_REGS),
+				.MASTER_REGS		(AXI4_W_REGS)
+			)
+		i_pipeline_insert_ff_w
+			(
+				.reset				(~aresetn),
+				.clk				(aclk),
+				
+				.s_data				({axi4_wdata, axi4_wlast}),
+				.s_valid			(axi4_wvalid),
+				.s_ready			(axi4_wready),
+				
+				.m_data				({m_axi4_wdata, m_axi4_wlast}),
+				.m_valid			(m_axi4_wvalid),
+				.m_ready			(m_axi4_wready),
+				
+				.buffered			(),
+				.s_ready_next		()
+			);
+	assign m_axi4_wstrb   = param_wstrb;
+	
+	
+	// AXI4 b
+	assign m_axi4_bready  = 1'b1;
+	
+	
+	// AXI4Stream
+	jelly_pipeline_insert_ff
+			#(
+				.DATA_WIDTH			(AXI4S_DATA_WIDTH),
+				.SLAVE_REGS			(AXI4S_REGS),
+				.MASTER_REGS		(AXI4S_REGS)
+			)
+		i_pipeline_insert_ff_t
+			(
+				.reset				(~aresetn),
+				.clk				(aclk),
+				
+				.s_data				({s_axi4s_tdata}),
+				.s_valid			(s_axi4s_tvalid),
+				.s_ready			(s_axi4s_tready),
+				
+				.m_data				(axi4s_tdata),
+				.m_valid			(axi4s_tvalid),
+				.m_ready			(axi4s_tready),
+				
+				.buffered			(),
+				.s_ready_next		()
+			);
+	
+	
 	
 	// -----------------------------
-	//  insert FF
+	//  Control
 	// -----------------------------
 	
 	wire							cmd_busy;
@@ -221,11 +269,11 @@ module jelly_axi4_dma_writer
 			next_wcount = cmd_len;
 		end
 		
-		if ( m_axi4_wvalid && m_axi4_wready ) begin
+		if ( axi4_wvalid && axi4_wready ) begin
 			next_wcount = next_wcount - 1'b1;
 		end		
 		
-		if ( m_axi4_wvalid && m_axi4_wready && m_axi4_wlast ) begin
+		if ( axi4_wvalid && axi4_wready && axi4_wlast ) begin
 			next_wbusy = 1'b0;
 		end
 	end
@@ -241,18 +289,15 @@ module jelly_axi4_dma_writer
 		end
 	end
 	
-	assign cmd_ready      = !reg_wbusy;	// || (m_axi4_wvalid && m_axi4_wlast && m_axi4_wready);
+	assign cmd_ready      = !reg_wbusy;	// || (axi4_wvalid && axi4_wlast && axi4_wready);
 	
-	assign m_axi4_wstrb   = {AXI4_STRB_WIDTH{1'b1}};
-	assign m_axi4_wdata   = s_axi4s_tdata;
-	assign m_axi4_wlast   = (reg_wbusy && reg_wcount == 0) || (!reg_wbusy && cmd_len == 0);
-	assign m_axi4_wvalid  = (reg_wbusy || cmd_valid) && s_axi4s_tvalid;
-
-	assign m_axi4_bready  = 1'b1;
+	assign axi4_wdata     = axi4s_tdata;
+	assign axi4_wlast     = (reg_wbusy && reg_wcount == 0) || (!reg_wbusy && cmd_len == 0);
+	assign axi4_wvalid    = (reg_wbusy || cmd_valid) && axi4s_tvalid;
 	
-	assign s_axi4s_tready = (reg_wbusy || cmd_valid) && m_axi4_wready;
+	assign axi4s_tready   = (reg_wbusy || cmd_valid) && axi4_wready;
 	
-	assign busy = cmd_busy || reg_wbusy || cmd_buf_valid || cmd_valid;
+	assign busy           = cmd_busy || reg_wbusy || cmd_buf_valid || cmd_valid;
 	
 endmodule
 

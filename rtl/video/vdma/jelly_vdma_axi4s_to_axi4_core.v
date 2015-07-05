@@ -25,7 +25,20 @@ module jelly_vdma_axi4s_to_axi4_core
 			parameter	INDEX_WIDTH      = 8,
 			parameter	H_WIDTH          = 12,
 			parameter	V_WIDTH          = 12,
-			parameter	SIZE_WIDTH       = H_WIDTH + V_WIDTH
+			parameter	SIZE_WIDTH       = H_WIDTH + V_WIDTH,
+			
+			parameter	AXI4_AW_REGS     = 1,
+			parameter	AXI4_W_REGS      = 1,
+			parameter	AXI4S_REGS       = 1,
+			
+			parameter	AXI4_AWID        = {AXI4_ID_WIDTH{1'b0}},
+			parameter	AXI4_AWSIZE      = AXI4_DATA_SIZE,
+			parameter	AXI4_AWBURST     = 2'b01,
+			parameter	AXI4_AWLOCK      = 1'b0,
+			parameter	AXI4_AWCACHE     = 4'b0001,
+			parameter	AXI4_AWPROT      = 3'b000,
+			parameter	AXI4_AWQOS       = 0,
+			parameter	AXI4_AWREGION    = 4'b0000
 		)
 		(
 			input	wire							aresetn,
@@ -66,13 +79,11 @@ module jelly_vdma_axi4s_to_axi4_core
 			output	wire	[3:0]					m_axi4_awregion,
 			output	wire							m_axi4_awvalid,
 			input	wire							m_axi4_awready,
-			
 			output	wire	[AXI4_DATA_WIDTH-1:0]	m_axi4_wdata,
 			output	wire	[AXI4_STRB_WIDTH-1:0]	m_axi4_wstrb,
 			output	wire							m_axi4_wlast,
 			output	wire							m_axi4_wvalid,
 			input	wire							m_axi4_wready,
-			
 			input	wire	[AXI4_ID_WIDTH-1:0]		m_axi4_bid,
 			input	wire	[1:0]					m_axi4_bresp,
 			input	wire							m_axi4_bvalid,
@@ -85,6 +96,47 @@ module jelly_vdma_axi4s_to_axi4_core
 			input	wire							s_axi4s_tvalid,
 			output	wire							s_axi4s_tready
 		);
+	
+	
+	// -----------------------------
+	//  insert FF
+	// -----------------------------
+	
+	wire	[AXI4S_DATA_WIDTH-1:0]	axi4s_tdata;
+	wire							axi4s_tlast;
+	wire	[AXI4S_USER_WIDTH-1:0]	axi4s_tuser;
+	wire							axi4s_tvalid;
+	wire							axi4s_tready;
+	
+	// AXI4Stream
+	jelly_pipeline_insert_ff
+			#(
+				.DATA_WIDTH			(AXI4S_DATA_WIDTH+1+AXI4S_USER_WIDTH),
+				.SLAVE_REGS			(AXI4S_REGS),
+				.MASTER_REGS		(AXI4S_REGS)
+			)
+		i_pipeline_insert_ff_t
+			(
+				.reset				(~aresetn),
+				.clk				(aclk),
+				
+				.s_data				({s_axi4s_tdata, s_axi4s_tlast, s_axi4s_tuser}),
+				.s_valid			(s_axi4s_tvalid),
+				.s_ready			(s_axi4s_tready),
+				
+				.m_data				({axi4s_tdata, axi4s_tlast, axi4s_tuser}),
+				.m_valid			(axi4s_tvalid),
+				.m_ready			(axi4s_tready),
+				
+				.buffered			(),
+				.s_ready_next		()
+			);
+	
+	
+	
+	// -----------------------------
+	//  Control
+	// -----------------------------
 	
 	// èÛë‘ä«óù
 	reg								reg_busy;
@@ -106,9 +158,6 @@ module jelly_vdma_axi4s_to_axi4_core
 	reg		[SIZE_WIDTH-1:0]		reg_param_size;
 	reg		[AXI4_LEN_WIDTH-1:0]	reg_param_awlen;
 
-	wire	[AXI4S_DATA_WIDTH-1:0]	axi4s_tdata;
-	wire							axi4s_tvalid;
-	wire							axi4s_tready;
 	
 	always @(posedge aclk) begin
 		if ( !aresetn ) begin
@@ -192,7 +241,7 @@ module jelly_vdma_axi4s_to_axi4_core
 
 			// wait frame start
 			if ( reg_busy ) begin
-				if ( s_axi4s_tvalid && s_axi4s_tuser ) begin 
+				if ( axi4s_tvalid && axi4s_tuser ) begin 
 					// frame start
 					reg_wait_fs <= 1'b0;
 				end
@@ -200,22 +249,22 @@ module jelly_vdma_axi4s_to_axi4_core
 		end
 	end
 	
-	assign ctl_busy        = reg_busy;
-	assign ctl_index       = reg_index;
+	assign ctl_busy         = reg_busy;
+	assign ctl_index        = reg_index;
 	
-	assign monitor_addr    = reg_param_addr;
-	assign monitor_stride  = reg_param_stride;
-	assign monitor_width   = reg_param_width;
-	assign monitor_height  = reg_param_height;
-	assign monitor_size    = reg_param_size;
-	assign monitor_awlen   = reg_param_awlen;
+	assign monitor_addr     = reg_param_addr;
+	assign monitor_stride   = reg_param_stride;
+	assign monitor_width    = reg_param_width;
+	assign monitor_height   = reg_param_height;
+	assign monitor_size     = reg_param_size;
+	assign monitor_awlen    = reg_param_awlen;
+		
 	
-	assign axi4s_tvalid    = s_axi4s_tvalid && reg_busy && (!reg_wait_fs || s_axi4s_tuser);
-	assign axi4s_tdata     = s_axi4s_tdata;	
-	assign s_axi4s_tready  = reg_skip || (sig_awbusy && axi4s_tready);
+	// DAM writer	
+	wire	[AXI4S_DATA_WIDTH-1:0]	axi4s_dma_tdata;
+	wire							axi4s_dma_tvalid;
+	wire							axi4s_dma_tready;
 	
-	
-	// DAM writer
 	jelly_axi4_dma_writer
 			#(
 				.AXI4_ID_WIDTH		(AXI4_ID_WIDTH),
@@ -226,7 +275,20 @@ module jelly_vdma_axi4s_to_axi4_core
 				.AXI4_LEN_WIDTH		(AXI4_LEN_WIDTH),
 				.AXI4_QOS_WIDTH		(AXI4_QOS_WIDTH),
 				.AXI4S_DATA_WIDTH	(AXI4S_DATA_WIDTH),
-				.COUNT_WIDTH		(SIZE_WIDTH)
+				.COUNT_WIDTH		(SIZE_WIDTH),
+
+				.AXI4_AW_REGS		(AXI4_AW_REGS),
+				.AXI4_W_REGS		(AXI4_W_REGS),
+				.AXI4S_REGS			(0),
+				
+				.AXI4_AWID			(AXI4_AWID),
+				.AXI4_AWSIZE		(AXI4_AWSIZE),
+				.AXI4_AWBURST		(AXI4_AWBURST),
+				.AXI4_AWLOCK		(AXI4_AWLOCK),
+				.AXI4_AWCACHE		(AXI4_AWCACHE),
+				.AXI4_AWPROT		(AXI4_AWPROT),
+				.AXI4_AWQOS			(AXI4_AWQOS),
+				.AXI4_AWREGION		(AXI4_AWREGION)
 			)
 		i_axi4_dma_writer
 			(
@@ -239,6 +301,7 @@ module jelly_vdma_axi4s_to_axi4_core
 				.param_addr			(reg_awaddr),
 				.param_count		(reg_awhcount),
 				.param_maxlen		(reg_param_awlen),
+				.param_wstrb		({AXI4_STRB_WIDTH{1'b1}}),
 				
 				.m_axi4_awid		(m_axi4_awid),
 				.m_axi4_awaddr		(m_axi4_awaddr),
@@ -262,11 +325,15 @@ module jelly_vdma_axi4s_to_axi4_core
 				.m_axi4_bvalid		(m_axi4_bvalid),
 				.m_axi4_bready		(m_axi4_bready),
 				
-				.s_axi4s_tdata		(axi4s_tdata),
-				.s_axi4s_tvalid		(axi4s_tvalid),
-				.s_axi4s_tready		(axi4s_tready)
+				.s_axi4s_tdata		(axi4s_dma_tdata),
+				.s_axi4s_tvalid		(axi4s_dma_tvalid),
+				.s_axi4s_tready		(axi4s_dma_tready)
 			);
 	
+	assign axi4s_dma_tvalid = axi4s_tvalid && reg_busy && (!reg_wait_fs || axi4s_tuser);
+	assign axi4s_dma_tdata  = axi4s_tdata;	
+	assign axi4s_tready     = reg_skip || (sig_awbusy && axi4s_dma_tready);
+
 endmodule
 
 
