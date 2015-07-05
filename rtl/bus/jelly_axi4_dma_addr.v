@@ -92,52 +92,46 @@ module jelly_axi4_dma_addr
 				end
 			end
 			else begin
-//				if ( m_cmd_valid && !m_cmd_ready ) begin
-//					reg_axi4_valid <= 1'b0;
-//				end
-//				else if ( m_cmd_ready ) begin
-					if ( reg_setup ) begin
-						// setup length
+				if ( reg_setup ) begin
+					// setup length
+					reg_setup      <= 1'b0;
+					reg_cmd_valid  <= 1'b1;
+					reg_axi4_len   <= reg_axi4_count < reg_axi4_len4k ? reg_axi4_count : reg_axi4_len4k;
+					reg_axi4_valid <= 1'b1;
+				end
+				else begin
+					if ( reg_axi4_count == reg_axi4_len ) begin
+						// end
+						reg_busy       <= 1'b0;
+						reg_single     <= 1'bx;
+						reg_setup      <= 1'bx;
+						reg_cmd_valid  <= 1'b0;
+						reg_axi4_addr  <= {(AXI4_ADDR_WIDTH-AXI4_DATA_SIZE){1'bx}};
+						reg_axi4_len   <= {AXI4_LEN_WIDTH{1'bx}};
+						reg_axi4_count <= {COUNT_WIDTH{1'bx}};
+						reg_axi4_len4k <= {(12-AXI4_DATA_SIZE){1'bx}};
+						reg_axi4_valid <= 1'b0;
+					end
+					else if ( reg_single ) begin
+						// single access
 						reg_setup      <= 1'b0;
 						reg_cmd_valid  <= 1'b1;
-	//					reg_axi4_len   <= min_len(param_maxlen, reg_axi4_count, reg_axi4_len4k);
-						reg_axi4_len   <= reg_axi4_count < reg_axi4_len4k ? reg_axi4_count : reg_axi4_len4k;
+						reg_axi4_addr  <= next_axi4_addr;
+						reg_axi4_len   <= {AXI4_LEN_WIDTH{1'b0}};
+						reg_axi4_count <= next_axi4_count;
+						reg_axi4_len4k <= {(12-AXI4_DATA_SIZE){1'bx}};
 						reg_axi4_valid <= 1'b1;
 					end
 					else begin
-						if ( reg_axi4_count == reg_axi4_len ) begin
-							// end
-							reg_busy       <= 1'b0;
-							reg_single     <= 1'bx;
-							reg_setup      <= 1'bx;
-							reg_cmd_valid  <= 1'b0;
-							reg_axi4_addr  <= {(AXI4_ADDR_WIDTH-AXI4_DATA_SIZE){1'bx}};
-							reg_axi4_len   <= {AXI4_LEN_WIDTH{1'bx}};
-							reg_axi4_count <= {COUNT_WIDTH{1'bx}};
-							reg_axi4_len4k <= {(12-AXI4_DATA_SIZE){1'bx}};
-							reg_axi4_valid <= 1'b0;
-						end
-						else if ( reg_single ) begin
-							// single access
-							reg_setup      <= 1'b0;
-							reg_cmd_valid  <= 1'b1;
-							reg_axi4_addr  <= next_axi4_addr;
-							reg_axi4_len   <= {AXI4_LEN_WIDTH{1'b0}};
-							reg_axi4_count <= next_axi4_count;
-							reg_axi4_len4k <= {(12-AXI4_DATA_SIZE){1'bx}};
-							reg_axi4_valid <= 1'b1;
-						end
-						else begin
-							reg_setup       <= 1'b1;
-							reg_cmd_valid   <= 1'b0;
-							reg_axi4_addr   <= next_axi4_addr;
-							reg_axi4_len    <= {AXI4_LEN_WIDTH{1'bx}};
-							reg_axi4_count  <= next_axi4_count;
-							reg_axi4_len4k  <= next_axi4_len4k < param_maxlen ? next_axi4_len4k : param_maxlen;
-							reg_axi4_valid  <= 1'b0;
-						end
+						reg_setup       <= 1'b1;
+						reg_cmd_valid   <= 1'b0;
+						reg_axi4_addr   <= next_axi4_addr;
+						reg_axi4_len    <= {AXI4_LEN_WIDTH{1'bx}};
+						reg_axi4_count  <= next_axi4_count;
+						reg_axi4_len4k  <= next_axi4_len4k < param_maxlen ? next_axi4_len4k : param_maxlen;
+						reg_axi4_valid  <= 1'b0;
 					end
-//				end
+				end
 			end
 		end
 	end

@@ -21,13 +21,6 @@ module jelly_axi4_dma_writer
 			parameter	AXI4_STRB_WIDTH  = (1 << AXI4_DATA_SIZE),
 			parameter	AXI4_LEN_WIDTH   = 8,
 			parameter	AXI4_QOS_WIDTH   = 4,
-			parameter	AXI4S_DATA_WIDTH = AXI4_DATA_WIDTH,
-			parameter	COUNT_WIDTH      = AXI4_ADDR_WIDTH - AXI4_DATA_SIZE,
-			
-			parameter	AXI4_AW_REGS     = 1,
-			parameter	AXI4_W_REGS      = 1,
-			parameter	AXI4S_REGS       = 1,
-			
 			parameter	AXI4_AWID        = {AXI4_ID_WIDTH{1'b0}},
 			parameter	AXI4_AWSIZE      = AXI4_DATA_SIZE,
 			parameter	AXI4_AWBURST     = 2'b01,
@@ -35,7 +28,12 @@ module jelly_axi4_dma_writer
 			parameter	AXI4_AWCACHE     = 4'b0001,
 			parameter	AXI4_AWPROT      = 3'b000,
 			parameter	AXI4_AWQOS       = 0,
-			parameter	AXI4_AWREGION    = 4'b0000
+			parameter	AXI4_AWREGION    = 4'b0000,
+			parameter	AXI4S_DATA_WIDTH = AXI4_DATA_WIDTH,
+			parameter	COUNT_WIDTH      = AXI4_ADDR_WIDTH - AXI4_DATA_SIZE,
+			parameter	AXI4_AW_REGS     = 1,
+			parameter	AXI4_W_REGS      = 1,
+			parameter	AXI4S_REGS       = 1			
 		)
 		(
 			input	wire							aresetn,

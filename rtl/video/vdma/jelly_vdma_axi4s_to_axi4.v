@@ -16,8 +16,21 @@ module jelly_vdma_axi4s_to_axi4
 			parameter	AXI4_STRB_WIDTH  = (1 << AXI4_DATA_SIZE),
 			parameter	AXI4_LEN_WIDTH   = 8,
 			parameter	AXI4_QOS_WIDTH   = 4,
+			parameter	AXI4_AWID        = {AXI4_ID_WIDTH{1'b0}},
+			parameter	AXI4_AWSIZE      = AXI4_DATA_SIZE,
+			parameter	AXI4_AWBURST     = 2'b01,
+			parameter	AXI4_AWLOCK      = 1'b0,
+			parameter	AXI4_AWCACHE     = 4'b0001,
+			parameter	AXI4_AWPROT      = 3'b000,
+			parameter	AXI4_AWQOS       = 0,
+			parameter	AXI4_AWREGION    = 4'b0000,
 			parameter	AXI4S_USER_WIDTH = 1,
 			parameter	AXI4S_DATA_WIDTH = 24,
+			
+			parameter	AXI4_AW_REGS     = 1,
+			parameter	AXI4_W_REGS      = 1,
+			parameter	AXI4S_REGS       = 1,
+			
 			parameter	INDEX_WIDTH      = 8,
 			parameter	STRIDE_WIDTH     = 14,
 			parameter	H_WIDTH          = 12,
@@ -200,13 +213,24 @@ module jelly_vdma_axi4s_to_axi4
 				.AXI4_STRB_WIDTH	(AXI4_STRB_WIDTH),
 				.AXI4_LEN_WIDTH		(AXI4_LEN_WIDTH),
 				.AXI4_QOS_WIDTH		(AXI4_QOS_WIDTH),
+				.AXI4_AWID			(AXI4_AWID),
+				.AXI4_AWSIZE		(AXI4_AWSIZE),
+				.AXI4_AWBURST		(AXI4_AWBURST),
+				.AXI4_AWLOCK		(AXI4_AWLOCK),
+				.AXI4_AWCACHE		(AXI4_AWCACHE),
+				.AXI4_AWPROT		(AXI4_AWPROT),
+				.AXI4_AWQOS			(AXI4_AWQOS),
+				.AXI4_AWREGION		(AXI4_AWREGION),
 				.AXI4S_USER_WIDTH	(AXI4S_USER_WIDTH),
 				.AXI4S_DATA_WIDTH	(AXI4S_DATA_WIDTH),
+				.AXI4_AW_REGS		(AXI4_AW_REGS),
+				.AXI4_W_REGS		(AXI4_W_REGS),
+				.AXI4S_REGS			(AXI4S_REGS),
 				.STRIDE_WIDTH		(STRIDE_WIDTH),
 				.INDEX_WIDTH		(INDEX_WIDTH),
 				.H_WIDTH			(H_WIDTH),
 				.V_WIDTH			(V_WIDTH),
-				.SIZE_WIDTH			(SIZE_WIDTH)
+				.SIZE_WIDTH			(SIZE_WIDTH)				
 			)
 		i_vdma_axi4s_to_axi4_core
 			(
