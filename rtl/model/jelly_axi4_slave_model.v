@@ -135,11 +135,11 @@ module jelly_axi4_slave_model
 	wire	[AXI_ADDR_WIDTH-1:0]	axi4_awaddr;
 	wire	[AXI_LEN_WIDTH-1:0]		axi4_awlen;
 	wire	[2:0]					axi4_awsize;
-	wire	[1:0]					axi4_awburst;
-	wire	[0:0]					axi4_awlock;
-	wire	[3:0]					axi4_awcache;
-	wire	[2:0]					axi4_awprot;
-	wire	[AXI_QOS_WIDTH-1:0]		axi4_awqos;
+//	wire	[1:0]					axi4_awburst;
+//	wire	[0:0]					axi4_awlock;
+//	wire	[3:0]					axi4_awcache;
+//	wire	[2:0]					axi4_awprot;
+//	wire	[AXI_QOS_WIDTH-1:0]		axi4_awqos;
 	wire							axi4_awvalid;
 	wire							axi4_awready;
 	
@@ -150,7 +150,7 @@ module jelly_axi4_slave_model
 	wire							axi4_wready;
 	
 	wire	[AXI_ID_WIDTH-1:0]		axi4_bid;
-	wire	[1:0]					axi4_bresp;
+//	wire	[1:0]					axi4_bresp;
 	wire							axi4_bvalid;
 	wire							axi4_bready;
 	
@@ -158,17 +158,17 @@ module jelly_axi4_slave_model
 	wire	[AXI_ADDR_WIDTH-1:0]	axi4_araddr;
 	wire	[AXI_LEN_WIDTH-1:0]		axi4_arlen;
 	wire	[2:0]					axi4_arsize;
-	wire	[1:0]					axi4_arburst;
-	wire	[0:0]					axi4_arlock;
-	wire	[3:0]					axi4_arcache;
-	wire	[2:0]					axi4_arprot;
-	wire	[AXI_QOS_WIDTH-1:0]		axi4_arqos;
+//	wire	[1:0]					axi4_arburst;
+//	wire	[0:0]					axi4_arlock;
+//	wire	[3:0]					axi4_arcache;
+//	wire	[2:0]					axi4_arprot;
+//	wire	[AXI_QOS_WIDTH-1:0]		axi4_arqos;
 	wire		 					axi4_arvalid;
 	wire		 					axi4_arready;
 	
 	wire	[AXI_ID_WIDTH-1:0]		axi4_rid;
 	wire	[AXI_DATA_WIDTH-1:0]	axi4_rdata;
-	wire	[1:0]					axi4_rresp;
+//	wire	[1:0]					axi4_rresp;
 	wire							axi4_rlast;
 	wire							axi4_rvalid;
 	wire							axi4_rready;
@@ -177,7 +177,7 @@ module jelly_axi4_slave_model
 	wire							s_axi4_awready_tmp;
 	jelly_fifo_fwtf
 			#(
-				.DATA_WIDTH			(AXI_ID_WIDTH+AXI_ADDR_WIDTH+AXI_LEN_WIDTH),
+				.DATA_WIDTH			(AXI_ID_WIDTH+AXI_ADDR_WIDTH+AXI_LEN_WIDTH+3),
 				.PTR_WIDTH			(AW_FIFO_PTR_WIDTH)
 			)
 		i_fifo_fwtf_aw
@@ -185,12 +185,12 @@ module jelly_axi4_slave_model
 				.reset				(~aresetn),
 				.clk				(aclk),
 				
-				.s_data				({s_axi4_awid, s_axi4_awaddr, s_axi4_awlen}),
+				.s_data				({s_axi4_awid, s_axi4_awaddr, s_axi4_awlen, s_axi4_awsize}),
 				.s_valid			(s_axi4_awvalid & !reg_busy_aw),
 				.s_ready			(s_axi4_awready_tmp),
 				.s_free_count		(),
 				
-				.m_data				({axi4_awid, axi4_awaddr, axi4_awlen}),
+				.m_data				({axi4_awid, axi4_awaddr, axi4_awlen, axi4_awsize}),
 				.m_valid			(axi4_awvalid),
 				.m_ready			(axi4_awready),
 				.m_data_count		()
@@ -253,7 +253,7 @@ module jelly_axi4_slave_model
 	wire							s_axi4_arready_tmp;
 	jelly_fifo_fwtf
 			#(
-				.DATA_WIDTH			(AXI_ID_WIDTH+AXI_ADDR_WIDTH+AXI_LEN_WIDTH),
+				.DATA_WIDTH			(AXI_ID_WIDTH+AXI_ADDR_WIDTH+AXI_LEN_WIDTH+3),
 				.PTR_WIDTH			(AR_FIFO_PTR_WIDTH)
 			)
 		i_fifo_fwtf_ar
@@ -261,12 +261,12 @@ module jelly_axi4_slave_model
 				.reset				(~aresetn),
 				.clk				(aclk),
 				
-				.s_data				({s_axi4_arid, s_axi4_araddr, s_axi4_arlen}),
+				.s_data				({s_axi4_arid, s_axi4_araddr, s_axi4_arlen, s_axi4_arsize}),
 				.s_valid			(s_axi4_arvalid & !reg_busy_ar),
 				.s_ready			(s_axi4_arready_tmp),
 				.s_free_count		(),
 				
-				.m_data				({axi4_arid, axi4_araddr, axi4_arlen}),
+				.m_data				({axi4_arid, axi4_araddr, axi4_arlen, axi4_arsize}),
 				.m_valid			(axi4_arvalid),
 				.m_ready			(axi4_arready),
 				.m_data_count		()
@@ -328,6 +328,7 @@ module jelly_axi4_slave_model
 	reg		[AXI_ID_WIDTH-1:0]		reg_awid;
 	reg		[AXI_ADDR_WIDTH-1:0]	reg_awaddr;
 	reg		[AXI_LEN_WIDTH-1:0]		reg_awlen;
+	reg		[2:0]					reg_awsize;
 	reg								reg_bvalid;
 	
 	always @( posedge aclk ) begin
@@ -336,6 +337,7 @@ module jelly_axi4_slave_model
 			reg_awid   <= 0;
 			reg_awaddr <= 0;
 			reg_awlen  <= 0;
+			reg_awsize <= 0;
 			reg_bvalid <= 1'b0;
 		end
 		else begin
@@ -348,6 +350,7 @@ module jelly_axi4_slave_model
 				reg_awid   <= axi4_awid;
 				reg_awaddr <= axi4_awaddr;
 				reg_awlen  <= axi4_awlen;
+				reg_awsize <= axi4_awsize;
 				if ( axi4_wvalid && axi4_wready ) begin
 					if ( axi4_awlen == 0 ) begin
 						reg_bvalid <= 1'b1;
@@ -355,7 +358,7 @@ module jelly_axi4_slave_model
 					end
 					else begin
 						reg_awlen  <= axi4_awlen - 1;
-						reg_awaddr <= axi4_awaddr + (1 << AXI_DATA_SIZE);
+						reg_awaddr <= axi4_awaddr + (1 << axi4_awsize);
 					end
 				end
 			end
@@ -366,7 +369,7 @@ module jelly_axi4_slave_model
 				end
 				else begin
 					reg_awlen  <= reg_awlen - 1;
-					reg_awaddr <= reg_awaddr + (1 << AXI_DATA_SIZE);
+					reg_awaddr <= reg_awaddr + (1 << reg_awsize);
 				end
 			end
 			
@@ -415,6 +418,7 @@ module jelly_axi4_slave_model
 	reg		[AXI_ID_WIDTH-1:0]		reg_arid;
 	reg		[AXI_ADDR_WIDTH-1:0]	reg_araddr;
 	reg		[AXI_LEN_WIDTH-1:0]		reg_arlen;
+	reg		[2:0]					reg_arsize;
 	reg								reg_rlast;
 	reg		[AXI_DATA_WIDTH-1:0]	reg_rdata;
 	reg								reg_rvalid;
@@ -425,13 +429,14 @@ module jelly_axi4_slave_model
 			reg_arid   <= 0; 
 			reg_araddr <= 0;
 			reg_arlen  <= 0;
+			reg_arsize <= 0;
 			reg_rlast  <= 0;
 			reg_rdata  <= 0;
 			reg_rvalid <= 0;
 		end
 		else begin
 			if ( axi4_rvalid & axi4_rready ) begin
-				reg_araddr <= reg_araddr + (1 << AXI_DATA_SIZE);
+				reg_araddr <= reg_araddr + (1 << reg_arsize);
 				reg_arlen  <= reg_arlen - 1'b1;
 				reg_rlast  <= ((reg_arlen - 1'b1) == 0);
 				if ( reg_rlast ) begin
@@ -445,6 +450,7 @@ module jelly_axi4_slave_model
 				reg_arid   <= axi4_arid;
 				reg_araddr <= axi4_araddr;
 				reg_arlen  <= axi4_arlen;
+				reg_arsize <= axi4_arsize;
 				
 				reg_rlast  <= (axi4_arlen == 0);
 				reg_rvalid <= 1'b1;
