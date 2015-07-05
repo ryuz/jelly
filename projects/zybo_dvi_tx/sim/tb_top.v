@@ -13,13 +13,14 @@ module tb_top();
 	
 	initial begin
 		$dumpfile("tb_top.vcd");
-		$dumpvars(2, tb_top);
-		$dumpvars(0, tb_top.i_top.i_vdma_axi4_to_axi4s);
+		$dumpvars(0, tb_top);
+//		$dumpvars(2, tb_top);
+//		$dumpvars(0, tb_top.i_top.i_vdma_axi4_to_axi4s);
 	
 	#10000000
 		$finish;
 	end
-
+	
 	
 	top
 		i_top

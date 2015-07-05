@@ -89,6 +89,7 @@ module jelly_vdma_axi4s_to_axi4_core
 	// ó‘ÔŠÇ—
 	reg								reg_busy;
 	reg								reg_skip;
+	reg								reg_wait_fs;
 
 	wire							sig_awbusy;
 	reg								reg_awenable;
@@ -113,6 +114,7 @@ module jelly_vdma_axi4s_to_axi4_core
 		if ( !aresetn ) begin
 			reg_busy         <= 1'b0;
 			reg_skip         <= 1'b1;
+			reg_wait_fs      <= 1'b0;
 			reg_index        <= {INDEX_WIDTH{1'b0}};
 			
 			reg_param_addr   <= {AXI4_ADDR_WIDTH{1'bx}};
@@ -134,7 +136,8 @@ module jelly_vdma_axi4s_to_axi4_core
 				if ( ctl_enable ) begin
 					// start
 					reg_busy     <= 1'b1;
-					reg_skip     <= 1'b1;
+					reg_skip     <= 1'b0;
+					reg_wait_fs  <= 1'b1;
 					reg_index    <= reg_index + 1'b1;
 					reg_awenable <= 1'b1;
 					if ( ctl_update ) begin
@@ -165,8 +168,9 @@ module jelly_vdma_axi4s_to_axi4_core
 				end
 				else begin
 					// idle
-					reg_busy <= 1'b0;
-					reg_skip <= 1'b1;
+					reg_busy    <= 1'b0;
+					reg_wait_fs <= 1'b0;
+					reg_skip    <= 1'b1;
 				end
 			end
 			else begin
@@ -187,10 +191,10 @@ module jelly_vdma_axi4s_to_axi4_core
 			end
 
 			// wait frame start
-			if ( reg_busy && reg_skip ) begin
+			if ( reg_busy ) begin
 				if ( s_axi4s_tvalid && s_axi4s_tuser ) begin 
 					// frame start
-					reg_skip <= 1'b0;
+					reg_wait_fs <= 1'b0;
 				end
 			end
 		end
@@ -203,12 +207,13 @@ module jelly_vdma_axi4s_to_axi4_core
 	assign monitor_stride  = reg_param_stride;
 	assign monitor_width   = reg_param_width;
 	assign monitor_height  = reg_param_height;
+	assign monitor_size    = reg_param_size;
 	assign monitor_awlen   = reg_param_awlen;
 	
-	assign axi4s_tvalid    = s_axi4s_tvalid && (!reg_skip || s_axi4s_tuser);
+	assign axi4s_tvalid    = s_axi4s_tvalid && reg_busy && (!reg_wait_fs || s_axi4s_tuser);
 	assign axi4s_tdata     = s_axi4s_tdata;	
-	assign s_axi4s_tready  = (reg_skip || (reg_busy && axi4s_tready));
-
+	assign s_axi4s_tready  = reg_skip || (sig_awbusy && axi4s_tready);
+	
 	
 	// DAM writer
 	jelly_axi4_dma_writer
@@ -261,8 +266,6 @@ module jelly_vdma_axi4s_to_axi4_core
 				.s_axi4s_tvalid		(axi4s_tvalid),
 				.s_axi4s_tready		(axi4s_tready)
 			);
-	
-	
 	
 endmodule
 

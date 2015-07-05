@@ -94,10 +94,10 @@ module jelly_fifo
 	reg		[PTR_WIDTH:0]		next_data_count;
 	reg		[PTR_WIDTH:0]		next_free_count;
 	always @* begin
-		next_wptr     = wptr;
-		next_rptr     = rptr;
-		next_empty    = empty;
-		next_full     = full;
+		next_wptr       = wptr;
+		next_rptr       = rptr;
+		next_empty      = empty;
+		next_full       = full;
 		next_data_count = data_count;
 		next_free_count = free_count;
 		

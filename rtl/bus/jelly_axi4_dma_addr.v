@@ -44,7 +44,9 @@ module jelly_axi4_dma_addr
 			input	wire							m_axi4_ready
 		);
 	
-	wire										cke = (!m_axi4_valid || m_axi4_ready);
+	wire										cke_cmd;
+	wire										cke_axi4;
+	wire										cke = (cke_cmd && cke_axi4);
 	
 	reg											reg_busy;
 	reg											reg_single;
@@ -60,20 +62,6 @@ module jelly_axi4_dma_addr
 	wire	[AXI4_ADDR_WIDTH-1:AXI4_DATA_SIZE]	next_axi4_addr  = reg_axi4_addr  + reg_axi4_len + 1'b1;	// 次のアドレス
 	wire	[11:AXI4_DATA_SIZE]					next_axi4_len4k = ~next_axi4_addr[11:AXI4_DATA_SIZE];	// 次の4k境界までのサイズ
 	
-	/*
-	function [AXI4_LEN_WIDTH-1:0] min_len
-				(
-					input	[AXI4_LEN_WIDTH-1:0]	maxlen,
-					input	[COUNT_WIDTH-1:0]		count,
-					input	[11:AXI4_DATA_SIZE]		len4k
-				);
-	begin
-		min_len = maxlen;
-		if ( len4k <= min_len ) begin	min_len = len4k; end
-		if ( count <= min_len ) begin	min_len = count; end
-	end
-	endfunction
-	*/
 	
 	always @(posedge aclk) begin
 		if ( !aresetn ) begin
@@ -104,10 +92,10 @@ module jelly_axi4_dma_addr
 				end
 			end
 			else begin
-				if ( m_cmd_valid && !m_cmd_ready ) begin
-					reg_axi4_valid <= 1'b0;
-				end
-				else if ( m_cmd_ready ) begin
+//				if ( m_cmd_valid && !m_cmd_ready ) begin
+//					reg_axi4_valid <= 1'b0;
+//				end
+//				else if ( m_cmd_ready ) begin
 					if ( reg_setup ) begin
 						// setup length
 						reg_setup      <= 1'b0;
@@ -149,19 +137,22 @@ module jelly_axi4_dma_addr
 							reg_axi4_valid  <= 1'b0;
 						end
 					end
-				end
+//				end
 			end
 		end
 	end
-	
+
+	assign cke_cmd  = (!reg_cmd_valid  || m_cmd_ready);
+	assign cke_axi4 = (!reg_axi4_valid || m_axi4_ready);
+		
 	assign busy         = reg_busy;
 	
 	assign m_cmd_len    = reg_axi4_len;
-	assign m_cmd_valid  = reg_cmd_valid;
+	assign m_cmd_valid  = reg_cmd_valid & cke_axi4;
 	
 	assign m_axi4_addr  = {reg_axi4_addr, {AXI4_DATA_SIZE{1'b0}}};
 	assign m_axi4_len   = reg_axi4_len;
-	assign m_axi4_valid = reg_axi4_valid;
+	assign m_axi4_valid = reg_axi4_valid & cke_cmd;
 	
 endmodule
 

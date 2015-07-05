@@ -347,7 +347,7 @@ module top
 				.V_WIDTH			(12),
 				.WB_ADR_WIDTH		(8),
 				.WB_DAT_WIDTH		(32),
-				.INIT_CTL_CONTROL	(2'b00),
+				.INIT_CTL_CONTROL	(2'b11),
 				.INIT_PARAM_ADDR	(32'h1800_0000),
 				.INIT_PARAM_STRIDE	(4096),
 				.INIT_PARAM_WIDTH	(640),

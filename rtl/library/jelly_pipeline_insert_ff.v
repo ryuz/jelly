@@ -72,7 +72,7 @@ module jelly_pipeline_insert_ff
 			end
 		end
 		
-		always @ ( posedge clk ) begin
+		always @(posedge clk) begin
 			if ( reset ) begin
 				reg_s_ready   <= 1'b0;
 				reg_buf_valid <= 1'b0;

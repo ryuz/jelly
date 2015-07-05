@@ -173,6 +173,7 @@ module jelly_axi4_slave_model
 	wire							axi4_rready;
 	
 	// aw
+	wire							s_axi4_awready_tmp;
 	jelly_fifo_fwtf
 			#(
 				.DATA_WIDTH			(AXI_ID_WIDTH+AXI_ADDR_WIDTH+AXI_LEN_WIDTH),
@@ -184,8 +185,8 @@ module jelly_axi4_slave_model
 				.clk				(aclk),
 				
 				.s_data				({s_axi4_awid, s_axi4_awaddr, s_axi4_awlen}),
-				.s_valid			(s_axi4_awvalid),
-				.s_ready			(s_axi4_awready),
+				.s_valid			(s_axi4_awvalid & !reg_busy_aw),
+				.s_ready			(s_axi4_awready_tmp),
 				.s_free_count		(),
 				
 				.m_data				({axi4_awid, axi4_awaddr, axi4_awlen}),
@@ -193,10 +194,11 @@ module jelly_axi4_slave_model
 				.m_ready			(axi4_awready),
 				.m_data_count		()
 			);
+	assign s_axi4_awready = (s_axi4_awready_tmp & !reg_busy_aw);
+	
 	
 	// w
 	wire							s_axi4_wready_tmp;
-
 	jelly_fifo_fwtf
 			#(
 				.DATA_WIDTH			(AXI_DATA_WIDTH+AXI_STRB_WIDTH+1),
@@ -217,11 +219,11 @@ module jelly_axi4_slave_model
 				.m_ready			(axi4_wready),
 				.m_data_count		()
 			);
-	
 	assign s_axi4_wready = (s_axi4_wready_tmp & !reg_busy_w);
 	
 	
 	// b
+	wire							s_axi4_bvalid_tmp;
 	jelly_fifo_fwtf
 			#(
 				.DATA_WIDTH			(AXI_ID_WIDTH),
@@ -238,15 +240,16 @@ module jelly_axi4_slave_model
 				.s_free_count		(),
 				
 				.m_data				(s_axi4_bid),
-				.m_valid			(s_axi4_bvalid),
-				.m_ready			(s_axi4_bready),
+				.m_valid			(s_axi4_bvalid_tmp),
+				.m_ready			(s_axi4_bready & !reg_busy_b),
 				.m_data_count		()
 			);
-	
-	assign s_axi4_bresp   = s_axi4_bvalid ? 2'b00 : 2'bxx;
+	assign s_axi4_bresp  = s_axi4_bvalid ? 2'b00 : 2'bxx;
+	assign s_axi4_bvalid = s_axi4_bvalid_tmp & !reg_busy_b;
 	
 	
 	// ar
+	wire							s_axi4_arready_tmp;
 	jelly_fifo_fwtf
 			#(
 				.DATA_WIDTH			(AXI_ID_WIDTH+AXI_ADDR_WIDTH+AXI_LEN_WIDTH),
@@ -258,8 +261,8 @@ module jelly_axi4_slave_model
 				.clk				(aclk),
 				
 				.s_data				({s_axi4_arid, s_axi4_araddr, s_axi4_arlen}),
-				.s_valid			(s_axi4_arvalid),
-				.s_ready			(s_axi4_arready),
+				.s_valid			(s_axi4_arvalid & !reg_busy_ar),
+				.s_ready			(s_axi4_arready_tmp),
 				.s_free_count		(),
 				
 				.m_data				({axi4_arid, axi4_araddr, axi4_arlen}),
@@ -267,8 +270,11 @@ module jelly_axi4_slave_model
 				.m_ready			(axi4_arready),
 				.m_data_count		()
 			);
+	assign s_axi4_arready = (s_axi4_arready_tmp & !reg_busy_ar);
+	
 	
 	// r
+	wire							s_axi4_rvalid_tmp;
 	jelly_fifo_fwtf
 			#(
 				.DATA_WIDTH			(AXI_ID_WIDTH+AXI_DATA_WIDTH+1),
@@ -285,12 +291,13 @@ module jelly_axi4_slave_model
 				.s_free_count		(),
 				
 				.m_data				({s_axi4_rid, s_axi4_rdata, s_axi4_rlast}),
-				.m_valid			(s_axi4_rvalid),
-				.m_ready			(s_axi4_rready),
+				.m_valid			(s_axi4_rvalid_tmp),
+				.m_ready			(s_axi4_rready & !reg_busy_r),
 				.m_data_count		()
 			);
+	assign s_axi4_rresp  = s_axi4_rvalid ? 2'b00 : 2'bxx;
+	assign s_axi4_rvalid = s_axi4_rvalid_tmp & !reg_busy_r;
 	
-	assign s_axi4_rresp = s_axi4_rvalid ? 2'b00 : 2'bxx;
 	
 	
 	// -------------------------------------
@@ -439,6 +446,12 @@ module jelly_axi4_slave_model
 				
 				reg_rlast  <= (axi4_arlen == 0);
 				reg_rvalid <= 1'b1;
+			end
+			
+			if ( axi4_rvalid && axi4_rready ) begin
+				if ( r_fp != 0 ) begin
+					$fdisplay(r_fp, "%h %h", reg_araddr, axi4_rdata);
+				end
 			end
 		end
 	end

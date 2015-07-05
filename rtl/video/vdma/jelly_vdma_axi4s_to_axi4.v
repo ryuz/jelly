@@ -232,6 +232,7 @@ module jelly_vdma_axi4s_to_axi4
 				.monitor_size		(sig_monitor_size),
 				.monitor_awlen		(sig_monitor_awlen),
 				
+				.m_axi4_awid		(m_axi4_awid),
 				.m_axi4_awaddr		(m_axi4_awaddr),
 				.m_axi4_awburst		(m_axi4_awburst),
 				.m_axi4_awcache		(m_axi4_awcache),
