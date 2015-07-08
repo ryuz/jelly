@@ -4,6 +4,11 @@
 `default_nettype none
 
 module top
+		#(
+			parameter	BUF_STRIDE  = 4096,
+			parameter	WRITE_X_NUM = 640,
+			parameter	WRITE_Y_NUM = 480
+		)
 		(
 			output	wire			hdmi_out_en,
 			output	wire			hdmi_clk_p,
@@ -312,8 +317,8 @@ module top
 	jelly_pattern_generator_axi4s
 			#(
 				.AXI4S_DATA_WIDTH	(32),
-				.X_NUM				(640),
-				.Y_NUM				(480)
+				.X_NUM				(WRITE_X_NUM),
+				.Y_NUM				(WRITE_Y_NUM)
 			)
 		i_pattern_generator_axi4s
 			(
@@ -349,9 +354,10 @@ module top
 				.WB_DAT_WIDTH		(32),
 				.INIT_CTL_CONTROL	(2'b11),
 				.INIT_PARAM_ADDR	(32'h1800_0000),
-				.INIT_PARAM_STRIDE	(4096),
-				.INIT_PARAM_WIDTH	(640),
-				.INIT_PARAM_HEIGHT	(480),
+				.INIT_PARAM_STRIDE	(BUF_STRIDE),
+				.INIT_PARAM_WIDTH	(WRITE_X_NUM),
+				.INIT_PARAM_HEIGHT	(WRITE_Y_NUM),
+				.INIT_PARAM_SIZE	(WRITE_X_NUM*WRITE_Y_NUM),
 				.INIT_PARAM_AWLEN	(7)
 			)
 		i_vdma_axi4s_to_axi4
@@ -430,7 +436,7 @@ module top
 				.WB_DAT_WIDTH		(32),
 				.INIT_CTL_CONTROL	(2'b11),
 				.INIT_PARAM_ADDR	(32'h1800_0000),
-				.INIT_PARAM_STRIDE	(4096),
+				.INIT_PARAM_STRIDE	(BUF_STRIDE),
 				.INIT_PARAM_WIDTH	(640),
 				.INIT_PARAM_HEIGHT	(480),
 				.INIT_PARAM_ARLEN	(7)

@@ -23,6 +23,11 @@ module tb_top();
 	
 	
 	top
+			#(
+				.BUF_STRIDE		(4096),
+				.WRITE_X_NUM	(640),
+				.WRITE_Y_NUM	(48)
+			)
 		i_top
 			(
 				.led	()
