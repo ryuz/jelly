@@ -100,13 +100,13 @@ module jelly_axi4_slave_model
 	reg		[31:0]					reg_rand_ar = AR_BUSY_RAND;
 	reg		[31:0]					reg_rand_r  = R_BUSY_RAND;
 	always @(posedge aclk) begin
-		reg_busy_aw <= 1'b0;
-		if ( !s_axi4_awvalid || s_axi4_awready ) begin
+//		reg_busy_aw <= 1'b0;
+		if ( reg_busy_aw || !s_axi4_awvalid || s_axi4_awready ) begin
 			reg_busy_aw <= (({$random(reg_rand_aw)} % 99) < AW_BUSY_RATE);
 		end
 		
-		reg_busy_w <= 1'b0;
-		if ( !s_axi4_wvalid || s_axi4_wready ) begin
+//		reg_busy_w <= 1'b0;
+		if ( reg_busy_w || !s_axi4_wvalid || s_axi4_wready ) begin
 			reg_busy_w  <= (({$random(reg_rand_w)} % 99)  < W_BUSY_RATE);
 		end
 		

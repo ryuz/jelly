@@ -24,49 +24,55 @@ module jelly_pattern_generator_axi4s
 			input	wire							m_axi4s_tready
 		);
 	
-	wire		cke = (!m_axi4s_tvalid || m_axi4s_tready);
-
-	reg		[AXI4S_DATA_WIDTH-1:0]	reg_tdata;
-	reg								reg_tlast;
-	reg		[0:0]					reg_tuser;
-	reg								reg_tvalid;
 	
-	reg		[X_WIDTH-1:0]			x;
-	reg		[Y_WIDTH-1:0]			y;
+	wire		cke = (!m_axi4s_tvalid || m_axi4s_tready);
+	
+	reg		[X_WIDTH-1:0]			st1_x;
+	reg		[Y_WIDTH-1:0]			st1_y;
+	reg								st1_valid;
+	
+	reg		[AXI4S_DATA_WIDTH-1:0]	st2_tdata;
+	reg								st2_tlast;
+	reg		[0:0]					st2_tuser;
+	reg								st2_tvalid;
+	
 	always @(posedge aclk) begin
 		if ( !aresetn ) begin
-			reg_tdata  <= {AXI4S_DATA_WIDTH{1'bx}};
-			reg_tlast  <= 1'bx;
-			reg_tuser  <= 1'bx;
-			reg_tvalid <= 1'b0;
+			st1_x      <= 0;
+			st1_y      <= 0;
+			st1_valid  <= 1'b0;
+			
+			st2_tdata  <= {AXI4S_DATA_WIDTH{1'bx}};
+			st2_tlast  <= 1'bx;
+			st2_tuser  <= 1'bx;
+			st2_tvalid <= 1'b0;
 
-			x          <= 0;
-			y          <= 0;
 		end
 		else if ( cke ) begin
-			reg_tdata[AXI4S_DATA_WIDTH/2-1:0]                <= x;
-			reg_tdata[AXI4S_DATA_WIDTH-1:AXI4S_DATA_WIDTH/2] <= y;
-			reg_tlast                                        <= (x == X_NUM-1);
-			reg_tuser                                        <= ((x == 0) && (y == 0));
-			reg_tvalid                                       <= 1'b1;
-			
-			if ( reg_tvalid ) begin
-				x <= x + 1;
-				if ( x == (X_NUM-1) ) begin
-					x <= 0;
-					y <= y + 1;
-					if ( y == (Y_NUM-1) ) begin
-						y <= 0;
+			st1_valid <= {$random};//1'b1;
+			if ( st1_valid ) begin
+				st1_x <= st1_x + 1'b1;
+				if ( st1_x == (X_NUM-1) ) begin
+					st1_x <= 0;
+					st1_y <= st1_y + 1'b1;
+					if ( st1_y == (Y_NUM-1) ) begin
+						st1_y <= 0;
 					end
 				end
 			end
+			
+			st2_tdata[AXI4S_DATA_WIDTH/2-1:0]                <= st1_x;
+			st2_tdata[AXI4S_DATA_WIDTH-1:AXI4S_DATA_WIDTH/2] <= st1_y;
+			st2_tlast                                        <= (st1_x == X_NUM-1);
+			st2_tuser                                        <= ((st1_x == 0) && (st1_y == 0));
+			st2_tvalid                                       <= st1_valid;
 		end
 	end
-	
-	assign m_axi4s_tuser  = reg_tuser;
-	assign m_axi4s_tlast  = reg_tlast;
-	assign m_axi4s_tdata  = reg_tdata;
-	assign m_axi4s_tvalid = reg_tvalid;
+
+	assign m_axi4s_tdata  = st2_tdata;
+	assign m_axi4s_tlast  = st2_tlast;
+	assign m_axi4s_tuser  = st2_tuser;
+	assign m_axi4s_tvalid = st2_tvalid;
 	
 endmodule
 
