@@ -127,7 +127,7 @@ module jelly_vdma_axi4s_to_axi4
 	localparam	REGOFFSET_MONITOR_AWLEN  = 32'h0000_005c >> 2;
 	
 	// registers
-	reg		[1:0]					reg_ctl_control;
+	reg		[2:0]					reg_ctl_control;
 	wire	[0:0]					sig_ctl_status;
 	wire	[INDEX_WIDTH-1:0]		sig_ctl_index;
 	
@@ -160,7 +160,7 @@ module jelly_vdma_axi4s_to_axi4
 		end
 		else if ( s_wb_stb_i && s_wb_we_i ) begin
 			case ( s_wb_adr_i )
-			REGOFFSET_CTL_CONTROL:	reg_ctl_control  <= s_wb_dat_i[1:0];
+			REGOFFSET_CTL_CONTROL:	reg_ctl_control  <= s_wb_dat_i[2:0];
 			REGOFFSET_PARAM_ADDR:	reg_param_addr   <= s_wb_dat_i[AXI4_ADDR_WIDTH-1:0];
 			REGOFFSET_PARAM_STRIDE:	reg_param_stride <= s_wb_dat_i[STRIDE_WIDTH-1:0];
 			REGOFFSET_PARAM_WIDTH:	reg_param_width  <= s_wb_dat_i[H_WIDTH-1:0];
@@ -170,10 +170,17 @@ module jelly_vdma_axi4s_to_axi4
 			endcase
 		end
 		
-		// update flag auto clear
+		// update
 		reg_prev_index <= sig_ctl_index[0];
 		if ( reg_prev_index != sig_ctl_index[0] ) begin
+			// update flag auto clear
 			reg_ctl_control[1] <= 1'b0;
+			
+			// auto stop
+			if ( reg_ctl_control[2] ) begin
+				reg_ctl_control[0] <= 1'b0;
+				reg_ctl_control[2] <= 1'b0;
+			end
 		end
 	end
 	

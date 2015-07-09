@@ -172,7 +172,7 @@ module jelly_vdma_axi4_to_axi4s_core
 						reg_arhcount <= reg_param_width;
 						reg_arvcount <= reg_param_height;
 						if ( (reg_param_size != 0) && (reg_param_width << AXI4_DATA_SIZE) == reg_param_stride ) begin
-							reg_arhcount <= param_size;
+							reg_arhcount <= reg_param_size;
 							reg_arvcount <= 1;
 						end
 						reg_araddr <= reg_param_addr;

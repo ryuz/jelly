@@ -38,7 +38,7 @@ module jelly_vdma_axi4s_to_axi4_core
 			parameter	INDEX_WIDTH      = 8,
 			parameter	H_WIDTH          = 12,
 			parameter	V_WIDTH          = 12,
-			parameter	SIZE_WIDTH       = H_WIDTH + V_WIDTH			
+			parameter	SIZE_WIDTH       = H_WIDTH + V_WIDTH
 		)
 		(
 			input	wire							aresetn,
@@ -209,7 +209,7 @@ module jelly_vdma_axi4s_to_axi4_core
 						reg_awhcount <= reg_param_width;
 						reg_awvcount <= reg_param_height;
 						if ( (reg_param_size != 0) && (reg_param_width << AXI4_DATA_SIZE) == reg_param_stride ) begin
-							reg_awhcount <= param_size;
+							reg_awhcount <= reg_param_size;
 							reg_awvcount <= 1;
 						end
 						reg_awaddr <= reg_param_addr;
@@ -286,7 +286,7 @@ module jelly_vdma_axi4s_to_axi4_core
 				.COUNT_WIDTH		(SIZE_WIDTH),
 				.AXI4_AW_REGS		(AXI4_AW_REGS),
 				.AXI4_W_REGS		(AXI4_W_REGS),
-				.AXI4S_REGS			(0)				
+				.AXI4S_REGS			(0)
 			)
 		i_axi4_dma_writer
 			(
