@@ -413,7 +413,6 @@ module jelly_cpu_top
 				#(
 					.ADDR_WIDTH			(TCM_ADDR_WIDTH),
 					.DATA_WIDTH			(32),
-					.WRITE_FIRST		(0),
 					.READMEMH			(TCM_READMEMH),
 					.READMEM_FIlE		(TCM_READMEM_FIlE)
 				)

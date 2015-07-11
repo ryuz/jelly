@@ -25,6 +25,7 @@ module jelly_pipeline_control
 		(
 			input	wire							reset,
 			input	wire							clk,
+			input	wire							cke,
 			
 			// slave port
 			input	wire	[S_DATA_WIDTH-1:0]		s_data,
@@ -80,7 +81,7 @@ module jelly_pipeline_control
 			reg_cke     <= {PIPELINE_STAGES{1'b1}};
 			reg_s_ready <= 1'b1;
 		end
-		else begin
+		else if ( cke ) begin
 			reg_cke     <= next_cke;
 			reg_s_ready <= next_s_ready;
 		end
@@ -93,7 +94,7 @@ module jelly_pipeline_control
 			if ( reset ) begin
 				reg_valid[i] <= 1'b0;
 			end
-			else if ( reg_cke[i] ) begin
+			else if ( cke && reg_cke[i] ) begin
 				reg_valid[i] <= tmp_next_valid[i];
 			end
 		end
@@ -114,6 +115,7 @@ module jelly_pipeline_control
 			(
 				.reset			(reset),
 				.clk			(clk),
+				.cke			(cke),
 				
 				.s_data			(sink_data),
 				.s_valid		(stage_valid[PIPELINE_STAGES-1]),
@@ -128,9 +130,9 @@ module jelly_pipeline_control
 			);
 	
 	// internal
-	assign stage_cke   = reg_cke;
+	assign stage_cke   = reg_cke & {PIPELINE_STAGES{cke}};
 	assign stage_valid = reg_valid;
-
+	
 	assign src_data    = s_data;
 	assign src_valid   = s_valid;
 	

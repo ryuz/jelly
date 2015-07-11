@@ -42,6 +42,7 @@ module tb_pipeline_insert_ff();
 			(
 				.reset			(reset),
 				.clk			(clk),
+				.cke			(1'b1),
 				
 				.s_data			(s_data),
 				.s_valid		(s_valid),

@@ -73,8 +73,7 @@ module jelly_cpu_gpr
 		jelly_ram_dualport
 				#(
 					.DATA_WIDTH		(DATA_WIDTH),
-					.ADDR_WIDTH		(ADDR_WIDTH),
-					.WRITE_FIRST	(0)
+					.ADDR_WIDTH		(ADDR_WIDTH)
 				)
 			i_ram_dualport
 				(

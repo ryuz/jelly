@@ -49,7 +49,7 @@ module jelly_pattern_generator_axi4s
 
 		end
 		else if ( cke ) begin
-			st1_valid <= {$random};//1'b1;
+			st1_valid <= 1'b1; // {$random};
 			if ( st1_valid ) begin
 				st1_x <= st1_x + 1'b1;
 				if ( st1_x == (X_NUM-1) ) begin

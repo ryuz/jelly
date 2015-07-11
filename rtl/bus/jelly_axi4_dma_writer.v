@@ -33,7 +33,7 @@ module jelly_axi4_dma_writer
 			parameter	COUNT_WIDTH      = AXI4_ADDR_WIDTH - AXI4_DATA_SIZE,
 			parameter	AXI4_AW_REGS     = 1,
 			parameter	AXI4_W_REGS      = 1,
-			parameter	AXI4S_REGS       = 1			
+			parameter	AXI4S_REGS       = 0
 		)
 		(
 			input	wire							aresetn,
@@ -107,6 +107,7 @@ module jelly_axi4_dma_writer
 			(
 				.reset				(~aresetn),
 				.clk				(aclk),
+				.cke				(1'b1),
 				
 				.s_data				({axi4_awaddr, axi4_awlen}),
 				.s_valid			(axi4_awvalid),
@@ -140,6 +141,7 @@ module jelly_axi4_dma_writer
 			(
 				.reset				(~aresetn),
 				.clk				(aclk),
+				.cke				(1'b1),
 				
 				.s_data				({axi4_wdata, axi4_wlast}),
 				.s_valid			(axi4_wvalid),
@@ -170,6 +172,7 @@ module jelly_axi4_dma_writer
 			(
 				.reset				(~aresetn),
 				.clk				(aclk),
+				.cke				(1'b1),
 				
 				.s_data				({s_axi4s_tdata}),
 				.s_valid			(s_axi4s_tvalid),
@@ -241,6 +244,7 @@ module jelly_axi4_dma_writer
 			(
 				.reset				(~aresetn),
 				.clk				(aclk),
+				.cke				(1'b1),
 				
 				.s_data				(cmd_buf_len),
 				.s_valid			(cmd_buf_valid),
@@ -261,7 +265,7 @@ module jelly_axi4_dma_writer
 	always @* begin
 		next_wbusy  = reg_wbusy;
 		next_wcount = reg_wcount;
-				
+		
 		if ( cmd_valid && cmd_ready ) begin
 			next_wbusy  = 1'b1;
 			next_wcount = cmd_len;
@@ -269,7 +273,7 @@ module jelly_axi4_dma_writer
 		
 		if ( axi4_wvalid && axi4_wready ) begin
 			next_wcount = next_wcount - 1'b1;
-		end		
+		end
 		
 		if ( axi4_wvalid && axi4_wready && axi4_wlast ) begin
 			next_wbusy = 1'b0;

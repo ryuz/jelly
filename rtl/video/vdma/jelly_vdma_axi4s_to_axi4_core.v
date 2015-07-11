@@ -119,6 +119,7 @@ module jelly_vdma_axi4s_to_axi4_core
 			(
 				.reset				(~aresetn),
 				.clk				(aclk),
+				.cke				(1'b1),
 				
 				.s_data				({s_axi4s_tdata, s_axi4s_tlast, s_axi4s_tuser}),
 				.s_valid			(s_axi4s_tvalid),

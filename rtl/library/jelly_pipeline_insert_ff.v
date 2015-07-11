@@ -23,6 +23,7 @@ module jelly_pipeline_insert_ff
 		(
 			input	wire						reset,
 			input	wire						clk,
+			input	wire						cke,
 			
 			// slave port
 			input	wire	[DATA_WIDTH-1:0]	s_data,
@@ -78,7 +79,7 @@ module jelly_pipeline_insert_ff
 				reg_buf_valid <= 1'b0;
 				reg_buf_data  <= INIT_DATA;
 			end
-			else begin
+			else if ( cke ) begin
 				reg_s_ready   <= next_s_ready;
 				reg_buf_data  <= next_buf_data;
 				reg_buf_valid <= next_buf_valid;
@@ -106,12 +107,12 @@ module jelly_pipeline_insert_ff
 		reg		[DATA_WIDTH-1:0]	reg_m_data;
 		reg							reg_m_valid;
 		
-		always @ ( posedge clk ) begin
+		always @(posedge clk) begin
 			if ( reset ) begin
 				reg_m_data  <= INIT_DATA;
 				reg_m_valid <= 1'b0;
 			end
-			else begin
+			else if ( cke ) begin
 				if ( ~m_valid || m_ready ) begin
 					reg_m_data  <= internal_data;
 					reg_m_valid <= internal_valid;

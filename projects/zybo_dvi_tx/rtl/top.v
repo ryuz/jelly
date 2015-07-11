@@ -290,7 +290,7 @@ module top
 				.clk				(wb_clk_o),
 				
 				.port_i				(led),
-				.port_o				(led),
+				.port_o				(),//(led),
 				.port_t				(),
 				
 				.wb_adr_i			(wb_host_adr_o[2 +: 2]),
@@ -302,6 +302,10 @@ module top
 				.wb_ack_o			(wb_gpio_ack_o)
 			);
 	
+	assign led[0] = axi4_mem00_awvalid;
+	assign led[1] = axi4_mem00_awready;
+	assign led[2] = axi4_mem00_wvalid;
+	assign led[3] = axi4_mem00_wready;
 	
 	
 	// ----------------------------------------

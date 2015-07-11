@@ -59,17 +59,15 @@ module tb_float_step();
 		i_float_step
 			(
 				.clk			(clk),
-				.cke			(1'b1),
+				.stage_cke		({6{1'b1}}),
 				
 				.param_init		(param_init),
 				.param_step		(param_step),
 				
-				.set_param		(set_param),
-				.increment		(increment),
-				.in_valid		(valid),
+				.set_param		(valid & set_param),
+				.increment		(valid & increment),
 				
-				.out_data		(out_data),
-				.out_valid		(out_valid)
+				.out_data		(out_data)
 			);
 	
 	
