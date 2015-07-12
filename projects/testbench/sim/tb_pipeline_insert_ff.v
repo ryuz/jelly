@@ -78,6 +78,11 @@ module tb_pipeline_insert_ff();
 	
 	
 	// read
+	integer		fp;
+	initial begin
+		fp = $fopen("log.txt", "w");
+	end
+	
 	reg		[DATA_WIDTH-1:0]	reg_expectation_value;
 	reg							reg_ready;
 	always @(posedge clk) begin
@@ -89,6 +94,7 @@ module tb_pipeline_insert_ff();
 			reg_ready <= {$random};
 			
 			if ( m_valid && m_ready ) begin
+				$fdisplay(fp, "%h %h", m_data, reg_expectation_value);
 				if ( m_data != reg_expectation_value ) begin
 					$display("error!");
 				end
