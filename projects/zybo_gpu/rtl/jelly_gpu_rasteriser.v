@@ -51,7 +51,7 @@ module jelly_gpu_rasteriser
 			input	wire	[EVAL_NUM*EVAL_DATA_WIDTH-1:0]		param_eval_init,
 			input	wire	[EVAL_NUM*EVAL_DATA_WIDTH-1:0]		param_eval_xstep,
 			input	wire	[EVAL_NUM*EVAL_DATA_WIDTH-1:0]		param_eval_ystep,
-			
+			                
 			input	wire	[FIXED_NUM*FIXED_DATA_WIDTH-1:0]	param_fiexd_init,
 			input	wire	[FIXED_NUM*FIXED_DATA_WIDTH-1:0]	param_fiexd_xstep,
 			input	wire	[FIXED_NUM*FIXED_DATA_WIDTH-1:0]	param_fiexd_ystep,
@@ -76,7 +76,11 @@ module jelly_gpu_rasteriser
 	genvar	i;
 	integer	j;
 	
-	// パイプライン制御
+	
+	// -------------------------------------
+	//  パイプライン制御
+	// -------------------------------------
+
 	wire	[11:0]								stage_cke;
 	wire	[11:0]								stage_valid;
 	wire	[11:0]								next_valid;
@@ -124,19 +128,6 @@ module jelly_gpu_rasteriser
 				.buffered			()
 			);
 	
-	assign next_valid[0]  = src_valid;
-	assign next_valid[1]  = stage_valid[0];
-	assign next_valid[2]  = stage_valid[1];
-	assign next_valid[3]  = stage_valid[2];
-	assign next_valid[4]  = stage_valid[3];
-	assign next_valid[5]  = stage_valid[4];
-	assign next_valid[6]  = stage_valid[5];
-	assign next_valid[7]  = stage_valid[6];
-	assign next_valid[8]  = stage_valid[7];
-	assign next_valid[9]  = stage_valid[8];
-	assign next_valid[10] = stage_valid[9];
-	assign next_valid[11] = stage_valid[10];
-	
 	// 制御信号
 	reg		[10:0]	stage_initial;
 	reg		[10:0]	stage_newline;
@@ -154,65 +145,199 @@ module jelly_gpu_rasteriser
 	end
 	
 	
-	// 領域判別式
+	
+	// -------------------------------------
+	//  領域判別式
+	// -------------------------------------
+	
+	wire	[EVAL_NUM*EVAL_DATA_WIDTH-1:0]	st0_eval_data;
+	wire	[EVAL_NUM*EVAL_DATA_WIDTH-1:0]	st1_eval_data;
+	reg										st2_eval_valid;
 	generate
 	for ( i = 0; i < EVAL_NUM; i = i+1 ) begin : eval_loop
-//		reg		
+		// step y (stage8)
+		jelly_integer_step
+				#(
+					.DATA_WIDTH		(EVAL_DATA_WIDTH)
+				)
+			i_integer_step_eval_y
+				(
+					.clk			(clk),
+					.cke			(stage_cke[8]),
+					
+					.param_init		(param_float_init [i*EVAL_DATA_WIDTH +: EVAL_DATA_WIDTH]),
+					.param_step		(param_float_ystep[i*EVAL_DATA_WIDTH +: EVAL_DATA_WIDTH]),
+					
+					.set_param		(stage_valid[7] & stage_initial[7]),
+					.increment		(stage_valid[7] & stage_newline[7]),
+					
+					.out_data		(st8_eval_data    [i*EVAL_DATA_WIDTH +: EVAL_DATA_WIDTH])
+				);
 		
+		// step x (stage9)
+		jelly_integer_step
+				#(
+					.DATA_WIDTH		(EVAL_DATA_WIDTH)
+				)
+			i_integer_step_eval_x
+				(
+					.clk			(clk),
+					.cke			(stage_cke[9]),
+					
+					.param_init		(st8_eval_data    [i*EVAL_DATA_WIDTH +: EVAL_DATA_WIDTH]),
+					.param_step		(param_float_xstep[i*EVAL_DATA_WIDTH +: EVAL_DATA_WIDTH]),
+					
+					.set_param		(stage_newline[1]),
+					.increment		(stage_valid[1]),
+					
+					.out_data		(st9_eval_data    [i*EVAL_DATA_WIDTH +: EVAL_DATA_WIDTH])
+				);			
 	end
 	endgenerate
+		
+	// 判定統合 (stage10)
+	always @(posedge clk) begin
+		if ( stage_cke[10] ) begin
+			st10_eval_valid <= 1'b0;
+			for ( j = 0; j < EVAL_NUM; j = j+1 ) begin
+				if ( st9_eval_data[(j*EVAL_DATA_WIDTH) + (EVAL_DATA_WIDTH-1)] ) begin
+					st10_eval_valid <= 1'b0;
+				end
+			end
+		end
+	end
 	
 	
-	// 浮動小数点補間
+	
+	// -------------------------------------
+	//  固定小数点補間
+	// -------------------------------------
+	
+	wire	[EVAL_NUM*EVAL_DATA_WIDTH-1:0]	st10_fiexd_data;
+	wire	[EVAL_NUM*EVAL_DATA_WIDTH-1:0]	st11_fiexd_data;
+	generate
+	for ( i = 0; i < EVAL_NUM; i = i+1 ) begin : eval_loop
+		// step y (stage10)
+		jelly_integer_step
+				#(
+					.DATA_WIDTH		(EVAL_DATA_WIDTH)
+				)
+			i_integer_step_eval_y
+				(
+					.clk			(clk),
+					.cke			(stage_cke[10]),
+					
+					.param_init		(param_fixed_init [i*EVAL_DATA_WIDTH +: EVAL_DATA_WIDTH]),
+					.param_step		(param_fixed_ystep[i*EVAL_DATA_WIDTH +: EVAL_DATA_WIDTH]),
+					
+					.set_param		(stage_valid[9] & stage_initial[9]),
+					.increment		(stage_valid[9] & stage_newline[9]),
+					
+					.out_data		(st10_fixed_data  [i*EVAL_DATA_WIDTH +: EVAL_DATA_WIDTH])
+				);
+		
+		// step x (stage11)
+		jelly_integer_step
+				#(
+					.DATA_WIDTH		(EVAL_DATA_WIDTH)
+				)
+			i_integer_step_eval_x
+				(
+					.clk			(clk),
+					.cke			(stage_cke[9]),
+					
+					.param_init		(st8_eval_data    [i*EVAL_DATA_WIDTH +: EVAL_DATA_WIDTH]),
+					.param_step		(param_float_xstep[i*EVAL_DATA_WIDTH +: EVAL_DATA_WIDTH]),
+					
+					.set_param		(stage_newline[1]),
+					.increment		(stage_valid[1]),
+					
+					.out_data		(st9_eval_data    [i*EVAL_DATA_WIDTH +: EVAL_DATA_WIDTH])
+				);			
+	end
+	endgenerate
+		
+	// 判定統合 (stage10)
+	always @(posedge clk) begin
+		if ( stage_cke[10] ) begin
+			st10_eval_valid <= 1'b0;
+			for ( j = 0; j < EVAL_NUM; j = j+1 ) begin
+				if ( st9_eval_data[(j*EVAL_DATA_WIDTH) + (EVAL_DATA_WIDTH-1)] ) begin
+					st10_eval_valid <= 1'b0;
+				end
+			end
+		end
+	end
+	
+	
+	// -------------------------------------
+	//  浮動小数点補間
+	// -------------------------------------
+	
 	wire	[FLOAT_NUM*FLOAT_DATA_WIDTH-1:0]	st5_float_data;
 	wire	[FLOAT_NUM*FLOAT_DATA_WIDTH-1:0]	st11_float_data;
 	
 	generate
-	for ( i = 0; i < FLOAT_NUM; i = i+1 ) begin : float_loop
-		// Y座標 float 
-		jelly_float_step
-				#(
-					.EXP_WIDTH		(FLOAT_EXP_WIDTH),
-					.FRAC_WIDTH		(FLOAT_FRAC_WIDTH)
-				)
-			i_float_step_y
-				(
-					.clk			(clk),
-					.stage_cke		(stage_cke[5:0]),
-					
-					.param_init		(param_float_init [i*FLOAT_DATA_WIDTH +: FLOAT_DATA_WIDTH]),
-					.param_step		(param_float_ystep[i*FLOAT_DATA_WIDTH +: FLOAT_DATA_WIDTH]),
-					
-					.set_param		(src_valid & src_initial),
-					.increment		(src_valid & src_newline),
-					
-					.out_data		(st5_float_data   [i*FLOAT_DATA_WIDTH +: FLOAT_DATA_WIDTH])
-				);
-		
-		// X座標 float 
-		jelly_float_step
-				#(
-					.EXP_WIDTH		(FLOAT_EXP_WIDTH),
-					.FRAC_WIDTH		(FLOAT_FRAC_WIDTH)
-				)
-			i_float_step_x
-				(
-					.clk			(clk),
-					.stage_cke		(stage_cke[11:6]),
-					
-					.param_init		(st5_float_data   [i*FLOAT_DATA_WIDTH +: FLOAT_DATA_WIDTH]),
-					.param_step		(param_float_xstep[i*FLOAT_DATA_WIDTH +: FLOAT_DATA_WIDTH]),
-					
-					.set_param		(stage_newline[5]),
-					.increment		(stage_valid[5]),
-					
-					.out_data		(st11_float_data  [i*FLOAT_DATA_WIDTH +: FLOAT_DATA_WIDTH])
-				);
-	end
+		for ( i = 0; i < FLOAT_NUM; i = i+1 ) begin : float_loop
+			// Y座標 float 
+			jelly_float_step
+					#(
+						.EXP_WIDTH		(FLOAT_EXP_WIDTH),
+						.FRAC_WIDTH		(FLOAT_FRAC_WIDTH)
+					)
+				i_float_step_y
+					(
+						.clk			(clk),
+						.stage_cke		(stage_cke[5:0]),
+						
+						.param_init		(param_float_init [i*FLOAT_DATA_WIDTH +: FLOAT_DATA_WIDTH]),
+						.param_step		(param_float_ystep[i*FLOAT_DATA_WIDTH +: FLOAT_DATA_WIDTH]),
+						
+						.set_param		(src_valid & src_initial),
+						.increment		(src_valid & src_newline),
+						
+						.out_data		(st5_float_data   [i*FLOAT_DATA_WIDTH +: FLOAT_DATA_WIDTH])
+					);
+			
+			// X座標 float 
+			jelly_float_step
+					#(
+						.EXP_WIDTH		(FLOAT_EXP_WIDTH),
+						.FRAC_WIDTH		(FLOAT_FRAC_WIDTH)
+					)
+				i_float_step_x
+					(
+						.clk			(clk),
+						.stage_cke		(stage_cke[11:6]),
+						
+						.param_init		(st5_float_data   [i*FLOAT_DATA_WIDTH +: FLOAT_DATA_WIDTH]),
+						.param_step		(param_float_xstep[i*FLOAT_DATA_WIDTH +: FLOAT_DATA_WIDTH]),
+						
+						.set_param		(stage_newline[5]),
+						.increment		(stage_valid[5]),
+						
+						.out_data		(st11_float_data  [i*FLOAT_DATA_WIDTH +: FLOAT_DATA_WIDTH])
+					);
+		end
 	endgenerate
 	
+	// 出力
 	assign sink_float_data = st11_float_data;
-	
+		
+	// 有効データ制御
+	assign next_valid[0]  = src_valid;
+	assign next_valid[1]  = stage_valid[0];
+	assign next_valid[2]  = stage_valid[1];
+	assign next_valid[3]  = stage_valid[2];
+	assign next_valid[4]  = stage_valid[3];
+	assign next_valid[5]  = stage_valid[4];
+	assign next_valid[6]  = stage_valid[5];
+	assign next_valid[7]  = stage_valid[6];
+	assign next_valid[8]  = stage_valid[7];
+	assign next_valid[9]  = stage_valid[8];
+	assign next_valid[10] = stage_valid[9];
+	assign next_valid[11] = stage_valid[10] & st10_eval_valid;
+		
 endmodule
 
 
