@@ -24,24 +24,25 @@ module jelly_float_step
 			
 			input	wire	[5:0]				stage_cke,
 			
-			input	wire	[DATA_WIDTH-1:0]	param_init,
-			input	wire	[DATA_WIDTH-1:0]	param_step,
+			// input
+			input	wire	[DATA_WIDTH-1:0]	s_param_init,
+			input	wire	[DATA_WIDTH-1:0]	s_param_step,
+			input	wire						s_initial,
+			input	wire						s_increment,
 			
-			input	wire						set_param,
-			input	wire						increment,
-			
-			output	wire	[DATA_WIDTH-1:0]	out_data
+			// output
+			output	wire	[DATA_WIDTH-1:0]	m_data
 		);
 	
 	
-	wire								src_init_sign = param_init[DATA_WIDTH-1];
-	wire			[EXP_WIDTH-1:0]		src_init_exp  = param_init[FRAC_WIDTH +: EXP_WIDTH];
-	wire			[FRAC_WIDTH-1:0]	src_init_frac = param_init[FRAC_WIDTH-1:0];
-	wire								src_step_sign = param_step[DATA_WIDTH-1];
-	wire			[EXP_WIDTH-1:0]		src_step_exp  = param_step[FRAC_WIDTH +: EXP_WIDTH];
-	wire			[FRAC_WIDTH-1:0]	src_step_frac = param_step[FRAC_WIDTH-1:0];
-	wire								src_set_param = set_param;
-	wire								src_increment = increment;
+	wire								src_init_sign = s_param_init[DATA_WIDTH-1];
+	wire			[EXP_WIDTH-1:0]		src_init_exp  = s_param_init[FRAC_WIDTH +: EXP_WIDTH];
+	wire			[FRAC_WIDTH-1:0]	src_init_frac = s_param_init[FRAC_WIDTH-1:0];
+	wire								src_step_sign = s_param_step[DATA_WIDTH-1];
+	wire			[EXP_WIDTH-1:0]		src_step_exp  = s_param_step[FRAC_WIDTH +: EXP_WIDTH];
+	wire			[FRAC_WIDTH-1:0]	src_step_frac = s_param_step[FRAC_WIDTH-1:0];
+	wire								src_initial   = s_initial;
+	wire								src_increment = s_increment;
 	
 	reg									st0_init_sign;
 	reg				[EXP_WIDTH-1:0]		st0_init_shift;
@@ -50,7 +51,7 @@ module jelly_float_step
 	reg									st0_step_sign;
 	reg				[EXP_WIDTH-1:0]		st0_step_shift;
 	reg				[FRAC_WIDTH-1:0]	st0_step_frac;
-	reg									st0_set_param;
+	reg									st0_initial;
 	reg									st0_increment;
 	
 	reg									st1_init_sign;
@@ -58,7 +59,7 @@ module jelly_float_step
 	reg				[FRAC_WIDTH:0]		st1_init_frac;
 	reg									st1_step_sign;
 	reg				[FRAC_WIDTH:0]		st1_step_frac;
-	reg									st1_set_param;
+	reg									st1_initial;
 	reg									st1_increment;
 	
 	reg									st2_base_sign;
@@ -100,7 +101,7 @@ module jelly_float_step
 				st0_init_shift <= src_step_exp - src_init_exp;
 				st0_step_shift <= 0;
 			end
-			st0_set_param <= src_set_param;
+			st0_initial   <= src_initial;
 			st0_increment <= src_increment;
 		end
 		
@@ -112,14 +113,14 @@ module jelly_float_step
 			st1_init_frac <= ({1'b1, st0_init_frac} >> st0_init_shift);
 			st1_step_sign <= st0_step_sign;
 			st1_step_frac <= ({1'b1, st0_step_frac} >> st0_step_shift);
-			st1_set_param <= st0_set_param;
+			st1_initial   <= st0_initial;
 			st1_increment <= st0_increment;
 		end
 		
 		
 		// stage 2 (インクリメント計算)
 		if ( stage_cke[2] ) begin
-			if ( st1_set_param ) begin
+			if ( st1_initial ) begin
 				// 初期化
 				st2_base_sign <= st1_init_sign;
 				st2_base_exp  <= st1_init_exp;
@@ -169,7 +170,7 @@ module jelly_float_step
 		end
 	end
 	
-	assign out_data  = {st5_sign, st5_exp, st5_frac};
+	assign m_data  = {st5_sign, st5_exp, st5_frac};
 	
 endmodule
 

@@ -20,33 +20,34 @@ module jelly_integer_step
 		(
 			input	wire								clk,
 			
-			input	wire	[5:0]						stage_cke,
+			input	wire	[5:0]						cke,
 			
-			input	wire	signed	[DATA_WIDTH-1:0]	param_init,
-			input	wire	signed	[DATA_WIDTH-1:0]	param_step,
+			// input
+			input	wire	signed	[DATA_WIDTH-1:0]	s_param_init,
+			input	wire	signed	[DATA_WIDTH-1:0]	s_param_step,
+			input	wire								s_initial,
+			input	wire								s_increment,
 			
-			input	wire								set_param,
-			input	wire								increment,
-			
-			output	wire	signed	[DATA_WIDTH-1:0]	out_data
+			// output
+			output	wire	signed	[DATA_WIDTH-1:0]	m_data
 		);
 	
 	reg		signed	[DATA_WIDTH-1:0]	reg_data;
 	
 	always @(posedge clk) begin
 		if ( cke ) begin
-			if ( set_param ) begin
-				reg_data <= param_init;
+			if ( s_initial ) begin
+				reg_data <= s_param_init;
 			end
 			else begin
-				if ( increment ) begin
-					reg_data <= reg_data + param_step;
+				if ( s_increment ) begin
+					reg_data <= reg_data + s_param_step;
 				end
 			end
 		end
 	end
 	
-	assign out_data = reg_data;
+	assign m_data = reg_data;
 	
 endmodule
 
