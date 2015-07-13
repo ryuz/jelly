@@ -151,7 +151,7 @@ CONFIG PROHIBIT = R4;
 
 
 # Async
-INST "*__async_tx*" TNM = "ASYNC_TX";
-INST "*__async_rx*" TNM = "ASYNC_RX";
-TIMESPEC "TS_ASYNC" = FROM "ASYNC_TX" TO "ASYNC_RX" TS_in_clk;
+#INST "*__async_tx*" TNM = "ASYNC_TX";
+#INST "*__async_rx*" TNM = "ASYNC_RX";
+#TIMESPEC "TS_ASYNC" = FROM "ASYNC_TX" TO "ASYNC_RX" TS_in_clk;
 

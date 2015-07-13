@@ -52,6 +52,7 @@ module jelly_fifo_read_fwtf
 			(
 				.reset				(reset),
 				.clk				(clk),
+				.cke				(1'b1),
 				
 				.s_data				(1'b0),
 				.s_valid			(!rd_empty),
