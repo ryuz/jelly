@@ -345,7 +345,7 @@ module jelly_vdma_axi4_to_axi4s
 				.m_axi4s_tvalid		(axi4s_core_tvalid),
 				.m_axi4s_tready		(axi4s_core_tready)
 		);
-		
+	
 endmodule
 
 

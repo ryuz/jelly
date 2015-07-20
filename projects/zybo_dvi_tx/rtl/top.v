@@ -427,7 +427,7 @@ module top
 	jelly_vdma_axi4_to_axi4s
 			#(
 				.ASYNC				(1),
-				.FIFO_PTR_WIDTH		(9),
+				.FIFO_PTR_WIDTH		(10),
 				.PIXEL_SIZE			(2),	// 32bit
 				.AXI4_ID_WIDTH		(6),
 				.AXI4_ADDR_WIDTH	(32),
@@ -448,7 +448,7 @@ module top
 				.INIT_PARAM_WIDTH	(IMAGE_X_NUM),
 				.INIT_PARAM_HEIGHT	(IMAGE_Y_NUM),
 				.INIT_PARAM_SIZE	(IMAGE_X_NUM*IMAGE_Y_NUM),
-				.INIT_PARAM_ARLEN	(7)
+				.INIT_PARAM_ARLEN	(8'h0f)
 			)
 		i_vdma_axi4_to_axi4s
 			(
@@ -659,19 +659,18 @@ module top
 	// ----------------------------------------
 	
 	reg		[7:1]		reg_pmod_a;
-	always @(posedge wb_clk_o ) begin
-		reg_pmod_a[1] <= wb_host_stb_o;
-		reg_pmod_a[2] <= wb_host_ack_i;
-		reg_pmod_a[3] <= wb_host_we_o;
-		reg_pmod_a[4] <= wb_host_sel_o[0];
-		reg_pmod_a[5] <= wb_host_sel_o[1];
-		reg_pmod_a[6] <= wb_host_adr_o[2];
-		reg_pmod_a[7] <= wb_host_adr_o[3];
+	always @(posedge video_clk ) begin
+		reg_pmod_a[1] <= axi4s_memr_tuser;
+		reg_pmod_a[2] <= axi4s_memr_tlast;
+		reg_pmod_a[3] <= axi4s_memr_tvalid;
+		reg_pmod_a[4] <= axi4s_memr_tready;
+		reg_pmod_a[5] <= vout_vsync;
+		reg_pmod_a[6] <= vout_hsync;
+		reg_pmod_a[7] <= vout_de;
 	end
 	
-	assign pmod_a[0]   = wb_clk_o;
+	assign pmod_a[0]   = video_clk;
 	assign pmod_a[7:1] = reg_pmod_a[7:1];
-	
 	
 endmodule
 

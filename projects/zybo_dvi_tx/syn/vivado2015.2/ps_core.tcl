@@ -166,7 +166,7 @@ proc create_root_design { parentCell } {
 
   # Create instance: axi_interconnect_1, and set properties
   set axi_interconnect_1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_interconnect:2.1 axi_interconnect_1 ]
-  set_property -dict [ list CONFIG.NUM_MI {1} CONFIG.S00_HAS_DATA_FIFO {0} CONFIG.S00_HAS_REGSLICE {3}  ] $axi_interconnect_1
+  set_property -dict [ list CONFIG.NUM_MI {1} CONFIG.S00_HAS_DATA_FIFO {2} CONFIG.S00_HAS_REGSLICE {4}  ] $axi_interconnect_1
 
   # Create instance: axi_protocol_converter_0, and set properties
   set axi_protocol_converter_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_protocol_converter:2.1 axi_protocol_converter_0 ]

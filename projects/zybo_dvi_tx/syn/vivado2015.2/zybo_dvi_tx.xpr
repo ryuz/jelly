@@ -74,7 +74,28 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
+      <File Path="$PPRDIR/../../../../rtl/library/jelly_multiplexer.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../../rtl/library/jelly_fifo_fwtf.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
       <File Path="$PPRDIR/../../../../rtl/library/jelly_fifo_async_fwtf.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../../rtl/library/jelly_demultiplexer.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -95,28 +116,21 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/library/jelly_multiplexer.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../../../../rtl/library/jelly_fifo_fwtf.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../../../../rtl/library/jelly_demultiplexer.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
       <File Path="$PPRDIR/../../../../rtl/video/vdma/jelly_vdma_axi4_to_axi4s_core.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../../rtl/library/jelly_fifo_generic_fwtf.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../../rtl/library/jelly_data_width_converter.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -151,21 +165,7 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/library/jelly_fifo_generic_fwtf.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../../../../rtl/library/jelly_data_width_converter.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../../../../rtl/video/pattern_generator/jelly_pattern_generator_axi4s.v">
+      <File Path="$PPRDIR/../../../../rtl/video/vdma/jelly_vdma_axi4_to_axi4s.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -178,9 +178,6 @@
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
-        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="hdl/ps_core.hwdef"/>
-        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="hw_handoff/ps_core_bd.tcl"/>
-        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="hw_handoff/ps_core.hwh"/>
         <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="hdl/ps_core.v"/>
         <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_processing_system7_0_0_1/ps_core_processing_system7_0_0.xci"/>
         <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_proc_sys_reset_video_0_1/ps_core_proc_sys_reset_video_0.xci"/>
@@ -191,8 +188,11 @@
         <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_axi_protocol_converter_0_0_1/ps_core_axi_protocol_converter_0_0.xci"/>
         <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_s00_data_fifo_0/ps_core_s00_data_fifo_0.xci"/>
         <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_s00_regslice_0/ps_core_s00_regslice_0.xci"/>
-        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ps_core_ooc.xdc"/>
         <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_auto_pc_0/ps_core_auto_pc_0.xci"/>
+        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="hw_handoff/ps_core.hwh"/>
+        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ps_core_ooc.xdc"/>
+        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="hdl/ps_core.hwdef"/>
+        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="hw_handoff/ps_core_bd.tcl"/>
       </File>
       <File Path="$PPRDIR/../../../../rtl/video/vout/jelly_vsync_generator.v">
         <FileInfo>
@@ -208,13 +208,6 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/video/vdma/jelly_vdma_axi4_to_axi4s.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
       <File Path="$PPRDIR/../../../../rtl/video/vdma/jelly_vdma_axi4s_to_axi4.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
@@ -222,7 +215,14 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/video/dvi_tx/jelly_dvi_tx.v">
+      <File Path="$PPRDIR/../../../../rtl/video/pattern_generator/jelly_pattern_generator_axi4s.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../../rtl/peripheral/gpio/jelly_gpio.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -236,7 +236,7 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/peripheral/gpio/jelly_gpio.v">
+      <File Path="$PPRDIR/../../../../rtl/video/dvi_tx/jelly_dvi_tx.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -271,9 +271,16 @@
     </FileSet>
     <FileSet Name="sim_1" Type="SimulationSrcs" RelSrcDir="$PSRCDIR/sim_1">
       <Filter Type="Srcs"/>
+      <File Path="$PPRDIR/../../sim/tb_top.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
       <Config>
         <Option Name="DesignMode" Val="RTL"/>
-        <Option Name="TopModule" Val="top"/>
+        <Option Name="TopModule" Val="tb_top"/>
         <Option Name="TopLib" Val="xil_defaultlib"/>
         <Option Name="TopAutoSet" Val="TRUE"/>
         <Option Name="SrcSet" Val="sources_1"/>

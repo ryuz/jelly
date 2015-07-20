@@ -195,7 +195,7 @@ module jelly_vdma_axi4_to_axi4s_core
 						reg_araddr <= param_addr;
 					end
 					else begin
-						reg_arhcount <= reg_param_width;
+						reg_arhcount <= pixels_to_count(reg_param_width);
 						reg_arvcount <= reg_param_height;
 						if ( (reg_param_size != 0) && pixels_to_byte(reg_param_width) == reg_param_stride ) begin
 							reg_arhcount <= pixels_to_count(reg_param_size);
@@ -241,7 +241,7 @@ module jelly_vdma_axi4_to_axi4s_core
 	
 	
 	// DMA
-	wire	[SIZE_WIDTH-1:0]		dma_unit = reg_param_width;
+	wire	[SIZE_WIDTH-1:0]		dma_unit = pixels_to_count(reg_param_width);
 	
 	jelly_axi4_dma_reader
 			#(
