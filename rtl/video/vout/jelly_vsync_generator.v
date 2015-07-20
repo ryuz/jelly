@@ -1,15 +1,18 @@
 // ---------------------------------------------------------------------------
-//  test pattern generator
+//  Jelly  -- The FPGA processing system
 //
-//                                     Copyright (C) 2015 by Ryuji Fuchikami
-//                                      http://homepage3.nifty.com/ryuz
+//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
+//                                 http://homepage3.nifty.com/ryuz/
 // ---------------------------------------------------------------------------
+
 
 
 `timescale 1ns / 1ps
 `default_nettype none
 
 
+
+//  video sync generator
 module jelly_vsync_generator
 		#(
 			parameter	CORE_ID          = 32'habcd_0000,

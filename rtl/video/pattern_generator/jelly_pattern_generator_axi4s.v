@@ -1,10 +1,18 @@
-// pattern generator
+// ---------------------------------------------------------------------------
+//  Jelly  -- The FPGA processing system
+//
+//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
+//                                 http://homepage3.nifty.com/ryuz/
+// ---------------------------------------------------------------------------
+
 
 
 `timescale 1ns / 1ps
 `default_nettype none
 
 
+
+// pattern generator
 module jelly_pattern_generator_axi4s
 		#(
 			parameter	AXI4S_DATA_WIDTH = 32,

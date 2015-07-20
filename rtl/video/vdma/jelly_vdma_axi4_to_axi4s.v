@@ -1,7 +1,15 @@
+// ---------------------------------------------------------------------------
+//  Jelly  -- The FPGA processing system
+//
+//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
+//                                 http://homepage3.nifty.com/ryuz/
+// ---------------------------------------------------------------------------
+
 
 
 `timescale 1ns/1ps
 `default_nettype none
+
 
 
 module jelly_vdma_axi4_to_axi4s

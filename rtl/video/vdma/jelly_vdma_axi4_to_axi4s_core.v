@@ -1,17 +1,18 @@
 // ---------------------------------------------------------------------------
-//  AXI4 から Read して AXI4Streamにするコア
-//      受付コマンド数などは AXI interconnect などで制約できるので
-//    コアはシンプルな作りとする
+//  Jelly  -- The FPGA processing system
 //
-//                                      Copyright (C) 2015 by Ryuji Fuchikami
-//                                      http://homepage3.nifty.com/ryuz
+//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
+//                                 http://homepage3.nifty.com/ryuz/
 // ---------------------------------------------------------------------------
+
 
 
 `timescale 1ns / 1ps
 `default_nettype none
 
 
+
+//  AXI4 から Read して AXI4Streamにするコア
 module jelly_vdma_axi4_to_axi4s_core
 		#(
 			parameter	PIXEL_SIZE       = 2,	// 0:8bit, 1:16bit, 2:32bit, 3:64bit ...

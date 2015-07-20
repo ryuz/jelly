@@ -1,15 +1,18 @@
 // ---------------------------------------------------------------------------
-//  AXI4Stream を AXI4に Write するコア
+//  Jelly  -- The FPGA processing system
 //
-//                                      Copyright (C) 2015 by Ryuji Fuchikami
-//                                      http://homepage3.nifty.com/ryuz
+//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
+//                                 http://homepage3.nifty.com/ryuz/
 // ---------------------------------------------------------------------------
+
 
 
 `timescale 1ns / 1ps
 `default_nettype none
 
 
+
+//  AXI4Stream を AXI4に Write するコア
 module jelly_vdma_axi4s_to_axi4_core
 		#(
 			parameter	AXI4_ID_WIDTH    = 6,

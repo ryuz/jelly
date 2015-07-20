@@ -1,15 +1,18 @@
 // ---------------------------------------------------------------------------
-//	10 to 1 serdes for xilinx 7series
+//  Jelly  -- The FPGA processing system
 //
-//										Copyright (C) 2015 by Ryuji Fuchikami
-//										http://homepage3.nifty.com/ryuz
+//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
+//                                 http://homepage3.nifty.com/ryuz/
 // ---------------------------------------------------------------------------
+
 
 
 `timescale 1ns / 1ps
 `default_nettype none
 
 
+
+//	10 to 1 serdes for xilinx 7series
 module jelly_serdes_10to1_7series
 		(
 			input	wire			reset,
