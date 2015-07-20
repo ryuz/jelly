@@ -257,13 +257,13 @@ module top
 				.cpu_irq			(cpu_irq),
 				.cpu_irq_ack		(cpu_irq_ack),
 											
-				.wb_adr_i			(wb_irc_adr_i[9:2]),
-				.wb_dat_o			(wb_irc_dat_o),
-				.wb_dat_i			(wb_irc_dat_i),
-				.wb_we_i			(wb_irc_we_i),
-				.wb_sel_i			(wb_irc_sel_i),
-				.wb_stb_i			(wb_irc_stb_i),
-				.wb_ack_o			(wb_irc_ack_o)
+				.s_wb_adr_i			(wb_irc_adr_i[9:2]),
+				.s_wb_dat_o			(wb_irc_dat_o),
+				.s_wb_dat_i			(wb_irc_dat_i),
+				.s_wb_we_i			(wb_irc_we_i),
+				.s_wb_sel_i			(wb_irc_sel_i),
+				.s_wb_stb_i			(wb_irc_stb_i),
+				.s_wb_ack_o			(wb_irc_ack_o)
 			);                     
 	
 	
@@ -287,13 +287,13 @@ module top
 				
 				.interrupt_req		(timer0_irq),
 
-				.wb_adr_i			(wb_timer0_adr_i[3:2]),
-				.wb_dat_o			(wb_timer0_dat_o),
-				.wb_dat_i			(wb_timer0_dat_i),
-				.wb_we_i			(wb_timer0_we_i),
-				.wb_sel_i			(wb_timer0_sel_i),
-				.wb_stb_i			(wb_timer0_stb_i),
-				.wb_ack_o			(wb_timer0_ack_o)
+				.s_wb_adr_i			(wb_timer0_adr_i[3:2]),
+				.s_wb_dat_o			(wb_timer0_dat_o),
+				.s_wb_dat_i			(wb_timer0_dat_i),
+				.s_wb_we_i			(wb_timer0_we_i),
+				.s_wb_sel_i			(wb_timer0_sel_i),
+				.s_wb_stb_i			(wb_timer0_stb_i),
+				.s_wb_ack_o			(wb_timer0_ack_o)
 			);                     
 	
 	
@@ -327,13 +327,13 @@ module top
 				.irq_rx				(uart0_irq_rx),
 				.irq_tx				(uart0_irq_tx),
 				
-				.wb_adr_i			(wb_uart0_adr_i[3:2]),
-				.wb_dat_o			(wb_uart0_dat_o),
-				.wb_dat_i			(wb_uart0_dat_i),
-				.wb_we_i			(wb_uart0_we_i),
-				.wb_sel_i			(wb_uart0_sel_i),
-				.wb_stb_i			(wb_uart0_stb_i),
-				.wb_ack_o			(wb_uart0_ack_o)
+				.s_wb_adr_i			(wb_uart0_adr_i[3:2]),
+				.s_wb_dat_o			(wb_uart0_dat_o),
+				.s_wb_dat_i			(wb_uart0_dat_i),
+				.s_wb_we_i			(wb_uart0_we_i),
+				.s_wb_sel_i			(wb_uart0_sel_i),
+				.s_wb_stb_i			(wb_uart0_stb_i),
+				.s_wb_ack_o			(wb_uart0_ack_o)
 			);                     
 	
 	

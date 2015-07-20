@@ -9,10 +9,10 @@
 
 
 `timescale 1ns / 1ps
+`default_nettype none
 
 
-
-module jelly_jbus_slave_model
+module jelly_s_jbus_model
 		#(
 			parameter	ADDR_WIDTH = 12,
 			parameter	DATA_SIZE  = 2,		// 2^n (0:8bit, 1:16bit, 2:32bit ...)
@@ -26,13 +26,13 @@ module jelly_jbus_slave_model
 			input	wire						reset,
 			
 			// slave port
-			input	wire						jbus_slave_en,
-			input	wire						jbus_slave_we,
-			input	wire	[ADDR_WIDTH-1:0]	jbus_slave_addr,
-			input	wire	[BLS_WIDTH-1:0]		jbus_slave_bls,
-			input	wire	[DATA_WIDTH-1:0]	jbus_slave_wdata,
-			output	reg		[DATA_WIDTH-1:0]	jbus_slave_rdata,
-			output	wire						jbus_slave_ready
+			input	wire						s_jbus_en,
+			input	wire						s_jbus_we,
+			input	wire	[ADDR_WIDTH-1:0]	s_jbus_addr,
+			input	wire	[BLS_WIDTH-1:0]		s_jbus_bls,
+			input	wire	[DATA_WIDTH-1:0]	s_jbus_wdata,
+			output	reg		[DATA_WIDTH-1:0]	s_jbus_rdata,
+			output	wire						s_jbus_ready
 		);
 	
 	generate
@@ -40,15 +40,15 @@ module jelly_jbus_slave_model
 	for ( i = 0; i < BLS_WIDTH; i = i + 1 ) begin : bls
 		reg		[7:0]	mem		[0:MEM_WIDTH-1];
 		always @( posedge clk ) begin
-			if ( jbus_slave_en & jbus_slave_ready ) begin
-				if ( jbus_slave_we ) begin
-					if ( jbus_slave_bls[i] ) begin
-						mem[jbus_slave_addr] <= jbus_slave_wdata[i*8 +: 8];
+			if ( s_jbus_en & s_jbus_ready ) begin
+				if ( s_jbus_we ) begin
+					if ( s_jbus_bls[i] ) begin
+						mem[s_jbus_addr] <= s_jbus_wdata[i*8 +: 8];
 					end
-					jbus_slave_rdata[i*8 +: 8] <= 8'hxx;
+					s_jbus_rdata[i*8 +: 8] <= 8'hxx;
 				end
 				else begin
-					jbus_slave_rdata[i*8 +: 8] <= mem[jbus_slave_addr];
+					s_jbus_rdata[i*8 +: 8] <= mem[s_jbus_addr];
 				end
 			end
 		end
@@ -64,11 +64,15 @@ module jelly_jbus_slave_model
 				.seed		(16'h1234),
 				.out		(rand)
 			);
-//	assign jbus_slave_ready = rand;
-	assign jbus_slave_ready = 1'b1;
+//	assign s_jbus_ready = rand;
+	assign s_jbus_ready = 1'b1;
 	
 	
 endmodule
+
+
+
+`default_nettype	wire
 
 
 // end of file

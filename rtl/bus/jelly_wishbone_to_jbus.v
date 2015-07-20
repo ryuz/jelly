@@ -48,14 +48,14 @@ module jelly_wishbone_to_jbus
 	
 	
 	// read state
-	reg							reg_master_read;
+	reg							reg_m_read;
 	always @( posedge clk ) begin
 		if ( reset ) begin
-			reg_master_read<= 1'b0;
+			reg_m_read<= 1'b0;
 		end
 		else begin
 			if ( m_jbus_en & m_jbus_ready ) begin
-				reg_master_read <= m_jbus_valid & !m_jbus_we;
+				reg_m_read <= m_jbus_valid & !m_jbus_we;
 			end
 		end
 	end
@@ -69,10 +69,10 @@ module jelly_wishbone_to_jbus
 		assign m_jbus_wdata = s_wb_dat_i;
 		assign m_jbus_we    = s_wb_we_i;
 		assign m_jbus_sel   = s_wb_sel_i;
-		assign m_jbus_valid = s_wb_stb_i & !reg_master_read;
+		assign m_jbus_valid = s_wb_stb_i & !reg_m_read;
 		
 		assign s_wb_dat_o = m_jbus_rdata;
-		assign s_wb_ack_o = m_jbus_ready & (reg_master_read | m_jbus_we);
+		assign s_wb_ack_o = m_jbus_ready & (reg_m_read | m_jbus_we);
 	end
 	else begin
 		// insert FF
@@ -101,10 +101,10 @@ module jelly_wishbone_to_jbus
 					reg_jbus_wdata <= s_wb_dat_i;
 					reg_jbus_we    <= s_wb_we_i;
 				 	reg_jbus_sel   <= s_wb_sel_i;
-					reg_jbus_valid <= s_wb_stb_i & !reg_master_read;
+					reg_jbus_valid <= s_wb_stb_i & !reg_m_read;
 					
 					reg_wb_dat_o   <= m_jbus_rdata;
-					reg_wb_ack_o   <= s_wb_stb_i & (s_wb_we_i | & reg_master_read);
+					reg_wb_ack_o   <= s_wb_stb_i & (s_wb_we_i | & reg_m_read);
 				end
 				else begin
 					reg_wb_dat_o   <= m_jbus_rdata;

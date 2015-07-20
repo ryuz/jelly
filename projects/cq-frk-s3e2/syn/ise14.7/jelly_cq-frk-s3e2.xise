@@ -33,11 +33,11 @@
     </file>
     <file xil_pn:name="../../../../rtl/cpu/jelly_cpu_alu.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="5"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="23"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="24"/>
     </file>
     <file xil_pn:name="../../../../rtl/cpu/jelly_cpu_cop0.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="6"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="22"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="23"/>
     </file>
     <file xil_pn:name="../../../../rtl/cpu/jelly_cpu_core.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="7"/>
@@ -49,7 +49,7 @@
     </file>
     <file xil_pn:name="../../../../rtl/cpu/jelly_cpu_dbu.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="9"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="21"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="22"/>
     </file>
     <file xil_pn:name="../../../../rtl/cpu/jelly_cpu_divider.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="10"/>
@@ -57,15 +57,15 @@
     </file>
     <file xil_pn:name="../../../../rtl/cpu/jelly_cpu_gpr.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="11"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="20"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="21"/>
     </file>
     <file xil_pn:name="../../../../rtl/cpu/jelly_cpu_idu.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="12"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="19"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="20"/>
     </file>
     <file xil_pn:name="../../../../rtl/cpu/jelly_cpu_muldiv.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="13"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="16"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="17"/>
     </file>
     <file xil_pn:name="../../../../rtl/cpu/jelly_cpu_multiplier.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="14"/>
@@ -73,11 +73,11 @@
     </file>
     <file xil_pn:name="../../../../rtl/cpu/jelly_cpu_shifter.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="15"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="15"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="16"/>
     </file>
-    <file xil_pn:name="../../../../rtl/bus/jelly_jbus_logger.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../../rtl/model/jelly_jbus_logger.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="16"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="26"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="13"/>
     </file>
     <file xil_pn:name="../../../../rtl/bus/jelly_jbus_to_wishbone.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="17"/>
@@ -85,17 +85,17 @@
     </file>
     <file xil_pn:name="../../../../rtl/bus/jelly_wishbone_arbiter.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="18"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="25"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="26"/>
     </file>
     <file xil_pn:name="../../../../rtl/bus/jelly_wishbone_to_jbus.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="19"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="12"/>
     </file>
-    <file xil_pn:name="../../../../rtl/irc/jelly_irc.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../../rtl/peripheral/irc/jelly_irc.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="20"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="44"/>
     </file>
-    <file xil_pn:name="../../../../rtl/irc/jelly_irc_factor.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../../rtl/peripheral/irc/jelly_irc_factor.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="21"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="38"/>
     </file>
@@ -139,7 +139,7 @@
     </file>
     <file xil_pn:name="../../../../rtl/cache/jelly_cache_core.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="31"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="24"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="25"/>
     </file>
     <file xil_pn:name="../../../../rtl/cache/jelly_cache_unified.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="32"/>
@@ -182,7 +182,7 @@
     </file>
     <file xil_pn:name="../../../../rtl/library/jelly_fifo_async.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="61"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="14"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="15"/>
     </file>
     <file xil_pn:name="../../../../rtl/library/jelly_fifo_async_fwtf.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="62"/>
@@ -194,15 +194,15 @@
     </file>
     <file xil_pn:name="../../../../rtl/cpu/jelly_cpu_memdec.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="71"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="18"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="19"/>
     </file>
     <file xil_pn:name="../../../../rtl/cpu/jelly_cpu_memenc.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="72"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="17"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="18"/>
     </file>
     <file xil_pn:name="../../../../rtl/library/jelly_fifo_read_fwtf.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="98"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="13"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="14"/>
     </file>
     <file xil_pn:name="../../../../rtl/library/jelly_pipeline_control.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="99"/>

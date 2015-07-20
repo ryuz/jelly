@@ -367,20 +367,20 @@ module jelly_cpu_top
 					.reset				(reset),
 					.clk				(clk),
 					
-					.jbus_en			(jbus_itcm_en),
-					.jbus_addr			(jbus_itcm_addr),
-					.jbus_wdata			(jbus_itcm_wdata),
-					.jbus_rdata			(jbus_itcm_rdata),
-					.jbus_we			(jbus_itcm_we),
-					.jbus_sel			(jbus_itcm_sel),
-					.jbus_valid			(jbus_itcm_valid),
-					.jbus_ready			(jbus_itcm_ready),
+					.s_jbus_en			(jbus_itcm_en),
+					.s_jbus_addr		(jbus_itcm_addr),
+					.s_jbus_wdata		(jbus_itcm_wdata),
+					.s_jbus_rdata		(jbus_itcm_rdata),
+					.s_jbus_we			(jbus_itcm_we),
+					.s_jbus_sel			(jbus_itcm_sel),
+					.s_jbus_valid		(jbus_itcm_valid),
+					.s_jbus_ready		(jbus_itcm_ready),
 					
-					.ram_en				(ram_itcm_en),
-					.ram_we				(ram_itcm_we),
-					.ram_addr			(ram_itcm_addr),
-					.ram_wdata			(ram_itcm_wdata),
-					.ram_rdata			(ram_itcm_rdata)
+					.m_ram_en			(ram_itcm_en),
+					.m_ram_we			(ram_itcm_we),
+					.m_ram_addr			(ram_itcm_addr),
+					.m_ram_wdata		(ram_itcm_wdata),
+					.m_ram_rdata		(ram_itcm_rdata)
 				);                     
 
 		jelly_jbus_to_ram
@@ -393,20 +393,20 @@ module jelly_cpu_top
 					.reset				(reset),
 					.clk				(clk),
 					
-					.jbus_en			(jbus_dtcm_en),
-					.jbus_addr			(jbus_dtcm_addr),
-					.jbus_wdata			(jbus_dtcm_wdata),
-					.jbus_rdata			(jbus_dtcm_rdata),
-					.jbus_we			(jbus_dtcm_we),
-					.jbus_sel			(jbus_dtcm_sel),
-					.jbus_valid			(jbus_dtcm_valid),
-					.jbus_ready			(jbus_dtcm_ready),
+					.s_jbus_en			(jbus_dtcm_en),
+					.s_jbus_addr		(jbus_dtcm_addr),
+					.s_jbus_wdata		(jbus_dtcm_wdata),
+					.s_jbus_rdata		(jbus_dtcm_rdata),
+					.s_jbus_we			(jbus_dtcm_we),
+					.s_jbus_sel			(jbus_dtcm_sel),
+					.s_jbus_valid		(jbus_dtcm_valid),
+					.s_jbus_ready		(jbus_dtcm_ready),
 					
-					.ram_en				(ram_dtcm_en),
-					.ram_we				(ram_dtcm_we),
-					.ram_addr			(ram_dtcm_addr),
-					.ram_wdata			(ram_dtcm_wdata),
-					.ram_rdata			(ram_dtcm_rdata)
+					.m_ram_en			(ram_dtcm_en),
+					.m_ram_we			(ram_dtcm_we),
+					.m_ram_addr			(ram_dtcm_addr),
+					.m_ram_wdata		(ram_dtcm_wdata),
+					.m_ram_rdata		(ram_dtcm_rdata)
 				);                     
 		
 		jelly_ram_dualport
@@ -612,23 +612,23 @@ module jelly_cpu_top
 					
 					.endian				(endian),
 					
-					.jbus_slave0_en		(jbus_icache_en),
-					.jbus_slave0_addr	(jbus_icache_addr),
-					.jbus_slave0_wdata	(jbus_icache_wdata),
-					.jbus_slave0_rdata	(jbus_icache_rdata),
-					.jbus_slave0_we		(jbus_icache_we),
-					.jbus_slave0_sel	(jbus_icache_sel),
-					.jbus_slave0_valid	(jbus_icache_valid),
-					.jbus_slave0_ready	(jbus_icache_ready),
+					.s_jbus0_en			(jbus_icache_en),
+					.s_jbus0_addr		(jbus_icache_addr),
+					.s_jbus0_wdata		(jbus_icache_wdata),
+					.s_jbus0_rdata		(jbus_icache_rdata),
+					.s_jbus0_we			(jbus_icache_we),
+					.s_jbus0_sel		(jbus_icache_sel),
+					.s_jbus0_valid		(jbus_icache_valid),
+					.s_jbus0_ready		(jbus_icache_ready),
 					
-					.jbus_slave1_en		(jbus_dcache_en),
-					.jbus_slave1_addr	(jbus_dcache_addr),
-					.jbus_slave1_wdata	(jbus_dcache_wdata),
-					.jbus_slave1_rdata	(jbus_dcache_rdata),
-					.jbus_slave1_we		(jbus_dcache_we),
-					.jbus_slave1_sel	(jbus_dcache_sel),
-					.jbus_slave1_valid	(jbus_dcache_valid),
-					.jbus_slave1_ready	(jbus_dcache_ready),
+					.s_jbus1_en			(jbus_dcache_en),
+					.s_jbus1_addr		(jbus_dcache_addr),
+					.s_jbus1_wdata		(jbus_dcache_wdata),
+					.s_jbus1_rdata		(jbus_dcache_rdata),
+					.s_jbus1_we			(jbus_dcache_we),
+					.s_jbus1_sel		(jbus_dcache_sel),
+					.s_jbus1_valid		(jbus_dcache_valid),
+					.s_jbus1_ready		(jbus_dcache_ready),
 					
 					.m_wb_adr_o			(wb_cached_adr_o),
 					.m_wb_dat_i			(wb_cached_dat_i),

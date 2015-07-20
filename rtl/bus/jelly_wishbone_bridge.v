@@ -60,38 +60,38 @@ module jelly_wishbone_bridge
 	generate
 	if ( SLAVE_FF ) begin
 		// insert FF
-		reg		[WB_DAT_WIDTH-1:0]	reg_slave_dat_o;
-		reg							reg_slave_ack_o;
+		reg		[WB_DAT_WIDTH-1:0]	reg_s_dat_o;
+		reg							reg_s_ack_o;
 		always @ ( posedge clk ) begin
 			if ( reset ) begin
-				reg_slave_dat_o  <= {WB_DAT_WIDTH{1'bx}};
-				reg_slave_ack_o  <= 1'b0;
+				reg_s_dat_o  <= {WB_DAT_WIDTH{1'bx}};
+				reg_s_ack_o  <= 1'b0;
 			end
 			else begin
-				reg_slave_dat_o  <= wb_tmp_dat_i;
-				reg_slave_ack_o  <= wb_tmp_stb_o & wb_tmp_ack_i;
+				reg_s_dat_o  <= wb_tmp_dat_i;
+				reg_s_ack_o  <= wb_tmp_stb_o & wb_tmp_ack_i;
 			end
 		end
 		
-		assign wb_tmp_adr_o    = s_wb_adr_i;
-		assign wb_tmp_dat_o    = s_wb_dat_i;
-		assign wb_tmp_we_o     = s_wb_we_i;
-		assign wb_tmp_sel_o    = s_wb_sel_i;
-		assign wb_tmp_stb_o    = s_wb_stb_i & !reg_slave_ack_o;
+		assign wb_tmp_adr_o = s_wb_adr_i;
+		assign wb_tmp_dat_o = s_wb_dat_i;
+		assign wb_tmp_we_o  = s_wb_we_i;
+		assign wb_tmp_sel_o = s_wb_sel_i;
+		assign wb_tmp_stb_o = s_wb_stb_i & !reg_s_ack_o;
 		
-		assign s_wb_dat_o  = reg_slave_dat_o;
-		assign s_wb_ack_o  = reg_slave_ack_o;		
+		assign s_wb_dat_o   = reg_s_dat_o;
+		assign s_wb_ack_o   = reg_s_ack_o;
 	end
 	else begin
 		// through
-		assign wb_tmp_adr_o    = s_wb_adr_i;
-		assign wb_tmp_dat_o    = s_wb_dat_i;
-		assign wb_tmp_we_o     = s_wb_we_i;
-		assign wb_tmp_sel_o    = s_wb_sel_i;
-		assign wb_tmp_stb_o    = s_wb_stb_i;
+		assign wb_tmp_adr_o = s_wb_adr_i;
+		assign wb_tmp_dat_o = s_wb_dat_i;
+		assign wb_tmp_we_o  = s_wb_we_i;
+		assign wb_tmp_sel_o = s_wb_sel_i;
+		assign wb_tmp_stb_o = s_wb_stb_i;
 		
-		assign s_wb_dat_o  = wb_tmp_dat_i;
-		assign s_wb_ack_o  = wb_tmp_ack_i;
+		assign s_wb_dat_o   = wb_tmp_dat_i;
+		assign s_wb_ack_o   = wb_tmp_ack_i;
 	end
 	endgenerate
 	
@@ -100,47 +100,47 @@ module jelly_wishbone_bridge
 	generate
 	if ( MASTER_FF ) begin
 		// insert FF
-		reg		[WB_ADR_WIDTH-1:0]	reg_master_adr_o;
-		reg		[WB_DAT_WIDTH-1:0]	reg_master_dat_o;
-		reg							reg_master_we_o;
-		reg		[WB_SEL_WIDTH-1:0]	reg_master_sel_o;
-		reg							reg_master_stb_o;
+		reg		[WB_ADR_WIDTH-1:0]	reg_m_adr_o;
+		reg		[WB_DAT_WIDTH-1:0]	reg_m_dat_o;
+		reg							reg_m_we_o;
+		reg		[WB_SEL_WIDTH-1:0]	reg_m_sel_o;
+		reg							reg_m_stb_o;
 		always @ ( posedge clk ) begin
 			if ( reset ) begin
-				reg_master_adr_o <= {WB_ADR_WIDTH{1'bx}};
-				reg_master_dat_o <= {WB_DAT_WIDTH{1'bx}};
-				reg_master_we_o  <= 1'bx;
-				reg_master_sel_o <= {WB_SEL_WIDTH{1'bx}};
-				reg_master_stb_o <= 1'b0;
+				reg_m_adr_o <= {WB_ADR_WIDTH{1'bx}};
+				reg_m_dat_o <= {WB_DAT_WIDTH{1'bx}};
+				reg_m_we_o  <= 1'bx;
+				reg_m_sel_o <= {WB_SEL_WIDTH{1'bx}};
+				reg_m_stb_o <= 1'b0;
 			end
 			else begin
-				reg_master_adr_o <= wb_tmp_adr_o;
-				reg_master_dat_o <= wb_tmp_dat_o;
-				reg_master_we_o  <= wb_tmp_we_o;
-				reg_master_sel_o <= wb_tmp_sel_o;
-				reg_master_stb_o <= wb_tmp_stb_o & !(reg_master_stb_o & wb_tmp_ack_i);
+				reg_m_adr_o <= wb_tmp_adr_o;
+				reg_m_dat_o <= wb_tmp_dat_o;
+				reg_m_we_o  <= wb_tmp_we_o;
+				reg_m_sel_o <= wb_tmp_sel_o;
+				reg_m_stb_o <= wb_tmp_stb_o & !(reg_m_stb_o & wb_tmp_ack_i);
 			end
 		end
 		
-		assign m_wb_adr_o = reg_master_adr_o;
-		assign m_wb_dat_o = reg_master_dat_o;
-		assign m_wb_we_o  = reg_master_we_o;
-		assign m_wb_sel_o = reg_master_sel_o;
-		assign m_wb_stb_o = reg_master_stb_o;
+		assign m_wb_adr_o   = reg_m_adr_o;
+		assign m_wb_dat_o   = reg_m_dat_o;
+		assign m_wb_we_o    = reg_m_we_o;
+		assign m_wb_sel_o   = reg_m_sel_o;
+		assign m_wb_stb_o   = reg_m_stb_o;
 		
-		assign wb_tmp_dat_i    = m_wb_dat_i;
-		assign wb_tmp_ack_i    = m_wb_ack_i;		
+		assign wb_tmp_dat_i = m_wb_dat_i;
+		assign wb_tmp_ack_i = m_wb_ack_i;
 	end
 	else begin
 		// through
-		assign m_wb_adr_o = wb_tmp_adr_o;
-		assign m_wb_dat_o = wb_tmp_dat_o;
-		assign m_wb_we_o  = wb_tmp_we_o;
-		assign m_wb_sel_o = wb_tmp_sel_o;
-		assign m_wb_stb_o = wb_tmp_stb_o;
+		assign m_wb_adr_o   = wb_tmp_adr_o;
+		assign m_wb_dat_o   = wb_tmp_dat_o;
+		assign m_wb_we_o    = wb_tmp_we_o;
+		assign m_wb_sel_o   = wb_tmp_sel_o;
+		assign m_wb_stb_o   = wb_tmp_stb_o;
 		              
-		assign wb_tmp_dat_i    = m_wb_dat_i;
-		assign wb_tmp_ack_i    = m_wb_ack_i;
+		assign wb_tmp_dat_i = m_wb_dat_i;
+		assign wb_tmp_ack_i = m_wb_ack_i;
 	end
 	endgenerate
 	
@@ -156,50 +156,50 @@ module jelly_wishbone_bridge
 		assign s_wb_ack_o  = m_wb_ack_i;
 	end
 	else begin
-		reg		[WB_DAT_WIDTH-1:0]	reg_slave_dat_o;
-		reg							reg_slave_ack_o;
+		reg		[WB_DAT_WIDTH-1:0]	reg_s_dat_o;
+		reg							reg_s_ack_o;
 		
-		reg							reg_master_read;
-		reg		[WB_ADR_WIDTH-1:0]	reg_master_adr_o;
-		reg		[WB_DAT_WIDTH-1:0]	reg_master_dat_o;
-		reg							reg_master_we_o;
-		reg		[WB_SEL_WIDTH-1:0]	reg_master_sel_o;
-		reg							reg_master_stb_o;
+		reg							reg_m_read;
+		reg		[WB_ADR_WIDTH-1:0]	reg_m_adr_o;
+		reg		[WB_DAT_WIDTH-1:0]	reg_m_dat_o;
+		reg							reg_m_we_o;
+		reg		[WB_SEL_WIDTH-1:0]	reg_m_sel_o;
+		reg							reg_m_stb_o;
 		
 		always @ ( posedge clk ) begin
 			if ( reset ) begin
-				reg_slave_dat_o  <= {WB_DAT_WIDTH{1'bx}};
-				reg_slave_ack_o  <= 1'b0;
+				reg_s_dat_o  <= {WB_DAT_WIDTH{1'bx}};
+				reg_s_ack_o  <= 1'b0;
 				
-				reg_master_adr_o <= {WB_ADR_WIDTH{1'bx}};
-				reg_master_dat_o <= {WB_DAT_WIDTH{1'bx}};
-				reg_master_we_o  <= 1'bx;
-				reg_master_sel_o <= {WB_SEL_WIDTH{1'b0}};
-				reg_master_stb_o <= 1'b0;
-				reg_master_read  <= 1'b0;
+				reg_m_adr_o <= {WB_ADR_WIDTH{1'bx}};
+				reg_m_dat_o <= {WB_DAT_WIDTH{1'bx}};
+				reg_m_we_o  <= 1'bx;
+				reg_m_sel_o <= {WB_SEL_WIDTH{1'b0}};
+				reg_m_stb_o <= 1'b0;
+				reg_m_read  <= 1'b0;
 			end
 			else begin
 				if ( !m_wb_stb_o | m_wb_ack_i ) begin
-					reg_master_adr_o <= s_wb_adr_i;
-					reg_master_dat_o <= s_wb_dat_i;
-					reg_master_we_o  <= s_wb_we_i;
-					reg_master_sel_o <= s_wb_sel_i;
-					reg_master_stb_o <= s_wb_stb_i & !reg_slave_ack_o;
+					reg_m_adr_o <= s_wb_adr_i;
+					reg_m_dat_o <= s_wb_dat_i;
+					reg_m_we_o  <= s_wb_we_i;
+					reg_m_sel_o <= s_wb_sel_i;
+					reg_m_stb_o <= s_wb_stb_i & !reg_s_ack_o;
 				end
 				
-				reg_slave_data_o <= m_wb_dat_i;
-				reg_slave_ack_o  <= m_wb_ack_i;
+				reg_s_data_o <= m_wb_dat_i;
+				reg_s_ack_o  <= m_wb_ack_i;
 			end
 		end
 		
-		assign s_wb_dat_o  = reg_slave_dat_o;
-		assign s_wb_ack_o  = reg_slave_ack_o;
+		assign s_wb_dat_o  = reg_s_dat_o;
+		assign s_wb_ack_o  = reg_s_ack_o;
 		
-		assign m_wb_adr_o = reg_master_adr_o;
-		assign m_wb_dat_o = reg_master_dat_o;
-		assign m_wb_we_o  = reg_master_we_o;
-		assign m_wb_sel_o = reg_master_sel_o;
-		assign m_wb_stb_o = reg_master_stb_o;
+		assign m_wb_adr_o = reg_m_adr_o;
+		assign m_wb_dat_o = reg_m_dat_o;
+		assign m_wb_we_o  = reg_m_we_o;
+		assign m_wb_sel_o = reg_m_sel_o;
+		assign m_wb_stb_o = reg_m_stb_o;
 	end
 	endgenerate
 	*/

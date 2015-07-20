@@ -43,14 +43,14 @@ module jelly_cache_core
 			input	wire							endian,
 			
 			// slave port
-			input	wire							jbus_slave_en,
-			input	wire	[SLAVE_ADDR_WIDTH-1:0]	jbus_slave_addr,
-			input	wire	[SLAVE_DATA_WIDTH-1:0]	jbus_slave_wdata,
-			output	wire	[SLAVE_DATA_WIDTH-1:0]	jbus_slave_rdata,
-			input	wire							jbus_slave_we,
-			input	wire	[SLAVE_SEL_WIDTH-1:0]	jbus_slave_sel,
-			input	wire							jbus_slave_valid,
-			output	wire							jbus_slave_ready,
+			input	wire							s_jbus_en,
+			input	wire	[SLAVE_ADDR_WIDTH-1:0]	s_jbus_addr,
+			input	wire	[SLAVE_DATA_WIDTH-1:0]	s_jbus_wdata,
+			output	wire	[SLAVE_DATA_WIDTH-1:0]	s_jbus_rdata,
+			input	wire							s_jbus_we,
+			input	wire	[SLAVE_SEL_WIDTH-1:0]	s_jbus_sel,
+			input	wire							s_jbus_valid,
+			output	wire							s_jbus_ready,
 			
 			// master port
 			output	wire	[MASTER_ADR_WIDTH-1:0]	m_wb_adr_o,
@@ -62,11 +62,11 @@ module jelly_cache_core
 			input	wire							m_wb_ack_i,
 			
 			// ram port
-			output	wire							ram_en,
-			output	wire							ram_we,
-			output	wire	[RAM_ADDR_WIDTH-1:0]	ram_addr,
-			output	wire	[RAM_DATA_WIDTH-1:0]	ram_wdata,
-			input	wire	[RAM_DATA_WIDTH-1:0]	ram_rdata
+			output	wire							m_ram_en,
+			output	wire							m_ram_we,
+			output	wire	[RAM_ADDR_WIDTH-1:0]	m_ram_addr,
+			output	wire	[RAM_DATA_WIDTH-1:0]	m_ram_wdata,
+			input	wire	[RAM_DATA_WIDTH-1:0]	m_ram_rdata
 		);
 	
 	
@@ -74,55 +74,55 @@ module jelly_cache_core
 	wire								ram_write_valid;
 	wire	[CACHE_TAGADR_WIDTH-1:0]	ram_write_tagadr;
 	wire	[CACHE_DATA_WIDTH-1:0]		ram_write_data;
-	assign ram_wdata = {ram_write_valid, ram_write_tagadr, ram_write_data};
+	assign m_ram_wdata = {ram_write_valid, ram_write_tagadr, ram_write_data};
 	
 	wire								ram_read_valid;
 	wire	[CACHE_TAGADR_WIDTH-1:0]	ram_read_tagadr;
 	wire	[CACHE_DATA_WIDTH-1:0]		ram_read_data;
-	assign ram_read_data   = ram_rdata[CACHE_DATA_WIDTH-1:0];
-	assign ram_read_tagadr = ram_rdata[CACHE_DATA_WIDTH +: CACHE_TAGADR_WIDTH];
-	assign ram_read_valid  = ram_rdata[RAM_DATA_WIDTH-1];
+	assign ram_read_data   = m_ram_rdata[CACHE_DATA_WIDTH-1:0];
+	assign ram_read_tagadr = m_ram_rdata[CACHE_DATA_WIDTH +: CACHE_TAGADR_WIDTH];
+	assign ram_read_valid  = m_ram_rdata[RAM_DATA_WIDTH-1];
 	
 	
 	// slave address assign
-	wire	[CACHE_OFFSET_WIDTH-1:0]	jbus_slave_offset;
-	wire	[CACHE_INDEX_WIDTH-1:0]		jbus_slave_index;
-	wire	[CACHE_TAGADR_WIDTH-1:0]	jbus_slave_tagadr;
-	assign jbus_slave_offset = jbus_slave_addr[0                                      +: CACHE_OFFSET_WIDTH];
-	assign jbus_slave_index  = jbus_slave_addr[CACHE_OFFSET_WIDTH                     +: CACHE_INDEX_WIDTH];
-	assign jbus_slave_tagadr = jbus_slave_addr[CACHE_OFFSET_WIDTH + CACHE_INDEX_WIDTH +: CACHE_TAGADR_WIDTH];
+	wire	[CACHE_OFFSET_WIDTH-1:0]	s_jbus_offset;
+	wire	[CACHE_INDEX_WIDTH-1:0]		s_jbus_index;
+	wire	[CACHE_TAGADR_WIDTH-1:0]	s_jbus_tagadr;
+	assign s_jbus_offset = s_jbus_addr[0                                      +: CACHE_OFFSET_WIDTH];
+	assign s_jbus_index  = s_jbus_addr[CACHE_OFFSET_WIDTH                     +: CACHE_INDEX_WIDTH];
+	assign s_jbus_tagadr = s_jbus_addr[CACHE_OFFSET_WIDTH + CACHE_INDEX_WIDTH +: CACHE_TAGADR_WIDTH];
 	
 	
 	// slave input
-	reg									reg_slave_re;
-	reg									reg_slave_we;
-	reg		[CACHE_OFFSET_WIDTH-1:0]	reg_slave_offset;
-	reg		[CACHE_INDEX_WIDTH-1:0]		reg_slave_index;
-	reg		[CACHE_TAGADR_WIDTH-1:0]	reg_slave_tagadr;
-	reg		[SLAVE_SEL_WIDTH-1:0]		reg_slave_sel;
-	reg		[SLAVE_DATA_WIDTH-1:0]		reg_slave_wdata;
+	reg									reg_s_re;
+	reg									reg_s_we;
+	reg		[CACHE_OFFSET_WIDTH-1:0]	reg_s_offset;
+	reg		[CACHE_INDEX_WIDTH-1:0]		reg_s_index;
+	reg		[CACHE_TAGADR_WIDTH-1:0]	reg_s_tagadr;
+	reg		[SLAVE_SEL_WIDTH-1:0]		reg_s_sel;
+	reg		[SLAVE_DATA_WIDTH-1:0]		reg_s_wdata;
 	always @ ( posedge clk ) begin
 		if ( reset ) begin
-			reg_slave_re     <= 1'b0;
-			reg_slave_we     <= 1'b0;
-			reg_slave_offset <= {CACHE_OFFSET_WIDTH{1'bx}};
-			reg_slave_index  <= {CACHE_INDEX_WIDTH{1'bx}};
-			reg_slave_tagadr <= {CACHE_TAGADR_WIDTH{1'bx}};	
-			reg_slave_sel    <= {SLAVE_SEL_WIDTH{1'bx}};
-			reg_slave_wdata  <= {SLAVE_DATA_WIDTH{1'bx}};
+			reg_s_re     <= 1'b0;
+			reg_s_we     <= 1'b0;
+			reg_s_offset <= {CACHE_OFFSET_WIDTH{1'bx}};
+			reg_s_index  <= {CACHE_INDEX_WIDTH{1'bx}};
+			reg_s_tagadr <= {CACHE_TAGADR_WIDTH{1'bx}};	
+			reg_s_sel    <= {SLAVE_SEL_WIDTH{1'bx}};
+			reg_s_wdata  <= {SLAVE_DATA_WIDTH{1'bx}};
 		end
 		else begin
-			if ( jbus_slave_en & jbus_slave_ready ) begin
-				reg_slave_re     <= jbus_slave_valid & !jbus_slave_we;
-				reg_slave_we     <= jbus_slave_valid & jbus_slave_we;
-				reg_slave_offset <= jbus_slave_offset;
-				reg_slave_index  <= jbus_slave_index;
-				reg_slave_tagadr <= jbus_slave_tagadr;
-				reg_slave_sel    <= jbus_slave_sel;
-				reg_slave_wdata  <= jbus_slave_wdata;
+			if ( s_jbus_en & s_jbus_ready ) begin
+				reg_s_re     <= s_jbus_valid & !s_jbus_we;
+				reg_s_we     <= s_jbus_valid & s_jbus_we;
+				reg_s_offset <= s_jbus_offset;
+				reg_s_index  <= s_jbus_index;
+				reg_s_tagadr <= s_jbus_tagadr;
+				reg_s_sel    <= s_jbus_sel;
+				reg_s_wdata  <= s_jbus_wdata;
 			end
-			else if ( jbus_slave_ready ) begin
-				reg_slave_we     <= 1'b0;
+			else if ( s_jbus_ready ) begin
+				reg_s_we     <= 1'b0;
 			end
 		end
 	end
@@ -138,7 +138,7 @@ module jelly_cache_core
 		end
 		else begin
 			if ( reg_write_hit_end ) begin
-				if ( jbus_slave_ready ) begin
+				if ( s_jbus_ready ) begin
 					reg_write_hit_end <= 1'b0;
 				end
 			end
@@ -148,9 +148,9 @@ module jelly_cache_core
 		end
 	end
 	
-	assign cache_hit       = ram_read_valid & (reg_slave_tagadr == ram_read_tagadr);
-	assign cache_read_miss = reg_slave_re & !cache_hit;
-	assign cache_write_hit = reg_slave_we & cache_hit & !reg_write_hit_end;
+	assign cache_hit       = ram_read_valid & (reg_s_tagadr == ram_read_tagadr);
+	assign cache_read_miss = reg_s_re & !cache_hit;
+	assign cache_write_hit = reg_s_we & cache_hit & !reg_write_hit_end;
 	
 	
 	// cahce read
@@ -163,7 +163,7 @@ module jelly_cache_core
 		i_multiplexer
 			(
 				.endian			(endian),
-				.sel			(reg_slave_offset),
+				.sel			(reg_s_offset),
 				.din			(ram_read_data),
 				.dout			(cache_rdata)
 			);
@@ -181,8 +181,8 @@ module jelly_cache_core
 		i_demultiplexer_sel
 			(
 				.endian			(endian),
-				.sel			(reg_slave_offset),
-				.din			(reg_slave_sel),
+				.sel			(reg_s_offset),
+				.din			(reg_s_sel),
 				.dout			(write_sel)
 			);
 	
@@ -198,7 +198,7 @@ module jelly_cache_core
 				.dout			(write_data_mask)
 			);
 	
-	assign write_data = {LINE_WORDS{reg_slave_wdata}};
+	assign write_data = {LINE_WORDS{reg_s_wdata}};
 	
 	
 	// read end monitor
@@ -221,7 +221,7 @@ module jelly_cache_core
 			write_end <= 1'b0;
 		end
 		else begin
-			if ( jbus_slave_en & jbus_slave_ready ) begin
+			if ( s_jbus_en & s_jbus_ready ) begin
 				write_end <= 1'b0;
 			end
 			else begin
@@ -234,53 +234,53 @@ module jelly_cache_core
 	
 	
 	// master output
-	reg		[MASTER_ADR_WIDTH-1:0]		reg_master_adr_o;
-	reg		[MASTER_DAT_WIDTH-1:0]		reg_master_dat_o;
-	reg									reg_master_we_o;
-	reg		[MASTER_SEL_WIDTH-1:0]		reg_master_sel_o;
-	reg									reg_master_stb_o;
+	reg		[MASTER_ADR_WIDTH-1:0]		reg_m_adr_o;
+	reg		[MASTER_DAT_WIDTH-1:0]		reg_m_dat_o;
+	reg									reg_m_we_o;
+	reg		[MASTER_SEL_WIDTH-1:0]		reg_m_sel_o;
+	reg									reg_m_stb_o;
 	
 	always @ ( posedge clk ) begin
 		if ( reset ) begin
-			reg_master_adr_o <= {MASTER_ADR_WIDTH{1'bx}};
-			reg_master_dat_o <= {MASTER_DAT_WIDTH{1'bx}};
-			reg_master_we_o  <= 1'bx;
-			reg_master_sel_o <= {MASTER_SEL_WIDTH{1'bx}};
-			reg_master_stb_o <= 1'b0;
+			reg_m_adr_o <= {MASTER_ADR_WIDTH{1'bx}};
+			reg_m_dat_o <= {MASTER_DAT_WIDTH{1'bx}};
+			reg_m_we_o  <= 1'bx;
+			reg_m_sel_o <= {MASTER_SEL_WIDTH{1'bx}};
+			reg_m_stb_o <= 1'b0;
 		end
 		else begin
 			if ( !(m_wb_stb_o & !m_wb_ack_i) ) begin
-				reg_master_stb_o <= (reg_slave_we & !write_end) | (cache_read_miss & !read_end);
-				reg_master_we_o  <= reg_slave_we;
-				reg_master_adr_o <= {reg_slave_tagadr, reg_slave_index};
-				reg_master_sel_o <= reg_slave_we ? write_sel : {MASTER_SEL_WIDTH{1'b1}};
-				reg_master_dat_o <= {LINE_WORDS{reg_slave_wdata}};
+				reg_m_stb_o <= (reg_s_we & !write_end) | (cache_read_miss & !read_end);
+				reg_m_we_o  <= reg_s_we;
+				reg_m_adr_o <= {reg_s_tagadr, reg_s_index};
+				reg_m_sel_o <= reg_s_we ? write_sel : {MASTER_SEL_WIDTH{1'b1}};
+				reg_m_dat_o <= {LINE_WORDS{reg_s_wdata}};
 			end
 			else begin
 				if ( m_wb_ack_i ) begin
-					reg_master_stb_o <= 1'b0;
+					reg_m_stb_o <= 1'b0;
 				end
 			end
 		end
 	end
 	
-	assign m_wb_adr_o = reg_master_adr_o;
-	assign m_wb_dat_o = reg_master_dat_o;
-	assign m_wb_we_o  = reg_master_we_o;
-	assign m_wb_sel_o = reg_master_sel_o;
-	assign m_wb_stb_o = reg_master_stb_o;
+	assign m_wb_adr_o       = reg_m_adr_o;
+	assign m_wb_dat_o       = reg_m_dat_o;
+	assign m_wb_we_o        = reg_m_we_o;
+	assign m_wb_sel_o       = reg_m_sel_o;
+	assign m_wb_stb_o       = reg_m_stb_o;
 	
-	assign ram_en            = read_end | cache_write_hit | (jbus_slave_en & jbus_slave_valid & jbus_slave_ready);
-	assign ram_we            = read_end | cache_write_hit;
-	assign ram_addr          = ram_we ? reg_slave_index : jbus_slave_index;
-	assign ram_write_valid   = 1'b1;
-	assign ram_write_tagadr  = reg_slave_tagadr;
-	assign ram_write_data    = read_end ? m_wb_dat_i : ((write_data_mask & write_data) | (~write_data_mask & ram_read_data));
+	assign m_ram_en         = read_end | cache_write_hit | (s_jbus_en & s_jbus_valid & s_jbus_ready);
+	assign m_ram_we         = read_end | cache_write_hit;
+	assign m_ram_addr       = m_ram_we ? reg_s_index : s_jbus_index;
+	assign ram_write_valid  = 1'b1;
+	assign ram_write_tagadr = reg_s_tagadr;
+	assign ram_write_data   = read_end ? m_wb_dat_i : ((write_data_mask & write_data) | (~write_data_mask & ram_read_data));
 	
-	assign jbus_slave_rdata  = cache_rdata;
-//	assign jbus_slave_ready  = !((m_wb_stb_o & !m_wb_ack_i) | cache_read_miss | cache_write_hit);
-	assign jbus_slave_ready  = !(
-									((m_wb_stb_o & !m_wb_ack_i) &((reg_slave_we & !write_end) | (cache_read_miss & !read_end)))
+	assign s_jbus_rdata     = cache_rdata;
+//	assign s_jbus_ready     = !((m_wb_stb_o & !m_wb_ack_i) | cache_read_miss | cache_write_hit);
+	assign s_jbus_ready     = !(
+									((m_wb_stb_o & !m_wb_ack_i) &((reg_s_we & !write_end) | (cache_read_miss & !read_end)))
 									| cache_read_miss
 									| cache_write_hit
 								);

@@ -47,24 +47,24 @@ module jelly_cache_unified
 			input	wire							endian,
 			
 			// slave port0
-			input	wire							jbus_slave0_en,
-			input	wire	[SLAVE_ADDR_WIDTH-1:0]	jbus_slave0_addr,
-			input	wire	[SLAVE_DATA_WIDTH-1:0]	jbus_slave0_wdata,
-			output	wire	[SLAVE_DATA_WIDTH-1:0]	jbus_slave0_rdata,
-			input	wire							jbus_slave0_we,
-			input	wire	[SLAVE_SEL_WIDTH-1:0]	jbus_slave0_sel,
-			input	wire							jbus_slave0_valid,
-			output	wire							jbus_slave0_ready,
+			input	wire							s_jbus0_en,
+			input	wire	[SLAVE_ADDR_WIDTH-1:0]	s_jbus0_addr,
+			input	wire	[SLAVE_DATA_WIDTH-1:0]	s_jbus0_wdata,
+			output	wire	[SLAVE_DATA_WIDTH-1:0]	s_jbus0_rdata,
+			input	wire							s_jbus0_we,
+			input	wire	[SLAVE_SEL_WIDTH-1:0]	s_jbus0_sel,
+			input	wire							s_jbus0_valid,
+			output	wire							s_jbus0_ready,
 			
 			// slave port1
-			input	wire							jbus_slave1_en,
-			input	wire	[SLAVE_ADDR_WIDTH-1:0]	jbus_slave1_addr,
-			input	wire	[SLAVE_DATA_WIDTH-1:0]	jbus_slave1_wdata,
-			output	wire	[SLAVE_DATA_WIDTH-1:0]	jbus_slave1_rdata,
-			input	wire							jbus_slave1_we,
-			input	wire	[SLAVE_SEL_WIDTH-1:0]	jbus_slave1_sel,
-			input	wire							jbus_slave1_valid,
-			output	wire							jbus_slave1_ready,
+			input	wire							s_jbus1_en,
+			input	wire	[SLAVE_ADDR_WIDTH-1:0]	s_jbus1_addr,
+			input	wire	[SLAVE_DATA_WIDTH-1:0]	s_jbus1_wdata,
+			output	wire	[SLAVE_DATA_WIDTH-1:0]	s_jbus1_rdata,
+			input	wire							s_jbus1_we,
+			input	wire	[SLAVE_SEL_WIDTH-1:0]	s_jbus1_sel,
+			input	wire							s_jbus1_valid,
+			output	wire							s_jbus1_ready,
 			
 			// master port0
 			output	wire	[MASTER_ADR_WIDTH-1:0]	m_wb_adr_o,
@@ -76,21 +76,21 @@ module jelly_cache_unified
 			input	wire							m_wb_ack_i
 		);
 	
-	wire	[MASTER_ADR_WIDTH-1:0]	wb_master0_adr_o;
-	wire	[MASTER_DAT_WIDTH-1:0]	wb_master0_dat_i;
-	wire	[MASTER_DAT_WIDTH-1:0]	wb_master0_dat_o;
-	wire							wb_master0_we_o;
-	wire	[MASTER_SEL_WIDTH-1:0]	wb_master0_sel_o;
-	wire							wb_master0_stb_o;
-	wire							wb_master0_ack_i;
+	wire	[MASTER_ADR_WIDTH-1:0]	m_wb0_adr_o;
+	wire	[MASTER_DAT_WIDTH-1:0]	m_wb0_dat_i;
+	wire	[MASTER_DAT_WIDTH-1:0]	m_wb0_dat_o;
+	wire							m_wb0_we_o;
+	wire	[MASTER_SEL_WIDTH-1:0]	m_wb0_sel_o;
+	wire							m_wb0_stb_o;
+	wire							m_wb0_ack_i;
 
-	wire	[MASTER_ADR_WIDTH-1:0]	wb_master1_adr_o;
-	wire	[MASTER_DAT_WIDTH-1:0]	wb_master1_dat_i;
-	wire	[MASTER_DAT_WIDTH-1:0]	wb_master1_dat_o;
-	wire							wb_master1_we_o;
-	wire	[MASTER_SEL_WIDTH-1:0]	wb_master1_sel_o;
-	wire							wb_master1_stb_o;
-	wire							wb_master1_ack_i;
+	wire	[MASTER_ADR_WIDTH-1:0]	m_wb1_adr_o;
+	wire	[MASTER_DAT_WIDTH-1:0]	m_wb1_dat_i;
+	wire	[MASTER_DAT_WIDTH-1:0]	m_wb1_dat_o;
+	wire							m_wb1_we_o;
+	wire	[MASTER_SEL_WIDTH-1:0]	m_wb1_sel_o;
+	wire							m_wb1_stb_o;
+	wire							m_wb1_ack_i;
 	
 	wire							ram0_en;
 	wire							ram0_we;
@@ -138,7 +138,7 @@ module jelly_cache_unified
 	
 	
 	// cache0
-	wire		jbus_slave0_ready_tmp;
+	wire		s_jbus0_ready_tmp;
 	jelly_cache_core
 			#(
 				.LINE_SIZE			(LINE_SIZE),
@@ -152,33 +152,33 @@ module jelly_cache_unified
 				.reset				(reset | ram_init_busy),
 				.endian				(endian),
 				
-				.jbus_slave_en		(jbus_slave0_en),
-				.jbus_slave_addr	(jbus_slave0_addr),
-				.jbus_slave_wdata	(jbus_slave0_wdata),
-				.jbus_slave_rdata	(jbus_slave0_rdata),
-				.jbus_slave_we		(jbus_slave0_we),
-				.jbus_slave_sel		(jbus_slave0_sel),
-				.jbus_slave_valid	(jbus_slave0_valid),
-				.jbus_slave_ready	(jbus_slave0_ready_tmp),
+				.s_jbus_en			(s_jbus0_en),
+				.s_jbus_addr		(s_jbus0_addr),
+				.s_jbus_wdata		(s_jbus0_wdata),
+				.s_jbus_rdata		(s_jbus0_rdata),
+				.s_jbus_we			(s_jbus0_we),
+				.s_jbus_sel			(s_jbus0_sel),
+				.s_jbus_valid		(s_jbus0_valid),
+				.s_jbus_ready		(s_jbus0_ready_tmp),
 				
-				.m_wb_adr_o	(wb_master0_adr_o),
-				.m_wb_dat_o	(wb_master0_dat_o),
-				.m_wb_dat_i	(wb_master0_dat_i),
-				.m_wb_we_o		(wb_master0_we_o),
-				.m_wb_sel_o	(wb_master0_sel_o),
-				.m_wb_stb_o	(wb_master0_stb_o),
-				.m_wb_ack_i	(wb_master0_ack_i),
+				.m_wb_adr_o			(m_wb0_adr_o),
+				.m_wb_dat_o			(m_wb0_dat_o),
+				.m_wb_dat_i			(m_wb0_dat_i),
+				.m_wb_we_o			(m_wb0_we_o),
+				.m_wb_sel_o			(m_wb0_sel_o),
+				.m_wb_stb_o			(m_wb0_stb_o),
+				.m_wb_ack_i			(m_wb0_ack_i),
 				
-				.ram_en				(ram0_en),
-				.ram_we				(ram0_we),
-				.ram_addr			(ram0_addr),
-				.ram_wdata			(ram0_wdata),
-				.ram_rdata			(ram0_rdata)
+				.m_ram_en			(ram0_en),
+				.m_ram_we			(ram0_we),
+				.m_ram_addr			(ram0_addr),
+				.m_ram_wdata		(ram0_wdata),
+				.m_ram_rdata		(ram0_rdata)
 			);
-	assign jbus_slave0_ready = jbus_slave0_ready_tmp & !ram_init_busy;
+	assign s_jbus0_ready = s_jbus0_ready_tmp & !ram_init_busy;
 	
 	// cache1
-	wire		jbus_slave1_ready_tmp;
+	wire		s_jbus1_ready_tmp;
 	jelly_cache_core
 			#(
 				.LINE_SIZE			(LINE_SIZE),
@@ -192,30 +192,30 @@ module jelly_cache_unified
 				.reset				(reset | ram_init_busy),
 				.endian				(endian),
 				
-				.jbus_slave_en		(jbus_slave1_en),
-				.jbus_slave_addr	(jbus_slave1_addr),
-				.jbus_slave_wdata	(jbus_slave1_wdata),
-				.jbus_slave_rdata	(jbus_slave1_rdata),
-				.jbus_slave_we		(jbus_slave1_we),
-				.jbus_slave_sel		(jbus_slave1_sel),
-				.jbus_slave_valid	(jbus_slave1_valid),
-				.jbus_slave_ready	(jbus_slave1_ready_tmp),
+				.s_jbus_en			(s_jbus1_en),
+				.s_jbus_addr		(s_jbus1_addr),
+				.s_jbus_wdata		(s_jbus1_wdata),
+				.s_jbus_rdata		(s_jbus1_rdata),
+				.s_jbus_we			(s_jbus1_we),
+				.s_jbus_sel			(s_jbus1_sel),
+				.s_jbus_valid		(s_jbus1_valid),
+				.s_jbus_ready		(s_jbus1_ready_tmp),
 				
-				.m_wb_adr_o	(wb_master1_adr_o),
-				.m_wb_dat_o	(wb_master1_dat_o),
-				.m_wb_dat_i	(wb_master1_dat_i),
-				.m_wb_we_o		(wb_master1_we_o),
-				.m_wb_sel_o	(wb_master1_sel_o),
-				.m_wb_stb_o	(wb_master1_stb_o),
-				.m_wb_ack_i	(wb_master1_ack_i),
+				.m_wb_adr_o			(m_wb1_adr_o),
+				.m_wb_dat_o			(m_wb1_dat_o),
+				.m_wb_dat_i			(m_wb1_dat_i),
+				.m_wb_we_o			(m_wb1_we_o),
+				.m_wb_sel_o			(m_wb1_sel_o),
+				.m_wb_stb_o			(m_wb1_stb_o),
+				.m_wb_ack_i			(m_wb1_ack_i),
 				
-				.ram_en				(ram1_en),
-				.ram_we				(ram1_we),
-				.ram_addr			(ram1_addr),
-				.ram_wdata			(ram1_wdata),
-				.ram_rdata			(ram1_rdata)
+				.m_ram_en			(ram1_en),
+				.m_ram_we			(ram1_we),
+				.m_ram_addr			(ram1_addr),
+				.m_ram_wdata		(ram1_wdata),
+				.m_ram_rdata		(ram1_rdata)
 			);
-	assign jbus_slave1_ready = jbus_slave1_ready_tmp & !ram_init_busy;
+	assign s_jbus1_ready = s_jbus1_ready_tmp & !ram_init_busy;
 	
 	// ram
 	jelly_ram_dualport
@@ -256,21 +256,21 @@ module jelly_cache_unified
 				.reset				(reset),
 				.clk				(clk),
 				
-				.s_wb0_adr_i		(wb_master0_adr_o),
-				.s_wb0_dat_i		(wb_master0_dat_o),
-				.s_wb0_dat_o		(wb_master0_dat_i),
-				.s_wb0_we_i			(wb_master0_we_o),
-				.s_wb0_sel_i		(wb_master0_sel_o),
-				.s_wb0_stb_i		(wb_master0_stb_o & !ram_init_busy),
-				.s_wb0_ack_o		(wb_master0_ack_i),
+				.s_wb0_adr_i		(m_wb0_adr_o),
+				.s_wb0_dat_i		(m_wb0_dat_o),
+				.s_wb0_dat_o		(m_wb0_dat_i),
+				.s_wb0_we_i			(m_wb0_we_o),
+				.s_wb0_sel_i		(m_wb0_sel_o),
+				.s_wb0_stb_i		(m_wb0_stb_o & !ram_init_busy),
+				.s_wb0_ack_o		(m_wb0_ack_i),
 				
-				.s_wb1_adr_i		(wb_master1_adr_o),
-				.s_wb1_dat_i		(wb_master1_dat_o),
-				.s_wb1_dat_o		(wb_master1_dat_i),
-				.s_wb1_we_i			(wb_master1_we_o),
-				.s_wb1_sel_i		(wb_master1_sel_o),
-				.s_wb1_stb_i		(wb_master1_stb_o & !ram_init_busy),
-				.s_wb1_ack_o		(wb_master1_ack_i),
+				.s_wb1_adr_i		(m_wb1_adr_o),
+				.s_wb1_dat_i		(m_wb1_dat_o),
+				.s_wb1_dat_o		(m_wb1_dat_i),
+				.s_wb1_we_i			(m_wb1_we_o),
+				.s_wb1_sel_i		(m_wb1_sel_o),
+				.s_wb1_stb_i		(m_wb1_stb_o & !ram_init_busy),
+				.s_wb1_ack_o		(m_wb1_ack_i),
 				
 				.m_wb_adr_o			(m_wb_adr_o),
 				.m_wb_dat_i			(m_wb_dat_i),
