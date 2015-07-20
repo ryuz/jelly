@@ -470,8 +470,8 @@ module jelly_axi4_slave_model
 	assign axi4_rid     = axi4_rvalid ? reg_arid : {AXI_ID_WIDTH{1'bx}};
 //	assign axi4_rdata   = (axi4_rvalid && ((reg_araddr >> AXI_DATA_SIZE) < MEM_SIZE)) ? mem[reg_araddr >> AXI_DATA_SIZE] : {AXI_DATA_WIDTH{1'bx}};
 
-	assign axi4_rdata   = mem[MEM_ADDR_MASK & (reg_araddr >> AXI_DATA_SIZE)];
-//	assign axi4_rdata   = reg_araddr;
+//	assign axi4_rdata   = mem[MEM_ADDR_MASK & (reg_araddr >> AXI_DATA_SIZE)];
+	assign axi4_rdata   = reg_araddr;
 	assign axi4_rlast   = axi4_rvalid ? reg_rlast : 1'bx;
 	assign axi4_rvalid  = reg_rvalid;
 	

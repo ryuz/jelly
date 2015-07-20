@@ -69,8 +69,8 @@ module ps_core
 			input	wire	[2:0]	s_axi4_mem00_awsize,
 			input	wire			s_axi4_mem00_awvalid,
 			output	wire			s_axi4_mem00_awready,
-			input	wire	[31:0]	s_axi4_mem00_wdata,
-			input	wire	[3:0]	s_axi4_mem00_wstrb,
+			input	wire	[63:0]	s_axi4_mem00_wdata,
+			input	wire	[7:0]	s_axi4_mem00_wstrb,
 			input	wire			s_axi4_mem00_wlast,
 			input	wire			s_axi4_mem00_wvalid,
 			output	wire			s_axi4_mem00_wready,
@@ -90,7 +90,7 @@ module ps_core
 			input	wire	[2:0]	s_axi4_mem00_arsize,
 			input	wire			s_axi4_mem00_arvalid,
 			output	wire			s_axi4_mem00_arready,
-			output	wire	[31:0]	s_axi4_mem00_rdata,
+			output	wire	[63:0]	s_axi4_mem00_rdata,
 			output	wire	[5:0]	s_axi4_mem00_rid,
 			output	wire			s_axi4_mem00_rlast,
 			output	wire	[1:0]	s_axi4_mem00_rresp,
@@ -165,7 +165,7 @@ module ps_core
 	jelly_axi4_slave_model
 			#(
 				.AXI_ID_WIDTH		(6),
-				.AXI_DATA_SIZE		(2),				// log2(n/8)  0:8bit, 1:16bit, 2:32bit, 3:64bit, ...
+				.AXI_DATA_SIZE		(3),				// log2(n/8)  0:8bit, 1:16bit, 2:32bit, 3:64bit, ...
 				.AXI_ADDR_WIDTH		(32),
 				.AXI_QOS_WIDTH		(4),
 				.AXI_LEN_WIDTH		(8),
@@ -181,10 +181,10 @@ module ps_core
 				.R_FIFO_PTR_WIDTH	(2),
 				
 				.AW_BUSY_RATE		(97),	//(80),
-				.W_BUSY_RATE		(0),	//(20),
-				.B_BUSY_RATE		(0),	//(50),
-				.AR_BUSY_RATE		(0),
-				.R_BUSY_RATE		(0)
+				.W_BUSY_RATE		(50),	//(20),
+				.B_BUSY_RATE		(50),	//(50),
+				.AR_BUSY_RATE		(50),
+				.R_BUSY_RATE		(50)
 			)
 		i_axi4_slave_model
 			(

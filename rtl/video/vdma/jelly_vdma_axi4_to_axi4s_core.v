@@ -14,14 +14,18 @@
 
 module jelly_vdma_axi4_to_axi4s_core
 		#(
+			parameter	PIXEL_SIZE       = 2,	// 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
+			
 			parameter	AXI4_ID_WIDTH    = 6,
 			parameter	AXI4_ADDR_WIDTH  = 32,
-			parameter	AXI4_DATA_SIZE   = 2,	// 0:8bit, 1:16bit, 2:32bit ...
+			parameter	AXI4_DATA_SIZE   = 2,	// 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
 			parameter	AXI4_DATA_WIDTH  = (8 << AXI4_DATA_SIZE),
 			parameter	AXI4_LEN_WIDTH   = 8,
 			parameter	AXI4_QOS_WIDTH   = 4,
-			parameter	AXI4S_USER_WIDTH = 1,
+			
 			parameter	AXI4S_DATA_WIDTH = AXI4_DATA_WIDTH,
+			parameter	AXI4S_USER_WIDTH = 1,
+			
 			parameter	STRIDE_WIDTH     = 14,
 			parameter	INDEX_WIDTH      = 8,
 			parameter	H_WIDTH          = 12,
@@ -101,6 +105,27 @@ module jelly_vdma_axi4_to_axi4s_core
 	wire							sig_rcount_down = (m_axi4_rlast && m_axi4_rvalid && m_axi4_rready);
 	wire							next_rcount     = reg_rcount + sig_rcount_up - sig_rcount_down;
 	
+	
+	// ピクセル数を転送数に変換
+	function	[SIZE_WIDTH-1:0]	pixels_to_count(input [SIZE_WIDTH-1:0] pixels);
+	begin
+		if ( AXI4_DATA_SIZE >= PIXEL_SIZE ) begin
+			pixels_to_count = (pixels >> (AXI4_DATA_SIZE - PIXEL_SIZE));
+		end
+		else begin
+			pixels_to_count = (pixels << (PIXEL_SIZE - AXI4_DATA_SIZE));
+		end
+	end
+	endfunction
+	
+	// ピクセル数をバイト数に変換
+	function	[AXI4_ADDR_WIDTH-1:0]	pixels_to_byte(input [SIZE_WIDTH-1:0] pixels);
+	begin
+		pixels_to_byte = pixels << PIXEL_SIZE;
+	end
+	endfunction
+	
+	
 	// シャドーレジスタ
 	reg		[AXI4_ADDR_WIDTH-1:0]	reg_param_addr;
 	reg		[STRIDE_WIDTH-1:0]		reg_param_stride;
@@ -160,10 +185,10 @@ module jelly_vdma_axi4_to_axi4s_core
 						reg_param_size   <= param_size;
 						reg_param_arlen  <= param_arlen;
 						
-						reg_arhcount <= param_width;
+						reg_arhcount <= pixels_to_count(param_width);
 						reg_arvcount <= param_height;
-						if ( (param_size != 0) && (param_width << AXI4_DATA_SIZE) == param_stride ) begin
-							reg_arhcount <= param_size;
+						if ( (param_size != 0) && pixels_to_byte(param_width) == param_stride ) begin
+							reg_arhcount <= pixels_to_count(param_size);
 							reg_arvcount <= 1;
 						end
 						reg_araddr <= param_addr;
@@ -171,8 +196,8 @@ module jelly_vdma_axi4_to_axi4s_core
 					else begin
 						reg_arhcount <= reg_param_width;
 						reg_arvcount <= reg_param_height;
-						if ( (reg_param_size != 0) && (reg_param_width << AXI4_DATA_SIZE) == reg_param_stride ) begin
-							reg_arhcount <= reg_param_size;
+						if ( (reg_param_size != 0) && pixels_to_byte(reg_param_width) == reg_param_stride ) begin
+							reg_arhcount <= pixels_to_count(reg_param_size);
 							reg_arvcount <= 1;
 						end
 						reg_araddr <= reg_param_addr;
@@ -201,8 +226,8 @@ module jelly_vdma_axi4_to_axi4s_core
 		end
 	end
 	
-	assign ctl_busy      = reg_busy;
-	assign ctl_index     = reg_index;
+	assign ctl_busy       = reg_busy;
+	assign ctl_index      = reg_index;
 	
 	assign monitor_addr   = reg_param_addr;
 	assign monitor_stride = reg_param_stride;
@@ -211,7 +236,7 @@ module jelly_vdma_axi4_to_axi4s_core
 	assign monitor_size   = reg_param_size;
 	assign monitor_arlen  = reg_param_arlen;
 	
-	assign m_axi4s_tuser = reg_tuser;
+	assign m_axi4s_tuser  = reg_tuser;
 	
 	
 	// DMA

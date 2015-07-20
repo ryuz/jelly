@@ -6,8 +6,8 @@
 module top
 		#(
 			parameter	BUF_STRIDE  = 4096,
-			parameter	WRITE_X_NUM = 640,
-			parameter	WRITE_Y_NUM = 480
+			parameter	IMAGE_X_NUM = 640,
+			parameter	IMAGE_Y_NUM = 480
 		)
 		(
 			output	wire			hdmi_out_en,
@@ -89,8 +89,8 @@ module top
 	wire	[2:0]	axi4_mem00_awsize;
 	wire			axi4_mem00_awvalid;
 	wire			axi4_mem00_awready;
-	wire	[3:0]	axi4_mem00_wstrb;
-	wire	[31:0]	axi4_mem00_wdata;
+	wire	[7:0]	axi4_mem00_wstrb;
+	wire	[63:0]	axi4_mem00_wdata;
 	wire			axi4_mem00_wlast;
 	wire			axi4_mem00_wvalid;
 	wire			axi4_mem00_wready;
@@ -112,7 +112,7 @@ module top
 	wire			axi4_mem00_arready;
 	wire	[5:0]	axi4_mem00_rid;
 	wire	[1:0]	axi4_mem00_rresp;
-	wire	[31:0]	axi4_mem00_rdata;
+	wire	[63:0]	axi4_mem00_rdata;
 	wire			axi4_mem00_rlast;
 	wire			axi4_mem00_rvalid;
 	wire			axi4_mem00_rready;
@@ -321,8 +321,8 @@ module top
 	jelly_pattern_generator_axi4s
 			#(
 				.AXI4S_DATA_WIDTH	(32),
-				.X_NUM				(WRITE_X_NUM),
-				.Y_NUM				(WRITE_Y_NUM)
+				.X_NUM				(IMAGE_X_NUM),
+				.Y_NUM				(IMAGE_Y_NUM)
 			)
 		i_pattern_generator_axi4s
 			(
@@ -356,12 +356,12 @@ module top
 				.V_WIDTH			(12),
 				.WB_ADR_WIDTH		(8),
 				.WB_DAT_WIDTH		(32),
-				.INIT_CTL_CONTROL	(2'b11),
+				.INIT_CTL_CONTROL	(2'b00),
 				.INIT_PARAM_ADDR	(32'h1800_0000),
 				.INIT_PARAM_STRIDE	(BUF_STRIDE),
-				.INIT_PARAM_WIDTH	(WRITE_X_NUM),
-				.INIT_PARAM_HEIGHT	(WRITE_Y_NUM),
-				.INIT_PARAM_SIZE	(WRITE_X_NUM*WRITE_Y_NUM),
+				.INIT_PARAM_WIDTH	(IMAGE_X_NUM),
+				.INIT_PARAM_HEIGHT	(IMAGE_Y_NUM),
+				.INIT_PARAM_SIZE	(IMAGE_X_NUM*IMAGE_Y_NUM),
 				.INIT_PARAM_AWLEN	(7)
 			)
 		i_vdma_axi4s_to_axi4
@@ -416,7 +416,7 @@ module top
 	
 	wire	[0:0]			axi4s_memr_tuser;
 	wire					axi4s_memr_tlast;
-	wire	[23:0]			axi4s_memr_tdata;
+	wire	[31:0]			axi4s_memr_tdata;
 	wire					axi4s_memr_tvalid;
 	wire					axi4s_memr_tready;
 
@@ -426,12 +426,16 @@ module top
 	
 	jelly_vdma_axi4_to_axi4s
 			#(
+				.ASYNC				(1),
+				.FIFO_PTR_WIDTH		(9),
+				.PIXEL_SIZE			(2),	// 32bit
 				.AXI4_ID_WIDTH		(6),
 				.AXI4_ADDR_WIDTH	(32),
+				.AXI4_DATA_SIZE		(3),	// 64bit
 				.AXI4_LEN_WIDTH		(8),
 				.AXI4_QOS_WIDTH		(4),
 				.AXI4S_USER_WIDTH	(1),
-				.AXI4S_DATA_WIDTH	(24),
+				.AXI4S_DATA_SIZE	(2),	// 32bit
 				.INDEX_WIDTH		(8),
 				.STRIDE_WIDTH		(14),
 				.H_WIDTH			(12),
@@ -441,15 +445,15 @@ module top
 				.INIT_CTL_CONTROL	(2'b11),
 				.INIT_PARAM_ADDR	(32'h1800_0000),
 				.INIT_PARAM_STRIDE	(BUF_STRIDE),
-				.INIT_PARAM_WIDTH	(640),
-				.INIT_PARAM_HEIGHT	(480),
+				.INIT_PARAM_WIDTH	(IMAGE_X_NUM),
+				.INIT_PARAM_HEIGHT	(IMAGE_Y_NUM),
+				.INIT_PARAM_SIZE	(IMAGE_X_NUM*IMAGE_Y_NUM),
 				.INIT_PARAM_ARLEN	(7)
 			)
 		i_vdma_axi4_to_axi4s
 			(
-				.aresetn			(mem_aresetn),
-				.aclk				(mem_aclk),
-				
+				.m_axi4_aresetn		(mem_aresetn),
+				.m_axi4_aclk		(mem_aclk),
 				.m_axi4_arid		(axi4_mem00_arid),
 				.m_axi4_araddr		(axi4_mem00_araddr),
 				.m_axi4_arburst		(axi4_mem00_arburst),
@@ -469,6 +473,8 @@ module top
 				.m_axi4_rvalid		(axi4_mem00_rvalid),
 				.m_axi4_rready		(axi4_mem00_rready),
 				
+				.m_axi4s_aresetn	(~video_reset),
+				.m_axi4s_aclk		(video_clk),
 				.m_axi4s_tuser		(axi4s_memr_tuser),
 				.m_axi4s_tlast		(axi4s_memr_tlast),
 				.m_axi4s_tdata		(axi4s_memr_tdata),
@@ -486,7 +492,7 @@ module top
 				.s_wb_ack_o			(wb_vdmar_ack_o)
 		);
 	
-	
+	/*
 	wire	[0:0]			axi4s_vout_tuser;
 	wire					axi4s_vout_tlast;
 	wire	[23:0]			axi4s_vout_tdata;
@@ -514,7 +520,7 @@ module top
 				.m_ready			(axi4s_vout_tready),
 				.m_data_count		()
 			);
-	
+	*/
 	
 	wire					vout_vsgen_vsync;
 	wire					vout_vsgen_hsync;
@@ -529,15 +535,15 @@ module top
 				.WB_ADR_WIDTH		(8),
 				.WB_DAT_WIDTH		(32),
 				.INIT_CTL_CONTROL	(1'b1),
-				.INIT_HTOTAL		(96 + 16 + 640 + 48),
+				.INIT_HTOTAL		(96 + 16 + IMAGE_X_NUM + 48),
 				.INIT_HDISP_START	(96 + 16),
-				.INIT_HDISP_END		(96 + 16 + 640),
+				.INIT_HDISP_END		(96 + 16 + IMAGE_X_NUM),
 				.INIT_HSYNC_START	(0),
 				.INIT_HSYNC_END		(96),
 				.INIT_HSYNC_POL		(0),
-				.INIT_VTOTAL		(2 + 10 + 480 + 33),
+				.INIT_VTOTAL		(2 + 10 + IMAGE_Y_NUM + 33),
 				.INIT_VDISP_START	(2 + 10),
-				.INIT_VDISP_END		(2 + 10 + 480),
+				.INIT_VDISP_END		(2 + 10 + IMAGE_Y_NUM),
 				.INIT_VSYNC_START	(0),
 				.INIT_VSYNC_END		(2),
 				.INIT_VSYNC_POL		(0)
@@ -578,11 +584,11 @@ module top
 				.reset				(video_reset),
 				.clk				(video_clk),
 				
-				.s_axi4s_tuser		(axi4s_vout_tuser),
-				.s_axi4s_tlast		(axi4s_vout_tlast),
-				.s_axi4s_tdata		(axi4s_vout_tdata),
-				.s_axi4s_tvalid		(axi4s_vout_tvalid),
-				.s_axi4s_tready		(axi4s_vout_tready),
+				.s_axi4s_tuser		(axi4s_memr_tuser),
+				.s_axi4s_tlast		(axi4s_memr_tlast),
+				.s_axi4s_tdata		(axi4s_memr_tdata[23:0]),
+				.s_axi4s_tvalid		(axi4s_memr_tvalid),
+				.s_axi4s_tready		(axi4s_memr_tready),
 				
 				.in_vsync			(vout_vsgen_vsync),
 				.in_hsync			(vout_vsgen_hsync),

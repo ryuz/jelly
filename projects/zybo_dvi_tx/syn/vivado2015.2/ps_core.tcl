@@ -148,7 +148,7 @@ proc create_root_design { parentCell } {
   set m_axi4l_peri00 [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:aximm_rtl:1.0 m_axi4l_peri00 ]
   set_property -dict [ list CONFIG.ADDR_WIDTH {32} CONFIG.CLK_DOMAIN {ps_core_processing_system7_0_0_FCLK_CLK0} CONFIG.DATA_WIDTH {32} CONFIG.NUM_READ_OUTSTANDING {8} CONFIG.NUM_WRITE_OUTSTANDING {8} CONFIG.PROTOCOL {AXI4LITE}  ] $m_axi4l_peri00
   set s_axi4_mem00 [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 s_axi4_mem00 ]
-  set_property -dict [ list CONFIG.ADDR_WIDTH {32} CONFIG.ARUSER_WIDTH {0} CONFIG.AWUSER_WIDTH {0} CONFIG.BUSER_WIDTH {0} CONFIG.CLK_DOMAIN {ps_core_processing_system7_0_0_FCLK_CLK1} CONFIG.DATA_WIDTH {32} CONFIG.FREQ_HZ {175000000} CONFIG.ID_WIDTH {6} CONFIG.MAX_BURST_LENGTH {256} CONFIG.NUM_READ_OUTSTANDING {1} CONFIG.NUM_WRITE_OUTSTANDING {1} CONFIG.PHASE {0.000} CONFIG.PROTOCOL {AXI4} CONFIG.READ_WRITE_MODE {READ_WRITE} CONFIG.RUSER_WIDTH {0} CONFIG.SUPPORTS_NARROW_BURST {1} CONFIG.WUSER_WIDTH {0}  ] $s_axi4_mem00
+  set_property -dict [ list CONFIG.ADDR_WIDTH {32} CONFIG.ARUSER_WIDTH {0} CONFIG.AWUSER_WIDTH {0} CONFIG.BUSER_WIDTH {0} CONFIG.CLK_DOMAIN {ps_core_processing_system7_0_0_FCLK_CLK1} CONFIG.DATA_WIDTH {64} CONFIG.FREQ_HZ {175000000} CONFIG.ID_WIDTH {6} CONFIG.MAX_BURST_LENGTH {256} CONFIG.NUM_READ_OUTSTANDING {1} CONFIG.NUM_WRITE_OUTSTANDING {1} CONFIG.PHASE {0.000} CONFIG.PROTOCOL {AXI4} CONFIG.READ_WRITE_MODE {READ_WRITE} CONFIG.RUSER_WIDTH {0} CONFIG.SUPPORTS_NARROW_BURST {1} CONFIG.WUSER_WIDTH {0}  ] $s_axi4_mem00
 
   # Create ports
   set mem_aclk [ create_bd_port -dir O -type clk mem_aclk ]
@@ -166,7 +166,7 @@ proc create_root_design { parentCell } {
 
   # Create instance: axi_interconnect_1, and set properties
   set axi_interconnect_1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_interconnect:2.1 axi_interconnect_1 ]
-  set_property -dict [ list CONFIG.NUM_MI {1}  ] $axi_interconnect_1
+  set_property -dict [ list CONFIG.NUM_MI {1} CONFIG.S00_HAS_DATA_FIFO {0} CONFIG.S00_HAS_REGSLICE {3}  ] $axi_interconnect_1
 
   # Create instance: axi_protocol_converter_0, and set properties
   set axi_protocol_converter_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_protocol_converter:2.1 axi_protocol_converter_0 ]
@@ -183,7 +183,7 @@ proc create_root_design { parentCell } {
 
   # Create instance: processing_system7_0, and set properties
   set processing_system7_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:processing_system7:5.5 processing_system7_0 ]
-  set_property -dict [ list CONFIG.PCW_EN_CLK1_PORT {1} CONFIG.PCW_EN_CLK2_PORT {1} CONFIG.PCW_EN_CLK3_PORT {1} CONFIG.PCW_FCLK2_PERIPHERAL_CLKSRC {IO PLL} CONFIG.PCW_FPGA2_PERIPHERAL_FREQMHZ {25.000000} CONFIG.PCW_FPGA3_PERIPHERAL_FREQMHZ {125.000000} CONFIG.PCW_IMPORT_BOARD_PRESET {ZYBO_zynq_def.xml} CONFIG.PCW_S_AXI_HP0_DATA_WIDTH {32} CONFIG.PCW_USE_M_AXI_GP0 {1} CONFIG.PCW_USE_S_AXI_HP0 {1}  ] $processing_system7_0
+  set_property -dict [ list CONFIG.PCW_EN_CLK1_PORT {1} CONFIG.PCW_EN_CLK2_PORT {1} CONFIG.PCW_EN_CLK3_PORT {1} CONFIG.PCW_FCLK2_PERIPHERAL_CLKSRC {IO PLL} CONFIG.PCW_FPGA2_PERIPHERAL_FREQMHZ {25.000000} CONFIG.PCW_FPGA3_PERIPHERAL_FREQMHZ {125.000000} CONFIG.PCW_IMPORT_BOARD_PRESET {ZYBO_zynq_def.xml} CONFIG.PCW_S_AXI_HP0_DATA_WIDTH {64} CONFIG.PCW_USE_M_AXI_GP0 {1} CONFIG.PCW_USE_S_AXI_HP0 {1}  ] $processing_system7_0
 
   # Create interface connections
   connect_bd_intf_net -intf_net S00_AXI_1 [get_bd_intf_pins axi_interconnect_0/S00_AXI] [get_bd_intf_pins axi_protocol_converter_0/M_AXI]
