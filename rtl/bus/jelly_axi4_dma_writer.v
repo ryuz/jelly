@@ -1,10 +1,9 @@
 // ---------------------------------------------------------------------------
-//  AXI4Stream を AXI4に Write するコア
-//      受付コマンド数などは AXI interconnect などで制約できるので
-//    コアはシンプルな作りとする
+//  Jelly  -- The FPGA processing system
 //
-//                                      Copyright (C) 2015 by Ryuji Fuchikami
-//                                      http://homepage3.nifty.com/ryuz
+//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
+//                                 http://homepage3.nifty.com/ryuz/
+//                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
 
@@ -12,6 +11,7 @@
 `default_nettype none
 
 
+//  AXI4Stream を AXI4に Write するコア
 module jelly_axi4_dma_writer
 		#(
 			parameter	AXI4_ID_WIDTH    = 6,
@@ -91,7 +91,7 @@ module jelly_axi4_dma_writer
 	wire							axi4_wlast;
 	wire							axi4_wvalid;
 	wire							axi4_wready;
-
+	
 	wire	[AXI4S_DATA_WIDTH-1:0]	axi4s_tdata;
 	wire							axi4s_tvalid;
 	wire							axi4s_tready;
@@ -174,7 +174,7 @@ module jelly_axi4_dma_writer
 				.clk				(aclk),
 				.cke				(1'b1),
 				
-				.s_data				({s_axi4s_tdata}),
+				.s_data				(s_axi4s_tdata),
 				.s_valid			(s_axi4s_tvalid),
 				.s_ready			(s_axi4s_tready),
 				

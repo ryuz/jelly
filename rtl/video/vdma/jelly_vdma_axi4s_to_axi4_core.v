@@ -3,6 +3,7 @@
 //
 //                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
 //                                 http://homepage3.nifty.com/ryuz/
+//                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
 
@@ -15,6 +16,8 @@
 //  AXI4Stream を AXI4に Write するコア
 module jelly_vdma_axi4s_to_axi4_core
 		#(
+			parameter	PIXEL_SIZE       = 2,	// 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
+			
 			parameter	AXI4_ID_WIDTH    = 6,
 			parameter	AXI4_ADDR_WIDTH  = 32,
 			parameter	AXI4_DATA_SIZE   = 2,	// 0:8bit, 1:16bit, 2:32bit ...
@@ -32,11 +35,11 @@ module jelly_vdma_axi4s_to_axi4_core
 			parameter	AXI4_AWREGION    = 4'b0000,
 			parameter	AXI4S_USER_WIDTH = 1,
 			parameter	AXI4S_DATA_WIDTH = AXI4_DATA_WIDTH,
-
+			
 			parameter	AXI4_AW_REGS     = 1,
 			parameter	AXI4_W_REGS      = 1,
 			parameter	AXI4S_REGS       = 1,
-
+			
 			parameter	STRIDE_WIDTH     = 14,
 			parameter	INDEX_WIDTH      = 8,
 			parameter	H_WIDTH          = 12,
@@ -142,6 +145,27 @@ module jelly_vdma_axi4s_to_axi4_core
 	//  Control
 	// -----------------------------
 	
+	// ピクセル数を転送数に変換
+	function	[SIZE_WIDTH-1:0]	pixels_to_count(input [SIZE_WIDTH-1:0] pixels);
+	begin
+		if ( AXI4_DATA_SIZE >= PIXEL_SIZE ) begin
+			pixels_to_count = (pixels >> (AXI4_DATA_SIZE - PIXEL_SIZE));
+		end
+		else begin
+			pixels_to_count = (pixels << (PIXEL_SIZE - AXI4_DATA_SIZE));
+		end
+	end
+	endfunction
+	
+	
+	// ピクセル数をバイト数に変換
+	function	[AXI4_ADDR_WIDTH-1:0]	pixels_to_byte(input [SIZE_WIDTH-1:0] pixels);
+	begin
+		pixels_to_byte = pixels << PIXEL_SIZE;
+	end
+	endfunction
+	
+	
 	// 状態管理
 	reg								reg_busy;
 	reg								reg_skip;
@@ -161,7 +185,6 @@ module jelly_vdma_axi4s_to_axi4_core
 	reg		[V_WIDTH-1:0]			reg_param_height;
 	reg		[SIZE_WIDTH-1:0]		reg_param_size;
 	reg		[AXI4_LEN_WIDTH-1:0]	reg_param_awlen;
-
 	
 	always @(posedge aclk) begin
 		if ( !aresetn ) begin
@@ -201,19 +224,19 @@ module jelly_vdma_axi4s_to_axi4_core
 						reg_param_size   <= param_size;
 						reg_param_awlen  <= param_awlen;
 						
-						reg_awhcount <= param_width;
+						reg_awhcount <= pixels_to_count(param_width);
 						reg_awvcount <= param_height;
-						if ( (param_size != 0) && (param_width << AXI4_DATA_SIZE) == param_stride ) begin
-							reg_awhcount <= param_size;
+						if ( (param_size != 0) && pixels_to_byte(param_width) == param_stride ) begin
+							reg_awhcount <= pixels_to_count(param_size);
 							reg_awvcount <= 1;
 						end
 						reg_awaddr <= param_addr;
 					end
 					else begin
-						reg_awhcount <= reg_param_width;
+						reg_awhcount <= pixels_to_count(reg_param_width);
 						reg_awvcount <= reg_param_height;
 						if ( (reg_param_size != 0) && (reg_param_width << AXI4_DATA_SIZE) == reg_param_stride ) begin
-							reg_awhcount <= reg_param_size;
+							reg_awhcount <= pixels_to_count(reg_param_size);
 							reg_awvcount <= 1;
 						end
 						reg_awaddr <= reg_param_addr;

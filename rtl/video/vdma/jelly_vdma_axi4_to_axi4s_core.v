@@ -3,6 +3,7 @@
 //
 //                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
 //                                 http://homepage3.nifty.com/ryuz/
+//                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
 
@@ -23,9 +24,20 @@ module jelly_vdma_axi4_to_axi4s_core
 			parameter	AXI4_DATA_WIDTH  = (8 << AXI4_DATA_SIZE),
 			parameter	AXI4_LEN_WIDTH   = 8,
 			parameter	AXI4_QOS_WIDTH   = 4,
-			
+			parameter	AXI4_ARID        = {AXI4_ID_WIDTH{1'b0}},
+			parameter	AXI4_ARSIZE      = AXI4_DATA_SIZE,
+			parameter	AXI4_ARBURST     = 2'b01,
+			parameter	AXI4_ARLOCK      = 1'b0,
+			parameter	AXI4_ARCACHE     = 4'b0001,
+			parameter	AXI4_ARPROT      = 3'b000,
+			parameter	AXI4_ARQOS       = 0,
+			parameter	AXI4_ARREGION    = 4'b0000,
 			parameter	AXI4S_DATA_WIDTH = AXI4_DATA_WIDTH,
 			parameter	AXI4S_USER_WIDTH = 1,
+			
+			parameter	AXI4_AR_REGS     = 1,
+			parameter	AXI4_R_REGS      = 1,
+			parameter	AXI4S_REGS       = 1,
 			
 			parameter	STRIDE_WIDTH     = 14,
 			parameter	INDEX_WIDTH      = 8,
@@ -87,25 +99,47 @@ module jelly_vdma_axi4_to_axi4s_core
 			input	wire							m_axi4s_tready
 		);
 	
-	// 状態管理
-	reg								reg_busy;
-	reg		[INDEX_WIDTH-1:0]		reg_index;			// この変化でホストは受付確認
 	
-	wire							sig_arbusy;
-	reg								reg_arenable;
-	reg		[SIZE_WIDTH-1:0]		reg_arhcount;
-	reg		[V_WIDTH-1:0]			reg_arvcount;
-	reg								reg_arbusy;
-	reg		[AXI4_ADDR_WIDTH-1:0]	reg_araddr;
+	// -----------------------------
+	//  insert FF
+	// -----------------------------
 	
-	reg								reg_rbusy;
-	reg		[SIZE_WIDTH-1:0]		reg_rcount;
-	reg								reg_tuser;			// frame start
+	wire	[AXI4S_DATA_WIDTH-1:0]	axi4s_tdata;
+	wire							axi4s_tlast;
+	wire	[AXI4S_USER_WIDTH-1:0]	axi4s_tuser;
+	wire							axi4s_tvalid;
+	wire							axi4s_tready;
 	
-	wire							sig_rcount_up   = (m_axi4_arvalid && m_axi4_arready);
-	wire							sig_rcount_down = (m_axi4_rlast && m_axi4_rvalid && m_axi4_rready);
-	wire							next_rcount     = reg_rcount + sig_rcount_up - sig_rcount_down;
+	// AXI4Stream
+	jelly_pipeline_insert_ff
+			#(
+				.DATA_WIDTH			(AXI4S_DATA_WIDTH+1+AXI4S_USER_WIDTH),
+				.SLAVE_REGS			(AXI4S_REGS),
+				.MASTER_REGS		(AXI4S_REGS)
+			)
+		i_pipeline_insert_ff_t
+			(
+				.reset				(~aresetn),
+				.clk				(aclk),
+				.cke				(1'b1),
+				
+				.s_data				({axi4s_tdata, axi4s_tlast, axi4s_tuser}),
+				.s_valid			(axi4s_tvalid),
+				.s_ready			(axi4s_tready),
+				
+				.m_data				({m_axi4s_tdata, m_axi4s_tlast, m_axi4s_tuser}),
+				.m_valid			(m_axi4s_tvalid),
+				.m_ready			(m_axi4s_tready),
+				
+				.buffered			(),
+				.s_ready_next		()
+			);
 	
+	
+	
+	// -----------------------------
+	//  Control
+	// -----------------------------
 	
 	// ピクセル数を転送数に変換
 	function	[SIZE_WIDTH-1:0]	pixels_to_count(input [SIZE_WIDTH-1:0] pixels);
@@ -126,6 +160,25 @@ module jelly_vdma_axi4_to_axi4s_core
 	end
 	endfunction
 	
+	
+	// 状態管理
+	reg								reg_busy;
+	reg		[INDEX_WIDTH-1:0]		reg_index;			// この変化でホストは受付確認
+	
+	wire							sig_arbusy;
+	reg								reg_arenable;
+	reg		[SIZE_WIDTH-1:0]		reg_arhcount;
+	reg		[V_WIDTH-1:0]			reg_arvcount;
+	reg								reg_arbusy;
+	reg		[AXI4_ADDR_WIDTH-1:0]	reg_araddr;
+	
+	reg								reg_rbusy;
+	reg		[SIZE_WIDTH-1:0]		reg_rcount;
+	reg								reg_tuser;			// frame start
+	
+	wire							sig_rcount_up   = (m_axi4_arvalid && m_axi4_arready);
+	wire							sig_rcount_down = (m_axi4_rlast && m_axi4_rvalid && m_axi4_rready);
+	wire							next_rcount     = reg_rcount + sig_rcount_up - sig_rcount_down;
 	
 	// シャドーレジスタ
 	reg		[AXI4_ADDR_WIDTH-1:0]	reg_param_addr;
@@ -163,7 +216,7 @@ module jelly_vdma_axi4_to_axi4s_core
 				reg_busy <= 1'b0;
 			end
 			
-			if ( m_axi4s_tvalid && m_axi4s_tready ) begin
+			if ( axi4s_tvalid && axi4s_tready ) begin
 				reg_tuser  <= 1'b0;
 			end
 			
@@ -237,7 +290,7 @@ module jelly_vdma_axi4_to_axi4s_core
 	assign monitor_size   = reg_param_size;
 	assign monitor_arlen  = reg_param_arlen;
 	
-	assign m_axi4s_tuser  = reg_tuser;
+	assign axi4s_tuser    = reg_tuser;
 	
 	
 	// DMA
@@ -251,8 +304,20 @@ module jelly_vdma_axi4_to_axi4s_core
 				.AXI4_DATA_WIDTH	(AXI4_DATA_WIDTH),
 				.AXI4_LEN_WIDTH		(AXI4_LEN_WIDTH),
 				.AXI4_QOS_WIDTH		(AXI4_QOS_WIDTH),
+				.AXI4_ARID			(AXI4_ARID),
+				.AXI4_ARSIZE		(AXI4_ARSIZE),
+				.AXI4_ARBURST		(AXI4_ARBURST),
+				.AXI4_ARLOCK		(AXI4_ARLOCK),
+				.AXI4_ARCACHE		(AXI4_ARCACHE),
+				.AXI4_ARPROT		(AXI4_ARPROT),
+				.AXI4_ARQOS			(AXI4_ARQOS),
+				.AXI4_ARREGION		(AXI4_ARREGION),
 				.AXI4S_DATA_WIDTH	(AXI4S_DATA_WIDTH),
-				.COUNT_WIDTH		(SIZE_WIDTH)
+				.COUNT_WIDTH		(SIZE_WIDTH),
+				
+				.AXI4_AR_REGS		(AXI4_AR_REGS),
+				.AXI4_R_REGS		(AXI4_R_REGS),
+				.AXI4S_REGS			(0)
 			)
 		i_axi4_dma_reader
 			(
@@ -289,12 +354,11 @@ module jelly_vdma_axi4_to_axi4s_core
 				.m_axi4_rvalid		(m_axi4_rvalid),
 				.m_axi4_rready		(m_axi4_rready),
 				
-				.m_axi4s_tdata		(m_axi4s_tdata),
-				.m_axi4s_tlast		(m_axi4s_tlast),
-				.m_axi4s_tvalid		(m_axi4s_tvalid),
-				.m_axi4s_tready		(m_axi4s_tready)
+				.m_axi4s_tdata		(axi4s_tdata),
+				.m_axi4s_tlast		(axi4s_tlast),
+				.m_axi4s_tvalid		(axi4s_tvalid),
+				.m_axi4s_tready		(axi4s_tready)
 			);
-	
 	
 endmodule
 

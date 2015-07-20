@@ -1,17 +1,19 @@
 // ---------------------------------------------------------------------------
-//  AXI4 から Read して AXI4Streamにするコア
-//      受付コマンド数などは AXI interconnect などで制約できるので
-//    コアはシンプルな作りとする
+//  Jelly  -- The FPGA processing system
 //
-//                                      Copyright (C) 2015 by Ryuji Fuchikami
-//                                      http://homepage3.nifty.com/ryuz
+//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
+//                                 http://homepage3.nifty.com/ryuz/
+//                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
+
 
 
 `timescale 1ns / 1ps
 `default_nettype none
 
 
+
+//  AXI4 から Read して AXI4Streamにするコア
 module jelly_axi4_dma_reader
 		#(
 			parameter	AXI4_ID_WIDTH    = 6,
@@ -20,8 +22,19 @@ module jelly_axi4_dma_reader
 			parameter	AXI4_DATA_WIDTH  = (8 << AXI4_DATA_SIZE),
 			parameter	AXI4_LEN_WIDTH   = 8,
 			parameter	AXI4_QOS_WIDTH   = 4,
+			parameter	AXI4_ARID        = {AXI4_ID_WIDTH{1'b0}},
+			parameter	AXI4_ARSIZE      = AXI4_DATA_SIZE,
+			parameter	AXI4_ARBURST     = 2'b01,
+			parameter	AXI4_ARLOCK      = 1'b0,
+			parameter	AXI4_ARCACHE     = 4'b0001,
+			parameter	AXI4_ARPROT      = 3'b000,
+			parameter	AXI4_ARQOS       = 0,
+			parameter	AXI4_ARREGION    = 4'b0000,
 			parameter	AXI4S_DATA_WIDTH = AXI4_DATA_WIDTH,
-			parameter	COUNT_WIDTH      = AXI4_ADDR_WIDTH - AXI4_DATA_SIZE
+			parameter	COUNT_WIDTH      = AXI4_ADDR_WIDTH - AXI4_DATA_SIZE,
+			parameter	AXI4_AR_REGS     = 1,
+			parameter	AXI4_R_REGS      = 1,
+			parameter	AXI4S_REGS       = 0
 		)
 		(
 			input	wire							aresetn,
@@ -67,6 +80,117 @@ module jelly_axi4_dma_reader
 			input	wire							m_axi4s_tready
 		);
 	
+	
+	// -----------------------------
+	//  insert FF
+	// -----------------------------
+	
+	wire	[AXI4_ADDR_WIDTH-1:0]	axi4_araddr;
+	wire	[AXI4_LEN_WIDTH-1:0]	axi4_arlen;
+	wire							axi4_arvalid;
+	wire							axi4_arready;
+	
+	wire	[AXI4_DATA_WIDTH-1:0]	axi4_rdata;
+	wire							axi4_rlast;
+	wire							axi4_rvalid;
+	wire							axi4_rready;
+	
+	wire	[AXI4S_DATA_WIDTH-1:0]	axi4s_tdata;
+	wire							axi4s_tlast;
+	wire							axi4s_tvalid;
+	wire							axi4s_tready;
+	
+	// AXI4 ar
+	jelly_pipeline_insert_ff
+			#(
+				.DATA_WIDTH			(AXI4_ADDR_WIDTH+AXI4_LEN_WIDTH),
+				.SLAVE_REGS			(AXI4_AR_REGS),
+				.MASTER_REGS		(AXI4_AR_REGS)
+			)
+		i_pipeline_insert_ff_ar
+			(
+				.reset				(~aresetn),
+				.clk				(aclk),
+				.cke				(1'b1),
+				
+				.s_data				({axi4_araddr, axi4_arlen}),
+				.s_valid			(axi4_arvalid),
+				.s_ready			(axi4_arready),
+				
+				.m_data				({m_axi4_araddr, m_axi4_arlen}),
+				.m_valid			(m_axi4_arvalid),
+				.m_ready			(m_axi4_arready),
+				
+				.buffered			(),
+				.s_ready_next		()
+			);
+	assign m_axi4_arid     = AXI4_ARID;
+	assign m_axi4_arsize   = AXI4_ARSIZE;
+	assign m_axi4_arburst  = AXI4_ARBURST;
+	assign m_axi4_arcache  = AXI4_ARCACHE;
+	assign m_axi4_arlock   = AXI4_ARLOCK;
+	assign m_axi4_arprot   = AXI4_ARPROT;
+	assign m_axi4_arqos    = AXI4_ARQOS;
+	assign m_axi4_arregion = AXI4_ARREGION;
+	
+	
+	// AXI4 r
+	jelly_pipeline_insert_ff
+			#(
+				.DATA_WIDTH			(AXI4_DATA_WIDTH+1),
+				.SLAVE_REGS			(AXI4_R_REGS),
+				.MASTER_REGS		(AXI4_R_REGS)
+			)
+		i_pipeline_insert_ff_r
+			(
+				.reset				(~aresetn),
+				.clk				(aclk),
+				.cke				(1'b1),
+				
+				.s_data				({m_axi4_rdata, m_axi4_rlast}),
+				.s_valid			(m_axi4_rvalid),
+				.s_ready			(m_axi4_rready),
+				
+				.m_data				({axi4_rdata, axi4_rlast}),
+				.m_valid			(axi4_rvalid),
+				.m_ready			(axi4_rready),
+				
+				.buffered			(),
+				.s_ready_next		()
+			);
+	
+	
+	// AXI4Stream
+	jelly_pipeline_insert_ff
+			#(
+				.DATA_WIDTH			(AXI4S_DATA_WIDTH),
+				.SLAVE_REGS			(AXI4S_REGS),
+				.MASTER_REGS		(AXI4S_REGS)
+			)
+		i_pipeline_insert_ff_t
+			(
+				.reset				(~aresetn),
+				.clk				(aclk),
+				.cke				(1'b1),
+				
+				.s_data				({axi4s_tdata, axi4s_tlast}),
+				.s_valid			(axi4s_tvalid),
+				.s_ready			(axi4s_tready),
+				
+				.m_data				({m_axi4s_tdata, m_axi4s_tlast}),
+				.m_valid			(m_axi4s_tvalid),
+				.m_ready			(m_axi4s_tready),
+				
+				.buffered			(),
+				.s_ready_next		()
+			);
+	
+	
+	
+	// -----------------------------
+	//  Control
+	// -----------------------------
+	
 	wire							cmd_busy;
 	
 	jelly_axi4_dma_addr
@@ -93,20 +217,12 @@ module jelly_axi4_dma_reader
 				.m_cmd_valid		(),
 				.m_cmd_ready		(1'b1),
 				
-				.m_axi4_addr		(m_axi4_araddr),
-				.m_axi4_len			(m_axi4_arlen),
-				.m_axi4_valid		(m_axi4_arvalid),
-				.m_axi4_ready		(m_axi4_arready)
+				.m_axi4_addr		(axi4_araddr),
+				.m_axi4_len			(axi4_arlen),
+				.m_axi4_valid		(axi4_arvalid),
+				.m_axi4_ready		(axi4_arready)
 			);
 	
-	assign m_axi4_arid     = 0;
-	assign m_axi4_arburst  = 2'b01;
-	assign m_axi4_arcache  = 4'b0001;
-	assign m_axi4_arlock   = 1'b0;
-	assign m_axi4_arprot   = 3'b000;
-	assign m_axi4_arqos    = 0;
-	assign m_axi4_arregion = 4'b0000;
-	assign m_axi4_arsize   = AXI4_DATA_SIZE;
 	
 	reg							reg_rbusy;
 	reg		[COUNT_WIDTH-1:0]	reg_rcount;
@@ -129,7 +245,7 @@ module jelly_axi4_dma_reader
 				reg_unit_count   <= param_unit - 1'b1;
 			end
 			
-			if ( m_axi4_rvalid && m_axi4_rready ) begin
+			if ( axi4_rvalid && axi4_rready ) begin
 				reg_rlast_force <= 1'b0;
 				reg_rcount      <= reg_rcount     - 1'b1;
 				reg_unit_count  <= reg_unit_count - 1'b1;
@@ -154,11 +270,11 @@ module jelly_axi4_dma_reader
 	end
 	
 	
-	assign m_axi4s_tlast  = ((m_axi4_rlast & param_last_through) | reg_rlast_force);
-	assign m_axi4s_tdata  = m_axi4_rdata;
-	assign m_axi4s_tvalid = m_axi4_rvalid;
+	assign axi4s_tlast  = ((axi4_rlast & param_last_through) | reg_rlast_force);
+	assign axi4s_tdata  = axi4_rdata;
+	assign axi4s_tvalid = axi4_rvalid;
 	
-	assign m_axi4_rready  = m_axi4s_tready;
+	assign axi4_rready  = axi4s_tready;
 	
 	assign busy = cmd_busy || reg_rbusy;
 	

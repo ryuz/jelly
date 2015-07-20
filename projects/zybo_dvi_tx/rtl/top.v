@@ -343,13 +343,14 @@ module top
 	
 	jelly_vdma_axi4s_to_axi4
 			#(
+				.PIXEL_SIZE			(2),	// 32bit
 				.AXI4_ID_WIDTH		(6),
 				.AXI4_ADDR_WIDTH	(32),
-				.AXI4_DATA_SIZE		(2),
+				.AXI4_DATA_SIZE		(3),	// 64bit
 				.AXI4_LEN_WIDTH		(8),
 				.AXI4_QOS_WIDTH		(4),
+				.AXI4S_DATA_SIZE	(2),	// 32bit
 				.AXI4S_USER_WIDTH	(1),
-				.AXI4S_DATA_WIDTH	(24),
 				.INDEX_WIDTH		(8),
 				.STRIDE_WIDTH		(14),
 				.H_WIDTH			(12),
@@ -366,9 +367,8 @@ module top
 			)
 		i_vdma_axi4s_to_axi4
 			(
-				.aresetn			(mem_aresetn),
-				.aclk				(mem_aclk),
-				
+				.m_axi4_aresetn		(mem_aresetn),
+				.m_axi4_aclk		(mem_aclk),
 				.m_axi4_awid		(axi4_mem00_awid),
 				.m_axi4_awaddr		(axi4_mem00_awaddr),
 				.m_axi4_awburst		(axi4_mem00_awburst),
@@ -391,9 +391,11 @@ module top
 				.m_axi4_bvalid		(axi4_mem00_bvalid),
 				.m_axi4_bready		(axi4_mem00_bready),
 				
+				.s_axi4s_aresetn	(mem_aresetn),
+				.s_axi4s_aclk		(mem_aclk),
 				.s_axi4s_tuser		(axi4s_memw_tuser),
 				.s_axi4s_tlast		(axi4s_memw_tlast),
-				.s_axi4s_tdata		(axi4s_memw_tdata[23:0]),
+				.s_axi4s_tdata		(axi4s_memw_tdata),
 				.s_axi4s_tvalid		(axi4s_memw_tvalid),
 				.s_axi4s_tready		(axi4s_memw_tready),
 				
@@ -427,7 +429,7 @@ module top
 	jelly_vdma_axi4_to_axi4s
 			#(
 				.ASYNC				(1),
-				.FIFO_PTR_WIDTH		(10),
+				.FIFO_PTR_WIDTH		(9),
 				.PIXEL_SIZE			(2),	// 32bit
 				.AXI4_ID_WIDTH		(6),
 				.AXI4_ADDR_WIDTH	(32),

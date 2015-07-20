@@ -15,9 +15,8 @@ module tb_top();
 		$dumpfile("tb_top.vcd");
 		$dumpvars(1, tb_top);
 		$dumpvars(1, tb_top.i_top);
-		$dumpvars(0, tb_top.i_top.i_vdma_axi4_to_axi4s);
-//		$dumpvars(2, tb_top);
 //		$dumpvars(0, tb_top.i_top.i_vdma_axi4_to_axi4s);
+		$dumpvars(0, tb_top.i_top.i_vdma_axi4s_to_axi4);
 	
 	#1000000
 		$finish;
