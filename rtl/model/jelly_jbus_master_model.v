@@ -27,13 +27,13 @@ module jelly_jbus_master_model
 			input	wire						reset,
 			
 			// wishbone
-			output	wire	[ADR_WIDTH-1:0]		wb_master_adr_o,
-			output	wire	[DAT_WIDTH-1:0]		wb_master_dat_o,
-			input	wire	[DAT_WIDTH-1:0]		wb_master_dat_i,
-			output	wire						wb_master_we_o,
-			output	wire	[SEL_WIDTH-1:0]		wb_master_sel_o,
-			output	wire						wb_master_stb_o,
-			input	wire						wb_master_ack_i
+			output	wire	[ADR_WIDTH-1:0]		m_wb_adr_o,
+			output	wire	[DAT_WIDTH-1:0]		m_wb_dat_o,
+			input	wire	[DAT_WIDTH-1:0]		m_wb_dat_i,
+			output	wire						m_wb_we_o,
+			output	wire	[SEL_WIDTH-1:0]		m_wb_sel_o,
+			output	wire						m_wb_stb_o,
+			input	wire						m_wb_ack_i
 		);
 	
 	
@@ -61,11 +61,11 @@ module jelly_jbus_master_model
 	assign test_dat = test_pattern[DAT_POS +: DAT_WIDTH];
 	
 	
-	assign wb_master_stb_o = test_pattern[STB_POS];
-	assign wb_master_we_o  = test_pattern[WE_POS];
-	assign wb_master_adr_o = test_pattern[ADR_POS +: ADR_WIDTH];
-	assign wb_master_sel_o = test_pattern[SEL_POS +: SEL_WIDTH];
-	assign wb_master_dat_o = test_dat; //wb_master_we_o ? test_table[index][DAT_POS +: DAT_WIDTH] : {DAT_WIDTH{1'bx}};
+	assign m_wb_stb_o = test_pattern[STB_POS];
+	assign m_wb_we_o  = test_pattern[WE_POS];
+	assign m_wb_adr_o = test_pattern[ADR_POS +: ADR_WIDTH];
+	assign m_wb_sel_o = test_pattern[SEL_POS +: SEL_WIDTH];
+	assign m_wb_dat_o = test_dat; //m_wb_we_o ? test_table[index][DAT_POS +: DAT_WIDTH] : {DAT_WIDTH{1'bx}};
 	
 	function cmp_data;
 	input	[DAT_WIDTH-1:0]	dat;
@@ -86,13 +86,13 @@ module jelly_jbus_master_model
 			index <= 0;
 		end
 		else begin
-			if ( !wb_master_stb_o | wb_master_ack_i ) begin
+			if ( !m_wb_stb_o | m_wb_ack_i ) begin
 				if ( !test_table[index][END_POS] ) begin
 					index <= index + 1;
 				end
 			end
-			if ( !wb_master_we_o & wb_master_stb_o & wb_master_ack_i ) begin
-				if ( !cmp_data(wb_master_dat_i, test_table[index][DAT_POS +: DAT_WIDTH]) ) begin
+			if ( !m_wb_we_o & m_wb_stb_o & m_wb_ack_i ) begin
+				if ( !cmp_data(m_wb_dat_i, test_table[index][DAT_POS +: DAT_WIDTH]) ) begin
 					$display("%t read error", $time);
 				end
 			end

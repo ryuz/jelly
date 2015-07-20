@@ -290,22 +290,17 @@ module top
 				.clk				(wb_clk_o),
 				
 				.port_i				(led),
-				.port_o				(),//(led),
+				.port_o				(led),
 				.port_t				(),
 				
-				.wb_adr_i			(wb_host_adr_o[2 +: 2]),
-				.wb_dat_o			(wb_gpio_dat_o),
-				.wb_dat_i			(wb_host_dat_o),
-				.wb_we_i			(wb_host_we_o),
-				.wb_sel_i			(wb_host_sel_o),
-				.wb_stb_i			(wb_gpio_stb_i),
-				.wb_ack_o			(wb_gpio_ack_o)
+				.s_wb_adr_i			(wb_host_adr_o[2 +: 2]),
+				.s_wb_dat_o			(wb_gpio_dat_o),
+				.s_wb_dat_i			(wb_host_dat_o),
+				.s_wb_we_i			(wb_host_we_o),
+				.s_wb_sel_i			(wb_host_sel_o),
+				.s_wb_stb_i			(wb_gpio_stb_i),
+				.s_wb_ack_o			(wb_gpio_ack_o)
 			);
-	
-	assign led[0] = axi4_mem00_awvalid;
-	assign led[1] = axi4_mem00_awready;
-	assign led[2] = axi4_mem00_wvalid;
-	assign led[3] = axi4_mem00_wready;
 	
 	
 	// ----------------------------------------

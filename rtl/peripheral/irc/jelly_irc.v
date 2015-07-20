@@ -1,36 +1,28 @@
 // ---------------------------------------------------------------------------
-//  Jelly  -- the soft-core processor system
-//    Interrupt controller
+//  Jelly  -- the system on fpga system
 //
-//                                  Copyright (C) 2008-2009 by Ryuji Fuchikami
-//                                      http://homepage3.nifty.com/ryuz
+//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
+//                                 http://homepage3.nifty.com/ryuz/
+//                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
 
 
 `timescale 1ns / 1ps
+`default_nettype none
 
-
-// register address
-`define IRC_ADR_ENABLE				0
-`define IRC_ADR_MASK				1
-`define IRC_ADR_REQ_FACTOR_ID		2
-`define IRC_ADR_REQ_PRIORITY		3
-`define IRC_ADR_FACTOR_NUM			4
-`define IRC_ADR_PRIORITY_MAX		5
-`define IRC_ADR_FACTOR_BASE			8
 
 
 // Interrupt controller
 module jelly_irc
 		#(
-			parameter							FACTOR_ID_WIDTH = 2,
-			parameter							FACTOR_NUM      = (1 << FACTOR_ID_WIDTH),
-			parameter							PRIORITY_WIDTH  = 3,
+			parameter FACTOR_ID_WIDTH = 2,
+			parameter FACTOR_NUM      = (1 << FACTOR_ID_WIDTH),
+			parameter PRIORITY_WIDTH  = 3,
 			
-			parameter							WB_ADR_WIDTH    = 16,
-			parameter							WB_DAT_WIDTH    = 32,
-			parameter							WB_SEL_WIDTH    = (WB_DAT_WIDTH / 8)
+			parameter WB_ADR_WIDTH    = 16,
+			parameter WB_DAT_WIDTH    = 32,
+			parameter WB_SEL_WIDTH    = (WB_DAT_WIDTH / 8)
 		)
 		(
 			// system
@@ -45,15 +37,23 @@ module jelly_irc
 			input	wire						cpu_irq_ack,
 			
 			// control port (wishbone)
-			input	wire	[WB_ADR_WIDTH-1:0]	wb_adr_i,
-			output	reg		[WB_DAT_WIDTH-1:0]	wb_dat_o,
-			input	wire	[WB_DAT_WIDTH-1:0]	wb_dat_i,
-			input	wire						wb_we_i,
-			input	wire	[WB_SEL_WIDTH-1:0]	wb_sel_i,
-			input	wire						wb_stb_i,
-			output	wire						wb_ack_o
+			input	wire	[WB_ADR_WIDTH-1:0]	s_wb_adr_i,
+			output	reg		[WB_DAT_WIDTH-1:0]	s_wb_dat_o,
+			input	wire	[WB_DAT_WIDTH-1:0]	s_wb_dat_i,
+			input	wire						s_wb_we_i,
+			input	wire	[WB_SEL_WIDTH-1:0]	s_wb_sel_i,
+			input	wire						s_wb_stb_i,
+			output	wire						s_wb_ack_o
 		);
-	
+
+	// register address
+	localparam	IRC_ADR_ENABLE        = 0;
+	localparam	IRC_ADR_MASK          = 1;
+	localparam	IRC_ADR_REQ_FACTOR_ID = 2;
+	localparam	IRC_ADR_REQ_PRIORITY  = 3;
+	localparam	IRC_ADR_FACTOR_NUM    = 4;
+	localparam	IRC_ADR_PRIORITY_MAX  = 5;
+	localparam	IRC_ADR_FACTOR_BASE   = 8;	
 	
 	// control register
 	reg								reg_enable;
@@ -148,13 +148,13 @@ module jelly_irc
 					.reqest_send	(factor_request_send[i]),
 					.reqest_sense	(request_recv),
 					
-					.wb_adr_i		(wb_adr_i[1:0]),
-					.wb_dat_o		(f_wb_dat_o),
-					.wb_dat_i		(wb_dat_i),
-					.wb_we_i		(wb_we_i),
-					.wb_sel_i		(wb_sel_i),
-					.wb_stb_i		(wb_stb_i & (wb_adr_i[WB_ADR_WIDTH-1:2] == (i + (`IRC_ADR_FACTOR_BASE >> 2)))),
-					.wb_ack_o		()
+					.s_wb_adr_i		(s_wb_adr_i[1:0]),
+					.s_wb_dat_o		(f_wb_dat_o),
+					.s_wb_dat_i		(s_wb_dat_i),
+					.s_wb_we_i		(s_wb_we_i),
+					.s_wb_sel_i		(s_wb_sel_i),
+					.s_wb_stb_i		(s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:2] == (i + (IRC_ADR_FACTOR_BASE >> 2)))),
+					.s_wb_ack_o		()
 				);
 		
 		if ( i == (FACTOR_NUM - 1) ) begin
@@ -179,32 +179,37 @@ module jelly_irc
 		end
 		else begin
 			// enable
-			if ( wb_stb_i & wb_we_i & (wb_adr_i == `IRC_ADR_ENABLE) ) begin
-				reg_enable <= wb_dat_i;
+			if ( s_wb_stb_i & s_wb_we_i & (s_wb_adr_i == IRC_ADR_ENABLE) ) begin
+				reg_enable <= s_wb_dat_i;
 			end
 			
 			// mask
-			if ( wb_stb_i & wb_we_i & (wb_adr_i == `IRC_ADR_MASK) ) begin
-				reg_mask <= wb_dat_i;
+			if ( s_wb_stb_i & s_wb_we_i & (s_wb_adr_i == IRC_ADR_MASK) ) begin
+				reg_mask <= s_wb_dat_i;
 			end
 		end
 	end
 	
 	always @ * begin
-		case ( wb_adr_i )
-		`IRC_ADR_ENABLE:		wb_dat_o <= reg_enable;
-		`IRC_ADR_MASK:			wb_dat_o <= reg_mask;
-		`IRC_ADR_REQ_FACTOR_ID:	wb_dat_o <= reg_req_factor_id;
-		`IRC_ADR_REQ_PRIORITY:	wb_dat_o <= reg_req_priority;
-		`IRC_ADR_FACTOR_NUM:	wb_dat_o <= FACTOR_NUM;
-		`IRC_ADR_PRIORITY_MAX:	wb_dat_o <= (1 << PRIORITY_WIDTH) - 1;
-		default:				wb_dat_o <= factor_wb_dat_o[WB_DAT_WIDTH-1:0];
+		case ( s_wb_adr_i )
+		IRC_ADR_ENABLE:			begin	s_wb_dat_o <= reg_enable;							end
+		IRC_ADR_MASK:			begin	s_wb_dat_o <= reg_mask;								end
+		IRC_ADR_REQ_FACTOR_ID:	begin	s_wb_dat_o <= reg_req_factor_id;					end
+		IRC_ADR_REQ_PRIORITY:	begin	s_wb_dat_o <= reg_req_priority;						end
+		IRC_ADR_FACTOR_NUM:		begin	s_wb_dat_o <= FACTOR_NUM;							end
+		IRC_ADR_PRIORITY_MAX:	begin	s_wb_dat_o <= (1 << PRIORITY_WIDTH) - 1;			end
+		default:				begin	s_wb_dat_o <= factor_wb_dat_o[WB_DAT_WIDTH-1:0];	end
 		endcase
 	end
 	
-	assign wb_ack_o = wb_stb_i;
+	assign s_wb_ack_o = s_wb_stb_i;
 	
 endmodule
 
 
+
+`default_nettype wire
+
+
+// end of file
 

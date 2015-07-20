@@ -24,21 +24,21 @@ module jelly_jbus_to_ram
 			input	wire						clk,
 			
 			// jelly bus
-			input	wire						jbus_en,
-			input	wire	[ADDR_WIDTH-1:0]	jbus_addr,
-			input	wire	[DATA_WIDTH-1:0]	jbus_wdata,
-			output	wire	[DATA_WIDTH-1:0]	jbus_rdata,
-			input	wire						jbus_we,
-			input	wire	[SEL_WIDTH-1:0]		jbus_sel,
-			input	wire						jbus_valid,
-			output	wire						jbus_ready,
+			input	wire						s_jbus_en,
+			input	wire	[ADDR_WIDTH-1:0]	s_jbus_addr,
+			input	wire	[DATA_WIDTH-1:0]	s_jbus_wdata,
+			output	wire	[DATA_WIDTH-1:0]	s_jbus_rdata,
+			input	wire						s_jbus_we,
+			input	wire	[SEL_WIDTH-1:0]		s_jbus_sel,
+			input	wire						s_jbus_valid,
+			output	wire						s_jbus_ready,
 			
 			// ram
-			output	wire						ram_en,
-			output	wire						ram_we,
-			output	wire	[ADDR_WIDTH-1:0]	ram_addr,
-			output	wire	[DATA_WIDTH-1:0]	ram_wdata,
-			input	wire	[DATA_WIDTH-1:0]	ram_rdata
+			output	wire						m_ram_en,
+			output	wire						m_ram_we,
+			output	wire	[ADDR_WIDTH-1:0]	m_ram_addr,
+			output	wire	[DATA_WIDTH-1:0]	m_ram_wdata,
+			input	wire	[DATA_WIDTH-1:0]	m_ram_rdata
 		);
 	
 	// write control
@@ -53,11 +53,11 @@ module jelly_jbus_to_ram
 			reg_wdata <= {DATA_WIDTH{1'bx}};
 		end
 		else begin
-			if ( jbus_en & jbus_ready ) begin
-				reg_we    <= jbus_valid & jbus_we;
-				reg_addr  <= jbus_addr;
-				reg_sel   <= jbus_sel;
-				reg_wdata <= jbus_wdata;
+			if ( s_jbus_en & s_jbus_ready ) begin
+				reg_we    <= s_jbus_valid & s_jbus_we;
+				reg_addr  <= s_jbus_addr;
+				reg_sel   <= s_jbus_sel;
+				reg_wdata <= s_jbus_wdata;
 			end
 			else begin
 				reg_we    <= 1'b0; 
@@ -81,13 +81,13 @@ module jelly_jbus_to_ram
 	wire	[DATA_WIDTH-1:0]	write_mask;
 	assign write_mask = make_write_mask(reg_sel);
 	
-	assign jbus_rdata = ram_rdata;
-	assign jbus_ready = !(jbus_valid & reg_we);
+	assign s_jbus_rdata = m_ram_rdata;
+	assign s_jbus_ready = !(s_jbus_valid & reg_we);
 	
-	assign ram_en     = (jbus_en & jbus_valid) | reg_we;
-	assign ram_we     = reg_we;
-	assign ram_addr   = reg_we ? reg_addr : jbus_addr;
-	assign ram_wdata  = (ram_rdata & ~write_mask) | (reg_wdata & write_mask);
+	assign m_ram_en     = (s_jbus_en & s_jbus_valid) | reg_we;
+	assign m_ram_we     = reg_we;
+	assign m_ram_addr   = reg_we ? reg_addr : s_jbus_addr;
+	assign m_ram_wdata  = (m_ram_rdata & ~write_mask) | (reg_wdata & write_mask);
 	
 endmodule
 

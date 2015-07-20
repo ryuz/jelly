@@ -9,6 +9,7 @@
 
 
 `timescale 1ns / 1ps
+`default_nettype none
 
 
 
@@ -23,20 +24,20 @@ module jelly_wishbone_to_ram
 			input	wire						clk,
 			
 			// wishbone
-			input	wire	[WB_ADR_WIDTH-1:0]	wb_adr_i,
-			output	wire	[WB_DAT_WIDTH-1:0]	wb_dat_o,
-			input	wire	[WB_DAT_WIDTH-1:0]	wb_dat_i,
-			input	wire						wb_we_i,
-			input	wire	[WB_SEL_WIDTH-1:0]	wb_sel_i,
-			input	wire						wb_stb_i,
-			output	wire						wb_ack_o,
+			input	wire	[WB_ADR_WIDTH-1:0]	s_wb_adr_i,
+			output	wire	[WB_DAT_WIDTH-1:0]	s_wb_dat_o,
+			input	wire	[WB_DAT_WIDTH-1:0]	s_wb_dat_i,
+			input	wire						s_wb_we_i,
+			input	wire	[WB_SEL_WIDTH-1:0]	s_wb_sel_i,
+			input	wire						s_wb_stb_i,
+			output	wire						s_wb_ack_o,
 			
 			// ram
-			output	wire						ram_en,
-			output	wire						ram_we,
-			output	wire	[WB_ADR_WIDTH-1:0]	ram_addr,
-			output	wire	[WB_DAT_WIDTH-1:0]	ram_wdata,
-			input	wire	[WB_DAT_WIDTH-1:0]	ram_rdata
+			output	wire						m_ram_en,
+			output	wire						m_ram_we,
+			output	wire	[WB_ADR_WIDTH-1:0]	m_ram_addr,
+			output	wire	[WB_DAT_WIDTH-1:0]	m_ram_wdata,
+			input	wire	[WB_DAT_WIDTH-1:0]	m_ram_rdata
 		);
 	
 	
@@ -54,28 +55,32 @@ module jelly_wishbone_to_ram
 	endfunction
 	
 	wire	[WB_DAT_WIDTH-1:0]	write_mask;
-	assign write_mask = make_write_mask(wb_sel_i);
-		
+	assign write_mask = make_write_mask(s_wb_sel_i);
+	
 	reg			reg_ack;
 	always @( posedge clk ) begin
 		if ( reset ) begin
 			reg_ack <= 1'b0;
 		end
 		else begin
-			reg_ack <= !reg_ack & wb_stb_i;
+			reg_ack <= !reg_ack & s_wb_stb_i;
 		end
 	end
 	
-	assign wb_dat_o  = ram_rdata;
-	assign wb_ack_o  = reg_ack;
+	assign s_wb_dat_o  = m_ram_rdata;
+	assign s_wb_ack_o  = reg_ack;
 	
-	assign ram_en    = wb_stb_i;
-	assign ram_we    = wb_we_i & reg_ack;
-	assign ram_addr  = wb_adr_i;
-	assign ram_wdata = (ram_rdata & ~write_mask) | (wb_dat_i & write_mask);
+	assign m_ram_en    = s_wb_stb_i;
+	assign m_ram_we    = s_wb_we_i & reg_ack;
+	assign m_ram_addr  = s_wb_adr_i;
+	assign m_ram_wdata = (m_ram_rdata & ~write_mask) | (s_wb_dat_i & write_mask);
 	
 	
 endmodule
+
+
+
+`default_nettype wire
 
 
 // end of file

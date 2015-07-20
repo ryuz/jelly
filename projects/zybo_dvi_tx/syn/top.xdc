@@ -24,16 +24,21 @@ set_property PACKAGE_PIN G14 [get_ports {led[2]}]
 set_property PACKAGE_PIN M15 [get_ports {led[1]}]
 
 
-# clk_fpga_0 100MHz 
-# clk_fpga_1 175MHz
-# clk_fpga_2  25MHz
-# clk_fpga_3 125MHz
+# clk_fpga_0 100MHz pri
+# clk_fpga_1 175MHz mem
+# clk_fpga_2  25MHz video
+# clk_fpga_3 125MHz video_x5
 
-set_max_delay -datapath_only -from [get_clocks clk_fpga_0] -to [get_clocks clk_fpga_1] 5.000
-set_max_delay -datapath_only -from [get_clocks clk_fpga_0] -to [get_clocks clk_fpga_2] 5.000
-set_max_delay -datapath_only -from [get_clocks clk_fpga_1] -to [get_clocks clk_fpga_0] 5.000
+# peri <=> mem
+set_max_delay -datapath_only -from [get_clocks clk_fpga_0] -to [get_clocks clk_fpga_1] 10.000
+set_max_delay -datapath_only -from [get_clocks clk_fpga_1] -to [get_clocks clk_fpga_0] 10.000
+
+# peri <=> video
+set_max_delay -datapath_only -from [get_clocks clk_fpga_0] -to [get_clocks clk_fpga_2] 10.000
+set_max_delay -datapath_only -from [get_clocks clk_fpga_2] -to [get_clocks clk_fpga_0] 10.000
+
+# video <=> mem
 set_max_delay -datapath_only -from [get_clocks clk_fpga_1] -to [get_clocks clk_fpga_2] 5.000
-set_max_delay -datapath_only -from [get_clocks clk_fpga_2] -to [get_clocks clk_fpga_0] 5.000
 set_max_delay -datapath_only -from [get_clocks clk_fpga_2] -to [get_clocks clk_fpga_1] 5.000
 
 

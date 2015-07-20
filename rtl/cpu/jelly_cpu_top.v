@@ -261,88 +261,88 @@ module jelly_cpu_top
 		// instructuon address decode
 		jelly_jbus_decoder
 				#(
-					.SLAVE_ADDR_WIDTH	(30),
-					.SLAVE_DATA_SIZE	(2),	// 0:8bit, 1:16bit, 2:32bit ...
-					.DEC_ADDR_WIDTH		(TCM_ADDR_WIDTH)
+					.SLAVE_ADDR_WIDTH		(30),
+					.SLAVE_DATA_SIZE		(2),	// 0:8bit, 1:16bit, 2:32bit ...
+					.DEC_ADDR_WIDTH			(TCM_ADDR_WIDTH)
 				)
 			i_jbus_decoder_tcm_inst
 				(
-					.reset				(reset),
-					.clk				(clk),
+					.reset					(reset),
+					.clk					(clk),
 					
-					.addr_mask			(tcm_addr_mask[31:2]),
-					.addr_value			(tcm_addr_value[31:2]),
+					.addr_mask				(tcm_addr_mask[31:2]),
+					.addr_value				(tcm_addr_value[31:2]),
 					
-					.jbus_slave_en		(jbus_inst_en),
-					.jbus_slave_addr	(jbus_inst_addr),
-					.jbus_slave_wdata	(jbus_inst_wdata),
-					.jbus_slave_rdata	(jbus_inst_rdata),
-					.jbus_slave_we		(jbus_inst_we),
-					.jbus_slave_sel		(jbus_inst_sel),
-					.jbus_slave_valid	(jbus_inst_valid),
-					.jbus_slave_ready	(jbus_inst_ready),
-									   
-					.jbus_master_en		(jbus_inst0_en),
-					.jbus_master_addr	(jbus_inst0_addr),
-					.jbus_master_wdata	(jbus_inst0_wdata),
-					.jbus_master_rdata	(jbus_inst0_rdata),
-					.jbus_master_we		(jbus_inst0_we),
-					.jbus_master_sel	(jbus_inst0_sel),
-					.jbus_master_valid	(jbus_inst0_valid),
-					.jbus_master_ready	(jbus_inst0_ready),
-									          
-					.jbus_decode_en		(jbus_itcm_en),
-					.jbus_decode_addr	(jbus_itcm_addr),
-					.jbus_decode_wdata	(jbus_itcm_wdata),
-					.jbus_decode_rdata	(jbus_itcm_rdata),
-					.jbus_decode_we		(jbus_itcm_we),
-					.jbus_decode_sel	(jbus_itcm_sel),
-					.jbus_decode_valid	(jbus_itcm_valid),
-					.jbus_decode_ready	(jbus_itcm_ready)
-				);                         
+					.s_jbus_en				(jbus_inst_en),
+					.s_jbus_addr			(jbus_inst_addr),
+					.s_jbus_wdata			(jbus_inst_wdata),
+					.s_jbus_rdata			(jbus_inst_rdata),
+					.s_jbus_we				(jbus_inst_we),
+					.s_jbus_sel				(jbus_inst_sel),
+					.s_jbus_valid			(jbus_inst_valid),
+					.s_jbus_ready			(jbus_inst_ready),
+					
+					.m_jbus_en				(jbus_inst0_en),
+					.m_jbus_addr			(jbus_inst0_addr),
+					.m_jbus_wdata			(jbus_inst0_wdata),
+					.m_jbus_rdata			(jbus_inst0_rdata),
+					.m_jbus_we				(jbus_inst0_we),
+					.m_jbus_sel				(jbus_inst0_sel),
+					.m_jbus_valid			(jbus_inst0_valid),
+					.m_jbus_ready			(jbus_inst0_ready),
+					
+					.m_jbus_decode_en		(jbus_itcm_en),
+					.m_jbus_decode_addr		(jbus_itcm_addr),
+					.m_jbus_decode_wdata	(jbus_itcm_wdata),
+					.m_jbus_decode_rdata	(jbus_itcm_rdata),
+					.m_jbus_decode_we		(jbus_itcm_we),
+					.m_jbus_decode_sel		(jbus_itcm_sel),
+					.m_jbus_decode_valid	(jbus_itcm_valid),
+					.m_jbus_decode_ready	(jbus_itcm_ready)
+				);
 		
 		// data address decode
 		jelly_jbus_decoder
 				#(
-					.SLAVE_ADDR_WIDTH	(30),
-					.SLAVE_DATA_SIZE	(2),	// 0:8bit, 1:16bit, 2:32bit ...
-					.DEC_ADDR_WIDTH		(TCM_ADDR_WIDTH)
+					.SLAVE_ADDR_WIDTH		(30),
+					.SLAVE_DATA_SIZE		(2),	// 0:8bit, 1:16bit, 2:32bit ...
+					.DEC_ADDR_WIDTH			(TCM_ADDR_WIDTH)
 				)
 			i_jbus_decoder_tcm_data
 				(
-					.reset				(reset),
-					.clk				(clk),
+					.reset					(reset),
+					.clk					(clk),
 
-					.addr_mask			(tcm_addr_mask[31:2]),
-					.addr_value			(tcm_addr_value[31:2]),
+					.addr_mask				(tcm_addr_mask[31:2]),
+					.addr_value				(tcm_addr_value[31:2]),
 					
-					.jbus_slave_en		(jbus_data_en),
-					.jbus_slave_addr	(jbus_data_addr),
-					.jbus_slave_wdata	(jbus_data_wdata),
-					.jbus_slave_rdata	(jbus_data_rdata),
-					.jbus_slave_we		(jbus_data_we),
-					.jbus_slave_sel		(jbus_data_sel),
-					.jbus_slave_valid	(jbus_data_valid),
-					.jbus_slave_ready	(jbus_data_ready),
+					.s_jbus_en				(jbus_data_en),
+					.s_jbus_addr			(jbus_data_addr),
+					.s_jbus_wdata			(jbus_data_wdata),
+					.s_jbus_rdata			(jbus_data_rdata),
+					.s_jbus_we				(jbus_data_we),
+					.s_jbus_sel				(jbus_data_sel),
+					.s_jbus_valid			(jbus_data_valid),
+					.s_jbus_ready			(jbus_data_ready),
 					
-					.jbus_master_en		(jbus_data0_en),
-					.jbus_master_addr	(jbus_data0_addr),
-					.jbus_master_wdata	(jbus_data0_wdata),
-					.jbus_master_rdata	(jbus_data0_rdata),
-					.jbus_master_we		(jbus_data0_we),
-					.jbus_master_sel	(jbus_data0_sel),
-					.jbus_master_valid	(jbus_data0_valid),
-					.jbus_master_ready	(jbus_data0_ready),
-					                       
-					.jbus_decode_en		(jbus_dtcm_en),
-					.jbus_decode_addr	(jbus_dtcm_addr),
-					.jbus_decode_wdata	(jbus_dtcm_wdata),
-					.jbus_decode_rdata	(jbus_dtcm_rdata),
-					.jbus_decode_we		(jbus_dtcm_we),
-					.jbus_decode_sel	(jbus_dtcm_sel),
-					.jbus_decode_valid	(jbus_dtcm_valid),
-					.jbus_decode_ready	(jbus_dtcm_ready)
-				);                         
+					.m_jbus_en				(jbus_data0_en),
+					.m_jbus_addr			(jbus_data0_addr),
+					.m_jbus_wdata			(jbus_data0_wdata),
+					.m_jbus_rdata			(jbus_data0_rdata),
+					.m_jbus_we				(jbus_data0_we),
+					.m_jbus_sel				(jbus_data0_sel),
+					.m_jbus_valid			(jbus_data0_valid),
+					.m_jbus_ready			(jbus_data0_ready),
+					
+					.m_jbus_decode_en		(jbus_dtcm_en),
+					.m_jbus_decode_addr		(jbus_dtcm_addr),
+					.m_jbus_decode_wdata	(jbus_dtcm_wdata),
+					.m_jbus_decode_rdata	(jbus_dtcm_rdata),
+					.m_jbus_decode_we		(jbus_dtcm_we),
+					.m_jbus_decode_sel		(jbus_dtcm_sel),
+					.m_jbus_decode_valid	(jbus_dtcm_valid),
+					.m_jbus_decode_ready	(jbus_dtcm_ready)
+				);
 		
 		
 		wire							ram_itcm_en;
@@ -451,7 +451,7 @@ module jelly_cpu_top
 		assign jbus_data0_sel   = jbus_data_sel;
 		assign jbus_data0_valid = jbus_data_valid;
 		assign jbus_data_ready  = jbus_data0_ready;
-	end                         
+	end
 	endgenerate
 	
 	
@@ -505,87 +505,87 @@ module jelly_cpu_top
 		// instructuon address decode
 		jelly_jbus_decoder
 				#(
-					.SLAVE_ADDR_WIDTH	(30),
-					.SLAVE_DATA_SIZE	(2),	// 0:8bit, 1:16bit, 2:32bit ...
-					.DEC_ADDR_WIDTH		(CACHE_ADDR_WIDTH)
+					.SLAVE_ADDR_WIDTH		(30),
+					.SLAVE_DATA_SIZE		(2),	// 0:8bit, 1:16bit, 2:32bit ...
+					.DEC_ADDR_WIDTH			(CACHE_ADDR_WIDTH)
 				)
 			i_jbus_decoder_cache_inst
 				(
-					.reset				(reset),
-					.clk				(clk),
+					.reset					(reset),
+					.clk					(clk),
 
-					.addr_mask			(cache_addr_mask[31:2]),
-					.addr_value			(cache_addr_value[31:2]),
+					.addr_mask				(cache_addr_mask[31:2]),
+					.addr_value				(cache_addr_value[31:2]),
 					
-					.jbus_slave_en		(jbus_inst0_en),
-					.jbus_slave_addr	(jbus_inst0_addr),
-					.jbus_slave_wdata	(jbus_inst0_wdata),
-					.jbus_slave_rdata	(jbus_inst0_rdata),
-					.jbus_slave_we		(jbus_inst0_we),
-					.jbus_slave_sel		(jbus_inst0_sel),
-					.jbus_slave_valid	(jbus_inst0_valid),
-					.jbus_slave_ready	(jbus_inst0_ready),
-									   
-					.jbus_master_en		(jbus_inst1_en),
-					.jbus_master_addr	(jbus_inst1_addr),
-					.jbus_master_wdata	(jbus_inst1_wdata),
-					.jbus_master_rdata	(jbus_inst1_rdata),
-					.jbus_master_we		(jbus_inst1_we),
-					.jbus_master_sel	(jbus_inst1_sel),
-					.jbus_master_valid	(jbus_inst1_valid),
-					.jbus_master_ready	(jbus_inst1_ready),
-									          
-					.jbus_decode_en		(jbus_icache_en),
-					.jbus_decode_addr	(jbus_icache_addr),
-					.jbus_decode_wdata	(jbus_icache_wdata),
-					.jbus_decode_rdata	(jbus_icache_rdata),
-					.jbus_decode_we		(jbus_icache_we),
-					.jbus_decode_sel	(jbus_icache_sel),
-					.jbus_decode_valid	(jbus_icache_valid),
-					.jbus_decode_ready	(jbus_icache_ready)
-				);                         
+					.s_jbus_en				(jbus_inst0_en),
+					.s_jbus_addr			(jbus_inst0_addr),
+					.s_jbus_wdata			(jbus_inst0_wdata),
+					.s_jbus_rdata			(jbus_inst0_rdata),
+					.s_jbus_we				(jbus_inst0_we),
+					.s_jbus_sel				(jbus_inst0_sel),
+					.s_jbus_valid			(jbus_inst0_valid),
+					.s_jbus_ready			(jbus_inst0_ready),
+					
+					.m_jbus_en				(jbus_inst1_en),
+					.m_jbus_addr			(jbus_inst1_addr),
+					.m_jbus_wdata			(jbus_inst1_wdata),
+					.m_jbus_rdata			(jbus_inst1_rdata),
+					.m_jbus_we				(jbus_inst1_we),
+					.m_jbus_sel				(jbus_inst1_sel),
+					.m_jbus_valid			(jbus_inst1_valid),
+					.m_jbus_ready			(jbus_inst1_ready),
+					
+					.m_jbus_decode_en		(jbus_icache_en),
+					.m_jbus_decode_addr		(jbus_icache_addr),
+					.m_jbus_decode_wdata	(jbus_icache_wdata),
+					.m_jbus_decode_rdata	(jbus_icache_rdata),
+					.m_jbus_decode_we		(jbus_icache_we),
+					.m_jbus_decode_sel		(jbus_icache_sel),
+					.m_jbus_decode_valid	(jbus_icache_valid),
+					.m_jbus_decode_ready	(jbus_icache_ready)
+				);
 		
 		// data address decode
 		jelly_jbus_decoder
 				#(
-					.SLAVE_ADDR_WIDTH	(30),
-					.SLAVE_DATA_SIZE	(2),	// 0:8bit, 1:16bit, 2:32bit ...
-					.DEC_ADDR_WIDTH		(CACHE_ADDR_WIDTH)
+					.SLAVE_ADDR_WIDTH		(30),
+					.SLAVE_DATA_SIZE		(2),	// 0:8bit, 1:16bit, 2:32bit ...
+					.DEC_ADDR_WIDTH			(CACHE_ADDR_WIDTH)
 				)
 			i_jbus_decoder_data
 				(
-					.reset				(reset),
-					.clk				(clk),
+					.reset					(reset),
+					.clk					(clk),
 
-					.addr_mask			(cache_addr_mask[31:2]),
-					.addr_value			(cache_addr_value[31:2]),
+					.addr_mask				(cache_addr_mask[31:2]),
+					.addr_value				(cache_addr_value[31:2]),
 					
-					.jbus_slave_en		(jbus_data0_en),
-					.jbus_slave_addr	(jbus_data0_addr),
-					.jbus_slave_wdata	(jbus_data0_wdata),
-					.jbus_slave_rdata	(jbus_data0_rdata),
-					.jbus_slave_we		(jbus_data0_we),
-					.jbus_slave_sel		(jbus_data0_sel),
-					.jbus_slave_valid	(jbus_data0_valid),
-					.jbus_slave_ready	(jbus_data0_ready),
+					.s_jbus_en				(jbus_data0_en),
+					.s_jbus_addr			(jbus_data0_addr),
+					.s_jbus_wdata			(jbus_data0_wdata),
+					.s_jbus_rdata			(jbus_data0_rdata),
+					.s_jbus_we				(jbus_data0_we),
+					.s_jbus_sel				(jbus_data0_sel),
+					.s_jbus_valid			(jbus_data0_valid),
+					.s_jbus_ready			(jbus_data0_ready),
 									   
-					.jbus_master_en		(jbus_data1_en),
-					.jbus_master_addr	(jbus_data1_addr),
-					.jbus_master_wdata	(jbus_data1_wdata),
-					.jbus_master_rdata	(jbus_data1_rdata),
-					.jbus_master_we		(jbus_data1_we),
-					.jbus_master_sel	(jbus_data1_sel),
-					.jbus_master_valid	(jbus_data1_valid),
-					.jbus_master_ready	(jbus_data1_ready),
+					.m_jbus_en				(jbus_data1_en),
+					.m_jbus_addr			(jbus_data1_addr),
+					.m_jbus_wdata			(jbus_data1_wdata),
+					.m_jbus_rdata			(jbus_data1_rdata),
+					.m_jbus_we				(jbus_data1_we),
+					.m_jbus_sel				(jbus_data1_sel),
+					.m_jbus_valid			(jbus_data1_valid),
+					.m_jbus_ready			(jbus_data1_ready),
 									          
-					.jbus_decode_en		(jbus_dcache_en),
-					.jbus_decode_addr	(jbus_dcache_addr),
-					.jbus_decode_wdata	(jbus_dcache_wdata),
-					.jbus_decode_rdata	(jbus_dcache_rdata),
-					.jbus_decode_we		(jbus_dcache_we),
-					.jbus_decode_sel	(jbus_dcache_sel),
-					.jbus_decode_valid	(jbus_dcache_valid),
-					.jbus_decode_ready	(jbus_dcache_ready)
+					.m_jbus_decode_en		(jbus_dcache_en),
+					.m_jbus_decode_addr		(jbus_dcache_addr),
+					.m_jbus_decode_wdata	(jbus_dcache_wdata),
+					.m_jbus_decode_rdata	(jbus_dcache_rdata),
+					.m_jbus_decode_we		(jbus_dcache_we),
+					.m_jbus_decode_sel		(jbus_dcache_sel),
+					.m_jbus_decode_valid	(jbus_dcache_valid),
+					.m_jbus_decode_ready	(jbus_dcache_ready)
 				);
 		
 		
@@ -630,13 +630,13 @@ module jelly_cpu_top
 					.jbus_slave1_valid	(jbus_dcache_valid),
 					.jbus_slave1_ready	(jbus_dcache_ready),
 					
-					.wb_master_adr_o	(wb_cached_adr_o),
-					.wb_master_dat_i	(wb_cached_dat_i),
-					.wb_master_dat_o	(wb_cached_dat_o),
-					.wb_master_we_o		(wb_cached_we_o),
-					.wb_master_sel_o	(wb_cached_sel_o),
-					.wb_master_stb_o	(wb_cached_stb_o),
-					.wb_master_ack_i	(wb_cached_ack_i)
+					.m_wb_adr_o			(wb_cached_adr_o),
+					.m_wb_dat_i			(wb_cached_dat_i),
+					.m_wb_dat_o			(wb_cached_dat_o),
+					.m_wb_we_o			(wb_cached_we_o),
+					.m_wb_sel_o			(wb_cached_sel_o),
+					.m_wb_stb_o			(wb_cached_stb_o),
+					.m_wb_ack_i			(wb_cached_ack_i)
 				);
 		
 		// width convert
@@ -650,9 +650,9 @@ module jelly_cpu_top
 		
 		jelly_wishbone_width_converter
 				#(
-					.WB_SLAVE_ADR_WIDTH	(WB_CACHED_ADR_WIDTH),
-					.WB_SLAVE_DAT_SIZE	(WB_CACHED_DAT_SIZE),
-					.WB_MASTER_DAT_SIZE	(WB_CACHE_DAT_SIZE)
+					.S_WB_ADR_WIDTH	(WB_CACHED_ADR_WIDTH),
+					.S_WB_DAT_SIZE	(WB_CACHED_DAT_SIZE),
+					.M_WB_DAT_SIZE	(WB_CACHE_DAT_SIZE)
 				)
 			i_wishbone_width_converter_cache
 				(
@@ -661,21 +661,21 @@ module jelly_cpu_top
 					
 					.endian				(endian),
 					
-					.wb_slave_adr_i		(wb_cached_adr_o),
-					.wb_slave_dat_o		(wb_cached_dat_i),
-					.wb_slave_dat_i		(wb_cached_dat_o),
-					.wb_slave_we_i		(wb_cached_we_o),
-					.wb_slave_sel_i		(wb_cached_sel_o),
-					.wb_slave_stb_i		(wb_cached_stb_o),
-					.wb_slave_ack_o		(wb_cached_ack_i),
-                                    
-					.wb_master_adr_o	(wb_cache0_adr_o),
-					.wb_master_dat_o	(wb_cache0_dat_o),
-					.wb_master_dat_i	(wb_cache0_dat_i),
-					.wb_master_we_o		(wb_cache0_we_o),
-					.wb_master_sel_o	(wb_cache0_sel_o),
-					.wb_master_stb_o	(wb_cache0_stb_o),
-					.wb_master_ack_i	(wb_cache0_ack_i)
+					.s_wb_adr_i			(wb_cached_adr_o),
+					.s_wb_dat_o			(wb_cached_dat_i),
+					.s_wb_dat_i			(wb_cached_dat_o),
+					.s_wb_we_i			(wb_cached_we_o),
+					.s_wb_sel_i			(wb_cached_sel_o),
+					.s_wb_stb_i			(wb_cached_stb_o),
+					.s_wb_ack_o			(wb_cached_ack_i),
+					
+					.m_wb_adr_o			(wb_cache0_adr_o),
+					.m_wb_dat_o			(wb_cache0_dat_o),
+					.m_wb_dat_i			(wb_cache0_dat_i),
+					.m_wb_we_o			(wb_cache0_we_o),
+					.m_wb_sel_o			(wb_cache0_sel_o),
+					.m_wb_stb_o			(wb_cache0_stb_o),
+					.m_wb_ack_i			(wb_cache0_ack_i)
 				);
 		
 		// bridge
@@ -690,22 +690,22 @@ module jelly_cpu_top
 					.reset				(reset),
 					.clk				(clk),
 					
-					.wb_slave_adr_i		(wb_cache0_adr_o),
-					.wb_slave_dat_o		(wb_cache0_dat_i),
-					.wb_slave_dat_i		(wb_cache0_dat_o),
-					.wb_slave_we_i		(wb_cache0_we_o),
-					.wb_slave_sel_i		(wb_cache0_sel_o),
-					.wb_slave_stb_i		(wb_cache0_stb_o),
-					.wb_slave_ack_o		(wb_cache0_ack_i),
-                                    
-					.wb_master_adr_o	(wb_cache_adr_o),
-					.wb_master_dat_i	(wb_cache_dat_i),
-					.wb_master_dat_o	(wb_cache_dat_o),
-					.wb_master_we_o		(wb_cache_we_o),
-					.wb_master_sel_o	(wb_cache_sel_o),
-					.wb_master_stb_o	(wb_cache_stb_o),
-					.wb_master_ack_i	(wb_cache_ack_i)
-				);               
+					.s_wb_adr_i			(wb_cache0_adr_o),
+					.s_wb_dat_o			(wb_cache0_dat_i),
+					.s_wb_dat_i			(wb_cache0_dat_o),
+					.s_wb_we_i			(wb_cache0_we_o),
+					.s_wb_sel_i			(wb_cache0_sel_o),
+					.s_wb_stb_i			(wb_cache0_stb_o),
+					.s_wb_ack_o			(wb_cache0_ack_i),
+					
+					.m_wb_adr_o			(wb_cache_adr_o),
+					.m_wb_dat_i			(wb_cache_dat_i),
+					.m_wb_dat_o			(wb_cache_dat_o),
+					.m_wb_we_o			(wb_cache_we_o),
+					.m_wb_sel_o			(wb_cache_sel_o),
+					.m_wb_stb_o			(wb_cache_stb_o),
+					.m_wb_ack_i			(wb_cache_ack_i)
+				);
 	end
 	else begin
 		assign jbus_inst1_en    = jbus_inst0_en;
@@ -765,24 +765,24 @@ module jelly_cpu_top
 				.reset				(reset),
 				.clk				(clk),
 				
-				.jbus_slave_en		(jbus_inst1_en),
-				.jbus_slave_addr	(jbus_inst1_addr),
-				.jbus_slave_wdata	(jbus_inst1_wdata),
-				.jbus_slave_rdata	(jbus_inst1_rdata),
-				.jbus_slave_we		(jbus_inst1_we),
-				.jbus_slave_sel		(jbus_inst1_sel),
-				.jbus_slave_valid	(jbus_inst1_valid),
-				.jbus_slave_ready	(jbus_inst1_ready),
-
-				.wb_master_adr_o	(wb_ithrough_adr_o),
-				.wb_master_dat_i	(wb_ithrough_dat_i),
-				.wb_master_dat_o	(wb_ithrough_dat_o),
-				.wb_master_we_o		(wb_ithrough_we_o),
-				.wb_master_sel_o	(wb_ithrough_sel_o),
-				.wb_master_stb_o	(wb_ithrough_stb_o),
-				.wb_master_ack_i	(wb_ithrough_ack_i)
-			);                       
-
+				.s_jbus_en			(jbus_inst1_en),
+				.s_jbus_addr		(jbus_inst1_addr),
+				.s_jbus_wdata		(jbus_inst1_wdata),
+				.s_jbus_rdata		(jbus_inst1_rdata),
+				.s_jbus_we			(jbus_inst1_we),
+				.s_jbus_sel			(jbus_inst1_sel),
+				.s_jbus_valid		(jbus_inst1_valid),
+				.s_jbus_ready		(jbus_inst1_ready),
+				
+				.m_wb_adr_o			(wb_ithrough_adr_o),
+				.m_wb_dat_i			(wb_ithrough_dat_i),
+				.m_wb_dat_o			(wb_ithrough_dat_o),
+				.m_wb_we_o			(wb_ithrough_we_o),
+				.m_wb_sel_o			(wb_ithrough_sel_o),
+				.m_wb_stb_o			(wb_ithrough_stb_o),
+				.m_wb_ack_i			(wb_ithrough_ack_i)
+			);
+	
 	jelly_jbus_to_wishbone
 			#(
 				.ADDR_WIDTH			(30),
@@ -793,23 +793,23 @@ module jelly_cpu_top
 				.reset				(reset),
 				.clk				(clk),
 				
-				.jbus_slave_en		(jbus_data1_en),
-				.jbus_slave_addr	(jbus_data1_addr),
-				.jbus_slave_wdata	(jbus_data1_wdata),
-				.jbus_slave_rdata	(jbus_data1_rdata),
-				.jbus_slave_we		(jbus_data1_we),
-				.jbus_slave_sel		(jbus_data1_sel),
-				.jbus_slave_valid	(jbus_data1_valid),
-				.jbus_slave_ready	(jbus_data1_ready),
-
-				.wb_master_adr_o	(wb_dthrough_adr_o),
-				.wb_master_dat_i	(wb_dthrough_dat_i),
-				.wb_master_dat_o	(wb_dthrough_dat_o),
-				.wb_master_we_o		(wb_dthrough_we_o),
-				.wb_master_sel_o	(wb_dthrough_sel_o),
-				.wb_master_stb_o	(wb_dthrough_stb_o),
-				.wb_master_ack_i	(wb_dthrough_ack_i)
-			);                       
+				.s_jbus_en			(jbus_data1_en),
+				.s_jbus_addr		(jbus_data1_addr),
+				.s_jbus_wdata		(jbus_data1_wdata),
+				.s_jbus_rdata		(jbus_data1_rdata),
+				.s_jbus_we			(jbus_data1_we),
+				.s_jbus_sel			(jbus_data1_sel),
+				.s_jbus_valid		(jbus_data1_valid),
+				.s_jbus_ready		(jbus_data1_ready),
+				
+				.m_wb_adr_o			(wb_dthrough_adr_o),
+				.m_wb_dat_i			(wb_dthrough_dat_i),
+				.m_wb_dat_o			(wb_dthrough_dat_o),
+				.m_wb_we_o			(wb_dthrough_we_o),
+				.m_wb_sel_o			(wb_dthrough_sel_o),
+				.m_wb_stb_o			(wb_dthrough_stb_o),
+				.m_wb_ack_i			(wb_dthrough_ack_i)
+			);
 	
 	// arbiter
 	wire	[31:2]				wb_through0_adr_o;
@@ -830,29 +830,29 @@ module jelly_cpu_top
 				.reset				(reset),
 				.clk				(clk),
 				
-				.wb_slave0_adr_i	(wb_ithrough_adr_o),
-				.wb_slave0_dat_i	(wb_ithrough_dat_o),
-				.wb_slave0_dat_o	(wb_ithrough_dat_i),
-				.wb_slave0_we_i		(wb_ithrough_we_o),
-				.wb_slave0_sel_i	(wb_ithrough_sel_o),
-				.wb_slave0_stb_i	(wb_ithrough_stb_o),
-				.wb_slave0_ack_o	(wb_ithrough_ack_i),
+				.s_wb0_adr_i		(wb_ithrough_adr_o),
+				.s_wb0_dat_i		(wb_ithrough_dat_o),
+				.s_wb0_dat_o		(wb_ithrough_dat_i),
+				.s_wb0_we_i			(wb_ithrough_we_o),
+				.s_wb0_sel_i		(wb_ithrough_sel_o),
+				.s_wb0_stb_i		(wb_ithrough_stb_o),
+				.s_wb0_ack_o		(wb_ithrough_ack_i),
 				
-				.wb_slave1_adr_i	(wb_dthrough_adr_o),
-				.wb_slave1_dat_i	(wb_dthrough_dat_o),
-				.wb_slave1_dat_o	(wb_dthrough_dat_i),
-				.wb_slave1_we_i		(wb_dthrough_we_o),
-				.wb_slave1_sel_i	(wb_dthrough_sel_o),
-				.wb_slave1_stb_i	(wb_dthrough_stb_o),
-				.wb_slave1_ack_o	(wb_dthrough_ack_i),
+				.s_wb1_adr_i		(wb_dthrough_adr_o),
+				.s_wb1_dat_i		(wb_dthrough_dat_o),
+				.s_wb1_dat_o		(wb_dthrough_dat_i),
+				.s_wb1_we_i			(wb_dthrough_we_o),
+				.s_wb1_sel_i		(wb_dthrough_sel_o),
+				.s_wb1_stb_i		(wb_dthrough_stb_o),
+				.s_wb1_ack_o		(wb_dthrough_ack_i),
 				
-				.wb_master_adr_o	(wb_through0_adr_o),
-				.wb_master_dat_i	(wb_through0_dat_i),
-				.wb_master_dat_o	(wb_through0_dat_o),
-				.wb_master_we_o		(wb_through0_we_o),
-				.wb_master_sel_o	(wb_through0_sel_o),
-				.wb_master_stb_o	(wb_through0_stb_o),
-				.wb_master_ack_i	(wb_through0_ack_i)
+				.m_wb_adr_o			(wb_through0_adr_o),
+				.m_wb_dat_i			(wb_through0_dat_i),
+				.m_wb_dat_o			(wb_through0_dat_o),
+				.m_wb_we_o			(wb_through0_we_o),
+				.m_wb_sel_o			(wb_through0_sel_o),
+				.m_wb_stb_o			(wb_through0_stb_o),
+				.m_wb_ack_i			(wb_through0_ack_i)
 			);
 	
 	
@@ -867,9 +867,9 @@ module jelly_cpu_top
 	
 	jelly_wishbone_width_converter
 			#(
-				.WB_SLAVE_ADR_WIDTH	(30),
-				.WB_SLAVE_DAT_SIZE	(2),
-				.WB_MASTER_DAT_SIZE	(WB_THROUGH_DAT_SIZE)
+				.S_WB_ADR_WIDTH	(30),
+				.S_WB_DAT_SIZE	(2),
+				.M_WB_DAT_SIZE	(WB_THROUGH_DAT_SIZE)
 			)
 		i_wishbone_width_converter_through
 			(
@@ -878,23 +878,23 @@ module jelly_cpu_top
 					
 				.endian				(endian),
 				
-				.wb_slave_adr_i		(wb_through0_adr_o),
-				.wb_slave_dat_o		(wb_through0_dat_i),
-				.wb_slave_dat_i		(wb_through0_dat_o),
-				.wb_slave_we_i		(wb_through0_we_o),
-				.wb_slave_sel_i		(wb_through0_sel_o),
-				.wb_slave_stb_i		(wb_through0_stb_o),
-				.wb_slave_ack_o		(wb_through0_ack_i),
+				.s_wb_adr_i			(wb_through0_adr_o),
+				.s_wb_dat_o			(wb_through0_dat_i),
+				.s_wb_dat_i			(wb_through0_dat_o),
+				.s_wb_we_i			(wb_through0_we_o),
+				.s_wb_sel_i			(wb_through0_sel_o),
+				.s_wb_stb_i			(wb_through0_stb_o),
+				.s_wb_ack_o			(wb_through0_ack_i),
                 
-				.wb_master_adr_o	(wb_through1_adr_o),
-				.wb_master_dat_o	(wb_through1_dat_o),
-				.wb_master_dat_i	(wb_through1_dat_i),
-				.wb_master_we_o		(wb_through1_we_o),
-				.wb_master_sel_o	(wb_through1_sel_o),
-				.wb_master_stb_o	(wb_through1_stb_o),
-				.wb_master_ack_i	(wb_through1_ack_i)
-			);                       
-		
+				.m_wb_adr_o			(wb_through1_adr_o),
+				.m_wb_dat_o			(wb_through1_dat_o),
+				.m_wb_dat_i			(wb_through1_dat_i),
+				.m_wb_we_o			(wb_through1_we_o),
+				.m_wb_sel_o			(wb_through1_sel_o),
+				.m_wb_stb_o			(wb_through1_stb_o),
+				.m_wb_ack_i			(wb_through1_ack_i)
+			);
+	
 	// bridge
 	jelly_wishbone_bridge
 			#(
@@ -907,21 +907,21 @@ module jelly_cpu_top
 				.reset				(reset),
 				.clk				(clk),
 				
-				.wb_slave_adr_i		(wb_through1_adr_o),
-				.wb_slave_dat_o		(wb_through1_dat_i),
-				.wb_slave_dat_i		(wb_through1_dat_o),
-				.wb_slave_we_i		(wb_through1_we_o),
-				.wb_slave_sel_i		(wb_through1_sel_o),
-				.wb_slave_stb_i		(wb_through1_stb_o),
-				.wb_slave_ack_o		(wb_through1_ack_i),
+				.s_wb_adr_i			(wb_through1_adr_o),
+				.s_wb_dat_o			(wb_through1_dat_i),
+				.s_wb_dat_i			(wb_through1_dat_o),
+				.s_wb_we_i			(wb_through1_we_o),
+				.s_wb_sel_i			(wb_through1_sel_o),
+				.s_wb_stb_i			(wb_through1_stb_o),
+				.s_wb_ack_o			(wb_through1_ack_i),
                 
-				.wb_master_adr_o	(wb_through_adr_o),
-				.wb_master_dat_i	(wb_through_dat_i),
-				.wb_master_dat_o	(wb_through_dat_o),
-				.wb_master_we_o		(wb_through_we_o),
-				.wb_master_sel_o	(wb_through_sel_o),
-				.wb_master_stb_o	(wb_through_stb_o),
-				.wb_master_ack_i	(wb_through_ack_i)
+				.m_wb_adr_o			(wb_through_adr_o),
+				.m_wb_dat_i			(wb_through_dat_i),
+				.m_wb_dat_o			(wb_through_dat_o),
+				.m_wb_we_o			(wb_through_we_o),
+				.m_wb_sel_o			(wb_through_sel_o),
+				.m_wb_stb_o			(wb_through_stb_o),
+				.m_wb_ack_i			(wb_through_ack_i)
 			);
 	
 endmodule

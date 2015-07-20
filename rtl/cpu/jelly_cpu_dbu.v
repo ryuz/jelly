@@ -243,22 +243,22 @@ module jelly_cpu_dbu
 					.reset				(reset),
 					.clk				(clk),
 					
-					.wb_slave_adr_i		(dbg_addr[31:2]),
-					.wb_slave_dat_i		(wb_dat_i),
-					.wb_slave_dat_o		(dbus_wb_dat),
-					.wb_slave_we_i		(wb_we_i),
-					.wb_slave_sel_i		(wb_sel_i),
-					.wb_slave_stb_i		(wb_stb_i & (wb_adr_i == `DBG_ADR_DBUS_DATA)),
-					.wb_slave_ack_o		(dbus_wb_ack),
+					.s_wb_adr_i			(dbg_addr[31:2]),
+					.s_wb_dat_i			(wb_dat_i),
+					.s_wb_dat_o			(dbus_wb_dat),
+					.s_wb_we_i			(wb_we_i),
+					.s_wb_sel_i			(wb_sel_i),
+					.s_wb_stb_i			(wb_stb_i & (wb_adr_i == `DBG_ADR_DBUS_DATA)),
+					.s_wb_ack_o			(dbus_wb_ack),
 					
-					.jbus_master_en		(dbus_en),
-					.jbus_master_addr	(dbus_addr),
-					.jbus_master_wdata	(dbus_wdata),
-					.jbus_master_rdata	(dbus_rdata),
-					.jbus_master_we		(dbus_we),
-					.jbus_master_sel	(dbus_sel),
-					.jbus_master_valid	(dbus_valid),
-					.jbus_master_ready	(dbus_ready)
+					.m_jbus_en			(dbus_en),
+					.m_jbus_addr		(dbus_addr),
+					.m_jbus_wdata		(dbus_wdata),
+					.m_jbus_rdata		(dbus_rdata),
+					.m_jbus_we			(dbus_we),
+					.m_jbus_sel			(dbus_sel),
+					.m_jbus_valid		(dbus_valid),
+					.m_jbus_ready		(dbus_ready)
 				);
 		/*
 		assign dbus_interlock = 1'b0;

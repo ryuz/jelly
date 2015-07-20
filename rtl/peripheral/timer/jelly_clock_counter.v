@@ -12,12 +12,6 @@
 `default_nettype none
 
 
-`define CLOCK_COUNTER_ADR_CONTROL		3'b000
-`define CLOCK_COUNTER_ADR_MONITOR_H		3'b010
-`define CLOCK_COUNTER_ADR_MONITOR_L		3'b011
-`define CLOCK_COUNTER_ADR_COUNTER_H		3'b110
-`define CLOCK_COUNTER_ADR_COUNTER_L		3'b111
-
 
 //    64bit time counter
 module jelly_clock_counter
@@ -32,15 +26,24 @@ module jelly_clock_counter
 			input	wire						clk,
 			
 			// control port (wishbone)
-			input	wire	[WB_ADR_WIDTH-1:0]	wb_adr_i,
-			output	reg		[WB_DAT_WIDTH-1:0]	wb_dat_o,
-			input	wire	[WB_DAT_WIDTH-1:0]	wb_dat_i,
-			input	wire						wb_we_i,
-			input	wire	[WB_SEL_WIDTH-1:0]	wb_sel_i,
-			input	wire						wb_stb_i,
-			output	wire						wb_ack_o
+			input	wire	[WB_ADR_WIDTH-1:0]	s_wb_adr_i,
+			output	reg		[WB_DAT_WIDTH-1:0]	s_wb_dat_o,
+			input	wire	[WB_DAT_WIDTH-1:0]	s_wb_dat_i,
+			input	wire						s_wb_we_i,
+			input	wire	[WB_SEL_WIDTH-1:0]	s_wb_sel_i,
+			input	wire						s_wb_stb_i,
+			output	wire						s_wb_ack_o
 		);
+
+	// register address
+	localparam	CLOCK_COUNTER_ADR_CONTROL   = 3'b000;
+	localparam	CLOCK_COUNTER_ADR_MONITOR_H = 3'b010;
+	localparam	CLOCK_COUNTER_ADR_MONITOR_L = 3'b011;
+	localparam	CLOCK_COUNTER_ADR_COUNTER_H = 3'b110;
+	localparam	CLOCK_COUNTER_ADR_COUNTER_L = 3'b111;
+
 	
+	// control
 	reg					reg_copy_mon;
 	reg					reg_clear;
 	
@@ -57,9 +60,9 @@ module jelly_clock_counter
 		end
 		else begin
 			// control
-			if ( wb_stb_i & wb_we_i & wb_sel_i[0] & (wb_adr_i == `CLOCK_COUNTER_ADR_CONTROL) ) begin
-				reg_copy_mon <= wb_dat_i[0];
-				reg_clear    <= wb_dat_i[7];
+			if ( s_wb_stb_i & s_wb_we_i & s_wb_sel_i[0] & (s_wb_adr_i == CLOCK_COUNTER_ADR_CONTROL) ) begin
+				reg_copy_mon <= s_wb_dat_i[0];
+				reg_clear    <= s_wb_dat_i[7];
 			end
 			else begin
 				reg_copy_mon <= 1'b0;		// auto clear;
@@ -82,17 +85,17 @@ module jelly_clock_counter
 	end
 	
 	always @* begin
-		case ( wb_adr_i )
-		`CLOCK_COUNTER_ADR_CONTROL:		wb_dat_o <= {reg_clear, 6'd0, reg_copy_mon};
-		`CLOCK_COUNTER_ADR_MONITOR_H:	wb_dat_o <= reg_monitor[63:32];
-		`CLOCK_COUNTER_ADR_MONITOR_L:	wb_dat_o <= reg_monitor[31:0];
-		`CLOCK_COUNTER_ADR_COUNTER_H:	wb_dat_o <= reg_counter[63:32];
-		`CLOCK_COUNTER_ADR_COUNTER_L:	wb_dat_o <= reg_counter[31:0];
-		default:						wb_dat_o <= {WB_DAT_WIDTH{1'b0}};
+		case ( s_wb_adr_i )
+		CLOCK_COUNTER_ADR_CONTROL:		begin	s_wb_dat_o <= {reg_clear, 6'd0, reg_copy_mon};	end
+		CLOCK_COUNTER_ADR_MONITOR_H:	begin	s_wb_dat_o <= reg_monitor[63:32];				end
+		CLOCK_COUNTER_ADR_MONITOR_L:	begin	s_wb_dat_o <= reg_monitor[31:0];				end
+		CLOCK_COUNTER_ADR_COUNTER_H:	begin	s_wb_dat_o <= reg_counter[63:32];				end
+		CLOCK_COUNTER_ADR_COUNTER_L:	begin	s_wb_dat_o <= reg_counter[31:0];				end
+		default:						begin	s_wb_dat_o <= {WB_DAT_WIDTH{1'b0}};				end
 		endcase
 	end
 	
-	assign wb_ack_o = wb_stb_i;
+	assign s_wb_ack_o = s_wb_stb_i;
 	
 endmodule
 

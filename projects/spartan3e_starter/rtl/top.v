@@ -307,13 +307,13 @@ module top
 				.uart_rx			(dbg_uart_rx),
 				.divider			(8'd54 - 1'd1),
 				
-				.wb_adr_o			(wb_dbg_adr_o),
-				.wb_dat_i			(wb_dbg_dat_i),
-				.wb_dat_o			(wb_dbg_dat_o),
-				.wb_we_o			(wb_dbg_we_o),
-				.wb_sel_o			(wb_dbg_sel_o),
-				.wb_stb_o			(wb_dbg_stb_o),
-				.wb_ack_i			(wb_dbg_ack_i)
+				.m_wb_adr_o			(wb_dbg_adr_o),
+				.m_wb_dat_i			(wb_dbg_dat_i),
+				.m_wb_dat_o			(wb_dbg_dat_o),
+				.m_wb_we_o			(wb_dbg_we_o),
+				.m_wb_sel_o			(wb_dbg_sel_o),
+				.m_wb_stb_o			(wb_dbg_stb_o),
+				.m_wb_ack_i			(wb_dbg_ack_i)
 			);
 	
 	
@@ -340,9 +340,9 @@ module top
 	
 	jelly_wishbone_width_converter
 			#(
-				.WB_SLAVE_DAT_SIZE	(3),	// 2^n (0:8bit, 1:16bit, 2:32bit ...)
-				.WB_MASTER_DAT_SIZE	(2),	// 2^n (0:8bit, 1:16bit, 2:32bit ...)
-				.WB_SLAVE_ADR_WIDTH	(29)
+				.S_WB_ADR_WIDTH		(29),
+				.S_WB_DAT_SIZE		(3),	// 2^n (0:8bit, 1:16bit, 2:32bit ...)
+				.M_WB_DAT_SIZE		(2)		// 2^n (0:8bit, 1:16bit, 2:32bit ...)
 			)
 		i_wishbone_width_converter_rom
 			(
@@ -351,21 +351,21 @@ module top
 				
 				.endian				(endian),
 				
-				.wb_slave_adr_i		(wb_rom_adr_i),
-				.wb_slave_dat_o		(wb_rom_dat_o),
-				.wb_slave_dat_i		(wb_rom_dat_i),
-				.wb_slave_we_i		(wb_rom_we_i),
-				.wb_slave_sel_i		(wb_rom_sel_i),
-				.wb_slave_stb_i		(wb_rom_stb_i),
-				.wb_slave_ack_o		(wb_rom_ack_o),
+				.s_wb_adr_i		(wb_rom_adr_i),
+				.s_wb_dat_o		(wb_rom_dat_o),
+				.s_wb_dat_i		(wb_rom_dat_i),
+				.s_wb_we_i		(wb_rom_we_i),
+				.s_wb_sel_i		(wb_rom_sel_i),
+				.s_wb_stb_i		(wb_rom_stb_i),
+				.s_wb_ack_o		(wb_rom_ack_o),
                                  
-				.wb_master_adr_o	(wb_rom32_adr_o),
-				.wb_master_dat_o	(wb_rom32_dat_o),
-				.wb_master_dat_i	(wb_rom32_dat_i),
-				.wb_master_we_o		(wb_rom32_we_o),
-				.wb_master_sel_o	(wb_rom32_sel_o),
-				.wb_master_stb_o	(wb_rom32_stb_o),
-				.wb_master_ack_i	(wb_rom32_ack_i)
+				.m_wb_adr_o	(wb_rom32_adr_o),
+				.m_wb_dat_o	(wb_rom32_dat_o),
+				.m_wb_dat_i	(wb_rom32_dat_i),
+				.m_wb_we_o		(wb_rom32_we_o),
+				.m_wb_sel_o	(wb_rom32_sel_o),
+				.m_wb_stb_o	(wb_rom32_stb_o),
+				.m_wb_ack_i	(wb_rom32_ack_i)
 			);
 	
 	jelly_sram
@@ -380,13 +380,13 @@ module top
 				.reset				(reset),
 				.clk				(clk),
 				
-				.wb_adr_i			(wb_rom32_adr_o[13:2]),
-				.wb_dat_o			(wb_rom32_dat_i),
-				.wb_dat_i			(wb_rom32_dat_o),
-				.wb_we_i			(wb_rom32_we_o),
-				.wb_sel_i			(wb_rom32_sel_o),
-				.wb_stb_i			(wb_rom32_stb_o),
-				.wb_ack_o			(wb_rom32_ack_i)
+				.s_wb_adr_i			(wb_rom32_adr_o[13:2]),
+				.s_wb_dat_o			(wb_rom32_dat_i),
+				.s_wb_dat_i			(wb_rom32_dat_o),
+				.s_wb_we_i			(wb_rom32_we_o),
+				.s_wb_sel_i			(wb_rom32_sel_o),
+				.s_wb_stb_i			(wb_rom32_stb_o),
+				.s_wb_ack_o			(wb_rom32_ack_i)
 			);
 	
 	
@@ -414,8 +414,8 @@ module top
 	// 64bit/clk => 32bit/clk_x2
 	jelly_wishbone_width_clk_x2
 			#(
-				.WB_SLAVE_ADR_WIDTH	(29),
-				.WB_SLAVE_DAT_WIDTH	(64)
+				.S_WB_ADR_WIDTH	(29),
+				.S_WB_DAT_WIDTH	(64)
 			)
 		i_wishbone_width_clk_x2
 			(
@@ -425,21 +425,21 @@ module top
 									
 				.endian				(endian),
 				
-				.wb_slave_adr_i		(wb_dram_adr_i),
-				.wb_slave_dat_o		(wb_dram_dat_o),
-				.wb_slave_dat_i		(wb_dram_dat_i),
-				.wb_slave_we_i		(wb_dram_we_i),
-				.wb_slave_sel_i		(wb_dram_sel_i),
-				.wb_slave_stb_i		(wb_dram_stb_i),
-				.wb_slave_ack_o		(wb_dram_ack_o),
+				.s_wb_adr_i		(wb_dram_adr_i),
+				.s_wb_dat_o		(wb_dram_dat_o),
+				.s_wb_dat_i		(wb_dram_dat_i),
+				.s_wb_we_i		(wb_dram_we_i),
+				.s_wb_sel_i		(wb_dram_sel_i),
+				.s_wb_stb_i		(wb_dram_stb_i),
+				.s_wb_ack_o		(wb_dram_ack_o),
 									
-				.wb_master_adr_o	(wb_dram32_adr_o),
-				.wb_master_dat_o	(wb_dram32_dat_o),
-				.wb_master_dat_i	(wb_dram32_dat_i),
-				.wb_master_we_o		(wb_dram32_we_o),
-				.wb_master_sel_o	(wb_dram32_sel_o),
-				.wb_master_stb_o	(wb_dram32_stb_o),
-				.wb_master_ack_i	(wb_dram32_ack_i)
+				.m_wb_adr_o	(wb_dram32_adr_o),
+				.m_wb_dat_o	(wb_dram32_dat_o),
+				.m_wb_dat_i	(wb_dram32_dat_i),
+				.m_wb_we_o		(wb_dram32_we_o),
+				.m_wb_sel_o	(wb_dram32_sel_o),
+				.m_wb_stb_o	(wb_dram32_stb_o),
+				.m_wb_ack_i	(wb_dram32_ack_i)
 			);                        
 	*/
 	
@@ -462,28 +462,28 @@ module top
 				.clk				(clk),
 				.clk_x2				(clk_x2),
 				
-				.wb_adr_i			(wb_dram_adr_i),
-				.wb_dat_o			(wb_dram_dat_o),
-				.wb_dat_i			(wb_dram_dat_i),
-				.wb_we_i			(wb_dram_we_i),
-				.wb_sel_i			(wb_dram_sel_i),
-				.wb_stb_i			(wb_dram_stb_i),
-				.wb_ack_o			(wb_dram_ack_o),
+				.s_wb_adr_i			(wb_dram_adr_i),
+				.s_wb_dat_o			(wb_dram_dat_o),
+				.s_wb_dat_i			(wb_dram_dat_i),
+				.s_wb_we_i			(wb_dram_we_i),
+				.s_wb_sel_i			(wb_dram_sel_i),
+				.s_wb_stb_i			(wb_dram_stb_i),
+				.s_wb_ack_o			(wb_dram_ack_o),
                 
-				.wb_x2_adr_o		(wb_dram2x_adr_o),
-				.wb_x2_dat_o		(wb_dram2x_dat_o),
-				.wb_x2_dat_i		(wb_dram2x_dat_i),
-				.wb_x2_we_o			(wb_dram2x_we_o),
-				.wb_x2_sel_o		(wb_dram2x_sel_o),
-				.wb_x2_stb_o		(wb_dram2x_stb_o),
-				.wb_x2_ack_i		(wb_dram2x_ack_i)
+				.m_wb_x2_adr_o		(wb_dram2x_adr_o),
+				.m_wb_x2_dat_o		(wb_dram2x_dat_o),
+				.m_wb_x2_dat_i		(wb_dram2x_dat_i),
+				.m_wb_x2_we_o		(wb_dram2x_we_o),
+				.m_wb_x2_sel_o		(wb_dram2x_sel_o),
+				.m_wb_x2_stb_o		(wb_dram2x_stb_o),
+				.m_wb_x2_ack_i		(wb_dram2x_ack_i)
 			);       
 		
 	jelly_wishbone_width_converter
 			#(
-				.WB_SLAVE_DAT_SIZE	(3),	// 2^n (0:8bit, 1:16bit, 2:32bit ...)
-				.WB_MASTER_DAT_SIZE	(2),	// 2^n (0:8bit, 1:16bit, 2:32bit ...)
-				.WB_SLAVE_ADR_WIDTH	(29)
+				.S_WB_DAT_SIZE	(3),	// 2^n (0:8bit, 1:16bit, 2:32bit ...)
+				.M_WB_DAT_SIZE	(2),	// 2^n (0:8bit, 1:16bit, 2:32bit ...)
+				.S_WB_ADR_WIDTH	(29)
 			)
 		i_wishbone_width_converter_sdram
 			(
@@ -492,21 +492,21 @@ module top
 
 				.endian				(endian),
 
-				.wb_slave_adr_i		(wb_dram2x_adr_o),
-				.wb_slave_dat_o		(wb_dram2x_dat_i),
-				.wb_slave_dat_i		(wb_dram2x_dat_o),
-				.wb_slave_we_i		(wb_dram2x_we_o),
-				.wb_slave_sel_i		(wb_dram2x_sel_o),
-				.wb_slave_stb_i		(wb_dram2x_stb_o),
-				.wb_slave_ack_o		(wb_dram2x_ack_i),
+				.s_wb_adr_i			(wb_dram2x_adr_o),
+				.s_wb_dat_o			(wb_dram2x_dat_i),
+				.s_wb_dat_i			(wb_dram2x_dat_o),
+				.s_wb_we_i			(wb_dram2x_we_o),
+				.s_wb_sel_i			(wb_dram2x_sel_o),
+				.s_wb_stb_i			(wb_dram2x_stb_o),
+				.s_wb_ack_o			(wb_dram2x_ack_i),
                                         
-				.wb_master_adr_o	(wb_dram32_adr_o),
-				.wb_master_dat_o	(wb_dram32_dat_o),
-				.wb_master_dat_i	(wb_dram32_dat_i),
-				.wb_master_we_o		(wb_dram32_we_o),
-				.wb_master_sel_o	(wb_dram32_sel_o),
-				.wb_master_stb_o	(wb_dram32_stb_o),
-				.wb_master_ack_i	(wb_dram32_ack_i)
+				.m_wb_adr_o			(wb_dram32_adr_o),
+				.m_wb_dat_o			(wb_dram32_dat_o),
+				.m_wb_dat_i			(wb_dram32_dat_i),
+				.m_wb_we_o			(wb_dram32_we_o),
+				.m_wb_sel_o			(wb_dram32_sel_o),
+				.m_wb_stb_o			(wb_dram32_stb_o),
+				.m_wb_ack_i			(wb_dram32_ack_i)
 			);
 	
 	
@@ -550,11 +550,11 @@ module top
 	//  memory bus address decoder
 	// -----------------------------
 	
-	assign wb_rom_adr_i   = wb_mem_adr_o;
-	assign wb_rom_dat_i   = wb_mem_dat_o;
-	assign wb_rom_sel_i   = wb_mem_sel_o;
-	assign wb_rom_we_i    = wb_mem_we_o;
-	assign wb_rom_stb_i   = wb_mem_stb_o & (wb_mem_adr_o[31:24] == 8'h00) & (option_ram_swap == 1'b1);
+	assign wb_rom_adr_i  = wb_mem_adr_o;
+	assign wb_rom_dat_i  = wb_mem_dat_o;
+	assign wb_rom_sel_i  = wb_mem_sel_o;
+	assign wb_rom_we_i   = wb_mem_we_o;
+	assign wb_rom_stb_i  = wb_mem_stb_o & (wb_mem_adr_o[31:24] == 8'h00) & (option_ram_swap == 1'b1);
 	
 	assign wb_dram_adr_i = wb_mem_adr_o;
 	assign wb_dram_dat_i = wb_mem_dat_o;
@@ -664,13 +664,13 @@ module top
 				.cpu_irq			(cpu_irq),
 				.cpu_irq_ack		(cpu_irq_ack),
 											
-				.wb_adr_i			(wb_irc_adr_i[13:2]),
-				.wb_dat_o			(wb_irc_dat_o),
-				.wb_dat_i			(wb_irc_dat_i),
-				.wb_we_i			(wb_irc_we_i),
-				.wb_sel_i			(wb_irc_sel_i),
-				.wb_stb_i			(wb_irc_stb_i),
-				.wb_ack_o			(wb_irc_ack_o)
+				.s_wb_adr_i			(wb_irc_adr_i[13:2]),
+				.s_wb_dat_o			(wb_irc_dat_o),
+				.s_wb_dat_i			(wb_irc_dat_i),
+				.s_wb_we_i			(wb_irc_we_i),
+				.s_wb_sel_i			(wb_irc_sel_i),
+				.s_wb_stb_i			(wb_irc_stb_i),
+				.s_wb_ack_o			(wb_irc_ack_o)
 			);                     
 	
 	
@@ -692,13 +692,13 @@ module top
 				.clk				(clk),
 				.reset				(reset),
 				
-				.wb_adr_i			(wb_cputim_adr_i[4:2]),
-				.wb_dat_o			(wb_cputim_dat_o),
-				.wb_dat_i			(wb_cputim_dat_i),
-				.wb_we_i			(wb_cputim_we_i),
-				.wb_sel_i			(wb_cputim_sel_i),
-				.wb_stb_i			(wb_cputim_stb_i),
-				.wb_ack_o			(wb_cputim_ack_o)
+				.s_wb_adr_i			(wb_cputim_adr_i[4:2]),
+				.s_wb_dat_o			(wb_cputim_dat_o),
+				.s_wb_dat_i			(wb_cputim_dat_i),
+				.s_wb_we_i			(wb_cputim_we_i),
+				.s_wb_sel_i			(wb_cputim_sel_i),
+				.s_wb_stb_i			(wb_cputim_stb_i),
+				.s_wb_ack_o			(wb_cputim_ack_o)
 			);       	              
 	
 	
@@ -722,13 +722,13 @@ module top
 				
 				.interrupt_req		(timer0_irq),
 
-				.wb_adr_i			(wb_timer0_adr_i[3:2]),
-				.wb_dat_o			(wb_timer0_dat_o),
-				.wb_dat_i			(wb_timer0_dat_i),
-				.wb_we_i			(wb_timer0_we_i),
-				.wb_sel_i			(wb_timer0_sel_i),
-				.wb_stb_i			(wb_timer0_stb_i),
-				.wb_ack_o			(wb_timer0_ack_o)
+				.s_wb_adr_i			(wb_timer0_adr_i[3:2]),
+				.s_wb_dat_o			(wb_timer0_dat_o),
+				.s_wb_dat_i			(wb_timer0_dat_i),
+				.s_wb_we_i			(wb_timer0_we_i),
+				.s_wb_sel_i			(wb_timer0_sel_i),
+				.s_wb_stb_i			(wb_timer0_stb_i),
+				.s_wb_ack_o			(wb_timer0_ack_o)
 			);                     
 	
 	
@@ -752,13 +752,13 @@ module top
 				
 				.interrupt_req		(timer1_irq),
 				
-				.wb_adr_i			(wb_timer1_adr_i[3:2]),
-				.wb_dat_o			(wb_timer1_dat_o),
-				.wb_dat_i			(wb_timer1_dat_i),
-				.wb_we_i			(wb_timer1_we_i),
-				.wb_sel_i			(wb_timer1_sel_i),
-				.wb_stb_i			(wb_timer1_stb_i),
-				.wb_ack_o			(wb_timer1_ack_o)
+				.s_wb_adr_i			(wb_timer1_adr_i[3:2]),
+				.s_wb_dat_o			(wb_timer1_dat_o),
+				.s_wb_dat_i			(wb_timer1_dat_i),
+				.s_wb_we_i			(wb_timer1_we_i),
+				.s_wb_sel_i			(wb_timer1_sel_i),
+				.s_wb_stb_i			(wb_timer1_stb_i),
+				.s_wb_ack_o			(wb_timer1_ack_o)
 			);                     
 	
 	
@@ -798,13 +798,13 @@ module top
 				.irq_rx				(uart0_irq_rx),
 				.irq_tx				(uart0_irq_tx),
 				
-				.wb_adr_i			(wb_uart0_adr_i[3:2]),
-				.wb_dat_o			(wb_uart0_dat_o),
-				.wb_dat_i			(wb_uart0_dat_i),
-				.wb_we_i			(wb_uart0_we_i),
-				.wb_sel_i			(wb_uart0_sel_i),
-				.wb_stb_i			(wb_uart0_stb_i),
-				.wb_ack_o			(wb_uart0_ack_o)
+				.s_wb_adr_i			(wb_uart0_adr_i[3:2]),
+				.s_wb_dat_o			(wb_uart0_dat_o),
+				.s_wb_dat_i			(wb_uart0_dat_i),
+				.s_wb_we_i			(wb_uart0_we_i),
+				.s_wb_sel_i			(wb_uart0_sel_i),
+				.s_wb_stb_i			(wb_uart0_stb_i),
+				.s_wb_ack_o			(wb_uart0_ack_o)
 			);
 	
 	/*
@@ -827,13 +827,13 @@ module top
 				.irq_rx				(uart0_irq_rx),
 				.irq_tx				(uart0_irq_tx),
 				
-				.wb_adr_i			(wb_uart0_adr_i[3:2]),
-				.wb_dat_o			(wb_uart0_dat_o),
-				.wb_dat_i			(wb_uart0_dat_i),
-				.wb_we_i			(wb_uart0_we_i),
-				.wb_sel_i			(wb_uart0_sel_i),
-				.wb_stb_i			(wb_uart0_stb_i),
-				.wb_ack_o			(wb_uart0_ack_o)
+				.s_wb_adr_i			(wb_uart0_adr_i[3:2]),
+				.s_wb_dat_o			(wb_uart0_dat_o),
+				.s_wb_dat_i			(wb_uart0_dat_i),
+				.s_wb_we_i			(wb_uart0_we_i),
+				.s_wb_sel_i			(wb_uart0_sel_i),
+				.s_wb_stb_i			(wb_uart0_stb_i),
+				.s_wb_ack_o			(wb_uart0_ack_o)
 			);
 	*/
 	
@@ -870,13 +870,13 @@ module top
 				.i2c_sda_t			(i2c0_sda_t),
 				.i2c_sda_i			(i2c0_sda),
 				
-				.wb_adr_i			(wb_i2c0_adr_i[3:2]),
-				.wb_dat_o			(wb_i2c0_dat_o),
-				.wb_dat_i			(wb_i2c0_dat_i),
-				.wb_we_i			(wb_i2c0_we_i),
-				.wb_sel_i			(wb_i2c0_sel_i),
-				.wb_stb_i			(wb_i2c0_stb_i),
-				.wb_ack_o			(wb_i2c0_ack_o)
+				.s_wb_adr_i			(wb_i2c0_adr_i[3:2]),
+				.s_wb_dat_o			(wb_i2c0_dat_o),
+				.s_wb_dat_i			(wb_i2c0_dat_i),
+				.s_wb_we_i			(wb_i2c0_we_i),
+				.s_wb_sel_i			(wb_i2c0_sel_i),
+				.s_wb_stb_i			(wb_i2c0_stb_i),
+				.s_wb_ack_o			(wb_i2c0_ack_o)
 			);
 	
 	assign i2c0_scl = i2c0_scl_t ? 1'bz : 1'b0;
@@ -914,13 +914,13 @@ module top
 				.port_o				(gpio_a_o),
 				.port_t				(gpio_a_t),
 				
-				.wb_adr_i			(wb_gpio0_adr_i[3:2]),
-				.wb_dat_o			(wb_gpio0_dat_o),
-				.wb_dat_i			(wb_gpio0_dat_i),
-				.wb_we_i			(wb_gpio0_we_i),
-				.wb_sel_i			(wb_gpio0_sel_i),
-				.wb_stb_i			(wb_gpio0_stb_i),
-				.wb_ack_o			(wb_gpio0_ack_o)
+				.s_wb_adr_i			(wb_gpio0_adr_i[3:2]),
+				.s_wb_dat_o			(wb_gpio0_dat_o),
+				.s_wb_dat_i			(wb_gpio0_dat_i),
+				.s_wb_we_i			(wb_gpio0_we_i),
+				.s_wb_sel_i			(wb_gpio0_sel_i),
+				.s_wb_stb_i			(wb_gpio0_stb_i),
+				.s_wb_ack_o			(wb_gpio0_ack_o)
 			);                     
 	
 	generate
@@ -961,13 +961,13 @@ module top
 				.port_o				(gpio_b_o),
 				.port_t				(gpio_b_t),
 
-				.wb_adr_i			(wb_gpio1_adr_i[3:2]),
-				.wb_dat_o			(wb_gpio1_dat_o),
-				.wb_dat_i			(wb_gpio1_dat_i),
-				.wb_we_i			(wb_gpio1_we_i),
-				.wb_sel_i			(wb_gpio1_sel_i),
-				.wb_stb_i			(wb_gpio1_stb_i),
-				.wb_ack_o			(wb_gpio1_ack_o)	
+				.s_wb_adr_i			(wb_gpio1_adr_i[3:2]),
+				.s_wb_dat_o			(wb_gpio1_dat_o),
+				.s_wb_dat_i			(wb_gpio1_dat_i),
+				.s_wb_we_i			(wb_gpio1_we_i),
+				.s_wb_sel_i			(wb_gpio1_sel_i),
+				.s_wb_stb_i			(wb_gpio1_stb_i),
+				.s_wb_ack_o			(wb_gpio1_ack_o)	
 			);
 	
 	generate
@@ -999,9 +999,9 @@ module top
 	
 	jelly_wishbone_width_converter
 			#(
-				.WB_SLAVE_DAT_SIZE	(2),	// 2^n (0:8bit, 1:16bit, 2:32bit ...)
-				.WB_MASTER_DAT_SIZE	(1),	// 2^n (0:8bit, 1:16bit, 2:32bit ...)
-				.WB_SLAVE_ADR_WIDTH	(30)
+				.S_WB_DAT_SIZE		(2),	// 2^n (0:8bit, 1:16bit, 2:32bit ...)
+				.M_WB_DAT_SIZE		(1),	// 2^n (0:8bit, 1:16bit, 2:32bit ...)
+				.S_WB_ADR_WIDTH		(30)
 			)
 		i_wishbone_width_converter_flash
 			(
@@ -1010,22 +1010,22 @@ module top
 				
 				.endian				(endian),
 				
-				.wb_slave_adr_i		(wb_flash_adr_i),
-				.wb_slave_dat_o		(wb_flash_dat_o),
-				.wb_slave_dat_i		(wb_flash_dat_i),
-				.wb_slave_we_i		(wb_flash_we_i),
-				.wb_slave_sel_i		(wb_flash_sel_i),
-				.wb_slave_stb_i		(wb_flash_stb_i),
-				.wb_slave_ack_o		(wb_flash_ack_o),
-                                        
-				.wb_master_adr_o	(wb_flash16_adr_o),
-				.wb_master_dat_o	(wb_flash16_dat_o),
-				.wb_master_dat_i	(wb_flash16_dat_i),
-				.wb_master_we_o		(wb_flash16_we_o),
-				.wb_master_sel_o	(wb_flash16_sel_o),
-				.wb_master_stb_o	(wb_flash16_stb_o),
-				.wb_master_ack_i	(wb_flash16_ack_i)
-			);                       
+				.s_wb_adr_i			(wb_flash_adr_i),
+				.s_wb_dat_o			(wb_flash_dat_o),
+				.s_wb_dat_i			(wb_flash_dat_i),
+				.s_wb_we_i			(wb_flash_we_i),
+				.s_wb_sel_i			(wb_flash_sel_i),
+				.s_wb_stb_i			(wb_flash_stb_i),
+				.s_wb_ack_o			(wb_flash_ack_o),
+				
+				.m_wb_adr_o			(wb_flash16_adr_o),
+				.m_wb_dat_o			(wb_flash16_dat_o),
+				.m_wb_dat_i			(wb_flash16_dat_i),
+				.m_wb_we_o			(wb_flash16_we_o),
+				.m_wb_sel_o			(wb_flash16_sel_o),
+				.m_wb_stb_o			(wb_flash16_stb_o),
+				.m_wb_ack_i			(wb_flash16_ack_i)
+			);
 	
 	jelly_extbus
 			#(
@@ -1045,13 +1045,13 @@ module top
 				.extbus_a			(flash_a[24:1]),
 				.extbus_d			(flash_d),
 				
-				.wb_adr_i			(wb_flash16_adr_o[24:1]),
-				.wb_dat_o			(wb_flash16_dat_i),
-				.wb_dat_i			(wb_flash16_dat_o),
-				.wb_we_i			(wb_flash16_we_o),
-				.wb_sel_i			(wb_flash16_sel_o),
-				.wb_stb_i			(wb_flash16_stb_o),
-				.wb_ack_o			(wb_flash16_ack_i)
+				.s_wb_adr_i			(wb_flash16_adr_o[24:1]),
+				.s_wb_dat_o			(wb_flash16_dat_i),
+				.s_wb_dat_i			(wb_flash16_dat_o),
+				.s_wb_we_i			(wb_flash16_we_o),
+				.s_wb_sel_i			(wb_flash16_sel_o),
+				.s_wb_stb_i			(wb_flash16_stb_o),
+				.s_wb_ack_o			(wb_flash16_ack_i)
 			);
 	
 	assign flash_sts    = 1'bz;

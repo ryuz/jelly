@@ -27,13 +27,13 @@ module jelly_wishbone_slave_model
 			input	wire						reset,
 
 			// wishbone
-			input	wire	[ADR_WIDTH-1:0]		wb_slave_adr_i,
-			output	wire	[DAT_WIDTH-1:0]		wb_slave_dat_o,
-			input	wire	[DAT_WIDTH-1:0]		wb_slave_dat_i,
-			input	wire						wb_slave_we_i,
-			input	wire	[SEL_WIDTH-1:0]		wb_slave_sel_i,
-			input	wire						wb_slave_stb_i,
-			output	wire						wb_slave_ack_o			
+			input	wire	[ADR_WIDTH-1:0]		s_wb_adr_i,
+			output	wire	[DAT_WIDTH-1:0]		s_wb_dat_o,
+			input	wire	[DAT_WIDTH-1:0]		s_wb_dat_i,
+			input	wire						s_wb_we_i,
+			input	wire	[SEL_WIDTH-1:0]		s_wb_sel_i,
+			input	wire						s_wb_stb_i,
+			output	wire						s_wb_ack_o			
 		);
 	
 	generate
@@ -41,16 +41,16 @@ module jelly_wishbone_slave_model
 	for ( i = 0; i < SEL_WIDTH; i = i + 1 ) begin : bls
 		reg		[7:0]	mem		[0:MEM_WIDTH-1];
 		always @( posedge clk ) begin
-			if ( wb_slave_stb_i & wb_slave_ack_o ) begin
-				if ( wb_slave_we_i ) begin
-					if ( wb_slave_sel_i[i] ) begin
-						mem[wb_slave_adr_i] <= wb_slave_dat_i[i*8 +: 8];
+			if ( s_wb_stb_i & s_wb_ack_o ) begin
+				if ( s_wb_we_i ) begin
+					if ( s_wb_sel_i[i] ) begin
+						mem[s_wb_adr_i] <= s_wb_dat_i[i*8 +: 8];
 					end
 				end
 			end
 		end
 		
-		assign wb_slave_dat_o[i*8 +: 8] = (wb_slave_stb_i & !wb_slave_we_i & wb_slave_ack_o) ? mem[wb_slave_adr_i] : 8'hxx;
+		assign s_wb_dat_o[i*8 +: 8] = (s_wb_stb_i & !s_wb_we_i & s_wb_ack_o) ? mem[s_wb_adr_i] : 8'hxx;
 	end
 	endgenerate
 	
@@ -65,7 +65,7 @@ module jelly_wishbone_slave_model
 				.out		(rand)
 			);
 	
-	assign wb_slave_ack_o = wb_slave_stb_i & (RAND_BUSY & rand);
+	assign s_wb_ack_o = s_wb_stb_i & (RAND_BUSY & rand);
 	
 	
 endmodule

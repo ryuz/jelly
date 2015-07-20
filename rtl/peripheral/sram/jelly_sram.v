@@ -1,13 +1,16 @@
 // ---------------------------------------------------------------------------
-//  Jelly  -- the soft-core processor system
-//    block sram interface
+//  Jelly  -- the system on fpga system
 //
-//                                      Copyright (C) 2008 by Ryuji Fuchikami
-//                                      http://homepage3.nifty.com/ryuz/
+//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
+//                                 http://homepage3.nifty.com/ryuz/
+//                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
 
+
 `timescale 1ns / 1ps
+`default_nettype none
+
 
 
 module jelly_sram
@@ -24,13 +27,13 @@ module jelly_sram
 			input	wire						clk,
 			
 			// wishbone
-			input	wire	[WB_ADR_WIDTH-1:0]	wb_adr_i,
-			output	wire	[WB_DAT_WIDTH-1:0]	wb_dat_o,
-			input	wire	[WB_DAT_WIDTH-1:0]	wb_dat_i,
-			input	wire						wb_we_i,
-			input	wire	[WB_SEL_WIDTH-1:0]	wb_sel_i,
-			input	wire						wb_stb_i,
-			output	wire						wb_ack_o
+			input	wire	[WB_ADR_WIDTH-1:0]	s_wb_adr_i,
+			output	wire	[WB_DAT_WIDTH-1:0]	s_wb_dat_o,
+			input	wire	[WB_DAT_WIDTH-1:0]	s_wb_dat_i,
+			input	wire						s_wb_we_i,
+			input	wire	[WB_SEL_WIDTH-1:0]	s_wb_sel_i,
+			input	wire						s_wb_stb_i,
+			output	wire						s_wb_ack_o
 		);
 	
 	wire						ram_en;
@@ -49,20 +52,20 @@ module jelly_sram
 				.reset			(reset),
 				.clk			(clk),
 				
-				.wb_adr_i		(wb_adr_i),
-				.wb_dat_o		(wb_dat_o),
-				.wb_dat_i		(wb_dat_i),
-				.wb_we_i		(wb_we_i),
-				.wb_sel_i		(wb_sel_i),
-				.wb_stb_i		(wb_stb_i),
-				.wb_ack_o		(wb_ack_o),
+				.s_wb_adr_i		(s_wb_adr_i),
+				.s_wb_dat_o		(s_wb_dat_o),
+				.s_wb_dat_i		(s_wb_dat_i),
+				.s_wb_we_i		(s_wb_we_i),
+				.s_wb_sel_i		(s_wb_sel_i),
+				.s_wb_stb_i		(s_wb_stb_i),
+				.s_wb_ack_o		(s_wb_ack_o),
 				
-				.ram_en			(ram_en),
-				.ram_we			(ram_we),
-				.ram_addr		(ram_addr),
-				.ram_wdata		(ram_wdata),
-				.ram_rdata		(ram_rdata)
-			);                 
+				.m_ram_en		(ram_en),
+				.m_ram_we		(ram_we),
+				.m_ram_addr		(ram_addr),
+				.m_ram_wdata	(ram_wdata),
+				.m_ram_rdata	(ram_rdata)
+			);
 	
 	jelly_ram_singleport
 			#(
@@ -83,6 +86,13 @@ module jelly_sram
 				.addr			(ram_addr),
 				.din			(ram_wdata),
 				.dout			(ram_rdata)
-			);                 
-			
+			);
+	
 endmodule
+
+
+
+`default_nettype wire
+
+
+// end of file

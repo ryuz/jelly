@@ -67,13 +67,13 @@ module jelly_cache_unified
 			output	wire							jbus_slave1_ready,
 			
 			// master port0
-			output	wire	[MASTER_ADR_WIDTH-1:0]	wb_master_adr_o,
-			input	wire	[MASTER_DAT_WIDTH-1:0]	wb_master_dat_i,
-			output	wire	[MASTER_DAT_WIDTH-1:0]	wb_master_dat_o,
-			output	wire							wb_master_we_o,
-			output	wire	[MASTER_SEL_WIDTH-1:0]	wb_master_sel_o,
-			output	wire							wb_master_stb_o,
-			input	wire							wb_master_ack_i
+			output	wire	[MASTER_ADR_WIDTH-1:0]	m_wb_adr_o,
+			input	wire	[MASTER_DAT_WIDTH-1:0]	m_wb_dat_i,
+			output	wire	[MASTER_DAT_WIDTH-1:0]	m_wb_dat_o,
+			output	wire							m_wb_we_o,
+			output	wire	[MASTER_SEL_WIDTH-1:0]	m_wb_sel_o,
+			output	wire							m_wb_stb_o,
+			input	wire							m_wb_ack_i
 		);
 	
 	wire	[MASTER_ADR_WIDTH-1:0]	wb_master0_adr_o;
@@ -161,13 +161,13 @@ module jelly_cache_unified
 				.jbus_slave_valid	(jbus_slave0_valid),
 				.jbus_slave_ready	(jbus_slave0_ready_tmp),
 				
-				.wb_master_adr_o	(wb_master0_adr_o),
-				.wb_master_dat_o	(wb_master0_dat_o),
-				.wb_master_dat_i	(wb_master0_dat_i),
-				.wb_master_we_o		(wb_master0_we_o),
-				.wb_master_sel_o	(wb_master0_sel_o),
-				.wb_master_stb_o	(wb_master0_stb_o),
-				.wb_master_ack_i	(wb_master0_ack_i),
+				.m_wb_adr_o	(wb_master0_adr_o),
+				.m_wb_dat_o	(wb_master0_dat_o),
+				.m_wb_dat_i	(wb_master0_dat_i),
+				.m_wb_we_o		(wb_master0_we_o),
+				.m_wb_sel_o	(wb_master0_sel_o),
+				.m_wb_stb_o	(wb_master0_stb_o),
+				.m_wb_ack_i	(wb_master0_ack_i),
 				
 				.ram_en				(ram0_en),
 				.ram_we				(ram0_we),
@@ -201,13 +201,13 @@ module jelly_cache_unified
 				.jbus_slave_valid	(jbus_slave1_valid),
 				.jbus_slave_ready	(jbus_slave1_ready_tmp),
 				
-				.wb_master_adr_o	(wb_master1_adr_o),
-				.wb_master_dat_o	(wb_master1_dat_o),
-				.wb_master_dat_i	(wb_master1_dat_i),
-				.wb_master_we_o		(wb_master1_we_o),
-				.wb_master_sel_o	(wb_master1_sel_o),
-				.wb_master_stb_o	(wb_master1_stb_o),
-				.wb_master_ack_i	(wb_master1_ack_i),
+				.m_wb_adr_o	(wb_master1_adr_o),
+				.m_wb_dat_o	(wb_master1_dat_o),
+				.m_wb_dat_i	(wb_master1_dat_i),
+				.m_wb_we_o		(wb_master1_we_o),
+				.m_wb_sel_o	(wb_master1_sel_o),
+				.m_wb_stb_o	(wb_master1_stb_o),
+				.m_wb_ack_i	(wb_master1_ack_i),
 				
 				.ram_en				(ram1_en),
 				.ram_we				(ram1_we),
@@ -256,29 +256,29 @@ module jelly_cache_unified
 				.reset				(reset),
 				.clk				(clk),
 				
-				.wb_slave0_adr_i	(wb_master0_adr_o),
-				.wb_slave0_dat_i	(wb_master0_dat_o),
-				.wb_slave0_dat_o	(wb_master0_dat_i),
-				.wb_slave0_we_i		(wb_master0_we_o),
-				.wb_slave0_sel_i	(wb_master0_sel_o),
-				.wb_slave0_stb_i	(wb_master0_stb_o & !ram_init_busy),
-				.wb_slave0_ack_o	(wb_master0_ack_i),
+				.s_wb0_adr_i		(wb_master0_adr_o),
+				.s_wb0_dat_i		(wb_master0_dat_o),
+				.s_wb0_dat_o		(wb_master0_dat_i),
+				.s_wb0_we_i			(wb_master0_we_o),
+				.s_wb0_sel_i		(wb_master0_sel_o),
+				.s_wb0_stb_i		(wb_master0_stb_o & !ram_init_busy),
+				.s_wb0_ack_o		(wb_master0_ack_i),
 				
-				.wb_slave1_adr_i	(wb_master1_adr_o),
-				.wb_slave1_dat_i	(wb_master1_dat_o),
-				.wb_slave1_dat_o	(wb_master1_dat_i),
-				.wb_slave1_we_i		(wb_master1_we_o),
-				.wb_slave1_sel_i	(wb_master1_sel_o),
-				.wb_slave1_stb_i	(wb_master1_stb_o & !ram_init_busy),
-				.wb_slave1_ack_o	(wb_master1_ack_i),
+				.s_wb1_adr_i		(wb_master1_adr_o),
+				.s_wb1_dat_i		(wb_master1_dat_o),
+				.s_wb1_dat_o		(wb_master1_dat_i),
+				.s_wb1_we_i			(wb_master1_we_o),
+				.s_wb1_sel_i		(wb_master1_sel_o),
+				.s_wb1_stb_i		(wb_master1_stb_o & !ram_init_busy),
+				.s_wb1_ack_o		(wb_master1_ack_i),
 				
-				.wb_master_adr_o	(wb_master_adr_o),
-				.wb_master_dat_i	(wb_master_dat_i),
-				.wb_master_dat_o	(wb_master_dat_o),
-				.wb_master_we_o		(wb_master_we_o),
-				.wb_master_sel_o	(wb_master_sel_o),
-				.wb_master_stb_o	(wb_master_stb_o),
-				.wb_master_ack_i	(wb_master_ack_i)
+				.m_wb_adr_o			(m_wb_adr_o),
+				.m_wb_dat_i			(m_wb_dat_i),
+				.m_wb_dat_o			(m_wb_dat_o),
+				.m_wb_we_o			(m_wb_we_o),
+				.m_wb_sel_o			(m_wb_sel_o),
+				.m_wb_stb_o			(m_wb_stb_o),
+				.m_wb_ack_i			(m_wb_ack_i)
 			);
 	
 endmodule

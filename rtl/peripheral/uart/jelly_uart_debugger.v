@@ -35,13 +35,13 @@ module jelly_uart_debugger
 			input	wire						uart_rx,
 			
 			// debug port (whishbone)
-			output	wire	[3:0]				wb_adr_o,
-			input	wire	[31:0]				wb_dat_i,
-			output	wire	[31:0]				wb_dat_o,
-			output	wire						wb_we_o,
-			output	wire	[3:0]				wb_sel_o,
-			output	wire						wb_stb_o,
-			input	wire						wb_ack_i
+			output	wire	[3:0]				m_wb_adr_o,
+			input	wire	[31:0]				m_wb_dat_i,
+			output	wire	[31:0]				m_wb_dat_o,
+			output	wire						m_wb_we_o,
+			output	wire	[3:0]				m_wb_sel_o,
+			output	wire						m_wb_stb_o,
+			input	wire						m_wb_ack_i
 		);
 	
 	
@@ -100,13 +100,13 @@ module jelly_uart_debugger
 				.comm_rx_valid		(uart_rx_valid),
 				.comm_rx_ready		(uart_rx_ready),
 				
-				.wb_dbg_adr_o		(wb_adr_o),
-				.wb_dbg_dat_i		(wb_dat_i),
-				.wb_dbg_dat_o		(wb_dat_o),
-				.wb_dbg_we_o		(wb_we_o),
-				.wb_dbg_sel_o		(wb_sel_o),
-				.wb_dbg_stb_o		(wb_stb_o),
-				.wb_dbg_ack_i		(wb_ack_i)
+				.wb_dbg_adr_o		(m_wb_adr_o),
+				.wb_dbg_dat_i		(m_wb_dat_i),
+				.wb_dbg_dat_o		(m_wb_dat_o),
+				.wb_dbg_we_o		(m_wb_we_o),
+				.wb_dbg_sel_o		(m_wb_sel_o),
+				.wb_dbg_stb_o		(m_wb_stb_o),
+				.wb_dbg_ack_i		(m_wb_ack_i)
 			);
 
 endmodule

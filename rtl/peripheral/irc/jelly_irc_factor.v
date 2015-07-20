@@ -1,23 +1,26 @@
 // ---------------------------------------------------------------------------
-//  Jelly  -- the soft-core processor system
-//    Interrupt controller
+//  Jelly  -- the system on fpga system
 //
-//                                  Copyright (C) 2008-2009 by Ryuji Fuchikami
-//                                      http://homepage3.nifty.com/ryuz
+//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
+//                                 http://homepage3.nifty.com/ryuz/
+//                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
 
+
 `timescale 1ns / 1ps
+`default_nettype none
+
 
 
 module irc_factor
 		#(
-			parameter								FACTOR_ID_WIDTH = 2,
-			parameter								PRIORITY_WIDTH  = 3,
+			parameter FACTOR_ID_WIDTH = 2,
+			parameter PRIORITY_WIDTH  = 3,
 			
-			parameter								WB_ADR_WIDTH    = 2,
-			parameter								WB_DAT_WIDTH    = 32,
-			parameter								WB_SEL_WIDTH    = (WB_DAT_WIDTH / 8)
+			parameter WB_ADR_WIDTH    = 2,
+			parameter WB_DAT_WIDTH    = 32,
+			parameter WB_SEL_WIDTH    = (WB_DAT_WIDTH / 8)
 		)
 		(
 			// system
@@ -36,17 +39,17 @@ module irc_factor
 			input	wire							reqest_sense,
 			
 			// control port (wishbone)
-			input	wire	[1:0]					wb_adr_i,
-			output	reg		[WB_DAT_WIDTH-1:0]		wb_dat_o,
-			input	wire	[WB_DAT_WIDTH-1:0]		wb_dat_i,
-			input	wire							wb_we_i,
-			input	wire	[WB_SEL_WIDTH-1:0]		wb_sel_i,
-			input	wire							wb_stb_i,
-			output	wire							wb_ack_o
+			input	wire	[1:0]					s_wb_adr_i,
+			output	reg		[WB_DAT_WIDTH-1:0]		s_wb_dat_o,
+			input	wire	[WB_DAT_WIDTH-1:0]		s_wb_dat_i,
+			input	wire							s_wb_we_i,
+			input	wire	[WB_SEL_WIDTH-1:0]		s_wb_sel_i,
+			input	wire							s_wb_stb_i,
+			output	wire							s_wb_ack_o
 		);
 	
 	localparam	PACKET_WIDTH    = PRIORITY_WIDTH + FACTOR_ID_WIDTH;
-
+	
 	// registers
 	reg								reg_enable;
 	reg								reg_pending;
@@ -90,44 +93,50 @@ module irc_factor
 		end
 		else begin
 			// enable
-			if ( wb_stb_i & wb_we_i & (wb_adr_i == 0) ) begin
-				reg_enable <= wb_dat_i[0];
+			if ( s_wb_stb_i & s_wb_we_i & (s_wb_adr_i == 0) ) begin
+				reg_enable <= s_wb_dat_i[0];
 			end
 			
 			// pending
 			if ( in_interrupt ) begin
 				reg_pending <= 1'b1;
 			end
-			else if ( wb_stb_i & wb_we_i & (wb_adr_i == 1) ) begin
-				reg_pending <= wb_dat_i[0];
+			else if ( s_wb_stb_i & s_wb_we_i & (s_wb_adr_i == 1) ) begin
+				reg_pending <= s_wb_dat_i[0];
 			end
 			
 			// priority
-			if ( wb_stb_i & wb_we_i & (wb_adr_i == 3) ) begin
-				reg_priority <= wb_dat_i;
+			if ( s_wb_stb_i & s_wb_we_i & (s_wb_adr_i == 3) ) begin
+				reg_priority <= s_wb_dat_i;
 			end
 		end
 	end
 	
 	
-	// wb_dat_o
+	// s_wb_dat_o
 	always @* begin
-		if ( wb_stb_i ) begin
-			case ( wb_adr_i[1:0] )
-			2'b00:		wb_dat_o <= reg_enable;			// enable
-			2'b01:		wb_dat_o <= reg_pending;		// pending
-			2'b10:		wb_dat_o <= in_interrupt;		// status
-			2'b11:		wb_dat_o <= reg_priority;		// priority
-			default:	wb_dat_o <= {WB_DAT_WIDTH{1'b0}};
+		if ( s_wb_stb_i ) begin
+			case ( s_wb_adr_i[1:0] )
+			2'b00:		s_wb_dat_o <= reg_enable;			// enable
+			2'b01:		s_wb_dat_o <= reg_pending;		// pending
+			2'b10:		s_wb_dat_o <= in_interrupt;		// status
+			2'b11:		s_wb_dat_o <= reg_priority;		// priority
+			default:	s_wb_dat_o <= {WB_DAT_WIDTH{1'b0}};
 			endcase
 		end
 		else begin
-			wb_dat_o <= {WB_DAT_WIDTH{1'b0}};
+			s_wb_dat_o <= {WB_DAT_WIDTH{1'b0}};
 		end
 	end
 	
-	assign wb_ack_o = wb_stb_i;
+	assign s_wb_ack_o = s_wb_stb_i;
 	
 endmodule
 
+
+
+`default_nettype wire
+
+
+// end of file
 

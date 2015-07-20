@@ -9,7 +9,7 @@
 
 
 `timescale 1ns / 1ps
-
+`default_nettype none
 
 
 // Jelly bus to WISHBONE bus bridge
@@ -26,23 +26,23 @@ module jelly_jbus_to_wishbone
 			input	wire						clk,
 			
 			// slave port (jelly bus)
-			input	wire						jbus_slave_en,
-			input	wire	[ADDR_WIDTH-1:0]	jbus_slave_addr,
-			input	wire	[DATA_WIDTH-1:0]	jbus_slave_wdata,
-			output	wire	[DATA_WIDTH-1:0]	jbus_slave_rdata,
-			input	wire						jbus_slave_we,
-			input	wire	[SEL_WIDTH-1:0]		jbus_slave_sel,
-			input	wire						jbus_slave_valid,
-			output	wire						jbus_slave_ready,
+			input	wire						s_jbus_en,
+			input	wire	[ADDR_WIDTH-1:0]	s_jbus_addr,
+			input	wire	[DATA_WIDTH-1:0]	s_jbus_wdata,
+			output	wire	[DATA_WIDTH-1:0]	s_jbus_rdata,
+			input	wire						s_jbus_we,
+			input	wire	[SEL_WIDTH-1:0]		s_jbus_sel,
+			input	wire						s_jbus_valid,
+			output	wire						s_jbus_ready,
 			
 			// master port (WISHBONE bus)
-			output	wire	[ADDR_WIDTH-1:0]	wb_master_adr_o,
-			input	wire	[DATA_WIDTH-1:0]	wb_master_dat_i,
-			output	wire	[DATA_WIDTH-1:0]	wb_master_dat_o,
-			output	wire						wb_master_we_o,
-			output	wire	[SEL_WIDTH-1:0]		wb_master_sel_o,
-			output	wire						wb_master_stb_o,
-			input	wire						wb_master_ack_i
+			output	wire	[ADDR_WIDTH-1:0]	m_wb_adr_o,
+			input	wire	[DATA_WIDTH-1:0]	m_wb_dat_i,
+			output	wire	[DATA_WIDTH-1:0]	m_wb_dat_o,
+			output	wire						m_wb_we_o,
+			output	wire	[SEL_WIDTH-1:0]		m_wb_sel_o,
+			output	wire						m_wb_stb_o,
+			input	wire						m_wb_ack_i
 		);
 
 	reg							reg_buf_en;
@@ -55,31 +55,37 @@ module jelly_jbus_to_wishbone
 			reg_buf_rdata <= {DATA_WIDTH{1'bx}};
 		end
 		else begin
-			if ( jbus_slave_en ) begin
-				reg_rdata  <= reg_buf_en ? reg_buf_rdata : wb_master_dat_i;
+			if ( s_jbus_en ) begin
+				reg_rdata  <= reg_buf_en ? reg_buf_rdata : m_wb_dat_i;
 				reg_buf_en <= 1'b0;
 			end
 			else begin
 				// –³Œø’†‚É—ˆ‚½ƒf[ƒ^‚ð•Û‘¶
-				if ( wb_master_stb_o & wb_master_ack_i ) begin
+				if ( m_wb_stb_o & m_wb_ack_i ) begin
 					reg_buf_en <= 1'b1;
 				end
 			end
 			
 			if ( !reg_buf_en ) begin
-				reg_buf_rdata <= wb_master_dat_i;
+				reg_buf_rdata <= m_wb_dat_i;
 			end
 		end
 	end
 	
-	assign wb_master_adr_o  = jbus_slave_addr;
-	assign wb_master_dat_o  = jbus_slave_wdata;
-	assign wb_master_we_o   = jbus_slave_we;
-	assign wb_master_sel_o  = jbus_slave_sel;
-	assign wb_master_stb_o  = jbus_slave_valid & !reg_buf_en;
+	assign m_wb_adr_o   = s_jbus_addr;
+	assign m_wb_dat_o   = s_jbus_wdata;
+	assign m_wb_we_o    = s_jbus_we;
+	assign m_wb_sel_o   = s_jbus_sel;
+	assign m_wb_stb_o   = s_jbus_valid & !reg_buf_en;
 	
-	assign jbus_slave_rdata = reg_rdata;
-	assign jbus_slave_ready = !wb_master_stb_o | wb_master_ack_i;
+	assign s_jbus_rdata = reg_rdata;
+	assign s_jbus_ready = !m_wb_stb_o | m_wb_ack_i;
 	
 endmodule
 
+
+
+`default_nettype wire
+
+
+// end of file

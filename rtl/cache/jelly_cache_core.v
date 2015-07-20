@@ -53,13 +53,13 @@ module jelly_cache_core
 			output	wire							jbus_slave_ready,
 			
 			// master port
-			output	wire	[MASTER_ADR_WIDTH-1:0]	wb_master_adr_o,
-			output	wire	[MASTER_DAT_WIDTH-1:0]	wb_master_dat_o,
-			input	wire	[MASTER_DAT_WIDTH-1:0]	wb_master_dat_i,
-			output	wire							wb_master_we_o,
-			output	wire	[MASTER_SEL_WIDTH-1:0]	wb_master_sel_o,
-			output	wire							wb_master_stb_o,
-			input	wire							wb_master_ack_i,
+			output	wire	[MASTER_ADR_WIDTH-1:0]	m_wb_adr_o,
+			output	wire	[MASTER_DAT_WIDTH-1:0]	m_wb_dat_o,
+			input	wire	[MASTER_DAT_WIDTH-1:0]	m_wb_dat_i,
+			output	wire							m_wb_we_o,
+			output	wire	[MASTER_SEL_WIDTH-1:0]	m_wb_sel_o,
+			output	wire							m_wb_stb_o,
+			input	wire							m_wb_ack_i,
 			
 			// ram port
 			output	wire							ram_en,
@@ -212,7 +212,7 @@ module jelly_cache_core
 			read_end_mask <= read_end;
 		end
 	end
-	assign read_end = !read_end_mask & (wb_master_stb_o & !wb_master_we_o & wb_master_ack_i);
+	assign read_end = !read_end_mask & (m_wb_stb_o & !m_wb_we_o & m_wb_ack_i);
 	
 	// write end monitor
 	reg				write_end;
@@ -225,7 +225,7 @@ module jelly_cache_core
 				write_end <= 1'b0;
 			end
 			else begin
-				if ( wb_master_stb_o & wb_master_we_o & wb_master_ack_i ) begin
+				if ( m_wb_stb_o & m_wb_we_o & m_wb_ack_i ) begin
 					write_end <= 1'b1;
 				end
 			end
@@ -249,7 +249,7 @@ module jelly_cache_core
 			reg_master_stb_o <= 1'b0;
 		end
 		else begin
-			if ( !(wb_master_stb_o & !wb_master_ack_i) ) begin
+			if ( !(m_wb_stb_o & !m_wb_ack_i) ) begin
 				reg_master_stb_o <= (reg_slave_we & !write_end) | (cache_read_miss & !read_end);
 				reg_master_we_o  <= reg_slave_we;
 				reg_master_adr_o <= {reg_slave_tagadr, reg_slave_index};
@@ -257,30 +257,30 @@ module jelly_cache_core
 				reg_master_dat_o <= {LINE_WORDS{reg_slave_wdata}};
 			end
 			else begin
-				if ( wb_master_ack_i ) begin
+				if ( m_wb_ack_i ) begin
 					reg_master_stb_o <= 1'b0;
 				end
 			end
 		end
 	end
 	
-	assign wb_master_adr_o = reg_master_adr_o;
-	assign wb_master_dat_o = reg_master_dat_o;
-	assign wb_master_we_o  = reg_master_we_o;
-	assign wb_master_sel_o = reg_master_sel_o;
-	assign wb_master_stb_o = reg_master_stb_o;
+	assign m_wb_adr_o = reg_master_adr_o;
+	assign m_wb_dat_o = reg_master_dat_o;
+	assign m_wb_we_o  = reg_master_we_o;
+	assign m_wb_sel_o = reg_master_sel_o;
+	assign m_wb_stb_o = reg_master_stb_o;
 	
 	assign ram_en            = read_end | cache_write_hit | (jbus_slave_en & jbus_slave_valid & jbus_slave_ready);
 	assign ram_we            = read_end | cache_write_hit;
 	assign ram_addr          = ram_we ? reg_slave_index : jbus_slave_index;
 	assign ram_write_valid   = 1'b1;
 	assign ram_write_tagadr  = reg_slave_tagadr;
-	assign ram_write_data    = read_end ? wb_master_dat_i : ((write_data_mask & write_data) | (~write_data_mask & ram_read_data));
+	assign ram_write_data    = read_end ? m_wb_dat_i : ((write_data_mask & write_data) | (~write_data_mask & ram_read_data));
 	
 	assign jbus_slave_rdata  = cache_rdata;
-//	assign jbus_slave_ready  = !((wb_master_stb_o & !wb_master_ack_i) | cache_read_miss | cache_write_hit);
+//	assign jbus_slave_ready  = !((m_wb_stb_o & !m_wb_ack_i) | cache_read_miss | cache_write_hit);
 	assign jbus_slave_ready  = !(
-									((wb_master_stb_o & !wb_master_ack_i) &((reg_slave_we & !write_end) | (cache_read_miss & !read_end)))
+									((m_wb_stb_o & !m_wb_ack_i) &((reg_slave_we & !write_end) | (cache_read_miss & !read_end)))
 									| cache_read_miss
 									| cache_write_hit
 								);

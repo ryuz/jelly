@@ -13,11 +13,6 @@
 
 
 
-`define GPIO_ADR_DIRECTION	2'b00
-`define GPIO_ADR_INPUT		2'b01
-`define GPIO_ADR_OUTPUT		2'b10
-
-
 module jelly_gpio
 		#(
 			parameter	WB_ADR_WIDTH   = 2,
@@ -39,16 +34,22 @@ module jelly_gpio
 			output	wire	[PORT_WIDTH-1:0]	port_t,
 			
 			// control port (wishbone)
-			input	wire	[WB_ADR_WIDTH-1:0]	wb_adr_i,
-			output	reg		[WB_DAT_WIDTH-1:0]	wb_dat_o,
-			input	wire	[WB_DAT_WIDTH-1:0]	wb_dat_i,
-			input	wire						wb_we_i,
-			input	wire	[WB_SEL_WIDTH-1:0]	wb_sel_i,
-			input	wire						wb_stb_i,
-			output	wire						wb_ack_o
+			input	wire	[WB_ADR_WIDTH-1:0]	s_wb_adr_i,
+			output	reg		[WB_DAT_WIDTH-1:0]	s_wb_dat_o,
+			input	wire	[WB_DAT_WIDTH-1:0]	s_wb_dat_i,
+			input	wire						s_wb_we_i,
+			input	wire	[WB_SEL_WIDTH-1:0]	s_wb_sel_i,
+			input	wire						s_wb_stb_i,
+			output	wire						s_wb_ack_o
 		);
 	
+	// register address
+	localparam	GPIO_ADR_DIRECTION = 2'b00;
+	localparam	GPIO_ADR_INPUT     = 2'b01;
+	localparam	GPIO_ADR_OUTPUT    = 2'b10;
 	
+	
+	// control
 	reg		[PORT_WIDTH-1:0]	reg_direction;
 	reg		[PORT_WIDTH-1:0]	reg_output;
 	
@@ -59,13 +60,13 @@ module jelly_gpio
 		end
 		else begin
 			// direction
-			if ( wb_stb_i & wb_we_i & (wb_adr_i == `GPIO_ADR_DIRECTION) ) begin
-				reg_direction <= ((reg_direction & DIRECTION_MASK) | (wb_dat_i[PORT_WIDTH-1:0] & ~DIRECTION_MASK));
+			if ( s_wb_stb_i & s_wb_we_i & (s_wb_adr_i == GPIO_ADR_DIRECTION) ) begin
+				reg_direction <= ((reg_direction & DIRECTION_MASK) | (s_wb_dat_i[PORT_WIDTH-1:0] & ~DIRECTION_MASK));
 			end
 			
 			// output
-			if ( wb_stb_i & wb_we_i & (wb_adr_i == `GPIO_ADR_OUTPUT) ) begin
-				reg_output <= wb_dat_i[PORT_WIDTH-1:0];
+			if ( s_wb_stb_i & s_wb_we_i & (s_wb_adr_i == GPIO_ADR_OUTPUT) ) begin
+				reg_output <= s_wb_dat_i[PORT_WIDTH-1:0];
 			end
 		end
 	end
@@ -74,15 +75,15 @@ module jelly_gpio
 	assign port_t = ~reg_direction;
 	
 	always @* begin
-		case ( wb_adr_i )
-		`GPIO_ADR_DIRECTION:	wb_dat_o <= reg_direction;
-		`GPIO_ADR_INPUT:		wb_dat_o <= port_i;
-		`GPIO_ADR_OUTPUT:		wb_dat_o <= reg_output;
-		default:				wb_dat_o <= {WB_DAT_WIDTH{1'b0}};
+		case ( s_wb_adr_i )
+		GPIO_ADR_DIRECTION:	begin	s_wb_dat_o <= reg_direction;			end
+		GPIO_ADR_INPUT:		begin	s_wb_dat_o <= port_i;					end
+		GPIO_ADR_OUTPUT:	begin	s_wb_dat_o <= reg_output;				end
+		default:			begin	s_wb_dat_o <= {WB_DAT_WIDTH{1'b0}};		end
 		endcase
 	end
 	
-	assign wb_ack_o = wb_stb_i;
+	assign s_wb_ack_o = s_wb_stb_i;
 	
 endmodule
 

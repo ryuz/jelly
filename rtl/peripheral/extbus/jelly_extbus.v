@@ -1,14 +1,16 @@
 // ---------------------------------------------------------------------------
-//  Jelly  -- the soft-core processor system
-//    External bus interface
+//  Jelly  -- The FPGA processing system
 //
-//                                  Copyright (C) 2008-2009 by Ryuji Fuchikami
-//                                  http://homepage3.nifty.com/ryuz/
+//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
+//                                 http://homepage3.nifty.com/ryuz/
+//                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
 
 
 `timescale 1ns / 1ps
+`default_nettype none
+
 
 
 module jelly_extbus
@@ -33,13 +35,13 @@ module jelly_extbus
 			inout	wire	[WB_DAT_WIDTH-1:0]	extbus_d,
 			
 			// wishbone
-			input	wire	[WB_ADR_WIDTH-1:0]	wb_adr_i,
-			output	reg		[WB_DAT_WIDTH-1:0]	wb_dat_o,
-			input	wire	[WB_DAT_WIDTH-1:0]	wb_dat_i,
-			input	wire						wb_we_i,
-			input	wire	[WB_SEL_WIDTH-1:0]	wb_sel_i,
-			input	wire						wb_stb_i,
-			output	wire						wb_ack_o
+			input	wire	[WB_ADR_WIDTH-1:0]	s_wb_adr_i,
+			output	reg		[WB_DAT_WIDTH-1:0]	s_wb_dat_o,
+			input	wire	[WB_DAT_WIDTH-1:0]	s_wb_dat_i,
+			input	wire						s_wb_we_i,
+			input	wire	[WB_SEL_WIDTH-1:0]	s_wb_sel_i,
+			input	wire						s_wb_stb_i,
+			output	wire						s_wb_ack_o
 		);
 /*
 	reg							extbus_cs_n;
@@ -50,7 +52,7 @@ module jelly_extbus
 	*/
 	reg		[WB_DAT_WIDTH-1:0]	extbus_wdata;
 	
-//	reg		[WB_DAT_WIDTH-1:0]	wb_dat_o;
+//	reg		[WB_DAT_WIDTH-1:0]	s_wb_dat_o;
 	
 	reg							st_idle;
 	reg		[ACCESS_CYCLE-1:0]	st_access;
@@ -71,14 +73,14 @@ module jelly_extbus
 		end
 		else begin
 			// state
-			if ( wb_stb_i ) begin
+			if ( s_wb_stb_i ) begin
 				st_idle   <= st_end;
 				st_access <= {st_access, st_idle};
 				st_end    <= st_access[ACCESS_CYCLE-1];
 			end
 						
 			// extbus_cs_n
-			if ( st_idle & wb_stb_i ) begin
+			if ( st_idle & s_wb_stb_i ) begin
 				extbus_cs_n <= 1'b0;
 			end
 			else if ( st_access[ACCESS_CYCLE-1] ) begin
@@ -86,7 +88,7 @@ module jelly_extbus
 			end
 			
 			// extbus_we_n
-			if ( st_idle & wb_stb_i & wb_we_i ) begin
+			if ( st_idle & s_wb_stb_i & s_wb_we_i ) begin
 				extbus_we_n <= 1'b0;
 			end
 			else if ( st_access[ACCESS_CYCLE-1] ) begin
@@ -94,7 +96,7 @@ module jelly_extbus
 			end
 			
 			// extbus_oe_n
-			if ( st_idle & wb_stb_i & ~wb_we_i ) begin
+			if ( st_idle & s_wb_stb_i & ~s_wb_we_i ) begin
 				extbus_oe_n <= 1'b0;
 			end
 			else if ( st_access[ACCESS_CYCLE-1] ) begin
@@ -102,22 +104,22 @@ module jelly_extbus
 			end
 			
 			// extbus_bls_n
-			extbus_bls_n <= ~wb_sel_i;
+			extbus_bls_n <= ~s_wb_sel_i;
 			
 			// extbus_a
-			extbus_a <= wb_adr_i;
+			extbus_a <= s_wb_adr_i;
 			
 			// extbus_wdata
-			extbus_wdata <= wb_dat_i;
+			extbus_wdata <= s_wb_dat_i;
 			
-			// wb_dat_o
-			wb_dat_o <= extbus_d;
+			// s_wb_dat_o
+			s_wb_dat_o <= extbus_d;
 		end
 	end
 	
 	assign extbus_d = ~extbus_we_n ? extbus_wdata : {WB_DAT_WIDTH{1'bz}};
 	
-	assign wb_ack_o = st_end;
+	assign s_wb_ack_o = st_end;
 
 	
 	/*
@@ -127,7 +129,7 @@ module jelly_extbus
 			busy  <= 1'b0;
 		end
 		else begin
-			if ( wb_stb_i & ~wb_ack_o ) begin
+			if ( s_wb_stb_i & ~s_wb_ack_o ) begin
 				busy  <= 1'b1;
 			end
 			else begin
@@ -136,16 +138,21 @@ module jelly_extbus
 		end
 	end
 	
-	assign extbus_cs_n  = ~wb_stb_i;
-	assign extbus_we_n  = ~(wb_stb_i &  wb_we_i & ~busy);
-	assign extbus_oe_n  = ~(wb_stb_i & ~wb_we_i);
-	assign extbus_bls_n = ~wb_sel_i;
-	assign extbus_a     = wb_adr_i;
-	assign extbus_d     = ~extbus_we_n ? wb_dat_i : {WB_DAT_WIDTH{1'bz}};
+	assign extbus_cs_n  = ~s_wb_stb_i;
+	assign extbus_we_n  = ~(s_wb_stb_i &  s_wb_we_i & ~busy);
+	assign extbus_oe_n  = ~(s_wb_stb_i & ~s_wb_we_i);
+	assign extbus_bls_n = ~s_wb_sel_i;
+	assign extbus_a     = s_wb_adr_i;
+	assign extbus_d     = ~extbus_we_n ? s_wb_dat_i : {WB_DAT_WIDTH{1'bz}};
 
-	assign wb_dat_o    = extbus_d;
-	assign wb_ack_o    = ~(wb_stb_i & ~busy);
+	assign s_wb_dat_o    = extbus_d;
+	assign s_wb_ack_o    = ~(s_wb_stb_i & ~busy);
 	*/
 	
 endmodule
 
+
+`default_nettype wire
+
+
+// end of file

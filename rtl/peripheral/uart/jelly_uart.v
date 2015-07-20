@@ -42,17 +42,25 @@ module jelly_uart
 			output	wire						irq_tx,
 			
 			// control
-			input	wire	[WB_ADR_WIDTH-1:0]	wb_adr_i,
-			output	wire	[WB_DAT_WIDTH-1:0]	wb_dat_o,
-			input	wire	[WB_DAT_WIDTH-1:0]	wb_dat_i,
-			input	wire						wb_we_i,
-			input	wire	[WB_SEL_WIDTH-1:0]	wb_sel_i,
-			input	wire						wb_stb_i,
-			output	wire						wb_ack_o
+			input	wire	[WB_ADR_WIDTH-1:0]	s_wb_adr_i,
+			output	wire	[WB_DAT_WIDTH-1:0]	s_wb_dat_o,
+			input	wire	[WB_DAT_WIDTH-1:0]	s_wb_dat_i,
+			input	wire						s_wb_we_i,
+			input	wire	[WB_SEL_WIDTH-1:0]	s_wb_sel_i,
+			input	wire						s_wb_stb_i,
+			output	wire						s_wb_ack_o
 		);
 	
+	// FIFO size
 	localparam	TX_FIFO_SIZE = (1 << TX_FIFO_PTR_WIDTH);
 	localparam	RX_FIFO_SIZE = (1 << RX_FIFO_PTR_WIDTH);
+	
+
+	// register address
+	localparam	UART_ADR_TX      = 2'b00;
+	localparam	UART_ADR_RX      = 2'b00;
+	localparam	UART_ADR_STATUS  = 2'b01;
+	localparam	UART_ADR_DIVIDER = 2'b10;
 	
 	
 	// -------------------------
@@ -114,11 +122,11 @@ module jelly_uart
 	// -------------------------
 	
 	// TX
-	assign tx_valid = wb_stb_i & wb_we_i & (wb_adr_i == 0);
-	assign tx_data  = wb_dat_i[7:0];
+	assign tx_valid = s_wb_stb_i & s_wb_we_i & (s_wb_adr_i == UART_ADR_TX);
+	assign tx_data  = s_wb_dat_i[7:0];
 	
 	// RX
-	assign rx_ready = wb_stb_i & !wb_we_i & (wb_adr_i == 0);
+	assign rx_ready = s_wb_stb_i & !s_wb_we_i & (s_wb_adr_i == UART_ADR_RX);
 	
 	
 	always @(posedge clk) begin
@@ -126,18 +134,18 @@ module jelly_uart
 			divider <= DIVIDER_INIT;
 		end
 		else begin
-			if ( wb_stb_i && wb_we_i && (wb_adr_i == 2) ) begin
-				divider <= wb_dat_i[DIVIDER_WIDTH-1:0];
+			if ( s_wb_stb_i && s_wb_we_i && (s_wb_adr_i == 2) ) begin
+				divider <= s_wb_dat_i[DIVIDER_WIDTH-1:0];
 			end
 		end
 	end
-		
-	assign wb_dat_o = (wb_stb_i && (wb_adr_i == 0)) ? rx_data              :
-					  (wb_stb_i && (wb_adr_i == 1)) ? {tx_ready, rx_valid} :
-					  (wb_stb_i && (wb_adr_i == 2)) ? divider              :
-					  32'h00000000;
 	
-	assign wb_ack_o = 1'b1;
+	assign s_wb_dat_o = (s_wb_stb_i && (s_wb_adr_i == UART_ADR_RX))      ? rx_data              :
+						(s_wb_stb_i && (s_wb_adr_i == UART_ADR_STATUS))  ? {tx_ready, rx_valid} :
+						(s_wb_stb_i && (s_wb_adr_i == UART_ADR_DIVIDER)) ? divider              :
+						{WB_DAT_WIDTH{1'b0}};
+	
+	assign s_wb_ack_o = s_wb_stb_i;
 	
 	
 endmodule

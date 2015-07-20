@@ -11,19 +11,6 @@
 `default_nettype none
 
 
-`define I2C_STATUS		3'b000
-`define I2C_CONTROL		3'b001
-`define I2C_SEND		3'b010
-`define I2C_RECV		3'b011
-`define I2C_DIVIDER		3'b100
-
-`define CONTROL_START	0
-`define CONTROL_STOP	1
-`define CONTROL_ACK		2
-`define CONTROL_NAK		3
-`define CONTROL_RECV	4
-
-
 // I2C
 module jelly_i2c
 		#(
@@ -46,16 +33,29 @@ module jelly_i2c
 			input	wire						i2c_sda_i,
 			
 			// WISHBONE
-			input	wire	[WB_ADR_WIDTH-1:0]	wb_adr_i,
-			output	wire	[WB_DAT_WIDTH-1:0]	wb_dat_o,
-			input	wire	[WB_DAT_WIDTH-1:0]	wb_dat_i,
-			input	wire						wb_we_i,
-			input	wire	[WB_SEL_WIDTH-1:0]	wb_sel_i,
-			input	wire						wb_stb_i,
-			output	wire						wb_ack_o,
+			input	wire	[WB_ADR_WIDTH-1:0]	s_wb_adr_i,
+			output	wire	[WB_DAT_WIDTH-1:0]	s_wb_dat_o,
+			input	wire	[WB_DAT_WIDTH-1:0]	s_wb_dat_i,
+			input	wire						s_wb_we_i,
+			input	wire	[WB_SEL_WIDTH-1:0]	s_wb_sel_i,
+			input	wire						s_wb_stb_i,
+			output	wire						s_wb_ack_o,
 			
 			output	wire						irq
 		);
+
+	// register define
+	localparam	I2C_STATUS    = 3'b000;
+	localparam	I2C_CONTROL   = 3'b001;
+	localparam	I2C_SEND      = 3'b010;
+	localparam	I2C_RECV      = 3'b011;
+	localparam	I2C_DIVIDER   = 3'b100;
+
+	localparam	CONTROL_START = 0;
+	localparam	CONTROL_STOP  = 1;
+	localparam	CONTROL_ACK   = 2;
+	localparam	CONTROL_NAK   = 3;
+	localparam	CONTROL_RECV  = 4;
 	
 	
 	// -------------------------
@@ -112,27 +112,27 @@ module jelly_i2c
 			clk_dvider <= DIVIDER_INIT;
 		end
 		else begin
-			if ( (wb_adr_i == `I2C_DIVIDER) & wb_stb_i & wb_we_i ) begin
-				clk_dvider <= wb_dat_i;
+			if ( (s_wb_adr_i == I2C_DIVIDER) & s_wb_stb_i & s_wb_we_i ) begin
+				clk_dvider <= s_wb_dat_i;
 			end
 		end
 	end
 	
-	assign cmd_start = (wb_adr_i == `I2C_CONTROL) & wb_stb_i & wb_we_i & wb_sel_i[0] & wb_dat_i[`CONTROL_START];
-	assign cmd_stop  = (wb_adr_i == `I2C_CONTROL) & wb_stb_i & wb_we_i & wb_sel_i[0] & wb_dat_i[`CONTROL_STOP];
-	assign cmd_ack   = (wb_adr_i == `I2C_CONTROL) & wb_stb_i & wb_we_i & wb_sel_i[0] & wb_dat_i[`CONTROL_ACK]; 
-	assign cmd_nak   = (wb_adr_i == `I2C_CONTROL) & wb_stb_i & wb_we_i & wb_sel_i[0] & wb_dat_i[`CONTROL_NAK];
-	assign cmd_recv  = (wb_adr_i == `I2C_CONTROL) & wb_stb_i & wb_we_i & wb_sel_i[0] & wb_dat_i[`CONTROL_RECV];
-	assign cmd_send  = (wb_adr_i == `I2C_SEND)    & wb_stb_i & wb_we_i & wb_sel_i[0];
-	assign send_data = wb_dat_i[7:0];
+	assign cmd_start   = (s_wb_adr_i == I2C_CONTROL) & s_wb_stb_i & s_wb_we_i & s_wb_sel_i[0] & s_wb_dat_i[CONTROL_START];
+	assign cmd_stop    = (s_wb_adr_i == I2C_CONTROL) & s_wb_stb_i & s_wb_we_i & s_wb_sel_i[0] & s_wb_dat_i[CONTROL_STOP];
+	assign cmd_ack     = (s_wb_adr_i == I2C_CONTROL) & s_wb_stb_i & s_wb_we_i & s_wb_sel_i[0] & s_wb_dat_i[CONTROL_ACK]; 
+	assign cmd_nak     = (s_wb_adr_i == I2C_CONTROL) & s_wb_stb_i & s_wb_we_i & s_wb_sel_i[0] & s_wb_dat_i[CONTROL_NAK];
+	assign cmd_recv    = (s_wb_adr_i == I2C_CONTROL) & s_wb_stb_i & s_wb_we_i & s_wb_sel_i[0] & s_wb_dat_i[CONTROL_RECV];
+	assign cmd_send    = (s_wb_adr_i == I2C_SEND)    & s_wb_stb_i & s_wb_we_i & s_wb_sel_i[0];
+	assign send_data   = s_wb_dat_i[7:0];
 	
-	assign wb_dat_o  = (wb_adr_i == `I2C_STATUS)  ? {i2c_scl_i, i2c_sda_i, i2c_scl_t, i2c_sda_t, ack_status, 2'b00, busy} :
-					   (wb_adr_i == `I2C_RECV)    ? recv_data  :
-					   (wb_adr_i == `I2C_DIVIDER) ? clk_dvider : 0;
+	assign s_wb_dat_o  = (s_wb_adr_i == I2C_STATUS)  ? {i2c_scl_i, i2c_sda_i, i2c_scl_t, i2c_sda_t, ack_status, 2'b00, busy} :
+						 (s_wb_adr_i == I2C_RECV)    ? recv_data  :
+						 (s_wb_adr_i == I2C_DIVIDER) ? clk_dvider : 0;
 	
-	assign wb_ack_o  = wb_stb_i;
+	assign s_wb_ack_o  = s_wb_stb_i;
 	
-	assign irq       = ~busy;
+	assign irq         = ~busy;
 	
 endmodule
 

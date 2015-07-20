@@ -9,7 +9,7 @@
 
 
 `timescale 1ns / 1ps
-
+`default_nettype none
 
 
 // wishbone bridge
@@ -28,22 +28,22 @@ module jelly_wishbone_bridge
 			input	wire						clk,
 			
 			// slave port
-			input	wire	[WB_ADR_WIDTH-1:0]	wb_slave_adr_i,
-			output	wire	[WB_DAT_WIDTH-1:0]	wb_slave_dat_o,
-			input	wire	[WB_DAT_WIDTH-1:0]	wb_slave_dat_i,
-			input	wire						wb_slave_we_i,
-			input	wire	[WB_SEL_WIDTH-1:0]	wb_slave_sel_i,
-			input	wire						wb_slave_stb_i,
-			output	wire						wb_slave_ack_o,
+			input	wire	[WB_ADR_WIDTH-1:0]	s_wb_adr_i,
+			output	wire	[WB_DAT_WIDTH-1:0]	s_wb_dat_o,
+			input	wire	[WB_DAT_WIDTH-1:0]	s_wb_dat_i,
+			input	wire						s_wb_we_i,
+			input	wire	[WB_SEL_WIDTH-1:0]	s_wb_sel_i,
+			input	wire						s_wb_stb_i,
+			output	wire						s_wb_ack_o,
 			
 			// master port
-			output	wire	[WB_ADR_WIDTH-1:0]	wb_master_adr_o,
-			input	wire	[WB_DAT_WIDTH-1:0]	wb_master_dat_i,
-			output	wire	[WB_DAT_WIDTH-1:0]	wb_master_dat_o,
-			output	wire						wb_master_we_o,
-			output	wire	[WB_SEL_WIDTH-1:0]	wb_master_sel_o,
-			output	wire						wb_master_stb_o,
-			input	wire						wb_master_ack_i
+			output	wire	[WB_ADR_WIDTH-1:0]	m_wb_adr_o,
+			input	wire	[WB_DAT_WIDTH-1:0]	m_wb_dat_i,
+			output	wire	[WB_DAT_WIDTH-1:0]	m_wb_dat_o,
+			output	wire						m_wb_we_o,
+			output	wire	[WB_SEL_WIDTH-1:0]	m_wb_sel_o,
+			output	wire						m_wb_stb_o,
+			input	wire						m_wb_ack_i
 		);
 	
 	// temporary
@@ -61,7 +61,7 @@ module jelly_wishbone_bridge
 	if ( SLAVE_FF ) begin
 		// insert FF
 		reg		[WB_DAT_WIDTH-1:0]	reg_slave_dat_o;
-		reg							reg_slave_ack_o;		
+		reg							reg_slave_ack_o;
 		always @ ( posedge clk ) begin
 			if ( reset ) begin
 				reg_slave_dat_o  <= {WB_DAT_WIDTH{1'bx}};
@@ -73,25 +73,25 @@ module jelly_wishbone_bridge
 			end
 		end
 		
-		assign wb_tmp_adr_o    = wb_slave_adr_i;
-		assign wb_tmp_dat_o    = wb_slave_dat_i;
-		assign wb_tmp_we_o     = wb_slave_we_i;
-		assign wb_tmp_sel_o    = wb_slave_sel_i;
-		assign wb_tmp_stb_o    = wb_slave_stb_i & !reg_slave_ack_o;
+		assign wb_tmp_adr_o    = s_wb_adr_i;
+		assign wb_tmp_dat_o    = s_wb_dat_i;
+		assign wb_tmp_we_o     = s_wb_we_i;
+		assign wb_tmp_sel_o    = s_wb_sel_i;
+		assign wb_tmp_stb_o    = s_wb_stb_i & !reg_slave_ack_o;
 		
-		assign wb_slave_dat_o  = reg_slave_dat_o;
-		assign wb_slave_ack_o  = reg_slave_ack_o;		
+		assign s_wb_dat_o  = reg_slave_dat_o;
+		assign s_wb_ack_o  = reg_slave_ack_o;		
 	end
 	else begin
 		// through
-		assign wb_tmp_adr_o    = wb_slave_adr_i;
-		assign wb_tmp_dat_o    = wb_slave_dat_i;
-		assign wb_tmp_we_o     = wb_slave_we_i;
-		assign wb_tmp_sel_o    = wb_slave_sel_i;
-		assign wb_tmp_stb_o    = wb_slave_stb_i;
+		assign wb_tmp_adr_o    = s_wb_adr_i;
+		assign wb_tmp_dat_o    = s_wb_dat_i;
+		assign wb_tmp_we_o     = s_wb_we_i;
+		assign wb_tmp_sel_o    = s_wb_sel_i;
+		assign wb_tmp_stb_o    = s_wb_stb_i;
 		
-		assign wb_slave_dat_o  = wb_tmp_dat_i;
-		assign wb_slave_ack_o  = wb_tmp_ack_i;
+		assign s_wb_dat_o  = wb_tmp_dat_i;
+		assign s_wb_ack_o  = wb_tmp_ack_i;
 	end
 	endgenerate
 	
@@ -122,38 +122,38 @@ module jelly_wishbone_bridge
 			end
 		end
 		
-		assign wb_master_adr_o = reg_master_adr_o;
-		assign wb_master_dat_o = reg_master_dat_o;
-		assign wb_master_we_o  = reg_master_we_o;
-		assign wb_master_sel_o = reg_master_sel_o;
-		assign wb_master_stb_o = reg_master_stb_o;
+		assign m_wb_adr_o = reg_master_adr_o;
+		assign m_wb_dat_o = reg_master_dat_o;
+		assign m_wb_we_o  = reg_master_we_o;
+		assign m_wb_sel_o = reg_master_sel_o;
+		assign m_wb_stb_o = reg_master_stb_o;
 		
-		assign wb_tmp_dat_i    = wb_master_dat_i;
-		assign wb_tmp_ack_i    = wb_master_ack_i;		
+		assign wb_tmp_dat_i    = m_wb_dat_i;
+		assign wb_tmp_ack_i    = m_wb_ack_i;		
 	end
 	else begin
 		// through
-		assign wb_master_adr_o = wb_tmp_adr_o;
-		assign wb_master_dat_o = wb_tmp_dat_o;
-		assign wb_master_we_o  = wb_tmp_we_o;
-		assign wb_master_sel_o = wb_tmp_sel_o;
-		assign wb_master_stb_o = wb_tmp_stb_o;
+		assign m_wb_adr_o = wb_tmp_adr_o;
+		assign m_wb_dat_o = wb_tmp_dat_o;
+		assign m_wb_we_o  = wb_tmp_we_o;
+		assign m_wb_sel_o = wb_tmp_sel_o;
+		assign m_wb_stb_o = wb_tmp_stb_o;
 		              
-		assign wb_tmp_dat_i    = wb_master_dat_i;
-		assign wb_tmp_ack_i    = wb_master_ack_i;
+		assign wb_tmp_dat_i    = m_wb_dat_i;
+		assign wb_tmp_ack_i    = m_wb_ack_i;
 	end
 	endgenerate
 	
 	/*
 	generate
 	if ( THROUGH ) begin
-		assign wb_master_adr_o = wb_slave_adr_i;
-		assign wb_slave_dat_o  = wb_master_dat_i;
-		assign wb_master_dat_o = wb_slave_dat_i;
-		assign wb_master_we_o  = wb_slave_we_i;
-		assign wb_master_sel_o = wb_slave_sel_i;
-		assign wb_master_stb_o = wb_slave_stb_i;
-		assign wb_slave_ack_o  = wb_master_ack_i;
+		assign m_wb_adr_o = s_wb_adr_i;
+		assign s_wb_dat_o  = m_wb_dat_i;
+		assign m_wb_dat_o = s_wb_dat_i;
+		assign m_wb_we_o  = s_wb_we_i;
+		assign m_wb_sel_o = s_wb_sel_i;
+		assign m_wb_stb_o = s_wb_stb_i;
+		assign s_wb_ack_o  = m_wb_ack_i;
 	end
 	else begin
 		reg		[WB_DAT_WIDTH-1:0]	reg_slave_dat_o;
@@ -179,32 +179,36 @@ module jelly_wishbone_bridge
 				reg_master_read  <= 1'b0;
 			end
 			else begin
-				if ( !wb_master_stb_o | wb_master_ack_i ) begin
-					reg_master_adr_o <= wb_slave_adr_i;
-					reg_master_dat_o <= wb_slave_dat_i;
-					reg_master_we_o  <= wb_slave_we_i;
-					reg_master_sel_o <= wb_slave_sel_i;
-					reg_master_stb_o <= wb_slave_stb_i & !reg_slave_ack_o;
+				if ( !m_wb_stb_o | m_wb_ack_i ) begin
+					reg_master_adr_o <= s_wb_adr_i;
+					reg_master_dat_o <= s_wb_dat_i;
+					reg_master_we_o  <= s_wb_we_i;
+					reg_master_sel_o <= s_wb_sel_i;
+					reg_master_stb_o <= s_wb_stb_i & !reg_slave_ack_o;
 				end
 				
-				reg_slave_data_o <= wb_master_dat_i;
-				reg_slave_ack_o  <= wb_master_ack_i;
+				reg_slave_data_o <= m_wb_dat_i;
+				reg_slave_ack_o  <= m_wb_ack_i;
 			end
 		end
 		
-		assign wb_slave_dat_o  = reg_slave_dat_o;
-		assign wb_slave_ack_o  = reg_slave_ack_o;
+		assign s_wb_dat_o  = reg_slave_dat_o;
+		assign s_wb_ack_o  = reg_slave_ack_o;
 		
-		assign wb_master_adr_o = reg_master_adr_o;
-		assign wb_master_dat_o = reg_master_dat_o;
-		assign wb_master_we_o  = reg_master_we_o;
-		assign wb_master_sel_o = reg_master_sel_o;
-		assign wb_master_stb_o = reg_master_stb_o;		
+		assign m_wb_adr_o = reg_master_adr_o;
+		assign m_wb_dat_o = reg_master_dat_o;
+		assign m_wb_we_o  = reg_master_we_o;
+		assign m_wb_sel_o = reg_master_sel_o;
+		assign m_wb_stb_o = reg_master_stb_o;
 	end
 	endgenerate
 	*/
 	
 endmodule
+
+
+
+`default_nettype wire
 
 
 // end of file
