@@ -1,15 +1,16 @@
 // ---------------------------------------------------------------------------
-//  Jelly  -- the soft-core processor system
-//   First-Word Fall-Through mode FIFO
+//  Jelly  -- the system on fpga system
 //
 //                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
 //                                 http://homepage3.nifty.com/ryuz/
+//                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
 
 
 `timescale 1ns / 1ps
 `default_nettype none
+
 
 
 // FIFO (First-Word Fall-Through mode)

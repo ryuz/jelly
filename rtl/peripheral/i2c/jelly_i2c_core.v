@@ -1,17 +1,19 @@
 // ---------------------------------------------------------------------------
-//  Jelly  -- the soft-core processor system
-//    I2C
+//  Jelly  -- the system on fpga system
 //
-//                                  Copyright (C) 2008-2010 by Ryuji Fuchikami
-//                                      http://homepage3.nifty.com/ryuz
+//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
+//                                 http://homepage3.nifty.com/ryuz/
+//                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
+
 
 
 `timescale       1ns / 1ps
 `default_nettype none
 
 
-// uart
+
+// I2C
 module jelly_i2c_core
 		#(
 			parameter							DIVIDER_WIDTH = 16

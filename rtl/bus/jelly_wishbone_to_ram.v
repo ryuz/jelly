@@ -1,9 +1,9 @@
 // ---------------------------------------------------------------------------
-//  Jelly  -- the soft-core processor system
-//    block sram interface
+//  Jelly  -- The FPGA processing system
 //
-//                                      Copyright (C) 2008 by Ryuji Fuchikami
-//                                      http://homepage3.nifty.com/ryuz/
+//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
+//                                 http://homepage3.nifty.com/ryuz/
+//                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
 

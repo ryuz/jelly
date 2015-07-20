@@ -1,9 +1,9 @@
 // ---------------------------------------------------------------------------
-//  Jelly  -- the soft-core processor system
-//   crossbar
+//  Jelly  -- The FPGA processing system
 //
-//                                 Copyright (C) 2009 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
 //                                 http://homepage3.nifty.com/ryuz/
+//                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
 
@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-// selecter
+// crossbar
 module jelly_crossbar
 		#(
 			parameter	DATA_WIDTH      = 32,

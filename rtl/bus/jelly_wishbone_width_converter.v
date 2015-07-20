@@ -1,13 +1,15 @@
 // ---------------------------------------------------------------------------
-//  Jelly  -- the soft-core processor system
+//  Jelly  -- The FPGA processing system
 //
-//                                  Copyright (C) 2008-2009 by Ryuji Fuchikami
-//                                  http://homepage3.nifty.com/ryuz/
+//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
+//                                 http://homepage3.nifty.com/ryuz/
+//                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
 
 
 `timescale 1ns / 1ps
+
 
 
 module jelly_wishbone_width_converter

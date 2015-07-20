@@ -1,9 +1,9 @@
 // ---------------------------------------------------------------------------
-//  Jelly  -- the soft-core processor system
-//    64bit time counter
+//  Jelly  -- the system on fpga system
 //
-//                                      Copyright (C) 2010 by Ryuji Fuchikami
-//                                      http://homepage3.nifty.com/ryuz
+//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
+//                                 http://homepage3.nifty.com/ryuz/
+//                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
 
@@ -19,6 +19,7 @@
 `define CLOCK_COUNTER_ADR_COUNTER_L		3'b111
 
 
+//    64bit time counter
 module jelly_clock_counter
 		#(
 			parameter							WB_ADR_WIDTH  = 3,

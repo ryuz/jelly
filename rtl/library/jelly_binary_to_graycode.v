@@ -1,16 +1,18 @@
 // ---------------------------------------------------------------------------
-//  Jelly  -- the soft-core processor system
-//   Binary to Graycode
+//  Jelly  -- The FPGA processing system
 //
-//                                 Copyright (C) 2007-2008 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
 //                                 http://homepage3.nifty.com/ryuz/
+//                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
+
 
 
 `timescale 1ns / 1ps
 
 
-//   Binary to Graycode
+
+// Binary to Graycode
 module jelly_binary_to_graycode
 		#(
 			parameter						WIDTH = 4

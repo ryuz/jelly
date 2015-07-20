@@ -8,7 +8,7 @@
 
 
 `timescale 1ns / 1ps
-
+`default_nettype none
 
 
 // register
@@ -86,5 +86,7 @@ module jelly_register_wishbone
 endmodule
 
 
+`default_nettype wire
 
-// End of file
+
+// end of file

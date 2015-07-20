@@ -1,14 +1,14 @@
 // ---------------------------------------------------------------------------
-//  Jelly  -- the soft-core processor system
-//   Graycode to Binary 
+//  Jelly  -- the system on fpga system
 //
-//                                 Copyright (C) 2007-2008 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
 //                                 http://homepage3.nifty.com/ryuz/
+//                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
 
 `timescale 1ns / 1ps
-
+`default_nettype none
 
 
 //   Graycode to Binary 
@@ -29,8 +29,10 @@ module jelly_graycode_to_binary
 		end
 	end
 	
-	
 endmodule
 
 
-// End of file
+`default_nettype wire
+
+
+// end of file

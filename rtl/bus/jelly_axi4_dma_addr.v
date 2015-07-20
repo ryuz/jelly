@@ -1,16 +1,19 @@
 // ---------------------------------------------------------------------------
-//  AXI4に対するアドレスコマンド生成
-//      4k境界などの制約を計算しつつDMA用のアドレスコマンドを生成
+//  Jelly  -- The FPGA processing system
 //
-//                                      Copyright (C) 2015 by Ryuji Fuchikami
-//                                      http://homepage3.nifty.com/ryuz
+//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
+//                                 http://homepage3.nifty.com/ryuz/
+//                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
+
 
 
 `timescale 1ns / 1ps
 `default_nettype none
 
 
+
+//  AXI4に対するアドレスコマンド生成
 module jelly_axi4_dma_addr
 		#(
 			parameter	AXI4_ID_WIDTH    = 6,

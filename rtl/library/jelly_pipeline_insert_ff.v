@@ -1,9 +1,9 @@
 // ---------------------------------------------------------------------------
-//  Jelly  -- the soft-core processor system
-//   First-Word Fall-Through mode FIFO
+//  Jelly  -- the system on fpga system
 //
 //                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
 //                                 http://homepage3.nifty.com/ryuz/
+//                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
 
@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-// pipeline control
+// pipeline insert FF
 module jelly_pipeline_insert_ff
 		#(
 			parameter	DATA_WIDTH  = 8,

@@ -1,13 +1,15 @@
 // ---------------------------------------------------------------------------
-//  Jelly  -- the soft-core processor system
-//   Dualport-RAM
+//  Jelly  -- the system on fpga system
 //
-//                                 Copyright (C) 2007-2008 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
 //                                 http://homepage3.nifty.com/ryuz/
+//                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
 
+
 `timescale 1ns / 1ps
+`default_nettype none
 
 
 // Dualport-RAM
@@ -172,6 +174,9 @@ module jelly_ram_dualport
 `endif
 	
 endmodule
+
+
+`default_nettype wire
 
 
 // End of file

@@ -1,9 +1,9 @@
 // ---------------------------------------------------------------------------
-//  Jelly  -- the soft-core processor system
-//    Timer
+//  Jelly  -- the system on fpga system
 //
-//                                      Copyright (C) 2008 by Ryuji Fuchikami
-//                                      http://homepage3.nifty.com/ryuz
+//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
+//                                 http://homepage3.nifty.com/ryuz/
+//                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
 
@@ -17,6 +17,7 @@
 `define INTERVAL_TIMER_ADR_COUNTER	2'b11
 
 
+//    Timer
 module jelly_interval_timer
 		#(
 			parameter							WB_ADR_WIDTH  = 2,
