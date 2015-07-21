@@ -163,7 +163,7 @@ module jelly_axi4_dma_reader
 	// AXI4Stream
 	jelly_pipeline_insert_ff
 			#(
-				.DATA_WIDTH			(AXI4S_DATA_WIDTH),
+				.DATA_WIDTH			(AXI4S_DATA_WIDTH+1),
 				.SLAVE_REGS			(AXI4S_REGS),
 				.MASTER_REGS		(AXI4S_REGS)
 			)
