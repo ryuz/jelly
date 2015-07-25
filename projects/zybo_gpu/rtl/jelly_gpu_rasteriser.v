@@ -69,6 +69,8 @@ module jelly_gpu_rasteriser
 			output	wire	[Y_WIDTH-1:0]						m_y,
 			output	wire	[FIXED_NUM*FIXED_DATA_WIDTH-1:0]	m_fixed_data,
 			output	wire	[FLOAT_NUM*FLOAT_DATA_WIDTH-1:0]	m_float_data,
+			output	wire										m_initial,
+			output	wire										m_newline,
 			output	wire										m_valid,
 			input	wire										m_ready
 		);
@@ -80,10 +82,12 @@ module jelly_gpu_rasteriser
 	// -------------------------------------
 	//  パイプライン制御
 	// -------------------------------------
-
-	wire	[11:0]								stage_cke;
-	wire	[11:0]								stage_valid;
-	wire	[11:0]								next_valid;
+	
+	localparam	PIPELINE_STAGES = 12;
+	
+	wire	[PIPELINE_STAGES-1:0]				stage_cke;
+	wire	[PIPELINE_STAGES-1:0]				stage_valid;
+	wire	[PIPELINE_STAGES-1:0]				next_valid;
 
 
 	wire	[X_WIDTH-1:0]						src_param_x_init;
@@ -109,12 +113,14 @@ module jelly_gpu_rasteriser
 	wire	[Y_WIDTH-1:0]						sink_y;
 	wire	[FIXED_NUM*FIXED_DATA_WIDTH-1:0]	sink_fixed_data;
 	wire	[FLOAT_NUM*FLOAT_DATA_WIDTH-1:0]	sink_float_data;
+	wire										sink_initial;
+	wire										sink_newline;
 	
 	jelly_pipeline_control
 			#(
-				.PIPELINE_STAGES	(12),
-				.S_DATA_WIDTH		(X_WIDTH + Y_WIDTH + (EVAL_NUM*EVAL_DATA_WIDTH*3) + (FIXED_NUM*FIXED_DATA_WIDTH*3) + (FLOAT_NUM*FLOAT_DATA_WIDTH*3)),
-				.M_DATA_WIDTH		(X_WIDTH + Y_WIDTH + (FIXED_NUM*FIXED_DATA_WIDTH) + (FLOAT_NUM*FLOAT_DATA_WIDTH)),
+				.PIPELINE_STAGES	(PIPELINE_STAGES),
+				.S_DATA_WIDTH		(X_WIDTH + Y_WIDTH + (EVAL_NUM*EVAL_DATA_WIDTH*3) + (FIXED_NUM*FIXED_DATA_WIDTH*3) + (FLOAT_NUM*FLOAT_DATA_WIDTH*3) + 2),
+				.M_DATA_WIDTH		(X_WIDTH + Y_WIDTH + (FIXED_NUM*FIXED_DATA_WIDTH) + (FLOAT_NUM*FLOAT_DATA_WIDTH) + 2),
 				.AUTO_VALID			(0),
 				.INIT_DATA			(1),
 				.MASTER_REGS		(MASTER_REGS)
@@ -147,7 +153,9 @@ module jelly_gpu_rasteriser
 										m_x,
 										m_y,
 										m_fixed_data,
-										m_float_data
+										m_float_data,
+										m_initial,
+										m_newline
 									}),
 				.m_valid			(m_valid),
 				.m_ready			(m_ready),
@@ -176,27 +184,32 @@ module jelly_gpu_rasteriser
 										sink_x,
 										sink_y,
 										sink_fixed_data,
-										sink_float_data
+										sink_float_data,
+										sink_initial,
+										sink_newline
 									}),
 									
 				.buffered			()
 			);
 	
 	// 制御信号
-	reg		[10:0]	stage_initial;
-	reg		[10:0]	stage_newline;
+	reg		[PIPELINE_STAGES-1:0]	stage_initial;
+	reg		[PIPELINE_STAGES-1:0]	stage_newline;
 	always @(posedge clk) begin
 		if ( stage_cke[0] ) begin
 			stage_initial[0] <= src_initial & src_valid;
 			stage_newline[0] <= src_newline & src_valid;
 		end
-		for ( j = 1; j < 11; j = j+1 ) begin
+		for ( j = 1; j < PIPELINE_STAGES; j = j+1 ) begin
 			if ( stage_cke[j] ) begin
 				stage_initial[j] <= stage_initial[j-1];
 				stage_newline[j] <= stage_newline[j-1];
 			end
 		end
 	end
+	
+	assign sink_initial = stage_initial[PIPELINE_STAGES-1];
+	assign sink_newline = stage_newline[PIPELINE_STAGES-1];
 	
 	
 	
@@ -251,8 +264,8 @@ module jelly_gpu_rasteriser
 					
 					.s_param_init	(st0_eval_data       [i*EVAL_DATA_WIDTH +: EVAL_DATA_WIDTH]),
 					.s_param_step	(st0_param_eval_xstep[i*EVAL_DATA_WIDTH +: EVAL_DATA_WIDTH]),
-					.s_initial		(stage_newline[1]),
-					.s_increment	(stage_valid[1]),
+					.s_initial		(stage_newline[0]),
+					.s_increment	(stage_valid[0]),
 					
 					.m_data			(st1_eval_data       [i*EVAL_DATA_WIDTH +: EVAL_DATA_WIDTH])
 				);			
@@ -320,7 +333,7 @@ module jelly_gpu_rasteriser
 					.cke			(stage_cke[0]),
 					
 					.s_param_init	(src_param_fixed_init [i*FIXED_DATA_WIDTH +: FIXED_DATA_WIDTH]),
-					.s_param_step	(src_param_fixed_ystep[i*FIXED_DATA_WIDTH +: FIXED_DATA_WIDTH]),					
+					.s_param_step	(src_param_fixed_ystep[i*FIXED_DATA_WIDTH +: FIXED_DATA_WIDTH]),
 					.s_initial		(src_valid & src_initial),
 					.s_increment	(src_valid & src_newline),
 					
@@ -432,7 +445,71 @@ module jelly_gpu_rasteriser
 	
 	// 出力
 	assign sink_float_data = st11_float_data;
+
+
+	// -------------------------------------
+	//  X-Y座標生成
+	// -------------------------------------
 	
+	reg		[X_WIDTH-1:0]	st0_x;
+	reg		[Y_WIDTH-1:0]	st0_y;
+	always @(posedge clk) begin
+		if ( stage_cke[0] ) begin
+			if ( src_valid[0] ) begin
+				if ( src_initial ) begin
+					st0_x <= src_param_x_init;
+					st0_y <= src_param_y_init;
+				end
+				else if ( src_newline ) begin
+					st0_x <= src_param_x_init;
+					st0_y <= st0_y + 1'b1;
+				end
+				else begin
+					st0_x <= st0_x + 1'b1;
+				end
+			end
+		end
+	end
+	
+	reg		[X_WIDTH-1:0]	st1_x;
+	reg		[Y_WIDTH-1:0]	st1_y;
+	reg		[X_WIDTH-1:0]	st2_x;
+	reg		[Y_WIDTH-1:0]	st2_y;
+	reg		[X_WIDTH-1:0]	st3_x;
+	reg		[Y_WIDTH-1:0]	st3_y;
+	reg		[X_WIDTH-1:0]	st4_x;
+	reg		[Y_WIDTH-1:0]	st4_y;
+	reg		[X_WIDTH-1:0]	st5_x;
+	reg		[Y_WIDTH-1:0]	st5_y;
+	reg		[X_WIDTH-1:0]	st6_x;
+	reg		[Y_WIDTH-1:0]	st6_y;
+	reg		[X_WIDTH-1:0]	st7_x;
+	reg		[Y_WIDTH-1:0]	st7_y;
+	reg		[X_WIDTH-1:0]	st8_x;
+	reg		[Y_WIDTH-1:0]	st8_y;
+	reg		[X_WIDTH-1:0]	st9_x;
+	reg		[Y_WIDTH-1:0]	st9_y;
+	reg		[X_WIDTH-1:0]	st10_x;
+	reg		[Y_WIDTH-1:0]	st10_y;
+	reg		[X_WIDTH-1:0]	st11_x;
+	reg		[Y_WIDTH-1:0]	st11_y;
+	always @(posedge clk) begin
+		if ( stage_cke[1] )  begin st1_x  <= st0_x;  st1_y  <= st0_y; end
+		if ( stage_cke[2] )  begin st2_x  <= st1_x;  st2_y  <= st1_y; end
+		if ( stage_cke[3] )  begin st3_x  <= st2_x;  st3_y  <= st2_y; end
+		if ( stage_cke[4] )  begin st4_x  <= st3_x;  st4_y  <= st3_y; end
+		if ( stage_cke[5] )  begin st5_x  <= st4_x;  st5_y  <= st4_y; end
+		if ( stage_cke[6] )  begin st6_x  <= st5_x;  st6_y  <= st5_y; end
+		if ( stage_cke[7] )  begin st7_x  <= st6_x;  st7_y  <= st6_y; end
+		if ( stage_cke[8] )  begin st8_x  <= st7_x;  st8_y  <= st7_y; end
+		if ( stage_cke[9] )  begin st9_x  <= st8_x;  st9_y  <= st8_y; end
+		if ( stage_cke[10] ) begin st10_x <= st9_x;  st10_y <= st9_y; end
+		if ( stage_cke[11] ) begin st11_x <= st10_x; st11_y <= st10_y; end
+	end
+		
+	// 出力
+	assign sink_x = st11_x;
+	assign sink_y = st11_y;
 	
 	
 	// --------------------------------------

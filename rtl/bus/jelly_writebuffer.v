@@ -212,20 +212,24 @@ module jelly_writebuffer
 				);
 	end
 	endgenerate
+
+	wire	forward_ack;
+	generate
+	if ( BUFFER_NUM == 1 ) begin
+		assign forward_ack = 1'b0;
+	end
+	else begin
+		assign forward_ack = |forward_ready[BUFFER_NUM-1:1];
+	end
+	endgenerate
 	
 	assign buf_addr [0 +:   ADDR_WIDTH] = s_wide_addr;
 	assign buf_data [0 +: M_DATA_WIDTH] = s_wide_data;
 	assign buf_strb [0 +: M_STRB_WIDTH] = s_wide_strb;
-	assign buf_valid[0 +:            1] = s_wide_valid;
+	assign buf_valid[0 +:            1] = s_wide_valid && !forward_ack;
 	
-	generate
-	if ( BUFFER_NUM == 1 ) begin
-		assign s_wide_ready = buf_ready[0];
-	end
-	else begin
-		assign s_wide_ready = buf_ready[0] || |forward_ready[BUFFER_NUM-1:1];
-	end
-	endgenerate
+	assign s_wide_ready = buf_ready[0] || forward_ack;
+	
 	
 	assign m_ff_addr  = buf_addr [BUFFER_NUM*  ADDR_WIDTH +:   ADDR_WIDTH];
 	assign m_ff_data  = buf_data [BUFFER_NUM*M_DATA_WIDTH +: M_DATA_WIDTH];
