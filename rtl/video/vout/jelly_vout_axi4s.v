@@ -86,6 +86,11 @@ module jelly_vout_axi4s
 				reg_tuser <= s_axi4s_tuser;
 			end
 			
+			if ( !in_de ) begin
+				reg_data  <= {WIDTH{1'b0}};
+			end
+			
+			
 			// fs
 			if ( reg_vsync != in_vsync ) begin
 				reg_flag_fe <= 1'b1;

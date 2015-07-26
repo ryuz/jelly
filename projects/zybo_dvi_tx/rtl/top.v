@@ -16,6 +16,12 @@ module top
 			output	wire	[2:0]	hdmi_data_p,
 			output	wire	[2:0]	hdmi_data_n,
 			
+			output	wire			vga_hsync,
+			output	wire			vga_vsync,
+			output	wire	[4:0]	vga_r,
+			output	wire	[5:0]	vga_g,
+			output	wire	[4:0]	vga_b,
+			
 			output	wire	[3:0]	led,
 			output	wire	[7:0]	pmod_a,
 			
@@ -599,12 +605,35 @@ module top
 				.out_ctl			(vout_ctl)
 			);
 	
+	// ----------------------------------------
+	//  VGA-TX
+	// ----------------------------------------
+	
+	(* IOB = "true" *)	reg				reg_vga_hsync;
+	(* IOB = "true" *)	reg				reg_vga_vsync;
+	(* IOB = "true" *)	reg		[4:0]	reg_vga_r;
+	(* IOB = "true" *)	reg		[5:0]	reg_vga_g;
+	(* IOB = "true" *)	reg		[4:0]	reg_vga_b;
+	
+	always @(posedge video_clk) begin
+		reg_vga_hsync <= vout_hsync;
+		reg_vga_vsync <= vout_vsync;
+		reg_vga_r     <= vout_data[23:19];
+		reg_vga_g     <= vout_data[15:10];
+		reg_vga_b     <= vout_data[7:3];
+	end
+	
+	assign vga_hsync = reg_vga_hsync;
+	assign vga_vsync = reg_vga_vsync;
+	assign vga_r     = reg_vga_r;
+	assign vga_g     = reg_vga_g;
+	assign vga_b     = reg_vga_b;
+	
+	
 	
 	// ----------------------------------------
 	//  HDMI-TX
 	// ----------------------------------------
-	
-	
 	
 	assign hdmi_out_en = 1'b1;
 	

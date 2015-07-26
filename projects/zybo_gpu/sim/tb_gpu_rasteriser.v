@@ -82,7 +82,7 @@ module tb_gpu_rasteriser();
 			valid <= 0;
 		end
 		else if (!valid || ready ) begin
-			valid <= 1'b1;//{$random};
+			valid <= {$random};
 			if ( valid ) begin
 				x <= x+1;
 				if ( x == X_NUM-1 ) begin
@@ -95,7 +95,7 @@ module tb_gpu_rasteriser();
 			end
 		end
 		
-		m_ready <= 1'b1;//{$random};
+		m_ready <= {$random};
 	end
 	
 	
@@ -170,7 +170,7 @@ module tb_gpu_rasteriser();
 			mem_b[i] = 0;
 		end
 
-	#500000
+	#800000
 		fp_img = $fopen("out.ppm", "w");
 		$fdisplay(fp_img, "P3");
 		$fdisplay(fp_img, "640 480");

@@ -455,7 +455,7 @@ module jelly_gpu_rasteriser
 	reg		[Y_WIDTH-1:0]	st0_y;
 	always @(posedge clk) begin
 		if ( stage_cke[0] ) begin
-			if ( src_valid[0] ) begin
+			if ( src_valid ) begin
 				if ( src_initial ) begin
 					st0_x <= src_param_x_init;
 					st0_y <= src_param_y_init;
@@ -494,16 +494,16 @@ module jelly_gpu_rasteriser
 	reg		[X_WIDTH-1:0]	st11_x;
 	reg		[Y_WIDTH-1:0]	st11_y;
 	always @(posedge clk) begin
-		if ( stage_cke[1] )  begin st1_x  <= st0_x;  st1_y  <= st0_y; end
-		if ( stage_cke[2] )  begin st2_x  <= st1_x;  st2_y  <= st1_y; end
-		if ( stage_cke[3] )  begin st3_x  <= st2_x;  st3_y  <= st2_y; end
-		if ( stage_cke[4] )  begin st4_x  <= st3_x;  st4_y  <= st3_y; end
-		if ( stage_cke[5] )  begin st5_x  <= st4_x;  st5_y  <= st4_y; end
-		if ( stage_cke[6] )  begin st6_x  <= st5_x;  st6_y  <= st5_y; end
-		if ( stage_cke[7] )  begin st7_x  <= st6_x;  st7_y  <= st6_y; end
-		if ( stage_cke[8] )  begin st8_x  <= st7_x;  st8_y  <= st7_y; end
-		if ( stage_cke[9] )  begin st9_x  <= st8_x;  st9_y  <= st8_y; end
-		if ( stage_cke[10] ) begin st10_x <= st9_x;  st10_y <= st9_y; end
+		if ( stage_cke[1] )  begin st1_x  <= st0_x;  st1_y  <= st0_y;  end
+		if ( stage_cke[2] )  begin st2_x  <= st1_x;  st2_y  <= st1_y;  end
+		if ( stage_cke[3] )  begin st3_x  <= st2_x;  st3_y  <= st2_y;  end
+		if ( stage_cke[4] )  begin st4_x  <= st3_x;  st4_y  <= st3_y;  end
+		if ( stage_cke[5] )  begin st5_x  <= st4_x;  st5_y  <= st4_y;  end
+		if ( stage_cke[6] )  begin st6_x  <= st5_x;  st6_y  <= st5_y;  end
+		if ( stage_cke[7] )  begin st7_x  <= st6_x;  st7_y  <= st6_y;  end
+		if ( stage_cke[8] )  begin st8_x  <= st7_x;  st8_y  <= st7_y;  end
+		if ( stage_cke[9] )  begin st9_x  <= st8_x;  st9_y  <= st8_y;  end
+		if ( stage_cke[10] ) begin st10_x <= st9_x;  st10_y <= st9_y;  end
 		if ( stage_cke[11] ) begin st11_x <= st10_x; st11_y <= st10_y; end
 	end
 		

@@ -6,6 +6,8 @@
 # set_property PACKAGE_PIN R18 [get_ports in_reset]
 # set_property IOSTANDARD LVCMOS33 [get_ports in_reset]
 
+
+# HDMI
 set_property PACKAGE_PIN F17 [get_ports hdmi_out_en]
 set_property IOSTANDARD LVCMOS33 [get_ports hdmi_out_en]
 
@@ -13,15 +15,59 @@ set_property PACKAGE_PIN H16 [get_ports hdmi_clk_p]
 set_property PACKAGE_PIN D19 [get_ports {hdmi_data_p[0]}]
 set_property PACKAGE_PIN C20 [get_ports {hdmi_data_p[1]}]
 set_property PACKAGE_PIN B19 [get_ports {hdmi_data_p[2]}]
+set_property IOSTANDARD TMDS_33 [get_ports hdmi_clk_p]
+set_property IOSTANDARD TMDS_33 [get_ports {hdmi_data_p[0]}]
+set_property IOSTANDARD TMDS_33 [get_ports {hdmi_data_p[1]}]
+set_property IOSTANDARD TMDS_33 [get_ports {hdmi_data_p[2]}]
 
-set_property IOSTANDARD LVCMOS33 [get_ports {led[3]}]
-set_property IOSTANDARD LVCMOS33 [get_ports {led[2]}]
-set_property IOSTANDARD LVCMOS33 [get_ports {led[1]}]
-set_property IOSTANDARD LVCMOS33 [get_ports {led[0]}]
+
+# VGA
+set_property PACKAGE_PIN R19 [get_ports vga_vsync]
+set_property PACKAGE_PIN P19 [get_ports vga_hsync]
+set_property PACKAGE_PIN M19 [get_ports {vga_r[0]}]
+set_property PACKAGE_PIN L20 [get_ports {vga_r[1]}]
+set_property PACKAGE_PIN J20 [get_ports {vga_r[2]}]
+set_property PACKAGE_PIN G20 [get_ports {vga_r[3]}]
+set_property PACKAGE_PIN F19 [get_ports {vga_r[4]}]
+set_property PACKAGE_PIN H18 [get_ports {vga_g[0]}]
+set_property PACKAGE_PIN N20 [get_ports {vga_g[1]}]
+set_property PACKAGE_PIN L19 [get_ports {vga_g[2]}]
+set_property PACKAGE_PIN J19 [get_ports {vga_g[3]}]
+set_property PACKAGE_PIN H20 [get_ports {vga_g[4]}]
+set_property PACKAGE_PIN F20 [get_ports {vga_g[5]}]
+set_property PACKAGE_PIN P20 [get_ports {vga_b[0]}]
+set_property PACKAGE_PIN M20 [get_ports {vga_b[1]}]
+set_property PACKAGE_PIN K19 [get_ports {vga_b[2]}]
+set_property PACKAGE_PIN J18 [get_ports {vga_b[3]}]
+set_property PACKAGE_PIN G19 [get_ports {vga_b[4]}]
+set_property IOSTANDARD LVCMOS33 [get_ports vga_vsync]
+set_property IOSTANDARD LVCMOS33 [get_ports vga_hsync]
+set_property IOSTANDARD LVCMOS33 [get_ports {vga_r[0]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {vga_r[1]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {vga_r[2]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {vga_r[3]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {vga_r[4]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {vga_g[0]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {vga_g[1]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {vga_g[2]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {vga_g[3]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {vga_g[4]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {vga_g[5]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {vga_b[0]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {vga_b[1]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {vga_b[2]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {vga_b[3]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {vga_b[4]}]
+
+# LED
 set_property PACKAGE_PIN M14 [get_ports {led[0]}]
 set_property PACKAGE_PIN D18 [get_ports {led[3]}]
 set_property PACKAGE_PIN G14 [get_ports {led[2]}]
 set_property PACKAGE_PIN M15 [get_ports {led[1]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {led[3]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {led[2]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {led[1]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {led[0]}]
 
 
 # clk_fpga_0 100MHz pri
@@ -42,6 +88,7 @@ set_max_delay -datapath_only -from [get_clocks clk_fpga_1] -to [get_clocks clk_f
 set_max_delay -datapath_only -from [get_clocks clk_fpga_2] -to [get_clocks clk_fpga_1] 5.000
 
 
+# PMOD_A
 set_property IOSTANDARD LVCMOS33 [get_ports {pmod_a[7]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {pmod_a[6]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {pmod_a[5]}]
