@@ -46,14 +46,14 @@ module jelly_serdes_1to10_7series
 			)
 		i_iserdese2_master
 			(
-				.Q1					(out_data[0]),
-				.Q2					(out_data[1]),
-				.Q3					(out_data[2]),
-				.Q4					(out_data[3]),
-				.Q5					(out_data[4]),
-				.Q6					(out_data[5]),
-				.Q7					(out_data[6]),
-				.Q8					(out_data[7]),
+				.Q1					(out_data[9]),
+				.Q2					(out_data[8]),
+				.Q3					(out_data[7]),
+				.Q4					(out_data[6]),
+				.Q5					(out_data[5]),
+				.Q6					(out_data[4]),
+				.Q7					(out_data[3]),
+				.Q8					(out_data[2]),
 				.SHIFTOUT1			(shift1),
 				.SHIFTOUT2			(shift2),
 				.BITSLIP			(bitslip),	
@@ -94,8 +94,8 @@ module jelly_serdes_1to10_7series
 			(
 				.Q1					(),
 				.Q2					(),
-				.Q3					(out_data[8]),
-				.Q4					(out_data[9]),
+				.Q3					(out_data[1]),
+				.Q4					(out_data[0]),
 				.Q5					(),
 				.Q6					(),
 				.Q7					(),

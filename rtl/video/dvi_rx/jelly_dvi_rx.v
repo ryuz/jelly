@@ -203,11 +203,16 @@ module jelly_dvi_rx
 	wire	[9:0]	dec_data2;
 
 	wire			sig_phase_ok   = ( (clk_data == 10'b00000_11111)
+									|| (clk_data == 10'b00001_11110)
 									|| (clk_data == 10'b00011_11100)
+									|| (clk_data == 10'b00111_11000)
 									|| (clk_data == 10'b01111_10000)
+									|| (clk_data == 10'b11111_00000)
 									|| (clk_data == 10'b11110_00001)
-									|| (clk_data == 10'b11000_00111));
-
+									|| (clk_data == 10'b11100_00011)
+									|| (clk_data == 10'b11000_00111)
+									|| (clk_data == 10'b10000_01111));
+	
 	wire			sig_bitslip_ok = (clk_data == 10'b00000_11111);
 
 	wire			sig_psdone;
@@ -227,10 +232,14 @@ module jelly_dvi_rx
 	reg				reg_phase_ok;
 	reg				reg_bitslip_ok;
 		
+	reg		[9:0]	reg_data_prev;
+	
 	reg				reg_psen;
 	reg				reg_psincdec;
 	reg		[15:0]	reg_pscounter;
-
+	
+	localparam		BITSLIP_WAIT = 1;
+	
 	reg				reg_bitslip;
 	reg		[0:0]	reg_bitslip_counter;
 	
@@ -242,16 +251,18 @@ module jelly_dvi_rx
 			reg_phase_ok        <= 1'b0;
 			reg_bitslip_ok      <= 1'b0;
 			
+			reg_data_prev       <= {10{1'bx}};
+			
 			reg_psen            <= 1'b0;
 			reg_psincdec        <= 1'b0;
 			reg_pscounter       <= 0;
 			
 			reg_bitslip         <= 1'b0;
-			reg_bitslip_counter <= 1;
+			reg_bitslip_counter <= BITSLIP_WAIT;
 		end
 		else begin
 			reg_psen <= 1'b0;			
-			if ( reg_bitslip_ok && !sig_phase_ok ) begin
+			if ( reg_bitslip_ok && !sig_bitslip_ok ) begin
 				// エラー時の再スタート
 				reg_calib_start <= 1'b1;
 			end
@@ -263,34 +274,39 @@ module jelly_dvi_rx
 				reg_phase_ok        <= 1'b0;
 				reg_bitslip_ok      <= 1'b0;
 				
+				reg_data_prev       <= clk_data;
+				
 				reg_psen            <= 1'b1;
 				reg_psincdec        <= 1'b0;
 				reg_pscounter       <= 0;
 
 				reg_bitslip_ok      <= 1'b0;
 				reg_bitslip         <= 1'b0;
-				reg_bitslip_counter <= 1;
+				reg_bitslip_counter <= BITSLIP_WAIT;
 			end
 			else if ( !reg_setup_ok ) begin
-				// セットアップ(EYEの中にいたら一旦出る)
+				// セットアップ(EYEの中にいたら一旦変化点まで移動)
 				if ( sig_psdone ) begin
-					reg_psen <= 1'b1;
-					if ( !sig_phase_ok ) begin
+					reg_psen      <= 1'b1;
+					reg_data_prev <= clk_data;
+					if ( reg_data_prev != clk_data ) begin
 						reg_setup_ok <= 1'b1;
+						reg_psincdec <= 1'b1;
 					end
 				end
 			end
 			else if ( !reg_search_ok ) begin
 				// EYEの範囲を探す(PHASE_ADJ_TH 以上の幅で取れる場所を探す)
 				if ( sig_psdone ) begin
-					reg_psen <= 1'b1;
-					if ( sig_phase_ok ) begin
+					reg_psen      <= 1'b1;
+					reg_data_prev <= clk_data;
+					if ( sig_phase_ok && (reg_data_prev == clk_data) ) begin
 						reg_pscounter <= reg_pscounter + 1'b1;
 					end
 					else begin
 						if ( reg_pscounter >= PHASE_ADJ_TH ) begin
 							reg_search_ok <= 1'b1;
-							reg_psincdec  <= 1'b1;
+							reg_psincdec  <= 1'b0;
 							reg_pscounter <= (reg_pscounter >> 1);
 						end
 						else begin
@@ -324,11 +340,14 @@ module jelly_dvi_rx
 				end
 				else begin
 					if ( sig_bitslip_ok ) begin
+						reg_bitslip_ok      <= 1'b1;
+					end
+					else if ( sig_phase_ok ) begin
 						reg_bitslip_ok      <= 1'b0;
 						reg_bitslip         <= 1'b1;
-						reg_bitslip_counter <= 1;
+						reg_bitslip_counter <= BITSLIP_WAIT;
 					end
-					else if ( !sig_phase_ok ) begin
+					else begin
 						reg_calib_start <= 1'b1;
 					end
 				end
@@ -344,7 +363,7 @@ module jelly_dvi_rx
 	jelly_serdes_1to10_7series
 		i_serdes_1to10_clk
 			(
-				.reset		(reg_reset),
+				.reset		(reset),
 				.clk		(clk),
 				.clk_x5		(clk_x5),
 				
@@ -359,7 +378,7 @@ module jelly_dvi_rx
 	jelly_serdes_1to10_7series
 		i_serdes_1to10_0
 			(
-				.reset		(reg_reset),
+				.reset		(reset),
 				.clk		(clk),
 				.clk_x5		(clk_x5),
 				
@@ -373,7 +392,7 @@ module jelly_dvi_rx
 	jelly_serdes_1to10_7series
 		i_serdes_1to10_1
 			(
-				.reset		(reg_reset),
+				.reset		(reset),
 				.clk		(clk),
 				.clk_x5		(clk_x5),
 				
@@ -387,7 +406,7 @@ module jelly_dvi_rx
 	jelly_serdes_1to10_7series
 		i_serdes_1to10_2
 			(
-				.reset		(reg_reset),
+				.reset		(reset),
 				.clk		(clk),
 				.clk_x5		(clk_x5),
 				
@@ -399,60 +418,51 @@ module jelly_dvi_rx
 			);
 	
 	
-	/*
 	// -----------------------------
-	//  encode
+	//  decode
 	// -----------------------------
 	
-	wire	[9:0]	enc_data0;
-	wire	[9:0]	enc_data1;
-	wire	[9:0]	enc_data2;
+	jelly_dvi_rx_decode
+		i_dvi_rx_decode_0
+			(
+				.reset		(reset),
+				.clk		(clk),
+								
+				.in_d		(dec_data0),
+				
+				.out_de		(out_de),
+				.out_d		(out_data[7:0]),
+				.out_c0		(out_hsync),
+				.out_c1		(out_vsync)
+			);
 	
-	jelly_dvi_tx_encode
-		i_dvi_tx_encode_0
+	jelly_dvi_rx_decode
+		i_dvi_rx_decode_1
+			(
+				.reset		(reset),
+				.clk		(clk),
+
+				.in_d		(dec_data1),
+				
+				.out_de		(),
+				.out_d		(out_data[15:8]),
+				.out_c0		(out_ctl[0]),
+				.out_c1		(out_ctl[1])
+			);
+	
+	jelly_dvi_rx_decode
+		i_dvi_rx_decode_2
 			(
 				.reset		(reset),
 				.clk		(clk),
 				
-				.in_de		(in_de),
-				.in_d		(in_data[7:0]),
-				.in_c0		(in_hsync),
-				.in_c1		(in_vsync),
+				.in_d		(dec_data2),
 				
-				.out_d		(enc_data0)
+				.out_de		(),
+				.out_d		(out_data[23:16]),
+				.out_c0		(out_ctl[2]),
+				.out_c1		(out_ctl[3])
 			);
-	
-	jelly_dvi_tx_encode
-		i_dvi_tx_encode_1
-			(
-				.reset		(reset),
-				.clk		(clk),
-				
-				.in_de		(in_de),
-				.in_d		(in_data[15:8]),
-				.in_c0		(in_ctl[0]),
-				.in_c1		(in_ctl[1]),
-				
-				.out_d		(enc_data1)
-			);
-	
-	jelly_dvi_tx_encode
-		i_dvi_tx_encode_2
-			(
-				.reset		(reset),
-				.clk		(clk),
-				
-				.in_de		(in_de),
-				.in_d		(in_data[23:16]),
-				.in_c0		(in_ctl[2]),
-				.in_c1		(in_ctl[3]),
-				
-				.out_d		(enc_data2)
-			);
-	
-	*/
-	
-	
 	
 endmodule
 
