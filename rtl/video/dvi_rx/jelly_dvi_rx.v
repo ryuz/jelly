@@ -238,10 +238,10 @@ module jelly_dvi_rx
 	reg				reg_psincdec;
 	reg		[15:0]	reg_pscounter;
 	
-	localparam		BITSLIP_WAIT = 1;
+	localparam		BITSLIP_WAIT = 3;
 	
 	reg				reg_bitslip;
-	reg		[0:0]	reg_bitslip_counter;
+	reg		[1:0]	reg_bitslip_counter;
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
@@ -463,6 +463,10 @@ module jelly_dvi_rx
 				.out_c0		(out_ctl[2]),
 				.out_c1		(out_ctl[3])
 			);
+	
+	assign out_clk   = clk;
+	assign out_reset = reset;
+	assign out_valid = reg_bitslip_ok;
 	
 endmodule
 
