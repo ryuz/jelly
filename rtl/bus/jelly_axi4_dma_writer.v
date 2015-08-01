@@ -31,6 +31,7 @@ module jelly_axi4_dma_writer
 			parameter	AXI4_AWREGION    = 4'b0000,
 			parameter	AXI4S_DATA_WIDTH = AXI4_DATA_WIDTH,
 			parameter	COUNT_WIDTH      = AXI4_ADDR_WIDTH - AXI4_DATA_SIZE,
+			parameter	LIMITTER_ENABLE  = 0,
 			parameter	AXI4_AW_REGS     = 1,
 			parameter	AXI4_W_REGS      = 1,
 			parameter	AXI4S_REGS       = 0
@@ -48,6 +49,7 @@ module jelly_axi4_dma_writer
 			input	wire	[COUNT_WIDTH-1:0]		param_count,
 			input	wire	[AXI4_LEN_WIDTH-1:0]	param_maxlen,
 			input	wire	[AXI4_STRB_WIDTH-1:0]	param_wstrb,
+			input	wire	[COUNT_WIDTH-1:0]		param_limit,
 			
 			// master AXI4 (write)
 			output	wire	[AXI4_ID_WIDTH-1:0]		m_axi4_awid,
@@ -187,6 +189,40 @@ module jelly_axi4_dma_writer
 			);
 	
 	
+	// -----------------------------
+	//  Limitter
+	// -----------------------------
+	
+	reg		[COUNT_WIDTH-1:0]	reg_limit_counter, next_limit_counter;
+	reg							reg_limiter,       next_limiter;
+	always @* begin
+		next_limit_counter = reg_limit_counter;
+		next_limiter       = reg_limiter;
+		
+		if ( axi4_awvalid && axi4_awready ) begin
+			next_limit_counter = next_limit_counter + 1'b1;
+		end
+		
+		if ( m_axi4_bvalid && m_axi4_bready ) begin
+			next_limit_counter = next_limit_counter - 1'b1;
+		end
+		
+		next_limiter = LIMITTER_ENABLE && (next_limit_counter >= param_limit);
+	end
+	
+	always @(posedge aclk) begin
+		if ( !aresetn ) begin
+			reg_limit_counter <= {COUNT_WIDTH{1'b0}};
+			reg_limiter       <= 1'b0;
+		end
+		else begin
+			reg_limit_counter <= next_limit_counter;
+			if ( !axi4_awvalid || axi4_awready ) begin
+				reg_limiter <= next_limiter;
+			end
+		end
+	end
+	
 	
 	// -----------------------------
 	//  Control
@@ -201,6 +237,11 @@ module jelly_axi4_dma_writer
 	wire	[AXI4_LEN_WIDTH-1:0]	cmd_buf_len;
 	wire							cmd_buf_valid;
 	wire							cmd_buf_ready;
+	
+	wire	[AXI4_ADDR_WIDTH-1:0]	axi4_ctl_awaddr;
+	wire	[AXI4_LEN_WIDTH-1:0]	axi4_ctl_awlen;
+	wire							axi4_ctl_awvalid;
+	wire							axi4_ctl_awready;
 	
 	jelly_axi4_dma_addr
 			#(
@@ -226,11 +267,16 @@ module jelly_axi4_dma_writer
 				.m_cmd_valid		(cmd_buf_valid),
 				.m_cmd_ready		(cmd_buf_ready),
 				
-				.m_axi4_addr		(axi4_awaddr),
-				.m_axi4_len			(axi4_awlen),
-				.m_axi4_valid		(axi4_awvalid),
-				.m_axi4_ready		(axi4_awready)
+				.m_axi4_addr		(axi4_ctl_awaddr),
+				.m_axi4_len			(axi4_ctl_awlen),
+				.m_axi4_valid		(axi4_ctl_awvalid),
+				.m_axi4_ready		(axi4_ctl_awready)
 			);
+	
+	assign axi4_awaddr      = axi4_ctl_awaddr;
+	assign axi4_awlen       = axi4_ctl_awlen;
+	assign axi4_awvalid     = axi4_ctl_awvalid & !reg_limiter;
+	assign axi4_ctl_awready = axi4_awready     & !reg_limiter;
 	
 	
 	// commnad buffering

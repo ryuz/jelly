@@ -143,14 +143,14 @@ module tb_hdmi();
 	jelly_dvi_rx
 		i_dvi_rx
 			(
-				.in_reset	(reset),				
+				.in_reset	(reset),
 				.in_clk_p	(hdmi_clk_p),
 				.in_clk_n	(hdmi_clk_n),
 				.in_data_p	(hdmi_data_p),
 				.in_data_n	(hdmi_data_n),
 				
 				.out_clk	(),
-				.out_reset	(),				
+				.out_reset	(),
 				.out_vsync	(),
 				.out_hsync	(),
 				.out_de		(),

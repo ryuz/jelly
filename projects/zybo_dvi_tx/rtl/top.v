@@ -11,10 +11,16 @@ module top
 		)
 		(
 			output	wire			hdmi_out_en,
+			/*
 			output	wire			hdmi_clk_p,
 			output	wire			hdmi_clk_n,
 			output	wire	[2:0]	hdmi_data_p,
 			output	wire	[2:0]	hdmi_data_n,
+			*/
+			input	wire			hdmi_clk_p,
+			input	wire			hdmi_clk_n,
+			input	wire	[2:0]	hdmi_data_p,
+			input	wire	[2:0]	hdmi_data_n,
 			
 			output	wire			vga_hsync,
 			output	wire			vga_vsync,
@@ -635,6 +641,8 @@ module top
 	//  HDMI-TX
 	// ----------------------------------------
 	
+	/*
+
 	assign hdmi_out_en = 1'b1;
 	
 	jelly_dvi_tx
@@ -654,6 +662,43 @@ module top
 				.out_clk_n	(hdmi_clk_n),
 				.out_data_p	(hdmi_data_p),
 				.out_data_n	(hdmi_data_n)
+			);
+	
+	*/
+	
+	
+	// ----------------------------------------
+	//  HDMI-RX
+	// ----------------------------------------
+	
+	assign hdmi_out_en = 1'b0;
+	
+	wire			vin_clk;
+	wire			vin_reset;
+	wire			vin_vsync;
+	wire			vin_hsync;
+	wire			vin_de;
+	wire	[23:0]	vin_data;
+	wire	[3:0]	vin_ctl;
+	wire			vin_valid;
+	
+	jelly_dvi_rx
+		i_dvi_rx
+			(
+				.in_reset	(video_reset),
+				.in_clk_p	(hdmi_clk_p),
+				.in_clk_n	(hdmi_clk_n),
+				.in_data_p	(hdmi_data_p),
+				.in_data_n	(hdmi_data_n),
+				
+				.out_clk	(vin_clk),
+				.out_reset	(vin_reset),
+				.out_vsync	(vin_vsync),
+				.out_hsync	(vin_hsync),
+				.out_de		(vin_de),
+				.out_data	(vin_data),
+				.out_ctl	(vin_ctl),
+				.out_valid	(vin_valid)
 			);
 	
 	
@@ -685,6 +730,8 @@ module top
 	// ----------------------------------------
 	
 	reg		[7:1]		reg_pmod_a;
+	
+	/*
 	always @(posedge video_clk ) begin
 		reg_pmod_a[1] <= axi4s_memr_tuser;
 		reg_pmod_a[2] <= axi4s_memr_tlast;
@@ -694,9 +741,17 @@ module top
 		reg_pmod_a[6] <= vout_hsync;
 		reg_pmod_a[7] <= vout_de;
 	end
-	
 	assign pmod_a[0]   = video_clk;
 	assign pmod_a[7:1] = reg_pmod_a[7:1];
+	*/
+	
+	assign pmod_a[0]   = vin_clk;
+	assign pmod_a[1]   = vin_vsync;
+	assign pmod_a[2]   = vin_hsync;
+	assign pmod_a[3]   = vin_de;
+	assign pmod_a[4]   = vin_reset;
+	assign pmod_a[5]   = vin_valid;
+	assign pmod_a[7:6] = 0;
 	
 endmodule
 

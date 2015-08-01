@@ -16,6 +16,9 @@
 //  AXI4 から Read して AXI4Streamにするコア
 module jelly_vdma_axi4_to_axi4s_core
 		#(
+			parameter	ASYNC            = 0,
+			parameter	FIFO_PTR_WIDTH   = 0,
+			
 			parameter	PIXEL_SIZE       = 2,	// 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
 			
 			parameter	AXI4_ID_WIDTH    = 6,
@@ -32,12 +35,17 @@ module jelly_vdma_axi4_to_axi4s_core
 			parameter	AXI4_ARPROT      = 3'b000,
 			parameter	AXI4_ARQOS       = 0,
 			parameter	AXI4_ARREGION    = 4'b0000,
-			parameter	AXI4S_DATA_WIDTH = AXI4_DATA_WIDTH,
+			
+			parameter	AXI4S_DATA_SIZE  = 2,	// 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
+			parameter	AXI4S_DATA_WIDTH = (8 << AXI4S_DATA_SIZE),
 			parameter	AXI4S_USER_WIDTH = 1,
 			
 			parameter	AXI4_AR_REGS     = 1,
 			parameter	AXI4_R_REGS      = 1,
 			parameter	AXI4S_REGS       = 1,
+			
+			parameter	LIMITTER_ENABLE  = 0,
+			parameter	LIMITTER_TH      = (1 << FIFO_PTR_WIDTH) / 2,
 			
 			parameter	STRIDE_WIDTH     = 14,
 			parameter	INDEX_WIDTH      = 8,
@@ -46,9 +54,6 @@ module jelly_vdma_axi4_to_axi4s_core
 			parameter	SIZE_WIDTH       = 24
 		)
 		(
-			input	wire							aresetn,
-			input	wire							aclk,
-			
 			// control
 			input	wire							ctl_enable,
 			input	wire							ctl_update,
@@ -72,6 +77,8 @@ module jelly_vdma_axi4_to_axi4s_core
 			output	wire	[AXI4_LEN_WIDTH-1:0]	monitor_arlen,
 			
 			// master AXI4 (read)
+			input	wire							m_axi4_aresetn,
+			input	wire							m_axi4_aclk,
 			output	wire	[AXI4_ID_WIDTH-1:0]		m_axi4_arid,
 			output	wire	[AXI4_ADDR_WIDTH-1:0]	m_axi4_araddr,
 			output	wire	[AXI4_LEN_WIDTH-1:0]	m_axi4_arlen,
@@ -92,12 +99,15 @@ module jelly_vdma_axi4_to_axi4s_core
 			output	wire							m_axi4_rready,
 			
 			// master AXI4-Stream (output)
+			input	wire							m_axi4s_aresetn,
+			input	wire							m_axi4s_aclk,
 			output	wire	[AXI4S_DATA_WIDTH-1:0]	m_axi4s_tdata,
 			output	wire							m_axi4s_tlast,
 			output	wire	[AXI4S_USER_WIDTH-1:0]	m_axi4s_tuser,
 			output	wire							m_axi4s_tvalid,
 			input	wire							m_axi4s_tready
 		);
+	
 	
 	
 	// -----------------------------
@@ -119,8 +129,8 @@ module jelly_vdma_axi4_to_axi4s_core
 			)
 		i_pipeline_insert_ff_t
 			(
-				.reset				(~aresetn),
-				.clk				(aclk),
+				.reset				(~m_axi4s_aresetn),
+				.clk				(m_axi4s_aclk),
 				.cke				(1'b1),
 				
 				.s_data				({axi4s_tdata, axi4s_tlast, axi4s_tuser}),
@@ -136,171 +146,160 @@ module jelly_vdma_axi4_to_axi4s_core
 			);
 	
 	
+	// ---------------------------------
+	//  Width convert & FIFO
+	// ---------------------------------
 	
-	// -----------------------------
-	//  Control
-	// -----------------------------
+	wire	[SIZE_WIDTH-1:0]		free_count;
 	
-	// ピクセル数を転送数に変換
-	function	[SIZE_WIDTH-1:0]	pixels_to_count(input [SIZE_WIDTH-1:0] pixels);
-	begin
-		if ( AXI4_DATA_SIZE >= PIXEL_SIZE ) begin
-			pixels_to_count = (pixels >> (AXI4_DATA_SIZE - PIXEL_SIZE));
-		end
-		else begin
-			pixels_to_count = (pixels << (PIXEL_SIZE - AXI4_DATA_SIZE));
-		end
-	end
-	endfunction
+	wire							axi4s_control_tuser;
+	wire							axi4s_control_tlast;
+	wire	[AXI4_DATA_WIDTH-1:0]	axi4s_control_tdata;
+	wire							axi4s_control_tvalid;
+	wire							axi4s_control_tready;
 	
-	// ピクセル数をバイト数に変換
-	function	[AXI4_ADDR_WIDTH-1:0]	pixels_to_byte(input [SIZE_WIDTH-1:0] pixels);
-	begin
-		pixels_to_byte = pixels << PIXEL_SIZE;
-	end
-	endfunction
-	
-	
-	// 状態管理
-	reg								reg_busy;
-	reg		[INDEX_WIDTH-1:0]		reg_index;			// この変化でホストは受付確認
-	
-	wire							sig_arbusy;
-	reg								reg_arenable;
-	reg		[SIZE_WIDTH-1:0]		reg_arhcount;
-	reg		[V_WIDTH-1:0]			reg_arvcount;
-	reg								reg_arbusy;
-	reg		[AXI4_ADDR_WIDTH-1:0]	reg_araddr;
-	
-	reg								reg_rbusy;
-	reg		[SIZE_WIDTH-1:0]		reg_rcount;
-	reg								reg_tuser;			// frame start
-	
-	wire							sig_rcount_up   = (m_axi4_arvalid && m_axi4_arready);
-	wire							sig_rcount_down = (m_axi4_rlast && m_axi4_rvalid && m_axi4_rready);
-	wire							next_rcount     = reg_rcount + sig_rcount_up - sig_rcount_down;
-	
-	// シャドーレジスタ
-	reg		[AXI4_ADDR_WIDTH-1:0]	reg_param_addr;
-	reg		[STRIDE_WIDTH-1:0]		reg_param_stride;
-	reg		[H_WIDTH-1:0]			reg_param_width;
-	reg		[V_WIDTH-1:0]			reg_param_height;
-	reg		[SIZE_WIDTH-1:0]		reg_param_size;
-	reg		[AXI4_LEN_WIDTH-1:0]	reg_param_arlen;
+	generate
+	if ( AXI4_DATA_SIZE >= AXI4S_DATA_SIZE ) begin
+		wire							axi4s_fifo_tuser;
+		wire							axi4s_fifo_tlast;
+		wire	[AXI4_DATA_WIDTH-1:0]	axi4s_fifo_tdata;
+		wire							axi4s_fifo_tvalid;
+		wire							axi4s_fifo_tready;
 		
-	always @(posedge aclk) begin
-		if ( !aresetn ) begin
-			reg_busy         <= 1'b0;
-			reg_index        <= {INDEX_WIDTH{1'b0}};
-			
-			reg_arenable     <= 1'b0;
-			reg_arhcount     <= {SIZE_WIDTH{1'bx}};
-			reg_arvcount     <= {V_WIDTH{1'bx}};
-			reg_arbusy       <= 1'b0;
-			reg_araddr       <= {AXI4_ADDR_WIDTH{1'bx}};
-			reg_rbusy        <= 1'b0;
-			reg_rcount       <= {SIZE_WIDTH{1'b0}};
-			reg_tuser        <= 1'bx;
-			
-			reg_param_addr   <= {AXI4_ADDR_WIDTH{1'bx}};
-			reg_param_stride <= {STRIDE_WIDTH{1'bx}};
-			reg_param_width  <= {H_WIDTH{1'bx}};
-			reg_param_height <= {V_WIDTH{1'bx}};
-			reg_param_size   <= {SIZE_WIDTH{1'bx}};
-			reg_param_arlen  <= {AXI4_LEN_WIDTH{1'bx}};
-		end
-		else begin
-			reg_arenable <= 1'b0;
-			
-			if ( !reg_arenable && !reg_arbusy && !sig_arbusy && !reg_rbusy ) begin
-				reg_busy <= 1'b0;
-			end
-			
-			if ( axi4s_tvalid && axi4s_tready ) begin
-				reg_tuser  <= 1'b0;
-			end
-			
-			if ( !reg_busy ) begin
-				if ( ctl_enable ) begin
-					reg_busy         <= 1'b1;
-					reg_index        <= reg_index + 1'b1;
+		// FIFO
+		wire	[FIFO_PTR_WIDTH:0]		fifo_free_count;
+		
+		jelly_fifo_generic_fwtf
+				#(
+					.ASYNC				(ASYNC),
+					.DATA_WIDTH			(2+AXI4_DATA_WIDTH),
+					.PTR_WIDTH			(FIFO_PTR_WIDTH),
+					.MASTER_REGS		(0)
+				)
+			i_fifo_generic_fwtf
+				(
+					.s_reset			(~m_axi4_aresetn),
+					.s_clk				(m_axi4_aclk),
+					.s_data				({axi4s_control_tuser, axi4s_control_tlast, axi4s_control_tdata}),
+					.s_valid			(axi4s_control_tvalid),
+					.s_ready			(axi4s_control_tready),
+					.s_free_count		(fifo_free_count),
 					
-					reg_arbusy       <= 1'b1;
-					reg_arenable     <= 1'b1;
-					reg_tuser        <= 1'b1;
-					reg_rbusy        <= 1'b0;
-					reg_rcount       <= 0;
+					.m_reset			(~m_axi4s_aresetn),
+					.m_clk				(m_axi4s_aclk),
+					.m_data				({axi4s_fifo_tuser, axi4s_fifo_tlast, axi4s_fifo_tdata}),
+					.m_valid			(axi4s_fifo_tvalid),
+					.m_ready			(axi4s_fifo_tready),
+					.m_data_count		()
+				);
+		assign free_count = fifo_free_count;
+		
+		// width convert
+		jelly_data_width_converter
+				#(
+					.UNIT_WIDTH			(8),
+					.S_DATA_SIZE		(AXI4_DATA_SIZE),
+					.M_DATA_SIZE		(AXI4S_DATA_SIZE)
+				)
+			i_data_width_converter
+				(
+					.reset				(~m_axi4s_aresetn),
+					.clk				(m_axi4s_aclk),
+					.cke				(1'b1),
 					
-					if ( ctl_update ) begin
-						reg_param_addr   <= param_addr;
-						reg_param_stride <= param_stride;
-						reg_param_width  <= param_width;
-						reg_param_height <= param_height;
-						reg_param_size   <= param_size;
-						reg_param_arlen  <= param_arlen;
-						
-						reg_arhcount <= pixels_to_count(param_width);
-						reg_arvcount <= param_height;
-						if ( (param_size != 0) && pixels_to_byte(param_width) == param_stride ) begin
-							reg_arhcount <= pixels_to_count(param_size);
-							reg_arvcount <= 1;
-						end
-						reg_araddr <= param_addr;
-					end
-					else begin
-						reg_arhcount <= pixels_to_count(reg_param_width);
-						reg_arvcount <= reg_param_height;
-						if ( (reg_param_size != 0) && pixels_to_byte(reg_param_width) == reg_param_stride ) begin
-							reg_arhcount <= pixels_to_count(reg_param_size);
-							reg_arvcount <= 1;
-						end
-						reg_araddr <= reg_param_addr;
-					end
-				end
-			end
-			else begin
-				if ( reg_arbusy && !reg_arenable && !sig_arbusy ) begin
-					if ( (reg_arvcount - 1'b1) == 0 ) begin
-						// end
-						reg_arbusy   <= 1'b0;
-						reg_araddr   <= {AXI4_ADDR_WIDTH{1'bx}};
-						reg_arvcount <= {V_WIDTH{1'bx}};
-					end
-					else begin
-						// next line
-						reg_arenable <= 1'b1;
-						reg_araddr   <= reg_araddr + reg_param_stride;
-						reg_arvcount <= reg_arvcount - 1'b1;
-					end
-				end
-			end
-			
-			reg_rbusy  <= (next_rcount != 0);
-			reg_rcount <= next_rcount;
-		end
+					.endian				(1'b0),		// little endian
+					
+					.s_data				(axi4s_fifo_tdata),
+					.s_first			(axi4s_fifo_tuser),
+					.s_last				(axi4s_fifo_tlast),
+					.s_valid			(axi4s_fifo_tvalid),
+					.s_ready			(axi4s_fifo_tready),
+					
+					.m_data				(axi4s_tdata),
+					.m_first			(axi4s_tuser),
+					.m_last				(axi4s_tlast),
+					.m_valid			(axi4s_tvalid),
+					.m_ready			(axi4s_tready)
+				);
 	end
+	else begin
+		wire							axi4s_wide_tuser;
+		wire							axi4s_wide_tlast;
+		wire	[AXI4_DATA_WIDTH-1:0]	axi4s_wide_tdata;
+		wire							axi4s_wide_tvalid;
+		wire							axi4s_wide_tready;
+		
+		// width convert
+		jelly_data_width_converter
+				#(
+					.UNIT_WIDTH			(8),
+					.S_DATA_SIZE		(AXI4_DATA_SIZE),
+					.M_DATA_SIZE		(AXI4S_DATA_SIZE)
+				)
+			i_data_width_converter
+				(
+					.reset				(~m_axi4_aresetn),
+					.clk				(m_axi4_aclk),
+					.cke				(1'b1),
+					
+					.endian				(1'b0),		// little endian
+					
+					.s_data				(axi4s_control_tdata),
+					.s_first			(axi4s_control_tuser),
+					.s_last				(axi4s_control_tlast),
+					.s_valid			(axi4s_control_tvalid),
+					.s_ready			(axi4s_control_tready),
+					
+					.m_data				(axi4s_wide_tdata),
+					.m_first			(axi4s_wide_tuser),
+					.m_last				(axi4s_wide_tlast),
+					.m_valid			(axi4s_wide_tvalid),
+					.m_ready			(axi4s_wide_tready)
+				);
+		
+		// FIFO
+		wire	[FIFO_PTR_WIDTH:0]		fifo_free_count;
+		jelly_fifo_generic_fwtf
+				#(
+					.ASYNC				(ASYNC),
+					.DATA_WIDTH			(2+AXI4_DATA_WIDTH),
+					.PTR_WIDTH			(FIFO_PTR_WIDTH),
+					.MASTER_REGS		(0)
+				)
+			i_fifo_generic_fwtf
+				(
+					.s_reset			(~m_axi4_aresetn),
+					.s_clk				(m_axi4_aclk),
+					.s_data				({axi4s_wide_tuser, axi4s_wide_tlast, axi4s_wide_tdata}),
+					.s_valid			(axi4s_wide_tvalid),
+					.s_ready			(axi4s_wide_tready),
+					.s_free_count		(fifo_free_count),
+					
+					.m_reset			(~m_axi4s_aresetn),
+					.m_clk				(m_axi4s_aclk),
+					.m_data				({axi4s_tuser, axi4s_tlast, axi4s_tdata}),
+					.m_valid			(axi4s_tvalid),
+					.m_ready			(axi4s_tready),
+					.m_data_count		()
+				);
+		assign free_count = (fifo_free_count << (AXI4S_DATA_SIZE-AXI4_DATA_SIZE));
+	end
+	endgenerate
 	
-	assign ctl_busy       = reg_busy;
-	assign ctl_index      = reg_index;
-	
-	assign monitor_addr   = reg_param_addr;
-	assign monitor_stride = reg_param_stride;
-	assign monitor_width  = reg_param_width;
-	assign monitor_height = reg_param_height;
-	assign monitor_size   = reg_param_size;
-	assign monitor_arlen  = reg_param_arlen;
-	
-	assign axi4s_tuser    = reg_tuser;
 	
 	
-	// DMA
-	wire	[SIZE_WIDTH-1:0]		dma_unit = pixels_to_count(reg_param_width);
+	// ---------------------------------
+	//  Control
+	// ---------------------------------
 	
-	jelly_axi4_dma_reader
+	wire	[SIZE_WIDTH-1:0]	param_limit = (free_count < LIMITTER_TH) ? 0 : free_count - LIMITTER_TH;
+	
+	jelly_vdma_axi4_to_axi4s_control
 			#(
+				.PIXEL_SIZE			(PIXEL_SIZE),
 				.AXI4_ID_WIDTH		(AXI4_ID_WIDTH),
 				.AXI4_ADDR_WIDTH	(AXI4_ADDR_WIDTH),
-				.AXI4_DATA_SIZE		(AXI4_DATA_SIZE),
+				.AXI4_DATA_SIZE 	(AXI4_DATA_SIZE),
 				.AXI4_DATA_WIDTH	(AXI4_DATA_WIDTH),
 				.AXI4_LEN_WIDTH		(AXI4_LEN_WIDTH),
 				.AXI4_QOS_WIDTH		(AXI4_QOS_WIDTH),
@@ -312,53 +311,68 @@ module jelly_vdma_axi4_to_axi4s_core
 				.AXI4_ARPROT		(AXI4_ARPROT),
 				.AXI4_ARQOS			(AXI4_ARQOS),
 				.AXI4_ARREGION		(AXI4_ARREGION),
-				.AXI4S_DATA_WIDTH	(AXI4S_DATA_WIDTH),
-				.COUNT_WIDTH		(SIZE_WIDTH),
-				
+				.AXI4S_USER_WIDTH	(AXI4S_USER_WIDTH),
+				.LIMITTER_ENABLE	(LIMITTER_ENABLE),
 				.AXI4_AR_REGS		(AXI4_AR_REGS),
 				.AXI4_R_REGS		(AXI4_R_REGS),
-				.AXI4S_REGS			(0)
+				.AXI4S_REGS			(AXI4S_REGS),
+				.STRIDE_WIDTH		(STRIDE_WIDTH),
+				.INDEX_WIDTH		(INDEX_WIDTH),
+				.H_WIDTH			(H_WIDTH),
+				.V_WIDTH			(V_WIDTH),
+				.SIZE_WIDTH			(SIZE_WIDTH)
 			)
-		i_axi4_dma_reader
+		i_vdma_axi4_to_axi4s_control
 			(
-				.aresetn			(aresetn),
-				.aclk				(aclk),
+				.aresetn			(m_axi4_aresetn),
+				.aclk				(m_axi4_aclk),
 				
-				.enable				(reg_arenable),
-				.busy				(sig_arbusy),
+				.ctl_enable			(ctl_enable),
+				.ctl_update			(ctl_update),
+				.ctl_busy			(ctl_busy),
+				.ctl_index			(ctl_index),
 				
-				.param_addr			(reg_araddr),
-				.param_count		(reg_arhcount),
-				.param_maxlen		(reg_param_arlen),
-				.param_last_end		(1'b1),
-				.param_last_through	(1'b0),
-				.param_last_unit	(1'b1),
-				.param_unit			(dma_unit),
+				.param_addr			(param_addr),
+				.param_stride		(param_stride),
+				.param_width		(param_width),
+				.param_height		(param_height),
+				.param_size			(param_size),
+				.param_arlen		(param_arlen),
+				.param_limit		(param_limit),
+				
+				.monitor_addr		(monitor_addr),
+				.monitor_stride		(monitor_stride),
+				.monitor_width		(monitor_width),
+				.monitor_height		(monitor_height),
+				.monitor_size		(monitor_size),
+				.monitor_arlen		(monitor_arlen),
 				
 				.m_axi4_arid		(m_axi4_arid),
 				.m_axi4_araddr		(m_axi4_araddr),
-				.m_axi4_arlen		(m_axi4_arlen),
-				.m_axi4_arsize		(m_axi4_arsize),
 				.m_axi4_arburst		(m_axi4_arburst),
-				.m_axi4_arlock		(m_axi4_arlock),
 				.m_axi4_arcache		(m_axi4_arcache),
+				.m_axi4_arlen		(m_axi4_arlen),
+				.m_axi4_arlock		(m_axi4_arlock),
 				.m_axi4_arprot		(m_axi4_arprot),
 				.m_axi4_arqos		(m_axi4_arqos),
 				.m_axi4_arregion	(m_axi4_arregion),
+				.m_axi4_arsize		(m_axi4_arsize),
 				.m_axi4_arvalid		(m_axi4_arvalid),
 				.m_axi4_arready		(m_axi4_arready),
 				.m_axi4_rid			(m_axi4_rid),
-				.m_axi4_rdata		(m_axi4_rdata),
 				.m_axi4_rresp		(m_axi4_rresp),
+				.m_axi4_rdata		(m_axi4_rdata),
 				.m_axi4_rlast		(m_axi4_rlast),
 				.m_axi4_rvalid		(m_axi4_rvalid),
 				.m_axi4_rready		(m_axi4_rready),
 				
-				.m_axi4s_tdata		(axi4s_tdata),
-				.m_axi4s_tlast		(axi4s_tlast),
-				.m_axi4s_tvalid		(axi4s_tvalid),
-				.m_axi4s_tready		(axi4s_tready)
-			);
+				.m_axi4s_tuser		(axi4s_control_tuser),
+				.m_axi4s_tlast		(axi4s_control_tlast),
+				.m_axi4s_tdata		(axi4s_control_tdata),
+				.m_axi4s_tvalid		(axi4s_control_tvalid),
+				.m_axi4s_tready		(axi4s_control_tready)
+		);
+	
 	
 endmodule
 

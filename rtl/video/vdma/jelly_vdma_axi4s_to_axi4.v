@@ -224,143 +224,13 @@ module jelly_vdma_axi4s_to_axi4
 	
 	
 	// ---------------------------------
-	//  Width convert & FIFO
-	// ---------------------------------
-	
-	wire							axi4s_core_tuser;
-	wire							axi4s_core_tlast;
-	wire	[AXI4_DATA_WIDTH-1:0]	axi4s_core_tdata;
-	wire							axi4s_core_tvalid;
-	wire							axi4s_core_tready;
-	
-	generate
-	if ( AXI4_DATA_SIZE >= AXI4S_DATA_SIZE ) begin
-		wire							axi4s_wide_tuser;
-		wire							axi4s_wide_tlast;
-		wire	[AXI4_DATA_WIDTH-1:0]	axi4s_wide_tdata;
-		wire							axi4s_wide_tvalid;
-		wire							axi4s_wide_tready;
-		
-		// width convert
-		jelly_data_width_converter
-				#(
-					.UNIT_WIDTH			(8),
-					.S_DATA_SIZE		(AXI4S_DATA_SIZE),
-					.M_DATA_SIZE		(AXI4_DATA_SIZE)
-				)
-			i_data_width_converter
-				(
-					.reset				(~s_axi4s_aresetn),
-					.clk				(s_axi4s_aclk),
-					.cke				(1'b1),
-					
-					.endian				(1'b0),		// little endian
-					
-					.s_data				(s_axi4s_tdata),
-					.s_first			(s_axi4s_tuser[0]),
-					.s_last				(s_axi4s_tlast),
-					.s_valid			(s_axi4s_tvalid),
-					.s_ready			(s_axi4s_tready),
-					
-					.m_data				(axi4s_wide_tdata),
-					.m_first			(axi4s_wide_tuser),
-					.m_last				(axi4s_wide_tlast),
-					.m_valid			(axi4s_wide_tvalid),
-					.m_ready			(axi4s_wide_tready)
-				);
-		
-		// FIFO
-		jelly_fifo_generic_fwtf
-				#(
-					.ASYNC				(ASYNC),
-					.DATA_WIDTH			(2+AXI4_DATA_WIDTH),
-					.PTR_WIDTH			(FIFO_PTR_WIDTH)
-				)
-			i_fifo_async_fwtf
-				(
-					.s_reset			(~s_axi4s_aresetn),
-					.s_clk				(s_axi4s_aclk),
-					.s_data				({axi4s_wide_tuser, axi4s_wide_tlast, axi4s_wide_tdata}),
-					.s_valid			(axi4s_wide_tvalid),
-					.s_ready			(axi4s_wide_tready),
-					.s_free_count		(),
-					
-					.m_reset			(~m_axi4_aresetn),
-					.m_clk				(m_axi4_aclk),
-					.m_data				({axi4s_core_tuser, axi4s_core_tlast, axi4s_core_tdata}),
-					.m_valid			(axi4s_core_tvalid),
-					.m_ready			(axi4s_core_tready),
-					.m_data_count		()
-				);
-	end
-	else begin
-		wire							axi4s_fifo_tuser;
-		wire							axi4s_fifo_tlast;
-		wire	[AXI4_DATA_WIDTH-1:0]	axi4s_fifo_tdata;
-		wire							axi4s_fifo_tvalid;
-		wire							axi4s_fifo_tready;
-		
-		// FIFO
-		jelly_fifo_generic_fwtf
-				#(
-					.ASYNC				(ASYNC),
-					.DATA_WIDTH			(2+AXI4_DATA_WIDTH),
-					.PTR_WIDTH			(FIFO_PTR_WIDTH)
-				)
-			i_fifo_async_fwtf
-				(
-					.s_reset			(~s_axi4s_aresetn),
-					.s_clk				(s_axi4s_aclk),
-					.s_data				({s_axi4s_tuser, s_axi4s_tlast, s_axi4s_tdata}),
-					.s_valid			(s_axi4s_tvalid),
-					.s_ready			(s_axi4s_tready),
-					.s_free_count		(),
-					
-					.m_reset			(~m_axi4_aresetn),
-					.m_clk				(m_axi4_aclk),
-					.m_data				({axi4s_fifo_tuser, axi4s_fifo_tlast, axi4s_fifo_tdata}),
-					.m_valid			(axi4s_fifo_tvalid),
-					.m_ready			(axi4s_fifo_tready),
-					.m_data_count		()
-				);
-		
-		// width convert
-		jelly_data_width_converter
-				#(
-					.UNIT_WIDTH			(8),
-					.S_DATA_SIZE		(AXI4S_DATA_SIZE),
-					.M_DATA_SIZE		(AXI4_DATA_SIZE)
-				)
-			i_data_width_converter
-				(
-					.reset				(~m_axi4_aresetn),
-					.clk				(m_axi4_aclk),
-					.cke				(1'b1),
-					
-					.endian				(1'b0),		// little endian
-					
-					.s_data				(axi4s_fifo_tdata),
-					.s_first			(axi4s_fifo_tuser),
-					.s_last				(axi4s_fifo_tlast),
-					.s_valid			(axi4s_fifo_tvalid),
-					.s_ready			(axi4s_fifo_tready),
-					
-					.m_data				(axi4s_core_tdata),
-					.m_first			(axi4s_core_tuser),
-					.m_last				(axi4s_core_tlast),
-					.m_valid			(axi4s_core_tvalid),
-					.m_ready			(axi4s_core_tready)
-				);
-	end
-	endgenerate
-	
-	
-	// ---------------------------------
 	//  Core
 	// ---------------------------------
 	
 	jelly_vdma_axi4s_to_axi4_core
 			#(
+				.ASYNC				(ASYNC),
+				.FIFO_PTR_WIDTH		(FIFO_PTR_WIDTH),
 				.PIXEL_SIZE			(PIXEL_SIZE),
 				.AXI4_ID_WIDTH		(AXI4_ID_WIDTH),
 				.AXI4_ADDR_WIDTH	(AXI4_ADDR_WIDTH),
@@ -377,7 +247,9 @@ module jelly_vdma_axi4s_to_axi4
 				.AXI4_AWPROT		(AXI4_AWPROT),
 				.AXI4_AWQOS			(AXI4_AWQOS),
 				.AXI4_AWREGION		(AXI4_AWREGION),
-				.AXI4S_USER_WIDTH	(AXI4S_USER_WIDTH),
+				.AXI4S_DATA_SIZE	(AXI4S_DATA_SIZE),
+				.AXI4S_DATA_WIDTH   (AXI4S_DATA_WIDTH),
+				.AXI4S_USER_WIDTH   (AXI4S_USER_WIDTH),
 				.AXI4_AW_REGS		(AXI4_AW_REGS),
 				.AXI4_W_REGS		(AXI4_W_REGS),
 				.AXI4S_REGS			(AXI4S_REGS),
@@ -389,9 +261,6 @@ module jelly_vdma_axi4s_to_axi4
 			)
 		i_vdma_axi4s_to_axi4_core
 			(
-				.aresetn			(m_axi4_aresetn),
-				.aclk				(m_axi4_aclk),
-				
 				.ctl_enable			(reg_ctl_control[0]),
 				.ctl_update			(reg_ctl_control[1]),
 				.ctl_busy			(sig_ctl_status[0]),
@@ -411,6 +280,8 @@ module jelly_vdma_axi4s_to_axi4
 				.monitor_size		(sig_monitor_size),
 				.monitor_awlen		(sig_monitor_awlen),
 				
+				.m_axi4_aresetn		(m_axi4_aresetn),
+				.m_axi4_aclk		(m_axi4_aclk),
 				.m_axi4_awid		(m_axi4_awid),
 				.m_axi4_awaddr		(m_axi4_awaddr),
 				.m_axi4_awburst		(m_axi4_awburst),
@@ -433,11 +304,13 @@ module jelly_vdma_axi4s_to_axi4
 				.m_axi4_bvalid		(m_axi4_bvalid),
 				.m_axi4_bready		(m_axi4_bready),
 				
-				.s_axi4s_tuser		(axi4s_core_tuser),
-				.s_axi4s_tlast		(axi4s_core_tlast),
-				.s_axi4s_tdata		(axi4s_core_tdata),
-				.s_axi4s_tvalid		(axi4s_core_tvalid),
-				.s_axi4s_tready		(axi4s_core_tready)
+				.s_axi4s_aresetn	(s_axi4s_aresetn),
+				.s_axi4s_aclk		(s_axi4s_aclk),
+				.s_axi4s_tuser		(s_axi4s_tuser),
+				.s_axi4s_tlast		(s_axi4s_tlast),
+				.s_axi4s_tdata		(s_axi4s_tdata),
+				.s_axi4s_tvalid		(s_axi4s_tvalid),
+				.s_axi4s_tready		(s_axi4s_tready)
 			);
 	
 endmodule

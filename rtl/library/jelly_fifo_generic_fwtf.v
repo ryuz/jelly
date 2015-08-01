@@ -16,11 +16,12 @@
 // generic FIFO (First-Word Fall-Through mode)
 module jelly_fifo_generic_fwtf
 		#(
-			parameter	ASYNC      = 0,
-			parameter	DATA_WIDTH = 8,
-			parameter	PTR_WIDTH  = 10,
-			parameter	DOUT_REGS  = 0,
-			parameter	RAM_TYPE   = "block"
+			parameter	ASYNC       = 0,
+			parameter	DATA_WIDTH  = 8,
+			parameter	PTR_WIDTH   = 10,
+			parameter	DOUT_REGS   = 0,
+			parameter	RAM_TYPE    = "block",
+			parameter	MASTER_REGS = 1
 		)
 		(
 			// slave port
@@ -48,7 +49,8 @@ module jelly_fifo_generic_fwtf
 					.DATA_WIDTH		(DATA_WIDTH),
 					.PTR_WIDTH		(PTR_WIDTH == 0 ? 1 : PTR_WIDTH),
 					.DOUT_REGS		(DOUT_REGS),
-					.RAM_TYPE		(RAM_TYPE)
+					.RAM_TYPE		(RAM_TYPE),
+					.MASTER_REGS	(MASTER_REGS)
 				)
 			i_fifo_fwtf
 				(
@@ -73,7 +75,8 @@ module jelly_fifo_generic_fwtf
 					.DATA_WIDTH		(DATA_WIDTH),
 					.PTR_WIDTH		(PTR_WIDTH),
 					.DOUT_REGS		(DOUT_REGS),
-					.RAM_TYPE		(RAM_TYPE)
+					.RAM_TYPE		(RAM_TYPE),
+					.MASTER_REGS	(MASTER_REGS)
 				)
 			i_fifo_fwtf
 				(

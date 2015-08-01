@@ -16,10 +16,11 @@
 // asyncronous FIFO (First-Word Fall-Through mode)
 module jelly_fifo_async_fwtf
 		#(
-			parameter	DATA_WIDTH = 8,
-			parameter	PTR_WIDTH  = 10,
-			parameter	DOUT_REGS  = 0,
-			parameter	RAM_TYPE   = "block"
+			parameter	DATA_WIDTH  = 8,
+			parameter	PTR_WIDTH   = 10,
+			parameter	DOUT_REGS   = 0,
+			parameter	RAM_TYPE    = "block",
+			parameter	MASTER_REGS = 1
 		)
 		(
 			// slave port
@@ -88,7 +89,8 @@ module jelly_fifo_async_fwtf
 			#(
 				.DATA_WIDTH		(DATA_WIDTH),
 				.PTR_WIDTH		(PTR_WIDTH),
-				.DOUT_REGS		(DOUT_REGS)
+				.DOUT_REGS		(DOUT_REGS),
+				.MASTER_REGS	(MASTER_REGS)
 			)
 		i_fifo_read_fwtf
 			(

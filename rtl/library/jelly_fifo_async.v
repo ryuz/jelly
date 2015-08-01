@@ -16,10 +16,10 @@
 // asyncronous FIFO
 module jelly_fifo_async
 		#(
-			parameter	DATA_WIDTH = 8,
-			parameter	PTR_WIDTH  = 10,
-			parameter	DOUT_REGS  = 0,
-			parameter	RAM_TYPE   = "block"
+			parameter	DATA_WIDTH  = 8,
+			parameter	PTR_WIDTH   = 10,
+			parameter	DOUT_REGS   = 0,
+			parameter	RAM_TYPE    = "block"
 		)
 		(
 			input	wire						wr_reset,

@@ -18,7 +18,8 @@ module jelly_fifo_read_fwtf
 		#(
 			parameter	DATA_WIDTH  = 8,
 			parameter	PTR_WIDTH   = 8,
-			parameter	DOUT_REGS   = 0
+			parameter	DOUT_REGS   = 0,
+			parameter	MASTER_REGS = 1
 		)
 		(
 			input	wire						reset,
@@ -47,7 +48,8 @@ module jelly_fifo_read_fwtf
 				.PIPELINE_STAGES	(PIPELINE_STAGES),
 				.S_DATA_WIDTH		(1),
 				.M_DATA_WIDTH		(DATA_WIDTH),
-				.AUTO_VALID			(1)
+				.AUTO_VALID			(1),
+				.MASTER_REGS		(MASTER_REGS)
 			)
 		i_pipeline_control
 			(
@@ -85,53 +87,6 @@ module jelly_fifo_read_fwtf
 	end
 	endgenerate
 	
-	
-/*	
-	reg							reg_rd_en;
-	reg							reg_rd_valid;
-	
-	reg		[DATA_WIDTH-1:0]	reg_data;
-	reg							reg_valid;
-	reg		[DATA_WIDTH-1:0]	buf_data;
-	reg							buf_valid;
-	always @(posedge clk) begin
-		if ( reset ) begin
-			reg_rd_en    <= 1'b0;
-			reg_rd_valid <= 1'b0;
-			reg_data     <= {DATA_WIDTH{1'bx}};
-			reg_valid    <= 1'b0;
-			buf_data     <= {DATA_WIDTH{1'bx}};
-			buf_valid    <= 1'b0;
-		end
-		else begin
-			reg_rd_en    <= !rd_empty && (!buf_valid || !reg_valid);
-			reg_rd_valid <= reg_rd_en;
-			
-			if ( reg_valid && !m_ready ) begin
-				buf_data  <= rd_data;
-				buf_valid <= reg_rd_valid;
-			end
-			
-			if ( !reg_valid || m_ready ) begin
-				if ( buf_valid ) begin
-					reg_data  <= buf_data;
-					reg_valid <= buf_valid;
-					buf_valid <= 1'b0;
-				end
-				else begin
-					reg_data  <= rd_data;
-					reg_valid <= reg_rd_valid;
-				end
-			end
-		end
-	end
-	
-	assign rd_en = reg_rd_en;
-	
-	assign m_data  = reg_data;
-	assign m_valid = reg_valid;
-	assign m_count = rd_count + reg_rd_valid + buf_valid + reg_valid;
-*/
 	
 endmodule
 

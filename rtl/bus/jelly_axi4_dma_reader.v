@@ -32,6 +32,7 @@ module jelly_axi4_dma_reader
 			parameter	AXI4_ARREGION    = 4'b0000,
 			parameter	AXI4S_DATA_WIDTH = AXI4_DATA_WIDTH,
 			parameter	COUNT_WIDTH      = AXI4_ADDR_WIDTH - AXI4_DATA_SIZE,
+			parameter	LIMITTER_ENABLE  = 0,
 			parameter	AXI4_AR_REGS     = 1,
 			parameter	AXI4_R_REGS      = 1,
 			parameter	AXI4S_REGS       = 0
@@ -52,6 +53,7 @@ module jelly_axi4_dma_reader
 			input	wire							param_last_through,		// lastはスルーする
 			input	wire							param_last_unit,		// unit単位でlast付与
 			input	wire	[COUNT_WIDTH-1:0]		param_unit,				// unitサイズ
+			input	wire	[COUNT_WIDTH-1:0]		param_limit,			// 同時発行サイズ
 			
 			// master AXI4 (read)
 			output	wire	[AXI4_ID_WIDTH-1:0]		m_axi4_arid,
@@ -186,12 +188,47 @@ module jelly_axi4_dma_reader
 			);
 	
 	
+	// -----------------------------
+	//  Limitter
+	// -----------------------------
+	
+	reg		[COUNT_WIDTH-1:0]	reg_limit_counter, next_limit_counter;
+	reg							reg_limiter;
+	always @* begin
+		next_limit_counter = reg_limit_counter;
+		if ( axi4_arvalid && axi4_arready ) begin
+			next_limit_counter = next_limit_counter + axi4_arlen + 1'b1;
+		end
+		
+		if ( m_axi4s_tvalid && m_axi4s_tready ) begin
+			next_limit_counter = next_limit_counter - 1'b1;
+		end
+	end
+	
+	always @(posedge aclk) begin
+		if ( !aresetn ) begin
+			reg_limit_counter <= {COUNT_WIDTH{1'b0}};
+			reg_limiter       <= 1'b0;
+		end
+		else begin
+			reg_limit_counter <= next_limit_counter;
+			if ( !axi4_arvalid || axi4_arready ) begin
+				reg_limiter <= LIMITTER_ENABLE && (reg_limit_counter >= param_limit);
+			end
+		end
+	end
+	
 	
 	// -----------------------------
 	//  Control
 	// -----------------------------
 	
 	wire							cmd_busy;
+	
+	wire	[AXI4_ADDR_WIDTH-1:0]	axi4_ctl_araddr;
+	wire	[AXI4_LEN_WIDTH-1:0]	axi4_ctl_arlen;
+	wire							axi4_ctl_arvalid;
+	wire							axi4_ctl_arready;
 	
 	jelly_axi4_dma_addr
 			#(
@@ -217,11 +254,17 @@ module jelly_axi4_dma_reader
 				.m_cmd_valid		(),
 				.m_cmd_ready		(1'b1),
 				
-				.m_axi4_addr		(axi4_araddr),
-				.m_axi4_len			(axi4_arlen),
-				.m_axi4_valid		(axi4_arvalid),
-				.m_axi4_ready		(axi4_arready)
+				.m_axi4_addr		(axi4_ctl_araddr),
+				.m_axi4_len			(axi4_ctl_arlen),
+				.m_axi4_valid		(axi4_ctl_arvalid),
+				.m_axi4_ready		(axi4_ctl_arready)
 			);
+	
+	assign axi4_araddr      = axi4_ctl_araddr;
+	assign axi4_arlen       = axi4_ctl_arlen;
+	assign axi4_arvalid     = axi4_ctl_arvalid & !reg_limiter;
+	assign axi4_ctl_arready = axi4_arready     & !reg_limiter;
+	
 	
 	
 	reg							reg_rbusy;

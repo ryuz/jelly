@@ -160,7 +160,7 @@ module jelly_dvi_rx
 				.DEN					(1'b0),
 				.DI						(16'h0),
 				.DO						(),
-				.DRDY					(),				
+				.DRDY					(),
 				.DWE					(1'b0),
 				
 				.PSCLK					(clk),
@@ -181,13 +181,19 @@ module jelly_dvi_rx
 	BUFG	i_bufg_clk_x5_180	(.I(mmcm_clk_x5_180), .O(clk_x5_180));
 	
 	reg		reg_reset;
-	wire	reset_async = in_reset | !mmcm_locked;
+	reg		reg_reset_ff0;
+	reg		reg_reset_ff1;
+	wire	reset_async = (in_reset || !mmcm_locked);
 	always @(posedge clk or posedge reset_async) begin
 		if ( reset_async ) begin
-			reg_reset <= 1'b1;
+			reg_reset_ff0 <= 1'b1;
+			reg_reset_ff1 <= 1'b1;
+			reg_reset     <= 1'b1;
 		end
 		else begin
-			reg_reset <= 1'b0;
+			reg_reset_ff0 <= 1'b0;
+			reg_reset_ff1 <= reg_reset_ff0;
+			reg_reset     <= reg_reset_ff1;
 		end
 	end
 	wire	reset = reg_reset;
@@ -201,7 +207,7 @@ module jelly_dvi_rx
 	wire	[9:0]	dec_data0;
 	wire	[9:0]	dec_data1;
 	wire	[9:0]	dec_data2;
-
+	
 	wire			sig_phase_ok   = ( (clk_data == 10'b00000_11111)
 									|| (clk_data == 10'b00001_11110)
 									|| (clk_data == 10'b00011_11100)

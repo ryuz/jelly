@@ -56,7 +56,7 @@ module jelly_serdes_1to10_7series
 				.Q8					(out_data[2]),
 				.SHIFTOUT1			(shift1),
 				.SHIFTOUT2			(shift2),
-				.BITSLIP			(bitslip),	
+				.BITSLIP			(bitslip),
 				
 				.CE1				(1'b1),
 				.CE2				(1'b1),
