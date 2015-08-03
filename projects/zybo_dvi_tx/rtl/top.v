@@ -10,6 +10,8 @@ module top
 			parameter	IMAGE_Y_NUM = 480
 		)
 		(
+//			input	wire			in_clk125,
+			
 			output	wire			hdmi_out_en,
 			/*
 			output	wire			hdmi_clk_p,
@@ -28,6 +30,8 @@ module top
 			output	wire	[5:0]	vga_g,
 			output	wire	[4:0]	vga_b,
 			
+			input	wire	[3:0]	push_sw,
+			input	wire	[3:0]	dip_sw,
 			output	wire	[3:0]	led,
 			output	wire	[7:0]	pmod_a,
 			
