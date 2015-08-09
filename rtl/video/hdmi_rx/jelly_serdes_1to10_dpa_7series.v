@@ -134,6 +134,7 @@ module jelly_serdes_1to10_dpa_7series
 							else begin
 								// search continue
 								reg_dpa_eye_count <= 0;
+								reg_idelay_ce     <= 1'b1;
 								reg_dpa_wait      <= DLP_WAIT;
 							end
 						end
@@ -175,26 +176,30 @@ module jelly_serdes_1to10_dpa_7series
 	
 	
 	// 5bit to 10bit
-	reg		[4:0]		reg_data0;
-	reg		[4:0]		reg_data1;
-	always @(posedge clk_x2) begin
-		reg_data0 <= serdes_data_master;
-		reg_data1 <= reg_data0;
-	end
-	
 	reg					reg_word_sel;
+	reg		[9:0]		reg_data;
 	reg		[9:0]		reg_out_data;
 	always @(posedge clk_x2) begin
 		if ( reset ) begin
-			reg_word_sel    <= 1'b0;
-			reg_out_data    <= {10{1'bx}};
+			reg_word_sel <= 1'b0;
+			reg_data     <= {10{1'bx}};
+			reg_out_data <= {10{1'bx}};
 		end
-		else if ( reg_clk_x2_phase ) begin
-			if ( bitslip & reg_bitslip_phase[5] ) begin
-				reg_word_sel <= reg_word_sel + 1'b1;
+		else begin
+			if ( reg_word_sel ) begin
+				reg_data[4:0] <= serdes_data_master;
+				reg_out_data  <= reg_data;
+			end
+			else begin
+				reg_data[9:5] <= serdes_data_master;
 			end
 			
-			reg_out_data    <= reg_word_sel ? {reg_data0, serdes_data_master} : {reg_data1, reg_data0};
+			if ( reg_clk_x2_phase &  bitslip & reg_bitslip_phase[5] ) begin
+				reg_word_sel <= reg_word_sel;
+			end
+			else begin 
+				reg_word_sel <= ~reg_word_sel;
+			end
 		end
 	end
 	

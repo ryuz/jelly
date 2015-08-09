@@ -15,7 +15,10 @@
 
 module jelly_dvi_rx
 		#(
-			parameter PHASE_ADJ_TH = 8 
+			parameter IN_CLK_PERIOD = 40,
+			parameter MMCM_MULT_F   = IN_CLK_PERIOD,
+			parameter MMCM_DIVIDE   = 1,
+			parameter PHASE_ADJ_TH  = 8
 		)
 		(
 			// input
@@ -117,23 +120,25 @@ module jelly_dvi_rx
 				.CLKOUT4_CASCADE		("FALSE"),
 				.COMPENSATION			("ZHOLD"),
 				.STARTUP_WAIT			("FALSE"),
-				.DIVCLK_DIVIDE			(1),
-				.CLKFBOUT_MULT_F		(15.000),
+				.DIVCLK_DIVIDE			(MMCM_DIVIDE),
+				.CLKFBOUT_MULT_F		(MMCM_MULT_F),
 				.CLKFBOUT_PHASE			(0.000),
-				.CLKFBOUT_USE_FINE_PS	("FALSE"),
-				.CLKOUT0_DIVIDE_F		(15.000),
+				.CLKFBOUT_USE_FINE_PS	("TRUE"),
+				.CLKOUT0_DIVIDE_F		(MMCM_MULT_F),
+//				.CLKOUT0_DIVIDE_F		(MMCM_MULT_F/5),
 				.CLKOUT0_PHASE			(0.000),
 				.CLKOUT0_DUTY_CYCLE		(0.500),
-				.CLKOUT0_USE_FINE_PS	("TRUE"),
-				.CLKOUT1_DIVIDE			(3),
+				.CLKOUT0_USE_FINE_PS	("FALSE"),
+				.CLKOUT1_DIVIDE			(MMCM_MULT_F/MMCM_DIVIDE/5),
 				.CLKOUT1_PHASE			(0.000),
 				.CLKOUT1_DUTY_CYCLE		(0.500),
-				.CLKOUT1_USE_FINE_PS	("TRUE"),
-				.CLKOUT2_DIVIDE			(3),
+				.CLKOUT1_USE_FINE_PS	("FALSE"),
+				.CLKOUT2_DIVIDE			(MMCM_MULT_F/MMCM_DIVIDE/5),
 				.CLKOUT2_PHASE			(180.000),
 				.CLKOUT2_DUTY_CYCLE		(0.500),
 				.CLKOUT2_USE_FINE_PS	("FALSE"),
-				.CLKIN1_PERIOD			(13.333),
+//				.CLKIN1_PERIOD			(13.333),
+				.CLKIN1_PERIOD			(IN_CLK_PERIOD),
 				.REF_JITTER1			(0.010)
 			)
 		i_mmcm_adv_inst

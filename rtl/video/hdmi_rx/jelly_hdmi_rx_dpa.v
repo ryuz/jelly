@@ -15,8 +15,8 @@
 
 module jelly_hdmi_rx_dpa
 		#(
-			parameter	BLITSLIP_PATTERN_TH   = 15,
-			parameter	DPA_EYE_WIDTH_TH      = 7,
+			parameter	BLITSLIP_PATTERN_TH   = 63,
+			parameter	DPA_EYE_WIDTH_TH      = 5,
 			parameter	HIGH_PERFORMANCE_MODE = "FALSE",
 			parameter	PIN_SWAP              = 0,
 			parameter	IDELAY_VALUE_MASTE    = 0,
@@ -46,10 +46,10 @@ module jelly_hdmi_rx_dpa
 			output	wire	[9:0]	out_data
 		);
 	
-	localparam	BITSLIP_WAIT = 3;
+	localparam	BITSLIP_WAIT = 7;
 	reg				reg_bitslip_busy;
 	reg				reg_bitslip_ready;
-	reg		[1:0]	reg_bitslip_wait;
+	reg		[2:0]	reg_bitslip_wait;
 	reg		[7:0]	reg_bitslip_count;
 	reg				reg_bitslip;
 	always @(posedge clk) begin

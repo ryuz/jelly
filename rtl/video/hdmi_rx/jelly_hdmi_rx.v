@@ -15,11 +15,17 @@
 
 module jelly_hdmi_rx
 		#(
-			parameter DVI_ONLYIN    = 0,
-			parameter IN_CLK_PERIOD = 40,
-			parameter MMCM_MULT_F   = IN_CLK_PERIOD,
-			parameter MMCM_DIVIDE   = 1,
-			parameter PHASE_ADJ_TH  = 8
+			parameter	DVI_ONLYIN            = 1,
+			parameter	IN_CLK_PERIOD         = 40,
+			parameter	MMCM_MULT_F           = IN_CLK_PERIOD,
+			parameter	MMCM_DIVIDE           = 1,
+			parameter	DPA_TAP_DIFF          = 1,
+			parameter	PHASE_ADJ_TH          = 8,
+			parameter	BLITSLIP_PATTERN_TH   = 63,
+			parameter	DPA_EYE_WIDTH_TH      = 5,
+			parameter	HIGH_PERFORMANCE_MODE = "FALSE",
+			parameter	PIN_SWAP              = 0,
+			parameter	IOSTANDARD            = "TMDS_33"
 		)
 		(
 			// input
@@ -37,82 +43,42 @@ module jelly_hdmi_rx
 			output	wire			out_de,
 			output	wire	[23:0]	out_data,
 			output	wire	[3:0]	out_ctl,
-			output	wire			out_valid,
-			
-			output	wire			mon_data
+			output	wire			out_valid
 		);
 	
-	
-	// -----------------------------
-	//  T.M.D.S. input
-	// -----------------------------
-	
-	wire		serdes_clk;
-	wire		serdes_data0;
-	wire		serdes_data1;
-	wire		serdes_data2;
-	
-	IBUFDS
-			#(
-				.IOSTANDARD	("TMDS_33")
-			)
-		i_ibufds_clk
-			(
-				.I			(in_clk_p),
-				.IB			(in_clk_n),
-				.O			(serdes_clk)
-			);
-	
-	IBUFDS
-			#(
-				.IOSTANDARD	("TMDS_33")
-			)
-		i_ibufds_0
-			(
-				.I			(in_data_p[0]),
-				.IB			(in_data_n[0]),
-				.O			(serdes_data0)
-			);
-	
-	IBUFDS
-			#(
-				.IOSTANDARD	("TMDS_33")
-			)
-		i_ibufds_1
-			(
-				.I			(in_data_p[1]),
-				.IB			(in_data_n[1]),
-				.O			(serdes_data1)
-			);
-	
-	IBUFDS
-			#(
-				.IOSTANDARD	("TMDS_33")
-			)
-		i_ibufds_2
-			(
-				.I			(in_data_p[2]),
-				.IB			(in_data_n[2]),
-				.O			(serdes_data2)
-			);
 	
 	
 	// -----------------------------
 	//  clock
 	// -----------------------------
 	
-	wire		serdes_out_clk;
+	wire		in_clk;
+	wire		serdes_data0;
+	wire		serdes_data1;
+	wire		serdes_data2;
+	
+	IBUFDS
+			#(
+				.IOSTANDARD	(IOSTANDARD)
+			)
+		i_ibufds_clk
+			(
+				.I			(in_clk_p),
+				.IB			(in_clk_n),
+				.O			(in_clk)
+			);
+	
 	
 	wire		clkfb;
 	wire		clk;
-	wire		clk_x5;
-	wire		clk_x5_180;
+	wire		clk_x2;
+	wire		clk_x10;
 	
 	wire		mmcm_clkfb;
 	wire		mmcm_clk;
-	wire		mmcm_clk_x5;
-	wire		mmcm_clk_x5_180;
-
+	wire		mmcm_clk_x2;
+	wire		mmcm_clk_x10;
+	
 	wire		mmcm_locked;
 	
 	wire		mmcm_psen;
@@ -130,19 +96,17 @@ module jelly_hdmi_rx
 				.CLKFBOUT_PHASE			(0.000),
 				.CLKFBOUT_USE_FINE_PS	("TRUE"),
 				.CLKOUT0_DIVIDE_F		(MMCM_MULT_F),
-//				.CLKOUT0_DIVIDE_F		(MMCM_MULT_F/5),
 				.CLKOUT0_PHASE			(0.000),
 				.CLKOUT0_DUTY_CYCLE		(0.500),
 				.CLKOUT0_USE_FINE_PS	("FALSE"),
-				.CLKOUT1_DIVIDE			(MMCM_MULT_F/MMCM_DIVIDE/5),
+				.CLKOUT1_DIVIDE			(MMCM_MULT_F/MMCM_DIVIDE/2),
 				.CLKOUT1_PHASE			(0.000),
 				.CLKOUT1_DUTY_CYCLE		(0.500),
 				.CLKOUT1_USE_FINE_PS	("FALSE"),
-				.CLKOUT2_DIVIDE			(MMCM_MULT_F/MMCM_DIVIDE/5),
+				.CLKOUT2_DIVIDE			(MMCM_MULT_F/MMCM_DIVIDE/10),
 				.CLKOUT2_PHASE			(180.000),
 				.CLKOUT2_DUTY_CYCLE		(0.500),
 				.CLKOUT2_USE_FINE_PS	("FALSE"),
-//				.CLKIN1_PERIOD			(13.333),
 				.CLKIN1_PERIOD			(IN_CLK_PERIOD),
 				.REF_JITTER1			(0.010)
 			)
@@ -152,9 +116,9 @@ module jelly_hdmi_rx
 				.CLKFBOUTB				(),
 				.CLKOUT0				(mmcm_clk),
 				.CLKOUT0B				(),
-				.CLKOUT1				(mmcm_clk_x5),
+				.CLKOUT1				(mmcm_clk_x2),
 				.CLKOUT1B				(),
-				.CLKOUT2				(mmcm_clk_x5_180),
+				.CLKOUT2				(mmcm_clk_x10),
 				.CLKOUT2B				(),
 				.CLKOUT3				(),
 				.CLKOUT3B				(),
@@ -162,7 +126,7 @@ module jelly_hdmi_rx
 				.CLKOUT5				(),
 				.CLKOUT6				(),
 				.CLKFBIN				(clkfb),
-				.CLKIN1					(serdes_out_clk),
+				.CLKIN1					(in_clk),
 				.CLKIN2					(1'b0),
 				.CLKINSEL				(1'b1),
 				.DADDR					(7'h0),
@@ -185,10 +149,10 @@ module jelly_hdmi_rx
 				.RST					(in_reset)
 			);
 	
-	BUFG	i_bufg_clkfb		(.I(mmcm_clkfb),      .O(clkfb));
-	BUFG	i_bufg_clk			(.I(mmcm_clk),        .O(clk));
-	BUFG	i_bufg_clk_x5		(.I(mmcm_clk_x5),     .O(clk_x5));
-	BUFG	i_bufg_clk_x5_180	(.I(mmcm_clk_x5_180), .O(clk_x5_180));
+	BUFG	i_bufg_clkfb		(.I(mmcm_clkfb),   .O(clkfb));
+	BUFG	i_bufg_clk			(.I(mmcm_clk),     .O(clk));
+	BUFG	i_bufg_clk_x2		(.I(mmcm_clk_x2),  .O(clk_x2));
+	BUFG	i_bufg_clk_x10		(.I(mmcm_clk_x10), .O(clk_x10));
 	
 	reg		reg_reset;
 	reg		reg_reset_ff0;
@@ -209,28 +173,34 @@ module jelly_hdmi_rx
 	wire	reset = reg_reset;
 	
 	
+	
 	// -----------------------------
-	//  serdes
+	//  Dynamic Phase Alignment
 	// -----------------------------
 	
-	wire	[9:0]	clk_data;
 	wire	[9:0]	dec_data0;
 	wire	[9:0]	dec_data1;
 	wire	[9:0]	dec_data2;
 	
-	wire			sig_phase_ok   = ( (clk_data == 10'b00000_11111)
-									|| (clk_data == 10'b00001_11110)
-									|| (clk_data == 10'b00011_11100)
-									|| (clk_data == 10'b00111_11000)
-									|| (clk_data == 10'b01111_10000)
-									|| (clk_data == 10'b11111_00000)
-									|| (clk_data == 10'b11110_00001)
-									|| (clk_data == 10'b11100_00011)
-									|| (clk_data == 10'b11000_00111)
-									|| (clk_data == 10'b10000_01111));
+	reg				reg_dpa_start;
+	wire			sig_dpa_busy1;
+	wire			sig_dpa_busy2;
 	
-	wire			sig_bitslip_ok = (clk_data == 10'b00000_11111);
-
+	reg				reg_bitslip_start;
+	wire			sig_bitslip_busy0;
+	wire			sig_bitslip_ready0;
+	wire			sig_bitslip_busy1;
+	wire			sig_bitslip_ready1;
+	wire			sig_bitslip_busy2;
+	wire			sig_bitslip_ready2;
+				
+	wire			sig_phase_valid0;
+	wire			sig_phase_match0;
+	wire			sig_phase_valid1;
+	wire			sig_phase_match1;
+	wire			sig_phase_valid2;
+	wire			sig_phase_match2;
+	
 	wire			sig_psdone;
 	
 	reg		[3:0]	reg_psdone_dly;
@@ -242,132 +212,143 @@ module jelly_hdmi_rx
 	
 	
 	// clock phase
-	reg				reg_calib_start;
-	reg				reg_setup_ok;
-	reg				reg_search_ok;
-	reg				reg_phase_ok;
-	reg				reg_bitslip_ok;
-		
-	reg		[9:0]	reg_data_prev;
-	
+	localparam	[2:0]	ST_START         = 0;
+	localparam	[2:0]	ST_SETUP         = 1;
+	localparam	[2:0]	ST_SEARCH        = 2;
+	localparam	[2:0]	ST_MOVE          = 3;
+	localparam	[2:0]	ST_PHASE_CALIB   = 4;
+	localparam	[2:0]	ST_BITSLIP_CALIB = 5;
+	localparam	[2:0]	ST_STANDBY       = 6;
+
+	reg		[2:0]	reg_state;	
 	reg				reg_psen;
 	reg				reg_psincdec;
 	reg		[15:0]	reg_pscounter;
-	
-	localparam		BITSLIP_WAIT = 3;
-	
-	reg				reg_bitslip;
-	reg		[1:0]	reg_bitslip_counter;
-	
+	reg				reg_wait_psdone;
+
 	always @(posedge clk) begin
 		if ( reset ) begin
-			reg_calib_start     <= 1'b1;
-			reg_setup_ok        <= 1'b0;
-			reg_search_ok       <= 1'b0;
-			reg_phase_ok        <= 1'b0;
-			reg_bitslip_ok      <= 1'b0;
-			
-			reg_data_prev       <= {10{1'bx}};
+			reg_state           <= ST_START;
 			
 			reg_psen            <= 1'b0;
 			reg_psincdec        <= 1'b0;
 			reg_pscounter       <= 0;
+			reg_wait_psdone     <= 1'b0;
 			
-			reg_bitslip         <= 1'b0;
-			reg_bitslip_counter <= BITSLIP_WAIT;
+			reg_dpa_start       <= 1'b0;
+			reg_bitslip_start   <= 1'b0;
 		end
 		else begin
-			reg_psen <= 1'b0;			
-			if ( reg_bitslip_ok && !sig_bitslip_ok ) begin
-				// エラー時の再スタート
-				reg_calib_start <= 1'b1;
+			reg_psen          <= 1'b0;
+			reg_dpa_start     <= 1'b0;
+			reg_bitslip_start <= 1'b0;
+			
+			// ps flags
+			if ( sig_psdone ) begin
+				reg_wait_psdone <= 1'b0;
 			end
-			else if ( reg_calib_start ) begin
-				// キャリブレーション開始
-				reg_calib_start     <= 1'b0;
-				reg_setup_ok        <= 1'b0;
-				reg_search_ok       <= 1'b0;
-				reg_phase_ok        <= 1'b0;
-				reg_bitslip_ok      <= 1'b0;
-				
-				reg_data_prev       <= clk_data;
-				
-				reg_psen            <= 1'b1;
-				reg_psincdec        <= 1'b0;
-				reg_pscounter       <= 0;
-
-				reg_bitslip_ok      <= 1'b0;
-				reg_bitslip         <= 1'b0;
-				reg_bitslip_counter <= BITSLIP_WAIT;
+			else if ( reg_psen ) begin
+				reg_wait_psdone <= 1'b1;
 			end
-			else if ( !reg_setup_ok ) begin
-				// セットアップ(EYEの中にいたら一旦変化点まで移動)
-				if ( sig_psdone ) begin
-					reg_psen      <= 1'b1;
-					reg_data_prev <= clk_data;
-					if ( reg_data_prev != clk_data ) begin
-						reg_setup_ok <= 1'b1;
-						reg_psincdec <= 1'b1;
+						
+			case ( reg_state )
+			ST_START:
+				begin
+					// キャリブレーション開始
+					reg_state       <= ST_SETUP;
+					reg_psen        <= 1'b1;
+					reg_wait_psdone <= 1'b1;
+					reg_psincdec    <= 1'b0;
+					reg_pscounter   <= 0;
+				end
+				
+			ST_SETUP:
+				begin
+					// セットアップ(EYEの中にいたら一旦変化点まで移動)
+					if ( !reg_wait_psdone && sig_phase_valid0 ) begin
+						reg_psen        <= 1'b1;
+						reg_wait_psdone <= 1'b1;
+						if ( !sig_phase_match0 ) begin
+							reg_state    <= ST_SEARCH;
+							reg_psincdec <= 1'b1;
+						end
 					end
 				end
-			end
-			else if ( !reg_search_ok ) begin
-				// EYEの範囲を探す(PHASE_ADJ_TH 以上の幅で取れる場所を探す)
-				if ( sig_psdone ) begin
-					reg_psen      <= 1'b1;
-					reg_data_prev <= clk_data;
-					if ( sig_phase_ok && (reg_data_prev == clk_data) ) begin
-						reg_pscounter <= reg_pscounter + 1'b1;
-					end
-					else begin
-						if ( reg_pscounter >= PHASE_ADJ_TH ) begin
-							reg_search_ok <= 1'b1;
-							reg_psincdec  <= 1'b0;
-							reg_pscounter <= (reg_pscounter >> 1);
+			
+			ST_SEARCH:
+				begin
+					// EYEの範囲を探す(PHASE_ADJ_TH 以上の幅で取れる場所を探す)
+					if ( !reg_wait_psdone && sig_phase_valid0 ) begin
+						reg_psen        <= 1'b1;
+						reg_wait_psdone <= 1'b1;
+						if ( sig_phase_match0 ) begin
+							reg_pscounter <= reg_pscounter + 1'b1;
 						end
 						else begin
-							reg_pscounter <= 0;
+							if ( reg_pscounter >= PHASE_ADJ_TH ) begin
+								// 十分な幅のEYEを発見
+								reg_state     <= ST_MOVE;
+								reg_psincdec  <= 1'b0;
+								reg_pscounter <= (reg_pscounter >> 1);
+							end
+							else begin
+								// 探索継続
+								reg_pscounter <= 0;
+							end
 						end
 					end
 				end
-			end
-			else if ( !reg_phase_ok ) begin
-				// EYE の中央に移動
-				if ( sig_psdone ) begin
-					reg_pscounter <= reg_pscounter - 1'b1;
-					if ( reg_pscounter == 0 ) begin
-						if ( sig_phase_ok ) begin
-							reg_phase_ok <= 1'b1;
+				
+			ST_MOVE:
+				begin
+					// EYE の中央に移動
+					if ( !reg_wait_psdone ) begin
+						reg_pscounter <= reg_pscounter - 1'b1;
+						if ( reg_pscounter == 0 ) begin
+							reg_state     <= ST_PHASE_CALIB;
+							reg_dpa_start <= 1'b1;
 						end
 						else begin
-							reg_calib_start <= 1'b1;
+							reg_psen        <= 1'b1;
+							reg_wait_psdone <= 1'b1;
 						end
 					end
-					else begin
-						reg_psen <= 1'b1;
+				end
+				
+			ST_PHASE_CALIB:
+				begin
+					// 他のデータ線の移相調整
+					if ( !reg_dpa_start && !sig_dpa_busy1 && !sig_dpa_busy2 ) begin
+						reg_state         <= ST_BITSLIP_CALIB;
+						reg_bitslip_start <= 1'b1;
 					end
 				end
-			end
-			else if ( !reg_bitslip_ok ) begin
-				// 目的の配置に bitslip
-				reg_bitslip <= 1'b0;
-				if ( reg_bitslip_counter != 0 ) begin
-					reg_bitslip_counter <= reg_bitslip_counter - 1'b1;
-				end
-				else begin
-					if ( sig_bitslip_ok ) begin
-						reg_bitslip_ok      <= 1'b1;
-					end
-					else if ( sig_phase_ok ) begin
-						reg_bitslip_ok      <= 1'b0;
-						reg_bitslip         <= 1'b1;
-						reg_bitslip_counter <= BITSLIP_WAIT;
-					end
-					else begin
-						reg_calib_start <= 1'b1;
+			
+			ST_BITSLIP_CALIB:
+				begin
+					// BITSLIP調整
+					if ( !reg_bitslip_start && !sig_bitslip_busy0 && !sig_bitslip_busy1 && !sig_bitslip_busy2 ) begin
+						if ( sig_bitslip_ready0 && sig_bitslip_ready1 && sig_bitslip_ready2 ) begin
+							reg_state <= ST_STANDBY;
+						end
+						else begin
+							reg_state <= ST_START;
+						end
 					end
 				end
-			end
+				
+			ST_STANDBY:
+				begin
+					if ( !(sig_bitslip_ready0 && sig_bitslip_ready1 && sig_bitslip_ready2) ) begin
+						reg_state <= ST_START;
+					end
+				end
+			
+			default:
+				begin
+					reg_state <= ST_START;
+				end
+			endcase
 		end
 	end
 	
@@ -376,28 +357,121 @@ module jelly_hdmi_rx
 	
 	
 	
-	jelly_serdes_1to10_7series
-		i_serdes_1to10_clk
+	// -----------------------------
+	//  serdes
+	// -----------------------------
+	
+	jelly_hdmi_rx_dpa
+			#(
+				.BLITSLIP_PATTERN_TH	(BLITSLIP_PATTERN_TH),
+				.DPA_EYE_WIDTH_TH		(DPA_EYE_WIDTH_TH),
+				.HIGH_PERFORMANCE_MODE	(HIGH_PERFORMANCE_MODE),
+				.PIN_SWAP				(PIN_SWAP),
+				.IDELAY_VALUE_MASTE		(15),
+				.IDELAY_VALUE_SLAVE		(15 + DPA_TAP_DIFF),
+				.IOSTANDARD				(IOSTANDARD)
+			)
+		i_hdmi_rx_dpa_0
 			(
-				.reset		(reset),
-				.clk		(clk),
-				.clk_x5		(clk_x5),
+				.reset					(reset),
+				.clk					(clk),
+				.clk_x2					(clk_x2),
+				.clk_x10				(clk_x10),
 				
-				.bitslip	(reg_bitslip),
+				.dpa_start				(1'b0),
+				.dpa_busy				(),
 				
-				.in_d		(serdes_clk),
+				.bitslip_start			(reg_bitslip_start),
+				.bitslip_busy			(sig_bitslip_busy0),
+				.bitslip_ready			(sig_bitslip_ready0),
 				
-				.out_d		(serdes_out_clk),				
-				.out_data	(clk_data)
+				.phase_valid			(sig_phase_valid0),
+				.phase_match			(sig_phase_match0),
+				
+				.in_d_p					(in_data_p[0]),
+				.in_d_n					(in_data_n[0]),
+				
+				.out_d					(),
+				.out_data				(dec_data0)
+			);
+		
+		
+	jelly_hdmi_rx_dpa
+			#(
+				.BLITSLIP_PATTERN_TH	(BLITSLIP_PATTERN_TH),
+				.DPA_EYE_WIDTH_TH		(DPA_EYE_WIDTH_TH),
+				.HIGH_PERFORMANCE_MODE	(HIGH_PERFORMANCE_MODE),
+				.PIN_SWAP				(PIN_SWAP),
+				.IDELAY_VALUE_MASTE		(0),
+				.IDELAY_VALUE_SLAVE		(0 + DPA_TAP_DIFF),
+				.IOSTANDARD				(IOSTANDARD)
+			)
+		i_hdmi_rx_dpa_1
+			(
+				.reset					(reset),
+				.clk					(clk),
+				.clk_x2					(clk_x2),
+				.clk_x10				(clk_x10),
+				
+				.dpa_start				(reg_dpa_start),
+				.dpa_busy				(sig_dpa_busy1),
+				
+				.bitslip_start			(reg_bitslip_start),
+				.bitslip_busy			(sig_bitslip_busy1),
+				.bitslip_ready			(sig_bitslip_ready1),
+				
+				.phase_valid			(sig_phase_valid1),
+				.phase_match			(sig_phase_match1),
+				
+				.in_d_p					(in_data_p[1]),
+				.in_d_n					(in_data_n[1]),
+				
+				.out_d					(),
+				.out_data				(dec_data1)
 			);
 
+	jelly_hdmi_rx_dpa
+			#(
+				.BLITSLIP_PATTERN_TH	(BLITSLIP_PATTERN_TH),
+				.DPA_EYE_WIDTH_TH		(DPA_EYE_WIDTH_TH),
+				.HIGH_PERFORMANCE_MODE	(HIGH_PERFORMANCE_MODE),
+				.PIN_SWAP				(PIN_SWAP),
+				.IDELAY_VALUE_MASTE		(0),
+				.IDELAY_VALUE_SLAVE		(0 + DPA_TAP_DIFF),
+				.IOSTANDARD				(IOSTANDARD)
+			)
+		i_hdmi_rx_dpa_2
+			(
+				.reset					(reset),
+				.clk					(clk),
+				.clk_x2					(clk_x2),
+				.clk_x10				(clk_x10),
+				
+				.dpa_start				(reg_dpa_start),
+				.dpa_busy				(sig_dpa_busy2),
+				
+				.bitslip_start			(reg_bitslip_start),
+				.bitslip_busy			(sig_bitslip_busy2),
+				.bitslip_ready			(sig_bitslip_ready2),
+				
+				.phase_valid			(sig_phase_valid2),
+				.phase_match			(sig_phase_match2),
+				
+				.in_d_p					(in_data_p[2]),
+				.in_d_n					(in_data_n[2]),
+				
+				.out_d					(),
+				.out_data				(dec_data2)
+			);
 	
-	jelly_serdes_1to10_7series
-		i_serdes_1to10_0
+	/*
+	jelly_hdmi_rx_dpa
+		i_hdmi_rx_dpa
 			(
 				.reset		(reset),
 				.clk		(clk),
-				.clk_x5		(clk_x5),
+				.clk_x2		(clk_x2),
+				.clk_x10	(clk_x10),
 				
 				.bitslip	(reg_bitslip),
 				
@@ -436,7 +510,7 @@ module jelly_hdmi_rx
 				.out_d		(),
 				.out_data	(dec_data2)
 			);
-	
+	*/
 	
 	// -----------------------------
 	//  decode
@@ -444,7 +518,7 @@ module jelly_hdmi_rx
 	
 	jelly_hdmi_rx_decode
 			#(
-				.DVI_ONLYIN	(0)
+				.DVI_ONLYIN	(DVI_ONLYIN)
 			)
 		i_hdmi_rx_decode_0
 			(
@@ -461,7 +535,7 @@ module jelly_hdmi_rx
 	
 	jelly_hdmi_rx_decode
 			#(
-				.DVI_ONLYIN	(0)
+				.DVI_ONLYIN	(DVI_ONLYIN)
 			)
 		i_hdmi_rx_decode_1
 			(
@@ -478,7 +552,7 @@ module jelly_hdmi_rx
 	
 	jelly_hdmi_rx_decode
 			#(
-				.DVI_ONLYIN	(0)
+				.DVI_ONLYIN	(DVI_ONLYIN)
 			)
 		i_hdmi_rx_decode_2
 			(
@@ -495,45 +569,7 @@ module jelly_hdmi_rx
 	
 	assign out_clk   = clk;
 	assign out_reset = reset;
-	assign out_valid = reg_bitslip_ok;
-	
-	(* keep="true" *)	reg				mon_reset;
-	(* keep="true" *)	reg				mon_bitslip;
-	(* keep="true" *)	reg		[9:0]	mon_clk_data;	
-	(* keep="true" *)	reg		[9:0]	mon_dec_data0;	
-	(* keep="true" *)	reg		[9:0]	mon_dec_data1;	
-	(* keep="true" *)	reg		[9:0]	mon_dec_data2;
-	(* keep="true" *)	reg				mon_vsync;
-	(* keep="true" *)	reg				mon_hsync;
-	(* keep="true" *)	reg				mon_de;
-	(* keep="true" *)	reg		[3:0]	mon_ctl;
-	(* keep="true" *)	reg				mon_valid;
-	
-	always @(posedge clk) begin
-		mon_reset     <= reset;
-		mon_bitslip   <= reg_bitslip;
-		mon_clk_data  <= clk_data;
-		mon_dec_data0 <= dec_data0;	
-		mon_dec_data1 <= dec_data1;	
-		mon_dec_data2 <= dec_data2;
-		mon_vsync     <= out_vsync;
-		mon_hsync     <= out_hsync;
-		mon_de        <= out_de;
-		mon_ctl       <= out_ctl;
-		mon_valid     <= out_valid;
-	end
-	
-	assign mon_data = mon_reset ^
-						^mon_bitslip		^
-						^mon_clk_data		^
-						^mon_dec_data0		^
-						^mon_dec_data1		^
-						^mon_dec_data2		^
-						^mon_vsync		^
-						^mon_hsync		^
-						^mon_de			^	
-						^mon_ctl		^
-						^mon_valid;	
+	assign out_valid = (reg_state == ST_STANDBY);
 	
 	
 endmodule
