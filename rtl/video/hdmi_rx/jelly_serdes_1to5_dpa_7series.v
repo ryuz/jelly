@@ -17,37 +17,50 @@
 module jelly_serdes_1to5_dpa_7series
 		#(
 			parameter	HIGH_PERFORMANCE_MODE = "FALSE",
-			parameter	PIN_SWAP              = 0
-			parameter	IDELAY_VALUE_MASTE    = 1,
-			parameter	IDELAY_VALUE_SLAVE    = 0
+			parameter	PIN_SWAP              = 0,
+			parameter	IDELAY_VALUE_MASTE    = 0,
+			parameter	IDELAY_VALUE_SLAVE    = IDELAY_VALUE_MASTE+1,
+			parameter	IOSTANDARD            = "TMDS_33"
 		)
 		(
 			input	wire			reset,
 			input	wire			clk,
 			input	wire			clk_x5,
 			
+			input	wire			idelay_master_ce,
+			input	wire			idelay_master_inc,
+			input	wire			idelay_slave_ce,
+			input	wire			idelay_slave_inc,
+			
 			input	wire			bitslip,
 			
-			input	wire			in_data_p,
-			input	wire			in_data_n,
+			input	wire			in_d_p,
+			input	wire			in_d_n,
 			
 			output	wire			out_d,
-			output	wire	[9:0]	out_data
+			output	wire	[4:0]	out_data_master,
+			output	wire	[4:0]	out_data_slave
 		);
 	
 	
+	wire		in_data_p;
+	wire		in_data_n;
 	IBUFDS_DIFF_OUT
+			#(
+				.IOSTANDARD				(IOSTANDARD)
+			)
 		ibufds_diff_out
 			(
-				.I		(in_data_p),
-				.IB		(in_data_n),
-				.O		(data_p),
-				.OB		(data_n)
+				.I						(in_d_p),
+				.IB						(in_d_n),
+				.O						(in_data_p),
+				.OB						(in_data_n)
 			);
 	
-	wire	in_data_master = data_p ^ PIN_SWAP;
-	wire	in_data_slave  = data_n ^ PIN_SWAP;
+	wire	in_data_master = in_data_p ^ PIN_SWAP;
+	wire	in_data_slave  = in_data_n ^ PIN_SWAP;
 	
+	wire	dly_data_master;
 	IDELAYE2
 			#(
 				.HIGH_PERFORMANCE_MODE	(HIGH_PERFORMANCE_MODE),
@@ -63,7 +76,7 @@ module jelly_serdes_1to5_dpa_7series
 				.INC					(idelay_master_inc),
 				.DATAIN					(1'b0),
 				.IDATAIN				(in_data_master),
-				.LD						(1'b1),
+				.LD						(reset),
 				.LDPIPEEN				(1'b0),
 				.REGRST					(1'b0),
 				.CINVCTRL				(1'b0),
@@ -97,7 +110,7 @@ module jelly_serdes_1to5_dpa_7series
 				.SHIFTIN1 				(1'b0),
 				.SHIFTIN2 				(1'b0),
 				.BITSLIP 				(bitslip),
-				.O	 					(),
+				.O	 					(out_d),
 				.Q8 					(),
 				.Q7 					(),
 				.Q6 					(),
@@ -111,7 +124,7 @@ module jelly_serdes_1to5_dpa_7series
 				.SHIFTOUT2 				()
 			);
 	
-	
+	wire	dly_data_slave;
 	IDELAYE2
 			#(
 				.HIGH_PERFORMANCE_MODE	(HIGH_PERFORMANCE_MODE),
@@ -127,7 +140,7 @@ module jelly_serdes_1to5_dpa_7series
 				.INC					(idelay_slave_inc),
 				.DATAIN					(1'b0),
 				.IDATAIN				(in_data_slave),
-				.LD						(1'b1),
+				.LD						(reset),
 				.LDPIPEEN				(1'b0),
 				.REGRST					(1'b0),
 				.CINVCTRL				(1'b0),
@@ -151,7 +164,7 @@ module jelly_serdes_1to5_dpa_7series
 				.CE1					(1'b1),
 				.CE2					(1'b1),
 				.CLK					(clk_x5),
-				.CLKB					(~rxclk_x5),
+				.CLKB					(~clk_x5),
 				.RST					(reset),
 				.CLKDIV					(clk),
 				.CLKDIVP				(1'b0),
