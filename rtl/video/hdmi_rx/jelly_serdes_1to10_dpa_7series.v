@@ -31,7 +31,9 @@ module jelly_serdes_1to10_dpa_7series
 			
 			input	wire			dpa_start,
 			output	wire			dpa_busy,
-			output	wire			dpa_error,
+			
+			output	wire			phase_valid,
+			output	wire			phase_match,
 			
 			input	wire			bitslip,
 			
@@ -46,8 +48,8 @@ module jelly_serdes_1to10_dpa_7series
 	// serdes signal
 	wire	[4:0]		serdes_data_master;
 	wire	[4:0]		serdes_data_slave;
-	wire				phase_valid = (serdes_data_master[3:0] != serdes_data_master[4:1]);
-	wire				phase_match = (serdes_data_master == serdes_data_slave);
+	wire				serdes_phase_valid = (serdes_data_master[3:0] != serdes_data_master[4:1]);
+	wire				serdes_phase_match = (serdes_data_master == serdes_data_slave);
 	
 	
 	// clk_2x phase
@@ -116,8 +118,8 @@ module jelly_serdes_1to10_dpa_7series
 						// wait
 						reg_dpa_wait <= reg_dpa_wait - 1'b1;
 					end
-					else if ( phase_valid ) begin
-						if ( phase_match && (reg_dly_pos_m < reg_dly_pos_s) ) begin
+					else if ( serdes_phase_valid ) begin
+						if ( serdes_phase_match && (reg_dly_pos_m < reg_dly_pos_s) ) begin
 							reg_dpa_eye_count <= reg_dpa_eye_count + 1'b1;
 							reg_idelay_ce     <= 1'b1;
 							reg_dpa_wait      <= DLP_WAIT;
@@ -200,16 +202,21 @@ module jelly_serdes_1to10_dpa_7series
 	
 	
 	// error detect
-	reg		reg_dpa_error_prev;
-	reg		reg_dpa_error;
+	reg		reg_phase_valid_prev;
+	reg		reg_phase_match_prev;
+	reg		reg_phase_valid;
+	reg		reg_phase_match;
 	always @(posedge clk_x2) begin
-		reg_dpa_error_prev <= phase_valid && !phase_match;
+		reg_phase_valid_prev <= serdes_phase_valid;
+		reg_phase_match_prev <= serdes_phase_match || !serdes_phase_valid;
 		if ( reg_clk_x2_phase ) begin
-			reg_dpa_error <= !reg_dpa_busy && (reg_dpa_error_prev || (phase_valid && !phase_match));
+			reg_phase_valid <= serdes_phase_valid || reg_phase_valid_prev;
+			reg_phase_match <= (serdes_phase_match || !serdes_phase_valid) && reg_phase_match_prev;
 		end
 	end
 	
-	assign dpa_error = reg_dpa_error;
+	assign phase_valid = reg_phase_valid;
+	assign phase_match = reg_phase_match;
 	
 	
 	
