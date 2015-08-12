@@ -10,9 +10,14 @@ module top
 			parameter	IMAGE_Y_NUM = 480
 		)
 		(
-//			input	wire			in_clk125,
+			input	wire			in_clk125,
 			
 			output	wire			hdmi_out_en,
+			inout	wire			hdmi_hpd,
+			
+			inout	wire			hdmi_scl,
+			inout	wire			hdmi_sda,
+			
 			/*
 			output	wire			hdmi_clk_p,
 			output	wire			hdmi_clk_n,
@@ -57,8 +62,124 @@ module top
 			inout	wire			FIXED_IO_ps_porb,
 			inout	wire			FIXED_IO_ps_srstb
 		);
-
-
+	
+	
+	wire	in_reset = push_sw[0];
+	
+	wire	clk125;
+	BUFG
+		i_ibufg_clk125
+			(
+				.I		(in_clk125),
+				.O		(clk125)
+			);
+	
+	
+	// clk200
+	wire	mmcm_clk200, clk200;
+	wire	mmcm_clkfb, clkfb;
+	wire	mmcm_locked;
+	
+	MMCME2_ADV
+			#(
+				.BANDWIDTH				("OPTIMIZED"),
+				.CLKOUT4_CASCADE		("FALSE"),
+				.COMPENSATION			("ZHOLD"),
+				.STARTUP_WAIT			("FALSE"),
+				.DIVCLK_DIVIDE			(1),
+				.CLKFBOUT_MULT_F		(8.000),
+				.CLKFBOUT_PHASE			(0.000),
+				.CLKFBOUT_USE_FINE_PS	("FALSE"),
+				.CLKOUT0_DIVIDE_F		(5.000),
+				.CLKOUT0_PHASE			(0.000),
+				.CLKOUT0_DUTY_CYCLE		(0.500),
+				.CLKOUT0_USE_FINE_PS	("FALSE"),
+				.CLKIN1_PERIOD			(8.000),
+				.REF_JITTER1			(0.010)
+			)
+		i_mmcme2
+			(
+				.CLKFBOUT 				(mmcm_clkfb),
+				.CLKFBOUTB				(),
+				.CLKOUT0  				(mmcm_clk200),
+				.CLKOUT0B 				(),
+				.CLKOUT1  				(),
+				.CLKOUT1B 				(),
+				.CLKOUT2  				(),
+				.CLKOUT2B 				(),
+				.CLKOUT3  				(),
+				.CLKOUT3B 				(),
+				.CLKOUT4  				(),
+				.CLKOUT5  				(),
+				.CLKOUT6  				(),
+				
+				.CLKFBIN           		(clkfb),
+				.CLKIN1              	(clk125),
+				.CLKIN2              	(1'b0),
+				
+				.CLKINSEL            	(1'b1),
+				
+				.DADDR               	(7'h0),
+				.DCLK                	(1'b0),
+				.DEN                 	(1'b0),
+				.DI                 	(16'h0),
+				.DO                 	(),
+				.DRDY                	(),
+				.DWE                 	(1'b0),
+				
+				.PSCLK               	(1'b0),
+				.PSEN                	(1'b0),
+				.PSINCDEC            	(1'b0),
+				.PSDONE              	(),
+				
+				.LOCKED              	(mmcm_locked),
+				.CLKINSTOPPED        	(),
+				.CLKFBSTOPPED        	(),
+				.PWRDWN              	(1'b0),
+				.RST                 	(in_reset)
+			);
+	
+	BUFG
+		i_bufg_clkfb
+			(
+				.O 			(clkfb),
+				.I			(mmcm_clkfb)
+			);
+	
+	BUFG
+		i_bugf_clk200
+			(
+				.O   		(clk200),
+				.I   		(mmcm_clk200)
+			);
+	
+	
+	wire				refclk_reset_async = (in_reset || !mmcm_locked);
+	reg		[3:0]		refclk_reset_count;
+	reg					refclk_reset;
+	always @(posedge clk200 or posedge refclk_reset_async) begin
+		if ( refclk_reset_async ) begin
+			refclk_reset_count <= 4'd15;
+			refclk_reset       <= 1'b0; 
+		end
+		else begin
+			if ( refclk_reset_count > 0 ) begin
+				refclk_reset_count <= refclk_reset_count - 1'b1;
+			end
+			refclk_reset <= (refclk_reset_count != 0);
+		end
+	end
+	
+	IDELAYCTRL
+		i_idelayctrl
+			(
+				.RST		(refclk_reset),
+				.REFCLK		(clk200),
+				.RDY		()
+			);
+	
+	
+	
 	// ----------------------------------------
 	//  Processor System
 	// ----------------------------------------
@@ -322,13 +443,17 @@ module top
 	// ----------------------------------------
 	//  DMA write
 	// ----------------------------------------
-
+	
+	wire					vin_reset;
+	wire					vin_clk;
+	
 	wire	[0:0]			axi4s_memw_tuser;
 	wire					axi4s_memw_tlast;
 	wire	[31:0]			axi4s_memw_tdata;
 	wire					axi4s_memw_tvalid;
 	wire					axi4s_memw_tready;
 	
+	/*
 	jelly_pattern_generator_axi4s
 			#(
 				.AXI4S_DATA_WIDTH	(32),
@@ -346,6 +471,7 @@ module top
 				.m_axi4s_tvalid		(axi4s_memw_tvalid),
 				.m_axi4s_tready		(axi4s_memw_tready)
 			);
+	*/
 	
 	
 	wire	[31:0]			wb_vdmaw_dat_o;
@@ -354,6 +480,9 @@ module top
 	
 	jelly_vdma_axi4s_to_axi4
 			#(
+				.ASYNC				(1),
+				.FIFO_PTR_WIDTH		(9),
+				
 				.PIXEL_SIZE			(2),	// 32bit
 				.AXI4_ID_WIDTH		(6),
 				.AXI4_ADDR_WIDTH	(32),
@@ -368,12 +497,12 @@ module top
 				.V_WIDTH			(12),
 				.WB_ADR_WIDTH		(8),
 				.WB_DAT_WIDTH		(32),
-				.INIT_CTL_CONTROL	(2'b00),
+				.INIT_CTL_CONTROL	(2'b11),
 				.INIT_PARAM_ADDR	(32'h1800_0000),
 				.INIT_PARAM_STRIDE	(BUF_STRIDE),
-				.INIT_PARAM_WIDTH	(IMAGE_X_NUM),
-				.INIT_PARAM_HEIGHT	(IMAGE_Y_NUM),
-				.INIT_PARAM_SIZE	(IMAGE_X_NUM*IMAGE_Y_NUM),
+				.INIT_PARAM_WIDTH	(720),			//IMAGE_X_NUM),
+				.INIT_PARAM_HEIGHT	(480),			// (IMAGE_Y_NUM),
+				.INIT_PARAM_SIZE	(720*480),		//(IMAGE_X_NUM*IMAGE_Y_NUM),
 				.INIT_PARAM_AWLEN	(7)
 			)
 		i_vdma_axi4s_to_axi4
@@ -402,8 +531,8 @@ module top
 				.m_axi4_bvalid		(axi4_mem00_bvalid),
 				.m_axi4_bready		(axi4_mem00_bready),
 				
-				.s_axi4s_aresetn	(mem_aresetn),
-				.s_axi4s_aclk		(mem_aclk),
+				.s_axi4s_aresetn	(~vin_reset),
+				.s_axi4s_aclk		(vin_clk),
 				.s_axi4s_tuser		(axi4s_memw_tuser),
 				.s_axi4s_tlast		(axi4s_memw_tlast),
 				.s_axi4s_tdata		(axi4s_memw_tdata),
@@ -646,8 +775,9 @@ module top
 	// ----------------------------------------
 	
 	/*
-
+	
 	assign hdmi_out_en = 1'b1;
+	assign hdmi_hpd    = 1'bz;
 	
 	jelly_dvi_tx
 		i_dvi_tx
@@ -676,9 +806,10 @@ module top
 	// ----------------------------------------
 	
 	assign hdmi_out_en = 1'b0;
+	assign hdmi_hpd    = 1'b1;
 	
-	wire			vin_clk;
-	wire			vin_reset;
+//	wire			vin_clk;
+//	wire			vin_reset;
 	wire			vin_vsync;
 	wire			vin_hsync;
 	wire			vin_de;
@@ -686,8 +817,8 @@ module top
 	wire	[3:0]	vin_ctl;
 	wire			vin_valid;
 	
-	jelly_dvi_rx
-		i_dvi_rx
+	jelly_hdmi_rx
+		i_hdmi_rx
 			(
 				.in_reset	(video_reset),
 				.in_clk_p	(hdmi_clk_p),
@@ -704,6 +835,98 @@ module top
 				.out_ctl	(vin_ctl),
 				.out_valid	(vin_valid)
 			);
+	
+	jelly_vin_axi4s
+			#(
+				.WIDTH			(24)
+			)
+		i_vin_axi4s
+			(
+				.reset			(vin_reset),
+				.clk			(vin_clk),
+				
+				.in_vsync		(vin_vsync),
+				.in_hsync		(vin_hsync),
+				.in_de			(vin_de),
+				.in_data		(vin_data),
+				.in_ctl			(vin_ctl),
+				
+				.m_axi4s_tuser	(axi4s_memw_tuser),
+				.m_axi4s_tlast	(axi4s_memw_tlast),
+				.m_axi4s_tdata	(axi4s_memw_tdata),
+				.m_axi4s_tvalid	(axi4s_memw_tvalid)
+			);
+	
+	
+	
+	// EDID
+	wire	hdmi_scl_t;
+	wire	hdmi_scl_i;
+	
+	wire	hdmi_sda_t;
+	wire	hdmi_sda_i;
+	
+	IOBUF	i_bufio_hdmi_scl (.IO(hdmi_scl), .I(1'b0), .O(hdmi_scl_i), .T(hdmi_scl_t));
+	IOBUF	i_bufio_hdmi_sda (.IO(hdmi_sda), .I(1'b0), .O(hdmi_sda_i), .T(hdmi_sda_t));
+	
+	
+	wire			bus_en;
+	wire			bus_start;
+	wire			bus_rw;
+	wire	[7:0]	bus_wdata;
+	wire	[7:0]	bus_rdata;
+	
+	jelly_i2c_slave
+			#(
+				.DIVIDER_WIDTH	(6),
+				.DIVIDER_COUNT	(63)
+			)
+		i_i2c_slave
+			(
+				.reset			(in_reset),
+				.clk			(clk125),
+				
+				.addr			(7'h50),
+				
+				.i2c_scl_i		(hdmi_scl_i),
+				.i2c_scl_t		(hdmi_scl_t),
+				.i2c_sda_i		(hdmi_sda_i),
+				.i2c_sda_t		(hdmi_sda_t),
+				
+				.bus_en			(bus_en),
+				.bus_start		(bus_start),
+				.bus_rw			(bus_rw),
+				.bus_wdata		(bus_wdata),
+				.bus_rdata		(bus_rdata)
+			);
+	
+	reg		[6:0]	reg_edid_addr;
+	always @(posedge clk125) begin
+		if ( in_reset ) begin
+			reg_edid_addr <= 0;
+		end
+		else begin
+			if ( bus_en && !bus_start ) begin
+				if ( bus_rw == 1'b0 ) begin
+					reg_edid_addr <= bus_wdata;
+				end
+				else begin
+					reg_edid_addr <= reg_edid_addr + 1;
+				end
+			end
+			
+		end
+	end
+	
+	edid_rom
+		i_edid_rom
+			(
+				.clk		(clk125),
+				.en			(1'b1),
+				.addr		(reg_edid_addr),
+				.dout		(bus_rdata)
+			);
+	
 	
 	
 	// ----------------------------------------
@@ -749,7 +972,7 @@ module top
 	assign pmod_a[7:1] = reg_pmod_a[7:1];
 	*/
 	
-	assign pmod_a[0]   = vin_clk;
+	assign pmod_a[0]   = 1'b0; //vin_clk;
 	assign pmod_a[1]   = vin_vsync;
 	assign pmod_a[2]   = vin_hsync;
 	assign pmod_a[3]   = vin_de;

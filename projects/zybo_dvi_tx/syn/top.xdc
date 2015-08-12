@@ -20,17 +20,26 @@ set_max_delay -datapath_only -from [get_clocks clk_fpga_1] -to [get_clocks clk_f
 set_max_delay -datapath_only -from [get_clocks clk_fpga_2] -to [get_clocks clk_fpga_1] 5.000
 
 
-
-# create_clock -period 8.000 -name in_clk125 -waveform {0.000 4.000} [get_ports in_clk125]
-# set_property PACKAGE_PIN L16 [get_ports in_clk125]
-# set_property IOSTANDARD LVCMOS33 [get_ports in_clk125]
+# clock
+create_clock -period 8.000 -name in_clk125 -waveform {0.000 4.000} [get_ports in_clk125]
+set_property PACKAGE_PIN L16 [get_ports in_clk125]
+set_property IOSTANDARD LVCMOS33 [get_ports in_clk125]
 
 
 # HDMI
-create_clock -period 13.333 -name hdmi_clk_p -waveform {0.000 6.667} [get_ports hdmi_clk_p]
+#create_clock -period 13.333 -name hdmi_clk_p -waveform {0.000 6.667} [get_ports hdmi_clk_p]
+create_clock -period 40.000 -name hdmi_clk_p -waveform {0.000 20.000} [get_ports hdmi_clk_p]
 
 set_property PACKAGE_PIN F17 [get_ports hdmi_out_en]
 set_property IOSTANDARD LVCMOS33 [get_ports hdmi_out_en]
+
+set_property PACKAGE_PIN E18 [get_ports hdmi_hpd]
+set_property IOSTANDARD LVCMOS33 [get_ports hdmi_hpd]
+
+set_property PACKAGE_PIN G17 [get_ports hdmi_scl]
+set_property PACKAGE_PIN G18 [get_ports hdmi_sda]
+set_property IOSTANDARD LVCMOS33 [get_ports hdmi_scl]
+set_property IOSTANDARD LVCMOS33 [get_ports hdmi_sda]
 
 set_property PACKAGE_PIN H16 [get_ports hdmi_clk_p]
 set_property PACKAGE_PIN D19 [get_ports {hdmi_data_p[0]}]

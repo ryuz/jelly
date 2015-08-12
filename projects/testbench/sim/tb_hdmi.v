@@ -5,11 +5,13 @@
 
 module tb_hdmi();
 	localparam RATE = 1000.0/75.0;
+//	localparam RATE = 1000.0/25.0;
 	
 	initial begin
 		$dumpfile("tb_hdmi.vcd");
-		$dumpvars(0, tb_hdmi);
-		$dumpvars(2, tb_hdmi.i_dvi_rx);
+		$dumpvars(1, tb_hdmi);
+		$dumpvars(0, tb_hdmi.i_hdmi_rx);
+		$dumpvars(2, tb_hdmi.i_dvi_tx);
 		
 		#2000000;
 			$finish;
@@ -25,6 +27,24 @@ module tb_hdmi();
 	initial #(RATE*100)	reset = 1'b0;
 	
 
+
+	reg		clk200 = 1'b1;
+	always #(2.5)	clk200 = ~clk200;
+	
+	reg		reset_ref = 1'b1;
+	initial #(100)		reset_ref = 1'b0;
+	
+	wire	rdy;
+	IDELAYCTRL
+		i_idelayctrl
+			(
+				.RST		(reset_ref),
+				.REFCLK		(clk200),
+				.RDY		(rdy)
+			);
+	
+	
+	
 	
 	// sync gen
 	parameter	IMAGE_X_NUM = 640;
@@ -116,6 +136,18 @@ module tb_hdmi();
 	wire	[2:0]	hdmi_data_p;
 	wire	[2:0]	hdmi_data_n;
 	
+	reg		[23:0]	reg_vout_data = 0;
+	always @(posedge clk) begin
+		if ( reset ) begin
+			reg_vout_data <= 0;
+		end
+		else begin
+			if ( vout_de ) begin
+				reg_vout_data <= reg_vout_data + 1;
+			end
+		end
+	end
+	
 	jelly_dvi_tx
 		i_dvi_tx
 			(
@@ -126,7 +158,7 @@ module tb_hdmi();
 				.in_vsync	(vout_vsync),
 				.in_hsync	(vout_hsync),
 				.in_de		(vout_de),
-				.in_data	(vout_data),
+				.in_data	(reg_vout_data),	//(vout_data),
 				.in_ctl		(4'd0),
 				
 				.out_clk_p	(hdmi_clk_p),
@@ -140,8 +172,12 @@ module tb_hdmi();
 	//  HDMI-RX
 	// ----------------------------------------
 	
-	jelly_dvi_rx
-		i_dvi_rx
+	jelly_hdmi_rx
+			#(
+				.IN_CLK_PERIOD	(RATE),
+				.MMCM_MULT_F	(10)		// 40
+			)
+		i_hdmi_rx
 			(
 				.in_reset	(reset),
 				.in_clk_p	(hdmi_clk_p),
@@ -158,6 +194,7 @@ module tb_hdmi();
 				.out_ctl	(),
 				.out_valid	()
 			);
+	
 	
 endmodule
 
