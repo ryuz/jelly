@@ -878,8 +878,8 @@ module top
 	
 	jelly_i2c_slave
 			#(
-				.DIVIDER_WIDTH	(6),
-				.DIVIDER_COUNT	(63)
+				.DIVIDER_WIDTH	(4),
+				.DIVIDER_COUNT	(15)
 			)
 		i_i2c_slave
 			(

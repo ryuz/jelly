@@ -68,9 +68,9 @@ module jelly_hdmi_rx_decode
 			st1_d                   <= {8{1'bx}};
 			st1_video_guard_band_c0 <= 1'bx;
 			st1_video_guard_band_c1 <= 1'bx;
-			st1_video_guard_band_c2 <= 1'bx;			
+			st1_video_guard_band_c2 <= 1'bx;
 			st1_data_guard_band_c1  <= 1'bx;
-			st1_data_guard_band_c2  <= 1'bx;			
+			st1_data_guard_band_c2  <= 1'bx;
 			st1_ade                 <= 1'b0;
 			st1_terc4               <= {4{1'bx}};
 			

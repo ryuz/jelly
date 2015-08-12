@@ -49,7 +49,7 @@ module jelly_hdmi_rx
 	
 	
 	// -----------------------------
-	//  clock
+	//  Clock
 	// -----------------------------
 	
 	wire		in_clk;
@@ -464,53 +464,7 @@ module jelly_hdmi_rx
 				.out_data				(dec_data2)
 			);
 	
-	/*
-	jelly_hdmi_rx_dpa
-		i_hdmi_rx_dpa
-			(
-				.reset		(reset),
-				.clk		(clk),
-				.clk_x2		(clk_x2),
-				.clk_x10	(clk_x10),
-				
-				.bitslip	(reg_bitslip),
-				
-				.in_d		(serdes_data0),
-				
-				.out_d		(),
-				.out_data	(dec_data0)
-			);
 	
-	jelly_serdes_1to10_7series
-		i_serdes_1to10_1
-			(
-				.reset		(reset),
-				.clk		(clk),
-				.clk_x5		(clk_x5),
-				
-				.bitslip	(reg_bitslip),
-				
-				.in_d		(serdes_data1),
-				
-				.out_d		(),
-				.out_data	(dec_data1)
-			);
-	
-	jelly_serdes_1to10_7series
-		i_serdes_1to10_2
-			(
-				.reset		(reset),
-				.clk		(clk),
-				.clk_x5		(clk_x5),
-				
-				.bitslip	(reg_bitslip),
-				
-				.in_d		(serdes_data2),
-				
-				.out_d		(),
-				.out_data	(dec_data2)
-			);
-	*/
 	
 	// -----------------------------
 	//  decode
@@ -518,19 +472,19 @@ module jelly_hdmi_rx
 	
 	jelly_hdmi_rx_decode
 			#(
-				.DVI_ONLYIN	(DVI_ONLYIN)
+				.DVI_ONLYIN				(DVI_ONLYIN)
 			)
 		i_hdmi_rx_decode_0
 			(
-				.reset		(reset),
-				.clk		(clk),
+				.reset					(reset),
+				.clk					(clk),
 								
-				.in_d		(dec_data0),
+				.in_d					(dec_data0),
 				
-				.out_de		(out_de),
-				.out_d		(out_data[7:0]),
-				.out_c0		(out_hsync),
-				.out_c1		(out_vsync)
+				.out_de					(out_de),
+				.out_d					(out_data[7:0]),
+				.out_c0					(out_hsync),
+				.out_c1					(out_vsync)
 			);
 	
 	jelly_hdmi_rx_decode
@@ -539,15 +493,15 @@ module jelly_hdmi_rx
 			)
 		i_hdmi_rx_decode_1
 			(
-				.reset		(reset),
-				.clk		(clk),
+				.reset					(reset),
+				.clk					(clk),
 				
-				.in_d		(dec_data1),
+				.in_d					(dec_data1),
 				
-				.out_de		(),
-				.out_d		(out_data[15:8]),
-				.out_c0		(out_ctl[0]),
-				.out_c1		(out_ctl[1])
+				.out_de					(),
+				.out_d					(out_data[15:8]),
+				.out_c0					(out_ctl[0]),
+				.out_c1					(out_ctl[1])
 			);
 	
 	jelly_hdmi_rx_decode
@@ -556,15 +510,15 @@ module jelly_hdmi_rx
 			)
 		i_hdmi_rx_decode_2
 			(
-				.reset		(reset),
-				.clk		(clk),
+				.reset					(reset),
+				.clk					(clk),
 				
-				.in_d		(dec_data2),
+				.in_d					(dec_data2),
 				
-				.out_de		(),
-				.out_d		(out_data[23:16]),
-				.out_c0		(out_ctl[2]),
-				.out_c1		(out_ctl[3])
+				.out_de					(),
+				.out_d					(out_data[23:16]),
+				.out_c0					(out_ctl[2]),
+				.out_c1					(out_ctl[3])
 			);
 	
 	assign out_clk   = clk;

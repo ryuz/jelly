@@ -91,9 +91,9 @@ module tb_i2c_slave();
 			);
 	
 	
-	
 	IOBUF	iobuf_scl (.IO(i2c_scl), .O(i2c_scl_i), .I(1'b0), .T(i2c_scl_t));
 	IOBUF	iobuf_sda (.IO(i2c_sda), .O(i2c_sda_i), .I(1'b0), .T(i2c_sda_t));
+	
 	
 	
 	reg		reg_scl = 1'b1;
