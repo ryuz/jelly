@@ -16,8 +16,8 @@
 module jelly_hdmi_rx
 		#(
 			parameter	DVI_ONLYIN            = 1,
-			parameter	IN_CLK_PERIOD         = 40,
-			parameter	MMCM_MULT_F           = IN_CLK_PERIOD,
+			parameter	IN_CLK_PERIOD         = 36.101,
+			parameter	MMCM_MULT_F           = 40,
 			parameter	MMCM_DIVIDE           = 1,
 			parameter	DPA_TAP_DIFF          = 1,
 			parameter	PHASE_ADJ_TH          = 8,

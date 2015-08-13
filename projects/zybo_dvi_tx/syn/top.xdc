@@ -1,11 +1,21 @@
 
 
-# timing
+
+################################
+# Timing
+################################
+
+# in_clk128
+create_clock -period 8.000 -name in_clk125 -waveform {0.000 4.000} [get_ports in_clk125]
+
+# HDMI-RX 480p (27.7MHz)
+create_clock -period 36.101 -name hdmi_clk_p -waveform {0.000 18.050} [get_ports hdmi_clk_p]
 
 # clk_fpga_0 100MHz pri
 # clk_fpga_1 175MHz mem
-# clk_fpga_2  25MHz video
-# clk_fpga_3 125MHz video_x5
+# clk_fpga_2  25MHz vout
+# clk_fpga_3 125MHz vout_x5
+# mmcm_clk          vin_clk
 
 # peri <=> mem
 set_max_delay -datapath_only -from [get_clocks clk_fpga_0] -to [get_clocks clk_fpga_1] 10.000
@@ -15,21 +25,30 @@ set_max_delay -datapath_only -from [get_clocks clk_fpga_1] -to [get_clocks clk_f
 set_max_delay -datapath_only -from [get_clocks clk_fpga_0] -to [get_clocks clk_fpga_2] 10.000
 set_max_delay -datapath_only -from [get_clocks clk_fpga_2] -to [get_clocks clk_fpga_0] 10.000
 
-# video <=> mem
+# vout <=> mem
 set_max_delay -datapath_only -from [get_clocks clk_fpga_1] -to [get_clocks clk_fpga_2] 5.000
 set_max_delay -datapath_only -from [get_clocks clk_fpga_2] -to [get_clocks clk_fpga_1] 5.000
 
+# vin <=> mem
+set_max_delay -datapath_only -from [get_clocks clk_fpga_1] -to [get_clocks mmcm_clk] 5.000
+set_max_delay -datapath_only -from [get_clocks mmcm_clk] -to [get_clocks clk_fpga_1] 5.000
 
-# clock
-create_clock -period 8.000 -name in_clk125 -waveform {0.000 4.000} [get_ports in_clk125]
+# reset
+set_false_path -from [get_clocks clk_fpga_1] -to [get_clocks mmcm_clk200]
+set_false_path -from [get_clocks mmcm_clk200] -to [get_clocks mmcm_clk]
+
+
+
+################################
+# I/O
+################################
+
+# in_clk128
 set_property PACKAGE_PIN L16 [get_ports in_clk125]
 set_property IOSTANDARD LVCMOS33 [get_ports in_clk125]
 
 
 # HDMI
-#create_clock -period 13.333 -name hdmi_clk_p -waveform {0.000 6.667} [get_ports hdmi_clk_p]
-create_clock -period 40.000 -name hdmi_clk_p -waveform {0.000 20.000} [get_ports hdmi_clk_p]
-
 set_property PACKAGE_PIN F17 [get_ports hdmi_out_en]
 set_property IOSTANDARD LVCMOS33 [get_ports hdmi_out_en]
 
@@ -140,4 +159,6 @@ set_property PACKAGE_PIN K16 [get_ports {pmod_a[2]}]
 set_property PACKAGE_PIN J16 [get_ports {pmod_a[6]}]
 set_property PACKAGE_PIN K14 [get_ports {pmod_a[3]}]
 set_property PACKAGE_PIN J14 [get_ports {pmod_a[7]}]
+
+
 

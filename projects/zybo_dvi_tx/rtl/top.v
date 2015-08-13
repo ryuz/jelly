@@ -5,10 +5,12 @@
 
 module top
 		#(
-			parameter	HDMI_RX     = 1,
-			parameter	BUF_STRIDE  = 4096,
-			parameter	IMAGE_X_NUM = 640,
-			parameter	IMAGE_Y_NUM = 480
+			parameter	HDMI_RX    = 1,
+			parameter	BUF_STRIDE = 4096,
+			parameter	VIN_X_NUM  = 720,
+			parameter	VIN_Y_NUM  = 480,
+			parameter	VOUT_X_NUM = 640,
+			parameter	VOUT_Y_NUM = 480
 		)
 		(
 			input	wire			in_clk125,
@@ -444,26 +446,6 @@ module top
 	wire					axi4s_memw_tvalid;
 	wire					axi4s_memw_tready;
 	
-	/*
-	jelly_pattern_generator_axi4s
-			#(
-				.AXI4S_DATA_WIDTH	(32),
-				.X_NUM				(IMAGE_X_NUM),
-				.Y_NUM				(IMAGE_Y_NUM)
-			)
-		i_pattern_generator_axi4s
-			(
-				.aresetn			(mem_aresetn),
-				.aclk				(mem_aclk),
-				
-				.m_axi4s_tuser		(axi4s_memw_tuser),
-				.m_axi4s_tlast		(axi4s_memw_tlast),
-				.m_axi4s_tdata		(axi4s_memw_tdata),
-				.m_axi4s_tvalid		(axi4s_memw_tvalid),
-				.m_axi4s_tready		(axi4s_memw_tready)
-			);
-	*/
-	
 	
 	wire	[31:0]			wb_vdmaw_dat_o;
 	wire					wb_vdmaw_stb_i;
@@ -491,9 +473,9 @@ module top
 				.INIT_CTL_CONTROL	(2'b11),
 				.INIT_PARAM_ADDR	(32'h1800_0000),
 				.INIT_PARAM_STRIDE	(BUF_STRIDE),
-				.INIT_PARAM_WIDTH	(720),			//IMAGE_X_NUM),
-				.INIT_PARAM_HEIGHT	(480),			// (IMAGE_Y_NUM),
-				.INIT_PARAM_SIZE	(720*480),		//(IMAGE_X_NUM*IMAGE_Y_NUM),
+				.INIT_PARAM_WIDTH	(VIN_X_NUM),
+				.INIT_PARAM_HEIGHT	(VIN_Y_NUM),
+				.INIT_PARAM_SIZE	(VIN_X_NUM*VIN_Y_NUM),
 				.INIT_PARAM_AWLEN	(7)
 			)
 		i_vdma_axi4s_to_axi4
@@ -578,9 +560,9 @@ module top
 				.INIT_CTL_CONTROL	(2'b11),
 				.INIT_PARAM_ADDR	(32'h1800_0000),
 				.INIT_PARAM_STRIDE	(BUF_STRIDE),
-				.INIT_PARAM_WIDTH	(IMAGE_X_NUM),
-				.INIT_PARAM_HEIGHT	(IMAGE_Y_NUM),
-				.INIT_PARAM_SIZE	(IMAGE_X_NUM*IMAGE_Y_NUM),
+				.INIT_PARAM_WIDTH	(VOUT_X_NUM),
+				.INIT_PARAM_HEIGHT	(VOUT_Y_NUM),
+				.INIT_PARAM_SIZE	(VOUT_X_NUM*VOUT_Y_NUM),
 				.INIT_PARAM_ARLEN	(8'h0f)
 			)
 		i_vdma_axi4_to_axi4s
@@ -638,15 +620,15 @@ module top
 				.WB_ADR_WIDTH		(8),
 				.WB_DAT_WIDTH		(32),
 				.INIT_CTL_CONTROL	(1'b1),
-				.INIT_HTOTAL		(96 + 16 + IMAGE_X_NUM + 48),
+				.INIT_HTOTAL		(96 + 16 + VOUT_X_NUM + 48),
 				.INIT_HDISP_START	(96 + 16),
-				.INIT_HDISP_END		(96 + 16 + IMAGE_X_NUM),
+				.INIT_HDISP_END		(96 + 16 + VOUT_X_NUM),
 				.INIT_HSYNC_START	(0),
 				.INIT_HSYNC_END		(96),
 				.INIT_HSYNC_POL		(0),
-				.INIT_VTOTAL		(2 + 10 + IMAGE_Y_NUM + 33),
+				.INIT_VTOTAL		(2 + 10 + VOUT_Y_NUM + 33),
 				.INIT_VDISP_START	(2 + 10),
-				.INIT_VDISP_END		(2 + 10 + IMAGE_Y_NUM),
+				.INIT_VDISP_END		(2 + 10 + VOUT_Y_NUM),
 				.INIT_VSYNC_START	(0),
 				.INIT_VSYNC_END		(2),
 				.INIT_VSYNC_POL		(0)
@@ -706,6 +688,187 @@ module top
 			);
 	
 	
+	
+	// ----------------------------------------
+	//  HDMI-RX
+	// ----------------------------------------
+	
+	localparam	IDELAYCTRL_GROUP_HDMIRX = "IODELAY_HDMIRX" ;
+	
+	generate
+	if ( HDMI_RX ) begin
+	
+		wire	hdmirx_idelayctrl_rdy;
+		
+		(* IODELAY_GROUP=IDELAYCTRL_GROUP_HDMIRX *)
+		IDELAYCTRL
+			i_idelayctrl_hdmirx
+				(
+					.RST		(ref200_reset),
+					.REFCLK		(ref200_clk),
+					.RDY		(hdmirx_idelayctrl_rdy)
+				);
+		
+		wire	hdmirx_reset;
+		jelly_reset
+			i_reset_hdmirx
+				(
+					.clk		(ref200_clk),
+					.in_reset	(~hdmirx_idelayctrl_rdy || ref200_reset),
+					.out_reset	(hdmirx_reset)
+				);
+		
+		
+		assign hdmi_out_en = 1'b0;
+		assign hdmi_hpd    = 1'b1;
+		
+		
+		wire			vin_vsync;
+		wire			vin_hsync;
+		wire			vin_de;
+		wire	[23:0]	vin_data;
+		wire	[3:0]	vin_ctl;
+		wire			vin_valid;
+		
+		jelly_hdmi_rx
+				#(
+					.IDELAYCTRL_GROUP	(IDELAYCTRL_GROUP_HDMIRX)
+				)
+			i_hdmi_rx
+				(
+					.in_reset			(hdmirx_reset),
+					.in_clk_p			(hdmi_clk_p),
+					.in_clk_n			(hdmi_clk_n),
+					.in_data_p			(hdmi_data_p),
+					.in_data_n			(hdmi_data_n),
+					
+					.out_clk			(vin_clk),
+					.out_reset			(vin_reset),
+					.out_vsync			(vin_vsync),
+					.out_hsync			(vin_hsync),
+					.out_de				(vin_de),
+					.out_data			(vin_data),
+					.out_ctl			(vin_ctl),
+					.out_valid			(vin_valid)
+				);
+		
+		jelly_vin_axi4s
+				#(
+					.WIDTH				(24)
+				)
+			i_vin_axi4s
+				(
+					.reset				(vin_reset),
+					.clk				(vin_clk),
+					
+					.in_vsync			(vin_vsync),
+					.in_hsync			(vin_hsync),
+					.in_de				(vin_de),
+					.in_data			(vin_data),
+					.in_ctl				(vin_ctl),
+					
+					.m_axi4s_tuser		(axi4s_memw_tuser),
+					.m_axi4s_tlast		(axi4s_memw_tlast),
+					.m_axi4s_tdata		(axi4s_memw_tdata),
+					.m_axi4s_tvalid		(axi4s_memw_tvalid)
+				);
+		
+		
+		// EDID
+		wire	hdmi_scl_t;
+		wire	hdmi_scl_i;
+		
+		wire	hdmi_sda_t;
+		wire	hdmi_sda_i;
+		
+		IOBUF	i_bufio_hdmi_scl (.IO(hdmi_scl), .I(1'b0), .O(hdmi_scl_i), .T(hdmi_scl_t));
+		IOBUF	i_bufio_hdmi_sda (.IO(hdmi_sda), .I(1'b0), .O(hdmi_sda_i), .T(hdmi_sda_t));
+		
+		
+		wire			bus_en;
+		wire			bus_start;
+		wire			bus_rw;
+		wire	[7:0]	bus_wdata;
+		wire	[7:0]	bus_rdata;
+		
+		jelly_i2c_slave
+				#(
+					.DIVIDER_WIDTH	(3),
+					.DIVIDER_COUNT	(7)
+				)
+			i_i2c_slave
+				(
+					.reset			(~peri_aresetn),
+					.clk			(peri_aclk),
+					
+					.addr			(7'h50),
+					
+					.i2c_scl_i		(hdmi_scl_i),
+					.i2c_scl_t		(hdmi_scl_t),
+					.i2c_sda_i		(hdmi_sda_i),
+					.i2c_sda_t		(hdmi_sda_t),
+					
+					.bus_en			(bus_en),
+					.bus_start		(bus_start),
+					.bus_rw			(bus_rw),
+					.bus_wdata		(bus_wdata),
+					.bus_rdata		(bus_rdata)
+				);
+		
+		reg		[6:0]	reg_edid_addr;
+		always @(posedge peri_aclk) begin
+			if ( !peri_aresetn ) begin
+				reg_edid_addr <= 0;
+			end
+			else begin
+				if ( bus_en && !bus_start ) begin
+					if ( bus_rw == 1'b0 ) begin
+						reg_edid_addr <= bus_wdata;
+					end
+					else begin
+						reg_edid_addr <= reg_edid_addr + 1;
+					end
+				end
+				
+			end
+		end
+		
+		jelly_edid_rom
+			i_edid_rom
+				(
+					.clk		(peri_aclk),
+					.en			(1'b1),
+					.addr		(reg_edid_addr),
+					.dout		(bus_rdata)
+				);
+	end
+	else begin
+		// pattern generator(dummy input)
+		assign	vin_reset = vout_reset;
+		assign	vin_clk   = vout_clk;
+		
+		jelly_pattern_generator_axi4s
+				#(
+					.AXI4S_DATA_WIDTH	(32),
+					.X_NUM				(VIN_X_NUM),
+					.Y_NUM				(VIN_Y_NUM)
+				)
+			i_pattern_generator_axi4s
+				(
+					.aresetn			(~vin_reset),
+					.aclk				(vin_clk),
+					
+					.m_axi4s_tuser		(axi4s_memw_tuser),
+					.m_axi4s_tlast		(axi4s_memw_tlast),
+					.m_axi4s_tdata		(axi4s_memw_tdata),
+					.m_axi4s_tvalid		(axi4s_memw_tvalid),
+					.m_axi4s_tready		(axi4s_memw_tready)
+				);
+	end
+	endgenerate
+	
+	
+	
 	// ----------------------------------------
 	//  VGA-TX
 	// ----------------------------------------
@@ -736,183 +899,31 @@ module top
 	//  HDMI-TX
 	// ----------------------------------------
 	
-	/*
-	
-	assign hdmi_out_en = 1'b1;
-	assign hdmi_hpd    = 1'bz;
-	
-	jelly_dvi_tx
-		i_dvi_tx
-			(
-				.reset		(vout_reset),
-				.clk		(vout_clk),
-				.clk_x5		(vout_clk_x5),
-				
-				.in_vsync	(vout_vsync),
-				.in_hsync	(vout_hsync),
-				.in_de		(vout_de),
-				.in_data	(vout_data),
-				.in_ctl		(4'd0),
-				
-				.out_clk_p	(hdmi_clk_p),
-				.out_clk_n	(hdmi_clk_n),
-				.out_data_p	(hdmi_data_p),
-				.out_data_n	(hdmi_data_n)
-			);
-	
-	*/
-	
-	
-	// ----------------------------------------
-	//  HDMI-RX
-	// ----------------------------------------
-	
-	localparam	IDELAYCTRL_GROUP_HDMIRX = "IODELAY_HDMIRX" ;
-	
-	(* IODELAY_GROUP=IDELAYCTRL_GROUP_HDMIRX *)
-	
-	wire	hdmirx_idelayctrl_rdy;
-	
-	IDELAYCTRL
-		i_idelayctrl_hdmirx
-			(
-				.RST		(ref200_reset),
-				.REFCLK		(ref200_clk),
-				.RDY		(hdmirx_idelayctrl_rdy)
-			);
-	
-	wire	hdmirx_reset;
-	jelly_reset
-		i_reset_hdmirx
-			(
-				.clk		(ref200_clk),
-				.in_reset	(~hdmirx_idelayctrl_rdy || ref200_reset),
-				.out_reset	(hdmirx_reset)
-			);
-	
-	
-	assign hdmi_out_en = 1'b0;
-	assign hdmi_hpd    = 1'b1;
-	
-	
-	wire			vin_vsync;
-	wire			vin_hsync;
-	wire			vin_de;
-	wire	[23:0]	vin_data;
-	wire	[3:0]	vin_ctl;
-	wire			vin_valid;
-	
-	jelly_hdmi_rx
-			#(
-				.IDELAYCTRL_GROUP	(IDELAYCTRL_GROUP_HDMIRX)
-			)
-		i_hdmi_rx
-			(
-				.in_reset			(hdmirx_reset),
-				.in_clk_p			(hdmi_clk_p),
-				.in_clk_n			(hdmi_clk_n),
-				.in_data_p			(hdmi_data_p),
-				.in_data_n			(hdmi_data_n),
-				
-				.out_clk			(vin_clk),
-				.out_reset			(vin_reset),
-				.out_vsync			(vin_vsync),
-				.out_hsync			(vin_hsync),
-				.out_de				(vin_de),
-				.out_data			(vin_data),
-				.out_ctl			(vin_ctl),
-				.out_valid			(vin_valid)
-			);
-	
-	jelly_vin_axi4s
-			#(
-				.WIDTH				(24)
-			)
-		i_vin_axi4s
-			(
-				.reset				(vin_reset),
-				.clk				(vin_clk),
-				
-				.in_vsync			(vin_vsync),
-				.in_hsync			(vin_hsync),
-				.in_de				(vin_de),
-				.in_data			(vin_data),
-				.in_ctl				(vin_ctl),
-				
-				.m_axi4s_tuser		(axi4s_memw_tuser),
-				.m_axi4s_tlast		(axi4s_memw_tlast),
-				.m_axi4s_tdata		(axi4s_memw_tdata),
-				.m_axi4s_tvalid		(axi4s_memw_tvalid)
-			);
-	
-	
-	// EDID
-	wire	hdmi_scl_t;
-	wire	hdmi_scl_i;
-	
-	wire	hdmi_sda_t;
-	wire	hdmi_sda_i;
-	
-	IOBUF	i_bufio_hdmi_scl (.IO(hdmi_scl), .I(1'b0), .O(hdmi_scl_i), .T(hdmi_scl_t));
-	IOBUF	i_bufio_hdmi_sda (.IO(hdmi_sda), .I(1'b0), .O(hdmi_sda_i), .T(hdmi_sda_t));
-	
-	
-	wire			bus_en;
-	wire			bus_start;
-	wire			bus_rw;
-	wire	[7:0]	bus_wdata;
-	wire	[7:0]	bus_rdata;
-	
-	jelly_i2c_slave
-			#(
-				.DIVIDER_WIDTH	(3),
-				.DIVIDER_COUNT	(7)
-			)
-		i_i2c_slave
-			(
-				.reset			(~peri_aresetn),
-				.clk			(peri_aclk),
-				
-				.addr			(7'h50),
-				
-				.i2c_scl_i		(hdmi_scl_i),
-				.i2c_scl_t		(hdmi_scl_t),
-				.i2c_sda_i		(hdmi_sda_i),
-				.i2c_sda_t		(hdmi_sda_t),
-				
-				.bus_en			(bus_en),
-				.bus_start		(bus_start),
-				.bus_rw			(bus_rw),
-				.bus_wdata		(bus_wdata),
-				.bus_rdata		(bus_rdata)
-			);
-	
-	reg		[6:0]	reg_edid_addr;
-	always @(posedge peri_aclk) begin
-		if ( !peri_aresetn ) begin
-			reg_edid_addr <= 0;
-		end
-		else begin
-			if ( bus_en && !bus_start ) begin
-				if ( bus_rw == 1'b0 ) begin
-					reg_edid_addr <= bus_wdata;
-				end
-				else begin
-					reg_edid_addr <= reg_edid_addr + 1;
-				end
-			end
-			
-		end
+	generate
+	if ( !HDMI_RX ) begin
+		assign hdmi_out_en = 1'b1;
+		assign hdmi_hpd    = 1'bz;
+		
+		jelly_dvi_tx
+			i_dvi_tx
+				(
+					.reset		(vout_reset),
+					.clk		(vout_clk),
+					.clk_x5		(vout_clk_x5),
+					
+					.in_vsync	(vout_vsync),
+					.in_hsync	(vout_hsync),
+					.in_de		(vout_de),
+					.in_data	(vout_data),
+					.in_ctl		(4'd0),
+					
+					.out_clk_p	(hdmi_clk_p),
+					.out_clk_n	(hdmi_clk_n),
+					.out_data_p	(hdmi_data_p),
+					.out_data_n	(hdmi_data_n)
+				);
 	end
-	
-	jelly_edid_rom
-		i_edid_rom
-			(
-				.clk		(peri_aclk),
-				.en			(1'b1),
-				.addr		(reg_edid_addr),
-				.dout		(bus_rdata)
-			);
+	endgenerate
 	
 	
 	
@@ -943,22 +954,9 @@ module top
 	//  Debug
 	// ----------------------------------------
 	
-	reg		[7:1]		reg_pmod_a;
+	assign pmod_a[7:0] = 0;
 	
 	/*
-	always @(posedge video_clk ) begin
-		reg_pmod_a[1] <= axi4s_memr_tuser;
-		reg_pmod_a[2] <= axi4s_memr_tlast;
-		reg_pmod_a[3] <= axi4s_memr_tvalid;
-		reg_pmod_a[4] <= axi4s_memr_tready;
-		reg_pmod_a[5] <= vout_vsync;
-		reg_pmod_a[6] <= vout_hsync;
-		reg_pmod_a[7] <= vout_de;
-	end
-	assign pmod_a[0]   = video_clk;
-	assign pmod_a[7:1] = reg_pmod_a[7:1];
-	*/
-	
 	assign pmod_a[0]   = 1'b0; //vin_clk;
 	assign pmod_a[1]   = vin_vsync;
 	assign pmod_a[2]   = vin_hsync;
@@ -966,6 +964,7 @@ module top
 	assign pmod_a[4]   = vin_reset;
 	assign pmod_a[5]   = vin_valid;
 	assign pmod_a[7:6] = 0;
+	*/
 	
 endmodule
 
