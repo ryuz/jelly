@@ -74,6 +74,13 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
+      <File Path="$PPRDIR/../../../../rtl/video/hdmi_rx/jelly_serdes_1to5_dpa_7series.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
       <File Path="$PPRDIR/../../../../rtl/bus/jelly_axi4_dma_writer.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
@@ -116,7 +123,7 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/video/hdmi_rx/jelly_serdes_1to5_dpa_7series.v">
+      <File Path="$PPRDIR/../../../../rtl/video/hdmi_rx/jelly_serdes_1to10_dpa_7series.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -151,7 +158,14 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/video/hdmi_rx/jelly_serdes_1to10_dpa_7series.v">
+      <File Path="$PPRDIR/../../../../rtl/video/hdmi_rx/jelly_hdmi_rx_dpa.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../../rtl/video/hdmi_rx/jelly_hdmi_rx_decode.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -179,14 +193,14 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/video/hdmi_rx/jelly_hdmi_rx_decode.v">
+      <File Path="$PPRDIR/../../../../rtl/misc/jelly_edid_rom.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/video/hdmi_rx/jelly_hdmi_rx_dpa.v">
+      <File Path="$PPRDIR/../../../../rtl/video/hdmi_rx/jelly_hdmi_rx.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -203,7 +217,6 @@
         <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="hw_handoff/ps_core_bd.tcl"/>
         <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="hw_handoff/ps_core.hwh"/>
         <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ps_core_ooc.xdc"/>
-        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_auto_pc_0/ps_core_auto_pc_0.xci"/>
         <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_s00_data_fifo_0/ps_core_s00_data_fifo_0.xci"/>
         <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_s00_regslice_0/ps_core_s00_regslice_0.xci"/>
         <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="hdl/ps_core.v"/>
@@ -214,6 +227,7 @@
         <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_proc_sys_reset_mem_0_1/ps_core_proc_sys_reset_mem_0.xci"/>
         <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_axi_protocol_converter_0_0_1/ps_core_axi_protocol_converter_0_0.xci"/>
         <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_axi_interconnect_1_0_1/ps_core_axi_interconnect_1_0.xci"/>
+        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_auto_pc_0/ps_core_auto_pc_0.xci"/>
       </File>
       <File Path="$PPRDIR/../../../../rtl/video/vout/jelly_vsync_generator.v">
         <FileInfo>
@@ -257,13 +271,6 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/misc/edid_rom.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
       <File Path="$PPRDIR/../../../../rtl/misc/jelly_i2c_slave.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
@@ -271,14 +278,14 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/video/hdmi_rx/jelly_hdmi_rx.v">
+      <File Path="$PPRDIR/../../../../rtl/video/vin/jelly_vin_axi4s.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/video/vin/jelly_vin_axi4s.v">
+      <File Path="$PPRDIR/../../../../rtl/library/jelly_reset.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>

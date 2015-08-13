@@ -5,6 +5,7 @@
 
 module top
 		#(
+			parameter	HDMI_RX     = 1,
 			parameter	BUF_STRIDE  = 4096,
 			parameter	IMAGE_X_NUM = 640,
 			parameter	IMAGE_Y_NUM = 480
@@ -64,8 +65,34 @@ module top
 		);
 	
 	
-	wire	in_reset = push_sw[0];
+	// -------------------------------------
+	//  Clock & Reset
+	// -------------------------------------
 	
+	// peripheral clock (from PS)
+	wire			peri_aresetn;
+	wire			peri_aclk;
+	
+	// memory clock (from PS)
+	wire			mem_aresetn;
+	wire			mem_aclk;
+	
+	// video output clock (from PS)
+	wire			vout_reset;
+	wire			vout_clk;
+	wire			vout_clk_x5;
+	
+	// video input clock (from HDMI-RX)
+	wire			vin_reset;
+	wire			vin_clk;
+	
+	// 200MHz reference clock (from board)
+	wire			ref200_reset;
+	wire			ref200_clk;
+	
+	
+	
+	// 125 MHz
 	wire	clk125;
 	BUFG
 		i_ibufg_clk125
@@ -73,7 +100,6 @@ module top
 				.I		(in_clk125),
 				.O		(clk125)
 			);
-	
 	
 	// clk200
 	wire	mmcm_clk200, clk200;
@@ -136,64 +162,29 @@ module top
 				.CLKINSTOPPED        	(),
 				.CLKFBSTOPPED        	(),
 				.PWRDWN              	(1'b0),
-				.RST                 	(in_reset)
+				.RST                 	(~mem_aresetn)
 			);
 	
-	BUFG
-		i_bufg_clkfb
+	BUFG	i_bufg_clkfb (.I(mmcm_clkfb),  .O(clkfb));
+	BUFG	i_bugf_clk200(.I(mmcm_clk200), .O(clk200));
+	
+	assign ref200_clk = clk200;
+	
+	jelly_reset
+		i_reset_refclk
 			(
-				.O 			(clkfb),
-				.I			(mmcm_clkfb)
+				.clk		(ref200_clk),
+				.in_reset	(~mem_aresetn),
+				.out_reset	(ref200_reset)
 			);
 	
-	BUFG
-		i_bugf_clk200
-			(
-				.O   		(clk200),
-				.I   		(mmcm_clk200)
-			);
-	
-	
-	wire				refclk_reset_async = (in_reset || !mmcm_locked);
-	reg		[3:0]		refclk_reset_count;
-	reg					refclk_reset;
-	always @(posedge clk200 or posedge refclk_reset_async) begin
-		if ( refclk_reset_async ) begin
-			refclk_reset_count <= 4'd15;
-			refclk_reset       <= 1'b0; 
-		end
-		else begin
-			if ( refclk_reset_count > 0 ) begin
-				refclk_reset_count <= refclk_reset_count - 1'b1;
-			end
-			refclk_reset <= (refclk_reset_count != 0);
-		end
-	end
-	
-	IDELAYCTRL
-		i_idelayctrl
-			(
-				.RST		(refclk_reset),
-				.REFCLK		(clk200),
-				.RDY		()
-			);
 	
 	
 	
 	// ----------------------------------------
 	//  Processor System
 	// ----------------------------------------
-
-	wire			peri_aresetn;
-	wire			peri_aclk;
-
-	wire			mem_aresetn;
-	wire			mem_aclk;
-
-	wire			video_reset;
-	wire			video_clk;
-	wire			video_clk_x5;
-
+	
 	wire	[31:0]	axi4l_peri00_awaddr;
 	wire	[2:0]	axi4l_peri00_awprot;
 	wire			axi4l_peri00_awvalid;
@@ -263,9 +254,9 @@ module top
 				.mem_aresetn					(mem_aresetn),
 				.mem_aclk						(mem_aclk),
 				
-				.video_reset					(video_reset),
-				.video_clk						(video_clk),
-				.video_clk_x5					(video_clk_x5),
+				.video_reset					(vout_reset),
+				.video_clk						(vout_clk),
+				.video_clk_x5					(vout_clk_x5),
 				
 				.m_axi4l_peri00_awaddr			(axi4l_peri00_awaddr),
 				.m_axi4l_peri00_awprot			(axi4l_peri00_awprot),
@@ -615,8 +606,8 @@ module top
 				.m_axi4_rvalid		(axi4_mem00_rvalid),
 				.m_axi4_rready		(axi4_mem00_rready),
 				
-				.m_axi4s_aresetn	(~video_reset),
-				.m_axi4s_aclk		(video_clk),
+				.m_axi4s_aresetn	(~vout_reset),
+				.m_axi4s_aclk		(vout_clk),
 				.m_axi4s_tuser		(axi4s_memr_tuser),
 				.m_axi4s_tlast		(axi4s_memr_tlast),
 				.m_axi4s_tdata		(axi4s_memr_tdata),
@@ -633,36 +624,6 @@ module top
 				.s_wb_stb_i			(wb_vdmar_stb_i),
 				.s_wb_ack_o			(wb_vdmar_ack_o)
 		);
-	
-	/*
-	wire	[0:0]			axi4s_vout_tuser;
-	wire					axi4s_vout_tlast;
-	wire	[23:0]			axi4s_vout_tdata;
-	wire					axi4s_vout_tvalid;
-	wire					axi4s_vout_tready;
-	
-	jelly_fifo_async_fwtf
-			#(
-				.DATA_WIDTH			(2+24),
-				.PTR_WIDTH			(9)
-			)
-		i_fifo_async_fwtf
-			(
-				.s_reset			(~mem_aresetn),
-				.s_clk				(mem_aclk),
-				.s_data				({axi4s_memr_tuser[0], axi4s_memr_tlast, axi4s_memr_tdata}),
-				.s_valid			(axi4s_memr_tvalid),
-				.s_ready			(axi4s_memr_tready),
-				.s_free_count		(),
-				
-				.m_reset			(video_reset),
-				.m_clk				(video_clk),
-				.m_data				({axi4s_vout_tuser[0], axi4s_vout_tlast, axi4s_vout_tdata}),
-				.m_valid			(axi4s_vout_tvalid),
-				.m_ready			(axi4s_vout_tready),
-				.m_data_count		()
-			);
-	*/
 	
 	wire					vout_vsgen_vsync;
 	wire					vout_vsgen_hsync;
@@ -692,8 +653,8 @@ module top
 			)
 		i_vsync_generator
 			(
-				.reset				(video_reset),
-				.clk				(video_clk),
+				.reset				(vout_reset),
+				.clk				(vout_clk),
 				
 				.out_vsync			(vout_vsgen_vsync),
 				.out_hsync			(vout_vsgen_hsync),
@@ -723,8 +684,8 @@ module top
 			)
 		i_vout_axi4s
 			(
-				.reset				(video_reset),
-				.clk				(video_clk),
+				.reset				(vout_reset),
+				.clk				(vout_clk),
 				
 				.s_axi4s_tuser		(axi4s_memr_tuser),
 				.s_axi4s_tlast		(axi4s_memr_tlast),
@@ -744,6 +705,7 @@ module top
 				.out_ctl			(vout_ctl)
 			);
 	
+	
 	// ----------------------------------------
 	//  VGA-TX
 	// ----------------------------------------
@@ -754,7 +716,7 @@ module top
 	(* IOB = "true" *)	reg		[5:0]	reg_vga_g;
 	(* IOB = "true" *)	reg		[4:0]	reg_vga_b;
 	
-	always @(posedge video_clk) begin
+	always @(posedge vout_clk) begin
 		reg_vga_hsync <= vout_hsync;
 		reg_vga_vsync <= vout_vsync;
 		reg_vga_r     <= vout_data[23:19];
@@ -782,9 +744,9 @@ module top
 	jelly_dvi_tx
 		i_dvi_tx
 			(
-				.reset		(video_reset),
-				.clk		(video_clk),
-				.clk_x5		(video_clk_x5),
+				.reset		(vout_reset),
+				.clk		(vout_clk),
+				.clk_x5		(vout_clk_x5),
 				
 				.in_vsync	(vout_vsync),
 				.in_hsync	(vout_hsync),
@@ -805,11 +767,34 @@ module top
 	//  HDMI-RX
 	// ----------------------------------------
 	
+	localparam	IDELAYCTRL_GROUP_HDMIRX = "IODELAY_HDMIRX" ;
+	
+	(* IODELAY_GROUP=IDELAYCTRL_GROUP_HDMIRX *)
+	
+	wire	hdmirx_idelayctrl_rdy;
+	
+	IDELAYCTRL
+		i_idelayctrl_hdmirx
+			(
+				.RST		(ref200_reset),
+				.REFCLK		(ref200_clk),
+				.RDY		(hdmirx_idelayctrl_rdy)
+			);
+	
+	wire	hdmirx_reset;
+	jelly_reset
+		i_reset_hdmirx
+			(
+				.clk		(ref200_clk),
+				.in_reset	(~hdmirx_idelayctrl_rdy || ref200_reset),
+				.out_reset	(hdmirx_reset)
+			);
+	
+	
 	assign hdmi_out_en = 1'b0;
 	assign hdmi_hpd    = 1'b1;
 	
-//	wire			vin_clk;
-//	wire			vin_reset;
+	
 	wire			vin_vsync;
 	wire			vin_hsync;
 	wire			vin_de;
@@ -818,45 +803,47 @@ module top
 	wire			vin_valid;
 	
 	jelly_hdmi_rx
+			#(
+				.IDELAYCTRL_GROUP	(IDELAYCTRL_GROUP_HDMIRX)
+			)
 		i_hdmi_rx
 			(
-				.in_reset	(video_reset),
-				.in_clk_p	(hdmi_clk_p),
-				.in_clk_n	(hdmi_clk_n),
-				.in_data_p	(hdmi_data_p),
-				.in_data_n	(hdmi_data_n),
+				.in_reset			(hdmirx_reset),
+				.in_clk_p			(hdmi_clk_p),
+				.in_clk_n			(hdmi_clk_n),
+				.in_data_p			(hdmi_data_p),
+				.in_data_n			(hdmi_data_n),
 				
-				.out_clk	(vin_clk),
-				.out_reset	(vin_reset),
-				.out_vsync	(vin_vsync),
-				.out_hsync	(vin_hsync),
-				.out_de		(vin_de),
-				.out_data	(vin_data),
-				.out_ctl	(vin_ctl),
-				.out_valid	(vin_valid)
+				.out_clk			(vin_clk),
+				.out_reset			(vin_reset),
+				.out_vsync			(vin_vsync),
+				.out_hsync			(vin_hsync),
+				.out_de				(vin_de),
+				.out_data			(vin_data),
+				.out_ctl			(vin_ctl),
+				.out_valid			(vin_valid)
 			);
 	
 	jelly_vin_axi4s
 			#(
-				.WIDTH			(24)
+				.WIDTH				(24)
 			)
 		i_vin_axi4s
 			(
-				.reset			(vin_reset),
-				.clk			(vin_clk),
+				.reset				(vin_reset),
+				.clk				(vin_clk),
 				
-				.in_vsync		(vin_vsync),
-				.in_hsync		(vin_hsync),
-				.in_de			(vin_de),
-				.in_data		(vin_data),
-				.in_ctl			(vin_ctl),
+				.in_vsync			(vin_vsync),
+				.in_hsync			(vin_hsync),
+				.in_de				(vin_de),
+				.in_data			(vin_data),
+				.in_ctl				(vin_ctl),
 				
-				.m_axi4s_tuser	(axi4s_memw_tuser),
-				.m_axi4s_tlast	(axi4s_memw_tlast),
-				.m_axi4s_tdata	(axi4s_memw_tdata),
-				.m_axi4s_tvalid	(axi4s_memw_tvalid)
+				.m_axi4s_tuser		(axi4s_memw_tuser),
+				.m_axi4s_tlast		(axi4s_memw_tlast),
+				.m_axi4s_tdata		(axi4s_memw_tdata),
+				.m_axi4s_tvalid		(axi4s_memw_tvalid)
 			);
-	
 	
 	
 	// EDID
@@ -878,13 +865,13 @@ module top
 	
 	jelly_i2c_slave
 			#(
-				.DIVIDER_WIDTH	(4),
-				.DIVIDER_COUNT	(15)
+				.DIVIDER_WIDTH	(3),
+				.DIVIDER_COUNT	(7)
 			)
 		i_i2c_slave
 			(
-				.reset			(in_reset),
-				.clk			(clk125),
+				.reset			(~peri_aresetn),
+				.clk			(peri_aclk),
 				
 				.addr			(7'h50),
 				
@@ -901,8 +888,8 @@ module top
 			);
 	
 	reg		[6:0]	reg_edid_addr;
-	always @(posedge clk125) begin
-		if ( in_reset ) begin
+	always @(posedge peri_aclk) begin
+		if ( !peri_aresetn ) begin
 			reg_edid_addr <= 0;
 		end
 		else begin
@@ -918,10 +905,10 @@ module top
 		end
 	end
 	
-	edid_rom
+	jelly_edid_rom
 		i_edid_rom
 			(
-				.clk		(clk125),
+				.clk		(peri_aclk),
 				.en			(1'b1),
 				.addr		(reg_edid_addr),
 				.dout		(bus_rdata)

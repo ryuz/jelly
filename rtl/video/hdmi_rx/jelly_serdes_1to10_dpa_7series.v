@@ -21,7 +21,8 @@ module jelly_serdes_1to10_dpa_7series
 			parameter	PIN_SWAP              = 0,
 			parameter	IDELAY_VALUE_MASTE    = 0,
 			parameter	IDELAY_VALUE_SLAVE    = IDELAY_VALUE_MASTE+1,
-			parameter	IOSTANDARD            = "TMDS_33"
+			parameter	IDELAYCTRL_GROUP      = "IDELAYCTRL_GROUP",
+			parameter	IOSTANDARD            = "LVDS25"
 		)
 		(
 			input	wire			reset,
@@ -231,6 +232,7 @@ module jelly_serdes_1to10_dpa_7series
 				.PIN_SWAP					(PIN_SWAP),
 				.IDELAY_VALUE_MASTE			(IDELAY_VALUE_MASTE),
 				.IDELAY_VALUE_SLAVE			(IDELAY_VALUE_SLAVE),
+				.IDELAYCTRL_GROUP			(IDELAYCTRL_GROUP),
 				.IOSTANDARD					(IOSTANDARD)
 			)
 		i_serdes_1to5_dpa_7series

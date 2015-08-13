@@ -25,6 +25,7 @@ module jelly_hdmi_rx
 			parameter	DPA_EYE_WIDTH_TH      = 5,
 			parameter	HIGH_PERFORMANCE_MODE = "FALSE",
 			parameter	PIN_SWAP              = 0,
+			parameter	IDELAYCTRL_GROUP      = "IDELAYCTRL_HDMIRX",
 			parameter	IOSTANDARD            = "TMDS_33"
 		)
 		(
@@ -369,6 +370,7 @@ module jelly_hdmi_rx
 				.PIN_SWAP				(PIN_SWAP),
 				.IDELAY_VALUE_MASTE		(15),
 				.IDELAY_VALUE_SLAVE		(15 + DPA_TAP_DIFF),
+				.IDELAYCTRL_GROUP		(IDELAYCTRL_GROUP),
 				.IOSTANDARD				(IOSTANDARD)
 			)
 		i_hdmi_rx_dpa_0
@@ -404,6 +406,7 @@ module jelly_hdmi_rx
 				.PIN_SWAP				(PIN_SWAP),
 				.IDELAY_VALUE_MASTE		(0),
 				.IDELAY_VALUE_SLAVE		(0 + DPA_TAP_DIFF),
+				.IDELAYCTRL_GROUP		(IDELAYCTRL_GROUP),
 				.IOSTANDARD				(IOSTANDARD)
 			)
 		i_hdmi_rx_dpa_1
@@ -438,6 +441,7 @@ module jelly_hdmi_rx
 				.PIN_SWAP				(PIN_SWAP),
 				.IDELAY_VALUE_MASTE		(0),
 				.IDELAY_VALUE_SLAVE		(0 + DPA_TAP_DIFF),
+				.IDELAYCTRL_GROUP		(IDELAYCTRL_GROUP),
 				.IOSTANDARD				(IOSTANDARD)
 			)
 		i_hdmi_rx_dpa_2

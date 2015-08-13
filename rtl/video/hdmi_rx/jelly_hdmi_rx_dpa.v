@@ -21,6 +21,7 @@ module jelly_hdmi_rx_dpa
 			parameter	PIN_SWAP              = 0,
 			parameter	IDELAY_VALUE_MASTE    = 0,
 			parameter	IDELAY_VALUE_SLAVE    = IDELAY_VALUE_MASTE+1,
+			parameter	IDELAYCTRL_GROUP      = "IDELAYCTRL_HDMIRX",
 			parameter	IOSTANDARD            = "TMDS_33"
 		)
 		(
@@ -111,6 +112,7 @@ module jelly_hdmi_rx_dpa
 				.PIN_SWAP				(PIN_SWAP),
 				.IDELAY_VALUE_MASTE		(IDELAY_VALUE_MASTE),
 				.IDELAY_VALUE_SLAVE		(IDELAY_VALUE_SLAVE),
+				.IDELAYCTRL_GROUP		(IDELAYCTRL_GROUP),
 				.IOSTANDARD				(IOSTANDARD)
 			)
 		i_serdes_1to10_dpa_7series

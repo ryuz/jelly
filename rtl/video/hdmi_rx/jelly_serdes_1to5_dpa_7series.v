@@ -20,7 +20,8 @@ module jelly_serdes_1to5_dpa_7series
 			parameter	PIN_SWAP              = 0,
 			parameter	IDELAY_VALUE_MASTE    = 0,
 			parameter	IDELAY_VALUE_SLAVE    = IDELAY_VALUE_MASTE+1,
-			parameter	IOSTANDARD            = "TMDS_33"
+			parameter	IDELAYCTRL_GROUP      = "IDELAYCTRL_GROUP",
+			parameter	IOSTANDARD            = "LVDS25"
 		)
 		(
 			input	wire			reset,
@@ -61,6 +62,8 @@ module jelly_serdes_1to5_dpa_7series
 	wire	in_data_slave  = in_data_n ^ PIN_SWAP;
 	
 	wire	dly_data_master;
+	
+	(* IODELAY_GROUP=IDELAYCTRL_GROUP *)
 	IDELAYE2
 			#(
 				.HIGH_PERFORMANCE_MODE	(HIGH_PERFORMANCE_MODE),
@@ -124,7 +127,9 @@ module jelly_serdes_1to5_dpa_7series
 				.SHIFTOUT2 				()
 			);
 	
+	
 	wire	dly_data_slave;
+	(* IODELAY_GROUP=IDELAYCTRL_GROUP *)
 	IDELAYE2
 			#(
 				.HIGH_PERFORMANCE_MODE	(HIGH_PERFORMANCE_MODE),
