@@ -265,7 +265,7 @@ module jelly_vdma_axi4s_to_axi4_control
 					end
 				end
 			end
-
+			
 			// wait frame start
 			if ( reg_busy ) begin
 				if ( axi4s_tvalid && axi4s_tuser ) begin 

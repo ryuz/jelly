@@ -109,7 +109,8 @@ module jelly_vdma_axi4s_to_axi4
 			input	wire							s_wb_we_i,
 			input	wire	[WB_SEL_WIDTH-1:0]		s_wb_sel_i,
 			input	wire							s_wb_stb_i,
-			output	wire							s_wb_ack_o
+			output	wire							s_wb_ack_o,
+			output	wire							out_irq
 		);
 	
 	// address mask
@@ -161,7 +162,9 @@ module jelly_vdma_axi4s_to_axi4
 	wire	[SIZE_WIDTH-1:0]		sig_monitor_size;
 	wire	[AXI4_LEN_WIDTH-1:0]	sig_monitor_awlen;
 	
-	reg								reg_prev_index;
+	reg		[2:0]					reg_prev_index;
+	
+	reg								reg_irq;
 	
 	always @(posedge s_wb_clk_i ) begin
 		if ( s_wb_rst_i ) begin
@@ -172,7 +175,8 @@ module jelly_vdma_axi4s_to_axi4
 			reg_param_height <= INIT_PARAM_HEIGHT;
 			reg_param_size   <= INIT_PARAM_SIZE;
 			reg_param_awlen  <= INIT_PARAM_AWLEN;
-			reg_prev_index   <= 1'b0;
+			reg_prev_index   <= 3'b000;
+			reg_irq          <= 1'b0;
 		end
 		else if ( s_wb_stb_i && s_wb_we_i ) begin
 			case ( s_wb_adr_i )
@@ -187,8 +191,14 @@ module jelly_vdma_axi4s_to_axi4
 		end
 		
 		// update
-		reg_prev_index <= sig_ctl_index[0];
-		if ( reg_prev_index != sig_ctl_index[0] ) begin
+		reg_irq           <= 1'b0;
+		reg_prev_index[0] <= sig_ctl_index[0];
+		reg_prev_index[1] <= reg_prev_index[0];
+		reg_prev_index[2] <= reg_prev_index[1];
+		if ( reg_prev_index[2] != reg_prev_index[1] ) begin
+			// IRQ puls
+			reg_irq <= 1'b1;
+			
 			// update flag auto clear
 			reg_ctl_control[1] <= 1'b0;
 			
@@ -221,6 +231,7 @@ module jelly_vdma_axi4s_to_axi4
 	
 	assign s_wb_ack_o = s_wb_stb_i;
 	
+	assign out_irq    = reg_irq;
 	
 	
 	// ---------------------------------
