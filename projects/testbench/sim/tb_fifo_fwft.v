@@ -37,7 +37,7 @@ module tb_fifo_fwft();
 		#(
 			.DATA_WIDTH		(DATA_WIDTH),
 			.PTR_WIDTH		(PTR_WIDTH),
-			.DOUT_REGS		(1),
+			.DOUT_REGS		(0),
 			.MASTER_REGS	(0)
 		)
 	i_fifo_fwtf

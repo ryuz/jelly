@@ -67,6 +67,7 @@ module jelly_pipeline_control
 	end
 	endgenerate
 	
+	
 	generate
 	if ( MASTER_IN_REGS ) begin
 		// CKE‚ðFF‘Å‚¿
@@ -178,14 +179,12 @@ module jelly_pipeline_control
 		
 		
 		// cke
-//		wire	internal_cke = (cke & (!ff_valid || ff_ready));
-		
-		assign s_ready = stage_cke[0];
-		
 		assign stage_cke[PIPELINE_STAGES-1] = ((!ff_valid || ff_ready) && cke);
-		for ( j = PIPELINE_STAGES-2; j >= 0; j = j-1 ) begin : cke_loop
+		for ( j = 0; j < PIPELINE_STAGES-1; j = j+1 ) begin : cke_loop
 			assign stage_cke[j] = ((!stage_valid[j] || stage_cke[j+1]) && cke);
 		end
+		
+		assign s_ready = stage_cke[0];
 		
 		// valid
 		integer							i;
