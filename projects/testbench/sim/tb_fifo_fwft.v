@@ -18,10 +18,10 @@ module tb_fifo_fwft();
 	always #(RATE/2.0)	clk = ~clk;
 	
 	reg		reset = 1'b1;
-	initial #(RATE*100)	reset = 1'b0;
+	initial #(RATE*100.5)	reset = 1'b0;
 	
 	localparam	DATA_WIDTH = 16;
-	localparam	PTR_WIDTH  = 2;
+	localparam	PTR_WIDTH  = 4;
 	
 	wire	[DATA_WIDTH-1:0]	s_data;
 	wire						s_valid;
@@ -37,7 +37,8 @@ module tb_fifo_fwft();
 		#(
 			.DATA_WIDTH		(DATA_WIDTH),
 			.PTR_WIDTH		(PTR_WIDTH),
-			.DOUT_REGS		(1)
+			.DOUT_REGS		(1),
+			.MASTER_REGS	(1)
 		)
 	i_fifo_fwtf
 		(
@@ -54,6 +55,53 @@ module tb_fifo_fwft();
 			.m_ready		(m_ready),
 			.m_data_count	(m_data_count)
 		);
+	
+	// 連続性テスト
+	reg		[DATA_WIDTH-1:0]	reg_data  = 0;
+	reg							reg_valid = 0;
+	reg							reg_ready = 0;
+	
+	assign s_data  = reg_data;
+	assign s_valid = reg_valid;
+	assign m_ready = reg_ready;
+	
+	localparam	TEST_SIZE = 8;
+	integer	i;
+	
+	initial begin
+		#(RATE*200);
+		
+		while ( 1 ) begin
+			reg_data = 0;
+			while ( s_data < TEST_SIZE ) begin
+				@(negedge clk);
+				if ( s_valid && s_ready ) begin reg_data = reg_data + 1; end
+				
+				if ( !s_valid || s_ready ) begin
+					reg_valid = {$random};
+				end
+			end
+			reg_valid = 1'b0;
+			
+			for ( i = 0; i < 16; i = i+1 ) begin
+				@(negedge clk);
+			end
+			
+			reg_ready = 1'b1;
+			for ( i = 0; i < TEST_SIZE; i = i+1 ) begin
+				@(negedge clk);
+			end
+			reg_ready = 1'b0;
+			
+			for ( i = 0; i < 16; i = i+1 ) begin
+				@(negedge clk);
+			end
+		end
+	end
+	
+	
+	/*
+	// ランダムテスト
 	
 	// write
 	reg		[DATA_WIDTH-1:0]	reg_data;
@@ -98,6 +146,8 @@ module tb_fifo_fwft();
 		end
 	end
 	assign m_ready = reg_ready;
+	*/
+	
 	
 endmodule
 

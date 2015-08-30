@@ -174,7 +174,7 @@ module jelly_vdma_axi4_to_axi4s_core
 					.ASYNC				(ASYNC),
 					.DATA_WIDTH			(2+AXI4_DATA_WIDTH),
 					.PTR_WIDTH			(FIFO_PTR_WIDTH),
-					.MASTER_REGS		(0)
+					.MASTER_REGS		(1)
 				)
 			i_fifo_generic_fwtf
 				(
@@ -264,7 +264,7 @@ module jelly_vdma_axi4_to_axi4s_core
 					.ASYNC				(ASYNC),
 					.DATA_WIDTH			(2+AXI4_DATA_WIDTH),
 					.PTR_WIDTH			(FIFO_PTR_WIDTH),
-					.MASTER_REGS		(0)
+					.MASTER_REGS		(1)
 				)
 			i_fifo_generic_fwtf
 				(

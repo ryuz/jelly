@@ -52,7 +52,7 @@ module jelly_fifo_generic_fwtf
 					.RAM_TYPE		(RAM_TYPE),
 					.MASTER_REGS	(MASTER_REGS)
 				)
-			i_fifo_fwtf
+			i_fifo_async_fwtf
 				(
 					.s_reset		(s_reset),
 					.s_clk			(s_clk),

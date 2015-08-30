@@ -10,7 +10,8 @@ module tb_pipeline_control();
 		$dumpfile("tb_pipeline_control.vcd");
 		$dumpvars(0, tb_pipeline_control);
 		
-		#10000;
+		#100000;
+			$display("Timeout");
 			$finish;
 	end
 	
@@ -21,6 +22,11 @@ module tb_pipeline_control();
 	initial #(RATE*100)	reset = 1'b0;
 	
 	localparam	DATA_WIDTH = 16;
+	
+	reg								cke = 1;
+	always @(posedge clk) begin
+		cke <= {$random};
+	end
 	
 	
 	wire	[DATA_WIDTH-1:0]		s_data;
@@ -44,12 +50,15 @@ module tb_pipeline_control();
 				.PIPELINE_STAGES	(3),
 	//			.AUTO_VALID			(1),
 				.S_DATA_WIDTH		(DATA_WIDTH),
-				.M_DATA_WIDTH		(DATA_WIDTH)
+				.M_DATA_WIDTH		(DATA_WIDTH),
+				.MASTER_IN_REGS		(1'b0),
+				.MASTER_OUT_REGS	(1'b0)
 			)
 		i_pipeline_control
 			(
 				.reset				(reset),
 				.clk				(clk),
+				.cke				(cke),
 				
 				.s_data				(s_valid ? s_data : {DATA_WIDTH{1'bx}}),
 				.s_valid			(s_valid),
@@ -92,7 +101,7 @@ module tb_pipeline_control();
 			reg_data  <= 0;
 			reg_valid <= 1'b0;
 		end
-		else begin
+		else if ( cke ) begin
 			if ( !(s_valid && !s_ready) ) begin
 				reg_valid <= {$random};
 			end
@@ -114,12 +123,17 @@ module tb_pipeline_control();
 			reg_expectation_value  <= 0;
 			reg_ready              <= 1'b0;
 		end
-		else begin
+		else if ( cke ) begin
 			reg_ready <= {$random};
 			
 			if ( m_valid && m_ready ) begin
 				if ( m_data != reg_expectation_value ) begin
 					$display("error:%h", m_data);
+				end
+				
+				if ( reg_expectation_value > 1000 ) begin
+					$display("OK");
+					$finish;
 				end
 				
 				reg_expectation_value <= reg_expectation_value + 1'b1;

@@ -21,7 +21,8 @@ module jelly_pipeline_control
 			parameter	M_DATA_WIDTH      = 8,
 			parameter	AUTO_VALID        = 0,
 			parameter	INIT_DATA         = {M_DATA_WIDTH{1'bx}},
-			parameter	MASTER_REGS       = 1
+			parameter	MASTER_IN_REGS    = 1,
+			parameter	MASTER_OUT_REGS   = 1
 		)
 		(
 			input	wire							reset,
@@ -48,94 +49,167 @@ module jelly_pipeline_control
 			output	wire							buffered
 		);
 	
+	
 	// auto valid control
 	genvar							j;
 	wire	[PIPELINE_STAGES-1:0]	tmp_next_valid;
 	generate
 	if ( AUTO_VALID ) begin
-		assign tmp_next_valid[0] = src_valid;
-		for ( j = 1; j < PIPELINE_STAGES; j = j+1 ) begin : balid_loop
-			assign tmp_next_valid[j] = stage_valid[j-1];
+		assign tmp_next_valid[0] = stage_cke[0] ? src_valid : stage_valid[0];
+		for ( j = 1; j < PIPELINE_STAGES; j = j+1 ) begin : valid_loop
+			assign tmp_next_valid[j] = stage_cke[j] ? stage_valid[j-1] : stage_valid[j];
 		end
 	end
 	else begin
-		assign tmp_next_valid = next_valid;
+		for ( j = 0; j < PIPELINE_STAGES; j = j+1 ) begin : valid_loop
+			assign tmp_next_valid[j] = stage_cke[j] ? next_valid[j] :  stage_valid[j];
+		end
 	end
 	endgenerate
 	
-	
-	// cke
-	integer							i;
-	wire							sink_ready_next;
-	reg		[PIPELINE_STAGES-1:0]	reg_cke,     next_cke;
-	reg								reg_s_ready, next_s_ready;
-	always @* begin
-		next_cke[PIPELINE_STAGES-1] = (sink_ready_next || (!stage_valid[PIPELINE_STAGES-1] && !tmp_next_valid[PIPELINE_STAGES-1]));
-		for ( i = PIPELINE_STAGES-2; i >= 0; i = i-1 ) begin
-			next_cke[i] = (next_cke[i+1] || (!stage_valid[i] && !tmp_next_valid[i]));
+	generate
+	if ( MASTER_IN_REGS ) begin
+		// CKE‚ðFF‘Å‚¿
+		
+		// cke
+		integer							i;
+		wire							sink_ready_next;
+		reg		[PIPELINE_STAGES-1:0]	reg_cke,     next_cke;
+		reg								reg_s_ready, next_s_ready;
+		always @* begin
+			next_cke[PIPELINE_STAGES-1] = (sink_ready_next || !tmp_next_valid[PIPELINE_STAGES-1]);
+			for ( i = PIPELINE_STAGES-2; i >= 0; i = i-1 ) begin
+				next_cke[i] = (next_cke[i+1] || !tmp_next_valid[i]);
+			end
+			next_s_ready = next_cke[0];
 		end
-		next_s_ready = next_cke[0];
-	end
-	
-	always @(posedge clk) begin
-		if ( reset ) begin
-			reg_cke     <= {PIPELINE_STAGES{1'b1}};
-			reg_s_ready <= 1'b1;
-		end
-		else if ( cke ) begin
-			reg_cke     <= next_cke;
-			reg_s_ready <= next_s_ready;
-		end
-	end
-	
-	// valid
-	reg		[PIPELINE_STAGES-1:0]	reg_valid;
-	always @(posedge clk) begin
-		for ( i = 0; i < PIPELINE_STAGES; i = i+1 ) begin
+		
+		always @(posedge clk) begin
 			if ( reset ) begin
-				reg_valid[i] <= 1'b0;
+				reg_cke     <= {PIPELINE_STAGES{1'b1}};
+				reg_s_ready <= 1'b1;
 			end
-			else if ( cke && reg_cke[i] ) begin
-				reg_valid[i] <= tmp_next_valid[i];
+			else if ( cke ) begin
+				reg_cke     <= next_cke;
+				reg_s_ready <= next_s_ready;
 			end
 		end
+		
+		// valid
+		reg		[PIPELINE_STAGES-1:0]	reg_valid;
+		always @(posedge clk) begin
+			for ( i = 0; i < PIPELINE_STAGES; i = i+1 ) begin
+				if ( reset ) begin
+					reg_valid[i] <= 1'b0;
+				end
+				else if ( cke && reg_cke[i] ) begin
+					reg_valid[i] <= tmp_next_valid[i];
+				end
+			end
+		end
+		
+		// slave port
+		assign s_ready = reg_s_ready;
+		
+		// master port
+		jelly_pipeline_insert_ff
+				#(
+					.DATA_WIDTH		(M_DATA_WIDTH),
+					.SLAVE_REGS		(1'b1),
+					.MASTER_REGS	(MASTER_OUT_REGS),
+					.INIT_DATA		(INIT_DATA)
+				)
+			i_pipeline_insert_ff
+				(
+					.reset			(reset),
+					.clk			(clk),
+					.cke			(cke),
+					
+					.s_data			(sink_data),
+					.s_valid		(stage_valid[PIPELINE_STAGES-1]),
+					.s_ready		(),
+					
+					.m_data			(m_data),
+					.m_valid		(m_valid),
+					.m_ready		(m_ready),
+					
+					.buffered		(buffered),
+					.s_ready_next	(sink_ready_next)
+				);
+		
+		// internal
+		assign stage_cke   = reg_cke & {PIPELINE_STAGES{cke}};
+		assign stage_valid = reg_valid;
+		
+		assign src_data    = s_data;
+		assign src_valid   = s_valid;
 	end
+	else begin
+		// CKE‚ð‘g‚Ý‡‚í‚¹¶¬
+		
+		// master port
+		wire	ff_valid;
+		wire	ff_ready;
+		jelly_pipeline_insert_ff
+				#(
+					.DATA_WIDTH		(M_DATA_WIDTH),
+					.SLAVE_REGS		(1'b0),
+					.MASTER_REGS	(MASTER_OUT_REGS),
+					.INIT_DATA		(INIT_DATA)
+				)
+			i_pipeline_insert_ff
+				(
+					.reset			(reset),
+					.clk			(clk),
+					.cke			(cke),
+					
+					.s_data			(sink_data),
+					.s_valid		(ff_valid),
+					.s_ready		(ff_ready),
+					
+					.m_data			(m_data),
+					.m_valid		(m_valid),
+					.m_ready		(m_ready),
+					
+					.buffered		(buffered),
+					.s_ready_next	()
+				);
+		assign ff_valid = stage_valid[PIPELINE_STAGES-1];
+		
+		
+		// cke
+		wire	internal_cke = (cke & (!ff_valid || ff_ready));
+		
+		assign s_ready   = internal_cke;
+		
+		
+		assign stage_cke = {PIPELINE_STAGES{internal_cke}};
+		
+		
+		// valid
+		integer							i;
+		reg		[PIPELINE_STAGES-1:0]	reg_valid;
+		always @(posedge clk) begin
+			for ( i = 0; i < PIPELINE_STAGES; i = i+1 ) begin
+				if ( reset ) begin
+					reg_valid[i] <= 1'b0;
+				end
+				else if ( internal_cke ) begin
+					reg_valid[i] <= tmp_next_valid[i];
+				end
+			end
+		end
+		
+		assign stage_valid = reg_valid;
+		
+		
+		// internal
+		assign src_data    = s_data;
+		assign src_valid   = s_valid;
+		
+	end
+	endgenerate
 	
-	// slave port
-	assign s_ready = reg_s_ready;
-	
-	// master port
-	jelly_pipeline_insert_ff
-			#(
-				.DATA_WIDTH		(M_DATA_WIDTH),
-				.SLAVE_REGS		(1'b1),
-				.MASTER_REGS	(MASTER_REGS),
-				.INIT_DATA		(INIT_DATA)
-			)
-		i_pipeline_insert_ff
-			(
-				.reset			(reset),
-				.clk			(clk),
-				.cke			(cke),
-				
-				.s_data			(sink_data),
-				.s_valid		(stage_valid[PIPELINE_STAGES-1]),
-				.s_ready		(),
-				
-				.m_data			(m_data),
-				.m_valid		(m_valid),
-				.m_ready		(m_ready),
-				
-				.buffered		(buffered),
-				.s_ready_next	(sink_ready_next)
-			);
-	
-	// internal
-	assign stage_cke   = reg_cke & {PIPELINE_STAGES{cke}};
-	assign stage_valid = reg_valid;
-	
-	assign src_data    = s_data;
-	assign src_valid   = s_valid;
 	
 endmodule
 

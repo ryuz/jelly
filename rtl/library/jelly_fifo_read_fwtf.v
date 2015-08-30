@@ -49,7 +49,8 @@ module jelly_fifo_read_fwtf
 				.S_DATA_WIDTH		(1),
 				.M_DATA_WIDTH		(DATA_WIDTH),
 				.AUTO_VALID			(1),
-				.MASTER_REGS		(MASTER_REGS)
+				.MASTER_IN_REGS		(MASTER_REGS),
+				.MASTER_OUT_REGS	(MASTER_REGS)
 			)
 		i_pipeline_control
 			(
@@ -73,9 +74,9 @@ module jelly_fifo_read_fwtf
 				.sink_data			(rd_data),
 				.buffered			(buffered)
 			);
-			
+	
 	assign rd_en   = stage_cke[0];
-		
+	
 	generate
 	if ( DOUT_REGS ) begin
 		assign rd_regcke = stage_cke[1];
