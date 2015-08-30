@@ -178,13 +178,14 @@ module jelly_pipeline_control
 		
 		
 		// cke
-		wire	internal_cke = (cke & (!ff_valid || ff_ready));
+//		wire	internal_cke = (cke & (!ff_valid || ff_ready));
 		
-		assign s_ready   = internal_cke;
+		assign s_ready = stage_cke[0];
 		
-		
-		assign stage_cke = {PIPELINE_STAGES{internal_cke}};
-		
+		assign stage_cke[PIPELINE_STAGES-1] = ((!ff_valid || ff_ready) && cke);
+		for ( j = PIPELINE_STAGES-2; j >= 0; j = j-1 ) begin : cke_loop
+			assign stage_cke[j] = ((!stage_valid[j] || stage_cke[j+1]) && cke);
+		end
 		
 		// valid
 		integer							i;
@@ -194,7 +195,7 @@ module jelly_pipeline_control
 				if ( reset ) begin
 					reg_valid[i] <= 1'b0;
 				end
-				else if ( internal_cke ) begin
+				else if ( cke ) begin
 					reg_valid[i] <= tmp_next_valid[i];
 				end
 			end

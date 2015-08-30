@@ -51,8 +51,8 @@ module tb_pipeline_control();
 	//			.AUTO_VALID			(1),
 				.S_DATA_WIDTH		(DATA_WIDTH),
 				.M_DATA_WIDTH		(DATA_WIDTH),
-				.MASTER_IN_REGS		(1'b0),
-				.MASTER_OUT_REGS	(1'b0)
+				.MASTER_IN_REGS		(1'b1),
+				.MASTER_OUT_REGS	(1'b1)
 			)
 		i_pipeline_control
 			(
