@@ -179,6 +179,7 @@ module jelly_vdma_axi4s_to_axi4
 			reg_irq          <= 1'b0;
 		end
 		else if ( s_wb_stb_i && s_wb_we_i ) begin
+			// register write
 			case ( s_wb_adr_i )
 			REGOFFSET_CTL_CONTROL:	reg_ctl_control  <= s_wb_dat_i[2:0];
 			REGOFFSET_PARAM_ADDR:	reg_param_addr   <= s_wb_dat_i[AXI4_ADDR_WIDTH-1:0] & ADDR_MASK;
@@ -188,28 +189,29 @@ module jelly_vdma_axi4s_to_axi4
 			REGOFFSET_PARAM_SIZE:	reg_param_size   <= s_wb_dat_i[SIZE_WIDTH-1:0];
 			REGOFFSET_PARAM_AWLEN:	reg_param_awlen  <= s_wb_dat_i[AXI4_LEN_WIDTH-1:0];
 			endcase
-		end
-		
-		// update
-		reg_irq           <= 1'b0;
-		reg_prev_index[0] <= sig_ctl_index[0];
-		reg_prev_index[1] <= reg_prev_index[0];
-		reg_prev_index[2] <= reg_prev_index[1];
-		if ( reg_prev_index[2] != reg_prev_index[1] ) begin
-			// IRQ puls
-			reg_irq <= 1'b1;
 			
-			// update flag auto clear
-			reg_ctl_control[1] <= 1'b0;
-			
-			// auto stop
-			if ( reg_ctl_control[2] ) begin
-				reg_ctl_control[0] <= 1'b0;
-				reg_ctl_control[2] <= 1'b0;
+			// update
+			reg_irq           <= 1'b0;
+			reg_prev_index[0] <= sig_ctl_index[0];
+			reg_prev_index[1] <= reg_prev_index[0];
+			reg_prev_index[2] <= reg_prev_index[1];
+			if ( reg_prev_index[2] != reg_prev_index[1] ) begin
+				// IRQ puls
+				reg_irq <= 1'b1;
+				
+				// update flag auto clear
+				reg_ctl_control[1] <= 1'b0;
+				
+				// auto stop
+				if ( reg_ctl_control[2] ) begin
+					reg_ctl_control[0] <= 1'b0;
+					reg_ctl_control[2] <= 1'b0;
+				end
 			end
 		end
 	end
 	
+	// register read
 	assign s_wb_dat_o = (s_wb_adr_i == REGOFFSET_ID)             ? CORE_ID            :
 	                    (s_wb_adr_i == REGOFFSET_VERSION)        ? CORE_VERSION       :
 	                    (s_wb_adr_i == REGOFFSET_CTL_CONTROL)    ? reg_ctl_control    :
