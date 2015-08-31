@@ -59,6 +59,7 @@ module jelly_vdma_axi4_to_axi4s_core
 			input	wire							ctl_update,
 			output	wire							ctl_busy,
 			output	wire	[INDEX_WIDTH-1:0]		ctl_index,
+			output	wire							ctl_start,
 			
 			// parameter
 			input	wire	[AXI4_ADDR_WIDTH-1:0]	param_addr,
@@ -331,6 +332,7 @@ module jelly_vdma_axi4_to_axi4s_core
 				.ctl_update			(ctl_update),
 				.ctl_busy			(ctl_busy),
 				.ctl_index			(ctl_index),
+				.ctl_start			(ctl_start),
 				
 				.param_addr			(param_addr),
 				.param_stride		(param_stride),
