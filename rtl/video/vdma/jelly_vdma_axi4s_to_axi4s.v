@@ -83,7 +83,7 @@ module jelly_vdma_axi4s_to_axi4s
 			parameter	INIT_PARAM_ADDR1   = 32'h0010_0000,
 			parameter	INIT_PARAM_ADDR2   = 32'h0020_0000,
 			
-			parameter	INIT_WCTL_CONTROL  = 2'b00,
+			parameter	INIT_WCTL_CONTROL  = 3'b000,
 			parameter	INIT_WPARAM_ADDR   = 32'h0000_0000,
 			parameter	INIT_WPARAM_STRIDE = 4096,
 			parameter	INIT_WPARAM_WIDTH  = 640,
@@ -91,7 +91,7 @@ module jelly_vdma_axi4s_to_axi4s
 			parameter	INIT_WPARAM_SIZE   = INIT_WPARAM_WIDTH * INIT_WPARAM_HEIGHT,
 			parameter	INIT_WPARAM_AWLEN  = 7,
 			
-			parameter	INIT_RCTL_CONTROL  = 2'b00,
+			parameter	INIT_RCTL_CONTROL  = 3'b000,
 			parameter	INIT_RPARAM_ADDR   = 32'h0000_0000,
 			parameter	INIT_RPARAM_STRIDE = 4096,
 			parameter	INIT_RPARAM_WIDTH  = 640,
@@ -496,10 +496,10 @@ module jelly_vdma_axi4s_to_axi4s
 		else begin
 			reg_buf_new    <= next_buf_new;
 			reg_buf_write  <= next_buf_write;
-			reg_buf_read   <= next_buf_read;			
+			reg_buf_read   <= next_buf_read;
 		end
 	end
-
+	
 	assign sig_monitor_buf_new   = reg_buf_new;
 	assign sig_monitor_buf_write = reg_buf_write;
 	assign sig_monitor_buf_read  = reg_buf_read;

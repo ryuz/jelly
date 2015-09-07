@@ -56,7 +56,7 @@ module jelly_vdma_axi4_to_axi4s
 			parameter	WB_DAT_WIDTH     = 32,
 			parameter	WB_SEL_WIDTH     = (WB_DAT_WIDTH / 8),
 			
-			parameter	INIT_CTL_CONTROL  = 2'b00,
+			parameter	INIT_CTL_CONTROL  = 3'b000,
 			parameter	INIT_PARAM_ADDR   = 32'h0000_0000,
 			parameter	INIT_PARAM_STRIDE = 4096,
 			parameter	INIT_PARAM_WIDTH  = 640,
