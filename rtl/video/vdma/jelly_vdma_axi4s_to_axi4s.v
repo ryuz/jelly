@@ -482,7 +482,7 @@ module jelly_vdma_axi4s_to_axi4s
 		end
 		
 		if ( reg_ctl_autoflip[1] ) begin
-			case ( next_buf_write )
+			case ( next_buf_read )
 			0 : sig_rparam_addr = reg_param_addr0;
 			1 : sig_rparam_addr = reg_param_addr1;
 			2 : sig_rparam_addr = reg_param_addr2;
