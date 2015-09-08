@@ -178,17 +178,19 @@ module jelly_vdma_axi4s_to_axi4
 			reg_prev_index   <= 3'b000;
 			reg_irq          <= 1'b0;
 		end
-		else if ( s_wb_stb_i && s_wb_we_i ) begin
+		else begin
 			// register write
-			case ( s_wb_adr_i )
-			REGOFFSET_CTL_CONTROL:	reg_ctl_control  <= s_wb_dat_i[2:0];
-			REGOFFSET_PARAM_ADDR:	reg_param_addr   <= s_wb_dat_i[AXI4_ADDR_WIDTH-1:0] & ADDR_MASK;
-			REGOFFSET_PARAM_STRIDE:	reg_param_stride <= s_wb_dat_i[STRIDE_WIDTH-1:0]    & ADDR_MASK;
-			REGOFFSET_PARAM_WIDTH:	reg_param_width  <= s_wb_dat_i[H_WIDTH-1:0];
-			REGOFFSET_PARAM_HEIGHT:	reg_param_height <= s_wb_dat_i[V_WIDTH-1:0];
-			REGOFFSET_PARAM_SIZE:	reg_param_size   <= s_wb_dat_i[SIZE_WIDTH-1:0];
-			REGOFFSET_PARAM_AWLEN:	reg_param_awlen  <= s_wb_dat_i[AXI4_LEN_WIDTH-1:0];
-			endcase
+			if ( s_wb_stb_i && s_wb_we_i ) begin
+				case ( s_wb_adr_i )
+				REGOFFSET_CTL_CONTROL:	reg_ctl_control  <= s_wb_dat_i[2:0];
+				REGOFFSET_PARAM_ADDR:	reg_param_addr   <= s_wb_dat_i[AXI4_ADDR_WIDTH-1:0] & ADDR_MASK;
+				REGOFFSET_PARAM_STRIDE:	reg_param_stride <= s_wb_dat_i[STRIDE_WIDTH-1:0]    & ADDR_MASK;
+				REGOFFSET_PARAM_WIDTH:	reg_param_width  <= s_wb_dat_i[H_WIDTH-1:0];
+				REGOFFSET_PARAM_HEIGHT:	reg_param_height <= s_wb_dat_i[V_WIDTH-1:0];
+				REGOFFSET_PARAM_SIZE:	reg_param_size   <= s_wb_dat_i[SIZE_WIDTH-1:0];
+				REGOFFSET_PARAM_AWLEN:	reg_param_awlen  <= s_wb_dat_i[AXI4_LEN_WIDTH-1:0];
+				endcase
+			end
 			
 			// update
 			reg_irq           <= 1'b0;

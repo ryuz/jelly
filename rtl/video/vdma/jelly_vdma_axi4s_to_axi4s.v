@@ -349,7 +349,9 @@ module jelly_vdma_axi4s_to_axi4s
 				reg_wirq <= 1'b1;
 				
 				// update flag auto clear
-				reg_wctl_control[1] <= 1'b0;
+				if ( !reg_ctl_autoflip[0] ) begin
+					reg_wctl_control[1] <= 1'b0;
+				end
 				
 				// auto stop
 				if ( reg_wctl_control[2] ) begin
@@ -368,7 +370,9 @@ module jelly_vdma_axi4s_to_axi4s
 				reg_rirq <= 1'b1;
 				
 				// update flag auto clear
-				reg_rctl_control[1] <= 1'b0;
+				if ( !reg_ctl_autoflip[1] ) begin
+					reg_rctl_control[1] <= 1'b0;
+				end
 				
 				// auto stop
 				if ( reg_rctl_control[2] ) begin
@@ -638,7 +642,7 @@ module jelly_vdma_axi4s_to_axi4s
 				.ctl_index			(sig_rctl_index),
 				.ctl_start			(sig_rctl_start),
 				
-				.param_addr			(reg_rparam_addr),
+				.param_addr			(sig_rparam_addr),
 				.param_stride		(reg_rparam_stride),
 				.param_width		(reg_rparam_width),
 				.param_height		(reg_rparam_height),
