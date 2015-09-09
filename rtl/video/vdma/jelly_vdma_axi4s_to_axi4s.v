@@ -314,30 +314,32 @@ module jelly_vdma_axi4s_to_axi4s
 			reg_rprev_index   <= 3'b000;
 			reg_rirq          <= 1'b0;
 		end
-		else if ( s_wb_stb_i && s_wb_we_i ) begin
-			case ( s_wb_adr_i )
-	        REGOFFSET_CTL_AUTOFLIP:		reg_ctl_autoflip  <= s_wb_dat_i[1:0];
-	        REGOFFSET_PARAM_ADDR0:		reg_param_addr0   <= s_wb_dat_i[AXI4_ADDR_WIDTH-1:0] & ADDR_MASK;
-	        REGOFFSET_PARAM_ADDR1:		reg_param_addr1   <= s_wb_dat_i[AXI4_ADDR_WIDTH-1:0] & ADDR_MASK;
-	        REGOFFSET_PARAM_ADDR2:		reg_param_addr2   <= s_wb_dat_i[AXI4_ADDR_WIDTH-1:0] & ADDR_MASK;
-			
-			REGOFFSET_WCTL_CONTROL:		reg_wctl_control  <= s_wb_dat_i[2:0];
-			REGOFFSET_WPARAM_ADDR:		reg_wparam_addr   <= s_wb_dat_i[AXI4_ADDR_WIDTH-1:0] & ADDR_MASK;
-			REGOFFSET_WPARAM_STRIDE:	reg_wparam_stride <= s_wb_dat_i[STRIDE_WIDTH-1:0]    & ADDR_MASK;
-			REGOFFSET_WPARAM_WIDTH:		reg_wparam_width  <= s_wb_dat_i[H_WIDTH-1:0];
-			REGOFFSET_WPARAM_HEIGHT:	reg_wparam_height <= s_wb_dat_i[V_WIDTH-1:0];
-			REGOFFSET_WPARAM_SIZE:		reg_wparam_size   <= s_wb_dat_i[SIZE_WIDTH-1:0];
-			REGOFFSET_WPARAM_AWLEN:		reg_wparam_awlen  <= s_wb_dat_i[AXI4_LEN_WIDTH-1:0];
-			
-			REGOFFSET_RCTL_CONTROL:		reg_rctl_control  <= s_wb_dat_i[2:0];
-			REGOFFSET_RPARAM_ADDR:		reg_rparam_addr   <= s_wb_dat_i[AXI4_ADDR_WIDTH-1:0] & ADDR_MASK;
-			REGOFFSET_RPARAM_STRIDE:	reg_rparam_stride <= s_wb_dat_i[STRIDE_WIDTH-1:0]    & ADDR_MASK;
-			REGOFFSET_RPARAM_WIDTH:		reg_rparam_width  <= s_wb_dat_i[H_WIDTH-1:0];
-			REGOFFSET_RPARAM_HEIGHT:	reg_rparam_height <= s_wb_dat_i[V_WIDTH-1:0];
-			REGOFFSET_RPARAM_SIZE:		reg_rparam_size   <= s_wb_dat_i[SIZE_WIDTH-1:0];
-			REGOFFSET_RPARAM_ARLEN:		reg_rparam_arlen  <= s_wb_dat_i[AXI4_LEN_WIDTH-1:0];
-			endcase
-			
+		else begin
+			// register write
+			if ( s_wb_stb_i && s_wb_we_i ) begin
+				case ( s_wb_adr_i )
+				REGOFFSET_CTL_AUTOFLIP:		reg_ctl_autoflip  <= s_wb_dat_i[1:0];
+				REGOFFSET_PARAM_ADDR0:		reg_param_addr0   <= s_wb_dat_i[AXI4_ADDR_WIDTH-1:0] & ADDR_MASK;
+				REGOFFSET_PARAM_ADDR1:		reg_param_addr1   <= s_wb_dat_i[AXI4_ADDR_WIDTH-1:0] & ADDR_MASK;
+				REGOFFSET_PARAM_ADDR2:		reg_param_addr2   <= s_wb_dat_i[AXI4_ADDR_WIDTH-1:0] & ADDR_MASK;
+				
+				REGOFFSET_WCTL_CONTROL:		reg_wctl_control  <= s_wb_dat_i[2:0];
+				REGOFFSET_WPARAM_ADDR:		reg_wparam_addr   <= s_wb_dat_i[AXI4_ADDR_WIDTH-1:0] & ADDR_MASK;
+				REGOFFSET_WPARAM_STRIDE:	reg_wparam_stride <= s_wb_dat_i[STRIDE_WIDTH-1:0]    & ADDR_MASK;
+				REGOFFSET_WPARAM_WIDTH:		reg_wparam_width  <= s_wb_dat_i[H_WIDTH-1:0];
+				REGOFFSET_WPARAM_HEIGHT:	reg_wparam_height <= s_wb_dat_i[V_WIDTH-1:0];
+				REGOFFSET_WPARAM_SIZE:		reg_wparam_size   <= s_wb_dat_i[SIZE_WIDTH-1:0];
+				REGOFFSET_WPARAM_AWLEN:		reg_wparam_awlen  <= s_wb_dat_i[AXI4_LEN_WIDTH-1:0];
+				
+				REGOFFSET_RCTL_CONTROL:		reg_rctl_control  <= s_wb_dat_i[2:0];
+				REGOFFSET_RPARAM_ADDR:		reg_rparam_addr   <= s_wb_dat_i[AXI4_ADDR_WIDTH-1:0] & ADDR_MASK;
+				REGOFFSET_RPARAM_STRIDE:	reg_rparam_stride <= s_wb_dat_i[STRIDE_WIDTH-1:0]    & ADDR_MASK;
+				REGOFFSET_RPARAM_WIDTH:		reg_rparam_width  <= s_wb_dat_i[H_WIDTH-1:0];
+				REGOFFSET_RPARAM_HEIGHT:	reg_rparam_height <= s_wb_dat_i[V_WIDTH-1:0];
+				REGOFFSET_RPARAM_SIZE:		reg_rparam_size   <= s_wb_dat_i[SIZE_WIDTH-1:0];
+				REGOFFSET_RPARAM_ARLEN:		reg_rparam_arlen  <= s_wb_dat_i[AXI4_LEN_WIDTH-1:0];
+				endcase
+			end
 			
 			// write
 			reg_wirq           <= 1'b0;
