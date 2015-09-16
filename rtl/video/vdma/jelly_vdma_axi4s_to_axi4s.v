@@ -68,6 +68,9 @@ module jelly_vdma_axi4s_to_axi4s
 			parameter	AXI4_R_REGS        = 1,
 			parameter	AXI4S_M_REGS       = 1,
 			
+			parameter	RLIMITTER_ENABLE   = 0,
+			parameter	RLIMITTER_TH       = (1 << RFIFO_PTR_WIDTH) / 2,
+			
 			parameter	INDEX_WIDTH        = 8,
 			parameter	STRIDE_WIDTH       = 14,
 			parameter	H_WIDTH            = 12,
@@ -630,6 +633,8 @@ module jelly_vdma_axi4s_to_axi4s
 				.AXI4_AR_REGS		(AXI4_AR_REGS),
 				.AXI4_R_REGS		(AXI4_R_REGS),
 				.AXI4S_REGS			(AXI4S_M_REGS),
+				.LIMITTER_ENABLE	(RLIMITTER_ENABLE),
+				.LIMITTER_TH    	(RLIMITTER_TH),
 				.STRIDE_WIDTH		(STRIDE_WIDTH),
 				.INDEX_WIDTH		(INDEX_WIDTH),
 				.H_WIDTH			(H_WIDTH),
