@@ -15,8 +15,8 @@
 // accumulator memory
 module jelly_ram_accumulator
 		#(
-			parameter	ADDR_WIDTH   = 8,
-			parameter	DATA_WIDTH   = 8,
+			parameter	ADDR_WIDTH   = 10,
+			parameter	DATA_WIDTH   = 18,
 			parameter	MEM_SIZE     = (1 << ADDR_WIDTH),
 			parameter	RAM_TYPE     = "block",
 			
@@ -48,17 +48,20 @@ module jelly_ram_accumulator
 	
 	reg							st0_we;
 	reg		[ADDR_WIDTH-1:0]	st0_addr;
+	reg		[DATA_WIDTH-1:0]	st0_din;
 	reg		[DATA_WIDTH-1:0]	st0_data;
 	reg		[0:0]				st0_operation;
-	reg		[DATA_WIDTH-1:0]	st0_valid;
+	reg							st0_valid;
 	
 	reg							st1_fw_st2;
 	reg							st1_fw_st3;
 	reg		[ADDR_WIDTH-1:0]	st1_addr;
 	reg		[DATA_WIDTH-1:0]	st1_data;
 	reg		[0:0]				st1_operation;
-	reg		[DATA_WIDTH-1:0]	st1_valid;
+	reg							st1_valid;
+	
 	wire	[DATA_WIDTH-1:0]	st1_dout;
+	reg		[DATA_WIDTH-1:0]	st1_rdata;
 	
 	reg							st2_we;
 	reg		[ADDR_WIDTH-1:0]	st2_addr;
@@ -67,6 +70,15 @@ module jelly_ram_accumulator
 	
 	reg		[DATA_WIDTH-1:0]	st3_data;
 	
+	
+	// fowarding
+	always @* begin
+		st1_rdata = st1_dout;
+		if ( st1_fw_st3 ) begin st1_rdata = st3_data; end
+		if ( st1_fw_st2 ) begin st1_rdata = st2_data; end
+	end
+	
+	// pipeline
 	always @(posedge clk) begin
 		if ( reset ) begin
 			st0_we        <= 1'bx;
@@ -82,7 +94,7 @@ module jelly_ram_accumulator
 			st1_operation <= 1'bx;
 			st1_valid     <= 1'b0;
 			
-			st2_we;
+			st2_we        <= 1'b0;
 			st2_addr      <= {ADDR_WIDTH{1'bx}};
 			st2_data      <= {DATA_WIDTH{1'bx}};
 			st2_valid     <= 1'b0;
@@ -105,19 +117,11 @@ module jelly_ram_accumulator
 			st1_data      <= st0_data;
 			st1_operation <= st0_operation;
 			st1_valid     <= st0_valid;
-			
+						
 			// stage 2
 			st2_we        <= st1_valid;
 			st2_addr      <= st1_addr;
-			if ( st1_fw_st2 ) begin
-				st2_data <= st1_operation == 1'b0 ? st2_data + st1_data : st2_data - st1_data;
-			end
-			else if ( st1_fw_st3 ) begin
-				st2_data <= st1_operation == 1'b0 ? st3_data + st1_data : st2_data - st1_data;
-			end
-			else begin
-				st2_data <= st1_operation == 1'b0 ? st1_dout + st1_data : st1_dout - st1_data;
-			end
+			st2_data      <= (st1_operation == 1'b0) ? st1_rdata + st1_data : st1_rdata - st1_data;
 			st2_valid     <= st1_valid;
 			
 			// stage 3
