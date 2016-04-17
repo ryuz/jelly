@@ -76,7 +76,7 @@ module jelly_float_reciprocal
 				.stage_valid		(stage_valid),
 				.next_valid			({PIPELINE_STAGES{1'bx}}),
 				.src_data			({src_sign, src_exp, src_frac}),
-				.src_valid			(1'bx),
+				.src_valid			(),
 				.sink_data			({sink_sign, sink_exp, sink_frac}),
 				.buffered			()
 			);

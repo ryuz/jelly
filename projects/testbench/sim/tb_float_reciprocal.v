@@ -53,15 +53,17 @@ module tb_float_reciprocal();
 	
 	
 	real	r_in  = 0.5;
+	real	r_in_r;
 	real	r_out;
 	real	r_exp;
 	
 	wire	[FLOAT_WIDTH-1:0]	out_float;
 	
 	always @(posedge clk) begin
-		r_in  <= r_in + 0.0001;
-		r_exp <= 1.0 / r_in;
-		r_out <= float2real(out_float);
+		r_in   <= r_in + 0.0001;
+		r_in_r <= float2real(real2float(r_in));
+		r_exp  <= 1.0 / r_in;
+		r_out  <= float2real(out_float);
 	end
 	
 	
