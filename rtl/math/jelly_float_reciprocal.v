@@ -35,13 +35,13 @@ module jelly_float_reciprocal
 			
 			output	wire	[FLOAT_WIDTH-1:0]	m_float,
 			output	wire						m_valid,
-			input	wire						m_ready,
+			input	wire						m_ready
 		);
 	
 	localparam	PIPELINE_STAGES = 5;
 	
-	wire	[PIPELINE_STAGES-1:0]	stage_cke,
-	wire	[PIPELINE_STAGES-1:0]	stage_valid,
+	wire	[PIPELINE_STAGES-1:0]	stage_cke;
+	wire	[PIPELINE_STAGES-1:0]	stage_valid;
 	
 	wire							src_sign;
 	wire	[EXP_WIDTH-1:0]			src_exp;
@@ -79,7 +79,7 @@ module jelly_float_reciprocal
 				.src_valid			(1'bx),
 				.sink_data			({sink_sign, sink_exp, sink_frac}),
 				.buffered			()
-			)
+			);
 	
 	wire	[FRAC_WIDTH-1:0]	st1_frac;
 	wire	[FRAC_WIDTH-1:0]	st1_grad;
@@ -101,20 +101,33 @@ module jelly_float_reciprocal
 				.in_d			(src_frac[FRAC_WIDTH-1 -: D_WIDTH]),
 				
 				.out_frac		(st1_frac),
-				.out_k			(st1_k)
+				.out_grad		(st1_grad)
 			);
 	
 	reg							st0_sign;
 	reg		[EXP_WIDTH-1:0]		st0_exp;
 	reg							st0_frac_one;
+	reg		[K_WIDTH-1:0]		st0_k;
 	
 	reg							st1_sign;
 	reg		[EXP_WIDTH-1:0]		st1_exp;
+	reg							st1_frac_one;
+	reg		[K_WIDTH-1:0]		st1_k;
 	
 	reg							st2_sign;
 	reg		[EXP_WIDTH-1:0]		st2_exp;
-	reg		[FRAC_WIDTH:0]		st2_frac;
-	reg		[K_WIDTH:0]			st2_k;
+	reg		[FRAC_WIDTH-1:0]	st2_frac;
+	reg		[K_WIDTH-1:0]		st2_k;
+	reg		[GRAD_WIDTH-1:0]	st2_grad;
+
+	reg							st3_sign;
+	reg		[EXP_WIDTH-1:0]		st3_exp;
+	reg		[FRAC_WIDTH-1:0]	st3_frac;
+	reg		[GRAD_WIDTH-1:0]	st3_diff;
+	
+	reg							st4_sign;
+	reg		[EXP_WIDTH-1:0]		st4_exp;
+	reg		[FRAC_WIDTH-1:0]	st4_frac;
 	
 	always @(posedge clk) begin
 		if ( stage_cke[0] ) begin
@@ -128,12 +141,14 @@ module jelly_float_reciprocal
 			st1_sign     <= st0_sign;
 			st1_exp      <= -(st0_exp - EXP_OFFSET) - st0_frac_one + EXP_OFFSET;
 			st1_frac_one <= st0_frac_one;
+			st1_k        <= st0_k;
 		end
 		
 		if ( stage_cke[2] ) begin
 			st2_sign <= st1_sign;
 			st2_exp  <= st1_exp;
-			st2_frac <= {st1_frac_one, st1_frac};
+			st2_frac <= st1_frac;
+			st2_grad <= st1_grad;
 			st2_k    <= st1_k;
 		end
 		
@@ -141,12 +156,19 @@ module jelly_float_reciprocal
 			st3_sign <= st2_sign;
 			st3_exp  <= st2_exp;
 			st3_frac <= st2_frac;
-			st3_k    <= st2_k;
+			st3_diff <= (({{GRAD_WIDTH{1'b0}}, st2_grad} * {{K_WIDTH{1'b0}}, st2_k}) >> K_WIDTH);
 		end
 		
+		if ( stage_cke[4] ) begin
+			st4_sign <= st3_sign;
+			st4_exp  <= st3_exp;
+			st4_frac <= st3_frac - st3_diff;
+		end
 	end
 	
-	
+	assign sink_sign = st4_sign;
+	assign sink_exp  = st4_exp;
+	assign sink_frac = st4_frac;
 	
 endmodule
 
@@ -241,12 +263,12 @@ module jelly_float_reciprocal_table
 			next_frac  = get_frac(next_recip);
 			
 			grad       = base_frac - next_frac;
-			if ( grad > kk_max ) grad_max = grad;
+			if ( grad > grad_max ) grad_max = grad;
 			
 			mem[i][GRAD_WIDTH +: FRAC_WIDTH] = base_frac[0 +: FRAC_WIDTH];
 			mem[i][0          +: GRAD_WIDTH] = grad[0 +: GRAD_WIDTH];
 			
-			$display("<%d:%d>", i, kk);
+			$display("<%d:%d>", i, grad);
 			$display("base:%h", base_frac);		print_real(base);	print_real(base_recip);
 			$display("next:%h", next_frac);		print_real(next);	print_real(next_recip);
 			
@@ -254,7 +276,7 @@ module jelly_float_reciprocal_table
 			base_recip = next_recip;
 			base_frac  = next_frac;
 		end
-		$display("kk_maxt:%h", kk_max);
+		$display("grad_max:%h", grad_max);
 	end
 	
 	reg		[TBL_WIDTH-1:0]		tbl_out;
@@ -267,7 +289,7 @@ module jelly_float_reciprocal_table
 	reg		[TBL_WIDTH-1:0]		tbl_reg;
 	always @(posedge clk) begin
 		if ( cke[1] ) begin
-			tbl_reg <= tbl_out
+			tbl_reg <= tbl_out;
 		end
 	end
 	

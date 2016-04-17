@@ -90,9 +90,9 @@ module tb_ram_accumulator();
 				.clk			(clk),
 				.cke			(1'b1),
 				
-				.acc_addr		(acc_addr),
-				.acc_data		(acc_data),
-				.acc_operation	(acc_operation),
+				.acc_addr		(acc_valid ? acc_addr      : {ADDR_WIDTH{1'bx}}),
+				.acc_data		(acc_valid ? acc_data      : {DATA_WIDTH{1'bx}}),
+				.acc_operation	(acc_valid ? acc_operation : 1'bx              ),
 				.acc_valid		(acc_valid),
 				
 				.mem_en			(mem_en),
