@@ -25,7 +25,7 @@ module tb_float_reciprocal();
 	parameter	FRAC_WIDTH  = 23;
 	parameter	FLOAT_WIDTH = 1 + EXP_WIDTH + FRAC_WIDTH;
 	
-	parameter	D_WIDTH     = 6;
+	parameter	D_WIDTH     = 10;
 	parameter	K_WIDTH     = FRAC_WIDTH - D_WIDTH;
 	parameter	GRAD_WIDTH  = FRAC_WIDTH;
 	
@@ -96,7 +96,7 @@ module tb_float_reciprocal();
 				.K_WIDTH	(K_WIDTH),
 				.GRAD_WIDTH	(GRAD_WIDTH),
 				
-				.MAKE_TABLE	(0)
+				.MAKE_TABLE	(1)
 			)
 		i_float_reciprocal
 			(
