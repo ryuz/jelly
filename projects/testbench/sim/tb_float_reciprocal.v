@@ -25,9 +25,10 @@ module tb_float_reciprocal();
 	parameter	FRAC_WIDTH  = 23;
 	parameter	FLOAT_WIDTH = 1 + EXP_WIDTH + FRAC_WIDTH;
 	
-	parameter	D_WIDTH     = 10;
+	parameter	D_WIDTH     = 6;
 	parameter	K_WIDTH     = FRAC_WIDTH - D_WIDTH;
 	parameter	GRAD_WIDTH  = FRAC_WIDTH;
+	
 	
 	
 	function [FLOAT_WIDTH-1:0] real2float(input real r);
@@ -80,7 +81,7 @@ module tb_float_reciprocal();
 			in_double <= $realtobits(real_src);
 			in_valid  <= !isnan_float(float_src);
 			
-			float_src = float_src + 32'h1;
+			float_src = float_src + 32'h01;
 		end
 	end
 	

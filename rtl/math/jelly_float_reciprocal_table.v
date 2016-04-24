@@ -20,6 +20,7 @@ module jelly_float_reciprocal_table
 			parameter	K_WIDTH    = FRAC_WIDTH - D_WIDTH,
 			parameter	GRAD_WIDTH = FRAC_WIDTH,
 			parameter	OUT_REGS   = 1,
+			parameter	RAM_TYPE   = "distributed",
 			parameter	FILE_NAME  = "float_reciprocal.hex"
 		)
 		(
@@ -33,6 +34,7 @@ module jelly_float_reciprocal_table
 			output	wire	[GRAD_WIDTH-1:0]	out_grad
 		);
 	
+	/*
 	
 	// Realから仮数部取り出し
 	function [FRAC_WIDTH:0] get_frac(input real r);
@@ -58,7 +60,7 @@ module jelly_float_reciprocal_table
 	end
 	endfunction
 	
-
+	
 	task print_real(input real r);
 	reg		[63:0]	b;
 	begin
@@ -67,22 +69,23 @@ module jelly_float_reciprocal_table
 	end
 	endtask
 	
+	*/
 	
 	// テーブル定義
 	localparam	TBL_WIDTH = FRAC_WIDTH + GRAD_WIDTH;
 	localparam	TBL_SIZE  = (1 << D_WIDTH);
 	
-	reg		[TBL_WIDTH-1:0]		mem	[0:TBL_SIZE-1];
-	
+	(* RAM_STYLE=RAM_TYPE *)	reg		[TBL_WIDTH-1:0]		mem	[0:TBL_SIZE-1];
 	
 	
 	// テーブル初期化
 	integer						i;
 	integer						fp;
 	
-	real						step;
-	real						base, base_recip;
-	real						next, next_recip;
+	reg		[FRAC_WIDTH+1:0]	step;
+	reg		[FRAC_WIDTH+1:0]	base, base_recip;
+	reg		[FRAC_WIDTH+1:0]	next, next_recip;
+	
 	reg		[FRAC_WIDTH:0]		base_frac;
 	reg		[FRAC_WIDTH:0]		next_frac;
 	reg		[FRAC_WIDTH-1:0]	grad;
@@ -90,42 +93,34 @@ module jelly_float_reciprocal_table
 	
 	
 	initial begin
-		step = make_real(-D_WIDTH, 0);
+		step                     = {(FRAC_WIDTH+2){1'b0}};
+		step[FRAC_WIDTH-D_WIDTH] = 1'b1;
 		
-		base       = make_real(0, 0);
-		base_recip = 1.0 / base;
-		base_frac  = (1 << FRAC_WIDTH);	// 最初だけ桁上げなので対策
-		
-//		$display("base"); print_real(base);
-//		$display("step"); print_real(step);
+		base      = {2'b01, {FRAC_WIDTH{1'b0}}};
+		base_frac = {2'b10, {(FRAC_WIDTH*2){1'b0}}} / base;
 		
 		grad_max = 0;
 		for ( i = 0; i < TBL_SIZE; i = i+1 ) begin
-			next       = base + step;
-			next_recip = 1.0 / next;
-			next_frac  = get_frac(next_recip);
+			next      = base + step;
+			next_frac = {2'b10, {(FRAC_WIDTH*2){1'b0}}} / next;
 			
 			grad       = base_frac - next_frac;
 			if ( grad > grad_max ) grad_max = grad;
 			
-			mem[i][GRAD_WIDTH +: FRAC_WIDTH] = base_frac[0 +: FRAC_WIDTH];
-			mem[i][0          +: GRAD_WIDTH] = grad[0 +: GRAD_WIDTH];
-			
-//			$display("<%d:%d>", i, grad);
-//			$display("base:%h", base_frac);		print_real(base);	print_real(base_recip);
-//			$display("next:%h", next_frac);		print_real(next);	print_real(next_recip);
+	//		mem[i][GRAD_WIDTH +: FRAC_WIDTH] = base_frac[0 +: FRAC_WIDTH];
+	//		mem[i][0          +: GRAD_WIDTH] = grad[0 +: GRAD_WIDTH];
+			mem[i] = {base_frac[0 +: FRAC_WIDTH], grad[0 +: GRAD_WIDTH]};
 			
 			base       = next;
-			base_recip = next_recip;
 			base_frac  = next_frac;
 		end
 		$display("grad_max:%h", grad_max);
 		
-		fp = $fopen(FILE_NAME, "w");
-		for ( i = 0; i < TBL_SIZE; i = i+1 ) begin
-			$fdisplay(fp, "%h", mem[i]);
-		end
-		$fclose(fp);
+//		fp = $fopen(FILE_NAME, "w");
+//		for ( i = 0; i < TBL_SIZE; i = i+1 ) begin
+//			$fdisplay(fp, "%h", mem[i]);
+//		end
+//		$fclose(fp);
 	end
 	
 	reg		[TBL_WIDTH-1:0]		tbl_out;

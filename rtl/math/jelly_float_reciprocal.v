@@ -25,7 +25,7 @@ module jelly_float_reciprocal
 			parameter	GRAD_WIDTH  = FRAC_WIDTH,
 			
 			parameter	RAM_TYPE    = "distributed",
-			parameter	MAKE_TABLE  = 0,
+			parameter	MAKE_TABLE  = 1,
 			parameter	FILE_NAME   = "float_reciprocal.hex"
 		)
 		(
@@ -97,6 +97,7 @@ module jelly_float_reciprocal
 					.K_WIDTH		(K_WIDTH),
 					.GRAD_WIDTH		(GRAD_WIDTH),
 					.OUT_REGS		(1),
+					.RAM_TYPE		(RAM_TYPE),
 					.FILE_NAME		(FILE_NAME)
 				)
 			i_float_reciprocal_table
