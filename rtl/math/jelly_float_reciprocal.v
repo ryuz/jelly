@@ -139,7 +139,7 @@ module jelly_float_reciprocal
 		
 		if ( stage_cke[1] ) begin
 			st1_sign     <= st0_sign;
-			st1_exp      <= -(st0_exp - EXP_OFFSET) - st0_frac_one + EXP_OFFSET - 1;
+			st1_exp      <= -(st0_exp - EXP_OFFSET) + st0_frac_one + EXP_OFFSET - 1;
 			st1_frac_one <= st0_frac_one;
 			st1_k        <= st0_k;
 		end
@@ -253,8 +253,8 @@ module jelly_float_reciprocal_table
 		base_recip = 1.0 / base;
 		base_frac  = (1 << FRAC_WIDTH);	// Å‰‚¾‚¯Œ…ã‚°‚È‚Ì‚Å‘Îô
 		
-		$display("base"); print_real(base);
-		$display("step"); print_real(step);
+//		$display("base"); print_real(base);
+//		$display("step"); print_real(step);
 		
 		grad_max = 0;
 		for ( i = 0; i < TBL_SIZE; i = i+1 ) begin
@@ -268,15 +268,15 @@ module jelly_float_reciprocal_table
 			mem[i][GRAD_WIDTH +: FRAC_WIDTH] = base_frac[0 +: FRAC_WIDTH];
 			mem[i][0          +: GRAD_WIDTH] = grad[0 +: GRAD_WIDTH];
 			
-			$display("<%d:%d>", i, grad);
-			$display("base:%h", base_frac);		print_real(base);	print_real(base_recip);
-			$display("next:%h", next_frac);		print_real(next);	print_real(next_recip);
+//			$display("<%d:%d>", i, grad);
+//			$display("base:%h", base_frac);		print_real(base);	print_real(base_recip);
+//			$display("next:%h", next_frac);		print_real(next);	print_real(next_recip);
 			
 			base       = next;
 			base_recip = next_recip;
 			base_frac  = next_frac;
 		end
-		$display("grad_max:%h", grad_max);
+//		$display("grad_max:%h", grad_max);
 	end
 	
 	reg		[TBL_WIDTH-1:0]		tbl_out;

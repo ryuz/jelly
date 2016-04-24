@@ -7,11 +7,8 @@ module tb_float_reciprocal();
 	localparam RATE    = 10.0;
 	
 	initial begin
-		$dumpfile("tb_float_reciprocal.vcd");
-		$dumpvars(0, tb_float_reciprocal);
-		
-		#100000;
-			$finish;
+//		$dumpfile("tb_float_reciprocal.vcd");
+//		$dumpvars(0, tb_float_reciprocal);
 	end
 	
 	reg		clk = 1'b1;
@@ -51,8 +48,16 @@ module tb_float_reciprocal();
 	end
 	endfunction
 	
+	function real isnan_float(input [FLOAT_WIDTH-1:0] f);
+	begin
+		isnan_float = ((f[FRAC_WIDTH +: EXP_WIDTH] == {EXP_WIDTH{1'b0}}) || (f[FRAC_WIDTH +: EXP_WIDTH] == {EXP_WIDTH{1'b1}}));
+	end
+	endfunction
 	
-	real	r_src = 0.005;
+	
+	
+	reg		[FLOAT_WIDTH-1:0]	float_src = 32'h0080_0000; // {FLOAT_WIDTH{1'b0}};
+	real						real_src;
 	
 	reg		[FLOAT_WIDTH-1:0]	in_float;
 	reg		[63:0]				in_double;
@@ -64,10 +69,14 @@ module tb_float_reciprocal();
 	
 	always @(posedge clk) begin
 		if ( !reset ) begin
-			in_float  <= real2float(r_src);
-			in_double <= $realtobits(r_src);
-			in_valid  <= 1'b1;
-			r_src      = r_src + 0.0001;
+//			float_src = {$random};
+			real_src  = float2real(float_src);
+			
+			in_float  <= float_src;
+			in_double <= $realtobits(real_src);
+			in_valid  <= !isnan_float(float_src);
+			
+			float_src = float_src + 32'h1;
 		end
 	end
 	
@@ -105,12 +114,39 @@ module tb_float_reciprocal();
 			);
 	
 	
+	real	exp;
+	real	result;
+	real	error;
+	real	error_max = 0;
+	reg		error_update = 0;
+	
 	always @(posedge clk) begin
-		if ( !reset && out_valid ) begin
-			$display("%f %f", 1.0/$bitstoreal(out_double), float2real(out_float));
+		if ( !reset && out_valid && !isnan_float(out_float) ) begin
+			exp    = 1.0/$bitstoreal(out_double);
+			result = float2real(out_float);
+			error  = (result - exp) / exp;
+			if ( error < 0 ) begin error = -error; end
+			
+//			$display("%g %g %g", result, exp, error);
+			
+			error_update <= 1'b0;
+			if ( error > error_max ) begin
+				error_update <= 1'b1;
+				error_max = error;
+				$display("%g %g %g", result, exp, error);
+				$display("error_max: %g %h (%t)", error_max, out_float, $time);
+			end
+			
 		end
 	end
 	
+	initial begin
+		while (1) begin
+			#100000;
+			$display("error_max: %g %h", error_max, in_float);
+		end
+//		$finish;
+	end
 	
 endmodule
 
