@@ -45,25 +45,30 @@ module tb_float_reciprocal();
 	begin
 		b                   = 64'd0;
 		b[63]               = f[FLOAT_WIDTH-1];
-		b[62:52]            = (f[FRAC_WIDTH +: EXP_WIDTH] - EXP_OFFSET) + EXP_OFFSET;
+		b[62:52]            = (f[FRAC_WIDTH +: EXP_WIDTH] - EXP_OFFSET) + 1023;
 		b[51 -: FRAC_WIDTH] = f[0 +: FRAC_WIDTH];
 		float2real          = $bitstoreal(b);
 	end
 	endfunction
 	
 	
-	real	r_in  = 0.5;
-	real	r_in_r;
-	real	r_out;
-	real	r_exp;
+	real	r_src = 0.005;
+	
+	reg		[FLOAT_WIDTH-1:0]	in_float;
+	reg		[63:0]				in_double;
+	reg							in_valid = 1'b0;
 	
 	wire	[FLOAT_WIDTH-1:0]	out_float;
+	wire	[63:0]				out_double;
+	wire						out_valid;
 	
 	always @(posedge clk) begin
-		r_in   <= r_in + 0.0001;
-		r_in_r <= float2real(real2float(r_in));
-		r_exp  <= 1.0 / r_in;
-		r_out  <= float2real(out_float);
+		if ( !reset ) begin
+			in_float  <= real2float(r_src);
+			in_double <= $realtobits(r_src);
+			in_valid  <= 1'b1;
+			r_src      = r_src + 0.0001;
+		end
 	end
 	
 	
@@ -74,14 +79,37 @@ module tb_float_reciprocal();
 				.clk		(clk),
 				.cke		(1'b1),
 				
-				.s_float	(real2float(r_in)),
-				.s_valid	(1'b1),
+				.s_float	(in_float),
+				.s_valid	(in_valid),
 				.s_ready	(),
 				
 				.m_float	(out_float),
-				.m_valid	(),
+				.m_valid	(out_valid),
 				.m_ready	(1'b1)
 			);
+	
+	jelly_data_delay
+			#(
+				.LATENCY	(6),
+				.DATA_WIDTH	(64)
+			)
+		i_data_delay_exp
+			(
+				.reset		(reset),
+				.clk		(clk),
+				.cke		(1'b1),
+				
+				.in_data	(in_double),
+				
+				.out_data	(out_double)
+			);
+	
+	
+	always @(posedge clk) begin
+		if ( !reset && out_valid ) begin
+			$display("%f %f", 1.0/$bitstoreal(out_double), float2real(out_float));
+		end
+	end
 	
 	
 endmodule

@@ -45,7 +45,7 @@ module jelly_data_delay
 				end
 			end
 			else if ( cke ) begin
-				reg_data[i*DATA_WIDTH +: DATA_WIDTH] <= DATA_INIT;
+				reg_data[0 +: DATA_WIDTH] <= in_data;
 				for ( i = 0; i < LATENCY-1; i = i+1 ) begin
 					reg_data[(i+1)*DATA_WIDTH +: DATA_WIDTH] <= reg_data[i*DATA_WIDTH +: DATA_WIDTH];
 				end

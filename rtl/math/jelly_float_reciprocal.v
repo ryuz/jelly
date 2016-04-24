@@ -139,7 +139,7 @@ module jelly_float_reciprocal
 		
 		if ( stage_cke[1] ) begin
 			st1_sign     <= st0_sign;
-			st1_exp      <= -(st0_exp - EXP_OFFSET) - st0_frac_one + EXP_OFFSET;
+			st1_exp      <= -(st0_exp - EXP_OFFSET) - st0_frac_one + EXP_OFFSET - 1;
 			st1_frac_one <= st0_frac_one;
 			st1_k        <= st0_k;
 		end
