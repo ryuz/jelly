@@ -20,9 +20,13 @@ module jelly_float_reciprocal
 			parameter	FRAC_WIDTH  = 23,
 			parameter	FLOAT_WIDTH = 1 + EXP_WIDTH + FRAC_WIDTH,
 			
-			parameter	D_WIDTH    = 8,
-			parameter	K_WIDTH    = FRAC_WIDTH - D_WIDTH,
-			parameter	GRAD_WIDTH = FRAC_WIDTH
+			parameter	D_WIDTH     = 6,
+			parameter	K_WIDTH     = FRAC_WIDTH - D_WIDTH,
+			parameter	GRAD_WIDTH  = FRAC_WIDTH,
+			
+			parameter	RAM_TYPE    = "distributed",
+			parameter	MAKE_TABLE  = 0,
+			parameter	FILE_NAME   = "float_reciprocal.hex"
 		)
 		(
 			input	wire						reset,
@@ -84,25 +88,66 @@ module jelly_float_reciprocal
 	wire	[FRAC_WIDTH-1:0]	st1_frac;
 	wire	[FRAC_WIDTH-1:0]	st1_grad;
 	
-	jelly_float_reciprocal_table
-			#(
-				.FRAC_WIDTH		(FRAC_WIDTH),
-				.D_WIDTH		(D_WIDTH),
-				.K_WIDTH		(K_WIDTH),
-				.GRAD_WIDTH		(GRAD_WIDTH),
-				.OUT_REGS		(1)
-			)
-		i_float_reciprocal_table
-			(
-				.clk			(clk),
-				
-				.cke			(stage_cke[1:0]),
-				
-				.in_d			(src_frac[FRAC_WIDTH-1 -: D_WIDTH]),
-				
-				.out_frac		(st1_frac),
-				.out_grad		(st1_grad)
-			);
+	generate
+	if ( MAKE_TABLE ) begin
+		jelly_float_reciprocal_table
+				#(
+					.FRAC_WIDTH		(FRAC_WIDTH),
+					.D_WIDTH		(D_WIDTH),
+					.K_WIDTH		(K_WIDTH),
+					.GRAD_WIDTH		(GRAD_WIDTH),
+					.OUT_REGS		(1),
+					.FILE_NAME		(FILE_NAME)
+				)
+			i_float_reciprocal_table
+				(
+					.clk			(clk),
+					
+					.cke			(stage_cke[1:0]),
+					
+					.in_d			(src_frac[FRAC_WIDTH-1 -: D_WIDTH]),
+					
+					.out_frac		(st1_frac),
+					.out_grad		(st1_grad)
+				);
+	end
+	else if ( FRAC_WIDTH == 23 && D_WIDTH == 6 && GRAD_WIDTH == 23 ) begin
+		jelly_float_reciprocal_frac23_d6
+			i_float_reciprocal_frac23_d6
+				(
+					.clk			(clk),
+					
+					.cke			(stage_cke[1:0]),
+					
+					.in_d			(src_frac[FRAC_WIDTH-1 -: D_WIDTH]),
+					
+					.out_frac		(st1_frac),
+					.out_grad		(st1_grad)
+				);
+	end
+	else begin
+		jelly_ram_singleport
+				#(
+					.ADDR_WIDTH		(D_WIDTH),
+					.DATA_WIDTH		(FRAC_WIDTH + GRAD_WIDTH),
+					.RAM_TYPE		(RAM_TYPE),
+					.DOUT_REGS		(1),
+					
+					.READMEMH		(1),
+					.READMEM_FILE	(FILE_NAME)
+				)
+			i_ram_singleport
+				(
+					.clk			(clk),
+					.en				(stage_cke[0]),
+					.regcke			(stage_cke[1]),
+					.we				(1'b0),
+					.addr			(src_frac[FRAC_WIDTH-1 -: D_WIDTH]),
+					.din			({(FRAC_WIDTH + GRAD_WIDTH){1'b0}}),
+					.dout			({st1_frac, st1_grad})
+				);
+	end
+	endgenerate
 	
 	reg							st0_sign;
 	reg		[EXP_WIDTH-1:0]		st0_exp;
@@ -173,24 +218,26 @@ module jelly_float_reciprocal
 endmodule
 
 
+/*
 
 module jelly_float_reciprocal_table
 		#(
 			parameter	FRAC_WIDTH = 23,
-			parameter	D_WIDTH    = 8,
+			parameter	D_WIDTH    = 6,
 			parameter	K_WIDTH    = FRAC_WIDTH - D_WIDTH,
 			parameter	GRAD_WIDTH = FRAC_WIDTH,
-			parameter	OUT_REGS   = 1
+			parameter	OUT_REGS   = 1,
+			parameter	FILE_NAME  = "float_reciprocal.hex"
 		)
 		(
-			input							reset,
-			input							clk,
-			input		[1:0]				cke,
+			input	wire						reset,
+			input	wire						clk,
+			input	wire	[1:0]				cke,
 			
-			input		[D_WIDTH-1:0]		in_d,
+			input	wire	[D_WIDTH-1:0]		in_d,
 			
-			input		[FRAC_WIDTH-1:0]	out_frac,
-			input		[GRAD_WIDTH-1:0]	out_grad
+			output	wire	[FRAC_WIDTH-1:0]	out_frac,
+			output	wire	[GRAD_WIDTH-1:0]	out_grad
 		);
 	
 	
@@ -232,12 +279,14 @@ module jelly_float_reciprocal_table
 	localparam	TBL_WIDTH = FRAC_WIDTH + GRAD_WIDTH;
 	localparam	TBL_SIZE  = (1 << D_WIDTH);
 	
-	reg		[TBL_WIDTH-1:0]		mem[0:TBL_SIZE-1];
+	reg		[TBL_WIDTH-1:0]		mem	[0:TBL_SIZE-1];
 	
 	
 	
 	// ƒe[ƒuƒ‹‰Šú‰»
-	integer	i;
+	integer						i;
+	integer						fp;
+	
 	real						step;
 	real						base, base_recip;
 	real						next, next_recip;
@@ -245,6 +294,7 @@ module jelly_float_reciprocal_table
 	reg		[FRAC_WIDTH:0]		next_frac;
 	reg		[FRAC_WIDTH-1:0]	grad;
 	reg		[FRAC_WIDTH-1:0]	grad_max;
+	
 	
 	initial begin
 		step = make_real(-D_WIDTH, 0);
@@ -276,7 +326,13 @@ module jelly_float_reciprocal_table
 			base_recip = next_recip;
 			base_frac  = next_frac;
 		end
-//		$display("grad_max:%h", grad_max);
+		$display("grad_max:%h", grad_max);
+		
+		fp = $fopen(FILE_NAME, "w");
+		for ( i = 0; i < TBL_SIZE; i = i+1 ) begin
+			$fdisplay(fp, "%h", mem[i]);
+		end
+		$fclose(fp);
 	end
 	
 	reg		[TBL_WIDTH-1:0]		tbl_out;
@@ -308,6 +364,7 @@ module jelly_float_reciprocal_table
 	
 endmodule
 
+*/
 
 
 `default_nettype wire

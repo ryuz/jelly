@@ -7,8 +7,8 @@ module tb_float_reciprocal();
 	localparam RATE    = 10.0;
 	
 	initial begin
-//		$dumpfile("tb_float_reciprocal.vcd");
-//		$dumpvars(0, tb_float_reciprocal);
+		$dumpfile("tb_float_reciprocal.vcd");
+		$dumpvars(0, tb_float_reciprocal);
 	end
 	
 	reg		clk = 1'b1;
@@ -24,6 +24,10 @@ module tb_float_reciprocal();
 	parameter	EXP_OFFSET  = (1 << (EXP_WIDTH-1)) - 1;
 	parameter	FRAC_WIDTH  = 23;
 	parameter	FLOAT_WIDTH = 1 + EXP_WIDTH + FRAC_WIDTH;
+	
+	parameter	D_WIDTH     = 6;
+	parameter	K_WIDTH     = FRAC_WIDTH - D_WIDTH;
+	parameter	GRAD_WIDTH  = FRAC_WIDTH;
 	
 	
 	function [FLOAT_WIDTH-1:0] real2float(input real r);
@@ -82,6 +86,18 @@ module tb_float_reciprocal();
 	
 	
 	jelly_float_reciprocal
+			#(
+				.EXP_WIDTH	(EXP_WIDTH),
+				.EXP_OFFSET	(EXP_OFFSET),
+				.FRAC_WIDTH	(FRAC_WIDTH),
+				.FLOAT_WIDTH(FLOAT_WIDTH),
+				
+				.D_WIDTH	(D_WIDTH),
+				.K_WIDTH	(K_WIDTH),
+				.GRAD_WIDTH	(GRAD_WIDTH),
+				
+				.MAKE_TABLE	(0)
+			)
 		i_float_reciprocal
 			(
 				.reset		(reset),

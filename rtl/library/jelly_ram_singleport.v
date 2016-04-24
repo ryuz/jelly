@@ -102,9 +102,12 @@ module jelly_ram_singleport
 		end
 		
 		if ( READMEMB ) begin
+			$display("readmemb:%s", READMEM_FILE);
 			$readmemb(READMEM_FILE, mem);
 		end
+		
 		if ( READMEMH ) begin
+			$display("readmemh:%s", READMEM_FILE);
 			$readmemh(READMEM_FILE, mem);
 		end
 	end
