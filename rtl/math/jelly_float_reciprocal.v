@@ -13,34 +13,43 @@
 
 
 
-// ãtêîÉeÅ[ÉuÉã
+// reciprocal
 module jelly_float_reciprocal
 		#(
-			parameter	EXP_WIDTH   = 8,
-			parameter	EXP_OFFSET  = (1 << (EXP_WIDTH-1)) - 1,
-			parameter	FRAC_WIDTH  = 23,
-			parameter	FLOAT_WIDTH = 1 + EXP_WIDTH + FRAC_WIDTH,	// sign + exp + frac
+			parameter	EXP_WIDTH       = 8,
+			parameter	EXP_OFFSET      = (1 << (EXP_WIDTH-1)) - 1,
+			parameter	FRAC_WIDTH      = 23,
+			parameter	FLOAT_WIDTH     = 1 + EXP_WIDTH + FRAC_WIDTH,	// sign + exp + frac
 			
-			parameter	D_WIDTH     = 6,							// interpolation table addr bits
-			parameter	K_WIDTH     = FRAC_WIDTH - D_WIDTH,
-			parameter	GRAD_WIDTH  = FRAC_WIDTH,
+			parameter	USER_WIDTH      = 0,
 			
-			parameter	RAM_TYPE    = "distributed",
+			parameter	D_WIDTH         = 6,							// interpolation table addr bits
+			parameter	K_WIDTH         = FRAC_WIDTH - D_WIDTH,
+			parameter	GRAD_WIDTH      = FRAC_WIDTH,
 			
-			parameter	MAKE_TABLE  = 1,
-			parameter	WRITE_TABLE = 0,
-			parameter	READ_TABLE  = 0,
-			parameter	FILE_NAME   = "float_reciprocal.hex"
+			parameter	MASTER_IN_REGS  = 1,
+			parameter	MASTER_OUT_REGS = 1,
+			
+			parameter	RAM_TYPE        = "distributed",
+			
+			parameter	MAKE_TABLE      = 1,
+			parameter	WRITE_TABLE     = 0,
+			parameter	READ_TABLE      = 0,
+			parameter	FILE_NAME       = "float_reciprocal.hex",
+			
+			parameter	USER_BITS       = USER_WIDTH > 0 ? USER_WIDTH : 1
 		)
 		(
 			input	wire						reset,
 			input	wire						clk,
 			input	wire						cke,
 			
+			input	wire	[USER_BITS-1:0]		s_user,
 			input	wire	[FLOAT_WIDTH-1:0]	s_float,
 			input	wire						s_valid,
 			output	wire						s_ready,
 			
+			output	wire	[USER_BITS-1:0]		m_user,
 			output	wire	[FLOAT_WIDTH-1:0]	m_float,
 			output	wire						m_valid,
 			input	wire						m_ready
@@ -51,10 +60,12 @@ module jelly_float_reciprocal
 	wire	[PIPELINE_STAGES-1:0]	stage_cke;
 	wire	[PIPELINE_STAGES-1:0]	stage_valid;
 	
+	wire	[USER_BITS-1:0]			src_user;
 	wire							src_sign;
 	wire	[EXP_WIDTH-1:0]			src_exp;
 	wire	[FRAC_WIDTH-1:0]		src_frac;
 	
+	wire	[USER_BITS-1:0]			sink_user;
 	wire							sink_sign;
 	wire	[EXP_WIDTH-1:0]			sink_exp;
 	wire	[FRAC_WIDTH-1:0]		sink_frac;
@@ -62,9 +73,11 @@ module jelly_float_reciprocal
 	jelly_pipeline_control
 			#(
 				.PIPELINE_STAGES	(PIPELINE_STAGES),
-				.S_DATA_WIDTH		(FLOAT_WIDTH),
-				.M_DATA_WIDTH		(FLOAT_WIDTH),
-				.AUTO_VALID			(1)
+				.S_DATA_WIDTH		(USER_BITS+FLOAT_WIDTH),
+				.M_DATA_WIDTH		(USER_BITS+FLOAT_WIDTH),
+				.AUTO_VALID			(1),
+				.MASTER_IN_REGS		(MASTER_IN_REGS),
+				.MASTER_OUT_REGS	(MASTER_OUT_REGS)
 			)
 		i_pipeline_control
 			(
@@ -72,20 +85,20 @@ module jelly_float_reciprocal
 				.clk				(clk),
 				.cke				(cke),
 				
-				.s_data				(s_float),
+				.s_data				({s_user, s_float}),
 				.s_valid			(s_valid),
 				.s_ready			(s_ready),
 				
-				.m_data				(m_float),
+				.m_data				({m_user, m_float}),
 				.m_valid			(m_valid),
 				.m_ready			(m_ready),
 				
 				.stage_cke			(stage_cke),
 				.stage_valid		(stage_valid),
 				.next_valid			({PIPELINE_STAGES{1'bx}}),
-				.src_data			({src_sign, src_exp, src_frac}),
+				.src_data			({src_user, src_sign, src_exp, src_frac}),
 				.src_valid			(),
-				.sink_data			({sink_sign, sink_exp, sink_frac}),
+				.sink_data			({sink_user, sink_sign, sink_exp, sink_frac}),
 				.buffered			()
 			);
 	
@@ -137,33 +150,38 @@ module jelly_float_reciprocal
 	end
 	endgenerate
 	
+	reg		[USER_BITS-1:0]		st0_user;
 	reg							st0_sign;
 	reg		[EXP_WIDTH-1:0]		st0_exp;
 	reg							st0_frac_one;
 	reg		[K_WIDTH-1:0]		st0_k;
 	
+	reg		[USER_BITS-1:0]		st1_user;
 	reg							st1_sign;
 	reg		[EXP_WIDTH-1:0]		st1_exp;
-	reg							st1_frac_one;
 	reg		[K_WIDTH-1:0]		st1_k;
 	
+	reg		[USER_BITS-1:0]		st2_user;
 	reg							st2_sign;
 	reg		[EXP_WIDTH-1:0]		st2_exp;
 	reg		[FRAC_WIDTH-1:0]	st2_frac;
 	reg		[K_WIDTH-1:0]		st2_k;
 	reg		[GRAD_WIDTH-1:0]	st2_grad;
-
+	
+	reg		[USER_BITS-1:0]		st3_user;
 	reg							st3_sign;
 	reg		[EXP_WIDTH-1:0]		st3_exp;
 	reg		[FRAC_WIDTH-1:0]	st3_frac;
 	reg		[GRAD_WIDTH-1:0]	st3_diff;
 	
+	reg		[USER_BITS-1:0]		st4_user;
 	reg							st4_sign;
 	reg		[EXP_WIDTH-1:0]		st4_exp;
 	reg		[FRAC_WIDTH-1:0]	st4_frac;
 	
 	always @(posedge clk) begin
 		if ( stage_cke[0] ) begin
+			st0_user     <= src_user;
 			st0_sign     <= src_sign;
 			st0_exp      <= src_exp;
 			st0_frac_one <= (src_frac == {FRAC_WIDTH{1'b0}});
@@ -171,13 +189,14 @@ module jelly_float_reciprocal
 		end
 		
 		if ( stage_cke[1] ) begin
+			st1_user     <= st0_user;
 			st1_sign     <= st0_sign;
 			st1_exp      <= -(st0_exp - EXP_OFFSET) + st0_frac_one + EXP_OFFSET - 1;
-			st1_frac_one <= st0_frac_one;
 			st1_k        <= st0_k;
 		end
 		
 		if ( stage_cke[2] ) begin
+			st2_user <= st1_user;
 			st2_sign <= st1_sign;
 			st2_exp  <= st1_exp;
 			st2_frac <= st1_frac;
@@ -186,6 +205,7 @@ module jelly_float_reciprocal
 		end
 		
 		if ( stage_cke[3] ) begin
+			st3_user <= st2_user;
 			st3_sign <= st2_sign;
 			st3_exp  <= st2_exp;
 			st3_frac <= st2_frac;
@@ -193,12 +213,14 @@ module jelly_float_reciprocal
 		end
 		
 		if ( stage_cke[4] ) begin
+			st4_user <= st3_user;
 			st4_sign <= st3_sign;
 			st4_exp  <= st3_exp;
 			st4_frac <= st3_frac - st3_diff;
 		end
 	end
 	
+	assign sink_user = st4_user;
 	assign sink_sign = st4_sign;
 	assign sink_exp  = st4_exp;
 	assign sink_frac = st4_frac;
@@ -342,69 +364,69 @@ module jelly_float_reciprocal_frac23_d6
 	always @(posedge clk) begin
 		if ( cke[0] ) begin
 			case ( in_d )
-			6'h00:	mem_dout <= 46'h00000003f03f;
-			6'h01:	mem_dout <= 46'h3e07e083d1b1;
-			6'h02:	mem_dout <= 46'h3c1f0803b483;
-			6'h03:	mem_dout <= 46'h3a44c683989c;
-			6'h04:	mem_dout <= 46'h387878837ded;
-			6'h05:	mem_dout <= 46'h36b982036463;
-			6'h06:	mem_dout <= 46'h350750834bed;
-			6'h07:	mem_dout <= 46'h33615a03347b;
-			6'h08:	mem_dout <= 46'h31c71c831e01;
-			6'h09:	mem_dout <= 46'h30381c03086f;
-			6'h0a:	mem_dout <= 46'h2eb3e482f3bb;
-			6'h0b:	mem_dout <= 46'h2d3a0702dfd8;
-			6'h0c:	mem_dout <= 46'h2bca1b02ccbb;
-			6'h0d:	mem_dout <= 46'h2a63bd82ba5a;
-			6'h0e:	mem_dout <= 46'h29069082a8ac;
-			6'h0f:	mem_dout <= 46'h27b23a8297a8;
-			6'h10:	mem_dout <= 46'h266666828745;
-			6'h11:	mem_dout <= 46'h2522c402777c;
+			6'h00:	mem_dout <= 46'h00000003f040;
+			6'h01:	mem_dout <= 46'h3e07e003d1b1;
+			6'h02:	mem_dout <= 46'h3c1f0783b482;
+			6'h03:	mem_dout <= 46'h3a44c683989d;
+			6'h04:	mem_dout <= 46'h387878037ded;
+			6'h05:	mem_dout <= 46'h36b981836463;
+			6'h06:	mem_dout <= 46'h350750034bec;
+			6'h07:	mem_dout <= 46'h33615a03347c;
+			6'h08:	mem_dout <= 46'h31c71c031e00;
+			6'h09:	mem_dout <= 46'h30381c030870;
+			6'h0a:	mem_dout <= 46'h2eb3e402f3bb;
+			6'h0b:	mem_dout <= 46'h2d3a0682dfd8;
+			6'h0c:	mem_dout <= 46'h2bca1a82ccba;
+			6'h0d:	mem_dout <= 46'h2a63bd82ba5b;
+			6'h0e:	mem_dout <= 46'h29069002a8ac;
+			6'h0f:	mem_dout <= 46'h27b23a0297a8;
+			6'h10:	mem_dout <= 46'h266666028745;
+			6'h11:	mem_dout <= 46'h2522c382777b;
 			6'h12:	mem_dout <= 46'h23e706026844;
-			6'h13:	mem_dout <= 46'h22b2e4025997;
-			6'h14:	mem_dout <= 46'h218618824b70;
-			6'h15:	mem_dout <= 46'h206060823dc7;
+			6'h13:	mem_dout <= 46'h22b2e4025998;
+			6'h14:	mem_dout <= 46'h218618024b70;
+			6'h15:	mem_dout <= 46'h206060023dc6;
 			6'h16:	mem_dout <= 46'h1f417d023096;
-			6'h17:	mem_dout <= 46'h1e29320223d8;
-			6'h18:	mem_dout <= 46'h1d1746021789;
-			6'h19:	mem_dout <= 46'h1c0b81820ba2;
-			6'h1a:	mem_dout <= 46'h1b05b0820020;
-			6'h1b:	mem_dout <= 46'h1a05a081f4fe;
-			6'h1c:	mem_dout <= 46'h190b2181ea38;
+			6'h17:	mem_dout <= 46'h1e29320223d9;
+			6'h18:	mem_dout <= 46'h1d1745821789;
+			6'h19:	mem_dout <= 46'h1c0b81020ba2;
+			6'h1a:	mem_dout <= 46'h1b05b0020020;
+			6'h1b:	mem_dout <= 46'h1a05a001f4fe;
+			6'h1c:	mem_dout <= 46'h190b2101ea37;
 			6'h1d:	mem_dout <= 46'h18160581dfca;
-			6'h1e:	mem_dout <= 46'h17262081d5af;
-			6'h1f:	mem_dout <= 46'h163b4901cbe7;
-			6'h20:	mem_dout <= 46'h15555581c26c;
+			6'h1e:	mem_dout <= 46'h17262081d5b0;
+			6'h1f:	mem_dout <= 46'h163b4881cbe7;
+			6'h20:	mem_dout <= 46'h15555501c26b;
 			6'h21:	mem_dout <= 46'h14741f81b93a;
 			6'h22:	mem_dout <= 46'h13978281b050;
 			6'h23:	mem_dout <= 46'h12bf5a81a7ab;
 			6'h24:	mem_dout <= 46'h11eb85019f47;
-			6'h25:	mem_dout <= 46'h111be1819722;
-			6'h26:	mem_dout <= 46'h105050818f3b;
-			6'h27:	mem_dout <= 46'h0f88b301878d;
-			6'h28:	mem_dout <= 46'h0ec4ec818018;
-			6'h29:	mem_dout <= 46'h0e04e08178d9;
-			6'h2a:	mem_dout <= 46'h0d48740171ce;
-			6'h2b:	mem_dout <= 46'h0c8f8d016af4;
-			6'h2c:	mem_dout <= 46'h0bda1301644c;
+			6'h25:	mem_dout <= 46'h111be1819723;
+			6'h26:	mem_dout <= 46'h105050018f3b;
+			6'h27:	mem_dout <= 46'h0f88b281878d;
+			6'h28:	mem_dout <= 46'h0ec4ec018018;
+			6'h29:	mem_dout <= 46'h0e04e00178d9;
+			6'h2a:	mem_dout <= 46'h0d48738171cd;
+			6'h2b:	mem_dout <= 46'h0c8f8d016af5;
+			6'h2c:	mem_dout <= 46'h0bda1281644b;
 			6'h2d:	mem_dout <= 46'h0b27ed015dd1;
-			6'h2e:	mem_dout <= 46'h0a7904815783;
-			6'h2f:	mem_dout <= 46'h09cd43015161;
-			6'h30:	mem_dout <= 46'h092492814b69;
-			6'h31:	mem_dout <= 46'h087ede014598;
-			6'h32:	mem_dout <= 46'h07dc12013fef;
+			6'h2e:	mem_dout <= 46'h0a7904815784;
+			6'h2f:	mem_dout <= 46'h09cd42815161;
+			6'h30:	mem_dout <= 46'h092492014b68;
+			6'h31:	mem_dout <= 46'h087ede014599;
+			6'h32:	mem_dout <= 46'h07dc11813fee;
 			6'h33:	mem_dout <= 46'h073c1a813a6a;
-			6'h34:	mem_dout <= 46'h069ee581350a;
-			6'h35:	mem_dout <= 46'h060460812fce;
-			6'h36:	mem_dout <= 46'h056c79812ab2;
-			6'h37:	mem_dout <= 46'h04d7208125b8;
-			6'h38:	mem_dout <= 46'h0444448120de;
+			6'h34:	mem_dout <= 46'h069ee581350b;
+			6'h35:	mem_dout <= 46'h060460012fce;
+			6'h36:	mem_dout <= 46'h056c79012ab2;
+			6'h37:	mem_dout <= 46'h04d7200125b8;
+			6'h38:	mem_dout <= 46'h0444440120dd;
 			6'h39:	mem_dout <= 46'h03b3d5811c21;
 			6'h3a:	mem_dout <= 46'h0325c5011782;
 			6'h3b:	mem_dout <= 46'h029a04011300;
-			6'h3c:	mem_dout <= 46'h021084010e99;
-			6'h3d:	mem_dout <= 46'h018937810a4e;
-			6'h3e:	mem_dout <= 46'h01041081061d;
+			6'h3c:	mem_dout <= 46'h021084010e9a;
+			6'h3d:	mem_dout <= 46'h018937010a4e;
+			6'h3e:	mem_dout <= 46'h01041001061c;
 			6'h3f:	mem_dout <= 46'h008102010204;
 			endcase
 		end

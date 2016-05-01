@@ -8,7 +8,7 @@ module tb_float_reciprocal();
 	
 	initial begin
 		$dumpfile("tb_float_reciprocal.vcd");
-		$dumpvars(0, tb_float_reciprocal);
+		$dumpvars(1, tb_float_reciprocal);
 	end
 	
 	reg		clk = 1'b1;
@@ -25,7 +25,7 @@ module tb_float_reciprocal();
 	parameter	FRAC_WIDTH  = 23;
 	parameter	FLOAT_WIDTH = 1 + EXP_WIDTH + FRAC_WIDTH;
 	
-	parameter	D_WIDTH     = 6;
+	parameter	D_WIDTH     = 10; // 6;
 	parameter	K_WIDTH     = FRAC_WIDTH - D_WIDTH;
 	parameter	GRAD_WIDTH  = FRAC_WIDTH;
 	
@@ -61,90 +61,72 @@ module tb_float_reciprocal();
 	
 	
 	
-	reg		[FLOAT_WIDTH-1:0]	float_src = 32'h0080_0000; // {FLOAT_WIDTH{1'b0}};
-	real						real_src;
-	
-	reg		[FLOAT_WIDTH-1:0]	in_float;
-	reg		[63:0]				in_double;
+	reg		[FLOAT_WIDTH-1:0]	in_float = 32'h3f80_0000; // {FLOAT_WIDTH{1'b0}};
 	reg							in_valid = 1'b0;
+	wire						in_ready;
 	
 	wire	[FLOAT_WIDTH-1:0]	out_float;
-	wire	[63:0]				out_double;
+	wire	[FLOAT_WIDTH-1:0]	out_src;
 	wire						out_valid;
+	reg							out_ready = 1'b1;
+	
+	reg		[31:0]				reg_random = 10;
+	
+	integer						in_count = 0;
 	
 	always @(posedge clk) begin
-		if ( !reset ) begin
-//			float_src = {$random};
-			real_src  = float2real(float_src);
+		if ( reset ) begin
+			in_float  <= 32'h3f80_0000;
+			in_valid  <= 1'b0;
+			out_ready <= 1'b1;
+		end
+		else begin
+			in_valid  <= 1'b1;
+			out_ready <= 1'b1;
 			
-			in_float  <= float_src;
-			in_double <= $realtobits(real_src);
-			in_valid  <= !isnan_float(float_src);
+			in_valid  <= {$random};
+			out_ready <= {$random};
 			
-			float_src = float_src + 32'h01;
+			if ( in_valid && in_ready ) begin
+				in_count = in_count + 1;
+				if ( in_count < 32'h0010_0010 ) begin
+	//				in_float <= in_float + 32'h01;
+					in_float <= in_float - 32'h01;
+				end
+				else begin
+					in_float <= {$random(reg_random)};
+				end
+			end
 		end
 	end
 	
 	
-	jelly_float_reciprocal
-			#(
-				.EXP_WIDTH	(EXP_WIDTH),
-				.EXP_OFFSET	(EXP_OFFSET),
-				.FRAC_WIDTH	(FRAC_WIDTH),
-				.FLOAT_WIDTH(FLOAT_WIDTH),
-				
-				.D_WIDTH	(D_WIDTH),
-				.K_WIDTH	(K_WIDTH),
-				.GRAD_WIDTH	(GRAD_WIDTH),
-				
-				.MAKE_TABLE	(1)
-			)
-		i_float_reciprocal
-			(
-				.reset		(reset),
-				.clk		(clk),
-				.cke		(1'b1),
-				
-				.s_float	(in_float),
-				.s_valid	(in_valid),
-				.s_ready	(),
-				
-				.m_float	(out_float),
-				.m_valid	(out_valid),
-				.m_ready	(1'b1)
-			);
+	real		exp;
+	real		result;
+	real		error;
+	real		error_max = 0;
+	reg			error_update = 0;
 	
-	jelly_data_delay
-			#(
-				.LATENCY	(6),
-				.DATA_WIDTH	(64)
-			)
-		i_data_delay_exp
-			(
-				.reset		(reset),
-				.clk		(clk),
-				.cke		(1'b1),
-				
-				.in_data	(in_double),
-				
-				.out_data	(out_double)
-			);
-	
-	
-	real	exp;
-	real	result;
-	real	error;
-	real	error_max = 0;
-	reg		error_update = 0;
+	integer	fp;
+	integer	count = 0;
+	initial begin
+		fp = $fopen("out.txt", "w");
+	end
 	
 	always @(posedge clk) begin
-		if ( !reset && out_valid && !isnan_float(out_float) ) begin
-			exp    = 1.0/$bitstoreal(out_double);
+		if ( !reset && out_valid && out_ready && !isnan_float(out_src) ) begin
+			exp    = 1.0/$bitstoreal(float2real(out_src));
 			result = float2real(out_float);
 			error  = (result - exp) / exp;
 			if ( error < 0 ) begin error = -error; end
 			
 //			$display("%g %g %g", result, exp, error);
+			$fdisplay(fp, "%h %h %g %g %g", out_src, out_float, result, exp, error);
+			if ( count > 32'h0011_0000 ) begin
+				$fclose(fp);
+				$finish;
+			end
+			count = count + 1;
 			
 			error_update <= 1'b0;
 			if ( error > error_max ) begin
@@ -157,13 +139,50 @@ module tb_float_reciprocal();
 		end
 	end
 	
+	
+	// 進行モニタ
 	initial begin
 		while (1) begin
 			#100000;
 			$display("error_max: %g %h", error_max, in_float);
 		end
-//		$finish;
 	end
+	
+	
+	
+	
+	jelly_float_reciprocal
+			#(
+				.EXP_WIDTH		(EXP_WIDTH),
+				.EXP_OFFSET		(EXP_OFFSET),
+				.FRAC_WIDTH		(FRAC_WIDTH),
+				.FLOAT_WIDTH	(FLOAT_WIDTH),
+				
+				.USER_WIDTH		(32),
+				
+				.D_WIDTH		(D_WIDTH),
+				.K_WIDTH		(K_WIDTH),
+				.GRAD_WIDTH		(GRAD_WIDTH),
+				
+				.WRITE_TABLE	(1)
+			)
+		i_float_reciprocal
+			(
+				.reset			(reset),
+				.clk			(clk),
+				.cke			(1'b1),
+				
+				.s_user			(in_float),
+				.s_float		(in_float),
+				.s_valid		(in_valid),
+				.s_ready		(in_ready),
+				
+				.m_user			(out_src),
+				.m_float		(out_float),
+				.m_valid		(out_valid),
+				.m_ready		(out_ready)
+			);
+	
 	
 endmodule
 
