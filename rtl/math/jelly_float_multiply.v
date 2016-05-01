@@ -163,13 +163,16 @@ module jelly_float_multiply
 				st3_frac <= {FRAC_WIDTH{1'b0}};
 			end
 			else begin
-				if ( st2_frac[FRAC_WIDTH+1] ) begin
+				if ( st2_frac[FRAC_WIDTH+1] == 1'b1 ) begin
 					st3_exp  <= st2_exp + 1'b1;
 					st3_frac <= (st2_frac >> 1);
 				end
-				else begin
+				else if ( st2_frac[FRAC_WIDTH] == 1'b1 ) begin
 					st3_exp  <= st2_exp;
 					st3_frac <= st2_frac;
+				end
+				else begin
+					st3_exp <= {EXP_WIDTH{1'b0}};
 				end
 			end
 		end
