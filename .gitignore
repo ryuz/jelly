@@ -3,6 +3,8 @@
 !.gitignore
 !README
 !*.v
+!*.tcl
+!*.xpr
 !*.xise
 !*.ucf
 !*.pl
