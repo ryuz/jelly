@@ -3,12 +3,12 @@
 `default_nettype none
 
 
-module tb_float_to_fixed();
+module tb_fixed_to_float();
 	localparam RATE    = 10.0;
 	
 	initial begin
-		$dumpfile("tb_float_to_fixed.vcd");
-		$dumpvars(0, tb_float_to_fixed);
+		$dumpfile("tb_fixed_to_float.vcd");
+		$dumpvars(0, tb_fixed_to_float);
 	end
 	
 	reg		clk = 1'b1;
@@ -19,15 +19,15 @@ module tb_float_to_fixed();
 	
 	
 	
+	parameter	FIXED_SIGNED      = 0;
+	parameter	FIXED_INT_WIDTH   = 32;
+	parameter	FIXED_FRAC_WIDTH  = 0;
+	parameter	FIXED_WIDTH       = FIXED_INT_WIDTH + FIXED_FRAC_WIDTH;
 	
 	parameter	FLOAT_EXP_WIDTH   = 8;
 	parameter	FLOAT_EXP_OFFSET  = (1 << (FLOAT_EXP_WIDTH-1)) - 1;
 	parameter	FLOAT_FRAC_WIDTH  = 23;
 	parameter	FLOAT_WIDTH       = 1 + FLOAT_EXP_WIDTH + FLOAT_FRAC_WIDTH;
-	
-	parameter	FIXED_INT_WIDTH   = 16;
-	parameter	FIXED_FRAC_WIDTH  = 16;
-	parameter	FIXED_WIDTH       = FIXED_INT_WIDTH + FIXED_FRAC_WIDTH;
 	
 	
 	
@@ -61,12 +61,12 @@ module tb_float_to_fixed();
 	
 	
 	
-	reg		[FLOAT_WIDTH-1:0]	in_float;
+	reg		[FLOAT_WIDTH-1:0]	in_fixed;
 	reg							in_valid = 1'b0;
 	wire						in_ready;
 	
-	wire	signed [FIXED_WIDTH-1:0]	out_fixed;
-	wire	[FLOAT_WIDTH-1:0]	out_src;
+	wire	[FIXED_WIDTH-1:0]	out_fixed;
+	wire	[FLOAT_WIDTH-1:0]	out_float;
 	wire						out_valid;
 	reg							out_ready = 1'b1;
 	
@@ -76,7 +76,7 @@ module tb_float_to_fixed();
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
-			in_float  <= 32'h4080_0000;
+			in_fixed  <= 32'h0000_0000;
 			in_valid  <= 1'b0;
 			out_ready <= 1'b1;
 		end
@@ -90,21 +90,17 @@ module tb_float_to_fixed();
 			if ( in_valid && in_ready ) begin
 				in_count = in_count + 1;
 				if ( in_count < 32'h0001_0000 ) begin
-					in_float <= (in_float + 32'h123);// | 32'h8000_0000;
+					in_fixed <= (in_fixed + 32'h1);// | 32'h8000_0000;
 				end
 				else begin
-					in_float <= {$random(reg_random)};
+					in_fixed <= {$random(reg_random)};
 				end
 			end
 		end
 	end
 	
 	
-	real		expect;
 	real		result;
-	real		error;
-	real		error_max = 0;
-	reg			error_update = 0;
 	
 	integer	fp;
 	integer	count = 0;
@@ -113,10 +109,10 @@ module tb_float_to_fixed();
 	end
 	
 	always @(posedge clk) begin
-		if ( !reset && out_valid && out_ready && !isnan_float(out_src) ) begin
-			expect = $bitstoreal(float2real(out_src));
+		if ( !reset && out_valid && out_ready ) begin
+			result = $bitstoreal(float2real(out_float));
 			
-			$display("%h %f", out_fixed, expect);
+			$display("%d %f", out_fixed, result);
 			
 			/*
 			$fdisplay(fp, "%h %h %g %g %g", out_src, out_float, result, exp, error);
@@ -138,39 +134,9 @@ module tb_float_to_fixed();
 	end
 	
 	
-	
-	jelly_float_to_fixed
-			#(
-				.FLOAT_EXP_WIDTH		(FLOAT_EXP_WIDTH),
-				.FLOAT_EXP_OFFSET		(FLOAT_EXP_OFFSET),
-				.FLOAT_FRAC_WIDTH		(FLOAT_FRAC_WIDTH),
-				.FLOAT_WIDTH			(FLOAT_WIDTH),
-				
-				.FIXED_INT_WIDTH		(FIXED_INT_WIDTH),
-				.FIXED_FRAC_WIDTH		(FIXED_FRAC_WIDTH),
-				.FIXED_WIDTH			(FIXED_WIDTH),
-				
-				.USER_WIDTH				(32)
-			)
-		i_float_to_fixed
-			(
-				.reset			(reset),
-				.clk			(clk),
-				.cke			(1'b1),
-				
-				.s_user			(in_float),
-				.s_float		(in_float),
-				.s_valid		(in_valid),
-				.s_ready		(in_ready),
-				
-				.m_user			(out_src),
-				.m_fixed		(out_fixed),
-				.m_valid		(out_valid),
-				.m_ready		(out_ready)
-			);
-	
 	jelly_fixed_to_float
 			#(
+				.FIXED_SIGNED			(FIXED_SIGNED),
 				.FIXED_INT_WIDTH		(FIXED_INT_WIDTH),
 				.FIXED_FRAC_WIDTH		(FIXED_FRAC_WIDTH),
 				.FIXED_WIDTH			(FIXED_WIDTH),
@@ -188,15 +154,15 @@ module tb_float_to_fixed();
 				.clk			(clk),
 				.cke			(1'b1),
 				
-				.s_user			(out_fixed),
-				.s_fixed		(out_fixed),
-				.s_valid		(out_valid),
-				.s_ready		(),
+				.s_user			(in_fixed),
+				.s_fixed		(in_fixed),
+				.s_valid		(in_valid),
+				.s_ready		(in_ready),
 				
-				.m_user			(),
-				.m_float		(),
-				.m_valid		(),
-				.m_ready		(1'b1)
+				.m_user			(out_fixed),
+				.m_float		(out_float),
+				.m_valid		(out_valid),
+				.m_ready		(out_ready)
 			);
 	
 	
