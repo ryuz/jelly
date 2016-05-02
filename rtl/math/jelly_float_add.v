@@ -45,7 +45,7 @@ module jelly_float_add
 			input	wire						m_ready
 		);
 	
-	localparam	PIPELINE_STAGES = 5;
+	localparam	PIPELINE_STAGES = 6;
 	
 	wire	[PIPELINE_STAGES-1:0]	stage_cke;
 	wire	[PIPELINE_STAGES-1:0]	stage_valid;
@@ -98,14 +98,14 @@ module jelly_float_add
 	localparam	MUL_LO_WIDTH = (FRAC_WIDTH+1) / 2;
 	localparam	MUL_HI_WIDTH = (FRAC_WIDTH+1) - MUL_LO_WIDTH;
 	
-	
 	reg		[USER_BITS-1:0]				st0_user;
-	reg									st0_sign;
-	reg		[EXP_WIDTH-1:0]				st0_exp;
+	reg									st0_sign0;
+	reg									st0_sign1;
+	reg		[EXP_WIDTH-1:0]				st0_exp0;
+	reg		[EXP_WIDTH-1:0]				st0_exp1;
 	reg		[FRAC_WIDTH:0]				st0_frac0;
 	reg		[FRAC_WIDTH:0]				st0_frac1;
-	reg									st0_sub;
-	reg		[EXP_WIDTH-1:0]				st0_shift;
+	reg									st0_comp;
 	
 	reg		[USER_BITS-1:0]				st1_user;
 	reg									st1_sign;
@@ -113,99 +113,110 @@ module jelly_float_add
 	reg		[FRAC_WIDTH:0]				st1_frac0;
 	reg		[FRAC_WIDTH:0]				st1_frac1;
 	reg									st1_sub;
+	reg		[EXP_WIDTH-1:0]				st1_shift;
 	
 	reg		[USER_BITS-1:0]				st2_user;
 	reg									st2_sign;
 	reg		[EXP_WIDTH-1:0]				st2_exp;
-	reg		[FRAC_WIDTH+1:0]			st2_frac;
+	reg		[FRAC_WIDTH:0]				st2_frac0;
+	reg		[FRAC_WIDTH:0]				st2_frac1;
+	reg									st2_sub;
+	
+	reg		[USER_BITS-1:0]				st3_user;
+	reg									st3_sign;
+	reg		[EXP_WIDTH-1:0]				st3_exp;
+	reg		[FRAC_WIDTH+1:0]			st3_frac;
 	
 	integer								i;
 	reg		[EXP_WIDTH-1:0]				tmp_clz;
 	reg		[FRAC_WIDTH+1:0]			tmp_frac;
 	
-	reg		[USER_BITS-1:0]				st3_user;
-	reg									st3_sign;
-	reg		[EXP_WIDTH-1:0]				st3_exp;
-	reg		[FRAC_WIDTH:0]				st3_frac;
-	reg		[EXP_WIDTH-1:0]				st3_clz;
-	
 	reg		[USER_BITS-1:0]				st4_user;
 	reg									st4_sign;
 	reg		[EXP_WIDTH-1:0]				st4_exp;
-	reg		[FRAC_WIDTH-1:0]			st4_frac;
+	reg		[FRAC_WIDTH:0]				st4_frac;
+	reg		[EXP_WIDTH-1:0]				st4_clz;
+	
+	reg		[USER_BITS-1:0]				st5_user;
+	reg									st5_sign;
+	reg		[EXP_WIDTH-1:0]				st5_exp;
+	reg		[FRAC_WIDTH-1:0]			st5_frac;
 	
 	always @(posedge clk) begin
 		if ( stage_cke[0] ) begin
-			if ( {src_exp1, src_frac1} <= {src_exp0, src_frac0} ) begin
-				st0_sign  <= src_sign0;
-				st0_exp   <= src_exp0;
-				st0_frac0 <= (src_exp0 == {EXP_WIDTH{1'b0}}) ? {1'b0, src_frac0} : {1'b1, src_frac0};
-				st0_frac1 <= (src_exp1 == {EXP_WIDTH{1'b0}}) ? {1'b0, src_frac1} : {1'b1, src_frac1};
-				st0_sub   <= src_sign1 ^ src_sign0;
-				st0_shift <= src_exp0 - src_exp1;
+			st0_user  <= src_user;
+			st0_sign0 <= src_sign0;
+			st0_sign1 <= src_sign1;
+			st0_exp0  <= src_exp0;
+			st0_exp1  <= src_exp1;
+			st0_frac0 <= (src_exp0 == {EXP_WIDTH{1'b0}}) ? {1'b0, src_frac0} : {1'b1, src_frac0};
+			st0_frac1 <= (src_exp1 == {EXP_WIDTH{1'b0}}) ? {1'b0, src_frac1} : {1'b1, src_frac1};
+			st0_comp  <= ({src_exp1, src_frac1} <= {src_exp0, src_frac0});
+		end
+		if ( stage_cke[1] ) begin
+			st1_user <= st0_user;
+			if ( st0_comp ) begin
+				st1_sign  <= st0_sign0;
+				st1_exp   <= st0_exp0;
+				st1_frac0 <= st0_frac0;
+				st1_frac1 <= st0_frac1;
+				st1_sub   <= st0_sign1 ^ st0_sign0;
+				st1_shift <= st0_exp0 - st0_exp1;
 			end
 			else begin
-				st0_sign  <= src_sign1;
-				st0_exp   <= src_exp1;
-				st0_frac0 <= (src_exp1 == {EXP_WIDTH{1'b0}}) ? {1'b0, src_frac1} : {1'b1, src_frac1};
-				st0_frac1 <= (src_exp0 == {EXP_WIDTH{1'b0}}) ? {1'b0, src_frac0} : {1'b1, src_frac0};
-				st0_sub   <= src_sign0 ^ src_sign1;
-				st0_shift <= src_exp1 - src_exp0;
+				st1_sign  <= st0_sign1;
+				st1_exp   <= st0_exp1;
+				st1_frac0 <= st0_frac1;
+				st1_frac1 <= st0_frac0;
+				st1_sub   <= st0_sign0 ^ st0_sign1;
+				st1_shift <= st0_exp1 - st0_exp0;
 			end
-		end
-		
-		if ( stage_cke[1] ) begin
-			st1_user  <= st0_user;
-			st1_sign  <= st0_sign;
-			st1_exp   <= st0_exp;
-			st1_frac0 <= st0_frac0;
-			st1_frac1 <= (st0_frac1 >> st0_shift);
-			st1_sub   <= st0_sub;
 		end
 		
 		if ( stage_cke[2] ) begin
 			st2_user  <= st1_user;
 			st2_sign  <= st1_sign;
 			st2_exp   <= st1_exp;
-			st2_frac  <= st1_sub ? st1_frac0 - st1_frac1 : st1_frac0 + st1_frac1;
+			st2_frac0 <= st1_frac0;
+			st2_frac1 <= (st1_frac1 >> st1_shift);
+			st2_sub   <= st1_sub;
 		end
 		
 		if ( stage_cke[3] ) begin
-			tmp_clz  = 0;
-			tmp_frac = st2_frac;
-			for ( i = 0; i < (FRAC_WIDTH + 1); i = i+1 ) begin
-				if ( tmp_frac[FRAC_WIDTH+1] == 1'b0 ) begin
-					tmp_clz  = tmp_clz + 1'b1;
-					tmp_frac = (tmp_frac << 1);
-				end
-			end
-			st3_user <= st2_user;
-			st3_sign <= st2_sign;
-			st3_exp  <= st2_exp;
-			st3_frac <= tmp_frac[FRAC_WIDTH+1:1];
-			st3_clz  <= tmp_clz;
+			st3_user  <= st2_user;
+			st3_sign  <= st2_sign;
+			st3_exp   <= st2_exp;
+			st3_frac  <= st2_sub ? st2_frac0 - st2_frac1 : st2_frac0 + st2_frac1;
 		end
 		
 		if ( stage_cke[4] ) begin
 			tmp_clz  = 0;
-			tmp_frac = st2_frac;
+			tmp_frac = st3_frac;
 			for ( i = 0; i < (FRAC_WIDTH + 1); i = i+1 ) begin
 				if ( tmp_frac[FRAC_WIDTH+1] == 1'b0 ) begin
 					tmp_clz  = tmp_clz + 1'b1;
 					tmp_frac = (tmp_frac << 1);
 				end
 			end
-			st4_user <= st2_user;
-			st4_sign <= st3_frac[FRAC_WIDTH] ? st2_sign : 1'b0;
-			st4_exp  <= st3_frac[FRAC_WIDTH] ? (st3_exp - st3_clz + 1'b1) : {EXP_WIDTH{1'b0}};
-			st4_frac <= st3_frac[FRAC_WIDTH-1:0];
+			st4_user <= st3_user;
+			st4_sign <= st3_sign;
+			st4_exp  <= st3_exp;
+			st4_frac <= tmp_frac[FRAC_WIDTH+1:1];
+			st4_clz  <= tmp_clz;
+		end
+		
+		if ( stage_cke[5] ) begin
+			st5_user <= st4_user;
+			st5_sign <= st4_frac[FRAC_WIDTH] ? st4_sign : 1'b0;
+			st5_exp  <= st4_frac[FRAC_WIDTH] ? (st4_exp - st4_clz + 1'b1) : {EXP_WIDTH{1'b0}};
+			st5_frac <= st4_frac[FRAC_WIDTH-1:0];
 		end
 	end
 	
-	assign sink_user = st4_user;
-	assign sink_sign = st4_sign;
-	assign sink_exp  = st4_exp;
-	assign sink_frac = st4_frac;
+	assign sink_user = st5_user;
+	assign sink_sign = st5_sign;
+	assign sink_exp  = st5_exp;
+	assign sink_frac = st5_frac;
 	
 endmodule
 
