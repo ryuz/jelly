@@ -21,7 +21,7 @@ module jelly_float_multiply
 			parameter	FRAC_WIDTH      = 23,
 			parameter	FLOAT_WIDTH     = 1 + EXP_WIDTH + FRAC_WIDTH,	// sign + exp + frac
 			
-			parameter	MUL_DIV         = 1,
+			parameter	MUL_DIV         = (FRAC_WIDTH > 16) ? 1 : 0,
 			
 			parameter	USER_WIDTH      = 0,
 			
@@ -47,7 +47,7 @@ module jelly_float_multiply
 			input	wire						m_ready
 		);
 	
-	localparam	PIPELINE_STAGES = 6;
+	localparam	PIPELINE_STAGES = 4;
 	
 	wire	[PIPELINE_STAGES-1:0]	stage_cke;
 	wire	[PIPELINE_STAGES-1:0]	stage_valid;
@@ -101,36 +101,30 @@ module jelly_float_multiply
 	localparam	MUL_HI_WIDTH = (FRAC_WIDTH+1) - MUL_LO_WIDTH;
 	
 	
-	reg		[USER_BITS-1:0]			st0_user;
-	reg								st0_sign0;
-	reg		[EXP_WIDTH-1:0]			st0_exp0;
-	reg		[FRAC_WIDTH:0]			st0_frac0;
-	reg								st0_sign1;
-	reg		[EXP_WIDTH-1:0]			st0_exp1;
-	reg		[FRAC_WIDTH:0]			st0_frac1;
-
-	reg		[USER_BITS-1:0]			st1_user;
-	reg								st1_sign;
-	reg		[EXP_WIDTH:0]			st1_exp;
-	reg		[(FRAC_WIDTH+1)*2-1:0]	st1_frac;
-	reg		[FRAC_WIDTH+MUL_LO_WIDTH:0]		st1_frac_lo;
-	reg		[FRAC_WIDTH+MUL_HI_WIDTH:0]		st1_frac_hi;
+	reg		[USER_BITS-1:0]				st0_user;
+	reg									st0_sign0;
+	reg		[EXP_WIDTH-1:0]				st0_exp0;
+	reg		[FRAC_WIDTH:0]				st0_frac0;
+	reg									st0_sign1;
+	reg		[EXP_WIDTH-1:0]				st0_exp1;
+	reg		[FRAC_WIDTH:0]				st0_frac1;
 	
-	reg		[USER_BITS-1:0]			st2_user;
-	reg								st2_sign;
-	reg		[EXP_WIDTH:0]			st2_exp;
-	reg		[(FRAC_WIDTH+1)*2-1:0]	st2_frac;
-	reg		[(FRAC_WIDTH+1)*2-1:0]	st2_frac_add;
+	reg		[USER_BITS-1:0]				st1_user;
+	reg									st1_sign;
+	reg		[EXP_WIDTH:0]				st1_exp;
+	reg		[(FRAC_WIDTH+1)*2-1:0]		st1_frac;
+	reg		[FRAC_WIDTH+MUL_LO_WIDTH:0]	st1_frac_lo;
+	reg		[FRAC_WIDTH+MUL_HI_WIDTH:0]	st1_frac_hi;
 	
-	reg		[USER_BITS-1:0]			st3_user;
-	reg								st3_sign;
-	reg		[EXP_WIDTH:0]			st3_exp;
-	reg		[FRAC_WIDTH+1:0]		st3_frac;
+	reg		[USER_BITS-1:0]				st2_user;
+	reg									st2_sign;
+	reg		[EXP_WIDTH:0]				st2_exp;
+	reg		[(FRAC_WIDTH+1)*2-1:0]		st2_frac;
 	
-	reg		[USER_BITS-1:0]			st4_user;
-	reg								st4_sign;
-	reg		[EXP_WIDTH-1:0]			st4_exp;
-	reg		[FRAC_WIDTH-1:0]		st4_frac;
+	reg		[USER_BITS-1:0]				st3_user;
+	reg									st3_sign;
+	reg		[EXP_WIDTH:0]				st3_exp;
+	reg		[FRAC_WIDTH+1:0]			st3_frac;
 	
 	always @(posedge clk) begin
 		if ( stage_cke[0] ) begin
@@ -168,49 +162,42 @@ module jelly_float_multiply
 			st2_user     <= st1_user;
 			st2_sign     <= st1_sign;
 			st2_exp      <= st1_exp;
-			st2_frac     <= st1_frac;
-			st2_frac_add <= (st1_frac_hi << MUL_LO_WIDTH) + st1_frac_lo;
+			if ( MUL_DIV ) begin
+				st2_frac <= ({st1_frac_hi, {MUL_LO_WIDTH{1'b0}}} + st1_frac_lo) >> FRAC_WIDTH;
+			end
+			else begin
+				st2_frac <= st1_frac >> FRAC_WIDTH;
+			end
 		end
 		
 		if ( stage_cke[3] ) begin
 			st3_user <= st2_user;
 			st3_sign <= st2_sign;
-			st3_exp  <= st2_exp;
-			if ( MUL_DIV ) begin
-				st3_frac <= (st2_frac_add >> FRAC_WIDTH);
-			end
-			else begin
-				st3_frac <= (st2_frac >> FRAC_WIDTH);
-			end
-		end
-		
-		if ( stage_cke[4] ) begin
-			st4_user <= st3_user;
-			st4_sign <= st3_sign;
 			if ( st3_exp[EXP_WIDTH] ) begin	// overflow or underflow
-				st4_exp  <= {EXP_WIDTH{1'b0}};
-				st4_frac <= {FRAC_WIDTH{1'b0}};
+				st3_exp  <= {EXP_WIDTH{1'b0}};
+				st3_frac <= {FRAC_WIDTH{1'b0}};
 			end
 			else begin
-				if ( st3_frac[FRAC_WIDTH+1] == 1'b1 ) begin
-					st4_exp  <= st3_exp + 1'b1;
-					st4_frac <= (st3_frac >> 1);
+				if ( st2_frac[FRAC_WIDTH+1] == 1'b1 ) begin
+					st3_exp  <= st2_exp + 1'b1;
+					st3_frac <= (st2_frac >> 1);
 				end
-				else if ( st3_frac[FRAC_WIDTH] == 1'b1 ) begin
-					st4_exp  <= st3_exp;
-					st4_frac <= st3_frac;
+				else if ( st2_frac[FRAC_WIDTH] == 1'b1 ) begin
+					st3_exp  <= st2_exp;
+					st3_frac <= st2_frac;
 				end
 				else begin
-					st4_exp <= {EXP_WIDTH{1'b0}};
+					st3_exp  <= {EXP_WIDTH{1'b0}};
+					st3_frac <= st2_frac;
 				end
 			end
 		end
 	end
 	
-	assign sink_user = st4_user;
-	assign sink_sign = st4_sign;
-	assign sink_exp  = st4_exp;
-	assign sink_frac = st4_frac;
+	assign sink_user = st3_user;
+	assign sink_sign = st3_sign;
+	assign sink_exp  = st3_exp;
+	assign sink_frac = st3_frac;
 	
 endmodule
 

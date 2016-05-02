@@ -243,6 +243,10 @@
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="278"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="3"/>
     </file>
+    <file xil_pn:name="../../../../rtl/math/mul_test.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="297"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
+    </file>
   </files>
 
   <properties>

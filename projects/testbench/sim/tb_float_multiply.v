@@ -106,7 +106,7 @@ module tb_float_multiply();
 			real_src1 = float2real(out_src1);
 			result    = float2real(out_float);
 			
-			$display("%g (exp:%g <= %g * %g", result, real_src0*real_src1, real_src0, real_src1);
+			$display("%g (exp:%g <= %g * %g)", result, real_src0*real_src1, real_src0, real_src1);
 			
 			/*
 			$fdisplay(fp, "%h %h %g %g %g", out_src, out_float, result, exp, error);
