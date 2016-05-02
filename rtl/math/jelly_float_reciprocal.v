@@ -138,8 +138,8 @@ module jelly_float_reciprocal
 				)
 			i_float_reciprocal_table
 				(
+					.reset			(reset),
 					.clk			(clk),
-					
 					.cke			(stage_cke[1:0]),
 					
 					.in_d			(src_frac[FRAC_WIDTH-1 -: D_WIDTH]),
