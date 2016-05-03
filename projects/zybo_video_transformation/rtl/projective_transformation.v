@@ -127,13 +127,13 @@ module projective_transformation
 	wire						out_valid;
 	wire						out_ready;
 	
-	projective_transformation_float
+	jelly_float_projective_transformation_2d
 			#(
 				.EXP_WIDTH			(EXP_WIDTH),
 				.FRAC_WIDTH			(FRAC_WIDTH),
 				.USER_WIDTH			(USER_WIDTH)
 			)
-		i_projective_transformation_float
+		i_float_projective_transformation_2d
 			(
 				.reset				(reset),
 				.clk				(clk),

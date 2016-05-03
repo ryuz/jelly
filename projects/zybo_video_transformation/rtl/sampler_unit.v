@@ -5,7 +5,7 @@
 
 
 
-module sampler
+module sampler_unit
 		#(
 			parameter	AXI4_ID_WIDTH     = 6,
 			parameter	AXI4_ADDR_WIDTH   = 32,
@@ -22,23 +22,35 @@ module sampler
 			parameter	AXI4_ARQOS        = 0,
 			parameter	AXI4_ARREGION     = 4'b0000,
 			
+			parameter	WB_ADR_WIDTH      = 8,
+			parameter	WB_DAT_WIDTH      = 32,
+			parameter	WB_SEL_WIDTH      = (WB_DAT_WIDTH / 8),
+			
 			parameter	INIT_PARAM_ADDR   = 32'h1800_0000,
 			parameter	INIT_PARAM_STRIDE = 4096,
 			
+			parameter	INIT_MATRIX00     = 32'h3fc00000,
+			parameter	INIT_MATRIX01     = 32'h00000000,
+			parameter	INIT_MATRIX02     = 32'hc3283b18,
+			parameter	INIT_MATRIX10     = 32'h3eaaaaaa,
+			parameter	INIT_MATRIX11     = 32'h3f5db3d9,
+			parameter	INIT_MATRIX12     = 32'hc2d55554,
+			parameter	INIT_MATRIX20     = 32'h3ab60b5f,
+			parameter	INIT_MATRIX21     = 32'h80000000,
+			parameter	INIT_MATRIX22     = 32'h3ed7d979,
 			
+			parameter	EXP_WIDTH         = 8,
+			parameter	FRAC_WIDTH        = 23,
+			parameter	FLOAT_WIDTH       = 1 + EXP_WIDTH + FRAC_WIDTH,	// sign + exp + frac
 			
-			parameter	EXP_WIDTH   = 8,
-			parameter	FRAC_WIDTH  = 23,
-			parameter	FLOAT_WIDTH = 1 + EXP_WIDTH + FRAC_WIDTH,	// sign + exp + frac
-			
-			parameter	DST_X_WIDTH = 10,
-			parameter	DST_Y_WIDTH = 10,
-			parameter	DST_X_NUM   = 640,
-			parameter	DST_Y_NUM   = 480,
-			parameter	SRC_X_WIDTH = 10,
-			parameter	SRC_Y_WIDTH = 10,
-			parameter	SRC_X_NUM   = 640,
-			parameter	SRC_Y_NUM   = 480
+			parameter	DST_X_WIDTH       = 10,
+			parameter	DST_Y_WIDTH       = 10,
+			parameter	DST_X_NUM         = 640,
+			parameter	DST_Y_NUM         = 480,
+			parameter	SRC_X_WIDTH       = 10,
+			parameter	SRC_Y_WIDTH       = 10,
+			parameter	SRC_X_NUM         = 640,
+			parameter	SRC_Y_NUM         = 480
 		)
 		(
 			input	wire							reset,
@@ -70,8 +82,81 @@ module sampler
 			output	wire							m_axi4s_tlast,
 			output	wire	[0:0]					m_axi4s_tuser,
 			output	wire							m_axi4s_tvalid,
-			input	wire							m_axi4s_tready
+			input	wire							m_axi4s_tready,
+			
+			// WISHBONE (register access)
+			input	wire							s_wb_rst_i,
+			input	wire							s_wb_clk_i,
+			input	wire	[WB_ADR_WIDTH-1:0]		s_wb_adr_i,
+			output	wire	[WB_DAT_WIDTH-1:0]		s_wb_dat_o,
+			input	wire	[WB_DAT_WIDTH-1:0]		s_wb_dat_i,
+			input	wire							s_wb_we_i,
+			input	wire	[WB_SEL_WIDTH-1:0]		s_wb_sel_i,
+			input	wire							s_wb_stb_i,
+			output	wire							s_wb_ack_o
 		);
+	
+	localparam	REGOFFSET_INIT_MATRIX00 = 32'h0000_0020 >> 2;
+	localparam	REGOFFSET_INIT_MATRIX01 = 32'h0000_0024 >> 2;
+	localparam	REGOFFSET_INIT_MATRIX02 = 32'h0000_0028 >> 2;
+	localparam	REGOFFSET_INIT_MATRIX10 = 32'h0000_0030 >> 2;
+	localparam	REGOFFSET_INIT_MATRIX11 = 32'h0000_0034 >> 2;
+	localparam	REGOFFSET_INIT_MATRIX12 = 32'h0000_0038 >> 2;
+	localparam	REGOFFSET_INIT_MATRIX20 = 32'h0000_0040 >> 2;
+	localparam	REGOFFSET_INIT_MATRIX21 = 32'h0000_0044 >> 2;
+	localparam	REGOFFSET_INIT_MATRIX22 = 32'h0000_0048 >> 2;
+	
+	reg		[31:0]		reg_matrix00;
+	reg		[31:0]		reg_matrix01;
+	reg		[31:0]		reg_matrix02;
+	reg		[31:0]		reg_matrix10;
+	reg		[31:0]		reg_matrix11;
+	reg		[31:0]		reg_matrix12;
+	reg		[31:0]		reg_matrix20;
+	reg		[31:0]		reg_matrix21;
+	reg		[31:0]		reg_matrix22;
+	
+	always @(posedge s_wb_clk_i ) begin
+		if ( s_wb_rst_i ) begin
+			reg_matrix00 <= INIT_MATRIX00;
+			reg_matrix01 <= INIT_MATRIX01;
+			reg_matrix02 <= INIT_MATRIX02;
+			reg_matrix10 <= INIT_MATRIX10;
+			reg_matrix11 <= INIT_MATRIX11;
+			reg_matrix12 <= INIT_MATRIX12;
+			reg_matrix20 <= INIT_MATRIX20;
+			reg_matrix21 <= INIT_MATRIX21;
+			reg_matrix22 <= INIT_MATRIX22;
+		end
+		else if ( s_wb_stb_i && s_wb_we_i ) begin
+			case ( s_wb_adr_i )
+			REGOFFSET_INIT_MATRIX00: reg_matrix00 <= s_wb_dat_i;
+			REGOFFSET_INIT_MATRIX01: reg_matrix01 <= s_wb_dat_i;
+			REGOFFSET_INIT_MATRIX02: reg_matrix02 <= s_wb_dat_i;
+			REGOFFSET_INIT_MATRIX10: reg_matrix10 <= s_wb_dat_i;
+			REGOFFSET_INIT_MATRIX11: reg_matrix11 <= s_wb_dat_i;
+			REGOFFSET_INIT_MATRIX12: reg_matrix12 <= s_wb_dat_i;
+			REGOFFSET_INIT_MATRIX20: reg_matrix20 <= s_wb_dat_i;
+			REGOFFSET_INIT_MATRIX21: reg_matrix21 <= s_wb_dat_i;
+			REGOFFSET_INIT_MATRIX22: reg_matrix22 <= s_wb_dat_i;
+			endcase
+		end
+	end
+	
+	assign s_wb_dat_o = (s_wb_adr_i == REGOFFSET_INIT_MATRIX00) ? reg_matrix00 :
+	                    (s_wb_adr_i == REGOFFSET_INIT_MATRIX01) ? reg_matrix01 :
+	                    (s_wb_adr_i == REGOFFSET_INIT_MATRIX02) ? reg_matrix02 :
+	                    (s_wb_adr_i == REGOFFSET_INIT_MATRIX10) ? reg_matrix10 :
+	                    (s_wb_adr_i == REGOFFSET_INIT_MATRIX11) ? reg_matrix11 :
+	                    (s_wb_adr_i == REGOFFSET_INIT_MATRIX12) ? reg_matrix12 :
+	                    (s_wb_adr_i == REGOFFSET_INIT_MATRIX20) ? reg_matrix20 :
+	                    (s_wb_adr_i == REGOFFSET_INIT_MATRIX21) ? reg_matrix21 :
+	                    (s_wb_adr_i == REGOFFSET_INIT_MATRIX22) ? reg_matrix22 :
+	                    32'h0000_0000;
+	
+	assign s_wb_ack_o = s_wb_stb_i;
+	
+	
 	
 	
 	wire				addr_frame_start;
@@ -82,13 +167,24 @@ module sampler
 	wire				addr_valid;
 	wire				addr_ready;
 	
-	gen_addr
-		i_gen_addr
+	generate_projective_xy
+		i_generate_projective_xy
 			(
 				.reset			(reset),
 				.clk			(clk),
 				.cke			(1'b1),
 				
+				.matrix00		(reg_matrix00),
+				.matrix01		(reg_matrix01),
+				.matrix02		(reg_matrix02),
+				.matrix10		(reg_matrix10),
+				.matrix11		(reg_matrix11),
+				.matrix12		(reg_matrix12),
+				.matrix20		(reg_matrix20),
+				.matrix21		(reg_matrix21),
+				.matrix22		(reg_matrix22),
+				
+				/*
 				.matrix00		(32'h3fc00000),
 				.matrix01		(32'h00000000),
 				.matrix02		(32'hc3283b18),
@@ -98,6 +194,7 @@ module sampler
 				.matrix20		(32'h3ab60b5f),
 				.matrix21		(32'h80000000),
 				.matrix22		(32'h3ed7d979),
+				*/
 				
 				/*
 				.matrix00		(32'h40000000),

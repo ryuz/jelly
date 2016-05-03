@@ -5,7 +5,7 @@
 
 
 
-module gen_addr
+module generate_projective_xy
 		#(
 			parameter	EXP_WIDTH   = 8,
 			parameter	FRAC_WIDTH  = 23,

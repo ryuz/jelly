@@ -4,7 +4,7 @@
 `default_nettype none
 
 
-module projective_transformation_float
+module jelly_float_projective_transformation_2d
 		#(
 			parameter	EXP_WIDTH   = 8,
 			parameter	FRAC_WIDTH  = 23,

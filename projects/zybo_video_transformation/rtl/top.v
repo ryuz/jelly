@@ -622,8 +622,8 @@ module top
 	wire					wb_vdmar_stb_i;
 	wire					wb_vdmar_ack_o;
 	
-	sampler
-		i_sampler
+	sampler_unit
+		i_sampler_unit
 			(
 				.reset				(~mem_aresetn),
 				.clk				(mem_aclk),
@@ -654,11 +654,18 @@ module top
 				.m_axi4s_tlast		(axi4s_memr_tlast),
 				.m_axi4s_tdata		(axi4s_memr_tdata),
 				.m_axi4s_tvalid		(axi4s_memr_tvalid),
-				.m_axi4s_tready		(axi4s_memr_tready)
+				.m_axi4s_tready		(axi4s_memr_tready),
+				
+				.s_wb_rst_i			(wb_rst_o),
+				.s_wb_clk_i			(wb_clk_o),
+				.s_wb_adr_i			(wb_host_adr_o[2 +: 8]),
+				.s_wb_dat_o			(wb_vdmar_dat_o),
+				.s_wb_dat_i			(wb_host_dat_o),
+				.s_wb_we_i			(wb_host_we_o),
+				.s_wb_sel_i			(wb_host_sel_o),
+				.s_wb_stb_i			(wb_vdmar_stb_i),
+				.s_wb_ack_o			(wb_vdmar_ack_o)
 			);
-	
-	assign wb_vdmar_dat_o = 0;
-	assign wb_vdmar_ack_o = wb_vdmar_stb_i;
 	
 	
 	/*
