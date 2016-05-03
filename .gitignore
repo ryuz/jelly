@@ -5,6 +5,7 @@
 !*.v
 !*.tcl
 !*.xpr
+!*.xdc
 !*.xise
 !*.ucf
 !*.pl

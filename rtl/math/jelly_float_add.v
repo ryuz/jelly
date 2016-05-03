@@ -201,15 +201,20 @@ module jelly_float_add
 			st4_user <= st3_user;
 			st4_sign <= st3_sign;
 			st4_exp  <= st3_exp;
-			st4_frac <= tmp_frac[FRAC_WIDTH+1:1];
+//			st4_frac <= tmp_frac[FRAC_WIDTH+1:1];
+			st4_frac <= st3_frac[FRAC_WIDTH:0];
 			st4_clz  <= tmp_clz;
 		end
 		
 		if ( stage_cke[5] ) begin
 			st5_user <= st4_user;
-			st5_sign <= st4_frac[FRAC_WIDTH] ? st4_sign : 1'b0;
-			st5_exp  <= st4_frac[FRAC_WIDTH] ? (st4_exp - st4_clz + 1'b1) : {EXP_WIDTH{1'b0}};
-			st5_frac <= st4_frac[FRAC_WIDTH-1:0];
+//			st5_sign <= st4_frac[FRAC_WIDTH] ? st4_sign : 1'b0;
+//			st5_exp  <= st4_frac[FRAC_WIDTH] ? (st4_exp - st4_clz + 1'b1) : {EXP_WIDTH{1'b0}};
+//			st5_frac <= st4_frac[FRAC_WIDTH-1:0];
+
+			st5_sign <= (st4_clz < (FRAC_WIDTH+1)) ? st4_sign : 1'b0;
+			st5_exp  <= (st4_clz < (FRAC_WIDTH+1)) ? (st4_exp - st4_clz + 1'b1) : {EXP_WIDTH{1'b0}};
+			st5_frac <= ((st4_frac << st4_clz) >> 1);
 		end
 	end
 	

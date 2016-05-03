@@ -32,7 +32,7 @@ module jelly_axi4l_to_wishbone
 			input	wire	[AXI4L_STRB_WIDTH-1:0]					s_axi4l_wstrb,
 			input	wire	[AXI4L_DATA_WIDTH-1:0]					s_axi4l_wdata,
 			input	wire											s_axi4l_wvalid,
-			input	wire											s_axi4l_wready,
+			output	wire											s_axi4l_wready,
 			output	wire	[1:0]									s_axi4l_bresp,
 			output	wire											s_axi4l_bvalid,
 			input	wire											s_axi4l_bready,
@@ -85,7 +85,7 @@ module jelly_axi4l_to_wishbone
 			end
 		end
 	end
-		
+	
 	
 	assign m_wb_rst_o      = ~s_axi4l_aresetn;
 	assign m_wb_clk_o      = s_axi4l_aclk;
