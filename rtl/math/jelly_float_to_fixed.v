@@ -1,8 +1,8 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- the soft-core processor system
-//   reciprocal
+//   math
 //
-//                                 Copyright (C) 2008-2010 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2016 by Ryuji Fuchikami
 //                                 http://homepage3.nifty.com/ryuz/
 // ---------------------------------------------------------------------------
 
@@ -13,7 +13,7 @@
 
 
 
-// reciprocal
+// float_to_fixed
 module jelly_float_to_fixed
 		#(
 			parameter	FLOAT_EXP_WIDTH  = 8,
