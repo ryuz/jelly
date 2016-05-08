@@ -91,11 +91,10 @@ module jelly_axi4s_img
 				.m_img_de			()
 			);
 	
-	wire	[DATA_WIDTH-1:0]	axi4s_tdata;
-	wire						axi4s_tlast;
-	wire	[0:0]				axi4s_tuser;
-	wire						axi4s_tvalid;
-	wire						axi4s_tready;
+	wire	[DATA_WIDTH-1:0]	axi4s_0_tdata;
+	wire						axi4s_0_tlast;
+	wire	[0:0]				axi4s_0_tuser;
+	wire						axi4s_0_tvalid;
 	
 	jelly_img_to_axi4s
 			#(
@@ -113,25 +112,53 @@ module jelly_axi4s_img
 				.s_img_pixel_last	(sink_img_pixel_last),
 				.s_img_data			(sink_img_data),
 				
-				.m_axi4s_tdata		(axi4s_tdata),
-				.m_axi4s_tlast		(axi4s_tlast),
-				.m_axi4s_tuser		(axi4s_tuser),
-				.m_axi4s_tvalid		(axi4s_tvalid)
+				.m_axi4s_tdata		(axi4s_0_tdata),
+				.m_axi4s_tlast		(axi4s_0_tlast),
+				.m_axi4s_tuser		(axi4s_0_tuser),
+				.m_axi4s_tvalid		(axi4s_0_tvalid)
+			);
+	
+	wire	[DATA_WIDTH-1:0]	axi4s_1_tdata;
+	wire						axi4s_1_tlast;
+	wire	[0:0]				axi4s_1_tuser;
+	wire						axi4s_1_tvalid;
+	wire						axi4s_1_tready;
+	
+	jelly_pipeline_insert_ff
+			#(
+				.DATA_WIDTH			(2+DATA_WIDTH)
+			)
+		i_pipeline_insert_ff_0
+			(
+				.reset				(reset),
+				.clk				(clk),
+				.cke				(1'b1),
+				
+				.s_data				({axi4s_0_tlast, axi4s_0_tuser, axi4s_0_tdata}),
+				.s_valid			(axi4s_0_tvalid),
+				.s_ready			(),
+				
+				.m_data				({axi4s_1_tlast, axi4s_1_tuser, axi4s_1_tdata}),
+				.m_valid			(axi4s_1_tvalid),
+				.m_ready			(axi4s_1_tready),
+				
+				.buffered			(),
+				.s_ready_next		()
 			);
 	
 	jelly_pipeline_insert_ff
 			#(
 				.DATA_WIDTH			(2+DATA_WIDTH)
 			)
-		i_pipeline_insert_ff
+		i_pipeline_insert_ff_1
 			(
 				.reset				(reset),
 				.clk				(clk),
 				.cke				(1'b1),
 				
-				.s_data				({axi4s_tlast, axi4s_tuser, axi4s_tdata}),
-				.s_valid			(axi4s_tvalid),
-				.s_ready			(),
+				.s_data				({axi4s_1_tlast, axi4s_1_tuser, axi4s_1_tdata}),
+				.s_valid			(axi4s_1_tvalid),
+				.s_ready			(axi4s_1_tready),
 				
 				.m_data				({m_axi4s_tlast, m_axi4s_tuser, m_axi4s_tdata}),
 				.m_valid			(m_axi4s_tvalid),
@@ -143,52 +170,42 @@ module jelly_axi4s_img
 	
 	
 	/*
-	reg		[AXI4S_DATA_WIDTH-1:0]		reg_buf_tdata;
-	reg									reg_buf_tlast;
-	reg		[AXI4S_USER_WIDTH-1:0]		reg_buf_tuser;
-	reg									reg_buf_tvalid;
-	reg									reg_de;
+	reg		[DATA_WIDTH-1:0]		reg_buf_tdata;
+	reg								reg_buf_tlast;
+	reg		[0:0]					reg_buf_tuser;
+	reg								reg_buf_tvalid;
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
-			reg_buf_tdata  <= {AXI4S_DATA_WIDTH{1'bx}};
+			reg_buf_tdata  <= {DATA_WIDTH{1'bx}};
 			reg_buf_tlast  <= 1'bx;
 			reg_buf_tuser  <= 1'bx;
 			reg_buf_tvalid <= 1'b0;
-			reg_de         <= 1'b0;
 		end
 		else begin
-			if ( img_cke && !cke ) begin
-				reg_buf_tdata  <= sink_img_data;
-				reg_buf_tlast  <= sink_img_pixel_last;
-				reg_buf_tuser  <= (sink_img_line_first && sink_img_pixel_first);
+			if ( !m_axi4s_tready && axi4s_tvalid ) begin
+				reg_buf_tdata  <= axi4s_tdata;
+				reg_buf_tlast  <= axi4s_tlast;
+				reg_buf_tuser  <= axi4s_tuser;
 				reg_buf_tvalid <= 1'b1;
 			end
 			else if ( m_axi4s_tready ) begin
-				reg_buf_tdata  <= {AXI4S_DATA_WIDTH{1'bx}};
+				reg_buf_tdata  <= {DATA_WIDTH{1'bx}};
 				reg_buf_tlast  <= 1'bx;
 				reg_buf_tuser  <= 1'bx;
 				reg_buf_tvalid <= 1'b0;
 			end
-			
-			if ( img_cke ) begin
-				if ( sink_img_line_first ) begin
-					reg_de <= 1'b1;
-				end
-				else if ( sink_img_line_last & sink_img_pixel_last ) begin
-					reg_de <= 1'b0;
-				end
-			end
 		end
 	end
 	
-	assign cke            = !(m_axi4s_tvalid & !m_axi4s_tready) && !reg_tvalid;
+	assign cke            = !(reg_buf_tvalid || (m_axi4s_tvalid && !m_axi4s_tready));
 	
-	assign m_axi4s_tdata  = reg_buf_tvalid ? reg_buf_tdata : sink_img_data;
-	assign m_axi4s_tlast  = reg_buf_tvalid ? reg_buf_tlast : sink_img_pixel_last;
-	assign m_axi4s_tuser  = reg_buf_tvalid ? reg_buf_tuser : (sink_img_line_first && sink_img_pixel_first);
-	assign m_axi4s_tvalid = reg_buf_tvalid ? 1'b1          : img_cke & (sink_img_line_first | reg_de);
+	assign m_axi4s_tdata  = reg_buf_tvalid ? reg_buf_tdata : axi4s_tdata;
+	assign m_axi4s_tlast  = reg_buf_tvalid ? reg_buf_tlast : axi4s_tlast;
+	assign m_axi4s_tuser  = reg_buf_tvalid ? reg_buf_tuser : axi4s_tuser;
+	assign m_axi4s_tvalid = reg_buf_tvalid ? 1'b1          : axi4s_tvalid;
 	*/
+	
 	
 endmodule
 

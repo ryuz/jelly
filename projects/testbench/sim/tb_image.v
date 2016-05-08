@@ -51,6 +51,13 @@ module tb_image();
 			);
 	
 	
+	wire	[DATA_WIDTH-1:0]			axi4s_out_tdata;
+	wire								axi4s_out_tlast;
+	wire	[0:0]						axi4s_out_tuser;
+	wire								axi4s_out_tvalid;
+	reg									axi4s_out_tready = 1'b1;
+	
+	
 	wire								img_cke;
 	
 	wire								src_img_line_first;
@@ -64,6 +71,7 @@ module tb_image();
 	wire								sink_img_pixel_first;
 	wire								sink_img_pixel_last;
 	wire	[DATA_WIDTH-1:0]			sink_img_data;
+	
 	
 	jelly_axi4s_img
 			#(
@@ -85,11 +93,11 @@ module tb_image();
 				.s_axi4s_tvalid			(axi4s_ptn_tvalid),
 				.s_axi4s_tready			(axi4s_ptn_tready),
 				
-				.m_axi4s_tdata			(),
-				.m_axi4s_tlast			(),
-				.m_axi4s_tuser			(),
-				.m_axi4s_tvalid			(),
-				.m_axi4s_tready			(1'b1),
+				.m_axi4s_tdata			(axi4s_out_tdata),
+				.m_axi4s_tlast			(axi4s_out_tlast),
+				.m_axi4s_tuser			(axi4s_out_tuser),
+				.m_axi4s_tvalid			(axi4s_out_tvalid),
+				.m_axi4s_tready			(axi4s_out_tready),
 				
 				
 				.img_cke				(img_cke),
@@ -149,6 +157,30 @@ module tb_image();
 	assign sink_img_pixel_first = img_blk_pixel_first;
 	assign sink_img_pixel_last  = img_blk_pixel_last;
 	assign sink_img_data        = img_blk_data[(5*2+2)*DATA_WIDTH +: DATA_WIDTH];
+	
+	
+	always @(posedge clk) begin
+		axi4s_out_tready <= {$random};
+	end
+	
+	integer	fp;
+	initial fp = $fopen("out.txt", "w");
+	
+	integer	frame = 0;
+	
+	always @(posedge clk) begin
+		if ( !reset & axi4s_out_tvalid & axi4s_out_tready ) begin
+			if ( axi4s_out_tuser ) begin
+				frame = frame + 1;
+				if ( frame > 3 ) begin
+					$fclose(fp);
+					$finish;
+				end
+			end
+			
+			$fdisplay(fp, "%h %b %b", axi4s_out_tdata, axi4s_out_tlast, axi4s_out_tuser);
+		end
+	end
 	
 	
 endmodule
