@@ -30,6 +30,12 @@ module tb_image();
 	wire						axi4s_ptn_tvalid;
 	wire						axi4s_ptn_tready;
 	
+	reg		ptn_busy = 1'b0;
+	always @(posedge clk) begin
+		ptn_busy <= {$random};
+	end
+	
+	
 	jelly_pattern_generator_axi4s
 			#(
 				.AXI4S_DATA_WIDTH	(DATA_WIDTH),
@@ -47,7 +53,7 @@ module tb_image();
 				.m_axi4s_tlast		(axi4s_ptn_tlast),
 				.m_axi4s_tuser		(axi4s_ptn_tuser),
 				.m_axi4s_tvalid		(axi4s_ptn_tvalid),
-				.m_axi4s_tready		(axi4s_ptn_tready)
+				.m_axi4s_tready		(axi4s_ptn_tready & !ptn_busy)
 			);
 	
 	
@@ -90,7 +96,7 @@ module tb_image();
 				.s_axi4s_tdata			(axi4s_ptn_tdata),
 				.s_axi4s_tlast			(axi4s_ptn_tlast),
 				.s_axi4s_tuser			(axi4s_ptn_tuser),
-				.s_axi4s_tvalid			(axi4s_ptn_tvalid),
+				.s_axi4s_tvalid			(axi4s_ptn_tvalid & !ptn_busy),
 				.s_axi4s_tready			(axi4s_ptn_tready),
 				
 				.m_axi4s_tdata			(axi4s_out_tdata),
