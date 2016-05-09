@@ -50,6 +50,7 @@ module jelly_axi4s_img
 			output	wire								src_img_pixel_first,
 			output	wire								src_img_pixel_last,
 			output	wire	[DATA_WIDTH-1:0]			src_img_data,
+			output	wire								src_img_de,
 			
 			input	wire								sink_img_line_first,
 			input	wire								sink_img_line_last,
@@ -88,7 +89,7 @@ module jelly_axi4s_img
 				.m_img_pixel_first	(src_img_pixel_first),
 				.m_img_pixel_last	(src_img_pixel_last),
 				.m_img_data			(src_img_data),
-				.m_img_de			()
+				.m_img_de			(src_img_de)
 			);
 	
 	wire	[DATA_WIDTH-1:0]	axi4s_0_tdata;
@@ -167,44 +168,6 @@ module jelly_axi4s_img
 				.buffered			(),
 				.s_ready_next		(cke)
 			);
-	
-	
-	/*
-	reg		[DATA_WIDTH-1:0]		reg_buf_tdata;
-	reg								reg_buf_tlast;
-	reg		[0:0]					reg_buf_tuser;
-	reg								reg_buf_tvalid;
-	
-	always @(posedge clk) begin
-		if ( reset ) begin
-			reg_buf_tdata  <= {DATA_WIDTH{1'bx}};
-			reg_buf_tlast  <= 1'bx;
-			reg_buf_tuser  <= 1'bx;
-			reg_buf_tvalid <= 1'b0;
-		end
-		else begin
-			if ( !m_axi4s_tready && axi4s_tvalid ) begin
-				reg_buf_tdata  <= axi4s_tdata;
-				reg_buf_tlast  <= axi4s_tlast;
-				reg_buf_tuser  <= axi4s_tuser;
-				reg_buf_tvalid <= 1'b1;
-			end
-			else if ( m_axi4s_tready ) begin
-				reg_buf_tdata  <= {DATA_WIDTH{1'bx}};
-				reg_buf_tlast  <= 1'bx;
-				reg_buf_tuser  <= 1'bx;
-				reg_buf_tvalid <= 1'b0;
-			end
-		end
-	end
-	
-	assign cke            = !(reg_buf_tvalid || (m_axi4s_tvalid && !m_axi4s_tready));
-	
-	assign m_axi4s_tdata  = reg_buf_tvalid ? reg_buf_tdata : axi4s_tdata;
-	assign m_axi4s_tlast  = reg_buf_tvalid ? reg_buf_tlast : axi4s_tlast;
-	assign m_axi4s_tuser  = reg_buf_tvalid ? reg_buf_tuser : axi4s_tuser;
-	assign m_axi4s_tvalid = reg_buf_tvalid ? 1'b1          : axi4s_tvalid;
-	*/
 	
 	
 endmodule

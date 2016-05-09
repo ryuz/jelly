@@ -39,41 +39,41 @@ module jelly_img_sobel_filter
 	reg									st0_line_last,
 	reg									st0_pixel_first,
 	reg									st0_pixel_last,
-	reg		signed	[DATA_WIDTH+3]		st0_h_data0;
-	reg		signed	[DATA_WIDTH+3]		st0_h_data1;
-	reg		signed	[DATA_WIDTH+3]		st0_h_data2;
-	reg		signed	[DATA_WIDTH+3]		st0_v_data0;
-	reg		signed	[DATA_WIDTH+3]		st0_v_data1;
-	reg		signed	[DATA_WIDTH+3]		st0_v_data2;
+	reg		signed	[DATA_WIDTH+3:0]	st0_h_data0;
+	reg		signed	[DATA_WIDTH+3:0]	st0_h_data1;
+	reg		signed	[DATA_WIDTH+3:0]	st0_h_data2;
+	reg		signed	[DATA_WIDTH+3:0]	st0_v_data0;
+	reg		signed	[DATA_WIDTH+3:0]	st0_v_data1;
+	reg		signed	[DATA_WIDTH+3:0]	st0_v_data2;
 	
 	reg									st1_line_first,
 	reg									st1_line_last,
 	reg									st1_pixel_first,
 	reg									st1_pixel_last,
-	reg		signed	[DATA_WIDTH+3]		st1_h_data0;
-	reg		signed	[DATA_WIDTH+3]		st1_h_data1;
-	reg		signed	[DATA_WIDTH+3]		st1_v_data0;
-	reg		signed	[DATA_WIDTH+3]		st1_v_data1;
+	reg		signed	[DATA_WIDTH+3:0]	st1_h_data0;
+	reg		signed	[DATA_WIDTH+3:0]	st1_h_data1;
+	reg		signed	[DATA_WIDTH+3:0]	st1_v_data0;
+	reg		signed	[DATA_WIDTH+3:0]	st1_v_data1;
 	
 	reg									st2_line_first,
 	reg									st2_line_last,
 	reg									st2_pixel_first,
 	reg									st2_pixel_last,
-	reg		signed	[DATA_WIDTH+3]		st2_h_data;
-	reg		signed	[DATA_WIDTH+3]		st2_v_data;
+	reg		signed	[DATA_WIDTH+3:0]	st2_h_data;
+	reg		signed	[DATA_WIDTH+3:0]	st2_v_data;
 	
 	reg									st3_line_first,
 	reg									st3_line_last,
 	reg									st3_pixel_first,
 	reg									st3_pixel_last,
-	reg		signed	[DATA_WIDTH+3]		st3_h_data;
-	reg		signed	[DATA_WIDTH+3]		st3_v_data;
+	reg		signed	[DATA_WIDTH+3:0]	st3_h_data;
+	reg		signed	[DATA_WIDTH+3:0]	st3_v_data;
 	
 	reg									st4_line_first,
 	reg									st4_line_last,
 	reg									st4_pixel_first,
 	reg									st4_pixel_last,
-	reg		signed	[DATA_WIDTH+3]		st4_h_data;
+	reg		signed	[DATA_WIDTH+3:0]	st4_h_data;
 	
 	always @(posedge clk) begin
 		if ( cke ) begin

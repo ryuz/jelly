@@ -85,7 +85,7 @@ module jelly_axi4s_to_img
 					reg_line_first  <= 1'b1;
 					reg_pixel_first <= 1'b1;
 					reg_y_count     <= {IMG_Y_WIDTH{1'b0}};
-					reg_de          <= 1'b0;
+					reg_de          <= 1'b1;
 				end
 				
 				reg_pixel_last <= s_axi4s_tlast;
