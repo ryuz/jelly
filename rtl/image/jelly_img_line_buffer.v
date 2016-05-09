@@ -94,7 +94,6 @@ module jelly_img_line_buffer
 		wire								mem_wlast;
 		wire	[MEM_NUM*DATA_WIDTH-1:0]	mem_rdata;
 		
-		generate
 		for ( i = 0; i < MEM_NUM; i = i+1 ) begin : mem_loop
 			jelly_ram_singleport
 					#(
@@ -116,7 +115,6 @@ module jelly_img_line_buffer
 						.dout			(mem_rdata[DATA_WIDTH*i +: DATA_WIDTH])
 					);
 		end
-		endgenerate
 		
 		
 		// control

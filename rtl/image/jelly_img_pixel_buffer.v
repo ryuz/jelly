@@ -43,11 +43,17 @@ module jelly_img_pixel_buffer
 			output	wire	[PIXEL_NUM*DATA_WIDTH-1:0]	m_img_data
 		);
 	
+	localparam	PIXEL_SEL = PIXEL_NUM <= 3  ? 2 :
+	                        PIXEL_NUM <= 7  ? 3 :
+							PIXEL_NUM <= 15 ? 4 :
+							PIXEL_NUM <= 31 ? 5 :
+							PIXEL_NUM <= 63 ? 6 : 7;
+							
 	
-	localparam	[1:0]	BORDER_TYPE_CONSTANT    = 2'd00;
-	localparam	[1:0]	BORDER_TYPE_REPLICATE   = 2'd01;
-	localparam	[1:0]	BORDER_TYPE_REFLECT     = 2'd10;
-	localparam	[1:0]	BORDER_TYPE_REFLECT_101 = 2'd11;
+	localparam	[1:0]	BORDER_TYPE_CONSTANT    = 2'b00;
+	localparam	[1:0]	BORDER_TYPE_REPLICATE   = 2'b01;
+	localparam	[1:0]	BORDER_TYPE_REFLECT     = 2'b10;
+	localparam	[1:0]	BORDER_TYPE_REFLECT_101 = 2'b11;
 	
 	
 	genvar								i;
@@ -70,7 +76,8 @@ module jelly_img_pixel_buffer
 		reg		[PIXEL_NUM-1:0]				st1_pixel_first;
 		reg		[PIXEL_NUM-1:0]				st1_pixel_last;
 		reg		[PIXEL_NUM*DATA_WIDTH-1:0]	st1_data;
-				
+//		reg		[PIXEL_NUM*PIXEL_SEL-1:0]	st1_sel;
+		
 		always @(posedge clk) begin
 			if ( reset ) begin
 				st0_line_first    <= {PIXEL_NUM{1'b0}};
@@ -165,11 +172,11 @@ module jelly_img_pixel_buffer
 			assign m_img_data        = st1_data;
 		end
 		else begin
-			assign m_img_line_first  = st2_line_first[PIXEL_CENTER];
-			assign m_img_line_last   = st2_line_last[PIXEL_CENTER];
-			assign m_img_pixel_first = st2_pixel_first[PIXEL_CENTER];
-			assign m_img_pixel_last  = st2_pixel_last[PIXEL_CENTER];
-			assign m_img_data        = st2_data;
+			assign m_img_line_first  = st0_line_first[PIXEL_CENTER];
+			assign m_img_line_last   = st0_line_last[PIXEL_CENTER];
+			assign m_img_pixel_first = st0_pixel_first[PIXEL_CENTER];
+			assign m_img_pixel_last  = st0_pixel_last[PIXEL_CENTER];
+			assign m_img_data        = st0_data;
 		end
 	end
 	else begin

@@ -35,10 +35,10 @@ module jelly_img_sobel_filter
 		);
 	
 	
-	reg									st0_line_first,
-	reg									st0_line_last,
-	reg									st0_pixel_first,
-	reg									st0_pixel_last,
+	reg									st0_line_first;
+	reg									st0_line_last;
+	reg									st0_pixel_first;
+	reg									st0_pixel_last;
 	reg		signed	[DATA_WIDTH+3:0]	st0_h_data0;
 	reg		signed	[DATA_WIDTH+3:0]	st0_h_data1;
 	reg		signed	[DATA_WIDTH+3:0]	st0_h_data2;
@@ -46,43 +46,43 @@ module jelly_img_sobel_filter
 	reg		signed	[DATA_WIDTH+3:0]	st0_v_data1;
 	reg		signed	[DATA_WIDTH+3:0]	st0_v_data2;
 	
-	reg									st1_line_first,
-	reg									st1_line_last,
-	reg									st1_pixel_first,
-	reg									st1_pixel_last,
+	reg									st1_line_first;
+	reg									st1_line_last;
+	reg									st1_pixel_first;
+	reg									st1_pixel_last;
 	reg		signed	[DATA_WIDTH+3:0]	st1_h_data0;
 	reg		signed	[DATA_WIDTH+3:0]	st1_h_data1;
 	reg		signed	[DATA_WIDTH+3:0]	st1_v_data0;
 	reg		signed	[DATA_WIDTH+3:0]	st1_v_data1;
 	
-	reg									st2_line_first,
-	reg									st2_line_last,
-	reg									st2_pixel_first,
-	reg									st2_pixel_last,
+	reg									st2_line_first;
+	reg									st2_line_last;
+	reg									st2_pixel_first;
+	reg									st2_pixel_last;
 	reg		signed	[DATA_WIDTH+3:0]	st2_h_data;
 	reg		signed	[DATA_WIDTH+3:0]	st2_v_data;
 	
-	reg									st3_line_first,
-	reg									st3_line_last,
-	reg									st3_pixel_first,
-	reg									st3_pixel_last,
+	reg									st3_line_first;
+	reg									st3_line_last;
+	reg									st3_pixel_first;
+	reg									st3_pixel_last;
 	reg		signed	[DATA_WIDTH+3:0]	st3_h_data;
 	reg		signed	[DATA_WIDTH+3:0]	st3_v_data;
 	
-	reg									st4_line_first,
-	reg									st4_line_last,
-	reg									st4_pixel_first,
-	reg									st4_pixel_last,
+	reg									st4_line_first;
+	reg									st4_line_last;
+	reg									st4_pixel_first;
+	reg									st4_pixel_last;
 	reg		signed	[DATA_WIDTH+3:0]	st4_h_data;
 	
 	always @(posedge clk) begin
 		if ( cke ) begin
-			st0_h_data0 <= s_img_data[((3*0+0)*DATA_WIDTH +: DATA_WIDTH] - s_img_data[((3*0+2)*DATA_WIDTH +: DATA_WIDTH];
-			st0_h_data1 <= s_img_data[((3*1+0)*DATA_WIDTH +: DATA_WIDTH] - s_img_data[((3*1+2)*DATA_WIDTH +: DATA_WIDTH];
-			st0_h_data2 <= s_img_data[((3*2+0)*DATA_WIDTH +: DATA_WIDTH] - s_img_data[((3*2+2)*DATA_WIDTH +: DATA_WIDTH];
-			st0_v_data0 <= s_img_data[((3*0+0)*DATA_WIDTH +: DATA_WIDTH] - s_img_data[((3*2+0)*DATA_WIDTH +: DATA_WIDTH];
-			st0_v_data1 <= s_img_data[((3*0+1)*DATA_WIDTH +: DATA_WIDTH] - s_img_data[((3*2+1)*DATA_WIDTH +: DATA_WIDTH];
-			st0_v_data2 <= s_img_data[((3*0+2)*DATA_WIDTH +: DATA_WIDTH] - s_img_data[((3*2+2)*DATA_WIDTH +: DATA_WIDTH];
+			st0_h_data0 <= s_img_data[(3*0+0)*DATA_WIDTH +: DATA_WIDTH] - s_img_data[(3*0+2)*DATA_WIDTH +: DATA_WIDTH];
+			st0_h_data1 <= s_img_data[(3*1+0)*DATA_WIDTH +: DATA_WIDTH] - s_img_data[(3*1+2)*DATA_WIDTH +: DATA_WIDTH];
+			st0_h_data2 <= s_img_data[(3*2+0)*DATA_WIDTH +: DATA_WIDTH] - s_img_data[(3*2+2)*DATA_WIDTH +: DATA_WIDTH];
+			st0_v_data0 <= s_img_data[(3*0+0)*DATA_WIDTH +: DATA_WIDTH] - s_img_data[(3*2+0)*DATA_WIDTH +: DATA_WIDTH];
+			st0_v_data1 <= s_img_data[(3*0+1)*DATA_WIDTH +: DATA_WIDTH] - s_img_data[(3*2+1)*DATA_WIDTH +: DATA_WIDTH];
+			st0_v_data2 <= s_img_data[(3*0+2)*DATA_WIDTH +: DATA_WIDTH] - s_img_data[(3*2+2)*DATA_WIDTH +: DATA_WIDTH];
 			
 			st1_h_data0 <= st0_h_data0 + st0_h_data2;
 			st1_h_data1 <= (st0_h_data1 <<< 1);

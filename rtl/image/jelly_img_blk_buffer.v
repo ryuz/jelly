@@ -16,8 +16,8 @@
 module jelly_img_blk_buffer
 		#(
 			parameter	DATA_WIDTH   = 8,
-			parameter	PIXEL_NUM    = 3,
-			parameter	LINE_NUM     = 3,
+			parameter	PIXEL_NUM    = 5,
+			parameter	LINE_NUM     = 5,
 			parameter	PIXEL_CENTER = PIXEL_NUM / 2,
 			parameter	LINE_CENTER  = LINE_NUM / 2,
 			parameter	BORDER_CARE  = 1,
