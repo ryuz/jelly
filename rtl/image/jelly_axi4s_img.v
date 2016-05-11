@@ -19,16 +19,21 @@
 
 module jelly_axi4s_img
 		#(
-			parameter	DATA_WIDTH   = 8,
-			parameter	IMG_Y_NUM    = 480,
-			parameter	IMG_Y_WIDTH  = 9,
-			parameter	IMG_CKE_BUFG = 0
+			parameter	DATA_WIDTH     = 8,
+			parameter	IMG_X_WIDTH    = 10,
+			parameter	IMG_Y_WIDTH    = 9,
+			parameter	IMG_Y_NUM      = 480,
+			parameter	BLANK_Y_WIDTH  = 8,
+			parameter	INIT_Y_NUM     = IMG_Y_NUM,
+			parameter	FIFO_PTR_WIDTH = 9,
+			parameter	FIFO_RAM_TYPE  = "block",
+			parameter	IMG_CKE_BUFG   = 0
 		)
 		(
 			input	wire								reset,
 			input	wire								clk,
 			
-			input	wire	[IMG_Y_WIDTH-1:0]			param_y_num,
+			input	wire	[BLANK_Y_WIDTH-1:0]			param_blank_num,
 			
 			input	wire	[DATA_WIDTH-1:0]			s_axi4s_tdata,
 			input	wire								s_axi4s_tlast,
@@ -60,6 +65,79 @@ module jelly_axi4s_img
 		);
 	
 	
+	// ブランキング追加中に次フレームが来てしまった場合の吸収用FIFO
+	wire	[DATA_WIDTH-1:0]	axi4s_fifo_tdata;
+	wire						axi4s_fifo_tlast;
+	wire	[0:0]				axi4s_fifo_tuser;
+	wire						axi4s_fifo_tvalid;
+	wire						axi4s_fifo_tready;
+	
+	jelly_fifo_fwtf
+			#(
+				.DATA_WIDTH		(2+DATA_WIDTH),
+				.PTR_WIDTH		(FIFO_PTR_WIDTH),
+				.RAM_TYPE		(FIFO_RAM_TYPE)
+			)
+		i_fifo_fwtf
+			(
+				.reset			(reset),
+				.clk			(clk),
+				
+				.s_data			({s_axi4s_tlast, s_axi4s_tuser, s_axi4s_tdata}),
+				.s_valid		(s_axi4s_tvalid),
+				.s_ready		(s_axi4s_tready),
+				.s_free_count	(),
+				
+				.m_data			({axi4s_fifo_tlast, axi4s_fifo_tuser, axi4s_fifo_tdata}),
+				.m_valid		(axi4s_fifo_tvalid),
+				.m_ready		(axi4s_fifo_tready),
+				.m_data_count	()
+			);
+
+	
+	// ブロック処理吐き出し用にブランキングをフレーム末尾に追加
+	wire	[DATA_WIDTH-1:0]	axi4s_blank_tdata;
+	wire						axi4s_blank_tlast;
+	wire	[0:0]				axi4s_blank_tuser;
+	wire						axi4s_blank_tvalid;
+	wire						axi4s_blank_tready;
+	
+	wire	[IMG_Y_WIDTH-1:0]	param_y_num;
+	
+	jelly_axi4s_insert_blank
+			#(
+				.DATA_WIDTH			(DATA_WIDTH),
+				.IMG_X_WIDTH		(IMG_X_WIDTH),
+				.IMG_Y_WIDTH		(IMG_Y_WIDTH),
+				.BLANK_Y_WIDTH		(BLANK_Y_WIDTH),
+				.INIT_Y_NUM			(INIT_Y_NUM)
+			)
+		i_axi4s_insert_blank
+			(
+				.reset				(reset),
+				.clk				(clk),
+				
+				.param_blank_num	(param_blank_num),
+				
+				.monitor_x_num		(),
+				.monitor_y_num		(param_y_num),
+				
+
+				.s_axi4s_tdata		(axi4s_fifo_tdata),
+				.s_axi4s_tlast		(axi4s_fifo_tlast),
+				.s_axi4s_tuser		(axi4s_fifo_tuser),
+				.s_axi4s_tvalid		(axi4s_fifo_tvalid),
+				.s_axi4s_tready		(axi4s_fifo_tready),
+				
+				.m_axi4s_tdata		(axi4s_blank_tdata),
+				.m_axi4s_tlast		(axi4s_blank_tlast),
+				.m_axi4s_tuser		(axi4s_blank_tuser),
+				.m_axi4s_tvalid		(axi4s_blank_tvalid),
+				.m_axi4s_tready		(axi4s_blank_tready)
+			);
+	
+	
+	// 画像処理用のフォーマットに変換
 	wire						cke;
 	
 	jelly_axi4s_to_img
@@ -77,11 +155,11 @@ module jelly_axi4s_img
 				
 				.param_y_num		(param_y_num),
 				
-				.s_axi4s_tdata		(s_axi4s_tdata),
-				.s_axi4s_tlast		(s_axi4s_tlast),
-				.s_axi4s_tuser		(s_axi4s_tuser),
-				.s_axi4s_tvalid		(s_axi4s_tvalid),
-				.s_axi4s_tready		(s_axi4s_tready),
+				.s_axi4s_tdata		(axi4s_blank_tdata),
+				.s_axi4s_tlast		(axi4s_blank_tlast),
+				.s_axi4s_tuser		(axi4s_blank_tuser),
+				.s_axi4s_tvalid		(axi4s_blank_tvalid),
+				.s_axi4s_tready		(axi4s_blank_tready),
 				
 				.m_img_cke			(img_cke),
 				.m_img_line_first	(src_img_line_first),
@@ -168,6 +246,44 @@ module jelly_axi4s_img
 				.buffered			(),
 				.s_ready_next		(cke)
 			);
+	
+	
+	/*
+	reg		[DATA_WIDTH-1:0]		reg_buf_tdata;
+	reg								reg_buf_tlast;
+	reg		[0:0]					reg_buf_tuser;
+	reg								reg_buf_tvalid;
+	
+	always @(posedge clk) begin
+		if ( reset ) begin
+			reg_buf_tdata  <= {DATA_WIDTH{1'bx}};
+			reg_buf_tlast  <= 1'bx;
+			reg_buf_tuser  <= 1'bx;
+			reg_buf_tvalid <= 1'b0;
+		end
+		else begin
+			if ( !m_axi4s_tready && axi4s_tvalid ) begin
+				reg_buf_tdata  <= axi4s_tdata;
+				reg_buf_tlast  <= axi4s_tlast;
+				reg_buf_tuser  <= axi4s_tuser;
+				reg_buf_tvalid <= 1'b1;
+			end
+			else if ( m_axi4s_tready ) begin
+				reg_buf_tdata  <= {DATA_WIDTH{1'bx}};
+				reg_buf_tlast  <= 1'bx;
+				reg_buf_tuser  <= 1'bx;
+				reg_buf_tvalid <= 1'b0;
+			end
+		end
+	end
+	
+	assign cke            = !(reg_buf_tvalid || (m_axi4s_tvalid && !m_axi4s_tready));
+	
+	assign m_axi4s_tdata  = reg_buf_tvalid ? reg_buf_tdata : axi4s_tdata;
+	assign m_axi4s_tlast  = reg_buf_tvalid ? reg_buf_tlast : axi4s_tlast;
+	assign m_axi4s_tuser  = reg_buf_tvalid ? reg_buf_tuser : axi4s_tuser;
+	assign m_axi4s_tvalid = reg_buf_tvalid ? 1'b1          : axi4s_tvalid;
+	*/
 	
 	
 endmodule
