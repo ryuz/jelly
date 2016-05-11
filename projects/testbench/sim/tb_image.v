@@ -82,8 +82,9 @@ module tb_image();
 	jelly_axi4s_img
 			#(
 				.DATA_WIDTH				(DATA_WIDTH),
-	//			.IMG_Y_NUM				(Y_NUM),
+				.IMG_Y_NUM				(Y_NUM),
 				.IMG_Y_WIDTH			(Y_WIDTH),
+				.BLANK_Y_WIDTH			(8),
 				.IMG_CKE_BUFG			(0)
 			)
 		jelly_axi4s_img
@@ -91,7 +92,7 @@ module tb_image();
 				.reset					(reset),
 				.clk					(clk),
 				
-				.param_y_num			(Y_NUM),
+				.param_blank_num		(8'hff),
 				
 				.s_axi4s_tdata			(axi4s_ptn_tdata),
 				.s_axi4s_tlast			(axi4s_ptn_tlast),
