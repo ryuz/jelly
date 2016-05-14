@@ -695,6 +695,12 @@ module top
 	
 	localparam	IDELAYCTRL_GROUP_HDMIRX = "IODELAY_HDMIRX" ;
 	
+	wire	[0:0]			axi4s_vin_tuser;
+	wire					axi4s_vin_tlast;
+	wire	[31:0]			axi4s_vin_tdata;
+	wire					axi4s_vin_tvalid;
+	wire					axi4s_vin_tready;
+	
 	generate
 	if ( HDMI_RX ) begin
 	
@@ -767,10 +773,10 @@ module top
 					.in_data			(vin_data),
 					.in_ctl				(vin_ctl),
 					
-					.m_axi4s_tuser		(axi4s_memw_tuser),
-					.m_axi4s_tlast		(axi4s_memw_tlast),
-					.m_axi4s_tdata		(axi4s_memw_tdata),
-					.m_axi4s_tvalid		(axi4s_memw_tvalid)
+					.m_axi4s_tuser		(axi4s_vin_tuser),
+					.m_axi4s_tlast		(axi4s_vin_tlast),
+					.m_axi4s_tdata		(axi4s_vin_tdata),
+					.m_axi4s_tvalid		(axi4s_vin_tvalid)
 				);
 		
 		
@@ -866,6 +872,142 @@ module top
 				);
 	end
 	endgenerate
+	
+	
+	// ----------------------------------------
+	//  image proc
+	// ----------------------------------------
+	
+	wire								img_cke;
+	
+	wire								src_img_line_first;
+	wire								src_img_line_last;
+	wire								src_img_pixel_first;
+	wire								src_img_pixel_last;
+	wire	[8-1:0]			src_img_data;
+	
+	wire								sink_img_line_first;
+	wire								sink_img_line_last;
+	wire								sink_img_pixel_first;
+	wire								sink_img_pixel_last;
+	wire	[8-1:0]			sink_img_data;
+	
+	assign axi4s_memw_tdata[15:8]  = axi4s_memw_tdata[7:0];
+	assign axi4s_memw_tdata[23:16] = axi4s_memw_tdata[7:0];
+	
+	jelly_axi4s_img
+			#(
+				.DATA_WIDTH				(8),
+				.IMG_Y_NUM				(480),
+				.IMG_Y_WIDTH			(9),
+				.BLANK_Y_WIDTH			(8),
+				.IMG_CKE_BUFG			(0)
+			)
+		jelly_axi4s_img
+			(
+				.reset					(vin_reset),
+				.clk					(vin_clk),
+				
+				.param_blank_num		(8'hff),
+				
+				.s_axi4s_tdata			(axi4s_vin_tdata),
+				.s_axi4s_tlast			(axi4s_vin_tlast),
+				.s_axi4s_tuser			(axi4s_vin_tuser),
+				.s_axi4s_tvalid			(axi4s_vin_tvalid),
+				.s_axi4s_tready			(axi4s_vin_tready),
+				
+				.m_axi4s_tdata			(axi4s_memw_tdata[7:0]),
+				.m_axi4s_tlast			(axi4s_memw_tlast),
+				.m_axi4s_tuser			(axi4s_memw_tuser),
+				.m_axi4s_tvalid			(axi4s_memw_tvalid),
+				.m_axi4s_tready			(axi4s_memw_tready),
+				
+				
+				.img_cke				(img_cke),
+				                         
+				.src_img_line_first		(src_img_line_first),
+				.src_img_line_last		(src_img_line_last),
+				.src_img_pixel_first	(src_img_pixel_first),
+				.src_img_pixel_last		(src_img_pixel_last),
+				.src_img_data			(src_img_data),
+				                         
+				.sink_img_line_first	(sink_img_line_first),
+				.sink_img_line_last		(sink_img_line_last),
+				.sink_img_pixel_first	(sink_img_pixel_first),
+				.sink_img_pixel_last	(sink_img_pixel_last),
+				.sink_img_data			(sink_img_data)
+			);
+	
+	wire								img_blk_line_first;
+	wire								img_blk_line_last;
+	wire								img_blk_pixel_first;
+	wire								img_blk_pixel_last;
+	wire	[3*3*8-1:0]					img_blk_data;
+	
+	jelly_img_blk_buffer
+			#(
+				.DATA_WIDTH				(8),
+				.LINE_NUM				(3),
+				.PIXEL_NUM				(3),
+				.MAX_Y_NUM				(1024),
+				.RAM_TYPE				("block")
+			)
+		i_img_blk_buffer
+			(
+				.reset					(vin_reset),
+				.clk					(vin_clk),
+				.cke					(img_cke),
+				
+				.param_border_type		(2'b11),
+				.param_border_constant	({5{8'haa}}),
+				
+				.s_img_line_first		(src_img_line_first),
+				.s_img_line_last		(src_img_line_last),
+				.s_img_pixel_first		(src_img_pixel_first),
+				.s_img_pixel_last		(src_img_pixel_last),
+				.s_img_data				(src_img_data),
+				
+				.m_img_line_first		(img_blk_line_first),
+				.m_img_line_last		(img_blk_line_last),
+				.m_img_pixel_first		(img_blk_pixel_first),
+				.m_img_pixel_last		(img_blk_pixel_last),
+				.m_img_data				(img_blk_data)
+			);
+	
+	wire							img_sobel_line_first;
+	wire							img_sobel_line_last;
+	wire							img_sobel_pixel_first;
+	wire							img_sobel_pixel_last;
+	wire	[8-1:0]		img_sobel_data;
+	
+	jelly_img_sobel_filter
+			#(
+				.DATA_WIDTH				(8)
+			)
+		i_img_sobel_filter
+			(
+				.reset					(vin_reset),
+				.clk					(vin_clk),
+				.cke					(img_cke),
+				
+				.s_img_line_first		(img_blk_line_first),
+				.s_img_line_last		(img_blk_line_last),
+				.s_img_pixel_first		(img_blk_pixel_first),
+				.s_img_pixel_last		(img_blk_pixel_last),
+				.s_img_data				(img_blk_data),
+				
+				.m_img_line_first		(img_sobel_line_first),
+				.m_img_line_last		(img_sobel_line_last),
+				.m_img_pixel_first		(img_sobel_pixel_first),
+				.m_img_pixel_last		(img_sobel_pixel_last),
+				.m_img_data				(img_sobel_data)
+			);
+	
+	assign sink_img_line_first  = img_sobel_line_first;
+	assign sink_img_line_last   = img_sobel_line_last;
+	assign sink_img_pixel_first = img_sobel_pixel_first;
+	assign sink_img_pixel_last  = img_sobel_pixel_last;
+	assign sink_img_data        = img_sobel_data;
 	
 	
 	

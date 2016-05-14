@@ -126,14 +126,13 @@ module tb_image();
 	wire								img_blk_line_last;
 	wire								img_blk_pixel_first;
 	wire								img_blk_pixel_last;
-	wire	[5*5*DATA_WIDTH-1:0]		img_blk_data;
+	wire	[3*3*DATA_WIDTH-1:0]		img_blk_data;
 	
 	jelly_img_blk_buffer
 			#(
 				.DATA_WIDTH				(DATA_WIDTH),
-				.LINE_NUM				(5),
-				.PIXEL_NUM				(5),
-				.PIXEL_CENTER			(2),
+				.LINE_NUM				(3),
+				.PIXEL_NUM				(3),
 				.MAX_Y_NUM				(1024),
 				.RAM_TYPE				("block")
 			)
@@ -159,11 +158,46 @@ module tb_image();
 				.m_img_data				(img_blk_data)
 			);
 	
-	assign sink_img_line_first  = img_blk_line_first;
-	assign sink_img_line_last   = img_blk_line_last;
-	assign sink_img_pixel_first = img_blk_pixel_first;
-	assign sink_img_pixel_last  = img_blk_pixel_last;
-	assign sink_img_data        = img_blk_data[(5*2+2)*DATA_WIDTH +: DATA_WIDTH];
+	wire							img_sobel_line_first;
+	wire							img_sobel_line_last;
+	wire							img_sobel_pixel_first;
+	wire							img_sobel_pixel_last;
+	wire	[DATA_WIDTH-1:0]		img_sobel_data;
+	
+	jelly_img_sobel_filter
+			#(
+				.DATA_WIDTH				(DATA_WIDTH)
+			)
+		i_img_sobel_filter
+			(
+				.reset					(reset),
+				.clk					(clk),
+				.cke					(img_cke),
+				
+				.s_img_line_first		(img_blk_line_first),
+				.s_img_line_last		(img_blk_line_last),
+				.s_img_pixel_first		(img_blk_pixel_first),
+				.s_img_pixel_last		(img_blk_pixel_last),
+				.s_img_data				(img_blk_data),
+				
+				.m_img_line_first		(img_sobel_line_first),
+				.m_img_line_last		(img_sobel_line_last),
+				.m_img_pixel_first		(img_sobel_pixel_first),
+				.m_img_pixel_last		(img_sobel_pixel_last),
+				.m_img_data				(img_sobel_data)
+			);
+	
+	assign sink_img_line_first  = img_sobel_line_first;
+	assign sink_img_line_last   = img_sobel_line_last;
+	assign sink_img_pixel_first = img_sobel_pixel_first;
+	assign sink_img_pixel_last  = img_sobel_pixel_last;
+	assign sink_img_data        = img_sobel_data;
+	
+//	assign sink_img_line_first  = img_blk_line_first;
+//	assign sink_img_line_last   = img_blk_line_last;
+//	assign sink_img_pixel_first = img_blk_pixel_first;
+//	assign sink_img_pixel_last  = img_blk_pixel_last;
+//	assign sink_img_data        = img_blk_data[(5*2+2)*DATA_WIDTH +: DATA_WIDTH];
 	
 	
 	always @(posedge clk) begin

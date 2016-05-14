@@ -59,7 +59,7 @@ module jelly_img_blk_buffer
 				.LINE_NUM				(LINE_NUM),
 				.LINE_CENTER			(LINE_CENTER),
 				.MAX_Y_NUM				(MAX_Y_NUM),
-				.BORDER_CARE			(BORDER_CARE),
+//				.BORDER_CARE			(BORDER_CARE),
 				.RAM_TYPE				(RAM_TYPE)
 			)
 		i_img_line_buffer
@@ -68,8 +68,8 @@ module jelly_img_blk_buffer
 				.clk					(clk),
 				.cke					(cke),
 				
-				.param_border_type		(param_border_type),
-				.param_border_constant	(param_border_constant),
+//				.param_border_type		(param_border_type),
+//				.param_border_constant	(param_border_constant),
 				
 				.s_img_line_first		(s_img_line_first),
 				.s_img_line_last		(s_img_line_last),

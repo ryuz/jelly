@@ -19,20 +19,18 @@
 
 module jelly_img_line_buffer
 		#(
-			parameter	DATA_WIDTH  = 8,
-			parameter	LINE_NUM    = 3,
-			parameter	LINE_CENTER = LINE_NUM / 2,
-			parameter	MAX_Y_NUM   = 1024,
-			parameter	BORDER_CARE = 1,
-			parameter	RAM_TYPE    = "block"
+			parameter	DATA_WIDTH   = 8,
+			parameter	LINE_NUM     = 3,
+			parameter	LINE_CENTER  = LINE_NUM / 2,
+			parameter	MAX_Y_NUM    = 1024,
+			parameter	BORDER_MODE  = "REPLICATE",			// NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
+			parameter	BORDER_VALUE = {DATA_WIDTH{1'b0}},	// BORDER_MODE == "CONSTANT"
+			parameter	RAM_TYPE     = "block"
 		)
 		(
 			input	wire								reset,
 			input	wire								clk,
 			input	wire								cke,
-			
-			input	wire	[1:0]						param_border_type,
-			input	wire	[DATA_WIDTH-1:0]			param_border_constant,
 			
 			// slave (input)
 			input	wire								s_img_line_first,
@@ -50,10 +48,10 @@ module jelly_img_line_buffer
 		);
 	
 	
-	localparam	[1:0]	BORDER_TYPE_CONSTANT    = 2'd00;
-	localparam	[1:0]	BORDER_TYPE_REPLICATE   = 2'd01;
-	localparam	[1:0]	BORDER_TYPE_REFLECT     = 2'd10;
-	localparam	[1:0]	BORDER_TYPE_REFLECT_101 = 2'd11;
+//	localparam	[1:0]	BORDER_TYPE_CONSTANT    = 2'd00;
+//	localparam	[1:0]	BORDER_TYPE_REPLICATE   = 2'd01;
+//	localparam	[1:0]	BORDER_TYPE_REFLECT     = 2'd10;
+//	localparam	[1:0]	BORDER_TYPE_REFLECT_101 = 2'd11;
 	
 	
 	localparam	ADDR_WIDTH     = (MAX_Y_NUM   <=    2) ?  1 :
@@ -81,8 +79,18 @@ module jelly_img_line_buffer
 	                             (MEM_NUM <=  128) ?  7 :
 	                             (MEM_NUM <=  256) ?  8 : 9;
 	
+	localparam	POS_WIDTH      = (LINE_NUM <=   1) ?  1 :
+	                             (LINE_NUM <=   3) ?  2 :
+	                             (LINE_NUM <=   7) ?  3 :
+	                             (LINE_NUM <=  15) ?  4 :
+	                             (LINE_NUM <=  31) ?  5 :
+	                             (LINE_NUM <=  63) ?  6 :
+	                             (LINE_NUM <= 127) ?  7 :
+	                             (LINE_NUM <= 255) ?  8 : 9;
 	
-	genvar								i;
+	
+	
+	genvar									i;
 	
 	generate
 	if ( LINE_NUM > 1 ) begin
@@ -145,14 +153,28 @@ module jelly_img_line_buffer
 		reg									st3_pixel_last;
 		reg		[LINE_NUM*DATA_WIDTH-1:0]	st3_data;
 		
-		integer								y0, y1;
-		reg									border_flag;
-		
-		reg		[LINE_NUM-1:0]				st4_line_first;
-		reg		[LINE_NUM-1:0]				st4_line_last;
+		reg									st4_line_first;
+		reg									st4_line_last;
 		reg									st4_pixel_first;
 		reg									st4_pixel_last;
 		reg		[LINE_NUM*DATA_WIDTH-1:0]	st4_data;
+		reg		[POS_WIDTH-1:0]				st4_pos_first;
+		reg		[POS_WIDTH-1:0]				st4_pos_last;
+		
+		reg									st5_line_first;
+		reg									st5_line_last;
+		reg									st5_pixel_first;
+		reg									st5_pixel_last;
+		reg		[LINE_NUM*DATA_WIDTH-1:0]	st5_data;
+		reg		[LINE_NUM*POS_WIDTH-1:0]	st5_pos_data;
+		
+		reg									st6_line_first;
+		reg									st6_line_last;
+		reg									st6_pixel_first;
+		reg									st6_pixel_last;
+		reg		[LINE_NUM*DATA_WIDTH-1:0]	st6_data;
+		
+		integer								y;
 		
 		always @(posedge clk) begin
 			if ( reset ) begin
@@ -178,11 +200,32 @@ module jelly_img_line_buffer
 				st2_pixel_last    <= 1'b0;
 				st2_data          <= {DATA_WIDTH{1'bx}};
 				
-				st3_line_first    <= 1'b0;
-				st3_line_last     <= 1'b0;
+				st3_line_first    <= {LINE_NUM{1'b0}};
+				st3_line_last     <= {LINE_NUM{1'b0}};
 				st3_pixel_first   <= 1'b0;
 				st3_pixel_last    <= 1'b0;
-				st3_data          <= {DATA_WIDTH{1'bx}};
+				st3_data          <= {(LINE_NUM*DATA_WIDTH){1'bx}};
+				
+				st4_line_first    <= 1'b0;
+				st4_line_last     <= 1'b0;
+				st4_pixel_first   <= 1'b0;
+				st4_pixel_last    <= 1'b0;
+				st4_data          <= {(LINE_NUM*DATA_WIDTH){1'bx}};
+				st4_pos_first     <= {POS_WIDTH{1'bx}};
+				st4_pos_last      <= {POS_WIDTH{1'bx}};
+				
+				st5_line_first    <= 1'b0;
+				st5_line_last     <= 1'b0;
+				st5_pixel_first   <= 1'b0;
+				st5_pixel_last    <= 1'b0;
+				st5_data          <= {(LINE_NUM*DATA_WIDTH){1'bx}};
+				st5_pos_data      <= {(LINE_NUM*POS_WIDTH){1'bx}};
+				
+				st6_line_first    <= 1'b0;
+				st6_line_last     <= 1'b0;
+				st6_pixel_first   <= 1'b0;
+				st6_pixel_last    <= 1'b0;
+				st6_data          <= {(LINE_NUM*DATA_WIDTH){1'bx}};
 			end
 			else if ( cke ) begin
 				// stage 0
@@ -235,70 +278,81 @@ module jelly_img_line_buffer
 				
 				
 				// stage4
-				st4_line_first  <= st3_line_first;
-				st4_line_last   <= st3_line_last;
+				st4_line_first  <= st3_line_first[LINE_CENTER];
+				st4_line_last   <= st3_line_last[LINE_CENTER];
 				st4_pixel_first <= st3_pixel_first;
 				st4_pixel_last  <= st3_pixel_last;
 				st4_data        <= st3_data;
+				st4_pos_first   <= (LINE_NUM-1);
+				st4_pos_last    <= 0;
 				
-				border_flag = 1'b0;
-				for ( y0 = LINE_CENTER; y0 < LINE_NUM; y0 = y0+1 ) begin
-					if ( !border_flag ) begin
-						if ( st3_line_first[y0] ) begin
-							border_flag = 1'b1;
-							y1          = y0;
-							if ( param_border_type == BORDER_TYPE_REFLECT_101 ) begin
-								y1 = y0 - 1;
-							end
-						end
-					end
-					else begin
-						if ( param_border_type == BORDER_TYPE_CONSTANT ) begin
-							st4_data[y0*DATA_WIDTH +: DATA_WIDTH] <= param_border_constant;
-						end
-						else begin
-							st4_data[y0*DATA_WIDTH +: DATA_WIDTH] <= st3_data[y1*DATA_WIDTH +: DATA_WIDTH];
-							if ( param_border_type == BORDER_TYPE_REFLECT || param_border_type == BORDER_TYPE_REFLECT_101 ) begin
-								y1 = y1 - 1;
-							end
+				begin : search_first
+					for ( y = LINE_CENTER; y < LINE_NUM; y = y+1 ) begin
+						if ( st3_line_first[y] ) begin
+							st4_pos_first <= y;
+							disable search_first;
 						end
 					end
 				end
 				
-				border_flag = 1'b0;
-				for ( y0 = LINE_CENTER; y0 >= 0; y0 = y0-1 ) begin
-					if ( !border_flag ) begin
-						if ( st3_line_last[y0] ) begin
-							border_flag = 1'b1;
-							y1          = y0;
-							if ( param_border_type == BORDER_TYPE_REFLECT_101 ) begin
-								y1 = y0 + 1;
-							end
+				begin : search_last
+					for ( y = LINE_CENTER; y >= 0; y = y-1 ) begin
+						if ( st3_line_last[y] ) begin
+							st4_pos_last <= y;
+							disable search_last;
 						end
 					end
-					else begin
-						if ( param_border_type == BORDER_TYPE_CONSTANT ) begin
-							st4_data[y0*DATA_WIDTH +: DATA_WIDTH] <= param_border_constant;
-						end
-						else begin
-							st4_data[y0*DATA_WIDTH +: DATA_WIDTH] <= st3_data[y1*DATA_WIDTH +: DATA_WIDTH];
-							if ( param_border_constant == BORDER_TYPE_REFLECT || param_border_constant == BORDER_TYPE_REFLECT_101 ) begin
-								y1 = y1 + 1;
-							end
+				end
+				
+				
+				// stage5
+				st5_line_first  <= st4_line_first;
+				st5_line_last   <= st4_line_last;
+				st5_pixel_first <= st4_pixel_first;
+				st5_pixel_last  <= st4_pixel_last;
+				st5_data        <= st4_data;
+				
+				for ( y = 0; y < LINE_NUM; y = y+1 ) begin
+					st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= y;
+					if ( y > LINE_CENTER ) begin
+						if ( y > st4_pos_first ) begin
+							if      ( BORDER_MODE == "CONSTANT"    ) begin st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= LINE_NUM;                end
+							else if ( BORDER_MODE == "REPLICATE"   ) begin st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= st4_pos_first;           end
+							else if ( BORDER_MODE == "REFLECT"     ) begin st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= st4_pos_first*2 - y;     end
+							else if ( BORDER_MODE == "REFLECT_101" ) begin st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= st4_pos_first*2 - y - 1; end
 						end
 					end
+					else if ( y < LINE_CENTER ) begin
+						if ( y < st4_pos_last ) begin
+							if      ( BORDER_MODE == "CONSTANT"    ) begin st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= LINE_NUM;                end
+							else if ( BORDER_MODE == "REPLICATE"   ) begin st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= st4_pos_first;           end
+							else if ( BORDER_MODE == "REFLECT"     ) begin st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= st4_pos_first*2 - y;     end
+							else if ( BORDER_MODE == "REFLECT_101" ) begin st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= st4_pos_first*2 - y + 1; end
+						end
+					end
+				end
+				
+				// stage6
+				st6_line_first  <= st5_line_first;
+				st6_line_last   <= st5_line_last;
+				st6_pixel_first <= st5_pixel_first;
+				st6_pixel_last  <= st5_pixel_last;
+				st6_data        <= st5_data;
+				for ( y = 0; y < LINE_NUM; y = y+1 ) begin
+					st6_data[y*DATA_WIDTH +: DATA_WIDTH] <= ({BORDER_VALUE, st5_data} >> (DATA_WIDTH * st5_pos_data[y*POS_WIDTH +: POS_WIDTH]));
 				end
 			end
 		end
 		
+		assign mem_we     = st0_we;
+		assign mem_addr   = st0_addr;
+		assign mem_wdata  = st0_data;
+		assign mem_wfirst = st0_line_first;
+		assign mem_wlast  = st0_line_last;
 		
-		assign mem_we            = st0_we;
-		assign mem_addr          = st0_addr;
-		assign mem_wdata         = st0_data;
-		assign mem_wfirst        = st0_line_first;
-		assign mem_wlast         = st0_line_last;
 		
-		if ( BORDER_CARE ) begin
+		
+		if ( BORDER_MODE == "NONE" ) begin
 			assign m_img_line_first  = st4_line_first[LINE_CENTER];
 			assign m_img_line_last   = st4_line_last[LINE_CENTER];
 			assign m_img_pixel_first = st4_pixel_first;
@@ -306,11 +360,11 @@ module jelly_img_line_buffer
 			assign m_img_data        = st4_data;
 		end
 		else begin
-			assign m_img_line_first  = st3_line_first[LINE_CENTER];
-			assign m_img_line_last   = st3_line_last[LINE_CENTER];
-			assign m_img_pixel_first = st3_pixel_first;
-			assign m_img_pixel_last  = st3_pixel_last;
-			assign m_img_data        = st3_data;
+			assign m_img_line_first  = st6_line_first;
+			assign m_img_line_last   = st6_line_last;
+			assign m_img_pixel_first = st6_pixel_first;
+			assign m_img_pixel_last  = st6_pixel_last;
+			assign m_img_data        = st6_data;
 		end
 	end
 	else begin
