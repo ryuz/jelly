@@ -20,8 +20,9 @@ module jelly_img_blk_buffer
 			parameter	LINE_NUM     = 5,
 			parameter	PIXEL_CENTER = PIXEL_NUM / 2,
 			parameter	LINE_CENTER  = LINE_NUM / 2,
-			parameter	BORDER_CARE  = 1,
 			parameter	MAX_Y_NUM    = 1024,
+			parameter	BORDER_MODE  = "REPLICATE",			// NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
+			parameter	BORDER_VALUE = {DATA_WIDTH{1'b0}},
 			parameter	RAM_TYPE     = "block"
 		)
 		(
@@ -59,7 +60,8 @@ module jelly_img_blk_buffer
 				.LINE_NUM				(LINE_NUM),
 				.LINE_CENTER			(LINE_CENTER),
 				.MAX_Y_NUM				(MAX_Y_NUM),
-//				.BORDER_CARE			(BORDER_CARE),
+				.BORDER_MODE 			(BORDER_MODE),
+				.BORDER_VALUE			(BORDER_VALUE),
 				.RAM_TYPE				(RAM_TYPE)
 			)
 		i_img_line_buffer
@@ -67,9 +69,6 @@ module jelly_img_blk_buffer
 				.reset					(reset),
 				.clk					(clk),
 				.cke					(cke),
-				
-//				.param_border_type		(param_border_type),
-//				.param_border_constant	(param_border_constant),
 				
 				.s_img_line_first		(s_img_line_first),
 				.s_img_line_last		(s_img_line_last),
@@ -95,16 +94,14 @@ module jelly_img_blk_buffer
 				.DATA_WIDTH				(LINE_NUM*DATA_WIDTH),
 				.PIXEL_NUM				(PIXEL_NUM),
 				.PIXEL_CENTER			(PIXEL_CENTER),
-				.BORDER_CARE			(BORDER_CARE)
+				.BORDER_MODE 			(BORDER_MODE),
+				.BORDER_VALUE			(BORDER_VALUE)
 			)
 		i_img_pixel_buffer
 			(
 				.reset					(reset),
 				.clk					(clk),
 				.cke					(cke),
-				
-				.param_border_type		(param_border_type),
-				.param_border_constant	(param_border_constant),
 				
 				.s_img_line_first		(img_lbuf_line_first),
 				.s_img_line_last		(img_lbuf_line_last),

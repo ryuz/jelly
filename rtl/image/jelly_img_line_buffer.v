@@ -47,13 +47,7 @@ module jelly_img_line_buffer
 			output	wire	[LINE_NUM*DATA_WIDTH-1:0]	m_img_data
 		);
 	
-	
-//	localparam	[1:0]	BORDER_TYPE_CONSTANT    = 2'd00;
-//	localparam	[1:0]	BORDER_TYPE_REPLICATE   = 2'd01;
-//	localparam	[1:0]	BORDER_TYPE_REFLECT     = 2'd10;
-//	localparam	[1:0]	BORDER_TYPE_REFLECT_101 = 2'd11;
-	
-	
+		
 	localparam	ADDR_WIDTH     = (MAX_Y_NUM   <=    2) ?  1 :
 	                             (MAX_Y_NUM   <=    4) ?  2 :
 	                             (MAX_Y_NUM   <=    8) ?  3 :
@@ -325,9 +319,9 @@ module jelly_img_line_buffer
 					else if ( y < LINE_CENTER ) begin
 						if ( y < st4_pos_last ) begin
 							if      ( BORDER_MODE == "CONSTANT"    ) begin st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= LINE_NUM;                end
-							else if ( BORDER_MODE == "REPLICATE"   ) begin st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= st4_pos_first;           end
-							else if ( BORDER_MODE == "REFLECT"     ) begin st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= st4_pos_first*2 - y;     end
-							else if ( BORDER_MODE == "REFLECT_101" ) begin st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= st4_pos_first*2 - y + 1; end
+							else if ( BORDER_MODE == "REPLICATE"   ) begin st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= st4_pos_last;            end
+							else if ( BORDER_MODE == "REFLECT"     ) begin st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= st4_pos_last*2 - y;      end
+							else if ( BORDER_MODE == "REFLECT_101" ) begin st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= st4_pos_last*2 - y + 1;  end
 						end
 					end
 				end
@@ -353,8 +347,8 @@ module jelly_img_line_buffer
 		
 		
 		if ( BORDER_MODE == "NONE" ) begin
-			assign m_img_line_first  = st4_line_first[LINE_CENTER];
-			assign m_img_line_last   = st4_line_last[LINE_CENTER];
+			assign m_img_line_first  = st4_line_first;
+			assign m_img_line_last   = st4_line_last;
 			assign m_img_pixel_first = st4_pixel_first;
 			assign m_img_pixel_last  = st4_pixel_last;
 			assign m_img_data        = st4_data;
