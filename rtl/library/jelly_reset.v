@@ -16,16 +16,20 @@
 // syncronous reset generator
 module jelly_reset
 		#(
-			parameter	INPUT_REGS    = 2,
-			parameter	COUNTER_WIDTH = 0,
-			parameter	COUNTER_VALUE = {COUNTER_WIDTH{1'b1}},
-			parameter	INSERT_BUFG   = 0
+			parameter	IN_LOW_ACTIVE  = 0,
+			parameter	OUT_LOW_ACTIVE = 0,
+			parameter	INPUT_REGS     = 2,
+			parameter	COUNTER_WIDTH  = 0,
+			parameter	COUNTER_VALUE  = {COUNTER_WIDTH{1'b1}},
+			parameter	INSERT_BUFG    = 0
 		)
 		(
 			input	wire	clk,
-			input	wire	in_reset,	// asyncrnous reset
-			output	wire	out_reset	// syncrnous reset
+			input	wire	in_reset,		// asyncrnous reset
+			output	wire	out_reset		// syncrnous reset
 		);
+	
+	wire	input_reset = IN_LOW_ACTIVE ? ~in_reset : in_reset;
 	
 	
 	// input REGS (remove metastable)
@@ -33,8 +37,8 @@ module jelly_reset
 	generate
 	if ( INPUT_REGS > 0 ) begin
 		reg		[INPUT_REGS-1:0]	reg_in_reset;
-		always @(posedge clk or posedge in_reset) begin
-			if ( in_reset ) begin
+		always @(posedge clk or posedge input_reset) begin
+			if ( input_reset ) begin
 				reg_in_reset <= {INPUT_REGS{1'b1}};
 			end
 			else begin
@@ -44,7 +48,7 @@ module jelly_reset
 		assign in_regs_reset = reg_in_reset[0];
 	end
 	else begin
-		assign in_regs_reset = in_reset;
+		assign in_regs_reset = input_reset;
 	end
 	endgenerate
 	
@@ -76,10 +80,10 @@ module jelly_reset
 	reg		reg_reset;
 	always @(posedge clk or posedge counter_reset) begin
 		if ( counter_reset ) begin
-			reg_reset <= 1'b1;
+			reg_reset <= OUT_LOW_ACTIVE ? 1'b0 : 1'b1;
 		end
 		else begin
-			reg_reset <= 1'b0;
+			reg_reset <= OUT_LOW_ACTIVE ? 1'b1 : 1'b0;
 		end
 	end
 	
