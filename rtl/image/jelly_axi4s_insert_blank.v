@@ -150,7 +150,7 @@ module jelly_axi4s_insert_blank
 		end
 	end
 	
-	assign s_axi4s_tready = (cke && !reg_blank);
+	assign s_axi4s_tready = (cke && (!reg_blank || reg_frame_last));
 	
 	assign	m_axi4s_tdata  = reg_tdata;
 	assign	m_axi4s_tlast  = reg_tlast;
