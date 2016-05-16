@@ -141,10 +141,7 @@ module tb_image();
 				.reset					(reset),
 				.clk					(clk),
 				.cke					(img_cke),
-				
-				.param_border_type		(2'b11),
-				.param_border_constant	({5{8'haa}}),
-				
+								
 				.s_img_line_first		(src_img_line_first),
 				.s_img_line_last		(src_img_line_last),
 				.s_img_pixel_first		(src_img_pixel_first),

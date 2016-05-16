@@ -103,39 +103,49 @@ module jelly_axi4s_insert_blank
 				if ( reg_frame_last ) begin
 					if ( s_axi4s_tvalid || (reg_y_blank == param_blank_num) ) begin
 						reg_blank <= 1'b0;
+						
+						reg_tdata      <= s_axi4s_tdata;
+						reg_tlast      <= s_axi4s_tlast;
+						reg_tuser      <= s_axi4s_tuser;
+						reg_tvalid     <= s_axi4s_tvalid;
 					end
 					else begin
-						reg_y_blank <= reg_y_blank + 1'b1;
-						reg_blank   <= 1'b1;
+						reg_y_blank    <= reg_y_blank + 1'b1;
+						reg_x_blank    <= {IMG_X_WIDTH{1'b0}};
+						reg_blank      <= 1'b1;
+						reg_tdata      <= BLANK_DATA;
+						reg_tlast      <= ({IMG_X_WIDTH{1'b0}} == reg_x_num);
+						reg_tuser      <= 1'b0;
+						reg_tvalid     <= 1'b1;
+						reg_frame_last <= ({IMG_X_WIDTH{1'b0}} == reg_x_num);
 					end
-				end
-				
-				if ( reg_blank ) begin
-					if ( reg_tlast ) begin
-						reg_x_blank <= {IMG_X_WIDTH{1'b0}};
-					end
-					else begin
-						reg_x_blank <= reg_x_blank + 1'b1;
-					end
-					reg_tdata      <= BLANK_DATA;
-					reg_tlast      <= (reg_x_blank + 1'b1 == reg_x_num);
-					reg_tuser      <= 1'b0;
-					reg_tvalid     <= 1'b1;
-					reg_frame_last <= (reg_x_blank + 1'b1 == reg_x_num);
 				end
 				else begin
-					reg_tdata      <= s_axi4s_tdata;
-					reg_tlast      <= s_axi4s_tlast;
-					reg_tuser      <= s_axi4s_tuser;
-					reg_tvalid     <= s_axi4s_tvalid;
-					
-					if ( s_axi4s_tvalid && s_axi4s_tlast ) begin
-						reg_frame_last <= (reg_y_counter+1'b1 == reg_y_num);
+					if ( reg_blank ) begin
+						if ( reg_tlast ) begin
+							reg_x_blank <= {IMG_X_WIDTH{1'b0}};
+						end
+						else begin
+							reg_x_blank <= reg_x_blank + 1'b1;
+						end
+						reg_tdata      <= BLANK_DATA;
+						reg_tlast      <= (reg_x_blank + 1'b1 == reg_x_num);
+						reg_tuser      <= 1'b0;
+						reg_tvalid     <= 1'b1;
+						reg_frame_last <= (reg_x_blank + 1'b1 == reg_x_num);
 					end
-					reg_x_blank    <= {IMG_X_WIDTH{1'b0}};
-					reg_y_blank    <= {BLANK_Y_WIDTH{1'b0}};
+					else begin
+						reg_tdata      <= s_axi4s_tdata;
+						reg_tlast      <= s_axi4s_tlast;
+						reg_tuser      <= s_axi4s_tuser;
+						reg_tvalid     <= s_axi4s_tvalid;
+						
+						if ( s_axi4s_tvalid && s_axi4s_tlast ) begin
+							reg_frame_last <= (reg_y_counter+1'b1 == reg_y_num);
+						end
+						reg_y_blank    <= {BLANK_Y_WIDTH{1'b0}};
+					end
 				end
-				
 			end
 		end
 	end

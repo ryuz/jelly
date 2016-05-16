@@ -30,9 +30,6 @@ module jelly_img_blk_buffer
 			input	wire										clk,
 			input	wire										cke,
 			
-			input	wire	[1:0]								param_border_type,
-			input	wire	[DATA_WIDTH-1:0]					param_border_constant,
-			
 			// slave (input)
 			input	wire										s_img_line_first,
 			input	wire										s_img_line_last,

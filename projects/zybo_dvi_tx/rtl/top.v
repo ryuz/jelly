@@ -436,10 +436,7 @@ module top
 	// ----------------------------------------
 	//  DMA write
 	// ----------------------------------------
-	
-	wire					vin_reset;
-	wire					vin_clk;
-	
+		
 	wire	[0:0]			axi4s_memw_tuser;
 	wire					axi4s_memw_tlast;
 	wire	[31:0]			axi4s_memw_tdata;

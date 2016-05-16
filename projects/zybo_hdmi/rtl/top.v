@@ -211,16 +211,16 @@ module top
 	processing_system7_0
 		i_processing_system7_0
 			(
-				.I2C0_SDA_I					(),
+				.I2C0_SDA_I					(1'b1),
 				.I2C0_SDA_O					(),
 				.I2C0_SDA_T					(),
-				.I2C0_SCL_I					(),
+				.I2C0_SCL_I					(1'b1),
 				.I2C0_SCL_O					(),
 				.I2C0_SCL_T					(),
-				.SDIO0_WP					(),
+				.SDIO0_WP					(1'b0),
 				.USB0_PORT_INDCTL			(),
 				.USB0_VBUS_PWRSELECT		(),
-				.USB0_VBUS_PWRFAULT			(),
+				.USB0_VBUS_PWRFAULT			(1'b0),
 				
 				.M_AXI_GP0_ARVALID			(axi3_gp0_arvalid),
 				.M_AXI_GP0_AWVALID			(axi3_gp0_awvalid),
@@ -1189,9 +1189,6 @@ module top
 				.reset					(vin_reset),
 				.clk					(vin_clk),
 				.cke					(img_cke),
-				
-				.param_border_type		(2'b11),
-				.param_border_constant	({5{8'haa}}),
 				
 				.s_img_line_first		(src_img_line_first),
 				.s_img_line_last		(src_img_line_last),
