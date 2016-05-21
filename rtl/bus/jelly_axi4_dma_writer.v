@@ -14,70 +14,74 @@
 //  AXI4Stream ‚ð AXI4‚É Write ‚·‚éƒRƒA
 module jelly_axi4_dma_writer
 		#(
-			parameter	AXI4_ID_WIDTH    = 6,
-			parameter	AXI4_ADDR_WIDTH  = 32,
-			parameter	AXI4_DATA_SIZE   = 2,	// 0:8bit, 1:16bit, 2:32bit ...
-			parameter	AXI4_DATA_WIDTH  = (8 << AXI4_DATA_SIZE),
-			parameter	AXI4_STRB_WIDTH  = (1 << AXI4_DATA_SIZE),
-			parameter	AXI4_LEN_WIDTH   = 8,
-			parameter	AXI4_QOS_WIDTH   = 4,
-			parameter	AXI4_AWID        = {AXI4_ID_WIDTH{1'b0}},
-			parameter	AXI4_AWSIZE      = AXI4_DATA_SIZE,
-			parameter	AXI4_AWBURST     = 2'b01,
-			parameter	AXI4_AWLOCK      = 1'b0,
-			parameter	AXI4_AWCACHE     = 4'b0001,
-			parameter	AXI4_AWPROT      = 3'b000,
-			parameter	AXI4_AWQOS       = 0,
-			parameter	AXI4_AWREGION    = 4'b0000,
-			parameter	AXI4S_DATA_WIDTH = AXI4_DATA_WIDTH,
-			parameter	COUNT_WIDTH      = AXI4_ADDR_WIDTH - AXI4_DATA_SIZE,
-			parameter	LIMITTER_ENABLE  = 0,
-			parameter	AXI4_AW_REGS     = 1,
-			parameter	AXI4_W_REGS      = 1,
-			parameter	AXI4S_REGS       = 0
+			parameter	AXI4_ID_WIDTH       = 6,
+			parameter	AXI4_ADDR_WIDTH     = 32,
+			parameter	AXI4_DATA_SIZE      = 2,	// 0:8bit, 1:16bit, 2:32bit ...
+			parameter	AXI4_DATA_WIDTH     = (8 << AXI4_DATA_SIZE),
+			parameter	AXI4_STRB_WIDTH     = (1 << AXI4_DATA_SIZE),
+			parameter	AXI4_LEN_WIDTH      = 8,
+			parameter	AXI4_QOS_WIDTH      = 4,
+			parameter	AXI4_AWID           = {AXI4_ID_WIDTH{1'b0}},
+			parameter	AXI4_AWSIZE         = AXI4_DATA_SIZE,
+			parameter	AXI4_AWBURST        = 2'b01,
+			parameter	AXI4_AWLOCK         = 1'b0,
+			parameter	AXI4_AWCACHE        = 4'b0001,
+			parameter	AXI4_AWPROT         = 3'b000,
+			parameter	AXI4_AWQOS          = 0,
+			parameter	AXI4_AWREGION       = 4'b0000,
+			parameter	AXI4S_DATA_WIDTH    = AXI4_DATA_WIDTH,
+			parameter	COUNT_WIDTH         = AXI4_ADDR_WIDTH - AXI4_DATA_SIZE,
+			parameter	PACKET_ENABLE       = 0,
+			parameter	QUEUE_COUNTER_WIDTH = 8,
+			parameter	ISSUE_COUNTER_WIDTH = 8,
+			parameter	AXI4_AW_REGS        = 1,
+			parameter	AXI4_W_REGS         = 1,
+			parameter	AXI4S_REGS          = 0
 		)
 		(
-			input	wire							aresetn,
-			input	wire							aclk,
+			input	wire								aresetn,
+			input	wire								aclk,
 			
 			// control
-			input	wire							enable,
-			output	wire							busy,
+			input	wire								enable,
+			output	wire								busy,
+			
+			input	wire	[QUEUE_COUNTER_WIDTH-1:0]	queue_counter,
 			
 			// parameter
-			input	wire	[AXI4_ADDR_WIDTH-1:0]	param_addr,
-			input	wire	[COUNT_WIDTH-1:0]		param_count,
-			input	wire	[AXI4_LEN_WIDTH-1:0]	param_maxlen,
-			input	wire	[AXI4_STRB_WIDTH-1:0]	param_wstrb,
-			input	wire	[COUNT_WIDTH-1:0]		param_limit,
+			input	wire	[AXI4_ADDR_WIDTH-1:0]		param_addr,
+			input	wire	[COUNT_WIDTH-1:0]			param_count,
+			input	wire	[AXI4_LEN_WIDTH-1:0]		param_maxlen,
+			input	wire	[AXI4_STRB_WIDTH-1:0]		param_wstrb,
+//			input	wire	[COUNT_WIDTH-1:0]			param_limit,
 			
 			// master AXI4 (write)
-			output	wire	[AXI4_ID_WIDTH-1:0]		m_axi4_awid,
-			output	wire	[AXI4_ADDR_WIDTH-1:0]	m_axi4_awaddr,
-			output	wire	[AXI4_LEN_WIDTH-1:0]	m_axi4_awlen,
-			output	wire	[2:0]					m_axi4_awsize,
-			output	wire	[1:0]					m_axi4_awburst,
-			output	wire	[0:0]					m_axi4_awlock,
-			output	wire	[3:0]					m_axi4_awcache,
-			output	wire	[2:0]					m_axi4_awprot,
-			output	wire	[AXI4_QOS_WIDTH-1:0]	m_axi4_awqos,
-			output	wire	[3:0]					m_axi4_awregion,
-			output	wire							m_axi4_awvalid,
-			input	wire							m_axi4_awready,
-			output	wire	[AXI4_DATA_WIDTH-1:0]	m_axi4_wdata,
-			output	wire	[AXI4_STRB_WIDTH-1:0]	m_axi4_wstrb,
-			output	wire							m_axi4_wlast,
-			output	wire							m_axi4_wvalid,
-			input	wire							m_axi4_wready,
-			input	wire	[AXI4_ID_WIDTH-1:0]		m_axi4_bid,
-			input	wire	[1:0]					m_axi4_bresp,
-			input	wire							m_axi4_bvalid,
-			output	wire							m_axi4_bready,
+			output	wire	[AXI4_ID_WIDTH-1:0]			m_axi4_awid,
+			output	wire	[AXI4_ADDR_WIDTH-1:0]		m_axi4_awaddr,
+			output	wire	[AXI4_LEN_WIDTH-1:0]		m_axi4_awlen,
+			output	wire	[2:0]						m_axi4_awsize,
+			output	wire	[1:0]						m_axi4_awburst,
+			output	wire	[0:0]						m_axi4_awlock,
+			output	wire	[3:0]						m_axi4_awcache,
+			output	wire	[2:0]						m_axi4_awprot,
+			output	wire	[AXI4_QOS_WIDTH-1:0]		m_axi4_awqos,
+			output	wire	[3:0]						m_axi4_awregion,
+			output	wire								m_axi4_awvalid,
+			input	wire								m_axi4_awready,
+			output	wire	[AXI4_DATA_WIDTH-1:0]		m_axi4_wdata,
+			output	wire	[AXI4_STRB_WIDTH-1:0]		m_axi4_wstrb,
+			output	wire								m_axi4_wlast,
+			output	wire								m_axi4_wvalid,
+			input	wire								m_axi4_wready,
+			input	wire	[AXI4_ID_WIDTH-1:0]			m_axi4_bid,
+			input	wire	[1:0]						m_axi4_bresp,
+			input	wire								m_axi4_bvalid,
+			output	wire								m_axi4_bready,
 			
 			// slave AXI4-Stream
-			input	wire	[AXI4S_DATA_WIDTH-1:0]	s_axi4s_tdata,
-			input	wire							s_axi4s_tvalid,
-			output	wire							s_axi4s_tready
+			input	wire	[AXI4S_DATA_WIDTH-1:0]		s_axi4s_tdata,
+			input	wire								s_axi4s_tvalid,
+			output	wire								s_axi4s_tready
 		);
 	
 	
@@ -188,7 +192,7 @@ module jelly_axi4_dma_writer
 				.s_ready_next		()
 			);
 	
-	
+	/*
 	// -----------------------------
 	//  Limitter
 	// -----------------------------
@@ -222,6 +226,41 @@ module jelly_axi4_dma_writer
 			end
 		end
 	end
+	*/
+	
+	reg		[ISSUE_COUNTER_WIDTH-1:0]	reg_issue_counter, tmp_issue_counter;
+	reg									reg_packet_awready;
+	reg									reg_packet_wready;
+	
+	always @(posedge aclk) begin
+		if ( ~aresetn ) begin
+			reg_issue_counter  <= {ISSUE_COUNTER_WIDTH{1'b0}};
+			reg_packet_awready <= 1'b0;
+			reg_packet_wready  <= 1'b0;
+		end
+		else begin
+			// count
+			tmp_issue_counter = reg_issue_counter;
+			if ( axi4_awvalid && axi4_awready ) begin
+				tmp_issue_counter = tmp_issue_counter + axi4_awlen + 1'b1;
+			end
+			if ( axi4_wvalid && axi4_wready ) begin
+				tmp_issue_counter = tmp_issue_counter - 1'b1;
+			end
+			reg_issue_counter <= tmp_issue_counter;
+			
+			// ready
+			reg_packet_awready <= 1'b0;
+			reg_packet_wready  <= (tmp_issue_counter > 0);
+			if ( !reg_packet_awready && axi4_ctl_awvalid ) begin
+				if ( queue_counter > reg_issue_counter + axi4_awlen ) begin 
+					reg_packet_awready <= 1'b1;
+					reg_packet_wready  <= 1'b1;
+				end
+			end
+		end
+	end
+	
 	
 	
 	// -----------------------------
@@ -275,8 +314,8 @@ module jelly_axi4_dma_writer
 	
 	assign axi4_awaddr      = axi4_ctl_awaddr;
 	assign axi4_awlen       = axi4_ctl_awlen;
-	assign axi4_awvalid     = axi4_ctl_awvalid & !reg_limiter;
-	assign axi4_ctl_awready = axi4_awready     & !reg_limiter;
+	assign axi4_awvalid     = axi4_ctl_awvalid & (reg_packet_awready || !PACKET_ENABLE);
+	assign axi4_ctl_awready = axi4_awready     & (reg_packet_awready || !PACKET_ENABLE);
 	
 	
 	// commnad buffering
@@ -341,9 +380,8 @@ module jelly_axi4_dma_writer
 	
 	assign axi4_wdata     = axi4s_tdata;
 	assign axi4_wlast     = (reg_wbusy && reg_wcount == 0) || (!reg_wbusy && cmd_len == 0);
-	assign axi4_wvalid    = (reg_wbusy || cmd_valid) && axi4s_tvalid;
-	
-	assign axi4s_tready   = (reg_wbusy || cmd_valid) && axi4_wready;
+	assign axi4_wvalid    = (reg_wbusy || cmd_valid) && axi4s_tvalid & (reg_packet_wready || !PACKET_ENABLE);
+	assign axi4s_tready   = (reg_wbusy || cmd_valid) && axi4_wready  & (reg_packet_wready || !PACKET_ENABLE);
 	
 	assign busy           = cmd_busy || reg_wbusy || cmd_buf_valid || cmd_valid;
 	

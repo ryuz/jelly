@@ -151,6 +151,8 @@ module jelly_vdma_axi4s_to_axi4_core
 	//  Width convert & FIFO
 	// ---------------------------------
 	
+	wire	[FIFO_PTR_WIDTH:0]		fifo_data_count;
+	
 	wire							axi4s_core_tuser;
 	wire							axi4s_core_tlast;
 	wire	[AXI4_DATA_WIDTH-1:0]	axi4s_core_tdata;
@@ -214,13 +216,13 @@ module jelly_vdma_axi4s_to_axi4_core
 					.m_data				({axi4s_core_tuser, axi4s_core_tlast, axi4s_core_tdata}),
 					.m_valid			(axi4s_core_tvalid),
 					.m_ready			(axi4s_core_tready),
-					.m_data_count		()
+					.m_data_count		(fifo_data_count)
 				);
 	end
 	else begin
 		wire							axi4s_fifo_tuser;
 		wire							axi4s_fifo_tlast;
-		wire	[AXI4_DATA_WIDTH-1:0]	axi4s_fifo_tdata;
+		wire	[AXI4S_DATA_WIDTH-1:0]	axi4s_fifo_tdata;
 		wire							axi4s_fifo_tvalid;
 		wire							axi4s_fifo_tready;
 		
@@ -228,7 +230,7 @@ module jelly_vdma_axi4s_to_axi4_core
 		jelly_fifo_generic_fwtf
 				#(
 					.ASYNC				(ASYNC),
-					.DATA_WIDTH			(2+AXI4_DATA_WIDTH),
+					.DATA_WIDTH			(2+AXI4S_DATA_WIDTH),
 					.PTR_WIDTH			(FIFO_PTR_WIDTH)
 				)
 			i_fifo_async_fwtf
@@ -245,7 +247,7 @@ module jelly_vdma_axi4s_to_axi4_core
 					.m_data				({axi4s_fifo_tuser, axi4s_fifo_tlast, axi4s_fifo_tdata}),
 					.m_valid			(axi4s_fifo_tvalid),
 					.m_ready			(axi4s_fifo_tready),
-					.m_data_count		()
+					.m_data_count		(fifo_data_count)
 				);
 		
 		// width convert
@@ -304,12 +306,16 @@ module jelly_vdma_axi4s_to_axi4_core
 				.AXI4S_USER_WIDTH	(AXI4S_USER_WIDTH),
 				.AXI4_AW_REGS		(AXI4_AW_REGS),
 				.AXI4_W_REGS		(AXI4_W_REGS),
-				.AXI4S_REGS			(AXI4S_REGS),
+				.AXI4S_REGS			(0),	// AXI4S_REGS),
 				.STRIDE_WIDTH		(STRIDE_WIDTH),
 				.INDEX_WIDTH		(INDEX_WIDTH),
 				.H_WIDTH			(H_WIDTH),
 				.V_WIDTH			(V_WIDTH),
-				.SIZE_WIDTH			(SIZE_WIDTH)
+				.SIZE_WIDTH			(SIZE_WIDTH),
+				
+				.PACKET_ENABLE			(1),
+				.QUEUE_COUNTER_WIDTH	(FIFO_PTR_WIDTH+1),
+				.ISSUE_COUNTER_WIDTH	(8)
 			)
 		i_vdma_axi4s_to_axi4_control
 			(
@@ -321,6 +327,8 @@ module jelly_vdma_axi4s_to_axi4_core
 				.ctl_busy			(ctl_busy),
 				.ctl_index			(ctl_index),
 				.ctl_start			(ctl_start),
+				
+				.queue_counter		(fifo_data_count),
 				
 				.param_addr			(param_addr),
 				.param_stride		(param_stride),

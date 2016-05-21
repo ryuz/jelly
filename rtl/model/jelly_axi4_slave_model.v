@@ -28,6 +28,9 @@ module jelly_axi4_slave_model
 			parameter	WRITE_LOG_FILE        = "",
 			parameter	READ_LOG_FILE         = "",
 			
+			parameter	AW_DELAY              = 0,
+			parameter	AR_DELAY              = 0,
+			
 			parameter	AW_FIFO_PTR_WIDTH     = 0,
 			parameter	W_FIFO_PTR_WIDTH      = 0,
 			parameter	B_FIFO_PTR_WIDTH      = 0,
@@ -139,17 +142,17 @@ module jelly_axi4_slave_model
 	//  insert fifo
 	// -------------------------------------
 	
-	wire	[AXI_ID_WIDTH-1:0]		axi4_awid;
-	wire	[AXI_ADDR_WIDTH-1:0]	axi4_awaddr;
-	wire	[AXI_LEN_WIDTH-1:0]		axi4_awlen;
-	wire	[2:0]					axi4_awsize;
-//	wire	[1:0]					axi4_awburst;
-//	wire	[0:0]					axi4_awlock;
-//	wire	[3:0]					axi4_awcache;
-//	wire	[2:0]					axi4_awprot;
-//	wire	[AXI_QOS_WIDTH-1:0]		axi4_awqos;
-	wire							axi4_awvalid;
-	wire							axi4_awready;
+	wire	[AXI_ID_WIDTH-1:0]		axi4_fifo_awid;
+	wire	[AXI_ADDR_WIDTH-1:0]	axi4_fifo_awaddr;
+	wire	[AXI_LEN_WIDTH-1:0]		axi4_fifo_awlen;
+	wire	[2:0]					axi4_fifo_awsize;
+//	wire	[1:0]					axi4_fifo_awburst;
+//	wire	[0:0]					axi4_fifo_awlock;
+//	wire	[3:0]					axi4_fifo_awcache;
+//	wire	[2:0]					axi4_fifo_awprot;
+//	wire	[AXI_QOS_WIDTH-1:0]		axi4_fifo_awqos;
+	wire							axi4_fifo_awvalid;
+	wire							axi4_fifo_awready;
 	
 	wire	[AXI_DATA_WIDTH-1:0]	axi4_wdata;
 	wire	[AXI_STRB_WIDTH-1:0]	axi4_wstrb;
@@ -162,17 +165,17 @@ module jelly_axi4_slave_model
 	wire							axi4_bvalid;
 	wire							axi4_bready;
 	
-	wire	[AXI_ID_WIDTH-1:0]		axi4_arid;
-	wire	[AXI_ADDR_WIDTH-1:0]	axi4_araddr;
-	wire	[AXI_LEN_WIDTH-1:0]		axi4_arlen;
-	wire	[2:0]					axi4_arsize;
-//	wire	[1:0]					axi4_arburst;
-//	wire	[0:0]					axi4_arlock;
-//	wire	[3:0]					axi4_arcache;
-//	wire	[2:0]					axi4_arprot;
-//	wire	[AXI_QOS_WIDTH-1:0]		axi4_arqos;
-	wire		 					axi4_arvalid;
-	wire		 					axi4_arready;
+	wire	[AXI_ID_WIDTH-1:0]		axi4_fifo_arid;
+	wire	[AXI_ADDR_WIDTH-1:0]	axi4_fifo_araddr;
+	wire	[AXI_LEN_WIDTH-1:0]		axi4_fifo_arlen;
+	wire	[2:0]					axi4_fifo_arsize;
+//	wire	[1:0]					axi4_fifo_arburst;
+//	wire	[0:0]					axi4_fifo_arlock;
+//	wire	[3:0]					axi4_fifo_arcache;
+//	wire	[2:0]					axi4_fifo_arprot;
+//	wire	[AXI_QOS_WIDTH-1:0]		axi4_fifo_arqos;
+	wire		 					axi4_fifo_arvalid;
+	wire		 					axi4_fifo_arready;
 	
 	wire	[AXI_ID_WIDTH-1:0]		axi4_rid;
 	wire	[AXI_DATA_WIDTH-1:0]	axi4_rdata;
@@ -198,9 +201,9 @@ module jelly_axi4_slave_model
 				.s_ready			(s_axi4_awready_tmp),
 				.s_free_count		(),
 				
-				.m_data				({axi4_awid, axi4_awaddr, axi4_awlen, axi4_awsize}),
-				.m_valid			(axi4_awvalid),
-				.m_ready			(axi4_awready),
+				.m_data				({axi4_fifo_awid, axi4_fifo_awaddr, axi4_fifo_awlen, axi4_fifo_awsize}),
+				.m_valid			(axi4_fifo_awvalid),
+				.m_ready			(axi4_fifo_awready),
 				.m_data_count		()
 			);
 	assign s_axi4_awready = (s_axi4_awready_tmp & !reg_busy_aw);
@@ -274,9 +277,9 @@ module jelly_axi4_slave_model
 				.s_ready			(s_axi4_arready_tmp),
 				.s_free_count		(),
 				
-				.m_data				({axi4_arid, axi4_araddr, axi4_arlen, axi4_arsize}),
-				.m_valid			(axi4_arvalid),
-				.m_ready			(axi4_arready),
+				.m_data				({axi4_fifo_arid, axi4_fifo_araddr, axi4_fifo_arlen, axi4_fifo_arsize}),
+				.m_valid			(axi4_fifo_arvalid),
+				.m_ready			(axi4_fifo_arready),
 				.m_data_count		()
 			);
 	assign s_axi4_arready = (s_axi4_arready_tmp & !reg_busy_ar);
@@ -306,6 +309,74 @@ module jelly_axi4_slave_model
 			);
 	assign s_axi4_rresp  = s_axi4_rvalid ? 2'b00 : 2'bxx;
 	assign s_axi4_rvalid = s_axi4_rvalid_tmp & !reg_busy_r;
+	
+	
+	// -------------------------------------
+	//  insert deleay
+	// -------------------------------------
+	
+	wire	[AXI_ID_WIDTH-1:0]		axi4_awid;
+	wire	[AXI_ADDR_WIDTH-1:0]	axi4_awaddr;
+	wire	[AXI_LEN_WIDTH-1:0]		axi4_awlen;
+	wire	[2:0]					axi4_awsize;
+//	wire	[1:0]					axi4_awburst;
+//	wire	[0:0]					axi4_awlock;
+//	wire	[3:0]					axi4_awcache;
+//	wire	[2:0]					axi4_awprot;
+//	wire	[AXI_QOS_WIDTH-1:0]		axi4_awqos;
+	wire							axi4_awvalid;
+	wire							axi4_awready;
+	
+	wire	[AXI_ID_WIDTH-1:0]		axi4_arid;
+	wire	[AXI_ADDR_WIDTH-1:0]	axi4_araddr;
+	wire	[AXI_LEN_WIDTH-1:0]		axi4_arlen;
+	wire	[2:0]					axi4_arsize;
+//	wire	[1:0]					axi4_arburst;
+//	wire	[0:0]					axi4_arlock;
+//	wire	[3:0]					axi4_arcache;
+//	wire	[2:0]					axi4_arprot;
+//	wire	[AXI_QOS_WIDTH-1:0]		axi4_arqos;
+	wire		 					axi4_arvalid;
+	wire		 					axi4_arready;
+	
+	// aw
+	jelly_data_delay
+			#(
+				.LATENCY			(AW_DELAY),
+				.DATA_WIDTH			(AXI_ID_WIDTH+AXI_ADDR_WIDTH+AXI_LEN_WIDTH+3+1),
+				.DATA_INIT			(1'b0)
+			)
+		i_data_delay_aw
+			(
+				.reset				(~aresetn),
+				.clk				(aclk),
+				.cke				(axi4_awready),
+				
+				.in_data			({axi4_fifo_awid, axi4_fifo_awaddr, axi4_fifo_awlen, axi4_fifo_awsize, axi4_fifo_awvalid}),
+				
+				.out_data			({axi4_awid, axi4_awaddr, axi4_awlen, axi4_awsize, axi4_awvalid})
+			);
+	assign axi4_fifo_awready = axi4_awready;
+	
+	
+	// ar
+	jelly_data_delay
+			#(
+				.LATENCY			(AW_DELAY),
+				.DATA_WIDTH			(AXI_ID_WIDTH+AXI_ADDR_WIDTH+AXI_LEN_WIDTH+3+1),
+				.DATA_INIT			(1'b0)
+			)
+		i_data_delay_ar
+			(
+				.reset				(~aresetn),
+				.clk				(aclk),
+				.cke				(axi4_arready),
+				
+				.in_data			({axi4_fifo_arid, axi4_fifo_araddr, axi4_fifo_arlen, axi4_fifo_arsize, axi4_fifo_arvalid}),
+				
+				.out_data			({axi4_arid, axi4_araddr, axi4_arlen, axi4_arsize, axi4_arvalid})
+			);
+	assign axi4_fifo_arready = axi4_arready;
 	
 	
 	
