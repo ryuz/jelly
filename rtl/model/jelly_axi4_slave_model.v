@@ -362,7 +362,7 @@ module jelly_axi4_slave_model
 	// ar
 	jelly_data_delay
 			#(
-				.LATENCY			(AW_DELAY),
+				.LATENCY			(AR_DELAY),
 				.DATA_WIDTH			(AXI_ID_WIDTH+AXI_ADDR_WIDTH+AXI_LEN_WIDTH+3+1),
 				.DATA_INIT			(1'b0)
 			)

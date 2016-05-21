@@ -16,70 +16,74 @@
 //  AXI4 から Read して AXI4Streamにするコア
 module jelly_axi4_dma_reader
 		#(
-			parameter	AXI4_ID_WIDTH    = 6,
-			parameter	AXI4_ADDR_WIDTH  = 32,
-			parameter	AXI4_DATA_SIZE   = 2,	// 0:8bit, 1:16bit, 2:32bit ...
-			parameter	AXI4_DATA_WIDTH  = (8 << AXI4_DATA_SIZE),
-			parameter	AXI4_LEN_WIDTH   = 8,
-			parameter	AXI4_QOS_WIDTH   = 4,
-			parameter	AXI4_ARID        = {AXI4_ID_WIDTH{1'b0}},
-			parameter	AXI4_ARSIZE      = AXI4_DATA_SIZE,
-			parameter	AXI4_ARBURST     = 2'b01,
-			parameter	AXI4_ARLOCK      = 1'b0,
-			parameter	AXI4_ARCACHE     = 4'b0001,
-			parameter	AXI4_ARPROT      = 3'b000,
-			parameter	AXI4_ARQOS       = 0,
-			parameter	AXI4_ARREGION    = 4'b0000,
-			parameter	AXI4S_DATA_WIDTH = AXI4_DATA_WIDTH,
-			parameter	COUNT_WIDTH      = AXI4_ADDR_WIDTH - AXI4_DATA_SIZE,
-			parameter	LIMITTER_ENABLE  = 0,
-			parameter	AXI4_AR_REGS     = 1,
-			parameter	AXI4_R_REGS      = 1,
-			parameter	AXI4S_REGS       = 0
+			parameter	AXI4_ID_WIDTH            = 6,
+			parameter	AXI4_ADDR_WIDTH          = 32,
+			parameter	AXI4_DATA_SIZE           = 2,	// 0:8bit, 1:16bit, 2:32bit ...
+			parameter	AXI4_DATA_WIDTH          = (8 << AXI4_DATA_SIZE),
+			parameter	AXI4_LEN_WIDTH           = 8,
+			parameter	AXI4_QOS_WIDTH           = 4,
+			parameter	AXI4_ARID                = {AXI4_ID_WIDTH{1'b0}},
+			parameter	AXI4_ARSIZE              = AXI4_DATA_SIZE,
+			parameter	AXI4_ARBURST             = 2'b01,
+			parameter	AXI4_ARLOCK              = 1'b0,
+			parameter	AXI4_ARCACHE             = 4'b0001,
+			parameter	AXI4_ARPROT              = 3'b000,
+			parameter	AXI4_ARQOS               = 0,
+			parameter	AXI4_ARREGION            = 4'b0000,
+			parameter	AXI4S_DATA_WIDTH         = AXI4_DATA_WIDTH,
+			parameter	COUNT_WIDTH              = AXI4_ADDR_WIDTH - AXI4_DATA_SIZE,
+			parameter	LIMITTER_ENABLE          = 0,
+			parameter	LIMITTER_MARGINE         = 0,
+			parameter	ACCEPTABLE_COUNTER_WIDTH = 10,
+			parameter	ISSUE_COUNTER_WIDTH      = 12,
+			parameter	AXI4_AR_REGS             = 1,
+			parameter	AXI4_R_REGS              = 1,
+			parameter	AXI4S_REGS               = 0
 		)
 		(
-			input	wire							aresetn,
-			input	wire							aclk,
+			input	wire									aresetn,
+			input	wire									aclk,
 			
 			// control
-			input	wire							enable,
-			output	wire							busy,
+			input	wire									enable,
+			output	wire									busy,
+			
+			input	wire	[ACCEPTABLE_COUNTER_WIDTH-1:0]	acceptable_counter,		// 受け入れ可能サイズ
 			
 			// parameter
-			input	wire	[AXI4_ADDR_WIDTH-1:0]	param_addr,				// 開始アドレス
-			input	wire	[COUNT_WIDTH-1:0]		param_count,			// 転送個数
-			input	wire	[AXI4_LEN_WIDTH-1:0]	param_maxlen,			// arlenの最大値
-			input	wire							param_last_end,			// 転送の最後にlast付与
-			input	wire							param_last_through,		// lastはスルーする
-			input	wire							param_last_unit,		// unit単位でlast付与
-			input	wire	[COUNT_WIDTH-1:0]		param_unit,				// unitサイズ
-			input	wire	[COUNT_WIDTH-1:0]		param_limit,			// 同時発行サイズ
+			input	wire	[AXI4_ADDR_WIDTH-1:0]			param_addr,				// 開始アドレス
+			input	wire	[COUNT_WIDTH-1:0]				param_count,			// 転送個数
+			input	wire	[AXI4_LEN_WIDTH-1:0]			param_maxlen,			// arlenの最大値
+			input	wire									param_last_end,			// 転送の最後にlast付与
+			input	wire									param_last_through,		// lastはスルーする
+			input	wire									param_last_unit,		// unit単位でlast付与
+			input	wire	[COUNT_WIDTH-1:0]				param_unit,				// unitサイズ
 			
 			// master AXI4 (read)
-			output	wire	[AXI4_ID_WIDTH-1:0]		m_axi4_arid,
-			output	wire	[AXI4_ADDR_WIDTH-1:0]	m_axi4_araddr,
-			output	wire	[AXI4_LEN_WIDTH-1:0]	m_axi4_arlen,
-			output	wire	[2:0]					m_axi4_arsize,
-			output	wire	[1:0]					m_axi4_arburst,
-			output	wire	[0:0]					m_axi4_arlock,
-			output	wire	[3:0]					m_axi4_arcache,
-			output	wire	[2:0]					m_axi4_arprot,
-			output	wire	[AXI4_QOS_WIDTH-1:0]	m_axi4_arqos,
-			output	wire	[3:0]					m_axi4_arregion,
-			output	wire							m_axi4_arvalid,
-			input	wire							m_axi4_arready,
-			input	wire	[AXI4_ID_WIDTH-1:0]		m_axi4_rid,
-			input	wire	[AXI4_DATA_WIDTH-1:0]	m_axi4_rdata,
-			input	wire	[1:0]					m_axi4_rresp,
-			input	wire							m_axi4_rlast,
-			input	wire							m_axi4_rvalid,
-			output	wire							m_axi4_rready,
+			output	wire	[AXI4_ID_WIDTH-1:0]				m_axi4_arid,
+			output	wire	[AXI4_ADDR_WIDTH-1:0]			m_axi4_araddr,
+			output	wire	[AXI4_LEN_WIDTH-1:0]			m_axi4_arlen,
+			output	wire	[2:0]							m_axi4_arsize,
+			output	wire	[1:0]							m_axi4_arburst,
+			output	wire	[0:0]							m_axi4_arlock,
+			output	wire	[3:0]							m_axi4_arcache,
+			output	wire	[2:0]							m_axi4_arprot,
+			output	wire	[AXI4_QOS_WIDTH-1:0]			m_axi4_arqos,
+			output	wire	[3:0]							m_axi4_arregion,
+			output	wire									m_axi4_arvalid,
+			input	wire									m_axi4_arready,
+			input	wire	[AXI4_ID_WIDTH-1:0]				m_axi4_rid,
+			input	wire	[AXI4_DATA_WIDTH-1:0]			m_axi4_rdata,
+			input	wire	[1:0]							m_axi4_rresp,
+			input	wire									m_axi4_rlast,
+			input	wire									m_axi4_rvalid,
+			output	wire									m_axi4_rready,
 			
 			// master AXI4-Stream
-			output	wire	[AXI4S_DATA_WIDTH-1:0]	m_axi4s_tdata,
-			output	wire							m_axi4s_tlast,
-			output	wire							m_axi4s_tvalid,
-			input	wire							m_axi4s_tready
+			output	wire	[AXI4S_DATA_WIDTH-1:0]			m_axi4s_tdata,
+			output	wire									m_axi4s_tlast,
+			output	wire									m_axi4s_tvalid,
+			input	wire									m_axi4s_tready
 		);
 	
 	
@@ -192,28 +196,36 @@ module jelly_axi4_dma_reader
 	//  Limitter
 	// -----------------------------
 	
-	reg		[COUNT_WIDTH-1:0]	reg_limit_counter, next_limit_counter;
-	reg							reg_limiter;
+	reg		[ISSUE_COUNTER_WIDTH-1:0]	reg_issue_counter, next_issue_counter;
 	always @* begin
-		next_limit_counter = reg_limit_counter;
+		next_issue_counter = reg_issue_counter;
+		
 		if ( axi4_arvalid && axi4_arready ) begin
-			next_limit_counter = next_limit_counter + axi4_arlen + 1'b1;
+			next_issue_counter = next_issue_counter + axi4_arlen + 1'b1;
 		end
 		
-		if ( m_axi4s_tvalid && m_axi4s_tready ) begin
-			next_limit_counter = next_limit_counter - 1'b1;
+		if ( axi4_rvalid && axi4_rready ) begin
+			next_issue_counter = next_issue_counter - 1'b1;
 		end
 	end
+	wire	[ISSUE_COUNTER_WIDTH-1:0]	sig_issue_counter = reg_issue_counter - LIMITTER_MARGINE;
 	
+	reg									reg_limiter_arready;
 	always @(posedge aclk) begin
 		if ( !aresetn ) begin
-			reg_limit_counter <= {COUNT_WIDTH{1'b0}};
-			reg_limiter       <= 1'b0;
+			reg_issue_counter   <= LIMITTER_MARGINE;	// offset
+			reg_limiter_arready <= 1'b0;
 		end
 		else begin
-			reg_limit_counter <= next_limit_counter;
-			if ( !axi4_arvalid || axi4_arready ) begin
-				reg_limiter <= LIMITTER_ENABLE && (reg_limit_counter >= param_limit);
+			// count
+			reg_issue_counter <= next_issue_counter;
+			
+			// ready
+			reg_limiter_arready <= 1'b0;
+			if ( !reg_limiter_arready && axi4_ctl_arvalid ) begin
+				if ( acceptable_counter > reg_issue_counter + axi4_ctl_arlen ) begin
+					reg_limiter_arready <= 1'b1;
+				end
 			end
 		end
 	end
@@ -262,8 +274,8 @@ module jelly_axi4_dma_reader
 	
 	assign axi4_araddr      = axi4_ctl_araddr;
 	assign axi4_arlen       = axi4_ctl_arlen;
-	assign axi4_arvalid     = axi4_ctl_arvalid & !reg_limiter;
-	assign axi4_ctl_arready = axi4_arready     & !reg_limiter;
+	assign axi4_arvalid     = axi4_ctl_arvalid & (reg_limiter_arready || !LIMITTER_ENABLE);
+	assign axi4_ctl_arready = axi4_arready     & (reg_limiter_arready || !LIMITTER_ENABLE);
 	
 	
 	

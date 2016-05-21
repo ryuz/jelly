@@ -106,6 +106,13 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
+      <File Path="$PPRDIR/../../../../rtl/bus/jelly_axi4_dma_reader.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
       <File Path="$PPRDIR/../../../../rtl/bus/jelly_axi4_dma_writer.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
@@ -148,7 +155,7 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/bus/jelly_axi4_dma_reader.v">
+      <File Path="$PPRDIR/../../../../rtl/video/vdma/jelly_vdma_axi4_to_axi4s_control.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -156,13 +163,6 @@
         </FileInfo>
       </File>
       <File Path="$PPRDIR/../../../../rtl/video/vdma/jelly_vdma_axi4s_to_axi4_control.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../../../../rtl/video/vdma/jelly_vdma_axi4_to_axi4s_control.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -197,14 +197,14 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/video/vout/jelly_vsync_generator_core.v">
+      <File Path="$PPRDIR/../../../../rtl/video/vdma/jelly_vdma_axi4_to_axi4s_core.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/video/vdma/jelly_vdma_axi4_to_axi4s_core.v">
+      <File Path="$PPRDIR/../../../../rtl/video/vout/jelly_vsync_generator_core.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -281,6 +281,13 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
+      <File Path="$PPRDIR/../../../../rtl/video/vdma/jelly_vdma_axi4_to_axi4s.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
       <File Path="$PPRDIR/../../../../rtl/video/pattern_generator/jelly_pattern_generator_axi4s.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
@@ -303,13 +310,6 @@
         </FileInfo>
       </File>
       <File Path="$PPRDIR/../../../../rtl/video/vin/jelly_vin_axi4s.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../../../../rtl/video/vdma/jelly_vdma_axi4_to_axi4s.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>

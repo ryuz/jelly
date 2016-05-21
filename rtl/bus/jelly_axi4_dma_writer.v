@@ -197,10 +197,21 @@ module jelly_axi4_dma_writer
 	//  Packet
 	// -----------------------------
 	
-	reg		[ISSUE_COUNTER_WIDTH-1:0]	reg_issue_counter, tmp_issue_counter;
+	reg		[ISSUE_COUNTER_WIDTH-1:0]	reg_issue_counter, next_issue_counter;
+	always @* begin
+		next_issue_counter = reg_issue_counter;
+
+		if ( axi4_awvalid && axi4_awready ) begin
+			next_issue_counter = next_issue_counter + axi4_awlen + 1'b1;
+		end
+
+		if ( axi4_wvalid && axi4_wready ) begin
+			next_issue_counter = next_issue_counter - 1'b1;
+		end
+	end
+	
 	reg									reg_packet_awready;
 	reg									reg_packet_wready;
-	
 	always @(posedge aclk) begin
 		if ( ~aresetn ) begin
 			reg_issue_counter  <= {ISSUE_COUNTER_WIDTH{1'b0}};
@@ -209,20 +220,13 @@ module jelly_axi4_dma_writer
 		end
 		else begin
 			// count
-			tmp_issue_counter = reg_issue_counter;
-			if ( axi4_awvalid && axi4_awready ) begin
-				tmp_issue_counter = tmp_issue_counter + axi4_awlen + 1'b1;
-			end
-			if ( axi4_wvalid && axi4_wready ) begin
-				tmp_issue_counter = tmp_issue_counter - 1'b1;
-			end
-			reg_issue_counter <= tmp_issue_counter;
+			reg_issue_counter  <= next_issue_counter;
 			
 			// ready
 			reg_packet_awready <= 1'b0;
-			reg_packet_wready  <= (tmp_issue_counter > 0);
+			reg_packet_wready  <= (next_issue_counter > 0);
 			if ( !reg_packet_awready && axi4_ctl_awvalid ) begin
-				if ( queue_counter > reg_issue_counter + axi4_awlen ) begin 
+				if ( queue_counter > reg_issue_counter + axi4_ctl_awlen ) begin 
 					reg_packet_awready <= 1'b1;
 					reg_packet_wready  <= 1'b1;
 				end

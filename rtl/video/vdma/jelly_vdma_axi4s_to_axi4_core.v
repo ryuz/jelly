@@ -286,7 +286,7 @@ module jelly_vdma_axi4s_to_axi4_core
 					.m_ready			(axi4s_core_tready)
 				);
 				
-		reg		[CNV_WIDTH-1:0]				reg_cnv_counter, tmp_cnv_counter;
+		reg		[CNV_WIDTH-1:0]				reg_cnv_counter, next_cnv_counter;
 		reg		[QUEUE_COUNTER_WIDTH-1:0]	reg_queue_counter;
 		always @(posedge m_axi4_aclk) begin
 			if ( ~m_axi4_aresetn ) begin
@@ -294,16 +294,16 @@ module jelly_vdma_axi4s_to_axi4_core
 				reg_queue_counter <= {QUEUE_COUNTER_WIDTH{1'b0}};
 			end
 			else begin
-				tmp_cnv_counter = reg_cnv_counter;
+				next_cnv_counter = reg_cnv_counter;
 				if ( axi4s_fifo_tvalid && axi4s_fifo_tready ) begin
-					tmp_cnv_counter = tmp_cnv_counter + (1 << CNV_WIDTH);
+					next_cnv_counter = next_cnv_counter + (1 << CNV_WIDTH);
 				end
 				if ( axi4s_core_tvalid && axi4s_core_tready ) begin
-					tmp_cnv_counter = tmp_cnv_counter - 1;
+					next_cnv_counter = next_cnv_counter - 1;
 				end
-				reg_cnv_counter   <= tmp_cnv_counter;
+				reg_cnv_counter   <= next_cnv_counter;
 				
-				reg_queue_counter <= (fifo_data_count << CNV_WIDTH) + tmp_cnv_counter;
+				reg_queue_counter <= (fifo_data_count << CNV_WIDTH) + next_cnv_counter;
 			end
 		end
 		
