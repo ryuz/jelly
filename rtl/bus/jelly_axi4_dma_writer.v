@@ -171,8 +171,8 @@ module jelly_axi4_dma_writer
 	jelly_pipeline_insert_ff
 			#(
 				.DATA_WIDTH			(AXI4S_DATA_WIDTH),
-				.SLAVE_REGS			(AXI4S_REGS),
-				.MASTER_REGS		(AXI4S_REGS)
+				.SLAVE_REGS			(AXI4S_REGS && !PACKET_ENABLE),
+				.MASTER_REGS		(AXI4S_REGS && !PACKET_ENABLE)
 			)
 		i_pipeline_insert_ff_t
 			(
@@ -192,41 +192,10 @@ module jelly_axi4_dma_writer
 				.s_ready_next		()
 			);
 	
-	/*
-	// -----------------------------
-	//  Limitter
-	// -----------------------------
 	
-	reg		[COUNT_WIDTH-1:0]	reg_limit_counter, next_limit_counter;
-	reg							reg_limiter,       next_limiter;
-	always @* begin
-		next_limit_counter = reg_limit_counter;
-		next_limiter       = reg_limiter;
-		
-		if ( axi4_awvalid && axi4_awready ) begin
-			next_limit_counter = next_limit_counter + 1'b1;
-		end
-		
-		if ( m_axi4_bvalid && m_axi4_bready ) begin
-			next_limit_counter = next_limit_counter - 1'b1;
-		end
-		
-		next_limiter = LIMITTER_ENABLE && (next_limit_counter >= param_limit);
-	end
-	
-	always @(posedge aclk) begin
-		if ( !aresetn ) begin
-			reg_limit_counter <= {COUNT_WIDTH{1'b0}};
-			reg_limiter       <= 1'b0;
-		end
-		else begin
-			reg_limit_counter <= next_limit_counter;
-			if ( !axi4_awvalid || axi4_awready ) begin
-				reg_limiter <= next_limiter;
-			end
-		end
-	end
-	*/
+	// -----------------------------
+	//  Packet
+	// -----------------------------
 	
 	reg		[ISSUE_COUNTER_WIDTH-1:0]	reg_issue_counter, tmp_issue_counter;
 	reg									reg_packet_awready;

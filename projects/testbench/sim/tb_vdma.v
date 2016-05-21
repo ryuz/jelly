@@ -9,6 +9,9 @@ module tb_vdma();
 	initial begin
 		$dumpfile("tb_vdma.vcd");
 		$dumpvars(0, tb_vdma);
+	
+	#2000000
+		$finish;
 	end
 	
 	reg		clk = 1'b1;
@@ -19,7 +22,7 @@ module tb_vdma();
 	
 	parameter	PIXEL_SIZE  = 2;	// 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
 	parameter	PIXEL_WIDTH = (8 << PIXEL_SIZE);
-	parameter	DATA_WIDTH  = 32;
+	parameter	DATA_WIDTH  = PIXEL_WIDTH; // 32;
 	parameter	X_NUM       = 640;	//640;
 	parameter	Y_NUM       = 8;	//48;	//480;
 	parameter	X_WIDTH     = 10;
@@ -35,12 +38,12 @@ module tb_vdma();
 	
 	reg		ptn_busy = 1'b0;
 	always @(posedge clk) begin
-		ptn_busy <= 1'b0; // {$random};
+		ptn_busy <= {$random};
 	end
 	
 	reg		ptn_enable = 1;
 	initial begin
-		#100000 ptn_enable = 0;
+		#10000 ptn_enable = 0;
 	end
 	
 	jelly_pattern_generator_axi4s
@@ -101,85 +104,88 @@ module tb_vdma();
 	
 	jelly_vdma_axi4s_to_axi4
 			#(
-				.ASYNC				(0),
-				.FIFO_PTR_WIDTH		(8),
+				.ASYNC					(0),
+				.FIFO_PTR_WIDTH			(9),
 				
-				.PIXEL_SIZE			(PIXEL_SIZE),
+				.PIXEL_SIZE				(PIXEL_SIZE),
 				
-				.AXI4_ID_WIDTH		(AXI4_ID_WIDTH),
-				.AXI4_ADDR_WIDTH	(AXI4_ADDR_WIDTH),
-				.AXI4_DATA_SIZE		(AXI4_DATA_SIZE),
-				.AXI4_DATA_WIDTH	(AXI4_DATA_WIDTH),
-				.AXI4_STRB_WIDTH	(AXI4_STRB_WIDTH),
-				.AXI4_LEN_WIDTH		(AXI4_LEN_WIDTH),
-				.AXI4_QOS_WIDTH		(AXI4_QOS_WIDTH),
+				.AXI4_ID_WIDTH			(AXI4_ID_WIDTH),
+				.AXI4_ADDR_WIDTH		(AXI4_ADDR_WIDTH),
+				.AXI4_DATA_SIZE			(AXI4_DATA_SIZE),
+				.AXI4_DATA_WIDTH		(AXI4_DATA_WIDTH),
+				.AXI4_STRB_WIDTH		(AXI4_STRB_WIDTH),
+				.AXI4_LEN_WIDTH			(AXI4_LEN_WIDTH),
+				.AXI4_QOS_WIDTH			(AXI4_QOS_WIDTH),
 				
-				.AXI4S_DATA_SIZE	(PIXEL_SIZE),	// 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
+				.AXI4S_DATA_SIZE		(PIXEL_SIZE),	// 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
 				
-				.AXI4_AW_REGS		(1),
-				.AXI4_W_REGS		(1),
-				.AXI4S_REGS			(1),
+				.AXI4_AW_REGS			(1),
+				.AXI4_W_REGS			(1),
+				.AXI4S_REGS				(1),
 				
-				.INDEX_WIDTH		(8),
-				.STRIDE_WIDTH		(14),
-				.H_WIDTH			(12),
-				.V_WIDTH			(12),
+				.INDEX_WIDTH			(8),
+				.STRIDE_WIDTH			(14),
+				.H_WIDTH				(12),
+				.V_WIDTH				(12),
 				
-				.WB_ADR_WIDTH		(8),
-				.WB_DAT_WIDTH		(32),
+				.PACKET_ENABLE			(1),
+				.ISSUE_COUNTER_WIDTH	(16), // 8),
 				
-				.INIT_CTL_CONTROL	(3'b011),
-				.INIT_PARAM_ADDR	(32'h0000_0000),
-				.INIT_PARAM_STRIDE	(X_NUM*4),
-				.INIT_PARAM_WIDTH	(X_NUM),
-				.INIT_PARAM_HEIGHT	(Y_NUM),
-				.INIT_PARAM_AWLEN	(8'h1f)
+				.WB_ADR_WIDTH			(8),
+				.WB_DAT_WIDTH			(32),
+				
+				.INIT_CTL_CONTROL		(3'b111),
+				.INIT_PARAM_ADDR		(32'h0000_0000),
+				.INIT_PARAM_STRIDE		(X_NUM*(1 << PIXEL_SIZE)),
+				.INIT_PARAM_WIDTH		(X_NUM),
+				.INIT_PARAM_HEIGHT		(Y_NUM),
+				.INIT_PARAM_AWLEN		(8'h1f)
 			)
 		i_vdma_axi4s_to_axi4
 			(
-				.m_axi4_aresetn		(axi4_aresetn),
-				.m_axi4_aclk		(axi4_aclk),
-				.m_axi4_awid		(axi4_awid),
-				.m_axi4_awaddr		(axi4_awaddr),
-				.m_axi4_awlen		(axi4_awlen),
-				.m_axi4_awsize		(axi4_awsize),
-				.m_axi4_awburst		(axi4_awburst),
-				.m_axi4_awlock		(axi4_awlock),
-				.m_axi4_awcache		(axi4_awcache),
-				.m_axi4_awprot		(axi4_awprot),
-				.m_axi4_awqos		(axi4_awqos),
-				.m_axi4_awregion	(axi4_awregion),
-				.m_axi4_awvalid		(axi4_awvalid),
-				.m_axi4_awready		(axi4_awready),
-				.m_axi4_wdata		(axi4_wdata),
-				.m_axi4_wstrb		(axi4_wstrb),
-				.m_axi4_wlast		(axi4_wlast),
-				.m_axi4_wvalid		(axi4_wvalid),
-				.m_axi4_wready		(axi4_wready),
-				.m_axi4_bid			(axi4_bid),
-				.m_axi4_bresp		(axi4_bresp),
-				.m_axi4_bvalid		(axi4_bvalid),
-				.m_axi4_bready		(axi4_bready),
+				.m_axi4_aresetn			(axi4_aresetn),
+				.m_axi4_aclk			(axi4_aclk),
+				.m_axi4_awid			(axi4_awid),
+				.m_axi4_awaddr			(axi4_awaddr),
+				.m_axi4_awlen			(axi4_awlen),
+				.m_axi4_awsize			(axi4_awsize),
+				.m_axi4_awburst			(axi4_awburst),
+				.m_axi4_awlock			(axi4_awlock),
+				.m_axi4_awcache			(axi4_awcache),
+				.m_axi4_awprot			(axi4_awprot),
+				.m_axi4_awqos			(axi4_awqos),
+				.m_axi4_awregion		(axi4_awregion),
+				.m_axi4_awvalid			(axi4_awvalid),
+				.m_axi4_awready			(axi4_awready),
+				.m_axi4_wdata			(axi4_wdata),
+				.m_axi4_wstrb			(axi4_wstrb),
+				.m_axi4_wlast			(axi4_wlast),
+				.m_axi4_wvalid			(axi4_wvalid),
+				.m_axi4_wready			(axi4_wready),
+				.m_axi4_bid				(axi4_bid),
+				.m_axi4_bresp			(axi4_bresp),
+				.m_axi4_bvalid			(axi4_bvalid),
+				.m_axi4_bready			(axi4_bready),
 				
-				.s_axi4s_aresetn	(axi4s_aresetn),
-				.s_axi4s_aclk		(axi4s_aclk),
-				.s_axi4s_tdata		(axi4s_tdata),
-				.s_axi4s_tlast		(axi4s_tlast),
-				.s_axi4s_tuser		(axi4s_tuser),
-				.s_axi4s_tvalid		(axi4s_tvalid & !ptn_busy),
-				.s_axi4s_tready		(axi4s_tready),
+				.s_axi4s_aresetn		(axi4s_aresetn),
+				.s_axi4s_aclk			(axi4s_aclk),
+				.s_axi4s_tdata			(axi4s_tdata),
+				.s_axi4s_tlast			(axi4s_tlast),
+				.s_axi4s_tuser			(axi4s_tuser),
+				.s_axi4s_tvalid			(axi4s_tvalid & !ptn_busy),
+				.s_axi4s_tready			(axi4s_tready),
 				
-				.s_wb_rst_i			(reset),
-				.s_wb_clk_i			(clk),
-				.s_wb_adr_i			(0),
-				.s_wb_dat_i			(0),
-				.s_wb_dat_o			(),
-				.s_wb_we_i			(0),
-				.s_wb_sel_i			(0),
-				.s_wb_stb_i			(0),
-				.s_wb_ack_o			(),
+				.s_wb_rst_i				(reset),
+				.s_wb_clk_i				(clk),
+				.s_wb_adr_i				(0),
+				.s_wb_dat_i				(0),
+				.s_wb_dat_o				(),
+				.s_wb_we_i				(0),
+				.s_wb_sel_i				(0),
+				.s_wb_stb_i				(0),
+				.s_wb_ack_o				(),
 				
-				.out_irq			()
+				.out_irq				()
 			);
 	
 	

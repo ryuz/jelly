@@ -35,6 +35,12 @@ module jelly_vdma_axi4s_to_axi4_control
 			parameter	AXI4_AWREGION       = 4'b0000,
 			parameter	AXI4S_USER_WIDTH    = 1,
 			parameter	AXI4S_DATA_WIDTH    = AXI4_DATA_WIDTH,
+
+			parameter	STRIDE_WIDTH        = 14,
+			parameter	INDEX_WIDTH         = 8,
+			parameter	H_WIDTH             = 12,
+			parameter	V_WIDTH             = 12,
+			parameter	SIZE_WIDTH          = H_WIDTH + V_WIDTH,
 			
 			parameter	PACKET_ENABLE       = 0,
 			parameter	QUEUE_COUNTER_WIDTH = 8,
@@ -42,13 +48,8 @@ module jelly_vdma_axi4s_to_axi4_control
 			
 			parameter	AXI4_AW_REGS        = 1,
 			parameter	AXI4_W_REGS         = 1,
-			parameter	AXI4S_REGS          = 1,
+			parameter	AXI4S_REGS          = 1
 			
-			parameter	STRIDE_WIDTH        = 14,
-			parameter	INDEX_WIDTH         = 8,
-			parameter	H_WIDTH             = 12,
-			parameter	V_WIDTH             = 12,
-			parameter	SIZE_WIDTH          = H_WIDTH + V_WIDTH
 		)
 		(
 			input	wire								aresetn,
@@ -125,8 +126,8 @@ module jelly_vdma_axi4s_to_axi4_control
 	jelly_pipeline_insert_ff
 			#(
 				.DATA_WIDTH			(AXI4S_DATA_WIDTH+1+AXI4S_USER_WIDTH),
-				.SLAVE_REGS			(AXI4S_REGS),
-				.MASTER_REGS		(AXI4S_REGS)
+				.SLAVE_REGS			(AXI4S_REGS && !PACKET_ENABLE),
+				.MASTER_REGS		(AXI4S_REGS && !PACKET_ENABLE)
 			)
 		i_pipeline_insert_ff_t
 			(
@@ -192,13 +193,13 @@ module jelly_vdma_axi4s_to_axi4_control
 	reg								reg_busy;
 	reg								reg_skip;
 	reg								reg_wait_fs;
-
+	
 	wire							sig_awbusy;
 	reg								reg_awenable;
 	reg		[SIZE_WIDTH-1:0]		reg_awhcount;
 	reg		[V_WIDTH-1:0]			reg_awvcount;
 	reg		[AXI4_ADDR_WIDTH-1:0]	reg_awaddr;
-		
+	
 	// シャドーレジスタ
 	reg		[INDEX_WIDTH-1:0]		reg_index;			// この変化でホストは受付確認
 	reg		[AXI4_ADDR_WIDTH-1:0]	reg_param_addr;
@@ -298,17 +299,17 @@ module jelly_vdma_axi4s_to_axi4_control
 		end
 	end
 	
-	assign ctl_busy         = reg_busy;
-	assign ctl_index        = reg_index;
-	assign ctl_start        = (!reg_busy && reg_enable_ff1);
-		
-	assign monitor_addr     = reg_param_addr;
-	assign monitor_stride   = reg_param_stride;
-	assign monitor_width    = reg_param_width;
-	assign monitor_height   = reg_param_height;
-	assign monitor_size     = reg_param_size;
-	assign monitor_awlen    = reg_param_awlen;
-		
+	assign ctl_busy       = reg_busy;
+	assign ctl_index      = reg_index;
+	assign ctl_start      = (!reg_busy && reg_enable_ff1);
+	
+	assign monitor_addr   = reg_param_addr;
+	assign monitor_stride = reg_param_stride;
+	assign monitor_width  = reg_param_width;
+	assign monitor_height = reg_param_height;
+	assign monitor_size   = reg_param_size;
+	assign monitor_awlen  = reg_param_awlen;
+	
 	
 	// DAM writer	
 	wire	[AXI4S_DATA_WIDTH-1:0]	axi4s_dma_tdata;
