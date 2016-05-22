@@ -4,7 +4,8 @@
 
 
 module tb_vdma();
-	localparam RATE    = 10.0;
+	localparam RATE  = 10.0;
+	localparam RATE2 = 6.667;
 	
 	initial begin
 		$dumpfile("tb_vdma.vcd");
@@ -17,10 +18,15 @@ module tb_vdma();
 	reg		clk = 1'b1;
 	always #(RATE/2.0)	clk = ~clk;
 	
+	reg		clk2 = 1'b1;
+	always #(RATE2/2.0)	clk2 = ~clk2;
+	
 	reg		reset = 1'b1;
 	always #(RATE*100)	reset = 1'b0;
 	
-	parameter	PIXEL_SIZE  = 3;	// 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
+	
+	
+	parameter	PIXEL_SIZE  = 2;	// 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
 	parameter	PIXEL_WIDTH = (8 << PIXEL_SIZE);
 	parameter	DATA_WIDTH  = PIXEL_WIDTH; // 32;
 	parameter	X_NUM       = 640;	//640;
@@ -72,14 +78,14 @@ module tb_vdma();
 	
 	parameter	AXI4_ID_WIDTH    = 4;
 	parameter	AXI4_ADDR_WIDTH  = 32;
-	parameter	AXI4_DATA_SIZE   = 2;	// 0:8bit, 1:16bit, 2:32bit ...
+	parameter	AXI4_DATA_SIZE   = 3;	// 0:8bit, 1:16bit, 2:32bit ...
 	parameter	AXI4_DATA_WIDTH  = (8 << AXI4_DATA_SIZE);
 	parameter	AXI4_STRB_WIDTH  = (1 << AXI4_DATA_SIZE);
 	parameter	AXI4_LEN_WIDTH   = 8;
 	parameter	AXI4_QOS_WIDTH   = 4;
 	
 	wire							axi4_aresetn = ~reset;
-	wire							axi4_aclk    = clk;
+	wire							axi4_aclk    = clk2;
 	wire	[AXI4_ID_WIDTH-1:0]		axi4_awid;
 	wire	[AXI4_ADDR_WIDTH-1:0]	axi4_awaddr;
 	wire	[AXI4_LEN_WIDTH-1:0]	axi4_awlen;
@@ -123,7 +129,7 @@ module tb_vdma();
 	
 	jelly_vdma_axi4s_to_axi4
 			#(
-				.ASYNC					(0),
+				.ASYNC					(1),
 				.FIFO_PTR_WIDTH			(9),
 				
 				.PIXEL_SIZE				(PIXEL_SIZE),
@@ -211,8 +217,8 @@ module tb_vdma();
 	// read
 	jelly_vdma_axi4_to_axi4s
 			#(
-				.ASYNC					(0),
-				.FIFO_PTR_WIDTH			(12),
+				.ASYNC					(1),
+				.FIFO_PTR_WIDTH			(10),
 				
 				.PIXEL_SIZE				(PIXEL_SIZE),
 				

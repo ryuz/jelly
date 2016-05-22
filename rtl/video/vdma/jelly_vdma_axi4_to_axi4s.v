@@ -48,13 +48,13 @@ module jelly_vdma_axi4_to_axi4s
 			
 			parameter	INDEX_WIDTH         = 8,
 			parameter	STRIDE_WIDTH        = 14,
-			parameter	H_WIDTH             = 12,
-			parameter	V_WIDTH             = 12,
+			parameter	H_WIDTH             = 10,
+			parameter	V_WIDTH             = 10,
 			parameter	SIZE_WIDTH          = H_WIDTH + V_WIDTH,
 			
 			parameter	LIMITTER_ENABLE     = (FIFO_PTR_WIDTH > AXI4_LEN_WIDTH),
 			parameter	LIMITTER_MARGINE    = 4,
-			parameter	ISSUE_COUNTER_WIDTH = 12,
+			parameter	ISSUE_COUNTER_WIDTH = 10,
 
 			parameter	WB_ADR_WIDTH        = 8,
 			parameter	WB_DAT_WIDTH        = 32,
