@@ -196,6 +196,11 @@ module jelly_axi4_dma_reader
 	//  Limitter
 	// -----------------------------
 	
+	wire	[AXI4_ADDR_WIDTH-1:0]	axi4_ctl_araddr;
+	wire	[AXI4_LEN_WIDTH-1:0]	axi4_ctl_arlen;
+	wire							axi4_ctl_arvalid;
+	wire							axi4_ctl_arready;
+	
 	reg		[ISSUE_COUNTER_WIDTH-1:0]	reg_issue_counter, next_issue_counter;
 	always @* begin
 		next_issue_counter = reg_issue_counter;
@@ -236,11 +241,6 @@ module jelly_axi4_dma_reader
 	// -----------------------------
 	
 	wire							cmd_busy;
-	
-	wire	[AXI4_ADDR_WIDTH-1:0]	axi4_ctl_araddr;
-	wire	[AXI4_LEN_WIDTH-1:0]	axi4_ctl_arlen;
-	wire							axi4_ctl_arvalid;
-	wire							axi4_ctl_arready;
 	
 	jelly_axi4_dma_addr
 			#(

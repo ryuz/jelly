@@ -21,9 +21,9 @@ module jelly_wishbone_clk_x2
 		)
 		(
 			//system
-			input								clk,
-			input								clk_x2,
-			input								reset,
+			input	wire						clk,
+			input	wire						clk_x2,
+			input	wire						reset,
 			
 			// wishbone
 			input	wire	[WB_ADR_WIDTH-1:0]	s_wb_adr_i,

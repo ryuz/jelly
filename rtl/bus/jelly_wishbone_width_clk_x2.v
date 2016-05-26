@@ -56,12 +56,12 @@ module jelly_wishbone_width_clk_x2
 	
 	// remove clock jitter when simutation
 	reg									delay_clk;
-	reg		[S_WB_ADR_WIDTH-1:0]	tmp_s_wb_adr_i;
-	reg		[S_WB_DAT_WIDTH-1:0]	tmp_s_wb_dat_i;
+	reg		[S_WB_ADR_WIDTH-1:0]		tmp_s_wb_adr_i;
+	reg		[S_WB_DAT_WIDTH-1:0]		tmp_s_wb_dat_i;
 	reg									tmp_s_wb_we_i;
-	reg		[S_WB_SEL_WIDTH-1:0]	tmp_s_wb_sel_i;
+	reg		[S_WB_SEL_WIDTH-1:0]		tmp_s_wb_sel_i;
 	reg									tmp_s_wb_stb_i;
-	wire	[S_WB_DAT_WIDTH-1:0]	tmp_s_wb_dat_o;
+	wire	[S_WB_DAT_WIDTH-1:0]		tmp_s_wb_dat_o;
 	wire								tmp_s_wb_ack_o;
 	always @* begin
 		delay_clk          <= #DELAY clk;

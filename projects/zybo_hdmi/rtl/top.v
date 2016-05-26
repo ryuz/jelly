@@ -364,11 +364,6 @@ module top
 	wire			vin_reset;
 	wire			vin_clk;
 	
-	// 200MHz reference clock (from board)
-	wire			ref200_clk   = zynq_fclk_clk0;
-	wire			ref200_reset;
-	
-	
 	
 	// peripheral clock (from PS)
 	assign peri_aresetn = ~vout_reset;
@@ -665,10 +660,6 @@ module top
 	// ----------------------------------------
 	//  DMA write
 	// ----------------------------------------
-	
-	
-	wire					vin_reset;
-	wire					vin_clk;
 	
 	wire	[0:0]			axi4s_memw_tuser;
 	wire					axi4s_memw_tlast;

@@ -53,7 +53,6 @@ module jelly_axi4_dma_writer
 			input	wire	[COUNT_WIDTH-1:0]			param_count,
 			input	wire	[AXI4_LEN_WIDTH-1:0]		param_maxlen,
 			input	wire	[AXI4_STRB_WIDTH-1:0]		param_wstrb,
-//			input	wire	[COUNT_WIDTH-1:0]			param_limit,
 			
 			// master AXI4 (write)
 			output	wire	[AXI4_ID_WIDTH-1:0]			m_axi4_awid,
@@ -197,14 +196,20 @@ module jelly_axi4_dma_writer
 	//  Packet
 	// -----------------------------
 	
+	wire	[AXI4_ADDR_WIDTH-1:0]	axi4_ctl_awaddr;
+	wire	[AXI4_LEN_WIDTH-1:0]	axi4_ctl_awlen;
+	wire							axi4_ctl_awvalid;
+	wire							axi4_ctl_awready;
+	
+	
 	reg		[ISSUE_COUNTER_WIDTH-1:0]	reg_issue_counter, next_issue_counter;
 	always @* begin
 		next_issue_counter = reg_issue_counter;
-
+		
 		if ( axi4_awvalid && axi4_awready ) begin
 			next_issue_counter = next_issue_counter + axi4_awlen + 1'b1;
 		end
-
+		
 		if ( axi4_wvalid && axi4_wready ) begin
 			next_issue_counter = next_issue_counter - 1'b1;
 		end
@@ -249,11 +254,6 @@ module jelly_axi4_dma_writer
 	wire	[AXI4_LEN_WIDTH-1:0]	cmd_buf_len;
 	wire							cmd_buf_valid;
 	wire							cmd_buf_ready;
-	
-	wire	[AXI4_ADDR_WIDTH-1:0]	axi4_ctl_awaddr;
-	wire	[AXI4_LEN_WIDTH-1:0]	axi4_ctl_awlen;
-	wire							axi4_ctl_awvalid;
-	wire							axi4_ctl_awready;
 	
 	jelly_axi4_dma_addr
 			#(
