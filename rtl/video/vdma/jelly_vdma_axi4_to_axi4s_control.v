@@ -150,18 +150,27 @@ module jelly_vdma_axi4_to_axi4s_control
 	// -----------------------------
 	
 	// double latch
-	reg		reg_enable_ff0;
-	reg		reg_enable_ff1;
+	(* ASYNC_REG = "true" *)	reg		reg_enable_ff0, reg_enable_ff1, reg_enable;
+	(* ASYNC_REG = "true" *)	reg		reg_update_ff0, reg_update;
 	always @(posedge aclk) begin
 		if ( !aresetn ) begin
 			reg_enable_ff0 <= 1'b0;
 			reg_enable_ff1 <= 1'b0;
+			reg_enable     <= 1'b0;
+			
+			reg_update_ff0 <= 1'b0;
+			reg_update     <= 1'b0;
 		end
 		else begin
 			reg_enable_ff0 <= ctl_enable;
 			reg_enable_ff1 <= reg_enable_ff0;
+			reg_enable     <= reg_enable_ff1;
+			
+			reg_update_ff0 <= ctl_update;
+			reg_update     <= reg_update_ff0;
 		end
 	end
+	
 	
 	// ƒsƒNƒZƒ‹”‚ð“]‘—”‚É•ÏŠ·
 	function	[SIZE_WIDTH-1:0]	pixels_to_count(input [SIZE_WIDTH-1:0] pixels);
@@ -243,7 +252,7 @@ module jelly_vdma_axi4_to_axi4s_control
 			end
 			
 			if ( !reg_busy ) begin
-				if ( reg_enable_ff1 ) begin
+				if ( reg_enable ) begin
 					reg_busy         <= 1'b1;
 					reg_index        <= reg_index + 1'b1;
 					
@@ -253,7 +262,7 @@ module jelly_vdma_axi4_to_axi4s_control
 					reg_rbusy        <= 1'b0;
 					reg_rcount       <= 0;
 					
-					if ( ctl_update ) begin
+					if ( reg_update ) begin
 						reg_param_addr   <= param_addr;
 						reg_param_stride <= param_stride;
 						reg_param_width  <= param_width;
@@ -304,7 +313,7 @@ module jelly_vdma_axi4_to_axi4s_control
 	
 	assign ctl_busy       = reg_busy;
 	assign ctl_index      = reg_index;
-	assign ctl_start      = (!reg_busy && reg_enable_ff1);
+	assign ctl_start      = (!reg_busy && reg_enable);
 	
 	assign monitor_addr   = reg_param_addr;
 	assign monitor_stride = reg_param_stride;

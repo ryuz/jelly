@@ -161,9 +161,11 @@ module jelly_vdma_axi4_to_axi4s
 	wire	[SIZE_WIDTH-1:0]		sig_monitor_size;
 	wire	[AXI4_LEN_WIDTH-1:0]	sig_monitor_arlen;
 	
+	(* ASYNC_REG = "true" *)
 	reg		[2:0]					reg_prev_index;
 	
 	reg								reg_irq;
+	
 	
 	always @(posedge s_wb_clk_i ) begin
 		if ( s_wb_rst_i ) begin

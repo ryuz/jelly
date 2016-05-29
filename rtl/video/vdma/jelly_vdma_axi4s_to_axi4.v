@@ -165,6 +165,7 @@ module jelly_vdma_axi4s_to_axi4
 	wire	[SIZE_WIDTH-1:0]		sig_monitor_size;
 	wire	[AXI4_LEN_WIDTH-1:0]	sig_monitor_awlen;
 	
+	(* ASYNC_REG = "true" *)
 	reg		[2:0]					reg_prev_index;
 	
 	reg								reg_irq;
