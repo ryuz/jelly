@@ -44,19 +44,6 @@ module top
 			output	wire	[3:0]	led,
 			output	wire	[7:0]	pmod_a,
 			
-			/*
-			input	wire			I2C0_SDA_I,
-			output	wire			I2C0_SDA_O,
-			output	wire			I2C0_SDA_T,
-			input	wire			I2C0_SCL_I,
-			output	wire			I2C0_SCL_O,
-			output	wire			I2C0_SCL_T,
-			input	wire			SDIO0_WP,
-			output	wire	[1:0]	USB0_PORT_INDCTL,
-			output	wire			USB0_VBUS_PWRSELECT,
-			input	wire			USB0_VBUS_PWRFAULT,
-			*/
-			
 			inout	wire	[53:0]	MIO,
 			inout	wire			DDR_CAS_n,
 			inout	wire			DDR_CKE,
@@ -577,49 +564,6 @@ module top
 	
 	
 	
-	wire	[5:0]	axi4_mem00_awid;
-	wire	[31:0]	axi4_mem00_awaddr;
-	wire	[1:0]	axi4_mem00_awburst;
-	wire	[3:0]	axi4_mem00_awcache;
-	wire	[7:0]	axi4_mem00_awlen;
-	wire	[0:0]	axi4_mem00_awlock;
-	wire	[2:0]	axi4_mem00_awprot;
-	wire	[3:0]	axi4_mem00_awqos;
-	wire	[3:0]	axi4_mem00_awregion;
-	wire	[2:0]	axi4_mem00_awsize;
-	wire			axi4_mem00_awvalid;
-	wire			axi4_mem00_awready;
-	wire	[7:0]	axi4_mem00_wstrb;
-	wire	[63:0]	axi4_mem00_wdata;
-	wire			axi4_mem00_wlast;
-	wire			axi4_mem00_wvalid;
-	wire			axi4_mem00_wready;
-	wire	[5:0]	axi4_mem00_bid;
-	wire	[1:0]	axi4_mem00_bresp;
-	wire			axi4_mem00_bvalid;
-	wire			axi4_mem00_bready;
-	wire	[5:0]	axi4_mem00_arid;
-	wire	[31:0]	axi4_mem00_araddr;
-	wire	[1:0]	axi4_mem00_arburst;
-	wire	[3:0]	axi4_mem00_arcache;
-	wire	[7:0]	axi4_mem00_arlen;
-	wire	[0:0]	axi4_mem00_arlock;
-	wire	[2:0]	axi4_mem00_arprot;
-	wire	[3:0]	axi4_mem00_arqos;
-	wire	[3:0]	axi4_mem00_arregion;
-	wire	[2:0]	axi4_mem00_arsize;
-	wire			axi4_mem00_arvalid;
-	wire			axi4_mem00_arready;
-	wire	[5:0]	axi4_mem00_rid;
-	wire	[1:0]	axi4_mem00_rresp;
-	wire	[63:0]	axi4_mem00_rdata;
-	wire			axi4_mem00_rlast;
-	wire			axi4_mem00_rvalid;
-	wire			axi4_mem00_rready;
-	
-	
-	
-	
 	// ----------------------------------------
 	//  GPO (LED)
 	// ----------------------------------------
@@ -762,7 +706,6 @@ module top
 	wire					wb_vdmar_stb_i;
 	wire					wb_vdmar_ack_o;
 	
-	/*
 	jelly_vdma_axi4_to_axi4s
 			#(
 				.ASYNC				(1),
@@ -830,51 +773,6 @@ module top
 				.s_wb_stb_i			(wb_vdmar_stb_i),
 				.s_wb_ack_o			(wb_vdmar_ack_o)
 		);
-	*/
-	
-	
-	
-	reg		[31:0]		reg_axi3_hp0_araddr;
-	reg					reg_axi3_hp0_arvalid;
-	always @(posedge mem_aclk) begin
-		if ( !mem_aresetn ) begin
-			reg_axi3_hp0_araddr  <= 32'h1800_0000;
-			reg_axi3_hp0_arvalid <= 0;
-		end
-		else begin
-			reg_axi3_hp0_arvalid       <= 1;
-			if ( axi3_hp0_arvalid && axi3_hp0_arready ) begin
-				reg_axi3_hp0_araddr[19:0]  <= reg_axi3_hp0_araddr[19:0] + 32;
-			end
-		end
-	end
-	
-	assign axi3_hp0_arid     = 0;
-	assign axi3_hp0_arburst  = 1;
-	assign axi3_hp0_arlock   = 0;
-	assign axi3_hp0_arsize   = 3;
-	assign axi3_hp0_arprot   = 0;
-	assign axi3_hp0_arcache  = 1;
-	assign axi3_hp0_arlen    = 3;
-	assign axi3_hp0_arqos    = 0;
-	
-	assign axi3_hp0_araddr  = reg_axi3_hp0_araddr;
-	assign axi3_hp0_arvalid = reg_axi3_hp0_arvalid;
-	assign axi3_hp0_rready  = 1;
-	
-	(* MARK_DEBUG = "true" *)	reg		dbg_axi3_hp0_rvalid;
-	(* MARK_DEBUG = "true" *)	reg		dbg_axi3_hp0_rlast;
-	always @(posedge mem_aclk) begin
-		dbg_axi3_hp0_rvalid <= axi3_hp0_rvalid;
-		dbg_axi3_hp0_rlast  <= axi3_hp0_rlast;
-	end
-	
-	assign axi4s_memr_tvalid = 0;
-	assign wb_vdmar_dat_o    = 0;
-	assign wb_vdmar_ack_o    = wb_vdmar_stb_i;
-	
-	/////////////////
-	
 	
 	
 	wire					vout_vsgen_vsync;
