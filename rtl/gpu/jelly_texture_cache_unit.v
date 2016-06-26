@@ -71,7 +71,7 @@ module jelly_texture_cache_unit
 	
 	
 	// ---------------------------------
-	//  TAG memory
+	//  TAG RAM (stage 1-3)
 	// ---------------------------------
 	
 	localparam	TAG_ADDR_HALF = (TAG_ADDR_WIDTH >> 1);
@@ -260,6 +260,31 @@ module jelly_texture_cache_unit
 	
 	
 	
+	// ---------------------------------
+	//  Cache-RAM
+	// ---------------------------------
+	
+	localparam	CACHE_ADDR_WIDTH = TAG_ADDR_WIDTH + BLK_ADDR_Y_WIDTH + BLK_ADDR_X_WIDTH - M_DATA_WIDE_SIZE;
+	
+	// Cache-RAM
+	jelly_ram_singleport
+			#(
+				.ADDR_WIDTH			(CACHE_ADDR_WIDTH),
+				.DATA_WIDTH			(M_DATA_WIDTH),
+				.RAM_TYPE			(MEM_RAM_TYPE),
+				.DOUT_REGS			(1)
+			)
+		i_ram_singleport_cache
+			(
+				.clk				(clk),
+				.en					(),
+				.regcke				(),
+				
+				.we					(st1_tag_we),
+				.addr				(st1_tag_addr),
+				.din				({~reg_clear_busy, st1_blk_addr_y, st1_blk_addr_x}),
+				.dout				({sig_tag_enable, sig_blk_addr_y, sig_blk_addr_x})
+			);
 	
 	
 	
