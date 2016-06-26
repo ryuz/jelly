@@ -110,13 +110,13 @@ module tb_texture_cache_unit();
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
-			s_araddrx <= 0;
-			s_araddry <= 0;
+			s_araddrx <= 32;
+			s_araddry <= 32;
 			s_arvalid <= 1'b0;
 		end
 		else begin
 			if ( s_arvalid && s_arready ) begin
-				s_araddrx <= s_araddrx + 3;
+				s_araddrx <= s_araddrx + 1;
 				s_araddry <= s_araddry + 1;
 			end
 			s_arvalid <= 1'b1;

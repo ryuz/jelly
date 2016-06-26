@@ -32,6 +32,7 @@ module jelly_texture_cache_unit
 			
 			parameter	BORDER_DATA      = {S_DATA_WIDTH{1'b0}},
 			
+			parameter	TAG_RAM_TYPE     = "distributed",
 			parameter	MEM_RAM_TYPE     = "block"
 		)
 		(
@@ -78,6 +79,8 @@ module jelly_texture_cache_unit
 	reg								reg_clear_busy;
 	reg								reg_read_busy;
 	
+	reg								reg_m_arvalid;	
+	
 	reg								st1_tag_we;
 	reg		[TAG_ADDR_WIDTH-1:0]	st1_tag_addr;
 	reg		[M_ADDR_X_WIDTH-1:0]	st1_blk_addr_x;
@@ -90,9 +93,6 @@ module jelly_texture_cache_unit
 	wire	[M_ADDR_X_WIDTH-1:0]	sig_blk_addr_x;
 	wire	[M_ADDR_Y_WIDTH-1:0]	sig_blk_addr_y;
 	
-	wire							sig_cache_miss = (st1_valid && (!sig_tag_enable || ({st1_blk_addr_y, st1_blk_addr_x} != {sig_blk_addr_y, sig_blk_addr_x})));
-	wire							sig_cache_hit  = (st1_valid && ( sig_tag_enable && ({st1_blk_addr_y, st1_blk_addr_x} == {sig_blk_addr_y, sig_blk_addr_x})));
-	
 	reg		[TAG_ADDR_WIDTH-1:0]	st2_tag_addr;
 	reg		[M_ADDR_X_WIDTH-1:0]	st2_blk_addr_x;
 	reg		[M_ADDR_Y_WIDTH-1:0]	st2_blk_addr_y;
@@ -100,19 +100,31 @@ module jelly_texture_cache_unit
 	reg		[M_ADDR_Y_WIDTH-1:0]	st2_pix_addr_y;
 	reg								st2_valid;
 	
+	reg		[TAG_ADDR_WIDTH-1:0]	st3_tag_addr;
+	reg		[M_ADDR_X_WIDTH-1:0]	st3_blk_addr_x;
+	reg		[M_ADDR_Y_WIDTH-1:0]	st3_blk_addr_y;
+	reg		[M_ADDR_X_WIDTH-1:0]	st3_pix_addr_x;
+	reg		[M_ADDR_Y_WIDTH-1:0]	st3_pix_addr_y;
+	reg								st3_valid;
+	
 	
 	// TAG-RAM
-	jelly_ram_async_singleport
+	jelly_ram_singleport
 			#(
 				.ADDR_WIDTH			(TAG_ADDR_WIDTH),
 				.DATA_WIDTH			(1 + M_ADDR_X_WIDTH + M_ADDR_Y_WIDTH),
+				.RAM_TYPE			(TAG_RAM_TYPE),
+				.DOUT_REGS			(0),
+				.MODE				("READ_FIRST"),
 				
 				.FILLMEM			(1),
 				.FILLMEM_DATA		(0)
 			)
-		i_ram_async_singleport
+		i_ram_singleport_tag
 			(
 				.clk				(clk),
+				.en					(~reg_read_busy),
+				.regcke				(~reg_read_busy),
 				
 				.we					(st1_tag_we),
 				.addr				(st1_tag_addr),
@@ -120,6 +132,11 @@ module jelly_texture_cache_unit
 				.dout				({sig_tag_enable, sig_blk_addr_y, sig_blk_addr_x})
 			);
 	
+	
+	wire	[M_ADDR_X_WIDTH-1:0]	s_blk_addr_x = s_araddrx[S_ADDR_X_WIDTH-1:BLK_ADDR_X_WIDTH];
+	wire	[M_ADDR_Y_WIDTH-1:0]	s_blk_addr_y = s_araddry[S_ADDR_Y_WIDTH-1:BLK_ADDR_Y_WIDTH];
+	wire	[M_ADDR_X_WIDTH-1:0]	s_pix_addr_x = s_araddrx[BLK_ADDR_X_WIDTH-1:0];
+	wire	[M_ADDR_Y_WIDTH-1:0]	s_pix_addr_y = s_araddry[BLK_ADDR_Y_WIDTH-1:0];
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
@@ -133,115 +150,115 @@ module jelly_texture_cache_unit
 			st1_pix_addr_x <= {M_ADDR_X_WIDTH{1'bx}};
 			st1_pix_addr_y <= {M_ADDR_X_WIDTH{1'bx}};
 			st1_valid      <= 1'b0;
-			                    
+			
 			st2_tag_addr   <= {TAG_ADDR_WIDTH{1'bx}};
 			st2_blk_addr_x <= {M_ADDR_X_WIDTH{1'bx}};
 			st2_blk_addr_y <= {M_ADDR_X_WIDTH{1'bx}};
 			st2_pix_addr_x <= {M_ADDR_X_WIDTH{1'bx}};
 			st2_pix_addr_y <= {M_ADDR_X_WIDTH{1'bx}};
 			st2_valid      <= 1'b0;
+			
+			st3_tag_addr   <= {TAG_ADDR_WIDTH{1'bx}};
+			st3_blk_addr_x <= {M_ADDR_X_WIDTH{1'bx}};
+			st3_blk_addr_y <= {M_ADDR_X_WIDTH{1'bx}};
+			st3_pix_addr_x <= {M_ADDR_X_WIDTH{1'bx}};
+			st3_pix_addr_y <= {M_ADDR_X_WIDTH{1'bx}};
+			st3_valid      <= 1'b0;
 		end
 		else begin
 			// stage1
-			if ( reg_clear_busy ) begin
-				// clear cache
-				st1_tag_addr <= st1_tag_addr + 1'b1;
-				st1_tag_we   <= 1'b0;
-				st1_valid    <= 1'b0;
+			if ( !reg_read_busy ) begin
+				// input
+				st1_tag_addr   <= s_blk_addr_x[TAG_ADDR_WIDTH-1:0] + {s_blk_addr_y[TAG_ADDR_HALF-1:0], s_blk_addr_y[TAG_ADDR_WIDTH-1:TAG_ADDR_HALF]};
+				st1_blk_addr_x <= s_blk_addr_x;
+				st1_blk_addr_y <= s_blk_addr_y;
+				st1_pix_addr_x <= s_pix_addr_x;
+				st1_pix_addr_y <= s_pix_addr_y;
+				st1_tag_we     <= s_arvalid && s_arready;
+				st1_valid      <= s_arvalid && s_arready;
 				
-				// clear end
-				if ( st1_tag_addr == {TAG_ADDR_WIDTH{1'b1}} ) begin
-					reg_clear_busy <= 1'b0;
-				end
-			end
-			else if ( reg_read_busy ) begin
-				// wait read end
-				st1_tag_we <= 1'b0;
-				st1_valid  <= 1'b0;
-			end
-			else begin
-				if ( clear_start ) begin
-					// cahce clear start
-					reg_clear_busy <= 1'b1;
-					st1_tag_addr   <= {TAG_ADDR_WIDTH{1'b0}};
-					st1_tag_we     <= 1'b1;
-					st1_valid      <= 1'b0;
+				// clear control
+				if ( !reg_clear_busy ) begin
+					// clear start
+					if ( clear_start ) begin
+						reg_clear_busy <= 1'b1;
+						st1_tag_addr   <= {TAG_ADDR_WIDTH{1'b0}};
+						st1_tag_we     <= 1'b1;
+						st1_valid      <= 1'b0;
+					end
 				end
 				else begin
-					if ( !sig_cache_miss ) begin
-						st1_tag_addr <= s_araddrx[TAG_ADDR_WIDTH-1:0] + {s_araddry[TAG_ADDR_HALF-1:0], s_araddry[TAG_ADDR_WIDTH-1:TAG_ADDR_HALF]};
-						st1_tag_we   <= (s_arvalid && s_arready);
-						st1_valid    <= (s_arvalid && s_arready);
-					end
-					else begin
-						st1_tag_we   <= 1'b0;
-						st1_valid    <= 1'b0;
+					// clear next
+					st1_tag_addr <= st1_tag_addr + 1'b1;
+					
+					// clear end
+					if ( st1_tag_addr == {TAG_ADDR_WIDTH{1'b1}} ) begin
+						reg_clear_busy <= 1'b0;
 					end
 				end
-			end
-			
-			if ( !reg_read_busy ) begin
-				st1_blk_addr_x  <= s_araddrx[S_ADDR_X_WIDTH-1:BLK_ADDR_X_WIDTH];
-				st1_blk_addr_y  <= s_araddry[S_ADDR_Y_WIDTH-1:BLK_ADDR_Y_WIDTH];
-				st1_pix_addr_x  <= s_araddrx[BLK_ADDR_X_WIDTH-1:0];
-				st1_pix_addr_y  <= s_araddry[BLK_ADDR_Y_WIDTH-1:0];
 			end
 			
 			
 			// stage2
-			st2_valid <= 1'b0;
 			if ( !reg_read_busy ) begin
 				st2_tag_addr   <= st1_tag_addr;
 				st2_blk_addr_x <= st1_blk_addr_x;
 				st2_blk_addr_y <= st1_blk_addr_y;
 				st2_pix_addr_x <= st1_pix_addr_x;
 				st2_pix_addr_y <= st1_pix_addr_y;
-				st2_valid      <= st1_valid & sig_cache_hit;
+				st2_valid      <= st1_valid;
 			end
 			
 			
-			// misshit end
-			if ( m_rlast && m_rvalid ) begin
-				reg_read_busy <= 1'b0;
-				st2_valid     <= 1'b1;
-			end
-			
-			// read start
+			// stage2
 			if ( !reg_read_busy ) begin
-				if ( sig_cache_miss ) begin
-					reg_read_busy <= 1'b1;
-					st2_valid     <= 1'b0;
+				st2_tag_addr   <= st1_tag_addr;
+				st2_blk_addr_x <= st1_blk_addr_x;
+				st2_blk_addr_y <= st1_blk_addr_y;
+				st2_pix_addr_x <= st1_pix_addr_x;
+				st2_pix_addr_y <= st1_pix_addr_y;
+				st2_valid      <= st1_valid;
+			end
+			
+			
+			// stage 3
+			if ( m_arready ) begin
+				reg_m_arvalid <= 1'b0;	// read command send end
+			end
+			
+			if ( !reg_read_busy ) begin
+				st3_tag_addr   <= st2_tag_addr;
+				st3_blk_addr_x <= st2_blk_addr_x;
+				st3_blk_addr_y <= st2_blk_addr_y;
+				st3_pix_addr_x <= st2_pix_addr_x;
+				st3_pix_addr_y <= st2_pix_addr_y;
+				st3_valid      <= st2_valid;
+				
+				// cache miss
+				if ( st2_valid && (!sig_tag_enable || ({st2_blk_addr_y, st2_blk_addr_x} != {sig_blk_addr_y, sig_blk_addr_x})) ) begin
+					// read start
+					reg_read_busy  <= 1'b1;
+					st3_valid      <= 1'b0;
+					
+					reg_m_arvalid  <= 1'b1;	// read command send start
 				end
+			end
+			
+			// cache fill
+			if ( m_rlast && m_rvalid ) begin
+				reg_read_busy <= 1'b0;	// read end
+				st3_valid     <= 1'b1;
 			end
 		end
 	end
 	
 	assign s_arready = !reg_read_busy;
 	
+	assign m_araddrx = st3_blk_addr_x;
+	assign m_araddry = st3_blk_addr_y;
+	assign m_arvalid = reg_m_arvalid;
 	
-	// ---------------------------------
-	//  misshit access
-	// ---------------------------------
 	
-	reg								reg_m_valid;
-	always @(posedge clk) begin
-		if ( reset ) begin
-			reg_m_valid <= 1'b0;
-		end
-		else begin
-			if ( m_arready ) begin
-				reg_m_valid <= 1'b0;
-			end
-			
-			if ( !reg_read_busy && sig_cache_miss ) begin
-				reg_m_valid <= 1'b1;
-			end
-		end
-	end
-	
-	assign m_araddrx = st2_blk_addr_x;
-	assign m_araddry = st2_blk_addr_y;
-	assign m_arvalid = reg_m_valid;
 	
 	
 	
