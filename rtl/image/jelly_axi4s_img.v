@@ -248,44 +248,6 @@ module jelly_axi4s_img
 			);
 	
 	
-	/*
-	reg		[DATA_WIDTH-1:0]		reg_buf_tdata;
-	reg								reg_buf_tlast;
-	reg		[0:0]					reg_buf_tuser;
-	reg								reg_buf_tvalid;
-	
-	always @(posedge clk) begin
-		if ( reset ) begin
-			reg_buf_tdata  <= {DATA_WIDTH{1'bx}};
-			reg_buf_tlast  <= 1'bx;
-			reg_buf_tuser  <= 1'bx;
-			reg_buf_tvalid <= 1'b0;
-		end
-		else begin
-			if ( !m_axi4s_tready && axi4s_tvalid ) begin
-				reg_buf_tdata  <= axi4s_tdata;
-				reg_buf_tlast  <= axi4s_tlast;
-				reg_buf_tuser  <= axi4s_tuser;
-				reg_buf_tvalid <= 1'b1;
-			end
-			else if ( m_axi4s_tready ) begin
-				reg_buf_tdata  <= {DATA_WIDTH{1'bx}};
-				reg_buf_tlast  <= 1'bx;
-				reg_buf_tuser  <= 1'bx;
-				reg_buf_tvalid <= 1'b0;
-			end
-		end
-	end
-	
-	assign cke            = !(reg_buf_tvalid || (m_axi4s_tvalid && !m_axi4s_tready));
-	
-	assign m_axi4s_tdata  = reg_buf_tvalid ? reg_buf_tdata : axi4s_tdata;
-	assign m_axi4s_tlast  = reg_buf_tvalid ? reg_buf_tlast : axi4s_tlast;
-	assign m_axi4s_tuser  = reg_buf_tvalid ? reg_buf_tuser : axi4s_tuser;
-	assign m_axi4s_tvalid = reg_buf_tvalid ? 1'b1          : axi4s_tvalid;
-	*/
-	
-	
 endmodule
 
 
