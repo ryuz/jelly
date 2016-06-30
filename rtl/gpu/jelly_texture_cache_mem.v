@@ -13,15 +13,15 @@
 
 
 
-module jelly_texture_cache_ram
+module jelly_texture_cache_mem
 		#(
 			parameter	TAG_ADDR_WIDTH   = 6,
 			parameter	PIX_ADDR_WIDTH   = 4,
 			parameter	M_DATA_WIDTH     = 24,
 			parameter	S_DATA_WIDE_SIZE = 1,
-			parameter	S_ADDR_WIDTH     = TAG_ADDR_WIDTH + PIX_ADDR_WIDTH - S_DATA_WIDE_SIZE,
+			parameter	S_ADDR_WIDTH     = PIX_ADDR_WIDTH - S_DATA_WIDE_SIZE,
 			parameter	S_DATA_WIDTH     = (M_DATA_WIDTH << S_DATA_WIDE_SIZE),
-			parameter	BORDER_DATA      = {DATA_WIDTH{1'b0}},
+			parameter	BORDER_DATA      = {M_DATA_WIDTH{1'b0}},
 			parameter	RAM_TYPE         = "block"
 		)
 		(
@@ -57,7 +57,7 @@ module jelly_texture_cache_ram
 	wire							src_we;
 	wire	[S_ADDR_WIDTH-1:0]		src_waddr;
 	wire	[S_DATA_WIDTH-1:0]		src_wdata;
-	wire	[TAG_ADDR_WIDTH-1:0]	src_tag_addr,
+	wire	[TAG_ADDR_WIDTH-1:0]	src_tag_addr;
 	wire	[PIX_ADDR_WIDTH-1:0]	src_pix_addr;
 	wire							src_range_out;
 	
@@ -84,9 +84,7 @@ module jelly_texture_cache_ram
 										s_wdata,
 										s_tag_addr,
 										s_pix_addr,
-										s_range_out,
-										s_valid,
-										s_ready
+										s_range_out
 									}),
 				.s_valid			(s_valid),
 				.s_ready			(s_ready),
@@ -105,9 +103,7 @@ module jelly_texture_cache_ram
 										src_wdata,
 										src_tag_addr,
 										src_pix_addr,
-										src_range_out,
-										src_valid,
-										src_ready
+										src_range_out
 									}),
 				
 				.sink_data			(sink_data),
@@ -122,7 +118,8 @@ module jelly_texture_cache_ram
 	// ---------------------------------
 	
 	reg								st0_we;
-	reg		[MEM_ADDR_WIDTH-1:0]	st0_addr;
+	reg		[TAG_ADDR_WIDTH-1:0]	st0_tag_addr;
+	reg		[S_ADDR_WIDTH-1:0]		st0_addr;
 	reg		[S_DATA_WIDTH-1:0]		st0_wdata;
 	reg		[SEL_WIDTH-1:0]			st0_sel;
 	reg								st0_range_out;
@@ -132,13 +129,17 @@ module jelly_texture_cache_ram
 	
 	reg		[SEL_WIDTH-1:0]			st2_sel;
 	reg								st2_range_out;
-	
+
+	wire	[S_DATA_WIDTH-1:0]		mem_rdata;
+	wire	[M_DATA_WIDTH-1:0]		read_data;
+		
 	reg		[M_DATA_WIDTH-1:0]		st3_data;
 	
+
 	// CACHE-RAM
 	jelly_ram_singleport
 			#(
-				.ADDR_WIDTH			(S_ADDR_WIDTH),
+				.ADDR_WIDTH			(TAG_ADDR_WIDTH + S_ADDR_WIDTH),
 				.DATA_WIDTH			(S_DATA_WIDTH),
 				.RAM_TYPE			(RAM_TYPE),
 				.DOUT_REGS			(1)
@@ -150,31 +151,11 @@ module jelly_texture_cache_ram
 				.regcke				(stage_cke[1]),
 				
 				.we					(st0_we),
-				.addr				(st0_addr),
+				.addr				({st0_tag_addr, st0_addr}),
 				.din				(st0_wdata),
 				.dout				(mem_rdata)
 			);
 	
-		jelly_ram_singleport
-			#(
-				.ADDR_WIDTH			(MEM_ADDR_WIDTH),
-				.DATA_WIDTH			(S_DATA_WIDTH),
-				.RAM_TYPE			(RAM_TYPE),
-				.DOUT_REGS			(1)
-			)
-		i_ram_singleport
-			(
-				.clk				(clk),
-				.en					(stage_cke[0]),
-				.regcke				(stage_cke[1]),
-				
-				.we					(st0_we),
-				.addr				(st0_addr),
-				.din				(st0_wdata),
-				.dout				(mem_rdata)
-			);
-	
-	wire	[M_DATA_WIDTH-1:0]		read_data;
 	jelly_multiplexer
 			#(
 				.SEL_WIDTH			(S_DATA_WIDE_SIZE),
@@ -193,7 +174,8 @@ module jelly_texture_cache_ram
 	always @(posedge clk) begin
 		if ( reset ) begin
 			st0_we         <= 1'b0;
-			st0_addr       <= {MEM_ADDR_WIDTH{1'bx}};
+			st0_tag_addr   <= {TAG_ADDR_WIDTH{1'bx}};
+			st0_addr       <= {S_ADDR_WIDTH{1'bx}};
 			st0_wdata      <= {S_DATA_WIDTH{1'bx}};
 			st0_sel        <= {SEL_WIDTH{1'bx}};
 			st0_range_out  <= 1'bx;
@@ -210,6 +192,7 @@ module jelly_texture_cache_ram
 			// stage0
 			if ( stage_cke[0] ) begin
 				st0_we        <= src_we;
+				st0_tag_addr  <= src_tag_addr;
 				st0_addr      <= src_we ? src_waddr : ({s_tag_addr, s_pix_addr} >> S_DATA_WIDE_SIZE);
 				st0_wdata     <= src_wdata;
 				st0_sel       <= {s_tag_addr, s_pix_addr};

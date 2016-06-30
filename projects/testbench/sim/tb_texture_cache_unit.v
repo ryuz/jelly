@@ -83,7 +83,7 @@ module tb_texture_cache_unit();
 				.endian				(endian),
 				                     
 				.clear_start		(clear_start),
-				.ckear_busy			(ckear_busy),
+				.clear_busy			(ckear_busy),
 				                     
 				.param_width		(param_width),
 				.param_height		(param_height),
@@ -102,7 +102,7 @@ module tb_texture_cache_unit();
 				.m_arvalid			(m_arvalid),
 				.m_arready			(m_arready),
 				                     
-				.m_rlast			(m_rlast),
+	//			.m_rlast			(m_rlast),
 				.m_rdata			(m_rdata),
 				.m_rvalid			(m_rvalid)
 			);

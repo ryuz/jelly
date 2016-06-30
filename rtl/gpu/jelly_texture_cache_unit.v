@@ -47,7 +47,7 @@ module jelly_texture_cache_unit
 			input	wire							endian,
 			
 			input	wire							clear_start,
-			output	wire							ckear_busy,
+			output	wire							clear_busy,
 			
 			input	wire	[S_ADDR_X_WIDTH-1:0]	param_width,
 			input	wire	[S_ADDR_X_WIDTH-1:0]	param_height,
@@ -84,7 +84,9 @@ module jelly_texture_cache_unit
 	wire		[BLK_ADDR_Y_WIDTH-1:0]	tagram_blk_addr_y;
 	wire								tagram_range_out;
 	wire								tagram_cache_hit;
-	
+	wire								tagram_valid;
+	wire								tagram_ready;
+
 	jelly_texture_cache_tag
 			#(
 				.S_ADDR_X_WIDTH		(S_ADDR_X_WIDTH),
@@ -131,6 +133,9 @@ module jelly_texture_cache_unit
 	// ---------------------------------
 	
 	localparam	PIX_ADDR_WIDTH = PIX_ADDR_Y_WIDTH + PIX_ADDR_X_WIDTH;
+	localparam	MEM_ADDR_WIDTH = PIX_ADDR_WIDTH - M_DATA_WIDE_SIZE;
+	
+	wire								mem_ready;
 	
 	reg									reg_tagram_ready;
 	
@@ -142,7 +147,9 @@ module jelly_texture_cache_unit
 	reg									reg_range_out;
 	reg									reg_valid;
 	
-	reg		[PIX_ADDR_WIDTH-1:0]		reg_write_addr;
+	reg									reg_we;
+	reg		[MEM_ADDR_WIDTH-1:0]		reg_write_addr;
+	reg		[M_DATA_WIDTH-1:0]			reg_write_data;
 	
 	reg									reg_m_arvalid;
 	
@@ -157,11 +164,15 @@ module jelly_texture_cache_unit
 			reg_blk_addr_y   <= {BLK_ADDR_Y_WIDTH{1'bx}};
 			reg_range_out    <= 1'bx;
 			reg_valid        <= 1'b0;
+	
+			reg_we           <= 1'b0;
+			reg_write_addr   <= {MEM_ADDR_WIDTH{1'b0}};
+			reg_write_data   <= {M_DATA_WIDTH{1'bx}};
 			
 			reg_read_addr    <= {PIX_ADDR_WIDTH{1'b0}};
 		end
 		else begin
-			if ( reg_tagram_ready ) begin
+			if ( tagram_ready ) begin
 				if ( tagram_valid && !tagram_cache_hit && !tagram_range_out ) begin
 					// cache miss
 					reg_tagram_ready <= 1'b0;
@@ -183,13 +194,14 @@ module jelly_texture_cache_unit
 			end
 			
 			if ( !reg_tagram_ready ) begin
-				reg_valid      <= m_rvalid;
+				reg_we         <= 1'b1;
 				reg_write_data <= m_rdata;
+				reg_valid      <= m_rvalid;
 				
 				if ( reg_valid ) begin
-					reg_write_addr <= reg_write_addr + M_DATA_WIDE_SIZE;
+					reg_write_addr <= reg_write_addr + 1'b1;
 					
-					if ( reg_read_addr == {PIX_ADDR_WIDTH{1'b1}} ) begin
+					if ( reg_write_addr == {PIX_ADDR_WIDTH{1'b1}} ) begin
 						reg_tagram_ready <= 1'b1;
 					end
 				end
@@ -197,41 +209,42 @@ module jelly_texture_cache_unit
 		end
 	end
 	
+	assign tagram_ready = (!reg_valid || mem_ready);
+	
 	
 	// ---------------------------------
 	//  cahce memory
 	// ---------------------------------
 	
-jelly_texture_cache_ram
-		#(
-			parameter	TAG_ADDR_WIDTH   = 6,
-			parameter	PIX_ADDR_WIDTH   = 4,
-			parameter	M_DATA_WIDTH     = 24,
-			parameter	S_DATA_WIDE_SIZE = 1,
-			parameter	S_ADDR_WIDTH     = TAG_ADDR_WIDTH + PIX_ADDR_WIDTH - S_DATA_WIDE_SIZE,
-			parameter	S_DATA_WIDTH     = (M_DATA_WIDTH << S_DATA_WIDE_SIZE),
-			parameter	BORDER_DATA      = {DATA_WIDTH{1'b0}},
-			parameter	RAM_TYPE         = "block"
-		)
-		(
-			input	wire							reset,
-			input	wire							clk,
-			
-			input	wire							endian,
-			
-			input	wire							s_we,
-			input	wire	[S_ADDR_WIDTH-1:0]		s_waddr,
-			input	wire	[S_DATA_WIDTH-1:0]		s_wdata,
-			input	wire	[TAG_ADDR_WIDTH-1:0]	s_tag_addr,
-			input	wire	[PIX_ADDR_WIDTH-1:0]	s_pix_addr,
-			input	wire							s_range_out,
-			input	wire							s_valid,
-			output	wire							s_ready,
-			
-			output	wire	[M_DATA_WIDTH-1:0]		m_data,
-			output	wire							m_valid,
-			input	wire							m_ready
-		);
+	jelly_texture_cache_mem
+			#(
+				.TAG_ADDR_WIDTH			(TAG_ADDR_WIDTH),
+				.PIX_ADDR_WIDTH			(PIX_ADDR_WIDTH),
+				.M_DATA_WIDTH			(S_DATA_WIDTH),
+				.S_DATA_WIDE_SIZE		(M_DATA_WIDE_SIZE),
+				.RAM_TYPE				(MEM_RAM_TYPE),
+				.BORDER_DATA			(BORDER_DATA)
+			)
+		i_texture_cache_mem
+			(
+				.reset					(reset),
+				.clk					(clk),
+				
+				.endian					(endian),
+				
+				.s_we					(~reg_tagram_ready),
+				.s_waddr				(reg_write_addr),
+				.s_wdata				(reg_write_data),
+				.s_tag_addr				(reg_tag_addr),
+				.s_pix_addr				({reg_pix_addr_y, reg_pix_addr_x}),
+				.s_range_out			(reg_range_out),
+				.s_valid				(reg_valid),
+				.s_ready				(mem_ready),
+				
+				.m_data					(s_rdata),
+				.m_valid				(s_rvalid),
+				.m_ready				(s_ready)
+			);
 	
 endmodule
 
