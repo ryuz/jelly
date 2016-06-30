@@ -29,8 +29,6 @@ module jelly_texture_cache_tag
 			parameter	BLK_ADDR_X_WIDTH = S_ADDR_X_WIDTH - BLK_X_SIZE,
 			parameter	BLK_ADDR_Y_WIDTH = S_ADDR_Y_WIDTH - BLK_Y_SIZE,
 			
-			parameter	BORDER_DATA      = {S_DATA_WIDTH{1'b0}},
-			
 			parameter	RAM_TYPE         = "distributed"
 		)
 		(
@@ -54,6 +52,7 @@ module jelly_texture_cache_tag
 			output	wire	[BLK_ADDR_X_WIDTH-1:0]	m_blk_addr_x,
 			output	wire	[BLK_ADDR_Y_WIDTH-1:0]	m_blk_addr_y,
 			output	wire							m_cache_hit,
+			output	wire							m_range_out,
 			output	wire							m_valid,
 			input	wire							m_ready
 		);
@@ -76,12 +75,13 @@ module jelly_texture_cache_tag
 	wire	[BLK_ADDR_X_WIDTH-1:0]	sink_blk_addr_x;
 	wire	[BLK_ADDR_Y_WIDTH-1:0]	sink_blk_addr_y;
 	wire							sink_cache_hit;
+	wire							sink_range_out;
 	
 	jelly_pipeline_control
 			#(
 				.PIPELINE_STAGES	(3),
 				.S_DATA_WIDTH		(S_ADDR_X_WIDTH + S_ADDR_X_WIDTH),
-				.M_DATA_WIDTH		(TAG_ADDR_WIDTH + PIX_ADDR_X_WIDTH + PIX_ADDR_Y_WIDTH + BLK_ADDR_X_WIDTH + BLK_ADDR_Y_WIDTH + 1),
+				.M_DATA_WIDTH		(TAG_ADDR_WIDTH + PIX_ADDR_X_WIDTH + PIX_ADDR_Y_WIDTH + BLK_ADDR_X_WIDTH + BLK_ADDR_Y_WIDTH + 1 + 1),
 				.AUTO_VALID			(1),
 				.MASTER_IN_REGS		(1),
 				.MASTER_OUT_REGS	(1)
@@ -96,7 +96,7 @@ module jelly_texture_cache_tag
 				.s_valid			(s_valid),
 				.s_ready			(s_ready),
 				
-				.m_data				({m_tag_addr, m_pix_addr_x, m_pix_addr_y, m_blk_addr_x, m_blk_addr_y, m_cache_hit}),
+				.m_data				({m_tag_addr, m_pix_addr_x, m_pix_addr_y, m_blk_addr_x, m_blk_addr_y, m_cache_hit, m_range_out}),
 				.m_valid			(m_valid),
 				.m_ready			(m_ready),
 				
@@ -107,7 +107,7 @@ module jelly_texture_cache_tag
 				.src_data			({src_addr_x, src_addr_y}),
 				.src_valid			(src_valid),
 				
-				.sink_data			({sink_tag_addr, sink_pix_addr_x, sink_pix_addr_y, sink_blk_addr_x, sink_blk_addr_y, sink_cache_hit}),
+				.sink_data			({sink_tag_addr, sink_pix_addr_x, sink_pix_addr_y, sink_blk_addr_x, sink_blk_addr_y, sink_cache_hit, sink_range_out}),
 				
 				.buffered			()
 			);
@@ -130,12 +130,14 @@ module jelly_texture_cache_tag
 	reg		[PIX_ADDR_Y_WIDTH-1:0]	st0_pix_addr_y;
 	reg		[BLK_ADDR_X_WIDTH-1:0]	st0_blk_addr_x;
 	reg		[BLK_ADDR_Y_WIDTH-1:0]	st0_blk_addr_y;
+	reg								st0_range_out;
 	
 	reg		[TAG_ADDR_WIDTH-1:0]	st1_tag_addr;
 	reg		[PIX_ADDR_X_WIDTH-1:0]	st1_pix_addr_x;
 	reg		[PIX_ADDR_Y_WIDTH-1:0]	st1_pix_addr_y;
 	reg		[BLK_ADDR_X_WIDTH-1:0]	st1_blk_addr_x;
 	reg		[BLK_ADDR_Y_WIDTH-1:0]	st1_blk_addr_y;
+	reg								st1_range_out;
 	
 	wire							read_tag_enable;
 	wire	[BLK_ADDR_X_WIDTH-1:0]	read_blk_addr_x;
@@ -146,6 +148,7 @@ module jelly_texture_cache_tag
 	reg		[PIX_ADDR_Y_WIDTH-1:0]	st2_pix_addr_y;
 	reg		[BLK_ADDR_X_WIDTH-1:0]	st2_blk_addr_x;
 	reg		[BLK_ADDR_Y_WIDTH-1:0]	st2_blk_addr_y;
+	reg								st2_range_out;
 	reg								st2_cache_hit;
 	
 	
@@ -190,12 +193,14 @@ module jelly_texture_cache_tag
 			st0_pix_addr_y <= {PIX_ADDR_Y_WIDTH{1'bx}};
 			st0_blk_addr_x <= {BLK_ADDR_X_WIDTH{1'bx}};
 			st0_blk_addr_y <= {BLK_ADDR_Y_WIDTH{1'bx}};
+			st0_range_out  <= 1'bx;
 			
 			st1_tag_addr   <= {TAG_ADDR_WIDTH{1'bx}};
 			st1_pix_addr_x <= {PIX_ADDR_X_WIDTH{1'bx}};
 			st1_pix_addr_y <= {PIX_ADDR_Y_WIDTH{1'bx}};
 			st1_blk_addr_x <= {BLK_ADDR_X_WIDTH{1'bx}};
 			st1_blk_addr_y <= {BLK_ADDR_Y_WIDTH{1'bx}};
+			st1_range_out  <= 1'bx;
 			
 			st2_tag_addr   <= {TAG_ADDR_WIDTH{1'bx}};
 			st2_pix_addr_x <= {PIX_ADDR_X_WIDTH{1'bx}};
@@ -203,6 +208,7 @@ module jelly_texture_cache_tag
 			st2_blk_addr_x <= {BLK_ADDR_X_WIDTH{1'bx}};
 			st2_blk_addr_y <= {BLK_ADDR_Y_WIDTH{1'bx}};
 			st2_cache_hit  <= 1'b0;
+			st2_range_out  <= 1'bx;
 		end
 		else begin
 			// stage0
@@ -222,13 +228,16 @@ module jelly_texture_cache_tag
 				st0_tag_we     <= 1'b1;
 			end
 			else if ( stage_cke[0] ) begin
-				// input
+				st0_tag_we     <= (src_valid && src_addr_x < param_width && src_addr_y < param_height);
 				st0_tag_addr   <= src_blk_addr_x[TAG_ADDR_WIDTH-1:0] + {src_blk_addr_y[TAG_ADDR_HALF-1:0], src_blk_addr_y[TAG_ADDR_WIDTH-1:TAG_ADDR_HALF]};
+			end
+			
+			if ( stage_cke[0] ) begin
 				st0_blk_addr_x <= src_blk_addr_x;
 				st0_blk_addr_y <= src_blk_addr_y;
 				st0_pix_addr_x <= src_pix_addr_x;
 				st0_pix_addr_y <= src_pix_addr_y;
-				st0_tag_we     <= src_valid;
+				st0_range_out  <= (src_addr_x >= param_width || src_addr_y >= param_height);
 			end
 			
 			
@@ -239,6 +248,7 @@ module jelly_texture_cache_tag
 				st1_blk_addr_y <= st0_blk_addr_y;
 				st1_pix_addr_x <= st0_pix_addr_x;
 				st1_pix_addr_y <= st0_pix_addr_y;
+				st1_range_out  <= st0_range_out;
 			end
 			
 			// stage 2
@@ -248,6 +258,7 @@ module jelly_texture_cache_tag
 				st2_blk_addr_y <= st1_blk_addr_y;
 				st2_pix_addr_x <= st1_pix_addr_x;
 				st2_pix_addr_y <= st1_pix_addr_y;
+				st2_range_out  <= st1_range_out;
 				st2_cache_hit  <= (read_tag_enable && ({st1_blk_addr_y, st1_blk_addr_x} == {read_blk_addr_y, read_blk_addr_x}));
 			end
 		end
@@ -259,7 +270,7 @@ module jelly_texture_cache_tag
 	assign sink_blk_addr_x = st2_blk_addr_x;
 	assign sink_blk_addr_y = st2_blk_addr_y;
 	assign sink_cache_hit  = st2_cache_hit;
-	
+	assign sink_range_out  = st2_range_out;
 	
 endmodule
 
