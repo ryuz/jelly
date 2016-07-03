@@ -264,6 +264,8 @@ module jelly_texture_cache_tag
 		end
 	end
 	
+	assign clear_busy      = reg_read_busy;
+	
 	assign sink_tag_addr   = st2_tag_addr;
 	assign sink_pix_addr_x = st2_pix_addr_x;
 	assign sink_pix_addr_y = st2_pix_addr_y;

@@ -21,21 +21,25 @@ module tb_texture_cache_unit();
 	initial #(RATE*100.5)	reset = 1'b0;
 	
 	
-	parameter	S_ADDR_X_WIDTH   = 10;
-	parameter	S_ADDR_Y_WIDTH   = 9;
+	parameter	S_ADDR_X_WIDTH   = 12;
+	parameter	S_ADDR_Y_WIDTH   = 12;
 	parameter	S_DATA_WIDTH     = 24;
 	
 	parameter	TAG_ADDR_WIDTH   = 6;
 	
-	parameter	BLK_ADDR_X_WIDTH = 2;
-	parameter	BLK_ADDR_Y_WIDTH = 2;
+	parameter	BLK_X_SIZE       = 2;	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
+	parameter	BLK_Y_SIZE       = 2;	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 	
-	parameter	M_ADDR_X_WIDTH   = S_ADDR_X_WIDTH - BLK_ADDR_X_WIDTH;
-	parameter	M_ADDR_Y_WIDTH   = S_ADDR_Y_WIDTH - BLK_ADDR_Y_WIDTH;
+	parameter	PIX_ADDR_X_WIDTH = BLK_X_SIZE;
+	parameter	PIX_ADDR_Y_WIDTH = BLK_Y_SIZE;
+	parameter	BLK_ADDR_X_WIDTH = S_ADDR_X_WIDTH - BLK_X_SIZE;
+	parameter	BLK_ADDR_Y_WIDTH = S_ADDR_Y_WIDTH - BLK_Y_SIZE;
 	
 	parameter	M_DATA_WIDE_SIZE = 1;
-	parameter	M_DATA_WIDTH     = (S_DATA_WIDTH << M_DATA_WIDE_SIZE);
 	
+	parameter	M_ADDR_X_WIDTH   = BLK_ADDR_X_WIDTH;
+	parameter	M_ADDR_Y_WIDTH   = BLK_ADDR_Y_WIDTH;
+	parameter	M_DATA_WIDTH     = (S_DATA_WIDTH << M_DATA_WIDE_SIZE);
 	
 	wire							endian = 0;
 	

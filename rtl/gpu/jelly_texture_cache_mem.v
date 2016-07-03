@@ -53,6 +53,7 @@ module jelly_texture_cache_mem
 	
 	wire	[3:0]					stage_cke;
 	wire	[3:0]					stage_valid;
+	wire	[3:0]					next_valid;
 	
 	wire							src_we;
 	wire	[S_ADDR_WIDTH-1:0]		src_waddr;
@@ -60,6 +61,7 @@ module jelly_texture_cache_mem
 	wire	[TAG_ADDR_WIDTH-1:0]	src_tag_addr;
 	wire	[PIX_ADDR_WIDTH-1:0]	src_pix_addr;
 	wire							src_range_out;
+	wire							src_valid;
 	
 	wire	[M_DATA_WIDTH-1:0]		sink_data;
 	
@@ -68,7 +70,7 @@ module jelly_texture_cache_mem
 				.PIPELINE_STAGES	(4),
 				.S_DATA_WIDTH		(1 + S_ADDR_WIDTH + S_DATA_WIDTH + TAG_ADDR_WIDTH + PIX_ADDR_WIDTH + 1),
 				.M_DATA_WIDTH		(M_DATA_WIDTH),
-				.AUTO_VALID			(1),
+				.AUTO_VALID			(0),
 				.MASTER_IN_REGS		(1),
 				.MASTER_OUT_REGS	(1)
 			)
@@ -95,7 +97,7 @@ module jelly_texture_cache_mem
 				
 				.stage_cke			(stage_cke),
 				.stage_valid		(stage_valid),
-				.next_valid			(3'd0),
+				.next_valid			(next_valid),
 				
 				.src_data			({
 										src_we,
@@ -105,7 +107,9 @@ module jelly_texture_cache_mem
 										src_pix_addr,
 										src_range_out
 									}),
+				.src_valid			(src_valid),
 				
+
 				.sink_data			(sink_data),
 				
 				.buffered			()
@@ -217,6 +221,11 @@ module jelly_texture_cache_mem
 			end
 		end
 	end
+	
+	assign next_valid[0] = src_valid;
+	assign next_valid[1] = stage_valid[0] && !st0_we;
+	assign next_valid[2] = stage_valid[1];
+	assign next_valid[3] = stage_valid[2];
 	
 	assign sink_data = st3_data;
 	
