@@ -151,8 +151,8 @@ module jelly_texture_cache_mem
 		i_ram_singleport
 			(
 				.clk				(clk),
-				.en					(stage_cke[0]),
-				.regcke				(stage_cke[1]),
+				.en					(stage_cke[1]),
+				.regcke				(stage_cke[2]),
 				
 				.we					(st0_we),
 				.addr				({st0_tag_addr, st0_addr}),

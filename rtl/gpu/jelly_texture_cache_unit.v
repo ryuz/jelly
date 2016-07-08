@@ -69,7 +69,9 @@ module jelly_texture_cache_unit
 			input	wire							m_arready,
 			
 			input	wire	[M_DATA_WIDTH-1:0]		m_rdata,
-			input	wire							m_rvalid
+			input	wire							m_rlast,
+			input	wire							m_rvalid,
+			output	wire							m_rready
 		);
 	
 	
@@ -173,11 +175,18 @@ module jelly_texture_cache_unit
 			if ( m_arready ) begin
 				reg_m_arvalid <= 1'b0;
 			end
+
+			if ( !reg_tagram_ready ) begin
+				reg_write_data <= m_rdata;
+				reg_valid      <= m_rvalid;
+			end
 			
 			if ( reg_we && reg_valid && mem_ready ) begin
 				reg_write_addr <= reg_write_addr + 1'b1;
-				if ( (reg_write_addr + 1'b1) == {MEM_ADDR_WIDTH{1'b1}} ) begin
+				if ( reg_write_addr == {MEM_ADDR_WIDTH{1'b1}} ) begin
 					reg_tagram_ready <= 1'b1;
+					reg_valid        <= 1'b1;
+					reg_we           <= 1'b0;
 				end
 				
 //				if ( reg_write_addr == {MEM_ADDR_WIDTH{1'b1}} ) begin
@@ -207,11 +216,6 @@ module jelly_texture_cache_unit
 				reg_blk_addr_y <= tagram_blk_addr_y;
 				reg_range_out  <= tagram_range_out;
 			end
-			
-			if ( !reg_tagram_ready ) begin
-				reg_write_data <= m_rdata;
-				reg_valid      <= m_rvalid;
-			end
 		end
 	end
 	
@@ -221,6 +225,7 @@ module jelly_texture_cache_unit
 	assign m_araddry = reg_blk_addr_y;
 	assign m_arvalid = reg_m_arvalid;
 	
+	assign m_rready  = mem_ready;
 	
 	
 	// ---------------------------------
