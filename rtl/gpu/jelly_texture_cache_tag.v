@@ -58,68 +58,14 @@ module jelly_texture_cache_tag
 		);
 	
 	
-	// ---------------------------------
-	//  Pipeline control
-	// ---------------------------------
-	
-	wire	[2:0]					stage_cke;
-	wire	[2:0]					stage_valid;
-	
-	wire	[S_ADDR_X_WIDTH-1:0]	src_addr_x;
-	wire	[S_ADDR_Y_WIDTH-1:0]	src_addr_y;
-	wire							src_valid;
-	
-	wire	[TAG_ADDR_WIDTH-1:0]	sink_tag_addr;
-	wire	[PIX_ADDR_X_WIDTH-1:0]	sink_pix_addr_x;
-	wire	[PIX_ADDR_Y_WIDTH-1:0]	sink_pix_addr_y;
-	wire	[BLK_ADDR_X_WIDTH-1:0]	sink_blk_addr_x;
-	wire	[BLK_ADDR_Y_WIDTH-1:0]	sink_blk_addr_y;
-	wire							sink_cache_hit;
-	wire							sink_range_out;
-	
-	jelly_pipeline_control
-			#(
-				.PIPELINE_STAGES	(3),
-				.S_DATA_WIDTH		(S_ADDR_X_WIDTH + S_ADDR_X_WIDTH),
-				.M_DATA_WIDTH		(TAG_ADDR_WIDTH + PIX_ADDR_X_WIDTH + PIX_ADDR_Y_WIDTH + BLK_ADDR_X_WIDTH + BLK_ADDR_Y_WIDTH + 1 + 1),
-				.AUTO_VALID			(1),
-				.MASTER_IN_REGS		(1),
-				.MASTER_OUT_REGS	(1)
-			)
-		i_pipeline_control
-			(
-				.reset				(reset),
-				.clk				(clk),
-				.cke				(1'b1),
-				
-				.s_data				({s_addr_x, s_addr_y}),
-				.s_valid			(s_valid),
-				.s_ready			(s_ready),
-				
-				.m_data				({m_tag_addr, m_pix_addr_x, m_pix_addr_y, m_blk_addr_x, m_blk_addr_y, m_cache_hit, m_range_out}),
-				.m_valid			(m_valid),
-				.m_ready			(m_ready),
-				
-				.stage_cke			(stage_cke),
-				.stage_valid		(stage_valid),
-				.next_valid			(3'd0),
-				
-				.src_data			({src_addr_x, src_addr_y}),
-				.src_valid			(src_valid),
-				
-				.sink_data			({sink_tag_addr, sink_pix_addr_x, sink_pix_addr_y, sink_blk_addr_x, sink_blk_addr_y, sink_cache_hit, sink_range_out}),
-				
-				.buffered			()
-			);
-	
-	
-	
 	
 	// ---------------------------------
-	//  TAG RAM (stage 1-3)
+	//  TAG RAM
 	// ---------------------------------
 	
 	localparam	TAG_ADDR_HALF = (TAG_ADDR_WIDTH >> 1);
+	
+	wire							cke;
 	
 	reg								reg_clear_busy;
 	reg								reg_read_busy;
@@ -131,6 +77,7 @@ module jelly_texture_cache_tag
 	reg		[BLK_ADDR_X_WIDTH-1:0]	st0_blk_addr_x;
 	reg		[BLK_ADDR_Y_WIDTH-1:0]	st0_blk_addr_y;
 	reg								st0_range_out;
+	reg								st0_valid;
 	
 	reg		[TAG_ADDR_WIDTH-1:0]	st1_tag_addr;
 	reg		[PIX_ADDR_X_WIDTH-1:0]	st1_pix_addr_x;
@@ -138,6 +85,7 @@ module jelly_texture_cache_tag
 	reg		[BLK_ADDR_X_WIDTH-1:0]	st1_blk_addr_x;
 	reg		[BLK_ADDR_Y_WIDTH-1:0]	st1_blk_addr_y;
 	reg								st1_range_out;
+	reg								st1_valid;
 	
 	wire							read_tag_enable;
 	wire	[BLK_ADDR_X_WIDTH-1:0]	read_blk_addr_x;
@@ -150,6 +98,7 @@ module jelly_texture_cache_tag
 	reg		[BLK_ADDR_Y_WIDTH-1:0]	st2_blk_addr_y;
 	reg								st2_range_out;
 	reg								st2_cache_hit;
+	reg								st2_valid;
 	
 	
 	// TAG-RAM
@@ -167,8 +116,8 @@ module jelly_texture_cache_tag
 		i_ram_singleport
 			(
 				.clk				(clk),
-				.en					(stage_cke[0]),
-				.regcke				(1'b0),
+				.en					(cke),
+				.regcke				(cke),
 				
 				.we					(st0_tag_we),
 				.addr				(st0_tag_addr),
@@ -177,10 +126,10 @@ module jelly_texture_cache_tag
 			);
 	
 	
-	wire	[PIX_ADDR_X_WIDTH-1:0]	src_pix_addr_x = src_addr_x[BLK_X_SIZE-1:0];
-	wire	[PIX_ADDR_Y_WIDTH-1:0]	src_pix_addr_y = src_addr_y[BLK_Y_SIZE-1:0];
-	wire	[BLK_ADDR_X_WIDTH-1:0]	src_blk_addr_x = src_addr_x[S_ADDR_X_WIDTH-1:BLK_X_SIZE];
-	wire	[BLK_ADDR_Y_WIDTH-1:0]	src_blk_addr_y = src_addr_y[S_ADDR_Y_WIDTH-1:BLK_Y_SIZE];
+	wire	[PIX_ADDR_X_WIDTH-1:0]	s_pix_addr_x = s_addr_x[BLK_X_SIZE-1:0];
+	wire	[PIX_ADDR_Y_WIDTH-1:0]	s_pix_addr_y = s_addr_y[BLK_Y_SIZE-1:0];
+	wire	[BLK_ADDR_X_WIDTH-1:0]	s_blk_addr_x = s_addr_x[S_ADDR_X_WIDTH-1:BLK_X_SIZE];
+	wire	[BLK_ADDR_Y_WIDTH-1:0]	s_blk_addr_y = s_addr_y[S_ADDR_Y_WIDTH-1:BLK_Y_SIZE];
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
@@ -194,6 +143,7 @@ module jelly_texture_cache_tag
 			st0_blk_addr_x <= {BLK_ADDR_X_WIDTH{1'bx}};
 			st0_blk_addr_y <= {BLK_ADDR_Y_WIDTH{1'bx}};
 			st0_range_out  <= 1'bx;
+			st0_valid      <= 1'b0;
 			
 			st1_tag_addr   <= {TAG_ADDR_WIDTH{1'bx}};
 			st1_pix_addr_x <= {PIX_ADDR_X_WIDTH{1'bx}};
@@ -201,6 +151,7 @@ module jelly_texture_cache_tag
 			st1_blk_addr_x <= {BLK_ADDR_X_WIDTH{1'bx}};
 			st1_blk_addr_y <= {BLK_ADDR_Y_WIDTH{1'bx}};
 			st1_range_out  <= 1'bx;
+			st1_valid      <= 1'b0;
 			
 			st2_tag_addr   <= {TAG_ADDR_WIDTH{1'bx}};
 			st2_pix_addr_x <= {PIX_ADDR_X_WIDTH{1'bx}};
@@ -209,8 +160,9 @@ module jelly_texture_cache_tag
 			st2_blk_addr_y <= {BLK_ADDR_Y_WIDTH{1'bx}};
 			st2_cache_hit  <= 1'b0;
 			st2_range_out  <= 1'bx;
+			st2_valid      <= 1'b0;
 		end
-		else begin
+		else if ( cke ) begin
 			// stage0
 			if ( reg_clear_busy ) begin
 				// clear next
@@ -227,52 +179,82 @@ module jelly_texture_cache_tag
 				st0_tag_addr   <= {TAG_ADDR_WIDTH{1'b0}};
 				st0_tag_we     <= 1'b1;
 			end
-			else if ( stage_cke[0] ) begin
-				st0_tag_we     <= (src_valid && src_addr_x < param_width && src_addr_y < param_height);
-				st0_tag_addr   <= src_blk_addr_x[TAG_ADDR_WIDTH-1:0] + {src_blk_addr_y[TAG_ADDR_HALF-1:0], src_blk_addr_y[TAG_ADDR_WIDTH-1:TAG_ADDR_HALF]};
-			end
-			
-			if ( stage_cke[0] ) begin
-				st0_blk_addr_x <= src_blk_addr_x;
-				st0_blk_addr_y <= src_blk_addr_y;
-				st0_pix_addr_x <= src_pix_addr_x;
-				st0_pix_addr_y <= src_pix_addr_y;
-				st0_range_out  <= (src_addr_x >= param_width || src_addr_y >= param_height);
-			end
+			st0_tag_we     <= (s_valid && s_addr_x < param_width && s_addr_y < param_height);
+			st0_tag_addr   <= s_blk_addr_x[TAG_ADDR_WIDTH-1:0] + {s_blk_addr_y[TAG_ADDR_HALF-1:0], s_blk_addr_y[TAG_ADDR_WIDTH-1:TAG_ADDR_HALF]};		
+			st0_blk_addr_x <= s_blk_addr_x;
+			st0_blk_addr_y <= s_blk_addr_y;
+			st0_pix_addr_x <= s_pix_addr_x;
+			st0_pix_addr_y <= s_pix_addr_y;
+			st0_range_out  <= (s_addr_x >= param_width || s_addr_y >= param_height);
+			st0_valid      <= s_valid;
 			
 			
 			// stage1
-			if ( stage_cke[1] ) begin
-				st1_tag_addr   <= st0_tag_addr;
-				st1_blk_addr_x <= st0_blk_addr_x;
-				st1_blk_addr_y <= st0_blk_addr_y;
-				st1_pix_addr_x <= st0_pix_addr_x;
-				st1_pix_addr_y <= st0_pix_addr_y;
-				st1_range_out  <= st0_range_out;
-			end
+			st1_tag_addr   <= st0_tag_addr;
+			st1_blk_addr_x <= st0_blk_addr_x;
+			st1_blk_addr_y <= st0_blk_addr_y;
+			st1_pix_addr_x <= st0_pix_addr_x;
+			st1_pix_addr_y <= st0_pix_addr_y;
+			st1_range_out  <= st0_range_out;
+			st1_valid      <= st0_valid;
 			
 			// stage 2
-			if ( stage_cke[2] ) begin
-				st2_tag_addr   <= st1_tag_addr;
-				st2_blk_addr_x <= st1_blk_addr_x;
-				st2_blk_addr_y <= st1_blk_addr_y;
-				st2_pix_addr_x <= st1_pix_addr_x;
-				st2_pix_addr_y <= st1_pix_addr_y;
-				st2_range_out  <= st1_range_out;
-				st2_cache_hit  <= (read_tag_enable && ({st1_blk_addr_y, st1_blk_addr_x} == {read_blk_addr_y, read_blk_addr_x}));
-			end
+			st2_tag_addr   <= st1_tag_addr;
+			st2_blk_addr_x <= st1_blk_addr_x;
+			st2_blk_addr_y <= st1_blk_addr_y;
+			st2_pix_addr_x <= st1_pix_addr_x;
+			st2_pix_addr_y <= st1_pix_addr_y;
+			st2_range_out  <= st1_range_out;
+			st2_cache_hit  <= (read_tag_enable && ({st1_blk_addr_y, st1_blk_addr_x} == {read_blk_addr_y, read_blk_addr_x}));
+			st2_valid      <= st1_valid;
 		end
 	end
 	
 	assign clear_busy      = reg_read_busy;
 	
-	assign sink_tag_addr   = st2_tag_addr;
-	assign sink_pix_addr_x = st2_pix_addr_x;
-	assign sink_pix_addr_y = st2_pix_addr_y;
-	assign sink_blk_addr_x = st2_blk_addr_x;
-	assign sink_blk_addr_y = st2_blk_addr_y;
-	assign sink_cache_hit  = st2_cache_hit;
-	assign sink_range_out  = st2_range_out;
+		// output
+	jelly_pipeline_insert_ff
+			#(
+				.DATA_WIDTH			(TAG_ADDR_WIDTH+PIX_ADDR_X_WIDTH+PIX_ADDR_Y_WIDTH+BLK_ADDR_X_WIDTH+BLK_ADDR_Y_WIDTH+1+1),
+				.SLAVE_REGS			(1),
+				.MASTER_REGS		(1)
+			)
+		i_pipeline_insert_ff
+			(
+				.reset				(reset),
+				.clk				(clk),
+				.cke				(1'b1),
+				
+				.s_data				({
+										st2_tag_addr,
+										st2_pix_addr_x,
+										st2_pix_addr_y,
+										st2_blk_addr_x,
+										st2_blk_addr_y,
+										st2_cache_hit,
+										st2_range_out
+									}),
+				.s_valid			(st2_valid),
+				.s_ready			(cke),
+				
+				.m_data				({
+										m_tag_addr,
+										m_pix_addr_x,
+										m_pix_addr_y,
+										m_blk_addr_x,
+										m_blk_addr_y,
+										m_cache_hit,
+										m_range_out
+									}),
+				.m_valid			(m_valid),
+				.m_ready			(m_ready),
+				
+				.buffered			(),
+				.s_ready_next		()
+			);
+	
+	assign s_ready = cke;
+	
 	
 endmodule
 

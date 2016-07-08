@@ -172,44 +172,56 @@ module jelly_texture_cache_unit
 			reg_write_data   <= {M_DATA_WIDTH{1'bx}};
 		end
 		else begin
+			// araddr request complete
 			if ( m_arready ) begin
 				reg_m_arvalid <= 1'b0;
 			end
-
-			if ( !reg_tagram_ready ) begin
+			
+			// memory stage request receive
+			if ( mem_ready ) begin
+				reg_valid <= 1'b0;
+				reg_we    <= 1'b0;
+			end
+			
+			// rdata receive
+			if ( m_rvalid && m_rready ) begin
+				reg_we         <= 1'b1;
 				reg_write_data <= m_rdata;
 				reg_valid      <= m_rvalid;
 			end
 			
+			// write
 			if ( reg_we && reg_valid && mem_ready ) begin
-				reg_write_addr <= reg_write_addr + 1'b1;
-				if ( reg_write_addr == {MEM_ADDR_WIDTH{1'b1}} ) begin
-					reg_tagram_ready <= 1'b1;
-					reg_valid        <= 1'b1;
-					reg_we           <= 1'b0;
-				end
+				reg_write_addr                   <= reg_write_addr + 1'b1;
+	//			{reg_pix_addr_y, reg_pix_addr_x} <= {reg_pix_addr_y, reg_pix_addr_x} + (1 << M_DATA_WIDE_SIZE);
 				
-//				if ( reg_write_addr == {MEM_ADDR_WIDTH{1'b1}} ) begin
-//					reg_we           <= 1'b0;
-//				end
+				if ( reg_write_addr == {MEM_ADDR_WIDTH{1'b1}} ) begin
+					// write end
+					reg_valid        <= 1'b1;
+					reg_tagram_ready <= 1'b1;
+				end
 			end
 			
-			if ( tagram_ready ) begin
-				if ( tagram_valid && !tagram_cache_hit && !tagram_range_out ) begin
+			if ( tagram_valid && tagram_ready ) begin
+				if ( !tagram_cache_hit && !tagram_range_out ) begin
 					// cache miss
 					reg_tagram_ready <= 1'b0;
-					reg_we           <= 1'b1;
 					reg_valid        <= 1'b0;
 					reg_m_arvalid    <= 1'b1;
+	//				reg_pix_addr_x   <= {PIX_ADDR_X_WIDTH{1'b0}};
+	//				reg_pix_addr_y   <= {PIX_ADDR_Y_WIDTH{1'b0}};
 				end
 				else begin
-					reg_tagram_ready <= 1'b1;
+					// cache hit
 					reg_we           <= 1'b0;
 					reg_valid        <= tagram_valid;
 					reg_m_arvalid    <= 1'b0;
 				end
 				
 				reg_tag_addr   <= tagram_tag_addr;
+			end
+			
+			if ( tagram_ready ) begin
 				reg_pix_addr_x <= tagram_pix_addr_x;
 				reg_pix_addr_y <= tagram_pix_addr_y;
 				reg_blk_addr_x <= tagram_blk_addr_x;
@@ -219,13 +231,13 @@ module jelly_texture_cache_unit
 		end
 	end
 	
-	assign tagram_ready = reg_tagram_ready && (!reg_valid || mem_ready);
+	assign tagram_ready = (reg_tagram_ready && (!reg_valid || mem_ready));
 	
-	assign m_araddrx = reg_blk_addr_x;
-	assign m_araddry = reg_blk_addr_y;
-	assign m_arvalid = reg_m_arvalid;
+	assign m_araddrx    = reg_blk_addr_x;
+	assign m_araddry    = reg_blk_addr_y;
+	assign m_arvalid    = reg_m_arvalid;
 	
-	assign m_rready  = mem_ready;
+	assign m_rready     = mem_ready;
 	
 	
 	// ---------------------------------
