@@ -32,7 +32,6 @@ module jelly_texture_cache_mem
 			input	wire							endian,
 			
 			input	wire							s_we,
-			input	wire	[S_ADDR_WIDTH-1:0]		s_waddr,
 			input	wire	[S_DATA_WIDTH-1:0]		s_wdata,
 			input	wire	[TAG_ADDR_WIDTH-1:0]	s_tag_addr,
 			input	wire	[PIX_ADDR_WIDTH-1:0]	s_pix_addr,
@@ -52,13 +51,13 @@ module jelly_texture_cache_mem
 	//  cahce memory read
 	wire							cke;
 	
-	reg								st0_we;
-	reg		[TAG_ADDR_WIDTH-1:0]	st0_tag_addr;
-	reg		[S_ADDR_WIDTH-1:0]		st0_addr;
-	reg		[S_DATA_WIDTH-1:0]		st0_wdata;
-	reg		[SEL_WIDTH-1:0]			st0_sel;
-	reg								st0_range_out;
-	reg								st0_valid;
+	wire							st0_we        = s_we;
+	wire	[S_DATA_WIDTH-1:0]		st0_wdata     = s_wdata;
+	wire	[TAG_ADDR_WIDTH-1:0]	st0_tag_addr  = s_tag_addr;
+	wire	[S_ADDR_WIDTH-1:0]		st0_addr      = ({s_tag_addr, s_pix_addr} >> S_DATA_WIDE_SIZE);
+	wire	[SEL_WIDTH-1:0]			st0_sel       = {s_tag_addr, s_pix_addr};
+	wire							st0_range_out = s_range_out;
+	wire							st0_valid     = s_valid;
 	
 	reg		[SEL_WIDTH-1:0]			st1_sel;
 	reg								st1_range_out;
@@ -112,14 +111,6 @@ module jelly_texture_cache_mem
 	// pipeline
 	always @(posedge clk) begin
 		if ( reset ) begin
-			st0_we         <= 1'b0;
-			st0_tag_addr   <= {TAG_ADDR_WIDTH{1'bx}};
-			st0_addr       <= {S_ADDR_WIDTH{1'bx}};
-			st0_wdata      <= {S_DATA_WIDTH{1'bx}};
-			st0_sel        <= {SEL_WIDTH{1'bx}};
-			st0_range_out  <= 1'bx;
-			st0_valid      <= 1'b0;
-			
 			st1_sel        <= {SEL_WIDTH{1'bx}};
 			st1_range_out  <= 1'bx;
 			st1_valid      <= 1'b0;
@@ -132,19 +123,11 @@ module jelly_texture_cache_mem
 			st3_valid      <= 1'b0;
 		end
 		else if ( cke ) begin
-			// stage0
-			st0_we        <= s_we;
-			st0_tag_addr  <= s_tag_addr;
-			st0_addr      <= s_we ? s_waddr : ({s_tag_addr, s_pix_addr} >> S_DATA_WIDE_SIZE);
-			st0_wdata     <= s_wdata;
-			st0_sel       <= {s_tag_addr, s_pix_addr};
-			st0_range_out <= s_range_out;
-			st0_valid     <= s_valid;
-			
 			// stage1
 			st1_sel       <= st0_sel;
 			st1_range_out <= st0_range_out;
-			st1_valid     <= (st0_valid && !st0_we);
+//			st1_valid     <= (st0_valid && !st0_we);
+			st1_valid     <= st0_valid;
 			
 			// stage2
 			st2_sel       <= st1_sel;

@@ -135,13 +135,13 @@ module jelly_texture_cache_unit
 	// ---------------------------------
 	
 	localparam	PIX_ADDR_WIDTH = PIX_ADDR_Y_WIDTH + PIX_ADDR_X_WIDTH;
-	localparam	MEM_ADDR_WIDTH = PIX_ADDR_WIDTH - M_DATA_WIDE_SIZE;
 	
 	wire								mem_ready;
 	
 	reg									reg_tagram_ready;
 	
 	reg		[TAG_ADDR_WIDTH-1:0]		reg_tag_addr;
+	reg		[PIX_ADDR_WIDTH-1:0]		reg_pix_addr;
 	reg		[PIX_ADDR_X_WIDTH-1:0]		reg_pix_addr_x;
 	reg		[PIX_ADDR_Y_WIDTH-1:0]		reg_pix_addr_y;
 	reg		[BLK_ADDR_X_WIDTH-1:0]		reg_blk_addr_x;
@@ -150,8 +150,8 @@ module jelly_texture_cache_unit
 	reg									reg_valid;
 	
 	reg									reg_we;
-	reg		[MEM_ADDR_WIDTH-1:0]		reg_write_addr;
-	reg		[M_DATA_WIDTH-1:0]			reg_write_data;
+	reg									reg_wlast;
+	reg		[M_DATA_WIDTH-1:0]			reg_wdata;
 	
 	reg									reg_m_arvalid;
 	
@@ -160,6 +160,7 @@ module jelly_texture_cache_unit
 			reg_tagram_ready <= 1'b1;
 			
 			reg_tag_addr     <= {TAG_ADDR_WIDTH{1'bx}};
+			reg_pix_addr     <= {PIX_ADDR_WIDTH{1'bx}};
 			reg_pix_addr_x   <= {PIX_ADDR_X_WIDTH{1'bx}};
 			reg_pix_addr_y   <= {PIX_ADDR_Y_WIDTH{1'bx}};
 			reg_blk_addr_x   <= {BLK_ADDR_X_WIDTH{1'bx}};
@@ -168,8 +169,8 @@ module jelly_texture_cache_unit
 			reg_valid        <= 1'b0;
 			
 			reg_we           <= 1'b0;
-			reg_write_addr   <= {MEM_ADDR_WIDTH{1'b0}};
-			reg_write_data   <= {M_DATA_WIDTH{1'bx}};
+			reg_wlast        <= 1'bx;
+			reg_wdata        <= {M_DATA_WIDTH{1'bx}};
 		end
 		else begin
 			// araddr request complete
@@ -185,18 +186,18 @@ module jelly_texture_cache_unit
 			
 			// rdata receive
 			if ( m_rvalid && m_rready ) begin
-				reg_we         <= 1'b1;
-				reg_write_data <= m_rdata;
-				reg_valid      <= m_rvalid;
+				reg_we    <= m_rvalid;
+				reg_wlast <= m_rlast;
+				reg_wdata <= m_rdata;
 			end
 			
 			// write
-			if ( reg_we && reg_valid && mem_ready ) begin
-				reg_write_addr                   <= reg_write_addr + 1'b1;
-	//			{reg_pix_addr_y, reg_pix_addr_x} <= {reg_pix_addr_y, reg_pix_addr_x} + (1 << M_DATA_WIDE_SIZE);
+			if ( reg_we && mem_ready ) begin
+				reg_pix_addr <= reg_pix_addr + (1 << M_DATA_WIDE_SIZE);
 				
-				if ( reg_write_addr == {MEM_ADDR_WIDTH{1'b1}} ) begin
+				if ( reg_wlast ) begin
 					// write end
+					reg_pix_addr     <= {reg_pix_addr_y, reg_pix_addr_x};
 					reg_valid        <= 1'b1;
 					reg_tagram_ready <= 1'b1;
 				end
@@ -208,8 +209,6 @@ module jelly_texture_cache_unit
 					reg_tagram_ready <= 1'b0;
 					reg_valid        <= 1'b0;
 					reg_m_arvalid    <= 1'b1;
-	//				reg_pix_addr_x   <= {PIX_ADDR_X_WIDTH{1'b0}};
-	//				reg_pix_addr_y   <= {PIX_ADDR_Y_WIDTH{1'b0}};
 				end
 				else begin
 					// cache hit
@@ -222,6 +221,7 @@ module jelly_texture_cache_unit
 			end
 			
 			if ( tagram_ready ) begin
+				reg_pix_addr   <= {tagram_pix_addr_y, tagram_pix_addr_x};
 				reg_pix_addr_x <= tagram_pix_addr_x;
 				reg_pix_addr_y <= tagram_pix_addr_y;
 				reg_blk_addr_x <= tagram_blk_addr_x;
@@ -261,10 +261,9 @@ module jelly_texture_cache_unit
 				.endian					(endian),
 				
 				.s_we					(reg_we),
-				.s_waddr				(reg_write_addr),
-				.s_wdata				(reg_write_data),
+				.s_wdata				(reg_wdata),
 				.s_tag_addr				(reg_tag_addr),
-				.s_pix_addr				({reg_pix_addr_y, reg_pix_addr_x}),
+				.s_pix_addr				(reg_pix_addr),
 				.s_range_out			(reg_range_out),
 				.s_valid				(reg_valid),
 				.s_ready				(mem_ready),
