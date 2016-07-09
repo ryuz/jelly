@@ -41,7 +41,7 @@ module tb_texture_cache_unit();
 	parameter	M_ADDR_Y_WIDTH   = BLK_ADDR_Y_WIDTH;
 	parameter	M_DATA_WIDTH     = (S_DATA_WIDTH << M_DATA_WIDE_SIZE);
 	
-	localparam	RAND_BUSY = 0;
+	localparam	RAND_BUSY = 1;
 	
 	wire									endian = 0;
 	

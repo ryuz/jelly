@@ -207,21 +207,21 @@ module jelly_texture_cache_unit
 				if ( !tagram_cache_hit && !tagram_range_out ) begin
 					// cache miss
 					reg_tagram_ready <= 1'b0;
-					reg_valid        <= 1'b0;
 					reg_m_arvalid    <= 1'b1;
+					reg_pix_addr     <= {PIX_ADDR_WIDTH{1'b0}};
+					reg_valid        <= 1'b0;
 				end
 				else begin
 					// cache hit
-					reg_we           <= 1'b0;
-					reg_valid        <= tagram_valid;
 					reg_m_arvalid    <= 1'b0;
+					reg_pix_addr     <= {tagram_pix_addr_y, tagram_pix_addr_x};
+					reg_valid        <= tagram_valid;
 				end
 				
 				reg_tag_addr   <= tagram_tag_addr;
 			end
 			
 			if ( tagram_ready ) begin
-				reg_pix_addr   <= {tagram_pix_addr_y, tagram_pix_addr_x};
 				reg_pix_addr_x <= tagram_pix_addr_x;
 				reg_pix_addr_y <= tagram_pix_addr_y;
 				reg_blk_addr_x <= tagram_blk_addr_x;
