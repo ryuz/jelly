@@ -126,7 +126,6 @@ module jelly_texture_cache_mem
 			// stage1
 			st1_sel       <= st0_sel;
 			st1_range_out <= st0_range_out;
-//			st1_valid     <= (st0_valid && !st0_we);
 			st1_valid     <= st0_valid;
 			
 			// stage2

@@ -216,8 +216,8 @@ module jelly_texture_cache_tag
 	jelly_pipeline_insert_ff
 			#(
 				.DATA_WIDTH			(TAG_ADDR_WIDTH+PIX_ADDR_X_WIDTH+PIX_ADDR_Y_WIDTH+BLK_ADDR_X_WIDTH+BLK_ADDR_Y_WIDTH+1+1),
-				.SLAVE_REGS			(1),
-				.MASTER_REGS		(1)
+				.SLAVE_REGS			(0),
+				.MASTER_REGS		(0)
 			)
 		i_pipeline_insert_ff
 			(

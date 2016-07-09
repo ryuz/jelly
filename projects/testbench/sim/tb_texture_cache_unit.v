@@ -41,6 +41,8 @@ module tb_texture_cache_unit();
 	parameter	M_ADDR_Y_WIDTH   = BLK_ADDR_Y_WIDTH;
 	parameter	M_DATA_WIDTH     = (S_DATA_WIDTH << M_DATA_WIDE_SIZE);
 	
+	localparam	RAND_BUSY = 0;
+	
 	wire									endian = 0;
 	
 	wire									clear_start = 0;
@@ -63,7 +65,7 @@ module tb_texture_cache_unit();
 	wire	[M_ADDR_X_WIDTH-1:0]			m_araddrx;
 	wire	[M_ADDR_Y_WIDTH-1:0]			m_araddry;
 	wire									m_arvalid;
-	wire									m_arready = 1;
+	reg										m_arready;
 	
 	reg										m_rlast  = 0;
 	wire	[M_DATA_WIDTH-1:0]				m_rdata;
@@ -85,15 +87,15 @@ module tb_texture_cache_unit();
 			(
 				.reset				(reset),
 				.clk				(clk),
-				                     
+				
 				.endian				(endian),
-				                     
+				
 				.clear_start		(clear_start),
 				.clear_busy			(ckear_busy),
-				                     
+				
 				.param_width		(param_width),
 				.param_height		(param_height),
-				                     
+				
 				.s_araddrx			(s_araddrx),
 				.s_araddry			(s_araddry),
 				.s_arvalid			(s_arvalid),
@@ -107,7 +109,7 @@ module tb_texture_cache_unit();
 				.m_araddry			(m_araddry),
 				.m_arvalid			(m_arvalid),
 				.m_arready			(m_arready),
-				                     
+				
 				.m_rlast			(m_rlast),
 				.m_rdata			(m_rdata),
 				.m_rvalid			(m_rvalid),
@@ -132,7 +134,7 @@ module tb_texture_cache_unit();
 					end
 				end
 			end
-			s_arvalid <= 1'b1;
+			s_arvalid <= RAND_BUSY ? {$random()} : 1'b1;
 		end
 	end
 	
@@ -158,11 +160,16 @@ module tb_texture_cache_unit();
 				reg_araddry <= m_araddry;
 				reg_x       <= 0;
 				reg_y       <= 0;
-				m_rvalid    <= 1'b1;
+				m_rvalid    <= RAND_BUSY ? {$random()} : 1'b1;
 			end
 			else begin
+				if ( reg_busy && (!m_rvalid || m_rready) ) begin
+					m_rvalid <= RAND_BUSY ? {$random()} : 1'b1;
+				end
+				
 				if ( m_rvalid && m_rready ) begin
 					if ( reg_count == 4*2-1 ) begin
+						reg_busy <= 0;
 						m_rlast  <= 1'bx;
 						m_rvalid <= 1'b0;
 					end
@@ -174,8 +181,6 @@ module tb_texture_cache_unit();
 							reg_x <= 0;
 							reg_y <= reg_y + 1;
 						end
-						
-						m_rvalid  <= 1'b1;
 					end
 				end
 			end
@@ -187,7 +192,8 @@ module tb_texture_cache_unit();
 	
 	/////////////////
 	always @(posedge clk) begin
-		s_rready <= {$random()};
+		m_arready <= RAND_BUSY ? {$random()} : 1'b1;
+		s_rready  <= RAND_BUSY ? {$random()} : 1'b1;
 	end
 	
 	
