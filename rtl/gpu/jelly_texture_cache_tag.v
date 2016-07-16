@@ -15,6 +15,8 @@
 
 module jelly_texture_cache_tag
 		#(
+			parameter	USER_WIDTH       = 1,
+			
 			parameter	S_ADDR_X_WIDTH   = 12,
 			parameter	S_ADDR_Y_WIDTH   = 12,
 			parameter	S_DATA_WIDTH     = 24,
@@ -41,11 +43,13 @@ module jelly_texture_cache_tag
 			input	wire	[S_ADDR_X_WIDTH-1:0]	param_width,
 			input	wire	[S_ADDR_X_WIDTH-1:0]	param_height,
 			
+			input	wire	[USER_WIDTH-1:0]		s_user,
 			input	wire	[S_ADDR_X_WIDTH-1:0]	s_addr_x,
 			input	wire	[S_ADDR_Y_WIDTH-1:0]	s_addr_y,
 			input	wire							s_valid,
 			output	wire							s_ready,
 			
+			output	wire	[USER_WIDTH-1:0]		m_user,
 			output	wire	[TAG_ADDR_WIDTH-1:0]	m_tag_addr,
 			output	wire	[PIX_ADDR_X_WIDTH-1:0]	m_pix_addr_x,
 			output	wire	[PIX_ADDR_Y_WIDTH-1:0]	m_pix_addr_y,
@@ -70,6 +74,7 @@ module jelly_texture_cache_tag
 	reg								reg_clear_busy;
 	reg								reg_read_busy;
 	
+	reg		[USER_WIDTH-1:0]		st0_user;
 	reg								st0_tag_we;
 	reg		[TAG_ADDR_WIDTH-1:0]	st0_tag_addr;
 	reg		[PIX_ADDR_X_WIDTH-1:0]	st0_pix_addr_x;
@@ -79,6 +84,7 @@ module jelly_texture_cache_tag
 	reg								st0_range_out;
 	reg								st0_valid;
 	
+	reg		[USER_WIDTH-1:0]		st1_user;
 	reg		[TAG_ADDR_WIDTH-1:0]	st1_tag_addr;
 	reg		[PIX_ADDR_X_WIDTH-1:0]	st1_pix_addr_x;
 	reg		[PIX_ADDR_Y_WIDTH-1:0]	st1_pix_addr_y;
@@ -91,6 +97,7 @@ module jelly_texture_cache_tag
 	wire	[BLK_ADDR_X_WIDTH-1:0]	read_blk_addr_x;
 	wire	[BLK_ADDR_Y_WIDTH-1:0]	read_blk_addr_y;
 	
+	reg		[USER_WIDTH-1:0]		st2_user;
 	reg		[TAG_ADDR_WIDTH-1:0]	st2_tag_addr;
 	reg		[PIX_ADDR_X_WIDTH-1:0]	st2_pix_addr_x;
 	reg		[PIX_ADDR_Y_WIDTH-1:0]	st2_pix_addr_y;
@@ -136,6 +143,7 @@ module jelly_texture_cache_tag
 			reg_clear_busy <= 1'b0;
 			reg_read_busy  <= 1'b0;
 			
+			st0_user       <= {USER_WIDTH{1'bx}};
 			st0_tag_we     <= 1'b0;
 			st0_tag_addr   <= {TAG_ADDR_WIDTH{1'bx}};
 			st0_pix_addr_x <= {PIX_ADDR_X_WIDTH{1'bx}};
@@ -145,6 +153,7 @@ module jelly_texture_cache_tag
 			st0_range_out  <= 1'bx;
 			st0_valid      <= 1'b0;
 			
+			st1_user       <= {USER_WIDTH{1'bx}};
 			st1_tag_addr   <= {TAG_ADDR_WIDTH{1'bx}};
 			st1_pix_addr_x <= {PIX_ADDR_X_WIDTH{1'bx}};
 			st1_pix_addr_y <= {PIX_ADDR_Y_WIDTH{1'bx}};
@@ -153,6 +162,7 @@ module jelly_texture_cache_tag
 			st1_range_out  <= 1'bx;
 			st1_valid      <= 1'b0;
 			
+			st2_user       <= {USER_WIDTH{1'bx}};
 			st2_tag_addr   <= {TAG_ADDR_WIDTH{1'bx}};
 			st2_pix_addr_x <= {PIX_ADDR_X_WIDTH{1'bx}};
 			st2_pix_addr_y <= {PIX_ADDR_Y_WIDTH{1'bx}};
@@ -179,6 +189,7 @@ module jelly_texture_cache_tag
 				st0_tag_addr   <= {TAG_ADDR_WIDTH{1'b0}};
 				st0_tag_we     <= 1'b1;
 			end
+			st0_user       <= s_user;
 			st0_tag_we     <= (s_valid && s_addr_x < param_width && s_addr_y < param_height);
 			st0_tag_addr   <= s_blk_addr_x[TAG_ADDR_WIDTH-1:0] + {s_blk_addr_y[TAG_ADDR_HALF-1:0], s_blk_addr_y[TAG_ADDR_WIDTH-1:TAG_ADDR_HALF]};		
 			st0_blk_addr_x <= s_blk_addr_x;
@@ -190,6 +201,7 @@ module jelly_texture_cache_tag
 			
 			
 			// stage1
+			st1_user       <= st0_user;
 			st1_tag_addr   <= st0_tag_addr;
 			st1_blk_addr_x <= st0_blk_addr_x;
 			st1_blk_addr_y <= st0_blk_addr_y;
@@ -199,6 +211,7 @@ module jelly_texture_cache_tag
 			st1_valid      <= st0_valid;
 			
 			// stage 2
+			st2_user       <= st1_user;
 			st2_tag_addr   <= st1_tag_addr;
 			st2_blk_addr_x <= st1_blk_addr_x;
 			st2_blk_addr_y <= st1_blk_addr_y;
@@ -212,10 +225,10 @@ module jelly_texture_cache_tag
 	
 	assign clear_busy      = reg_read_busy;
 	
-		// output
+	// output
 	jelly_pipeline_insert_ff
 			#(
-				.DATA_WIDTH			(TAG_ADDR_WIDTH+PIX_ADDR_X_WIDTH+PIX_ADDR_Y_WIDTH+BLK_ADDR_X_WIDTH+BLK_ADDR_Y_WIDTH+1+1),
+				.DATA_WIDTH			(USER_WIDTH+TAG_ADDR_WIDTH+PIX_ADDR_X_WIDTH+PIX_ADDR_Y_WIDTH+BLK_ADDR_X_WIDTH+BLK_ADDR_Y_WIDTH+1+1),
 				.SLAVE_REGS			(0),
 				.MASTER_REGS		(0)
 			)
@@ -226,6 +239,7 @@ module jelly_texture_cache_tag
 				.cke				(1'b1),
 				
 				.s_data				({
+										st2_user,
 										st2_tag_addr,
 										st2_pix_addr_x,
 										st2_pix_addr_y,
@@ -238,6 +252,7 @@ module jelly_texture_cache_tag
 				.s_ready			(cke),
 				
 				.m_data				({
+										m_user,
 										m_tag_addr,
 										m_pix_addr_x,
 										m_pix_addr_y,

@@ -31,13 +31,13 @@
     <Option Name="WTVcsLaunchSim" Val="0"/>
     <Option Name="WTRivieraLaunchSim" Val="0"/>
     <Option Name="WTActivehdlLaunchSim" Val="0"/>
-    <Option Name="WTXSimExportSim" Val="10"/>
-    <Option Name="WTModelSimExportSim" Val="10"/>
-    <Option Name="WTQuestaExportSim" Val="10"/>
-    <Option Name="WTIesExportSim" Val="10"/>
-    <Option Name="WTVcsExportSim" Val="10"/>
-    <Option Name="WTRivieraExportSim" Val="10"/>
-    <Option Name="WTActivehdlExportSim" Val="10"/>
+    <Option Name="WTXSimExportSim" Val="11"/>
+    <Option Name="WTModelSimExportSim" Val="11"/>
+    <Option Name="WTQuestaExportSim" Val="11"/>
+    <Option Name="WTIesExportSim" Val="11"/>
+    <Option Name="WTVcsExportSim" Val="11"/>
+    <Option Name="WTRivieraExportSim" Val="11"/>
+    <Option Name="WTActivehdlExportSim" Val="11"/>
     <Option Name="GenerateIPUpgradeLog" Val="TRUE"/>
   </Configuration>
   <FileSets Version="1" Minor="31">
@@ -438,19 +438,6 @@
         <Option Name="SrcSet" Val="sources_1"/>
       </Config>
     </FileSet>
-    <FileSet Name="axi_protocol_converter_axi3_to_axi4l" Type="BlockSrcs" RelSrcDir="$PSRCDIR/axi_protocol_converter_axi3_to_axi4l">
-      <File Path="$PPRDIR/../../ip/vivado2016.1/axi_protocol_converter_axi3_to_axi4l/axi_protocol_converter_axi3_to_axi4l.xci">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <Config>
-        <Option Name="TopModule" Val="axi_protocol_converter_axi3_to_axi4l"/>
-        <Option Name="UseBlackboxStub" Val="1"/>
-      </Config>
-    </FileSet>
     <FileSet Name="processing_system7_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/processing_system7_0">
       <File Path="$PPRDIR/../../ip/vivado2016.1/processing_system7_0/processing_system7_0.xci">
         <FileInfo>
@@ -461,6 +448,19 @@
       </File>
       <Config>
         <Option Name="TopModule" Val="processing_system7_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="axi_protocol_converter_axi3_to_axi4l" Type="BlockSrcs" RelSrcDir="$PSRCDIR/axi_protocol_converter_axi3_to_axi4l">
+      <File Path="$PPRDIR/../../ip/vivado2016.1/axi_protocol_converter_axi3_to_axi4l/axi_protocol_converter_axi3_to_axi4l.xci">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <Config>
+        <Option Name="TopModule" Val="axi_protocol_converter_axi3_to_axi4l"/>
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
@@ -504,19 +504,20 @@
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
     </Run>
-    <Run Id="axi_protocol_converter_axi3_to_axi4l_synth_1" Type="Ft3:Synth" SrcSet="axi_protocol_converter_axi3_to_axi4l" Part="xc7z010clg400-1" ConstrsSet="axi_protocol_converter_axi3_to_axi4l" Description="Vivado Synthesis Defaults" Dir="$PRUNDIR/axi_protocol_converter_axi3_to_axi4l_synth_1" IncludeInArchive="true">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2016"/>
-        <Step Id="synth_design"/>
-      </Strategy>
-      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
-    </Run>
     <Run Id="processing_system7_0_synth_1" Type="Ft3:Synth" SrcSet="processing_system7_0" Part="xc7z010clg400-1" ConstrsSet="processing_system7_0" Description="Vivado Synthesis Defaults" Dir="$PRUNDIR/processing_system7_0_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2016"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
+    </Run>
+    <Run Id="axi_protocol_converter_axi3_to_axi4l_synth_1" Type="Ft3:Synth" SrcSet="axi_protocol_converter_axi3_to_axi4l" Part="xc7z010clg400-1" ConstrsSet="axi_protocol_converter_axi3_to_axi4l" Description="Vivado Synthesis Defaults" IncludeInArchive="true">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2016">
+          <Desc>Vivado Synthesis Defaults</Desc>
+        </StratHandle>
+        <Step Id="synth_design"/>
+      </Strategy>
     </Run>
     <Run Id="impl_1" Type="Ft2:EntireDesign" Part="xc7z010clg400-1" ConstrsSet="constrs_1" Description="Uses multiple algorithms for optimization, placement, and routing to get potentially better results." State="current" Dir="$PRUNDIR/impl_1" SynthRun="synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
@@ -541,7 +542,7 @@
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
     </Run>
-    <Run Id="axi_protocol_converter_axi3_to_axi4l_impl_1" Type="Ft2:EntireDesign" Part="xc7z010clg400-1" ConstrsSet="axi_protocol_converter_axi3_to_axi4l" Description="Default settings for Implementation." SynthRun="axi_protocol_converter_axi3_to_axi4l_synth_1" IncludeInArchive="false">
+    <Run Id="processing_system7_0_impl_1" Type="Ft2:EntireDesign" Part="xc7z010clg400-1" ConstrsSet="processing_system7_0" Description="Default settings for Implementation." SynthRun="processing_system7_0_synth_1" IncludeInArchive="false">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2016"/>
         <Step Id="init_design"/>
@@ -555,9 +556,11 @@
         <Step Id="write_bitstream"/>
       </Strategy>
     </Run>
-    <Run Id="processing_system7_0_impl_1" Type="Ft2:EntireDesign" Part="xc7z010clg400-1" ConstrsSet="processing_system7_0" Description="Default settings for Implementation." SynthRun="processing_system7_0_synth_1" IncludeInArchive="false">
+    <Run Id="axi_protocol_converter_axi3_to_axi4l_impl_1" Type="Ft2:EntireDesign" Part="xc7z010clg400-1" ConstrsSet="axi_protocol_converter_axi3_to_axi4l" Description="Default settings for Implementation." SynthRun="axi_protocol_converter_axi3_to_axi4l_synth_1" IncludeInArchive="false">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2016"/>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2016">
+          <Desc>Default settings for Implementation.</Desc>
+        </StratHandle>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>

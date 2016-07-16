@@ -15,6 +15,8 @@
 
 module jelly_texture_cache_unit
 		#(
+			parameter	USER_WIDTH       = 1,
+			
 			parameter	S_ADDR_X_WIDTH   = 12,
 			parameter	S_ADDR_Y_WIDTH   = 12,
 			parameter	S_DATA_WIDTH     = 24,
@@ -29,7 +31,7 @@ module jelly_texture_cache_unit
 			parameter	BLK_ADDR_X_WIDTH = S_ADDR_X_WIDTH - BLK_X_SIZE,
 			parameter	BLK_ADDR_Y_WIDTH = S_ADDR_Y_WIDTH - BLK_Y_SIZE,
 			
-			parameter	M_DATA_WIDE_SIZE = 1,
+			parameter	M_DATA_WIDE_SIZE = 0,
 			
 			parameter	M_ADDR_X_WIDTH   = BLK_ADDR_X_WIDTH,
 			parameter	M_ADDR_Y_WIDTH   = BLK_ADDR_Y_WIDTH,
@@ -53,11 +55,13 @@ module jelly_texture_cache_unit
 			input	wire	[S_ADDR_X_WIDTH-1:0]	param_height,
 			
 			
+			input	wire	[USER_WIDTH-1:0]		s_aruser,
 			input	wire	[S_ADDR_X_WIDTH-1:0]	s_araddrx,
 			input	wire	[S_ADDR_Y_WIDTH-1:0]	s_araddry,
 			input	wire							s_arvalid,
 			output	wire							s_arready,
 			
+			output	wire	[USER_WIDTH-1:0]		s_ruser,
 			output	wire	[S_DATA_WIDTH-1:0]		s_rdata,
 			output	wire							s_rvalid,
 			input	wire							s_rready,
@@ -79,6 +83,7 @@ module jelly_texture_cache_unit
 	//  TAG-RAM access
 	// ---------------------------------
 	
+	wire		[USER_WIDTH-1:0]		tagram_user;
 	wire		[TAG_ADDR_WIDTH-1:0]	tagram_tag_addr;
 	wire		[PIX_ADDR_X_WIDTH-1:0]	tagram_pix_addr_x;
 	wire		[PIX_ADDR_Y_WIDTH-1:0]	tagram_pix_addr_y;
@@ -91,42 +96,46 @@ module jelly_texture_cache_unit
 
 	jelly_texture_cache_tag
 			#(
-				.S_ADDR_X_WIDTH		(S_ADDR_X_WIDTH),
-				.S_ADDR_Y_WIDTH		(S_ADDR_Y_WIDTH),
-				.S_DATA_WIDTH		(S_DATA_WIDTH),
-				                     
-				.TAG_ADDR_WIDTH		(TAG_ADDR_WIDTH),
-				                     
-				.BLK_X_SIZE			(BLK_X_SIZE),
-				.BLK_Y_SIZE			(BLK_Y_SIZE),
+				.USER_WIDTH				(USER_WIDTH),
 				
-				.RAM_TYPE			(TAG_RAM_TYPE)
+				.S_ADDR_X_WIDTH			(S_ADDR_X_WIDTH),
+				.S_ADDR_Y_WIDTH			(S_ADDR_Y_WIDTH),
+				.S_DATA_WIDTH			(S_DATA_WIDTH),
+				
+				.TAG_ADDR_WIDTH			(TAG_ADDR_WIDTH),
+				                    	 
+				.BLK_X_SIZE				(BLK_X_SIZE),
+				.BLK_Y_SIZE				(BLK_Y_SIZE),
+				
+				.RAM_TYPE				(TAG_RAM_TYPE)
 			)
 		i_texture_cache_tag
 			(
-				.reset				(reset),
-				.clk				(clk),
+				.reset					(reset),
+				.clk					(clk),
 				
-				.clear_start		(clear_start),
-				.clear_busy			(clear_busy),
+				.clear_start			(clear_start),
+				.clear_busy				(clear_busy),
 				
-				.param_width		(param_width),
-				.param_height		(param_height),
+				.param_width			(param_width),
+				.param_height			(param_height),
 				
-				.s_addr_x			(s_araddrx),
-				.s_addr_y			(s_araddry),
-				.s_valid			(s_arvalid),
-				.s_ready			(s_arready),
+				.s_user					(s_aruser),
+				.s_addr_x				(s_araddrx),
+				.s_addr_y				(s_araddry),
+				.s_valid				(s_arvalid),
+				.s_ready				(s_arready),
 				
-				.m_tag_addr			(tagram_tag_addr),
-				.m_pix_addr_x		(tagram_pix_addr_x),
-				.m_pix_addr_y		(tagram_pix_addr_y),
-				.m_blk_addr_x		(tagram_blk_addr_x),
-				.m_blk_addr_y		(tagram_blk_addr_y),
-				.m_cache_hit		(tagram_cache_hit),
-				.m_range_out		(tagram_range_out),
-				.m_valid			(tagram_valid),
-				.m_ready			(tagram_ready)
+				.m_user					(tagram_user),
+				.m_tag_addr				(tagram_tag_addr),
+				.m_pix_addr_x			(tagram_pix_addr_x),
+				.m_pix_addr_y			(tagram_pix_addr_y),
+				.m_blk_addr_x			(tagram_blk_addr_x),
+				.m_blk_addr_y			(tagram_blk_addr_y),
+				.m_cache_hit			(tagram_cache_hit),
+				.m_range_out			(tagram_range_out),
+				.m_valid				(tagram_valid),
+				.m_ready				(tagram_ready)
 			);
 	
 	
@@ -140,6 +149,7 @@ module jelly_texture_cache_unit
 	
 	reg									reg_tagram_ready;
 	
+	reg		[USER_WIDTH-1:0]			reg_user;
 	reg		[TAG_ADDR_WIDTH-1:0]		reg_tag_addr;
 	reg		[PIX_ADDR_WIDTH-1:0]		reg_pix_addr;
 	reg		[PIX_ADDR_X_WIDTH-1:0]		reg_pix_addr_x;
@@ -159,6 +169,7 @@ module jelly_texture_cache_unit
 		if ( reset ) begin
 			reg_tagram_ready <= 1'b1;
 			
+			reg_user         <= {USER_WIDTH{1'bx}};
 			reg_tag_addr     <= {TAG_ADDR_WIDTH{1'bx}};
 			reg_pix_addr     <= {PIX_ADDR_WIDTH{1'bx}};
 			reg_pix_addr_x   <= {PIX_ADDR_X_WIDTH{1'bx}};
@@ -222,6 +233,7 @@ module jelly_texture_cache_unit
 			end
 			
 			if ( tagram_ready ) begin
+				reg_user       <= tagram_user;
 				reg_pix_addr_x <= tagram_pix_addr_x;
 				reg_pix_addr_y <= tagram_pix_addr_y;
 				reg_blk_addr_x <= tagram_blk_addr_x;
@@ -246,6 +258,7 @@ module jelly_texture_cache_unit
 	
 	jelly_texture_cache_mem
 			#(
+				.USER_WIDTH				(USER_WIDTH),
 				.TAG_ADDR_WIDTH			(TAG_ADDR_WIDTH),
 				.PIX_ADDR_WIDTH			(PIX_ADDR_WIDTH),
 				.M_DATA_WIDTH			(S_DATA_WIDTH),
@@ -260,6 +273,7 @@ module jelly_texture_cache_unit
 				
 				.endian					(endian),
 				
+				.s_user					(reg_user),
 				.s_we					(reg_we),
 				.s_wdata				(reg_wdata),
 				.s_tag_addr				(reg_tag_addr),
@@ -268,6 +282,7 @@ module jelly_texture_cache_unit
 				.s_valid				(reg_valid),
 				.s_ready				(mem_ready),
 				
+				.m_user					(s_ruser),
 				.m_data					(s_rdata),
 				.m_valid				(s_rvalid),
 				.m_ready				(s_rready)

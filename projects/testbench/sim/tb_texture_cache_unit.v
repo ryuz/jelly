@@ -21,6 +21,14 @@ module tb_texture_cache_unit();
 	initial #(RATE*100.5)	reset = 1'b0;
 	
 	
+	// ランダム BUSY
+	localparam	RAND_BUSY = 1;
+	
+	
+	// -----------------------------------------
+	//  TOP
+	// -----------------------------------------
+	
 	parameter	S_ADDR_X_WIDTH   = 12;
 	parameter	S_ADDR_Y_WIDTH   = 12;
 	parameter	S_DATA_WIDTH     = 24;
@@ -41,7 +49,6 @@ module tb_texture_cache_unit();
 	parameter	M_ADDR_Y_WIDTH   = BLK_ADDR_Y_WIDTH;
 	parameter	M_DATA_WIDTH     = (S_DATA_WIDTH << M_DATA_WIDE_SIZE);
 	
-	localparam	RAND_BUSY = 1;
 	
 	wire									endian = 0;
 	
@@ -57,6 +64,8 @@ module tb_texture_cache_unit();
 	reg										s_arvalid;
 	wire									s_arready;
 	
+	wire	signed	[S_ADDR_X_WIDTH-1:0]	s_ruser_x;
+	wire	signed	[S_ADDR_Y_WIDTH-1:0]	s_ruser_y;
 	wire	[S_DATA_WIDTH-1:0]				s_rdata;
 	wire									s_rvalid;
 	reg										s_rready = 1;
@@ -72,8 +81,11 @@ module tb_texture_cache_unit();
 	reg										m_rvalid = 0;
 	wire									m_rready;
 	
+	localparam	BORDER_DATA = 24'haaaa5555;
+	
 	jelly_texture_cache_unit
 			#(
+				.USER_WIDTH			(S_ADDR_Y_WIDTH+S_ADDR_X_WIDTH),
 				.S_ADDR_X_WIDTH		(S_ADDR_X_WIDTH),
 				.S_ADDR_Y_WIDTH		(S_ADDR_Y_WIDTH),
 				.S_DATA_WIDTH		(S_DATA_WIDTH),
@@ -81,7 +93,7 @@ module tb_texture_cache_unit();
 				.BLK_ADDR_X_WIDTH	(BLK_ADDR_X_WIDTH),
 				.BLK_ADDR_Y_WIDTH	(BLK_ADDR_Y_WIDTH),
 				.M_DATA_WIDE_SIZE	(M_DATA_WIDE_SIZE),
-				.BORDER_DATA		(24'haaaa5555)
+				.BORDER_DATA		(BORDER_DATA)
 			)
 		i_texture_cache_unit
 			(
@@ -96,11 +108,13 @@ module tb_texture_cache_unit();
 				.param_width		(param_width),
 				.param_height		(param_height),
 				
+				.s_aruser			({s_araddry, s_araddrx}),
 				.s_araddrx			(s_araddrx),
 				.s_araddry			(s_araddry),
 				.s_arvalid			(s_arvalid),
 				.s_arready			(s_arready),
-				                     
+				
+				.s_ruser			({s_ruser_y, s_ruser_x}),
 				.s_rdata			(s_rdata),
 				.s_rvalid			(s_rvalid),
 				.s_rready			(s_rready),
@@ -133,11 +147,19 @@ module tb_texture_cache_unit();
 						s_araddry <= -10;
 					end
 				end
+				
+		//		s_araddrx <= $random();
+		//		s_araddry <= $random();
 			end
 			s_arvalid <= RAND_BUSY ? {$random()} : 1'b1;
 		end
 	end
 	
+	
+	
+	// -----------------------------------------
+	//  下層メモリ (座標をデータで返す)
+	// -----------------------------------------
 	
 	integer							reg_count;
 	reg								reg_busy;
@@ -190,12 +212,21 @@ module tb_texture_cache_unit();
 	assign m_rdata = {reg_araddry, reg_y, reg_araddrx, (reg_x+2'b01), reg_araddry, reg_y, reg_araddrx, reg_x};
 	
 	
-	/////////////////
+	// -----------------------------------------
+	//  ランダムで BUSY を作る
+	// -----------------------------------------
+	
 	always @(posedge clk) begin
 		m_arready <= RAND_BUSY ? {$random()} : 1'b1;
 		s_rready  <= RAND_BUSY ? {$random()} : 1'b1;
 	end
 	
+	
+	
+	
+	// -----------------------------------------
+	//  検証＆結果出力
+	// -----------------------------------------
 	
 	integer		count = 0;
 	
@@ -204,13 +235,38 @@ module tb_texture_cache_unit();
 		fp = $fopen("out.txt", "w");
 	end
 	
+	reg		signed	[11:0]		tmp_out_x;
+	reg		signed	[11:0]		tmp_out_y;
+	
 	always @(posedge clk) begin
 		if ( !reset ) begin
 			if ( s_rvalid & s_rready ) begin
+				// 結果出力
 				$fdisplay(fp, "%h", s_rdata);
 				count = count + 1;
 				if ( count > 32*500 ) begin
 					$finish;
+				end
+				
+				
+				// 結果チェック
+				if ( s_ruser_x < 0 || s_ruser_x >= param_width || s_ruser_x < 0 || s_ruser_y >= param_height ) begin
+					if ( s_rdata == BORDER_DATA ) begin
+						$display("[OK] %d %d BORDER", s_ruser_y, s_ruser_x);
+					end
+					else begin
+						$display("!!!ERROR!!!");
+						$stop();
+					end
+				end
+				else begin
+					if ( s_rdata == {s_ruser_y, s_ruser_x} ) begin
+						$display("[OK] %d %d", s_ruser_y, s_ruser_x);
+					end
+					else begin
+						$display("!!!ERROR!!!");
+						$stop();
+					end
 				end
 			end
 		end
