@@ -32,6 +32,8 @@ module jelly_texture_cache_mem
 			
 			input	wire							endian,
 			
+			output	wire							busy,
+			
 			input	wire	[USER_WIDTH-1:0]		s_user,
 			input	wire							s_we,
 			input	wire	[S_DATA_WIDTH-1:0]		s_wdata,
@@ -179,6 +181,8 @@ module jelly_texture_cache_mem
 			);
 	
 	assign s_ready = cke;
+	
+	assign busy    = (!cke || st0_valid || st1_valid || st2_valid || st3_valid);
 	
 endmodule
 

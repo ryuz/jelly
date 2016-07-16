@@ -37,6 +37,8 @@ module jelly_texture_cache_unit
 			parameter	M_ADDR_Y_WIDTH   = BLK_ADDR_Y_WIDTH,
 			parameter	M_DATA_WIDTH     = (S_DATA_WIDTH << M_DATA_WIDE_SIZE),
 			
+			parameter	USE_M_RREADY     = 0,	// 0: m_rready is always 1'b1.   1: handshake mode.
+			
 			parameter	BORDER_DATA      = {S_DATA_WIDTH{1'b0}},
 			
 			parameter	TAG_RAM_TYPE     = "distributed",
@@ -145,6 +147,7 @@ module jelly_texture_cache_unit
 	
 	localparam	PIX_ADDR_WIDTH = PIX_ADDR_Y_WIDTH + PIX_ADDR_X_WIDTH;
 	
+	wire								mem_busy;
 	wire								mem_ready;
 	
 	reg									reg_tagram_ready;
@@ -163,6 +166,7 @@ module jelly_texture_cache_unit
 	reg									reg_wlast;
 	reg		[M_DATA_WIDTH-1:0]			reg_wdata;
 	
+	reg									reg_m_wait;
 	reg									reg_m_arvalid;
 	
 	always @(posedge clk) begin
@@ -182,6 +186,9 @@ module jelly_texture_cache_unit
 			reg_we           <= 1'b0;
 			reg_wlast        <= 1'bx;
 			reg_wdata        <= {M_DATA_WIDTH{1'bx}};
+			
+			reg_m_wait       <= 1'b0;
+			reg_m_arvalid    <= 1'b0;
 		end
 		else begin
 			// araddr request complete
@@ -202,6 +209,12 @@ module jelly_texture_cache_unit
 				reg_wdata <= m_rdata;
 			end
 			
+			// m_arvalid
+			if ( reg_m_wait && !mem_busy ) begin
+				reg_m_wait    <= 1'b0;
+				reg_m_arvalid <= 1'b1;
+			end
+			
 			// write
 			if ( reg_we && mem_ready ) begin
 				reg_pix_addr <= reg_pix_addr + (1 << M_DATA_WIDE_SIZE);
@@ -218,7 +231,8 @@ module jelly_texture_cache_unit
 				if ( !tagram_cache_hit && !tagram_range_out ) begin
 					// cache miss
 					reg_tagram_ready <= 1'b0;
-					reg_m_arvalid    <= 1'b1;
+					reg_m_arvalid    <= (USE_M_RREADY || !mem_busy);
+					reg_m_wait       <= (!USE_M_RREADY && mem_busy);
 					reg_pix_addr     <= {PIX_ADDR_WIDTH{1'b0}};
 					reg_valid        <= 1'b0;
 				end
@@ -249,7 +263,7 @@ module jelly_texture_cache_unit
 	assign m_araddry    = reg_blk_addr_y;
 	assign m_arvalid    = reg_m_arvalid;
 	
-	assign m_rready     = mem_ready;
+	assign m_rready     = (!USE_M_RREADY || mem_ready);
 	
 	
 	// ---------------------------------
@@ -272,6 +286,8 @@ module jelly_texture_cache_unit
 				.clk					(clk),
 				
 				.endian					(endian),
+				
+				.busy					(mem_busy),
 				
 				.s_user					(reg_user),
 				.s_we					(reg_we),

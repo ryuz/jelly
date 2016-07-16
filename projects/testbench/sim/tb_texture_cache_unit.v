@@ -11,6 +11,7 @@ module tb_texture_cache_unit();
 		$dumpvars(0, tb_texture_cache_unit);
 		
 		#1000000;
+			$display("!!!!TIME OUT!!!!");
 			$finish;
 	end
 	
@@ -28,6 +29,8 @@ module tb_texture_cache_unit();
 	// -----------------------------------------
 	//  TOP
 	// -----------------------------------------
+	
+	parameter	USE_M_RREADY     = 0;
 	
 	parameter	S_ADDR_X_WIDTH   = 12;
 	parameter	S_ADDR_Y_WIDTH   = 12;
@@ -89,6 +92,7 @@ module tb_texture_cache_unit();
 				.S_ADDR_X_WIDTH		(S_ADDR_X_WIDTH),
 				.S_ADDR_Y_WIDTH		(S_ADDR_Y_WIDTH),
 				.S_DATA_WIDTH		(S_DATA_WIDTH),
+				.USE_M_RREADY		(USE_M_RREADY),
 				.TAG_ADDR_WIDTH		(TAG_ADDR_WIDTH),
 				.BLK_ADDR_X_WIDTH	(BLK_ADDR_X_WIDTH),
 				.BLK_ADDR_Y_WIDTH	(BLK_ADDR_Y_WIDTH),
@@ -148,8 +152,8 @@ module tb_texture_cache_unit();
 					end
 				end
 				
-		//		s_araddrx <= $random();
-		//		s_araddry <= $random();
+		//		s_araddrx <= {$random()} % (640 + 20) - 10;
+		//		s_araddry <= {$random()} % (480 + 20) - 10;
 			end
 			s_arvalid <= RAND_BUSY ? {$random()} : 1'b1;
 		end
