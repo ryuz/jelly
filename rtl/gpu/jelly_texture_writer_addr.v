@@ -42,35 +42,17 @@ module jelly_texture_writer_addr
 			input	wire	[SRC_STRIDE_WIDTH-1:0]		param_src_stride,
 			input	wire	[DST_STRIDE_WIDTH-1:0]		param_dst_stride,
 			
-			output	wire								m_last,
 			output	wire	[COMPONENT_WIDTH-1:0]		m_component,
 			output	wire	[SRC_ADDR_WIDTH-1:0]		m_src_addr,
+			output	wire	[SRC_ADDR_WIDTH-1:0]		m_src_base,
+			output	wire								m_src_blk_last,
 			output	wire	[DST_ADDR_WIDTH-1:0]		m_dst_addr,
+			output	wire								m_dst_blk_last,
+			output	wire								m_last,
 			output	wire								m_valid,
 			input	wire								m_ready
 		);
 	
-	/*
-	localparam	STEP_STRIDE     = (1 << STEP_SIZE);
-	localparam	BLK_X_STRIDE    = (1 << BLK_X_SIZE);
-	localparam	BLK_Y_STRIDE    = (1 << BLK_Y_SIZE);
-	
-	localparam	STEP_WIDTH      = STEP_STRIDE   <= 2    ?  1 :
-	                              STEP_STRIDE   <= 4    ?  2 :
-	                              STEP_STRIDE   <= 8    ?  3 :
-	                              STEP_STRIDE   <= 16   ?  4 :
-	                              STEP_STRIDE   <= 32   ?  5 :
-	                              STEP_STRIDE   <= 64   ?  6 :
-	                              STEP_STRIDE   <= 128  ?  7 :
-	                              STEP_STRIDE   <= 256  ?  8 :
-	                              STEP_STRIDE   <= 512  ?  9 :
-	                              STEP_STRIDE   <= 1024 ? 10 :
-	                              STEP_STRIDE   <= 2048 ? 11 :
-	                              STEP_STRIDE   <= 4096 ? 12 : 13;
-	
-	localparam	BLK_X_WIDTH     = STRIDE_WIDTH;
-	localparam	BLK_Y_WIDTH     = (STRIDE_WIDTH + BLK_Y_SIZE);
-	*/
 	
 	localparam	STEP_Y_NUM         = (1 << STEP_Y_SIZE);
 	localparam	STEP_Y_WIDTH       = STEP_Y_SIZE;
@@ -102,7 +84,7 @@ module jelly_texture_writer_addr
 	
 	// src addr
 	reg		[SRC_ADDR_WIDTH-1:0]		st0_src_base_addr;
-	reg		[SRC_OFFSET_Y_WIDTH-1:0]	st0_src_offset_y_addr;
+	reg		[SRC_OFFSET_Y_WIDTH-1:0]	st0_src_offset_addr;
 	
 	reg		[DST_ADDR_WIDTH-1:0]		st0_dst_base_addr;
 	
@@ -182,7 +164,7 @@ module jelly_texture_writer_addr
 	always @(posedge clk) begin
 		if ( reset ) begin
 			st0_src_base_addr     <= {SRC_ADDR_WIDTH{1'b0}};
-			st0_src_offset_y_addr <= {SRC_OFFSET_Y_WIDTH{1'b0}};
+			st0_src_offset_addr <= {SRC_OFFSET_Y_WIDTH{1'b0}};
 		end
 		else if ( cke ) begin
 			if ( st0_valid ) begin
@@ -192,10 +174,10 @@ module jelly_texture_writer_addr
 				
 				if ( st0_blk_x_last ) begin
 					if ( st0_step_y_last ) begin
-						st0_src_offset_y_addr <= {SRC_OFFSET_Y_WIDTH{1'b0}};
+						st0_src_offset_addr <= {SRC_OFFSET_Y_WIDTH{1'b0}};
 					end
 					else begin
-						st0_src_offset_y_addr <= st0_src_offset_y_addr + param_src_stride;
+						st0_src_offset_addr <= st0_src_offset_addr + param_src_stride;
 					end
 				end
 			end
@@ -241,257 +223,80 @@ module jelly_texture_writer_addr
 	
 	
 	// sum address
-	reg								st1_last;
 	reg		[COMPONENT_WIDTH-1:0]	st1_component;
-	reg		[SRC_ADDR_WIDTH-1:0]	st1_src_addr0;
-	reg		[SRC_ADDR_WIDTH-1:0]	st1_src_addr1;
+	reg		[SRC_ADDR_WIDTH-1:0]	st1_src_base;
+	reg		[SRC_ADDR_WIDTH-1:0]	st1_src_addr;
+	reg								st1_src_blk_last;
 	reg		[SRC_ADDR_WIDTH-1:0]	st1_dst_addr;
-	reg								st1_valid;
-	
-	reg								st2_last;
-	reg		[COMPONENT_WIDTH-1:0]	st2_component;
-	reg		[SRC_ADDR_WIDTH-1:0]	st2_src_addr;
-	reg		[SRC_ADDR_WIDTH-1:0]	st2_dst_addr;
-	reg								st2_valid;
-	
-//	wire	[BLK_X_WIDTH-1:0]		st1_addr0 = st0_blk_x;
-//	wire	[BLK_Y_WIDTH-1:0]		st1_addr1 = st0_blk_y + st0_step_y;
-//	wire	[X_WIDTH-1:0]			st1_addr2 = (st0_x >> BLK_X_WIDTH);
-	
-	always @(posedge clk) begin
-		if ( reset ) begin
-			st1_last           <= 1'bx;
-			st1_component      <= {COMPONENT_WIDTH{1'bx}};
-			st1_src_addr0      <= {SRC_ADDR_WIDTH{1'bx}};
-			st1_src_addr1      <= {SRC_ADDR_WIDTH{1'bx}};
-			st1_dst_addr       <= {DST_ADDR_WIDTH{1'bx}};
-			st1_valid          <= 1'b0;
-			
-			st2_last           <= 1'bx;
-			st2_component      <= {COMPONENT_WIDTH{1'bx}};
-			st2_src_addr       <= {SRC_ADDR_WIDTH{1'bx}};
-			st2_dst_addr       <= {DST_ADDR_WIDTH{1'bx}};
-			st2_valid          <= 1'b0;
-		end
-		else if ( cke ) begin
-			// stage 1
-			st1_last           <= (st0_blk_x_last && st0_step_y_last && st0_component_last && st0_x_last && st0_y_last);
-			st1_component      <= st0_component;
-			st1_src_addr0      <= st0_src_base_addr + st0_src_offset_y_addr;
-			st1_src_addr1      <= st0_x + st0_blk_x;
-			st1_dst_addr       <= st0_dst_base_addr + ((st0_blk_y + st0_step_y) << BLK_X_SIZE) + (st0_x << BLK_Y_SIZE) + st0_blk_x;
-	//		st1_dst_addr       <= st0_dst_base_addr + {st1_addr2, st1_addr1, st1_addr0};
-			st1_valid          <= st0_valid;
-			
-			// stage 2
-			st2_last           <= st1_last;
-			st2_component      <= st1_component;
-			st2_src_addr       <= st1_src_addr0 + st1_src_addr1;
-			st2_dst_addr       <= st1_dst_addr;
-			st2_valid          <= st1_valid;
-		end
-	end
-	
-	assign busy        = st0_valid;
-	
-	assign m_last      = st2_last;
-	assign m_component = st2_component;
-	assign m_src_addr  = st2_src_addr;
-	assign m_valid     = st2_valid;
-	
-	
-	
-	
-	
-	/*
-	
-	reg		[X_WIDTH-1:0]			st0_src_x;
-	reg								st0_src_x_last;
-	reg		[Y_WIDTH-1:0]			st0_src_y;
-	reg								st0_src_y_last;
-	
-	always @(posedge clk) begin
-		if ( reset ) begin
-			st0_src_base_addr <= {SRC_ADDR_WIDTH{1'b0}};
-			st0_src_step_y    <= {SRC_STEP_WIDTH{1'bx}};
-			st0_src_x         <= {X_WIDTH{1'bx}};
-			st0_src_y         <= {Y_WIDTH{1'by}};
-		end
-		else if ( cke ) begin
-			if ( !st0_valid ) begin
-				st0_src_step_y    <= {SRC_STEP_WIDTH{1'b0}};
-				st0_src_x         <= {X_WIDTH{1'b0}};
-				st0_src_y         <= {Y_WIDTH{1'b0}};
-			end
-			else begin
-				if ( st0_src_x_last ) begin
-					st0_src_x <= {X_WIDTH{1'b0}};
-				end
-				else begin
-					st0_src_x <= st0_src_x + 1'b1;
-				end
-				
-				
-			end
-	
-	
-	reg		[STEP_WIDTH-1:0]		st0_step_addr;
-	reg								st0_step_last;
-	reg		[BLK_X_WIDTH-1:0]		st0_blkx_addr;
-	reg								st0_blkx_last;
-	reg		[BLK_Y_WIDTH-1:0]		st0_blky_addr;
-	reg								st0_blky_last;
-	reg		[COMPONENT_WIDTH-1:0]	st0_component_num;
-	reg								st0_component_last;
-	reg		[SIZE_WIDTH-1:0]		st0_base_addr;
-	reg								st0_base_last;
-	reg								st0_valid;
-	
-	always @(posedge clk) begin
-		if ( !st0_valid ) begin
-			st0_step_addr      <= {STEP_WIDTH{1'b0}};
-			st0_step_last      <= (1'b1 == STEP_STRIDE);
-			
-			st0_blkx_addr      <= {BLK_X_WIDTH{1'b0}};
-			st0_blkx_last      <= (STEP_STRIDE  == param_width);
-			
-			st0_blky_addr      <= {BLK_Y_WIDTH{1'b0}};
-			st0_blky_last      <= (param_stride == (param_stride << BLK_Y_SIZE));
-
-			st0_component_num  <= {COMPONENT_WIDTH{1'b0}};
-			st0_component_last <= (1'b1 == COMPONENT_NUM);
-			
-			st0_base_addr      <= {SIZE_WIDTH{1'b0}};
-			st0_base_last      <= ((param_stride << BLK_Y_SIZE) == param_size);
-		end
-		else if ( cke ) begin
-			// step
-			if ( st0_step_last ) begin
-				st0_step_addr <= {STEP_WIDTH{1'b0}};
-				st0_step_last <= ({STEP_WIDTH{1'b0}} == (STEP_STRIDE - 1));
-			end
-			else begin
-				st0_step_addr <= st0_step_addr + 1'b1;
-				st0_step_last <= ((st0_step_addr + 1'b1) == (STEP_STRIDE - 1));
-			end
-			
-			// block x
-			if ( st0_step_last ) begin
-				if ( st0_step_last && st0_blkx_last ) begin
-					st0_blkx_addr <= {BLK_X_WIDTH{1'b0}};
-					st0_blkx_last <= ({BLK_X_WIDTH{1'b0}} == (param_width - BLK_X_STRIDE));
-				end
-				else begin
-					st0_blkx_addr <= st0_blkx_addr + BLK_X_STRIDE;
-					st0_blkx_last <= ((st0_blkx_addr + BLK_X_STRIDE) == (param_width - BLK_X_STRIDE));
-				end
-			end
-			
-			// block y
-			if ( st0_step_last && st0_blkx_last ) begin
-				if ( st0_blky_last ) begin
-					st0_blky_addr <= {BLK_Y_WIDTH{1'b0}};
-					st0_blky_last <= ({BLK_Y_WIDTH{1'b0}} == ((param_stride << BLK_Y_SIZE) - param_stride));
-				end
-				else begin
-					st0_blky_addr <= st0_blky_addr + param_stride;
-					st0_blky_last <= ((st0_blky_addr + param_stride) == ((param_stride << BLK_Y_SIZE) - param_stride));
-				end
-			end
-			
-			// component
-			if ( st0_step_last && st0_blkx_last && st0_blky_last ) begin
-				if ( st0_component_last ) begin
-					st0_component_num  <= {COMPONENT_WIDTH{1'b0}};
-					st0_component_last <= ({COMPONENT_WIDTH{1'b0}} == (COMPONENT_NUM - 1));
-				end
-				else begin
-					st0_component_num  <= st0_component_num + 1'b1;
-					st0_component_last <= ((st0_component_num + 1'b1) == (COMPONENT_NUM - 1));
-				end
-			end
-				
-			// base
-			if ( st0_step_last && st0_blkx_last && st0_blky_last && st0_component_last ) begin
-				if ( st0_base_last ) begin
-					st0_base_addr <= {SIZE_WIDTH{1'b0}};
-					st0_base_last <= ({SIZE_WIDTH{1'b0}} == (param_size - (param_stride << BLK_Y_SIZE)));
-				end
-				else begin
-					st0_base_addr <= st0_base_addr + (param_stride << BLK_Y_SIZE);
-					st0_base_last <= ((st0_base_addr + (param_stride << BLK_Y_SIZE)) == (param_size - (param_stride << BLK_Y_SIZE)));
-				end
-			end
-		end
-	end
-	
-	always @(posedge clk) begin
-		if ( reset ) begin
-			st0_valid <= 1'b0;
-		end
-		else if ( cke ) begin
-			if ( !st0_valid ) begin
-				if ( enable ) begin
-					st0_valid <= 1'b1;
-				end
-			end
-			else begin
-				if ( st0_step_last && st0_blkx_last && st0_blky_last && st0_component_last && st0_base_last ) begin
-					st0_valid <= 1'b0;
-				end
-			end
-		end
-	end
-	
-	
-	// sum address
+	reg								st1_dst_blk_last;
 	reg								st1_last;
-	reg		[COMPONENT_WIDTH-1:0]	st1_component;
-	reg		[SIZE_WIDTH-1:0]		st1_addr0;
-	reg		[SIZE_WIDTH-1:0]		st1_addr1;
 	reg								st1_valid;
 	
-	reg								st2_last;
 	reg		[COMPONENT_WIDTH-1:0]	st2_component;
-	reg		[SIZE_WIDTH-1:0]		st2_addr;
+	reg		[SRC_ADDR_WIDTH-1:0]	st2_src_base;
+	reg		[SRC_ADDR_WIDTH-1:0]	st2_src_addr;
+	reg								st2_src_blk_last;
+	reg		[SRC_ADDR_WIDTH-1:0]	st2_dst_addr;
+	reg								st2_dst_blk_last;
+	reg								st2_last;
 	reg								st2_valid;
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
 			st1_last           <= 1'bx;
 			st1_component      <= {COMPONENT_WIDTH{1'bx}};
-			st1_addr0          <= {SIZE_WIDTH{1'bx}};
-			st1_addr1          <= {SIZE_WIDTH{1'bx}};
+			st1_src_base       <= {SRC_ADDR_WIDTH{1'bx}};
+			st1_src_addr       <= {SRC_ADDR_WIDTH{1'bx}};
+			st1_src_blk_last   <= 1'bx;
+			st1_dst_addr       <= {DST_ADDR_WIDTH{1'bx}};
+			st1_dst_blk_last   <= 1'bx;
+			st1_last           <= 1'bx;
 			st1_valid          <= 1'b0;
 			
 			st2_last           <= 1'bx;
 			st2_component      <= {COMPONENT_WIDTH{1'bx}};
-			st2_addr           <= {SIZE_WIDTH{1'bx}};
+			st2_src_base       <= {SRC_ADDR_WIDTH{1'bx}};
+			st2_src_addr       <= {SRC_ADDR_WIDTH{1'bx}};
+			st2_src_blk_last   <= 1'bx;
+			st2_dst_addr       <= {DST_ADDR_WIDTH{1'bx}};
+			st2_dst_blk_last   <= 1'bx;
+			st2_last           <= 1'bx;
 			st2_valid          <= 1'b0;
 		end
 		else if ( cke ) begin
 			// stage 1
-			st1_last           <= (st0_step_last & st0_blkx_last & st0_blky_last & st0_component_last & st0_base_last);
-			st1_component      <= st0_component_num;
-			st1_addr0          <= st0_step_addr + st0_blkx_addr;
-			st1_addr1          <= st0_blky_addr + st0_base_addr;
+			st1_component      <= st0_component;
+			st1_src_base       <= st0_src_base_addr;
+			st1_src_addr       <= st0_src_offset_addr + st0_x + st0_blk_x;
+			st1_src_blk_last   <= (st0_blk_x_last && st0_step_y_last && st0_component_last && st0_x_last && st0_blk_y_last);
+			st1_dst_addr       <= st0_dst_base_addr + (((st0_blk_y + st0_step_y) << BLK_X_SIZE) | (st0_x << BLK_Y_SIZE) | st0_blk_x);
+			st1_dst_blk_last   <= (st0_blk_x_last && st0_step_y_last);
+			st1_last           <= (st0_blk_x_last && st0_step_y_last && st0_component_last && st0_x_last && st0_y_last);
 			st1_valid          <= st0_valid;
 			
 			// stage 2
-			st2_last           <= st1_last;
 			st2_component      <= st1_component;
-			st2_addr           <= st1_addr0 + st1_addr1;
+			st2_src_base       <= st1_src_base;
+			st2_src_addr       <= st1_src_base + st1_src_addr;
+			st2_src_blk_last   <= st1_src_blk_last;
+			st2_dst_addr       <= st1_dst_addr;
+			st2_dst_blk_last   <= st1_dst_blk_last;
+			st2_last           <= st1_last;
 			st2_valid          <= st1_valid;
 		end
 	end
 	
-	assign busy        = st0_valid;
+	assign busy          = st0_valid;
 	
-	assign m_last      = st2_last;
-	assign m_component = st2_component;
-	assign m_addr      = st2_addr;
-	assign m_valid     = st2_valid;
-	*/
+	assign m_last         = st2_last;
+	assign m_component    = st2_component;
+	assign m_src_base     = st2_src_base;
+	assign m_src_addr     = st2_src_addr;
+	assign m_src_blk_last = st2_src_blk_last;
+	assign m_dst_addr     = st2_dst_addr;
+	assign m_dst_blk_last = st2_dst_blk_last;
+	assign m_last         = st2_last;
+	assign m_valid        = st2_valid;
 	
 endmodule
 

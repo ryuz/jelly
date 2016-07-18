@@ -16,9 +16,11 @@
 module jelly_texture_cache_mem
 		#(
 			parameter	USER_WIDTH       = 1,
+			parameter	COMPONENT_NUM    = 1,
+			parameter	COMPONENT_WIDTH  = 24,
 			parameter	TAG_ADDR_WIDTH   = 6,
 			parameter	PIX_ADDR_WIDTH   = 4,
-			parameter	M_DATA_WIDTH     = 24,
+			parameter	M_DATA_WIDTH     = COMPONENT_NUM * COMPONENT_WIDTH,
 			parameter	S_DATA_WIDE_SIZE = 1,
 			parameter	S_ADDR_WIDTH     = PIX_ADDR_WIDTH - S_DATA_WIDE_SIZE,
 			parameter	S_DATA_WIDTH     = (M_DATA_WIDTH << S_DATA_WIDE_SIZE),
