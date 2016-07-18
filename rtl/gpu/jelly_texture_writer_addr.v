@@ -55,11 +55,11 @@ module jelly_texture_writer_addr
 	
 	
 	localparam	STEP_Y_NUM         = (1 << STEP_Y_SIZE);
-	localparam	STEP_Y_WIDTH       = STEP_Y_SIZE;
+	localparam	STEP_Y_WIDTH       = STEP_Y_SIZE > 0 ? STEP_Y_SIZE : 1;
 	localparam	BLK_X_NUM          = (1 << BLK_X_SIZE);
-	localparam	BLK_X_WIDTH        = BLK_X_SIZE;
+	localparam	BLK_X_WIDTH        = BLK_X_SIZE > 0 ? BLK_X_SIZE : 1;
 	localparam	BLK_Y_NUM          = (1 << BLK_Y_SIZE);
-	localparam	BLK_Y_WIDTH        = BLK_Y_SIZE;
+	localparam	BLK_Y_WIDTH        = BLK_Y_SIZE > 0 ? BLK_Y_SIZE : 1;
 	
 	localparam	SRC_OFFSET_Y_WIDTH = SRC_STRIDE_WIDTH + STEP_Y_SIZE;
 	
@@ -286,7 +286,7 @@ module jelly_texture_writer_addr
 		end
 	end
 	
-	assign busy          = st0_valid;
+	assign busy           = st0_valid;
 	
 	assign m_last         = st2_last;
 	assign m_component    = st2_component;

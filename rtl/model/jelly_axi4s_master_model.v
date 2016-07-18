@@ -53,8 +53,11 @@ module jelly_axi4s_master_model
 	
 	assign m_axi4s_tuser = (x == 0) && (y == 0);
 	assign m_axi4s_tlast = (x == X_NUM-1);
-	assign m_axi4s_tdata[AXI4S_DATA_WIDTH/2-1:0] = x;
-	assign m_axi4s_tdata[AXI4S_DATA_WIDTH-1:AXI4S_DATA_WIDTH/2] = y;
+//	assign m_axi4s_tdata[AXI4S_DATA_WIDTH/2-1:0] = x;
+//	assign m_axi4s_tdata[AXI4S_DATA_WIDTH-1:AXI4S_DATA_WIDTH/2] = y;
+	assign m_axi4s_tdata[7:0]   = (x<<4) + 1;
+	assign m_axi4s_tdata[15:8]  = (x<<4) + 2;
+	assign m_axi4s_tdata[23:16] = (x<<4) + 3;
 	assign m_axi4s_tvalid = 1'b1;
 	
 endmodule

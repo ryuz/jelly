@@ -26,6 +26,7 @@ module jelly_fifo_ra
 			input	wire						clk,
 			
 			input	wire						wr_en,
+			input	wire						wr_we,
 			input	wire						wr_addr,
 			input	wire	[DATA_WIDTH-1:0]	wr_data,
 			
@@ -75,7 +76,7 @@ module jelly_fifo_ra
 				.clk0			(clk),
 				.en0			(wr_en),
 				.regcke0		(1'b0),
-				.we0			(1'b1),
+				.we0			(wr_we),
 				.addr0			(wr_addr),
 				.din0			(wr_data),
 				.dout0			(),

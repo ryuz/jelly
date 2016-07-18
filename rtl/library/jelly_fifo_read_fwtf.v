@@ -83,7 +83,7 @@ module jelly_fifo_read_fwtf
 		assign m_count   = rd_count + m_valid + buffered + stage_valid[0] + stage_valid[1];
 	end
 	else begin
-		assign rd_regcke = 1'b0;		
+		assign rd_regcke = 1'b0;
 		assign m_count   = rd_count + m_valid + buffered + stage_valid[0];
 	end
 	endgenerate

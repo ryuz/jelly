@@ -76,24 +76,73 @@ module tb_texture_writer();
 	
 	
 	
-	/*
+	wire	[0:0]					axi4s_tuser;
+	wire							axi4s_tlast;
+	wire	[23:0]					axi4s_tdata;
+	wire							axi4s_tvalid;
+	wire							axi4s_tready;
+	
 	jelly_axi4s_master_model
-		#(
-			parameter	AXI4S_DATA_WIDTH = 32,
-			parameter	X_NUM            = 640,
-			parameter	Y_NUM            = 480
-		)
-		(
-			input	wire							aresetn,
-			input	wire							aclk,
-			
-			output	wire	[0:0]					m_axi4s_tuser,
-			output	wire							m_axi4s_tlast,
-			output	wire	[AXI4S_DATA_WIDTH-1:0]	m_axi4s_tdata,
-			output	wire							m_axi4s_tvalid,
-			input	wire							m_axi4s_tready
-		);
-	*/
+			#(
+				.AXI4S_DATA_WIDTH	(24),
+				.X_NUM				(640),
+				.Y_NUM				(480)
+			)
+		i_axi4s_master_model
+			(
+				.aresetn			(~reset),
+				.aclk				(clk),
+				
+				.m_axi4s_tuser		(axi4s_tuser),
+				.m_axi4s_tlast		(axi4s_tlast),
+				.m_axi4s_tdata		(axi4s_tdata),
+				.m_axi4s_tvalid		(axi4s_tvalid),
+				.m_axi4s_tready		(axi4s_tready)
+			);
+	
+	
+	
+	jelly_texture_writer_core
+			#(
+				.COMPONENT_NUM 			(3),
+				.COMPONENT_DATA_WIDTH	(8),
+				
+				.M_AXI4_ID_WIDTH		(6),
+				.M_AXI4_ADDR_WIDTH		(32),
+				.M_AXI4_DATA_SIZE		(3),		// 8^n (0:8bit, 1:16bit, 2:32bit, 3:64bit, ...)
+				
+				.BLK_X_SIZE				(2),		// 2^n (0:1, 1:2, 2:4, 3:8, ... )
+				.BLK_Y_SIZE				(2),		// 2^n (0:1, 1:2, 2:4, 3:8, ... )
+				.STEP_Y_SIZE 			(1),		// 2^n (0:1, 1:2, 2:4, 3:8, ... )
+				
+				.X_WIDTH				(10),
+				.Y_WIDTH				(10),
+				
+				.STRIDE_WIDTH			(14),
+				.SIZE_WIDTH				(24),
+				
+				.FIFO_PTR_WIDTH			(12),
+				.FIFO_RAM_TYPE		    ("block")
+			)
+		i_texture_writer_core
+			(
+				.reset					(reset),
+				.clk					(clk),
+				
+				.endian					(0),
+				
+				.param_width			(640),
+				.param_height			(480),
+				.param_stride			(1024*8),
+				
+				.s_axi4s_tuser			(axi4s_tuser),
+				.s_axi4s_tlast			(axi4s_tlast),
+				.s_axi4s_tdata			(axi4s_tdata),
+				.s_axi4s_tvalid			(axi4s_tvalid),
+				.s_axi4s_tready			(axi4s_tready)
+			);
+	
+	
 	
 endmodule
 
