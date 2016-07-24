@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- the system on fpga system
 //
-//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2016 by Ryuji Fuchikami
 //                                 http://homepage3.nifty.com/ryuz/
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
@@ -37,8 +37,9 @@ module jelly_texture_writer_fifo
 			parameter	ADDR_WIDTH           = 24,
 			parameter	STRIDE_WIDTH         = X_WIDTH + BLK_Y_SIZE,
 			
-			parameter	FIFO_PTR_WIDTH       = 10,
-			parameter	FIFO_RAM_TYPE        = "block"
+			parameter	FIFO_ADDR_WIDTH      = 10,
+			parameter	FIFO_RAM_TYPE        = "block",
+			parameter	FIFO_PTR_WIDTH       = FIFO_ADDR_WIDTH + 1
 		)
 		(
 			input	wire								reset,
@@ -59,8 +60,91 @@ module jelly_texture_writer_fifo
 			output	wire	[DATA_WIDTH-1:0]			m_data,
 			output	wire								m_last,
 			output	wire								m_valid,
-			output	wire								m_ready
+			input	wire								m_ready
 		);
+	
+
+
+	// ---------------------------------
+	//  FIFO memory
+	// ---------------------------------
+	
+	localparam	USER_WIDTH = COMPONENT_SEL_WIDTH + ADDR_WIDTH;
+	
+	wire	[FIFO_ADDR_WIDTH-1:0]	s_write_addr;
+	wire	[DATA_WIDTH-1:0]		s_write_data;
+	wire							s_write_valid;
+	wire							s_write_ready;
+	
+	wire	[FIFO_PTR_WIDTH-1:0]	write_ptr;
+	wire	[FIFO_PTR_WIDTH-1:0]	write_ptr_next;
+	wire							write_ptr_update;
+	
+	wire	[USER_WIDTH-1:0]		s_read_user;
+	wire	[FIFO_ADDR_WIDTH-1:0]	s_read_addr;
+	wire							s_read_valid;
+	wire							s_read_ready;
+	
+	wire	[USER_WIDTH-1:0]		m_read_user;
+	wire	[DATA_WIDTH-1:0]		m_read_data;
+	wire							m_read_valid;
+	wire							m_read_ready;
+	wire	[FIFO_PTR_WIDTH-1:0]	m_read_data_count;
+	
+	wire	[FIFO_PTR_WIDTH-1:0]	read_ptr;
+	wire	[FIFO_PTR_WIDTH-1:0]	read_ptr_next;
+	wire							read_ptr_update;
+	
+	wire							fifo_full;
+	wire							fifo_empty;
+	wire	[FIFO_PTR_WIDTH-1:0]	fifo_free_count;
+	wire	[FIFO_PTR_WIDTH-1:0]	fifo_data_count;
+		
+	jelly_fifo_ra_fwtf
+			#(
+				.USER_WIDTH			(USER_WIDTH),
+				.DATA_WIDTH			(DATA_WIDTH),
+				.ADDR_WIDTH			(FIFO_ADDR_WIDTH),
+	//			.FIFO_PTR_WIDTH		(FIFO_PTR_WIDTH),
+				.DOUT_REGS			(1),
+				.RAM_TYPE			("block"),
+				.MASTER_REGS		(1)
+			)
+		i_fifo_ra_fwtf
+			(
+				.reset				(reset),
+				.clk				(clk),
+				
+				.s_write_addr		(s_write_addr),
+				.s_write_data		(s_write_data),
+				.s_write_valid		(s_write_valid),
+				.s_write_ready		(s_write_ready),
+				
+				.write_ptr			(write_ptr),
+				.write_ptr_next		(write_ptr_next),
+				.write_ptr_update	(write_ptr_update),
+				
+				
+				.s_read_user		(s_read_user),
+				.s_read_addr		(s_read_addr),
+				.s_read_valid		(s_read_valid),
+				.s_read_ready		(s_read_ready),
+				
+				.m_read_user		(m_read_user),
+				.m_read_data		(m_read_data),
+				.m_read_valid		(m_read_valid),
+				.m_read_ready		(m_read_ready),
+				.m_read_data_count	(m_read_data_count),
+				
+				.read_ptr			(read_ptr),
+				.read_ptr_next		(read_ptr_next),
+				.read_ptr_update	(read_ptr_update),
+				
+				.fifo_full			(fifo_full),
+				.fifo_empty			(fifo_empty),
+				.fifo_free_count	(fifo_free_count),
+				.fifo_data_count	(fifo_data_count)
+			);
 	
 	
 	// ---------------------------------
@@ -68,8 +152,9 @@ module jelly_texture_writer_fifo
 	// ---------------------------------
 	
 	wire	[COMPONENT_SEL_WIDTH-1:0]	addr_component;
-	wire	[FIFO_PTR_WIDTH-1:0]		addr_src_addr;
-	wire	[FIFO_PTR_WIDTH:0]			addr_src_base;
+	wire	[FIFO_ADDR_WIDTH-1:0]		addr_src_addr;
+	wire	[FIFO_PTR_WIDTH-1:0]		addr_src_ptr;
+	wire								addr_src_ptr_update;
 	wire								addr_src_blk_last;
 	wire	[ADDR_WIDTH-1:0]			addr_dst_addr;
 	wire								addr_dst_blk_last;
@@ -89,7 +174,7 @@ module jelly_texture_writer_fifo
 				
 				.SRC_STRIDE_WIDTH	(X_WIDTH),
 				.DST_STRIDE_WIDTH	(STRIDE_WIDTH),
-				.SRC_ADDR_WIDTH		(FIFO_PTR_WIDTH),
+				.SRC_ADDR_WIDTH		(FIFO_ADDR_WIDTH),
 				.DST_ADDR_WIDTH		(ADDR_WIDTH)
 			)
 		i_texture_writer_addr
@@ -106,7 +191,8 @@ module jelly_texture_writer_fifo
 				
 				.m_component		(addr_component),
 				.m_src_addr			(addr_src_addr),
-				.m_src_base			(addr_src_base),
+				.m_src_ptr			(addr_src_ptr),
+				.m_src_ptr_update	(addr_src_ptr_update),
 				.m_src_blk_last		(addr_src_blk_last),
 				.m_dst_addr			(addr_dst_addr),
 				.m_dst_blk_last		(addr_dst_blk_last),
@@ -117,82 +203,32 @@ module jelly_texture_writer_fifo
 	
 	
 	
-	wire	[FIFO_PTR_WIDTH-1:0]	s_write_addr;
-	wire	[DATA_WIDTH-1:0]		s_write_data;
-	wire							s_write_valid;
+	// FIFO write
+	assign s_write_addr     = write_ptr[FIFO_ADDR_WIDTH-1:0];
+	assign s_write_data     = s_data;
+	assign s_write_valid    = s_valid;
+	assign s_ready          = s_write_ready;
 	
-	wire	[FIFO_PTR_WIDTH-1:0]	write_ptr_addr,
-	wire	[FIFO_PTR_WIDTH-1:0]	write_ptr_update;
-	wire	[FIFO_PTR_WIDTH-1:0]	write_ptr_step;
-	
-	wire	[FIFO_PTR_WIDTH-1:0]	s_read_addr;
-	wire							s_read_valid;
-	wire							s_read_ready;
-	
-	wire	[DATA_WIDTH-1:0]		m_read_data;
-	wire							m_read_valid;
-	wire							m_read_ready;
-	wire	[FIFO_PTR_WIDTH:0]		m_read_data_count;
-	
-	wire	[FIFO_PTR_WIDTH-1:0]	read_ptr_addr;
-	wire	[FIFO_PTR_WIDTH-1:0]	read_ptr_update;
-	wire	[FIFO_PTR_WIDTH-1:0]	read_ptr_step;
-	
-	wire							fifo_full;
-	wire							fifo_empty;
-	wire	[FIFO_PTR_WIDTH:0]		fifo_free_count;
-	wire	[FIFO_PTR_WIDTH:0]		fifo_data_count;
+	assign write_ptr_next   = write_ptr + 1'b1;
+	assign write_ptr_update = (s_valid && s_ready);
 	
 	
-	jelly_fifo_ra_fwtf
-			#(
-				.DATA_WIDTH			(DATA_WIDTH),
-				.PTR_WIDTH			(FIFO_PTR_WIDTH),
-				.DOUT_REGS			(1),
-				.RAM_TYPE			("block"),
-				.MASTER_REGS		(1)
-			)
-		i_fifo_ra_fwtf
-			(
-				.reset				(reset),
-				.clk				(clk),
+	// FIFO read
+	assign s_read_user      = {addr_component, addr_dst_addr};
+	assign s_read_addr		= addr_src_addr;
+	assign s_read_valid		= (addr_valid & addr_ready);
+	assign addr_ready       = (fifo_data_count > (param_width << STEP_Y_SIZE));
 				
-				.s_write_addr		(write_ptr_addr),
-				.s_write_data		(s_data),
-				.s_write_valid		(s_valid & s_ready),
+	assign {m_component, m_addr} = m_read_user;
+	assign m_data           = m_read_data;
+	assign m_valid          = m_read_valid;
+	assign m_read_ready		= m_ready;
+		
+	assign read_ptr         = addr_src_ptr;
+	assign read_ptr_next    = addr_src_ptr;
+	assign read_ptr_update  = addr_valid & addr_ready & addr_src_ptr_update;
 				
-				.write_ptr_addr		(write_ptr_addr),
-				.write_ptr_update	(s_valid & s_ready),
-				.write_ptr_step		(1),
-				
-				
-				.s_read_user		(),
-				.s_read_addr		(addr_src_addr),
-				.s_read_valid		(),
-				.s_read_ready		(),
-				
-				.m_read_user		(),
-				.m_read_data		(),
-				.m_read_valid		(),
-				.m_read_ready		(),
-				.m_read_data_count	(),
-				
-				.read_ptr_addr		(addr_src_addr),
-				.read_ptr_update	(addr_valid && addr_ready && addr_src_blk_last),
-				.read_ptr_step		(param_width << STEP_Y_SIZE),
-				
-				.fifo_full			(),
-				.fifo_empty			(),
-				.fifo_free_count	(),
-				.fifo_data_count	()
-			);
-	
-	
-	
 
-	
-	
-	
 	
 	/*
 	// ---------------------------------

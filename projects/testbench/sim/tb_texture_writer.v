@@ -121,7 +121,7 @@ module tb_texture_writer();
 				.STRIDE_WIDTH			(14),
 				.SIZE_WIDTH				(24),
 				
-				.FIFO_PTR_WIDTH			(12),
+				.FIFO_ADDR_WIDTH		(10),
 				.FIFO_RAM_TYPE		    ("block")
 			)
 		i_texture_writer_core

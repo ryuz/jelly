@@ -16,6 +16,7 @@
 // FIFO (First-Word Fall-Through mode)
 module jelly_fifo_ra_fwtf
 		#(
+			parameter	USER_WIDTH     = 1,
 			parameter	DATA_WIDTH     = 8,
 			parameter	ADDR_WIDTH     = 9,
 			parameter	DOUT_REGS      = 1,
@@ -39,10 +40,12 @@ module jelly_fifo_ra_fwtf
 			input	wire							write_ptr_update,
 			
 			// read
+			input	wire	[USER_WIDTH-1:0]		s_read_user,
 			input	wire	[ADDR_WIDTH-1:0]		s_read_addr,
 			input	wire							s_read_valid,
 			output	wire							s_read_ready,
 			
+			output	wire	[USER_WIDTH-1:0]		m_read_user,
 			output	wire	[DATA_WIDTH-1:0]		m_read_data,
 			output	wire							m_read_valid,
 			input	wire							m_read_ready,
@@ -70,8 +73,8 @@ module jelly_fifo_ra_fwtf
 				.DATA_WIDTH		(DATA_WIDTH),
 				.ADDR_WIDTH		(ADDR_WIDTH),
 				.DOUT_REGS		(DOUT_REGS),
-				.RAM_TYPE		(RAM_TYPE),
-				.FIFO_PTR_WIDTH	(FIFO_PTR_WIDTH)
+				.RAM_TYPE		(RAM_TYPE)
+	//			.FIFO_PTR_WIDTH	(FIFO_PTR_WIDTH)
 			)
 		i_fifo_ra
 			(
@@ -108,6 +111,7 @@ module jelly_fifo_ra_fwtf
 	// read (master port)
 	jelly_fifo_ra_read_fwtf
 			#(
+				.USER_WIDTH		(USER_WIDTH),
 				.DATA_WIDTH		(DATA_WIDTH),
 				.ADDR_WIDTH		(ADDR_WIDTH),
 				.DOUT_REGS		(DOUT_REGS),
@@ -118,6 +122,7 @@ module jelly_fifo_ra_fwtf
 				.reset			(reset),
 				.clk			(clk),
 				
+				.s_user			(s_read_user),
 				.s_addr			(s_read_addr),
 				.s_valid		(s_read_valid),
 				.s_ready		(s_read_ready),
@@ -129,6 +134,7 @@ module jelly_fifo_ra_fwtf
 				.rd_empty		(fifo_empty),
 				.rd_count		(fifo_data_count),
 				
+				.m_user			(m_read_user),
 				.m_data			(m_read_data),
 				.m_valid		(m_read_valid),
 				.m_ready		(m_read_ready),

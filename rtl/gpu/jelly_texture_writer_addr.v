@@ -15,20 +15,26 @@
 
 module jelly_texture_writer_addr
 		#(
-			parameter	COMPONENT_NUM    = 3,
-			parameter	COMPONENT_WIDTH  = COMPONENT_NUM <= 2 ?  1 :
-			                               COMPONENT_NUM <= 4 ?  2 : 3,
-			parameter	BLK_X_SIZE       = 2,		// 2^n (0:1, 1:2, 2:4, 3:8... )
-			parameter	BLK_Y_SIZE       = 2,		// 2^n (0:1, 1:2, 2:4, 3:8... )
-			parameter	STEP_Y_SIZE      = 1,		// 2^n (0:1, 1:2, 2:4, 3:8... )
+			parameter	COMPONENT_NUM        = 3,
+			parameter	COMPONENT_SEL_WIDTH  = COMPONENT_NUM <= 2  ?  1 :
+			                                   COMPONENT_NUM <= 4  ?  2 :
+			                                   COMPONENT_NUM <= 8  ?  3 :
+			                                   COMPONENT_NUM <= 16 ?  4 :
+			                                   COMPONENT_NUM <= 32 ?  5 :
+			                                   COMPONENT_NUM <= 64 ?  6 : 7,
 			
-			parameter	X_WIDTH          = 10,
-			parameter	Y_WIDTH          = 10,
+			parameter	BLK_X_SIZE           = 2,		// 2^n (0:1, 1:2, 2:4, 3:8... )
+			parameter	BLK_Y_SIZE           = 2,		// 2^n (0:1, 1:2, 2:4, 3:8... )
+			parameter	STEP_Y_SIZE          = 1,		// 2^n (0:1, 1:2, 2:4, 3:8... )
 			
-			parameter	SRC_STRIDE_WIDTH = X_WIDTH,
-			parameter	DST_STRIDE_WIDTH = SRC_STRIDE_WIDTH + BLK_Y_SIZE,
-			parameter	SRC_PTR_WIDTH    = 24,
-			parameter	DST_ADDR_WIDTH   = 24
+			parameter	X_WIDTH              = 10,
+			parameter	Y_WIDTH              = 10,
+			
+			parameter	SRC_STRIDE_WIDTH     = X_WIDTH,
+			parameter	DST_STRIDE_WIDTH     = SRC_STRIDE_WIDTH + BLK_Y_SIZE,
+			parameter	SRC_ADDR_WIDTH       = 10,
+			parameter	SRC_FIFO_PTR_WIDTH   = SRC_ADDR_WIDTH + 1,
+			parameter	DST_ADDR_WIDTH       = 24
 		)
 		(
 			input	wire								reset,
@@ -42,10 +48,10 @@ module jelly_texture_writer_addr
 			input	wire	[SRC_STRIDE_WIDTH-1:0]		param_src_stride,
 			input	wire	[DST_STRIDE_WIDTH-1:0]		param_dst_stride,
 			
-			output	wire	[COMPONENT_WIDTH-1:0]		m_component,
-			output	wire	[SRC_PTR_WIDTH-1:0]			m_src_addr,
+			output	wire	[COMPONENT_SEL_WIDTH-1:0]	m_component,
+			output	wire	[SRC_ADDR_WIDTH-1:0]		m_src_addr,
+			output	wire	[SRC_FIFO_PTR_WIDTH-1:0]	m_src_ptr,
 			output	wire								m_src_ptr_update,
-			output	wire	[SRC_PTR_WIDTH:0]			m_src_ptr_addr,
 			output	wire								m_src_blk_last,
 			output	wire	[DST_ADDR_WIDTH-1:0]		m_dst_addr,
 			output	wire								m_dst_blk_last,
@@ -70,7 +76,7 @@ module jelly_texture_writer_addr
 	
 	
 	// common
-	reg		[COMPONENT_WIDTH-1:0]		st0_component;
+	reg		[COMPONENT_SEL_WIDTH-1:0]	st0_component;
 	reg									st0_component_last;
 	reg		[BLK_X_WIDTH-1:0]			st0_blk_x;
 	reg									st0_blk_x_last;
@@ -84,7 +90,7 @@ module jelly_texture_writer_addr
 	reg									st0_y_last;
 	
 	// src addr
-	reg		[SRC_PTR_WIDTH:0]			st0_src_base_addr;
+	reg		[SRC_FIFO_PTR_WIDTH:0]		st0_src_base_addr;
 	reg		[SRC_OFFSET_Y_WIDTH-1:0]	st0_src_offset_addr;
 	
 	reg		[DST_ADDR_WIDTH-1:0]		st0_dst_base_addr;
@@ -94,7 +100,7 @@ module jelly_texture_writer_addr
 	
 	always @(posedge clk) begin
 		if ( !st0_valid ) begin
-			st0_component      <= {COMPONENT_WIDTH{1'b0}};
+			st0_component      <= {COMPONENT_SEL_WIDTH{1'b0}};
 			st0_component_last <= (COMPONENT_NUM == 1);
 			st0_blk_x          <= {BLK_X_WIDTH{1'b0}};
 			st0_blk_x_last     <= (BLK_X_NUM == 1);
@@ -121,7 +127,7 @@ module jelly_texture_writer_addr
 			// component
 			if ( st0_blk_x_last && st0_step_y_last ) begin
 				if ( st0_component_last ) begin
-					st0_component      <= {COMPONENT_WIDTH{1'b0}};
+					st0_component      <= {COMPONENT_SEL_WIDTH{1'b0}};
 					st0_component_last <= (COMPONENT_NUM == 1);
 				end
 				else begin
@@ -164,7 +170,7 @@ module jelly_texture_writer_addr
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
-			st0_src_base_addr   <= {(SRC_PTR_WIDTH+1){1'b0}};
+			st0_src_base_addr   <= {SRC_FIFO_PTR_WIDTH{1'b0}};
 			st0_src_offset_addr <= {SRC_OFFSET_Y_WIDTH{1'b0}};
 		end
 		else if ( cke ) begin
@@ -224,33 +230,33 @@ module jelly_texture_writer_addr
 	
 	
 	// sum address
-	reg		[COMPONENT_WIDTH-1:0]	st1_component;
-	reg								st1_src_ptr_update;
-	reg		[SRC_PTR_WIDTH:0]		st1_src_ptr_addr;
-	reg		[SRC_PTR_WIDTH-1:0]		st1_src_addr;
-	reg								st1_src_blk_last;
-	reg		[DST_ADDR_WIDTH-1:0]	st1_dst_addr;
-	reg								st1_dst_blk_last;
-	reg								st1_last;
-	reg								st1_valid;
+	reg		[COMPONENT_SEL_WIDTH-1:0]	st1_component;
+	reg		[SRC_ADDR_WIDTH-1:0]		st1_src_addr;
+	reg		[SRC_FIFO_PTR_WIDTH-1:0]	st1_src_ptr;
+	reg									st1_src_ptr_update;
+	reg									st1_src_blk_last;
+	reg		[DST_ADDR_WIDTH-1:0]		st1_dst_addr;
+	reg									st1_dst_blk_last;
+	reg									st1_last;
+	reg									st1_valid;
 	
-	reg		[COMPONENT_WIDTH-1:0]	st2_component;
-	reg								st2_src_ptr_update;
-	reg		[SRC_PTR_WIDTH:0]		st2_src_ptr_addr;
-	reg		[SRC_PTR_WIDTH-1:0]		st2_src_addr;
-	reg								st2_src_blk_last;
-	reg		[DST_ADDR_WIDTH-1:0]	st2_dst_addr;
-	reg								st2_dst_blk_last;
-	reg								st2_last;
-	reg								st2_valid;
+	reg		[COMPONENT_SEL_WIDTH-1:0]	st2_component;
+	reg		[SRC_ADDR_WIDTH-1:0]		st2_src_addr;
+	reg		[SRC_FIFO_PTR_WIDTH-1:0]	st2_src_ptr;
+	reg									st2_src_ptr_update;
+	reg									st2_src_blk_last;
+	reg		[DST_ADDR_WIDTH-1:0]		st2_dst_addr;
+	reg									st2_dst_blk_last;
+	reg									st2_last;
+	reg									st2_valid;
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
 			st1_last           <= 1'bx;
-			st1_component      <= {COMPONENT_WIDTH{1'bx}};
+			st1_component      <= {COMPONENT_SEL_WIDTH{1'bx}};
+			st1_src_addr       <= {SRC_ADDR_WIDTH{1'bx}};
+			st1_src_ptr        <= {SRC_FIFO_PTR_WIDTH{1'bx}};
 			st1_src_ptr_update <= 1'bx;
-			st1_src_ptr_addr   <= {(SRC_PTR_WIDTH+1){1'bx}};
-			st1_src_addr       <= {SRC_PTR_WIDTH{1'bx}};
 			st1_src_blk_last   <= 1'bx;
 			st1_dst_addr       <= {DST_ADDR_WIDTH{1'bx}};
 			st1_dst_blk_last   <= 1'bx;
@@ -258,10 +264,10 @@ module jelly_texture_writer_addr
 			st1_valid          <= 1'b0;
 			
 			st2_last           <= 1'bx;
-			st2_component      <= {COMPONENT_WIDTH{1'bx}};
+			st2_component      <= {COMPONENT_SEL_WIDTH{1'bx}};
+			st2_src_addr       <= {SRC_ADDR_WIDTH{1'bx}};
+			st2_src_ptr        <= {SRC_FIFO_PTR_WIDTH{1'bx}};
 			st2_src_ptr_update <= 1'bx;
-			st2_src_ptr_addr   <= {(SRC_PTR_WIDTH+1){1'bx}};
-			st2_src_addr       <= {SRC_PTR_WIDTH{1'bx}};
 			st2_src_blk_last   <= 1'bx;
 			st2_dst_addr       <= {DST_ADDR_WIDTH{1'bx}};
 			st2_dst_blk_last   <= 1'bx;
@@ -271,9 +277,9 @@ module jelly_texture_writer_addr
 		else if ( cke ) begin
 			// stage 1
 			st1_component       <= st0_component;
-			st1_src_ptr_addr    <= st0_src_base_addr;
-			st1_src_ptr_update  <= st0_blk_x_last && st0_step_y_last && st0_component_last && st0_x_last;
 			st1_src_addr        <= st0_src_offset_addr + st0_x + st0_blk_x;
+			st1_src_ptr         <= st0_src_base_addr;
+			st1_src_ptr_update  <= st0_blk_x_last && st0_step_y_last && st0_component_last && st0_x_last;
 			st1_src_blk_last    <= (st0_blk_x_last && st0_step_y_last && st0_component_last && st0_x_last && st0_blk_y_last);
 			st1_dst_addr        <= st0_dst_base_addr + (((st0_blk_y + st0_step_y) << BLK_X_SIZE) | (st0_x << BLK_Y_SIZE) | st0_blk_x);
 			st1_dst_blk_last    <= (st0_blk_x_last && st0_step_y_last);
@@ -282,9 +288,9 @@ module jelly_texture_writer_addr
 			
 			// stage 2
 			st2_component       <= st1_component;
-			st2_src_ptr_addr    <= st1_src_ptr_addr;
-			st2_src_ptr_update  <= st1_src_ptr_update;
 			st2_src_addr        <= st1_src_ptr + st1_src_addr;
+			st2_src_ptr         <= st1_src_ptr;
+			st2_src_ptr_update  <= st1_src_ptr_update;
 			st2_src_blk_last    <= st1_src_blk_last;
 			st2_dst_addr        <= st1_dst_addr;
 			st2_dst_blk_last    <= st1_dst_blk_last;
@@ -297,9 +303,9 @@ module jelly_texture_writer_addr
 	
 	assign m_last           = st2_last;
 	assign m_component      = st2_component;
-	assign m_src_ptr_update = st2_src_ptr_update;
-	assign m_src_ptr_addr   = st2_src_ptr_addr;
 	assign m_src_addr       = st2_src_addr;
+	assign m_src_ptr        = st2_src_ptr;
+	assign m_src_ptr_update = st2_src_ptr_update;
 	assign m_src_blk_last   = st2_src_blk_last;
 	assign m_dst_addr       = st2_dst_addr;
 	assign m_dst_blk_last   = st2_dst_blk_last;

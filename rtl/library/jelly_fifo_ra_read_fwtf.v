@@ -34,7 +34,7 @@ module jelly_fifo_ra_read_fwtf
 			
 			output	wire						rd_en,
 			output	wire						rd_regcke,
-			output	wire	[PTR_WIDTH-1:0]		rd_addr,
+			output	wire	[ADDR_WIDTH-1:0]	rd_addr,
 			input	wire	[DATA_WIDTH-1:0]	rd_data,
 			input	wire						rd_empty,
 			input	wire	[PTR_WIDTH-1:0]		rd_count,
@@ -58,7 +58,7 @@ module jelly_fifo_ra_read_fwtf
 	jelly_pipeline_control
 			#(
 				.PIPELINE_STAGES	(PIPELINE_STAGES),
-				.S_DATA_WIDTH		(USER_WIDTH + PTR_WIDTH),
+				.S_DATA_WIDTH		(USER_WIDTH + ADDR_WIDTH),
 				.M_DATA_WIDTH		(USER_WIDTH + DATA_WIDTH),
 				.AUTO_VALID			(1),
 				.MASTER_IN_REGS		(MASTER_REGS),

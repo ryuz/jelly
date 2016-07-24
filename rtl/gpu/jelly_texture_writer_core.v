@@ -36,7 +36,7 @@ module jelly_texture_writer_core
 			parameter	STRIDE_WIDTH         = SRC_STRIDE_WIDTH + BLK_Y_SIZE,
 			parameter	SIZE_WIDTH           = 24,
 			
-			parameter	FIFO_PTR_WIDTH       = 10,
+			parameter	FIFO_ADDR_WIDTH      = 10,
 			parameter	FIFO_RAM_TYPE        = "block"
 		)
 		(
@@ -152,7 +152,7 @@ module jelly_texture_writer_core
 				
 				.ADDR_WIDTH				(SIZE_WIDTH),
 				
-				.FIFO_PTR_WIDTH			(FIFO_PTR_WIDTH),
+				.FIFO_ADDR_WIDTH		(FIFO_ADDR_WIDTH),
 				.FIFO_RAM_TYPE			(FIFO_RAM_TYPE)
 			)
 		i_texture_writer_fifo
