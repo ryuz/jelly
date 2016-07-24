@@ -27,7 +27,7 @@ module jelly_texture_writer_addr
 			
 			parameter	SRC_STRIDE_WIDTH = X_WIDTH,
 			parameter	DST_STRIDE_WIDTH = SRC_STRIDE_WIDTH + BLK_Y_SIZE,
-			parameter	SRC_ADDR_WIDTH   = 24,
+			parameter	SRC_PTR_WIDTH    = 24,
 			parameter	DST_ADDR_WIDTH   = 24
 		)
 		(
@@ -43,8 +43,9 @@ module jelly_texture_writer_addr
 			input	wire	[DST_STRIDE_WIDTH-1:0]		param_dst_stride,
 			
 			output	wire	[COMPONENT_WIDTH-1:0]		m_component,
-			output	wire	[SRC_ADDR_WIDTH-1:0]		m_src_addr,
-			output	wire	[SRC_ADDR_WIDTH-1:0]		m_src_base,
+			output	wire	[SRC_PTR_WIDTH-1:0]			m_src_addr,
+			output	wire								m_src_ptr_update,
+			output	wire	[SRC_PTR_WIDTH:0]			m_src_ptr_addr,
 			output	wire								m_src_blk_last,
 			output	wire	[DST_ADDR_WIDTH-1:0]		m_dst_addr,
 			output	wire								m_dst_blk_last,
@@ -83,7 +84,7 @@ module jelly_texture_writer_addr
 	reg									st0_y_last;
 	
 	// src addr
-	reg		[SRC_ADDR_WIDTH-1:0]		st0_src_base_addr;
+	reg		[SRC_PTR_WIDTH:0]			st0_src_base_addr;
 	reg		[SRC_OFFSET_Y_WIDTH-1:0]	st0_src_offset_addr;
 	
 	reg		[DST_ADDR_WIDTH-1:0]		st0_dst_base_addr;
@@ -163,7 +164,7 @@ module jelly_texture_writer_addr
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
-			st0_src_base_addr     <= {SRC_ADDR_WIDTH{1'b0}};
+			st0_src_base_addr   <= {(SRC_PTR_WIDTH+1){1'b0}};
 			st0_src_offset_addr <= {SRC_OFFSET_Y_WIDTH{1'b0}};
 		end
 		else if ( cke ) begin
@@ -224,19 +225,21 @@ module jelly_texture_writer_addr
 	
 	// sum address
 	reg		[COMPONENT_WIDTH-1:0]	st1_component;
-	reg		[SRC_ADDR_WIDTH-1:0]	st1_src_base;
-	reg		[SRC_ADDR_WIDTH-1:0]	st1_src_addr;
+	reg								st1_src_ptr_update;
+	reg		[SRC_PTR_WIDTH:0]		st1_src_ptr_addr;
+	reg		[SRC_PTR_WIDTH-1:0]		st1_src_addr;
 	reg								st1_src_blk_last;
-	reg		[SRC_ADDR_WIDTH-1:0]	st1_dst_addr;
+	reg		[DST_ADDR_WIDTH-1:0]	st1_dst_addr;
 	reg								st1_dst_blk_last;
 	reg								st1_last;
 	reg								st1_valid;
 	
 	reg		[COMPONENT_WIDTH-1:0]	st2_component;
-	reg		[SRC_ADDR_WIDTH-1:0]	st2_src_base;
-	reg		[SRC_ADDR_WIDTH-1:0]	st2_src_addr;
+	reg								st2_src_ptr_update;
+	reg		[SRC_PTR_WIDTH:0]		st2_src_ptr_addr;
+	reg		[SRC_PTR_WIDTH-1:0]		st2_src_addr;
 	reg								st2_src_blk_last;
-	reg		[SRC_ADDR_WIDTH-1:0]	st2_dst_addr;
+	reg		[DST_ADDR_WIDTH-1:0]	st2_dst_addr;
 	reg								st2_dst_blk_last;
 	reg								st2_last;
 	reg								st2_valid;
@@ -245,8 +248,9 @@ module jelly_texture_writer_addr
 		if ( reset ) begin
 			st1_last           <= 1'bx;
 			st1_component      <= {COMPONENT_WIDTH{1'bx}};
-			st1_src_base       <= {SRC_ADDR_WIDTH{1'bx}};
-			st1_src_addr       <= {SRC_ADDR_WIDTH{1'bx}};
+			st1_src_ptr_update <= 1'bx;
+			st1_src_ptr_addr   <= {(SRC_PTR_WIDTH+1){1'bx}};
+			st1_src_addr       <= {SRC_PTR_WIDTH{1'bx}};
 			st1_src_blk_last   <= 1'bx;
 			st1_dst_addr       <= {DST_ADDR_WIDTH{1'bx}};
 			st1_dst_blk_last   <= 1'bx;
@@ -255,8 +259,9 @@ module jelly_texture_writer_addr
 			
 			st2_last           <= 1'bx;
 			st2_component      <= {COMPONENT_WIDTH{1'bx}};
-			st2_src_base       <= {SRC_ADDR_WIDTH{1'bx}};
-			st2_src_addr       <= {SRC_ADDR_WIDTH{1'bx}};
+			st2_src_ptr_update <= 1'bx;
+			st2_src_ptr_addr   <= {(SRC_PTR_WIDTH+1){1'bx}};
+			st2_src_addr       <= {SRC_PTR_WIDTH{1'bx}};
 			st2_src_blk_last   <= 1'bx;
 			st2_dst_addr       <= {DST_ADDR_WIDTH{1'bx}};
 			st2_dst_blk_last   <= 1'bx;
@@ -265,38 +270,41 @@ module jelly_texture_writer_addr
 		end
 		else if ( cke ) begin
 			// stage 1
-			st1_component      <= st0_component;
-			st1_src_base       <= st0_src_base_addr;
-			st1_src_addr       <= st0_src_offset_addr + st0_x + st0_blk_x;
-			st1_src_blk_last   <= (st0_blk_x_last && st0_step_y_last && st0_component_last && st0_x_last && st0_blk_y_last);
-			st1_dst_addr       <= st0_dst_base_addr + (((st0_blk_y + st0_step_y) << BLK_X_SIZE) | (st0_x << BLK_Y_SIZE) | st0_blk_x);
-			st1_dst_blk_last   <= (st0_blk_x_last && st0_step_y_last);
-			st1_last           <= (st0_blk_x_last && st0_step_y_last && st0_component_last && st0_x_last && st0_y_last);
-			st1_valid          <= st0_valid;
+			st1_component       <= st0_component;
+			st1_src_ptr_addr    <= st0_src_base_addr;
+			st1_src_ptr_update  <= st0_blk_x_last && st0_step_y_last && st0_component_last && st0_x_last;
+			st1_src_addr        <= st0_src_offset_addr + st0_x + st0_blk_x;
+			st1_src_blk_last    <= (st0_blk_x_last && st0_step_y_last && st0_component_last && st0_x_last && st0_blk_y_last);
+			st1_dst_addr        <= st0_dst_base_addr + (((st0_blk_y + st0_step_y) << BLK_X_SIZE) | (st0_x << BLK_Y_SIZE) | st0_blk_x);
+			st1_dst_blk_last    <= (st0_blk_x_last && st0_step_y_last);
+			st1_last            <= (st0_blk_x_last && st0_step_y_last && st0_component_last && st0_x_last && st0_y_last);
+			st1_valid           <= st0_valid;
 			
 			// stage 2
-			st2_component      <= st1_component;
-			st2_src_base       <= st1_src_base;
-			st2_src_addr       <= st1_src_base + st1_src_addr;
-			st2_src_blk_last   <= st1_src_blk_last;
-			st2_dst_addr       <= st1_dst_addr;
-			st2_dst_blk_last   <= st1_dst_blk_last;
-			st2_last           <= st1_last;
-			st2_valid          <= st1_valid;
+			st2_component       <= st1_component;
+			st2_src_ptr_addr    <= st1_src_ptr_addr;
+			st2_src_ptr_update  <= st1_src_ptr_update;
+			st2_src_addr        <= st1_src_ptr + st1_src_addr;
+			st2_src_blk_last    <= st1_src_blk_last;
+			st2_dst_addr        <= st1_dst_addr;
+			st2_dst_blk_last    <= st1_dst_blk_last;
+			st2_last            <= st1_last;
+			st2_valid           <= st1_valid;
 		end
 	end
 	
-	assign busy           = st0_valid;
+	assign busy              = st0_valid;
 	
-	assign m_last         = st2_last;
-	assign m_component    = st2_component;
-	assign m_src_base     = st2_src_base;
-	assign m_src_addr     = st2_src_addr;
-	assign m_src_blk_last = st2_src_blk_last;
-	assign m_dst_addr     = st2_dst_addr;
-	assign m_dst_blk_last = st2_dst_blk_last;
-	assign m_last         = st2_last;
-	assign m_valid        = st2_valid;
+	assign m_last           = st2_last;
+	assign m_component      = st2_component;
+	assign m_src_ptr_update = st2_src_ptr_update;
+	assign m_src_ptr_addr   = st2_src_ptr_addr;
+	assign m_src_addr       = st2_src_addr;
+	assign m_src_blk_last   = st2_src_blk_last;
+	assign m_dst_addr       = st2_dst_addr;
+	assign m_dst_blk_last   = st2_dst_blk_last;
+	assign m_last           = st2_last;
+	assign m_valid          = st2_valid;
 	
 endmodule
 

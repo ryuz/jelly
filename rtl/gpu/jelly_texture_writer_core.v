@@ -92,7 +92,7 @@ module jelly_texture_writer_core
 	wire	[CNV_DATA_WIDTH-1:0]	cnv_tdata_tmp;
 	wire	[CNV_DATA_WIDTH-1:0]	cnv_tdata;
 	wire							cnv_tvalid;
-	wire							cnv_tready = 1;
+	wire							cnv_tready;
 	
 	jelly_data_width_converter
 			#(

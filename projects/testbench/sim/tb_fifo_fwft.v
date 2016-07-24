@@ -33,30 +33,31 @@ module tb_fifo_fwft();
 	wire						m_ready;
 	wire	[PTR_WIDTH:0]		m_data_count;
 	
-	jelly_fifo_fwtf
-		#(
-			.DATA_WIDTH		(DATA_WIDTH),
-			.PTR_WIDTH		(PTR_WIDTH),
-			.DOUT_REGS		(0),
-			.MASTER_REGS	(0)
-		)
-	i_fifo_fwtf
-		(
-			.reset			(reset),
-			.clk			(clk),
-			
-			.s_data			(s_data),
-			.s_valid		(s_valid),
-			.s_ready		(s_ready),
-			.s_free_count	(s_free_count),
-			
-			.m_data			(m_data),
-			.m_valid		(m_valid),
-			.m_ready		(m_ready),
-			.m_data_count	(m_data_count)
-		);
+	jelly_fifo_fwtf2
+			#(
+				.DATA_WIDTH		(DATA_WIDTH),
+				.PTR_WIDTH		(PTR_WIDTH),
+				.DOUT_REGS		(0),
+				.MASTER_REGS	(0)
+			)
+		i_fifo_fwtf
+			(
+				.reset			(reset),
+				.clk			(clk),
+				
+				.s_data			(s_data),
+				.s_valid		(s_valid),
+				.s_ready		(s_ready),
+				.s_free_count	(s_free_count),
+				
+				.m_data			(m_data),
+				.m_valid		(m_valid),
+				.m_ready		(m_ready),
+				.m_data_count	(m_data_count)
+			);
 	
 	// 連続性テスト
+	/*
 	reg		[DATA_WIDTH-1:0]	reg_data  = 0;
 	reg							reg_valid = 0;
 	reg							reg_ready = 0;
@@ -98,9 +99,9 @@ module tb_fifo_fwft();
 			end
 		end
 	end
+	*/
 	
 	
-	/*
 	// ランダムテスト
 	
 	// write
@@ -128,6 +129,7 @@ module tb_fifo_fwft();
 	// read
 	reg		[DATA_WIDTH-1:0]	reg_expectation_value;
 	reg							reg_ready;
+	reg							reg_error;
 	always @(posedge clk) begin
 		if ( reset ) begin
 			reg_expectation_value  <= 0;
@@ -137,8 +139,10 @@ module tb_fifo_fwft();
 			reg_ready <= {$random};
 			
 			if ( m_valid && m_ready ) begin
+				reg_error <= 1'b0;
 				if ( m_data != reg_expectation_value ) begin
 					$display("error!");
+					reg_error <= 1'b1;
 				end
 				
 				reg_expectation_value <= reg_expectation_value + 1'b1;
@@ -146,7 +150,7 @@ module tb_fifo_fwft();
 		end
 	end
 	assign m_ready = reg_ready;
-	*/
+	
 	
 	
 endmodule
