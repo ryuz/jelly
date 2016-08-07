@@ -253,8 +253,64 @@ module jelly_texture_writer_core
 	end
 	
 	assign fifo_ready = (!reg_dma_valid || dma_ready);
+
+
+	jelly_texture_writer_axi4
+			#(
+				.M_AXI4_ID_WIDTH		(M_AXI4_ID_WIDTH),
+				.M_AXI4_ADDR_WIDTH		(M_AXI4_ADDR_WIDTH),
+				.M_AXI4_DATA_SIZE		(M_AXI4_DATA_SIZE),
+				.M_AXI4_DATA_WIDTH		(M_AXI4_DATA_WIDTH),
+				.M_AXI4_STRB_WIDTH		(M_AXI4_STRB_WIDTH),
+				.M_AXI4_LEN_WIDTH		(M_AXI4_LEN_WIDTH),
+				.M_AXI4_QOS_WIDTH		(M_AXI4_QOS_WIDTH),
+				.M_AXI4_AWID			(M_AXI4_AWID),
+				.M_AXI4_AWSIZE			(M_AXI4_AWSIZE),
+				.M_AXI4_AWBURST			(M_AXI4_AWBURST),
+				.M_AXI4_AWLOCK			(M_AXI4_AWLOCK),
+				.M_AXI4_AWCACHE			(M_AXI4_AWCACHE),
+				.M_AXI4_AWPROT			(M_AXI4_AWPROT),
+				.M_AXI4_AWQOS			(M_AXI4_AWQOS),
+				.M_AXI4_AWREGION		(M_AXI4_AWREGION),
+				.M_REGS					(1),
+				.S_REGS					(1)
+			)
+		i_texture_writer_axi4
+			(
+				.reset					(reset),
+				.clk					(clk),
+				
+				.param_awlen			(8'h0),
+				
+				.s_addr					(reg_dma_addr),
+				.s_data					(reg_dma_data),
+				.s_valid				(reg_dma_valid),
+				.s_ready				(dma_ready),
+				
+				.m_axi4_awid			(m_axi4_awid),
+				.m_axi4_awaddr			(m_axi4_awaddr),
+				.m_axi4_awlen			(m_axi4_awlen),
+				.m_axi4_awsize			(m_axi4_awsize),
+				.m_axi4_awburst			(m_axi4_awburst),
+				.m_axi4_awlock			(m_axi4_awlock),
+				.m_axi4_awcache			(m_axi4_awcache),
+				.m_axi4_awprot			(m_axi4_awprot),
+				.m_axi4_awqos			(m_axi4_awqos),
+				.m_axi4_awregion		(m_axi4_awregion),
+				.m_axi4_awvalid			(m_axi4_awvalid),
+				.m_axi4_awready			(m_axi4_awready),
+				.m_axi4_wdata			(m_axi4_wdata),
+				.m_axi4_wstrb			(m_axi4_wstrb),
+				.m_axi4_wlast			(m_axi4_wlast),
+				.m_axi4_wvalid			(m_axi4_wvalid),
+				.m_axi4_wready			(m_axi4_wready),
+				.m_axi4_bid				(m_axi4_bid),
+				.m_axi4_bresp			(m_axi4_bresp),
+				.m_axi4_bvalid			(m_axi4_bvalid),
+				.m_axi4_bready			(m_axi4_bready)
+			);
 	
-	
+	/*
 	jelly_axi4_dma_writer
 			#(
 				.AXI4_ID_WIDTH			(M_AXI4_ID_WIDTH),
@@ -319,6 +375,7 @@ module jelly_texture_writer_core
 				.m_axi4_bvalid			(m_axi4_bvalid),
 				.m_axi4_bready			(m_axi4_bready)
 			);
+	*/
 	
 endmodule
 
