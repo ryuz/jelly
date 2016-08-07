@@ -111,8 +111,8 @@ module tb_texture_writer();
 				.M_AXI4_ADDR_WIDTH		(32),
 				.M_AXI4_DATA_SIZE		(3),		// 8^n (0:8bit, 1:16bit, 2:32bit, 3:64bit, ...)
 				
-				.BLK_X_SIZE				(2),		// 2^n (0:1, 1:2, 2:4, 3:8, ... )
-				.BLK_Y_SIZE				(2),		// 2^n (0:1, 1:2, 2:4, 3:8, ... )
+				.BLK_X_SIZE				(3),		// 2^n (0:1, 1:2, 2:4, 3:8, ... )
+				.BLK_Y_SIZE				(3),		// 2^n (0:1, 1:2, 2:4, 3:8, ... )
 				.STEP_Y_SIZE 			(1),		// 2^n (0:1, 1:2, 2:4, 3:8, ... )
 				
 				.X_WIDTH				(10),
@@ -131,6 +131,7 @@ module tb_texture_writer();
 				
 				.endian					(0),
 				
+				.param_addr				({32'h0020_0000, 32'h0010_0000, 32'h0000_0000}),
 				.param_width			(640),
 				.param_height			(480),
 				.param_stride			(1024*8),
@@ -139,7 +140,29 @@ module tb_texture_writer();
 				.s_axi4s_tlast			(axi4s_tlast),
 				.s_axi4s_tdata			(axi4s_tdata),
 				.s_axi4s_tvalid			(axi4s_tvalid),
-				.s_axi4s_tready			(axi4s_tready)
+				.s_axi4s_tready			(axi4s_tready),
+				
+				.m_axi4_awid			(),
+				.m_axi4_awaddr			(),
+				.m_axi4_awlen			(),
+				.m_axi4_awsize			(),
+				.m_axi4_awburst			(),
+				.m_axi4_awlock			(),
+				.m_axi4_awcache			(),
+				.m_axi4_awprot			(),
+				.m_axi4_awqos			(),
+				.m_axi4_awregion		(),
+				.m_axi4_awvalid			(),
+				.m_axi4_awready			(1),
+				.m_axi4_wdata			(),
+				.m_axi4_wstrb			(),
+				.m_axi4_wlast			(),
+				.m_axi4_wvalid			(),
+				.m_axi4_wready			(1),
+				.m_axi4_bid				(),
+				.m_axi4_bresp			(),
+				.m_axi4_bvalid			(),
+				.m_axi4_bready			()
 			);
 	
 	

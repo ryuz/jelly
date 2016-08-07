@@ -74,7 +74,6 @@ module jelly_fifo_ra_fwtf
 				.ADDR_WIDTH		(ADDR_WIDTH),
 				.DOUT_REGS		(DOUT_REGS),
 				.RAM_TYPE		(RAM_TYPE)
-	//			.FIFO_PTR_WIDTH	(FIFO_PTR_WIDTH)
 			)
 		i_fifo_ra
 			(

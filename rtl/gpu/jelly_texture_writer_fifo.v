@@ -63,13 +63,13 @@ module jelly_texture_writer_fifo
 			input	wire								m_ready
 		);
 	
-
-
+	
+	
 	// ---------------------------------
 	//  FIFO memory
 	// ---------------------------------
 	
-	localparam	USER_WIDTH = COMPONENT_SEL_WIDTH + ADDR_WIDTH;
+	localparam	USER_WIDTH = COMPONENT_SEL_WIDTH + 1 + ADDR_WIDTH;
 	
 	wire	[FIFO_ADDR_WIDTH-1:0]	s_write_addr;
 	wire	[DATA_WIDTH-1:0]		s_write_data;
@@ -99,13 +99,12 @@ module jelly_texture_writer_fifo
 	wire							fifo_empty;
 	wire	[FIFO_PTR_WIDTH-1:0]	fifo_free_count;
 	wire	[FIFO_PTR_WIDTH-1:0]	fifo_data_count;
-		
+	
 	jelly_fifo_ra_fwtf
 			#(
 				.USER_WIDTH			(USER_WIDTH),
 				.DATA_WIDTH			(DATA_WIDTH),
 				.ADDR_WIDTH			(FIFO_ADDR_WIDTH),
-	//			.FIFO_PTR_WIDTH		(FIFO_PTR_WIDTH),
 				.DOUT_REGS			(1),
 				.RAM_TYPE			("block"),
 				.MASTER_REGS		(1)
@@ -154,6 +153,7 @@ module jelly_texture_writer_fifo
 	wire	[COMPONENT_SEL_WIDTH-1:0]	addr_component;
 	wire	[FIFO_ADDR_WIDTH-1:0]		addr_src_addr;
 	wire	[FIFO_PTR_WIDTH-1:0]		addr_src_ptr;
+	wire	[FIFO_PTR_WIDTH-1:0]		addr_src_ptr_next;
 	wire								addr_src_ptr_update;
 	wire								addr_src_blk_last;
 	wire	[ADDR_WIDTH-1:0]			addr_dst_addr;
@@ -192,6 +192,7 @@ module jelly_texture_writer_fifo
 				.m_component		(addr_component),
 				.m_src_addr			(addr_src_addr),
 				.m_src_ptr			(addr_src_ptr),
+				.m_src_ptr_next		(addr_src_ptr_next),
 				.m_src_ptr_update	(addr_src_ptr_update),
 				.m_src_blk_last		(addr_src_blk_last),
 				.m_dst_addr			(addr_dst_addr),
@@ -214,21 +215,21 @@ module jelly_texture_writer_fifo
 	
 	
 	// FIFO read
-	assign s_read_user      = {addr_component, addr_dst_addr};
-	assign s_read_addr		= addr_src_addr;
-	assign s_read_valid		= (addr_valid & addr_ready);
-	assign addr_ready       = (fifo_data_count > (param_width << STEP_Y_SIZE));
-				
-	assign {m_component, m_addr} = m_read_user;
+	assign s_read_user      = {addr_component, addr_dst_blk_last, addr_dst_addr};
+	assign s_read_addr      = addr_src_addr;
+	assign s_read_valid     = (addr_valid & addr_ready);
+	assign addr_ready       = s_read_ready && (fifo_data_count > (param_width << STEP_Y_SIZE));
+	
+	assign {m_component, m_last, m_addr} = m_read_user;
 	assign m_data           = m_read_data;
 	assign m_valid          = m_read_valid;
-	assign m_read_ready		= m_ready;
-		
-	assign read_ptr         = addr_src_ptr;
-	assign read_ptr_next    = addr_src_ptr;
+	assign m_read_ready     = m_ready;
+	
+	assign read_ptr_next    = addr_src_ptr_next;
 	assign read_ptr_update  = addr_valid & addr_ready & addr_src_ptr_update;
-				
-
+//	assign read_ptr_update  = addr_ready;
+	
+	
 	
 	/*
 	// ---------------------------------

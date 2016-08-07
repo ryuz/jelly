@@ -40,7 +40,7 @@ module jelly_ring_bus_unit
 			
 			output	wire	[ID_WIDTH-1:0]		dst_id,
 			output	wire	[DATA_WIDTH-1:0]	dst_data,
-			output	wire						dst_valid,
+			output	wire						dst_valid
 		);
 	
 	reg		[ID_WIDTH-1:0]		reg_dst_id;
