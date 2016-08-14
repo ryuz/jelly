@@ -59,7 +59,12 @@ module jelly_fifo_ra_fwtf
 			output	wire							fifo_full,
 			output	wire							fifo_empty,
 			output	wire	[FIFO_PTR_WIDTH-1:0]	fifo_free_count,
-			output	wire	[FIFO_PTR_WIDTH-1:0]	fifo_data_count
+			output	wire	[FIFO_PTR_WIDTH-1:0]	fifo_data_count,
+			
+			output	wire							next_fifo_full,
+			output	wire							next_fifo_empty,
+			output	wire	[FIFO_PTR_WIDTH-1:0]	next_fifo_free_count,
+			output	wire	[FIFO_PTR_WIDTH-1:0]	next_fifo_data_count
 		);
 	
 	//  FIFO
@@ -70,38 +75,43 @@ module jelly_fifo_ra_fwtf
 	
 	jelly_fifo_ra
 			#(
-				.DATA_WIDTH		(DATA_WIDTH),
-				.ADDR_WIDTH		(ADDR_WIDTH),
-				.DOUT_REGS		(DOUT_REGS),
-				.RAM_TYPE		(RAM_TYPE)
+				.DATA_WIDTH			(DATA_WIDTH),
+				.ADDR_WIDTH			(ADDR_WIDTH),
+				.DOUT_REGS			(DOUT_REGS),
+				.RAM_TYPE			(RAM_TYPE)
 			)
 		i_fifo_ra
 			(
-				.reset			(reset),
-				.clk			(clk),
+				.reset				(reset),
+				.clk				(clk),
 				
-				.wr_en			(!fifo_full),
-				.wr_we			(s_write_valid),
-				.wr_addr		(s_write_addr),
-				.wr_data		(s_write_data),
+				.wr_en				(!fifo_full),
+				.wr_we				(s_write_valid),
+				.wr_addr			(s_write_addr),
+				.wr_data			(s_write_data),
 				
-				.wr_ptr			(write_ptr),
-				.wr_ptr_next	(write_ptr_next),
-				.wr_ptr_update	(write_ptr_update),
+				.wr_ptr				(write_ptr),
+				.wr_ptr_next		(write_ptr_next),
+				.wr_ptr_update		(write_ptr_update),
 				
-				.rd_en			(fifo_rd_en),
-				.rd_regcke		(fifo_rd_regcke),
-				.rd_addr		(fifo_rd_addr),
-				.rd_data		(fifo_rd_data),
+				.rd_en				(fifo_rd_en),
+				.rd_regcke			(fifo_rd_regcke),
+				.rd_addr			(fifo_rd_addr),
+				.rd_data			(fifo_rd_data),
 				
-				.rd_ptr			(read_ptr),
-				.rd_ptr_next	(read_ptr_next),
-				.rd_ptr_update	(read_ptr_update),
+				.rd_ptr				(read_ptr),
+				.rd_ptr_next		(read_ptr_next),
+				.rd_ptr_update		(read_ptr_update),
 				
-				.full			(fifo_full),
-				.empty			(fifo_empty),
-				.free_count		(fifo_free_count),
-				.data_count		(fifo_data_count)
+				.full				(fifo_full),
+				.empty				(fifo_empty),
+				.free_count			(fifo_free_count),
+				.data_count			(fifo_data_count),
+				
+				.next_full			(next_fifo_full),
+				.next_empty			(next_fifo_empty),
+				.next_free_count	(next_fifo_free_count),
+				.next_data_count	(next_fifo_data_count)
 			);
 	
 	assign s_write_ready = !fifo_full;
@@ -110,34 +120,34 @@ module jelly_fifo_ra_fwtf
 	// read (master port)
 	jelly_fifo_ra_read_fwtf
 			#(
-				.USER_WIDTH		(USER_WIDTH),
-				.DATA_WIDTH		(DATA_WIDTH),
-				.ADDR_WIDTH		(ADDR_WIDTH),
-				.DOUT_REGS		(DOUT_REGS),
-				.MASTER_REGS	(MASTER_REGS)
+				.USER_WIDTH			(USER_WIDTH),
+				.DATA_WIDTH			(DATA_WIDTH),
+				.ADDR_WIDTH			(ADDR_WIDTH),
+				.DOUT_REGS			(DOUT_REGS),
+				.MASTER_REGS		(MASTER_REGS)
 			)
 		i_fifo_ra_read_fwtf
 			(
-				.reset			(reset),
-				.clk			(clk),
+				.reset				(reset),
+				.clk				(clk),
 				
-				.s_user			(s_read_user),
-				.s_addr			(s_read_addr),
-				.s_valid		(s_read_valid),
-				.s_ready		(s_read_ready),
+				.s_user				(s_read_user),
+				.s_addr				(s_read_addr),
+				.s_valid			(s_read_valid),
+				.s_ready			(s_read_ready),
 				
-				.rd_en			(fifo_rd_en),
-				.rd_regcke		(fifo_rd_regcke),
-				.rd_addr		(fifo_rd_addr),
-				.rd_data		(fifo_rd_data),
-				.rd_empty		(fifo_empty),
-				.rd_count		(fifo_data_count),
+				.rd_en				(fifo_rd_en),
+				.rd_regcke			(fifo_rd_regcke),
+				.rd_addr			(fifo_rd_addr),
+				.rd_data			(fifo_rd_data),
+				.rd_empty			(fifo_empty),
+				.rd_count			(fifo_data_count),
 				
-				.m_user			(m_read_user),
-				.m_data			(m_read_data),
-				.m_valid		(m_read_valid),
-				.m_ready		(m_read_ready),
-				.m_count		(m_read_data_count)
+				.m_user				(m_read_user),
+				.m_data				(m_read_data),
+				.m_valid			(m_read_valid),
+				.m_ready			(m_read_ready),
+				.m_count			(m_read_data_count)
 			);
 	
 	

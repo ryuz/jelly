@@ -95,7 +95,7 @@ module jelly_texture_writer_addr
 	
 	
 	// cke
-	wire								cke = m_ready;
+	wire								cke;
 	
 	
 	// common
@@ -109,7 +109,7 @@ module jelly_texture_writer_addr
 	reg									st0_blk_y_last;
 	reg		[X_WIDTH-1:0]				st0_x;
 	reg									st0_x_last;
-	reg		[X_WIDTH-1:0]				st0_y;
+	reg		[Y_WIDTH-1:0]				st0_y;
 	reg									st0_y_last;
 	
 	// src addr
@@ -340,18 +340,65 @@ module jelly_texture_writer_addr
 	end
 	
 	assign busy              = st0_valid;
+
+//	assign m_last           = st2_last;
+//	assign m_component      = st2_component;
+//	assign m_src_addr       = st2_src_addr;
+//	assign m_src_ptr        = st2_src_ptr;
+//	assign m_src_ptr_next   = st2_src_ptr_next;
+//	assign m_src_ptr_update = st2_src_ptr_update;
+//	assign m_src_blk_last   = st2_src_blk_last;
+//	assign m_dst_addr       = st2_dst_addr;
+//	assign m_dst_blk_last   = st2_dst_blk_last;
+//	assign m_last           = st2_last;
+//	assign m_valid          = st2_valid;
+//	assign cke              = m_ready;
+
 	
-	assign m_last           = st2_last;
-	assign m_component      = st2_component;
-	assign m_src_addr       = st2_src_addr;
-	assign m_src_ptr        = st2_src_ptr;
-	assign m_src_ptr_next   = st2_src_ptr_next;
-	assign m_src_ptr_update = st2_src_ptr_update;
-	assign m_src_blk_last   = st2_src_blk_last;
-	assign m_dst_addr       = st2_dst_addr;
-	assign m_dst_blk_last   = st2_dst_blk_last;
-	assign m_last           = st2_last;
-	assign m_valid          = st2_valid;
+	jelly_pipeline_insert_ff
+			#(
+				.DATA_WIDTH		(1 + COMPONENT_SEL_WIDTH + SRC_ADDR_WIDTH + SRC_FIFO_PTR_WIDTH + SRC_FIFO_PTR_WIDTH + 1 + 1+ DST_ADDR_WIDTH + 1),
+				.SLAVE_REGS		(1),
+				.MASTER_REGS	(1)
+			)
+		i_pipeline_insert_ff
+			(
+				.reset			(reset),
+				.clk			(clk),
+				.cke			(1'b1),
+				
+				.s_data			({
+									st2_last,
+									st2_component,
+									st2_src_addr,
+									st2_src_ptr,
+									st2_src_ptr_next,
+									st2_src_ptr_update,
+									st2_src_blk_last,
+									st2_dst_addr,
+									st2_dst_blk_last
+								}),
+				.s_valid		(st2_valid),
+				.s_ready		(cke),
+				
+				.m_data			({
+									m_last,
+									m_component,
+									m_src_addr,
+									m_src_ptr,
+									m_src_ptr_next,
+									m_src_ptr_update,
+									m_src_blk_last,
+									m_dst_addr,
+									m_dst_blk_last
+								}),
+				.m_valid		(m_valid),
+				.m_ready		(m_ready),
+				
+				.buffered		(),
+				.s_ready_next	()
+			);
+	
 	
 endmodule
 

@@ -31,7 +31,7 @@ module jelly_fifo_ra
 			input	wire	[ADDR_WIDTH-1:0]		wr_addr,
 			input	wire	[DATA_WIDTH-1:0]		wr_data,
 			
-			output	wire	[FIFO_PTR_WIDTH-1:0]	wr_ptr,
+			output	reg		[FIFO_PTR_WIDTH-1:0]	wr_ptr,
 			input	wire	[FIFO_PTR_WIDTH-1:0]	wr_ptr_next,
 			input	wire							wr_ptr_update,
 			
@@ -41,7 +41,7 @@ module jelly_fifo_ra
 			input	wire							rd_regcke,
 			output	wire	[DATA_WIDTH-1:0]		rd_data,
 			
-			output	wire	[FIFO_PTR_WIDTH-1:0]	rd_ptr,
+			output	reg		[FIFO_PTR_WIDTH-1:0]	rd_ptr,
 			input	wire	[FIFO_PTR_WIDTH-1:0]	rd_ptr_next,
 			input	wire							rd_ptr_update,
 			
@@ -94,46 +94,172 @@ module jelly_fifo_ra
 	//  FIFO pointer
 	// ---------------------------------
 	
-	// write
-	reg		[FIFO_PTR_WIDTH-1:0]		wptr;
-	reg		[FIFO_PTR_WIDTH-1:0]		rptr;
+	/*
+	always @ ( posedge clk ) begin
+		if ( reset ) begin
+			wr_ptr     <= 0;
+			rd_ptr     <= 0;
+			
+			full       <= 1'b1;
+			empty      <= 1'b1;
+			free_count <= 0;
+			data_count <= 0;
+			
+	//		full       <= 1'b0;
+	//		empty      <= 1'b1;
+	//		free_count <= (1'b1 << ADDR_WIDTH);
+	//		data_count <= 0;
+		end
+		else begin
+			case ( {rd_ptr_update, wr_ptr_update} )
+			2'b00:
+				begin
+					wr_ptr     <= wr_ptr;
+					rd_ptr     <= rd_ptr;
+					
+					full       <= (wr_ptr[FIFO_PTR_WIDTH-1] != rd_ptr[FIFO_PTR_WIDTH-1]) && (wr_ptr[ADDR_WIDTH-1:0] == rd_ptr[ADDR_WIDTH-1:0]);
+					empty      <= (wr_ptr == rd_ptr);
+					data_count <= (wr_ptr - rd_ptr);
+					free_count <= ((rd_ptr - wr_ptr) + (1'b1 << ADDR_WIDTH));
+
+	//				full       <= full;
+	//				empty      <= empty;
+	//				free_count <= free_count;
+	//				data_count <= data_count;
+				end
+			
+			2'b01:
+				begin
+					wr_ptr     <= wr_ptr_next;
+					rd_ptr     <= rd_ptr;
+					full       <= (wr_ptr_next[FIFO_PTR_WIDTH-1] != rd_ptr[FIFO_PTR_WIDTH-1]) && (wr_ptr_next[ADDR_WIDTH-1:0] == rd_ptr[ADDR_WIDTH-1:0]);
+					empty      <= (wr_ptr_next == rd_ptr);
+					data_count <= (wr_ptr_next - rd_ptr);
+					free_count <= ((rd_ptr - wr_ptr_next) + (1'b1 << ADDR_WIDTH));
+				end
+				
+			2'b10:
+				begin
+					wr_ptr     <= wr_ptr;
+					rd_ptr     <= rd_ptr_next;
+					full       <= (wr_ptr[FIFO_PTR_WIDTH-1] != rd_ptr_next[FIFO_PTR_WIDTH-1]) && (wr_ptr[ADDR_WIDTH-1:0] == rd_ptr_next[ADDR_WIDTH-1:0]);
+					empty      <= (wr_ptr == rd_ptr_next);
+					data_count <= (wr_ptr - rd_ptr_next);
+					free_count <= ((rd_ptr_next - wr_ptr) + (1'b1 << ADDR_WIDTH));
+				end
+			
+				
+			2'b11:
+				begin
+					wr_ptr     <= wr_ptr_next;
+					rd_ptr     <= rd_ptr_next;
+					full       <= (wr_ptr_next[FIFO_PTR_WIDTH-1] != rd_ptr_next[FIFO_PTR_WIDTH-1]) && (wr_ptr_next[ADDR_WIDTH-1:0] == rd_ptr_next[ADDR_WIDTH-1:0]);
+					empty      <= (wr_ptr_next == rd_ptr_next);
+					data_count <= (wr_ptr_next - rd_ptr_next);
+					free_count <= ((rd_ptr_next - wr_ptr_next) + (1'b1 << ADDR_WIDTH));
+				end
+			endcase
+		end
+	end
+	*/
 	
-	reg		[FIFO_PTR_WIDTH-1:0]		next_rptr;
-	reg		[FIFO_PTR_WIDTH-1:0]		next_wptr;
+	
+	
+	// write
+	reg		[FIFO_PTR_WIDTH-1:0]	next_wr_ptr;
+	reg		[FIFO_PTR_WIDTH-1:0]	next_rd_ptr;
+//	reg								next_full;
+//	reg								next_empty;
+//	reg		[FIFO_PTR_WIDTH-1:0]	next_free_count;
+//	reg		[FIFO_PTR_WIDTH-1:0]	next_data_count;
+	
+	/*
 	always @* begin
-		next_wptr       = wptr;
-		next_rptr       = rptr;
-		next_empty      = empty;
+		next_wr_ptr     = wr_ptr;
+		next_rd_ptr     = rd_ptr;
 		next_full       = full;
+		next_empty      = empty;
 		next_data_count = data_count;
 		next_free_count = free_count;
 		
 		if ( wr_ptr_update ) begin
-			next_wptr = wr_ptr_next;
+			next_wr_ptr = wr_ptr_next;
 		end
 		
 		if ( rd_ptr_update ) begin
-			next_rptr = rd_ptr_next;
+			next_rd_ptr = rd_ptr_next;
 		end
 		
-		next_empty      = (next_wptr == next_rptr);
-		next_full       = (next_wptr[FIFO_PTR_WIDTH-1] != next_rptr[FIFO_PTR_WIDTH-1]) && (next_wptr[ADDR_WIDTH-1:0] == next_rptr[ADDR_WIDTH-1:0]);
-		next_data_count = (next_wptr - next_rptr);
-		next_free_count = ((next_rptr - next_wptr) + (1'b1 << ADDR_WIDTH));
+		next_full       = (next_wr_ptr[FIFO_PTR_WIDTH-1] != next_rd_ptr[FIFO_PTR_WIDTH-1]) && (next_wr_ptr[ADDR_WIDTH-1:0] == next_rd_ptr[ADDR_WIDTH-1:0]);
+		next_empty      = (next_wr_ptr == next_rd_ptr);
+		next_data_count = (next_wr_ptr - next_rd_ptr);
+		next_free_count = ((next_rd_ptr - next_wr_ptr) + (1'b1 << ADDR_WIDTH));
+	end
+	*/
+	
+	always @* begin
+		next_wr_ptr     = wr_ptr;
+		next_rd_ptr     = rd_ptr;
+		next_full       = full;
+		next_empty      = empty;
+		next_data_count = data_count;
+		next_free_count = free_count;
+		
+		case ( {rd_ptr_update, wr_ptr_update} )
+		2'b00:
+			begin
+				next_wr_ptr     = wr_ptr;
+				next_rd_ptr     = rd_ptr;
+				next_full       = (wr_ptr[FIFO_PTR_WIDTH-1] != rd_ptr[FIFO_PTR_WIDTH-1]) && (wr_ptr[ADDR_WIDTH-1:0] == rd_ptr[ADDR_WIDTH-1:0]);
+				next_empty      = (wr_ptr == rd_ptr);
+				next_data_count = (wr_ptr - rd_ptr);
+				next_free_count = ((rd_ptr - wr_ptr) + (1'b1 << ADDR_WIDTH));
+			end
+		
+		2'b01:
+			begin
+				next_wr_ptr     = wr_ptr_next;
+				next_rd_ptr     = rd_ptr;
+				next_full       = (wr_ptr_next[FIFO_PTR_WIDTH-1] != rd_ptr[FIFO_PTR_WIDTH-1]) && (wr_ptr_next[ADDR_WIDTH-1:0] == rd_ptr[ADDR_WIDTH-1:0]);
+				next_empty      = (wr_ptr_next == rd_ptr);
+				next_data_count = (wr_ptr_next - rd_ptr);
+				next_free_count = ((rd_ptr - wr_ptr_next) + (1'b1 << ADDR_WIDTH));
+			end
+		
+		2'b10:
+			begin
+				next_wr_ptr     = wr_ptr;
+				next_rd_ptr     = rd_ptr_next;
+				next_full       = (wr_ptr[FIFO_PTR_WIDTH-1] != rd_ptr_next[FIFO_PTR_WIDTH-1]) && (wr_ptr[ADDR_WIDTH-1:0] == rd_ptr_next[ADDR_WIDTH-1:0]);
+				next_empty      = (wr_ptr == rd_ptr_next);
+				next_data_count = (wr_ptr - rd_ptr_next);
+				next_free_count = ((rd_ptr_next - wr_ptr) + (1'b1 << ADDR_WIDTH));
+			end
+		
+		2'b11:
+			begin
+				next_wr_ptr     = wr_ptr_next;
+				next_rd_ptr     = rd_ptr_next;
+				next_full       = (wr_ptr_next[FIFO_PTR_WIDTH-1] != rd_ptr_next[FIFO_PTR_WIDTH-1]) && (wr_ptr_next[ADDR_WIDTH-1:0] == rd_ptr_next[ADDR_WIDTH-1:0]);
+				next_empty      = (wr_ptr_next == rd_ptr_next);
+				next_data_count = (wr_ptr_next - rd_ptr_next);
+				next_free_count      = ((rd_ptr_next - wr_ptr_next) + (1'b1 << ADDR_WIDTH));
+			end
+		endcase
 	end
 	
 	always @ ( posedge clk ) begin
 		if ( reset ) begin
-			wptr       <= 0;
-			rptr       <= 0;
+			wr_ptr     <= 0;
+			rd_ptr     <= 0;
 			full       <= 1'b1;
 			empty      <= 1'b1;
 			free_count <= 0;
 			data_count <= 0;
 		end
 		else begin
-			wptr       <= next_wptr;
-			rptr       <= next_rptr;
+			wr_ptr     <= next_wr_ptr;
+			rd_ptr     <= next_rd_ptr;
 			full       <= next_full;
 			empty      <= next_empty;
 			free_count <= next_free_count;
@@ -141,8 +267,6 @@ module jelly_fifo_ra
 		end
 	end
 	
-	assign wr_ptr = wptr;
-	assign rd_ptr = rptr;
 	
 endmodule
 

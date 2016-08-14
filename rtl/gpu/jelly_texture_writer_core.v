@@ -59,6 +59,7 @@ module jelly_texture_writer_core
 			input	wire											endian,
 			
 			input	wire	[M_AXI4_ADDR_WIDTH*COMPONENT_NUM-1:0]	param_addr,
+			input	wire	[M_AXI4_LEN_WIDTH-1:0]					param_awlen,
 			input	wire	[X_WIDTH-1:0]							param_width,
 			input	wire	[Y_WIDTH-1:0]							param_height,
 			input	wire	[STRIDE_WIDTH-1:0]						param_stride,
@@ -206,7 +207,7 @@ module jelly_texture_writer_core
 				
 				.param_width			(param_width[X_WIDTH-1:CNV_SIZE]),
 				.param_height			(param_height),
-				.param_stride			(param_stride),
+				.param_stride			(param_stride >> CNV_SIZE),
 				
 				.s_last					(cnv_tlast),
 				.s_data					(cnv_tdata),
@@ -253,8 +254,8 @@ module jelly_texture_writer_core
 	end
 	
 	assign fifo_ready = (!reg_dma_valid || dma_ready);
-
-
+	
+	
 	jelly_texture_writer_axi4
 			#(
 				.M_AXI4_ID_WIDTH		(M_AXI4_ID_WIDTH),
@@ -280,7 +281,7 @@ module jelly_texture_writer_core
 				.reset					(reset),
 				.clk					(clk),
 				
-				.param_awlen			(8'h0),
+				.param_awlen			(param_awlen),
 				
 				.s_addr					(reg_dma_addr),
 				.s_data					(reg_dma_data),

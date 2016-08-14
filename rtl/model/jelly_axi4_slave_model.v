@@ -25,6 +25,8 @@ module jelly_axi4_slave_model
 			parameter	MEM_WIDTH             = 16,
 			parameter	MEM_SIZE              = (1 << MEM_WIDTH),
 			
+			parameter	READ_DATA_ADDR        = 0,		// リード結果をアドレスとする
+			
 			parameter	WRITE_LOG_FILE        = "",
 			parameter	READ_LOG_FILE         = "",
 			
@@ -550,9 +552,33 @@ module jelly_axi4_slave_model
 //	assign axi4_rdata   = (axi4_rvalid && ((reg_araddr >> AXI_DATA_SIZE) < MEM_SIZE)) ? mem[reg_araddr >> AXI_DATA_SIZE] : {AXI_DATA_WIDTH{1'bx}};
 
 //	assign axi4_rdata   = mem[MEM_ADDR_MASK & (reg_araddr >> AXI_DATA_SIZE)];
-	assign axi4_rdata   = reg_araddr;
+	assign axi4_rdata   = READ_DATA_ADDR                                              ? reg_araddr :
+	                      (axi4_rvalid && ((reg_araddr >> AXI_DATA_SIZE) < MEM_SIZE)) ? mem[reg_araddr >> AXI_DATA_SIZE] : {AXI_DATA_WIDTH{1'bx}};
+	
 	assign axi4_rlast   = axi4_rvalid ? reg_rlast : 1'bx;
 	assign axi4_rvalid  = reg_rvalid;
+	
+	
+	
+	// debug
+	task write_memh
+			(
+				input		[255:0]		filename
+			);
+	integer		fp;
+	begin
+		fp = $fopen(filename, "w");
+		if ( fp != 0 ) begin
+			for ( i = 0; i < MEM_SIZE; i = i+1 ) begin
+				$fdisplay(fp, "%h", mem[i]);
+			end
+			$fclose(fp);
+		end
+		else begin
+			$display("file oppen error : %s", filename);
+		end
+	end
+	endtask
 	
 endmodule
 

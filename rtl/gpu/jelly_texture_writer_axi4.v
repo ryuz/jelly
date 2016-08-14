@@ -218,8 +218,7 @@ module jelly_texture_writer_axi4
 				reg_wvalid  <= 1'b0;
 			end
 			
-			
-			if ( slave_ready ) begin
+			if ( slave_ready && slave_valid ) begin
 				if ( master_wvalid ) begin
 					reg_counter <= reg_counter - 1'b1;
 					reg_wlast   <= ((reg_counter - 1'b1) == 0);
@@ -236,43 +235,6 @@ module jelly_texture_writer_axi4
 				reg_wdata  <= slave_data;
 				reg_wvalid <= slave_valid;
 			end
-			
-			
-			/*
-			// wdata
-			if ( !master_wvalid || master_wready ) begin
-				reg_wdata  <= slave_data;
-				reg_wvalid <= slave_valid;
-			end
-			
-			if ( master_wready ) begin
-				reg_wvalid  <= 1'b0;
-				
-				if ( master_wvalid ) begin
-					reg_counter <= reg_counter - 1'b1;
-					reg_wlast   <= ((reg_counter - 1'b1) == 0);
-					
-					if ( reg_wlast ) begin
-						reg_counter <= param_awlen;
-						reg_wlast   <= (param_awlen == 0);
-					end
-				end
-			end
-			
-			
-			// awaddr
-			if ( master_awready ) begin
-				reg_awvalid <= 1'b0;
-			end
-			
-			if ( slave_ready && reg_wlast ) begin
-				reg_awaddr  <= slave_addr;
-				reg_awvalid <= slave_valid;
-				
-				reg_counter <= param_awlen;
-				reg_wlast   <= (param_awlen == 0);
-			end
-			*/
 		end
 	end
 	
