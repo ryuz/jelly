@@ -15,18 +15,18 @@
 
 module jelly_texture_cache_mem
 		#(
-			parameter	USER_WIDTH       = 1,
-			parameter	COMPONENT_NUM    = 1,
-			parameter	COMPONENT_WIDTH  = 24,
-			parameter	TAG_ADDR_WIDTH   = 6,
-			parameter	PIX_ADDR_WIDTH   = 4,
-			parameter	M_DATA_WIDTH     = COMPONENT_NUM * COMPONENT_WIDTH,
-			parameter	S_DATA_WIDE_SIZE = 1,
-			parameter	S_ADDR_WIDTH     = PIX_ADDR_WIDTH - S_DATA_WIDE_SIZE,
-			parameter	S_DATA_WIDTH     = (M_DATA_WIDTH << S_DATA_WIDE_SIZE),
-			parameter	BORDER_DATA      = {M_DATA_WIDTH{1'b0}},
-			parameter	RAM_TYPE         = "block",
-			parameter	MASTER_REGS      = 1
+			parameter	USER_WIDTH           = 1,
+			parameter	COMPONENT_NUM        = 1,
+			parameter	COMPONENT_DATA_WIDTH = 24,
+			parameter	TAG_ADDR_WIDTH       = 6,
+			parameter	PIX_ADDR_WIDTH       = 4,
+			parameter	M_DATA_WIDTH         = COMPONENT_NUM * COMPONENT_DATA_WIDTH,
+			parameter	S_DATA_WIDE_SIZE     = 1,
+			parameter	S_ADDR_WIDTH         = PIX_ADDR_WIDTH - S_DATA_WIDE_SIZE,
+			parameter	S_DATA_WIDTH         = (M_DATA_WIDTH << S_DATA_WIDE_SIZE),
+			parameter	BORDER_DATA          = {M_DATA_WIDTH{1'b0}},
+			parameter	RAM_TYPE             = "block",
+			parameter	MASTER_REGS          = 1
 		)
 		(
 			input	wire							reset,
@@ -52,7 +52,7 @@ module jelly_texture_cache_mem
 		);
 	
 	localparam	SEL_WIDTH         = S_DATA_WIDE_SIZE > 0 ? S_DATA_WIDE_SIZE : 1;
-	localparam	S_COMPONENT_WIDTH = (COMPONENT_WIDTH << S_DATA_WIDE_SIZE);
+	localparam	S_COMPONENT_WIDTH = (COMPONENT_DATA_WIDTH << S_DATA_WIDE_SIZE);
 	
 	genvar							i;
 	
@@ -112,14 +112,14 @@ module jelly_texture_cache_mem
 		jelly_multiplexer
 				#(
 					.SEL_WIDTH			(S_DATA_WIDE_SIZE),
-					.OUT_WIDTH			(COMPONENT_WIDTH)
+					.OUT_WIDTH			(COMPONENT_DATA_WIDTH)
 				)
 			i_multiplexer
 				(
 					.endian				(endian),
 					.sel				(st2_sel),
 					.din				(mem_rdata[S_COMPONENT_WIDTH*i +: S_COMPONENT_WIDTH]),
-					.dout				(read_data[COMPONENT_WIDTH*i   +: COMPONENT_WIDTH])
+					.dout				(read_data[COMPONENT_DATA_WIDTH*i   +: COMPONENT_DATA_WIDTH])
 				);
 	end
 	endgenerate

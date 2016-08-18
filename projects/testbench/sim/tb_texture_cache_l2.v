@@ -26,6 +26,13 @@ module tb_texture_cache_l2();
 	parameter	CACHE_NUM            = 1;
 	
 	parameter	COMPONENT_NUM        = 3;
+	parameter	COMPONENT_SEL_WIDTH  = COMPONENT_NUM <= 2  ?  1 :
+	                                   COMPONENT_NUM <= 4  ?  2 :
+	                                   COMPONENT_NUM <= 8  ?  3 :
+	                                   COMPONENT_NUM <= 16 ?  4 :
+	                                   COMPONENT_NUM <= 32 ?  5 :
+	                                   COMPONENT_NUM <= 64 ?  6 : 7;
+	
 	parameter	COMPONENT_DATA_WIDTH = 8;
 	
 	parameter	DATA_WIDTH           = COMPONENT_NUM * COMPONENT_DATA_WIDTH;
@@ -37,7 +44,7 @@ module tb_texture_cache_l2();
 	parameter	S_ADDR_Y_WIDTH       = 12;
 	parameter	S_DATA_WIDTH         = 24;
 	
-	parameter	TAG_ADDR_WIDTH       = 6;
+	parameter	TAG_ADDR_WIDTH       = 9; // 6;
 	
 	parameter	BLK_X_SIZE           = 3;	// 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
 	parameter	BLK_Y_SIZE           = 3;	// 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
@@ -177,8 +184,8 @@ module tb_texture_cache_l2();
 				.COMPONENT_NUM			(COMPONENT_NUM),
 				.COMPONENT_DATA_WIDTH	(COMPONENT_DATA_WIDTH),
 				
-				.DATA_WIDTH				(DATA_WIDTH),
-				.STRB_WIDTH				(STRB_WIDTH),
+	//			.DATA_WIDTH				(DATA_WIDTH),
+	//			.STRB_WIDTH				(STRB_WIDTH),
 				
 				.USER_WIDTH				(USER_WIDTH),
 				
@@ -191,16 +198,16 @@ module tb_texture_cache_l2();
 				.BLK_X_SIZE				(BLK_X_SIZE),
 				.BLK_Y_SIZE				(BLK_Y_SIZE),
 				
-				.PIX_ADDR_X_WIDTH		(PIX_ADDR_X_WIDTH),
-				.PIX_ADDR_Y_WIDTH		(PIX_ADDR_Y_WIDTH),
-				.BLK_ADDR_X_WIDTH		(BLK_ADDR_X_WIDTH),
-				.BLK_ADDR_Y_WIDTH 		(BLK_ADDR_Y_WIDTH),
+	//			.PIX_ADDR_X_WIDTH		(PIX_ADDR_X_WIDTH),
+	//			.PIX_ADDR_Y_WIDTH		(PIX_ADDR_Y_WIDTH),
+	//			.BLK_ADDR_X_WIDTH		(BLK_ADDR_X_WIDTH),
+	//			.BLK_ADDR_Y_WIDTH 		(BLK_ADDR_Y_WIDTH),
 				
-				.M_DATA_WIDE_SIZE		(M_DATA_WIDE_SIZE),
+	//			.M_DATA_WIDE_SIZE		(M_DATA_WIDE_SIZE),
 				
-				.M_ADDR_X_WIDTH			(M_ADDR_X_WIDTH),
-				.M_ADDR_Y_WIDTH			(M_ADDR_Y_WIDTH),
-				.M_DATA_WIDTH			(M_DATA_WIDTH),
+	//			.M_ADDR_X_WIDTH			(M_ADDR_X_WIDTH),
+	//			.M_ADDR_Y_WIDTH			(M_ADDR_Y_WIDTH),
+	//			.M_DATA_WIDTH			(M_DATA_WIDTH),
 				
 				.USE_M_RREADY			(USE_M_RREADY),
 				
@@ -244,6 +251,7 @@ module tb_texture_cache_l2();
 					
 					.param_width		(640),
 					.param_height		(480),
+					.param_stride			(640*8),
 					
 					.s_aruser			(s_aruser),
 					.s_araddrx			(s_araddrx),

@@ -15,36 +15,42 @@
 
 module jelly_texture_cache_unit
 		#(
-			parameter	USER_WIDTH       = 1,
-			parameter	COMPONENT_NUM    = 1,
-			parameter	COMPONENT_WIDTH  = 24,
+			parameter	USER_WIDTH           = 1,
+			parameter	COMPONENT_NUM        = 1,
+			parameter	COMPONENT_SEL_WIDTH  = COMPONENT_NUM <= 2  ?  1 :
+			                                   COMPONENT_NUM <= 4  ?  2 :
+			                                   COMPONENT_NUM <= 8  ?  3 :
+			                                   COMPONENT_NUM <= 16 ?  4 :
+			                                   COMPONENT_NUM <= 32 ?  5 :
+			                                   COMPONENT_NUM <= 64 ?  6 : 7,
+			parameter	COMPONENT_DATA_WIDTH = 24,
 			
-			parameter	S_ADDR_X_WIDTH   = 12,
-			parameter	S_ADDR_Y_WIDTH   = 12,
-			parameter	S_DATA_WIDTH     = COMPONENT_NUM*COMPONENT_WIDTH,
+			parameter	S_ADDR_X_WIDTH       = 12,
+			parameter	S_ADDR_Y_WIDTH       = 12,
+			parameter	S_DATA_WIDTH         = COMPONENT_NUM * COMPONENT_DATA_WIDTH,
 			
-			parameter	TAG_ADDR_WIDTH   = 6,
+			parameter	TAG_ADDR_WIDTH       = 6,
 			
-			parameter	BLK_X_SIZE       = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
-			parameter	BLK_Y_SIZE       = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
+			parameter	BLK_X_SIZE           = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
+			parameter	BLK_Y_SIZE           = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			
-			parameter	PIX_ADDR_X_WIDTH = BLK_X_SIZE,
-			parameter	PIX_ADDR_Y_WIDTH = BLK_Y_SIZE,
-			parameter	BLK_ADDR_X_WIDTH = S_ADDR_X_WIDTH - BLK_X_SIZE,
-			parameter	BLK_ADDR_Y_WIDTH = S_ADDR_Y_WIDTH - BLK_Y_SIZE,
+			parameter	PIX_ADDR_X_WIDTH     = BLK_X_SIZE,
+			parameter	PIX_ADDR_Y_WIDTH     = BLK_Y_SIZE,
+			parameter	BLK_ADDR_X_WIDTH     = S_ADDR_X_WIDTH - BLK_X_SIZE,
+			parameter	BLK_ADDR_Y_WIDTH     = S_ADDR_Y_WIDTH - BLK_Y_SIZE,
 			
-			parameter	M_DATA_WIDE_SIZE = 0,
+			parameter	M_DATA_WIDE_SIZE     = 0,
 			
-			parameter	M_ADDR_X_WIDTH   = BLK_ADDR_X_WIDTH,
-			parameter	M_ADDR_Y_WIDTH   = BLK_ADDR_Y_WIDTH,
-			parameter	M_DATA_WIDTH     = (S_DATA_WIDTH << M_DATA_WIDE_SIZE),
+			parameter	M_ADDR_X_WIDTH       = BLK_ADDR_X_WIDTH,
+			parameter	M_ADDR_Y_WIDTH       = BLK_ADDR_Y_WIDTH,
+			parameter	M_DATA_WIDTH         = (S_DATA_WIDTH << M_DATA_WIDE_SIZE),
 			
-			parameter	USE_M_RREADY     = 0,	// 0: m_rready is always 1'b1.   1: handshake mode.
+			parameter	USE_M_RREADY         = 0,	// 0: m_rready is always 1'b1.   1: handshake mode.
 			
-			parameter	BORDER_DATA      = {S_DATA_WIDTH{1'b0}},
+			parameter	BORDER_DATA          = {S_DATA_WIDTH{1'b0}},
 			
-			parameter	TAG_RAM_TYPE     = "distributed",
-			parameter	MEM_RAM_TYPE     = "block"
+			parameter	TAG_RAM_TYPE         = "distributed",
+			parameter	MEM_RAM_TYPE         = "block"
 		)
 		(
 			input	wire							reset,
@@ -56,7 +62,7 @@ module jelly_texture_cache_unit
 			output	wire							clear_busy,
 			
 			input	wire	[S_ADDR_X_WIDTH-1:0]	param_width,
-			input	wire	[S_ADDR_X_WIDTH-1:0]	param_height,
+			input	wire	[S_ADDR_Y_WIDTH-1:0]	param_height,
 			
 			
 			input	wire	[USER_WIDTH-1:0]		s_aruser,
@@ -207,7 +213,7 @@ module jelly_texture_cache_unit
 			
 			// rdata receive
 			if ( m_rvalid && m_rready ) begin
-				reg_we    <= (m_rstrb & {COMPONENT_NUM{m_rvalid}});
+				reg_we    <= m_rstrb;
 				reg_wlast <= m_rlast;
 				reg_wdata <= m_rdata;
 			end
@@ -277,7 +283,7 @@ module jelly_texture_cache_unit
 			#(
 				.USER_WIDTH				(USER_WIDTH),
 				.COMPONENT_NUM			(COMPONENT_NUM),
-				.COMPONENT_WIDTH		(COMPONENT_WIDTH),
+				.COMPONENT_DATA_WIDTH	(COMPONENT_DATA_WIDTH),
 				.TAG_ADDR_WIDTH			(TAG_ADDR_WIDTH),
 				.PIX_ADDR_WIDTH			(PIX_ADDR_WIDTH),
 				.M_DATA_WIDTH			(S_DATA_WIDTH),
@@ -296,7 +302,7 @@ module jelly_texture_cache_unit
 				
 				.s_user					(reg_user),
 				.s_we					(reg_we),
-				.s_wdata				(reg_wdata),
+				.s_wdata				({COMPONENT_NUM{reg_wdata}}),
 				.s_tag_addr				(reg_tag_addr),
 				.s_pix_addr				(reg_pix_addr),
 				.s_range_out			(reg_range_out),

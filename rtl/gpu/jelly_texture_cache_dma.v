@@ -16,7 +16,6 @@
 module jelly_texture_cache_dma
 		#(
 			parameter	COMPONENT_NUM        = 3,
-			parameter	COMPONENT_DATA_WIDTH = 8,
 			parameter	COMPONENT_SEL_WIDTH  = COMPONENT_NUM <= 2  ?  1 :
 			                                   COMPONENT_NUM <= 4  ?  2 :
 			                                   COMPONENT_NUM <= 8  ?  3 :
@@ -24,19 +23,12 @@ module jelly_texture_cache_dma
 			                                   COMPONENT_NUM <= 32 ?  5 :
 			                                   COMPONENT_NUM <= 64 ?  6 : 7,
 			
-			parameter	DATA_WIDTH           = COMPONENT_NUM * COMPONENT_DATA_WIDTH,
-			parameter	STRB_WIDTH           = COMPONENT_NUM,
-			
-			parameter	ID_WIDTH             = 6,
-			parameter	ADDR_WIDTH           = 24,
-			
-			parameter	M_AXI4_ID_WIDTH      = ID_WIDTH,
+			parameter	M_AXI4_ID_WIDTH      = 6,
 			parameter	M_AXI4_ADDR_WIDTH    = 32,
 			parameter	M_AXI4_DATA_SIZE     = 2,	// 0:8bit, 1:16bit, 2:32bit ...
 			parameter	M_AXI4_DATA_WIDTH    = (8 << M_AXI4_DATA_SIZE),
 			parameter	M_AXI4_LEN_WIDTH     = 8,
 			parameter	M_AXI4_QOS_WIDTH     = 4,
-			parameter	M_AXI4_ARID          = {M_AXI4_ID_WIDTH{1'b0}},
 			parameter	M_AXI4_ARSIZE        = M_AXI4_DATA_SIZE,
 			parameter	M_AXI4_ARBURST       = 2'b01,
 			parameter	M_AXI4_ARLOCK        = 1'b0,
@@ -44,10 +36,14 @@ module jelly_texture_cache_dma
 			parameter	M_AXI4_ARPROT        = 3'b000,
 			parameter	M_AXI4_ARQOS         = 0,
 			parameter	M_AXI4_ARREGION      = 4'b0000,
+			parameter	M_AXI4_REGS          = 1,
 			
-			parameter	SLAVE_REGS           = 1,
-			parameter	MASTER_REGS          = 1,
-			parameter	M_AXI4_REGS          = 1
+			parameter	ID_WIDTH             = M_AXI4_ID_WIDTH,
+			parameter	ADDR_WIDTH           = 24,
+			parameter	DATA_WIDTH           = M_AXI4_DATA_WIDTH,
+			
+			parameter	S_AR_REGS            = 1,
+			parameter	S_R_REGS             = 1
 		)
 		(
 			input	wire											reset,
@@ -57,18 +53,16 @@ module jelly_texture_cache_dma
 			input	wire	[M_AXI4_LEN_WIDTH-1:0]					param_arlen,
 			
 			// slave port
-			input	wire	[ID_WIDTH-1:0]							s_id,
-			input	wire	[ADDR_WIDTH-1:0]						s_addr,
-			input	wire											s_valid,
-			output	wire											s_ready,
-			
-			// master port
-			output	wire	[ID_WIDTH-1:0]							m_id,
-			output	wire											m_last,
-			output	wire	[STRB_WIDTH-1:0]						m_strb,
-			output	wire	[DATA_WIDTH-1:0]						m_data,
-			output	wire											m_valid,
-			input	wire											m_ready,
+			input	wire	[ID_WIDTH-1:0]							s_arid,
+			input	wire	[ADDR_WIDTH-1:0]						s_araddr,
+			input	wire											s_arvalid,
+			output	wire											s_arready,
+			output	wire	[ID_WIDTH-1:0]							s_rid,
+			output	wire											s_rlast,
+			output	wire	[COMPONENT_SEL_WIDTH-1:0]				s_rcomponent,
+			output	wire	[DATA_WIDTH-1:0]						s_rdata,
+			output	wire											s_rvalid,
+			input	wire											s_rready,
 			
 			// AXI4 read (master)
 			output	wire	[M_AXI4_ID_WIDTH-1:0]					m_axi4_arid,
@@ -97,30 +91,30 @@ module jelly_texture_cache_dma
 	// -----------------------------
 	
 	// slave port
-	wire	[ID_WIDTH-1:0]				slave_id;
-	wire	[ADDR_WIDTH-1:0]			slave_addr;
-	wire								slave_valid;
-	wire								slave_ready;
+	wire	[ID_WIDTH-1:0]				slave_arid;
+	wire	[ADDR_WIDTH-1:0]			slave_araddr;
+	wire								slave_arvalid;
+	wire								slave_arready;
 	
 	jelly_pipeline_insert_ff
 			#(
 				.DATA_WIDTH			(ID_WIDTH+ADDR_WIDTH),
-				.SLAVE_REGS			(SLAVE_REGS),
+				.SLAVE_REGS			(S_AR_REGS),
 				.MASTER_REGS		(1)
 			)
-		i_pipeline_insert_ff_slave
+		i_pipeline_insert_ff_slave_ar
 			(
 				.reset				(reset),
 				.clk				(clk),
 				.cke				(1'b1),
 				
-				.s_data				({s_id, s_addr}),
-				.s_valid			(s_valid),
-				.s_ready			(s_ready),
+				.s_data				({s_arid, s_araddr}),
+				.s_valid			(s_arvalid),
+				.s_ready			(s_arready),
 				
-				.m_data				({slave_id, slave_addr}),
-				.m_valid			(slave_valid),
-				.m_ready			(slave_ready),
+				.m_data				({slave_arid, slave_araddr}),
+				.m_valid			(slave_arvalid),
+				.m_ready			(slave_arready),
 				
 				.buffered			(),
 				.s_ready_next		()
@@ -128,40 +122,36 @@ module jelly_texture_cache_dma
 	
 	
 	// master port
-	wire	[ID_WIDTH-1:0]				master_id;
-	wire								master_last;
-	wire	[STRB_WIDTH-1:0]			master_strb;
-	wire	[COMPONENT_DATA_WIDTH-1:0]	master_component_data;
-	wire								master_valid;
-	wire								master_ready;
-	
-	wire	[COMPONENT_DATA_WIDTH-1:0]	m_component_data;
+	wire	[ID_WIDTH-1:0]				slave_rid;
+	wire								slave_rlast;
+	wire	[COMPONENT_SEL_WIDTH-1:0]	slave_rcomponent;
+	wire	[DATA_WIDTH-1:0]			slave_rdata;
+	wire								slave_rvalid;
+	wire								slave_rready;
 	
 	jelly_pipeline_insert_ff
 			#(
-				.DATA_WIDTH			(ID_WIDTH+1+STRB_WIDTH+DATA_WIDTH),
+				.DATA_WIDTH			(ID_WIDTH+1+COMPONENT_SEL_WIDTH+DATA_WIDTH),
 				.SLAVE_REGS			(1),
-				.MASTER_REGS		(MASTER_REGS)
+				.MASTER_REGS		(S_R_REGS)
 			)
-		i_pipeline_insert_ff_master
+		i_pipeline_insert_ff_slave_r
 			(
 				.reset				(reset),
 				.clk				(clk),
 				.cke				(1'b1),
 				
-				.s_data				({master_id, master_last, master_strb, master_component_data}),
-				.s_valid			(master_valid),
-				.s_ready			(master_ready),
+				.s_data				({slave_rid, slave_rlast, slave_rcomponent, slave_rdata}),
+				.s_valid			(slave_rvalid),
+				.s_ready			(slave_rready),
 				
-				.m_data				({m_id, m_last, m_strb, m_component_data}),
-				.m_valid			(m_valid),
-				.m_ready			(m_ready),
+				.m_data				({s_rid, s_rlast, s_rcomponent, s_rdata}),
+				.m_valid			(s_rvalid),
+				.m_ready			(s_rready),
 				
 				.buffered			(),
 				.s_ready_next		()
 			);
-	
-	assign m_data = {COMPONENT_NUM{m_component_data}};
 	
 	
 	// AXI4 ar
@@ -176,7 +166,7 @@ module jelly_texture_cache_dma
 				.SLAVE_REGS			(1),
 				.MASTER_REGS		(M_AXI4_REGS)
 			)
-		i_pipeline_insert_ff_ar
+		i_pipeline_insert_ff_axi4_ar
 			(
 				.reset				(reset),
 				.clk				(clk),
@@ -196,7 +186,6 @@ module jelly_texture_cache_dma
 	
 	assign m_axi4_arlen    = param_arlen;
 	
-	assign m_axi4_arid     = M_AXI4_ARID;
 	assign m_axi4_arsize   = M_AXI4_ARSIZE;
 	assign m_axi4_arburst  = M_AXI4_ARBURST;
 	assign m_axi4_arcache  = M_AXI4_ARCACHE;
@@ -226,11 +215,11 @@ module jelly_texture_cache_dma
 			reg_arvalid     <= 1'b0;
 		end
 		else begin
-			if ( slave_valid && slave_ready ) begin
-				reg_arid        <= slave_id;
+			if ( slave_arvalid && slave_arready ) begin
+				reg_arid        <= slave_arid;
 				reg_arcomponent <= {COMPONENT_SEL_WIDTH{1'b0}};
-				reg_addr        <= slave_addr;
-				reg_araddr      <= slave_addr + param_addr[M_AXI4_ADDR_WIDTH-1:0];
+				reg_addr        <= slave_araddr;
+				reg_araddr      <= slave_araddr + param_addr[M_AXI4_ADDR_WIDTH-1:0];
 				reg_arvalid     <= 1'b1;
 			end
 			else if ( axi4_arvalid && axi4_arready ) begin
@@ -250,38 +239,38 @@ module jelly_texture_cache_dma
 		end
 	end
 	
-	assign slave_ready = (!reg_arvalid || ((reg_arcomponent == (COMPONENT_NUM-1)) && axi4_arready));
+	assign slave_arready = (!reg_arvalid || ((reg_arcomponent == (COMPONENT_NUM-1)) && axi4_arready));
 	
-	assign axi4_arid    = reg_arid;
-	assign axi4_araddr  = reg_araddr;
-	assign axi4_arvalid = reg_arvalid;
+	assign axi4_arid     = reg_arid;
+	assign axi4_araddr   = reg_araddr;
+	assign axi4_arvalid  = reg_arvalid;
 	
 	
 	// data
-	reg		[STRB_WIDTH-1:0]	reg_strb;
+	reg		[COMPONENT_SEL_WIDTH-1:0]	reg_rcomponent;
 	always @(posedge clk) begin
 		if ( reset ) begin
-			reg_strb <= 1;
+			reg_rcomponent <= {COMPONENT_SEL_WIDTH{1'b0}};
 		end
 		else begin
 			if ( m_axi4_rvalid && m_axi4_rready && m_axi4_rlast ) begin
-				if ( reg_strb[COMPONENT_NUM-1] ) begin
-					reg_strb <= 1;
+				if ( reg_rcomponent == (COMPONENT_NUM-1) ) begin
+					reg_rcomponent <= {COMPONENT_SEL_WIDTH{1'b0}};
 				end
 				else begin
-					reg_strb <= (reg_strb << 1);
+					reg_rcomponent <= reg_rcomponent + 1'b1;
 				end
 			end
 		end
 	end
 	
-	assign m_axi4_rready         = master_ready;
+	assign m_axi4_rready = slave_rready;
 	
-	assign master_id             = m_axi4_rid;
-	assign master_last           = (m_axi4_rlast && reg_strb[COMPONENT_NUM-1]);
-	assign master_strb           = reg_strb;
-	assign master_component_data = m_axi4_rdata;
-	assign master_valid          = m_axi4_rvalid;
+	assign slave_rid        = m_axi4_rid;
+	assign slave_rlast      = (m_axi4_rlast && (reg_rcomponent == (COMPONENT_NUM-1)));
+	assign slave_rcomponent = reg_rcomponent;
+	assign slave_rdata      = m_axi4_rdata;
+	assign slave_rvalid     = m_axi4_rvalid;
 	
 endmodule
 
