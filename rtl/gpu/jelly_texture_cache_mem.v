@@ -37,7 +37,7 @@ module jelly_texture_cache_mem
 			output	wire							busy,
 			
 			input	wire	[USER_WIDTH-1:0]		s_user,
-			input	wire							s_we,
+			input	wire	[COMPONENT_NUM-1:0]		s_we,
 			input	wire	[S_DATA_WIDTH-1:0]		s_wdata,
 			input	wire	[TAG_ADDR_WIDTH-1:0]	s_tag_addr,
 			input	wire	[PIX_ADDR_WIDTH-1:0]	s_pix_addr,
@@ -51,15 +51,17 @@ module jelly_texture_cache_mem
 			input	wire							m_ready
 		);
 	
-	localparam	SEL_WIDTH      = S_DATA_WIDE_SIZE > 0 ? S_DATA_WIDE_SIZE : 1;
+	localparam	SEL_WIDTH         = S_DATA_WIDE_SIZE > 0 ? S_DATA_WIDE_SIZE : 1;
+	localparam	S_COMPONENT_WIDTH = (COMPONENT_WIDTH << S_DATA_WIDE_SIZE);
 	
+	genvar							i;
 	
 	
 	//  cahce memory read
 	wire							cke;
 	
 	wire	[USER_WIDTH-1:0]		st0_user      = s_user;
-	wire							st0_we        = s_we;
+	wire	[COMPONENT_NUM-1:0]		st0_we        = s_we;
 	wire	[S_DATA_WIDTH-1:0]		st0_wdata     = s_wdata;
 	wire	[TAG_ADDR_WIDTH-1:0]	st0_tag_addr  = s_tag_addr;
 	wire	[S_ADDR_WIDTH-1:0]		st0_addr      = ({s_tag_addr, s_pix_addr} >> S_DATA_WIDE_SIZE);
@@ -85,38 +87,42 @@ module jelly_texture_cache_mem
 	reg								st3_valid;
 	
 	
-	// CACHE-RAM
-	jelly_ram_singleport
-			#(
-				.ADDR_WIDTH			(TAG_ADDR_WIDTH + S_ADDR_WIDTH),
-				.DATA_WIDTH			(S_DATA_WIDTH),
-				.RAM_TYPE			(RAM_TYPE),
-				.DOUT_REGS			(1)
-			)
-		i_ram_singleport
-			(
-				.clk				(clk),
-				.en					(cke),
-				.regcke				(cke),
-				
-				.we					(st0_we),
-				.addr				({st0_tag_addr, st0_addr}),
-				.din				(st0_wdata),
-				.dout				(mem_rdata)
-			);
-	
-	jelly_multiplexer
-			#(
-				.SEL_WIDTH			(S_DATA_WIDE_SIZE),
-				.OUT_WIDTH			(M_DATA_WIDTH)
-			)
-		i_multiplexer
-			(
-				.endian				(endian),
-				.sel				(st2_sel),
-				.din				(mem_rdata),
-				.dout				(read_data)
-			);
+	generate
+	for ( i = 0; i < COMPONENT_NUM; i = i+1 ) begin : mem_loop
+		// CACHE-RAM
+		jelly_ram_singleport
+				#(
+					.ADDR_WIDTH			(TAG_ADDR_WIDTH + S_ADDR_WIDTH),
+					.DATA_WIDTH			(S_DATA_WIDTH),
+					.RAM_TYPE			(RAM_TYPE),
+					.DOUT_REGS			(1)
+				)
+			i_ram_singleport
+				(
+					.clk				(clk),
+					.en					(cke),
+					.regcke				(cke),
+					
+					.we					(st0_we[i]),
+					.addr				({st0_tag_addr, st0_addr}),
+					.din				(st0_wdata[S_COMPONENT_WIDTH*i +: S_COMPONENT_WIDTH]),
+					.dout				(mem_rdata[S_COMPONENT_WIDTH*i +: S_COMPONENT_WIDTH])
+				);
+		
+		jelly_multiplexer
+				#(
+					.SEL_WIDTH			(S_DATA_WIDE_SIZE),
+					.OUT_WIDTH			(COMPONENT_WIDTH)
+				)
+			i_multiplexer
+				(
+					.endian				(endian),
+					.sel				(st2_sel),
+					.din				(mem_rdata[S_COMPONENT_WIDTH*i +: S_COMPONENT_WIDTH]),
+					.dout				(read_data[COMPONENT_WIDTH*i   +: COMPONENT_WIDTH])
+				);
+	end
+	endgenerate
 	
 	
 	// pipeline

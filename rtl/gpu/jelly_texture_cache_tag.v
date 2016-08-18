@@ -191,7 +191,7 @@ module jelly_texture_cache_tag
 			end
 			st0_user       <= s_user;
 			st0_tag_we     <= (s_valid && s_addr_x < param_width && s_addr_y < param_height);
-			st0_tag_addr   <= s_blk_addr_x[TAG_ADDR_WIDTH-1:0] + {s_blk_addr_y[TAG_ADDR_HALF-1:0], s_blk_addr_y[TAG_ADDR_WIDTH-1:TAG_ADDR_HALF]};		
+			st0_tag_addr   <= s_blk_addr_x[TAG_ADDR_WIDTH-1:0] + {s_blk_addr_y[TAG_ADDR_HALF-1:0], s_blk_addr_y[TAG_ADDR_WIDTH-1:TAG_ADDR_HALF]};
 			st0_blk_addr_x <= s_blk_addr_x;
 			st0_blk_addr_y <= s_blk_addr_y;
 			st0_pix_addr_x <= s_pix_addr_x;

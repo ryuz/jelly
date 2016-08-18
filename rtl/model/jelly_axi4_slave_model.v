@@ -580,6 +580,16 @@ module jelly_axi4_slave_model
 	end
 	endtask
 	
+	task read_memh
+			(
+				input		[255:0]		filename
+			);
+	begin
+		$readmemh(filename, mem);
+	end
+	endtask
+	
+	
 endmodule
 
 

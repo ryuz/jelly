@@ -32,9 +32,12 @@ module tb_texture_cache_unit();
 	
 	parameter	USE_M_RREADY     = 0;
 	
+	parameter	COMPONENT_NUM    = 1;
+	parameter	COMPONENT_WIDTH  = 24;
+	
 	parameter	S_ADDR_X_WIDTH   = 12;
 	parameter	S_ADDR_Y_WIDTH   = 12;
-	parameter	S_DATA_WIDTH     = 24;
+	parameter	S_DATA_WIDTH     = COMPONENT_NUM * COMPONENT_WIDTH;
 	
 	parameter	TAG_ADDR_WIDTH   = 6;
 	
@@ -89,6 +92,8 @@ module tb_texture_cache_unit();
 	jelly_texture_cache_unit
 			#(
 				.USER_WIDTH			(S_ADDR_Y_WIDTH+S_ADDR_X_WIDTH),
+				.COMPONENT_NUM		(COMPONENT_NUM),
+				.COMPONENT_WIDTH	(COMPONENT_WIDTH),
 				.S_ADDR_X_WIDTH		(S_ADDR_X_WIDTH),
 				.S_ADDR_Y_WIDTH		(S_ADDR_Y_WIDTH),
 				.S_DATA_WIDTH		(S_DATA_WIDTH),
@@ -129,6 +134,7 @@ module tb_texture_cache_unit();
 				.m_arready			(m_arready),
 				
 				.m_rlast			(m_rlast),
+				.m_rstrb			({COMPONENT_NUM{1'b1}}),
 				.m_rdata			(m_rdata),
 				.m_rvalid			(m_rvalid),
 				.m_rready			(m_rready)
@@ -269,6 +275,7 @@ module tb_texture_cache_unit();
 					end
 					else begin
 						$display("!!!ERROR!!!");
+						$display("[NG] %d %d %h", s_ruser_y, s_ruser_x, s_rdata);
 						$stop();
 					end
 				end

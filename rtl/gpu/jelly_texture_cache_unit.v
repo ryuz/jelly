@@ -16,10 +16,12 @@
 module jelly_texture_cache_unit
 		#(
 			parameter	USER_WIDTH       = 1,
+			parameter	COMPONENT_NUM    = 1,
+			parameter	COMPONENT_WIDTH  = 24,
 			
 			parameter	S_ADDR_X_WIDTH   = 12,
 			parameter	S_ADDR_Y_WIDTH   = 12,
-			parameter	S_DATA_WIDTH     = 24,
+			parameter	S_DATA_WIDTH     = COMPONENT_NUM*COMPONENT_WIDTH,
 			
 			parameter	TAG_ADDR_WIDTH   = 6,
 			
@@ -74,8 +76,9 @@ module jelly_texture_cache_unit
 			output	wire							m_arvalid,
 			input	wire							m_arready,
 			
-			input	wire	[M_DATA_WIDTH-1:0]		m_rdata,
 			input	wire							m_rlast,
+			input	wire	[COMPONENT_NUM-1:0]		m_rstrb,
+			input	wire	[M_DATA_WIDTH-1:0]		m_rdata,
 			input	wire							m_rvalid,
 			output	wire							m_rready
 		);
@@ -95,7 +98,7 @@ module jelly_texture_cache_unit
 	wire								tagram_cache_hit;
 	wire								tagram_valid;
 	wire								tagram_ready;
-
+	
 	jelly_texture_cache_tag
 			#(
 				.USER_WIDTH				(USER_WIDTH),
@@ -105,7 +108,7 @@ module jelly_texture_cache_unit
 				.S_DATA_WIDTH			(S_DATA_WIDTH),
 				
 				.TAG_ADDR_WIDTH			(TAG_ADDR_WIDTH),
-				                    	 
+				
 				.BLK_X_SIZE				(BLK_X_SIZE),
 				.BLK_Y_SIZE				(BLK_Y_SIZE),
 				
@@ -162,7 +165,7 @@ module jelly_texture_cache_unit
 	reg									reg_range_out;
 	reg									reg_valid;
 	
-	reg									reg_we;
+	reg		[COMPONENT_NUM-1:0]			reg_we;
 	reg									reg_wlast;
 	reg		[M_DATA_WIDTH-1:0]			reg_wdata;
 	
@@ -183,7 +186,7 @@ module jelly_texture_cache_unit
 			reg_range_out    <= 1'bx;
 			reg_valid        <= 1'b0;
 			
-			reg_we           <= 1'b0;
+			reg_we           <= {COMPONENT_NUM{1'b0}};
 			reg_wlast        <= 1'bx;
 			reg_wdata        <= {M_DATA_WIDTH{1'bx}};
 			
@@ -199,12 +202,12 @@ module jelly_texture_cache_unit
 			// memory stage request receive
 			if ( mem_ready ) begin
 				reg_valid <= 1'b0;
-				reg_we    <= 1'b0;
+				reg_we    <= {COMPONENT_NUM{1'b0}};
 			end
 			
 			// rdata receive
 			if ( m_rvalid && m_rready ) begin
-				reg_we    <= m_rvalid;
+				reg_we    <= (m_rstrb & {COMPONENT_NUM{m_rvalid}});
 				reg_wlast <= m_rlast;
 				reg_wdata <= m_rdata;
 			end
@@ -216,7 +219,7 @@ module jelly_texture_cache_unit
 			end
 			
 			// write
-			if ( reg_we && mem_ready ) begin
+			if ( (reg_we != 0) && mem_ready ) begin
 				reg_pix_addr <= reg_pix_addr + (1 << M_DATA_WIDE_SIZE);
 				
 				if ( reg_wlast ) begin
@@ -273,6 +276,8 @@ module jelly_texture_cache_unit
 	jelly_texture_cache_mem
 			#(
 				.USER_WIDTH				(USER_WIDTH),
+				.COMPONENT_NUM			(COMPONENT_NUM),
+				.COMPONENT_WIDTH		(COMPONENT_WIDTH),
 				.TAG_ADDR_WIDTH			(TAG_ADDR_WIDTH),
 				.PIX_ADDR_WIDTH			(PIX_ADDR_WIDTH),
 				.M_DATA_WIDTH			(S_DATA_WIDTH),
