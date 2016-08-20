@@ -492,25 +492,40 @@ module jelly_texture_cache_l2
 				.m_axi4_rready			(m_axi4_rready)
 			);
 	
-	reg		[ID_WIDTH-1:0]		reg_dma_arid;
-	reg		[ADDR_WIDTH-1:0]	reg_dma_araddr;
-	reg							reg_dma_arvalid;
+	reg		[ID_WIDTH-1:0]		st0_dma_arid;
+	reg		[ADDR_WIDTH-1:0]	st0_dma_araddr;
+	reg		[ADDR_WIDTH-1:0]	st0_dma_araddrx;
+	reg							st0_dma_arvalid;
+	
+	reg		[ID_WIDTH-1:0]		st1_dma_arid;
+	reg		[ADDR_WIDTH-1:0]	st1_dma_araddr;
+	reg							st1_dma_arvalid;
 	always @(posedge clk) begin
 		if ( reset ) begin
-			reg_dma_arid    <= {ID_WIDTH{1'bx}};
-			reg_dma_araddr  <= {ADDR_WIDTH{1'bx}};
-			reg_dma_arvalid <= 1'b0;
+			st0_dma_arid    <= {ID_WIDTH{1'bx}};
+			st0_dma_araddr  <= {ADDR_WIDTH{1'bx}};
+			st0_dma_araddrx <= {ADDR_WIDTH{1'bx}};
+			st0_dma_arvalid <= 1'b0;
+			
+			st1_dma_arid    <= {ID_WIDTH{1'bx}};
+			st1_dma_araddr  <= {ADDR_WIDTH{1'bx}};
+			st1_dma_arvalid <= 1'b0;
 		end
 		else if ( !dma_arvalid || dma_arready ) begin
-			reg_dma_arid    <= ringbus_arid;
-			reg_dma_araddr  <= (ringbus_araddry * param_stride) + (ringbus_araddrx << (BLK_Y_SIZE + BLK_X_SIZE));
-			reg_dma_arvalid <= ringbus_arvalid;
+			st0_dma_arid    <= ringbus_arid;
+			st0_dma_araddr  <= (ringbus_araddry * param_stride);// + (ringbus_araddrx << (BLK_Y_SIZE + BLK_X_SIZE));
+			st0_dma_araddrx <= (ringbus_araddrx << (BLK_Y_SIZE + BLK_X_SIZE));
+			st0_dma_arvalid <= ringbus_arvalid;
+			
+			st1_dma_arid    <= st0_dma_arid;
+			st1_dma_araddr  <= st0_dma_araddr + st0_dma_araddrx;
+			st1_dma_arvalid <= st0_dma_arvalid; 
 		end
 	end
 	
-	assign dma_arid           = reg_dma_arid;
-	assign dma_araddr         = reg_dma_araddr;
-	assign dma_arvalid        = reg_dma_arvalid;
+	assign dma_arid           = st1_dma_arid;
+	assign dma_araddr         = st1_dma_araddr;
+	assign dma_arvalid        = st1_dma_arvalid;
 	assign ringbus_arready    = dma_arready;
 	
 	assign ringbus_rid        = dma_rid;
