@@ -278,15 +278,15 @@ module jelly_texture_cache_l2
 					.m_valid		(),
 					.m_ready		(1'b0),
 					
-					.src_id_to		(ringbus_ar_id_to  [(i+0)]),
-					.src_id_from	(ringbus_ar_id_from[(i+0)*ID_WIDTH      +: ID_WIDTH]),
-					.src_data		(ringbus_ar_data   [(i+0)*AR_DATA_WIDTH +: AR_DATA_WIDTH]),
-					.src_valid		(ringbus_ar_valid  [(i+0)]),
+					.src_id_to		(ringbus_ar_id_to  [(i+1)]),
+					.src_id_from	(ringbus_ar_id_from[(i+1)*ID_WIDTH      +: ID_WIDTH]),
+					.src_data		(ringbus_ar_data   [(i+1)*AR_DATA_WIDTH +: AR_DATA_WIDTH]),
+					.src_valid		(ringbus_ar_valid  [(i+1)]),
 					
-					.sink_id_to		(ringbus_ar_id_to  [(i+1)]),
-					.sink_id_from	(ringbus_ar_id_from[(i+1)*ID_WIDTH      +: ID_WIDTH]),
-					.sink_data		(ringbus_ar_data   [(i+1)*AR_DATA_WIDTH +: AR_DATA_WIDTH]),
-					.sink_valid		(ringbus_ar_valid  [(i+1)])
+					.sink_id_to		(ringbus_ar_id_to  [(i+0)]),
+					.sink_id_from	(ringbus_ar_id_from[(i+0)*ID_WIDTH      +: ID_WIDTH]),
+					.sink_data		(ringbus_ar_data   [(i+0)*AR_DATA_WIDTH +: AR_DATA_WIDTH]),
+					.sink_valid		(ringbus_ar_valid  [(i+0)])
 				);
 		
 		jelly_ring_bus_unit
@@ -313,15 +313,15 @@ module jelly_texture_cache_l2
 					.m_valid		(m_rvalid),
 					.m_ready		(m_rready),
 					
-					.src_id_to		(ringbus_r_id_to  [(i+0)*ID_WIDTH     +: ID_WIDTH]),
-					.src_id_from	(ringbus_r_id_from[(i+0)]),
-					.src_data		(ringbus_r_data   [(i+0)*R_DATA_WIDTH +: R_DATA_WIDTH]),
-					.src_valid		(ringbus_r_valid  [(i+0)]),
+					.src_id_to		(ringbus_r_id_to  [(i+1)*ID_WIDTH     +: ID_WIDTH]),
+					.src_id_from	(ringbus_r_id_from[(i+1)]),
+					.src_data		(ringbus_r_data   [(i+1)*R_DATA_WIDTH +: R_DATA_WIDTH]),
+					.src_valid		(ringbus_r_valid  [(i+1)]),
 					
-					.sink_id_to		(ringbus_r_id_to  [(i+1)*ID_WIDTH     +: ID_WIDTH]),
-					.sink_id_from	(ringbus_r_id_from[(i+1)]),
-					.sink_data		(ringbus_r_data   [(i+1)*R_DATA_WIDTH +: R_DATA_WIDTH]),
-					.sink_valid		(ringbus_r_valid  [(i+1)])
+					.sink_id_to		(ringbus_r_id_to  [(i+0)*ID_WIDTH     +: ID_WIDTH]),
+					.sink_id_from	(ringbus_r_id_from[(i+0)]),
+					.sink_data		(ringbus_r_data   [(i+0)*R_DATA_WIDTH +: R_DATA_WIDTH]),
+					.sink_valid		(ringbus_r_valid  [(i+0)])
 				);
 	end
 	endgenerate
@@ -365,15 +365,15 @@ module jelly_texture_cache_l2
 					.m_valid		(ringbus_arvalid),
 					.m_ready		(ringbus_arready),
 					
-					.src_id_to		(ringbus_ar_id_to  [CACHE_NUM]),
-					.src_id_from	(ringbus_ar_id_from[CACHE_NUM*ID_WIDTH      +: ID_WIDTH]),
-					.src_data		(ringbus_ar_data   [CACHE_NUM*AR_DATA_WIDTH +: AR_DATA_WIDTH]),
-					.src_valid		(ringbus_ar_valid  [CACHE_NUM]),
+					.src_id_to		(ringbus_ar_id_to  [0]),
+					.src_id_from	(ringbus_ar_id_from[0 +: ID_WIDTH]),
+					.src_data		(ringbus_ar_data   [0 +: AR_DATA_WIDTH]),
+					.src_valid		(ringbus_ar_valid  [0]),
 					
-					.sink_id_to		(ringbus_ar_id_to  [0]),
-					.sink_id_from	(ringbus_ar_id_from[0 +: ID_WIDTH]),
-					.sink_data		(ringbus_ar_data   [0 +: AR_DATA_WIDTH]),
-					.sink_valid		(ringbus_ar_valid  [0])
+					.sink_id_to		(ringbus_ar_id_to  [CACHE_NUM]),
+					.sink_id_from	(ringbus_ar_id_from[CACHE_NUM*ID_WIDTH      +: ID_WIDTH]),
+					.sink_data		(ringbus_ar_data   [CACHE_NUM*AR_DATA_WIDTH +: AR_DATA_WIDTH]),
+					.sink_valid		(ringbus_ar_valid  [CACHE_NUM])
 				);
 	
 	jelly_ring_bus_unit
@@ -400,15 +400,15 @@ module jelly_texture_cache_l2
 					.m_valid		(),
 					.m_ready		(1'b0),
 					
-					.src_id_to		(ringbus_r_id_to  [CACHE_NUM*ID_WIDTH     +: ID_WIDTH]),
-					.src_id_from	(ringbus_r_id_from[CACHE_NUM]),
-					.src_data		(ringbus_r_data   [CACHE_NUM*R_DATA_WIDTH +: R_DATA_WIDTH]),
-					.src_valid		(ringbus_r_valid  [CACHE_NUM]),
+					.src_id_to		(ringbus_r_id_to  [0 +: ID_WIDTH]),
+					.src_id_from	(ringbus_r_id_from[0]),
+					.src_data		(ringbus_r_data   [0 +: R_DATA_WIDTH]),
+					.src_valid		(ringbus_r_valid  [0]),
 					
-					.sink_id_to		(ringbus_r_id_to  [0 +: ID_WIDTH]),
-					.sink_id_from	(ringbus_r_id_from[0]),
-					.sink_data		(ringbus_r_data   [0 +: R_DATA_WIDTH]),
-					.sink_valid		(ringbus_r_valid  [0])
+					.sink_id_to		(ringbus_r_id_to  [CACHE_NUM*ID_WIDTH     +: ID_WIDTH]),
+					.sink_id_from	(ringbus_r_id_from[CACHE_NUM]),
+					.sink_data		(ringbus_r_data   [CACHE_NUM*R_DATA_WIDTH +: R_DATA_WIDTH]),
+					.sink_valid		(ringbus_r_valid  [CACHE_NUM])
 				);
 	
 	

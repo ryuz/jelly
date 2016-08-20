@@ -22,6 +22,8 @@ module jelly_texture_cache_tag
 			parameter	S_DATA_WIDTH     = 24,
 			
 			parameter	TAG_ADDR_WIDTH   = 6,
+			parameter	TAG_BLK_X_SIZE   = 0,
+			parameter	TAG_BLK_Y_SIZE   = TAG_ADDR_WIDTH / 2 + TAG_BLK_X_SIZE,
 			
 			parameter	BLK_X_SIZE       = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	BLK_Y_SIZE       = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
@@ -191,7 +193,8 @@ module jelly_texture_cache_tag
 			end
 			st0_user       <= s_user;
 			st0_tag_we     <= (s_valid && s_addr_x < param_width && s_addr_y < param_height);
-			st0_tag_addr   <= s_blk_addr_x[TAG_ADDR_WIDTH-1:0] + {s_blk_addr_y[TAG_ADDR_HALF-1:0], s_blk_addr_y[TAG_ADDR_WIDTH-1:TAG_ADDR_HALF]};
+//			st0_tag_addr   <= s_blk_addr_x[TAG_ADDR_WIDTH-1:0] + {s_blk_addr_y[TAG_ADDR_HALF-1:0], s_blk_addr_y[TAG_ADDR_WIDTH-1:TAG_ADDR_HALF]};
+			st0_tag_addr   <= (s_blk_addr_x << TAG_BLK_X_SIZE) + (s_blk_addr_y << TAG_BLK_Y_SIZE);
 			st0_blk_addr_x <= s_blk_addr_x;
 			st0_blk_addr_y <= s_blk_addr_y;
 			st0_pix_addr_x <= s_pix_addr_x;

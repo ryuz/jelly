@@ -10,7 +10,7 @@ module tb_texture_cache_l2();
 		$dumpfile("tb_texture_cache_l2.vcd");
 		$dumpvars(0, tb_texture_cache_l2);
 		
-		#1000000;
+		#3000000;
 			$display("!!!!TIME OUT!!!!");
 			$finish;
 	end
@@ -23,7 +23,7 @@ module tb_texture_cache_l2();
 	
 	
 	
-	parameter	CACHE_NUM            = 1;
+	parameter	CACHE_NUM            = 2;
 	
 	parameter	COMPONENT_NUM        = 3;
 	parameter	COMPONENT_SEL_WIDTH  = COMPONENT_NUM <= 2  ?  1 :
@@ -98,58 +98,112 @@ module tb_texture_cache_l2();
 	end
 	
 	
-	reg		[CACHE_NUM*USER_WIDTH-1:0]				s_aruser;
-	reg		[CACHE_NUM*S_ADDR_X_WIDTH-1:0]			s_araddrx;
-	reg		[CACHE_NUM*S_ADDR_Y_WIDTH-1:0]			s_araddry;
-	reg		[CACHE_NUM-1:0]							s_arvalid = 0;
+	wire	[CACHE_NUM*USER_WIDTH-1:0]				s_aruser;
+	wire	[CACHE_NUM*S_ADDR_X_WIDTH-1:0]			s_araddrx;
+	wire	[CACHE_NUM*S_ADDR_Y_WIDTH-1:0]			s_araddry;
+	wire	[CACHE_NUM-1:0]							s_arvalid;
 	wire	[CACHE_NUM-1:0]							s_arready;
 	
 	wire	[CACHE_NUM*USER_WIDTH-1:0]				s_ruser;
 	wire	[CACHE_NUM*S_DATA_WIDTH-1:0]			s_rdata;
 	wire	[CACHE_NUM-1:0]							s_rvalid;
-	wire	[CACHE_NUM-1:0]							s_rready = 1;
+	wire	[CACHE_NUM-1:0]							s_rready = 2'b11;
+	
+	reg		[USER_WIDTH-1:0]				s_aruser0;
+	reg		[S_ADDR_X_WIDTH-1:0]			s_araddrx0;
+	reg		[S_ADDR_Y_WIDTH-1:0]			s_araddry0;
+	reg										s_arvalid0 = 0;
+	
+	reg		[USER_WIDTH-1:0]				s_aruser1;
+	reg		[S_ADDR_X_WIDTH-1:0]			s_araddrx1;
+	reg		[S_ADDR_Y_WIDTH-1:0]			s_araddry1;
+	reg										s_arvalid1 = 0;
+	
+	assign	s_aruser  = {s_aruser1,  s_aruser0};
+	assign	s_araddrx = {s_araddrx1, s_araddrx0};
+	assign	s_araddry = {s_araddry1, s_araddry0};
+	assign	s_arvalid = {s_arvalid1, s_arvalid0};
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
-			s_aruser  <= 0;
-			s_araddrx <= 0;
-			s_araddry <= 0;
-			s_arvalid <= 0;
+			s_aruser0  <= 0;
+			s_araddrx0 <= 0;
+			s_araddry0 <= 0;
+			s_arvalid0 <= 0;
+			
+			s_aruser1  <= 0;
+			s_araddrx1 <= 0;
+			s_araddry1 <= 0;
+			s_arvalid1 <= 0;
 		end
 		else begin
-			if ( s_arvalid && s_arready ) begin
-				s_araddrx <= s_araddrx + 1;
-				if ( s_araddrx == 639 ) begin
-					s_araddrx <= 0;
-					s_araddry <= s_araddry + 1;
-				end
-				
-				/*
-				s_araddry <= s_araddry + 1;
-				if ( s_araddry == 479 ) begin
-					s_araddry <= 0;
-					s_araddrx <= s_araddrx + 1;
-				end
-				*/
-			end
 			
-			s_arvalid <= 1;
+			if ( s_arvalid[0] && s_arready[0] ) begin
+				s_araddrx0 <= s_araddrx0 + 1;
+				if ( s_araddrx0 == 639 ) begin
+					s_araddrx0 <= 0;
+					s_araddry0 <= s_araddry0 + 1;
+				end
+			end
+			s_arvalid0 <= 1;
+			
+			/*
+			if ( s_arvalid[0] && s_arready[0] ) begin
+				s_araddry0 <= s_araddry0 + 1;
+				if ( s_araddry0 == 479 ) begin
+					s_araddry0 <= 0;
+					s_araddrx0 <= s_araddrx0 + 1;
+				end
+			end
+			s_arvalid0 <= 1;
+			*/
+			
+			/*
+			if ( s_arvalid[1] && s_arready[1] ) begin
+				s_araddrx1 <= s_araddrx1 + 1;
+				if ( s_araddrx1 == 639 ) begin
+					s_araddrx1 <= 0;
+					s_araddry1 <= s_araddry1 + 1;
+				end
+			end
+			s_arvalid1 <= 1;
+			*/
+			
+			if ( s_arvalid[1] && s_arready[1] ) begin
+				s_araddry1 <= s_araddry1 + 1;
+				if ( s_araddry1 == 479 ) begin
+					s_araddry1 <= 0;
+					s_araddrx1 <= s_araddrx1 + 1;
+				end
+			end
+			s_arvalid1 <= 1;
 		end
 	end
 	
 	
-	integer		fp;
+	integer		fp0, fp1;
 	initial begin
-		fp = $fopen("out.ppm");
-		$fdisplay(fp, "P3");
-		$fdisplay(fp, "640 480");
-		$fdisplay(fp, "255");
+		fp0 = $fopen("out0.ppm");
+		$fdisplay(fp0, "P3");
+		$fdisplay(fp0, "640 480");
+		$fdisplay(fp0, "255");
+		
+		fp1 = $fopen("out1.ppm");
+		$fdisplay(fp1, "P3");
+		$fdisplay(fp1, "480 640");
+		$fdisplay(fp1, "255");
+		
+		$display("file open");
 	end
 	
 	always @(posedge clk) begin
 		if ( !reset ) begin
-			if ( s_rvalid && s_rready ) begin
-				$fdisplay(fp, "%d %d %d", s_rdata[7:0], s_rdata[15:8], s_rdata[23:16]);
+			if ( s_rvalid[0] && s_rready[0] ) begin
+				$fdisplay(fp0, "%d %d %d", s_rdata[7:0], s_rdata[15:8], s_rdata[23:16]);
+			end
+			
+			if ( s_rvalid[1] && s_rready[1] ) begin
+				$fdisplay(fp1, "%d %d %d", s_rdata[31:24], s_rdata[39:32], s_rdata[47:40]);
 			end
 		end
 	end
@@ -251,7 +305,7 @@ module tb_texture_cache_l2();
 					
 					.param_width		(640),
 					.param_height		(480),
-					.param_stride			(640*8),
+					.param_stride		(640*8),
 					
 					.s_aruser			(s_aruser),
 					.s_araddrx			(s_araddrx),
