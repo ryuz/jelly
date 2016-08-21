@@ -255,7 +255,7 @@ module tb_texture_cache();
 		$fdisplay(fp3, "160 640");
 		$fdisplay(fp3, "255");
 		
-		fp0l = $fopen("out0.txt");
+//		fp0l = $fopen("out0.txt");
 		
 		$display("file open");
 	end
@@ -264,7 +264,7 @@ module tb_texture_cache();
 		if ( !reset ) begin
 			if ( s_rvalid[0] && s_rready[0] ) begin
 				$fdisplay(fp0,  "%d %d %d", s_rdata[7:0], s_rdata[15:8], s_rdata[23:16]);
-				$fdisplay(fp0l, "%x", s_rdata[23:0]);
+//				$fdisplay(fp0l, "%x", s_rdata[23:0]);
 			end
 			
 			if ( s_rvalid[1] && s_rready[1] ) begin
@@ -380,7 +380,7 @@ module tb_texture_cache();
 				.param_width			(640),
 				.param_height			(480),
 				.param_stride			(640*8),
-				.param_arlen			(7),
+		//		.param_arlen			(7),
 				
 				.clear_start			(0),
 				.clear_busy				(),
@@ -430,20 +430,20 @@ module tb_texture_cache();
 				.WRITE_LOG_FILE			(""),
 				.READ_LOG_FILE			("axi4_read.txt"),
 				
-				.AW_DELAY				(0),
-				.AR_DELAY				(0),
+				.AW_DELAY				(20),
+				.AR_DELAY				(20),
 				
-				.AW_FIFO_PTR_WIDTH		(0),
-				.W_FIFO_PTR_WIDTH		(0),
-				.B_FIFO_PTR_WIDTH		(0),
-				.AR_FIFO_PTR_WIDTH		(0),
-				.R_FIFO_PTR_WIDTH		(0),
+				.AW_FIFO_PTR_WIDTH		(4),
+				.W_FIFO_PTR_WIDTH		(4),
+				.B_FIFO_PTR_WIDTH		(4),
+				.AR_FIFO_PTR_WIDTH		(4),
+				.R_FIFO_PTR_WIDTH		(4),
 				
-				.AW_BUSY_RATE			(0),
-				.W_BUSY_RATE			(0),
-				.B_BUSY_RATE			(0),
-				.AR_BUSY_RATE			(0),
-				.R_BUSY_RATE			(0)
+				.AW_BUSY_RATE			(50),
+				.W_BUSY_RATE			(50),
+				.B_BUSY_RATE			(50),
+				.AR_BUSY_RATE			(50),
+				.R_BUSY_RATE			(50)
 			)
 		i_axi4_slave_model
 			(

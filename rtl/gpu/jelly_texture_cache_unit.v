@@ -40,7 +40,6 @@ module jelly_texture_cache_unit
 			parameter	M_ADDR_X_WIDTH       = S_ADDR_X_WIDTH - M_DATA_WIDE_SIZE,
 			parameter	M_ADDR_Y_WIDTH       = S_ADDR_Y_WIDTH,
 			
-			parameter	AUTO_TAG_ADDR        = 1,
 			parameter	USE_BORDER           = 1,
 			parameter	BORDER_DATA          = {S_DATA_WIDTH{1'b0}}
 		)
@@ -56,7 +55,6 @@ module jelly_texture_cache_unit
 			input	wire	[S_ADDR_X_WIDTH-1:0]	param_width,
 			input	wire	[S_ADDR_Y_WIDTH-1:0]	param_height,
 			
-			input	wire	[TAG_ADDR_WIDTH-1:0]	s_artagaddr,
 			input	wire	[S_USER_WIDTH-1:0]		s_aruser,
 			input	wire	[S_ADDR_X_WIDTH-1:0]	s_araddrx,
 			input	wire	[S_ADDR_Y_WIDTH-1:0]	s_araddry,
@@ -138,7 +136,6 @@ module jelly_texture_cache_unit
 				.param_height			(param_height),
 				
 				.s_user					(s_aruser),
-				.s_tagaddr				(s_artagaddr),
 				.s_addrx				(s_araddrx),
 				.s_addry				(s_araddry),
 				.s_valid				(s_arvalid),

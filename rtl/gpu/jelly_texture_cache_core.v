@@ -31,6 +31,7 @@ module jelly_texture_cache_core
 			
 			parameter	USER_WIDTH           = 1,
 			parameter	USE_S_RREADY         = 1,	// 0: s_rready is always 1'b1.   1: handshake mode.
+			parameter	USE_BORDER           = 1,
 			parameter	BORDER_DATA          = {S_DATA_WIDTH{1'b0}},
 			
 			parameter	ADDR_X_WIDTH         = 12,
@@ -78,7 +79,6 @@ module jelly_texture_cache_core
 			input	wire	[ADDR_X_WIDTH-1:0]						param_width,
 			input	wire	[ADDR_X_WIDTH-1:0]						param_height,
 			input	wire	[ADDR_WIDTH-1:0]						param_stride,
-			input	wire	[M_AXI4_LEN_WIDTH-1:0]					param_arlen,
 			
 			input	wire											clear_start,
 			output	wire											clear_busy,
@@ -193,6 +193,7 @@ module jelly_texture_cache_core
 				.TAG_RAM_TYPE			(L1_TAG_RAM_TYPE),
 				.MEM_RAM_TYPE			(L1_MEM_RAM_TYPE),
 				.USE_M_RREADY			(!USE_S_RREADY),
+				.USE_BORDER				(USE_BORDER),
 				.BORDER_DATA			(BORDER_DATA),
 				
 				.S_NUM					(L1_CACHE_NUM),
@@ -281,6 +282,9 @@ module jelly_texture_cache_core
 	endgenerate
 	
 	
+	
+	wire	[M_AXI4_LEN_WIDTH-1:0]	param_arlen = (1 << (L2_BLK_Y_SIZE + L2_BLK_X_SIZE + COMPONENT_DATA_SIZE - M_AXI4_DATA_SIZE)) - 1;
+			
 	jelly_texture_cache_l2
 			#(
 				.S_NUM					(L2_CACHE_NUM),
@@ -301,6 +305,7 @@ module jelly_texture_cache_core
 				.BLK_Y_SIZE				(L2_BLK_Y_SIZE),
 				.USE_M_RREADY			(1'b1),
 				
+				.USE_BORDER				(0),
 				.BORDER_DATA			(BORDER_DATA),
 				
 				.TAG_RAM_TYPE			(L2_TAG_RAM_TYPE),

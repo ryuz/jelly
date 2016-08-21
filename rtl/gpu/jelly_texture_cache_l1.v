@@ -77,7 +77,6 @@ module jelly_texture_cache_l1
 			
 			// master port to L2
 			output	wire	[M_NUM*S_ID_WIDTH-1:0]			m_arid,
-	//		output	wire	[M_NUM*M_TAG_ADDR_WIDTH-1:0]	m_artagaddr,
 			output	wire	[M_NUM-1:0]						m_arlast,
 			output	wire	[M_NUM*M_ADDR_X_WIDTH-1:0]		m_araddrx,
 			output	wire	[M_NUM*M_ADDR_Y_WIDTH-1:0]		m_araddry,
@@ -121,8 +120,6 @@ module jelly_texture_cache_l1
 	// -----------------------------
 	//  L1 Cahce
 	// -----------------------------
-	
-//	localparam M_BASE_TAG_ADDR_WIDTH = M_TAG_ADDR_WIDTH + M_X_SIZE + M_Y_SIZE;
 	
 	localparam AR_DATA_WIDTH = M_ADDR_X_WIDTH + M_ADDR_Y_WIDTH;
 	localparam R_DATA_WIDTH  = 1 + M_DATA_WIDTH;
@@ -216,15 +213,8 @@ module jelly_texture_cache_l1
 				);
 		
 		
-//		wire	[M_ID_WIDTH-1:0]	l2_id = ((l1_araddrx & ((1 << M_X_SIZE)-1)) | ((l1_araddry & ((1 << M_Y_SIZE)-1)) << M_X_SIZE));
-		
-//		wire	[M_ID_WIDTH-1:0]	l2_id = (l1_araddrx >> (BLK_X_SIZE-M_DATA_WIDE_SIZE) + (l1_araddry >> (BLK_Y_SIZE) (1 << M_Y_SIZE)/2)));
 		
 		wire	[M_ID_WIDTH-1:0]	l2_id = ((l1_araddrx >> (M_ID_X_RSHIFT)) << M_ID_X_LSHIFT) + ((l1_araddry >> (M_ID_Y_RSHIFT)) << M_ID_Y_LSHIFT);
-		
-	//	wire	[M_BASE_TAG_ADDR_WIDTH-1:0]	l2_base_tag_addr = (l1_araddrx + (l1_araddry >> (M_BASE_TAG_ADDR_WIDTH/2)));
-	//	wire	[M_ID_WIDTH-1:0]			l2_id            = l2_base_tag_addr;
-	//	wire	[M_TAG_ADDR_WIDTH-1:0]		l2_tag_addr      = (l2_base_tag_addr >> M_ID_WIDTH);
 		
 		jelly_ring_bus_unit
 				#(

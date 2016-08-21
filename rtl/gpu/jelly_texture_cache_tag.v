@@ -50,7 +50,6 @@ module jelly_texture_cache_tag
 			input	wire	[S_ADDR_Y_WIDTH-1:0]	param_height,
 			
 			input	wire	[USER_WIDTH-1:0]		s_user,
-			input	wire	[TAG_ADDR_WIDTH-1:0]	s_tagaddr,
 			input	wire	[S_ADDR_X_WIDTH-1:0]	s_addrx,
 			input	wire	[S_ADDR_Y_WIDTH-1:0]	s_addry,
 			input	wire							s_valid,
@@ -196,7 +195,6 @@ module jelly_texture_cache_tag
 			end
 			st0_user      <= s_user;
 			st0_tag_we    <= (s_valid && (!USE_BORDER || (s_addrx < param_width && s_addry < param_height)));
-//			st0_tag_addr  <= AUTO_TAG_ADDR ? ((s_blk_addrx >> TAG_BLK_X_SIZE) + (s_blk_addry << TAG_BLK_Y_SIZE)) : s_tagaddr;
 			st0_tag_addr  <= ((s_blk_addrx >> TAG_X_RSHIFT) << TAG_X_LSHIFT) + ((s_blk_addry >> TAG_Y_RSHIFT) << TAG_Y_LSHIFT);
 			st0_blk_addrx <= s_blk_addrx;
 			st0_blk_addry <= s_blk_addry;

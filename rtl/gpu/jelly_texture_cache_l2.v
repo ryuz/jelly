@@ -27,6 +27,7 @@ module jelly_texture_cache_l2
 			parameter	TAG_RAM_TYPE         = "distributed",
 			parameter	MEM_RAM_TYPE         = "block",
 			parameter	USE_M_RREADY         = 0,	// 0: m_rready is always 1'b1.   1: handshake mode.
+			parameter	USE_BORDER           = 1,
 			parameter	BORDER_DATA          = {S_DATA_WIDTH{1'b0}},
 			
 			parameter	ADDR_WIDTH           = 24,
@@ -183,6 +184,7 @@ module jelly_texture_cache_l2
 				.TAG_Y_LSHIFT			(TAG_Y_LSHIFT),
 				.TAG_RAM_TYPE			(TAG_RAM_TYPE),
 				.MEM_RAM_TYPE			(MEM_RAM_TYPE),
+				.USE_BORDER				(USE_BORDER),
 				.BORDER_DATA			(BORDER_DATA),
 				.USE_M_RREADY			(USE_M_RREADY),
 				
