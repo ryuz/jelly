@@ -184,6 +184,7 @@ module tb_texture_cache();
 	
 	
 	integer		fp0, fp1;
+	integer		fp0l, fp1l;
 	initial begin
 		fp0 = $fopen("out0.ppm");
 		$fdisplay(fp0, "P3");
@@ -195,13 +196,16 @@ module tb_texture_cache();
 		$fdisplay(fp1, "480 640");
 		$fdisplay(fp1, "255");
 		
+		fp0l = $fopen("out0.txt");
+		
 		$display("file open");
 	end
 	
 	always @(posedge clk) begin
 		if ( !reset ) begin
 			if ( s_rvalid[0] && s_rready[0] ) begin
-				$fdisplay(fp0, "%d %d %d", s_rdata[7:0], s_rdata[15:8], s_rdata[23:16]);
+				$fdisplay(fp0,  "%d %d %d", s_rdata[7:0], s_rdata[15:8], s_rdata[23:16]);
+				$fdisplay(fp0l, "%x", s_rdata[23:0]);
 			end
 			
 	//		if ( s_rvalid[1] && s_rready[1] ) begin
@@ -263,7 +267,7 @@ module tb_texture_cache();
 	//			.BLK_ADDR_X_WIDTH		(BLK_ADDR_X_WIDTH),
 	//			.BLK_ADDR_Y_WIDTH 		(BLK_ADDR_Y_WIDTH),
 				
-				.L2_DATA_WIDE_SIZE		(0),
+				.L1_DATA_WIDE_SIZE		(1),
 				
 	//			.M_ADDR_X_WIDTH			(M_ADDR_X_WIDTH),
 	//			.M_ADDR_Y_WIDTH			(M_ADDR_Y_WIDTH),

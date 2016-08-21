@@ -319,7 +319,7 @@ module jelly_texture_cache_l1
 					.ADDR_X_WIDTH			(M_ADDR_X_WIDTH),
 					.ADDR_Y_WIDTH			(M_ADDR_Y_WIDTH),
 					
-					.BLK_X_WIDTH			(BLK_X_SIZE),
+					.BLK_X_WIDTH			(BLK_X_SIZE - M_DATA_WIDE_SIZE),
 					.BLK_Y_WIDTH			(BLK_Y_SIZE)
 				)
 			i_texture_blk_addr

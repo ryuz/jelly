@@ -27,7 +27,7 @@ module jelly_texture_cache_l2
 			
 			parameter	ADDR_WIDTH           = 24,
 			
-			parameter	S_NUM            = 1,
+			parameter	S_NUM                = 1,
 			parameter	S_USER_WIDTH         = 1,
 			parameter	S_DATA_WIDTH         = COMPONENT_NUM * COMPONENT_DATA_WIDTH,
 			parameter	S_ADDR_X_WIDTH       = 12,
@@ -47,7 +47,7 @@ module jelly_texture_cache_l2
 			parameter	M_AXI4_ARPROT        = 3'b000,
 			parameter	M_AXI4_ARQOS         = 0,
 			parameter	M_AXI4_ARREGION      = 4'b0000,
-			parameter	M_AXI4_REGS          = 1			
+			parameter	M_AXI4_REGS          = 1
 		)
 		(
 			input	wire											reset,
@@ -63,19 +63,19 @@ module jelly_texture_cache_l2
 			output	wire											clear_busy,
 			
 			input	wire	[S_ADDR_X_WIDTH-1:0]					param_width,
-			input	wire	[S_ADDR_X_WIDTH-1:0]					param_height,
+			input	wire	[S_ADDR_Y_WIDTH-1:0]					param_height,
 			
 			
-			input	wire	[S_NUM*S_USER_WIDTH-1:0]			s_aruser,
-			input	wire	[S_NUM*S_ADDR_X_WIDTH-1:0]			s_araddrx,
-			input	wire	[S_NUM*S_ADDR_Y_WIDTH-1:0]			s_araddry,
-			input	wire	[S_NUM-1:0]							s_arvalid,
-			output	wire	[S_NUM-1:0]							s_arready,
+			input	wire	[S_NUM*S_USER_WIDTH-1:0]				s_aruser,
+			input	wire	[S_NUM*S_ADDR_X_WIDTH-1:0]				s_araddrx,
+			input	wire	[S_NUM*S_ADDR_Y_WIDTH-1:0]				s_araddry,
+			input	wire	[S_NUM-1:0]								s_arvalid,
+			output	wire	[S_NUM-1:0]								s_arready,
 			
-			output	wire	[S_NUM*S_USER_WIDTH-1:0]			s_ruser,
-			output	wire	[S_NUM*S_DATA_WIDTH-1:0]			s_rdata,
-			output	wire	[S_NUM-1:0]							s_rvalid,
-			input	wire	[S_NUM-1:0]							s_rready,
+			output	wire	[S_NUM*S_USER_WIDTH-1:0]				s_ruser,
+			output	wire	[S_NUM*S_DATA_WIDTH-1:0]				s_rdata,
+			output	wire	[S_NUM-1:0]								s_rvalid,
+			input	wire	[S_NUM-1:0]								s_rready,
 			
 			
 			// AXI4 read (master)
@@ -168,28 +168,21 @@ module jelly_texture_cache_l2
 		
 		jelly_texture_cache_unit
 			#(
-				.S_USER_WIDTH			(S_USER_WIDTH),
-				
 				.COMPONENT_NUM			(COMPONENT_NUM),
 				.COMPONENT_DATA_WIDTH	(COMPONENT_DATA_WIDTH),
-				
-				.S_ADDR_X_WIDTH			(S_ADDR_X_WIDTH),
-				.S_ADDR_Y_WIDTH			(S_ADDR_Y_WIDTH),
-	//			.S_DATA_WIDTH			(S_DATA_WIDTH),
-				
-				.TAG_ADDR_WIDTH			(TAG_ADDR_WIDTH),
-				
 				.BLK_X_SIZE				(BLK_X_SIZE),
 				.BLK_Y_SIZE				(BLK_Y_SIZE),
-				
-				.M_DATA_WIDE_SIZE		(M_DATA_WIDE_SIZE),
-				
+				.TAG_ADDR_WIDTH			(TAG_ADDR_WIDTH),
+				.TAG_RAM_TYPE			(TAG_RAM_TYPE),
+				.MEM_RAM_TYPE			(MEM_RAM_TYPE),
+				.BORDER_DATA			(BORDER_DATA),
 				.USE_M_RREADY			(USE_M_RREADY),
 				
-				.BORDER_DATA			(BORDER_DATA),
+				.S_USER_WIDTH			(S_USER_WIDTH),
+				.S_ADDR_X_WIDTH			(S_ADDR_X_WIDTH),
+				.S_ADDR_Y_WIDTH			(S_ADDR_Y_WIDTH),
 				
-				.TAG_RAM_TYPE			(TAG_RAM_TYPE),
-				.MEM_RAM_TYPE			(MEM_RAM_TYPE)
+				.M_DATA_WIDE_SIZE		(M_DATA_WIDE_SIZE)
 			)
 		i_texture_cache_unit
 			(
@@ -221,7 +214,7 @@ module jelly_texture_cache_l2
 				.m_arready				(m_arready),
 				
 				.m_rlast				(m_rlast),
-				.m_rstrb				(m_rstrb), // 1 << m_rcomponent),
+				.m_rstrb				(m_rstrb),
 				.m_rdata				({COMPONENT_NUM{m_rdata}}),
 				.m_rvalid				(m_rvalid),
 				.m_rready				(m_rready)
@@ -230,72 +223,72 @@ module jelly_texture_cache_l2
 		
 		jelly_ring_bus_unit
 				#(
-					.DATA_WIDTH		(AR_DATA_WIDTH),
-					.ID_TO_WIDTH	(1),
-					.ID_FROM_WIDTH	(ID_WIDTH),
-					.UNIT_ID_TO		(1),
-					.UNIT_ID_FROM	(i)
+					.DATA_WIDTH			(AR_DATA_WIDTH),
+					.ID_TO_WIDTH		(1),
+					.ID_FROM_WIDTH		(ID_WIDTH),
+					.UNIT_ID_TO			(1),
+					.UNIT_ID_FROM		(i)
 				)
 			i_ring_bus_unit_ar
 				(
-					.reset			(reset),
-					.clk			(clk),
-					.cke			(1'b1),
+					.reset				(reset),
+					.clk				(clk),
+					.cke				(1'b1),
 					
-					.s_id_to		(1'b0),
-					.s_data			({m_araddry, m_araddrx}),
-					.s_valid		(m_arvalid),
-					.s_ready		(m_arready),
+					.s_id_to			(1'b0),
+					.s_data				({m_araddry, m_araddrx}),
+					.s_valid			(m_arvalid),
+					.s_ready			(m_arready),
 					
-					.m_id_from		(),
-					.m_data			(),
-					.m_valid		(),
-					.m_ready		(1'b0),
+					.m_id_from			(),
+					.m_data				(),
+					.m_valid			(),
+					.m_ready			(1'b0),
 					
-					.src_id_to		(ringbus_ar_id_to  [(i+1)]),
-					.src_id_from	(ringbus_ar_id_from[(i+1)*ID_WIDTH      +: ID_WIDTH]),
-					.src_data		(ringbus_ar_data   [(i+1)*AR_DATA_WIDTH +: AR_DATA_WIDTH]),
-					.src_valid		(ringbus_ar_valid  [(i+1)]),
+					.src_id_to			(ringbus_ar_id_to  [(i+1)]),
+					.src_id_from		(ringbus_ar_id_from[(i+1)*ID_WIDTH      +: ID_WIDTH]),
+					.src_data			(ringbus_ar_data   [(i+1)*AR_DATA_WIDTH +: AR_DATA_WIDTH]),
+					.src_valid			(ringbus_ar_valid  [(i+1)]),
 					
-					.sink_id_to		(ringbus_ar_id_to  [(i+0)]),
-					.sink_id_from	(ringbus_ar_id_from[(i+0)*ID_WIDTH      +: ID_WIDTH]),
-					.sink_data		(ringbus_ar_data   [(i+0)*AR_DATA_WIDTH +: AR_DATA_WIDTH]),
-					.sink_valid		(ringbus_ar_valid  [(i+0)])
+					.sink_id_to			(ringbus_ar_id_to  [(i+0)]),
+					.sink_id_from		(ringbus_ar_id_from[(i+0)*ID_WIDTH      +: ID_WIDTH]),
+					.sink_data			(ringbus_ar_data   [(i+0)*AR_DATA_WIDTH +: AR_DATA_WIDTH]),
+					.sink_valid			(ringbus_ar_valid  [(i+0)])
 				);
 		
 		jelly_ring_bus_unit
 				#(
-					.DATA_WIDTH		(R_DATA_WIDTH),
-					.ID_TO_WIDTH	(ID_WIDTH),
-					.ID_FROM_WIDTH	(1),
-					.UNIT_ID_TO		(i),
-					.UNIT_ID_FROM	(1)
+					.DATA_WIDTH			(R_DATA_WIDTH),
+					.ID_TO_WIDTH		(ID_WIDTH),
+					.ID_FROM_WIDTH		(1),
+					.UNIT_ID_TO			(i),
+					.UNIT_ID_FROM		(1)
 				)
 			i_ring_bus_unit_r
 				(
-					.reset			(reset),
-					.clk			(clk),
-					.cke			(1'b1),
+					.reset				(reset),
+					.clk				(clk),
+					.cke				(1'b1),
 					
-					.s_id_to		(0),
-					.s_data			(0),
-					.s_valid		(1'b0),
-					.s_ready		(),
+					.s_id_to			(0),
+					.s_data				(0),
+					.s_valid			(1'b0),
+					.s_ready			(),
 					
-					.m_id_from		(),
-					.m_data			({m_rlast, m_rcomponent, m_rdata}),
-					.m_valid		(m_rvalid),
-					.m_ready		(m_rready),
+					.m_id_from			(),
+					.m_data				({m_rlast, m_rcomponent, m_rdata}),
+					.m_valid			(m_rvalid),
+					.m_ready			(m_rready),
 					
-					.src_id_to		(ringbus_r_id_to  [(i+1)*ID_WIDTH     +: ID_WIDTH]),
-					.src_id_from	(ringbus_r_id_from[(i+1)]),
-					.src_data		(ringbus_r_data   [(i+1)*R_DATA_WIDTH +: R_DATA_WIDTH]),
-					.src_valid		(ringbus_r_valid  [(i+1)]),
+					.src_id_to			(ringbus_r_id_to  [(i+1)*ID_WIDTH     +: ID_WIDTH]),
+					.src_id_from		(ringbus_r_id_from[(i+1)]),
+					.src_data			(ringbus_r_data   [(i+1)*R_DATA_WIDTH +: R_DATA_WIDTH]),
+					.src_valid			(ringbus_r_valid  [(i+1)]),
 					
-					.sink_id_to		(ringbus_r_id_to  [(i+0)*ID_WIDTH     +: ID_WIDTH]),
-					.sink_id_from	(ringbus_r_id_from[(i+0)]),
-					.sink_data		(ringbus_r_data   [(i+0)*R_DATA_WIDTH +: R_DATA_WIDTH]),
-					.sink_valid		(ringbus_r_valid  [(i+0)])
+					.sink_id_to			(ringbus_r_id_to  [(i+0)*ID_WIDTH     +: ID_WIDTH]),
+					.sink_id_from		(ringbus_r_id_from[(i+0)]),
+					.sink_data			(ringbus_r_data   [(i+0)*R_DATA_WIDTH +: R_DATA_WIDTH]),
+					.sink_valid			(ringbus_r_valid  [(i+0)])
 				);
 	end
 	endgenerate
@@ -317,75 +310,73 @@ module jelly_texture_cache_l2
 	
 	jelly_ring_bus_unit
 				#(
-					.DATA_WIDTH		(AR_DATA_WIDTH),
-					.ID_TO_WIDTH	(1),
-					.ID_FROM_WIDTH	(ID_WIDTH),
-					.UNIT_ID_TO		(0),
-					.UNIT_ID_FROM	(0)
+					.DATA_WIDTH			(AR_DATA_WIDTH),
+					.ID_TO_WIDTH		(1),
+					.ID_FROM_WIDTH		(ID_WIDTH),
+					.UNIT_ID_TO			(0),
+					.UNIT_ID_FROM		(0)
 				)
 			i_ring_bus_unit_ar
 				(
-					.reset			(reset),
-					.clk			(clk),
-					.cke			(1'b1),
+					.reset				(reset),
+					.clk				(clk),
+					.cke				(1'b1),
 					
-					.s_id_to		(0),
-					.s_data			(0),
-					.s_valid		(1'b0),
-					.s_ready		(),
+					.s_id_to			(0),
+					.s_data				(0),
+					.s_valid			(1'b0),
+					.s_ready			(),
 					
-					.m_id_from		(ringbus_arid),
-					.m_data			({ringbus_araddry, ringbus_araddrx}),
-					.m_valid		(ringbus_arvalid),
-					.m_ready		(ringbus_arready),
+					.m_id_from			(ringbus_arid),
+					.m_data				({ringbus_araddry, ringbus_araddrx}),
+					.m_valid			(ringbus_arvalid),
+					.m_ready			(ringbus_arready),
 					
-					.src_id_to		(ringbus_ar_id_to  [0]),
-					.src_id_from	(ringbus_ar_id_from[0 +: ID_WIDTH]),
-					.src_data		(ringbus_ar_data   [0 +: AR_DATA_WIDTH]),
-					.src_valid		(ringbus_ar_valid  [0]),
+					.src_id_to			(ringbus_ar_id_to  [0]),
+					.src_id_from		(ringbus_ar_id_from[0 +: ID_WIDTH]),
+					.src_data			(ringbus_ar_data   [0 +: AR_DATA_WIDTH]),
+					.src_valid			(ringbus_ar_valid  [0]),
 					
-					.sink_id_to		(ringbus_ar_id_to  [S_NUM]),
-					.sink_id_from	(ringbus_ar_id_from[S_NUM*ID_WIDTH      +: ID_WIDTH]),
-					.sink_data		(ringbus_ar_data   [S_NUM*AR_DATA_WIDTH +: AR_DATA_WIDTH]),
-					.sink_valid		(ringbus_ar_valid  [S_NUM])
+					.sink_id_to			(ringbus_ar_id_to  [S_NUM]),
+					.sink_id_from		(ringbus_ar_id_from[S_NUM*ID_WIDTH      +: ID_WIDTH]),
+					.sink_data			(ringbus_ar_data   [S_NUM*AR_DATA_WIDTH +: AR_DATA_WIDTH]),
+					.sink_valid			(ringbus_ar_valid  [S_NUM])
 				);
 	
 	jelly_ring_bus_unit
 				#(
-					.DATA_WIDTH		(R_DATA_WIDTH),
-					.ID_TO_WIDTH	(ID_WIDTH),
-					.ID_FROM_WIDTH	(1),
-					.UNIT_ID_TO		(0),
-					.UNIT_ID_FROM	(0)
+					.DATA_WIDTH			(R_DATA_WIDTH),
+					.ID_TO_WIDTH		(ID_WIDTH),
+					.ID_FROM_WIDTH		(1),
+					.UNIT_ID_TO			(0),
+					.UNIT_ID_FROM		(0)
 				)
 			i_ring_bus_unit_dma_r
 				(
-					.reset			(reset),
-					.clk			(clk),
-					.cke			(1'b1),
+					.reset				(reset),
+					.clk				(clk),
+					.cke				(1'b1),
 					
-					.s_id_to		(ringbus_rid),
-					.s_data			({ringbus_rlast, ringbus_rcomponent, ringbus_rdata}),
-					.s_valid		(ringbus_rvalid),
-					.s_ready		(ringbus_rready),
+					.s_id_to			(ringbus_rid),
+					.s_data				({ringbus_rlast, ringbus_rcomponent, ringbus_rdata}),
+					.s_valid			(ringbus_rvalid),
+					.s_ready			(ringbus_rready),
 					
-					.m_id_from		(),
-					.m_data			(),
-					.m_valid		(),
-					.m_ready		(1'b0),
+					.m_id_from			(),
+					.m_data				(),
+					.m_valid			(),
+					.m_ready			(1'b0),
 					
-					.src_id_to		(ringbus_r_id_to  [0 +: ID_WIDTH]),
-					.src_id_from	(ringbus_r_id_from[0]),
-					.src_data		(ringbus_r_data   [0 +: R_DATA_WIDTH]),
-					.src_valid		(ringbus_r_valid  [0]),
+					.src_id_to			(ringbus_r_id_to  [0 +: ID_WIDTH]),
+					.src_id_from		(ringbus_r_id_from[0]),
+					.src_data			(ringbus_r_data   [0 +: R_DATA_WIDTH]),
+					.src_valid			(ringbus_r_valid  [0]),
 					
-					.sink_id_to		(ringbus_r_id_to  [S_NUM*ID_WIDTH     +: ID_WIDTH]),
-					.sink_id_from	(ringbus_r_id_from[S_NUM]),
-					.sink_data		(ringbus_r_data   [S_NUM*R_DATA_WIDTH +: R_DATA_WIDTH]),
-					.sink_valid		(ringbus_r_valid  [S_NUM])
+					.sink_id_to			(ringbus_r_id_to  [S_NUM*ID_WIDTH     +: ID_WIDTH]),
+					.sink_id_from		(ringbus_r_id_from[S_NUM]),
+					.sink_data			(ringbus_r_data   [S_NUM*R_DATA_WIDTH +: R_DATA_WIDTH]),
+					.sink_valid			(ringbus_r_valid  [S_NUM])
 				);
-	
-	
 	
 	
 	// DMA

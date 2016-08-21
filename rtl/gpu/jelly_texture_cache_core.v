@@ -29,7 +29,7 @@ module jelly_texture_cache_core
 			parameter	COMPONENT_DATA_WIDTH = 8,
 			
 			parameter	USER_WIDTH           = 1,
-			parameter	USE_S_RREADY         = 0,	// 0: s_rready is always 1'b1.   1: handshake mode.
+			parameter	USE_S_RREADY         = 1,	// 0: s_rready is always 1'b1.   1: handshake mode.
 			parameter	BORDER_DATA          = {S_DATA_WIDTH{1'b0}},
 			
 			parameter	ADDR_X_WIDTH         = 12,
@@ -41,8 +41,8 @@ module jelly_texture_cache_core
 			parameter	L1_BLK_Y_SIZE        = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	L1_TAG_RAM_TYPE      = "distributed",
 			parameter	L1_MEM_RAM_TYPE      = "block",
+			parameter	L1_DATA_WIDE_SIZE    = 1,
 			
-			parameter	L2_DATA_WIDE_SIZE    = 1,
 			parameter	L2_TAG_ADDR_WIDTH    = 9,
 			parameter	L2_BLK_X_SIZE        = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	L2_BLK_Y_SIZE        = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
@@ -76,8 +76,8 @@ module jelly_texture_cache_core
 			input	wire	[M_AXI4_ADDR_WIDTH*COMPONENT_NUM-1:0]	param_addr,
 			input	wire	[ADDR_X_WIDTH-1:0]						param_width,
 			input	wire	[ADDR_X_WIDTH-1:0]						param_height,
-			input	wire	[M_AXI4_LEN_WIDTH-1:0]					param_arlen,
 			input	wire	[ADDR_WIDTH-1:0]						param_stride,
+			input	wire	[M_AXI4_LEN_WIDTH-1:0]					param_arlen,
 			
 			input	wire											clear_start,
 			output	wire											clear_busy,
@@ -115,6 +115,7 @@ module jelly_texture_cache_core
 			output	wire											m_axi4_rready
 		);
 	
+	
 	// -----------------------------
 	//  localparam
 	// -----------------------------
@@ -149,8 +150,8 @@ module jelly_texture_cache_core
 	// L2キャッシュはコンポーネント分解＆ピクセル並列化
 	localparam	L2_CACHE_NUM            = (1 << (L2_CACHE_X_SIZE + L2_CACHE_Y_SIZE));
 	localparam	L2_COMPONENT_NUM        = COMPONENT_NUM;
-	localparam	L2_COMPONENT_DATA_WIDTH = (COMPONENT_DATA_WIDTH << L2_DATA_WIDE_SIZE);
-	localparam	L2_ADDR_X_WIDTH         = ADDR_X_WIDTH - L2_DATA_WIDE_SIZE;
+	localparam	L2_COMPONENT_DATA_WIDTH = (COMPONENT_DATA_WIDTH << L1_DATA_WIDE_SIZE);
+	localparam	L2_ADDR_X_WIDTH         = ADDR_X_WIDTH - L1_DATA_WIDE_SIZE;
 	localparam	L2_ADDR_Y_WIDTH         = ADDR_Y_WIDTH;
 	
 	localparam	L2_ID_WIDTH             = (L2_CACHE_X_SIZE + L2_CACHE_Y_SIZE);
@@ -165,8 +166,8 @@ module jelly_texture_cache_core
 	
 	wire	[L2_CACHE_NUM*L1_ID_WIDTH-1:0]			m_arid;
 	wire	[L2_CACHE_NUM-1:0]						m_arlast;
-	wire	[L2_CACHE_NUM*ADDR_X_WIDTH-1:0]			m_araddrx;
-	wire	[L2_CACHE_NUM*ADDR_Y_WIDTH-1:0]			m_araddry;
+	wire	[L2_CACHE_NUM*L2_ADDR_X_WIDTH-1:0]		m_araddrx;
+	wire	[L2_CACHE_NUM*L2_ADDR_Y_WIDTH-1:0]		m_araddry;
 	wire	[L2_CACHE_NUM-1:0]						m_arvalid;
 	wire	[L2_CACHE_NUM-1:0]						m_arready;
 	
@@ -183,17 +184,17 @@ module jelly_texture_cache_core
 				.TAG_ADDR_WIDTH			(L1_TAG_ADDR_WIDTH),
 				.BLK_X_SIZE				(L1_BLK_X_SIZE),
 				.BLK_Y_SIZE				(L1_BLK_Y_SIZE),
-				.USE_M_RREADY			(!USE_S_RREADY),
-				.BORDER_DATA			(BORDER_DATA),
 				.TAG_RAM_TYPE			(L1_TAG_RAM_TYPE),
 				.MEM_RAM_TYPE			(L1_MEM_RAM_TYPE),
+				.USE_M_RREADY			(!USE_S_RREADY),
+				.BORDER_DATA			(BORDER_DATA),
 				
 				.S_NUM					(L1_CACHE_NUM),
 				.S_USER_WIDTH			(USER_WIDTH),
-				.S_ADDR_X_WIDTH			(ADDR_X_WIDTH),
-				.S_ADDR_Y_WIDTH			(ADDR_Y_WIDTH),
+				.S_ADDR_X_WIDTH			(L1_ADDR_X_WIDTH),
+				.S_ADDR_Y_WIDTH			(L1_ADDR_Y_WIDTH),
 				
-				.M_DATA_WIDE_SIZE		(L2_DATA_WIDE_SIZE),
+				.M_DATA_WIDE_SIZE		(L1_DATA_WIDE_SIZE),
 				.M_X_SIZE				(L2_CACHE_X_SIZE),
 				.M_Y_SIZE				(L2_CACHE_Y_SIZE)
 			)
@@ -240,12 +241,14 @@ module jelly_texture_cache_core
 	//  L2 Cache
 	// -----------------------------
 	
-	localparam	L2_USER_WIDTH = 1 + L1_ID_WIDTH;
+	localparam	L2_USER_WIDTH    = 1 + L1_ID_WIDTH;
+	localparam	L1_DATA_WIDE_NUM = (1 << L1_DATA_WIDE_SIZE);
 	
 	wire	[L2_CACHE_NUM*L2_USER_WIDTH-1:0]	l2_aruser;
 	wire	[L2_CACHE_NUM*L2_USER_WIDTH-1:0]	l2_ruser;
+	wire	[L2_CACHE_NUM*L2_DATA_WIDTH-1:0]	l2_rdata;
 	
-	genvar	i;
+	genvar	i, j, k;
 	generate
 	for ( i = 0; i < L2_CACHE_NUM; i = i+1 ) begin : l2_user_loop
 		assign l2_aruser[i*L2_USER_WIDTH +: L1_ID_WIDTH] = m_arid[i*L1_ID_WIDTH +: L1_ID_WIDTH];
@@ -253,96 +256,103 @@ module jelly_texture_cache_core
 		
 		assign m_rid[i*L1_ID_WIDTH +: L1_ID_WIDTH]       = l2_ruser[i*L2_USER_WIDTH +: L1_ID_WIDTH];
 		assign m_rlast[i]                                = l2_ruser[i*L2_USER_WIDTH + L1_ID_WIDTH];
+		
+		wire	[L2_DATA_WIDTH-1:0]		m_rdata_c;
+		wire	[L2_DATA_WIDTH-1:0]		l2_rdata_c;
+		assign m_rdata[i*L2_DATA_WIDTH +: L2_DATA_WIDTH] = m_rdata_c;
+		assign l2_rdata_c                                = l2_rdata[i*L2_DATA_WIDTH +: L2_DATA_WIDTH];
+		
+		for ( j = 0; j < L1_DATA_WIDE_NUM; j = j+1 ) begin : j_loop
+			for ( k = 0; k < L2_COMPONENT_NUM; k = k+1 ) begin : k_loop
+				assign m_rdata_c[(j*COMPONENT_NUM+k)*COMPONENT_DATA_WIDTH +: COMPONENT_DATA_WIDTH]
+								= l2_rdata_c[(k*L1_DATA_WIDE_NUM+j)*COMPONENT_DATA_WIDTH +: COMPONENT_DATA_WIDTH];
+			end
+		end
 	end
 	endgenerate
 	
 	
 	jelly_texture_cache_l2
 			#(
-				.S_NUM						(L2_CACHE_NUM),
+				.S_NUM					(L2_CACHE_NUM),
 				
-				.COMPONENT_NUM				(L2_COMPONENT_NUM),
-				.COMPONENT_DATA_WIDTH		(L2_COMPONENT_DATA_WIDTH),
+				.COMPONENT_NUM			(L2_COMPONENT_NUM),
+				.COMPONENT_DATA_WIDTH	(L2_COMPONENT_DATA_WIDTH),
 				
-				.S_USER_WIDTH				(1 + L1_ID_WIDTH),
+				.S_USER_WIDTH			(1 + L1_ID_WIDTH),
+				.S_ADDR_X_WIDTH			(L2_ADDR_X_WIDTH),
+				.S_ADDR_Y_WIDTH			(L2_ADDR_Y_WIDTH),
+				.TAG_ADDR_WIDTH			(L2_TAG_ADDR_WIDTH),
+				.BLK_X_SIZE				(L2_BLK_X_SIZE - L1_DATA_WIDE_SIZE),
+				.BLK_Y_SIZE				(L2_BLK_Y_SIZE),
+				.USE_M_RREADY			(1'b1),
 				
-				.S_ADDR_X_WIDTH				(ADDR_X_WIDTH),
-				.S_ADDR_Y_WIDTH				(ADDR_Y_WIDTH),
-	//			.S_DATA_WIDTH				(L2_DATA_WIDTH),
+				.BORDER_DATA			(BORDER_DATA),
 				
-				.TAG_ADDR_WIDTH				(L2_TAG_ADDR_WIDTH),
+				.TAG_RAM_TYPE			(L2_TAG_RAM_TYPE),
+				.MEM_RAM_TYPE			(L2_MEM_RAM_TYPE),
 				
-				.BLK_X_SIZE					(L2_BLK_X_SIZE - L2_DATA_WIDE_SIZE),
-				.BLK_Y_SIZE					(L2_BLK_Y_SIZE),
-				
-				.USE_M_RREADY				(1'b1),
-				
-				.BORDER_DATA				(BORDER_DATA),
-				
-				.TAG_RAM_TYPE				(L2_TAG_RAM_TYPE),
-				.MEM_RAM_TYPE				(L2_MEM_RAM_TYPE),
-				
-				.M_AXI4_ID_WIDTH			(M_AXI4_ID_WIDTH),
-				.M_AXI4_ADDR_WIDTH			(M_AXI4_ADDR_WIDTH),
-				.M_AXI4_DATA_SIZE			(M_AXI4_DATA_SIZE),
-				.M_AXI4_DATA_WIDTH			(M_AXI4_DATA_WIDTH),
-				.M_AXI4_LEN_WIDTH			(M_AXI4_LEN_WIDTH),
-				.M_AXI4_QOS_WIDTH			(M_AXI4_QOS_WIDTH),
-				.M_AXI4_ARID				(M_AXI4_ARID),
-				.M_AXI4_ARSIZE				(M_AXI4_ARSIZE),
-				.M_AXI4_ARBURST				(M_AXI4_ARBURST),
-				.M_AXI4_ARLOCK				(M_AXI4_ARLOCK),
-				.M_AXI4_ARCACHE				(M_AXI4_ARCACHE),
-				.M_AXI4_ARPROT				(M_AXI4_ARPROT),
-				.M_AXI4_ARQOS				(M_AXI4_ARQOS),
-				.M_AXI4_ARREGION			(M_AXI4_ARREGION),
-				.M_AXI4_REGS				(M_AXI4_REGS)
+				.M_AXI4_ID_WIDTH		(M_AXI4_ID_WIDTH),
+				.M_AXI4_ADDR_WIDTH		(M_AXI4_ADDR_WIDTH),
+				.M_AXI4_DATA_SIZE		(M_AXI4_DATA_SIZE),
+				.M_AXI4_DATA_WIDTH		(M_AXI4_DATA_WIDTH),
+				.M_AXI4_LEN_WIDTH		(M_AXI4_LEN_WIDTH),
+				.M_AXI4_QOS_WIDTH		(M_AXI4_QOS_WIDTH),
+				.M_AXI4_ARID			(M_AXI4_ARID),
+				.M_AXI4_ARSIZE			(M_AXI4_ARSIZE),
+				.M_AXI4_ARBURST			(M_AXI4_ARBURST),
+				.M_AXI4_ARLOCK			(M_AXI4_ARLOCK),
+				.M_AXI4_ARCACHE			(M_AXI4_ARCACHE),
+				.M_AXI4_ARPROT			(M_AXI4_ARPROT),
+				.M_AXI4_ARQOS			(M_AXI4_ARQOS),
+				.M_AXI4_ARREGION		(M_AXI4_ARREGION),
+				.M_AXI4_REGS			(M_AXI4_REGS)
 			)
 		i_texture_cache_l2
 			(
-				.reset						(reset),
-				.clk						(clk),
-				                             
-				.endian						(endian),
-				                             
-				.param_addr					(param_addr),
-				.param_width				(param_width),
-				.param_height				(param_height),
-				.param_stride				(param_stride),
-				.param_arlen				(param_arlen),
+				.reset					(reset),
+				.clk					(clk),
+				                         
+				.endian					(endian),
+				                         
+				.param_addr				(param_addr),
+				.param_width			(param_width),
+				.param_height			(param_height),
+				.param_stride			(param_stride),
+				.param_arlen			(param_arlen),
 				
-				.clear_start				(clear_start),
-				.clear_busy					(clear_busy),
+				.clear_start			(clear_start),
+				.clear_busy				(clear_busy),
 				
-				.s_aruser					(l2_aruser),
-				.s_araddrx					(m_araddrx),
-				.s_araddry					(m_araddry),
-				.s_arvalid					(m_arvalid),
-				.s_arready					(m_arready),
-				.s_ruser					(l2_ruser),
-				.s_rdata					(m_rdata),
-				.s_rvalid					(m_rvalid),
-				.s_rready					(m_rready),
+				.s_aruser				(l2_aruser),
+				.s_araddrx				(m_araddrx),
+				.s_araddry				(m_araddry),
+				.s_arvalid				(m_arvalid),
+				.s_arready				(m_arready),
+				.s_ruser				(l2_ruser),
+				.s_rdata				(l2_rdata),
+				.s_rvalid				(m_rvalid),
+				.s_rready				(m_rready),
 				
 				
-				.m_axi4_arid				(m_axi4_arid),
-				.m_axi4_araddr				(m_axi4_araddr),
-				.m_axi4_arlen				(m_axi4_arlen),
-				.m_axi4_arsize				(m_axi4_arsize),
-				.m_axi4_arburst				(m_axi4_arburst),
-				.m_axi4_arlock				(m_axi4_arlock),
-				.m_axi4_arcache				(m_axi4_arcache),
-				.m_axi4_arprot				(m_axi4_arprot),
-				.m_axi4_arqos				(m_axi4_arqos),
-				.m_axi4_arregion			(m_axi4_arregion),
-				.m_axi4_arvalid				(m_axi4_arvalid),
-				.m_axi4_arready				(m_axi4_arready),
-				.m_axi4_rid					(m_axi4_rid),
-				.m_axi4_rdata				(m_axi4_rdata),
-				.m_axi4_rresp				(m_axi4_rresp),
-				.m_axi4_rlast				(m_axi4_rlast),
-				.m_axi4_rvalid				(m_axi4_rvalid),
-				.m_axi4_rready				(m_axi4_rready)
+				.m_axi4_arid			(m_axi4_arid),
+				.m_axi4_araddr			(m_axi4_araddr),
+				.m_axi4_arlen			(m_axi4_arlen),
+				.m_axi4_arsize			(m_axi4_arsize),
+				.m_axi4_arburst			(m_axi4_arburst),
+				.m_axi4_arlock			(m_axi4_arlock),
+				.m_axi4_arcache			(m_axi4_arcache),
+				.m_axi4_arprot			(m_axi4_arprot),
+				.m_axi4_arqos			(m_axi4_arqos),
+				.m_axi4_arregion		(m_axi4_arregion),
+				.m_axi4_arvalid			(m_axi4_arvalid),
+				.m_axi4_arready			(m_axi4_arready),
+				.m_axi4_rid				(m_axi4_rid),
+				.m_axi4_rdata			(m_axi4_rdata),
+				.m_axi4_rresp			(m_axi4_rresp),
+				.m_axi4_rlast			(m_axi4_rlast),
+				.m_axi4_rvalid			(m_axi4_rvalid),
+				.m_axi4_rready			(m_axi4_rready)
 			);
 	
 	

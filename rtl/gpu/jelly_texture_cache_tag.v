@@ -43,7 +43,7 @@ module jelly_texture_cache_tag
 			output	wire							clear_busy,
 			
 			input	wire	[S_ADDR_X_WIDTH-1:0]	param_width,
-			input	wire	[S_ADDR_X_WIDTH-1:0]	param_height,
+			input	wire	[S_ADDR_Y_WIDTH-1:0]	param_height,
 			
 			input	wire	[USER_WIDTH-1:0]		s_user,
 			input	wire	[S_ADDR_X_WIDTH-1:0]	s_addr_x,
