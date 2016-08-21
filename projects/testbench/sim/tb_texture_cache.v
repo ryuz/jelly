@@ -23,7 +23,7 @@ module tb_texture_cache();
 	
 	
 	
-	parameter	CACHE_NUM            = 1;
+	parameter	CACHE_NUM            = 4;
 	
 	parameter	COMPONENT_NUM        = 3;
 	parameter	COMPONENT_SEL_WIDTH  = COMPONENT_NUM <= 2  ?  1 :
@@ -107,7 +107,7 @@ module tb_texture_cache();
 	wire	[CACHE_NUM*USER_WIDTH-1:0]				s_ruser;
 	wire	[CACHE_NUM*S_DATA_WIDTH-1:0]			s_rdata;
 	wire	[CACHE_NUM-1:0]							s_rvalid;
-	wire	[CACHE_NUM-1:0]							s_rready = 2'b11;
+	wire	[CACHE_NUM-1:0]							s_rready = 4'b1111;
 	
 	reg		[USER_WIDTH-1:0]				s_aruser0;
 	reg		[S_ADDR_X_WIDTH-1:0]			s_araddrx0;
@@ -119,10 +119,21 @@ module tb_texture_cache();
 	reg		[S_ADDR_Y_WIDTH-1:0]			s_araddry1;
 	reg										s_arvalid1 = 0;
 	
-	assign	s_aruser  = {s_aruser1,  s_aruser0};
-	assign	s_araddrx = {s_araddrx1, s_araddrx0};
-	assign	s_araddry = {s_araddry1, s_araddry0};
-	assign	s_arvalid = {s_arvalid1, s_arvalid0};
+	reg		[USER_WIDTH-1:0]				s_aruser2;
+	reg		[S_ADDR_X_WIDTH-1:0]			s_araddrx2;
+	reg		[S_ADDR_Y_WIDTH-1:0]			s_araddry2;
+	reg										s_arvalid2 = 0;
+	
+	reg		[USER_WIDTH-1:0]				s_aruser3;
+	reg		[S_ADDR_X_WIDTH-1:0]			s_araddrx3;
+	reg		[S_ADDR_Y_WIDTH-1:0]			s_araddry3;
+	reg										s_arvalid3 = 0;
+	
+	
+	assign	s_aruser  = {s_aruser3,  s_aruser2 , s_aruser1,  s_aruser0 };
+	assign	s_araddrx = {s_araddrx3, s_araddrx2, s_araddrx1, s_araddrx0};
+	assign	s_araddry = {s_araddry3, s_araddry2, s_araddry1, s_araddry0};
+	assign	s_arvalid = {s_arvalid3, s_arvalid2, s_arvalid1, s_arvalid0};
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
@@ -132,20 +143,58 @@ module tb_texture_cache();
 			s_arvalid0 <= 0;
 			
 			s_aruser1  <= 0;
-			s_araddrx1 <= 0;
+			s_araddrx1 <= 160;
 			s_araddry1 <= 0;
 			s_arvalid1 <= 0;
+			
+			s_aruser2  <= 0;
+			s_araddrx2 <= 160*2;
+			s_araddry2 <= 0;
+			s_arvalid2 <= 0;
+			
+			s_aruser3  <= 0;
+			s_araddrx3 <= 160*3;
+			s_araddry3 <= 0;
+			s_arvalid3 <= 0;
 		end
 		else begin
 			
 			if ( s_arvalid[0] && s_arready[0] ) begin
 				s_araddrx0 <= s_araddrx0 + 1;
-				if ( s_araddrx0 == 639 ) begin
-					s_araddrx0 <= 0;
+				if ( s_araddrx0 == 160*1-1 ) begin
+					s_araddrx0 <= 160*0;
 					s_araddry0 <= s_araddry0 + 1;
 				end
 			end
 			s_arvalid0 <= 1;
+			
+			if ( s_arvalid[1] && s_arready[1] ) begin
+				s_araddrx1 <= s_araddrx1 + 1;
+				if ( s_araddrx1 == 160*2-1 ) begin
+					s_araddrx1 <= 160*1;
+					s_araddry1 <= s_araddry1 + 1;
+				end
+			end
+			s_arvalid1 <= 1;
+			
+			if ( s_arvalid[2] && s_arready[2] ) begin
+				s_araddrx2 <= s_araddrx2 + 1;
+				if ( s_araddrx2 == 160*3-1 ) begin
+					s_araddrx2 <= 160*2;
+					s_araddry2 <= s_araddry2 + 1;
+				end
+			end
+			s_arvalid2 <= 1;
+			
+			if ( s_arvalid[3] && s_arready[3] ) begin
+				s_araddrx3 <= s_araddrx3 + 1;
+				if ( s_araddrx3 == 160*4-1 ) begin
+					s_araddrx3 <= 160*3;
+					s_araddry3 <= s_araddry3 + 1;
+				end
+			end
+			s_arvalid3 <= 1;
+			
 			
 			/*
 			if ( s_arvalid[0] && s_arready[0] ) begin
@@ -183,18 +232,28 @@ module tb_texture_cache();
 	end
 	
 	
-	integer		fp0, fp1;
+	integer		fp0, fp1, fp2, fp3;
 	integer		fp0l, fp1l;
 	initial begin
 		fp0 = $fopen("out0.ppm");
 		$fdisplay(fp0, "P3");
-		$fdisplay(fp0, "640 480");
+		$fdisplay(fp0, "160 480");
 		$fdisplay(fp0, "255");
 		
 		fp1 = $fopen("out1.ppm");
 		$fdisplay(fp1, "P3");
-		$fdisplay(fp1, "480 640");
+		$fdisplay(fp1, "160 640");
 		$fdisplay(fp1, "255");
+		
+		fp2 = $fopen("out2.ppm");
+		$fdisplay(fp2, "P3");
+		$fdisplay(fp2, "160 640");
+		$fdisplay(fp2, "255");
+		
+		fp3 = $fopen("out3.ppm");
+		$fdisplay(fp3, "P3");
+		$fdisplay(fp3, "160 640");
+		$fdisplay(fp3, "255");
 		
 		fp0l = $fopen("out0.txt");
 		
@@ -206,6 +265,18 @@ module tb_texture_cache();
 			if ( s_rvalid[0] && s_rready[0] ) begin
 				$fdisplay(fp0,  "%d %d %d", s_rdata[7:0], s_rdata[15:8], s_rdata[23:16]);
 				$fdisplay(fp0l, "%x", s_rdata[23:0]);
+			end
+			
+			if ( s_rvalid[1] && s_rready[1] ) begin
+				$fdisplay(fp1,  "%d %d %d", s_rdata[24*1+0 +: 8], s_rdata[24*1+8 +: 8], s_rdata[24*1+16 +: 8]);
+			end
+			
+			if ( s_rvalid[2] && s_rready[2] ) begin
+				$fdisplay(fp2,  "%d %d %d", s_rdata[24*2+0 +: 8], s_rdata[24*2+8 +: 8], s_rdata[24*2+16 +: 8]);
+			end
+			
+			if ( s_rvalid[3] && s_rready[3] ) begin
+				$fdisplay(fp3,  "%d %d %d", s_rdata[24*3+0 +: 8], s_rdata[24*3+8 +: 8], s_rdata[24*3+16 +: 8]);
 			end
 			
 	//		if ( s_rvalid[1] && s_rready[1] ) begin
@@ -240,8 +311,10 @@ module tb_texture_cache();
 	jelly_texture_cache_core
 			#(
 				.L1_CACHE_NUM			(CACHE_NUM),
-				.L2_CACHE_X_SIZE		(1),
-				.L2_CACHE_Y_SIZE		(1),
+				.L2_CACHE_NUM			(4),
+
+	//			.L2_CACHE_X_SIZE		(1),
+	//			.L2_CACHE_Y_SIZE		(1),
 				
 				.COMPONENT_NUM			(COMPONENT_NUM),
 				.COMPONENT_DATA_WIDTH	(COMPONENT_DATA_WIDTH),

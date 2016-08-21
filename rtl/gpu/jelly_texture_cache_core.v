@@ -15,9 +15,10 @@
 
 module jelly_texture_cache_core
 		#(
-			parameter	L1_CACHE_NUM         = 1,
+			parameter	L1_CACHE_NUM         = 4,
 			parameter	L2_CACHE_X_SIZE      = 1,
 			parameter	L2_CACHE_Y_SIZE      = 1,
+			parameter	L2_CACHE_NUM         = (1 << (L2_CACHE_X_SIZE + L2_CACHE_Y_SIZE)),
 			
 			parameter	COMPONENT_NUM        = 3,
 			parameter	COMPONENT_SEL_WIDTH  = COMPONENT_NUM <= 2  ?  1 :
@@ -37,8 +38,8 @@ module jelly_texture_cache_core
 			parameter	S_DATA_WIDTH         = COMPONENT_NUM * COMPONENT_DATA_WIDTH,
 			
 			parameter	L1_TAG_ADDR_WIDTH    = 6,
-			parameter	L1_BLK_X_SIZE        = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
-			parameter	L1_BLK_Y_SIZE        = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
+			parameter	L1_BLK_X_SIZE        = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
+			parameter	L1_BLK_Y_SIZE        = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	L1_TAG_RAM_TYPE      = "distributed",
 			parameter	L1_MEM_RAM_TYPE      = "block",
 			parameter	L1_DATA_WIDE_SIZE    = 1,
@@ -46,7 +47,7 @@ module jelly_texture_cache_core
 			parameter	L2_TAG_ADDR_WIDTH    = 6,
 			parameter	L2_BLK_X_SIZE        = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	L2_BLK_Y_SIZE        = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
-			parameter	L2_TAG_RAM_TYPE      = "block",
+			parameter	L2_TAG_RAM_TYPE      = "distributed",
 			parameter	L2_MEM_RAM_TYPE      = "block",
 			
 			parameter	M_AXI4_ID_WIDTH      = 6,
@@ -146,17 +147,22 @@ module jelly_texture_cache_core
 	                                      L1_CACHE_NUM <=  128 ? 7 :
 	                                      L1_CACHE_NUM <=  256 ? 8 : 9;
 	
+	localparam	L2_ID_WIDTH             = L2_CACHE_NUM <=    2 ? 1 :
+	                                      L2_CACHE_NUM <=    4 ? 2 :
+	                                      L2_CACHE_NUM <=    8 ? 3 :
+	                                      L2_CACHE_NUM <=   16 ? 4 :
+	                                      L2_CACHE_NUM <=   32 ? 5 :
+	                                      L2_CACHE_NUM <=   64 ? 6 :
+	                                      L2_CACHE_NUM <=  128 ? 7 :
+	                                      L2_CACHE_NUM <=  256 ? 8 : 9;
+	
 	
 	// L2キャッシュはコンポーネント分解＆ピクセル並列化
-	localparam	L2_CACHE_NUM            = (1 << (L2_CACHE_X_SIZE + L2_CACHE_Y_SIZE));
 	localparam	L2_COMPONENT_NUM        = COMPONENT_NUM;
 	localparam	L2_COMPONENT_DATA_WIDTH = (COMPONENT_DATA_WIDTH << L1_DATA_WIDE_SIZE);
 	localparam	L2_ADDR_X_WIDTH         = ADDR_X_WIDTH - L1_DATA_WIDE_SIZE;
 	localparam	L2_ADDR_Y_WIDTH         = ADDR_Y_WIDTH;
-	
-	localparam	L2_ID_WIDTH             = (L2_CACHE_X_SIZE + L2_CACHE_Y_SIZE);
 	localparam	L2_DATA_WIDTH           = L2_COMPONENT_NUM * L2_COMPONENT_DATA_WIDTH;
-	
 	
 	
 	
@@ -195,8 +201,11 @@ module jelly_texture_cache_core
 				.S_ADDR_Y_WIDTH			(L1_ADDR_Y_WIDTH),
 				
 				.M_DATA_WIDE_SIZE		(L1_DATA_WIDE_SIZE),
-				.M_X_SIZE				(L2_CACHE_X_SIZE),
-				.M_Y_SIZE				(L2_CACHE_Y_SIZE)
+				.M_NUM					(L2_CACHE_NUM),
+				.M_ID_X_RSHIFT			(L2_BLK_X_SIZE),
+				.M_ID_X_LSHIFT			(0),
+				.M_ID_Y_RSHIFT			(L2_BLK_X_SIZE),
+				.M_ID_Y_LSHIFT			(L2_ID_WIDTH/2)
 			)
 		i_texture_cache_l1
 			(
@@ -283,6 +292,11 @@ module jelly_texture_cache_core
 				.S_ADDR_X_WIDTH			(L2_ADDR_X_WIDTH),
 				.S_ADDR_Y_WIDTH			(L2_ADDR_Y_WIDTH),
 				.TAG_ADDR_WIDTH			(L2_TAG_ADDR_WIDTH),
+				.TAG_X_RSHIFT			(L2_CACHE_X_SIZE),
+				.TAG_X_LSHIFT			(0),
+				.TAG_Y_RSHIFT			(L2_CACHE_Y_SIZE),
+				.TAG_Y_LSHIFT			(L2_TAG_ADDR_WIDTH/2),
+				
 				.BLK_X_SIZE				(L2_BLK_X_SIZE - L1_DATA_WIDE_SIZE),
 				.BLK_Y_SIZE				(L2_BLK_Y_SIZE),
 				.USE_M_RREADY			(1'b1),

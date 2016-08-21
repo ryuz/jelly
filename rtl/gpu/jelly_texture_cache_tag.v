@@ -22,8 +22,10 @@ module jelly_texture_cache_tag
 			parameter	S_DATA_WIDTH     = 24,
 			
 			parameter	TAG_ADDR_WIDTH   = 6,
-			parameter	TAG_BLK_X_SIZE   = 0,
-			parameter	TAG_BLK_Y_SIZE   = TAG_ADDR_WIDTH / 2 - TAG_BLK_X_SIZE,
+			parameter	TAG_X_RSHIFT     = 0,
+			parameter	TAG_X_LSHIFT     = 0,
+			parameter	TAG_Y_RSHIFT     = TAG_X_RSHIFT,
+			parameter	TAG_Y_LSHIFT     = TAG_ADDR_WIDTH / 2,
 			
 			parameter	BLK_X_SIZE       = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	BLK_Y_SIZE       = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
@@ -35,7 +37,6 @@ module jelly_texture_cache_tag
 			
 			parameter	RAM_TYPE         = "distributed",
 			
-			parameter	AUTO_TAG_ADDR    = 1,
 			parameter	USE_BORDER       = 1
 		)
 		(
@@ -195,7 +196,8 @@ module jelly_texture_cache_tag
 			end
 			st0_user      <= s_user;
 			st0_tag_we    <= (s_valid && (!USE_BORDER || (s_addrx < param_width && s_addry < param_height)));
-			st0_tag_addr  <= AUTO_TAG_ADDR ? ((s_blk_addrx >> TAG_BLK_X_SIZE) + (s_blk_addry << TAG_BLK_Y_SIZE)) : s_tagaddr;
+//			st0_tag_addr  <= AUTO_TAG_ADDR ? ((s_blk_addrx >> TAG_BLK_X_SIZE) + (s_blk_addry << TAG_BLK_Y_SIZE)) : s_tagaddr;
+			st0_tag_addr  <= ((s_blk_addrx >> TAG_X_RSHIFT) << TAG_X_LSHIFT) + ((s_blk_addry >> TAG_Y_RSHIFT) << TAG_Y_LSHIFT);
 			st0_blk_addrx <= s_blk_addrx;
 			st0_blk_addry <= s_blk_addry;
 			st0_pix_addrx <= s_pix_addrx;

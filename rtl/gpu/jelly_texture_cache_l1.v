@@ -40,14 +40,15 @@ module jelly_texture_cache_l1
 			parameter	S_ADDR_Y_WIDTH       = 12,
 			parameter	S_DATA_WIDTH         = COMPONENT_NUM * COMPONENT_DATA_WIDTH,
 			
-			parameter	M_DATA_WIDE_SIZE     = 0,
-			parameter	M_X_SIZE             = 1,
-			parameter	M_Y_SIZE             = 1,
-			parameter	M_NUM                = (1 << (M_X_SIZE + M_Y_SIZE)),
+			parameter	M_DATA_WIDE_SIZE     = 1,
+			parameter	M_NUM                = 4,
+			parameter	M_ID_X_RSHIFT        = 3,
+			parameter	M_ID_X_LSHIFT        = 0,
+			parameter	M_ID_Y_RSHIFT        = 3,
+			parameter	M_ID_Y_LSHIFT        = 1,
 			parameter	M_DATA_WIDTH         = (S_DATA_WIDTH << M_DATA_WIDE_SIZE),
 			parameter	M_ADDR_X_WIDTH       = S_ADDR_X_WIDTH - M_DATA_WIDE_SIZE,
-			parameter	M_ADDR_Y_WIDTH       = S_ADDR_Y_WIDTH,
-			parameter	M_TAG_ADDR_WIDTH     = 9
+			parameter	M_ADDR_Y_WIDTH       = S_ADDR_Y_WIDTH
 		)
 		(
 			input	wire									reset,
@@ -76,7 +77,7 @@ module jelly_texture_cache_l1
 			
 			// master port to L2
 			output	wire	[M_NUM*S_ID_WIDTH-1:0]			m_arid,
-			output	wire	[M_NUM*M_TAG_ADDR_WIDTH-1:0]	m_artagaddr,
+	//		output	wire	[M_NUM*M_TAG_ADDR_WIDTH-1:0]	m_artagaddr,
 			output	wire	[M_NUM-1:0]						m_arlast,
 			output	wire	[M_NUM*M_ADDR_X_WIDTH-1:0]		m_araddrx,
 			output	wire	[M_NUM*M_ADDR_Y_WIDTH-1:0]		m_araddry,
@@ -105,7 +106,14 @@ module jelly_texture_cache_l1
 	                                   COMPONENT_DATA_WIDTH <= 1024 ? 7 :
 	                                   COMPONENT_DATA_WIDTH <= 2048 ? 8 : 9;
 	
-	localparam	M_ID_WIDTH           = (M_X_SIZE + M_Y_SIZE);
+	localparam	M_ID_WIDTH           = M_NUM <    4 ? 1 :
+	                                   M_NUM <    8 ? 2 :
+	                                   M_NUM <   16 ? 3 :
+	                                   M_NUM <   32 ? 4 :
+	                                   M_NUM <   64 ? 5 :
+	                                   M_NUM <  128 ? 6 :
+	                                   M_NUM <  256 ? 7 :
+	                                   M_NUM <  512 ? 8 : 9;
 	
 	localparam	M_DATA_WIDE_NUM      = (1 << M_DATA_WIDE_SIZE);
 	
@@ -114,9 +122,9 @@ module jelly_texture_cache_l1
 	//  L1 Cahce
 	// -----------------------------
 	
-	localparam M_BASE_TAG_ADDR_WIDTH = M_TAG_ADDR_WIDTH + M_X_SIZE + M_Y_SIZE;
+//	localparam M_BASE_TAG_ADDR_WIDTH = M_TAG_ADDR_WIDTH + M_X_SIZE + M_Y_SIZE;
 	
-	localparam AR_DATA_WIDTH = M_TAG_ADDR_WIDTH + M_ADDR_X_WIDTH + M_ADDR_Y_WIDTH;
+	localparam AR_DATA_WIDTH = M_ADDR_X_WIDTH + M_ADDR_Y_WIDTH;
 	localparam R_DATA_WIDTH  = 1 + M_DATA_WIDTH;
 	
 	wire	[S_NUM-1:0]						cache_clear_busy;
@@ -210,8 +218,9 @@ module jelly_texture_cache_l1
 		
 //		wire	[M_ID_WIDTH-1:0]	l2_id = ((l1_araddrx & ((1 << M_X_SIZE)-1)) | ((l1_araddry & ((1 << M_Y_SIZE)-1)) << M_X_SIZE));
 		
-		wire	[M_ID_WIDTH-1:0]	l2_id = (l1_araddrx + (l1_araddry << ((1 << M_Y_SIZE)/2)));
+//		wire	[M_ID_WIDTH-1:0]	l2_id = (l1_araddrx >> (BLK_X_SIZE-M_DATA_WIDE_SIZE) + (l1_araddry >> (BLK_Y_SIZE) (1 << M_Y_SIZE)/2)));
 		
+		wire	[M_ID_WIDTH-1:0]	l2_id = ((l1_araddrx >> (M_ID_X_RSHIFT)) << M_ID_X_LSHIFT) + ((l1_araddry >> (M_ID_Y_RSHIFT)) << M_ID_Y_LSHIFT);
 		
 	//	wire	[M_BASE_TAG_ADDR_WIDTH-1:0]	l2_base_tag_addr = (l1_araddrx + (l1_araddry >> (M_BASE_TAG_ADDR_WIDTH/2)));
 	//	wire	[M_ID_WIDTH-1:0]			l2_id            = l2_base_tag_addr;
@@ -232,7 +241,7 @@ module jelly_texture_cache_l1
 					.cke					(1'b1),
 					
 					.s_id_to				(l2_id),
-					.s_data					({l2_tag_addr, l1_araddry, l1_araddrx}),
+					.s_data					({l1_araddry, l1_araddrx}),
 					.s_valid				(l1_arvalid),
 					.s_ready				(l1_arready),
 					
@@ -308,7 +317,6 @@ module jelly_texture_cache_l1
 	generate
 	for ( i = 0; i < M_NUM; i = i+1 ) begin : l2_loop
 		wire	[S_ID_WIDTH-1:0]		blk_id;
-		wire	[M_TAG_ADDR_WIDTH-1:0]	blk_tagaddr;
 		wire	[M_ADDR_X_WIDTH-1:0]	blk_addrx;
 		wire	[M_ADDR_Y_WIDTH-1:0]	blk_addry;
 		wire							blk_valid;
@@ -317,7 +325,7 @@ module jelly_texture_cache_l1
 		// blk addr
 		jelly_texture_blk_addr
 				#(
-					.USER_WIDTH				(M_TAG_ADDR_WIDTH+S_ID_WIDTH),
+					.USER_WIDTH				(S_ID_WIDTH),
 					
 					.ADDR_X_WIDTH			(M_ADDR_X_WIDTH),
 					.ADDR_Y_WIDTH			(M_ADDR_Y_WIDTH),
@@ -330,21 +338,18 @@ module jelly_texture_cache_l1
 					.reset					(reset),
 					.clk					(clk),
 					
-					.s_user					({blk_tagaddr, blk_id}),
+					.s_user					(blk_id),
 					.s_addrx				(blk_addrx),
 					.s_addry				(blk_addry),
 					.s_valid				(blk_valid),
 					.s_ready				(blk_ready),
 					
-					.m_user					({
-											 m_artagaddr[i*M_TAG_ADDR_WIDTH +: M_TAG_ADDR_WIDTH],
-											 m_arid     [i*S_ID_WIDTH       +: S_ID_WIDTH]
-											 }),
-					.m_last					(m_arlast   [i]),
-					.m_addrx				(m_araddrx  [i*M_ADDR_X_WIDTH   +: M_ADDR_X_WIDTH]),
-					.m_addry				(m_araddry  [i*M_ADDR_Y_WIDTH   +: M_ADDR_Y_WIDTH]),
-					.m_valid				(m_arvalid  [i]),
-					.m_ready				(m_arready  [i])
+					.m_user					(m_arid   [i*S_ID_WIDTH       +: S_ID_WIDTH]),
+					.m_last					(m_arlast [i]),
+					.m_addrx				(m_araddrx[i*M_ADDR_X_WIDTH   +: M_ADDR_X_WIDTH]),
+					.m_addry				(m_araddry[i*M_ADDR_Y_WIDTH   +: M_ADDR_Y_WIDTH]),
+					.m_valid				(m_arvalid[i]),
+					.m_ready				(m_arready[i])
 				);
 		
 		jelly_ring_bus_unit
@@ -367,7 +372,7 @@ module jelly_texture_cache_l1
 					.s_ready				(),
 					
 					.m_id_from				(blk_id),
-					.m_data					({blk_tagaddr, blk_addry, blk_addrx}),
+					.m_data					({blk_addry, blk_addrx}),
 					.m_valid				(blk_valid),
 					.m_ready				(blk_ready),
 					

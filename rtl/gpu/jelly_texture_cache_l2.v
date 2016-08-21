@@ -20,19 +20,23 @@ module jelly_texture_cache_l2
 			parameter	BLK_X_SIZE           = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	BLK_Y_SIZE           = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	TAG_ADDR_WIDTH       = 6,
-			parameter	USE_M_RREADY         = 0,	// 0: m_rready is always 1'b1.   1: handshake mode.
-			parameter	BORDER_DATA          = {S_DATA_WIDTH{1'b0}},
+			parameter	TAG_X_RSHIFT         = 0,
+			parameter	TAG_X_LSHIFT         = 0,
+			parameter	TAG_Y_RSHIFT         = TAG_X_RSHIFT,
+			parameter	TAG_Y_LSHIFT         = TAG_ADDR_WIDTH / 2,
 			parameter	TAG_RAM_TYPE         = "distributed",
 			parameter	MEM_RAM_TYPE         = "block",
+			parameter	USE_M_RREADY         = 0,	// 0: m_rready is always 1'b1.   1: handshake mode.
+			parameter	BORDER_DATA          = {S_DATA_WIDTH{1'b0}},
 			
 			parameter	ADDR_WIDTH           = 24,
 			
-			parameter	S_NUM                = 1,
+			parameter	S_NUM                = 4,
 			parameter	S_USER_WIDTH         = 1,
 			parameter	S_DATA_WIDTH         = COMPONENT_NUM * COMPONENT_DATA_WIDTH,
 			parameter	S_ADDR_X_WIDTH       = 12,
 			parameter	S_ADDR_Y_WIDTH       = 12,
-						
+			
 			parameter	M_AXI4_ID_WIDTH      = 6,
 			parameter	M_AXI4_ADDR_WIDTH    = 32,
 			parameter	M_AXI4_DATA_SIZE     = 2,	// 0:8bit, 1:16bit, 2:32bit ...
@@ -173,6 +177,10 @@ module jelly_texture_cache_l2
 				.BLK_X_SIZE				(BLK_X_SIZE),
 				.BLK_Y_SIZE				(BLK_Y_SIZE),
 				.TAG_ADDR_WIDTH			(TAG_ADDR_WIDTH),
+				.TAG_X_RSHIFT			(TAG_X_RSHIFT),
+				.TAG_X_LSHIFT			(TAG_X_LSHIFT),
+				.TAG_Y_RSHIFT			(TAG_Y_RSHIFT),
+				.TAG_Y_LSHIFT			(TAG_Y_LSHIFT),
 				.TAG_RAM_TYPE			(TAG_RAM_TYPE),
 				.MEM_RAM_TYPE			(MEM_RAM_TYPE),
 				.BORDER_DATA			(BORDER_DATA),
