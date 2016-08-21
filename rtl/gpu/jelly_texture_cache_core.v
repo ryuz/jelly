@@ -43,7 +43,7 @@ module jelly_texture_cache_core
 			parameter	L1_MEM_RAM_TYPE      = "block",
 			parameter	L1_DATA_WIDE_SIZE    = 1,
 			
-			parameter	L2_TAG_ADDR_WIDTH    = 9,
+			parameter	L2_TAG_ADDR_WIDTH    = 6,
 			parameter	L2_BLK_X_SIZE        = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	L2_BLK_Y_SIZE        = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	L2_TAG_RAM_TYPE      = "block",
