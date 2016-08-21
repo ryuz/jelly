@@ -37,6 +37,14 @@ module jelly_texture_cache_l1
 			
 			parameter	TAG_ADDR_WIDTH       = 6,
 			
+			parameter	L1_ID_WIDTH          = L1_CACHE_NUM <=    2 ? 1 :
+			                                   L1_CACHE_NUM <=    4 ? 2 :
+			                                   L1_CACHE_NUM <=    8 ? 3 :
+			                                   L1_CACHE_NUM <=   16 ? 4 :
+			                                   L1_CACHE_NUM <=   32 ? 5 :
+			                                   L1_CACHE_NUM <=   64 ? 6 :
+			                                   L1_CACHE_NUM <=  128 ? 7 :
+			                                   L1_CACHE_NUM <=  256 ? 8 : 9,
 			
 			parameter	L1_BLK_X_SIZE        = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	L1_BLK_Y_SIZE        = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
@@ -80,15 +88,15 @@ module jelly_texture_cache_l1
 			input	wire	[L1_CACHE_NUM-1:0]						s_rready,
 			
 			
-			output	wire	[L2_CACHE_NUM*L2_ID_WIDTH-1:0]			m_arid,
+			output	wire	[L2_CACHE_NUM*L1_ID_WIDTH-1:0]			m_arid,
 			output	wire	[L2_CACHE_NUM-1:0]						m_arlast,
 			output	wire	[L2_CACHE_NUM*ADDR_X_WIDTH-1:0]			m_araddrx,
 			output	wire	[L2_CACHE_NUM*ADDR_Y_WIDTH-1:0]			m_araddry,
 			output	wire	[L2_CACHE_NUM-1:0]						m_arvalid,
 			input	wire	[L2_CACHE_NUM-1:0]						m_arready,
 			
-			input	wire	[L2_CACHE_NUM*L2_ID_WIDTH-1:0]			m_rid,
-			input	wire	[L2_CACHE_NUM*L2_ID_WIDTH-1:0]			m_rlast,
+			input	wire	[L2_CACHE_NUM*L1_ID_WIDTH-1:0]			m_rid,
+			input	wire	[L2_CACHE_NUM-1:0]						m_rlast,
 			input	wire	[L2_CACHE_NUM*M_DATA_WIDTH-1:0]			m_rdata,
 			input	wire	[L2_CACHE_NUM-1:0]						m_rvalid,
 			output	wire	[L2_CACHE_NUM-1:0]						m_rready
@@ -108,16 +116,7 @@ module jelly_texture_cache_l1
 	                                   COMPONENT_DATA_WIDTH <=  512 ? 6 :
 	                                   COMPONENT_DATA_WIDTH <= 1024 ? 7 :
 	                                   COMPONENT_DATA_WIDTH <= 2048 ? 8 : 9;
-	
-	localparam	L1_ID_WIDTH          = L1_CACHE_NUM         <=    2 ? 1 :
-	                                   L1_CACHE_NUM         <=    4 ? 2 :
-	                                   L1_CACHE_NUM         <=    8 ? 3 :
-	                                   L1_CACHE_NUM         <=   16 ? 4 :
-	                                   L1_CACHE_NUM         <=   32 ? 5 :
-	                                   L1_CACHE_NUM         <=   64 ? 6 :
-	                                   L1_CACHE_NUM         <=  128 ? 7 :
-	                                   L1_CACHE_NUM         <=  256 ? 8 : 9;
-	
+		
 	localparam	M_ADDR_X_WIDTH       = ADDR_X_WIDTH - L1_BLK_X_SIZE;
 	localparam	M_ADDR_Y_WIDTH       = ADDR_Y_WIDTH - L1_BLK_Y_SIZE;
 	
@@ -137,34 +136,32 @@ module jelly_texture_cache_l1
 	wire	[(L1_CACHE_NUM+1)*L1_ID_WIDTH-1:0]		ringbus_l1_ar_id_from;
 	wire	[(L1_CACHE_NUM+1)*AR_DATA_WIDTH-1:0]	ringbus_l1_ar_data;
 	wire	[(L1_CACHE_NUM+1)-1:0]					ringbus_l1_ar_valid;
-	wire	[(L1_CACHE_NUM+1)-1:0]					ringbus_l1_ar_ready;
 	
 	wire	[(L1_CACHE_NUM+1)*L1_ID_WIDTH-1:0]		ringbus_l1_r_id_to;
 	wire	[(L1_CACHE_NUM+1)*L2_ID_WIDTH-1:0]		ringbus_l1_r_id_from;
 	wire	[(L1_CACHE_NUM+1)*R_DATA_WIDTH-1:0]		ringbus_l1_r_data;
 	wire	[(L1_CACHE_NUM+1)-1:0]					ringbus_l1_r_valid;
-	wire	[(L1_CACHE_NUM+1)-1:0]					ringbus_l1_r_ready;
 	
 	genvar	i, j, k;
 	
 	generate
 	for ( i = 0; i < L1_CACHE_NUM; i = i+1 ) begin : l1_loop
 		// L1 cache
-		wire	[M_ADDR_X_WIDTH-1:0]		m_araddrx;
-		wire	[M_ADDR_Y_WIDTH-1:0]		m_araddry;
-		wire								m_arvalid;
-		wire								m_arready;
+		wire	[M_ADDR_X_WIDTH-1:0]		l1_araddrx;
+		wire	[M_ADDR_Y_WIDTH-1:0]		l1_araddry;
+		wire								l1_arvalid;
+		wire								l1_arready;
 		
-		wire								m_rlast;
-		wire	[M_DATA_WIDTH-1:0]			m_rdata;
-		wire	[M_DATA_WIDTH-1:0]			m_rdata_tmp;
-		wire								m_rvalid;
-		wire								m_rready;
+		wire								l1_rlast;
+		wire	[M_DATA_WIDTH-1:0]			l1_rdata;
+		wire	[M_DATA_WIDTH-1:0]			l1_rdata_tmp;
+		wire								l1_rvalid;
+		wire								l1_rready;
 		
 		for ( j = 0; j < M_DATA_WIDE_NUM; j = j+1 ) begin : j_loop
 			for ( k = 0; k < COMPONENT_NUM; k = k+1 ) begin : k_loop
-				assign m_rdata[(j*COMPONENT_NUM+k)*COMPONENT_DATA_WIDTH +: COMPONENT_DATA_WIDTH]
-								= m_rdata_tmp[(k*M_DATA_WIDE_NUM+j)*COMPONENT_DATA_WIDTH +: COMPONENT_DATA_WIDTH];
+				assign l1_rdata[(j*COMPONENT_NUM+k)*COMPONENT_DATA_WIDTH +: COMPONENT_DATA_WIDTH]
+								= l1_rdata_tmp[(k*M_DATA_WIDE_NUM+j)*COMPONENT_DATA_WIDTH +: COMPONENT_DATA_WIDTH];
 			end
 		end
 		
@@ -217,20 +214,20 @@ module jelly_texture_cache_l1
 					.s_rvalid				(s_rvalid [i]),
 					.s_rready				(s_rready [i]),
 					
-					.m_araddrx				(m_araddrx),
-					.m_araddry				(m_araddry),
-					.m_arvalid				(m_arvalid),
-					.m_arready				(m_arready),
+					.m_araddrx				(l1_araddrx),
+					.m_araddry				(l1_araddry),
+					.m_arvalid				(l1_arvalid),
+					.m_arready				(l1_arready),
 					
-					.m_rlast				(m_rlast),
+					.m_rlast				(l1_rlast),
 					.m_rstrb				(1'b1),
-					.m_rdata				(m_rdata),
-					.m_rvalid				(m_rvalid),
-					.m_rready				(m_rready)
+					.m_rdata				(l1_rdata),
+					.m_rvalid				(l1_rvalid),
+					.m_rready				(l1_rready)
 				);
 		
 		
-		wire	[L2_ID_WIDTH-1:0]	l2_id = ((m_araddrx & ((1 << L2_CACHE_X_SIZE)-1)) | ((m_araddry & ((1 << L2_CACHE_Y_SIZE)-1)) << L2_CACHE_X_SIZE));
+		wire	[L2_ID_WIDTH-1:0]	l2_id = ((l1_araddrx & ((1 << L2_CACHE_X_SIZE)-1)) | ((l1_araddry & ((1 << L2_CACHE_Y_SIZE)-1)) << L2_CACHE_X_SIZE));
 		
 		jelly_ring_bus_unit
 				#(
@@ -247,9 +244,9 @@ module jelly_texture_cache_l1
 					.cke					(1'b1),
 					
 					.s_id_to				(l2_id),
-					.s_data					({m_araddry, m_araddrx}),
-					.s_valid				(m_arvalid),
-					.s_ready				(m_arready),
+					.s_data					({l1_araddry, l1_araddrx}),
+					.s_valid				(l1_arvalid),
+					.s_ready				(l1_arready),
 					
 					.m_id_from				(),
 					.m_data					(),
@@ -287,9 +284,9 @@ module jelly_texture_cache_l1
 					.s_ready				(),
 					
 					.m_id_from				(),
-					.m_data					({m_rlast, m_rdata_tmp}),
-					.m_valid				(m_rvalid),
-					.m_ready				(m_rready),
+					.m_data					({l1_rlast, l1_rdata_tmp}),
+					.m_valid				(l1_rvalid),
+					.m_ready				(l1_rready),
 					
 					.src_id_to				(ringbus_l1_r_id_to  [(i+1)*L1_ID_WIDTH  +: L1_ID_WIDTH]),
 					.src_id_from			(ringbus_l1_r_id_from[(i+1)*L2_ID_WIDTH  +: L2_ID_WIDTH]),
@@ -314,13 +311,11 @@ module jelly_texture_cache_l1
 	wire	[(L2_CACHE_NUM+1)*L1_ID_WIDTH-1:0]		ringbus_l2_ar_id_from;
 	wire	[(L2_CACHE_NUM+1)*AR_DATA_WIDTH-1:0]	ringbus_l2_ar_data;
 	wire	[(L2_CACHE_NUM+1)-1:0]					ringbus_l2_ar_valid;
-	wire	[(L2_CACHE_NUM+1)-1:0]					ringbus_l2_ar_ready;
 	
 	wire	[(L2_CACHE_NUM+1)*L1_ID_WIDTH-1:0]		ringbus_l2_r_id_to;
 	wire	[(L2_CACHE_NUM+1)*L2_ID_WIDTH-1:0]		ringbus_l2_r_id_from;
 	wire	[(L2_CACHE_NUM+1)*R_DATA_WIDTH-1:0]		ringbus_l2_r_data;
 	wire	[(L2_CACHE_NUM+1)-1:0]					ringbus_l2_r_valid;
-	wire	[(L2_CACHE_NUM+1)-1:0]					ringbus_l2_r_ready;
 	
 	generate
 	for ( i = 0; i < L2_CACHE_NUM; i = i+1 ) begin : l2_loop
@@ -333,13 +328,13 @@ module jelly_texture_cache_l1
 		// blk addr
 		jelly_texture_blk_addr
 				#(
-					.USER_WIDTH				(L2_ID_WIDTH),
+					.USER_WIDTH				(L1_ID_WIDTH),
 					
 					.ADDR_X_WIDTH			(ADDR_X_WIDTH),
 					.ADDR_Y_WIDTH			(ADDR_Y_WIDTH),
 					
-					.BLK_X_WIDTH			(L2_CACHE_X_SIZE),
-					.BLK_Y_WIDTH			(L2_CACHE_Y_SIZE)
+					.BLK_X_WIDTH			(L1_BLK_X_SIZE),
+					.BLK_Y_WIDTH			(L1_BLK_Y_SIZE)
 				)
 			i_texture_blk_addr
 				(
@@ -352,10 +347,10 @@ module jelly_texture_cache_l1
 					.s_valid				(blk_valid),
 					.s_ready				(blk_ready),
 					
-					.m_user					(m_arid    [i*L2_ID_WIDTH +: L2_ID_WIDTH]),
+					.m_user					(m_arid    [i*L1_ID_WIDTH  +: L1_ID_WIDTH]),
 					.m_last					(m_arlast  [i]),
-					.m_addr_x				(m_araddrx [i*M_ADDR_X_WIDTH +: M_ADDR_X_WIDTH]),
-					.m_addr_y				(m_araddry [i*M_ADDR_Y_WIDTH +: M_ADDR_Y_WIDTH]),
+					.m_addr_x				(m_araddrx [i*ADDR_X_WIDTH +: ADDR_X_WIDTH]),
+					.m_addr_y				(m_araddry [i*ADDR_Y_WIDTH +: ADDR_Y_WIDTH]),
 					.m_valid				(m_arvalid [i]),
 					.m_ready				(m_arready [i])
 				);
@@ -368,7 +363,7 @@ module jelly_texture_cache_l1
 					.UNIT_ID_TO				(i),
 					.UNIT_ID_FROM			(0)
 				)
-			i_ring_bus_unit_l1_ar
+			i_ring_bus_unit_l2_ar
 				(
 					.reset					(reset),
 					.clk					(clk),
@@ -403,21 +398,21 @@ module jelly_texture_cache_l1
 					.UNIT_ID_TO				(0),
 					.UNIT_ID_FROM			(0)
 				)
-			i_ring_bus_unit_l1_r
+			i_ring_bus_unit_l2_r
 				(
 					.reset					(reset),
 					.clk					(clk),
 					.cke					(1'b1),
 					
-					.s_id_to				(),
-					.s_data					(0),
-					.s_valid				(1'b0),
-					.s_ready				(),
+					.s_id_to				(m_rid[i*L1_ID_WIDTH +: L1_ID_WIDTH]),
+					.s_data					({m_rlast[i], m_rdata[i*M_DATA_WIDTH +: M_DATA_WIDTH]}),
+					.s_valid				(m_rvalid[i]),
+					.s_ready				(m_rready[i]),
 					
-					.m_id_from				(m_rid[i*L2_ID_WIDTH +: L2_ID_WIDTH]),
-					.m_data					({m_rlast[i], m_rdata[i*M_DATA_WIDTH +: M_DATA_WIDTH]}),
-					.m_valid				(m_rvalid[i]),
-					.m_ready				(m_rready[i]),
+					.m_id_from				(),
+					.m_data					(),
+					.m_valid				(),
+					.m_ready				(1'b0),
 					
 					.src_id_to				(ringbus_l2_r_id_to  [(i+1)*L1_ID_WIDTH  +: L1_ID_WIDTH]),
 					.src_id_from			(ringbus_l2_r_id_from[(i+1)*L2_ID_WIDTH  +: L2_ID_WIDTH]),
@@ -437,27 +432,22 @@ module jelly_texture_cache_l1
 	assign ringbus_l1_ar_id_from[L1_CACHE_NUM*L1_ID_WIDTH   +: L1_ID_WIDTH]   = ringbus_l2_ar_id_from[0 +: L1_ID_WIDTH];
 	assign ringbus_l1_ar_data   [L1_CACHE_NUM*AR_DATA_WIDTH +: AR_DATA_WIDTH] = ringbus_l2_ar_data   [0 +: AR_DATA_WIDTH];
 	assign ringbus_l1_ar_valid  [L1_CACHE_NUM]                                = ringbus_l2_ar_valid  [0];
-	assign ringbus_l2_ar_ready  [0]                                           = ringbus_l1_ar_valid  [L1_CACHE_NUM];
 	
-	assign ringbus_l2_ar_id_to  [L1_CACHE_NUM*L2_ID_WIDTH  +: L2_ID_WIDTH]    = ringbus_l1_ar_id_to  [0 +: L2_ID_WIDTH];
-	assign ringbus_l2_ar_id_from[L1_CACHE_NUM*L1_ID_WIDTH  +: L1_ID_WIDTH]    = ringbus_l1_ar_id_from[0 +: L1_ID_WIDTH];
-	assign ringbus_l2_ar_data   [L1_CACHE_NUM*AR_DATA_WIDTH +: AR_DATA_WIDTH] = ringbus_l1_ar_data   [0 +: AR_DATA_WIDTH];
-	assign ringbus_l2_ar_valid  [L1_CACHE_NUM]                                = ringbus_l1_ar_valid  [0];
-	assign ringbus_l1_ar_ready  [0]                                           = ringbus_l2_ar_valid  [L1_CACHE_NUM];
+	assign ringbus_l2_ar_id_to  [L2_CACHE_NUM*L2_ID_WIDTH  +: L2_ID_WIDTH]    = ringbus_l1_ar_id_to  [0 +: L2_ID_WIDTH];
+	assign ringbus_l2_ar_id_from[L2_CACHE_NUM*L1_ID_WIDTH  +: L1_ID_WIDTH]    = ringbus_l1_ar_id_from[0 +: L1_ID_WIDTH];
+	assign ringbus_l2_ar_data   [L2_CACHE_NUM*AR_DATA_WIDTH +: AR_DATA_WIDTH] = ringbus_l1_ar_data   [0 +: AR_DATA_WIDTH];
+	assign ringbus_l2_ar_valid  [L2_CACHE_NUM]                                = ringbus_l1_ar_valid  [0];
 	
 	
-	assign ringbus_l1_r_id_to  [L1_CACHE_NUM*L1_ID_WIDTH  +: L1_ID_WIDTH]     = ringbus_l2_r_id_to  [0 +: L1_ID_WIDTH];
-	assign ringbus_l1_r_id_from[L1_CACHE_NUM*L2_ID_WIDTH  +: L2_ID_WIDTH]     = ringbus_l2_r_id_from[0 +: L2_ID_WIDTH];
-	assign ringbus_l1_r_data   [L1_CACHE_NUM*R_DATA_WIDTH +: R_DATA_WIDTH]    = ringbus_l2_r_data   [0 +: R_DATA_WIDTH];
-	assign ringbus_l1_r_valid  [L1_CACHE_NUM]                                 = ringbus_l2_r_valid  [0];
-	assign ringbus_l2_r_ready  [0]                                            = ringbus_l1_r_valid  [L1_CACHE_NUM];
+	assign ringbus_l1_r_id_to   [L1_CACHE_NUM*L1_ID_WIDTH  +: L1_ID_WIDTH]    = ringbus_l2_r_id_to   [0 +: L1_ID_WIDTH];
+	assign ringbus_l1_r_id_from [L1_CACHE_NUM*L2_ID_WIDTH  +: L2_ID_WIDTH]    = ringbus_l2_r_id_from [0 +: L2_ID_WIDTH];
+	assign ringbus_l1_r_data    [L1_CACHE_NUM*R_DATA_WIDTH +: R_DATA_WIDTH]   = ringbus_l2_r_data    [0 +: R_DATA_WIDTH];
+	assign ringbus_l1_r_valid   [L1_CACHE_NUM]                                = ringbus_l2_r_valid   [0];
 	
-	assign ringbus_l2_r_id_to  [L1_CACHE_NUM*L1_ID_WIDTH  +: L1_ID_WIDTH]     = ringbus_l1_r_id_to  [0 +: L1_ID_WIDTH];
-	assign ringbus_l2_r_id_from[L1_CACHE_NUM*L2_ID_WIDTH  +: L2_ID_WIDTH]     = ringbus_l1_r_id_from[0+: L2_ID_WIDTH];
-	assign ringbus_l2_r_data   [L1_CACHE_NUM*R_DATA_WIDTH +: R_DATA_WIDTH]    = ringbus_l1_r_data   [0 +: R_DATA_WIDTH];
-	assign ringbus_l2_r_valid  [L1_CACHE_NUM]                                 = ringbus_l1_r_valid  [0];
-	assign ringbus_l1_r_ready  [0]                                            = ringbus_l2_r_valid  [L1_CACHE_NUM];
-	
+	assign ringbus_l2_r_id_to   [L2_CACHE_NUM*L1_ID_WIDTH  +: L1_ID_WIDTH]    = ringbus_l1_r_id_to   [0 +: L1_ID_WIDTH];
+	assign ringbus_l2_r_id_from [L2_CACHE_NUM*L2_ID_WIDTH  +: L2_ID_WIDTH]    = ringbus_l1_r_id_from [0 +: L2_ID_WIDTH];
+	assign ringbus_l2_r_data    [L2_CACHE_NUM*R_DATA_WIDTH +: R_DATA_WIDTH]   = ringbus_l1_r_data    [0 +: R_DATA_WIDTH];
+	assign ringbus_l2_r_valid   [L2_CACHE_NUM]                                = ringbus_l1_r_valid   [0];
 	
 	
 endmodule
