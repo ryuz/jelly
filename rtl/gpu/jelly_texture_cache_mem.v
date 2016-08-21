@@ -93,7 +93,7 @@ module jelly_texture_cache_mem
 		jelly_ram_singleport
 				#(
 					.ADDR_WIDTH			(TAG_ADDR_WIDTH + S_ADDR_WIDTH),
-					.DATA_WIDTH			(S_DATA_WIDTH),
+					.DATA_WIDTH			(S_COMPONENT_WIDTH),
 					.RAM_TYPE			(RAM_TYPE),
 					.DOUT_REGS			(1)
 				)

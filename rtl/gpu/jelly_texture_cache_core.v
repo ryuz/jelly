@@ -18,7 +18,6 @@ module jelly_texture_cache_core
 			parameter	L1_CACHE_NUM         = 1,
 			parameter	L2_CACHE_X_SIZE      = 1,
 			parameter	L2_CACHE_Y_SIZE      = 1,
-			parameter	L2_CACHE_NUM         = (1 << (L2_CACHE_X_SIZE + L2_CACHE_Y_SIZE)),
 			
 			parameter	COMPONENT_NUM        = 3,
 			parameter	COMPONENT_SEL_WIDTH  = COMPONENT_NUM <= 2  ?  1 :
@@ -120,37 +119,44 @@ module jelly_texture_cache_core
 	//  localparam
 	// -----------------------------
 	
-	localparam	COMPONENT_DATA_SIZE  = COMPONENT_DATA_WIDTH <=    8 ? 0 :
-	                                   COMPONENT_DATA_WIDTH <=   16 ? 1 :
-	                                   COMPONENT_DATA_WIDTH <=   32 ? 2 :
-	                                   COMPONENT_DATA_WIDTH <=   64 ? 3 :
-	                                   COMPONENT_DATA_WIDTH <=  128 ? 4 :
-	                                   COMPONENT_DATA_WIDTH <=  256 ? 5 :
-	                                   COMPONENT_DATA_WIDTH <=  512 ? 6 :
-	                                   COMPONENT_DATA_WIDTH <= 1024 ? 7 :
-	                                   COMPONENT_DATA_WIDTH <= 2048 ? 8 : 9;
-
-	localparam	L1_ID_WIDTH          = L1_CACHE_NUM <=    2 ? 1 :
-			                                   L1_CACHE_NUM <=    4 ? 2 :
-			                                   L1_CACHE_NUM <=    8 ? 3 :
-			                                   L1_CACHE_NUM <=   16 ? 4 :
-			                                   L1_CACHE_NUM <=   32 ? 5 :
-			                                   L1_CACHE_NUM <=   64 ? 6 :
-			                                   L1_CACHE_NUM <=  128 ? 7 :
-			                                   L1_CACHE_NUM <=  256 ? 8 : 9;
-	 
-//	localparam	PIX_ADDR_X_WIDTH     = L1_BLK_X_SIZE;
-//	localparam	PIX_ADDR_Y_WIDTH     = L1_BLK_Y_SIZE;
-//	localparam	BLK_ADDR_X_WIDTH     = ADDR_X_WIDTH - BLK_X_SIZE;
-//	localparam	BLK_ADDR_Y_WIDTH     = ADDR_Y_WIDTH - BLK_Y_SIZE;
-	
-	localparam	L2_ID_WIDTH          = (L2_CACHE_X_SIZE + L2_CACHE_Y_SIZE);
-	localparam	L2_DATA_WIDTH        = (S_DATA_WIDTH << L2_DATA_WIDE_SIZE);
+	localparam	COMPONENT_DATA_SIZE     = COMPONENT_DATA_WIDTH <=    8 ? 0 :
+	                                      COMPONENT_DATA_WIDTH <=   16 ? 1 :
+	                                      COMPONENT_DATA_WIDTH <=   32 ? 2 :
+	                                      COMPONENT_DATA_WIDTH <=   64 ? 3 :
+	                                      COMPONENT_DATA_WIDTH <=  128 ? 4 :
+	                                      COMPONENT_DATA_WIDTH <=  256 ? 5 :
+	                                      COMPONENT_DATA_WIDTH <=  512 ? 6 :
+	                                      COMPONENT_DATA_WIDTH <= 1024 ? 7 :
+	                                      COMPONENT_DATA_WIDTH <= 2048 ? 8 : 9;
 	
 	
-//	localparam	M_ADDR_X_WIDTH       = BLK_ADDR_X_WIDTH;
-//	localparam	M_ADDR_Y_WIDTH       = BLK_ADDR_Y_WIDTH;
-//	localparam	M_DATA_WIDTH         = (S_DATA_WIDTH << M_DATA_WIDE_SIZE);
+	// L1キャッシュは１画素１コンポーネントに統合
+	localparam	L1_COMPONENT_NUM        = 1;
+	localparam	L1_COMPONENT_DATA_WIDTH = COMPONENT_NUM * COMPONENT_DATA_WIDTH;
+	localparam	L1_ADDR_X_WIDTH         = ADDR_X_WIDTH;
+	localparam	L1_ADDR_Y_WIDTH         = ADDR_Y_WIDTH;
+	
+	localparam	L1_ID_WIDTH             = L1_CACHE_NUM <=    2 ? 1 :
+	                                      L1_CACHE_NUM <=    4 ? 2 :
+	                                      L1_CACHE_NUM <=    8 ? 3 :
+	                                      L1_CACHE_NUM <=   16 ? 4 :
+	                                      L1_CACHE_NUM <=   32 ? 5 :
+	                                      L1_CACHE_NUM <=   64 ? 6 :
+	                                      L1_CACHE_NUM <=  128 ? 7 :
+	                                      L1_CACHE_NUM <=  256 ? 8 : 9;
+	
+	
+	// L2キャッシュはコンポーネント分解＆ピクセル並列化
+	localparam	L2_CACHE_NUM            = (1 << (L2_CACHE_X_SIZE + L2_CACHE_Y_SIZE));
+	localparam	L2_COMPONENT_NUM        = COMPONENT_NUM;
+	localparam	L2_COMPONENT_DATA_WIDTH = (COMPONENT_DATA_WIDTH << L2_DATA_WIDE_SIZE);
+	localparam	L2_ADDR_X_WIDTH         = ADDR_X_WIDTH - L2_DATA_WIDE_SIZE;
+	localparam	L2_ADDR_Y_WIDTH         = ADDR_Y_WIDTH;
+	
+	localparam	L2_ID_WIDTH             = (L2_CACHE_X_SIZE + L2_CACHE_Y_SIZE);
+	localparam	L2_DATA_WIDTH           = L2_COMPONENT_NUM * L2_COMPONENT_DATA_WIDTH;
+	
+	
 	
 	
 	// -----------------------------
@@ -172,34 +178,24 @@ module jelly_texture_cache_core
 	
 	jelly_texture_cache_l1
 			#(
-				.L1_CACHE_NUM			(L1_CACHE_NUM),
-				.L2_CACHE_X_SIZE		(L2_CACHE_X_SIZE),
-				.L2_CACHE_Y_SIZE		(L2_CACHE_Y_SIZE),
-				
-				.COMPONENT_NUM			(COMPONENT_NUM),
-				.COMPONENT_DATA_WIDTH	(COMPONENT_DATA_WIDTH),
-				
-				.USER_WIDTH				(USER_WIDTH),
-				
-				.ADDR_X_WIDTH			(ADDR_X_WIDTH),
-				.ADDR_Y_WIDTH			(ADDR_Y_WIDTH),
-				
+				.COMPONENT_NUM			(L1_COMPONENT_NUM),
+				.COMPONENT_DATA_WIDTH	(L1_COMPONENT_DATA_WIDTH),
 				.TAG_ADDR_WIDTH			(L1_TAG_ADDR_WIDTH),
+				.BLK_X_SIZE				(L1_BLK_X_SIZE),
+				.BLK_Y_SIZE				(L1_BLK_Y_SIZE),
+				.USE_M_RREADY			(!USE_S_RREADY),
+				.BORDER_DATA			(BORDER_DATA),
+				.TAG_RAM_TYPE			(L1_TAG_RAM_TYPE),
+				.MEM_RAM_TYPE			(L1_MEM_RAM_TYPE),
 				
-				.L1_BLK_X_SIZE			(L1_BLK_X_SIZE),
-				.L1_BLK_Y_SIZE			(L1_BLK_Y_SIZE),
+				.S_NUM					(L1_CACHE_NUM),
+				.S_USER_WIDTH			(USER_WIDTH),
+				.S_ADDR_X_WIDTH			(ADDR_X_WIDTH),
+				.S_ADDR_Y_WIDTH			(ADDR_Y_WIDTH),
 				
 				.M_DATA_WIDE_SIZE		(L2_DATA_WIDE_SIZE),
-				
-				.L2_BLK_X_SIZE			(L2_BLK_X_SIZE),
-				.L2_BLK_Y_SIZE			(L2_BLK_Y_SIZE),
-				                         
-				.USE_M_RREADY			(USE_S_RREADY),
-				                         
-				.BORDER_DATA			(BORDER_DATA),
-				                         
-				.TAG_RAM_TYPE			(L1_TAG_RAM_TYPE),
-				.MEM_RAM_TYPE			(L1_MEM_RAM_TYPE)
+				.M_X_SIZE				(L2_CACHE_X_SIZE),
+				.M_Y_SIZE				(L2_CACHE_Y_SIZE)
 			)
 		i_texture_cache_l1
 			(
@@ -263,23 +259,23 @@ module jelly_texture_cache_core
 	
 	jelly_texture_cache_l2
 			#(
-				.CACHE_NUM					(L2_CACHE_NUM),
+				.S_NUM						(L2_CACHE_NUM),
 				
-				.COMPONENT_NUM				(COMPONENT_NUM),
-				.COMPONENT_DATA_WIDTH		(COMPONENT_DATA_WIDTH),
+				.COMPONENT_NUM				(L2_COMPONENT_NUM),
+				.COMPONENT_DATA_WIDTH		(L2_COMPONENT_DATA_WIDTH),
 				
-				.USER_WIDTH					(1 + L1_ID_WIDTH),
+				.S_USER_WIDTH				(1 + L1_ID_WIDTH),
 				
 				.S_ADDR_X_WIDTH				(ADDR_X_WIDTH),
 				.S_ADDR_Y_WIDTH				(ADDR_Y_WIDTH),
-				.S_DATA_WIDTH				(L2_DATA_WIDTH),
+	//			.S_DATA_WIDTH				(L2_DATA_WIDTH),
 				
 				.TAG_ADDR_WIDTH				(L2_TAG_ADDR_WIDTH),
 				
-				.BLK_X_SIZE					(L2_BLK_X_SIZE),
+				.BLK_X_SIZE					(L2_BLK_X_SIZE - L2_DATA_WIDE_SIZE),
 				.BLK_Y_SIZE					(L2_BLK_Y_SIZE),
 				
-				.USE_M_RREADY				(1'b0),
+				.USE_M_RREADY				(1'b1),
 				
 				.BORDER_DATA				(BORDER_DATA),
 				
