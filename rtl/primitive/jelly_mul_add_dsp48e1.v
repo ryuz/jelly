@@ -13,25 +13,33 @@
 
 
 //
-module jelly_mul_add_dsp48
+module jelly_mul_add_dsp48e1
 		#(
-			parameter	A_WIDTH = 25,
-			parameter	B_WIDTH = 18,
-			parameter	C_WIDTH = 48,
-			parameter	P_WIDTH = 48,
-			parameter	M_WIDTH = A_WIDTH + B_WIDTH,
+			parameter	A_WIDTH    = 25,
+			parameter	B_WIDTH    = 18,
+			parameter	C_WIDTH    = 48,
+			parameter	P_WIDTH    = 48,
+			parameter	M_WIDTH    = A_WIDTH + B_WIDTH,
 			
-			parameter	AREG   = 2,
-			parameter	BREG   = 2,
-			parameter	CREG   = 1,
-			parameter	MREG   = 1,
-			parameter	PREG   = 1,
-			parameter	DEVICE = "RTL" // "7SERIES"
+			parameter	OPMODEREG  = 1,
+			parameter	ALUMODEREG = 1,
+			parameter	AREG       = 2,
+			parameter	BREG       = 2,
+			parameter	CREG       = 1,
+			parameter	MREG       = 1,
+			parameter	PREG       = 1,
+			
+			parameter	USE_PCIN   = 0,
+			parameter	USE_PCOUT  = 0,
+			
+			parameter	DEVICE     = "RTL" // "7SERIES"
 		)
 		(
 			input	wire							reset,
 			input	wire							clk,
 			
+			input	wire							cke_ctrl,
+			input	wire							cke_alumode,
 			input	wire							cke_a0,
 			input	wire							cke_a1,
 			input	wire							cke_b0,
@@ -40,23 +48,42 @@ module jelly_mul_add_dsp48
 			input	wire							cke_m,
 			input	wire							cke_p,
 			
-			input	wire	signed	[A_WIDTH-1:0]	in_a,
-			input	wire	signed	[B_WIDTH-1:0]	in_b,
-			input	wire	signed	[C_WIDTH-1:0]	in_c,
-			output	wire	signed	[P_WIDTH-1:0]	out_p
+			input	wire							op_load,
+			input	wire							alu_sub,
+			
+			input	wire	signed	[A_WIDTH-1:0]	a,
+			input	wire	signed	[B_WIDTH-1:0]	b,
+			input	wire	signed	[C_WIDTH-1:0]	c,
+			output	wire	signed	[P_WIDTH-1:0]	p,
+			
+			input	wire	signed	[47:0]			pcin,
+			output	wire	signed	[47:0]			pcout
 		);
 	
 	generate
 	if ( DEVICE == "VIRTEX6" || DEVICE == "SPARTAN6" || DEVICE == "7SERIES" ) begin : blk_dsp48e1
-		wire	signed	[24:0]		a;
-		wire	signed	[17:0]		b;
-		wire	signed	[47:0]		c;
-		wire	signed	[47:0]		p;
+		wire	signed	[24:0]		sig_a;
+		wire	signed	[17:0]		sig_b;
+		wire	signed	[47:0]		sig_c;
+		wire	signed	[47:0]		sig_p;
+		wire			[6:0]		sig_opmode;
+		wire			[3:0]		sig_alumode;
 		
-		assign a     = in_a;
-		assign b     = in_b;
-		assign c     = in_c;
-		assign out_p = p;
+		assign sig_a     = a;
+		assign sig_b     = b;
+		assign sig_c     = c;
+		assign p         = sig_p;
+		
+		if ( USE_PCIN ) begin
+			assign sig_opmode = 7'b001_01_01;
+		end
+		else begin
+			assign sig_opmode[6:4] = {2'b01, op_load};
+			assign sig_opmode[3:2] = 2'b01;
+			assign sig_opmode[1:0] = 2'b01;
+		end
+		
+		assign sig_alumode = {2'b00, alu_sub, alu_sub};
 		
 		DSP48E1
 				#(
@@ -75,7 +102,7 @@ module jelly_mul_add_dsp48
 					
 					.ACASCREG			(AREG),
 					.ADREG				(0),
-					.ALUMODEREG			(0),
+					.ALUMODEREG			(ALUMODEREG),
 					.AREG				(AREG),
 					.BCASCREG			(BREG),
 					.BREG				(BREG),
@@ -85,7 +112,7 @@ module jelly_mul_add_dsp48
 					.DREG				(0),
 					.INMODEREG			(0),
 					.MREG				(MREG),
-					.OPMODEREG			(0),
+					.OPMODEREG			(OPMODEREG),
 					.PREG				(PREG)
 				)
 			i_dsp48e1
@@ -94,7 +121,7 @@ module jelly_mul_add_dsp48
 					.BCOUT				(),
 					.CARRYCASCOUT		(),
 					.MULTSIGNOUT		(),
-					.PCOUT				(),
+					.PCOUT				(pcout),
 					
 					.OVERFLOW			(),
 					.PATTERNBDETECT		(),
@@ -102,35 +129,35 @@ module jelly_mul_add_dsp48
 					.UNDERFLOW			(),
 					
 					.CARRYOUT			(),
-					.P					(p),
+					.P					(sig_p),
 					
 					.ACIN				(),
 					.BCIN				(),
 					.CARRYCASCIN		(),
 					.MULTSIGNIN			(),
-					.PCIN				(),
+					.PCIN				(pcin),
 					
-					.ALUMODE			(4'b0000),
+					.ALUMODE			(sig_alumode),
 					.CARRYINSEL			(3'b000),
 					.CLK				(clk),
 					.INMODE				(5'b00100),
-					.OPMODE				(7'b0110101),
+					.OPMODE				(sig_opmode),
 					
-					.A					({5'b11111, a}),
-					.B					(b),
-					.C					(c),
+					.A					({5'b11111, sig_a}),
+					.B					(sig_b),
+					.C					(sig_c),
 					.CARRYIN			(1'b0),
 					.D					(25'd0),
 					
 					.CEA1				(cke_a0),
 					.CEA2				(cke_a1),
 					.CEAD				(1'b0),
-					.CEALUMODE			(1'b0),
+					.CEALUMODE			(cke_alumode),
 					.CEB1				(cke_b0),
 					.CEB2				(cke_b1),
 					.CEC				(cke_c),
 					.CECARRYIN			(1'b0),
-					.CECTRL				(1'b0),
+					.CECTRL				(cke_ctrl),
 					.CED				(1'b0),
 					.CEINMODE			(1'b0),
 					.CEM				(cke_m),
@@ -149,6 +176,44 @@ module jelly_mul_add_dsp48
 				);
 	end
 	else begin : blk_rtl
+		
+		// opmode
+		wire	opmode_load;
+		if ( OPMODEREG >= 1 ) begin
+			reg		reg_opmode_load;
+			always @(posedge clk) begin
+				if ( reset ) begin
+					reg_opmode_load <= 1'b0;
+				end
+				else if ( cke_ctrl ) begin
+					reg_opmode_load <= op_load;
+				end
+			end
+			assign opmode_load = reg_opmode_load;
+		end
+		else begin
+			assign opmode_load = op_load;
+		end
+		
+		// alumode
+		wire	alumode_sub;
+		if ( ALUMODEREG >= 1 ) begin
+			reg		reg_alumode_sub;
+			always @(posedge clk) begin
+				if ( reset ) begin
+					reg_alumode_sub <= 1'b0;
+				end
+				else if ( cke_alumode ) begin
+					reg_alumode_sub <= alu_sub;
+				end
+			end
+			assign alumode_sub = reg_alumode_sub;
+		end
+		else begin
+			assign alumode_sub = alu_sub;
+		end
+		
+		
 		// a0
 		wire	signed	[A_WIDTH-1:0]	a0;
 		if ( AREG >= 1 ) begin
@@ -158,13 +223,13 @@ module jelly_mul_add_dsp48
 					reg_a0 <= {A_WIDTH{1'b0}};
 				end
 				else if ( cke_a0 ) begin
-					reg_a0 <= in_a;
+					reg_a0 <= a;
 				end
 			end
 			assign a0 = reg_a0;
 		end
 		else begin
-			assign a0 = in_a;
+			assign a0 = a;
 		end
 		
 		// a1
@@ -195,13 +260,13 @@ module jelly_mul_add_dsp48
 					reg_b0 <= {B_WIDTH{1'b0}};
 				end
 				else if ( cke_b0 ) begin
-					reg_b0 <= in_b;
+					reg_b0 <= b;
 				end
 			end
 			assign b0 = reg_b0;
 		end
 		else begin
-			assign b0 = in_b;
+			assign b0 = b;
 		end
 		
 		// b1
@@ -224,62 +289,73 @@ module jelly_mul_add_dsp48
 		
 		
 		// c
-		wire	signed	[C_WIDTH-1:0]	c;
+		wire	signed	[C_WIDTH-1:0]	c0;
 		if ( CREG >= 1 ) begin
-			reg		signed	[C_WIDTH-1:0]	reg_c;
+			reg		signed	[C_WIDTH-1:0]	reg_c0;
 			always @(posedge clk) begin
 				if ( reset ) begin
-					reg_c <= {C_WIDTH{1'b0}};
+					reg_c0 <= {C_WIDTH{1'b0}};
 				end
 				else if ( cke_c ) begin
-					reg_c <= in_c;
+					reg_c0 <= c;
 				end
 			end
-			assign c = reg_c;
+			assign c0 = reg_c0;
 		end
 		else begin
-			assign c = in_c;
+			assign c0 = c;
 		end
 		
 		
 		// m
-		wire	signed	[M_WIDTH-1:0]	m;
+		wire	signed	[M_WIDTH-1:0]	m0;
 		if ( CREG >= 1 ) begin
-			reg		signed	[M_WIDTH-1:0]	reg_m;
+			reg		signed	[M_WIDTH-1:0]	reg_m0;
 			always @(posedge clk) begin
 				if ( reset ) begin
-					reg_m <= {M_WIDTH{1'b0}};
+					reg_m0 <= {M_WIDTH{1'b0}};
 				end
 				else if ( cke_m ) begin
-					reg_m <= a1 * b1;
+					reg_m0 <= a1 * b1;
 				end
 			end
-			assign m = reg_m;
+			assign m0 = reg_m0;
 		end
 		else begin
-			assign m = a1 * b1;
+			assign m0 = a1 * b1;
 		end
 		
 		
 		// p
-		wire	signed	[P_WIDTH-1:0]	p;
+		wire	signed	[P_WIDTH-1:0]	p0;
 		if ( PREG >= 1 ) begin
-			reg		signed	[M_WIDTH-1:0]	reg_p;
+			reg		signed	[M_WIDTH-1:0]	reg_p0;
 			always @(posedge clk) begin
 				if ( reset ) begin
-					reg_p <= {P_WIDTH{1'b0}};
+					reg_p0 <= {P_WIDTH{1'b0}};
 				end
 				else if ( cke_p ) begin
-					reg_p <= c + m;
+					if ( USE_PCIN ) begin
+						reg_p0 <= alumode_sub ? pcin - m0 : pcin + m0;
+					end
+					else begin
+						if ( opmode_load ) begin
+							reg_p0 <= alumode_sub ? c0 - m0 : c0 + m0;
+						end
+						else begin
+							reg_p0 <= alumode_sub ? p0 - m0 : p0 + m0;
+						end
+					end
 				end
 			end
-			assign p = reg_p;
+			assign p0 = reg_p0;
 		end
 		else begin
-			assign p = c + m;
-		end	
+			assign p0 = alumode_sub ? c0 - m0 : c0 + m0;
+		end
 		
-		assign out_p = p;
+		assign p     = p0;
+		assign pcout = p0;
 	end
 	endgenerate
 	
