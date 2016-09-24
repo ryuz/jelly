@@ -35,6 +35,10 @@ module tb_mul_add();
 	reg								cke2 = 1;
 	reg								cke3 = 1;
 	reg								cke4 = 1;
+	reg								cke5 = 1;
+	reg								cke6 = 1;
+	reg								cke7 = 1;
+	reg								cke8 = 1;
 	
 	reg		signed	[A_WIDTH-1:0]	a;
 	reg		signed	[B_WIDTH-1:0]	b;
@@ -43,7 +47,11 @@ module tb_mul_add();
 	reg		signed	[X_WIDTH-1:0]	x;
 	reg		signed	[Y_WIDTH-1:0]	y;
 	reg		signed	[Y_WIDTH-1:0]	z;
-			
+	
+	reg								op_load;
+	reg								alu_sub;
+	
+	
 	wire	signed	[P_WIDTH-1:0]	p3_rtl;
 	wire	signed	[P_WIDTH-1:0]	p3_dsp;
 	wire	ok3 = (p3_rtl == p3_dsp);
@@ -52,6 +60,9 @@ module tb_mul_add();
 	wire	signed	[P_WIDTH-1:0]	p2_dsp;
 	wire	ok2 = (p2_rtl == p2_dsp);
 	
+	wire	signed	[P_WIDTH-1:0]	dsp_p_rtl;
+	wire	signed	[P_WIDTH-1:0]	dsp_p_dsp;
+	wire	ok_dsp = (dsp_p_rtl == dsp_p_dsp);
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
@@ -62,14 +73,20 @@ module tb_mul_add();
 			x <= 0;
 			y <= 0;
 			z <= 0;
+			
+			op_load <= 0;
+			alu_sub <= 0;
 		end
 		else begin
-			
 			cke0 <= {$random()};
 			cke1 <= {$random()};
 			cke2 <= {$random()};
 			cke3 <= {$random()};
 			cke4 <= {$random()};
+			cke5 <= {$random()};
+			cke6 <= {$random()};
+			cke7 <= {$random()};
+			cke8 <= {$random()};
 			
 			a <= $random();
 			b <= $random();
@@ -79,6 +96,11 @@ module tb_mul_add();
 			y <= $random();
 			z <= $random();
 			
+			
+			op_load <= {$random()};
+			alu_sub <= {$random()};
+			
+			
 			/*
 			a <= 1;
 			b <= 1;
@@ -87,10 +109,23 @@ module tb_mul_add();
 			x <= 1;
 			y <= 1;
 			z <= 1;
+			
+			op_load <= 1;
+			alu_sub <= 1;
 			*/
 		end
 	end
 	
+	
+	
+	
+	
+	
+	
+	
+	// ----------------------------
+	//  a*x + b*y + c*z + d
+	// ----------------------------
 	
 	jelly_mul_add3
 			#(
@@ -160,6 +195,10 @@ module tb_mul_add();
 	
 	
 	
+	// ----------------------------
+	//  a*x + b*y + c
+	// ----------------------------
+	
 	// add2
 	jelly_mul_add2
 			#(
@@ -215,6 +254,106 @@ module tb_mul_add();
 				.y			(y),
 				
 				.p			(p2_dsp)
+			);
+	
+	
+	
+	// ----------------------------
+	//  primitive
+	// ----------------------------
+	
+	jelly_mul_add_dsp48e1
+			#(
+				.A_WIDTH		(A_WIDTH),
+				.B_WIDTH		(X_WIDTH),
+				.C_WIDTH		(D_WIDTH),
+				.P_WIDTH		(P_WIDTH),
+				
+				.OPMODEREG		(1),
+				.ALUMODEREG		(1),
+				.AREG			(2),
+				.BREG			(2),
+				.CREG			(1),
+				.MREG			(1),
+				.PREG			(1),
+				
+				.USE_PCIN		(0),
+				.USE_PCOUT		(0),
+				
+				.DEVICE			("RTL") // "7SERIES"
+			)
+		i_mul_add_dsp48e1_rtl
+			(
+				.reset			(reset),
+				.clk			(clk),
+				
+				.cke_ctrl		(cke0),
+				.cke_alumode	(cke1),
+				.cke_a0			(cke2),
+				.cke_a1			(cke3),
+				.cke_b0			(cke4),
+				.cke_b1			(cke5),
+				.cke_c			(cke6),
+				.cke_m			(cke7),
+				.cke_p			(cke8),
+				
+				.op_load		(op_load),
+				.alu_sub		(alu_sub),
+				
+				.a				(a),
+				.b				(x),
+				.c				(d),
+				.p				(dsp_p_rtl),
+				
+				.pcin			(),
+				.pcout			()
+			);
+	
+	jelly_mul_add_dsp48e1
+			#(
+				.A_WIDTH		(A_WIDTH),
+				.B_WIDTH		(X_WIDTH),
+				.C_WIDTH		(D_WIDTH),
+				.P_WIDTH		(P_WIDTH),
+				
+				.OPMODEREG		(1),
+				.ALUMODEREG		(1),
+				.AREG			(2),
+				.BREG			(2),
+				.CREG			(1),
+				.MREG			(1),
+				.PREG			(1),
+				
+				.USE_PCIN		(0),
+				.USE_PCOUT		(0),
+				
+				.DEVICE			("7SERIES")
+			)
+		i_mul_add_dsp48e1_dsp
+			(
+				.reset			(reset),
+				.clk			(clk),
+				
+				.cke_ctrl		(cke0),
+				.cke_alumode	(cke1),
+				.cke_a0			(cke2),
+				.cke_a1			(cke3),
+				.cke_b0			(cke4),
+				.cke_b1			(cke5),
+				.cke_c			(cke6),
+				.cke_m			(cke7),
+				.cke_p			(cke8),
+				
+				.op_load		(op_load),
+				.alu_sub		(alu_sub),
+				
+				.a				(a),
+				.b				(x),
+				.c				(d),
+				.p				(dsp_p_dsp),
+				
+				.pcin			(),
+				.pcout			()
 			);
 	
 	

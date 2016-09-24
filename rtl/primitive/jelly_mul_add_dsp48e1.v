@@ -329,7 +329,7 @@ module jelly_mul_add_dsp48e1
 		// p
 		wire	signed	[P_WIDTH-1:0]	p0;
 		if ( PREG >= 1 ) begin
-			reg		signed	[M_WIDTH-1:0]	reg_p0;
+			reg		signed	[P_WIDTH-1:0]	reg_p0;
 			always @(posedge clk) begin
 				if ( reset ) begin
 					reg_p0 <= {P_WIDTH{1'b0}};
