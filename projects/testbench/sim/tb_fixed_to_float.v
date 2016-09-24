@@ -19,9 +19,9 @@ module tb_fixed_to_float();
 	
 	
 	
-	parameter	FIXED_SIGNED      = 0;
-	parameter	FIXED_INT_WIDTH   = 32;
-	parameter	FIXED_FRAC_WIDTH  = 0;
+	parameter	FIXED_SIGNED      = 1;
+	parameter	FIXED_INT_WIDTH   = 16;
+	parameter	FIXED_FRAC_WIDTH  = 16;
 	parameter	FIXED_WIDTH       = FIXED_INT_WIDTH + FIXED_FRAC_WIDTH;
 	
 	parameter	FLOAT_EXP_WIDTH   = 8;
@@ -65,14 +65,14 @@ module tb_fixed_to_float();
 	reg							in_valid = 1'b0;
 	wire						in_ready;
 	
-	wire	[FIXED_WIDTH-1:0]	out_fixed;
-	wire	[FLOAT_WIDTH-1:0]	out_float;
-	wire						out_valid;
-	reg							out_ready = 1'b1;
+	wire	signed	[FIXED_WIDTH-1:0]	out_fixed;
+	wire			[FLOAT_WIDTH-1:0]	out_float;
+	wire								out_valid;
+	reg									out_ready = 1'b1;
 	
-	reg		[31:0]				reg_random = 10;
+	reg		[31:0]						reg_random = 10;
 	
-	integer						in_count = 0;
+	integer								in_count = 0;
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
@@ -108,11 +108,21 @@ module tb_fixed_to_float();
 		fp = $fopen("out.txt", "w");
 	end
 	
+	real	real_src;
+	reg		ok = 1;
+	
 	always @(posedge clk) begin
 		if ( !reset && out_valid && out_ready ) begin
 			result = $bitstoreal(float2real(out_float));
 			
-			$display("%d %f", out_fixed, result);
+			$display("%f %f", $itor(out_fixed)/(1<<FIXED_FRAC_WIDTH), result);
+			
+			real_src = $itor(out_fixed)/(1<<FIXED_FRAC_WIDTH);
+			
+			ok = 1;
+			if ( (real_src - result) / result >= 0.001 ) begin
+				ok = 0;
+			end
 			
 			/*
 			$fdisplay(fp, "%h %h %g %g %g", out_src, out_float, result, exp, error);
@@ -164,6 +174,43 @@ module tb_fixed_to_float();
 				.m_valid		(out_valid),
 				.m_ready		(out_ready)
 			);
+	
+	
+	/*
+	wire			[FLOAT_WIDTH-1:0]	out_float2;
+	jelly_fixed_to_float2
+			#(
+				.FIXED_SIGNED			(FIXED_SIGNED),
+				.FIXED_INT_WIDTH		(FIXED_INT_WIDTH),
+				.FIXED_FRAC_WIDTH		(FIXED_FRAC_WIDTH),
+				.FIXED_WIDTH			(FIXED_WIDTH),
+				
+				.FLOAT_EXP_WIDTH		(FLOAT_EXP_WIDTH),
+				.FLOAT_EXP_OFFSET		(FLOAT_EXP_OFFSET),
+				.FLOAT_FRAC_WIDTH		(FLOAT_FRAC_WIDTH),
+				.FLOAT_WIDTH			(FLOAT_WIDTH),
+				
+				.USER_WIDTH				(32)
+			)
+		i_fixed_to_float2
+			(
+				.reset			(reset),
+				.clk			(clk),
+				.cke			(1'b1),
+				
+				.s_user			(in_fixed),
+				.s_fixed		(in_fixed),
+				.s_valid		(in_valid),
+				.s_ready		(in_ready),
+				
+				.m_user			(),
+				.m_float		(out_float2),
+				.m_valid		(),
+				.m_ready		(out_ready)
+			);
+	
+	wire match = (out_float == out_float2);
+	*/
 	
 	
 endmodule

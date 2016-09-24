@@ -16,7 +16,7 @@
 // fixed_to_float
 module jelly_fixed_to_float
 		#(
-			parameter	FIXED_SIGNED     = 0,
+			parameter	FIXED_SIGNED     = 1,
 			parameter	FIXED_INT_WIDTH  = 32,
 			parameter	FIXED_FRAC_WIDTH = 0,
 			parameter	FIXED_WIDTH      = FIXED_INT_WIDTH + FIXED_FRAC_WIDTH,
@@ -92,67 +92,88 @@ module jelly_fixed_to_float
 				.buffered			()
 			);
 	
-	
-	reg		[USER_BITS-1:0]						st0_user;
-	reg		[FIXED_WIDTH-1:0]					st0_fixed;
-	reg											st0_sign;
-	reg											st0_zero;
-
-	reg		[FLOAT_EXP_WIDTH-1:0]				tmp_exp;
-	reg		[FLOAT_FRAC_WIDTH+FIXED_WIDTH:0]	tmp_frac;
-	
-	reg		[USER_BITS-1:0]						st1_user;
-	reg											st1_sign;
-	reg											st1_zero;
-	reg		[FLOAT_EXP_WIDTH-1:0]				st1_exp;
-	reg		[FLOAT_FRAC_WIDTH-1:0]				st1_frac;
-		
-	reg		[USER_BITS-1:0]						st2_user;
-	reg		[FLOAT_WIDTH-1:0]					st2_float;
+	localparam	UNSIGNED_WIDTH   = FIXED_SIGNED ? FIXED_WIDTH - 1 : FIXED_INT_WIDTH;
+	localparam	ZERO_COUNT_WIDTH = UNSIGNED_WIDTH <=   2 ? 1 :
+	                               UNSIGNED_WIDTH <=   4 ? 2 :
+	                               UNSIGNED_WIDTH <=   8 ? 3 :
+	                               UNSIGNED_WIDTH <=  16 ? 4 :
+	                               UNSIGNED_WIDTH <=  32 ? 5 :
+	                               UNSIGNED_WIDTH <=  64 ? 6 :
+	                               UNSIGNED_WIDTH <= 127 ? 7 : 8;
 	
 	integer										i;
 	
+	reg		[USER_BITS-1:0]						st0_user;
+	reg											st0_zero;
+	reg											st0_sign;
+	reg		[UNSIGNED_WIDTH-1:0]				st0_fixed;
+	
+	reg		[USER_BITS-1:0]						st1_user;
+	reg											st1_zero;
+	reg											st1_sign;
+	reg		[ZERO_COUNT_WIDTH-1:0]				st1_clz;
+	reg		[UNSIGNED_WIDTH-1:0]				st1_fixed;
+	
+	reg		[USER_BITS-1:0]						st2_user;
+	reg											st2_sign;
+	reg		[FLOAT_EXP_WIDTH-1:0]				st2_exp;
+	reg		[FLOAT_FRAC_WIDTH-1:0]				st2_frac;
+	
 	always @(posedge clk) begin
 		if ( stage_cke[0] ) begin
-			st0_user  <= src_user;
-			st0_sign  <= 1'b0;
-			st0_zero  <= (src_fixed == {FIXED_WIDTH{1'b0}});
-			st0_fixed <= src_fixed;
-			if ( FIXED_SIGNED && src_fixed[FIXED_WIDTH-1] ) begin
+			st0_user <= src_user;
+			st0_zero <= (src_fixed == {FIXED_WIDTH{1'b0}});
+			if ( FIXED_SIGNED ) begin
 				st0_sign  <= src_fixed[FIXED_WIDTH-1];
-				st0_fixed <= -src_fixed;
+				st0_fixed <= src_fixed[FIXED_WIDTH-1] ? -src_fixed : src_fixed;
+			end
+			else begin
+				st0_sign  <= 1'b0;
+				st0_fixed <= src_fixed;
 			end
 		end
 		
 		if ( stage_cke[1] ) begin
-			tmp_exp  = FLOAT_EXP_OFFSET + (FLOAT_FRAC_WIDTH + FIXED_INT_WIDTH);
-			tmp_frac = {{(1 + FLOAT_FRAC_WIDTH){1'b0}}, st0_fixed};
-			for ( i = 0; i < (FLOAT_FRAC_WIDTH + FIXED_WIDTH); i = i+1 ) begin
-				if ( tmp_frac[FLOAT_FRAC_WIDTH + FIXED_WIDTH] == 1'b0 ) begin
-					tmp_exp  = tmp_exp - 1'b1;
-					tmp_frac = (tmp_frac << 1);
+			st1_user  <= st0_user;
+			st1_zero  <= st0_zero;
+			st1_sign  <= st0_sign;
+			st1_fixed <= st0_fixed;
+			
+			// count leading zero
+			st1_clz <= UNSIGNED_WIDTH - 1;
+			begin : block_clz
+				for ( i = 0; i < UNSIGNED_WIDTH-1; i = i+1 ) begin
+					if ( st0_fixed[UNSIGNED_WIDTH-1-i] != 1'b0 ) begin
+						st1_clz <= i;
+						disable block_clz;
+					end
 				end
 			end
-			st1_exp  <= tmp_exp;
-			st1_frac <= tmp_frac[FIXED_WIDTH +: FLOAT_FRAC_WIDTH];
-			st1_sign <= st0_sign;
-			st1_zero <= st0_zero;
-			st1_user <= st0_user;
 		end
 		
 		if ( stage_cke[2] ) begin
 			st2_user  <= st1_user;
 			if ( st1_zero ) begin
-				st2_float <= {FLOAT_WIDTH{1'b0}};
+				st2_sign <= 1'b0;
+				st2_exp  <= {FLOAT_EXP_WIDTH{1'b0}};
 			end
 			else begin
-				st2_float <= {st1_sign, st1_exp, st1_frac};
+				st2_sign <= st1_sign;
+				st2_exp  <= FLOAT_EXP_OFFSET + (UNSIGNED_WIDTH-1 - FIXED_FRAC_WIDTH) - st1_clz;
+			end
+			
+			if ( FLOAT_FRAC_WIDTH > UNSIGNED_WIDTH ) begin
+				st2_frac <= ((st1_fixed << (st1_clz+1)) << (FLOAT_FRAC_WIDTH - UNSIGNED_WIDTH));
+			end
+			else begin
+				st2_frac <= ((st1_fixed << (st1_clz+1)) >> (UNSIGNED_WIDTH - FLOAT_FRAC_WIDTH));
 			end
 		end
 	end
 	
 	assign sink_user  = st2_user;
-	assign sink_float = st2_float;
+	assign sink_float = {st2_sign, st2_exp, st2_frac};
+	
 	
 endmodule
 
