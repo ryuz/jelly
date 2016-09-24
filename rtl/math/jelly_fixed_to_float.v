@@ -20,12 +20,15 @@ module jelly_fixed_to_float
 			parameter	FIXED_INT_WIDTH  = 32,
 			parameter	FIXED_FRAC_WIDTH = 0,
 			parameter	FIXED_WIDTH      = FIXED_INT_WIDTH + FIXED_FRAC_WIDTH,
+			parameter	FIXED_EXP_WIDTH  = 8,
+			parameter	FIXED_EXP_OFFSET = (1 << (FLOAT_EXP_WIDTH-1)) - 1,
 			
 			parameter	FLOAT_EXP_WIDTH  = 8,
 			parameter	FLOAT_EXP_OFFSET = (1 << (FLOAT_EXP_WIDTH-1)) - 1,
 			parameter	FLOAT_FRAC_WIDTH = 23,
 			parameter	FLOAT_WIDTH      = 1 + FLOAT_EXP_WIDTH + FLOAT_FRAC_WIDTH,	// sign + exp + frac
 			
+			parameter	USE_FIXED_EXP    = 0,
 			
 			parameter	USER_WIDTH       = 0,
 			parameter	USER_BITS        = USER_WIDTH > 0 ? USER_WIDTH : 1,
@@ -34,19 +37,20 @@ module jelly_fixed_to_float
 			parameter	MASTER_OUT_REGS  = 1
 		)
 		(
-			input	wire						reset,
-			input	wire						clk,
-			input	wire						cke,
+			input	wire							reset,
+			input	wire							clk,
+			input	wire							cke,
 			
-			input	wire	[USER_BITS-1:0]		s_user,
-			input	wire	[FIXED_WIDTH-1:0]	s_fixed,
-			input	wire						s_valid,
-			output	wire						s_ready,
+			input	wire	[USER_BITS-1:0]			s_user,
+			input	wire	[FIXED_WIDTH-1:0]		s_fixed,
+			input	wire	[FIXED_EXP_WIDTH-1:0]	s_exp,
+			input	wire							s_valid,
+			output	wire							s_ready,
 			
-			output	wire	[USER_BITS-1:0]		m_user,
-			output	wire	[FLOAT_WIDTH-1:0]	m_float,
-			output	wire						m_valid,
-			input	wire						m_ready
+			output	wire	[USER_BITS-1:0]			m_user,
+			output	wire	[FLOAT_WIDTH-1:0]		m_float,
+			output	wire							m_valid,
+			input	wire							m_ready
 		);
 	
 	localparam	PIPELINE_STAGES = 3;
@@ -56,6 +60,7 @@ module jelly_fixed_to_float
 	
 	wire	[USER_BITS-1:0]			src_user;
 	wire	[FIXED_WIDTH-1:0]		src_fixed;
+	wire	[FIXED_EXP_WIDTH-1:0]	src_exp;
 	
 	wire	[USER_BITS-1:0]			sink_user;
 	wire	[FLOAT_WIDTH-1:0]		sink_float;
@@ -63,7 +68,7 @@ module jelly_fixed_to_float
 	jelly_pipeline_control
 			#(
 				.PIPELINE_STAGES	(PIPELINE_STAGES),
-				.S_DATA_WIDTH		(USER_BITS+FIXED_WIDTH),
+				.S_DATA_WIDTH		(USER_BITS+FIXED_EXP_WIDTH+FIXED_WIDTH),
 				.M_DATA_WIDTH		(USER_BITS+FLOAT_WIDTH),
 				.AUTO_VALID			(1),
 				.MASTER_IN_REGS		(MASTER_IN_REGS),
@@ -75,7 +80,7 @@ module jelly_fixed_to_float
 				.clk				(clk),
 				.cke				(cke),
 				
-				.s_data				({s_user, s_fixed}),
+				.s_data				({s_user, s_exp, s_fixed}),
 				.s_valid			(s_valid),
 				.s_ready			(s_ready),
 				
@@ -86,7 +91,7 @@ module jelly_fixed_to_float
 				.stage_cke			(stage_cke),
 				.stage_valid		(stage_valid),
 				.next_valid			({PIPELINE_STAGES{1'bx}}),
-				.src_data			({src_user, src_fixed}),
+				.src_data			({src_user, src_exp, src_fixed}),
 				.src_valid			(),
 				.sink_data			({sink_user, sink_float}),
 				.buffered			()
@@ -107,12 +112,14 @@ module jelly_fixed_to_float
 	reg											st0_zero;
 	reg											st0_sign;
 	reg		[UNSIGNED_WIDTH-1:0]				st0_fixed;
+	reg		[FIXED_EXP_WIDTH-1:0]				st0_exp;
 	
 	reg		[USER_BITS-1:0]						st1_user;
 	reg											st1_zero;
 	reg											st1_sign;
 	reg		[ZERO_COUNT_WIDTH-1:0]				st1_clz;
 	reg		[UNSIGNED_WIDTH-1:0]				st1_fixed;
+	reg		[FIXED_EXP_WIDTH-1:0]				st1_exp;
 	
 	reg		[USER_BITS-1:0]						st2_user;
 	reg											st2_sign;
@@ -123,6 +130,7 @@ module jelly_fixed_to_float
 		if ( stage_cke[0] ) begin
 			st0_user <= src_user;
 			st0_zero <= (src_fixed == {FIXED_WIDTH{1'b0}});
+			st0_exp  <= src_exp;
 			if ( FIXED_SIGNED ) begin
 				st0_sign  <= src_fixed[FIXED_WIDTH-1];
 				st0_fixed <= src_fixed[FIXED_WIDTH-1] ? -src_fixed : src_fixed;
@@ -138,6 +146,7 @@ module jelly_fixed_to_float
 			st1_zero  <= st0_zero;
 			st1_sign  <= st0_sign;
 			st1_fixed <= st0_fixed;
+			st1_exp   <= st0_exp;
 			
 			// count leading zero
 			st1_clz <= UNSIGNED_WIDTH - 1;
@@ -159,7 +168,12 @@ module jelly_fixed_to_float
 			end
 			else begin
 				st2_sign <= st1_sign;
-				st2_exp  <= FLOAT_EXP_OFFSET + (UNSIGNED_WIDTH-1 - FIXED_FRAC_WIDTH) - st1_clz;
+				if ( USE_FIXED_EXP ) begin
+					st2_exp  <= FLOAT_EXP_OFFSET + (UNSIGNED_WIDTH-1 - FIXED_FRAC_WIDTH) - st1_clz + (st1_exp - FIXED_EXP_OFFSET);
+				end
+				else begin
+					st2_exp  <= FLOAT_EXP_OFFSET + (UNSIGNED_WIDTH-1 - FIXED_FRAC_WIDTH) - st1_clz;
+				end
 			end
 			
 			if ( FLOAT_FRAC_WIDTH > UNSIGNED_WIDTH ) begin
