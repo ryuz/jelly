@@ -20,6 +20,7 @@ module jelly_mul_add_dsp48e1
 			parameter	C_WIDTH    = 48,
 			parameter	P_WIDTH    = 48,
 			parameter	M_WIDTH    = A_WIDTH + B_WIDTH,
+			parameter	PC_WIDTH   = P_WIDTH >= 48 ? P_WIDTH : 48,
 			
 			parameter	OPMODEREG  = 1,
 			parameter	ALUMODEREG = 1,
@@ -56,12 +57,18 @@ module jelly_mul_add_dsp48e1
 			input	wire	signed	[C_WIDTH-1:0]	c,
 			output	wire	signed	[P_WIDTH-1:0]	p,
 			
-			input	wire	signed	[47:0]			pcin,
-			output	wire	signed	[47:0]			pcout
+			input	wire	signed	[PC_WIDTH-1:0]	pcin,
+			output	wire	signed	[PC_WIDTH-1:0]	pcout
 		);
 	
+	
+	localparam CAN_USE_DSP48E1 = ((A_WIDTH <= 25) && (B_WIDTH <= 18)
+									&& (C_WIDTH <= 48) && (P_WIDTH <= 48) && (M_WIDTH <= 43));
+	
+	
+	
 	generate
-	if ( DEVICE == "VIRTEX6" || DEVICE == "SPARTAN6" || DEVICE == "7SERIES" ) begin : blk_dsp48e1
+	if ( CAN_USE_DSP48E1 && (DEVICE == "VIRTEX6" || DEVICE == "SPARTAN6" || DEVICE == "7SERIES") ) begin : blk_dsp48e1
 		wire	signed	[24:0]		sig_a;
 		wire	signed	[17:0]		sig_b;
 		wire	signed	[47:0]		sig_c;
@@ -216,7 +223,7 @@ module jelly_mul_add_dsp48e1
 		
 		// a0
 		wire	signed	[A_WIDTH-1:0]	a0;
-		if ( AREG >= 1 ) begin
+		if ( AREG >= 2 ) begin
 			reg		signed	[A_WIDTH-1:0]	reg_a0;
 			always @(posedge clk) begin
 				if ( reset ) begin
@@ -234,7 +241,7 @@ module jelly_mul_add_dsp48e1
 		
 		// a1
 		wire	signed	[A_WIDTH-1:0]	a1;
-		if ( AREG >= 2 ) begin
+		if ( AREG >= 1 ) begin
 			reg		signed	[A_WIDTH-1:0]	reg_a1;
 			always @(posedge clk) begin
 				if ( reset ) begin
@@ -253,7 +260,7 @@ module jelly_mul_add_dsp48e1
 		
 		// b0
 		wire	signed	[B_WIDTH-1:0]	b0;
-		if ( BREG >= 1 ) begin
+		if ( BREG >= 2 ) begin
 			reg		signed	[B_WIDTH-1:0]	reg_b0;
 			always @(posedge clk) begin
 				if ( reset ) begin
@@ -271,7 +278,7 @@ module jelly_mul_add_dsp48e1
 		
 		// b1
 		wire	signed	[B_WIDTH-1:0]	b1;
-		if ( BREG >= 2 ) begin
+		if ( BREG >= 1 ) begin
 			reg		signed	[B_WIDTH-1:0]	reg_b1;
 			always @(posedge clk) begin
 				if ( reset ) begin

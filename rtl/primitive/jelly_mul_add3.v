@@ -200,8 +200,8 @@ module jelly_mul_add3
 					
 					.cke_ctrl		(1'b0),
 					.cke_alumode	(1'b0),
-					.cke_a0			(cke0),
-					.cke_b0			(cke0),
+					.cke_a0			(1'b0),
+					.cke_b0			(1'b0),
 					.cke_a1			(cke0),
 					.cke_b1			(cke0),
 					.cke_c			(cke1),
