@@ -33,7 +33,7 @@ module jelly_fixed_float_mul_add2
 			parameter	M_FIXED_EXP_OFFSET = (1 << (M_FIXED_EXP_WIDTH-1)) - 1,
 			parameter	M_FIXED_INT_WIDTH  = 40,
 			parameter	M_FIXED_FRAC_WIDTH = 8,
-			parameter	M_FIXED_WIDTH      = S_FIXED_INT_WIDTH + S_FIXED_FRAC_WIDTH,
+			parameter	M_FIXED_WIDTH      = M_FIXED_INT_WIDTH + M_FIXED_FRAC_WIDTH,
 			
 			parameter	INT_WIDTH          = 48,
 			
@@ -42,8 +42,8 @@ module jelly_fixed_float_mul_add2
 			
 			parameter	MASTER_IN_REGS     = 1,
 			parameter	MASTER_OUT_REGS    = 1,
-
-			parameter	DEVICE             = "RTL" // "7SERIES"
+			
+			parameter	DEVICE             = "7SERIES" //"RTL" // "7SERIES"
 		)
 		(
 			input	wire									reset,
@@ -67,7 +67,7 @@ module jelly_fixed_float_mul_add2
 		);
 	
 	
-	localparam	PIPELINE_STAGES = 6;
+	localparam	PIPELINE_STAGES = 5;
 	
 	wire			[PIPELINE_STAGES-1:0]		stage_cke;
 	wire			[PIPELINE_STAGES-1:0]		stage_valid;
@@ -146,9 +146,13 @@ module jelly_fixed_float_mul_add2
 	
 	localparam	S_FLOAT_INT_WIDTH = S_FLOAT_FRAC_WIDTH + 2;
 	
-	wire	signed	[S_FLOAT_INT_WIDTH-1:0]		src_a_int = src_a_sign ? -{2'b01, src_a_frac} : {2'b01, src_a_frac};
-	wire	signed	[S_FLOAT_INT_WIDTH-1:0]		src_b_int = src_a_sign ? -{2'b01, src_b_frac} : {2'b01, src_b_frac};
-	wire	signed	[S_FLOAT_INT_WIDTH-1:0]		src_c_int = src_a_sign ? -{2'b01, src_c_frac} : {2'b01, src_c_frac};
+	wire										src_a_one = (src_a_exp != 0);
+	wire										src_b_one = (src_b_exp != 0);
+	wire										src_c_one = (src_c_exp != 0);
+
+	wire	signed	[S_FLOAT_INT_WIDTH-1:0]		src_a_int = src_a_sign ? -{1'b0, src_a_one, src_a_frac} : {1'b0, src_a_one, src_a_frac};
+	wire	signed	[S_FLOAT_INT_WIDTH-1:0]		src_b_int = src_b_sign ? -{1'b0, src_b_one, src_b_frac} : {1'b0, src_b_one, src_b_frac};
+	wire	signed	[S_FLOAT_INT_WIDTH-1:0]		src_c_int = src_c_sign ? -{1'b0, src_c_one, src_c_frac} : {1'b0, src_c_one, src_c_frac};
 	
 	reg				[USER_BITS-1:0]				st0_user;
 	reg				[S_FLOAT_EXP_WIDTH-1:0]		st0_max_exp;
@@ -174,17 +178,14 @@ module jelly_fixed_float_mul_add2
 	
 	reg				[USER_BITS-1:0]				st4_user;
 	reg				[S_FLOAT_EXP_WIDTH-1:0]		st4_exp;
-	
-	reg				[USER_BITS-1:0]				st5_user;
-	reg				[S_FLOAT_EXP_WIDTH-1:0]		st5_exp;
-	wire	signed	[INT_WIDTH-1:0]				st5_int;
+	wire	signed	[INT_WIDTH-1:0]				st4_int;
 	
 	always @(posedge clk) begin
 		// stage 0
 		if ( stage_cke[0] ) begin
 			st0_user <= src_user;
 			if ( src_a_exp < src_b_exp ) begin
-				st0_max_exp <= src_a_exp;
+				st0_max_exp <= src_b_exp;
 				
 				st0_a_shift <= src_b_exp - src_a_exp;
 				st0_a_int   <= src_a_int;
@@ -193,12 +194,12 @@ module jelly_fixed_float_mul_add2
 				st0_b_int   <= src_b_int;
 				st0_y       <= src_y;
 				
-				st0_c_exp   <= src_c_exp - src_a_exp;
+				st0_c_exp   <= src_c_exp - src_b_exp;
 				st0_c_int   <= src_c_int;
 			end
 			else begin
 				// swap a*x <=> b*y
-				st0_max_exp <= src_b_exp;
+				st0_max_exp <= src_a_exp;
 				
 				st0_a_shift <= src_a_exp - src_b_exp;
 				st0_a_int   <= src_b_int;
@@ -207,18 +208,18 @@ module jelly_fixed_float_mul_add2
 				st0_b_int   <= src_a_int;
 				st0_y       <= src_x;
 				
-				st0_c_exp   <= src_c_exp - src_b_exp;
+				st0_c_exp   <= src_c_exp - src_a_exp;
 				st0_c_int   <= src_c_int;
 			end
 		end
 		
 		// stage 1
 		if ( stage_cke[1] ) begin
-			st1_user <= st0_user;
-			st1_exp  <= st0_max_exp;
+			st1_user  <= st0_user;
+			st1_exp   <= st0_max_exp + (M_FIXED_EXP_OFFSET - S_FLOAT_EXP_OFFSET);
 			
-			st1_a_int   <= (st0_a_int >>> st0_a_shift);
-			st1_x       <= st0_x;
+			st1_a_int <= (st0_a_int >>> st0_a_shift);
+			st1_x     <= st0_x;
 			
 			if ( st0_c_exp >= 0 ) begin
 				st1_c_int <= (st0_c_int <<< st0_c_exp);
@@ -245,23 +246,17 @@ module jelly_fixed_float_mul_add2
 			st4_user <= st3_user;
 			st4_exp  <= st3_exp;
 		end
-		
-		// stage 5
-		if ( stage_cke[5] ) begin
-			st5_user <= st4_user;
-			st5_exp  <= st4_exp;
-		end
 	end
 	
-	assign sink_user = st5_user;
-	assign sink_exp  = st5_exp;
+	assign sink_user = st4_user;
+	assign sink_exp  = st4_exp;
 	
 	generate
 	if ( (S_FIXED_FRAC_WIDTH + S_FLOAT_FRAC_WIDTH) > M_FIXED_FRAC_WIDTH ) begin
-		assign sink_fixed = (st5_int >>> ((S_FIXED_FRAC_WIDTH + S_FLOAT_FRAC_WIDTH) - M_FIXED_FRAC_WIDTH));
+		assign sink_fixed = (st4_int >>> ((S_FIXED_FRAC_WIDTH + S_FLOAT_FRAC_WIDTH) - M_FIXED_FRAC_WIDTH));
 	end
 	else begin
-		assign sink_fixed = (st5_int >>> (M_FIXED_FRAC_WIDTH - (S_FIXED_FRAC_WIDTH + S_FLOAT_FRAC_WIDTH)));
+		assign sink_fixed = (st4_int >>> (M_FIXED_FRAC_WIDTH - (S_FIXED_FRAC_WIDTH + S_FLOAT_FRAC_WIDTH)));
 	end
 	endgenerate
 	
@@ -279,8 +274,8 @@ module jelly_fixed_float_mul_add2
 					
 					.OPMODEREG		(0),
 					.ALUMODEREG		(0),
-					.AREG			(2),
-					.BREG			(2),
+					.AREG			(1),
+					.BREG			(1),
 					.CREG			(0),
 					.MREG			(1),
 					.PREG			(1),
@@ -297,13 +292,13 @@ module jelly_fixed_float_mul_add2
 					
 					.cke_ctrl		(1'b0),
 					.cke_alumode	(1'b0),
-					.cke_a0			(stage_cke[2]),
-					.cke_b0			(stage_cke[2]),
-					.cke_a1			(stage_cke[3]),
-					.cke_b1			(stage_cke[3]),
+					.cke_a0			(1'b0),
+					.cke_b0			(1'b0),
+					.cke_a1			(stage_cke[2]),
+					.cke_b1			(stage_cke[2]),
 					.cke_c			(1'b0),
-					.cke_m			(stage_cke[4]),
-					.cke_p			(stage_cke[5]),
+					.cke_m			(stage_cke[3]),
+					.cke_p			(stage_cke[4]),
 					
 					.op_load		(1'b1),
 					.alu_sub		(1'b0),
@@ -311,7 +306,7 @@ module jelly_fixed_float_mul_add2
 					.a				(st1_a_int),
 					.b				(st1_x),
 					.c				({INT_WIDTH{1'b0}}),
-					.p				(st5_int),
+					.p				(st4_int),
 					
 					.pcin			(y_pcout),
 					.pcout			()
@@ -349,15 +344,15 @@ module jelly_fixed_float_mul_add2
 					.cke_a1			(stage_cke[1]),
 					.cke_b1			(stage_cke[1]),
 					.cke_c			(stage_cke[2]),
-					.cke_m			(stage_cke[3]),
-					.cke_p			(stage_cke[4]),
+					.cke_m			(stage_cke[2]),
+					.cke_p			(stage_cke[3]),
 					
 					.op_load		(1'b1),
 					.alu_sub		(1'b0),
 					
 					.a				(st0_b_int),
 					.b				(st0_y),
-					.c				(st0_c_int),
+					.c				(st1_c_int),
 					.p				(),
 					
 					.pcin			(),

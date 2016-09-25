@@ -316,7 +316,7 @@ module jelly_mul_add_dsp48e1
 		
 		// m
 		wire	signed	[M_WIDTH-1:0]	m0;
-		if ( CREG >= 1 ) begin
+		if ( MREG >= 1 ) begin
 			reg		signed	[M_WIDTH-1:0]	reg_m0;
 			always @(posedge clk) begin
 				if ( reset ) begin
