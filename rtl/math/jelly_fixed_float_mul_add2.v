@@ -13,57 +13,57 @@
 
 
 
-// a*x + b*x + c ‚ðŒvŽZ
+// f <= a*x + b*x + c
 // 
-// a, b, c : •‚“®¬”
-// x, y    : ŒÅ’è¬”
-// Œ‹‰Ê‚Í”ñ³‹K‰»”‚Æ‚µ‚ÄAŽw”•”‚ð‚»‚Ì‚Ü‚Ü‚ÉŽ‚¿‰z‚·
+// a, b, c : floating point number
+// x, y    : fixed point number
+// f       : denormalized number
 module jelly_fixed_float_mul_add2
 		#(
-			parameter	S_FIXED_INT_WIDTH  = 12,
-			parameter	S_FIXED_FRAC_WIDTH = 0,
-			parameter	S_FIXED_WIDTH      = S_FIXED_INT_WIDTH + S_FIXED_FRAC_WIDTH,
+			parameter	S_FIXED_INT_WIDTH    = 12,
+			parameter	S_FIXED_FRAC_WIDTH   = 0,
+			parameter	S_FIXED_WIDTH        = S_FIXED_INT_WIDTH + S_FIXED_FRAC_WIDTH,
 			
-			parameter	S_FLOAT_EXP_WIDTH  = 8,
-			parameter	S_FLOAT_EXP_OFFSET = (1 << (S_FLOAT_EXP_WIDTH-1)) - 1,
-			parameter	S_FLOAT_FRAC_WIDTH = 23,
-			parameter	S_FLOAT_WIDTH      = 1 + S_FLOAT_EXP_WIDTH + S_FLOAT_FRAC_WIDTH,	// sign + exp + frac
+			parameter	S_FLOAT_EXP_WIDTH    = 8,
+			parameter	S_FLOAT_EXP_OFFSET   = (1 << (S_FLOAT_EXP_WIDTH-1)) - 1,
+			parameter	S_FLOAT_FRAC_WIDTH   = 23,
+			parameter	S_FLOAT_WIDTH        = 1 + S_FLOAT_EXP_WIDTH + S_FLOAT_FRAC_WIDTH,	// sign + exp + frac
 			
-			parameter	M_FIXED_EXP_WIDTH  = S_FLOAT_EXP_WIDTH,
-			parameter	M_FIXED_EXP_OFFSET = (1 << (M_FIXED_EXP_WIDTH-1)) - 1,
-			parameter	M_FIXED_INT_WIDTH  = 40,
-			parameter	M_FIXED_FRAC_WIDTH = 8,
-			parameter	M_FIXED_WIDTH      = M_FIXED_INT_WIDTH + M_FIXED_FRAC_WIDTH,
+			parameter	M_DENORM_EXP_WIDTH   = S_FLOAT_EXP_WIDTH,
+			parameter	M_DENORM_EXP_OFFSET  = (1 << (M_DENORM_EXP_WIDTH-1)) - 1,
+			parameter	M_DENORM_INT_WIDTH   = 40,
+			parameter	M_DENORM_FRAC_WIDTH  = 8,
+			parameter	M_DENORM_FIXED_WIDTH = M_DENORM_INT_WIDTH + M_DENORM_FRAC_WIDTH,
 			
-			parameter	INT_WIDTH          = 48,
+			parameter	INT_WIDTH            = 48,
 			
-			parameter	USER_WIDTH         = 0,
-			parameter	USER_BITS          = USER_WIDTH > 0 ? USER_WIDTH : 1,
+			parameter	USER_WIDTH           = 0,
+			parameter	USER_BITS            = USER_WIDTH > 0 ? USER_WIDTH : 1,
 			
-			parameter	MASTER_IN_REGS     = 1,
-			parameter	MASTER_OUT_REGS    = 1,
+			parameter	MASTER_IN_REGS       = 1,
+			parameter	MASTER_OUT_REGS      = 1,
 			
-			parameter	DEVICE             = "7SERIES" //"RTL" // "7SERIES"
+			parameter	DEVICE               = "RTL" // "7SERIES"
 		)
 		(
-			input	wire									reset,
-			input	wire									clk,
-			input	wire									cke,
+			input	wire										reset,
+			input	wire										clk,
+			input	wire										cke,
 			
-			input	wire			[USER_BITS-1:0]			s_user,
-			input	wire	signed	[S_FIXED_WIDTH-1:0]		s_fixed_x,
-			input	wire	signed	[S_FIXED_WIDTH-1:0]		s_fixed_y,
-			input	wire			[S_FLOAT_WIDTH-1:0]		s_float_a,
-			input	wire			[S_FLOAT_WIDTH-1:0]		s_float_b,
-			input	wire			[S_FLOAT_WIDTH-1:0]		s_float_c,
-			input	wire									s_valid,
-			output	wire									s_ready,
+			input	wire			[USER_BITS-1:0]				s_user,
+			input	wire	signed	[S_FIXED_WIDTH-1:0]			s_fixed_x,
+			input	wire	signed	[S_FIXED_WIDTH-1:0]			s_fixed_y,
+			input	wire			[S_FLOAT_WIDTH-1:0]			s_float_a,
+			input	wire			[S_FLOAT_WIDTH-1:0]			s_float_b,
+			input	wire			[S_FLOAT_WIDTH-1:0]			s_float_c,
+			input	wire										s_valid,
+			output	wire										s_ready,
 			
-			output	wire			[USER_BITS-1:0]			m_user,
-			output	wire			[M_FIXED_EXP_WIDTH-1:0]	m_exp,
-			output	wire	signed	[M_FIXED_WIDTH-1:0]		m_fixed,
-			output	wire									m_valid,
-			input	wire									m_ready
+			output	wire			[USER_BITS-1:0]				m_user,
+			output	wire			[M_DENORM_EXP_WIDTH-1:0]	m_denorm_exp,
+			output	wire	signed	[M_DENORM_FIXED_WIDTH-1:0]	m_denorm_fixed,
+			output	wire										m_valid,
+			input	wire										m_ready
 		);
 	
 	
@@ -87,14 +87,14 @@ module jelly_fixed_float_mul_add2
 	wire			[S_FLOAT_FRAC_WIDTH-1:0]	src_c_frac;
 	
 	wire			[USER_BITS-1:0]				sink_user;
-	wire			[M_FIXED_EXP_WIDTH-1:0]		sink_exp;
-	wire	signed	[M_FIXED_WIDTH-1:0]			sink_fixed;
+	wire			[M_DENORM_EXP_WIDTH-1:0]	sink_denorm_exp;
+	wire	signed	[M_DENORM_FIXED_WIDTH-1:0]	sink_denorm_fixed;
 	
 	jelly_pipeline_control
 			#(
 				.PIPELINE_STAGES	(PIPELINE_STAGES),
 				.S_DATA_WIDTH		(USER_BITS+2*S_FIXED_WIDTH+3*S_FLOAT_WIDTH),
-				.M_DATA_WIDTH		(USER_BITS+M_FIXED_EXP_WIDTH+M_FIXED_WIDTH),
+				.M_DATA_WIDTH		(USER_BITS+M_DENORM_EXP_WIDTH+M_DENORM_FIXED_WIDTH),
 				.AUTO_VALID			(1),
 				.MASTER_IN_REGS		(MASTER_IN_REGS),
 				.MASTER_OUT_REGS	(MASTER_OUT_REGS)
@@ -116,7 +116,7 @@ module jelly_fixed_float_mul_add2
 				.s_valid			(s_valid),
 				.s_ready			(s_ready),
 				
-				.m_data				({m_user, m_exp, m_fixed}),
+				.m_data				({m_user, m_denorm_exp, m_denorm_fixed}),
 				.m_valid			(m_valid),
 				.m_ready			(m_ready),
 				
@@ -138,7 +138,7 @@ module jelly_fixed_float_mul_add2
 										src_c_frac
 									}),
 				.src_valid			(),
-				.sink_data			({sink_user, sink_exp, sink_fixed}),
+				.sink_data			({sink_user, sink_denorm_exp, sink_denorm_fixed}),
 				.buffered			()
 			);
 	
@@ -216,7 +216,7 @@ module jelly_fixed_float_mul_add2
 		// stage 1
 		if ( stage_cke[1] ) begin
 			st1_user  <= st0_user;
-			st1_exp   <= st0_max_exp + (M_FIXED_EXP_OFFSET - S_FLOAT_EXP_OFFSET);
+			st1_exp   <= st0_max_exp + (M_DENORM_EXP_OFFSET - S_FLOAT_EXP_OFFSET);
 			
 			st1_a_int <= (st0_a_int >>> st0_a_shift);
 			st1_x     <= st0_x;
@@ -248,15 +248,15 @@ module jelly_fixed_float_mul_add2
 		end
 	end
 	
-	assign sink_user = st4_user;
-	assign sink_exp  = st4_exp;
+	assign sink_user       = st4_user;
+	assign sink_denorm_exp = st4_exp;
 	
 	generate
-	if ( (S_FIXED_FRAC_WIDTH + S_FLOAT_FRAC_WIDTH) > M_FIXED_FRAC_WIDTH ) begin
-		assign sink_fixed = (st4_int >>> ((S_FIXED_FRAC_WIDTH + S_FLOAT_FRAC_WIDTH) - M_FIXED_FRAC_WIDTH));
+	if ( (S_FIXED_FRAC_WIDTH + S_FLOAT_FRAC_WIDTH) > M_DENORM_FRAC_WIDTH ) begin
+		assign sink_denorm_fixed = (st4_int >>> ((S_FIXED_FRAC_WIDTH + S_FLOAT_FRAC_WIDTH) - M_DENORM_FRAC_WIDTH));
 	end
 	else begin
-		assign sink_fixed = (st4_int >>> (M_FIXED_FRAC_WIDTH - (S_FIXED_FRAC_WIDTH + S_FLOAT_FRAC_WIDTH)));
+		assign sink_denorm_fixed = (st4_int >>> (M_DENORM_FRAC_WIDTH - (S_FIXED_FRAC_WIDTH + S_FLOAT_FRAC_WIDTH)));
 	end
 	endgenerate
 	

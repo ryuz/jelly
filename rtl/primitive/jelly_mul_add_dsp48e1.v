@@ -62,9 +62,10 @@ module jelly_mul_add_dsp48e1
 		);
 	
 	
-	localparam CAN_USE_DSP48E1 = ((A_WIDTH <= 25) && (B_WIDTH <= 18)
+	localparam CAN_USE_DSP48E1 = (((A_WIDTH <= 25) && (B_WIDTH <= 18)) || ((A_WIDTH <= 18) && (B_WIDTH <= 25))
 									&& (C_WIDTH <= 48) && (P_WIDTH <= 48) && (M_WIDTH <= 43));
 	
+	localparam SWAP_AB         = !((A_WIDTH <= 25) && (B_WIDTH <= 18));
 	
 	
 	generate
@@ -107,12 +108,12 @@ module jelly_mul_add_dsp48e1
 					.SEL_PATTERN		("PATTERN"),
 					.USE_PATTERN_DETECT	("NO_PATDET"),
 					
-					.ACASCREG			(AREG),
+					.ACASCREG			(SWAP_AB ? BREG : AREG),
 					.ADREG				(0),
 					.ALUMODEREG			(ALUMODEREG),
-					.AREG				(AREG),
-					.BCASCREG			(BREG),
-					.BREG				(BREG),
+					.AREG				(SWAP_AB ? BREG : AREG),
+					.BCASCREG			(SWAP_AB ? AREG : BREG),
+					.BREG				(SWAP_AB ? AREG : BREG),
 					.CARRYINREG			(1),
 					.CARRYINSELREG		(1),
 					.CREG				(CREG),
@@ -150,18 +151,18 @@ module jelly_mul_add_dsp48e1
 					.INMODE				(5'b00100),
 					.OPMODE				(sig_opmode),
 					
-					.A					({5'b11111, sig_a}),
-					.B					(sig_b),
+					.A					(SWAP_AB ? {5'b11111, sig_b} : {5'b11111, sig_a}),
+					.B					(SWAP_AB ? sig_a : sig_b),
 					.C					(sig_c),
 					.CARRYIN			(1'b0),
 					.D					(25'd0),
 					
-					.CEA1				(cke_a0),
-					.CEA2				(cke_a1),
+					.CEA1				(SWAP_AB ? cke_b0 : cke_a0),
+					.CEA2				(SWAP_AB ? cke_b1 : cke_a1),
 					.CEAD				(1'b0),
 					.CEALUMODE			(cke_alumode),
-					.CEB1				(cke_b0),
-					.CEB2				(cke_b1),
+					.CEB1				(SWAP_AB ? cke_a0 : cke_b0),
+					.CEB2				(SWAP_AB ? cke_a1 : cke_b1),
 					.CEC				(cke_c),
 					.CECARRYIN			(1'b0),
 					.CECTRL				(cke_ctrl),
