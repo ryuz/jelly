@@ -66,16 +66,17 @@ module jelly_mul_add_dsp48e1
 									&& (C_WIDTH <= 48) && (P_WIDTH <= 48) && (M_WIDTH <= 43));
 	
 	localparam SWAP_AB         = !((A_WIDTH <= 25) && (B_WIDTH <= 18));
-	
-	
+	localparam DSP_A_WIDTH     = SWAP_AB ? 18 : 25;
+	localparam DSP_B_WIDTH     = SWAP_AB ? 25 : 18;
+		
 	generate
 	if ( CAN_USE_DSP48E1 && (DEVICE == "VIRTEX6" || DEVICE == "SPARTAN6" || DEVICE == "7SERIES") ) begin : blk_dsp48e1
-		wire	signed	[24:0]		sig_a;
-		wire	signed	[17:0]		sig_b;
-		wire	signed	[47:0]		sig_c;
-		wire	signed	[47:0]		sig_p;
-		wire			[6:0]		sig_opmode;
-		wire			[3:0]		sig_alumode;
+		wire	signed	[DSP_A_WIDTH-1:0]	sig_a;
+		wire	signed	[DSP_B_WIDTH-1:0]	sig_b;
+		wire	signed	[47:0]				sig_c;
+		wire	signed	[47:0]				sig_p;
+		wire			[6:0]				sig_opmode;
+		wire			[3:0]				sig_alumode;
 		
 		assign sig_a     = a;
 		assign sig_b     = b;

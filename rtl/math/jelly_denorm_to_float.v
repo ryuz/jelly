@@ -54,6 +54,21 @@ module jelly_denorm_to_float
 			input	wire								m_ready
 		);
 	
+	
+	
+	integer iDENORM_SIGNED     = DENORM_SIGNED     ;
+	integer iDENORM_INT_WIDTH  = DENORM_INT_WIDTH  ;
+	integer iDENORM_FRAC_WIDTH = DENORM_FRAC_WIDTH ;
+	integer iDENORM_FIXED_WIDTH= DENORM_FIXED_WIDTH;
+	integer iDENORM_EXP_WIDTH  = DENORM_EXP_WIDTH  ;
+	integer iDENORM_EXP_BITS   = DENORM_EXP_BITS   ;
+	integer iDENORM_EXP_OFFSET = DENORM_EXP_OFFSET ;
+	integer iFLOAT_EXP_WIDTH   = FLOAT_EXP_WIDTH   ;
+	integer iFLOAT_EXP_OFFSET  = FLOAT_EXP_OFFSET  ;
+	integer iFLOAT_FRAC_WIDTH  = FLOAT_FRAC_WIDTH  ;
+	integer iFLOAT_WIDTH       = FLOAT_WIDTH       ;
+	integer iUSE_DENORM_EXP    = USE_DENORM_EXP    ;
+	
 	localparam	PIPELINE_STAGES = 3;
 	
 	wire	[PIPELINE_STAGES-1:0]		stage_cke;

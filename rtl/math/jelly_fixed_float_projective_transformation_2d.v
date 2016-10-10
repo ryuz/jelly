@@ -351,7 +351,7 @@ module jelly_fixed_float_projective_transformation_2d
 				.USER_WIDTH				(USER_WIDTH),
 				
 				.MASTER_IN_REGS			(0),
-				.MASTER_OUT_REGS		(1),
+				.MASTER_OUT_REGS		(0),
 				
 				.DEVICE					(DEVICE)
 			)
@@ -394,7 +394,7 @@ module jelly_fixed_float_projective_transformation_2d
 				.USER_WIDTH				(0),
 				
 				.MASTER_IN_REGS			(0),
-				.MASTER_OUT_REGS		(1),
+				.MASTER_OUT_REGS		(0),
 				
 				.DEVICE					(DEVICE)
 			)
@@ -457,6 +457,7 @@ module jelly_fixed_float_projective_transformation_2d
 				.m_valid				(m_valid),
 				.m_ready				(m_ready)
 			);
+	
 	
 	jelly_denorm_to_fixed
 			#(

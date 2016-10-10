@@ -185,7 +185,7 @@ module jelly_denorm_float_mul
 					.OPMODEREG		(0),
 					.ALUMODEREG		(0),
 					.AREG			(1),
-					.BREG			(1),
+					.BREG			(2),
 					.CREG			(0),
 					.MREG			(0),
 					.PREG			(1),
@@ -202,8 +202,8 @@ module jelly_denorm_float_mul
 					
 					.cke_ctrl		(1'b0),
 					.cke_alumode	(1'b0),
-					.cke_a0			(stage_cke[0]),
-					.cke_b0			(1'b0),
+					.cke_a0			(1'b0),
+					.cke_b0			(stage_cke[0]),
 					.cke_a1			(stage_cke[1]),
 					.cke_b1			(stage_cke[1]),
 					.cke_c			(1'b0),
@@ -221,7 +221,6 @@ module jelly_denorm_float_mul
 					.pcin			(),
 					.pcout			()
 				);
-	
 	
 	
 endmodule
