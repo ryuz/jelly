@@ -13,39 +13,59 @@
 
 module jelly_fixed_float_projective_transformation_2d
 		#(
-			parameter	FLOAT_EXP_WIDTH        = 8,
-			parameter	FLOAT_EXP_OFFSET       = (1 << (FLOAT_EXP_WIDTH-1)) - 1,
-			parameter	FLOAT_FRAC_WIDTH       = 23,
-			parameter	FLOAT_WIDTH            = 1 + FLOAT_EXP_WIDTH + FLOAT_FRAC_WIDTH,	// sign + exp + frac
+			parameter	FLOAT_EXP_WIDTH         = 8,
+			parameter	FLOAT_EXP_OFFSET        = (1 << (FLOAT_EXP_WIDTH-1)) - 1,
+			parameter	FLOAT_FRAC_WIDTH        = 23,
+			parameter	FLOAT_WIDTH             = 1 + FLOAT_EXP_WIDTH + FLOAT_FRAC_WIDTH,	// sign + exp + frac
 			
-			parameter	S_FIXED_INT_WIDTH      = 16,
-			parameter	S_FIXED_FRAC_WIDTH     = 0,
-			parameter	S_FIXED_WIDTH          = S_FIXED_INT_WIDTH + S_FIXED_FRAC_WIDTH,
+			parameter	S_FIXED_INT_WIDTH       = 12,
+			parameter	S_FIXED_FRAC_WIDTH      = 0,
+			parameter	S_FIXED_WIDTH           = S_FIXED_INT_WIDTH + S_FIXED_FRAC_WIDTH,
 			
-			parameter	M_FIXED_INT_WIDTH      = 25,
-			parameter	M_FIXED_FRAC_WIDTH     = 8,
-			parameter	M_FIXED_WIDTH          = M_FIXED_INT_WIDTH + M_FIXED_FRAC_WIDTH,
+			parameter	M_FIXED_INT_WIDTH       = 12,
+			parameter	M_FIXED_FRAC_WIDTH      = 8,
+			parameter	M_FIXED_WIDTH           = M_FIXED_INT_WIDTH + M_FIXED_FRAC_WIDTH,
 			
-			parameter	USER_WIDTH             = 0,
-			parameter	USER_BITS              = USER_WIDTH > 0 ? USER_WIDTH : 1,
+			parameter	USER_WIDTH              = 0,
+			parameter	USER_BITS               = USER_WIDTH > 0 ? USER_WIDTH : 1,
 			
-			parameter	MUL_DENORM_EXP_WIDTH   = FLOAT_EXP_WIDTH,
-			parameter	MUL_DENORM_EXP_OFFSET  = FLOAT_EXP_OFFSET,
-			parameter	MUL_DENORM_INT_WIDTH   = 16,
-			parameter	MUL_DENORM_FRAC_WIDTH  = 16,
+			parameter	MUL_DENORM_X_EXP_WIDTH  = FLOAT_EXP_WIDTH,
+			parameter	MUL_DENORM_X_EXP_OFFSET = FLOAT_EXP_OFFSET,
+			parameter	MUL_DENORM_X_INT_WIDTH  = 16,
+			parameter	MUL_DENORM_X_FRAC_WIDTH = 8,
+			                       
+			parameter	MUL_DENORM_Y_EXP_WIDTH  = FLOAT_EXP_WIDTH,
+			parameter	MUL_DENORM_Y_EXP_OFFSET = FLOAT_EXP_OFFSET,
+			parameter	MUL_DENORM_Y_INT_WIDTH  = 16,
+			parameter	MUL_DENORM_Y_FRAC_WIDTH = 8,
 			
-			parameter	RECIP_FLOAT_EXP_WIDTH  = FLOAT_EXP_WIDTH,
-			parameter	RECIP_FLOAT_EXP_OFFSET = FLOAT_EXP_OFFSET,
-			parameter	RECIP_FLOAT_FRAC_WIDTH = 16,
-			parameter	RECIP_D_WIDTH          = 6,
-			parameter	RECIP_K_WIDTH          = RECIP_FLOAT_FRAC_WIDTH - RECIP_D_WIDTH,
-			parameter	RECIP_GRAD_WIDTH       = RECIP_FLOAT_FRAC_WIDTH,
-			parameter	RECIP_RAM_TYPE         = "distributed",
+			parameter	MUL_DENORM_W_EXP_WIDTH  = FLOAT_EXP_WIDTH,
+			parameter	MUL_DENORM_W_EXP_OFFSET = FLOAT_EXP_OFFSET,
+			parameter	MUL_DENORM_W_INT_WIDTH  = 16,
+			parameter	MUL_DENORM_W_FRAC_WIDTH = 8,
 			
-			parameter	MASTER_IN_REGS         = 1,
-			parameter	MASTER_OUT_REGS        = 1,
+			parameter	RECIP_FLOAT_EXP_WIDTH   = FLOAT_EXP_WIDTH,
+			parameter	RECIP_FLOAT_EXP_OFFSET  = FLOAT_EXP_OFFSET,
+			parameter	RECIP_FLOAT_FRAC_WIDTH  = 16,
+			parameter	RECIP_D_WIDTH           = 6,
+			parameter	RECIP_K_WIDTH           = RECIP_FLOAT_FRAC_WIDTH - RECIP_D_WIDTH,
+			parameter	RECIP_GRAD_WIDTH        = RECIP_FLOAT_FRAC_WIDTH,
+			parameter	RECIP_RAM_TYPE          = "distributed",
 			
-			parameter	DEVICE                 = "RTL"
+			parameter	DIV_DENORM_X_EXP_WIDTH  = MUL_DENORM_X_EXP_WIDTH,
+			parameter	DIV_DENORM_X_EXP_OFFSET = MUL_DENORM_X_EXP_OFFSET,
+			parameter	DIV_DENORM_X_INT_WIDTH  = MUL_DENORM_X_INT_WIDTH + MUL_DENORM_W_INT_WIDTH,
+			parameter	DIV_DENORM_X_FRAC_WIDTH = MUL_DENORM_X_FRAC_WIDTH,
+			
+			parameter	DIV_DENORM_Y_EXP_WIDTH  = MUL_DENORM_Y_EXP_WIDTH,
+			parameter	DIV_DENORM_Y_EXP_OFFSET = MUL_DENORM_Y_EXP_OFFSET,
+			parameter	DIV_DENORM_Y_INT_WIDTH  = MUL_DENORM_Y_INT_WIDTH + MUL_DENORM_W_INT_WIDTH,
+			parameter	DIV_DENORM_Y_FRAC_WIDTH = MUL_DENORM_Y_FRAC_WIDTH,
+			
+			parameter	MASTER_IN_REGS          = 1,
+			parameter	MASTER_OUT_REGS         = 1,
+			
+			parameter	DEVICE                  = "7SERIES" // "RTL"
 		)
 		(
 			input	wire								reset,
@@ -81,18 +101,21 @@ module jelly_fixed_float_projective_transformation_2d
 	// -----------------------------------------
 	//  multiply
 	// -----------------------------------------
+		
 	
-	localparam	MUL_DENORM_FIXED_WIDTH = MUL_DENORM_INT_WIDTH + MUL_DENORM_FRAC_WIDTH;
+	localparam	MUL_DENORM_X_FIXED_WIDTH = MUL_DENORM_X_INT_WIDTH + MUL_DENORM_X_FRAC_WIDTH;
+	localparam	MUL_DENORM_Y_FIXED_WIDTH = MUL_DENORM_Y_INT_WIDTH + MUL_DENORM_Y_FRAC_WIDTH;
+	localparam	MUL_DENORM_W_FIXED_WIDTH = MUL_DENORM_W_INT_WIDTH + MUL_DENORM_W_FRAC_WIDTH;
 	
 	
-	wire			[MUL_DENORM_EXP_WIDTH-1:0]		mul_denorm_x_exp;
-	wire	signed	[MUL_DENORM_FIXED_WIDTH-1:0]	mul_denorm_x_fixed;
+	wire			[MUL_DENORM_X_EXP_WIDTH-1:0]	mul_denorm_x_exp;
+	wire	signed	[MUL_DENORM_X_FIXED_WIDTH-1:0]	mul_denorm_x_fixed;
 	
-	wire			[MUL_DENORM_EXP_WIDTH-1:0]		mul_denorm_y_exp;
-	wire	signed	[MUL_DENORM_FIXED_WIDTH-1:0]	mul_denorm_y_fixed;
+	wire			[MUL_DENORM_Y_EXP_WIDTH-1:0]	mul_denorm_y_exp;
+	wire	signed	[MUL_DENORM_Y_FIXED_WIDTH-1:0]	mul_denorm_y_fixed;
 	
-	wire			[MUL_DENORM_EXP_WIDTH-1:0]		mul_denorm_w_exp;
-	wire	signed	[MUL_DENORM_FIXED_WIDTH-1:0]	mul_denorm_w_fixed;
+	wire			[MUL_DENORM_W_EXP_WIDTH-1:0]	mul_denorm_w_exp;
+	wire	signed	[MUL_DENORM_W_FIXED_WIDTH-1:0]	mul_denorm_w_fixed;
 	
 	wire			[USER_BITS-1:0]					mul_user;
 	wire											mul_valid;
@@ -107,10 +130,10 @@ module jelly_fixed_float_projective_transformation_2d
 				.S_FLOAT_EXP_OFFSET		(FLOAT_EXP_OFFSET),
 				.S_FLOAT_FRAC_WIDTH		(FLOAT_FRAC_WIDTH),
 				
-				.M_DENORM_EXP_WIDTH		(MUL_DENORM_EXP_WIDTH),
-				.M_DENORM_EXP_OFFSET	(MUL_DENORM_EXP_OFFSET),
-				.M_DENORM_INT_WIDTH		(MUL_DENORM_INT_WIDTH),
-				.M_DENORM_FRAC_WIDTH	(MUL_DENORM_FRAC_WIDTH),
+				.M_DENORM_EXP_WIDTH		(MUL_DENORM_X_EXP_WIDTH),
+				.M_DENORM_EXP_OFFSET	(MUL_DENORM_X_EXP_OFFSET),
+				.M_DENORM_INT_WIDTH		(MUL_DENORM_X_INT_WIDTH),
+				.M_DENORM_FRAC_WIDTH	(MUL_DENORM_X_FRAC_WIDTH),
 				
 				.USER_WIDTH				(USER_WIDTH),
 				
@@ -151,10 +174,10 @@ module jelly_fixed_float_projective_transformation_2d
 				.S_FLOAT_EXP_OFFSET		(FLOAT_EXP_OFFSET),
 				.S_FLOAT_FRAC_WIDTH		(FLOAT_FRAC_WIDTH),
 				
-				.M_DENORM_EXP_WIDTH		(MUL_DENORM_EXP_WIDTH),
-				.M_DENORM_EXP_OFFSET	(MUL_DENORM_EXP_OFFSET),
-				.M_DENORM_INT_WIDTH		(MUL_DENORM_INT_WIDTH),
-				.M_DENORM_FRAC_WIDTH	(MUL_DENORM_FRAC_WIDTH),
+				.M_DENORM_EXP_WIDTH		(MUL_DENORM_Y_EXP_WIDTH),
+				.M_DENORM_EXP_OFFSET	(MUL_DENORM_Y_EXP_OFFSET),
+				.M_DENORM_INT_WIDTH		(MUL_DENORM_Y_INT_WIDTH),
+				.M_DENORM_FRAC_WIDTH	(MUL_DENORM_Y_FRAC_WIDTH),
 				
 				.USER_WIDTH				(0),
 				
@@ -195,10 +218,10 @@ module jelly_fixed_float_projective_transformation_2d
 				.S_FLOAT_EXP_OFFSET		(FLOAT_EXP_OFFSET),
 				.S_FLOAT_FRAC_WIDTH		(FLOAT_FRAC_WIDTH),
 				
-				.M_DENORM_EXP_WIDTH		(MUL_DENORM_EXP_WIDTH),
-				.M_DENORM_EXP_OFFSET	(MUL_DENORM_EXP_OFFSET),
-				.M_DENORM_INT_WIDTH		(MUL_DENORM_INT_WIDTH),
-				.M_DENORM_FRAC_WIDTH	(MUL_DENORM_FRAC_WIDTH),
+				.M_DENORM_EXP_WIDTH		(MUL_DENORM_W_EXP_WIDTH),
+				.M_DENORM_EXP_OFFSET	(MUL_DENORM_W_EXP_OFFSET),
+				.M_DENORM_INT_WIDTH		(MUL_DENORM_W_INT_WIDTH),
+				.M_DENORM_FRAC_WIDTH	(MUL_DENORM_W_FRAC_WIDTH),
 				
 				.USER_WIDTH				(0),
 				
@@ -237,11 +260,11 @@ module jelly_fixed_float_projective_transformation_2d
 	
 	localparam	RECIP_FLOAT_WIDTH = 1 + RECIP_FLOAT_EXP_WIDTH + RECIP_FLOAT_FRAC_WIDTH;
 	
-	wire			[MUL_DENORM_EXP_WIDTH-1:0]		recip_denorm_x_exp;
-	wire	signed	[MUL_DENORM_FIXED_WIDTH-1:0]	recip_denorm_x_fixed;
+	wire			[MUL_DENORM_X_EXP_WIDTH-1:0]	recip_denorm_x_exp;
+	wire	signed	[MUL_DENORM_X_FIXED_WIDTH-1:0]	recip_denorm_x_fixed;
 	
-	wire			[MUL_DENORM_EXP_WIDTH-1:0]		recip_denorm_y_exp;
-	wire	signed	[MUL_DENORM_FIXED_WIDTH-1:0]	recip_denorm_y_fixed;
+	wire			[MUL_DENORM_Y_EXP_WIDTH-1:0]	recip_denorm_y_exp;
+	wire	signed	[MUL_DENORM_Y_FIXED_WIDTH-1:0]	recip_denorm_y_fixed;
 	
 	wire			[RECIP_FLOAT_WIDTH-1:0]			recip_float_w;
 	
@@ -252,16 +275,16 @@ module jelly_fixed_float_projective_transformation_2d
 	jelly_denorm_reciprocal_float
 			#(
 				.DENORM_SIGNED			(1),
-				.DENORM_INT_WIDTH		(MUL_DENORM_INT_WIDTH),
-				.DENORM_FRAC_WIDTH		(MUL_DENORM_FRAC_WIDTH),
-				.DENORM_EXP_WIDTH		(MUL_DENORM_EXP_WIDTH),
-				.DENORM_EXP_OFFSET		(MUL_DENORM_EXP_OFFSET),
+				.DENORM_INT_WIDTH		(MUL_DENORM_W_INT_WIDTH),
+				.DENORM_FRAC_WIDTH		(MUL_DENORM_W_FRAC_WIDTH),
+				.DENORM_EXP_WIDTH		(MUL_DENORM_W_EXP_WIDTH),
+				.DENORM_EXP_OFFSET		(MUL_DENORM_W_EXP_OFFSET),
 				
 				.FLOAT_EXP_WIDTH		(RECIP_FLOAT_EXP_WIDTH),
 				.FLOAT_EXP_OFFSET		(RECIP_FLOAT_EXP_OFFSET),
 				.FLOAT_FRAC_WIDTH		(RECIP_FLOAT_FRAC_WIDTH),
 				
-				.USER_WIDTH				(USER_BITS + 2*(MUL_DENORM_EXP_WIDTH+MUL_DENORM_FIXED_WIDTH)),
+				.USER_WIDTH				(USER_BITS+MUL_DENORM_Y_EXP_WIDTH+MUL_DENORM_Y_FIXED_WIDTH+MUL_DENORM_X_EXP_WIDTH+MUL_DENORM_X_FIXED_WIDTH),
 				
 				.D_WIDTH				(RECIP_D_WIDTH),
 				.K_WIDTH				(RECIP_K_WIDTH),
@@ -277,13 +300,13 @@ module jelly_fixed_float_projective_transformation_2d
 				.reset					(reset),
 				.clk					(clk),
 				.cke					(cke),
-				                         
+				
 				.s_user					({mul_user, mul_denorm_y_exp, mul_denorm_y_fixed, mul_denorm_x_exp, mul_denorm_x_fixed}),
 				.s_denorm_fixed			(mul_denorm_w_fixed),
 				.s_denorm_exp			(mul_denorm_w_exp),
 				.s_valid				(mul_valid),
 				.s_ready				(mul_ready),
-				                         
+				
 				.m_user					({recip_user, recip_denorm_y_exp, recip_denorm_y_fixed, recip_denorm_x_exp, recip_denorm_x_fixed}),
 				.m_float				(recip_float_w),
 				.m_valid				(recip_valid),
@@ -292,422 +315,183 @@ module jelly_fixed_float_projective_transformation_2d
 	
 	
 	
+	// -----------------------------------------
+	//  divide
+	// -----------------------------------------
 	
+	localparam	DIV_DENORM_X_FIXED_WIDTH = DIV_DENORM_X_INT_WIDTH + DIV_DENORM_X_FRAC_WIDTH;
+	localparam	DIV_DENORM_Y_FIXED_WIDTH = DIV_DENORM_Y_INT_WIDTH + DIV_DENORM_Y_FRAC_WIDTH;
 	
+	wire			[DIV_DENORM_X_EXP_WIDTH-1:0]	div_denorm_x_exp;
+	wire	signed	[DIV_DENORM_X_FIXED_WIDTH-1:0]	div_denorm_x_fixed;
 	
+	wire			[DIV_DENORM_Y_EXP_WIDTH-1:0]	div_denorm_y_exp;
+	wire	signed	[DIV_DENORM_Y_FIXED_WIDTH-1:0]	div_denorm_y_fixed;
 	
+	wire			[USER_BITS-1:0]					div_user;
+	wire											div_valid;
+	wire											div_ready;
 	
-	
-	/*
-	
-	
-	wire	[USER_BITS-1:0]		mul_user;
-	wire	[FLOAT_WIDTH-1:0]	mul_float00;
-	wire	[FLOAT_WIDTH-1:0]	mul_float01;
-	wire	[FLOAT_WIDTH-1:0]	mul_float10;
-	wire	[FLOAT_WIDTH-1:0]	mul_float11;
-	wire	[FLOAT_WIDTH-1:0]	mul_float20;
-	wire	[FLOAT_WIDTH-1:0]	mul_float21;
-	wire						mul_valid;
-	wire						mul_ready;
-	
-	jelly_float_multiply
+	jelly_denorm_float_mul
 			#(
-				.EXP_WIDTH		(EXP_WIDTH),
-				.FRAC_WIDTH		(FRAC_WIDTH),
-				.USER_WIDTH		(USER_BITS)
+				.S_DENORM_EXP_WIDTH		(MUL_DENORM_X_EXP_WIDTH),
+				.S_DENORM_EXP_OFFSET	(MUL_DENORM_X_EXP_OFFSET),
+				.S_DENORM_INT_WIDTH		(MUL_DENORM_X_INT_WIDTH),
+				.S_DENORM_FRAC_WIDTH	(MUL_DENORM_X_FRAC_WIDTH),
+				
+				.S_FLOAT_EXP_WIDTH		(RECIP_FLOAT_EXP_WIDTH),
+				.S_FLOAT_EXP_OFFSET		(RECIP_FLOAT_EXP_OFFSET),
+				.S_FLOAT_FRAC_WIDTH		(RECIP_FLOAT_FRAC_WIDTH),
+				
+				.M_DENORM_EXP_WIDTH		(DIV_DENORM_X_EXP_WIDTH),
+				.M_DENORM_EXP_OFFSET	(DIV_DENORM_X_EXP_OFFSET),
+				.M_DENORM_INT_WIDTH		(DIV_DENORM_X_INT_WIDTH),
+				.M_DENORM_FRAC_WIDTH	(DIV_DENORM_X_FRAC_WIDTH),
+				
+				.USER_WIDTH				(USER_WIDTH),
+				
+				.MASTER_IN_REGS			(0),
+				.MASTER_OUT_REGS		(1),
+				
+				.DEVICE					(DEVICE)
 			)
-		i_float_multiply_00
+		i_denorm_float_mul_x
 			(
-				.reset			(reset),
-				.clk			(clk),
-				.cke			(cke),
+				.reset					(reset),
+				.clk					(clk),
+				.cke					(cke),
 				
-				.s_user			(s_user),
-				.s_float0		(s_x),
-				.s_float1		(matrix00),
-				.s_valid		(s_valid),
-				.s_ready		(s_ready),
+				.s_user					(recip_user),
+				.s_denorm_exp			(recip_denorm_x_exp),
+				.s_denorm_fixed			(recip_denorm_x_fixed),
+				.s_float				(recip_float_w),
+				.s_valid				(recip_valid),
+				.s_ready				(recip_ready),
 				
-				.m_user			(mul_user),
-				.m_float		(mul_float00),
-				.m_valid		(mul_valid),
-				.m_ready		(mul_ready)
+				.m_user					(div_user),
+				.m_denorm_exp			(div_denorm_x_exp),
+				.m_denorm_fixed			(div_denorm_x_fixed),
+				.m_valid				(div_valid),
+				.m_ready				(div_ready)
 			);
 	
-	jelly_float_multiply
+	jelly_denorm_float_mul
 			#(
-				.EXP_WIDTH		(EXP_WIDTH),
-				.FRAC_WIDTH		(FRAC_WIDTH),
-				.USER_WIDTH		(0)
+				.S_DENORM_EXP_WIDTH		(MUL_DENORM_Y_EXP_WIDTH),
+				.S_DENORM_EXP_OFFSET	(MUL_DENORM_Y_EXP_OFFSET),
+				.S_DENORM_INT_WIDTH		(MUL_DENORM_Y_INT_WIDTH),
+				.S_DENORM_FRAC_WIDTH	(MUL_DENORM_Y_FRAC_WIDTH),
+				                         
+				.S_FLOAT_EXP_WIDTH		(RECIP_FLOAT_EXP_WIDTH),
+				.S_FLOAT_EXP_OFFSET		(RECIP_FLOAT_EXP_OFFSET),
+				.S_FLOAT_FRAC_WIDTH		(RECIP_FLOAT_FRAC_WIDTH),
+				                         
+				.M_DENORM_EXP_WIDTH		(DIV_DENORM_X_EXP_WIDTH),
+				.M_DENORM_EXP_OFFSET	(DIV_DENORM_X_EXP_OFFSET),
+				.M_DENORM_INT_WIDTH		(DIV_DENORM_X_INT_WIDTH),
+				.M_DENORM_FRAC_WIDTH	(DIV_DENORM_X_FRAC_WIDTH),
+				
+				.USER_WIDTH				(0),
+				
+				.MASTER_IN_REGS			(0),
+				.MASTER_OUT_REGS		(1),
+				
+				.DEVICE					(DEVICE)
 			)
-		i_float_multiply_01
+		i_denorm_float_mul_y
 			(
-				.reset			(reset),
-				.clk			(clk),
-				.cke			(cke),
+				.reset					(reset),
+				.clk					(clk),
+				.cke					(cke),
 				
-				.s_user			(),
-				.s_float0		(s_y),
-				.s_float1		(matrix01),
-				.s_valid		(s_valid),
-				.s_ready		(),
+				.s_user					(),
+				.s_denorm_exp			(recip_denorm_y_exp),
+				.s_denorm_fixed			(recip_denorm_y_fixed),
+				.s_float				(recip_float_w),
+				.s_valid				(recip_valid),
+				.s_ready				(),
 				
-				.m_user			(),
-				.m_float		(mul_float01),
-				.m_valid		(),
-				.m_ready		(mul_ready)
+				.m_user					(),
+				.m_denorm_exp			(div_denorm_y_exp),
+				.m_denorm_fixed			(div_denorm_y_fixed),
+				.m_valid				(),
+				.m_ready				(div_ready)
 			);
 	
-	jelly_float_multiply
-			#(
-				.EXP_WIDTH		(EXP_WIDTH),
-				.FRAC_WIDTH		(FRAC_WIDTH),
-				.USER_WIDTH		(0)
-			)
-		i_float_multiply_10
-			(
-				.reset			(reset),
-				.clk			(clk),
-				.cke			(cke),
-				
-				.s_user			(),
-				.s_float0		(s_x),
-				.s_float1		(matrix10),
-				.s_valid		(s_valid),
-				.s_ready		(),
-				
-				.m_user			(),
-				.m_float		(mul_float10),
-				.m_valid		(),
-				.m_ready		(mul_ready)
-			);
-	
-	jelly_float_multiply
-			#(
-				.EXP_WIDTH		(EXP_WIDTH),
-				.FRAC_WIDTH		(FRAC_WIDTH),
-				.USER_WIDTH		(0)
-			)
-		i_float_multiply_11
-			(
-				.reset			(reset),
-				.clk			(clk),
-				.cke			(cke),
-				
-				.s_user			(),
-				.s_float0		(s_y),
-				.s_float1		(matrix11),
-				.s_valid		(s_valid),
-				.s_ready		(),
-				
-				.m_user			(),
-				.m_float		(mul_float11),
-				.m_valid		(),
-				.m_ready		(mul_ready)
-			);
-	
-	jelly_float_multiply
-			#(
-				.EXP_WIDTH		(EXP_WIDTH),
-				.FRAC_WIDTH		(FRAC_WIDTH),
-				.USER_WIDTH		(0)
-			)
-		i_float_multiply_20
-			(
-				.reset			(reset),
-				.clk			(clk),
-				.cke			(cke),
-				
-				.s_user			(),
-				.s_float0		(s_x),
-				.s_float1		(matrix20),
-				.s_valid		(s_valid),
-				.s_ready		(),
-				
-				.m_user			(),
-				.m_float		(mul_float20),
-				.m_valid		(),
-				.m_ready		(mul_ready)
-			);
-	
-	jelly_float_multiply
-			#(
-				.EXP_WIDTH		(EXP_WIDTH),
-				.FRAC_WIDTH		(FRAC_WIDTH),
-				.USER_WIDTH		(0)
-			)
-		i_float_multiply_21
-			(
-				.reset			(reset),
-				.clk			(clk),
-				.cke			(cke),
-				
-				.s_user			(),
-				.s_float0		(s_y),
-				.s_float1		(matrix21),
-				.s_valid		(s_valid),
-				.s_ready		(),
-				
-				.m_user			(),
-				.m_float		(mul_float21),
-				.m_valid		(),
-				.m_ready		(mul_ready)
-			);
 	
 	
 	// -----------------------------------------
-	//  add0
+	//  to fixed
 	// -----------------------------------------
 	
-	wire	[USER_BITS-1:0]		add0_user;
-	wire	[FLOAT_WIDTH-1:0]	add0_float0;
-	wire	[FLOAT_WIDTH-1:0]	add0_float1;
-	wire	[FLOAT_WIDTH-1:0]	add0_float2;
-	wire						add0_valid;
-	wire						add0_ready;
-	
-	jelly_float_add
+	jelly_denorm_to_fixed
 			#(
-				.EXP_WIDTH		(EXP_WIDTH),
-				.FRAC_WIDTH		(FRAC_WIDTH),
-				.USER_WIDTH		(USER_BITS)
+				.DENORM_SIGNED			(1),
+				.DENORM_INT_WIDTH		(DIV_DENORM_X_INT_WIDTH),
+				.DENORM_FRAC_WIDTH		(DIV_DENORM_X_FRAC_WIDTH),
+				.DENORM_EXP_WIDTH		(DIV_DENORM_X_EXP_WIDTH),
+				.DENORM_EXP_OFFSET		(DIV_DENORM_X_EXP_OFFSET),
+				
+				.FIXED_INT_WIDTH		(M_FIXED_INT_WIDTH),
+				.FIXED_FRAC_WIDTH		(M_FIXED_FRAC_WIDTH),
+				
+				.USER_WIDTH				(USER_WIDTH),
+				
+				.MASTER_IN_REGS			(MASTER_IN_REGS),
+				.MASTER_OUT_REGS		(MASTER_OUT_REGS)
 			)
-		i_float_add0_0
+		i_denorm_to_fixed_x
 			(
-				.reset			(reset),
-				.clk			(clk),
-				.cke			(cke),
+				.reset					(reset),
+				.clk					(clk),
+				.cke					(cke),
 				
-				.s_user			(mul_user),
-				.s_float0		(mul_float00),
-				.s_float1		(mul_float01),
-				.s_valid		(mul_valid),
-				.s_ready		(mul_ready),
+				.s_user					(div_user),
+				.s_denorm_fixed			(div_denorm_x_fixed),
+				.s_denorm_exp			(div_denorm_x_exp),
+				.s_valid				(div_valid),
+				.s_ready				(div_ready),
 				
-				.m_user			(add0_user),
-				.m_float		(add0_float0),
-				.m_valid		(add0_valid),
-				.m_ready		(add0_ready)
+				.m_user					(m_user),
+				.m_fixed				(m_x),
+				.m_valid				(m_valid),
+				.m_ready				(m_ready)
 			);
 	
-	jelly_float_add
+	jelly_denorm_to_fixed
 			#(
-				.EXP_WIDTH		(EXP_WIDTH),
-				.FRAC_WIDTH		(FRAC_WIDTH),
-				.USER_WIDTH		(0)
+				.DENORM_SIGNED			(1),
+				.DENORM_INT_WIDTH		(DIV_DENORM_Y_INT_WIDTH),
+				.DENORM_FRAC_WIDTH		(DIV_DENORM_Y_FRAC_WIDTH),
+				.DENORM_EXP_WIDTH		(DIV_DENORM_Y_EXP_WIDTH),
+				.DENORM_EXP_OFFSET		(DIV_DENORM_Y_EXP_OFFSET),
+				
+				.FIXED_INT_WIDTH		(M_FIXED_INT_WIDTH),
+				.FIXED_FRAC_WIDTH		(M_FIXED_FRAC_WIDTH),
+				
+				.USER_WIDTH				(0),
+				
+				.MASTER_IN_REGS			(MASTER_IN_REGS),
+				.MASTER_OUT_REGS		(MASTER_OUT_REGS)
 			)
-		i_float_add0_1
+		i_denorm_to_fixed_y
 			(
-				.reset			(reset),
-				.clk			(clk),
-				.cke			(cke),
+				.reset					(reset),
+				.clk					(clk),
+				.cke					(cke),
 				
-				.s_user			(),
-				.s_float0		(mul_float10),
-				.s_float1		(mul_float11),
-				.s_valid		(mul_valid),
-				.s_ready		(),
+				.s_user					(),
+				.s_denorm_fixed			(div_denorm_y_fixed),
+				.s_denorm_exp			(div_denorm_y_exp),
+				.s_valid				(div_valid),
+				.s_ready				(),
 				
-				.m_user			(),
-				.m_float		(add0_float1),
-				.m_valid		(),
-				.m_ready		(add0_ready)
+				.m_user					(),
+				.m_fixed				(m_y),
+				.m_valid				(),
+				.m_ready				(m_ready)
 			);
 	
-	jelly_float_add
-			#(
-				.EXP_WIDTH		(EXP_WIDTH),
-				.FRAC_WIDTH		(FRAC_WIDTH),
-				.USER_WIDTH		(0)
-			)
-		i_float_add0_2
-			(
-				.reset			(reset),
-				.clk			(clk),
-				.cke			(cke),
-				
-				.s_user			(),
-				.s_float0		(mul_float20),
-				.s_float1		(mul_float21),
-				.s_valid		(mul_valid),
-				.s_ready		(),
-				
-				.m_user			(),
-				.m_float		(add0_float2),
-				.m_valid		(),
-				.m_ready		(add0_ready)
-			);
-	
-	
-	// -----------------------------------------
-	//  add1
-	// -----------------------------------------
-	
-	wire	[USER_BITS-1:0]		add1_user;
-	wire	[FLOAT_WIDTH-1:0]	add1_float0;
-	wire	[FLOAT_WIDTH-1:0]	add1_float1;
-	wire	[FLOAT_WIDTH-1:0]	add1_float2;
-	wire						add1_valid;
-	wire						add1_ready;
-	
-	jelly_float_add
-			#(
-				.EXP_WIDTH		(EXP_WIDTH),
-				.FRAC_WIDTH		(FRAC_WIDTH),
-				.USER_WIDTH		(USER_BITS)
-			)
-		i_float_add1_0
-			(
-				.reset			(reset),
-				.clk			(clk),
-				.cke			(cke),
-				
-				.s_user			(add0_user),
-				.s_float0		(add0_float0),
-				.s_float1		(matrix02),
-				.s_valid		(add0_valid),
-				.s_ready		(add0_ready),
-				
-				.m_user			(add1_user),
-				.m_float		(add1_float0),
-				.m_valid		(add1_valid),
-				.m_ready		(add1_ready)
-			);
-	
-	jelly_float_add
-			#(
-				.EXP_WIDTH		(EXP_WIDTH),
-				.FRAC_WIDTH		(FRAC_WIDTH),
-				.USER_WIDTH		(0)
-			)
-		i_float_add1_1
-			(
-				.reset			(reset),
-				.clk			(clk),
-				.cke			(cke),
-				
-				.s_user			(),
-				.s_float0		(add0_float1),
-				.s_float1		(matrix12),
-				.s_valid		(add0_valid),
-				.s_ready		(),
-				
-				.m_user			(),
-				.m_float		(add1_float1),
-				.m_valid		(),
-				.m_ready		(add1_ready)
-			);
-	
-	jelly_float_add
-			#(
-				.EXP_WIDTH		(EXP_WIDTH),
-				.FRAC_WIDTH		(FRAC_WIDTH),
-				.USER_WIDTH		(0)
-			)
-		i_float_add1_2
-			(
-				.reset			(reset),
-				.clk			(clk),
-				.cke			(cke),
-				
-				.s_user			(),
-				.s_float0		(add0_float2),
-				.s_float1		(matrix22),
-				.s_valid		(add0_valid),
-				.s_ready		(),
-				
-				.m_user			(),
-				.m_float		(add1_float2),
-				.m_valid		(),
-				.m_ready		(add1_ready)
-			);
-	
-	
-	// -----------------------------------------
-	//  div
-	// -----------------------------------------
-	
-	wire	[USER_BITS-1:0]		recip_user;
-	wire	[FLOAT_WIDTH-1:0]	recip_float0;
-	wire	[FLOAT_WIDTH-1:0]	recip_float1;
-	wire	[FLOAT_WIDTH-1:0]	recip_float2;
-	wire						recip_valid;
-	wire						recip_ready;
-	
-	jelly_float_reciprocal
-			#(
-				.EXP_WIDTH		(EXP_WIDTH),
-				.FRAC_WIDTH		(FRAC_WIDTH),
-				.USER_WIDTH		(USER_BITS+FLOAT_WIDTH+FLOAT_WIDTH),
-				.D_WIDTH		(9)
-			)
-		i_float_reciprocal
-			(
-				.reset			(reset),
-				.clk			(clk),
-				.cke			(cke),
-				
-				.s_user			({add1_user, add1_float1, add1_float0}),
-				.s_float		(add1_float2),
-				.s_valid		(add1_valid),
-				.s_ready		(add1_ready),
-				
-				.m_user			({recip_user, recip_float1, recip_float0}),
-				.m_float		(recip_float2),
-				.m_valid		(recip_valid),
-				.m_ready		(recip_ready)
-			);
-	
-	
-	jelly_float_multiply
-			#(
-				.EXP_WIDTH		(EXP_WIDTH),
-				.FRAC_WIDTH		(FRAC_WIDTH),
-				.USER_WIDTH		(USER_BITS)
-			)
-		i_float_multiply_div0
-			(
-				.reset			(reset),
-				.clk			(clk),
-				.cke			(cke),
-				
-				.s_user			(recip_user),
-				.s_float0		(recip_float0),
-				.s_float1		(recip_float2),
-				.s_valid		(recip_valid),
-				.s_ready		(recip_ready),
-				
-				.m_user			(m_user),
-				.m_float		(m_x),
-				.m_valid		(m_valid),
-				.m_ready		(m_ready)
-			);
-	
-	jelly_float_multiply
-			#(
-				.EXP_WIDTH		(EXP_WIDTH),
-				.FRAC_WIDTH		(FRAC_WIDTH),
-				.USER_WIDTH		(0)
-			)
-		i_float_multiply_div1
-			(
-				.reset			(reset),
-				.clk			(clk),
-				.cke			(cke),
-				
-				.s_user			(),
-				.s_float0		(recip_float1),
-				.s_float1		(recip_float2),
-				.s_valid		(recip_valid),
-				.s_ready		(),
-				
-				.m_user			(),
-				.m_float		(m_y),
-				.m_valid		(),
-				.m_ready		(m_ready)
-			);
-	*/
 	
 endmodule
 

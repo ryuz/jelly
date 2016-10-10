@@ -43,7 +43,7 @@ module jelly_fixed_float_mul_add2
 			parameter	MASTER_IN_REGS       = 1,
 			parameter	MASTER_OUT_REGS      = 1,
 			
-			parameter	DEVICE               = "RTL" // "7SERIES"
+			parameter	DEVICE               = "7SERIES" // "RTL" // "7SERIES"
 		)
 		(
 			input	wire										reset,
@@ -161,7 +161,7 @@ module jelly_fixed_float_mul_add2
 	reg		signed	[S_FIXED_WIDTH-1:0]			st0_x;
 	reg		signed	[S_FLOAT_INT_WIDTH-1:0]		st0_b_int;
 	reg		signed	[S_FIXED_WIDTH-1:0]			st0_y;
-	reg		signed	[S_FLOAT_EXP_WIDTH:0]		st0_c_exp;
+	reg				[S_FLOAT_EXP_WIDTH-1:0]		st0_c_exp;
 	reg		signed	[S_FLOAT_INT_WIDTH-1:0]		st0_c_int;
 	
 	reg				[USER_BITS-1:0]				st1_user;
@@ -194,7 +194,7 @@ module jelly_fixed_float_mul_add2
 				st0_b_int   <= src_b_int;
 				st0_y       <= src_y;
 				
-				st0_c_exp   <= src_c_exp - src_b_exp;
+				st0_c_exp   <= src_c_exp - src_b_exp + S_FLOAT_EXP_OFFSET;
 				st0_c_int   <= src_c_int;
 			end
 			else begin
@@ -208,7 +208,7 @@ module jelly_fixed_float_mul_add2
 				st0_b_int   <= src_a_int;
 				st0_y       <= src_x;
 				
-				st0_c_exp   <= src_c_exp - src_a_exp;
+				st0_c_exp   <= src_c_exp - src_a_exp + S_FLOAT_EXP_OFFSET;
 				st0_c_int   <= src_c_int;
 			end
 		end
@@ -220,13 +220,7 @@ module jelly_fixed_float_mul_add2
 			
 			st1_a_int <= (st0_a_int >>> st0_a_shift);
 			st1_x     <= st0_x;
-			
-			if ( st0_c_exp >= 0 ) begin
-				st1_c_int <= (st0_c_int <<< st0_c_exp);
-			end
-			else begin
-				st1_c_int <= (st0_c_int >>> -st0_c_exp);
-			end
+			st1_c_int <= ($signed({{S_FLOAT_EXP_OFFSET{st0_c_int[S_FLOAT_INT_WIDTH-1]}}, st0_c_int} <<< st0_c_exp) >>> S_FLOAT_EXP_OFFSET);
 		end
 		
 		// stage 2

@@ -225,6 +225,14 @@ module tb_fixed_float_mul_add();
 			);
 	
 	
+	jelly_fixed_float_projective_transformation_2d
+		i_fixed_float_projective_transformation_2d
+			(
+				.reset					(reset),
+				.clk					(clk),
+				.cke					(1'b1)
+			);
+	
 endmodule
 
 
