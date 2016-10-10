@@ -32,8 +32,6 @@ module jelly_denorm_float_mul
 			parameter	M_DENORM_FRAC_WIDTH  = 8,
 			parameter	M_DENORM_FIXED_WIDTH = M_DENORM_INT_WIDTH + M_DENORM_FRAC_WIDTH,
 			
-//			parameter	INT_WIDTH            = 48,
-			
 			parameter	USER_WIDTH           = 0,
 			parameter	USER_BITS            = USER_WIDTH > 0 ? USER_WIDTH : 1,
 			

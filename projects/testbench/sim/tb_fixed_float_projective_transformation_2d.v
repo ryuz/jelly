@@ -37,7 +37,7 @@ module tb_fixed_float_projective_transformation_2d();
 	
 	parameter	MUL_DENORM_W_EXP_WIDTH   = FLOAT_EXP_WIDTH;
 	parameter	MUL_DENORM_W_EXP_OFFSET  = FLOAT_EXP_OFFSET;
-	parameter	MUL_DENORM_W_INT_WIDTH   = 16;
+	parameter	MUL_DENORM_W_INT_WIDTH   = 20;
 	parameter	MUL_DENORM_W_FRAC_WIDTH  = 8;
 	parameter	MUL_DENORM_W_FIXED_WIDTH = MUL_DENORM_W_INT_WIDTH + MUL_DENORM_W_FRAC_WIDTH;
 	
@@ -139,18 +139,24 @@ module tb_fixed_float_projective_transformation_2d();
 	//  test bench
 	// ---------------------------------------------
 	
+	reg		cke;
+	always @(posedge clk) begin
+	//	cke <= 1'b1 ; // 
+		cke <= {$random()};
+	end
+	
 	reg		signed	[S_FIXED_WIDTH-1:0]	x;
 	reg		signed	[S_FIXED_WIDTH-1:0]	y;
 	
-	real	mat00 = 1.0;
-	real	mat01 = 0.0;
-	real	mat02 = 0.0;
-	real	mat10 = 1.0;
-	real	mat11 = 0.0;
-	real	mat12 = 1.0;
-	real	mat20 = 0.0;
-	real	mat21 = 0.0;
-	real	mat22 = 1.0;
+	real	mat00 = 10.0;
+	real	mat01 = 0.1;
+	real	mat02 = 0.2;
+	real	mat10 = 0.3;
+	real	mat11 = 10.0;
+	real	mat12 = 0.4;
+	real	mat20 = 0.01;
+	real	mat21 = 0.02;
+	real	mat22 = 1.00;
 	
 	real	exp_x;
 	real	exp_y;
@@ -166,6 +172,9 @@ module tb_fixed_float_projective_transformation_2d();
 	reg				[FLOAT_WIDTH-1:0]	matrix21;
 	reg				[FLOAT_WIDTH-1:0]	matrix22;
 	
+	real								s_exp_x;
+	real								s_exp_y;
+	
 	reg		signed	[S_FIXED_WIDTH-1:0]	s_x;
 	reg		signed	[S_FIXED_WIDTH-1:0]	s_y;
 	reg									s_valid;
@@ -180,6 +189,12 @@ module tb_fixed_float_projective_transformation_2d();
 	wire	signed	[M_FIXED_WIDTH-1:0]	m_y;
 	wire								m_valid;
 	reg									m_ready = 1'b1;
+	
+	always @(posedge clk) begin
+		if ( cke ) begin
+			m_ready <= {$random()};
+		end
+	end
 	
 	real	result_x;
 	real	result_y;
@@ -199,57 +214,69 @@ module tb_fixed_float_projective_transformation_2d();
 			x = 0;
 			y = 0;
 		end
-		else begin
-			if ( !s_valid || s_ready ) begin
-				s_valid <= 1'b1;
-				
-				x = $random();
-				y = $random();
-				
-				/*
-				x = x + 1;
-				if ( x >= 1024 ) begin
-					x = 0;
-					y = y + 1;
-				end
-				*/
-				
-				s_x      <= x;
-				s_y      <= y;
-				
-				matrix00 <= real2float(mat00);
-				matrix01 <= real2float(mat01);
-				matrix02 <= real2float(mat02);
-				matrix10 <= real2float(mat10);
-				matrix11 <= real2float(mat11);
-				matrix12 <= real2float(mat12);
-				matrix20 <= real2float(mat20);
-				matrix21 <= real2float(mat21);
-				matrix22 <= real2float(mat22);
-				
-				
-				exp_w = x*mat20 + y*mat21 + mat22;
-				
-				exp_x = x*mat00 + y*mat01 + mat02;
-				exp_y = x*mat10 + y*mat11 + mat12;
-				
-				$fdisplay(fp_exp, "%f %f %f : %f %f %f", exp_x, exp_y , exp_w, exp_x/exp_w, exp_y/exp_w, 1/exp_w);
-				
-				exp_x = exp_x / exp_w;
-				exp_y = exp_y / exp_w;
+		else if ( cke ) begin
+			if ( s_ready ) begin
+				s_valid <= 1'b0;
 			end
 			
+			if ( !s_valid || s_ready ) begin
+				if ( {$random()} % 2 == 0 ) begin
+					
+					
+					x = $random();
+					y = $random();
+					
+					/*
+					x = x + 1;
+					if ( x >= 1024 ) begin
+						x = 0;
+						y = y + 1;
+					end
+					*/
+					
+					exp_w = x*mat20 + y*mat21 + mat22;
+					
+					exp_x = x*mat00 + y*mat01 + mat02;
+					exp_y = x*mat10 + y*mat11 + mat12;
+					
+					$fdisplay(fp_exp, "(%d %d) %f %f %f : %f %f %f", x, y, exp_x, exp_y , exp_w, exp_x/exp_w, exp_y/exp_w, 1/exp_w);
+					
+					exp_x = exp_x / exp_w;
+					exp_y = exp_y / exp_w;
+					
+					
+					s_x      <= x;
+					s_y      <= y;
+					s_exp_x  <= exp_x;
+					s_exp_y  <= exp_y;
+					
+					s_valid  <= 1'b1;
+					matrix00 <= real2float(mat00);
+					matrix01 <= real2float(mat01);
+					matrix02 <= real2float(mat02);
+					matrix10 <= real2float(mat10);
+					matrix11 <= real2float(mat11);
+					matrix12 <= real2float(mat12);
+					matrix20 <= real2float(mat20);
+					matrix21 <= real2float(mat21);
+					matrix22 <= real2float(mat22);
+				end
+			end
 			
-			
-			if ( m_valid && m_ready ) begin
+			if ( cke && m_valid && m_ready ) begin
 				
 				result_x = m_x;
 				result_y = m_y;
 				result_x = result_x / (1<<M_FIXED_FRAC_WIDTH);
 				result_y = result_y / (1<<M_FIXED_FRAC_WIDTH);
 				
-				$display("%f %f : %f %f %d %d", result_x , result_y, $bitstoreal(m_real_x), $bitstoreal(m_real_y), m_int_x, m_int_y);
-				$fdisplay(fp, "%f %f : %f %f %d %d", result_x , result_y, $bitstoreal(m_real_x), $bitstoreal(m_real_y), m_int_x, m_int_y);
+		//		$display("%f %f : %f %f %d %d", result_x , result_y, $bitstoreal(m_real_x), $bitstoreal(m_real_y), m_int_x, m_int_y);
+		
+				$display(     "(%f %f) %f %f : %f %f %d %d", result_x - $bitstoreal(m_real_x), result_y - $bitstoreal(m_real_y),
+								result_x , result_y, $bitstoreal(m_real_x), $bitstoreal(m_real_y), m_int_x, m_int_y);
+								
+				$fdisplay(fp, "(%f %f) %f %f : %f %f %d %d", result_x - $bitstoreal(m_real_x), result_y - $bitstoreal(m_real_y),
+								result_x , result_y, $bitstoreal(m_real_x), $bitstoreal(m_real_y), m_int_x, m_int_y);
 			end
 		end
 	end
@@ -296,7 +323,7 @@ module tb_fixed_float_projective_transformation_2d();
 	always @(posedge clk) begin
 		if ( reset ) begin
 		end
-		else begin
+		else if ( cke ) begin
 			if ( i_top.mul_valid ) begin
 				/*
 				recip_exp = i_top.mul_denorm_w_fixed;
@@ -351,6 +378,9 @@ module tb_fixed_float_projective_transformation_2d();
 				.M_FIXED_INT_WIDTH	(M_FIXED_INT_WIDTH),
 				.M_FIXED_FRAC_WIDTH	(M_FIXED_FRAC_WIDTH),
 				
+				.MUL_DENORM_W_INT_WIDTH		(MUL_DENORM_W_INT_WIDTH	),
+				.MUL_DENORM_W_FRAC_WIDTH	(MUL_DENORM_W_FRAC_WIDTH),
+				
 				.RECIP_FLOAT_FRAC_WIDTH	(RECIP_FLOAT_FRAC_WIDTH),
 				
 				.USER_WIDTH			(S_FIXED_WIDTH+S_FIXED_WIDTH+64+64),
@@ -364,7 +394,7 @@ module tb_fixed_float_projective_transformation_2d();
 			(
 				.reset				(reset),
 				.clk				(clk),
-				.cke				(1'b1),
+				.cke				(cke),
 				                     
 				.matrix00			(matrix00),
 				.matrix01			(matrix01),
@@ -376,7 +406,7 @@ module tb_fixed_float_projective_transformation_2d();
 				.matrix21			(matrix21),
 				.matrix22			(matrix22),
 				
-				.s_user				({s_y, s_x, $realtobits(exp_y), $realtobits(exp_x)}),
+				.s_user				({s_y, s_x, $realtobits(s_exp_y), $realtobits(s_exp_x)}),
 				.s_x				(s_x),
 				.s_y				(s_y),
 				.s_valid			(s_valid),
@@ -417,7 +447,7 @@ module tb_fixed_float_projective_transformation_2d();
 			(
 				.reset					(reset),
 				.clk					(clk),
-				.cke					(1'b1),
+				.cke					(cke),
 				
 				.s_user					(),
 				.s_denorm_fixed			(24'h0001_80),
