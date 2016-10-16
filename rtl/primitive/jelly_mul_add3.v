@@ -15,15 +15,16 @@
 // a*x + b*y + c*z + d
 module jelly_mul_add3
 		#(
-			parameter	A_WIDTH = 25,
-			parameter	B_WIDTH = 25,
-			parameter	C_WIDTH = 25,
-			parameter	D_WIDTH = 48,
-			parameter	X_WIDTH = 18,
-			parameter	Y_WIDTH = 18,
-			parameter	Z_WIDTH = 18,
-			parameter	P_WIDTH = 48,
-			parameter	DEVICE  = "RTL" // "7SERIES"
+			parameter	A_WIDTH      = 25,
+			parameter	B_WIDTH      = 25,
+			parameter	C_WIDTH      = 25,
+			parameter	D_WIDTH      = 48,
+			parameter	X_WIDTH      = 18,
+			parameter	Y_WIDTH      = 18,
+			parameter	Z_WIDTH      = 18,
+			parameter	P_WIDTH      = 48,
+			parameter	STATIC_COEFF = 0,		// no dynamic change A,B,C,D
+			parameter	DEVICE       = "RTL"	// "RTL" or "7SERIES"
 		)
 		(
 			input	wire							reset,
@@ -117,7 +118,7 @@ module jelly_mul_add3
 					.op_load		(1'b1),
 					.alu_sub		(1'b0),
 					
-					.a				(st0_a),
+					.a				(STATIC_COEFF ? a : st0_a),
 					.b				(st0_x),
 					.c				({P_WIDTH{1'b0}}),
 					.p				(p),
@@ -213,7 +214,7 @@ module jelly_mul_add3
 					
 					.a				(c),
 					.b				(z),
-					.c				(st0_d),
+					.c				(STATIC_COEFF ? d : st0_d),
 					.p				(),
 					
 					.pcin			(),
@@ -285,9 +286,9 @@ module jelly_mul_add3
 				end
 				
 				if ( cke1 ) begin
-					st1_a <= st0_a;
+					st1_a <= STATIC_COEFF ? a : st0_a;
 					st1_b <= st0_b;
-					st1_d <= st0_d;
+					st1_d <= STATIC_COEFF ? d : st0_d;
 					st1_x <= st0_x;
 					st1_y <= st0_y;
 					st1_z <= st0_c * st0_z;

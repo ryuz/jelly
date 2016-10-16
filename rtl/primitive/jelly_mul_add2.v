@@ -15,13 +15,14 @@
 // a*x + b*y + c
 module jelly_mul_add2
 		#(
-			parameter	A_WIDTH = 25,
-			parameter	B_WIDTH = 25,
-			parameter	C_WIDTH = 48,
-			parameter	X_WIDTH = 18,
-			parameter	Y_WIDTH = 18,
-			parameter	P_WIDTH = 48,
-			parameter	DEVICE  = "RTL" // "7SERIES"
+			parameter	A_WIDTH      = 25,
+			parameter	B_WIDTH      = 25,
+			parameter	C_WIDTH      = 48,
+			parameter	X_WIDTH      = 18,
+			parameter	Y_WIDTH      = 18,
+			parameter	P_WIDTH      = 48,
+			parameter	STATIC_COEFF = 0,		// no dynamic change A,B,C
+			parameter	DEVICE       = "RTL"	// "RTL" or "7SERIES"
 		)
 		(
 			input	wire							reset,
@@ -149,7 +150,7 @@ module jelly_mul_add2
 					
 					.a				(b),
 					.b				(y),
-					.c				(st0_c),
+					.c				(STATIC_COEFF ? c : st0_c),
 					.p				(),
 					
 					.pcin			(),
@@ -202,7 +203,7 @@ module jelly_mul_add2
 				
 				if ( cke1 ) begin
 					st1_a <= st0_a;
-					st1_c <= st0_c;
+					st1_c <= STATIC_COEFF ? c : st0_c;
 					st1_x <= st0_x;
 					st1_y <= st0_b * st0_y;
 				end

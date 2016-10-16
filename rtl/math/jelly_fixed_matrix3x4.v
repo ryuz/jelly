@@ -22,10 +22,10 @@ module jelly_fixed_matrix3x4
 		#(
 			parameter	COEFF_INT_WIDTH    = 17,
 			parameter	COEFF_FRAC_WIDTH   = 8,
-			parameter	COEFF_WIDTH        = COEFF3_INT_WIDTH + COEFF3_FRAC_WIDTH,
+			parameter	COEFF_WIDTH        = COEFF_INT_WIDTH + COEFF_FRAC_WIDTH,
 			
 			parameter	S_FIXED_INT_WIDTH  = 17,
-			parameter	S_FIXED_FRAC_WIDTH = 8,
+			parameter	S_FIXED_FRAC_WIDTH = 0,
 			parameter	S_FIXED_WIDTH      = S_FIXED_INT_WIDTH + S_FIXED_FRAC_WIDTH,
 			
 			parameter	M_FIXED_INT_WIDTH  = 17,
@@ -99,9 +99,9 @@ module jelly_fixed_matrix3x4
 	wire	signed	[S_FIXED_WIDTH-1:0]			src_fixed_z;
 	
 	wire			[USER_BITS-1:0]				sink_user;
-	wire			[M_FIXED_WIDTH-1:0]			sink_fixed_x,
-	wire			[M_FIXED_WIDTH-1:0]			sink_fixed_y,
-	wire			[M_FIXED_WIDTH-1:0]			sink_fixed_z,
+	wire			[M_FIXED_WIDTH-1:0]			sink_fixed_x;
+	wire			[M_FIXED_WIDTH-1:0]			sink_fixed_y;
+	wire			[M_FIXED_WIDTH-1:0]			sink_fixed_z;
 	
 	jelly_pipeline_control
 			#(

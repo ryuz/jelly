@@ -145,7 +145,8 @@ module jelly_denorm_float_mul
 		if ( stage_cke[0] ) begin
 			st0_user       <= src_user;
 			st0_float_int  <= src_float_int;
-			st0_denorm_exp <= (src_denorm_exp - S_DENORM_EXP_OFFSET) + (src_float_exp - S_FLOAT_EXP_OFFSET) + M_DENORM_EXP_OFFSET;
+//			st0_denorm_exp <= (src_denorm_exp - S_DENORM_EXP_OFFSET) + (src_float_exp - S_FLOAT_EXP_OFFSET) + M_DENORM_EXP_OFFSET;
+			st0_denorm_exp <= (src_denorm_exp + src_float_exp - (S_DENORM_EXP_OFFSET + S_FLOAT_EXP_OFFSET - M_DENORM_EXP_OFFSET));
 		end
 		
 		if ( stage_cke[1] ) begin
