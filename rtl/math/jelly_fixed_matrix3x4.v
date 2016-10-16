@@ -13,11 +13,7 @@
 
 
 
-// f <= a*x + b*x + c
-// 
-// a, b, c : floating point number
-// x, y    : fixed point number
-// f       : denormalized number
+
 module jelly_fixed_matrix3x4
 		#(
 			parameter	COEFF_INT_WIDTH    = 17,
@@ -229,7 +225,7 @@ module jelly_fixed_matrix3x4
 				.a				(src_coeff00),
 				.b				(src_coeff01),
 				.c				(src_coeff02),
-				.d				(src_coeff03),
+				.d				(x_d),
 				.x				(src_fixed_x),
 				.y				(src_fixed_y),
 				.z				(src_fixed_z),
@@ -264,7 +260,7 @@ module jelly_fixed_matrix3x4
 				.a				(src_coeff10),
 				.b				(src_coeff11),
 				.c				(src_coeff12),
-				.d				(src_coeff13),
+				.d				(y_d),
 				.x				(src_fixed_x),
 				.y				(src_fixed_y),
 				.z				(src_fixed_z),
@@ -299,7 +295,7 @@ module jelly_fixed_matrix3x4
 				.a				(src_coeff20),
 				.b				(src_coeff21),
 				.c				(src_coeff22),
-				.d				(src_coeff23),
+				.d				(z_d),
 				.x				(src_fixed_x),
 				.y				(src_fixed_y),
 				.z				(src_fixed_z),
