@@ -198,6 +198,23 @@ module jelly_fixed_matrix3x4
 		assign sink_fixed_z = (z_p <<< (M_FIXED_FRAC_WIDTH - (COEFF_FRAC_WIDTH+S_FIXED_FRAC_WIDTH)));
 	end
 	endgenerate
+
+
+	reg		[USER_BITS-1:0]			st0_user;
+	reg		[USER_BITS-1:0]			st1_user;
+	reg		[USER_BITS-1:0]			st2_user;
+	reg		[USER_BITS-1:0]			st3_user;
+	reg		[USER_BITS-1:0]			st4_user;
+	always @(posedge clk) begin
+		if ( stage_cke[0] ) begin st0_user <= src_user; end
+		if ( stage_cke[1] ) begin st1_user <= st0_user; end
+		if ( stage_cke[2] ) begin st2_user <= st1_user; end
+		if ( stage_cke[3] ) begin st3_user <= st2_user; end
+		if ( stage_cke[4] ) begin st4_user <= st3_user; end
+	end
+	
+	assign sink_user = st4_user;
+	
 	
 	jelly_mul_add3
 			#(
