@@ -18,7 +18,9 @@ module jelly_axi4s_master_model
 			parameter	AXI4S_DATA_WIDTH = 32,
 			parameter	X_NUM            = 640,
 			parameter	Y_NUM            = 480,
-			parameter	PPM_FILE         = ""
+			parameter	PPM_FILE         = "",
+			parameter	BUSY_RATE        = 0,
+			parameter	RANDOM_SEED      = 0
 		)
 		(
 			input	wire							aresetn,
@@ -30,6 +32,20 @@ module jelly_axi4s_master_model
 			output	wire							m_axi4s_tvalid,
 			input	wire							m_axi4s_tready
 		);
+	
+	reg		[31:0]		reg_rand_seed = RANDOM_SEED;
+	reg		[31:0]		reg_rand;
+	always @( posedge aclk ) begin
+		if ( !aresetn ) begin
+			reg_rand_seed <= RANDOM_SEED;
+			reg_rand      <= 99;
+		end
+		else begin
+			reg_rand      <= {$random(reg_rand_seed)};
+		end
+	end
+	
+	wire	busy = ((reg_rand % 100) < BUSY_RATE);
 	
 	
 	reg		[AXI4S_DATA_WIDTH-1:0]		mem		[0:X_NUM*Y_NUM-1];
@@ -61,7 +77,7 @@ module jelly_axi4s_master_model
 	end
 	
 	
-	wire		cke = (!m_axi4s_tvalid || m_axi4s_tready);
+	wire		cke = (!m_axi4s_tvalid || m_axi4s_tready) && !busy;
 	
 	integer		x = 0;
 	integer		y = 0;
@@ -90,7 +106,7 @@ module jelly_axi4s_master_model
 //	assign m_axi4s_tdata[15:8]  = (x<<4) + 2;
 //	assign m_axi4s_tdata[23:16] = (x<<4) + 3;
 	assign m_axi4s_tdata  = mem[y*X_NUM + x];
-	assign m_axi4s_tvalid = aresetn;
+	assign m_axi4s_tvalid = aresetn & !busy;
 	
 endmodule
 

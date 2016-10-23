@@ -177,7 +177,6 @@ module jelly_texture_writer_axi4
 	
 	
 	// core
-	reg									reg_busy;
 	reg		[M_AXI4_LEN_WIDTH-1:0]		reg_counter;
 	
 	reg		[M_AXI4_ADDR_WIDTH-1:0]		reg_awaddr;
@@ -189,7 +188,6 @@ module jelly_texture_writer_axi4
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
-			reg_busy    <= 1'b0;
 			reg_counter <= {M_AXI4_LEN_WIDTH{1'b0}};
 			
 			reg_awaddr  <= {M_AXI4_ADDR_WIDTH{1'bx}};
@@ -200,16 +198,6 @@ module jelly_texture_writer_axi4
 			reg_wvalid  <= 1'b0;
 		end
 		else begin
-			// busy
-			if ( master_awready ) begin
-				reg_busy <= 1'b0;
-			end
-			
-			if ( (master_wlast && master_wvalid && master_wready) && (master_awvalid && !master_awready) ) begin
-				reg_busy <= 1'b1;		// データ末尾でアドレスが未完了ならbusy
-			end
-			
-			
 			if ( master_awready ) begin
 				reg_awvalid  <= 1'b0;
 			end
@@ -219,26 +207,24 @@ module jelly_texture_writer_axi4
 			end
 			
 			if ( slave_ready && slave_valid ) begin
-				if ( master_wvalid ) begin
-					reg_counter <= reg_counter - 1'b1;
-					reg_wlast   <= ((reg_counter - 1'b1) == 0);
+				reg_counter <= reg_counter + 1'b1;
+				if ( reg_counter == param_awlen ) begin
+					reg_counter <= {M_AXI4_LEN_WIDTH{1'b0}};
 				end
 				
-				if ( reg_wlast ) begin
-					reg_counter <= param_awlen;
-					reg_wlast   <= (param_awlen == 0);
-					
+				if ( reg_counter == 0 ) begin
 					reg_awaddr  <= slave_addr;
-					reg_awvalid <= slave_valid;
+					reg_awvalid <= 1'b1;
 				end
 				
-				reg_wdata  <= slave_data;
-				reg_wvalid <= slave_valid;
+				reg_wlast   <= (reg_counter == param_awlen);
+				reg_wdata   <= slave_data;
+				reg_wvalid  <= 1'b1;
 			end
 		end
 	end
 	
-	assign slave_ready    = master_wready && !reg_busy;
+	assign slave_ready    = !(master_wvalid && !master_wready) && !(reg_wlast && master_awvalid && !master_awready);
 	
 	assign master_awaddr  = reg_awaddr;
 	assign master_awvalid = reg_awvalid;

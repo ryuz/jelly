@@ -7,8 +7,8 @@ module tb_texture_cache();
 	localparam RATE    = 1000.0/200.0;
 	
 	initial begin
-		$dumpfile("tb_texture_cache.vcd");
-		$dumpvars(0, tb_texture_cache);
+//		$dumpfile("tb_texture_cache.vcd");
+//		$dumpvars(0, tb_texture_cache);
 		
 		#30000000;
 			$display("!!!!TIME OUT!!!!");
@@ -98,16 +98,16 @@ module tb_texture_cache();
 	end
 	
 	
-	wire	[CACHE_NUM*USER_WIDTH-1:0]				s_aruser;
-	wire	[CACHE_NUM*S_ADDR_X_WIDTH-1:0]			s_araddrx;
-	wire	[CACHE_NUM*S_ADDR_Y_WIDTH-1:0]			s_araddry;
-	wire	[CACHE_NUM-1:0]							s_arvalid;
-	wire	[CACHE_NUM-1:0]							s_arready;
+	wire	[CACHE_NUM*USER_WIDTH-1:0]		s_aruser;
+	wire	[CACHE_NUM*S_ADDR_X_WIDTH-1:0]	s_araddrx;
+	wire	[CACHE_NUM*S_ADDR_Y_WIDTH-1:0]	s_araddry;
+	wire	[CACHE_NUM-1:0]					s_arvalid;
+	wire	[CACHE_NUM-1:0]					s_arready;
 	
-	wire	[CACHE_NUM*USER_WIDTH-1:0]				s_ruser;
-	wire	[CACHE_NUM*S_DATA_WIDTH-1:0]			s_rdata;
-	wire	[CACHE_NUM-1:0]							s_rvalid;
-	wire	[CACHE_NUM-1:0]							s_rready = 4'b1111;
+	wire	[CACHE_NUM*USER_WIDTH-1:0]		s_ruser;
+	wire	[CACHE_NUM*S_DATA_WIDTH-1:0]	s_rdata;
+	wire	[CACHE_NUM-1:0]					s_rvalid;
+	wire	[CACHE_NUM-1:0]					s_rready = 4'b1111;
 	
 	reg		[USER_WIDTH-1:0]				s_aruser0;
 	reg		[S_ADDR_X_WIDTH-1:0]			s_araddrx0;

@@ -115,27 +115,27 @@ module jelly_axi4_slave_model
 	always @(posedge aclk) begin
 //		reg_busy_aw <= 1'b0;
 		if ( reg_busy_aw || !s_axi4_awvalid || s_axi4_awready ) begin
-			reg_busy_aw <= (({$random(reg_rand_aw)} % 99) < AW_BUSY_RATE);
+			reg_busy_aw <= (({$random(reg_rand_aw)} % 100) < AW_BUSY_RATE);
 		end
 		
 //		reg_busy_w <= 1'b0;
 		if ( reg_busy_w || !s_axi4_wvalid || s_axi4_wready ) begin
-			reg_busy_w  <= (({$random(reg_rand_w)} % 99)  < W_BUSY_RATE);
+			reg_busy_w  <= (({$random(reg_rand_w)} % 100)  < W_BUSY_RATE);
 		end
 		
 		reg_busy_b <= 1'b0;
 		if ( !s_axi4_bvalid || s_axi4_bready ) begin
-			reg_busy_b  <= (({$random(reg_rand_b)} % 99)  < B_BUSY_RATE);
+			reg_busy_b  <= (({$random(reg_rand_b)} % 100)  < B_BUSY_RATE);
 		end
 		
 		reg_busy_ar <= 1'b0;
 		if ( !s_axi4_arvalid || s_axi4_arready ) begin
-			reg_busy_ar <= (({$random(reg_rand_ar)} % 99) < AR_BUSY_RATE);
+			reg_busy_ar <= (({$random(reg_rand_ar)} % 100) < AR_BUSY_RATE);
 		end
 		
 		reg_busy_r <= 1'b0;
 		if ( !s_axi4_rvalid || s_axi4_rready ) begin
-			reg_busy_r  <= (({$random(reg_rand_r)} % 99)  < R_BUSY_RATE);
+			reg_busy_r  <= (({$random(reg_rand_r)} % 100)  < R_BUSY_RATE);
 		end
 	end
 	

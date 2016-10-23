@@ -7,7 +7,7 @@ module tb_texture_writer();
 	localparam RATE    = 1000.0/200.0;
 	
 	initial begin
-		$dumpfile("tb_texture_writer.vcd");
+//		$dumpfile("tb_texture_writer.vcd");
 //		$dumpvars(0, tb_texture_writer);
 		
 //		#1000000;
@@ -23,7 +23,7 @@ module tb_texture_writer();
 	
 	
 	// ƒ‰ƒ“ƒ_ƒ€ BUSY
-	localparam	RAND_BUSY = 0;
+	localparam	RAND_BUSY = 1;
 	
 	
 	localparam	X_NUM = 640;
@@ -123,7 +123,8 @@ module tb_texture_writer();
 				.AXI4S_DATA_WIDTH	(24),
 				.X_NUM				(X_NUM),
 				.Y_NUM				(Y_NUM),
-				.PPM_FILE			("image.ppm")
+				.PPM_FILE			("image.ppm"),
+				.BUSY_RATE			(RAND_BUSY ? 5 : 0)
 			)
 		i_axi4s_master_model
 			(
@@ -234,18 +235,18 @@ module tb_texture_writer();
 				.WRITE_LOG_FILE			("axi4_write.txt"),
 				.READ_LOG_FILE			(""),
 				
-				.AW_DELAY				(0),
-				.AR_DELAY				(0),
+				.AW_DELAY				(RAND_BUSY ? 4 : 0),
+				.AR_DELAY				(RAND_BUSY ? 4 : 0),
 				
-				.AW_FIFO_PTR_WIDTH		(0),
-				.W_FIFO_PTR_WIDTH		(0),
-				.B_FIFO_PTR_WIDTH		(0),
+				.AW_FIFO_PTR_WIDTH		(RAND_BUSY ? 4 : 0),
+				.W_FIFO_PTR_WIDTH		(RAND_BUSY ? 4 : 0),
+				.B_FIFO_PTR_WIDTH		(RAND_BUSY ? 4 : 0),
 				.AR_FIFO_PTR_WIDTH		(0),
 				.R_FIFO_PTR_WIDTH		(0),
 				
-				.AW_BUSY_RATE			(0),
-				.W_BUSY_RATE			(0),
-				.B_BUSY_RATE			(0),
+				.AW_BUSY_RATE			(RAND_BUSY ? 80 : 0),
+				.W_BUSY_RATE			(RAND_BUSY ? 80 : 0),
+				.B_BUSY_RATE			(RAND_BUSY ? 80 : 0),
 				.AR_BUSY_RATE			(0),
 				.R_BUSY_RATE			(0)
 			)
