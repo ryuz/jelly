@@ -1079,7 +1079,8 @@ module top
 					.IMG_Y_NUM				(480),
 					.IMG_Y_WIDTH			(9),
 					.BLANK_Y_WIDTH			(8),
-					.IMG_CKE_BUFG			(0)
+					.IMG_CKE_BUFG			(0),
+					.USE_DE					(0)
 				)
 			jelly_axi4s_img
 				(

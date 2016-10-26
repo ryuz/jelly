@@ -14,7 +14,8 @@
 
 module jelly_img_to_axi4s
 		#(
-			parameter	DATA_WIDTH = 8
+			parameter	DATA_WIDTH = 8,
+			parameter	USE_DE     = 1
 		)
 		(
 			input	wire						reset,
@@ -26,6 +27,7 @@ module jelly_img_to_axi4s
 			input	wire						s_img_pixel_first,
 			input	wire						s_img_pixel_last,
 			input	wire	[DATA_WIDTH-1:0]	s_img_data,
+			input	wire						s_img_de,
 			
 			output	wire	[DATA_WIDTH-1:0]	m_axi4s_tdata,
 			output	wire						m_axi4s_tlast,
@@ -48,17 +50,23 @@ module jelly_img_to_axi4s
 			reg_tvalid <= 1'b0;
 		end
 		else if ( cke ) begin
-			if ( s_img_line_first ) begin
-				reg_de <= 1'b1;
-			end
-			else if ( s_img_line_last ) begin
-				reg_de <= 1'b0;
-			end
-			
 			reg_tdata  <= s_img_data;
 			reg_tlast  <= s_img_pixel_last;
 			reg_tuser  <= (s_img_line_first && s_img_pixel_first);
-			reg_tvalid <= (s_img_line_first || s_img_line_last || reg_de);
+			
+			if ( USE_DE ) begin
+				reg_tvalid <= s_img_de;
+			end
+			else begin
+				// auto create de
+				if ( s_img_line_first ) begin
+					reg_de <= 1'b1;
+				end
+				else if ( s_img_line_last ) begin
+					reg_de <= 1'b0;
+				end
+				reg_tvalid <= (s_img_line_first || s_img_line_last || reg_de);
+			end
 		end
 		else begin
 			reg_tvalid <= 1'b0;

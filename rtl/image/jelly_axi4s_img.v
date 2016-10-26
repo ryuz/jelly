@@ -23,6 +23,7 @@ module jelly_axi4s_img
 			parameter	IMG_X_WIDTH    = 10,
 			parameter	IMG_Y_WIDTH    = 9,
 			parameter	IMG_Y_NUM      = 480,
+			parameter	USE_DE         = 1,
 			parameter	BLANK_Y_WIDTH  = 8,
 			parameter	INIT_Y_NUM     = IMG_Y_NUM,
 			parameter	FIFO_PTR_WIDTH = 9,
@@ -61,7 +62,8 @@ module jelly_axi4s_img
 			input	wire								sink_img_line_last,
 			input	wire								sink_img_pixel_first,
 			input	wire								sink_img_pixel_last,
-			input	wire	[DATA_WIDTH-1:0]			sink_img_data
+			input	wire	[DATA_WIDTH-1:0]			sink_img_data,
+			input	wire								sink_img_de
 		);
 	
 	
@@ -177,7 +179,8 @@ module jelly_axi4s_img
 	
 	jelly_img_to_axi4s
 			#(
-				.DATA_WIDTH		(DATA_WIDTH)
+				.DATA_WIDTH			(DATA_WIDTH),
+				.USE_DE				(USE_DE)
 			)
 		i_img_to_axi4s
 			(
@@ -190,6 +193,7 @@ module jelly_axi4s_img
 				.s_img_pixel_first	(sink_img_pixel_first),
 				.s_img_pixel_last	(sink_img_pixel_last),
 				.s_img_data			(sink_img_data),
+				.s_img_de			(sink_img_de),
 				
 				.m_axi4s_tdata		(axi4s_0_tdata),
 				.m_axi4s_tlast		(axi4s_0_tlast),
