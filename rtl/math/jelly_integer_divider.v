@@ -45,7 +45,14 @@ module jelly_integer_divider
 		);
 	
 	
-	localparam	PIPELINE_STAGES = S_DIVIDEND_WIDTH + 1;
+	localparam	N = S_DIVIDEND_WIDTH;
+	
+	
+	// ----------------------------------------
+	//  pipeline control
+	// ----------------------------------------
+	
+	localparam	PIPELINE_STAGES = N + 1;
 	
 	wire			[PIPELINE_STAGES-1:0]		stage_cke;
 	wire			[PIPELINE_STAGES-1:0]		stage_valid;
@@ -91,37 +98,53 @@ module jelly_integer_divider
 				.buffered			()
 			);
 	
-	genvar	i;
 	
-	localparam	N = S_DIVIDEND_WIDTH;
+	// ----------------------------------------
+	//  calcurate
+	// ----------------------------------------
 	
-	wire	[(N+1)*S_DIVIDEND_WIDTH-1:0]	stages_dividend;
+	wire			[USER_BITS-1:0]			first_user;
+	wire	signed	[0:0]					first_dividend;		// sign only
+	wire	signed	[S_DIVISOR_WIDTH-1:0]	first_divisor;
+	wire	signed	[M_QUOTIENT-1:0]		first_quotient;
+	wire	signed	[M_REMAINDER-1:0]		first_remainder;
+	
+	assign first_dividend                    = src_dividend[S_DIVIDEND_WIDTH-1];
+	assign {first_remainder, first_quotient} = {{M_REMAINDER{src_dividend[S_DIVIDEND_WIDTH-1]}}, src_dividend};
+	assign first_divisor                     = src_divisor;
+	assign first_user                        = src_user;
+	
+	
+	wire	[(N+1)*USER_BITS-1:0]			stages_user;
+	wire	[(N+1)-1:0]						stages_dividend;
 	wire	[(N+1)*S_DIVISOR_WIDTH-1:0]		stages_divisor;
 	wire	[(N+1)*M_QUOTIENT-1:0]			stages_quotient;
 	wire	[(N+1)*M_REMAINDER-1:0]			stages_remainder;
-	wire	[(N+1)*USER_BITS-1:0]			stages_user;
 	
-	assign stages_dividend [0*S_DIVIDEND_WIDTH +: S_DIVIDEND_WIDTH] = src_dividend;
-	assign stages_divisor  [0*S_DIVISOR_WIDTH  +: S_DIVISOR_WIDTH]  = src_divisor;
-	assign stages_quotient [0*M_QUOTIENT       +: M_QUOTIENT]       = {M_QUOTIENT{1'b0}};
-	assign stages_remainder[0*M_REMAINDER      +: M_REMAINDER]      = {M_REMAINDER{src_dividend[S_DIVIDEND_WIDTH-1]}};
-	assign stages_user     [0*USER_BITS        +: USER_BITS]        = src_user;
+	assign stages_user     [0*USER_BITS        +: USER_BITS]        = first_user;
+	assign stages_dividend [0*1                +: 1]                = first_dividend;
+	assign stages_divisor  [0*S_DIVISOR_WIDTH  +: S_DIVISOR_WIDTH]  = first_divisor;
+	assign stages_quotient [0*M_QUOTIENT       +: M_QUOTIENT]       = first_quotient;
+	assign stages_remainder[0*M_REMAINDER      +: M_REMAINDER]      = first_remainder;
+	
+	
+	genvar	i;
 	
 	generate
 	for ( i = 0; i < N; i = i+1 ) begin : loop_div
 		wire			[USER_BITS-1:0]			in_user      = stages_user     [i*USER_BITS        +: USER_BITS];
-		wire	signed	[S_DIVIDEND_WIDTH-1:0]	in_dividend  = stages_dividend [i*S_DIVIDEND_WIDTH +: S_DIVIDEND_WIDTH];
+		wire	signed	[0:0]					in_dividend  = stages_dividend [i*1                +: 1];
 		wire	signed	[S_DIVISOR_WIDTH-1:0]	in_divisor   = stages_divisor  [i*S_DIVISOR_WIDTH  +: S_DIVISOR_WIDTH];
 		wire	signed	[M_QUOTIENT-1:0]		in_quotient  = stages_quotient [i*M_QUOTIENT       +: M_QUOTIENT];
 		wire	signed	[M_REMAINDER-1:0]		in_remainder = stages_remainder[i*M_REMAINDER      +: M_REMAINDER];
 		
 		
-		wire	signed	[S_DIVIDEND_WIDTH-1:0]	tmp_dividend;
-		wire	signed	[M_REMAINDER-1:0]		tmp_remainder;
-		assign {tmp_remainder, tmp_dividend} = ({in_remainder, in_dividend} <<< 1);
+		wire	signed	[M_QUOTIENT-1:0]		tmp_quotient;
+		wire	signed	[M_REMAINDER:0]			tmp_remainder;
+		assign {tmp_remainder, tmp_quotient} = ({in_remainder, in_quotient} <<< 1);
 		
 		reg				[USER_BITS-1:0]			reg_user;
-		reg		signed	[S_DIVIDEND_WIDTH-1:0]	reg_dividend;
+		reg		signed	[0:0]					reg_dividend;
 		reg		signed	[S_DIVISOR_WIDTH-1:0]	reg_divisor;
 		reg		signed	[M_QUOTIENT-1:0]		reg_quotient;
 		reg		signed	[M_REMAINDER-1:0]		reg_remainder;
@@ -129,48 +152,71 @@ module jelly_integer_divider
 		always @(posedge clk) begin
 			if ( stage_cke[i] ) begin
 				reg_user      <= in_user;
-				reg_dividend  <= tmp_dividend;
+				reg_dividend  <= in_dividend;
 				reg_divisor   <= in_divisor;
+				reg_quotient  <= tmp_quotient;
 				
-				if ( tmp_remainder[M_REMAINDER-1] == in_divisor[S_DIVISOR_WIDTH-1] ) begin
-					reg_remainder <= tmp_remainder - in_divisor;
-					reg_quotient  <= {in_quotient, 1'b1};
+				if ( tmp_remainder[M_REMAINDER] == in_divisor[S_DIVISOR_WIDTH-1] ) begin
+					reg_remainder   <= tmp_remainder - in_divisor;
+					reg_quotient[0] <= 1'b1;
 				end
 				else begin
-					reg_remainder <= tmp_remainder + in_divisor;
-					reg_quotient  <= {in_quotient, 1'b0};
+					reg_remainder   <= tmp_remainder + in_divisor;
+					reg_quotient[0] <= 1'b0;
 				end
 			end
 		end
 		
 		
-		assign stages_user     [(i+1)*USER_BITS        +: USER_BITS]        = reg_user;
-		assign stages_dividend [(i+1)*S_DIVIDEND_WIDTH +: S_DIVIDEND_WIDTH] = reg_dividend;
-		assign stages_divisor  [(i+1)*S_DIVISOR_WIDTH  +: S_DIVISOR_WIDTH]  = reg_divisor;
-		assign stages_quotient [(i+1)*M_QUOTIENT       +: M_QUOTIENT]       = reg_quotient;
-		assign stages_remainder[(i+1)*M_REMAINDER      +: M_REMAINDER]      = reg_remainder;
+		assign stages_user     [(i+1)*USER_BITS        +: USER_BITS]       = reg_user;
+		assign stages_dividend [(i+1)*1                +: 1]               = reg_dividend;
+		assign stages_divisor  [(i+1)*S_DIVISOR_WIDTH  +: S_DIVISOR_WIDTH] = reg_divisor;
+		assign stages_quotient [(i+1)*M_QUOTIENT       +: M_QUOTIENT]      = reg_quotient;
+		assign stages_remainder[(i+1)*M_REMAINDER      +: M_REMAINDER]     = reg_remainder;
 	end
 	endgenerate
 	
 	
 	wire			[USER_BITS-1:0]			last_user      = stages_user     [N*USER_BITS        +: USER_BITS];
-	wire	signed	[S_DIVIDEND_WIDTH-1:0]	last_dividend  = stages_dividend [N*S_DIVIDEND_WIDTH +: S_DIVIDEND_WIDTH];
+	wire	signed	[0:0]					last_dividend  = stages_dividend [N*1                +: 1];
 	wire	signed	[S_DIVISOR_WIDTH-1:0]	last_divisor   = stages_divisor  [N*S_DIVISOR_WIDTH  +: S_DIVISOR_WIDTH];
-	wire	signed	[M_QUOTIENT-1:0]		last_quotient  = stages_quotient [N*M_QUOTIENT       +: M_QUOTIENT];
+	wire	signed	[M_QUOTIENT-1:0]		last_quotient  = {stages_quotient[N*M_QUOTIENT       +: M_QUOTIENT], 1'b1};
 	wire	signed	[M_REMAINDER-1:0]		last_remainder = stages_remainder[N*M_REMAINDER      +: M_REMAINDER];
+	
+	wire	signed	[M_QUOTIENT-1:0]		inc_quotient  = last_quotient  + 1;
+	wire	signed	[M_QUOTIENT-1:0]		dec_quotient  = last_quotient  - 1;
+	wire	signed	[M_REMAINDER-1:0]		inc_remainder = last_remainder + last_divisor;
+	wire	signed	[M_REMAINDER-1:0]		dec_remainder = last_remainder - last_divisor;
 	
 	reg				[USER_BITS-1:0]			reg_user;
 	reg		signed	[M_QUOTIENT-1:0]		reg_quotient;
 	reg		signed	[M_REMAINDER-1:0]		reg_remainder;
 	
+	
 	always @(posedge clk) begin
 		if ( stage_cke[N] ) begin
 			reg_user      <= last_user;
-			reg_quotient  <= (1'b1 << N) + {last_quotient[N-1:0], 1'b1};
+			reg_quotient  <= last_quotient;
 			reg_remainder <= last_remainder;
+			
+			if ( last_remainder == last_divisor ) begin
+				reg_quotient  <= inc_quotient;
+				reg_remainder <= dec_remainder;
+			end
+			else if ( last_remainder == -last_divisor ) begin
+				reg_quotient  <= dec_quotient;
+				reg_remainder <= inc_remainder;
+			end
+			else if ( last_remainder != 0 ) begin
+				case ( {last_dividend[0], last_remainder[M_REMAINDER-1], last_divisor[S_DIVISOR_WIDTH-1]} )
+				3'b010: begin	reg_quotient <= dec_quotient; reg_remainder <= inc_remainder;	end
+				3'b011: begin	reg_quotient <= inc_quotient; reg_remainder <= dec_remainder;	end
+				3'b100: begin	reg_quotient <= inc_quotient; reg_remainder <= dec_remainder;	end
+				3'b101: begin	reg_quotient <= dec_quotient; reg_remainder <= inc_remainder;	end
+				endcase
+			end
 		end
 	end
-	
 	
 	assign sink_user      = reg_user;
 	assign sink_quotient  = reg_quotient;
