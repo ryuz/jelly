@@ -15,16 +15,16 @@
 
 module jelly_integer_divider
 		#(
-			parameter	USER_WIDTH       = 0,
-			parameter	S_DIVIDEND_WIDTH = 32,
-			parameter	S_DIVISOR_WIDTH  = 32,
-			parameter	MASTER_IN_REGS   = 1,
-			parameter	MASTER_OUT_REGS  = 1,
-			parameter	DEVICE           = "RTL",
+			parameter	USER_WIDTH        = 0,
+			parameter	S_DIVIDEND_WIDTH  = 32,
+			parameter	S_DIVISOR_WIDTH   = 16,
+			parameter	M_QUOTIENT_WIDTH  = S_DIVIDEND_WIDTH,
+			parameter	M_REMAINDER_WIDTH = S_DIVISOR_WIDTH,
+			parameter	MASTER_IN_REGS    = 1,
+			parameter	MASTER_OUT_REGS   = 1,
+			parameter	DEVICE            = "RTL",
 			
-			parameter	USER_BITS        = USER_WIDTH > 0 ? USER_WIDTH : 1,
-			parameter	M_QUOTIENT       = S_DIVIDEND_WIDTH,
-			parameter	M_REMAINDER      = S_DIVISOR_WIDTH
+			parameter	USER_BITS         = USER_WIDTH > 0 ? USER_WIDTH : 1
 		)
 		(
 			input	wire									reset,
@@ -38,14 +38,14 @@ module jelly_integer_divider
 			output	wire									s_ready,
 			
 			output	wire			[USER_BITS-1:0]			m_user,
-			output	wire	signed	[M_QUOTIENT-1:0]		m_quotient,
-			output	wire			[M_REMAINDER-1:0]		m_remainder,
+			output	wire	signed	[M_QUOTIENT_WIDTH-1:0]	m_quotient,
+			output	wire			[M_REMAINDER_WIDTH-1:0]	m_remainder,
 			output	wire									m_valid,
 			input	wire									m_ready
 		);
 	
 	
-	localparam	N = S_DIVIDEND_WIDTH;
+	localparam	N = M_QUOTIENT_WIDTH;
 	
 	
 	// ----------------------------------------
@@ -63,14 +63,14 @@ module jelly_integer_divider
 	wire	signed	[S_DIVISOR_WIDTH-1:0]		src_divisor;
 	
 	wire			[USER_BITS-1:0]				sink_user;
-	wire	signed	[M_QUOTIENT-1:0]			sink_quotient;
-	wire			[M_REMAINDER-1:0]			sink_remainder;
+	wire	signed	[M_QUOTIENT_WIDTH-1:0]		sink_quotient;
+	wire			[M_REMAINDER_WIDTH-1:0]		sink_remainder;
 	
 	jelly_pipeline_control
 			#(
 				.PIPELINE_STAGES	(PIPELINE_STAGES),
 				.S_DATA_WIDTH		(USER_BITS+S_DIVIDEND_WIDTH+S_DIVISOR_WIDTH),
-				.M_DATA_WIDTH		(USER_BITS+M_QUOTIENT+M_REMAINDER),
+				.M_DATA_WIDTH		(USER_BITS+M_QUOTIENT_WIDTH+M_REMAINDER_WIDTH),
 				.AUTO_VALID			(1),
 				.MASTER_IN_REGS		(MASTER_IN_REGS),
 				.MASTER_OUT_REGS	(MASTER_OUT_REGS)
@@ -106,11 +106,11 @@ module jelly_integer_divider
 	wire			[USER_BITS-1:0]			first_user;
 	wire	signed	[0:0]					first_dividend;		// sign only
 	wire	signed	[S_DIVISOR_WIDTH-1:0]	first_divisor;
-	wire	signed	[M_QUOTIENT-1:0]		first_quotient;
-	wire	signed	[M_REMAINDER-1:0]		first_remainder;
+	wire	signed	[M_QUOTIENT_WIDTH-1:0]		first_quotient;
+	wire	signed	[M_REMAINDER_WIDTH-1:0]		first_remainder;
 	
 	assign first_dividend                    = src_dividend[S_DIVIDEND_WIDTH-1];
-	assign {first_remainder, first_quotient} = {{M_REMAINDER{src_dividend[S_DIVIDEND_WIDTH-1]}}, src_dividend};
+	assign {first_remainder, first_quotient} = {{M_REMAINDER_WIDTH{src_dividend[S_DIVIDEND_WIDTH-1]}}, src_dividend};
 	assign first_divisor                     = src_divisor;
 	assign first_user                        = src_user;
 	
@@ -118,14 +118,14 @@ module jelly_integer_divider
 	wire	[(N+1)*USER_BITS-1:0]			stages_user;
 	wire	[(N+1)-1:0]						stages_dividend;
 	wire	[(N+1)*S_DIVISOR_WIDTH-1:0]		stages_divisor;
-	wire	[(N+1)*M_QUOTIENT-1:0]			stages_quotient;
-	wire	[(N+1)*M_REMAINDER-1:0]			stages_remainder;
+	wire	[(N+1)*M_QUOTIENT_WIDTH-1:0]			stages_quotient;
+	wire	[(N+1)*M_REMAINDER_WIDTH-1:0]			stages_remainder;
 	
 	assign stages_user     [0*USER_BITS        +: USER_BITS]        = first_user;
 	assign stages_dividend [0*1                +: 1]                = first_dividend;
 	assign stages_divisor  [0*S_DIVISOR_WIDTH  +: S_DIVISOR_WIDTH]  = first_divisor;
-	assign stages_quotient [0*M_QUOTIENT       +: M_QUOTIENT]       = first_quotient;
-	assign stages_remainder[0*M_REMAINDER      +: M_REMAINDER]      = first_remainder;
+	assign stages_quotient [0*M_QUOTIENT_WIDTH       +: M_QUOTIENT_WIDTH]       = first_quotient;
+	assign stages_remainder[0*M_REMAINDER_WIDTH      +: M_REMAINDER_WIDTH]      = first_remainder;
 	
 	
 	genvar	i;
@@ -135,19 +135,19 @@ module jelly_integer_divider
 		wire			[USER_BITS-1:0]			in_user      = stages_user     [i*USER_BITS        +: USER_BITS];
 		wire	signed	[0:0]					in_dividend  = stages_dividend [i*1                +: 1];
 		wire	signed	[S_DIVISOR_WIDTH-1:0]	in_divisor   = stages_divisor  [i*S_DIVISOR_WIDTH  +: S_DIVISOR_WIDTH];
-		wire	signed	[M_QUOTIENT-1:0]		in_quotient  = stages_quotient [i*M_QUOTIENT       +: M_QUOTIENT];
-		wire	signed	[M_REMAINDER-1:0]		in_remainder = stages_remainder[i*M_REMAINDER      +: M_REMAINDER];
+		wire	signed	[M_QUOTIENT_WIDTH-1:0]		in_quotient  = stages_quotient [i*M_QUOTIENT_WIDTH       +: M_QUOTIENT_WIDTH];
+		wire	signed	[M_REMAINDER_WIDTH-1:0]		in_remainder = stages_remainder[i*M_REMAINDER_WIDTH      +: M_REMAINDER_WIDTH];
 		
 		
-		wire	signed	[M_QUOTIENT-1:0]		tmp_quotient;
-		wire	signed	[M_REMAINDER:0]			tmp_remainder;
+		wire	signed	[M_QUOTIENT_WIDTH-1:0]		tmp_quotient;
+		wire	signed	[M_REMAINDER_WIDTH:0]			tmp_remainder;
 		assign {tmp_remainder, tmp_quotient} = ({in_remainder, in_quotient} <<< 1);
 		
 		reg				[USER_BITS-1:0]			reg_user;
 		reg		signed	[0:0]					reg_dividend;
 		reg		signed	[S_DIVISOR_WIDTH-1:0]	reg_divisor;
-		reg		signed	[M_QUOTIENT-1:0]		reg_quotient;
-		reg		signed	[M_REMAINDER-1:0]		reg_remainder;
+		reg		signed	[M_QUOTIENT_WIDTH-1:0]		reg_quotient;
+		reg		signed	[M_REMAINDER_WIDTH-1:0]		reg_remainder;
 		
 		always @(posedge clk) begin
 			if ( stage_cke[i] ) begin
@@ -156,7 +156,7 @@ module jelly_integer_divider
 				reg_divisor   <= in_divisor;
 				reg_quotient  <= tmp_quotient;
 				
-				if ( tmp_remainder[M_REMAINDER] == in_divisor[S_DIVISOR_WIDTH-1] ) begin
+				if ( tmp_remainder[M_REMAINDER_WIDTH] == in_divisor[S_DIVISOR_WIDTH-1] ) begin
 					reg_remainder   <= tmp_remainder - in_divisor;
 					reg_quotient[0] <= 1'b1;
 				end
@@ -171,8 +171,8 @@ module jelly_integer_divider
 		assign stages_user     [(i+1)*USER_BITS        +: USER_BITS]       = reg_user;
 		assign stages_dividend [(i+1)*1                +: 1]               = reg_dividend;
 		assign stages_divisor  [(i+1)*S_DIVISOR_WIDTH  +: S_DIVISOR_WIDTH] = reg_divisor;
-		assign stages_quotient [(i+1)*M_QUOTIENT       +: M_QUOTIENT]      = reg_quotient;
-		assign stages_remainder[(i+1)*M_REMAINDER      +: M_REMAINDER]     = reg_remainder;
+		assign stages_quotient [(i+1)*M_QUOTIENT_WIDTH       +: M_QUOTIENT_WIDTH]      = reg_quotient;
+		assign stages_remainder[(i+1)*M_REMAINDER_WIDTH      +: M_REMAINDER_WIDTH]     = reg_remainder;
 	end
 	endgenerate
 	
@@ -180,17 +180,17 @@ module jelly_integer_divider
 	wire			[USER_BITS-1:0]			last_user      = stages_user     [N*USER_BITS        +: USER_BITS];
 	wire	signed	[0:0]					last_dividend  = stages_dividend [N*1                +: 1];
 	wire	signed	[S_DIVISOR_WIDTH-1:0]	last_divisor   = stages_divisor  [N*S_DIVISOR_WIDTH  +: S_DIVISOR_WIDTH];
-	wire	signed	[M_QUOTIENT-1:0]		last_quotient  = {stages_quotient[N*M_QUOTIENT       +: M_QUOTIENT], 1'b1};
-	wire	signed	[M_REMAINDER-1:0]		last_remainder = stages_remainder[N*M_REMAINDER      +: M_REMAINDER];
+	wire	signed	[M_QUOTIENT_WIDTH-1:0]		last_quotient  = {stages_quotient[N*M_QUOTIENT_WIDTH       +: M_QUOTIENT_WIDTH], 1'b1};
+	wire	signed	[M_REMAINDER_WIDTH-1:0]		last_remainder = stages_remainder[N*M_REMAINDER_WIDTH      +: M_REMAINDER_WIDTH];
 	
-	wire	signed	[M_QUOTIENT-1:0]		inc_quotient  = last_quotient  + 1;
-	wire	signed	[M_QUOTIENT-1:0]		dec_quotient  = last_quotient  - 1;
-	wire	signed	[M_REMAINDER-1:0]		inc_remainder = last_remainder + last_divisor;
-	wire	signed	[M_REMAINDER-1:0]		dec_remainder = last_remainder - last_divisor;
+	wire	signed	[M_QUOTIENT_WIDTH-1:0]		inc_quotient  = last_quotient  + 1;
+	wire	signed	[M_QUOTIENT_WIDTH-1:0]		dec_quotient  = last_quotient  - 1;
+	wire	signed	[M_REMAINDER_WIDTH-1:0]		inc_remainder = last_remainder + last_divisor;
+	wire	signed	[M_REMAINDER_WIDTH-1:0]		dec_remainder = last_remainder - last_divisor;
 	
 	reg				[USER_BITS-1:0]			reg_user;
-	reg		signed	[M_QUOTIENT-1:0]		reg_quotient;
-	reg		signed	[M_REMAINDER-1:0]		reg_remainder;
+	reg		signed	[M_QUOTIENT_WIDTH-1:0]		reg_quotient;
+	reg		signed	[M_REMAINDER_WIDTH-1:0]		reg_remainder;
 	
 	
 	always @(posedge clk) begin
@@ -208,7 +208,7 @@ module jelly_integer_divider
 				reg_remainder <= inc_remainder;
 			end
 			else if ( last_remainder != 0 ) begin
-				case ( {last_dividend[0], last_remainder[M_REMAINDER-1], last_divisor[S_DIVISOR_WIDTH-1]} )
+				case ( {last_dividend[0], last_remainder[M_REMAINDER_WIDTH-1], last_divisor[S_DIVISOR_WIDTH-1]} )
 				3'b010: begin	reg_quotient <= dec_quotient; reg_remainder <= inc_remainder;	end
 				3'b011: begin	reg_quotient <= inc_quotient; reg_remainder <= dec_remainder;	end
 				3'b100: begin	reg_quotient <= inc_quotient; reg_remainder <= dec_remainder;	end
