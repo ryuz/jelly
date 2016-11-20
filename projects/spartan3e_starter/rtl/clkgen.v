@@ -2,7 +2,7 @@
 //  Jelly  -- the soft-core processor system
 //
 //                                 Copyright (C) 2008-2009 by Ryuji Fuchikami
-//                                 http://homepage3.nifty.com/ryuz
+//                                 http://ryuz.my.coocan.jp/
 // ---------------------------------------------------------------------------
 
 

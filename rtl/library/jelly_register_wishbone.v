@@ -3,7 +3,7 @@
 //   Register for wishbone
 //
 //                                 Copyright (C) 2007-2008 by Ryuji Fuchikami
-//                                 http://homepage3.nifty.com/ryuz/
+//                                 http://ryuz.my.coocan.jp/
 // ---------------------------------------------------------------------------
 
 

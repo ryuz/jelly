@@ -3,7 +3,7 @@
 //   image processing
 //
 //                                 Copyright (C) 2008-2016 by Ryuji Fuchikami
-//                                 http://homepage3.nifty.com/ryuz/
+//                                 http://ryuz.my.coocan.jp/
 // ---------------------------------------------------------------------------
 
 

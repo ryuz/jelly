@@ -3,7 +3,7 @@
 //   GPU用シェーダー演算ソース側制御
 //
 //                                 Copyright (C) 2015 by Ryuji Fuchikami
-//                                 http://homepage3.nifty.com/ryuz/
+//                                 http://ryuz.my.coocan.jp/
 // ---------------------------------------------------------------------------
 
 

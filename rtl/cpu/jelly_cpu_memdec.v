@@ -3,7 +3,7 @@
 //    MIPS like CPU core
 //
 //                                  Copyright (C) 2008-2010 by Ryuji Fuchikami
-//                                  http://homepage3.nifty.com/ryuz/
+//                                  http://ryuz.my.coocan.jp/
 // ---------------------------------------------------------------------------
 
 
