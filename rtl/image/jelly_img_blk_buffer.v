@@ -25,6 +25,7 @@ module jelly_img_blk_buffer
 			parameter	BORDER_MODE  = "REPLICATE",			// NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
 			parameter	BORDER_VALUE = {DATA_WIDTH{1'b0}},
 			parameter	RAM_TYPE     = "block",
+			parameter	ENDIAN       = 0,					// 0: little, 1:big
 			
 			parameter	USER_BITS    = USER_WIDTH > 0 ? USER_WIDTH : 1
 		)
@@ -69,7 +70,8 @@ module jelly_img_blk_buffer
 				.MAX_Y_NUM				(MAX_Y_NUM),
 				.BORDER_MODE 			(BORDER_MODE),
 				.BORDER_VALUE			(BORDER_VALUE),
-				.RAM_TYPE				(RAM_TYPE)
+				.RAM_TYPE				(RAM_TYPE),
+				.ENDIAN					(ENDIAN)
 			)
 		i_img_line_buffer
 			(
@@ -109,7 +111,8 @@ module jelly_img_blk_buffer
 				.PIXEL_NUM				(PIXEL_NUM),
 				.PIXEL_CENTER			(PIXEL_CENTER),
 				.BORDER_MODE 			(BORDER_MODE),
-				.BORDER_VALUE			(BORDER_VALUE)
+				.BORDER_VALUE			(BORDER_VALUE),
+				.ENDIAN					(ENDIAN)
 			)
 		i_img_pixel_buffer
 			(

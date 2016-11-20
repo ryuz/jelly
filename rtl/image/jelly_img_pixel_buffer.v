@@ -225,7 +225,7 @@ module jelly_img_pixel_buffer
 		assign m_img_de          = out_de;
 		assign m_img_user        = out_user;
 		for ( i = 0; i < PIXEL_NUM; i = i+1 ) begin :loop_endian
-			if ( ENDIAN == 1'b0 ) begin
+			if ( ENDIAN ) begin
 				assign m_img_data[i*DATA_WIDTH +: DATA_WIDTH] = out_data[i*DATA_WIDTH +: DATA_WIDTH];
 			end
 			else begin

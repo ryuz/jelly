@@ -27,6 +27,7 @@ module jelly_img_line_buffer
 			parameter	BORDER_MODE  = "REPLICATE",			// NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
 			parameter	BORDER_VALUE = {DATA_WIDTH{1'b0}},	// BORDER_MODE == "CONSTANT"
 			parameter	RAM_TYPE     = "block",
+			parameter	ENDIAN       = 0,					// 0: little, 1:big
 			
 			parameter	USER_BITS    = USER_WIDTH > 0 ? USER_WIDTH : 1
 		)
@@ -54,7 +55,7 @@ module jelly_img_line_buffer
 			output	wire	[LINE_NUM*DATA_WIDTH-1:0]	m_img_data
 		);
 	
-		
+	
 	localparam	MEM_ADDR_WIDTH = (MAX_Y_NUM   <=    2) ?  1 :
 	                             (MAX_Y_NUM   <=    4) ?  2 :
 	                             (MAX_Y_NUM   <=    8) ?  3 :
@@ -93,9 +94,7 @@ module jelly_img_line_buffer
 	                             (LINE_NUM <= 255) ?  8 : 9;
 	
 	
-	
 	genvar									i;
-	
 	
 	generate
 	if ( LINE_NUM > 1 ) begin
@@ -410,24 +409,46 @@ module jelly_img_line_buffer
 		assign mem_wlast  = st0_line_last;
 		
 		
+		wire								out_line_first;
+		wire								out_line_last;
+		wire								out_pixel_first;
+		wire								out_pixel_last;
+		wire								out_de;
+		wire	[USER_BITS-1:0]				out_user;
+		wire	[LINE_NUM*DATA_WIDTH-1:0]	out_data;
 		
 		if ( BORDER_MODE == "NONE" ) begin
-			assign m_img_line_first  = st4_line_first;
-			assign m_img_line_last   = st4_line_last;
-			assign m_img_pixel_first = st4_pixel_first;
-			assign m_img_pixel_last  = st4_pixel_last;
-			assign m_img_de          = st4_de;
-			assign m_img_user        = st4_user;
-			assign m_img_data        = st4_data;
+			assign out_line_first  = st4_line_first;
+			assign out_line_last   = st4_line_last;
+			assign out_pixel_first = st4_pixel_first;
+			assign out_pixel_last  = st4_pixel_last;
+			assign out_de          = st4_de;
+			assign out_user        = st4_user;
+			assign out_data        = st4_data;
 		end
 		else begin
-			assign m_img_line_first  = st6_line_first;
-			assign m_img_line_last   = st6_line_last;
-			assign m_img_pixel_first = st6_pixel_first;
-			assign m_img_pixel_last  = st6_pixel_last;
-			assign m_img_de          = st6_de;
-			assign m_img_user        = st6_user;
-			assign m_img_data        = st6_data;
+			assign out_line_first  = st6_line_first;
+			assign out_line_last   = st6_line_last;
+			assign out_pixel_first = st6_pixel_first;
+			assign out_pixel_last  = st6_pixel_last;
+			assign out_de          = st6_de;
+			assign out_user        = st6_user;
+			assign out_data        = st6_data;
+		end
+		
+		assign m_img_line_first  = out_line_first;
+		assign m_img_line_last   = out_line_last;
+		assign m_img_pixel_first = out_pixel_first;
+		assign m_img_pixel_last  = out_pixel_last;
+		assign m_img_de          = out_de;
+		assign m_img_user        = out_user;
+		for ( i = 0; i < LINE_NUM; i = i+1 ) begin :loop_endian
+			if ( ENDIAN ) begin
+				assign m_img_data[i*DATA_WIDTH +: DATA_WIDTH] = out_data[i*DATA_WIDTH +: DATA_WIDTH];
+			end
+			else begin
+				assign m_img_data[i*DATA_WIDTH +: DATA_WIDTH] = out_data[(LINE_NUM-1-i)*DATA_WIDTH +: DATA_WIDTH];
+			end
 		end
 	end
 	else begin
