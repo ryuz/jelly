@@ -49,7 +49,7 @@ module jelly_img_pixel_buffer
 			output	wire	[PIXEL_NUM*DATA_WIDTH-1:0]	m_img_data
 		);
 	
-	localparam	CENTER      = ENDIAN ? PIXEL_NUM - PIXEL_CENTER : PIXEL_CENTER;
+	localparam	CENTER      = ENDIAN ? PIXEL_CENTER : PIXEL_NUM-1 - PIXEL_CENTER;
 	localparam	REFLECT_NUM = CENTER > 0 ? CENTER+1 : 1;
 	
 	genvar		i;
@@ -177,13 +177,9 @@ module jelly_img_pixel_buffer
 						st1_data[DATA_WIDTH-1:0] <= st1_data[DATA_WIDTH-1:0];
 					end
 					else if ( BORDER_MODE == "REFLECT" ) begin
-						k = CENTER + 1 - (j - CENTER);
-						if ( j < 0 ) begin j = 0; end
 						st1_data[DATA_WIDTH-1:0] <= st0_reflect[0*DATA_WIDTH +: DATA_WIDTH];
 					end
 					else if ( BORDER_MODE == "REFLECT_101" ) begin
-						j = CENTER - (i - CENTER);
-						if ( j < 0 ) begin j = 0; end
 						st1_data[DATA_WIDTH-1:0] <= st0_reflect[1*DATA_WIDTH +: DATA_WIDTH];
 					end
 				end

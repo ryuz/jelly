@@ -56,6 +56,7 @@ module jelly_img_line_buffer
 			output	wire	[LINE_NUM*DATA_WIDTH-1:0]	m_img_data
 		);
 	
+	localparam	CENTER         = ENDIAN ? LINE_CENTER : LINE_NUM-1 - LINE_CENTER;
 	
 	localparam	MEM_ADDR_WIDTH = (MAX_Y_NUM   <=    2) ?  1 :
 	                             (MAX_Y_NUM   <=    4) ?  2 :
@@ -330,18 +331,18 @@ module jelly_img_line_buffer
 				
 				
 				// stage4
-				st4_line_first  <= st3_line_first[LINE_CENTER];
-				st4_line_last   <= st3_line_last[LINE_CENTER];
+				st4_line_first  <= st3_line_first[CENTER];
+				st4_line_last   <= st3_line_last[CENTER];
 				st4_pixel_first <= st3_pixel_first;
 				st4_pixel_last  <= st3_pixel_last;
-				st4_de          <= st3_de[LINE_CENTER];
-				st4_user        <= st3_user[LINE_CENTER*USER_BITS +: USER_BITS];
+				st4_de          <= st3_de[CENTER];
+				st4_user        <= st3_user[CENTER*USER_BITS +: USER_BITS];
 				st4_data        <= st3_data;
 				st4_pos_first   <= (LINE_NUM-1);
 				st4_pos_last    <= 0;
 				
 				begin : search_first
-					for ( y = LINE_CENTER; y < LINE_NUM; y = y+1 ) begin
+					for ( y = CENTER; y < LINE_NUM; y = y+1 ) begin
 						if ( st3_line_first[y] ) begin
 							st4_pos_first <= y;
 							disable search_first;
@@ -350,7 +351,7 @@ module jelly_img_line_buffer
 				end
 				
 				begin : search_last
-					for ( y = LINE_CENTER; y >= 0; y = y-1 ) begin
+					for ( y = CENTER; y >= 0; y = y-1 ) begin
 						if ( st3_line_last[y] ) begin
 							st4_pos_last <= y;
 							disable search_last;
@@ -370,7 +371,7 @@ module jelly_img_line_buffer
 				
 				for ( y = 0; y < LINE_NUM; y = y+1 ) begin
 					st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= y;
-					if ( y > LINE_CENTER ) begin
+					if ( y > CENTER ) begin
 						if ( y > st4_pos_first ) begin
 							if      ( BORDER_MODE == "CONSTANT"    ) begin st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= LINE_NUM;                end
 							else if ( BORDER_MODE == "REPLICATE"   ) begin st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= st4_pos_first;           end
@@ -378,7 +379,7 @@ module jelly_img_line_buffer
 							else if ( BORDER_MODE == "REFLECT_101" ) begin st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= st4_pos_first*2 - y - 1; end
 						end
 					end
-					else if ( y < LINE_CENTER ) begin
+					else if ( y < CENTER ) begin
 						if ( y < st4_pos_last ) begin
 							if      ( BORDER_MODE == "CONSTANT"    ) begin st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= LINE_NUM;                end
 							else if ( BORDER_MODE == "REPLICATE"   ) begin st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= st4_pos_last;            end
