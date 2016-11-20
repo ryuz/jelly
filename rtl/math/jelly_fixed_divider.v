@@ -16,12 +16,12 @@
 module jelly_fixed_divider
 		#(
 			parameter	USER_WIDTH            = 0,
-			parameter	S_DIVIDEND_INT_WIDTH  = 16,
-			parameter	S_DIVIDEND_FRAC_WIDTH = 8,
-			parameter	S_DIVISOR_INT_WIDTH   = 8,
-			parameter	S_DIVISOR_FRAC_WIDTH  = 16,
-			parameter	M_QUOTIENT_INT_WIDTH  = 16,
-			parameter	M_QUOTIENT_FRAC_WIDTH = 8,
+			parameter	S_DIVIDEND_INT_WIDTH  = 12,
+			parameter	S_DIVIDEND_FRAC_WIDTH = 4,
+			parameter	S_DIVISOR_INT_WIDTH   = 4,
+			parameter	S_DIVISOR_FRAC_WIDTH  = 12,
+			parameter	M_QUOTIENT_INT_WIDTH  = 12,
+			parameter	M_QUOTIENT_FRAC_WIDTH = 4,
 			parameter	MASTER_IN_REGS        = 1,
 			parameter	MASTER_OUT_REGS       = 1,
 			parameter	DEVICE                = "RTL",

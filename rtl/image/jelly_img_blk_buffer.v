@@ -15,15 +15,18 @@
 
 module jelly_img_blk_buffer
 		#(
+			parameter	USER_WIDTH   = 0,
 			parameter	DATA_WIDTH   = 8,
-			parameter	PIXEL_NUM    = 5,
-			parameter	LINE_NUM     = 5,
+			parameter	PIXEL_NUM    = 31,
+			parameter	LINE_NUM     = 31,
 			parameter	PIXEL_CENTER = PIXEL_NUM / 2,
 			parameter	LINE_CENTER  = LINE_NUM / 2,
 			parameter	MAX_Y_NUM    = 1024,
 			parameter	BORDER_MODE  = "REPLICATE",			// NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
 			parameter	BORDER_VALUE = {DATA_WIDTH{1'b0}},
-			parameter	RAM_TYPE     = "block"
+			parameter	RAM_TYPE     = "block",
+			
+			parameter	USER_BITS    = USER_WIDTH > 0 ? USER_WIDTH : 1
 		)
 		(
 			input	wire										reset,
@@ -35,6 +38,8 @@ module jelly_img_blk_buffer
 			input	wire										s_img_line_last,
 			input	wire										s_img_pixel_first,
 			input	wire										s_img_pixel_last,
+			input	wire										s_img_de,
+			input	wire	[USER_BITS-1:0]						s_img_user,
 			input	wire	[DATA_WIDTH-1:0]					s_img_data,
 			
 			// master (output)
@@ -42,6 +47,8 @@ module jelly_img_blk_buffer
 			output	wire										m_img_line_last,
 			output	wire										m_img_pixel_first,
 			output	wire										m_img_pixel_last,
+			output	wire										m_img_de,
+			output	wire	[USER_BITS-1:0]						m_img_user,
 			output	wire	[LINE_NUM*PIXEL_NUM*DATA_WIDTH-1:0]	m_img_data
 		);
 	
@@ -49,10 +56,13 @@ module jelly_img_blk_buffer
 	wire								img_lbuf_line_last;
 	wire								img_lbuf_pixel_first;
 	wire								img_lbuf_pixel_last;
+	wire								img_lbuf_de;
+	wire	[LINE_NUM*USER_BITS-1:0]	img_lbuf_user;
 	wire	[LINE_NUM*DATA_WIDTH-1:0]	img_lbuf_data;
 	
 	jelly_img_line_buffer
 			#(
+				.USER_WIDTH				(USER_WIDTH),
 				.DATA_WIDTH				(DATA_WIDTH),
 				.LINE_NUM				(LINE_NUM),
 				.LINE_CENTER			(LINE_CENTER),
@@ -71,12 +81,16 @@ module jelly_img_blk_buffer
 				.s_img_line_last		(s_img_line_last),
 				.s_img_pixel_first		(s_img_pixel_first),
 				.s_img_pixel_last		(s_img_pixel_last),
+				.s_img_de				(s_img_de),
+				.s_img_user				(s_img_user),
 				.s_img_data				(s_img_data),
 				
 				.m_img_line_first		(img_lbuf_line_first),
 				.m_img_line_last		(img_lbuf_line_last),
 				.m_img_pixel_first		(img_lbuf_pixel_first),
 				.m_img_pixel_last		(img_lbuf_pixel_last),
+				.m_img_de				(img_lbuf_de),
+				.m_img_user				(img_lbuf_user),
 				.m_img_data				(img_lbuf_data)
 			);
 	
@@ -84,10 +98,13 @@ module jelly_img_blk_buffer
 	wire										img_pbuf_line_last;
 	wire										img_pbuf_pixel_first;
 	wire										img_pbuf_pixel_last;
+	wire										img_pbuf_de;
+	wire	[USER_BITS-1:0]						img_pbuf_user;
 	wire	[PIXEL_NUM*LINE_NUM*DATA_WIDTH-1:0]	img_pbuf_data;
 	
 	jelly_img_pixel_buffer
 			#(
+				.USER_WIDTH				(LINE_NUM*USER_WIDTH),
 				.DATA_WIDTH				(LINE_NUM*DATA_WIDTH),
 				.PIXEL_NUM				(PIXEL_NUM),
 				.PIXEL_CENTER			(PIXEL_CENTER),
@@ -104,12 +121,16 @@ module jelly_img_blk_buffer
 				.s_img_line_last		(img_lbuf_line_last),
 				.s_img_pixel_first		(img_lbuf_pixel_first),
 				.s_img_pixel_last		(img_lbuf_pixel_last),
+				.s_img_de				(img_lbuf_de),
+				.s_img_user				(img_lbuf_user),
 				.s_img_data				(img_lbuf_data),
 				
 				.m_img_line_first		(img_pbuf_line_first),
 				.m_img_line_last		(img_pbuf_line_last),
 				.m_img_pixel_first		(img_pbuf_pixel_first),
 				.m_img_pixel_last		(img_pbuf_pixel_last),
+				.m_img_de				(img_pbuf_de),
+				.m_img_user				(img_pbuf_user),
 				.m_img_data				(img_pbuf_data)
 			);
 	
@@ -117,6 +138,8 @@ module jelly_img_blk_buffer
 	assign m_img_line_last   = img_pbuf_line_last;
 	assign m_img_pixel_first = img_pbuf_pixel_first;
 	assign m_img_pixel_last  = img_pbuf_pixel_last;
+	assign m_img_de          = img_pbuf_de;
+	assign m_img_user        = img_pbuf_user;
 	
 	genvar			x, y;
 	generate

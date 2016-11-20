@@ -15,11 +15,15 @@
 
 module jelly_img_pixel_buffer
 		#(
-			parameter	DATA_WIDTH   = 8,
-			parameter	PIXEL_NUM    = 3,
+			parameter	USER_WIDTH   = 0,
+			parameter	DATA_WIDTH   = 31*8,
+			parameter	PIXEL_NUM    = 31,
 			parameter	PIXEL_CENTER = PIXEL_NUM / 2,
 			parameter	BORDER_MODE  = "REPLICATE",			// NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
-			parameter	BORDER_VALUE = {DATA_WIDTH{1'b0}}	// BORDER_MODE == "CONSTANT"
+			parameter	BORDER_VALUE = {DATA_WIDTH{1'b0}},	// BORDER_MODE == "CONSTANT"
+			parameter	ENDIAN       = 0,					// 0: little, 1:big
+			
+			parameter	USER_BITS    = USER_WIDTH > 0 ? USER_WIDTH : 1
 		)
 		(
 			input	wire								reset,
@@ -31,6 +35,8 @@ module jelly_img_pixel_buffer
 			input	wire								s_img_line_last,
 			input	wire								s_img_pixel_first,
 			input	wire								s_img_pixel_last,
+			input	wire								s_img_de,
+			input	wire	[USER_BITS-1:0]				s_img_user,
 			input	wire	[DATA_WIDTH-1:0]			s_img_data,
 			
 			// master (output)
@@ -38,183 +44,193 @@ module jelly_img_pixel_buffer
 			output	wire								m_img_line_last,
 			output	wire								m_img_pixel_first,
 			output	wire								m_img_pixel_last,
+			output	wire								m_img_de,
+			output	wire	[USER_BITS-1:0]				m_img_user,
 			output	wire	[PIXEL_NUM*DATA_WIDTH-1:0]	m_img_data
 		);
 	
-	localparam	PIXEL_SEL = (PIXEL_NUM <=   2) ? 1 :
-	                        (PIXEL_NUM <=   3) ? 2 :
-	                        (PIXEL_NUM <=   7) ? 3 :
-	                        (PIXEL_NUM <=  15) ? 4 :
-	                        (PIXEL_NUM <=  31) ? 5 :
-	                        (PIXEL_NUM <=  64) ? 6 :
-	                        (PIXEL_NUM <= 128) ? 7 : 8;
+	localparam	CENTER      = ENDIAN ? PIXEL_NUM - PIXEL_CENTER : PIXEL_CENTER;
+	localparam	REFLECT_NUM = CENTER > 0 ? CENTER+1 : 1;
 	
-	localparam	POS_WIDTH = (PIXEL_NUM <=   1) ?  1 :
-	                        (PIXEL_NUM <=   3) ?  2 :
-	                        (PIXEL_NUM <=   7) ?  3 :
-	                        (PIXEL_NUM <=  15) ?  4 :
-	                        (PIXEL_NUM <=  31) ?  5 :
-	                        (PIXEL_NUM <=  63) ?  6 :
-	                        (PIXEL_NUM <= 127) ?  7 :
-	                        (PIXEL_NUM <= 255) ?  8 : 9;
-	
-	genvar								i;
+	genvar		i;
+	integer		j, k;
 	
 	generate
-	if ( PIXEL_NUM > 1 ) begin
+	if ( PIXEL_NUM > 1 ) begin : blk_border
+		reg		[CENTER-1:0]					st0_buf_line_first;
+		reg		[CENTER-1:0]					st0_buf_line_last;
+		reg		[CENTER-1:0]					st0_buf_pixel_first;
+		reg		[CENTER-1:0]					st0_buf_pixel_last;
+		reg		[CENTER-1:0]					st0_buf_de;
+		reg		[(CENTER+1)*USER_BITS-1:0]		st0_buf_user;
+		reg		[(PIXEL_NUM-1)*DATA_WIDTH-1:0]	st0_buf_data;
+		wire	[CENTER:0]						st0_line_first  = {st0_buf_line_first,  s_img_line_first};
+		wire	[CENTER:0]						st0_line_last   = {st0_buf_line_last,   s_img_line_last};
+		wire	[CENTER:0]						st0_pixel_first = {st0_buf_pixel_first, s_img_pixel_first};
+		wire	[CENTER:0]						st0_pixel_last  = {st0_buf_pixel_last,  s_img_pixel_last};
+		wire	[CENTER:0]						st0_de          = {st0_buf_de,          s_img_de};
+		wire	[(CENTER+1)*USER_BITS-1:0]		st0_user        = {st0_buf_user,        s_img_user};
+		wire	[PIXEL_NUM*DATA_WIDTH-1:0]		st0_data        = {st0_buf_data,        s_img_data};
 		
-		// control
-		reg		[PIXEL_CENTER:0]			st0_line_first;
-		reg		[PIXEL_CENTER:0]			st0_line_last;
-		reg		[PIXEL_NUM-1:0]				st0_pixel_first;
-		reg		[PIXEL_NUM-1:0]				st0_pixel_last;
-		reg		[PIXEL_NUM*DATA_WIDTH-1:0]	st0_data;
+		reg		[REFLECT_NUM*DATA_WIDTH-1:0]	st0_reflect;
+		
+		always @(posedge clk) begin
+			if ( reset ) begin
+				st0_buf_line_first  <= {((PIXEL_NUM-1)){1'b0}};
+				st0_buf_line_last   <= {((PIXEL_NUM-1)){1'b0}};
+				st0_buf_pixel_first <= {((PIXEL_NUM-1)){1'b0}};
+				st0_buf_pixel_last  <= {((PIXEL_NUM-1)){1'b0}};
+				st0_buf_de          <= {((PIXEL_NUM-1)){1'b0}};
+				st0_buf_user        <= {((USER_BITS-1)*USER_BITS){1'bx}};
+				st0_buf_data        <= {((PIXEL_NUM-1)*DATA_WIDTH){1'bx}};
+			end
+			else if ( cke ) begin
+				st0_buf_line_first  <= {st0_buf_line_first,  s_img_line_first};
+				st0_buf_line_last   <= {st0_buf_line_last,   s_img_line_last};
+				st0_buf_pixel_first <= {st0_buf_pixel_first, s_img_pixel_first};
+				st0_buf_pixel_last  <= {st0_buf_pixel_last,  s_img_pixel_last};
+				st0_buf_de          <= {st0_buf_de,          s_img_de};
+				st0_buf_user        <= {st0_buf_user,        s_img_user};
+				st0_buf_data        <= {st0_buf_data,        s_img_data};
+				
+				st0_reflect <= (st0_reflect >> DATA_WIDTH);
+				if ( st0_pixel_last[0] ) begin
+					st0_reflect <= st0_data;
+				end
+			end
+		end
+		
 		
 		reg									st1_line_first;
 		reg									st1_line_last;
 		reg									st1_pixel_first;
 		reg									st1_pixel_last;
+		reg									st1_de;
+		reg		[USER_BITS-1:0]				st1_user;
 		reg		[PIXEL_NUM*DATA_WIDTH-1:0]	st1_data;
-		reg		[PIXEL_SEL-1:0]				st1_pos_first;
-		reg		[PIXEL_SEL-1:0]				st1_pos_last;
-		
-		reg									st2_line_first;
-		reg									st2_line_last;
-		reg									st2_pixel_first;
-		reg									st2_pixel_last;
-		reg		[PIXEL_NUM*DATA_WIDTH-1:0]	st2_data;
-		reg		[PIXEL_NUM*POS_WIDTH-1:0]	st2_pos_data;
-		
-		reg									st3_line_first;
-		reg									st3_line_last;
-		reg									st3_pixel_first;
-		reg									st3_pixel_last;
-		reg		[PIXEL_NUM*DATA_WIDTH-1:0]	st3_data;
-		
-		integer								x;
+		reg									st1_last_en;
 		
 		always @(posedge clk) begin
 			if ( reset ) begin
-				st0_line_first    <= {(PIXEL_CENTER+1){1'b0}};
-				st0_line_last     <= {(PIXEL_CENTER+1){1'b0}};
-				st0_pixel_first   <= {PIXEL_NUM{1'b0}};
-				st0_pixel_last    <= {PIXEL_NUM{1'b0}};
-				st0_data          <= {PIXEL_NUM*DATA_WIDTH{1'bx}};
-				
-				st1_line_first    <= 1'b0;
-				st1_line_last     <= 1'b0;
-				st1_pixel_first   <= 1'b0;
-				st1_pixel_last    <= 1'b0;
-				st1_data          <= {PIXEL_NUM*DATA_WIDTH{1'bx}};
-				st1_pos_first     <= {PIXEL_SEL{1'bx}};
-				st1_pos_last      <= {PIXEL_SEL{1'bx}};
-				
-				st2_line_first    <= 1'b0;
-				st2_line_last     <= 1'b0;
-				st2_pixel_first   <= 1'b0;
-				st2_pixel_last    <= 1'b0;
-				st2_data          <= {PIXEL_NUM*DATA_WIDTH{1'bx}};
-				st2_pos_data      <= {(PIXEL_NUM*POS_WIDTH){1'bx}};
-				
-				st3_line_first    <= 1'b0;
-				st3_line_last     <= 1'b0;
-				st3_pixel_first   <= 1'b0;
-				st3_pixel_last    <= 1'b0;
-				st3_data          <= {PIXEL_NUM*DATA_WIDTH{1'bx}};
+				st1_line_first  <= 1'b0;
+				st1_line_last   <= 1'b0;
+				st1_pixel_first <= 1'b0;
+				st1_pixel_last  <= 1'b0;
+				st1_de          <= 1'b0;
+				st1_user        <= {USER_BITS{1'bx}};
+				st1_data        <= {(PIXEL_NUM*DATA_WIDTH){1'bx}};
+				st1_last_en     <= 1'bx;
 			end
 			else if ( cke ) begin
-				// stage 0
-				st0_line_first           <= (st0_line_first  << 1);
-				st0_line_last            <= (st0_line_last   << 1);
-				st0_pixel_first          <= (st0_pixel_first << 1);
-				st0_pixel_last           <= (st0_pixel_last  << 1);
-				st0_data                 <= (st0_data        << DATA_WIDTH);
-				
-				st0_line_first[0]        <= s_img_line_first;
-				st0_line_last[0]         <= s_img_line_last;
-				st0_pixel_first[0]       <= s_img_pixel_first;
-				st0_pixel_last[0]        <= s_img_pixel_last;
-				st0_data[DATA_WIDTH-1:0] <= s_img_data;
-				
-				
-				// stage1
-				st1_line_first  <= st0_line_first[PIXEL_CENTER];
-				st1_line_last   <= st0_line_last[PIXEL_CENTER];
-				st1_pixel_first <= st0_pixel_first[PIXEL_CENTER];
-				st1_pixel_last  <= st0_pixel_last[PIXEL_CENTER];
-				st1_data        <= st0_data;
-				
-				begin : search_first
-					for ( x = PIXEL_CENTER; x < PIXEL_NUM; x = x+1 ) begin
-						if ( st0_pixel_first[x] ) begin
-							st1_pos_first <= x;
-							disable search_first;
-						end
-					end
+				st1_line_first  <= st0_line_first[CENTER];
+				st1_line_last   <= st0_line_last[CENTER];
+				st1_pixel_first <= st0_pixel_first[CENTER];
+				st1_pixel_last  <= st0_pixel_last[CENTER];
+				st1_de          <= st0_de[CENTER];
+				st1_user        <= st0_user[CENTER*USER_BITS +: USER_BITS];
+				if ( st0_pixel_first[CENTER] ) begin
+					st1_data  <= st0_data;
+				end
+				else begin
+					st1_data  <= {st1_data, st0_data[DATA_WIDTH-1:0]};
 				end
 				
-				begin : search_last
-				for ( x = PIXEL_CENTER; x >= 0; x = x-1 ) begin
-					if ( st0_pixel_last[x] ) begin
-							st1_pos_last <= x;
-							disable search_last;
+				
+				// left border
+				if ( st0_pixel_first[CENTER] ) begin
+					for ( j = CENTER+1; j < PIXEL_NUM; j=j+1 ) begin
+						if ( BORDER_MODE == "CONSTANT" ) begin
+							st1_data[j*DATA_WIDTH +: DATA_WIDTH] <= BORDER_VALUE;
+						end
+						else if ( BORDER_MODE == "REPLICATE" ) begin
+							st1_data[j*DATA_WIDTH +: DATA_WIDTH] <= st0_data[CENTER*DATA_WIDTH +: DATA_WIDTH];
+						end
+						else if ( BORDER_MODE == "REFLECT" ) begin
+							k = CENTER + 1 - (j - CENTER);
+							if ( k < 0 ) begin k = 0; end
+							st1_data[j*DATA_WIDTH +: DATA_WIDTH] <= st0_data[k*DATA_WIDTH +: DATA_WIDTH];
+						end
+						else if ( BORDER_MODE == "REFLECT_101" ) begin
+							k = CENTER - (j - CENTER);
+							if ( k < 0 ) begin k = 0; end
+							st1_data[j*DATA_WIDTH +: DATA_WIDTH] <= st0_data[k*DATA_WIDTH +: DATA_WIDTH];
 						end
 					end
 				end
 				
 				
-				// stage2
-				st2_line_first  <= st1_line_first;
-				st2_line_last   <= st1_line_last;
-				st2_pixel_first <= st1_pixel_first;
-				st2_pixel_last  <= st1_pixel_last;
-				st2_data        <= st1_data;
-				
-				for ( x = 0; x < PIXEL_NUM; x = x+1 ) begin
-					st2_pos_data[x*POS_WIDTH +: POS_WIDTH] <= x;
-					if ( x > PIXEL_CENTER ) begin
-						if ( x > st1_pos_first ) begin
-							if      ( BORDER_MODE == "CONSTANT"    ) begin st2_pos_data[x*POS_WIDTH +: POS_WIDTH] <= PIXEL_NUM;               end
-							else if ( BORDER_MODE == "REPLICATE"   ) begin st2_pos_data[x*POS_WIDTH +: POS_WIDTH] <= st1_pos_first;           end
-							else if ( BORDER_MODE == "REFLECT"     ) begin st2_pos_data[x*POS_WIDTH +: POS_WIDTH] <= st1_pos_first*2 - x;     end
-							else if ( BORDER_MODE == "REFLECT_101" ) begin st2_pos_data[x*POS_WIDTH +: POS_WIDTH] <= st1_pos_first*2 - x - 1; end
-						end
-					end
-					else if ( x < PIXEL_CENTER ) begin
-						if ( x < st1_pos_last ) begin
-							if      ( BORDER_MODE == "CONSTANT"    ) begin st2_pos_data[x*POS_WIDTH +: POS_WIDTH] <= PIXEL_NUM;               end
-							else if ( BORDER_MODE == "REPLICATE"   ) begin st2_pos_data[x*POS_WIDTH +: POS_WIDTH] <= st1_pos_last;            end
-							else if ( BORDER_MODE == "REFLECT"     ) begin st2_pos_data[x*POS_WIDTH +: POS_WIDTH] <= st1_pos_last*2 - x;      end
-							else if ( BORDER_MODE == "REFLECT_101" ) begin st2_pos_data[x*POS_WIDTH +: POS_WIDTH] <= st1_pos_last*2 - x + 1;  end
-						end
-					end
+				// right border
+				if ( st0_pixel_first[CENTER] ) begin
+					st1_last_en <= 1'b0;
+				end
+				else if ( st0_pixel_last[0] ) begin
+					st1_last_en <= 1'b1;
 				end
 				
-				// stage3
-				st3_line_first  <= st2_line_first;
-				st3_line_last   <= st2_line_last;
-				st3_pixel_first <= st2_pixel_first;
-				st3_pixel_last  <= st2_pixel_last;
-				st3_data        <= st2_data;
-				for ( x = 0; x < PIXEL_NUM; x = x+1 ) begin
-					st3_data[x*DATA_WIDTH +: DATA_WIDTH] <= ({BORDER_VALUE, st2_data} >> (DATA_WIDTH * st2_pos_data[x*POS_WIDTH +: POS_WIDTH]));
+				if ( !st0_pixel_first[CENTER] && st1_last_en ) begin
+					if ( BORDER_MODE == "CONSTANT" ) begin
+						if ( st0_pixel_last[1] ) begin
+							st1_data[DATA_WIDTH-1:0] <= BORDER_VALUE;
+						end
+					end
+					else if ( BORDER_MODE == "REPLICATE" ) begin
+						st1_data[DATA_WIDTH-1:0] <= st1_data[DATA_WIDTH-1:0];
+					end
+					else if ( BORDER_MODE == "REFLECT" ) begin
+						k = CENTER + 1 - (j - CENTER);
+						if ( j < 0 ) begin j = 0; end
+						st1_data[DATA_WIDTH-1:0] <= st0_reflect[0*DATA_WIDTH +: DATA_WIDTH];
+					end
+					else if ( BORDER_MODE == "REFLECT_101" ) begin
+						j = CENTER - (i - CENTER);
+						if ( j < 0 ) begin j = 0; end
+						st1_data[DATA_WIDTH-1:0] <= st0_reflect[1*DATA_WIDTH +: DATA_WIDTH];
+					end
 				end
 			end
 		end
 		
+		wire								out_line_first;
+		wire								out_line_last;
+		wire								out_pixel_first;
+		wire								out_pixel_last;
+		wire								out_de;
+		wire	[USER_BITS-1:0]				out_user;
+		wire	[PIXEL_NUM*DATA_WIDTH-1:0]	out_data;
+		
 		if ( BORDER_MODE == "NONE" ) begin
-			assign m_img_line_first  = st0_line_first[PIXEL_CENTER];
-			assign m_img_line_last   = st0_line_last[PIXEL_CENTER];
-			assign m_img_pixel_first = st0_pixel_first[PIXEL_CENTER];
-			assign m_img_pixel_last  = st0_pixel_last[PIXEL_CENTER];
-			assign m_img_data        = st0_data;
+			assign out_line_first  = st0_line_first[CENTER];
+			assign out_line_last   = st0_line_last[CENTER];
+			assign out_pixel_first = st0_pixel_first[CENTER];
+			assign out_pixel_last  = st0_pixel_last[CENTER];
+			assign out_de          = st0_de[CENTER];
+			assign out_user        = st0_user[CENTER*USER_BITS +: USER_BITS];
+			assign out_data        = st0_data;
 		end
 		else begin
-			assign m_img_line_first  = st3_line_first;
-			assign m_img_line_last   = st3_line_last;
-			assign m_img_pixel_first = st3_pixel_first;
-			assign m_img_pixel_last  = st3_pixel_last;
-			assign m_img_data        = st3_data;
+			assign out_line_first  = st1_line_first;
+			assign out_line_last   = st1_line_last;
+			assign out_pixel_first = st1_pixel_first;
+			assign out_pixel_last  = st1_pixel_last;
+			assign out_de          = st1_de;
+			assign out_user        = st1_user;
+			assign out_data        = st1_data;
+		end
+		
+		
+		assign m_img_line_first  = out_line_first;
+		assign m_img_line_last   = out_line_last;
+		assign m_img_pixel_first = out_pixel_first;
+		assign m_img_pixel_last  = out_pixel_last;
+		assign m_img_de          = out_de;
+		assign m_img_user        = out_user;
+		for ( i = 0; i < PIXEL_NUM; i = i+1 ) begin :loop_endian
+			if ( ENDIAN == 1'b0 ) begin
+				assign m_img_data[i*DATA_WIDTH +: DATA_WIDTH] = out_data[i*DATA_WIDTH +: DATA_WIDTH];
+			end
+			else begin
+				assign m_img_data[i*DATA_WIDTH +: DATA_WIDTH] = out_data[(PIXEL_NUM-1-i)*DATA_WIDTH +: DATA_WIDTH];
+			end
 		end
 	end
 	else begin
@@ -222,10 +238,11 @@ module jelly_img_pixel_buffer
 		assign m_img_line_last   = s_img_line_last;
 		assign m_img_pixel_first = s_img_pixel_first;
 		assign m_img_pixel_last  = s_img_pixel_last;
+		assign m_img_de          = s_img_de;
+		assign m_img_user        = s_img_user;
 		assign m_img_data        = s_img_data;
 	end
 	endgenerate
-	
 	
 endmodule
 
