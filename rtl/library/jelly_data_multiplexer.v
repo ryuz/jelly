@@ -18,7 +18,7 @@ module jelly_data_multiplexer
 		#(
 			parameter	NUM        = 5,
 			parameter	DATA_WIDTH = 8,
-			parameter	M_REGS     = 1
+			parameter	S_REGS     = 1
 		)
 		(
 			input	wire							reset,
@@ -53,49 +53,40 @@ module jelly_data_multiplexer
 	                        NUM <= 32768 ? 15 : 16;
 	
 	
-	wire	[0:0]					stage_cke;
-	wire	[0:0]					stage_valid;
-	wire	[0:0]					next_valid;
-	wire	[NUM*DATA_WIDTH-1:0]		src_data;
-	wire							src_valid;
-	wire	[DATA_WIDTH-1:0]	sink_data;
+	wire	[NUM*DATA_WIDTH-1:0]	ff_data;
+	wire							ff_valid;
+	wire							ff_ready;
 	
-	jelly_pipeline_control
+	jelly_pipeline_insert_ff
 			#(
-				.PIPELINE_STAGES	(1),
-				.S_DATA_WIDTH		(NUM*DATA_WIDTH),
-				.M_DATA_WIDTH		(DATA_WIDTH),
-				.AUTO_VALID			(0),
-				.MASTER_IN_REGS		(M_REGS),
-				.MASTER_OUT_REGS	(M_REGS)
+				.DATA_WIDTH		(NUM*DATA_WIDTH),
+				.SLAVE_REGS		(S_REGS),
+				.MASTER_REGS	(S_REGS)
 			)
-		i_pipeline_control
+		i_pipeline_insert_ff
 			(
-				.reset				(reset),
-				.clk				(clk),
-				.cke				(cke),
+				.reset			(reset),
+				.clk			(clk),
+				.cke			(cke),
 				
-				.s_data				(s_data),
-				.s_valid			(s_valid),
-				.s_ready			(s_ready),
+				.s_data			(s_data),
+				.s_valid		(s_valid),
+				.s_ready		(s_ready),
 				
-				.m_data				(m_data),
-				.m_valid			(m_valid),
-				.m_ready			(m_ready),
+				.m_data			(ff_data),
+				.m_valid		(ff_valid),
+				.m_ready		(ff_ready),
 				
-				.stage_cke			(stage_cke),
-				.stage_valid		(stage_valid),
-				.next_valid			(next_valid),
-				.src_data			(src_data),
-				.src_valid			(src_valid),
-				.sink_data			(sink_data),
-				.buffered			()
+				.buffered		(),
+				.s_ready_next	()
 			);
 	
-	wire	[DATA_WIDTH-1:0]		sig_dout;
+	
+	wire	[DATA_WIDTH-1:0]		demux_data;
 	
 	reg		[SEL_WIDTH-1:0]			reg_sel;
 	reg		[DATA_WIDTH-1:0]		reg_data;
+	reg								reg_valid;
 	
 	jelly_multiplexer
 			#(
@@ -108,9 +99,10 @@ module jelly_data_multiplexer
 				.endian			(endian),
 				
 				.sel			(reg_sel),
-				.din			(src_data),
-				.dout			(sig_dout)
+				.din			(ff_data),
+				.dout			(demux_data)
 			);
+	
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
@@ -118,22 +110,25 @@ module jelly_data_multiplexer
 			reg_data <= {(NUM*DATA_WIDTH){1'bx}};
 		end
 		else begin
-			if ( stage_cke[0] ) begin
-				if ( src_valid || reg_sel != {SEL_WIDTH{1'b0}} ) begin
+			if ( cke && (!m_valid || m_ready) ) begin
+				reg_valid <= 1'b0;
+				
+				if ( ff_valid ) begin
 					reg_sel  <= reg_sel + 1'b1;
 					if ( reg_sel == (NUM-1) ) begin
 						reg_sel  <= {SEL_WIDTH{1'b0}};
 					end
-					
-					reg_data <= sig_dout;
+					reg_data  <= demux_data;
+					reg_valid <= 1'b1;
 				end
 			end
 		end
 	end
 	
-	assign next_valid[0] = (src_valid || (reg_sel != {SEL_WIDTH{1'b0}}));
+	assign ff_ready = (m_ready && (reg_sel == (NUM-1)));
 	
-	assign sink_data     = reg_data;
+	assign m_data   = reg_data;
+	assign m_valid  = reg_valid;
 	
 	
 endmodule

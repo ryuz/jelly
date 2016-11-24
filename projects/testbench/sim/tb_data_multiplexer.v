@@ -32,6 +32,10 @@ module tb_data_multiplexer();
 	wire								sink_valid;
 	reg									sink_ready = 1;
 	
+	always @(posedge clk) begin
+		sink_ready <= {$random};
+	end
+	
 	jelly_data_demultiplexer
 			#(
 				.NUM			(NUM),
@@ -87,7 +91,27 @@ module tb_data_multiplexer();
 			if ( src_valid && src_ready ) begin
 				src_data <= src_data + 1;
 			end
-			src_valid <= 1;
+			
+			if ( !src_valid || src_ready ) begin
+				src_valid <= {$random};
+			end
+		end
+	end
+	
+	
+	reg		[DATA_WIDTH-1:0]	exp_data;
+	always @(posedge clk) begin
+		if ( reset ) begin
+			exp_data <= 0;
+		end
+		else begin
+			if ( sink_valid && sink_ready ) begin
+				if ( sink_data != exp_data ) begin
+					$display("Error!");
+				end
+	//			$display("%h", sink_data);
+				exp_data <= exp_data + 1;
+			end
 		end
 	end
 	
