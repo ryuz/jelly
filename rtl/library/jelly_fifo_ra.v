@@ -62,6 +62,28 @@ module jelly_fifo_ra
 	// ---------------------------------
 	
 	// ram
+	jelly_ram_simple_dualport
+			#(
+				.DATA_WIDTH		(DATA_WIDTH),
+				.ADDR_WIDTH		(ADDR_WIDTH),
+				.DOUT_REGS		(DOUT_REGS),
+				.RAM_TYPE		(RAM_TYPE)
+			)
+		j_ram_simple_dualport
+			(
+				.wr_clk			(clk),
+				.wr_en			(wr_en),
+				.wr_addr		(wr_addr),
+				.wr_din			(wr_data),
+				
+				.rd_clk			(clk),
+				.rd_en			(rd_en),
+				.rd_regcke		(rd_regcke),
+				.rd_addr		(rd_addr),
+				.rd_dout		(rd_data)
+			);
+	
+	/*
 	jelly_ram_dualport
 			#(
 				.DATA_WIDTH		(DATA_WIDTH),
@@ -87,7 +109,7 @@ module jelly_fifo_ra
 				.din1			({DATA_WIDTH{1'b0}}),
 				.dout1			(rd_data)
 			);
-	
+	*/
 	
 	
 	// ---------------------------------

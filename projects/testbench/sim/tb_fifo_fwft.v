@@ -33,7 +33,8 @@ module tb_fifo_fwft();
 	wire						m_ready;
 	wire	[PTR_WIDTH:0]		m_data_count;
 	
-	jelly_fifo_fwtf2
+	jelly_fifo_fwtf
+//	jelly_fifo_fwtf2
 			#(
 				.DATA_WIDTH		(DATA_WIDTH),
 				.PTR_WIDTH		(PTR_WIDTH),
