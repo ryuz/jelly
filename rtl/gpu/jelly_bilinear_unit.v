@@ -27,7 +27,7 @@ module jelly_bilinear_unit
 			parameter	COEFF_FRAC_WIDTH    = X_FRAC_WIDTH + Y_FRAC_WIDTH,
 			parameter	S_REGS              = 1,
 			parameter	M_REGS              = 1,
-			parameter	DEVICE              = "7SERIES",
+			parameter	DEVICE              = "RTL",
 			
 			parameter	USER_FIFO_PTR_WIDTH = 6,
 			parameter	USER_FIFO_RAM_TYPE  = "distributed",
@@ -57,7 +57,7 @@ module jelly_bilinear_unit
 			
 			// memory
 			output	wire	[COEFF_WIDTH-1:0]				m_mem_arcoeff,	// aruser
-			output	wire	[Y_INT_WIDTH-1:0]				m_mem_araddrx,
+			output	wire	[X_INT_WIDTH-1:0]				m_mem_araddrx,
 			output	wire	[Y_INT_WIDTH-1:0]				m_mem_araddry,
 			output	wire									m_mem_arvalid,
 			input	wire									m_mem_arready,

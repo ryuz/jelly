@@ -21,12 +21,6 @@ module jelly_texture_cache_core
 			parameter	L2_CACHE_NUM         = (1 << (L2_CACHE_X_SIZE + L2_CACHE_Y_SIZE)),
 			
 			parameter	COMPONENT_NUM        = 3,
-			parameter	COMPONENT_SEL_WIDTH  = COMPONENT_NUM <= 2  ?  1 :
-			                                   COMPONENT_NUM <= 4  ?  2 :
-			                                   COMPONENT_NUM <= 8  ?  3 :
-			                                   COMPONENT_NUM <= 16 ?  4 :
-			                                   COMPONENT_NUM <= 32 ?  5 :
-			                                   COMPONENT_NUM <= 64 ?  6 : 7,
 			parameter	COMPONENT_DATA_WIDTH = 8,
 			
 			parameter	USER_WIDTH           = 1,

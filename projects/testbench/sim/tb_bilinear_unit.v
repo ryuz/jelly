@@ -30,7 +30,7 @@ module tb_bilinear_unit();
 	parameter	COEFF_WIDTH         = 1 + X_FRAC_WIDTH + Y_FRAC_WIDTH;
 	parameter	S_REGS              = 1;
 	parameter	M_REGS              = 1;
-	parameter	DEVICE              = "RTL"; //"7SERIES";
+	parameter	DEVICE              = "7SERIES"; // "RTL";
 	
 	parameter	USER_FIFO_PTR_WIDTH = 6;
 	parameter	USER_FIFO_RAM_TYPE  = "distributed";
