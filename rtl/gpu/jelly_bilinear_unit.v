@@ -315,7 +315,7 @@ module jelly_bilinear_unit
 			// stage 0
 			acc_st0_load  <= 1'b0;
 			acc_st0_coeff <= {COEFF_WIDTH{1'b0}};
-			acc_st0_data  <= m_mem_rdata;
+			acc_st0_data  <= {(COMPONENT_NUM*DATA_WIDTH){1'b0}};	// m_mem_rdata;
 			acc_st0_valid <= 1'b0;
 			
 			if ( m_mem_rvalid && m_mem_rready ) begin
@@ -324,6 +324,7 @@ module jelly_bilinear_unit
 				end
 				
 				acc_st0_coeff <= m_mem_rcoeff;
+				acc_st0_data  <= m_mem_rdata;
 				
 				if ( m_mem_rphase == 2'b11 ) begin
 					acc_st0_valid <= 1'b1;
@@ -355,9 +356,9 @@ module jelly_bilinear_unit
 		
 		jelly_mul_add_dsp48e1
 				#(
-					.A_WIDTH		(COEFF_WIDTH),
-					.B_WIDTH		(DATA_WIDTH),
-					.C_WIDTH		(DATA_WIDTH),
+					.A_WIDTH		(1+COEFF_WIDTH),
+					.B_WIDTH		(1+DATA_WIDTH),
+					.C_WIDTH		(1+DATA_WIDTH),
 					.P_WIDTH		(COEFF_WIDTH + DATA_WIDTH),
 					
 					.OPMODEREG		(1),
@@ -391,9 +392,9 @@ module jelly_bilinear_unit
 					.op_load		(acc_st1_load),
 					.alu_sub		(1'b0),
 					
-					.a				(acc_st0_coeff),
-					.b				(acc_st0_data[i*DATA_WIDTH +: DATA_WIDTH]),
-					.c				({DATA_WIDTH{1'b0}}),
+					.a				({1'b0, acc_st0_coeff}),
+					.b				({1'b0, acc_st0_data[i*DATA_WIDTH +: DATA_WIDTH]}),
+					.c				({(1+DATA_WIDTH){1'b0}}),
 					.p				(acc_st3_p),
 					
 					.pcin			(),

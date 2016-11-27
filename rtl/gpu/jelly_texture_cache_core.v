@@ -71,7 +71,7 @@ module jelly_texture_cache_core
 			
 			input	wire	[M_AXI4_ADDR_WIDTH*COMPONENT_NUM-1:0]	param_addr,
 			input	wire	[ADDR_X_WIDTH-1:0]						param_width,
-			input	wire	[ADDR_X_WIDTH-1:0]						param_height,
+			input	wire	[ADDR_Y_WIDTH-1:0]						param_height,
 			input	wire	[ADDR_WIDTH-1:0]						param_stride,
 			
 			input	wire											clear_start,

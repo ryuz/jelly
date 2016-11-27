@@ -36,7 +36,6 @@ module jelly_texture_sampler
 			parameter	SAMPLER2D_COEFF_FRAC_WIDTH    = SAMPLER2D_X_FRAC_WIDTH + SAMPLER2D_Y_FRAC_WIDTH,
 			parameter	SAMPLER2D_S_REGS              = 1,
 			parameter	SAMPLER2D_M_REGS              = 1,
-			parameter	SAMPLER2D_DEVICE              = "7SERIES",
 			parameter	SAMPLER2D_USER_FIFO_PTR_WIDTH = 6,
 			parameter	SAMPLER2D_USER_FIFO_RAM_TYPE  = "distributed",
 			parameter	SAMPLER2D_USER_FIFO_M_REGS    = 0,
@@ -92,7 +91,7 @@ module jelly_texture_sampler
 			// parameter
 			input	wire	[M_AXI4_ADDR_WIDTH*COMPONENT_NUM-1:0]			param_addr,
 			input	wire	[ADDR_X_WIDTH-1:0]								param_width,
-			input	wire	[ADDR_X_WIDTH-1:0]								param_height,
+			input	wire	[ADDR_Y_WIDTH-1:0]								param_height,
 			input	wire	[ADDR_WIDTH-1:0]								param_stride,
 			
 			// control
@@ -172,11 +171,12 @@ module jelly_texture_sampler
 					.COEFF_FRAC_WIDTH		(SAMPLER2D_COEFF_FRAC_WIDTH),
 					.S_REGS					(SAMPLER2D_S_REGS),
 					.M_REGS					(SAMPLER2D_M_REGS),
-					.DEVICE					(SAMPLER2D_DEVICE),
 					.USER_FIFO_PTR_WIDTH	(SAMPLER2D_USER_FIFO_PTR_WIDTH),
 					.USER_FIFO_RAM_TYPE		(SAMPLER2D_USER_FIFO_RAM_TYPE),
-					.USER_FIFO_M_REGS		(SAMPLER2D_USER_FIFO_M_REGS)
+					.USER_FIFO_M_REGS		(SAMPLER2D_USER_FIFO_M_REGS),
+					.DEVICE					(DEVICE)
 				)
+			i_bilinear_unit
 				(
 					.reset					(reset),
 					.clk					(clk),
@@ -267,6 +267,7 @@ module jelly_texture_sampler
 				                         
 				.ADDR_WIDTH				(ADDR_WIDTH)
 			)
+		i_texture_cache_core
 			(
 				.reset					(reset),
 				.clk					(clk),
