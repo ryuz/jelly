@@ -23,7 +23,8 @@ module jelly_bilinear_unit
 			parameter	X_FRAC_WIDTH        = 4,
 			parameter	Y_INT_WIDTH         = 10,
 			parameter	Y_FRAC_WIDTH        = 4,
-			parameter	COEFF_WIDTH         = 1 + X_FRAC_WIDTH + Y_FRAC_WIDTH,
+			parameter	COEFF_INT_WIDTH     = 1,
+			parameter	COEFF_FRAC_WIDTH    = X_FRAC_WIDTH + Y_FRAC_WIDTH,
 			parameter	S_REGS              = 1,
 			parameter	M_REGS              = 1,
 			parameter	DEVICE              = "7SERIES",
@@ -34,6 +35,7 @@ module jelly_bilinear_unit
 			
 			parameter	X_WIDTH             = X_INT_WIDTH + X_FRAC_WIDTH,
 			parameter	Y_WIDTH             = Y_INT_WIDTH + Y_FRAC_WIDTH,
+			parameter	COEFF_WIDTH         = COEFF_INT_WIDTH + COEFF_FRAC_WIDTH,
 			parameter	USER_BITS           = USER_WIDTH > 0 ? USER_WIDTH : 1
 		)
 		(
@@ -57,7 +59,7 @@ module jelly_bilinear_unit
 			output	wire	[COEFF_WIDTH-1:0]				m_mem_arcoeff,	// aruser
 			output	wire	[Y_INT_WIDTH-1:0]				m_mem_araddrx,
 			output	wire	[Y_INT_WIDTH-1:0]				m_mem_araddry,
-			output	wire	[X_WIDTH-1:0]					m_mem_arvalid,
+			output	wire									m_mem_arvalid,
 			input	wire									m_mem_arready,
 			input	wire	[COEFF_WIDTH-1:0]				m_mem_rcoeff,	// ruser
 			input	wire	[COMPONENT_NUM*DATA_WIDTH-1:0]	m_mem_rdata,
@@ -109,7 +111,7 @@ module jelly_bilinear_unit
 	
 	jelly_pipeline_insert_ff
 			#(
-				.DATA_WIDTH		(DATA_WIDTH),
+				.DATA_WIDTH		(COMPONENT_NUM*DATA_WIDTH),
 				.SLAVE_REGS		(M_REGS),
 				.MASTER_REGS	(0)
 			)
@@ -157,7 +159,8 @@ module jelly_bilinear_unit
 	
 	wire									mem_cke;
 	
-	reg		[1:0]							mem_st0_phase;
+	reg		[1:0]							s_ff_phase;
+	
 	reg		[X_FRAC_WIDTH:0]				mem_st0_coeffx;
 	reg		[Y_FRAC_WIDTH:0]				mem_st0_coeffy;
 	reg		[X_INT_WIDTH-1:0]				mem_st0_x;
@@ -182,7 +185,8 @@ module jelly_bilinear_unit
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
-			mem_st0_phase  <= 2'b00;
+			s_ff_phase     <= 2'b00;
+			
 			mem_st0_coeffx <= {(X_FRAC_WIDTH+1){1'bx}};
 			mem_st0_coeffy <= {(Y_FRAC_WIDTH+1){1'bx}};
 			mem_st0_x      <= {X_INT_WIDTH{1'bx}};
@@ -206,21 +210,23 @@ module jelly_bilinear_unit
 			mem_st3_valid  <= 1'b0;
 		end
 		else if ( mem_cke && cke ) begin
-			
-			// stage 0
+			// input stage
 			if ( s_ff_valid ) begin
-				mem_st0_phase <= mem_st0_phase + 1'b1;
+				s_ff_phase <= s_ff_phase + 1'b1;
 			end
 			
-			case ( mem_st0_phase )
+			// stage 0
+			case ( s_ff_phase )
 			2'b00: begin mem_st0_coeffx <= s_ff_coeffx0; mem_st0_coeffy <= s_ff_coeffy0; end
 			2'b01: begin mem_st0_coeffx <= s_ff_coeffx1; mem_st0_coeffy <= s_ff_coeffy0; end
 			2'b10: begin mem_st0_coeffx <= s_ff_coeffx0; mem_st0_coeffy <= s_ff_coeffy1; end
 			2'b11: begin mem_st0_coeffx <= s_ff_coeffx1; mem_st0_coeffy <= s_ff_coeffy1; end
 			endcase
 			
-			mem_st0_x <= s_ff_x_int + mem_st0_phase[0];
-			mem_st0_y <= s_ff_y_int + mem_st0_phase[1];
+			mem_st0_x      <= s_ff_x_int + s_ff_phase[0];
+			mem_st0_y      <= s_ff_y_int + s_ff_phase[1];
+			
+			mem_st0_valid  <= s_ff_valid;
 			
 			
 			// stage 1
@@ -228,27 +234,31 @@ module jelly_bilinear_unit
 			mem_st1_coeffy <= mem_st0_coeffy;
 			mem_st1_x      <= mem_st0_x;
 			mem_st1_y      <= mem_st0_y;
+			mem_st1_valid  <= mem_st0_valid;
 			
 			
 			// stage 2
 			mem_st2_coeff  <= mem_st1_coeffy * mem_st1_coeffx;
 			mem_st2_x      <= mem_st1_x;
 			mem_st2_y      <= mem_st1_y;
+			mem_st2_valid  <= mem_st1_valid;
+			
 			
 			// stage 3
 			mem_st3_coeff  <= mem_st2_coeff;
-			if ( COEFF_WIDTH < (1 + X_FRAC_WIDTH + Y_FRAC_WIDTH) ) begin
-				mem_st3_coeff <= (mem_st2_coeff >> ((1 + X_FRAC_WIDTH + Y_FRAC_WIDTH) - COEFF_WIDTH));
+			if ( COEFF_FRAC_WIDTH < (X_FRAC_WIDTH + Y_FRAC_WIDTH) ) begin
+				mem_st3_coeff <= (mem_st2_coeff >> ((X_FRAC_WIDTH + Y_FRAC_WIDTH) - COEFF_FRAC_WIDTH));
 			end
-			mem_st3_x <= mem_st2_x;
-			mem_st3_y <= mem_st2_y;
+			mem_st3_x      <= mem_st2_x;
+			mem_st3_y      <= mem_st2_y;
+			mem_st3_valid  <= mem_st2_valid;
 		end
 	end
 	
 	
-	assign	mem_cke    = (!m_mem_arvalid || m_mem_rready);
+	assign	mem_cke       = (!m_mem_arvalid || m_mem_rready);
 	
-	assign	s_ff_ready = mem_cke && (mem_st0_phase == 2'b11);
+	assign	s_ff_ready    = mem_cke && (s_ff_phase == 2'b11);
 	
 	assign	m_mem_arcoeff = mem_st3_coeff;
 	assign	m_mem_araddrx = mem_st3_x;
@@ -264,13 +274,14 @@ module jelly_bilinear_unit
 	
 	wire									acc_cke;
 	
-	reg		[1:0]							m_rphase;
+	reg		[1:0]							m_mem_rphase;
 	
 	reg										acc_st0_load;
 	reg		[COEFF_WIDTH-1:0]				acc_st0_coeff;
 	reg		[COMPONENT_NUM*DATA_WIDTH-1:0]	acc_st0_data;
 	reg										acc_st0_valid;
 	
+	reg										acc_st1_load;
 	reg										acc_st1_valid;
 	
 	reg										acc_st2_valid;
@@ -280,13 +291,14 @@ module jelly_bilinear_unit
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
-			m_rphase      <= 2'b00;
+			m_mem_rphase  <= 2'b00;
 			
-			acc_st0_load  <= 1'bx;
+			acc_st0_load  <= 1'b0;
 			acc_st0_coeff <= {COEFF_WIDTH{1'bx}};
 			acc_st0_data  <= {(COMPONENT_NUM*DATA_WIDTH){1'bx}};
 			acc_st0_valid <= 1'b0;
 			
+			acc_st1_load  <= 1'b0;
 			acc_st1_valid <= 1'b0;
 			
 			acc_st2_valid <= 1'b0;
@@ -296,7 +308,7 @@ module jelly_bilinear_unit
 		else if ( acc_cke && cke ) begin
 			// read stage
 			if ( m_mem_rvalid && m_mem_rready ) begin
-				m_rphase <= m_rphase + 1'b1;
+				m_mem_rphase <= m_mem_rphase + 1'b1;
 			end
 			
 			
@@ -307,19 +319,20 @@ module jelly_bilinear_unit
 			acc_st0_valid <= 1'b0;
 			
 			if ( m_mem_rvalid && m_mem_rready ) begin
-				if ( m_rphase == 2'b00 ) begin
+				if ( m_mem_rphase == 2'b00 ) begin
 					acc_st0_load <= 1'b1;
 				end
 				
 				acc_st0_coeff <= m_mem_rcoeff;
 				
-				if ( m_rphase == 2'b11 ) begin
+				if ( m_mem_rphase == 2'b11 ) begin
 					acc_st0_valid <= 1'b1;
 				end
 			end
 			
 			
 			// stage 1
+			acc_st1_load  <= acc_st0_load;
 			acc_st1_valid <= acc_st0_valid;
 			
 			
@@ -375,7 +388,7 @@ module jelly_bilinear_unit
 					.cke_m			(acc_cke & cke),
 					.cke_p			(acc_cke & cke),
 					
-					.op_load		(acc_st0_load),
+					.op_load		(acc_st1_load),
 					.alu_sub		(1'b0),
 					
 					.a				(acc_st0_coeff),
@@ -387,7 +400,7 @@ module jelly_bilinear_unit
 					.pcout			()
 				);
 		
-		assign acc_st3_data[i*DATA_WIDTH +: DATA_WIDTH] = (acc_st3_p >> COEFF_WIDTH);
+		assign acc_st3_data[i*DATA_WIDTH +: DATA_WIDTH] = (acc_st3_p >> COEFF_FRAC_WIDTH);
 	end
 	endgenerate
 

@@ -60,7 +60,6 @@ module jelly_texture_cache_unit
 			input	wire	[S_ADDR_Y_WIDTH-1:0]	s_araddry,
 			input	wire							s_arvalid,
 			output	wire							s_arready,
-			
 			output	wire	[S_USER_WIDTH-1:0]		s_ruser,
 			output	wire	[S_DATA_WIDTH-1:0]		s_rdata,
 			output	wire							s_rvalid,
@@ -71,7 +70,6 @@ module jelly_texture_cache_unit
 			output	wire	[M_ADDR_Y_WIDTH-1:0]	m_araddry,
 			output	wire							m_arvalid,
 			input	wire							m_arready,
-			
 			input	wire							m_rlast,
 			input	wire	[M_STRB_WIDTH-1:0]		m_rstrb,
 			input	wire	[M_DATA_WIDTH-1:0]		m_rdata,

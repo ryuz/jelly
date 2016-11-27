@@ -188,7 +188,7 @@ module jelly_mul_add_dsp48e1
 		
 		// opmode
 		wire	opmode_load;
-		if ( OPMODEREG >= 1 ) begin
+		if ( OPMODEREG >= 1 ) begin : blk_opmode
 			reg		reg_opmode_load;
 			always @(posedge clk) begin
 				if ( reset ) begin
@@ -206,7 +206,7 @@ module jelly_mul_add_dsp48e1
 		
 		// alumode
 		wire	alumode_sub;
-		if ( ALUMODEREG >= 1 ) begin
+		if ( ALUMODEREG >= 1 ) begin : blk_alumode
 			reg		reg_alumode_sub;
 			always @(posedge clk) begin
 				if ( reset ) begin
@@ -225,7 +225,7 @@ module jelly_mul_add_dsp48e1
 		
 		// a0
 		wire	signed	[A_WIDTH-1:0]	a0;
-		if ( AREG >= 2 ) begin
+		if ( AREG >= 2 ) begin : blk_a0
 			reg		signed	[A_WIDTH-1:0]	reg_a0;
 			always @(posedge clk) begin
 				if ( reset ) begin
@@ -243,7 +243,7 @@ module jelly_mul_add_dsp48e1
 		
 		// a1
 		wire	signed	[A_WIDTH-1:0]	a1;
-		if ( AREG >= 1 ) begin
+		if ( AREG >= 1 ) begin : blk_a1
 			reg		signed	[A_WIDTH-1:0]	reg_a1;
 			always @(posedge clk) begin
 				if ( reset ) begin
@@ -262,7 +262,7 @@ module jelly_mul_add_dsp48e1
 		
 		// b0
 		wire	signed	[B_WIDTH-1:0]	b0;
-		if ( BREG >= 2 ) begin
+		if ( BREG >= 2 ) begin : blk_b0
 			reg		signed	[B_WIDTH-1:0]	reg_b0;
 			always @(posedge clk) begin
 				if ( reset ) begin
@@ -280,7 +280,7 @@ module jelly_mul_add_dsp48e1
 		
 		// b1
 		wire	signed	[B_WIDTH-1:0]	b1;
-		if ( BREG >= 1 ) begin
+		if ( BREG >= 1 ) begin : blk_b1
 			reg		signed	[B_WIDTH-1:0]	reg_b1;
 			always @(posedge clk) begin
 				if ( reset ) begin
@@ -299,7 +299,7 @@ module jelly_mul_add_dsp48e1
 		
 		// c
 		wire	signed	[C_WIDTH-1:0]	c0;
-		if ( CREG >= 1 ) begin
+		if ( CREG >= 1 ) begin : blk_c
 			reg		signed	[C_WIDTH-1:0]	reg_c0;
 			always @(posedge clk) begin
 				if ( reset ) begin
@@ -318,7 +318,7 @@ module jelly_mul_add_dsp48e1
 		
 		// m
 		wire	signed	[M_WIDTH-1:0]	m0;
-		if ( MREG >= 1 ) begin
+		if ( MREG >= 1 ) begin : blk_m
 			reg		signed	[M_WIDTH-1:0]	reg_m0;
 			always @(posedge clk) begin
 				if ( reset ) begin
@@ -337,7 +337,7 @@ module jelly_mul_add_dsp48e1
 		
 		// p
 		wire	signed	[P_WIDTH-1:0]	p0;
-		if ( PREG >= 1 ) begin
+		if ( PREG >= 1 ) begin : blk_p
 			reg		signed	[P_WIDTH-1:0]	reg_p0;
 			always @(posedge clk) begin
 				if ( reset ) begin
