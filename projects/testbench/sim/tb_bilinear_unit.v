@@ -17,6 +17,7 @@ module tb_bilinear_unit();
 	reg		reset = 1'b1;
 	always #(RATE*100)	reset = 1'b0;
 	
+	parameter	RAND_BUSY = 1;
 	
 	
 	parameter	COMPONENT_NUM       = 2;
@@ -111,10 +112,12 @@ module tb_bilinear_unit();
 				.m_mem_rready			(m_mem_rready)
 			);
 	
+	reg		mem_ready = 1;
+	
 	assign m_mem_rcoeff  = m_mem_arcoeff;
 	assign m_mem_rdata   = {m_mem_araddry, 4'd0, m_mem_araddrx, 4'd0};
-	assign m_mem_rvalid  = m_mem_arvalid;
-	assign m_mem_arready = m_mem_rready;
+	assign m_mem_rvalid  = m_mem_arvalid & mem_ready;
+	assign m_mem_arready = m_mem_rready  & mem_ready;
 	
 	
 	always @(posedge clk) begin
@@ -128,7 +131,10 @@ module tb_bilinear_unit();
 				s_x     <= s_x + 2;
 				s_y     <= s_y + 1;
 			end
-			s_valid <= 1;
+			
+			if ( !s_valid || s_ready ) begin
+				s_valid <= RAND_BUSY ? {$random} : 1;
+			end
 		end
 	end
 	
@@ -159,6 +165,15 @@ module tb_bilinear_unit();
 			end
 		end
 	end
+	
+	
+	always @(posedge clk) begin
+		if ( RAND_BUSY ) begin
+			mem_ready <= {$random};
+			m_ready   <= {$random};
+		end
+	end
+	
 	
 endmodule
 

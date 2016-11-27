@@ -256,7 +256,7 @@ module jelly_bilinear_unit
 	end
 	
 	
-	assign	mem_cke       = (!m_mem_arvalid || m_mem_rready);
+	assign	mem_cke       = (!m_mem_arvalid || m_mem_arready);
 	
 	assign	s_ff_ready    = mem_cke && (s_ff_phase == 2'b11);
 	
