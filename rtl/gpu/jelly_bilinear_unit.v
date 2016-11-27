@@ -16,21 +16,25 @@
 // FIFO
 module jelly_bilinear_unit
 		#(
-			parameter	COMPONENT_NUM = 3,
-			parameter	DATA_WIDTH    = 8,
-			parameter	USET_WIDTH    = 0,
-			parameter	X_INT_WIDTH   = 10,
-			parameter	X_FRAC_WIDTH  = 4,
-			parameter	Y_INT_WIDTH   = 10,
-			parameter	Y_FRAC_WIDTH  = 4,
-			parameter	COEFF_WIDTH   = 1 + X_FRAC_WIDTH + Y_FRAC_WIDTH,
-			parameter	S_REGS        = 1,
-			parameter	M_REGS        = 1,
-			parameter	DEVICE        = "7SERIES",
+			parameter	COMPONENT_NUM       = 3,
+			parameter	DATA_WIDTH          = 8,
+			parameter	USER_WIDTH          = 0,
+			parameter	X_INT_WIDTH         = 10,
+			parameter	X_FRAC_WIDTH        = 4,
+			parameter	Y_INT_WIDTH         = 10,
+			parameter	Y_FRAC_WIDTH        = 4,
+			parameter	COEFF_WIDTH         = 1 + X_FRAC_WIDTH + Y_FRAC_WIDTH,
+			parameter	S_REGS              = 1,
+			parameter	M_REGS              = 1,
+			parameter	DEVICE              = "7SERIES",
 			
-			parameter	X_WIDTH       = X_INT_WIDTH + X_FRAC_WIDTH,
-			parameter	Y_WIDTH       = Y_INT_WIDTH + Y_FRAC_WIDTH,
-			parameter	USET_BITS     = USET_WIDTH > 0 ? USET_WIDTH : 1
+			parameter	USER_FIFO_PTR_WIDTH = 6,
+			parameter	USER_FIFO_RAM_TYPE  = "distributed",
+			parameter	USER_FIFO_M_REGS    = 0,
+			
+			parameter	X_WIDTH             = X_INT_WIDTH + X_FRAC_WIDTH,
+			parameter	Y_WIDTH             = Y_INT_WIDTH + Y_FRAC_WIDTH,
+			parameter	USER_BITS           = USER_WIDTH > 0 ? USER_WIDTH : 1
 		)
 		(
 			input	wire									reset,
@@ -58,7 +62,7 @@ module jelly_bilinear_unit
 			input	wire	[COEFF_WIDTH-1:0]				m_mem_rcoeff,	// ruser
 			input	wire	[COMPONENT_NUM*DATA_WIDTH-1:0]	m_mem_rdata,
 			input	wire									m_mem_rvalid,
-			output	wire									m_mem_rready,
+			output	wire									m_mem_rready
 		);
 	
 	
@@ -148,9 +152,10 @@ module jelly_bilinear_unit
 	
 	assign s_ff_coeffx0 = {1'b1, {X_FRAC_WIDTH{1'b0}}} - s_ff_x_frac;
 	assign s_ff_coeffx1 = {1'b0, s_ff_x_frac};
-	assign s_ff_coeffy0 = {1'b1, {Y_FRAC_WIDTH{1'b0}}} - s_ff_y_frac};
+	assign s_ff_coeffy0 = {1'b1, {Y_FRAC_WIDTH{1'b0}}} - s_ff_y_frac;
 	assign s_ff_coeffy1 = {1'b0, s_ff_y_frac};
 	
+	wire									mem_cke;
 	
 	reg		[1:0]							mem_st0_phase;
 	reg		[X_FRAC_WIDTH:0]				mem_st0_coeffx;
@@ -170,9 +175,9 @@ module jelly_bilinear_unit
 	reg		[Y_INT_WIDTH-1:0]				mem_st2_y;
 	reg										mem_st2_valid;
 	
-	reg		[COEFF_WIDTH:0]					mem_st2_coeff;
-	reg		[X_INT_WIDTH-1:0]				mem_st2_x;
-	reg		[Y_INT_WIDTH-1:0]				mem_st2_y;
+	reg		[COEFF_WIDTH:0]					mem_st3_coeff;
+	reg		[X_INT_WIDTH-1:0]				mem_st3_x;
+	reg		[Y_INT_WIDTH-1:0]				mem_st3_y;
 	reg										mem_st3_valid;
 	
 	always @(posedge clk) begin
@@ -204,10 +209,10 @@ module jelly_bilinear_unit
 			
 			// stage 0
 			if ( s_ff_valid ) begin
-				mem_st0_phase <= st0_phase + 1'b1;
+				mem_st0_phase <= mem_st0_phase + 1'b1;
 			end
 			
-			case ( mem_st0_phase ) begin
+			case ( mem_st0_phase )
 			2'b00: begin mem_st0_coeffx <= s_ff_coeffx0; mem_st0_coeffy <= s_ff_coeffy0; end
 			2'b01: begin mem_st0_coeffx <= s_ff_coeffx1; mem_st0_coeffy <= s_ff_coeffy0; end
 			2'b10: begin mem_st0_coeffx <= s_ff_coeffx0; mem_st0_coeffy <= s_ff_coeffy1; end
@@ -241,14 +246,14 @@ module jelly_bilinear_unit
 	end
 	
 	
-	assign	mem_cke    = ((!m_mem_arvalid || m_mem_rready);
+	assign	mem_cke    = (!m_mem_arvalid || m_mem_rready);
 	
 	assign	s_ff_ready = mem_cke && (mem_st0_phase == 2'b11);
 	
-	assign	m_mem_arcoeff = st3_coeff;
-	assign	m_mem_araddrx = st3_x;
-	assign	m_mem_araddry = st3_y;
-	assign	m_mem_arvalid = st3_valid;
+	assign	m_mem_arcoeff = mem_st3_coeff;
+	assign	m_mem_araddrx = mem_st3_x;
+	assign	m_mem_araddry = mem_st3_y;
+	assign	m_mem_arvalid = mem_st3_valid;
 	
 	
 	
@@ -257,7 +262,7 @@ module jelly_bilinear_unit
 	//  accumulate
 	// -------------------------------------
 	
-	wire		acc_cke = M_REGS ? m_ff_ready : (!m_ff_valid || m_ff_ready);
+	wire									acc_cke;
 	
 	reg		[1:0]							m_rphase;
 	
@@ -291,7 +296,7 @@ module jelly_bilinear_unit
 		else if ( acc_cke && cke ) begin
 			// read stage
 			if ( m_mem_rvalid && m_mem_rready ) begin
-				acc_st0_phase <= m_rphase + 1'b1;
+				m_rphase <= m_rphase + 1'b1;
 			end
 			
 			
@@ -308,7 +313,7 @@ module jelly_bilinear_unit
 				
 				acc_st0_coeff <= m_mem_rcoeff;
 				
-				if ( m_rphase == 2'b11)) begin
+				if ( m_rphase == 2'b11 ) begin
 					acc_st0_valid <= 1'b1;
 				end
 			end
@@ -330,7 +335,8 @@ module jelly_bilinear_unit
 	
 	genvar	i;
 	
-	for ( i = 0; i < COMPONENT_NUM; i = i+1 ) begin
+	generate
+	for ( i = 0; i < COMPONENT_NUM; i = i+1 ) begin : loop_dsp
 		
 		wire	[COEFF_WIDTH+DATA_WIDTH-1:0]	acc_st3_p;
 		
@@ -369,7 +375,7 @@ module jelly_bilinear_unit
 					.cke_m			(acc_cke & cke),
 					.cke_p			(acc_cke & cke),
 					
-					.op_load		(acc_st0_rload),
+					.op_load		(acc_st0_load),
 					.alu_sub		(1'b0),
 					
 					.a				(acc_st0_coeff),
@@ -383,12 +389,51 @@ module jelly_bilinear_unit
 		
 		assign acc_st3_data[i*DATA_WIDTH +: DATA_WIDTH] = (acc_st3_p >> COEFF_WIDTH);
 	end
+	endgenerate
+
+	assign acc_cke      = M_REGS ? m_ff_ready : (!m_ff_valid || m_ff_ready);
+
+	assign m_mem_rready = acc_cke;
+	
+	assign m_ff_data    = acc_st3_data;
+	assign m_ff_valid   = acc_st3_valid;
 	
 	
-	assign m_data  = acc_st3_data;
-	assign m_valid = acc_st3_valid;
 	
+	// -------------------------------------
+	//  User data
+	// -------------------------------------
 	
+	generate
+	if ( USER_WIDTH > 0 ) begin : blk_user
+		jelly_fifo_fwtf
+				#(
+					.DATA_WIDTH		(USER_WIDTH),
+					.PTR_WIDTH		(USER_FIFO_PTR_WIDTH),
+					.DOUT_REGS		(0),
+					.RAM_TYPE		(USER_FIFO_RAM_TYPE),
+					.MASTER_REGS	(USER_FIFO_M_REGS)
+				)
+			jelly_fifo_fwtf
+				(
+					.reset			(reset),
+					.clk			(clk),
+					
+					.s_data			(s_user),
+					.s_valid		(cke & s_valid & s_ready),
+					.s_ready		(),
+					.s_free_count	(),
+					
+					.m_data			(m_user),
+					.m_valid		(),
+					.m_ready		(cke & m_valid & m_ready),
+					.m_data_count	()
+				);
+	end
+	else begin
+		assign m_user = 1'bx;
+	end
+	endgenerate
 	
 	
 endmodule
