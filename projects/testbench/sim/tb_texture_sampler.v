@@ -38,7 +38,8 @@ module tb_texture_sampler();
 	
 	parameter	SAMPLER1D_NUM                 = 0;
 	
-	parameter	SAMPLER2D_NUM                 = 4*4;
+//	parameter	SAMPLER2D_NUM                 = 4*4;
+	parameter	SAMPLER2D_NUM                 = 32*2;
 	parameter	SAMPLER2D_USER_WIDTH          = 0;
 	parameter	SAMPLER2D_X_INT_WIDTH         = ADDR_X_WIDTH;
 	parameter	SAMPLER2D_X_FRAC_WIDTH        = 4;

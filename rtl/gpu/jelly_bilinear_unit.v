@@ -152,10 +152,17 @@ module jelly_bilinear_unit
 	assign {s_ff_x_int, s_ff_x_frac} = s_ff_x;
 	assign {s_ff_y_int, s_ff_y_frac} = s_ff_y;
 	
+	// バイリニア
 	assign s_ff_coeffx0 = {1'b1, {X_FRAC_WIDTH{1'b0}}} - s_ff_x_frac;
 	assign s_ff_coeffx1 = {1'b0, s_ff_x_frac};
 	assign s_ff_coeffy0 = {1'b1, {Y_FRAC_WIDTH{1'b0}}} - s_ff_y_frac;
 	assign s_ff_coeffy1 = {1'b0, s_ff_y_frac};
+	
+	// ニアレストネイバー(実験)
+//	assign s_ff_coeffx0 = {1'b1, {X_FRAC_WIDTH{1'b0}}};
+//	assign s_ff_coeffx1 = 0;
+//	assign s_ff_coeffy0 = {1'b1, {Y_FRAC_WIDTH{1'b0}}};
+//	assign s_ff_coeffy1 = 0;
 	
 	wire									mem_cke;
 	
