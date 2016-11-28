@@ -41,7 +41,11 @@ module jelly_texture_cache_unit
 			parameter	M_ADDR_Y_WIDTH       = S_ADDR_Y_WIDTH,
 			
 			parameter	USE_BORDER           = 1,
-			parameter	BORDER_DATA          = {S_DATA_WIDTH{1'b0}}
+			parameter	BORDER_DATA          = {S_DATA_WIDTH{1'b0}},
+			
+			parameter	LOG_ENABLE           = 0,
+			parameter	LOG_FILE             = "cache_log.txt",
+			parameter	LOG_ID               = 0         
 		)
 		(
 			input	wire							reset,
@@ -120,7 +124,11 @@ module jelly_texture_cache_unit
 				.BLK_X_SIZE				(BLK_X_SIZE),
 				.BLK_Y_SIZE				(BLK_Y_SIZE),
 				.RAM_TYPE				(TAG_RAM_TYPE),
-				.USE_BORDER				(USE_BORDER)
+				.USE_BORDER				(USE_BORDER),
+				
+				.LOG_ENABLE				(LOG_ENABLE),
+				.LOG_FILE				(LOG_FILE),
+				.LOG_ID					(LOG_ID)
 			)
 		i_texture_cache_tag
 			(

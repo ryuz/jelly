@@ -26,7 +26,7 @@ module jelly_texture_sampler
 			
 			parameter	SAMPLER1D_NUM                 = 0,
 			
-			parameter	SAMPLER2D_NUM                 = 128,
+			parameter	SAMPLER2D_NUM                 = 16,
 			parameter	SAMPLER2D_USER_WIDTH          = 0,
 			parameter	SAMPLER2D_X_INT_WIDTH         = ADDR_X_WIDTH,
 			parameter	SAMPLER2D_X_FRAC_WIDTH        = 4,
@@ -55,8 +55,8 @@ module jelly_texture_sampler
 			parameter	L1_MEM_RAM_TYPE               = "block",
 			parameter	L1_DATA_WIDE_SIZE             = 2,
 			
-			parameter	L2_CACHE_X_SIZE               = 2,
-			parameter	L2_CACHE_Y_SIZE               = 2,
+			parameter	L2_CACHE_X_SIZE               = 1,
+			parameter	L2_CACHE_Y_SIZE               = 1,
 			parameter	L2_CACHE_NUM                  = (1 << (L2_CACHE_X_SIZE + L2_CACHE_Y_SIZE)),
 			parameter	L2_TAG_ADDR_WIDTH             = 6,
 			parameter	L2_BLK_X_SIZE                 = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
@@ -80,7 +80,14 @@ module jelly_texture_sampler
 			parameter	M_AXI4_ARREGION               = 4'b0000,
 			parameter	M_AXI4_REGS                   = 1,
 			
-			parameter	DEVICE                        = "RTL"
+			parameter	DEVICE                        = "7SERIES",	// "RTL",
+
+			parameter	L1_LOG_ENABLE                 = 0,
+			parameter	L1_LOG_FILE                   = "l1_log.txt",
+			parameter	L1_LOG_ID                     = 0,
+			parameter	L2_LOG_ENABLE                 = 0,
+			parameter	L2_LOG_FILE                   = "l2_log.txt",
+			parameter	L2_LOG_ID                     = 0
 		)
 		(
 			// system
@@ -265,7 +272,14 @@ module jelly_texture_sampler
 				.M_AXI4_ARREGION		(M_AXI4_ARREGION),
 				.M_AXI4_REGS			(M_AXI4_REGS),
 				                         
-				.ADDR_WIDTH				(ADDR_WIDTH)
+				.ADDR_WIDTH				(ADDR_WIDTH),
+				
+				.L1_LOG_ENABLE			(L1_LOG_ENABLE),
+				.L1_LOG_FILE			(L1_LOG_FILE),
+				.L1_LOG_ID				(L1_LOG_ID),
+				.L2_LOG_ENABLE			(L2_LOG_ENABLE),
+				.L2_LOG_FILE			(L2_LOG_FILE),
+				.L2_LOG_ID				(L2_LOG_ID)
 			)
 		i_texture_cache_core
 			(

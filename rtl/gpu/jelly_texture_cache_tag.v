@@ -37,7 +37,11 @@ module jelly_texture_cache_tag
 			
 			parameter	RAM_TYPE         = "distributed",
 			
-			parameter	USE_BORDER       = 1
+			parameter	USE_BORDER       = 1,
+			
+			parameter	LOG_ENABLE       = 0,
+			parameter	LOG_FILE         = "cache_log.txt",
+			parameter	LOG_ID           = 0         
 		)
 		(
 			input	wire							reset,
@@ -66,6 +70,14 @@ module jelly_texture_cache_tag
 			output	wire							m_valid,
 			input	wire							m_ready
 		);
+	
+	
+	// debug
+	integer	iTAG_ADDR_WIDTH   = TAG_ADDR_WIDTH;
+	integer	iTAG_X_RSHIFT     = TAG_X_RSHIFT;
+	integer	iTAG_X_LSHIFT     = TAG_X_LSHIFT;
+	integer	iTAG_Y_RSHIFT     = TAG_Y_RSHIFT;
+	integer	iTAG_Y_LSHIFT     = TAG_Y_LSHIFT;
 	
 	
 	
@@ -273,6 +285,41 @@ module jelly_texture_cache_tag
 	
 	assign s_ready = cke;
 	
+	
+	// Log
+	generate
+	if ( LOG_ENABLE ) begin : blk_log
+		integer	fp;
+		
+		initial begin
+			fp = $fopen(LOG_FILE, "w");
+			if ( fp != 0 ) begin
+				$fclose(fp);
+			end
+		end
+		
+		always @(posedge clk) begin
+			if ( !reset ) begin
+				if ( cke ) begin
+					if ( st1_valid && read_tag_enable && ({st1_blk_addry, st1_blk_addrx} != {read_blk_addry, read_blk_addrx}) ) begin
+						fp = $fopen(LOG_FILE, "a");
+						if ( fp != 0 ) begin
+							$fdisplay(fp, "[%d] tag:%h (%d, %d) <= (%d,%d)", LOG_ID, st1_tag_addr, st1_blk_addry, st1_blk_addrx, read_blk_addry, read_blk_addrx);
+						end
+						$fclose(fp);
+					end
+					else if ( st1_valid && !read_tag_enable ) begin
+						fp = $fopen(LOG_FILE, "a");
+						if ( fp != 0 ) begin
+							$fdisplay(fp, "[%d] tag:%h (%d, %d) ", LOG_ID, st1_tag_addr, st1_blk_addry, st1_blk_addrx);
+						end
+						$fclose(fp);
+					end
+				end
+			end
+		end
+	end
+	endgenerate
 	
 endmodule
 

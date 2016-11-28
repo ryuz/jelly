@@ -7,11 +7,12 @@ module tb_texture_sampler();
 	localparam RATE    = 1000.0/200.0;
 	
 	initial begin
-//		$dumpfile("tb_texture_sampler.vcd");
-//		$dumpvars(2, tb_texture_sampler);
-	#870000;
 		$dumpfile("tb_texture_sampler.vcd");
-		$dumpvars(0, tb_texture_sampler);
+		$dumpvars(2, tb_texture_sampler);
+
+//	#870000;
+//		$dumpfile("tb_texture_sampler.vcd");
+//		$dumpvars(0, tb_texture_sampler);
 		
 		#30000000;
 			$display("!!!!TIME OUT!!!!");
@@ -65,8 +66,8 @@ module tb_texture_sampler();
 	parameter	L1_MEM_RAM_TYPE               = "block";
 	parameter	L1_DATA_WIDE_SIZE             = 2;
 	
-	parameter	L2_CACHE_X_SIZE               = 2;
-	parameter	L2_CACHE_Y_SIZE               = 2;
+	parameter	L2_CACHE_X_SIZE               = 1;
+	parameter	L2_CACHE_Y_SIZE               = 1;
 	parameter	L2_CACHE_NUM                  = (1 << (L2_CACHE_X_SIZE + L2_CACHE_Y_SIZE));
 	parameter	L2_TAG_ADDR_WIDTH             = 6;
 	parameter	L2_BLK_X_SIZE                 = 3;	// 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
@@ -139,6 +140,8 @@ module tb_texture_sampler();
 	
 	wire		[SAMPLER2D_Y_WIDTH-1:0]				src_x_tmp = m00 * src_x + m01 * src_y + m02;
 	wire		[SAMPLER2D_X_WIDTH-1:0]				src_y_tmp = m10 * src_x + m11 * src_y + m12;
+//	wire		[SAMPLER2D_Y_WIDTH-1:0]				src_x_tmp = 16 * src_x;
+//	wire		[SAMPLER2D_X_WIDTH-1:0]				src_y_tmp = 16 * src_y;
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
@@ -330,7 +333,10 @@ module tb_texture_sampler();
 				.M_AXI4_ARREGION				(M_AXI4_ARREGION),
 				.M_AXI4_REGS					(M_AXI4_REGS),
 				
-				.DEVICE							(DEVICE)
+				.DEVICE							(DEVICE),
+				
+				.L1_LOG_ENABLE					(0),
+				.L2_LOG_ENABLE					(1)
 			)
 		i_texture_sampler
 			(
@@ -453,7 +459,24 @@ module tb_texture_sampler();
 			);
 	
 	
+	integer		read_num		[0:24'hff_ffff];
+	integer		n;
+	initial begin
+		for ( n = 0; n <= 24'hff_ffff; n = n+1 ) begin
+			read_num[n] = 0;
+		end
+	end
 	
+	always @(posedge clk) begin
+		if ( !reset ) begin
+			if ( axi4_arvalid && axi4_arready ) begin
+				if ( read_num[axi4_araddr] != 0 ) begin
+					$display("%h : %d", axi4_araddr, read_num[axi4_araddr]);
+				end
+				read_num[axi4_araddr] = read_num[axi4_araddr] + 1;
+			end
+		end
+	end
 	
 endmodule
 

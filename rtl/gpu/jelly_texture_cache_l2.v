@@ -52,7 +52,11 @@ module jelly_texture_cache_l2
 			parameter	M_AXI4_ARPROT        = 3'b000,
 			parameter	M_AXI4_ARQOS         = 0,
 			parameter	M_AXI4_ARREGION      = 4'b0000,
-			parameter	M_AXI4_REGS          = 1
+			parameter	M_AXI4_REGS          = 1,
+			
+			parameter	LOG_ENABLE           = 0,
+			parameter	LOG_FILE             = "cache_log.txt",
+			parameter	LOG_ID               = 0         
 		)
 		(
 			input	wire											reset,
@@ -192,7 +196,11 @@ module jelly_texture_cache_l2
 				.S_ADDR_X_WIDTH			(S_ADDR_X_WIDTH),
 				.S_ADDR_Y_WIDTH			(S_ADDR_Y_WIDTH),
 				
-				.M_DATA_WIDE_SIZE		(M_DATA_WIDE_SIZE)
+				.M_DATA_WIDE_SIZE		(M_DATA_WIDE_SIZE),
+				
+				.LOG_ENABLE				(LOG_ENABLE),
+				.LOG_FILE				(LOG_FILE),
+				.LOG_ID					(LOG_ID + i)
 			)
 		i_texture_cache_unit
 			(

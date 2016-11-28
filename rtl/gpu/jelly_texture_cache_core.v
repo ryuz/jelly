@@ -61,7 +61,14 @@ module jelly_texture_cache_core
 			parameter	M_AXI4_ARREGION      = 4'b0000,
 			parameter	M_AXI4_REGS          = 1,
 			
-			parameter	ADDR_WIDTH           = 24
+			parameter	ADDR_WIDTH           = 24,
+
+			parameter	L1_LOG_ENABLE        = 0,
+			parameter	L1_LOG_FILE          = "l1_log.txt",
+			parameter	L1_LOG_ID            = 0,
+			parameter	L2_LOG_ENABLE        = 0,
+			parameter	L2_LOG_FILE          = "l2_log.txt",
+			parameter	L2_LOG_ID            = 0         
 		)
 		(
 			input	wire											reset,
@@ -197,10 +204,14 @@ module jelly_texture_cache_core
 				
 				.M_DATA_WIDE_SIZE		(L1_DATA_WIDE_SIZE),
 				.M_NUM					(L2_CACHE_NUM),
-				.M_ID_X_RSHIFT			(L2_BLK_X_SIZE),
+				.M_ID_X_RSHIFT			(L2_BLK_X_SIZE - L1_DATA_WIDE_SIZE),
 				.M_ID_X_LSHIFT			(0),
 				.M_ID_Y_RSHIFT			(L2_BLK_X_SIZE),
-				.M_ID_Y_LSHIFT			(L2_ID_WIDTH/2)
+				.M_ID_Y_LSHIFT			(L2_ID_WIDTH/2),
+				
+				.LOG_ENABLE				(L1_LOG_ENABLE),
+				.LOG_FILE				(L1_LOG_FILE),
+				.LOG_ID					(L1_LOG_ID)
 			)
 		i_texture_cache_l1
 			(
@@ -319,7 +330,11 @@ module jelly_texture_cache_core
 				.M_AXI4_ARPROT			(M_AXI4_ARPROT),
 				.M_AXI4_ARQOS			(M_AXI4_ARQOS),
 				.M_AXI4_ARREGION		(M_AXI4_ARREGION),
-				.M_AXI4_REGS			(M_AXI4_REGS)
+				.M_AXI4_REGS			(M_AXI4_REGS),
+				
+				.LOG_ENABLE				(L2_LOG_ENABLE),
+				.LOG_FILE				(L2_LOG_FILE),
+				.LOG_ID					(L2_LOG_ID)
 			)
 		i_texture_cache_l2
 			(
@@ -329,7 +344,7 @@ module jelly_texture_cache_core
 				.endian					(endian),
 				                         
 				.param_addr				(param_addr),
-				.param_width			(param_width),
+				.param_width			(param_width[ADDR_X_WIDTH-1:L1_DATA_WIDE_SIZE]),
 				.param_height			(param_height),
 				.param_stride			(param_stride),
 				.param_arlen			(param_arlen),

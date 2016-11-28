@@ -48,7 +48,11 @@ module jelly_texture_cache_l1
 			parameter	M_ID_Y_LSHIFT        = 1,
 			parameter	M_DATA_WIDTH         = (S_DATA_WIDTH << M_DATA_WIDE_SIZE),
 			parameter	M_ADDR_X_WIDTH       = S_ADDR_X_WIDTH - M_DATA_WIDE_SIZE,
-			parameter	M_ADDR_Y_WIDTH       = S_ADDR_Y_WIDTH
+			parameter	M_ADDR_Y_WIDTH       = S_ADDR_Y_WIDTH,
+			
+			parameter	LOG_ENABLE           = 0,
+			parameter	LOG_FILE             = "cache_log.txt",
+			parameter	LOG_ID               = 0         
 		)
 		(
 			input	wire									reset,
@@ -174,7 +178,11 @@ module jelly_texture_cache_l1
 					.BORDER_DATA			(BORDER_DATA),
 					
 					.TAG_RAM_TYPE			(TAG_RAM_TYPE),
-					.MEM_RAM_TYPE			(MEM_RAM_TYPE)
+					.MEM_RAM_TYPE			(MEM_RAM_TYPE),
+					
+					.LOG_ENABLE				(LOG_ENABLE),
+					.LOG_FILE				(LOG_FILE),
+					.LOG_ID					(LOG_ID + i)
 				)
 			i_texture_cache_unit
 				(
