@@ -501,7 +501,7 @@ module jelly_texture_cache_l2
 	assign dma_arid           = st1_dma_arid;
 	assign dma_araddr         = st1_dma_araddr;
 	assign dma_arvalid        = st1_dma_arvalid;
-	assign ringbus_arready    = dma_arready;
+	assign ringbus_arready    = (!dma_arvalid || dma_arready);
 	
 	assign ringbus_rid        = dma_rid;
 	assign ringbus_rlast      = dma_rlast;

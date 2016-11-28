@@ -8,7 +8,10 @@ module tb_texture_sampler();
 	
 	initial begin
 //		$dumpfile("tb_texture_sampler.vcd");
-//		$dumpvars(0, tb_texture_sampler);
+//		$dumpvars(2, tb_texture_sampler);
+	#870000;
+		$dumpfile("tb_texture_sampler.vcd");
+		$dumpvars(0, tb_texture_sampler);
 		
 		#30000000;
 			$display("!!!!TIME OUT!!!!");
@@ -34,7 +37,7 @@ module tb_texture_sampler();
 	
 	parameter	SAMPLER1D_NUM                 = 0;
 	
-	parameter	SAMPLER2D_NUM                 = 4;
+	parameter	SAMPLER2D_NUM                 = 4*4;
 	parameter	SAMPLER2D_USER_WIDTH          = 0;
 	parameter	SAMPLER2D_X_INT_WIDTH         = ADDR_X_WIDTH;
 	parameter	SAMPLER2D_X_FRAC_WIDTH        = 4;
@@ -44,7 +47,6 @@ module tb_texture_sampler();
 	parameter	SAMPLER2D_COEFF_FRAC_WIDTH    = SAMPLER2D_X_FRAC_WIDTH + SAMPLER2D_Y_FRAC_WIDTH;
 	parameter	SAMPLER2D_S_REGS              = 1;
 	parameter	SAMPLER2D_M_REGS              = 1;
-//	parameter	SAMPLER2D_DEVICE              = "7SERIES";
 	parameter	SAMPLER2D_USER_FIFO_PTR_WIDTH = 6;
 	parameter	SAMPLER2D_USER_FIFO_RAM_TYPE  = "distributed";
 	parameter	SAMPLER2D_USER_FIFO_M_REGS    = 0;
@@ -56,17 +58,16 @@ module tb_texture_sampler();
 	parameter	SAMPLER3D_NUM                 = 0;
 	
 	parameter	L1_CACHE_NUM                  = SAMPLER1D_NUM + SAMPLER2D_NUM + SAMPLER3D_NUM;
-	parameter	L2_CACHE_X_SIZE               = 1;
-	parameter	L2_CACHE_Y_SIZE               = 1;
-	parameter	L2_CACHE_NUM                  = (1 << (L2_CACHE_X_SIZE + L2_CACHE_Y_SIZE));
-	
 	parameter	L1_TAG_ADDR_WIDTH             = 6;
 	parameter	L1_BLK_X_SIZE                 = 2;	// 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
 	parameter	L1_BLK_Y_SIZE                 = 2;	// 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
 	parameter	L1_TAG_RAM_TYPE               = "distributed";
 	parameter	L1_MEM_RAM_TYPE               = "block";
-	parameter	L1_DATA_WIDE_SIZE             = 1;
+	parameter	L1_DATA_WIDE_SIZE             = 2;
 	
+	parameter	L2_CACHE_X_SIZE               = 2;
+	parameter	L2_CACHE_Y_SIZE               = 2;
+	parameter	L2_CACHE_NUM                  = (1 << (L2_CACHE_X_SIZE + L2_CACHE_Y_SIZE));
 	parameter	L2_TAG_ADDR_WIDTH             = 6;
 	parameter	L2_BLK_X_SIZE                 = 3;	// 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
 	parameter	L2_BLK_Y_SIZE                 = 3;	// 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
@@ -98,63 +99,6 @@ module tb_texture_sampler();
 	
 	
 	
-	/*
-	
-	integer		fp0, fp1, fp2, fp3;
-	integer		fp0l, fp1l;
-	initial begin
-		fp0 = $fopen("out0.ppm");
-		$fdisplay(fp0, "P3");
-		$fdisplay(fp0, "160 480");
-		$fdisplay(fp0, "255");
-		
-		fp1 = $fopen("out1.ppm");
-		$fdisplay(fp1, "P3");
-		$fdisplay(fp1, "160 640");
-		$fdisplay(fp1, "255");
-		
-		fp2 = $fopen("out2.ppm");
-		$fdisplay(fp2, "P3");
-		$fdisplay(fp2, "160 640");
-		$fdisplay(fp2, "255");
-		
-		fp3 = $fopen("out3.ppm");
-		$fdisplay(fp3, "P3");
-		$fdisplay(fp3, "160 640");
-		$fdisplay(fp3, "255");
-		
-//		fp0l = $fopen("out0.txt");
-		
-		$display("file open");
-	end
-	
-	always @(posedge clk) begin
-		if ( !reset ) begin
-			if ( s_rvalid[0] && s_rready[0] ) begin
-				$fdisplay(fp0,  "%d %d %d", s_rdata[7:0], s_rdata[15:8], s_rdata[23:16]);
-//				$fdisplay(fp0l, "%x", s_rdata[23:0]);
-			end
-			
-			if ( s_rvalid[1] && s_rready[1] ) begin
-				$fdisplay(fp1,  "%d %d %d", s_rdata[24*1+0 +: 8], s_rdata[24*1+8 +: 8], s_rdata[24*1+16 +: 8]);
-			end
-			
-			if ( s_rvalid[2] && s_rready[2] ) begin
-				$fdisplay(fp2,  "%d %d %d", s_rdata[24*2+0 +: 8], s_rdata[24*2+8 +: 8], s_rdata[24*2+16 +: 8]);
-			end
-			
-			if ( s_rvalid[3] && s_rready[3] ) begin
-				$fdisplay(fp3,  "%d %d %d", s_rdata[24*3+0 +: 8], s_rdata[24*3+8 +: 8], s_rdata[24*3+16 +: 8]);
-			end
-			
-	//		if ( s_rvalid[1] && s_rready[1] ) begin
-	//			$fdisplay(fp1, "%d %d %d", s_rdata[31:24], s_rdata[39:32], s_rdata[47:40]);
-	//		end
-		end
-	end
-	
-	*/
-	
 	// 2D sampler
 	wire	[SAMPLER2D_NUM*SAMPLER2D_USER_BITS-1:0]			s_sampler2d_user;
 	wire	[SAMPLER2D_NUM*SAMPLER2D_X_WIDTH-1:0]			s_sampler2d_x;
@@ -181,9 +125,20 @@ module tb_texture_sampler();
 	wire	[COMPONENT_NUM*DATA_WIDTH-1:0]			sink_data;
 	wire											sink_valid;
 	reg												sink_ready = 1;
-
-	wire		[SAMPLER2D_Y_WIDTH-1:0]				src_x_tmp = (src_x << 4);
-	wire		[SAMPLER2D_X_WIDTH-1:0]				src_y_tmp = (src_y << 4);
+	
+	integer		m00, m01, m02;
+	integer		m10, m11, m12;
+	initial begin
+		m00 = $rtoi(16 *  0.7071);
+		m01 = $rtoi(16 * -0.7071);
+		m02 = $rtoi(16 * 263.42);
+		m10 = $rtoi(16 * 0.7071);
+		m11 = $rtoi(16 * 0.707);
+		m12 = $rtoi(16 * -155.97);
+	end
+	
+	wire		[SAMPLER2D_Y_WIDTH-1:0]				src_x_tmp = m00 * src_x + m01 * src_y + m02;
+	wire		[SAMPLER2D_X_WIDTH-1:0]				src_y_tmp = m10 * src_x + m11 * src_y + m12;
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
@@ -214,7 +169,8 @@ module tb_texture_sampler();
 				.PORT_NUM		(SAMPLER2D_NUM),
 				.DATA_WIDTH		(SAMPLER2D_Y_WIDTH+SAMPLER2D_X_WIDTH),
 				.LINE_SIZE		(LINE_SIZE),
-				.UNIT_SIZE		(UNIT_SIZE)
+				.UNIT_SIZE		(UNIT_SIZE),
+				.FIFO_PTR_WIDTH	(12)
 			)
 		i_data_scatter
 			(
@@ -244,7 +200,8 @@ module tb_texture_sampler();
 				.PORT_NUM		(SAMPLER2D_NUM),
 				.DATA_WIDTH		(COMPONENT_NUM*DATA_WIDTH),
 				.LINE_SIZE		(LINE_SIZE),
-				.UNIT_SIZE		(UNIT_SIZE)
+				.UNIT_SIZE		(UNIT_SIZE),
+				.FIFO_PTR_WIDTH	(12)
 			)
 		i_data_gather
 			(
@@ -402,8 +359,6 @@ module tb_texture_sampler();
 				.m_sampler2d_valid				(m_sampler2d_valid),
 				.m_sampler2d_ready				(m_sampler2d_ready),
 				
-				
-				
 				.m_axi4_arid					(axi4_arid),
 				.m_axi4_araddr					(axi4_araddr),
 				.m_axi4_arlen					(axi4_arlen),
@@ -437,8 +392,8 @@ module tb_texture_sampler();
 				.WRITE_LOG_FILE					(""),
 				.READ_LOG_FILE					("axi4_read.txt"),
 				
-				.AW_DELAY						(20),
-				.AR_DELAY						(20),
+				.AW_DELAY						(0),
+				.AR_DELAY						(0),
 				
 				.AW_FIFO_PTR_WIDTH				(4),
 				.W_FIFO_PTR_WIDTH				(4),
@@ -446,11 +401,11 @@ module tb_texture_sampler();
 				.AR_FIFO_PTR_WIDTH				(4),
 				.R_FIFO_PTR_WIDTH				(4),
 				
-				.AW_BUSY_RATE					(50),
-				.W_BUSY_RATE					(50),
-				.B_BUSY_RATE					(50),
-				.AR_BUSY_RATE					(50),
-				.R_BUSY_RATE					(50)
+				.AW_BUSY_RATE					(0),
+				.W_BUSY_RATE					(0),
+				.B_BUSY_RATE					(0),
+				.AR_BUSY_RATE					(0),
+				.R_BUSY_RATE					(0)
 			)
 		i_axi4_slave_model
 			(
