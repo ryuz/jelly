@@ -106,8 +106,9 @@ module jelly_data_multiplexer
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
-			reg_sel  <= {SEL_WIDTH{1'b0}};
-			reg_data <= {(NUM*DATA_WIDTH){1'bx}};
+			reg_sel   <= {SEL_WIDTH{1'b0}};
+			reg_data  <= {(NUM*DATA_WIDTH){1'bx}};
+			reg_valid <= 1'b0;
 		end
 		else begin
 			if ( cke && (!m_valid || m_ready) ) begin
