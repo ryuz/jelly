@@ -136,6 +136,8 @@ module jelly_texture_cache_l2
 	localparam	M_ADDR_X_WIDTH       = S_ADDR_X_WIDTH - M_DATA_WIDE_SIZE;
 	localparam	M_ADDR_Y_WIDTH       = S_ADDR_Y_WIDTH;
 	
+
+	genvar	i;
 	
 	// -----------------------------
 	//  L2 Cahce
@@ -147,6 +149,7 @@ module jelly_texture_cache_l2
 	
 	wire	[S_NUM-1:0]						cache_clear_busy;
 	
+	/*
 	wire	[(S_NUM+1)-1:0]					ringbus_ar_id_to;
 	wire	[(S_NUM+1)*ID_WIDTH-1:0]		ringbus_ar_id_from;
 	wire	[(S_NUM+1)*AR_DATA_WIDTH-1:0]	ringbus_ar_data;
@@ -156,24 +159,59 @@ module jelly_texture_cache_l2
 	wire	[(S_NUM+1)-1:0]					ringbus_r_id_from;
 	wire	[(S_NUM+1)*R_DATA_WIDTH-1:0]	ringbus_r_data;
 	wire	[(S_NUM+1)-1:0]					ringbus_r_valid;
+	*/
+
+	// cache
+	localparam	AR_PACKET_WIDTH = M_ADDR_X_WIDTH + M_ADDR_Y_WIDTH;
+	localparam	R_PACKET_WIDTH  = 1 + COMPONENT_SEL_WIDTH + M_AXI4_DATA_WIDTH;
 	
-	genvar	i;
+	wire	[S_NUM*AR_PACKET_WIDTH-1:0]		m_arpacket;
+	wire	[S_NUM*M_ADDR_X_WIDTH-1:0]		m_araddrx;
+	wire	[S_NUM*M_ADDR_Y_WIDTH-1:0]		m_araddry;
+	wire	[S_NUM-1:0]						m_arvalid;
+	wire	[S_NUM-1:0]						m_arready;
+	
+	wire	[S_NUM*R_PACKET_WIDTH-1:0]		m_rpacket;
+	wire	[S_NUM-1:0]						m_rlast;
+	wire	[S_NUM*COMPONENT_SEL_WIDTH-1:0]	m_rcomponent;
+	wire	[S_NUM*COMPONENT_NUM-1:0]		m_rstrb;
+	wire	[S_NUM*M_AXI4_DATA_WIDTH-1:0]	m_rdata;
+	wire	[S_NUM-1:0]						m_rvalid;
+	wire	[S_NUM-1:0]						m_rready;
 	
 	generate
 	for ( i = 0; i < S_NUM; i = i+1 ) begin : cahce_loop
+
 		
 		// cache
-		wire	[M_ADDR_X_WIDTH-1:0]		m_araddrx;
-		wire	[M_ADDR_Y_WIDTH-1:0]		m_araddry;
-		wire								m_arvalid;
-		wire								m_arready;
+//		wire	[M_ADDR_X_WIDTH-1:0]		m_araddrx;
+//		wire	[M_ADDR_Y_WIDTH-1:0]		m_araddry;
+//		wire								m_arvalid;
+//		wire								m_arready;
 		
-		wire								m_rlast;
-		wire	[COMPONENT_SEL_WIDTH-1:0]	m_rcomponent;
-		wire	[COMPONENT_NUM-1:0]			m_rstrb = (1 << m_rcomponent);
-		wire	[M_AXI4_DATA_WIDTH-1:0]		m_rdata;
-		wire								m_rvalid;
-		wire								m_rready;
+//		wire								m_rlast;
+//		wire	[COMPONENT_SEL_WIDTH-1:0]	m_rcomponent;
+//		wire	[COMPONENT_NUM-1:0]			m_rstrb = (1 << m_rcomponent);
+//		wire	[M_AXI4_DATA_WIDTH-1:0]		m_rdata;
+//		wire								m_rvalid;
+//		wire								m_rready;
+
+		assign	m_rstrb[i*COMPONENT_NUM +: COMPONENT_NUM] = (1 << m_rcomponent[i*COMPONENT_SEL_WIDTH +: COMPONENT_SEL_WIDTH]);
+
+		// ar pack
+		assign m_arpacket[i*AR_PACKET_WIDTH +: AR_PACKET_WIDTH] =
+				{
+					m_araddrx[i*M_ADDR_X_WIDTH +: M_ADDR_X_WIDTH],
+					m_araddry[i*M_ADDR_Y_WIDTH +: M_ADDR_Y_WIDTH]
+				};
+		
+		// r unpack
+		assign {
+					m_rlast     [i],
+					m_rcomponent[i*COMPONENT_SEL_WIDTH +: COMPONENT_SEL_WIDTH],
+					m_rdata     [i*M_AXI4_DATA_WIDTH   +: M_AXI4_DATA_WIDTH]
+				}
+					= m_rpacket[i*R_PACKET_WIDTH +: R_PACKET_WIDTH];
 		
 		jelly_texture_cache_unit
 			#(
@@ -226,19 +264,19 @@ module jelly_texture_cache_l2
 				.s_rvalid				(s_rvalid [i]),
 				.s_rready				(s_rready [i]),
 				
-				.m_araddrx				(m_araddrx),
-				.m_araddry				(m_araddry),
-				.m_arvalid				(m_arvalid),
-				.m_arready				(m_arready),
+				.m_araddrx				(m_araddrx[i*M_ADDR_X_WIDTH +: M_ADDR_X_WIDTH]),
+				.m_araddry				(m_araddry[i*M_ADDR_Y_WIDTH +: M_ADDR_Y_WIDTH]),
+				.m_arvalid				(m_arvalid[i]),
+				.m_arready				(m_arready[i]),
 				
-				.m_rlast				(m_rlast),
-				.m_rstrb				(m_rstrb),
-				.m_rdata				({COMPONENT_NUM{m_rdata}}),
-				.m_rvalid				(m_rvalid),
-				.m_rready				(m_rready)
+				.m_rlast				(m_rlast  [i]),
+				.m_rstrb				(m_rstrb  [i*COMPONENT_NUM  +: COMPONENT_NUM]),
+				.m_rdata				({COMPONENT_NUM{m_rdata[i*M_AXI4_DATA_WIDTH +: M_AXI4_DATA_WIDTH]}}),
+				.m_rvalid				(m_rvalid [i]),
+				.m_rready				(m_rready [i])
 			);
 		
-		
+		/*
 		jelly_ring_bus_unit
 				#(
 					.DATA_WIDTH			(AR_DATA_WIDTH),
@@ -308,9 +346,11 @@ module jelly_texture_cache_l2
 					.sink_data			(ringbus_r_data   [(i+0)*R_DATA_WIDTH +: R_DATA_WIDTH]),
 					.sink_valid			(ringbus_r_valid  [(i+0)])
 				);
+		*/
 	end
 	endgenerate
 	
+	/*
 	
 	// ring-bus
 	wire	[ID_WIDTH-1:0]				ringbus_arid;
@@ -395,15 +435,78 @@ module jelly_texture_cache_l2
 					.sink_data			(ringbus_r_data   [S_NUM*R_DATA_WIDTH +: R_DATA_WIDTH]),
 					.sink_valid			(ringbus_r_valid  [S_NUM])
 				);
+	*/
+	
+	
+	
+	// ringbus
+	wire	[ID_WIDTH-1:0]				ringbus_arid;
+	wire	[AR_PACKET_WIDTH-1:0]		ringbus_arpacket;
+	wire	[M_ADDR_X_WIDTH-1:0]		ringbus_araddrx;
+	wire	[M_ADDR_Y_WIDTH-1:0]		ringbus_araddry;
+	wire								ringbus_arvalid;
+	wire								ringbus_arready;
+	
+	wire	[ID_WIDTH-1:0]				ringbus_rid;
+	wire	[R_PACKET_WIDTH-1:0]		ringbus_rpacket;
+	wire								ringbus_rlast;
+	wire	[COMPONENT_SEL_WIDTH-1:0]	ringbus_rcomponent;
+	wire	[M_AXI4_DATA_WIDTH-1:0]		ringbus_rdata;
+	wire								ringbus_rvalid;
+	wire								ringbus_rready;
+	
+	// ar unpack
+	assign	{ringbus_araddrx, ringbus_araddry} = ringbus_arpacket;
+	
+	// r pack
+	assign ringbus_rpacket = {ringbus_rlast, ringbus_rcomponent, ringbus_rdata};
+	
+	
+	jelly_ring_bus_arbiter_bidirection
+			#(
+				.S_NUM				(S_NUM),
+				.S_ID_WIDTH			(ID_WIDTH),
+				.M_NUM				(1),
+				.M_ID_WIDTH			(1),
+				.DOWN_DATA_WIDTH	(AR_PACKET_WIDTH),
+				.UP_DATA_WIDTH		(R_PACKET_WIDTH)
+			)
+		i_ring_bus_arbiter_bidirection
+			(
+				.reset				(reset),
+				.clk				(clk),
+				.cke				(1'b1),
+				
+				.s_down_id_to		(1'b0),
+				.s_down_data		(m_arpacket),
+				.s_down_valid		(m_arvalid),
+				.s_down_ready		(m_arready),
+				.s_up_id_from		(),
+				.s_up_data			(m_rpacket),
+				.s_up_valid			(m_rvalid),
+				.s_up_ready			(m_rready),
+				
+				.m_down_id_from		(ringbus_arid),
+				.m_down_data		(ringbus_arpacket),
+				.m_down_valid		(ringbus_arvalid),
+				.m_down_ready		(ringbus_arready),
+				.m_up_id_to			(ringbus_rid),
+				.m_up_data			(ringbus_rpacket),
+				.m_up_valid			(ringbus_rvalid),
+				.m_up_ready			(ringbus_rready)
+			);
+	
 	
 	
 	// DMA
 	wire	[ID_WIDTH-1:0]				dma_arid;
+//	wire	[AR_PACKET_WIDTH-1:0]		dma_arpacket;
 	wire	[ADDR_WIDTH-1:0]			dma_araddr;
 	wire								dma_arvalid;
 	wire								dma_arready;
 	
 	wire	[ID_WIDTH-1:0]				dma_rid;
+//	wire	[R_PACKET_WIDTH-1:0]		dma_rpacket;
 	wire								dma_rlast;
 	wire	[COMPONENT_SEL_WIDTH-1:0]	dma_rcomponent;
 	wire	[M_AXI4_DATA_WIDTH-1:0]		dma_rdata;
