@@ -184,6 +184,8 @@ module jelly_texture_cache_core
 	wire	[L2_CACHE_NUM-1:0]						m_rvalid;
 	wire	[L2_CACHE_NUM-1:0]						m_rready;
 	
+	wire											l1_clear_busy;
+	
 	jelly_texture_cache_l1
 			#(
 				.COMPONENT_NUM			(L1_COMPONENT_NUM),
@@ -221,7 +223,7 @@ module jelly_texture_cache_core
 				.endian					(endian),
 				
 				.clear_start			(clear_start),
-				.clear_busy				(clear_busy),
+				.clear_busy				(l1_clear_busy),
 				
 				.param_width			(param_width),
 				.param_height			(param_height),
@@ -289,6 +291,8 @@ module jelly_texture_cache_core
 	
 	
 	wire	[M_AXI4_LEN_WIDTH-1:0]	param_arlen = (1 << (L2_BLK_Y_SIZE + L2_BLK_X_SIZE + COMPONENT_DATA_SIZE - M_AXI4_DATA_SIZE)) - 1;
+
+	wire							l2_clear_busy;
 			
 	jelly_texture_cache_l2
 			#(
@@ -350,7 +354,7 @@ module jelly_texture_cache_core
 				.param_arlen			(param_arlen),
 				
 				.clear_start			(clear_start),
-				.clear_busy				(clear_busy),
+				.clear_busy				(l2_clear_busy),
 				
 				.s_aruser				(l2_aruser),
 				.s_araddrx				(m_araddrx),
@@ -383,6 +387,8 @@ module jelly_texture_cache_core
 				.m_axi4_rready			(m_axi4_rready)
 			);
 	
+	
+	assign clear_busy = (l1_clear_busy | l2_clear_busy);
 	
 endmodule
 

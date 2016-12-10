@@ -94,6 +94,8 @@ module jelly_texture_cache_l1
 			output	wire	[M_NUM-1:0]						m_rready
 		);
 	
+	genvar	i, j;
+	
 	
 	// -----------------------------
 	//  localparam
@@ -121,39 +123,39 @@ module jelly_texture_cache_l1
 	localparam	M_DATA_WIDE_NUM      = (1 << M_DATA_WIDE_SIZE);
 	
 	
+	localparam AR_PACKET_WIDTH = M_ADDR_X_WIDTH + M_ADDR_Y_WIDTH;
+	localparam R_PACKET_WIDTH  = 1 + M_DATA_WIDTH;
+	
+	
+	
 	// -----------------------------
-	//  L1 Cahce
+	//  Cahce
 	// -----------------------------
 	
-	localparam AR_DATA_WIDTH = M_ADDR_X_WIDTH + M_ADDR_Y_WIDTH;
-	localparam R_DATA_WIDTH  = 1 + M_DATA_WIDTH;
+	wire	[S_NUM-1:0]							cache_clear_busy;
+	assign clear_busy = cache_clear_busy[0];
 	
-	wire	[S_NUM-1:0]						cache_clear_busy;
 	
-	wire	[(S_NUM+1)*M_ID_WIDTH-1:0]		ringbus_l1_ar_id_to;
-	wire	[(S_NUM+1)*S_ID_WIDTH-1:0]		ringbus_l1_ar_id_from;
-	wire	[(S_NUM+1)*AR_DATA_WIDTH-1:0]	ringbus_l1_ar_data;
-	wire	[(S_NUM+1)-1:0]					ringbus_l1_ar_valid;
+	wire	[S_NUM*M_NUM*AR_PACKET_WIDTH-1:0]	cache_arpacket;
+	wire	[S_NUM*M_NUM-1:0]					cache_arvalid;
+	wire	[S_NUM*M_NUM-1:0]					cache_arready;
 	
-	wire	[(S_NUM+1)*S_ID_WIDTH-1:0]		ringbus_l1_r_id_to;
-	wire	[(S_NUM+1)*M_ID_WIDTH-1:0]		ringbus_l1_r_id_from;
-	wire	[(S_NUM+1)*R_DATA_WIDTH-1:0]	ringbus_l1_r_data;
-	wire	[(S_NUM+1)-1:0]					ringbus_l1_r_valid;
-	
-	genvar	i, j, k;
+	wire	[S_NUM*M_NUM*R_PACKET_WIDTH-1:0]	cache_rpacket;
+	wire	[S_NUM*M_NUM-1:0]					cache_rvalid;
+	wire	[S_NUM*M_NUM-1:0]					cache_rready;
 	
 	generate
-	for ( i = 0; i < S_NUM; i = i+1 ) begin : l1_loop
+	for ( i = 0; i < S_NUM; i = i+1 ) begin : loop_cache
 		// L1 cache
-		wire	[M_ADDR_X_WIDTH-1:0]	l1_araddrx;
-		wire	[M_ADDR_Y_WIDTH-1:0]	l1_araddry;
-		wire							l1_arvalid;
-		wire							l1_arready;
+		wire	[M_ADDR_X_WIDTH-1:0]	m_araddrx;
+		wire	[M_ADDR_Y_WIDTH-1:0]	m_araddry;
+		wire							m_arvalid;
+		wire							m_arready;
 		
-		wire							l1_rlast;
-		wire	[M_DATA_WIDTH-1:0]		l1_rdata;
-		wire							l1_rvalid;
-		wire							l1_rready;
+		wire							m_rlast;
+		wire	[M_DATA_WIDTH-1:0]		m_rdata;
+		wire							m_rvalid;
+		wire							m_rready;
 		
 		jelly_texture_cache_unit
 				#(
@@ -208,117 +210,143 @@ module jelly_texture_cache_l1
 					.s_rvalid				(s_rvalid [i]),
 					.s_rready				(s_rready [i]),
 					
-					.m_araddrx				(l1_araddrx),
-					.m_araddry				(l1_araddry),
-					.m_arvalid				(l1_arvalid),
-					.m_arready				(l1_arready),
+					.m_araddrx				(m_araddrx),
+					.m_araddry				(m_araddry),
+					.m_arvalid				(m_arvalid),
+					.m_arready				(m_arready),
 					
-					.m_rlast				(l1_rlast),
+					.m_rlast				(m_rlast),
 					.m_rstrb				({COMPONENT_NUM{1'b1}}),
-					.m_rdata				(l1_rdata),
-					.m_rvalid				(l1_rvalid),
-					.m_rready				(l1_rready)
+					.m_rdata				(m_rdata),
+					.m_rvalid				(m_rvalid),
+					.m_rready				(m_rready)
 				);
 		
 		
+		// ƒAƒhƒŒƒX•Ê‚ÉL2‚ÉŠ„‚èU‚é
+		wire	[M_ID_WIDTH-1:0]	m_arid = ((m_araddrx >> (M_ID_X_RSHIFT)) << M_ID_X_LSHIFT) + ((m_araddry >> (M_ID_Y_RSHIFT)) << M_ID_Y_LSHIFT);
 		
-		wire	[M_ID_WIDTH-1:0]	l2_id = ((l1_araddrx >> (M_ID_X_RSHIFT)) << M_ID_X_LSHIFT) + ((l1_araddry >> (M_ID_Y_RSHIFT)) << M_ID_Y_LSHIFT);
-		
-		jelly_ring_bus_unit
+		jelly_data_switch
 				#(
-					.DATA_WIDTH				(AR_DATA_WIDTH),
-					.ID_TO_WIDTH			(M_ID_WIDTH),
-					.ID_FROM_WIDTH			(S_ID_WIDTH),
-					.UNIT_ID_TO				(0),
-					.UNIT_ID_FROM			(i)
+					.NUM					(M_NUM),
+					.ID_WIDTH				(M_ID_WIDTH),
+					.DATA_WIDTH				(AR_PACKET_WIDTH),
+					.S_REGS					(0),
+					.M_REGS					(1)
 				)
-			i_ring_bus_unit_l1_ar
+			i_data_switch
 				(
 					.reset					(reset),
 					.clk					(clk),
 					.cke					(1'b1),
 					
-					.s_id_to				(l2_id),
-					.s_data					({l1_araddry, l1_araddrx}),
-					.s_valid				(l1_arvalid),
-					.s_ready				(l1_arready),
+					.s_id					(m_arid),
+					.s_data					({m_araddrx, m_araddry}),
+					.s_valid				(m_arvalid),
+					.s_ready				(m_arready),
 					
-					.m_id_from				(),
-					.m_data					(),
-					.m_valid				(),
-					.m_ready				(1'b0),
-					
-					.src_id_to				(ringbus_l1_ar_id_to  [(i+1)*M_ID_WIDTH    +: M_ID_WIDTH]),
-					.src_id_from			(ringbus_l1_ar_id_from[(i+1)*S_ID_WIDTH    +: S_ID_WIDTH]),
-					.src_data				(ringbus_l1_ar_data   [(i+1)*AR_DATA_WIDTH +: AR_DATA_WIDTH]),
-					.src_valid				(ringbus_l1_ar_valid  [(i+1)]),
-					
-					.sink_id_to				(ringbus_l1_ar_id_to  [(i+0)*M_ID_WIDTH    +: M_ID_WIDTH]),
-					.sink_id_from			(ringbus_l1_ar_id_from[(i+0)*S_ID_WIDTH    +: S_ID_WIDTH]),
-					.sink_data				(ringbus_l1_ar_data   [(i+0)*AR_DATA_WIDTH +: AR_DATA_WIDTH]),
-					.sink_valid				(ringbus_l1_ar_valid  [(i+0)])
+					.m_data					(cache_arpacket[i*M_NUM*AR_PACKET_WIDTH +: M_NUM*AR_PACKET_WIDTH]),
+					.m_valid				(cache_arvalid [i*M_NUM                 +: M_NUM]),
+					.m_ready				(cache_arready [i*M_NUM                 +: M_NUM])
 				);
 		
-		jelly_ring_bus_unit
+		
+		// read data
+		jelly_data_joint
 				#(
-					.DATA_WIDTH				(R_DATA_WIDTH),
-					.ID_TO_WIDTH			(S_ID_WIDTH),
-					.ID_FROM_WIDTH			(M_ID_WIDTH),
-					.UNIT_ID_TO				(i),
-					.UNIT_ID_FROM			(0)
+					.NUM					(M_NUM),
+					.DATA_WIDTH				(R_PACKET_WIDTH),
+					.NO_CONFLICT			(1),
+					.S_REGS					(0),
+					.M_REGS					(1)
 				)
-			i_ring_bus_unit_l1_r
+			i_data_joint
 				(
 					.reset					(reset),
 					.clk					(clk),
 					.cke					(1'b1),
 					
-					.s_id_to				(0),
-					.s_data					(0),
-					.s_valid				(1'b0),
-					.s_ready				(),
+					.s_data					(cache_rpacket[i*M_NUM*R_PACKET_WIDTH +: M_NUM*R_PACKET_WIDTH]),
+					.s_valid				(cache_rvalid [i*M_NUM                +: M_NUM]),
+					.s_ready				(cache_rready [i*M_NUM                +: M_NUM]),
 					
-					.m_id_from				(),
-					.m_data					({l1_rlast, l1_rdata}),
-					.m_valid				(l1_rvalid),
-					.m_ready				(l1_rready),
-					
-					.src_id_to				(ringbus_l1_r_id_to  [(i+1)*S_ID_WIDTH   +: S_ID_WIDTH]),
-					.src_id_from			(ringbus_l1_r_id_from[(i+1)*M_ID_WIDTH   +: M_ID_WIDTH]),
-					.src_data				(ringbus_l1_r_data   [(i+1)*R_DATA_WIDTH +: R_DATA_WIDTH]),
-					.src_valid				(ringbus_l1_r_valid  [(i+1)]),
-					
-					.sink_id_to				(ringbus_l1_r_id_to  [(i+0)*S_ID_WIDTH   +: S_ID_WIDTH]),
-					.sink_id_from			(ringbus_l1_r_id_from[(i+0)*M_ID_WIDTH   +: M_ID_WIDTH]),
-					.sink_data				(ringbus_l1_r_data   [(i+0)*R_DATA_WIDTH +: R_DATA_WIDTH]),
-					.sink_valid				(ringbus_l1_r_valid  [(i+0)])
+					.m_data					({m_rlast, m_rdata}),
+					.m_valid				(m_rvalid),
+					.m_ready				(m_rready)
 				);
 	end
 	endgenerate
 	
 	
-	
 	// -----------------------------
-	//  L1 Ring-Bus
+	//  Master port ring-bus
 	// -----------------------------
-	
-	wire	[(M_NUM+1)*M_ID_WIDTH-1:0]		ringbus_l2_ar_id_to;
-	wire	[(M_NUM+1)*S_ID_WIDTH-1:0]		ringbus_l2_ar_id_from;
-	wire	[(M_NUM+1)*AR_DATA_WIDTH-1:0]	ringbus_l2_ar_data;
-	wire	[(M_NUM+1)-1:0]					ringbus_l2_ar_valid;
-	
-	wire	[(M_NUM+1)*S_ID_WIDTH-1:0]		ringbus_l2_r_id_to;
-	wire	[(M_NUM+1)*M_ID_WIDTH-1:0]		ringbus_l2_r_id_from;
-	wire	[(M_NUM+1)*R_DATA_WIDTH-1:0]	ringbus_l2_r_data;
-	wire	[(M_NUM+1)-1:0]					ringbus_l2_r_valid;
 	
 	generate
-	for ( i = 0; i < M_NUM; i = i+1 ) begin : l2_loop
+	for ( i = 0; i < M_NUM; i = i+1 ) begin : loop_master
+		
+		wire	[S_NUM*AR_PACKET_WIDTH-1:0]		s_arpacket;
+		wire	[S_NUM-1:0]						s_arvalid;
+		wire	[S_NUM-1:0]						s_arready;
+		
+		wire	[S_NUM*R_PACKET_WIDTH-1:0]		s_rpacket;
+		wire	[S_NUM-1:0]						s_rvalid;
+		wire	[S_NUM-1:0]						s_rready;
+		
+		for ( j = 0; j < S_NUM; j = j+1 ) begin : loop_m_ar
+			assign s_arpacket[j*AR_PACKET_WIDTH +: AR_PACKET_WIDTH] = cache_arpacket[(j*M_NUM+i)*AR_PACKET_WIDTH +: AR_PACKET_WIDTH];
+			assign s_arvalid [j]                                    = cache_arvalid[j*M_NUM+i];
+			assign cache_arready[j*M_NUM+i]                         = s_arready[j];
+			
+			assign cache_rpacket[(j*M_NUM+i)*R_PACKET_WIDTH +: R_PACKET_WIDTH] = s_rpacket[j*R_PACKET_WIDTH +: R_PACKET_WIDTH];
+			assign cache_rvalid[j*M_NUM+i]                                     = s_rvalid[j];
+			assign s_rready[j]                                                 = cache_rready[j*M_NUM+i];
+		end
+		
 		wire	[S_ID_WIDTH-1:0]		blk_id;
 		wire	[M_ADDR_X_WIDTH-1:0]	blk_addrx;
 		wire	[M_ADDR_Y_WIDTH-1:0]	blk_addry;
 		wire							blk_valid;
 		wire							blk_ready;
+		
+		jelly_ring_bus_arbiter_bidirection
+				#(
+					.S_NUM				(S_NUM),
+					.S_ID_WIDTH			(S_ID_WIDTH),
+					.M_NUM				(1),
+					.M_ID_WIDTH			(1),
+					.DOWN_DATA_WIDTH	(AR_PACKET_WIDTH),
+					.UP_DATA_WIDTH		(R_PACKET_WIDTH)
+				)
+			i_ring_bus_arbiter_bidirection
+				(
+					.reset				(reset),
+					.clk				(clk),
+					.cke				(1'b1),
+					
+					
+					.s_down_id_to		(1'b0),
+					.s_down_data		(s_arpacket),
+					.s_down_valid		(s_arvalid),
+					.s_down_ready		(s_arready),
+					
+					.s_up_id_from		(),
+					.s_up_data			(s_rpacket),
+					.s_up_valid			(s_rvalid),
+					.s_up_ready			(s_rready),
+					
+					
+					.m_down_id_from		(blk_id),
+					.m_down_data		({blk_addrx, blk_addry}),
+					.m_down_valid		(blk_valid),
+					.m_down_ready		(blk_ready),
+					
+					.m_up_id_to			(m_rid   [i*S_ID_WIDTH +: S_ID_WIDTH]),
+					.m_up_data			({m_rlast[i], m_rdata[i*M_DATA_WIDTH +: M_DATA_WIDTH]}),
+					.m_up_valid			(m_rvalid[i]),
+					.m_up_ready			(m_rready[i])
+				);
+		
 		
 		// blk addr
 		jelly_texture_blk_addr
@@ -342,108 +370,19 @@ module jelly_texture_cache_l1
 					.s_valid				(blk_valid),
 					.s_ready				(blk_ready),
 					
-					.m_user					(m_arid   [i*S_ID_WIDTH       +: S_ID_WIDTH]),
+					.m_user					(m_arid   [i*S_ID_WIDTH     +: S_ID_WIDTH]),
 					.m_last					(m_arlast [i]),
-					.m_addrx				(m_araddrx[i*M_ADDR_X_WIDTH   +: M_ADDR_X_WIDTH]),
-					.m_addry				(m_araddry[i*M_ADDR_Y_WIDTH   +: M_ADDR_Y_WIDTH]),
+					.m_addrx				(m_araddrx[i*M_ADDR_X_WIDTH +: M_ADDR_X_WIDTH]),
+					.m_addry				(m_araddry[i*M_ADDR_Y_WIDTH +: M_ADDR_Y_WIDTH]),
 					.m_valid				(m_arvalid[i]),
 					.m_ready				(m_arready[i])
 				);
 		
-		jelly_ring_bus_unit
-				#(
-					.DATA_WIDTH				(AR_DATA_WIDTH),
-					.ID_TO_WIDTH			(M_ID_WIDTH),
-					.ID_FROM_WIDTH			(S_ID_WIDTH),
-					.UNIT_ID_TO				(i),
-					.UNIT_ID_FROM			(0)
-				)
-			i_ring_bus_unit_l2_ar
-				(
-					.reset					(reset),
-					.clk					(clk),
-					.cke					(1'b1),
-					
-					.s_id_to				(0),
-					.s_data					(0),
-					.s_valid				(1'b0),
-					.s_ready				(),
-					
-					.m_id_from				(blk_id),
-					.m_data					({blk_addry, blk_addrx}),
-					.m_valid				(blk_valid),
-					.m_ready				(blk_ready),
-					
-					.src_id_to				(ringbus_l2_ar_id_to  [(i+1)*M_ID_WIDTH    +: M_ID_WIDTH]),
-					.src_id_from			(ringbus_l2_ar_id_from[(i+1)*S_ID_WIDTH    +: S_ID_WIDTH]),
-					.src_data				(ringbus_l2_ar_data   [(i+1)*AR_DATA_WIDTH +: AR_DATA_WIDTH]),
-					.src_valid				(ringbus_l2_ar_valid  [(i+1)]),
-					
-					.sink_id_to				(ringbus_l2_ar_id_to  [(i+0)*M_ID_WIDTH    +: M_ID_WIDTH]),
-					.sink_id_from			(ringbus_l2_ar_id_from[(i+0)*S_ID_WIDTH    +: S_ID_WIDTH]),
-					.sink_data				(ringbus_l2_ar_data   [(i+0)*AR_DATA_WIDTH +: AR_DATA_WIDTH]),
-					.sink_valid				(ringbus_l2_ar_valid  [(i+0)])
-				);
 		
-		jelly_ring_bus_unit
-				#(
-					.DATA_WIDTH				(R_DATA_WIDTH),
-					.ID_TO_WIDTH			(S_ID_WIDTH),
-					.ID_FROM_WIDTH			(M_ID_WIDTH),
-					.UNIT_ID_TO				(0),
-					.UNIT_ID_FROM			(0)
-				)
-			i_ring_bus_unit_l2_r
-				(
-					.reset					(reset),
-					.clk					(clk),
-					.cke					(1'b1),
-					
-					.s_id_to				(m_rid[i*S_ID_WIDTH +: S_ID_WIDTH]),
-					.s_data					({m_rlast[i], m_rdata[i*M_DATA_WIDTH +: M_DATA_WIDTH]}),
-					.s_valid				(m_rvalid[i]),
-					.s_ready				(m_rready[i]),
-					
-					.m_id_from				(),
-					.m_data					(),
-					.m_valid				(),
-					.m_ready				(1'b0),
-					
-					.src_id_to				(ringbus_l2_r_id_to  [(i+1)*S_ID_WIDTH   +: S_ID_WIDTH]),
-					.src_id_from			(ringbus_l2_r_id_from[(i+1)*M_ID_WIDTH   +: M_ID_WIDTH]),
-					.src_data				(ringbus_l2_r_data   [(i+1)*R_DATA_WIDTH +: R_DATA_WIDTH]),
-					.src_valid				(ringbus_l2_r_valid  [(i+1)]),
-					
-					.sink_id_to				(ringbus_l2_r_id_to  [(i+0)*S_ID_WIDTH   +: S_ID_WIDTH]),
-					.sink_id_from			(ringbus_l2_r_id_from[(i+0)*M_ID_WIDTH   +: M_ID_WIDTH]),
-					.sink_data				(ringbus_l2_r_data   [(i+0)*R_DATA_WIDTH +: R_DATA_WIDTH]),
-					.sink_valid				(ringbus_l2_r_valid  [(i+0)])
-				);
 	end
 	endgenerate
 	
 	
-	assign ringbus_l1_ar_id_to  [S_NUM*M_ID_WIDTH    +: M_ID_WIDTH]    = ringbus_l2_ar_id_to  [0 +: M_ID_WIDTH];
-	assign ringbus_l1_ar_id_from[S_NUM*S_ID_WIDTH    +: S_ID_WIDTH]    = ringbus_l2_ar_id_from[0 +: S_ID_WIDTH];
-	assign ringbus_l1_ar_data   [S_NUM*AR_DATA_WIDTH +: AR_DATA_WIDTH] = ringbus_l2_ar_data   [0 +: AR_DATA_WIDTH];
-	assign ringbus_l1_ar_valid  [S_NUM]                                = ringbus_l2_ar_valid  [0];
-	
-	assign ringbus_l2_ar_id_to  [M_NUM*M_ID_WIDTH    +: M_ID_WIDTH]    = ringbus_l1_ar_id_to  [0 +: M_ID_WIDTH];
-	assign ringbus_l2_ar_id_from[M_NUM*S_ID_WIDTH    +: S_ID_WIDTH]    = ringbus_l1_ar_id_from[0 +: S_ID_WIDTH];
-	assign ringbus_l2_ar_data   [M_NUM*AR_DATA_WIDTH +: AR_DATA_WIDTH] = ringbus_l1_ar_data   [0 +: AR_DATA_WIDTH];
-	assign ringbus_l2_ar_valid  [M_NUM]                                = ringbus_l1_ar_valid  [0];
-	
-	
-	assign ringbus_l1_r_id_to   [S_NUM*S_ID_WIDTH   +: S_ID_WIDTH]     = ringbus_l2_r_id_to   [0 +: S_ID_WIDTH];
-	assign ringbus_l1_r_id_from [S_NUM*M_ID_WIDTH   +: M_ID_WIDTH]     = ringbus_l2_r_id_from [0 +: M_ID_WIDTH];
-	assign ringbus_l1_r_data    [S_NUM*R_DATA_WIDTH +: R_DATA_WIDTH]   = ringbus_l2_r_data    [0 +: R_DATA_WIDTH];
-	assign ringbus_l1_r_valid   [S_NUM]                                = ringbus_l2_r_valid   [0];
-	
-	assign ringbus_l2_r_id_to   [M_NUM*S_ID_WIDTH   +: S_ID_WIDTH]     = ringbus_l1_r_id_to   [0 +: S_ID_WIDTH];
-	assign ringbus_l2_r_id_from [M_NUM*M_ID_WIDTH   +: M_ID_WIDTH]     = ringbus_l1_r_id_from [0 +: M_ID_WIDTH];
-	assign ringbus_l2_r_data    [M_NUM*R_DATA_WIDTH +: R_DATA_WIDTH]   = ringbus_l1_r_data    [0 +: R_DATA_WIDTH];
-	assign ringbus_l2_r_valid   [M_NUM]                                = ringbus_l1_r_valid   [0];
-		
 endmodule
 
 
