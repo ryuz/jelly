@@ -62,7 +62,7 @@ module jelly_texture_cache_core
 			parameter	M_AXI4_REGS          = 1,
 			
 			parameter	ADDR_WIDTH           = 24,
-
+			
 			parameter	L1_LOG_ENABLE        = 0,
 			parameter	L1_LOG_FILE          = "l1_log.txt",
 			parameter	L1_LOG_ID            = 0,
