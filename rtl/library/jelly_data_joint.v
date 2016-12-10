@@ -17,7 +17,6 @@
 module jelly_data_joint
 		#(
 			parameter	NUM         = 16,
-			parameter	ID_WIDTH    = 2,
 			parameter	DATA_WIDTH  = 32,
 			parameter	NO_CONFLICT = 0,			// “¯‚Éƒf[ƒ^‚ª—ˆ‚È‚¢ê‡
 			parameter	S_REGS      = !NO_CONFLICT,
@@ -142,7 +141,7 @@ module jelly_data_joint
 			for ( j = 0; j < NUM; j = j+1 ) begin
 				if ( ff_s_valid[j] ) begin
 					sig_m_data = ff_s_data[j*DATA_WIDTH +: DATA_WIDTH];
-					disable loop_join;
+					disable loop_data;
 				end
 			end
 		end
