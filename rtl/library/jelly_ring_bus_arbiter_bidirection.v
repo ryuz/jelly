@@ -34,7 +34,7 @@ module jelly_ring_bus_arbiter_bidirection
 			input	wire	[S_NUM-1:0]					s_down_valid,
 			output	wire	[S_NUM-1:0]					s_down_ready,
 			
-			output	wire	[M_NUM*S_ID_WIDTH-1:0]		s_up_id_from,
+			output	wire	[S_NUM*M_ID_WIDTH-1:0]		s_up_id_from,
 			output	wire	[S_NUM*UP_DATA_WIDTH-1:0]	s_up_data,
 			output	wire	[S_NUM-1:0]					s_up_valid,
 			input	wire	[S_NUM-1:0]					s_up_ready,
@@ -46,7 +46,7 @@ module jelly_ring_bus_arbiter_bidirection
 			output	wire	[M_NUM-1:0]					m_down_valid,
 			input	wire	[M_NUM-1:0]					m_down_ready,
 			
-			input	wire	[M_NUM*M_ID_WIDTH-1:0]		m_up_id_to,
+			input	wire	[M_NUM*S_ID_WIDTH-1:0]		m_up_id_to,
 			input	wire	[M_NUM*UP_DATA_WIDTH-1:0]	m_up_data,
 			input	wire	[M_NUM-1:0]					m_up_valid,
 			output	wire	[M_NUM-1:0]					m_up_ready

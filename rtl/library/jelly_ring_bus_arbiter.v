@@ -105,7 +105,7 @@ module jelly_ring_bus_arbiter
 					.cke					(cke),
 					
 					.s_id_to				({M_ID_WIDTH{1'b0}}),
-					.s_data					({S_ID_WIDTH{1'b0}}),
+					.s_data					({DATA_WIDTH{1'b0}}),
 					.s_valid				(1'b0),
 					.s_ready				(),
 					
