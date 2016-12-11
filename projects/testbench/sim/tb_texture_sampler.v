@@ -38,8 +38,8 @@ module tb_texture_sampler();
 	
 	parameter	SAMPLER1D_NUM                 = 0;
 	
-//	parameter	SAMPLER2D_NUM                 = 4*4;
-	parameter	SAMPLER2D_NUM                 = 32*2;
+	parameter	SAMPLER2D_NUM                 = 8;
+//	parameter	SAMPLER2D_NUM                 = 32*2;
 	parameter	SAMPLER2D_USER_WIDTH          = 0;
 	parameter	SAMPLER2D_X_INT_WIDTH         = ADDR_X_WIDTH;
 	parameter	SAMPLER2D_X_FRAC_WIDTH        = 4;
@@ -60,17 +60,17 @@ module tb_texture_sampler();
 	parameter	SAMPLER3D_NUM                 = 0;
 	
 	parameter	L1_CACHE_NUM                  = SAMPLER1D_NUM + SAMPLER2D_NUM + SAMPLER3D_NUM;
-	parameter	L1_TAG_ADDR_WIDTH             = 6;
+	parameter	L1_TAG_ADDR_WIDTH             = 10;
 	parameter	L1_BLK_X_SIZE                 = 2;	// 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
 	parameter	L1_BLK_Y_SIZE                 = 2;	// 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
 	parameter	L1_TAG_RAM_TYPE               = "distributed";
 	parameter	L1_MEM_RAM_TYPE               = "block";
 	parameter	L1_DATA_WIDE_SIZE             = 2;
 	
-	parameter	L2_CACHE_X_SIZE               = 1;
-	parameter	L2_CACHE_Y_SIZE               = 1;
+	parameter	L2_CACHE_X_SIZE               = 2;
+	parameter	L2_CACHE_Y_SIZE               = 2;
 	parameter	L2_CACHE_NUM                  = (1 << (L2_CACHE_X_SIZE + L2_CACHE_Y_SIZE));
-	parameter	L2_TAG_ADDR_WIDTH             = 6;
+	parameter	L2_TAG_ADDR_WIDTH             = 4;
 	parameter	L2_BLK_X_SIZE                 = 3;	// 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
 	parameter	L2_BLK_Y_SIZE                 = 3;	// 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
 	parameter	L2_TAG_RAM_TYPE               = "distributed";

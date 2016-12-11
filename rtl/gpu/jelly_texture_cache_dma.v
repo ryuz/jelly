@@ -41,6 +41,9 @@ module jelly_texture_cache_dma
 			parameter	ID_WIDTH             = M_AXI4_ID_WIDTH,
 			parameter	ADDR_WIDTH           = 24,
 			parameter	DATA_WIDTH           = M_AXI4_DATA_WIDTH,
+
+			parameter	FIFO_PTR_WIDTH       = 6,
+			parameter	FIFO_RAM_TYPE        = "distributed",
 			
 			parameter	S_AR_REGS            = 1,
 			parameter	S_R_REGS             = 1
@@ -197,6 +200,39 @@ module jelly_texture_cache_dma
 	
 	
 	// -----------------------------
+	//  Queueing
+	// -----------------------------
+
+	wire	[ID_WIDTH-1:0]			que_arid;
+	wire	[ADDR_WIDTH-1:0]		que_araddr;
+	wire							que_arvalid;
+	wire							que_arready;
+	
+	jelly_fifo_fwtf
+			#(
+				.DATA_WIDTH			(ID_WIDTH+ADDR_WIDTH),
+				.PTR_WIDTH			(FIFO_PTR_WIDTH),
+				.RAM_TYPE			(FIFO_RAM_TYPE),
+				.MASTER_REGS		(0)
+			)
+		i_fifo_fwtf
+			(
+				.reset				(reset),
+				.clk				(clk),
+				
+				.s_data				({slave_arid, slave_araddr}),
+				.s_valid			(slave_arvalid),
+				.s_ready			(slave_arready),
+				.s_free_count		(),
+				
+				.m_data				({que_arid, que_araddr}),
+				.m_valid			(que_arvalid),
+				.m_ready			(que_arready),
+				.m_data_count		()
+			);
+	
+	
+	// -----------------------------
 	//  core
 	// -----------------------------
 	
@@ -215,11 +251,11 @@ module jelly_texture_cache_dma
 			reg_arvalid     <= 1'b0;
 		end
 		else begin
-			if ( slave_arvalid && slave_arready ) begin
-				reg_arid        <= slave_arid;
+			if ( que_arvalid && que_arready ) begin
+				reg_arid        <= que_arid;
 				reg_arcomponent <= {COMPONENT_SEL_WIDTH{1'b0}};
-				reg_addr        <= slave_araddr;
-				reg_araddr      <= slave_araddr + param_addr[M_AXI4_ADDR_WIDTH-1:0];
+				reg_addr        <= que_araddr;
+				reg_araddr      <= que_araddr + param_addr[M_AXI4_ADDR_WIDTH-1:0];
 				reg_arvalid     <= 1'b1;
 			end
 			else if ( axi4_arvalid && axi4_arready ) begin
@@ -239,7 +275,7 @@ module jelly_texture_cache_dma
 		end
 	end
 	
-	assign slave_arready = (!reg_arvalid || ((reg_arcomponent == (COMPONENT_NUM-1)) && axi4_arready));
+	assign que_arready   = (!reg_arvalid || ((reg_arcomponent == (COMPONENT_NUM-1)) && axi4_arready));
 	
 	assign axi4_arid     = reg_arid;
 	assign axi4_araddr   = reg_araddr;

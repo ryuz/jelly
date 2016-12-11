@@ -49,6 +49,9 @@ module jelly_texture_cache_l1
 			parameter	M_DATA_WIDTH         = (S_DATA_WIDTH << M_DATA_WIDE_SIZE),
 			parameter	M_ADDR_X_WIDTH       = S_ADDR_X_WIDTH - M_DATA_WIDE_SIZE,
 			parameter	M_ADDR_Y_WIDTH       = S_ADDR_Y_WIDTH,
+
+			parameter	QUE_FIFO_PTR_WIDTH   = 0,
+			parameter	QUE_FIFO_RAM_TYPE    = "distributed",
 			
 			parameter	LOG_ENABLE           = 0,
 			parameter	LOG_FILE             = "cache_log.txt",
@@ -181,6 +184,9 @@ module jelly_texture_cache_l1
 					
 					.TAG_RAM_TYPE			(TAG_RAM_TYPE),
 					.MEM_RAM_TYPE			(MEM_RAM_TYPE),
+					
+					.QUE_FIFO_PTR_WIDTH		(QUE_FIFO_PTR_WIDTH),
+					.QUE_FIFO_RAM_TYPE		(QUE_FIFO_RAM_TYPE),
 					
 					.LOG_ENABLE				(LOG_ENABLE),
 					.LOG_FILE				(LOG_FILE),

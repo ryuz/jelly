@@ -43,6 +43,9 @@ module jelly_texture_cache_unit
 			parameter	USE_BORDER           = 1,
 			parameter	BORDER_DATA          = {S_DATA_WIDTH{1'b0}},
 			
+			parameter	QUE_FIFO_PTR_WIDTH   = 0,
+			parameter	QUE_FIFO_RAM_TYPE    = "distributed",
+			
 			parameter	LOG_ENABLE           = 0,
 			parameter	LOG_FILE             = "cache_log.txt",
 			parameter	LOG_ID               = 0         
@@ -90,6 +93,40 @@ module jelly_texture_cache_unit
 	localparam	PIX_ADDR_Y_WIDTH     = BLK_Y_SIZE;
 	localparam	BLK_ADDR_X_WIDTH     = S_ADDR_X_WIDTH - BLK_X_SIZE;
 	localparam	BLK_ADDR_Y_WIDTH     = S_ADDR_Y_WIDTH - BLK_Y_SIZE;
+	
+	
+	// ---------------------------------
+	//  Queueing
+	// ---------------------------------
+	
+	wire	[S_USER_WIDTH-1:0]		que_aruser;
+	wire	[S_ADDR_X_WIDTH-1:0]	que_araddrx;
+	wire	[S_ADDR_Y_WIDTH-1:0]	que_araddry;
+	wire							que_arvalid;
+	wire							que_arready;
+	
+	jelly_fifo_fwtf
+			#(
+				.DATA_WIDTH			(S_USER_WIDTH+S_ADDR_X_WIDTH+S_ADDR_Y_WIDTH),
+				.PTR_WIDTH			(QUE_FIFO_PTR_WIDTH),
+				.RAM_TYPE			(QUE_FIFO_RAM_TYPE),
+				.MASTER_REGS		(0)
+			)
+		i_fifo_fwtf
+			(
+				.reset				(reset),
+				.clk				(clk),
+				
+				.s_data				({s_aruser, s_araddrx, s_araddry}),
+				.s_valid			(s_arvalid),
+				.s_ready			(s_arready),
+				.s_free_count		(),
+				
+				.m_data				({que_aruser, que_araddrx, que_araddry}),
+				.m_valid			(que_arvalid),
+				.m_ready			(que_arready),
+				.m_data_count		()
+			);
 	
 	
 	
@@ -141,11 +178,11 @@ module jelly_texture_cache_unit
 				.param_width			(param_width),
 				.param_height			(param_height),
 				
-				.s_user					(s_aruser),
-				.s_addrx				(s_araddrx),
-				.s_addry				(s_araddry),
-				.s_valid				(s_arvalid),
-				.s_ready				(s_arready),
+				.s_user					(que_aruser),
+				.s_addrx				(que_araddrx),
+				.s_addry				(que_araddry),
+				.s_valid				(que_arvalid),
+				.s_ready				(que_arready),
 				
 				.m_user					(tagram_user),
 				.m_tag_addr				(tagram_tag_addr),
