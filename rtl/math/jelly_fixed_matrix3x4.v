@@ -19,6 +19,9 @@ module jelly_fixed_matrix3x4
 			parameter	COEFF_INT_WIDTH    = 17,
 			parameter	COEFF_FRAC_WIDTH   = 8,
 			parameter	COEFF_WIDTH        = COEFF_INT_WIDTH + COEFF_FRAC_WIDTH,
+			parameter	COEFF3_INT_WIDTH   = COEFF_INT_WIDTH,
+			parameter	COEFF3_FRAC_WIDTH  = COEFF_FRAC_WIDTH,
+			parameter	COEFF3_WIDTH       = COEFF3_INT_WIDTH + COEFF3_FRAC_WIDTH,
 			
 			parameter	S_FIXED_INT_WIDTH  = 17,
 			parameter	S_FIXED_FRAC_WIDTH = 0,
@@ -46,15 +49,15 @@ module jelly_fixed_matrix3x4
 			input	wire	signed	[COEFF_WIDTH-1:0]			coeff00,
 			input	wire	signed	[COEFF_WIDTH-1:0]			coeff01,
 			input	wire	signed	[COEFF_WIDTH-1:0]			coeff02,
-			input	wire	signed	[COEFF_WIDTH-1:0]			coeff03,
+			input	wire	signed	[COEFF3_WIDTH-1:0]			coeff03,
 			input	wire	signed	[COEFF_WIDTH-1:0]			coeff10,
 			input	wire	signed	[COEFF_WIDTH-1:0]			coeff11,
 			input	wire	signed	[COEFF_WIDTH-1:0]			coeff12,
-			input	wire	signed	[COEFF_WIDTH-1:0]			coeff13,
+			input	wire	signed	[COEFF3_WIDTH-1:0]			coeff13,
 			input	wire	signed	[COEFF_WIDTH-1:0]			coeff20,
 			input	wire	signed	[COEFF_WIDTH-1:0]			coeff21,
 			input	wire	signed	[COEFF_WIDTH-1:0]			coeff22,
-			input	wire	signed	[COEFF_WIDTH-1:0]			coeff23,
+			input	wire	signed	[COEFF3_WIDTH-1:0]			coeff23,
 			
 			input	wire			[USER_BITS-1:0]				s_user,
 			input	wire	signed	[S_FIXED_WIDTH-1:0]			s_fixed_x,
@@ -80,15 +83,15 @@ module jelly_fixed_matrix3x4
 	wire			[COEFF_WIDTH-1:0]			src_coeff00;
 	wire			[COEFF_WIDTH-1:0]			src_coeff01;
 	wire			[COEFF_WIDTH-1:0]			src_coeff02;
-	wire			[COEFF_WIDTH-1:0]			src_coeff03;
+	wire			[COEFF3_WIDTH-1:0]			src_coeff03;
 	wire			[COEFF_WIDTH-1:0]			src_coeff10;
 	wire			[COEFF_WIDTH-1:0]			src_coeff11;
 	wire			[COEFF_WIDTH-1:0]			src_coeff12;
-	wire			[COEFF_WIDTH-1:0]			src_coeff13;
+	wire			[COEFF3_WIDTH-1:0]			src_coeff13;
 	wire			[COEFF_WIDTH-1:0]			src_coeff20;
 	wire			[COEFF_WIDTH-1:0]			src_coeff21;
 	wire			[COEFF_WIDTH-1:0]			src_coeff22;
-	wire			[COEFF_WIDTH-1:0]			src_coeff23;
+	wire			[COEFF3_WIDTH-1:0]			src_coeff23;
 	wire			[USER_BITS-1:0]				src_user;
 	wire	signed	[S_FIXED_WIDTH-1:0]			src_fixed_x;
 	wire	signed	[S_FIXED_WIDTH-1:0]			src_fixed_y;
@@ -102,7 +105,7 @@ module jelly_fixed_matrix3x4
 	jelly_pipeline_control
 			#(
 				.PIPELINE_STAGES	(PIPELINE_STAGES),
-				.S_DATA_WIDTH		(12*COEFF_WIDTH + USER_BITS + 3*S_FIXED_WIDTH),
+				.S_DATA_WIDTH		(9*COEFF_WIDTH + 3*COEFF3_WIDTH + USER_BITS + 3*S_FIXED_WIDTH),
 				.M_DATA_WIDTH		(USER_BITS + 3*M_FIXED_WIDTH),
 				.AUTO_VALID			(1),
 				.MASTER_IN_REGS		(MASTER_IN_REGS),
@@ -175,12 +178,27 @@ module jelly_fixed_matrix3x4
 				.buffered			()
 			);
 	
-	localparam	P_WIDTH = COEFF_WIDTH + S_FIXED_WIDTH;
+	localparam	MUL_WIDTH    = COEFF_WIDTH + S_FIXED_WIDTH;
+	localparam	OFFSET_WIDTH = COEFF3_WIDTH + S_FIXED_FRAC_WIDTH + (COEFF3_FRAC_WIDTH - COEFF_FRAC_WIDTH);
+	
+	localparam	P_WIDTH      = (MUL_WIDTH > OFFSET_WIDTH) ? MUL_WIDTH : OFFSET_WIDTH;
 	
 	
-	wire	signed	[P_WIDTH-1:0]	x_d = (src_coeff03 <<< S_FIXED_FRAC_WIDTH);
-	wire	signed	[P_WIDTH-1:0]	y_d = (src_coeff13 <<< S_FIXED_FRAC_WIDTH);
-	wire	signed	[P_WIDTH-1:0]	z_d = (src_coeff23 <<< S_FIXED_FRAC_WIDTH);
+	wire	signed	[P_WIDTH-1:0]	x_d;
+	wire	signed	[P_WIDTH-1:0]	y_d;
+	wire	signed	[P_WIDTH-1:0]	z_d;
+	generate
+	if ( S_FIXED_FRAC_WIDTH > (COEFF3_FRAC_WIDTH - COEFF_FRAC_WIDTH) ) begin
+		assign x_d = (src_coeff03 <<< (S_FIXED_FRAC_WIDTH - (COEFF3_FRAC_WIDTH - COEFF_FRAC_WIDTH)));
+		assign y_d = (src_coeff13 <<< (S_FIXED_FRAC_WIDTH - (COEFF3_FRAC_WIDTH - COEFF_FRAC_WIDTH)));
+		assign z_d = (src_coeff23 <<< (S_FIXED_FRAC_WIDTH - (COEFF3_FRAC_WIDTH - COEFF_FRAC_WIDTH)));
+	end
+	else begin
+		assign x_d = (src_coeff03 >>> ((COEFF3_FRAC_WIDTH - COEFF_FRAC_WIDTH) - S_FIXED_FRAC_WIDTH));
+		assign y_d = (src_coeff13 >>> ((COEFF3_FRAC_WIDTH - COEFF_FRAC_WIDTH) - S_FIXED_FRAC_WIDTH));
+		assign z_d = (src_coeff23 >>> ((COEFF3_FRAC_WIDTH - COEFF_FRAC_WIDTH) - S_FIXED_FRAC_WIDTH));
+	end
+	endgenerate
 	
 	wire	signed	[P_WIDTH-1:0]	x_p;
 	wire	signed	[P_WIDTH-1:0]	y_p;
