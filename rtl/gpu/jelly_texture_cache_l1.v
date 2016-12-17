@@ -24,6 +24,9 @@ module jelly_texture_cache_l1
 			parameter	MEM_RAM_TYPE         = "block",
 			parameter	USE_BORDER           = 1,
 			parameter	BORDER_DATA          = {S_DATA_WIDTH{1'b0}},
+			
+			parameter	USE_LOOK_AHEAD       = 0,
+			parameter	USE_S_RREADY         = 1,	// 0: s_rready is always 1'b1.   1: handshake mode.
 			parameter	USE_M_RREADY         = 0,	// 0: m_rready is always 1'b1.   1: handshake mode.
 			
 			parameter	S_NUM                = 4,
@@ -165,7 +168,7 @@ module jelly_texture_cache_l1
 		wire	[M_DATA_WIDTH-1:0]		m_rdata;
 		wire							m_rvalid;
 		wire							m_rready;
-		
+			
 		jelly_texture_cache_unit
 				#(
 					.S_USER_WIDTH			(S_USER_WIDTH),
@@ -183,7 +186,8 @@ module jelly_texture_cache_l1
 					.BLK_X_SIZE				(BLK_X_SIZE),
 					.BLK_Y_SIZE				(BLK_Y_SIZE),
 					
-					
+					.USE_LOOK_AHEAD			(USE_LOOK_AHEAD),
+					.USE_S_RREADY           (USE_S_RREADY),
 					.USE_M_RREADY			(USE_M_RREADY),
 					
 					.BORDER_DATA			(BORDER_DATA),

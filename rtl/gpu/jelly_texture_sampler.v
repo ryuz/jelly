@@ -47,7 +47,7 @@ module jelly_texture_sampler
 			parameter	SAMPLER3D_NUM                 = 0,
 			
 			parameter	L1_CACHE_NUM                  = SAMPLER1D_NUM + SAMPLER2D_NUM + SAMPLER3D_NUM,
-			
+			parameter	L1_USE_LOOK_AHEAD             = 0,
 			parameter	L1_TAG_ADDR_WIDTH             = 6,
 			parameter	L1_BLK_X_SIZE                 = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	L1_BLK_Y_SIZE                 = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
@@ -58,6 +58,7 @@ module jelly_texture_sampler
 			parameter	L2_CACHE_X_SIZE               = 1,
 			parameter	L2_CACHE_Y_SIZE               = 1,
 			parameter	L2_CACHE_NUM                  = (1 << (L2_CACHE_X_SIZE + L2_CACHE_Y_SIZE)),
+			parameter	L2_USE_LOOK_AHEAD             = 0,
 			parameter	L2_TAG_ADDR_WIDTH             = 6,
 			parameter	L2_BLK_X_SIZE                 = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	L2_BLK_Y_SIZE                 = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
@@ -228,11 +229,6 @@ module jelly_texture_sampler
 	
 	jelly_texture_cache_core
 			#(
-				.L1_CACHE_NUM			(L1_CACHE_NUM),
-				.L2_CACHE_X_SIZE		(L2_CACHE_X_SIZE),
-				.L2_CACHE_Y_SIZE		(L2_CACHE_Y_SIZE),
-				.L2_CACHE_NUM			(L2_CACHE_NUM),
-				
 				.COMPONENT_NUM			(COMPONENT_NUM),
 				.COMPONENT_DATA_WIDTH	(DATA_WIDTH),
 				
@@ -241,20 +237,34 @@ module jelly_texture_sampler
 				.USE_BORDER				(USE_BORDER),
 				.BORDER_DATA			(BORDER_DATA),
 				
-				.ADDR_X_WIDTH			(12),
-				.ADDR_Y_WIDTH			(12),
+				.ADDR_WIDTH				(ADDR_WIDTH),				
+				.ADDR_X_WIDTH			(ADDR_X_WIDTH),
+				.ADDR_Y_WIDTH			(ADDR_Y_WIDTH),
 				
+				.L1_CACHE_NUM			(L1_CACHE_NUM),
+				.L1_USE_LOOK_AHEAD		(L1_USE_LOOK_AHEAD),
 				.L1_TAG_ADDR_WIDTH		(L1_TAG_ADDR_WIDTH),
 				.L1_BLK_X_SIZE			(L1_BLK_X_SIZE),
 				.L1_BLK_Y_SIZE			(L1_BLK_Y_SIZE),
 				.L1_TAG_RAM_TYPE		(L1_TAG_RAM_TYPE),
 				.L1_MEM_RAM_TYPE		(L1_MEM_RAM_TYPE),
 				.L1_DATA_WIDE_SIZE		(L1_DATA_WIDE_SIZE),
+				.L1_LOG_ENABLE			(L1_LOG_ENABLE),
+				.L1_LOG_FILE			(L1_LOG_FILE),
+				.L1_LOG_ID				(L1_LOG_ID),
+				
+				.L2_CACHE_X_SIZE		(L2_CACHE_X_SIZE),
+				.L2_CACHE_Y_SIZE		(L2_CACHE_Y_SIZE),
+				.L2_CACHE_NUM			(L2_CACHE_NUM),
+				.L2_USE_LOOK_AHEAD		(L2_USE_LOOK_AHEAD),
 				.L2_TAG_ADDR_WIDTH		(L2_TAG_ADDR_WIDTH),
 				.L2_BLK_X_SIZE			(L2_BLK_X_SIZE),
 				.L2_BLK_Y_SIZE			(L2_BLK_Y_SIZE),
 				.L2_TAG_RAM_TYPE		(L2_TAG_RAM_TYPE),
 				.L2_MEM_RAM_TYPE		(L2_MEM_RAM_TYPE),
+				.L2_LOG_ENABLE			(L2_LOG_ENABLE),
+				.L2_LOG_FILE			(L2_LOG_FILE),
+				.L2_LOG_ID				(L2_LOG_ID),
 				
 				.M_AXI4_ID_WIDTH		(M_AXI4_ID_WIDTH),
 				.M_AXI4_ADDR_WIDTH		(M_AXI4_ADDR_WIDTH),
@@ -270,16 +280,7 @@ module jelly_texture_sampler
 				.M_AXI4_ARPROT			(M_AXI4_ARPROT),
 				.M_AXI4_ARQOS			(M_AXI4_ARQOS),
 				.M_AXI4_ARREGION		(M_AXI4_ARREGION),
-				.M_AXI4_REGS			(M_AXI4_REGS),
-				                         
-				.ADDR_WIDTH				(ADDR_WIDTH),
-				
-				.L1_LOG_ENABLE			(L1_LOG_ENABLE),
-				.L1_LOG_FILE			(L1_LOG_FILE),
-				.L1_LOG_ID				(L1_LOG_ID),
-				.L2_LOG_ENABLE			(L2_LOG_ENABLE),
-				.L2_LOG_FILE			(L2_LOG_FILE),
-				.L2_LOG_ID				(L2_LOG_ID)
+				.M_AXI4_REGS			(M_AXI4_REGS)				                         
 			)
 		i_texture_cache_core
 			(

@@ -27,6 +27,7 @@ module jelly_texture_cache_basic
 			parameter	TAG_Y_LSHIFT         = TAG_ADDR_WIDTH / 2,
 			parameter	TAG_RAM_TYPE         = "distributed",
 			parameter	MEM_RAM_TYPE         = "block",
+			parameter	USE_S_RREADY         = 1,	// 0: s_rready is always 1'b1.   1: handshake mode.
 			parameter	USE_M_RREADY         = 0,	// 0: m_rready is always 1'b1.   1: handshake mode.
 			
 			parameter	S_USER_WIDTH         = 1,
@@ -207,6 +208,8 @@ module jelly_texture_cache_basic
 	//  cahce miss read control
 	// ---------------------------------
 	
+	localparam	USE_WAIT       = !USE_M_RREADY && !USE_S_RREADY;
+	
 	localparam	PIX_ADDR_WIDTH = PIX_ADDR_Y_WIDTH + PIX_ADDR_X_WIDTH;
 	
 	wire								mem_busy;
@@ -293,8 +296,8 @@ module jelly_texture_cache_basic
 				if ( !tagram_cache_hit && !tagram_range_out ) begin
 					// cache miss
 					reg_tagram_ready <= 1'b0;
-					reg_m_arvalid    <= (USE_M_RREADY || !mem_busy);
-					reg_m_wait       <= (!USE_M_RREADY && mem_busy);
+					reg_m_arvalid    <= (!USE_WAIT || !mem_busy);
+					reg_m_wait       <= (USE_WAIT && mem_busy);
 					reg_pix_addr     <= {PIX_ADDR_WIDTH{1'b0}};
 					reg_valid        <= 1'b0;
 				end
@@ -325,7 +328,7 @@ module jelly_texture_cache_basic
 	assign m_araddry    = (reg_blk_addry << BLK_Y_SIZE);
 	assign m_arvalid    = reg_m_arvalid;
 	
-	assign m_rready     = (!USE_M_RREADY || mem_ready);
+	assign m_rready     = (USE_WAIT || mem_ready);
 	
 	
 	
@@ -373,7 +376,7 @@ module jelly_texture_cache_basic
 				.m_user					(s_ruser),
 				.m_data					(s_rdata),
 				.m_valid				(s_rvalid),
-				.m_ready				(s_rready)
+				.m_ready				(USE_S_RREADY ? s_rready : 1'b1)
 			);
 	
 endmodule

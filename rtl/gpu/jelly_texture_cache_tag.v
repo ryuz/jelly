@@ -241,6 +241,7 @@ module jelly_texture_cache_tag
 	assign clear_busy      = reg_read_busy;
 	
 	// output
+	wire				st2_ready;
 	jelly_pipeline_insert_ff
 			#(
 				.DATA_WIDTH			(USER_WIDTH+TAG_ADDR_WIDTH+PIX_ADDR_X_WIDTH+PIX_ADDR_Y_WIDTH+BLK_ADDR_X_WIDTH+BLK_ADDR_Y_WIDTH+1+1),
@@ -264,7 +265,7 @@ module jelly_texture_cache_tag
 										st2_range_out
 									}),
 				.s_valid			(st2_valid),
-				.s_ready			(cke),
+				.s_ready			(st2_ready),
 				
 				.m_data				({
 										m_user,
@@ -282,6 +283,8 @@ module jelly_texture_cache_tag
 				.buffered			(),
 				.s_ready_next		()
 			);
+	
+	assign cke = (!st2_valid || st2_ready);
 	
 	assign s_ready = cke;
 	

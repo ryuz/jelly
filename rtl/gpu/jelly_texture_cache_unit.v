@@ -27,6 +27,9 @@ module jelly_texture_cache_unit
 			parameter	TAG_Y_LSHIFT         = TAG_ADDR_WIDTH / 2,
 			parameter	TAG_RAM_TYPE         = "distributed",
 			parameter	MEM_RAM_TYPE         = "block",
+			
+			parameter	USE_LOOK_AHEAD       = 0,
+			parameter	USE_S_RREADY         = 1,	// 0: s_rready is always 1'b1.   1: handshake mode.
 			parameter	USE_M_RREADY         = 0,	// 0: m_rready is always 1'b1.   1: handshake mode.
 			
 			parameter	S_USER_WIDTH         = 1,
@@ -45,6 +48,12 @@ module jelly_texture_cache_unit
 			
 			parameter	QUE_FIFO_PTR_WIDTH   = 0,
 			parameter	QUE_FIFO_RAM_TYPE    = "distributed",
+			
+			parameter	AR_FIFO_PTR_WIDTH    = 0,
+			parameter	AR_FIFO_RAM_TYPE     = "distributed",
+			
+			parameter	R_FIFO_PTR_WIDTH     = BLK_Y_SIZE + BLK_X_SIZE - M_DATA_WIDE_SIZE,
+			parameter	R_FIFO_RAM_TYPE      = "distributed",
 			
 			parameter	LOG_ENABLE           = 0,
 			parameter	LOG_FILE             = "cache_log.txt",
@@ -91,92 +100,59 @@ module jelly_texture_cache_unit
 		);
 	
 	
-	// ---------------------------------
-	//  localparam
-	// ---------------------------------
-	
-	localparam	PIX_ADDR_X_WIDTH     = BLK_X_SIZE;
-	localparam	PIX_ADDR_Y_WIDTH     = BLK_Y_SIZE;
-	localparam	BLK_ADDR_X_WIDTH     = S_ADDR_X_WIDTH - BLK_X_SIZE;
-	localparam	BLK_ADDR_Y_WIDTH     = S_ADDR_Y_WIDTH - BLK_Y_SIZE;
-	
-	
-	// ---------------------------------
-	//  Queueing
-	// ---------------------------------
-	
-	wire	[S_USER_WIDTH-1:0]		que_aruser;
-	wire	[S_ADDR_X_WIDTH-1:0]	que_araddrx;
-	wire	[S_ADDR_Y_WIDTH-1:0]	que_araddry;
-	wire							que_arvalid;
-	wire							que_arready;
-	
-	jelly_fifo_fwtf
+	generate
+	if ( USE_LOOK_AHEAD ) begin : blk_lookahead
+		jelly_texture_cache_lookahead
 			#(
-				.DATA_WIDTH			(S_USER_WIDTH+S_ADDR_X_WIDTH+S_ADDR_Y_WIDTH),
-				.PTR_WIDTH			(QUE_FIFO_PTR_WIDTH),
-				.RAM_TYPE			(QUE_FIFO_RAM_TYPE),
-				.MASTER_REGS		(0)
-			)
-		i_fifo_fwtf
-			(
-				.reset				(reset),
-				.clk				(clk),
+				.COMPONENT_NUM			(COMPONENT_NUM),
+				.COMPONENT_DATA_WIDTH	(COMPONENT_DATA_WIDTH),
 				
-				.s_data				({s_aruser, s_araddrx, s_araddry}),
-				.s_valid			(s_arvalid),
-				.s_ready			(s_arready),
-				.s_free_count		(),
-				
-				.m_data				({que_aruser, que_araddrx, que_araddry}),
-				.m_valid			(que_arvalid),
-				.m_ready			(que_arready),
-				.m_data_count		()
-			);
-	
-	
-	
-	// ---------------------------------
-	//  TAG-RAM access
-	// ---------------------------------
-	
-	wire		[S_USER_WIDTH-1:0]		tagram_user;
-	wire		[TAG_ADDR_WIDTH-1:0]	tagram_tag_addr;
-	wire		[PIX_ADDR_X_WIDTH-1:0]	tagram_pix_addrx;
-	wire		[PIX_ADDR_Y_WIDTH-1:0]	tagram_pix_addry;
-	wire		[BLK_ADDR_X_WIDTH-1:0]	tagram_blk_addrx;
-	wire		[BLK_ADDR_Y_WIDTH-1:0]	tagram_blk_addry;
-	wire								tagram_range_out;
-	wire								tagram_cache_hit;
-	wire								tagram_valid;
-	wire								tagram_ready;
-	
-	jelly_texture_cache_tag
-			#(
-				.USER_WIDTH				(S_USER_WIDTH),
-				
-				.S_ADDR_X_WIDTH			(S_ADDR_X_WIDTH),
-				.S_ADDR_Y_WIDTH			(S_ADDR_Y_WIDTH),
-				.S_DATA_WIDTH			(S_DATA_WIDTH),
-				
+				.BLK_X_SIZE				(BLK_X_SIZE),
+				.BLK_Y_SIZE				(BLK_Y_SIZE),
 				.TAG_ADDR_WIDTH			(TAG_ADDR_WIDTH),
 				.TAG_X_RSHIFT			(TAG_X_RSHIFT),
 				.TAG_X_LSHIFT			(TAG_X_LSHIFT),
 				.TAG_Y_RSHIFT			(TAG_Y_RSHIFT),
 				.TAG_Y_LSHIFT			(TAG_Y_LSHIFT),
-				.BLK_X_SIZE				(BLK_X_SIZE),
-				.BLK_Y_SIZE				(BLK_Y_SIZE),
-				.RAM_TYPE				(TAG_RAM_TYPE),
+				.TAG_RAM_TYPE			(TAG_RAM_TYPE),
+				.MEM_RAM_TYPE			(MEM_RAM_TYPE),
+				
+				.USE_S_RREADY			(USE_S_RREADY),
+				.USE_M_RREADY			(USE_M_RREADY),
+				
+				.S_USER_WIDTH			(S_USER_WIDTH),
+				.S_DATA_WIDTH			(S_DATA_WIDTH),
+				.S_ADDR_X_WIDTH			(S_ADDR_X_WIDTH),
+				.S_ADDR_Y_WIDTH			(S_ADDR_Y_WIDTH),
+				
+				.M_DATA_WIDE_SIZE		(M_DATA_WIDE_SIZE),
+				.M_DATA_WIDTH			(M_DATA_WIDTH),
+				.M_STRB_WIDTH			(M_STRB_WIDTH),
+				.M_ADDR_X_WIDTH			(M_ADDR_X_WIDTH),
+				.M_ADDR_Y_WIDTH			(M_ADDR_Y_WIDTH),
+				
 				.USE_BORDER				(USE_BORDER),
+				.BORDER_DATA			(BORDER_DATA),
+				
+				.QUE_FIFO_PTR_WIDTH		(QUE_FIFO_PTR_WIDTH),
+				.QUE_FIFO_RAM_TYPE		(QUE_FIFO_RAM_TYPE),
+				
+				.AR_FIFO_PTR_WIDTH		(AR_FIFO_PTR_WIDTH),
+				.AR_FIFO_RAM_TYPE		(AR_FIFO_RAM_TYPE),
+				
+				.R_FIFO_PTR_WIDTH		(R_FIFO_PTR_WIDTH),
+				.R_FIFO_RAM_TYPE		(R_FIFO_RAM_TYPE),
 				
 				.LOG_ENABLE				(LOG_ENABLE),
 				.LOG_FILE				(LOG_FILE),
 				.LOG_ID					(LOG_ID)
 			)
-		i_texture_cache_tag
+		i_texture_cache_lookahead
 			(
 				.reset					(reset),
 				.clk					(clk),
+				
+				.endian					(endian),
 				
 				.clear_start			(clear_start),
 				.clear_busy				(clear_busy),
@@ -184,197 +160,117 @@ module jelly_texture_cache_unit
 				.param_width			(param_width),
 				.param_height			(param_height),
 				
-				.s_user					(que_aruser),
-				.s_addrx				(que_araddrx),
-				.s_addry				(que_araddry),
-				.s_valid				(que_arvalid),
-				.s_ready				(que_arready),
+				.status_idle			(status_idle),
+				.status_stall			(status_stall),
+				.status_access			(status_access),
+				.status_hit				(status_hit),
+				.status_miss			(status_miss),
 				
-				.m_user					(tagram_user),
-				.m_tag_addr				(tagram_tag_addr),
-				.m_pix_addrx			(tagram_pix_addrx),
-				.m_pix_addry			(tagram_pix_addry),
-				.m_blk_addrx			(tagram_blk_addrx),
-				.m_blk_addry			(tagram_blk_addry),
-				.m_cache_hit			(tagram_cache_hit),
-				.m_range_out			(tagram_range_out),
-				.m_valid				(tagram_valid),
-				.m_ready				(tagram_ready)
+				.s_aruser				(s_aruser),
+				.s_araddrx				(s_araddrx),
+				.s_araddry				(s_araddry),
+				.s_arvalid				(s_arvalid),
+				.s_arready				(s_arready),
+				.s_ruser				(s_ruser),
+				.s_rdata				(s_rdata),
+				.s_rvalid				(s_rvalid),
+				.s_rready				(s_rready),
+				
+				.m_araddrx				(m_araddrx),
+				.m_araddry				(m_araddry),
+				.m_arvalid				(m_arvalid),
+				.m_arready				(m_arready),
+				.m_rlast				(m_rlast),
+				.m_rstrb				(m_rstrb),
+				.m_rdata				(m_rdata),
+				.m_rvalid				(m_rvalid),
+				.m_rready				(m_rready)
 			);
 	
 	
-	// ---------------------------------
-	//  cahce miss read control
-	// ---------------------------------
 	
-	localparam	PIX_ADDR_WIDTH = PIX_ADDR_Y_WIDTH + PIX_ADDR_X_WIDTH;
-	
-	wire								mem_busy;
-	wire								mem_ready;
-	
-	reg									reg_tagram_ready;
-	
-	reg		[S_USER_WIDTH-1:0]			reg_user;
-	reg		[TAG_ADDR_WIDTH-1:0]		reg_tag_addr;
-	reg		[PIX_ADDR_WIDTH-1:0]		reg_pix_addr;
-	reg		[PIX_ADDR_X_WIDTH-1:0]		reg_pix_addrx;
-	reg		[PIX_ADDR_Y_WIDTH-1:0]		reg_pix_addry;
-	reg		[BLK_ADDR_X_WIDTH-1:0]		reg_blk_addrx;
-	reg		[BLK_ADDR_Y_WIDTH-1:0]		reg_blk_addry;
-	reg									reg_range_out;
-	reg									reg_valid;
-	
-	reg		[COMPONENT_NUM-1:0]			reg_we;
-	reg									reg_wlast;
-	reg		[M_DATA_WIDTH-1:0]			reg_wdata;
-	
-	reg									reg_m_wait;
-	reg									reg_m_arvalid;
-	
-	always @(posedge clk) begin
-		if ( reset ) begin
-			reg_tagram_ready <= 1'b1;
-			
-			reg_user         <= {S_USER_WIDTH{1'bx}};
-			reg_tag_addr     <= {TAG_ADDR_WIDTH{1'bx}};
-			reg_pix_addr     <= {PIX_ADDR_WIDTH{1'bx}};
-			reg_pix_addrx    <= {PIX_ADDR_X_WIDTH{1'bx}};
-			reg_pix_addry    <= {PIX_ADDR_Y_WIDTH{1'bx}};
-			reg_blk_addrx    <= {BLK_ADDR_X_WIDTH{1'bx}};
-			reg_blk_addry    <= {BLK_ADDR_Y_WIDTH{1'bx}};
-			reg_range_out    <= 1'bx;
-			reg_valid        <= 1'b0;
-			
-			reg_we           <= {COMPONENT_NUM{1'b0}};
-			reg_wlast        <= 1'bx;
-			reg_wdata        <= {M_DATA_WIDTH{1'bx}};
-			
-			reg_m_wait       <= 1'b0;
-			reg_m_arvalid    <= 1'b0;
-		end
-		else begin
-			// araddr request complete
-			if ( m_arready ) begin
-				reg_m_arvalid <= 1'b0;
-			end
-			
-			// memory stage request receive
-			if ( mem_ready ) begin
-				reg_valid <= 1'b0;
-				reg_we    <= {COMPONENT_NUM{1'b0}};
-			end
-			
-			// rdata receive
-			if ( m_rvalid && m_rready ) begin
-				reg_we    <= m_rstrb;
-				reg_wlast <= m_rlast;
-				reg_wdata <= m_rdata;
-			end
-			
-			// m_arvalid
-			if ( reg_m_wait && !mem_busy ) begin
-				reg_m_wait    <= 1'b0;
-				reg_m_arvalid <= 1'b1;
-			end
-			
-			// write
-			if ( (reg_we != 0) && mem_ready ) begin
-				reg_pix_addr <= reg_pix_addr + (1 << M_DATA_WIDE_SIZE);
-				
-				if ( reg_wlast ) begin
-					// write end
-					reg_pix_addr     <= {reg_pix_addry, reg_pix_addrx};
-					reg_valid        <= 1'b1;
-					reg_tagram_ready <= 1'b1;
-				end
-			end
-			
-			if ( tagram_valid && tagram_ready ) begin
-				if ( !tagram_cache_hit && !tagram_range_out ) begin
-					// cache miss
-					reg_tagram_ready <= 1'b0;
-					reg_m_arvalid    <= (USE_M_RREADY || !mem_busy);
-					reg_m_wait       <= (!USE_M_RREADY && mem_busy);
-					reg_pix_addr     <= {PIX_ADDR_WIDTH{1'b0}};
-					reg_valid        <= 1'b0;
-				end
-				else begin
-					// cache hit
-					reg_m_arvalid    <= 1'b0;
-					reg_pix_addr     <= {tagram_pix_addry, tagram_pix_addrx};
-					reg_valid        <= tagram_valid;
-				end
-				
-				reg_tag_addr   <= tagram_tag_addr;
-			end
-			
-			if ( tagram_ready ) begin
-				reg_user      <= tagram_user;
-				reg_pix_addrx <= tagram_pix_addrx;
-				reg_pix_addry <= tagram_pix_addry;
-				reg_blk_addrx <= tagram_blk_addrx;
-				reg_blk_addry <= tagram_blk_addry;
-				reg_range_out <= tagram_range_out;
-			end
-		end
 	end
-	
-	assign tagram_ready = (reg_tagram_ready && (!reg_valid || mem_ready));
-	
-	assign m_araddrx    = (reg_blk_addrx << (BLK_X_SIZE - M_DATA_WIDE_SIZE));
-	assign m_araddry    = (reg_blk_addry << BLK_Y_SIZE);
-	assign m_arvalid    = reg_m_arvalid;
-	
-	assign m_rready     = (!USE_M_RREADY || mem_ready);
-	
-	
-	
-	assign status_idle   = !tagram_valid;
-	assign status_stall  = !tagram_ready;
-	assign status_access = !reg_tagram_ready;
-	assign status_hit    = (tagram_valid && tagram_ready && tagram_cache_hit);
-	assign status_miss   = (tagram_valid && tagram_ready && !tagram_cache_hit);
-	
-	
-	// ---------------------------------
-	//  cahce memory
-	// ---------------------------------
-	
-	jelly_texture_cache_mem
+	else begin : blk_basic
+		jelly_texture_cache_basic
 			#(
-				.USER_WIDTH				(S_USER_WIDTH),
 				.COMPONENT_NUM			(COMPONENT_NUM),
 				.COMPONENT_DATA_WIDTH	(COMPONENT_DATA_WIDTH),
+				
+				.BLK_X_SIZE				(BLK_X_SIZE),
+				.BLK_Y_SIZE				(BLK_Y_SIZE),
 				.TAG_ADDR_WIDTH			(TAG_ADDR_WIDTH),
-				.PIX_ADDR_WIDTH			(PIX_ADDR_WIDTH),
-				.M_DATA_WIDTH			(S_DATA_WIDTH),
-				.S_DATA_WIDE_SIZE		(M_DATA_WIDE_SIZE),
-				.RAM_TYPE				(MEM_RAM_TYPE),
-				.BORDER_DATA			(BORDER_DATA)
+				.TAG_X_RSHIFT			(TAG_X_RSHIFT),
+				.TAG_X_LSHIFT			(TAG_X_LSHIFT),
+				.TAG_Y_RSHIFT			(TAG_Y_RSHIFT),
+				.TAG_Y_LSHIFT			(TAG_Y_LSHIFT),
+				.TAG_RAM_TYPE			(TAG_RAM_TYPE),
+				.MEM_RAM_TYPE			(MEM_RAM_TYPE),
+				
+				.USE_S_RREADY			(USE_S_RREADY),
+				.USE_M_RREADY			(USE_M_RREADY),
+				
+				.S_USER_WIDTH			(S_USER_WIDTH),
+				.S_DATA_WIDTH			(S_DATA_WIDTH),
+				.S_ADDR_X_WIDTH			(S_ADDR_X_WIDTH),
+				.S_ADDR_Y_WIDTH			(S_ADDR_Y_WIDTH),
+				
+				.M_DATA_WIDE_SIZE		(M_DATA_WIDE_SIZE),
+				.M_DATA_WIDTH			(M_DATA_WIDTH),
+				.M_STRB_WIDTH			(M_STRB_WIDTH),
+				.M_ADDR_X_WIDTH			(M_ADDR_X_WIDTH),
+				.M_ADDR_Y_WIDTH			(M_ADDR_Y_WIDTH),
+				
+				.USE_BORDER				(USE_BORDER),
+				.BORDER_DATA			(BORDER_DATA),
+				
+				.QUE_FIFO_PTR_WIDTH		(QUE_FIFO_PTR_WIDTH),
+				.QUE_FIFO_RAM_TYPE		(QUE_FIFO_RAM_TYPE),
+				
+				.LOG_ENABLE				(LOG_ENABLE),
+				.LOG_FILE				(LOG_FILE),
+				.LOG_ID					(LOG_ID)
 			)
-		i_texture_cache_mem
+		i_texture_cache_basic
 			(
 				.reset					(reset),
 				.clk					(clk),
 				
 				.endian					(endian),
 				
-				.busy					(mem_busy),
+				.clear_start			(clear_start),
+				.clear_busy				(clear_busy),
 				
-				.s_user					(reg_user),
-				.s_we					(reg_we),
-				.s_wdata				(reg_wdata),
-				.s_tag_addr				(reg_tag_addr),
-				.s_pix_addr				(reg_pix_addr),
-				.s_range_out			(reg_range_out),
-				.s_valid				(reg_valid),
-				.s_ready				(mem_ready),
+				.param_width			(param_width),
+				.param_height			(param_height),
 				
-				.m_user					(s_ruser),
-				.m_data					(s_rdata),
-				.m_valid				(s_rvalid),
-				.m_ready				(s_rready)
+				.status_idle			(status_idle),
+				.status_stall			(status_stall),
+				.status_access			(status_access),
+				.status_hit				(status_hit),
+				.status_miss			(status_miss),
+				
+				.s_aruser				(s_aruser),
+				.s_araddrx				(s_araddrx),
+				.s_araddry				(s_araddry),
+				.s_arvalid				(s_arvalid),
+				.s_arready				(s_arready),
+				.s_ruser				(s_ruser),
+				.s_rdata				(s_rdata),
+				.s_rvalid				(s_rvalid),
+				.s_rready				(s_rready),
+				
+				.m_araddrx				(m_araddrx),
+				.m_araddry				(m_araddry),
+				.m_arvalid				(m_arvalid),
+				.m_arready				(m_arready),
+				.m_rlast				(m_rlast),
+				.m_rstrb				(m_rstrb),
+				.m_rdata				(m_rdata),
+				.m_rvalid				(m_rvalid),
+				.m_rready				(m_rready)
 			);
+	end
+	endgenerate
 	
 endmodule
 

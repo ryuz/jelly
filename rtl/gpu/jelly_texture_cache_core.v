@@ -29,6 +29,7 @@ module jelly_texture_cache_core
 			parameter	S_DATA_WIDTH         = COMPONENT_NUM * COMPONENT_DATA_WIDTH,
 			
 			parameter	L1_CACHE_NUM         = 4,
+			parameter	L1_USE_LOOK_AHEAD    = 0,
 			parameter	L1_TAG_ADDR_WIDTH    = 6,
 			parameter	L1_BLK_X_SIZE        = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	L1_BLK_Y_SIZE        = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
@@ -42,6 +43,7 @@ module jelly_texture_cache_core
 			parameter	L2_CACHE_X_SIZE      = 1,
 			parameter	L2_CACHE_Y_SIZE      = 1,
 			parameter	L2_CACHE_NUM         = (1 << (L2_CACHE_X_SIZE + L2_CACHE_Y_SIZE)),
+			parameter	L2_USE_LOOK_AHEAD    = 0,
 			parameter	L2_TAG_ADDR_WIDTH    = 6,
 			parameter	L2_BLK_X_SIZE        = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	L2_BLK_Y_SIZE        = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
@@ -205,7 +207,10 @@ module jelly_texture_cache_core
 				.BLK_Y_SIZE				(L1_BLK_Y_SIZE),
 				.TAG_RAM_TYPE			(L1_TAG_RAM_TYPE),
 				.MEM_RAM_TYPE			(L1_MEM_RAM_TYPE),
-				.USE_M_RREADY			(!USE_S_RREADY),
+				
+				.USE_LOOK_AHEAD			(L1_USE_LOOK_AHEAD),
+				.USE_S_RREADY			(USE_S_RREADY),
+				.USE_M_RREADY			(0),
 				.USE_BORDER				(USE_BORDER),
 				.BORDER_DATA			(BORDER_DATA),
 				
@@ -328,7 +333,10 @@ module jelly_texture_cache_core
 				
 				.BLK_X_SIZE				(L2_BLK_X_SIZE - L1_DATA_WIDE_SIZE),
 				.BLK_Y_SIZE				(L2_BLK_Y_SIZE),
-				.USE_M_RREADY			(1'b1),
+				
+				.USE_LOOK_AHEAD			(L2_USE_LOOK_AHEAD),
+				.USE_S_RREADY			(0),
+				.USE_M_RREADY			(1),
 				
 				.USE_BORDER				(0),
 				.BORDER_DATA			(BORDER_DATA),

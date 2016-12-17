@@ -52,8 +52,6 @@ module jelly_texture_cache_lookahead
 			parameter	R_FIFO_PTR_WIDTH     = BLK_Y_SIZE + BLK_X_SIZE - M_DATA_WIDE_SIZE,
 			parameter	R_FIFO_RAM_TYPE      = "distributed",
 			
-			parameter	LOOK_AHEAD_NUM       = (1 << (R_FIFO_PTR_WIDTH - (BLK_Y_SIZE + BLK_X_SIZE - M_DATA_WIDE_SIZE))),
-			
 			parameter	LOG_ENABLE           = 0,
 			parameter	LOG_FILE             = "cache_log.txt",
 			parameter	LOG_ID               = 0
@@ -360,6 +358,8 @@ module jelly_texture_cache_lookahead
 	
 	
 	// read addr command
+	localparam	LOOK_AHEAD_NUM         = (1 << (R_FIFO_PTR_WIDTH - (BLK_Y_SIZE + BLK_X_SIZE - M_DATA_WIDE_SIZE)));
+	
 	localparam	LOOK_AHEAD_COUNT_WIDTH = LOOK_AHEAD_NUM <   2 ? 1 :
 	                                     LOOK_AHEAD_NUM <   4 ? 2 :
 	                                     LOOK_AHEAD_NUM <   8 ? 3 :
