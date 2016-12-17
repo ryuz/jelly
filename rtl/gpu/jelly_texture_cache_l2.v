@@ -74,6 +74,11 @@ module jelly_texture_cache_l2
 			input	wire	[S_ADDR_X_WIDTH-1:0]					param_width,
 			input	wire	[S_ADDR_Y_WIDTH-1:0]					param_height,
 			
+			output	wire	[S_NUM-1:0]								status_idle,
+			output	wire	[S_NUM-1:0]								status_stall,
+			output	wire	[S_NUM-1:0]								status_access,
+			output	wire	[S_NUM-1:0]								status_hit,
+			output	wire	[S_NUM-1:0]								status_miss,
 			
 			input	wire	[S_NUM*S_USER_WIDTH-1:0]				s_aruser,
 			input	wire	[S_NUM*S_ADDR_X_WIDTH-1:0]				s_araddrx,
@@ -227,6 +232,12 @@ module jelly_texture_cache_l2
 				
 				.param_width			(param_width),
 				.param_height			(param_height),
+				
+				.status_idle			(status_idle[i]),
+				.status_stall			(status_stall[i]),
+				.status_access			(status_access[i]),
+				.status_hit				(status_hit[i]),
+				.status_miss			(status_miss[i]),
 				
 				.s_aruser				(s_aruser [i*S_USER_WIDTH   +: S_USER_WIDTH]),
 				.s_araddrx				(s_araddrx[i*S_ADDR_X_WIDTH +: S_ADDR_X_WIDTH]),

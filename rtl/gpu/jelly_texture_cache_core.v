@@ -15,11 +15,6 @@
 
 module jelly_texture_cache_core
 		#(
-			parameter	L1_CACHE_NUM         = 4,
-			parameter	L2_CACHE_X_SIZE      = 1,
-			parameter	L2_CACHE_Y_SIZE      = 1,
-			parameter	L2_CACHE_NUM         = (1 << (L2_CACHE_X_SIZE + L2_CACHE_Y_SIZE)),
-			
 			parameter	COMPONENT_NUM        = 3,
 			parameter	COMPONENT_DATA_WIDTH = 8,
 			
@@ -28,22 +23,33 @@ module jelly_texture_cache_core
 			parameter	USE_BORDER           = 1,
 			parameter	BORDER_DATA          = {S_DATA_WIDTH{1'b0}},
 			
+			parameter	ADDR_WIDTH           = 24,
 			parameter	ADDR_X_WIDTH         = 12,
 			parameter	ADDR_Y_WIDTH         = 12,
 			parameter	S_DATA_WIDTH         = COMPONENT_NUM * COMPONENT_DATA_WIDTH,
 			
+			parameter	L1_CACHE_NUM         = 4,
 			parameter	L1_TAG_ADDR_WIDTH    = 6,
 			parameter	L1_BLK_X_SIZE        = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	L1_BLK_Y_SIZE        = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	L1_TAG_RAM_TYPE      = "distributed",
 			parameter	L1_MEM_RAM_TYPE      = "block",
 			parameter	L1_DATA_WIDE_SIZE    = 1,
+			parameter	L1_LOG_ENABLE        = 0,
+			parameter	L1_LOG_FILE          = "l1_log.txt",
+			parameter	L1_LOG_ID            = 0,
 			
+			parameter	L2_CACHE_X_SIZE      = 1,
+			parameter	L2_CACHE_Y_SIZE      = 1,
+			parameter	L2_CACHE_NUM         = (1 << (L2_CACHE_X_SIZE + L2_CACHE_Y_SIZE)),
 			parameter	L2_TAG_ADDR_WIDTH    = 6,
 			parameter	L2_BLK_X_SIZE        = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	L2_BLK_Y_SIZE        = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	L2_TAG_RAM_TYPE      = "distributed",
 			parameter	L2_MEM_RAM_TYPE      = "block",
+			parameter	L2_LOG_ENABLE        = 0,
+			parameter	L2_LOG_FILE          = "l2_log.txt",
+			parameter	L2_LOG_ID            = 0,
 			
 			parameter	M_AXI4_ID_WIDTH      = 6,
 			parameter	M_AXI4_ADDR_WIDTH    = 32,
@@ -59,16 +65,7 @@ module jelly_texture_cache_core
 			parameter	M_AXI4_ARPROT        = 3'b000,
 			parameter	M_AXI4_ARQOS         = 0,
 			parameter	M_AXI4_ARREGION      = 4'b0000,
-			parameter	M_AXI4_REGS          = 1,
-			
-			parameter	ADDR_WIDTH           = 24,
-			
-			parameter	L1_LOG_ENABLE        = 0,
-			parameter	L1_LOG_FILE          = "l1_log.txt",
-			parameter	L1_LOG_ID            = 0,
-			parameter	L2_LOG_ENABLE        = 0,
-			parameter	L2_LOG_FILE          = "l2_log.txt",
-			parameter	L2_LOG_ID            = 0         
+			parameter	M_AXI4_REGS          = 1
 		)
 		(
 			input	wire											reset,
@@ -76,13 +73,26 @@ module jelly_texture_cache_core
 			
 			input	wire											endian,
 			
+			input	wire											clear_start,
+			output	wire											clear_busy,
+			
 			input	wire	[M_AXI4_ADDR_WIDTH*COMPONENT_NUM-1:0]	param_addr,
 			input	wire	[ADDR_X_WIDTH-1:0]						param_width,
 			input	wire	[ADDR_Y_WIDTH-1:0]						param_height,
 			input	wire	[ADDR_WIDTH-1:0]						param_stride,
 			
-			input	wire											clear_start,
-			output	wire											clear_busy,
+			output	wire	[L1_CACHE_NUM-1:0]						status_l1_idle,
+			output	wire	[L1_CACHE_NUM-1:0]						status_l1_stall,
+			output	wire	[L1_CACHE_NUM-1:0]						status_l1_access,
+			output	wire	[L1_CACHE_NUM-1:0]						status_l1_hit,
+			output	wire	[L1_CACHE_NUM-1:0]						status_l1_miss,
+			
+			output	wire	[L2_CACHE_NUM-1:0]						status_l2_idle,
+			output	wire	[L2_CACHE_NUM-1:0]						status_l2_stall,
+			output	wire	[L2_CACHE_NUM-1:0]						status_l2_access,
+			output	wire	[L2_CACHE_NUM-1:0]						status_l2_hit,
+			output	wire	[L2_CACHE_NUM-1:0]						status_l2_miss,
+			
 			
 			input	wire	[L1_CACHE_NUM*USER_WIDTH-1:0]			s_aruser,
 			input	wire	[L1_CACHE_NUM*ADDR_X_WIDTH-1:0]			s_araddrx,
@@ -228,6 +238,12 @@ module jelly_texture_cache_core
 				.param_width			(param_width),
 				.param_height			(param_height),
 				
+				.status_idle			(status_l1_idle),
+				.status_stall			(status_l1_stall),
+				.status_access			(status_l1_access),
+				.status_hit				(status_l1_hit),
+				.status_miss			(status_l1_miss),
+				
 				.s_aruser				(s_aruser),
 				.s_araddrx				(s_araddrx),
 				.s_araddry				(s_araddry),
@@ -344,17 +360,24 @@ module jelly_texture_cache_core
 			(
 				.reset					(reset),
 				.clk					(clk),
-				                         
+				
 				.endian					(endian),
-				                         
+				
+				.clear_start			(clear_start),
+				.clear_busy				(l2_clear_busy),
+				
 				.param_addr				(param_addr),
 				.param_width			(param_width[ADDR_X_WIDTH-1:L1_DATA_WIDE_SIZE]),
 				.param_height			(param_height),
 				.param_stride			(param_stride),
 				.param_arlen			(param_arlen),
 				
-				.clear_start			(clear_start),
-				.clear_busy				(l2_clear_busy),
+				.status_idle			(status_l2_idle),
+				.status_stall			(status_l2_stall),
+				.status_access			(status_l2_access),
+				.status_hit				(status_l2_hit),
+				.status_miss			(status_l2_miss),
+				
 				
 				.s_aruser				(l2_aruser),
 				.s_araddrx				(m_araddrx),

@@ -62,6 +62,12 @@ module jelly_texture_cache_unit
 			input	wire	[S_ADDR_X_WIDTH-1:0]	param_width,
 			input	wire	[S_ADDR_Y_WIDTH-1:0]	param_height,
 			
+			output	wire							status_idle,
+			output	wire							status_stall,
+			output	wire							status_access,
+			output	wire							status_hit,
+			output	wire							status_miss,
+			
 			input	wire	[S_USER_WIDTH-1:0]		s_aruser,
 			input	wire	[S_ADDR_X_WIDTH-1:0]	s_araddrx,
 			input	wire	[S_ADDR_Y_WIDTH-1:0]	s_araddry,
@@ -320,6 +326,14 @@ module jelly_texture_cache_unit
 	assign m_arvalid    = reg_m_arvalid;
 	
 	assign m_rready     = (!USE_M_RREADY || mem_ready);
+	
+	
+	
+	assign status_idle   = !tagram_valid;
+	assign status_stall  = !tagram_ready;
+	assign status_access = !reg_tagram_ready;
+	assign status_hit    = (tagram_valid && tagram_ready && tagram_cache_hit);
+	assign status_miss   = (tagram_valid && tagram_ready && !tagram_cache_hit);
 	
 	
 	// ---------------------------------
