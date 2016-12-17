@@ -46,7 +46,7 @@ module jelly_texture_cache_unit
 			parameter	USE_BORDER           = 1,
 			parameter	BORDER_DATA          = {S_DATA_WIDTH{1'b0}},
 			
-			parameter	QUE_FIFO_PTR_WIDTH   = 0,
+			parameter	QUE_FIFO_PTR_WIDTH   = USE_LOOK_AHEAD ? BLK_Y_SIZE + BLK_X_SIZE : 0,
 			parameter	QUE_FIFO_RAM_TYPE    = "distributed",
 			
 			parameter	AR_FIFO_PTR_WIDTH    = 0,

@@ -57,6 +57,15 @@ module jelly_texture_cache_l2
 			parameter	M_AXI4_ARQOS         = 0,
 			parameter	M_AXI4_ARREGION      = 4'b0000,
 			parameter	M_AXI4_REGS          = 1,
+
+			parameter	QUE_FIFO_PTR_WIDTH   = USE_LOOK_AHEAD ? BLK_Y_SIZE + BLK_X_SIZE : 0,
+			parameter	QUE_FIFO_RAM_TYPE    = "distributed",
+			
+			parameter	AR_FIFO_PTR_WIDTH    = 0,
+			parameter	AR_FIFO_RAM_TYPE     = "distributed",
+			
+			parameter	R_FIFO_PTR_WIDTH     = BLK_Y_SIZE + BLK_X_SIZE - (M_AXI4_DATA_SIZE - COMPONENT_DATA_SIZE),
+			parameter	R_FIFO_RAM_TYPE      = "distributed",
 			
 			parameter	LOG_ENABLE           = 0,
 			parameter	LOG_FILE             = "cache_log.txt",
@@ -147,8 +156,8 @@ module jelly_texture_cache_l2
 	localparam	M_ADDR_X_WIDTH       = S_ADDR_X_WIDTH - M_DATA_WIDE_SIZE;
 	localparam	M_ADDR_Y_WIDTH       = S_ADDR_Y_WIDTH;
 	
-	localparam	AR_PACKET_WIDTH = M_ADDR_X_WIDTH + M_ADDR_Y_WIDTH;
-	localparam	R_PACKET_WIDTH  = 1 + COMPONENT_SEL_WIDTH + M_AXI4_DATA_WIDTH;
+	localparam	AR_PACKET_WIDTH      = M_ADDR_X_WIDTH + M_ADDR_Y_WIDTH;
+	localparam	R_PACKET_WIDTH       = 1 + COMPONENT_SEL_WIDTH + M_AXI4_DATA_WIDTH;
 	
 	
 	
@@ -198,76 +207,85 @@ module jelly_texture_cache_l2
 		
 		// cahce
 		jelly_texture_cache_unit
-			#(
-				.COMPONENT_NUM			(COMPONENT_NUM),
-				.COMPONENT_DATA_WIDTH	(COMPONENT_DATA_WIDTH),
-				.BLK_X_SIZE				(BLK_X_SIZE),
-				.BLK_Y_SIZE				(BLK_Y_SIZE),
-				.TAG_ADDR_WIDTH			(TAG_ADDR_WIDTH),
-				.TAG_X_RSHIFT			(TAG_X_RSHIFT),
-				.TAG_X_LSHIFT			(TAG_X_LSHIFT),
-				.TAG_Y_RSHIFT			(TAG_Y_RSHIFT),
-				.TAG_Y_LSHIFT			(TAG_Y_LSHIFT),
-				.TAG_RAM_TYPE			(TAG_RAM_TYPE),
-				.MEM_RAM_TYPE			(MEM_RAM_TYPE),
-				.USE_BORDER				(USE_BORDER),
-				.BORDER_DATA			(BORDER_DATA),
-				
-				.USE_LOOK_AHEAD			(USE_LOOK_AHEAD),
-				.USE_S_RREADY			(USE_S_RREADY),  
-				.USE_M_RREADY			(USE_M_RREADY),
-				
-				.S_USER_WIDTH			(S_USER_WIDTH),
-				.S_ADDR_X_WIDTH			(S_ADDR_X_WIDTH),
-				.S_ADDR_Y_WIDTH			(S_ADDR_Y_WIDTH),
-				
-				.M_DATA_WIDE_SIZE		(M_DATA_WIDE_SIZE),
-				
-				.LOG_ENABLE				(LOG_ENABLE),
-				.LOG_FILE				(LOG_FILE),
-				.LOG_ID					(LOG_ID + i)
-			)
-		i_texture_cache_unit
-			(
-				.reset					(reset),
-				.clk					(clk),
-				
-				.endian					(endian),
-				
-				.clear_start			(clear_start),
-				.clear_busy				(cache_clear_busy[i]),
-				
-				.param_width			(param_width),
-				.param_height			(param_height),
-				
-				.status_idle			(status_idle[i]),
-				.status_stall			(status_stall[i]),
-				.status_access			(status_access[i]),
-				.status_hit				(status_hit[i]),
-				.status_miss			(status_miss[i]),
-				
-				.s_aruser				(s_aruser [i*S_USER_WIDTH   +: S_USER_WIDTH]),
-				.s_araddrx				(s_araddrx[i*S_ADDR_X_WIDTH +: S_ADDR_X_WIDTH]),
-				.s_araddry				(s_araddry[i*S_ADDR_Y_WIDTH +: S_ADDR_Y_WIDTH]),
-				.s_arvalid				(s_arvalid[i]),
-				.s_arready				(s_arready[i]),
-				
-				.s_ruser				(s_ruser  [i*S_USER_WIDTH   +: S_USER_WIDTH]),
-				.s_rdata				(s_rdata  [i*S_DATA_WIDTH   +: S_DATA_WIDTH]),
-				.s_rvalid				(s_rvalid [i]),
-				.s_rready				(s_rready [i]),
-				
-				.m_araddrx				(cache_araddrx[i*M_ADDR_X_WIDTH +: M_ADDR_X_WIDTH]),
-				.m_araddry				(cache_araddry[i*M_ADDR_Y_WIDTH +: M_ADDR_Y_WIDTH]),
-				.m_arvalid				(cache_arvalid[i]),
-				.m_arready				(cache_arready[i]),
-				
-				.m_rlast				(cache_rlast  [i]),
-				.m_rstrb				(cache_rstrb  [i*COMPONENT_NUM  +: COMPONENT_NUM]),
-				.m_rdata				({COMPONENT_NUM{cache_rdata[i*M_AXI4_DATA_WIDTH +: M_AXI4_DATA_WIDTH]}}),
-				.m_rvalid				(cache_rvalid [i]),
-				.m_rready				(cache_rready [i])
-			);
+				#(
+					.COMPONENT_NUM			(COMPONENT_NUM),
+					.COMPONENT_DATA_WIDTH	(COMPONENT_DATA_WIDTH),
+					.BLK_X_SIZE				(BLK_X_SIZE),
+					.BLK_Y_SIZE				(BLK_Y_SIZE),
+					.TAG_ADDR_WIDTH			(TAG_ADDR_WIDTH),
+					.TAG_X_RSHIFT			(TAG_X_RSHIFT),
+					.TAG_X_LSHIFT			(TAG_X_LSHIFT),
+					.TAG_Y_RSHIFT			(TAG_Y_RSHIFT),
+					.TAG_Y_LSHIFT			(TAG_Y_LSHIFT),
+					.TAG_RAM_TYPE			(TAG_RAM_TYPE),
+					.MEM_RAM_TYPE			(MEM_RAM_TYPE),
+					.USE_BORDER				(USE_BORDER),
+					.BORDER_DATA			(BORDER_DATA),
+					
+					.USE_LOOK_AHEAD			(USE_LOOK_AHEAD),
+					.USE_S_RREADY			(USE_S_RREADY),  
+					.USE_M_RREADY			(USE_M_RREADY),
+					
+					.S_USER_WIDTH			(S_USER_WIDTH),
+					.S_ADDR_X_WIDTH			(S_ADDR_X_WIDTH),
+					.S_ADDR_Y_WIDTH			(S_ADDR_Y_WIDTH),
+					
+					.M_DATA_WIDE_SIZE		(M_DATA_WIDE_SIZE),
+					
+					.QUE_FIFO_PTR_WIDTH		(QUE_FIFO_PTR_WIDTH),
+					.QUE_FIFO_RAM_TYPE		(QUE_FIFO_RAM_TYPE),
+
+					.AR_FIFO_PTR_WIDTH		(AR_FIFO_PTR_WIDTH),
+					.AR_FIFO_RAM_TYPE		(AR_FIFO_RAM_TYPE),
+					
+					.R_FIFO_PTR_WIDTH		(R_FIFO_PTR_WIDTH),
+					.R_FIFO_RAM_TYPE		(R_FIFO_RAM_TYPE),
+	
+					.LOG_ENABLE				(LOG_ENABLE),
+					.LOG_FILE				(LOG_FILE),
+					.LOG_ID					(LOG_ID + i)
+				)
+			i_texture_cache_unit
+				(
+					.reset					(reset),
+					.clk					(clk),
+					
+					.endian					(endian),
+					
+					.clear_start			(clear_start),
+					.clear_busy				(cache_clear_busy[i]),
+					
+					.param_width			(param_width),
+					.param_height			(param_height),
+					
+					.status_idle			(status_idle[i]),
+					.status_stall			(status_stall[i]),
+					.status_access			(status_access[i]),
+					.status_hit				(status_hit[i]),
+					.status_miss			(status_miss[i]),
+					
+					.s_aruser				(s_aruser [i*S_USER_WIDTH   +: S_USER_WIDTH]),
+					.s_araddrx				(s_araddrx[i*S_ADDR_X_WIDTH +: S_ADDR_X_WIDTH]),
+					.s_araddry				(s_araddry[i*S_ADDR_Y_WIDTH +: S_ADDR_Y_WIDTH]),
+					.s_arvalid				(s_arvalid[i]),
+					.s_arready				(s_arready[i]),
+					
+					.s_ruser				(s_ruser  [i*S_USER_WIDTH   +: S_USER_WIDTH]),
+					.s_rdata				(s_rdata  [i*S_DATA_WIDTH   +: S_DATA_WIDTH]),
+					.s_rvalid				(s_rvalid [i]),
+					.s_rready				(s_rready [i]),
+					
+					.m_araddrx				(cache_araddrx[i*M_ADDR_X_WIDTH +: M_ADDR_X_WIDTH]),
+					.m_araddry				(cache_araddry[i*M_ADDR_Y_WIDTH +: M_ADDR_Y_WIDTH]),
+					.m_arvalid				(cache_arvalid[i]),
+					.m_arready				(cache_arready[i]),
+					
+					.m_rlast				(cache_rlast  [i]),
+					.m_rstrb				(cache_rstrb  [i*COMPONENT_NUM  +: COMPONENT_NUM]),
+					.m_rdata				({COMPONENT_NUM{cache_rdata[i*M_AXI4_DATA_WIDTH +: M_AXI4_DATA_WIDTH]}}),
+					.m_rvalid				(cache_rvalid [i]),
+					.m_rready				(cache_rready [i])
+				);
 	end
 	endgenerate
 	

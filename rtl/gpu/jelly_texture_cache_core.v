@@ -15,59 +15,71 @@
 
 module jelly_texture_cache_core
 		#(
-			parameter	COMPONENT_NUM        = 3,
-			parameter	COMPONENT_DATA_WIDTH = 8,
+			parameter	COMPONENT_NUM         = 3,
+			parameter	COMPONENT_DATA_WIDTH  = 8,
 			
-			parameter	USER_WIDTH           = 1,
-			parameter	USE_S_RREADY         = 1,	// 0: s_rready is always 1'b1.   1: handshake mode.
-			parameter	USE_BORDER           = 1,
-			parameter	BORDER_DATA          = {S_DATA_WIDTH{1'b0}},
+			parameter	USER_WIDTH            = 1,
+			parameter	USE_S_RREADY          = 1,	// 0: s_rready is always 1'b1.   1: handshake mode.
+			parameter	USE_BORDER            = 1,
+			parameter	BORDER_DATA           = {S_DATA_WIDTH{1'b0}},
 			
-			parameter	ADDR_WIDTH           = 24,
-			parameter	ADDR_X_WIDTH         = 12,
-			parameter	ADDR_Y_WIDTH         = 12,
-			parameter	S_DATA_WIDTH         = COMPONENT_NUM * COMPONENT_DATA_WIDTH,
+			parameter	ADDR_WIDTH            = 24,
+			parameter	ADDR_X_WIDTH          = 12,
+			parameter	ADDR_Y_WIDTH          = 12,
+			parameter	S_DATA_WIDTH          = COMPONENT_NUM * COMPONENT_DATA_WIDTH,
 			
-			parameter	L1_CACHE_NUM         = 4,
-			parameter	L1_USE_LOOK_AHEAD    = 0,
-			parameter	L1_TAG_ADDR_WIDTH    = 6,
-			parameter	L1_BLK_X_SIZE        = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
-			parameter	L1_BLK_Y_SIZE        = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
-			parameter	L1_TAG_RAM_TYPE      = "distributed",
-			parameter	L1_MEM_RAM_TYPE      = "block",
-			parameter	L1_DATA_WIDE_SIZE    = 1,
-			parameter	L1_LOG_ENABLE        = 0,
-			parameter	L1_LOG_FILE          = "l1_log.txt",
-			parameter	L1_LOG_ID            = 0,
+			parameter	L1_CACHE_NUM          = 4,
+			parameter	L1_USE_LOOK_AHEAD     = 0,
+			parameter	L1_TAG_ADDR_WIDTH     = 6,
+			parameter	L1_BLK_X_SIZE         = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
+			parameter	L1_BLK_Y_SIZE         = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
+			parameter	L1_TAG_RAM_TYPE       = "distributed",
+			parameter	L1_MEM_RAM_TYPE       = "block",
+			parameter	L1_DATA_WIDE_SIZE     = 1,
+			parameter	L1_QUE_FIFO_PTR_WIDTH = L1_USE_LOOK_AHEAD ? L1_BLK_Y_SIZE + L1_BLK_X_SIZE : 0,
+			parameter	L1_QUE_FIFO_RAM_TYPE  = "distributed",
+			parameter	L1_AR_FIFO_PTR_WIDTH  = 0,
+			parameter	L1_AR_FIFO_RAM_TYPE   = "distributed",
+			parameter	L1_R_FIFO_PTR_WIDTH   = L1_BLK_Y_SIZE + L1_BLK_X_SIZE - L1_DATA_WIDE_SIZE,
+			parameter	L1_R_FIFO_RAM_TYPE    = "distributed",
+			parameter	L1_LOG_ENABLE         = 0,
+			parameter	L1_LOG_FILE           = "l1_log.txt",
+			parameter	L1_LOG_ID             = 0,
 			
-			parameter	L2_CACHE_X_SIZE      = 1,
-			parameter	L2_CACHE_Y_SIZE      = 1,
-			parameter	L2_CACHE_NUM         = (1 << (L2_CACHE_X_SIZE + L2_CACHE_Y_SIZE)),
-			parameter	L2_USE_LOOK_AHEAD    = 0,
-			parameter	L2_TAG_ADDR_WIDTH    = 6,
-			parameter	L2_BLK_X_SIZE        = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
-			parameter	L2_BLK_Y_SIZE        = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
-			parameter	L2_TAG_RAM_TYPE      = "distributed",
-			parameter	L2_MEM_RAM_TYPE      = "block",
-			parameter	L2_LOG_ENABLE        = 0,
-			parameter	L2_LOG_FILE          = "l2_log.txt",
-			parameter	L2_LOG_ID            = 0,
+			parameter	L2_CACHE_X_SIZE       = 1,
+			parameter	L2_CACHE_Y_SIZE       = 1,
+			parameter	L2_CACHE_NUM          = (1 << (L2_CACHE_X_SIZE + L2_CACHE_Y_SIZE)),
+			parameter	L2_USE_LOOK_AHEAD     = 0,
+			parameter	L2_TAG_ADDR_WIDTH     = 6,
+			parameter	L2_BLK_X_SIZE         = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
+			parameter	L2_BLK_Y_SIZE         = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
+			parameter	L2_TAG_RAM_TYPE       = "distributed",
+			parameter	L2_MEM_RAM_TYPE       = "block",
+			parameter	L2_QUE_FIFO_PTR_WIDTH = L2_USE_LOOK_AHEAD ? L2_BLK_Y_SIZE + L2_BLK_X_SIZE : 0,
+			parameter	L2_QUE_FIFO_RAM_TYPE  = "distributed",
+			parameter	L2_AR_FIFO_PTR_WIDTH  = 0,
+			parameter	L2_AR_FIFO_RAM_TYPE   = "distributed",
+			parameter	L2_R_FIFO_PTR_WIDTH   = L2_BLK_Y_SIZE + L2_BLK_X_SIZE - M_AXI4_DATA_SIZE,
+			parameter	L2_R_FIFO_RAM_TYPE    = "distributed",
+			parameter	L2_LOG_ENABLE         = 0,
+			parameter	L2_LOG_FILE           = "l2_log.txt",
+			parameter	L2_LOG_ID             = 0,
 			
-			parameter	M_AXI4_ID_WIDTH      = 6,
-			parameter	M_AXI4_ADDR_WIDTH    = 32,
-			parameter	M_AXI4_DATA_SIZE     = 3,	// 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
-			parameter	M_AXI4_DATA_WIDTH    = (8 << M_AXI4_DATA_SIZE),
-			parameter	M_AXI4_LEN_WIDTH     = 8,
-			parameter	M_AXI4_QOS_WIDTH     = 4,
-			parameter	M_AXI4_ARID          = {M_AXI4_ID_WIDTH{1'b0}},
-			parameter	M_AXI4_ARSIZE        = M_AXI4_DATA_SIZE,
-			parameter	M_AXI4_ARBURST       = 2'b01,
-			parameter	M_AXI4_ARLOCK        = 1'b0,
-			parameter	M_AXI4_ARCACHE       = 4'b0001,
-			parameter	M_AXI4_ARPROT        = 3'b000,
-			parameter	M_AXI4_ARQOS         = 0,
-			parameter	M_AXI4_ARREGION      = 4'b0000,
-			parameter	M_AXI4_REGS          = 1
+			parameter	M_AXI4_ID_WIDTH       = 6,
+			parameter	M_AXI4_ADDR_WIDTH     = 32,
+			parameter	M_AXI4_DATA_SIZE      = 3,	// 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
+			parameter	M_AXI4_DATA_WIDTH     = (8 << M_AXI4_DATA_SIZE),
+			parameter	M_AXI4_LEN_WIDTH      = 8,
+			parameter	M_AXI4_QOS_WIDTH      = 4,
+			parameter	M_AXI4_ARID           = {M_AXI4_ID_WIDTH{1'b0}},
+			parameter	M_AXI4_ARSIZE         = M_AXI4_DATA_SIZE,
+			parameter	M_AXI4_ARBURST        = 2'b01,
+			parameter	M_AXI4_ARLOCK         = 1'b0,
+			parameter	M_AXI4_ARCACHE        = 4'b0001,
+			parameter	M_AXI4_ARPROT         = 3'b000,
+			parameter	M_AXI4_ARQOS          = 0,
+			parameter	M_AXI4_ARREGION       = 4'b0000,
+			parameter	M_AXI4_REGS           = 1
 		)
 		(
 			input	wire											reset,
@@ -226,6 +238,13 @@ module jelly_texture_cache_core
 				.M_ID_Y_RSHIFT			(L2_BLK_X_SIZE),
 				.M_ID_Y_LSHIFT			(L2_ID_WIDTH/2),
 				
+				.QUE_FIFO_PTR_WIDTH		(L1_QUE_FIFO_PTR_WIDTH),
+				.QUE_FIFO_RAM_TYPE		(L1_QUE_FIFO_RAM_TYPE),
+				.AR_FIFO_PTR_WIDTH		(L1_AR_FIFO_PTR_WIDTH),
+				.AR_FIFO_RAM_TYPE		(L1_AR_FIFO_RAM_TYPE),
+				.R_FIFO_PTR_WIDTH		(L1_R_FIFO_PTR_WIDTH),
+				.R_FIFO_RAM_TYPE		(L1_R_FIFO_RAM_TYPE),
+				
 				.LOG_ENABLE				(L1_LOG_ENABLE),
 				.LOG_FILE				(L1_LOG_FILE),
 				.LOG_ID					(L1_LOG_ID)
@@ -359,6 +378,13 @@ module jelly_texture_cache_core
 				.M_AXI4_ARQOS			(M_AXI4_ARQOS),
 				.M_AXI4_ARREGION		(M_AXI4_ARREGION),
 				.M_AXI4_REGS			(M_AXI4_REGS),
+				
+				.QUE_FIFO_PTR_WIDTH		(L2_QUE_FIFO_PTR_WIDTH),
+				.QUE_FIFO_RAM_TYPE		(L2_QUE_FIFO_RAM_TYPE),
+				.AR_FIFO_PTR_WIDTH		(L2_AR_FIFO_PTR_WIDTH),
+				.AR_FIFO_RAM_TYPE		(L2_AR_FIFO_RAM_TYPE),
+				.R_FIFO_PTR_WIDTH		(L2_R_FIFO_PTR_WIDTH),
+				.R_FIFO_RAM_TYPE		(L2_R_FIFO_RAM_TYPE),
 				
 				.LOG_ENABLE				(L2_LOG_ENABLE),
 				.LOG_FILE				(L2_LOG_FILE),

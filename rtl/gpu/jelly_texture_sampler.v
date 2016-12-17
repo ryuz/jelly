@@ -54,6 +54,15 @@ module jelly_texture_sampler
 			parameter	L1_TAG_RAM_TYPE               = "distributed",
 			parameter	L1_MEM_RAM_TYPE               = "block",
 			parameter	L1_DATA_WIDE_SIZE             = 2,
+			parameter	L1_QUE_FIFO_PTR_WIDTH         = L1_USE_LOOK_AHEAD ? L1_BLK_Y_SIZE + L1_BLK_X_SIZE : 0,
+			parameter	L1_QUE_FIFO_RAM_TYPE          = "distributed",
+			parameter	L1_AR_FIFO_PTR_WIDTH          = 0,
+			parameter	L1_AR_FIFO_RAM_TYPE           = "distributed",
+			parameter	L1_R_FIFO_PTR_WIDTH           = L1_BLK_Y_SIZE + L1_BLK_X_SIZE - L1_DATA_WIDE_SIZE,
+			parameter	L1_R_FIFO_RAM_TYPE            = "distributed",
+			parameter	L1_LOG_ENABLE                 = 0,
+			parameter	L1_LOG_FILE                   = "l1_log.txt",
+			parameter	L1_LOG_ID                     = 0,
 			
 			parameter	L2_CACHE_X_SIZE               = 1,
 			parameter	L2_CACHE_Y_SIZE               = 1,
@@ -64,6 +73,15 @@ module jelly_texture_sampler
 			parameter	L2_BLK_Y_SIZE                 = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	L2_TAG_RAM_TYPE               = "distributed",
 			parameter	L2_MEM_RAM_TYPE               = "block",
+			parameter	L2_QUE_FIFO_PTR_WIDTH         = L2_USE_LOOK_AHEAD ? L2_BLK_Y_SIZE + L2_BLK_X_SIZE : 0,
+			parameter	L2_QUE_FIFO_RAM_TYPE          = "distributed",
+			parameter	L2_AR_FIFO_PTR_WIDTH          = 0,
+			parameter	L2_AR_FIFO_RAM_TYPE           = "distributed",
+			parameter	L2_R_FIFO_PTR_WIDTH           = L2_BLK_Y_SIZE + L2_BLK_X_SIZE - M_AXI4_DATA_SIZE,
+			parameter	L2_R_FIFO_RAM_TYPE            = "distributed",
+			parameter	L2_LOG_ENABLE                 = 0,
+			parameter	L2_LOG_FILE                   = "l2_log.txt",
+			parameter	L2_LOG_ID                     = 0,
 			
 			parameter	M_AXI4_ID_WIDTH               = 6,
 			parameter	M_AXI4_ADDR_WIDTH             = 32,
@@ -81,14 +99,7 @@ module jelly_texture_sampler
 			parameter	M_AXI4_ARREGION               = 4'b0000,
 			parameter	M_AXI4_REGS                   = 1,
 			
-			parameter	DEVICE                        = "7SERIES",	// "RTL",
-
-			parameter	L1_LOG_ENABLE                 = 0,
-			parameter	L1_LOG_FILE                   = "l1_log.txt",
-			parameter	L1_LOG_ID                     = 0,
-			parameter	L2_LOG_ENABLE                 = 0,
-			parameter	L2_LOG_FILE                   = "l2_log.txt",
-			parameter	L2_LOG_ID                     = 0
+			parameter	DEVICE                        = "7SERIES"	// "RTL"
 		)
 		(
 			// system
@@ -249,6 +260,12 @@ module jelly_texture_sampler
 				.L1_TAG_RAM_TYPE		(L1_TAG_RAM_TYPE),
 				.L1_MEM_RAM_TYPE		(L1_MEM_RAM_TYPE),
 				.L1_DATA_WIDE_SIZE		(L1_DATA_WIDE_SIZE),
+				.L1_QUE_FIFO_PTR_WIDTH	(L1_QUE_FIFO_PTR_WIDTH),
+				.L1_QUE_FIFO_RAM_TYPE	(L1_QUE_FIFO_RAM_TYPE),
+				.L1_AR_FIFO_PTR_WIDTH	(L1_AR_FIFO_PTR_WIDTH),
+				.L1_AR_FIFO_RAM_TYPE	(L1_AR_FIFO_RAM_TYPE),
+				.L1_R_FIFO_PTR_WIDTH	(L1_R_FIFO_PTR_WIDTH),
+				.L1_R_FIFO_RAM_TYPE		(L1_R_FIFO_RAM_TYPE),
 				.L1_LOG_ENABLE			(L1_LOG_ENABLE),
 				.L1_LOG_FILE			(L1_LOG_FILE),
 				.L1_LOG_ID				(L1_LOG_ID),
@@ -262,6 +279,12 @@ module jelly_texture_sampler
 				.L2_BLK_Y_SIZE			(L2_BLK_Y_SIZE),
 				.L2_TAG_RAM_TYPE		(L2_TAG_RAM_TYPE),
 				.L2_MEM_RAM_TYPE		(L2_MEM_RAM_TYPE),
+				.L2_QUE_FIFO_PTR_WIDTH	(L2_QUE_FIFO_PTR_WIDTH),
+				.L2_QUE_FIFO_RAM_TYPE	(L2_QUE_FIFO_RAM_TYPE),
+				.L2_AR_FIFO_PTR_WIDTH	(L2_AR_FIFO_PTR_WIDTH),
+				.L2_AR_FIFO_RAM_TYPE	(L2_AR_FIFO_RAM_TYPE),
+				.L2_R_FIFO_PTR_WIDTH	(L2_R_FIFO_PTR_WIDTH),
+				.L2_R_FIFO_RAM_TYPE		(L2_R_FIFO_RAM_TYPE),
 				.L2_LOG_ENABLE			(L2_LOG_ENABLE),
 				.L2_LOG_FILE			(L2_LOG_FILE),
 				.L2_LOG_ID				(L2_LOG_ID),

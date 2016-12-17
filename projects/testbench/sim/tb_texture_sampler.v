@@ -301,6 +301,7 @@ module tb_texture_sampler();
 				.SAMPLER3D_NUM					(SAMPLER3D_NUM					),
 				                                
 				.L1_USE_LOOK_AHEAD				(1),
+				.L1_QUE_FIFO_PTR_WIDTH			(6),
 				.L1_CACHE_NUM					(L1_CACHE_NUM					),
 				.L2_CACHE_X_SIZE				(L2_CACHE_X_SIZE				),
 				.L2_CACHE_Y_SIZE				(L2_CACHE_Y_SIZE				),
