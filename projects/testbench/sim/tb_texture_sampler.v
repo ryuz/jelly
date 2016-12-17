@@ -7,8 +7,8 @@ module tb_texture_sampler();
 	localparam RATE    = 1000.0/200.0;
 	
 	initial begin
-		$dumpfile("tb_texture_sampler.vcd");
-		$dumpvars(0, tb_texture_sampler);
+//		$dumpfile("tb_texture_sampler.vcd");
+//		$dumpvars(0, tb_texture_sampler);
 
 //	#870000;
 //		$dumpfile("tb_texture_sampler.vcd");
@@ -300,6 +300,7 @@ module tb_texture_sampler();
 				                                
 				.SAMPLER3D_NUM					(SAMPLER3D_NUM					),
 				                                
+				.L1_USE_LOOK_AHEAD				(1),
 				.L1_CACHE_NUM					(L1_CACHE_NUM					),
 				.L2_CACHE_X_SIZE				(L2_CACHE_X_SIZE				),
 				.L2_CACHE_Y_SIZE				(L2_CACHE_Y_SIZE				),

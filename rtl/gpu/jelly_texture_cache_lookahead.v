@@ -27,6 +27,8 @@ module jelly_texture_cache_lookahead
 			parameter	TAG_Y_LSHIFT         = TAG_ADDR_WIDTH / 2,
 			parameter	TAG_RAM_TYPE         = "distributed",
 			parameter	MEM_RAM_TYPE         = "block",
+			
+			parameter	USE_S_RREADY         = 1,	// 0: s_rready is always 1'b1.   1: handshake mode.
 			parameter	USE_M_RREADY         = 0,	// 0: m_rready is always 1'b1.   1: handshake mode.
 			
 			parameter	S_USER_WIDTH         = 1,
@@ -271,7 +273,6 @@ module jelly_texture_cache_lookahead
 	wire	[M_STRB_WIDTH-1:0]		base_m_rstrb;
 	wire	[M_DATA_WIDTH-1:0]		base_m_rdata;
 	wire							base_m_rvalid;
-//	wire							base_m_rready;
 	
 	jelly_texture_cache_basic
 			#(
@@ -287,6 +288,8 @@ module jelly_texture_cache_lookahead
 				.TAG_Y_LSHIFT			(TAG_Y_LSHIFT),
 				.TAG_RAM_TYPE			(TAG_RAM_TYPE),
 				.MEM_RAM_TYPE			(MEM_RAM_TYPE),
+				
+				.USE_S_RREADY			(USE_S_RREADY),
 				.USE_M_RREADY			(0),
 				
 				.S_USER_WIDTH			(S_USER_WIDTH),
