@@ -284,11 +284,66 @@ module jelly_texture_cache_l1
 	wire	[M_NUM-1:0]					arbit_arvalid;
 	wire	[M_NUM-1:0]					arbit_arready;
 	
+	jelly_data_arbiter_crossbar
+			#(
+				.S_NUM				(S_NUM),
+				.S_ID_WIDTH			(S_ID_WIDTH),
+				.M_NUM				(M_NUM),
+				.M_ID_WIDTH			(M_ID_WIDTH),
+				.DATA_WIDTH			(AR_PACKET_WIDTH),
+				.ALGORITHM			("RINGBUS")
+			)
+		i_data_arbiter_crossbar_down
+			(
+				.reset				(reset),
+				.clk				(clk),
+				.cke				(1'b1),
+				
+				.s_id_to			(cache_arid),
+				.s_data				(cache_arpacket),
+				.s_valid			(cache_arvalid),
+				.s_ready			(cache_arready),
+				
+				.m_id_from			(arbit_arid),
+				.m_data				(arbit_arpacket),
+				.m_valid			(arbit_arvalid),
+				.m_ready			(arbit_arready)
+			);
+	
+	
 	wire	[M_NUM*S_ID_WIDTH-1:0]		arbit_rid;
 	wire	[M_NUM*R_PACKET_WIDTH-1:0]	arbit_rpacket;
 	wire	[M_NUM-1:0]					arbit_rvalid;
 	wire	[M_NUM-1:0]					arbit_rready;
 	
+	jelly_data_arbiter_crossbar
+			#(
+				.S_NUM				(M_NUM),
+				.S_ID_WIDTH			(M_ID_WIDTH),
+				.M_NUM				(S_NUM),
+				.M_ID_WIDTH			(S_ID_WIDTH),
+				.DATA_WIDTH			(R_PACKET_WIDTH),
+				.ALGORITHM			("PRIORITY")
+			)
+		i_data_arbiter_crossbar_up
+			(
+				.reset				(reset),
+				.clk				(clk),
+				.cke				(1'b1),
+				
+				.s_id_to			(arbit_rid),
+				.s_data				(arbit_rpacket),
+				.s_valid			(arbit_rvalid),
+				.s_ready			(arbit_rready),
+				
+				.m_id_from			(),
+				.m_data				(cache_rpacket),
+				.m_valid			(cache_rvalid),
+				.m_ready			(cache_rready)
+			);
+	
+	
+	/*
 	jelly_ring_bus_crossbar_bidirection
 			#(
 				.S_NUM				(S_NUM),
@@ -324,7 +379,7 @@ module jelly_texture_cache_l1
 				.m_up_valid			(arbit_rvalid),
 				.m_up_ready			(arbit_rready)
 			);
-	
+	*/
 	
 	
 	// -----------------------------
