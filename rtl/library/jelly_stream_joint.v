@@ -22,7 +22,8 @@ module jelly_stream_joint
 			parameter	LEN_WIDTH   = 8,
 			parameter	S_REGS      = 1,
 			parameter	M_REGS      = 1,
-			parameter	ALGORITHM   = "TOKEN_RING",
+			parameter	ALGORITHM   = "RINGBUS",
+			parameter	USE_TOKEN   = 1,
 			parameter	USE_M_READY = 1,
 			parameter	NO_CONFLICT = 0
 		)
@@ -45,17 +46,18 @@ module jelly_stream_joint
 	
 	generate
 //	if ( ALGORITHM == "TOKEN_RING" ) begin : blk_token_ring
-	if ( 1 ) begin : blk_token_ring
-		jelly_stream_arbiter_token_ring
+	if ( 1 ) begin : blk_ringbus
+		jelly_stream_arbiter_ring_bus
 				#(
 					.S_NUM			(NUM),
 					.S_ID_WIDTH		(ID_WIDTH),
 					.M_NUM			(1),
 					.M_ID_WIDTH		(0),
 					.DATA_WIDTH		(DATA_WIDTH),
+					.USE_TOKEN		(USE_TOKEN),
 					.NO_RING		(!USE_M_READY)
 				)
-			i_stream_arbiter_token_ring
+			i_stream_arbiter_ring_bus
 				(
 					.reset			(reset),
 					.clk			(clk),

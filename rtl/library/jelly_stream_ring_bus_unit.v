@@ -21,7 +21,9 @@ module jelly_stream_ring_bus_unit
 			parameter	ID_TO_WIDTH   = 4,
 			parameter	ID_FROM_WIDTH = 4,
 			parameter	UNIT_ID_TO    = 0,
-			parameter	UNIT_ID_FROM  = 0
+			parameter	UNIT_ID_FROM  = 0,
+			parameter	USE_TOKEN     = 1,
+			parameter	INIT_TOKEN    = 0
 		)
 		(
 			input	wire						reset,
@@ -46,36 +48,46 @@ module jelly_stream_ring_bus_unit
 			input	wire						src_last,
 			input	wire	[DATA_WIDTH-1:0]	src_data,
 			input	wire						src_valid,
+			input	wire						src_token,
 			
 			output	wire	[ID_TO_BITS-1:0]	sink_id_to,
 			output	wire	[ID_FROM_BITS-1:0]	sink_id_from,
 			input	wire	[LEN_BITS-1:0]		sink_seq,
 			input	wire						sink_last,
 			output	wire	[DATA_WIDTH-1:0]	sink_data,
-			output	wire						sink_valid
+			output	wire						sink_valid,
+			output	wire						sink_token
 		);
 	
 	localparam	ID_TO_BITS   = ID_TO_WIDTH   > 0 ? ID_TO_WIDTH   : 1;
 	localparam	ID_FROM_BITS = ID_FROM_WIDTH > 0 ? ID_FROM_WIDTH : 1;
 	localparam	LEN_BITS     = LEN_WIDTH     > 0 ? LEN_WIDTH     : 1;
 	
+	// receiver
 	reg								reg_recv_busy;
 	reg		[ID_FROM_BITS-1:0]		reg_recv_id_from;
 	reg		[LEN_BITS-1:0]			reg_recv_seq;
+	
+	// transmitter
+	reg								reg_send_token;
 	reg		[LEN_BITS-1:0]			reg_send_seq;
 	
+	// ring
 	reg		[ID_TO_BITS-1:0]		reg_sink_id_to;
 	reg		[ID_FROM_BITS-1:0]		reg_sink_id_from;
 	reg		[LEN_BITS-1:0]			reg_sink_seq;
 	reg								reg_sink_last;
 	reg		[DATA_WIDTH-1:0]		reg_sink_data;
 	reg								reg_sink_valid;
+	reg								reg_sink_token;
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
 			reg_recv_busy    <= 1'b0;
 			reg_recv_id_from <= {ID_FROM_BITS{1'bx}};
 			reg_recv_seq     <= {LEN_BITS{1'b0}};
+			
+			reg_send_token   <= INIT_TOKEN;
 			reg_send_seq     <= {LEN_BITS{1'b0}};
 			
 			reg_sink_id_to   <= {ID_TO_BITS{1'bx}};
@@ -93,6 +105,7 @@ module jelly_stream_ring_bus_unit
 			reg_sink_seq     <= src_seq;
 			reg_sink_data    <= src_data;
 			reg_sink_valid   <= src_valid;
+			reg_sink_token   <= src_token;
 			
 			// データ取り出し
 			if ( m_valid && m_ready ) begin
@@ -114,6 +127,14 @@ module jelly_stream_ring_bus_unit
 				end
 			end
 			
+			
+			// トークン取得(送信データがあるときにトークンが流れてきた)
+			if ( s_valid && src_token ) begin
+				reg_send_token <= 1'b1;
+				reg_sink_token <= 1'b0;
+			end
+			
+			
 			// データ挿入
 			if ( s_valid && s_ready ) begin
 				reg_sink_id_to   <= s_id_to;
@@ -124,7 +145,9 @@ module jelly_stream_ring_bus_unit
 				reg_sink_valid   <= s_valid;
 				
 				if ( s_last ) begin
-					reg_send_seq <= {LEN_BITS{1'b0}};
+					reg_send_seq   <= {LEN_BITS{1'b0}};
+					reg_send_token <= 1'b0;
+					reg_sink_token <= 1'b1;		// トークン放流
 				end
 				else begin
 					reg_send_seq <= reg_send_seq + 1'b1;
@@ -135,7 +158,7 @@ module jelly_stream_ring_bus_unit
 	
 	
 	// 制御
-	assign s_ready      = (!src_valid || (m_valid && m_ready));
+	assign s_ready      = ((!src_valid || (m_valid && m_ready)) && (src_token || reg_send_token || !USE_TOKEN));
 	
 	assign m_id_from    = src_id_from;
 	assign m_last       = src_last;
@@ -152,6 +175,7 @@ module jelly_stream_ring_bus_unit
 	assign sink_last    = reg_sink_last;
 	assign sink_data    = reg_sink_data;
 	assign sink_valid   = reg_sink_valid;
+	assign sink_token   = reg_sink_token;
 	
 	
 endmodule

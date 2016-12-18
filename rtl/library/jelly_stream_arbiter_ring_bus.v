@@ -22,6 +22,7 @@ module jelly_stream_arbiter_ring_bus
 			parameter	M_ID_WIDTH    = 2,
 			parameter	DATA_WIDTH    = 32,
 			parameter	LEN_WIDTH     = 8,
+			parameter	USE_TOKEN     = 1,
 			parameter	NO_RING       = 0
 		)
 		(
@@ -55,6 +56,7 @@ module jelly_stream_arbiter_ring_bus
 	wire	[(S_NUM+1)-1:0]					ringbus_s_last;
 	wire	[(S_NUM+1)*DATA_WIDTH-1:0]		ringbus_s_data;
 	wire	[(S_NUM+1)-1:0]					ringbus_s_valid;
+	wire	[(S_NUM+1)-1:0]					ringbus_s_token;
 	
 	wire	[(M_NUM+1)*M_ID_BITS-1:0]		ringbus_m_id_to;
 	wire	[(M_NUM+1)*S_ID_BITS-1:0]		ringbus_m_id_from;
@@ -72,7 +74,9 @@ module jelly_stream_arbiter_ring_bus
 					.ID_TO_WIDTH			(M_ID_WIDTH),
 					.ID_FROM_WIDTH			(S_ID_WIDTH),
 					.UNIT_ID_TO				(0),
-					.UNIT_ID_FROM			(i)
+					.UNIT_ID_FROM			(i),
+					.USE_TOKEN				(USE_TOKEN),
+					.INIT_TOKEN				(i==0)
 				)
 			i_stream_ring_bus_unit_s
 				(
@@ -98,15 +102,21 @@ module jelly_stream_arbiter_ring_bus
 					.src_seq				(ringbus_s_seq    [(i+1)*LEN_BITS   +: LEN_BITS]),
 					.src_data				(ringbus_s_data   [(i+1)*DATA_WIDTH +: DATA_WIDTH]),
 					.src_valid				(ringbus_s_valid  [(i+1)]),
+					.src_token				(ringbus_s_token  [(i+1)]),
 					
 					.sink_id_to				(ringbus_s_id_to  [(i+0)*M_ID_BITS  +: M_ID_BITS]),
 					.sink_id_from			(ringbus_s_id_from[(i+0)*S_ID_BITS  +: S_ID_BITS]),
 					.sink_last				(ringbus_s_last   [(i+0)]),
 					.sink_seq				(ringbus_s_seq    [(i+0)*LEN_BITS   +: LEN_BITS]),
 					.sink_data				(ringbus_s_data   [(i+0)*DATA_WIDTH +: DATA_WIDTH]),
-					.sink_valid				(ringbus_s_valid  [(i+0)])
+					.sink_valid				(ringbus_s_valid  [(i+0)]),
+					.sink_token				(ringbus_s_token  [(i+0)])
 				);
 	end
+	
+	// token ring
+	assign ringbus_s_token[S_NUM] = (ringbus_s_token[0] && USE_TOKEN);
+	
 	
 	for ( i = 0; i < M_NUM; i = i + 1 ) begin : loop_m
 		jelly_stream_ring_bus_unit
@@ -115,7 +125,9 @@ module jelly_stream_arbiter_ring_bus
 					.ID_TO_WIDTH			(M_ID_WIDTH),
 					.ID_FROM_WIDTH			(S_ID_WIDTH),
 					.UNIT_ID_TO				(i),
-					.UNIT_ID_FROM			(0)
+					.UNIT_ID_FROM			(0),
+					.USE_TOKEN				(0),
+					.INIT_TOKEN				(0)
 				)
 			i_stream_ring_bus_unit_m
 				(
@@ -141,13 +153,15 @@ module jelly_stream_arbiter_ring_bus
 					.src_last				(ringbus_m_last   [(i+1)]),
 					.src_data				(ringbus_m_data   [(i+1)*DATA_WIDTH +: DATA_WIDTH]),
 					.src_valid				(ringbus_m_valid  [(i+1)]),
+					.src_token				(1'b0),
 					
 					.sink_id_to				(ringbus_m_id_to  [(i+0)*M_ID_BITS  +: M_ID_BITS]),
 					.sink_id_from			(ringbus_m_id_from[(i+0)*S_ID_BITS  +: S_ID_BITS]),
 					.sink_seq				(ringbus_m_seq    [(i+0)*LEN_BITS   +: LEN_BITS]),
 					.sink_last				(ringbus_m_last   [(i+0)]),
 					.sink_data				(ringbus_m_data   [(i+0)*DATA_WIDTH +: DATA_WIDTH]),
-					.sink_valid				(ringbus_m_valid  [(i+0)])
+					.sink_valid				(ringbus_m_valid  [(i+0)]),
+					.src_token				()
 				);
 	end
 	endgenerate
