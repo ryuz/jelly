@@ -154,27 +154,28 @@ module jelly_texture_cache_l1
 	assign clear_busy = cache_clear_busy[0];
 	
 	
-	wire	[S_NUM*M_NUM*AR_PACKET_WIDTH-1:0]	cache_arpacket;
-	wire	[S_NUM*M_NUM-1:0]					cache_arvalid;
-	wire	[S_NUM*M_NUM-1:0]					cache_arready;
+	wire	[S_NUM*M_ID_WIDTH-1:0]		cache_arid;
+	wire	[S_NUM*AR_PACKET_WIDTH-1:0]	cache_arpacket;
+	wire	[S_NUM-1:0]					cache_arvalid;
+	wire	[S_NUM-1:0]					cache_arready;
 	
-	wire	[S_NUM*M_NUM*R_PACKET_WIDTH-1:0]	cache_rpacket;
-	wire	[S_NUM*M_NUM-1:0]					cache_rvalid;
-	wire	[S_NUM*M_NUM-1:0]					cache_rready;
+	wire	[S_NUM*R_PACKET_WIDTH-1:0]	cache_rpacket;
+	wire	[S_NUM-1:0]					cache_rvalid;
+	wire	[S_NUM-1:0]					cache_rready;
 	
 	generate
 	for ( i = 0; i < S_NUM; i = i+1 ) begin : loop_cache
 		// L1 cache
-		wire	[M_ADDR_X_WIDTH-1:0]	m_araddrx;
-		wire	[M_ADDR_Y_WIDTH-1:0]	m_araddry;
-		wire							m_arvalid;
-		wire							m_arready;
+		wire	[M_ADDR_X_WIDTH-1:0]	unit_araddrx;
+		wire	[M_ADDR_Y_WIDTH-1:0]	unit_araddry;
+		wire							unit_arvalid;
+		wire							unit_arready;
 		
-		wire							m_rlast;
-		wire	[M_DATA_WIDTH-1:0]		m_rdata;
-		wire							m_rvalid;
-		wire							m_rready;
-			
+		wire							unit_rlast;
+		wire	[M_DATA_WIDTH-1:0]		unit_rdata;
+		wire							unit_rvalid;
+		wire							unit_rready;
+		
 		jelly_texture_cache_unit
 				#(
 					.S_USER_WIDTH			(S_USER_WIDTH),
@@ -244,145 +245,107 @@ module jelly_texture_cache_l1
 					.s_rvalid				(s_rvalid [i]),
 					.s_rready				(s_rready [i]),
 					
-					.m_araddrx				(m_araddrx),
-					.m_araddry				(m_araddry),
-					.m_arvalid				(m_arvalid),
-					.m_arready				(m_arready),
+					.m_araddrx				(unit_araddrx),
+					.m_araddry				(unit_araddry),
+					.m_arvalid				(unit_arvalid),
+					.m_arready				(unit_arready),
 					
-					.m_rlast				(m_rlast),
+					.m_rlast				(unit_rlast),
 					.m_rstrb				({COMPONENT_NUM{1'b1}}),
-					.m_rdata				(m_rdata),
-					.m_rvalid				(m_rvalid),
-					.m_rready				(m_rready)
+					.m_rdata				(unit_rdata),
+					.m_rvalid				(unit_rvalid),
+					.m_rready				(unit_rready)
 				);
 		
 		
 		// ƒAƒhƒŒƒX•Ê‚ÉL2‚ÉŠ„‚èU‚é
-		wire	[M_ID_WIDTH-1:0]	m_arid = ((m_araddrx >> (M_ID_X_RSHIFT)) << M_ID_X_LSHIFT) + ((m_araddry >> (M_ID_Y_RSHIFT)) << M_ID_Y_LSHIFT);
-		
-		jelly_data_switch
-				#(
-					.NUM					(M_NUM),
-					.ID_WIDTH				(M_ID_WIDTH),
-					.DATA_WIDTH				(AR_PACKET_WIDTH),
-					.S_REGS					(0),
-					.M_REGS					(1)
-				)
-			i_data_switch
-				(
-					.reset					(reset),
-					.clk					(clk),
-					.cke					(1'b1),
-					
-					.s_id					(m_arid),
-					.s_data					({m_araddrx, m_araddry}),
-					.s_valid				(m_arvalid),
-					.s_ready				(m_arready),
-					
-					.m_data					(cache_arpacket[i*M_NUM*AR_PACKET_WIDTH +: M_NUM*AR_PACKET_WIDTH]),
-					.m_valid				(cache_arvalid [i*M_NUM                 +: M_NUM]),
-					.m_ready				(cache_arready [i*M_NUM                 +: M_NUM])
-				);
+		wire	[M_ID_WIDTH-1:0]	unit_arid = ((unit_araddrx >> (M_ID_X_RSHIFT)) << M_ID_X_LSHIFT) + ((unit_araddry >> (M_ID_Y_RSHIFT)) << M_ID_Y_LSHIFT);
 		
 		
-		// read data
-		jelly_data_joint
-				#(
-					.NUM					(M_NUM),
-					.DATA_WIDTH				(R_PACKET_WIDTH),
-					.NO_CONFLICT			(1),
-					.S_REGS					(0),
-					.M_REGS					(1)
-				)
-			i_data_joint
-				(
-					.reset					(reset),
-					.clk					(clk),
-					.cke					(1'b1),
-					
-					.s_data					(cache_rpacket[i*M_NUM*R_PACKET_WIDTH +: M_NUM*R_PACKET_WIDTH]),
-					.s_valid				(cache_rvalid [i*M_NUM                +: M_NUM]),
-					.s_ready				(cache_rready [i*M_NUM                +: M_NUM]),
-					
-					.m_data					({m_rlast, m_rdata}),
-					.m_valid				(m_rvalid),
-					.m_ready				(m_rready)
-				);
+		assign cache_arid    [i*M_ID_WIDTH      +: M_ID_WIDTH]      = unit_arid;
+		assign cache_arpacket[i*AR_PACKET_WIDTH +: AR_PACKET_WIDTH] = {unit_araddrx, unit_araddry};
+		assign cache_arvalid [i]                                    = unit_arvalid;
+		assign unit_arready                                         = cache_arready[i];
+		
+		assign {unit_rlast, unit_rdata} = cache_rpacket[i*R_PACKET_WIDTH +: R_PACKET_WIDTH];
+		assign unit_rvalid              = cache_rvalid [i];
+		assign cache_rready[i]          = unit_rready;
 	end
 	endgenerate
 	
 	
+	
 	// -----------------------------
-	//  Master port ring-bus
+	//  Arbiter
+	// -----------------------------
+	
+	wire	[M_NUM*S_ID_WIDTH-1:0]		arbit_arid;
+	wire	[M_NUM*AR_PACKET_WIDTH-1:0]	arbit_arpacket;
+	wire	[M_NUM-1:0]					arbit_arvalid;
+	wire	[M_NUM-1:0]					arbit_arready;
+	
+	wire	[M_NUM*S_ID_WIDTH-1:0]		arbit_rid;
+	wire	[M_NUM*R_PACKET_WIDTH-1:0]	arbit_rpacket;
+	wire	[M_NUM-1:0]					arbit_rvalid;
+	wire	[M_NUM-1:0]					arbit_rready;
+	
+	jelly_ring_bus_crossbar_bidirection
+			#(
+				.S_NUM				(S_NUM),
+				.S_ID_WIDTH			(S_ID_WIDTH),
+				.M_NUM				(M_NUM),
+				.M_ID_WIDTH			(M_ID_WIDTH),
+				.DOWN_DATA_WIDTH	(AR_PACKET_WIDTH),
+				.UP_DATA_WIDTH		(R_PACKET_WIDTH)
+			)
+		i_ring_bus_crossbar_bidirection
+			(
+				.reset				(reset),
+				.clk				(clk),
+				.cke				(1'b1),
+				
+				.s_down_id_to		(cache_arid),
+				.s_down_data		(cache_arpacket),
+				.s_down_valid		(cache_arvalid),
+				.s_down_ready		(cache_arready),
+				
+				.s_up_id_from		(),
+				.s_up_data			(cache_rpacket),
+				.s_up_valid			(cache_rvalid),
+				.s_up_ready			(cache_rready),
+				
+				.m_down_id_from		(arbit_arid),
+				.m_down_data		(arbit_arpacket),
+				.m_down_valid		(arbit_arvalid),
+				.m_down_ready		(arbit_arready),
+				
+				.m_up_id_to			(arbit_rid),
+				.m_up_data			(arbit_rpacket),
+				.m_up_valid			(arbit_rvalid),
+				.m_up_ready			(arbit_rready)
+			);
+	
+	
+	
+	// -----------------------------
+	//  Master port
 	// -----------------------------
 	
 	generate
 	for ( i = 0; i < M_NUM; i = i+1 ) begin : loop_master
 		
-		wire	[S_NUM*AR_PACKET_WIDTH-1:0]		s_arpacket;
-		wire	[S_NUM-1:0]						s_arvalid;
-		wire	[S_NUM-1:0]						s_arready;
-		
-		wire	[S_NUM*R_PACKET_WIDTH-1:0]		s_rpacket;
-		wire	[S_NUM-1:0]						s_rvalid;
-		wire	[S_NUM-1:0]						s_rready;
-		
-		for ( j = 0; j < S_NUM; j = j+1 ) begin : loop_m_ar
-			assign s_arpacket[j*AR_PACKET_WIDTH +: AR_PACKET_WIDTH] = cache_arpacket[(j*M_NUM+i)*AR_PACKET_WIDTH +: AR_PACKET_WIDTH];
-			assign s_arvalid [j]                                    = cache_arvalid[j*M_NUM+i];
-			assign cache_arready[j*M_NUM+i]                         = s_arready[j];
-			
-			assign cache_rpacket[(j*M_NUM+i)*R_PACKET_WIDTH +: R_PACKET_WIDTH] = s_rpacket[j*R_PACKET_WIDTH +: R_PACKET_WIDTH];
-			assign cache_rvalid[j*M_NUM+i]                                     = s_rvalid[j];
-			assign s_rready[j]                                                 = cache_rready[j*M_NUM+i];
-		end
-		
+		// blk addr
 		wire	[S_ID_WIDTH-1:0]		blk_id;
 		wire	[M_ADDR_X_WIDTH-1:0]	blk_addrx;
 		wire	[M_ADDR_Y_WIDTH-1:0]	blk_addry;
 		wire							blk_valid;
 		wire							blk_ready;
 		
-		jelly_ring_bus_arbiter_bidirection
-				#(
-					.S_NUM				(S_NUM),
-					.S_ID_WIDTH			(S_ID_WIDTH),
-					.M_NUM				(1),
-					.M_ID_WIDTH			(1),
-					.DOWN_DATA_WIDTH	(AR_PACKET_WIDTH),
-					.UP_DATA_WIDTH		(R_PACKET_WIDTH)
-				)
-			i_ring_bus_arbiter_bidirection
-				(
-					.reset				(reset),
-					.clk				(clk),
-					.cke				(1'b1),
-					
-					
-					.s_down_id_to		(1'b0),
-					.s_down_data		(s_arpacket),
-					.s_down_valid		(s_arvalid),
-					.s_down_ready		(s_arready),
-					
-					.s_up_id_from		(),
-					.s_up_data			(s_rpacket),
-					.s_up_valid			(s_rvalid),
-					.s_up_ready			(s_rready),
-					
-					
-					.m_down_id_from		(blk_id),
-					.m_down_data		({blk_addrx, blk_addry}),
-					.m_down_valid		(blk_valid),
-					.m_down_ready		(blk_ready),
-					
-					.m_up_id_to			(m_rid   [i*S_ID_WIDTH +: S_ID_WIDTH]),
-					.m_up_data			({m_rlast[i], m_rdata[i*M_DATA_WIDTH +: M_DATA_WIDTH]}),
-					.m_up_valid			(m_rvalid[i]),
-					.m_up_ready			(m_rready[i])
-				);
+		assign blk_id                 = arbit_arid    [i*S_ID_WIDTH      +: S_ID_WIDTH];
+		assign {blk_addrx, blk_addry} = arbit_arpacket[i*AR_PACKET_WIDTH +: AR_PACKET_WIDTH];
+		assign blk_valid              = arbit_arvalid [i];
+		assign arbit_arready[i]       = blk_ready;
 		
-		
-		// blk addr
 		jelly_texture_blk_addr
 				#(
 					.USER_WIDTH				(S_ID_WIDTH),
@@ -413,6 +376,11 @@ module jelly_texture_cache_l1
 				);
 		
 		
+		// rdata
+		assign arbit_rid    [i*S_ID_WIDTH     +: S_ID_WIDTH]     = m_rid[i*S_ID_WIDTH +: S_ID_WIDTH];
+		assign arbit_rpacket[i*R_PACKET_WIDTH +: R_PACKET_WIDTH] = {m_rlast[i], m_rdata[i*M_DATA_WIDTH +: M_DATA_WIDTH]};
+		assign arbit_rvalid [i]                                  = m_rvalid[i];
+		assign m_rready     [i]                                  = arbit_rready[i];
 	end
 	endgenerate
 	

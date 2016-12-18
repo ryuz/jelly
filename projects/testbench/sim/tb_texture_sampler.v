@@ -7,8 +7,8 @@ module tb_texture_sampler();
 	localparam RATE    = 1000.0/200.0;
 	
 	initial begin
-//		$dumpfile("tb_texture_sampler.vcd");
-//		$dumpvars(0, tb_texture_sampler);
+		$dumpfile("tb_texture_sampler.vcd");
+		$dumpvars(1, tb_texture_sampler);
 
 //	#870000;
 //		$dumpfile("tb_texture_sampler.vcd");

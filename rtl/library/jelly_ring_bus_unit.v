@@ -27,36 +27,40 @@ module jelly_ring_bus_unit
 			input	wire						clk,
 			input	wire						cke,
 			
-			input	wire	[ID_TO_WIDTH-1:0]	s_id_to,
+			input	wire	[ID_TO_BITS-1:0]	s_id_to,
 			input	wire	[DATA_WIDTH-1:0]	s_data,
 			input	wire						s_valid,
 			output	wire						s_ready,
 			
-			output	wire	[ID_FROM_WIDTH-1:0]	m_id_from,
+			output	wire	[ID_FROM_BITS-1:0]	m_id_from,
 			output	wire	[DATA_WIDTH-1:0]	m_data,
 			output	wire						m_valid,
 			input	wire						m_ready,
 			
-			input	wire	[ID_TO_WIDTH-1:0]	src_id_to,
-			input	wire	[ID_FROM_WIDTH-1:0]	src_id_from,
+			input	wire	[ID_TO_BITS-1:0]	src_id_to,
+			input	wire	[ID_FROM_BITS-1:0]	src_id_from,
 			input	wire	[DATA_WIDTH-1:0]	src_data,
 			input	wire						src_valid,
 			
-			output	wire	[ID_TO_WIDTH-1:0]	sink_id_to,
-			output	wire	[ID_FROM_WIDTH-1:0]	sink_id_from,
+			output	wire	[ID_TO_BITS-1:0]	sink_id_to,
+			output	wire	[ID_FROM_BITS-1:0]	sink_id_from,
 			output	wire	[DATA_WIDTH-1:0]	sink_data,
 			output	wire						sink_valid
 		);
 	
-	reg		[ID_TO_WIDTH-1:0]		reg_sink_id_to;
-	reg		[ID_FROM_WIDTH-1:0]		reg_sink_id_from;
+	localparam	ID_TO_BITS   = ID_TO_WIDTH   > 0 ? ID_TO_WIDTH   : 1;
+	localparam	ID_FROM_BITS = ID_FROM_WIDTH > 0 ? ID_FROM_WIDTH : 1;
+	
+	
+	reg		[ID_TO_BITS-1:0]		reg_sink_id_to;
+	reg		[ID_FROM_BITS-1:0]		reg_sink_id_from;
 	reg		[DATA_WIDTH-1:0]		reg_sink_data;
 	reg								reg_sink_valid;
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
-			reg_sink_id_to   <= {ID_TO_WIDTH{1'bx}};
-			reg_sink_id_from <= {ID_FROM_WIDTH{1'bx}};
+			reg_sink_id_to   <= {ID_TO_BITS{1'bx}};
+			reg_sink_id_from <= {ID_FROM_BITS{1'bx}};
 			reg_sink_data    <= {DATA_WIDTH{1'bx}};
 			reg_sink_valid   <= 1'b0;
 		end
@@ -69,8 +73,8 @@ module jelly_ring_bus_unit
 			
 			// データ取り出し
 			if ( m_valid && m_ready ) begin
-				reg_sink_id_to   <= {ID_TO_WIDTH{1'bx}};
-				reg_sink_id_from <= {ID_FROM_WIDTH{1'bx}};
+				reg_sink_id_to   <= {ID_TO_BITS{1'bx}};
+				reg_sink_id_from <= {ID_FROM_BITS{1'bx}};
 				reg_sink_data    <= {DATA_WIDTH{1'bx}};
 				reg_sink_valid   <= 1'b0;
 			end
@@ -91,7 +95,7 @@ module jelly_ring_bus_unit
 	
 	assign m_id_from    = src_id_from;
 	assign m_data       = src_data;
-	assign m_valid      = (src_valid && (src_id_to == UNIT_ID_TO));
+	assign m_valid      = (src_valid && ((src_id_to == UNIT_ID_TO) || (ID_TO_WIDTH <= 0)));
 	
 	assign sink_id_to   = reg_sink_id_to;
 	assign sink_id_from = reg_sink_id_from;
