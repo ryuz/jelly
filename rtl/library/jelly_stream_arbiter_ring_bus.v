@@ -31,13 +31,13 @@ module jelly_stream_arbiter_ring_bus
 			
 			input	wire	[S_NUM*M_ID_BITS-1:0]	s_id_to,
 			input	wire	[S_NUM-1:0]				s_last,
-			input	wire	[S_NUM*DATA_BITS-1:0]	s_data,
+			input	wire	[S_NUM*DATA_WIDTH-1:0]	s_data,
 			input	wire	[S_NUM-1:0]				s_valid,
 			output	wire	[S_NUM-1:0]				s_ready,
 			
 			output	wire	[M_NUM*S_ID_BITS-1:0]	m_id_from,
 			output	wire	[M_NUM-1:0]				m_last,
-			output	wire	[M_NUM*DATA_BITS-1:0]	m_data,
+			output	wire	[M_NUM*DATA_WIDTH-1:0]	m_data,
 			output	wire	[M_NUM-1:0]				m_valid,
 			input	wire	[M_NUM-1:0]				m_ready
 		);
@@ -109,7 +109,7 @@ module jelly_stream_arbiter_ring_bus
 	end
 	
 	for ( i = 0; i < M_NUM; i = i + 1 ) begin : loop_m
-		jelly_ring_bus_unit
+		jelly_stream_ring_bus_unit
 				#(
 					.DATA_WIDTH				(DATA_WIDTH),
 					.ID_TO_WIDTH			(M_ID_WIDTH),
@@ -125,7 +125,7 @@ module jelly_stream_arbiter_ring_bus
 					
 					.s_id_to				({M_ID_BITS{1'bx}}),
 					.s_data					({DATA_WIDTH{1'bx}}),
-					.s_last					(1'bx)
+					.s_last					(1'bx),
 					.s_valid				(1'b0),
 					.s_ready				(),
 					
@@ -155,31 +155,31 @@ module jelly_stream_arbiter_ring_bus
 	
 	generate
 	if ( NO_RING ) begin : blk_no_ring
-		assign ringbus_m_id_to  [M_NUM*M_ID_BITS +: M_ID_BITS]   = {M_ID_BITS{1'bx}};
-		assign ringbus_m_id_from[M_NUM*S_ID_BITS +: S_ID_BITS]   = {S_ID_BITS{1'bx}};
-		assign ringbus_m_seq	[M_NUM*LEN_BITS   + LEN_BITS]    = {LEN_BITS{1'bx}};
+		assign ringbus_m_id_to  [M_NUM*M_ID_BITS  +: M_ID_BITS]  = {M_ID_BITS{1'bx}};
+		assign ringbus_m_id_from[M_NUM*S_ID_BITS  +: S_ID_BITS]  = {S_ID_BITS{1'bx}};
+		assign ringbus_m_seq	[M_NUM*LEN_BITS   +: LEN_BITS]   = {LEN_BITS{1'bx}};
 		assign ringbus_m_last	[M_NUM]                          = 1'bx;
 		assign ringbus_m_data	[M_NUM*DATA_WIDTH +: DATA_WIDTH] = {DATA_WIDTH{1'bx}};
 		assign ringbus_m_valid	[M_NUM]                          = 1'b0;
 		
-		assign ringbus_s_id_to  [S_NUM*M_ID_BITS +: M_ID_BITS]   = {M_ID_BITS{1'bx}};
-		assign ringbus_s_id_from[S_NUM*S_ID_BITS +: S_ID_BITS]   = {S_ID_BITS{1'bx}};
-		assign ringbus_s_seq	[S_NUM*LEN_BITS   + LEN_BITS]    = {LEN_BITS{1'bx}};
+		assign ringbus_s_id_to  [S_NUM*M_ID_BITS  +: M_ID_BITS]  = {M_ID_BITS{1'bx}};
+		assign ringbus_s_id_from[S_NUM*S_ID_BITS  +: S_ID_BITS]  = {S_ID_BITS{1'bx}};
+		assign ringbus_s_seq	[S_NUM*LEN_BITS   +: LEN_BITS]   = {LEN_BITS{1'bx}};
 		assign ringbus_s_last	[S_NUM]                          = 1'bx;
 		assign ringbus_s_data	[S_NUM*DATA_WIDTH +: DATA_WIDTH] = {DATA_WIDTH{1'bx}};
 		assign ringbus_s_valid	[S_NUM]                          = 1'b0;
 	end
 	else begin : blk_ring
-		assign ringbus_m_id_to  [M_NUM*M_ID_BITS +: M_ID_BITS]   = ringbus_s_id_to  [0*M_ID_BITS  +: M_ID_BITS];
-		assign ringbus_m_id_from[M_NUM*S_ID_BITS +: S_ID_BITS]   = ringbus_s_id_from[0*S_ID_BITS  +: S_ID_BITS];
-		assign ringbus_m_seq	[M_NUM*LEN_BITS   + LEN_BITS]    = ringbus_s_seq    [0*LEN_BITS   +: LEN_BITS];
+		assign ringbus_m_id_to  [M_NUM*M_ID_BITS  +: M_ID_BITS]  = ringbus_s_id_to  [0*M_ID_BITS  +: M_ID_BITS];
+		assign ringbus_m_id_from[M_NUM*S_ID_BITS  +: S_ID_BITS]  = ringbus_s_id_from[0*S_ID_BITS  +: S_ID_BITS];
+		assign ringbus_m_seq	[M_NUM*LEN_BITS   +: LEN_BITS]   = ringbus_s_seq    [0*LEN_BITS   +: LEN_BITS];
 		assign ringbus_m_last	[M_NUM]                          = ringbus_s_last   [0];
 		assign ringbus_m_data	[M_NUM*DATA_WIDTH +: DATA_WIDTH] = ringbus_s_data   [0*DATA_WIDTH +: DATA_WIDTH];
 		assign ringbus_m_valid	[M_NUM]                          = ringbus_s_valid  [0];
 		
-		assign ringbus_s_id_to  [S_NUM*M_ID_BITS +: M_ID_BITS]   = ringbus_m_id_to  [0*M_ID_BITS  +: M_ID_BITS];
-		assign ringbus_s_id_from[S_NUM*S_ID_BITS +: S_ID_BITS]   = ringbus_m_id_from[0*S_ID_BITS  +: S_ID_BITS];
-		assign ringbus_s_seq	[S_NUM*LEN_BITS   + LEN_BITS]    = ringbus_m_seq    [0*LEN_BITS   +: LEN_BITS];
+		assign ringbus_s_id_to  [S_NUM*M_ID_BITS  +: M_ID_BITS]  = ringbus_m_id_to  [0*M_ID_BITS  +: M_ID_BITS];
+		assign ringbus_s_id_from[S_NUM*S_ID_BITS  +: S_ID_BITS]  = ringbus_m_id_from[0*S_ID_BITS  +: S_ID_BITS];
+		assign ringbus_s_seq	[S_NUM*LEN_BITS   +: LEN_BITS]   = ringbus_m_seq    [0*LEN_BITS   +: LEN_BITS];
 		assign ringbus_s_last	[S_NUM]                          = ringbus_m_last   [0];
 		assign ringbus_s_data	[S_NUM*DATA_WIDTH +: DATA_WIDTH] = ringbus_m_data   [0*DATA_WIDTH +: DATA_WIDTH];
 		assign ringbus_s_valid	[S_NUM]                          = ringbus_m_valid  [0];

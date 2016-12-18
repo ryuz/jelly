@@ -66,8 +66,8 @@ module jelly_stream_ring_bus_unit
 	
 	reg		[ID_TO_BITS-1:0]		reg_sink_id_to;
 	reg		[ID_FROM_BITS-1:0]		reg_sink_id_from;
-	reg		[LEN_BITS-1:0]			reg_sink_seq,
-	reg								reg_sink_last,
+	reg		[LEN_BITS-1:0]			reg_sink_seq;
+	reg								reg_sink_last;
 	reg		[DATA_WIDTH-1:0]		reg_sink_data;
 	reg								reg_sink_valid;
 	
@@ -114,7 +114,7 @@ module jelly_stream_ring_bus_unit
 			if ( s_valid && s_ready ) begin
 				reg_sink_id_to   <= s_id_to;
 				reg_sink_id_from <= UNIT_ID_FROM;
-				reg_sink_seq     <= s_send_seq;
+				reg_sink_seq     <= reg_send_seq;
 				reg_sink_last    <= s_last;
 				reg_sink_data    <= s_data;
 				reg_sink_valid   <= s_valid;
@@ -136,9 +136,9 @@ module jelly_stream_ring_bus_unit
 	assign m_id_from    = src_id_from;
 	assign m_data       = src_data;
 	assign m_valid      = (src_valid
-							&& ((src_id_to == UNIT_ID_TO)   || (ID_TO_WIDTH <= 0))
-							&& ((src_seq   == reg_recv_seq) || (LEN_WIDTH   <= 0))
-							&& ((src_id_to == reg_recv_id)  || !reg_recv_busy    )
+							&& ((src_id_to   == UNIT_ID_TO)       || (ID_TO_WIDTH <= 0))
+							&& ((src_seq     == reg_recv_seq)     || (LEN_WIDTH   <= 0))
+							&& ((src_id_from == reg_recv_id_from) || !reg_recv_busy    )
 						  );
 	
 	assign sink_id_to   = reg_sink_id_to;
