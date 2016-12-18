@@ -42,6 +42,7 @@ module jelly_texture_cache_unit
 			parameter	M_STRB_WIDTH         = COMPONENT_NUM,
 			parameter	M_ADDR_X_WIDTH       = S_ADDR_X_WIDTH - M_DATA_WIDE_SIZE,
 			parameter	M_ADDR_Y_WIDTH       = S_ADDR_Y_WIDTH,
+			parameter	M_IN_ORDER           = 1,
 			
 			parameter	USE_BORDER           = 1,
 			parameter	BORDER_DATA          = {S_DATA_WIDTH{1'b0}},
@@ -130,6 +131,7 @@ module jelly_texture_cache_unit
 				.M_STRB_WIDTH			(M_STRB_WIDTH),
 				.M_ADDR_X_WIDTH			(M_ADDR_X_WIDTH),
 				.M_ADDR_Y_WIDTH			(M_ADDR_Y_WIDTH),
+				.M_IN_ORDER				(M_IN_ORDER),
 				
 				.USE_BORDER				(USE_BORDER),
 				.BORDER_DATA			(BORDER_DATA),

@@ -142,7 +142,6 @@ module jelly_texture_cache_l1
 	
 	
 	localparam AR_PACKET_WIDTH = M_ADDR_X_WIDTH + M_ADDR_Y_WIDTH;
-//	localparam R_PACKET_WIDTH  = 1 + M_DATA_WIDTH;
 	
 	
 	
@@ -159,7 +158,6 @@ module jelly_texture_cache_l1
 	wire	[S_NUM-1:0]					cache_arvalid;
 	wire	[S_NUM-1:0]					cache_arready;
 	
-//	wire	[S_NUM*R_PACKET_WIDTH-1:0]	cache_rpacket;
 	wire	[S_NUM-1:0]					cache_rlast;
 	wire	[S_NUM*M_DATA_WIDTH-1:0]	cache_rdata;
 	wire	[S_NUM-1:0]					cache_rvalid;
@@ -180,33 +178,31 @@ module jelly_texture_cache_l1
 		
 		jelly_texture_cache_unit
 				#(
-					.S_USER_WIDTH			(S_USER_WIDTH),
-					
 					.COMPONENT_NUM			(COMPONENT_NUM),
 					.COMPONENT_DATA_WIDTH	(COMPONENT_DATA_WIDTH),
 					
-					.M_DATA_WIDE_SIZE		(M_DATA_WIDE_SIZE),
-					
-					.S_ADDR_X_WIDTH			(S_ADDR_X_WIDTH),
-					.S_ADDR_Y_WIDTH			(S_ADDR_Y_WIDTH),
-					
-					.TAG_ADDR_WIDTH			(TAG_ADDR_WIDTH),
-					
 					.BLK_X_SIZE				(BLK_X_SIZE),
 					.BLK_Y_SIZE				(BLK_Y_SIZE),
+					.TAG_ADDR_WIDTH			(TAG_ADDR_WIDTH),
+					.TAG_RAM_TYPE			(TAG_RAM_TYPE),
+					.MEM_RAM_TYPE			(MEM_RAM_TYPE),
 					
 					.USE_LOOK_AHEAD			(USE_LOOK_AHEAD),
 					.USE_S_RREADY           (USE_S_RREADY),
 					.USE_M_RREADY			(USE_M_RREADY),
 					
-					.BORDER_DATA			(BORDER_DATA),
+					.S_USER_WIDTH			(S_USER_WIDTH),
+					.S_ADDR_X_WIDTH			(S_ADDR_X_WIDTH),
+					.S_ADDR_Y_WIDTH			(S_ADDR_Y_WIDTH),
 					
-					.TAG_RAM_TYPE			(TAG_RAM_TYPE),
-					.MEM_RAM_TYPE			(MEM_RAM_TYPE),
+					.M_DATA_WIDE_SIZE		(M_DATA_WIDE_SIZE),
+					.M_IN_ORDER				(1),
+					
+					.BORDER_DATA			(BORDER_DATA),
 					
 					.QUE_FIFO_PTR_WIDTH		(QUE_FIFO_PTR_WIDTH),
 					.QUE_FIFO_RAM_TYPE		(QUE_FIFO_RAM_TYPE),
-
+					
 					.AR_FIFO_PTR_WIDTH		(AR_FIFO_PTR_WIDTH),
 					.AR_FIFO_RAM_TYPE		(AR_FIFO_RAM_TYPE),
 					
@@ -269,7 +265,6 @@ module jelly_texture_cache_l1
 		assign cache_arvalid [i]                                    = unit_arvalid;
 		assign unit_arready                                         = cache_arready[i];
 		
-//		assign {unit_rlast, unit_rdata} = cache_rpacket[i*R_PACKET_WIDTH +: R_PACKET_WIDTH];
 		assign unit_rlast      = cache_rlast [i];
 		assign unit_rdata      = cache_rdata [i*M_DATA_WIDTH +: M_DATA_WIDTH];
 		assign unit_rvalid     = cache_rvalid[i];
@@ -376,7 +371,6 @@ module jelly_texture_cache_l1
 	
 	
 	wire	[M_NUM*S_ID_WIDTH-1:0]		arbit_rid;
-//	wire	[M_NUM*R_PACKET_WIDTH-1:0]	arbit_rpacket;
 	wire	[M_NUM-1:0]					arbit_rlast;
 	wire	[M_NUM*M_DATA_WIDTH-1:0]	arbit_rdata;
 	wire	[M_NUM-1:0]					arbit_rvalid;
@@ -499,8 +493,7 @@ module jelly_texture_cache_l1
 		
 		
 		// rdata
-		assign arbit_rid    [i*S_ID_WIDTH     +: S_ID_WIDTH] = m_rid[i*S_ID_WIDTH +: S_ID_WIDTH];
-//		assign arbit_rpacket[i*R_PACKET_WIDTH +: R_PACKET_WIDTH] = {m_rlast[i], m_rdata[i*M_DATA_WIDTH +: M_DATA_WIDTH]};
+		assign arbit_rid   [i*S_ID_WIDTH   +: S_ID_WIDTH]    = m_rid[i*S_ID_WIDTH +: S_ID_WIDTH];
 		assign arbit_rlast [i]                               = m_rlast[i];
 		assign arbit_rdata [i*M_DATA_WIDTH +: M_DATA_WIDTH]  = m_rdata[i*M_DATA_WIDTH +: M_DATA_WIDTH];
 		assign arbit_rvalid[i]                               = m_rvalid[i];

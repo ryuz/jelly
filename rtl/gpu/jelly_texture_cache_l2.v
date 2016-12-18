@@ -185,6 +185,7 @@ module jelly_texture_cache_l2
 	
 	
 	// debug
+	/*
 	integer		fp_s_ar;
 	integer		fp_s_r;
 	integer		fp_m_ar;
@@ -195,6 +196,7 @@ module jelly_texture_cache_l2
 		fp_m_ar = $fopen("l2_0_m_ar.txt", "w");
 		fp_m_r  = $fopen("l2_0_m_r.txt", "w");
 	end
+	*/
 	
 	generate
 	for ( i = 0; i < S_NUM; i = i+1 ) begin : cahce_loop
@@ -223,6 +225,7 @@ module jelly_texture_cache_l2
 				#(
 					.COMPONENT_NUM			(COMPONENT_NUM),
 					.COMPONENT_DATA_WIDTH	(COMPONENT_DATA_WIDTH),
+					
 					.BLK_X_SIZE				(BLK_X_SIZE),
 					.BLK_Y_SIZE				(BLK_Y_SIZE),
 					.TAG_ADDR_WIDTH			(TAG_ADDR_WIDTH),
@@ -232,6 +235,7 @@ module jelly_texture_cache_l2
 					.TAG_Y_LSHIFT			(TAG_Y_LSHIFT),
 					.TAG_RAM_TYPE			(TAG_RAM_TYPE),
 					.MEM_RAM_TYPE			(MEM_RAM_TYPE),
+					
 					.USE_BORDER				(USE_BORDER),
 					.BORDER_DATA			(BORDER_DATA),
 					
@@ -244,10 +248,11 @@ module jelly_texture_cache_l2
 					.S_ADDR_Y_WIDTH			(S_ADDR_Y_WIDTH),
 					
 					.M_DATA_WIDE_SIZE		(M_DATA_WIDE_SIZE),
+					.M_IN_ORDER				(0),
 					
 					.QUE_FIFO_PTR_WIDTH		(QUE_FIFO_PTR_WIDTH),
 					.QUE_FIFO_RAM_TYPE		(QUE_FIFO_RAM_TYPE),
-
+					
 					.AR_FIFO_PTR_WIDTH		(AR_FIFO_PTR_WIDTH),
 					.AR_FIFO_RAM_TYPE		(AR_FIFO_RAM_TYPE),
 					
@@ -301,6 +306,7 @@ module jelly_texture_cache_l2
 				);
 		
 		// debug
+		/*
 		always @(posedge clk) begin
 			if ( !reset ) begin
 				if ( i == 0 ) begin
@@ -327,6 +333,8 @@ module jelly_texture_cache_l2
 				end
 			end
 		end
+		*/
+		
 	end
 	endgenerate
 	
@@ -391,7 +399,6 @@ module jelly_texture_cache_l2
 				.m_up_valid			(ringbus_rvalid),
 				.m_up_ready			(ringbus_rready)
 			);
-	
 	
 	
 	

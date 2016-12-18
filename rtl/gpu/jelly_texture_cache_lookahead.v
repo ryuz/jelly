@@ -244,7 +244,7 @@ module jelly_texture_cache_lookahead
 					
 					.s_data				({m_rlast, m_rdata[i*M_COMPONENT_DATA_WIDTH +: M_COMPONENT_DATA_WIDTH]}),
 					.s_valid			(m_rvalid & m_rstrb[i]),
-					.s_ready			(rfifo_s_ready),
+					.s_ready			(rfifo_s_ready[i]),
 					.s_free_count		(),
 					
 					.m_data				({rfifo_array_rlast[i], rfifo_array_rdata[i*M_COMPONENT_DATA_WIDTH +: M_COMPONENT_DATA_WIDTH]}),
