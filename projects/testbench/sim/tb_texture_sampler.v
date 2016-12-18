@@ -67,8 +67,8 @@ module tb_texture_sampler();
 	parameter	L1_MEM_RAM_TYPE               = "block";
 	parameter	L1_DATA_WIDE_SIZE             = 2;
 	
-	parameter	L2_CACHE_X_SIZE               = 2;
-	parameter	L2_CACHE_Y_SIZE               = 2;
+	parameter	L2_CACHE_X_SIZE               = 1;
+	parameter	L2_CACHE_Y_SIZE               = 1;
 	parameter	L2_CACHE_NUM                  = (1 << (L2_CACHE_X_SIZE + L2_CACHE_Y_SIZE));
 	parameter	L2_TAG_ADDR_WIDTH             = 4;
 	parameter	L2_BLK_X_SIZE                 = 3;	// 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...

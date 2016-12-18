@@ -288,6 +288,64 @@ module jelly_texture_cache_l1
 	wire	[M_NUM-1:0]					arbit_arvalid;
 	wire	[M_NUM-1:0]					arbit_arready;
 	
+	wire	[M_NUM*S_ID_WIDTH-1:0]		arbit_rid;
+	wire	[M_NUM-1:0]					arbit_rlast;
+	wire	[M_NUM*M_DATA_WIDTH-1:0]	arbit_rdata;
+	wire	[M_NUM-1:0]					arbit_rvalid;
+	wire	[M_NUM-1:0]					arbit_rready;
+	
+	jelly_stream_arbiter_bidirection
+			#(
+				.S_NUM					(S_NUM),
+				.S_ID_WIDTH				(S_ID_WIDTH),
+				.M_NUM					(M_NUM),
+				.M_ID_WIDTH				(M_ID_WIDTH),
+				.REQ_DATA_WIDTH			(AR_PACKET_WIDTH),
+				.REQ_LEN_WIDTH			(0),
+				.ACK_DATA_WIDTH			(M_DATA_WIDTH),
+				.ACK_LEN_WIDTH			(8),
+				.IN_ORDER				(USE_LOOK_AHEAD && (M_NUM > 1)),
+				.ORDER_FIFO_PTR_WIDTH	(6),
+				.ORDER_FIFO_RAM_TYPE	("distributed")
+			)
+		i_ring_bus_crossbar_bidirection
+			(
+				.reset					(reset),
+				.clk					(clk),
+				.cke					(1'b1),
+				
+				.s_req_id_to			(cache_arid),
+				.s_req_last				({S_NUM{1'b1}}),
+				.s_req_data				(cache_arpacket),
+				.s_req_valid			(cache_arvalid),
+				.s_req_ready			(cache_arready),
+				
+				.s_ack_id_from			(),
+				.s_ack_last				(cache_rlast),
+				.s_ack_data				(cache_rdata),
+				.s_ack_valid			(cache_rvalid),
+				.s_ack_ready			(cache_rready),
+				
+				
+				.m_req_id_from			(arbit_arid),
+				.m_req_last				(),
+				.m_req_data				(arbit_arpacket),
+				.m_req_valid			(arbit_arvalid),
+				.m_req_ready			(arbit_arready),
+				
+				.m_ack_id_to			(arbit_rid),
+				.m_ack_last				(arbit_rlast),
+				.m_ack_data				(arbit_rdata),
+				.m_ack_valid			(arbit_rvalid),
+				.m_ack_ready			(arbit_rready)
+			);
+
+	/*
+	wire	[M_NUM*S_ID_WIDTH-1:0]		arbit_arid;
+	wire	[M_NUM*AR_PACKET_WIDTH-1:0]	arbit_arpacket;
+	wire	[M_NUM-1:0]					arbit_arvalid;
+	wire	[M_NUM-1:0]					arbit_arready;
+	
 	jelly_data_arbiter_crossbar
 			#(
 				.S_NUM				(S_NUM),
@@ -348,7 +406,7 @@ module jelly_texture_cache_l1
 				.m_valid			(cache_rvalid),
 				.m_ready			(cache_rready)
 			);
-	
+	*/
 	
 	/*
 	jelly_ring_bus_crossbar_bidirection
