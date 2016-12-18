@@ -283,6 +283,7 @@ module jelly_texture_cache_l1
 	//  Arbiter
 	// -----------------------------
 	
+	/*
 	wire	[M_NUM*S_ID_WIDTH-1:0]		arbit_arid;
 	wire	[M_NUM*AR_PACKET_WIDTH-1:0]	arbit_arpacket;
 	wire	[M_NUM-1:0]					arbit_arvalid;
@@ -339,8 +340,9 @@ module jelly_texture_cache_l1
 				.m_ack_valid			(arbit_rvalid),
 				.m_ack_ready			(arbit_rready)
 			);
-
-	/*
+	*/
+	
+	
 	wire	[M_NUM*S_ID_WIDTH-1:0]		arbit_arid;
 	wire	[M_NUM*AR_PACKET_WIDTH-1:0]	arbit_arpacket;
 	wire	[M_NUM-1:0]					arbit_arvalid;
@@ -355,7 +357,7 @@ module jelly_texture_cache_l1
 				.DATA_WIDTH			(AR_PACKET_WIDTH),
 				.ALGORITHM			("RINGBUS")
 			)
-		i_data_arbiter_crossbar_down
+		i_data_arbiter_crossbar_ar
 			(
 				.reset				(reset),
 				.clk				(clk),
@@ -388,7 +390,7 @@ module jelly_texture_cache_l1
 				.M_ID_WIDTH			(S_ID_WIDTH),
 				.DATA_WIDTH			(M_DATA_WIDTH)
 			)
-		i_stream_arbiter_crossbar_up
+		i_stream_arbiter_crossbar_r
 			(
 				.reset				(reset),
 				.clk				(clk),
@@ -406,7 +408,7 @@ module jelly_texture_cache_l1
 				.m_valid			(cache_rvalid),
 				.m_ready			(cache_rready)
 			);
-	*/
+	
 	
 	/*
 	jelly_ring_bus_crossbar_bidirection
