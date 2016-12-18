@@ -87,6 +87,8 @@ module jelly_stream_ring_bus_unit
 			// ƒf[ƒ^“]‘—
 			reg_sink_id_to   <= src_id_to;
 			reg_sink_id_from <= src_id_from;
+			reg_sink_last    <= src_last;
+			reg_sink_seq     <= src_seq;
 			reg_sink_data    <= src_data;
 			reg_sink_valid   <= src_valid;
 			
@@ -134,6 +136,7 @@ module jelly_stream_ring_bus_unit
 	assign s_ready      = (!src_valid || (m_valid && m_ready));
 	
 	assign m_id_from    = src_id_from;
+	assign m_last       = src_last;
 	assign m_data       = src_data;
 	assign m_valid      = (src_valid
 							&& ((src_id_to   == UNIT_ID_TO)       || (ID_TO_WIDTH <= 0))

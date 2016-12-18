@@ -142,7 +142,7 @@ module jelly_texture_cache_l1
 	
 	
 	localparam AR_PACKET_WIDTH = M_ADDR_X_WIDTH + M_ADDR_Y_WIDTH;
-	localparam R_PACKET_WIDTH  = 1 + M_DATA_WIDTH;
+//	localparam R_PACKET_WIDTH  = 1 + M_DATA_WIDTH;
 	
 	
 	
@@ -159,7 +159,9 @@ module jelly_texture_cache_l1
 	wire	[S_NUM-1:0]					cache_arvalid;
 	wire	[S_NUM-1:0]					cache_arready;
 	
-	wire	[S_NUM*R_PACKET_WIDTH-1:0]	cache_rpacket;
+//	wire	[S_NUM*R_PACKET_WIDTH-1:0]	cache_rpacket;
+	wire	[S_NUM-1:0]					cache_rlast;
+	wire	[S_NUM*M_DATA_WIDTH-1:0]	cache_rdata;
 	wire	[S_NUM-1:0]					cache_rvalid;
 	wire	[S_NUM-1:0]					cache_rready;
 	
@@ -267,9 +269,11 @@ module jelly_texture_cache_l1
 		assign cache_arvalid [i]                                    = unit_arvalid;
 		assign unit_arready                                         = cache_arready[i];
 		
-		assign {unit_rlast, unit_rdata} = cache_rpacket[i*R_PACKET_WIDTH +: R_PACKET_WIDTH];
-		assign unit_rvalid              = cache_rvalid [i];
-		assign cache_rready[i]          = unit_rready;
+//		assign {unit_rlast, unit_rdata} = cache_rpacket[i*R_PACKET_WIDTH +: R_PACKET_WIDTH];
+		assign unit_rlast      = cache_rlast [i];
+		assign unit_rdata      = cache_rdata [i*M_DATA_WIDTH +: M_DATA_WIDTH];
+		assign unit_rvalid     = cache_rvalid[i];
+		assign cache_rready[i] = unit_rready;
 	end
 	endgenerate
 	
@@ -312,32 +316,36 @@ module jelly_texture_cache_l1
 	
 	
 	wire	[M_NUM*S_ID_WIDTH-1:0]		arbit_rid;
-	wire	[M_NUM*R_PACKET_WIDTH-1:0]	arbit_rpacket;
+//	wire	[M_NUM*R_PACKET_WIDTH-1:0]	arbit_rpacket;
+	wire	[M_NUM-1:0]					arbit_rlast;
+	wire	[M_NUM*M_DATA_WIDTH-1:0]	arbit_rdata;
 	wire	[M_NUM-1:0]					arbit_rvalid;
 	wire	[M_NUM-1:0]					arbit_rready;
 	
-	jelly_data_arbiter_crossbar
+	jelly_stream_arbiter_crossbar
 			#(
 				.S_NUM				(M_NUM),
 				.S_ID_WIDTH			(M_ID_WIDTH),
 				.M_NUM				(S_NUM),
 				.M_ID_WIDTH			(S_ID_WIDTH),
-				.DATA_WIDTH			(R_PACKET_WIDTH),
-				.ALGORITHM			("PRIORITY")
+				.DATA_WIDTH			(M_DATA_WIDTH),
+				.ALGORITHM			("RINGBUS")
 			)
-		i_data_arbiter_crossbar_up
+		i_stream_arbiter_crossbar_up
 			(
 				.reset				(reset),
 				.clk				(clk),
 				.cke				(1'b1),
 				
 				.s_id_to			(arbit_rid),
-				.s_data				(arbit_rpacket),
+				.s_last				(arbit_rlast),
+				.s_data				(arbit_rdata),
 				.s_valid			(arbit_rvalid),
 				.s_ready			(arbit_rready),
 				
 				.m_id_from			(),
-				.m_data				(cache_rpacket),
+				.m_last				(cache_rlast),
+				.m_data				(cache_rdata),
 				.m_valid			(cache_rvalid),
 				.m_ready			(cache_rready)
 			);
@@ -432,10 +440,12 @@ module jelly_texture_cache_l1
 		
 		
 		// rdata
-		assign arbit_rid    [i*S_ID_WIDTH     +: S_ID_WIDTH]     = m_rid[i*S_ID_WIDTH +: S_ID_WIDTH];
-		assign arbit_rpacket[i*R_PACKET_WIDTH +: R_PACKET_WIDTH] = {m_rlast[i], m_rdata[i*M_DATA_WIDTH +: M_DATA_WIDTH]};
-		assign arbit_rvalid [i]                                  = m_rvalid[i];
-		assign m_rready     [i]                                  = arbit_rready[i];
+		assign arbit_rid    [i*S_ID_WIDTH     +: S_ID_WIDTH] = m_rid[i*S_ID_WIDTH +: S_ID_WIDTH];
+//		assign arbit_rpacket[i*R_PACKET_WIDTH +: R_PACKET_WIDTH] = {m_rlast[i], m_rdata[i*M_DATA_WIDTH +: M_DATA_WIDTH]};
+		assign arbit_rlast [i]                               = m_rlast[i];
+		assign arbit_rdata [i*M_DATA_WIDTH +: M_DATA_WIDTH]  = m_rdata[i*M_DATA_WIDTH +: M_DATA_WIDTH];
+		assign arbit_rvalid[i]                               = m_rvalid[i];
+		assign m_rready    [i]                               = arbit_rready[i];
 	end
 	endgenerate
 	
