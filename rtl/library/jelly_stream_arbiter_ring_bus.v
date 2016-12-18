@@ -161,7 +161,7 @@ module jelly_stream_arbiter_ring_bus
 					.sink_last				(ringbus_m_last   [(i+0)]),
 					.sink_data				(ringbus_m_data   [(i+0)*DATA_WIDTH +: DATA_WIDTH]),
 					.sink_valid				(ringbus_m_valid  [(i+0)]),
-					.src_token				()
+					.sink_token				()
 				);
 	end
 	endgenerate

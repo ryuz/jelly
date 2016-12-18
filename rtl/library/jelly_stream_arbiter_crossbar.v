@@ -16,14 +16,17 @@
 // ring bus unit
 module jelly_stream_arbiter_crossbar
 		#(
-			parameter	S_NUM         = 8,
-			parameter	S_ID_WIDTH    = 3,
-			parameter	M_NUM         = 4,
-			parameter	M_ID_WIDTH    = 2,
-			parameter	DATA_WIDTH    = 32,
-			parameter	LEN_WIDTH     = 8,
-			parameter	S_REGS        = 0,
-			parameter	ALGORITHM     = "TOKEN_RING"
+			parameter	S_NUM                 = 8,
+			parameter	S_ID_WIDTH            = 3,
+			parameter	M_NUM                 = 4,
+			parameter	M_ID_WIDTH            = 2,
+			parameter	DATA_WIDTH            = 32,
+			parameter	LEN_WIDTH             = 8,
+			parameter	S_REGS                = 0,
+			parameter	ALGORITHM             = "RINGBUS",
+			parameter	USE_ID_FILTER         = 0,
+			parameter	FILTER_FIFO_PTR_WIDTH = 6,
+			parameter	FILTER_FIFO_RAM_TYPE  = "distributed"
 		)
 		(
 			input	wire							reset,
@@ -40,7 +43,11 @@ module jelly_stream_arbiter_crossbar
 			output	wire	[M_NUM-1:0]				m_last,
 			output	wire	[M_NUM*DATA_WIDTH-1:0]	m_data,
 			output	wire	[M_NUM-1:0]				m_valid,
-			input	wire	[M_NUM-1:0]				m_ready
+			input	wire	[M_NUM-1:0]				m_ready,
+			
+			input	wire	[M_NUM*S_ID_BITS-1:0]	filter_id,
+			input	wire	[M_NUM-1:0]				filter_valid,
+			output	wire	[M_NUM-1:0]				filter_ready
 		);
 	
 	genvar		i, j;
@@ -58,28 +65,28 @@ module jelly_stream_arbiter_crossbar
 	for ( i = 0; i < S_NUM; i = i+1 ) begin : loop_slave
 		jelly_stream_switch
 					#(
-						.NUM					(M_NUM),
-						.ID_WIDTH				(M_ID_WIDTH),
-						.DATA_WIDTH				(DATA_WIDTH),
-						.S_REGS					(S_REGS),
-						.M_REGS					(1)
+						.NUM			(M_NUM),
+						.ID_WIDTH		(M_ID_WIDTH),
+						.DATA_WIDTH		(DATA_WIDTH),
+						.S_REGS			(S_REGS),
+						.M_REGS			(1)
 					)
 				i_stream_switch
 					(
-						.reset					(reset),
-						.clk					(clk),
-						.cke					(1'b1),
+						.reset			(reset),
+						.clk			(clk),
+						.cke			(1'b1),
 						
-						.s_id					(s_id_to[i*M_ID_BITS  +: M_ID_BITS]),
-						.s_last					(s_last [i]),
-						.s_data					(s_data [i*DATA_WIDTH +: DATA_WIDTH]),
-						.s_valid				(s_valid[i]),
-						.s_ready				(s_ready[i]),
+						.s_id			(s_id_to[i*M_ID_BITS  +: M_ID_BITS]),
+						.s_last			(s_last [i]),
+						.s_data			(s_data [i*DATA_WIDTH +: DATA_WIDTH]),
+						.s_valid		(s_valid[i]),
+						.s_ready		(s_ready[i]),
 						
-						.m_last					(array_s_last [i*M_NUM            +: M_NUM]),
-						.m_data					(array_s_data [i*M_NUM*DATA_WIDTH +: M_NUM*DATA_WIDTH]),
-						.m_valid				(array_s_valid[i*M_NUM            +: M_NUM]),
-						.m_ready				(array_s_ready[i*M_NUM            +: M_NUM])
+						.m_last			(array_s_last [i*M_NUM            +: M_NUM]),
+						.m_data			(array_s_data [i*M_NUM*DATA_WIDTH +: M_NUM*DATA_WIDTH]),
+						.m_valid		(array_s_valid[i*M_NUM            +: M_NUM]),
+						.m_ready		(array_s_ready[i*M_NUM            +: M_NUM])
 					);
 	end
 	
@@ -98,6 +105,42 @@ module jelly_stream_arbiter_crossbar
 			assign array_s_ready[j*M_NUM+i]                  = array_m_ready[j];
 		end
 		
+		
+		wire	[S_NUM-1:0]					filter_m_last;
+		wire	[S_NUM*DATA_WIDTH-1:0]		filter_m_data;
+		wire	[S_NUM-1:0]					filter_m_valid;
+		wire	[S_NUM-1:0]					filter_m_ready;
+		
+		jelly_stream_id_filter
+				#(
+					.NUM				(S_NUM),
+					.ID_WIDTH			(S_ID_WIDTH),
+					.DATA_WIDTH			(DATA_WIDTH),
+					.BYPASS				(!USE_ID_FILTER),
+					.FIFO_PTR_WIDTH		(FILTER_FIFO_PTR_WIDTH),
+					.FIFO_RAM_TYPE		(FILTER_FIFO_RAM_TYPE)
+				)
+			i_stream_id_filter
+				(
+					.reset				(reset),
+					.clk				(clk),
+					.cke				(cke),
+					
+					.s_filter_id		(filter_id   [i*S_ID_BITS +: S_ID_BITS]),
+					.s_filter_valid		(filter_valid[i]),
+					.s_filter_ready		(filter_ready[i]),
+					
+					.s_last				(array_m_last),
+					.s_data				(array_m_data),
+					.s_valid			(array_m_valid),
+					.s_ready			(array_m_ready),
+					
+					.m_last				(filter_m_last),
+					.m_data				(filter_m_data),
+					.m_valid			(filter_m_valid),
+					.m_ready			(filter_m_ready)
+				);
+		
 		jelly_stream_joint
 				#(
 					.NUM				(S_NUM),
@@ -112,10 +155,10 @@ module jelly_stream_arbiter_crossbar
 					.clk				(clk),
 					.cke				(cke),
 					
-					.s_last				(array_m_last),
-					.s_data				(array_m_data),
-					.s_valid			(array_m_valid),
-					.s_ready			(array_m_ready),
+					.s_last				(filter_m_last),
+					.s_data				(filter_m_data),
+					.s_valid			(filter_m_valid),
+					.s_ready			(filter_m_ready),
 					
 					.m_id				(m_id_from[i*S_ID_BITS  +: S_ID_BITS]),
 					.m_last				(m_last   [i]),

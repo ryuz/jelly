@@ -58,28 +58,28 @@ module jelly_stream_id_filter
 		wire							filter_valid;
 		wire							filter_ready;
 		jelly_fifo_fwtf
-			#(
-				.DATA_WIDTH		(ID_WIDTH),
-				.PTR_WIDTH		(FIFO_PTR_WIDTH),
-				.DOUT_REGS		(0),
-				.RAM_TYPE		(FIFO_RAM_TYPE),
-				.MASTER_REGS	(1)
-			)
-		jelly_fifo_fwtf
-			(
-				.reset			(reset),
-				.clk			(clk),
-				
-				.s_data			(s_filter_id),
-				.s_valid		(s_filter_valid),
-				.s_ready		(s_filter_ready),
-				.s_free_count	(),
-				
-				.m_data			(filter_id),
-				.m_valid		(filter_valid),
-				.m_ready		(filter_ready),
-				.m_data_count	()
-			);
+				#(
+					.DATA_WIDTH		(ID_WIDTH),
+					.PTR_WIDTH		(FIFO_PTR_WIDTH),
+					.DOUT_REGS		(0),
+					.RAM_TYPE		(FIFO_RAM_TYPE),
+					.MASTER_REGS	(1)
+				)
+			jelly_fifo_fwtf
+				(
+					.reset			(reset),
+					.clk			(clk),
+					
+					.s_data			(s_filter_id),
+					.s_valid		(s_filter_valid),
+					.s_ready		(s_filter_ready),
+					.s_free_count	(),
+					
+					.m_data			(filter_id),
+					.m_valid		(filter_valid),
+					.m_ready		(filter_ready & cke),
+					.m_data_count	()
+				);
 		
 		assign filter_ready = |(m_valid & m_ready & m_last);
 		

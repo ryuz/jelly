@@ -87,7 +87,7 @@ module jelly_stream_ring_bus_unit
 			reg_recv_id_from <= {ID_FROM_BITS{1'bx}};
 			reg_recv_seq     <= {LEN_BITS{1'b0}};
 			
-			reg_send_token   <= INIT_TOKEN;
+			reg_send_token   <= 1'b0;
 			reg_send_seq     <= {LEN_BITS{1'b0}};
 			
 			reg_sink_id_to   <= {ID_TO_BITS{1'bx}};
@@ -96,6 +96,7 @@ module jelly_stream_ring_bus_unit
 			reg_sink_seq     <= {LEN_BITS{1'bx}};
 			reg_sink_data    <= {DATA_WIDTH{1'bx}};
 			reg_sink_valid   <= 1'b0;
+			reg_sink_token   <= INIT_TOKEN;
 		end
 		else if ( cke ) begin
 			// ƒf[ƒ^“]‘—
