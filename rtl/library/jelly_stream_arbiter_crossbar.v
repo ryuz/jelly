@@ -23,7 +23,7 @@ module jelly_stream_arbiter_crossbar
 			parameter	DATA_WIDTH    = 32,
 			parameter	LEN_WIDTH     = 8,
 			parameter	S_REGS        = 0,
-			parameter	ALGORITHM     = "RINGBUS"
+			parameter	ALGORITHM     = "TOKEN_RING"
 		)
 		(
 			input	wire							reset,
