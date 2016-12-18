@@ -354,7 +354,7 @@ module jelly_texture_cache_core
 				.BLK_Y_SIZE				(L2_BLK_Y_SIZE),
 				
 				.USE_LOOK_AHEAD			(L2_USE_LOOK_AHEAD),
-				.USE_S_RREADY			(0),
+				.USE_S_RREADY			(1),
 				.USE_M_RREADY			(1),
 				
 				.USE_BORDER				(0),

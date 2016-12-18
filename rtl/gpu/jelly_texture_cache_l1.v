@@ -328,8 +328,7 @@ module jelly_texture_cache_l1
 				.S_ID_WIDTH			(M_ID_WIDTH),
 				.M_NUM				(S_NUM),
 				.M_ID_WIDTH			(S_ID_WIDTH),
-				.DATA_WIDTH			(M_DATA_WIDTH),
-				.ALGORITHM			("RINGBUS")
+				.DATA_WIDTH			(M_DATA_WIDTH)
 			)
 		i_stream_arbiter_crossbar_up
 			(

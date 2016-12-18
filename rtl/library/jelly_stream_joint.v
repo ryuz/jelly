@@ -44,7 +44,8 @@ module jelly_stream_joint
 		);
 	
 	generate
-	if ( ALGORITHM == "TOKEN_RING" ) begin : blk_token_ring
+//	if ( ALGORITHM == "TOKEN_RING" ) begin : blk_token_ring
+	if ( 1 ) begin : blk_token_ring
 		jelly_stream_arbiter_token_ring
 				#(
 					.S_NUM			(NUM),
