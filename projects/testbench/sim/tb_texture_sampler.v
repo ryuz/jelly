@@ -300,7 +300,7 @@ module tb_texture_sampler();
 				                                
 				.SAMPLER3D_NUM					(SAMPLER3D_NUM					),
 				                                
-				.L1_USE_LOOK_AHEAD				(1),
+				.L1_USE_LOOK_AHEAD				(0),
 				.L1_QUE_FIFO_PTR_WIDTH			(6),
 				.L1_CACHE_NUM					(L1_CACHE_NUM					),
 				.L2_CACHE_X_SIZE				(L2_CACHE_X_SIZE				),
@@ -313,7 +313,8 @@ module tb_texture_sampler();
 				.L1_TAG_RAM_TYPE				(L1_TAG_RAM_TYPE				),
 				.L1_MEM_RAM_TYPE				(L1_MEM_RAM_TYPE				),
 				.L1_DATA_WIDE_SIZE				(L1_DATA_WIDE_SIZE				),
-				                                
+				
+				.L2_USE_LOOK_AHEAD				(1),
 				.L2_TAG_ADDR_WIDTH				(L2_TAG_ADDR_WIDTH				),
 				.L2_BLK_X_SIZE					(L2_BLK_X_SIZE					),
 				.L2_BLK_Y_SIZE					(L2_BLK_Y_SIZE					),

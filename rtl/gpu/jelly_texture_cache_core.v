@@ -355,7 +355,7 @@ module jelly_texture_cache_core
 				
 				.USE_LOOK_AHEAD			(L2_USE_LOOK_AHEAD),
 				.USE_S_RREADY			(1),
-				.USE_M_RREADY			(1),
+				.USE_M_RREADY			(0),
 				
 				.USE_BORDER				(0),
 				.BORDER_DATA			(BORDER_DATA),

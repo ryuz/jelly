@@ -183,6 +183,19 @@ module jelly_texture_cache_l2
 	wire	[S_NUM-1:0]						cache_rvalid;
 	wire	[S_NUM-1:0]						cache_rready;
 	
+	
+	// debug
+	integer		fp_s_ar;
+	integer		fp_s_r;
+	integer		fp_m_ar;
+	integer		fp_m_r;
+	initial begin
+		fp_s_ar = $fopen("l2_0_s_ar.txt", "w");
+		fp_s_r  = $fopen("l2_0_s_r.txt", "w");
+		fp_m_ar = $fopen("l2_0_m_ar.txt", "w");
+		fp_m_r  = $fopen("l2_0_m_r.txt", "w");
+	end
+	
 	generate
 	for ( i = 0; i < S_NUM; i = i+1 ) begin : cahce_loop
 		
@@ -240,7 +253,7 @@ module jelly_texture_cache_l2
 					
 					.R_FIFO_PTR_WIDTH		(R_FIFO_PTR_WIDTH),
 					.R_FIFO_RAM_TYPE		(R_FIFO_RAM_TYPE),
-	
+					
 					.LOG_ENABLE				(LOG_ENABLE),
 					.LOG_FILE				(LOG_FILE),
 					.LOG_ID					(LOG_ID + i)
@@ -286,6 +299,34 @@ module jelly_texture_cache_l2
 					.m_rvalid				(cache_rvalid [i]),
 					.m_rready				(cache_rready [i])
 				);
+		
+		// debug
+		always @(posedge clk) begin
+			if ( !reset ) begin
+				if ( i == 0 ) begin
+					if ( s_arvalid[i] && s_arready[i] ) begin
+						$fdisplay(fp_s_ar, "%h %h %h",
+												s_aruser [i*S_USER_WIDTH   +: S_USER_WIDTH],
+												s_araddrx[i*S_ADDR_X_WIDTH +: S_ADDR_X_WIDTH],
+												s_araddry[i*S_ADDR_Y_WIDTH +: S_ADDR_Y_WIDTH]);
+					end
+					
+					if ( s_rvalid[i] && s_rready[i] ) begin
+						$fdisplay(fp_s_r, "%h %h",
+												s_ruser  [i*S_USER_WIDTH   +: S_USER_WIDTH],
+												s_rdata  [i*S_DATA_WIDTH   +: S_DATA_WIDTH]);
+					end
+					
+					if ( cache_arvalid[i] && cache_arready[i] ) begin
+						$fdisplay(fp_m_ar, "%h %h", cache_araddrx[i*M_ADDR_X_WIDTH +: M_ADDR_X_WIDTH], cache_araddry[i*M_ADDR_Y_WIDTH +: M_ADDR_Y_WIDTH]);
+					end
+					
+					if ( cache_rvalid [i] && cache_rready [i] ) begin
+						$fdisplay(fp_m_r, "%h %h %b", cache_rdata[i*M_AXI4_DATA_WIDTH +: M_AXI4_DATA_WIDTH], cache_rstrb[i*COMPONENT_NUM +: COMPONENT_NUM], cache_rlast[i]);
+					end
+				end
+			end
+		end
 	end
 	endgenerate
 	

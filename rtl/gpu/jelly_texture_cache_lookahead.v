@@ -220,10 +220,10 @@ module jelly_texture_cache_lookahead
 	// R FIFO
 	localparam	M_COMPONENT_DATA_WIDTH = (COMPONENT_DATA_WIDTH << M_DATA_WIDE_SIZE);
 	
-	wire	[M_STRB_WIDTH-1:0]		rfifo_m_rlast;
-	wire	[M_DATA_WIDTH-1:0]		rfifo_m_rdata;
-	wire	[M_STRB_WIDTH-1:0]		rfifo_m_rvalid;
-	wire	[M_STRB_WIDTH-1:0]		rfifo_m_rready;
+	wire	[M_STRB_WIDTH-1:0]		rfifo_array_rlast;
+	wire	[M_DATA_WIDTH-1:0]		rfifo_array_rdata;
+	wire	[M_STRB_WIDTH-1:0]		rfifo_array_rvalid;
+	wire	[M_STRB_WIDTH-1:0]		rfifo_array_rready;
 	
 	generate
 	for ( i = 0; i < M_STRB_WIDTH; i = i+1 ) begin : loop_r_fifo
@@ -244,13 +244,43 @@ module jelly_texture_cache_lookahead
 					.s_ready			(),
 					.s_free_count		(),
 					
-					.m_data				({rfifo_m_rlast[i], rfifo_m_rdata[i*M_COMPONENT_DATA_WIDTH +: M_COMPONENT_DATA_WIDTH]}),
-					.m_valid			(rfifo_m_rvalid[i]),
-					.m_ready			(rfifo_m_rready),
+					.m_data				({rfifo_array_rlast[i], rfifo_array_rdata[i*M_COMPONENT_DATA_WIDTH +: M_COMPONENT_DATA_WIDTH]}),
+					.m_valid			(rfifo_array_rvalid[i]),
+					.m_ready			(rfifo_array_rready[i]),
 					.m_data_count		()
 				);
 	end
 	endgenerate
+	
+	
+	wire							rfifo_m_rlast;
+	wire	[M_DATA_WIDTH-1:0]		rfifo_m_rdata;
+	wire							rfifo_m_rvalid;
+	wire							rfifo_m_rready;
+	
+	jelly_stream_combiner
+			#(
+				.NUM			(M_STRB_WIDTH),
+				.DATA_WIDTH		(M_COMPONENT_DATA_WIDTH),
+				.S_REGS			(1),
+				.M_REGS			(1)
+			)
+		i_data_combiner
+			(
+				.reset			(reset),
+				.clk			(clk),
+				.cke			(1'b1),
+				
+				.s_last			(rfifo_array_rlast),
+				.s_data			(rfifo_array_rdata),
+				.s_valid		(rfifo_array_rvalid),
+				.s_ready		(rfifo_array_rready),
+				
+				.m_last			(rfifo_m_rlast),
+				.m_data			(rfifo_m_rdata),
+				.m_valid		(rfifo_m_rvalid),
+				.m_ready		(rfifo_m_rready)
+			);
 	
 	assign m_rready = 1'b1;
 	
@@ -363,17 +393,20 @@ module jelly_texture_cache_lookahead
 	// read addr command
 	localparam	LOOK_AHEAD_NUM         = (1 << (R_FIFO_PTR_WIDTH - (BLK_Y_SIZE + BLK_X_SIZE - M_DATA_WIDE_SIZE)));
 	
-	localparam	LOOK_AHEAD_COUNT_WIDTH = LOOK_AHEAD_NUM <   2 ? 1 :
-	                                     LOOK_AHEAD_NUM <   4 ? 2 :
-	                                     LOOK_AHEAD_NUM <   8 ? 3 :
-	                                     LOOK_AHEAD_NUM <  16 ? 4 :
-	                                     LOOK_AHEAD_NUM <  32 ? 5 :
-	                                     LOOK_AHEAD_NUM <  64 ? 6 :
-	                                     LOOK_AHEAD_NUM < 128 ? 7 : 8;
+	localparam	LOOK_AHEAD_COUNT_WIDTH = LOOK_AHEAD_NUM <   1 ? 1 :
+	                                     LOOK_AHEAD_NUM <   3 ? 2 :
+	                                     LOOK_AHEAD_NUM <   7 ? 3 :
+	                                     LOOK_AHEAD_NUM <  15 ? 4 :
+	                                     LOOK_AHEAD_NUM <  31 ? 5 :
+	                                     LOOK_AHEAD_NUM <  63 ? 6 :
+	                                     LOOK_AHEAD_NUM < 127 ? 7 : 8;
 	
+	reg		[LOOK_AHEAD_COUNT_WIDTH-1:0]	reg_mem_limit,   next_mem_limit;
 	reg		[LOOK_AHEAD_COUNT_WIDTH-1:0]	reg_mem_count,   next_mem_count;
 	reg										reg_mem_arready, next_mem_arready;
+	
 	always @* begin
+		next_mem_limit   = reg_mem_limit;
 		next_mem_count   = reg_mem_count;
 		next_mem_arready = reg_mem_arready;
 		
@@ -381,21 +414,28 @@ module jelly_texture_cache_lookahead
 			next_mem_count = next_mem_count + 1'b1;
 		end
 		
-		if ( base_m_rvalid & base_m_rlast ) begin
-			next_mem_count = next_mem_count - 1'b1;
+		if ( base_m_arvalid ) begin
+			next_mem_limit = next_mem_limit + 1'b1;
 		end
 		
-		next_mem_arready = (next_mem_count < LOOK_AHEAD_COUNT_WIDTH);
+		if ( base_m_rvalid & base_m_rlast ) begin
+			next_mem_count = next_mem_count - 1'b1;
+			next_mem_limit = next_mem_limit - 1'b1;
+		end
+		
+		next_mem_arready = (next_mem_count < next_mem_limit);
 	end
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
-			reg_mem_count   = {LOOK_AHEAD_COUNT_WIDTH{1'b0}};
-			reg_mem_arready = 1'b1;
+			reg_mem_limit   <= LOOK_AHEAD_NUM;
+			reg_mem_count   <= {LOOK_AHEAD_COUNT_WIDTH{1'b0}};
+			reg_mem_arready <= 1'b1;
 		end
 		else begin
-			reg_mem_count   = next_mem_count;
-			reg_mem_arready = next_mem_arready;
+			reg_mem_limit   <= next_mem_limit;
+			reg_mem_count   <= next_mem_count;
+			reg_mem_arready <= next_mem_arready;
 		end
 	end
 	
@@ -437,10 +477,12 @@ module jelly_texture_cache_lookahead
 		end
 	end
 	
-	assign base_m_rlast     = |rfifo_m_rlast;
-	assign base_m_rstrb     = rfifo_m_rvalid;
+	assign base_m_rlast     = rfifo_m_rlast;
+	assign base_m_rstrb     = {M_STRB_WIDTH{1'b1}};
 	assign base_m_rdata     = rfifo_m_rdata;
-	assign base_m_rvalid    = (|rfifo_m_rvalid & reg_mem_rready);
+	assign base_m_rvalid    = |rfifo_m_rvalid;
+	
+//	assign base_m_rvalid    = (|rfifo_m_rvalid & reg_mem_rready);
 	
 	assign rfifo_m_rready   = reg_mem_rready;
 	
