@@ -43,8 +43,9 @@ module jelly_texture_cache_l1
 			parameter	S_ADDR_Y_WIDTH       = 12,
 			parameter	S_DATA_WIDTH         = COMPONENT_NUM * COMPONENT_DATA_WIDTH,
 			
+			parameter	M_PARALLEL_SIZE      = 2,
+			parameter	M_NUM                = (1 << M_PARALLEL_SIZE),
 			parameter	M_DATA_WIDE_SIZE     = 1,
-			parameter	M_NUM                = 4,
 			parameter	M_ID_X_RSHIFT        = 3,
 			parameter	M_ID_X_LSHIFT        = 0,
 			parameter	M_ID_Y_RSHIFT        = 3,
@@ -259,6 +260,26 @@ module jelly_texture_cache_l1
 		// ƒAƒhƒŒƒX•Ê‚ÉL2‚ÉŠ„‚èU‚é
 		wire	[M_ID_WIDTH-1:0]	unit_arid = ((unit_araddrx >> (M_ID_X_RSHIFT)) << M_ID_X_LSHIFT) + ((unit_araddry >> (M_ID_Y_RSHIFT)) << M_ID_Y_LSHIFT);
 		
+		/*
+		wire	[M_ID_WIDTH-1:0]	unit_arid;
+		jelly_texture_cache_tag_addr
+				#(
+					.PARALLEL_SIZE		(M_PARALLEL_SIZE),
+					
+					.ADDR_X_WIDTH		(M_ADDR_X_WIDTH),
+					.ADDR_Y_WIDTH		(M_ADDR_Y_WIDTH),
+					.TAG_ADDR_WIDTH		(4)
+				)
+			i_texture_cache_tag_addr
+				(
+					.addrx				(tag_addr_x),
+					.addry				(tag_addr_y),
+					
+					.unit_id			(),
+					.tag_addr			()
+				);
+		*/
+		
 		
 		assign cache_arid    [i*M_ID_WIDTH      +: M_ID_WIDTH]      = unit_arid;
 		assign cache_arpacket[i*AR_PACKET_WIDTH +: AR_PACKET_WIDTH] = {unit_araddrx, unit_araddry};
@@ -343,16 +364,15 @@ module jelly_texture_cache_l1
 	wire	[M_NUM-1:0]					arbit_arvalid;
 	wire	[M_NUM-1:0]					arbit_arready;
 	
-	jelly_data_arbiter_crossbar
+	jelly_data_arbiter_ring_bus
 			#(
 				.S_NUM				(S_NUM),
 				.S_ID_WIDTH			(S_ID_WIDTH),
 				.M_NUM				(M_NUM),
 				.M_ID_WIDTH			(M_ID_WIDTH),
-				.DATA_WIDTH			(AR_PACKET_WIDTH),
-				.ALGORITHM			("RINGBUS")
+				.DATA_WIDTH			(AR_PACKET_WIDTH)
 			)
-		i_data_arbiter_crossbar_ar
+		i_data_arbiter_ring_bus
 			(
 				.reset				(reset),
 				.clk				(clk),

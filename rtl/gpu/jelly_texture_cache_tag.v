@@ -21,6 +21,7 @@ module jelly_texture_cache_tag
 			parameter	S_ADDR_Y_WIDTH   = 12,
 			parameter	S_DATA_WIDTH     = 24,
 			
+			parameter	PARALLEL_SIZE    = 0,
 			parameter	TAG_ADDR_WIDTH   = 6,
 			parameter	TAG_X_RSHIFT     = 0,
 			parameter	TAG_X_LSHIFT     = 0,
@@ -154,6 +155,27 @@ module jelly_texture_cache_tag
 	wire	[BLK_ADDR_X_WIDTH-1:0]	s_blk_addrx = s_addrx[S_ADDR_X_WIDTH-1:BLK_X_SIZE];
 	wire	[BLK_ADDR_Y_WIDTH-1:0]	s_blk_addry = s_addry[S_ADDR_Y_WIDTH-1:BLK_Y_SIZE];
 	
+	//  TAG ADDR
+	wire	[TAG_ADDR_WIDTH-1:0]	s_tag_addr;
+	
+	jelly_texture_cache_tag_addr
+			#(
+				.PARALLEL_SIZE		(PARALLEL_SIZE),
+				
+				.ADDR_X_WIDTH		(BLK_ADDR_X_WIDTH),
+				.ADDR_Y_WIDTH		(BLK_ADDR_Y_WIDTH),
+				.TAG_ADDR_WIDTH		(TAG_ADDR_WIDTH)
+			)
+		i_texture_cache_tag_addr
+			(
+				.addrx				(s_blk_addrx),
+				.addry				(s_blk_addry),
+				
+				.unit_id			(),
+				.tag_addr			(s_tag_addr)
+			);
+	
+	
 	always @(posedge clk) begin
 		if ( reset ) begin
 			reg_clear_busy <= 1'b0;
@@ -207,7 +229,8 @@ module jelly_texture_cache_tag
 			end
 			st0_user      <= s_user;
 			st0_tag_we    <= (s_valid && (!USE_BORDER || (s_addrx < param_width && s_addry < param_height)));
-			st0_tag_addr  <= ((s_blk_addrx >> TAG_X_RSHIFT) << TAG_X_LSHIFT) + ((s_blk_addry >> TAG_Y_RSHIFT) << TAG_Y_LSHIFT);
+			st0_tag_addr  <= s_tag_addr;	//
+	//		st0_tag_addr  <= ((s_blk_addrx >> TAG_X_RSHIFT) << TAG_X_LSHIFT) + ((s_blk_addry >> TAG_Y_RSHIFT) << TAG_Y_LSHIFT);
 			st0_blk_addrx <= s_blk_addrx;
 			st0_blk_addry <= s_blk_addry;
 			st0_pix_addrx <= s_pix_addrx;

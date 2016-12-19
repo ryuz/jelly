@@ -482,6 +482,33 @@ module tb_texture_sampler();
 		end
 	end
 	
+	
+	
+	reg		[11:0]	tag_addr_x = 0;
+	reg		[11:0]	tag_addr_y = 0;
+	always @(posedge clk) begin
+		{tag_addr_y[5:0], tag_addr_x[5:0]} <= {tag_addr_y[5:0], tag_addr_x[5:0]} + 1;
+	end
+	
+	jelly_texture_cache_tag_addr
+			#(
+				.PARALLEL_SIZE		(0),	// 0:1, 1:2, 2:4, 2:4, 3:8 ....
+				
+				.ADDR_X_WIDTH		(12),
+				.ADDR_Y_WIDTH		(12),
+				.TAG_ADDR_WIDTH		(4)
+			)
+		i_texture_cache_tag_addr
+			(
+				.addrx				(tag_addr_x),
+				.addry				(tag_addr_y),
+				
+				.unit_id			(),
+				.tag_addr			()
+			);
+	
+	
+	
 endmodule
 
 
