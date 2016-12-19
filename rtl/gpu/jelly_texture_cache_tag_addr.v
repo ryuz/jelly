@@ -13,7 +13,7 @@
 
 
 
-module jelly_texture_cache_tag
+module jelly_texture_cache_tag_addr
 		#(
 			parameter	PARALLEL_SIZE  = 0,		// 0:1, 1:2, 2:4, 2:4, 3:8 ....
 			
@@ -26,7 +26,7 @@ module jelly_texture_cache_tag
 			input	wire	[ADDR_Y_WIDTH-1:0]		addry,
 			
 			output	wire	[ID_WIDTH-1:0]			unit_id,
-			output	wire	[TAG_ADDR_WIDTH-1:0]	tag_addr,
+			output	wire	[TAG_ADDR_WIDTH-1:0]	tag_addr
 		);
 	
 	localparam	ID_WIDTH        = PARALLEL_SIZE > 0 ? PARALLEL_SIZE : 1;
