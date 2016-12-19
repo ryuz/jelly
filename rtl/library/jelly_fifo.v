@@ -40,7 +40,7 @@ module jelly_fifo
 	
 	
 	generate
-	if ( RAM_TYPE == "distributed" && PTR_WIDTH < 8 ) begin : blk_shifter
+	if ( /* RAM_TYPE == "distributed" && */ PTR_WIDTH < 8 ) begin : blk_shifter
 		jelly_fifo_shifter
 				#(
 					.DATA_WIDTH		(DATA_WIDTH),
