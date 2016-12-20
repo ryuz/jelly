@@ -62,7 +62,7 @@ module jelly_data_arbiter_ring_bus
 					.UNIT_ID_TO				(0),
 					.UNIT_ID_FROM			(i)
 				)
-			i_ring_bus_unit_l1_ar
+			i_ring_bus_unit_s
 				(
 					.reset					(reset),
 					.clk					(clk),
@@ -99,7 +99,7 @@ module jelly_data_arbiter_ring_bus
 					.UNIT_ID_TO				(i),
 					.UNIT_ID_FROM			(0)
 				)
-			i_ring_bus_unit_l1_r
+			i_ring_bus_unit_m
 				(
 					.reset					(reset),
 					.clk					(clk),

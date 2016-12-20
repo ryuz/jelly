@@ -43,11 +43,7 @@ module jelly_stream_arbiter_crossbar
 			output	wire	[M_NUM-1:0]				m_last,
 			output	wire	[M_NUM*DATA_WIDTH-1:0]	m_data,
 			output	wire	[M_NUM-1:0]				m_valid,
-			input	wire	[M_NUM-1:0]				m_ready,
-			
-			input	wire	[M_NUM*S_ID_BITS-1:0]	filter_id,
-			input	wire	[M_NUM-1:0]				filter_valid,
-			output	wire	[M_NUM-1:0]				filter_ready
+			input	wire	[M_NUM-1:0]				m_ready
 		);
 	
 	genvar		i, j;
@@ -105,42 +101,6 @@ module jelly_stream_arbiter_crossbar
 			assign array_s_ready[j*M_NUM+i]                  = array_m_ready[j];
 		end
 		
-		
-		wire	[S_NUM-1:0]					filter_m_last;
-		wire	[S_NUM*DATA_WIDTH-1:0]		filter_m_data;
-		wire	[S_NUM-1:0]					filter_m_valid;
-		wire	[S_NUM-1:0]					filter_m_ready;
-		
-		jelly_stream_id_filter
-				#(
-					.NUM				(S_NUM),
-					.ID_WIDTH			(S_ID_WIDTH),
-					.DATA_WIDTH			(DATA_WIDTH),
-					.BYPASS				(!USE_ID_FILTER),
-					.FIFO_PTR_WIDTH		(FILTER_FIFO_PTR_WIDTH),
-					.FIFO_RAM_TYPE		(FILTER_FIFO_RAM_TYPE)
-				)
-			i_stream_id_filter
-				(
-					.reset				(reset),
-					.clk				(clk),
-					.cke				(cke),
-					
-					.s_filter_id		(filter_id   [i*S_ID_BITS +: S_ID_BITS]),
-					.s_filter_valid		(filter_valid[i]),
-					.s_filter_ready		(filter_ready[i]),
-					
-					.s_last				(array_m_last),
-					.s_data				(array_m_data),
-					.s_valid			(array_m_valid),
-					.s_ready			(array_m_ready),
-					
-					.m_last				(filter_m_last),
-					.m_data				(filter_m_data),
-					.m_valid			(filter_m_valid),
-					.m_ready			(filter_m_ready)
-				);
-		
 		jelly_stream_joint
 				#(
 					.NUM				(S_NUM),
@@ -155,10 +115,10 @@ module jelly_stream_arbiter_crossbar
 					.clk				(clk),
 					.cke				(cke),
 					
-					.s_last				(filter_m_last),
-					.s_data				(filter_m_data),
-					.s_valid			(filter_m_valid),
-					.s_ready			(filter_m_ready),
+					.s_last				(array_m_last),
+					.s_data				(array_m_data),
+					.s_valid			(array_m_valid),
+					.s_ready			(array_m_ready),
 					
 					.m_id				(m_id_from[i*S_ID_BITS  +: S_ID_BITS]),
 					.m_last				(m_last   [i]),

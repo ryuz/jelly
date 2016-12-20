@@ -227,7 +227,6 @@ module jelly_texture_cache_tag
 			st0_last      <= s_last;
 			st0_tag_we    <= (s_valid && (!USE_BORDER || (s_addrx < param_width && s_addry < param_height)));
 			st0_tag_addr  <= s_tag_addr;
-	//		st0_tag_addr  <= ((s_blk_addrx >> TAG_X_RSHIFT) << TAG_X_LSHIFT) + ((s_blk_addry >> TAG_Y_RSHIFT) << TAG_Y_LSHIFT);
 			st0_blk_addrx <= s_blk_addrx;
 			st0_blk_addry <= s_blk_addry;
 			st0_pix_addrx <= s_pix_addrx;

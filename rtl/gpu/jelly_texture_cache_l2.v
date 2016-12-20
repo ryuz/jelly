@@ -239,7 +239,6 @@ module jelly_texture_cache_l2
 		// packet
 		assign s_arpacket[i*S_AR_PACKET_WIDTH +: S_AR_PACKET_WIDTH] =
 						{
-				//			s_aruser [i*S_USER_WIDTH   +: S_USER_WIDTH],
 							s_araddrx[i*S_ADDR_X_WIDTH +: S_ADDR_X_WIDTH],
 							s_araddry[i*S_ADDR_Y_WIDTH +: S_ADDR_Y_WIDTH]
 						};
