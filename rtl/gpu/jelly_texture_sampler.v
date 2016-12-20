@@ -64,9 +64,7 @@ module jelly_texture_sampler
 			parameter	L1_LOG_FILE                   = "l1_log.txt",
 			parameter	L1_LOG_ID                     = 0,
 			
-			parameter	L2_CACHE_X_SIZE               = 1,
-			parameter	L2_CACHE_Y_SIZE               = 1,
-			parameter	L2_CACHE_NUM                  = (1 << (L2_CACHE_X_SIZE + L2_CACHE_Y_SIZE)),
+			parameter	L2_PARALLEL_SIZE              = 2,
 			parameter	L2_USE_LOOK_AHEAD             = 0,
 			parameter	L2_TAG_ADDR_WIDTH             = 6,
 			parameter	L2_BLK_X_SIZE                 = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
@@ -248,7 +246,7 @@ module jelly_texture_sampler
 				.USE_BORDER				(USE_BORDER),
 				.BORDER_DATA			(BORDER_DATA),
 				
-				.ADDR_WIDTH				(ADDR_WIDTH),				
+				.ADDR_WIDTH				(ADDR_WIDTH),
 				.ADDR_X_WIDTH			(ADDR_X_WIDTH),
 				.ADDR_Y_WIDTH			(ADDR_Y_WIDTH),
 				
@@ -270,9 +268,7 @@ module jelly_texture_sampler
 				.L1_LOG_FILE			(L1_LOG_FILE),
 				.L1_LOG_ID				(L1_LOG_ID),
 				
-				.L2_CACHE_X_SIZE		(L2_CACHE_X_SIZE),
-				.L2_CACHE_Y_SIZE		(L2_CACHE_Y_SIZE),
-				.L2_CACHE_NUM			(L2_CACHE_NUM),
+				.L2_PARALLEL_SIZE		(L2_PARALLEL_SIZE),
 				.L2_USE_LOOK_AHEAD		(L2_USE_LOOK_AHEAD),
 				.L2_TAG_ADDR_WIDTH		(L2_TAG_ADDR_WIDTH),
 				.L2_BLK_X_SIZE			(L2_BLK_X_SIZE),

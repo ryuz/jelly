@@ -22,12 +22,7 @@ module jelly_texture_cache_tag
 			parameter	S_DATA_WIDTH     = 24,
 			
 			parameter	PARALLEL_SIZE    = 0,
-			parameter	TAG_ADDR_WIDTH   = 6,
-			parameter	TAG_X_RSHIFT     = 0,
-			parameter	TAG_X_LSHIFT     = 0,
-			parameter	TAG_Y_RSHIFT     = TAG_X_RSHIFT,
-			parameter	TAG_Y_LSHIFT     = TAG_ADDR_WIDTH / 2,
-			
+			parameter	TAG_ADDR_WIDTH   = 6,			
 			parameter	BLK_X_SIZE       = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	BLK_Y_SIZE       = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			
@@ -54,13 +49,15 @@ module jelly_texture_cache_tag
 			input	wire	[S_ADDR_X_WIDTH-1:0]	param_width,
 			input	wire	[S_ADDR_Y_WIDTH-1:0]	param_height,
 			
-			input	wire	[USER_WIDTH-1:0]		s_user,
+			input	wire	[USER_BITS-1:0]			s_user,
+			input	wire							s_last,
 			input	wire	[S_ADDR_X_WIDTH-1:0]	s_addrx,
 			input	wire	[S_ADDR_Y_WIDTH-1:0]	s_addry,
 			input	wire							s_valid,
 			output	wire							s_ready,
 			
-			output	wire	[USER_WIDTH-1:0]		m_user,
+			output	wire	[USER_BITS-1:0]			m_user,
+			output	wire							m_last,
 			output	wire	[TAG_ADDR_WIDTH-1:0]	m_tag_addr,
 			output	wire	[PIX_ADDR_X_WIDTH-1:0]	m_pix_addrx,
 			output	wire	[PIX_ADDR_Y_WIDTH-1:0]	m_pix_addry,
@@ -72,14 +69,7 @@ module jelly_texture_cache_tag
 			input	wire							m_ready
 		);
 	
-	
-	// debug
-	integer	iTAG_ADDR_WIDTH   = TAG_ADDR_WIDTH;
-	integer	iTAG_X_RSHIFT     = TAG_X_RSHIFT;
-	integer	iTAG_X_LSHIFT     = TAG_X_LSHIFT;
-	integer	iTAG_Y_RSHIFT     = TAG_Y_RSHIFT;
-	integer	iTAG_Y_LSHIFT     = TAG_Y_LSHIFT;
-	
+	localparam	USER_BITS = USER_WIDTH > 0 ? USER_WIDTH : 1;
 	
 	
 	// ---------------------------------
@@ -91,7 +81,8 @@ module jelly_texture_cache_tag
 	reg								reg_clear_busy;
 	reg								reg_read_busy;
 	
-	reg		[USER_WIDTH-1:0]		st0_user;
+	reg		[USER_BITS-1:0]			st0_user;
+	reg								st0_last;
 	reg								st0_tag_we;
 	reg		[TAG_ADDR_WIDTH-1:0]	st0_tag_addr;
 	reg		[PIX_ADDR_X_WIDTH-1:0]	st0_pix_addrx;
@@ -101,7 +92,8 @@ module jelly_texture_cache_tag
 	reg								st0_range_out;
 	reg								st0_valid;
 	
-	reg		[USER_WIDTH-1:0]		st1_user;
+	reg		[USER_BITS-1:0]			st1_user;
+	reg								st1_last;
 	reg		[TAG_ADDR_WIDTH-1:0]	st1_tag_addr;
 	reg		[PIX_ADDR_X_WIDTH-1:0]	st1_pix_addrx;
 	reg		[PIX_ADDR_Y_WIDTH-1:0]	st1_pix_addry;
@@ -114,7 +106,8 @@ module jelly_texture_cache_tag
 	wire	[BLK_ADDR_X_WIDTH-1:0]	read_blk_addrx;
 	wire	[BLK_ADDR_Y_WIDTH-1:0]	read_blk_addry;
 	
-	reg		[USER_WIDTH-1:0]		st2_user;
+	reg		[USER_BITS-1:0]			st2_user;
+	reg								st2_last;
 	reg		[TAG_ADDR_WIDTH-1:0]	st2_tag_addr;
 	reg		[PIX_ADDR_X_WIDTH-1:0]	st2_pix_addrx;
 	reg		[PIX_ADDR_Y_WIDTH-1:0]	st2_pix_addry;
@@ -181,7 +174,8 @@ module jelly_texture_cache_tag
 			reg_clear_busy <= 1'b0;
 			reg_read_busy  <= 1'b0;
 			
-			st0_user      <= {USER_WIDTH{1'bx}};
+			st0_user      <= {USER_BITS{1'bx}};
+			st0_last      <= 1'bx;
 			st0_tag_we    <= 1'b0;
 			st0_tag_addr  <= {TAG_ADDR_WIDTH{1'bx}};
 			st0_pix_addrx <= {PIX_ADDR_X_WIDTH{1'bx}};
@@ -191,7 +185,8 @@ module jelly_texture_cache_tag
 			st0_range_out <= 1'bx;
 			st0_valid     <= 1'b0;
 			
-			st1_user      <= {USER_WIDTH{1'bx}};
+			st1_user      <= {USER_BITS{1'bx}};
+			st1_last      <= 1'bx;
 			st1_tag_addr  <= {TAG_ADDR_WIDTH{1'bx}};
 			st1_pix_addrx <= {PIX_ADDR_X_WIDTH{1'bx}};
 			st1_pix_addry <= {PIX_ADDR_Y_WIDTH{1'bx}};
@@ -200,7 +195,8 @@ module jelly_texture_cache_tag
 			st1_range_out <= 1'bx;
 			st1_valid     <= 1'b0;
 			
-			st2_user      <= {USER_WIDTH{1'bx}};
+			st2_user      <= {USER_BITS{1'bx}};
+			st2_last      <= 1'bx;
 			st2_tag_addr  <= {TAG_ADDR_WIDTH{1'bx}};
 			st2_pix_addrx <= {PIX_ADDR_X_WIDTH{1'bx}};
 			st2_pix_addry <= {PIX_ADDR_Y_WIDTH{1'bx}};
@@ -228,8 +224,9 @@ module jelly_texture_cache_tag
 				st0_tag_we     <= 1'b1;
 			end
 			st0_user      <= s_user;
+			st0_last      <= s_last;
 			st0_tag_we    <= (s_valid && (!USE_BORDER || (s_addrx < param_width && s_addry < param_height)));
-			st0_tag_addr  <= s_tag_addr;	//
+			st0_tag_addr  <= s_tag_addr;
 	//		st0_tag_addr  <= ((s_blk_addrx >> TAG_X_RSHIFT) << TAG_X_LSHIFT) + ((s_blk_addry >> TAG_Y_RSHIFT) << TAG_Y_LSHIFT);
 			st0_blk_addrx <= s_blk_addrx;
 			st0_blk_addry <= s_blk_addry;
@@ -240,6 +237,7 @@ module jelly_texture_cache_tag
 			
 			// stage1
 			st1_user      <= st0_user;
+			st1_last      <= st0_last;
 			st1_tag_addr  <= st0_tag_addr;
 			st1_blk_addrx <= st0_blk_addrx;
 			st1_blk_addry <= st0_blk_addry;
@@ -250,6 +248,7 @@ module jelly_texture_cache_tag
 			
 			// stage 2
 			st2_user      <= st1_user;
+			st2_last      <= st1_last;
 			st2_tag_addr  <= st1_tag_addr;
 			st2_blk_addrx <= st1_blk_addrx;
 			st2_blk_addry <= st1_blk_addry;
@@ -267,7 +266,7 @@ module jelly_texture_cache_tag
 	wire				st2_ready;
 	jelly_pipeline_insert_ff
 			#(
-				.DATA_WIDTH			(USER_WIDTH+TAG_ADDR_WIDTH+PIX_ADDR_X_WIDTH+PIX_ADDR_Y_WIDTH+BLK_ADDR_X_WIDTH+BLK_ADDR_Y_WIDTH+1+1),
+				.DATA_WIDTH			(USER_BITS+1+TAG_ADDR_WIDTH+PIX_ADDR_X_WIDTH+PIX_ADDR_Y_WIDTH+BLK_ADDR_X_WIDTH+BLK_ADDR_Y_WIDTH+1+1),
 				.SLAVE_REGS			(0),
 				.MASTER_REGS		(0)
 			)
@@ -279,6 +278,7 @@ module jelly_texture_cache_tag
 				
 				.s_data				({
 										st2_user,
+										st2_last,
 										st2_tag_addr,
 										st2_pix_addrx,
 										st2_pix_addry,
@@ -292,6 +292,7 @@ module jelly_texture_cache_tag
 				
 				.m_data				({
 										m_user,
+										m_last,
 										m_tag_addr,
 										m_pix_addrx,
 										m_pix_addry,

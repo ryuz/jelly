@@ -18,13 +18,10 @@ module jelly_texture_cache_unit
 			parameter	COMPONENT_NUM        = 1,
 			parameter	COMPONENT_DATA_WIDTH = 24,
 			
+			parameter	PARALLEL_SIZE        = 0,
 			parameter	BLK_X_SIZE           = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	BLK_Y_SIZE           = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	TAG_ADDR_WIDTH       = 6,
-			parameter	TAG_X_RSHIFT         = 0,
-			parameter	TAG_X_LSHIFT         = 0,
-			parameter	TAG_Y_RSHIFT         = TAG_X_RSHIFT,
-			parameter	TAG_Y_LSHIFT         = TAG_ADDR_WIDTH / 2,
 			parameter	TAG_RAM_TYPE         = "distributed",
 			parameter	MEM_RAM_TYPE         = "block",
 			
@@ -36,6 +33,8 @@ module jelly_texture_cache_unit
 			parameter	S_DATA_WIDTH         = COMPONENT_NUM * COMPONENT_DATA_WIDTH,
 			parameter	S_ADDR_X_WIDTH       = 12,
 			parameter	S_ADDR_Y_WIDTH       = 12,
+			parameter	S_BLK_X_NUM          = 1,
+			parameter	S_BLK_Y_NUM          = 1,
 			
 			parameter	M_DATA_WIDE_SIZE     = 1,
 			parameter	M_DATA_WIDTH         = (S_DATA_WIDTH << M_DATA_WIDE_SIZE),
@@ -84,6 +83,7 @@ module jelly_texture_cache_unit
 			input	wire							s_arvalid,
 			output	wire							s_arready,
 			output	wire	[S_USER_WIDTH-1:0]		s_ruser,
+			output	wire							s_rlast,
 			output	wire	[S_DATA_WIDTH-1:0]		s_rdata,
 			output	wire							s_rvalid,
 			input	wire							s_rready,
@@ -108,13 +108,10 @@ module jelly_texture_cache_unit
 				.COMPONENT_NUM			(COMPONENT_NUM),
 				.COMPONENT_DATA_WIDTH	(COMPONENT_DATA_WIDTH),
 				
+				.PARALLEL_SIZE			(PARALLEL_SIZE),
 				.BLK_X_SIZE				(BLK_X_SIZE),
 				.BLK_Y_SIZE				(BLK_Y_SIZE),
 				.TAG_ADDR_WIDTH			(TAG_ADDR_WIDTH),
-				.TAG_X_RSHIFT			(TAG_X_RSHIFT),
-				.TAG_X_LSHIFT			(TAG_X_LSHIFT),
-				.TAG_Y_RSHIFT			(TAG_Y_RSHIFT),
-				.TAG_Y_LSHIFT			(TAG_Y_LSHIFT),
 				.TAG_RAM_TYPE			(TAG_RAM_TYPE),
 				.MEM_RAM_TYPE			(MEM_RAM_TYPE),
 				
@@ -125,6 +122,8 @@ module jelly_texture_cache_unit
 				.S_DATA_WIDTH			(S_DATA_WIDTH),
 				.S_ADDR_X_WIDTH			(S_ADDR_X_WIDTH),
 				.S_ADDR_Y_WIDTH			(S_ADDR_Y_WIDTH),
+				.S_BLK_X_NUM			(S_BLK_X_NUM),
+				.S_BLK_Y_NUM			(S_BLK_Y_NUM),
 				
 				.M_DATA_WIDE_SIZE		(M_DATA_WIDE_SIZE),
 				.M_DATA_WIDTH			(M_DATA_WIDTH),
@@ -174,6 +173,7 @@ module jelly_texture_cache_unit
 				.s_arvalid				(s_arvalid),
 				.s_arready				(s_arready),
 				.s_ruser				(s_ruser),
+				.s_rlast				(s_rlast),
 				.s_rdata				(s_rdata),
 				.s_rvalid				(s_rvalid),
 				.s_rready				(s_rready),
@@ -198,13 +198,10 @@ module jelly_texture_cache_unit
 				.COMPONENT_NUM			(COMPONENT_NUM),
 				.COMPONENT_DATA_WIDTH	(COMPONENT_DATA_WIDTH),
 				
+				.PARALLEL_SIZE			(PARALLEL_SIZE),
 				.BLK_X_SIZE				(BLK_X_SIZE),
 				.BLK_Y_SIZE				(BLK_Y_SIZE),
 				.TAG_ADDR_WIDTH			(TAG_ADDR_WIDTH),
-				.TAG_X_RSHIFT			(TAG_X_RSHIFT),
-				.TAG_X_LSHIFT			(TAG_X_LSHIFT),
-				.TAG_Y_RSHIFT			(TAG_Y_RSHIFT),
-				.TAG_Y_LSHIFT			(TAG_Y_LSHIFT),
 				.TAG_RAM_TYPE			(TAG_RAM_TYPE),
 				.MEM_RAM_TYPE			(MEM_RAM_TYPE),
 				
@@ -215,6 +212,8 @@ module jelly_texture_cache_unit
 				.S_DATA_WIDTH			(S_DATA_WIDTH),
 				.S_ADDR_X_WIDTH			(S_ADDR_X_WIDTH),
 				.S_ADDR_Y_WIDTH			(S_ADDR_Y_WIDTH),
+				.S_BLK_X_NUM			(S_BLK_X_NUM),
+				.S_BLK_Y_NUM			(S_BLK_Y_NUM),
 				
 				.M_DATA_WIDE_SIZE		(M_DATA_WIDE_SIZE),
 				.M_DATA_WIDTH			(M_DATA_WIDTH),
@@ -257,6 +256,7 @@ module jelly_texture_cache_unit
 				.s_arvalid				(s_arvalid),
 				.s_arready				(s_arready),
 				.s_ruser				(s_ruser),
+				.s_rlast				(s_rlast),
 				.s_rdata				(s_rdata),
 				.s_rvalid				(s_rvalid),
 				.s_rready				(s_rready),

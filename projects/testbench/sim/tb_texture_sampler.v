@@ -39,7 +39,6 @@ module tb_texture_sampler();
 	parameter	SAMPLER1D_NUM                 = 0;
 	
 	parameter	SAMPLER2D_NUM                 = 8;
-//	parameter	SAMPLER2D_NUM                 = 32*2;
 	parameter	SAMPLER2D_USER_WIDTH          = 0;
 	parameter	SAMPLER2D_X_INT_WIDTH         = ADDR_X_WIDTH;
 	parameter	SAMPLER2D_X_FRAC_WIDTH        = 4;
@@ -67,10 +66,9 @@ module tb_texture_sampler();
 	parameter	L1_MEM_RAM_TYPE               = "block";
 	parameter	L1_DATA_WIDE_SIZE             = 2;
 	
-	parameter	L2_CACHE_X_SIZE               = 1;
-	parameter	L2_CACHE_Y_SIZE               = 1;
-	parameter	L2_CACHE_NUM                  = (1 << (L2_CACHE_X_SIZE + L2_CACHE_Y_SIZE));
-	parameter	L2_TAG_ADDR_WIDTH             = 4;
+	parameter	L2_PARALLEL_SIZE              = 2;
+	parameter	L2_CACHE_NUM                  = (1 << L2_PARALLEL_SIZE);
+	parameter	L2_TAG_ADDR_WIDTH             = 6;
 	parameter	L2_BLK_X_SIZE                 = 3;	// 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
 	parameter	L2_BLK_Y_SIZE                 = 3;	// 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
 	parameter	L2_TAG_RAM_TYPE               = "distributed";
@@ -303,10 +301,6 @@ module tb_texture_sampler();
 				.L1_USE_LOOK_AHEAD				(1),
 				.L1_QUE_FIFO_PTR_WIDTH			(6),
 				.L1_CACHE_NUM					(L1_CACHE_NUM					),
-				.L2_CACHE_X_SIZE				(L2_CACHE_X_SIZE				),
-				.L2_CACHE_Y_SIZE				(L2_CACHE_Y_SIZE				),
-				.L2_CACHE_NUM					(L2_CACHE_NUM					),
-				
 				.L1_TAG_ADDR_WIDTH				(L1_TAG_ADDR_WIDTH				),
 				.L1_BLK_X_SIZE					(L1_BLK_X_SIZE					),
 				.L1_BLK_Y_SIZE					(L1_BLK_Y_SIZE					),
@@ -314,6 +308,7 @@ module tb_texture_sampler();
 				.L1_MEM_RAM_TYPE				(L1_MEM_RAM_TYPE				),
 				.L1_DATA_WIDE_SIZE				(L1_DATA_WIDE_SIZE				),
 				
+				.L2_PARALLEL_SIZE				(L2_PARALLEL_SIZE),
 				.L2_USE_LOOK_AHEAD				(0),
 				.L2_TAG_ADDR_WIDTH				(L2_TAG_ADDR_WIDTH				),
 				.L2_BLK_X_SIZE					(L2_BLK_X_SIZE					),

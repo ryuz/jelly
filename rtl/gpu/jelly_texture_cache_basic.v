@@ -18,13 +18,10 @@ module jelly_texture_cache_basic
 			parameter	COMPONENT_NUM        = 1,
 			parameter	COMPONENT_DATA_WIDTH = 24,
 			
+			parameter	PARALLEL_SIZE        = 0,
 			parameter	BLK_X_SIZE           = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	BLK_Y_SIZE           = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	TAG_ADDR_WIDTH       = 6,
-			parameter	TAG_X_RSHIFT         = 0,
-			parameter	TAG_X_LSHIFT         = 0,
-			parameter	TAG_Y_RSHIFT         = TAG_X_RSHIFT,
-			parameter	TAG_Y_LSHIFT         = TAG_ADDR_WIDTH / 2,
 			parameter	TAG_RAM_TYPE         = "distributed",
 			parameter	MEM_RAM_TYPE         = "block",
 			parameter	USE_S_RREADY         = 1,	// 0: s_rready is always 1'b1.   1: handshake mode.
@@ -34,6 +31,8 @@ module jelly_texture_cache_basic
 			parameter	S_DATA_WIDTH         = COMPONENT_NUM * COMPONENT_DATA_WIDTH,
 			parameter	S_ADDR_X_WIDTH       = 12,
 			parameter	S_ADDR_Y_WIDTH       = 12,
+			parameter	S_BLK_X_NUM          = 1,
+			parameter	S_BLK_Y_NUM          = 1,
 			
 			parameter	M_DATA_WIDE_SIZE     = 1,
 			parameter	M_DATA_WIDTH         = (S_DATA_WIDTH << M_DATA_WIDE_SIZE),
@@ -74,7 +73,9 @@ module jelly_texture_cache_basic
 			input	wire	[S_ADDR_Y_WIDTH-1:0]	s_araddry,
 			input	wire							s_arvalid,
 			output	wire							s_arready,
+			
 			output	wire	[S_USER_WIDTH-1:0]		s_ruser,
+			output	wire							s_rlast,
 			output	wire	[S_DATA_WIDTH-1:0]		s_rdata,
 			output	wire							s_rvalid,
 			input	wire							s_rready,
@@ -84,6 +85,7 @@ module jelly_texture_cache_basic
 			output	wire	[M_ADDR_Y_WIDTH-1:0]	m_araddry,
 			output	wire							m_arvalid,
 			input	wire							m_arready,
+			
 			input	wire							m_rlast,
 			input	wire	[M_STRB_WIDTH-1:0]		m_rstrb,
 			input	wire	[M_DATA_WIDTH-1:0]		m_rdata,
@@ -103,9 +105,10 @@ module jelly_texture_cache_basic
 	
 	
 	// ---------------------------------
-	//  Queueing
+	//  Queueing & block addr
 	// ---------------------------------
 	
+	/*
 	wire	[S_USER_WIDTH-1:0]		que_aruser;
 	wire	[S_ADDR_X_WIDTH-1:0]	que_araddrx;
 	wire	[S_ADDR_Y_WIDTH-1:0]	que_araddry;
@@ -134,7 +137,46 @@ module jelly_texture_cache_basic
 				.m_ready			(que_arready),
 				.m_data_count		()
 			);
+	*/
 	
+	wire	[S_USER_WIDTH-1:0]		blkaddr_aruser;
+	wire							blkaddr_arlast;
+	wire	[S_ADDR_X_WIDTH-1:0]	blkaddr_araddrx;
+	wire	[S_ADDR_Y_WIDTH-1:0]	blkaddr_araddry;
+	wire							blkaddr_arvalid;
+	wire							blkaddr_arready;
+	
+	jelly_texture_blk_addr
+			#(
+				.USER_WIDTH				(S_USER_WIDTH),
+				
+				.ADDR_X_WIDTH			(S_ADDR_X_WIDTH),
+				.ADDR_Y_WIDTH			(S_ADDR_Y_WIDTH),
+				
+				.BLK_X_NUM				(S_BLK_X_NUM),
+				.BLK_Y_NUM				(S_BLK_Y_NUM),
+				
+				.FIFO_PTR_WIDTH			(QUE_FIFO_PTR_WIDTH),
+				.FIFO_RAM_TYPE			(QUE_FIFO_RAM_TYPE)
+			)
+		i_texture_blk_addr
+			(
+				.reset					(reset),
+				.clk					(clk),
+				
+				.s_user					(s_aruser),
+				.s_addrx				(s_araddrx),
+				.s_addry				(s_araddry),
+				.s_valid				(s_arvalid),
+				.s_ready				(s_arready),
+				
+				.m_user					(blkaddr_aruser),
+				.m_last					(blkaddr_arlast),
+				.m_addrx				(blkaddr_araddrx),
+				.m_addry				(blkaddr_araddry),
+				.m_valid				(blkaddr_arvalid),
+				.m_ready				(blkaddr_arready)
+			);
 	
 	
 	// ---------------------------------
@@ -142,6 +184,7 @@ module jelly_texture_cache_basic
 	// ---------------------------------
 	
 	wire		[S_USER_WIDTH-1:0]		tagram_user;
+	wire								tagram_last;
 	wire		[TAG_ADDR_WIDTH-1:0]	tagram_tag_addr;
 	wire		[PIX_ADDR_X_WIDTH-1:0]	tagram_pix_addrx;
 	wire		[PIX_ADDR_Y_WIDTH-1:0]	tagram_pix_addry;
@@ -160,11 +203,8 @@ module jelly_texture_cache_basic
 				.S_ADDR_Y_WIDTH			(S_ADDR_Y_WIDTH),
 				.S_DATA_WIDTH			(S_DATA_WIDTH),
 				
+				.PARALLEL_SIZE			(PARALLEL_SIZE),
 				.TAG_ADDR_WIDTH			(TAG_ADDR_WIDTH),
-				.TAG_X_RSHIFT			(TAG_X_RSHIFT),
-				.TAG_X_LSHIFT			(TAG_X_LSHIFT),
-				.TAG_Y_RSHIFT			(TAG_Y_RSHIFT),
-				.TAG_Y_LSHIFT			(TAG_Y_LSHIFT),
 				.BLK_X_SIZE				(BLK_X_SIZE),
 				.BLK_Y_SIZE				(BLK_Y_SIZE),
 				.RAM_TYPE				(TAG_RAM_TYPE),
@@ -185,13 +225,15 @@ module jelly_texture_cache_basic
 				.param_width			(param_width),
 				.param_height			(param_height),
 				
-				.s_user					(que_aruser),
-				.s_addrx				(que_araddrx),
-				.s_addry				(que_araddry),
-				.s_valid				(que_arvalid),
-				.s_ready				(que_arready),
+				.s_user					(blkaddr_aruser),
+				.s_last					(blkaddr_arlast),
+				.s_addrx				(blkaddr_araddrx),
+				.s_addry				(blkaddr_araddry),
+				.s_valid				(blkaddr_arvalid),
+				.s_ready				(blkaddr_arready),
 				
 				.m_user					(tagram_user),
+				.m_last					(tagram_last),
 				.m_tag_addr				(tagram_tag_addr),
 				.m_pix_addrx			(tagram_pix_addrx),
 				.m_pix_addry			(tagram_pix_addry),
@@ -217,6 +259,7 @@ module jelly_texture_cache_basic
 	
 	reg									reg_tagram_ready;
 	
+	reg									reg_last;
 	reg		[S_USER_WIDTH-1:0]			reg_user;
 	reg		[TAG_ADDR_WIDTH-1:0]		reg_tag_addr;
 	reg		[PIX_ADDR_WIDTH-1:0]		reg_pix_addr;
@@ -238,6 +281,7 @@ module jelly_texture_cache_basic
 		if ( reset ) begin
 			reg_tagram_ready <= 1'b1;
 			
+			reg_last         <= 1'bx;
 			reg_user         <= {S_USER_WIDTH{1'bx}};
 			reg_tag_addr     <= {TAG_ADDR_WIDTH{1'bx}};
 			reg_pix_addr     <= {PIX_ADDR_WIDTH{1'bx}};
@@ -313,6 +357,7 @@ module jelly_texture_cache_basic
 			
 			if ( tagram_ready ) begin
 				reg_user      <= tagram_user;
+				reg_last      <= tagram_last;
 				reg_pix_addrx <= tagram_pix_addrx;
 				reg_pix_addry <= tagram_pix_addry;
 				reg_blk_addrx <= tagram_blk_addrx;
@@ -364,6 +409,7 @@ module jelly_texture_cache_basic
 				
 				.busy					(mem_busy),
 				
+				.s_last					(reg_last),
 				.s_user					(reg_user),
 				.s_we					(reg_we),
 				.s_wdata				(reg_wdata),
@@ -374,6 +420,7 @@ module jelly_texture_cache_basic
 				.s_ready				(mem_ready),
 				
 				.m_user					(s_ruser),
+				.m_last					(s_rlast),
 				.m_data					(s_rdata),
 				.m_valid				(s_rvalid),
 				.m_ready				(USE_S_RREADY ? s_rready : 1'b1)

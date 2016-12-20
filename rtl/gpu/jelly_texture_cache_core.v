@@ -46,9 +46,7 @@ module jelly_texture_cache_core
 			parameter	L1_LOG_FILE           = "l1_log.txt",
 			parameter	L1_LOG_ID             = 0,
 			
-			parameter	L2_CACHE_X_SIZE       = 1,
-			parameter	L2_CACHE_Y_SIZE       = 1,
-			parameter	L2_CACHE_NUM          = (1 << (L2_CACHE_X_SIZE + L2_CACHE_Y_SIZE)),
+			parameter	L2_PARALLEL_SIZE      = 2,
 			parameter	L2_USE_LOOK_AHEAD     = 0,
 			parameter	L2_TAG_ADDR_WIDTH     = 6,
 			parameter	L2_BLK_X_SIZE         = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
@@ -146,6 +144,8 @@ module jelly_texture_cache_core
 	//  localparam
 	// -----------------------------
 	
+	localparam	L2_CACHE_NUM            = (1 << L2_PARALLEL_SIZE);
+
 	localparam	COMPONENT_DATA_SIZE     = COMPONENT_DATA_WIDTH <=    8 ? 0 :
 	                                      COMPONENT_DATA_WIDTH <=   16 ? 1 :
 	                                      COMPONENT_DATA_WIDTH <=   32 ? 2 :
@@ -195,23 +195,23 @@ module jelly_texture_cache_core
 	//  L1 Cache
 	// -----------------------------
 	
-	wire	[L2_CACHE_NUM*L1_ID_WIDTH-1:0]			m_arid;
-	wire	[L2_CACHE_NUM-1:0]						m_arlast;
-	wire	[L2_CACHE_NUM*L2_ADDR_X_WIDTH-1:0]		m_araddrx;
-	wire	[L2_CACHE_NUM*L2_ADDR_Y_WIDTH-1:0]		m_araddry;
-	wire	[L2_CACHE_NUM-1:0]						m_arvalid;
-	wire	[L2_CACHE_NUM-1:0]						m_arready;
+	wire	[L1_CACHE_NUM-1:0]						m_arlast;
+	wire	[L1_CACHE_NUM*L2_ADDR_X_WIDTH-1:0]		m_araddrx;
+	wire	[L1_CACHE_NUM*L2_ADDR_Y_WIDTH-1:0]		m_araddry;
+	wire	[L1_CACHE_NUM-1:0]						m_arvalid;
+	wire	[L1_CACHE_NUM-1:0]						m_arready;
 	
-	wire	[L2_CACHE_NUM*L1_ID_WIDTH-1:0]			m_rid;
-	wire	[L2_CACHE_NUM-1:0]						m_rlast;
-	wire	[L2_CACHE_NUM*L2_DATA_WIDTH-1:0]		m_rdata;
-	wire	[L2_CACHE_NUM-1:0]						m_rvalid;
-	wire	[L2_CACHE_NUM-1:0]						m_rready;
+	wire	[L1_CACHE_NUM-1:0]						m_rlast;
+	wire	[L1_CACHE_NUM*L2_DATA_WIDTH-1:0]		m_rdata;
+	wire	[L1_CACHE_NUM-1:0]						m_rvalid;
+	wire	[L1_CACHE_NUM-1:0]						m_rready;
 	
 	wire											l1_clear_busy;
 	
 	jelly_texture_cache_l1
 			#(
+				.CACHE_NUM				(L1_CACHE_NUM),
+				
 				.COMPONENT_NUM			(L1_COMPONENT_NUM),
 				.COMPONENT_DATA_WIDTH	(L1_COMPONENT_DATA_WIDTH),
 				.TAG_ADDR_WIDTH			(L1_TAG_ADDR_WIDTH),
@@ -226,17 +226,11 @@ module jelly_texture_cache_core
 				.USE_BORDER				(USE_BORDER),
 				.BORDER_DATA			(BORDER_DATA),
 				
-				.S_NUM					(L1_CACHE_NUM),
 				.S_USER_WIDTH			(USER_WIDTH),
 				.S_ADDR_X_WIDTH			(L1_ADDR_X_WIDTH),
 				.S_ADDR_Y_WIDTH			(L1_ADDR_Y_WIDTH),
 				
 				.M_DATA_WIDE_SIZE		(L1_DATA_WIDE_SIZE),
-				.M_NUM					(L2_CACHE_NUM),
-				.M_ID_X_RSHIFT			(L2_BLK_X_SIZE - L1_DATA_WIDE_SIZE),
-				.M_ID_X_LSHIFT			(0),
-				.M_ID_Y_RSHIFT			(L2_BLK_X_SIZE),
-				.M_ID_Y_LSHIFT			(L2_ID_WIDTH/2),
 				
 				.QUE_FIFO_PTR_WIDTH		(L1_QUE_FIFO_PTR_WIDTH),
 				.QUE_FIFO_RAM_TYPE		(L1_QUE_FIFO_RAM_TYPE),
@@ -268,6 +262,7 @@ module jelly_texture_cache_core
 				.status_hit				(status_l1_hit),
 				.status_miss			(status_l1_miss),
 				
+				
 				.s_aruser				(s_aruser),
 				.s_araddrx				(s_araddrx),
 				.s_araddry				(s_araddry),
@@ -279,14 +274,13 @@ module jelly_texture_cache_core
 				.s_rvalid				(s_rvalid),
 				.s_rready				(s_rready),
 				
-				.m_arid					(m_arid),
+				
 				.m_arlast				(m_arlast),
 				.m_araddrx				(m_araddrx),
 				.m_araddry				(m_araddry),
 				.m_arvalid				(m_arvalid),
 				.m_arready				(m_arready),
 				
-				.m_rid					(m_rid),
 				.m_rlast				(m_rlast),
 				.m_rdata				(m_rdata),
 				.m_rvalid				(m_rvalid),
@@ -298,21 +292,16 @@ module jelly_texture_cache_core
 	//  L2 Cache
 	// -----------------------------
 	
-	localparam	L2_USER_WIDTH    = 1 + L1_ID_WIDTH;
+	localparam	L2_USER_WIDTH    = L1_ID_WIDTH;
 	localparam	L1_DATA_WIDE_NUM = (1 << L1_DATA_WIDE_SIZE);
 	
-	wire	[L2_CACHE_NUM*L2_USER_WIDTH-1:0]	l2_aruser;
-	wire	[L2_CACHE_NUM*L2_USER_WIDTH-1:0]	l2_ruser;
-	wire	[L2_CACHE_NUM*L2_DATA_WIDTH-1:0]	l2_rdata;
+	wire	[L1_CACHE_NUM-1:0]					l2_rlast;
+	wire	[L1_CACHE_NUM*L2_DATA_WIDTH-1:0]	l2_rdata;
 	
 	genvar	i, j, k;
 	generate
-	for ( i = 0; i < L2_CACHE_NUM; i = i+1 ) begin : l2_user_loop
-		assign l2_aruser[i*L2_USER_WIDTH +: L1_ID_WIDTH] = m_arid[i*L1_ID_WIDTH +: L1_ID_WIDTH];
-		assign l2_aruser[i*L2_USER_WIDTH + L1_ID_WIDTH]  = m_arlast[i];
-		
-		assign m_rid[i*L1_ID_WIDTH +: L1_ID_WIDTH]       = l2_ruser[i*L2_USER_WIDTH +: L1_ID_WIDTH];
-		assign m_rlast[i]                                = l2_ruser[i*L2_USER_WIDTH + L1_ID_WIDTH];
+	for ( i = 0; i < L1_CACHE_NUM; i = i+1 ) begin : l2_user_loop
+		assign m_rlast[i]                                = l2_rlast[i];
 		
 		wire	[L2_DATA_WIDTH-1:0]		m_rdata_c;
 		wire	[L2_DATA_WIDTH-1:0]		l2_rdata_c;
@@ -336,20 +325,18 @@ module jelly_texture_cache_core
 			
 	jelly_texture_cache_l2
 			#(
-				.S_NUM					(L2_CACHE_NUM),
 				
 				.COMPONENT_NUM			(L2_COMPONENT_NUM),
 				.COMPONENT_DATA_WIDTH	(L2_COMPONENT_DATA_WIDTH),
 				
-				.S_USER_WIDTH			(1 + L1_ID_WIDTH),
+				.S_NUM					(L1_CACHE_NUM),
 				.S_ADDR_X_WIDTH			(L2_ADDR_X_WIDTH),
 				.S_ADDR_Y_WIDTH			(L2_ADDR_Y_WIDTH),
-				.TAG_ADDR_WIDTH			(L2_TAG_ADDR_WIDTH),
-				.TAG_X_RSHIFT			(L2_CACHE_X_SIZE),
-				.TAG_X_LSHIFT			(0),
-				.TAG_Y_RSHIFT			(L2_CACHE_Y_SIZE),
-				.TAG_Y_LSHIFT			(L2_TAG_ADDR_WIDTH/2),
+				.S_BLK_X_NUM			(1 << (L1_BLK_X_SIZE - L1_DATA_WIDE_SIZE)),
+				.S_BLK_Y_NUM			(1 << L1_BLK_Y_SIZE),
 				
+				.PARALLEL_SIZE			(L2_PARALLEL_SIZE),
+				.TAG_ADDR_WIDTH			(L2_TAG_ADDR_WIDTH),				
 				.BLK_X_SIZE				(L2_BLK_X_SIZE - L1_DATA_WIDE_SIZE),
 				.BLK_Y_SIZE				(L2_BLK_Y_SIZE),
 				
@@ -413,12 +400,11 @@ module jelly_texture_cache_core
 				.status_miss			(status_l2_miss),
 				
 				
-				.s_aruser				(l2_aruser),
 				.s_araddrx				(m_araddrx),
 				.s_araddry				(m_araddry),
 				.s_arvalid				(m_arvalid),
 				.s_arready				(m_arready),
-				.s_ruser				(l2_ruser),
+				.s_rlast				(l2_rlast),
 				.s_rdata				(l2_rdata),
 				.s_rvalid				(m_rvalid),
 				.s_rready				(m_rready),

@@ -20,12 +20,9 @@ module jelly_texture_blk_addr
 			parameter	ADDR_X_WIDTH   = 12,
 			parameter	ADDR_Y_WIDTH   = 12,
 			
-			parameter	BLK_X_WIDTH    = 1,
-			parameter	BLK_Y_WIDTH    = 1,
+			parameter	BLK_X_NUM      = 1,
+			parameter	BLK_Y_NUM      = 1,
 			
-			parameter	BLK_X_NUM      = (1 << BLK_X_WIDTH),
-			parameter	BLK_Y_NUM      = (1 << BLK_Y_WIDTH),
-
 			parameter	FIFO_PTR_WIDTH = 6,
 			parameter	FIFO_RAM_TYPE  = "distributed"
 		)
@@ -49,8 +46,40 @@ module jelly_texture_blk_addr
 	
 	localparam	X_WIDTH = BLK_X_WIDTH > 0 ? BLK_X_WIDTH : 1;
 	localparam	Y_WIDTH = BLK_Y_WIDTH > 0 ? BLK_Y_WIDTH : 1;
-
-
+	
+	localparam	BLK_X_WIDTH = BLK_X_NUM <=     2 ?  1 : 
+	                          BLK_X_NUM <=     4 ?  2 : 
+	                          BLK_X_NUM <=     8 ?  3 : 
+	                          BLK_X_NUM <=    16 ?  4 : 
+	                          BLK_X_NUM <=    32 ?  5 : 
+	                          BLK_X_NUM <=    64 ?  6 : 
+	                          BLK_X_NUM <=   128 ?  7 : 
+	                          BLK_X_NUM <=   256 ?  8 : 
+	                          BLK_X_NUM <=   512 ?  9 : 
+	                          BLK_X_NUM <=  1024 ? 10 : 
+	                          BLK_X_NUM <=  2048 ? 11 : 
+	                          BLK_X_NUM <=  4096 ? 12 : 
+	                          BLK_X_NUM <=  8192 ? 13 : 
+	                          BLK_X_NUM <= 16384 ? 14 : 
+	                          BLK_X_NUM <= 32768 ? 15 : 16;
+	
+	localparam	BLK_Y_WIDTH = BLK_Y_NUM <=     2 ?  1 : 
+	                          BLK_Y_NUM <=     4 ?  2 : 
+	                          BLK_Y_NUM <=     8 ?  3 : 
+	                          BLK_Y_NUM <=    16 ?  4 : 
+	                          BLK_Y_NUM <=    32 ?  5 : 
+	                          BLK_Y_NUM <=    64 ?  6 : 
+	                          BLK_Y_NUM <=   128 ?  7 : 
+	                          BLK_Y_NUM <=   256 ?  8 : 
+	                          BLK_Y_NUM <=   512 ?  9 : 
+	                          BLK_Y_NUM <=  1024 ? 10 : 
+	                          BLK_Y_NUM <=  2048 ? 11 : 
+	                          BLK_Y_NUM <=  4096 ? 12 : 
+	                          BLK_Y_NUM <=  8192 ? 13 : 
+	                          BLK_Y_NUM <= 16384 ? 14 : 
+	                          BLK_Y_NUM <= 32768 ? 15 : 16;
+	
+	
 	//  Queueing
 	wire	[USER_WIDTH-1:0]		que_user;
 	wire	[ADDR_X_WIDTH-1:0]		que_addrx;
@@ -83,54 +112,67 @@ module jelly_texture_blk_addr
 	
 	
 	// addressing
-	reg		[USER_WIDTH-1:0]	reg_user;
-	reg		[ADDR_X_WIDTH-1:0]	reg_addrx;
-	reg		[ADDR_Y_WIDTH-1:0]	reg_addry;
-	reg		[X_WIDTH-1:0]		reg_x;
-	reg		[Y_WIDTH-1:0]		reg_y;
-	reg							reg_valid;
-	always @(posedge clk) begin
-		if ( reset ) begin
-			reg_user  <= {USER_WIDTH{1'bx}};
-			reg_addrx <= {ADDR_X_WIDTH{1'bx}};
-			reg_addry <= {ADDR_Y_WIDTH{1'bx}};
-			reg_x     <= {X_WIDTH{1'bx}};
-			reg_y     <= {Y_WIDTH{1'bx}};
-			reg_valid <= 1'b0;
-		end
-		else begin
-			if ( m_valid && m_ready ) begin
-				reg_x <= reg_x + 1'b1;
-				if ( reg_x == (BLK_X_NUM-1) ) begin
-					reg_x <= {X_WIDTH{1'b0}};
-					reg_y <= reg_y + 1'b1;
-					if ( reg_y == (BLK_Y_NUM-1) ) begin
-						reg_user   <= {USER_WIDTH{1'bx}};
-						reg_x      <= {X_WIDTH{1'bx}};
-						reg_y      <= {Y_WIDTH{1'bx}};
-						reg_valid  <= 1'b0;
+	generate
+	if ( BLK_X_NUM > 1 || BLK_Y_NUM > 1 ) begin : blk_addr
+		reg		[USER_WIDTH-1:0]	reg_user;
+		reg		[ADDR_X_WIDTH-1:0]	reg_addrx;
+		reg		[ADDR_Y_WIDTH-1:0]	reg_addry;
+		reg		[X_WIDTH-1:0]		reg_x;
+		reg		[Y_WIDTH-1:0]		reg_y;
+		reg							reg_valid;
+		always @(posedge clk) begin
+			if ( reset ) begin
+				reg_user  <= {USER_WIDTH{1'bx}};
+				reg_addrx <= {ADDR_X_WIDTH{1'bx}};
+				reg_addry <= {ADDR_Y_WIDTH{1'bx}};
+				reg_x     <= {X_WIDTH{1'bx}};
+				reg_y     <= {Y_WIDTH{1'bx}};
+				reg_valid <= 1'b0;
+			end
+			else begin
+				if ( m_valid && m_ready ) begin
+					reg_x <= reg_x + 1'b1;
+					if ( reg_x == (BLK_X_NUM-1) ) begin
+						reg_x <= {X_WIDTH{1'b0}};
+						reg_y <= reg_y + 1'b1;
+						if ( reg_y == (BLK_Y_NUM-1) ) begin
+							reg_user   <= {USER_WIDTH{1'bx}};
+							reg_x      <= {X_WIDTH{1'bx}};
+							reg_y      <= {Y_WIDTH{1'bx}};
+							reg_valid  <= 1'b0;
+						end
 					end
 				end
-			end
-			
-			if ( que_valid & que_ready ) begin
-				reg_user  <= que_user;
-				reg_addrx <= que_addrx;
-				reg_addry <= que_addry;
-				reg_x     <= {X_WIDTH{1'b0}};
-				reg_y     <= {Y_WIDTH{1'b0}};
-				reg_valid <= 1'b1;
+				
+				if ( que_valid & que_ready ) begin
+					reg_user  <= que_user;
+					reg_addrx <= que_addrx;
+					reg_addry <= que_addry;
+					reg_x     <= {X_WIDTH{1'b0}};
+					reg_y     <= {Y_WIDTH{1'b0}};
+					reg_valid <= 1'b1;
+				end
 			end
 		end
+		
+		assign que_ready = (!reg_valid || (m_ready && (reg_x == (BLK_X_NUM-1)) && (reg_y == (BLK_Y_NUM-1))));
+		
+		assign m_user    = reg_user;
+		assign m_last    = ((reg_x == (BLK_X_NUM-1)) && (reg_y == (BLK_Y_NUM-1)));
+		assign m_addrx   = reg_addrx + reg_x;
+		assign m_addry   = reg_addry + reg_y;
+		assign m_valid   = reg_valid;
 	end
-	
-	assign que_ready = (!reg_valid || (m_ready && (reg_x == (BLK_X_NUM-1)) && (reg_y == (BLK_Y_NUM-1))));
-	
-	assign m_user  = reg_user;
-	assign m_last  = ((reg_x == (BLK_X_NUM-1)) && (reg_y == (BLK_Y_NUM-1)));
-	assign m_addrx = reg_addrx + reg_x;
-	assign m_addry = reg_addry + reg_y;
-	assign m_valid = reg_valid;
+	else begin : blk_bypass
+		assign que_ready = m_ready;
+		
+		assign m_user    = que_user;
+		assign m_last    = 1'b1;
+		assign m_addrx   = que_addrx;
+		assign m_addry   = que_addry;
+		assign m_valid   = que_valid;
+	end
+	endgenerate
 	
 	
 endmodule
