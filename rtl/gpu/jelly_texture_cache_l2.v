@@ -201,7 +201,7 @@ module jelly_texture_cache_l2
 	// -----------------------------
 	
 	localparam	S_AR_PACKET_WIDTH = S_ADDR_X_WIDTH + S_ADDR_Y_WIDTH;
-	localparam	S_R_PACKET_WIDTH  = S_DATA_WIDTH;
+	localparam	S_R_PACKET_WIDTH  = 1 + S_DATA_WIDTH;
 	
 	
 	// コマンドパケット生成
@@ -212,7 +212,7 @@ module jelly_texture_cache_l2
 	wire	[S_NUM*S_AR_PACKET_WIDTH-1:0]	s_arpacket;
 	
 	generate
-	for ( i = 0; i < S_NUM; i = i+1 ) begin : ar_pack
+	for ( i = 0; i < S_NUM; i = i+1 ) begin : loop_ar_pack
 		//  ID
 		wire	[BLK_ADDR_X_WIDTH-1:0]	s_blk_addrx;
 		wire	[BLK_ADDR_Y_WIDTH-1:0]	s_blk_addry;
@@ -247,17 +247,17 @@ module jelly_texture_cache_l2
 	
 	
 	// コマンドパケット調停
-	wire	[CACHE_NUM*S_ID_WIDTH-1:0]		arbit_arid;
+	wire	[CACHE_NUM*S_ID_WIDTH-1:0]			arbit_arid;
 	wire	[CACHE_NUM*S_AR_PACKET_WIDTH-1:0]	arbit_arpacket;
-	wire	[CACHE_NUM-1:0]					arbit_arvalid;
-	wire	[CACHE_NUM-1:0]					arbit_arready;
+	wire	[CACHE_NUM-1:0]						arbit_arvalid;
+	wire	[CACHE_NUM-1:0]						arbit_arready;
 	
 	
-	wire	[CACHE_NUM*S_ID_WIDTH-1:0]		arbit_aruser;
-	wire	[CACHE_NUM*S_ADDR_X_WIDTH-1:0]	arbit_araddrx;
-	wire	[CACHE_NUM*S_ADDR_Y_WIDTH-1:0]	arbit_araddry;
+	wire	[CACHE_NUM*S_ID_WIDTH-1:0]			arbit_aruser;
+	wire	[CACHE_NUM*S_ADDR_X_WIDTH-1:0]		arbit_araddrx;
+	wire	[CACHE_NUM*S_ADDR_Y_WIDTH-1:0]		arbit_araddry;
 	generate
-	for ( i = 0; i < CACHE_NUM; i = i+1 ) begin : ar_unpack
+	for ( i = 0; i < CACHE_NUM; i = i+1 ) begin : loop_ar_unpack
 		assign 
 			{
 				arbit_aruser [i*S_ID_WIDTH     +: S_ID_WIDTH],
@@ -266,9 +266,6 @@ module jelly_texture_cache_l2
 			} = arbit_arpacket[i*S_AR_PACKET_WIDTH +: S_AR_PACKET_WIDTH];
 	end
 	endgenerate
-	
-	
-	
 	
 	jelly_data_arbiter_ring_bus
 			#(
@@ -298,11 +295,61 @@ module jelly_texture_cache_l2
 	
 	
 	// データ用クロスバー
-	wire	[CACHE_NUM*S_ID_WIDTH-1:0]		arbit_rid;
-	wire	[CACHE_NUM-1:0]					arbit_rlast;
-	wire	[CACHE_NUM*S_DATA_WIDTH-1:0]	arbit_rdata;
-	wire	[CACHE_NUM-1:0]					arbit_rvalid;
-	wire	[CACHE_NUM-1:0]					arbit_rready;
+	wire	[CACHE_NUM*S_ID_WIDTH-1:0]			arbit_rid;
+	wire	[CACHE_NUM-1:0]						arbit_rlast;
+	wire	[CACHE_NUM*S_DATA_WIDTH-1:0]		arbit_rdata;
+	wire	[CACHE_NUM-1:0]						arbit_rvalid;
+	wire	[CACHE_NUM-1:0]						arbit_rready;
+	
+	wire	[CACHE_NUM*S_R_PACKET_WIDTH-1:0]	arbit_rpacket;
+	
+	wire	[S_NUM*S_R_PACKET_WIDTH-1:0]		s_rpacket;
+	
+	generate
+	for ( i = 0; i < CACHE_NUM; i = i+1 ) begin : loop_r_pack
+		assign arbit_rpacket[i*S_R_PACKET_WIDTH +: S_R_PACKET_WIDTH] =
+			{
+				arbit_rlast[i],
+				arbit_rdata[i*S_DATA_WIDTH +: S_DATA_WIDTH]
+			};
+	end
+	endgenerate
+	
+	generate
+	for ( i = 0; i < S_NUM; i = i+1 ) begin : loop_r_unpack
+		assign
+			{
+				s_rlast[i],
+				s_rdata[i*S_DATA_WIDTH +: S_DATA_WIDTH]
+			} = s_rpacket[i*S_R_PACKET_WIDTH +: S_R_PACKET_WIDTH];
+	end
+	endgenerate
+	
+	jelly_data_crossbar_simple
+			#(
+				.S_NUM			(CACHE_NUM),
+				.S_ID_WIDTH		(CACHE_ID_WIDTH),
+				.M_NUM			(S_NUM),
+				.M_ID_WIDTH		(S_ID_WIDTH),
+				.DATA_WIDTH		(S_R_PACKET_WIDTH)
+			)
+		i_data_crossbar_simple
+			(
+				.reset			(reset),
+				.clk			(clk),
+				.cke			(1'b1),
+				
+				.s_id_to		(arbit_rid),
+				.s_data			(arbit_rpacket),
+				.s_valid		(arbit_rvalid),
+				
+				.m_id_from		(),
+				.m_data			(s_rpacket),
+				.m_valid		(s_rvalid)
+			);
+	assign arbit_rready = {CACHE_NUM{1'b1}};
+	
+	/*
 	jelly_stream_arbiter_crossbar
 			#(
 				.S_NUM				(CACHE_NUM),
@@ -329,7 +376,7 @@ module jelly_texture_cache_l2
 				.m_valid			(s_rvalid),
 				.m_ready			(s_rready)
 			);
-	
+	*/
 	
 	
 	// -----------------------------

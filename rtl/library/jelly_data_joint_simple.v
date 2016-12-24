@@ -51,7 +51,7 @@ module jelly_data_joint_simple
 			st0_id <= {ID_WIDTH{1'bx}};
 			for ( i = 0; i < NUM; i = i+1 ) begin
 				// parallel_case, full_case
-				if ( s_valid == ({{(NUM-1){1'b1}}, 1'b1} << i) ) begin
+				if ( s_valid == ({{(NUM-1){1'b0}}, 1'b1} << i) ) begin
 					st0_id <= i;
 				end
 			end

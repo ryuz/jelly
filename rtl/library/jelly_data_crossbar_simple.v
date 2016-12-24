@@ -16,11 +16,11 @@
 // ring bus unit
 module jelly_data_crossbar_simple
 		#(
-			parameter	S_NUM         = 8,
-			parameter	S_ID_WIDTH    = 3,
-			parameter	M_NUM         = 16,
-			parameter	M_ID_WIDTH    = 4,
-			parameter	DATA_WIDTH    = 32
+			parameter	S_NUM         = 4,
+			parameter	S_ID_WIDTH    = 2,
+			parameter	M_NUM         = 4*2,
+			parameter	M_ID_WIDTH    = 3,
+			parameter	DATA_WIDTH    = 24*2
 		)
 		(
 			input	wire							reset,
@@ -42,7 +42,6 @@ module jelly_data_crossbar_simple
 	// switch
 	wire	[S_NUM*M_NUM*DATA_WIDTH-1:0]	array_s_data;
 	wire	[S_NUM*M_NUM-1:0]				array_s_valid;
-	wire	[S_NUM*M_NUM-1:0]				array_s_ready;
 	
 	generate
 	for ( i = 0; i < S_NUM; i = i+1 ) begin : loop_slave
@@ -73,15 +72,12 @@ module jelly_data_crossbar_simple
 	// cross
 	wire	[M_NUM*S_NUM*DATA_WIDTH-1:0]	array_m_data;
 	wire	[M_NUM*S_NUM-1:0]				array_m_valid;
-	wire	[M_NUM*S_NUM-1:0]				array_m_ready;
 	
 	generate
 	for ( i = 0; i < M_NUM; i = i+1 ) begin : loop_cross_m
 		for ( j = 0; j < S_NUM; j = j+1 ) begin : loop_cross_s
 			assign array_m_data [(i*S_NUM+j)*DATA_WIDTH +: DATA_WIDTH] = array_s_data [(j*M_NUM+i)*DATA_WIDTH +: DATA_WIDTH];
 			assign array_m_valid[(i*S_NUM+j)]                          = array_s_valid[(j*M_NUM+i)];
-				
-			assign array_s_ready[(j*M_NUM+i)]                          = array_m_ready[(i*S_NUM+j)];
 		end
 	end
 	endgenerate
