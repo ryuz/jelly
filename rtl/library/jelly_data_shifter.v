@@ -28,6 +28,19 @@ module jelly_data_shifter
 			output	wire	[DATA_WIDTH-1:0]	out_data
 		);
 	
+	
+	/*
+	reg		[NUM*DATA_WIDTH-1:0]	reg_data;
+	always @(posedge clk) begin
+		if ( cke ) begin
+			reg_data <= {reg_data, in_data};
+		end
+	end
+	
+	assign out_data = reg_data[sel*DATA_WIDTH +: DATA_WIDTH];
+	*/
+	
+	
 	genvar		i;
 	
 	generate
@@ -48,6 +61,7 @@ module jelly_data_shifter
 				);
 	end
 	endgenerate
+	
 	
 	
 endmodule
