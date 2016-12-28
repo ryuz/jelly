@@ -72,6 +72,7 @@ module jelly_texture_cache_l1
 			output	wire	[CACHE_NUM-1:0]					status_access,
 			output	wire	[CACHE_NUM-1:0]					status_hit,
 			output	wire	[CACHE_NUM-1:0]					status_miss,
+			output	wire	[CACHE_NUM-1:0]					status_range_out,
 			
 			// slave port
 			input	wire	[CACHE_NUM*S_USER_WIDTH-1:0]	s_aruser,
@@ -208,6 +209,7 @@ module jelly_texture_cache_l1
 					.status_access			(status_access[i]),
 					.status_hit				(status_hit[i]),
 					.status_miss			(status_miss[i]),
+					.status_range_out		(status_range_out[i]),
 					
 					.s_aruser				(s_aruser [i*S_USER_WIDTH   +: S_USER_WIDTH]),
 					.s_araddrx				(s_araddrx[i*S_ADDR_X_WIDTH +: S_ADDR_X_WIDTH]),

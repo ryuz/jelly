@@ -76,6 +76,7 @@ module jelly_texture_cache_lookahead
 			output	wire							status_access,
 			output	wire							status_hit,
 			output	wire							status_miss,
+			output	wire							status_range_out,
 			
 			input	wire	[S_USER_WIDTH-1:0]		s_aruser,
 			input	wire	[S_ADDR_X_WIDTH-1:0]	s_araddrx,
@@ -268,7 +269,7 @@ module jelly_texture_cache_lookahead
 				.S_REGS			(M_STRB_WIDTH > 1),
 				.M_REGS			(M_STRB_WIDTH > 1)
 			)
-		i_data_combiner
+		i_stream_combiner
 			(
 				.reset			(reset),
 				.clk			(clk),
@@ -362,6 +363,7 @@ module jelly_texture_cache_lookahead
 				.status_access			(status_access),
 				.status_hit				(status_hit),
 				.status_miss			(status_miss),
+				.status_range_out		(status_range_out),
 				
 				.s_aruser				(base_s_aruser),
 				.s_araddrx				(base_s_araddrx),

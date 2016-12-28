@@ -67,6 +67,7 @@ module jelly_texture_cache_basic
 			output	wire							status_access,
 			output	wire							status_hit,
 			output	wire							status_miss,
+			output	wire							status_range_out,
 			
 			input	wire	[S_USER_WIDTH-1:0]		s_aruser,
 			input	wire	[S_ADDR_X_WIDTH-1:0]	s_araddrx,
@@ -376,12 +377,13 @@ module jelly_texture_cache_basic
 	assign m_rready     = (USE_WAIT || mem_ready);
 	
 	
-	
-	assign status_idle   = !tagram_valid;
-	assign status_stall  = !tagram_ready;
-	assign status_access = !reg_tagram_ready;
-	assign status_hit    = (tagram_valid && tagram_ready && tagram_cache_hit);
-	assign status_miss   = (tagram_valid && tagram_ready && !tagram_cache_hit);
+	// status
+	assign status_idle      = !tagram_valid;
+	assign status_stall     = !tagram_ready && !status_access;
+	assign status_access    = !reg_tagram_ready;
+	assign status_hit       = (tagram_valid && tagram_ready && tagram_cache_hit);
+	assign status_miss      = (tagram_valid && tagram_ready && (!tagram_cache_hit && !tagram_range_out));
+	assign status_range_out = (tagram_valid && tagram_ready && tagram_range_out);
 	
 	
 	// ---------------------------------

@@ -47,7 +47,7 @@ module jelly_texture_sampler
 			parameter	SAMPLER3D_NUM                 = 0,
 			
 			parameter	L1_CACHE_NUM                  = SAMPLER1D_NUM + SAMPLER2D_NUM + SAMPLER3D_NUM,
-			parameter	L1_USE_LOOK_AHEAD             = 0,
+			parameter	L1_USE_LOOK_AHEAD             = 1,
 			parameter	L1_TAG_ADDR_WIDTH             = 6,
 			parameter	L1_BLK_X_SIZE                 = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	L1_BLK_Y_SIZE                 = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
@@ -65,7 +65,8 @@ module jelly_texture_sampler
 			parameter	L1_LOG_ID                     = 0,
 			
 			parameter	L2_PARALLEL_SIZE              = 2,
-			parameter	L2_USE_LOOK_AHEAD             = 0,
+			parameter	L2_CACHE_NUM                  = (1 << L2_PARALLEL_SIZE),
+			parameter	L2_USE_LOOK_AHEAD             = 1,
 			parameter	L2_TAG_ADDR_WIDTH             = 6,
 			parameter	L2_BLK_X_SIZE                 = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	L2_BLK_Y_SIZE                 = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
@@ -114,6 +115,20 @@ module jelly_texture_sampler
 			// control
 			input	wire													clear_start,
 			output	wire													clear_busy,
+			
+			// status
+			output	wire	[L1_CACHE_NUM-1:0]								status_l1_idle,
+			output	wire	[L1_CACHE_NUM-1:0]								status_l1_stall,
+			output	wire	[L1_CACHE_NUM-1:0]								status_l1_access,
+			output	wire	[L1_CACHE_NUM-1:0]								status_l1_hit,
+			output	wire	[L1_CACHE_NUM-1:0]								status_l1_miss,
+			output	wire	[L1_CACHE_NUM-1:0]								status_l1_range_out,
+			output	wire	[L2_CACHE_NUM-1:0]								status_l2_idle,
+			output	wire	[L2_CACHE_NUM-1:0]								status_l2_stall,
+			output	wire	[L2_CACHE_NUM-1:0]								status_l2_access,
+			output	wire	[L2_CACHE_NUM-1:0]								status_l2_hit,
+			output	wire	[L2_CACHE_NUM-1:0]								status_l2_miss,
+			output	wire	[L2_CACHE_NUM-1:0]								status_l2_range_out,
 			
 			// 2D sampler
 			input	wire	[SAMPLER2D_NUM*SAMPLER2D_USER_BITS-1:0]			s_sampler2d_user,
@@ -312,9 +327,22 @@ module jelly_texture_sampler
 				.param_width			(param_width),
 				.param_height			(param_height),
 				.param_stride			(param_stride),
-				                         
+				
 				.clear_start			(clear_start),
 				.clear_busy				(clear_busy),
+				
+				.status_l1_idle			(status_l1_idle),
+				.status_l1_stall		(status_l1_stall),
+				.status_l1_access		(status_l1_access),
+				.status_l1_hit			(status_l1_hit),
+				.status_l1_miss			(status_l1_miss),
+				.status_l1_range_out	(status_l1_range_out),
+				.status_l2_idle			(status_l2_idle),
+				.status_l2_stall		(status_l2_stall),
+				.status_l2_access		(status_l2_access),
+				.status_l2_hit			(status_l2_hit),
+				.status_l2_miss			(status_l2_miss),
+				.status_l2_range_out	(status_l2_range_out),
 				
 				.s_aruser				(sampler2d_arcoeff),
 				.s_araddrx				(sampler2d_araddrx),

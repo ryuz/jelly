@@ -98,13 +98,13 @@ module jelly_texture_cache_core
 			output	wire	[L1_CACHE_NUM-1:0]						status_l1_access,
 			output	wire	[L1_CACHE_NUM-1:0]						status_l1_hit,
 			output	wire	[L1_CACHE_NUM-1:0]						status_l1_miss,
-			
+			output	wire	[L1_CACHE_NUM-1:0]						status_l1_range_out,
 			output	wire	[L2_CACHE_NUM-1:0]						status_l2_idle,
 			output	wire	[L2_CACHE_NUM-1:0]						status_l2_stall,
 			output	wire	[L2_CACHE_NUM-1:0]						status_l2_access,
 			output	wire	[L2_CACHE_NUM-1:0]						status_l2_hit,
 			output	wire	[L2_CACHE_NUM-1:0]						status_l2_miss,
-			
+			output	wire	[L2_CACHE_NUM-1:0]						status_l2_range_out,
 			
 			input	wire	[L1_CACHE_NUM*USER_WIDTH-1:0]			s_aruser,
 			input	wire	[L1_CACHE_NUM*ADDR_X_WIDTH-1:0]			s_araddrx,
@@ -261,7 +261,7 @@ module jelly_texture_cache_core
 				.status_access			(status_l1_access),
 				.status_hit				(status_l1_hit),
 				.status_miss			(status_l1_miss),
-				
+				.status_range_out		(status_l1_range_out),
 				
 				.s_aruser				(s_aruser),
 				.s_araddrx				(s_araddrx),
@@ -398,7 +398,7 @@ module jelly_texture_cache_core
 				.status_access			(status_l2_access),
 				.status_hit				(status_l2_hit),
 				.status_miss			(status_l2_miss),
-				
+				.status_range_out		(status_l2_range_out),
 				
 				.s_araddrx				(m_araddrx),
 				.s_araddry				(m_araddry),
