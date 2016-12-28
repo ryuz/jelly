@@ -58,7 +58,7 @@ module jelly_texture_sampler
 			parameter	L1_QUE_FIFO_RAM_TYPE          = "distributed",
 			parameter	L1_AR_FIFO_PTR_WIDTH          = 0,
 			parameter	L1_AR_FIFO_RAM_TYPE           = "distributed",
-			parameter	L1_R_FIFO_PTR_WIDTH           = L1_BLK_Y_SIZE + L1_BLK_X_SIZE - L1_DATA_WIDE_SIZE,
+			parameter	L1_R_FIFO_PTR_WIDTH           = 1 + L1_BLK_Y_SIZE + L1_BLK_X_SIZE - L1_DATA_WIDE_SIZE,
 			parameter	L1_R_FIFO_RAM_TYPE            = "distributed",
 			parameter	L1_LOG_ENABLE                 = 0,
 			parameter	L1_LOG_FILE                   = "l1_log.txt",

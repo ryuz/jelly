@@ -40,7 +40,8 @@ module jelly_texture_cache_lookahead
 			parameter	M_STRB_WIDTH         = COMPONENT_NUM,
 			parameter	M_ADDR_X_WIDTH       = S_ADDR_X_WIDTH - M_DATA_WIDE_SIZE,
 			parameter	M_ADDR_Y_WIDTH       = S_ADDR_Y_WIDTH,
-			parameter	M_IN_ORDER           = 1,
+			parameter	M_INORDER            = 1,
+			parameter	M_INORDER_DATA_FIRST = 0,
 			
 			parameter	USE_BORDER           = 1,
 			parameter	BORDER_DATA          = {S_DATA_WIDTH{1'b0}},
@@ -394,6 +395,53 @@ module jelly_texture_cache_lookahead
 	// read addr command
 	localparam	LOOK_AHEAD_NUM         = (1 << (R_FIFO_PTR_WIDTH - (BLK_Y_SIZE + BLK_X_SIZE - M_DATA_WIDE_SIZE)));
 	
+	// limitter for FIFO size
+	wire	base_limit_arready;
+	jelly_texture_cache_limitter
+			#(
+				.LIMIT_NUM		(LOOK_AHEAD_NUM),
+				.PACKET_FIRST	(0)
+			)
+		i_texture_cache_limitter_base
+			(
+				.reset			(reset),
+				.clk			(clk),
+				
+				.arvalid		(m_arvalid),
+				.arready		(m_arready),
+				.rlast			(base_m_rlast),
+				.rvalid			(base_m_rvalid),
+				.rready			(1'b1),
+				
+				.limit_arready	(base_limit_arready)
+			);
+	
+	
+	// limitter for in-order packet
+	wire	m_limit_arready;
+	jelly_texture_cache_limitter
+			#(
+				.LIMIT_NUM		(M_INORDER ? 1 : 0),
+				.PACKET_FIRST	(M_INORDER_DATA_FIRST)
+			)
+		i_texture_cache_limitter_m
+			(
+				.reset			(reset),
+				.clk			(clk),
+				
+				.arvalid		(m_arvalid),
+				.arready		(m_arready),
+				.rlast			(m_rlast),
+				.rvalid			(m_rvalid),
+				.rready			(m_rready),
+				
+				.limit_arready	(m_limit_arready)
+			);
+	
+	
+	
+	/*
+	
 	localparam	LOOK_AHEAD_COUNT_WIDTH = LOOK_AHEAD_NUM <   1 ? 1 :
 	                                     LOOK_AHEAD_NUM <   3 ? 2 :
 	                                     LOOK_AHEAD_NUM <   7 ? 3 :
@@ -473,6 +521,8 @@ module jelly_texture_cache_lookahead
 		assign mem_arready = reg_mem_arready;
 	end
 	endgenerate
+	*/
+	
 	
 	assign arfifo_s_araddrx = (tag_blk_addrx << (BLK_X_SIZE - M_DATA_WIDE_SIZE));
 	assign arfifo_s_araddry = (tag_blk_addry << BLK_Y_SIZE);
@@ -488,9 +538,9 @@ module jelly_texture_cache_lookahead
 	
 	assign m_araddrx        = arfifo_m_araddrx;
 	assign m_araddry        = arfifo_m_araddry;
-	assign m_arvalid        = (arfifo_m_arvalid & mem_arready);
+	assign m_arvalid        = (arfifo_m_arvalid & base_limit_arready & m_limit_arready);
 	
-	assign arfifo_m_arready = (m_arready & mem_arready);
+	assign arfifo_m_arready = (m_arready        & base_limit_arready & m_limit_arready);
 	
 	
 	

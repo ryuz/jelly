@@ -349,6 +349,16 @@ module jelly_texture_cache_l2
 			);
 	assign arbit_rready = {CACHE_NUM{1'b1}};
 	
+	// simulation check
+	always @(posedge clk) begin
+		if ( !reset ) begin
+			if ( s_rvalid && !s_rready ) begin
+				$display("L2$ rdata overflow");
+			end
+		end
+	end
+	
+	
 	/*
 	jelly_stream_arbiter_crossbar
 			#(
@@ -454,7 +464,7 @@ module jelly_texture_cache_l2
 					.S_BLK_Y_NUM			(S_BLK_Y_NUM),
 					
 					.M_DATA_WIDE_SIZE		(M_DATA_WIDE_SIZE),
-					.M_IN_ORDER				(0),
+					.M_INORDER				(0),
 					
 					.QUE_FIFO_PTR_WIDTH		(QUE_FIFO_PTR_WIDTH),
 					.QUE_FIFO_RAM_TYPE		(QUE_FIFO_RAM_TYPE),

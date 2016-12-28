@@ -172,7 +172,8 @@ module jelly_texture_cache_l1
 					.S_ADDR_Y_WIDTH			(S_ADDR_Y_WIDTH),
 					
 					.M_DATA_WIDE_SIZE		(M_DATA_WIDE_SIZE),
-					.M_IN_ORDER				(1),
+					.M_INORDER				(1),
+					.M_INORDER_DATA_FIRST	(0),
 					
 					.BORDER_DATA			(BORDER_DATA),
 					
