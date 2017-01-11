@@ -50,8 +50,8 @@ module jelly_texture_border_unit
 	
 	// BORDER_TRANSPARENT	borderフラグを立ててスルー(後段でケア)
 	// BORDER_CONSTANT		borderフラグを立ててスルー(後段でケア)
-	// BORDER_REPLICATE
-	//		overflow  : param_width - 1
+	// 10 BORDER_REPLICATE
+	//		overflow  : w - 1
 	//		underflow : 0
 	// BORDER_REFLECT
 	//		overflow  : (param_width - 1) - (x - param_width)
@@ -147,12 +147,12 @@ module jelly_texture_border_unit
 	wire	signed	[Y_WIDTH-1:0]		st0_y1;
 	
 	assign st0_x_over = st0_x1[X_WIDTH-1];
-	assign st0_x0     = param_op_x[1] ? image_width  : {X_WIDTH{1'b0}};
-	assign st0_x1     = param_op_x[2] ? ~st0_x       : st0_x;
+	assign st0_x0     = param_op_x[0]             ? image_width  : {X_WIDTH{1'b0}};
+	assign st0_x1     = param_op_x[1]^st0_x_under ? ~st0_x       : st0_x;
 	
 	assign st0_y_over = st0_y1[Y_WIDTH-1];
-	assign st0_y0     = param_op_y[1] ? image_height : {Y_WIDTH{1'b0}};
-	assign st0_y1     = param_op_y[2] ? ~st0_y       : st0_y;
+	assign st0_y0     = param_op_y[0]             ? image_height : {Y_WIDTH{1'b0}};
+	assign st0_y1     = param_op_y[1]^st0_y_under ? ~st0_y       : st0_y;
 	
 	
 	reg				[USER_BITS-1:0]		st1_user;
@@ -164,10 +164,10 @@ module jelly_texture_border_unit
 	always @(posedge clk) begin
 		if ( stage_cke[0] ) begin
 			st0_user    <= src_user;
-			st0_x       <= src_x[X_WIDTH-1] ? src_x : src_x - image_width  - 1'b1 - param_op_x[0];
+			st0_x       <= src_x[X_WIDTH-1] ? src_x : src_x - image_width  - 1'b1;// - param_op_x[0];
 			st0_x_under <= src_x[X_WIDTH-1];
 			
-			st0_y       <= src_y[Y_WIDTH-1] ? src_y : src_y - image_height - 1'b1 - param_op_y[0];
+			st0_y       <= src_y[Y_WIDTH-1] ? src_y : src_y - image_height - 1'b1;// - param_op_y[0];
 			st0_y_under <= src_y[Y_WIDTH-1];
 		end
 		
