@@ -51,19 +51,19 @@ module jelly_texture_border_unit
 	// 8'b0_0_00_00_00 BORDER_TRANSPARENT	borderフラグを立ててスルー(後段でケア)
 	// 8'b0_0_00_00_00 BORDER_CONSTANT		borderフラグを立ててスルー(後段でケア)
 	// 8'b1_1_11_10_11 BORDER_REPLICATE
-	//		overflow  : param_width - 1                             : 0 + ((w-x-1) + 1)  c
-	//		underflow : 0                                           : 0 - ((0    ) + 0)  c
+	//		overflow  : param_width - 1                             : 0 + ((w-x-1) + 1)  c    0+x c  (100)
+	//		underflow : 0                                           : 0 - ((0    ) + 0)  c    0-x c  (101)
 	// 8'b1_0_01_10_00 BORDER_REFLECT
-	//		overflow  : (param_width - 1) - (x - param_width)       : w + ((w-x-1) + 0)  n
-	//		underflow : -x-1                                        : 0 - ((x    ) + 1)  n
+	//		overflow  : (param_width - 1) - (x - param_width)       : w + ((w-x-1) + 0)  n    w+x n  (110)
+	//		underflow : -x-1                                        : 0 - ((0+x  ) + 1)  n    0-x n  (111)
 	// 8'b1_0_01_10_01 BORDER_REFLECT101 (width には 1小さい数を設定すること)
-	//		overflow  : (param_width - 1) - (x - param_width) - 1   : w + ((w-x-1) + 0)  n
-	//		underflow : -x                                          : 0 - ((x    ) + 0)  c
+	//		overflow  : (param_width - 1) - (x - param_width) - 1   : w + ((w-x-1) + 0)  n    w+x n  (110)
+	//		underflow : -x                                          : 0 - ((0+x  ) + 0)  c    0-x c  (101)
 	// 8'b1_0_10_01_00 BORDER_WRAP
-	//		overflow  : x - param_width                             : 0 - ((w-x-1) + 1)  n
-	//		underflow : x + param_width                             : w + ((x    ) + 0)  n
+	//		overflow  : x - param_width                             : 0 - ((w-x-1) + 1)  n    0-x n  (111)
+	//		underflow : x + param_width                             : w + ((0+x  ) + 0)  n    w+x n  (110)
 	// BORDER以外の箇所
-	//                  x                                           : w - ((w-x-1) + 1)  n
+	//                  x                                           : w - ((w-x-1) + 1)  n    w-x n  (000)
 	//
 	//                                                                ^ ^   ^            ^
 	// op[7] : boarder enable                                         | |   |            |
@@ -142,6 +142,42 @@ module jelly_texture_border_unit
 	// -------------------------------------
 	//  calculate
 	// -------------------------------------
+
+	wire								src_x_under = src_x[X_WIDTH-1];
+	wire								src_y_under = src_y[Y_WIDTH-1];
+	reg		signed	[X_WIDTH-1:0]		src_x0;
+	reg		signed	[X_WIDTH-1:0]		src_x1;
+	reg		signed	[Y_WIDTH-1:0]		src_y0;
+	reg		signed	[Y_WIDTH-1:0]		src_y1;
+	always @* begin
+		src_x0 = {X_WIDTH{1'bx}};
+		src_x1 = {X_WIDTH{1'bx}};
+		src_y0 = {Y_WIDTH{1'bx}};
+		src_y1 = {Y_WIDTH{1'bx}};
+		
+		case ( {param_op_x[1:0], src_x_under} )
+		3'b00_0:	begin	src_x0 = param_width;     src_x1 = ~src_x;          end  // REPLICATE
+		3'b00_1:	begin	src_x0 = {X_WIDTH{1'b0}}; src_x1 = {X_WIDTH{1'b0}}; end  // REPLICATE(underflow)
+		3'b01_0:	begin	src_x0 = param_width;     src_x1 = ~src_x;          end  // REFLECT
+		3'b01_1:	begin	src_x0 = {X_WIDTH{1'b0}}; src_x1 = src_x; 		    end  // REFLECT(underflow)
+		3'b10_0:	begin	src_x0 = param_width;     src_x1 = ~src_x;          end  // REFLECT101
+		3'b10_1:	begin	src_x0 = {X_WIDTH{1'b0}}; src_x1 = src_x; 		    end  // REFLECT101(underflow)
+		3'b11_0:	begin	src_x0 = param_width;     src_x1 = ~src_x;          end  // REFLECT101
+		3'b11_1:	begin	src_x0 = {X_WIDTH{1'b0}}; src_x1 = src_x; 		    end  // REFLECT101(underflow)
+		endcase
+		
+		case ( {param_op_y[1:0], src_y_under} )
+		3'b00_0:	begin	src_y0 = param_width;     src_y1 = ~src_x;          end  // REPLICATE
+		3'b00_1:	begin	src_y0 = {X_WIDTH{1'b0}}; src_y1 = {X_WIDTH{1'b0}}; end  // REPLICATE(underflow)
+		3'b01_0:	begin	src_y0 = param_width;     src_y1 = ~src_x;          end  // REFLECT
+		3'b01_1:	begin	src_y0 = {X_WIDTH{1'b0}}; src_y1 = src_x; 		    end  // REFLECT(underflow)
+		3'b10_0:	begin	src_y0 = param_width;     src_y1 = ~src_x;          end  // REFLECT101
+		3'b10_1:	begin	src_y0 = {X_WIDTH{1'b0}}; src_y1 = src_x; 		    end  // REFLECT101(underflow)
+		3'b11_0:	begin	src_y0 = param_width;     src_y1 = ~src_x;          end  // REFLECT101
+		3'b11_1:	begin	src_y0 = {X_WIDTH{1'b0}}; src_y1 = src_x; 		    end  // REFLECT101(underflow)
+		endcase
+	end
+	
 	
 	// stage 0
 	reg				[USER_BITS-1:0]		st0_user;
@@ -158,6 +194,8 @@ module jelly_texture_border_unit
 	wire	signed	[Y_WIDTH-1:0]		st0_y0;
 	wire	signed	[Y_WIDTH-1:0]		st0_y1;
 	wire								st0_y_carry;
+	
+	
 	
 	assign st0_x_over  = (~st0_x1[X_WIDTH-1] && !st0_x_under);
 	assign st0_x0      = (param_op_x[4] & st0_x_under) | (param_op_x[5] & st0_x_over) ? {X_WIDTH{1'b0}} : image_width;
