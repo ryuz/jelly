@@ -30,8 +30,8 @@ module jelly_texture_border_unit
 			
 			input	wire			[ADDR_X_WIDTH-1:0]	param_width,
 			input	wire			[ADDR_Y_WIDTH-1:0]	param_height,
-			input	wire			[7:0]				param_op_x,
-			input	wire			[7:0]				param_op_y,
+			input	wire			[2:0]				param_x_op,
+			input	wire			[2:0]				param_y_op,
 			
 			input	wire			[USER_BITS-1:0]		s_user,
 			input	wire	signed	[X_WIDTH-1:0]		s_x,
@@ -47,31 +47,27 @@ module jelly_texture_border_unit
 			input	wire								m_ready
 		);
 	
-	
-	// 8'b0_0_00_00_00 BORDER_TRANSPARENT	borderフラグを立ててスルー(後段でケア)
-	// 8'b0_0_00_00_00 BORDER_CONSTANT		borderフラグを立ててスルー(後段でケア)
-	// 8'b1_1_11_10_11 BORDER_REPLICATE
-	//		overflow  : param_width - 1                             : 0 + ((w-x-1) + 1)  c    0+x c  (100)
-	//		underflow : 0                                           : 0 - ((0    ) + 0)  c    0-x c  (101)
-	// 8'b1_0_01_10_00 BORDER_REFLECT
-	//		overflow  : (param_width - 1) - (x - param_width)       : w + ((w-x-1) + 0)  n    w+x n  (110)
-	//		underflow : -x-1                                        : 0 - ((0+x  ) + 1)  n    0-x n  (111)
-	// 8'b1_0_01_10_01 BORDER_REFLECT101 (width には 1小さい数を設定すること)
-	//		overflow  : (param_width - 1) - (x - param_width) - 1   : w + ((w-x-1) + 0)  n    w+x n  (110)
-	//		underflow : -x                                          : 0 - ((0+x  ) + 0)  c    0-x c  (101)
-	// 8'b1_0_10_01_00 BORDER_WRAP
-	//		overflow  : x - param_width                             : 0 - ((w-x-1) + 1)  n    0-x n  (111)
-	//		underflow : x + param_width                             : w + ((0+x  ) + 0)  n    w+x n  (110)
-	// BORDER以外の箇所
-	//                  x                                           : w - ((w-x-1) + 1)  n    w-x n  (000)
+	// 加算フェーズが LUT5 に収まるように 2stage で op を最適化
+	// ISEだと最適化してくれないが、Vivadoだとコンパクトに収まる模様
 	//
-	//                                                                ^ ^   ^            ^
-	// op[7] : boarder enable                                         | |   |            |
-	// (op[4] & underflow) | (op[5] & overflow) ? 0 : w        -------| |   |            |
-	// (op[2] & underflow) | (op[3] & overflow) ? + : -        ---------|   |            |
-	// underflow ? w-x-1 : x                                   -------------|            |
-	// op[6] & underflow : force zero                          -------------|            |
-	// (op[0] & underflow) | (op[1] & overflow) ? c : n        --------------------------|
+	//
+	// op:3'b000 BORDER_TRANSPARENT	borderフラグを立ててスルー(後段でケア)
+	// op:3'b000 BORDER_CONSTANT		borderフラグを立ててスルー(後段でケア)
+	// op:3'b100 BORDER_REPLICATE
+	//		overflow  : param_width - 1                             : w - ((0    ) + 1)  n  :  0+x c  (100)
+	//		underflow : 0                                           : 0 - ((0    ) + 0)  c  :  0-x c  (101)
+	// op:3'b101 BORDER_REFLECT
+	//		overflow  : (param_width - 1) - (x - param_width)       : w + ((w-x-1) + 0)  n  :  w+x n  (110)
+	//		underflow : -x-1                                        : 0 - ((0+x  ) + 1)  n  :  0-x n  (111)
+	// op:3'b110 BORDER_REFLECT101 (width には 1小さい数を設定すること)
+	//		overflow  : (param_width - 1) - (x - param_width) - 1   : w + ((w-x-1) + 0)  n  :  w+x n  (110)
+	//		underflow : -x                                          : 0 - ((0+x  ) + 0)  c  :  0-x c  (101)
+	// op:3'b111 BORDER_WRAP
+	//		overflow  : x - param_width                             : 0 - ((w-x-1) + 1)  n  :  0-x n  (111)
+	//		underflow : x + param_width                             : w + ((0+x  ) + 0)  n  :  w+x n  (110)
+	// BORDER以外の箇所
+	//                  x                                           : w - ((w-x-1) + 1)  n  :  w-x n  (000)
+	
 	
 	
 	// -------------------------------------
@@ -82,7 +78,6 @@ module jelly_texture_border_unit
 	
 	wire	signed	[X_WIDTH-1:0]		image_width  = {1'b0, param_width};
 	wire	signed	[Y_WIDTH-1:0]		image_height = {1'b0, param_height};
-	
 	
 	
 	
@@ -142,106 +137,178 @@ module jelly_texture_border_unit
 	// -------------------------------------
 	//  calculate
 	// -------------------------------------
-
-	wire								src_x_under = src_x[X_WIDTH-1];
-	wire								src_y_under = src_y[Y_WIDTH-1];
+	
+	reg									src_x_under;
+	reg									src_x_over;
 	reg		signed	[X_WIDTH-1:0]		src_x0;
 	reg		signed	[X_WIDTH-1:0]		src_x1;
+	reg		signed	[X_WIDTH-1:0]		src_xx;
+	reg				[2:0]				src_x_op;
+	
+	reg									src_y_under;
+	reg									src_y_over;
 	reg		signed	[Y_WIDTH-1:0]		src_y0;
 	reg		signed	[Y_WIDTH-1:0]		src_y1;
+	reg		signed	[X_WIDTH-1:0]		src_yy;
+	reg				[2:0]				src_y_op;
+	
 	always @* begin
-		src_x0 = {X_WIDTH{1'bx}};
-		src_x1 = {X_WIDTH{1'bx}};
-		src_y0 = {Y_WIDTH{1'bx}};
-		src_y1 = {Y_WIDTH{1'bx}};
+		// X
+		src_x_under = 1'bx;
+		src_x_over  = 1'bx;
+		src_x0      = {X_WIDTH{1'bx}};
+		src_x1      = {X_WIDTH{1'bx}};
+		src_xx      = {X_WIDTH{1'bx}};
+		src_x_op    = 3'bxxx;
 		
-		case ( {param_op_x[1:0], src_x_under} )
-		3'b00_0:	begin	src_x0 = param_width;     src_x1 = ~src_x;          end  // REPLICATE
+		src_x_under = src_x[X_WIDTH-1];
+		
+		case ( {param_x_op[1:0], src_x_under} )
+		3'b00_0:	begin	src_x0 = image_width;     src_x1 = ~src_x;          end  // REPLICATE
 		3'b00_1:	begin	src_x0 = {X_WIDTH{1'b0}}; src_x1 = {X_WIDTH{1'b0}}; end  // REPLICATE(underflow)
-		3'b01_0:	begin	src_x0 = param_width;     src_x1 = ~src_x;          end  // REFLECT
+		3'b01_0:	begin	src_x0 = image_width;     src_x1 = ~src_x;          end  // REFLECT
 		3'b01_1:	begin	src_x0 = {X_WIDTH{1'b0}}; src_x1 = src_x; 		    end  // REFLECT(underflow)
-		3'b10_0:	begin	src_x0 = param_width;     src_x1 = ~src_x;          end  // REFLECT101
+		3'b10_0:	begin	src_x0 = image_width;     src_x1 = ~src_x;          end  // REFLECT101
 		3'b10_1:	begin	src_x0 = {X_WIDTH{1'b0}}; src_x1 = src_x; 		    end  // REFLECT101(underflow)
-		3'b11_0:	begin	src_x0 = param_width;     src_x1 = ~src_x;          end  // REFLECT101
+		3'b11_0:	begin	src_x0 = image_width;     src_x1 = ~src_x;          end  // REFLECT101
 		3'b11_1:	begin	src_x0 = {X_WIDTH{1'b0}}; src_x1 = src_x; 		    end  // REFLECT101(underflow)
 		endcase
 		
-		case ( {param_op_y[1:0], src_y_under} )
-		3'b00_0:	begin	src_y0 = param_width;     src_y1 = ~src_x;          end  // REPLICATE
-		3'b00_1:	begin	src_y0 = {X_WIDTH{1'b0}}; src_y1 = {X_WIDTH{1'b0}}; end  // REPLICATE(underflow)
-		3'b01_0:	begin	src_y0 = param_width;     src_y1 = ~src_x;          end  // REFLECT
-		3'b01_1:	begin	src_y0 = {X_WIDTH{1'b0}}; src_y1 = src_x; 		    end  // REFLECT(underflow)
-		3'b10_0:	begin	src_y0 = param_width;     src_y1 = ~src_x;          end  // REFLECT101
-		3'b10_1:	begin	src_y0 = {X_WIDTH{1'b0}}; src_y1 = src_x; 		    end  // REFLECT101(underflow)
-		3'b11_0:	begin	src_y0 = param_width;     src_y1 = ~src_x;          end  // REFLECT101
-		3'b11_1:	begin	src_y0 = {X_WIDTH{1'b0}}; src_y1 = src_x; 		    end  // REFLECT101(underflow)
+		src_xx      = src_x0 + src_x1;
+		src_x_over  = src_xx[X_WIDTH-1];
+		
+		casex ( {param_x_op[1:0], src_x_under, src_x_over} )
+		4'b00_01:	begin	src_x_op = 3'b100;	end
+		4'b00_1x:	begin	src_x_op = 3'b101;	end
+		4'b01_01:	begin	src_x_op = 3'b110;	end
+		4'b01_1x:	begin	src_x_op = 3'b111;	end
+		4'b10_01:	begin	src_x_op = 3'b110;	end
+		4'b10_1x:	begin	src_x_op = 3'b101;	end
+		4'b11_01:	begin	src_x_op = 3'b111;	end
+		4'b11_1x:	begin	src_x_op = 3'b110;	end
+		4'bxx_00:	begin	src_x_op = 3'b000;	end
+		endcase
+		
+		
+		// Y
+		src_y_under = 1'bx;
+		src_y_over  = 1'bx;
+		src_y0      = {Y_WIDTH{1'bx}};
+		src_y1      = {Y_WIDTH{1'bx}};
+		src_yy      = {Y_WIDTH{1'bx}};
+		src_y_op    = 3'bxxx;
+		
+		src_y_under = src_y[Y_WIDTH-1];
+		
+		case ( {param_y_op[1:0], src_y_under} )
+		3'b00_0:	begin	src_y0 = image_height;    src_y1 = ~src_y;          end		// REPLICATE
+		3'b00_1:	begin	src_y0 = {Y_WIDTH{1'b0}}; src_y1 = {Y_WIDTH{1'b0}}; end		// REPLICATE(underflow)
+		3'b01_0:	begin	src_y0 = image_height;    src_y1 = ~src_y;          end		// REFLECT
+		3'b01_1:	begin	src_y0 = {Y_WIDTH{1'b0}}; src_y1 = src_y; 		    end		// REFLECT(underflow)
+		3'b10_0:	begin	src_y0 = image_height;    src_y1 = ~src_y;          end		// REFLECT101
+		3'b10_1:	begin	src_y0 = {Y_WIDTH{1'b0}}; src_y1 = src_y; 		    end		// REFLECT101(underflow)
+		3'b11_0:	begin	src_y0 = image_height;    src_y1 = ~src_y;          end		// REFLECT101
+		3'b11_1:	begin	src_y0 = {Y_WIDTH{1'b0}}; src_y1 = src_y; 		    end		// REFLECT101(underflow)
+		endcase
+		
+		src_yy      = src_y0 + src_y1;
+		src_y_over  = src_yy[Y_WIDTH-1];
+		
+		casex ( {param_y_op[1:0], src_y_under, src_y_over} )
+		4'b00_01:	begin	src_y_op = 3'b100;	end
+		4'b00_1x:	begin	src_y_op = 3'b101;	end
+		4'b01_01:	begin	src_y_op = 3'b110;	end
+		4'b01_1x:	begin	src_y_op = 3'b111;	end
+		4'b10_01:	begin	src_y_op = 3'b110;	end
+		4'b10_1x:	begin	src_y_op = 3'b101;	end
+		4'b11_01:	begin	src_y_op = 3'b111;	end
+		4'b11_1x:	begin	src_y_op = 3'b110;	end
+		4'bxx_00:	begin	src_y_op = 3'b000;	end
+		endcase
+	end
+	
+	reg		signed	[USER_BITS-1:0]	st0_user;
+	reg								st0_border;
+	
+	reg		signed	[X_WIDTH-1:0]	st0_x;
+	reg				[2:0]			st0_x_op;
+	
+	reg		signed	[Y_WIDTH-1:0]	st0_y;
+	reg				[2:0]			st0_y_op;
+	
+	
+	always @(posedge clk) begin
+		if ( cke ) begin
+			st0_user   <= src_user;
+			
+			st0_border <= ((~param_x_op[2] && (src_x_under || src_x_over)) || (~param_y_op[2] && (src_y_under || src_y_over)));
+			
+			st0_x      <= src_xx;
+			st0_x_op   <= src_x_op;
+			
+			st0_y      <= src_yy;
+			st0_y_op   <= src_y_op;
+		end
+	end
+	
+	
+	reg		signed	[X_WIDTH-1:0]	st0_x0;
+	reg		signed	[X_WIDTH-1:0]	st0_x1;
+	reg								st0_x_carry;
+	
+	reg		signed	[Y_WIDTH-1:0]	st0_y0;
+	reg		signed	[Y_WIDTH-1:0]	st0_y1;
+	reg								st0_y_carry;
+	
+	always @* begin
+		// X
+		st0_x0      = {X_WIDTH{1'bx}};
+		st0_x1      = {X_WIDTH{1'bx}};
+		st0_x_carry = 1'bx;
+		case ( st0_x_op )
+		3'b000:	begin	st0_x0 = image_width;     st0_x1 = ~st0_x;          st0_x_carry = 1'b0;	end
+		3'b100:	begin	st0_x0 = image_width;     st0_x1 = {X_WIDTH{1'b1}}; st0_x_carry = 1'b0;	end
+		3'b101:	begin	st0_x0 = {X_WIDTH{1'b0}}; st0_x1 = ~st0_x;          st0_x_carry = 1'b1;	end
+		3'b110:	begin	st0_x0 = image_width;     st0_x1 = st0_x;           st0_x_carry = 1'b0;	end
+		3'b111:	begin	st0_x0 = {X_WIDTH{1'b0}}; st0_x1 = ~st0_x;          st0_x_carry = 1'b0;	end
+		endcase
+		
+		// Y
+		st0_y0      = {Y_WIDTH{1'bx}};
+		st0_y1      = {Y_WIDTH{1'bx}};
+		st0_y_carry = 1'bx;
+		case ( st0_y_op )
+		3'b000:	begin	st0_y0 = image_height;    st0_y1 = ~st0_y;          st0_y_carry = 1'b0;	end
+		3'b100:	begin	st0_y0 = image_height;    st0_y1 = {Y_WIDTH{1'b1}}; st0_y_carry = 1'b0;	end
+		3'b101:	begin	st0_y0 = {Y_WIDTH{1'b0}}; st0_y1 = ~st0_y;          st0_y_carry = 1'b1;	end
+		3'b110:	begin	st0_y0 = image_height;    st0_y1 = st0_y;           st0_y_carry = 1'b0;	end
+		3'b111:	begin	st0_y0 = {Y_WIDTH{1'b0}}; st0_y1 = ~st0_y;          st0_y_carry = 1'b0;	end
 		endcase
 	end
 	
 	
-	// stage 0
-	reg				[USER_BITS-1:0]		st0_user;
-	reg									st0_x_under;
-	wire								st0_x_over; 
-	reg		signed	[X_WIDTH-1:0]		st0_x;
-	wire	signed	[X_WIDTH-1:0]		st0_x0;
-	wire	signed	[X_WIDTH-1:0]		st0_x1;
-	wire								st0_x_carry;
-	
-	reg									st0_y_under;
-	wire								st0_y_over;
-	reg		signed	[Y_WIDTH-1:0]		st0_y;
-	wire	signed	[Y_WIDTH-1:0]		st0_y0;
-	wire	signed	[Y_WIDTH-1:0]		st0_y1;
-	wire								st0_y_carry;
-	
-	
-	
-	assign st0_x_over  = (~st0_x1[X_WIDTH-1] && !st0_x_under);
-	assign st0_x0      = (param_op_x[4] & st0_x_under) | (param_op_x[5] & st0_x_over) ? {X_WIDTH{1'b0}} : image_width;
-	assign st0_x1      = (param_op_x[6] & st0_x_under)                                ? {X_WIDTH{1'b0}} :
-	                     (param_op_x[2] & st0_x_under) | (param_op_x[3] & st0_x_over) ? st0_x           : ~st0_x;
-	assign st0_x_carry = (param_op_x[0] & st0_x_under) | (param_op_x[1] & st0_x_over) ? 1'b1            : 1'b0;
-	
-	assign st0_y_over  = (~st0_y1[Y_WIDTH-1] && !st0_y_under);
-	assign st0_y0      = (param_op_y[4] & st0_y_under) | (param_op_y[5] & st0_y_over) ? {Y_WIDTH{1'b0}} : image_height;
-	assign st0_y1      = (param_op_y[6] & st0_y_under)                                ? {Y_WIDTH{1'b0}} :
-	                     (param_op_y[2] & st0_y_under) | (param_op_y[3] & st0_y_over) ? st0_y           : ~st0_y;
-	assign st0_y_carry = (param_op_y[0] & st0_y_under) | (param_op_y[1] & st0_y_over) ? 1'b1            : 1'b0;
-	
-	
-	// stage 1
-	reg				[USER_BITS-1:0]		st1_user;
-	reg									st1_border;
-	reg		signed	[X_WIDTH-1:0]		st1_x;
-	reg		signed	[Y_WIDTH-1:0]		st1_y;
-	
+	reg				[USER_BITS-1:0]	st1_user;
+	reg								st1_border;
+	reg		signed	[X_WIDTH-1:0]	st1_x;
+	reg		signed	[Y_WIDTH-1:0]	st1_y;
 	
 	always @(posedge clk) begin
-		// stage 0
-		if ( stage_cke[0] ) begin
-			st0_user    <= src_user;
+		if ( cke ) begin
+			st1_user   <= st0_user;
 			
-			st0_x       <= src_x[X_WIDTH-1] ? src_x : image_width  - src_x - 1'b1;
-			st0_x_under <= src_x[X_WIDTH-1];
+			st1_border <= st0_border;
 			
-			st0_y       <= src_y[Y_WIDTH-1] ? src_y : image_height - src_y - 1'b1;
-			st0_y_under <= src_y[Y_WIDTH-1];
-		end
-		
-		// stage 1
-		if ( stage_cke[1] ) begin
-			st1_user    <= st0_user;
-			st1_border  <= (~param_op_x[7] && (st0_x_under || st0_x_over)) || (~param_op_y[7] && (st0_y_under || st0_y_over));
-			st1_x       <= st0_x0 + st0_x1 + st0_x_carry;
-			st1_y       <= st0_y0 + st0_y1 + st0_y_carry;
+			st1_x      <= st0_x0 + st0_x1 + st0_x_carry;
+			st1_y      <= st0_y0 + st0_y1 + st0_y_carry;
 		end
 	end
+	
 	
 	assign sink_user   = st1_user;
 	assign sink_border = st1_border;
 	assign sink_addrx  = st1_x;
 	assign sink_addry  = st1_y;
+	
 	
 endmodule
 
