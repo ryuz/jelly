@@ -192,7 +192,7 @@ module jelly_texture_sampler
 	
 	generate
 	for ( i = 0; i < SAMPLER2D_NUM; i = i+1 ) begin : loop_2d
-		jelly_bilinear_unit
+		jelly_texture_bilinear_unit
 				#(
 					.COMPONENT_NUM			(COMPONENT_NUM),
 					.DATA_WIDTH				(DATA_WIDTH),
@@ -210,7 +210,7 @@ module jelly_texture_sampler
 					.USER_FIFO_M_REGS		(SAMPLER2D_USER_FIFO_M_REGS),
 					.DEVICE					(DEVICE)
 				)
-			i_bilinear_unit
+			i_texture_bilinear_unit
 				(
 					.reset					(reset),
 					.clk					(clk),
