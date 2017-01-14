@@ -16,7 +16,8 @@
 module jelly_texture_sampler
 		#(
 			parameter	COMPONENT_NUM                 = 3,
-			parameter	DATA_WIDTH                    = 8,
+			parameter	DATA_SIZE                     = 0,
+			parameter	DATA_WIDTH                    = (8 << DATA_SIZE),
 			parameter	ADDR_WIDTH                    = 24,
 			parameter	ADDR_X_WIDTH                  = 12,
 			parameter	ADDR_Y_WIDTH                  = 12,
@@ -53,12 +54,12 @@ module jelly_texture_sampler
 			parameter	L1_BLK_Y_SIZE                 = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	L1_TAG_RAM_TYPE               = "distributed",
 			parameter	L1_MEM_RAM_TYPE               = "block",
-			parameter	L1_DATA_WIDE_SIZE             = 2,
+			parameter	L1_DATA_SIZE                  = 2,
 			parameter	L1_QUE_FIFO_PTR_WIDTH         = L1_USE_LOOK_AHEAD ? 5 : 0,
 			parameter	L1_QUE_FIFO_RAM_TYPE          = "distributed",
 			parameter	L1_AR_FIFO_PTR_WIDTH          = 0,
 			parameter	L1_AR_FIFO_RAM_TYPE           = "distributed",
-			parameter	L1_R_FIFO_PTR_WIDTH           = L2_USE_LOOK_AHEAD ? L1_BLK_Y_SIZE + L1_BLK_X_SIZE - L1_DATA_WIDE_SIZE : 0,
+			parameter	L1_R_FIFO_PTR_WIDTH           = L2_USE_LOOK_AHEAD ? L1_BLK_Y_SIZE + L1_BLK_X_SIZE - L1_DATA_SIZE : 0,
 			parameter	L1_R_FIFO_RAM_TYPE            = "block",
 			parameter	L1_LOG_ENABLE                 = 0,
 			parameter	L1_LOG_FILE                   = "l1_log.txt",
@@ -170,6 +171,7 @@ module jelly_texture_sampler
 	//  1D sampler
 	// -------------------------------------------------
 	
+	// 1Dというか補間無しアクセス？
 	// そのうち必要になったら考える
 	
 	
@@ -242,6 +244,7 @@ module jelly_texture_sampler
 	//  3D sampler
 	// -------------------------------------------------
 	
+	// ミップマップ用トリリニア補間予定地
 	// 作る日くるのか？
 	
 	
@@ -254,7 +257,8 @@ module jelly_texture_sampler
 	jelly_texture_cache_core
 			#(
 				.COMPONENT_NUM			(COMPONENT_NUM),
-				.COMPONENT_DATA_WIDTH	(DATA_WIDTH),
+				.COMPONENT_DATA_SIZE	(DATA_SIZE),
+	//			.COMPONENT_DATA_WIDTH	(DATA_WIDTH),
 				
 				.USER_WIDTH				(SAMPLER2D_COEFF_WIDTH),
 				.USE_S_RREADY			(1),			// 0: s_rready is always 1'b1.   1: handshake mode.
@@ -272,7 +276,7 @@ module jelly_texture_sampler
 				.L1_BLK_Y_SIZE			(L1_BLK_Y_SIZE),
 				.L1_TAG_RAM_TYPE		(L1_TAG_RAM_TYPE),
 				.L1_MEM_RAM_TYPE		(L1_MEM_RAM_TYPE),
-				.L1_DATA_WIDE_SIZE		(L1_DATA_WIDE_SIZE),
+				.L1_DATA_SIZE			(L1_DATA_SIZE),
 				.L1_QUE_FIFO_PTR_WIDTH	(L1_QUE_FIFO_PTR_WIDTH),
 				.L1_QUE_FIFO_RAM_TYPE	(L1_QUE_FIFO_RAM_TYPE),
 				.L1_AR_FIFO_PTR_WIDTH	(L1_AR_FIFO_PTR_WIDTH),

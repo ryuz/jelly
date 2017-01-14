@@ -17,20 +17,14 @@ module jelly_texture_cache_tag
 		#(
 			parameter	USER_WIDTH       = 1,
 			
-			parameter	S_ADDR_X_WIDTH   = 12,
-			parameter	S_ADDR_Y_WIDTH   = 12,
-			parameter	S_DATA_WIDTH     = 24,
+			parameter	ADDR_X_WIDTH     = 12,
+			parameter	ADDR_Y_WIDTH     = 12,
 			
 			parameter	PARALLEL_SIZE    = 0,
-			parameter	TAG_ADDR_WIDTH   = 6,			
+			parameter	TAG_ADDR_WIDTH   = 6,
 			parameter	BLK_X_SIZE       = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	BLK_Y_SIZE       = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
-			
-			parameter	PIX_ADDR_X_WIDTH = BLK_X_SIZE,
-			parameter	PIX_ADDR_Y_WIDTH = BLK_Y_SIZE,
-			parameter	BLK_ADDR_X_WIDTH = S_ADDR_X_WIDTH - BLK_X_SIZE,
-			parameter	BLK_ADDR_Y_WIDTH = S_ADDR_Y_WIDTH - BLK_Y_SIZE,
-			
+						
 			parameter	RAM_TYPE         = "distributed",
 			
 			parameter	USE_BORDER       = 1,
@@ -46,13 +40,13 @@ module jelly_texture_cache_tag
 			input	wire							clear_start,
 			output	wire							clear_busy,
 			
-			input	wire	[S_ADDR_X_WIDTH-1:0]	param_width,
-			input	wire	[S_ADDR_Y_WIDTH-1:0]	param_height,
+			input	wire	[ADDR_X_WIDTH-1:0]		param_width,
+			input	wire	[ADDR_Y_WIDTH-1:0]		param_height,
 			
 			input	wire	[USER_BITS-1:0]			s_user,
 			input	wire							s_last,
-			input	wire	[S_ADDR_X_WIDTH-1:0]	s_addrx,
-			input	wire	[S_ADDR_Y_WIDTH-1:0]	s_addry,
+			input	wire	[ADDR_X_WIDTH-1:0]		s_addrx,
+			input	wire	[ADDR_Y_WIDTH-1:0]		s_addry,
 			input	wire							s_valid,
 			output	wire							s_ready,
 			
@@ -69,7 +63,11 @@ module jelly_texture_cache_tag
 			input	wire							m_ready
 		);
 	
-	localparam	USER_BITS = USER_WIDTH > 0 ? USER_WIDTH : 1;
+	localparam	USER_BITS        = USER_WIDTH > 0 ? USER_WIDTH : 1;
+	localparam	PIX_ADDR_X_WIDTH = BLK_X_SIZE;
+	localparam	PIX_ADDR_Y_WIDTH = BLK_Y_SIZE;
+	localparam	BLK_ADDR_X_WIDTH = ADDR_X_WIDTH - BLK_X_SIZE;
+	localparam	BLK_ADDR_Y_WIDTH = ADDR_Y_WIDTH - BLK_Y_SIZE;
 	
 	
 	// ---------------------------------
@@ -145,8 +143,8 @@ module jelly_texture_cache_tag
 	
 	wire	[PIX_ADDR_X_WIDTH-1:0]	s_pix_addrx = s_addrx[BLK_X_SIZE-1:0];
 	wire	[PIX_ADDR_Y_WIDTH-1:0]	s_pix_addry = s_addry[BLK_Y_SIZE-1:0];
-	wire	[BLK_ADDR_X_WIDTH-1:0]	s_blk_addrx = s_addrx[S_ADDR_X_WIDTH-1:BLK_X_SIZE];
-	wire	[BLK_ADDR_Y_WIDTH-1:0]	s_blk_addry = s_addry[S_ADDR_Y_WIDTH-1:BLK_Y_SIZE];
+	wire	[BLK_ADDR_X_WIDTH-1:0]	s_blk_addrx = s_addrx[ADDR_X_WIDTH-1:BLK_X_SIZE];
+	wire	[BLK_ADDR_Y_WIDTH-1:0]	s_blk_addry = s_addry[ADDR_Y_WIDTH-1:BLK_Y_SIZE];
 	
 	//  TAG ADDR
 	wire	[TAG_ADDR_WIDTH-1:0]	s_tag_addr;

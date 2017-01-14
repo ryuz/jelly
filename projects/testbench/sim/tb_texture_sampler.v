@@ -28,7 +28,8 @@ module tb_texture_sampler();
 	
 	
 	parameter	COMPONENT_NUM                 = 3;
-	parameter	DATA_WIDTH                    = 8;
+	parameter	DATA_SIZE                     = 0;
+	parameter	DATA_WIDTH                    = (8 << DATA_SIZE);
 	parameter	ADDR_WIDTH                    = 24;
 	parameter	ADDR_X_WIDTH                  = 12;
 	parameter	ADDR_Y_WIDTH                  = 12;
@@ -64,7 +65,7 @@ module tb_texture_sampler();
 	parameter	L1_BLK_Y_SIZE                 = 2;	// 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
 	parameter	L1_TAG_RAM_TYPE               = "distributed";
 	parameter	L1_MEM_RAM_TYPE               = "block";
-	parameter	L1_DATA_WIDE_SIZE             = 2;
+	parameter	L1_DATA_SIZE                  = 2;
 	
 	parameter	L2_PARALLEL_SIZE              = 2;
 	parameter	L2_CACHE_NUM                  = (1 << L2_PARALLEL_SIZE);
@@ -147,6 +148,15 @@ module tb_texture_sampler();
 		m10 = $rtoi(16 * 0.7071);
 		m11 = $rtoi(16 * 0.707);
 		m12 = $rtoi(16 * -155.97);
+		
+		/*
+		m00 = $rtoi(16 * 1.0);
+		m01 = $rtoi(16 * 0.0);
+		m02 = $rtoi(16 * 0.0);
+		m10 = $rtoi(16 * 0.0);
+		m11 = $rtoi(16 * 1.0);
+		m12 = $rtoi(16 * 0.0);
+		*/
 	end
 	
 	wire		[SAMPLER2D_Y_WIDTH-1:0]				src_x_tmp = m00 * src_x + m01 * src_y + m02;
@@ -280,7 +290,9 @@ module tb_texture_sampler();
 	jelly_texture_sampler
 			#(
 				.COMPONENT_NUM					(COMPONENT_NUM					),
-				.DATA_WIDTH						(DATA_WIDTH						),
+				.DATA_SIZE						(DATA_SIZE),
+		//		.DATA_WIDTH						(DATA_WIDTH						),
+				
 				.ADDR_WIDTH						(ADDR_WIDTH						),
 				.ADDR_X_WIDTH					(ADDR_X_WIDTH					),
 				.ADDR_Y_WIDTH					(ADDR_Y_WIDTH					),
@@ -310,7 +322,7 @@ module tb_texture_sampler();
 				
 				.SAMPLER3D_NUM					(SAMPLER3D_NUM					),
 				
-				.L1_USE_LOOK_AHEAD				(1),
+				.L1_USE_LOOK_AHEAD				(0),
 				.L1_QUE_FIFO_PTR_WIDTH			(6),
 				.L1_CACHE_NUM					(L1_CACHE_NUM					),
 				.L1_TAG_ADDR_WIDTH				(L1_TAG_ADDR_WIDTH				),
@@ -318,7 +330,7 @@ module tb_texture_sampler();
 				.L1_BLK_Y_SIZE					(L1_BLK_Y_SIZE					),
 				.L1_TAG_RAM_TYPE				(L1_TAG_RAM_TYPE				),
 				.L1_MEM_RAM_TYPE				(L1_MEM_RAM_TYPE				),
-				.L1_DATA_WIDE_SIZE				(L1_DATA_WIDE_SIZE				),
+				.L1_DATA_SIZE					(L1_DATA_SIZE				),
 				
 				.L2_PARALLEL_SIZE				(L2_PARALLEL_SIZE),
 				.L2_USE_LOOK_AHEAD				(0),

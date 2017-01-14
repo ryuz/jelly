@@ -35,9 +35,10 @@ module tb_texture_cache_unit();
 	parameter	COMPONENT_NUM    = 1;
 	parameter	COMPONENT_WIDTH  = 24;
 	
-	parameter	S_ADDR_X_WIDTH   = 12;
-	parameter	S_ADDR_Y_WIDTH   = 12;
-	parameter	S_DATA_WIDTH     = COMPONENT_NUM * COMPONENT_WIDTH;
+	parameter	ADDR_X_WIDTH     = 12;
+	parameter	ADDR_Y_WIDTH     = 12;
+	parameter	S_DATA_SIZE      = 0;
+	parameter	S_DATA_WIDTH     = ((COMPONENT_NUM * COMPONENT_WIDTH) << S_DATA_SIZE);
 	
 	parameter	TAG_ADDR_WIDTH   = 6;
 	
@@ -46,14 +47,14 @@ module tb_texture_cache_unit();
 	
 	parameter	PIX_ADDR_X_WIDTH = BLK_X_SIZE;
 	parameter	PIX_ADDR_Y_WIDTH = BLK_Y_SIZE;
-	parameter	BLK_ADDR_X_WIDTH = S_ADDR_X_WIDTH - BLK_X_SIZE;
-	parameter	BLK_ADDR_Y_WIDTH = S_ADDR_Y_WIDTH - BLK_Y_SIZE;
+	parameter	BLK_ADDR_X_WIDTH = ADDR_X_WIDTH - BLK_X_SIZE;
+	parameter	BLK_ADDR_Y_WIDTH = ADDR_Y_WIDTH - BLK_Y_SIZE;
 	
-	parameter	M_DATA_WIDE_SIZE = 1;
+	parameter	M_DATA_SIZE      = 1;
+	parameter	M_DATA_WIDTH     = ((COMPONENT_NUM * COMPONENT_WIDTH) << M_DATA_SIZE);
 	
-	parameter	M_ADDR_X_WIDTH   = BLK_ADDR_X_WIDTH;
-	parameter	M_ADDR_Y_WIDTH   = BLK_ADDR_Y_WIDTH;
-	parameter	M_DATA_WIDTH     = (S_DATA_WIDTH << M_DATA_WIDE_SIZE);
+//	parameter	M_ADDR_X_WIDTH   = BLK_ADDR_X_WIDTH;
+//	parameter	M_ADDR_Y_WIDTH   = BLK_ADDR_Y_WIDTH;
 	
 	
 	wire									endian = 0;
@@ -61,24 +62,24 @@ module tb_texture_cache_unit();
 	wire									clear_start = 0;
 	wire									ckear_busy;
 	
-	wire	[S_ADDR_X_WIDTH-1:0]			param_width  = 640;
-	wire	[S_ADDR_X_WIDTH-1:0]			param_height = 480;
+	wire	[ADDR_X_WIDTH-1:0]				param_width  = 640;
+	wire	[ADDR_X_WIDTH-1:0]				param_height = 480;
 	
 	
-	reg		signed	[S_ADDR_X_WIDTH-1:0]	s_araddrx;
-	reg		signed	[S_ADDR_Y_WIDTH-1:0]	s_araddry;
+	reg		signed	[ADDR_X_WIDTH-1:0]		s_araddrx;
+	reg		signed	[ADDR_Y_WIDTH-1:0]		s_araddry;
 	reg										s_arvalid;
 	wire									s_arready;
 	
-	wire	signed	[S_ADDR_X_WIDTH-1:0]	s_ruser_x;
-	wire	signed	[S_ADDR_Y_WIDTH-1:0]	s_ruser_y;
+	wire	signed	[ADDR_X_WIDTH-1:0]		s_ruser_x;
+	wire	signed	[ADDR_Y_WIDTH-1:0]		s_ruser_y;
 	wire	[S_DATA_WIDTH-1:0]				s_rdata;
 	wire									s_rvalid;
 	reg										s_rready = 1;
 	
 	
-	wire	[M_ADDR_X_WIDTH-1:0]			m_araddrx;
-	wire	[M_ADDR_Y_WIDTH-1:0]			m_araddry;
+	wire	[ADDR_X_WIDTH-1:0]				m_araddrx;
+	wire	[ADDR_Y_WIDTH-1:0]				m_araddry;
 	wire									m_arvalid;
 	reg										m_arready;
 	
@@ -91,18 +92,20 @@ module tb_texture_cache_unit();
 	
 	jelly_texture_cache_unit
 			#(
-				.USER_WIDTH			(S_ADDR_Y_WIDTH+S_ADDR_X_WIDTH),
-				.COMPONENT_NUM		(COMPONENT_NUM),
-				.COMPONENT_WIDTH	(COMPONENT_WIDTH),
-				.S_ADDR_X_WIDTH		(S_ADDR_X_WIDTH),
-				.S_ADDR_Y_WIDTH		(S_ADDR_Y_WIDTH),
-				.S_DATA_WIDTH		(S_DATA_WIDTH),
-				.USE_M_RREADY		(USE_M_RREADY),
-				.TAG_ADDR_WIDTH		(TAG_ADDR_WIDTH),
-				.BLK_ADDR_X_WIDTH	(BLK_ADDR_X_WIDTH),
-				.BLK_ADDR_Y_WIDTH	(BLK_ADDR_Y_WIDTH),
-				.M_DATA_WIDE_SIZE	(M_DATA_WIDE_SIZE),
-				.BORDER_DATA		(BORDER_DATA)
+				.S_USER_WIDTH			(ADDR_Y_WIDTH+ADDR_X_WIDTH),
+				.COMPONENT_NUM			(COMPONENT_NUM),
+				.COMPONENT_DATA_WIDTH	(COMPONENT_WIDTH),
+				.ADDR_X_WIDTH			(ADDR_X_WIDTH),
+				.ADDR_Y_WIDTH			(ADDR_Y_WIDTH),
+	//			.S_DATA_WIDTH			(S_DATA_WIDTH),
+				.USE_LOOK_AHEAD			(1),
+				.USE_S_RREADY			(1),
+				.USE_M_RREADY			(USE_M_RREADY),
+				.TAG_ADDR_WIDTH			(TAG_ADDR_WIDTH),
+	//			.BLK_ADDR_X_WIDTH		(BLK_ADDR_X_WIDTH),
+	//			.BLK_ADDR_Y_WIDTH		(BLK_ADDR_Y_WIDTH),
+				.M_DATA_SIZE			(M_DATA_SIZE),
+				.BORDER_DATA			(BORDER_DATA)
 			)
 		i_texture_cache_unit
 			(
@@ -173,8 +176,8 @@ module tb_texture_cache_unit();
 	
 	integer							reg_count;
 	reg								reg_busy;
-	reg		[M_ADDR_X_WIDTH-1:0]	reg_araddrx;
-	reg		[M_ADDR_Y_WIDTH-1:0]	reg_araddry;
+	reg		[ADDR_X_WIDTH-1:0]		reg_araddrx;
+	reg		[ADDR_Y_WIDTH-1:0]		reg_araddry;
 	reg		[1:0]					reg_x;
 	reg		[1:0]					reg_y;
 	always @(posedge clk) begin
@@ -206,9 +209,9 @@ module tb_texture_cache_unit();
 						m_rvalid <= 1'b0;
 					end
 					else begin
-						reg_count <= reg_count + 1;
-						m_rlast   <= (reg_count == 4*2-2);
-						reg_x     <= reg_x + 2;
+						reg_count   <= reg_count + 1;
+						m_rlast     <= (reg_count == 4*2-2);
+						reg_x       <= reg_x + 2;
 						if ( reg_x + 2 >= 4 ) begin
 							reg_x <= 0;
 							reg_y <= reg_y + 1;
@@ -218,8 +221,14 @@ module tb_texture_cache_unit();
 			end
 		end
 	end
+
+	wire	[ADDR_X_WIDTH-1:0]		araddrx0 = reg_araddrx + reg_x;
+	wire	[ADDR_X_WIDTH-1:0]		araddrx1 = reg_araddrx + reg_x + 1;
+	wire	[ADDR_Y_WIDTH-1:0]		araddry0 = reg_araddry + reg_y;
+	wire	[ADDR_Y_WIDTH-1:0]		araddry1 = reg_araddry + reg_y;
 	
-	assign m_rdata = {reg_araddry, reg_y, reg_araddrx, (reg_x+2'b01), reg_araddry, reg_y, reg_araddrx, reg_x};
+//	assign m_rdata = {reg_araddry, reg_y, reg_araddrx, (reg_x+2'b01), reg_araddry, reg_y, reg_araddrx, reg_x};
+	assign m_rdata = {araddry1, araddrx1, araddry0, araddrx0};
 	
 	
 	// -----------------------------------------
@@ -247,9 +256,11 @@ module tb_texture_cache_unit();
 	
 	reg		signed	[11:0]		tmp_out_x;
 	reg		signed	[11:0]		tmp_out_y;
+	reg							ng = 0;
 	
 	always @(posedge clk) begin
 		if ( !reset ) begin
+			ng <= 0;
 			if ( s_rvalid & s_rready ) begin
 				// Œ‹‰Êo—Í
 				$fdisplay(fp, "%h", s_rdata);
@@ -276,7 +287,8 @@ module tb_texture_cache_unit();
 					else begin
 						$display("!!!ERROR!!!");
 						$display("[NG] %d %d %h", s_ruser_y, s_ruser_x, s_rdata);
-						$stop();
+						ng <= 1;
+//						$stop();
 					end
 				end
 			end

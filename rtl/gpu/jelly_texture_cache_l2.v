@@ -22,13 +22,15 @@ module jelly_texture_cache_l2
 			parameter	ADDR_WIDTH           = 24,
 			
 			parameter	PARALLEL_SIZE        = 2, 	// 0:1, 1:2, 2:4, 2:4, 3:8 ....
+			parameter	ADDR_X_WIDTH         = 12,
+			parameter	ADDR_Y_WIDTH         = 12,
 			parameter	BLK_X_SIZE           = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	BLK_Y_SIZE           = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	TAG_ADDR_WIDTH       = 6,
-			parameter	TAG_X_RSHIFT         = 0,
-			parameter	TAG_X_LSHIFT         = 0,
-			parameter	TAG_Y_RSHIFT         = TAG_X_RSHIFT,
-			parameter	TAG_Y_LSHIFT         = TAG_ADDR_WIDTH / 2,
+	//		parameter	TAG_X_RSHIFT         = 0,
+	//		parameter	TAG_X_LSHIFT         = 0,
+	//		parameter	TAG_Y_RSHIFT         = TAG_X_RSHIFT,
+	//		parameter	TAG_Y_LSHIFT         = TAG_ADDR_WIDTH / 2,
 			parameter	TAG_RAM_TYPE         = "distributed",
 			parameter	MEM_RAM_TYPE         = "block",
 			
@@ -40,11 +42,9 @@ module jelly_texture_cache_l2
 			parameter	BORDER_DATA          = {S_DATA_WIDTH{1'b0}},
 			
 			parameter	S_NUM                = 8,
-			parameter	S_DATA_WIDTH         = COMPONENT_NUM * COMPONENT_DATA_WIDTH,
-			parameter	S_ADDR_X_WIDTH       = 12,
-			parameter	S_ADDR_Y_WIDTH       = 12,
-			parameter	S_BLK_X_NUM          = 1,
-			parameter	S_BLK_Y_NUM          = 1,
+			parameter	S_DATA_SIZE          = 1,
+			parameter	S_BLK_X_NUM          = 2,
+			parameter	S_BLK_Y_NUM          = 2,
 			
 			parameter	M_AXI4_ID_WIDTH      = 6,
 			parameter	M_AXI4_ADDR_WIDTH    = 32,
@@ -88,8 +88,8 @@ module jelly_texture_cache_l2
 			input	wire											clear_start,
 			output	wire											clear_busy,
 			
-			input	wire	[S_ADDR_X_WIDTH-1:0]					param_width,
-			input	wire	[S_ADDR_Y_WIDTH-1:0]					param_height,
+			input	wire	[ADDR_X_WIDTH-1:0]						param_width,
+			input	wire	[ADDR_Y_WIDTH-1:0]						param_height,
 			
 			output	wire	[CACHE_NUM-1:0]							status_idle,
 			output	wire	[CACHE_NUM-1:0]							status_stall,
@@ -99,8 +99,8 @@ module jelly_texture_cache_l2
 			output	wire	[CACHE_NUM-1:0]							status_range_out,
 			
 	//		input	wire	[S_NUM*S_USER_WIDTH-1:0]				s_aruser,
-			input	wire	[S_NUM*S_ADDR_X_WIDTH-1:0]				s_araddrx,
-			input	wire	[S_NUM*S_ADDR_Y_WIDTH-1:0]				s_araddry,
+			input	wire	[S_NUM*ADDR_X_WIDTH-1:0]				s_araddrx,
+			input	wire	[S_NUM*ADDR_Y_WIDTH-1:0]				s_araddry,
 			input	wire	[S_NUM-1:0]								s_arvalid,
 			output	wire	[S_NUM-1:0]								s_arready,
 			
@@ -138,6 +138,9 @@ module jelly_texture_cache_l2
 	// -----------------------------
 	//  localparam
 	// -----------------------------
+	
+	localparam	S_DATA_WIDTH         = ((COMPONENT_NUM * COMPONENT_DATA_WIDTH) << S_DATA_SIZE);
+
 	
 	localparam	CACHE_NUM           = (1 << PARALLEL_SIZE);
 	localparam	CACHE_ID_WIDTH      = PARALLEL_SIZE;
@@ -191,9 +194,10 @@ module jelly_texture_cache_l2
 	                                  COMPONENT_DATA_WIDTH <= 32768 ? 12 : 13;
 	
 	
-	localparam	M_DATA_WIDE_SIZE    = M_AXI4_DATA_SIZE - COMPONENT_DATA_SIZE;
-	localparam	M_ADDR_X_WIDTH      = S_ADDR_X_WIDTH - M_DATA_WIDE_SIZE;
-	localparam	M_ADDR_Y_WIDTH      = S_ADDR_Y_WIDTH;
+	localparam	M_DATA_SIZE    = M_AXI4_DATA_SIZE;
+//	localparam	M_DATA_SIZE    = M_AXI4_DATA_SIZE - COMPONENT_DATA_SIZE;
+//	localparam	M_ADDR_X_WIDTH = S_ADDR_X_WIDTH - M_DATA_WIDE_SIZE;
+//	localparam	M_ADDR_Y_WIDTH = S_ADDR_Y_WIDTH;
 	
 	
 	
@@ -201,13 +205,13 @@ module jelly_texture_cache_l2
 	//  Arbiter
 	// -----------------------------
 	
-	localparam	S_AR_PACKET_WIDTH = S_ADDR_X_WIDTH + S_ADDR_Y_WIDTH;
+	localparam	S_AR_PACKET_WIDTH = ADDR_X_WIDTH + ADDR_Y_WIDTH;
 	localparam	S_R_PACKET_WIDTH  = 1 + S_DATA_WIDTH;
 	
 	
 	// コマンドパケット生成
-	localparam	BLK_ADDR_X_WIDTH = S_ADDR_X_WIDTH - BLK_X_SIZE;
-	localparam	BLK_ADDR_Y_WIDTH = S_ADDR_Y_WIDTH - BLK_Y_SIZE;
+	localparam	BLK_ADDR_X_WIDTH = ADDR_X_WIDTH - BLK_X_SIZE;
+	localparam	BLK_ADDR_Y_WIDTH = ADDR_Y_WIDTH - BLK_Y_SIZE;
 	
 	wire	[S_NUM*CACHE_ID_WIDTH-1:0]		s_arid;
 	wire	[S_NUM*S_AR_PACKET_WIDTH-1:0]	s_arpacket;
@@ -217,8 +221,8 @@ module jelly_texture_cache_l2
 		//  ID
 		wire	[BLK_ADDR_X_WIDTH-1:0]	s_blk_addrx;
 		wire	[BLK_ADDR_Y_WIDTH-1:0]	s_blk_addry;
-		assign s_blk_addrx = (s_araddrx[i*S_ADDR_X_WIDTH +: S_ADDR_X_WIDTH] >> BLK_X_SIZE);
-		assign s_blk_addry = (s_araddry[i*S_ADDR_Y_WIDTH +: S_ADDR_Y_WIDTH] >> BLK_Y_SIZE);
+		assign s_blk_addrx = (s_araddrx[i*ADDR_X_WIDTH +: ADDR_X_WIDTH] >> BLK_X_SIZE);
+		assign s_blk_addry = (s_araddry[i*ADDR_Y_WIDTH +: ADDR_Y_WIDTH] >> BLK_Y_SIZE);
 		
 		jelly_texture_cache_tag_addr
 				#(
@@ -240,8 +244,8 @@ module jelly_texture_cache_l2
 		// packet
 		assign s_arpacket[i*S_AR_PACKET_WIDTH +: S_AR_PACKET_WIDTH] =
 						{
-							s_araddrx[i*S_ADDR_X_WIDTH +: S_ADDR_X_WIDTH],
-							s_araddry[i*S_ADDR_Y_WIDTH +: S_ADDR_Y_WIDTH]
+							s_araddrx[i*ADDR_X_WIDTH +: ADDR_X_WIDTH],
+							s_araddry[i*ADDR_Y_WIDTH +: ADDR_Y_WIDTH]
 						};
 	end
 	endgenerate
@@ -255,15 +259,15 @@ module jelly_texture_cache_l2
 	
 	
 	wire	[CACHE_NUM*S_ID_WIDTH-1:0]			arbit_aruser;
-	wire	[CACHE_NUM*S_ADDR_X_WIDTH-1:0]		arbit_araddrx;
-	wire	[CACHE_NUM*S_ADDR_Y_WIDTH-1:0]		arbit_araddry;
+	wire	[CACHE_NUM*ADDR_X_WIDTH-1:0]		arbit_araddrx;
+	wire	[CACHE_NUM*ADDR_Y_WIDTH-1:0]		arbit_araddry;
 	generate
 	for ( i = 0; i < CACHE_NUM; i = i+1 ) begin : loop_ar_unpack
 		assign 
 			{
-				arbit_aruser [i*S_ID_WIDTH     +: S_ID_WIDTH],
-				arbit_araddrx[i*S_ADDR_X_WIDTH +: S_ADDR_X_WIDTH],
-				arbit_araddry[i*S_ADDR_Y_WIDTH +: S_ADDR_Y_WIDTH]
+				arbit_aruser [i*S_ID_WIDTH         +: S_ID_WIDTH],
+				arbit_araddrx[i*ADDR_X_WIDTH       +: ADDR_X_WIDTH],
+				arbit_araddry[i*ADDR_Y_WIDTH       +: ADDR_Y_WIDTH]
 			} = arbit_arpacket[i*S_AR_PACKET_WIDTH +: S_AR_PACKET_WIDTH];
 	end
 	endgenerate
@@ -353,8 +357,8 @@ module jelly_texture_cache_l2
 	// simulation check
 	always @(posedge clk) begin
 		if ( !reset ) begin
-			if ( s_rvalid && !s_rready ) begin
-				$display("L2$ rdata overflow");
+			if ( |(s_rvalid & ~s_rready) ) begin
+				$display("L2$ rdata overflow : %b", (s_rvalid & ~s_rready));
 			end
 		end
 	end
@@ -394,7 +398,7 @@ module jelly_texture_cache_l2
 	//  L2 Cahce
 	// -----------------------------
 	
-	localparam	M_AR_PACKET_WIDTH = M_ADDR_X_WIDTH + M_ADDR_Y_WIDTH;
+	localparam	M_AR_PACKET_WIDTH = ADDR_X_WIDTH + ADDR_Y_WIDTH;
 	localparam	M_R_PACKET_WIDTH  = 1 + COMPONENT_SEL_WIDTH + M_AXI4_DATA_WIDTH;
 	
 	// cache
@@ -402,8 +406,8 @@ module jelly_texture_cache_l2
 	assign clear_busy = cache_clear_busy[0];
 	
 	wire	[CACHE_NUM*M_AR_PACKET_WIDTH-1:0]	cache_arpacket;
-	wire	[CACHE_NUM*M_ADDR_X_WIDTH-1:0]		cache_araddrx;
-	wire	[CACHE_NUM*M_ADDR_Y_WIDTH-1:0]		cache_araddry;
+	wire	[CACHE_NUM*ADDR_X_WIDTH-1:0]		cache_araddrx;
+	wire	[CACHE_NUM*ADDR_Y_WIDTH-1:0]		cache_araddry;
 	wire	[CACHE_NUM-1:0]						cache_arvalid;
 	wire	[CACHE_NUM-1:0]						cache_arready;
 	
@@ -426,8 +430,8 @@ module jelly_texture_cache_l2
 		// ar pack
 		assign cache_arpacket[i*M_AR_PACKET_WIDTH +: M_AR_PACKET_WIDTH] =
 				{
-					cache_araddrx[i*M_ADDR_X_WIDTH +: M_ADDR_X_WIDTH],
-					cache_araddry[i*M_ADDR_Y_WIDTH +: M_ADDR_Y_WIDTH]
+					cache_araddrx[i*ADDR_X_WIDTH +: ADDR_X_WIDTH],
+					cache_araddry[i*ADDR_Y_WIDTH +: ADDR_Y_WIDTH]
 				};
 		
 		// r unpack
@@ -442,9 +446,11 @@ module jelly_texture_cache_l2
 		jelly_texture_cache_unit
 				#(
 					.COMPONENT_NUM			(COMPONENT_NUM),
-					.COMPONENT_DATA_WIDTH	(COMPONENT_DATA_WIDTH),
+					.COMPONENT_DATA_WIDTH	(8),
 					
 					.PARALLEL_SIZE			(PARALLEL_SIZE),
+					.ADDR_X_WIDTH			(ADDR_X_WIDTH),
+					.ADDR_Y_WIDTH			(ADDR_Y_WIDTH),
 					.BLK_X_SIZE				(BLK_X_SIZE),
 					.BLK_Y_SIZE				(BLK_Y_SIZE),
 					.TAG_ADDR_WIDTH			(TAG_ADDR_WIDTH),
@@ -459,12 +465,11 @@ module jelly_texture_cache_l2
 					.USE_M_RREADY			(USE_M_RREADY),
 					
 					.S_USER_WIDTH			(S_ID_WIDTH),
-					.S_ADDR_X_WIDTH			(S_ADDR_X_WIDTH),
-					.S_ADDR_Y_WIDTH			(S_ADDR_Y_WIDTH),
+					.S_DATA_SIZE			(S_DATA_SIZE+COMPONENT_DATA_SIZE),	// AXIにあわせてバイト単位に換算
 					.S_BLK_X_NUM			(S_BLK_X_NUM),
 					.S_BLK_Y_NUM			(S_BLK_Y_NUM),
 					
-					.M_DATA_WIDE_SIZE		(M_DATA_WIDE_SIZE),
+					.M_DATA_SIZE			(M_AXI4_DATA_SIZE),
 					.M_INORDER				(0),
 					
 					.QUE_FIFO_PTR_WIDTH		(QUE_FIFO_PTR_WIDTH),
@@ -500,20 +505,20 @@ module jelly_texture_cache_l2
 					.status_miss			(status_miss[i]),
 					.status_range_out		(status_range_out[i]),
 					
-					.s_aruser				(arbit_arid   [i*S_ID_WIDTH     +: S_ID_WIDTH]),
-					.s_araddrx				(arbit_araddrx[i*S_ADDR_X_WIDTH +: S_ADDR_X_WIDTH]),
-					.s_araddry				(arbit_araddry[i*S_ADDR_Y_WIDTH +: S_ADDR_Y_WIDTH]),
+					.s_aruser				(arbit_arid   [i*S_ID_WIDTH   +: S_ID_WIDTH]),
+					.s_araddrx				(arbit_araddrx[i*ADDR_X_WIDTH +: ADDR_X_WIDTH]),
+					.s_araddry				(arbit_araddry[i*ADDR_Y_WIDTH +: ADDR_Y_WIDTH]),
 					.s_arvalid				(arbit_arvalid[i]),
 					.s_arready				(arbit_arready[i]),
 					
-					.s_ruser				(arbit_rid    [i*S_ID_WIDTH     +: S_ID_WIDTH]),
+					.s_ruser				(arbit_rid    [i*S_ID_WIDTH   +: S_ID_WIDTH]),
 					.s_rlast				(arbit_rlast  [i]),
-					.s_rdata				(arbit_rdata  [i*S_DATA_WIDTH   +: S_DATA_WIDTH]),
+					.s_rdata				(arbit_rdata  [i*S_DATA_WIDTH +: S_DATA_WIDTH]),
 					.s_rvalid				(arbit_rvalid [i]),
 					.s_rready				(arbit_rready [i]),
 					
-					.m_araddrx				(cache_araddrx[i*M_ADDR_X_WIDTH +: M_ADDR_X_WIDTH]),
-					.m_araddry				(cache_araddry[i*M_ADDR_Y_WIDTH +: M_ADDR_Y_WIDTH]),
+					.m_araddrx				(cache_araddrx[i*ADDR_X_WIDTH +: ADDR_X_WIDTH]),
+					.m_araddry				(cache_araddry[i*ADDR_Y_WIDTH +: ADDR_Y_WIDTH]),
 					.m_arvalid				(cache_arvalid[i]),
 					.m_arready				(cache_arready[i]),
 					
@@ -534,8 +539,8 @@ module jelly_texture_cache_l2
 	
 	wire	[CACHE_ID_WIDTH-1:0]		ringbus_arid;
 	wire	[M_AR_PACKET_WIDTH-1:0]		ringbus_arpacket;
-	wire	[M_ADDR_X_WIDTH-1:0]		ringbus_araddrx;
-	wire	[M_ADDR_Y_WIDTH-1:0]		ringbus_araddry;
+	wire	[ADDR_X_WIDTH-1:0]			ringbus_araddrx;
+	wire	[ADDR_Y_WIDTH-1:0]			ringbus_araddry;
 	wire								ringbus_arvalid;
 	wire								ringbus_arready;
 	
@@ -693,7 +698,7 @@ module jelly_texture_cache_l2
 		else if ( !dma_arvalid || dma_arready ) begin
 			st0_dma_arid    <= ringbus_arid;
 			st0_dma_araddr  <= ((ringbus_araddry >> BLK_Y_SIZE) * param_stride);// + (ringbus_araddrx << (BLK_Y_SIZE + BLK_X_SIZE));
-			st0_dma_araddrx <= (ringbus_araddrx << (BLK_Y_SIZE + M_DATA_WIDE_SIZE + COMPONENT_DATA_SIZE));
+			st0_dma_araddrx <= (ringbus_araddrx << BLK_Y_SIZE);
 			st0_dma_arvalid <= ringbus_arvalid;
 			
 			st1_dma_arid    <= st0_dma_arid;

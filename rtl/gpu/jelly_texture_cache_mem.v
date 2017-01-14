@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- the system on fpga system
 //
-//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2017 by Ryuji Fuchikami
 //                                 http://ryuz.my.coocan.jp/
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
@@ -20,10 +20,8 @@ module jelly_texture_cache_mem
 			parameter	COMPONENT_DATA_WIDTH = 24,
 			parameter	TAG_ADDR_WIDTH       = 6,
 			parameter	PIX_ADDR_WIDTH       = 4,
-			parameter	M_DATA_WIDTH         = COMPONENT_NUM * COMPONENT_DATA_WIDTH,
-			parameter	S_DATA_WIDE_SIZE     = 1,
-			parameter	S_ADDR_WIDTH         = PIX_ADDR_WIDTH - S_DATA_WIDE_SIZE,
-			parameter	S_DATA_WIDTH         = (M_DATA_WIDTH << S_DATA_WIDE_SIZE),
+			parameter	S_DATA_SIZE          = 1,
+			parameter	M_DATA_SIZE          = 0,
 			parameter	BORDER_DATA          = {M_DATA_WIDTH{1'b0}},
 			parameter	RAM_TYPE             = "block",
 			parameter	MASTER_REGS          = 1
@@ -52,9 +50,15 @@ module jelly_texture_cache_mem
 			output	wire							m_valid,
 			input	wire							m_ready
 		);
+
+	localparam	S_DATA_WIDTH         = ((COMPONENT_NUM * COMPONENT_DATA_WIDTH) << S_DATA_SIZE);
+	localparam	M_DATA_WIDTH         = ((COMPONENT_NUM * COMPONENT_DATA_WIDTH) << M_DATA_SIZE);
 	
-	localparam	SEL_WIDTH         = S_DATA_WIDE_SIZE > 0 ? S_DATA_WIDE_SIZE : 1;
-	localparam	S_COMPONENT_WIDTH = (COMPONENT_DATA_WIDTH << S_DATA_WIDE_SIZE);
+	localparam	MEM_ADDR_WIDTH    = PIX_ADDR_WIDTH - S_DATA_SIZE;
+	localparam	SEL_WIDTH         = S_DATA_SIZE > M_DATA_SIZE ? S_DATA_SIZE - M_DATA_SIZE : 1;
+	localparam	S_COMPONENT_WIDTH = (COMPONENT_DATA_WIDTH << S_DATA_SIZE);
+	localparam	M_COMPONENT_WIDTH = (COMPONENT_DATA_WIDTH << M_DATA_SIZE);
+	
 	
 	genvar							i;
 	
@@ -67,8 +71,8 @@ module jelly_texture_cache_mem
 	wire	[COMPONENT_NUM-1:0]		st0_we        = s_we;
 	wire	[S_DATA_WIDTH-1:0]		st0_wdata     = s_wdata;
 	wire	[TAG_ADDR_WIDTH-1:0]	st0_tag_addr  = s_tag_addr;
-	wire	[S_ADDR_WIDTH-1:0]		st0_addr      = ({s_tag_addr, s_pix_addr} >> S_DATA_WIDE_SIZE);
-	wire	[SEL_WIDTH-1:0]			st0_sel       = {s_tag_addr, s_pix_addr};
+	wire	[MEM_ADDR_WIDTH-1:0]	st0_addr      = (s_pix_addr >> S_DATA_SIZE);	//({s_tag_addr, s_pix_addr} >> S_DATA_SIZE);
+	wire	[SEL_WIDTH-1:0]			st0_sel       = (s_pix_addr >> M_DATA_SIZE);	//({s_tag_addr, s_pix_addr} >> M_DATA_SIZE);
 	wire							st0_range_out = s_range_out;
 	wire							st0_valid     = s_valid;
 	
@@ -98,7 +102,7 @@ module jelly_texture_cache_mem
 		// CACHE-RAM
 		jelly_ram_singleport
 				#(
-					.ADDR_WIDTH			(TAG_ADDR_WIDTH + S_ADDR_WIDTH),
+					.ADDR_WIDTH			(TAG_ADDR_WIDTH + MEM_ADDR_WIDTH),
 					.DATA_WIDTH			(S_COMPONENT_WIDTH),
 					.RAM_TYPE			(RAM_TYPE),
 					.DOUT_REGS			(1)
@@ -117,15 +121,15 @@ module jelly_texture_cache_mem
 		
 		jelly_multiplexer
 				#(
-					.SEL_WIDTH			(S_DATA_WIDE_SIZE),
-					.OUT_WIDTH			(COMPONENT_DATA_WIDTH)
+					.SEL_WIDTH			(S_DATA_SIZE - M_DATA_SIZE),
+					.OUT_WIDTH			(M_COMPONENT_WIDTH)
 				)
 			i_multiplexer
 				(
 					.endian				(endian),
 					.sel				(st2_sel),
 					.din				(mem_rdata[S_COMPONENT_WIDTH*i +: S_COMPONENT_WIDTH]),
-					.dout				(read_data[COMPONENT_DATA_WIDTH*i   +: COMPONENT_DATA_WIDTH])
+					.dout				(read_data[M_COMPONENT_WIDTH*i +: M_COMPONENT_WIDTH])
 				);
 	end
 	endgenerate
