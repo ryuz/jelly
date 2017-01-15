@@ -121,7 +121,7 @@ module jelly_texture_border_unit
 				
 				.m_data				({m_user, m_border, m_addrx, m_addry}),
 				.m_valid			(m_valid),
-				.m_ready			(1),
+				.m_ready			(m_ready),
 				
 				.stage_cke			(stage_cke),
 				.stage_valid		(stage_valid),
@@ -238,7 +238,7 @@ module jelly_texture_border_unit
 	
 	
 	always @(posedge clk) begin
-		if ( cke ) begin
+		if ( stage_cke[0] ) begin
 			st0_user   <= src_user;
 			
 			st0_border <= ((~param_x_op[2] && (src_x_under || src_x_over)) || (~param_y_op[2] && (src_y_under || src_y_over)));
@@ -295,7 +295,7 @@ module jelly_texture_border_unit
 	reg		signed	[Y_WIDTH-1:0]	st1_y;
 	
 	always @(posedge clk) begin
-		if ( cke ) begin
+		if ( stage_cke[1] ) begin
 			st1_user   <= st0_user;
 			
 			st1_border <= st0_border;
