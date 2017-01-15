@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- the system on fpga system
 //
-//                                 Copyright (C) 2008-2016 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2017 by Ryuji Fuchikami
 //                                 http://ryuz.my.coocan.jp/
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
@@ -88,15 +88,15 @@ module jelly_texture_cache_l2
 			input	wire											clear_start,
 			output	wire											clear_busy,
 			
-			input	wire	[ADDR_X_WIDTH-1:0]						param_width,
-			input	wire	[ADDR_Y_WIDTH-1:0]						param_height,
+	//		input	wire	[ADDR_X_WIDTH-1:0]						param_width,
+	//		input	wire	[ADDR_Y_WIDTH-1:0]						param_height,
 			
 			output	wire	[CACHE_NUM-1:0]							status_idle,
 			output	wire	[CACHE_NUM-1:0]							status_stall,
 			output	wire	[CACHE_NUM-1:0]							status_access,
 			output	wire	[CACHE_NUM-1:0]							status_hit,
 			output	wire	[CACHE_NUM-1:0]							status_miss,
-			output	wire	[CACHE_NUM-1:0]							status_range_out,
+			output	wire	[CACHE_NUM-1:0]							status_border,
 			
 	//		input	wire	[S_NUM*S_USER_WIDTH-1:0]				s_aruser,
 			input	wire	[S_NUM*ADDR_X_WIDTH-1:0]				s_araddrx,
@@ -457,8 +457,8 @@ module jelly_texture_cache_l2
 					.TAG_RAM_TYPE			(TAG_RAM_TYPE),
 					.MEM_RAM_TYPE			(MEM_RAM_TYPE),
 					
-					.USE_BORDER				(USE_BORDER),
-					.BORDER_DATA			(BORDER_DATA),
+	//				.USE_BORDER				(USE_BORDER),
+	//				.BORDER_DATA			(BORDER_DATA),
 					
 					.USE_LOOK_AHEAD			(USE_LOOK_AHEAD),
 					.USE_S_RREADY			(USE_S_RREADY),
@@ -495,17 +495,19 @@ module jelly_texture_cache_l2
 					.clear_start			(clear_start),
 					.clear_busy				(cache_clear_busy[i]),
 					
-					.param_width			(param_width),
-					.param_height			(param_height),
+		//			.param_width			(param_width),
+		//			.param_height			(param_height),
+					.param_border_value		({S_DATA_WIDTH{1'b0}}),
 					
-					.status_idle			(status_idle[i]),
-					.status_stall			(status_stall[i]),
+					.status_idle			(status_idle  [i]),
+					.status_stall			(status_stall [i]),
 					.status_access			(status_access[i]),
-					.status_hit				(status_hit[i]),
-					.status_miss			(status_miss[i]),
-					.status_range_out		(status_range_out[i]),
+					.status_hit				(status_hit   [i]),
+					.status_miss			(status_miss  [i]),
+					.status_border			(status_border[i]),
 					
 					.s_aruser				(arbit_arid   [i*S_ID_WIDTH   +: S_ID_WIDTH]),
+					.s_arborder				(1'b0),
 					.s_araddrx				(arbit_araddrx[i*ADDR_X_WIDTH +: ADDR_X_WIDTH]),
 					.s_araddry				(arbit_araddry[i*ADDR_Y_WIDTH +: ADDR_Y_WIDTH]),
 					.s_arvalid				(arbit_arvalid[i]),
@@ -513,6 +515,7 @@ module jelly_texture_cache_l2
 					
 					.s_ruser				(arbit_rid    [i*S_ID_WIDTH   +: S_ID_WIDTH]),
 					.s_rlast				(arbit_rlast  [i]),
+					.s_rborder				(),
 					.s_rdata				(arbit_rdata  [i*S_DATA_WIDTH +: S_DATA_WIDTH]),
 					.s_rvalid				(arbit_rvalid [i]),
 					.s_rready				(arbit_rready [i]),

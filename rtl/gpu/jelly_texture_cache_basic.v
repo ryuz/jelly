@@ -37,8 +37,8 @@ module jelly_texture_cache_basic
 			
 			parameter	M_DATA_SIZE          = 1,
 			
-			parameter	USE_BORDER           = 1,
-			parameter	BORDER_DATA          = {S_DATA_WIDTH{1'b0}},
+	//		parameter	USE_BORDER           = 1,
+	//		parameter	BORDER_DATA          = {S_DATA_WIDTH{1'b0}},
 			
 			parameter	QUE_FIFO_PTR_WIDTH   = 0,
 			parameter	QUE_FIFO_RAM_TYPE    = "distributed",
@@ -56,17 +56,19 @@ module jelly_texture_cache_basic
 			input	wire							clear_start,
 			output	wire							clear_busy,
 			
-			input	wire	[ADDR_X_WIDTH-1:0]		param_width,
-			input	wire	[ADDR_Y_WIDTH-1:0]		param_height,
+	//		input	wire	[ADDR_X_WIDTH-1:0]		param_width,
+	//		input	wire	[ADDR_Y_WIDTH-1:0]		param_height,
+			input	wire	[S_DATA_WIDTH-1:0]		param_border_value,
 			
 			output	wire							status_idle,
 			output	wire							status_stall,
 			output	wire							status_access,
 			output	wire							status_hit,
 			output	wire							status_miss,
-			output	wire							status_range_out,
+			output	wire							status_border,
 			
 			input	wire	[S_USER_WIDTH-1:0]		s_aruser,
+			input	wire							s_arborder,
 			input	wire	[ADDR_X_WIDTH-1:0]		s_araddrx,
 			input	wire	[ADDR_Y_WIDTH-1:0]		s_araddry,
 			input	wire							s_arvalid,
@@ -74,6 +76,7 @@ module jelly_texture_cache_basic
 			
 			output	wire	[S_USER_WIDTH-1:0]		s_ruser,
 			output	wire							s_rlast,
+			output	wire							s_rborder,
 			output	wire	[S_DATA_WIDTH-1:0]		s_rdata,
 			output	wire							s_rvalid,
 			input	wire							s_rready,
@@ -99,9 +102,6 @@ module jelly_texture_cache_basic
 	localparam	S_DATA_WIDTH         = ((COMPONENT_NUM * COMPONENT_DATA_WIDTH) << S_DATA_SIZE);
 	localparam	M_DATA_WIDTH         = ((COMPONENT_NUM * COMPONENT_DATA_WIDTH) << M_DATA_SIZE);
 	localparam	M_STRB_WIDTH         = COMPONENT_NUM;
-	
-//	localparam	M_DATA_X_WIDE_SIZE   = M_DATA_WIDE_SIZE > BLK_X_SIZE         ? BLK_X_SIZE : M_DATA_WIDE_SIZE;
-//	localparam	M_DATA_Y_WIDE_SIZE   = M_DATA_WIDE_SIZE > M_DATA_X_WIDE_SIZE ? M_DATA_WIDE_SIZE - M_DATA_X_WIDE_SIZE : 0;
 	
 	localparam	PIX_ADDR_X_WIDTH     = BLK_X_SIZE;
 	localparam	PIX_ADDR_Y_WIDTH     = BLK_Y_SIZE;
@@ -146,6 +146,7 @@ module jelly_texture_cache_basic
 	
 	wire	[S_USER_WIDTH-1:0]		blkaddr_aruser;
 	wire							blkaddr_arlast;
+	wire							blkaddr_arborder;
 	wire	[ADDR_X_WIDTH-1:0]		blkaddr_araddrx;
 	wire	[ADDR_Y_WIDTH-1:0]		blkaddr_araddry;
 	wire							blkaddr_arvalid;
@@ -153,7 +154,7 @@ module jelly_texture_cache_basic
 	
 	jelly_texture_blk_addr
 			#(
-				.USER_WIDTH				(S_USER_WIDTH),
+				.USER_WIDTH				(S_USER_WIDTH+1),
 				
 				.ADDR_X_WIDTH			(ADDR_X_WIDTH),
 				.ADDR_Y_WIDTH			(ADDR_Y_WIDTH),
@@ -171,13 +172,13 @@ module jelly_texture_cache_basic
 				.reset					(reset),
 				.clk					(clk),
 				
-				.s_user					(s_aruser),
+				.s_user					({s_aruser, s_arborder}),
 				.s_addrx				(s_araddrx),
 				.s_addry				(s_araddry),
 				.s_valid				(s_arvalid),
 				.s_ready				(s_arready),
 				
-				.m_user					(blkaddr_aruser),
+				.m_user					({blkaddr_aruser, blkaddr_arborder}),
 				.m_last					(blkaddr_arlast),
 				.m_addrx				(blkaddr_araddrx),
 				.m_addry				(blkaddr_araddry),
@@ -192,12 +193,12 @@ module jelly_texture_cache_basic
 	
 	wire		[S_USER_WIDTH-1:0]		tagram_user;
 	wire								tagram_last;
+	wire								tagram_border;
 	wire		[TAG_ADDR_WIDTH-1:0]	tagram_tag_addr;
 	wire		[PIX_ADDR_X_WIDTH-1:0]	tagram_pix_addrx;
 	wire		[PIX_ADDR_Y_WIDTH-1:0]	tagram_pix_addry;
 	wire		[BLK_ADDR_X_WIDTH-1:0]	tagram_blk_addrx;
 	wire		[BLK_ADDR_Y_WIDTH-1:0]	tagram_blk_addry;
-	wire								tagram_range_out;
 	wire								tagram_cache_hit;
 	wire								tagram_valid;
 	wire								tagram_ready;
@@ -214,7 +215,7 @@ module jelly_texture_cache_basic
 				.BLK_X_SIZE				(BLK_X_SIZE),
 				.BLK_Y_SIZE				(BLK_Y_SIZE),
 				.RAM_TYPE				(TAG_RAM_TYPE),
-				.USE_BORDER				(USE_BORDER),
+	//			.USE_BORDER				(USE_BORDER),
 				
 				.LOG_ENABLE				(LOG_ENABLE),
 				.LOG_FILE				(LOG_FILE),
@@ -228,11 +229,12 @@ module jelly_texture_cache_basic
 				.clear_start			(clear_start),
 				.clear_busy				(clear_busy),
 				
-				.param_width			(param_width),
-				.param_height			(param_height),
+	//			.param_width			(param_width),
+	//			.param_height			(param_height),
 				
 				.s_user					(blkaddr_aruser),
 				.s_last					(blkaddr_arlast),
+				.s_border				(blkaddr_arborder),
 				.s_addrx				(blkaddr_araddrx),
 				.s_addry				(blkaddr_araddry),
 				.s_valid				(blkaddr_arvalid),
@@ -240,13 +242,13 @@ module jelly_texture_cache_basic
 				
 				.m_user					(tagram_user),
 				.m_last					(tagram_last),
+				.m_border				(tagram_border),
 				.m_tag_addr				(tagram_tag_addr),
 				.m_pix_addrx			(tagram_pix_addrx),
 				.m_pix_addry			(tagram_pix_addry),
 				.m_blk_addrx			(tagram_blk_addrx),
 				.m_blk_addry			(tagram_blk_addry),
 				.m_cache_hit			(tagram_cache_hit),
-				.m_range_out			(tagram_range_out),
 				.m_valid				(tagram_valid),
 				.m_ready				(tagram_ready)
 			);
@@ -265,8 +267,9 @@ module jelly_texture_cache_basic
 	
 	reg									reg_tagram_ready;
 	
-	reg									reg_last;
 	reg		[S_USER_WIDTH-1:0]			reg_user;
+	reg									reg_last;
+	reg									reg_border;
 	reg		[TAG_ADDR_WIDTH-1:0]		reg_tag_addr;
 	reg		[PIX_ADDR_WIDTH-1:0]		reg_pix_addr;
 	reg		[PIX_ADDR_X_WIDTH-1:0]		reg_pix_addrx;
@@ -287,15 +290,15 @@ module jelly_texture_cache_basic
 		if ( reset ) begin
 			reg_tagram_ready <= 1'b1;
 			
-			reg_last         <= 1'bx;
 			reg_user         <= {S_USER_WIDTH{1'bx}};
+			reg_last         <= 1'bx;
+			reg_border       <= 1'bx;
 			reg_tag_addr     <= {TAG_ADDR_WIDTH{1'bx}};
 			reg_pix_addr     <= {PIX_ADDR_WIDTH{1'bx}};
 			reg_pix_addrx    <= {PIX_ADDR_X_WIDTH{1'bx}};
 			reg_pix_addry    <= {PIX_ADDR_Y_WIDTH{1'bx}};
 			reg_blk_addrx    <= {BLK_ADDR_X_WIDTH{1'bx}};
 			reg_blk_addry    <= {BLK_ADDR_Y_WIDTH{1'bx}};
-			reg_range_out    <= 1'bx;
 			reg_valid        <= 1'b0;
 			
 			reg_we           <= {COMPONENT_NUM{1'b0}};
@@ -343,7 +346,7 @@ module jelly_texture_cache_basic
 			end
 			
 			if ( tagram_valid && tagram_ready ) begin
-				if ( !tagram_cache_hit && !tagram_range_out ) begin
+				if ( !tagram_cache_hit && !tagram_border ) begin
 					// cache miss
 					reg_tagram_ready <= 1'b0;
 					reg_m_arvalid    <= (!USE_WAIT || !mem_busy);
@@ -364,11 +367,11 @@ module jelly_texture_cache_basic
 			if ( tagram_ready ) begin
 				reg_user      <= tagram_user;
 				reg_last      <= tagram_last;
+				reg_border    <= tagram_border;
 				reg_pix_addrx <= tagram_pix_addrx;
 				reg_pix_addry <= tagram_pix_addry;
 				reg_blk_addrx <= tagram_blk_addrx;
 				reg_blk_addry <= tagram_blk_addry;
-				reg_range_out <= tagram_range_out;
 			end
 		end
 	end
@@ -387,8 +390,8 @@ module jelly_texture_cache_basic
 	assign status_stall     = !tagram_ready && !status_access;
 	assign status_access    = !reg_tagram_ready;
 	assign status_hit       = (tagram_valid && tagram_ready && tagram_cache_hit);
-	assign status_miss      = (tagram_valid && tagram_ready && (!tagram_cache_hit && !tagram_range_out));
-	assign status_range_out = (tagram_valid && tagram_ready && tagram_range_out);
+	assign status_miss      = (tagram_valid && tagram_ready && (!tagram_cache_hit && !tagram_border));
+	assign status_border    = (tagram_valid && tagram_ready && tagram_border);
 	
 	
 	// ---------------------------------
@@ -404,8 +407,7 @@ module jelly_texture_cache_basic
 				.PIX_ADDR_WIDTH			(PIX_ADDR_WIDTH),
 				.M_DATA_SIZE			(S_DATA_SIZE),
 				.S_DATA_SIZE			(M_DATA_SIZE),
-				.RAM_TYPE				(MEM_RAM_TYPE),
-				.BORDER_DATA			(BORDER_DATA)
+				.RAM_TYPE				(MEM_RAM_TYPE)
 			)
 		i_texture_cache_mem
 			(
@@ -416,18 +418,21 @@ module jelly_texture_cache_basic
 				
 				.busy					(mem_busy),
 				
+				.param_border_value		(param_border_value),
+				
 				.s_last					(reg_last),
 				.s_user					(reg_user),
+				.s_border				(reg_border),
 				.s_we					(reg_we),
 				.s_wdata				(reg_wdata),
 				.s_tag_addr				(reg_tag_addr),
 				.s_pix_addr				(reg_pix_addr),
-				.s_range_out			(reg_range_out),
 				.s_valid				(reg_valid),
 				.s_ready				(mem_ready),
 				
 				.m_user					(s_ruser),
 				.m_last					(s_rlast),
+				.m_border				(s_rborder),
 				.m_data					(s_rdata),
 				.m_valid				(s_rvalid),
 				.m_ready				(USE_S_RREADY ? s_rready : 1'b1)

@@ -25,14 +25,14 @@ module tb_texture_border_unit();
 	parameter	USER_WIDTH   = 0;
 	parameter	ADDR_X_WIDTH = 10;
 	parameter	ADDR_Y_WIDTH = 10;
-	parameter	X_WIDTH      = 12;
-	parameter	Y_WIDTH      = 12;
+	parameter	X_WIDTH      = 10+1;
+	parameter	Y_WIDTH      = 9+1;
 	parameter	M_REGS       = 0;
 	
 	reg				[ADDR_X_WIDTH-1:0]	param_width  = 64;
 	reg				[ADDR_Y_WIDTH-1:0]	param_height = 48;
-	reg				[8:0]				param_op_x   = 8'b00000000;
-	reg				[8:0]				param_op_y   = 8'b00000000;
+	reg				[2:0]				param_x_op   = 3'b000;
+	reg				[2:0]				param_y_op   = 3'b000;
 	
 //	reg				[USER_BITS-1:0]		s_user;
 	reg		signed	[X_WIDTH-1:0]		s_x;
@@ -88,8 +88,8 @@ module tb_texture_border_unit();
 				
 				.param_width		(param_width),
 				.param_height		(param_height),
-				.param_op_x			(param_op_x),
-				.param_op_y			(param_op_y),
+				.param_x_op			(param_x_op),
+				.param_y_op			(param_y_op),
 			
 				.s_user				({s_x, s_y}),
 				.s_x				(s_x),

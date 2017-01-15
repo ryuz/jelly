@@ -20,8 +20,8 @@ module jelly_texture_cache_core
 			
 			parameter	USER_WIDTH            = 1,
 			parameter	USE_S_RREADY          = 1,	// 0: s_rready is always 1'b1.   1: handshake mode.
-			parameter	USE_BORDER            = 1,
-			parameter	BORDER_DATA           = {S_DATA_WIDTH{1'b0}},
+//			parameter	USE_BORDER            = 1,
+//			parameter	BORDER_DATA           = {S_DATA_WIDTH{1'b0}},
 			
 			parameter	ADDR_WIDTH            = 24,
 			parameter	ADDR_X_WIDTH          = 12,
@@ -89,30 +89,33 @@ module jelly_texture_cache_core
 			output	wire											clear_busy,
 			
 			input	wire	[M_AXI4_ADDR_WIDTH*COMPONENT_NUM-1:0]	param_addr,
-			input	wire	[ADDR_X_WIDTH-1:0]						param_width,
-			input	wire	[ADDR_Y_WIDTH-1:0]						param_height,
+	//		input	wire	[ADDR_X_WIDTH-1:0]						param_width,
+	//		input	wire	[ADDR_Y_WIDTH-1:0]						param_height,
 			input	wire	[ADDR_WIDTH-1:0]						param_stride,
+			input	wire	[S_DATA_WIDTH-1:0]						param_border_value,
 			
 			output	wire	[L1_CACHE_NUM-1:0]						status_l1_idle,
 			output	wire	[L1_CACHE_NUM-1:0]						status_l1_stall,
 			output	wire	[L1_CACHE_NUM-1:0]						status_l1_access,
 			output	wire	[L1_CACHE_NUM-1:0]						status_l1_hit,
 			output	wire	[L1_CACHE_NUM-1:0]						status_l1_miss,
-			output	wire	[L1_CACHE_NUM-1:0]						status_l1_range_out,
+			output	wire	[L1_CACHE_NUM-1:0]						status_l1_border,
 			output	wire	[L2_CACHE_NUM-1:0]						status_l2_idle,
 			output	wire	[L2_CACHE_NUM-1:0]						status_l2_stall,
 			output	wire	[L2_CACHE_NUM-1:0]						status_l2_access,
 			output	wire	[L2_CACHE_NUM-1:0]						status_l2_hit,
 			output	wire	[L2_CACHE_NUM-1:0]						status_l2_miss,
-			output	wire	[L2_CACHE_NUM-1:0]						status_l2_range_out,
+			output	wire	[L2_CACHE_NUM-1:0]						status_l2_border,
 			
 			input	wire	[L1_CACHE_NUM*USER_WIDTH-1:0]			s_aruser,
+			input	wire	[L1_CACHE_NUM-1:0]						s_arborder,
 			input	wire	[L1_CACHE_NUM*ADDR_X_WIDTH-1:0]			s_araddrx,
 			input	wire	[L1_CACHE_NUM*ADDR_Y_WIDTH-1:0]			s_araddry,
 			input	wire	[L1_CACHE_NUM-1:0]						s_arvalid,
 			output	wire	[L1_CACHE_NUM-1:0]						s_arready,
 			
 			output	wire	[L1_CACHE_NUM*USER_WIDTH-1:0]			s_ruser,
+			output	wire	[L1_CACHE_NUM-1:0]						s_rborder,
 			output	wire	[L1_CACHE_NUM*S_DATA_WIDTH-1:0]			s_rdata,
 			output	wire	[L1_CACHE_NUM-1:0]						s_rvalid,
 			input	wire	[L1_CACHE_NUM-1:0]						s_rready,
@@ -236,8 +239,8 @@ module jelly_texture_cache_core
 				.USE_LOOK_AHEAD			(L1_USE_LOOK_AHEAD),
 				.USE_S_RREADY			(USE_S_RREADY),
 				.USE_M_RREADY			(0),
-				.USE_BORDER				(USE_BORDER),
-				.BORDER_DATA			(BORDER_DATA),
+	//			.USE_BORDER				(USE_BORDER),
+	//			.BORDER_DATA			(BORDER_DATA),
 				
 				.S_USER_WIDTH			(USER_WIDTH),
 				.S_DATA_SIZE			(S_DATA_SIZE),
@@ -265,23 +268,26 @@ module jelly_texture_cache_core
 				.clear_start			(clear_start),
 				.clear_busy				(l1_clear_busy),
 				
-				.param_width			(param_width),
-				.param_height			(param_height),
+	//			.param_width			(param_width),
+	//			.param_height			(param_height),
+				.param_border_value		(param_border_value),
 				
 				.status_idle			(status_l1_idle),
 				.status_stall			(status_l1_stall),
 				.status_access			(status_l1_access),
 				.status_hit				(status_l1_hit),
 				.status_miss			(status_l1_miss),
-				.status_range_out		(status_l1_range_out),
+				.status_border			(status_l1_border),
 				
 				.s_aruser				(s_aruser),
+				.s_arborder				(s_arborder),
 				.s_araddrx				(s_araddrx),
 				.s_araddry				(s_araddry),
 				.s_arvalid				(s_arvalid),
 				.s_arready				(s_arready),
 				
 				.s_ruser				(s_ruser),
+				.s_rborder				(s_rborder),
 				.s_rdata				(s_rdata),
 				.s_rvalid				(s_rvalid),
 				.s_rready				(s_rready),
@@ -358,8 +364,8 @@ module jelly_texture_cache_core
 				.USE_S_RREADY			(1),
 				.USE_M_RREADY			(0),
 				
-				.USE_BORDER				(0),
-				.BORDER_DATA			(BORDER_DATA),
+	//			.USE_BORDER				(0),
+	//			.BORDER_DATA			(BORDER_DATA),
 				
 				.TAG_RAM_TYPE			(L2_TAG_RAM_TYPE),
 				.MEM_RAM_TYPE			(L2_MEM_RAM_TYPE),
@@ -402,8 +408,8 @@ module jelly_texture_cache_core
 				.clear_busy				(l2_clear_busy),
 				
 				.param_addr				(param_addr),
-				.param_width			(param_width),
-				.param_height			(param_height),
+//				.param_width			(param_width),
+//				.param_height			(param_height),
 				.param_stride			(param_stride),
 				.param_arlen			(param_arlen),
 				
@@ -412,7 +418,7 @@ module jelly_texture_cache_core
 				.status_access			(status_l2_access),
 				.status_hit				(status_l2_hit),
 				.status_miss			(status_l2_miss),
-				.status_range_out		(status_l2_range_out),
+				.status_border			(status_l2_border),
 				
 				.s_araddrx				(m_araddrx),
 				.s_araddry				(m_araddry),

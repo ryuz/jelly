@@ -64,23 +64,26 @@ module jelly_texture_cache_lookahead
 			input	wire							clear_start,
 			output	wire							clear_busy,
 			
-			input	wire	[ADDR_X_WIDTH-1:0]		param_width,
-			input	wire	[ADDR_Y_WIDTH-1:0]		param_height,
+	//		input	wire	[ADDR_X_WIDTH-1:0]		param_width,
+	//		input	wire	[ADDR_Y_WIDTH-1:0]		param_height,
+			input	wire	[S_DATA_WIDTH-1:0]		param_border_value,
 			
 			output	wire							status_idle,
 			output	wire							status_stall,
 			output	wire							status_access,
 			output	wire							status_hit,
 			output	wire							status_miss,
-			output	wire							status_range_out,
+			output	wire							status_border,
 			
 			input	wire	[S_USER_WIDTH-1:0]		s_aruser,
+			input	wire							s_arborder,
 			input	wire	[ADDR_X_WIDTH-1:0]		s_araddrx,
 			input	wire	[ADDR_Y_WIDTH-1:0]		s_araddry,
 			input	wire							s_arvalid,
 			output	wire							s_arready,
 			output	wire	[S_USER_WIDTH-1:0]		s_ruser,
 			output	wire							s_rlast,
+			output	wire							s_rborder,
 			output	wire	[S_DATA_WIDTH-1:0]		s_rdata,
 			output	wire							s_rvalid,
 			input	wire							s_rready,
@@ -121,12 +124,12 @@ module jelly_texture_cache_lookahead
 	// ---------------------------------
 	
 	wire		[S_USER_WIDTH-1:0]		tag_user;
+	wire								tag_border;
 	wire		[TAG_ADDR_WIDTH-1:0]	tag_tag_addr;
 	wire		[PIX_ADDR_X_WIDTH-1:0]	tag_pix_addrx;
 	wire		[PIX_ADDR_Y_WIDTH-1:0]	tag_pix_addry;
 	wire		[BLK_ADDR_X_WIDTH-1:0]	tag_blk_addrx;
 	wire		[BLK_ADDR_Y_WIDTH-1:0]	tag_blk_addry;
-	wire								tag_range_out;
 	wire								tag_cache_hit;
 	wire								tag_valid;
 	wire								tag_ready;
@@ -143,7 +146,7 @@ module jelly_texture_cache_lookahead
 				.BLK_X_SIZE				(BLK_X_SIZE),
 				.BLK_Y_SIZE				(BLK_Y_SIZE),
 				.RAM_TYPE				(TAG_RAM_TYPE),
-				.USE_BORDER				(USE_BORDER),
+	//			.USE_BORDER				(USE_BORDER),
 				
 				.LOG_ENABLE				(0),
 				.LOG_FILE				(""),
@@ -157,23 +160,24 @@ module jelly_texture_cache_lookahead
 				.clear_start			(clear_start),
 				.clear_busy				(),
 				
-				.param_width			(param_width),
-				.param_height			(param_height),
+	//			.param_width			(param_width),
+	//			.param_height			(param_height),
 				
 				.s_user					(s_aruser),
+				.s_border				(s_arborder),
 				.s_addrx				(s_araddrx),
 				.s_addry				(s_araddry),
 				.s_valid				(s_arvalid),
 				.s_ready				(s_arready),
 				
 				.m_user					(tag_user),
+				.m_border				(tag_border),
 				.m_tag_addr				(tag_tag_addr),
 				.m_pix_addrx			(tag_pix_addrx),
 				.m_pix_addry			(tag_pix_addry),
 				.m_blk_addrx			(tag_blk_addrx),
 				.m_blk_addry			(tag_blk_addry),
 				.m_cache_hit			(tag_cache_hit),
-				.m_range_out			(tag_range_out),
 				.m_valid				(tag_valid),
 				.m_ready				(tag_ready)
 			);
@@ -296,6 +300,7 @@ module jelly_texture_cache_lookahead
 	//  basic cache unit
 	// ---------------------------------
 	
+	wire							base_s_arborder;
 	wire	[S_USER_WIDTH-1:0]		base_s_aruser;
 	wire	[ADDR_X_WIDTH-1:0]		base_s_araddrx;
 	wire	[ADDR_Y_WIDTH-1:0]		base_s_araddry;
@@ -336,8 +341,8 @@ module jelly_texture_cache_lookahead
 //				.M_DATA_WIDTH			(M_DATA_WIDTH),
 //				.M_STRB_WIDTH			(M_STRB_WIDTH),
 				
-				.USE_BORDER				(USE_BORDER),
-				.BORDER_DATA			(BORDER_DATA),
+//				.USE_BORDER				(USE_BORDER),
+//				.BORDER_DATA			(BORDER_DATA),
 				
 				.QUE_FIFO_PTR_WIDTH		(QUE_FIFO_PTR_WIDTH),
 				.QUE_FIFO_RAM_TYPE		(QUE_FIFO_RAM_TYPE),
@@ -356,17 +361,19 @@ module jelly_texture_cache_lookahead
 				.clear_start			(clear_start),
 				.clear_busy				(clear_busy),
 				
-				.param_width			(param_width),
-				.param_height			(param_height),
+//				.param_width			(param_width),
+//				.param_height			(param_height),
+				.param_border_value		(param_border_value),
 				
 				.status_idle			(status_idle),
 				.status_stall			(status_stall),
 				.status_access			(status_access),
 				.status_hit				(status_hit),
 				.status_miss			(status_miss),
-				.status_range_out		(status_range_out),
+				.status_border			(status_border),
 				
 				.s_aruser				(base_s_aruser),
+				.s_arborder				(base_s_arborder),
 				.s_araddrx				(base_s_araddrx),
 				.s_araddry				(base_s_araddry),
 				.s_arvalid				(base_s_arvalid),
@@ -529,12 +536,13 @@ module jelly_texture_cache_lookahead
 	
 	assign arfifo_s_araddrx = (tag_blk_addrx << BLK_X_SIZE);
 	assign arfifo_s_araddry = (tag_blk_addry << BLK_Y_SIZE);
-	assign arfifo_s_arvalid = ((tag_valid & ~(tag_cache_hit | tag_range_out)) & base_s_arready);
+	assign arfifo_s_arvalid = ((tag_valid & ~(tag_cache_hit | tag_border)) & base_s_arready);
 	
 	assign base_s_aruser    = tag_user;
+	assign base_s_arborder  = tag_border;
 	assign base_s_araddrx   = {tag_blk_addrx, tag_pix_addrx};
 	assign base_s_araddry   = {tag_blk_addry, tag_pix_addry};
-	assign base_s_arvalid   = (tag_valid & ((tag_cache_hit | tag_range_out) | arfifo_s_arready));
+	assign base_s_arvalid   = (tag_valid & ((tag_cache_hit | tag_border) | arfifo_s_arready));
 	
 	assign tag_ready        = (base_s_arvalid & base_s_arready);
 	

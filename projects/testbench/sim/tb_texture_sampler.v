@@ -69,7 +69,7 @@ module tb_texture_sampler();
 	
 	parameter	L2_PARALLEL_SIZE              = 2;
 	parameter	L2_CACHE_NUM                  = (1 << L2_PARALLEL_SIZE);
-	parameter	L2_TAG_ADDR_WIDTH             = 6;
+	parameter	L2_TAG_ADDR_WIDTH             = 7;
 	parameter	L2_BLK_X_SIZE                 = 3;	// 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
 	parameter	L2_BLK_Y_SIZE                 = 3;	// 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
 	parameter	L2_TAG_RAM_TYPE               = "distributed";
@@ -104,13 +104,13 @@ module tb_texture_sampler();
 	wire	[L1_CACHE_NUM-1:0]								status_l1_access;
 	wire	[L1_CACHE_NUM-1:0]								status_l1_hit;
 	wire	[L1_CACHE_NUM-1:0]								status_l1_miss;
-	wire	[L1_CACHE_NUM-1:0]								status_l1_range_out;
+	wire	[L1_CACHE_NUM-1:0]								status_l1_border;
 	wire	[L2_CACHE_NUM-1:0]								status_l2_idle;
 	wire	[L2_CACHE_NUM-1:0]								status_l2_stall;
 	wire	[L2_CACHE_NUM-1:0]								status_l2_access;
 	wire	[L2_CACHE_NUM-1:0]								status_l2_hit;
 	wire	[L2_CACHE_NUM-1:0]								status_l2_miss;
-	wire	[L2_CACHE_NUM-1:0]								status_l2_range_out;
+	wire	[L2_CACHE_NUM-1:0]								status_l2_border;
 	
 	// 2D sampler
 	wire	[SAMPLER2D_NUM*SAMPLER2D_USER_BITS-1:0]			s_sampler2d_user;
@@ -372,6 +372,9 @@ module tb_texture_sampler();
 				.param_width					(640),
 				.param_height					(480),
 				.param_stride					(640*8),
+				.param_border_value				(24'h000000),
+				.param_x_op						(3'b000),
+				.param_y_op						(3'b000),
 				
 				.clear_start					(0),
 				.clear_busy						(),
@@ -381,13 +384,13 @@ module tb_texture_sampler();
 				.status_l1_access				(status_l1_access),
 				.status_l1_hit					(status_l1_hit),
 				.status_l1_miss					(status_l1_miss),
-				.status_l1_range_out			(status_l1_range_out),
+				.status_l1_border				(status_l1_border),
 				.status_l2_idle					(status_l2_idle),
 				.status_l2_stall				(status_l2_stall),
 				.status_l2_access				(status_l2_access),
 				.status_l2_hit					(status_l2_hit),
 				.status_l2_miss					(status_l2_miss),
-				.status_l2_range_out			(status_l2_range_out),
+				.status_l2_border				(status_l2_border),
 				
 				.s_sampler2d_user				(s_sampler2d_user),
 				.s_sampler2d_x					(s_sampler2d_x),

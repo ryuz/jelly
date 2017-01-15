@@ -27,8 +27,8 @@ module jelly_texture_cache_l1
 			parameter	TAG_RAM_TYPE         = "distributed",
 			parameter	MEM_RAM_TYPE         = "block",
 			
-			parameter	USE_BORDER           = 1,
-			parameter	BORDER_DATA          = {S_DATA_WIDTH{1'b0}},
+	//		parameter	USE_BORDER           = 1,
+	//		parameter	BORDER_DATA          = {S_DATA_WIDTH{1'b0}},
 			
 			parameter	USE_LOOK_AHEAD       = 0,
 			parameter	USE_S_RREADY         = 1,	// 0: s_rready is always 1'b1.   1: handshake mode.
@@ -61,24 +61,27 @@ module jelly_texture_cache_l1
 			input	wire									clear_start,
 			output	wire									clear_busy,
 			
-			input	wire	[ADDR_X_WIDTH-1:0]				param_width,
-			input	wire	[ADDR_X_WIDTH-1:0]				param_height,
+	//		input	wire	[ADDR_X_WIDTH-1:0]				param_width,
+	//		input	wire	[ADDR_X_WIDTH-1:0]				param_height,
+			input	wire	[S_DATA_WIDTH-1:0]				param_border_value,
 			
 			output	wire	[CACHE_NUM-1:0]					status_idle,
 			output	wire	[CACHE_NUM-1:0]					status_stall,
 			output	wire	[CACHE_NUM-1:0]					status_access,
 			output	wire	[CACHE_NUM-1:0]					status_hit,
 			output	wire	[CACHE_NUM-1:0]					status_miss,
-			output	wire	[CACHE_NUM-1:0]					status_range_out,
+			output	wire	[CACHE_NUM-1:0]					status_border,
 			
 			// slave port
 			input	wire	[CACHE_NUM*S_USER_WIDTH-1:0]	s_aruser,
+			input	wire	[CACHE_NUM-1:0]					s_arborder,
 			input	wire	[CACHE_NUM*ADDR_X_WIDTH-1:0]	s_araddrx,
 			input	wire	[CACHE_NUM*ADDR_Y_WIDTH-1:0]	s_araddry,
 			input	wire	[CACHE_NUM-1:0]					s_arvalid,
 			output	wire	[CACHE_NUM-1:0]					s_arready,
 			
 			output	wire	[CACHE_NUM*S_USER_WIDTH-1:0]	s_ruser,
+			output	wire	[CACHE_NUM-1:0]					s_rborder,
 			output	wire	[CACHE_NUM*S_DATA_WIDTH-1:0]	s_rdata,
 			output	wire	[CACHE_NUM-1:0]					s_rvalid,
 			input	wire	[CACHE_NUM-1:0]					s_rready,
@@ -177,7 +180,7 @@ module jelly_texture_cache_l1
 					.M_INORDER				(1),
 					.M_INORDER_DATA_FIRST	(0),
 					
-					.BORDER_DATA			(BORDER_DATA),
+	//				.BORDER_DATA			(BORDER_DATA),
 					
 					.QUE_FIFO_PTR_WIDTH		(QUE_FIFO_PTR_WIDTH),
 					.QUE_FIFO_RAM_TYPE		(QUE_FIFO_RAM_TYPE),
@@ -202,37 +205,40 @@ module jelly_texture_cache_l1
 					.clear_start			(clear_start),
 					.clear_busy				(cache_clear_busy[i]),
 					
-					.param_width			(param_width),
-					.param_height			(param_height),
+	//				.param_width			(param_width),
+	//				.param_height			(param_height),
+					.param_border_value		(param_border_value),
 					
-					.status_idle			(status_idle[i]),
-					.status_stall			(status_stall[i]),
+					.status_idle			(status_idle  [i]),
+					.status_stall			(status_stall [i]),
 					.status_access			(status_access[i]),
-					.status_hit				(status_hit[i]),
-					.status_miss			(status_miss[i]),
-					.status_range_out		(status_range_out[i]),
+					.status_hit				(status_hit   [i]),
+					.status_miss			(status_miss  [i]),
+					.status_border			(status_border[i]),
 					
-					.s_aruser				(s_aruser [i*S_USER_WIDTH +: S_USER_WIDTH]),
-					.s_araddrx				(s_araddrx[i*ADDR_X_WIDTH +: ADDR_X_WIDTH]),
-					.s_araddry				(s_araddry[i*ADDR_Y_WIDTH +: ADDR_Y_WIDTH]),
-					.s_arvalid				(s_arvalid[i]),
-					.s_arready				(s_arready[i]),
+					.s_aruser				(s_aruser  [i*S_USER_WIDTH +: S_USER_WIDTH]),
+					.s_arborder				(s_arborder[i]),
+					.s_araddrx				(s_araddrx [i*ADDR_X_WIDTH +: ADDR_X_WIDTH]),
+					.s_araddry				(s_araddry [i*ADDR_Y_WIDTH +: ADDR_Y_WIDTH]),
+					.s_arvalid				(s_arvalid [i]),
+					.s_arready				(s_arready [i]),
 					
-					.s_ruser				(s_ruser  [i*S_USER_WIDTH +: S_USER_WIDTH]),
-					.s_rdata				(s_rdata  [i*S_DATA_WIDTH +: S_DATA_WIDTH]),
-					.s_rvalid				(s_rvalid [i]),
-					.s_rready				(s_rready [i]),
+					.s_ruser				(s_ruser   [i*S_USER_WIDTH +: S_USER_WIDTH]),
+					.s_rborder				(s_rborder [i]),
+					.s_rdata				(s_rdata   [i*S_DATA_WIDTH +: S_DATA_WIDTH]),
+					.s_rvalid				(s_rvalid  [i]),
+					.s_rready				(s_rready  [i]),
 					
-					.m_araddrx				(m_araddrx[i*ADDR_X_WIDTH +: ADDR_X_WIDTH]),
-					.m_araddry				(m_araddry[i*ADDR_Y_WIDTH +: ADDR_Y_WIDTH]),
-					.m_arvalid				(m_arvalid[i]),
-					.m_arready				(m_arready[i]),
+					.m_araddrx				(m_araddrx [i*ADDR_X_WIDTH +: ADDR_X_WIDTH]),
+					.m_araddry				(m_araddry [i*ADDR_Y_WIDTH +: ADDR_Y_WIDTH]),
+					.m_arvalid				(m_arvalid [i]),
+					.m_arready				(m_arready [i]),
 					
-					.m_rlast				(m_rlast  [i]),
+					.m_rlast				(m_rlast   [i]),
 					.m_rstrb				({COMPONENT_NUM{1'b1}}),
-					.m_rdata				(m_rdata  [i*M_DATA_WIDTH +: M_DATA_WIDTH]),
-					.m_rvalid				(m_rvalid [i]),
-					.m_rready				(m_rready [i])
+					.m_rdata				(m_rdata   [i*M_DATA_WIDTH +: M_DATA_WIDTH]),
+					.m_rvalid				(m_rvalid  [i]),
+					.m_rready				(m_rready  [i])
 				);
 		
 	end
