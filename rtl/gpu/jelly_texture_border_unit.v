@@ -54,19 +54,19 @@ module jelly_texture_border_unit
 	// op:3'b000 BORDER_TRANSPARENT	borderフラグを立ててスルー(後段でケア)
 	// op:3'b000 BORDER_CONSTANT		borderフラグを立ててスルー(後段でケア)
 	// op:3'b100 BORDER_REPLICATE
-	//		overflow  : param_width - 1                             : w - ((0    ) + 1)  n  :  0+x c  (100)
-	//		underflow : 0                                           : 0 - ((0    ) + 0)  c  :  0-x c  (101)
+	//		overflow  : param_width - 1                             : w - ((w-x-1) + 1)  n  :  w-0 n  (st1_op:3'b110)
+	//		underflow : 0                                           : 0 - ((0    ) + 0)  c  :  0-X c  (st1_op:3'b101)
 	// op:3'b101 BORDER_REFLECT
-	//		overflow  : (param_width - 1) - (x - param_width)       : w + ((w-x-1) + 0)  n  :  w+x n  (110)
-	//		underflow : -x-1                                        : 0 - ((0+x  ) + 1)  n  :  0-x n  (111)
+	//		overflow  : (param_width - 1) - (x - param_width)       : w + ((w-x-1) + 0)  n  :  w+X n  (st1_op:3'b010)
+	//		underflow : -x-1                                        : 0 - ((0+x  ) + 1)  n  :  0-X n  (st1_op:3'b100)
 	// op:3'b110 BORDER_REFLECT101 (width には 1小さい数を設定すること)
-	//		overflow  : (param_width - 1) - (x - param_width) - 1   : w + ((w-x-1) + 0)  n  :  w+x n  (110)
-	//		underflow : -x                                          : 0 - ((0+x  ) + 0)  c  :  0-x c  (101)
+	//		overflow  : (param_width - 1) - (x - param_width) - 1   : w + ((w-x-1) + 1)  c  :  w+X c  (st1_op:3'b011)
+	//		underflow : -x                                          : 0 - ((0+x  ) + 0)  c  :  0-X c  (st1_op:3'b101)
 	// op:3'b111 BORDER_WRAP
-	//		overflow  : x - param_width                             : 0 - ((w-x-1) + 1)  n  :  0-x n  (111)
-	//		underflow : x + param_width                             : w + ((0+x  ) + 0)  n  :  w+x n  (110)
+	//		overflow  : x - param_width                             : 0 - ((w-x-1) + 1)  n  :  0-X n  (st1_op:3'b100)
+	//		underflow : x + param_width                             : w + ((0+x  ) + 0)  n  :  w+X n  (st1_op:3'b010)
 	// BORDER以外の箇所
-	//                  x                                           : w - ((w-x-1) + 1)  n  :  w-x n  (000)
+	//                  x                                           : w - ((w-x-1) + 1)  n  :  w-X n  (st1_op:3'b000)
 	
 	
 	
@@ -178,14 +178,14 @@ module jelly_texture_border_unit
 		src_x_over  = src_xx[X_WIDTH-1];
 		
 		casex ( {param_x_op[1:0], src_x_under, src_x_over} )
-		4'b00_01:	begin	src_x_op = 3'b100;	end
-		4'b00_1x:	begin	src_x_op = 3'b101;	end
-		4'b01_01:	begin	src_x_op = 3'b110;	end
-		4'b01_1x:	begin	src_x_op = 3'b111;	end
-		4'b10_01:	begin	src_x_op = 3'b110;	end
-		4'b10_1x:	begin	src_x_op = 3'b101;	end
-		4'b11_01:	begin	src_x_op = 3'b111;	end
-		4'b11_1x:	begin	src_x_op = 3'b110;	end
+		4'b00_01:	begin	src_x_op = 3'b110;	end		// BORDER_REPLICATE(overflow)
+		4'b00_1x:	begin	src_x_op = 3'b101;	end		// BORDER_REPLICATE(underflow)
+		4'b01_01:	begin	src_x_op = 3'b010;	end		// BORDER_REFLECT(overflow)
+		4'b01_1x:	begin	src_x_op = 3'b100;	end		// BORDER_REFLECT(underflow)
+		4'b10_01:	begin	src_x_op = 3'b011;	end		// BORDER_REFLECT101(overflow)
+		4'b10_1x:	begin	src_x_op = 3'b101;	end		// BORDER_REFLECT101(underflow)
+		4'b11_01:	begin	src_x_op = 3'b100;	end		// BORDER_WRAP(overflow)
+		4'b11_1x:	begin	src_x_op = 3'b010;	end		// BORDER_WRAP(underflow)
 		4'bxx_00:	begin	src_x_op = 3'b000;	end
 		endcase
 		
@@ -215,14 +215,14 @@ module jelly_texture_border_unit
 		src_y_over  = src_yy[Y_WIDTH-1];
 		
 		casex ( {param_y_op[1:0], src_y_under, src_y_over} )
-		4'b00_01:	begin	src_y_op = 3'b100;	end
-		4'b00_1x:	begin	src_y_op = 3'b101;	end
-		4'b01_01:	begin	src_y_op = 3'b110;	end
-		4'b01_1x:	begin	src_y_op = 3'b111;	end
-		4'b10_01:	begin	src_y_op = 3'b110;	end
-		4'b10_1x:	begin	src_y_op = 3'b101;	end
-		4'b11_01:	begin	src_y_op = 3'b111;	end
-		4'b11_1x:	begin	src_y_op = 3'b110;	end
+		4'b00_01:	begin	src_y_op = 3'b110;	end		// BORDER_REPLICATE(overflow)
+		4'b00_1x:	begin	src_y_op = 3'b101;	end		// BORDER_REPLICATE(underflow)
+		4'b01_01:	begin	src_y_op = 3'b010;	end		// BORDER_REFLECT(overflow)
+		4'b01_1x:	begin	src_y_op = 3'b100;	end		// BORDER_REFLECT(underflow)
+		4'b10_01:	begin	src_y_op = 3'b011;	end		// BORDER_REFLECT101(overflow)
+		4'b10_1x:	begin	src_y_op = 3'b101;	end		// BORDER_REFLECT101(underflow)
+		4'b11_01:	begin	src_y_op = 3'b100;	end		// BORDER_WRAP(overflow)
+		4'b11_1x:	begin	src_y_op = 3'b010;	end		// BORDER_WRAP(underflow)
 		4'bxx_00:	begin	src_y_op = 3'b000;	end
 		endcase
 	end
@@ -267,10 +267,11 @@ module jelly_texture_border_unit
 		st0_x_carry = 1'bx;
 		case ( st0_x_op )
 		3'b000:	begin	st0_x0 = image_width;     st0_x1 = ~st0_x;          st0_x_carry = 1'b0;	end
-		3'b100:	begin	st0_x0 = image_width;     st0_x1 = {X_WIDTH{1'b1}}; st0_x_carry = 1'b0;	end
+		3'b010:	begin	st0_x0 = image_width;     st0_x1 = st0_x;           st0_x_carry = 1'b0;	end
+		3'b011:	begin	st0_x0 = image_width;     st0_x1 = st0_x;           st0_x_carry = 1'b1;	end
+		3'b100:	begin	st0_x0 = {X_WIDTH{1'b0}}; st0_x1 = ~st0_x;          st0_x_carry = 1'b0;	end
 		3'b101:	begin	st0_x0 = {X_WIDTH{1'b0}}; st0_x1 = ~st0_x;          st0_x_carry = 1'b1;	end
-		3'b110:	begin	st0_x0 = image_width;     st0_x1 = st0_x;           st0_x_carry = 1'b0;	end
-		3'b111:	begin	st0_x0 = {X_WIDTH{1'b0}}; st0_x1 = ~st0_x;          st0_x_carry = 1'b0;	end
+		3'b110:	begin	st0_x0 = image_width;     st0_x1 = {X_WIDTH{1'b1}}; st0_x_carry = 1'b0;	end
 		endcase
 		
 		// Y
@@ -279,10 +280,11 @@ module jelly_texture_border_unit
 		st0_y_carry = 1'bx;
 		case ( st0_y_op )
 		3'b000:	begin	st0_y0 = image_height;    st0_y1 = ~st0_y;          st0_y_carry = 1'b0;	end
-		3'b100:	begin	st0_y0 = image_height;    st0_y1 = {Y_WIDTH{1'b1}}; st0_y_carry = 1'b0;	end
-		3'b101:	begin	st0_y0 = {Y_WIDTH{1'b0}}; st0_y1 = ~st0_y;          st0_y_carry = 1'b1;	end
-		3'b110:	begin	st0_y0 = image_height;    st0_y1 = st0_y;           st0_y_carry = 1'b0;	end
-		3'b111:	begin	st0_y0 = {Y_WIDTH{1'b0}}; st0_y1 = ~st0_y;          st0_y_carry = 1'b0;	end
+		3'b010:	begin	st0_y0 = image_height;    st0_y1 = st0_y;           st0_y_carry = 1'b0;	end
+		3'b011:	begin	st0_y0 = image_height;    st0_y1 = st0_y;           st0_y_carry = 1'b1;	end
+		3'b100:	begin	st0_y0 = {X_WIDTH{1'b0}}; st0_y1 = ~st0_y;          st0_y_carry = 1'b0;	end
+		3'b101:	begin	st0_y0 = {X_WIDTH{1'b0}}; st0_y1 = ~st0_y;          st0_y_carry = 1'b1;	end
+		3'b110:	begin	st0_y0 = image_height;    st0_y1 = {Y_WIDTH{1'b1}}; st0_y_carry = 1'b0;	end
 		endcase
 	end
 	
