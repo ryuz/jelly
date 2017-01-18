@@ -31,7 +31,7 @@ module tb_counter_async();
 	reg							s_valid = 0;
 	
 	wire	[COUNTER_WIDTH-1:0]	m_counter;
-	reg							m_ready = 1;
+	wire						m_valid;
 	
 	initial begin
 		#(S_RATE*200)	s_valid = 1'b1;
@@ -48,9 +48,7 @@ module tb_counter_async();
 	integer	m_c = 0;
 	always @(posedge m_clk) begin
 		if ( !reset ) begin
-			m_ready <= {$random};
-			
-			if ( m_ready ) begin
+			if ( m_valid ) begin
 				m_c <= m_c + m_counter;
 			end
 		end
@@ -58,6 +56,7 @@ module tb_counter_async();
 	
 	jelly_counter_async
 			#(
+				.ASYNC			(1),
 				.COUNTER_WIDTH	(COUNTER_WIDTH)
 			)
 		i_count_async
@@ -70,7 +69,7 @@ module tb_counter_async();
 				.m_reset		(reset),
 				.m_clk			(m_clk),
 				.m_counter		(m_counter),
-				.m_ready		(m_ready)
+				.m_valid		(m_valid)
 			);
 	
 	
