@@ -17,7 +17,7 @@
 module jelly_counter_async
 		#(
 			parameter	ASYNC         = 1,
-			parameter	COUNTER_WIDTH = 8
+			parameter	COUNTER_WIDTH = 16
 		)
 		(
 			input	wire						s_reset,
@@ -35,11 +35,31 @@ module jelly_counter_async
 	generate
 	if ( ASYNC ) begin : blk_async
 		
-		// data async
-		wire	[COUNTER_WIDTH-1:0]		sig_s_counter;
-		wire							sig_s_ready;
-	//	wire	[COUNTER_WIDTH-1:0]		sig_m_counter;
-	//	wire							sig_m_valid;
+		wire							s_ready;
+		
+		reg		[COUNTER_WIDTH-1:0]		reg_counter, next_counter;
+		
+		always @* begin
+			next_counter = reg_counter;
+			
+			if ( s_ready ) begin
+				next_counter = {COUNTER_WIDTH{1'b0}};
+			end
+			
+			if ( s_valid ) begin
+				next_counter = next_counter + s_add;
+			end
+		end
+		
+		always @(posedge s_clk) begin
+			if ( s_reset ) begin
+				reg_counter <= {COUNTER_WIDTH{1'b0}};
+			end
+			else begin
+				reg_counter <= next_counter;
+			end
+		end
+		
 		
 		jelly_data_async
 				#(
@@ -49,9 +69,9 @@ module jelly_counter_async
 				(
 					.s_reset		(s_reset),
 					.s_clk			(s_clk),
-					.s_data			(reg_s_counter),
+					.s_data			(reg_counter),
 					.s_valid		(1'b1),
-					.s_ready		(sig_s_ready),
+					.s_ready		(s_ready),
 					
 					.m_reset		(m_reset),
 					.m_clk			(m_clk),
@@ -59,58 +79,9 @@ module jelly_counter_async
 					.m_valid		(m_valid),
 					.m_ready		(1'b1)
 				);
-		
-		
-		// slave
-		reg		[COUNTER_WIDTH-1:0]		reg_s_counter, next_s_counter;
-		
-		always @* begin
-			next_s_counter = reg_s_counter;
-			
-			if ( sig_s_ready ) begin
-				next_s_counter = {COUNTER_WIDTH{1'b0}};
-			end
-			
-			if ( s_valid ) begin
-				next_s_counter = next_s_counter + s_add;
-			end
-		end
-		
-		assign sig_s_counter = reg_s_counter;
-		
-		
-		always @(posedge s_clk) begin
-			if ( s_reset ) begin
-				reg_s_counter <= {COUNTER_WIDTH{1'b0}};
-			end
-			else begin
-				reg_s_counter <= next_s_counter;
-			end
-		end
-		
-		/*
-		// master
-		reg		[COUNTER_WIDTH-1:0]		reg_m_counter;
-		
-		always @(posedge m_clk) begin
-			if ( m_reset ) begin
-				reg_m_counter <= {COUNTER_WIDTH{1'b0}};
-			end
-			else begin
-				reg_m_counter <= {COUNTER_WIDTH{1'b0}};
-				if ( sig_m_valid ) begin
-					reg_m_counter <= sig_m_counter;
-				end
-			end
-		end
-		
-		assign m_counter = reg_m_counter;
-		assign m_valid   = 1'b1
-		*/
-		
 	end
 	else begin : blk_bypass
-		assign m_counter = s_counter;
+		assign m_counter = s_add;
 		assign m_valid   = s_valid;
 	end
 	endgenerate
