@@ -27,6 +27,8 @@ module jelly_fixed_float_mul
 			parameter	M_FIXED_INT_WIDTH    = 12,
 			parameter	M_FIXED_FRAC_WIDTH   = 4,
 			
+			parameter	CLIP                 = 1,
+			
 			parameter	MASTER_IN_REGS       = 1,
 			parameter	MASTER_OUT_REGS      = 1,
 			
@@ -57,7 +59,7 @@ module jelly_fixed_float_mul
 	localparam	MUL_WIDTH       = S_FIXED_WIDTH + (S_FLOAT_FRAC_WIDTH+2);
 	localparam	MUL_SHIFT_WIDTH = MUL_WIDTH + (1 << S_FLOAT_EXP_WIDTH) + FRAC_DIFF;
 	
-	localparam	PIPELINE_STAGES = 5;
+	localparam	PIPELINE_STAGES = CLIP ? 6 : 5;
 	
 	wire			[PIPELINE_STAGES-1:0]		stage_cke;
 	wire			[PIPELINE_STAGES-1:0]		stage_valid;
@@ -107,6 +109,8 @@ module jelly_fixed_float_mul
 	
 	assign {src_float_sign, src_float_exp, src_float_frac} = src_float;
 	
+	wire	signed	[M_FIXED_WIDTH-1:0]			clip_min = {1'b1, {(M_FIXED_WIDTH-1){1'b0}}};
+	wire	signed	[M_FIXED_WIDTH-1:0]			clip_max = {1'b0, {(M_FIXED_WIDTH-1){1'b1}}};
 	
 	reg				[USER_BITS-1:0]				st0_user;
 	reg				[S_FLOAT_EXP_WIDTH-1:0]		st0_float_exp;
@@ -124,9 +128,8 @@ module jelly_fixed_float_mul
 	wire	signed	[MUL_SHIFT_WIDTH-1:0]		st3_shift = st3_mul;
 	
 	reg				[USER_BITS-1:0]				st4_user;
-	reg				[M_FIXED_WIDTH-1:0]			st4_fixed;
-	
-	
+	reg		signed	[MUL_SHIFT_WIDTH-1:0]		st4_fixed;
+		
 	always @(posedge clk) begin
 		// stage 0
 		if ( stage_cke[0] ) begin
@@ -165,10 +168,29 @@ module jelly_fixed_float_mul
 			end
 		end
 	end
-	
-	assign sink_user  = st4_user;
-	assign sink_fixed = st4_fixed;
-	
+
+	// stage 5
+	generate
+	if ( CLIP ) begin : blk_clip
+		reg				[USER_BITS-1:0]				st5_user;
+		reg		signed	[M_FIXED_WIDTH-1:0]			st5_fixed;
+		always @(posedge clk) begin
+			if (  stage_cke[5] ) begin
+				st5_user  <= st4_user;
+				st5_fixed <= st4_fixed;
+				if ( st4_fixed < clip_min ) begin st5_fixed <= clip_min; end
+				if ( st4_fixed > clip_max ) begin st5_fixed <= clip_max; end
+			end
+		end
+		
+		assign sink_user  = st5_user;
+		assign sink_fixed = st5_fixed;
+	end
+	else begin : blk_no_clip
+		assign sink_user  = st4_user;
+		assign sink_fixed = st4_fixed;
+	end
+	endgenerate
 	
 	jelly_mul_add_dsp48e1
 			#(

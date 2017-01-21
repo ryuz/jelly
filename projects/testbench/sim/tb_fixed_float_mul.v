@@ -27,8 +27,10 @@ module tb_fixed_float_mul();
 	parameter	S_FIXED_INT_WIDTH    = 16;
 	parameter	S_FIXED_FRAC_WIDTH   = 8;
 	
-	parameter	M_FIXED_INT_WIDTH    = 16;
+	parameter	M_FIXED_INT_WIDTH    = 12;
 	parameter	M_FIXED_FRAC_WIDTH   = 4;
+	
+	parameter	CLIP                 = 0;
 	
 	parameter	MASTER_IN_REGS       = 1;
 	parameter	MASTER_OUT_REGS      = 1;
@@ -88,6 +90,7 @@ module tb_fixed_float_mul();
 	wire										s_ready;
 	
 	reg		signed	[M_FIXED_WIDTH-1:0]			s_tmp_dst;
+	real										s_tmp_float;
 	
 	wire			[S_FLOAT_WIDTH-1:0]			m_src_float;
 	wire	signed	[S_FIXED_WIDTH-1:0]			m_src_fixed;
@@ -102,17 +105,18 @@ module tb_fixed_float_mul();
 			s_valid <= 1'b0;
 		end
 		else begin
-			s_tmp_dst = $random();
-			s_float <= real2float(1.0); // $itor($random() >>> 8) / 65536.0;
+			s_tmp_dst   = $random();
+			s_tmp_float = $itor($random() >>> 8) / 65536.0;
+			s_float    <= real2float(s_tmp_float);
 			if ( s_float == 0.0 ) begin
 				s_fixed <= 0;
 			end
 			else begin
-				s_fixed <= $rtoi($itor(s_tmp_dst) / s_float * $itor(1 << M_FIXED_FRAC_WIDTH));
+				s_fixed <= $rtoi($itor(s_tmp_dst) / s_tmp_float * $itor(1 << M_FIXED_FRAC_WIDTH));
 			end
 			
-			s_float <= real2float(1.0); // $itor($random() >>> 8) / 65536.0;
-			s_fixed <= $random();
+	//		s_float <= real2float(1.0); // $itor($random() >>> 8) / 65536.0;
+	//		s_fixed <= $random();
 			s_valid <= 1'b1;
 		end
 	end
@@ -170,6 +174,8 @@ module tb_fixed_float_mul();
 				
 				.M_FIXED_INT_WIDTH		(M_FIXED_INT_WIDTH),
 				.M_FIXED_FRAC_WIDTH		(M_FIXED_FRAC_WIDTH),
+				
+				.CLIP					(CLIP),
 				
 				.MASTER_IN_REGS			(MASTER_IN_REGS	),
 				.MASTER_OUT_REGS		(MASTER_OUT_REGS),
