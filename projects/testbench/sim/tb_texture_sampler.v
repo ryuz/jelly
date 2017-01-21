@@ -373,8 +373,8 @@ module tb_texture_sampler();
 				.param_height					(480),
 				.param_stride					(640*8),
 				.param_border_value				(24'h000000),
-				.param_x_op						(3'b000),
-				.param_y_op						(3'b000),
+				.param_x_op						(3'b100),
+				.param_y_op						(3'b100),
 				
 				.clear_start					(0),
 				.clear_busy						(),

@@ -20,7 +20,7 @@
 // semaphore
 module jelly_semaphore
 		#(
-			parameter	ASYNC         = 1,
+			parameter	ASYNC         = 0,
 			parameter	COUNTER_WIDTH = 9,
 			parameter	INIT_COUNTER  = 256
 		)
@@ -61,6 +61,25 @@ module jelly_semaphore
 				.m_valid		(add_valid)
 			);
 	
+
+	reg		[COUNTER_WIDTH-1:0]		reg_counter;
+	reg								reg_empty;
+	
+	always @(posedge req_clk ) begin
+		if ( req_reset ) begin
+			reg_counter <= INIT_COUNTER;
+			reg_empty   <= (INIT_COUNTER == {COUNTER_WIDTH{1'b0}});
+		end
+		else begin
+			reg_counter <= reg_counter + (add_valid ? add_counter : {COUNTER_WIDTH{1'b0}})
+			                           - (req_valid ? req_sub     : {COUNTER_WIDTH{1'b0}});
+			
+			reg_empty   <= ((reg_counter + (add_valid ? add_counter : {COUNTER_WIDTH{1'b0}}))
+							            == (req_valid ? req_sub     : {COUNTER_WIDTH{1'b0}}));
+		end
+	end
+
+	/*
 	reg		[COUNTER_WIDTH-1:0]		reg_counter, next_counter;
 	reg								reg_empty,   next_empty;
 	
@@ -89,6 +108,7 @@ module jelly_semaphore
 			reg_empty   <= next_empty;
 		end
 	end
+	*/
 	
 	assign req_empty   = reg_empty;
 	assign req_counter = reg_counter;
