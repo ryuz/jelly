@@ -22,7 +22,7 @@ module jelly_fixed_to_float
 			parameter	FIXED_WIDTH      = FIXED_INT_WIDTH + FIXED_FRAC_WIDTH,
 			parameter	FIXED_EXP_WIDTH  = 0,
 			parameter	FIXED_EXP_BITS   = FIXED_EXP_WIDTH > 0 ? FIXED_EXP_WIDTH                : 1,
-			parameter	FIXED_EXP_OFFSET = FIXED_EXP_WIDTH > 0 ? (1 << (FLOAT_EXP_WIDTH-1)) - 1 : 0,
+			parameter	FIXED_EXP_OFFSET = FIXED_EXP_WIDTH > 0 ? (1 << (FIXED_EXP_WIDTH-1)) - 1 : 0,
 			
 			parameter	FLOAT_EXP_WIDTH  = 8,
 			parameter	FLOAT_EXP_OFFSET = (1 << (FLOAT_EXP_WIDTH-1)) - 1,
