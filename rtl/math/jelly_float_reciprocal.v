@@ -23,14 +23,14 @@ module jelly_float_reciprocal
 			
 			parameter	USER_WIDTH      = 0,
 			
-			parameter	D_WIDTH         = 6,							// interpolation table addr bits
+			parameter	D_WIDTH         = 8,							// interpolation table addr bits
 			parameter	K_WIDTH         = FRAC_WIDTH - D_WIDTH,
 			parameter	GRAD_WIDTH      = FRAC_WIDTH,
 			
 			parameter	MASTER_IN_REGS  = 1,
 			parameter	MASTER_OUT_REGS = 1,
 			
-			parameter	RAM_TYPE        = "distributed",
+			parameter	RAM_TYPE        = "block",
 			
 			parameter	MAKE_TABLE      = 1,
 			parameter	WRITE_TABLE     = 0,

@@ -30,7 +30,7 @@ module jelly_fixed_reciprocal
 			parameter	FLOAT_EXP_WIDTH    = 8,
 			parameter	FLOAT_EXP_OFFSET   = (1 << (FLOAT_EXP_WIDTH-1)) - 1,
 			parameter	FLOAT_FRAC_WIDTH   = 23,
-			parameter	D_WIDTH            = 9,								// interpolation table addr bits
+			parameter	D_WIDTH            = 8,								// interpolation table addr bits
 			parameter	K_WIDTH            = FLOAT_FRAC_WIDTH - D_WIDTH,
 			parameter	GRAD_WIDTH         = FLOAT_FRAC_WIDTH,
 			parameter	RAM_TYPE           = "block",

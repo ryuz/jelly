@@ -3,7 +3,8 @@
 //   math
 //
 //                                 Copyright (C) 2008-2017 by Ryuji Fuchikami
-//                                 http://ryuz.my.coocan.jp/
+//                                 http://ryuz.my.coocan.jp
+//                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
 
