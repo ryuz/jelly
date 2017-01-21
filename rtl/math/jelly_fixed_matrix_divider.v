@@ -88,7 +88,7 @@ module jelly_fixed_matrix_divider
 	wire	[NUM*DIVIDEND_FIXED_WIDTH-1:0]	s_fixed_dividend;
 	
 	generate
-	for ( i = 0; i < NUM; i = i+1 ) begin
+	for ( i = 0; i < NUM; i = i+1 ) begin : loop_input
 		wire	signed	[S_DIVIDEND_WIDTH-1:0]		src_dividend = s_dividend[i*S_DIVIDEND_WIDTH +: S_DIVIDEND_WIDTH];
 		
 		wire	signed	[DIVIDEND_FIXED_WIDTH-1:0]	src_fixed_dividend;
