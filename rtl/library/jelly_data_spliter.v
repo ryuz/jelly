@@ -15,7 +15,7 @@
 
 module jelly_data_spliter
 		#(
-			parameter	NUM        = 32,
+			parameter	NUM        = 16,
 			parameter	DATA_WIDTH = 8,
 			parameter	S_REGS     = 1,
 			parameter	M_REGS     = 1
@@ -120,7 +120,7 @@ module jelly_data_spliter
 	end
 	endgenerate
 	
-	assign ff_s_data  = ff_s_data;
+	assign ff_m_data  = ff_s_data;
 	assign ff_s_ready = &ff_m_ready;
 	
 	
