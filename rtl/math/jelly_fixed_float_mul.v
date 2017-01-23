@@ -200,7 +200,6 @@ module jelly_fixed_float_mul
 				.C_WIDTH		(1),
 				.P_WIDTH		(MUL_WIDTH),
 				.M_WIDTH		(MUL_WIDTH),
-				.PC_WIDTH		(MUL_WIDTH),
 				
 				.OPMODEREG		(0),
 				.ALUMODEREG		(0),
