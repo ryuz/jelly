@@ -185,8 +185,8 @@ module jelly_texture_sampler
 	
 	wire	[SAMPLER2D_NUM*SAMPLER2D_COEFF_WIDTH-1:0]		sampler2d_arcoeff;
 	wire	[SAMPLER2D_NUM-1:0]								sampler2d_arborder;
-	wire	[SAMPLER2D_NUM*SAMPLER2D_X_INT_WIDTH-1:0]		sampler2d_araddrx;
-	wire	[SAMPLER2D_NUM*SAMPLER2D_Y_INT_WIDTH-1:0]		sampler2d_araddry;
+	wire	[SAMPLER2D_NUM*ADDR_X_WIDTH-1:0]				sampler2d_araddrx;
+	wire	[SAMPLER2D_NUM*ADDR_Y_WIDTH-1:0]				sampler2d_araddry;
 	wire	[SAMPLER2D_NUM-1:0]								sampler2d_arvalid;
 	wire	[SAMPLER2D_NUM-1:0]								sampler2d_arready;
 	wire	[SAMPLER2D_NUM*SAMPLER2D_COEFF_WIDTH-1:0]		sampler2d_rcoeff;	// ruser
@@ -286,10 +286,10 @@ module jelly_texture_sampler
 						.s_valid			(bilinear_arvalid),
 						.s_ready			(bilinear_arready),
 						
-						.m_user				(sampler2d_arcoeff [i*SAMPLER2D_COEFF_WIDTH    +: SAMPLER2D_COEFF_WIDTH]),
+						.m_user				(sampler2d_arcoeff [i*SAMPLER2D_COEFF_WIDTH +: SAMPLER2D_COEFF_WIDTH]),
 						.m_border			(sampler2d_arborder[i]),
-						.m_addrx			(sampler2d_araddrx [i*SAMPLER2D_X_INT_WIDTH    +: SAMPLER2D_X_INT_WIDTH]),
-						.m_addry			(sampler2d_araddry [i*SAMPLER2D_Y_INT_WIDTH    +: SAMPLER2D_Y_INT_WIDTH]),
+						.m_addrx			(sampler2d_araddrx [i*ADDR_X_WIDTH          +: ADDR_X_WIDTH]),
+						.m_addry			(sampler2d_araddry [i*ADDR_Y_WIDTH          +: ADDR_Y_WIDTH]),
 						.m_valid			(sampler2d_arvalid [i]),
 						.m_ready			(sampler2d_arready [i])
 					);
