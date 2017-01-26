@@ -41,7 +41,7 @@ module jelly_fifo_fwtf
 		);
 	
 	generate
-	if ( PTR_WIDTH == 0 ) begin
+	if ( PTR_WIDTH == 0 ) begin : blk_bypass
 		assign s_ready      = m_ready;
 		assign s_free_count = 0;
 		
@@ -49,7 +49,7 @@ module jelly_fifo_fwtf
 		assign m_valid      = s_valid;
 		assign m_data_count = 0;
 	end
-	else begin
+	else begin : blk_fifo
 		//  FIFO
 		wire						fifo_wr_en;
 		wire	[DATA_WIDTH-1:0]	fifo_wr_data;

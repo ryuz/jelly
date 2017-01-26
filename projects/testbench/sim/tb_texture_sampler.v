@@ -41,9 +41,9 @@ module tb_texture_sampler();
 	
 	parameter	SAMPLER2D_NUM                 = 8;
 	parameter	SAMPLER2D_USER_WIDTH          = 0;
-	parameter	SAMPLER2D_X_INT_WIDTH         = ADDR_X_WIDTH;
+	parameter	SAMPLER2D_X_INT_WIDTH         = ADDR_X_WIDTH+2;
 	parameter	SAMPLER2D_X_FRAC_WIDTH        = 4;
-	parameter	SAMPLER2D_Y_INT_WIDTH         = ADDR_Y_WIDTH;
+	parameter	SAMPLER2D_Y_INT_WIDTH         = ADDR_Y_WIDTH+2;
 	parameter	SAMPLER2D_Y_FRAC_WIDTH        = 4;
 	parameter	SAMPLER2D_COEFF_INT_WIDTH     = 1;
 	parameter	SAMPLER2D_COEFF_FRAC_WIDTH    = SAMPLER2D_X_FRAC_WIDTH + SAMPLER2D_Y_FRAC_WIDTH;

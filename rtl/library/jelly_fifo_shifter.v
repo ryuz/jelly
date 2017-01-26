@@ -88,7 +88,8 @@ module jelly_fifo_shifter
 				reg_ptr   <= {PTR_WIDTH{1'b0}};
 			end
 			else begin
-				reg_ptr   <= next_ptr;
+				reg_ptr   <= next_ptr[PTR_WIDTH] ? {PTR_WIDTH{1'b0}} : next_ptr;
+//				reg_ptr   <= next_ptr;
 				reg_empty <= next_ptr[PTR_WIDTH];
 				reg_full  <= (next_ptr == (FIFO_SIZE-1));
 			end
