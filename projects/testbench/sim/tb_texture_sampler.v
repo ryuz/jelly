@@ -518,20 +518,22 @@ module tb_texture_sampler();
 	
 	
 	
+	localparam	PARALLEL_SIZE  = 2;
 	localparam	TAG_ADDR_WIDTH = 3;
 	
 	reg		[11:0]					tag_addr_x = 0;
 	reg		[11:0]					tag_addr_y = 0;
+	wire	[PARALLEL_SIZE-1:0]		unit_id;
 	wire	[TAG_ADDR_WIDTH-1:0]	tag_addr;
 	always @(posedge clk) begin
 		if ( !reset ) begin
-			{tag_addr_y[TAG_ADDR_WIDTH-1:0], tag_addr_x[TAG_ADDR_WIDTH-1:0]} <= {tag_addr_y[TAG_ADDR_WIDTH-1:0], tag_addr_x[TAG_ADDR_WIDTH-1:0]} + 1;
+			{tag_addr_y[PARALLEL_SIZE+TAG_ADDR_WIDTH-1:0], tag_addr_x[PARALLEL_SIZE+TAG_ADDR_WIDTH-1:0]} <= {tag_addr_y[PARALLEL_SIZE+TAG_ADDR_WIDTH-1:0], tag_addr_x[PARALLEL_SIZE+TAG_ADDR_WIDTH-1:0]} + 1;
 		end
 	end
 	
 	jelly_texture_cache_tag_addr
 			#(
-				.PARALLEL_SIZE		(0),	// 0:1, 1:2, 2:4, 2:4, 3:8 ....
+				.PARALLEL_SIZE		(PARALLEL_SIZE),	// 0:1, 1:2, 2:4, 2:4, 3:8 ....
 				
 				.ADDR_X_WIDTH		(12),
 				.ADDR_Y_WIDTH		(12),
@@ -544,7 +546,7 @@ module tb_texture_sampler();
 				.addrx				(tag_addr_x),
 				.addry				(tag_addr_y),
 				
-				.unit_id			(),
+				.unit_id			(unit_id),
 				.tag_addr			(tag_addr)
 			);
 	
