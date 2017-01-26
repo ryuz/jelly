@@ -518,10 +518,15 @@ module tb_texture_sampler();
 	
 	
 	
-	reg		[11:0]	tag_addr_x = 0;
-	reg		[11:0]	tag_addr_y = 0;
+	localparam	TAG_ADDR_WIDTH = 3;
+	
+	reg		[11:0]					tag_addr_x = 0;
+	reg		[11:0]					tag_addr_y = 0;
+	wire	[TAG_ADDR_WIDTH-1:0]	tag_addr;
 	always @(posedge clk) begin
-		{tag_addr_y[5:0], tag_addr_x[5:0]} <= {tag_addr_y[5:0], tag_addr_x[5:0]} + 1;
+		if ( !reset ) begin
+			{tag_addr_y[TAG_ADDR_WIDTH-1:0], tag_addr_x[TAG_ADDR_WIDTH-1:0]} <= {tag_addr_y[TAG_ADDR_WIDTH-1:0], tag_addr_x[TAG_ADDR_WIDTH-1:0]} + 1;
+		end
 	end
 	
 	jelly_texture_cache_tag_addr
@@ -530,7 +535,9 @@ module tb_texture_sampler();
 				
 				.ADDR_X_WIDTH		(12),
 				.ADDR_Y_WIDTH		(12),
-				.TAG_ADDR_WIDTH		(4)
+				.TAG_ADDR_WIDTH		(TAG_ADDR_WIDTH),
+				
+				.ALGORITHM			("TWIST")	//      = "SUDOKU"	// "TWIST"
 			)
 		i_texture_cache_tag_addr
 			(
@@ -538,7 +545,7 @@ module tb_texture_sampler();
 				.addry				(tag_addr_y),
 				
 				.unit_id			(),
-				.tag_addr			()
+				.tag_addr			(tag_addr)
 			);
 	
 	

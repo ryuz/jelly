@@ -19,7 +19,9 @@ module jelly_texture_cache_tag_addr
 			
 			parameter	ADDR_X_WIDTH   = 12,
 			parameter	ADDR_Y_WIDTH   = 12,
-			parameter	TAG_ADDR_WIDTH = 6
+			parameter	TAG_ADDR_WIDTH = 6,
+			
+			parameter	ALGORITHM      = "SUDOKU"	// "TWIST"
 		)
 		(
 			input	wire	[ADDR_X_WIDTH-1:0]		addrx,
@@ -30,20 +32,27 @@ module jelly_texture_cache_tag_addr
 		);
 	
 	localparam	ID_WIDTH        = PARALLEL_SIZE > 0 ? PARALLEL_SIZE : 1;
-	
 	localparam	SHUFFLE_WIDTH   = PARALLEL_SIZE + TAG_ADDR_WIDTH;
-	
 	localparam	HALF_ADDR_WIDTH = TAG_ADDR_WIDTH / 2;
+	localparam	TWIST_OFFSET    = (1 << (PARALLEL_SIZE + TAG_ADDR_WIDTH - 1));
 	
-	
-	wire	[SHUFFLE_WIDTH-1:0]		shuffle_x    = addrx;
-	wire	[SHUFFLE_WIDTH-1:0]		shuffle_y    = addry;
-	
-	wire	[SHUFFLE_WIDTH-1:0]		shuffle_addr = (({shuffle_y, shuffle_y} >> HALF_ADDR_WIDTH) + shuffle_x);
-	
-	assign unit_id  = PARALLEL_SIZE > 0 ? shuffle_addr : 0;
-	assign tag_addr = (shuffle_addr >> PARALLEL_SIZE);
-	
+	generate
+	if ( ALGORITHM == "SUDOKU" ) begin : blk_sudoku
+		wire	[SHUFFLE_WIDTH-1:0]		shuffle_x    = addrx;
+		wire	[SHUFFLE_WIDTH-1:0]		shuffle_y    = addry;
+		
+		wire	[SHUFFLE_WIDTH-1:0]		shuffle_addr = (({shuffle_y, shuffle_y} >> HALF_ADDR_WIDTH) + shuffle_x);
+		
+		assign unit_id  = PARALLEL_SIZE > 0 ? shuffle_addr : 0;
+		assign tag_addr = (shuffle_addr >> PARALLEL_SIZE);
+	end
+	else begin : blk_twist
+		wire	[SHUFFLE_WIDTH-1:0]		shuffle_addr = addrx + (TWIST_OFFSET * addry) - addry;
+		
+		assign unit_id  = PARALLEL_SIZE > 0 ? shuffle_addr : 0;
+		assign tag_addr = (shuffle_addr >> PARALLEL_SIZE);
+	end
+	endgenerate
 	
 endmodule
 
