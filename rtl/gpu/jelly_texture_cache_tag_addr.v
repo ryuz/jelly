@@ -21,8 +21,8 @@ module jelly_texture_cache_tag_addr
 			parameter	ADDR_Y_WIDTH   = 12,
 			parameter	TAG_ADDR_WIDTH = 6,
 			
-			parameter	ALGORITHM      = "SUDOKU"
-//			parameter	ALGORITHM      = PARALLEL_SIZE > 0 ? "SUDOKU" : "TWIST"		// "SUDOKU", "TWIST"
+//			parameter	ALGORITHM      = "SUDOKU"
+			parameter	ALGORITHM      = PARALLEL_SIZE > 0 ? "SUDOKU" : "TWIST"		// "SUDOKU", "TWIST"
 		)
 		(
 			input	wire	[ADDR_X_WIDTH-1:0]		addrx,
