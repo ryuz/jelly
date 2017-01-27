@@ -92,11 +92,11 @@ module jelly_fixed_matrix_divider
 		wire	signed	[S_DIVIDEND_WIDTH-1:0]		src_dividend = s_dividend[i*S_DIVIDEND_WIDTH +: S_DIVIDEND_WIDTH];
 		
 		wire	signed	[DIVIDEND_FIXED_WIDTH-1:0]	src_fixed_dividend;
-		if ( S_DIVISOR_FRAC_WIDTH > DIVIDEND_FIXED_FRAC_WIDTH ) begin
-			assign src_fixed_dividend = (src_dividend >>> (S_DIVISOR_FRAC_WIDTH - DIVIDEND_FIXED_FRAC_WIDTH));
+		if ( S_DIVIDEND_FRAC_WIDTH > DIVIDEND_FIXED_FRAC_WIDTH ) begin
+			assign src_fixed_dividend = (src_dividend >>> (S_DIVIDEND_FRAC_WIDTH - DIVIDEND_FIXED_FRAC_WIDTH));
 		end
 		else begin
-			assign src_fixed_dividend = (src_dividend <<< (DIVIDEND_FIXED_FRAC_WIDTH - S_DIVISOR_FRAC_WIDTH));
+			assign src_fixed_dividend = (src_dividend <<< (DIVIDEND_FIXED_FRAC_WIDTH - S_DIVIDEND_FRAC_WIDTH));
 		end
 		
 		assign s_fixed_dividend[i*DIVIDEND_FIXED_WIDTH +: DIVIDEND_FIXED_WIDTH] = src_fixed_dividend;
