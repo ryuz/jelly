@@ -48,7 +48,7 @@ module jelly_fifo
 					.DOUT_REGS		(DOUT_REGS)
 				)
 			i_fifo_shifter
-			(
+				(
 					.reset			(reset),
 					.clk			(clk),
 					
@@ -63,7 +63,7 @@ module jelly_fifo
 					.empty			(empty),
 					.free_count		(free_count),
 					.data_count		(data_count)
-			);
+				);
 	end
 	else begin : blk_ram
 		jelly_fifo_ram

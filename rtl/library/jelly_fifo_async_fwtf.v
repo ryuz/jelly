@@ -20,6 +20,7 @@ module jelly_fifo_async_fwtf
 			parameter	PTR_WIDTH   = 10,
 			parameter	DOUT_REGS   = 0,
 			parameter	RAM_TYPE    = "block",
+			parameter	SLAVE_REGS  = 0,
 			parameter	MASTER_REGS = 1
 		)
 		(
@@ -40,6 +41,34 @@ module jelly_fifo_async_fwtf
 			output	wire	[PTR_WIDTH:0]		m_data_count
 		);
 	
+	
+	// insert FF
+	wire	[DATA_WIDTH-1:0]	s_ff_data;
+	wire						s_ff_valid;
+	wire						s_ff_ready;
+	jelly_pipeline_insert_ff
+			#(
+				.DATA_WIDTH		(DATA_WIDTH),
+				.SLAVE_REGS		(SLAVE_REGS),
+				.MASTER_REGS	(SLAVE_REGS)
+			)
+		i_pipeline_insert_ff
+			(
+				.reset			(s_reset),
+				.clk			(s_clk),
+				.cke			(1'b1),
+				
+				.s_data			(s_data),
+				.s_valid		(s_valid),
+				.s_ready		(s_ready),
+				
+				.m_data			(s_ff_data),
+				.m_valid		(s_ff_valid),
+				.m_ready		(s_ff_ready),
+				
+				.buffered		(),
+				.s_ready_next	()
+			);
 	
 	//  asyncronous FIFO
 	wire						fifo_wr_en;
@@ -79,9 +108,9 @@ module jelly_fifo_async_fwtf
 			);
 	
 	// write (slave port)
-	assign fifo_wr_en   = s_valid & s_ready;
-	assign fifo_wr_data = s_data;
-	assign s_ready      = ~fifo_wr_full;
+	assign fifo_wr_en   = s_ff_valid & s_ff_ready;
+	assign fifo_wr_data = s_ff_data;
+	assign s_ff_ready   = ~fifo_wr_full;
 	assign s_free_count = fifo_wr_free_count;
 	
 	// read (master port)

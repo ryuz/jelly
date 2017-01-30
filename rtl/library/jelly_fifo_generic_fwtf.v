@@ -21,6 +21,7 @@ module jelly_fifo_generic_fwtf
 			parameter	PTR_WIDTH   = 10,
 			parameter	DOUT_REGS   = 0,
 			parameter	RAM_TYPE    = "block",
+			parameter	SLAVE_REGS  = 0,
 			parameter	MASTER_REGS = 1
 		)
 		(
@@ -50,6 +51,7 @@ module jelly_fifo_generic_fwtf
 					.PTR_WIDTH		(PTR_WIDTH == 0 ? 1 : PTR_WIDTH),
 					.DOUT_REGS		(DOUT_REGS),
 					.RAM_TYPE		(RAM_TYPE),
+					.SLAVE_REGS		(SLAVE_REGS),
 					.MASTER_REGS	(MASTER_REGS)
 				)
 			i_fifo_async_fwtf
@@ -76,6 +78,7 @@ module jelly_fifo_generic_fwtf
 					.PTR_WIDTH		(PTR_WIDTH),
 					.DOUT_REGS		(DOUT_REGS),
 					.RAM_TYPE		(RAM_TYPE),
+					.SLAVE_REGS		(SLAVE_REGS),
 					.MASTER_REGS	(MASTER_REGS)
 				)
 			i_fifo_fwtf
