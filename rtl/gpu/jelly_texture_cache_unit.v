@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- the system on fpga system
 //
-//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2017 by Ryuji Fuchikami
 //                                 http://ryuz.my.coocan.jp/
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
@@ -25,6 +25,8 @@ module jelly_texture_cache_unit
 			parameter	BLK_Y_SIZE           = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	TAG_ADDR_WIDTH       = 6,
 			parameter	TAG_RAM_TYPE         = "distributed",
+			parameter	TAG_M_SLAVE_REGS     = 0,
+			parameter	TAG_M_MASTER_REGS    = 0,
 			parameter	MEM_RAM_TYPE         = "block",
 			
 			parameter	USE_LOOK_AHEAD       = 1,
@@ -40,17 +42,20 @@ module jelly_texture_cache_unit
 			parameter	M_INORDER            = 1,
 			parameter	M_INORDER_DATA_FIRST = 0,
 			
-//			parameter	USE_BORDER           = 1,
-//			parameter	BORDER_DATA          = {S_DATA_WIDTH{1'b0}},
-			
 			parameter	QUE_FIFO_PTR_WIDTH   = USE_LOOK_AHEAD ? BLK_Y_SIZE + BLK_X_SIZE : 0,
 			parameter	QUE_FIFO_RAM_TYPE    = "distributed",
+			parameter	QUE_FIFO_S_REGS      = 0,
+			parameter	QUE_FIFO_M_REGS      = 0,
 			
 			parameter	AR_FIFO_PTR_WIDTH    = 0,
 			parameter	AR_FIFO_RAM_TYPE     = "distributed",
+			parameter	AR_FIFO_S_REGS       = 0,
+			parameter	AR_FIFO_M_REGS       = 0,
 			
 			parameter	R_FIFO_PTR_WIDTH     = BLK_Y_SIZE + BLK_X_SIZE - M_DATA_SIZE,
 			parameter	R_FIFO_RAM_TYPE      = "distributed",
+			parameter	R_FIFO_S_REGS        = 0,
+			parameter	R_FIFO_M_REGS        = 0,
 			
 			parameter	LOG_ENABLE           = 0,
 			parameter	LOG_FILE             = "cache_log.txt",
@@ -65,8 +70,6 @@ module jelly_texture_cache_unit
 			input	wire							clear_start,
 			output	wire							clear_busy,
 			
-	//		input	wire	[ADDR_X_WIDTH-1:0]		param_width,
-	//		input	wire	[ADDR_Y_WIDTH-1:0]		param_height,
 			input	wire	[S_DATA_WIDTH-1:0]		param_border_value,
 			
 			output	wire							status_idle,
@@ -120,6 +123,8 @@ module jelly_texture_cache_unit
 				.BLK_Y_SIZE				(BLK_Y_SIZE),
 				.TAG_ADDR_WIDTH			(TAG_ADDR_WIDTH),
 				.TAG_RAM_TYPE			(TAG_RAM_TYPE),
+				.TAG_M_SLAVE_REGS		(TAG_M_SLAVE_REGS),
+				.TAG_M_MASTER_REGS		(TAG_M_MASTER_REGS),
 				.MEM_RAM_TYPE			(MEM_RAM_TYPE),
 				
 				.USE_S_RREADY			(USE_S_RREADY),
@@ -127,27 +132,27 @@ module jelly_texture_cache_unit
 				
 				.S_USER_WIDTH			(S_USER_WIDTH),
 				.S_DATA_SIZE			(S_DATA_SIZE),
-	//			.S_DATA_WIDTH			(S_DATA_WIDTH),
 				.S_BLK_X_NUM			(S_BLK_X_NUM),
 				.S_BLK_Y_NUM			(S_BLK_Y_NUM),
 				
 				.M_DATA_SIZE			(M_DATA_SIZE),
-	//			.M_DATA_WIDTH			(M_DATA_WIDTH),
-	//			.M_STRB_WIDTH			(M_STRB_WIDTH),
 				.M_INORDER				(M_INORDER),
 				.M_INORDER_DATA_FIRST	(M_INORDER_DATA_FIRST),
 				
-	//			.USE_BORDER				(USE_BORDER),
-	//			.BORDER_DATA			(BORDER_DATA),
-				
 				.QUE_FIFO_PTR_WIDTH		(QUE_FIFO_PTR_WIDTH),
 				.QUE_FIFO_RAM_TYPE		(QUE_FIFO_RAM_TYPE),
+				.QUE_FIFO_S_REGS		(QUE_FIFO_S_REGS),
+				.QUE_FIFO_M_REGS		(QUE_FIFO_M_REGS),
 				
 				.AR_FIFO_PTR_WIDTH		(AR_FIFO_PTR_WIDTH),
 				.AR_FIFO_RAM_TYPE		(AR_FIFO_RAM_TYPE),
+				.AR_FIFO_S_REGS			(AR_FIFO_S_REGS),
+				.AR_FIFO_M_REGS			(AR_FIFO_M_REGS),
 				
 				.R_FIFO_PTR_WIDTH		(R_FIFO_PTR_WIDTH),
 				.R_FIFO_RAM_TYPE		(R_FIFO_RAM_TYPE),
+				.R_FIFO_S_REGS			(R_FIFO_S_REGS),
+				.R_FIFO_M_REGS			(R_FIFO_M_REGS),
 				
 				.LOG_ENABLE				(LOG_ENABLE),
 				.LOG_FILE				(LOG_FILE),
@@ -163,8 +168,6 @@ module jelly_texture_cache_unit
 				.clear_start			(clear_start),
 				.clear_busy				(clear_busy),
 				
-	//			.param_width			(param_width),
-	//			.param_height			(param_height),
 				.param_border_value		(param_border_value),
 				
 				.status_idle			(status_idle),
@@ -211,6 +214,8 @@ module jelly_texture_cache_unit
 				.BLK_Y_SIZE				(BLK_Y_SIZE),
 				.TAG_ADDR_WIDTH			(TAG_ADDR_WIDTH),
 				.TAG_RAM_TYPE			(TAG_RAM_TYPE),
+				.TAG_M_SLAVE_REGS		(TAG_M_SLAVE_REGS),
+				.TAG_M_MASTER_REGS		(TAG_M_MASTER_REGS),
 				.MEM_RAM_TYPE			(MEM_RAM_TYPE),
 				
 				.USE_S_RREADY			(USE_S_RREADY),
@@ -218,21 +223,15 @@ module jelly_texture_cache_unit
 				
 				.S_USER_WIDTH			(S_USER_WIDTH),
 				.S_DATA_SIZE			(S_DATA_SIZE),
-		//		.S_DATA_WIDTH			(S_DATA_WIDTH),
 				.S_BLK_X_NUM			(S_BLK_X_NUM),
 				.S_BLK_Y_NUM			(S_BLK_Y_NUM),
 				
 				.M_DATA_SIZE			(M_DATA_SIZE),
-		//		.M_DATA_WIDTH			(M_DATA_WIDTH),
-		//		.M_STRB_WIDTH			(M_STRB_WIDTH),
-		//		.M_ADDR_X_WIDTH			(M_ADDR_X_WIDTH),
-		//		.M_ADDR_Y_WIDTH			(M_ADDR_Y_WIDTH),
-				
-//				.USE_BORDER				(USE_BORDER),
-//				.BORDER_DATA			(BORDER_DATA),
 				
 				.QUE_FIFO_PTR_WIDTH		(QUE_FIFO_PTR_WIDTH),
 				.QUE_FIFO_RAM_TYPE		(QUE_FIFO_RAM_TYPE),
+				.QUE_FIFO_S_REGS		(QUE_FIFO_S_REGS),
+				.QUE_FIFO_M_REGS		(QUE_FIFO_M_REGS),
 				
 				.LOG_ENABLE				(LOG_ENABLE),
 				.LOG_FILE				(LOG_FILE),
@@ -248,8 +247,6 @@ module jelly_texture_cache_unit
 				.clear_start			(clear_start),
 				.clear_busy				(clear_busy),
 				
-//				.param_width			(param_width),
-//				.param_height			(param_height),
 				.param_border_value		(param_border_value),
 				
 				.status_idle			(status_idle),

@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- the system on fpga system
 //
-//                                 Copyright (C) 2008-2016 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2017 by Ryuji Fuchikami
 //                                 http://ryuz.my.coocan.jp/
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
@@ -20,8 +20,6 @@ module jelly_texture_cache_core
 			
 			parameter	USER_WIDTH            = 1,
 			parameter	USE_S_RREADY          = 1,	// 0: s_rready is always 1'b1.   1: handshake mode.
-//			parameter	USE_BORDER            = 1,
-//			parameter	BORDER_DATA           = {S_DATA_WIDTH{1'b0}},
 			
 			parameter	ADDR_WIDTH            = 24,
 			parameter	ADDR_X_WIDTH          = 12,
@@ -30,35 +28,51 @@ module jelly_texture_cache_core
 			
 			parameter	L1_CACHE_NUM          = 4,
 			parameter	L1_USE_LOOK_AHEAD     = 0,
-			parameter	L1_TAG_ADDR_WIDTH     = 6,
 			parameter	L1_BLK_X_SIZE         = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	L1_BLK_Y_SIZE         = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
+			parameter	L1_TAG_ADDR_WIDTH     = 6,
 			parameter	L1_TAG_RAM_TYPE       = "distributed",
+			parameter	L1_TAG_M_SLAVE_REGS   = 0,
+			parameter	L1_TAG_M_MASTER_REGS  = 0,
 			parameter	L1_MEM_RAM_TYPE       = "block",
 			parameter	L1_DATA_SIZE          = 1,
 			parameter	L1_QUE_FIFO_PTR_WIDTH = L1_USE_LOOK_AHEAD ? 5 : 0,
 			parameter	L1_QUE_FIFO_RAM_TYPE  = "distributed",
+			parameter	L1_QUE_FIFO_S_REGS    = 0,
+			parameter	L1_QUE_FIFO_M_REGS    = 0,
 			parameter	L1_AR_FIFO_PTR_WIDTH  = 0,
 			parameter	L1_AR_FIFO_RAM_TYPE   = "distributed",
+			parameter	L1_AR_FIFO_S_REGS     = 0,
+			parameter	L1_AR_FIFO_M_REGS     = 0,
 			parameter	L1_R_FIFO_PTR_WIDTH   = L1_USE_LOOK_AHEAD ? L1_BLK_Y_SIZE + L1_BLK_X_SIZE - L1_DATA_SIZE : 0,
 			parameter	L1_R_FIFO_RAM_TYPE    = "block",
+			parameter	L1_R_FIFO_S_REGS      = 0,
+			parameter	L1_R_FIFO_M_REGS      = 0,
 			parameter	L1_LOG_ENABLE         = 0,
 			parameter	L1_LOG_FILE           = "l1_log.txt",
 			parameter	L1_LOG_ID             = 0,
 			
 			parameter	L2_PARALLEL_SIZE      = 2,	// n^2
 			parameter	L2_USE_LOOK_AHEAD     = 0,
-			parameter	L2_TAG_ADDR_WIDTH     = 6,
 			parameter	L2_BLK_X_SIZE         = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	L2_BLK_Y_SIZE         = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
+			parameter	L2_TAG_ADDR_WIDTH     = 6,
 			parameter	L2_TAG_RAM_TYPE       = "distributed",
+			parameter	L2_TAG_M_SLAVE_REGS   = 0,
+			parameter	L2_TAG_M_MASTER_REGS  = 0,
 			parameter	L2_MEM_RAM_TYPE       = "block",
 			parameter	L2_QUE_FIFO_PTR_WIDTH = L2_USE_LOOK_AHEAD ? 5 : 0,
 			parameter	L2_QUE_FIFO_RAM_TYPE  = "distributed",
+			parameter	L2_QUE_FIFO_S_REGS    = 0,
+			parameter	L2_QUE_FIFO_M_REGS    = 0,
 			parameter	L2_AR_FIFO_PTR_WIDTH  = 0,
 			parameter	L2_AR_FIFO_RAM_TYPE   = "distributed",
+			parameter	L2_AR_FIFO_S_REGS     = 0,
+			parameter	L2_AR_FIFO_M_REGS     = 0,
 			parameter	L2_R_FIFO_PTR_WIDTH   = L2_USE_LOOK_AHEAD ? L2_BLK_Y_SIZE + L2_BLK_X_SIZE - M_AXI4_DATA_SIZE : 0,
 			parameter	L2_R_FIFO_RAM_TYPE    = "block",
+			parameter	L2_R_FIFO_S_REGS      = 0,
+			parameter	L2_R_FIFO_M_REGS      = 0,
 			parameter	L2_LOG_ENABLE         = 0,
 			parameter	L2_LOG_FILE           = "l2_log.txt",
 			parameter	L2_LOG_ID             = 0,
@@ -89,8 +103,6 @@ module jelly_texture_cache_core
 			output	wire											clear_busy,
 			
 			input	wire	[M_AXI4_ADDR_WIDTH*COMPONENT_NUM-1:0]	param_addr,
-	//		input	wire	[ADDR_X_WIDTH-1:0]						param_width,
-	//		input	wire	[ADDR_Y_WIDTH-1:0]						param_height,
 			input	wire	[ADDR_WIDTH-1:0]						param_stride,
 			input	wire	[S_DATA_WIDTH-1:0]						param_border_value,
 			
@@ -153,28 +165,6 @@ module jelly_texture_cache_core
 	
 	localparam	COMPONENT_DATA_WIDTH    = (8 << COMPONENT_DATA_SIZE);
 	
-	/*
-	localparam	COMPONENT_DATA_SIZE     = COMPONENT_DATA_WIDTH <=    8 ? 0 :
-	                                      COMPONENT_DATA_WIDTH <=   16 ? 1 :
-	                                      COMPONENT_DATA_WIDTH <=   32 ? 2 :
-	                                      COMPONENT_DATA_WIDTH <=   64 ? 3 :
-	                                      COMPONENT_DATA_WIDTH <=  128 ? 4 :
-	                                      COMPONENT_DATA_WIDTH <=  256 ? 5 :
-	                                      COMPONENT_DATA_WIDTH <=  512 ? 6 :
-	                                      COMPONENT_DATA_WIDTH <= 1024 ? 7 :
-	                                      COMPONENT_DATA_WIDTH <= 2048 ? 8 : 9;
-	*/
-	
-	
-	// L1キャッシュは１画素１コンポーネントに統合
-//	localparam	L1_COMPONENT_NUM        = 1;
-//	localparam	L1_COMPONENT_DATA_WIDTH = COMPONENT_NUM * COMPONENT_DATA_WIDTH;
-//	localparam	L1_ADDR_X_WIDTH         = ADDR_X_WIDTH;
-//	localparam	L1_ADDR_Y_WIDTH         = ADDR_Y_WIDTH;
-
-//	localparam	L1_DATA_X_WIDE_SIZE     = L1_DATA_WIDE_SIZE <= L1_BLK_X_SIZE      ? L1_DATA_WIDE_SIZE : L1_BLK_X_SIZE;
-//	localparam	L1_DATA_Y_WIDE_SIZE     = L1_DATA_WIDE_SIZE > L1_DATA_X_WIDE_SIZE ? L1_DATA_WIDE_SIZE - L1_DATA_X_WIDE_SIZE : 0;
-	
 	localparam	L1_ID_WIDTH             = L1_CACHE_NUM <=    2 ? 1 :
 	                                      L1_CACHE_NUM <=    4 ? 2 :
 	                                      L1_CACHE_NUM <=    8 ? 3 :
@@ -195,13 +185,7 @@ module jelly_texture_cache_core
 	                                      L2_CACHE_NUM <=  128 ? 7 :
 	                                      L2_CACHE_NUM <=  256 ? 8 : 9;
 	
-	
-	// L2キャッシュはコンポーネント分解＆ピクセル並列化
 	localparam	L2_COMPONENT_NUM        = COMPONENT_NUM;
-//	localparam	L2_COMPONENT_DATA_WIDTH = COMPONENT_DATA_WIDTH;
-	
-//	localparam	L2_ADDR_X_WIDTH         = ADDR_X_WIDTH - L1_DATA_X_WIDE_SIZE;
-//	localparam	L2_ADDR_Y_WIDTH         = ADDR_Y_WIDTH - L1_DATA_Y_WIDE_SIZE;
 	
 	
 	
@@ -227,20 +211,20 @@ module jelly_texture_cache_core
 				.CACHE_NUM				(L1_CACHE_NUM),
 				
 				.COMPONENT_NUM			(1),
-				.COMPONENT_DATA_WIDTH	(COMPONENT_NUM * COMPONENT_DATA_WIDTH),	// 統合				
+				.COMPONENT_DATA_WIDTH	(COMPONENT_NUM * COMPONENT_DATA_WIDTH),	// 統合
 				.ADDR_X_WIDTH			(ADDR_X_WIDTH),
 				.ADDR_Y_WIDTH			(ADDR_Y_WIDTH),
 				.BLK_X_SIZE				(L1_BLK_X_SIZE),
 				.BLK_Y_SIZE				(L1_BLK_Y_SIZE),
 				.TAG_ADDR_WIDTH			(L1_TAG_ADDR_WIDTH),
 				.TAG_RAM_TYPE			(L1_TAG_RAM_TYPE),
+				.TAG_M_SLAVE_REGS		(L1_TAG_M_SLAVE_REGS),
+				.TAG_M_MASTER_REGS		(L1_TAG_M_MASTER_REGS),
 				.MEM_RAM_TYPE			(L1_MEM_RAM_TYPE),
 				
 				.USE_LOOK_AHEAD			(L1_USE_LOOK_AHEAD),
 				.USE_S_RREADY			(USE_S_RREADY),
 				.USE_M_RREADY			(0),
-	//			.USE_BORDER				(USE_BORDER),
-	//			.BORDER_DATA			(BORDER_DATA),
 				
 				.S_USER_WIDTH			(USER_WIDTH),
 				.S_DATA_SIZE			(S_DATA_SIZE),
@@ -249,10 +233,16 @@ module jelly_texture_cache_core
 				
 				.QUE_FIFO_PTR_WIDTH		(L1_QUE_FIFO_PTR_WIDTH),
 				.QUE_FIFO_RAM_TYPE		(L1_QUE_FIFO_RAM_TYPE),
+				.QUE_FIFO_S_REGS		(L1_QUE_FIFO_S_REGS),
+				.QUE_FIFO_M_REGS		(L1_QUE_FIFO_M_REGS),
 				.AR_FIFO_PTR_WIDTH		(L1_AR_FIFO_PTR_WIDTH),
 				.AR_FIFO_RAM_TYPE		(L1_AR_FIFO_RAM_TYPE),
+				.AR_FIFO_S_REGS			(L1_AR_FIFO_S_REGS),
+				.AR_FIFO_M_REGS			(L1_AR_FIFO_M_REGS),
 				.R_FIFO_PTR_WIDTH		(L1_R_FIFO_PTR_WIDTH),
 				.R_FIFO_RAM_TYPE		(L1_R_FIFO_RAM_TYPE),
+				.R_FIFO_S_REGS			(L1_R_FIFO_S_REGS),
+				.R_FIFO_M_REGS			(L1_R_FIFO_M_REGS),
 				
 				.LOG_ENABLE				(L1_LOG_ENABLE),
 				.LOG_FILE				(L1_LOG_FILE),
@@ -268,8 +258,6 @@ module jelly_texture_cache_core
 				.clear_start			(clear_start),
 				.clear_busy				(l1_clear_busy),
 				
-	//			.param_width			(param_width),
-	//			.param_height			(param_height),
 				.param_border_value		(param_border_value),
 				
 				.status_idle			(status_l1_idle),
@@ -350,25 +338,24 @@ module jelly_texture_cache_core
 				.ADDR_X_WIDTH			(ADDR_X_WIDTH),
 				.ADDR_Y_WIDTH			(ADDR_Y_WIDTH),
 				
-				.S_NUM					(L1_CACHE_NUM),
-				.S_DATA_SIZE			(L1_DATA_SIZE),
-				.S_BLK_X_NUM			(1 << L1_BLK_X_SIZE),
-				.S_BLK_Y_NUM			(1 << L1_BLK_Y_SIZE),
-				
 				.PARALLEL_SIZE			(L2_PARALLEL_SIZE),
-				.TAG_ADDR_WIDTH			(L2_TAG_ADDR_WIDTH),
 				.BLK_X_SIZE				(L2_BLK_X_SIZE),
 				.BLK_Y_SIZE				(L2_BLK_Y_SIZE),
+				
+				.TAG_ADDR_WIDTH			(L2_TAG_ADDR_WIDTH),
+				.TAG_RAM_TYPE			(L2_TAG_RAM_TYPE),
+				.TAG_M_SLAVE_REGS		(L2_TAG_M_SLAVE_REGS),
+				.TAG_M_MASTER_REGS		(L2_TAG_M_MASTER_REGS),
+				.MEM_RAM_TYPE			(L2_MEM_RAM_TYPE),
 				
 				.USE_LOOK_AHEAD			(L2_USE_LOOK_AHEAD),
 				.USE_S_RREADY			(1),
 				.USE_M_RREADY			(0),
 				
-	//			.USE_BORDER				(0),
-	//			.BORDER_DATA			(BORDER_DATA),
-				
-				.TAG_RAM_TYPE			(L2_TAG_RAM_TYPE),
-				.MEM_RAM_TYPE			(L2_MEM_RAM_TYPE),
+				.S_NUM					(L1_CACHE_NUM),
+				.S_DATA_SIZE			(L1_DATA_SIZE),
+				.S_BLK_X_NUM			(1 << L1_BLK_X_SIZE),
+				.S_BLK_Y_NUM			(1 << L1_BLK_Y_SIZE),
 				
 				.M_AXI4_ID_WIDTH		(M_AXI4_ID_WIDTH),
 				.M_AXI4_ADDR_WIDTH		(M_AXI4_ADDR_WIDTH),
@@ -388,10 +375,16 @@ module jelly_texture_cache_core
 				
 				.QUE_FIFO_PTR_WIDTH		(L2_QUE_FIFO_PTR_WIDTH),
 				.QUE_FIFO_RAM_TYPE		(L2_QUE_FIFO_RAM_TYPE),
+				.QUE_FIFO_S_REGS		(L2_QUE_FIFO_S_REGS),
+				.QUE_FIFO_M_REGS		(L2_QUE_FIFO_M_REGS),
 				.AR_FIFO_PTR_WIDTH		(L2_AR_FIFO_PTR_WIDTH),
 				.AR_FIFO_RAM_TYPE		(L2_AR_FIFO_RAM_TYPE),
+				.AR_FIFO_S_REGS			(L2_AR_FIFO_S_REGS),
+				.AR_FIFO_M_REGS			(L2_AR_FIFO_M_REGS),
 				.R_FIFO_PTR_WIDTH		(L2_R_FIFO_PTR_WIDTH),
 				.R_FIFO_RAM_TYPE		(L2_R_FIFO_RAM_TYPE),
+				.R_FIFO_S_REGS			(L2_R_FIFO_S_REGS),
+				.R_FIFO_M_REGS			(L2_R_FIFO_M_REGS),
 				
 				.LOG_ENABLE				(L2_LOG_ENABLE),
 				.LOG_FILE				(L2_LOG_FILE),
@@ -408,8 +401,6 @@ module jelly_texture_cache_core
 				.clear_busy				(l2_clear_busy),
 				
 				.param_addr				(param_addr),
-//				.param_width			(param_width),
-//				.param_height			(param_height),
 				.param_stride			(param_stride),
 				.param_arlen			(param_arlen),
 				

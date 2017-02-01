@@ -27,19 +27,14 @@ module jelly_texture_cache_l2
 			parameter	BLK_X_SIZE           = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	BLK_Y_SIZE           = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	TAG_ADDR_WIDTH       = 6,
-	//		parameter	TAG_X_RSHIFT         = 0,
-	//		parameter	TAG_X_LSHIFT         = 0,
-	//		parameter	TAG_Y_RSHIFT         = TAG_X_RSHIFT,
-	//		parameter	TAG_Y_LSHIFT         = TAG_ADDR_WIDTH / 2,
 			parameter	TAG_RAM_TYPE         = "distributed",
+			parameter	TAG_M_SLAVE_REGS     = 0,
+			parameter	TAG_M_MASTER_REGS    = 0,
 			parameter	MEM_RAM_TYPE         = "block",
 			
 			parameter	USE_LOOK_AHEAD       = 0,
 			parameter	USE_S_RREADY         = 1,	// 0: s_rready is always 1'b1.   1: handshake mode.
 			parameter	USE_M_RREADY         = 0,	// 0: m_rready is always 1'b1.   1: handshake mode.
-			
-			parameter	USE_BORDER           = 1,
-			parameter	BORDER_DATA          = {S_DATA_WIDTH{1'b0}},
 			
 			parameter	S_NUM                = 8,
 			parameter	S_DATA_SIZE          = 1,
@@ -61,19 +56,25 @@ module jelly_texture_cache_l2
 			parameter	M_AXI4_ARQOS         = 0,
 			parameter	M_AXI4_ARREGION      = 4'b0000,
 			parameter	M_AXI4_REGS          = 1,
-
+			
 			parameter	QUE_FIFO_PTR_WIDTH   = USE_LOOK_AHEAD ? BLK_Y_SIZE + BLK_X_SIZE : 0,
 			parameter	QUE_FIFO_RAM_TYPE    = "distributed",
+			parameter	QUE_FIFO_S_REGS      = 0,
+			parameter	QUE_FIFO_M_REGS      = 0,
 			
 			parameter	AR_FIFO_PTR_WIDTH    = 0,
 			parameter	AR_FIFO_RAM_TYPE     = "distributed",
+			parameter	AR_FIFO_S_REGS       = 0,
+			parameter	AR_FIFO_M_REGS       = 0,
 			
 			parameter	R_FIFO_PTR_WIDTH     = BLK_Y_SIZE + BLK_X_SIZE - (M_AXI4_DATA_SIZE - COMPONENT_DATA_SIZE),
 			parameter	R_FIFO_RAM_TYPE      = "distributed",
+			parameter	R_FIFO_S_REGS        = 0,
+			parameter	R_FIFO_M_REGS        = 0,
 			
 			parameter	LOG_ENABLE           = 0,
 			parameter	LOG_FILE             = "cache_log.txt",
-			parameter	LOG_ID               = 0         
+			parameter	LOG_ID               = 0
 		)
 		(
 			input	wire											reset,
@@ -88,9 +89,6 @@ module jelly_texture_cache_l2
 			input	wire											clear_start,
 			output	wire											clear_busy,
 			
-	//		input	wire	[ADDR_X_WIDTH-1:0]						param_width,
-	//		input	wire	[ADDR_Y_WIDTH-1:0]						param_height,
-			
 			output	wire	[CACHE_NUM-1:0]							status_idle,
 			output	wire	[CACHE_NUM-1:0]							status_stall,
 			output	wire	[CACHE_NUM-1:0]							status_access,
@@ -98,20 +96,17 @@ module jelly_texture_cache_l2
 			output	wire	[CACHE_NUM-1:0]							status_miss,
 			output	wire	[CACHE_NUM-1:0]							status_border,
 			
-	//		input	wire	[S_NUM*S_USER_WIDTH-1:0]				s_aruser,
 			input	wire	[S_NUM*ADDR_X_WIDTH-1:0]				s_araddrx,
 			input	wire	[S_NUM*ADDR_Y_WIDTH-1:0]				s_araddry,
 			input	wire	[S_NUM-1:0]								s_arvalid,
 			output	wire	[S_NUM-1:0]								s_arready,
 			
-	//		output	wire	[S_NUM*S_USER_WIDTH-1:0]				s_ruser,
 			output	wire	[S_NUM-1:0]								s_rlast,
 			output	wire	[S_NUM*S_DATA_WIDTH-1:0]				s_rdata,
 			output	wire	[S_NUM-1:0]								s_rvalid,
 			input	wire	[S_NUM-1:0]								s_rready,
 			
 			
-			// AXI4 read (master)
 			output	wire	[M_AXI4_ID_WIDTH-1:0]					m_axi4_arid,
 			output	wire	[M_AXI4_ADDR_WIDTH-1:0]					m_axi4_araddr,
 			output	wire	[M_AXI4_LEN_WIDTH-1:0]					m_axi4_arlen,
@@ -195,9 +190,6 @@ module jelly_texture_cache_l2
 	
 	
 	localparam	M_DATA_SIZE    = M_AXI4_DATA_SIZE;
-//	localparam	M_DATA_SIZE    = M_AXI4_DATA_SIZE - COMPONENT_DATA_SIZE;
-//	localparam	M_ADDR_X_WIDTH = S_ADDR_X_WIDTH - M_DATA_WIDE_SIZE;
-//	localparam	M_ADDR_Y_WIDTH = S_ADDR_Y_WIDTH;
 	
 	
 	
@@ -455,10 +447,9 @@ module jelly_texture_cache_l2
 					.BLK_Y_SIZE				(BLK_Y_SIZE),
 					.TAG_ADDR_WIDTH			(TAG_ADDR_WIDTH),
 					.TAG_RAM_TYPE			(TAG_RAM_TYPE),
+					.TAG_M_SLAVE_REGS		(TAG_M_SLAVE_REGS),
+					.TAG_M_MASTER_REGS		(TAG_M_MASTER_REGS),
 					.MEM_RAM_TYPE			(MEM_RAM_TYPE),
-					
-	//				.USE_BORDER				(USE_BORDER),
-	//				.BORDER_DATA			(BORDER_DATA),
 					
 					.USE_LOOK_AHEAD			(USE_LOOK_AHEAD),
 					.USE_S_RREADY			(USE_S_RREADY),
@@ -474,12 +465,18 @@ module jelly_texture_cache_l2
 					
 					.QUE_FIFO_PTR_WIDTH		(QUE_FIFO_PTR_WIDTH),
 					.QUE_FIFO_RAM_TYPE		(QUE_FIFO_RAM_TYPE),
+					.QUE_FIFO_S_REGS		(QUE_FIFO_S_REGS),
+					.QUE_FIFO_M_REGS		(QUE_FIFO_M_REGS),
 					
 					.AR_FIFO_PTR_WIDTH		(AR_FIFO_PTR_WIDTH),
 					.AR_FIFO_RAM_TYPE		(AR_FIFO_RAM_TYPE),
+					.AR_FIFO_S_REGS			(AR_FIFO_S_REGS),
+					.AR_FIFO_M_REGS			(AR_FIFO_M_REGS),
 					
 					.R_FIFO_PTR_WIDTH		(R_FIFO_PTR_WIDTH),
 					.R_FIFO_RAM_TYPE		(R_FIFO_RAM_TYPE),
+					.R_FIFO_S_REGS			(R_FIFO_S_REGS),
+					.R_FIFO_M_REGS			(R_FIFO_M_REGS),
 					
 					.LOG_ENABLE				(LOG_ENABLE),
 					.LOG_FILE				(LOG_FILE),
@@ -495,8 +492,6 @@ module jelly_texture_cache_l2
 					.clear_start			(clear_start),
 					.clear_busy				(cache_clear_busy[i]),
 					
-		//			.param_width			(param_width),
-		//			.param_height			(param_height),
 					.param_border_value		({S_DATA_WIDTH{1'b0}}),
 					
 					.status_idle			(status_idle  [i]),

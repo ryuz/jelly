@@ -29,6 +29,9 @@ module jelly_texture_cache_tag
 			
 			parameter	USE_BORDER       = 1,
 			
+			parameter	M_SLAVE_REGS     = 0,
+			parameter	M_MASTER_REGS    = 0,
+			
 			parameter	LOG_ENABLE       = 0,
 			parameter	LOG_FILE         = "cache_log.txt",
 			parameter	LOG_ID           = 0         
@@ -262,8 +265,8 @@ module jelly_texture_cache_tag
 	jelly_pipeline_insert_ff
 			#(
 				.DATA_WIDTH			(USER_BITS+1+1+TAG_ADDR_WIDTH+PIX_ADDR_X_WIDTH+PIX_ADDR_Y_WIDTH+BLK_ADDR_X_WIDTH+BLK_ADDR_Y_WIDTH+1),
-				.SLAVE_REGS			(0),
-				.MASTER_REGS		(0)
+				.SLAVE_REGS			(M_SLAVE_REGS),
+				.MASTER_REGS		(M_MASTER_REGS)
 			)
 		i_pipeline_insert_ff
 			(

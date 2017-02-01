@@ -25,6 +25,8 @@ module jelly_texture_cache_lookahead
 			parameter	BLK_Y_SIZE           = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	TAG_ADDR_WIDTH       = 6,
 			parameter	TAG_RAM_TYPE         = "distributed",
+			parameter	TAG_M_SLAVE_REGS     = 0,
+			parameter	TAG_M_MASTER_REGS    = 0,
 			parameter	MEM_RAM_TYPE         = "block",
 			
 			parameter	USE_S_RREADY         = 1,	// 0: s_rready is always 1'b1.   1: handshake mode.
@@ -39,17 +41,20 @@ module jelly_texture_cache_lookahead
 			parameter	M_INORDER            = 1,
 			parameter	M_INORDER_DATA_FIRST = 0,
 			
-			parameter	USE_BORDER           = 1,
-			parameter	BORDER_DATA          = {S_DATA_WIDTH{1'b0}},
-			
 			parameter	QUE_FIFO_PTR_WIDTH   = BLK_Y_SIZE + BLK_X_SIZE,
 			parameter	QUE_FIFO_RAM_TYPE    = "distributed",
+			parameter	QUE_FIFO_S_REGS      = 0,
+			parameter	QUE_FIFO_M_REGS      = 0,
 			
 			parameter	AR_FIFO_PTR_WIDTH    = 0,
 			parameter	AR_FIFO_RAM_TYPE     = "distributed",
+			parameter	AR_FIFO_S_REGS       = 0,
+			parameter	AR_FIFO_M_REGS       = 0,
 			
 			parameter	R_FIFO_PTR_WIDTH     = 1 + BLK_Y_SIZE + BLK_X_SIZE - M_DATA_SIZE,
 			parameter	R_FIFO_RAM_TYPE      = "distributed",
+			parameter	R_FIFO_S_REGS        = 0,
+			parameter	R_FIFO_M_REGS        = 0,
 			
 			parameter	LOG_ENABLE           = 0,
 			parameter	LOG_FILE             = "cache_log.txt",
@@ -64,8 +69,6 @@ module jelly_texture_cache_lookahead
 			input	wire							clear_start,
 			output	wire							clear_busy,
 			
-	//		input	wire	[ADDR_X_WIDTH-1:0]		param_width,
-	//		input	wire	[ADDR_Y_WIDTH-1:0]		param_height,
 			input	wire	[S_DATA_WIDTH-1:0]		param_border_value,
 			
 			output	wire							status_idle,
@@ -105,13 +108,10 @@ module jelly_texture_cache_lookahead
 	// ---------------------------------
 	//  localparam
 	// ---------------------------------
-
+	
 	localparam	S_DATA_WIDTH         = ((COMPONENT_NUM * COMPONENT_DATA_WIDTH) << S_DATA_SIZE);
 	localparam	M_DATA_WIDTH         = ((COMPONENT_NUM * COMPONENT_DATA_WIDTH) << M_DATA_SIZE);
 	localparam	M_STRB_WIDTH         = COMPONENT_NUM;
-	
-//	localparam	M_DATA_X_WIDE_SIZE   = M_DATA_WIDE_SIZE > BLK_X_SIZE         ? BLK_X_SIZE : M_DATA_WIDE_SIZE;
-//	localparam	M_DATA_Y_WIDE_SIZE   = M_DATA_WIDE_SIZE > M_DATA_X_WIDE_SIZE ? M_DATA_WIDE_SIZE - M_DATA_X_WIDE_SIZE : 0;
 	
 	localparam	PIX_ADDR_X_WIDTH     = BLK_X_SIZE;
 	localparam	PIX_ADDR_Y_WIDTH     = BLK_Y_SIZE;
@@ -146,7 +146,6 @@ module jelly_texture_cache_lookahead
 				.BLK_X_SIZE				(BLK_X_SIZE),
 				.BLK_Y_SIZE				(BLK_Y_SIZE),
 				.RAM_TYPE				(TAG_RAM_TYPE),
-	//			.USE_BORDER				(USE_BORDER),
 				
 				.LOG_ENABLE				(0),
 				.LOG_FILE				(""),
@@ -159,9 +158,6 @@ module jelly_texture_cache_lookahead
 				
 				.clear_start			(clear_start),
 				.clear_busy				(),
-				
-	//			.param_width			(param_width),
-	//			.param_height			(param_height),
 				
 				.s_user					(s_aruser),
 				.s_border				(s_arborder),
@@ -204,7 +200,8 @@ module jelly_texture_cache_lookahead
 				.DATA_WIDTH			(ADDR_X_WIDTH+ADDR_Y_WIDTH),
 				.PTR_WIDTH			(AR_FIFO_PTR_WIDTH),
 				.RAM_TYPE			(AR_FIFO_RAM_TYPE),
-				.MASTER_REGS		(0)
+				.SLAVE_REGS			(AR_FIFO_S_REGS),
+				.MASTER_REGS		(AR_FIFO_M_REGS)
 			)
 		i_fifo_fwtf_ar
 			(
@@ -240,7 +237,8 @@ module jelly_texture_cache_lookahead
 					.DATA_WIDTH			(1+M_COMPONENT_DATA_WIDTH),
 					.PTR_WIDTH			(R_FIFO_PTR_WIDTH),
 					.RAM_TYPE			(R_FIFO_RAM_TYPE),
-					.MASTER_REGS		(0)
+					.SLAVE_REGS			(R_FIFO_S_REGS),
+					.MASTER_REGS		(R_FIFO_M_REGS)
 				)
 			i_fifo_fwtf_r
 				(
@@ -326,6 +324,8 @@ module jelly_texture_cache_lookahead
 				.BLK_Y_SIZE				(BLK_Y_SIZE),
 				.TAG_ADDR_WIDTH			(TAG_ADDR_WIDTH),
 				.TAG_RAM_TYPE			(TAG_RAM_TYPE),
+				.TAG_M_SLAVE_REGS		(TAG_M_SLAVE_REGS),
+				.TAG_M_MASTER_REGS		(TAG_M_MASTER_REGS),
 				.MEM_RAM_TYPE			(MEM_RAM_TYPE),
 				
 				.USE_S_RREADY			(USE_S_RREADY),
@@ -333,19 +333,15 @@ module jelly_texture_cache_lookahead
 				
 				.S_USER_WIDTH			(S_USER_WIDTH),
 				.S_DATA_SIZE			(S_DATA_SIZE),
-//				.S_DATA_WIDTH			(S_DATA_WIDTH),
 				.S_BLK_X_NUM			(S_BLK_X_NUM),
 				.S_BLK_Y_NUM			(S_BLK_Y_NUM),
 				
 				.M_DATA_SIZE			(M_DATA_SIZE),
-//				.M_DATA_WIDTH			(M_DATA_WIDTH),
-//				.M_STRB_WIDTH			(M_STRB_WIDTH),
-				
-//				.USE_BORDER				(USE_BORDER),
-//				.BORDER_DATA			(BORDER_DATA),
 				
 				.QUE_FIFO_PTR_WIDTH		(QUE_FIFO_PTR_WIDTH),
 				.QUE_FIFO_RAM_TYPE		(QUE_FIFO_RAM_TYPE),
+				.QUE_FIFO_S_REGS		(QUE_FIFO_S_REGS),
+				.QUE_FIFO_M_REGS		(QUE_FIFO_M_REGS),
 				
 				.LOG_ENABLE				(LOG_ENABLE),
 				.LOG_FILE				(LOG_FILE),
@@ -361,8 +357,6 @@ module jelly_texture_cache_lookahead
 				.clear_start			(clear_start),
 				.clear_busy				(clear_busy),
 				
-//				.param_width			(param_width),
-//				.param_height			(param_height),
 				.param_border_value		(param_border_value),
 				
 				.status_idle			(status_idle),
@@ -449,91 +443,6 @@ module jelly_texture_cache_lookahead
 			);
 	
 	
-	
-	/*
-	
-	localparam	LOOK_AHEAD_COUNT_WIDTH = LOOK_AHEAD_NUM <   1 ? 1 :
-	                                     LOOK_AHEAD_NUM <   3 ? 2 :
-	                                     LOOK_AHEAD_NUM <   7 ? 3 :
-	                                     LOOK_AHEAD_NUM <  15 ? 4 :
-	                                     LOOK_AHEAD_NUM <  31 ? 5 :
-	                                     LOOK_AHEAD_NUM <  63 ? 6 :
-	                                     LOOK_AHEAD_NUM < 127 ? 7 : 8;
-	
-	
-	wire					mem_arready;
-	
-	generate
-	if ( M_IN_ORDER ) begin : blk_inorder
-		reg				reg_mem_arready;
-		reg				reg_mem_rfirst;
-		
-		always @(posedge clk) begin
-			if ( reset ) begin
-				reg_mem_rfirst  <= 1'b1;
-				reg_mem_arready <= 1'b1;
-			end
-			else begin
-				if ( m_rvalid && m_rready ) begin
-					reg_mem_rfirst <= m_rlast;
-				end
-				
-				if ( m_arvalid && m_arready ) begin
-					reg_mem_arready <= 1'b0;
-				end
-				else if ( m_rvalid && m_rready & reg_mem_rfirst ) begin
-					reg_mem_arready <= 1'b1;
-				end
-			end
-		end
-		
-		assign mem_arready = reg_mem_arready;
-	end
-	else begin : blk_limitter
-		reg		[LOOK_AHEAD_COUNT_WIDTH-1:0]	reg_mem_limit,   next_mem_limit;
-		reg		[LOOK_AHEAD_COUNT_WIDTH-1:0]	reg_mem_count,   next_mem_count;
-		reg										reg_mem_arready, next_mem_arready;
-		
-		always @* begin
-			next_mem_limit   = reg_mem_limit;
-			next_mem_count   = reg_mem_count;
-			next_mem_arready = reg_mem_arready;
-			
-			if ( m_arvalid && m_arready ) begin
-				next_mem_count = next_mem_count + 1'b1;
-			end
-			
-			if ( base_m_arvalid ) begin
-				next_mem_limit = next_mem_limit + 1'b1;
-			end
-			
-			if ( base_m_rvalid & base_m_rlast ) begin
-				next_mem_count = next_mem_count - 1'b1;
-				next_mem_limit = next_mem_limit - 1'b1;
-			end
-			
-			next_mem_arready = (next_mem_count < next_mem_limit);
-		end
-		
-		always @(posedge clk) begin
-			if ( reset ) begin
-				reg_mem_limit   <= LOOK_AHEAD_NUM;
-				reg_mem_count   <= {LOOK_AHEAD_COUNT_WIDTH{1'b0}};
-				reg_mem_arready <= 1'b1;
-			end
-			else begin
-				reg_mem_limit   <= next_mem_limit;
-				reg_mem_count   <= next_mem_count;
-				reg_mem_arready <= next_mem_arready;
-			end
-		end
-		
-		assign mem_arready = reg_mem_arready;
-	end
-	endgenerate
-	*/
-	
-	
 	assign arfifo_s_araddrx = (tag_blk_addrx << BLK_X_SIZE);
 	assign arfifo_s_araddry = (tag_blk_addry << BLK_Y_SIZE);
 	assign arfifo_s_arvalid = ((tag_valid & ~(tag_cache_hit | tag_border)) & base_s_arready);
@@ -576,8 +485,6 @@ module jelly_texture_cache_lookahead
 	assign base_m_rstrb     = {M_STRB_WIDTH{1'b1}};
 	assign base_m_rdata     = rfifo_m_rdata;
 	assign base_m_rvalid    = (rfifo_m_rvalid & reg_mem_rready);
-	
-//	assign base_m_rvalid    = (|rfifo_m_rvalid & reg_mem_rready);
 	
 	assign rfifo_m_rready   = reg_mem_rready;
 	

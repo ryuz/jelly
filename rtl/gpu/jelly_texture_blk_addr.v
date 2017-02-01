@@ -84,37 +84,6 @@ module jelly_texture_blk_addr
 	                          BLK_Y_NUM <= 32768 ? 15 : 16;
 	
 	
-	//  Queueing
-	wire	[USER_WIDTH-1:0]		que_user;
-	wire	[ADDR_X_WIDTH-1:0]		que_addrx;
-	wire	[ADDR_Y_WIDTH-1:0]		que_addry;
-	wire							que_valid;
-	wire							que_ready;
-	
-	jelly_fifo_fwtf
-			#(
-				.DATA_WIDTH			(USER_WIDTH+ADDR_X_WIDTH+ADDR_Y_WIDTH),
-				.PTR_WIDTH			(FIFO_PTR_WIDTH),
-				.RAM_TYPE			(FIFO_RAM_TYPE),
-				.MASTER_REGS		(0)
-			)
-		i_fifo_fwtf
-			(
-				.reset				(reset),
-				.clk				(clk),
-				
-				.s_data				({s_user, s_addrx, s_addry}),
-				.s_valid			(s_valid),
-				.s_ready			(s_ready),
-				.s_free_count		(),
-				
-				.m_data				({que_user, que_addrx, que_addry}),
-				.m_valid			(que_valid),
-				.m_ready			(que_ready),
-				.m_data_count		()
-			);
-	
-	
 	// addressing
 	generate
 	if ( BLK_X_NUM > 1 || BLK_Y_NUM > 1 ) begin : blk_addr
@@ -148,10 +117,10 @@ module jelly_texture_blk_addr
 					end
 				end
 				
-				if ( que_valid & que_ready ) begin
-					reg_user  <= que_user;
-					reg_addrx <= que_addrx;
-					reg_addry <= que_addry;
+				if ( s_valid & s_ready ) begin
+					reg_user  <= s_user;
+					reg_addrx <= s_addrx;
+					reg_addry <= s_addry;
 					reg_x     <= {X_WIDTH{1'b0}};
 					reg_y     <= {Y_WIDTH{1'b0}};
 					reg_valid <= 1'b1;
@@ -159,7 +128,7 @@ module jelly_texture_blk_addr
 			end
 		end
 		
-		assign que_ready = (!reg_valid || (m_ready && (reg_x == (BLK_X_NUM-X_STEP)) && (reg_y == (BLK_Y_NUM-1))));
+		assign s_ready = (!reg_valid || (m_ready && (reg_x == (BLK_X_NUM-X_STEP)) && (reg_y == (BLK_Y_NUM-1))));
 		
 		assign m_user    = reg_user;
 		assign m_last    = ((reg_x == (BLK_X_NUM-X_STEP)) && (reg_y == (BLK_Y_NUM-1)));
@@ -168,13 +137,13 @@ module jelly_texture_blk_addr
 		assign m_valid   = reg_valid;
 	end
 	else begin : blk_bypass
-		assign que_ready = m_ready;
+		assign s_ready = m_ready;
 		
-		assign m_user    = que_user;
+		assign m_user    = s_user;
 		assign m_last    = 1'b1;
-		assign m_addrx   = que_addrx;
-		assign m_addry   = que_addry;
-		assign m_valid   = que_valid;
+		assign m_addrx   = s_addrx;
+		assign m_addry   = s_addry;
+		assign m_valid   = s_valid;
 	end
 	endgenerate
 	

@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- the system on fpga system
 //
-//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2017 by Ryuji Fuchikami
 //                                 http://ryuz.my.coocan.jp/
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
@@ -25,6 +25,8 @@ module jelly_texture_cache_basic
 			parameter	BLK_Y_SIZE           = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	TAG_ADDR_WIDTH       = 6,
 			parameter	TAG_RAM_TYPE         = "distributed",
+			parameter	TAG_M_SLAVE_REGS     = 0,
+			parameter	TAG_M_MASTER_REGS    = 0,
 			parameter	MEM_RAM_TYPE         = "block",
 			
 			parameter	USE_S_RREADY         = 1,	// 0: s_rready is always 1'b1.   1: handshake mode.
@@ -37,11 +39,10 @@ module jelly_texture_cache_basic
 			
 			parameter	M_DATA_SIZE          = 1,
 			
-	//		parameter	USE_BORDER           = 1,
-	//		parameter	BORDER_DATA          = {S_DATA_WIDTH{1'b0}},
-			
 			parameter	QUE_FIFO_PTR_WIDTH   = 0,
 			parameter	QUE_FIFO_RAM_TYPE    = "distributed",
+			parameter	QUE_FIFO_S_REGS      = 0,
+			parameter	QUE_FIFO_M_REGS      = 0,
 			
 			parameter	LOG_ENABLE           = 0,
 			parameter	LOG_FILE             = "cache_log.txt",
@@ -56,8 +57,6 @@ module jelly_texture_cache_basic
 			input	wire							clear_start,
 			output	wire							clear_busy,
 			
-	//		input	wire	[ADDR_X_WIDTH-1:0]		param_width,
-	//		input	wire	[ADDR_Y_WIDTH-1:0]		param_height,
 			input	wire	[S_DATA_WIDTH-1:0]		param_border_value,
 			
 			output	wire							status_idle,
@@ -110,39 +109,43 @@ module jelly_texture_cache_basic
 	
 	
 	// ---------------------------------
-	//  Queueing & block addr
+	//  Queueing
 	// ---------------------------------
 	
-	/*
 	wire	[S_USER_WIDTH-1:0]		que_aruser;
-	wire	[S_ADDR_X_WIDTH-1:0]	que_araddrx;
-	wire	[S_ADDR_Y_WIDTH-1:0]	que_araddry;
+	wire							que_arborder;
+	wire	[ADDR_X_WIDTH-1:0]		que_araddrx;
+	wire	[ADDR_Y_WIDTH-1:0]		que_araddry;
 	wire							que_arvalid;
 	wire							que_arready;
 	
 	jelly_fifo_fwtf
 			#(
-				.DATA_WIDTH			(S_USER_WIDTH+S_ADDR_X_WIDTH+S_ADDR_Y_WIDTH),
+				.DATA_WIDTH			(S_USER_WIDTH+1+ADDR_X_WIDTH+ADDR_Y_WIDTH),
 				.PTR_WIDTH			(QUE_FIFO_PTR_WIDTH),
 				.RAM_TYPE			(QUE_FIFO_RAM_TYPE),
-				.MASTER_REGS		(0)
+				.SLAVE_REGS			(QUE_FIFO_S_REGS),
+				.MASTER_REGS		(QUE_FIFO_M_REGS)
 			)
-		i_fifo_fwtf
+		i_fifo_fwtf_que
 			(
 				.reset				(reset),
 				.clk				(clk),
 				
-				.s_data				({s_aruser, s_araddrx, s_araddry}),
+				.s_data				({s_aruser, s_arborder, s_araddrx, s_araddry}),
 				.s_valid			(s_arvalid),
 				.s_ready			(s_arready),
 				.s_free_count		(),
 				
-				.m_data				({que_aruser, que_araddrx, que_araddry}),
+				.m_data				({que_aruser, que_arborder, que_araddrx, que_araddry}),
 				.m_valid			(que_arvalid),
 				.m_ready			(que_arready),
 				.m_data_count		()
 			);
-	*/
+	
+	// ---------------------------------
+	//  block addr
+	// ---------------------------------
 	
 	wire	[S_USER_WIDTH-1:0]		blkaddr_aruser;
 	wire							blkaddr_arlast;
@@ -162,21 +165,18 @@ module jelly_texture_cache_basic
 				.DATA_SIZE				(S_DATA_SIZE),
 				
 				.BLK_X_NUM				(S_BLK_X_NUM),
-				.BLK_Y_NUM				(S_BLK_Y_NUM),
-				
-				.FIFO_PTR_WIDTH			(QUE_FIFO_PTR_WIDTH),
-				.FIFO_RAM_TYPE			(QUE_FIFO_RAM_TYPE)
+				.BLK_Y_NUM				(S_BLK_Y_NUM)
 			)
 		i_texture_blk_addr
 			(
 				.reset					(reset),
 				.clk					(clk),
 				
-				.s_user					({s_aruser, s_arborder}),
-				.s_addrx				(s_araddrx),
-				.s_addry				(s_araddry),
-				.s_valid				(s_arvalid),
-				.s_ready				(s_arready),
+				.s_user					({que_aruser, que_arborder}),
+				.s_addrx				(que_araddrx),
+				.s_addry				(que_araddry),
+				.s_valid				(que_arvalid),
+				.s_ready				(que_arready),
 				
 				.m_user					({blkaddr_aruser, blkaddr_arborder}),
 				.m_last					(blkaddr_arlast),
@@ -215,7 +215,9 @@ module jelly_texture_cache_basic
 				.BLK_X_SIZE				(BLK_X_SIZE),
 				.BLK_Y_SIZE				(BLK_Y_SIZE),
 				.RAM_TYPE				(TAG_RAM_TYPE),
-	//			.USE_BORDER				(USE_BORDER),
+
+				.M_SLAVE_REGS			(TAG_M_SLAVE_REGS),
+				.M_MASTER_REGS			(TAG_M_MASTER_REGS),
 				
 				.LOG_ENABLE				(LOG_ENABLE),
 				.LOG_FILE				(LOG_FILE),
@@ -228,9 +230,6 @@ module jelly_texture_cache_basic
 				
 				.clear_start			(clear_start),
 				.clear_busy				(clear_busy),
-				
-	//			.param_width			(param_width),
-	//			.param_height			(param_height),
 				
 				.s_user					(blkaddr_aruser),
 				.s_last					(blkaddr_arlast),
