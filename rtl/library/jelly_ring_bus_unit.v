@@ -20,7 +20,11 @@ module jelly_ring_bus_unit
 			parameter	ID_TO_WIDTH   = 4,
 			parameter	ID_FROM_WIDTH = 4,
 			parameter	UNIT_ID_TO    = 0,
-			parameter	UNIT_ID_FROM  = 0
+			parameter	UNIT_ID_FROM  = 0,
+			
+			// local
+			parameter	ID_TO_BITS    = ID_TO_WIDTH   > 0 ? ID_TO_WIDTH   : 1,
+			parameter	ID_FROM_BITS  = ID_FROM_WIDTH > 0 ? ID_FROM_WIDTH : 1
 		)
 		(
 			input	wire						reset,
@@ -47,11 +51,7 @@ module jelly_ring_bus_unit
 			output	wire	[DATA_WIDTH-1:0]	sink_data,
 			output	wire						sink_valid
 		);
-	
-	localparam	ID_TO_BITS   = ID_TO_WIDTH   > 0 ? ID_TO_WIDTH   : 1;
-	localparam	ID_FROM_BITS = ID_FROM_WIDTH > 0 ? ID_FROM_WIDTH : 1;
-	
-	
+		
 	reg		[ID_TO_BITS-1:0]		reg_sink_id_to;
 	reg		[ID_FROM_BITS-1:0]		reg_sink_id_from;
 	reg		[DATA_WIDTH-1:0]		reg_sink_data;

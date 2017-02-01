@@ -108,6 +108,7 @@ module jelly_fixed_to_float
 	                               UNSIGNED_WIDTH <= 127 ? 7 : 8;
 	
 	integer										i;
+	reg											tmp_flag;
 	
 	reg		[USER_BITS-1:0]						st0_user;
 	reg											st0_zero;
@@ -151,14 +152,16 @@ module jelly_fixed_to_float
 			
 			// count leading zero
 			st1_clz <= UNSIGNED_WIDTH - 1;
-			begin : block_clz
+	//		begin : block_clz
+				tmp_flag = 1'b0;
 				for ( i = 0; i < UNSIGNED_WIDTH-1; i = i+1 ) begin
-					if ( st0_fixed[UNSIGNED_WIDTH-1-i] != 1'b0 ) begin
-						st1_clz <= i;
-						disable block_clz;
+					if ( st0_fixed[UNSIGNED_WIDTH-1-i] != 1'b0 && !tmp_flag ) begin
+						st1_clz  <= i;
+						tmp_flag  = 1'b1;
+	//					disable block_clz;
 					end
 				end
-			end
+	//		end
 		end
 		
 		if ( stage_cke[2] ) begin

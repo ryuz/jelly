@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- the system on fpga system
 //
-//                                 Copyright (C) 2008-2016 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2017 by Ryuji Fuchikami
 //                                 http://ryuz.my.coocan.jp/
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
@@ -16,11 +16,11 @@
 // ring bus unit
 module jelly_data_crossbar_simple
 		#(
-			parameter	S_NUM         = 8,
+			parameter	S_NUM         = 4,
 			parameter	S_ID_WIDTH    = 3,
-			parameter	M_NUM         = 4*2*16,
+			parameter	M_NUM         = 8,
 			parameter	M_ID_WIDTH    = 3,
-			parameter	DATA_WIDTH    = 24*2
+			parameter	DATA_WIDTH    = 32
 		)
 		(
 			input	wire							reset,
@@ -46,10 +46,11 @@ module jelly_data_crossbar_simple
 	reg		[M_NUM*S_ID_WIDTH-1:0]		st1_id;
 	reg		[M_NUM-1:0]					st1_valid;
 	
-	reg		[S_ID_WIDTH-1:0]			tmp_id;
 	reg		[M_NUM*S_ID_WIDTH-1:0]		st2_id;
 	reg		[M_NUM*DATA_WIDTH-1:0]		st2_data;
 	reg		[M_NUM-1:0]					st2_valid;
+	
+	reg		[S_ID_WIDTH-1:0]			tmp_id;
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
@@ -79,19 +80,16 @@ module jelly_data_crossbar_simple
 			
 			// stage 1
 			st1_data  <= st0_data;
-			st1_id    <= {(M_NUM*S_ID_WIDTH){1'bx}};
 			st1_valid <= {M_NUM{1'b0}};
 			for ( m = 0; m < M_NUM; m = m+1 ) begin
+				tmp_id = {S_ID_WIDTH{1'bx}};
 				for ( s = 0; s < S_NUM; s = s+1 ) begin
-//					if ( st0_valid[m*S_NUM +: S_NUM] == ({{(S_NUM-1){1'b0}}, 1'b1} << s) ) begin
 					if ( st0_valid[m*S_NUM+s] ) begin
-						st1_id[m*S_ID_WIDTH +: S_ID_WIDTH] <= s;
-					end
-					
-					if ( st0_valid[m*S_NUM+s] ) begin
+						tmp_id        = s; 
 						st1_valid[m] <= 1'b1;
 					end
 				end
+				st1_id[m*S_ID_WIDTH +: S_ID_WIDTH] <= tmp_id;
 			end
 			
 			

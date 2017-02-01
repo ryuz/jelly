@@ -55,7 +55,10 @@ module jelly_texture_cache_l1
 			
 			parameter	LOG_ENABLE           = 0,
 			parameter	LOG_FILE             = "cache_log.txt",
-			parameter	LOG_ID               = 0
+			parameter	LOG_ID               = 0,
+			
+			parameter	S_DATA_WIDTH         = ((COMPONENT_NUM * COMPONENT_DATA_WIDTH) << S_DATA_SIZE),
+			parameter	M_DATA_WIDTH         = ((COMPONENT_NUM * COMPONENT_DATA_WIDTH) << M_DATA_SIZE)
 		)
 		(
 			input	wire									reset,
@@ -108,10 +111,7 @@ module jelly_texture_cache_l1
 	// -----------------------------
 	//  localparam
 	// -----------------------------
-	
-	localparam	S_DATA_WIDTH         = ((COMPONENT_NUM * COMPONENT_DATA_WIDTH) << S_DATA_SIZE);
-	localparam	M_DATA_WIDTH         = ((COMPONENT_NUM * COMPONENT_DATA_WIDTH) << M_DATA_SIZE);
-	
+		
 	localparam	CACHE_ID_WIDTH       = CACHE_NUM <=    2 ? 1 :
 			                           CACHE_NUM <=    4 ? 2 :
 			                           CACHE_NUM <=    8 ? 3 :

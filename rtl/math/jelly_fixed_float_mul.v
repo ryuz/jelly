@@ -33,7 +33,13 @@ module jelly_fixed_float_mul
 			parameter	MASTER_IN_REGS       = 1,
 			parameter	MASTER_OUT_REGS      = 1,
 			
-			parameter	DEVICE               = "7SERIES" // "RTL"
+			parameter	DEVICE               = "7SERIES", // "RTL"
+	
+			// local
+			parameter	USER_BITS            = USER_WIDTH > 0 ? USER_WIDTH : 1,
+			parameter	S_FLOAT_WIDTH        = 1 + S_FLOAT_EXP_WIDTH + S_FLOAT_FRAC_WIDTH,	// sign + exp + frac
+			parameter	S_FIXED_WIDTH        = S_FIXED_INT_WIDTH + S_FIXED_FRAC_WIDTH,
+			parameter	M_FIXED_WIDTH        = M_FIXED_INT_WIDTH + M_FIXED_FRAC_WIDTH
 		)
 		(
 			input	wire										reset,
@@ -52,10 +58,6 @@ module jelly_fixed_float_mul
 			input	wire										m_ready
 		);
 	
-	localparam	USER_BITS       = USER_WIDTH > 0 ? USER_WIDTH : 1;
-	localparam	S_FLOAT_WIDTH   = 1 + S_FLOAT_EXP_WIDTH + S_FLOAT_FRAC_WIDTH;	// sign + exp + frac
-	localparam	S_FIXED_WIDTH   = S_FIXED_INT_WIDTH + S_FIXED_FRAC_WIDTH;
-	localparam	M_FIXED_WIDTH   = M_FIXED_INT_WIDTH + M_FIXED_FRAC_WIDTH;
 	localparam	FRAC_DIFF       = M_FIXED_FRAC_WIDTH > S_FIXED_FRAC_WIDTH ? M_FIXED_FRAC_WIDTH - S_FIXED_FRAC_WIDTH : S_FIXED_FRAC_WIDTH - M_FIXED_FRAC_WIDTH;
 	localparam	MUL_WIDTH       = S_FIXED_WIDTH + (S_FLOAT_FRAC_WIDTH+2);
 	localparam	MUL_SHIFT_WIDTH = MUL_WIDTH + (1 << S_FLOAT_EXP_WIDTH) + FRAC_DIFF;

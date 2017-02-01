@@ -17,7 +17,19 @@ module jelly_texture_cache_l2
 		#(
 			parameter	COMPONENT_NUM        = 3,
 			parameter	COMPONENT_DATA_WIDTH = 8,
-			
+			parameter	COMPONENT_DATA_SIZE   = COMPONENT_DATA_WIDTH <=     8 ?  0 :
+	                                            COMPONENT_DATA_WIDTH <=    16 ?  1 :
+	                                            COMPONENT_DATA_WIDTH <=    32 ?  2 :
+	                                            COMPONENT_DATA_WIDTH <=    64 ?  3 :
+	                                            COMPONENT_DATA_WIDTH <=   128 ?  4 :
+	                                            COMPONENT_DATA_WIDTH <=   256 ?  5 :
+	                                            COMPONENT_DATA_WIDTH <=   512 ?  6 :
+	                                            COMPONENT_DATA_WIDTH <=  1024 ?  7 :
+	                                            COMPONENT_DATA_WIDTH <=  2048 ?  8 :
+	                                            COMPONENT_DATA_WIDTH <=  4096 ?  9 :
+	                                            COMPONENT_DATA_WIDTH <=  8192 ? 10 :
+	                                            COMPONENT_DATA_WIDTH <= 16384 ? 11 :
+	                                            COMPONENT_DATA_WIDTH <= 32768 ? 12 : 13,
 			
 			parameter	ADDR_WIDTH           = 24,
 			
@@ -74,7 +86,11 @@ module jelly_texture_cache_l2
 			
 			parameter	LOG_ENABLE           = 0,
 			parameter	LOG_FILE             = "cache_log.txt",
-			parameter	LOG_ID               = 0
+			parameter	LOG_ID               = 0,
+			
+			// local
+			parameter	CACHE_NUM            = (1 << PARALLEL_SIZE),
+			parameter	S_DATA_WIDTH         = ((COMPONENT_NUM * COMPONENT_DATA_WIDTH) << S_DATA_SIZE)
 		)
 		(
 			input	wire											reset,
@@ -133,11 +149,7 @@ module jelly_texture_cache_l2
 	// -----------------------------
 	//  localparam
 	// -----------------------------
-	
-	localparam	S_DATA_WIDTH         = ((COMPONENT_NUM * COMPONENT_DATA_WIDTH) << S_DATA_SIZE);
-
-	
-	localparam	CACHE_NUM           = (1 << PARALLEL_SIZE);
+		
 	localparam	CACHE_ID_WIDTH      = PARALLEL_SIZE;
 	
 	localparam	ID_WIDTH            = M_AXI4_ID_WIDTH;
@@ -174,19 +186,6 @@ module jelly_texture_cache_l2
 	                                  COMPONENT_NUM        <= 16384 ? 14 :
 	                                  COMPONENT_NUM        <= 32768 ? 15 : 16;
 	
-	localparam	COMPONENT_DATA_SIZE = COMPONENT_DATA_WIDTH <=     8 ?  0 :
-	                                  COMPONENT_DATA_WIDTH <=    16 ?  1 :
-	                                  COMPONENT_DATA_WIDTH <=    32 ?  2 :
-	                                  COMPONENT_DATA_WIDTH <=    64 ?  3 :
-	                                  COMPONENT_DATA_WIDTH <=   128 ?  4 :
-	                                  COMPONENT_DATA_WIDTH <=   256 ?  5 :
-	                                  COMPONENT_DATA_WIDTH <=   512 ?  6 :
-	                                  COMPONENT_DATA_WIDTH <=  1024 ?  7 :
-	                                  COMPONENT_DATA_WIDTH <=  2048 ?  8 :
-	                                  COMPONENT_DATA_WIDTH <=  4096 ?  9 :
-	                                  COMPONENT_DATA_WIDTH <=  8192 ? 10 :
-	                                  COMPONENT_DATA_WIDTH <= 16384 ? 11 :
-	                                  COMPONENT_DATA_WIDTH <= 32768 ? 12 : 13;
 	
 	
 	localparam	M_DATA_SIZE    = M_AXI4_DATA_SIZE;

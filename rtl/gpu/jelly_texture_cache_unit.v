@@ -59,7 +59,12 @@ module jelly_texture_cache_unit
 			
 			parameter	LOG_ENABLE           = 0,
 			parameter	LOG_FILE             = "cache_log.txt",
-			parameter	LOG_ID               = 0
+			parameter	LOG_ID               = 0,
+			
+			// local
+			parameter	S_DATA_WIDTH         = ((COMPONENT_NUM * COMPONENT_DATA_WIDTH) << S_DATA_SIZE),
+			parameter	M_DATA_WIDTH         = ((COMPONENT_NUM * COMPONENT_DATA_WIDTH) << M_DATA_SIZE),
+			parameter	M_STRB_WIDTH         = COMPONENT_NUM
 		)
 		(
 			input	wire							reset,
@@ -103,12 +108,7 @@ module jelly_texture_cache_unit
 			input	wire							m_rvalid,
 			output	wire							m_rready
 		);
-	
-	localparam	S_DATA_WIDTH         = ((COMPONENT_NUM * COMPONENT_DATA_WIDTH) << S_DATA_SIZE);
-	localparam	M_DATA_WIDTH         = ((COMPONENT_NUM * COMPONENT_DATA_WIDTH) << M_DATA_SIZE);
-	localparam	M_STRB_WIDTH         = COMPONENT_NUM;
-	
-	
+		
 	generate
 	if ( USE_LOOK_AHEAD ) begin : blk_lookahead
 		jelly_texture_cache_lookahead

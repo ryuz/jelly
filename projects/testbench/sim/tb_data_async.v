@@ -115,7 +115,7 @@ module tb_data_async();
 			(
 				.s_reset	(reset),
 				.s_clk		(s_clk),
-				.s_pulse	(reg_puls_count == 0),
+				.s_pulse	(1), // reg_puls_count == 0),
 				
 				.m_reset	(reset),
 				.m_clk		(m_clk),

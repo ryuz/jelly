@@ -23,7 +23,11 @@ module jelly_texture_cache_mem
 			parameter	S_DATA_SIZE          = 1,
 			parameter	M_DATA_SIZE          = 0,
 			parameter	RAM_TYPE             = "block",
-			parameter	MASTER_REGS          = 1
+			parameter	MASTER_REGS          = 1,
+			
+			// local
+			parameter	S_DATA_WIDTH         = ((COMPONENT_NUM * COMPONENT_DATA_WIDTH) << S_DATA_SIZE),
+			parameter	M_DATA_WIDTH         = ((COMPONENT_NUM * COMPONENT_DATA_WIDTH) << M_DATA_SIZE)
 		)
 		(
 			input	wire							reset,
@@ -52,9 +56,6 @@ module jelly_texture_cache_mem
 			output	wire							m_valid,
 			input	wire							m_ready
 		);
-
-	localparam	S_DATA_WIDTH         = ((COMPONENT_NUM * COMPONENT_DATA_WIDTH) << S_DATA_SIZE);
-	localparam	M_DATA_WIDTH         = ((COMPONENT_NUM * COMPONENT_DATA_WIDTH) << M_DATA_SIZE);
 	
 	localparam	MEM_ADDR_WIDTH    = PIX_ADDR_WIDTH - S_DATA_SIZE;
 	localparam	SEL_WIDTH         = S_DATA_SIZE > M_DATA_SIZE ? S_DATA_SIZE - M_DATA_SIZE : 1;

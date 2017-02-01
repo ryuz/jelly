@@ -47,6 +47,23 @@ module jelly_texture_sampler
 			
 			parameter	SAMPLER3D_NUM                 = 0,
 			
+			
+			parameter	M_AXI4_ID_WIDTH               = 6,
+			parameter	M_AXI4_ADDR_WIDTH             = 32,
+			parameter	M_AXI4_DATA_SIZE              = 3,	// 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
+			parameter	M_AXI4_DATA_WIDTH             = (8 << M_AXI4_DATA_SIZE),
+			parameter	M_AXI4_LEN_WIDTH              = 8,
+			parameter	M_AXI4_QOS_WIDTH              = 4,
+			parameter	M_AXI4_ARID                   = {M_AXI4_ID_WIDTH{1'b0}},
+			parameter	M_AXI4_ARSIZE                 = M_AXI4_DATA_SIZE,
+			parameter	M_AXI4_ARBURST                = 2'b01,
+			parameter	M_AXI4_ARLOCK                 = 1'b0,
+			parameter	M_AXI4_ARCACHE                = 4'b0001,
+			parameter	M_AXI4_ARPROT                 = 3'b000,
+			parameter	M_AXI4_ARQOS                  = 0,
+			parameter	M_AXI4_ARREGION               = 4'b0000,
+			parameter	M_AXI4_REGS                   = 1,
+			
 			parameter	L1_CACHE_NUM                  = SAMPLER1D_NUM + SAMPLER2D_NUM + SAMPLER3D_NUM,
 			parameter	L1_USE_LOOK_AHEAD             = 1,
 			parameter	L1_BLK_X_SIZE                 = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
@@ -65,7 +82,7 @@ module jelly_texture_sampler
 			parameter	L1_AR_FIFO_RAM_TYPE           = "distributed",
 			parameter	L1_AR_FIFO_S_REGS             = 0,
 			parameter	L1_AR_FIFO_M_REGS             = 0,
-			parameter	L1_R_FIFO_PTR_WIDTH           = L2_USE_LOOK_AHEAD ? L1_BLK_Y_SIZE + L1_BLK_X_SIZE - L1_DATA_SIZE : 0,
+			parameter	L1_R_FIFO_PTR_WIDTH           = L1_USE_LOOK_AHEAD ? L1_BLK_Y_SIZE + L1_BLK_X_SIZE - L1_DATA_SIZE : 0,
 			parameter	L1_R_FIFO_RAM_TYPE            = "block",
 			parameter	L1_R_FIFO_S_REGS              = 0,
 			parameter	L1_R_FIFO_M_REGS              = 0,
@@ -98,22 +115,6 @@ module jelly_texture_sampler
 			parameter	L2_LOG_ENABLE                 = 0,
 			parameter	L2_LOG_FILE                   = "l2_log.txt",
 			parameter	L2_LOG_ID                     = 0,
-			
-			parameter	M_AXI4_ID_WIDTH               = 6,
-			parameter	M_AXI4_ADDR_WIDTH             = 32,
-			parameter	M_AXI4_DATA_SIZE              = 3,	// 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
-			parameter	M_AXI4_DATA_WIDTH             = (8 << M_AXI4_DATA_SIZE),
-			parameter	M_AXI4_LEN_WIDTH              = 8,
-			parameter	M_AXI4_QOS_WIDTH              = 4,
-			parameter	M_AXI4_ARID                   = {M_AXI4_ID_WIDTH{1'b0}},
-			parameter	M_AXI4_ARSIZE                 = M_AXI4_DATA_SIZE,
-			parameter	M_AXI4_ARBURST                = 2'b01,
-			parameter	M_AXI4_ARLOCK                 = 1'b0,
-			parameter	M_AXI4_ARCACHE                = 4'b0001,
-			parameter	M_AXI4_ARPROT                 = 3'b000,
-			parameter	M_AXI4_ARQOS                  = 0,
-			parameter	M_AXI4_ARREGION               = 4'b0000,
-			parameter	M_AXI4_REGS                   = 1,
 			
 			parameter	DEVICE                        = "7SERIES"	// "RTL"
 		)

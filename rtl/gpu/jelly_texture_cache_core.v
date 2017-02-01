@@ -26,6 +26,22 @@ module jelly_texture_cache_core
 			parameter	ADDR_Y_WIDTH          = 12,
 			parameter	S_DATA_SIZE           = 0,
 			
+			parameter	M_AXI4_ID_WIDTH       = 6,
+			parameter	M_AXI4_ADDR_WIDTH     = 32,
+			parameter	M_AXI4_DATA_SIZE      = 3,	// 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
+			parameter	M_AXI4_DATA_WIDTH     = (8 << M_AXI4_DATA_SIZE),
+			parameter	M_AXI4_LEN_WIDTH      = 8,
+			parameter	M_AXI4_QOS_WIDTH      = 4,
+			parameter	M_AXI4_ARID           = {M_AXI4_ID_WIDTH{1'b0}},
+			parameter	M_AXI4_ARSIZE         = M_AXI4_DATA_SIZE,
+			parameter	M_AXI4_ARBURST        = 2'b01,
+			parameter	M_AXI4_ARLOCK         = 1'b0,
+			parameter	M_AXI4_ARCACHE        = 4'b0001,
+			parameter	M_AXI4_ARPROT         = 3'b000,
+			parameter	M_AXI4_ARQOS          = 0,
+			parameter	M_AXI4_ARREGION       = 4'b0000,
+			parameter	M_AXI4_REGS           = 1,
+			
 			parameter	L1_CACHE_NUM          = 4,
 			parameter	L1_USE_LOOK_AHEAD     = 0,
 			parameter	L1_BLK_X_SIZE         = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
@@ -77,21 +93,10 @@ module jelly_texture_cache_core
 			parameter	L2_LOG_FILE           = "l2_log.txt",
 			parameter	L2_LOG_ID             = 0,
 			
-			parameter	M_AXI4_ID_WIDTH       = 6,
-			parameter	M_AXI4_ADDR_WIDTH     = 32,
-			parameter	M_AXI4_DATA_SIZE      = 3,	// 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
-			parameter	M_AXI4_DATA_WIDTH     = (8 << M_AXI4_DATA_SIZE),
-			parameter	M_AXI4_LEN_WIDTH      = 8,
-			parameter	M_AXI4_QOS_WIDTH      = 4,
-			parameter	M_AXI4_ARID           = {M_AXI4_ID_WIDTH{1'b0}},
-			parameter	M_AXI4_ARSIZE         = M_AXI4_DATA_SIZE,
-			parameter	M_AXI4_ARBURST        = 2'b01,
-			parameter	M_AXI4_ARLOCK         = 1'b0,
-			parameter	M_AXI4_ARCACHE        = 4'b0001,
-			parameter	M_AXI4_ARPROT         = 3'b000,
-			parameter	M_AXI4_ARQOS          = 0,
-			parameter	M_AXI4_ARREGION       = 4'b0000,
-			parameter	M_AXI4_REGS           = 1
+			// local
+			parameter	COMPONENT_DATA_WIDTH  = (8 << COMPONENT_DATA_SIZE),
+			parameter	S_DATA_WIDTH          = ((COMPONENT_NUM * COMPONENT_DATA_WIDTH) << S_DATA_SIZE),
+			parameter	L2_CACHE_NUM          = (1 << L2_PARALLEL_SIZE)
 		)
 		(
 			input	wire											reset,
@@ -158,12 +163,6 @@ module jelly_texture_cache_core
 	// -----------------------------
 	//  localparam
 	// -----------------------------
-
-	parameter	S_DATA_WIDTH            = ((COMPONENT_NUM * COMPONENT_DATA_WIDTH) << S_DATA_SIZE);
-	
-	localparam	L2_CACHE_NUM            = (1 << L2_PARALLEL_SIZE);
-	
-	localparam	COMPONENT_DATA_WIDTH    = (8 << COMPONENT_DATA_SIZE);
 	
 	localparam	L1_ID_WIDTH             = L1_CACHE_NUM <=    2 ? 1 :
 	                                      L1_CACHE_NUM <=    4 ? 2 :

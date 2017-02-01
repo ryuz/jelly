@@ -21,7 +21,10 @@ module jelly_texture_border_unit
 			parameter	ADDR_Y_WIDTH = 10,
 			parameter	X_WIDTH      = 12,
 			parameter	Y_WIDTH      = 12,
-			parameter	M_REGS       = 0
+			parameter	M_REGS       = 0,
+			
+			// local
+			parameter	USER_BITS    = USER_WIDTH > 0 ? USER_WIDTH : 1
 		)
 		(
 			input	wire								reset,
@@ -73,9 +76,7 @@ module jelly_texture_border_unit
 	// -------------------------------------
 	//  local parameter
 	// -------------------------------------
-	
-	localparam	USER_BITS = USER_WIDTH > 0 ? USER_WIDTH : 1;
-	
+		
 	wire	signed	[X_WIDTH-1:0]		image_width  = {1'b0, param_width};
 	wire	signed	[Y_WIDTH-1:0]		image_height = {1'b0, param_height};
 	

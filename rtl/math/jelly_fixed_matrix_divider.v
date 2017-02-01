@@ -46,7 +46,13 @@ module jelly_fixed_matrix_divider
 			parameter	MASTER_IN_REGS            = 1,
 			parameter	MASTER_OUT_REGS           = 1,
 			
-			parameter	DEVICE                    = "RTL"
+			parameter	DEVICE                    = "RTL",
+			
+			// local
+			parameter	USER_BITS                 = USER_WIDTH > 0 ? USER_WIDTH : 1,
+			parameter	S_DIVIDEND_WIDTH          = S_DIVIDEND_INT_WIDTH + S_DIVIDEND_FRAC_WIDTH,
+			parameter	S_DIVISOR_WIDTH           = S_DIVISOR_INT_WIDTH  + S_DIVISOR_FRAC_WIDTH,
+			parameter	M_QUOTIENT_WIDTH          = M_QUOTIENT_INT_WIDTH + M_QUOTIENT_FRAC_WIDTH
 		)
 		(
 			input	wire										reset,
@@ -71,12 +77,7 @@ module jelly_fixed_matrix_divider
 	// -------------------------------------
 	//  localparam
 	// -------------------------------------
-	
-	localparam	USER_BITS            = USER_WIDTH > 0 ? USER_WIDTH : 1;
-	localparam	S_DIVIDEND_WIDTH     = S_DIVIDEND_INT_WIDTH + S_DIVIDEND_FRAC_WIDTH;
-	localparam	S_DIVISOR_WIDTH      = S_DIVISOR_INT_WIDTH  + S_DIVISOR_FRAC_WIDTH;
-	localparam	M_QUOTIENT_WIDTH     = M_QUOTIENT_INT_WIDTH + M_QUOTIENT_FRAC_WIDTH;
-	
+		
 	localparam	DIVIDEND_FIXED_WIDTH = DIVIDEND_FIXED_INT_WIDTH + DIVIDEND_FIXED_FRAC_WIDTH;
 	localparam	DIVISOR_FLOAT_WIDTH  = 1 + DIVISOR_FLOAT_EXP_WIDTH + DIVISOR_FLOAT_FRAC_WIDTH;
 	

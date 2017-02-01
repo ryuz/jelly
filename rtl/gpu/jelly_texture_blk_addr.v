@@ -45,12 +45,7 @@ module jelly_texture_blk_addr
 			output	wire						m_valid,
 			input	wire						m_ready
 		);
-	
-	localparam	X_STEP  = (1 << DATA_SIZE);
-	
-	localparam	X_WIDTH = BLK_X_WIDTH > 0 ? BLK_X_WIDTH : 1;
-	localparam	Y_WIDTH = BLK_Y_WIDTH > 0 ? BLK_Y_WIDTH : 1;
-	
+		
 	localparam	BLK_X_WIDTH = BLK_X_NUM <=     2 ?  1 : 
 	                          BLK_X_NUM <=     4 ?  2 : 
 	                          BLK_X_NUM <=     8 ?  3 : 
@@ -83,6 +78,9 @@ module jelly_texture_blk_addr
 	                          BLK_Y_NUM <= 16384 ? 14 : 
 	                          BLK_Y_NUM <= 32768 ? 15 : 16;
 	
+	localparam	X_STEP  = (1 << DATA_SIZE);
+	localparam	X_WIDTH = BLK_X_WIDTH > 0 ? BLK_X_WIDTH : 1;
+	localparam	Y_WIDTH = BLK_Y_WIDTH > 0 ? BLK_Y_WIDTH : 1;
 	
 	// addressing
 	generate

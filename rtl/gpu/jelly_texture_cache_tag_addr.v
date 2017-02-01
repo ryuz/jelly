@@ -21,7 +21,10 @@ module jelly_texture_cache_tag_addr
 			parameter	ADDR_Y_WIDTH   = 12,
 			parameter	TAG_ADDR_WIDTH = 6,
 			
-			parameter	ALGORITHM      = PARALLEL_SIZE > 0 ? "SUDOKU" : "TWIST"		// "SUDOKU", "TWIST"
+			parameter	ALGORITHM      = PARALLEL_SIZE > 0 ? "SUDOKU" : "TWIST",	// "SUDOKU", "TWIST"
+			
+			// local
+			parameter	ID_WIDTH       = PARALLEL_SIZE > 0 ? PARALLEL_SIZE : 1
 		)
 		(
 			input	wire	[ADDR_X_WIDTH-1:0]		addrx,
@@ -31,7 +34,6 @@ module jelly_texture_cache_tag_addr
 			output	wire	[TAG_ADDR_WIDTH-1:0]	tag_addr
 		);
 	
-	localparam	ID_WIDTH        = PARALLEL_SIZE > 0 ? PARALLEL_SIZE : 1;
 	localparam	SHUFFLE_WIDTH   = PARALLEL_SIZE + TAG_ADDR_WIDTH;
 	localparam	HALF_ADDR_WIDTH = TAG_ADDR_WIDTH / 2;
 	localparam	TWIST_OFFSET    = (1 << (PARALLEL_SIZE + TAG_ADDR_WIDTH - 1));

@@ -34,7 +34,14 @@ module jelly_texture_cache_tag
 			
 			parameter	LOG_ENABLE       = 0,
 			parameter	LOG_FILE         = "cache_log.txt",
-			parameter	LOG_ID           = 0         
+			parameter	LOG_ID           = 0,
+						
+			// local
+			parameter	USER_BITS        = USER_WIDTH > 0 ? USER_WIDTH : 1,
+			parameter	PIX_ADDR_X_WIDTH = BLK_X_SIZE,
+			parameter	PIX_ADDR_Y_WIDTH = BLK_Y_SIZE,
+			parameter	BLK_ADDR_X_WIDTH = ADDR_X_WIDTH - BLK_X_SIZE,
+			parameter	BLK_ADDR_Y_WIDTH = ADDR_Y_WIDTH - BLK_Y_SIZE
 		)
 		(
 			input	wire							reset,
@@ -64,11 +71,6 @@ module jelly_texture_cache_tag
 			input	wire							m_ready
 		);
 	
-	localparam	USER_BITS        = USER_WIDTH > 0 ? USER_WIDTH : 1;
-	localparam	PIX_ADDR_X_WIDTH = BLK_X_SIZE;
-	localparam	PIX_ADDR_Y_WIDTH = BLK_Y_SIZE;
-	localparam	BLK_ADDR_X_WIDTH = ADDR_X_WIDTH - BLK_X_SIZE;
-	localparam	BLK_ADDR_Y_WIDTH = ADDR_Y_WIDTH - BLK_Y_SIZE;
 	
 	
 	// ---------------------------------
