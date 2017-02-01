@@ -15,82 +15,89 @@
 
 module jelly_texture_cache_l2
 		#(
-			parameter	COMPONENT_NUM        = 3,
-			parameter	COMPONENT_DATA_WIDTH = 8,
-			parameter	COMPONENT_DATA_SIZE   = COMPONENT_DATA_WIDTH <=     8 ?  0 :
-	                                            COMPONENT_DATA_WIDTH <=    16 ?  1 :
-	                                            COMPONENT_DATA_WIDTH <=    32 ?  2 :
-	                                            COMPONENT_DATA_WIDTH <=    64 ?  3 :
-	                                            COMPONENT_DATA_WIDTH <=   128 ?  4 :
-	                                            COMPONENT_DATA_WIDTH <=   256 ?  5 :
-	                                            COMPONENT_DATA_WIDTH <=   512 ?  6 :
-	                                            COMPONENT_DATA_WIDTH <=  1024 ?  7 :
-	                                            COMPONENT_DATA_WIDTH <=  2048 ?  8 :
-	                                            COMPONENT_DATA_WIDTH <=  4096 ?  9 :
-	                                            COMPONENT_DATA_WIDTH <=  8192 ? 10 :
-	                                            COMPONENT_DATA_WIDTH <= 16384 ? 11 :
-	                                            COMPONENT_DATA_WIDTH <= 32768 ? 12 : 13,
+			parameter	COMPONENT_NUM          = 3,
+			parameter	COMPONENT_DATA_WIDTH   = 8,
+			parameter	COMPONENT_DATA_SIZE    = COMPONENT_DATA_WIDTH <=     8 ?  0 :
+	                                             COMPONENT_DATA_WIDTH <=    16 ?  1 :
+	                                             COMPONENT_DATA_WIDTH <=    32 ?  2 :
+	                                             COMPONENT_DATA_WIDTH <=    64 ?  3 :
+	                                             COMPONENT_DATA_WIDTH <=   128 ?  4 :
+	                                             COMPONENT_DATA_WIDTH <=   256 ?  5 :
+	                                             COMPONENT_DATA_WIDTH <=   512 ?  6 :
+	                                             COMPONENT_DATA_WIDTH <=  1024 ?  7 :
+	                                             COMPONENT_DATA_WIDTH <=  2048 ?  8 :
+	                                             COMPONENT_DATA_WIDTH <=  4096 ?  9 :
+	                                             COMPONENT_DATA_WIDTH <=  8192 ? 10 :
+	                                             COMPONENT_DATA_WIDTH <= 16384 ? 11 :
+	                                             COMPONENT_DATA_WIDTH <= 32768 ? 12 : 13,
 			
-			parameter	ADDR_WIDTH           = 24,
+			parameter	ADDR_WIDTH             = 24,
 			
-			parameter	PARALLEL_SIZE        = 2, 	// 0:1, 1:2, 2:4, 2:4, 3:8 ....
-			parameter	ADDR_X_WIDTH         = 12,
-			parameter	ADDR_Y_WIDTH         = 12,
-			parameter	BLK_X_SIZE           = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
-			parameter	BLK_Y_SIZE           = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
-			parameter	TAG_ADDR_WIDTH       = 6,
-			parameter	TAG_RAM_TYPE         = "distributed",
-			parameter	TAG_M_SLAVE_REGS     = 0,
-			parameter	TAG_M_MASTER_REGS    = 0,
-			parameter	MEM_RAM_TYPE         = "block",
+			parameter	PARALLEL_SIZE          = 2, 	// 0:1, 1:2, 2:4, 2:4, 3:8 ....
+			parameter	ADDR_X_WIDTH           = 12,
+			parameter	ADDR_Y_WIDTH           = 12,
+			parameter	BLK_X_SIZE             = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
+			parameter	BLK_Y_SIZE             = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
+			parameter	TAG_ADDR_WIDTH         = 6,
+			parameter	TAG_RAM_TYPE           = "distributed",
+			parameter	TAG_M_SLAVE_REGS       = 0,
+			parameter	TAG_M_MASTER_REGS      = 0,
+			parameter	MEM_RAM_TYPE           = "block",
 			
-			parameter	USE_LOOK_AHEAD       = 0,
-			parameter	USE_S_RREADY         = 1,	// 0: s_rready is always 1'b1.   1: handshake mode.
-			parameter	USE_M_RREADY         = 0,	// 0: m_rready is always 1'b1.   1: handshake mode.
+			parameter	USE_LOOK_AHEAD         = 0,
+			parameter	USE_S_RREADY           = 1,	// 0: s_rready is always 1'b1.   1: handshake mode.
+			parameter	USE_M_RREADY           = 0,	// 0: m_rready is always 1'b1.   1: handshake mode.
 			
-			parameter	S_NUM                = 8,
-			parameter	S_DATA_SIZE          = 1,
-			parameter	S_BLK_X_NUM          = 2,
-			parameter	S_BLK_Y_NUM          = 2,
+			parameter	S_NUM                  = 8,
+			parameter	S_DATA_SIZE            = 1,
+			parameter	S_BLK_X_NUM            = 2,
+			parameter	S_BLK_Y_NUM            = 2,
 			
-			parameter	M_AXI4_ID_WIDTH      = 6,
-			parameter	M_AXI4_ADDR_WIDTH    = 32,
-			parameter	M_AXI4_DATA_SIZE     = 2,	// 0:8bit, 1:16bit, 2:32bit ...
-			parameter	M_AXI4_DATA_WIDTH    = (8 << M_AXI4_DATA_SIZE),
-			parameter	M_AXI4_LEN_WIDTH     = 8,
-			parameter	M_AXI4_QOS_WIDTH     = 4,
-			parameter	M_AXI4_ARID          = {M_AXI4_ID_WIDTH{1'b0}},
-			parameter	M_AXI4_ARSIZE        = M_AXI4_DATA_SIZE,
-			parameter	M_AXI4_ARBURST       = 2'b01,
-			parameter	M_AXI4_ARLOCK        = 1'b0,
-			parameter	M_AXI4_ARCACHE       = 4'b0001,
-			parameter	M_AXI4_ARPROT        = 3'b000,
-			parameter	M_AXI4_ARQOS         = 0,
-			parameter	M_AXI4_ARREGION      = 4'b0000,
-			parameter	M_AXI4_REGS          = 1,
+			parameter	M_AXI4_ID_WIDTH        = 6,
+			parameter	M_AXI4_ADDR_WIDTH      = 32,
+			parameter	M_AXI4_DATA_SIZE       = 2,	// 0:8bit, 1:16bit, 2:32bit ...
+			parameter	M_AXI4_DATA_WIDTH      = (8 << M_AXI4_DATA_SIZE),
+			parameter	M_AXI4_LEN_WIDTH       = 8,
+			parameter	M_AXI4_QOS_WIDTH       = 4,
+			parameter	M_AXI4_ARID            = {M_AXI4_ID_WIDTH{1'b0}},
+			parameter	M_AXI4_ARSIZE          = M_AXI4_DATA_SIZE,
+			parameter	M_AXI4_ARBURST         = 2'b01,
+			parameter	M_AXI4_ARLOCK          = 1'b0,
+			parameter	M_AXI4_ARCACHE         = 4'b0001,
+			parameter	M_AXI4_ARPROT          = 3'b000,
+			parameter	M_AXI4_ARQOS           = 0,
+			parameter	M_AXI4_ARREGION        = 4'b0000,
+			parameter	M_AXI4_REGS            = 1,
 			
-			parameter	QUE_FIFO_PTR_WIDTH   = USE_LOOK_AHEAD ? BLK_Y_SIZE + BLK_X_SIZE : 0,
-			parameter	QUE_FIFO_RAM_TYPE    = "distributed",
-			parameter	QUE_FIFO_S_REGS      = 0,
-			parameter	QUE_FIFO_M_REGS      = 0,
+			parameter	QUE_FIFO_PTR_WIDTH     = USE_LOOK_AHEAD ? BLK_Y_SIZE + BLK_X_SIZE : 0,
+			parameter	QUE_FIFO_RAM_TYPE      = "distributed",
+			parameter	QUE_FIFO_S_REGS        = 0,
+			parameter	QUE_FIFO_M_REGS        = 0,
 			
-			parameter	AR_FIFO_PTR_WIDTH    = 0,
-			parameter	AR_FIFO_RAM_TYPE     = "distributed",
-			parameter	AR_FIFO_S_REGS       = 0,
-			parameter	AR_FIFO_M_REGS       = 0,
+			parameter	AR_FIFO_PTR_WIDTH      = 0,
+			parameter	AR_FIFO_RAM_TYPE       = "distributed",
+			parameter	AR_FIFO_S_REGS         = 0,
+			parameter	AR_FIFO_M_REGS         = 0,
 			
-			parameter	R_FIFO_PTR_WIDTH     = BLK_Y_SIZE + BLK_X_SIZE - (M_AXI4_DATA_SIZE - COMPONENT_DATA_SIZE),
-			parameter	R_FIFO_RAM_TYPE      = "distributed",
-			parameter	R_FIFO_S_REGS        = 0,
-			parameter	R_FIFO_M_REGS        = 0,
+			parameter	R_FIFO_PTR_WIDTH       = BLK_Y_SIZE + BLK_X_SIZE - (M_AXI4_DATA_SIZE - COMPONENT_DATA_SIZE),
+			parameter	R_FIFO_RAM_TYPE        = "distributed",
+			parameter	R_FIFO_S_REGS          = 0,
+			parameter	R_FIFO_M_REGS          = 0,
+
+			parameter	DMA_QUE_FIFO_PTR_WIDTH = 6,
+			parameter	DMA_QUE_FIFO_RAM_TYPE  = "distributed",
+			parameter	DMA_QUE_FIFO_S_REGS    = 0,
+			parameter	DMA_QUE_FIFO_M_REGS    = 1,		
+			parameter	DMA_S_AR_REGS          = 1,
+			parameter	DMA_S_R_REGS           = 1,
 			
-			parameter	LOG_ENABLE           = 0,
-			parameter	LOG_FILE             = "cache_log.txt",
-			parameter	LOG_ID               = 0,
+			parameter	LOG_ENABLE             = 0,
+			parameter	LOG_FILE               = "cache_log.txt",
+			parameter	LOG_ID                 = 0,
 			
 			// local
-			parameter	CACHE_NUM            = (1 << PARALLEL_SIZE),
-			parameter	S_DATA_WIDTH         = ((COMPONENT_NUM * COMPONENT_DATA_WIDTH) << S_DATA_SIZE)
+			parameter	CACHE_NUM              = (1 << PARALLEL_SIZE),
+			parameter	S_DATA_WIDTH           = ((COMPONENT_NUM * COMPONENT_DATA_WIDTH) << S_DATA_SIZE)
 		)
 		(
 			input	wire											reset,
@@ -555,7 +562,56 @@ module jelly_texture_cache_l2
 	// r pack
 	assign ringbus_rpacket = {ringbus_rlast, ringbus_rcomponent, ringbus_rdata};
 	
+	jelly_data_arbiter_ring_bus
+			#(
+				.S_NUM				(CACHE_NUM),
+				.S_ID_WIDTH			(CACHE_ID_WIDTH),
+				.M_NUM				(1),
+				.M_ID_WIDTH			(1),
+				.DATA_WIDTH			(M_AR_PACKET_WIDTH)
+			)
+		i_data_arbiter_ring_bus_ar
+			(
+				.reset				(reset),
+				.clk				(clk),
+				.cke				(1'b1),
+				
+				.s_id_to			(1'b0),
+				.s_data				(cache_arpacket),
+				.s_valid			(cache_arvalid),
+				.s_ready			(cache_arready),
+				
+				.m_id_from			(ringbus_arid),
+				.m_data				(ringbus_arpacket),
+				.m_valid			(ringbus_arvalid),
+				.m_ready			(ringbus_arready)
+			);
+
+	jelly_data_crossbar_simple
+			#(
+				.S_NUM				(1),
+				.S_ID_WIDTH			(1),
+				.M_NUM				(CACHE_NUM),
+				.M_ID_WIDTH			(CACHE_ID_WIDTH),
+				.DATA_WIDTH			(M_R_PACKET_WIDTH)
+			)
+		i_data_crossbar_simple_r
+			(
+				.reset				(reset),
+				.clk				(clk),
+				.cke				(1'b1),
+				
+				.s_id_to			(ringbus_rid),
+				.s_data				(ringbus_rpacket),
+				.s_valid			(ringbus_rvalid),
+				
+				.m_id_from			(),
+				.m_data				(cache_rpacket),
+				.m_valid			(cache_rvalid)
+			);
+	assign ringbus_rready = 1'b1;
 	
+	/*
 	jelly_ring_bus_arbiter_bidirection
 			#(
 				.S_NUM				(CACHE_NUM),
@@ -589,7 +645,7 @@ module jelly_texture_cache_l2
 				.m_up_valid			(ringbus_rvalid),
 				.m_up_ready			(ringbus_rready)
 			);
-	
+	*/
 	
 	
 	// -----------------------------
@@ -630,9 +686,14 @@ module jelly_texture_cache_l2
 				
 				.ID_WIDTH				(ID_WIDTH),
 				.ADDR_WIDTH				(ADDR_WIDTH),
+
+				.QUE_FIFO_PTR_WIDTH		(DMA_QUE_FIFO_PTR_WIDTH),
+				.QUE_FIFO_RAM_TYPE		(DMA_QUE_FIFO_RAM_TYPE),
+				.QUE_FIFO_S_REGS		(DMA_QUE_FIFO_S_REGS),
+				.QUE_FIFO_M_REGS		(DMA_QUE_FIFO_M_REGS),
 				
-				.S_AR_REGS				(1),
-				.S_R_REGS				(1)
+				.S_AR_REGS				(DMA_S_AR_REGS),
+				.S_R_REGS				(DMA_S_R_REGS)
 			)
 		i_texture_cache_dma
 			(

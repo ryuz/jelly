@@ -42,8 +42,10 @@ module jelly_texture_cache_dma
 			parameter	ADDR_WIDTH           = 24,
 			parameter	DATA_WIDTH           = M_AXI4_DATA_WIDTH,
 
-			parameter	FIFO_PTR_WIDTH       = 6,
-			parameter	FIFO_RAM_TYPE        = "distributed",
+			parameter	QUE_FIFO_PTR_WIDTH   = 6,
+			parameter	QUE_FIFO_RAM_TYPE    = "distributed",
+			parameter	QUE_FIFO_S_REGS      = 0,
+			parameter	QUE_FIFO_M_REGS      = 1,
 			
 			parameter	S_AR_REGS            = 1,
 			parameter	S_R_REGS             = 1
@@ -211,9 +213,10 @@ module jelly_texture_cache_dma
 	jelly_fifo_fwtf
 			#(
 				.DATA_WIDTH			(ID_WIDTH+ADDR_WIDTH),
-				.PTR_WIDTH			(FIFO_PTR_WIDTH),
-				.RAM_TYPE			(FIFO_RAM_TYPE),
-				.MASTER_REGS		(0)
+				.PTR_WIDTH			(QUE_FIFO_PTR_WIDTH),
+				.RAM_TYPE			(QUE_FIFO_RAM_TYPE),
+				.SLAVE_REGS			(QUE_FIFO_S_REGS),
+				.MASTER_REGS		(QUE_FIFO_M_REGS)
 			)
 		i_fifo_fwtf
 			(

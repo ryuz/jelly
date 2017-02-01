@@ -116,6 +116,13 @@ module jelly_texture_sampler
 			parameter	L2_LOG_FILE                   = "l2_log.txt",
 			parameter	L2_LOG_ID                     = 0,
 			
+			parameter	DMA_QUE_FIFO_PTR_WIDTH        = 6,
+			parameter	DMA_QUE_FIFO_RAM_TYPE         = "distributed",
+			parameter	DMA_QUE_FIFO_S_REGS           = 0,
+			parameter	DMA_QUE_FIFO_M_REGS           = 1,
+			parameter	DMA_S_AR_REGS                 = 1,
+			parameter	DMA_S_R_REGS                  = 1,
+			
 			parameter	DEVICE                        = "7SERIES"	// "RTL"
 		)
 		(
@@ -335,6 +342,22 @@ module jelly_texture_sampler
 				.ADDR_X_WIDTH			(ADDR_X_WIDTH),
 				.ADDR_Y_WIDTH			(ADDR_Y_WIDTH),
 				
+				.M_AXI4_ID_WIDTH		(M_AXI4_ID_WIDTH),
+				.M_AXI4_ADDR_WIDTH		(M_AXI4_ADDR_WIDTH),
+				.M_AXI4_DATA_SIZE		(M_AXI4_DATA_SIZE),
+				.M_AXI4_DATA_WIDTH		(M_AXI4_DATA_WIDTH),
+				.M_AXI4_LEN_WIDTH		(M_AXI4_LEN_WIDTH),
+				.M_AXI4_QOS_WIDTH		(M_AXI4_QOS_WIDTH),
+				.M_AXI4_ARID			(M_AXI4_ARID),
+				.M_AXI4_ARSIZE			(M_AXI4_ARSIZE),
+				.M_AXI4_ARBURST			(M_AXI4_ARBURST),
+				.M_AXI4_ARLOCK			(M_AXI4_ARLOCK),
+				.M_AXI4_ARCACHE			(M_AXI4_ARCACHE),
+				.M_AXI4_ARPROT			(M_AXI4_ARPROT),
+				.M_AXI4_ARQOS			(M_AXI4_ARQOS),
+				.M_AXI4_ARREGION		(M_AXI4_ARREGION),
+				.M_AXI4_REGS			(M_AXI4_REGS),
+				
 				.L1_CACHE_NUM			(L1_CACHE_NUM),
 				.L1_USE_LOOK_AHEAD		(L1_USE_LOOK_AHEAD),
 				.L1_BLK_X_SIZE			(L1_BLK_X_SIZE),
@@ -386,21 +409,12 @@ module jelly_texture_sampler
 				.L2_LOG_FILE			(L2_LOG_FILE),
 				.L2_LOG_ID				(L2_LOG_ID),
 				
-				.M_AXI4_ID_WIDTH		(M_AXI4_ID_WIDTH),
-				.M_AXI4_ADDR_WIDTH		(M_AXI4_ADDR_WIDTH),
-				.M_AXI4_DATA_SIZE		(M_AXI4_DATA_SIZE),
-				.M_AXI4_DATA_WIDTH		(M_AXI4_DATA_WIDTH),
-				.M_AXI4_LEN_WIDTH		(M_AXI4_LEN_WIDTH),
-				.M_AXI4_QOS_WIDTH		(M_AXI4_QOS_WIDTH),
-				.M_AXI4_ARID			(M_AXI4_ARID),
-				.M_AXI4_ARSIZE			(M_AXI4_ARSIZE),
-				.M_AXI4_ARBURST			(M_AXI4_ARBURST),
-				.M_AXI4_ARLOCK			(M_AXI4_ARLOCK),
-				.M_AXI4_ARCACHE			(M_AXI4_ARCACHE),
-				.M_AXI4_ARPROT			(M_AXI4_ARPROT),
-				.M_AXI4_ARQOS			(M_AXI4_ARQOS),
-				.M_AXI4_ARREGION		(M_AXI4_ARREGION),
-				.M_AXI4_REGS			(M_AXI4_REGS)
+				.DMA_QUE_FIFO_PTR_WIDTH	(DMA_QUE_FIFO_PTR_WIDTH),
+				.DMA_QUE_FIFO_RAM_TYPE	(DMA_QUE_FIFO_RAM_TYPE),
+				.DMA_QUE_FIFO_S_REGS	(DMA_QUE_FIFO_S_REGS),
+				.DMA_QUE_FIFO_M_REGS	(DMA_QUE_FIFO_M_REGS),
+				.DMA_S_AR_REGS			(DMA_S_AR_REGS),
+				.DMA_S_R_REGS			(DMA_S_R_REGS)
 			)
 		i_texture_cache_core
 			(
