@@ -19,7 +19,8 @@ module jelly_fifo_ram
 			parameter	DATA_WIDTH = 8,
 			parameter	PTR_WIDTH  = 10,
 			parameter	DOUT_REGS  = 0,
-			parameter	RAM_TYPE   = "block"
+			parameter	RAM_TYPE   = "block",
+			parameter	LOW_DEALY  = 0
 		)
 		(
 			input	wire						reset,
@@ -103,10 +104,18 @@ module jelly_fifo_ram
 			next_rptr = rptr + 1'b1;
 		end
 		
-		next_empty      = (next_wptr == next_rptr);
-		next_full       = (next_wptr[PTR_WIDTH] != next_rptr[PTR_WIDTH]) && (next_wptr[PTR_WIDTH-1:0] == next_rptr[PTR_WIDTH-1:0]);
-		next_data_count = (next_wptr - next_rptr);
-		next_free_count = ((next_rptr - next_wptr) + (1'b1 << PTR_WIDTH));
+		if ( LOW_DEALY ) begin
+			next_empty      = (next_wptr == next_rptr);
+			next_full       = (next_wptr[PTR_WIDTH] != next_rptr[PTR_WIDTH]) && (next_wptr[PTR_WIDTH-1:0] == next_rptr[PTR_WIDTH-1:0]);
+			next_data_count = (next_wptr - next_rptr);
+			next_free_count = ((next_rptr - next_wptr) + (1'b1 << PTR_WIDTH));
+		end
+		else begin
+			next_empty      = (wptr == next_rptr);
+			next_full       = (next_wptr[PTR_WIDTH] != rptr[PTR_WIDTH]) && (next_wptr[PTR_WIDTH-1:0] == rptr[PTR_WIDTH-1:0]);
+			next_data_count = (wptr - next_rptr);
+			next_free_count = ((rptr - next_wptr) + (1'b1 << PTR_WIDTH));
+		end
 	end
 	
 	always @ ( posedge clk ) begin

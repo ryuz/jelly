@@ -19,7 +19,8 @@ module jelly_fifo
 			parameter	DATA_WIDTH = 8,
 			parameter	PTR_WIDTH  = 10,
 			parameter	DOUT_REGS  = 0,
-			parameter	RAM_TYPE   = "block"
+			parameter	RAM_TYPE   = "block",
+			parameter	LOW_DEALY  = 0
 		)
 		(
 			input	wire						reset,
@@ -40,7 +41,7 @@ module jelly_fifo
 	
 	
 	generate
-	if ( /* RAM_TYPE == "distributed" && */ PTR_WIDTH < 8 ) begin : blk_shifter
+	if ( LOW_DEALY && RAM_TYPE == "distributed" && PTR_WIDTH < 8 ) begin : blk_shifter
 		jelly_fifo_shifter
 				#(
 					.DATA_WIDTH		(DATA_WIDTH),
@@ -71,7 +72,8 @@ module jelly_fifo
 					.DATA_WIDTH		(DATA_WIDTH),
 					.PTR_WIDTH		(PTR_WIDTH),
 					.DOUT_REGS		(DOUT_REGS),
-					.RAM_TYPE		(RAM_TYPE)
+					.RAM_TYPE		(RAM_TYPE),
+					.LOW_DEALY		(LOW_DEALY)
 				)
 			i_fifo_ram
 				(

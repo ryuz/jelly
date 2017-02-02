@@ -21,6 +21,7 @@ module jelly_fifo_generic_fwtf
 			parameter	PTR_WIDTH   = 10,
 			parameter	DOUT_REGS   = 0,
 			parameter	RAM_TYPE    = "block",
+			parameter	LOW_DEALY   = 0,
 			parameter	SLAVE_REGS  = 0,
 			parameter	MASTER_REGS = 1
 		)
@@ -78,6 +79,7 @@ module jelly_fifo_generic_fwtf
 					.PTR_WIDTH		(PTR_WIDTH),
 					.DOUT_REGS		(DOUT_REGS),
 					.RAM_TYPE		(RAM_TYPE),
+					.LOW_DEALY		(LOW_DEALY),
 					.SLAVE_REGS		(SLAVE_REGS),
 					.MASTER_REGS	(MASTER_REGS)
 				)
