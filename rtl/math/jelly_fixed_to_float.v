@@ -54,7 +54,7 @@ module jelly_fixed_to_float
 			input	wire							m_ready
 		);
 	
-	localparam	PIPELINE_STAGES = 3;
+	localparam	PIPELINE_STAGES = 4;
 	
 	wire	[PIPELINE_STAGES-1:0]	stage_cke;
 	wire	[PIPELINE_STAGES-1:0]	stage_valid;
@@ -108,7 +108,6 @@ module jelly_fixed_to_float
 	                               UNSIGNED_WIDTH <= 127 ? 7 : 8;
 	
 	integer										i;
-	reg											tmp_flag;
 	
 	reg		[USER_BITS-1:0]						st0_user;
 	reg											st0_zero;
@@ -124,9 +123,34 @@ module jelly_fixed_to_float
 	reg		[FIXED_EXP_BITS-1:0]				st1_exp;
 	
 	reg		[USER_BITS-1:0]						st2_user;
+	reg											st2_zero;
 	reg											st2_sign;
-	reg		[FLOAT_EXP_WIDTH-1:0]				st2_exp;
-	reg		[FLOAT_FRAC_WIDTH-1:0]				st2_frac;
+	wire	[ZERO_COUNT_WIDTH-1:0]				st2_clz;
+	reg		[UNSIGNED_WIDTH-1:0]				st2_fixed;
+	reg		[FIXED_EXP_BITS-1:0]				st2_exp;
+	
+	reg		[USER_BITS-1:0]						st3_user;
+	reg											st3_sign;
+	reg		[FLOAT_EXP_WIDTH-1:0]				st3_exp;
+	reg		[FLOAT_FRAC_WIDTH-1:0]				st3_frac;
+	
+	jelly_integer_clz
+			#(
+				.PIPELINES		(2),
+				.COUNT_WIDTH	(ZERO_COUNT_WIDTH),
+				.DATA_WIDTH		(UNSIGNED_WIDTH),
+				.UNIT_WIDTH		(16)
+			)
+		i_integer_clz
+			(
+				.clk			(clk),
+				.cke			(stage_cke[2:1]),
+				
+				.in_data		(st0_fixed),
+				
+				.out_clz		(st2_clz)
+			);
+	
 	
 	always @(posedge clk) begin
 		if ( stage_cke[0] ) begin
@@ -149,48 +173,43 @@ module jelly_fixed_to_float
 			st1_sign  <= st0_sign;
 			st1_fixed <= st0_fixed;
 			st1_exp   <= st0_exp;
-			
-			// count leading zero
-			st1_clz <= UNSIGNED_WIDTH - 1;
-	//		begin : block_clz
-				tmp_flag = 1'b0;
-				for ( i = 0; i < UNSIGNED_WIDTH-1; i = i+1 ) begin
-					if ( st0_fixed[UNSIGNED_WIDTH-1-i] != 1'b0 && !tmp_flag ) begin
-						st1_clz  <= i;
-						tmp_flag  = 1'b1;
-	//					disable block_clz;
-					end
-				end
-	//		end
 		end
 		
 		if ( stage_cke[2] ) begin
-			st2_user  <= st1_user;
-			if ( st1_zero ) begin
-				st2_sign <= 1'b0;
-				st2_exp  <= {FLOAT_EXP_WIDTH{1'b0}};
+			st2_user  <= st0_user;
+			st2_zero  <= st0_zero;
+			st2_sign  <= st0_sign;
+			st2_fixed <= st0_fixed;
+			st2_exp   <= st0_exp;
+		end
+		
+		if ( stage_cke[3] ) begin
+			st3_user  <= st2_user;
+			if ( st2_zero ) begin
+				st3_sign <= 1'b0;
+				st3_exp  <= {FLOAT_EXP_WIDTH{1'b0}};
 			end
 			else begin
-				st2_sign <= st1_sign;
+				st3_sign <= st2_sign;
 				if ( USE_FIXED_EXP ) begin
-					st2_exp  <= FLOAT_EXP_OFFSET + (UNSIGNED_WIDTH-1 - FIXED_FRAC_WIDTH) - st1_clz + (st1_exp - FIXED_EXP_OFFSET);
+					st3_exp  <= FLOAT_EXP_OFFSET + (UNSIGNED_WIDTH-1 - FIXED_FRAC_WIDTH) - st2_clz + (st2_exp - FIXED_EXP_OFFSET);
 				end
 				else begin
-					st2_exp  <= FLOAT_EXP_OFFSET + (UNSIGNED_WIDTH-1 - FIXED_FRAC_WIDTH) - st1_clz;
+					st3_exp  <= FLOAT_EXP_OFFSET + (UNSIGNED_WIDTH-1 - FIXED_FRAC_WIDTH) - st2_clz;
 				end
 			end
 			
 			if ( FLOAT_FRAC_WIDTH > UNSIGNED_WIDTH ) begin
-				st2_frac <= ((st1_fixed << (st1_clz+1)) << (FLOAT_FRAC_WIDTH - UNSIGNED_WIDTH));
+				st3_frac <= ((st2_fixed << (st2_clz+1)) << (FLOAT_FRAC_WIDTH - UNSIGNED_WIDTH));
 			end
 			else begin
-				st2_frac <= ((st1_fixed << (st1_clz+1)) >> (UNSIGNED_WIDTH - FLOAT_FRAC_WIDTH));
+				st3_frac <= ((st2_fixed << (st2_clz+1)) >> (UNSIGNED_WIDTH - FLOAT_FRAC_WIDTH));
 			end
 		end
 	end
 	
-	assign sink_user  = st2_user;
-	assign sink_float = {st2_sign, st2_exp, st2_frac};
+	assign sink_user  = st3_user;
+	assign sink_float = {st3_sign, st3_exp, st3_frac};
 	
 	
 endmodule
