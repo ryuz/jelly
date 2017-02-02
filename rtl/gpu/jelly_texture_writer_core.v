@@ -244,7 +244,7 @@ module jelly_texture_writer_core
 			reg_dma_data  <= {M_AXI4_DATA_WIDTH{1'bx}};
 			for ( cmp = 0; cmp < COMPONENT_NUM; cmp = cmp+1 ) begin
 				if ( fifo_component == cmp ) begin
-					reg_dma_addr <= param_addr[cmp*M_AXI4_ADDR_WIDTH +: M_AXI4_ADDR_WIDTH] + (fifo_addr << CNV_SIZE);
+					reg_dma_addr <= param_addr[cmp*M_AXI4_ADDR_WIDTH +: M_AXI4_ADDR_WIDTH] + (fifo_addr << M_AXI4_DATA_SIZE);
 					reg_dma_data <= fifo_data[cmp*M_AXI4_DATA_WIDTH +: M_AXI4_DATA_WIDTH];
 				end
 			end
