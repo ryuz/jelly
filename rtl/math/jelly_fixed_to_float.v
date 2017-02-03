@@ -176,11 +176,11 @@ module jelly_fixed_to_float
 		end
 		
 		if ( stage_cke[2] ) begin
-			st2_user  <= st0_user;
-			st2_zero  <= st0_zero;
-			st2_sign  <= st0_sign;
-			st2_fixed <= st0_fixed;
-			st2_exp   <= st0_exp;
+			st2_user  <= st1_user;
+			st2_zero  <= st1_zero;
+			st2_sign  <= st1_sign;
+			st2_fixed <= st1_fixed;
+			st2_exp   <= st1_exp;
 		end
 		
 		if ( stage_cke[3] ) begin
