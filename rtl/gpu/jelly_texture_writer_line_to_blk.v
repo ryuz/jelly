@@ -34,7 +34,7 @@ module jelly_texture_writer_line_to_blk
 			parameter	S_DATA_WIDTH         = 8*3,
 			parameter	M_DATA_SIZE          = 2,
 			
-			parameter	BUF_ADDR_WIDTH       = 1 + X_WIDTH + STEP_Y_SIZE - M_DATA_SIZE,
+			parameter	BUF_ADDR_WIDTH       = 1 + X_WIDTH + STEP_Y_SIZE,
 			parameter	BUF_RAM_TYPE         = "block",
 			
 			// local
@@ -63,7 +63,45 @@ module jelly_texture_writer_line_to_blk
 			input	wire								m_ready
 		);
 	
-		
+	
+	// ---------------------------------
+	//  common
+	// ---------------------------------
+	
+	localparam	S_DATA_SIZE      = 0;
+	
+	localparam	S_UNIT           = (1 << S_DATA_SIZE);
+	localparam	M_UNIT           = (1 << M_DATA_SIZE);
+	
+	
+	localparam	PIX_X_NUM        = (1 << BLK_X_SIZE);
+	localparam	PIX_X_WIDTH      = BLK_X_SIZE >= 0 ? BLK_X_SIZE : 1;
+	
+//	localparam	PIX_Y_NUM        = (1 << BLK_Y_SIZE);
+//	localparam	PIX_Y_WIDTH      = BLK_Y_SIZE >= 0 ? BLK_Y_SIZE : 1;
+	
+	localparam	PIX_STEP_Y_NUM   = (1 << STEP_Y_SIZE);
+	localparam	PIX_STEP_Y_WIDTH = STEP_Y_SIZE >= 0 ? STEP_Y_SIZE : 1;
+	
+//	localparam	PIX_SIZE         = BLK_X_SIZE + BLK_Y_SIZE;
+//	localparam	PIX_NUM          = (1 << PIX_SIZE);
+//	localparam	PIX_WIDTH        = PIX_SIZE > 0 ? PIX_SIZE : 1;
+	
+	localparam	PIX_STEP_SIZE    = BLK_X_SIZE + STEP_Y_SIZE;
+	localparam	PIX_STEP_NUM     = (1 << PIX_STEP_SIZE);
+	localparam	PIX_STEP_WIDTH   = PIX_STEP_SIZE > 0 ? PIX_STEP_SIZE : 1;
+	
+	
+	localparam	BLK_X_WIDTH      = X_WIDTH - BLK_X_SIZE;
+	localparam	BLK_Y_WIDTH      = Y_WIDTH - BLK_Y_SIZE;
+	localparam	STEP_Y_WIDTH     = Y_WIDTH - STEP_Y_SIZE;
+	
+	wire	[BLK_X_WIDTH-1:0]	blk_x_num  = (param_width  >> BLK_X_SIZE);
+	wire	[BLK_Y_WIDTH-1:0]	blk_y_num  = (param_height >> BLK_Y_SIZE);
+	wire	[STEP_Y_WIDTH-1:0]	step_y_num = (param_height >> STEP_Y_SIZE);
+	
+	
+	
 	// ---------------------------------
 	//  control
 	// ---------------------------------
@@ -96,10 +134,10 @@ module jelly_texture_writer_line_to_blk
 	localparam	BUF_NUM            = (1 << M_DATA_SIZE);
 	localparam	BUF_UNIT_WIDTH     = S_DATA_WIDTH;
 	localparam	BUF_DATA_WIDTH     = M_DATA_WIDTH;
-
-	localparam	BUF_WR_ADDR_WIDTH  = BUF_ADDR_WIDTH + M_DATA_SIZE;
-	localparam	BUF_RD_ADDR_WIDTH  = BUF_ADDR_WIDTH;
-		
+	
+//	localparam	BUF_ADDR_WIDTH  = BUF_ADDR_WIDTH + M_DATA_SIZE;
+//	localparam	BUF_RD_ADDR_WIDTH  = BUF_ADDR_WIDTH;
+	
 	wire									buf_full;
 	wire									buf_empty;
 	
@@ -110,23 +148,30 @@ module jelly_texture_writer_line_to_blk
 	wire									buf_rd_end;
 	
 	wire									buf_wr_cke;
-	wire	[BUF_WR_ADDR_WIDTH-1:0]			buf_wr_addr;
-	wire	[BUF_NUM*BUF_DATA_WIDTH-1:0]	buf_wr_din;
+	wire	[BUF_ADDR_WIDTH-1:0]			buf_wr_addr;
+	wire	[S_DATA_WIDTH-1:0]				buf_wr_din;
 	
 	wire									buf_rd_cke;
-	wire	[BUF_RD_ADDR_WIDTH-1:0]			buf_rd_addr;
-	wire	[BUF_NUM*BUF_DATA_WIDTH-1:0]	buf_rd_dout;
+	wire	[BUF_ADDR_WIDTH-1:0]			buf_rd_addr;
+	wire	[M_DATA_WIDTH-1:0]				buf_rd_dout;
 
 	genvar									i;
 	
 	generate
 	for ( i = 0; i < BUF_NUM; i = i+1 ) begin : loop_buf
 		
-		wire	buf_wr_en = ((buf_wr_addr & ~((1 << M_DATA_SIZE) - 1)) == (endian ? (BUF_NUM-1) - i : i));
+		wire							wr_en;
+		wire	[BUF_ADDR_WIDTH-1:0]	wr_addr;
+		wire	[BUF_UNIT_WIDTH-1:0]	wr_din;
+		
+		wire							rd_en;
+		wire							rd_regcke;
+		wire	[BUF_ADDR_WIDTH-1:0]	rd_addr;
+		wire	[BUF_UNIT_WIDTH-1:0]	rd_dout;
 		
 		jelly_ram_simple_dualport
 				#(
-					.ADDR_WIDTH		(BUF_ADDR_WIDTH),
+					.ADDR_WIDTH		(BUF_ADDR_WIDTH >> M_DATA_SIZE),
 					.DATA_WIDTH		(BUF_UNIT_WIDTH),
 					.RAM_TYPE		(BUF_RAM_TYPE),
 					.DOUT_REGS		(1)
@@ -134,16 +179,26 @@ module jelly_texture_writer_line_to_blk
 			i_ram_simple_dualport
 				(
 					.wr_clk			(clk),
-					.wr_en			(buf_wr_en & buf_wr_cke),
-					.wr_addr		(buf_wr_addr),
-					.wr_din			(buf_wr_din),
+					.wr_en			(wr_en),
+					.wr_addr		(wr_addr),
+					.wr_din			(wr_din),
 					
 					.rd_clk			(clk),
-					.rd_en			(buf_rd_cke),
-					.rd_regcke		(buf_rd_cke),
-					.rd_addr		(buf_rd_addr),
-					.rd_dout		(buf_rd_dout[i*BUF_UNIT_WIDTH +: BUF_UNIT_WIDTH])
+					.rd_en			(rd_en),
+					.rd_regcke		(rd_regcke),
+					.rd_addr		(rd_addr),
+					.rd_dout		(rd_dout)
 				);
+		
+		assign	wr_en     = (((buf_wr_addr & ~((1 << M_DATA_SIZE) - 1)) == (endian ? (BUF_NUM-1) - i : i)) & buf_wr_cke);
+		assign	wr_addr   = (buf_wr_addr >> S_DATA_SIZE);
+		assign	wr_din    = buf_wr_din;
+		
+		assign	rd_en     = buf_rd_cke;
+		assign	rd_regcke = buf_rd_cke;
+		assign	rd_addr   = (buf_rd_addr >> M_DATA_SIZE);
+		assign	buf_rd_dout[i*BUF_UNIT_WIDTH +: BUF_UNIT_WIDTH] = rd_dout;
+		
 	end
 	endgenerate
 	
@@ -184,61 +239,33 @@ module jelly_texture_writer_line_to_blk
 	//  write to buffer
 	// ---------------------------------
 	
-	localparam	WR_PIX_X_NUM   = (1 << BLK_X_SIZE);
-	localparam	WR_PIX_X_WIDTH = BLK_X_SIZE >= 0 ? BLK_X_SIZE : 1;
 	
-	localparam	WR_PIX_Y_NUM   = (1 << STEP_Y_SIZE);
-	localparam	WR_PIX_Y_WIDTH = STEP_Y_SIZE >= 0 ? STEP_Y_SIZE : 1;
-	
-	localparam	WR_BLK_X_WIDTH = X_WIDTH - BLK_X_SIZE;
-	
-	wire	[WR_BLK_X_WIDTH-1:0]	wr_blk_x_num  = (param_width  >> BLK_X_SIZE);
-
 	wire							wr_cke;
-			
-	reg		[WR_PIX_X_WIDTH-1:0]	wr0_x_count;
+	
+	reg		[PIX_X_WIDTH-1:0]		wr0_x_count;
 	reg								wr0_x_last;
-	reg		[WR_BLK_X_WIDTH-1:0]	wr0_blk_count;
+	reg		[BLK_X_WIDTH-1:0]		wr0_blk_count;
 	reg								wr0_blk_last;
-	reg		[WR_PIX_Y_WIDTH-1:0]	wr0_y_count;
+	reg		[PIX_STEP_Y_WIDTH-1:0]	wr0_y_count;
 	reg								wr0_y_last;
-//	reg		[BUF_NUM-1:0]			wr0_we;
-	reg		[BUF_WR_ADDR_WIDTH-1:0]	wr0_addr;
-	reg		[BUF_WR_ADDR_WIDTH-1:0]	wr0_blk_addr;
-	reg		[BUF_WR_ADDR_WIDTH-1:0]	wr0_line_addr;
+	reg		[BUF_ADDR_WIDTH-1:0]	wr0_addr;
+	reg		[BUF_ADDR_WIDTH-1:0]	wr0_addr_blk;
+	reg		[BUF_ADDR_WIDTH-1:0]	wr0_addr_line;
 	reg		[S_DATA_WIDTH-1:0]		wr0_data;
 	reg								wr0_valid;
 	
-	
-
-//	wire							wr0_last      = (wr0_x_last && wr0_blk_last && wr0_y_last);
-//	reg								wr0_x_last;
-//	reg								wr0_blk_last;
-//	reg								wr0_line_last;
-//	reg								wr1_last;
-//	reg								wr1_data;
-//	reg								wr1_valid;
-	
 	always @(posedge clk) begin
 		if ( !busy ) begin
-			wr0_x_count   <= {WR_PIX_X_WIDTH{1'b0}};
-			wr0_x_last    <= (WR_PIX_X_NUM == 1);
-			wr0_blk_count <= {WR_BLK_X_WIDTH{1'b0}};
-			wr0_blk_last  <= (wr_blk_x_num == 1);
-			wr0_y_count   <= {WR_PIX_Y_WIDTH{1'b0}};
-			wr0_y_last    <= (WR_PIX_Y_NUM == 1);
+			wr0_x_count   <= {PIX_X_WIDTH{1'b0}};
+			wr0_x_last    <= (PIX_X_NUM == 1);
+			wr0_blk_count <= {BLK_X_WIDTH{1'b0}};
+			wr0_blk_last  <= (blk_x_num == 1);
+			wr0_y_count   <= {PIX_STEP_Y_WIDTH{1'b0}};
+			wr0_y_last    <= (PIX_STEP_Y_NUM == 1);
 			
-	//		wr0_we        <= {BUF_NUM{1'b0}};
-	//		if ( endian ) begin
-	//			wr0_we[BUF_NUM-1] <= 1'b1;
-	//		end
-	//		else begin
-	//			wr0_we[0]         <= 1'b1;
-	//		end
-			
-			wr0_addr      <= {BUF_WR_ADDR_WIDTH{1'b0}};
-			wr0_blk_addr  <= (1 << (BLK_X_SIZE + STEP_Y_SIZE));
-			wr0_line_addr <= (1 << BLK_X_SIZE);
+			wr0_addr      <= {BUF_ADDR_WIDTH{1'b0}};
+			wr0_addr_blk  <= (1 << (BLK_X_SIZE + STEP_Y_SIZE));
+			wr0_addr_line <= (1 << BLK_X_SIZE);
 			
 			wr0_data      <= {S_DATA_WIDTH{1'bx}};
 			wr0_valid     <= 1'b0;
@@ -246,77 +273,42 @@ module jelly_texture_writer_line_to_blk
 		else if ( wr_cke ) begin
 			// stage0
 			if ( wr0_valid ) begin
-				wr0_addr <= wr0_addr + 1'b1;
-//				if ( endian ) begin
-//					// big endian
-//					wr0_we   <= (wr0_we[0] << (BUF_NUM-1) | (wr0_we >> 1));
-//					wr0_addr <= wr0_addr + wr0_we[0];
-//				end
-//				else begin
-//					// little endian
-//					wr0_we   <= (wr0_we[BUF_NUM-1] | (wr0_we << 1));
-//					wr0_addr <= wr0_addr + wr0_we[BUF_NUM-1];
-//				end
+				wr0_addr <= wr0_addr + (1 << S_DATA_SIZE);
 				
-				wr0_x_count  <= wr0_x_count + 1'b1;
-				wr0_x_last   <= ((wr0_x_count + 1'b1) == (WR_PIX_X_NUM-1));
+				wr0_x_count  <= wr0_x_count + S_UNIT;
+				wr0_x_last   <= ((wr0_x_count + S_UNIT) == (PIX_X_NUM-S_UNIT));
 				if ( wr0_x_last ) begin
-					wr0_x_count   <= {WR_PIX_X_WIDTH{1'b0}};
-					wr0_x_last    <= (WR_PIX_X_NUM == 1);
+					wr0_x_count   <= {PIX_X_WIDTH{1'b0}};
+					wr0_x_last    <= (PIX_X_NUM == 1);
 					
-					wr0_addr      <= wr0_blk_addr;
-					wr0_blk_addr  <= wr0_blk_addr + (1 << (BLK_X_SIZE + STEP_Y_SIZE));
+					wr0_addr      <= wr0_addr_blk;
+					wr0_addr_blk  <= wr0_addr_blk + (1 << (BLK_X_SIZE + STEP_Y_SIZE));
 					
 					wr0_blk_count <= wr0_blk_count + 1'b1;
-					wr0_blk_last  <= ((wr0_blk_count + 1'b1) == (wr_blk_x_num - 1'b1));
+					wr0_blk_last  <= ((wr0_blk_count + 1'b1) == (blk_x_num - 1'b1));
 					if ( wr0_blk_last ) begin
-						wr0_blk_count <= {WR_BLK_X_WIDTH{1'b0}};
-						wr0_blk_last  <= (wr_blk_x_num == 1);
+						wr0_blk_count <= {BLK_X_WIDTH{1'b0}};
+						wr0_blk_last  <= (blk_x_num == 1);
 						
-						wr0_addr      <= wr0_line_addr;
-						wr0_blk_addr  <= wr0_line_addr + (1 << (BLK_X_SIZE + STEP_Y_SIZE));
-						wr0_line_addr <= wr0_line_addr + (1 << (BLK_X_SIZE));
+						wr0_addr      <= wr0_addr_line;
+						wr0_addr_blk  <= wr0_addr_line + (1 << (BLK_X_SIZE + STEP_Y_SIZE));
+						wr0_addr_line <= wr0_addr_line + (1 << (BLK_X_SIZE));
 						
 						wr0_y_count   <= wr0_y_count + 1'b1;
-						wr0_y_last    <= ((wr0_y_count + 1'b1) == (WR_PIX_Y_NUM - 1));
+						wr0_y_last    <= ((wr0_y_count + 1'b1) == (PIX_STEP_Y_NUM - 1));
 						if ( wr0_y_last ) begin
-							wr0_y_count   <= {WR_PIX_Y_WIDTH{1'b0}};
-							wr0_y_last    <= (WR_PIX_Y_NUM == 1);
+							wr0_y_count   <= {PIX_STEP_Y_WIDTH{1'b0}};
+							wr0_y_last    <= (PIX_STEP_Y_NUM == 1);
 							
 							wr0_addr      <= wr0_addr + 1'b1;
-							wr0_blk_addr  <= wr0_addr + 1'b1;
-							wr0_line_addr <= wr0_addr + 1'b1;
+							wr0_addr_blk  <= wr0_addr + 1'b1;
+							wr0_addr_line <= wr0_addr + 1'b1;
 						end
 					end
 				end
 			end
 			wr0_data  <= s_data;
 			wr0_valid <= s_valid;
-			
-	/*		
-			// stage1
-			if ( wr1_valid ) begin
-				wr1_addr <= wr1_addr + 1'b1;
-				if ( wr1_x_last ) begin
-					wr1_addr     <= wr1_blk_addr;
-					wr1_blk_addr <= wr1_blk_addr + (1 << (BLK_X_SIZE + STEP_Y_SIZE));
-				end
-				if ( wr1_line_last ) begin
-					wr1_addr      <= wr1_base_addr;
-					wr1_blk_addr  <= wr1_base_addr;
-					wr1_base_addr <= wr1_base_addr + (param_width >> M_DATA_SIZE);
-				end
-			end
-			
-			wr1_we        <= wr0_valid ? (1 << (wr0_addr & ~((1 << M_DATA_SIZE) - 1))) : {BUF_NUM{1'b0}};
-			wr1_addr      <= wr1_base_addr + (wr0_addr >> M_DATA_SIZE);
-			wr1_x_last    <= wr0_x_last;
-			wr1_line_last <= wr0_line_last;
-			wr1_blk_last  <= (wr0_valid && wr0_line_last && wr0_blk_last);
-	//		wr1_last      <= wr0_last;
-			wr1_data      <= wr0_data;
-			wr1_valid     <= wr0_valid;
-	*/
 		end
 	end
 	
@@ -326,7 +318,6 @@ module jelly_texture_writer_line_to_blk
 	assign	buf_wr_end  = (wr_cke && wr0_x_last && wr0_y_last);
 	
 	assign	buf_wr_cke  = wr_cke;
-//	assign	buf_wr_en   = wr0_we;
 	assign	buf_wr_addr = wr0_addr;
 	assign	buf_wr_din  = wr0_data;
 	
@@ -336,141 +327,113 @@ module jelly_texture_writer_line_to_blk
 	//  read from buffer
 	// ---------------------------------
 	
-	localparam	RD_PIX_SIZE     = BLK_X_SIZE + STEP_Y_SIZE - M_DATA_SIZE;
-	localparam	RD_PIX_NUM      = (1 << RD_PIX_SIZE);
-	localparam	RD_PIX_WIDTH    = RD_PIX_SIZE > 0 ? RD_PIX_SIZE : 1;
-	
-	localparam	RD_STEP_NUM     = (1 << STEP_Y_SIZE);
-	localparam	RD_STEP_WIDTH   = STEP_Y_SIZE > 0 ? STEP_Y_SIZE : 1;
-	
-	localparam	RD_BLK_X_WIDTH  = X_WIDTH - BLK_X_SIZE;
-	localparam	RD_Y_WIDTH      = Y_WIDTH - STEP_Y_SIZE;
-	
-	
-	wire	[RD_BLK_X_WIDTH-1:0]		rd_blk_x_num = (param_width  >> BLK_X_SIZE);
-	wire	[RD_Y_WIDTH-1:0]			rd_blk_y_num = (param_height >> STEP_Y_SIZE);
-	
 	wire								rd_cke;
 	
-	reg		[RD_PIX_WIDTH-1:0]			rd0_pix_count;
+	reg		[PIX_STEP_WIDTH-1:0]		rd0_pix_count;
 	reg									rd0_pix_last;
 	reg		[COMPONENT_SEL_WIDTH-1:0]	rd0_cmp_count;
 	reg									rd0_cmp_last;
-	reg		[BUF_RD_ADDR_WIDTH-1:0]		rd0_addr;
-	reg		[BUF_RD_ADDR_WIDTH-1:0]		rd0_addr_blk;
+	reg		[BUF_ADDR_WIDTH-1:0]		rd0_addr;
+	reg		[BUF_ADDR_WIDTH-1:0]		rd0_addr_blk;
 	wire								rd0_valid = !buf_empty;
 	
 	reg									rd1_pix_last;
 	reg		[COMPONENT_SEL_WIDTH-1:0]	rd1_cmp_count;
 	reg									rd1_cmp_last;
-	reg		[RD_BLK_X_WIDTH-1:0]		rd1_blk_count;
+	reg		[BLK_X_WIDTH-1:0]			rd1_blk_count;
 	reg									rd1_blk_last;
-	reg		[RD_STEP_WIDTH-1:0]			rd1_step_count;
-	reg									rd1_step_last;
-	reg		[RD_Y_WIDTH-1:0]			rd1_y_count;
-	reg									rd1_y_last;
+	reg		[STEP_Y_WIDTH-1:0]			rd1_step_y_count;
+	reg									rd1_step_y_last;
 	reg									rd1_valid;
 	
-//	reg									rd2_pix_last;
-//	reg									rd2_cmp_last;
-//	reg									rd2_blk_last;
-//	reg									rd2_step_last;
-//	reg									rd2_y_last;
-	
-	reg		[COMPONENT_SEL_WIDTH-1:0]	rd1_component;
-	reg		[ADDR_WIDTH-1:0]			rd1_base_addr;
-
-	reg		[ADDR_WIDTH-1:0]			rd1_addr;
-	reg		[ADDR_WIDTH-1:0]			rd1_addr_blk;
-	reg		[ADDR_WIDTH-1:0]			rd1_addr_step;
-//	reg		[ADDR_WIDTH-1:0]			rd1_base;
-//	reg									rd1_last;
-//	wire	[M_DATA_WIDTH-1:0]			rd1_data = buf_rd_dout;
-//	reg									rd1_valid;
+	reg		[COMPONENT_SEL_WIDTH-1:0]	rd2_component;
+	reg		[ADDR_WIDTH-1:0]			rd2_addr;
+	reg		[ADDR_WIDTH-1:0]			rd2_addr_blk;
+	reg		[ADDR_WIDTH-1:0]			rd2_addr_step;
+	wire	[M_DATA_WIDTH-1:0]			rd2_data = buf_rd_dout;
+	reg									rd2_valid;
 	
 	always @(posedge clk) begin
 		if ( !busy ) begin
-			rd0_pix_count  <= {RD_PIX_WIDTH{1'b0}};
-			rd0_pix_last   <= (RD_PIX_NUM == 1);
-			rd0_cmp_count  <= {COMPONENT_SEL_WIDTH{1'b0}};
-			rd0_cmp_last   <= (COMPONENT_NUM == 1);
-			rd0_addr_blk   <= {BUF_RD_ADDR_WIDTH{1'b0}};
-			rd0_addr       <= {BUF_RD_ADDR_WIDTH{1'b0}};
+			rd0_pix_count    <= {PIX_STEP_WIDTH{1'b0}};
+			rd0_pix_last     <= (PIX_STEP_NUM == M_UNIT);
+			rd0_cmp_count    <= {COMPONENT_SEL_WIDTH{1'b0}};
+			rd0_cmp_last     <= (COMPONENT_NUM == 1);
+			rd0_addr_blk     <= {BUF_ADDR_WIDTH{1'b0}};
+			rd0_addr         <= {BUF_ADDR_WIDTH{1'b0}};
 			
-			rd1_pix_last   <= 1'bx;
-			rd1_cmp_count  <= {COMPONENT_SEL_WIDTH{1'b0}};
-			rd1_cmp_last   <= (COMPONENT_NUM == 1);
-			rd1_blk_count  <= {RD_BLK_X_WIDTH{1'b0}};
-			rd1_blk_last   <= (rd_blk_x_num == 1);
-			rd1_step_count <= {RD_STEP_WIDTH{1'b0}};
-			rd1_step_last  <= (RD_STEP_NUM == 1);
-			rd1_y_count    <= {RD_Y_WIDTH{1'b0}};
-			rd1_y_last     <= (rd_blk_y_num == 1);
-			rd1_valid      <= 1'b0;
-
-//			rd1_base_addr  <= ;
-
-			rd1_addr       <= {ADDR_WIDTH{1'b0}};
-			rd1_addr_blk   <= {ADDR_WIDTH{1'b0}};
-			rd1_addr_step  <= (param_width >> M_DATA_SIZE);
+			rd1_pix_last     <= 1'bx;
+			rd1_cmp_count    <= {COMPONENT_SEL_WIDTH{1'b0}};
+			rd1_cmp_last     <= (COMPONENT_NUM == 1);
+			rd1_blk_count    <= {BLK_X_WIDTH{1'b0}};
+			rd1_blk_last     <= (blk_x_num == 1);
+			rd1_step_y_count <= {STEP_Y_WIDTH{1'b0}};
+			rd1_step_y_last  <= (step_y_num == 1);
+			rd1_valid        <= 1'b0;
 			
+			rd2_addr         <= {ADDR_WIDTH{1'b0}};
+			rd2_addr_blk     <= {ADDR_WIDTH{1'b0}};
+			rd2_addr_step    <= (param_width << STEP_Y_SIZE);
+			rd2_valid        <= 1'b0;
 		end
 		else if ( rd_cke ) begin
 			// stage0
 			if ( rd0_valid ) begin
-				rd0_addr <= rd0_addr + 1'b1;
+				rd0_addr <= rd0_addr + M_UNIT;
 				
-				rd0_pix_count <= rd0_pix_count + 1'b1;
-				rd0_pix_last  <= ((rd0_pix_count + 1'b1) == (RD_PIX_NUM - 1));
+				rd0_pix_count <= rd0_pix_count + M_UNIT;
+				rd0_pix_last  <= ((rd0_pix_count + M_UNIT) == (PIX_STEP_NUM - M_UNIT));
 				if ( rd0_pix_last ) begin
-					rd0_pix_count  <= {RD_PIX_WIDTH{1'b0}};
-					rd0_pix_last   <= (RD_PIX_NUM == 1);
+					rd0_pix_count  <= {PIX_STEP_WIDTH{1'b0}};
+					rd0_pix_last   <= (PIX_STEP_NUM == 1);
 					
 					rd0_addr     <= rd0_addr_blk;
 					
 					rd0_cmp_count  <= rd0_cmp_count + 1'b1;
 					rd0_cmp_last   <= ((rd0_cmp_count + 1'b1) == (COMPONENT_NUM - 1));
 					if ( rd0_cmp_last ) begin
-						rd0_addr     <= rd0_addr_blk + (1 << RD_PIX_SIZE);
-						rd0_addr_blk <= rd0_addr_blk + (1 << RD_PIX_SIZE);
+						rd0_addr     <= rd0_addr_blk + (1 << PIX_STEP_SIZE);
+						rd0_addr_blk <= rd0_addr_blk + (1 << PIX_STEP_SIZE);
 					end
 				end
 			end
 			
 			// stage1
-			rd1_pix_last <= rd0_pix_last;
-			rd1_cmp_last <= rd0_cmp_last;
+			rd1_pix_last  <= rd0_pix_last;
+			rd1_cmp_count <= rd0_cmp_count;
+			rd1_cmp_last  <= rd0_cmp_last;
+			
 			if ( rd1_valid ) begin
 				rd1_addr <= rd1_addr + 1'b1;
 				if ( rd1_pix_last ) begin
 					rd1_addr <= rd1_addr_blk;
 					if ( rd1_cmp_last ) begin
-						rd1_addr     <= rd1_addr_blk + (1 << RD_PIX_SIZE);
-						rd1_addr_blk <= rd1_addr_blk + (1 << RD_PIX_SIZE);
+						rd1_addr     <= rd1_addr_blk + (1 << PIX_STEP_SIZE);
+						rd1_addr_blk <= rd1_addr_blk + (1 << PIX_STEP_SIZE);
 						
 						rd1_blk_count  <= rd1_blk_count + 1'b1;
-						rd1_blk_last   <= ((rd1_blk_count + 1'b1) == (rd_blk_x_num - 1));
+						rd1_blk_last   <= ((rd1_blk_count + 1'b1) == (blk_x_num - 1));
 						if ( rd1_blk_last ) begin
-							rd1_blk_count  <= {RD_BLK_X_WIDTH{1'b0}};
-							rd1_blk_last   <= (rd_blk_x_num == 1);
+							rd1_blk_count  <= {BLK_X_WIDTH{1'b0}};
+							rd1_blk_last   <= (blk_x_num == 1);
 							
 							rd1_addr      <= rd1_addr_step;
 							rd1_addr_blk  <= rd1_addr_step;
 							rd1_addr_step <= rd1_addr_step + (param_width >> M_DATA_SIZE);
 							
-							rd1_step_count <= rd1_step_count + 1'b1;
-							rd1_step_last  <= ((rd1_step_count + 1'b1) == (RD_STEP_NUM - 1));
-							if ( rd1_step_last ) begin
-								rd1_step_count <= {RD_STEP_WIDTH{1'b0}};
-								rd1_step_last  <= (RD_STEP_NUM == 1);
+							rd1_step_y_count <= rd1_step_y_count + 1'b1;
+							rd1_step_y_last  <= ((rd1_step_y_count + 1'b1) == (step_y_num - 1));
+							if ( rd1_step_y_last ) begin
+								rd1_step_y_count <= {STEP_Y_WIDTH{1'b0}};
+								rd1_step_y_last  <= (step_y_num == 1);
 							end
 							
-							rd1_y_count    <= rd1_y_count + 1'b1;
-							rd1_y_last     <= ((rd1_y_count + 1'b1) == (RD_STEP_NUM - 1));
-							if ( rd1_y_last ) begin
-								rd1_y_count    <= {RD_STEP_WIDTH{1'b0}};
-								rd1_y_last     <= (RD_STEP_NUM == 1);
-							end
+		//					rd1_y_count    <= rd1_y_count + 1'b1;
+		//					rd1_y_last     <= ((rd1_y_count + 1'b1) == (blk_y_num - 1));
+		//					if ( rd1_y_last ) begin
+		//						rd1_y_count    <= {STEP_Y_WIDTH{1'b0}};
+		//						rd1_y_last     <= (STEP_Y_NUM == 1);
+		//					end
 						end
 					end
 				end
