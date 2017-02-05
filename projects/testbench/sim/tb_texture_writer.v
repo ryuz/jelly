@@ -7,8 +7,10 @@ module tb_texture_writer();
 	localparam RATE    = 1000.0/200.0;
 	
 	initial begin
-//		$dumpfile("tb_texture_writer.vcd");
-//		$dumpvars(0, tb_texture_writer);
+		$dumpfile("tb_texture_writer.vcd");
+		$dumpvars(1, tb_texture_writer);
+		$dumpvars(0, tb_texture_writer.i_texture_writer_core.i_texture_writer_line_to_blk);
+//		$dumpvars(0, tb_texture_writer.i_texture_writer_line_to_blk);
 		
 //		#1000000;
 //			$display("!!!!TIME OUT!!!!");
@@ -23,7 +25,7 @@ module tb_texture_writer();
 	
 	
 	// ƒ‰ƒ“ƒ_ƒ€ BUSY
-	localparam	RAND_BUSY = 1;
+	localparam	RAND_BUSY = 0;
 	
 	
 	localparam	X_NUM = 640;
@@ -153,6 +155,7 @@ module tb_texture_writer();
 	end
 	
 	
+//	assign axi4s_tready = 1;
 	jelly_texture_writer_core
 			#(
 				.COMPONENT_NUM 			(3),
@@ -174,8 +177,8 @@ module tb_texture_writer();
 				.STRIDE_WIDTH			(14),
 				.SIZE_WIDTH				(24),
 				
-				.FIFO_ADDR_WIDTH		(12),
-				.FIFO_RAM_TYPE		    ("block")
+				.BUF_ADDR_WIDTH			(12),
+				.BUF_RAM_TYPE		    ("block")
 			)
 		i_texture_writer_core
 			(
@@ -295,6 +298,55 @@ module tb_texture_writer();
 				.s_axi4_rready			(1)
 			);
 	
+	
+	/*
+	jelly_texture_writer_line_to_blk
+			#(
+				.COMPONENT_NUM			(3),
+				.BLK_X_SIZE				(3),		// 2^n (0:1, 1:2, 2:4, 3:8... )
+				.BLK_Y_SIZE				(3),		// 2^n (0:1, 1:2, 2:4, 3:8... )
+				.STEP_Y_SIZE			(2),		// 2^n (0:1, 1:2, 2:4, 3:8... )
+				
+				.X_WIDTH				(10),
+				.Y_WIDTH				(10),
+				
+				.ADDR_WIDTH				(24),
+				.S_DATA_WIDTH			(8*3),
+				.M_DATA_SIZE			(1)
+				
+		//		parameter	BUF_ADDR_WIDTH       = 1 + X_WIDTH + STEP_Y_SIZE - M_DATA_SIZE,
+		//		parameter	BUF_RAM_TYPE         = "block",
+			)
+		i_texture_writer_line_to_blk
+			(
+				.reset					(reset),
+				.clk					(clk),
+				
+				.endian					(0),
+				
+				.enable					(1),
+				.busy					(),
+				
+		//		.param_width			(64),
+		//		.param_height			(48),
+
+		//		.param_addr				({32'h000a_0000, 32'h0005_0000, 32'h0000_0000}),
+		//		.param_awlen			(32'h03),
+				.param_width			(X_NUM),
+				.param_height			(Y_NUM),
+				.param_stride			(X_NUM<<3),
+				
+				.s_data					(0),
+				.s_valid				(1),
+				.s_ready				(),
+				
+				.m_addr					(),
+				.m_data					(),
+				.m_last					(),
+				.m_valid				(),
+				.m_ready				(1)
+			);
+	*/
 	
 	
 endmodule

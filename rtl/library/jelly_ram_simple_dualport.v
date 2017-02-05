@@ -46,7 +46,7 @@ module jelly_ram_simple_dualport
 	(* ram_style = RAM_TYPE *)
 	reg		[DATA_WIDTH-1:0]	mem	[0:MEM_SIZE-1];
 	
-	
+	integer	iMEM_SIZE = MEM_SIZE;
 	
 	// write port
 	always @ ( posedge wr_clk ) begin
@@ -65,6 +65,7 @@ module jelly_ram_simple_dualport
 		end
 	end
 	
+
 	// DOUT FF insert
 	generate
 	if ( DOUT_REGS ) begin : blk_reg

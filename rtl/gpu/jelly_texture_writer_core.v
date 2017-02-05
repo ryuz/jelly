@@ -49,14 +49,16 @@ module jelly_texture_writer_core
 			parameter	STRIDE_WIDTH         = X_WIDTH + BLK_Y_SIZE,
 			parameter	SIZE_WIDTH           = 24,
 			
-			parameter	FIFO_ADDR_WIDTH      = 10,
-			parameter	FIFO_RAM_TYPE        = "block"
+			parameter	BUF_ADDR_WIDTH       = 10,
+			parameter	BUF_RAM_TYPE         = "block"
 		)
 		(
 			input	wire											reset,
 			input	wire											clk,
 			
 			input	wire											endian,
+			
+			input	wire											enable,
 			
 			input	wire	[M_AXI4_ADDR_WIDTH*COMPONENT_NUM-1:0]	param_addr,
 			input	wire	[M_AXI4_LEN_WIDTH-1:0]					param_awlen,
@@ -98,7 +100,7 @@ module jelly_texture_writer_core
 	//  common
 	// ---------------------------------
 	
-	genvar		i, j;
+	integer		i;
 	
 	localparam	COMPONENT_SIZE      = COMPONENT_DATA_WIDTH <=   8 ? 0 :
 	                                  COMPONENT_DATA_WIDTH <=  16 ? 1 :
@@ -116,111 +118,63 @@ module jelly_texture_writer_core
 	                                  COMPONENT_NUM        <=  64 ? 6 : 7;
 	
 	
-	localparam	CNV_DATA_WIDTH      = COMPONENT_NUM*M_AXI4_DATA_WIDTH;
-	localparam	CNV_SIZE            = (M_AXI4_DATA_SIZE - COMPONENT_SIZE);
-	localparam	CNV_NUM             = (1 << (M_AXI4_DATA_SIZE - COMPONENT_SIZE));
-	
 	
 	// ---------------------------------
-	//  width convert
+	//  line to blk
 	// ---------------------------------
 	
-	wire							cnv_tlast;
-	wire	[CNV_DATA_WIDTH-1:0]	cnv_tdata_tmp;
-	wire	[CNV_DATA_WIDTH-1:0]	cnv_tdata;
-	wire							cnv_tvalid;
-	wire							cnv_tready;
+	wire	[COMPONENT_SEL_WIDTH-1:0]				blk_component;
+	wire	[M_AXI4_ADDR_WIDTH-1:0]					blk_addr;
+	wire	[COMPONENT_NUM*M_AXI4_DATA_WIDTH-1:0]	blk_data;
+	wire											blk_last;
+	wire											blk_valid;
+	wire											blk_ready;
 	
-	jelly_data_width_converter
-			#(
-				.UNIT_WIDTH		(S_AXI4S_DATA_WIDTH),
-				.S_DATA_SIZE	(0),									// log2 (0:1bit, 1:2bit, 2:4bit, 3:8bit...)
-				.M_DATA_SIZE	(M_AXI4_DATA_SIZE - COMPONENT_SIZE)		// log2 (0:1bit, 1:2bit, 2:4bit, 3:8bit...)
-			)
-		i_data_width_converter
-			(
-				.reset			(reset),
-				.clk			(clk),
-				.cke			(1'b1),
-				
-				.endian			(endian),
-				
-				
-				.s_data			(s_axi4s_tdata),
-				.s_first		(s_axi4s_tuser),
-				.s_last			(s_axi4s_tlast),
-				.s_valid		(s_axi4s_tvalid),
-				.s_ready		(s_axi4s_tready),
-				
-				.m_data			(cnv_tdata_tmp),
-				.m_first		(),
-				.m_last			(cnv_tlast),
-				.m_valid		(cnv_tvalid),
-				.m_ready		(cnv_tready)
-			);
-	
-	generate
-	for ( i = 0; i < COMPONENT_NUM; i = i+1 ) begin : loop_cvn_i
-		for ( j = 0; j < CNV_NUM; j = j+1 ) begin : loop_cvn_j
-			assign cnv_tdata[i*M_AXI4_DATA_WIDTH + j*COMPONENT_DATA_WIDTH +: COMPONENT_DATA_WIDTH]
-						= cnv_tdata_tmp[j*S_AXI4S_DATA_WIDTH + i*COMPONENT_DATA_WIDTH +: COMPONENT_DATA_WIDTH];
-		end
-	end
-	endgenerate
-	
-	
-	
-	
-	// ---------------------------------
-	//  FIFO
-	// ---------------------------------
-	
-	wire	[COMPONENT_SEL_WIDTH-1:0]	fifo_component;
-	wire	[SIZE_WIDTH-1:0]			fifo_addr;
-	wire	[CNV_DATA_WIDTH-1:0]		fifo_data;
-	wire								fifo_last;
-	wire								fifo_valid;
-	wire								fifo_ready;
-	
-	jelly_texture_writer_fifo
+	jelly_texture_writer_line_to_blk
 			#(
 				.COMPONENT_NUM			(COMPONENT_NUM),
-				.COMPONENT_DATA_WIDTH	(COMPONENT_DATA_WIDTH << CNV_SIZE),
-				
-				.BLK_X_SIZE				(BLK_X_SIZE - CNV_SIZE),
+				.COMPONENT_SEL_WIDTH	(COMPONENT_SEL_WIDTH),
+				.BLK_X_SIZE				(BLK_X_SIZE),
 				.BLK_Y_SIZE				(BLK_Y_SIZE),
 				.STEP_Y_SIZE			(STEP_Y_SIZE),
 				
-				.X_WIDTH				(X_WIDTH - CNV_SIZE),
+				.X_WIDTH				(X_WIDTH),
 				.Y_WIDTH				(Y_WIDTH),
-				
-				.ADDR_WIDTH				(SIZE_WIDTH),
 				.STRIDE_WIDTH			(STRIDE_WIDTH),
 				
-				.FIFO_ADDR_WIDTH		(FIFO_ADDR_WIDTH),
-				.FIFO_RAM_TYPE			(FIFO_RAM_TYPE)
+				.ADDR_WIDTH				(M_AXI4_ADDR_WIDTH),
+				.S_DATA_WIDTH			(S_AXI4S_DATA_WIDTH),
+				.M_DATA_SIZE			(M_AXI4_DATA_SIZE - COMPONENT_SIZE),
+				
+				.BUF_ADDR_WIDTH			(BUF_ADDR_WIDTH),
+				.BUF_RAM_TYPE			(BUF_RAM_TYPE)
 			)
-		i_texture_writer_fifo
+		i_texture_writer_line_to_blk
 			(
 				.reset					(reset),
 				.clk					(clk),
 				
-				.param_width			(param_width[X_WIDTH-1:CNV_SIZE]),
+				.endian					(endian),
+				
+				.enable					(1),
+				.busy					(),
+				
+				.param_width			(param_width),
 				.param_height			(param_height),
-				.param_stride			(param_stride >> CNV_SIZE),
+				.param_stride			(param_stride),
 				
-				.s_last					(cnv_tlast),
-				.s_data					(cnv_tdata),
-				.s_valid				(cnv_tvalid),
-				.s_ready				(cnv_tready),
+				.s_data					(s_axi4s_tdata),
+				.s_valid				(s_axi4s_tvalid),
+				.s_ready				(s_axi4s_tready),
 				
-				.m_component			(fifo_component),
-				.m_addr					(fifo_addr),
-				.m_data					(fifo_data),
-				.m_last					(fifo_last),
-				.m_valid				(fifo_valid),
-				.m_ready				(fifo_ready)
+				.m_component			(blk_component),
+				.m_addr					(blk_addr),
+				.m_data					(blk_data),
+				.m_last					(blk_last),
+				.m_valid				(blk_valid),
+				.m_ready				(blk_ready)
 			);
+	
 	
 	
 	// ---------------------------------
@@ -228,6 +182,7 @@ module jelly_texture_writer_core
 	// ---------------------------------
 	
 	integer								cmp;
+	
 	reg		[M_AXI4_ADDR_WIDTH-1:0]		reg_dma_addr;
 	reg		[M_AXI4_DATA_WIDTH-1:0]		reg_dma_data;
 	reg									reg_dma_valid;
@@ -239,22 +194,24 @@ module jelly_texture_writer_core
 			reg_dma_data  <= {M_AXI4_DATA_WIDTH{1'bx}};
 			reg_dma_valid <= 1'b0;
 		end
-		else if ( fifo_ready ) begin
+		else if ( blk_ready ) begin
 			reg_dma_addr  <= {M_AXI4_ADDR_WIDTH{1'bx}};
 			reg_dma_data  <= {M_AXI4_DATA_WIDTH{1'bx}};
 			for ( cmp = 0; cmp < COMPONENT_NUM; cmp = cmp+1 ) begin
-				if ( fifo_component == cmp ) begin
-					reg_dma_addr <= param_addr[cmp*M_AXI4_ADDR_WIDTH +: M_AXI4_ADDR_WIDTH] + (fifo_addr << M_AXI4_DATA_SIZE);
-					reg_dma_data <= fifo_data[cmp*M_AXI4_DATA_WIDTH +: M_AXI4_DATA_WIDTH];
+				if ( blk_component == cmp ) begin
+					reg_dma_addr <= param_addr[cmp*M_AXI4_ADDR_WIDTH +: M_AXI4_ADDR_WIDTH] + (blk_addr << COMPONENT_SIZE);
+					for ( i = 0; i < (1 << (M_AXI4_DATA_SIZE - COMPONENT_SIZE)); i = i+1 ) begin
+						reg_dma_data[i*COMPONENT_DATA_WIDTH +: COMPONENT_DATA_WIDTH]
+								<= blk_data[(i*COMPONENT_NUM+cmp)*COMPONENT_DATA_WIDTH +: COMPONENT_DATA_WIDTH];
+					end
 				end
 			end
 			
-			reg_dma_valid <= fifo_valid;
+			reg_dma_valid <= blk_valid;
 		end
 	end
 	
-	assign fifo_ready = (!reg_dma_valid || dma_ready);
-	
+	assign blk_ready = (!reg_dma_valid || dma_ready);
 	
 	jelly_texture_writer_axi4
 			#(
@@ -310,73 +267,6 @@ module jelly_texture_writer_core
 				.m_axi4_bvalid			(m_axi4_bvalid),
 				.m_axi4_bready			(m_axi4_bready)
 			);
-	
-	/*
-	jelly_axi4_dma_writer
-			#(
-				.AXI4_ID_WIDTH			(M_AXI4_ID_WIDTH),
-				.AXI4_ADDR_WIDTH		(M_AXI4_ADDR_WIDTH),
-				.AXI4_DATA_SIZE			(M_AXI4_DATA_SIZE),
-				.AXI4_DATA_WIDTH		(M_AXI4_DATA_WIDTH),
-				.AXI4_STRB_WIDTH		(M_AXI4_STRB_WIDTH),
-				.AXI4_LEN_WIDTH			(M_AXI4_LEN_WIDTH),
-				.AXI4_QOS_WIDTH			(M_AXI4_QOS_WIDTH),
-				.AXI4_AWID				(M_AXI4_AWID),
-				.AXI4_AWSIZE			(M_AXI4_AWSIZE),
-				.AXI4_AWBURST			(M_AXI4_AWBURST),
-				.AXI4_AWLOCK			(M_AXI4_AWLOCK),
-				.AXI4_AWCACHE			(M_AXI4_AWCACHE),
-				.AXI4_AWPROT			(M_AXI4_AWPROT),
-				.AXI4_AWQOS				(M_AXI4_AWQOS),
-				.AXI4_AWREGION			(M_AXI4_AWREGION),
-				.AXI4S_DATA_WIDTH		(M_AXI4_DATA_WIDTH),
-				.PACKET_ENABLE			(0),
-				.AXI4_AW_REGS			(M_AXI4_AW_REGS),
-				.AXI4_W_REGS			(M_AXI4_W_REGS),
-				.AXI4S_REGS				(0)
-			)
-		i_axi4_dma_writer
-			(
-				.aresetn				(~reset),
-				.aclk					(clk),
-				
-				.enable					(reg_dma_valid),
-				.busy					(),
-				
-				.queue_counter			(1),
-				
-				.param_addr				(reg_dma_addr),
-				.param_count			((1 << (BLK_X_SIZE - CNV_SIZE)) * STEP_Y_SIZE),
-				.param_maxlen			(8'hff),
-				.param_wstrb			({M_AXI4_STRB_WIDTH{1'b1}}),
-				
-				.s_axi4s_tdata			(reg_dma_data),
-				.s_axi4s_tvalid			(reg_dma_valid),
-				.s_axi4s_tready			(dma_ready),
-				
-				.m_axi4_awid			(m_axi4_awid),
-				.m_axi4_awaddr			(m_axi4_awaddr),
-				.m_axi4_awlen			(m_axi4_awlen),
-				.m_axi4_awsize			(m_axi4_awsize),
-				.m_axi4_awburst			(m_axi4_awburst),
-				.m_axi4_awlock			(m_axi4_awlock),
-				.m_axi4_awcache			(m_axi4_awcache),
-				.m_axi4_awprot			(m_axi4_awprot),
-				.m_axi4_awqos			(m_axi4_awqos),
-				.m_axi4_awregion		(m_axi4_awregion),
-				.m_axi4_awvalid			(m_axi4_awvalid),
-				.m_axi4_awready			(m_axi4_awready),
-				.m_axi4_wdata			(m_axi4_wdata),
-				.m_axi4_wstrb			(m_axi4_wstrb),
-				.m_axi4_wlast			(m_axi4_wlast),
-				.m_axi4_wvalid			(m_axi4_wvalid),
-				.m_axi4_wready			(m_axi4_wready),
-				.m_axi4_bid				(m_axi4_bid),
-				.m_axi4_bresp			(m_axi4_bresp),
-				.m_axi4_bvalid			(m_axi4_bvalid),
-				.m_axi4_bready			(m_axi4_bready)
-			);
-	*/
 	
 endmodule
 

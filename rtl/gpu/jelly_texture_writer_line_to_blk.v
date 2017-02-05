@@ -119,9 +119,6 @@ module jelly_texture_writer_line_to_blk
 	localparam	BUF_UNIT_WIDTH     = S_DATA_WIDTH;
 	localparam	BUF_DATA_WIDTH     = M_DATA_WIDTH;
 	
-//	localparam	BUF_ADDR_WIDTH  = BUF_ADDR_WIDTH + M_DATA_SIZE;
-//	localparam	BUF_RD_ADDR_WIDTH  = BUF_ADDR_WIDTH;
-	
 	wire									buf_full;
 	wire									buf_empty;
 	
@@ -287,9 +284,7 @@ module jelly_texture_writer_line_to_blk
 		end
 		else if ( wr_cke ) begin
 			if ( !wr_busy ) begin
-//				wr_blk_x_num     <= blk_x_num;
-//				wr_step_y_num    <= step_y_num;
-				
+				// ポインタアドレスはそのままに他の要素をリセット
 				wr0_x_count      <= {PIX_X_WIDTH{1'b0}};
 				wr0_x_last       <= (PIX_X_NUM == 1);
 				wr0_blk_count    <= {BLK_X_WIDTH{1'b0}};
@@ -298,13 +293,6 @@ module jelly_texture_writer_line_to_blk
 				wr0_step_y_last  <= (PIX_STEP_Y_NUM == 1);
 				wr0_y_count      <= {STEP_Y_WIDTH{1'b0}};
 				wr0_y_last       <= (step_y_num == 1);
-				
-		//		wr0_addr         <= {BUF_ADDR_WIDTH{1'b0}};
-		//		wr0_addr_blk     <= wr0_addr + (1 << (BLK_X_SIZE + STEP_Y_SIZE));
-		//		wr0_addr_line    <= wr0_addr + (1 << BLK_X_SIZE);
-				
-				wr0_data         <= {S_DATA_WIDTH{1'bx}};
-				wr0_valid        <= 1'b0;
 			end
 			else if ( wr_cke ) begin
 				// stage0
@@ -391,7 +379,6 @@ module jelly_texture_writer_line_to_blk
 	reg									rd1_blk_last;
 	reg		[STEP_Y_WIDTH-1:0]			rd1_step_y_count;
 	reg									rd1_step_y_last;
-//	reg		[BLK_STEP_WIDTH-1:0]		rd1_blk_y_count;
 	reg									rd1_blk_y_last;
 	reg									rd1_valid;
 	
@@ -445,7 +432,6 @@ module jelly_texture_writer_line_to_blk
 			rd1_cmp_last     <= 1'bx;
 			rd1_blk_count    <= {BLK_X_WIDTH{1'bx}};
 			rd1_blk_last     <= 1'bx;
-//			rd1_blk_y_count  <= {BLK_STEP_WIDTH{1'bx}};
 			rd1_blk_y_last   <= 1'bx;
 			rd1_step_y_count <= {STEP_Y_WIDTH{1'bx}};
 			rd1_step_y_last  <= 1'bx;
@@ -464,12 +450,11 @@ module jelly_texture_writer_line_to_blk
 		end
 		else if ( rd_cke ) begin
 			if ( !rd_busy ) begin
+				// ポインタアドレスはそのままに他の要素をリセット
 				rd0_pix_count    <= {PIX_STEP_WIDTH{1'b0}};
 				rd0_pix_last     <= (PIX_STEP_NUM == M_UNIT);
 				rd0_cmp_count    <= {COMPONENT_SEL_WIDTH{1'b0}};
 				rd0_cmp_last     <= (COMPONENT_NUM == 1);
-	//			rd0_addr         <= {BUF_ADDR_WIDTH{1'b0}};
-	//			rd0_addr_blk     <= {BUF_ADDR_WIDTH{1'b0}};
 				
 				rd1_pix_last     <= 1'bx;
 				rd1_cmp_count    <= {COMPONENT_SEL_WIDTH{1'bx}};
@@ -478,7 +463,6 @@ module jelly_texture_writer_line_to_blk
 				rd1_blk_last     <= (wr_blk_x_num == 1);
 				rd1_step_y_count <= {STEP_Y_WIDTH{1'b0}};
 				rd1_step_y_last  <= (wr_step_y_num == 1);
-	//			rd1_blk_y_count  <= {BLK_STEP_WIDTH{1'b0}};
 				rd1_blk_y_last   <= (BLK_STEP_NUM == 1);
 				rd1_valid        <= 1'b0;
 				
@@ -532,9 +516,6 @@ module jelly_texture_writer_line_to_blk
 							if ( rd1_blk_last ) begin
 								rd1_blk_count  <= {BLK_X_WIDTH{1'b0}};
 								rd1_blk_last   <= (rd_blk_x_num == 1);
-								
-			//					rd1_blk_y_count  <= rd1_blk_y_count + 1'b1;
-			//					rd1_blk_y_last   <= ((rd1_blk_y_count + 1'b1) == (BLK_Y_NUM - 1));
 								
 								rd1_blk_y_last   <= (((rd1_step_y_count & (BLK_STEP_NUM-1)) + 1'b1) == (BLK_STEP_NUM - 1));
 								
@@ -599,7 +580,6 @@ module jelly_texture_writer_line_to_blk
 	assign	m_data      = rd2_data;
 	assign	m_last      = rd2_last;
 	assign	m_valid     = rd2_valid;
-	
 	
 //	assign  busy        = wr_busy;
 	assign  busy        = wr_busy || rd_busy;
