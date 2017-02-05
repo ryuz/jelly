@@ -220,7 +220,6 @@ module jelly_texture_writer_line_to_blk
 	//  write to buffer
 	// ---------------------------------
 	
-	
 	wire								wr_cke;
 	
 	reg									wr_busy;
@@ -239,8 +238,8 @@ module jelly_texture_writer_line_to_blk
 	reg		[BUF_ADDR_WIDTH-1:0]		wr0_addr;
 	reg		[BUF_ADDR_WIDTH-1:0]		wr0_addr_blk;
 	reg		[BUF_ADDR_WIDTH-1:0]		wr0_addr_line;
-	reg		[S_DATA_WIDTH-1:0]			wr0_data;
-	reg									wr0_valid;
+	wire		[S_DATA_WIDTH-1:0]		wr0_data  = s_data;
+	wire								wr0_valid = s_valid;
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
@@ -278,9 +277,6 @@ module jelly_texture_writer_line_to_blk
 			wr0_addr         <= {BUF_ADDR_WIDTH{1'b0}};
 			wr0_addr_blk     <= wr0_addr + (1 << (BLK_X_SIZE + STEP_Y_SIZE));
 			wr0_addr_line    <= wr0_addr + (1 << BLK_X_SIZE);
-			
-			wr0_data         <= {S_DATA_WIDTH{1'bx}};
-			wr0_valid        <= 1'b0;
 		end
 		else if ( wr_cke ) begin
 			if ( !wr_busy ) begin
@@ -294,7 +290,7 @@ module jelly_texture_writer_line_to_blk
 				wr0_y_count      <= {STEP_Y_WIDTH{1'b0}};
 				wr0_y_last       <= (step_y_num == 1);
 			end
-			else if ( wr_cke ) begin
+			else  begin
 				// stage0
 				if ( wr0_valid ) begin
 					wr0_addr <= wr0_addr + (1 << S_DATA_SIZE);
@@ -334,8 +330,6 @@ module jelly_texture_writer_line_to_blk
 						end
 					end
 				end
-				wr0_data  <= s_data;
-				wr0_valid <= (s_valid & s_ready);
 			end
 		end
 	end
