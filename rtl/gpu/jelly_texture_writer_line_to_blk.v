@@ -32,6 +32,7 @@ module jelly_texture_writer_line_to_blk
 			
 			parameter	X_WIDTH              = 10,
 			parameter	Y_WIDTH              = 10,
+			parameter	STRIDE_WIDTH         = X_WIDTH + BLK_Y_SIZE,
 			
 			parameter	ADDR_WIDTH           = 24,
 			parameter	S_DATA_WIDTH         = 8*3,
@@ -54,11 +55,13 @@ module jelly_texture_writer_line_to_blk
 			
 			input	wire	[X_WIDTH-1:0]				param_width,
 			input	wire	[Y_WIDTH-1:0]				param_height,
+			input	wire	[STRIDE_WIDTH-1:0]			param_stride,
 			
 			input	wire	[S_DATA_WIDTH-1:0]			s_data,
 			input	wire								s_valid,
 			output	wire								s_ready,
 			
+			output	wire	[COMPONENT_SEL_WIDTH-1:0]	m_component,
 			output	wire	[ADDR_WIDTH-1:0]			m_addr,
 			output	wire	[M_DATA_WIDTH-1:0]			m_data,
 			output	wire								m_last,
@@ -86,9 +89,9 @@ module jelly_texture_writer_line_to_blk
 	localparam	PIX_STEP_Y_NUM   = (1 << STEP_Y_SIZE);
 	localparam	PIX_STEP_Y_WIDTH = STEP_Y_SIZE >= 0 ? STEP_Y_SIZE : 1;
 	
-//	localparam	PIX_SIZE         = BLK_X_SIZE + BLK_Y_SIZE;
-//	localparam	PIX_NUM          = (1 << PIX_SIZE);
-//	localparam	PIX_WIDTH        = PIX_SIZE > 0 ? PIX_SIZE : 1;
+	localparam	PIX_SIZE         = BLK_X_SIZE + BLK_Y_SIZE;
+	localparam	PIX_NUM          = (1 << PIX_SIZE);
+	localparam	PIX_WIDTH        = PIX_SIZE > 0 ? PIX_SIZE : 1;
 	
 	localparam	PIX_STEP_SIZE    = BLK_X_SIZE + STEP_Y_SIZE;
 	localparam	PIX_STEP_NUM     = (1 << PIX_STEP_SIZE);
@@ -149,7 +152,7 @@ module jelly_texture_writer_line_to_blk
 		
 		jelly_ram_simple_dualport
 				#(
-					.ADDR_WIDTH		(BUF_ADDR_WIDTH >> M_DATA_SIZE),
+					.ADDR_WIDTH		(BUF_ADDR_WIDTH - M_DATA_SIZE),
 					.DATA_WIDTH		(BUF_UNIT_WIDTH),
 					.RAM_TYPE		(BUF_RAM_TYPE),
 					.DOUT_REGS		(1)
@@ -223,6 +226,7 @@ module jelly_texture_writer_line_to_blk
 	reg									wr_busy;
 	reg		[BLK_X_WIDTH-1:0]			wr_blk_x_num;
 	reg		[STEP_Y_WIDTH-1:0]			wr_step_y_num;
+	reg		[STRIDE_WIDTH-1:0]			wr_stride;
 	
 	reg		[PIX_X_WIDTH-1:0]			wr0_x_count;
 	reg									wr0_x_last;
@@ -243,12 +247,14 @@ module jelly_texture_writer_line_to_blk
 			wr_busy       <= 1'b0;
 			wr_blk_x_num  <= {BLK_X_WIDTH{1'bx}};
 			wr_step_y_num <= {STEP_Y_WIDTH{1'bx}};
+			wr_stride     <= {STRIDE_WIDTH{1'bx}};
 		end
 		else begin
 			if ( !wr_busy ) begin
 				wr_busy       <= enable;
 				wr_blk_x_num  <= blk_x_num;
 				wr_step_y_num <= step_y_num;
+				wr_stride     <= param_stride;
 			end
 			else if ( wr_cke ) begin
 				if ( wr0_x_last && wr0_blk_last && wr0_step_y_last && wr0_y_last ) begin
@@ -345,7 +351,7 @@ module jelly_texture_writer_line_to_blk
 	
 	assign	wr_cke      = !buf_full;
 	
-	assign	s_ready     = wr_cke;
+	assign	s_ready     = wr_cke & wr_busy;
 	
 	assign	buf_wr_req  = (wr_cke && wr0_x_last && wr0_step_y_last);
 	assign	buf_wr_end  = (wr_cke && wr0_x_last && wr0_step_y_last);
@@ -365,6 +371,7 @@ module jelly_texture_writer_line_to_blk
 	reg									rd_busy;
 	reg		[BLK_X_WIDTH-1:0]			rd_blk_x_num;
 	reg		[STEP_Y_WIDTH-1:0]			rd_step_y_num;
+	reg		[STRIDE_WIDTH-1:0]			rd_stride;
 	
 	reg		[PIX_STEP_WIDTH-1:0]		rd0_pix_count;
 	reg									rd0_pix_last;
@@ -399,12 +406,15 @@ module jelly_texture_writer_line_to_blk
 			rd_busy       <= 1'b0;
 			rd_blk_x_num  <= {BLK_X_WIDTH{1'bx}};
 			rd_step_y_num <= {STEP_Y_WIDTH{1'bx}};
+			rd_stride     <= {STRIDE_WIDTH{1'bx}};
 		end
 		else begin
 			if ( !rd_busy ) begin
+				// Šeƒpƒ‰ƒ[ƒ^‚Í wr ‚©‚ç“`”d
 				rd_busy       <= wr_busy;
 				rd_blk_x_num  <= wr_blk_x_num;
 				rd_step_y_num <= wr_step_y_num;
+				rd_stride     <= wr_stride;
 			end
 			else begin
 				if ( m_last && m_valid && m_ready ) begin
@@ -465,7 +475,7 @@ module jelly_texture_writer_line_to_blk
 				rd2_last         <= 1'bx;
 				rd2_addr         <= {ADDR_WIDTH{1'b0}};
 				rd2_addr_blk     <= {ADDR_WIDTH{1'b0}};
-				rd2_addr_step    <= (param_width << STEP_Y_SIZE);
+				rd2_addr_step    <= wr_stride;
 				rd2_valid        <= 1'b0;
 			end
 			else begin
@@ -533,13 +543,13 @@ module jelly_texture_writer_line_to_blk
 						rd2_addr     <= rd2_addr_blk;
 					end
 					if ( rd2_cmp_last ) begin
-						rd2_addr     <= rd2_addr_blk + (1 << PIX_STEP_SIZE);
-						rd2_addr_blk <= rd2_addr_blk + (1 << PIX_STEP_SIZE);
+						rd2_addr     <= rd2_addr_blk + (1 << PIX_SIZE);
+						rd2_addr_blk <= rd2_addr_blk + (1 << PIX_SIZE);
 					end
 					if ( rd2_blk_last ) begin
 						rd2_addr      <= rd2_addr_step;
 						rd2_addr_blk  <= rd2_addr_step;
-						rd2_addr_step <= rd2_addr_step + (param_width << STEP_Y_SIZE);
+						rd2_addr_step <= rd2_addr_step + rd_stride;
 					end
 				end
 				
@@ -557,6 +567,7 @@ module jelly_texture_writer_line_to_blk
 	assign	buf_rd_cke  = rd_cke;
 	assign	buf_rd_addr = rd0_addr;
 	
+	assign	m_component = rd2_component;
 	assign	m_addr      = rd2_addr;
 	assign	m_data      = rd2_data;
 	assign	m_last      = rd2_last;
