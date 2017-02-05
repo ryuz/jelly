@@ -97,6 +97,9 @@ module jelly_texture_writer_line_to_blk
 	localparam	PIX_STEP_NUM     = (1 << PIX_STEP_SIZE);
 	localparam	PIX_STEP_WIDTH   = PIX_STEP_SIZE > 0 ? PIX_STEP_SIZE : 1;
 	
+	localparam	BLK_STEP_SIZE    = BLK_Y_SIZE - STEP_Y_SIZE;
+	localparam	BLK_STEP_NUM     = (1 << BLK_STEP_SIZE);
+	localparam	BLK_STEP_WIDTH   = BLK_STEP_SIZE > 0 ? BLK_STEP_SIZE : 1;
 	
 	localparam	BLK_X_WIDTH      = X_WIDTH - BLK_X_SIZE;
 	localparam	BLK_Y_WIDTH      = Y_WIDTH - BLK_Y_SIZE;
@@ -195,7 +198,7 @@ module jelly_texture_writer_line_to_blk
 	
 	always @(posedge clk) begin
 		if ( !busy ) begin
-			reg_buf_wr_count <= BUF_BLK_NUM;
+			reg_buf_wr_count <= BUF_BLK_NUM/2;
 			reg_buf_full     <= 1'b0;
 			
 			reg_buf_rd_count <= 0;
@@ -250,7 +253,7 @@ module jelly_texture_writer_line_to_blk
 			wr_stride     <= {STRIDE_WIDTH{1'bx}};
 		end
 		else begin
-			if ( !wr_busy ) begin
+			if ( !busy ) begin
 				wr_busy       <= enable;
 				wr_blk_x_num  <= blk_x_num;
 				wr_step_y_num <= step_y_num;
@@ -334,8 +337,8 @@ module jelly_texture_writer_line_to_blk
 								wr0_step_y_last  <= (PIX_STEP_Y_NUM == 1);
 								
 								wr0_addr         <= wr0_addr + 1'b1;
-								wr0_addr_blk     <= wr0_addr + 1'b1;
-								wr0_addr_line    <= wr0_addr + 1'b1;
+								wr0_addr_blk     <= wr0_addr + 1'b1 + (1 << (BLK_X_SIZE + STEP_Y_SIZE));
+								wr0_addr_line    <= wr0_addr + 1'b1 + (1 << BLK_X_SIZE);
 								
 								wr0_y_count      <= wr0_y_count + 1'b1;
 								wr0_y_last       <= ((wr0_y_count + 1'b1) == (wr_step_y_num - 1));
@@ -388,16 +391,20 @@ module jelly_texture_writer_line_to_blk
 	reg									rd1_blk_last;
 	reg		[STEP_Y_WIDTH-1:0]			rd1_step_y_count;
 	reg									rd1_step_y_last;
+//	reg		[BLK_STEP_WIDTH-1:0]		rd1_blk_y_count;
+	reg									rd1_blk_y_last;
 	reg									rd1_valid;
 	
 	reg									rd2_pix_last;
 	reg									rd2_cmp_last;
 	reg									rd2_blk_last;
-	reg									rd2_last;	
+	reg									rd2_blk_y_last;
+	reg									rd2_last;
 	reg		[COMPONENT_SEL_WIDTH-1:0]	rd2_component;
 	reg		[ADDR_WIDTH-1:0]			rd2_addr;
 	reg		[ADDR_WIDTH-1:0]			rd2_addr_blk;
 	reg		[ADDR_WIDTH-1:0]			rd2_addr_step;
+	reg		[ADDR_WIDTH-1:0]			rd2_addr_blk_y;
 	wire	[M_DATA_WIDTH-1:0]			rd2_data = buf_rd_dout;
 	reg									rd2_valid;
 	
@@ -438,6 +445,8 @@ module jelly_texture_writer_line_to_blk
 			rd1_cmp_last     <= 1'bx;
 			rd1_blk_count    <= {BLK_X_WIDTH{1'bx}};
 			rd1_blk_last     <= 1'bx;
+//			rd1_blk_y_count  <= {BLK_STEP_WIDTH{1'bx}};
+			rd1_blk_y_last   <= 1'bx;
 			rd1_step_y_count <= {STEP_Y_WIDTH{1'bx}};
 			rd1_step_y_last  <= 1'bx;
 			rd1_valid        <= 1'bx;
@@ -445,10 +454,12 @@ module jelly_texture_writer_line_to_blk
 			rd2_pix_last     <= 1'bx;
 			rd2_cmp_last     <= 1'bx;
 			rd2_blk_last     <= 1'bx;
+			rd2_blk_y_last   <= 1'bx;
 			rd2_last         <= 1'bx;
 			rd2_addr         <= {ADDR_WIDTH{1'bx}};
 			rd2_addr_blk     <= {ADDR_WIDTH{1'bx}};
-			rd2_addr_step    <= 1'bx;
+			rd2_addr_step    <= {ADDR_WIDTH{1'bx}};
+			rd2_addr_blk_y   <= {ADDR_WIDTH{1'bx}};
 			rd2_valid        <= 1'bx;
 		end
 		else if ( rd_cke ) begin
@@ -467,15 +478,19 @@ module jelly_texture_writer_line_to_blk
 				rd1_blk_last     <= (wr_blk_x_num == 1);
 				rd1_step_y_count <= {STEP_Y_WIDTH{1'b0}};
 				rd1_step_y_last  <= (wr_step_y_num == 1);
+	//			rd1_blk_y_count  <= {BLK_STEP_WIDTH{1'b0}};
+				rd1_blk_y_last   <= (BLK_STEP_NUM == 1);
 				rd1_valid        <= 1'b0;
 				
 				rd2_pix_last     <= 1'bx;
 				rd2_cmp_last     <= 1'bx;
 				rd2_blk_last     <= 1'bx;
+				rd2_blk_y_last   <= 1'bx;
 				rd2_last         <= 1'bx;
 				rd2_addr         <= {ADDR_WIDTH{1'b0}};
 				rd2_addr_blk     <= {ADDR_WIDTH{1'b0}};
-				rd2_addr_step    <= wr_stride;
+				rd2_addr_step    <= PIX_STEP_NUM;
+				rd2_addr_blk_y   <= wr_stride;
 				rd2_valid        <= 1'b0;
 			end
 			else begin
@@ -518,6 +533,11 @@ module jelly_texture_writer_line_to_blk
 								rd1_blk_count  <= {BLK_X_WIDTH{1'b0}};
 								rd1_blk_last   <= (rd_blk_x_num == 1);
 								
+			//					rd1_blk_y_count  <= rd1_blk_y_count + 1'b1;
+			//					rd1_blk_y_last   <= ((rd1_blk_y_count + 1'b1) == (BLK_Y_NUM - 1));
+								
+								rd1_blk_y_last   <= (((rd1_step_y_count & (BLK_STEP_NUM-1)) + 1'b1) == (BLK_STEP_NUM - 1));
+								
 								rd1_step_y_count <= rd1_step_y_count + 1'b1;
 								rd1_step_y_last  <= ((rd1_step_y_count + 1'b1) == (rd_step_y_num - 1));
 								if ( rd1_step_y_last ) begin
@@ -532,10 +552,11 @@ module jelly_texture_writer_line_to_blk
 				
 				
 				// stage2
-				rd2_pix_last <= rd1_pix_last;
-				rd2_cmp_last <= (rd1_pix_last && rd1_cmp_last);
-				rd2_blk_last <= (rd1_pix_last && rd1_cmp_last && rd1_blk_last);
-				rd2_last     <= (rd1_pix_last && rd1_cmp_last && rd1_blk_last && rd1_step_y_last);
+				rd2_pix_last   <= rd1_pix_last;
+				rd2_cmp_last   <= (rd1_pix_last && rd1_cmp_last);
+				rd2_blk_last   <= (rd1_pix_last && rd1_cmp_last && rd1_blk_last);
+				rd2_blk_y_last <= (rd1_pix_last && rd1_cmp_last && rd1_blk_last && rd1_blk_y_last);
+				rd2_last       <= (rd1_pix_last && rd1_cmp_last && rd1_blk_last && rd1_step_y_last);
 				
 				if ( rd2_valid ) begin
 					rd2_addr <= rd2_addr + M_UNIT;
@@ -549,7 +570,13 @@ module jelly_texture_writer_line_to_blk
 					if ( rd2_blk_last ) begin
 						rd2_addr      <= rd2_addr_step;
 						rd2_addr_blk  <= rd2_addr_step;
-						rd2_addr_step <= rd2_addr_step + rd_stride;
+						rd2_addr_step <= rd2_addr_step + PIX_STEP_NUM;
+					end
+					if ( rd2_blk_y_last ) begin
+						rd2_addr       <= rd2_addr_blk_y;
+						rd2_addr_blk   <= rd2_addr_blk_y;
+						rd2_addr_step  <= rd2_addr_blk_y + PIX_STEP_NUM;
+						rd2_addr_blk_y <= rd2_addr_blk_y + rd_stride;
 					end
 				end
 				
@@ -574,8 +601,8 @@ module jelly_texture_writer_line_to_blk
 	assign	m_valid     = rd2_valid;
 	
 	
-	assign  busy        = wr_busy;
-//	assign  busy        = wr_busy || rd_busy;
+//	assign  busy        = wr_busy;
+	assign  busy        = wr_busy || rd_busy;
 	
 endmodule
 
