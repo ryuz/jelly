@@ -9,6 +9,7 @@ module tb_texture_writer();
 	initial begin
 		$dumpfile("tb_texture_writer.vcd");
 		$dumpvars(1, tb_texture_writer);
+		$dumpvars(1, tb_texture_writer.i_texture_writer_core);
 		$dumpvars(0, tb_texture_writer.i_texture_writer_core.i_texture_writer_line_to_blk);
 //		$dumpvars(0, tb_texture_writer.i_texture_writer_line_to_blk);
 		
@@ -25,7 +26,7 @@ module tb_texture_writer();
 	
 	
 	// ƒ‰ƒ“ƒ_ƒ€ BUSY
-	localparam	RAND_BUSY = 0;
+	localparam	RAND_BUSY = 1;
 	
 	
 	localparam	X_NUM = 640;
@@ -120,6 +121,28 @@ module tb_texture_writer();
 	wire							axi4s_tvalid;
 	wire							axi4s_tready;
 	
+	integer	fp_dbg;
+	initial fp_dbg = $fopen("wdata_log.txt", "w");
+	always @(posedge clk) begin
+		if ( !reset && axi4_wvalid && axi4_wready ) begin
+			$fdisplay(fp_dbg, "%h %b %t", axi4_wdata, axi4_wstrb, $time());
+		end
+	end
+	
+	
+	reg								enable;
+	wire							busy;
+	
+	always @(posedge clk) begin
+		if ( reset ) begin
+			enable <= 1'b0;
+		end
+		else begin
+			enable <= !busy;
+		end
+	end
+	
+	
 	jelly_axi4s_master_model
 			#(
 				.AXI4S_DATA_WIDTH	(24),
@@ -146,11 +169,17 @@ module tb_texture_writer();
 			if ( axi4s_tvalid && axi4s_tready && axi4s_tuser ) begin
 				frame_num = frame_num + 1;
 				$display("frame start");
-				i_axi4_slave_model.write_memh("axi4_mem.txt");
 				if ( frame_num > 2 ) begin
 					$finish;
 				end
 			end
+		end
+	end
+	
+	always @(negedge busy) begin
+		if ( !reset ) begin
+			$display("write end");
+			i_axi4_slave_model.write_memh("axi4_mem.txt");
 		end
 	end
 	
@@ -173,9 +202,7 @@ module tb_texture_writer();
 				
 				.X_WIDTH				(10),
 				.Y_WIDTH				(9),
-				
 				.STRIDE_WIDTH			(14),
-				.SIZE_WIDTH				(24),
 				
 				.BUF_ADDR_WIDTH			(12),
 				.BUF_RAM_TYPE		    ("block")
@@ -186,6 +213,9 @@ module tb_texture_writer();
 				.clk					(clk),
 				
 				.endian					(0),
+				
+				.enable					(enable),
+				.busy					(busy),
 				
 				.param_addr				({32'h000a_0000, 32'h0005_0000, 32'h0000_0000}),
 				.param_awlen			(32'h03),
@@ -238,8 +268,8 @@ module tb_texture_writer();
 				.WRITE_LOG_FILE			("axi4_write.txt"),
 				.READ_LOG_FILE			(""),
 				
-				.AW_DELAY				(RAND_BUSY ? 4 : 0),
-				.AR_DELAY				(RAND_BUSY ? 4 : 0),
+				.AW_DELAY				(RAND_BUSY ? 64 : 0),
+				.AR_DELAY				(RAND_BUSY ? 64 : 0),
 				
 				.AW_FIFO_PTR_WIDTH		(RAND_BUSY ? 4 : 0),
 				.W_FIFO_PTR_WIDTH		(RAND_BUSY ? 4 : 0),

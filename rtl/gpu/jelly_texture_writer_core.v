@@ -38,6 +38,7 @@ module jelly_texture_writer_core
 			parameter	M_AXI4_AWREGION      = 4'b0000,
 			parameter	M_AXI4_AW_REGS       = 1,
 			parameter	M_AXI4_W_REGS        = 1,
+			parameter	M_AXI4_COUNT_WIDTH   = 8,
 			
 			parameter	BLK_X_SIZE           = 3,		// 2^n (0:1, 1:2, 2:4, 3:8, ... )
 			parameter	BLK_Y_SIZE           = 3,		// 2^n (0:1, 1:2, 2:4, 3:8, ... )
@@ -45,9 +46,7 @@ module jelly_texture_writer_core
 			
 			parameter	X_WIDTH              = 10,
 			parameter	Y_WIDTH              = 10,
-			
 			parameter	STRIDE_WIDTH         = X_WIDTH + BLK_Y_SIZE,
-			parameter	SIZE_WIDTH           = 24,
 			
 			parameter	BUF_ADDR_WIDTH       = 10,
 			parameter	BUF_RAM_TYPE         = "block"
@@ -59,6 +58,7 @@ module jelly_texture_writer_core
 			input	wire											endian,
 			
 			input	wire											enable,
+			output	wire											busy,
 			
 			input	wire	[M_AXI4_ADDR_WIDTH*COMPONENT_NUM-1:0]	param_addr,
 			input	wire	[M_AXI4_LEN_WIDTH-1:0]					param_awlen,
@@ -122,6 +122,8 @@ module jelly_texture_writer_core
 	// ---------------------------------
 	//  line to blk
 	// ---------------------------------
+
+	wire											blk_busy;
 	
 	wire	[COMPONENT_SEL_WIDTH-1:0]				blk_component;
 	wire	[M_AXI4_ADDR_WIDTH-1:0]					blk_addr;
@@ -156,12 +158,12 @@ module jelly_texture_writer_core
 				
 				.endian					(endian),
 				
-				.enable					(1),
-				.busy					(),
+				.enable					(enable),
+				.busy					(blk_busy),
 				
 				.param_width			(param_width),
 				.param_height			(param_height),
-				.param_stride			(param_stride),
+				.param_stride			(param_stride >> COMPONENT_SIZE),
 				
 				.s_data					(s_axi4s_tdata),
 				.s_valid				(s_axi4s_tvalid),
@@ -267,6 +269,26 @@ module jelly_texture_writer_core
 				.m_axi4_bvalid			(m_axi4_bvalid),
 				.m_axi4_bready			(m_axi4_bready)
 			);
+	
+	
+	// ---------------------------------
+	//  detect write complete
+	// ---------------------------------
+	
+	reg		[M_AXI4_COUNT_WIDTH-1:0]	reg_axi4_awcount;
+	reg									reg_axi4_awbusy;
+	always @(posedge clk) begin
+		if ( reset ) begin
+			reg_axi4_awcount <= {M_AXI4_COUNT_WIDTH{1'b0}};
+			reg_axi4_awbusy  <= 1'b0;
+		end
+		else begin
+			reg_axi4_awcount <= reg_axi4_awcount + (m_axi4_awvalid & m_axi4_awready) - (m_axi4_bvalid & m_axi4_bready);
+			reg_axi4_awbusy  <= ((reg_axi4_awcount > 0 ) || m_axi4_awvalid);
+		end
+	end
+	
+	assign busy = (reg_axi4_awbusy || blk_busy);
 	
 endmodule
 

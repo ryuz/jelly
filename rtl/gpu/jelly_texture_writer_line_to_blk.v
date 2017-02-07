@@ -117,6 +117,8 @@ module jelly_texture_writer_line_to_blk
 	localparam	BUF_NUM            = (1 << M_DATA_SIZE);
 	localparam	BUF_UNIT_WIDTH     = S_DATA_WIDTH;
 	localparam	BUF_DATA_WIDTH     = M_DATA_WIDTH;
+
+	localparam	MEM_ADDR_WIDTH     = BUF_ADDR_WIDTH - M_DATA_SIZE;
 	
 	wire									buf_full;
 	wire									buf_empty;
@@ -139,19 +141,18 @@ module jelly_texture_writer_line_to_blk
 	
 	generate
 	for ( i = 0; i < BUF_NUM; i = i+1 ) begin : loop_buf
-		
 		wire							wr_en;
-		wire	[BUF_ADDR_WIDTH-1:0]	wr_addr;
+		wire	[MEM_ADDR_WIDTH-1:0]	wr_addr;
 		wire	[BUF_UNIT_WIDTH-1:0]	wr_din;
 		
 		wire							rd_en;
 		wire							rd_regcke;
-		wire	[BUF_ADDR_WIDTH-1:0]	rd_addr;
+		wire	[MEM_ADDR_WIDTH-1:0]	rd_addr;
 		wire	[BUF_UNIT_WIDTH-1:0]	rd_dout;
 		
 		jelly_ram_simple_dualport
 				#(
-					.ADDR_WIDTH		(BUF_ADDR_WIDTH - M_DATA_SIZE),
+					.ADDR_WIDTH		(MEM_ADDR_WIDTH),
 					.DATA_WIDTH		(BUF_UNIT_WIDTH),
 					.RAM_TYPE		(BUF_RAM_TYPE),
 					.DOUT_REGS		(1)
@@ -289,7 +290,7 @@ module jelly_texture_writer_line_to_blk
 				wr0_y_count      <= {STEP_Y_WIDTH{1'b0}};
 				wr0_y_last       <= (step_y_num == 1);
 			end
-			else  begin
+			else begin
 				// stage0
 				if ( wr0_valid ) begin
 					wr0_addr <= wr0_addr + (1 << S_DATA_SIZE);
@@ -588,8 +589,8 @@ module jelly_texture_writer_line_to_blk
 	assign	m_last      = rd2_last;
 	assign	m_valid     = rd2_valid;
 	
-	assign  busy        = wr_busy;
-//	assign  busy        = wr_busy || rd_busy;
+//	assign  busy        = wr_busy;
+	assign  busy        = wr_busy || rd_busy;
 	
 endmodule
 
