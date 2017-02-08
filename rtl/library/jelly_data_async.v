@@ -16,6 +16,7 @@
 // data clock convert
 module jelly_data_async
 		#(
+			parameter	ASYNC      = 1,
 			parameter	DATA_WIDTH = 8
 		)
 		(
@@ -33,71 +34,79 @@ module jelly_data_async
 		);
 	
 	
-	// semaphore
-								reg							reg_s_sem0;
-	(* ASYNC_REG = "true" *)	reg							reg_s_sem1_ff;
-								reg							reg_s_sem1;
-								reg		[DATA_WIDTH-1:0]	reg_s_data;
-	
-	(* ASYNC_REG = "true" *)	reg							reg_m_sem0_ff0;
-								reg							reg_m_sem0_ff1;
-								reg							reg_m_sem0;
-								reg							reg_m_sem1;
-								reg		[DATA_WIDTH-1:0]	reg_m_data;
-	
-	
-	
-	// slave
-	always @(posedge s_clk) begin
-		if ( s_reset ) begin
-			reg_s_sem0    <= 1'b0;
-			reg_s_sem1_ff <= 1'b0;
-			reg_s_sem1    <= 1'b0;
-			reg_s_data    <= {DATA_WIDTH{1'bx}};
-		end
-		else begin
-			// double latch
-			reg_s_sem1_ff <= reg_m_sem1;
-			reg_s_sem1    <= reg_s_sem1_ff;
-			
-			// data
-			if ( s_valid & s_ready ) begin
-				reg_s_sem0 <= ~reg_s_sem0;
-				reg_s_data <= s_data;
+	generate
+	if ( ASYNC ) begin : blk_async
+		// semaphore
+									reg							reg_s_sem0;
+		(* ASYNC_REG = "true" *)	reg							reg_s_sem1_ff;
+									reg							reg_s_sem1;
+									reg		[DATA_WIDTH-1:0]	reg_s_data;
+		
+		(* ASYNC_REG = "true" *)	reg							reg_m_sem0_ff0;
+									reg							reg_m_sem0_ff1;
+									reg							reg_m_sem0;
+									reg							reg_m_sem1;
+									reg		[DATA_WIDTH-1:0]	reg_m_data;
+		
+		
+		
+		// slave
+		always @(posedge s_clk) begin
+			if ( s_reset ) begin
+				reg_s_sem0    <= 1'b0;
+				reg_s_sem1_ff <= 1'b0;
+				reg_s_sem1    <= 1'b0;
+				reg_s_data    <= {DATA_WIDTH{1'bx}};
+			end
+			else begin
+				// double latch
+				reg_s_sem1_ff <= reg_m_sem1;
+				reg_s_sem1    <= reg_s_sem1_ff;
+				
+				// data
+				if ( s_valid & s_ready ) begin
+					reg_s_sem0 <= ~reg_s_sem0;
+					reg_s_data <= s_data;
+				end
 			end
 		end
-	end
-	
-	assign s_ready = (reg_s_sem0 == reg_s_sem1);
-	
-	
-	
-	// master
-	always @(posedge m_clk) begin
-		if ( m_reset ) begin
-			reg_m_sem0_ff0 <= 1'b0;
-			reg_m_sem0_ff1 <= 1'b0;
-			reg_m_sem0     <= 1'b0;
-			reg_m_sem1     <= 1'b0;
-			reg_m_data     <= {DATA_WIDTH{1'bx}};
-		end
-		else begin
-			// double latch
-			reg_m_sem0_ff0 <= reg_s_sem0;
-			reg_m_sem0_ff1 <= reg_m_sem0_ff0;
-			reg_m_sem0     <= reg_m_sem0_ff1;
-			
-			reg_m_data     <= reg_s_data;
-			
-			if ( m_valid & m_ready ) begin
-				reg_m_sem1 <= ~reg_m_sem1;
+		
+		assign s_ready = (reg_s_sem0 == reg_s_sem1);
+		
+		
+		
+		// master
+		always @(posedge m_clk) begin
+			if ( m_reset ) begin
+				reg_m_sem0_ff0 <= 1'b0;
+				reg_m_sem0_ff1 <= 1'b0;
+				reg_m_sem0     <= 1'b0;
+				reg_m_sem1     <= 1'b0;
+				reg_m_data     <= {DATA_WIDTH{1'bx}};
+			end
+			else begin
+				// double latch
+				reg_m_sem0_ff0 <= reg_s_sem0;
+				reg_m_sem0_ff1 <= reg_m_sem0_ff0;
+				reg_m_sem0     <= reg_m_sem0_ff1;
+				
+				reg_m_data     <= reg_s_data;
+				
+				if ( m_valid & m_ready ) begin
+					reg_m_sem1 <= ~reg_m_sem1;
+				end
 			end
 		end
+		
+		assign m_data  = reg_m_data;
+		assign m_valid = (reg_m_sem0 != reg_m_sem1);
 	end
-	
-	assign m_data  = reg_m_data;
-	assign m_valid = (reg_m_sem0 != reg_m_sem1);
-	
+	else begin : blk_bypass
+		assign m_data  = s_data;
+		assign m_valid = s_valid;
+		assign s_ready = m_ready;
+	end
+	endgenerate
 	
 	
 endmodule
