@@ -209,21 +209,6 @@ module jelly_texture_cache_tag
 		end
 		else if ( cke ) begin
 			// stage0
-			if ( reg_clear_busy ) begin
-				// clear next
-				st0_tag_addr <= st1_tag_addr + 1'b1;
-				
-				// clear end
-				if ( st0_tag_addr == {TAG_ADDR_WIDTH{1'b1}} ) begin
-					reg_clear_busy <= 1'b0;
-				end
-			end
-			else if ( clear_start ) begin
-				// start cache clear
-				reg_clear_busy <= 1'b1;
-				st0_tag_addr   <= {TAG_ADDR_WIDTH{1'b0}};
-				st0_tag_we     <= 1'b1;
-			end
 			st0_user      <= s_user;
 			st0_last      <= s_last;
 			st0_border    <= s_border;
@@ -234,6 +219,23 @@ module jelly_texture_cache_tag
 			st0_pix_addrx <= s_pix_addrx;
 			st0_pix_addry <= s_pix_addry;
 			st0_valid     <= s_valid;
+			if ( reg_clear_busy ) begin
+				// clear next
+				st0_tag_addr <= st0_tag_addr + 1'b1;
+				st0_tag_we   <= 1'b1;
+				
+				// clear end
+				if ( st0_tag_addr == {TAG_ADDR_WIDTH{1'b1}} ) begin
+					reg_clear_busy <= 1'b0;
+					st0_tag_we     <= 1'b0;
+				end
+			end
+			else if ( clear_start ) begin
+				// start cache clear
+				reg_clear_busy <= 1'b1;
+				st0_tag_addr   <= {TAG_ADDR_WIDTH{1'b0}};
+				st0_tag_we     <= 1'b1;
+			end
 			
 			// stage1
 			st1_user      <= st0_user;
