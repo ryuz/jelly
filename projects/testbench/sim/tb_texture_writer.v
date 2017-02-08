@@ -121,6 +121,7 @@ module tb_texture_writer();
 	wire							axi4s_tvalid;
 	wire							axi4s_tready;
 	
+	/*
 	integer	fp_dbg;
 	initial fp_dbg = $fopen("wdata_log.txt", "w");
 	always @(posedge clk) begin
@@ -128,6 +129,58 @@ module tb_texture_writer();
 			$fdisplay(fp_dbg, "%h %b %t", axi4_wdata, axi4_wstrb, $time());
 		end
 	end
+	*/
+	
+	wire			buf_wr_req  = tb_texture_writer.i_texture_writer_core.i_texture_writer_line_to_blk.buf_wr_req;
+	wire			buf_rd_req  = tb_texture_writer.i_texture_writer_core.i_texture_writer_line_to_blk.buf_rd_req;
+	wire			buf_wr_cke  = tb_texture_writer.i_texture_writer_core.i_texture_writer_line_to_blk.buf_wr_cke;
+	wire	[11:0]	buf_wr_addr = tb_texture_writer.i_texture_writer_core.i_texture_writer_line_to_blk.buf_wr_addr;
+	wire	[23:0]	buf_wr_din  = tb_texture_writer.i_texture_writer_core.i_texture_writer_line_to_blk.buf_wr_din;
+	wire			buf_rd_cke  = tb_texture_writer.i_texture_writer_core.i_texture_writer_line_to_blk.buf_rd_cke;
+	wire	[11:0]	buf_rd_addr = tb_texture_writer.i_texture_writer_core.i_texture_writer_line_to_blk.buf_rd_addr;
+	wire	[191:0]	buf_rd_dout = tb_texture_writer.i_texture_writer_core.i_texture_writer_line_to_blk.buf_rd_dout;
+	wire			wr_cke      = tb_texture_writer.i_texture_writer_core.i_texture_writer_line_to_blk.wr_cke;
+	wire			wr_busy     = tb_texture_writer.i_texture_writer_core.i_texture_writer_line_to_blk.wr_busy;
+	wire			wr0_valid   = tb_texture_writer.i_texture_writer_core.i_texture_writer_line_to_blk.wr0_valid;
+	wire			rd_cke      = tb_texture_writer.i_texture_writer_core.i_texture_writer_line_to_blk.rd_cke;
+	wire			rd0_valid   = tb_texture_writer.i_texture_writer_core.i_texture_writer_line_to_blk.rd0_valid;
+	wire			rd2_valid   = tb_texture_writer.i_texture_writer_core.i_texture_writer_line_to_blk.rd2_valid;
+	
+	integer			wr_req_count = 0;
+	integer			rd_req_count = 0;
+	integer			wr_count = 0;
+	integer			rd_count = 0;
+	
+	integer	fp_buf_wr;
+	integer	fp_buf_wr_l;
+	integer	fp_buf_rd;
+	integer	fp_buf_rd_l;
+	initial begin
+		fp_buf_wr   = $fopen("buf_wr.txt",   "w");
+		fp_buf_wr_l = $fopen("buf_wr_l.txt", "w");
+		fp_buf_rd   = $fopen("buf_rd.txt",   "w");
+		fp_buf_rd_l = $fopen("buf_rd_l.txt", "w");
+	end
+	always @(posedge clk) begin
+		if ( !reset ) begin
+			wr_req_count <= wr_req_count + buf_wr_req;
+			rd_req_count <= rd_req_count + buf_rd_req;
+			
+			if ( wr_cke && wr_busy && wr0_valid ) begin
+				$fdisplay(fp_buf_wr,   "%h %h",          buf_wr_addr, buf_wr_din);
+				$fdisplay(fp_buf_wr_l, "%h %h (%d, %d)", buf_wr_addr, buf_wr_din, wr_req_count, rd_req_count);
+				wr_count <= wr_count + 1;
+			end
+			
+			if ( rd_cke && rd2_valid ) begin
+				$fdisplay(fp_buf_rd,   "%h",          buf_rd_dout);
+				$fdisplay(fp_buf_rd_l, "%h (%d, %d)", buf_rd_dout, wr_req_count, rd_req_count);
+				rd_count <= rd_count + 1;
+			end
+		end
+	end
+	
+	
 	
 	
 	reg								enable;

@@ -338,8 +338,8 @@ module jelly_texture_writer_line_to_blk
 	
 	assign	s_ready     = wr_cke & wr_busy;
 	
-	assign	buf_wr_req  = (wr_cke && wr0_x_last && wr0_step_y_last);
-	assign	buf_wr_end  = (wr_cke && wr0_x_last && wr0_step_y_last);
+	assign	buf_wr_req  = (wr_cke && wr0_valid && wr0_x_last && wr0_step_y_last);
+	assign	buf_wr_end  = (wr_cke && wr0_valid && wr0_x_last && wr0_step_y_last);
 	
 	assign	buf_wr_cke  = wr_cke;
 	assign	buf_wr_addr = wr0_addr;
