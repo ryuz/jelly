@@ -48,7 +48,7 @@ module jelly_texture_writer_core
 			parameter	Y_WIDTH              = 10,
 			parameter	STRIDE_WIDTH         = X_WIDTH + BLK_Y_SIZE,
 			
-			parameter	BUF_ADDR_WIDTH       = 10,
+			parameter	BUF_ADDR_WIDTH       = 1 + X_WIDTH + STEP_Y_SIZE,
 			parameter	BUF_RAM_TYPE         = "block"
 		)
 		(
