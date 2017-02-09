@@ -117,7 +117,7 @@ module jelly_texture_writer_line_to_blk
 	localparam	BUF_NUM            = (1 << M_DATA_SIZE);
 	localparam	BUF_UNIT_WIDTH     = S_DATA_WIDTH;
 	localparam	BUF_DATA_WIDTH     = M_DATA_WIDTH;
-
+	
 	localparam	MEM_ADDR_WIDTH     = BUF_ADDR_WIDTH - M_DATA_SIZE;
 	
 	wire									buf_full;
@@ -183,19 +183,24 @@ module jelly_texture_writer_line_to_blk
 	end
 	endgenerate
 	
+	localparam	BUF_BLKLINE_WIDTH  = (BUF_ADDR_WIDTH - (X_WIDTH + STEP_Y_SIZE));
+	localparam	BUF_BLKLINE_NUM    = (1 << BUF_BLKLINE_WIDTH);
 	
 	localparam	BUF_BLK_WIDTH      = (BUF_ADDR_WIDTH - (BLK_X_SIZE + STEP_Y_SIZE));
 	localparam	BUF_BLK_NUM        = (1 << BUF_BLK_WIDTH);
 	
-	reg		[BUF_BLK_WIDTH:0]	reg_buf_wr_count;	// writable block counter
-	reg							reg_buf_full;
+	reg		[BUF_BLKLINE_WIDTH:0]	reg_buf_wr_count;	// writable block counter
+	reg								reg_buf_full;
 	
-	reg		[BUF_BLK_WIDTH:0]	reg_buf_rd_count;	// readable block counter
-	reg							reg_buf_empty;
+	reg		[BUF_BLK_WIDTH:0]		reg_buf_rd_count;	// readable block counter
+	reg								reg_buf_empty;
+	
+	integer	iBUF_BLKLINE_WIDTH = BUF_BLKLINE_WIDTH;
+	integer	iBUF_BLKLINE_NUM   = BUF_BLKLINE_NUM;
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
-			reg_buf_wr_count <= BUF_BLK_NUM/2;
+			reg_buf_wr_count <= BUF_BLKLINE_NUM;
 			reg_buf_full     <= 1'b0;
 			
 			reg_buf_rd_count <= 0;
@@ -338,7 +343,7 @@ module jelly_texture_writer_line_to_blk
 	
 	assign	s_ready     = wr_cke & wr_busy;
 	
-	assign	buf_wr_req  = (wr_cke && wr0_valid && wr0_x_last && wr0_step_y_last);
+	assign	buf_wr_req  = (wr_cke && wr0_valid && wr0_x_last && wr0_step_y_last && wr0_blk_last);
 	assign	buf_wr_end  = (wr_cke && wr0_valid && wr0_x_last && wr0_step_y_last);
 	
 	assign	buf_wr_cke  = wr_cke;
@@ -578,7 +583,7 @@ module jelly_texture_writer_line_to_blk
 	assign	rd_cke      = (!m_valid || m_ready);
 	
 	assign	buf_rd_req  = (rd_cke && rd0_valid && rd0_pix_last && rd0_cmp_last);
-	assign	buf_rd_end  = (rd_cke && rd0_valid && rd0_pix_last && rd0_cmp_last);
+	assign	buf_rd_end  = (rd_cke && rd0_valid && rd0_pix_last && rd0_cmp_last && rd0_blk_last);
 	
 	assign	buf_rd_cke  = rd_cke;
 	assign	buf_rd_addr = rd0_addr;
