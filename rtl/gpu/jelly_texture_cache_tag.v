@@ -80,7 +80,6 @@ module jelly_texture_cache_tag
 	wire							cke;
 	
 	reg								reg_clear_busy;
-	reg								reg_read_busy;
 	
 	reg		[USER_BITS-1:0]			st0_user;
 	reg								st0_last;
@@ -173,7 +172,6 @@ module jelly_texture_cache_tag
 	always @(posedge clk) begin
 		if ( reset ) begin
 			reg_clear_busy <= 1'b0;
-			reg_read_busy  <= 1'b0;
 			
 			st0_user      <= {USER_BITS{1'bx}};
 			st0_last      <= 1'bx;
@@ -262,7 +260,7 @@ module jelly_texture_cache_tag
 		end
 	end
 	
-	assign clear_busy      = reg_read_busy;
+	assign clear_busy = reg_clear_busy;
 	
 	// output
 	wire				st2_ready;
