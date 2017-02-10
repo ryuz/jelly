@@ -20,10 +20,10 @@ module tb_data_unit_converter();
 	parameter	BUSY = 1;
 	
 	
-	parameter	USER_WIDTH = 1;
+	parameter	USER_WIDTH = 2;
 	parameter	UNIT_WIDTH = 8;
-	parameter	S_NUM      = 3;	// 4
-	parameter	M_NUM      = 4;	// 3
+	parameter	S_NUM      = 4;	// 4
+	parameter	M_NUM      = 3;	// 3
 	parameter	S_REGS     = 1;
 	parameter	M_REGS     = 1;
 	
@@ -38,7 +38,7 @@ module tb_data_unit_converter();
 	
 	reg		[31:0]					count;
 	
-	wire	[USER_BITS-1:0]			s_user = (count[2:0] == 3'b000);
+	wire	[USER_BITS-1:0]			s_user = {(count[2:0] == 3'b111), (count[2:0] == 3'b000)};
 	wire							s_last = (count[2:0] == 3'b111);
 	reg		[S_DATA_WIDTH-1:0]		s_data;
 	reg								s_valid;
@@ -125,7 +125,7 @@ module tb_data_unit_converter();
 		end
 		else if ( cke ) begin
 			if ( m_valid && m_ready ) begin
-				$fdisplay(fp, "%h %b %b", m_data, m_last, m_user_first);
+				$fdisplay(fp, "%h %b %b %b", m_data, m_last, m_user_first[0], m_user_last[1]);
 			end
 		end
 	end
