@@ -587,6 +587,32 @@ module jelly_texture_cache_l2
 				.m_ready			(ringbus_arready)
 			);
 
+	jelly_data_switch
+			#(
+				.NUM				(CACHE_NUM),
+				.ID_WIDTH			(CACHE_ID_WIDTH),
+				.DATA_WIDTH			(M_R_PACKET_WIDTH),
+				.S_REGS				(0),
+				.M_REGS				(1)
+			)
+		i_data_switch_r
+			(
+				.reset				(reset),
+				.clk				(clk),
+				.cke				(1'b1),
+				
+				.s_id				(ringbus_rid),
+				.s_data				(ringbus_rpacket),
+				.s_valid			(ringbus_rvalid),
+				.s_ready			(),
+				
+				.m_data				(cache_rpacket),
+				.m_valid			(cache_rvalid),
+				.m_ready			({CACHE_NUM{1'b1}})
+			);
+	assign ringbus_rready = 1'b1;
+	
+	/*
 	jelly_data_crossbar_simple
 			#(
 				.S_NUM				(1),
@@ -610,6 +636,7 @@ module jelly_texture_cache_l2
 				.m_valid			(cache_rvalid)
 			);
 	assign ringbus_rready = 1'b1;
+	*/
 	
 	/*
 	jelly_ring_bus_arbiter_bidirection

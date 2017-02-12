@@ -8,7 +8,7 @@ module tb_bit_encoder();
 	
 	initial begin
 		$dumpfile("tb_bit_encoder.vcd");
-		$dumpvars(0, tb_bit_encoder);
+		$dumpvars(1, tb_bit_encoder);
 		
 		#100000;
 			$finish;

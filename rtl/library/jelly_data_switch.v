@@ -16,11 +16,15 @@
 // ring bus unit
 module jelly_data_switch
 		#(
-			parameter	NUM         = 16,
-			parameter	ID_WIDTH    = 2,
-			parameter	DATA_WIDTH  = 32,
-			parameter	S_REGS      = 1,
-			parameter	M_REGS      = 1
+			parameter	NUM           = 16,
+			parameter	ID_WIDTH      = 2,
+			parameter	DATA_WIDTH    = 32,
+			parameter	S_REGS        = 1,
+			parameter	M_REGS        = 1,
+			parameter	S_SLAVE_REGS  = S_REGS,
+			parameter	S_MASTER_REGS = 0,
+			parameter	M_SLAVE_REGS  = 0,
+			parameter	M_MASTER_REGS = M_REGS
 		)
 		(
 			input	wire							reset,
@@ -55,8 +59,8 @@ module jelly_data_switch
 	jelly_pipeline_insert_ff
 			#(
 				.DATA_WIDTH		(ID_WIDTH + DATA_WIDTH),
-				.SLAVE_REGS		(S_REGS),
-				.MASTER_REGS	(S_REGS)
+				.SLAVE_REGS		(S_SLAVE_REGS),
+				.MASTER_REGS	(S_MASTER_REGS)
 			)
 		i_pipeline_insert_ff_s
 			(
@@ -82,8 +86,8 @@ module jelly_data_switch
 		jelly_pipeline_insert_ff
 				#(
 					.DATA_WIDTH		(DATA_WIDTH),
-					.SLAVE_REGS		(M_REGS),
-					.MASTER_REGS	(M_REGS)
+					.SLAVE_REGS		(M_SLAVE_REGS),
+					.MASTER_REGS	(M_MASTER_REGS)
 				)
 			i_pipeline_insert_ff_m
 				(

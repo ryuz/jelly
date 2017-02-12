@@ -36,11 +36,14 @@ module jelly_data_crossbar_simple
 			output	wire	[M_NUM-1:0]				m_valid
 		);
 	
+	genvar		i;
+	
 	integer		m, s;
 	
 	
 	reg		[S_NUM*DATA_WIDTH-1:0]		st0_data;
 	reg		[M_NUM*S_NUM-1:0]			st0_valid;
+	wire	[M_NUM*S_ID_WIDTH-1:0]		st0_id;
 	
 	reg		[S_NUM*DATA_WIDTH-1:0]		st1_data;
 	reg		[M_NUM*S_ID_WIDTH-1:0]		st1_id;
@@ -49,8 +52,24 @@ module jelly_data_crossbar_simple
 	reg		[M_NUM*S_ID_WIDTH-1:0]		st2_id;
 	reg		[M_NUM*DATA_WIDTH-1:0]		st2_data;
 	reg		[M_NUM-1:0]					st2_valid;
-	
+
 	reg		[S_ID_WIDTH-1:0]			tmp_id;
+	
+	generate
+	for ( i = 0; i < M_NUM; i = i+1 ) begin : loop_encoder
+		jelly_bit_encoder
+				#(
+					.DATA_WIDTH		(S_NUM),
+					.SEL_WIDTH		(S_ID_WIDTH),
+					.PRIORITYT		(0)
+				)
+			i_bit_encoder
+				(
+					.in_data		(st0_valid[i*S_NUM      +: S_NUM]),
+					.out_sel		(st0_id   [i*S_ID_WIDTH +: S_ID_WIDTH])
+				);	
+	end
+	endgenerate
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
@@ -80,6 +99,12 @@ module jelly_data_crossbar_simple
 			
 			// stage 1
 			st1_data  <= st0_data;
+			st1_id    <= st0_id;
+			for ( m = 0; m < M_NUM; m = m+1 ) begin
+				st1_valid[m] <= |st0_valid[m*S_NUM +: S_NUM];
+			end
+			/*
+			st1_data  <= st0_data;
 			st1_valid <= {M_NUM{1'b0}};
 			for ( m = 0; m < M_NUM; m = m+1 ) begin
 				tmp_id = {S_ID_WIDTH{1'bx}};
@@ -91,7 +116,7 @@ module jelly_data_crossbar_simple
 				end
 				st1_id[m*S_ID_WIDTH +: S_ID_WIDTH] <= tmp_id;
 			end
-			
+			*/
 			
 			// stage 2
 			st2_id <= st1_id;
