@@ -24,10 +24,8 @@ module jelly_texture_cache_tag
 			parameter	TAG_ADDR_WIDTH   = 6,
 			parameter	BLK_X_SIZE       = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	BLK_Y_SIZE       = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
-						
-			parameter	RAM_TYPE         = "distributed",
 			
-			parameter	USE_BORDER       = 1,
+			parameter	RAM_TYPE         = "distributed",
 			
 			parameter	M_SLAVE_REGS     = 0,
 			parameter	M_MASTER_REGS    = 0,
@@ -35,7 +33,7 @@ module jelly_texture_cache_tag
 			parameter	LOG_ENABLE       = 0,
 			parameter	LOG_FILE         = "cache_log.txt",
 			parameter	LOG_ID           = 0,
-						
+			
 			// local
 			parameter	USER_BITS        = USER_WIDTH > 0 ? USER_WIDTH : 1,
 			parameter	PIX_ADDR_X_WIDTH = BLK_X_SIZE,
@@ -72,281 +70,104 @@ module jelly_texture_cache_tag
 		);
 	
 	
-	
-	// ---------------------------------
-	//  TAG RAM
-	// ---------------------------------
-	
-	wire							cke;
-	
-	reg								reg_clear_busy;
-	
-	reg		[USER_BITS-1:0]			st0_user;
-	reg								st0_last;
-	reg								st0_tag_we;
-	reg		[TAG_ADDR_WIDTH-1:0]	st0_tag_addr;
-	reg		[PIX_ADDR_X_WIDTH-1:0]	st0_pix_addrx;
-	reg		[PIX_ADDR_Y_WIDTH-1:0]	st0_pix_addry;
-	reg		[BLK_ADDR_X_WIDTH-1:0]	st0_blk_addrx;
-	reg		[BLK_ADDR_Y_WIDTH-1:0]	st0_blk_addry;
-	reg								st0_border;
-	reg								st0_valid;
-	
-	reg		[USER_BITS-1:0]			st1_user;
-	reg								st1_last;
-	reg		[TAG_ADDR_WIDTH-1:0]	st1_tag_addr;
-	reg		[PIX_ADDR_X_WIDTH-1:0]	st1_pix_addrx;
-	reg		[PIX_ADDR_Y_WIDTH-1:0]	st1_pix_addry;
-	reg		[BLK_ADDR_X_WIDTH-1:0]	st1_blk_addrx;
-	reg		[BLK_ADDR_Y_WIDTH-1:0]	st1_blk_addry;
-	reg								st1_border;
-	reg								st1_valid;
-	
-	wire							read_tag_enable;
-	wire	[BLK_ADDR_X_WIDTH-1:0]	read_blk_addrx;
-	wire	[BLK_ADDR_Y_WIDTH-1:0]	read_blk_addry;
-	
-	reg		[USER_BITS-1:0]			st2_user;
-	reg								st2_last;
-	reg		[TAG_ADDR_WIDTH-1:0]	st2_tag_addr;
-	reg		[PIX_ADDR_X_WIDTH-1:0]	st2_pix_addrx;
-	reg		[PIX_ADDR_Y_WIDTH-1:0]	st2_pix_addry;
-	reg		[BLK_ADDR_X_WIDTH-1:0]	st2_blk_addrx;
-	reg		[BLK_ADDR_Y_WIDTH-1:0]	st2_blk_addry;
-	reg								st2_border;
-	reg								st2_cache_hit;
-	reg								st2_valid;
-	
-	
-	// TAG-RAM
-	jelly_ram_singleport
-			#(
-				.ADDR_WIDTH			(TAG_ADDR_WIDTH),
-				.DATA_WIDTH			(1 + BLK_ADDR_X_WIDTH + BLK_ADDR_Y_WIDTH),
-				.RAM_TYPE			(RAM_TYPE),
-				.DOUT_REGS			(0),
-				.MODE				("READ_FIRST"),
-				
-				.FILLMEM			(1),
-				.FILLMEM_DATA		(0)
-			)
-		i_ram_singleport
-			(
-				.clk				(clk),
-				.en					(cke),
-				.regcke				(cke),
-				
-				.we					(st0_tag_we),
-				.addr				(st0_tag_addr),
-				.din				({~reg_clear_busy, st0_blk_addry, st0_blk_addrx}),
-				.dout				({read_tag_enable, read_blk_addry, read_blk_addrx})
-			);
-	
-	
-	wire	[PIX_ADDR_X_WIDTH-1:0]	s_pix_addrx = s_addrx[BLK_X_SIZE-1:0];
-	wire	[PIX_ADDR_Y_WIDTH-1:0]	s_pix_addry = s_addry[BLK_Y_SIZE-1:0];
-	wire	[BLK_ADDR_X_WIDTH-1:0]	s_blk_addrx = s_addrx[ADDR_X_WIDTH-1:BLK_X_SIZE];
-	wire	[BLK_ADDR_Y_WIDTH-1:0]	s_blk_addry = s_addry[ADDR_Y_WIDTH-1:BLK_Y_SIZE];
-	
-	//  TAG ADDR
-	wire	[TAG_ADDR_WIDTH-1:0]	s_tag_addr;
-	
-	jelly_texture_cache_tag_addr
-			#(
-				.PARALLEL_SIZE		(PARALLEL_SIZE),
-				
-				.ADDR_X_WIDTH		(BLK_ADDR_X_WIDTH),
-				.ADDR_Y_WIDTH		(BLK_ADDR_Y_WIDTH),
-				.TAG_ADDR_WIDTH		(TAG_ADDR_WIDTH)
-			)
-		i_texture_cache_tag_addr
-			(
-				.addrx				(s_blk_addrx),
-				.addry				(s_blk_addry),
-				
-				.unit_id			(),
-				.tag_addr			(s_tag_addr)
-			);
-	
-	
-	always @(posedge clk) begin
-		if ( reset ) begin
-			reg_clear_busy <= 1'b0;
-			
-			st0_user      <= {USER_BITS{1'bx}};
-			st0_last      <= 1'bx;
-			st0_border    <= 1'bx;
-			st0_tag_we    <= 1'b0;
-			st0_tag_addr  <= {TAG_ADDR_WIDTH{1'bx}};
-			st0_pix_addrx <= {PIX_ADDR_X_WIDTH{1'bx}};
-			st0_pix_addry <= {PIX_ADDR_Y_WIDTH{1'bx}};
-			st0_blk_addrx <= {BLK_ADDR_X_WIDTH{1'bx}};
-			st0_blk_addry <= {BLK_ADDR_Y_WIDTH{1'bx}};
-			st0_valid     <= 1'b0;
-			
-			st1_user      <= {USER_BITS{1'bx}};
-			st1_last      <= 1'bx;
-			st1_border    <= 1'bx;
-			st1_tag_addr  <= {TAG_ADDR_WIDTH{1'bx}};
-			st1_pix_addrx <= {PIX_ADDR_X_WIDTH{1'bx}};
-			st1_pix_addry <= {PIX_ADDR_Y_WIDTH{1'bx}};
-			st1_blk_addrx <= {BLK_ADDR_X_WIDTH{1'bx}};
-			st1_blk_addry <= {BLK_ADDR_Y_WIDTH{1'bx}};
-			st1_valid     <= 1'b0;
-			
-			st2_user      <= {USER_BITS{1'bx}};
-			st2_last      <= 1'bx;
-			st2_border    <= 1'bx;
-			st2_tag_addr  <= {TAG_ADDR_WIDTH{1'bx}};
-			st2_pix_addrx <= {PIX_ADDR_X_WIDTH{1'bx}};
-			st2_pix_addry <= {PIX_ADDR_Y_WIDTH{1'bx}};
-			st2_blk_addrx <= {BLK_ADDR_X_WIDTH{1'bx}};
-			st2_blk_addry <= {BLK_ADDR_Y_WIDTH{1'bx}};
-			st2_cache_hit <= 1'b0;
-			st2_valid     <= 1'b0;
-		end
-		else if ( cke ) begin
-			// stage0
-			st0_user      <= s_user;
-			st0_last      <= s_last;
-			st0_border    <= s_border;
-			st0_tag_we    <= s_valid && !s_border;
-			st0_tag_addr  <= s_tag_addr;
-			st0_blk_addrx <= s_blk_addrx;
-			st0_blk_addry <= s_blk_addry;
-			st0_pix_addrx <= s_pix_addrx;
-			st0_pix_addry <= s_pix_addry;
-			st0_valid     <= s_valid;
-			if ( reg_clear_busy ) begin
-				// clear next
-				st0_tag_addr <= st0_tag_addr + 1'b1;
-				st0_tag_we   <= 1'b1;
-				
-				// clear end
-				if ( st0_tag_addr == {TAG_ADDR_WIDTH{1'b1}} ) begin
-					reg_clear_busy <= 1'b0;
-					st0_tag_we     <= 1'b0;
-				end
-			end
-			else if ( clear_start ) begin
-				// start cache clear
-				reg_clear_busy <= 1'b1;
-				st0_tag_addr   <= {TAG_ADDR_WIDTH{1'b0}};
-				st0_tag_we     <= 1'b1;
-			end
-			
-			// stage1
-			st1_user      <= st0_user;
-			st1_last      <= st0_last;
-			st1_border    <= st0_border;
-			st1_tag_addr  <= st0_tag_addr;
-			st1_blk_addrx <= st0_blk_addrx;
-			st1_blk_addry <= st0_blk_addry;
-			st1_pix_addrx <= st0_pix_addrx;
-			st1_pix_addry <= st0_pix_addry;
-			st1_valid     <= st0_valid;
-			
-			// stage 2
-			st2_user      <= st1_user;
-			st2_last      <= st1_last;
-			st2_border    <= st1_border;
-			st2_tag_addr  <= st1_tag_addr;
-			st2_blk_addrx <= st1_blk_addrx;
-			st2_blk_addry <= st1_blk_addry;
-			st2_pix_addrx <= st1_pix_addrx;
-			st2_pix_addry <= st1_pix_addry;
-			st2_cache_hit <= (read_tag_enable && ({st1_blk_addry, st1_blk_addrx} == {read_blk_addry, read_blk_addrx}));
-			st2_valid     <= st1_valid;
-		end
-	end
-	
-	assign clear_busy = reg_clear_busy;
-	
-	// output
-	wire				st2_ready;
-	jelly_pipeline_insert_ff
-			#(
-				.DATA_WIDTH			(USER_BITS+1+1+TAG_ADDR_WIDTH+PIX_ADDR_X_WIDTH+PIX_ADDR_Y_WIDTH+BLK_ADDR_X_WIDTH+BLK_ADDR_Y_WIDTH+1),
-				.SLAVE_REGS			(M_SLAVE_REGS),
-				.MASTER_REGS		(M_MASTER_REGS)
-			)
-		i_pipeline_insert_ff
-			(
-				.reset				(reset),
-				.clk				(clk),
-				.cke				(1'b1),
-				
-				.s_data				({
-										st2_user,
-										st2_last,
-										st2_border,
-										st2_tag_addr,
-										st2_pix_addrx,
-										st2_pix_addry,
-										st2_blk_addrx,
-										st2_blk_addry,
-										st2_cache_hit
-									}),
-				.s_valid			(st2_valid),
-				.s_ready			(st2_ready),
-				
-				.m_data				({
-										m_user,
-										m_last,
-										m_border,
-										m_tag_addr,
-										m_pix_addrx,
-										m_pix_addry,
-										m_blk_addrx,
-										m_blk_addry,
-										m_cache_hit
-									}),
-				.m_valid			(m_valid),
-				.m_ready			(m_ready),
-				
-				.buffered			(),
-				.s_ready_next		()
-			);
-	
-	assign cke = (!st2_valid || st2_ready);
-	
-	assign s_ready = cke;
-	
-	
-	// Log
 	generate
-	if ( LOG_ENABLE ) begin : blk_log
-		integer	fp;
-		
-		initial begin
-			fp = $fopen(LOG_FILE, "w");
-			if ( fp != 0 ) begin
-				$fclose(fp);
-			end
-		end
-		
-		always @(posedge clk) begin
-			if ( !reset ) begin
-				if ( cke ) begin
-					if ( st1_valid && read_tag_enable && ({st1_blk_addry, st1_blk_addrx} != {read_blk_addry, read_blk_addrx}) ) begin
-						fp = $fopen(LOG_FILE, "a");
-						if ( fp != 0 ) begin
-							$fdisplay(fp, "[%d] tag:%h (%d, %d) <= (%d,%d)", LOG_ID, st1_tag_addr, st1_blk_addry, st1_blk_addrx, read_blk_addry, read_blk_addrx);
-						end
-						$fclose(fp);
-					end
-					else if ( st1_valid && !read_tag_enable ) begin
-						fp = $fopen(LOG_FILE, "a");
-						if ( fp != 0 ) begin
-							$fdisplay(fp, "[%d] tag:%h (%d, %d) ", LOG_ID, st1_tag_addr, st1_blk_addry, st1_blk_addrx);
-						end
-						$fclose(fp);
-					end
-				end
-			end
-		end
+	if ( 1 ) begin : blk_directmap
+		jelly_texture_cache_tag_directmap
+				#(
+					.USER_WIDTH			(USER_WIDTH),
+					
+					.ADDR_X_WIDTH		(ADDR_X_WIDTH),
+					.ADDR_Y_WIDTH		(ADDR_Y_WIDTH),
+					
+					.PARALLEL_SIZE		(PARALLEL_SIZE),
+					.TAG_ADDR_WIDTH		(TAG_ADDR_WIDTH),
+					.BLK_X_SIZE			(BLK_X_SIZE),
+					.BLK_Y_SIZE			(BLK_Y_SIZE),
+					
+					.RAM_TYPE			(RAM_TYPE),
+					
+					.M_SLAVE_REGS		(M_SLAVE_REGS),
+					.M_MASTER_REGS		(M_MASTER_REGS),
+					
+					.LOG_ENABLE			(LOG_ENABLE),
+					.LOG_FILE			(LOG_FILE),
+					.LOG_ID				(LOG_ID)
+				)
+			i_texture_cache_tag_directmap
+				(
+					.reset				(reset),
+					.clk				(clk),
+					
+					.clear_start		(clear_start),
+					.clear_busy			(clear_busy),
+					
+					.s_user				(s_user),
+					.s_last				(s_last),
+					.s_border			(s_border),
+					.s_addrx			(s_addrx),
+					.s_addry			(s_addry),
+					.s_valid			(s_valid),
+					.s_ready			(s_ready),
+					
+					.m_user				(m_user),
+					.m_last				(m_last),
+					.m_border			(m_border),
+					.m_tag_addr			(m_tag_addr),
+					.m_pix_addrx		(m_pix_addrx),
+					.m_pix_addry		(m_pix_addry),
+					.m_blk_addrx		(m_blk_addrx),
+					.m_blk_addry		(m_blk_addry),
+					.m_cache_hit		(m_cache_hit),
+					.m_valid			(m_valid),
+					.m_ready			(m_ready)
+				);
+	end
+	else begin : blk_associative
+		jelly_texture_cache_tag_associative
+				#(
+					.USER_WIDTH			(USER_WIDTH),
+					
+					.ADDR_X_WIDTH		(ADDR_X_WIDTH),
+					.ADDR_Y_WIDTH		(ADDR_Y_WIDTH),
+					
+					.TAG_ADDR_WIDTH		(TAG_ADDR_WIDTH),
+					.BLK_X_SIZE			(BLK_X_SIZE),
+					.BLK_Y_SIZE			(BLK_Y_SIZE),
+					
+					.M_SLAVE_REGS		(M_SLAVE_REGS),
+					.M_MASTER_REGS		(M_MASTER_REGS)
+				)
+			i_texture_cache_tag_associative
+				(
+					.reset				(reset),
+					.clk				(clk),
+					
+					.clear_start		(clear_start),
+					.clear_busy			(clear_busy),
+					
+					.s_user				(s_user),
+					.s_last				(s_last),
+					.s_border			(s_border),
+					.s_addrx			(s_addrx),
+					.s_addry			(s_addry),
+					.s_valid			(s_valid),
+					.s_ready			(s_ready),
+					
+					.m_user				(m_user),
+					.m_last				(m_last),
+					.m_border			(m_border),
+					.m_tag_addr			(m_tag_addr),
+					.m_pix_addrx		(m_pix_addrx),
+					.m_pix_addry		(m_pix_addry),
+					.m_blk_addrx		(m_blk_addrx),
+					.m_blk_addry		(m_blk_addry),
+					.m_cache_hit		(m_cache_hit),
+					.m_valid			(m_valid),
+					.m_ready			(m_ready)
+				);
 	end
 	endgenerate
+	
 	
 endmodule
 

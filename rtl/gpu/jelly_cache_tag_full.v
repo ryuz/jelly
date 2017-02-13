@@ -30,10 +30,12 @@ module jelly_cache_tag_full
 			output	wire						clear_busy,
 			
 			input	wire	[USER_BITS-1:0]		s_user,
+			input	wire						s_enable,
 			input	wire	[ADDR_WIDTH-1:0]	s_addr,
 			input	wire						s_valid,
 			
 			output	wire	[USER_BITS-1:0]		m_user,
+			output	wire						m_enable,
 			output	wire	[ADDR_WIDTH-1:0]	m_addr,
 			output	wire	[TAG_WIDTH-1:0]		m_tag,
 			output	wire						m_hit,
@@ -61,6 +63,7 @@ module jelly_cache_tag_full
 	reg		[TAG_NUM*TAG_WIDTH-1:0]		reg_tag;
 	
 	reg		[USER_BITS-1:0]				reg_user;
+	reg									reg_enable;
 	reg									reg_hit;
 	reg									reg_valid;
 	
@@ -87,12 +90,13 @@ module jelly_cache_tag_full
 				reg_tag[i*TAG_WIDTH +: TAG_WIDTH] <= (TAG_NUM-1) - i;
 			end
 			
-			reg_user  <= {USER_BITS{1'bx}};
-			reg_hit   <= 1'bx;
-			reg_valid <= 1'b0;
+			reg_user   <= {USER_BITS{1'bx}};
+			reg_enable <= 1'bx;
+			reg_hit    <= 1'bx;
+			reg_valid  <= 1'b0;
 		end
 		else if ( cke ) begin
-			if ( s_valid ) begin
+			if ( s_enable ) begin
 				reg_en  [0]                          <= 1'b1;
 				reg_addr[0*ADDR_WIDTH +: ADDR_WIDTH] <= s_addr;
 				reg_tag [0*TAG_WIDTH  +: TAG_WIDTH]  <= reg_tag[sig_pos*TAG_WIDTH +: TAG_WIDTH];
@@ -106,17 +110,19 @@ module jelly_cache_tag_full
 				end
 			end
 			
-			reg_user  <= s_user;
-			reg_hit   <= sig_hit;
-			reg_valid <= s_valid;
+			reg_user   <= s_user;
+			reg_enable <= s_enable;
+			reg_hit    <= sig_hit;
+			reg_valid  <= s_valid;
 		end
 	end
 	
-	assign m_user  = reg_user;
-	assign m_addr  = reg_addr[ADDR_WIDTH-1:0];
-	assign m_tag   = reg_tag[TAG_WIDTH-1:0];
-	assign m_hit   = reg_hit;
-	assign m_valid = reg_valid;
+	assign m_user   = reg_user;
+	assign m_enable = reg_enable;
+	assign m_addr   = reg_addr[ADDR_WIDTH-1:0];
+	assign m_tag    = reg_tag[TAG_WIDTH-1:0];
+	assign m_hit    = reg_hit;
+	assign m_valid  = reg_valid;
 	
 endmodule
 
