@@ -27,6 +27,9 @@ module jelly_texture_cache_tag
 			
 			parameter	RAM_TYPE         = "distributed",
 			
+			parameter	ASSOCIATIVE      = TAG_ADDR_WIDTH < 3,
+			parameter	ALGORITHM        = PARALLEL_SIZE > 0 ? "SUDOKU" : "TWIST",
+			
 			parameter	M_SLAVE_REGS     = 0,
 			parameter	M_MASTER_REGS    = 0,
 			
@@ -71,29 +74,22 @@ module jelly_texture_cache_tag
 	
 	
 	generate
-	if ( 1 ) begin : blk_directmap
-		jelly_texture_cache_tag_directmap
+	if ( ASSOCIATIVE ) begin : blk_associative
+		jelly_texture_cache_tag_associative
 				#(
 					.USER_WIDTH			(USER_WIDTH),
 					
 					.ADDR_X_WIDTH		(ADDR_X_WIDTH),
 					.ADDR_Y_WIDTH		(ADDR_Y_WIDTH),
 					
-					.PARALLEL_SIZE		(PARALLEL_SIZE),
 					.TAG_ADDR_WIDTH		(TAG_ADDR_WIDTH),
 					.BLK_X_SIZE			(BLK_X_SIZE),
 					.BLK_Y_SIZE			(BLK_Y_SIZE),
 					
-					.RAM_TYPE			(RAM_TYPE),
-					
 					.M_SLAVE_REGS		(M_SLAVE_REGS),
-					.M_MASTER_REGS		(M_MASTER_REGS),
-					
-					.LOG_ENABLE			(LOG_ENABLE),
-					.LOG_FILE			(LOG_FILE),
-					.LOG_ID				(LOG_ID)
+					.M_MASTER_REGS		(M_MASTER_REGS)
 				)
-			i_texture_cache_tag_directmap
+			i_texture_cache_tag_associative
 				(
 					.reset				(reset),
 					.clk				(clk),
@@ -122,22 +118,31 @@ module jelly_texture_cache_tag
 					.m_ready			(m_ready)
 				);
 	end
-	else begin : blk_associative
-		jelly_texture_cache_tag_associative
+	else begin : blk_directmap
+		jelly_texture_cache_tag_directmap
 				#(
 					.USER_WIDTH			(USER_WIDTH),
 					
 					.ADDR_X_WIDTH		(ADDR_X_WIDTH),
 					.ADDR_Y_WIDTH		(ADDR_Y_WIDTH),
 					
+					.PARALLEL_SIZE		(PARALLEL_SIZE),
 					.TAG_ADDR_WIDTH		(TAG_ADDR_WIDTH),
 					.BLK_X_SIZE			(BLK_X_SIZE),
 					.BLK_Y_SIZE			(BLK_Y_SIZE),
 					
+					.RAM_TYPE			(RAM_TYPE),
+					
+					.ALGORITHM			(ALGORITHM),
+					
 					.M_SLAVE_REGS		(M_SLAVE_REGS),
-					.M_MASTER_REGS		(M_MASTER_REGS)
+					.M_MASTER_REGS		(M_MASTER_REGS),
+					
+					.LOG_ENABLE			(LOG_ENABLE),
+					.LOG_FILE			(LOG_FILE),
+					.LOG_ID				(LOG_ID)
 				)
-			i_texture_cache_tag_associative
+			i_texture_cache_tag_directmap
 				(
 					.reset				(reset),
 					.clk				(clk),

@@ -25,6 +25,8 @@ module jelly_texture_cache_lookahead
 			parameter	BLK_Y_SIZE           = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	TAG_ADDR_WIDTH       = 6,
 			parameter	TAG_RAM_TYPE         = "distributed",
+			parameter	TAG_ASSOCIATIVE      = TAG_ADDR_WIDTH < 3,
+			parameter	TAG_ALGORITHM        = PARALLEL_SIZE > 0 ? "SUDOKU" : "TWIST",
 			parameter	TAG_M_SLAVE_REGS     = 0,
 			parameter	TAG_M_MASTER_REGS    = 0,
 			parameter	MEM_RAM_TYPE         = "block",
@@ -147,6 +149,9 @@ module jelly_texture_cache_lookahead
 				.BLK_X_SIZE				(BLK_X_SIZE),
 				.BLK_Y_SIZE				(BLK_Y_SIZE),
 				.RAM_TYPE				(TAG_RAM_TYPE),
+
+				.ASSOCIATIVE			(TAG_ASSOCIATIVE),
+				.ALGORITHM				(TAG_ALGORITHM),
 				
 				.LOG_ENABLE				(0),
 				.LOG_FILE				(""),
@@ -325,6 +330,8 @@ module jelly_texture_cache_lookahead
 				.BLK_Y_SIZE				(BLK_Y_SIZE),
 				.TAG_ADDR_WIDTH			(TAG_ADDR_WIDTH),
 				.TAG_RAM_TYPE			(TAG_RAM_TYPE),
+				.TAG_ASSOCIATIVE		(TAG_ASSOCIATIVE),
+				.TAG_ALGORITHM			(TAG_ALGORITHM),
 				.TAG_M_SLAVE_REGS		(TAG_M_SLAVE_REGS),
 				.TAG_M_MASTER_REGS		(TAG_M_MASTER_REGS),
 				.MEM_RAM_TYPE			(MEM_RAM_TYPE),

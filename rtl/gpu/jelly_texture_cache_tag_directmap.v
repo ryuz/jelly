@@ -27,6 +27,8 @@ module jelly_texture_cache_tag_directmap
 						
 			parameter	RAM_TYPE         = "distributed",
 			
+			parameter	ALGORITHM        = PARALLEL_SIZE > 0 ? "SUDOKU" : "TWIST",
+			
 			parameter	M_SLAVE_REGS     = 0,
 			parameter	M_MASTER_REGS    = 0,
 			
@@ -155,7 +157,9 @@ module jelly_texture_cache_tag_directmap
 				
 				.ADDR_X_WIDTH		(BLK_ADDR_X_WIDTH),
 				.ADDR_Y_WIDTH		(BLK_ADDR_Y_WIDTH),
-				.TAG_ADDR_WIDTH		(TAG_ADDR_WIDTH)
+				.TAG_ADDR_WIDTH		(TAG_ADDR_WIDTH),
+				
+				.ALGORITHM			(ALGORITHM)
 			)
 		i_texture_cache_tag_addr
 			(
