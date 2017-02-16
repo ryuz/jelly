@@ -200,7 +200,7 @@ module tb_texture_writer();
 			#(
 				.AXI4S_DATA_WIDTH	(24),
 				.X_NUM				(X_NUM),
-				.Y_NUM				(Y_NUM),
+				.Y_NUM				(Y_NUM + 3),	// ÇÌÇ¥Ç∆ïsêÆçáÇ…ÇµÇƒÇ›ÇÈ
 				.PPM_FILE			("image.ppm"),
 				.BUSY_RATE			(RAND_BUSY ? 5 : 0)
 			)

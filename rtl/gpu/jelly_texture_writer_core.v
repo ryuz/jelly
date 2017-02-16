@@ -165,6 +165,7 @@ module jelly_texture_writer_core
 				.param_height			(param_height),
 				.param_stride			(param_stride >> COMPONENT_SIZE),
 				
+				.s_first				(s_axi4s_tuser[0]),
 				.s_data					(s_axi4s_tdata),
 				.s_valid				(s_axi4s_tvalid),
 				.s_ready				(s_axi4s_tready),

@@ -118,11 +118,13 @@ module tb_fixed_matrix_divider();
 		if ( reset ) begin
 			s_dividend0 <= 1 <<< S_DIVIDEND_FRAC_WIDTH;
 			s_dividend1 <= 1 <<< S_DIVIDEND_FRAC_WIDTH;
-			s_divisor   <= 1 <<< S_DIVISOR_FRAC_WIDTH;
+			s_divisor   <= 100 ; // 1 <<< S_DIVISOR_FRAC_WIDTH;
 			s_valid     <= 1'b0;
 		end
 		else begin
 			if ( s_valid && s_ready ) begin
+				s_divisor <= s_divisor - 1;
+				/*
 				s_tmp_quotient0 = $random();
 				s_tmp_quotient1 = $random();
 				s_tmp_divisor   = $random() >>> (S_DIVISOR_INT_WIDTH - 1);
@@ -136,6 +138,7 @@ module tb_fixed_matrix_divider();
 				s_dividend0 <= $rtoi(real_s_dividend0 * (1 << S_DIVIDEND_FRAC_WIDTH));
 				s_dividend1 <= $rtoi(real_s_dividend1 * (1 << S_DIVIDEND_FRAC_WIDTH));
 				s_divisor   <= s_tmp_divisor;
+				*/
 			end
 			
 			if ( !s_valid || s_ready ) begin
