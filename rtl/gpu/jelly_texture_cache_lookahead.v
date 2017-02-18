@@ -382,6 +382,7 @@ module jelly_texture_cache_lookahead
 				.s_arready				(base_s_arready),
 				.s_ruser				(s_ruser),
 				.s_rlast				(s_rlast),
+				.s_rborder				(s_rborder),
 				.s_rdata				(s_rdata),
 				.s_rvalid				(s_rvalid),
 				.s_rready				(s_rready),
