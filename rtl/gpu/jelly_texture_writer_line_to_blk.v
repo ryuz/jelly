@@ -262,7 +262,7 @@ module jelly_texture_writer_line_to_blk
 				wr_stride     <= param_stride;
 			end
 			else if ( wr_cke ) begin
-				if ( wr0_x_last && wr0_blk_last && wr0_step_y_last && wr0_y_last ) begin
+				if ( wr0_valid && wr0_x_last && wr0_blk_last && wr0_step_y_last && wr0_y_last ) begin
 					wr_busy <= 1'b0;
 				end
 			end
@@ -342,7 +342,7 @@ module jelly_texture_writer_line_to_blk
 	
 	assign	wr_cke      = !buf_full;
 	
-	assign	s_ready     = wr_cke && (wr_busy || !s_first);	// 非busy 時 frame start 以外をスキップ
+	assign	s_ready     = wr_cke && (wr_busy || !(s_valid & s_first));	// 非busy 時 frame start 以外をスキップ
 	
 	assign	buf_wr_req  = (wr_cke && wr0_valid && wr0_x_last && wr0_step_y_last && wr0_blk_last);
 	assign	buf_wr_end  = (wr_cke && wr0_valid && wr0_x_last && wr0_step_y_last);
