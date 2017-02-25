@@ -136,9 +136,11 @@ module jelly_texture_sampler
 			input	wire	[ADDR_X_WIDTH-1:0]								param_width,
 			input	wire	[ADDR_Y_WIDTH-1:0]								param_height,
 			input	wire	[ADDR_WIDTH-1:0]								param_stride,
+			input	wire													param_nearestneighbor,
 			input	wire	[COMPONENT_NUM*DATA_WIDTH-1:0]					param_border_value,
 			input	wire	[2:0]											param_x_op,
 			input	wire	[2:0]											param_y_op,
+			
 			
 			// control
 			input	wire													clear_start,
@@ -255,6 +257,8 @@ module jelly_texture_sampler
 					.reset					(reset),
 					.clk					(clk),
 					.cke					(1'b1),
+					
+					.param_nearestneighbor	(param_nearestneighbor),
 					
 					.s_user					(s_sampler2d_user  [i*SAMPLER2D_USER_BITS      +: SAMPLER2D_USER_BITS]),
 					.s_x					(s_sampler2d_x     [i*SAMPLER2D_X_WIDTH        +: SAMPLER2D_X_WIDTH]),

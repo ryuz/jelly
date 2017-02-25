@@ -43,6 +43,8 @@ module jelly_texture_bilinear_unit
 			input	wire									clk,
 			input	wire									cke,
 			
+			input	wire									param_nearestneighbor,
+			
 			input	wire	[USER_BITS-1:0]					s_user,
 			input	wire	[X_WIDTH-1:0]					s_x,
 			input	wire	[Y_WIDTH-1:0]					s_y,
@@ -142,6 +144,9 @@ module jelly_texture_bilinear_unit
 	//  memory access
 	// -------------------------------------
 	
+	localparam	ROUND_X = X_FRAC_WIDTH > 0 ? (1 << (X_FRAC_WIDTH-1)) : 0;
+	localparam	ROUND_Y = X_FRAC_WIDTH > 0 ? (1 << (Y_FRAC_WIDTH-1)) : 0;
+	
 	wire	[X_INT_WIDTH-1:0]				s_ff_x_int;
 	wire	[X_FRAC_WIDTH-1:0]				s_ff_x_frac;
 	wire	[Y_INT_WIDTH-1:0]				s_ff_y_int;
@@ -226,9 +231,19 @@ module jelly_texture_bilinear_unit
 			2'b10: begin mem_st0_coeffx <= s_ff_coeffx0; mem_st0_coeffy <= s_ff_coeffy1; end
 			2'b11: begin mem_st0_coeffx <= s_ff_coeffx1; mem_st0_coeffy <= s_ff_coeffy1; end
 			endcase
+			if ( param_nearestneighbor ) begin
+		//		mem_st0_coeffx <= {1'b1, {X_FRAC_WIDTH{1'b0}}};
+		//		mem_st0_coeffy <= {1'b1, {Y_FRAC_WIDTH{1'b0}}};
+				mem_st0_coeffx <= {(X_FRAC_WIDTH+1){1'bx}};
+				mem_st0_coeffy <= {(Y_FRAC_WIDTH+1){1'bx}};
+			end
 			
-			mem_st0_x      <= s_ff_x_int + s_ff_phase[0];
-			mem_st0_y      <= s_ff_y_int + s_ff_phase[1];
+			mem_st0_x <= s_ff_x_int + s_ff_phase[0];
+			mem_st0_y <= s_ff_y_int + s_ff_phase[1];
+			if ( param_nearestneighbor ) begin
+				mem_st0_x <= (s_ff_x_frac >= ROUND_X) ? s_ff_x_int + 1'b1 : s_ff_x_int;
+				mem_st0_y <= (s_ff_y_frac >= ROUND_Y) ? s_ff_y_int + 1'b1 : s_ff_y_int;
+			end
 			
 			mem_st0_valid  <= s_ff_valid;
 			
@@ -262,7 +277,7 @@ module jelly_texture_bilinear_unit
 	
 	assign	mem_cke       = (!m_mem_arvalid || m_mem_arready);
 	
-	assign	s_ff_ready    = mem_cke && (s_ff_phase == 2'b11);
+	assign	s_ff_ready    = mem_cke && ((s_ff_phase == 2'b11) || param_nearestneighbor);
 	
 	assign	m_mem_arcoeff = mem_st3_coeff;
 	assign	m_mem_araddrx = mem_st3_x;
@@ -345,6 +360,13 @@ module jelly_texture_bilinear_unit
 				if ( m_mem_rphase == 2'b11 ) begin
 					acc_st0_valid <= 1'b1;
 				end
+			end
+			
+			if ( param_nearestneighbor ) begin
+				acc_st0_load  <= 1'b1;
+				acc_st0_coeff <= {1'b1, {COEFF_FRAC_WIDTH{1'b0}}};
+				acc_st0_data  <= m_mem_rdata;
+				acc_st0_valid <= m_mem_rvalid && m_mem_rready;
 			end
 			
 			

@@ -8,7 +8,7 @@ module tb_texture_sampler();
 	
 	initial begin
 		$dumpfile("tb_texture_sampler.vcd");
-		$dumpvars(0, tb_texture_sampler);
+		$dumpvars(1, tb_texture_sampler);
 
 //	#870000;
 //		$dumpfile("tb_texture_sampler.vcd");
@@ -373,10 +373,11 @@ module tb_texture_sampler();
 				.param_width					(640),
 				.param_height					(480),
 				.param_stride					(640*8),
+				
 				.param_border_value				(24'h000000),
 				.param_x_op						(3'b000),
 				.param_y_op						(3'b000),
-				
+				.param_nearestneighbor			(0),
 				.clear_start					(0),
 				.clear_busy						(),
 				
