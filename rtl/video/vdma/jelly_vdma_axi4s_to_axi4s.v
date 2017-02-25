@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- The FPGA processing system
 //
-//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2017 by Ryuji Fuchikami
 //                                 http://ryuz.my.coocan.jp/
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
@@ -76,7 +76,7 @@ module jelly_vdma_axi4s_to_axi4s
 			
 			parameter	WPACKET_ENABLE       = (WFIFO_PTR_WIDTH >= AXI4_LEN_WIDTH),
 			parameter	WISSUE_COUNTER_WIDTH = 10,
-
+			
 			parameter	RLIMITTER_ENABLE     = 0,
 			parameter	RLIMITTER_MARGINE    = 4,
 			parameter	RISSUE_COUNTER_WIDTH = 10,
@@ -84,6 +84,14 @@ module jelly_vdma_axi4s_to_axi4s
 			parameter	WB_ADR_WIDTH         = 8,
 			parameter	WB_DAT_WIDTH         = 32,
 			parameter	WB_SEL_WIDTH         = (WB_DAT_WIDTH / 8),
+			
+			parameter	TRIG_ASYNC           = 1,	// WISHBONE‚Æ”ñ“¯Šú‚Ìê‡
+			parameter	TRIG_WSTART_ENABLE   = 0,
+			parameter	TRIG_RSTART_ENABLE   = 0,
+			
+			parameter	BUF_INIT_NEW         = 2'b11,
+			parameter	BUF_INIT_WRITE       = 2'b11,
+			parameter	BUF_INIT_READ        = 2'b11,
 			
 			parameter	INIT_CTL_AUTOFLIP    = 2'b11,
 			parameter	INIT_PARAM_ADDR0     = 32'h0000_0000,
@@ -181,7 +189,13 @@ module jelly_vdma_axi4s_to_axi4s
 			input	wire								s_wb_stb_i,
 			output	wire								s_wb_ack_o,
 			output	wire								out_wirq,
-			output	wire								out_rirq
+			output	wire								out_rirq,
+			
+			// external trigger
+			input	wire								trig_reset,
+			input	wire								trig_clk,
+			input	wire								trig_wstart,
+			input	wire								trig_rstart
 		);
 	
 	// address mask
@@ -241,6 +255,12 @@ module jelly_vdma_axi4s_to_axi4s
 	localparam	REGOFFSET_RMONITOR_ARLEN    = 32'h0000_025c >> 2;
 	
 	
+	localparam	WCONTROL_WIDTH              = TRIG_WSTART_ENABLE ? 4 : 3;
+	localparam	WSTATUS_WIDTH               = 1;
+	
+	localparam	RCONTROL_WIDTH              = TRIG_RSTART_ENABLE ? 4 : 3;
+	localparam	RSTATUS_WIDTH               = 1;
+	
 	// registers
 	reg		[1:0]					reg_ctl_autoflip;
 	reg		[AXI4_ADDR_WIDTH-1:0]	reg_param_addr0;
@@ -250,8 +270,8 @@ module jelly_vdma_axi4s_to_axi4s
 	wire	[1:0]					sig_monitor_buf_write;
 	wire	[1:0]					sig_monitor_buf_read;
 	
-	reg		[2:0]					reg_wctl_control;
-	wire	[0:0]					sig_wctl_status;
+	reg		[WCONTROL_WIDTH-1:0]	reg_wctl_control;
+	wire	[WSTATUS_WIDTH-1:0]		sig_wctl_status;
 	wire	[INDEX_WIDTH-1:0]		sig_wctl_index;
 	
 	reg		[AXI4_ADDR_WIDTH-1:0]	reg_wparam_addr;
@@ -272,8 +292,8 @@ module jelly_vdma_axi4s_to_axi4s
 	
 	reg								reg_wirq;
 	
-	reg		[2:0]					reg_rctl_control;
-	wire	[0:0]					sig_rctl_status;
+	reg		[RCONTROL_WIDTH-1:0]	reg_rctl_control;
+	wire	[RSTATUS_WIDTH-1:0]		sig_rctl_status;
 	wire	[INDEX_WIDTH-1:0]		sig_rctl_index;
 	
 	reg		[AXI4_ADDR_WIDTH-1:0]	reg_rparam_addr;
@@ -330,7 +350,7 @@ module jelly_vdma_axi4s_to_axi4s
 				REGOFFSET_PARAM_ADDR1:		reg_param_addr1   <= s_wb_dat_i[AXI4_ADDR_WIDTH-1:0] & ADDR_MASK;
 				REGOFFSET_PARAM_ADDR2:		reg_param_addr2   <= s_wb_dat_i[AXI4_ADDR_WIDTH-1:0] & ADDR_MASK;
 				
-				REGOFFSET_WCTL_CONTROL:		reg_wctl_control  <= s_wb_dat_i[2:0];
+				REGOFFSET_WCTL_CONTROL:		reg_wctl_control  <= s_wb_dat_i[WCONTROL_WIDTH-1:0];
 				REGOFFSET_WPARAM_ADDR:		reg_wparam_addr   <= s_wb_dat_i[AXI4_ADDR_WIDTH-1:0] & ADDR_MASK;
 				REGOFFSET_WPARAM_STRIDE:	reg_wparam_stride <= s_wb_dat_i[STRIDE_WIDTH-1:0]    & ADDR_MASK;
 				REGOFFSET_WPARAM_WIDTH:		reg_wparam_width  <= s_wb_dat_i[H_WIDTH-1:0];
@@ -338,7 +358,7 @@ module jelly_vdma_axi4s_to_axi4s
 				REGOFFSET_WPARAM_SIZE:		reg_wparam_size   <= s_wb_dat_i[SIZE_WIDTH-1:0];
 				REGOFFSET_WPARAM_AWLEN:		reg_wparam_awlen  <= s_wb_dat_i[AXI4_LEN_WIDTH-1:0];
 				
-				REGOFFSET_RCTL_CONTROL:		reg_rctl_control  <= s_wb_dat_i[2:0];
+				REGOFFSET_RCTL_CONTROL:		reg_rctl_control  <= s_wb_dat_i[RCONTROL_WIDTH-1:0];
 				REGOFFSET_RPARAM_ADDR:		reg_rparam_addr   <= s_wb_dat_i[AXI4_ADDR_WIDTH-1:0] & ADDR_MASK;
 				REGOFFSET_RPARAM_STRIDE:	reg_rparam_stride <= s_wb_dat_i[STRIDE_WIDTH-1:0]    & ADDR_MASK;
 				REGOFFSET_RPARAM_WIDTH:		reg_rparam_width  <= s_wb_dat_i[H_WIDTH-1:0];
@@ -496,15 +516,15 @@ module jelly_vdma_axi4s_to_axi4s
 			1 : sig_rparam_addr = reg_param_addr1;
 			2 : sig_rparam_addr = reg_param_addr2;
 			endcase
-		end		
+		end	
 	end
 	
 	
 	always @(posedge m_axi4_aclk) begin
 		if ( !m_axi4_aresetn ) begin
-			reg_buf_new    <= 2'd0;
-			reg_buf_write  <= 2'd0;
-			reg_buf_read   <= 2'd0;
+			reg_buf_new    <= BUF_INIT_NEW;
+			reg_buf_write  <= BUF_INIT_WRITE;
+			reg_buf_read   <= BUF_INIT_READ;
 		end
 		else begin
 			reg_buf_new    <= next_buf_new;
@@ -516,6 +536,62 @@ module jelly_vdma_axi4s_to_axi4s
 	assign sig_monitor_buf_new   = reg_buf_new;
 	assign sig_monitor_buf_write = reg_buf_write;
 	assign sig_monitor_buf_read  = reg_buf_read;
+	
+	
+	
+	// ---------------------------------
+	//  external start trigger
+	// ---------------------------------
+	
+	wire				core_wstart;
+	wire				core_rstart;
+	
+	generate
+	if ( TRIG_WSTART_ENABLE ) begin : blk_trig_wstart
+		wire		pulse_wstart;
+		jelly_pulse_async
+				#(
+					.ASYNC		(TRIG_ASYNC)
+				)
+			i_pulse_async
+				(
+					.s_reset	(trig_reset),
+					.s_clk		(trig_clk),
+					.s_pulse	(trig_wstart),
+					
+					.m_reset	(s_wb_rst_i),
+					.m_clk		(s_wb_clk_i),
+					.m_pulse	(pulse_wstart)
+				);
+		
+		assign core_wstart = pulse_wstart & reg_wctl_control[3];
+	end
+	else begin
+		assign core_wstart = 1'b1;
+	end
+	
+	if ( TRIG_RSTART_ENABLE ) begin : blk_trig_rstart
+		wire		pulse_rstart;
+		jelly_pulse_async
+				#(
+					.ASYNC		(TRIG_ASYNC)
+				)
+			i_pulse_async
+				(
+					.s_reset	(trig_reset),
+					.s_clk		(trig_clk),
+					.s_pulse	(trig_rstart),
+					
+					.m_reset	(s_wb_rst_i),
+					.m_clk		(s_wb_clk_i),
+					.m_pulse	(pulse_rstart)
+				);
+		assign core_rstart = pulse_rstart & reg_rctl_control[3];
+	end
+	else begin
+		assign core_rstart = 1'b1;
+	end
+	endgenerate
 	
 	
 	
@@ -560,7 +636,7 @@ module jelly_vdma_axi4s_to_axi4s
 			)
 		i_vdma_axi4s_to_axi4_core
 			(
-				.ctl_enable				(reg_wctl_control[0]),
+				.ctl_enable				(reg_wctl_control[0] & core_wstart),
 				.ctl_update				(reg_wctl_control[1]),
 				.ctl_busy				(sig_wctl_status[0]),
 				.ctl_index				(sig_wctl_index),
@@ -650,7 +726,7 @@ module jelly_vdma_axi4s_to_axi4s
 			)
 		i_vdma_axi4_to_axi4s_core
 			(
-				.ctl_enable				(reg_rctl_control[0]),
+				.ctl_enable				(reg_rctl_control[0] & core_rstart),
 				.ctl_update				(reg_rctl_control[1]),
 				.ctl_busy				(sig_rctl_status[0]),
 				.ctl_index				(sig_rctl_index),

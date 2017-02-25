@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- The FPGA processing system
 //
-//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2017 by Ryuji Fuchikami
 //                                 http://ryuz.my.coocan.jp/
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
@@ -60,6 +60,9 @@ module jelly_vdma_axi4s_to_axi4
 			parameter	WB_DAT_WIDTH        = 32,
 			parameter	WB_SEL_WIDTH        = (WB_DAT_WIDTH / 8),
 			
+			parameter	TRIG_ASYNC          = 1,	// WISHBONE‚Æ”ñ“¯Šú‚Ìê‡
+			parameter	TRIG_START_ENABLE   = 0,
+			
 			parameter	INIT_CTL_CONTROL    = 3'b000,
 			parameter	INIT_PARAM_ADDR     = 32'h0000_0000,
 			parameter	INIT_PARAM_STRIDE   = 4096,
@@ -113,7 +116,12 @@ module jelly_vdma_axi4s_to_axi4
 			input	wire	[WB_SEL_WIDTH-1:0]		s_wb_sel_i,
 			input	wire							s_wb_stb_i,
 			output	wire							s_wb_ack_o,
-			output	wire							out_irq
+			output	wire							out_irq,
+			
+			// external trigger
+			input	wire							trig_reset,
+			input	wire							trig_clk,
+			input	wire							trig_start
 		);
 	
 	// address mask
@@ -146,9 +154,12 @@ module jelly_vdma_axi4s_to_axi4
 	localparam	REGOFFSET_MONITOR_SIZE   = 32'h0000_0050 >> 2;
 	localparam	REGOFFSET_MONITOR_AWLEN  = 32'h0000_005c >> 2;
 	
+	localparam	CONTROL_WIDTH            = TRIG_START_ENABLE ? 4 : 3;
+	localparam	STATUS_WIDTH             = 1;
+	
 	// registers
-	reg		[2:0]					reg_ctl_control;
-	wire	[0:0]					sig_ctl_status;
+	reg		[CONTROL_WIDTH-1:0]		reg_ctl_control;
+	wire	[STATUS_WIDTH-1:0]		sig_ctl_status;
 	wire	[INDEX_WIDTH-1:0]		sig_ctl_index;
 	
 	reg		[AXI4_ADDR_WIDTH-1:0]	reg_param_addr;
@@ -186,7 +197,7 @@ module jelly_vdma_axi4s_to_axi4
 			// register write
 			if ( s_wb_stb_i && s_wb_we_i ) begin
 				case ( s_wb_adr_i )
-				REGOFFSET_CTL_CONTROL:	reg_ctl_control  <= s_wb_dat_i[2:0];
+				REGOFFSET_CTL_CONTROL:	reg_ctl_control  <= s_wb_dat_i[CONTROL_WIDTH-1:0];
 				REGOFFSET_PARAM_ADDR:	reg_param_addr   <= s_wb_dat_i[AXI4_ADDR_WIDTH-1:0] & ADDR_MASK;
 				REGOFFSET_PARAM_STRIDE:	reg_param_stride <= s_wb_dat_i[STRIDE_WIDTH-1:0]    & ADDR_MASK;
 				REGOFFSET_PARAM_WIDTH:	reg_param_width  <= s_wb_dat_i[H_WIDTH-1:0];
@@ -243,6 +254,37 @@ module jelly_vdma_axi4s_to_axi4
 	
 	
 	// ---------------------------------
+	//  external start trigger
+	// ---------------------------------
+	
+	wire				core_start;
+	generate
+	if ( TRIG_START_ENABLE ) begin : blk_trig_start
+		wire	pulse_start;
+		jelly_pulse_async
+				#(
+					.ASYNC		(TRIG_ASYNC)
+				)
+			i_pulse_async
+				(
+					.s_reset	(trig_reset),
+					.s_clk		(trig_clk),
+					.s_pulse	(trig_start),
+					
+					.m_reset	(s_wb_rst_i),
+					.m_clk		(s_wb_clk_i),
+					.m_pulse	(pulse_start)
+				);
+		
+		assign core_start = pulse_start & !reg_ctl_control[3];
+	end
+	else begin
+		assign core_start = 1'b1;
+	end
+	endgenerate
+	
+	
+	// ---------------------------------
 	//  Core
 	// ---------------------------------
 	
@@ -282,7 +324,7 @@ module jelly_vdma_axi4s_to_axi4
 			)
 		i_vdma_axi4s_to_axi4_core
 			(
-				.ctl_enable				(reg_ctl_control[0]),
+				.ctl_enable				(reg_ctl_control[0] & core_start),
 				.ctl_update				(reg_ctl_control[1]),
 				.ctl_busy				(sig_ctl_status[0]),
 				.ctl_index				(sig_ctl_index),

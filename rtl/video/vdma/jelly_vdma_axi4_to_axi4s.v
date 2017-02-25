@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- The FPGA processing system
 //
-//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2017 by Ryuji Fuchikami
 //                                 http://ryuz.my.coocan.jp/
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
@@ -118,7 +118,7 @@ module jelly_vdma_axi4_to_axi4s
 			// external trigger
 			input	wire							trig_reset,
 			input	wire							trig_clk,
-			input	wire							trig_start,
+			input	wire							trig_start
 		);
 	
 	localparam	[AXI4_ADDR_WIDTH-1:0]	ADDR_MASK = ~((1 << AXI4_DATA_SIZE) - 1);
@@ -194,7 +194,7 @@ module jelly_vdma_axi4_to_axi4s
 			// register write
 			if ( s_wb_stb_i && s_wb_we_i ) begin
 				case ( s_wb_adr_i )
-				REGOFFSET_CTL_CONTROL:	reg_ctl_control  <= s_wb_dat_i[2:0];
+				REGOFFSET_CTL_CONTROL:	reg_ctl_control  <= s_wb_dat_i[CONTROL_WIDTH-1:0];
 				REGOFFSET_PARAM_ADDR:	reg_param_addr   <= s_wb_dat_i[AXI4_ADDR_WIDTH-1:0] & ADDR_MASK;
 				REGOFFSET_PARAM_STRIDE:	reg_param_stride <= s_wb_dat_i[STRIDE_WIDTH-1:0]    & ADDR_MASK;
 				REGOFFSET_PARAM_WIDTH:	reg_param_width  <= s_wb_dat_i[H_WIDTH-1:0];
@@ -250,10 +250,15 @@ module jelly_vdma_axi4_to_axi4s
 	assign out_irq    = reg_irq;
 	
 	
-	// external start trigger
+	
+	// ---------------------------------
+	//  external start trigger
+	// ---------------------------------
+	
 	wire				core_start;
 	generate
-	if ( TRIG_START_ENABLE ) begin : blk_ext_start
+	if ( TRIG_START_ENABLE ) begin : blk_trig_start
+		wire	pulse_start;
 		jelly_pulse_async
 				#(
 					.ASYNC		(TRIG_ASYNC)
@@ -266,8 +271,10 @@ module jelly_vdma_axi4_to_axi4s
 					
 					.m_reset	(s_wb_rst_i),
 					.m_clk		(s_wb_clk_i),
-					.m_pulse	(core_start)
+					.m_pulse	(pulse_start)
 				);
+		
+		assign core_start = pulse_start & !reg_ctl_control[3];
 	end
 	else begin
 		assign core_start = 1'b1;
