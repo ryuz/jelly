@@ -55,12 +55,15 @@ module jelly_vdma_axi4_to_axi4s
 			parameter	LIMITTER_ENABLE     = (FIFO_PTR_WIDTH > AXI4_LEN_WIDTH),
 			parameter	LIMITTER_MARGINE    = 4,
 			parameter	ISSUE_COUNTER_WIDTH = 10,
-
+			
 			parameter	WB_ADR_WIDTH        = 8,
 			parameter	WB_DAT_WIDTH        = 32,
 			parameter	WB_SEL_WIDTH        = (WB_DAT_WIDTH / 8),
 			
-			parameter	INIT_CTL_CONTROL    = 3'b000,
+			parameter	TRIG_ASYNC          = 1,	// WISHBONEÇ∆îÒìØä˙ÇÃèÍçá
+			parameter	TRIG_START_ENABLE   = 0,
+			
+			parameter	INIT_CTL_CONTROL    = 4'b0000,
 			parameter	INIT_PARAM_ADDR     = 32'h0000_0000,
 			parameter	INIT_PARAM_STRIDE   = 4096,
 			parameter	INIT_PARAM_WIDTH    = 640,
@@ -110,7 +113,12 @@ module jelly_vdma_axi4_to_axi4s
 			input	wire	[WB_SEL_WIDTH-1:0]		s_wb_sel_i,
 			input	wire							s_wb_stb_i,
 			output	wire							s_wb_ack_o,
-			output	wire							out_irq
+			output	wire							out_irq,
+			
+			// external trigger
+			input	wire							trig_reset,
+			input	wire							trig_clk,
+			input	wire							trig_start,
 		);
 	
 	localparam	[AXI4_ADDR_WIDTH-1:0]	ADDR_MASK = ~((1 << AXI4_DATA_SIZE) - 1);
@@ -142,9 +150,12 @@ module jelly_vdma_axi4_to_axi4s
 	localparam	REGOFFSET_MONITOR_SIZE   = 32'h0000_0050 >> 2;
 	localparam	REGOFFSET_MONITOR_ARLEN  = 32'h0000_005c >> 2;
 	
+	localparam	CONTROL_WIDTH            = TRIG_START_ENABLE ? 4 : 3;
+	localparam	STATUS_WIDTH             = 1;
+	
 	// registers
-	reg		[2:0]					reg_ctl_control;
-	wire	[0:0]					sig_ctl_status;
+	reg		[CONTROL_WIDTH-1:0]		reg_ctl_control;
+	wire	[STATUS_WIDTH-1:0]		sig_ctl_status;
 	wire	[INDEX_WIDTH-1:0]		sig_ctl_index;
 	
 	reg		[AXI4_ADDR_WIDTH-1:0]	reg_param_addr;
@@ -194,7 +205,7 @@ module jelly_vdma_axi4_to_axi4s
 			end
 			
 			// update
-			reg_irq        <= 1'b0;
+			reg_irq           <= 1'b0;
 			reg_prev_index[0] <= sig_ctl_index[0];
 			reg_prev_index[1] <= reg_prev_index[0];
 			reg_prev_index[2] <= reg_prev_index[1];
@@ -239,6 +250,31 @@ module jelly_vdma_axi4_to_axi4s
 	assign out_irq    = reg_irq;
 	
 	
+	// external start trigger
+	wire				core_start;
+	generate
+	if ( TRIG_START_ENABLE ) begin : blk_ext_start
+		jelly_pulse_async
+				#(
+					.ASYNC		(TRIG_ASYNC)
+				)
+			i_pulse_async
+				(
+					.s_reset	(trig_reset),
+					.s_clk		(trig_clk),
+					.s_pulse	(trig_start),
+					
+					.m_reset	(s_wb_rst_i),
+					.m_clk		(s_wb_clk_i),
+					.m_pulse	(core_start)
+				);
+	end
+	else begin
+		assign core_start = 1'b1;
+	end
+	endgenerate
+	
+	
 	// ---------------------------------
 	//  Core
 	// ---------------------------------
@@ -279,7 +315,7 @@ module jelly_vdma_axi4_to_axi4s
 			)
 		i_vdma_axi4_to_axi4s_core
 			(
-				.ctl_enable				(reg_ctl_control[0]),
+				.ctl_enable				(reg_ctl_control[0] & core_start),
 				.ctl_update				(reg_ctl_control[1]),
 				.ctl_busy				(sig_ctl_status[0]),
 				.ctl_index				(sig_ctl_index),
