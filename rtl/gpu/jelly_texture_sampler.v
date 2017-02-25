@@ -166,6 +166,7 @@ module jelly_texture_sampler
 			output	wire	[SAMPLER2D_NUM-1:0]								s_sampler2d_ready,
 			
 			output	wire	[SAMPLER2D_NUM*SAMPLER2D_USER_BITS-1:0]			m_sampler2d_user,
+			output	wire	[SAMPLER2D_NUM-1:0]								m_sampler2d_border,
 			output	wire	[SAMPLER2D_NUM*COMPONENT_NUM*DATA_WIDTH-1:0]	m_sampler2d_data,
 			output	wire	[SAMPLER2D_NUM-1:0]								m_sampler2d_valid,
 			input	wire	[SAMPLER2D_NUM-1:0]								m_sampler2d_ready,
@@ -255,15 +256,16 @@ module jelly_texture_sampler
 					.clk					(clk),
 					.cke					(1'b1),
 					
-					.s_user					(s_sampler2d_user [i*SAMPLER2D_USER_BITS      +: SAMPLER2D_USER_BITS]),
-					.s_x					(s_sampler2d_x    [i*SAMPLER2D_X_WIDTH        +: SAMPLER2D_X_WIDTH]),
-					.s_y					(s_sampler2d_y    [i*SAMPLER2D_Y_WIDTH        +: SAMPLER2D_Y_WIDTH]),
-					.s_valid				(s_sampler2d_valid[i]),
-					.s_ready				(s_sampler2d_ready[i]),
-					.m_user					(m_sampler2d_user [i*SAMPLER2D_USER_BITS      +: SAMPLER2D_USER_BITS]),
-					.m_data					(m_sampler2d_data [i*COMPONENT_NUM*DATA_WIDTH +: COMPONENT_NUM*DATA_WIDTH]),
-					.m_valid				(m_sampler2d_valid[i]),
-					.m_ready				(m_sampler2d_ready[i]),
+					.s_user					(s_sampler2d_user  [i*SAMPLER2D_USER_BITS      +: SAMPLER2D_USER_BITS]),
+					.s_x					(s_sampler2d_x     [i*SAMPLER2D_X_WIDTH        +: SAMPLER2D_X_WIDTH]),
+					.s_y					(s_sampler2d_y     [i*SAMPLER2D_Y_WIDTH        +: SAMPLER2D_Y_WIDTH]),
+					.s_valid				(s_sampler2d_valid [i]),
+					.s_ready				(s_sampler2d_ready [i]),
+					.m_user					(m_sampler2d_user  [i*SAMPLER2D_USER_BITS      +: SAMPLER2D_USER_BITS]),
+					.m_border				(m_sampler2d_border[i]),
+					.m_data					(m_sampler2d_data  [i*COMPONENT_NUM*DATA_WIDTH +: COMPONENT_NUM*DATA_WIDTH]),
+					.m_valid				(m_sampler2d_valid [i]),
+					.m_ready				(m_sampler2d_ready [i]),
 					
 					.m_mem_arcoeff			(bilinear_arcoeff),
 					.m_mem_araddrx			(bilinear_araddrx),
@@ -271,10 +273,11 @@ module jelly_texture_sampler
 					.m_mem_arvalid			(bilinear_arvalid),
 					.m_mem_arready			(bilinear_arready),
 					
-					.m_mem_rcoeff			(sampler2d_rcoeff [i*SAMPLER2D_COEFF_WIDTH    +: SAMPLER2D_COEFF_WIDTH]),
-					.m_mem_rdata			(sampler2d_rdata  [i*COMPONENT_NUM*DATA_WIDTH +: COMPONENT_NUM*DATA_WIDTH]),
-					.m_mem_rvalid			(sampler2d_rvalid [i]),
-					.m_mem_rready			(sampler2d_rready [i])
+					.m_mem_rcoeff			(sampler2d_rcoeff  [i*SAMPLER2D_COEFF_WIDTH    +: SAMPLER2D_COEFF_WIDTH]),
+					.m_mem_rborder			(sampler2d_rborder [i]),
+					.m_mem_rdata			(sampler2d_rdata   [i*COMPONENT_NUM*DATA_WIDTH +: COMPONENT_NUM*DATA_WIDTH]),
+					.m_mem_rvalid			(sampler2d_rvalid  [i]),
+					.m_mem_rready			(sampler2d_rready  [i])
 				);
 			
 			

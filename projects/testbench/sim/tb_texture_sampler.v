@@ -120,6 +120,7 @@ module tb_texture_sampler();
 	wire	[SAMPLER2D_NUM-1:0]								s_sampler2d_ready;
 	
 	wire	[SAMPLER2D_NUM*SAMPLER2D_USER_BITS-1:0]			m_sampler2d_user;
+	wire	[SAMPLER2D_NUM-1:0]								m_sampler2d_border;
 	wire	[SAMPLER2D_NUM*COMPONENT_NUM*DATA_WIDTH-1:0]	m_sampler2d_data;
 	wire	[SAMPLER2D_NUM-1:0]								m_sampler2d_valid;
 	wire	[SAMPLER2D_NUM-1:0]								m_sampler2d_ready;
@@ -399,6 +400,7 @@ module tb_texture_sampler();
 				.s_sampler2d_ready				(s_sampler2d_ready),
 				
 				.m_sampler2d_user				(m_sampler2d_user),
+				.m_sampler2d_border				(m_sampler2d_border),
 				.m_sampler2d_data				(m_sampler2d_data),
 				.m_sampler2d_valid				(m_sampler2d_valid),
 				.m_sampler2d_ready				(m_sampler2d_ready),
