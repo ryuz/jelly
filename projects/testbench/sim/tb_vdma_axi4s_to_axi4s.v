@@ -119,7 +119,7 @@ module tb_vdma_axi4s_to_axi4s();
 	parameter	WB_SEL_WIDTH         = (WB_DAT_WIDTH / 8);
 	
 	parameter	TRIG_ASYNC           = 1;	// WISHBONEÇ∆îÒìØä˙ÇÃèÍçá
-	parameter	TRIG_WSTART_ENABLE   = 0;
+	parameter	TRIG_WSTART_ENABLE   = 1;
 	parameter	TRIG_RSTART_ENABLE   = 1;
 	
 	parameter	INIT_CTL_AUTOFLIP    = 2'b11;
@@ -127,7 +127,7 @@ module tb_vdma_axi4s_to_axi4s();
 	parameter	INIT_PARAM_ADDR1     = 32'h0010_0000;
 	parameter	INIT_PARAM_ADDR2     = 32'h0020_0000;
 	
-	parameter	INIT_WCTL_CONTROL    = 4'b0011;
+	parameter	INIT_WCTL_CONTROL    = 4'b1011;
 	parameter	INIT_WPARAM_ADDR     = 32'h0000_0000;
 	parameter	INIT_WPARAM_STRIDE   = 4096;
 	parameter	INIT_WPARAM_WIDTH    = X_NUM;
@@ -402,17 +402,25 @@ module tb_vdma_axi4s_to_axi4s();
 	//  triger
 	// -----------------------------------------
 	
-	reg		[31:0]		reg_trg_count;
+	reg		[31:0]		reg_trg_wcount;
+	reg		[31:0]		reg_trg_rcount;
 	always @(posedge trig_clk) begin
 		if ( trig_reset ) begin
-			reg_trg_count <= 0;
+			reg_trg_wcount <= 0;
+			reg_trg_rcount <= 0;
 		end
 		else begin
-			trig_rstart   <= (reg_trg_count == 0);
+			trig_wstart   <= (reg_trg_wcount == 0);
+			trig_rstart   <= (reg_trg_rcount == 0);
 			
-			reg_trg_count <= reg_trg_count - 1;
-			if ( reg_trg_count == 0) begin
-				reg_trg_count <= 7000;
+			reg_trg_wcount <= reg_trg_wcount - 1;
+			if ( reg_trg_wcount == 0) begin
+				reg_trg_wcount <= 8000;
+			end
+			
+			reg_trg_rcount <= reg_trg_rcount - 1;
+			if ( reg_trg_rcount == 0) begin
+				reg_trg_rcount <= 7000;
 			end
 		end
 	end

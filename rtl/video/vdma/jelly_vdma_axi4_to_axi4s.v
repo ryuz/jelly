@@ -274,7 +274,7 @@ module jelly_vdma_axi4_to_axi4s
 					.m_pulse	(pulse_start)
 				);
 		
-		assign core_start = pulse_start & !reg_ctl_control[3];
+		assign core_start = pulse_start | ~reg_ctl_control[3];
 	end
 	else begin
 		assign core_start = 1'b1;

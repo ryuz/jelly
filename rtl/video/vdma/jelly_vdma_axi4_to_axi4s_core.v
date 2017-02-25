@@ -164,7 +164,7 @@ module jelly_vdma_axi4_to_axi4s_core
 	wire									axi4s_control_tready;
 	
 	generate
-	if ( AXI4_DATA_SIZE >= AXI4S_DATA_SIZE ) begin
+	if ( AXI4_DATA_SIZE >= AXI4S_DATA_SIZE ) begin : blk_cnv_wide
 		wire							axi4s_fifo_tuser;
 		wire							axi4s_fifo_tlast;
 		wire	[AXI4_DATA_WIDTH-1:0]	axi4s_fifo_tdata;
@@ -224,7 +224,7 @@ module jelly_vdma_axi4_to_axi4s_core
 					.m_ready			(axi4s_tready)
 				);
 	end
-	else begin
+	else begin : blk_cnv_narrow
 		wire							axi4s_wide_tuser;
 		wire							axi4s_wide_tlast;
 		wire	[AXI4S_DATA_WIDTH-1:0]	axi4s_wide_tdata;

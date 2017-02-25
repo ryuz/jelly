@@ -564,7 +564,7 @@ module jelly_vdma_axi4s_to_axi4s
 					.m_pulse	(pulse_wstart)
 				);
 		
-		assign core_wstart = pulse_wstart & reg_wctl_control[3];
+		assign core_wstart = pulse_wstart | ~reg_wctl_control[3];
 	end
 	else begin
 		assign core_wstart = 1'b1;
@@ -586,7 +586,7 @@ module jelly_vdma_axi4s_to_axi4s
 					.m_clk		(s_wb_clk_i),
 					.m_pulse	(pulse_rstart)
 				);
-		assign core_rstart = pulse_rstart & reg_rctl_control[3];
+		assign core_rstart = pulse_rstart | ~reg_rctl_control[3];
 	end
 	else begin
 		assign core_rstart = 1'b1;
