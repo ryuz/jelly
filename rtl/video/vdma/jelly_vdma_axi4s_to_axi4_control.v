@@ -35,12 +35,14 @@ module jelly_vdma_axi4s_to_axi4_control
 			parameter	AXI4_AWREGION       = 4'b0000,
 			parameter	AXI4S_USER_WIDTH    = 1,
 			parameter	AXI4S_DATA_WIDTH    = AXI4_DATA_WIDTH,
-
+			
 			parameter	STRIDE_WIDTH        = 14,
 			parameter	INDEX_WIDTH         = 8,
 			parameter	H_WIDTH             = 12,
 			parameter	V_WIDTH             = 12,
 			parameter	SIZE_WIDTH          = H_WIDTH + V_WIDTH,
+			
+			parameter	IDLE_SKIP           = 1,
 			
 			parameter	PACKET_ENABLE       = 0,
 			parameter	QUEUE_COUNTER_WIDTH = 8,
@@ -220,7 +222,7 @@ module jelly_vdma_axi4s_to_axi4_control
 	always @(posedge aclk) begin
 		if ( !aresetn ) begin
 			reg_busy         <= 1'b0;
-			reg_skip         <= 1'b1;
+			reg_skip         <= IDLE_SKIP;
 			reg_wait_fs      <= 1'b0;
 			reg_index        <= {INDEX_WIDTH{1'b0}};
 			
@@ -277,7 +279,7 @@ module jelly_vdma_axi4s_to_axi4_control
 					// idle
 					reg_busy    <= 1'b0;
 					reg_wait_fs <= 1'b0;
-					reg_skip    <= 1'b1;
+					reg_skip    <= IDLE_SKIP;
 				end
 			end
 			else begin

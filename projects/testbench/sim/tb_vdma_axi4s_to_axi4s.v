@@ -107,6 +107,7 @@ module tb_vdma_axi4s_to_axi4s();
 	parameter	V_WIDTH              = 10;
 	parameter	SIZE_WIDTH           = H_WIDTH + V_WIDTH;
 	
+	parameter	WIDLE_SKIP           = 0;
 	parameter	WPACKET_ENABLE       = (WFIFO_PTR_WIDTH >= AXI4_LEN_WIDTH);
 	parameter	WISSUE_COUNTER_WIDTH = 10;
 	
@@ -281,6 +282,7 @@ module tb_vdma_axi4s_to_axi4s();
 				.V_WIDTH              	(V_WIDTH              ),
 				.SIZE_WIDTH           	(SIZE_WIDTH           ),
 				
+				.WIDLE_SKIP				(WIDLE_SKIP           ),
 				.WPACKET_ENABLE       	(WPACKET_ENABLE       ),
 				.WISSUE_COUNTER_WIDTH 	(WISSUE_COUNTER_WIDTH ),
 				

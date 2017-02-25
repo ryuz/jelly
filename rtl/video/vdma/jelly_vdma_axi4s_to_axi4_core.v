@@ -51,6 +51,8 @@ module jelly_vdma_axi4s_to_axi4_core
 			parameter	V_WIDTH             = 10,
 			parameter	SIZE_WIDTH          = H_WIDTH + V_WIDTH,
 			
+			parameter	IDLE_SKIP           = 1,
+			
 			parameter	PACKET_ENABLE       = (FIFO_PTR_WIDTH >= AXI4_LEN_WIDTH),
 			parameter	ISSUE_COUNTER_WIDTH = 8
 		)
@@ -285,7 +287,7 @@ module jelly_vdma_axi4s_to_axi4_core
 					.m_valid			(axi4s_core_tvalid),
 					.m_ready			(axi4s_core_tready)
 				);
-				
+		
 		reg		[CNV_WIDTH-1:0]				reg_cnv_counter, next_cnv_counter;
 		reg		[QUEUE_COUNTER_WIDTH-1:0]	reg_queue_counter;
 		always @(posedge m_axi4_aclk) begin
@@ -344,6 +346,7 @@ module jelly_vdma_axi4s_to_axi4_core
 				.H_WIDTH				(H_WIDTH),
 				.V_WIDTH				(V_WIDTH),
 				.SIZE_WIDTH				(SIZE_WIDTH),
+				.IDLE_SKIP				(IDLE_SKIP),
 				
 				.PACKET_ENABLE			(PACKET_ENABLE),
 				.QUEUE_COUNTER_WIDTH	(QUEUE_COUNTER_WIDTH),

@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- The FPGA processing system
 //
-//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2017 by Ryuji Fuchikami
 //                                 http://ryuz.my.coocan.jp/
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------

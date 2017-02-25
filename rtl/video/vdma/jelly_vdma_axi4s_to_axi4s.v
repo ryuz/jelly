@@ -67,12 +67,14 @@ module jelly_vdma_axi4s_to_axi4s
 			parameter	AXI4_AR_REGS         = 1,
 			parameter	AXI4_R_REGS          = 1,
 			parameter	AXI4S_M_REGS         = 1,
-
+			
 			parameter	INDEX_WIDTH          = 8,
 			parameter	STRIDE_WIDTH         = 14,
 			parameter	H_WIDTH              = 10,
 			parameter	V_WIDTH              = 10,
 			parameter	SIZE_WIDTH           = H_WIDTH + V_WIDTH,
+			
+			parameter	WIDLE_SKIP           = 1,
 			
 			parameter	WPACKET_ENABLE       = (WFIFO_PTR_WIDTH >= AXI4_LEN_WIDTH),
 			parameter	WISSUE_COUNTER_WIDTH = 10,
@@ -631,6 +633,7 @@ module jelly_vdma_axi4s_to_axi4s
 				.H_WIDTH				(H_WIDTH),
 				.V_WIDTH				(V_WIDTH),
 				.SIZE_WIDTH				(SIZE_WIDTH),
+				.IDLE_SKIP				(WIDLE_SKIP),
 				.PACKET_ENABLE			(WPACKET_ENABLE),
 				.ISSUE_COUNTER_WIDTH	(WISSUE_COUNTER_WIDTH)
 			)
