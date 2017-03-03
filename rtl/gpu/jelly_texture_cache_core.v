@@ -48,6 +48,8 @@ module jelly_texture_cache_core
 			parameter	L1_BLK_Y_SIZE          = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	L1_TAG_ADDR_WIDTH      = 6,
 			parameter	L1_TAG_RAM_TYPE        = "distributed",
+			parameter	L1_TAG_ASSOCIATIVE     = L1_TAG_ADDR_WIDTH < 3,
+			parameter	L1_TAG_ALGORITHM       = "TWIST",
 			parameter	L1_TAG_M_SLAVE_REGS    = 0,
 			parameter	L1_TAG_M_MASTER_REGS   = 0,
 			parameter	L1_MEM_RAM_TYPE        = "block",
@@ -74,6 +76,8 @@ module jelly_texture_cache_core
 			parameter	L2_BLK_Y_SIZE          = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	L2_TAG_ADDR_WIDTH      = 6,
 			parameter	L2_TAG_RAM_TYPE        = "distributed",
+			parameter	L2_TAG_ASSOCIATIVE     = L2_TAG_ADDR_WIDTH < 3,
+			parameter	L2_TAG_ALGORITHM       = L2_PARALLEL_SIZE > 0 ? "SUDOKU" : "TWIST",
 			parameter	L2_TAG_M_SLAVE_REGS    = 0,
 			parameter	L2_TAG_M_MASTER_REGS   = 0,
 			parameter	L2_MEM_RAM_TYPE        = "block",
@@ -224,6 +228,8 @@ module jelly_texture_cache_core
 				.BLK_Y_SIZE				(L1_BLK_Y_SIZE),
 				.TAG_ADDR_WIDTH			(L1_TAG_ADDR_WIDTH),
 				.TAG_RAM_TYPE			(L1_TAG_RAM_TYPE),
+				.TAG_ASSOCIATIVE		(L1_TAG_ASSOCIATIVE),
+				.TAG_ALGORITHM			(L1_TAG_ALGORITHM),
 				.TAG_M_SLAVE_REGS		(L1_TAG_M_SLAVE_REGS),
 				.TAG_M_MASTER_REGS		(L1_TAG_M_MASTER_REGS),
 				.MEM_RAM_TYPE			(L1_MEM_RAM_TYPE),
@@ -350,6 +356,8 @@ module jelly_texture_cache_core
 				
 				.TAG_ADDR_WIDTH			(L2_TAG_ADDR_WIDTH),
 				.TAG_RAM_TYPE			(L2_TAG_RAM_TYPE),
+				.TAG_ASSOCIATIVE		(L2_TAG_ASSOCIATIVE),
+				.TAG_ALGORITHM			(L2_TAG_ALGORITHM),
 				.TAG_M_SLAVE_REGS		(L2_TAG_M_SLAVE_REGS),
 				.TAG_M_MASTER_REGS		(L2_TAG_M_MASTER_REGS),
 				.MEM_RAM_TYPE			(L2_MEM_RAM_TYPE),
