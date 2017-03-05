@@ -35,7 +35,10 @@ module jelly_axi4_dma_reader
 			parameter	LIMITTER_ENABLE          = 0,
 			parameter	LIMITTER_MARGINE         = 0,
 			parameter	ACCEPTABLE_COUNTER_WIDTH = 10,
+			parameter	USE_ISSUE_ADD            = 0,
+			parameter	ISSUE_ASYNC              = 0,
 			parameter	ISSUE_COUNTER_WIDTH      = 12,
+			parameter	ISSUE_COUNTER_INIT       = (1 << (ISSUE_COUNTER_WIDTH-1)),
 			parameter	AXI4_AR_REGS             = 1,
 			parameter	AXI4_R_REGS              = 1,
 			parameter	AXI4S_REGS               = 0
@@ -49,6 +52,11 @@ module jelly_axi4_dma_reader
 			output	wire									busy,
 			
 			input	wire	[ACCEPTABLE_COUNTER_WIDTH-1:0]	acceptable_counter,		// 受け入れ可能サイズ
+			
+			input	wire									issue_reset,
+			input	wire									issue_clk,
+			input	wire	[ISSUE_COUNTER_WIDTH-1:0]		issue_add,				// 発行数の加算(返却)
+			input	wire									issue_valid,
 			
 			// parameter
 			input	wire	[AXI4_ADDR_WIDTH-1:0]			param_addr,				// 開始アドレス
@@ -201,40 +209,74 @@ module jelly_axi4_dma_reader
 	wire							axi4_ctl_arvalid;
 	wire							axi4_ctl_arready;
 	
-	reg		[ISSUE_COUNTER_WIDTH-1:0]	reg_issue_counter, next_issue_counter;
-	always @* begin
-		next_issue_counter = reg_issue_counter;
-		
-		if ( axi4_arvalid && axi4_arready ) begin
-			next_issue_counter = next_issue_counter + axi4_arlen + 1'b1;
-		end
-		
-		if ( axi4_rvalid && axi4_rready ) begin
-			next_issue_counter = next_issue_counter - 1'b1;
-		end
-	end
-	wire	[ISSUE_COUNTER_WIDTH-1:0]	sig_issue_counter = reg_issue_counter - LIMITTER_MARGINE;
+	wire							sig_limiter_arready;
 	
-	reg									reg_limiter_arready;
-	always @(posedge aclk) begin
-		if ( !aresetn ) begin
-			reg_issue_counter   <= LIMITTER_MARGINE;	// offset
-			reg_limiter_arready <= 1'b0;
-		end
-		else begin
-			// count
-			reg_issue_counter <= next_issue_counter;
+	generate
+	if ( USE_ISSUE_ADD ) begin : blk_semaphore
+		// セマフォカウンタで管理
+		wire	[ISSUE_COUNTER_WIDTH-1:0]	semaphore_counter;
+		jelly_semaphore
+				#(
+					.ASYNC				(ISSUE_ASYNC),
+					.COUNTER_WIDTH		(ISSUE_COUNTER_WIDTH),
+					.INIT_COUNTER		(ISSUE_COUNTER_INIT)
+				)
+			i_semaphore
+				(
+					.rel_reset			(issue_reset),
+					.rel_clk			(issue_clk),
+					.rel_add			(issue_add),
+					.rel_valid			(issue_valid),
+					
+					.req_reset			(~aresetn),
+					.req_clk			(aclk),
+					.req_sub			({1'b0, axi4_ctl_arlen} + 1'b1),
+					.req_valid			(axi4_ctl_arvalid && axi4_ctl_arready),
+					.req_empty			(),
+					.req_counter		(semaphore_counter)
+				);
+		
+		assign sig_limiter_arready = (semaphore_counter > axi4_ctl_arlen);
+	end
+	else begin : blk_acceptable
+		// 受け入れ可能サイズから計算
+		reg		[ISSUE_COUNTER_WIDTH-1:0]	reg_issue_counter, next_issue_counter;
+		always @* begin
+			next_issue_counter = reg_issue_counter;
 			
-			// ready
-			reg_limiter_arready <= 1'b0;
-			if ( !reg_limiter_arready && axi4_ctl_arvalid ) begin
-				if ( acceptable_counter > reg_issue_counter + axi4_ctl_arlen ) begin
-					reg_limiter_arready <= 1'b1;
+			if ( axi4_arvalid && axi4_arready ) begin
+				next_issue_counter = next_issue_counter + axi4_arlen + 1'b1;
+			end
+			
+			if ( axi4_rvalid && axi4_rready ) begin
+				next_issue_counter = next_issue_counter - 1'b1;
+			end
+		end
+		wire	[ISSUE_COUNTER_WIDTH-1:0]	sig_issue_counter = reg_issue_counter - LIMITTER_MARGINE;
+		
+		reg									reg_limiter_arready;
+		always @(posedge aclk) begin
+			if ( !aresetn ) begin
+				reg_issue_counter   <= LIMITTER_MARGINE;	// offset
+				reg_limiter_arready <= 1'b0;
+			end
+			else begin
+				// count
+				reg_issue_counter <= next_issue_counter;
+				
+				// ready
+				reg_limiter_arready <= 1'b0;
+				if ( !reg_limiter_arready && axi4_ctl_arvalid ) begin
+					if ( acceptable_counter > reg_issue_counter + axi4_ctl_arlen ) begin
+						reg_limiter_arready <= 1'b1;
+					end
 				end
 			end
 		end
+		
+		assign sig_limiter_arready = reg_limiter_arready;
 	end
-	
+	endgenerate
 	
 	// -----------------------------
 	//  Control
@@ -274,8 +316,8 @@ module jelly_axi4_dma_reader
 	
 	assign axi4_araddr      = axi4_ctl_araddr;
 	assign axi4_arlen       = axi4_ctl_arlen;
-	assign axi4_arvalid     = axi4_ctl_arvalid & (reg_limiter_arready || !LIMITTER_ENABLE);
-	assign axi4_ctl_arready = axi4_arready     & (reg_limiter_arready || !LIMITTER_ENABLE);
+	assign axi4_arvalid     = axi4_ctl_arvalid & (sig_limiter_arready || !LIMITTER_ENABLE);
+	assign axi4_ctl_arready = axi4_arready     & (sig_limiter_arready || !LIMITTER_ENABLE);
 	
 	
 	

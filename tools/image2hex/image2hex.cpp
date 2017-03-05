@@ -14,6 +14,7 @@ int main(int argc, char *argv[])
 	unsigned long	ulBusSize     = 8;
 	std::string		strImageFile;
 	std::string		strHexFile;
+	std::string		strFlatHexFile;
 
 	for ( int i = 1; i < argc; i++ ) {
 		if ( strcmp(argv[i], "-w") == 0 && i+1 < argc ) {
@@ -40,6 +41,9 @@ int main(int argc, char *argv[])
 		else if (strcmp(argv[i], "-img") == 0 && i + 1 < argc) {
 			i++;	strImageFile = argv[i];
 		}
+		else if (strcmp(argv[i], "-flat") == 0 && i + 1 < argc) {
+			i++;	strFlatHexFile = argv[i];
+		}
 		else {
 			strHexFile = argv[i];
 		}
@@ -63,7 +67,19 @@ int main(int argc, char *argv[])
 
 	cv::resize(img, img, cv::Size(ulImageWidth, ulImageHeight));
 	
+	// フラットイメージ
+	if (!strFlatHexFile.empty()) {
+		FILE* fp;
+		fopen_s(&fp, strFlatHexFile.c_str(), "w");
+		for (int i = 0; i < img.cols*img.rows*3; i += ulBusSize){
+			for (int j = ulBusSize - 1; j >= 0; j--){
+				fprintf(fp, "%02x", img.data[i + j]);
+			}
+			fprintf(fp, "\n");
+		}
+	}
 
+	// テクスチャキャッシュ用ブロックイメージ
 	auto	ubBuf = new unsigned char[ulMemSize];
 	for (int i = 0; i < 3; i++) {
 		auto p = &ubBuf[i*ulPlaneSize];
