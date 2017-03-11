@@ -3,12 +3,12 @@
 `default_nettype none
 
 
-module tb_axi_addr_align();
+module tb_axi_addr_len();
 	localparam RATE = 1000.0/200.0;
 	
 	initial begin
-		$dumpfile("tb_axi_addr_align.vcd");
-		$dumpvars(0, tb_axi_addr_align);
+		$dumpfile("tb_axi_addr_len.vcd");
+		$dumpvars(0, tb_axi_addr_len);
 		
 		#1000000;
 			$finish;
@@ -28,8 +28,8 @@ module tb_axi_addr_align();
 	parameter	USER_WIDTH    = 32;
 	parameter	ADDR_WIDTH    = 32;
 	parameter	DATA_SIZE     = 3;		// 0:8bit, 1:16bit, 2:32bit, 3:64bit, ...
-	parameter	LEN_WIDTH     = 8;
-	parameter	ALIGN         = 12;		// 2^n (4kbyte)
+	parameter	S_LEN_WIDTH   = 24;
+	parameter	M_LEN_WIDTH   = 8;
 	parameter	S_SLAVE_REGS  = 1;
 	parameter	S_MASTER_REGS = 1;
 	parameter	M_SLAVE_REGS  = 1;
@@ -43,30 +43,30 @@ module tb_axi_addr_align();
 	
 	reg		[USER_BITS-1:0]		s_user;
 	reg		[ADDR_WIDTH-1:0]	s_addr;
-	reg		[LEN_WIDTH-1:0]		s_len;
+	reg		[S_LEN_WIDTH-1:0]		s_len;
 	reg							s_valid;
 	wire						s_ready;
 	
 	wire	[USER_BITS-1:0]		m_user;
 	wire	[ADDR_WIDTH-1:0]	m_addr;
-	wire	[LEN_WIDTH-1:0]		m_len;
+	wire	[M_LEN_WIDTH-1:0]	m_len;
 	wire						m_valid;
 	reg							m_ready = 1'b1;
 	
-	jelly_axi_addr_align
+	jelly_axi_addr_len
 			#(
 				.BYPASS				(BYPASS),
 				.USER_WIDTH			(USER_WIDTH),
-				.ADDR_WIDTH			(ADDR_WIDTH),
 				.DATA_SIZE			(DATA_SIZE),
-				.LEN_WIDTH			(LEN_WIDTH),
-				.ALIGN				(ALIGN),
+				.ADDR_WIDTH			(ADDR_WIDTH),
+				.S_LEN_WIDTH		(S_LEN_WIDTH),
+				.M_LEN_WIDTH		(M_LEN_WIDTH),
 				.S_SLAVE_REGS		(S_SLAVE_REGS),
 				.S_MASTER_REGS		(S_MASTER_REGS),
 				.M_SLAVE_REGS		(M_SLAVE_REGS),
 				.M_MASTER_REGS		(M_MASTER_REGS)
 			)
-		i_axi_addr_align
+		i_axi_addr_len
 			(
 				.aresetn			(aresetn),
 				.aclk				(aclk),
@@ -74,7 +74,7 @@ module tb_axi_addr_align();
 				                     
 				.s_user				(s_valid ? s_user : {USER_WIDTH{1'bx}}),
 				.s_addr				(s_valid ? s_addr : {ADDR_WIDTH{1'bx}}),
-				.s_len				(s_valid ? s_len  : {LEN_WIDTH{1'bx}}),
+				.s_len				(s_valid ? s_len  : {S_LEN_WIDTH{1'bx}}),
 				.s_valid			(s_valid),
 				.s_ready			(s_ready),
 				                     
@@ -89,6 +89,7 @@ module tb_axi_addr_align();
 		aclken <= RAND_BUSY ? {$random()} : 1;
 	end
 	
+	
 	integer		fp;
 	initial	fp = $fopen("out.txt", "w");
 	
@@ -96,22 +97,14 @@ module tb_axi_addr_align();
 		if ( ~aresetn ) begin
 			s_user  <= 0;
 			s_addr  <= 0;
-//			s_addr  <= (1 << DATA_SIZE);
-//			s_addr  <= (1 << ALIGN) - (1 << DATA_SIZE);
-			
-			s_len   <= 8'hff;
+			s_len   <= 0;
 			s_valid <= 1'b0;
 		end
 		else if ( aclken ) begin
 			if ( s_valid && s_ready ) begin
 				s_user  <= s_user + 1;
 				s_addr  <= s_addr + ((s_len+1) << DATA_SIZE);
-				if ( s_user == 1024 ) begin
-					s_addr <= (1 << DATA_SIZE);
-				end
-				if ( s_user == 2048 ) begin
-					s_addr  <= (1 << ALIGN) - (1 << DATA_SIZE);
-				end
+				s_len   <= s_len + 1;
 			end
 			
 			if ( !s_valid || s_ready ) begin

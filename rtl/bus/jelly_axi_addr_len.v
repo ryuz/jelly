@@ -22,7 +22,6 @@ module jelly_axi_addr_len
 			parameter	ADDR_WIDTH    = 32,
 			parameter	S_LEN_WIDTH   = 24,
 			parameter	M_LEN_WIDTH   = 8,
-			parameter	ALIGN         = 12,		// 2^n (4kbyte)
 			parameter	S_SLAVE_REGS  = 1,
 			parameter	S_MASTER_REGS = 1,
 			parameter	M_SLAVE_REGS  = 1,
@@ -48,8 +47,6 @@ module jelly_axi_addr_len
 			output	wire						m_valid,
 			input	wire						m_ready
 		);
-	
-	localparam	UNIT_ALIGN = ALIGN - DATA_SIZE;
 	
 	
 	generate
@@ -153,26 +150,28 @@ module jelly_axi_addr_len
 			else if ( cke ) begin
 				reg_valid <= 1'b0;
 				if ( !reg_split ) begin
-					reg_user     <= ff_s_user;
-					reg_addr     <= ff_s_addr;
-					reg_len      <= ff_s_len;
-					reg_len_base <= {S_LEN_WIDTH{1'bx}};
-					reg_valid    <= ff_s_valid;
+					reg_user      <= ff_s_user;
+					reg_addr      <= ff_s_addr;
+					reg_len       <= ff_s_len;
+					reg_len_count <= {S_LEN_WIDTH{1'bx}};
+					reg_valid     <= ff_s_valid;
 					if ( ff_s_valid && ff_s_len > {M_LEN_WIDTH{1'b1}} ) begin
 						reg_split     <= 1'b1;
+						reg_len       <= {M_LEN_WIDTH{1'b1}};
 						reg_len_count <= ff_s_len - {M_LEN_WIDTH{1'b1}} - 1'b1;
 					end
 				end
 				else begin
 					reg_split <= 1'b0;
 					reg_addr  <= reg_addr + ((reg_len + 1'b1) << DATA_SIZE);
-					reg_len   <= reg_len_base - reg_len - 1'b1;
+					reg_len   <= reg_len_count - reg_len - 1'b1;
 					reg_valid <= 1'b1;
-					if ( reg_len_base > {M_LEN_WIDTH{1'b1}} ) begin
-						reg_split <= 1'b1;
-						reg_addr  <= reg_addr + {M_LEN_WIDTH{1'b1}} + 1'b1;
-						reg_len   <= reg_len_base - {M_LEN_WIDTH{1'b1}} - 1'b1;
-						reg_valid <= 1'b1;
+					if ( reg_len_count > {M_LEN_WIDTH{1'b1}} ) begin
+						reg_split     <= 1'b1;
+						reg_addr      <= reg_addr + {M_LEN_WIDTH{1'b1}} + 1'b1;
+						reg_len       <= {M_LEN_WIDTH{1'b1}};
+						reg_len_count <= reg_len_count - {M_LEN_WIDTH{1'b1}} - 1'b1;
+						reg_valid     <= 1'b1;
 					end
 				end
 			end
