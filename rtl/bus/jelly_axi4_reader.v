@@ -37,10 +37,8 @@ module jelly_axi4_reader
 			
 			parameter	AXI4S_ASYNC              = 1,
 			parameter	AXI4S_DATA_WIDTH         = AXI4_DATA_WIDTH,
-			
-			parameter	CAPACITY_ASYNC           = 1,
-			parameter	CAPACITY_COUNTER_WIDTH   = 10,
-			parameter	CAPACITY_INIT_COUNTER    = 256,
+			parameter	AXI4S_FIFO_PTR_WIDTH     = 9,
+			parameter	AXI4S_FIFO_RAM_TYPE      = "block",
 			
 			parameter	CMD_FIFO_PTR_WIDTH		 = 6,
 			parameter	CMD_FIFO_RAM_TYPE		 = "distributed",
@@ -60,11 +58,6 @@ module jelly_axi4_reader
 			input	wire	[AXI4_ADDR_WIDTH-1:0]			param_range_start,
 			input	wire	[AXI4_ADDR_WIDTH-1:0]			param_range_end,
 			input	wire	[AXI4_LEN_WIDTH-1:0]			param_maxlen,
-			
-			input	wire									capacity_reset,
-			input	wire									capacity_clk,
-			input	wire	[CAPACITY_COUNTER_WIDTH-1:0]	capacity_add,
-			input	wire									capacity_valid,
 			
 			input	wire	[AXI4_ADDR_WIDTH-1:0]			s_araddr,
 			input	wire	[S_LEN_WIDTH-1:0]				s_arlen,
@@ -90,6 +83,9 @@ module jelly_axi4_reader
 			input	wire									m_axi4_rvalid,
 			output	wire									m_axi4_rready,
 			
+			input	wire									m_axi4s_aresetn,
+			input	wire									m_axi4s_aclk,
+			input	wire									m_axi4s_aclken,
 			output	wire									m_axi4s_tlast,
 			output	wire	[AXI4S_DATA_WIDTH-1:0]			m_axi4s_tdata,
 			output	wire									m_axi4s_tvalid,
@@ -97,222 +93,182 @@ module jelly_axi4_reader
 		);
 	
 	
-	// ---------------------------------
-	//  address command
-	// ---------------------------------
 	
-	wire	[AXI4_ADDR_WIDTH-1:0]	range_araddr;
-	wire	[S_LEN_WIDTH-1:0]		range_arlen;
-	wire							range_arvalid;
-	wire							range_arready;
+	//  Core
+	parameter	CAPACITY_ASYNC           = AXI4S_ASYNC;
+	parameter	CAPACITY_COUNTER_WIDTH   = AXI4S_FIFO_PTR_WIDTH + 1;
+	parameter	CAPACITY_INIT_COUNTER    = (1 << AXI4S_FIFO_PTR_WIDTH);
 	
-	jelly_axi_addr_range
-			#(
-				.BYPASS					(BYPASS_RANGE),
-				.USER_WIDTH				(0),
-				.ADDR_WIDTH				(AXI4_ADDR_WIDTH),
-				.DATA_SIZE				(AXI4_DATA_SIZE),
-				.LEN_WIDTH				(S_LEN_WIDTH),
-				.S_SLAVE_REGS			(1),
-				.S_MASTER_REGS			(1),
-				.M_SLAVE_REGS			(0),
-				.M_MASTER_REGS			(1)
+	wire									capacity_reset = ~m_axi4s_aresetn;
+	wire									capacity_clk   = m_axi4s_aclk;
+	wire	[CAPACITY_COUNTER_WIDTH-1:0]	capacity_add   = 1;
+	wire									capacity_valid = (m_axi4s_aclken & m_axi4s_tvalid & m_axi4s_tready);
+	
+	wire									axi4s_tlast;
+	wire	[AXI4S_DATA_WIDTH-1:0]			axi4s_tdata;
+	wire									axi4s_tvalid;
+	wire									axi4s_tready;
+	
+	jelly_axi4_reader_core
+		#(
+				.S_LEN_WIDTH				(S_LEN_WIDTH),
+				
+				.AXI4_ID_WIDTH				(AXI4_ID_WIDTH),
+				.AXI4_ADDR_WIDTH			(AXI4_ADDR_WIDTH),
+				.AXI4_DATA_SIZE				(AXI4_DATA_SIZE),
+				.AXI4_DATA_WIDTH			(AXI4_DATA_WIDTH),
+				.AXI4_LEN_WIDTH				(AXI4_LEN_WIDTH),
+				.AXI4_QOS_WIDTH				(AXI4_QOS_WIDTH),
+				.AXI4_ARID					(AXI4_ARID),
+				.AXI4_ARSIZE				(AXI4_ARSIZE),
+				.AXI4_ARBURST				(AXI4_ARBURST),
+				.AXI4_ARLOCK				(AXI4_ARLOCK),
+				.AXI4_ARCACHE				(AXI4_ARCACHE),
+				.AXI4_ARPROT				(AXI4_ARPROT),
+				.AXI4_ARQOS					(AXI4_ARQOS),
+				.AXI4_ARREGION				(AXI4_ARREGION),
+				
+				.AXI4_ALIGN					(AXI4_ALIGN),
+				
+				.AXI4S_DATA_WIDTH			(AXI4S_DATA_WIDTH),
+				
+				.CAPACITY_ASYNC				(CAPACITY_ASYNC),
+				.CAPACITY_COUNTER_WIDTH		(CAPACITY_COUNTER_WIDTH),
+				.CAPACITY_INIT_COUNTER		(CAPACITY_INIT_COUNTER),
+				
+				.CMD_FIFO_PTR_WIDTH			(CMD_FIFO_PTR_WIDTH),
+				.CMD_FIFO_RAM_TYPE			(CMD_FIFO_RAM_TYPE),
+				.CMD_USE_READY				(CMD_USE_READY),
+				
+				.BYPASS_RANGE				(BYPASS_RANGE),
+				.BYPASS_LEN					(BYPASS_LEN),
+				.BYPASS_ALIGN				(BYPASS_ALIGN),
+				.BYPASS_CAPACITY			(BYPASS_CAPACITY),
+				.BYPASS_LAST				(1)
 			)
-		i_axi_addr_range
+		i_axi4_reader_core
 			(
-				.aresetn				(aresetn),
-				.aclk					(aclk),
-				.aclken					(aclken),
+				.aresetn					(aresetn),
+				.aclk						(aclk),
+				.aclken						(aclken),
 				
-				.param_range_start		(param_range_start),
-				.param_range_end		(param_range_end),
+				.param_range_start			(param_range_start),
+				.param_range_end			(param_range_end),
+				.param_maxlen				(param_maxlen),
 				
-				.s_user					(1'b0),
-				.s_addr					(s_araddr),
-				.s_len					(s_arlen),
-				.s_valid				(s_arvalid),
-				.s_ready				(s_arready),
+				.capacity_reset				(capacity_reset),
+				.capacity_clk				(capacity_clk),
+				.capacity_add				(capacity_add),
+				.capacity_valid				(capacity_valid),
 				
-				.m_user					(),
-				.m_addr					(range_araddr),
-				.m_len					(range_arlen),
-				.m_valid				(range_arvalid),
-				.m_ready				(range_arready)
-			);
-	
-	// len
-	wire	[AXI4_ADDR_WIDTH-1:0]	len_araddr;
-	wire	[AXI4_LEN_WIDTH-1:0]	len_arlen;
-	wire							len_arvalid;
-	wire							len_arready;
-	
-	jelly_axi_addr_len
-			#(
-				.BYPASS					(BYPASS_LEN),
-				.USER_WIDTH				(0),
-				.DATA_SIZE				(AXI4_DATA_SIZE),
-				.ADDR_WIDTH				(AXI4_ADDR_WIDTH),
-				.S_LEN_WIDTH			(S_LEN_WIDTH),
-				.M_LEN_WIDTH			(AXI4_LEN_WIDTH),
-				.S_SLAVE_REGS			(0),
-				.S_MASTER_REGS			(0),
-				.M_SLAVE_REGS			(0),
-				.M_MASTER_REGS			(1)
-			)
-		i_axi_addr_len
-			(
-				.aresetn				(aresetn),
-				.aclk					(aclk),
-				.aclken					(aclken),
+				.s_araddr					(s_araddr),
+				.s_arlen					(s_arlen),
+				.s_arvalid					(s_arvalid),
+				.s_arready					(s_arready),
 				
-				.param_len_max			(param_maxlen),
+				.m_axi4_arid				(m_axi4_arid),
+				.m_axi4_araddr				(m_axi4_araddr),
+				.m_axi4_arlen				(m_axi4_arlen),
+				.m_axi4_arsize				(m_axi4_arsize),
+				.m_axi4_arburst				(m_axi4_arburst),
+				.m_axi4_arlock				(m_axi4_arlock),
+				.m_axi4_arcache				(m_axi4_arcache),
+				.m_axi4_arprot				(m_axi4_arprot),
+				.m_axi4_arqos				(m_axi4_arqos),
+				.m_axi4_arregion			(m_axi4_arregion),
+				.m_axi4_arvalid				(m_axi4_arvalid),
+				.m_axi4_arready				(m_axi4_arready),
+				.m_axi4_rid					(m_axi4_rid),
+				.m_axi4_rdata				(m_axi4_rdata),
+				.m_axi4_rresp				(m_axi4_rresp),
+				.m_axi4_rlast				(m_axi4_rlast),
+				.m_axi4_rvalid				(m_axi4_rvalid),
+				.m_axi4_rready				(m_axi4_rready),
 				
-				.s_user					(1'b0),
-				.s_addr					(range_araddr),
-				.s_len					(range_arlen),
-				.s_valid				(range_arvalid),
-				.s_ready				(range_arready),
-				
-				.m_user					(),
-				.m_addr					(len_araddr),
-				.m_len					(len_arlen),
-				.m_valid				(len_arvalid),
-				.m_ready				(len_arready)
-			);
-	
-	
-	// align
-	wire	[AXI4_ADDR_WIDTH-1:0]	align_araddr;
-	wire	[AXI4_LEN_WIDTH-1:0]	align_arlen;
-	wire							align_arvalid;
-	wire							align_arready;
-	
-	jelly_axi_addr_align
-			#(
-				.BYPASS					(BYPASS_ALIGN),
-				.USER_WIDTH				(0),
-				.ADDR_WIDTH				(AXI4_ADDR_WIDTH),
-				.DATA_SIZE				(AXI4_DATA_SIZE),
-				.LEN_WIDTH				(AXI4_LEN_WIDTH),
-				.ALIGN					(AXI4_ALIGN),
-				.S_SLAVE_REGS			(0),
-				.S_MASTER_REGS			(0),
-				.M_SLAVE_REGS			(0),
-				.M_MASTER_REGS			(1)
-			)
-		i_axi_addr_align
-			(
-				.aresetn				(aresetn),
-				.aclk					(aclk),
-				.aclken					(aclken),
-				
-				.s_user					(1'b0),
-				.s_addr					(len_araddr),
-				.s_len					(len_arlen),
-				.s_valid				(len_arvalid),
-				.s_ready				(len_arready),
-				
-				.m_user					(),
-				.m_addr					(align_araddr),
-				.m_len					(align_arlen),
-				.m_valid				(align_arvalid),
-				.m_ready				(align_arready)
+				.m_axi4s_tlast				(axi4s_tlast),
+				.m_axi4s_tdata				(axi4s_tdata),
+				.m_axi4s_tvalid				(axi4s_tvalid),
+				.m_axi4s_tready				(axi4s_tready)
 			);
 	
 	
-	// capacity
-	wire	[AXI4_ADDR_WIDTH-1:0]	capacity_araddr;
-	wire	[AXI4_LEN_WIDTH-1:0]	capacity_arlen;
-	wire							capacity_arvalid;
-	wire							capacity_arready;
+	//  AXI4S FIFO	
+	wire								axi4s_fifo_tlast;
+	wire	[AXI4S_DATA_WIDTH-1:0]		axi4s_fifo_tdata;
+	wire								axi4s_fifo_tvalid;
+	wire								axi4s_fifo_tready;
 	
-	jelly_axi_addr_capacity
+	jelly_fifo_generic_fwtf
 			#(
-				.BYPASS					(BYPASS_CAPACITY),
-				.USER_WIDTH				(0),
-				.DATA_SIZE				(AXI4_DATA_SIZE),
-				.ADDR_WIDTH				(AXI4_ADDR_WIDTH),
-				.LEN_WIDTH				(AXI4_LEN_WIDTH),
-				
-				.CAPACITY_ASYNC			(CAPACITY_ASYNC),
-				.CAPACITY_COUNTER_WIDTH	(CAPACITY_COUNTER_WIDTH),
-				.CAPACITY_INIT_COUNTER	(CAPACITY_INIT_COUNTER),
-				
-				.S_SLAVE_REGS			(1),
-				.S_MASTER_REGS			(0),
-				.M_SLAVE_REGS			(0),
-				.M_MASTER_REGS			(1)
+				.ASYNC						(AXI4S_ASYNC),
+				.DATA_WIDTH					(1+AXI4S_DATA_WIDTH),
+				.PTR_WIDTH					(AXI4S_FIFO_PTR_WIDTH),
+				.DOUT_REGS					(0),
+				.RAM_TYPE					(AXI4S_FIFO_RAM_TYPE),
+				.LOW_DEALY					(0),
+				.SLAVE_REGS					(0),
+				.MASTER_REGS				(1)
 			)
-		i_axi_addr_capacity
+		i_fifo_generic_fwtf_axi4s
 			(
-				.aresetn				(aresetn),
-				.aclk					(aclk),
-				.aclken					(aclken),
+				.s_reset					(~aresetn),
+				.s_clk						(aclk),
+				.s_data						({axi4s_tlast, axi4s_tdata}),
+				.s_valid					(axi4s_tvalid & aclken),
+				.s_ready					(axi4s_tready),
+				.s_free_count				(),
 				
-				.capacity_reset			(capacity_reset),
-				.capacity_clk			(capacity_clk),
-				.capacity_add			(capacity_add),
-				.capacity_valid			(capacity_valid),
-				
-				.s_user					(1'b0),
-				.s_addr					(align_araddr),
-				.s_len					(align_arlen),
-				.s_valid				(align_arvalid),
-				.s_ready				(align_arready),
-				
-				.m_user					(),
-				.m_addr					(capacity_araddr),
-				.m_len					(capacity_arlen),
-				.m_valid				(capacity_arvalid),
-				.m_ready				(capacity_arready)
+				.m_reset					(~m_axi4s_aresetn),
+				.m_clk						(m_axi4s_aclk),
+				.m_data						({axi4s_fifo_tlast, axi4s_fifo_tdata}),
+				.m_valid					(axi4s_fifo_tvalid),
+				.m_ready					(axi4s_fifo_tready),
+				.m_data_count				()
 			);
 	
 	
 	
-	// ---------------------------------
-	//  data
-	// ---------------------------------
-	
-	wire		cmd_ready;
+	// tlast•t—^
+	wire				cmd_ready;
 	
 	jelly_axi_data_last
 			#(
-				.BYPASS				(BYPASS_LAST),
-				.USER_WIDTH			(0),
-				.DATA_WIDTH			(AXI4_DATA_WIDTH),
-				.LEN_WIDTH			(S_LEN_WIDTH),
-				.FIFO_ASYNC			(0),
-				.FIFO_PTR_WIDTH		(CMD_FIFO_PTR_WIDTH),
-				.FIFO_RAM_TYPE		(CMD_FIFO_RAM_TYPE),
-				.S_SLAVE_REGS		(0),
-				.S_MASTER_REGS		(0),
-				.M_SLAVE_REGS		(0),
-				.M_MASTER_REGS		(1)
+				.BYPASS						(BYPASS_LAST),
+				.USER_WIDTH					(0),
+				.DATA_WIDTH					(AXI4_DATA_WIDTH),
+				.LEN_WIDTH					(S_LEN_WIDTH),
+				.FIFO_ASYNC					(0),
+				.FIFO_PTR_WIDTH				(CMD_FIFO_PTR_WIDTH),
+				.FIFO_RAM_TYPE				(CMD_FIFO_RAM_TYPE),
+				.S_SLAVE_REGS				(0),
+				.S_MASTER_REGS				(0),
+				.M_SLAVE_REGS				(0),
+				.M_MASTER_REGS				(1)
 			)
 		i_axi_data_last
 			(
-				.aresetn			(aresetn),
-				.aclk				(aclk),
-				.aclken				(aclken),
+				.aresetn					(m_axi4s_aresetn),
+				.aclk						(m_axi4s_aclk),
+				.aclken						(m_axi4s_aclken),
 				
-				.s_cmd_aresetn		(aresetn),
-				.s_cmd_aclk			(aclk),
-				.s_cmd_aclken		(aclken),
-				.s_cmd_len			(s_arlen),
-				.s_cmd_valid		(s_arvalid),
-				.s_cmd_ready		(cmd_ready),
+				.s_cmd_aresetn				(aresetn),
+				.s_cmd_aclk					(aclk),
+				.s_cmd_aclken				(aclken),
+				.s_cmd_len					(s_arlen),
+				.s_cmd_valid				(s_arvalid),
+				.s_cmd_ready				(cmd_ready),
 				
-				.s_user				(1'b0),
-				.s_last				(m_axi4_rlast),
-				.s_data				(m_axi4_rdata),
-				.s_valid			(m_axi4_rvalid),
-				.s_ready			(m_axi4_rready),
+				.s_user						(1'b0),
+				.s_last						(axi4s_fifo_tlast),
+				.s_data						(axi4s_fifo_tdata),
+				.s_valid					(axi4s_fifo_tvalid),
+				.s_ready					(axi4s_fifo_tready),
 				
-				.m_user				(),
-				.m_last				(m_axi4s_tlast),
-				.m_data				(m_axi4s_tdata),
-				.m_valid			(m_axi4s_tvalid),
-				.m_ready			(m_axi4s_tready)
+				.m_user						(),
+				.m_last						(m_axi4s_tlast),
+				.m_data						(m_axi4s_tdata),
+				.m_valid					(m_axi4s_tvalid),
+				.m_ready					(m_axi4s_tready)
 			);
 	
 	always @(posedge aclk) begin
@@ -324,24 +280,6 @@ module jelly_axi4_reader
 			end
 		end
 	end
-	
-	
-	
-	// ---------------------------------
-	//  master
-	// ---------------------------------
-	
-	assign	m_axi4_arid     = AXI4_ID_WIDTH;
-	assign	m_axi4_araddr   = capacity_araddr;
-	assign	m_axi4_arlen    = capacity_arlen;
-	assign	m_axi4_arsize   = AXI4_ARSIZE;
-	assign	m_axi4_arburst  = AXI4_ARBURST;
-	assign	m_axi4_arlock   = AXI4_ARLOCK;
-	assign	m_axi4_arcache  = AXI4_ARCACHE;
-	assign	m_axi4_arprot   = AXI4_ARPROT;
-	assign	m_axi4_arqos    = AXI4_ARQOS;
-	assign	m_axi4_arregion = AXI4_ARREGION;
-	assign	m_axi4_arvalid  = capacity_arvalid;
 	
 	
 endmodule
