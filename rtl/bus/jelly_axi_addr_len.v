@@ -35,6 +35,8 @@ module jelly_axi_addr_len
 			input	wire						aclk,
 			input	wire						aclken,
 			
+			input	wire	[M_LEN_WIDTH-1:0]	param_len_max,
+			
 			input	wire	[USER_BITS-1:0]		s_user,
 			input	wire	[ADDR_WIDTH-1:0]	s_addr,
 			input	wire	[S_LEN_WIDTH-1:0]	s_len,
@@ -155,10 +157,10 @@ module jelly_axi_addr_len
 					reg_len       <= ff_s_len;
 					reg_len_count <= {S_LEN_WIDTH{1'bx}};
 					reg_valid     <= ff_s_valid;
-					if ( ff_s_valid && ff_s_len > {M_LEN_WIDTH{1'b1}} ) begin
+					if ( ff_s_valid && (ff_s_len > param_len_max) ) begin
 						reg_split     <= 1'b1;
-						reg_len       <= {M_LEN_WIDTH{1'b1}};
-						reg_len_count <= ff_s_len - {M_LEN_WIDTH{1'b1}} - 1'b1;
+						reg_len       <= param_len_max;
+						reg_len_count <= ff_s_len - param_len_max - 1'b1;
 					end
 				end
 				else begin
@@ -166,11 +168,10 @@ module jelly_axi_addr_len
 					reg_addr  <= reg_addr + ((reg_len + 1'b1) << DATA_SIZE);
 					reg_len   <= reg_len_count - reg_len - 1'b1;
 					reg_valid <= 1'b1;
-					if ( reg_len_count > {M_LEN_WIDTH{1'b1}} ) begin
+					if ( reg_len_count > param_len_max ) begin
 						reg_split     <= 1'b1;
-						reg_addr      <= reg_addr + {M_LEN_WIDTH{1'b1}} + 1'b1;
-						reg_len       <= {M_LEN_WIDTH{1'b1}};
-						reg_len_count <= reg_len_count - {M_LEN_WIDTH{1'b1}} - 1'b1;
+						reg_len       <= param_len_max;
+						reg_len_count <= reg_len_count - param_len_max - 1'b1;
 						reg_valid     <= 1'b1;
 					end
 				end

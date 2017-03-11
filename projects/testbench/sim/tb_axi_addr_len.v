@@ -41,9 +41,11 @@ module tb_axi_addr_len();
 	wire						aclk    = clk;
 	reg							aclken  = 1'b1;
 	
+	reg		[M_LEN_WIDTH-1:0]	param_len_max  = {M_LEN_WIDTH{1'b1}} >> 1;
+	
 	reg		[USER_BITS-1:0]		s_user;
 	reg		[ADDR_WIDTH-1:0]	s_addr;
-	reg		[S_LEN_WIDTH-1:0]		s_len;
+	reg		[S_LEN_WIDTH-1:0]	s_len;
 	reg							s_valid;
 	wire						s_ready;
 	
@@ -71,7 +73,9 @@ module tb_axi_addr_len();
 				.aresetn			(aresetn),
 				.aclk				(aclk),
 				.aclken				(aclken),
-				                     
+				
+				.param_len_max		(param_len_max),
+				
 				.s_user				(s_valid ? s_user : {USER_WIDTH{1'bx}}),
 				.s_addr				(s_valid ? s_addr : {ADDR_WIDTH{1'bx}}),
 				.s_len				(s_valid ? s_len  : {S_LEN_WIDTH{1'bx}}),

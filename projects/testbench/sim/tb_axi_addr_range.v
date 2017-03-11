@@ -70,8 +70,8 @@ module tb_axi_addr_range();
 				.aclk				(aclk),
 				.aclken				(aclken),
 				
-				.param_addr_start	(32'h0001_0000),
-				.param_addr_end		(32'h0001_0f30),
+				.param_range_start	(32'h0001_0000),
+				.param_range_end	(32'h0001_0f30),
 				
 				.s_user				(s_valid ? s_user : {USER_WIDTH{1'bx}}),
 				.s_addr				(s_valid ? s_addr : {ADDR_WIDTH{1'bx}}),

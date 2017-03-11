@@ -35,8 +35,8 @@ module jelly_axi_addr_range
 			input	wire						aclk,
 			input	wire						aclken,
 			
-			input	wire	[ADDR_WIDTH-1:0]	param_addr_start,
-			input	wire	[ADDR_WIDTH-1:0]	param_addr_end,
+			input	wire	[ADDR_WIDTH-1:0]	param_range_start,
+			input	wire	[ADDR_WIDTH-1:0]	param_range_end,
 			
 			input	wire	[USER_BITS-1:0]		s_user,
 			input	wire	[ADDR_WIDTH-1:0]	s_addr,
@@ -167,7 +167,7 @@ module jelly_axi_addr_range
 					st0_user     <= ff_s_user;
 					st0_addr     <= ff_s_addr;
 					st0_len      <= ff_s_len;
-					st0_len_max  <= ((param_addr_end - ff_s_addr) >> DATA_SIZE);
+					st0_len_max  <= ((param_range_end - ff_s_addr) >> DATA_SIZE);
 					st0_valid    <= ff_s_valid;
 				end
 				
@@ -185,7 +185,7 @@ module jelly_axi_addr_range
 				end
 				else begin
 					st1_split <= 1'b0;
-					st1_addr  <= param_addr_start;
+					st1_addr  <= param_range_start;
 					st1_len   <= st1_len_base - st1_len - 1'b1;
 					st1_valid <= 1'b1;
 				end
