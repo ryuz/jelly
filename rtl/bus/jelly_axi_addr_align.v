@@ -105,7 +105,7 @@ module jelly_axi_addr_align
 				#(
 					.DATA_WIDTH			(USER_BITS+ADDR_WIDTH+LEN_WIDTH),
 					.SLAVE_REGS			(M_SLAVE_REGS),
-					.MASTER_REGS		(M_MASTER_REGS)
+					.MASTER_REGS		(0)	// M_MASTER_REGS)
 				)
 			i_pipeline_insert_ff_m
 				(
@@ -138,46 +138,50 @@ module jelly_axi_addr_align
 		wire	[UNIT_ALIGN:0]		end_addr   = {1'b0, unit_addr} + ff_s_len;
 		wire						align_over = end_addr[UNIT_ALIGN];
 		
-		reg							reg_split_valid;
-		reg		[LEN_WIDTH-1:0]		reg_split_len;
-		
-		reg		[ADDR_WIDTH-1:0]	sig_addr;
-		reg		[LEN_WIDTH-1:0]		sig_len;
-		
-		always @* begin
-			sig_addr = ff_s_addr;
-			sig_len  = ff_s_len;
-			if ( !reg_split_valid ) begin
-				if ( !align_over ) begin
-					sig_addr = ((unit_addr + reg_split_len + 1'b1) << DATA_SIZE);
-					sig_len  = ff_s_len - reg_split_len - 1'b1;
-				end
-			end
-		end
+		reg							reg_split;
+		reg		[USER_BITS-1:0]		reg_user;
+		reg		[ADDR_WIDTH-1:0]	reg_addr;
+		reg		[LEN_WIDTH-1:0]		reg_len;
+		reg		[LEN_WIDTH-1:0]		reg_len_base;
+		reg							reg_valid;
 		
 		always @(posedge aclk) begin
 			if ( ~aresetn ) begin
-				reg_split_valid <= 1'b0;
-				reg_split_len   <= {LEN_WIDTH{1'bx}};
+				reg_split    <= 1'b0;
+				reg_user     <= {USER_BITS{1'bx}};
+				reg_addr     <= {ADDR_WIDTH{1'bx}};
+				reg_len      <= {LEN_WIDTH{1'bx}};
+				reg_len_base <= {LEN_WIDTH{1'bx}};
+				reg_valid    <= 1'b0;
 			end
 			else if ( cke ) begin
-				if ( !reg_split_valid ) begin
-					reg_split_valid <= ff_s_valid && align_over;
-					reg_split_len   <= align_addr - unit_addr - 1'b1;
+				reg_valid <= 1'b0;
+				if ( !reg_split ) begin
+					reg_user     <= ff_s_user;
+					reg_addr     <= ff_s_addr;
+					reg_len      <= ff_s_len;
+					reg_len_base <= ff_s_len;
+					reg_valid    <= ff_s_valid;
+					if ( align_over ) begin
+						reg_split <= 1'b1;
+						reg_len   <= align_addr - unit_addr - 1'b1;
+					end
 				end
 				else begin
-					reg_split_valid <= 1'b0;
-					reg_split_len   <= {LEN_WIDTH{1'bx}};
+					reg_split <= 1'b0;
+					reg_addr  <= reg_addr + ((reg_len + 1'b1) << DATA_SIZE);
+					reg_len   <= reg_len_base - reg_len - 1'b1;
+					reg_valid <= 1'b1;
 				end
 			end
 		end
 		
-		assign ff_m_user  = ff_s_user;
-		assign ff_m_addr  = sig_addr;
-		assign ff_m_len   = sig_len;
-		assign ff_m_valid = (ff_s_valid || reg_split_valid);
+		assign ff_m_user  = reg_user;
+		assign ff_m_addr  = reg_addr;
+		assign ff_m_len   = reg_len;
+		assign ff_m_valid = reg_valid;
 		
-		assign ff_s_ready = (cke && ~reg_split_valid);
+		assign ff_s_ready = (cke && ~reg_split);
 	end
 	endgenerate
 	
