@@ -18,8 +18,8 @@ module jelly_axi_addr_align
 		#(
 			parameter	BYPASS        = 0,
 			parameter	USER_WIDTH    = 0,
-			parameter	ADDR_WIDTH    = 32,
 			parameter	DATA_SIZE     = 3,		// 0:8bit, 1:16bit, 2:32bit, 3:64bit, ...
+			parameter	ADDR_WIDTH    = 32,
 			parameter	LEN_WIDTH     = 8,
 			parameter	ALIGN         = 12,		// 2^n (4kbyte)
 			parameter	S_SLAVE_REGS  = 1,
