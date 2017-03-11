@@ -315,6 +315,14 @@
     </file>
     <file xil_pn:name="../../../../rtl/bus/jelly_axi4_reader.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="274"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="26"/>
+    </file>
+    <file xil_pn:name="../../../../rtl/bus/jelly_axi4_reader_core.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="286"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="25"/>
+    </file>
+    <file xil_pn:name="../../../../rtl/library/jelly_data_spliter.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="287"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="24"/>
     </file>
   </files>

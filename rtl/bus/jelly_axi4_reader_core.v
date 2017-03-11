@@ -97,6 +97,54 @@ module jelly_axi4_reader_core
 	
 	
 	// ---------------------------------
+	//  address command split
+	// ---------------------------------
+	
+	wire	[AXI4_ADDR_WIDTH-1:0]			cmd_araddr;
+	wire	[S_LEN_WIDTH-1:0]				cmd_arlen;
+	wire									cmd_arvalid;
+	wire									cmd_arready;
+	
+	
+	wire	[AXI4_ADDR_WIDTH-1:0]			core_araddr;
+	wire	[S_LEN_WIDTH-1:0]				core_arlen;
+	wire									core_arvalid;
+	wire									core_arready;
+	
+	generate
+	if ( BYPASS_LAST ) begin : blk_bypass_last
+		assign	core_araddr  = s_araddr;
+		assign	core_arlen   = s_arlen;
+		assign	core_arvalid = s_arvalid;
+		assign	s_arready    = core_arready;
+	end
+	else begin : blk_split_cmd
+		jelly_data_spliter
+				#(
+					.NUM			(2),
+					.DATA_WIDTH		(AXI4_ADDR_WIDTH+S_LEN_WIDTH),
+					.S_REGS			(0),
+					.M_REGS			(0)
+				)
+			i_data_spliter
+				(
+					.reset			(aresetn),
+					.clk			(aclk),
+					.cke			(aclken),
+					
+					.s_data			({{s_araddr, s_arlen}, {s_araddr, s_arlen}}),
+					.s_valid		(s_arvalid),
+					.s_ready		(s_arready),
+					
+					.m_data			({{cmd_araddr, cmd_arlen}, {core_araddr, core_arlen}}),
+					.m_valid		({cmd_arvalid, core_arvalid}),
+					.m_ready		({cmd_arready, core_arready})
+				);
+	end
+	endgenerate
+	
+	
+	// ---------------------------------
 	//  address command
 	// ---------------------------------
 	
@@ -127,10 +175,10 @@ module jelly_axi4_reader_core
 				.param_range_end		(param_range_end),
 				
 				.s_user					(1'b0),
-				.s_addr					(s_araddr),
-				.s_len					(s_arlen),
-				.s_valid				(s_arvalid),
-				.s_ready				(s_arready),
+				.s_addr					(core_araddr),
+				.s_len					(core_arlen),
+				.s_valid				(core_arvalid),
+				.s_ready				(core_arready),
 				
 				.m_user					(),
 				.m_addr					(range_araddr),
@@ -266,81 +314,67 @@ module jelly_axi4_reader_core
 				.m_ready				(capacity_arready)
 			);
 	
+	assign	m_axi4_arid      = AXI4_ID_WIDTH;
+	assign	m_axi4_araddr    = capacity_araddr;
+	assign	m_axi4_arlen     = capacity_arlen;
+	assign	m_axi4_arsize    = AXI4_ARSIZE;
+	assign	m_axi4_arburst   = AXI4_ARBURST;
+	assign	m_axi4_arlock    = AXI4_ARLOCK;
+	assign	m_axi4_arcache   = AXI4_ARCACHE;
+	assign	m_axi4_arprot    = AXI4_ARPROT;
+	assign	m_axi4_arqos     = AXI4_ARQOS;
+	assign	m_axi4_arregion  = AXI4_ARREGION;
+	assign	m_axi4_arvalid   = capacity_arvalid;
+	
+	assign	capacity_arready = m_axi4_arready;
+	
 	
 	
 	// ---------------------------------
 	//  data
 	// ---------------------------------
 	
-	wire		cmd_ready;
-	
+	// tlast•t—^
 	jelly_axi_data_last
 			#(
-				.BYPASS				(BYPASS_LAST),
-				.USER_WIDTH			(0),
-				.DATA_WIDTH			(AXI4_DATA_WIDTH),
-				.LEN_WIDTH			(S_LEN_WIDTH),
-				.FIFO_ASYNC			(0),
-				.FIFO_PTR_WIDTH		(CMD_FIFO_PTR_WIDTH),
-				.FIFO_RAM_TYPE		(CMD_FIFO_RAM_TYPE),
-				.S_SLAVE_REGS		(0),
-				.S_MASTER_REGS		(0),
-				.M_SLAVE_REGS		(0),
-				.M_MASTER_REGS		(1)
+				.BYPASS						(BYPASS_LAST),
+				.USER_WIDTH					(0),
+				.DATA_WIDTH					(AXI4_DATA_WIDTH),
+				.LEN_WIDTH					(S_LEN_WIDTH),
+				.FIFO_ASYNC					(0),
+				.FIFO_PTR_WIDTH				(CMD_FIFO_PTR_WIDTH),
+				.FIFO_RAM_TYPE				(CMD_FIFO_RAM_TYPE),
+				.S_SLAVE_REGS				(0),
+				.S_MASTER_REGS				(0),
+				.M_SLAVE_REGS				(0),
+				.M_MASTER_REGS				(1)
 			)
 		i_axi_data_last
 			(
-				.aresetn			(aresetn),
-				.aclk				(aclk),
-				.aclken				(aclken),
+				.aresetn					(aresetn),
+				.aclk						(aclk),
+				.aclken						(aclken),
 				
-				.s_cmd_aresetn		(aresetn),
-				.s_cmd_aclk			(aclk),
-				.s_cmd_aclken		(aclken),
-				.s_cmd_len			(s_arlen),
-				.s_cmd_valid		(s_arvalid),
-				.s_cmd_ready		(cmd_ready),
+				.s_cmd_aresetn				(aresetn),
+				.s_cmd_aclk					(aclk),
+				.s_cmd_aclken				(aclken),
+				.s_cmd_len					(cmd_arlen),
+				.s_cmd_valid				(cmd_arvalid),
+				.s_cmd_ready				(cmd_arready),
 				
-				.s_user				(1'b0),
-				.s_last				(m_axi4_rlast),
-				.s_data				(m_axi4_rdata),
-				.s_valid			(m_axi4_rvalid),
-				.s_ready			(m_axi4_rready),
+				.s_user						(1'b0),
+				.s_last						(m_axi4_rlast),
+				.s_data						(m_axi4_rdata),
+				.s_valid					(m_axi4_rvalid),
+				.s_ready					(m_axi4_rready),
 				
-				.m_user				(),
-				.m_last				(m_axi4s_tlast),
-				.m_data				(m_axi4s_tdata),
-				.m_valid			(m_axi4s_tvalid),
-				.m_ready			(m_axi4s_tready)
+				.m_user						(),
+				.m_last						(m_axi4s_tlast),
+				.m_data						(m_axi4s_tdata),
+				.m_valid					(m_axi4s_tvalid),
+				.m_ready					(m_axi4s_tready)
 			);
 	
-	always @(posedge aclk) begin
-		if ( aresetn && aclken ) begin
-			if ( !CMD_USE_READY ) begin
-				if ( s_arvalid & s_arready & !cmd_ready ) begin
-					$display("jelly_axi4_reader : command over flow");
-				end
-			end
-		end
-	end
-	
-	
-	
-	// ---------------------------------
-	//  master
-	// ---------------------------------
-	
-	assign	m_axi4_arid     = AXI4_ID_WIDTH;
-	assign	m_axi4_araddr   = capacity_araddr;
-	assign	m_axi4_arlen    = capacity_arlen;
-	assign	m_axi4_arsize   = AXI4_ARSIZE;
-	assign	m_axi4_arburst  = AXI4_ARBURST;
-	assign	m_axi4_arlock   = AXI4_ARLOCK;
-	assign	m_axi4_arcache  = AXI4_ARCACHE;
-	assign	m_axi4_arprot   = AXI4_ARPROT;
-	assign	m_axi4_arqos    = AXI4_ARQOS;
-	assign	m_axi4_arregion = AXI4_ARREGION;
-	assign	m_axi4_arvalid  = capacity_arvalid;
 	
 	
 endmodule
