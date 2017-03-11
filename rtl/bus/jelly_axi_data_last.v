@@ -14,7 +14,7 @@
 
 
 //  AXI データに last 信号を付与
-module jelly_axi_addr_align
+module jelly_axi_data_last
 		#(
 			parameter	BYPASS         = 0,
 			parameter	USER_WIDTH     = 0,
@@ -37,31 +37,31 @@ module jelly_axi_addr_align
 			input	wire						aclk,
 			input	wire						aclken,
 			
-			input	wire						s_cmd_aresetn,,
+			input	wire						s_cmd_aresetn,
 			input	wire						s_cmd_aclk,
+			input	wire						s_cmd_aclken,
 			input	wire	[LEN_WIDTH-1:0]		s_cmd_len,
 			input	wire						s_cmd_valid,
 			output	wire						s_cmd_ready,
 			
 			input	wire	[USER_BITS-1:0]		s_user,
+			input	wire						s_last,
 			input	wire	[DATA_WIDTH-1:0]	s_data,
 			input	wire						s_valid,
 			output	wire						s_ready,
 			
 			output	wire	[USER_BITS-1:0]		m_user,
 			output	wire						m_last,
-			output	wire	[ADDR_WIDTH-1:0]	m_data,
+			output	wire	[DATA_WIDTH-1:0]	m_data,
 			output	wire						m_valid,
 			input	wire						m_ready
 		);
 	
-	localparam	UNIT_ALIGN = ALIGN - DATA_SIZE;
-	
-	
+		
 	generate
 	if ( BYPASS ) begin : blk_bypass
 		assign	m_user     = s_user;
-		assign	m_last     = 1'b1;
+		assign	m_last     = s_last;
 		assign	m_data     = s_data;
 		assign	m_valid    = s_valid;
 		
@@ -158,7 +158,7 @@ module jelly_axi_addr_align
 					.s_reset		(~s_cmd_aresetn),
 					.s_clk			(s_cmd_aclk),
 					.s_data			(s_cmd_len),
-					.s_valid		(s_cmd_valid),
+					.s_valid		(s_cmd_valid & s_cmd_aclken),
 					.s_ready		(s_cmd_ready),
 					.s_free_count	(),
 					
@@ -195,7 +195,7 @@ module jelly_axi_addr_align
 				else begin
 					if ( ff_m_valid && ff_m_ready ) begin
 						reg_len  <= reg_len - 1'b1;
-						reg_last <= ((reg_last - 1'b1) == 0);
+						reg_last <= ((reg_len - 1'b1) == 0);
 					end
 				end
 			end
@@ -208,7 +208,7 @@ module jelly_axi_addr_align
 		
 		assign ff_s_ready = (ff_m_ready & reg_valid);
 		
-		assign cmd_ready  = !reg_valid || (ff_m_last && ff_m_valid && ff_m_ready);
+		assign cmd_ready  = aclken && (!reg_valid || (ff_m_last && ff_m_valid && ff_m_ready));
 	end
 	endgenerate
 	
