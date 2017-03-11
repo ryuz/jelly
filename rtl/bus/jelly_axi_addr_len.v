@@ -13,14 +13,15 @@
 
 
 
-//  AXI に対するアドレスコマンドアライン調整(4k境界跨ぎ分割用)
-module jelly_axi_addr_align
+//  AXI に対する転送長を分割する
+module jelly_axi_addr_len
 		#(
 			parameter	BYPASS        = 0,
 			parameter	USER_WIDTH    = 0,
-			parameter	ADDR_WIDTH    = 32,
 			parameter	DATA_SIZE     = 3,		// 0:8bit, 1:16bit, 2:32bit, 3:64bit, ...
-			parameter	LEN_WIDTH     = 8,
+			parameter	ADDR_WIDTH    = 32,
+			parameter	S_LEN_WIDTH   = 24,
+			parameter	M_LEN_WIDTH   = 8,
 			parameter	ALIGN         = 12,		// 2^n (4kbyte)
 			parameter	S_SLAVE_REGS  = 1,
 			parameter	S_MASTER_REGS = 1,
@@ -37,13 +38,13 @@ module jelly_axi_addr_align
 			
 			input	wire	[USER_BITS-1:0]		s_user,
 			input	wire	[ADDR_WIDTH-1:0]	s_addr,
-			input	wire	[LEN_WIDTH-1:0]		s_len,
+			input	wire	[S_LEN_WIDTH-1:0]	s_len,
 			input	wire						s_valid,
 			output	wire						s_ready,
 			
 			output	wire	[USER_BITS-1:0]		m_user,
 			output	wire	[ADDR_WIDTH-1:0]	m_addr,
-			output	wire	[LEN_WIDTH-1:0]		m_len,
+			output	wire	[M_LEN_WIDTH-1:0]	m_len,
 			output	wire						m_valid,
 			input	wire						m_ready
 		);
@@ -67,19 +68,19 @@ module jelly_axi_addr_align
 		
 		wire	[USER_BITS-1:0]		ff_s_user;
 		wire	[ADDR_WIDTH-1:0]	ff_s_addr;
-		wire	[LEN_WIDTH-1:0]		ff_s_len;
+		wire	[S_LEN_WIDTH-1:0]	ff_s_len;
 		wire						ff_s_valid;
 		wire						ff_s_ready;
 		
 		wire	[USER_BITS-1:0]		ff_m_user;
 		wire	[ADDR_WIDTH-1:0]	ff_m_addr;
-		wire	[LEN_WIDTH-1:0]		ff_m_len;
+		wire	[M_LEN_WIDTH-1:0]	ff_m_len;
 		wire						ff_m_valid;
 		wire						ff_m_ready;
 		
 		jelly_pipeline_insert_ff
 				#(
-					.DATA_WIDTH			(USER_BITS+ADDR_WIDTH+LEN_WIDTH),
+					.DATA_WIDTH			(USER_BITS+ADDR_WIDTH+S_LEN_WIDTH),
 					.SLAVE_REGS			(S_SLAVE_REGS),
 					.MASTER_REGS		(S_MASTER_REGS)
 				)
@@ -103,9 +104,9 @@ module jelly_axi_addr_align
 		
 		jelly_pipeline_insert_ff
 				#(
-					.DATA_WIDTH			(USER_BITS+ADDR_WIDTH+LEN_WIDTH),
+					.DATA_WIDTH			(USER_BITS+ADDR_WIDTH+M_LEN_WIDTH),
 					.SLAVE_REGS			(M_SLAVE_REGS),
-					.MASTER_REGS		(0)	// M_MASTER_REGS)
+					.MASTER_REGS		(0)	// (M_MASTER_REGS)
 				)
 			i_pipeline_insert_ff_m
 				(
@@ -133,26 +134,21 @@ module jelly_axi_addr_align
 		
 		wire						cke        = aclken && (!ff_m_valid || ff_m_ready);
 		
-		wire	[UNIT_ALIGN:0]		align_addr = (1 << UNIT_ALIGN);
-		wire	[UNIT_ALIGN:0]		unit_addr  = ff_s_addr[ALIGN-1:DATA_SIZE];
-		wire	[UNIT_ALIGN:0]		end_addr   = {1'b0, unit_addr} + ff_s_len;
-		wire						align_over = ff_s_valid && end_addr[UNIT_ALIGN];
-		
 		reg							reg_split;
 		reg		[USER_BITS-1:0]		reg_user;
 		reg		[ADDR_WIDTH-1:0]	reg_addr;
-		reg		[LEN_WIDTH-1:0]		reg_len;
-		reg		[LEN_WIDTH-1:0]		reg_len_base;
+		reg		[M_LEN_WIDTH-1:0]	reg_len;
+		reg		[S_LEN_WIDTH-1:0]	reg_len_count;
 		reg							reg_valid;
 		
 		always @(posedge aclk) begin
 			if ( ~aresetn ) begin
-				reg_split    <= 1'b0;
-				reg_user     <= {USER_BITS{1'bx}};
-				reg_addr     <= {ADDR_WIDTH{1'bx}};
-				reg_len      <= {LEN_WIDTH{1'bx}};
-				reg_len_base <= {LEN_WIDTH{1'bx}};
-				reg_valid    <= 1'b0;
+				reg_split     <= 1'b0;
+				reg_user      <= {USER_BITS{1'bx}};
+				reg_addr      <= {ADDR_WIDTH{1'bx}};
+				reg_len       <= {M_LEN_WIDTH{1'bx}};
+				reg_len_count <= {S_LEN_WIDTH{1'bx}};
+				reg_valid     <= 1'b0;
 			end
 			else if ( cke ) begin
 				reg_valid <= 1'b0;
@@ -160,11 +156,11 @@ module jelly_axi_addr_align
 					reg_user     <= ff_s_user;
 					reg_addr     <= ff_s_addr;
 					reg_len      <= ff_s_len;
-					reg_len_base <= ff_s_len;
+					reg_len_base <= {S_LEN_WIDTH{1'bx}};
 					reg_valid    <= ff_s_valid;
-					if ( align_over ) begin
-						reg_split <= 1'b1;
-						reg_len   <= align_addr - unit_addr - 1'b1;
+					if ( ff_s_valid && ff_s_len > {M_LEN_WIDTH{1'b1}} ) begin
+						reg_split     <= 1'b1;
+						reg_len_count <= ff_s_len - {M_LEN_WIDTH{1'b1}} - 1'b1;
 					end
 				end
 				else begin
@@ -172,6 +168,12 @@ module jelly_axi_addr_align
 					reg_addr  <= reg_addr + ((reg_len + 1'b1) << DATA_SIZE);
 					reg_len   <= reg_len_base - reg_len - 1'b1;
 					reg_valid <= 1'b1;
+					if ( reg_len_base > {M_LEN_WIDTH{1'b1}} ) begin
+						reg_split <= 1'b1;
+						reg_addr  <= reg_addr + {M_LEN_WIDTH{1'b1}} + 1'b1;
+						reg_len   <= reg_len_base - {M_LEN_WIDTH{1'b1}} - 1'b1;
+						reg_valid <= 1'b1;
+					end
 				end
 			end
 		end
