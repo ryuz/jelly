@@ -25,6 +25,8 @@ module jelly_data_spliter
 			input	wire							clk,
 			input	wire							cke,
 			
+			output	wire							busy,
+			
 			input	wire	[NUM*DATA_WIDTH-1:0]	s_data,
 			input	wire							s_valid,
 			output	wire							s_ready,
@@ -123,6 +125,7 @@ module jelly_data_spliter
 	assign ff_m_data  = ff_s_data;
 	assign ff_s_ready = &ff_m_ready;
 	
+	assign busy       = |ff_m_valid;
 	
 endmodule
 

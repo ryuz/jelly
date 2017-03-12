@@ -42,7 +42,9 @@ module jelly_axi4_reader
 			
 			parameter	LAST_FIFO_PTR_WIDTH		 = 6,
 			parameter	LAST_FIFO_RAM_TYPE		 = "distributed",
-			parameter	LAST_USE_READY            = 0,
+			parameter	LAST_USE_READY           = 0,
+
+			parameter	BUSY_COUNTER_WIDTH       = 10,
 			
 			parameter	BYPASS_RANGE             = 0,
 			parameter	BYPASS_LEN               = 0,
@@ -54,6 +56,8 @@ module jelly_axi4_reader
 			input	wire							aresetn,
 			input	wire							aclk,
 			input	wire							aclken,
+			
+			output	wire							busy,
 			
 			input	wire	[AXI4_ADDR_WIDTH-1:0]	param_range_start,
 			input	wire	[AXI4_ADDR_WIDTH-1:0]	param_range_end,
@@ -97,15 +101,17 @@ module jelly_axi4_reader
 	//  address command split
 	// ---------------------------------
 	
-	wire	[AXI4_ADDR_WIDTH-1:0]			cmd_araddr;
-	wire	[S_LEN_WIDTH-1:0]				cmd_arlen;
-	wire									cmd_arvalid;
-	wire									cmd_arready;
-	
 	wire	[AXI4_ADDR_WIDTH-1:0]			core_araddr;
 	wire	[S_LEN_WIDTH-1:0]				core_arlen;
 	wire									core_arvalid;
 	wire									core_arready;
+	
+	wire	[AXI4_ADDR_WIDTH-1:0]			last_araddr;
+	wire	[S_LEN_WIDTH-1:0]				last_arlen;
+	wire									last_arvalid;
+	wire									last_arready;
+	
+	wire									spliter_busy;
 	
 	generate
 	if ( BYPASS_LAST ) begin : blk_bypass_last
@@ -113,6 +119,8 @@ module jelly_axi4_reader
 		assign	core_arlen   = s_arlen;
 		assign	core_arvalid = s_arvalid;
 		assign	s_arready    = core_arready;
+		
+		assign	spliter_busy = 1'b0;
 	end
 	else begin : blk_split_cmd
 		jelly_data_spliter
@@ -128,13 +136,15 @@ module jelly_axi4_reader
 					.clk			(aclk),
 					.cke			(aclken),
 					
+					.busy			(spliter_busy),
+					
 					.s_data			({{s_araddr, s_arlen}, {s_araddr, s_arlen}}),
 					.s_valid		(s_arvalid),
 					.s_ready		(s_arready),
 					
-					.m_data			({{cmd_araddr, cmd_arlen}, {core_araddr, core_arlen}}),
-					.m_valid		({cmd_arvalid, core_arvalid}),
-					.m_ready		({cmd_arready, core_arready})
+					.m_data			({{last_araddr, last_arlen}, {core_araddr, core_arlen}}),
+					.m_valid		({last_arvalid,              core_arvalid}),
+					.m_ready		({last_arready,              core_arready})
 				);
 	end
 	endgenerate
@@ -158,6 +168,8 @@ module jelly_axi4_reader
 	wire	[AXI4S_DATA_WIDTH-1:0]			axi4s_tdata;
 	wire									axi4s_tvalid;
 	wire									axi4s_tready;
+	
+	wire									core_busy;
 	
 	jelly_axi4_reader_core
 		#(
@@ -188,6 +200,8 @@ module jelly_axi4_reader
 				
 				.LAST_FIFO_PTR_WIDTH		(0),
 				
+				.BUSY_COUNTER_WIDTH			(BUSY_COUNTER_WIDTH),
+				
 				.BYPASS_RANGE				(BYPASS_RANGE),
 				.BYPASS_LEN					(BYPASS_LEN),
 				.BYPASS_ALIGN				(BYPASS_ALIGN),
@@ -199,6 +213,8 @@ module jelly_axi4_reader
 				.aresetn					(aresetn),
 				.aclk						(aclk),
 				.aclken						(aclken),
+				
+				.busy						(core_busy),
 				
 				.param_range_start			(param_range_start),
 				.param_range_end			(param_range_end),
@@ -302,9 +318,9 @@ module jelly_axi4_reader
 				.s_cmd_aresetn				(aresetn),
 				.s_cmd_aclk					(aclk),
 				.s_cmd_aclken				(aclken),
-				.s_cmd_len					(cmd_arlen),
-				.s_cmd_valid				(cmd_arvalid),
-				.s_cmd_ready				(cmd_arready),
+				.s_cmd_len					(last_arlen),
+				.s_cmd_valid				(last_arvalid),
+				.s_cmd_ready				(last_arready),
 				
 				.s_user						(1'b0),
 				.s_last						(axi4s_fifo_tlast),
@@ -319,6 +335,7 @@ module jelly_axi4_reader
 				.m_ready					(m_axi4s_tready)
 			);
 	
+	assign busy = (spliter_busy || core_busy);
 	
 endmodule
 

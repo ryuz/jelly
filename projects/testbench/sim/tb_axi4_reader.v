@@ -56,9 +56,9 @@ module tb_axi4_reader();
 	parameter	AXI4S_FIFO_PTR_WIDTH     = 9;
 	parameter	AXI4S_FIFO_RAM_TYPE      = "block";
 	
-	parameter	CMD_FIFO_PTR_WIDTH       = 12;
-	parameter	CMD_FIFO_RAM_TYPE        = "distributed";
-	parameter	CMD_USE_READY            = 0;
+	parameter	LAST_FIFO_PTR_WIDTH      = 12;
+	parameter	LAST_FIFO_RAM_TYPE       = "distributed";
+	parameter	LAST_USE_READY           = 0;
 	
 	parameter	BYPASS_RANGE             = 0;
 	parameter	BYPASS_LEN               = 0;
@@ -70,6 +70,8 @@ module tb_axi4_reader();
 	wire									aclk    = axi4_aclk;
 	wire									aclken  = 1'b1;
 	
+	wire									busy;
+
 	wire	[AXI4_ADDR_WIDTH-1:0]			param_range_start = 32'h0010000;
 	wire	[AXI4_ADDR_WIDTH-1:0]			param_range_end   = 32'h000ffff;
 	wire	[AXI4_LEN_WIDTH-1:0]			param_maxlen      = 8'h1f;
@@ -128,9 +130,9 @@ module tb_axi4_reader();
 				.AXI4S_DATA_WIDTH			(AXI4S_DATA_WIDTH),
 				.AXI4S_FIFO_PTR_WIDTH		(AXI4S_FIFO_PTR_WIDTH),
 				.AXI4S_FIFO_RAM_TYPE		(AXI4S_FIFO_RAM_TYPE),
-				.CMD_FIFO_PTR_WIDTH 		(CMD_FIFO_PTR_WIDTH),
-				.CMD_FIFO_RAM_TYPE			(CMD_FIFO_RAM_TYPE),
-				.CMD_USE_READY				(CMD_USE_READY),
+				.LAST_FIFO_PTR_WIDTH 		(LAST_FIFO_PTR_WIDTH),
+				.LAST_FIFO_RAM_TYPE			(LAST_FIFO_RAM_TYPE),
+				.LAST_USE_READY				(LAST_USE_READY),
 				.BYPASS_RANGE				(BYPASS_RANGE),
 				.BYPASS_LEN 				(BYPASS_LEN),
 				.BYPASS_ALIGN				(BYPASS_ALIGN),
@@ -142,7 +144,9 @@ module tb_axi4_reader();
 				.aresetn					(aresetn),
 				.aclk						(aclk),
 				.aclken 					(aclken),
-				
+
+				.busy						(busy),				
+
 				.param_range_start			(param_range_start),
 				.param_range_end			(param_range_end),
 				.param_maxlen				(param_maxlen),
@@ -215,6 +219,10 @@ module tb_axi4_reader();
 			
 			if ( !s_arvalid || s_arready ) begin
 				s_arvalid <= RAND_BUSY ? {$random()} : 1'b1;
+				
+		//		if ( s_araddr > 32'h0001_0100 ) begin
+		//			s_arvalid <= 0;
+		//		end
 			end
 			
 			if ( !m_axi4_rready ) begin

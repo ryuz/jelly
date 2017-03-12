@@ -418,7 +418,11 @@ module jelly_axi4_write_core
 				reg_busy <= 1'b1;
 			end
 			else begin
-				if ( !range_busy && !len_busy && !align_busy && !capacity_busy && (reg_busy_counter == 0) ) begin
+				if (    !range_busy    && !range_awvalid
+				     && !len_busy      && !len_awvalid
+					 && !align_busy    && !align_awvalid
+					 && !capacity_busy && !capacity_awvalid
+					 && (reg_busy_counter == 0) ) begin
 					reg_busy <= 1'b0;
 				end
 			end

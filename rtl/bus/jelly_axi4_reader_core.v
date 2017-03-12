@@ -16,44 +16,48 @@
 //  AXI4 から Read するコア
 module jelly_axi4_reader_core
 		#(
-			parameter	S_LEN_WIDTH              = 24,
+			parameter	S_LEN_WIDTH            = 24,
 			
-			parameter	AXI4_ID_WIDTH            = 6,
-			parameter	AXI4_ADDR_WIDTH          = 32,
-			parameter	AXI4_DATA_SIZE           = 2,	// 0:8bit, 1:16bit, 2:32bit ...
-			parameter	AXI4_DATA_WIDTH          = (8 << AXI4_DATA_SIZE),
-			parameter	AXI4_LEN_WIDTH           = 8,
-			parameter	AXI4_QOS_WIDTH           = 4,
-			parameter	AXI4_ARID                = {AXI4_ID_WIDTH{1'b0}},
-			parameter	AXI4_ARSIZE              = AXI4_DATA_SIZE,
-			parameter	AXI4_ARBURST             = 2'b01,
-			parameter	AXI4_ARLOCK              = 1'b0,
-			parameter	AXI4_ARCACHE             = 4'b0001,
-			parameter	AXI4_ARPROT              = 3'b000,
-			parameter	AXI4_ARQOS               = 0,
-			parameter	AXI4_ARREGION            = 4'b0000,
+			parameter	AXI4_ID_WIDTH          = 6,
+			parameter	AXI4_ADDR_WIDTH        = 32,
+			parameter	AXI4_DATA_SIZE         = 2,	// 0:8bit, 1:16bit, 2:32bit ...
+			parameter	AXI4_DATA_WIDTH        = (8 << AXI4_DATA_SIZE),
+			parameter	AXI4_LEN_WIDTH         = 8,
+			parameter	AXI4_QOS_WIDTH         = 4,
+			parameter	AXI4_ARID              = {AXI4_ID_WIDTH{1'b0}},
+			parameter	AXI4_ARSIZE            = AXI4_DATA_SIZE,
+			parameter	AXI4_ARBURST           = 2'b01,
+			parameter	AXI4_ARLOCK            = 1'b0,
+			parameter	AXI4_ARCACHE           = 4'b0001,
+			parameter	AXI4_ARPROT            = 3'b000,
+			parameter	AXI4_ARQOS             = 0,
+			parameter	AXI4_ARREGION          = 4'b0000,
 			
-			parameter	AXI4_ALIGN               = 12,
+			parameter	AXI4_ALIGN             = 12,
 			
-			parameter	AXI4S_DATA_WIDTH         = AXI4_DATA_WIDTH,
+			parameter	AXI4S_DATA_WIDTH       = AXI4_DATA_WIDTH,
 			
-			parameter	CAPACITY_ASYNC           = 1,
-			parameter	CAPACITY_COUNTER_WIDTH   = 10,
-			parameter	CAPACITY_INIT_COUNTER    = 256,
+			parameter	CAPACITY_ASYNC         = 1,
+			parameter	CAPACITY_COUNTER_WIDTH = 10,
+			parameter	CAPACITY_INIT_COUNTER  = 256,
 			
-			parameter	LAST_FIFO_PTR_WIDTH		 = 6,
-			parameter	LAST_FIFO_RAM_TYPE		 = "distributed",
+			parameter	LAST_FIFO_PTR_WIDTH    = 6,
+			parameter	LAST_FIFO_RAM_TYPE     = "distributed",
 			
-			parameter	BYPASS_RANGE             = 0,
-			parameter	BYPASS_LEN               = 0,
-			parameter	BYPASS_ALIGN             = 0,
-			parameter	BYPASS_CAPACITY          = 0,
-			parameter	BYPASS_LAST              = 0
+			parameter	BUSY_COUNTER_WIDTH     = 10,
+			
+			parameter	BYPASS_RANGE           = 0,
+			parameter	BYPASS_LEN             = 0,
+			parameter	BYPASS_ALIGN           = 0,
+			parameter	BYPASS_CAPACITY        = 0,
+			parameter	BYPASS_LAST            = 0
 		)
 		(
 			input	wire									aresetn,
 			input	wire									aclk,
 			input	wire									aclken,
+			
+			output	wire									busy,
 			
 			input	wire	[AXI4_ADDR_WIDTH-1:0]			param_range_start,
 			input	wire	[AXI4_ADDR_WIDTH-1:0]			param_range_end,
@@ -109,12 +113,16 @@ module jelly_axi4_reader_core
 	wire									last_arvalid;
 	wire									last_arready;
 	
+	wire									spliter_busy;
+	
 	generate
 	if ( BYPASS_LAST ) begin : blk_bypass_last
 		assign	core_araddr  = s_araddr;
 		assign	core_arlen   = s_arlen;
 		assign	core_arvalid = s_arvalid;
 		assign	s_arready    = core_arready;
+		
+		assign	spliter_busy = 1'b0;
 	end
 	else begin : blk_split_cmd
 		jelly_data_spliter
@@ -129,6 +137,8 @@ module jelly_axi4_reader_core
 					.reset			(aresetn),
 					.clk			(aclk),
 					.cke			(aclken),
+					
+					.spliter_busy	(spliter_busy),
 					
 					.s_data			({{s_araddr, s_arlen}, {s_araddr, s_arlen}}),
 					.s_valid		(s_arvalid),
@@ -151,6 +161,8 @@ module jelly_axi4_reader_core
 	wire							range_arvalid;
 	wire							range_arready;
 	
+	wire							range_busy;
+	
 	jelly_axi_addr_range
 			#(
 				.BYPASS					(BYPASS_RANGE),
@@ -168,6 +180,8 @@ module jelly_axi4_reader_core
 				.aresetn				(aresetn),
 				.aclk					(aclk),
 				.aclken					(aclken),
+				
+				.busy					(range_busy),
 				
 				.param_range_start		(param_range_start),
 				.param_range_end		(param_range_end),
@@ -191,6 +205,8 @@ module jelly_axi4_reader_core
 	wire							len_arvalid;
 	wire							len_arready;
 	
+	wire							len_busy;
+	
 	jelly_axi_addr_len
 			#(
 				.BYPASS					(BYPASS_LEN),
@@ -209,6 +225,8 @@ module jelly_axi4_reader_core
 				.aresetn				(aresetn),
 				.aclk					(aclk),
 				.aclken					(aclken),
+				
+				.busy					(len_busy),
 				
 				.param_len_max			(param_maxlen),
 				
@@ -232,6 +250,8 @@ module jelly_axi4_reader_core
 	wire							align_arvalid;
 	wire							align_arready;
 	
+	wire							align_busy;
+	
 	jelly_axi_addr_align
 			#(
 				.BYPASS					(BYPASS_ALIGN),
@@ -250,6 +270,8 @@ module jelly_axi4_reader_core
 				.aresetn				(aresetn),
 				.aclk					(aclk),
 				.aclken					(aclken),
+				
+				.busy					(align_busy),
 				
 				.s_user					(1'b0),
 				.s_addr					(len_araddr),
@@ -270,6 +292,8 @@ module jelly_axi4_reader_core
 	wire	[AXI4_LEN_WIDTH-1:0]	capacity_arlen;
 	wire							capacity_arvalid;
 	wire							capacity_arready;
+	
+	wire							capacity_busy;
 	
 	jelly_axi_addr_capacity
 			#(
@@ -293,6 +317,8 @@ module jelly_axi4_reader_core
 				.aresetn				(aresetn),
 				.aclk					(aclk),
 				.aclken					(aclken),
+				
+				.busy					(capacity_busy),
 				
 				.capacity_reset			(capacity_reset),
 				.capacity_clk			(capacity_clk),
@@ -373,6 +399,41 @@ module jelly_axi4_reader_core
 				.m_ready					(m_axi4s_tready)
 			);
 	
+	
+	
+	// ---------------------------------
+	//  busy カウンタ
+	// ---------------------------------
+	
+	reg									reg_busy;
+	
+	reg		[BUSY_COUNTER_WIDTH-1:0]	reg_busy_counter;
+	
+	always @(posedge aclk) begin
+		if ( ~aresetn ) begin
+			reg_busy         <= 1'b0;
+			reg_busy_counter <= {BUSY_COUNTER_WIDTH{1'b0}};
+		end
+		else if( aclken ) begin
+			reg_busy_counter <= reg_busy_counter + (m_axi4_arvalid & m_axi4_arready) - (m_axi4_rlast & m_axi4_rvalid & m_axi4_rready);
+			
+			if ( s_arvalid & s_arready ) begin
+				reg_busy <= 1'b1;
+			end
+			else begin
+				if (	   !spliter_busy  && !core_arvalid 
+						&& !range_busy    && !range_arvalid
+						&& !len_busy      && !len_arvalid
+						&& !align_busy    && !align_arvalid
+						&& !capacity_busy && !capacity_arvalid
+						&& (reg_busy_counter == 0) ) begin
+					reg_busy <= 1'b0;
+				end
+			end
+		end
+	end
+	
+	assign busy = reg_busy;
 	
 endmodule
 

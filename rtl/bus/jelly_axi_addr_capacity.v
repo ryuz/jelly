@@ -46,6 +46,8 @@ module jelly_axi_addr_capacity
 			input	wire	[CAPACITY_COUNTER_WIDTH-1:0]	capacity_add,
 			input	wire									capacity_valid,
 			
+			output	wire	[CAPACITY_COUNTER_WIDTH-1:0]	capacity_counter,
+			
 			input	wire	[USER_BITS-1:0]					s_user,
 			input	wire	[ADDR_WIDTH-1:0]				s_addr,
 			input	wire	[LEN_WIDTH-1:0]					s_len,
@@ -139,8 +141,6 @@ module jelly_axi_addr_capacity
 		// ---------------------------------
 		//  Core
 		// ---------------------------------
-		
-		wire	[CAPACITY_COUNTER_WIDTH-1:0]	capacity_counter;
 		
 		jelly_semaphore
 				#(
