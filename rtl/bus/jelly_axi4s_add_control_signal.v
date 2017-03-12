@@ -55,21 +55,26 @@ module jelly_axi4s_add_control_signal
 	always @(posedge aclk) begin
 		if ( ~aresetn ) begin
 			reg_first  <= 1'b1;
-			reg_x      <= {X_WIDTH{1'bx}};
-			reg_x_last <= 1'bx;
-			reg_y      <= {Y_WIDTH{1'bx}};
-			reg_y_last <= 1'bx;
-			
-			reg_tuser  <= 2'bxx;
-			reg_tlast  <= 1'bx;
-			reg_tdata  <= {TDATA_WIDTH{1'bx}};
 			reg_tvalid <= 1'b0;
 		end
 		else if ( aclken ) begin
+			if ( s_axi4s_tvalid && s_axi4s_tready ) begin
+				reg_first <= 1'b0;
+				if ( reg_x_last && reg_y_last ) begin
+					reg_first <= 1'b1;
+				end
+			end
+			
+			if ( !m_axi4s_tvalid || m_axi4s_tready ) begin
+				reg_tvalid <= s_axi4s_tvalid;
+			end
+		end
+	end
+	
+	always @(posedge aclk) begin
+		if ( aclken ) begin
 			// slave port stage
 			if ( s_axi4s_tvalid && s_axi4s_tready ) begin
-				reg_first   <= 1'b0;
-				
 				reg_x       <= reg_x + 1'b1;
 				reg_x_last  <= ((reg_x + 1'b1) == (param_width - 1'b1));
 				if ( reg_x_last ) begin
@@ -80,8 +85,6 @@ module jelly_axi4s_add_control_signal
 					if ( reg_y_last ) begin
 						reg_y      <= {Y_WIDTH{1'b0}};
 						reg_y_last <= (param_height == 1);
-						
-						reg_first  <= 1'b1;
 					end
 				end
 			end
@@ -100,10 +103,11 @@ module jelly_axi4s_add_control_signal
 				reg_tuser[0] <= reg_first;
 				reg_tlast    <= reg_x_last;
 				reg_tdata    <= s_axi4s_tdata;
-				reg_tvalid   <= s_axi4s_tvalid;
 			end
 		end
 	end
+	
+	assign s_axi4s_tready = !m_axi4s_tvalid || m_axi4s_tready;
 	
 	assign m_axi4s_tuser  = reg_tuser;
 	assign m_axi4s_tlast  = reg_tlast;
