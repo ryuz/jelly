@@ -35,6 +35,8 @@ module jelly_axi_addr_align
 			input	wire						aclk,
 			input	wire						aclken,
 			
+			output	wire						busy,
+			
 			input	wire	[USER_BITS-1:0]		s_user,
 			input	wire	[ADDR_WIDTH-1:0]	s_addr,
 			input	wire	[LEN_WIDTH-1:0]		s_len,
@@ -58,6 +60,8 @@ module jelly_axi_addr_align
 		assign	m_len   = s_len;
 		assign	m_valid = s_valid;
 		assign	s_ready = m_ready;
+		
+		assign	busy    = 1'b0;
 	end
 	else begin : blk_split
 		
@@ -182,6 +186,8 @@ module jelly_axi_addr_align
 		assign ff_m_valid = reg_valid;
 		
 		assign ff_s_ready = (cke && ~reg_split);
+		
+		assign	busy      = (ff_s_valid || reg_valid);
 	end
 	endgenerate
 	

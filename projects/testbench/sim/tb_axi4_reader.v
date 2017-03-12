@@ -22,10 +22,10 @@ module tb_axi4_reader();
 	always #(AXI4_RATE/2.0)		axi4_aclk = ~axi4_aclk;
 	
 	reg		axi4s_aclk = 1'b1;
-	always #(AXI4_RATE/2.0)		axi4s_aclk = ~axi4s_aclk;
+	always #(AXI4S_RATE/2.0)	axi4s_aclk = ~axi4s_aclk;
 	
 	
-	localparam	RAND_BUSY = 0;
+	localparam	RAND_BUSY = 1;
 	
 	
 	// -----------------------------------------
@@ -181,17 +181,31 @@ module tb_axi4_reader();
 			);
 	
 	initial begin
-		m_axi4s_tready = 0;
-		#(AXI4_RATE*2000);
-		@(negedge m_axi4s_aclk)
+		if ( RAND_BUSY ) begin
+			// ready を落としてemptyさせる
+			m_axi4s_tready = 0;
+			#(AXI4_RATE*2000);
+			
+			// 逆にfullさせる
+			@(negedge m_axi4s_aclk)
+			m_axi4s_tready = 1;
+			#(AXI4_RATE*2000);
+			
+			// 後はランダム
+			while ( 1 ) begin
+				@(negedge m_axi4s_aclk)
+				m_axi4s_tready = {$random()};
+			end
+		end
+		
 		m_axi4s_tready = 1;
 	end
 	
 	
 	always @(posedge aclk) begin
 		if ( ~aresetn ) begin
-			s_araddr <= 32'h0001_0000;
-			s_arlen   <= 8'h1f;
+			s_araddr  <= 32'h0001_0000;
+			s_arlen   <= 24'h0000_1000 - 1;
 			s_arvalid <= 1'b0;
 		end
 		else begin
@@ -199,10 +213,33 @@ module tb_axi4_reader();
 				s_araddr <= s_araddr + ((s_arlen + 1) << AXI4_DATA_SIZE);
 			end
 			
-			s_arvalid <= 1'b1;
+			if ( !s_arvalid || s_arready ) begin
+				s_arvalid <= RAND_BUSY ? {$random()} : 1'b1;
+			end
+			
+			if ( !m_axi4_rready ) begin
+				$display("m_axi4_rready down");		// リセット解除時に一回出るけど気にしない
+			end
 		end
 	end
 	
+	
+	
+	integer		fp;
+	initial	fp = $fopen("out.txt", "w");
+	
+	always @(posedge m_axi4s_aclk) begin
+		if ( m_axi4s_aresetn ) begin
+			if ( m_axi4s_tvalid && m_axi4s_tready ) begin
+	//			$display("%h %b", m_axi4s_tdata, m_axi4s_tlast);
+				$fdisplay(fp, "%h %b", m_axi4s_tdata, m_axi4s_tlast);
+				if ( m_axi4s_tdata == 32'h0004_0000 ) begin
+					$finish;
+				end
+			end
+		end
+	end
+
 	
 	// ---------------------------------
 	//  dummy memory model
@@ -218,6 +255,8 @@ module tb_axi4_reader();
 				.AXI_DATA_WIDTH			(AXI4_DATA_WIDTH),
 				.AXI_STRB_WIDTH			(AXI4_DATA_WIDTH/8),
 				.MEM_WIDTH				(24),
+				
+				.READ_DATA_ADDR			(1),
 				
 				.WRITE_LOG_FILE			("axi4_write.txt"),
 				.READ_LOG_FILE			("axi4_read.txt"),

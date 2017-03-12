@@ -41,9 +41,8 @@ module jelly_axi4_reader_core
 			parameter	CAPACITY_COUNTER_WIDTH   = 10,
 			parameter	CAPACITY_INIT_COUNTER    = 256,
 			
-			parameter	CMD_FIFO_PTR_WIDTH		 = 6,
-			parameter	CMD_FIFO_RAM_TYPE		 = "distributed",
-			parameter	CMD_USE_READY            = 0,
+			parameter	LAST_FIFO_PTR_WIDTH		 = 6,
+			parameter	LAST_FIFO_RAM_TYPE		 = "distributed",
 			
 			parameter	BYPASS_RANGE             = 0,
 			parameter	BYPASS_LEN               = 0,
@@ -100,16 +99,15 @@ module jelly_axi4_reader_core
 	//  address command split
 	// ---------------------------------
 	
-	wire	[AXI4_ADDR_WIDTH-1:0]			cmd_araddr;
-	wire	[S_LEN_WIDTH-1:0]				cmd_arlen;
-	wire									cmd_arvalid;
-	wire									cmd_arready;
-	
-	
 	wire	[AXI4_ADDR_WIDTH-1:0]			core_araddr;
 	wire	[S_LEN_WIDTH-1:0]				core_arlen;
 	wire									core_arvalid;
 	wire									core_arready;
+	
+	wire	[AXI4_ADDR_WIDTH-1:0]			last_araddr;
+	wire	[S_LEN_WIDTH-1:0]				last_arlen;
+	wire									last_arvalid;
+	wire									last_arready;
 	
 	generate
 	if ( BYPASS_LAST ) begin : blk_bypass_last
@@ -136,9 +134,9 @@ module jelly_axi4_reader_core
 					.s_valid		(s_arvalid),
 					.s_ready		(s_arready),
 					
-					.m_data			({{cmd_araddr, cmd_arlen}, {core_araddr, core_arlen}}),
-					.m_valid		({cmd_arvalid, core_arvalid}),
-					.m_ready		({cmd_arready, core_arready})
+					.m_data			({{last_araddr, last_arlen}, {core_araddr, core_arlen}}),
+					.m_valid		({last_arvalid,              core_arvalid}),
+					.m_ready		({last_arready,              core_arready})
 				);
 	end
 	endgenerate
@@ -342,8 +340,8 @@ module jelly_axi4_reader_core
 				.DATA_WIDTH					(AXI4_DATA_WIDTH),
 				.LEN_WIDTH					(S_LEN_WIDTH),
 				.FIFO_ASYNC					(0),
-				.FIFO_PTR_WIDTH				(CMD_FIFO_PTR_WIDTH),
-				.FIFO_RAM_TYPE				(CMD_FIFO_RAM_TYPE),
+				.FIFO_PTR_WIDTH				(LAST_FIFO_PTR_WIDTH),
+				.FIFO_RAM_TYPE				(LAST_FIFO_RAM_TYPE),
 				.S_SLAVE_REGS				(0),
 				.S_MASTER_REGS				(0),
 				.M_SLAVE_REGS				(0),
@@ -358,9 +356,9 @@ module jelly_axi4_reader_core
 				.s_cmd_aresetn				(aresetn),
 				.s_cmd_aclk					(aclk),
 				.s_cmd_aclken				(aclken),
-				.s_cmd_len					(cmd_arlen),
-				.s_cmd_valid				(cmd_arvalid),
-				.s_cmd_ready				(cmd_arready),
+				.s_cmd_len					(last_arlen),
+				.s_cmd_valid				(last_arvalid),
+				.s_cmd_ready				(last_arready),
 				
 				.s_user						(1'b0),
 				.s_last						(m_axi4_rlast),
@@ -374,7 +372,6 @@ module jelly_axi4_reader_core
 				.m_valid					(m_axi4s_tvalid),
 				.m_ready					(m_axi4s_tready)
 			);
-	
 	
 	
 endmodule

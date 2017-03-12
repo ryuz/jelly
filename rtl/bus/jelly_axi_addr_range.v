@@ -35,6 +35,8 @@ module jelly_axi_addr_range
 			input	wire						aclk,
 			input	wire						aclken,
 			
+			output	wire						busy,
+			
 			input	wire	[ADDR_WIDTH-1:0]	param_range_start,
 			input	wire	[ADDR_WIDTH-1:0]	param_range_end,
 			
@@ -58,6 +60,8 @@ module jelly_axi_addr_range
 		assign	m_len   = s_len;
 		assign	m_valid = s_valid;
 		assign	s_ready = m_ready;
+		
+		assign	busy    = 1'b0;
 	end
 	else begin : blk_split
 		
@@ -198,6 +202,8 @@ module jelly_axi_addr_range
 		assign ff_m_valid = st1_valid;
 		
 		assign ff_s_ready = (cke && ~st1_split);
+		
+		assign	busy      = (ff_s_valid || st0_valid || st1_valid);
 	end
 	endgenerate
 	

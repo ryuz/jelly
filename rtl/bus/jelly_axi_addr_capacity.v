@@ -39,6 +39,8 @@ module jelly_axi_addr_capacity
 			input	wire									aclk,
 			input	wire									aclken,
 			
+			output	wire									busy,
+			
 			input	wire									capacity_reset,
 			input	wire									capacity_clk,
 			input	wire	[CAPACITY_COUNTER_WIDTH-1:0]	capacity_add,
@@ -64,6 +66,8 @@ module jelly_axi_addr_capacity
 		assign	m_len   = s_len;
 		assign	m_valid = s_valid;
 		assign	s_ready = m_ready;
+		
+		assign	busy    = 1'b0;
 	end
 	else begin : blk_split
 		
@@ -167,6 +171,8 @@ module jelly_axi_addr_capacity
 		assign ff_m_valid = ff_s_valid & capacity_ready;
 		
 		assign ff_s_ready = ff_m_ready & capacity_ready;
+		
+		assign	busy      = (ff_s_valid || ff_m_valid);
 	end
 	endgenerate
 	

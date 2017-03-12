@@ -40,9 +40,9 @@ module jelly_axi4_reader
 			parameter	AXI4S_FIFO_PTR_WIDTH     = 9,
 			parameter	AXI4S_FIFO_RAM_TYPE      = "block",
 			
-			parameter	CMD_FIFO_PTR_WIDTH		 = 6,
-			parameter	CMD_FIFO_RAM_TYPE		 = "distributed",
-			parameter	CMD_USE_READY            = 0,
+			parameter	LAST_FIFO_PTR_WIDTH		 = 6,
+			parameter	LAST_FIFO_RAM_TYPE		 = "distributed",
+			parameter	LAST_USE_READY            = 0,
 			
 			parameter	BYPASS_RANGE             = 0,
 			parameter	BYPASS_LEN               = 0,
@@ -51,45 +51,45 @@ module jelly_axi4_reader
 			parameter	BYPASS_LAST              = 0
 		)
 		(
-			input	wire									aresetn,
-			input	wire									aclk,
-			input	wire									aclken,
+			input	wire							aresetn,
+			input	wire							aclk,
+			input	wire							aclken,
 			
-			input	wire	[AXI4_ADDR_WIDTH-1:0]			param_range_start,
-			input	wire	[AXI4_ADDR_WIDTH-1:0]			param_range_end,
-			input	wire	[AXI4_LEN_WIDTH-1:0]			param_maxlen,
+			input	wire	[AXI4_ADDR_WIDTH-1:0]	param_range_start,
+			input	wire	[AXI4_ADDR_WIDTH-1:0]	param_range_end,
+			input	wire	[AXI4_LEN_WIDTH-1:0]	param_maxlen,
 			
-			input	wire	[AXI4_ADDR_WIDTH-1:0]			s_araddr,
-			input	wire	[S_LEN_WIDTH-1:0]				s_arlen,
-			input	wire									s_arvalid,
-			output	wire									s_arready,
+			input	wire	[AXI4_ADDR_WIDTH-1:0]	s_araddr,
+			input	wire	[S_LEN_WIDTH-1:0]		s_arlen,
+			input	wire							s_arvalid,
+			output	wire							s_arready,
 			
-			output	wire	[AXI4_ID_WIDTH-1:0]				m_axi4_arid,
-			output	wire	[AXI4_ADDR_WIDTH-1:0]			m_axi4_araddr,
-			output	wire	[AXI4_LEN_WIDTH-1:0]			m_axi4_arlen,
-			output	wire	[2:0]							m_axi4_arsize,
-			output	wire	[1:0]							m_axi4_arburst,
-			output	wire	[0:0]							m_axi4_arlock,
-			output	wire	[3:0]							m_axi4_arcache,
-			output	wire	[2:0]							m_axi4_arprot,
-			output	wire	[AXI4_QOS_WIDTH-1:0]			m_axi4_arqos,
-			output	wire	[3:0]							m_axi4_arregion,
-			output	wire									m_axi4_arvalid,
-			input	wire									m_axi4_arready,
-			input	wire	[AXI4_ID_WIDTH-1:0]				m_axi4_rid,
-			input	wire	[AXI4_DATA_WIDTH-1:0]			m_axi4_rdata,
-			input	wire	[1:0]							m_axi4_rresp,
-			input	wire									m_axi4_rlast,
-			input	wire									m_axi4_rvalid,
-			output	wire									m_axi4_rready,
+			output	wire	[AXI4_ID_WIDTH-1:0]		m_axi4_arid,
+			output	wire	[AXI4_ADDR_WIDTH-1:0]	m_axi4_araddr,
+			output	wire	[AXI4_LEN_WIDTH-1:0]	m_axi4_arlen,
+			output	wire	[2:0]					m_axi4_arsize,
+			output	wire	[1:0]					m_axi4_arburst,
+			output	wire	[0:0]					m_axi4_arlock,
+			output	wire	[3:0]					m_axi4_arcache,
+			output	wire	[2:0]					m_axi4_arprot,
+			output	wire	[AXI4_QOS_WIDTH-1:0]	m_axi4_arqos,
+			output	wire	[3:0]					m_axi4_arregion,
+			output	wire							m_axi4_arvalid,
+			input	wire							m_axi4_arready,
+			input	wire	[AXI4_ID_WIDTH-1:0]		m_axi4_rid,
+			input	wire	[AXI4_DATA_WIDTH-1:0]	m_axi4_rdata,
+			input	wire	[1:0]					m_axi4_rresp,
+			input	wire							m_axi4_rlast,
+			input	wire							m_axi4_rvalid,
+			output	wire							m_axi4_rready,
 			
-			input	wire									m_axi4s_aresetn,
-			input	wire									m_axi4s_aclk,
-			input	wire									m_axi4s_aclken,
-			output	wire									m_axi4s_tlast,
-			output	wire	[AXI4S_DATA_WIDTH-1:0]			m_axi4s_tdata,
-			output	wire									m_axi4s_tvalid,
-			input	wire									m_axi4s_tready
+			input	wire							m_axi4s_aresetn,
+			input	wire							m_axi4s_aclk,
+			input	wire							m_axi4s_aclken,
+			output	wire							m_axi4s_tlast,
+			output	wire	[AXI4S_DATA_WIDTH-1:0]	m_axi4s_tdata,
+			output	wire							m_axi4s_tvalid,
+			input	wire							m_axi4s_tready
 		);
 	
 	
@@ -145,9 +145,9 @@ module jelly_axi4_reader
 	//  Core
 	// ---------------------------------
 	
-	parameter	CAPACITY_ASYNC           = AXI4S_ASYNC;
-	parameter	CAPACITY_COUNTER_WIDTH   = AXI4S_FIFO_PTR_WIDTH + 1;
-	parameter	CAPACITY_INIT_COUNTER    = (1 << AXI4S_FIFO_PTR_WIDTH);
+	localparam	CAPACITY_ASYNC           = AXI4S_ASYNC;
+	localparam	CAPACITY_COUNTER_WIDTH   = AXI4S_FIFO_PTR_WIDTH + 1;
+	localparam	CAPACITY_INIT_COUNTER    = (1 << AXI4S_FIFO_PTR_WIDTH);
 	
 	wire									capacity_reset = ~m_axi4s_aresetn;
 	wire									capacity_clk   = m_axi4s_aclk;
@@ -186,9 +186,7 @@ module jelly_axi4_reader
 				.CAPACITY_COUNTER_WIDTH		(CAPACITY_COUNTER_WIDTH),
 				.CAPACITY_INIT_COUNTER		(CAPACITY_INIT_COUNTER),
 				
-				.CMD_FIFO_PTR_WIDTH			(CMD_FIFO_PTR_WIDTH),
-				.CMD_FIFO_RAM_TYPE			(CMD_FIFO_RAM_TYPE),
-				.CMD_USE_READY				(CMD_USE_READY),
+				.LAST_FIFO_PTR_WIDTH		(0),
 				
 				.BYPASS_RANGE				(BYPASS_RANGE),
 				.BYPASS_LEN					(BYPASS_LEN),
@@ -288,8 +286,8 @@ module jelly_axi4_reader
 				.DATA_WIDTH					(AXI4_DATA_WIDTH),
 				.LEN_WIDTH					(S_LEN_WIDTH),
 				.FIFO_ASYNC					(AXI4S_ASYNC),
-				.FIFO_PTR_WIDTH				(CMD_FIFO_PTR_WIDTH),
-				.FIFO_RAM_TYPE				(CMD_FIFO_RAM_TYPE),
+				.FIFO_PTR_WIDTH				(LAST_FIFO_PTR_WIDTH),
+				.FIFO_RAM_TYPE				(LAST_FIFO_RAM_TYPE),
 				.S_SLAVE_REGS				(0),
 				.S_MASTER_REGS				(0),
 				.M_SLAVE_REGS				(0),
