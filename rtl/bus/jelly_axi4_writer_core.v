@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- The FPGA processing system
 //
-//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2017 by Ryuji Fuchikami
 //                                 http://ryuz.my.coocan.jp/
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
@@ -14,7 +14,7 @@
 
 
 //  AXI4 Ç÷ Write Ç∑ÇÈÉRÉA
-module jelly_axi4_write_core
+module jelly_axi4_writer_core
 		#(
 			parameter	S_LEN_WIDTH            = 24,
 			
@@ -45,7 +45,6 @@ module jelly_axi4_write_core
 			
 			parameter	LAST_FIFO_PTR_WIDTH    = 6,
 			parameter	LAST_FIFO_RAM_TYPE     = "distributed",
-			parameter	LAST_USE_READY         = 0,
 			
 			parameter	BUSY_COUNTER_WIDTH     = 10,
 			
@@ -297,7 +296,7 @@ module jelly_axi4_write_core
 	
 	
 	wire	[AXI4_ADDR_WIDTH-1:0]			core_awaddr;
-	wire	[S_LEN_WIDTH-1:0]				core_awlen;
+	wire	[AXI4_LEN_WIDTH-1:0]			core_awlen;
 	wire									core_awvalid;
 	wire									core_awready;
 	
@@ -313,7 +312,7 @@ module jelly_axi4_write_core
 	// ---------------------------------
 	
 	wire	[AXI4_ADDR_WIDTH-1:0]			last_awaddr;
-	wire	[S_LEN_WIDTH-1:0]				last_awlen;
+	wire	[AXI4_LEN_WIDTH-1:0]			last_awlen;
 	wire									last_awvalid;
 	wire									last_awready;
 	
@@ -396,6 +395,7 @@ module jelly_axi4_write_core
 				.m_ready					(m_axi4_wready)
 			);
 	
+	assign m_axi4_bready = 1'b1;
 	
 	
 	// ---------------------------------

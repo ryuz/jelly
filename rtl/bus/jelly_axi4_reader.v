@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- The FPGA processing system
 //
-//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2017 by Ryuji Fuchikami
 //                                 http://ryuz.my.coocan.jp/
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
@@ -42,7 +42,6 @@ module jelly_axi4_reader
 			
 			parameter	LAST_FIFO_PTR_WIDTH		 = 6,
 			parameter	LAST_FIFO_RAM_TYPE		 = "distributed",
-			parameter	LAST_USE_READY           = 0,
 
 			parameter	BUSY_COUNTER_WIDTH       = 10,
 			

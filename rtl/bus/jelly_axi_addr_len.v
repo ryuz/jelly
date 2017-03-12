@@ -170,7 +170,8 @@ module jelly_axi_addr_len
 				else begin
 					reg_split <= 1'b0;
 					reg_addr  <= reg_addr + ((reg_len + 1'b1) << DATA_SIZE);
-					reg_len   <= reg_len_count - reg_len - 1'b1;
+	//				reg_len   <= reg_len_count - reg_len - 1'b1;
+					reg_len   <= reg_len_count;
 					reg_valid <= 1'b1;
 					if ( reg_len_count > param_len_max ) begin
 						reg_split     <= 1'b1;
