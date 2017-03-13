@@ -182,7 +182,7 @@ module jelly_axi_addr_range
 					st1_len      <= st0_len;
 					st1_len_base <= st0_len;
 					st1_valid    <= st0_valid;
-					if ( st0_len > st0_len_max ) begin
+					if ( st0_valid && (st0_len > st0_len_max) ) begin
 						st1_split <= 1'b1;
 						st1_len   <= st0_len_max;
 					end
