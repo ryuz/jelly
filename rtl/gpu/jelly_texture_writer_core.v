@@ -46,7 +46,10 @@ module jelly_texture_writer_core
 			
 			parameter	X_WIDTH              = 10,
 			parameter	Y_WIDTH              = 10,
-			parameter	STRIDE_WIDTH         = X_WIDTH + BLK_Y_SIZE,
+			
+			parameter	STRIDE_C_WIDTH       = BLK_X_SIZE + BLK_Y_SIZE,
+			parameter	STRIDE_X_WIDTH       = BLK_X_SIZE + BLK_Y_SIZE + COMPONENT_SEL_WIDTH,
+			parameter	STRIDE_Y_WIDTH       = X_WIDTH + BLK_Y_SIZE,
 			
 			parameter	BUF_ADDR_WIDTH       = 1 + X_WIDTH + STEP_Y_SIZE,
 			parameter	BUF_RAM_TYPE         = "block"
@@ -60,11 +63,13 @@ module jelly_texture_writer_core
 			input	wire											enable,
 			output	wire											busy,
 			
-			input	wire	[M_AXI4_ADDR_WIDTH*COMPONENT_NUM-1:0]	param_addr,
+			input	wire	[M_AXI4_ADDR_WIDTH-1:0]					param_addr,
 			input	wire	[M_AXI4_LEN_WIDTH-1:0]					param_awlen,
 			input	wire	[X_WIDTH-1:0]							param_width,
 			input	wire	[Y_WIDTH-1:0]							param_height,
-			input	wire	[STRIDE_WIDTH-1:0]						param_stride,
+			input	wire	[STRIDE_C_WIDTH-1:0]					param_stride_c,
+			input	wire	[STRIDE_X_WIDTH-1:0]					param_stride_x,
+			input	wire	[STRIDE_Y_WIDTH-1:0]					param_stride_y,
 			
 			input	wire	[0:0]									s_axi4s_tuser,
 			input	wire											s_axi4s_tlast,
@@ -122,7 +127,7 @@ module jelly_texture_writer_core
 	// ---------------------------------
 	//  line to blk
 	// ---------------------------------
-
+	
 	wire											blk_busy;
 	
 	wire	[COMPONENT_SEL_WIDTH-1:0]				blk_component;
@@ -142,7 +147,9 @@ module jelly_texture_writer_core
 				
 				.X_WIDTH				(X_WIDTH),
 				.Y_WIDTH				(Y_WIDTH),
-				.STRIDE_WIDTH			(STRIDE_WIDTH),
+				.STRIDE_C_WIDTH			(STRIDE_C_WIDTH - COMPONENT_SIZE),
+				.STRIDE_X_WIDTH			(STRIDE_X_WIDTH - COMPONENT_SIZE),
+				.STRIDE_Y_WIDTH			(STRIDE_Y_WIDTH - COMPONENT_SIZE),
 				
 				.ADDR_WIDTH				(M_AXI4_ADDR_WIDTH),
 				.S_DATA_WIDTH			(S_AXI4S_DATA_WIDTH),
@@ -163,7 +170,9 @@ module jelly_texture_writer_core
 				
 				.param_width			(param_width),
 				.param_height			(param_height),
-				.param_stride			(param_stride >> COMPONENT_SIZE),
+				.param_stride_c			(param_stride_c >> COMPONENT_SIZE),
+				.param_stride_x			(param_stride_x >> COMPONENT_SIZE),
+				.param_stride_y			(param_stride_y >> COMPONENT_SIZE),
 				
 				.s_first				(s_axi4s_tuser[0]),
 				.s_data					(s_axi4s_tdata),
@@ -198,10 +207,12 @@ module jelly_texture_writer_core
 			reg_dma_valid <= 1'b0;
 		end
 		else if ( blk_ready ) begin
+			/*
 			reg_dma_addr  <= {M_AXI4_ADDR_WIDTH{1'bx}};
 			reg_dma_data  <= {M_AXI4_DATA_WIDTH{1'bx}};
 			for ( cmp = 0; cmp < COMPONENT_NUM; cmp = cmp+1 ) begin
 				if ( blk_component == cmp ) begin
+
 					reg_dma_addr <= param_addr[cmp*M_AXI4_ADDR_WIDTH +: M_AXI4_ADDR_WIDTH] + (blk_addr << COMPONENT_SIZE);
 					for ( i = 0; i < (1 << (M_AXI4_DATA_SIZE - COMPONENT_SIZE)); i = i+1 ) begin
 						reg_dma_data[i*COMPONENT_DATA_WIDTH +: COMPONENT_DATA_WIDTH]
@@ -209,7 +220,13 @@ module jelly_texture_writer_core
 					end
 				end
 			end
+			*/
 			
+			reg_dma_addr  <= (blk_addr << COMPONENT_SIZE);
+			for ( i = 0; i < (1 << (M_AXI4_DATA_SIZE - COMPONENT_SIZE)); i = i+1 ) begin
+				reg_dma_data[i*COMPONENT_DATA_WIDTH +: COMPONENT_DATA_WIDTH]
+						<= blk_data[(i*COMPONENT_NUM+blk_component)*COMPONENT_DATA_WIDTH +: COMPONENT_DATA_WIDTH];
+			end
 			reg_dma_valid <= blk_valid;
 		end
 	end

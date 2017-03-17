@@ -40,8 +40,9 @@ module jelly_texture_cache_dma
 			
 			parameter	ID_WIDTH             = M_AXI4_ID_WIDTH,
 			parameter	ADDR_WIDTH           = 24,
+			parameter	STRIDE_C_WIDTH       = 14,
 			parameter	DATA_WIDTH           = M_AXI4_DATA_WIDTH,
-
+			
 			parameter	QUE_FIFO_PTR_WIDTH   = 6,
 			parameter	QUE_FIFO_RAM_TYPE    = "distributed",
 			parameter	QUE_FIFO_S_REGS      = 0,
@@ -54,8 +55,9 @@ module jelly_texture_cache_dma
 			input	wire											reset,
 			input	wire											clk,
 			
-			input	wire	[M_AXI4_ADDR_WIDTH*COMPONENT_NUM-1:0]	param_addr,
+			input	wire	[M_AXI4_ADDR_WIDTH-1:0]					param_addr,
 			input	wire	[M_AXI4_LEN_WIDTH-1:0]					param_arlen,
+			input	wire	[STRIDE_C_WIDTH-1:0]					param_stride_c,
 			
 			// slave port
 			input	wire	[ID_WIDTH-1:0]							s_arid,
@@ -242,7 +244,7 @@ module jelly_texture_cache_dma
 	// address
 	reg		[M_AXI4_ID_WIDTH-1:0]		reg_arid;
 	reg		[COMPONENT_SEL_WIDTH-1:0]	reg_arcomponent;
-	reg		[ADDR_WIDTH-1:0]			reg_addr;
+//	reg		[ADDR_WIDTH-1:0]			reg_addr;
 	reg		[M_AXI4_ADDR_WIDTH-1:0]		reg_araddr;
 	reg									reg_arvalid;
 	
@@ -250,6 +252,7 @@ module jelly_texture_cache_dma
 		if ( reset ) begin
 			reg_arid        <= {M_AXI4_ID_WIDTH{1'bx}};
 			reg_arcomponent <= {COMPONENT_SEL_WIDTH{1'bx}};
+//			reg_addr        <= {ADDR_WIDTH{1'bx}};
 			reg_araddr      <= {M_AXI4_ADDR_WIDTH{1'bx}};
 			reg_arvalid     <= 1'b0;
 		end
@@ -257,8 +260,8 @@ module jelly_texture_cache_dma
 			if ( que_arvalid && que_arready ) begin
 				reg_arid        <= que_arid;
 				reg_arcomponent <= {COMPONENT_SEL_WIDTH{1'b0}};
-				reg_addr        <= que_araddr;
-				reg_araddr      <= que_araddr + param_addr[M_AXI4_ADDR_WIDTH-1:0];
+//				reg_addr        <= que_araddr;
+				reg_araddr      <= que_araddr + param_addr;
 				reg_arvalid     <= 1'b1;
 			end
 			else if ( axi4_arvalid && axi4_arready ) begin
@@ -271,7 +274,8 @@ module jelly_texture_cache_dma
 				else begin
 					reg_arid        <= reg_arid;
 					reg_arcomponent <= reg_arcomponent + 1;
-					reg_araddr      <= reg_addr + (param_addr >> ((reg_arcomponent + 1)*M_AXI4_ADDR_WIDTH));
+//					reg_araddr      <= reg_addr + (param_addr >> ((reg_arcomponent + 1)*M_AXI4_ADDR_WIDTH));
+					reg_araddr      <= reg_araddr + param_stride_c;
 					reg_arvalid     <= 1'b1;
 				end
 			end

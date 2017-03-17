@@ -255,7 +255,9 @@ module tb_texture_writer();
 				
 				.X_WIDTH				(10),
 				.Y_WIDTH				(9),
-				.STRIDE_WIDTH			(14),
+				.STRIDE_C_WIDTH			(14),
+				.STRIDE_X_WIDTH			(14),
+				.STRIDE_Y_WIDTH			(14),
 				
 				.BUF_ADDR_WIDTH			(12),
 				.BUF_RAM_TYPE		    ("block")
@@ -270,11 +272,13 @@ module tb_texture_writer();
 				.enable					(enable),
 				.busy					(busy),
 				
-				.param_addr				({32'h000a_0000, 32'h0005_0000, 32'h0000_0000}),
+				.param_addr				(32'h0000_0000),
 				.param_awlen			(32'h03),
 				.param_width			(X_NUM),
 				.param_height			(Y_NUM),
-				.param_stride			(X_NUM<<3),
+				.param_stride_c			(8*8),
+				.param_stride_x			(8*8*3),
+				.param_stride_y			((X_NUM*3)<<3),
 				
 				.s_axi4s_tuser			(axi4s_tuser),
 				.s_axi4s_tlast			(axi4s_tlast),

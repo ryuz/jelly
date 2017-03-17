@@ -33,6 +33,9 @@ module tb_texture_sampler();
 	parameter	ADDR_WIDTH                    = 24;
 	parameter	ADDR_X_WIDTH                  = 12;
 	parameter	ADDR_Y_WIDTH                  = 12;
+	parameter	STRIDE_C_WIDTH                = 12;
+	parameter	STRIDE_X_WIDTH                = 13;
+	parameter	STRIDE_Y_WIDTH                = 14;
 	
 	parameter	USE_BORDER                    = 1;
 	parameter	BORDER_DATA                   = {(COMPONENT_NUM*DATA_WIDTH){1'b0}};
@@ -297,7 +300,10 @@ module tb_texture_sampler();
 				.ADDR_WIDTH						(ADDR_WIDTH						),
 				.ADDR_X_WIDTH					(ADDR_X_WIDTH					),
 				.ADDR_Y_WIDTH					(ADDR_Y_WIDTH					),
-				                                
+				.STRIDE_C_WIDTH					(STRIDE_C_WIDTH),
+				.STRIDE_X_WIDTH					(STRIDE_X_WIDTH),
+				.STRIDE_Y_WIDTH					(STRIDE_Y_WIDTH),
+				
 				.USE_BORDER						(USE_BORDER						),
 				.BORDER_DATA					(BORDER_DATA					),
 				                                
@@ -369,10 +375,12 @@ module tb_texture_sampler();
 				
 				.endian							(1'b0),
 				
-				.param_addr						({32'h000a_0000, 32'h0005_0000, 32'h0000_0000}),
+				.param_addr						(32'h0000_0000),
 				.param_width					(640),
 				.param_height					(480),
-				.param_stride					(640*8),
+				.param_stride_c					((1 << L2_BLK_X_SIZE)*(1 << L2_BLK_Y_SIZE)),
+				.param_stride_x					((1 << L2_BLK_X_SIZE)*(1 << L2_BLK_Y_SIZE)*COMPONENT_NUM),
+				.param_stride_y					(640*(1 << L2_BLK_Y_SIZE)*COMPONENT_NUM),
 				
 				.param_border_value				(24'h000000),
 				.param_x_op						(3'b000),

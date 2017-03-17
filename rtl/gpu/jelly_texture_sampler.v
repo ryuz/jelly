@@ -21,6 +21,9 @@ module jelly_texture_sampler
 			parameter	ADDR_WIDTH                    = 24,
 			parameter	ADDR_X_WIDTH                  = 10,
 			parameter	ADDR_Y_WIDTH                  = 9,
+			parameter	STRIDE_C_WIDTH                = 14,
+			parameter	STRIDE_X_WIDTH                = 14,
+			parameter	STRIDE_Y_WIDTH                = 14,
 			
 			parameter	USE_BORDER                    = 1,
 			parameter	BORDER_DATA                   = {(COMPONENT_NUM*DATA_WIDTH){1'b0}},
@@ -136,15 +139,17 @@ module jelly_texture_sampler
 			input	wire													endian,
 			
 			// parameter
-			input	wire	[M_AXI4_ADDR_WIDTH*COMPONENT_NUM-1:0]			param_addr,
+			input	wire	[M_AXI4_ADDR_WIDTH-1:0]							param_addr,
 			input	wire	[ADDR_X_WIDTH-1:0]								param_width,
 			input	wire	[ADDR_Y_WIDTH-1:0]								param_height,
-			input	wire	[ADDR_WIDTH-1:0]								param_stride,
+			input	wire	[STRIDE_C_WIDTH-1:0]							param_stride_c,
+			input	wire	[STRIDE_X_WIDTH-1:0]							param_stride_x,
+			input	wire	[STRIDE_Y_WIDTH-1:0]							param_stride_y,
+			
 			input	wire													param_nearestneighbor,
 			input	wire	[COMPONENT_NUM*DATA_WIDTH-1:0]					param_border_value,
 			input	wire	[2:0]											param_x_op,
 			input	wire	[2:0]											param_y_op,
-			
 			
 			// control
 			input	wire													clear_start,
@@ -352,6 +357,9 @@ module jelly_texture_sampler
 				.ADDR_WIDTH				(ADDR_WIDTH),
 				.ADDR_X_WIDTH			(ADDR_X_WIDTH),
 				.ADDR_Y_WIDTH			(ADDR_Y_WIDTH),
+				.STRIDE_C_WIDTH			(STRIDE_C_WIDTH),
+				.STRIDE_X_WIDTH			(STRIDE_X_WIDTH),
+				.STRIDE_Y_WIDTH			(STRIDE_Y_WIDTH),
 				
 				.M_AXI4_ID_WIDTH		(M_AXI4_ID_WIDTH),
 				.M_AXI4_ADDR_WIDTH		(M_AXI4_ADDR_WIDTH),
@@ -439,7 +447,9 @@ module jelly_texture_sampler
 				.endian					(endian),
 				
 				.param_addr				(param_addr),
-				.param_stride			(param_stride),
+				.param_stride_c			(param_stride_c),
+				.param_stride_x			(param_stride_x),
+				.param_stride_y			(param_stride_y),
 				.param_border_value		(param_border_value),
 				
 				.clear_start			(clear_start),

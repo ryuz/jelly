@@ -32,6 +32,9 @@ module jelly_texture_cache_l2
 	                                             COMPONENT_DATA_WIDTH <= 32768 ? 12 : 13,
 			
 			parameter	ADDR_WIDTH             = 24,
+			parameter	STRIDE_C_WIDTH         = 14,
+			parameter	STRIDE_X_WIDTH         = 14,
+			parameter	STRIDE_Y_WIDTH         = 14,
 			
 			parameter	PARALLEL_SIZE          = 2, 	// 0:1, 1:2, 2:4, 2:4, 3:8 ....
 			parameter	ADDR_X_WIDTH           = 12,
@@ -107,9 +110,11 @@ module jelly_texture_cache_l2
 			
 			input	wire											endian,
 			
-			input	wire	[M_AXI4_ADDR_WIDTH*COMPONENT_NUM-1:0]	param_addr,
+			input	wire	[M_AXI4_ADDR_WIDTH-1:0]					param_addr,
 			input	wire	[M_AXI4_LEN_WIDTH-1:0]					param_arlen,
-			input	wire	[ADDR_WIDTH-1:0]						param_stride,
+			input	wire	[STRIDE_C_WIDTH-1:0]					param_stride_c,
+			input	wire	[STRIDE_X_WIDTH-1:0]					param_stride_x,
+			input	wire	[STRIDE_Y_WIDTH-1:0]					param_stride_y,
 			
 			input	wire											clear_start,
 			output	wire											clear_busy,
@@ -717,7 +722,8 @@ module jelly_texture_cache_l2
 				
 				.ID_WIDTH				(ID_WIDTH),
 				.ADDR_WIDTH				(ADDR_WIDTH),
-
+				.STRIDE_C_WIDTH			(STRIDE_C_WIDTH),
+				
 				.QUE_FIFO_PTR_WIDTH		(DMA_QUE_FIFO_PTR_WIDTH),
 				.QUE_FIFO_RAM_TYPE		(DMA_QUE_FIFO_RAM_TYPE),
 				.QUE_FIFO_S_REGS		(DMA_QUE_FIFO_S_REGS),
@@ -733,6 +739,7 @@ module jelly_texture_cache_l2
 				                         
 				.param_addr				(param_addr),
 				.param_arlen			(param_arlen),
+				.param_stride_c			(param_stride_c),
 				
 				.s_arid					(dma_arid),
 				.s_araddr				(dma_araddr),
@@ -766,39 +773,54 @@ module jelly_texture_cache_l2
 			);
 	
 	reg		[ID_WIDTH-1:0]		st0_dma_arid;
-	reg		[ADDR_WIDTH-1:0]	st0_dma_araddr;
+	reg		[ADDR_WIDTH-1:0]	st0_dma_araddry;
 	reg		[ADDR_WIDTH-1:0]	st0_dma_araddrx;
 	reg							st0_dma_arvalid;
 	
 	reg		[ID_WIDTH-1:0]		st1_dma_arid;
-	reg		[ADDR_WIDTH-1:0]	st1_dma_araddr;
+	reg		[ADDR_WIDTH-1:0]	st1_dma_araddry;
+	reg		[ADDR_WIDTH-1:0]	st1_dma_araddrx;
 	reg							st1_dma_arvalid;
+	
+	reg		[ID_WIDTH-1:0]		st2_dma_arid;
+	reg		[ADDR_WIDTH-1:0]	st2_dma_araddr;
+	reg							st2_dma_arvalid;
 	always @(posedge clk) begin
 		if ( reset ) begin
 			st0_dma_arid    <= {ID_WIDTH{1'bx}};
-			st0_dma_araddr  <= {ADDR_WIDTH{1'bx}};
+			st0_dma_araddry <= {ADDR_WIDTH{1'bx}};
 			st0_dma_araddrx <= {ADDR_WIDTH{1'bx}};
 			st0_dma_arvalid <= 1'b0;
 			
 			st1_dma_arid    <= {ID_WIDTH{1'bx}};
-			st1_dma_araddr  <= {ADDR_WIDTH{1'bx}};
+			st1_dma_araddry <= {ADDR_WIDTH{1'bx}};
+			st1_dma_araddrx <= {ADDR_WIDTH{1'bx}};
 			st1_dma_arvalid <= 1'b0;
+			
+			st2_dma_arid    <= {ID_WIDTH{1'bx}};
+			st2_dma_araddr  <= {ADDR_WIDTH{1'bx}};
+			st2_dma_arvalid <= 1'b0;
 		end
 		else if ( !dma_arvalid || dma_arready ) begin
 			st0_dma_arid    <= ringbus_arid;
-			st0_dma_araddr  <= ((ringbus_araddry >> BLK_Y_SIZE) * param_stride);// + (ringbus_araddrx << (BLK_Y_SIZE + BLK_X_SIZE));
-			st0_dma_araddrx <= (ringbus_araddrx << BLK_Y_SIZE);
+			st0_dma_araddry <= ((ringbus_araddry >> BLK_Y_SIZE) * param_stride_y);	// + (ringbus_araddrx << (BLK_Y_SIZE + BLK_X_SIZE));
+			st0_dma_araddrx <= ((ringbus_araddrx >> BLK_X_SIZE) * param_stride_x);
 			st0_dma_arvalid <= ringbus_arvalid;
 			
 			st1_dma_arid    <= st0_dma_arid;
-			st1_dma_araddr  <= st0_dma_araddr + st0_dma_araddrx;
-			st1_dma_arvalid <= st0_dma_arvalid; 
+			st1_dma_araddry <= st0_dma_araddry;
+			st1_dma_araddrx <= st0_dma_araddrx;
+			st1_dma_arvalid <= st0_dma_arvalid;
+			
+			st2_dma_arid    <= st1_dma_arid;
+			st2_dma_araddr  <= st1_dma_araddry + st1_dma_araddrx;
+			st2_dma_arvalid <= st1_dma_arvalid; 
 		end
 	end
 	
-	assign dma_arid           = st1_dma_arid;
-	assign dma_araddr         = st1_dma_araddr;
-	assign dma_arvalid        = st1_dma_arvalid;
+	assign dma_arid           = st2_dma_arid;
+	assign dma_araddr         = st2_dma_araddr;
+	assign dma_arvalid        = st2_dma_arvalid;
 	assign ringbus_arready    = (!dma_arvalid || dma_arready);
 	
 	assign ringbus_rid        = dma_rid;
