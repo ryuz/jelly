@@ -128,9 +128,10 @@ int main(int argc, char *argv[])
 							else {
 								v = img.at<cv::Vec3b>(yyy, xxx)[c];
 							}
+
+							ubBuf[(y/ulBlockHeight)*ulStrideY + (x/ulBlockWidth)*ulStrideX + c*ulStrideC + pix] = v;
+							pix++;
 						}
-						ubBuf[(y/ulBlockHeight)*ulStrideY + (x/ulBlockWidth)*ulStrideX + c*ulStrideC + pix] = v;
-						pix++;
 					}
 				}
 			}

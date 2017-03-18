@@ -279,6 +279,7 @@ module jelly_texture_writer_line_to_blk
 		end
 	end
 	
+	/*
 	always @(posedge clk) begin
 		if ( reset ) begin
 			wr0_x_count      <= {PIX_X_WIDTH{1'bx}};
@@ -339,6 +340,77 @@ module jelly_texture_writer_line_to_blk
 								wr0_addr         <= wr0_addr + 1'b1;
 								wr0_addr_blk     <= wr0_addr + 1'b1 + (1 << (BLK_X_SIZE + STEP_Y_SIZE));
 								wr0_addr_line    <= wr0_addr + 1'b1 + (1 << BLK_X_SIZE);
+								
+								wr0_y_count      <= wr0_y_count + 1'b1;
+								wr0_y_last       <= ((wr0_y_count + 1'b1) == (wr_step_y_num - 1));
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	*/
+	always @(posedge clk) begin
+		if ( reset ) begin
+			wr0_x_count      <= {PIX_X_WIDTH{1'bx}};
+			wr0_x_last       <= 1'b0;
+			wr0_blk_count    <= {BLK_X_WIDTH{1'bx}};
+			wr0_blk_last     <= 1'b0;
+			wr0_step_y_count <= {PIX_STEP_Y_WIDTH{1'b0}};
+			wr0_step_y_last  <= 1'b0;
+			wr0_y_count      <= {STEP_Y_WIDTH{1'b0}};
+			wr0_y_last       <= 1'b0;
+			
+			wr0_addr         <= {BUF_ADDR_WIDTH{1'b0}};
+			wr0_addr_blk     <= {BUF_ADDR_WIDTH{1'b0}};
+			wr0_addr_line    <= {BUF_ADDR_WIDTH{1'b0}};
+		end
+		else if ( wr_cke ) begin
+			if ( !wr_busy ) begin
+				// ポインタアドレスはそのままに他の要素をリセット
+				wr0_x_count      <= {PIX_X_WIDTH{1'b0}};
+				wr0_x_last       <= (PIX_X_NUM == 1);
+				wr0_blk_count    <= {BLK_X_WIDTH{1'b0}};
+				wr0_blk_last     <= (blk_x_num == 1);
+				wr0_step_y_count <= {PIX_STEP_Y_WIDTH{1'b0}};
+				wr0_step_y_last  <= (PIX_STEP_Y_NUM == 1);
+				wr0_y_count      <= {STEP_Y_WIDTH{1'b0}};
+				wr0_y_last       <= (step_y_num == 1);
+			end
+			else begin
+				// stage0
+				if ( wr0_valid ) begin
+					wr0_addr <= wr0_addr + (1 << S_DATA_SIZE);
+					
+					wr0_x_count  <= wr0_x_count + S_UNIT;
+					wr0_x_last   <= ((wr0_x_count + S_UNIT) == (PIX_X_NUM-S_UNIT));
+					if ( wr0_x_last ) begin
+						wr0_x_count   <= {PIX_X_WIDTH{1'b0}};
+						wr0_x_last    <= (PIX_X_NUM == 1);
+						
+						wr0_addr      <= wr0_addr_blk + (1 << (BLK_X_SIZE + STEP_Y_SIZE));
+						wr0_addr_blk  <= wr0_addr_blk + (1 << (BLK_X_SIZE + STEP_Y_SIZE));
+						
+						wr0_blk_count <= wr0_blk_count + 1'b1;
+						wr0_blk_last  <= ((wr0_blk_count + 1'b1) == (wr_blk_x_num - 1'b1));
+						if ( wr0_blk_last ) begin
+							wr0_blk_count <= {BLK_X_WIDTH{1'b0}};
+							wr0_blk_last  <= (wr_blk_x_num == 1);
+							
+							wr0_addr      <= wr0_addr_line + (1 << (BLK_X_SIZE));
+							wr0_addr_blk  <= wr0_addr_line + (1 << (BLK_X_SIZE));
+							wr0_addr_line <= wr0_addr_line + (1 << (BLK_X_SIZE));
+							
+							wr0_step_y_count <= wr0_step_y_count + 1'b1;
+							wr0_step_y_last  <= ((wr0_step_y_count + 1'b1) == (PIX_STEP_Y_NUM - 1));
+							if ( wr0_step_y_last ) begin
+								wr0_step_y_count <= {PIX_STEP_Y_WIDTH{1'b0}};
+								wr0_step_y_last  <= (PIX_STEP_Y_NUM == 1);
+								
+								wr0_addr         <= wr0_addr + 1'b1;
+								wr0_addr_blk     <= wr0_addr + 1'b1;
+								wr0_addr_line    <= wr0_addr + 1'b1;
 								
 								wr0_y_count      <= wr0_y_count + 1'b1;
 								wr0_y_last       <= ((wr0_y_count + 1'b1) == (wr_step_y_num - 1));
