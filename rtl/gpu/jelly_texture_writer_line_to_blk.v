@@ -543,7 +543,8 @@ module jelly_texture_writer_line_to_blk
 								rd0_blk_count  <= {BLK_X_WIDTH{1'b0}};
 								rd0_blk_last   <= (rd_blk_x_num == 1);
 								
-								rd0_blk_y_last   <= (((rd0_step_y_count & (BLK_STEP_NUM-1)) + 1'b1) == (BLK_STEP_NUM - 1));
+		//						rd0_blk_y_last   <= (((rd0_step_y_count & (BLK_STEP_NUM-1)) + 1'b1) == (BLK_STEP_NUM - 1));
+								rd0_blk_y_last   <= (((rd0_step_y_count + 1'b1) & (BLK_STEP_NUM-1)) == (BLK_STEP_NUM - 1));
 								
 								rd0_step_y_count <= rd0_step_y_count + 1'b1;
 								rd0_step_y_last  <= ((rd0_step_y_count + 1'b1) == (rd_step_y_num - 1));

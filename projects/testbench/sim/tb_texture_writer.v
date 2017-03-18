@@ -10,7 +10,7 @@ module tb_texture_writer();
 		$dumpfile("tb_texture_writer.vcd");
 		$dumpvars(1, tb_texture_writer);
 		$dumpvars(1, tb_texture_writer.i_texture_writer_core);
-		$dumpvars(0, tb_texture_writer.i_texture_writer_core.i_texture_writer_line_to_blk);
+//		$dumpvars(0, tb_texture_writer.i_texture_writer_core.i_texture_writer_line_to_blk);
 //		$dumpvars(0, tb_texture_writer.i_texture_writer_line_to_blk);
 		
 //		#1000000;
@@ -251,7 +251,7 @@ module tb_texture_writer();
 				
 				.BLK_X_SIZE				(3),		// 2^n (0:1, 1:2, 2:4, 3:8, ... )
 				.BLK_Y_SIZE				(3),		// 2^n (0:1, 1:2, 2:4, 3:8, ... )
-				.STEP_Y_SIZE 			(2),		// 2^n (0:1, 1:2, 2:4, 3:8, ... )
+				.STEP_Y_SIZE 			(3), //(2),		// 2^n (0:1, 1:2, 2:4, 3:8, ... )
 				
 				.X_WIDTH				(10),
 				.Y_WIDTH				(9),
@@ -259,7 +259,7 @@ module tb_texture_writer();
 				.STRIDE_X_WIDTH			(14),
 				.STRIDE_Y_WIDTH			(14),
 				
-				.BUF_ADDR_WIDTH			(12),
+				.BUF_ADDR_WIDTH			(12+1),
 				.BUF_RAM_TYPE		    ("block")
 			)
 		i_texture_writer_core
@@ -310,6 +310,14 @@ module tb_texture_writer();
 			);
 	
 	
+	integer		w_count = 0;
+	always @(posedge clk) begin
+		if ( !reset ) begin
+			if ( axi4_wvalid && axi4_wready ) begin
+				w_count <= w_count + 1;
+			end
+		end
+	end
 	
 	jelly_axi4_slave_model
 			#(
