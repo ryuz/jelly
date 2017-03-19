@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
 	if (!strFlatHexFile.empty()) {
 		FILE* fp;
 		fopen_s(&fp, strFlatHexFile.c_str(), "w");
-		for (int i = 0; i < img.cols*img.rows*3; i += ulBusSize){
+		for (int i = 0; i < img.cols*img.rows*ulComponentNum; i += ulBusSize){
 			for (int j = ulBusSize - 1; j >= 0; j--){
 				fprintf(fp, "%02x", img.data[i + j]);
 			}
@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
 	memset(ubBuf, 0, ulMemSize);
 	for (unsigned long y = 0; y < ulImageHeight; y += ulBlockHeight) {
 		for (unsigned long x = 0; x < ulImageWidth; x += ulBlockWidth) {
-			for (unsigned long c = 0; c < 3; c++) {
+			for (unsigned long c = 0; c < ulComponentNum; c++) {
 				int pix = 0;
 				for (unsigned long yy = 0; yy < ulBlockHeight; yy++) {
 					for (unsigned long xx = 0; xx < ulBlockWidth; xx++) {

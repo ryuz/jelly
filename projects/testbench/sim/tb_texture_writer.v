@@ -26,11 +26,19 @@ module tb_texture_writer();
 	
 	
 	// ÉâÉìÉ_ÉÄ BUSY
-	localparam	RAND_BUSY = 1;
+	localparam	RAND_BUSY   = 1;
+	
+	localparam	MONO        = 0;	// 1;
+	localparam	X_NUM       = 640;
+	localparam	Y_NUM       = 480;
+	
+	localparam	BLK_X_SIZE  = 3;
+	localparam	BLK_Y_SIZE  = 3;
+	localparam	STEP_Y_SIZE = 2;
 	
 	
-	localparam	X_NUM = 640;
-	localparam	Y_NUM = 480;
+	localparam	COMPONENT_NUM        =  MONO ? 1 : 3;
+	localparam	COMPONENT_DATA_WIDTH =  8;
 	
 	
 	// -----------------------------------------
@@ -198,10 +206,11 @@ module tb_texture_writer();
 	
 	jelly_axi4s_master_model
 			#(
-				.AXI4S_DATA_WIDTH	(24),
+				.AXI4S_DATA_WIDTH	(COMPONENT_NUM * COMPONENT_DATA_WIDTH),
 				.X_NUM				(X_NUM),
 				.Y_NUM				(Y_NUM + 3),	// ÇÌÇ¥Ç∆ïsêÆçáÇ…ÇµÇƒÇ›ÇÈ
-				.PPM_FILE			("image.ppm"),
+				.PGM_FILE			(MONO  ? "image.pgm" : ""),
+				.PPM_FILE			(!MONO ? "image.ppm" : ""),
 				.BUSY_RATE			(RAND_BUSY ? 5 : 0)
 			)
 		i_axi4s_master_model
@@ -232,7 +241,7 @@ module tb_texture_writer();
 	always @(negedge busy) begin
 		if ( !reset ) begin
 			$display("write end");
-			i_axi4_slave_model.write_memh("axi4_mem.txt");
+			i_axi4_slave_model.write_memh(MONO ? "axi4_mem_mono.txt" : "axi4_mem.txt");
 		end
 	end
 	
@@ -240,8 +249,8 @@ module tb_texture_writer();
 //	assign axi4s_tready = 1;
 	jelly_texture_writer_core
 			#(
-				.COMPONENT_NUM 			(3),
-				.COMPONENT_DATA_WIDTH	(8),
+				.COMPONENT_NUM 			(COMPONENT_NUM),
+				.COMPONENT_DATA_WIDTH	(COMPONENT_DATA_WIDTH),
 				
 				.M_AXI4_ID_WIDTH		(AXI4_ID_WIDTH),
 				.M_AXI4_ADDR_WIDTH		(AXI4_ADDR_WIDTH),
@@ -249,9 +258,9 @@ module tb_texture_writer();
 				.M_AXI4_LEN_WIDTH		(AXI4_LEN_WIDTH),
 				.M_AXI4_QOS_WIDTH		(AXI4_QOS_WIDTH),
 				
-				.BLK_X_SIZE				(3),		// 2^n (0:1, 1:2, 2:4, 3:8, ... )
-				.BLK_Y_SIZE				(3),		// 2^n (0:1, 1:2, 2:4, 3:8, ... )
-				.STEP_Y_SIZE 			(3), //(2),		// 2^n (0:1, 1:2, 2:4, 3:8, ... )
+				.BLK_X_SIZE				(BLK_X_SIZE),	// 2^n (0:1, 1:2, 2:4, 3:8, ... )
+				.BLK_Y_SIZE				(BLK_Y_SIZE),	// 2^n (0:1, 1:2, 2:4, 3:8, ... )
+				.STEP_Y_SIZE 			(STEP_Y_SIZE),	// 2^n (0:1, 1:2, 2:4, 3:8, ... )
 				
 				.X_WIDTH				(10),
 				.Y_WIDTH				(9),
@@ -276,9 +285,9 @@ module tb_texture_writer();
 				.param_awlen			(32'h03),
 				.param_width			(X_NUM),
 				.param_height			(Y_NUM),
-				.param_stride_c			(8*8),
-				.param_stride_x			(8*8*3),
-				.param_stride_y			((X_NUM*3)<<3),
+				.param_stride_c			((1 << BLK_X_SIZE) * (1 << BLK_Y_SIZE)),
+				.param_stride_x			((1 << BLK_X_SIZE) * (1 << BLK_Y_SIZE) * COMPONENT_NUM),
+				.param_stride_y			(X_NUM             * (1 << BLK_Y_SIZE) * COMPONENT_NUM),
 				
 				.s_axi4s_tuser			(axi4s_tuser),
 				.s_axi4s_tlast			(axi4s_tlast),

@@ -18,6 +18,7 @@ module jelly_axi4s_master_model
 			parameter	AXI4S_DATA_WIDTH = 32,
 			parameter	X_NUM            = 640,
 			parameter	Y_NUM            = 480,
+			parameter	PGM_FILE         = "",
 			parameter	PPM_FILE         = "",
 			parameter	BUSY_RATE        = 0,
 			parameter	RANDOM_SEED      = 0
@@ -59,6 +60,25 @@ module jelly_axi4s_master_model
 			mem[i] = i;
 		end
 		
+		if ( PGM_FILE != "" ) begin
+			fp = $fopen(PGM_FILE, "r");
+			if ( fp != 0 ) begin
+				$fscanf(fp, "P2");
+				$fscanf(fp, "%d%d", w, h);
+				$fscanf(fp, "%d", d);
+				
+				for ( i = 0; i < X_NUM*Y_NUM; i = i+1 ) begin
+					$fscanf(fp, "%d", p0);
+					mem[i] = p0;
+				end
+				
+				$fclose(fp);
+			end
+			else begin
+				$display("open error : %s", PGM_FILE);
+			end
+		end
+		
 		if ( PPM_FILE != "" ) begin
 			fp = $fopen(PPM_FILE, "r");
 			if ( fp != 0 ) begin
@@ -72,6 +92,9 @@ module jelly_axi4s_master_model
 				end
 				
 				$fclose(fp);
+			end
+			else begin
+				$display("open error : %s", PPM_FILE);
 			end
 		end
 	end
