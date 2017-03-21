@@ -222,7 +222,7 @@ module jelly_texture_writer_core
 			end
 			*/
 			
-			reg_dma_addr  <= (blk_addr << COMPONENT_SIZE);
+			reg_dma_addr  <= param_addr + (blk_addr << COMPONENT_SIZE);
 			for ( i = 0; i < (1 << (M_AXI4_DATA_SIZE - COMPONENT_SIZE)); i = i+1 ) begin
 				reg_dma_data[i*COMPONENT_DATA_WIDTH +: COMPONENT_DATA_WIDTH]
 						<= blk_data[(i*COMPONENT_NUM+blk_component)*COMPONENT_DATA_WIDTH +: COMPONENT_DATA_WIDTH];
