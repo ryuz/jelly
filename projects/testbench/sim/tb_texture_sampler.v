@@ -26,8 +26,11 @@ module tb_texture_sampler();
 	initial #(RATE*100.5)	reset = 1'b0;
 	
 	
+	localparam	MONO = 1;
 	
-	parameter	COMPONENT_NUM                 = 3;
+	
+	
+	parameter	COMPONENT_NUM                 = MONO ? 1 : 3;
 	parameter	DATA_SIZE                     = 0;
 	parameter	DATA_WIDTH                    = (8 << DATA_SIZE);
 	parameter	ADDR_WIDTH                    = 24;
@@ -98,7 +101,7 @@ module tb_texture_sampler();
 	
 	
 	initial begin
-		i_axi4_slave_model.read_memh("axi4_mem.txt");
+		i_axi4_slave_model.read_memh(MONO ? "axi4_mem_mono.txt" : "axi4_mem.txt");
 	end
 	
 	
@@ -248,8 +251,14 @@ module tb_texture_sampler();
 	
 	integer		fp;
 	initial begin
-		fp = $fopen("out.ppm");
-		$fdisplay(fp, "P3");
+		if ( MONO ) begin
+			fp = $fopen("out.pgm");
+			$fdisplay(fp, "P2");
+		end
+		else begin
+			fp = $fopen("out.ppm");
+			$fdisplay(fp, "P3");
+		end
 		$fdisplay(fp, "640 480");
 		$fdisplay(fp, "255");
 		$display("file open");
@@ -258,12 +267,15 @@ module tb_texture_sampler();
 	always @(posedge clk) begin
 		if ( !reset ) begin
 			if ( sink_valid && sink_ready ) begin
-				$fdisplay(fp,  "%d %d %d", sink_data[7:0], sink_data[15:8], sink_data[23:16]);
+				if ( MONO ) begin
+					$fdisplay(fp,  "%d", sink_data[7:0]);
+				end
+				else begin
+					$fdisplay(fp,  "%d %d %d", sink_data[7:0], sink_data[15:8], sink_data[23:16]);
+				end
 			end
 		end
 	end
-	
-	
 	
 	
 	
