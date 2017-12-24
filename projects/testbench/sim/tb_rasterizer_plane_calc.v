@@ -20,9 +20,9 @@ module tb_rasterizer_plane_calc();
 	
 	parameter	X_NUM            = 640;
 	parameter	Y_NUM            = 480;
-	parameter	REGION_WIDTH     = 24;
-	parameter	COLOR_INT_WIDTH  = 16;
-	parameter	COLOR_FRAC_WIDTH = 8;
+	parameter	REGION_WIDTH     = 20;
+	parameter	COLOR_INT_WIDTH  = 10;
+	parameter	COLOR_FRAC_WIDTH = 10;
 	parameter	COLOR_WIDTH      = COLOR_INT_WIDTH + COLOR_FRAC_WIDTH;
 	
 	genvar							i;
@@ -44,17 +44,17 @@ module tb_rasterizer_plane_calc();
 	integer				vertex_c1		[0:2];
 	integer				vertex_c2		[0:2];
 	
-	integer				j, k;
-	integer				offset;
-	integer				dx;
-	integer				dy;
+	integer						j, k;
+	reg		signed	[63:0]		offset;
+	reg		signed	[63:0]		dx;
+	reg		signed	[63:0]		dy;
 	
-	integer				vx0, vx1;
-	integer				vy0, vy1;
-	integer				vz0, vz1;
-	integer				cross_x;
-	integer				cross_y;
-	integer				cross_z;
+	reg		signed	[63:0]		vx0, vx1;
+	reg		signed	[63:0]		vy0, vy1;
+	reg		signed	[63:0]		vz0, vz1;
+	reg		signed	[63:0]		cross_x;
+	reg		signed	[63:0]		cross_y;
+	reg		signed	[63:0]		cross_z;
 	
 	initial begin
 		vertex_x[0] = 123;
@@ -64,17 +64,22 @@ module tb_rasterizer_plane_calc();
 		vertex_x[2] = 300;
 		vertex_y[2] = 390;
 		
-		vertex_c0[0] = 250;
-		vertex_c0[1] = 10;
-		vertex_c0[2] = 10;
+	//	vertex_x[1] = vertex_x[0] + 10;
+	//	vertex_y[1] = vertex_y[0] + 5;
+	//	vertex_x[2] = vertex_x[0] + 7;
+	//	vertex_y[2] = vertex_y[0] + 21;
 		
-		vertex_c1[0] = 10;
-		vertex_c1[1] = 250;
-		vertex_c1[2] = 10;
+		vertex_c0[0] = 255;
+		vertex_c0[1] = 100;
+		vertex_c0[2] = 0;
 		
-		vertex_c2[0] = 10;
-		vertex_c2[1] = 10;
-		vertex_c2[2] = 250;
+		vertex_c1[0] = 0;
+		vertex_c1[1] = 255;
+		vertex_c1[2] = 0;
+		
+		vertex_c2[0] = 0;
+		vertex_c2[1] = 255;
+		vertex_c2[2] = 255;
 		
 		
 		// ç¿ïWîÕàÕ
@@ -211,6 +216,13 @@ module tb_rasterizer_plane_calc();
 	end
 	endgenerate
 	
+	
+	
+	initial begin
+		#(RATE*X_NUM*Y_NUM + 10000)	$finish;
+	end
+	
+	
 	always @(posedge clk) begin
 		if ( reset ) begin
 			st1_valid <= 1'b0;
@@ -232,6 +244,7 @@ module tb_rasterizer_plane_calc();
 	always @(posedge clk) begin
 		if ( !reset && cke && st1_valid ) begin
 			if ( &st1_sign ) begin
+	//		if ( 1 ) begin
 				 $fdisplay(fp, "%d %d %d",
 				 	 st1_color[0] >>> COLOR_FRAC_WIDTH,
 				 	 st1_color[1] >>> COLOR_FRAC_WIDTH,
@@ -242,6 +255,7 @@ module tb_rasterizer_plane_calc();
 			end
 		end
 	end
+	
 	
 	
 	
