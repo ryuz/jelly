@@ -881,13 +881,15 @@ module top
 	wire								src_img_line_last;
 	wire								src_img_pixel_first;
 	wire								src_img_pixel_last;
-	wire	[8-1:0]			src_img_data;
+	wire								src_img_de;
+	wire	[8-1:0]						src_img_data;
 	
 	wire								sink_img_line_first;
 	wire								sink_img_line_last;
 	wire								sink_img_pixel_first;
 	wire								sink_img_pixel_last;
-	wire	[8-1:0]			sink_img_data;
+	wire								sink_img_de;
+	wire	[8-1:0]						sink_img_data;
 	
 	assign axi4s_memw_tdata[15:8]  = axi4s_memw_tdata[7:0];
 	assign axi4s_memw_tdata[23:16] = axi4s_memw_tdata[7:0];
@@ -926,12 +928,14 @@ module top
 				.src_img_line_last		(src_img_line_last),
 				.src_img_pixel_first	(src_img_pixel_first),
 				.src_img_pixel_last		(src_img_pixel_last),
+				.src_img_de				(src_img_de),
 				.src_img_data			(src_img_data),
-				                         
+				
 				.sink_img_line_first	(sink_img_line_first),
 				.sink_img_line_last		(sink_img_line_last),
 				.sink_img_pixel_first	(sink_img_pixel_first),
 				.sink_img_pixel_last	(sink_img_pixel_last),
+				.sink_img_de			(sink_img_de),
 				.sink_img_data			(sink_img_data)
 			);
 	
@@ -939,6 +943,7 @@ module top
 	wire								img_blk_line_last;
 	wire								img_blk_pixel_first;
 	wire								img_blk_pixel_last;
+	wire								img_blk_de;
 	wire	[3*3*8-1:0]					img_blk_data;
 	
 	jelly_img_blk_buffer
@@ -955,19 +960,18 @@ module top
 				.clk					(vin_clk),
 				.cke					(img_cke),
 				
-				.param_border_type		(2'b11),
-				.param_border_constant	({5{8'haa}}),
-				
 				.s_img_line_first		(src_img_line_first),
 				.s_img_line_last		(src_img_line_last),
 				.s_img_pixel_first		(src_img_pixel_first),
 				.s_img_pixel_last		(src_img_pixel_last),
+				.s_img_de				(src_img_de),
 				.s_img_data				(src_img_data),
 				
 				.m_img_line_first		(img_blk_line_first),
 				.m_img_line_last		(img_blk_line_last),
 				.m_img_pixel_first		(img_blk_pixel_first),
 				.m_img_pixel_last		(img_blk_pixel_last),
+				.m_img_de				(img_blk_de),
 				.m_img_data				(img_blk_data)
 			);
 	
@@ -975,7 +979,8 @@ module top
 	wire							img_sobel_line_last;
 	wire							img_sobel_pixel_first;
 	wire							img_sobel_pixel_last;
-	wire	[8-1:0]		img_sobel_data;
+	wire							img_sobel_de;
+	wire	[8-1:0]					img_sobel_data;
 	
 	jelly_img_sobel_filter
 			#(
@@ -991,12 +996,14 @@ module top
 				.s_img_line_last		(img_blk_line_last),
 				.s_img_pixel_first		(img_blk_pixel_first),
 				.s_img_pixel_last		(img_blk_pixel_last),
+				.s_img_de				(img_blk_de),
 				.s_img_data				(img_blk_data),
 				
 				.m_img_line_first		(img_sobel_line_first),
 				.m_img_line_last		(img_sobel_line_last),
 				.m_img_pixel_first		(img_sobel_pixel_first),
 				.m_img_pixel_last		(img_sobel_pixel_last),
+				.m_img_de				(img_sobel_de),
 				.m_img_data				(img_sobel_data)
 			);
 	
@@ -1004,6 +1011,7 @@ module top
 	assign sink_img_line_last   = img_sobel_line_last;
 	assign sink_img_pixel_first = img_sobel_pixel_first;
 	assign sink_img_pixel_last  = img_sobel_pixel_last;
+	assign sink_img_de          = img_sobel_de;
 	assign sink_img_data        = img_sobel_data;
 	
 	

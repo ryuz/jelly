@@ -25,12 +25,14 @@ module jelly_img_sobel_filter
 			input	wire							s_img_line_last,
 			input	wire							s_img_pixel_first,
 			input	wire							s_img_pixel_last,
+			input	wire							s_img_de,
 			input	wire	[3*3*DATA_WIDTH-1:0]	s_img_data,
 			
 			output	wire							m_img_line_first,
 			output	wire							m_img_line_last,
 			output	wire							m_img_pixel_first,
 			output	wire							m_img_pixel_last,
+			output	wire							m_img_de,
 			output	wire	[DATA_WIDTH-1:0]		m_img_data
 		);
 	
@@ -39,6 +41,7 @@ module jelly_img_sobel_filter
 	reg									st0_line_last;
 	reg									st0_pixel_first;
 	reg									st0_pixel_last;
+	reg									st0_de;
 	reg		signed	[DATA_WIDTH+3:0]	st0_h_data0;
 	reg		signed	[DATA_WIDTH+3:0]	st0_h_data1;
 	reg		signed	[DATA_WIDTH+3:0]	st0_h_data2;
@@ -50,6 +53,7 @@ module jelly_img_sobel_filter
 	reg									st1_line_last;
 	reg									st1_pixel_first;
 	reg									st1_pixel_last;
+	reg									st1_de;
 	reg		signed	[DATA_WIDTH+3:0]	st1_h_data0;
 	reg		signed	[DATA_WIDTH+3:0]	st1_h_data1;
 	reg		signed	[DATA_WIDTH+3:0]	st1_v_data0;
@@ -59,6 +63,7 @@ module jelly_img_sobel_filter
 	reg									st2_line_last;
 	reg									st2_pixel_first;
 	reg									st2_pixel_last;
+	reg									st2_de;
 	reg		signed	[DATA_WIDTH+3:0]	st2_h_data;
 	reg		signed	[DATA_WIDTH+3:0]	st2_v_data;
 	
@@ -66,6 +71,7 @@ module jelly_img_sobel_filter
 	reg									st3_line_last;
 	reg									st3_pixel_first;
 	reg									st3_pixel_last;
+	reg									st3_de;
 	reg		signed	[DATA_WIDTH+3:0]	st3_h_data;
 	reg		signed	[DATA_WIDTH+3:0]	st3_v_data;
 	
@@ -73,12 +79,14 @@ module jelly_img_sobel_filter
 	reg									st4_line_last;
 	reg									st4_pixel_first;
 	reg									st4_pixel_last;
+	reg									st4_de;
 	reg		signed	[DATA_WIDTH+3:0]	st4_data;
-
+	
 	reg									st5_line_first;
 	reg									st5_line_last;
 	reg									st5_pixel_first;
 	reg									st5_pixel_last;
+	reg									st5_de;
 	reg				[DATA_WIDTH-1:0]	st5_data;
 	
 	always @(posedge clk) begin
@@ -115,62 +123,74 @@ module jelly_img_sobel_filter
 			st0_line_last   <= 1'b0;
 			st0_pixel_first <= 1'b0;
 			st0_pixel_last  <= 1'b0;
+			st0_de          <= 1'b0;
 			
 			st1_line_first  <= 1'b0;
 			st1_line_last   <= 1'b0;
 			st1_pixel_first <= 1'b0;
 			st1_pixel_last  <= 1'b0;
+			st1_de          <= 1'b0;
 			
 			st2_line_first  <= 1'b0;
 			st2_line_last   <= 1'b0;
 			st2_pixel_first <= 1'b0;
 			st2_pixel_last  <= 1'b0;
+			st2_de          <= 1'b0;
 			
 			st3_line_first  <= 1'b0;
 			st3_line_last   <= 1'b0;
 			st3_pixel_first <= 1'b0;
 			st3_pixel_last  <= 1'b0;
+			st3_de          <= 1'b0;
 			
 			st4_line_first  <= 1'b0;
 			st4_line_last   <= 1'b0;
 			st4_pixel_first <= 1'b0;
 			st4_pixel_last  <= 1'b0;
-
+			st4_de          <= 1'b0;
+			
 			st5_line_first  <= 1'b0;
 			st5_line_last   <= 1'b0;
 			st5_pixel_first <= 1'b0;
 			st5_pixel_last  <= 1'b0;
+			st5_de          <= 1'b0;
 		end
 		else if ( cke ) begin
 			st0_line_first  <= s_img_line_first;
 			st0_line_last   <= s_img_line_last;
 			st0_pixel_first <= s_img_pixel_first;
 			st0_pixel_last  <= s_img_pixel_last;
+			st0_de          <= s_img_de;
 			
 			st1_line_first  <= st0_line_first;
 			st1_line_last   <= st0_line_last;
 			st1_pixel_first <= st0_pixel_first;
 			st1_pixel_last  <= st0_pixel_last;
+			st1_de          <= st0_de;
 			
 			st2_line_first  <= st1_line_first;
 			st2_line_last   <= st1_line_last;
 			st2_pixel_first <= st1_pixel_first;
 			st2_pixel_last  <= st1_pixel_last;
+			st2_de          <= st1_de;
 			
 			st3_line_first  <= st2_line_first;
 			st3_line_last   <= st2_line_last;
 			st3_pixel_first <= st2_pixel_first;
 			st3_pixel_last  <= st2_pixel_last;
+			st3_de          <= st2_de;
 			
 			st4_line_first  <= st3_line_first;
 			st4_line_last   <= st3_line_last;
 			st4_pixel_first <= st3_pixel_first;
 			st4_pixel_last  <= st3_pixel_last;
-
+			st4_de          <= st3_de;
+			
 			st5_line_first  <= st4_line_first;
 			st5_line_last   <= st4_line_last;
 			st5_pixel_first <= st4_pixel_first;
 			st5_pixel_last  <= st4_pixel_last;
+			st5_de          <= st4_de;
 		end
 	end
 	
@@ -178,6 +198,7 @@ module jelly_img_sobel_filter
 	assign m_img_line_last   = st5_line_last;
 	assign m_img_pixel_first = st5_pixel_first;
 	assign m_img_pixel_last  = st5_pixel_last;
+	assign m_img_de          = st5_de;
 	assign m_img_data        = st5_data;
 	
 endmodule
