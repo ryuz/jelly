@@ -62,7 +62,7 @@ module jelly_minmax
 	                     NUM <= 16384 ? 14 :
 	                     NUM <= 32768 ? 15 : 16;
 	
-	localparam	N      = (1 << (STAGES-1))
+	localparam	N      = (1 << (STAGES-1));
 	
 	
 	// ”äŠr
@@ -76,25 +76,30 @@ module jelly_minmax
 		reg		signed	[DATA_WIDTH:0]	data1;
 		begin
 			if ( DATA_SIGNED ) begin
-				data0 = $signed(in_data0);
-				data1 = $signed(in_data1);
+				data0 = {in_data0[DATA_WIDTH-1], in_data0};
+				data1 = {in_data1[DATA_WIDTH-1], in_data1};
 			end
 			else begin
-				data0 = $unsigned(in_data0);
-				data1 = $unsigned(in_data1);
+				data0 = {1'b0, in_data0};
+				data1 = {1'b0, in_data1};
 			end
 			
-			if ( CMP_EQ == 0 ) begin
-				cmp_data = CMP_MIN ? in_data1 >= in_data0 : in_data1 <= in_data0;
-				if ( !en1 ) begin
-					cmp_data = 1'b0;
+			if ( in_en0 && in_en1 ) begin
+				if ( CMP_EQ == 0 ) begin
+					cmp_data = CMP_MIN ? (data1 <= data0) : (data1 >= data0);
+				end
+				else begin
+					cmp_data = CMP_MIN ? (data1 <  data0) : (data1 > data0);
 				end
 			end
-			else begin
-				cmp_data = CMP_MIN ? in_data1 >  in_data0 : in_data1 < in_data0;
-				if ( !en0 ) begin
-					cmp_data = 1'b1;
-				end
+			else if ( in_en0 && !in_en1 ) begin
+				cmp_data = 1'b0;
+			end
+			else if ( !in_en0 && in_en1 ) begin
+				cmp_data = 1'b1;
+			end
+			else if ( !in_en0 && !in_en1 ) begin
+				cmp_data = CMP_EQ;
 			end
 		end
 	endfunction
@@ -121,7 +126,7 @@ module jelly_minmax
 					tmp_common_user = reg_common_user[(i+1)*COMMON_USER_BITS +: COMMON_USER_BITS];
 					tmp_user        = reg_user       [(i+1)*N*USER_BITS      +: N*USER_BITS];
 					tmp_data        = reg_data       [(i+1)*N*DATA_WIDTH     +: N*DATA_WIDTH];
-					tmp_en          = reg_en         [(i+1)];
+					tmp_en          = reg_en         [(i+1)*N                +: N];
 				end
 				else begin
 					tmp_common_user = s_common_user;
@@ -137,7 +142,7 @@ module jelly_minmax
 					
 					reg_user[(i*N+j)*USER_BITS  +: USER_BITS]  <= tmp_user[(2*j+sel)*USER_BITS  +: USER_BITS];
 					reg_data[(i*N+j)*DATA_WIDTH +: DATA_WIDTH] <= tmp_data[(2*j+sel)*DATA_WIDTH +: DATA_WIDTH];
-					reg_en  [i*N+j]                            <= tmp_en  [2*j+sel];
+					reg_en  [i*N+j]                            <= (tmp_en[2*j+0] || tmp_en[2*j+1]);
 				end
 			end
 		end
@@ -148,7 +153,7 @@ module jelly_minmax
 			reg_valid <= {STAGES{1'b0}};
 		end
 		else begin
-			reg_valid <= ({s_valid, reg_valid} >> 1};
+			reg_valid <= ({s_valid, reg_valid} >> 1);
 		end
 	end
 	
@@ -157,7 +162,7 @@ module jelly_minmax
 	assign m_user        = reg_user       [0 +: USER_BITS];
 	assign m_data        = reg_data       [0 +: DATA_WIDTH];
 	assign m_en          = reg_en         [0];
-	assign m_valid       = reg_vlaid      [0];
+	assign m_valid       = reg_valid      [0];
 	
 	
 endmodule
