@@ -16,51 +16,69 @@
 module jelly_params_ram
 		#(
 			parameter	NUM        = 32,
-			parameter	BANK_WIDTH = 1,
+			parameter	BANK_NUM   = 2,
 			parameter	DATA_WIDTH = 32,
-			parameter	ADDR_WIDTH = NUM <=     2 ?  1 :
-			                         NUM <=     4 ?  2 :
-			                         NUM <=     8 ?  3 :
-			                         NUM <=    16 ?  4 :
-			                         NUM <=    32 ?  5 :
-			                         NUM <=    64 ?  6 :
-			                         NUM <=   128 ?  7 :
-			                         NUM <=   256 ?  8 :
-			                         NUM <=   512 ?  9 :
-			                         NUM <=  1024 ? 10 :
-			                         NUM <=  2048 ? 11 :
-			                         NUM <=  4096 ? 12 :
-			                         NUM <=  8192 ? 13 :
-			                         NUM <= 16384 ? 14 :
-			                         NUM <= 32768 ? 15 : 16,	// ˆê•”ˆ—Œn‚Å $clog2 ‚ª³‚µ‚­“®‚©‚È‚¢‚Ì‚Å
+			
+			parameter	ADDR_WIDTH = NUM      <=     2 ?  1 :
+			                         NUM      <=     4 ?  2 :
+			                         NUM      <=     8 ?  3 :
+			                         NUM      <=    16 ?  4 :
+			                         NUM      <=    32 ?  5 :
+			                         NUM      <=    64 ?  6 :
+			                         NUM      <=   128 ?  7 :
+			                         NUM      <=   256 ?  8 :
+			                         NUM      <=   512 ?  9 :
+			                         NUM      <=  1024 ? 10 :
+			                         NUM      <=  2048 ? 11 :
+			                         NUM      <=  4096 ? 12 :
+			                         NUM      <=  8192 ? 13 :
+			                         NUM      <= 16384 ? 14 :
+			                         NUM      <= 32768 ? 15 : 16,	// ˆê•”ˆ—Œn‚Å $clog2 ‚ª³‚µ‚­“®‚©‚È‚¢‚Ì‚Å
+			
+			parameter	BANK_WIDTH = BANK_NUM <=     1 ?  0 :
+			                         BANK_NUM <=     2 ?  1 :
+			                         BANK_NUM <=     4 ?  2 :
+			                         BANK_NUM <=     8 ?  3 :
+			                         BANK_NUM <=    16 ?  4 :
+			                         BANK_NUM <=    32 ?  5 :
+			                         BANK_NUM <=    64 ?  6 :
+			                         BANK_NUM <=   128 ?  7 :
+			                         BANK_NUM <=   256 ?  8 :
+			                         BANK_NUM <=   512 ?  9 :
+			                         BANK_NUM <=  1024 ? 10 :
+			                         BANK_NUM <=  2048 ? 11 :
+			                         BANK_NUM <=  4096 ? 12 :
+			                         BANK_NUM <=  8192 ? 13 :
+			                         BANK_NUM <= 16384 ? 14 :
+			                         BANK_NUM <= 32768 ? 15 : 16,	// ˆê•”ˆ—Œn‚Å $clog2 ‚ª³‚µ‚­“®‚©‚È‚¢‚Ì‚Å
+			
 			parameter	WRITE_ONLY   = 1,
 			parameter	DOUT_REGS    = 0,
 			parameter	RAM_TYPE     = "distributed",
 			parameter	ENDIAN       = 0,
 			
-			
-			// local parameter
 			parameter	BANK_BITS    = BANK_WIDTH > 0 ? BANK_WIDTH : 1
 		)
 		(
-			input	wire								reset,
-			input	wire								clk,
+			input	wire							reset,
+			input	wire							clk,
 			
-			input	wire								start,
-			output	wire								busy,
+			input	wire							start,
+			output	wire							busy,
 			
-			input	wire	[BANK_BITS-1:0]				bank,
-			output	wire	[NUM*DATA_WIDTH-1:0]		params,
+			input	wire	[BANK_BITS-1:0]			bank,
+			output	wire	[NUM*DATA_WIDTH-1:0]	params,
 			
 			
 			// memory port
-			input	wire								mem_clk,
-			input	wire								mem_en,
-			input	wire								mem_regcke,
-			input	wire								mem_we,
-			input	wire	[BANK_WIDTH+ADDR_WIDTH-1:0]	mem_addr,
-			input	wire	[DATA_WIDTH-1:0]			mem_din,
-			output	wire	[DATA_WIDTH-1:0]			mem_dout
+			input	wire							mem_clk,
+			input	wire							mem_en,
+			input	wire							mem_regcke,
+			input	wire							mem_we,
+			input	wire	[BANK_BITS-1:0]			mem_bank,
+			input	wire	[ADDR_WIDTH-1:0]		mem_addr,
+			input	wire	[DATA_WIDTH-1:0]		mem_din,
+			output	wire	[DATA_WIDTH-1:0]		mem_dout
 		);
 	
 	
@@ -85,7 +103,7 @@ module jelly_params_ram
 				(
 					.wr_clk			(mem_clk),
 					.wr_en			(mem_en & mem_we),
-					.wr_addr		(mem_addr),
+					.wr_addr		({mem_bank, mem_addr}),
 					.wr_din			(mem_din),
 					
 					.rd_clk			(clk),
@@ -112,7 +130,7 @@ module jelly_params_ram
 					.en0			(mem_en),
 					.regcke0		(mem_regcke),
 					.we0			(mem_we),
-					.addr0			(mem_addr),
+					.addr0			({mem_bank, mem_addr}),
 					.din0			(mem_din),
 					.dout0			(mem_dout),
 					
@@ -126,6 +144,7 @@ module jelly_params_ram
 				);
 	end
 	endgenerate
+	
 	
 	
 	// -----------------------------
