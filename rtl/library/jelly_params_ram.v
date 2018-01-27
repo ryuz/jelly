@@ -142,6 +142,9 @@ module jelly_params_ram
 			if ( reg_addr == (NUM-1) ) begin
 				reg_busy <= 1'b0;
 			end
+			else if ( start ) begin
+				reg_busy <= 1'b1;
+			end
 		end
 	end
 	

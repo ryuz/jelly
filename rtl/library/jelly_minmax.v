@@ -15,11 +15,11 @@
 // selecter
 module jelly_minmax
 		#(
-			parameter	NUM               = 2,
+			parameter	NUM               = 6,
 			parameter	COMMON_USER_WIDTH = 0,
 			parameter	USER_WIDTH        = 0,
 			parameter	DATA_WIDTH        = 32,
-			parameter	DATA_SIGNED       = 0,
+			parameter	DATA_SIGNED       = 1,
 			parameter	CMP_MIN           = 0,		// min‚©max‚©
 			parameter	CMP_EQ            = 0,		// “¯’l‚Ì‚Æ‚« data0 ‚Æ data1 ‚Ç‚¿‚ç‚ğ—Dæ‚·‚é‚©
 			
