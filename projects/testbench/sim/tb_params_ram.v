@@ -44,7 +44,7 @@ module tb_params_ram();
 	parameter	BANK_BITS    = BANK_WIDTH > 0 ? BANK_WIDTH : 1;
 	
 	
-	reg									start;
+	reg									start = 0;
 	wire								busy;
 	
 	reg		[BANK_BITS-1:0]				bank;
@@ -65,8 +65,8 @@ module tb_params_ram();
 				.DATA_WIDTH		(DATA_WIDTH),
 				.WRITE_ONLY		(WRITE_ONLY),
 				.DOUT_REGS		(DOUT_REGS),
-				.RAM_TYPE		(RAM_TYPE),
-				.INIT_PARAMS	(INIT_PARAMS)
+				.RAM_TYPE		(RAM_TYPE)
+	//			.INIT_PARAMS	(INIT_PARAMS)
 			)
 		i_params_ram
 			(
@@ -138,6 +138,24 @@ module tb_params_ram();
 			mem_we    <= 1'b0;
 			
 			
+		@(posedge clk)
+			start     <= 1'b1;
+			bank      <= 0;
+		@(posedge clk);
+			start     <= 1'b0;
+		
+		@(negedge busy);
+		@(posedge clk);
+		@(posedge clk);
+		@(posedge clk)
+			start     <= 1'b1;
+			bank      <= 1;
+		@(posedge clk);
+			start     <= 1'b0;
+		
+		@(negedge busy);
+		@(posedge clk);
+		@(posedge clk);
 		@(posedge clk)
 			start     <= 1'b1;
 			bank      <= 0;

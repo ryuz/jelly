@@ -15,7 +15,7 @@
 // parameter registers with shadow register(ram)
 module jelly_params_ram
 		#(
-			parameter	NUM        = 64,
+			parameter	NUM        = 32,
 			parameter	BANK_WIDTH = 1,
 			parameter	DATA_WIDTH = 32,
 			parameter	ADDR_WIDTH = NUM <=     2 ?  1 :
@@ -37,7 +37,6 @@ module jelly_params_ram
 			parameter	DOUT_REGS    = 0,
 			parameter	RAM_TYPE     = "distributed",
 			parameter	ENDIAN       = 0,
-			parameter	INIT_PARAMS  = {(NUM*DATA_WIDTH){1'b0}},
 			
 			
 			// local parameter
@@ -133,10 +132,9 @@ module jelly_params_ram
 	//  registers
 	// -----------------------------
 	
-	reg								reg_busy;
-	reg								reg_shift;
-	reg		[ADDR_WIDTH-1:0]		reg_addr;
-	reg		[NUM*DATA_WIDTH-1:0]	reg_params;
+	reg									reg_busy;
+	reg		[ADDR_WIDTH-1:0]			reg_addr;
+	reg		[(NUM-1)*DATA_WIDTH-1:0]	reg_params;
 	
 	always @(posedge clk ) begin
 		if ( reset ) begin
@@ -153,28 +151,18 @@ module jelly_params_ram
 	end
 	
 	always @(posedge clk ) begin
-		reg_shift <= reg_busy;
 		if ( reg_busy ) begin
 			reg_addr <= reg_addr + 1'b1;
+			
+			if ( ENDIAN ) begin
+				reg_params <= ((reg_params << DATA_WIDTH) | rd_data);
+			end
+			else begin
+				reg_params <= ((reg_params >> DATA_WIDTH) | (rd_data << (NUM-2)*DATA_WIDTH));
+			end
 		end
 		else begin
 			reg_addr <= {ADDR_WIDTH{1'b0}};
-		end
-	end
-	
-	always @(posedge clk ) begin
-		if ( reset ) begin
-			reg_params <= INIT_PARAMS;
-		end
-		else begin
-			if ( reg_shift ) begin
-				if ( ENDIAN ) begin
-					reg_params <= ((reg_params << DATA_WIDTH) | rd_data);
-				end
-				else begin
-					reg_params <= ((reg_params >> DATA_WIDTH) | (rd_data << (NUM-1)*DATA_WIDTH));
-				end
-			end
 		end
 	end
 	
@@ -182,7 +170,7 @@ module jelly_params_ram
 	assign rd_addr = reg_addr;
 	
 	assign busy    = reg_busy;
-	assign params  = reg_params;
+	assign params  = reg_busy ? {(NUM*DATA_WIDTH){1'bx}} : (ENDIAN ? {reg_params, rd_data} : {rd_data, reg_params});
 	
 	
 endmodule
