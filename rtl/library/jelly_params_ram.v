@@ -36,7 +36,9 @@ module jelly_params_ram
 			parameter	WRITE_ONLY   = 1,
 			parameter	DOUT_REGS    = 0,
 			parameter	RAM_TYPE     = "distributed",
+			parameter	ENDIAN       = 0,
 			parameter	INIT_PARAMS  = {(NUM*DATA_WIDTH){1'b0}},
+			
 			
 			// local parameter
 			parameter	BANK_BITS    = BANK_WIDTH > 0 ? BANK_WIDTH : 1
@@ -67,6 +69,7 @@ module jelly_params_ram
 	//  memory
 	// -----------------------------
 	
+	wire						rd_cke;
 	wire	[ADDR_WIDTH-1:0]	rd_addr;
 	wire	[DATA_WIDTH-1:0]	rd_data;
 	
@@ -87,8 +90,8 @@ module jelly_params_ram
 					.wr_din			(mem_din),
 					
 					.rd_clk			(clk),
-					.rd_en			(1'b1),
-					.rd_regcke		(1'b1),
+					.rd_en			(rd_cke),
+					.rd_regcke		(1'b0),
 					.rd_addr		({bank, rd_addr}),
 					.rd_dout		(rd_data)
 				);
@@ -115,7 +118,7 @@ module jelly_params_ram
 					.dout0			(mem_dout),
 					
 					.clk1			(clk),
-					.en1			(1'b1),
+					.en1			(rd_cke),
 					.regcke1		(1'b0),
 					.we1			(1'b0),
 					.addr1			({bank, rd_addr}),
@@ -131,12 +134,13 @@ module jelly_params_ram
 	// -----------------------------
 	
 	reg								reg_busy;
+	reg								reg_shift;
 	reg		[ADDR_WIDTH-1:0]		reg_addr;
 	reg		[NUM*DATA_WIDTH-1:0]	reg_params;
 	
 	always @(posedge clk ) begin
 		if ( reset ) begin
-			reg_busy <= 1'b0;
+			reg_busy  <= 1'b0;
 		end
 		else begin
 			if ( reg_addr == (NUM-1) ) begin
@@ -149,6 +153,7 @@ module jelly_params_ram
 	end
 	
 	always @(posedge clk ) begin
+		reg_shift <= reg_busy;
 		if ( reg_busy ) begin
 			reg_addr <= reg_addr + 1'b1;
 		end
@@ -162,14 +167,22 @@ module jelly_params_ram
 			reg_params <= INIT_PARAMS;
 		end
 		else begin
-			if ( reg_busy ) begin
-				reg_params <= ((reg_params << DATA_WIDTH) | rd_data);
+			if ( reg_shift ) begin
+				if ( ENDIAN ) begin
+					reg_params <= ((reg_params << DATA_WIDTH) | rd_data);
+				end
+				else begin
+					reg_params <= ((reg_params >> DATA_WIDTH) | (rd_data << (NUM-1)*DATA_WIDTH));
+				end
 			end
 		end
 	end
 	
-	assign busy   = reg_busy;
-	assign params = reg_params;
+	assign rd_cke  = reg_busy;
+	assign rd_addr = reg_addr;
+	
+	assign busy    = reg_busy;
+	assign params  = reg_params;
 	
 	
 endmodule
