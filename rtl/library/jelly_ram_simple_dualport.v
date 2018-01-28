@@ -65,7 +65,7 @@ module jelly_ram_simple_dualport
 		end
 	end
 	
-
+	
 	// DOUT FF insert
 	generate
 	if ( DOUT_REGS ) begin : blk_reg

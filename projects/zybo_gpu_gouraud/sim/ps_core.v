@@ -157,12 +157,13 @@ module ps_core
 	assign m_axi4l_peri00_rready  = 1'b1;
 	
 	
-//	assign s_axi4_mem00_arready   = 1'b1;
-//	assign s_axi4_mem00_awready   = 1'b1;
-//	assign s_axi4_mem00_wready    = 1'b1;
-//	assign s_axi4_mem00_bvalid    = 1'b0;
-//	assign s_axi4_mem00_rvalid    = 1'b0;
+	assign s_axi4_mem00_arready   = 1'b1;
+	assign s_axi4_mem00_awready   = 1'b1;
+	assign s_axi4_mem00_wready    = 1'b1;
+	assign s_axi4_mem00_bvalid    = 1'b0;
+	assign s_axi4_mem00_rvalid    = 1'b0;
 	
+	/*
 	jelly_axi4_slave_model
 			#(
 				.AXI_ID_WIDTH		(6),
@@ -230,7 +231,7 @@ module ps_core
 				.s_axi4_rvalid		(s_axi4_mem00_rvalid),
 				.s_axi4_rready		(s_axi4_mem00_rready)
 			);
-	
+	*/
 	
 endmodule
 

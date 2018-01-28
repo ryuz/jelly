@@ -5,7 +5,7 @@
 
 module top
 		#(
-			parameter	HDMI_RX    = 1,
+			parameter	HDMI_TX    = 1,
 			parameter	BUF_STRIDE = 4096,
 			parameter	VIN_X_NUM  = 720,
 			parameter	VIN_Y_NUM  = 480,
@@ -21,16 +21,17 @@ module top
 			inout	wire			hdmi_scl,
 			inout	wire			hdmi_sda,
 			
-			/*
 			output	wire			hdmi_clk_p,
 			output	wire			hdmi_clk_n,
 			output	wire	[2:0]	hdmi_data_p,
 			output	wire	[2:0]	hdmi_data_n,
-			*/
+			
+			/*
 			input	wire			hdmi_clk_p,
 			input	wire			hdmi_clk_n,
 			input	wire	[2:0]	hdmi_data_p,
 			input	wire	[2:0]	hdmi_data_n,
+			*/
 			
 			output	wire			vga_hsync,
 			output	wire			vga_vsync,
@@ -210,7 +211,7 @@ module top
 	wire	[1:0]	axi4l_peri00_rresp;
 	wire			axi4l_peri00_rvalid;
 	wire			axi4l_peri00_rready;
-
+	
 	wire	[5:0]	axi4_mem00_awid;
 	wire	[31:0]	axi4_mem00_awaddr;
 	wire	[1:0]	axi4_mem00_awburst;
@@ -401,6 +402,42 @@ module top
 	
 	
 	// ----------------------------------------
+	//  memory
+	// ----------------------------------------
+	
+	// Žg‚í‚È‚¢
+	assign axi4_mem00_awid     = 0;
+	assign axi4_mem00_awaddr   = 0;
+	assign axi4_mem00_awburst  = 0;
+	assign axi4_mem00_awcache  = 0;
+	assign axi4_mem00_awlen    = 0;
+	assign axi4_mem00_awlock   = 0;
+	assign axi4_mem00_awprot   = 0;
+	assign axi4_mem00_awqos    = 0;
+	assign axi4_mem00_awregion = 0;
+	assign axi4_mem00_awsize   = 0;
+	assign axi4_mem00_awvalid  = 0;
+	assign axi4_mem00_wstrb    = 0;
+	assign axi4_mem00_wdata    = 0;
+	assign axi4_mem00_wlast    = 0;
+	assign axi4_mem00_wvalid   = 0;
+	assign axi4_mem00_bready   = 0;
+	
+	assign axi4_mem00_arid     = 0;
+	assign axi4_mem00_araddr   = 0;
+	assign axi4_mem00_arburst  = 0;
+	assign axi4_mem00_arcache  = 0;
+	assign axi4_mem00_arlen    = 0;
+	assign axi4_mem00_arlock   = 0;
+	assign axi4_mem00_arprot   = 0;
+	assign axi4_mem00_arqos    = 0;
+	assign axi4_mem00_arregion = 0;
+	assign axi4_mem00_arsize   = 0;
+	assign axi4_mem00_arvalid  = 0;
+	assign axi4_mem00_rready   = 0;
+	
+	
+	// ----------------------------------------
 	//  GPO (LED)
 	// ----------------------------------------
 	
@@ -435,114 +472,6 @@ module top
 				.s_wb_ack_o			(wb_gpio_ack_o)
 			);
 	
-	
-	
-	// ----------------------------------------
-	//  DMA write
-	// ----------------------------------------
-	
-	wire	[0:0]			axi4s_memw_tuser;
-	wire					axi4s_memw_tlast;
-	wire	[31:0]			axi4s_memw_tdata;
-	wire					axi4s_memw_tvalid;
-	wire					axi4s_memw_tready;
-	
-	
-	wire	[31:0]			wb_vdmaw_dat_o;
-	wire					wb_vdmaw_stb_i;
-	wire					wb_vdmaw_ack_o;
-	
-	jelly_vdma_axi4s_to_axi4
-			#(
-				.ASYNC				(1),
-				.FIFO_PTR_WIDTH		(9),
-				
-				.PIXEL_SIZE			(2),	// 32bit
-				.AXI4_ID_WIDTH		(6),
-				.AXI4_ADDR_WIDTH	(32),
-				.AXI4_DATA_SIZE		(3),	// 64bit
-				.AXI4_LEN_WIDTH		(8),
-				.AXI4_QOS_WIDTH		(4),
-				.AXI4S_DATA_SIZE	(2),	// 32bit
-				.AXI4S_USER_WIDTH	(1),
-				.INDEX_WIDTH		(8),
-				.STRIDE_WIDTH		(14),
-				.H_WIDTH			(12),
-				.V_WIDTH			(12),
-				.WB_ADR_WIDTH		(8),
-				.WB_DAT_WIDTH		(32),
-				.INIT_CTL_CONTROL	(2'b11),
-				.INIT_PARAM_ADDR	(32'h1800_0000),
-				.INIT_PARAM_STRIDE	(BUF_STRIDE),
-				.INIT_PARAM_WIDTH	(VIN_X_NUM),
-				.INIT_PARAM_HEIGHT	(VIN_Y_NUM),
-				.INIT_PARAM_SIZE	(VIN_X_NUM*VIN_Y_NUM),
-				.INIT_PARAM_AWLEN	(7)
-			)
-		i_vdma_axi4s_to_axi4
-			(
-				.m_axi4_aresetn		(mem_aresetn),
-				.m_axi4_aclk		(mem_aclk),
-				.m_axi4_awid		(axi4_mem00_awid),
-				.m_axi4_awaddr		(axi4_mem00_awaddr),
-				.m_axi4_awburst		(axi4_mem00_awburst),
-				.m_axi4_awcache		(axi4_mem00_awcache),
-				.m_axi4_awlen		(axi4_mem00_awlen),
-				.m_axi4_awlock		(axi4_mem00_awlock),
-				.m_axi4_awprot		(axi4_mem00_awprot),
-				.m_axi4_awqos		(axi4_mem00_awqos),
-				.m_axi4_awregion	(axi4_mem00_awregion),
-				.m_axi4_awsize		(axi4_mem00_awsize),
-				.m_axi4_awvalid		(axi4_mem00_awvalid),
-				.m_axi4_awready		(axi4_mem00_awready),
-				.m_axi4_wstrb		(axi4_mem00_wstrb),
-				.m_axi4_wdata		(axi4_mem00_wdata),
-				.m_axi4_wlast		(axi4_mem00_wlast),
-				.m_axi4_wvalid		(axi4_mem00_wvalid),
-				.m_axi4_wready		(axi4_mem00_wready),
-				.m_axi4_bid			(axi4_mem00_bid),
-				.m_axi4_bresp		(axi4_mem00_bresp),
-				.m_axi4_bvalid		(axi4_mem00_bvalid),
-				.m_axi4_bready		(axi4_mem00_bready),
-				
-				.s_axi4s_aresetn	(~vin_reset),
-				.s_axi4s_aclk		(vin_clk),
-				.s_axi4s_tuser		(axi4s_memw_tuser),
-				.s_axi4s_tlast		(axi4s_memw_tlast),
-				.s_axi4s_tdata		(axi4s_memw_tdata),
-				.s_axi4s_tvalid		(axi4s_memw_tvalid),
-				.s_axi4s_tready		(axi4s_memw_tready),
-				
-				.s_wb_rst_i			(wb_rst_o),
-				.s_wb_clk_i			(wb_clk_o),
-				.s_wb_adr_i			(wb_host_adr_o[2 +: 8]),
-				.s_wb_dat_o			(wb_vdmaw_dat_o),
-				.s_wb_dat_i			(wb_host_dat_o),
-				.s_wb_we_i			(wb_host_we_o),
-				.s_wb_sel_i			(wb_host_sel_o),
-				.s_wb_stb_i			(wb_vdmaw_stb_i),
-				.s_wb_ack_o			(wb_vdmaw_ack_o)
-			);
-	
-	
-	
-	// ----------------------------------------
-	//  DMA read
-	// ----------------------------------------
-	
-	// Žg‚í‚È‚¢
-	assign axi4_mem00_arid     = 0;
-	assign axi4_mem00_araddr   = 0;
-	assign axi4_mem00_arburst  = 0;
-	assign axi4_mem00_arcache  = 0;
-	assign axi4_mem00_arlen    = 0;
-	assign axi4_mem00_arlock   = 0;
-	assign axi4_mem00_arprot   = 0;
-	assign axi4_mem00_arqos    = 0;
-	assign axi4_mem00_arregion = 0;
-	assign axi4_mem00_arsize   = 0;
-	assign axi4_mem00_arvalid  = 0;
-	assign axi4_mem00_rready   = 0;
 	
 	
 	// ----------------------------------------
@@ -740,195 +669,6 @@ module top
 	
 	
 	
-	
-	
-	// ----------------------------------------
-	//  HDMI-RX
-	// ----------------------------------------
-	
-	localparam	IDELAYCTRL_GROUP_HDMIRX = "IODELAY_HDMIRX" ;
-	
-	wire	[0:0]			axi4s_vin_tuser;
-	wire					axi4s_vin_tlast;
-	wire	[31:0]			axi4s_vin_tdata;
-	wire					axi4s_vin_tvalid;
-	wire					axi4s_vin_tready;
-	
-	generate
-	if ( HDMI_RX ) begin
-	
-		wire	hdmirx_idelayctrl_rdy;
-		
-		(* IODELAY_GROUP=IDELAYCTRL_GROUP_HDMIRX *)
-		IDELAYCTRL
-			i_idelayctrl_hdmirx
-				(
-					.RST		(ref200_reset),
-					.REFCLK		(ref200_clk),
-					.RDY		(hdmirx_idelayctrl_rdy)
-				);
-		
-		wire	hdmirx_reset;
-		jelly_reset
-			i_reset_hdmirx
-				(
-					.clk		(ref200_clk),
-					.in_reset	(~hdmirx_idelayctrl_rdy || ref200_reset),
-					.out_reset	(hdmirx_reset)
-				);
-		
-		
-		assign hdmi_out_en = 1'b0;
-		assign hdmi_hpd    = 1'b1;
-		
-		
-		wire			vin_vsync;
-		wire			vin_hsync;
-		wire			vin_de;
-		wire	[23:0]	vin_data;
-		wire	[3:0]	vin_ctl;
-		wire			vin_valid;
-		
-		jelly_hdmi_rx
-				#(
-					.IDELAYCTRL_GROUP	(IDELAYCTRL_GROUP_HDMIRX)
-				)
-			i_hdmi_rx
-				(
-					.in_reset			(hdmirx_reset),
-					.in_clk_p			(hdmi_clk_p),
-					.in_clk_n			(hdmi_clk_n),
-					.in_data_p			(hdmi_data_p),
-					.in_data_n			(hdmi_data_n),
-					
-					.out_clk			(vin_clk),
-					.out_reset			(vin_reset),
-					.out_vsync			(vin_vsync),
-					.out_hsync			(vin_hsync),
-					.out_de				(vin_de),
-					.out_data			(vin_data),
-					.out_ctl			(vin_ctl),
-					.out_valid			(vin_valid)
-				);
-		
-		jelly_vin_axi4s
-				#(
-					.WIDTH				(24)
-				)
-			i_vin_axi4s
-				(
-					.reset				(vin_reset),
-					.clk				(vin_clk),
-					
-					.in_vsync			(vin_vsync),
-					.in_hsync			(vin_hsync),
-					.in_de				(vin_de),
-					.in_data			(vin_data),
-					.in_ctl				(vin_ctl),
-					
-					.m_axi4s_tuser		(axi4s_vin_tuser),
-					.m_axi4s_tlast		(axi4s_vin_tlast),
-					.m_axi4s_tdata		(axi4s_vin_tdata),
-					.m_axi4s_tvalid		(axi4s_vin_tvalid)
-				);
-		
-		
-		// EDID
-		wire	hdmi_scl_t;
-		wire	hdmi_scl_i;
-		
-		wire	hdmi_sda_t;
-		wire	hdmi_sda_i;
-		
-		IOBUF	i_bufio_hdmi_scl (.IO(hdmi_scl), .I(1'b0), .O(hdmi_scl_i), .T(hdmi_scl_t));
-		IOBUF	i_bufio_hdmi_sda (.IO(hdmi_sda), .I(1'b0), .O(hdmi_sda_i), .T(hdmi_sda_t));
-		
-		
-		wire			bus_en;
-		wire			bus_start;
-		wire			bus_rw;
-		wire	[7:0]	bus_wdata;
-		wire	[7:0]	bus_rdata;
-		
-		jelly_i2c_slave
-				#(
-					.DIVIDER_WIDTH	(3),
-					.DIVIDER_COUNT	(7)
-				)
-			i_i2c_slave
-				(
-					.reset			(~peri_aresetn),
-					.clk			(peri_aclk),
-					
-					.addr			(7'h50),
-					
-					.i2c_scl_i		(hdmi_scl_i),
-					.i2c_scl_t		(hdmi_scl_t),
-					.i2c_sda_i		(hdmi_sda_i),
-					.i2c_sda_t		(hdmi_sda_t),
-					
-					.bus_en			(bus_en),
-					.bus_start		(bus_start),
-					.bus_rw			(bus_rw),
-					.bus_wdata		(bus_wdata),
-					.bus_rdata		(bus_rdata)
-				);
-		
-		reg		[6:0]	reg_edid_addr;
-		always @(posedge peri_aclk) begin
-			if ( !peri_aresetn ) begin
-				reg_edid_addr <= 0;
-			end
-			else begin
-				if ( bus_en && !bus_start ) begin
-					if ( bus_rw == 1'b0 ) begin
-						reg_edid_addr <= bus_wdata;
-					end
-					else begin
-						reg_edid_addr <= reg_edid_addr + 1;
-					end
-				end
-				
-			end
-		end
-		
-		jelly_edid_rom
-			i_edid_rom
-				(
-					.clk		(peri_aclk),
-					.en			(1'b1),
-					.addr		(reg_edid_addr),
-					.dout		(bus_rdata)
-				);
-	end
-	else begin
-		// pattern generator(dummy input)
-		assign	vin_reset = vout_reset;
-		assign	vin_clk   = vout_clk;
-		
-		jelly_pattern_generator_axi4s
-				#(
-					.AXI4S_DATA_WIDTH	(32),
-					.X_NUM				(VIN_X_NUM),
-					.Y_NUM				(VIN_Y_NUM)
-				)
-			i_pattern_generator_axi4s
-				(
-					.aresetn			(~vin_reset),
-					.aclk				(vin_clk),
-					
-					.m_axi4s_tuser		(axi4s_memw_tuser),
-					.m_axi4s_tlast		(axi4s_memw_tlast),
-					.m_axi4s_tdata		(axi4s_memw_tdata),
-					.m_axi4s_tvalid		(axi4s_memw_tvalid),
-					.m_axi4s_tready		(axi4s_memw_tready)
-				);
-	end
-	endgenerate
-	
-	
-	
-	
 	// ----------------------------------------
 	//  VGA-TX
 	// ----------------------------------------
@@ -960,7 +700,7 @@ module top
 	// ----------------------------------------
 	
 	generate
-	if ( !HDMI_RX ) begin
+	if ( HDMI_TX ) begin
 		assign hdmi_out_en = 1'b1;
 		assign hdmi_hpd    = 1'bz;
 		
@@ -994,20 +734,20 @@ module top
 	assign wb_gpu_stb_i   = wb_host_stb_o & (wb_host_adr_o[31:16] == 20'h4000);
 //	assign wb_vdmar_stb_i = wb_host_stb_o & (wb_host_adr_o[31:12] == 20'h4001_0);
 	assign wb_vsgen_stb_i = wb_host_stb_o & (wb_host_adr_o[31:12] == 20'h4001_1);
-	assign wb_vdmaw_stb_i = wb_host_stb_o & (wb_host_adr_o[31:12] == 20'h4001_8);
+//	assign wb_vdmaw_stb_i = wb_host_stb_o & (wb_host_adr_o[31:12] == 20'h4001_8);
 	assign wb_gpio_stb_i  = wb_host_stb_o & (wb_host_adr_o[31:12] == 20'h4002_1);
 	
 	assign wb_host_dat_i  = wb_gpu_stb_i   ? wb_gpu_dat_o   :
 //	                        wb_vdmar_stb_i ? wb_vdmar_dat_o :
 	                        wb_vsgen_stb_i ? wb_vsgen_dat_o :
-	                        wb_vdmaw_stb_i ? wb_vdmaw_dat_o :
+//	                        wb_vdmaw_stb_i ? wb_vdmaw_dat_o :
 	                        wb_gpio_stb_i  ? wb_gpio_dat_o  :
 	                        32'h0000_0000;
 	
 	assign wb_host_ack_i  = wb_gpu_stb_i   ? wb_gpu_ack_o   :
 //	                        wb_vdmar_stb_i ? wb_vdmar_ack_o :
 	                        wb_vsgen_stb_i ? wb_vsgen_ack_o :
-	                        wb_vdmaw_stb_i ? wb_vdmaw_ack_o :
+//	                        wb_vdmaw_stb_i ? wb_vdmaw_ack_o :
 	                        wb_gpio_stb_i  ? wb_gpio_ack_o  :
 	                        wb_host_stb_o;
 	

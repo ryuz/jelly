@@ -168,6 +168,8 @@ module jelly_gpu_gouraud
 	reg										pixel_valid;
 	
 	reg		signed	[POLYGON_WIDTH-1:0]		tmp_param;
+	wire	signed	[POLYGON_WIDTH-1:0]		tmp_min = {1'b0, {DATA_WIDTH{1'b0}}};
+	wire	signed	[POLYGON_WIDTH-1:0]		tmp_max = {1'b0, {DATA_WIDTH{1'b1}}};
 	
 	always @(posedge clk) begin
 		if ( cke ) begin
@@ -179,8 +181,8 @@ module jelly_gpu_gouraud
 				for ( i = 0; i < COMPONENT_NUM; i = i+1 ) begin
 					tmp_param = rasterizer_polygon_params[i*POLYGON_WIDTH +: POLYGON_WIDTH];
 					tmp_param = (tmp_param >>> (POLYGON_Q - DATA_WIDTH));
-					if ( tmp_param < 0 ) begin tmp_param = {DATA_WIDTH{1'b0}}; end
-					if ( tmp_param < 0 ) begin tmp_param = {DATA_WIDTH{1'b1}}; end
+					if ( tmp_param < tmp_min ) begin tmp_param = tmp_min; end
+					if ( tmp_param > tmp_max ) begin tmp_param = tmp_max; end
 					pixel_data[i*DATA_WIDTH +: DATA_WIDTH] <= tmp_param;
 				end
 			end

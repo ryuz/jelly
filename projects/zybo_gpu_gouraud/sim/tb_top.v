@@ -30,7 +30,7 @@ module tb_top();
 	// TOP
 	top
 			#(
-				.HDMI_RX	(0)
+				.HDMI_TX	(0)
 			)
 		i_top
 			(
