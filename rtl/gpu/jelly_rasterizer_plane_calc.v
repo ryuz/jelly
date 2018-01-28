@@ -45,7 +45,7 @@ module jelly_rasterizer_plane_calc
 			if ( x_first ) begin
 				reg_value <= reg_value + dy_stride;
 				if ( y_first ) begin
-					reg_value <= reg_value + offset;
+					reg_value <= offset;
 				end
 			end
 		end
