@@ -10,7 +10,7 @@ module tb_rasterizer();
 	
 	initial begin
 		$dumpfile("tb_rasterizer.vcd");
-		$dumpvars(0, tb_rasterizer);
+		$dumpvars(1, tb_rasterizer);
 	end
 	
 	reg		clk = 1'b1;
@@ -23,34 +23,55 @@ module tb_rasterizer();
 	always #(RATE*100)	reset = 1'b0;
 	
 	
+	parameter	X_NUM               = 640;
+	parameter	Y_NUM               = 480;
+	
 	parameter	X_WIDTH             = 12;
 	parameter	Y_WIDTH             = 12;
 	
-	parameter	WB_ADR_WIDTH      = 14;
-	parameter	WB_DAT_WIDTH      = 32;
-	parameter	WB_SEL_WIDTH      = (WB_DAT_WIDTH / 8);
+	parameter	WB_ADR_WIDTH        = 14;
+	parameter	WB_DAT_WIDTH        = 32;
+	parameter	WB_SEL_WIDTH        = (WB_DAT_WIDTH / 8);
 	
-	parameter	BANK_NUM          = 2;
-	parameter	BANK_ADDR_WIDTH   = 12;
-	parameter	PARAMS_ADDR_WIDTH = 10;
+	parameter	BANK_NUM            = 2;
+	parameter	BANK_ADDR_WIDTH     = 12;
+	parameter	PARAMS_ADDR_WIDTH   = 10;
 	
-	parameter	EDGE_NUM          = 12;
-	parameter	EDGE_WIDTH        = 32;
-	parameter	EDGE_RAM_TYPE     = "distributed";
+	parameter	EDGE_NUM            = 12;
+	parameter	EDGE_WIDTH          = 32;
+	parameter	EDGE_RAM_TYPE       = "distributed";
 	
-	parameter	POLYGON_NUM       = 6;
-	parameter	POLYGON_WIDTH     = 32;
-	parameter	POLYGON_PARAM_NUM = 3;
-	parameter	POLYGON_RAM_TYPE  = "distributed";
+	parameter	POLYGON_NUM         = 6;
+	parameter	POLYGON_WIDTH       = 32;
+	parameter	POLYGON_PARAM_NUM   = 3;
+	parameter	POLYGON_RAM_TYPE    = "distributed";
 	
-	parameter	REGION_NUM        = POLYGON_NUM;
-	parameter	REGION_WIDTH      = EDGE_NUM;
-	parameter	REGION_RAM_TYPE   = "distributed";
+	parameter	REGION_NUM          = POLYGON_NUM;
+	parameter	REGION_WIDTH        = EDGE_NUM;
+	parameter	REGION_RAM_TYPE     = "distributed";
+
+	parameter	INDEX_WIDTH         = POLYGON_NUM <=     2 ?  1 :
+	                                  POLYGON_NUM <=     4 ?  2 :
+	                                  POLYGON_NUM <=     8 ?  3 :
+	                                  POLYGON_NUM <=    16 ?  4 :
+	                                  POLYGON_NUM <=    32 ?  5 :
+	                                  POLYGON_NUM <=    64 ?  6 :
+	                                  POLYGON_NUM <=   128 ?  7 :
+	                                  POLYGON_NUM <=   256 ?  8 :
+	                                  POLYGON_NUM <=   512 ?  9 :
+	                                  POLYGON_NUM <=  1024 ? 10 :
+	                                  POLYGON_NUM <=  2048 ? 11 :
+	                                  POLYGON_NUM <=  4096 ? 12 :
+	                                  POLYGON_NUM <=  8192 ? 13 :
+	                                  POLYGON_NUM <= 16384 ? 14 :
+	                                  POLYGON_NUM <= 32768 ? 15 : 16;
+	
+	parameter	CULLING_ONLY        = 1;
 	
 	parameter	INIT_CTL_ENABLE     = 1'b0;
 	parameter	INIT_CTL_BANK       = 0;
-	parameter	INIT_PARAM_WIDTH    = 640-1;
-	parameter	INIT_PARAM_HEIGHT   = 480-1;
+	parameter	INIT_PARAM_WIDTH    = X_NUM-1;
+	parameter	INIT_PARAM_HEIGHT   = Y_NUM-1;
 	
 	
 	parameter	PARAMS_EDGE_SIZE    = EDGE_NUM*3;
@@ -68,6 +89,12 @@ module tb_rasterizer();
 	wire	[PARAMS_EDGE_SIZE*EDGE_WIDTH-1:0]		params_edge;
 	wire	[PARAMS_POLYGON_SIZE*POLYGON_WIDTH-1:0]	params_polygon;
 	wire	[PARAMS_REGION_SIZE*REGION_WIDTH-1:0]	params_region;
+	
+	wire											m_frame_first;
+	wire											m_polygon_enable;
+	wire	[INDEX_WIDTH-1:0]						m_polygon_index;
+	wire	[POLYGON_PARAM_NUM*POLYGON_WIDTH-1:0]	m_polygon_params;
+	wire											m_valid;
 	
 	wire											s_wb_rst_i = reset;
 	wire											s_wb_clk_i = wb_clk;
@@ -116,6 +143,12 @@ module tb_rasterizer();
 				.reset				(reset),
 				.clk				(clk),
 				.cke				(cke),
+				
+				.m_frame_first		(m_frame_first),
+				.m_polygon_enable	(m_polygon_enable),
+				.m_polygon_index	(m_polygon_index),
+				.m_polygon_params	(m_polygon_params),
+				.m_valid			(m_valid),
 				
 				.s_wb_rst_i			(s_wb_rst_i),
 				.s_wb_clk_i			(s_wb_clk_i),
@@ -188,6 +221,65 @@ module tb_rasterizer();
 				.s_wb_ack_o			(s_wb_ack_o)
 			);
 	*/
+	
+	
+	
+	integer		fp;
+	initial begin
+		 fp = $fopen("out_img.ppm", "w");
+		 $fdisplay(fp, "P3");
+		 $fdisplay(fp, "%d %d", X_NUM, Y_NUM);
+		 $fdisplay(fp, "255");
+	end
+	
+	wire	[31:0]		m_polygon_t = m_polygon_params[32*0 +: 32];
+	wire	[31:0]		m_polygon_u = m_polygon_params[32*1 +: 32];
+	wire	[31:0]		m_polygon_v = m_polygon_params[32*2 +: 32];
+	real				rel_u, rel_v, rel_t;
+	reg		[7:0]		int_u, int_v, int_t;
+	always @* begin
+		rel_u = m_polygon_u;
+		rel_v = m_polygon_v;
+		rel_t = m_polygon_t;
+		
+		rel_u = rel_u / (1 << 20);
+		rel_v = rel_v / (1 << 20);
+		rel_t = rel_t / (1 << 20);
+		
+		if ( rel_t == 0 ) rel_t = 0.00000001;
+		rel_t = 1.0 / rel_t;
+		rel_u = rel_u * rel_t;
+		rel_v = rel_v * rel_t;
+		
+		if ( rel_u > 1.0 ) rel_u = 1.0;
+		if ( rel_u < 0.0 ) rel_u = 0.0;
+		if ( rel_v > 1.0 ) rel_v = 1.0;
+		if ( rel_v < 0.0 ) rel_v = 0.0;
+		if ( rel_t > 1.0 ) rel_t = 1.0;
+		if ( rel_t < 0.0 ) rel_t = 0.0;
+		
+		int_u = rel_u * 255.0;
+		int_v = rel_v * 255.0;
+		int_t = rel_t * 255.0;
+		
+	end
+	
+	
+	always @(posedge clk) begin
+		if ( !reset && cke && m_valid ) begin
+			if ( &m_polygon_enable ) begin
+				 $fdisplay(fp, "%d %d %d", int_u, int_v, 255);
+			end
+			else begin
+				 $fdisplay(fp, "0 0 0");
+			end
+		end
+	end
+	
+	
+	
+	
+	
 	
 	
 	// WISHBONE master
@@ -358,7 +450,7 @@ module tb_rasterizer();
 		$display("start");
 		wb_write(32'h0000_0000, 32'h0000_0001, 4'b1111);
 		
-	#1000000
+	#10000000
 		$finish();
 	end
 	

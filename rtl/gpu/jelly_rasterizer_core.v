@@ -27,7 +27,24 @@ module jelly_rasterizer_core
 			parameter	REGION_NUM          = POLYGON_NUM,
 			parameter	REGION_WIDTH        = EDGE_NUM,
 			
+			parameter	INDEX_WIDTH         = POLYGON_NUM <=     2 ?  1 :
+	                                          POLYGON_NUM <=     4 ?  2 :
+	                                          POLYGON_NUM <=     8 ?  3 :
+	                                          POLYGON_NUM <=    16 ?  4 :
+	                                          POLYGON_NUM <=    32 ?  5 :
+	                                          POLYGON_NUM <=    64 ?  6 :
+	                                          POLYGON_NUM <=   128 ?  7 :
+	                                          POLYGON_NUM <=   256 ?  8 :
+	                                          POLYGON_NUM <=   512 ?  9 :
+	                                          POLYGON_NUM <=  1024 ? 10 :
+	                                          POLYGON_NUM <=  2048 ? 11 :
+	                                          POLYGON_NUM <=  4096 ? 12 :
+	                                          POLYGON_NUM <=  8192 ? 13 :
+	                                          POLYGON_NUM <= 16384 ? 14 :
+	                                          POLYGON_NUM <= 32768 ? 15 : 16,
+			
 			parameter	CULLING_ONLY        = 1,
+			
 			
 			// local
 			parameter	PARAMS_EDGE_SIZE    = EDGE_NUM*3,
@@ -48,9 +65,13 @@ module jelly_rasterizer_core
 			
 			input	wire	[PARAMS_EDGE_SIZE*EDGE_WIDTH-1:0]		params_edge,
 			input	wire	[PARAMS_POLYGON_SIZE*POLYGON_WIDTH-1:0]	params_polygon,
-			input	wire	[PARAMS_REGION_SIZE*REGION_WIDTH-1:0]	params_region
+			input	wire	[PARAMS_REGION_SIZE*REGION_WIDTH-1:0]	params_region,
 			
-			
+			output	wire											m_frame_first,
+			output	wire											m_polygon_enable,
+			output	wire	[INDEX_WIDTH-1:0]						m_polygon_index,
+			output	wire	[POLYGON_PARAM_NUM*POLYGON_WIDTH-1:0]	m_polygon_params,
+			output	wire											m_valid
 		);
 	
 	
@@ -112,9 +133,10 @@ module jelly_rasterizer_core
 	//  パラメータ計算
 	// -----------------------------------------
 
-	wire	[EDGE_NUM-1:0]										edge_sign;
-	wire	[POLYGON_NUM*POLYGON_PARAM_NUM*POLYGON_WIDTH-1:0]	polygon_value;
-	reg															params_valid;
+	wire	[EDGE_NUM-1:0]										calc_edge_sign;
+	wire	[POLYGON_NUM*POLYGON_PARAM_NUM*POLYGON_WIDTH-1:0]	calc_polygon_params;
+	reg															calc_frame_first;
+	reg															calc_valid;
 	
 	// エッジ判定回路
 	generate
@@ -137,7 +159,7 @@ module jelly_rasterizer_core
 					.offset			(params_edge[(i*3+2)*EDGE_WIDTH +: EDGE_WIDTH]),
 					
 					.out_value		(),
-					.out_sign		(edge_sign[i])
+					.out_sign		(calc_edge_sign[i])
 				);
 	end
 	endgenerate
@@ -163,7 +185,7 @@ module jelly_rasterizer_core
 						.dy_stride		(params_polygon[((i*POLYGON_PARAM_NUM+j)*3+1)*POLYGON_WIDTH +: POLYGON_WIDTH]),
 						.offset			(params_polygon[((i*POLYGON_PARAM_NUM+j)*3+2)*POLYGON_WIDTH +: POLYGON_WIDTH]),
 						
-						.out_value		(polygon_value[(i*POLYGON_PARAM_NUM+j)*POLYGON_WIDTH +: POLYGON_WIDTH]),
+						.out_value		(calc_polygon_params[(i*POLYGON_PARAM_NUM+j)*POLYGON_WIDTH +: POLYGON_WIDTH]),
 						.out_sign		()
 					);
 		end
@@ -171,11 +193,17 @@ module jelly_rasterizer_core
 	endgenerate
 	
 	always @(posedge clk) begin
+		if ( cke ) begin
+			calc_frame_first <= (timgen_x_first & timgen_y_first);
+		end
+	end
+	
+	always @(posedge clk) begin
 		if ( reset ) begin
-			params_valid <= 1'b0;
+			calc_valid <= 1'b0;
 		end
 		else if ( cke ) begin
-			params_valid <= timgen_valid;
+			calc_valid <= timgen_valid;
 		end
 	end
 	
@@ -184,9 +212,10 @@ module jelly_rasterizer_core
 	//  領域判定
 	// -----------------------------------------
 	
-	reg		[POLYGON_NUM-1:0]						region_enable;
-	reg		[PARAMS_POLYGON_SIZE*POLYGON_WIDTH-1:0]	region_polygon_value;
-	reg												region_valid;
+	reg															region_frame_first;
+	reg		[POLYGON_NUM-1:0]									region_polygon_enables;
+	reg		[POLYGON_NUM*POLYGON_PARAM_NUM*POLYGON_WIDTH-1:0]	region_polygon_params;
+	reg															region_valid;
 	
 	generate
 	for ( i = 0; i < POLYGON_NUM; i = i+1 ) begin : loop_region
@@ -196,10 +225,13 @@ module jelly_rasterizer_core
 		
 		always @(posedge clk) begin
 			if ( cke ) begin
-				en_flag[0] =  (&((edge_sign ^ polarity_flag) | ~region_flag));
-				en_flag[1] = !(|((edge_sign ^ polarity_flag) &  region_flag));
+				region_frame_first <= calc_frame_first;
 				
-				region_enable[i] <= ((en_flag & param_culling) != 0);
+				
+				en_flag[0] =  (&((~calc_edge_sign ^ polarity_flag) | ~region_flag));
+				en_flag[1] = !(|((~calc_edge_sign ^ polarity_flag) &  region_flag));
+				
+				region_polygon_enables[i] <= ((en_flag & param_culling) != 0);
 			end
 		end
 	end
@@ -207,7 +239,7 @@ module jelly_rasterizer_core
 	
 	always @(posedge clk) begin
 		if ( cke ) begin
-			region_polygon_value <= region_polygon_value;
+			region_polygon_params <= calc_polygon_params;
 		end
 	end
 
@@ -216,7 +248,7 @@ module jelly_rasterizer_core
 			region_valid <= 1'b0;
 		end
 		else if ( cke ) begin
-			region_valid <= params_valid;
+			region_valid <= calc_valid;
 		end
 	end
 	
@@ -226,19 +258,89 @@ module jelly_rasterizer_core
 	//  ソーティング
 	// -----------------------------------------
 	
+	wire											select_frame_first;
+	wire											select_polygon_enable;
+	wire	[INDEX_WIDTH-1:0]						select_polygon_index;
+	wire	[POLYGON_PARAM_NUM*POLYGON_WIDTH-1:0]	select_polygon_params;
+	wire											select_valid;
+	
 	generate
 	if ( CULLING_ONLY ) begin : blk_culling
 		// カリングのみ
+		wire	[INDEX_WIDTH-1:0]	region_polygon_index;
+		jelly_bit_encoder
+				#(
+					.DATA_WIDTH		(POLYGON_NUM),
+					.SEL_WIDTH		(INDEX_WIDTH),
+					.PRIORITYT		(1),
+					.LSB_FIRST		(1)
+				)
+			jelly_bit_encoder
+				(
+					.in_data		(region_polygon_enables),
+					.out_sel		(region_polygon_index)
+				);
+		
+		reg															sel0_frame_first;
+		reg															sel0_polygon_enable;
+		reg		[INDEX_WIDTH-1:0]									sel0_polygon_index;
+		reg		[POLYGON_NUM*POLYGON_PARAM_NUM*POLYGON_WIDTH-1:0]	sel0_polygon_params;
+		reg															sel0_valid;
+		
+		reg															sel1_frame_first;
+		reg															sel1_polygon_enable;
+		reg		[INDEX_WIDTH-1:0]									sel1_polygon_index;
+		reg		[POLYGON_PARAM_NUM*POLYGON_WIDTH-1:0]				sel1_polygon_params;
+		reg															sel1_valid;
+		
+		always @(posedge clk) begin
+			if ( cke ) begin
+				// stage 0
+				sel0_frame_first    <= region_frame_first;
+				sel0_polygon_enable <= |region_polygon_enables;
+				sel0_polygon_index  <= region_polygon_index;
+				sel0_polygon_params <= region_polygon_params;
+				
+				// stage 1
+				sel1_frame_first    <= sel0_frame_first;
+				sel1_polygon_enable <= sel0_polygon_enable;
+				sel1_polygon_index  <= sel0_polygon_index;
+				sel1_polygon_params <= sel0_polygon_params[sel0_polygon_index*POLYGON_PARAM_NUM*POLYGON_WIDTH +: POLYGON_PARAM_NUM*POLYGON_WIDTH];
+			end
+		end
+		
+		always @(posedge clk) begin
+			if ( reset ) begin
+				sel0_valid <= 1'b0;
+				sel1_valid <= 1'b0;
+			end
+			else if ( cke ) begin
+				sel0_valid <= region_valid;
+				sel1_valid <= sel0_valid;
+			end
+		end
+		
+		assign select_frame_first    = sel1_frame_first;
+		assign select_polygon_enable = sel1_polygon_enable;
+		assign select_polygon_index  = sel1_polygon_index;
+		assign select_polygon_params = sel1_polygon_params;
+		assign select_valid          = sel1_valid;
 	end
 	else begin
 		// Zソート
+		
 	end
 	endgenerate
 	
 	
-	assign busy = timgen_valid;
+	assign m_frame_first    = select_frame_first;
+	assign m_polygon_enable = select_polygon_enable;
+	assign m_polygon_index  = select_polygon_index;
+	assign m_polygon_params = select_polygon_params;
+	assign m_valid          = select_valid;
 	
 	
+	assign busy = timgen_valid | m_valid;
 	
 endmodule
 

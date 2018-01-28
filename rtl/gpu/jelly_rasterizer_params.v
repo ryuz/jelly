@@ -338,9 +338,9 @@ module jelly_rasterizer_params
 	assign wb_region_ack_o = wb_region_stb_i;
 	
 	
-	// busy
-	wire	params_busy = (EDGE_NUM    >= POLYGON_NUM && EDGE_NUM    >= REGION_NUM) ? edge_busy    :
-	                      (POLYGON_NUM >= EDGE_NUM    && POLYGON_NUM >= REGION_NUM) ? polygon_busy :
+	// busy (ˆê”Ô’x‚¢‚à‚Ì‚ðŠî€‚É‚·‚é)
+	wire	params_busy = (PARAMS_EDGE_SIZE    >= PARAMS_POLYGON_SIZE && PARAMS_EDGE_SIZE    >= PARAMS_REGION_SIZE) ? edge_busy    :
+	                      (PARAMS_POLYGON_SIZE >= PARAMS_EDGE_SIZE    && PARAMS_POLYGON_SIZE >= PARAMS_REGION_SIZE) ? polygon_busy :
 	                      region_busy;
 	
 	

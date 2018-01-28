@@ -38,6 +38,24 @@ module jelly_rasterizer
 			parameter	REGION_WIDTH        = EDGE_NUM,
 			parameter	REGION_RAM_TYPE     = "distributed",
 			
+			parameter	INDEX_WIDTH         = POLYGON_NUM <=     2 ?  1 :
+	                                          POLYGON_NUM <=     4 ?  2 :
+	                                          POLYGON_NUM <=     8 ?  3 :
+	                                          POLYGON_NUM <=    16 ?  4 :
+	                                          POLYGON_NUM <=    32 ?  5 :
+	                                          POLYGON_NUM <=    64 ?  6 :
+	                                          POLYGON_NUM <=   128 ?  7 :
+	                                          POLYGON_NUM <=   256 ?  8 :
+	                                          POLYGON_NUM <=   512 ?  9 :
+	                                          POLYGON_NUM <=  1024 ? 10 :
+	                                          POLYGON_NUM <=  2048 ? 11 :
+	                                          POLYGON_NUM <=  4096 ? 12 :
+	                                          POLYGON_NUM <=  8192 ? 13 :
+	                                          POLYGON_NUM <= 16384 ? 14 :
+	                                          POLYGON_NUM <= 32768 ? 15 : 16,
+			
+			parameter	CULLING_ONLY        = 1,
+			
 			parameter	INIT_CTL_ENABLE     = 1'b0,
 			parameter	INIT_CTL_BANK       = 0,
 			parameter	INIT_PARAM_WIDTH    = 640-1,
@@ -59,7 +77,9 @@ module jelly_rasterizer
 			output	wire											s_wb_ack_o,
 			
 			output	wire											m_frame_first,
-			output	wire	[POLYGON_PARAM_NUM*POLYGON_WIDTH-1:0]	m_params,
+			output	wire											m_polygon_enable,
+			output	wire	[INDEX_WIDTH-1:0]						m_polygon_index,
+			output	wire	[POLYGON_PARAM_NUM*POLYGON_WIDTH-1:0]	m_polygon_params,
 			output	wire											m_valid
 		);
 	
@@ -152,7 +172,11 @@ module jelly_rasterizer
 				.POLYGON_WIDTH		(POLYGON_WIDTH),
 				
 				.REGION_NUM			(REGION_NUM),
-				.REGION_WIDTH		(REGION_WIDTH)
+				.REGION_WIDTH		(REGION_WIDTH),
+				
+				.INDEX_WIDTH		(INDEX_WIDTH),
+				
+				.CULLING_ONLY		(CULLING_ONLY)				
 			)
 		i_rasterizer_core
 			(
@@ -169,10 +193,13 @@ module jelly_rasterizer
 				
 				.params_edge		(params_edge),
 				.params_polygon		(params_polygon),
-				.params_region		(params_region)
+				.params_region		(params_region),
 				
-			
-			
+				.m_frame_first		(m_frame_first),
+				.m_polygon_enable	(m_polygon_enable),
+				.m_polygon_index	(m_polygon_index),
+				.m_polygon_params	(m_polygon_params),
+				.m_valid			(m_valid)
 			);
 	
 	
