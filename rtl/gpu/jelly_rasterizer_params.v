@@ -14,31 +14,39 @@
 
 module jelly_rasterizer_params
 		#(
-			parameter	WB_ADR_WIDTH      = 12,
-			parameter	WB_DAT_WIDTH      = 32,
-			parameter	WB_SEL_WIDTH      = (WB_DAT_WIDTH / 8),
+			parameter	X_WIDTH             = 12,
+			parameter	Y_WIDTH             = 12,
 			
-			parameter	BANK_NUM          = 2,
-			parameter	BANK_ADDR_WIDTH   = 10,
-			parameter	PARAMS_ADDR_WIDTH = 8,
+			parameter	WB_ADR_WIDTH        = 14,
+			parameter	WB_DAT_WIDTH        = 32,
+			parameter	WB_SEL_WIDTH        = (WB_DAT_WIDTH / 8),
 			
-			parameter	EDGE_NUM          = 12,
-			parameter	EDGE_WIDTH        = 32,
-			parameter	EDGE_PARAM_NUM    = EDGE_NUM*2,
-			parameter	EDGE_RAM_TYPE     = "distributed",
+			parameter	BANK_NUM            = 2,
+			parameter	BANK_ADDR_WIDTH     = 12,
+			parameter	PARAMS_ADDR_WIDTH   = 10,
 			
-			parameter	POLYGON_NUM       = 6,
-			parameter	POLYGON_WIDTH     = 32,
-			parameter	POLYGON_PARAM_NUM = POLYGON_NUM*3,
-			parameter	POLYGON_RAM_TYPE  = "distributed",
+			parameter	EDGE_NUM            = 12,
+			parameter	EDGE_WIDTH          = 32,
+			parameter	EDGE_RAM_TYPE       = "distributed",
 			
-			parameter	REGION_NUM        = POLYGON_NUM,
-			parameter	REGION_WIDTH      = EDGE_NUM,
-			parameter	REGION_PARAM_NUM  = REGION_NUM*2,
-			parameter	REGION_RAM_TYPE   = "distributed",
+			parameter	POLYGON_NUM         = 6,
+			parameter	POLYGON_PARAM_NUM   = 3,
+			parameter	POLYGON_WIDTH       = 32,
+			parameter	POLYGON_RAM_TYPE    = "distributed",
 			
-			parameter	INIT_ENABLE       = 1'b0,
-			parameter	INIT_BANK         = 0
+			parameter	REGION_NUM          = POLYGON_NUM,
+			parameter	REGION_WIDTH        = EDGE_NUM,
+			parameter	REGION_RAM_TYPE     = "distributed",
+			
+			parameter	INIT_CTL_ENABLE     = 1'b0,
+			parameter	INIT_CTL_BANK       = 0,
+			parameter	INIT_PARAM_WIDTH    = 640-1,
+			parameter	INIT_PARAM_HEIGHT   = 480-1,
+			
+			// local
+			parameter	PARAMS_EDGE_SIZE    = EDGE_NUM*3,
+			parameter	PARAMS_POLYGON_SIZE = POLYGON_NUM*POLYGON_PARAM_NUM*3,
+			parameter	PARAMS_REGION_SIZE  = REGION_NUM*2
 		)
 		(
 			input	wire											reset,
@@ -48,9 +56,12 @@ module jelly_rasterizer_params
 			output	wire											start,
 			input	wire											busy,
 			
-			output	wire	[EDGE_PARAM_NUM   *EDGE_WIDTH-1:0]		edge_params,
-			output	wire	[POLYGON_PARAM_NUM*POLYGON_WIDTH-1:0]	polygon_params,
-			output	wire	[REGION_PARAM_NUM *REGION_WIDTH-1:0]	region_params,
+			output	wire	[X_WIDTH-1:0]							param_width,
+			output	wire	[Y_WIDTH-1:0]							param_height,
+			
+			output	wire	[PARAMS_EDGE_SIZE*EDGE_WIDTH-1:0]		params_edge,
+			output	wire	[PARAMS_POLYGON_SIZE*POLYGON_WIDTH-1:0]	params_polygon,
+			output	wire	[PARAMS_REGION_SIZE*REGION_WIDTH-1:0]	params_region,
 			
 			input	wire											s_wb_rst_i,
 			input	wire											s_wb_clk_i,
@@ -65,97 +76,101 @@ module jelly_rasterizer_params
 	
 	
 	// 一部処理系で $clog2 が正しく動かないので
-	parameter	BANK_WIDTH         = BANK_NUM          <=     1 ?  0 :
-			                         BANK_NUM          <=     2 ?  1 :
-			                         BANK_NUM          <=     4 ?  2 :
-			                         BANK_NUM          <=     8 ?  3 :
-			                         BANK_NUM          <=    16 ?  4 :
-			                         BANK_NUM          <=    32 ?  5 :
-			                         BANK_NUM          <=    64 ?  6 :
-			                         BANK_NUM          <=   128 ?  7 :
-			                         BANK_NUM          <=   256 ?  8 :
-			                         BANK_NUM          <=   512 ?  9 :
-			                         BANK_NUM          <=  1024 ? 10 :
-			                         BANK_NUM          <=  2048 ? 11 :
-			                         BANK_NUM          <=  4096 ? 12 :
-			                         BANK_NUM          <=  8192 ? 13 :
-			                         BANK_NUM          <= 16384 ? 14 :
-			                         BANK_NUM          <= 32768 ? 15 : 16;
+	localparam	BANK_WIDTH         = BANK_NUM            <=     1 ?  0 :
+			                         BANK_NUM            <=     2 ?  1 :
+			                         BANK_NUM            <=     4 ?  2 :
+			                         BANK_NUM            <=     8 ?  3 :
+			                         BANK_NUM            <=    16 ?  4 :
+			                         BANK_NUM            <=    32 ?  5 :
+			                         BANK_NUM            <=    64 ?  6 :
+			                         BANK_NUM            <=   128 ?  7 :
+			                         BANK_NUM            <=   256 ?  8 :
+			                         BANK_NUM            <=   512 ?  9 :
+			                         BANK_NUM            <=  1024 ? 10 :
+			                         BANK_NUM            <=  2048 ? 11 :
+			                         BANK_NUM            <=  4096 ? 12 :
+			                         BANK_NUM            <=  8192 ? 13 :
+			                         BANK_NUM            <= 16384 ? 14 :
+			                         BANK_NUM            <= 32768 ? 15 : 16;
 	
-	parameter	BANK_BITS          = BANK_WIDTH > 0 ? BANK_WIDTH : 1;
+	localparam	BANK_BITS          = BANK_WIDTH > 0 ? BANK_WIDTH : 1;
 	
-	localparam	EDGE_ADDR_WIDTH    = EDGE_PARAM_NUM    <=     2 ?  1 :
-			                         EDGE_PARAM_NUM    <=     4 ?  2 :
-			                         EDGE_PARAM_NUM    <=     8 ?  3 :
-			                         EDGE_PARAM_NUM    <=    16 ?  4 :
-			                         EDGE_PARAM_NUM    <=    32 ?  5 :
-			                         EDGE_PARAM_NUM    <=    64 ?  6 :
-			                         EDGE_PARAM_NUM    <=   128 ?  7 :
-			                         EDGE_PARAM_NUM    <=   256 ?  8 :
-			                         EDGE_PARAM_NUM    <=   512 ?  9 :
-			                         EDGE_PARAM_NUM    <=  1024 ? 10 :
-			                         EDGE_PARAM_NUM    <=  2048 ? 11 :
-			                         EDGE_PARAM_NUM    <=  4096 ? 12 :
-			                         EDGE_PARAM_NUM    <=  8192 ? 13 :
-			                         EDGE_PARAM_NUM    <= 16384 ? 14 :
-			                         EDGE_PARAM_NUM    <= 32768 ? 15 : 16;
+	localparam	EDGE_ADDR_WIDTH    = PARAMS_EDGE_SIZE    <=     2 ?  1 :
+			                         PARAMS_EDGE_SIZE    <=     4 ?  2 :
+			                         PARAMS_EDGE_SIZE    <=     8 ?  3 :
+			                         PARAMS_EDGE_SIZE    <=    16 ?  4 :
+			                         PARAMS_EDGE_SIZE    <=    32 ?  5 :
+			                         PARAMS_EDGE_SIZE    <=    64 ?  6 :
+			                         PARAMS_EDGE_SIZE    <=   128 ?  7 :
+			                         PARAMS_EDGE_SIZE    <=   256 ?  8 :
+			                         PARAMS_EDGE_SIZE    <=   512 ?  9 :
+			                         PARAMS_EDGE_SIZE    <=  1024 ? 10 :
+			                         PARAMS_EDGE_SIZE    <=  2048 ? 11 :
+			                         PARAMS_EDGE_SIZE    <=  4096 ? 12 :
+			                         PARAMS_EDGE_SIZE    <=  8192 ? 13 :
+			                         PARAMS_EDGE_SIZE    <= 16384 ? 14 :
+			                         PARAMS_EDGE_SIZE    <= 32768 ? 15 : 16;
 	
-	localparam	POLYGON_ADDR_WIDTH = POLYGON_PARAM_NUM <=     2 ?  1 :
-			                         POLYGON_PARAM_NUM <=     4 ?  2 :
-			                         POLYGON_PARAM_NUM <=     8 ?  3 :
-			                         POLYGON_PARAM_NUM <=    16 ?  4 :
-			                         POLYGON_PARAM_NUM <=    32 ?  5 :
-			                         POLYGON_PARAM_NUM <=    64 ?  6 :
-			                         POLYGON_PARAM_NUM <=   128 ?  7 :
-			                         POLYGON_PARAM_NUM <=   256 ?  8 :
-			                         POLYGON_PARAM_NUM <=   512 ?  9 :
-			                         POLYGON_PARAM_NUM <=  1024 ? 10 :
-			                         POLYGON_PARAM_NUM <=  2048 ? 11 :
-			                         POLYGON_PARAM_NUM <=  4096 ? 12 :
-			                         POLYGON_PARAM_NUM <=  8192 ? 13 :
-			                         POLYGON_PARAM_NUM <= 16384 ? 14 :
-			                         POLYGON_PARAM_NUM <= 32768 ? 15 : 16;
+	localparam	POLYGON_ADDR_WIDTH = PARAMS_POLYGON_SIZE <=     2 ?  1 :
+			                         PARAMS_POLYGON_SIZE <=     4 ?  2 :
+			                         PARAMS_POLYGON_SIZE <=     8 ?  3 :
+			                         PARAMS_POLYGON_SIZE <=    16 ?  4 :
+			                         PARAMS_POLYGON_SIZE <=    32 ?  5 :
+			                         PARAMS_POLYGON_SIZE <=    64 ?  6 :
+			                         PARAMS_POLYGON_SIZE <=   128 ?  7 :
+			                         PARAMS_POLYGON_SIZE <=   256 ?  8 :
+			                         PARAMS_POLYGON_SIZE <=   512 ?  9 :
+			                         PARAMS_POLYGON_SIZE <=  1024 ? 10 :
+			                         PARAMS_POLYGON_SIZE <=  2048 ? 11 :
+			                         PARAMS_POLYGON_SIZE <=  4096 ? 12 :
+			                         PARAMS_POLYGON_SIZE <=  8192 ? 13 :
+			                         PARAMS_POLYGON_SIZE <= 16384 ? 14 :
+			                         PARAMS_POLYGON_SIZE <= 32768 ? 15 : 16;
 	
-	localparam	REGION_ADDR_WIDTH  = REGION_PARAM_NUM <=     2 ?  1 :
-			                         REGION_PARAM_NUM <=     4 ?  2 :
-			                         REGION_PARAM_NUM <=     8 ?  3 :
-			                         REGION_PARAM_NUM <=    16 ?  4 :
-			                         REGION_PARAM_NUM <=    32 ?  5 :
-			                         REGION_PARAM_NUM <=    64 ?  6 :
-			                         REGION_PARAM_NUM <=   128 ?  7 :
-			                         REGION_PARAM_NUM <=   256 ?  8 :
-			                         REGION_PARAM_NUM <=   512 ?  9 :
-			                         REGION_PARAM_NUM <=  1024 ? 10 :
-			                         REGION_PARAM_NUM <=  2048 ? 11 :
-			                         REGION_PARAM_NUM <=  4096 ? 12 :
-			                         REGION_PARAM_NUM <=  8192 ? 13 :
-			                         REGION_PARAM_NUM <= 16384 ? 14 :
-			                         REGION_PARAM_NUM <= 32768 ? 15 : 16;
+	localparam	REGION_ADDR_WIDTH  = PARAMS_REGION_SIZE  <=     2 ?  1 :
+			                         PARAMS_REGION_SIZE  <=     4 ?  2 :
+			                         PARAMS_REGION_SIZE  <=     8 ?  3 :
+			                         PARAMS_REGION_SIZE  <=    16 ?  4 :
+			                         PARAMS_REGION_SIZE  <=    32 ?  5 :
+			                         PARAMS_REGION_SIZE  <=    64 ?  6 :
+			                         PARAMS_REGION_SIZE  <=   128 ?  7 :
+			                         PARAMS_REGION_SIZE  <=   256 ?  8 :
+			                         PARAMS_REGION_SIZE  <=   512 ?  9 :
+			                         PARAMS_REGION_SIZE  <=  1024 ? 10 :
+			                         PARAMS_REGION_SIZE  <=  2048 ? 11 :
+			                         PARAMS_REGION_SIZE  <=  4096 ? 12 :
+			                         PARAMS_REGION_SIZE  <=  8192 ? 13 :
+			                         PARAMS_REGION_SIZE  <= 16384 ? 14 :
+			                         PARAMS_REGION_SIZE  <= 32768 ? 15 : 16;
 	
 	
 	
 	// 制御レジスタ
-	localparam	REG_ADDR_ENABLE      = 32'h00;
-	localparam	REG_ADDR_BANK        = 32'h01;
-	localparam	REG_ADDR_PARAMS_BANK = 32'h02;
+	localparam	REG_ADDR_CTL_ENABLE   = 32'h00;
+	localparam	REG_ADDR_CTL_BANK     = 32'h01;
+	localparam	REG_ADDR_PARAM_WIDTH  = 32'h02;
+	localparam	REG_ADDR_PARAM_HEIGHT = 32'h03;
+	localparam	REG_ADDR_PARAMS_BANK  = 32'h04;
 	
 	
 	wire	[WB_DAT_WIDTH-1:0]	wb_regs_dat_o;
 	wire						wb_regs_stb_i;
 	wire						wb_regs_ack_o;
 	
-	reg							reg_enable;
-	reg		[BANK_BITS-1:0]		reg_bank;
+	reg							reg_ctl_enable;
+	reg		[BANK_BITS-1:0]		reg_ctl_bank;
+	reg		[X_WIDTH-1:0]		reg_param_width;
+	reg		[Y_WIDTH-1:0]		reg_param_height;
 	
 	wire	[BANK_BITS-1:0]		params_bank;
-	wire						params_update_start;
+	wire						params_start;
 	
-	// 非同期ラッチ
+	// 非同期ラッチ(ソフトウェアはバンクの切り替わりを見てハンドシェークする)
 	(* ASYNC_REG="true" *)	reg		[BANK_BITS-1:0]	ff0_params_bank, ff1_params_bank;
 	always @(posedge s_wb_clk_i ) begin
 		if ( s_wb_rst_i ) begin
-			ff0_params_bank <= INIT_BANK;
-			ff1_params_bank <= INIT_BANK;
+			ff0_params_bank <= INIT_CTL_BANK;
+			ff1_params_bank <= INIT_CTL_BANK;
 		end
 		else begin
 			ff0_params_bank   <= params_bank;
@@ -165,24 +180,34 @@ module jelly_rasterizer_params
 	
 	always @(posedge s_wb_clk_i ) begin
 		if ( s_wb_rst_i ) begin
-			reg_enable <= INIT_ENABLE;
-			reg_bank   <= INIT_BANK;
+			reg_ctl_enable   <= INIT_CTL_ENABLE;
+			reg_ctl_bank     <= INIT_CTL_BANK;
+			reg_param_width  <= INIT_PARAM_WIDTH;
+			reg_param_height <= INIT_PARAM_HEIGHT;
 		end
 		else begin
 			if ( wb_regs_stb_i && s_wb_we_i ) begin
-				case ( s_wb_adr_i[1:0] )
-				REG_ADDR_ENABLE: reg_enable <= s_wb_dat_i;
-				REG_ADDR_BANK:   reg_bank   <= s_wb_dat_i;
+				case ( s_wb_adr_i[2:0] )
+				REG_ADDR_CTL_ENABLE:	reg_ctl_enable   <= s_wb_dat_i;
+				REG_ADDR_CTL_BANK:		reg_ctl_bank     <= s_wb_dat_i;
+				REG_ADDR_PARAM_WIDTH:	reg_param_width  <= s_wb_dat_i;
+				REG_ADDR_PARAM_HEIGHT:	reg_param_height <= s_wb_dat_i;
 				endcase
 			end
 		end
 	end
 	
-	assign wb_regs_dat_o = (s_wb_adr_i[1:0] == REG_ADDR_ENABLE) ? reg_enable      :
-	                       (s_wb_adr_i[1:0] == REG_ADDR_ENABLE) ? reg_bank        :
-	                       (s_wb_adr_i[1:0] == REG_ADDR_ENABLE) ? ff1_params_bank :
+	assign wb_regs_dat_o = (s_wb_adr_i[2:0] == REG_ADDR_CTL_ENABLE)   ? reg_ctl_enable       :
+	                       (s_wb_adr_i[2:0] == REG_ADDR_CTL_ENABLE)   ? reg_ctl_bank         :
+				           (s_wb_adr_i[2:0] == REG_ADDR_PARAM_WIDTH)  ? reg_param_width  :
+				           (s_wb_adr_i[2:0] == REG_ADDR_PARAM_HEIGHT) ? reg_param_height :
+	                       (s_wb_adr_i[2:0] == REG_ADDR_PARAMS_BANK)  ? ff1_params_bank  :
 	                       0;
 	assign wb_regs_ack_o = wb_regs_stb_i;
+	
+	assign param_width  = reg_param_width;
+	assign param_height = reg_param_height;
+	
 	
 	
 	// エッジ判定器用パラメータ
@@ -194,7 +219,7 @@ module jelly_rasterizer_params
 	
 	jelly_params_ram
 			#(
-				.NUM			(EDGE_PARAM_NUM),
+				.NUM			(PARAMS_EDGE_SIZE),
 				.ADDR_WIDTH		(EDGE_ADDR_WIDTH),
 				.DATA_WIDTH		(EDGE_WIDTH),
 				.BANK_NUM		(BANK_NUM),
@@ -208,11 +233,11 @@ module jelly_rasterizer_params
 				.reset			(reset),
 				.clk			(clk),
 				
-				.start			(params_update_start),
+				.start			(params_start),
 				.busy			(edge_busy),
 				
 				.bank			(params_bank),
-				.params			(edge_params),
+				.params			(params_edge),
 				
 				.mem_clk		(s_wb_clk_i),
 				.mem_en			(wb_edge_stb_i),
@@ -237,7 +262,7 @@ module jelly_rasterizer_params
 	
 	jelly_params_ram
 			#(
-				.NUM			(POLYGON_PARAM_NUM),
+				.NUM			(PARAMS_POLYGON_SIZE),
 				.ADDR_WIDTH		(POLYGON_ADDR_WIDTH),
 				.DATA_WIDTH		(POLYGON_WIDTH),
 				.BANK_NUM		(BANK_NUM),
@@ -251,11 +276,11 @@ module jelly_rasterizer_params
 				.reset			(reset),
 				.clk			(clk),
 				
-				.start			(params_update_start),
+				.start			(params_start),
 				.busy			(polygon_busy),
 				
 				.bank			(params_bank),
-				.params			(polygon_params),
+				.params			(params_polygon),
 				
 				.mem_clk		(s_wb_clk_i),
 				.mem_en			(wb_polygon_stb_i),
@@ -280,7 +305,7 @@ module jelly_rasterizer_params
 	
 	jelly_params_ram
 			#(
-				.NUM			(REGION_PARAM_NUM),
+				.NUM			(PARAMS_REGION_SIZE),
 				.ADDR_WIDTH		(REGION_ADDR_WIDTH),
 				.DATA_WIDTH		(REGION_WIDTH),
 				.WRITE_ONLY		(1),
@@ -293,11 +318,11 @@ module jelly_rasterizer_params
 				.reset			(reset),
 				.clk			(clk),
 				
-				.start			(params_update_start),
+				.start			(params_start),
 				.busy			(region_busy),
 				
 				.bank			(params_bank),
-				.params			(region_params),
+				.params			(params_region),
 				
 				.mem_clk		(s_wb_clk_i),
 				.mem_en			(wb_region_stb_i),
@@ -321,22 +346,22 @@ module jelly_rasterizer_params
 	
 	
 	// 非同期ラッチ
-	(* ASYNC_REG="true" *)	reg						ff0_enable, ff1_enable;
-	(* ASYNC_REG="true" *)	reg		[BANK_BITS-1:0]	ff0_bank,   ff1_bank;
+	(* ASYNC_REG="true" *)	reg						ff0_ctl_enable, ff1_ctl_enable;
+	(* ASYNC_REG="true" *)	reg		[BANK_BITS-1:0]	ff0_ctl_bank,   ff1_ctl_bank;
 	always @(posedge clk) begin
 		if ( reset ) begin
-			ff0_enable <= 1'b0;
-			ff1_enable <= 1'b0;
+			ff0_ctl_enable <= 1'b0;
+			ff1_ctl_enable <= 1'b0;
 			
-			ff0_bank   <= INIT_BANK;
-			ff1_bank   <= INIT_BANK;
+			ff0_ctl_bank   <= INIT_CTL_BANK;
+			ff1_ctl_bank   <= INIT_CTL_BANK;
 		end
 		else begin
-			ff0_enable <= reg_enable;
-			ff1_enable <= ff0_enable;
+			ff0_ctl_enable <= reg_ctl_enable;
+			ff1_ctl_enable <= ff0_ctl_enable;
 			
-			ff0_bank   <= reg_bank;
-			ff1_bank   <= ff0_bank;
+			ff0_ctl_bank   <= reg_ctl_bank;
+			ff1_ctl_bank   <= ff0_ctl_bank;
 		end
 	end
 	
@@ -351,8 +376,8 @@ module jelly_rasterizer_params
 	reg		[3:0]				reg_state;
 	reg		[BANK_WIDTH-1:0]	reg_params_bank;
 	
-	assign params_update_start = reg_state[0];
-	assign start               = reg_state[1];
+	assign params_start = reg_state[0];
+	assign start        = reg_state[1];
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
@@ -362,9 +387,9 @@ module jelly_rasterizer_params
 			case ( reg_state )
 			ST_IDLE:
 				begin
-					if ( ff1_enable ) begin
+					if ( ff1_ctl_enable ) begin
 						reg_state       <= ST_UPDATE_START;
-						reg_params_bank <= ff1_bank;
+						reg_params_bank <= ff1_ctl_bank;
 					end
 				end
 				

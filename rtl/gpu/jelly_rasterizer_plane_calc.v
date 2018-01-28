@@ -37,10 +37,11 @@ module jelly_rasterizer_plane_calc
 	reg		signed	[WIDTH-1:0]		reg_value;
 	
 	always @(posedge clk) begin
-		if ( reset ) begin
-			reg_value <= {WIDTH{1'b0}};
-		end
-		else if ( cke ) begin
+//		if ( reset ) begin
+//			reg_value <= {WIDTH{1'b0}};
+//		end
+//		else 
+		if ( cke ) begin
 			reg_value <= reg_value + dx;
 			if ( x_first ) begin
 				reg_value <= reg_value + dy_stride;
