@@ -89,7 +89,7 @@ module jelly_gpu_gouraud
 	                                  POLYGON_NUM <=  4096 ? 12 :
 	                                  POLYGON_NUM <=  8192 ? 13 :
 	                                  POLYGON_NUM <= 16384 ? 14 :
-	                                  POLYGON_NUM <= 32768 ? 15 : 16,
+	                                  POLYGON_NUM <= 32768 ? 15 : 16;
 	
 	integer											i;
 	
@@ -142,7 +142,7 @@ module jelly_gpu_gouraud
 				.clk				(clk),
 				.cke				(cke),
 				
-				.m_frame_start		(rasterizer_frame_first),
+				.m_frame_start		(rasterizer_frame_start),
 				.m_line_end			(rasterizer_line_end),
 				.m_polygon_enable	(rasterizer_polygon_enable),
 				.m_polygon_index	(rasterizer_polygon_index),
@@ -171,8 +171,9 @@ module jelly_gpu_gouraud
 	
 	always @(posedge clk) begin
 		if ( cke ) begin
-			pixel_frame_start <= rasterizer_frame_first;
+			pixel_frame_start <= rasterizer_frame_start;
 			pixel_line_end    <= rasterizer_line_end;
+			pixel_data        <= {AXI4S_TDATA_WIDTH{1'b0}};
 			
 			if ( rasterizer_polygon_enable ) begin
 				for ( i = 0; i < COMPONENT_NUM; i = i+1 ) begin
