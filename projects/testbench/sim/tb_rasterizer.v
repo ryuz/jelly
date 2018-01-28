@@ -79,6 +79,9 @@ module tb_rasterizer();
 	parameter	PARAMS_REGION_SIZE  = EDGE_NUM*2;
 	
 	reg												cke = 1'b1;
+//	always @(posedge clk) begin
+//		cke <= {$random()};
+//	end
 	
 	wire											start;
 	wire											busy = 1;
@@ -90,7 +93,8 @@ module tb_rasterizer();
 	wire	[PARAMS_POLYGON_SIZE*POLYGON_WIDTH-1:0]	params_polygon;
 	wire	[PARAMS_REGION_SIZE*REGION_WIDTH-1:0]	params_region;
 	
-	wire											m_frame_first;
+	wire											m_frame_start;
+	wire											m_line_end;
 	wire											m_polygon_enable;
 	wire	[INDEX_WIDTH-1:0]						m_polygon_index;
 	wire	[POLYGON_PARAM_NUM*POLYGON_WIDTH-1:0]	m_polygon_params;
@@ -144,7 +148,8 @@ module tb_rasterizer();
 				.clk				(clk),
 				.cke				(cke),
 				
-				.m_frame_first		(m_frame_first),
+				.m_frame_start		(m_frame_start),
+				.m_line_end			(m_line_end),
 				.m_polygon_enable	(m_polygon_enable),
 				.m_polygon_index	(m_polygon_index),
 				.m_polygon_params	(m_polygon_params),
@@ -160,6 +165,7 @@ module tb_rasterizer();
 				.s_wb_stb_i			(s_wb_stb_i),
 				.s_wb_ack_o			(s_wb_ack_o)
 			);
+	
 	
 	
 	/*
@@ -232,43 +238,47 @@ module tb_rasterizer();
 		 $fdisplay(fp, "255");
 	end
 	
-	wire	[31:0]		m_polygon_t = m_polygon_params[32*0 +: 32];
-	wire	[31:0]		m_polygon_u = m_polygon_params[32*1 +: 32];
-	wire	[31:0]		m_polygon_v = m_polygon_params[32*2 +: 32];
-	real				rel_u, rel_v, rel_t;
-	reg		[7:0]		int_u, int_v, int_t;
+	wire	signed	[31:0]		m_polygon_p0 = m_polygon_params[32*0 +: 32];
+	wire	signed	[31:0]		m_polygon_p1 = m_polygon_params[32*1 +: 32];
+	wire	signed	[31:0]		m_polygon_p2 = m_polygon_params[32*2 +: 32];
+	real						rel_p0, rel_p1, rel_p2;
+	reg				[7:0]		int_u, int_v, int_t;
+	reg				[7:0]		int_r, int_g, int_b;
 	always @* begin
-		rel_u = m_polygon_u;
-		rel_v = m_polygon_v;
-		rel_t = m_polygon_t;
+		rel_p0 = m_polygon_p0;
+		rel_p1 = m_polygon_p1;
+		rel_p2 = m_polygon_p2;
+		rel_p0 = rel_p0 / (1 << 20);
+		rel_p1 = rel_p1 / (1 << 20);
+		rel_p2 = rel_p2 / (1 << 20);
 		
-		rel_u = rel_u / (1 << 20);
-		rel_v = rel_v / (1 << 20);
-		rel_t = rel_t / (1 << 20);
+		if ( rel_p0 > 1.0 ) rel_p0 = 1.0;
+		if ( rel_p0 < 0.0 ) rel_p0 = 0.0;
+		if ( rel_p1 > 1.0 ) rel_p1 = 1.0;
+		if ( rel_p1 < 0.0 ) rel_p1 = 0.0;
+		if ( rel_p2 > 1.0 ) rel_p2 = 1.0;
+		if ( rel_p2 < 0.0 ) rel_p2 = 0.0;
 		
-		if ( rel_t == 0 ) rel_t = 0.00000001;
-		rel_t = 1.0 / rel_t;
-		rel_u = rel_u * rel_t;
-		rel_v = rel_v * rel_t;
+		int_r = rel_p0 * 255.0;
+		int_g = rel_p1 * 255.0;
+		int_b = rel_p2 * 255.0;
 		
-		if ( rel_u > 1.0 ) rel_u = 1.0;
-		if ( rel_u < 0.0 ) rel_u = 0.0;
-		if ( rel_v > 1.0 ) rel_v = 1.0;
-		if ( rel_v < 0.0 ) rel_v = 0.0;
-		if ( rel_t > 1.0 ) rel_t = 1.0;
-		if ( rel_t < 0.0 ) rel_t = 0.0;
+		if ( rel_p0 == 0 ) rel_p0 = 0.00000001;
+		rel_p0 = 1.0 / rel_p0;
+		rel_p1 = rel_p1 * rel_p0;
+		rel_p2 = rel_p2 * rel_p0;
 		
-		int_u = rel_u * 255.0;
-		int_v = rel_v * 255.0;
-		int_t = rel_t * 255.0;
-		
+		int_t = rel_p0 * 255.0;
+		int_u = rel_p1 * 255.0;
+		int_v = rel_p2 * 255.0;
 	end
 	
 	
 	always @(posedge clk) begin
 		if ( !reset && cke && m_valid ) begin
 			if ( &m_polygon_enable ) begin
-				 $fdisplay(fp, "%d %d %d", int_u, int_v, 255);
+//				 $fdisplay(fp, "%d %d %d", int_u, int_v, 255);
+				 $fdisplay(fp, "%d %d %d", int_r, int_g, int_b);
 			end
 			else begin
 				 $fdisplay(fp, "0 0 0");
@@ -377,7 +387,8 @@ module tb_rasterizer();
 		wb_write(32'h1088, 32'h000a0a9b, 4'b1111);
 		wb_write(32'h108c, 32'h00075be9, 4'b1111);
 		
-		$display("polygon");
+		
+		$display("polygon(tuv)");
 		wb_write(32'h2000, 32'h0000000d, 4'b1111);
 		wb_write(32'h2004, 32'hffffdf7b, 4'b1111);
 		wb_write(32'h2008, 32'h0000a897, 4'b1111);
@@ -432,6 +443,64 @@ module tb_rasterizer();
 		wb_write(32'h20cc, 32'hfffffbf7, 4'b1111);
 		wb_write(32'h20d0, 32'h000a128d, 4'b1111);
 		wb_write(32'h20d4, 32'h00043094, 4'b1111);
+		
+		
+		$display("polygon(rgb)");
+		wb_write(32'h2000, 32'h00000000, 4'b1111);
+		wb_write(32'h2004, 32'h00000000, 4'b1111);
+		wb_write(32'h2008, 32'h00080000, 4'b1111);
+		wb_write(32'h200c, 32'h00001f12, 4'b1111);
+		wb_write(32'h2010, 32'hffb27169, 4'b1111);
+		wb_write(32'h2014, 32'hffdfbf5b, 4'b1111);
+		wb_write(32'h2018, 32'hfffffcce, 4'b1111);
+		wb_write(32'h201c, 32'h00081753, 4'b1111);
+		wb_write(32'h2020, 32'hfff3a761, 4'b1111);
+		wb_write(32'h2024, 32'h00000000, 4'b1111);
+		wb_write(32'h2028, 32'h00000000, 4'b1111);
+		wb_write(32'h202c, 32'h00080000, 4'b1111);
+		wb_write(32'h2030, 32'h0000034f, 4'b1111);
+		wb_write(32'h2034, 32'hfff7a3fe, 4'b1111);
+		wb_write(32'h2038, 32'h001f56fb, 4'b1111);
+		wb_write(32'h203c, 32'hffffe525, 4'b1111);
+		wb_write(32'h2040, 32'h004309ca, 4'b1111);
+		wb_write(32'h2044, 32'h002628fa, 4'b1111);
+		wb_write(32'h2048, 32'h00000000, 4'b1111);
+		wb_write(32'h204c, 32'h00000000, 4'b1111);
+		wb_write(32'h2050, 32'h00080000, 4'b1111);
+		wb_write(32'h2054, 32'hfffffa50, 4'b1111);
+		wb_write(32'h2058, 32'h000e84be, 4'b1111);
+		wb_write(32'h205c, 32'hffda20c3, 4'b1111);
+		wb_write(32'h2060, 32'h00001c23, 4'b1111);
+		wb_write(32'h2064, 32'hffb9d39c, 4'b1111);
+		wb_write(32'h2068, 32'hffda828d, 4'b1111);
+		wb_write(32'h206c, 32'h00000000, 4'b1111);
+		wb_write(32'h2070, 32'h00000000, 4'b1111);
+		wb_write(32'h2074, 32'h00080000, 4'b1111);
+		wb_write(32'h2078, 32'hffff465f, 4'b1111);
+		wb_write(32'h207c, 32'h01cf51fe, 4'b1111);
+		wb_write(32'h2080, 32'h012c8572, 4'b1111);
+		wb_write(32'h2084, 32'h00005a34, 4'b1111);
+		wb_write(32'h2088, 32'hff1ef80d, 4'b1111);
+		wb_write(32'h208c, 32'hff5dba00, 4'b1111);
+		wb_write(32'h2090, 32'h00000000, 4'b1111);
+		wb_write(32'h2094, 32'h00000000, 4'b1111);
+		wb_write(32'h2098, 32'h00080000, 4'b1111);
+		wb_write(32'h209c, 32'hfffff99d, 4'b1111);
+		wb_write(32'h20a0, 32'h00102c19, 4'b1111);
+		wb_write(32'h20a4, 32'hffc75ca1, 4'b1111);
+		wb_write(32'h20a8, 32'hffffe338, 4'b1111);
+		wb_write(32'h20ac, 32'h0047c2be, 4'b1111);
+		wb_write(32'h20b0, 32'h00448cd4, 4'b1111);
+		wb_write(32'h20b4, 32'h00000000, 4'b1111);
+		wb_write(32'h20b8, 32'h00000000, 4'b1111);
+		wb_write(32'h20bc, 32'h00080000, 4'b1111);
+		wb_write(32'h20c0, 32'hffffaf23, 4'b1111);
+		wb_write(32'h20c4, 32'h00c9d95b, 4'b1111);
+		wb_write(32'h20c8, 32'h0053ef20, 4'b1111);
+		wb_write(32'h20cc, 32'hffffe669, 4'b1111);
+		wb_write(32'h20d0, 32'h003fc301, 4'b1111);
+		wb_write(32'h20d4, 32'h003a3af9, 4'b1111);
+		
 		
 		$display("region");
 		wb_write(32'h3000, 32'h0000000f, 4'b1111);

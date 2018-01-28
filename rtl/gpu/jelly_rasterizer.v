@@ -76,7 +76,8 @@ module jelly_rasterizer
 			input	wire											s_wb_stb_i,
 			output	wire											s_wb_ack_o,
 			
-			output	wire											m_frame_first,
+			output	wire											m_frame_start,
+			output	wire											m_line_end,
 			output	wire											m_polygon_enable,
 			output	wire	[INDEX_WIDTH-1:0]						m_polygon_index,
 			output	wire	[POLYGON_PARAM_NUM*POLYGON_WIDTH-1:0]	m_polygon_params,
@@ -195,7 +196,8 @@ module jelly_rasterizer
 				.params_polygon		(params_polygon),
 				.params_region		(params_region),
 				
-				.m_frame_first		(m_frame_first),
+				.m_frame_start		(m_frame_start),
+				.m_line_end			(m_line_end),
 				.m_polygon_enable	(m_polygon_enable),
 				.m_polygon_index	(m_polygon_index),
 				.m_polygon_params	(m_polygon_params),
