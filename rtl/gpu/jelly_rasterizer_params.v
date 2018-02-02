@@ -224,7 +224,8 @@ module jelly_rasterizer_params
 				.DATA_WIDTH		(EDGE_WIDTH),
 				.BANK_NUM		(BANK_NUM),
 				.WRITE_ONLY		(1),
-				.DOUT_REGS		(0),
+				.MEM_DOUT_REGS	(0),
+				.RD_DOUT_REGS	(1),
 				.RAM_TYPE		(EDGE_RAM_TYPE),
 				.ENDIAN			(0)
 			)
@@ -267,7 +268,8 @@ module jelly_rasterizer_params
 				.DATA_WIDTH		(POLYGON_WIDTH),
 				.BANK_NUM		(BANK_NUM),
 				.WRITE_ONLY		(1),
-				.DOUT_REGS		(0),
+				.MEM_DOUT_REGS	(0),
+				.RD_DOUT_REGS	(1),
 				.RAM_TYPE		(POLYGON_RAM_TYPE),
 				.ENDIAN			(0)
 			)
@@ -309,7 +311,8 @@ module jelly_rasterizer_params
 				.ADDR_WIDTH		(REGION_ADDR_WIDTH),
 				.DATA_WIDTH		(REGION_WIDTH),
 				.WRITE_ONLY		(1),
-				.DOUT_REGS		(0),
+				.MEM_DOUT_REGS	(0),
+				.RD_DOUT_REGS	(1),
 				.RAM_TYPE		(REGION_RAM_TYPE),
 				.ENDIAN			(0)
 			)

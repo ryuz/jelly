@@ -15,49 +15,50 @@
 // parameter registers with shadow register(ram)
 module jelly_params_ram
 		#(
-			parameter	NUM        = 32,
-			parameter	BANK_NUM   = 2,
-			parameter	DATA_WIDTH = 32,
+			parameter	NUM         = 32,
+			parameter	BANK_NUM    = 2,
+			parameter	DATA_WIDTH  = 32,
 			
-			parameter	ADDR_WIDTH = NUM      <=     2 ?  1 :
-			                         NUM      <=     4 ?  2 :
-			                         NUM      <=     8 ?  3 :
-			                         NUM      <=    16 ?  4 :
-			                         NUM      <=    32 ?  5 :
-			                         NUM      <=    64 ?  6 :
-			                         NUM      <=   128 ?  7 :
-			                         NUM      <=   256 ?  8 :
-			                         NUM      <=   512 ?  9 :
-			                         NUM      <=  1024 ? 10 :
-			                         NUM      <=  2048 ? 11 :
-			                         NUM      <=  4096 ? 12 :
-			                         NUM      <=  8192 ? 13 :
-			                         NUM      <= 16384 ? 14 :
-			                         NUM      <= 32768 ? 15 : 16,	// ˆê•”ˆ—Œn‚Å $clog2 ‚ª³‚µ‚­“®‚©‚È‚¢‚Ì‚Å
+			parameter	ADDR_WIDTH  = NUM      <=     2 ?  1 :
+			                          NUM      <=     4 ?  2 :
+			                          NUM      <=     8 ?  3 :
+			                          NUM      <=    16 ?  4 :
+			                          NUM      <=    32 ?  5 :
+			                          NUM      <=    64 ?  6 :
+			                          NUM      <=   128 ?  7 :
+			                          NUM      <=   256 ?  8 :
+			                          NUM      <=   512 ?  9 :
+			                          NUM      <=  1024 ? 10 :
+			                          NUM      <=  2048 ? 11 :
+			                          NUM      <=  4096 ? 12 :
+			                          NUM      <=  8192 ? 13 :
+			                          NUM      <= 16384 ? 14 :
+			                          NUM      <= 32768 ? 15 : 16,	// ˆê•”ˆ—Œn‚Å $clog2 ‚ª³‚µ‚­“®‚©‚È‚¢‚Ì‚Å
 			
-			parameter	BANK_WIDTH = BANK_NUM <=     1 ?  0 :
-			                         BANK_NUM <=     2 ?  1 :
-			                         BANK_NUM <=     4 ?  2 :
-			                         BANK_NUM <=     8 ?  3 :
-			                         BANK_NUM <=    16 ?  4 :
-			                         BANK_NUM <=    32 ?  5 :
-			                         BANK_NUM <=    64 ?  6 :
-			                         BANK_NUM <=   128 ?  7 :
-			                         BANK_NUM <=   256 ?  8 :
-			                         BANK_NUM <=   512 ?  9 :
-			                         BANK_NUM <=  1024 ? 10 :
-			                         BANK_NUM <=  2048 ? 11 :
-			                         BANK_NUM <=  4096 ? 12 :
-			                         BANK_NUM <=  8192 ? 13 :
-			                         BANK_NUM <= 16384 ? 14 :
-			                         BANK_NUM <= 32768 ? 15 : 16,	// ˆê•”ˆ—Œn‚Å $clog2 ‚ª³‚µ‚­“®‚©‚È‚¢‚Ì‚Å
+			parameter	BANK_WIDTH  = BANK_NUM <=     1 ?  0 :
+			                          BANK_NUM <=     2 ?  1 :
+			                          BANK_NUM <=     4 ?  2 :
+			                          BANK_NUM <=     8 ?  3 :
+			                          BANK_NUM <=    16 ?  4 :
+			                          BANK_NUM <=    32 ?  5 :
+			                          BANK_NUM <=    64 ?  6 :
+			                          BANK_NUM <=   128 ?  7 :
+			                          BANK_NUM <=   256 ?  8 :
+			                          BANK_NUM <=   512 ?  9 :
+			                          BANK_NUM <=  1024 ? 10 :
+			                          BANK_NUM <=  2048 ? 11 :
+			                          BANK_NUM <=  4096 ? 12 :
+			                          BANK_NUM <=  8192 ? 13 :
+			                          BANK_NUM <= 16384 ? 14 :
+			                          BANK_NUM <= 32768 ? 15 : 16,	// ˆê•”ˆ—Œn‚Å $clog2 ‚ª³‚µ‚­“®‚©‚È‚¢‚Ì‚Å
 			
-			parameter	WRITE_ONLY   = 1,
-			parameter	DOUT_REGS    = 0,
-			parameter	RAM_TYPE     = "distributed",
-			parameter	ENDIAN       = 0,
+			parameter	WRITE_ONLY    = 1,
+			parameter	MEM_DOUT_REGS = 0,
+			parameter	RD_DOUT_REGS  = 0,
+			parameter	RAM_TYPE      = "distributed",
+			parameter	ENDIAN        = 0,
 			
-			parameter	BANK_BITS    = BANK_WIDTH > 0 ? BANK_WIDTH : 1
+			parameter	BANK_BITS     = BANK_WIDTH > 0 ? BANK_WIDTH : 1
 		)
 		(
 			input	wire							reset,
@@ -87,6 +88,7 @@ module jelly_params_ram
 	// -----------------------------
 	
 	wire						rd_cke;
+	wire						rd_regcke;
 	wire	[ADDR_WIDTH-1:0]	rd_addr;
 	wire	[DATA_WIDTH-1:0]	rd_data;
 	
@@ -97,7 +99,7 @@ module jelly_params_ram
 					.ADDR_WIDTH		(BANK_WIDTH+ADDR_WIDTH),
 					.DATA_WIDTH		(DATA_WIDTH),
 					.RAM_TYPE		(RAM_TYPE),
-					.DOUT_REGS		(0)
+					.DOUT_REGS		(RD_DOUT_REGS)
 				)
 			i_ram_simple_dualport
 				(
@@ -108,7 +110,7 @@ module jelly_params_ram
 					
 					.rd_clk			(clk),
 					.rd_en			(rd_cke),
-					.rd_regcke		(1'b0),
+					.rd_regcke		(rd_regcke),
 					.rd_addr		({bank, rd_addr}),
 					.rd_dout		(rd_data)
 				);
@@ -121,8 +123,8 @@ module jelly_params_ram
 					.ADDR_WIDTH		(BANK_WIDTH+ADDR_WIDTH),
 					.DATA_WIDTH		(DATA_WIDTH),
 					.RAM_TYPE		(RAM_TYPE),
-					.DOUT_REGS0		(DOUT_REGS),
-					.DOUT_REGS1		(0)
+					.DOUT_REGS0		(MEM_DOUT_REGS),
+					.DOUT_REGS1		(RD_DOUT_REGS)
 				)
 			i_ram_dualport
 				(
@@ -136,7 +138,7 @@ module jelly_params_ram
 					
 					.clk1			(clk),
 					.en1			(rd_cke),
-					.regcke1		(1'b0),
+					.regcke1		(rd_regcke),
 					.we1			(1'b0),
 					.addr1			({bank, rd_addr}),
 					.din1			({DATA_WIDTH{1'b0}}),
@@ -152,6 +154,7 @@ module jelly_params_ram
 	// -----------------------------
 	
 	reg									reg_busy;
+	reg									reg_regcke;
 	reg		[ADDR_WIDTH-1:0]			reg_addr;
 	reg		[(NUM-1)*DATA_WIDTH-1:0]	reg_params;
 	
@@ -170,9 +173,18 @@ module jelly_params_ram
 	end
 	
 	always @(posedge clk ) begin
+		reg_regcke <= RD_DOUT_REGS ? reg_busy : 1'b0;
+	end
+	
+	always @(posedge clk ) begin
 		if ( reg_busy ) begin
 			reg_addr <= reg_addr + 1'b1;
-			
+		end
+		else begin
+			reg_addr <= {ADDR_WIDTH{1'b0}};
+		end
+		
+		if ( (RD_DOUT_REGS && reg_regcke) || (!RD_DOUT_REGS && reg_busy) ) begin
 			if ( ENDIAN ) begin
 				reg_params <= ((reg_params << DATA_WIDTH) | rd_data);
 			end
@@ -180,15 +192,14 @@ module jelly_params_ram
 				reg_params <= ((reg_params >> DATA_WIDTH) | (rd_data << (NUM-2)*DATA_WIDTH));
 			end
 		end
-		else begin
-			reg_addr <= {ADDR_WIDTH{1'b0}};
-		end
 	end
 	
-	assign rd_cke  = reg_busy;
-	assign rd_addr = reg_addr;
+	assign rd_cke    = reg_busy;
+	assign rd_regcke = reg_regcke;
+	assign rd_addr   = reg_addr;
 	
-	assign busy    = reg_busy;
+	
+	assign busy    = (reg_busy | reg_regcke);
 	assign params  = reg_busy ? {(NUM*DATA_WIDTH){1'bx}} : (ENDIAN ? {reg_params, rd_data} : {rd_data, reg_params});
 	
 	
