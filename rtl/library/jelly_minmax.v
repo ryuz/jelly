@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- the system on fpga system
 //
-//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2018 by Ryuji Fuchikami
 //                                 http://ryuz.my.coocan.jp/
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
@@ -12,12 +12,27 @@
 `default_nettype none
 
 
-// selecter
+// min/max
 module jelly_minmax
 		#(
-			parameter	NUM               = 6,
-			parameter	COMMON_USER_WIDTH = 0,
-			parameter	USER_WIDTH        = 0,
+			parameter	NUM               = 32,
+			parameter	INDEX_WIDTH       = NUM <=     2 ?  1 :
+	                                        NUM <=     4 ?  2 :
+	                                        NUM <=     8 ?  3 :
+	                                        NUM <=    16 ?  4 :
+	                                        NUM <=    32 ?  5 :
+	                                        NUM <=    64 ?  6 :
+	                                        NUM <=   128 ?  7 :
+	                                        NUM <=   256 ?  8 :
+	                                        NUM <=   512 ?  9 :
+	                                        NUM <=  1024 ? 10 :
+	                                        NUM <=  2048 ? 11 :
+	                                        NUM <=  4096 ? 12 :
+	                                        NUM <=  8192 ? 13 :
+	                                        NUM <= 16384 ? 14 :
+	                                        NUM <= 32768 ? 15 : 16,
+			parameter	COMMON_USER_WIDTH = 32,
+			parameter	USER_WIDTH        = 32,
 			parameter	DATA_WIDTH        = 32,
 			parameter	DATA_SIGNED       = 1,
 			parameter	CMP_MIN           = 0,		// min‚©max‚©
@@ -40,6 +55,7 @@ module jelly_minmax
 			output	wire	[COMMON_USER_BITS-1:0]		m_common_user,
 			output	wire	[USER_BITS-1:0]				m_user,
 			output	wire	[DATA_WIDTH-1:0]			m_data,
+			output	wire	[INDEX_WIDTH-1:0]			m_index,
 			output	wire								m_en,
 			output	wire								m_valid
 		);
@@ -85,7 +101,7 @@ module jelly_minmax
 			end
 			
 			if ( in_en0 && in_en1 ) begin
-				if ( CMP_EQ == 0 ) begin
+				if ( CMP_EQ ) begin
 					cmp_data = CMP_MIN ? (data1 <= data0) : (data1 >= data0);
 				end
 				else begin
@@ -110,12 +126,14 @@ module jelly_minmax
 	reg		[STAGES*COMMON_USER_BITS-1:0]	reg_common_user;
 	reg		[STAGES*N*USER_BITS-1:0]		reg_user;
 	reg		[STAGES*N*DATA_WIDTH-1:0]		reg_data;
+	reg		[STAGES*N*INDEX_WIDTH-1:0]		reg_index;
 	reg		[STAGES*N-1:0]					reg_en;
 	reg		[STAGES-1:0]					reg_valid;
 	
 	reg		[COMMON_USER_BITS-1:0]			tmp_common_user;
 	reg		[(1 << STAGES)*USER_BITS-1:0]	tmp_user;
 	reg		[(1 << STAGES)*DATA_WIDTH-1:0]	tmp_data;
+	reg		[(1 << STAGES)*INDEX_WIDTH-1:0]	tmp_index;
 	reg		[(1 << STAGES)-1:0]				tmp_en;
 	reg										sel;
 	
@@ -126,6 +144,7 @@ module jelly_minmax
 					tmp_common_user = reg_common_user[(i+1)*COMMON_USER_BITS +: COMMON_USER_BITS];
 					tmp_user        = reg_user       [(i+1)*N*USER_BITS      +: N*USER_BITS];
 					tmp_data        = reg_data       [(i+1)*N*DATA_WIDTH     +: N*DATA_WIDTH];
+					tmp_index       = reg_index      [(i+1)*N*INDEX_WIDTH    +: N*INDEX_WIDTH];
 					tmp_en          = reg_en         [(i+1)*N                +: N];
 				end
 				else begin
@@ -133,6 +152,9 @@ module jelly_minmax
 					tmp_user        = s_user;
 					tmp_data        = s_data;
 					tmp_en          = s_en;
+					for ( j = 0; j < (1 << STAGES); j = j+1 ) begin
+						tmp_index[j*INDEX_WIDTH +: INDEX_WIDTH] = j;
+					end
 				end
 				
 				reg_common_user[i*COMMON_USER_BITS +: COMMON_USER_BITS] <= tmp_common_user;
@@ -140,9 +162,10 @@ module jelly_minmax
 					sel = cmp_data(tmp_data[(2*j+0)*DATA_WIDTH +: DATA_WIDTH], tmp_en[2*j+0],
 					               tmp_data[(2*j+1)*DATA_WIDTH +: DATA_WIDTH], tmp_en[2*j+1]);
 					
-					reg_user[(i*N+j)*USER_BITS  +: USER_BITS]  <= tmp_user[(2*j+sel)*USER_BITS  +: USER_BITS];
-					reg_data[(i*N+j)*DATA_WIDTH +: DATA_WIDTH] <= tmp_data[(2*j+sel)*DATA_WIDTH +: DATA_WIDTH];
-					reg_en  [i*N+j]                            <= (tmp_en[2*j+0] || tmp_en[2*j+1]);
+					reg_user [(i*N+j)*USER_BITS   +: USER_BITS]   <= tmp_user [(2*j+sel)*USER_BITS   +: USER_BITS];
+					reg_data [(i*N+j)*DATA_WIDTH  +: DATA_WIDTH]  <= tmp_data [(2*j+sel)*DATA_WIDTH  +: DATA_WIDTH];
+					reg_index[(i*N+j)*INDEX_WIDTH +: INDEX_WIDTH] <= tmp_index[(2*j+sel)*INDEX_WIDTH +: INDEX_WIDTH];
+					reg_en   [i*N+j]                              <= (tmp_en[2*j+0] || tmp_en[2*j+1]);
 				end
 			end
 		end
@@ -161,6 +184,7 @@ module jelly_minmax
 	assign m_common_user = reg_common_user[0 +: COMMON_USER_BITS];
 	assign m_user        = reg_user       [0 +: USER_BITS];
 	assign m_data        = reg_data       [0 +: DATA_WIDTH];
+	assign m_index       = reg_index      [0 +: INDEX_WIDTH];
 	assign m_en          = reg_en         [0];
 	assign m_valid       = reg_valid      [0];
 	
