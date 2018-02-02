@@ -381,7 +381,8 @@ module jelly_rasterizer_params
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
-			reg_state <= ST_IDLE;
+			reg_state       <= ST_IDLE;
+			reg_params_bank <= INIT_CTL_BANK;
 		end
 		else if ( cke ) begin
 			case ( reg_state )
