@@ -36,7 +36,7 @@ set_max_delay -datapath_only -from [get_clocks clk_fpga_3]  -to [get_clocks mmcm
 set_max_delay -datapath_only -from [get_clocks mmcm_clk200] -to [get_clocks clk_fpga_3]  5.000
 
 set_false_path -from [get_clocks clk_fpga_1]  -to [get_clocks mmcm_clk200]
-set_false_path -from [get_clocks mmcm_clk200] -to [get_clocks mmcm_clk]
+set_false_path -from [get_clocks mmcm_clk200] -to [get_clocks clk_fpga_1]
 
 
 

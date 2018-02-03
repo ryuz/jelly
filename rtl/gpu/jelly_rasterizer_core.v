@@ -17,10 +17,10 @@ module jelly_rasterizer_core
 			parameter	X_WIDTH             = 12,
 			parameter	Y_WIDTH             = 12,
 			
-			parameter	EDGE_NUM            = 12,
+			parameter	EDGE_NUM            = 12*2,
 			parameter	EDGE_WIDTH          = 32,
 			
-			parameter	POLYGON_NUM         = 6,
+			parameter	POLYGON_NUM         = 6*2,
 			parameter	POLYGON_PARAM_NUM   = 3,
 			parameter	POLYGON_WIDTH       = 32,
 			
@@ -44,7 +44,7 @@ module jelly_rasterizer_core
 	                                          POLYGON_NUM <= 32768 ? 15 : 16,
 			
 			parameter	CULLING_ONLY        = 1,
-			
+			parameter	Z_SORT_MIN          = 0,	// Zの大小どちらを優先するか(Z軸の向き)
 			
 			// local
 			parameter	PARAMS_EDGE_SIZE    = EDGE_NUM*3,
@@ -266,6 +266,10 @@ module jelly_rasterizer_core
 	//  ソーティング
 	// -----------------------------------------
 	
+	parameter	SORT_PARAM_NUM   = POLYGON_PARAM_NUM - 1;
+	parameter	SORT_PARAM_WIDTH = SORT_PARAM_NUM*POLYGON_WIDTH;
+	parameter	SORT_PARAM_BITS  = SORT_PARAM_WIDTH > 0 ? SORT_PARAM_WIDTH : 1;
+	
 	wire											select_frame_start;
 	wire											select_line_end;
 	wire											select_polygon_enable;
@@ -341,8 +345,48 @@ module jelly_rasterizer_core
 		assign select_valid          = sel1_valid;
 	end
 	else begin
-		// Zソート
+		wire	[POLYGON_NUM*POLYGON_WIDTH-1:0]		sort_in_z;
+		wire	[POLYGON_NUM*SORT_PARAM_BITS-1:0]	sort_in_params;
+		wire	[POLYGON_WIDTH-1:0]					sort_out_z;
+		wire	[SORT_PARAM_BITS-1:0]				sort_out_params;
 		
+		for ( i = 0; i < POLYGON_NUM; i = i+1 ) begin : loop_z_sort
+			assign {sort_in_params[i*SORT_PARAM_BITS +: SORT_PARAM_BITS], sort_in_z[i*POLYGON_WIDTH +: POLYGON_WIDTH]}
+						= region_polygon_params[i*POLYGON_PARAM_NUM*POLYGON_WIDTH +: POLYGON_PARAM_NUM*POLYGON_WIDTH];
+		end
+		
+		// Zソート
+		jelly_minmax
+				#(
+					.NUM					(POLYGON_NUM),
+					.COMMON_USER_WIDTH		(2),
+					.USER_WIDTH				(SORT_PARAM_BITS),
+					.DATA_WIDTH				(POLYGON_WIDTH),
+					.DATA_SIGNED			(1),
+					.CMP_MIN				(Z_SORT_MIN),
+					.CMP_EQ					(1)
+				)
+			i_minmax
+				(
+					.reset					(reset),
+					.clk					(clk),
+					.cke					(cke),
+				
+					.s_common_user			({region_frame_start, region_line_end}),
+					.s_user					(sort_in_params),
+					.s_data					(sort_in_z),
+					.s_en					(region_polygon_enables),
+					.s_valid				(region_valid),
+					
+					.m_common_user			({select_frame_start, select_line_end}),
+					.m_user					(sort_out_z),
+					.m_data					(sort_out_params),
+					.m_index				(select_polygon_index),
+					.m_en					(select_polygon_enable),
+					.m_valid				(select_valid)
+				);
+		
+		assign select_polygon_params = {sort_out_params, sort_out_z};
 	end
 	endgenerate
 	

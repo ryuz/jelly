@@ -46,7 +46,8 @@ module jelly_gpu_gouraud
 			parameter	REGION_WIDTH        = EDGE_NUM,
 			parameter	REGION_RAM_TYPE     = "distributed",
 			
-			parameter	CULLING_ONLY        = 1,
+			parameter	CULLING_ONLY        = 0,
+			parameter	Z_SORT_MIN          = 0,	// 1Ç≈è¨Ç≥Ç¢ílóDêÊ(Zé≤âúå¸Ç´)
 			
 			parameter	INIT_CTL_ENABLE     = 1'b0,
 			parameter	INIT_CTL_BANK       = 0,

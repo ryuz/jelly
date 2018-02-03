@@ -66,13 +66,13 @@ module tb_minmax();
 	
 	jelly_minmax
 			#(
-				.NUM               (NUM              ),
+				.NUM               (NUM),
 				.COMMON_USER_WIDTH (COMMON_USER_WIDTH),
-				.USER_WIDTH        (USER_WIDTH       ),
-				.DATA_WIDTH        (DATA_WIDTH       ),
-				.DATA_SIGNED       (DATA_SIGNED      ),
-				.CMP_MIN           (CMP_MIN          ),
-				.CMP_EQ            (CMP_EQ           )
+				.USER_WIDTH        (USER_WIDTH),
+				.DATA_WIDTH        (DATA_WIDTH),
+				.DATA_SIGNED       (DATA_SIGNED),
+				.CMP_MIN           (CMP_MIN),
+				.CMP_EQ            (CMP_EQ)
 			)
 		i_minmax
 			(
@@ -116,7 +116,7 @@ module tb_minmax();
 		@(posedge clk)
 			$display("-----");
 			s_common_user <= 1;
-			s_user        <= {4'h0,  4'h1,  4'h2 , 4'h3,  4'h4 };
+			s_user        <= {4'h4,  4'h3,  4'h2 , 4'h1,  4'h0 };
 			s_data        <= {8'h15, 8'h14, 8'h13, 8'h12, 8'h11};
 			s_en          <= {1'b1,  1'b1,  1'b1,  1'b1,  1'b1 };
 			s_valid       <= 1'b1;
@@ -124,7 +124,7 @@ module tb_minmax();
 		@(posedge clk);
 			$display("-----");
 			s_common_user <= 2;
-			s_user        <= {4'h0,  4'h1,  4'h2 , 4'h3,  4'h4 };
+			s_user        <= {4'h4,  4'h3,  4'h2 , 4'h1,  4'h0 };
 			s_data        <= {8'h15, 8'h44, 8'h10, 8'h12, 8'h33};
 			s_en          <= {1'b1,  1'b1,  1'b1,  1'b1,  1'b1 };
 			s_valid       <= 1'b1;
@@ -134,8 +134,16 @@ module tb_minmax();
 		@(posedge clk);
 			$display("-----");
 			s_common_user <= 3;
-			s_user        <= {4'h0,  4'h1,  4'h2 , 4'h3,  4'h4 };
+			s_user        <= {4'h4,  4'h3,  4'h2 , 4'h1,  4'h0 };
 			s_data        <= {8'h15, 8'h14, 8'h12, 8'h12, 8'h33};
+			s_en          <= {1'b1,  1'b1,  1'b1,  1'b1,  1'b1 };
+			s_valid       <= 1'b1;
+			
+		@(posedge clk);
+			$display("-----");
+			s_common_user <= 3;
+			s_user        <= {4'h4,  4'h3,  4'h2 , 4'h1,  4'h0 };
+			s_data        <= {8'h15, 8'h55, 8'h12, 8'h55, 8'h33};
 			s_en          <= {1'b1,  1'b1,  1'b1,  1'b1,  1'b1 };
 			s_valid       <= 1'b1;
 			

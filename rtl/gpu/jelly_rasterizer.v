@@ -55,6 +55,7 @@ module jelly_rasterizer
 	                                          POLYGON_NUM <= 32768 ? 15 : 16,
 			
 			parameter	CULLING_ONLY        = 1,
+			parameter	Z_SORT_MIN          = 0,	// Z‚Ì‘å¬‚Ç‚¿‚ç‚ð—Dæ‚·‚é‚©(ZŽ²‚ÌŒü‚«)
 			
 			parameter	INIT_CTL_ENABLE     = 1'b0,
 			parameter	INIT_CTL_BANK       = 0,
@@ -177,7 +178,8 @@ module jelly_rasterizer
 				
 				.INDEX_WIDTH		(INDEX_WIDTH),
 				
-				.CULLING_ONLY		(CULLING_ONLY)				
+				.CULLING_ONLY		(CULLING_ONLY),				
+				.Z_SORT_MIN			(Z_SORT_MIN)
 			)
 		i_rasterizer_core
 			(
