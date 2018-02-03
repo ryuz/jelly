@@ -15,44 +15,45 @@
 // グーローシェーディング版
 module jelly_gpu_gouraud
 		#(
-			parameter	WB_ADR_WIDTH        = 14,
-			parameter	WB_DAT_WIDTH        = 32,
-			parameter	WB_SEL_WIDTH        = (WB_DAT_WIDTH / 8),
+			parameter	WB_ADR_WIDTH       = 14,
+			parameter	WB_DAT_WIDTH       = 32,
+			parameter	WB_SEL_WIDTH       = (WB_DAT_WIDTH / 8),
 			
-			parameter	COMPONENT_NUM       = 3,
-			parameter	DATA_WIDTH          = 8,
+			parameter	COMPONENT_NUM      = 3,
+			parameter	DATA_WIDTH         = 8,
 			
-			parameter	AXI4S_TUSER_WIDTH   = 1,
-			parameter	AXI4S_TDATA_WIDTH   = COMPONENT_NUM*DATA_WIDTH,
+			parameter	AXI4S_TUSER_WIDTH  = 1,
+			parameter	AXI4S_TDATA_WIDTH  = COMPONENT_NUM*DATA_WIDTH,
 
-			parameter	X_WIDTH             = 12,
-			parameter	Y_WIDTH             = 12,
+			parameter	X_WIDTH            = 12,
+			parameter	Y_WIDTH            = 12,
 			
-			parameter	BANK_NUM            = 2,
-			parameter	BANK_ADDR_WIDTH     = 12,
-			parameter	PARAMS_ADDR_WIDTH   = 10,
+			parameter	BANK_NUM           = 2,
+			parameter	BANK_ADDR_WIDTH    = 12,
+			parameter	PARAMS_ADDR_WIDTH  = 10,
 			
-			parameter	EDGE_NUM            = 12,
-			parameter	EDGE_WIDTH          = 32,
-			parameter	EDGE_RAM_TYPE       = "distributed",
+			parameter	EDGE_NUM           = 12,
+			parameter	POLYGON_NUM        = 6,
+			parameter	SHADER_PARAM_NUM   = COMPONENT_NUM,
 			
-			parameter	POLYGON_NUM         = 6,
-			parameter	POLYGON_PARAM_NUM   = COMPONENT_NUM,
-			parameter	POLYGON_WIDTH       = 32,
-			parameter	POLYGON_RAM_TYPE    = "distributed",
-			parameter	POLYGON_Q           = 20,
+			parameter	EDGE_PARAM_WIDTH   = 32,
+			parameter	EDGE_RAM_TYPE      = "distributed",
 			
-			parameter	REGION_NUM          = POLYGON_NUM,
-			parameter	REGION_WIDTH        = EDGE_NUM,
-			parameter	REGION_RAM_TYPE     = "distributed",
+			parameter	SHADER_PARAM_WIDTH = 32,
+			parameter	SHADER_PARAM_Q     = 24,
+			parameter	SHADER_RAM_TYPE    = "distributed",
 			
-			parameter	CULLING_ONLY        = 0,
-			parameter	Z_SORT_MIN          = 0,	// 1で小さい値優先(Z軸奥向き)
+			parameter	REGION_PARAM_WIDTH = EDGE_NUM,
+			parameter	REGION_RAM_TYPE    = "distributed",
 			
-			parameter	INIT_CTL_ENABLE     = 1'b0,
-			parameter	INIT_CTL_BANK       = 0,
-			parameter	INIT_PARAM_WIDTH    = 640-1,
-			parameter	INIT_PARAM_HEIGHT   = 480-1
+			parameter	CULLING_ONLY       = 0,
+			parameter	Z_SORT_MIN         = 0,	// 1で小さい値優先(Z軸奥向き)
+			
+			parameter	INIT_CTL_ENABLE    = 1'b0,
+			parameter	INIT_CTL_BANK      = 0,
+			parameter	INIT_PARAM_WIDTH   = 640-1,
+			parameter	INIT_PARAM_HEIGHT  = 480-1,
+			parameter	INIT_PARAM_CULLING = 2'b01
 		)
 		(
 			input	wire								reset,
@@ -75,6 +76,9 @@ module jelly_gpu_gouraud
 			input	wire								m_axi4s_tready
 		);
 	
+	localparam	CFG_SHADER_TYPE    = 32'b101;			//  color:yes textue:no z:yes
+	localparam	CFG_VERSION        = 32'h0001_0000;
+	
 	
 	localparam	INDEX_WIDTH         = POLYGON_NUM <=     2 ?  1 :
 	                                  POLYGON_NUM <=     4 ?  2 :
@@ -92,19 +96,19 @@ module jelly_gpu_gouraud
 	                                  POLYGON_NUM <= 16384 ? 14 :
 	                                  POLYGON_NUM <= 32768 ? 15 : 16;
 	
-	integer											i;
+	integer												i;
 	
 	
-	wire											cke;
+	wire												cke;
 	
 	
 	// ラスタライザ
-	wire											rasterizer_frame_start;
-	wire											rasterizer_line_end;
-	wire											rasterizer_polygon_enable;
-	wire	[INDEX_WIDTH-1:0]						rasterizer_polygon_index;
-	wire	[POLYGON_PARAM_NUM*POLYGON_WIDTH-1:0]	rasterizer_polygon_params;
-	wire											rasterizer_valid;
+	wire												rasterizer_frame_start;
+	wire												rasterizer_line_end;
+	wire												rasterizer_polygon_enable;
+	wire	[INDEX_WIDTH-1:0]							rasterizer_polygon_index;
+	wire	[SHADER_PARAM_NUM*SHADER_PARAM_WIDTH-1:0]	rasterizer_shader_params;
+	wire												rasterizer_valid;
 	
 	jelly_rasterizer
 			#(
@@ -120,22 +124,27 @@ module jelly_gpu_gouraud
 				.PARAMS_ADDR_WIDTH	(PARAMS_ADDR_WIDTH),
 				
 				.EDGE_NUM			(EDGE_NUM),
-				.EDGE_WIDTH			(EDGE_WIDTH),
+				.POLYGON_NUM		(POLYGON_NUM),
+				.SHADER_PARAM_NUM	(SHADER_PARAM_NUM),
+				
+				.EDGE_PARAM_WIDTH	(EDGE_PARAM_WIDTH),
 				.EDGE_RAM_TYPE		(EDGE_RAM_TYPE),
 				
-				.POLYGON_NUM		(POLYGON_NUM),
-				.POLYGON_PARAM_NUM	(POLYGON_PARAM_NUM),
-				.POLYGON_WIDTH		(POLYGON_WIDTH),
-				.POLYGON_RAM_TYPE	(POLYGON_RAM_TYPE),
+				.SHADER_PARAM_WIDTH	(SHADER_PARAM_WIDTH),
+				.SHADER_RAM_TYPE	(SHADER_RAM_TYPE),
 				
-				.REGION_NUM			(REGION_NUM),
-				.REGION_WIDTH		(REGION_WIDTH),
+				.REGION_PARAM_WIDTH	(REGION_PARAM_WIDTH),
 				.REGION_RAM_TYPE	(REGION_RAM_TYPE),
+				
+				.CFG_SHADER_TYPE	(CFG_SHADER_TYPE),
+				.CFG_VERSION		(CFG_VERSION),
+				.CFG_SHADER_PARAM_Q	(SHADER_PARAM_Q),
 				
 				.INIT_CTL_ENABLE	(INIT_CTL_ENABLE),
 				.INIT_CTL_BANK		(INIT_CTL_BANK),
 				.INIT_PARAM_WIDTH	(INIT_PARAM_WIDTH),
-				.INIT_PARAM_HEIGHT	(INIT_PARAM_HEIGHT)
+				.INIT_PARAM_HEIGHT	(INIT_PARAM_HEIGHT),
+				.INIT_PARAM_CULLING	(INIT_PARAM_CULLING)
 			)
 		i_rasterizer
 			(
@@ -147,7 +156,7 @@ module jelly_gpu_gouraud
 				.m_line_end			(rasterizer_line_end),
 				.m_polygon_enable	(rasterizer_polygon_enable),
 				.m_polygon_index	(rasterizer_polygon_index),
-				.m_polygon_params	(rasterizer_polygon_params),
+				.m_shader_params	(rasterizer_shader_params),
 				.m_valid			(rasterizer_valid),
 				
 				.s_wb_rst_i			(s_wb_rst_i),
@@ -163,14 +172,14 @@ module jelly_gpu_gouraud
 	
 	
 	// ピクセルシェーディング
-	reg				[AXI4S_TUSER_WIDTH-1:0]	pixel_frame_start;
-	reg										pixel_line_end;
-	reg				[AXI4S_TDATA_WIDTH-1:0]	pixel_data;
-	reg										pixel_valid;
+	reg				[AXI4S_TUSER_WIDTH-1:0]		pixel_frame_start;
+	reg											pixel_line_end;
+	reg				[AXI4S_TDATA_WIDTH-1:0]		pixel_data;
+	reg											pixel_valid;
 	
-	reg		signed	[POLYGON_WIDTH-1:0]		tmp_param;
-	wire	signed	[POLYGON_WIDTH-1:0]		tmp_min = {1'b0, {DATA_WIDTH{1'b0}}};
-	wire	signed	[POLYGON_WIDTH-1:0]		tmp_max = {1'b0, {DATA_WIDTH{1'b1}}};
+	reg		signed	[SHADER_PARAM_WIDTH-1:0]	tmp_param;
+	wire	signed	[SHADER_PARAM_WIDTH-1:0]	tmp_min = {1'b0, {DATA_WIDTH{1'b0}}};
+	wire	signed	[SHADER_PARAM_WIDTH-1:0]	tmp_max = {1'b0, {DATA_WIDTH{1'b1}}};
 	
 	always @(posedge clk) begin
 		if ( cke ) begin
@@ -180,8 +189,8 @@ module jelly_gpu_gouraud
 			
 			if ( rasterizer_polygon_enable ) begin
 				for ( i = 0; i < COMPONENT_NUM; i = i+1 ) begin
-					tmp_param = rasterizer_polygon_params[i*POLYGON_WIDTH +: POLYGON_WIDTH];
-					tmp_param = (tmp_param >>> (POLYGON_Q - DATA_WIDTH));
+					tmp_param = rasterizer_shader_params[(i+1)*SHADER_PARAM_WIDTH +: SHADER_PARAM_WIDTH];	// 0番目はZなので1番目から
+					tmp_param = (tmp_param >>> (SHADER_PARAM_Q - DATA_WIDTH));
 					if ( tmp_param < tmp_min ) begin tmp_param = tmp_min; end
 					if ( tmp_param > tmp_max ) begin tmp_param = tmp_max; end
 					pixel_data[i*DATA_WIDTH +: DATA_WIDTH] <= tmp_param;

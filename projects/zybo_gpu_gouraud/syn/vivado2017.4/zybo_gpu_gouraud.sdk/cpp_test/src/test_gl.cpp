@@ -58,7 +58,6 @@ void RenderProc(int x, int y, bool polygon, JGL::PixelParam pp, void* user)
 }
 
 
-
 void rasterizer_test(void)
 {
 	Mpu9250_Init();
@@ -176,7 +175,10 @@ void rasterizer_test(void)
 	Mpu9250Data	mpu;
 
 	int bank = 0;
-	float angle0 = 0;
+	float angle00 = 0;
+	float angle01 = 0;
+	float angle02 = 0;
+
 	float angle1 = 0;
 	do {
 		Mpu9250_Read(mpu);
@@ -186,11 +188,17 @@ void rasterizer_test(void)
 //		img = cv::Mat::zeros(480, 640, CV_8UC3);
 
 		// viewport
-		jgl.SetViewport(0, 0, 640, 480);
+//		jgl.SetViewport(0, 0, 640, 480);
+		jgl.SetViewport(0, 0, 1920, 1080);
 
 		// model0
-		JGL::Mat4	matRotate0 = JGL::RotateMat4(angle0, {0, 1, 0});	angle0 += (float)mpu.gyro[0] / 5000.0f;
-		jgl.SetModelMatrix(0, matRotate0);
+		JGL::Mat4	matRotate00 = JGL::RotateMat4(angle00, {0, 1, 0});	angle00 -= (float)mpu.gyro[0] / 5000.0f;
+		JGL::Mat4	matRotate01 = JGL::RotateMat4(angle01, {0, 0, 1});	angle01 -= (float)mpu.gyro[1] / 5000.0f;
+		JGL::Mat4	matRotate02 = JGL::RotateMat4(angle02, {1, 0, 0});	angle02 -= (float)mpu.gyro[2] / 5000.0f;
+		jgl.SetModelMatrix(0, JGL::MulMat(matRotate00, JGL::MulMat(matRotate01, matRotate02)));
+		angle00 *= 0.98f;
+		angle01 *= 0.98f;
+		angle02 *= 0.98f;
 
 		// model1
 		JGL::Mat4	matRotate1	 = JGL::RotateMat4(angle1, {0, 1, 0});	angle1 -= 0.2;
@@ -206,8 +214,11 @@ void rasterizer_test(void)
 		jgl.DrawSetup();
 	//	jgl.PrintHwParam(640);
 
+		*(volatile unsigned long *)0x40000008 = 1920-1;
+		*(volatile unsigned long *)0x4000000c = 1080-1;
+
 		if ( bank == 1 ) {
-			jgl.SetRegs(0x40000000, 640);
+			jgl.SetRegs(0x40000000, 1920);
 			*(volatile unsigned long *)0x40000004 = 0;
 			*(volatile unsigned long *)0x40000000 = 1;
 			bank = 0;
@@ -215,7 +226,7 @@ void rasterizer_test(void)
 				;
 		}
 		else {
-			jgl.SetRegs(0x40004000, 640);
+			jgl.SetRegs(0x40004000, 1920);
 			*(volatile unsigned long *)0x40000004 = 1;
 			*(volatile unsigned long *)0x40000000 = 1;
 			bank = 1;

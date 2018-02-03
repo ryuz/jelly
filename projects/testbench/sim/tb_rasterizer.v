@@ -37,19 +37,35 @@ module tb_rasterizer();
 	parameter	BANK_ADDR_WIDTH     = 12;
 	parameter	PARAMS_ADDR_WIDTH   = 10;
 	
-	parameter	EDGE_NUM            = 12;
-	parameter	EDGE_WIDTH          = 32;
+	parameter	EDGE_NUM            = 12*2;
+	parameter	POLYGON_NUM         = 6*2;
+	parameter	SHADER_PARAM_NUM    = 4;
+	
+	parameter	EDGE_PARAM_WIDTH    = 32;
 	parameter	EDGE_RAM_TYPE       = "distributed";
 	
-	parameter	POLYGON_NUM         = 6;
-	parameter	POLYGON_WIDTH       = 32;
-	parameter	POLYGON_PARAM_NUM   = 3;
-	parameter	POLYGON_RAM_TYPE    = "distributed";
+	parameter	SHADER_PARAM_WIDTH  = 32;
+	parameter	SHADER_PARAM_Q      = 24;
+	parameter	SHADER_RAM_TYPE     = "distributed";
 	
-	parameter	REGION_NUM          = POLYGON_NUM;
-	parameter	REGION_WIDTH        = EDGE_NUM;
+	parameter	REGION_PARAM_WIDTH  = EDGE_NUM;
 	parameter	REGION_RAM_TYPE     = "distributed";
-
+	
+	parameter	CULLING_ONLY        = 0;
+	parameter	Z_SORT_MIN          = 0;	// 1Ç≈è¨Ç≥Ç¢ílóDêÊ(Zé≤âúå¸Ç´)
+	
+	parameter	INIT_CTL_ENABLE     = 1'b0;
+	parameter	INIT_CTL_BANK       = 0;
+	parameter	INIT_PARAM_WIDTH    = X_NUM-1;
+	parameter	INIT_PARAM_HEIGHT   = Y_NUM-1;
+	parameter	INIT_PARAM_CULLING  = 2'b11;
+	
+	
+	parameter	PARAMS_EDGE_SIZE    = EDGE_NUM*3;
+	parameter	PARAMS_SHADER_SIZE  = POLYGON_NUM*SHADER_PARAM_WIDTH*3;
+	parameter	PARAMS_REGION_SIZE  = POLYGON_NUM*2;
+	
+	
 	parameter	INDEX_WIDTH         = POLYGON_NUM <=     2 ?  1 :
 	                                  POLYGON_NUM <=     4 ?  2 :
 	                                  POLYGON_NUM <=     8 ?  3 :
@@ -66,49 +82,38 @@ module tb_rasterizer();
 	                                  POLYGON_NUM <= 16384 ? 14 :
 	                                  POLYGON_NUM <= 32768 ? 15 : 16;
 	
-	parameter	CULLING_ONLY        = 1;
 	
-	parameter	INIT_CTL_ENABLE     = 1'b0;
-	parameter	INIT_CTL_BANK       = 0;
-	parameter	INIT_PARAM_WIDTH    = X_NUM-1;
-	parameter	INIT_PARAM_HEIGHT   = Y_NUM-1;
-	
-	
-	parameter	PARAMS_EDGE_SIZE    = EDGE_NUM*3;
-	parameter	PARAMS_POLYGON_SIZE = EDGE_NUM*POLYGON_PARAM_NUM*3;
-	parameter	PARAMS_REGION_SIZE  = EDGE_NUM*2;
 	
 	reg												cke = 1'b1;
 //	always @(posedge clk) begin
 //		cke <= {$random()};
 //	end
 	
-	wire											start;
-	wire											busy = 1;
+//	wire												start;
+//	wire												busy = 1;
 	
-	wire	[X_WIDTH-1:0]							param_width;
-	wire	[Y_WIDTH-1:0]							param_height;
+//	wire	[X_WIDTH-1:0]								param_width;
+//	wire	[Y_WIDTH-1:0]								param_height;
+//	wire	[PARAMS_EDGE_SIZE*EDGE_PARAM_WIDTH-1:0]		params_edge;
+//	wire	[PARAMS_SHADER_SIZE*SHADER_PARAM_WIDTH-1:0]	params_polygon;
+//	wire	[PARAMS_REGION_SIZE*REGION_PARAM_WIDTH-1:0]	params_region;
 	
-	wire	[PARAMS_EDGE_SIZE*EDGE_WIDTH-1:0]		params_edge;
-	wire	[PARAMS_POLYGON_SIZE*POLYGON_WIDTH-1:0]	params_polygon;
-	wire	[PARAMS_REGION_SIZE*REGION_WIDTH-1:0]	params_region;
+	wire												m_frame_start;
+	wire												m_line_end;
+	wire												m_polygon_enable;
+	wire	[INDEX_WIDTH-1:0]							m_polygon_index;
+	wire	[SHADER_PARAM_NUM*SHADER_PARAM_WIDTH-1:0]	m_shader_params;
+	wire												m_valid;
 	
-	wire											m_frame_start;
-	wire											m_line_end;
-	wire											m_polygon_enable;
-	wire	[INDEX_WIDTH-1:0]						m_polygon_index;
-	wire	[POLYGON_PARAM_NUM*POLYGON_WIDTH-1:0]	m_polygon_params;
-	wire											m_valid;
-	
-	wire											s_wb_rst_i = reset;
-	wire											s_wb_clk_i = wb_clk;
-	wire	[WB_ADR_WIDTH-1:0]						s_wb_adr_i;
-	wire	[WB_DAT_WIDTH-1:0]						s_wb_dat_o;
-	wire	[WB_DAT_WIDTH-1:0]						s_wb_dat_i;
-	wire											s_wb_we_i;
-	wire	[WB_SEL_WIDTH-1:0]						s_wb_sel_i;
-	wire											s_wb_stb_i;
-	wire											s_wb_ack_o;
+	wire												s_wb_rst_i = reset;
+	wire												s_wb_clk_i = wb_clk;
+	wire	[WB_ADR_WIDTH-1:0]							s_wb_adr_i;
+	wire	[WB_DAT_WIDTH-1:0]							s_wb_dat_o;
+	wire	[WB_DAT_WIDTH-1:0]							s_wb_dat_i;
+	wire												s_wb_we_i;
+	wire	[WB_SEL_WIDTH-1:0]							s_wb_sel_i;
+	wire												s_wb_stb_i;
+	wire												s_wb_ack_o;
 	
 	
 	jelly_rasterizer
@@ -125,22 +130,26 @@ module tb_rasterizer();
 				.PARAMS_ADDR_WIDTH	(PARAMS_ADDR_WIDTH),
 				
 				.EDGE_NUM			(EDGE_NUM),
-				.EDGE_WIDTH			(EDGE_WIDTH),
+				.POLYGON_NUM		(POLYGON_NUM),
+				.SHADER_PARAM_NUM	(SHADER_PARAM_NUM),
+				
+				.EDGE_PARAM_WIDTH	(EDGE_PARAM_WIDTH),
 				.EDGE_RAM_TYPE		(EDGE_RAM_TYPE),
 				
-				.POLYGON_NUM		(POLYGON_NUM),
-				.POLYGON_PARAM_NUM	(POLYGON_PARAM_NUM),
-				.POLYGON_WIDTH		(POLYGON_WIDTH),
-				.POLYGON_RAM_TYPE	(POLYGON_RAM_TYPE),
+				.SHADER_PARAM_WIDTH	(SHADER_PARAM_WIDTH),
+				.SHADER_RAM_TYPE	(SHADER_RAM_TYPE),
 				
-				.REGION_NUM			(REGION_NUM),
-				.REGION_WIDTH		(REGION_WIDTH),
+				.REGION_PARAM_WIDTH	(REGION_PARAM_WIDTH),
 				.REGION_RAM_TYPE	(REGION_RAM_TYPE),
+				
+				.CULLING_ONLY		(CULLING_ONLY),
+				.Z_SORT_MIN			(Z_SORT_MIN),
 				
 				.INIT_CTL_ENABLE	(INIT_CTL_ENABLE),
 				.INIT_CTL_BANK		(INIT_CTL_BANK),
 				.INIT_PARAM_WIDTH	(INIT_PARAM_WIDTH),
-				.INIT_PARAM_HEIGHT	(INIT_PARAM_HEIGHT)
+				.INIT_PARAM_HEIGHT	(INIT_PARAM_HEIGHT),
+				.INIT_PARAM_CULLING	(INIT_PARAM_CULLING)
 			)
 		i_rasterizer
 			(
@@ -152,7 +161,7 @@ module tb_rasterizer();
 				.m_line_end			(m_line_end),
 				.m_polygon_enable	(m_polygon_enable),
 				.m_polygon_index	(m_polygon_index),
-				.m_polygon_params	(m_polygon_params),
+				.m_shader_params	(m_shader_params),
 				.m_valid			(m_valid),
 				
 				.s_wb_rst_i			(s_wb_rst_i),
@@ -238,19 +247,20 @@ module tb_rasterizer();
 		 $fdisplay(fp, "255");
 	end
 	
-	wire	signed	[31:0]		m_polygon_p0 = m_polygon_params[32*0 +: 32];
-	wire	signed	[31:0]		m_polygon_p1 = m_polygon_params[32*1 +: 32];
-	wire	signed	[31:0]		m_polygon_p2 = m_polygon_params[32*2 +: 32];
+	wire	signed	[31:0]		m_shader_p0 = m_shader_params[32*0 +: 32];
+	wire	signed	[31:0]		m_shader_p1 = m_shader_params[32*1 +: 32];
+	wire	signed	[31:0]		m_shader_p2 = m_shader_params[32*2 +: 32];
+	wire	signed	[31:0]		m_shader_p3 = m_shader_params[32*3 +: 32];
 	real						rel_p0, rel_p1, rel_p2;
 	reg				[7:0]		int_u, int_v, int_t;
 	reg				[7:0]		int_r, int_g, int_b;
 	always @* begin
-		rel_p0 = m_polygon_p0;
-		rel_p1 = m_polygon_p1;
-		rel_p2 = m_polygon_p2;
-		rel_p0 = rel_p0 / (1 << 20);
-		rel_p1 = rel_p1 / (1 << 20);
-		rel_p2 = rel_p2 / (1 << 20);
+		rel_p0 = m_shader_p1;
+		rel_p1 = m_shader_p2;
+		rel_p2 = m_shader_p3;
+		rel_p0 = rel_p0 / (1 << SHADER_PARAM_Q);
+		rel_p1 = rel_p1 / (1 << SHADER_PARAM_Q);
+		rel_p2 = rel_p2 / (1 << SHADER_PARAM_Q);
 		
 		if ( rel_p0 > 1.0 ) rel_p0 = 1.0;
 		if ( rel_p0 < 0.0 ) rel_p0 = 0.0;
@@ -316,7 +326,9 @@ module tb_rasterizer();
 	reg		[WB_DAT_WIDTH-1:0]		reg_wb_dat;
 	reg								reg_wb_ack;
 	always @(posedge wb_clk_i) begin
-		reg_wb_dat <= wb_dat_i;
+		if ( ~wb_we_o & wb_stb_o & wb_stb_o ) begin
+			reg_wb_dat <= wb_dat_i;
+		end
 		reg_wb_ack <= wb_ack_i;
 	end
 	
@@ -346,9 +358,282 @@ module tb_rasterizer();
 	endtask
 	
 	
+	task wb_read(
+				input [WB_ADR_WIDTH-1:0]	adr
+			);
+	begin
+		@(negedge wb_clk_i);
+			wb_adr_o = (adr >> 2);
+			wb_dat_o = {WB_DAT_WIDTH{1'bx}};
+			wb_sel_o = {WB_SEL_WIDTH{1'b1}};
+			wb_we_o  = 1'b0;
+			wb_stb_o = 1'b1;
+		@(negedge wb_clk_i);
+			while ( reg_wb_ack == 1'b0 ) begin
+				@(negedge wb_clk_i);
+			end
+			wb_adr_o = {WB_ADR_WIDTH{1'bx}};
+			wb_dat_o = {WB_DAT_WIDTH{1'bx}};
+			wb_sel_o = {WB_SEL_WIDTH{1'bx}};
+			wb_we_o  = 1'bx;
+			wb_stb_o = 1'b0;
+			$display("WISHBONE_READ(adr:%h dat:%h)", adr, reg_wb_dat);
+	end
+	endtask
+	
+	
 	initial begin
 	@(negedge wb_rst_i);
 	#100
+	
+$display("[edge]");
+wb_write(32'h00001000, 32'hfffff6da, 4'b1111);
+wb_write(32'h00001004, 32'h0016d63d, 4'b1111);
+wb_write(32'h00001008, 32'h0007a1e0, 4'b1111);
+wb_write(32'h0000100c, 32'h000001a2, 4'b1111);
+wb_write(32'h00001010, 32'hfffbf46c, 4'b1111);
+wb_write(32'h00001014, 32'hfff57dd8, 4'b1111);
+wb_write(32'h00001018, 32'hfffff761, 4'b1111);
+wb_write(32'h0000101c, 32'h001584c4, 4'b1111);
+wb_write(32'h00001020, 32'h000be9cd, 4'b1111);
+wb_write(32'h00001024, 32'h0000011b, 4'b1111);
+wb_write(32'h00001028, 32'hfffd45e5, 4'b1111);
+wb_write(32'h0000102c, 32'hfffa20dc, 4'b1111);
+wb_write(32'h00001030, 32'h00000232, 4'b1111);
+wb_write(32'h00001034, 32'hfffa8de9, 4'b1111);
+wb_write(32'h00001038, 32'hfff12801, 4'b1111);
+wb_write(32'h0000103c, 32'hfffff58d, 4'b1111);
+wb_write(32'h00001040, 32'h001a153b, 4'b1111);
+wb_write(32'h00001044, 32'h000b3fef, 4'b1111);
+wb_write(32'h00001048, 32'h00000185, 4'b1111);
+wb_write(32'h0000104c, 32'hfffc3e5d, 4'b1111);
+wb_write(32'h00001050, 32'hfff72755, 4'b1111);
+wb_write(32'h00001054, 32'hfffff63a, 4'b1111);
+wb_write(32'h00001058, 32'h001864c7, 4'b1111);
+wb_write(32'h0000105c, 32'h0010ae84, 4'b1111);
+wb_write(32'h00001060, 32'hfffffd8a, 4'b1111);
+wb_write(32'h00001064, 32'h00062952, 4'b1111);
+wb_write(32'h00001068, 32'h0000e190, 4'b1111);
+wb_write(32'h0000106c, 32'hfffffd20, 4'b1111);
+wb_write(32'h00001070, 32'h000730da, 4'b1111);
+wb_write(32'h00001074, 32'h00004210, 4'b1111);
+wb_write(32'h00001078, 32'hfffffc63, 4'b1111);
+wb_write(32'h0000107c, 32'h00090955, 4'b1111);
+wb_write(32'h00001080, 32'h00003786, 4'b1111);
+wb_write(32'h00001084, 32'hfffffbd3, 4'b1111);
+wb_write(32'h00001088, 32'h000a6fd8, 4'b1111);
+wb_write(32'h0000108c, 32'hffff96e8, 4'b1111);
+wb_write(32'h00001090, 32'hfffffb1a, 4'b1111);
+wb_write(32'h00001094, 32'h000c3a0e, 4'b1111);
+wb_write(32'h00001098, 32'h00069a49, 4'b1111);
+wb_write(32'h0000109c, 32'hfffffda0, 4'b1111);
+wb_write(32'h000010a0, 32'h0005ed62, 4'b1111);
+wb_write(32'h000010a4, 32'h000375d3, 4'b1111);
+wb_write(32'h000010a8, 32'hfffffab6, 4'b1111);
+wb_write(32'h000010ac, 32'h000d33aa, 4'b1111);
+wb_write(32'h000010b0, 32'h00070c91, 4'b1111);
+wb_write(32'h000010b4, 32'hfffffe04, 4'b1111);
+wb_write(32'h000010b8, 32'h0004f3c6, 4'b1111);
+wb_write(32'h000010bc, 32'h0002dcf3, 4'b1111);
+wb_write(32'h000010c0, 32'hfffffda9, 4'b1111);
+wb_write(32'h000010c4, 32'h0005d678, 4'b1111);
+wb_write(32'h000010c8, 32'h00033849, 4'b1111);
+wb_write(32'h000010cc, 32'hfffffb20, 4'b1111);
+wb_write(32'h000010d0, 32'h000c2b3e, 4'b1111);
+wb_write(32'h000010d4, 32'h0004edec, 4'b1111);
+wb_write(32'h000010d8, 32'hfffffe0b, 4'b1111);
+wb_write(32'h000010dc, 32'h0004e1d0, 4'b1111);
+wb_write(32'h000010e0, 32'h0002a0f9, 4'b1111);
+wb_write(32'h000010e4, 32'hfffffabe, 4'b1111);
+wb_write(32'h000010e8, 32'h000d1fe6, 4'b1111);
+wb_write(32'h000010ec, 32'h000506b0, 4'b1111);
+wb_write(32'h000010f0, 32'h00000027, 4'b1111);
+wb_write(32'h000010f4, 32'hffff992f, 4'b1111);
+wb_write(32'h000010f8, 32'h00051322, 4'b1111);
+wb_write(32'h000010fc, 32'h00000020, 4'b1111);
+wb_write(32'h00001100, 32'hffffab25, 4'b1111);
+wb_write(32'h00001104, 32'h000408e7, 4'b1111);
+wb_write(32'h00001108, 32'h0000002f, 4'b1111);
+wb_write(32'h0000110c, 32'hffff856b, 4'b1111);
+wb_write(32'h00001110, 32'h000695f2, 4'b1111);
+wb_write(32'h00001114, 32'h00000026, 4'b1111);
+wb_write(32'h00001118, 32'hffff9c55, 4'b1111);
+wb_write(32'h0000111c, 32'h0005551b, 4'b1111);
+
+$display("[shader]");
+wb_write(32'h00002000, 32'hfffffe54, 4'b1111);
+wb_write(32'h00002004, 32'h00042b2c, 4'b1111);
+wb_write(32'h00002008, 32'h000da096, 4'b1111);
+wb_write(32'h0000200c, 32'h00000000, 4'b1111);
+wb_write(32'h00002010, 32'h00000000, 4'b1111);
+wb_write(32'h00002014, 32'h00800000, 4'b1111);
+wb_write(32'h00002018, 32'h00020945, 4'b1111);
+wb_write(32'h0000201c, 32'hfaeac6f2, 4'b1111);
+wb_write(32'h00002020, 32'hfe4da64a, 4'b1111);
+wb_write(32'h00002024, 32'h00005d13, 4'b1111);
+wb_write(32'h00002028, 32'hff196977, 4'b1111);
+wb_write(32'h0000202c, 32'hfea96f26, 4'b1111);
+wb_write(32'h00002030, 32'hfffffded, 4'b1111);
+wb_write(32'h00002034, 32'h00052bfd, 4'b1111);
+wb_write(32'h00002038, 32'h0010ec86, 4'b1111);
+wb_write(32'h0000203c, 32'h00000000, 4'b1111);
+wb_write(32'h00002040, 32'h00000000, 4'b1111);
+wb_write(32'h00002044, 32'h00800000, 4'b1111);
+wb_write(32'h00002048, 32'hffff9dd4, 4'b1111);
+wb_write(32'h0000204c, 32'h00f38594, 4'b1111);
+wb_write(32'h00002050, 32'h02981d28, 4'b1111);
+wb_write(32'h00002054, 32'hfffe2c1a, 4'b1111);
+wb_write(32'h00002058, 32'h048ff337, 4'b1111);
+wb_write(32'h0000205c, 32'h02f81b94, 4'b1111);
+wb_write(32'h00002060, 32'h00000000, 4'b1111);
+wb_write(32'h00002064, 32'h00000b5e, 4'b1111);
+wb_write(32'h00002068, 32'h0004c709, 4'b1111);
+wb_write(32'h0000206c, 32'h00000000, 4'b1111);
+wb_write(32'h00002070, 32'h00000000, 4'b1111);
+wb_write(32'h00002074, 32'h00800000, 4'b1111);
+wb_write(32'h00002078, 32'h0000b05a, 4'b1111);
+wb_write(32'h0000207c, 32'hfe4cf7af, 4'b1111);
+wb_write(32'h00002080, 32'hfc5b491c, 4'b1111);
+wb_write(32'h00002084, 32'h00018880, 4'b1111);
+wb_write(32'h00002088, 32'hfc294ecf, 4'b1111);
+wb_write(32'h0000208c, 32'h0072015a, 4'b1111);
+wb_write(32'h00002090, 32'h00000666, 4'b1111);
+wb_write(32'h00002094, 32'hfff00659, 4'b1111);
+wb_write(32'h00002098, 32'h00027652, 4'b1111);
+wb_write(32'h0000209c, 32'h00000000, 4'b1111);
+wb_write(32'h000020a0, 32'h00000000, 4'b1111);
+wb_write(32'h000020a4, 32'h00800000, 4'b1111);
+wb_write(32'h000020a8, 32'h00038ed7, 4'b1111);
+wb_write(32'h000020ac, 32'hf71e8182, 4'b1111);
+wb_write(32'h000020b0, 32'hfb1452d8, 4'b1111);
+wb_write(32'h000020b4, 32'hfffe81e3, 4'b1111);
+wb_write(32'h000020b8, 32'h03bba069, 4'b1111);
+wb_write(32'h000020bc, 32'h01182390, 4'b1111);
+wb_write(32'h000020c0, 32'h00000000, 4'b1111);
+wb_write(32'h000020c4, 32'h000006d2, 4'b1111);
+wb_write(32'h000020c8, 32'h0002ddd2, 4'b1111);
+wb_write(32'h000020cc, 32'h00000000, 4'b1111);
+wb_write(32'h000020d0, 32'h00000000, 4'b1111);
+wb_write(32'h000020d4, 32'h00800000, 4'b1111);
+wb_write(32'h000020d8, 32'h0000aec2, 4'b1111);
+wb_write(32'h000020dc, 32'hfe4f0b36, 4'b1111);
+wb_write(32'h000020e0, 32'hfb9c2080, 4'b1111);
+wb_write(32'h000020e4, 32'hfffe412c, 4'b1111);
+wb_write(32'h000020e8, 32'h045ccc05, 4'b1111);
+wb_write(32'h000020ec, 32'h00d39eb9, 4'b1111);
+wb_write(32'h000020f0, 32'h00000a0b, 4'b1111);
+wb_write(32'h000020f4, 32'hffe6ece5, 4'b1111);
+wb_write(32'h000020f8, 32'h0003dd33, 4'b1111);
+wb_write(32'h000020fc, 32'h00000000, 4'b1111);
+wb_write(32'h00002100, 32'h00000000, 4'b1111);
+wb_write(32'h00002104, 32'h00800000, 4'b1111);
+wb_write(32'h00002108, 32'h000470b2, 4'b1111);
+wb_write(32'h0000210c, 32'hf4ea841b, 4'b1111);
+wb_write(32'h00002110, 32'hfc4cd834, 4'b1111);
+wb_write(32'h00002114, 32'h00016502, 4'b1111);
+wb_write(32'h00002118, 32'hfc831146, 4'b1111);
+wb_write(32'h0000211c, 32'h00df8825, 4'b1111);
+wb_write(32'h00002120, 32'hffff9df1, 4'b1111);
+wb_write(32'h00002124, 32'h00f4c11c, 4'b1111);
+wb_write(32'h00002128, 32'h0091cdad, 4'b1111);
+wb_write(32'h0000212c, 32'h00000000, 4'b1111);
+wb_write(32'h00002130, 32'h00000000, 4'b1111);
+wb_write(32'h00002134, 32'h00800000, 4'b1111);
+wb_write(32'h00002138, 32'hffb5f77a, 4'b1111);
+wb_write(32'h0000213c, 32'hb8ca886e, 4'b1111);
+wb_write(32'h00002140, 32'h63ee6700, 4'b1111);
+wb_write(32'h00002144, 32'h0023dd7f, 4'b1111);
+wb_write(32'h00002148, 32'ha67dc025, 4'b1111);
+wb_write(32'h0000214c, 32'hccd66300, 4'b1111);
+wb_write(32'h00002150, 32'hffffe406, 4'b1111);
+wb_write(32'h00002154, 32'h0045d45c, 4'b1111);
+wb_write(32'h00002158, 32'h0029991f, 4'b1111);
+wb_write(32'h0000215c, 32'h00000000, 4'b1111);
+wb_write(32'h00002160, 32'h00000000, 4'b1111);
+wb_write(32'h00002164, 32'h00800000, 4'b1111);
+wb_write(32'h00002168, 32'hfff5b3f8, 4'b1111);
+wb_write(32'h0000216c, 32'h19b0bf1e, 4'b1111);
+wb_write(32'h00002170, 32'h0e236000, 4'b1111);
+wb_write(32'h00002174, 32'h00156a62, 4'b1111);
+wb_write(32'h00002178, 32'hca8af120, 4'b1111);
+wb_write(32'h0000217c, 32'heb5f7cc0, 4'b1111);
+wb_write(32'h00002180, 32'h00000000, 4'b1111);
+wb_write(32'h00002184, 32'h000009be, 4'b1111);
+wb_write(32'h00002188, 32'h00041851, 4'b1111);
+wb_write(32'h0000218c, 32'h00000000, 4'b1111);
+wb_write(32'h00002190, 32'h00000000, 4'b1111);
+wb_write(32'h00002194, 32'h00800000, 4'b1111);
+wb_write(32'h00002198, 32'hfffd152f, 4'b1111);
+wb_write(32'h0000219c, 32'h0747c3b3, 4'b1111);
+wb_write(32'h000021a0, 32'h04373df0, 4'b1111);
+wb_write(32'h000021a4, 32'hffffc688, 4'b1111);
+wb_write(32'h000021a8, 32'h00977cf4, 4'b1111);
+wb_write(32'h000021ac, 32'hf9872380, 4'b1111);
+wb_write(32'h000021b0, 32'h00000050, 4'b1111);
+wb_write(32'h000021b4, 32'hffff36d0, 4'b1111);
+wb_write(32'h000021b8, 32'h000e8b89, 4'b1111);
+wb_write(32'h000021bc, 32'h00000000, 4'b1111);
+wb_write(32'h000021c0, 32'h00000000, 4'b1111);
+wb_write(32'h000021c4, 32'h00800000, 4'b1111);
+wb_write(32'h000021c8, 32'hfffcf661, 4'b1111);
+wb_write(32'h000021cc, 32'h0794fd4c, 4'b1111);
+wb_write(32'h000021d0, 32'h040d91b8, 4'b1111);
+wb_write(32'h000021d4, 32'hffffe53b, 4'b1111);
+wb_write(32'h000021d8, 32'h0045d7e5, 4'b1111);
+wb_write(32'h000021dc, 32'hfd376ab8, 4'b1111);
+wb_write(32'h000021e0, 32'h00000000, 4'b1111);
+wb_write(32'h000021e4, 32'h00000794, 4'b1111);
+wb_write(32'h000021e8, 32'h00032f5c, 4'b1111);
+wb_write(32'h000021ec, 32'h00000000, 4'b1111);
+wb_write(32'h000021f0, 32'h00000000, 4'b1111);
+wb_write(32'h000021f4, 32'h00800000, 4'b1111);
+wb_write(32'h000021f8, 32'hfffcb00f, 4'b1111);
+wb_write(32'h000021fc, 32'h084434d8, 4'b1111);
+wb_write(32'h00002200, 32'h04d14160, 4'b1111);
+wb_write(32'h00002204, 32'h00003655, 4'b1111);
+wb_write(32'h00002208, 32'hff71a97b, 4'b1111);
+wb_write(32'h0000220c, 32'h086f3740, 4'b1111);
+wb_write(32'h00002210, 32'h00000048, 4'b1111);
+wb_write(32'h00002214, 32'hffff4af0, 4'b1111);
+wb_write(32'h00002218, 32'h000d0f7b, 4'b1111);
+wb_write(32'h0000221c, 32'h00000000, 4'b1111);
+wb_write(32'h00002220, 32'h00000000, 4'b1111);
+wb_write(32'h00002224, 32'h00800000, 4'b1111);
+wb_write(32'h00002228, 32'hfffcca06, 4'b1111);
+wb_write(32'h0000222c, 32'h0803b2c8, 4'b1111);
+wb_write(32'h00002230, 32'h045584f8, 4'b1111);
+wb_write(32'h00002234, 32'h0000153e, 4'b1111);
+wb_write(32'h00002238, 32'hffc7b660, 4'b1111);
+wb_write(32'h0000223c, 32'h03a39cd8, 4'b1111);
+
+$display("[region]");
+wb_write(32'h00003000, 32'h0000000f, 4'b1111);
+wb_write(32'h00003004, 32'h0000000c, 4'b1111);
+wb_write(32'h00003008, 32'h000000f0, 4'b1111);
+wb_write(32'h0000300c, 32'h00000030, 4'b1111);
+wb_write(32'h00003010, 32'h00000348, 4'b1111);
+wb_write(32'h00003014, 32'h00000240, 4'b1111);
+wb_write(32'h00003018, 32'h00000584, 4'b1111);
+wb_write(32'h0000301c, 32'h00000180, 4'b1111);
+wb_write(32'h00003020, 32'h00000c12, 4'b1111);
+wb_write(32'h00003024, 32'h00000402, 4'b1111);
+wb_write(32'h00003028, 32'h00000a21, 4'b1111);
+wb_write(32'h0000302c, 32'h00000801, 4'b1111);
+wb_write(32'h00003030, 32'h0000f000, 4'b1111);
+wb_write(32'h00003034, 32'h0000c000, 4'b1111);
+wb_write(32'h00003038, 32'h000f0000, 4'b1111);
+wb_write(32'h0000303c, 32'h00030000, 4'b1111);
+wb_write(32'h00003040, 32'h00348000, 4'b1111);
+wb_write(32'h00003044, 32'h00240000, 4'b1111);
+wb_write(32'h00003048, 32'h00584000, 4'b1111);
+wb_write(32'h0000304c, 32'h00180000, 4'b1111);
+wb_write(32'h00003050, 32'h00c12000, 4'b1111);
+wb_write(32'h00003054, 32'h00402000, 4'b1111);
+wb_write(32'h00003058, 32'h00a21000, 4'b1111);
+wb_write(32'h0000305c, 32'h00801000, 4'b1111);
+	
+	
+	/*
 		$display("edge");
 		wb_write(32'h1000, 32'hfffff74f, 4'b1111);
 		wb_write(32'h1004, 32'h0015b1fe, 4'b1111);
@@ -515,10 +800,33 @@ module tb_rasterizer();
 		wb_write(32'h3024, 32'h00000402, 4'b1111);
 		wb_write(32'h3028, 32'h00000a21, 4'b1111);
 		wb_write(32'h302c, 32'h00000801, 4'b1111);
-		
+	*/
+	
 		$display("start");
 		wb_write(32'h0000_0000, 32'h0000_0001, 4'b1111);
 		
+		
+		$display("read");
+		wb_read(32'h00*4); 		// REG_ADDR_CTL_ENABLE             
+		wb_read(32'h01*4);		// REG_ADDR_CTL_BANK 
+		wb_read(32'h02*4);		// REG_ADDR_PARAM_WIDTH            
+		wb_read(32'h03*4);		// REG_ADDR_PARAM_HEIGHT           
+		wb_read(32'h04*4);		// REG_ADDR_PARAM_CULLING          
+		wb_read(32'h11*4);		// REG_ADDR_PARAMS_BANK            
+		
+		wb_read(32'h20*4);		// REG_ADDR_CFG_SHADER_TYPE
+		wb_read(32'h21*4);		// REG_ADDR_CFG_VERSION            
+		wb_read(32'h22*4);		// REG_ADDR_CFG_BANK_ADDR_WIDTH    
+		wb_read(32'h23*4);		// REG_ADDR_CFG_PARAMS_ADDR_WIDTH  
+		wb_read(32'h24*4);		// REG_ADDR_CFG_BANK_NUM           
+		wb_read(32'h25*4);		// REG_ADDR_CFG_EDGE_NUM           
+		wb_read(32'h26*4);		// REG_ADDR_CFG_POLYGON_NUM        
+		wb_read(32'h27*4);		// REG_ADDR_CFG_SHADER_PARAM_NUM   
+		wb_read(32'h28*4);		// REG_ADDR_CFG_EDGE_PARAM_WIDTH   
+		wb_read(32'h29*4);		// REG_ADDR_CFG_SHADER_PARAM_WIDTH 
+		wb_read(32'h2a*4);		// REG_ADDR_CFG_REGION_PARAM_WIDTH 
+		wb_read(32'h2b*4);		// REG_ADDR_CFG_SHADER_PARAM_Q     
+	
 	#10000000
 		$finish();
 	end

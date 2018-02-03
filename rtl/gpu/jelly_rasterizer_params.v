@@ -14,144 +14,164 @@
 
 module jelly_rasterizer_params
 		#(
-			parameter	X_WIDTH             = 12,
-			parameter	Y_WIDTH             = 12,
+			parameter	X_WIDTH            = 12,
+			parameter	Y_WIDTH            = 12,
 			
-			parameter	WB_ADR_WIDTH        = 14,
-			parameter	WB_DAT_WIDTH        = 32,
-			parameter	WB_SEL_WIDTH        = (WB_DAT_WIDTH / 8),
+			parameter	WB_ADR_WIDTH       = 14,
+			parameter	WB_DAT_WIDTH       = 32,
+			parameter	WB_SEL_WIDTH       = (WB_DAT_WIDTH / 8),
 			
-			parameter	BANK_NUM            = 2,
-			parameter	BANK_ADDR_WIDTH     = 12,
-			parameter	PARAMS_ADDR_WIDTH   = 10,
+			parameter	BANK_NUM           = 2,
+			parameter	BANK_ADDR_WIDTH    = 12,
+			parameter	PARAMS_ADDR_WIDTH  = 10,
 			
-			parameter	EDGE_NUM            = 12,
-			parameter	EDGE_WIDTH          = 32,
-			parameter	EDGE_RAM_TYPE       = "distributed",
+			parameter	EDGE_NUM           = 12,
+			parameter	POLYGON_NUM        = 6,
+			parameter	SHADER_PARAM_NUM   = 3,
 			
-			parameter	POLYGON_NUM         = 6,
-			parameter	POLYGON_PARAM_NUM   = 3,
-			parameter	POLYGON_WIDTH       = 32,
-			parameter	POLYGON_RAM_TYPE    = "distributed",
+			parameter	EDGE_PARAM_WIDTH   = 32,
+			parameter	EDGE_RAM_TYPE      = "distributed",
 			
-			parameter	REGION_NUM          = POLYGON_NUM,
-			parameter	REGION_WIDTH        = EDGE_NUM,
-			parameter	REGION_RAM_TYPE     = "distributed",
+			parameter	SHADER_PARAM_WIDTH = 32,
+			parameter	SHADER_RAM_TYPE    = "distributed",
 			
-			parameter	INIT_CTL_ENABLE     = 1'b0,
-			parameter	INIT_CTL_BANK       = 0,
-			parameter	INIT_PARAM_WIDTH    = 640-1,
-			parameter	INIT_PARAM_HEIGHT   = 480-1,
+			parameter	REGION_PARAM_WIDTH = EDGE_NUM,
+			parameter	REGION_RAM_TYPE    = "distributed",
+			
+			parameter	USE_PARAM_CFG_READ = 1,
+			
+			parameter	CFG_SHADER_TYPE    = 32'h0000_0000,
+			parameter	CFG_VERSION        = 32'h0000_0000,
+			parameter	CFG_SHADER_PARAM_Q = 0,
+			
+			parameter	INIT_CTL_ENABLE    = 1'b0,
+			parameter	INIT_CTL_BANK      = 0,
+			parameter	INIT_PARAM_WIDTH   = 640-1,
+			parameter	INIT_PARAM_HEIGHT  = 480-1,
+			parameter	INIT_PARAM_CULLING = 2'b01,
 			
 			// local
-			parameter	PARAMS_EDGE_SIZE    = EDGE_NUM*3,
-			parameter	PARAMS_POLYGON_SIZE = POLYGON_NUM*POLYGON_PARAM_NUM*3,
-			parameter	PARAMS_REGION_SIZE  = REGION_NUM*2
+			parameter	PARAMS_EDGE_SIZE   = EDGE_NUM*3,
+			parameter	PARAMS_SHADER_SIZE = POLYGON_NUM*SHADER_PARAM_NUM*3,
+			parameter	PARAMS_REGION_SIZE = POLYGON_NUM*2
 		)
 		(
-			input	wire											reset,
-			input	wire											clk,
-			input	wire											cke,
+			input	wire												reset,
+			input	wire												clk,
+			input	wire												cke,
 			
-			output	wire											start,
-			input	wire											busy,
+			output	wire												start,
+			input	wire												busy,
 			
-			output	wire	[X_WIDTH-1:0]							param_width,
-			output	wire	[Y_WIDTH-1:0]							param_height,
+			output	wire	[X_WIDTH-1:0]								param_width,
+			output	wire	[Y_WIDTH-1:0]								param_height,
+			output	wire	[1:0]										param_culling,
 			
-			output	wire	[PARAMS_EDGE_SIZE*EDGE_WIDTH-1:0]		params_edge,
-			output	wire	[PARAMS_POLYGON_SIZE*POLYGON_WIDTH-1:0]	params_polygon,
-			output	wire	[PARAMS_REGION_SIZE*REGION_WIDTH-1:0]	params_region,
+			output	wire	[PARAMS_EDGE_SIZE*EDGE_PARAM_WIDTH-1:0]		params_edge,
+			output	wire	[PARAMS_SHADER_SIZE*SHADER_PARAM_WIDTH-1:0]	params_shader,
+			output	wire	[PARAMS_REGION_SIZE*REGION_PARAM_WIDTH-1:0]	params_region,
 			
-			input	wire											s_wb_rst_i,
-			input	wire											s_wb_clk_i,
-			input	wire	[WB_ADR_WIDTH-1:0]						s_wb_adr_i,
-			output	wire	[WB_DAT_WIDTH-1:0]						s_wb_dat_o,
-			input	wire	[WB_DAT_WIDTH-1:0]						s_wb_dat_i,
-			input	wire											s_wb_we_i,
-			input	wire	[WB_SEL_WIDTH-1:0]						s_wb_sel_i,
-			input	wire											s_wb_stb_i,
-			output	wire											s_wb_ack_o
+			input	wire												s_wb_rst_i,
+			input	wire												s_wb_clk_i,
+			input	wire	[WB_ADR_WIDTH-1:0]							s_wb_adr_i,
+			output	wire	[WB_DAT_WIDTH-1:0]							s_wb_dat_o,
+			input	wire	[WB_DAT_WIDTH-1:0]							s_wb_dat_i,
+			input	wire												s_wb_we_i,
+			input	wire	[WB_SEL_WIDTH-1:0]							s_wb_sel_i,
+			input	wire												s_wb_stb_i,
+			output	wire												s_wb_ack_o
 		);
 	
 	
 	// 一部処理系で $clog2 が正しく動かないので
-	localparam	BANK_WIDTH         = BANK_NUM            <=     1 ?  0 :
-			                         BANK_NUM            <=     2 ?  1 :
-			                         BANK_NUM            <=     4 ?  2 :
-			                         BANK_NUM            <=     8 ?  3 :
-			                         BANK_NUM            <=    16 ?  4 :
-			                         BANK_NUM            <=    32 ?  5 :
-			                         BANK_NUM            <=    64 ?  6 :
-			                         BANK_NUM            <=   128 ?  7 :
-			                         BANK_NUM            <=   256 ?  8 :
-			                         BANK_NUM            <=   512 ?  9 :
-			                         BANK_NUM            <=  1024 ? 10 :
-			                         BANK_NUM            <=  2048 ? 11 :
-			                         BANK_NUM            <=  4096 ? 12 :
-			                         BANK_NUM            <=  8192 ? 13 :
-			                         BANK_NUM            <= 16384 ? 14 :
-			                         BANK_NUM            <= 32768 ? 15 : 16;
+	localparam	BANK_WIDTH        = BANK_NUM           <=     1 ?  0 :
+			                        BANK_NUM           <=     2 ?  1 :
+			                        BANK_NUM           <=     4 ?  2 :
+			                        BANK_NUM           <=     8 ?  3 :
+			                        BANK_NUM           <=    16 ?  4 :
+			                        BANK_NUM           <=    32 ?  5 :
+			                        BANK_NUM           <=    64 ?  6 :
+			                        BANK_NUM           <=   128 ?  7 :
+			                        BANK_NUM           <=   256 ?  8 :
+			                        BANK_NUM           <=   512 ?  9 :
+			                        BANK_NUM           <=  1024 ? 10 :
+			                        BANK_NUM           <=  2048 ? 11 :
+			                        BANK_NUM           <=  4096 ? 12 :
+			                        BANK_NUM           <=  8192 ? 13 :
+			                        BANK_NUM           <= 16384 ? 14 :
+			                        BANK_NUM           <= 32768 ? 15 : 16;
 	
-	localparam	BANK_BITS          = BANK_WIDTH > 0 ? BANK_WIDTH : 1;
+	localparam	BANK_BITS         = BANK_WIDTH > 0 ? BANK_WIDTH : 1;
 	
-	localparam	EDGE_ADDR_WIDTH    = PARAMS_EDGE_SIZE    <=     2 ?  1 :
-			                         PARAMS_EDGE_SIZE    <=     4 ?  2 :
-			                         PARAMS_EDGE_SIZE    <=     8 ?  3 :
-			                         PARAMS_EDGE_SIZE    <=    16 ?  4 :
-			                         PARAMS_EDGE_SIZE    <=    32 ?  5 :
-			                         PARAMS_EDGE_SIZE    <=    64 ?  6 :
-			                         PARAMS_EDGE_SIZE    <=   128 ?  7 :
-			                         PARAMS_EDGE_SIZE    <=   256 ?  8 :
-			                         PARAMS_EDGE_SIZE    <=   512 ?  9 :
-			                         PARAMS_EDGE_SIZE    <=  1024 ? 10 :
-			                         PARAMS_EDGE_SIZE    <=  2048 ? 11 :
-			                         PARAMS_EDGE_SIZE    <=  4096 ? 12 :
-			                         PARAMS_EDGE_SIZE    <=  8192 ? 13 :
-			                         PARAMS_EDGE_SIZE    <= 16384 ? 14 :
-			                         PARAMS_EDGE_SIZE    <= 32768 ? 15 : 16;
+	localparam	EDGE_ADDR_WIDTH   = PARAMS_EDGE_SIZE   <=     2 ?  1 :
+			                        PARAMS_EDGE_SIZE   <=     4 ?  2 :
+			                        PARAMS_EDGE_SIZE   <=     8 ?  3 :
+			                        PARAMS_EDGE_SIZE   <=    16 ?  4 :
+			                        PARAMS_EDGE_SIZE   <=    32 ?  5 :
+			                        PARAMS_EDGE_SIZE   <=    64 ?  6 :
+			                        PARAMS_EDGE_SIZE   <=   128 ?  7 :
+			                        PARAMS_EDGE_SIZE   <=   256 ?  8 :
+			                        PARAMS_EDGE_SIZE   <=   512 ?  9 :
+			                        PARAMS_EDGE_SIZE   <=  1024 ? 10 :
+			                        PARAMS_EDGE_SIZE   <=  2048 ? 11 :
+			                        PARAMS_EDGE_SIZE   <=  4096 ? 12 :
+			                        PARAMS_EDGE_SIZE   <=  8192 ? 13 :
+			                        PARAMS_EDGE_SIZE   <= 16384 ? 14 :
+			                        PARAMS_EDGE_SIZE   <= 32768 ? 15 : 16;
 	
-	localparam	POLYGON_ADDR_WIDTH = PARAMS_POLYGON_SIZE <=     2 ?  1 :
-			                         PARAMS_POLYGON_SIZE <=     4 ?  2 :
-			                         PARAMS_POLYGON_SIZE <=     8 ?  3 :
-			                         PARAMS_POLYGON_SIZE <=    16 ?  4 :
-			                         PARAMS_POLYGON_SIZE <=    32 ?  5 :
-			                         PARAMS_POLYGON_SIZE <=    64 ?  6 :
-			                         PARAMS_POLYGON_SIZE <=   128 ?  7 :
-			                         PARAMS_POLYGON_SIZE <=   256 ?  8 :
-			                         PARAMS_POLYGON_SIZE <=   512 ?  9 :
-			                         PARAMS_POLYGON_SIZE <=  1024 ? 10 :
-			                         PARAMS_POLYGON_SIZE <=  2048 ? 11 :
-			                         PARAMS_POLYGON_SIZE <=  4096 ? 12 :
-			                         PARAMS_POLYGON_SIZE <=  8192 ? 13 :
-			                         PARAMS_POLYGON_SIZE <= 16384 ? 14 :
-			                         PARAMS_POLYGON_SIZE <= 32768 ? 15 : 16;
+	localparam	SHADER_ADDR_WIDTH = PARAMS_SHADER_SIZE <=     2 ?  1 :
+			                        PARAMS_SHADER_SIZE <=     4 ?  2 :
+			                        PARAMS_SHADER_SIZE <=     8 ?  3 :
+			                        PARAMS_SHADER_SIZE <=    16 ?  4 :
+			                        PARAMS_SHADER_SIZE <=    32 ?  5 :
+			                        PARAMS_SHADER_SIZE <=    64 ?  6 :
+			                        PARAMS_SHADER_SIZE <=   128 ?  7 :
+			                        PARAMS_SHADER_SIZE <=   256 ?  8 :
+			                        PARAMS_SHADER_SIZE <=   512 ?  9 :
+			                        PARAMS_SHADER_SIZE <=  1024 ? 10 :
+			                        PARAMS_SHADER_SIZE <=  2048 ? 11 :
+			                        PARAMS_SHADER_SIZE <=  4096 ? 12 :
+			                        PARAMS_SHADER_SIZE <=  8192 ? 13 :
+			                        PARAMS_SHADER_SIZE <= 16384 ? 14 :
+			                        PARAMS_SHADER_SIZE <= 32768 ? 15 : 16;
 	
-	localparam	REGION_ADDR_WIDTH  = PARAMS_REGION_SIZE  <=     2 ?  1 :
-			                         PARAMS_REGION_SIZE  <=     4 ?  2 :
-			                         PARAMS_REGION_SIZE  <=     8 ?  3 :
-			                         PARAMS_REGION_SIZE  <=    16 ?  4 :
-			                         PARAMS_REGION_SIZE  <=    32 ?  5 :
-			                         PARAMS_REGION_SIZE  <=    64 ?  6 :
-			                         PARAMS_REGION_SIZE  <=   128 ?  7 :
-			                         PARAMS_REGION_SIZE  <=   256 ?  8 :
-			                         PARAMS_REGION_SIZE  <=   512 ?  9 :
-			                         PARAMS_REGION_SIZE  <=  1024 ? 10 :
-			                         PARAMS_REGION_SIZE  <=  2048 ? 11 :
-			                         PARAMS_REGION_SIZE  <=  4096 ? 12 :
-			                         PARAMS_REGION_SIZE  <=  8192 ? 13 :
-			                         PARAMS_REGION_SIZE  <= 16384 ? 14 :
-			                         PARAMS_REGION_SIZE  <= 32768 ? 15 : 16;
-	
+	localparam	REGION_ADDR_WIDTH = PARAMS_REGION_SIZE <=     2 ?  1 :
+			                        PARAMS_REGION_SIZE <=     4 ?  2 :
+			                        PARAMS_REGION_SIZE <=     8 ?  3 :
+			                        PARAMS_REGION_SIZE <=    16 ?  4 :
+			                        PARAMS_REGION_SIZE <=    32 ?  5 :
+			                        PARAMS_REGION_SIZE <=    64 ?  6 :
+			                        PARAMS_REGION_SIZE <=   128 ?  7 :
+			                        PARAMS_REGION_SIZE <=   256 ?  8 :
+			                        PARAMS_REGION_SIZE <=   512 ?  9 :
+			                        PARAMS_REGION_SIZE <=  1024 ? 10 :
+			                        PARAMS_REGION_SIZE <=  2048 ? 11 :
+			                        PARAMS_REGION_SIZE <=  4096 ? 12 :
+			                        PARAMS_REGION_SIZE <=  8192 ? 13 :
+			                        PARAMS_REGION_SIZE <= 16384 ? 14 :
+			                        PARAMS_REGION_SIZE <= 32768 ? 15 : 16;
 	
 	
 	// 制御レジスタ
-	localparam	REG_ADDR_CTL_ENABLE   = 32'h00;
-	localparam	REG_ADDR_CTL_BANK     = 32'h01;
-	localparam	REG_ADDR_PARAM_WIDTH  = 32'h02;
-	localparam	REG_ADDR_PARAM_HEIGHT = 32'h03;
-	localparam	REG_ADDR_PARAMS_BANK  = 32'h04;
+	localparam	REG_ADDR_CTL_ENABLE             = 6'h00;
+	localparam	REG_ADDR_CTL_BANK               = 6'h01;
+	localparam	REG_ADDR_PARAM_WIDTH            = 6'h02;
+	localparam	REG_ADDR_PARAM_HEIGHT           = 6'h03;
+	localparam	REG_ADDR_PARAM_CULLING          = 6'h04;
+	localparam	REG_ADDR_PARAMS_BANK            = 6'h11;
 	
+	localparam	REG_ADDR_CFG_SHADER_TYPE        = 6'h20;
+	localparam	REG_ADDR_CFG_VERSION            = 6'h21;
+	localparam	REG_ADDR_CFG_BANK_ADDR_WIDTH    = 6'h22;
+	localparam	REG_ADDR_CFG_PARAMS_ADDR_WIDTH  = 6'h23;
+	localparam	REG_ADDR_CFG_BANK_NUM           = 6'h24;
+	localparam	REG_ADDR_CFG_EDGE_NUM           = 6'h25;
+	localparam	REG_ADDR_CFG_POLYGON_NUM        = 6'h26;
+	localparam	REG_ADDR_CFG_SHADER_PARAM_NUM   = 6'h27;
+	localparam	REG_ADDR_CFG_EDGE_PARAM_WIDTH   = 6'h28;
+	localparam	REG_ADDR_CFG_SHADER_PARAM_WIDTH = 6'h29;
+	localparam	REG_ADDR_CFG_REGION_PARAM_WIDTH = 6'h2a;
+	localparam	REG_ADDR_CFG_SHADER_PARAM_Q     = 6'h2b;
 	
 	wire	[WB_DAT_WIDTH-1:0]	wb_regs_dat_o;
 	wire						wb_regs_stb_i;
@@ -161,6 +181,7 @@ module jelly_rasterizer_params
 	reg		[BANK_BITS-1:0]		reg_ctl_bank;
 	reg		[X_WIDTH-1:0]		reg_param_width;
 	reg		[Y_WIDTH-1:0]		reg_param_height;
+	reg		[1:0]				reg_param_culling;
 	
 	wire	[BANK_BITS-1:0]		params_bank;
 	wire						params_start;
@@ -180,37 +201,65 @@ module jelly_rasterizer_params
 	
 	always @(posedge s_wb_clk_i ) begin
 		if ( s_wb_rst_i ) begin
-			reg_ctl_enable   <= INIT_CTL_ENABLE;
-			reg_ctl_bank     <= INIT_CTL_BANK;
-			reg_param_width  <= INIT_PARAM_WIDTH;
-			reg_param_height <= INIT_PARAM_HEIGHT;
+			reg_ctl_enable    <= INIT_CTL_ENABLE;
+			reg_ctl_bank      <= INIT_CTL_BANK;
+			reg_param_width   <= INIT_PARAM_WIDTH;
+			reg_param_height  <= INIT_PARAM_HEIGHT;
+			reg_param_culling <= INIT_PARAM_CULLING;
 		end
 		else begin
 			if ( wb_regs_stb_i && s_wb_we_i ) begin
-				case ( s_wb_adr_i[2:0] )
-				REG_ADDR_CTL_ENABLE:	reg_ctl_enable   <= s_wb_dat_i;
-				REG_ADDR_CTL_BANK:		reg_ctl_bank     <= s_wb_dat_i;
-				REG_ADDR_PARAM_WIDTH:	reg_param_width  <= s_wb_dat_i;
-				REG_ADDR_PARAM_HEIGHT:	reg_param_height <= s_wb_dat_i;
+				case ( s_wb_adr_i[5:0] )
+				REG_ADDR_CTL_ENABLE:	reg_ctl_enable    <= s_wb_dat_i;
+				REG_ADDR_CTL_BANK:		reg_ctl_bank      <= s_wb_dat_i;
+				REG_ADDR_PARAM_WIDTH:	reg_param_width   <= s_wb_dat_i;
+				REG_ADDR_PARAM_HEIGHT:	reg_param_height  <= s_wb_dat_i;
+				REG_ADDR_PARAM_CULLING:	reg_param_culling <= s_wb_dat_i;
 				endcase
 			end
 		end
 	end
 	
-	assign wb_regs_dat_o = (s_wb_adr_i[2:0] == REG_ADDR_CTL_ENABLE)   ? reg_ctl_enable       :
-	                       (s_wb_adr_i[2:0] == REG_ADDR_CTL_ENABLE)   ? reg_ctl_bank         :
-				           (s_wb_adr_i[2:0] == REG_ADDR_PARAM_WIDTH)  ? reg_param_width  :
-				           (s_wb_adr_i[2:0] == REG_ADDR_PARAM_HEIGHT) ? reg_param_height :
-	                       (s_wb_adr_i[2:0] == REG_ADDR_PARAMS_BANK)  ? ff1_params_bank  :
-	                       0;
+	reg		[WB_DAT_WIDTH-1:0]	tmp_wb_regs_dat_o;
+	always @* begin
+		tmp_wb_regs_dat_o = {WB_DAT_WIDTH{1'b0}};
+		case ( s_wb_adr_i[5:0] )
+		REG_ADDR_CTL_ENABLE:	tmp_wb_regs_dat_o = reg_ctl_enable;
+		REG_ADDR_CTL_ENABLE:	tmp_wb_regs_dat_o = reg_ctl_bank;
+		REG_ADDR_PARAM_WIDTH:	tmp_wb_regs_dat_o = reg_param_width;
+		REG_ADDR_PARAM_HEIGHT:	tmp_wb_regs_dat_o = reg_param_height;
+		REG_ADDR_PARAM_CULLING:	tmp_wb_regs_dat_o = reg_param_culling;
+		REG_ADDR_PARAMS_BANK:	tmp_wb_regs_dat_o = ff1_params_bank;
+		endcase
+		
+		if ( USE_PARAM_CFG_READ ) begin
+			case ( s_wb_adr_i[5:0] )
+			REG_ADDR_CFG_SHADER_TYPE:			tmp_wb_regs_dat_o = CFG_SHADER_TYPE;
+			REG_ADDR_CFG_VERSION:				tmp_wb_regs_dat_o = CFG_VERSION;
+			REG_ADDR_CFG_BANK_ADDR_WIDTH:		tmp_wb_regs_dat_o = BANK_ADDR_WIDTH;
+			REG_ADDR_CFG_PARAMS_ADDR_WIDTH:		tmp_wb_regs_dat_o = PARAMS_ADDR_WIDTH;
+			REG_ADDR_CFG_BANK_NUM:				tmp_wb_regs_dat_o = BANK_NUM;
+			REG_ADDR_CFG_EDGE_NUM:				tmp_wb_regs_dat_o = EDGE_NUM;
+			REG_ADDR_CFG_POLYGON_NUM:			tmp_wb_regs_dat_o = POLYGON_NUM;
+			REG_ADDR_CFG_SHADER_PARAM_NUM:		tmp_wb_regs_dat_o = SHADER_PARAM_NUM;
+			REG_ADDR_CFG_EDGE_PARAM_WIDTH:		tmp_wb_regs_dat_o = EDGE_PARAM_WIDTH;
+			REG_ADDR_CFG_SHADER_PARAM_WIDTH:	tmp_wb_regs_dat_o = SHADER_PARAM_WIDTH;
+			REG_ADDR_CFG_REGION_PARAM_WIDTH:	tmp_wb_regs_dat_o = REGION_PARAM_WIDTH;
+			REG_ADDR_CFG_SHADER_PARAM_Q:		tmp_wb_regs_dat_o = CFG_SHADER_PARAM_Q;
+			endcase
+		end
+	end
+	
+	assign wb_regs_dat_o = tmp_wb_regs_dat_o;
 	assign wb_regs_ack_o = wb_regs_stb_i;
 	
-	assign param_width  = reg_param_width;
-	assign param_height = reg_param_height;
+	assign param_width   = reg_param_width;
+	assign param_height  = reg_param_height;
+	assign param_culling = reg_param_culling;
 	
 	
 	
-	// エッジ判定器用パラメータ
+	// エッジ判定器用ラスタライザパラメータ
 	wire	[WB_DAT_WIDTH-1:0]	wb_edge_dat_o;
 	wire						wb_edge_stb_i;
 	wire						wb_edge_ack_o;
@@ -221,7 +270,7 @@ module jelly_rasterizer_params
 			#(
 				.NUM			(PARAMS_EDGE_SIZE),
 				.ADDR_WIDTH		(EDGE_ADDR_WIDTH),
-				.DATA_WIDTH		(EDGE_WIDTH),
+				.DATA_WIDTH		(EDGE_PARAM_WIDTH),
 				.BANK_NUM		(BANK_NUM),
 				.WRITE_ONLY		(1),
 				.MEM_DOUT_REGS	(0),
@@ -254,51 +303,51 @@ module jelly_rasterizer_params
 	assign wb_edge_ack_o = wb_edge_stb_i;
 	
 	
-	// ポリゴンラスタライズ用パラメータ
-	wire	[WB_DAT_WIDTH-1:0]	wb_polygon_dat_o;
-	wire						wb_polygon_stb_i;
-	wire						wb_polygon_ack_o;
+	// シェーダーパラメータ用ラスタライザパラメータ
+	wire	[WB_DAT_WIDTH-1:0]	wb_shader_dat_o;
+	wire						wb_shader_stb_i;
+	wire						wb_shader_ack_o;
 	
-	wire						polygon_busy;
+	wire						shader_busy;
 	
 	jelly_params_ram
 			#(
-				.NUM			(PARAMS_POLYGON_SIZE),
-				.ADDR_WIDTH		(POLYGON_ADDR_WIDTH),
-				.DATA_WIDTH		(POLYGON_WIDTH),
+				.NUM			(PARAMS_SHADER_SIZE),
+				.ADDR_WIDTH		(SHADER_ADDR_WIDTH),
+				.DATA_WIDTH		(SHADER_PARAM_WIDTH),
 				.BANK_NUM		(BANK_NUM),
 				.WRITE_ONLY		(1),
 				.MEM_DOUT_REGS	(0),
 				.RD_DOUT_REGS	(1),
-				.RAM_TYPE		(POLYGON_RAM_TYPE),
+				.RAM_TYPE		(SHADER_RAM_TYPE),
 				.ENDIAN			(0)
 			)
-		i_params_ram_polygon
+		i_params_ram_shader
 			(
 				.reset			(reset),
 				.clk			(clk),
 				
 				.start			(params_start),
-				.busy			(polygon_busy),
+				.busy			(shader_busy),
 				
 				.bank			(params_bank),
-				.params			(params_polygon),
+				.params			(params_shader),
 				
 				.mem_clk		(s_wb_clk_i),
-				.mem_en			(wb_polygon_stb_i),
+				.mem_en			(wb_shader_stb_i),
 				.mem_regcke		(1'b0),
 				.mem_we			(s_wb_we_i),
 				.mem_bank		(s_wb_adr_i[BANK_ADDR_WIDTH +: BANK_BITS]),
-				.mem_addr		(s_wb_adr_i[POLYGON_ADDR_WIDTH-1:0]),
+				.mem_addr		(s_wb_adr_i[SHADER_ADDR_WIDTH-1:0]),
 				.mem_din		(s_wb_dat_i),
 				.mem_dout		()
 			);
 	
-	assign wb_polygon_dat_o = {WB_DAT_WIDTH{1'b0}};
-	assign wb_polygon_ack_o = wb_polygon_stb_i;
+	assign wb_shader_dat_o = {WB_DAT_WIDTH{1'b0}};
+	assign wb_shader_ack_o = wb_shader_stb_i;
 	
 	
-	// ポリゴン領域対応エッジパラメータ
+	// ポリゴン領域判定用パラメータ
 	wire	[WB_DAT_WIDTH-1:0]	wb_region_dat_o;
 	wire						wb_region_stb_i;
 	wire						wb_region_ack_o;
@@ -309,7 +358,7 @@ module jelly_rasterizer_params
 			#(
 				.NUM			(PARAMS_REGION_SIZE),
 				.ADDR_WIDTH		(REGION_ADDR_WIDTH),
-				.DATA_WIDTH		(REGION_WIDTH),
+				.DATA_WIDTH		(REGION_PARAM_WIDTH),
 				.WRITE_ONLY		(1),
 				.MEM_DOUT_REGS	(0),
 				.RD_DOUT_REGS	(1),
@@ -333,7 +382,7 @@ module jelly_rasterizer_params
 				.mem_we			(s_wb_we_i),
 				.mem_bank		(s_wb_adr_i[BANK_ADDR_WIDTH +: BANK_BITS]),
 				.mem_addr		(s_wb_adr_i[REGION_ADDR_WIDTH-1:0]),
-				.mem_din		(s_wb_dat_i[REGION_WIDTH-1:0]),
+				.mem_din		(s_wb_dat_i[REGION_PARAM_WIDTH-1:0]),
 				.mem_dout		()
 			);
 	
@@ -342,8 +391,8 @@ module jelly_rasterizer_params
 	
 	
 	// busy (一番遅いものを基準にする)
-	wire	params_busy = (PARAMS_EDGE_SIZE    >= PARAMS_POLYGON_SIZE && PARAMS_EDGE_SIZE    >= PARAMS_REGION_SIZE) ? edge_busy    :
-	                      (PARAMS_POLYGON_SIZE >= PARAMS_EDGE_SIZE    && PARAMS_POLYGON_SIZE >= PARAMS_REGION_SIZE) ? polygon_busy :
+	wire	params_busy = (PARAMS_EDGE_SIZE   >= PARAMS_SHADER_SIZE && PARAMS_EDGE_SIZE   >= PARAMS_REGION_SIZE) ? edge_busy   :
+	                      (PARAMS_SHADER_SIZE >= PARAMS_EDGE_SIZE   && PARAMS_SHADER_SIZE >= PARAMS_REGION_SIZE) ? shader_busy :
 	                      region_busy;
 	
 	
@@ -434,22 +483,22 @@ module jelly_rasterizer_params
 	
 	
 	// WISHBONE addr decode
-	assign wb_regs_stb_i    = s_wb_stb_i && (s_wb_adr_i[PARAMS_ADDR_WIDTH +: 2] == 2'b00);
-	assign wb_edge_stb_i    = s_wb_stb_i && (s_wb_adr_i[PARAMS_ADDR_WIDTH +: 2] == 2'b01);
-	assign wb_polygon_stb_i = s_wb_stb_i && (s_wb_adr_i[PARAMS_ADDR_WIDTH +: 2] == 2'b10);
-	assign wb_region_stb_i  = s_wb_stb_i && (s_wb_adr_i[PARAMS_ADDR_WIDTH +: 2] == 2'b11);
+	assign wb_regs_stb_i   = s_wb_stb_i && (s_wb_adr_i[PARAMS_ADDR_WIDTH +: 2] == 2'b00);
+	assign wb_edge_stb_i   = s_wb_stb_i && (s_wb_adr_i[PARAMS_ADDR_WIDTH +: 2] == 2'b01);
+	assign wb_shader_stb_i = s_wb_stb_i && (s_wb_adr_i[PARAMS_ADDR_WIDTH +: 2] == 2'b10);
+	assign wb_region_stb_i = s_wb_stb_i && (s_wb_adr_i[PARAMS_ADDR_WIDTH +: 2] == 2'b11);
 	
-	assign s_wb_dat_o       = wb_regs_stb_i    ? wb_regs_dat_o    :
-	                          wb_edge_stb_i    ? wb_edge_dat_o    :
-	                          wb_polygon_stb_i ? wb_polygon_dat_o :
-	                          wb_region_stb_i  ? wb_region_dat_o  :
-	                          0;
+	assign s_wb_dat_o      = wb_regs_stb_i   ? wb_regs_dat_o   :
+	                         wb_edge_stb_i   ? wb_edge_dat_o   :
+	                         wb_shader_stb_i ? wb_shader_dat_o :
+	                         wb_region_stb_i ? wb_region_dat_o :
+	                         0;
 	
-	assign s_wb_ack_o       = wb_regs_stb_i    ? wb_regs_ack_o    :
-	                          wb_edge_stb_i    ? wb_edge_ack_o    :
-	                          wb_polygon_stb_i ? wb_polygon_ack_o :
-	                          wb_region_stb_i  ? wb_region_ack_o  :
-	                          s_wb_stb_i;
+	assign s_wb_ack_o      = wb_regs_stb_i   ? wb_regs_ack_o   :
+	                         wb_edge_stb_i   ? wb_edge_ack_o   :
+	                         wb_shader_stb_i ? wb_shader_ack_o :
+	                         wb_region_stb_i ? wb_region_ack_o :
+	                         s_wb_stb_i;
 	
 	
 	

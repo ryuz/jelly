@@ -9,8 +9,10 @@ module top
 			parameter	BUF_STRIDE = 4096,
 			parameter	VIN_X_NUM  = 720,
 			parameter	VIN_Y_NUM  = 480,
-			parameter	VOUT_X_NUM = 640,
-			parameter	VOUT_Y_NUM = 480
+//			parameter	VOUT_X_NUM = 640,
+//			parameter	VOUT_Y_NUM = 480
+			parameter	VOUT_X_NUM = 1920,
+			parameter	VOUT_Y_NUM = 1080
 		)
 		(
 			input	wire			in_clk125,
@@ -97,6 +99,8 @@ module top
 	// core clk
 	wire			core_reset = ref200_reset;
 	wire			core_clk   = ref200_clk;
+//	wire			core_reset = vout_reset;
+//	wire			core_clk   = vout_clk_x5;
 	
 	
 	// 125 MHz
@@ -263,7 +267,7 @@ module top
 				
 				.video_reset					(vout_reset),
 				.video_clk						(vout_clk),
-				.video_clk_x5					(vout_clk_x5),
+				.ref200_clk						(vout_clk_x5),
 				
 				.m_axi4l_peri00_awaddr			(axi4l_peri00_awaddr),
 				.m_axi4l_peri00_awprot			(axi4l_peri00_awprot),
@@ -490,38 +494,43 @@ module top
 	
 	jelly_gpu_gouraud
 			#(
-				.WB_ADR_WIDTH        (14),
-				.WB_DAT_WIDTH        (32),
+				.WB_ADR_WIDTH		(14),
+				.WB_DAT_WIDTH		(32),
 				
-				.COMPONENT_NUM       (3),
-				.DATA_WIDTH          (8),
+				.COMPONENT_NUM		(3),
+				.DATA_WIDTH			(8),
 				
-				.AXI4S_TUSER_WIDTH   (1),
-				.AXI4S_TDATA_WIDTH   (24),
+				.AXI4S_TUSER_WIDTH	(1),
+				.AXI4S_TDATA_WIDTH	(24),
 				
-				.X_WIDTH             (12),
-				.Y_WIDTH             (12),
+				.X_WIDTH			(12),
+				.Y_WIDTH			(12),
 				
-				.BANK_NUM            (2),
-				.BANK_ADDR_WIDTH     (12),
-				.PARAMS_ADDR_WIDTH   (10),
+				.BANK_NUM			(2),
+				.BANK_ADDR_WIDTH	(12),
+				.PARAMS_ADDR_WIDTH	(10),
 				
-				.EDGE_NUM            (12),
-				.EDGE_WIDTH          (32),
-				.EDGE_RAM_TYPE       ("distributed"),
+				.EDGE_NUM			(12*2),
+				.POLYGON_NUM		(6*2),
+				.SHADER_PARAM_NUM	(4),
 				
-				.POLYGON_NUM         (6),
-				.POLYGON_PARAM_NUM   (3),
-				.POLYGON_WIDTH       (32),
-				.POLYGON_RAM_TYPE    ("distributed"),
-				.POLYGON_Q           (20),
+				.EDGE_PARAM_WIDTH	(32),
+				.EDGE_RAM_TYPE		("distributed"),
 				
-				.CULLING_ONLY        (1),
+				.SHADER_PARAM_WIDTH	(32),
+				.SHADER_PARAM_Q		(24),
+				.SHADER_RAM_TYPE	("distributed"),
 				
-				.INIT_CTL_ENABLE     (1'b0),
-				.INIT_CTL_BANK       (0),
-				.INIT_PARAM_WIDTH    (640-1),
-				.INIT_PARAM_HEIGHT   (480-1)
+				.REGION_RAM_TYPE	("distributed"),
+				
+				.CULLING_ONLY		(0),
+				.Z_SORT_MIN			(0),
+				
+				.INIT_CTL_ENABLE	(1'b0),
+				.INIT_CTL_BANK		(0),
+				.INIT_PARAM_WIDTH	(VOUT_X_NUM-1),
+				.INIT_PARAM_HEIGHT	(VOUT_Y_NUM-1),
+				.INIT_PARAM_CULLING	(2'b01)
 			)
 		i_gpu_gouraud
 			(
@@ -600,6 +609,7 @@ module top
 				.WB_ADR_WIDTH		(8),
 				.WB_DAT_WIDTH		(32),
 				.INIT_CTL_CONTROL	(1'b1),
+				/*
 				.INIT_HTOTAL		(96 + 16 + VOUT_X_NUM + 48),
 				.INIT_HDISP_START	(96 + 16),
 				.INIT_HDISP_END		(96 + 16 + VOUT_X_NUM),
@@ -612,6 +622,19 @@ module top
 				.INIT_VSYNC_START	(0),
 				.INIT_VSYNC_END		(2),
 				.INIT_VSYNC_POL		(0)
+				*/
+				.INIT_HTOTAL		(2200),
+				.INIT_HDISP_START	(148),
+				.INIT_HDISP_END		(148 + VOUT_X_NUM),
+				.INIT_HSYNC_START	(0),
+				.INIT_HSYNC_END		(44),
+				.INIT_HSYNC_POL		(1),
+				.INIT_VTOTAL		(1125),
+				.INIT_VDISP_START	(9),
+				.INIT_VDISP_END		(9 + VOUT_Y_NUM),
+				.INIT_VSYNC_START	(0),
+				.INIT_VSYNC_END		(5),
+				.INIT_VSYNC_POL		(1)
 			)
 		i_vsync_generator
 			(

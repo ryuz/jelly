@@ -332,6 +332,10 @@ public:
 
 		addr = (volatile unsigned long *)(base + 0x2000);
 		for ( auto& rps : m_rasterizeParam ) {
+			*addr++ = (int)rps[0].dx;
+			*addr++ = (int)(rps[0].dy - (rps[0].dx * (TI)(width - 1)));
+			*addr++ = (int)rps[0].c;
+
 			for ( int i = 3; i < 6; i++ ) {
 				*addr++ = (int)rps[i].dx;
 				*addr++ = (int)(rps[i].dy - (rps[i].dx * (TI)(width - 1)));
