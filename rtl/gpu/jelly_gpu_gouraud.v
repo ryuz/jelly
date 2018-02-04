@@ -49,6 +49,8 @@ module jelly_gpu_gouraud
 			parameter	CULLING_ONLY       = 0,
 			parameter	Z_SORT_MIN         = 0,	// 1Ç≈è¨Ç≥Ç¢ílóDêÊ(Zé≤âúå¸Ç´)
 			
+			parameter	BACK_GROUND_COLOR  = 24'h00_00_ff,
+			
 			parameter	INIT_CTL_ENABLE    = 1'b0,
 			parameter	INIT_CTL_BANK      = 0,
 			parameter	INIT_PARAM_WIDTH   = 640-1,
@@ -136,6 +138,9 @@ module jelly_gpu_gouraud
 				.REGION_PARAM_WIDTH	(REGION_PARAM_WIDTH),
 				.REGION_RAM_TYPE	(REGION_RAM_TYPE),
 				
+				.CULLING_ONLY		(CULLING_ONLY),
+				.Z_SORT_MIN			(Z_SORT_MIN),
+				
 				.CFG_SHADER_TYPE	(CFG_SHADER_TYPE),
 				.CFG_VERSION		(CFG_VERSION),
 				.CFG_SHADER_PARAM_Q	(SHADER_PARAM_Q),
@@ -185,7 +190,7 @@ module jelly_gpu_gouraud
 		if ( cke ) begin
 			pixel_frame_start <= rasterizer_frame_start;
 			pixel_line_end    <= rasterizer_line_end;
-			pixel_data        <= {AXI4S_TDATA_WIDTH{1'b0}};
+			pixel_data        <= BACK_GROUND_COLOR; // {AXI4S_TDATA_WIDTH{1'b0}};
 			
 			if ( rasterizer_polygon_enable ) begin
 				for ( i = 0; i < COMPONENT_NUM; i = i+1 ) begin

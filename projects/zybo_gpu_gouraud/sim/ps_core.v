@@ -32,11 +32,14 @@ module ps_core
 			
 			output	wire	[0:0]	mem_aresetn,
 			output	wire			mem_aclk,
+			
 			output	wire	[0:0]	peri_aresetn,
 			output	wire			peri_aclk,
+			
 			output	wire	[0:0]	video_reset,
 			output	wire			video_clk,
-			output	wire			video_clk_x5,
+			
+			output	wire			ref200_clk,
 			
 			output	wire	[31:0]	m_axi4l_peri00_awaddr,
 			output	wire	[2:0]	m_axi4l_peri00_awprot,
@@ -100,9 +103,10 @@ module ps_core
 		);
 	
 	
-	localparam	PERI_RATE  = (1000.0/100.0);
-	localparam	MEM_RATE   = (1000.0/175.0);
-	localparam	VIDEO_RATE = (1000.0/25.0);
+	localparam	PERI_RATE   = (1000.0/100.0);
+	localparam	MEM_RATE    = (1000.0/175.3);
+	localparam	VIDEO_RATE  = (1000.0/150.5);
+	localparam	REF200_RATE = (1000.0/200.7);
 	
 	
 	reg		reg_peri_clk = 1'b1;
@@ -129,6 +133,9 @@ module ps_core
 	initial	#(VIDEO_RATE*30)	reg_video_reset = 1'b0;
 	
 	
+	reg		reg_ref200_clk = 1'b1;
+	always #(REF200_RATE/2.0) reg_ref200_clk = ~reg_ref200_clk;
+	
 	
 	assign peri_aclk    = reg_peri_clk;
 	assign peri_aresetn = ~reg_peri_reset;
@@ -137,8 +144,10 @@ module ps_core
 	assign mem_aresetn  = ~reg_mem_reset;
 	
 	assign video_clk    = reg_video_clk;
-	assign video_clk_x5 = reg_video_clk_x5;
+//	assign video_clk_x5 = reg_video_clk_x5;
 	assign video_reset  = reg_video_reset;
+	
+	assign ref200_clk   = reg_ref200_clk;
 	
 	
 //	assign m_axi4l_peri00_awaddr  = 0;

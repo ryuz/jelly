@@ -17,11 +17,11 @@ create_clock -period 36.101 -name hdmi_clk_p -waveform {0.000 18.050} [get_ports
 # clk_fpga_3 125MHz vout_x5
 # mmcm_clk200       ref_clk
 
-set_max_delay -datapath_only -from [get_clocks clk_fpga_0]  -to [get_clocks clk_fpga_1] 10.000
-set_max_delay -datapath_only -from [get_clocks clk_fpga_1]  -to [get_clocks clk_fpga_0] 10.000
+set_max_delay -datapath_only -from [get_clocks clk_fpga_0]  -to [get_clocks clk_fpga_1]  5.000
+set_max_delay -datapath_only -from [get_clocks clk_fpga_1]  -to [get_clocks clk_fpga_0]  5.000
 
-set_max_delay -datapath_only -from [get_clocks clk_fpga_0]  -to [get_clocks clk_fpga_2] 10.000
-set_max_delay -datapath_only -from [get_clocks clk_fpga_2]  -to [get_clocks clk_fpga_0] 10.000
+set_max_delay -datapath_only -from [get_clocks clk_fpga_0]  -to [get_clocks clk_fpga_2]  5.000
+set_max_delay -datapath_only -from [get_clocks clk_fpga_2]  -to [get_clocks clk_fpga_0]  5.000
 
 set_max_delay -datapath_only -from [get_clocks clk_fpga_1]  -to [get_clocks clk_fpga_2]  5.000
 set_max_delay -datapath_only -from [get_clocks clk_fpga_2]  -to [get_clocks clk_fpga_1]  5.000

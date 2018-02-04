@@ -237,7 +237,7 @@ module jelly_rasterizer_core
 				en_flag[0] =  (&((~calc_edge_sign ^ polarity_flag) | ~region_flag));
 				en_flag[1] = !(|((~calc_edge_sign ^ polarity_flag) &  region_flag));
 				
-				region_polygon_enables[i] <= ((en_flag & param_culling) != 0);
+				region_polygon_enables[i] <= (((en_flag & param_culling) != 0) && (region_flag != 0));
 			end
 		end
 	end
@@ -342,7 +342,7 @@ module jelly_rasterizer_core
 		assign select_shader_params  = sel1_shader_params;
 		assign select_valid          = sel1_valid;
 	end
-	else begin
+	else begin : blk_minmax
 		wire	[POLYGON_NUM*SORT_PARAM_BITS-1:0]		sort_in_params;
 		wire	[POLYGON_NUM*SHADER_PARAM_WIDTH-1:0]	sort_in_z;
 		wire	[SORT_PARAM_BITS-1:0]					sort_out_params;

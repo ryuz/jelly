@@ -58,7 +58,7 @@ module tb_rasterizer();
 	parameter	INIT_CTL_BANK       = 0;
 	parameter	INIT_PARAM_WIDTH    = X_NUM-1;
 	parameter	INIT_PARAM_HEIGHT   = Y_NUM-1;
-	parameter	INIT_PARAM_CULLING  = 2'b11;
+	parameter	INIT_PARAM_CULLING  = 2'b01;
 	
 	
 	parameter	PARAMS_EDGE_SIZE    = EDGE_NUM*3;
@@ -175,70 +175,6 @@ module tb_rasterizer();
 				.s_wb_ack_o			(s_wb_ack_o)
 			);
 	
-	
-	
-	/*
-	jelly_rasterizer_params
-			#(
-				.X_WIDTH			(X_WIDTH),
-				.Y_WIDTH			(Y_WIDTH),
-				
-				.WB_ADR_WIDTH		(WB_ADR_WIDTH),
-				.WB_DAT_WIDTH		(WB_DAT_WIDTH),
-				.WB_SEL_WIDTH		(WB_SEL_WIDTH),
-				
-				.BANK_NUM			(BANK_NUM),
-				.BANK_ADDR_WIDTH	(BANK_ADDR_WIDTH),
-				.PARAMS_ADDR_WIDTH	(PARAMS_ADDR_WIDTH),
-				
-				.EDGE_NUM			(EDGE_NUM),
-				.EDGE_WIDTH			(EDGE_WIDTH),
-				.EDGE_RAM_TYPE		(EDGE_RAM_TYPE),
-				
-				.POLYGON_NUM		(POLYGON_NUM),
-				.POLYGON_PARAM_NUM	(POLYGON_PARAM_NUM),
-				.POLYGON_WIDTH		(POLYGON_WIDTH),
-				.POLYGON_RAM_TYPE	(POLYGON_RAM_TYPE),
-				
-				.REGION_NUM			(REGION_NUM),
-				.REGION_WIDTH		(REGION_WIDTH),
-				.REGION_RAM_TYPE	(REGION_RAM_TYPE),
-				
-				.INIT_CTL_ENABLE	(INIT_CTL_ENABLE),
-				.INIT_CTL_BANK		(INIT_CTL_BANK),
-				.INIT_PARAM_WIDTH	(INIT_PARAM_WIDTH),
-				.INIT_PARAM_HEIGHT	(INIT_PARAM_HEIGHT)
-			)
-		i_rasterizer_params
-			(
-				.reset				(reset),
-				.clk				(clk),
-				.cke				(cke),
-				
-				.start				(start),
-				.busy				(busy),
-				
-				.param_width		(param_width),
-				.param_height		(param_height),
-				
-				.edge_params		(edge_params),
-				.polygon_params		(polygon_params),
-				.region_params		(region_params),
-				
-				.s_wb_rst_i			(s_wb_rst_i),
-				.s_wb_clk_i			(s_wb_clk_i),
-				.s_wb_adr_i			(s_wb_adr_i),
-				.s_wb_dat_o			(s_wb_dat_o),
-				.s_wb_dat_i			(s_wb_dat_i),
-				.s_wb_we_i			(s_wb_we_i),
-				.s_wb_sel_i			(s_wb_sel_i),
-				.s_wb_stb_i			(s_wb_stb_i),
-				.s_wb_ack_o			(s_wb_ack_o)
-			);
-	*/
-	
-	
-	
 	integer		fp;
 	initial begin
 		 fp = $fopen("out_img.ppm", "w");
@@ -295,6 +231,99 @@ module tb_rasterizer();
 			end
 		end
 	end
+	
+	
+	
+	
+	
+	////////////
+	wire	[0:0]			axi4s_gpu_tuser;
+	wire					axi4s_gpu_tlast;
+	wire	[23:0]			axi4s_gpu_tdata;
+	wire					axi4s_gpu_tvalid;
+	wire					axi4s_gpu_tready = 1;
+	
+	jelly_gpu_gouraud
+			#(
+				.WB_ADR_WIDTH		(14),
+				.WB_DAT_WIDTH		(32),
+				
+				.COMPONENT_NUM		(3),
+				.DATA_WIDTH			(8),
+				
+				.AXI4S_TUSER_WIDTH	(1),
+				.AXI4S_TDATA_WIDTH	(24),
+				
+				.X_WIDTH			(12),
+				.Y_WIDTH			(12),
+				
+				.BANK_NUM			(2),
+				.BANK_ADDR_WIDTH	(12),
+				.PARAMS_ADDR_WIDTH	(10),
+				
+				.EDGE_NUM			(12*2),
+				.POLYGON_NUM		(6*2),
+				.SHADER_PARAM_NUM	(4),
+				
+				.EDGE_PARAM_WIDTH	(32),
+				.EDGE_RAM_TYPE		("distributed"),
+				
+				.SHADER_PARAM_WIDTH	(32),
+				.SHADER_PARAM_Q		(24),
+				.SHADER_RAM_TYPE	("distributed"),
+				
+				.REGION_RAM_TYPE	("distributed"),
+				
+				.CULLING_ONLY		(0),
+				.Z_SORT_MIN			(0),
+				
+				.INIT_CTL_ENABLE	(1'b0),
+				.INIT_CTL_BANK		(0),
+				.INIT_PARAM_WIDTH	(X_NUM-1),
+				.INIT_PARAM_HEIGHT	(Y_NUM-1),
+				.INIT_PARAM_CULLING	(2'b01)
+			)
+		i_gpu_gouraud
+			(
+				.reset				(reset),
+				.clk				(clk),
+				
+				.s_wb_rst_i			(s_wb_rst_i),
+				.s_wb_clk_i			(s_wb_clk_i),
+				.s_wb_adr_i			(s_wb_adr_i[0 +: 14]),
+				.s_wb_dat_o			(),
+				.s_wb_dat_i			(s_wb_dat_i),
+				.s_wb_we_i			(s_wb_we_i),
+				.s_wb_sel_i			(s_wb_sel_i),
+				.s_wb_stb_i			(s_wb_stb_i),
+				.s_wb_ack_o			(),
+				
+				.m_axi4s_tuser		(axi4s_gpu_tuser),
+				.m_axi4s_tlast		(axi4s_gpu_tlast),
+				.m_axi4s_tdata		(axi4s_gpu_tdata),
+				.m_axi4s_tvalid		(axi4s_gpu_tvalid),
+				.m_axi4s_tready		(axi4s_gpu_tready)
+			);
+	
+	integer		fp_gpu;
+	initial begin
+		 fp_gpu = $fopen("gpu_img.ppm", "w");
+		 $fdisplay(fp_gpu, "P3");
+		 $fdisplay(fp_gpu, "%d %d", X_NUM, Y_NUM);
+		 $fdisplay(fp_gpu, "255");
+	end
+	
+	always @(posedge clk) begin
+		if ( !reset && axi4s_gpu_tvalid && axi4s_gpu_tready ) begin
+			 $fdisplay(fp_gpu, "%d %d %d",
+			 	axi4s_gpu_tdata[8*0 +: 8],
+			 	axi4s_gpu_tdata[8*1 +: 8],
+			 	axi4s_gpu_tdata[8*2 +: 8]);
+		end
+	end
+	
+	
+	
 	
 	
 	

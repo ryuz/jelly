@@ -175,7 +175,7 @@ module jelly_minmax
 		if ( reset ) begin
 			reg_valid <= {STAGES{1'b0}};
 		end
-		else begin
+		else if ( cke ) begin
 			reg_valid <= ({s_valid, reg_valid} >> 1);
 		end
 	end

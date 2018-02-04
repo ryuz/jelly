@@ -97,10 +97,10 @@ module top
 	
 	
 	// core clk
-	wire			core_reset = ref200_reset;
-	wire			core_clk   = ref200_clk;
-//	wire			core_reset = vout_reset;
-//	wire			core_clk   = vout_clk_x5;
+//	wire			core_reset = ref200_reset;
+//	wire			core_clk   = ref200_clk;
+	wire			core_reset = vout_reset;
+	wire			core_clk   = vout_clk_x5;
 	
 	
 	// 125 MHz
@@ -445,6 +445,8 @@ module top
 	//  GPO (LED)
 	// ----------------------------------------
 	
+	wire	[3:0]			gpio_led;
+	
 	wire	[31:0]			wb_gpio_dat_o;
 	wire					wb_gpio_stb_i;
 	wire					wb_gpio_ack_o;
@@ -463,8 +465,8 @@ module top
 				.reset				(wb_rst_o),
 				.clk				(wb_clk_o),
 				
-				.port_i				(led),
-				.port_o				(led),
+				.port_i				(gpio_led),
+				.port_o				(gpio_led),
 				.port_t				(),
 				
 				.s_wb_adr_i			(wb_host_adr_o[2 +: 2]),
@@ -623,13 +625,13 @@ module top
 				.INIT_VSYNC_END		(2),
 				.INIT_VSYNC_POL		(0)
 				*/
-				.INIT_HTOTAL		(2200),
+				.INIT_HTOTAL		(VOUT_X_NUM + (2200 - 1920)),
 				.INIT_HDISP_START	(148),
 				.INIT_HDISP_END		(148 + VOUT_X_NUM),
 				.INIT_HSYNC_START	(0),
 				.INIT_HSYNC_END		(44),
 				.INIT_HSYNC_POL		(1),
-				.INIT_VTOTAL		(1125),
+				.INIT_VTOTAL		(VOUT_Y_NUM + (1125 - 1080)),
 				.INIT_VDISP_START	(9),
 				.INIT_VDISP_END		(9 + VOUT_Y_NUM),
 				.INIT_VSYNC_START	(0),
@@ -777,20 +779,40 @@ module top
 	
 	
 	// ----------------------------------------
+	//  LED
+	// ----------------------------------------
+	
+	reg		[31:0]		reg_counter_core_clk;
+	always @(posedge core_clk)	reg_counter_core_clk <= reg_counter_core_clk + 1;
+	
+	reg		[31:0]		reg_counter_vout_clk;
+	always @(posedge vout_clk)	reg_counter_vout_clk <= reg_counter_vout_clk + 1;
+	
+	
+	assign led[0] = gpio_led[0];
+	assign led[1] = gpio_led[1];
+//	assign led[2] = gpio_led[2];
+//	assign led[3] = gpio_led[3];
+	assign led[2] = reg_counter_core_clk[26];
+	assign led[3] = reg_counter_vout_clk[26];
+	
+	
+	
+	// ----------------------------------------
 	//  Debug
 	// ----------------------------------------
 	
 	assign pmod_a[7:0] = 0;
 	
-	/*
-	assign pmod_a[0]   = 1'b0; //vin_clk;
-	assign pmod_a[1]   = vin_vsync;
-	assign pmod_a[2]   = vin_hsync;
-	assign pmod_a[3]   = vin_de;
-	assign pmod_a[4]   = vin_reset;
-	assign pmod_a[5]   = vin_valid;
-	assign pmod_a[7:6] = 0;
-	*/
+//	assign pmod_a[0]   = core_clk;
+//	assign pmod_a[1]   = axi4s_vout_tvalid;
+//	assign pmod_a[2]   = axi4s_vout_tready;
+//	assign pmod_a[3]   = 0;
+//	assign pmod_a[4]   = vout_clk;
+//	assign pmod_a[5]   = axi4s_vout_tvalid;
+//	assign pmod_a[6]   = axi4s_vout_tready;
+//	assign pmod_a[7]   = 0;
+	
 	
 endmodule
 
