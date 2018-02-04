@@ -23,8 +23,14 @@ set_max_delay -datapath_only -from [get_clocks clk_fpga_1]  -to [get_clocks clk_
 set_max_delay -datapath_only -from [get_clocks clk_fpga_0]  -to [get_clocks clk_fpga_2]  5.000
 set_max_delay -datapath_only -from [get_clocks clk_fpga_2]  -to [get_clocks clk_fpga_0]  5.000
 
+set_max_delay -datapath_only -from [get_clocks clk_fpga_0]  -to [get_clocks clk_fpga_3]  5.000
+set_max_delay -datapath_only -from [get_clocks clk_fpga_3]  -to [get_clocks clk_fpga_0]  5.000
+
 set_max_delay -datapath_only -from [get_clocks clk_fpga_1]  -to [get_clocks clk_fpga_2]  5.000
 set_max_delay -datapath_only -from [get_clocks clk_fpga_2]  -to [get_clocks clk_fpga_1]  5.000
+
+set_max_delay -datapath_only -from [get_clocks clk_fpga_2]  -to [get_clocks clk_fpga_3]  5.000
+set_max_delay -datapath_only -from [get_clocks clk_fpga_3]  -to [get_clocks clk_fpga_2]  5.000
 
 set_max_delay -datapath_only -from [get_clocks clk_fpga_0]  -to [get_clocks mmcm_clk200] 5.000
 set_max_delay -datapath_only -from [get_clocks mmcm_clk200] -to [get_clocks clk_fpga_0]  5.000
