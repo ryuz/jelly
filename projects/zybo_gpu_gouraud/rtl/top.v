@@ -659,11 +659,11 @@ module top
 			);
 	
 	
-	wire			vout_vsync;
-	wire			vout_hsync;
-	wire			vout_de;
-	wire	[23:0]	vout_data;
-	wire	[3:0]	vout_ctl;
+	(* MARK_DEBUG="true" *)	wire			vout_vsync;
+	(* MARK_DEBUG="true" *)	wire			vout_hsync;
+	(* MARK_DEBUG="true" *)	wire			vout_de;
+	(* MARK_DEBUG="true" *)	wire	[23:0]	vout_data;
+	(* MARK_DEBUG="true" *)	wire	[3:0]	vout_ctl;
 	
 	jelly_vout_axi4s
 			#(

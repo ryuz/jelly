@@ -167,6 +167,8 @@ void rasterizer_test(void)
 	float angle01 = 0;
 	float angle02 = 0;
 	float angle1  = 0;
+
+	float angle_view[3] = {0, 0, 0};
 	do {
 		Mpu9250_Read(mpu);
 
@@ -183,14 +185,23 @@ void rasterizer_test(void)
 		angle02 *= 0.98f;
 
 		// model1
-		JGL::Mat4	matRotate1	 = JGL::RotateMat4(angle1, {0, 1, 0});	angle1 -= (float)mpu.gyro[2] / 5000.0f;
+		JGL::Mat4	matRotate1	 = JGL::RotateMat4(angle1, {0, 1, 0});	angle1 -= (float)mpu.gyro[1] / 5000.0f;
 		JGL::Mat4	matTranslate1 = JGL::TranslatedMat4({0, 0, 2});
 		jgl.SetModelMatrix(1, JGL::MulMat(matTranslate1, matRotate1));
 		angle1 *= 0.98f;
 
 		// view
-		JGL::Mat4	matLookAt       = JGL::LookAtMat4({5, -8, 20}, {0, 0, 0}, {0, 1, 0});
-		JGL::Mat4	matPerspectivet = JGL::PerspectiveMat4(13.0f, (float)width/(float)height, 0.1f, 1000.0f);
+		angle_view[0] += (float)mpu.gyro[2] / 20000.0f;
+		angle_view[0] *= 0.98;
+
+		JGL::Vec3 look_at_vec = {-5, 8, -20};
+		look_at_vec = JGL::MulPerspectiveVec3(JGL::RotateMat4(angle_view[0], {0, 1, 0}), look_at_vec);
+		look_at_vec[0] += 5;
+		look_at_vec[1] += -8;
+		look_at_vec[2] += 20;
+
+		JGL::Mat4	matLookAt       = JGL::LookAtMat4({5, -8, 20}, look_at_vec, {0, 1, 0});
+		JGL::Mat4	matPerspectivet = JGL::PerspectiveMat4(30.0f, (float)width/(float)height, 0.1f, 1000.0f);
 		jgl.SetViewMatrix(JGL::MulMat(matPerspectivet, matLookAt));
 
 		//draw
