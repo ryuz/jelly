@@ -15,7 +15,7 @@
 // min/max
 module jelly_minmax
 		#(
-			parameter	NUM               = 12,
+			parameter	NUM               = 32,
 			parameter	INDEX_WIDTH       = NUM <=     2 ?  1 :
 	                                        NUM <=     4 ?  2 :
 	                                        NUM <=     8 ?  3 :
@@ -61,6 +61,11 @@ module jelly_minmax
 		);
 	
 	
+	// ŒÀŠE’l’è‹`
+	wire	[DATA_WIDTH-1:0]		data_min   = DATA_SIGNED ? {1'b1, {(DATA_WIDTH-1){1'b0}}} : {DATA_WIDTH{1'b0}};
+	wire	[DATA_WIDTH-1:0]		data_max   = DATA_SIGNED ? {1'b0, {(DATA_WIDTH-1){1'b1}}} : {DATA_WIDTH{1'b1}};
+	wire	[DATA_WIDTH-1:0]		data_limit = CMP_MIN ? data_max : data_min;
+	
 	// ˆê•”ˆ—Œn‚Å $clog2 ‚ª³‚µ‚­“®‚©‚È‚¢‚Ì‚Å
 	localparam	STAGES = NUM <=     2 ?  1 :
 	                     NUM <=     4 ?  2 :
@@ -78,99 +83,91 @@ module jelly_minmax
 	                     NUM <= 16384 ? 14 :
 	                     NUM <= 32768 ? 15 : 16;
 	
-	localparam	N      = (1 << (STAGES-1));
+	localparam	N      = (2 << STAGES) - 1;
 	
 	
-	// ”äŠr
-	function cmp_data(
-					input	[DATA_WIDTH-1:0]	in_data0,
-					input						in_en0,
-					input	[DATA_WIDTH-1:0]	in_data1,
-					input						in_en1
-				);
-		reg		signed	[DATA_WIDTH:0]	data0;
-		reg		signed	[DATA_WIDTH:0]	data1;
-		begin
-			if ( DATA_SIGNED ) begin
-				data0 = {in_data0[DATA_WIDTH-1], in_data0};
-				data1 = {in_data1[DATA_WIDTH-1], in_data1};
-			end
-			else begin
-				data0 = {1'b0, in_data0};
-				data1 = {1'b0, in_data1};
-			end
-			
-			if ( in_en0 && in_en1 ) begin
-				if ( CMP_EQ ) begin
-					cmp_data = CMP_MIN ? (data1 <= data0) : (data1 >= data0);
-				end
-				else begin
-					cmp_data = CMP_MIN ? (data1 <  data0) : (data1 > data0);
-				end
-			end
-			else if ( in_en0 && !in_en1 ) begin
-				cmp_data = 1'b0;
-			end
-			else if ( !in_en0 && in_en1 ) begin
-				cmp_data = 1'b1;
-			end
-			else if ( !in_en0 && !in_en1 ) begin
-				cmp_data = CMP_EQ;
-			end
-		end
-	endfunction
+	genvar							i, j;
 	
+	wire	[N*INDEX_WIDTH-1:0]		sig_index;
+	wire	[N*USER_BITS-1:0]		sig_user;
+	wire	[N*DATA_WIDTH-1:0]		sig_data;
+	wire	[N-1:0]					sig_en;
 	
-	integer									i, j;
-	
-	reg		[STAGES*COMMON_USER_BITS-1:0]	reg_common_user;
-	reg		[STAGES*N*USER_BITS-1:0]		reg_user;
-	reg		[STAGES*N*DATA_WIDTH-1:0]		reg_data;
-	reg		[STAGES*N*INDEX_WIDTH-1:0]		reg_index;
-	reg		[STAGES*N-1:0]					reg_en;
-	reg		[STAGES-1:0]					reg_valid;
-	
-	reg		[COMMON_USER_BITS-1:0]			tmp_common_user;
-	reg		[(1 << STAGES)*USER_BITS-1:0]	tmp_user;
-	reg		[(1 << STAGES)*DATA_WIDTH-1:0]	tmp_data;
-	reg		[(1 << STAGES)*INDEX_WIDTH-1:0]	tmp_index;
-	reg		[(1 << STAGES)-1:0]				tmp_en;
-	reg										sel;
-	
-	always @(posedge clk) begin
-		if ( cke ) begin
-			for ( i = 0; i < STAGES; i = i+1 ) begin
-				if ( i < STAGES - 1 ) begin
-					tmp_common_user = reg_common_user[(i+1)*COMMON_USER_BITS +: COMMON_USER_BITS];
-					tmp_user        = reg_user       [(i+1)*N*USER_BITS      +: N*USER_BITS];
-					tmp_data        = reg_data       [(i+1)*N*DATA_WIDTH     +: N*DATA_WIDTH];
-					tmp_index       = reg_index      [(i+1)*N*INDEX_WIDTH    +: N*INDEX_WIDTH];
-					tmp_en          = reg_en         [(i+1)*N                +: N];
-				end
-				else begin
-					tmp_common_user = s_common_user;
-					tmp_user        = s_user;
-					tmp_data        = s_data;
-					tmp_en          = s_en;
-					for ( j = 0; j < (1 << STAGES); j = j+1 ) begin
-						tmp_index[j*INDEX_WIDTH +: INDEX_WIDTH] = j;
-					end
-				end
-				
-				reg_common_user[i*COMMON_USER_BITS +: COMMON_USER_BITS] <= tmp_common_user;
-				for ( j = 0; j < N; j = j+1 ) begin
-					sel = cmp_data(tmp_data[(2*j+0)*DATA_WIDTH +: DATA_WIDTH], tmp_en[2*j+0],
-					               tmp_data[(2*j+1)*DATA_WIDTH +: DATA_WIDTH], tmp_en[2*j+1]);
-					
-					reg_user [(i*N+j)*USER_BITS   +: USER_BITS]   <= tmp_user [(2*j+sel)*USER_BITS   +: USER_BITS];
-					reg_data [(i*N+j)*DATA_WIDTH  +: DATA_WIDTH]  <= tmp_data [(2*j+sel)*DATA_WIDTH  +: DATA_WIDTH];
-					reg_index[(i*N+j)*INDEX_WIDTH +: INDEX_WIDTH] <= tmp_index[(2*j+sel)*INDEX_WIDTH +: INDEX_WIDTH];
-					reg_en   [i*N+j]                              <= (tmp_en[2*j+0] || tmp_en[2*j+1]);
-				end
-			end
+	generate
+	for ( i = 0; i < STAGES; i = i+1 ) begin : loop_stage
+		for ( j = 0; j < (1 << i); j = j+1 ) begin : loop_unit
+			jelly_minmax_unit
+					#(
+						.INDEX_WIDTH	(INDEX_WIDTH),
+						.USER_WIDTH		(USER_BITS),
+						.DATA_WIDTH		(DATA_WIDTH),
+						.DATA_SIGNED	(DATA_SIGNED),
+						.CMP_MIN		(CMP_MIN),
+						.CMP_EQ			(CMP_EQ)
+					)
+				i_minmax_unit
+					(
+						.clk			(clk),
+						.cke			(cke),
+						
+						.in_index0		(sig_index[(((1 << (i+1))-1)+2*j+0)*INDEX_WIDTH +: INDEX_WIDTH]),
+						.in_user0		(sig_user [(((1 << (i+1))-1)+2*j+0)*USER_BITS   +: USER_BITS]),
+						.in_data0		(sig_data [(((1 << (i+1))-1)+2*j+0)*DATA_WIDTH  +: DATA_WIDTH]),
+						.in_en0			(sig_en   [(((1 << (i+1))-1)+2*j+0)]),
+						
+						.in_index1		(sig_index[(((1 << (i+1))-1)+2*j+1)*INDEX_WIDTH +: INDEX_WIDTH]),
+						.in_user1		(sig_user [(((1 << (i+1))-1)+2*j+1)*USER_BITS   +: USER_BITS]),
+						.in_data1		(sig_data [(((1 << (i+1))-1)+2*j+1)*DATA_WIDTH  +: DATA_WIDTH]),
+						.in_en1			(sig_en   [(((1 << (i+1))-1)+2*j+1)]),
+						
+						.out_index		(sig_index[(((1 << (i+0))-1)+j)*INDEX_WIDTH     +: INDEX_WIDTH]),
+						.out_user		(sig_user [(((1 << (i+0))-1)+j)*USER_BITS       +: USER_BITS]),
+						.out_data		(sig_data [(((1 << (i+0))-1)+j)*DATA_WIDTH      +: DATA_WIDTH]),
+						.out_en			(sig_en   [(((1 << (i+0))-1)+j)])
+					);
 		end
 	end
 	
+	for ( i = 0; i < (1 << STAGES); i = i+1 ) begin : loop_input
+		if ( i < NUM ) begin
+			assign sig_index[((1 << STAGES)-1+i)*INDEX_WIDTH +: INDEX_WIDTH] = i;
+			assign sig_user [((1 << STAGES)-1+i)*USER_BITS   +: USER_BITS]   = s_user[i*USER_BITS  +: USER_BITS];
+			assign sig_data [((1 << STAGES)-1+i)*DATA_WIDTH  +: DATA_WIDTH]  = s_data[i*DATA_WIDTH +: DATA_WIDTH];
+			assign sig_en   [((1 << STAGES)-1+i)]                            = s_en[i];
+		end
+		else begin
+			assign sig_index[((1 << STAGES)-1+i)*INDEX_WIDTH +: INDEX_WIDTH] = {INDEX_WIDTH{1'bx}};
+			assign sig_user [((1 << STAGES)-1+i)*USER_BITS   +: USER_BITS]   = {USER_BITS{1'bx}};
+			assign sig_data [((1 << STAGES)-1+i)*DATA_WIDTH  +: DATA_WIDTH]  = {DATA_WIDTH{1'bx}};
+			assign sig_en   [((1 << STAGES)-1+i)]                            = 1'b0;
+		end
+	end
+	endgenerate
+	
+	assign m_index = sig_index[0 +: INDEX_WIDTH];
+	assign m_user  = sig_user [0 +: USER_BITS];
+	assign m_data  = sig_data [0 +: DATA_WIDTH];
+	assign m_en    = sig_en   [0];
+	
+	
+	jelly_data_delay
+			#(
+				.LATENCY	(STAGES),
+				.DATA_WIDTH	(COMMON_USER_BITS)
+			)
+		i_data_delay
+			(
+				.reset		(reset),
+				.clk		(clk),
+				.cke		(cke),
+				
+				.in_data	(s_common_user),
+				
+				.out_data	(m_common_user)
+			);
+	
+	
+	reg		[STAGES-1:0]		reg_valid;
 	always @(posedge clk) begin
 		if ( reset ) begin
 			reg_valid <= {STAGES{1'b0}};
@@ -180,14 +177,87 @@ module jelly_minmax
 		end
 	end
 	
+	assign m_valid = reg_valid;
 	
-	assign m_common_user = reg_common_user[0 +: COMMON_USER_BITS];
-	assign m_user        = reg_user       [0 +: USER_BITS];
-	assign m_data        = reg_data       [0 +: DATA_WIDTH];
-	assign m_index       = reg_index      [0 +: INDEX_WIDTH];
-	assign m_en          = reg_en         [0];
-	assign m_valid       = reg_valid      [0];
 	
+endmodule
+
+
+// ‘I‘ðƒ†ƒjƒbƒg
+module jelly_minmax_unit
+		#(
+			parameter	INDEX_WIDTH = 5,
+			parameter	USER_WIDTH  = 32,
+			parameter	DATA_WIDTH  = 32,
+			parameter	DATA_SIGNED = 1,
+			parameter	CMP_MIN     = 0,		// min‚©max‚©
+			parameter	CMP_EQ      = 0			// “¯’l‚Ì‚Æ‚« data0 ‚Æ data1 ‚Ç‚¿‚ç‚ð—Dæ‚·‚é‚©
+		)
+		(
+			input	wire								clk,
+			input	wire								cke,
+			
+			input	wire	[INDEX_WIDTH-1:0]			in_index0,
+			input	wire	[USER_WIDTH-1:0]			in_user0,
+			input	wire	[DATA_WIDTH-1:0]			in_data0,
+			input	wire								in_en0,
+			
+			input	wire	[INDEX_WIDTH-1:0]			in_index1,
+			input	wire	[USER_WIDTH-1:0]			in_user1,
+			input	wire	[DATA_WIDTH-1:0]			in_data1,
+			input	wire								in_en1,
+			
+			output	wire	[INDEX_WIDTH-1:0]			out_index,
+			output	wire	[USER_WIDTH-1:0]			out_user,
+			output	wire	[DATA_WIDTH-1:0]			out_data,
+			output	wire								out_en
+		);
+	
+	// •„†•t‚«‚ÉŠg’£
+	wire	signed	[DATA_WIDTH:0]	data0 = DATA_SIGNED ? {in_data0[DATA_WIDTH-1], in_data0} : {1'b0, in_data0};
+	wire	signed	[DATA_WIDTH:0]	data1 = DATA_SIGNED ? {in_data1[DATA_WIDTH-1], in_data1} : {1'b0, in_data1};
+	reg								tmp_sel;
+	
+	reg		[INDEX_WIDTH-1:0]		reg_index;
+	reg		[USER_WIDTH-1:0]		reg_user;
+	reg		[DATA_WIDTH-1:0]		reg_data;
+	reg								reg_en;
+	
+	always @(posedge clk) begin
+		if ( cke ) begin
+			// ‘I‘ð
+			if ( in_en0 && in_en1 ) begin
+				if ( CMP_EQ ) begin
+					tmp_sel = CMP_MIN ? (data1 <= data0) : (data1 >= data0);
+				end
+				else begin
+					tmp_sel = CMP_MIN ? (data1 <  data0) : (data1 >  data0);
+				end
+			end
+			else if ( in_en0 && !in_en1 ) begin
+				tmp_sel = 0;
+			end
+			else if ( !in_en0 && in_en1 ) begin
+				tmp_sel = 1;
+			end
+			reg_index <= tmp_sel ? in_index1 : in_index0;
+			reg_user  <= tmp_sel ? in_user1  : in_user0;
+			reg_data  <= tmp_sel ? in_data1  : in_data0;
+			
+			if ( !in_en0 && !in_en1 ) begin
+				reg_index <= {INDEX_WIDTH{1'bx}};
+				reg_user  <= {USER_WIDTH{1'bx}};
+				reg_data  <= {DATA_WIDTH{1'bx}};
+			end
+			
+			reg_en <= (in_en0 | in_en1);
+		end
+	end
+	
+	assign out_index = reg_index;
+	assign out_user  = reg_user;
+	assign out_data  = reg_data;
+	assign out_en    = reg_en;
 	
 endmodule
 
