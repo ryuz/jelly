@@ -15,7 +15,7 @@
 // min/max
 module jelly_minmax
 		#(
-			parameter	NUM               = 32,
+			parameter	NUM               = 12,
 			parameter	INDEX_WIDTH       = NUM <=     2 ?  1 :
 	                                        NUM <=     4 ?  2 :
 	                                        NUM <=     8 ?  3 :

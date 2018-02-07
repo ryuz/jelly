@@ -23,7 +23,7 @@ module tb_minmax();
 	parameter	USER_WIDTH        = 4;
 	parameter	DATA_WIDTH        = 8;
 	parameter	DATA_SIGNED       = 0;
-	parameter	CMP_MIN           = 0;		// min‚©max‚©
+	parameter	CMP_MIN           = 1;		// min‚©max‚©
 	parameter	CMP_EQ            = 0;		// “¯’l‚Ì‚Æ‚« data0 ‚Æ data1 ‚Ç‚¿‚ç‚ð—Dæ‚·‚é‚©
 	
 	parameter	COMMON_USER_BITS  = COMMON_USER_WIDTH > 0 ? COMMON_USER_WIDTH : 1;
@@ -93,6 +93,36 @@ module tb_minmax();
 				.m_valid			(m_valid)
 			);
 	
+	jelly_minmax2
+			#(
+				.NUM               (NUM),
+				.COMMON_USER_WIDTH (COMMON_USER_WIDTH),
+				.USER_WIDTH        (USER_WIDTH),
+				.DATA_WIDTH        (DATA_WIDTH),
+				.DATA_SIGNED       (DATA_SIGNED),
+				.CMP_MIN           (CMP_MIN),
+				.CMP_EQ            (CMP_EQ)
+			)
+		i_minmax2
+			(
+				.reset				(reset),
+				.clk				(clk),
+				.cke				(cke),
+				
+				.s_common_user		(s_common_user),
+				.s_user				(s_user),
+				.s_data				(s_data),
+				.s_en				(s_en),
+				.s_valid			(s_valid),
+				
+				.m_common_user		(),
+				.m_user				(),
+				.m_data				(),
+				.m_en				(),
+				.m_valid			()
+			);
+	
+	/*
 	wire	[COMMON_USER_BITS-1:0]	st0_common_user = i_minmax.reg_common_user[0*COMMON_USER_BITS +: COMMON_USER_BITS];
 	wire	[N*USER_BITS-1:0]		st0_user        = i_minmax.reg_user       [0*N*USER_BITS      +: N*USER_BITS];
 	wire	[N*DATA_WIDTH-1:0]		st0_data        = i_minmax.reg_data       [0*N*DATA_WIDTH     +: N*DATA_WIDTH];
@@ -110,6 +140,7 @@ module tb_minmax();
 	wire	[N*DATA_WIDTH-1:0]		st2_data        = i_minmax.reg_data       [2*N*DATA_WIDTH     +: N*DATA_WIDTH];
 	wire	[N-1:0]					st2_en          = i_minmax.reg_en         [2*N                +: N];
 	wire							st2_valid       = i_minmax.reg_valid      [2                  +: 1];
+	*/
 	
 	initial begin
 		#500
