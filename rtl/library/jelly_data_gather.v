@@ -15,7 +15,7 @@
 
 module jelly_data_gather
 		#(
-			parameter	PORT_NUM       = 16,
+			parameter	PORT_NUM       = 4,
 			parameter	DATA_WIDTH     = 32,
 			parameter	LINE_SIZE      = 640,
 			parameter	UNIT_SIZE      = (LINE_SIZE + (PORT_NUM-1)) / PORT_NUM,

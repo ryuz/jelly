@@ -16,7 +16,7 @@
 module jelly_texture_stream
 		#(
 			parameter	IMAGE_X_NUM                   = 640,
-			parameter	PARALLEL_NUM                  = 4,
+			parameter	PARALLEL_NUM                  = 1,
 			
 			parameter	COMPONENT_NUM                 = 3,
 			parameter	DATA_SIZE                     = 0,

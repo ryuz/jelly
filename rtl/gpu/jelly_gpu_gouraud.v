@@ -34,7 +34,7 @@ module jelly_gpu_gouraud
 			
 			parameter	EDGE_NUM           = 12,
 			parameter	POLYGON_NUM        = 6,
-			parameter	SHADER_PARAM_NUM   = COMPONENT_NUM,
+			parameter	SHADER_PARAM_NUM   = 1 + COMPONENT_NUM,
 			
 			parameter	EDGE_PARAM_WIDTH   = 32,
 			parameter	EDGE_RAM_TYPE      = "distributed",

@@ -9,7 +9,7 @@ module tb_texture_stream();
 	initial begin
 		$dumpfile("tb_texture_stream.vcd");
 		$dumpvars(1, tb_texture_stream);
-
+		
 		#30000000;
 			$display("!!!!TIME OUT!!!!");
 			$finish;
@@ -25,7 +25,7 @@ module tb_texture_stream();
 	localparam	MONO = 0;
 	
 	parameter	IMAGE_X_NUM                   = 640;
-	parameter	PARALLEL_NUM                  = 4;
+	parameter	PARALLEL_NUM                  = 1;
 	
 	parameter	COMPONENT_NUM                 = MONO ? 1 : 3;
 	parameter	DATA_SIZE                     = 0;
@@ -119,7 +119,7 @@ module tb_texture_stream();
 	parameter	L1_LOG_FILE                   = "l1_log.txt";
 	parameter	L1_LOG_ID                     = 0;
 	
-	parameter	L2_PARALLEL_SIZE              = 2;
+	parameter	L2_PARALLEL_SIZE              = 1;
 	parameter	L2_USE_LOOK_AHEAD             = 0;
 	parameter	L2_BLK_X_SIZE                 = 3;	// 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
 	parameter	L2_BLK_Y_SIZE                 = 3;	// 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
@@ -501,152 +501,6 @@ module tb_texture_stream();
 				.m_axi4_rready					(axi4_rready)
 			);
 	
-	/*
-	jelly_texture_sampler
-			#(
-				.IMAGE_X_NUM                   = 640;
-				.PARALLEL_NUM                  = 4;
-				.COMPONENT_NUM					(COMPONENT_NUM					),
-				.DATA_SIZE						(DATA_SIZE),
-		//		.DATA_WIDTH						(DATA_WIDTH						),
-				
-				.ADDR_WIDTH						(ADDR_WIDTH						),
-				.ADDR_X_WIDTH					(ADDR_X_WIDTH					),
-				.ADDR_Y_WIDTH					(ADDR_Y_WIDTH					),
-				.STRIDE_C_WIDTH					(STRIDE_C_WIDTH),
-				.STRIDE_X_WIDTH					(STRIDE_X_WIDTH),
-				.STRIDE_Y_WIDTH					(STRIDE_Y_WIDTH),
-				
-				.USE_BORDER						(USE_BORDER						),
-				.BORDER_DATA					(BORDER_DATA					),
-				                                
-				.SAMPLER1D_NUM					(SAMPLER1D_NUM					),
-				                                
-				.SAMPLER2D_NUM					(SAMPLER2D_NUM					),
-				.SAMPLER2D_USER_WIDTH			(SAMPLER2D_USER_WIDTH			),
-				.SAMPLER2D_X_INT_WIDTH			(SAMPLER2D_X_INT_WIDTH			),
-				.SAMPLER2D_X_FRAC_WIDTH			(SAMPLER2D_X_FRAC_WIDTH			),
-				.SAMPLER2D_Y_INT_WIDTH			(SAMPLER2D_Y_INT_WIDTH			),
-				.SAMPLER2D_Y_FRAC_WIDTH			(SAMPLER2D_Y_FRAC_WIDTH			),
-				.SAMPLER2D_COEFF_INT_WIDTH		(SAMPLER2D_COEFF_INT_WIDTH		),
-				.SAMPLER2D_COEFF_FRAC_WIDTH		(SAMPLER2D_COEFF_FRAC_WIDTH		),
-				.SAMPLER2D_S_REGS				(SAMPLER2D_S_REGS				),
-				.SAMPLER2D_M_REGS				(SAMPLER2D_M_REGS				),
-				.SAMPLER2D_USER_FIFO_PTR_WIDTH	(SAMPLER2D_USER_FIFO_PTR_WIDTH	),
-				.SAMPLER2D_USER_FIFO_RAM_TYPE	(SAMPLER2D_USER_FIFO_RAM_TYPE	),
-				.SAMPLER2D_USER_FIFO_M_REGS		(SAMPLER2D_USER_FIFO_M_REGS		),
-				.SAMPLER2D_X_WIDTH				(SAMPLER2D_X_WIDTH				),
-				.SAMPLER2D_Y_WIDTH				(SAMPLER2D_Y_WIDTH				),
-				.SAMPLER2D_COEFF_WIDTH			(SAMPLER2D_COEFF_WIDTH			),
-				.SAMPLER2D_USER_BITS			(SAMPLER2D_USER_BITS			),
-				
-				.SAMPLER3D_NUM					(SAMPLER3D_NUM					),
-				
-				.L1_USE_LOOK_AHEAD				(0),
-				.L1_QUE_FIFO_PTR_WIDTH			(6),
-				.L1_CACHE_NUM					(L1_CACHE_NUM					),
-				.L1_TAG_ADDR_WIDTH				(L1_TAG_ADDR_WIDTH				),
-				.L1_BLK_X_SIZE					(L1_BLK_X_SIZE					),
-				.L1_BLK_Y_SIZE					(L1_BLK_Y_SIZE					),
-				.L1_TAG_RAM_TYPE				(L1_TAG_RAM_TYPE				),
-				.L1_MEM_RAM_TYPE				(L1_MEM_RAM_TYPE				),
-				.L1_DATA_SIZE					(L1_DATA_SIZE				),
-				
-				.L2_PARALLEL_SIZE				(L2_PARALLEL_SIZE),
-				.L2_USE_LOOK_AHEAD				(0),
-				.L2_TAG_ADDR_WIDTH				(L2_TAG_ADDR_WIDTH				),
-				.L2_BLK_X_SIZE					(L2_BLK_X_SIZE					),
-				.L2_BLK_Y_SIZE					(L2_BLK_Y_SIZE					),
-				.L2_TAG_RAM_TYPE				(L2_TAG_RAM_TYPE				),
-				.L2_MEM_RAM_TYPE				(L2_MEM_RAM_TYPE				),
-				
-				.M_AXI4_ID_WIDTH				(M_AXI4_ID_WIDTH),
-				.M_AXI4_ADDR_WIDTH				(M_AXI4_ADDR_WIDTH),
-				.M_AXI4_DATA_SIZE				(M_AXI4_DATA_SIZE),
-				.M_AXI4_DATA_WIDTH				(M_AXI4_DATA_WIDTH),
-				.M_AXI4_LEN_WIDTH				(M_AXI4_LEN_WIDTH),
-				.M_AXI4_QOS_WIDTH				(M_AXI4_QOS_WIDTH),
-				.M_AXI4_ARID					(M_AXI4_ARID),
-				.M_AXI4_ARSIZE					(M_AXI4_ARSIZE),
-				.M_AXI4_ARBURST					(M_AXI4_ARBURST),
-				.M_AXI4_ARLOCK					(M_AXI4_ARLOCK),
-				.M_AXI4_ARCACHE					(M_AXI4_ARCACHE),
-				.M_AXI4_ARPROT					(M_AXI4_ARPROT),
-				.M_AXI4_ARQOS					(M_AXI4_ARQOS),
-				.M_AXI4_ARREGION				(M_AXI4_ARREGION),
-				.M_AXI4_REGS					(M_AXI4_REGS),
-				
-				.DEVICE							(DEVICE),
-				
-				.L1_LOG_ENABLE					(0),
-				.L2_LOG_ENABLE					(1)
-			)
-		i_texture_sampler
-			(
-				.reset							(reset),
-				.clk							(clk),
-				
-				.endian							(1'b0),
-				
-				.param_addr						(32'h0000_0000),
-				.param_width					(640),
-				.param_height					(480),
-				.param_stride_c					((1 << L2_BLK_X_SIZE)*(1 << L2_BLK_Y_SIZE)),
-				.param_stride_x					((1 << L2_BLK_X_SIZE)*(1 << L2_BLK_Y_SIZE)*COMPONENT_NUM),
-				.param_stride_y					(640*(1 << L2_BLK_Y_SIZE)*COMPONENT_NUM),
-				
-				.param_border_value				(24'h000000),
-				.param_x_op						(3'b000),
-				.param_y_op						(3'b000),
-				.param_nearestneighbor			(0),
-				.clear_start					(0),
-				.clear_busy						(),
-				
-				.status_l1_idle					(status_l1_idle),
-				.status_l1_stall				(status_l1_stall),
-				.status_l1_access				(status_l1_access),
-				.status_l1_hit					(status_l1_hit),
-				.status_l1_miss					(status_l1_miss),
-				.status_l1_border				(status_l1_border),
-				.status_l2_idle					(status_l2_idle),
-				.status_l2_stall				(status_l2_stall),
-				.status_l2_access				(status_l2_access),
-				.status_l2_hit					(status_l2_hit),
-				.status_l2_miss					(status_l2_miss),
-				.status_l2_border				(status_l2_border),
-				
-				.s_sampler2d_user				(s_sampler2d_user),
-				.s_sampler2d_x					(s_sampler2d_x),
-				.s_sampler2d_y					(s_sampler2d_y),
-				.s_sampler2d_valid				(s_sampler2d_valid),
-				.s_sampler2d_ready				(s_sampler2d_ready),
-				
-				.m_sampler2d_user				(m_sampler2d_user),
-				.m_sampler2d_border				(m_sampler2d_border),
-				.m_sampler2d_data				(m_sampler2d_data),
-				.m_sampler2d_valid				(m_sampler2d_valid),
-				.m_sampler2d_ready				(m_sampler2d_ready),
-				
-				.m_axi4_arid					(axi4_arid),
-				.m_axi4_araddr					(axi4_araddr),
-				.m_axi4_arlen					(axi4_arlen),
-				.m_axi4_arsize					(axi4_arsize),
-				.m_axi4_arburst					(axi4_arburst),
-				.m_axi4_arlock					(axi4_arlock),
-				.m_axi4_arcache					(axi4_arcache),
-				.m_axi4_arprot					(axi4_arprot),
-				.m_axi4_arqos					(axi4_arqos),
-				.m_axi4_arregion				(axi4_arregion),
-				.m_axi4_arvalid					(axi4_arvalid),
-				.m_axi4_arready					(axi4_arready),
-				.m_axi4_rid						(axi4_rid),
-				.m_axi4_rdata					(axi4_rdata),
-				.m_axi4_rresp					(axi4_rresp),
-				.m_axi4_rlast					(axi4_rlast),
-				.m_axi4_rvalid					(axi4_rvalid),
-				.m_axi4_rready					(axi4_rready)
-			);
-	*/
 	
 	jelly_axi4_slave_model
 			#(
