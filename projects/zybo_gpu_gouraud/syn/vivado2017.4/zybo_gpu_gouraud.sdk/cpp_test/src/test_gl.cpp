@@ -56,7 +56,7 @@ void rasterizer_test(void)
 	jgl.SetSize(width, height);
 	jgl.SetCulling(true, false);
 
-	jgl.SetupHwCore(0x40000000);
+	jgl.SetupHwCore(0x40100000);
 
 	jgl.SetVertexBuffer(std::vector<JGL::Vec3>(table_vertex, std::end(table_vertex)));
 	jgl.SetTexCordBuffer(std::vector<JGL::Vec2>(table_tex_cord, std::end(table_tex_cord)));
@@ -207,6 +207,13 @@ void rasterizer_test(void)
 		//draw
 		jgl.DrawSetup();
 
+		jgl.DrawHw(0);
+		while ( *(volatile unsigned long *)0x40100004 != 0 )
+			;
+		*(volatile unsigned long *)0x40100004 = 1;
+		*(volatile unsigned long *)0x40100000 = 1;
+
+		/*
 		if ( bank == 0 ) {
 			jgl.DrawHw(0);
 			*(volatile unsigned long *)0x40000004 = 0;
@@ -223,6 +230,7 @@ void rasterizer_test(void)
 				;
 			bank = 0;
 		}
+		*/
 	} while ( 1 );
 }
 

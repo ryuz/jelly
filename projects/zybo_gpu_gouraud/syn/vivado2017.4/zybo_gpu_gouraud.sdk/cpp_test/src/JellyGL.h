@@ -150,27 +150,28 @@ protected:
 
 
 	// H/WƒGƒ“ƒWƒ“İ’è
-	uint32_t		m_hw_base_addr        = 0x40000000;
+	uint32_t		m_hw_base_addr        = 0x40100000;
 	uint32_t		m_hw_shader_type      = 0;
 	uint32_t		m_hw_version          = 0;
-	uint32_t		m_hw_bank_step        = 0x00004000;
-	uint32_t		m_hw_params_step      = 0x00001000;
+	uint32_t		m_hw_bank_step        = 0x00001000;
+	uint32_t		m_hw_params_step      = 0x00004000;
 	uint32_t		m_hw_bank_num         = 2;
 	uint32_t		m_hw_edge_num         = 12*2;
 	uint32_t		m_hw_polygon_num      = 6*2;
 	uint32_t		m_hw_shader_param_num = 4;
-	uint32_t		m_hw_shader_param_q   = 4;
+	uint32_t		m_hw_shader_param_q   = 24;
 
 	bool			m_hw_shader_param_has_z        = true;
 	bool			m_hw_shader_param_has_tex_cord = false;
 	bool			m_hw_shader_param_has_color    = true;
 
 	const unsigned long	REG_ADDR_CTL_ENABLE             = 0x00*4;
-	const unsigned long	REG_ADDR_CTL_BANK               = 0x01*4;
+	const unsigned long	REG_ADDR_CTL_UPDATE             = 0x01*4;
 	const unsigned long	REG_ADDR_PARAM_WIDTH            = 0x02*4;
 	const unsigned long	REG_ADDR_PARAM_HEIGHT           = 0x03*4;
 	const unsigned long	REG_ADDR_PARAM_CULLING          = 0x04*4;
-	const unsigned long	REG_ADDR_PARAMS_BANK            = 0x11*4;
+	const unsigned long	REG_ADDR_PARAM_BANK             = 0x10*4;
+
 	const unsigned long	REG_ADDR_CFG_SHDER_TYPE         = 0x20*4;
 	const unsigned long	REG_ADDR_CFG_VERSION            = 0x21*4;
 	const unsigned long	REG_ADDR_CFG_BANK_ADDR_WIDTH    = 0x22*4;
@@ -182,7 +183,7 @@ protected:
 	const unsigned long	REG_ADDR_CFG_EDGE_PARAM_WIDTH   = 0x28*4;
 	const unsigned long	REG_ADDR_CFG_SHADER_PARAM_WIDTH = 0x29*4;
 	const unsigned long	REG_ADDR_CFG_REGION_PARAM_WIDTH = 0x2a*4;
-	const unsigned long	REG_ADDR_CFG_SHADER_PARAM_Q     = 0x2b*4;
+//	const unsigned long	REG_ADDR_CFG_SHADER_PARAM_Q     = 0x2b*4;
 
 
 
@@ -655,7 +656,7 @@ public:
 			m_hw_edge_num         = ReadHwRegister(REG_ADDR_CFG_EDGE_NUM);
 			m_hw_polygon_num      = ReadHwRegister(REG_ADDR_CFG_POLYGON_NUM);
 			m_hw_shader_param_num = ReadHwRegister(REG_ADDR_CFG_SHADER_PARAM_NUM);
-			m_hw_shader_param_q   = ReadHwRegister(REG_ADDR_CFG_SHADER_PARAM_Q);
+	//		m_hw_shader_param_q   = ReadHwRegister(REG_ADDR_CFG_SHADER_PARAM_Q);
 			if ( m_hw_shader_param_q > 0 ) {
 				m_shader_param_q = m_hw_shader_param_q;
 			}

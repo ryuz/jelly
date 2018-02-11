@@ -22,8 +22,8 @@ module jelly_rasterizer
 			parameter	WB_SEL_WIDTH       = (WB_DAT_WIDTH / 8),
 			
 			parameter	BANK_NUM           = 2,
-			parameter	BANK_ADDR_WIDTH    = 12,
-			parameter	PARAMS_ADDR_WIDTH  = 10,
+			parameter	PARAMS_ADDR_WIDTH  = 12,
+			parameter	BANK_ADDR_WIDTH    = 10,
 			
 			parameter	EDGE_NUM           = 12,
 			parameter	POLYGON_NUM        = 6,
@@ -62,15 +62,20 @@ module jelly_rasterizer
 			parameter	CFG_SHADER_PARAM_Q = 0,
 			
 			parameter	INIT_CTL_ENABLE    = 1'b0,
-			parameter	INIT_CTL_BANK      = 0,
+			parameter	INIT_CTL_UPDATE    = 1'b0,
 			parameter	INIT_PARAM_WIDTH   = 640-1,
 			parameter	INIT_PARAM_HEIGHT  = 480-1,
-			parameter	INIT_PARAM_CULLING = 2'b01
+			parameter	INIT_PARAM_CULLING = 2'b01,
+			parameter	INIT_PARAM_BANK    = 0
 		)
 		(
 			input	wire												reset,
 			input	wire												clk,
 			input	wire												cke,
+			
+			output	wire												start,
+			output	wire												busy,
+			output	wire												update,
 			
 			input	wire												s_wb_rst_i,
 			input	wire												s_wb_clk_i,
@@ -97,9 +102,6 @@ module jelly_rasterizer
 	
 	
 	// parameters
-	wire												start;
-	wire												busy;
-	
 	wire	[X_WIDTH-1:0]								param_width;
 	wire	[Y_WIDTH-1:0]								param_height;
 	wire	[1:0]										param_culling;
@@ -136,13 +138,13 @@ module jelly_rasterizer
 				
 				.CFG_SHADER_TYPE	(CFG_SHADER_TYPE),
 				.CFG_VERSION		(CFG_VERSION),
-				.CFG_SHADER_PARAM_Q	(CFG_SHADER_PARAM_Q),
 				
 				.INIT_CTL_ENABLE	(INIT_CTL_ENABLE),
-				.INIT_CTL_BANK		(INIT_CTL_BANK),
+				.INIT_CTL_UPDATE	(INIT_CTL_UPDATE),
 				.INIT_PARAM_WIDTH	(INIT_PARAM_WIDTH),
 				.INIT_PARAM_HEIGHT	(INIT_PARAM_HEIGHT),
-				.INIT_PARAM_CULLING	(INIT_PARAM_CULLING)
+				.INIT_PARAM_CULLING	(INIT_PARAM_CULLING),
+				.INIT_PARAM_BANK	(INIT_PARAM_BANK)
 			)
 		i_rasterizer_params
 			(
@@ -151,6 +153,7 @@ module jelly_rasterizer
 				.cke				(cke),
 				
 				.start				(start),
+				.update				(update),
 				.busy				(busy),
 				
 				.param_width		(param_width),

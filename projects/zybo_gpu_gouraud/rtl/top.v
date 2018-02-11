@@ -356,7 +356,7 @@ module top
 	// AXI4L => WISHBONE
 	wire					wb_rst_o;
 	wire					wb_clk_o;
-	wire	[31:2]			wb_host_adr_o;
+	wire	[29:0]			wb_host_adr_o;
 	wire	[31:0]			wb_host_dat_o;
 	wire	[31:0]			wb_host_dat_i;
 	wire					wb_host_we_o;
@@ -469,7 +469,7 @@ module top
 				.port_o				(gpio_led),
 				.port_t				(),
 				
-				.s_wb_adr_i			(wb_host_adr_o[2 +: 2]),
+				.s_wb_adr_i			(wb_host_adr_o[1:0]),
 				.s_wb_dat_o			(wb_gpio_dat_o),
 				.s_wb_dat_i			(wb_host_dat_o),
 				.s_wb_we_i			(wb_host_we_o),
@@ -496,64 +496,67 @@ module top
 	
 	jelly_gpu_gouraud
 			#(
-				.WB_ADR_WIDTH		(14),
-				.WB_DAT_WIDTH		(32),
+				.WB_ADR_WIDTH					(16),
+				.WB_DAT_WIDTH					(32),
 				
-				.COMPONENT_NUM		(3),
-				.DATA_WIDTH			(8),
+				.COMPONENT_NUM					(3),
+				.DATA_WIDTH						(8),
 				
-				.AXI4S_TUSER_WIDTH	(1),
-				.AXI4S_TDATA_WIDTH	(24),
+				.AXI4S_TUSER_WIDTH				(1),
+				.AXI4S_TDATA_WIDTH				(24),
 				
-				.X_WIDTH			(12),
-				.Y_WIDTH			(12),
+				.X_WIDTH						(12),
+				.Y_WIDTH						(12),
 				
-				.BANK_NUM			(2),
-				.BANK_ADDR_WIDTH	(12),
-				.PARAMS_ADDR_WIDTH	(10),
+				.PARAMS_ADDR_WIDTH				(12),
+				.BANK_ADDR_WIDTH				(10),
 				
-				.EDGE_NUM			(12*2),
-				.POLYGON_NUM		(6*2),
-				.SHADER_PARAM_NUM	(4),
+				.BANK_NUM						(2),
 				
-				.EDGE_PARAM_WIDTH	(32),
-				.EDGE_RAM_TYPE		("distributed"),
+				.EDGE_NUM						(12*2),
+				.POLYGON_NUM					(6*2),
+				.SHADER_PARAM_NUM				(4),
 				
-				.SHADER_PARAM_WIDTH	(32),
-				.SHADER_PARAM_Q		(24),
-				.SHADER_RAM_TYPE	("distributed"),
+				.EDGE_PARAM_WIDTH				(32),
+				.EDGE_RAM_TYPE					("distributed"),
 				
-				.REGION_RAM_TYPE	("distributed"),
+				.SHADER_PARAM_WIDTH				(32),
+				.SHADER_PARAM_Q					(24),
+				.SHADER_RAM_TYPE				("distributed"),
 				
-				.CULLING_ONLY		(0),
-				.Z_SORT_MIN			(0),
+				.REGION_RAM_TYPE				("distributed"),
 				
-				.INIT_CTL_ENABLE	(1'b0),
-				.INIT_CTL_BANK		(0),
-				.INIT_PARAM_WIDTH	(VOUT_X_NUM-1),
-				.INIT_PARAM_HEIGHT	(VOUT_Y_NUM-1),
-				.INIT_PARAM_CULLING	(2'b01)
+				.CULLING_ONLY					(0),
+				.Z_SORT_MIN						(0),
+				
+				.RASTERIZER_INIT_CTL_ENABLE		(1'b0),
+				.RASTERIZER_INIT_CTL_UPDATE		(1'b0),
+				.RASTERIZER_INIT_PARAM_WIDTH	(VOUT_X_NUM-1),
+				.RASTERIZER_INIT_PARAM_HEIGHT	(VOUT_Y_NUM-1),
+				.RASTERIZER_INIT_PARAM_CULLING	(2'b01),
+				.RASTERIZER_INIT_PARAM_BANK		(0),
+				.SHADER_INIT_PARAM_BGC			(24'h00_00_ff)
 			)
 		i_gpu_gouraud
 			(
-				.reset				(core_reset),
-				.clk				(core_clk),
+				.reset							(core_reset),
+				.clk							(core_clk),
 				
-				.s_wb_rst_i			(wb_rst_o),
-				.s_wb_clk_i			(wb_clk_o),
-				.s_wb_adr_i			(wb_host_adr_o[2 +: 14]),
-				.s_wb_dat_o			(wb_gpu_dat_o),
-				.s_wb_dat_i			(wb_host_dat_o),
-				.s_wb_we_i			(wb_host_we_o),
-				.s_wb_sel_i			(wb_host_sel_o),
-				.s_wb_stb_i			(wb_gpu_stb_i),
-				.s_wb_ack_o			(wb_gpu_ack_o),
+				.s_wb_rst_i						(wb_rst_o),
+				.s_wb_clk_i						(wb_clk_o),
+				.s_wb_adr_i						(wb_host_adr_o[15:0]),
+				.s_wb_dat_o						(wb_gpu_dat_o),
+				.s_wb_dat_i						(wb_host_dat_o),
+				.s_wb_we_i						(wb_host_we_o),
+				.s_wb_sel_i						(wb_host_sel_o),
+				.s_wb_stb_i						(wb_gpu_stb_i),
+				.s_wb_ack_o						(wb_gpu_ack_o),
 				
-				.m_axi4s_tuser		(axi4s_gpu_tuser),
-				.m_axi4s_tlast		(axi4s_gpu_tlast),
-				.m_axi4s_tdata		(axi4s_gpu_tdata),
-				.m_axi4s_tvalid		(axi4s_gpu_tvalid),
-				.m_axi4s_tready		(axi4s_gpu_tready)
+				.m_axi4s_tuser					(axi4s_gpu_tuser),
+				.m_axi4s_tlast					(axi4s_gpu_tlast),
+				.m_axi4s_tdata					(axi4s_gpu_tdata),
+				.m_axi4s_tvalid					(axi4s_gpu_tvalid),
+				.m_axi4s_tready					(axi4s_gpu_tready)
 			);
 	
 	
@@ -649,7 +652,7 @@ module top
 				
 				.s_wb_rst_i			(wb_rst_o),
 				.s_wb_clk_i			(wb_clk_o),
-				.s_wb_adr_i			(wb_host_adr_o[2 +: 8]),
+				.s_wb_adr_i			(wb_host_adr_o[7:0]),
 				.s_wb_dat_o			(wb_vsgen_dat_o),
 				.s_wb_dat_i			(wb_host_dat_o),
 				.s_wb_we_i			(wb_host_we_o),
@@ -756,11 +759,11 @@ module top
 	//  WISHBONE address decoder
 	// ----------------------------------------
 	
-	assign wb_gpu_stb_i   = wb_host_stb_o & (wb_host_adr_o[31:16] == 20'h4000);
-//	assign wb_vdmar_stb_i = wb_host_stb_o & (wb_host_adr_o[31:12] == 20'h4001_0);
-	assign wb_vsgen_stb_i = wb_host_stb_o & (wb_host_adr_o[31:12] == 20'h4001_1);
-//	assign wb_vdmaw_stb_i = wb_host_stb_o & (wb_host_adr_o[31:12] == 20'h4001_8);
-	assign wb_gpio_stb_i  = wb_host_stb_o & (wb_host_adr_o[31:12] == 20'h4002_1);
+	assign wb_gpu_stb_i   = wb_host_stb_o & (wb_host_adr_o[29:18] == 20'h401);
+//	assign wb_vdmar_stb_i = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_0);
+	assign wb_vsgen_stb_i = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_1);
+//	assign wb_vdmaw_stb_i = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_8);
+	assign wb_gpio_stb_i  = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4002_1);
 	
 	assign wb_host_dat_i  = wb_gpu_stb_i   ? wb_gpu_dat_o   :
 //	                        wb_vdmar_stb_i ? wb_vdmar_dat_o :
