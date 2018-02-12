@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-//  Jelly  -- the system on fpga system
+//  Jelly  -- The FPGA processing system
 //
 //                                 Copyright (C) 2008-2018 by Ryuji Fuchikami
 //                                 http://ryuz.my.coocan.jp/
@@ -12,8 +12,8 @@
 `default_nettype none
 
 
-
-module jelly_texture_stream
+// テクスチャマップ用シェーダー
+module jelly_pixel_shader_texturemap
 		#(
 			parameter	IMAGE_X_NUM                   = 640,
 			parameter	PARALLEL_NUM                  = 1,
@@ -28,25 +28,41 @@ module jelly_texture_stream
 			parameter	STRIDE_X_WIDTH                = 14,
 			parameter	STRIDE_Y_WIDTH                = 14,
 			
+			parameter	WB_ADR_WIDTH                  = 14,
+			parameter	WB_DAT_WIDTH                  = 32,
+			parameter	WB_SEL_WIDTH                  = (WB_DAT_WIDTH / 8),
+			
+			parameter	USE_PARAM_CFG_READ            = 1,
+			
+			parameter	X_WIDTH                       = 12,
+			parameter	Y_WIDTH                       = 12,
+			
+			parameter	SHADER_PARAM_NUM              = 1 + 2,		// Z + UV
+			parameter	SHADER_PARAM_WIDTH            = 32,
+			parameter	SHADER_PARAM_Q                = 24,
+			parameter	INDEX_WIDTH                   = 4,
+			
 			parameter	USE_BILINEAR                  = 1,
-			parameter	USE_BORDER                    = 1,
+			parameter	USE_BORDER                    = 0,
 			
 			parameter	SCATTER_FIFO_PTR_WIDTH        = 6,
 			parameter	SCATTER_FIFO_RAM_TYPE         = "distributed",
 			parameter	SCATTER_S_REGS                = 1,
 			parameter	SCATTER_M_REGS                = 1,
 			parameter	SCATTER_INTERNAL_REGS         = (PARALLEL_NUM > 32),
-
+			
 			parameter	GATHER_FIFO_PTR_WIDTH         = 6,
 			parameter	GATHER_FIFO_RAM_TYPE          = "distributed",
 			parameter	GATHER_S_REGS                 = 1,
 			parameter	GATHER_M_REGS                 = 1,
 			parameter	GATHER_INTERNAL_REGS          = (PARALLEL_NUM > 32),
 			
-			parameter	SAMPLER2D_X_INT_WIDTH         = ADDR_X_WIDTH + 2,
-			parameter	SAMPLER2D_X_FRAC_WIDTH        = 4,
-			parameter	SAMPLER2D_Y_INT_WIDTH         = ADDR_Y_WIDTH + 2,
-			parameter	SAMPLER2D_Y_FRAC_WIDTH        = 4,
+			parameter	SAMPLER2D_INT_WIDTH           = (ADDR_X_WIDTH > ADDR_Y_WIDTH ? ADDR_X_WIDTH : ADDR_Y_WIDTH) + 2,
+			parameter	SAMPLER2D_FRAC_WIDTH          = 4,
+			parameter	SAMPLER2D_X_INT_WIDTH         = SAMPLER2D_INT_WIDTH,
+			parameter	SAMPLER2D_X_FRAC_WIDTH        = SAMPLER2D_FRAC_WIDTH,
+			parameter	SAMPLER2D_Y_INT_WIDTH         = SAMPLER2D_INT_WIDTH,
+			parameter	SAMPLER2D_Y_FRAC_WIDTH	      = SAMPLER2D_FRAC_WIDTH,
 			parameter	SAMPLER2D_COEFF_INT_WIDTH     = 1,
 			parameter	SAMPLER2D_COEFF_FRAC_WIDTH    = SAMPLER2D_X_FRAC_WIDTH + SAMPLER2D_Y_FRAC_WIDTH,
 			parameter	SAMPLER2D_S_REGS              = 1,
@@ -142,8 +158,20 @@ module jelly_texture_stream
 			parameter	DMA_S_AR_REGS                 = 1,
 			parameter	DMA_S_R_REGS                  = 1,
 			
-			parameter	DEVICE                        = "7SERIES",	// "RTL"
-						
+			parameter	DEVICE                        = "RTL",
+			
+			parameter	INIT_PARAM_ADDR               = 32'h0000_0000,
+			parameter	INIT_PARAM_WIDTH              = 640,
+			parameter	INIT_PARAM_HEIGHT             = 480,
+			parameter	INIT_PARAM_STRIDE_C           = (1 << L2_BLK_X_SIZE)*(1 << L2_BLK_Y_SIZE),
+			parameter	INIT_PARAM_STRIDE_X           = (1 << L2_BLK_X_SIZE)*(1 << L2_BLK_Y_SIZE)*COMPONENT_NUM,
+			parameter	INIT_PARAM_STRIDE_Y           = 640*(1 << L2_BLK_Y_SIZE)*COMPONENT_NUM,
+			parameter	INIT_PARAM_NEARESTNEIGHBOR    = 0,
+			parameter	INIT_PARAM_X_OP               = 3'b000,
+			parameter	INIT_PARAM_Y_OP               = 3'b000,
+			parameter	INIT_PARAM_BORDER_VALUE       = 24'h000000,
+			parameter	INIT_PARAM_BGC                = 24'h000000,
+			
 			// local
 			parameter	L1_CACHE_NUM                  = PARALLEL_NUM,
 			parameter	L2_CACHE_NUM                  = (1 << L2_PARALLEL_SIZE),
@@ -156,25 +184,16 @@ module jelly_texture_stream
 			input	wire													clk,
 			input	wire													endian,
 			
-			// parameter
-			input	wire	[M_AXI4_ADDR_WIDTH-1:0]							param_addr,
-			input	wire	[ADDR_X_WIDTH-1:0]								param_width,
-			input	wire	[ADDR_Y_WIDTH-1:0]								param_height,
-			input	wire	[STRIDE_C_WIDTH-1:0]							param_stride_c,
-			input	wire	[STRIDE_X_WIDTH-1:0]							param_stride_x,
-			input	wire	[STRIDE_Y_WIDTH-1:0]							param_stride_y,
-			
-			input	wire													param_nearestneighbor,
-			input	wire	[2:0]											param_x_op,
-			input	wire	[2:0]											param_y_op,
-			input	wire	[COMPONENT_NUM*DATA_WIDTH-1:0]					param_border_value,
-			input	wire	[COMPONENT_NUM*DATA_WIDTH-1:0]					param_blank_value,
-			
 			// control
+			input	wire													start,
+			input	wire													busy,
+			input	wire													update,
+			
+			// cache clear
 			input	wire													clear_start,
 			output	wire													clear_busy,
 			
-			// status
+			// cache status
 			output	wire	[L1_CACHE_NUM-1:0]								status_l1_idle,
 			output	wire	[L1_CACHE_NUM-1:0]								status_l1_stall,
 			output	wire	[L1_CACHE_NUM-1:0]								status_l1_access,
@@ -188,22 +207,37 @@ module jelly_texture_stream
 			output	wire	[L2_CACHE_NUM-1:0]								status_l2_miss,
 			output	wire	[L2_CACHE_NUM-1:0]								status_l2_blank,
 			
-			// AXI4-Stream
-			input	wire	[S_AXI4S_TUSER_BITS-1:0]						s_axi4s_tuser,
-			input	wire	[S_AXI4S_TTEXCORDU_WIDTH-1:0]					s_axi4s_ttexcordu,
-			input	wire	[S_AXI4S_TTEXCORDV_WIDTH-1:0]					s_axi4s_ttexcordv,
-			input	wire													s_axi4s_tstrb,
-			input	wire													s_axi4s_tvalid,
-			output	wire													s_axi4s_tready,
 			
+			// WISHBONE
+			input	wire													s_wb_rst_i,
+			input	wire													s_wb_clk_i,
+			input	wire	[WB_ADR_WIDTH-1:0]								s_wb_adr_i,
+			output	wire	[WB_DAT_WIDTH-1:0]								s_wb_dat_o,
+			input	wire	[WB_DAT_WIDTH-1:0]								s_wb_dat_i,
+			input	wire													s_wb_we_i,
+			input	wire	[WB_SEL_WIDTH-1:0]								s_wb_sel_i,
+			input	wire													s_wb_stb_i,
+			output	wire													s_wb_ack_o,
+			
+			// input from rasterizer
+			input	wire													s_rasterizer_frame_start,
+			input	wire													s_rasterizer_line_end,
+			input	wire													s_rasterizer_polygon_enable,
+			input	wire	[INDEX_WIDTH-1:0]								s_rasterizer_polygon_index,
+			input	wire	[SHADER_PARAM_NUM*SHADER_PARAM_WIDTH-1:0]		s_rasterizer_shader_params,
+			input	wire													s_rasterizer_valid,
+			output	wire													s_rasterizer_ready,
+			
+			// AXI4-Stream
 			output	wire	[M_AXI4S_TUSER_BITS-1:0]						m_axi4s_tuser,
+			output	wire													m_axi4s_tlast,
 			output	wire	[M_AXI4S_TDATA_WIDTH-1:0]						m_axi4s_tdata,
 			output	wire													m_axi4s_tstrb,
 			output	wire													m_axi4s_tvalid,
 			input	wire													m_axi4s_tready,
 			
 			
-			// AXI4 read (master)
+			// AXI4 read
 			output	wire	[M_AXI4_ID_WIDTH-1:0]							m_axi4_arid,
 			output	wire	[M_AXI4_ADDR_WIDTH-1:0]							m_axi4_araddr,
 			output	wire	[M_AXI4_LEN_WIDTH-1:0]							m_axi4_arlen,
@@ -224,83 +258,251 @@ module jelly_texture_stream
 			output	wire													m_axi4_rready
 		);
 	
-	localparam	SAMPLER1D_NUM = 0;
-	localparam	SAMPLER2D_NUM = PARALLEL_NUM;
-	localparam	SAMPLER3D_NUM = 0;
 	
-	localparam	UNIT_X_NUM    = (IMAGE_X_NUM + (PARALLEL_NUM-1)) / PARALLEL_NUM;
+	// -------------------------------------
+	//  レジスタ
+	// -------------------------------------
 	
+	// アドレス
+	localparam	REG_ADDR_PARAM_ADDR             = 6'h00;
+	localparam	REG_ADDR_PARAM_WIDTH            = 6'h01;
+	localparam	REG_ADDR_PARAM_HEIGHT           = 6'h02;
+	localparam	REG_ADDR_PARAM_STRIDE_C         = 6'h04;
+	localparam	REG_ADDR_PARAM_STRIDE_X         = 6'h05;
+	localparam	REG_ADDR_PARAM_STRIDE_Y         = 6'h06;
+	localparam	REG_ADDR_PARAM_NEARESTNEIGHBOR  = 6'h07;
+	localparam	REG_ADDR_PARAM_X_OP             = 6'h08;
+	localparam	REG_ADDR_PARAM_Y_OP             = 6'h09;
+	localparam	REG_ADDR_PARAM_BORDER_VALUE     = 6'h0a;
+	localparam	REG_ADDR_PARAM_BGC              = 6'h0b;
+	localparam	REG_ADDR_CFG_SHADER_PARAM_NUM   = 6'h10;
+	localparam	REG_ADDR_CFG_SHADER_PARAM_WIDTH = 6'h11;
+	localparam	REG_ADDR_CFG_SHADER_PARAM_Q     = 6'h12;
 	
-	genvar		i;
+	// 表レジスタ
+	reg		[M_AXI4_ADDR_WIDTH-1:0]				reg_param_addr;
+	reg		[ADDR_X_WIDTH-1:0]					reg_param_width;
+	reg		[ADDR_Y_WIDTH-1:0]					reg_param_height;
+	reg		[STRIDE_C_WIDTH-1:0]				reg_param_stride_c;
+	reg		[STRIDE_X_WIDTH-1:0]				reg_param_stride_x;
+	reg		[STRIDE_Y_WIDTH-1:0]				reg_param_stride_y;
+	reg											reg_param_nearestneighbor;
+	reg		[2:0]								reg_param_x_op;
+	reg		[2:0]								reg_param_y_op;
+	reg		[COMPONENT_NUM*DATA_WIDTH-1:0]		reg_param_border_value;
+	reg		[COMPONENT_NUM*DATA_WIDTH-1:0]		reg_param_bgc;
 	
+	// 裏レジスタ
+	reg		[M_AXI4_ADDR_WIDTH-1:0]				reg_shadow_addr;
+	reg		[ADDR_X_WIDTH-1:0]					reg_shadow_width;
+	reg		[ADDR_Y_WIDTH-1:0]					reg_shadow_height;
+	reg		[STRIDE_C_WIDTH-1:0]				reg_shadow_stride_c;
+	reg		[STRIDE_X_WIDTH-1:0]				reg_shadow_stride_x;
+	reg		[STRIDE_Y_WIDTH-1:0]				reg_shadow_stride_y;
+	reg											reg_shadow_nearestneighbor;
+	reg		[2:0]								reg_shadow_x_op;
+	reg		[2:0]								reg_shadow_y_op;
+	reg		[COMPONENT_NUM*DATA_WIDTH-1:0]		reg_shadow_border_value;
+	reg		[COMPONENT_NUM*DATA_WIDTH-1:0]		reg_shadow_bgc;
 	
-	
-	// 2D sampler's signal
-	
-	
-	// scatter
-	localparam	SAMPLER2D_USER_WIDTH = S_AXI4S_TUSER_WIDTH;
-	localparam	SAMPLER2D_USER_BITS  = S_AXI4S_TUSER_BITS;
-	localparam	SCATTER_DATA_WIDTH   = S_AXI4S_TUSER_WIDTH + 1 + S_AXI4S_TTEXCORDU_WIDTH + S_AXI4S_TTEXCORDV_WIDTH;
-	
-	wire	[SCATTER_DATA_WIDTH-1:0]					s_axi4s_tpacket = {s_axi4s_tuser, s_axi4s_tstrb, s_axi4s_ttexcordv, s_axi4s_ttexcordu};
-	
-	wire	[SAMPLER2D_NUM*SAMPLER2D_USER_BITS-1:0]		s_sampler2d_user;
-	wire	[SAMPLER2D_NUM-1:0]							s_sampler2d_strb;
-	wire	[SAMPLER2D_NUM*SAMPLER2D_X_WIDTH-1:0]		s_sampler2d_x;
-	wire	[SAMPLER2D_NUM*SAMPLER2D_Y_WIDTH-1:0]		s_sampler2d_y;
-	wire	[SAMPLER2D_NUM-1:0]							s_sampler2d_valid;
-	wire	[SAMPLER2D_NUM-1:0]							s_sampler2d_ready;
-	
-	wire	[SAMPLER2D_NUM*SCATTER_DATA_WIDTH-1:0]		s_samoler2d_packet;
-	
-	generate
-	for ( i = 0; i < SAMPLER2D_NUM; i = i+1 ) begin : loop_scatter_packet
-		assign {s_sampler2d_user  [i*S_AXI4S_TUSER_BITS +: S_AXI4S_TUSER_BITS],
-		        s_sampler2d_strb  [i],
-		        s_sampler2d_y     [i*SAMPLER2D_Y_WIDTH  +: SAMPLER2D_Y_WIDTH],
-		        s_sampler2d_x     [i*SAMPLER2D_X_WIDTH  +: SAMPLER2D_X_WIDTH]}
-		         = s_samoler2d_packet[i*SCATTER_DATA_WIDTH +: SCATTER_DATA_WIDTH];
+	always @(posedge s_wb_clk_i ) begin
+		if ( s_wb_rst_i ) begin
+			reg_param_addr            <= INIT_PARAM_ADDR;
+			reg_param_width           <= INIT_PARAM_WIDTH;
+			reg_param_height          <= INIT_PARAM_HEIGHT;
+			reg_param_stride_c        <= INIT_PARAM_STRIDE_C;
+			reg_param_stride_x        <= INIT_PARAM_STRIDE_X;
+			reg_param_stride_y        <= INIT_PARAM_STRIDE_Y;
+			reg_param_nearestneighbor <= INIT_PARAM_NEARESTNEIGHBOR;
+			reg_param_x_op            <= INIT_PARAM_X_OP;
+			reg_param_y_op            <= INIT_PARAM_Y_OP;
+			reg_param_border_value    <= INIT_PARAM_BORDER_VALUE;
+			reg_param_bgc             <= INIT_PARAM_BGC;
+		end
+		else begin
+			if ( s_wb_stb_i && s_wb_we_i ) begin
+				case ( s_wb_adr_i )
+				REG_ADDR_PARAM_ADDR:			reg_param_addr            <= s_wb_dat_i;
+				REG_ADDR_PARAM_WIDTH:			reg_param_width           <= s_wb_dat_i;
+				REG_ADDR_PARAM_HEIGHT:			reg_param_height          <= s_wb_dat_i;
+				REG_ADDR_PARAM_STRIDE_C:		reg_param_stride_c        <= s_wb_dat_i;
+				REG_ADDR_PARAM_STRIDE_X:		reg_param_stride_x        <= s_wb_dat_i;
+				REG_ADDR_PARAM_STRIDE_Y:		reg_param_stride_y        <= s_wb_dat_i;
+				REG_ADDR_PARAM_NEARESTNEIGHBOR:	reg_param_nearestneighbor <= s_wb_dat_i;
+				REG_ADDR_PARAM_X_OP:			reg_param_x_op            <= s_wb_dat_i;
+				REG_ADDR_PARAM_Y_OP:			reg_param_y_op            <= s_wb_dat_i;
+				REG_ADDR_PARAM_BORDER_VALUE:	reg_param_border_value    <= s_wb_dat_i;
+				REG_ADDR_PARAM_BGC:				reg_param_bgc             <= s_wb_dat_i;
+				endcase
+			end
+		end
 	end
-	endgenerate
+	
+	reg		[WB_DAT_WIDTH-1:0]	tmp_wb_dat_o;
+	always @* begin
+		tmp_wb_dat_o = {WB_DAT_WIDTH{1'b0}};
+		case ( s_wb_adr_i )
+		REG_ADDR_PARAM_ADDR:				tmp_wb_dat_o = reg_param_addr;
+		REG_ADDR_PARAM_WIDTH:				tmp_wb_dat_o = reg_param_width;
+		REG_ADDR_PARAM_HEIGHT:				tmp_wb_dat_o = reg_param_height;
+		REG_ADDR_PARAM_STRIDE_C:			tmp_wb_dat_o = reg_param_stride_c;
+		REG_ADDR_PARAM_STRIDE_X:			tmp_wb_dat_o = reg_param_stride_x;
+		REG_ADDR_PARAM_STRIDE_Y:			tmp_wb_dat_o = reg_param_stride_y;
+		REG_ADDR_PARAM_NEARESTNEIGHBOR:		tmp_wb_dat_o = reg_param_nearestneighbor;
+		REG_ADDR_PARAM_X_OP:				tmp_wb_dat_o = reg_param_x_op;
+		REG_ADDR_PARAM_Y_OP:				tmp_wb_dat_o = reg_param_y_op;
+		REG_ADDR_PARAM_BORDER_VALUE:		tmp_wb_dat_o = reg_param_border_value;
+		REG_ADDR_PARAM_BGC:					tmp_wb_dat_o = reg_param_bgc;
+		endcase
+		
+		if ( USE_PARAM_CFG_READ ) begin
+			case ( s_wb_adr_i )
+			REG_ADDR_CFG_SHADER_PARAM_NUM:		tmp_wb_dat_o = SHADER_PARAM_NUM;
+			REG_ADDR_CFG_SHADER_PARAM_WIDTH:	tmp_wb_dat_o = SHADER_PARAM_WIDTH;
+			REG_ADDR_CFG_SHADER_PARAM_Q: 		tmp_wb_dat_o = SHADER_PARAM_Q;
+			endcase
+		end
+	end
+	
+	assign s_wb_dat_o = tmp_wb_dat_o;
+	assign s_wb_ack_o = s_wb_stb_i;
 	
 	
-	jelly_data_scatter
+	// update_param信号の前後ではレジスタ変化が無い前提で非同期受け渡し
+	always @(posedge clk ) begin
+		if ( update ) begin
+			reg_shadow_addr            <= reg_param_addr;
+			reg_shadow_width           <= reg_param_width;
+			reg_shadow_height          <= reg_param_height;
+			reg_shadow_stride_c        <= reg_param_stride_c;
+			reg_shadow_stride_x        <= reg_param_stride_x;
+			reg_shadow_stride_y        <= reg_param_stride_y;
+			reg_shadow_nearestneighbor <= reg_param_nearestneighbor;
+			reg_shadow_x_op            <= reg_param_x_op;
+			reg_shadow_y_op            <= reg_param_y_op;
+			reg_shadow_border_value    <= reg_param_border_value;
+			reg_shadow_bgc             <= reg_param_bgc;
+		end
+	end
+	
+	
+	
+	
+	// -------------------------------------
+	// パースペクティブコレクション
+	// -------------------------------------
+	
+	wire										cke;
+	
+	wire										pc_frame_start;
+	wire										pc_line_end;
+	wire										pc_polygon_enable;
+	wire			[INDEX_WIDTH-1:0]			pc_polygon_index;
+	wire	signed	[SHADER_PARAM_WIDTH-1:0]	pc_u_tmp;
+	wire	signed	[SHADER_PARAM_WIDTH-1:0]	pc_v_tmp;
+	wire										pc_valid;
+	wire										pc_ready;
+	
+	wire	signed	[SAMPLER2D_X_WIDTH-1:0]		pc_u = (pc_u_tmp >>> (24 - 4 - 8));
+	wire	signed	[SAMPLER2D_Y_WIDTH-1:0]		pc_v = (pc_v_tmp >>> (24 - 4 - 8));
+	
+	
+	// debug
+	wire	signed	[SHADER_PARAM_WIDTH-1:0]	param0 = s_rasterizer_shader_params[SHADER_PARAM_WIDTH*0 +: SHADER_PARAM_WIDTH];
+	wire	signed	[SHADER_PARAM_WIDTH-1:0]	param1 = s_rasterizer_shader_params[SHADER_PARAM_WIDTH*1 +: SHADER_PARAM_WIDTH];
+	wire	signed	[SHADER_PARAM_WIDTH-1:0]	param2 = s_rasterizer_shader_params[SHADER_PARAM_WIDTH*2 +: SHADER_PARAM_WIDTH];
+	real	p0, p1, p2;
+	real	ru, rv;
+	real	exp_u, exp_v;
+	always @* begin
+		p0 = param0;
+		p1 = param1;
+		p2 = param2;
+		p0 = p0 / (1 << SHADER_PARAM_Q);
+		p1 = p1 / (1 << SHADER_PARAM_Q);
+		p2 = p2 / (1 << SHADER_PARAM_Q);
+		
+		exp_u = p1 / p0;
+		exp_v = p2 / p0;
+		
+		ru = pc_u;
+		rv = pc_v;
+		ru = ru / (1 << SHADER_PARAM_Q);
+		rv = rv / (1 << SHADER_PARAM_Q);
+	end
+	
+	jelly_fixed_matrix_divider
 			#(
-				.PORT_NUM						(SAMPLER2D_NUM),
-				.DATA_WIDTH						(SCATTER_DATA_WIDTH),
-				.LINE_SIZE						(IMAGE_X_NUM),
-				.UNIT_SIZE						(UNIT_X_NUM),
-				.FIFO_PTR_WIDTH					(SCATTER_FIFO_PTR_WIDTH),
-				.FIFO_RAM_TYPE					(SCATTER_FIFO_RAM_TYPE),
-				.S_REGS							(SCATTER_S_REGS),
-				.M_REGS							(SCATTER_M_REGS),
-				.INTERNAL_REGS					(SCATTER_INTERNAL_REGS)
+				.USER_WIDTH					(3+INDEX_WIDTH),
+				
+				.NUM						(SHADER_PARAM_NUM - 1),
+				.S_DIVIDEND_INT_WIDTH		(SHADER_PARAM_WIDTH - SHADER_PARAM_Q),
+				.S_DIVIDEND_FRAC_WIDTH		(SHADER_PARAM_Q),
+				.S_DIVISOR_INT_WIDTH		(SHADER_PARAM_WIDTH - SHADER_PARAM_Q),
+				.S_DIVISOR_FRAC_WIDTH		(SHADER_PARAM_Q),
+				.M_QUOTIENT_INT_WIDTH		(SHADER_PARAM_WIDTH - SHADER_PARAM_Q),
+				.M_QUOTIENT_FRAC_WIDTH		(SHADER_PARAM_Q),
+				
+		//		.DIVIDEND_FIXED_INT_WIDTH	(SHADER_PARAM_WIDTH - SHADER_PARAM_Q),
+		//		.DIVIDEND_FIXED_FRAC_WIDTH	(SHADER_PARAM_Q),
+				
+		//		.DIVISOR_FLOAT_EXP_WIDTH	(6),
+		//		.DIVISOR_FLOAT_FRAC_WIDTH	(24),
+				
+				.CLIP						(1),
+				
+		//		.D_WIDTH					(8),	// interpolation table addr bits
+		//		.K_WIDTH					(DIVISOR_FLOAT_FRAC_WIDTH - D_WIDTH),
+		//		.GRAD_WIDTH					(DIVISOR_FLOAT_FRAC_WIDTH),
+				.RAM_TYPE					("block"),
+				
+				.MASTER_IN_REGS				(0),
+				.MASTER_OUT_REGS			(0),
+				
+				.DEVICE						(DEVICE)
 			)
-		i_data_scatter
+		i_fixed_matrix_divider
 			(
-				.reset							(reset),
-				.clk							(clk),
+				.reset						(reset),
+				.clk						(clk),
+				.cke						(1),
 				
-				.s_data							(s_axi4s_tpacket),
-				.s_valid						(s_axi4s_tvalid),
-				.s_ready						(s_axi4s_tready),
+				.s_user						({
+												s_rasterizer_frame_start,
+												s_rasterizer_line_end,
+												s_rasterizer_polygon_enable,
+												s_rasterizer_polygon_index
+											}),
+				.s_dividend					(s_rasterizer_shader_params[SHADER_PARAM_NUM*SHADER_PARAM_WIDTH-1:SHADER_PARAM_WIDTH]),
+				.s_divisor					(s_rasterizer_shader_params[SHADER_PARAM_WIDTH-1:0]),
+				.s_valid					(s_rasterizer_valid),
+				.s_ready					(s_rasterizer_ready),
 				
-				.m_data							(s_samoler2d_packet),
-				.m_valid						(s_sampler2d_valid),
-				.m_ready						(s_sampler2d_ready)
+				.m_user						({
+												pc_frame_start,
+												pc_line_end,
+												pc_polygon_enable,
+												pc_polygon_index
+											}),
+				.m_quotient					({pc_v_tmp, pc_u_tmp}),
+				.m_valid					(pc_valid),
+				.m_ready					(pc_ready)
 			);
 	
+//	assign cke = !pc_valid || pc_ready;
 	
-	// sampler
-	wire	[SAMPLER2D_NUM*SAMPLER2D_USER_WIDTH-1:0]		m_sampler2d_user;
-	wire	[SAMPLER2D_NUM-1:0]								m_sampler2d_strb;
-	wire	[SAMPLER2D_NUM*COMPONENT_NUM*DATA_WIDTH-1:0]	m_sampler2d_data;
-	wire	[SAMPLER2D_NUM-1:0]								m_sampler2d_valid;
-	wire	[SAMPLER2D_NUM-1:0]								m_sampler2d_ready;
+//	assign s_rasterizer_ready = cke;
 	
-	jelly_texture_sampler
+	
+	// -------------------------------------
+	//  Texture Sampler
+	// -------------------------------------
+	
+	jelly_texture_stream
 			#(
+				.IMAGE_X_NUM					(IMAGE_X_NUM),
+				.PARALLEL_NUM					(PARALLEL_NUM),
+				
 				.COMPONENT_NUM					(COMPONENT_NUM),
 				.DATA_SIZE						(DATA_SIZE),
 				.DATA_WIDTH 					(DATA_WIDTH),
@@ -311,11 +513,21 @@ module jelly_texture_stream
 				.STRIDE_X_WIDTH 				(STRIDE_X_WIDTH),
 				.STRIDE_Y_WIDTH 				(STRIDE_Y_WIDTH),
 				
-				.USE_BILINEAR 					(USE_BILINEAR),
+				.USE_BILINEAR					(USE_BILINEAR),
 				.USE_BORDER 					(USE_BORDER),
 				
-				.SAMPLER2D_NUM					(SAMPLER2D_NUM),
-				.SAMPLER2D_USER_WIDTH			(SAMPLER2D_USER_WIDTH),
+				.SCATTER_FIFO_PTR_WIDTH 		(SCATTER_FIFO_PTR_WIDTH),
+				.SCATTER_FIFO_RAM_TYPE			(SCATTER_FIFO_RAM_TYPE),
+				.SCATTER_S_REGS 				(SCATTER_S_REGS),
+				.SCATTER_M_REGS 				(SCATTER_M_REGS),
+				.SCATTER_INTERNAL_REGS			(SCATTER_INTERNAL_REGS),
+				
+				.GATHER_FIFO_PTR_WIDTH			(GATHER_FIFO_PTR_WIDTH),
+				.GATHER_FIFO_RAM_TYPE			(GATHER_FIFO_RAM_TYPE),
+				.GATHER_S_REGS					(GATHER_S_REGS),
+				.GATHER_M_REGS					(GATHER_M_REGS),
+				.GATHER_INTERNAL_REGS			(GATHER_INTERNAL_REGS),
+				
 				.SAMPLER2D_X_INT_WIDTH			(SAMPLER2D_X_INT_WIDTH),
 				.SAMPLER2D_X_FRAC_WIDTH 		(SAMPLER2D_X_FRAC_WIDTH),
 				.SAMPLER2D_Y_INT_WIDTH			(SAMPLER2D_Y_INT_WIDTH),
@@ -330,7 +542,13 @@ module jelly_texture_stream
 				.SAMPLER2D_X_WIDTH				(SAMPLER2D_X_WIDTH),
 				.SAMPLER2D_Y_WIDTH				(SAMPLER2D_Y_WIDTH),
 				.SAMPLER2D_COEFF_WIDTH			(SAMPLER2D_COEFF_WIDTH),
-				.SAMPLER2D_USER_BITS			(SAMPLER2D_USER_BITS),
+				
+				.S_AXI4S_TUSER_WIDTH			(1 + S_AXI4S_TUSER_WIDTH),
+				.S_AXI4S_TTEXCORDU_WIDTH		(S_AXI4S_TTEXCORDU_WIDTH),
+				.S_AXI4S_TTEXCORDV_WIDTH		(S_AXI4S_TTEXCORDV_WIDTH),
+				
+				.M_AXI4S_TUSER_WIDTH			(1 + M_AXI4S_TUSER_WIDTH),
+				.M_AXI4S_TDATA_WIDTH			(M_AXI4S_TDATA_WIDTH),
 				
 				.M_AXI4_ID_WIDTH				(M_AXI4_ID_WIDTH),
 				.M_AXI4_ADDR_WIDTH				(M_AXI4_ADDR_WIDTH),
@@ -348,7 +566,6 @@ module jelly_texture_stream
 				.M_AXI4_ARREGION				(M_AXI4_ARREGION),
 				.M_AXI4_REGS					(M_AXI4_REGS),
 				
-				.L1_CACHE_NUM					(L1_CACHE_NUM),
 				.L1_USE_LOOK_AHEAD				(L1_USE_LOOK_AHEAD),
 				.L1_BLK_X_SIZE					(L1_BLK_X_SIZE),
 				.L1_BLK_Y_SIZE					(L1_BLK_Y_SIZE),
@@ -377,7 +594,6 @@ module jelly_texture_stream
 				.L1_LOG_ID						(L1_LOG_ID),
 				
 				.L2_PARALLEL_SIZE				(L2_PARALLEL_SIZE),
-				.L2_CACHE_NUM					(L2_CACHE_NUM),
 				.L2_USE_LOOK_AHEAD				(L2_USE_LOOK_AHEAD),
 				.L2_BLK_X_SIZE					(L2_BLK_X_SIZE),
 				.L2_BLK_Y_SIZE					(L2_BLK_Y_SIZE),
@@ -404,7 +620,7 @@ module jelly_texture_stream
 				.L2_LOG_FILE					(L2_LOG_FILE),
 				.L2_LOG_ID						(L2_LOG_ID),
 				
-				.DMA_QUE_FIFO_PTR_WIDTH 		(DMA_QUE_FIFO_PTR_WIDTH ),
+				.DMA_QUE_FIFO_PTR_WIDTH 		(DMA_QUE_FIFO_PTR_WIDTH),
 				.DMA_QUE_FIFO_RAM_TYPE			(DMA_QUE_FIFO_RAM_TYPE),
 				.DMA_QUE_FIFO_S_REGS			(DMA_QUE_FIFO_S_REGS),
 				.DMA_QUE_FIFO_M_REGS			(DMA_QUE_FIFO_M_REGS),
@@ -413,27 +629,26 @@ module jelly_texture_stream
 				
 				.DEVICE 						(DEVICE)
 			)
-		i_texture_sampler
+		i_texture_stream
 			(
 				.reset							(reset),
 				.clk							(clk),
 				.endian							(endian),
 				
-				.param_addr						(param_addr),
-				.param_width					(param_width),
-				.param_height					(param_height),
-				.param_stride_c					(param_stride_c),
-				.param_stride_x					(param_stride_x),
-				.param_stride_y					(param_stride_y),
+				.param_addr						(reg_shadow_addr),
+				.param_width					(reg_shadow_width),
+				.param_height					(reg_shadow_height),
+				.param_stride_c					(reg_shadow_stride_c),
+				.param_stride_x					(reg_shadow_stride_x),
+				.param_stride_y					(reg_shadow_stride_y),
+				.param_nearestneighbor			(reg_shadow_nearestneighbor),
+				.param_x_op						(reg_shadow_x_op),
+				.param_y_op						(reg_shadow_y_op),
+				.param_border_value				(reg_shadow_border_value),
+				.param_blank_value				(reg_shadow_bgc),
 				
-				.param_nearestneighbor			(param_nearestneighbor),
-				.param_x_op						(param_x_op),
-				.param_y_op						(param_y_op),
-				.param_border_value				(param_border_value),
-				.param_blank_value				(param_blank_value),
-				
-				.clear_start					(clear_start),
-				.clear_busy						(clear_busy),
+				.clear_start					(1'b0),
+				.clear_busy						(),
 				
 				.status_l1_idle					(status_l1_idle),
 				.status_l1_stall				(status_l1_stall),
@@ -447,19 +662,19 @@ module jelly_texture_stream
 				.status_l2_hit					(status_l2_hit),
 				.status_l2_miss					(status_l2_miss),
 				.status_l2_blank				(status_l2_blank),
+
+				.s_axi4s_tuser					({pc_line_end, pc_frame_start}),
+				.s_axi4s_ttexcordu				(pc_u),
+				.s_axi4s_ttexcordv				(pc_v),
+				.s_axi4s_tstrb					(pc_polygon_enable),
+				.s_axi4s_tvalid					(pc_valid),
+				.s_axi4s_tready					(pc_ready),
 				
-				.s_sampler2d_user				(s_sampler2d_user),
-				.s_sampler2d_x					(s_sampler2d_x),
-				.s_sampler2d_y					(s_sampler2d_y),
-				.s_sampler2d_strb				(s_sampler2d_strb),
-				.s_sampler2d_valid				(s_sampler2d_valid),
-				.s_sampler2d_ready				(s_sampler2d_ready),
-				
-				.m_sampler2d_user				(m_sampler2d_user),
-				.m_sampler2d_data				(m_sampler2d_data),
-				.m_sampler2d_strb				(m_sampler2d_strb),
-				.m_sampler2d_valid				(m_sampler2d_valid),
-				.m_sampler2d_ready				(m_sampler2d_ready),
+				.m_axi4s_tuser					({m_axi4s_tlast, m_axi4s_tuser}),
+				.m_axi4s_tdata					(m_axi4s_tdata),
+				.m_axi4s_tstrb					(m_axi4s_tstrb),
+				.m_axi4s_tvalid					(m_axi4s_tvalid),
+				.m_axi4s_tready					(m_axi4s_tready),
 				
 				.m_axi4_arid					(m_axi4_arid),
 				.m_axi4_araddr					(m_axi4_araddr),
@@ -482,55 +697,10 @@ module jelly_texture_stream
 			);
 	
 	
-	// gather
-	localparam	GATHER_DATA_WIDTH = SAMPLER2D_USER_WIDTH + 1 + M_AXI4S_TDATA_WIDTH;
-	
-	wire	[SAMPLER2D_NUM*GATHER_DATA_WIDTH-1:0]		m_sampler2d_packet;
-	
-	generate
-	for ( i = 0; i < SAMPLER2D_NUM; i = i+1 ) begin : loop_gather_packet
-		assign m_sampler2d_packet[i*GATHER_DATA_WIDTH +: GATHER_DATA_WIDTH]
-		        = {m_sampler2d_user  [i*S_AXI4S_TUSER_BITS  +: S_AXI4S_TUSER_BITS],
-		           m_sampler2d_strb  [i],
-		           m_sampler2d_data  [i*M_AXI4S_TDATA_WIDTH +: M_AXI4S_TDATA_WIDTH]};
-	end
-	endgenerate
-	
-	wire	[GATHER_DATA_WIDTH-1:0]						m_axi4s_tpacket;
-	
-	assign {m_axi4s_tuser, m_axi4s_tstrb, m_axi4s_tdata} = m_axi4s_tpacket;
-	
-	jelly_data_gather
-			#(
-				.PORT_NUM			(SAMPLER2D_NUM),
-				.DATA_WIDTH			(GATHER_DATA_WIDTH),
-				.LINE_SIZE			(IMAGE_X_NUM),
-				.UNIT_SIZE			(UNIT_X_NUM),
-				.FIFO_PTR_WIDTH		(GATHER_FIFO_PTR_WIDTH),
-				.FIFO_RAM_TYPE		(GATHER_FIFO_RAM_TYPE),
-				.S_REGS				(GATHER_S_REGS),
-				.M_REGS				(GATHER_M_REGS),
-				.INTERNAL_REGS		(GATHER_INTERNAL_REGS)
-			)
-		i_data_gather
-			(
-				.reset				(reset),
-				.clk				(clk),
-				
-				.s_data				(m_sampler2d_packet),
-				.s_valid			(m_sampler2d_valid),
-				.s_ready			(m_sampler2d_ready),
-				
-				.m_data				(m_axi4s_tpacket),
-				.m_valid			(m_axi4s_tvalid),
-				.m_ready			(m_axi4s_tready)
-			);
-	
-	
 endmodule
 
 
 `default_nettype wire
 
 
-// end of file
+// End of file

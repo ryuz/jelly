@@ -107,7 +107,7 @@
     </file>
     <file xil_pn:name="../../../../rtl/gpu/jelly_texture_cache_core.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="248"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="34"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="37"/>
     </file>
     <file xil_pn:name="../../../../rtl/primitive/jelly_mul_add_dsp48e1.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="334"/>
@@ -119,7 +119,7 @@
     </file>
     <file xil_pn:name="../../../../rtl/gpu/jelly_texture_sampler.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="229"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="39"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="47"/>
     </file>
     <file xil_pn:name="../../../../rtl/gpu/jelly_texture_cache_lookahead.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="373"/>
@@ -167,11 +167,11 @@
     </file>
     <file xil_pn:name="../../../../rtl/gpu/jelly_texture_bilinear_unit.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="223"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="36"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="39"/>
     </file>
     <file xil_pn:name="../../../../rtl/gpu/jelly_texture_border_unit.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="224"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="35"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="38"/>
     </file>
     <file xil_pn:name="../../../../rtl/gpu/jelly_cache_tag_full.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="51"/>
@@ -339,31 +339,31 @@
     </file>
     <file xil_pn:name="../../../../rtl/library/jelly_minmax.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="93"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="44"/>
     </file>
     <file xil_pn:name="../../../../rtl/gpu/jelly_rasterizer_plane_calc.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="105"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="48"/>
     </file>
     <file xil_pn:name="../../../../rtl/library/jelly_params_ram.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="116"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="43"/>
     </file>
     <file xil_pn:name="../../../../rtl/library/jelly_ram_dualport.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="117"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="35"/>
     </file>
     <file xil_pn:name="../../../../rtl/gpu/jelly_rasterizer_params.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="141"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="51"/>
     </file>
     <file xil_pn:name="../../../../rtl/gpu/jelly_rasterizer.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="142"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="53"/>
     </file>
     <file xil_pn:name="../../../../rtl/gpu/jelly_rasterizer_core.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="143"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="52"/>
     </file>
     <file xil_pn:name="../../../../rtl/gpu/jelly_gpu_gouraud.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="155"/>
@@ -371,23 +371,51 @@
     </file>
     <file xil_pn:name="../../../../rtl/library/jelly_data_delay.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="165"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="36"/>
     </file>
     <file xil_pn:name="../../../../rtl/library/jelly_data_gather.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="133"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="38"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="46"/>
     </file>
     <file xil_pn:name="../../../../rtl/library/jelly_data_scatter.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="134"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="37"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="45"/>
     </file>
     <file xil_pn:name="../../../../rtl/gpu/jelly_texture_stream.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="156"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="40"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="50"/>
     </file>
     <file xil_pn:name="../../../../rtl/gpu/jelly_pixel_shader_gouraud.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="168"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
+    </file>
+    <file xil_pn:name="../../../../rtl/gpu/jelly_pixel_shader_texturemap.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="192"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="54"/>
+    </file>
+    <file xil_pn:name="../../../../rtl/math/jelly_fixed_matrix_divider.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="193"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="49"/>
+    </file>
+    <file xil_pn:name="../../../../rtl/math/jelly_fixed_float_mul.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="194"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="42"/>
+    </file>
+    <file xil_pn:name="../../../../rtl/math/jelly_fixed_to_float.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="195"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="41"/>
+    </file>
+    <file xil_pn:name="../../../../rtl/math/jelly_float_reciprocal.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="196"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="40"/>
+    </file>
+    <file xil_pn:name="../../../../rtl/math/jelly_integer_clz.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="197"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="34"/>
+    </file>
+    <file xil_pn:name="../../../../rtl/gpu/jelly_gpu_texturemap.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="209"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="55"/>
     </file>
   </files>
 
@@ -507,9 +535,9 @@
     <property xil_pn:name="ISim UUT Instance Name" xil_pn:value="UUT" xil_pn:valueState="default"/>
     <property xil_pn:name="Ignore User Timing Constraints Map" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Ignore User Timing Constraints Par" xil_pn:value="false" xil_pn:valueState="default"/>
-    <property xil_pn:name="Implementation Top" xil_pn:value="Module|jelly_texture_stream" xil_pn:valueState="non-default"/>
-    <property xil_pn:name="Implementation Top File" xil_pn:value="../../../../rtl/gpu/jelly_texture_stream.v" xil_pn:valueState="non-default"/>
-    <property xil_pn:name="Implementation Top Instance Path" xil_pn:value="/jelly_texture_stream" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Implementation Top" xil_pn:value="Module|jelly_gpu_texturemap" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Implementation Top File" xil_pn:value="../../../../rtl/gpu/jelly_gpu_texturemap.v" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Implementation Top Instance Path" xil_pn:value="/jelly_gpu_texturemap" xil_pn:valueState="non-default"/>
     <property xil_pn:name="Include 'uselib Directive in Verilog File" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Include SIMPRIM Models in Verilog File" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Include UNISIM Models in Verilog File" xil_pn:value="false" xil_pn:valueState="default"/>
@@ -566,7 +594,7 @@
     <property xil_pn:name="Other XPWR Command Line Options" xil_pn:value="" xil_pn:valueState="default"/>
     <property xil_pn:name="Other XST Command Line Options" xil_pn:value="" xil_pn:valueState="default"/>
     <property xil_pn:name="Output Extended Identifiers" xil_pn:value="false" xil_pn:valueState="default"/>
-    <property xil_pn:name="Output File Name" xil_pn:value="jelly_texture_stream" xil_pn:valueState="default"/>
+    <property xil_pn:name="Output File Name" xil_pn:value="jelly_gpu_texturemap" xil_pn:valueState="default"/>
     <property xil_pn:name="Overwrite Compiled Libraries" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Pack I/O Registers into IOBs" xil_pn:value="Auto" xil_pn:valueState="default"/>
     <property xil_pn:name="Pack I/O Registers/Latches into IOBs" xil_pn:value="Off" xil_pn:valueState="default"/>
@@ -580,10 +608,10 @@
     <property xil_pn:name="Placer Effort Level Map" xil_pn:value="High" xil_pn:valueState="default"/>
     <property xil_pn:name="Placer Extra Effort Map" xil_pn:value="None" xil_pn:valueState="default"/>
     <property xil_pn:name="Port to be used" xil_pn:value="Auto - default" xil_pn:valueState="default"/>
-    <property xil_pn:name="Post Map Simulation Model Name" xil_pn:value="jelly_texture_stream_map.v" xil_pn:valueState="default"/>
-    <property xil_pn:name="Post Place &amp; Route Simulation Model Name" xil_pn:value="jelly_texture_stream_timesim.v" xil_pn:valueState="default"/>
-    <property xil_pn:name="Post Synthesis Simulation Model Name" xil_pn:value="jelly_texture_stream_synthesis.v" xil_pn:valueState="default"/>
-    <property xil_pn:name="Post Translate Simulation Model Name" xil_pn:value="jelly_texture_stream_translate.v" xil_pn:valueState="default"/>
+    <property xil_pn:name="Post Map Simulation Model Name" xil_pn:value="jelly_gpu_texturemap_map.v" xil_pn:valueState="default"/>
+    <property xil_pn:name="Post Place &amp; Route Simulation Model Name" xil_pn:value="jelly_gpu_texturemap_timesim.v" xil_pn:valueState="default"/>
+    <property xil_pn:name="Post Synthesis Simulation Model Name" xil_pn:value="jelly_gpu_texturemap_synthesis.v" xil_pn:valueState="default"/>
+    <property xil_pn:name="Post Translate Simulation Model Name" xil_pn:value="jelly_gpu_texturemap_translate.v" xil_pn:valueState="default"/>
     <property xil_pn:name="Power Down Device if Over Safe Temperature" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Power Reduction Map virtex6" xil_pn:value="Off" xil_pn:valueState="default"/>
     <property xil_pn:name="Power Reduction Par" xil_pn:value="false" xil_pn:valueState="default"/>

@@ -8,7 +8,7 @@ module tb_float_reciprocal();
 	
 	initial begin
 		$dumpfile("tb_float_reciprocal.vcd");
-		$dumpvars(1, tb_float_reciprocal);
+		$dumpvars(0, tb_float_reciprocal);
 	end
 	
 	reg		clk = 1'b1;
@@ -20,12 +20,12 @@ module tb_float_reciprocal();
 	
 	
 	
-	parameter	EXP_WIDTH   = 8;
+	parameter	EXP_WIDTH   = 6;
 	parameter	EXP_OFFSET  = (1 << (EXP_WIDTH-1)) - 1;
-	parameter	FRAC_WIDTH  = 23;
+	parameter	FRAC_WIDTH  = 16;
 	parameter	FLOAT_WIDTH = 1 + EXP_WIDTH + FRAC_WIDTH;
 	
-	parameter	D_WIDTH     = 10; // 6;
+	parameter	D_WIDTH     = 8; // 6;
 	parameter	K_WIDTH     = FRAC_WIDTH - D_WIDTH;
 	parameter	GRAD_WIDTH  = FRAC_WIDTH;
 	
@@ -96,6 +96,8 @@ module tb_float_reciprocal();
 				else begin
 					in_float <= {$random(reg_random)};
 				end
+				
+				in_float <= {1'b0, 6'h1a, 16'h5cea};
 			end
 		end
 	end
@@ -183,6 +185,49 @@ module tb_float_reciprocal();
 				.m_ready		(out_ready)
 			);
 	
+	
+	// debug
+	integer	iEXP_WIDTH				  = EXP_WIDTH;
+	integer	iEXP_OFFSET				  = EXP_OFFSET;
+	integer	iFRAC_WIDTH				  = FRAC_WIDTH;
+	integer	iFLOAT_WIDTH              = FLOAT_WIDTH;
+	integer	iD_WIDTH				  = D_WIDTH;
+	integer	iK_WIDTH				  = K_WIDTH;
+	integer	iGRAD_WIDTH				  = GRAD_WIDTH;
+	
+	wire						in_float_sign = in_float[EXP_WIDTH  + FRAC_WIDTH];
+	wire	[EXP_WIDTH-1:0]		in_float_exp  = in_float[FRAC_WIDTH +: EXP_WIDTH];
+	wire	[FRAC_WIDTH-1:0]	in_float_frac = in_float[FRAC_WIDTH-1:0];
+	integer		int_in_float_exp;
+	real		rel_in_float;
+	always @* begin
+		int_in_float_exp = in_float_exp - EXP_OFFSET;
+		rel_in_float     = in_float_frac;
+		rel_in_float     = rel_in_float / (1 << FRAC_WIDTH) + 1.0;
+		if ( in_float_exp > EXP_OFFSET )	rel_in_float = rel_in_float * (1 << (in_float_exp - EXP_OFFSET));
+		else								rel_in_float = rel_in_float / (1 << (EXP_OFFSET - in_float_exp));
+		if ( in_float_sign )				rel_in_float = -rel_in_float;
+	end
+
+	wire						out_float_sign = out_float[EXP_WIDTH  + FRAC_WIDTH];
+	wire	[EXP_WIDTH-1:0]		out_float_exp  = out_float[FRAC_WIDTH +: EXP_WIDTH];
+	wire	[FRAC_WIDTH-1:0]	out_float_frac = out_float[FRAC_WIDTH-1:0];
+	integer		int_out_float_exp;
+	real		rel_out_float;
+	real		exp_out_float;
+	real		out_value;
+	always @* begin
+		out_value = float2real(out_float);
+		
+		int_out_float_exp = out_float_exp - EXP_OFFSET;
+		rel_out_float     = out_float_frac;
+		rel_out_float     = rel_out_float / (1 << FRAC_WIDTH) + 1.0;
+		if ( out_float_exp > EXP_OFFSET )	rel_out_float = rel_out_float * (1 << (out_float_exp - EXP_OFFSET));
+		else								rel_out_float = rel_out_float / (1 << (EXP_OFFSET - out_float_exp));
+		if ( out_float_sign )				rel_out_float = -rel_out_float;
+		
+		exp_out_float = 1.0 / rel_in_float;
+	end
 	
 endmodule
 

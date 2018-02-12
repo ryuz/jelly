@@ -100,7 +100,7 @@ module jelly_pixel_shader_gouraud
 	reg		[WB_DAT_WIDTH-1:0]	tmp_wb_dat_o;
 	always @* begin
 		tmp_wb_dat_o = {WB_DAT_WIDTH{1'b0}};
-		case ( s_wb_adr_i[5:0] )
+		case ( s_wb_adr_i )
 		REG_ADDR_PARAM_BGC:		tmp_wb_dat_o = reg_param_bgc;
 		endcase
 		

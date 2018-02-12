@@ -10,7 +10,7 @@ module tb_rasterizer();
 	
 	initial begin
 		$dumpfile("tb_rasterizer.vcd");
-		$dumpvars(1, tb_rasterizer);
+		$dumpvars(0, tb_rasterizer);
 	end
 	
 	reg		clk = 1'b1;
@@ -34,12 +34,12 @@ module tb_rasterizer();
 	parameter	WB_SEL_WIDTH        = (WB_DAT_WIDTH / 8);
 	
 	parameter	BANK_NUM            = 2;
-	parameter	BANK_ADDR_WIDTH     = 12;
-	parameter	PARAMS_ADDR_WIDTH   = 10;
+	parameter	PARAMS_ADDR_WIDTH   = 12;
+	parameter	BANK_ADDR_WIDTH     = 10;
 	
-	parameter	EDGE_NUM            = 12*2;
-	parameter	POLYGON_NUM         = 6*2;
-	parameter	SHADER_PARAM_NUM    = 4;
+	parameter	EDGE_NUM            = 12*1;
+	parameter	POLYGON_NUM         = 6*1;
+	parameter	SHADER_PARAM_NUM    = 3;
 	
 	parameter	EDGE_PARAM_WIDTH    = 32;
 	parameter	EDGE_RAM_TYPE       = "distributed";
@@ -55,10 +55,11 @@ module tb_rasterizer();
 	parameter	Z_SORT_MIN          = 0;	// 1‚Å¬‚³‚¢’l—Dæ(Z²‰œŒü‚«)
 	
 	parameter	INIT_CTL_ENABLE     = 1'b0;
-	parameter	INIT_CTL_BANK       = 0;
+	parameter	INIT_CTL_UPDATE     = 1'b0;
 	parameter	INIT_PARAM_WIDTH    = X_NUM-1;
 	parameter	INIT_PARAM_HEIGHT   = Y_NUM-1;
 	parameter	INIT_PARAM_CULLING  = 2'b01;
+	parameter	INIT_PARAM_BANK     = 0;
 	
 	
 	parameter	PARAMS_EDGE_SIZE    = EDGE_NUM*3;
@@ -146,10 +147,11 @@ module tb_rasterizer();
 				.Z_SORT_MIN			(Z_SORT_MIN),
 				
 				.INIT_CTL_ENABLE	(INIT_CTL_ENABLE),
-				.INIT_CTL_BANK		(INIT_CTL_BANK),
+				.INIT_CTL_UPDATE	(INIT_CTL_UPDATE),
 				.INIT_PARAM_WIDTH	(INIT_PARAM_WIDTH),
 				.INIT_PARAM_HEIGHT	(INIT_PARAM_HEIGHT),
-				.INIT_PARAM_CULLING	(INIT_PARAM_CULLING)
+				.INIT_PARAM_CULLING	(INIT_PARAM_CULLING),
+				.INIT_PARAM_BANK	(INIT_PARAM_BANK)
 			)
 		i_rasterizer
 			(
@@ -186,14 +188,14 @@ module tb_rasterizer();
 	wire	signed	[31:0]		m_shader_p0 = m_shader_params[32*0 +: 32];
 	wire	signed	[31:0]		m_shader_p1 = m_shader_params[32*1 +: 32];
 	wire	signed	[31:0]		m_shader_p2 = m_shader_params[32*2 +: 32];
-	wire	signed	[31:0]		m_shader_p3 = m_shader_params[32*3 +: 32];
+//	wire	signed	[31:0]		m_shader_p3 = SHADER_PARAM_NUM > 0 ? m_shader_params[32*3 +: 32] : 0;
 	real						rel_p0, rel_p1, rel_p2;
 	reg				[7:0]		int_u, int_v, int_t;
 	reg				[7:0]		int_r, int_g, int_b;
 	always @* begin
-		rel_p0 = m_shader_p1;
-		rel_p1 = m_shader_p2;
-		rel_p2 = m_shader_p3;
+		rel_p0 = m_shader_p0;
+		rel_p1 = m_shader_p1;
+		rel_p2 = m_shader_p2;
 		rel_p0 = rel_p0 / (1 << SHADER_PARAM_Q);
 		rel_p1 = rel_p1 / (1 << SHADER_PARAM_Q);
 		rel_p2 = rel_p2 / (1 << SHADER_PARAM_Q);
@@ -223,8 +225,9 @@ module tb_rasterizer();
 	always @(posedge clk) begin
 		if ( !reset && cke && m_valid ) begin
 			if ( &m_polygon_enable ) begin
-//				 $fdisplay(fp, "%d %d %d", int_u, int_v, 255);
-				 $fdisplay(fp, "%d %d %d", int_r, int_g, int_b);
+				 $fdisplay(fp, "%d %d %d", int_u, int_v, 255);
+//				 $fdisplay(fp, "%d %d %d", int_r, int_g, int_b);
+//				 $fdisplay(fp, "%d %d %d", 255, 255, 255);
 			end
 			else begin
 				 $fdisplay(fp, "0 0 0");
@@ -235,7 +238,7 @@ module tb_rasterizer();
 	
 	
 	
-	
+	/*
 	////////////
 	wire	[0:0]			axi4s_gpu_tuser;
 	wire					axi4s_gpu_tlast;
@@ -322,7 +325,7 @@ module tb_rasterizer();
 		end
 	end
 	
-	
+	*/
 	
 	
 	
@@ -362,7 +365,7 @@ module tb_rasterizer();
 	end
 	
 	task wb_write(
-				input [WB_ADR_WIDTH-1:0]	adr,
+				input [WB_ADR_WIDTH+2-1:0]	adr,
 				input [WB_DAT_WIDTH-1:0]	dat,
 				input [WB_SEL_WIDTH-1:0]	sel
 			);
@@ -388,7 +391,7 @@ module tb_rasterizer();
 	
 	
 	task wb_read(
-				input [WB_ADR_WIDTH-1:0]	adr
+				input [WB_ADR_WIDTH+2-1:0]	adr
 			);
 	begin
 		@(negedge wb_clk_i);
@@ -414,426 +417,113 @@ module tb_rasterizer();
 	initial begin
 	@(negedge wb_rst_i);
 	#100
-	
-$display("[edge]");
-wb_write(32'h00001000, 32'hfffff6da, 4'b1111);
-wb_write(32'h00001004, 32'h0016d63d, 4'b1111);
-wb_write(32'h00001008, 32'h0007a1e0, 4'b1111);
-wb_write(32'h0000100c, 32'h000001a2, 4'b1111);
-wb_write(32'h00001010, 32'hfffbf46c, 4'b1111);
-wb_write(32'h00001014, 32'hfff57dd8, 4'b1111);
-wb_write(32'h00001018, 32'hfffff761, 4'b1111);
-wb_write(32'h0000101c, 32'h001584c4, 4'b1111);
-wb_write(32'h00001020, 32'h000be9cd, 4'b1111);
-wb_write(32'h00001024, 32'h0000011b, 4'b1111);
-wb_write(32'h00001028, 32'hfffd45e5, 4'b1111);
-wb_write(32'h0000102c, 32'hfffa20dc, 4'b1111);
-wb_write(32'h00001030, 32'h00000232, 4'b1111);
-wb_write(32'h00001034, 32'hfffa8de9, 4'b1111);
-wb_write(32'h00001038, 32'hfff12801, 4'b1111);
-wb_write(32'h0000103c, 32'hfffff58d, 4'b1111);
-wb_write(32'h00001040, 32'h001a153b, 4'b1111);
-wb_write(32'h00001044, 32'h000b3fef, 4'b1111);
-wb_write(32'h00001048, 32'h00000185, 4'b1111);
-wb_write(32'h0000104c, 32'hfffc3e5d, 4'b1111);
-wb_write(32'h00001050, 32'hfff72755, 4'b1111);
-wb_write(32'h00001054, 32'hfffff63a, 4'b1111);
-wb_write(32'h00001058, 32'h001864c7, 4'b1111);
-wb_write(32'h0000105c, 32'h0010ae84, 4'b1111);
-wb_write(32'h00001060, 32'hfffffd8a, 4'b1111);
-wb_write(32'h00001064, 32'h00062952, 4'b1111);
-wb_write(32'h00001068, 32'h0000e190, 4'b1111);
-wb_write(32'h0000106c, 32'hfffffd20, 4'b1111);
-wb_write(32'h00001070, 32'h000730da, 4'b1111);
-wb_write(32'h00001074, 32'h00004210, 4'b1111);
-wb_write(32'h00001078, 32'hfffffc63, 4'b1111);
-wb_write(32'h0000107c, 32'h00090955, 4'b1111);
-wb_write(32'h00001080, 32'h00003786, 4'b1111);
-wb_write(32'h00001084, 32'hfffffbd3, 4'b1111);
-wb_write(32'h00001088, 32'h000a6fd8, 4'b1111);
-wb_write(32'h0000108c, 32'hffff96e8, 4'b1111);
-wb_write(32'h00001090, 32'hfffffb1a, 4'b1111);
-wb_write(32'h00001094, 32'h000c3a0e, 4'b1111);
-wb_write(32'h00001098, 32'h00069a49, 4'b1111);
-wb_write(32'h0000109c, 32'hfffffda0, 4'b1111);
-wb_write(32'h000010a0, 32'h0005ed62, 4'b1111);
-wb_write(32'h000010a4, 32'h000375d3, 4'b1111);
-wb_write(32'h000010a8, 32'hfffffab6, 4'b1111);
-wb_write(32'h000010ac, 32'h000d33aa, 4'b1111);
-wb_write(32'h000010b0, 32'h00070c91, 4'b1111);
-wb_write(32'h000010b4, 32'hfffffe04, 4'b1111);
-wb_write(32'h000010b8, 32'h0004f3c6, 4'b1111);
-wb_write(32'h000010bc, 32'h0002dcf3, 4'b1111);
-wb_write(32'h000010c0, 32'hfffffda9, 4'b1111);
-wb_write(32'h000010c4, 32'h0005d678, 4'b1111);
-wb_write(32'h000010c8, 32'h00033849, 4'b1111);
-wb_write(32'h000010cc, 32'hfffffb20, 4'b1111);
-wb_write(32'h000010d0, 32'h000c2b3e, 4'b1111);
-wb_write(32'h000010d4, 32'h0004edec, 4'b1111);
-wb_write(32'h000010d8, 32'hfffffe0b, 4'b1111);
-wb_write(32'h000010dc, 32'h0004e1d0, 4'b1111);
-wb_write(32'h000010e0, 32'h0002a0f9, 4'b1111);
-wb_write(32'h000010e4, 32'hfffffabe, 4'b1111);
-wb_write(32'h000010e8, 32'h000d1fe6, 4'b1111);
-wb_write(32'h000010ec, 32'h000506b0, 4'b1111);
-wb_write(32'h000010f0, 32'h00000027, 4'b1111);
-wb_write(32'h000010f4, 32'hffff992f, 4'b1111);
-wb_write(32'h000010f8, 32'h00051322, 4'b1111);
-wb_write(32'h000010fc, 32'h00000020, 4'b1111);
-wb_write(32'h00001100, 32'hffffab25, 4'b1111);
-wb_write(32'h00001104, 32'h000408e7, 4'b1111);
-wb_write(32'h00001108, 32'h0000002f, 4'b1111);
-wb_write(32'h0000110c, 32'hffff856b, 4'b1111);
-wb_write(32'h00001110, 32'h000695f2, 4'b1111);
-wb_write(32'h00001114, 32'h00000026, 4'b1111);
-wb_write(32'h00001118, 32'hffff9c55, 4'b1111);
-wb_write(32'h0000111c, 32'h0005551b, 4'b1111);
+wb_write(32'h40004000, 32'hffffea7d, 4'hf);
+wb_write(32'h40004004, 32'h0035b2e4, 4'hf);
+wb_write(32'h40004008, 32'h0006f21c, 4'hf);
+wb_write(32'h4000400c, 32'h000003d7, 4'hf);
+wb_write(32'h40004010, 32'hfff67ca8, 4'hf);
+wb_write(32'h40004014, 32'hffe3a0ba, 4'hf);
+wb_write(32'h40004018, 32'hffffebba, 4'hf);
+wb_write(32'h4000401c, 32'h00329a74, 4'hf);
+wb_write(32'h40004020, 32'h001f598b, 4'hf);
+wb_write(32'h40004024, 32'h0000029a, 4'hf);
+wb_write(32'h40004028, 32'hfff99518, 4'hf);
+wb_write(32'h4000402c, 32'hfffcb5b8, 4'hf);
+wb_write(32'h40004030, 32'h00000528, 4'hf);
+wb_write(32'h40004034, 32'hfff335a8, 4'hf);
+wb_write(32'h40004038, 32'hffd0aa68, 4'hf);
+wb_write(32'h4000403c, 32'hffffe76d, 4'hf);
+wb_write(32'h40004040, 32'h003d575a, 4'hf);
+wb_write(32'h40004044, 32'h00154504, 4'hf);
+wb_write(32'h40004048, 32'h00000391, 4'hf);
+wb_write(32'h4000404c, 32'hfff72f0b, 4'hf);
+wb_write(32'h40004050, 32'hfff0dc68, 4'hf);
+wb_write(32'h40004054, 32'hffffe904, 4'hf);
+wb_write(32'h40004058, 32'h00395df7, 4'hf);
+wb_write(32'h4000405c, 32'h00340e36, 4'hf);
+wb_write(32'h40004060, 32'hfffffa35, 4'hf);
+wb_write(32'h40004064, 32'h000e80f3, 4'hf);
+wb_write(32'h40004068, 32'h00096670, 4'hf);
+wb_write(32'h4000406c, 32'hfffff93e, 4'hf);
+wb_write(32'h40004070, 32'h0010e700, 4'hf);
+wb_write(32'h40004074, 32'h00011f68, 4'hf);
+wb_write(32'h40004078, 32'hfffff77f, 4'hf);
+wb_write(32'h4000407c, 32'h00154476, 4'hf);
+wb_write(32'h40004080, 32'h0000251b, 4'hf);
+wb_write(32'h40004084, 32'hfffff62e, 4'hf);
+wb_write(32'h40004088, 32'h00188b76, 4'hf);
+wb_write(32'h4000408c, 32'hfff798a4, 4'hf);
+wb_write(32'h40008000, 32'hffffff4a, 4'hf);
+wb_write(32'h40008004, 32'h0001c5cc, 4'hf);
+wb_write(32'h40008008, 32'h000bccf2, 4'hf);
+wb_write(32'h4000800c, 32'h00000111, 4'hf);
+wb_write(32'h40008010, 32'hfffd5e8e, 4'hf);
+wb_write(32'h40008014, 32'hfffea795, 4'hf);
+wb_write(32'h40008018, 32'h000008c0, 4'hf);
+wb_write(32'h4000801c, 32'hffea2863, 4'hf);
+wb_write(32'h40008020, 32'hfffd2c7f, 4'hf);
+wb_write(32'h40008024, 32'hffffff1e, 4'hf);
+wb_write(32'h40008028, 32'h00023382, 4'hf);
+wb_write(32'h4000802c, 32'h000ea7c1, 4'hf);
+wb_write(32'h40008030, 32'hfffff611, 4'hf);
+wb_write(32'h40008034, 32'h0018cb1d, 4'hf);
+wb_write(32'h40008038, 32'h00167ed7, 4'hf);
+wb_write(32'h4000803c, 32'hfffffdcb, 4'hf);
+wb_write(32'h40008040, 32'h00057984, 4'hf);
+wb_write(32'h40008044, 32'h00144863, 4'hf);
+wb_write(32'h40008048, 32'h00000000, 4'hf);
+wb_write(32'h4000804c, 32'h000004d5, 4'hf);
+wb_write(32'h40008050, 32'h000ae755, 4'hf);
+wb_write(32'h40008054, 32'h00000780, 4'hf);
+wb_write(32'h40008058, 32'hffed3dc8, 4'hf);
+wb_write(32'h4000805c, 32'hfffebfc9, 4'hf);
+wb_write(32'h40008060, 32'h000003a7, 4'hf);
+wb_write(32'h40008064, 32'hfff6fd7f, 4'hf);
+wb_write(32'h40008068, 32'hfffb653c, 4'hf);
+wb_write(32'h4000806c, 32'h000002b8, 4'hf);
+wb_write(32'h40008070, 32'hfff93646, 4'hf);
+wb_write(32'h40008074, 32'h00067e7a, 4'hf);
+wb_write(32'h40008078, 32'hfffffbec, 4'hf);
+wb_write(32'h4000807c, 32'h000a35d7, 4'hf);
+wb_write(32'h40008080, 32'h00069d47, 4'hf);
+wb_write(32'h40008084, 32'h0000119f, 4'hf);
+wb_write(32'h40008088, 32'hffd4045b, 4'hf);
+wb_write(32'h4000808c, 32'hffe4c208, 4'hf);
+wb_write(32'h40008090, 32'h00000000, 4'hf);
+wb_write(32'h40008094, 32'h000002e6, 4'hf);
+wb_write(32'h40008098, 32'h00068acc, 4'hf);
+wb_write(32'h4000809c, 32'hfffff880, 4'hf);
+wb_write(32'h400080a0, 32'h0012c1ba, 4'hf);
+wb_write(32'h400080a4, 32'h000021f5, 4'hf);
+wb_write(32'h400080a8, 32'h000003a7, 4'hf);
+wb_write(32'h400080ac, 32'hfff6f392, 4'hf);
+wb_write(32'h400080b0, 32'hffe50148, 4'hf);
+wb_write(32'h400080b4, 32'h00000445, 4'hf);
+wb_write(32'h400080b8, 32'hfff55712, 4'hf);
+wb_write(32'h400080bc, 32'h000a3104, 4'hf);
+wb_write(32'h400080c0, 32'h00000aad, 4'hf);
+wb_write(32'h400080c4, 32'hffe5512c, 4'hf);
+wb_write(32'h400080c8, 32'h00091f8a, 4'hf);
+wb_write(32'h400080cc, 32'h00001993, 4'hf);
+wb_write(32'h400080d0, 32'hffc02901, 4'hf);
+wb_write(32'h400080d4, 32'hfff7bd46, 4'hf);
+wb_write(32'h4000c000, 32'h0000000f, 4'hf);
+wb_write(32'h4000c004, 32'h0000000c, 4'hf);
+wb_write(32'h4000c008, 32'h000000f0, 4'hf);
+wb_write(32'h4000c00c, 32'h00000030, 4'hf);
+wb_write(32'h4000c010, 32'h00000348, 4'hf);
+wb_write(32'h4000c014, 32'h00000240, 4'hf);
+wb_write(32'h4000c018, 32'h00000584, 4'hf);
+wb_write(32'h4000c01c, 32'h00000180, 4'hf);
+wb_write(32'h4000c020, 32'h00000c12, 4'hf);
+wb_write(32'h4000c024, 32'h00000402, 4'hf);
+wb_write(32'h4000c028, 32'h00000a21, 4'hf);
+wb_write(32'h4000c02c, 32'h00000801, 4'hf);	
 
-$display("[shader]");
-wb_write(32'h00002000, 32'hfffffe54, 4'b1111);
-wb_write(32'h00002004, 32'h00042b2c, 4'b1111);
-wb_write(32'h00002008, 32'h000da096, 4'b1111);
-wb_write(32'h0000200c, 32'h00000000, 4'b1111);
-wb_write(32'h00002010, 32'h00000000, 4'b1111);
-wb_write(32'h00002014, 32'h00800000, 4'b1111);
-wb_write(32'h00002018, 32'h00020945, 4'b1111);
-wb_write(32'h0000201c, 32'hfaeac6f2, 4'b1111);
-wb_write(32'h00002020, 32'hfe4da64a, 4'b1111);
-wb_write(32'h00002024, 32'h00005d13, 4'b1111);
-wb_write(32'h00002028, 32'hff196977, 4'b1111);
-wb_write(32'h0000202c, 32'hfea96f26, 4'b1111);
-wb_write(32'h00002030, 32'hfffffded, 4'b1111);
-wb_write(32'h00002034, 32'h00052bfd, 4'b1111);
-wb_write(32'h00002038, 32'h0010ec86, 4'b1111);
-wb_write(32'h0000203c, 32'h00000000, 4'b1111);
-wb_write(32'h00002040, 32'h00000000, 4'b1111);
-wb_write(32'h00002044, 32'h00800000, 4'b1111);
-wb_write(32'h00002048, 32'hffff9dd4, 4'b1111);
-wb_write(32'h0000204c, 32'h00f38594, 4'b1111);
-wb_write(32'h00002050, 32'h02981d28, 4'b1111);
-wb_write(32'h00002054, 32'hfffe2c1a, 4'b1111);
-wb_write(32'h00002058, 32'h048ff337, 4'b1111);
-wb_write(32'h0000205c, 32'h02f81b94, 4'b1111);
-wb_write(32'h00002060, 32'h00000000, 4'b1111);
-wb_write(32'h00002064, 32'h00000b5e, 4'b1111);
-wb_write(32'h00002068, 32'h0004c709, 4'b1111);
-wb_write(32'h0000206c, 32'h00000000, 4'b1111);
-wb_write(32'h00002070, 32'h00000000, 4'b1111);
-wb_write(32'h00002074, 32'h00800000, 4'b1111);
-wb_write(32'h00002078, 32'h0000b05a, 4'b1111);
-wb_write(32'h0000207c, 32'hfe4cf7af, 4'b1111);
-wb_write(32'h00002080, 32'hfc5b491c, 4'b1111);
-wb_write(32'h00002084, 32'h00018880, 4'b1111);
-wb_write(32'h00002088, 32'hfc294ecf, 4'b1111);
-wb_write(32'h0000208c, 32'h0072015a, 4'b1111);
-wb_write(32'h00002090, 32'h00000666, 4'b1111);
-wb_write(32'h00002094, 32'hfff00659, 4'b1111);
-wb_write(32'h00002098, 32'h00027652, 4'b1111);
-wb_write(32'h0000209c, 32'h00000000, 4'b1111);
-wb_write(32'h000020a0, 32'h00000000, 4'b1111);
-wb_write(32'h000020a4, 32'h00800000, 4'b1111);
-wb_write(32'h000020a8, 32'h00038ed7, 4'b1111);
-wb_write(32'h000020ac, 32'hf71e8182, 4'b1111);
-wb_write(32'h000020b0, 32'hfb1452d8, 4'b1111);
-wb_write(32'h000020b4, 32'hfffe81e3, 4'b1111);
-wb_write(32'h000020b8, 32'h03bba069, 4'b1111);
-wb_write(32'h000020bc, 32'h01182390, 4'b1111);
-wb_write(32'h000020c0, 32'h00000000, 4'b1111);
-wb_write(32'h000020c4, 32'h000006d2, 4'b1111);
-wb_write(32'h000020c8, 32'h0002ddd2, 4'b1111);
-wb_write(32'h000020cc, 32'h00000000, 4'b1111);
-wb_write(32'h000020d0, 32'h00000000, 4'b1111);
-wb_write(32'h000020d4, 32'h00800000, 4'b1111);
-wb_write(32'h000020d8, 32'h0000aec2, 4'b1111);
-wb_write(32'h000020dc, 32'hfe4f0b36, 4'b1111);
-wb_write(32'h000020e0, 32'hfb9c2080, 4'b1111);
-wb_write(32'h000020e4, 32'hfffe412c, 4'b1111);
-wb_write(32'h000020e8, 32'h045ccc05, 4'b1111);
-wb_write(32'h000020ec, 32'h00d39eb9, 4'b1111);
-wb_write(32'h000020f0, 32'h00000a0b, 4'b1111);
-wb_write(32'h000020f4, 32'hffe6ece5, 4'b1111);
-wb_write(32'h000020f8, 32'h0003dd33, 4'b1111);
-wb_write(32'h000020fc, 32'h00000000, 4'b1111);
-wb_write(32'h00002100, 32'h00000000, 4'b1111);
-wb_write(32'h00002104, 32'h00800000, 4'b1111);
-wb_write(32'h00002108, 32'h000470b2, 4'b1111);
-wb_write(32'h0000210c, 32'hf4ea841b, 4'b1111);
-wb_write(32'h00002110, 32'hfc4cd834, 4'b1111);
-wb_write(32'h00002114, 32'h00016502, 4'b1111);
-wb_write(32'h00002118, 32'hfc831146, 4'b1111);
-wb_write(32'h0000211c, 32'h00df8825, 4'b1111);
-wb_write(32'h00002120, 32'hffff9df1, 4'b1111);
-wb_write(32'h00002124, 32'h00f4c11c, 4'b1111);
-wb_write(32'h00002128, 32'h0091cdad, 4'b1111);
-wb_write(32'h0000212c, 32'h00000000, 4'b1111);
-wb_write(32'h00002130, 32'h00000000, 4'b1111);
-wb_write(32'h00002134, 32'h00800000, 4'b1111);
-wb_write(32'h00002138, 32'hffb5f77a, 4'b1111);
-wb_write(32'h0000213c, 32'hb8ca886e, 4'b1111);
-wb_write(32'h00002140, 32'h63ee6700, 4'b1111);
-wb_write(32'h00002144, 32'h0023dd7f, 4'b1111);
-wb_write(32'h00002148, 32'ha67dc025, 4'b1111);
-wb_write(32'h0000214c, 32'hccd66300, 4'b1111);
-wb_write(32'h00002150, 32'hffffe406, 4'b1111);
-wb_write(32'h00002154, 32'h0045d45c, 4'b1111);
-wb_write(32'h00002158, 32'h0029991f, 4'b1111);
-wb_write(32'h0000215c, 32'h00000000, 4'b1111);
-wb_write(32'h00002160, 32'h00000000, 4'b1111);
-wb_write(32'h00002164, 32'h00800000, 4'b1111);
-wb_write(32'h00002168, 32'hfff5b3f8, 4'b1111);
-wb_write(32'h0000216c, 32'h19b0bf1e, 4'b1111);
-wb_write(32'h00002170, 32'h0e236000, 4'b1111);
-wb_write(32'h00002174, 32'h00156a62, 4'b1111);
-wb_write(32'h00002178, 32'hca8af120, 4'b1111);
-wb_write(32'h0000217c, 32'heb5f7cc0, 4'b1111);
-wb_write(32'h00002180, 32'h00000000, 4'b1111);
-wb_write(32'h00002184, 32'h000009be, 4'b1111);
-wb_write(32'h00002188, 32'h00041851, 4'b1111);
-wb_write(32'h0000218c, 32'h00000000, 4'b1111);
-wb_write(32'h00002190, 32'h00000000, 4'b1111);
-wb_write(32'h00002194, 32'h00800000, 4'b1111);
-wb_write(32'h00002198, 32'hfffd152f, 4'b1111);
-wb_write(32'h0000219c, 32'h0747c3b3, 4'b1111);
-wb_write(32'h000021a0, 32'h04373df0, 4'b1111);
-wb_write(32'h000021a4, 32'hffffc688, 4'b1111);
-wb_write(32'h000021a8, 32'h00977cf4, 4'b1111);
-wb_write(32'h000021ac, 32'hf9872380, 4'b1111);
-wb_write(32'h000021b0, 32'h00000050, 4'b1111);
-wb_write(32'h000021b4, 32'hffff36d0, 4'b1111);
-wb_write(32'h000021b8, 32'h000e8b89, 4'b1111);
-wb_write(32'h000021bc, 32'h00000000, 4'b1111);
-wb_write(32'h000021c0, 32'h00000000, 4'b1111);
-wb_write(32'h000021c4, 32'h00800000, 4'b1111);
-wb_write(32'h000021c8, 32'hfffcf661, 4'b1111);
-wb_write(32'h000021cc, 32'h0794fd4c, 4'b1111);
-wb_write(32'h000021d0, 32'h040d91b8, 4'b1111);
-wb_write(32'h000021d4, 32'hffffe53b, 4'b1111);
-wb_write(32'h000021d8, 32'h0045d7e5, 4'b1111);
-wb_write(32'h000021dc, 32'hfd376ab8, 4'b1111);
-wb_write(32'h000021e0, 32'h00000000, 4'b1111);
-wb_write(32'h000021e4, 32'h00000794, 4'b1111);
-wb_write(32'h000021e8, 32'h00032f5c, 4'b1111);
-wb_write(32'h000021ec, 32'h00000000, 4'b1111);
-wb_write(32'h000021f0, 32'h00000000, 4'b1111);
-wb_write(32'h000021f4, 32'h00800000, 4'b1111);
-wb_write(32'h000021f8, 32'hfffcb00f, 4'b1111);
-wb_write(32'h000021fc, 32'h084434d8, 4'b1111);
-wb_write(32'h00002200, 32'h04d14160, 4'b1111);
-wb_write(32'h00002204, 32'h00003655, 4'b1111);
-wb_write(32'h00002208, 32'hff71a97b, 4'b1111);
-wb_write(32'h0000220c, 32'h086f3740, 4'b1111);
-wb_write(32'h00002210, 32'h00000048, 4'b1111);
-wb_write(32'h00002214, 32'hffff4af0, 4'b1111);
-wb_write(32'h00002218, 32'h000d0f7b, 4'b1111);
-wb_write(32'h0000221c, 32'h00000000, 4'b1111);
-wb_write(32'h00002220, 32'h00000000, 4'b1111);
-wb_write(32'h00002224, 32'h00800000, 4'b1111);
-wb_write(32'h00002228, 32'hfffcca06, 4'b1111);
-wb_write(32'h0000222c, 32'h0803b2c8, 4'b1111);
-wb_write(32'h00002230, 32'h045584f8, 4'b1111);
-wb_write(32'h00002234, 32'h0000153e, 4'b1111);
-wb_write(32'h00002238, 32'hffc7b660, 4'b1111);
-wb_write(32'h0000223c, 32'h03a39cd8, 4'b1111);
 
-$display("[region]");
-wb_write(32'h00003000, 32'h0000000f, 4'b1111);
-wb_write(32'h00003004, 32'h0000000c, 4'b1111);
-wb_write(32'h00003008, 32'h000000f0, 4'b1111);
-wb_write(32'h0000300c, 32'h00000030, 4'b1111);
-wb_write(32'h00003010, 32'h00000348, 4'b1111);
-wb_write(32'h00003014, 32'h00000240, 4'b1111);
-wb_write(32'h00003018, 32'h00000584, 4'b1111);
-wb_write(32'h0000301c, 32'h00000180, 4'b1111);
-wb_write(32'h00003020, 32'h00000c12, 4'b1111);
-wb_write(32'h00003024, 32'h00000402, 4'b1111);
-wb_write(32'h00003028, 32'h00000a21, 4'b1111);
-wb_write(32'h0000302c, 32'h00000801, 4'b1111);
-wb_write(32'h00003030, 32'h0000f000, 4'b1111);
-wb_write(32'h00003034, 32'h0000c000, 4'b1111);
-wb_write(32'h00003038, 32'h000f0000, 4'b1111);
-wb_write(32'h0000303c, 32'h00030000, 4'b1111);
-wb_write(32'h00003040, 32'h00348000, 4'b1111);
-wb_write(32'h00003044, 32'h00240000, 4'b1111);
-wb_write(32'h00003048, 32'h00584000, 4'b1111);
-wb_write(32'h0000304c, 32'h00180000, 4'b1111);
-wb_write(32'h00003050, 32'h00c12000, 4'b1111);
-wb_write(32'h00003054, 32'h00402000, 4'b1111);
-wb_write(32'h00003058, 32'h00a21000, 4'b1111);
-wb_write(32'h0000305c, 32'h00801000, 4'b1111);
-	
-	
-	/*
-		$display("edge");
-		wb_write(32'h1000, 32'hfffff74f, 4'b1111);
-		wb_write(32'h1004, 32'h0015b1fe, 4'b1111);
-		wb_write(32'h1008, 32'h00090905, 4'b1111);
-		wb_write(32'h100c, 32'hffffff1b, 4'b1111);
-		wb_write(32'h1010, 32'h000243dd, 4'b1111);
-		wb_write(32'h1014, 32'hfff8146a, 4'b1111);
-		wb_write(32'h1018, 32'hfffff705, 4'b1111);
-		wb_write(32'h101c, 32'h00166a2f, 4'b1111);
-		wb_write(32'h1020, 32'h000e8a0e, 4'b1111);
-		wb_write(32'h1024, 32'hffffff65, 4'b1111);
-		wb_write(32'h1028, 32'h00018bac, 4'b1111);
-		wb_write(32'h102c, 32'hfffbf927, 4'b1111);
-		wb_write(32'h1030, 32'hfffffec5, 4'b1111);
-		wb_write(32'h1034, 32'h00031bdb, 4'b1111);
-		wb_write(32'h1038, 32'hfff45ade, 4'b1111);
-		wb_write(32'h103c, 32'hfffff608, 4'b1111);
-		wb_write(32'h1040, 32'h0018e275, 4'b1111);
-		wb_write(32'h1044, 32'h00083a84, 4'b1111);
-		wb_write(32'h1048, 32'hffffff27, 4'b1111);
-		wb_write(32'h104c, 32'h000227f1, 4'b1111);
-		wb_write(32'h1050, 32'hfff97d9b, 4'b1111);
-		wb_write(32'h1054, 32'hfffff5a6, 4'b1111);
-		wb_write(32'h1058, 32'h0019d65f, 4'b1111);
-		wb_write(32'h105c, 32'h000fbccd, 4'b1111);
-		wb_write(32'h1060, 32'hfffffd02, 4'b1111);
-		wb_write(32'h1064, 32'h00077669, 4'b1111);
-		wb_write(32'h1068, 32'h0005b10f, 4'b1111);
-		wb_write(32'h106c, 32'hfffffd40, 4'b1111);
-		wb_write(32'h1070, 32'h0006da24, 4'b1111);
-		wb_write(32'h1074, 32'h00048a9f, 4'b1111);
-		wb_write(32'h1078, 32'hfffffba3, 4'b1111);
-		wb_write(32'h107c, 32'h000ae299, 4'b1111);
-		wb_write(32'h1080, 32'h0008a117, 4'b1111);
-		wb_write(32'h1084, 32'hfffffbf9, 4'b1111);
-		wb_write(32'h1088, 32'h000a0a9b, 4'b1111);
-		wb_write(32'h108c, 32'h00075be9, 4'b1111);
-		
-		
-		$display("polygon(tuv)");
-		wb_write(32'h2000, 32'h0000000d, 4'b1111);
-		wb_write(32'h2004, 32'hffffdf7b, 4'b1111);
-		wb_write(32'h2008, 32'h0000a897, 4'b1111);
-		wb_write(32'h200c, 32'hffffffec, 4'b1111);
-		wb_write(32'h2010, 32'h00003318, 4'b1111);
-		wb_write(32'h2014, 32'hffff75c6, 4'b1111);
-		wb_write(32'h2018, 32'h00000148, 4'b1111);
-		wb_write(32'h201c, 32'hfffccd41, 4'b1111);
-		wb_write(32'h2020, 32'hfffeaaba, 4'b1111);
-		wb_write(32'h2024, 32'h00000010, 4'b1111);
-		wb_write(32'h2028, 32'hffffd7fa, 4'b1111);
-		wb_write(32'h202c, 32'h0000ce0e, 4'b1111);
-		wb_write(32'h2030, 32'hfffffec3, 4'b1111);
-		wb_write(32'h2034, 32'h0003173b, 4'b1111);
-		wb_write(32'h2038, 32'h0001e1c4, 4'b1111);
-		wb_write(32'h203c, 32'h0000002a, 4'b1111);
-		wb_write(32'h2040, 32'hffff95e1, 4'b1111);
-		wb_write(32'h2044, 32'h0001907c, 4'b1111);
-		wb_write(32'h2048, 32'h00000000, 4'b1111);
-		wb_write(32'h204c, 32'h000000b5, 4'b1111);
-		wb_write(32'h2050, 32'h00004c70, 4'b1111);
-		wb_write(32'h2054, 32'h00000130, 4'b1111);
-		wb_write(32'h2058, 32'hfffd0a88, 4'b1111);
-		wb_write(32'h205c, 32'hfffe0976, 4'b1111);
-		wb_write(32'h2060, 32'hffffffb4, 4'b1111);
-		wb_write(32'h2064, 32'h0000c203, 4'b1111);
-		wb_write(32'h2068, 32'hfffe0529, 4'b1111);
-		wb_write(32'h206c, 32'hfffffe6a, 4'b1111);
-		wb_write(32'h2070, 32'h0003f548, 4'b1111);
-		wb_write(32'h2074, 32'h0003506a, 4'b1111);
-		wb_write(32'h2078, 32'h00000261, 4'b1111);
-		wb_write(32'h207c, 32'hfffa1125, 4'b1111);
-		wb_write(32'h2080, 32'hfffb7a0a, 4'b1111);
-		wb_write(32'h2084, 32'hfffff6fb, 4'b1111);
-		wb_write(32'h2088, 32'h00168326, 4'b1111);
-		wb_write(32'h208c, 32'h000e9b06, 4'b1111);
-		wb_write(32'h2090, 32'h00000000, 4'b1111);
-		wb_write(32'h2094, 32'h0000006d, 4'b1111);
-		wb_write(32'h2098, 32'h00002ddd, 4'b1111);
-		wb_write(32'h209c, 32'hfffffed0, 4'b1111);
-		wb_write(32'h20a0, 32'h0002f665, 4'b1111);
-		wb_write(32'h20a4, 32'h000259ea, 4'b1111);
-		wb_write(32'h20a8, 32'hffffffb4, 4'b1111);
-		wb_write(32'h20ac, 32'h0000c072, 4'b1111);
-		wb_write(32'h20b0, 32'hfffd5cfe, 4'b1111);
-		wb_write(32'h20b4, 32'hffffff52, 4'b1111);
-		wb_write(32'h20b8, 32'h0001b244, 4'b1111);
-		wb_write(32'h20bc, 32'h00016b9b, 4'b1111);
-		wb_write(32'h20c0, 32'hfffffe4d, 4'b1111);
-		wb_write(32'h20c4, 32'h00043c98, 4'b1111);
-		wb_write(32'h20c8, 32'h00031a5b, 4'b1111);
-		wb_write(32'h20cc, 32'hfffffbf7, 4'b1111);
-		wb_write(32'h20d0, 32'h000a128d, 4'b1111);
-		wb_write(32'h20d4, 32'h00043094, 4'b1111);
-		
-		
-		$display("polygon(rgb)");
-		wb_write(32'h2000, 32'h00000000, 4'b1111);
-		wb_write(32'h2004, 32'h00000000, 4'b1111);
-		wb_write(32'h2008, 32'h00080000, 4'b1111);
-		wb_write(32'h200c, 32'h00001f12, 4'b1111);
-		wb_write(32'h2010, 32'hffb27169, 4'b1111);
-		wb_write(32'h2014, 32'hffdfbf5b, 4'b1111);
-		wb_write(32'h2018, 32'hfffffcce, 4'b1111);
-		wb_write(32'h201c, 32'h00081753, 4'b1111);
-		wb_write(32'h2020, 32'hfff3a761, 4'b1111);
-		wb_write(32'h2024, 32'h00000000, 4'b1111);
-		wb_write(32'h2028, 32'h00000000, 4'b1111);
-		wb_write(32'h202c, 32'h00080000, 4'b1111);
-		wb_write(32'h2030, 32'h0000034f, 4'b1111);
-		wb_write(32'h2034, 32'hfff7a3fe, 4'b1111);
-		wb_write(32'h2038, 32'h001f56fb, 4'b1111);
-		wb_write(32'h203c, 32'hffffe525, 4'b1111);
-		wb_write(32'h2040, 32'h004309ca, 4'b1111);
-		wb_write(32'h2044, 32'h002628fa, 4'b1111);
-		wb_write(32'h2048, 32'h00000000, 4'b1111);
-		wb_write(32'h204c, 32'h00000000, 4'b1111);
-		wb_write(32'h2050, 32'h00080000, 4'b1111);
-		wb_write(32'h2054, 32'hfffffa50, 4'b1111);
-		wb_write(32'h2058, 32'h000e84be, 4'b1111);
-		wb_write(32'h205c, 32'hffda20c3, 4'b1111);
-		wb_write(32'h2060, 32'h00001c23, 4'b1111);
-		wb_write(32'h2064, 32'hffb9d39c, 4'b1111);
-		wb_write(32'h2068, 32'hffda828d, 4'b1111);
-		wb_write(32'h206c, 32'h00000000, 4'b1111);
-		wb_write(32'h2070, 32'h00000000, 4'b1111);
-		wb_write(32'h2074, 32'h00080000, 4'b1111);
-		wb_write(32'h2078, 32'hffff465f, 4'b1111);
-		wb_write(32'h207c, 32'h01cf51fe, 4'b1111);
-		wb_write(32'h2080, 32'h012c8572, 4'b1111);
-		wb_write(32'h2084, 32'h00005a34, 4'b1111);
-		wb_write(32'h2088, 32'hff1ef80d, 4'b1111);
-		wb_write(32'h208c, 32'hff5dba00, 4'b1111);
-		wb_write(32'h2090, 32'h00000000, 4'b1111);
-		wb_write(32'h2094, 32'h00000000, 4'b1111);
-		wb_write(32'h2098, 32'h00080000, 4'b1111);
-		wb_write(32'h209c, 32'hfffff99d, 4'b1111);
-		wb_write(32'h20a0, 32'h00102c19, 4'b1111);
-		wb_write(32'h20a4, 32'hffc75ca1, 4'b1111);
-		wb_write(32'h20a8, 32'hffffe338, 4'b1111);
-		wb_write(32'h20ac, 32'h0047c2be, 4'b1111);
-		wb_write(32'h20b0, 32'h00448cd4, 4'b1111);
-		wb_write(32'h20b4, 32'h00000000, 4'b1111);
-		wb_write(32'h20b8, 32'h00000000, 4'b1111);
-		wb_write(32'h20bc, 32'h00080000, 4'b1111);
-		wb_write(32'h20c0, 32'hffffaf23, 4'b1111);
-		wb_write(32'h20c4, 32'h00c9d95b, 4'b1111);
-		wb_write(32'h20c8, 32'h0053ef20, 4'b1111);
-		wb_write(32'h20cc, 32'hffffe669, 4'b1111);
-		wb_write(32'h20d0, 32'h003fc301, 4'b1111);
-		wb_write(32'h20d4, 32'h003a3af9, 4'b1111);
-		
-		
-		$display("region");
-		wb_write(32'h3000, 32'h0000000f, 4'b1111);
-		wb_write(32'h3004, 32'h0000000c, 4'b1111);
-		wb_write(32'h3008, 32'h000000f0, 4'b1111);
-		wb_write(32'h300c, 32'h00000030, 4'b1111);
-		wb_write(32'h3010, 32'h00000348, 4'b1111);
-		wb_write(32'h3014, 32'h00000240, 4'b1111);
-		wb_write(32'h3018, 32'h00000584, 4'b1111);
-		wb_write(32'h301c, 32'h00000180, 4'b1111);
-		wb_write(32'h3020, 32'h00000c12, 4'b1111);
-		wb_write(32'h3024, 32'h00000402, 4'b1111);
-		wb_write(32'h3028, 32'h00000a21, 4'b1111);
-		wb_write(32'h302c, 32'h00000801, 4'b1111);
-	*/
-	
 		$display("start");
+		wb_write(32'h0000_0004, 32'h0000_0001, 4'b1111);
 		wb_write(32'h0000_0000, 32'h0000_0001, 4'b1111);
-		
 		
 		$display("read");
 		wb_read(32'h00*4); 		// REG_ADDR_CTL_ENABLE             
@@ -854,7 +544,6 @@ wb_write(32'h0000305c, 32'h00801000, 4'b1111);
 		wb_read(32'h28*4);		// REG_ADDR_CFG_EDGE_PARAM_WIDTH   
 		wb_read(32'h29*4);		// REG_ADDR_CFG_SHADER_PARAM_WIDTH 
 		wb_read(32'h2a*4);		// REG_ADDR_CFG_REGION_PARAM_WIDTH 
-		wb_read(32'h2b*4);		// REG_ADDR_CFG_SHADER_PARAM_Q     
 	
 	#10000000
 		$finish();
