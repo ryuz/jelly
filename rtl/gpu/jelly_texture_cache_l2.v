@@ -124,7 +124,7 @@ module jelly_texture_cache_l2
 			output	wire	[CACHE_NUM-1:0]							status_access,
 			output	wire	[CACHE_NUM-1:0]							status_hit,
 			output	wire	[CACHE_NUM-1:0]							status_miss,
-			output	wire	[CACHE_NUM-1:0]							status_border,
+			output	wire	[CACHE_NUM-1:0]							status_blank,
 			
 			input	wire	[S_NUM*ADDR_X_WIDTH-1:0]				s_araddrx,
 			input	wire	[S_NUM*ADDR_Y_WIDTH-1:0]				s_araddry,
@@ -507,26 +507,26 @@ module jelly_texture_cache_l2
 					.clear_start			(clear_start),
 					.clear_busy				(cache_clear_busy[i]),
 					
-					.param_border_value		({S_DATA_WIDTH{1'b0}}),
+					.param_blank_value		({S_DATA_WIDTH{1'b0}}),
 					
 					.status_idle			(status_idle  [i]),
 					.status_stall			(status_stall [i]),
 					.status_access			(status_access[i]),
 					.status_hit				(status_hit   [i]),
 					.status_miss			(status_miss  [i]),
-					.status_border			(status_border[i]),
+					.status_blank			(status_blank [i]),
 					
 					.s_aruser				(arbit_arid   [i*S_ID_WIDTH   +: S_ID_WIDTH]),
-					.s_arborder				(1'b0),
 					.s_araddrx				(arbit_araddrx[i*ADDR_X_WIDTH +: ADDR_X_WIDTH]),
 					.s_araddry				(arbit_araddry[i*ADDR_Y_WIDTH +: ADDR_Y_WIDTH]),
+					.s_arstrb				(1'b1),
 					.s_arvalid				(arbit_arvalid[i]),
 					.s_arready				(arbit_arready[i]),
 					
 					.s_ruser				(arbit_rid    [i*S_ID_WIDTH   +: S_ID_WIDTH]),
 					.s_rlast				(arbit_rlast  [i]),
-					.s_rborder				(),
 					.s_rdata				(arbit_rdata  [i*S_DATA_WIDTH +: S_DATA_WIDTH]),
+					.s_rstrb				(),
 					.s_rvalid				(arbit_rvalid [i]),
 					.s_rready				(arbit_rready [i]),
 					

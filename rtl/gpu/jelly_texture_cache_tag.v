@@ -53,21 +53,21 @@ module jelly_texture_cache_tag
 			
 			input	wire	[USER_BITS-1:0]			s_user,
 			input	wire							s_last,
-			input	wire							s_border,
 			input	wire	[ADDR_X_WIDTH-1:0]		s_addrx,
 			input	wire	[ADDR_Y_WIDTH-1:0]		s_addry,
+			input	wire							s_strb,
 			input	wire							s_valid,
 			output	wire							s_ready,
 			
 			output	wire	[USER_BITS-1:0]			m_user,
 			output	wire							m_last,
-			output	wire							m_border,
 			output	wire	[TAG_ADDR_WIDTH-1:0]	m_tag_addr,
 			output	wire	[PIX_ADDR_X_WIDTH-1:0]	m_pix_addrx,
 			output	wire	[PIX_ADDR_Y_WIDTH-1:0]	m_pix_addry,
 			output	wire	[BLK_ADDR_X_WIDTH-1:0]	m_blk_addrx,
 			output	wire	[BLK_ADDR_Y_WIDTH-1:0]	m_blk_addry,
 			output	wire							m_cache_hit,
+			output	wire							m_strb,
 			output	wire							m_valid,
 			input	wire							m_ready
 		);
@@ -99,21 +99,21 @@ module jelly_texture_cache_tag
 					
 					.s_user				(s_user),
 					.s_last				(s_last),
-					.s_border			(s_border),
 					.s_addrx			(s_addrx),
 					.s_addry			(s_addry),
+					.s_strb				(s_strb),
 					.s_valid			(s_valid),
 					.s_ready			(s_ready),
 					
 					.m_user				(m_user),
 					.m_last				(m_last),
-					.m_border			(m_border),
 					.m_tag_addr			(m_tag_addr),
 					.m_pix_addrx		(m_pix_addrx),
 					.m_pix_addry		(m_pix_addry),
 					.m_blk_addrx		(m_blk_addrx),
 					.m_blk_addry		(m_blk_addry),
 					.m_cache_hit		(m_cache_hit),
+					.m_strb				(m_strb),
 					.m_valid			(m_valid),
 					.m_ready			(m_ready)
 				);
@@ -152,21 +152,21 @@ module jelly_texture_cache_tag
 					
 					.s_user				(s_user),
 					.s_last				(s_last),
-					.s_border			(s_border),
 					.s_addrx			(s_addrx),
 					.s_addry			(s_addry),
+					.s_strb				(s_strb),
 					.s_valid			(s_valid),
 					.s_ready			(s_ready),
 					
 					.m_user				(m_user),
 					.m_last				(m_last),
-					.m_border			(m_border),
 					.m_tag_addr			(m_tag_addr),
 					.m_pix_addrx		(m_pix_addrx),
 					.m_pix_addry		(m_pix_addry),
 					.m_blk_addrx		(m_blk_addrx),
 					.m_blk_addry		(m_blk_addry),
 					.m_cache_hit		(m_cache_hit),
+					.m_strb				(m_strb),
 					.m_valid			(m_valid),
 					.m_ready			(m_ready)
 				);

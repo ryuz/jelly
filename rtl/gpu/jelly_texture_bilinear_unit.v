@@ -48,25 +48,30 @@ module jelly_texture_bilinear_unit
 			input	wire	[USER_BITS-1:0]					s_user,
 			input	wire	[X_WIDTH-1:0]					s_x,
 			input	wire	[Y_WIDTH-1:0]					s_y,
+			input	wire									s_strb,
 			input	wire									s_valid,
 			output	wire									s_ready,
 			
 			output	wire	[USER_BITS-1:0]					m_user,
 			output	wire									m_border,
 			output	wire	[COMPONENT_NUM*DATA_WIDTH-1:0]	m_data,
+			output	wire									m_strb,
 			output	wire									m_valid,
 			input	wire									m_ready,
 			
 			
 			// memory
-			output	wire	[COEFF_WIDTH-1:0]				m_mem_arcoeff,	// aruser
+			output	wire	[COEFF_WIDTH-1:0]				m_mem_arcoeff,
 			output	wire	[X_INT_WIDTH-1:0]				m_mem_araddrx,
 			output	wire	[Y_INT_WIDTH-1:0]				m_mem_araddry,
+			output	wire									m_mem_arstrb,
 			output	wire									m_mem_arvalid,
 			input	wire									m_mem_arready,
-			input	wire	[COEFF_WIDTH-1:0]				m_mem_rcoeff,	// ruser
+			
+			input	wire	[COEFF_WIDTH-1:0]				m_mem_rcoeff,
 			input	wire									m_mem_rborder,
 			input	wire	[COMPONENT_NUM*DATA_WIDTH-1:0]	m_mem_rdata,
+			input	wire									m_mem_rstrb,
 			input	wire									m_mem_rvalid,
 			output	wire									m_mem_rready
 		);
@@ -80,12 +85,13 @@ module jelly_texture_bilinear_unit
 	wire	[USER_BITS-1:0]					s_ff_user;
 	wire	[X_WIDTH-1:0]					s_ff_x;
 	wire	[Y_WIDTH-1:0]					s_ff_y;
+	wire									s_ff_strb;
 	wire									s_ff_valid;
 	wire									s_ff_ready;
 	
 	jelly_pipeline_insert_ff
 			#(
-				.DATA_WIDTH		(USER_BITS+Y_WIDTH+X_WIDTH),
+				.DATA_WIDTH		(USER_BITS+1+Y_WIDTH+X_WIDTH),
 				.SLAVE_REGS		(S_REGS),
 				.MASTER_REGS	(0)
 			)
@@ -95,11 +101,11 @@ module jelly_texture_bilinear_unit
 				.clk			(clk),
 				.cke			(cke),
 				
-				.s_data			({s_user, s_y, s_x}),
+				.s_data			({s_user, s_strb, s_y, s_x}),
 				.s_valid		(s_valid),
 				.s_ready		(s_ready),
 				
-				.m_data			({s_ff_user, s_ff_y, s_ff_x}),
+				.m_data			({s_ff_user, s_ff_strb, s_ff_y, s_ff_x}),
 				.m_valid		(s_ff_valid),
 				.m_ready		(s_ff_ready),
 				
@@ -111,12 +117,13 @@ module jelly_texture_bilinear_unit
 	// master port
 	wire									m_ff_border;
 	wire	[COMPONENT_NUM*DATA_WIDTH-1:0]	m_ff_data;
+	wire									m_ff_strb;
 	wire									m_ff_valid;
 	wire									m_ff_ready;
 	
 	jelly_pipeline_insert_ff
 			#(
-				.DATA_WIDTH		(1+COMPONENT_NUM*DATA_WIDTH),
+				.DATA_WIDTH		(1+1+COMPONENT_NUM*DATA_WIDTH),
 				.SLAVE_REGS		(M_REGS),
 				.MASTER_REGS	(0)
 			)
@@ -126,11 +133,11 @@ module jelly_texture_bilinear_unit
 				.clk			(clk),
 				.cke			(cke),
 				
-				.s_data			({m_ff_border, m_ff_data}),
+				.s_data			({m_ff_border, m_ff_strb, m_ff_data}),
 				.s_valid		(m_ff_valid),
 				.s_ready		(m_ff_ready),
 				
-				.m_data			({m_border, m_data}),
+				.m_data			({m_border, m_strb, m_data}),
 				.m_valid		(m_valid),
 				.m_ready		(m_ready),
 				
@@ -174,22 +181,26 @@ module jelly_texture_bilinear_unit
 	reg		[Y_FRAC_WIDTH:0]				mem_st0_coeffy;
 	reg		[X_INT_WIDTH-1:0]				mem_st0_x;
 	reg		[Y_INT_WIDTH-1:0]				mem_st0_y;
+	reg										mem_st0_strb;
 	reg										mem_st0_valid;
 	
 	reg		[X_FRAC_WIDTH:0]				mem_st1_coeffx;
 	reg		[Y_FRAC_WIDTH:0]				mem_st1_coeffy;
 	reg		[X_INT_WIDTH:-10]				mem_st1_x;
 	reg		[Y_INT_WIDTH-1:0]				mem_st1_y;
+	reg										mem_st1_strb;
 	reg										mem_st1_valid;
 	
 	reg		[Y_FRAC_WIDTH+X_FRAC_WIDTH:0]	mem_st2_coeff;
 	reg		[X_INT_WIDTH-1:0]				mem_st2_x;
 	reg		[Y_INT_WIDTH-1:0]				mem_st2_y;
+	reg										mem_st2_strb;
 	reg										mem_st2_valid;
 	
 	reg		[COEFF_WIDTH:0]					mem_st3_coeff;
 	reg		[X_INT_WIDTH-1:0]				mem_st3_x;
 	reg		[Y_INT_WIDTH-1:0]				mem_st3_y;
+	reg										mem_st3_strb;
 	reg										mem_st3_valid;
 	
 	always @(posedge clk) begin
@@ -200,22 +211,26 @@ module jelly_texture_bilinear_unit
 			mem_st0_coeffy <= {(Y_FRAC_WIDTH+1){1'bx}};
 			mem_st0_x      <= {X_INT_WIDTH{1'bx}};
 			mem_st0_y      <= {Y_INT_WIDTH{1'bx}};
+			mem_st0_strb   <= 1'bx;
 			mem_st0_valid  <= 1'b0;
 			
 			mem_st1_coeffx <= {(X_FRAC_WIDTH+1){1'bx}};
 			mem_st1_coeffy <= {(Y_FRAC_WIDTH+1){1'bx}};
 			mem_st1_x      <= {X_INT_WIDTH{1'bx}};
 			mem_st1_y      <= {Y_INT_WIDTH{1'bx}};
+			mem_st1_strb   <= 1'bx;
 			mem_st1_valid  <= 1'b0;
 			
 			mem_st2_coeff  <= {(1+Y_FRAC_WIDTH+X_FRAC_WIDTH){1'bx}};
 			mem_st2_x      <= {X_INT_WIDTH{1'bx}};
 			mem_st2_y      <= {Y_INT_WIDTH{1'bx}};
+			mem_st2_strb   <= 1'bx;
 			mem_st2_valid  <= 1'b0;
 			
 			mem_st3_coeff  <= {COEFF_WIDTH{1'bx}};
 			mem_st3_x      <= {X_INT_WIDTH{1'bx}};
 			mem_st3_y      <= {Y_INT_WIDTH{1'bx}};
+			mem_st3_strb   <= 1'bx;
 			mem_st3_valid  <= 1'b0;
 		end
 		else if ( mem_cke && cke ) begin
@@ -245,6 +260,7 @@ module jelly_texture_bilinear_unit
 				mem_st0_y <= (s_ff_y_frac >= ROUND_Y) ? s_ff_y_int + 1'b1 : s_ff_y_int;
 			end
 			
+			mem_st0_strb   <= s_ff_strb;
 			mem_st0_valid  <= s_ff_valid;
 			
 			
@@ -253,6 +269,7 @@ module jelly_texture_bilinear_unit
 			mem_st1_coeffy <= mem_st0_coeffy;
 			mem_st1_x      <= mem_st0_x;
 			mem_st1_y      <= mem_st0_y;
+			mem_st1_strb   <= mem_st0_strb;
 			mem_st1_valid  <= mem_st0_valid;
 			
 			
@@ -260,6 +277,7 @@ module jelly_texture_bilinear_unit
 			mem_st2_coeff  <= mem_st1_coeffy * mem_st1_coeffx;
 			mem_st2_x      <= mem_st1_x;
 			mem_st2_y      <= mem_st1_y;
+			mem_st2_strb   <= mem_st1_strb;
 			mem_st2_valid  <= mem_st1_valid;
 			
 			
@@ -270,6 +288,7 @@ module jelly_texture_bilinear_unit
 			end
 			mem_st3_x      <= mem_st2_x;
 			mem_st3_y      <= mem_st2_y;
+			mem_st3_strb   <= mem_st2_strb;
 			mem_st3_valid  <= mem_st2_valid;
 		end
 	end
@@ -282,6 +301,7 @@ module jelly_texture_bilinear_unit
 	assign	m_mem_arcoeff = mem_st3_coeff;
 	assign	m_mem_araddrx = mem_st3_x;
 	assign	m_mem_araddry = mem_st3_y;
+	assign	m_mem_arstrb  = mem_st3_strb;
 	assign	m_mem_arvalid = mem_st3_valid;
 	
 	
@@ -299,17 +319,21 @@ module jelly_texture_bilinear_unit
 	reg										acc_st0_border;
 	reg		[COEFF_WIDTH-1:0]				acc_st0_coeff;
 	reg		[COMPONENT_NUM*DATA_WIDTH-1:0]	acc_st0_data;
+	reg										acc_st0_strb;
 	reg										acc_st0_valid;
 	
 	reg										acc_st1_load;
 	reg										acc_st1_border;
+	reg										acc_st1_strb;
 	reg										acc_st1_valid;
 	
 	reg										acc_st2_border;
+	reg										acc_st2_strb;
 	reg										acc_st2_valid;
 	
 	reg										acc_st3_border;
 	wire	[COMPONENT_NUM*DATA_WIDTH-1:0]	acc_st3_data;
+	reg										acc_st3_strb;
 	reg										acc_st3_valid;
 	
 	always @(posedge clk) begin
@@ -317,19 +341,23 @@ module jelly_texture_bilinear_unit
 			m_mem_rphase   <= 2'b00;
 			
 			acc_st0_load   <= 1'b0;
-			acc_st1_border <= 1'bx;
+			acc_st0_border <= 1'bx;
 			acc_st0_coeff  <= {COEFF_WIDTH{1'bx}};
 			acc_st0_data   <= {(COMPONENT_NUM*DATA_WIDTH){1'bx}};
+			acc_st0_strb   <= 1'bx;
 			acc_st0_valid  <= 1'b0;
 			
 			acc_st1_load   <= 1'b0;
 			acc_st1_border <= 1'bx;
+			acc_st1_strb   <= 1'bx;
 			acc_st1_valid  <= 1'b0;
 			
 			acc_st2_border <= 1'bx;
+			acc_st3_strb   <= 1'bx;
 			acc_st2_valid  <= 1'b0;
 			
 			acc_st3_border <= 1'bx;
+			acc_st3_strb   <= 1'bx;
 			acc_st3_valid  <= 1'b0;
 		end
 		else if ( acc_cke && cke ) begin
@@ -343,6 +371,7 @@ module jelly_texture_bilinear_unit
 			acc_st0_load  <= 1'b0;
 			acc_st0_coeff <= {COEFF_WIDTH{1'b0}};
 			acc_st0_data  <= {(COMPONENT_NUM*DATA_WIDTH){1'b0}};	// m_mem_rdata;
+			acc_st0_strb  <= 1'b0;
 			acc_st0_valid <= 1'b0;
 			
 			if ( m_mem_rvalid && m_mem_rready ) begin
@@ -366,6 +395,7 @@ module jelly_texture_bilinear_unit
 				acc_st0_load  <= 1'b1;
 				acc_st0_coeff <= {1'b1, {COEFF_FRAC_WIDTH{1'b0}}};
 				acc_st0_data  <= m_mem_rdata;
+				acc_st0_strb  <= m_mem_rstrb;
 				acc_st0_valid <= m_mem_rvalid && m_mem_rready;
 			end
 			
@@ -373,16 +403,19 @@ module jelly_texture_bilinear_unit
 			// stage 1
 			acc_st1_load   <= acc_st0_load;
 			acc_st1_border <= acc_st0_border;
+			acc_st1_strb   <= acc_st0_strb;
 			acc_st1_valid  <= acc_st0_valid;
 			
 			
 			// stage 2
 			acc_st2_border <= acc_st1_border;
+			acc_st2_strb   <= acc_st1_strb;
 			acc_st2_valid  <= acc_st1_valid;
 			
 			
 			// stage 3
 			acc_st3_border <= acc_st2_border;
+			acc_st3_strb   <= acc_st2_strb;
 			acc_st3_valid  <= acc_st2_valid;
 		end
 	end
@@ -452,6 +485,7 @@ module jelly_texture_bilinear_unit
 	
 	assign m_ff_border  = acc_st3_border;
 	assign m_ff_data    = acc_st3_data;
+	assign m_ff_strb    = acc_st3_strb;
 	assign m_ff_valid   = acc_st3_valid;
 	
 	

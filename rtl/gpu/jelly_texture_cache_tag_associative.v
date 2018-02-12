@@ -39,21 +39,21 @@ module jelly_texture_cache_tag_associative
 			
 			input	wire	[USER_BITS-1:0]			s_user,
 			input	wire							s_last,
-			input	wire							s_border,
 			input	wire	[ADDR_X_WIDTH-1:0]		s_addrx,
 			input	wire	[ADDR_Y_WIDTH-1:0]		s_addry,
+			input	wire							s_strb,
 			input	wire							s_valid,
 			output	wire							s_ready,
 			
 			output	wire	[USER_BITS-1:0]			m_user,
 			output	wire							m_last,
-			output	wire							m_border,
 			output	wire	[TAG_ADDR_WIDTH-1:0]	m_tag_addr,
 			output	wire	[PIX_ADDR_X_WIDTH-1:0]	m_pix_addrx,
 			output	wire	[PIX_ADDR_Y_WIDTH-1:0]	m_pix_addry,
 			output	wire	[BLK_ADDR_X_WIDTH-1:0]	m_blk_addrx,
 			output	wire	[BLK_ADDR_Y_WIDTH-1:0]	m_blk_addry,
 			output	wire							m_cache_hit,
+			output	wire							m_strb,
 			output	wire							m_valid,
 			input	wire							m_ready
 		);
@@ -98,7 +98,7 @@ module jelly_texture_cache_tag_associative
 		else if ( cke ) begin
 			reg_user      <= s_user;
 			reg_last      <= s_last;
-			reg_enable    <= (!s_border && s_valid);
+			reg_enable    <= (s_strb && s_valid);
 			reg_pix_addrx <= s_pix_addrx;
 			reg_pix_addry <= s_pix_addry;
 			reg_blk_addrx <= s_blk_addrx;
@@ -168,7 +168,7 @@ module jelly_texture_cache_tag_associative
 				.s_data				({
 										tag_user,
 										tag_last,
-										~tag_enable,
+										tag_enable,
 										tag_tag_addr,
 										tag_pix_addrx,
 										tag_pix_addry,
@@ -182,7 +182,7 @@ module jelly_texture_cache_tag_associative
 				.m_data				({
 										m_user,
 										m_last,
-										m_border,
+										m_strb,
 										m_tag_addr,
 										m_pix_addrx,
 										m_pix_addry,

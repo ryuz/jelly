@@ -71,26 +71,26 @@ module jelly_texture_cache_l1
 			input	wire									clear_start,
 			output	wire									clear_busy,
 			
-			input	wire	[S_DATA_WIDTH-1:0]				param_border_value,
+			input	wire	[S_DATA_WIDTH-1:0]				param_blank_value,
 			
 			output	wire	[CACHE_NUM-1:0]					status_idle,
 			output	wire	[CACHE_NUM-1:0]					status_stall,
 			output	wire	[CACHE_NUM-1:0]					status_access,
 			output	wire	[CACHE_NUM-1:0]					status_hit,
 			output	wire	[CACHE_NUM-1:0]					status_miss,
-			output	wire	[CACHE_NUM-1:0]					status_border,
+			output	wire	[CACHE_NUM-1:0]					status_blank,
 			
 			// slave port
 			input	wire	[CACHE_NUM*S_USER_WIDTH-1:0]	s_aruser,
-			input	wire	[CACHE_NUM-1:0]					s_arborder,
 			input	wire	[CACHE_NUM*ADDR_X_WIDTH-1:0]	s_araddrx,
 			input	wire	[CACHE_NUM*ADDR_Y_WIDTH-1:0]	s_araddry,
+			input	wire	[CACHE_NUM-1:0]					s_arstrb,
 			input	wire	[CACHE_NUM-1:0]					s_arvalid,
 			output	wire	[CACHE_NUM-1:0]					s_arready,
 			
 			output	wire	[CACHE_NUM*S_USER_WIDTH-1:0]	s_ruser,
-			output	wire	[CACHE_NUM-1:0]					s_rborder,
 			output	wire	[CACHE_NUM*S_DATA_WIDTH-1:0]	s_rdata,
+			output	wire	[CACHE_NUM-1:0]					s_rstrb,
 			output	wire	[CACHE_NUM-1:0]					s_rvalid,
 			input	wire	[CACHE_NUM-1:0]					s_rready,
 			
@@ -191,25 +191,25 @@ module jelly_texture_cache_l1
 					.clear_start			(clear_start),
 					.clear_busy				(cache_clear_busy[i]),
 					
-					.param_border_value		(param_border_value),
+					.param_blank_value		(param_blank_value),
 					
 					.status_idle			(status_idle  [i]),
 					.status_stall			(status_stall [i]),
 					.status_access			(status_access[i]),
 					.status_hit				(status_hit   [i]),
 					.status_miss			(status_miss  [i]),
-					.status_border			(status_border[i]),
+					.status_blank			(status_blank [i]),
 					
 					.s_aruser				(s_aruser  [i*S_USER_WIDTH +: S_USER_WIDTH]),
-					.s_arborder				(s_arborder[i]),
 					.s_araddrx				(s_araddrx [i*ADDR_X_WIDTH +: ADDR_X_WIDTH]),
 					.s_araddry				(s_araddry [i*ADDR_Y_WIDTH +: ADDR_Y_WIDTH]),
+					.s_arstrb				(s_arstrb  [i]),
 					.s_arvalid				(s_arvalid [i]),
 					.s_arready				(s_arready [i]),
 					
 					.s_ruser				(s_ruser   [i*S_USER_WIDTH +: S_USER_WIDTH]),
-					.s_rborder				(s_rborder [i]),
 					.s_rdata				(s_rdata   [i*S_DATA_WIDTH +: S_DATA_WIDTH]),
+					.s_rstrb				(s_rstrb   [i]),
 					.s_rvalid				(s_rvalid  [i]),
 					.s_rready				(s_rready  [i]),
 					

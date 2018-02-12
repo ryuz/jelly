@@ -28,8 +28,8 @@ module jelly_texture_stream
 			parameter	STRIDE_X_WIDTH                = 14,
 			parameter	STRIDE_Y_WIDTH                = 14,
 			
+			parameter	USE_BILINEAR                  = 1,
 			parameter	USE_BORDER                    = 1,
-			parameter	BORDER_DATA                   = {(COMPONENT_NUM*DATA_WIDTH){1'b0}},
 			
 			parameter	SCATTER_FIFO_PTR_WIDTH        = 6,
 			parameter	SCATTER_FIFO_RAM_TYPE         = "distributed",
@@ -180,24 +180,26 @@ module jelly_texture_stream
 			output	wire	[L1_CACHE_NUM-1:0]								status_l1_access,
 			output	wire	[L1_CACHE_NUM-1:0]								status_l1_hit,
 			output	wire	[L1_CACHE_NUM-1:0]								status_l1_miss,
-			output	wire	[L1_CACHE_NUM-1:0]								status_l1_border,
+			output	wire	[L1_CACHE_NUM-1:0]								status_l1_blank,
 			output	wire	[L2_CACHE_NUM-1:0]								status_l2_idle,
 			output	wire	[L2_CACHE_NUM-1:0]								status_l2_stall,
 			output	wire	[L2_CACHE_NUM-1:0]								status_l2_access,
 			output	wire	[L2_CACHE_NUM-1:0]								status_l2_hit,
 			output	wire	[L2_CACHE_NUM-1:0]								status_l2_miss,
-			output	wire	[L2_CACHE_NUM-1:0]								status_l2_border,
+			output	wire	[L2_CACHE_NUM-1:0]								status_l2_blank,
 			
 			// AXI4-Stream
 			input	wire	[S_AXI4S_TUSER_BITS-1:0]						s_axi4s_tuser,
 			input	wire	[S_AXI4S_TTEXCORDU_WIDTH-1:0]					s_axi4s_ttexcordu,
 			input	wire	[S_AXI4S_TTEXCORDV_WIDTH-1:0]					s_axi4s_ttexcordv,
+			input	wire													s_axi4s_tstrb,
 			input	wire													s_axi4s_tvalid,
 			output	wire													s_axi4s_tready,
 			
 			output	wire	[M_AXI4S_TUSER_BITS-1:0]						m_axi4s_tuser,
 			output	wire													m_axi4s_tborder,
 			output	wire	[M_AXI4S_TDATA_WIDTH-1:0]						m_axi4s_tdata,
+			output	wire													m_axi4s_tstrb,
 			output	wire													m_axi4s_tvalid,
 			input	wire													m_axi4s_tready,
 			
@@ -240,11 +242,12 @@ module jelly_texture_stream
 	// scatter
 	localparam	SAMPLER2D_USER_WIDTH = S_AXI4S_TUSER_WIDTH;
 	localparam	SAMPLER2D_USER_BITS  = S_AXI4S_TUSER_BITS;
-	localparam	SCATTER_DATA_WIDTH   = S_AXI4S_TUSER_WIDTH + S_AXI4S_TTEXCORDU_WIDTH + S_AXI4S_TTEXCORDV_WIDTH;
+	localparam	SCATTER_DATA_WIDTH   = S_AXI4S_TUSER_WIDTH + 1 + S_AXI4S_TTEXCORDU_WIDTH + S_AXI4S_TTEXCORDV_WIDTH;
 	
-	wire	[SCATTER_DATA_WIDTH-1:0]					s_axi4s_tpacket = {s_axi4s_tuser, s_axi4s_ttexcordv, s_axi4s_ttexcordu};
+	wire	[SCATTER_DATA_WIDTH-1:0]					s_axi4s_tpacket = {s_axi4s_tuser, s_axi4s_tstrb, s_axi4s_ttexcordv, s_axi4s_ttexcordu};
 	
 	wire	[SAMPLER2D_NUM*SAMPLER2D_USER_BITS-1:0]		s_sampler2d_user;
+	wire	[SAMPLER2D_NUM-1:0]							s_sampler2d_strb;
 	wire	[SAMPLER2D_NUM*SAMPLER2D_X_WIDTH-1:0]		s_sampler2d_x;
 	wire	[SAMPLER2D_NUM*SAMPLER2D_Y_WIDTH-1:0]		s_sampler2d_y;
 	wire	[SAMPLER2D_NUM-1:0]							s_sampler2d_valid;
@@ -255,6 +258,7 @@ module jelly_texture_stream
 	generate
 	for ( i = 0; i < SAMPLER2D_NUM; i = i+1 ) begin : loop_scatter_packet
 		assign {s_sampler2d_user  [i*S_AXI4S_TUSER_BITS +: S_AXI4S_TUSER_BITS],
+		        s_sampler2d_strb  [i],
 		        s_sampler2d_y     [i*SAMPLER2D_Y_WIDTH  +: SAMPLER2D_Y_WIDTH],
 		        s_sampler2d_x     [i*SAMPLER2D_X_WIDTH  +: SAMPLER2D_X_WIDTH]}
 		         = s_samoler2d_packet[i*SCATTER_DATA_WIDTH +: SCATTER_DATA_WIDTH];
@@ -291,6 +295,7 @@ module jelly_texture_stream
 	
 	// sampler
 	wire	[SAMPLER2D_NUM*SAMPLER2D_USER_WIDTH-1:0]		m_sampler2d_user;
+	wire	[SAMPLER2D_NUM-1:0]								m_sampler2d_strb;
 	wire	[SAMPLER2D_NUM-1:0]								m_sampler2d_border;
 	wire	[SAMPLER2D_NUM*COMPONENT_NUM*DATA_WIDTH-1:0]	m_sampler2d_data;
 	wire	[SAMPLER2D_NUM-1:0]								m_sampler2d_valid;
@@ -308,8 +313,8 @@ module jelly_texture_stream
 				.STRIDE_X_WIDTH 				(STRIDE_X_WIDTH),
 				.STRIDE_Y_WIDTH 				(STRIDE_Y_WIDTH),
 				
+				.USE_BILINEAR 					(USE_BILINEAR),
 				.USE_BORDER 					(USE_BORDER),
-				.BORDER_DATA					(BORDER_DATA),
 				
 				.SAMPLER2D_NUM					(SAMPLER2D_NUM),
 				.SAMPLER2D_USER_WIDTH			(SAMPLER2D_USER_WIDTH),
@@ -424,7 +429,7 @@ module jelly_texture_stream
 				.param_stride_y					(param_stride_y),
 				
 				.param_nearestneighbor			(param_nearestneighbor),
-				.param_border_value				(param_border_value),
+				.param_blank_value				(param_border_value),
 				.param_x_op						(param_x_op),
 				.param_y_op						(param_y_op),
 				
@@ -436,23 +441,25 @@ module jelly_texture_stream
 				.status_l1_access				(status_l1_access),
 				.status_l1_hit					(status_l1_hit),
 				.status_l1_miss					(status_l1_miss),
-				.status_l1_border				(status_l1_border),
+				.status_l1_blank				(status_l1_blank),
 				.status_l2_idle					(status_l2_idle),
 				.status_l2_stall				(status_l2_stall),
 				.status_l2_access				(status_l2_access),
 				.status_l2_hit					(status_l2_hit),
 				.status_l2_miss					(status_l2_miss),
-				.status_l2_border				(status_l2_border),
+				.status_l2_blank				(status_l2_blank),
 				
 				.s_sampler2d_user				(s_sampler2d_user),
 				.s_sampler2d_x					(s_sampler2d_x),
 				.s_sampler2d_y					(s_sampler2d_y),
+				.s_sampler2d_strb				(s_sampler2d_strb),
 				.s_sampler2d_valid				(s_sampler2d_valid),
 				.s_sampler2d_ready				(s_sampler2d_ready),
 				
 				.m_sampler2d_user				(m_sampler2d_user),
 				.m_sampler2d_border				(m_sampler2d_border),
 				.m_sampler2d_data				(m_sampler2d_data),
+				.m_sampler2d_strb				(m_sampler2d_strb),
 				.m_sampler2d_valid				(m_sampler2d_valid),
 				.m_sampler2d_ready				(m_sampler2d_ready),
 				
@@ -478,7 +485,7 @@ module jelly_texture_stream
 	
 	
 	// gather
-	localparam	GATHER_DATA_WIDTH = SAMPLER2D_USER_WIDTH + 1 + M_AXI4S_TDATA_WIDTH;
+	localparam	GATHER_DATA_WIDTH = SAMPLER2D_USER_WIDTH + 1 + 1 + M_AXI4S_TDATA_WIDTH;
 	
 	wire	[SAMPLER2D_NUM*GATHER_DATA_WIDTH-1:0]		m_sampler2d_packet;
 	
@@ -486,6 +493,7 @@ module jelly_texture_stream
 	for ( i = 0; i < SAMPLER2D_NUM; i = i+1 ) begin : loop_gather_packet
 		assign m_sampler2d_packet[i*GATHER_DATA_WIDTH +: GATHER_DATA_WIDTH]
 		        = {m_sampler2d_user  [i*S_AXI4S_TUSER_BITS  +: S_AXI4S_TUSER_BITS],
+		           m_sampler2d_strb  [i],
 		           m_sampler2d_border[i],
 		           m_sampler2d_data  [i*M_AXI4S_TDATA_WIDTH +: M_AXI4S_TDATA_WIDTH]};
 	end
@@ -493,7 +501,7 @@ module jelly_texture_stream
 	
 	wire	[GATHER_DATA_WIDTH-1:0]						m_axi4s_tpacket;
 	
-	assign {m_axi4s_tuser, m_axi4s_tborder, m_axi4s_tdata} = m_axi4s_tpacket;
+	assign {m_axi4s_tuser, m_axi4s_tstrb, m_axi4s_tborder, m_axi4s_tdata} = m_axi4s_tpacket;
 	
 	jelly_data_gather
 			#(

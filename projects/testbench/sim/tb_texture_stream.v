@@ -8,7 +8,7 @@ module tb_texture_stream();
 	
 	initial begin
 		$dumpfile("tb_texture_stream.vcd");
-		$dumpvars(1, tb_texture_stream);
+		$dumpvars(0, tb_texture_stream);
 		
 		#30000000;
 			$display("!!!!TIME OUT!!!!");
@@ -37,8 +37,8 @@ module tb_texture_stream();
 	parameter	STRIDE_X_WIDTH                = 13;
 	parameter	STRIDE_Y_WIDTH                = 14;
 	
+	parameter	USE_BILINEAR                  = 1;
 	parameter	USE_BORDER                    = 1;
-	parameter	BORDER_DATA                   = {(COMPONENT_NUM*DATA_WIDTH){1'b0}};
 	
 	parameter	SCATTER_FIFO_PTR_WIDTH        = 6;
 	parameter	SCATTER_FIFO_RAM_TYPE         = "distributed";
@@ -174,23 +174,25 @@ module tb_texture_stream();
 	wire	[L1_CACHE_NUM-1:0]				status_l1_access;
 	wire	[L1_CACHE_NUM-1:0]				status_l1_hit;
 	wire	[L1_CACHE_NUM-1:0]				status_l1_miss;
-	wire	[L1_CACHE_NUM-1:0]				status_l1_border;
+	wire	[L1_CACHE_NUM-1:0]				status_l1_blank;
 	wire	[L2_CACHE_NUM-1:0]				status_l2_idle;
 	wire	[L2_CACHE_NUM-1:0]				status_l2_stall;
 	wire	[L2_CACHE_NUM-1:0]				status_l2_access;
 	wire	[L2_CACHE_NUM-1:0]				status_l2_hit;
 	wire	[L2_CACHE_NUM-1:0]				status_l2_miss;
-	wire	[L2_CACHE_NUM-1:0]				status_l2_border;
+	wire	[L2_CACHE_NUM-1:0]				status_l2_blank;
 	
 	wire	[S_AXI4S_TUSER_BITS-1:0]		s_axi4s_tuser;
 	wire	[S_AXI4S_TTEXCORDU_WIDTH-1:0]	s_axi4s_ttexcordu;
 	wire	[S_AXI4S_TTEXCORDV_WIDTH-1:0]	s_axi4s_ttexcordv;
+	wire									s_axi4s_tstrb;
 	reg										s_axi4s_tvalid;
 	wire									s_axi4s_tready;
 	
 	wire	[M_AXI4S_TUSER_BITS-1:0]		m_axi4s_tuser;
 	wire									m_axi4s_tborder;
 	wire	[M_AXI4S_TDATA_WIDTH-1:0]		m_axi4s_tdata;
+	wire									m_axi4s_tstrb;
 	wire									m_axi4s_tvalid;
 	reg										m_axi4s_tready  = 1;
 	
@@ -209,14 +211,14 @@ module tb_texture_stream();
 		m11 = $rtoi(16 * 0.707);
 		m12 = $rtoi(16 * -155.97);
 		
-		/*
+		
 		m00 = $rtoi(16 * 1.0);
 		m01 = $rtoi(16 * 0.0);
 		m02 = $rtoi(16 * 0.0);
 		m10 = $rtoi(16 * 0.0);
 		m11 = $rtoi(16 * 1.0);
 		m12 = $rtoi(16 * 0.0);
-		*/
+		
 	end
 	
 	
@@ -246,6 +248,7 @@ module tb_texture_stream();
 	assign s_axi4s_tuser = (src_x == 0) && (src_y == 0);
 	assign s_axi4s_ttexcordu = m00 * src_x + m01 * src_y + m02;
 	assign s_axi4s_ttexcordv = m10 * src_x + m11 * src_y + m12;
+	assign s_axi4s_tstrb     = 1'b1 ; // !((src_x >= 100) && (src_x < 200) && (src_y >= 100) && (src_y < 200));
 	
 	
 	// save
@@ -318,8 +321,8 @@ module tb_texture_stream();
 				.STRIDE_X_WIDTH 				(STRIDE_X_WIDTH),
 				.STRIDE_Y_WIDTH 				(STRIDE_Y_WIDTH),
 				
+				.USE_BILINEAR					(USE_BILINEAR),
 				.USE_BORDER 					(USE_BORDER),
-				.BORDER_DATA					(BORDER_DATA),
 				
 				.SCATTER_FIFO_PTR_WIDTH 		(SCATTER_FIFO_PTR_WIDTH),
 				.SCATTER_FIFO_RAM_TYPE			(SCATTER_FIFO_RAM_TYPE),
@@ -461,23 +464,25 @@ module tb_texture_stream();
 				.status_l1_access				(status_l1_access),
 				.status_l1_hit					(status_l1_hit),
 				.status_l1_miss					(status_l1_miss),
-				.status_l1_border				(status_l1_border),
+				.status_l1_blank				(status_l1_blank),
 				.status_l2_idle					(status_l2_idle),
 				.status_l2_stall				(status_l2_stall),
 				.status_l2_access				(status_l2_access),
 				.status_l2_hit					(status_l2_hit),
 				.status_l2_miss					(status_l2_miss),
-				.status_l2_border				(status_l2_border),
+				.status_l2_blank				(status_l2_blank),
 				
 				.s_axi4s_tuser					(s_axi4s_tuser),
 				.s_axi4s_ttexcordu				(s_axi4s_ttexcordu),
 				.s_axi4s_ttexcordv				(s_axi4s_ttexcordv),
+				.s_axi4s_tstrb					(s_axi4s_tstrb),
 				.s_axi4s_tvalid					(s_axi4s_tvalid),
 				.s_axi4s_tready					(s_axi4s_tready),
 				
 				.m_axi4s_tuser					(m_axi4s_tuser),
 				.m_axi4s_tborder				(m_axi4s_tborder),
 				.m_axi4s_tdata					(m_axi4s_tdata),
+				.m_axi4s_tstrb					(m_axi4s_tstrb),
 				.m_axi4s_tvalid					(m_axi4s_tvalid),
 				.m_axi4s_tready					(m_axi4s_tready),
 				

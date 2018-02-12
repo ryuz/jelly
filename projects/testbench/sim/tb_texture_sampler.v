@@ -110,24 +110,26 @@ module tb_texture_sampler();
 	wire	[L1_CACHE_NUM-1:0]								status_l1_access;
 	wire	[L1_CACHE_NUM-1:0]								status_l1_hit;
 	wire	[L1_CACHE_NUM-1:0]								status_l1_miss;
-	wire	[L1_CACHE_NUM-1:0]								status_l1_border;
+	wire	[L1_CACHE_NUM-1:0]								status_l1_blank;
 	wire	[L2_CACHE_NUM-1:0]								status_l2_idle;
 	wire	[L2_CACHE_NUM-1:0]								status_l2_stall;
 	wire	[L2_CACHE_NUM-1:0]								status_l2_access;
 	wire	[L2_CACHE_NUM-1:0]								status_l2_hit;
 	wire	[L2_CACHE_NUM-1:0]								status_l2_miss;
-	wire	[L2_CACHE_NUM-1:0]								status_l2_border;
+	wire	[L2_CACHE_NUM-1:0]								status_l2_blank;
 	
 	// 2D sampler
 	wire	[SAMPLER2D_NUM*SAMPLER2D_USER_BITS-1:0]			s_sampler2d_user;
 	wire	[SAMPLER2D_NUM*SAMPLER2D_X_WIDTH-1:0]			s_sampler2d_x;
 	wire	[SAMPLER2D_NUM*SAMPLER2D_Y_WIDTH-1:0]			s_sampler2d_y;
+	wire	[SAMPLER2D_NUM-1:0]								s_sampler2d_strb;
 	wire	[SAMPLER2D_NUM-1:0]								s_sampler2d_valid;
 	wire	[SAMPLER2D_NUM-1:0]								s_sampler2d_ready;
 	
 	wire	[SAMPLER2D_NUM*SAMPLER2D_USER_BITS-1:0]			m_sampler2d_user;
 	wire	[SAMPLER2D_NUM-1:0]								m_sampler2d_border;
 	wire	[SAMPLER2D_NUM*COMPONENT_NUM*DATA_WIDTH-1:0]	m_sampler2d_data;
+	wire	[SAMPLER2D_NUM-1:0]								m_sampler2d_strb;
 	wire	[SAMPLER2D_NUM-1:0]								m_sampler2d_valid;
 	wire	[SAMPLER2D_NUM-1:0]								m_sampler2d_ready;
 	

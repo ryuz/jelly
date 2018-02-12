@@ -37,22 +37,22 @@ module jelly_texture_cache_mem
 			
 			output	wire							busy,
 			
-			input	wire	[M_DATA_WIDTH-1:0]		param_border_value,
+			input	wire	[M_DATA_WIDTH-1:0]		param_blank_value,
 			
 			input	wire	[USER_WIDTH-1:0]		s_user,
 			input	wire							s_last,
-			input	wire							s_border,
 			input	wire	[COMPONENT_NUM-1:0]		s_we,
 			input	wire	[S_DATA_WIDTH-1:0]		s_wdata,
 			input	wire	[TAG_ADDR_WIDTH-1:0]	s_tag_addr,
 			input	wire	[PIX_ADDR_WIDTH-1:0]	s_pix_addr,
+			input	wire							s_strb,
 			input	wire							s_valid,
 			output	wire							s_ready,
 			
 			output	wire	[USER_WIDTH-1:0]		m_user,
 			output	wire							m_last,
-			output	wire							m_border,
 			output	wire	[M_DATA_WIDTH-1:0]		m_data,
+			output	wire							m_strb,
 			output	wire							m_valid,
 			input	wire							m_ready
 		);
@@ -71,7 +71,7 @@ module jelly_texture_cache_mem
 	
 	wire	[USER_WIDTH-1:0]		st0_user      = s_user;
 	wire							st0_last      = s_last;
-	wire							st0_border    = s_border;
+	wire							st0_strb      = s_strb;
 	wire	[COMPONENT_NUM-1:0]		st0_we        = s_we;
 	wire	[S_DATA_WIDTH-1:0]		st0_wdata     = s_wdata;
 	wire	[TAG_ADDR_WIDTH-1:0]	st0_tag_addr  = s_tag_addr;
@@ -81,13 +81,13 @@ module jelly_texture_cache_mem
 	
 	reg		[USER_WIDTH-1:0]		st1_user;
 	reg								st1_last;
-	reg								st1_border;
+	reg								st1_strb;
 	reg		[SEL_WIDTH-1:0]			st1_sel;
 	reg								st1_valid;
 	
 	reg		[USER_WIDTH-1:0]		st2_user;
 	reg								st2_last;
-	reg								st2_border;
+	reg								st2_strb;
 	reg		[SEL_WIDTH-1:0]			st2_sel;
 	reg								st2_valid;
 	
@@ -96,7 +96,7 @@ module jelly_texture_cache_mem
 	
 	reg		[USER_WIDTH-1:0]		st3_user;
 	reg								st3_last;
-	reg								st3_border;
+	reg								st3_strb;
 	reg		[M_DATA_WIDTH-1:0]		st3_data;
 	reg								st3_valid;
 	
@@ -144,19 +144,19 @@ module jelly_texture_cache_mem
 		if ( reset ) begin
 			st1_user   <= {USER_WIDTH{1'bx}};
 			st1_last   <= 1'bx;
-			st1_border <= 1'bx;
+			st1_strb   <= 1'bx;
 			st1_sel    <= {SEL_WIDTH{1'bx}};
 			st1_valid  <= 1'b0;
 			
 			st2_user   <= {USER_WIDTH{1'bx}};
 			st2_last   <= 1'bx;
-			st2_border <= 1'bx;
+			st2_strb   <= 1'bx;
 			st2_sel    <= {SEL_WIDTH{1'bx}};
 			st2_valid  <= 1'b0;
 			
 			st3_user   <= {USER_WIDTH{1'bx}};
 			st3_last   <= 1'bx;
-			st3_border <= 1'bx;
+			st3_strb   <= 1'bx;
 			st3_data   <= {M_DATA_WIDTH{1'bx}};
 			st3_valid  <= 1'b0;
 		end
@@ -164,22 +164,22 @@ module jelly_texture_cache_mem
 			// stage1
 			st1_user      <= st0_user;
 			st1_last      <= st0_last;
-			st1_border    <= st0_border;
+			st1_strb      <= st0_strb;
 			st1_sel       <= st0_sel;
 			st1_valid     <= st0_valid;
 			
 			// stage2
 			st2_user      <= st1_user;
 			st2_last      <= st1_last;
-			st2_border    <= st1_border;
+			st2_strb      <= st1_strb;
 			st2_sel       <= st1_sel;
 			st2_valid     <= st1_valid;
 			
 			// stage3
 			st3_user      <= st2_user;
 			st3_last      <= st2_last;
-			st3_border    <= st2_border;
-			st3_data      <= st2_border ? param_border_value : read_data;
+			st3_strb      <= st2_strb;
+			st3_data      <= st2_strb ? read_data : param_blank_value;
 			st3_valid     <= st2_valid;
 		end
 	end
@@ -198,11 +198,11 @@ module jelly_texture_cache_mem
 				.clk				(clk),
 				.cke				(1'b1),
 				
-				.s_data				({st3_user, st3_last, st3_border, st3_data}),
+				.s_data				({st3_user, st3_last, st3_strb, st3_data}),
 				.s_valid			(st3_valid),
 				.s_ready			(cke),
 				
-				.m_data				({m_user, m_last, m_border, m_data}),
+				.m_data				({m_user, m_last, m_strb, m_data}),
 				.m_valid			(m_valid),
 				.m_ready			(m_ready),
 				

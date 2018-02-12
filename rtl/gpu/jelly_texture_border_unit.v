@@ -39,6 +39,7 @@ module jelly_texture_border_unit
 			input	wire			[USER_BITS-1:0]		s_user,
 			input	wire	signed	[X_WIDTH-1:0]		s_x,
 			input	wire	signed	[Y_WIDTH-1:0]		s_y,
+			input	wire								s_strb,
 			input	wire								s_valid,
 			output	wire								s_ready,
 			
@@ -46,6 +47,7 @@ module jelly_texture_border_unit
 			output	wire								m_border,
 			output	wire			[ADDR_X_WIDTH-1:0]	m_addrx,
 			output	wire			[ADDR_Y_WIDTH-1:0]	m_addry,
+			output	wire								m_strb,
 			output	wire								m_valid,
 			input	wire								m_ready
 		);
@@ -95,17 +97,19 @@ module jelly_texture_border_unit
 	wire			[USER_BITS-1:0]			src_user;
 	wire	signed	[X_WIDTH-1:0]			src_x;
 	wire	signed	[Y_WIDTH-1:0]			src_y;
+	wire									src_strb;
 	
 	wire			[USER_BITS-1:0]			sink_user;
 	wire									sink_border;
 	wire			[ADDR_X_WIDTH-1:0]		sink_addrx;
 	wire			[ADDR_Y_WIDTH-1:0]		sink_addry;
+	wire									sink_strb;
 	
 	jelly_pipeline_control
 			#(
 				.PIPELINE_STAGES	(PIPELINE_STAGES),
-				.S_DATA_WIDTH		(USER_BITS+X_WIDTH+Y_WIDTH),
-				.M_DATA_WIDTH		(USER_BITS+1+ADDR_X_WIDTH+ADDR_Y_WIDTH),
+				.S_DATA_WIDTH		(USER_BITS+X_WIDTH+Y_WIDTH+1),
+				.M_DATA_WIDTH		(USER_BITS+1+ADDR_X_WIDTH+ADDR_Y_WIDTH+1),
 				.AUTO_VALID			(1),
 				.MASTER_IN_REGS		(M_REGS),
 				.MASTER_OUT_REGS	(M_REGS)
@@ -116,20 +120,20 @@ module jelly_texture_border_unit
 				.clk				(clk),
 				.cke				(1),
 				
-				.s_data				({s_user, s_x, s_y}),
+				.s_data				({s_user, s_x, s_y, s_strb}),
 				.s_valid			(s_valid),
 				.s_ready			(s_ready),
 				
-				.m_data				({m_user, m_border, m_addrx, m_addry}),
+				.m_data				({m_user, m_border, m_addrx, m_addry, m_strb}),
 				.m_valid			(m_valid),
 				.m_ready			(m_ready),
 				
 				.stage_cke			(stage_cke),
 				.stage_valid		(stage_valid),
 				.next_valid			({PIPELINE_STAGES{1'bx}}),
-				.src_data			({src_user, src_x, src_y}),
+				.src_data			({src_user, src_x, src_y, src_strb}),
 				.src_valid			(),
-				.sink_data			({sink_user, sink_border, sink_addrx, sink_addry}),
+				.sink_data			({sink_user, sink_border, sink_addrx, sink_addry, sink_strb}),
 				.buffered			()
 			);
 	
@@ -230,6 +234,7 @@ module jelly_texture_border_unit
 	
 	reg		signed	[USER_BITS-1:0]	st0_user;
 	reg								st0_border;
+	reg								st0_strb;
 	
 	reg		signed	[X_WIDTH-1:0]	st0_x;
 	reg				[2:0]			st0_x_op;
@@ -241,6 +246,7 @@ module jelly_texture_border_unit
 	always @(posedge clk) begin
 		if ( stage_cke[0] ) begin
 			st0_user   <= src_user;
+			st0_strb   <= src_strb;
 			
 			st0_border <= ((~param_x_op[2] && (src_x_under || src_x_over)) || (~param_y_op[2] && (src_y_under || src_y_over)));
 			
@@ -291,6 +297,7 @@ module jelly_texture_border_unit
 	
 	
 	reg				[USER_BITS-1:0]	st1_user;
+	reg								st1_strb;
 	reg								st1_border;
 	reg		signed	[X_WIDTH-1:0]	st1_x;
 	reg		signed	[Y_WIDTH-1:0]	st1_y;
@@ -298,6 +305,7 @@ module jelly_texture_border_unit
 	always @(posedge clk) begin
 		if ( stage_cke[1] ) begin
 			st1_user   <= st0_user;
+			st1_strb   <= st0_strb & !st0_border;
 			
 			st1_border <= st0_border;
 			
@@ -308,6 +316,7 @@ module jelly_texture_border_unit
 	
 	
 	assign sink_user   = st1_user;
+	assign sink_strb   = st1_strb;
 	assign sink_border = st1_border;
 	assign sink_addrx  = st1_x;
 	assign sink_addry  = st1_y;
