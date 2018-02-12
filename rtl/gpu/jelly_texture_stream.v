@@ -198,7 +198,6 @@ module jelly_texture_stream
 			output	wire													s_axi4s_tready,
 			
 			output	wire	[M_AXI4S_TUSER_BITS-1:0]						m_axi4s_tuser,
-			output	wire													m_axi4s_tborder,
 			output	wire	[M_AXI4S_TDATA_WIDTH-1:0]						m_axi4s_tdata,
 			output	wire													m_axi4s_tstrb,
 			output	wire													m_axi4s_tvalid,
@@ -297,7 +296,6 @@ module jelly_texture_stream
 	// sampler
 	wire	[SAMPLER2D_NUM*SAMPLER2D_USER_WIDTH-1:0]		m_sampler2d_user;
 	wire	[SAMPLER2D_NUM-1:0]								m_sampler2d_strb;
-	wire	[SAMPLER2D_NUM-1:0]								m_sampler2d_border;
 	wire	[SAMPLER2D_NUM*COMPONENT_NUM*DATA_WIDTH-1:0]	m_sampler2d_data;
 	wire	[SAMPLER2D_NUM-1:0]								m_sampler2d_valid;
 	wire	[SAMPLER2D_NUM-1:0]								m_sampler2d_ready;
@@ -459,7 +457,6 @@ module jelly_texture_stream
 				.s_sampler2d_ready				(s_sampler2d_ready),
 				
 				.m_sampler2d_user				(m_sampler2d_user),
-				.m_sampler2d_border				(m_sampler2d_border),
 				.m_sampler2d_data				(m_sampler2d_data),
 				.m_sampler2d_strb				(m_sampler2d_strb),
 				.m_sampler2d_valid				(m_sampler2d_valid),
@@ -487,7 +484,7 @@ module jelly_texture_stream
 	
 	
 	// gather
-	localparam	GATHER_DATA_WIDTH = SAMPLER2D_USER_WIDTH + 1 + 1 + M_AXI4S_TDATA_WIDTH;
+	localparam	GATHER_DATA_WIDTH = SAMPLER2D_USER_WIDTH + 1 + M_AXI4S_TDATA_WIDTH;
 	
 	wire	[SAMPLER2D_NUM*GATHER_DATA_WIDTH-1:0]		m_sampler2d_packet;
 	
@@ -496,14 +493,13 @@ module jelly_texture_stream
 		assign m_sampler2d_packet[i*GATHER_DATA_WIDTH +: GATHER_DATA_WIDTH]
 		        = {m_sampler2d_user  [i*S_AXI4S_TUSER_BITS  +: S_AXI4S_TUSER_BITS],
 		           m_sampler2d_strb  [i],
-		           m_sampler2d_border[i],
 		           m_sampler2d_data  [i*M_AXI4S_TDATA_WIDTH +: M_AXI4S_TDATA_WIDTH]};
 	end
 	endgenerate
 	
 	wire	[GATHER_DATA_WIDTH-1:0]						m_axi4s_tpacket;
 	
-	assign {m_axi4s_tuser, m_axi4s_tstrb, m_axi4s_tborder, m_axi4s_tdata} = m_axi4s_tpacket;
+	assign {m_axi4s_tuser, m_axi4s_tstrb, m_axi4s_tdata} = m_axi4s_tpacket;
 	
 	jelly_data_gather
 			#(

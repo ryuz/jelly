@@ -222,11 +222,11 @@ module jelly_texture_sampler
 	//  2D sampler
 	// -------------------------------------------------
 	
-	localparam	SAMPLER2D_PACKET_WIDTH = 1 + SAMPLER2D_COEFF_WIDTH;
+	localparam	BILINEAR_USER_WIDTH    = USE_BILINEAR ? SAMPLER2D_COEFF_WIDTH : SAMPLER2D_USER_BITS;
+	localparam	SAMPLER2D_PACKET_WIDTH = 1 + BILINEAR_USER_WIDTH;
 	
 	wire	[SAMPLER2D_NUM*SAMPLER2D_PACKET_WIDTH-1:0]		sampler2d_arpacket;
-	wire	[SAMPLER2D_NUM*SAMPLER2D_USER_BITS-1:0]			sampler2d_aruser;
-	wire	[SAMPLER2D_NUM*SAMPLER2D_COEFF_WIDTH-1:0]		sampler2d_arcoeff;
+	wire	[SAMPLER2D_NUM*BILINEAR_USER_WIDTH-1:0]			sampler2d_aruser;
 	wire	[SAMPLER2D_NUM-1:0]								sampler2d_arborder;
 	wire	[SAMPLER2D_NUM*ADDR_X_WIDTH-1:0]				sampler2d_araddrx;
 	wire	[SAMPLER2D_NUM*ADDR_Y_WIDTH-1:0]				sampler2d_araddry;
@@ -235,8 +235,7 @@ module jelly_texture_sampler
 	wire	[SAMPLER2D_NUM-1:0]								sampler2d_arready;
 	
 	wire	[SAMPLER2D_NUM*SAMPLER2D_PACKET_WIDTH-1:0]		sampler2d_rpacket;
-	wire	[SAMPLER2D_NUM*SAMPLER2D_USER_BITS-1:0]			sampler2d_ruser;
-	wire	[SAMPLER2D_NUM*SAMPLER2D_COEFF_WIDTH-1:0]		sampler2d_rcoeff;
+	wire	[SAMPLER2D_NUM*BILINEAR_USER_WIDTH-1:0]			sampler2d_ruser;
 	wire	[SAMPLER2D_NUM-1:0]								sampler2d_rborder;
 	wire	[SAMPLER2D_NUM*COMPONENT_NUM*DATA_WIDTH-1:0]	sampler2d_rdata;
 	wire	[SAMPLER2D_NUM-1:0]								sampler2d_rstrb;
@@ -245,76 +244,96 @@ module jelly_texture_sampler
 	
 	generate
 	for ( i = 0; i < SAMPLER2D_NUM; i = i+1 ) begin : loop_2d
-		wire	[SAMPLER2D_COEFF_WIDTH-1:0]		bilinear_arcoeff;
+		wire	[BILINEAR_USER_WIDTH-1:0]		bilinear_aruser;
 		wire	[SAMPLER2D_X_INT_WIDTH-1:0]		bilinear_araddrx;
 		wire	[SAMPLER2D_Y_INT_WIDTH-1:0]		bilinear_araddry;
 		wire									bilinear_arstrb;
 		wire									bilinear_arvalid;
 		wire									bilinear_arready;
 		
-		wire	[SAMPLER2D_COEFF_WIDTH-1:0]		bilinear_rcoeff;
+		wire	[BILINEAR_USER_WIDTH-1:0]		bilinear_ruser;
 		wire	[COMPONENT_NUM*DATA_WIDTH-1:0]	bilinear_rdata;
+		wire									bilinear_rstrb;
 		wire									bilinear_rvalid;
 		wire									bilinear_rready;
 		
-		jelly_texture_bilinear_unit
-				#(
-					.COMPONENT_NUM			(COMPONENT_NUM),
-					.DATA_WIDTH				(DATA_WIDTH),
-					.USER_WIDTH				(SAMPLER2D_USER_WIDTH),
-					.X_INT_WIDTH			(SAMPLER2D_X_INT_WIDTH),
-					.X_FRAC_WIDTH			(SAMPLER2D_X_FRAC_WIDTH),
-					.Y_INT_WIDTH			(SAMPLER2D_Y_INT_WIDTH),
-					.Y_FRAC_WIDTH			(SAMPLER2D_Y_FRAC_WIDTH),
-					.COEFF_INT_WIDTH		(SAMPLER2D_COEFF_INT_WIDTH),
-					.COEFF_FRAC_WIDTH		(SAMPLER2D_COEFF_FRAC_WIDTH),
-					.S_REGS					(SAMPLER2D_S_REGS),
-					.M_REGS					(SAMPLER2D_M_REGS),
-					.USER_FIFO_PTR_WIDTH	(SAMPLER2D_USER_FIFO_PTR_WIDTH),
-					.USER_FIFO_RAM_TYPE		(SAMPLER2D_USER_FIFO_RAM_TYPE),
-					.USER_FIFO_M_REGS		(SAMPLER2D_USER_FIFO_M_REGS),
-					.DEVICE					(DEVICE)
-				)
-			i_texture_bilinear_unit
-				(
-					.reset					(reset),
-					.clk					(clk),
-					.cke					(1'b1),
-					
-					.param_nearestneighbor	(param_nearestneighbor),
-					
-					.s_user					(s_sampler2d_user  [i*SAMPLER2D_USER_BITS      +: SAMPLER2D_USER_BITS]),
-					.s_x					(s_sampler2d_x     [i*SAMPLER2D_X_WIDTH        +: SAMPLER2D_X_WIDTH]),
-					.s_y					(s_sampler2d_y     [i*SAMPLER2D_Y_WIDTH        +: SAMPLER2D_Y_WIDTH]),
-					.s_strb					(s_sampler2d_strb  [i]),
-					.s_valid				(s_sampler2d_valid [i]),
-					.s_ready				(s_sampler2d_ready [i]),
-					
-					.m_user					(m_sampler2d_user  [i*SAMPLER2D_USER_BITS      +: SAMPLER2D_USER_BITS]),
-					.m_border				(m_sampler2d_border[i]),
-					.m_data					(m_sampler2d_data  [i*COMPONENT_NUM*DATA_WIDTH +: COMPONENT_NUM*DATA_WIDTH]),
-					.m_strb					(m_sampler2d_strb  [i]),
-					.m_valid				(m_sampler2d_valid [i]),
-					.m_ready				(m_sampler2d_ready [i]),
-					
-					.m_mem_arcoeff			(bilinear_arcoeff),
-					.m_mem_araddrx			(bilinear_araddrx),
-					.m_mem_araddry			(bilinear_araddry),
-					.m_mem_arstrb			(bilinear_arstrb),
-					.m_mem_arvalid			(bilinear_arvalid),
-					.m_mem_arready			(bilinear_arready),
-					.m_mem_rcoeff			(bilinear_rcoeff),
-					.m_mem_rborder			(bilinear_rborder),
-					.m_mem_rdata			(bilinear_rdata),
-					.m_mem_rstrb			(bilinear_rstrb),
-					.m_mem_rvalid			(bilinear_rvalid),
-					.m_mem_rready			(bilinear_rready)
-				);
+		if ( USE_BILINEAR ) begin : blk_bilinear
+			jelly_texture_bilinear_unit
+					#(
+						.COMPONENT_NUM			(COMPONENT_NUM),
+						.DATA_WIDTH				(DATA_WIDTH),
+						.USER_WIDTH				(SAMPLER2D_USER_WIDTH),
+						.X_INT_WIDTH			(SAMPLER2D_X_INT_WIDTH),
+						.X_FRAC_WIDTH			(SAMPLER2D_X_FRAC_WIDTH),
+						.Y_INT_WIDTH			(SAMPLER2D_Y_INT_WIDTH),
+						.Y_FRAC_WIDTH			(SAMPLER2D_Y_FRAC_WIDTH),
+						.COEFF_INT_WIDTH		(SAMPLER2D_COEFF_INT_WIDTH),
+						.COEFF_FRAC_WIDTH		(SAMPLER2D_COEFF_FRAC_WIDTH),
+						.S_REGS					(SAMPLER2D_S_REGS),
+						.M_REGS					(SAMPLER2D_M_REGS),
+						.USER_FIFO_PTR_WIDTH	(SAMPLER2D_USER_FIFO_PTR_WIDTH),
+						.USER_FIFO_RAM_TYPE		(SAMPLER2D_USER_FIFO_RAM_TYPE),
+						.USER_FIFO_M_REGS		(SAMPLER2D_USER_FIFO_M_REGS),
+						.DEVICE					(DEVICE)
+					)
+				i_texture_bilinear_unit
+					(
+						.reset					(reset),
+						.clk					(clk),
+						.cke					(1'b1),
+						
+						.param_nearestneighbor	(param_nearestneighbor),
+						
+						.s_user					(s_sampler2d_user  [i*SAMPLER2D_USER_BITS      +: SAMPLER2D_USER_BITS]),
+						.s_x					(s_sampler2d_x     [i*SAMPLER2D_X_WIDTH        +: SAMPLER2D_X_WIDTH]),
+						.s_y					(s_sampler2d_y     [i*SAMPLER2D_Y_WIDTH        +: SAMPLER2D_Y_WIDTH]),
+						.s_strb					(s_sampler2d_strb  [i]),
+						.s_valid				(s_sampler2d_valid [i]),
+						.s_ready				(s_sampler2d_ready [i]),
+						.m_user					(m_sampler2d_user  [i*SAMPLER2D_USER_BITS      +: SAMPLER2D_USER_BITS]),
+						
+						.m_data					(m_sampler2d_data  [i*COMPONENT_NUM*DATA_WIDTH +: COMPONENT_NUM*DATA_WIDTH]),
+						.m_strb					(m_sampler2d_strb  [i]),
+						.m_valid				(m_sampler2d_valid [i]),
+						.m_ready				(m_sampler2d_ready [i]),
+						
+						.m_mem_arcoeff			(bilinear_aruser),
+						.m_mem_araddrx			(bilinear_araddrx),
+						.m_mem_araddry			(bilinear_araddry),
+						.m_mem_arstrb			(bilinear_arstrb),
+						.m_mem_arvalid			(bilinear_arvalid),
+						.m_mem_arready			(bilinear_arready),
+						.m_mem_rcoeff			(bilinear_ruser),
+						.m_mem_rdata			(bilinear_rdata),
+						.m_mem_rstrb			(bilinear_rstrb),
+						.m_mem_rvalid			(bilinear_rvalid),
+						.m_mem_rready			(bilinear_rready)
+					);
+		end
+		else begin : blk_nearestneighbor
+			wire	signed	[SAMPLER2D_X_WIDTH-1:0]	tmp_x = s_sampler2d_x[i*SAMPLER2D_X_WIDTH +: SAMPLER2D_X_WIDTH] + ((1 << SAMPLER2D_X_FRAC_WIDTH) >> 1);
+			wire	signed	[SAMPLER2D_Y_WIDTH-1:0]	tmp_y = s_sampler2d_y[i*SAMPLER2D_Y_WIDTH +: SAMPLER2D_Y_WIDTH] + ((1 << SAMPLER2D_Y_FRAC_WIDTH) >> 1);
 			
+			assign bilinear_aruser   = s_sampler2d_user[i*SAMPLER2D_USER_BITS +: SAMPLER2D_USER_BITS];
+			assign bilinear_araddrx  = (tmp_x >>> SAMPLER2D_X_FRAC_WIDTH);
+			assign bilinear_araddry  = (tmp_y >>> SAMPLER2D_Y_FRAC_WIDTH);
+			assign bilinear_arstrb   = s_sampler2d_strb  [i];
+			assign bilinear_arvalid  = s_sampler2d_valid [i];
 			
+			assign s_sampler2d_ready[i] = bilinear_arready;
+			
+			assign m_sampler2d_user  [i*SAMPLER2D_USER_BITS      +: SAMPLER2D_USER_BITS]      = bilinear_ruser;
+			assign m_sampler2d_data  [i*COMPONENT_NUM*DATA_WIDTH +: COMPONENT_NUM*DATA_WIDTH] = bilinear_rdata;
+			assign m_sampler2d_strb  [i]                                                      = bilinear_rstrb;
+			assign m_sampler2d_valid [i]                                                      = bilinear_rvalid;
+			
+			assign bilinear_rready = m_sampler2d_ready[i];
+		end
+		
+		if ( USE_BORDER ) begin : blk_border
 			jelly_texture_border_unit
 					#(
-						.USER_WIDTH			(SAMPLER2D_COEFF_WIDTH),
+						.USER_WIDTH			(BILINEAR_USER_WIDTH),
 						.DATA_WIDTH			(COMPONENT_NUM*DATA_WIDTH),
 						.ADDR_X_WIDTH		(ADDR_X_WIDTH),
 						.ADDR_Y_WIDTH		(ADDR_Y_WIDTH),
@@ -334,40 +353,58 @@ module jelly_texture_sampler
 						.param_y_op			(param_y_op),
 						.param_border_value	(param_border_value),
 						
-						.s_aruser			(bilinear_arcoeff),
+						.s_aruser			(bilinear_aruser),
 						.s_arx				(bilinear_araddrx),
 						.s_ary				(bilinear_araddry),
 						.s_arstrb			(bilinear_arstrb),
 						.s_arvalid			(bilinear_arvalid),
 						.s_arready			(bilinear_arready),
-						.s_ruser			(bilinear_rcoeff),
-						.s_rborder			(bilinear_rborder),
+						.s_ruser			(bilinear_ruser),
 						.s_rdata			(bilinear_rdata),
 						.s_rstrb			(bilinear_rstrb),
 						.s_rvalid			(bilinear_rvalid),
 						.s_rready			(bilinear_rready),
 						
-						.m_aruser			(sampler2d_arcoeff [i*SAMPLER2D_COEFF_WIDTH +: SAMPLER2D_COEFF_WIDTH]),
+						.m_aruser			(sampler2d_aruser  [i*BILINEAR_USER_WIDTH      +: BILINEAR_USER_WIDTH]),
 						.m_arborder			(sampler2d_arborder[i]),
-						.m_araddrx			(sampler2d_araddrx [i*ADDR_X_WIDTH          +: ADDR_X_WIDTH]),
-						.m_araddry			(sampler2d_araddry [i*ADDR_Y_WIDTH          +: ADDR_Y_WIDTH]),
+						.m_araddrx			(sampler2d_araddrx [i*ADDR_X_WIDTH             +: ADDR_X_WIDTH]),
+						.m_araddry			(sampler2d_araddry [i*ADDR_Y_WIDTH             +: ADDR_Y_WIDTH]),
 						.m_arstrb			(sampler2d_arstrb  [i]),
 						.m_arvalid			(sampler2d_arvalid [i]),
 						.m_arready			(sampler2d_arready [i]),
-						.m_ruser			(sampler2d_rcoeff  [i*SAMPLER2D_COEFF_WIDTH    +: SAMPLER2D_COEFF_WIDTH]),
+						.m_ruser			(sampler2d_ruser   [i*BILINEAR_USER_WIDTH      +: BILINEAR_USER_WIDTH]),
 						.m_rborder			(sampler2d_rborder [i]),
 						.m_rdata			(sampler2d_rdata   [i*COMPONENT_NUM*DATA_WIDTH +: COMPONENT_NUM*DATA_WIDTH]),
 						.m_rstrb			(sampler2d_rstrb   [i]),
 						.m_rvalid			(sampler2d_rvalid  [i]),
 						.m_rready			(sampler2d_rready  [i])
 					);
+		end
+		else begin : blk_no_border
+			assign sampler2d_aruser  [i*BILINEAR_USER_WIDTH      +: BILINEAR_USER_WIDTH] = bilinear_aruser;
+			assign sampler2d_arborder[i]                                                 = 1'b0;
+			assign sampler2d_araddrx [i*ADDR_X_WIDTH             +: ADDR_X_WIDTH]        = bilinear_araddrx;
+			assign sampler2d_araddry [i*ADDR_Y_WIDTH             +: ADDR_Y_WIDTH]        = bilinear_araddry;
+			assign sampler2d_arstrb  [i]                                                 = bilinear_arstrb;
+			assign sampler2d_arvalid [i]                                                 = bilinear_arvalid;
+			
+			assign bilinear_arready = sampler2d_arready[i];
+			
+			
+			assign bilinear_ruser  = sampler2d_ruser [i*BILINEAR_USER_WIDTH      +: BILINEAR_USER_WIDTH];
+			assign bilinear_rdata  = sampler2d_rdata [i*COMPONENT_NUM*DATA_WIDTH +: COMPONENT_NUM*DATA_WIDTH];
+			assign bilinear_rstrb  = sampler2d_rstrb [i];
+			assign bilinear_rvalid = sampler2d_rvalid[i];
+			
+			assign sampler2d_rready[i] = bilinear_rready;
+		end
 		
 		assign sampler2d_arpacket[i*SAMPLER2D_PACKET_WIDTH +: SAMPLER2D_PACKET_WIDTH]
 		            = {sampler2d_arborder[i],
-		               sampler2d_arcoeff [i*SAMPLER2D_COEFF_WIDTH +: SAMPLER2D_COEFF_WIDTH]};
+		               sampler2d_aruser  [i*BILINEAR_USER_WIDTH +: BILINEAR_USER_WIDTH]};
 		
 		assign {sampler2d_rborder[i],
-		        sampler2d_rcoeff [i*SAMPLER2D_COEFF_WIDTH +: SAMPLER2D_COEFF_WIDTH]}
+		        sampler2d_ruser  [i*BILINEAR_USER_WIDTH +: BILINEAR_USER_WIDTH]}
 		            = sampler2d_rpacket[i*SAMPLER2D_PACKET_WIDTH +: SAMPLER2D_PACKET_WIDTH];
 	end
 	endgenerate

@@ -8,7 +8,7 @@ module tb_texture_stream();
 	
 	initial begin
 		$dumpfile("tb_texture_stream.vcd");
-		$dumpvars(1, tb_texture_stream);
+		$dumpvars(0, tb_texture_stream);
 		
 		#30000000;
 			$display("!!!!TIME OUT!!!!");
@@ -38,7 +38,7 @@ module tb_texture_stream();
 	parameter	STRIDE_Y_WIDTH                = 14;
 	
 	parameter	USE_BILINEAR                  = 1;
-	parameter	USE_BORDER                    = 1;
+	parameter	USE_BORDER                    = 0;
 	
 	parameter	SCATTER_FIFO_PTR_WIDTH        = 6;
 	parameter	SCATTER_FIFO_RAM_TYPE         = "distributed";
@@ -190,7 +190,6 @@ module tb_texture_stream();
 	wire									s_axi4s_tready;
 	
 	wire	[M_AXI4S_TUSER_BITS-1:0]		m_axi4s_tuser;
-	wire									m_axi4s_tborder;
 	wire	[M_AXI4S_TDATA_WIDTH-1:0]		m_axi4s_tdata;
 	wire									m_axi4s_tstrb;
 	wire									m_axi4s_tvalid;
@@ -211,14 +210,14 @@ module tb_texture_stream();
 		m11 = $rtoi(16 * 0.707);
 		m12 = $rtoi(16 * -155.97);
 		
-		/*
+		
 		m00 = $rtoi(16 * 1.0);
 		m01 = $rtoi(16 * 0.0);
 		m02 = $rtoi(16 * 0.0);
 		m10 = $rtoi(16 * 0.0);
 		m11 = $rtoi(16 * 1.0);
 		m12 = $rtoi(16 * 0.0);
-		*/
+		
 	end
 	
 	
@@ -248,7 +247,7 @@ module tb_texture_stream();
 	assign s_axi4s_tuser = (src_x == 0) && (src_y == 0);
 	assign s_axi4s_ttexcordu = m00 * src_x + m01 * src_y + m02;
 	assign s_axi4s_ttexcordv = m10 * src_x + m11 * src_y + m12;
-	assign s_axi4s_tstrb     = !((src_x >= 100) && (src_x < 200) && (src_y >= 20) && (src_y < 30));
+	assign s_axi4s_tstrb     = !((src_x >= 100) && (src_x < 200) && (src_y >= 3) && (src_y < 30));
 	
 	
 	// save
@@ -481,7 +480,6 @@ module tb_texture_stream();
 				.s_axi4s_tready					(s_axi4s_tready),
 				
 				.m_axi4s_tuser					(m_axi4s_tuser),
-				.m_axi4s_tborder				(m_axi4s_tborder),
 				.m_axi4s_tdata					(m_axi4s_tdata),
 				.m_axi4s_tstrb					(m_axi4s_tstrb),
 				.m_axi4s_tvalid					(m_axi4s_tvalid),
