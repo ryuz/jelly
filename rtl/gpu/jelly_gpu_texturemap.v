@@ -90,7 +90,7 @@ module jelly_gpu_texturemap
 			parameter	SHADER_INIT_PARAM_BGC             = 24'h000000,
 			
 			
-			parameter	TEX_PARALLEL_NUM                  = 1,
+			parameter	TEX_PARALLEL_NUM                  = 4,
 			parameter	TEX_ADDR_WIDTH                    = 24,
 			parameter	TEX_ADDR_X_WIDTH                  = 10,
 			parameter	TEX_ADDR_Y_WIDTH                  = 9,

@@ -408,6 +408,7 @@ module jelly_pixel_shader_texturemap
 	
 	
 	// debug
+	/*
 	wire	signed	[SHADER_PARAM_WIDTH-1:0]	param0 = s_rasterizer_shader_params[SHADER_PARAM_WIDTH*0 +: SHADER_PARAM_WIDTH];
 	wire	signed	[SHADER_PARAM_WIDTH-1:0]	param1 = s_rasterizer_shader_params[SHADER_PARAM_WIDTH*1 +: SHADER_PARAM_WIDTH];
 	wire	signed	[SHADER_PARAM_WIDTH-1:0]	param2 = s_rasterizer_shader_params[SHADER_PARAM_WIDTH*2 +: SHADER_PARAM_WIDTH];
@@ -430,6 +431,7 @@ module jelly_pixel_shader_texturemap
 		ru = ru / (1 << SHADER_PARAM_Q);
 		rv = rv / (1 << SHADER_PARAM_Q);
 	end
+	*/
 	
 	jelly_fixed_matrix_divider
 			#(
@@ -443,8 +445,8 @@ module jelly_pixel_shader_texturemap
 				.M_QUOTIENT_INT_WIDTH		(SHADER_PARAM_WIDTH - SHADER_PARAM_Q),
 				.M_QUOTIENT_FRAC_WIDTH		(SHADER_PARAM_Q),
 				
-		//		.DIVIDEND_FIXED_INT_WIDTH	(SHADER_PARAM_WIDTH - SHADER_PARAM_Q),
-		//		.DIVIDEND_FIXED_FRAC_WIDTH	(SHADER_PARAM_Q),
+				.DIVIDEND_FIXED_INT_WIDTH	(SHADER_PARAM_WIDTH - SHADER_PARAM_Q),
+				.DIVIDEND_FIXED_FRAC_WIDTH	(SHADER_PARAM_Q),
 				
 		//		.DIVISOR_FLOAT_EXP_WIDTH	(6),
 		//		.DIVISOR_FLOAT_FRAC_WIDTH	(24),

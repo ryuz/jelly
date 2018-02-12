@@ -10,7 +10,7 @@ module tb_gpu_texturemap();
 	
 	initial begin
 		$dumpfile("tb_gpu_texturemap.vcd");
-		$dumpvars(0, tb_gpu_texturemap);
+		$dumpvars(1, tb_gpu_texturemap);
 	end
 	
 	reg		clk = 1'b1;
@@ -727,7 +727,7 @@ wb_write(32'h4000c02c, 32'h00000801, 4'hf);
 		wb_write(32'h0000_0004, 32'h0000_0001, 4'b1111);
 		wb_write(32'h0000_0000, 32'h0000_0001, 4'b1111);
 		
-	#10000000
+	#100000000
 		$finish();
 	end
 	

@@ -293,17 +293,6 @@ module jelly_fixed_matrix_divider
 	// ------------------
 	
 	/*
-	function [DIVISOR_FLOAT_WIDTH-1:0] real2float(input real r);
-	reg		[63:0]	b;
-	begin
-		b                                    = $realtobits(r);
-		real2float[DIVISOR_FLOAT_WIDTH-1]    = b[63];
-		real2float[DIVISOR_FLOAT_FRAC_WIDTH +: DIVISOR_FLOAT_EXP_WIDTH]  = (b[62:52] - 1023) + DIVISOR_FLOAT_EXP_OFFSET;
-		real2float[0                        +: DIVISOR_FLOAT_FRAC_WIDTH] = b[51 -: DIVISOR_FLOAT_FRAC_WIDTH];
-	end
-	endfunction
-	*/
-	
 	function real float2real(input [DIVISOR_FLOAT_WIDTH-1:0] f);
 	reg		[63:0]	b;
 	begin
@@ -363,47 +352,6 @@ module jelly_fixed_matrix_divider
 		rel_recip_fixed_dividend1 = recip_fixed_dividend1;
 		rel_recip_fixed_dividend0 = rel_recip_fixed_dividend0 / (1 << DIVIDEND_FIXED_FRAC_WIDTH);
 		rel_recip_fixed_dividend1 = rel_recip_fixed_dividend1 / (1 << DIVIDEND_FIXED_FRAC_WIDTH);
-	end
-	
-	/*
-	integer	iDIVISOR_FLOAT_EXP_OFFSET = DIVISOR_FLOAT_EXP_OFFSET;
-	integer	iEXP_WIDTH				  = DIVISOR_FLOAT_EXP_WIDTH;
-	integer	iEXP_OFFSET				  = DIVISOR_FLOAT_EXP_OFFSET;
-	integer	iFRAC_WIDTH				  = DIVISOR_FLOAT_FRAC_WIDTH;
-	integer	iD_WIDTH				  = D_WIDTH;
-	integer	iK_WIDTH				  = K_WIDTH;
-	integer	iGRAD_WIDTH				  = GRAD_WIDTH;
-	
-	wire									float_divisor_sign = float_divisor[DIVISOR_FLOAT_EXP_WIDTH  + DIVISOR_FLOAT_FRAC_WIDTH];
-	wire	[DIVISOR_FLOAT_EXP_WIDTH-1:0]	float_divisor_exp  = float_divisor[DIVISOR_FLOAT_FRAC_WIDTH +: DIVISOR_FLOAT_EXP_WIDTH];
-	wire	[DIVISOR_FLOAT_FRAC_WIDTH-1:0]	float_divisor_frac = float_divisor[DIVISOR_FLOAT_FRAC_WIDTH-1:0];
-	integer		int_float_divisor_exp;
-	real		rel_float_divisor;
-	real		exp_float_divisor;
-	always @* begin
-		int_float_divisor_exp = float_divisor_exp - DIVISOR_FLOAT_EXP_OFFSET;
-		rel_float_divisor     = float_divisor_frac;
-		rel_float_divisor     = rel_float_divisor / (1 << DIVISOR_FLOAT_FRAC_WIDTH) + 1.0;
-		if ( float_divisor_exp > DIVISOR_FLOAT_EXP_OFFSET )	rel_float_divisor = rel_float_divisor * (1 << (float_divisor_exp - DIVISOR_FLOAT_EXP_OFFSET));
-		else												rel_float_divisor = rel_float_divisor / (1 << (DIVISOR_FLOAT_EXP_OFFSET - float_divisor_exp));
-		if ( float_divisor_sign )                           rel_float_divisor = -rel_float_divisor;
-		
-		exp_float_divisor = rel_s_divisor;
-	end
-
-	wire									recip_divisor_sign = recip_divisor[DIVISOR_FLOAT_EXP_WIDTH  + DIVISOR_FLOAT_FRAC_WIDTH];
-	wire	[DIVISOR_FLOAT_EXP_WIDTH-1:0]	recip_divisor_exp  = recip_divisor[DIVISOR_FLOAT_FRAC_WIDTH +: DIVISOR_FLOAT_EXP_WIDTH];
-	wire	[DIVISOR_FLOAT_FRAC_WIDTH-1:0]	recip_divisor_frac = recip_divisor[DIVISOR_FLOAT_FRAC_WIDTH-1:0];
-	real		rel_recip_divisor;
-	real		exp_recip_divisor;
-	always @* begin
-		rel_recip_divisor = recip_divisor_frac;
-		rel_recip_divisor = rel_recip_divisor / (1 << DIVISOR_FLOAT_FRAC_WIDTH) + 1.0;
-		if ( recip_divisor_exp > DIVISOR_FLOAT_EXP_OFFSET )	rel_recip_divisor = rel_recip_divisor * (1 << (recip_divisor_exp - DIVISOR_FLOAT_EXP_OFFSET));
-		else												rel_recip_divisor = rel_recip_divisor / (1 << (DIVISOR_FLOAT_EXP_OFFSET - recip_divisor_exp));
-		if ( recip_divisor_sign )                           rel_recip_divisor = -rel_recip_divisor;
-		
-		exp_recip_divisor = 1 / rel_float_divisor;
 	end
 	*/
 	
