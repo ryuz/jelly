@@ -326,7 +326,7 @@ module jelly_texture_border_unit
 			st1_user   <= st0_user;
 			st1_strb   <= st0_strb & !st0_border;
 			
-			st1_border <= st0_border;
+			st1_border <= st0_strb & st0_border;
 			
 			st1_x      <= st0_x0 + st0_x1 + st0_x_carry;
 			st1_y      <= st0_y0 + st0_y1 + st0_y_carry;
