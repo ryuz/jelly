@@ -147,9 +147,10 @@ module jelly_texture_sampler
 			input	wire	[STRIDE_Y_WIDTH-1:0]							param_stride_y,
 			
 			input	wire													param_nearestneighbor,
-			input	wire	[COMPONENT_NUM*DATA_WIDTH-1:0]					param_blank_value,
 			input	wire	[2:0]											param_x_op,
 			input	wire	[2:0]											param_y_op,
+			input	wire	[COMPONENT_NUM*DATA_WIDTH-1:0]					param_border_value,
+			input	wire	[COMPONENT_NUM*DATA_WIDTH-1:0]					param_blank_value,
 			
 			// control
 			input	wire													clear_start,
@@ -302,19 +303,19 @@ module jelly_texture_sampler
 					.m_mem_arstrb			(bilinear_arstrb),
 					.m_mem_arvalid			(bilinear_arvalid),
 					.m_mem_arready			(bilinear_arready),
-					
-					.m_mem_rcoeff			(sampler2d_rcoeff  [i*SAMPLER2D_COEFF_WIDTH    +: SAMPLER2D_COEFF_WIDTH]),
-					.m_mem_rborder			(sampler2d_rborder [i]),
-					.m_mem_rdata			(sampler2d_rdata   [i*COMPONENT_NUM*DATA_WIDTH +: COMPONENT_NUM*DATA_WIDTH]),
-					.m_mem_rstrb			(sampler2d_rstrb   [i]),
-					.m_mem_rvalid			(sampler2d_rvalid  [i]),
-					.m_mem_rready			(sampler2d_rready  [i])
+					.m_mem_rcoeff			(bilinear_rcoeff),
+					.m_mem_rborder			(bilinear_rborder),
+					.m_mem_rdata			(bilinear_rdata),
+					.m_mem_rstrb			(bilinear_rstrb),
+					.m_mem_rvalid			(bilinear_rvalid),
+					.m_mem_rready			(bilinear_rready)
 				);
 			
 			
 			jelly_texture_border_unit
 					#(
-						.USER_WIDTH			(SAMPLER2D_USER_BITS + SAMPLER2D_COEFF_WIDTH),
+						.USER_WIDTH			(SAMPLER2D_COEFF_WIDTH),
+						.DATA_WIDTH			(COMPONENT_NUM*DATA_WIDTH),
 						.ADDR_X_WIDTH		(ADDR_X_WIDTH),
 						.ADDR_Y_WIDTH		(ADDR_Y_WIDTH),
 						.X_WIDTH			(SAMPLER2D_X_INT_WIDTH),
@@ -331,21 +332,34 @@ module jelly_texture_sampler
 						.param_height		(param_height),
 						.param_x_op			(param_x_op),
 						.param_y_op			(param_y_op),
+						.param_border_value	(param_border_value),
 						
-						.s_user				(bilinear_arcoeff),
-						.s_x				(bilinear_araddrx),
-						.s_y				(bilinear_araddry),
-						.s_strb				(bilinear_arstrb),
-						.s_valid			(bilinear_arvalid),
-						.s_ready			(bilinear_arready),
+						.s_aruser			(bilinear_arcoeff),
+						.s_arx				(bilinear_araddrx),
+						.s_ary				(bilinear_araddry),
+						.s_arstrb			(bilinear_arstrb),
+						.s_arvalid			(bilinear_arvalid),
+						.s_arready			(bilinear_arready),
+						.s_ruser			(bilinear_rcoeff),
+						.s_rborder			(bilinear_rborder),
+						.s_rdata			(bilinear_rdata),
+						.s_rstrb			(bilinear_rstrb),
+						.s_rvalid			(bilinear_rvalid),
+						.s_rready			(bilinear_rready),
 						
-						.m_user				(sampler2d_arcoeff [i*SAMPLER2D_COEFF_WIDTH +: SAMPLER2D_COEFF_WIDTH]),
-						.m_border			(sampler2d_arborder[i]),
-						.m_addrx			(sampler2d_araddrx [i*ADDR_X_WIDTH          +: ADDR_X_WIDTH]),
-						.m_addry			(sampler2d_araddry [i*ADDR_Y_WIDTH          +: ADDR_Y_WIDTH]),
-						.m_strb				(sampler2d_arstrb  [i]),
-						.m_valid			(sampler2d_arvalid [i]),
-						.m_ready			(sampler2d_arready [i])
+						.m_aruser			(sampler2d_arcoeff [i*SAMPLER2D_COEFF_WIDTH +: SAMPLER2D_COEFF_WIDTH]),
+						.m_arborder			(sampler2d_arborder[i]),
+						.m_araddrx			(sampler2d_araddrx [i*ADDR_X_WIDTH          +: ADDR_X_WIDTH]),
+						.m_araddry			(sampler2d_araddry [i*ADDR_Y_WIDTH          +: ADDR_Y_WIDTH]),
+						.m_arstrb			(sampler2d_arstrb  [i]),
+						.m_arvalid			(sampler2d_arvalid [i]),
+						.m_arready			(sampler2d_arready [i]),
+						.m_ruser			(sampler2d_rcoeff  [i*SAMPLER2D_COEFF_WIDTH    +: SAMPLER2D_COEFF_WIDTH]),
+						.m_rborder			(sampler2d_rborder [i]),
+						.m_rdata			(sampler2d_rdata   [i*COMPONENT_NUM*DATA_WIDTH +: COMPONENT_NUM*DATA_WIDTH]),
+						.m_rstrb			(sampler2d_rstrb   [i]),
+						.m_rvalid			(sampler2d_rvalid  [i]),
+						.m_rready			(sampler2d_rready  [i])
 					);
 		
 		assign sampler2d_arpacket[i*SAMPLER2D_PACKET_WIDTH +: SAMPLER2D_PACKET_WIDTH]

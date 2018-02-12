@@ -17,6 +17,7 @@
 module jelly_texture_border_unit
 		#(
 			parameter	USER_WIDTH   = 0,
+			parameter	DATA_WIDTH   = 8,
 			parameter	ADDR_X_WIDTH = 10,
 			parameter	ADDR_Y_WIDTH = 10,
 			parameter	X_WIDTH      = 12,
@@ -31,25 +32,43 @@ module jelly_texture_border_unit
 			input	wire								clk,
 			input	wire								cke,
 			
+			
 			input	wire			[ADDR_X_WIDTH-1:0]	param_width,
 			input	wire			[ADDR_Y_WIDTH-1:0]	param_height,
 			input	wire			[2:0]				param_x_op,
 			input	wire			[2:0]				param_y_op,
+			input	wire			[DATA_WIDTH-1:0]	param_border_value,
 			
-			input	wire			[USER_BITS-1:0]		s_user,
-			input	wire	signed	[X_WIDTH-1:0]		s_x,
-			input	wire	signed	[Y_WIDTH-1:0]		s_y,
-			input	wire								s_strb,
-			input	wire								s_valid,
-			output	wire								s_ready,
 			
-			output	wire			[USER_BITS-1:0]		m_user,
-			output	wire								m_border,
-			output	wire			[ADDR_X_WIDTH-1:0]	m_addrx,
-			output	wire			[ADDR_Y_WIDTH-1:0]	m_addry,
-			output	wire								m_strb,
-			output	wire								m_valid,
-			input	wire								m_ready
+			input	wire			[USER_BITS-1:0]		s_aruser,
+			input	wire	signed	[X_WIDTH-1:0]		s_arx,
+			input	wire	signed	[Y_WIDTH-1:0]		s_ary,
+			input	wire								s_arstrb,
+			input	wire								s_arvalid,
+			
+			output	wire								s_arready,
+			output	wire			[USER_BITS-1:0]		s_ruser,
+			output	wire								s_rborder,
+			output	wire			[DATA_WIDTH-1:0]	s_rdata,
+			output	wire								s_rstrb,
+			output	wire								s_rvalid,
+			input	wire								s_rready,
+			
+			
+			output	wire			[USER_BITS-1:0]		m_aruser,
+			output	wire								m_arborder,
+			output	wire			[ADDR_X_WIDTH-1:0]	m_araddrx,
+			output	wire			[ADDR_Y_WIDTH-1:0]	m_araddry,
+			output	wire								m_arstrb,
+			output	wire								m_arvalid,
+			input	wire								m_arready,
+			
+			input	wire			[USER_BITS-1:0]		m_ruser,
+			input	wire								m_rborder,
+			input	wire			[DATA_WIDTH-1:0]	m_rdata,
+			input	wire								m_rstrb,
+			input	wire								m_rvalid,
+			output	wire								m_rready
 		);
 	
 	// 加算フェーズが LUT5 に収まるように 2stage で op を最適化
@@ -120,13 +139,13 @@ module jelly_texture_border_unit
 				.clk				(clk),
 				.cke				(1),
 				
-				.s_data				({s_user, s_x, s_y, s_strb}),
-				.s_valid			(s_valid),
-				.s_ready			(s_ready),
+				.s_data				({s_aruser, s_arx, s_ary, s_arstrb}),
+				.s_valid			(s_arvalid),
+				.s_ready			(s_arready),
 				
-				.m_data				({m_user, m_border, m_addrx, m_addry, m_strb}),
-				.m_valid			(m_valid),
-				.m_ready			(m_ready),
+				.m_data				({m_aruser, m_arborder, m_araddrx, m_araddry, m_arstrb}),
+				.m_valid			(m_arvalid),
+				.m_ready			(m_arready),
 				
 				.stage_cke			(stage_cke),
 				.stage_valid		(stage_valid),
@@ -140,7 +159,7 @@ module jelly_texture_border_unit
 	
 	
 	// -------------------------------------
-	//  calculate
+	//  address calculate
 	// -------------------------------------
 	
 	reg									src_x_under;
@@ -321,6 +340,18 @@ module jelly_texture_border_unit
 	assign sink_addrx  = st1_x;
 	assign sink_addry  = st1_y;
 	
+	
+	// -------------------------------------
+	//  read data 
+	// -------------------------------------
+	
+	assign s_ruser    = m_ruser;
+	assign s_rborder  = m_rborder;
+	assign s_rdata    = m_rborder ? param_border_value : m_rdata;
+	assign s_rstrb    = m_rstrb | m_rborder;
+	assign s_rvalid   = m_rvalid;
+	
+	assign m_rready   = s_rready;
 	
 endmodule
 

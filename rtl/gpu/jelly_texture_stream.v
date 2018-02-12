@@ -166,9 +166,10 @@ module jelly_texture_stream
 			input	wire	[STRIDE_Y_WIDTH-1:0]							param_stride_y,
 			
 			input	wire													param_nearestneighbor,
-			input	wire	[COMPONENT_NUM*DATA_WIDTH-1:0]					param_border_value,
 			input	wire	[2:0]											param_x_op,
 			input	wire	[2:0]											param_y_op,
+			input	wire	[COMPONENT_NUM*DATA_WIDTH-1:0]					param_border_value,
+			input	wire	[COMPONENT_NUM*DATA_WIDTH-1:0]					param_blank_value,
 			
 			// control
 			input	wire													clear_start,
@@ -429,9 +430,10 @@ module jelly_texture_stream
 				.param_stride_y					(param_stride_y),
 				
 				.param_nearestneighbor			(param_nearestneighbor),
-				.param_blank_value				(param_border_value),
 				.param_x_op						(param_x_op),
 				.param_y_op						(param_y_op),
+				.param_border_value				(param_border_value),
+				.param_blank_value				(param_blank_value),
 				
 				.clear_start					(clear_start),
 				.clear_busy						(clear_busy),

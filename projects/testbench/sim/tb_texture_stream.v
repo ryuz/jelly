@@ -8,7 +8,7 @@ module tb_texture_stream();
 	
 	initial begin
 		$dumpfile("tb_texture_stream.vcd");
-		$dumpvars(0, tb_texture_stream);
+		$dumpvars(1, tb_texture_stream);
 		
 		#30000000;
 			$display("!!!!TIME OUT!!!!");
@@ -211,14 +211,14 @@ module tb_texture_stream();
 		m11 = $rtoi(16 * 0.707);
 		m12 = $rtoi(16 * -155.97);
 		
-		
+		/*
 		m00 = $rtoi(16 * 1.0);
 		m01 = $rtoi(16 * 0.0);
 		m02 = $rtoi(16 * 0.0);
 		m10 = $rtoi(16 * 0.0);
 		m11 = $rtoi(16 * 1.0);
 		m12 = $rtoi(16 * 0.0);
-		
+		*/
 	end
 	
 	
@@ -248,7 +248,7 @@ module tb_texture_stream();
 	assign s_axi4s_tuser = (src_x == 0) && (src_y == 0);
 	assign s_axi4s_ttexcordu = m00 * src_x + m01 * src_y + m02;
 	assign s_axi4s_ttexcordv = m10 * src_x + m11 * src_y + m12;
-	assign s_axi4s_tstrb     = 1'b1 ; // !((src_x >= 100) && (src_x < 200) && (src_y >= 100) && (src_y < 200));
+	assign s_axi4s_tstrb     = !((src_x >= 100) && (src_x < 200) && (src_y >= 20) && (src_y < 30));
 	
 	
 	// save
@@ -452,9 +452,10 @@ module tb_texture_stream();
 				.param_stride_y					(640*(1 << L2_BLK_Y_SIZE)*COMPONENT_NUM),
 				
 				.param_nearestneighbor			(0),
-				.param_border_value				(24'h000000),
 				.param_x_op						(3'b000),
 				.param_y_op						(3'b000),
+				.param_border_value				(24'hff0000),
+				.param_blank_value				(24'h0000ff),
 				
 				.clear_start					(0),
 				.clear_busy						(),
