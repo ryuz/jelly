@@ -45,8 +45,11 @@ module jelly_gpu_texturemap
 			parameter	IMAGE_X_NUM                       = 640,
 			parameter	X_WIDTH                           = 12,
 			parameter	Y_WIDTH                           = 12,
-			parameter	U_WIDTH                           = 12,
-			parameter	V_WIDTH                           = 12,
+
+			parameter	U_PHY_WIDTH                       = 10,		// 1024
+			parameter	V_PHY_WIDTH                       = 10,		// 1024
+			parameter	U_WIDTH                           = U_PHY_WIDTH + 2,
+			parameter	V_WIDTH                           = V_PHY_WIDTH + 2,
 			
 			parameter	CORE_ADDR_WIDTH                   = 14,
 			parameter	PARAMS_ADDR_WIDTH                 = 12,
@@ -365,8 +368,10 @@ module jelly_gpu_texturemap
 				.STRIDE_C_WIDTH 				(TEX_STRIDE_C_WIDTH),
 				.STRIDE_X_WIDTH 				(TEX_STRIDE_X_WIDTH),
 				.STRIDE_Y_WIDTH 				(TEX_STRIDE_Y_WIDTH),
-				.X_WIDTH						(U_WIDTH),
-				.Y_WIDTH						(V_WIDTH),
+				.U_PHY_WIDTH                    (U_PHY_WIDTH),
+				.V_PHY_WIDTH                    (V_PHY_WIDTH),
+				.U_WIDTH						(U_WIDTH),
+				.V_WIDTH						(V_WIDTH),
 				
 				.WB_ADR_WIDTH					(CORE_ADDR_WIDTH),
 				.WB_DAT_WIDTH					(WB_DAT_WIDTH),

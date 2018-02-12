@@ -283,6 +283,7 @@ module jelly_texture_sampler
 						.cke					(1'b1),
 						
 						.param_nearestneighbor	(param_nearestneighbor),
+						.param_blank_value		(param_blank_value),
 						
 						.s_user					(s_sampler2d_user  [i*SAMPLER2D_USER_BITS      +: SAMPLER2D_USER_BITS]),
 						.s_x					(s_sampler2d_x     [i*SAMPLER2D_X_WIDTH        +: SAMPLER2D_X_WIDTH]),
@@ -323,7 +324,7 @@ module jelly_texture_sampler
 			assign s_sampler2d_ready[i] = bilinear_arready;
 			
 			assign m_sampler2d_user  [i*SAMPLER2D_USER_BITS      +: SAMPLER2D_USER_BITS]      = bilinear_ruser;
-			assign m_sampler2d_data  [i*COMPONENT_NUM*DATA_WIDTH +: COMPONENT_NUM*DATA_WIDTH] = bilinear_rdata;
+			assign m_sampler2d_data  [i*COMPONENT_NUM*DATA_WIDTH +: COMPONENT_NUM*DATA_WIDTH] = bilinear_rstrb ? bilinear_rdata : param_blank_value;
 			assign m_sampler2d_strb  [i]                                                      = bilinear_rstrb;
 			assign m_sampler2d_valid [i]                                                      = bilinear_rvalid;
 			

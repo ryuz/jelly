@@ -61,8 +61,10 @@ module tb_gpu_texturemap();
 	parameter	IMAGE_X_NUM                       = 640;
 	parameter	X_WIDTH                           = 12;
 	parameter	Y_WIDTH                           = 12;
-	parameter	U_WIDTH                           = 12;
-	parameter	V_WIDTH                           = 12;
+	parameter	U_PHY_WIDTH                       = 9; // 10;
+	parameter	V_PHY_WIDTH                       = 9; // 10;
+	parameter	U_WIDTH                           = U_PHY_WIDTH + 2;
+	parameter	V_WIDTH                           = V_PHY_WIDTH + 2;
 	
 	parameter	CORE_ADDR_WIDTH                   = 14;
 	parameter	PARAMS_ADDR_WIDTH                 = 12;
@@ -100,13 +102,13 @@ module tb_gpu_texturemap();
 	parameter	SHADER_INIT_PARAM_STRIDE_X        = (1 << L2_BLK_X_SIZE)*(1 << L2_BLK_Y_SIZE)*COMPONENT_NUM;
 	parameter	SHADER_INIT_PARAM_STRIDE_Y        = U_NUM*(1 << L2_BLK_Y_SIZE)*COMPONENT_NUM;
 	parameter	SHADER_INIT_PARAM_NEARESTNEIGHBOR = 0;
-	parameter	SHADER_INIT_PARAM_X_OP            = 3'b000;
-	parameter	SHADER_INIT_PARAM_Y_OP            = 3'b000;
+	parameter	SHADER_INIT_PARAM_X_OP            = 3'b111;
+	parameter	SHADER_INIT_PARAM_Y_OP            = 3'b111;
 	parameter	SHADER_INIT_PARAM_BORDER_VALUE    = 24'h000000;
 	parameter	SHADER_INIT_PARAM_BGC             = 24'h000000;
 	
 	
-	parameter	TEX_PARALLEL_NUM                  = 1;
+	parameter	TEX_PARALLEL_NUM                  = 4;
 	parameter	TEX_ADDR_WIDTH                    = 24;
 	parameter	TEX_ADDR_X_WIDTH                  = 10;
 	parameter	TEX_ADDR_Y_WIDTH                  = 9;
@@ -115,7 +117,7 @@ module tb_gpu_texturemap();
 	parameter	TEX_STRIDE_Y_WIDTH                = 14;
 	
 	parameter	TEX_USE_BILINEAR                  = 1;
-	parameter	TEX_USE_BORDER                    = 0;
+	parameter	TEX_USE_BORDER                    = 1;
 	
 	parameter	SCATTER_FIFO_PTR_WIDTH            = 6;
 	parameter	SCATTER_FIFO_RAM_TYPE             = "distributed";
@@ -272,6 +274,8 @@ module tb_gpu_texturemap();
 				.IMAGE_X_NUM                       	(IMAGE_X_NUM                       ),
 				.X_WIDTH                           	(X_WIDTH                           ),
 				.Y_WIDTH                           	(Y_WIDTH                           ),
+				.U_PHY_WIDTH						(U_PHY_WIDTH),
+				.V_PHY_WIDTH						(V_PHY_WIDTH),
 				.U_WIDTH                           	(U_WIDTH                           ),
 				.V_WIDTH                           	(V_WIDTH                           ),
 				.CORE_ADDR_WIDTH                   	(CORE_ADDR_WIDTH                   ),
@@ -530,7 +534,7 @@ module tb_gpu_texturemap();
 	
 	always @(posedge clk) begin
 		if ( !reset && m_axi4s_tvalid && m_axi4s_tready ) begin
-			 $fdisplay(fp, "%d %d %d", m_axi4s_tdata[23:16], m_axi4s_tdata[15:8], m_axi4s_tdata[7:0]);
+			 $fdisplay(fp, "%d %d %d", m_axi4s_tdata[7:0], m_axi4s_tdata[15:8], m_axi4s_tdata[23:16]);
 		end
 	end
 	

@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
 	if (!strFlatHexFile.empty()) {
 		FILE* fp;
 		fopen_s(&fp, strFlatHexFile.c_str(), "w");
-		for (int i = 0; i < img.cols*img.rows*ulComponentNum; i += ulBusSize){
+		for (int i = 0; i < (int)(img.cols*img.rows*ulComponentNum); i += ulBusSize){
 			for (int j = ulBusSize - 1; j >= 0; j--){
 				fprintf(fp, "%02x", img.data[i + j]);
 			}

@@ -34,8 +34,10 @@ module jelly_pixel_shader_texturemap
 			
 			parameter	USE_PARAM_CFG_READ            = 1,
 			
-			parameter	X_WIDTH                       = 12,
-			parameter	Y_WIDTH                       = 12,
+			parameter	U_PHY_WIDTH                   = 10,		// 1024
+			parameter	V_PHY_WIDTH                   = 10,		// 1024
+			parameter	U_WIDTH                       = U_PHY_WIDTH + 2,
+			parameter	V_WIDTH                       = V_PHY_WIDTH + 2,
 			
 			parameter	SHADER_PARAM_NUM              = 1 + 2,		// Z + UV
 			parameter	SHADER_PARAM_WIDTH            = 32,
@@ -403,36 +405,9 @@ module jelly_pixel_shader_texturemap
 	wire										pc_valid;
 	wire										pc_ready;
 	
-	wire	signed	[SAMPLER2D_X_WIDTH-1:0]		pc_u = (pc_u_tmp >>> (24 - 4 - 8));
-	wire	signed	[SAMPLER2D_Y_WIDTH-1:0]		pc_v = (pc_v_tmp >>> (24 - 4 - 8));
-	
-	
-	// debug
-	/*
-	wire	signed	[SHADER_PARAM_WIDTH-1:0]	param0 = s_rasterizer_shader_params[SHADER_PARAM_WIDTH*0 +: SHADER_PARAM_WIDTH];
-	wire	signed	[SHADER_PARAM_WIDTH-1:0]	param1 = s_rasterizer_shader_params[SHADER_PARAM_WIDTH*1 +: SHADER_PARAM_WIDTH];
-	wire	signed	[SHADER_PARAM_WIDTH-1:0]	param2 = s_rasterizer_shader_params[SHADER_PARAM_WIDTH*2 +: SHADER_PARAM_WIDTH];
-	real	p0, p1, p2;
-	real	ru, rv;
-	real	exp_u, exp_v;
-	always @* begin
-		p0 = param0;
-		p1 = param1;
-		p2 = param2;
-		p0 = p0 / (1 << SHADER_PARAM_Q);
-		p1 = p1 / (1 << SHADER_PARAM_Q);
-		p2 = p2 / (1 << SHADER_PARAM_Q);
-		
-		exp_u = p1 / p0;
-		exp_v = p2 / p0;
-		
-		ru = pc_u;
-		rv = pc_v;
-		ru = ru / (1 << SHADER_PARAM_Q);
-		rv = rv / (1 << SHADER_PARAM_Q);
-	end
-	*/
-	
+	wire	signed	[SAMPLER2D_X_WIDTH-1:0]		pc_u = (pc_u_tmp >>> (SHADER_PARAM_Q - SAMPLER2D_FRAC_WIDTH - U_PHY_WIDTH));
+	wire	signed	[SAMPLER2D_Y_WIDTH-1:0]		pc_v = (pc_v_tmp >>> (SHADER_PARAM_Q - SAMPLER2D_FRAC_WIDTH - V_PHY_WIDTH));
+	 
 	jelly_fixed_matrix_divider
 			#(
 				.USER_WIDTH					(3+INDEX_WIDTH),
@@ -448,8 +423,8 @@ module jelly_pixel_shader_texturemap
 				.DIVIDEND_FIXED_INT_WIDTH	(SHADER_PARAM_WIDTH - SHADER_PARAM_Q),
 				.DIVIDEND_FIXED_FRAC_WIDTH	(SHADER_PARAM_Q),
 				
-		//		.DIVISOR_FLOAT_EXP_WIDTH	(6),
-		//		.DIVISOR_FLOAT_FRAC_WIDTH	(24),
+				.DIVISOR_FLOAT_EXP_WIDTH	(6),
+				.DIVISOR_FLOAT_FRAC_WIDTH	(16),
 				
 				.CLIP						(1),
 				
@@ -467,7 +442,7 @@ module jelly_pixel_shader_texturemap
 			(
 				.reset						(reset),
 				.clk						(clk),
-				.cke						(1),
+				.cke						(cke),
 				
 				.s_user						({
 												s_rasterizer_frame_start,
@@ -478,7 +453,7 @@ module jelly_pixel_shader_texturemap
 				.s_dividend					(s_rasterizer_shader_params[SHADER_PARAM_NUM*SHADER_PARAM_WIDTH-1:SHADER_PARAM_WIDTH]),
 				.s_divisor					(s_rasterizer_shader_params[SHADER_PARAM_WIDTH-1:0]),
 				.s_valid					(s_rasterizer_valid),
-				.s_ready					(s_rasterizer_ready),
+				.s_ready					(), // (s_rasterizer_ready),
 				
 				.m_user						({
 												pc_frame_start,
@@ -488,12 +463,13 @@ module jelly_pixel_shader_texturemap
 											}),
 				.m_quotient					({pc_v_tmp, pc_u_tmp}),
 				.m_valid					(pc_valid),
-				.m_ready					(pc_ready)
+				.m_ready					(1'b1)
 			);
 	
 //	assign cke = !pc_valid || pc_ready;
 	
-//	assign s_rasterizer_ready = cke;
+	assign cke                = pc_ready;
+	assign s_rasterizer_ready = cke;
 	
 	
 	// -------------------------------------
