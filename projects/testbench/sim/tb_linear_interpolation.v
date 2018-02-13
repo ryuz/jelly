@@ -21,7 +21,7 @@ module tb_linear_interpolation();
 	always #(RATE*20)	reset = 1'b0;
 	
 	
-	parameter	USER_WIDTH    = 0;
+	parameter	USER_WIDTH    = 24;
 	parameter	RATE_WIDTH    = 4;
 	parameter	COMPONENT_NUM = 3;
 	parameter	DATA_WIDTH    = 8;
@@ -50,6 +50,34 @@ module tb_linear_interpolation();
 			s_rate <=  s_rate + s_valid;
 		end
 	end
+	
+	integer								i;
+	wire			[RATE_WIDTH-1:0]	r0  = s_rate;
+	wire			[RATE_WIDTH-1:0]	r1  = ~s_rate;
+	reg		signed	[DATA_WIDTH-1:0]	sd0, sd1;
+	reg				[DATA_WIDTH-1:0]	ud0, ud1;
+	integer								d0;
+	integer								d1;
+	always @* begin
+		for ( i = 0; i < COMPONENT_NUM; i = i+1 ) begin
+			sd0 = s_data0[i*DATA_WIDTH +: DATA_WIDTH];
+			sd1 = s_data1[i*DATA_WIDTH +: DATA_WIDTH];
+			ud0 = s_data0[i*DATA_WIDTH +: DATA_WIDTH];
+			ud1 = s_data1[i*DATA_WIDTH +: DATA_WIDTH];
+			if ( DATA_SIGNED ) begin
+				d0 = sd0;
+				d1 = sd1;
+			end
+			else begin
+				d0 = ud0;
+				d1 = ud1;
+			end
+			
+			s_user[i*DATA_WIDTH +: DATA_WIDTH] = ((d0+d1) >> RATE_WIDTH);
+		end
+	end
+	
+	
 	
 	
 	jelly_linear_interpolation
