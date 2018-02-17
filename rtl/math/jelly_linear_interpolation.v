@@ -176,7 +176,7 @@ module jelly_linear_interpolation_unit
 		end
 		else if ( cke ) begin
 			reg_user  <= s_user;
-			reg_rate  <= (s_rate << 1);
+			reg_rate  <= (s_rate << 1) | s_rate[RATE_WIDTH-1];
 			reg_valid <= s_valid;
 		end
 	end

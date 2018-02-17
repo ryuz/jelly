@@ -21,11 +21,11 @@ module tb_linear_interpolation();
 	always #(RATE*20)	reset = 1'b0;
 	
 	
-	parameter	USER_WIDTH    = 24;
 	parameter	RATE_WIDTH    = 4;
-	parameter	COMPONENT_NUM = 3;
+	parameter	COMPONENT_NUM = 1;
 	parameter	DATA_WIDTH    = 8;
-	parameter	DATA_SIGNED   = 1;
+	parameter	DATA_SIGNED   = 0;
+	parameter	USER_WIDTH    = COMPONENT_NUM*DATA_WIDTH;
 	
 	// local
 	parameter	USER_BITS     = USER_WIDTH > 0 ? USER_WIDTH : 1;
@@ -34,30 +34,47 @@ module tb_linear_interpolation();
 	
 	reg		[USER_BITS-1:0]					s_user;
 	reg		[RATE_WIDTH-1:0]				s_rate  = 4'b0100;
-	reg		[COMPONENT_NUM*DATA_WIDTH-1:0]	s_data0 = 24'h7f_ff_00;
-	reg		[COMPONENT_NUM*DATA_WIDTH-1:0]	s_data1 = 24'h80_00_ff;
-	reg										s_valid = 1;
+	reg		[COMPONENT_NUM*DATA_WIDTH-1:0]	s_data0 = 9'h000; // 24'h7f_ff_00;
+	reg		[COMPONENT_NUM*DATA_WIDTH-1:0]	s_data1 = 9'h0ff; // 24'h80_00_ff;
+	reg										s_valid = 0;
 	wire	[USER_BITS-1:0]					m_user;
 	wire	[COMPONENT_NUM*DATA_WIDTH-1:0]	m_data;
 	wire									m_valid;
 	
-	
-	always @(posedge clk) begin
-		if ( reset ) begin
-			s_rate <=  4'b0000;
-		end
-		else if ( cke ) begin
-			s_rate <=  s_rate + s_valid;
+	wire									error_flag = cke && m_valid && (m_user != m_data);
+	integer									error;
+	always @* begin
+		error = 0;
+		if ( error_flag ) begin
+			 error = m_data > m_user ? m_data - m_user : m_user - m_data;
 		end
 	end
 	
+	always @(posedge clk) begin
+		if ( reset ) begin
+			s_rate  <=  4'b0000;
+			s_valid <= 1'b0;
+		end
+		else if ( cke ) begin
+			s_valid <= 1'b1;
+//			s_rate  <= s_rate + s_valid;
+			
+			s_rate  <= {$random()};
+			s_data0 <= $random();
+			s_data1 <= $random();
+		end
+	end
+	
+	
 	integer								i;
-	wire			[RATE_WIDTH-1:0]	r0  = s_rate;
-	wire			[RATE_WIDTH-1:0]	r1  = ~s_rate;
+	wire	signed	[RATE_WIDTH:0]		r1  = {1'b0, s_rate};
+	wire	signed	[RATE_WIDTH:0]		r0  = (1 << RATE_WIDTH) - r1;
 	reg		signed	[DATA_WIDTH-1:0]	sd0, sd1;
 	reg				[DATA_WIDTH-1:0]	ud0, ud1;
 	integer								d0;
 	integer								d1;
+	integer								rounding = 0; // (1 << (RATE_WIDTH-1));
+	
 	always @* begin
 		for ( i = 0; i < COMPONENT_NUM; i = i+1 ) begin
 			sd0 = s_data0[i*DATA_WIDTH +: DATA_WIDTH];
@@ -65,15 +82,15 @@ module tb_linear_interpolation();
 			ud0 = s_data0[i*DATA_WIDTH +: DATA_WIDTH];
 			ud1 = s_data1[i*DATA_WIDTH +: DATA_WIDTH];
 			if ( DATA_SIGNED ) begin
-				d0 = sd0;
-				d1 = sd1;
+				d0 = sd0 * r0;
+				d1 = sd1 * r1;
 			end
 			else begin
-				d0 = ud0;
-				d1 = ud1;
+				d0 = ud0 * r0;
+				d1 = ud1 * r1;
 			end
 			
-			s_user[i*DATA_WIDTH +: DATA_WIDTH] = ((d0+d1) >> RATE_WIDTH);
+			s_user[i*DATA_WIDTH +: DATA_WIDTH] = ((d0+d1+rounding) >>> RATE_WIDTH);
 		end
 	end
 	
