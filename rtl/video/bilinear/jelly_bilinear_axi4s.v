@@ -29,7 +29,7 @@ module jelly_bilinear_axi4s
 			input	wire						aclken,
 			
 			input	wire	[TUSER_WIDTH-1:0]	s_tuser,
-			input	wire	[X_WIDTH-1:0]		s_tlast,
+			input	wire						s_tlast,
 			input	wire	[X_WIDTH-1:0]		s_tx,
 			input	wire	[Y_WIDTH-1:0]		s_ty,
 			input	wire	[TDATA_WIDTH-1:0]	s_tdata00,
@@ -48,14 +48,14 @@ module jelly_bilinear_axi4s
 	
 	
 	wire	[TUSER_WIDTH-1:0]	x_tuser;
-	wire	[X_WIDTH-1:0]		x_tlast;
+	wire						x_tlast;
 	wire	[Y_WIDTH-1:0]		x_ty;
 	wire	[TDATA_WIDTH-1:0]	x_tdata0;
 	wire	[TDATA_WIDTH-1:0]	x_tdata1;
 	wire						x_tvalid;
 	
 	wire	[TUSER_WIDTH-1:0]	y_tuser;
-	wire	[Y_WIDTH-1:0]		y_tlast;
+	wire						y_tlast;
 	wire	[TDATA_WIDTH-1:0]	y_tdata;
 	wire						y_tvalid;
 	wire						y_tready;

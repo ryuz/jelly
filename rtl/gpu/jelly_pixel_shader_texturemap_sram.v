@@ -68,7 +68,7 @@ module jelly_pixel_shader_texturemap_sram
 			input	wire	[WB_SEL_WIDTH-1:0]							s_wb_sel_i,
 			input	wire												s_wb_stb_i,
 			output	wire												s_wb_ack_o,
-
+			
 			input	wire												mem_reset,
 			input	wire												mem_clk,
 			input	wire												mem_we,
@@ -87,6 +87,7 @@ module jelly_pixel_shader_texturemap_sram
 			output	wire	[AXI4S_TUSER_WIDTH-1:0]						m_axi4s_tuser,
 			output	wire												m_axi4s_tlast,
 			output	wire	[AXI4S_TDATA_WIDTH-1:0]						m_axi4s_tdata,
+			output	wire												m_axi4s_tstrb,
 			output	wire												m_axi4s_tvalid,
 			input	wire												m_axi4s_tready
 		);
@@ -101,6 +102,11 @@ module jelly_pixel_shader_texturemap_sram
 	localparam	REG_ADDR_CFG_SHADER_PARAM_NUM   = 6'h10;
 	localparam	REG_ADDR_CFG_SHADER_PARAM_WIDTH = 6'h11;
 	localparam	REG_ADDR_CFG_SHADER_PARAM_Q     = 6'h12;
+	localparam	REG_ADDR_CFG_U_INT_WIDTH        = 6'h14;
+	localparam	REG_ADDR_CFG_U_FRAC_WIDTH       = 6'h15;
+	localparam	REG_ADDR_CFG_V_INT_WIDTH        = 6'h16;
+	localparam	REG_ADDR_CFG_V_FRAC_WIDTH       = 6'h17;
+
 	
 	// 表レジスタ
 	reg		[AXI4S_TDATA_WIDTH-1:0]			reg_param_bgc;
@@ -133,6 +139,10 @@ module jelly_pixel_shader_texturemap_sram
 			REG_ADDR_CFG_SHADER_PARAM_NUM:		tmp_wb_dat_o = SHADER_PARAM_NUM;
 			REG_ADDR_CFG_SHADER_PARAM_WIDTH:	tmp_wb_dat_o = SHADER_PARAM_WIDTH;
 			REG_ADDR_CFG_SHADER_PARAM_Q: 		tmp_wb_dat_o = SHADER_PARAM_Q;
+			REG_ADDR_CFG_U_INT_WIDTH: 			tmp_wb_dat_o = U_INT_WIDTH;
+			REG_ADDR_CFG_U_FRAC_WIDTH: 			tmp_wb_dat_o = U_FRAC_WIDTH;
+			REG_ADDR_CFG_V_INT_WIDTH: 			tmp_wb_dat_o = V_INT_WIDTH;
+			REG_ADDR_CFG_V_FRAC_WIDTH: 			tmp_wb_dat_o = V_FRAC_WIDTH;
 			endcase
 		end
 	end
@@ -352,6 +362,7 @@ module jelly_pixel_shader_texturemap_sram
 	reg		[0:0]								axi4s_bgc_tuser;
 	reg											axi4s_bgc_tlast;
 	reg		[AXI4S_TDATA_WIDTH-1:0]				axi4s_bgc_tdata;
+	reg											axi4s_bgc_tstrb;
 	reg											axi4s_bgc_tvalid;
 	
 	always @(posedge clk) begin
@@ -359,12 +370,14 @@ module jelly_pixel_shader_texturemap_sram
 			axi4s_bgc_tuser  <= 1'bx;
 			axi4s_bgc_tlast  <= 1'bx;
 			axi4s_bgc_tdata  <= {AXI4S_TDATA_WIDTH{1'bx}};
+			axi4s_bgc_tstrb  <= 1'bx;
 			axi4s_bgc_tvalid <= 1'b0;
 		end
 		else begin
 			axi4s_bgc_tuser  <= axi4s_bilinear_tuser;
 			axi4s_bgc_tlast  <= axi4s_bilinear_tlast;
 			axi4s_bgc_tdata  <= axi4s_bilinear_tstrb ? axi4s_bilinear_tdata : reg_shadow_bgc;
+			axi4s_bgc_tstrb  <= axi4s_bilinear_tstrb;
 			axi4s_bgc_tvalid <= axi4s_bilinear_tvalid;
 		end
 	end
@@ -377,7 +390,7 @@ module jelly_pixel_shader_texturemap_sram
 	
 	jelly_pipeline_insert_ff
 			#(
-				.DATA_WIDTH		(AXI4S_TUSER_WIDTH + 1 + AXI4S_TDATA_WIDTH),
+				.DATA_WIDTH		(AXI4S_TUSER_WIDTH + 1 + 1 + AXI4S_TDATA_WIDTH),
 				.SLAVE_REGS		(1),
 				.MASTER_REGS	(1)
 			)
@@ -390,6 +403,7 @@ module jelly_pixel_shader_texturemap_sram
 				.s_data			({
 									axi4s_bgc_tuser,
 									axi4s_bgc_tlast,
+									axi4s_bgc_tstrb,
 									axi4s_bgc_tdata
 								}),
 				.s_valid		(axi4s_bgc_tvalid),
@@ -398,6 +412,7 @@ module jelly_pixel_shader_texturemap_sram
 				.m_data			({
 									m_axi4s_tuser,
 									m_axi4s_tlast,
+									m_axi4s_tstrb,
 									m_axi4s_tdata
 								}),
 				.m_valid		(m_axi4s_tvalid),

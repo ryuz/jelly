@@ -12,20 +12,20 @@
 `default_nettype none
 
 
-// グーローシェーディング版
+// SRAM版テクスチャマッピング
 module jelly_gpu_texturemap_sram
 		#(
 			parameter	COMPONENT_NUM                 = 3,
 			parameter	DATA_WIDTH                    = 8,
 			
-			parameter	WB_ADR_WIDTH                  = 20,
+			parameter	WB_ADR_WIDTH                  = 16,
 			parameter	WB_DAT_WIDTH                  = 32,
 			parameter	WB_SEL_WIDTH                  = (WB_DAT_WIDTH / 8),
 			
 			parameter	AXI4S_TUSER_WIDTH             = 1,
 			parameter	AXI4S_TDATA_WIDTH             = COMPONENT_NUM*DATA_WIDTH,
 			
-			parameter	CORE_ADDR_WIDTH               = 16,
+			parameter	CORE_ADDR_WIDTH               = 14,
 			parameter	PARAMS_ADDR_WIDTH             = 12,
 			parameter	BANK_ADDR_WIDTH               = 10,
 			
@@ -43,9 +43,6 @@ module jelly_gpu_texturemap_sram
 			
 			parameter	REGION_PARAM_WIDTH            = EDGE_NUM,
 			parameter	REGION_RAM_TYPE               = "distributed",
-			
-			parameter	CULLING_ONLY                  = 0,
-			parameter	Z_SORT_MIN                    = 0,	// 1で小さい値優先(Z軸奥向き)
 			
 			parameter	CULLING_ONLY                  = 0,
 			parameter	Z_SORT_MIN                    = 0,	// 1で小さい値優先(Z軸奥向き)
@@ -78,7 +75,7 @@ module jelly_gpu_texturemap_sram
 			parameter	RASTERIZER_INIT_PARAM_CULLING = 2'b01,
 			parameter	RASTERIZER_INIT_PARAM_BANK    = 0,
 			
-			parameter	SHADER_INIT_PARAM_BGC         = 32'h0000_0000,
+			parameter	SHADER_INIT_PARAM_BGC         = 32'h0000_0000
 		)
 		(
 			input	wire									reset,
@@ -104,12 +101,13 @@ module jelly_gpu_texturemap_sram
 			output	wire	[AXI4S_TUSER_WIDTH-1:0]			m_axi4s_tuser,
 			output	wire									m_axi4s_tlast,
 			output	wire	[AXI4S_TDATA_WIDTH-1:0]			m_axi4s_tdata,
+			output	wire									m_axi4s_tstrb,
 			output	wire									m_axi4s_tvalid,
 			input	wire									m_axi4s_tready
 		);
 	
 	
-	localparam	CFG_SHADER_TYPE    = 32'b0002_0003;			//  color:yes textue:no z:yes
+	localparam	CFG_SHADER_TYPE    = 32'h0002_0003;			//  color:yes textue:no z:yes
 	localparam	CFG_VERSION        = 32'h0001_0000;
 	
 	localparam	INDEX_WIDTH         = POLYGON_NUM <=     2 ?  1 :
