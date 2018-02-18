@@ -5,7 +5,8 @@
 
 module top
 		#(
-			parameter	HDMI_TX              = 1,
+			parameter	HDMI_TX              = 0,
+			parameter	HDMI_RX              = 1,
 			parameter	BUF_STRIDE           = 4096,
 			parameter	VIN_X_NUM            = 720,
 			parameter	VIN_Y_NUM            = 480,
@@ -29,17 +30,17 @@ module top
 			inout	wire			hdmi_scl,
 			inout	wire			hdmi_sda,
 			
+			/*
 			output	wire			hdmi_clk_p,
 			output	wire			hdmi_clk_n,
 			output	wire	[2:0]	hdmi_data_p,
 			output	wire	[2:0]	hdmi_data_n,
+			*/
 			
-			/*
 			input	wire			hdmi_clk_p,
 			input	wire			hdmi_clk_n,
 			input	wire	[2:0]	hdmi_data_p,
 			input	wire	[2:0]	hdmi_data_n,
-			*/
 			
 			output	wire			vga_hsync,
 			output	wire			vga_vsync,
@@ -487,18 +488,265 @@ module top
 	
 	
 	// ----------------------------------------
+	//  HDMI-RX
+	// ----------------------------------------
+	
+	localparam	IDELAYCTRL_GROUP_HDMIRX = "IODELAY_HDMIRX" ;
+	
+	(* MARK_DEBUG="true" *)	wire					axi4s_vin_aresetn;
+							wire					axi4s_vin_aclk;
+	(* MARK_DEBUG="true" *)	wire	[0:0]			axi4s_vin_tuser;
+	(* MARK_DEBUG="true" *)	wire					axi4s_vin_tlast;
+	(* MARK_DEBUG="true" *)	wire	[23:0]			axi4s_vin_tdata;
+	(* MARK_DEBUG="true" *)	wire					axi4s_vin_tvalid;
+	(* MARK_DEBUG="true" *)	wire					axi4s_vin_tready;
+	
+	generate
+	if ( HDMI_RX ) begin : blk_hdmirx
+		
+		wire	hdmirx_idelayctrl_rdy;
+		
+		(* IODELAY_GROUP=IDELAYCTRL_GROUP_HDMIRX *)
+		IDELAYCTRL
+			i_idelayctrl_hdmirx
+				(
+					.RST		(ref200_reset),
+					.REFCLK		(ref200_clk),
+					.RDY		(hdmirx_idelayctrl_rdy)
+				);
+		
+		wire	hdmirx_reset;
+		jelly_reset
+			i_reset_hdmirx
+				(
+					.clk		(ref200_clk),
+					.in_reset	(~hdmirx_idelayctrl_rdy || ref200_reset),
+					.out_reset	(hdmirx_reset)
+				);
+		
+		
+		assign hdmi_out_en = 1'b0;
+		assign hdmi_hpd    = 1'b1;
+		
+		
+		wire			vin_vsync;
+		wire			vin_hsync;
+		wire			vin_de;
+		wire	[23:0]	vin_data;
+		wire	[3:0]	vin_ctl;
+		wire			vin_valid;
+		
+		jelly_hdmi_rx
+				#(
+					.IDELAYCTRL_GROUP	(IDELAYCTRL_GROUP_HDMIRX)
+				)
+			i_hdmi_rx
+				(
+					.in_reset			(hdmirx_reset),
+					.in_clk_p			(hdmi_clk_p),
+					.in_clk_n			(hdmi_clk_n),
+					.in_data_p			(hdmi_data_p),
+					.in_data_n			(hdmi_data_n),
+					
+					.out_clk			(vin_clk),
+					.out_reset			(vin_reset),
+					.out_vsync			(vin_vsync),
+					.out_hsync			(vin_hsync),
+					.out_de				(vin_de),
+					.out_data			(vin_data),
+					.out_ctl			(vin_ctl),
+					.out_valid			(vin_valid)
+				);
+		
+		assign		axi4s_vin_aresetn = ~vin_reset;
+		assign		axi4s_vin_aclk    = vin_clk;
+		jelly_vin_axi4s
+				#(
+					.WIDTH				(24)
+				)
+			i_vin_axi4s
+				(
+					.reset				(vin_reset),
+					.clk				(vin_clk),
+					
+					.in_vsync			(vin_vsync),
+					.in_hsync			(vin_hsync),
+					.in_de				(vin_de),
+					.in_data			(vin_data),
+					.in_ctl				(vin_ctl),
+					
+					.m_axi4s_tuser		(axi4s_vin_tuser),
+					.m_axi4s_tlast		(axi4s_vin_tlast),
+					.m_axi4s_tdata		(axi4s_vin_tdata),
+					.m_axi4s_tvalid		(axi4s_vin_tvalid)
+				);
+		
+		
+		// EDID
+		wire	hdmi_scl_t;
+		wire	hdmi_scl_i;
+		
+		wire	hdmi_sda_t;
+		wire	hdmi_sda_i;
+		
+		IOBUF	i_bufio_hdmi_scl (.IO(hdmi_scl), .I(1'b0), .O(hdmi_scl_i), .T(hdmi_scl_t));
+		IOBUF	i_bufio_hdmi_sda (.IO(hdmi_sda), .I(1'b0), .O(hdmi_sda_i), .T(hdmi_sda_t));
+		
+		
+		wire			bus_en;
+		wire			bus_start;
+		wire			bus_rw;
+		wire	[7:0]	bus_wdata;
+		wire	[7:0]	bus_rdata;
+		
+		jelly_i2c_slave
+				#(
+					.DIVIDER_WIDTH	(3),
+					.DIVIDER_COUNT	(7)
+				)
+			i_i2c_slave
+				(
+					.reset			(~peri_aresetn),
+					.clk			(peri_aclk),
+					
+					.addr			(7'h50),
+					
+					.i2c_scl_i		(hdmi_scl_i),
+					.i2c_scl_t		(hdmi_scl_t),
+					.i2c_sda_i		(hdmi_sda_i),
+					.i2c_sda_t		(hdmi_sda_t),
+					
+					.bus_en			(bus_en),
+					.bus_start		(bus_start),
+					.bus_rw			(bus_rw),
+					.bus_wdata		(bus_wdata),
+					.bus_rdata		(bus_rdata)
+				);
+		
+		reg		[6:0]	reg_edid_addr;
+		always @(posedge peri_aclk) begin
+			if ( !peri_aresetn ) begin
+				reg_edid_addr <= 0;
+			end
+			else begin
+				if ( bus_en && !bus_start ) begin
+					if ( bus_rw == 1'b0 ) begin
+						reg_edid_addr <= bus_wdata;
+					end
+					else begin
+						reg_edid_addr <= reg_edid_addr + 1;
+					end
+				end
+				
+			end
+		end
+		
+		jelly_edid_rom
+			i_edid_rom
+				(
+					.clk		(peri_aclk),
+					.en			(1'b1),
+					.addr		(reg_edid_addr),
+					.dout		(bus_rdata)
+				);
+	end
+	else begin : blk_no_hdmirx
+		assign	axi4s_vin_aresetn = ~vout_reset;
+		assign	axi4s_vin_aclk    = vout_clk;
+		assign	axi4s_vin_tuser   = 0;
+		assign	axi4s_vin_tlast   = 0;
+		assign	axi4s_vin_tdata   = 0;
+		assign	axi4s_vin_tvalid  = 0;
+		
+		/*
+		jelly_pattern_generator_axi4s
+				#(
+					.AXI4S_DATA_WIDTH	(24),
+					.X_NUM				(VIN_X_NUM),
+					.Y_NUM				(VIN_Y_NUM)
+				)
+			i_pattern_generator_axi4s
+				(
+					.aresetn			(axi4s_vin_aresetn),
+					.aclk				(axi4s_vin_aclk),
+					
+					.enable				(1),
+					
+					.m_axi4s_tuser		(axi4s_vin_tuser),
+					.m_axi4s_tlast		(axi4s_vin_tlast),
+					.m_axi4s_tdata		(axi4s_vin_tdata),
+					.m_axi4s_tvalid		(axi4s_vin_tvalid),
+					.m_axi4s_tready		(axi4s_vin_tready)
+				);
+		*/
+	end
+	endgenerate
+	
+	
+	wire	[0:0]			axi4s_trim_tuser;
+	wire					axi4s_trim_tlast;
+	wire	[23:0]			axi4s_trim_tdata;
+	wire					axi4s_trim_tvalid;
+	wire					axi4s_trim_tready;
+	
+	jelly_video_trimming_core
+			#(
+				.TUSER_WIDTH		(1),
+				.TDATA_WIDTH		(24),
+				.X_WIDTH			(12),
+				.Y_WIDTH			(12),
+				.M_SLAVE_REGS		(1),
+				.M_MASTER_REGS		(2)
+			)
+		i_video_trimming_core
+			(
+				.aresetn			(axi4s_vin_aresetn),
+				.aclk				(axi4s_vin_aclk),
+				.aclken				(1'b1),
+				
+				.param_enable		(1'b1),
+				.param_x_start		(12'd0),
+				.param_x_end		(12'd255),
+				.param_y_start		(12'd0),
+				.param_y_end		(12'd255),
+				
+				.s_axi4s_tuser		(axi4s_vin_tuser),
+				.s_axi4s_tlast		(axi4s_vin_tlast),
+				.s_axi4s_tdata		(axi4s_vin_tdata),
+				.s_axi4s_tvalid		(axi4s_vin_tvalid),
+				.s_axi4s_tready		(axi4s_vin_tready),
+				
+				.m_axi4s_tuser		(axi4s_trim_tuser),
+				.m_axi4s_tlast		(axi4s_trim_tlast),
+				.m_axi4s_tdata		(axi4s_trim_tdata),
+				.m_axi4s_tvalid		(axi4s_trim_tvalid),
+				.m_axi4s_tready		(axi4s_trim_tready)
+			);
+	
+	
+	
+	
+	
+	// ----------------------------------------
 	//  GPU
 	// ----------------------------------------
 	
-	wire	[0:0]			axi4s_gpu_tuser;
-	wire					axi4s_gpu_tlast;
-	wire	[23:0]			axi4s_gpu_tdata;
-	wire					axi4s_gpu_tvalid;
-	wire					axi4s_gpu_tready;
+	wire	[0:0]							axi4s_gpu_tuser;
+	wire									axi4s_gpu_tlast;
+	wire	[23:0]							axi4s_gpu_tdata;
+	wire									axi4s_gpu_tvalid;
+	wire									axi4s_gpu_tready;
 	
-	wire	[31:0]			wb_gpu_dat_o;
-	wire					wb_gpu_stb_i;
-	wire					wb_gpu_ack_o;
+	wire									texmem_reset;
+	wire									texmem_clk;
+	wire									texmem_we;
+	wire	[7:0]							texmem_addrx;
+	wire	[7:0]							texmem_addry;
+	wire	[23:0]							texmem_wdata;
+	
+	wire	[31:0]							wb_gpu_dat_o;
+	wire									wb_gpu_stb_i;
+	wire									wb_gpu_ack_o;
 	
 	jelly_gpu_texturemap_sram
 			#(
@@ -523,7 +771,7 @@ module top
 				.EDGE_PARAM_WIDTH				(32),
 				.EDGE_RAM_TYPE					("distributed"),
 				
-				.SHADER_PARAM_WIDTH				(32),
+				.SHADER_PARAM_WIDTH				(25), // (32),
 				.SHADER_PARAM_Q					(24),
 				.SHADER_RAM_TYPE				("distributed"),
 				
@@ -563,12 +811,12 @@ module top
 				.reset							(core_reset),
 				.clk							(core_clk),
 				
-				.mem_reset						(wb_rst_o),
-				.mem_clk						(wb_clk_o),
-				.mem_we 						(0),
-				.mem_addrx						(0),
-				.mem_addry						(0),
-				.mem_wdata						(0),
+				.mem_reset						(texmem_reset),
+				.mem_clk						(texmem_clk),
+				.mem_we 						(texmem_we),
+				.mem_addrx						(texmem_addrx),
+				.mem_addry						(texmem_addry),
+				.mem_wdata						(texmem_wdata),
 				
 				.s_wb_rst_i						(wb_rst_o),
 				.s_wb_clk_i						(wb_clk_o),
@@ -588,8 +836,45 @@ module top
 				.m_axi4s_tready 				(axi4s_gpu_tready)
 			);
 	
+	// texture write
+	reg						reg_texmem_we;
+	reg		[7:0]			reg_texmem_addrx;
+	reg		[7:0]			reg_texmem_addry;
+	reg		[23:0]			reg_texmem_wdata;
+	always @(posedge texmem_clk) begin
+		if ( texmem_reset ) begin
+			reg_texmem_we    <= 0;
+			reg_texmem_addrx <= 8'hxx;
+			reg_texmem_addry <= 8'hxx;
+			reg_texmem_wdata <= 24'hxx_xx_xx;
+		end
+		else begin
+			reg_texmem_we    <= axi4s_trim_tvalid;
+			reg_texmem_wdata <= axi4s_trim_tdata;
+			
+			{reg_texmem_addry, reg_texmem_addrx} <= {reg_texmem_addry, reg_texmem_addrx} + reg_texmem_we;
+			if ( axi4s_trim_tuser[0] & axi4s_trim_tvalid & axi4s_trim_tready ) begin
+				reg_texmem_addrx <= 8'h00;
+				reg_texmem_addry <= 8'h00;
+			end
+		end
+	end
 	
-	// VOUT
+	assign axi4s_trim_tready = 1'b1;
+	
+	assign texmem_reset = ~axi4s_vin_aresetn;
+	assign texmem_clk   = axi4s_vin_aclk;
+	assign texmem_we    = reg_texmem_we;
+	assign texmem_addrx = reg_texmem_addrx;
+	assign texmem_addry = reg_texmem_addry;
+	assign texmem_wdata = reg_texmem_wdata;
+	
+	
+	
+	// ----------------------------------------
+	//  VOUT
+	// ----------------------------------------
+	
 	wire	[0:0]			axi4s_vout_tuser;
 	wire					axi4s_vout_tlast;
 	wire	[23:0]			axi4s_vout_tdata;

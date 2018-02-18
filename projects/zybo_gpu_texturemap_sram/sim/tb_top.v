@@ -10,16 +10,14 @@
 
 
 module tb_top();
-	localparam RATE125 = 1000.0/125.0;
+	localparam RATE125  = 1000.0/125.0;
+	localparam VIN_RATE = 1000.0/75.3;
 	
 	initial begin
 		$dumpfile("tb_top.vcd");
 		$dumpvars(1, tb_top);
 		$dumpvars(1, tb_top.i_top);
-//		$dumpvars(0, tb_top.i_top.i_vout_axi4s);
-//		$dumpvars(0, tb_top.i_top.i_gpu_gouraud);
-//		$dumpvars(1, tb_top.i_top.i_gpu_gouraud.i_rasterizer);
-//		$dumpvars(1, tb_top.i_top.i_gpu_gouraud.i_rasterizer.i_rasterizer_core);
+		
 	#100000000
 		$finish;
 	end
@@ -29,14 +27,21 @@ module tb_top();
 	parameter	X_NUM = 640;
 	parameter	Y_NUM = 480;
 	
+	reg		reset = 1'b1;
+	initial #200			reset = 1'b0;
+	
 	reg		clk125 = 1'b1;
 	always #(RATE125/2.0)	clk125 = ~clk125;
+	
+	reg		vin_clk = 1'b1;
+	always #(VIN_RATE/2.0)	vin_clk = ~vin_clk;
 	
 	
 	// TOP
 	top
 			#(
 				.HDMI_TX				(0),
+				.HDMI_RX				(0),
 				.VOUT_X_NUM				(X_NUM),
 				.VOUT_Y_NUM				(Y_NUM),
 				.TEXMEM_READMEMH		(1),
@@ -52,6 +57,114 @@ module tb_top();
 				
 				.led		()
 			);
+	
+	wire					axi4s_vin_aresetn = ~reset;
+	wire					axi4s_vin_aclk    = vin_clk;
+	wire	[0:0]			axi4s_vin_tuser;
+	wire					axi4s_vin_tlast;
+	wire	[23:0]			axi4s_vin_tdata;
+	wire					axi4s_vin_tvalid;
+	wire					axi4s_vin_tready  = i_top.axi4s_vin_tready;
+	
+	initial begin
+		force	i_top.axi4s_vin_aresetn = axi4s_vin_aresetn;
+		force	i_top.axi4s_vin_aclk    = axi4s_vin_aclk;
+		force	i_top.axi4s_vin_tuser   = axi4s_vin_tuser;
+		force	i_top.axi4s_vin_tlast   = axi4s_vin_tlast;
+		force	i_top.axi4s_vin_tdata   = axi4s_vin_tdata;
+		force	i_top.axi4s_vin_tvalid  = axi4s_vin_tvalid;
+	end
+	
+	
+	// HDMI RX
+	jelly_axi4s_master_model
+			#(
+				.AXI4S_DATA_WIDTH	(24),
+				.X_NUM				(640),
+				.Y_NUM				(480),
+				.PPM_FILE			("Chrysanthemum.ppm"),
+				.BUSY_RATE			(0),
+				.RANDOM_SEED		(0)
+			)
+		i_axi4s_master_model
+			(
+				.aresetn			(axi4s_vin_aresetn),
+				.aclk				(axi4s_vin_aclk),
+				
+				.m_axi4s_tuser		(axi4s_vin_tuser),
+				.m_axi4s_tlast		(axi4s_vin_tlast),
+				.m_axi4s_tdata		(axi4s_vin_tdata),
+				.m_axi4s_tvalid		(axi4s_vin_tvalid),
+				.m_axi4s_tready		(axi4s_vin_tready)
+			);
+	
+	/*
+	integer		fp_vin;
+	initial begin
+		 fp_vin = $fopen("vin_img.ppm", "w");
+		 $fdisplay(fp_vin, "P3");
+		 $fdisplay(fp_vin, "%d %d", 640, 480);
+		 $fdisplay(fp_vin, "255");
+	end
+	
+	always @(posedge axi4s_vin_aclk) begin
+		if ( axi4s_vin_aresetn && axi4s_vin_tvalid && axi4s_vin_tready ) begin
+			 $fdisplay(fp_vin, "%d %d %d",
+			 	axi4s_vin_tdata[8*0 +: 8],		// r
+			 	axi4s_vin_tdata[8*1 +: 8],		// g
+			 	axi4s_vin_tdata[8*2 +: 8]);		// b
+		end
+	end
+	
+	
+	// trim
+	wire	[0:0]			axi4s_trim_tuser  = i_top.axi4s_trim_tuser;
+	wire					axi4s_trim_tlast  = i_top.axi4s_trim_tlast;
+	wire	[23:0]			axi4s_trim_tdata  = i_top.axi4s_trim_tdata;
+	wire					axi4s_trim_tvalid = i_top.axi4s_trim_tvalid;
+	wire					axi4s_trim_tready = i_top.axi4s_trim_tready;
+	integer		fp_trim;
+	initial begin
+		 fp_trim = $fopen("trim_img.ppm", "w");
+		 $fdisplay(fp_trim, "P3");
+		 $fdisplay(fp_trim, "%d %d", 256, 256);
+		 $fdisplay(fp_trim, "255");
+	end
+	
+	always @(posedge axi4s_vin_aclk) begin
+		if ( axi4s_vin_aresetn && axi4s_trim_tvalid && axi4s_trim_tready ) begin
+			 $fdisplay(fp_trim, "%d %d %d",
+			 	axi4s_trim_tdata[8*0 +: 8],		// r
+			 	axi4s_trim_tdata[8*1 +: 8],		// g
+			 	axi4s_trim_tdata[8*2 +: 8]);		// b
+		end
+	end
+	*/
+	
+	// texmem
+	wire					texmem_reset = i_top.texmem_reset;
+	wire					texmem_clk   = i_top.texmem_clk;
+	wire					texmem_we    = i_top.texmem_we;
+	wire	[7:0]			texmem_addrx = i_top.texmem_addrx;
+	wire	[7:0]			texmem_addry = i_top.texmem_addry;
+	wire	[23:0]			texmem_wdata = i_top.texmem_wdata;
+	
+	integer		fp_tex;
+	initial begin
+		 fp_tex = $fopen("tex_img.ppm", "w");
+		 $fdisplay(fp_tex, "P3");
+		 $fdisplay(fp_tex, "%d %d", 256, 256);
+		 $fdisplay(fp_tex, "255");
+	end
+	
+	always @(posedge texmem_clk) begin
+		if ( !texmem_reset && texmem_we ) begin
+			 $fdisplay(fp_tex, "%d %d %d",
+			 	texmem_wdata[8*0 +: 8],		// r
+			 	texmem_wdata[8*1 +: 8],		// g
+			 	texmem_wdata[8*2 +: 8]);		// b
+		end
+	end
 	
 	
 	

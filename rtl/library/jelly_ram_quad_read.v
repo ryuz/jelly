@@ -220,8 +220,8 @@ module jelly_ram_quad_read
 	reg							wr_en1;
 	reg							wr_en2;
 	reg							wr_en3;
-	reg		[ADDR_X_WIDTH-1:0]	wr_addrx;
-	reg		[ADDR_Y_WIDTH-1:0]	wr_addry;
+	reg		[ADDR_X_WIDTH-2:0]	wr_addrx;
+	reg		[ADDR_Y_WIDTH-2:0]	wr_addry;
 	reg		[DATA_WIDTH-1:0]	wr_din;
 	
 	always @(posedge write_clk) begin
@@ -231,7 +231,7 @@ module jelly_ram_quad_read
 			wr_en2   <= 1'b0;
 			wr_en3   <= 1'b0;
 			wr_addrx <= {ADDR_X_WIDTH{1'bx}};
-			wr_addrx <= {ADDR_Y_WIDTH{1'bx}};
+			wr_addry <= {ADDR_Y_WIDTH{1'bx}};
 			wr_din   <= {DATA_WIDTH{1'bx}};
 		end
 		else begin
@@ -250,10 +250,10 @@ module jelly_ram_quad_read
 	assign	mem2_wr_en   = wr_en2;
 	assign	mem3_wr_en   = wr_en3;
 	
-	assign	mem0_wr_addr = {wr_addry, wr_addry};
-	assign	mem1_wr_addr = {wr_addry, wr_addry};
-	assign	mem2_wr_addr = {wr_addry, wr_addry};
-	assign	mem3_wr_addr = {wr_addry, wr_addry};
+	assign	mem0_wr_addr = {wr_addry, wr_addrx};
+	assign	mem1_wr_addr = {wr_addry, wr_addrx};
+	assign	mem2_wr_addr = {wr_addry, wr_addrx};
+	assign	mem3_wr_addr = {wr_addry, wr_addrx};
 	
 	assign	mem0_wr_din  = wr_din;
 	assign	mem1_wr_din  = wr_din;
