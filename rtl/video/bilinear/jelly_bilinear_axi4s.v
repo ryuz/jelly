@@ -20,6 +20,7 @@ module jelly_bilinear_axi4s
 			parameter	TDATA_WIDTH   = COMPONENT_NUM*DATA_WIDTH,
 			parameter	X_WIDTH       = 4,
 			parameter	Y_WIDTH       = 4,
+			parameter	COMPACT       = 1,
 			parameter	M_SLAVE_REGS  = 0,
 			parameter	M_MASTER_REGS = 0
 		)
@@ -73,7 +74,8 @@ module jelly_bilinear_axi4s
 				.RATE_WIDTH			(X_WIDTH),
 				.COMPONENT_NUM		(2*COMPONENT_NUM),
 				.DATA_WIDTH			(DATA_WIDTH),
-				.DATA_SIGNED		(0)
+				.DATA_SIGNED		(0),
+				.COMPACT			(COMPACT)
 			)
 		i_linear_interpolation_x
 			(
@@ -98,7 +100,8 @@ module jelly_bilinear_axi4s
 				.RATE_WIDTH			(Y_WIDTH),
 				.COMPONENT_NUM		(COMPONENT_NUM),
 				.DATA_WIDTH			(DATA_WIDTH),
-				.DATA_SIGNED		(0)
+				.DATA_SIGNED		(0),
+				.COMPACT			(COMPACT)
 			)
 		i_linear_interpolation_y
 			(

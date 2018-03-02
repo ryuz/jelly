@@ -20,7 +20,7 @@ module jelly_linear_interpolation
 			parameter	DATA_WIDTH    = 8,
 			parameter	DATA_SIGNED   = 1,
 			parameter	ROUNDING      = 0,
-			parameter	COMPACT       = 1,
+			parameter	COMPACT       = 0,
 			
 			
 			// local
@@ -72,7 +72,7 @@ module jelly_linear_interpolation
 		i_data_expand_s0
 			(
 				.din				(s_data0),
-				.dout				(pipeline_data0)
+				.dout				(pipeline_data0[COMPONENT_NUM*DATA_BITS-1:0])
 			);
 	
 	jelly_data_expand
@@ -88,7 +88,7 @@ module jelly_linear_interpolation
 		i_data_expand_s1
 			(
 				.din				(s_data1),
-				.dout				(pipeline_data1)
+				.dout				(pipeline_data1[COMPONENT_NUM*DATA_BITS-1:0])
 			);
 	
 	// パイプライン演算
