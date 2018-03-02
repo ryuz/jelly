@@ -101,7 +101,6 @@ module jelly_linear_interpolation
 					.COMPONENT_NUM	(COMPONENT_NUM),
 					.DATA_WIDTH		(DATA_BITS),
 					.DATA_SIGNED	(DATA_SIGNED),
-					.ROUNDING		(COMPACT && ROUNDING ? 1 : 0),
 					.COMPACT		(COMPACT)
 				)
 			i_linear_interpolation_unit
@@ -157,7 +156,6 @@ module jelly_linear_interpolation_unit
 			parameter	COMPONENT_NUM = 3,
 			parameter	DATA_WIDTH    = 8,
 			parameter	DATA_SIGNED   = 1,
-			parameter	ROUNDING      = 0,
 			parameter	COMPACT       = 0
 		)
 		(
@@ -186,7 +184,6 @@ module jelly_linear_interpolation_unit
 			jelly_linear_interpolation_signed
 					#(
 						.DATA_WIDTH		(DATA_WIDTH),
-						.ROUNDING		(ROUNDING),
 						.COMPACT		(COMPACT)
 					)
 				i_linear_interpolation_signed
@@ -206,7 +203,6 @@ module jelly_linear_interpolation_unit
 			jelly_linear_interpolation_unsigned
 					#(
 						.DATA_WIDTH		(DATA_WIDTH),
-						.ROUNDING		(ROUNDING),
 						.COMPACT		(COMPACT)
 					)
 				i_linear_interpolation_unsigned
@@ -255,7 +251,6 @@ endmodule
 module jelly_linear_interpolation_signed
 		#(
 			parameter	DATA_WIDTH = 8,
-			parameter	ROUNDING   = 0,
 			parameter	COMPACT    = 0
 		)
 		(
@@ -276,8 +271,8 @@ module jelly_linear_interpolation_signed
 	
 	always @(posedge clk) begin
 		if ( cke ) begin
-			reg_data0 <= s_data0 + tmp_data + ROUNDING;
-			reg_data1 <= s_data1 + tmp_data + ROUNDING;
+			reg_data0 <= s_data0 + tmp_data;
+			reg_data1 <= s_data1 + tmp_data;
 		end
 	end
 	
@@ -292,7 +287,6 @@ endmodule
 module jelly_linear_interpolation_unsigned
 		#(
 			parameter	DATA_WIDTH = 8,
-			parameter	ROUNDING   = 0,
 			parameter	COMPACT    = 0
 		)
 		(
@@ -313,8 +307,8 @@ module jelly_linear_interpolation_unsigned
 	
 	always @(posedge clk) begin
 		if ( cke ) begin
-			reg_data0 <= s_data0 + tmp_data + ROUNDING;
-			reg_data1 <= s_data1 + tmp_data + ROUNDING;
+			reg_data0 <= s_data0 + tmp_data;
+			reg_data1 <= s_data1 + tmp_data;
 		end
 	end
 	

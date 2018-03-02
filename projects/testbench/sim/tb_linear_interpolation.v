@@ -27,7 +27,7 @@ module tb_linear_interpolation();
 	parameter	DATA_SIGNED   = 0;
 	parameter	USER_WIDTH    = COMPONENT_NUM*DATA_WIDTH;
 	parameter	ROUNDING      = 0;
-	parameter	COMPACT       = 1;
+	parameter	COMPACT       = 0;
 	
 	// local
 	parameter	USER_BITS     = USER_WIDTH > 0 ? USER_WIDTH : 1;
