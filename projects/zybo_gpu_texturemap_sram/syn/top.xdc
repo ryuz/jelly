@@ -5,7 +5,7 @@
 # Timing
 ################################
 
-# in_clk128
+# in_clk125
 create_clock -period 8.000 -name in_clk125 -waveform {0.000 4.000} [get_ports in_clk125]
 
 # HDMI-RX 480p (27.7MHz)
@@ -50,7 +50,7 @@ set_false_path -from [get_clocks mmcm_clk200] -to [get_clocks mmcm_clk]
 # I/O
 ################################
 
-# in_clk128
+# in_clk125
 set_property PACKAGE_PIN L16 [get_ports in_clk125]
 set_property IOSTANDARD LVCMOS33 [get_ports in_clk125]
 

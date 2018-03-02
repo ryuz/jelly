@@ -501,6 +501,13 @@ module top
 	(* MARK_DEBUG="true" *)	wire					axi4s_vin_tvalid;
 	(* MARK_DEBUG="true" *)	wire					axi4s_vin_tready;
 	
+	(* MARK_DEBUG="true" *)	wire					vin_vsync;
+	(* MARK_DEBUG="true" *)	wire					vin_hsync;
+	(* MARK_DEBUG="true" *)	wire					vin_de;
+	(* MARK_DEBUG="true" *)	wire	[23:0]			vin_data;
+	(* MARK_DEBUG="true" *)	wire	[3:0]			vin_ctl;
+	(* MARK_DEBUG="true" *)	wire					vin_valid;
+	
 	generate
 	if ( HDMI_RX ) begin : blk_hdmirx
 		
@@ -529,20 +536,13 @@ module top
 		assign hdmi_hpd    = 1'b1;
 		
 		
-		wire			vin_vsync;
-		wire			vin_hsync;
-		wire			vin_de;
-		wire	[23:0]	vin_data;
-		wire	[3:0]	vin_ctl;
-		wire			vin_valid;
-		
 		jelly_hdmi_rx
 				#(
 					.IDELAYCTRL_GROUP	(IDELAYCTRL_GROUP_HDMIRX)
 				)
 			i_hdmi_rx
 				(
-					.in_reset			(hdmirx_reset),
+					.in_reset			(hdmirx_reset || push_sw[0]),
 					.in_clk_p			(hdmi_clk_p),
 					.in_clk_n			(hdmi_clk_n),
 					.in_data_p			(hdmi_data_p),
@@ -849,7 +849,7 @@ module top
 			reg_texmem_wdata <= 24'hxx_xx_xx;
 		end
 		else begin
-			reg_texmem_we    <= axi4s_trim_tvalid;
+			reg_texmem_we    <= (axi4s_trim_tvalid & axi4s_trim_tready);
 			reg_texmem_wdata <= axi4s_trim_tdata;
 			
 			{reg_texmem_addry, reg_texmem_addrx} <= {reg_texmem_addry, reg_texmem_addrx} + reg_texmem_we;
@@ -943,6 +943,8 @@ module top
 				.INIT_VSYNC_END		(2),
 				.INIT_VSYNC_POL		(0)
 				*/
+				
+				/*
 				.INIT_HTOTAL		(VOUT_X_NUM + (2200 - 1920)),
 				.INIT_HDISP_START	(148),
 				.INIT_HDISP_END		(148 + VOUT_X_NUM),
@@ -954,6 +956,19 @@ module top
 				.INIT_VDISP_END		(9 + VOUT_Y_NUM),
 				.INIT_VSYNC_START	(0),
 				.INIT_VSYNC_END		(5),
+				.INIT_VSYNC_POL		(1)
+				*/
+				.INIT_HTOTAL		(2200),
+				.INIT_HDISP_START	(0),
+				.INIT_HDISP_END		(VOUT_X_NUM),
+				.INIT_HSYNC_START	(2008),
+				.INIT_HSYNC_END		(2052),
+				.INIT_HSYNC_POL		(1),
+				.INIT_VTOTAL		(1125),
+				.INIT_VDISP_START	(0),
+				.INIT_VDISP_END		(VOUT_Y_NUM),
+				.INIT_VSYNC_START	(1084),
+				.INIT_VSYNC_END		(1089),
 				.INIT_VSYNC_POL		(1)
 			)
 		i_vsync_generator
@@ -1022,6 +1037,17 @@ module top
 	(* IOB = "true" *)	reg		[5:0]	reg_vga_g;
 	(* IOB = "true" *)	reg		[4:0]	reg_vga_b;
 	
+	/*
+	always @(posedge vin_clk) begin
+		reg_vga_hsync <= vin_hsync;
+		reg_vga_vsync <= vin_vsync;
+		reg_vga_r     <= vin_data[7:3];
+		reg_vga_g     <= vin_data[15:10];
+		reg_vga_b     <= vin_data[23:19];
+	end
+	*/
+	
+	
 	always @(posedge vout_clk) begin
 		reg_vga_hsync <= vout_hsync;
 		reg_vga_vsync <= vout_vsync;
@@ -1029,6 +1055,7 @@ module top
 		reg_vga_g     <= vout_data[15:10];
 		reg_vga_b     <= vout_data[23:19];
 	end
+	
 	
 	assign vga_hsync = reg_vga_hsync;
 	assign vga_vsync = reg_vga_vsync;

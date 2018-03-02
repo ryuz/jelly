@@ -19,6 +19,9 @@ module jelly_linear_interpolation
 			parameter	COMPONENT_NUM = 3,
 			parameter	DATA_WIDTH    = 8,
 			parameter	DATA_SIGNED   = 1,
+			parameter	ROUNDING      = 0,
+			parameter	COMPACT       = 1,
+			
 			
 			// local
 			parameter	USER_BITS     = USER_WIDTH > 0 ? USER_WIDTH : 1
@@ -39,21 +42,56 @@ module jelly_linear_interpolation
 			output	wire									m_valid
 		);
 	
+	localparam		DATA_BITS       = COMPACT ? DATA_WIDTH : DATA_WIDTH + RATE_WIDTH;
+	localparam		ROUNDING_OFFSET = !COMPACT && ROUNDING ? (1 << (RATE_WIDTH-1)) : 0;
+	
 	genvar			i;
 	
 	// パイプライン構成
 	wire	[(RATE_WIDTH+1)*USER_BITS-1:0]					pipeline_user;
 	wire	[(RATE_WIDTH+1)*RATE_WIDTH-1:0]					pipeline_rate;
-	wire	[(RATE_WIDTH+1)*COMPONENT_NUM*DATA_WIDTH-1:0]	pipeline_data0;
-	wire	[(RATE_WIDTH+1)*COMPONENT_NUM*DATA_WIDTH-1:0]	pipeline_data1;
+	wire	[(RATE_WIDTH+1)*COMPONENT_NUM*DATA_BITS-1:0]	pipeline_data0;
+	wire	[(RATE_WIDTH+1)*COMPONENT_NUM*DATA_BITS-1:0]	pipeline_data1;
 	wire	[(RATE_WIDTH+1)-1:0]							pipeline_valid;
 	
-	assign pipeline_user [USER_BITS-1:0]                = USER_WIDTH > 0 ? s_user : 1'bx;
-	assign pipeline_rate [RATE_WIDTH-1:0]               = s_rate;
-	assign pipeline_data0[COMPONENT_NUM*DATA_WIDTH-1:0] = s_data0;
-	assign pipeline_data1[COMPONENT_NUM*DATA_WIDTH-1:0] = s_data1;
-	assign pipeline_valid[0]                            = s_valid;
+	assign pipeline_user [USER_BITS-1:0]  = USER_WIDTH > 0 ? s_user : 1'bx;
+	assign pipeline_rate [RATE_WIDTH-1:0] = s_rate;
+	assign pipeline_valid[0]              = s_valid;
 	
+	// 符号拡張
+	jelly_data_expand
+			#(
+				.NUM				(COMPONENT_NUM),
+				.IN_DATA_WIDTH		(DATA_WIDTH),
+				.OUT_DATA_WIDTH		(DATA_BITS),
+				.DATA_SIGNED		(DATA_SIGNED),
+				.OFFSET				(0),
+				.RSHIFT				(0),
+				.LSHIFT				(0)
+			)
+		i_data_expand_s0
+			(
+				.din				(s_data0),
+				.dout				(pipeline_data0)
+			);
+	
+	jelly_data_expand
+			#(
+				.NUM				(COMPONENT_NUM),
+				.IN_DATA_WIDTH		(DATA_WIDTH),
+				.OUT_DATA_WIDTH		(DATA_BITS),
+				.DATA_SIGNED		(DATA_SIGNED),
+				.OFFSET				(0),
+				.RSHIFT				(0),
+				.LSHIFT				(0)
+			)
+		i_data_expand_s1
+			(
+				.din				(s_data1),
+				.dout				(pipeline_data1)
+			);
+	
+	// パイプライン演算
 	generate
 	for ( i = 0; i < RATE_WIDTH; i = i+1 ) begin : loop_rate
 		jelly_linear_interpolation_unit
@@ -61,8 +99,10 @@ module jelly_linear_interpolation
 					.USER_WIDTH		(USER_BITS),
 					.RATE_WIDTH		(RATE_WIDTH),
 					.COMPONENT_NUM	(COMPONENT_NUM),
-					.DATA_WIDTH		(DATA_WIDTH),
-					.DATA_SIGNED	(DATA_SIGNED)
+					.DATA_WIDTH		(DATA_BITS),
+					.DATA_SIGNED	(DATA_SIGNED),
+					.ROUNDING		(COMPACT && ROUNDING ? 1 : 0),
+					.COMPACT		(COMPACT)
 				)
 			i_linear_interpolation_unit
 				(
@@ -70,23 +110,39 @@ module jelly_linear_interpolation
 					.clk			(clk),
 					.cke			(cke),
 					
-					.s_user			(pipeline_user [i*USER_BITS                +: USER_BITS]),
-					.s_rate			(pipeline_rate [i*RATE_WIDTH               +: RATE_WIDTH]),
-					.s_data0		(pipeline_data0[i*COMPONENT_NUM*DATA_WIDTH +: COMPONENT_NUM*DATA_WIDTH]),
-					.s_data1		(pipeline_data1[i*COMPONENT_NUM*DATA_WIDTH +: COMPONENT_NUM*DATA_WIDTH]),
+					.s_user			(pipeline_user [i*USER_BITS               +: USER_BITS]),
+					.s_rate			(pipeline_rate [i*RATE_WIDTH              +: RATE_WIDTH]),
+					.s_data0		(pipeline_data0[i*COMPONENT_NUM*DATA_BITS +: COMPONENT_NUM*DATA_BITS]),
+					.s_data1		(pipeline_data1[i*COMPONENT_NUM*DATA_BITS +: COMPONENT_NUM*DATA_BITS]),
 					.s_valid		(pipeline_valid[i]),
 					                 
-					.m_user			(pipeline_user [(i+1)*USER_BITS                +: USER_BITS]),
-					.m_rate			(pipeline_rate [(i+1)*RATE_WIDTH               +: RATE_WIDTH]),
-					.m_data0		(pipeline_data0[(i+1)*COMPONENT_NUM*DATA_WIDTH +: COMPONENT_NUM*DATA_WIDTH]),
-					.m_data1		(pipeline_data1[(i+1)*COMPONENT_NUM*DATA_WIDTH +: COMPONENT_NUM*DATA_WIDTH]),
+					.m_user			(pipeline_user [(i+1)*USER_BITS               +: USER_BITS]),
+					.m_rate			(pipeline_rate [(i+1)*RATE_WIDTH              +: RATE_WIDTH]),
+					.m_data0		(pipeline_data0[(i+1)*COMPONENT_NUM*DATA_BITS +: COMPONENT_NUM*DATA_BITS]),
+					.m_data1		(pipeline_data1[(i+1)*COMPONENT_NUM*DATA_BITS +: COMPONENT_NUM*DATA_BITS]),
 					.m_valid		(pipeline_valid[(i+1)])
 				);
 	end
 	endgenerate
 	
+	// 丸め
+	jelly_data_expand
+			#(
+				.NUM				(COMPONENT_NUM),
+				.IN_DATA_WIDTH		(DATA_BITS),
+				.OUT_DATA_WIDTH		(DATA_WIDTH),
+				.DATA_SIGNED		(DATA_SIGNED),
+				.OFFSET				(ROUNDING_OFFSET),
+				.RSHIFT				(COMPACT ? 0 : RATE_WIDTH),
+				.LSHIFT				(0)
+			)
+		i_data_expand_m
+			(
+				.din				(pipeline_data0[RATE_WIDTH*COMPONENT_NUM*DATA_BITS +: COMPONENT_NUM*DATA_BITS]),
+				.dout				(m_data)
+			);
+	
 	assign m_user  = USER_WIDTH > 0 ? pipeline_user [RATE_WIDTH*USER_BITS +: USER_BITS] : 1'b1;
-	assign m_data  = pipeline_data0[RATE_WIDTH*COMPONENT_NUM*DATA_WIDTH +: COMPONENT_NUM*DATA_WIDTH];
 	assign m_valid = pipeline_valid[RATE_WIDTH];
 	
 endmodule
@@ -100,7 +156,9 @@ module jelly_linear_interpolation_unit
 			parameter	RATE_WIDTH    = 4,
 			parameter	COMPONENT_NUM = 3,
 			parameter	DATA_WIDTH    = 8,
-			parameter	DATA_SIGNED   = 1
+			parameter	DATA_SIGNED   = 1,
+			parameter	ROUNDING      = 0,
+			parameter	COMPACT       = 0
 		)
 		(
 			input	wire									reset,
@@ -117,7 +175,7 @@ module jelly_linear_interpolation_unit
 			output	wire	[RATE_WIDTH-1:0]				m_rate,
 			output	wire	[COMPONENT_NUM*DATA_WIDTH-1:0]	m_data0,
 			output	wire	[COMPONENT_NUM*DATA_WIDTH-1:0]	m_data1,
-			output	wire											m_valid
+			output	wire									m_valid
 		);
 	
 	genvar		i;
@@ -127,7 +185,9 @@ module jelly_linear_interpolation_unit
 		if ( DATA_SIGNED ) begin : blk_signed
 			jelly_linear_interpolation_signed
 					#(
-						.DATA_WIDTH		(DATA_WIDTH)
+						.DATA_WIDTH		(DATA_WIDTH),
+						.ROUNDING		(ROUNDING),
+						.COMPACT		(COMPACT)
 					)
 				i_linear_interpolation_signed
 					(
@@ -145,7 +205,9 @@ module jelly_linear_interpolation_unit
 		else begin  : blk_unsigned
 			jelly_linear_interpolation_unsigned
 					#(
-						.DATA_WIDTH		(DATA_WIDTH)
+						.DATA_WIDTH		(DATA_WIDTH),
+						.ROUNDING		(ROUNDING),
+						.COMPACT		(COMPACT)
 					)
 				i_linear_interpolation_unsigned
 					(
@@ -192,7 +254,9 @@ endmodule
 // signed
 module jelly_linear_interpolation_signed
 		#(
-			parameter	DATA_WIDTH = 8
+			parameter	DATA_WIDTH = 8,
+			parameter	ROUNDING   = 0,
+			parameter	COMPACT    = 0
 		)
 		(
 			input	wire								clk,
@@ -212,13 +276,13 @@ module jelly_linear_interpolation_signed
 	
 	always @(posedge clk) begin
 		if ( cke ) begin
-			reg_data0 <= s_data0 + tmp_data;
-			reg_data1 <= s_data1 + tmp_data;
+			reg_data0 <= s_data0 + tmp_data + ROUNDING;
+			reg_data1 <= s_data1 + tmp_data + ROUNDING;
 		end
 	end
 	
-	assign m_data0 = reg_data0[DATA_WIDTH:1];
-	assign m_data1 = reg_data1[DATA_WIDTH:1]; 
+	assign m_data0 = reg_data0[COMPACT +: DATA_WIDTH];
+	assign m_data1 = reg_data1[COMPACT +: DATA_WIDTH];
 	
 endmodule
 
@@ -227,7 +291,9 @@ endmodule
 // unsigned
 module jelly_linear_interpolation_unsigned
 		#(
-			parameter	DATA_WIDTH = 8
+			parameter	DATA_WIDTH = 8,
+			parameter	ROUNDING   = 0,
+			parameter	COMPACT    = 0
 		)
 		(
 			input	wire						clk,
@@ -247,13 +313,13 @@ module jelly_linear_interpolation_unsigned
 	
 	always @(posedge clk) begin
 		if ( cke ) begin
-			reg_data0 <= s_data0 + tmp_data;
-			reg_data1 <= s_data1 + tmp_data;
+			reg_data0 <= s_data0 + tmp_data + ROUNDING;
+			reg_data1 <= s_data1 + tmp_data + ROUNDING;
 		end
 	end
 	
-	assign m_data0 = reg_data0[DATA_WIDTH:1];
-	assign m_data1 = reg_data1[DATA_WIDTH:1]; 
+	assign m_data0 = reg_data0[COMPACT +: DATA_WIDTH];
+	assign m_data1 = reg_data1[COMPACT +: DATA_WIDTH]; 
 	
 endmodule
 

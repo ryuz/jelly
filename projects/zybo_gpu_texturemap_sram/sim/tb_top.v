@@ -83,7 +83,7 @@ module tb_top();
 				.X_NUM				(640),
 				.Y_NUM				(480),
 				.PPM_FILE			("Chrysanthemum.ppm"),
-				.BUSY_RATE			(0),
+				.BUSY_RATE			(10),
 				.RANDOM_SEED		(0)
 			)
 		i_axi4s_master_model
@@ -162,7 +162,7 @@ module tb_top();
 			 $fdisplay(fp_tex, "%d %d %d",
 			 	texmem_wdata[8*0 +: 8],		// r
 			 	texmem_wdata[8*1 +: 8],		// g
-			 	texmem_wdata[8*2 +: 8]);		// b
+			 	texmem_wdata[8*2 +: 8]);	// b
 		end
 	end
 	

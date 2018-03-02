@@ -1,0 +1,26 @@
+verilog work $XILINX_VIVADO/data/verilog/src/glbl.v
+
+verilog work ../tb_hdmi.v
+
+verilog work ../../../../rtl/video/hdmi_rx/jelly_hdmi_rx.v
+verilog work ../../../../rtl/video/hdmi_rx/jelly_hdmi_rx_decode.v
+verilog work ../../../../rtl/video/hdmi_rx/jelly_hdmi_rx_dpa.v
+verilog work ../../../../rtl/video/hdmi_rx/jelly_serdes_1to10_dpa_7series.v
+verilog work ../../../../rtl/video/hdmi_rx/jelly_serdes_1to5_dpa_7series.v
+
+verilog work ../../../../rtl/video/dvi_rx/jelly_dvi_rx.v
+verilog work ../../../../rtl/video/dvi_rx/jelly_dvi_rx_decode.v
+verilog work ../../../../rtl/video/dvi_rx/jelly_serdes_1to10_7series.v
+
+verilog work ../../../../rtl/video/dvi_tx/jelly_dvi_tx.v
+verilog work ../../../../rtl/video/dvi_tx/jelly_dvi_tx_encode.v
+verilog work ../../../../rtl/video/dvi_tx/jelly_serdes_10to1_7series.v
+
+verilog work ../../../../rtl/video/vin/jelly_vin_axi4s.v
+
+verilog work ../../../../rtl/video/vout/jelly_vout_axi4s.v
+verilog work ../../../../rtl/video/vout/jelly_vout_axi4s_ng.v
+verilog work ../../../../rtl/video/vout/jelly_vsync_generator.v
+verilog work ../../../../rtl/video/vout/jelly_vsync_generator_core.v
+
+verilog work ../../../../rtl/video/pattern_generator/jelly_pattern_generator_axi4s.v

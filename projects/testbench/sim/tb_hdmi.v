@@ -13,7 +13,7 @@ module tb_hdmi();
 		$dumpvars(0, tb_hdmi.i_hdmi_rx);
 		$dumpvars(2, tb_hdmi.i_dvi_tx);
 		
-		#2000000;
+		#10000;
 			$finish;
 	end
 	

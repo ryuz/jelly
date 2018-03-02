@@ -10,7 +10,7 @@ module tb_linear_interpolation();
 		$dumpfile("tb_linear_interpolation.vcd");
 		$dumpvars(0, tb_linear_interpolation);
 		
-		#10000
+		#100000
 		$finish();
 	end
 	
@@ -26,11 +26,14 @@ module tb_linear_interpolation();
 	parameter	DATA_WIDTH    = 8;
 	parameter	DATA_SIGNED   = 0;
 	parameter	USER_WIDTH    = COMPONENT_NUM*DATA_WIDTH;
+	parameter	ROUNDING      = 0;
+	parameter	COMPACT       = 1;
 	
 	// local
 	parameter	USER_BITS     = USER_WIDTH > 0 ? USER_WIDTH : 1;
 	
 	reg										cke = 1;
+	always @(posedge clk) cke <= {$random()};
 	
 	reg		[USER_BITS-1:0]					s_user;
 	reg		[RATE_WIDTH-1:0]				s_rate  = 4'b0100;
@@ -41,12 +44,23 @@ module tb_linear_interpolation();
 	wire	[COMPONENT_NUM*DATA_WIDTH-1:0]	m_data;
 	wire									m_valid;
 	
+	wire	signed	[USER_BITS-1:0]					m_user_s = m_user;
+	wire	signed	[COMPONENT_NUM*DATA_WIDTH-1:0]	m_data_s = m_data;
+	
 	wire									error_flag = cke && m_valid && (m_user != m_data);
 	integer									error;
 	always @* begin
 		error = 0;
 		if ( error_flag ) begin
-			 error = m_data > m_user ? m_data - m_user : m_user - m_data;
+			if ( DATA_SIGNED ) begin
+				if ( m_data_s > m_user_s ) 
+					error = m_data_s - m_user_s;
+				else
+					error = m_user_s - m_data_s;
+			end
+			else begin
+				error = m_data > m_user ? m_data - m_user : m_user - m_data;
+			end
 		end
 	end
 	
@@ -67,13 +81,13 @@ module tb_linear_interpolation();
 	
 	
 	integer								i;
-	wire	signed	[RATE_WIDTH:0]		r1  = {1'b0, s_rate};
-	wire	signed	[RATE_WIDTH:0]		r0  = (1 << RATE_WIDTH) - r1;
+	wire	signed	[RATE_WIDTH+1:0]	r1  = {1'b0, s_rate};
+	wire	signed	[RATE_WIDTH+1:0]	r0  = (1 << RATE_WIDTH) - r1;
 	reg		signed	[DATA_WIDTH-1:0]	sd0, sd1;
 	reg				[DATA_WIDTH-1:0]	ud0, ud1;
 	integer								d0;
 	integer								d1;
-	integer								rounding = 0; // (1 << (RATE_WIDTH-1));
+	integer								rounding = ROUNDING ? (1 << (RATE_WIDTH-1)) : 0;
 	
 	always @* begin
 		for ( i = 0; i < COMPONENT_NUM; i = i+1 ) begin
@@ -103,7 +117,9 @@ module tb_linear_interpolation();
 				.RATE_WIDTH    		(RATE_WIDTH),
 				.COMPONENT_NUM 		(COMPONENT_NUM),
 				.DATA_WIDTH 		(DATA_WIDTH),
-				.DATA_SIGNED  		(DATA_SIGNED)
+				.DATA_SIGNED  		(DATA_SIGNED),
+				.ROUNDING			(ROUNDING),
+				.COMPACT			(COMPACT)
 			)
 		i_linear_interpolation
 			(

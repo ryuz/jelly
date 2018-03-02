@@ -486,7 +486,7 @@ module jelly_hdmi_rx
 				.in_d					(dec_data0),
 				
 				.out_de					(out_de),
-				.out_d					(out_data[7:0]),
+				.out_d					(out_data[23:16]),
 				.out_c0					(out_hsync),
 				.out_c1					(out_vsync)
 			);
@@ -520,7 +520,7 @@ module jelly_hdmi_rx
 				.in_d					(dec_data2),
 				
 				.out_de					(),
-				.out_d					(out_data[23:16]),
+				.out_d					(out_data[7:0]),
 				.out_c0					(out_ctl[2]),
 				.out_c1					(out_ctl[3])
 			);
