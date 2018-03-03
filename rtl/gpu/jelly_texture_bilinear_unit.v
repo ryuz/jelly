@@ -13,7 +13,7 @@
 
 
 
-// FIFO
+// bilinear
 module jelly_texture_bilinear_unit
 		#(
 			parameter	COMPONENT_NUM       = 3,
