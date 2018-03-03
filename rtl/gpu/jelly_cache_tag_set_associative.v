@@ -158,26 +158,16 @@ module jelly_cache_tag_set_associative
 		end
 		else if ( cke ) begin
 			// stage 1
-			st1_fw_st2    <= st0_valid && st1_valid && st1_strb && (st0_tag == st1_tag);
-			st1_fw_st3    <= st0_valid && st2_valid && st2_strb && (st0_tag == st2_tag);
+			st1_fw_st2    <= st0_valid && st1_valid && (st0_tag == st1_tag);
+			st1_fw_st3    <= st0_valid && st2_valid && (st0_tag == st2_tag);
 			st1_user      <= st0_user;
 			st1_tag       <= st0_tag;
 			st1_index     <= st0_index;
-			st1_strb      <= st0_strb;
 			st1_valid     <= st0_valid;
 			
 			
 			// stage 2
-			st2_we          <= (st1_valid && st1_strb) || st2_clear;
-			st2_user        <= st1_user;
-			st2_tag         <= st1_tag;
-			st2_cache_valid <= st1_cache_valid;
-			st2_cache_way   <= st1_cache_way;
-			st2_cache_index <= st1_cache_index;
-			st2_hit         <= st1_hit;
-			st2_strb        <= st1_strb;
-			st2_valid       <= st1_valid;
-			
+			st2_we                                        <= st2_clear || (st1_valid && st1_strb);
 			st2_cache_valid[0]                            <= 1'b1;
 			st2_cache_index[0*INDEX_WIDTH +: INDEX_WIDTH] <= st1_index;
 			st2_cache_way  [0*WAY_WIDTH   +: WAY_WIDTH]   <= st1_cache_way[st1_pos*WAY_WIDTH +: WAY_WIDTH];
@@ -189,6 +179,12 @@ module jelly_cache_tag_set_associative
 				end
 			end
 			
+			st2_user  <= st1_user;
+			st2_tag   <= st1_tag;
+			st2_hit   <= st1_hit;
+			st2_strb  <= st1_strb;
+			st2_valid <= st1_valid;
+			
 			if ( st2_clear ) begin
 				st2_tag <= st2_tag + 1'b1;
 			end
@@ -198,6 +194,11 @@ module jelly_cache_tag_set_associative
 			if ( clear_start ) begin
 				st2_clear <= 1'b1;
 				st2_tag   <= {TAG_WIDTH{1'b0}};
+				for ( j = 1; j < WAY; j = j+1 ) begin
+					st2_cache_valid[j]                            <= 1'b0;
+					st2_cache_way  [j*WAY_WIDTH   +: WAY_WIDTH]   <= j;
+					st2_cache_index[j*INDEX_WIDTH +: INDEX_WIDTH] <= {INDEX_WIDTH{1'bx}};
+				end
 			end
 			
 			
@@ -205,6 +206,8 @@ module jelly_cache_tag_set_associative
 			st3_data  <= st2_data;
 		end
 	end
+	
+	assign	clear_busy = st2_clear;
 	
 	assign	m_user  = st2_user;
 	assign	m_index = st2_cache_index[0*INDEX_WIDTH +: INDEX_WIDTH];

@@ -21,7 +21,7 @@ module tb_cache_tag_set_associative();
 	initial #(RATE*100.5)	reset = 1'b0;
 	
 	reg		cke = 1;
-//	always @(posedge clk)	cke <= {$random()};
+	always @(posedge clk)	cke <= {$random()};
 	
 	
 	parameter	USER_WIDTH  = 0;
@@ -89,6 +89,7 @@ module tb_cache_tag_set_associative();
 				.m_valid			(m_valid)
 			);
 	
+	integer		tb_count = 0;
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
@@ -97,15 +98,24 @@ module tb_cache_tag_set_associative();
 			s_tag   <= {TAG_WIDTH{1'b0}};
 			s_strb  <= 1'b0;
 			s_valid <= 1'b0;
+			tb_count <= 0;
 		end
 		else if ( cke ) begin
-			if ( s_valid ) begin
-				s_user  <= s_user + 1;
+			tb_count <= tb_count + 1;
+			
+			if ( tb_count >= 1000 && tb_count < 1200 ) begin
+				clear_start <= (tb_count == 1010);
+				s_valid     <= 1'b0;
 			end
-			s_index <= {$random()};
-			s_tag   <= {$random()};
-			s_strb  <= {$random()};
-			s_valid <= {$random()};
+			else begin
+				if ( s_valid ) begin
+					s_user  <= s_user + 1;
+				end
+				s_index <= {$random()};
+				s_tag   <= {$random()};
+				s_strb  <= {$random()};
+				s_valid <= {$random()};
+			end
 		end
 	end
 	
@@ -143,6 +153,12 @@ module tb_cache_tag_set_associative();
 			if ( m_valid && m_strb ) begin
 				mem_valid[m_tag][m_way]                            = 1'b1;
 				mem_index[m_tag][m_way*INDEX_WIDTH +: INDEX_WIDTH] = m_index;
+			end
+			
+			if ( clear_start ) begin
+				for ( i = 0; i < MEM_SIZE; i = i+1 ) begin
+					mem_valid[i] = 0;
+				end
 			end
 		end
 	end
