@@ -16,14 +16,14 @@
 module jelly_cache_tag_set_associative
 		#(
 			parameter	USER_WIDTH  = 0,
-			parameter	WAY         = 4,
-			parameter	WAY_WIDTH   = WAY <=   2 ? 1 :
-			                          WAY <=   4 ? 2 :
-			                          WAY <=   8 ? 3 :
-			                          WAY <=  16 ? 4 :
-			                          WAY <=  32 ? 5 :
-			                          WAY <=  64 ? 6 :
-			                          WAY <= 128 ? 7 : 8,
+			parameter	WAY_NUM     = 4,
+			parameter	WAY_WIDTH   = WAY_NUM <=   2 ? 1 :
+			                          WAY_NUM <=   4 ? 2 :
+			                          WAY_NUM <=   8 ? 3 :
+			                          WAY_NUM <=  16 ? 4 :
+			                          WAY_NUM <=  32 ? 5 :
+			                          WAY_NUM <=  64 ? 6 :
+			                          WAY_NUM <= 128 ? 7 : 8,
 			parameter	INDEX_WIDTH = 12,
 			parameter	TAG_WIDTH   = 6,
 			parameter	RAM_TYPE    = "distributed",
@@ -55,58 +55,58 @@ module jelly_cache_tag_set_associative
 		);
 	
 	localparam	MEM_SIZE  = (1 << TAG_WIDTH);
-	localparam	MEM_WIDTH = WAY * (1 + WAY_WIDTH + INDEX_WIDTH);
+	localparam	MEM_WIDTH = WAY_NUM * (1 + WAY_WIDTH + INDEX_WIDTH);
 	
 	genvar							i;
 	integer							j;
 	
 	// initial data
-	wire	[WAY*WAY_WIDTH-1:0]		ini_way;
+	wire	[WAY_NUM*WAY_WIDTH-1:0]	ini_way;
 	generate
-	for ( i = 0; i < WAY; i = i+1 ) begin : loop_ini_way
-		assign ini_way[i*WAY_WIDTH +: WAY_WIDTH] = i;
+	for ( i = 0; i < WAY_NUM; i = i+1 ) begin : loop_ini_way
+		assign ini_way[i*WAY_WIDTH +: WAY_WIDTH] = (WAY_NUM-1)-i;
 	end
 	endgenerate
-	wire	[MEM_WIDTH-1:0]			ini_mem = {{WAY{1'b0}}, ini_way, {WAY{{INDEX_WIDTH{1'bx}}}}};
+	wire	[MEM_WIDTH-1:0]				ini_mem = {{WAY_NUM{1'b0}}, ini_way, {(WAY_NUM*INDEX_WIDTH){1'bx}}};
 	
 
 	// pipeline
-	wire	[USER_BITS-1:0]			st0_user   = s_user;
-	wire	[INDEX_WIDTH-1:0]		st0_index  = s_index;
-	wire	[TAG_WIDTH-1:0]			st0_tag    = s_tag;
-	wire							st0_strb   = s_strb;
-	wire							st0_valid  = s_valid;
+	wire	[USER_BITS-1:0]				st0_user   = s_user;
+	wire	[INDEX_WIDTH-1:0]			st0_index  = s_index;
+	wire	[TAG_WIDTH-1:0]				st0_tag    = s_tag;
+	wire								st0_strb   = s_strb;
+	wire								st0_valid  = s_valid;
 	
-	reg								st1_fw_st2;
-	reg								st1_fw_st3;
-	reg		[USER_BITS-1:0]			st1_user;
-	reg		[INDEX_WIDTH-1:0]		st1_index;
-	reg		[TAG_WIDTH-1:0]			st1_tag;
-	reg								st1_strb;
-	reg								st1_valid;
+	reg									st1_fw_st2;
+	reg									st1_fw_st3;
+	reg		[USER_BITS-1:0]				st1_user;
+	reg		[INDEX_WIDTH-1:0]			st1_index;
+	reg		[TAG_WIDTH-1:0]				st1_tag;
+	reg									st1_strb;
+	reg									st1_valid;
 	
-	reg		[MEM_WIDTH-1:0]			st1_dout;
-	reg		[MEM_WIDTH-1:0]			st1_rdata;
-	wire	[WAY-1:0]				st1_cache_valid;
-	wire	[WAY*WAY_WIDTH-1:0]		st1_cache_way;
-	wire	[WAY*INDEX_WIDTH-1:0]	st1_cache_index;
-	reg								st1_hit;
-	reg		[WAY_WIDTH-1:0]			st1_pos;
+	reg		[MEM_WIDTH-1:0]				st1_dout;
+	reg		[MEM_WIDTH-1:0]				st1_rdata;
+	wire	[WAY_NUM-1:0]				st1_cache_valid;
+	wire	[WAY_NUM*WAY_WIDTH-1:0]		st1_cache_way;
+	wire	[WAY_NUM*INDEX_WIDTH-1:0]	st1_cache_index;
+	reg									st1_hit;
+	reg		[WAY_WIDTH-1:0]				st1_pos;
 	
-	reg		[USER_BITS-1:0]			st2_user;
-	reg								st2_we;
-	reg		[WAY-1:0]				st2_cache_valid;
-	reg		[WAY*WAY_WIDTH-1:0]		st2_cache_way;
-	reg		[WAY*INDEX_WIDTH-1:0]	st2_cache_index;
-	reg								st2_clear;
-	reg		[TAG_WIDTH-1:0]			st2_tag;
-	reg								st2_hit;
-	reg								st2_strb;
-	reg								st2_valid;
+	reg		[USER_BITS-1:0]				st2_user;
+	reg									st2_we;
+	reg		[WAY_NUM-1:0]				st2_cache_valid;
+	reg		[WAY_NUM*WAY_WIDTH-1:0]		st2_cache_way;
+	reg		[WAY_NUM*INDEX_WIDTH-1:0]	st2_cache_index;
+	reg									st2_clear;
+	reg		[TAG_WIDTH-1:0]				st2_tag;
+	reg									st2_hit;
+	reg									st2_strb;
+	reg									st2_valid;
 	
-	wire	[MEM_WIDTH-1:0]			st2_data = {st2_cache_valid, st2_cache_way, st2_cache_index};
+	wire	[MEM_WIDTH-1:0]				st2_data = {st2_cache_valid, st2_cache_way, st2_cache_index};
 	
-	reg		[MEM_WIDTH-1:0]			st3_data;
+	reg		[MEM_WIDTH-1:0]				st3_data;
 	
 	
 	// fowarding
@@ -122,8 +122,8 @@ module jelly_cache_tag_set_associative
 	// hit test
 	always @* begin
 		st1_hit = 1'b0;
-		st1_pos = WAY-1;
-		for ( j = 0; j < WAY; j = j+1 ) begin
+		st1_pos = WAY_NUM-1;
+		for ( j = 0; j < WAY_NUM; j = j+1 ) begin
 			if ( st1_cache_valid[j] && (st1_cache_index[j*INDEX_WIDTH +: INDEX_WIDTH] == st1_index) ) begin
 				st1_hit = 1'b1;
 				st1_pos = j;
@@ -144,9 +144,9 @@ module jelly_cache_tag_set_associative
 			st1_valid       <= 1'b0;
 			
 			st2_we          <= 1'b0;
-			st2_cache_valid <= {WAY{1'bx}};
-			st2_cache_way   <= {WAY{{WAY_WIDTH{1'bx}}}};
-			st2_cache_index <= {WAY{{INDEX_WIDTH{1'bx}}}};
+			st2_cache_valid <= {WAY_NUM{1'bx}};
+			st2_cache_way   <= {(WAY_NUM*WAY_WIDTH){1'bx}};
+			st2_cache_index <= {(WAY_NUM*INDEX_WIDTH){1'bx}};
 			st2_user        <= {USER_BITS{1'bx}};
 			st2_clear       <= 1'b0;
 			st2_tag         <= {TAG_WIDTH{1'bx}};
@@ -158,32 +158,39 @@ module jelly_cache_tag_set_associative
 		end
 		else if ( cke ) begin
 			// stage 1
-			st1_fw_st2    <= st0_valid && st1_valid && (st0_tag == st1_tag);
-			st1_fw_st3    <= st0_valid && st2_valid && (st0_tag == st2_tag);
+			st1_fw_st2    <= st0_valid && st1_strb && (st0_tag == st1_tag);
+			st1_fw_st3    <= st0_valid && st2_strb && (st0_tag == st2_tag);
 			st1_user      <= st0_user;
 			st1_tag       <= st0_tag;
 			st1_index     <= st0_index;
+			st1_strb      <= st0_strb && st0_valid;
 			st1_valid     <= st0_valid;
 			
 			
 			// stage 2
-			st2_we                                        <= st2_clear || (st1_valid && st1_strb);
-			st2_cache_valid[0]                            <= 1'b1;
-			st2_cache_index[0*INDEX_WIDTH +: INDEX_WIDTH] <= st1_index;
-			st2_cache_way  [0*WAY_WIDTH   +: WAY_WIDTH]   <= st1_cache_way[st1_pos*WAY_WIDTH +: WAY_WIDTH];
-			for ( j = 1; j < WAY; j = j+1 ) begin
-				if ( st1_pos >= j ) begin
-					st2_cache_valid[j]                            <= st1_cache_valid[(j-1)];
-					st2_cache_way  [j*WAY_WIDTH   +: WAY_WIDTH]   <= st1_cache_way  [(j-1)*WAY_WIDTH    +: WAY_WIDTH];
-					st2_cache_index[j*INDEX_WIDTH +: INDEX_WIDTH] <= st1_cache_index[(j-1)*INDEX_WIDTH +: INDEX_WIDTH];
-				end
-			end
-			
 			st2_user  <= st1_user;
 			st2_tag   <= st1_tag;
 			st2_hit   <= st1_hit;
 			st2_strb  <= st1_strb;
 			st2_valid <= st1_valid;
+			
+			st2_we    <= (st1_valid && st1_strb) || st2_clear;
+			if ( st1_valid ) begin
+				st2_cache_valid <= st1_cache_valid;
+				st2_cache_index <= st1_cache_index;
+				st2_cache_way   <= st1_cache_way;
+				
+				st2_cache_valid[0]                            <= 1'b1;
+				st2_cache_index[0*INDEX_WIDTH +: INDEX_WIDTH] <= st1_index;
+				st2_cache_way  [0*WAY_WIDTH   +: WAY_WIDTH]   <= st1_cache_way[st1_pos*WAY_WIDTH +: WAY_WIDTH];
+				for ( j = 1; j < WAY_NUM; j = j+1 ) begin
+					if ( st1_pos >= j ) begin
+						st2_cache_valid[j]                            <= st1_cache_valid[(j-1)];
+						st2_cache_way  [j*WAY_WIDTH   +: WAY_WIDTH]   <= st1_cache_way  [(j-1)*WAY_WIDTH    +: WAY_WIDTH];
+						st2_cache_index[j*INDEX_WIDTH +: INDEX_WIDTH] <= st1_cache_index[(j-1)*INDEX_WIDTH +: INDEX_WIDTH];
+					end
+				end
+			end
 			
 			if ( st2_clear ) begin
 				st2_tag <= st2_tag + 1'b1;
@@ -194,9 +201,9 @@ module jelly_cache_tag_set_associative
 			if ( clear_start ) begin
 				st2_clear <= 1'b1;
 				st2_tag   <= {TAG_WIDTH{1'b0}};
-				for ( j = 1; j < WAY; j = j+1 ) begin
+				for ( j = 0; j < WAY_NUM; j = j+1 ) begin
 					st2_cache_valid[j]                            <= 1'b0;
-					st2_cache_way  [j*WAY_WIDTH   +: WAY_WIDTH]   <= j;
+					st2_cache_way  [j*WAY_WIDTH   +: WAY_WIDTH]   <= (WAY_NUM-1)-j;
 					st2_cache_index[j*INDEX_WIDTH +: INDEX_WIDTH] <= {INDEX_WIDTH{1'bx}};
 				end
 			end
