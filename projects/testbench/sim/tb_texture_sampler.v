@@ -8,7 +8,7 @@ module tb_texture_sampler();
 	
 	initial begin
 		$dumpfile("tb_texture_sampler.vcd");
-		$dumpvars(1, tb_texture_sampler);
+		$dumpvars(0, tb_texture_sampler);
 
 //	#870000;
 //		$dumpfile("tb_texture_sampler.vcd");

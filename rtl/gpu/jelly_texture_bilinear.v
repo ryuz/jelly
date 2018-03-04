@@ -330,6 +330,8 @@ module jelly_texture_bilinear
 		end
 	end
 	
+	assign m_mem_rready = cke & intr_cke;
+	
 	
 	// interpolate
 	localparam	RATE_WIDTH = X_FRAC_WIDTH > Y_FRAC_WIDTH ? X_FRAC_WIDTH : Y_FRAC_WIDTH;
