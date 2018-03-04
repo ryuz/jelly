@@ -8,7 +8,7 @@ module tb_texture_sampler();
 	
 	initial begin
 		$dumpfile("tb_texture_sampler.vcd");
-		$dumpvars(0, tb_texture_sampler);
+		$dumpvars(1, tb_texture_sampler);
 
 //	#870000;
 //		$dumpfile("tb_texture_sampler.vcd");
@@ -66,7 +66,9 @@ module tb_texture_sampler();
 	parameter	SAMPLER3D_NUM                 = 0;
 	
 	parameter	L1_CACHE_NUM                  = SAMPLER1D_NUM + SAMPLER2D_NUM + SAMPLER3D_NUM;
-	parameter	L1_TAG_ADDR_WIDTH             = 10;
+	parameter	L1_USE_LOOK_AHEAD             = 1;
+	parameter	L1_WAY_NUM                    = 6;
+	parameter	L1_TAG_ADDR_WIDTH             = 0;
 	parameter	L1_BLK_X_SIZE                 = 2;	// 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
 	parameter	L1_BLK_Y_SIZE                 = 2;	// 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
 	parameter	L1_TAG_RAM_TYPE               = "distributed";
@@ -74,7 +76,9 @@ module tb_texture_sampler();
 	parameter	L1_DATA_SIZE                  = 2;
 	
 	parameter	L2_PARALLEL_SIZE              = 2;
+	parameter	L2_USE_LOOK_AHEAD             = 1;
 	parameter	L2_CACHE_NUM                  = (1 << L2_PARALLEL_SIZE);
+	parameter	L2_WAY_NUM                    = 4;
 	parameter	L2_TAG_ADDR_WIDTH             = 7;
 	parameter	L2_BLK_X_SIZE                 = 3;	// 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
 	parameter	L2_BLK_Y_SIZE                 = 3;	// 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
@@ -343,9 +347,10 @@ module tb_texture_sampler();
 				
 				.SAMPLER3D_NUM					(SAMPLER3D_NUM					),
 				
-				.L1_USE_LOOK_AHEAD				(0),
+				.L1_USE_LOOK_AHEAD				(L1_USE_LOOK_AHEAD),
 				.L1_QUE_FIFO_PTR_WIDTH			(6),
 				.L1_CACHE_NUM					(L1_CACHE_NUM					),
+				.L1_WAY_NUM						(L1_WAY_NUM),
 				.L1_TAG_ADDR_WIDTH				(L1_TAG_ADDR_WIDTH				),
 				.L1_BLK_X_SIZE					(L1_BLK_X_SIZE					),
 				.L1_BLK_Y_SIZE					(L1_BLK_Y_SIZE					),
@@ -354,7 +359,8 @@ module tb_texture_sampler();
 				.L1_DATA_SIZE					(L1_DATA_SIZE				),
 				
 				.L2_PARALLEL_SIZE				(L2_PARALLEL_SIZE),
-				.L2_USE_LOOK_AHEAD				(0),
+				.L2_USE_LOOK_AHEAD				(L2_USE_LOOK_AHEAD),
+				.L2_WAY_NUM						(L2_WAY_NUM),
 				.L2_TAG_ADDR_WIDTH				(L2_TAG_ADDR_WIDTH				),
 				.L2_BLK_X_SIZE					(L2_BLK_X_SIZE					),
 				.L2_BLK_Y_SIZE					(L2_BLK_Y_SIZE					),

@@ -33,7 +33,6 @@ module jelly_texture_cache_tag
 			
 			parameter	TAG_ADDR_WIDTH   = 6,
 			parameter	TBL_ADDR_WIDTH   = TAG_ADDR_WIDTH + WAY_WIDTH,
-	//		parameter	TAG_WIDTH        = TAG_ADDR_WIDTH - WAY_WIDTH,
 			
 			parameter	BLK_X_SIZE       = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	BLK_Y_SIZE       = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
@@ -86,6 +85,8 @@ module jelly_texture_cache_tag
 	
 	
 	localparam	INDEX_WIDTH = ALGORITHM == "NORMAL" ? BLK_ADDR_Y_WIDTH + BLK_ADDR_X_WIDTH - TAG_ADDR_WIDTH : BLK_ADDR_Y_WIDTH + BLK_ADDR_X_WIDTH;
+	localparam	WAY_BITS    = WAY_WIDTH      > 0 ? WAY_WIDTH      : 1;
+	localparam	TAG_BITS    = TAG_ADDR_WIDTH > 0 ? TAG_ADDR_WIDTH : 1;
 	
 	
 	// ---------------------------------
@@ -98,7 +99,7 @@ module jelly_texture_cache_tag
 	wire	[BLK_ADDR_Y_WIDTH-1:0]	s_blk_addry = s_addry[ADDR_Y_WIDTH-1:BLK_Y_SIZE];
 	
 	//  tag addr & index
-	wire	[TAG_ADDR_WIDTH-1:0]	s_tag_addr;
+	wire	[TAG_BITS-1:0]			s_tag_addr;
 	wire	[INDEX_WIDTH-1:0]		s_index;
 	
 	jelly_texture_cache_tag_addr
@@ -126,8 +127,6 @@ module jelly_texture_cache_tag
 	//  TAG RAM
 	// ---------------------------------
 	
-	localparam	WAY_BITS    = WAY_WIDTH      > 0 ? WAY_WIDTH      : 1;
-	parameter	TAG_BITS    = TAG_ADDR_WIDTH > 0 ? TAG_ADDR_WIDTH : 1;
 	
 	wire							cke;
 	

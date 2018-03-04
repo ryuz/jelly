@@ -26,7 +26,6 @@ module jelly_texture_cache_lookahead
 			parameter	WAY_NUM              = 1,
 			parameter	TAG_ADDR_WIDTH       = 6,
 			parameter	TAG_RAM_TYPE         = "distributed",
-			parameter	TAG_ASSOCIATIVE      = TAG_ADDR_WIDTH < 3,
 			parameter	TAG_ALGORITHM        = PARALLEL_SIZE > 0 ? "SUDOKU" : "TWIST",
 			parameter	TAG_M_SLAVE_REGS     = 0,
 			parameter	TAG_M_MASTER_REGS    = 0,
@@ -128,7 +127,6 @@ module jelly_texture_cache_lookahead
 	// ---------------------------------
 	
 	wire		[S_USER_WIDTH-1:0]		tag_user;
-	wire		[TAG_ADDR_WIDTH-1:0]	tag_tag_addr;
 	wire		[PIX_ADDR_X_WIDTH-1:0]	tag_pix_addrx;
 	wire		[PIX_ADDR_Y_WIDTH-1:0]	tag_pix_addry;
 	wire		[BLK_ADDR_X_WIDTH-1:0]	tag_blk_addrx;
@@ -151,9 +149,6 @@ module jelly_texture_cache_lookahead
 				.BLK_X_SIZE				(BLK_X_SIZE),
 				.BLK_Y_SIZE				(BLK_Y_SIZE),
 				.RAM_TYPE				(TAG_RAM_TYPE),
-
-				.ASSOCIATIVE			(TAG_ASSOCIATIVE),
-				.ALGORITHM				(TAG_ALGORITHM),
 				
 				.LOG_ENABLE				(0),
 				.LOG_FILE				(""),
@@ -175,7 +170,7 @@ module jelly_texture_cache_lookahead
 				.s_ready				(s_arready),
 				
 				.m_user					(tag_user),
-				.m_tag_addr				(tag_tag_addr),
+				.m_tbl_addr				(),
 				.m_pix_addrx			(tag_pix_addrx),
 				.m_pix_addry			(tag_pix_addry),
 				.m_blk_addrx			(tag_blk_addrx),
@@ -333,7 +328,6 @@ module jelly_texture_cache_lookahead
 				.WAY_NUM				(WAY_NUM),
 				.TAG_ADDR_WIDTH			(TAG_ADDR_WIDTH),
 				.TAG_RAM_TYPE			(TAG_RAM_TYPE),
-				.TAG_ASSOCIATIVE		(TAG_ASSOCIATIVE),
 				.TAG_ALGORITHM			(TAG_ALGORITHM),
 				.TAG_M_SLAVE_REGS		(TAG_M_SLAVE_REGS),
 				.TAG_M_MASTER_REGS		(TAG_M_MASTER_REGS),
