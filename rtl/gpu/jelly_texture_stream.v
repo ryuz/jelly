@@ -84,6 +84,7 @@ module jelly_texture_stream
 			parameter	L1_USE_LOOK_AHEAD             = 0,
 			parameter	L1_BLK_X_SIZE                 = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	L1_BLK_Y_SIZE                 = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
+			parameter	L1_WAY_NUM                    = 1,
 			parameter	L1_TAG_ADDR_WIDTH             = 6,
 			parameter	L1_TAG_RAM_TYPE               = "distributed",
 			parameter	L1_TAG_ASSOCIATIVE            = L1_TAG_ADDR_WIDTH < 3,
@@ -112,6 +113,7 @@ module jelly_texture_stream
 			parameter	L2_USE_LOOK_AHEAD             = 0,
 			parameter	L2_BLK_X_SIZE                 = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	L2_BLK_Y_SIZE                 = 3,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
+			parameter	L2_WAY_NUM                    = 1,
 			parameter	L2_TAG_ADDR_WIDTH             = 6,
 			parameter	L2_TAG_RAM_TYPE               = "distributed",
 			parameter	L2_TAG_ASSOCIATIVE            = L2_TAG_ADDR_WIDTH < 3,
@@ -352,6 +354,7 @@ module jelly_texture_stream
 				.L1_USE_LOOK_AHEAD				(L1_USE_LOOK_AHEAD),
 				.L1_BLK_X_SIZE					(L1_BLK_X_SIZE),
 				.L1_BLK_Y_SIZE					(L1_BLK_Y_SIZE),
+				.L1_WAY_NUM						(L1_WAY_NUM),
 				.L1_TAG_ADDR_WIDTH				(L1_TAG_ADDR_WIDTH),
 				.L1_TAG_RAM_TYPE				(L1_TAG_RAM_TYPE),
 				.L1_TAG_ASSOCIATIVE 			(L1_TAG_ASSOCIATIVE),
@@ -381,6 +384,7 @@ module jelly_texture_stream
 				.L2_USE_LOOK_AHEAD				(L2_USE_LOOK_AHEAD),
 				.L2_BLK_X_SIZE					(L2_BLK_X_SIZE),
 				.L2_BLK_Y_SIZE					(L2_BLK_Y_SIZE),
+				.L2_WAY_NUM						(L2_WAY_NUM),
 				.L2_TAG_ADDR_WIDTH				(L2_TAG_ADDR_WIDTH),
 				.L2_TAG_RAM_TYPE				(L2_TAG_RAM_TYPE),
 				.L2_TAG_ASSOCIATIVE 			(L2_TAG_ASSOCIATIVE),

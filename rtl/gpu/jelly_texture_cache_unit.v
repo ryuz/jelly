@@ -23,6 +23,7 @@ module jelly_texture_cache_unit
 			parameter	ADDR_Y_WIDTH         = 12,
 			parameter	BLK_X_SIZE           = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
 			parameter	BLK_Y_SIZE           = 2,	// 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
+			parameter	WAY_NUM              = 1,
 			parameter	TAG_ADDR_WIDTH       = 6,
 			parameter	TAG_RAM_TYPE         = "distributed",
 			parameter	TAG_ASSOCIATIVE      = TAG_ADDR_WIDTH < 3,
@@ -124,6 +125,7 @@ module jelly_texture_cache_unit
 				.ADDR_Y_WIDTH			(ADDR_Y_WIDTH),
 				.BLK_X_SIZE				(BLK_X_SIZE),
 				.BLK_Y_SIZE				(BLK_Y_SIZE),
+				.WAY_NUM				(WAY_NUM),
 				.TAG_ADDR_WIDTH			(TAG_ADDR_WIDTH),
 				.TAG_RAM_TYPE			(TAG_RAM_TYPE),
 				.TAG_M_SLAVE_REGS		(TAG_M_SLAVE_REGS),
@@ -217,6 +219,7 @@ module jelly_texture_cache_unit
 				.ADDR_Y_WIDTH			(ADDR_Y_WIDTH),
 				.BLK_X_SIZE				(BLK_X_SIZE),
 				.BLK_Y_SIZE				(BLK_Y_SIZE),
+				.WAY_NUM				(WAY_NUM),
 				.TAG_ADDR_WIDTH			(TAG_ADDR_WIDTH),
 				.TAG_RAM_TYPE			(TAG_RAM_TYPE),
 				.TAG_M_SLAVE_REGS		(TAG_M_SLAVE_REGS),

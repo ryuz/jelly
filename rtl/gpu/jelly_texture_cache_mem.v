@@ -18,7 +18,8 @@ module jelly_texture_cache_mem
 			parameter	USER_WIDTH           = 1,
 			parameter	COMPONENT_NUM        = 1,
 			parameter	COMPONENT_DATA_WIDTH = 24,
-			parameter	TAG_ADDR_WIDTH       = 6,
+			parameter	TBL_ADDR_WIDTH       = 6,
+			parameter	TBL_MEM_SIZE         = (1 << TBL_ADDR_WIDTH),
 			parameter	PIX_ADDR_WIDTH       = 4,
 			parameter	S_DATA_SIZE          = 1,
 			parameter	M_DATA_SIZE          = 0,
@@ -43,7 +44,7 @@ module jelly_texture_cache_mem
 			input	wire							s_last,
 			input	wire	[COMPONENT_NUM-1:0]		s_we,
 			input	wire	[S_DATA_WIDTH-1:0]		s_wdata,
-			input	wire	[TAG_ADDR_WIDTH-1:0]	s_tag_addr,
+			input	wire	[TBL_ADDR_WIDTH-1:0]	s_tbl_addr,
 			input	wire	[PIX_ADDR_WIDTH-1:0]	s_pix_addr,
 			input	wire							s_strb,
 			input	wire							s_valid,
@@ -74,9 +75,9 @@ module jelly_texture_cache_mem
 	wire							st0_strb      = s_strb;
 	wire	[COMPONENT_NUM-1:0]		st0_we        = s_we;
 	wire	[S_DATA_WIDTH-1:0]		st0_wdata     = s_wdata;
-	wire	[TAG_ADDR_WIDTH-1:0]	st0_tag_addr  = s_tag_addr;
-	wire	[MEM_ADDR_WIDTH-1:0]	st0_addr      = (s_pix_addr >> S_DATA_SIZE);	//({s_tag_addr, s_pix_addr} >> S_DATA_SIZE);
-	wire	[SEL_WIDTH-1:0]			st0_sel       = (s_pix_addr >> M_DATA_SIZE);	//({s_tag_addr, s_pix_addr} >> M_DATA_SIZE);
+	wire	[TBL_ADDR_WIDTH-1:0]	st0_tbl_addr  = s_tbl_addr;
+	wire	[MEM_ADDR_WIDTH-1:0]	st0_addr      = (s_pix_addr >> S_DATA_SIZE);	//({s_tbl_addr, s_pix_addr} >> S_DATA_SIZE);
+	wire	[SEL_WIDTH-1:0]			st0_sel       = (s_pix_addr >> M_DATA_SIZE);	//({s_tbl_addr, s_pix_addr} >> M_DATA_SIZE);
 	wire							st0_valid     = s_valid;
 	
 	reg		[USER_WIDTH-1:0]		st1_user;
@@ -106,7 +107,8 @@ module jelly_texture_cache_mem
 		// CACHE-RAM
 		jelly_ram_singleport
 				#(
-					.ADDR_WIDTH			(TAG_ADDR_WIDTH + MEM_ADDR_WIDTH),
+					.ADDR_WIDTH			(TBL_ADDR_WIDTH + MEM_ADDR_WIDTH),
+					.MEM_SIZE			(TBL_MEM_SIZE << MEM_ADDR_WIDTH),
 					.DATA_WIDTH			(S_COMPONENT_WIDTH),
 					.RAM_TYPE			(RAM_TYPE),
 					.DOUT_REGS			(1)
@@ -118,7 +120,7 @@ module jelly_texture_cache_mem
 					.regcke				(cke),
 					
 					.we					(st0_we[i]),
-					.addr				({st0_tag_addr, st0_addr}),
+					.addr				({st0_tbl_addr, st0_addr}),
 					.din				(st0_wdata[S_COMPONENT_WIDTH*i +: S_COMPONENT_WIDTH]),
 					.dout				(mem_rdata[S_COMPONENT_WIDTH*i +: S_COMPONENT_WIDTH])
 				);
