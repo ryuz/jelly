@@ -45,7 +45,7 @@ module tb_texture_sampler();
 	
 	parameter	SAMPLER1D_NUM                 = 0;
 	
-	parameter	SAMPLER2D_NUM                 = 8;
+	parameter	SAMPLER2D_NUM                 = 4;
 	parameter	SAMPLER2D_USER_WIDTH          = 0;
 	parameter	SAMPLER2D_X_INT_WIDTH         = ADDR_X_WIDTH+2;
 	parameter	SAMPLER2D_X_FRAC_WIDTH        = 4;
@@ -66,9 +66,13 @@ module tb_texture_sampler();
 	parameter	SAMPLER3D_NUM                 = 0;
 	
 	parameter	L1_CACHE_NUM                  = SAMPLER1D_NUM + SAMPLER2D_NUM + SAMPLER3D_NUM;
-	parameter	L1_USE_LOOK_AHEAD             = 1;
-	parameter	L1_WAY_NUM                    = 6;
-	parameter	L1_TAG_ADDR_WIDTH             = 0;
+	parameter	L1_USE_LOOK_AHEAD             = 0;
+	parameter	L1_QUE_FIFO_PTR_WIDTH         = 6;
+	parameter	L1_AR_FIFO_PTR_WIDTH          = 0;
+	parameter	L1_R_FIFO_PTR_WIDTH           = 6;
+	parameter	L1_WAY_NUM                    = 4;
+	parameter	L1_TAG_ADDR_WIDTH             = 4;
+	parameter	L1_TAG_ALGORITHM              = "NORMAL"; // L2_PARALLEL_SIZE > 0 ? "SUDOKU" : "TWIST";
 	parameter	L1_BLK_X_SIZE                 = 2;	// 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
 	parameter	L1_BLK_Y_SIZE                 = 2;	// 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
 	parameter	L1_TAG_RAM_TYPE               = "distributed";
@@ -76,10 +80,14 @@ module tb_texture_sampler();
 	parameter	L1_DATA_SIZE                  = 2;
 	
 	parameter	L2_PARALLEL_SIZE              = 2;
-	parameter	L2_USE_LOOK_AHEAD             = 1;
+	parameter	L2_USE_LOOK_AHEAD             = 0;
+	parameter	L2_QUE_FIFO_PTR_WIDTH         = 6;
+	parameter	L2_AR_FIFO_PTR_WIDTH          = 0;
+	parameter	L2_R_FIFO_PTR_WIDTH           = 6;
 	parameter	L2_CACHE_NUM                  = (1 << L2_PARALLEL_SIZE);
 	parameter	L2_WAY_NUM                    = 4;
-	parameter	L2_TAG_ADDR_WIDTH             = 7;
+	parameter	L2_TAG_ADDR_WIDTH             = 6;
+	parameter	L2_TAG_ALGORITHM              = "NORMAL"; // L2_PARALLEL_SIZE > 0 ? "SUDOKU" : "TWIST";
 	parameter	L2_BLK_X_SIZE                 = 3;	// 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
 	parameter	L2_BLK_Y_SIZE                 = 3;	// 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
 	parameter	L2_TAG_RAM_TYPE               = "distributed";
@@ -194,6 +202,8 @@ module tb_texture_sampler();
 						src_x <= 0;
 						src_y <= 0;
 						src_valid <= 0;
+						while ( 1 )
+							#10000;
 					end
 				end
 			end
@@ -348,10 +358,13 @@ module tb_texture_sampler();
 				.SAMPLER3D_NUM					(SAMPLER3D_NUM					),
 				
 				.L1_USE_LOOK_AHEAD				(L1_USE_LOOK_AHEAD),
-				.L1_QUE_FIFO_PTR_WIDTH			(6),
+				.L1_QUE_FIFO_PTR_WIDTH			(L1_QUE_FIFO_PTR_WIDTH),
+				.L1_AR_FIFO_PTR_WIDTH			(L1_AR_FIFO_PTR_WIDTH),
+				.L1_R_FIFO_PTR_WIDTH			(L1_R_FIFO_PTR_WIDTH),
 				.L1_CACHE_NUM					(L1_CACHE_NUM					),
 				.L1_WAY_NUM						(L1_WAY_NUM),
 				.L1_TAG_ADDR_WIDTH				(L1_TAG_ADDR_WIDTH				),
+				.L1_TAG_ALGORITHM				(L1_TAG_ALGORITHM),
 				.L1_BLK_X_SIZE					(L1_BLK_X_SIZE					),
 				.L1_BLK_Y_SIZE					(L1_BLK_Y_SIZE					),
 				.L1_TAG_RAM_TYPE				(L1_TAG_RAM_TYPE				),
@@ -360,8 +373,12 @@ module tb_texture_sampler();
 				
 				.L2_PARALLEL_SIZE				(L2_PARALLEL_SIZE),
 				.L2_USE_LOOK_AHEAD				(L2_USE_LOOK_AHEAD),
+				.L2_QUE_FIFO_PTR_WIDTH			(L2_QUE_FIFO_PTR_WIDTH),
+				.L2_AR_FIFO_PTR_WIDTH			(L2_AR_FIFO_PTR_WIDTH),
+				.L2_R_FIFO_PTR_WIDTH			(L2_R_FIFO_PTR_WIDTH),
 				.L2_WAY_NUM						(L2_WAY_NUM),
 				.L2_TAG_ADDR_WIDTH				(L2_TAG_ADDR_WIDTH				),
+				.L2_TAG_ALGORITHM				(L2_TAG_ALGORITHM),
 				.L2_BLK_X_SIZE					(L2_BLK_X_SIZE					),
 				.L2_BLK_Y_SIZE					(L2_BLK_Y_SIZE					),
 				.L2_TAG_RAM_TYPE				(L2_TAG_RAM_TYPE				),
