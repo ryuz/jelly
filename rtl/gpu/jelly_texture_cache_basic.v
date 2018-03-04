@@ -206,7 +206,7 @@ module jelly_texture_cache_basic
 	wire								tagram_valid;
 	wire								tagram_ready;
 	
-	jelly_texture_cache_tag
+	jelly_texture_cache_tag2
 			#(
 				.USER_WIDTH				(S_USER_WIDTH),
 				
@@ -218,9 +218,9 @@ module jelly_texture_cache_basic
 				.BLK_X_SIZE				(BLK_X_SIZE),
 				.BLK_Y_SIZE				(BLK_Y_SIZE),
 				.RAM_TYPE				(TAG_RAM_TYPE),
-				.ASSOCIATIVE			(TAG_ASSOCIATIVE),
+		//		.ASSOCIATIVE			(TAG_ASSOCIATIVE),
 				.ALGORITHM				(TAG_ALGORITHM),
-
+				
 				.M_SLAVE_REGS			(TAG_M_SLAVE_REGS),
 				.M_MASTER_REGS			(TAG_M_MASTER_REGS),
 				

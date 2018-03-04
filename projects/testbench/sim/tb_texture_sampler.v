@@ -8,7 +8,7 @@ module tb_texture_sampler();
 	
 	initial begin
 		$dumpfile("tb_texture_sampler.vcd");
-		$dumpvars(1, tb_texture_sampler);
+		$dumpvars(0, tb_texture_sampler);
 
 //	#870000;
 //		$dumpfile("tb_texture_sampler.vcd");
@@ -26,7 +26,7 @@ module tb_texture_sampler();
 	initial #(RATE*100.5)	reset = 1'b0;
 	
 	
-	localparam	MONO = 1;
+	localparam	MONO = 0;
 	
 	
 	
@@ -40,8 +40,8 @@ module tb_texture_sampler();
 	parameter	STRIDE_X_WIDTH                = 13;
 	parameter	STRIDE_Y_WIDTH                = 14;
 	
+	parameter	USE_BILINEAR                  = 1;
 	parameter	USE_BORDER                    = 1;
-	parameter	BORDER_DATA                   = {(COMPONENT_NUM*DATA_WIDTH){1'b0}};
 	
 	parameter	SAMPLER1D_NUM                 = 0;
 	
@@ -122,7 +122,7 @@ module tb_texture_sampler();
 	wire	[SAMPLER2D_NUM*SAMPLER2D_USER_BITS-1:0]			s_sampler2d_user;
 	wire	[SAMPLER2D_NUM*SAMPLER2D_X_WIDTH-1:0]			s_sampler2d_x;
 	wire	[SAMPLER2D_NUM*SAMPLER2D_Y_WIDTH-1:0]			s_sampler2d_y;
-	wire	[SAMPLER2D_NUM-1:0]								s_sampler2d_strb;
+	wire	[SAMPLER2D_NUM-1:0]								s_sampler2d_strb = {SAMPLER2D_NUM{1'b1}};
 	wire	[SAMPLER2D_NUM-1:0]								s_sampler2d_valid;
 	wire	[SAMPLER2D_NUM-1:0]								s_sampler2d_ready;
 	
@@ -318,8 +318,8 @@ module tb_texture_sampler();
 				.STRIDE_X_WIDTH					(STRIDE_X_WIDTH),
 				.STRIDE_Y_WIDTH					(STRIDE_Y_WIDTH),
 				
+				.USE_BILINEAR					(USE_BILINEAR),
 				.USE_BORDER						(USE_BORDER						),
-				.BORDER_DATA					(BORDER_DATA					),
 				                                
 				.SAMPLER1D_NUM					(SAMPLER1D_NUM					),
 				                                
@@ -408,17 +408,18 @@ module tb_texture_sampler();
 				.status_l1_access				(status_l1_access),
 				.status_l1_hit					(status_l1_hit),
 				.status_l1_miss					(status_l1_miss),
-				.status_l1_border				(status_l1_border),
+				.status_l1_blank				(status_l1_blank),
 				.status_l2_idle					(status_l2_idle),
 				.status_l2_stall				(status_l2_stall),
 				.status_l2_access				(status_l2_access),
 				.status_l2_hit					(status_l2_hit),
 				.status_l2_miss					(status_l2_miss),
-				.status_l2_border				(status_l2_border),
+				.status_l2_blank				(status_l2_blank),
 				
 				.s_sampler2d_user				(s_sampler2d_user),
 				.s_sampler2d_x					(s_sampler2d_x),
 				.s_sampler2d_y					(s_sampler2d_y),
+				.s_sampler2d_strb				(s_sampler2d_strb),
 				.s_sampler2d_valid				(s_sampler2d_valid),
 				.s_sampler2d_ready				(s_sampler2d_ready),
 				
