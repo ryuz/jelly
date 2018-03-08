@@ -162,7 +162,7 @@ module jelly_texture_bilinear
 		if ( reset ) begin
 			s_ff_phase <= 2'b00;
 		end
-		else if ( mem_cke && cke ) begin
+		else if ( mem_cke ) begin
 			// input stage
 			if ( s_ff_valid ) begin
 				s_ff_phase <= s_ff_phase + (!param_nearestneighbor && s_ff_strb ? 1'b1 : 1'b0);
@@ -172,7 +172,7 @@ module jelly_texture_bilinear
 	
 	
 	// user fifo
-	wire		fifo_user_s_valid = cke & s_ff_valid & s_ff_ready;
+	wire		fifo_user_s_valid = s_ff_valid & s_ff_ready;
 	wire		fifo_user_s_ready;
 	generate
 	if ( USER_WIDTH > 0 ) begin : blk_user
@@ -190,13 +190,13 @@ module jelly_texture_bilinear
 					.clk			(clk),
 					
 					.s_data			(s_ff_user),
-					.s_valid		(fifo_user_s_valid),
+					.s_valid		(fifo_user_s_valid & mem_cke),
 					.s_ready		(fifo_user_s_ready),
 					.s_free_count	(),
 					
 					.m_data			(m_user),
 					.m_valid		(),
-					.m_ready		(cke & m_valid & m_ready),
+					.m_ready		(m_valid & m_ready & cke),
 					.m_data_count	()
 				);
 	end
@@ -207,11 +207,11 @@ module jelly_texture_bilinear
 	endgenerate
 	
 	// x rate fifo
-	wire						fifo_x_s_valid = cke & mem_cke & s_ff_valid & (s_ff_phase == 2'b00);
+	wire						fifo_x_s_valid = s_ff_valid & (s_ff_phase == 2'b00);
 	wire						fifo_x_s_ready;
 	
 	wire	[X_FRAC_WIDTH-1:0]	fifo_x_m_rate;
-	reg							fifo_x_m_ready;
+	wire						fifo_x_m_ready;
 	jelly_fifo_fwtf
 			#(
 				.DATA_WIDTH		(X_FRAC_WIDTH),
@@ -226,22 +226,22 @@ module jelly_texture_bilinear
 				.clk			(clk),
 				
 				.s_data			(s_ff_x_frac),
-				.s_valid		(cke & fifo_x_s_valid),
+				.s_valid		(fifo_x_s_valid & mem_cke),
 				.s_ready		(fifo_x_s_ready),
 				.s_free_count	(),
 				
 				.m_data			(fifo_x_m_rate),
 				.m_valid		(),
-				.m_ready		(cke & fifo_x_m_ready),
+				.m_ready		(fifo_x_m_ready & cke),
 				.m_data_count	()
 			);
 	
 	// y rate fifo
-	wire						fifo_y_s_valid = cke & mem_cke & s_ff_valid & (s_ff_phase == 2'b00);
+	wire						fifo_y_s_valid = s_ff_valid & (s_ff_phase == 2'b00) & mem_cke;
 	wire						fifo_y_s_ready;
 	
 	wire	[X_FRAC_WIDTH-1:0]	fifo_y_m_rate;
-	reg							fifo_y_m_ready;
+	wire						fifo_y_m_ready;
 	jelly_fifo_fwtf
 			#(
 				.DATA_WIDTH		(Y_FRAC_WIDTH),
@@ -256,13 +256,13 @@ module jelly_texture_bilinear
 				.clk			(clk),
 				
 				.s_data			(s_ff_y_frac),
-				.s_valid		(cke & fifo_y_s_valid),
+				.s_valid		(fifo_y_s_valid & cke),
 				.s_ready		(fifo_y_s_ready),
 				.s_free_count	(),
 				
 				.m_data			(fifo_y_m_rate),
 				.m_valid		(),
-				.m_ready		(cke & fifo_y_m_ready),
+				.m_ready		(fifo_y_m_ready),
 				.m_data_count	()
 			);
 	
@@ -284,7 +284,7 @@ module jelly_texture_bilinear
 			mem_strb   <= 1'bx;
 			mem_valid  <= 1'b0;
 		end
-		else if ( mem_cke && cke ) begin
+		else if ( mem_cke ) begin
 			// memory access stage
 			mem_ratex <= s_ff_x_frac;
 			mem_ratey <= s_ff_y_frac;
@@ -296,12 +296,13 @@ module jelly_texture_bilinear
 	end
 	
 	
-	assign	mem_cke       = (!m_mem_arvalid || m_mem_arready)
+	assign	mem_cke       = cke
+	                         && (!m_mem_arvalid     || m_mem_arready    )
 	                         && (!fifo_user_s_valid || fifo_user_s_ready)
 	                         && (!fifo_x_s_valid    || fifo_x_s_ready   )
 	                         && (!fifo_y_s_valid    || fifo_y_s_ready   );
 	
-	assign	s_ff_ready    = mem_cke && ((s_ff_phase == 2'b11) || param_nearestneighbor);
+	assign	s_ff_ready    = ((s_ff_phase == 2'b11) || param_nearestneighbor) & mem_cke;
 	
 	assign	m_mem_araddrx = mem_x;
 	assign	m_mem_araddry = mem_y;
@@ -330,7 +331,7 @@ module jelly_texture_bilinear
 		end
 	end
 	
-	assign m_mem_rready = cke & intr_cke;
+	assign m_mem_rready = intr_cke;
 	
 	
 	// interpolate
@@ -351,6 +352,9 @@ module jelly_texture_bilinear
 	reg		[COMPONENT_NUM*DATA_WIDTH-1:0]	intr_s_data1, next_intr_s_data1;
 	reg										intr_s_valid, next_intr_s_valid;
 	
+	reg										tmp_fifo_x_m_ready;
+	reg										tmp_fifo_y_m_ready;
+	
 	wire	[1:0]							intr_m_phase;
 	wire	[COMPONENT_NUM*DATA_WIDTH-1:0]	intr_m_data;
 	wire									intr_m_valid;
@@ -370,7 +374,7 @@ module jelly_texture_bilinear
 			(
 				.reset				(reset),
 				.clk				(clk),
-				.cke				(cke & intr_cke),
+				.cke				(intr_cke),
 				
 				.s_user				(intr_s_phase),
 				.s_rate				(intr_s_rate),
@@ -384,29 +388,29 @@ module jelly_texture_bilinear
 			);
 	
 	always @* begin
-		next_intr_data_x  = intr_data_x;
-		next_intr_data_y0 = intr_data_y0;
-		next_intr_data_y1 = intr_data_y1;
-		next_intr_y_valid = 1'b0;
-		next_intr_s_phase = 2'bxx;
-		next_intr_s_rate  = {RATE_WIDTH{1'bx}};
-		next_intr_s_data0 = {(COMPONENT_NUM*DATA_WIDTH){1'bx}};
-		next_intr_s_data1 = {(COMPONENT_NUM*DATA_WIDTH){1'bx}};
-		next_intr_s_valid = 1'b0;
-		fifo_x_m_ready    = 1'b0;
-		fifo_y_m_ready    = 1'b0;
+		next_intr_data_x   = intr_data_x;
+		next_intr_data_y0  = intr_data_y0;
+		next_intr_data_y1  = intr_data_y1;
+		next_intr_y_valid  = 1'b0;
+		next_intr_s_phase  = 2'bxx;
+		next_intr_s_rate   = {RATE_WIDTH{1'bx}};
+		next_intr_s_data0  = {(COMPONENT_NUM*DATA_WIDTH){1'bx}};
+		next_intr_s_data1  = {(COMPONENT_NUM*DATA_WIDTH){1'bx}};
+		next_intr_s_valid  = 1'b0;
+		tmp_fifo_x_m_ready = 1'b0;
+		tmp_fifo_y_m_ready = 1'b0;
 		
-		if ( intr_m_valid ) begin
-			if ( m_mem_rphase[1] == 1'b0 ) begin
+		if ( intr_m_valid && intr_m_phase[1] == 1'b0 ) begin
+			if ( intr_m_phase[0] == 1'b0 ) begin
 				next_intr_data_y0 = m_mem_rdata;
 			end
 			else begin
-				next_intr_s_phase = 2'b1x;
-				next_intr_s_rate  = intr_rate_y;
-				next_intr_s_data0 = intr_data_y0;
-				next_intr_s_data1 = m_mem_rdata;
-				next_intr_s_valid = 1'b1;
-				fifo_y_m_ready    = 1'b1;
+				next_intr_s_phase  = 2'b1x;
+				next_intr_s_rate   = intr_rate_y;
+				next_intr_s_data0  = intr_data_y0;
+				next_intr_s_data1  = m_mem_rdata;
+				next_intr_s_valid  = 1'b1;
+				tmp_fifo_y_m_ready = 1'b1;
 			end
 		end
 		
@@ -416,28 +420,33 @@ module jelly_texture_bilinear
 			end
 			else begin
 				if ( next_intr_s_valid ) begin
-					next_intr_data_y1 = m_mem_rdata;
-					next_intr_y_valid = 1'b1;
-					fifo_y_m_ready    = 1'b0;
+					next_intr_data_y1  = m_mem_rdata;
+					next_intr_y_valid  = 1'b1;
+					tmp_fifo_y_m_ready = 1'b0;
 				end
 				
-				next_intr_s_phase = {1'b0, m_mem_rphase[1]};
-				next_intr_s_rate  = intr_rate_x;
-				next_intr_s_data0 = intr_data_x;
-				next_intr_s_data1 = m_mem_rdata;
-				next_intr_s_valid = 1'b1;
+				next_intr_s_phase  = {1'b0, m_mem_rphase[1]};
+				next_intr_s_rate   = intr_rate_x;
+				next_intr_s_data0  = intr_data_x;
+				next_intr_s_data1  = m_mem_rdata;
+				next_intr_s_valid  = 1'b1;
+				tmp_fifo_x_m_ready = 1'b1;
 			end
 		end
 		
 		if ( intr_y_valid ) begin
-			next_intr_s_phase = 2'b1x;
-			next_intr_s_rate  = intr_rate_y;
-			next_intr_s_data0 = intr_data_y0;
-			next_intr_s_data1 = intr_data_y1;
-			next_intr_s_valid = 1'b1;
-			fifo_y_m_ready    = 1'b1;
+			next_intr_s_phase  = 2'b1x;
+			next_intr_s_rate   = intr_rate_y;
+			next_intr_s_data0  = intr_data_y0;
+			next_intr_s_data1  = intr_data_y1;
+			next_intr_s_valid  = 1'b1;
+			tmp_fifo_y_m_ready = 1'b1;
 		end
 	end
+	
+	assign fifo_x_m_ready = tmp_fifo_x_m_ready & intr_cke;
+	assign fifo_y_m_ready = tmp_fifo_y_m_ready & intr_cke;
+	
 	
 	always @(posedge clk) begin
 		if ( reset ) begin
@@ -464,7 +473,7 @@ module jelly_texture_bilinear
 		end
 	end
 	
-	assign intr_cke = (!m_ff_valid || m_ff_ready);
+	assign intr_cke   = (!m_ff_valid || m_ff_ready) & cke;
 	
 	assign m_ff_data  = intr_m_data;
 	assign m_ff_strb  = 1;

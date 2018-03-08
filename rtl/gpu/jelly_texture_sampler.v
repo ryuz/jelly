@@ -258,6 +258,7 @@ module jelly_texture_sampler
 		wire									bilinear_rready;
 		
 		if ( USE_BILINEAR ) begin : blk_bilinear
+			
 			jelly_texture_bilinear_unit
 					#(
 						.COMPONENT_NUM			(COMPONENT_NUM),
@@ -291,8 +292,8 @@ module jelly_texture_sampler
 						.s_strb					(s_sampler2d_strb  [i]),
 						.s_valid				(s_sampler2d_valid [i]),
 						.s_ready				(s_sampler2d_ready [i]),
-						.m_user					(m_sampler2d_user  [i*SAMPLER2D_USER_BITS      +: SAMPLER2D_USER_BITS]),
 						
+						.m_user					(m_sampler2d_user  [i*SAMPLER2D_USER_BITS      +: SAMPLER2D_USER_BITS]),
 						.m_data					(m_sampler2d_data  [i*COMPONENT_NUM*DATA_WIDTH +: COMPONENT_NUM*DATA_WIDTH]),
 						.m_strb					(m_sampler2d_strb  [i]),
 						.m_valid				(m_sampler2d_valid [i]),
@@ -310,6 +311,58 @@ module jelly_texture_sampler
 						.m_mem_rvalid			(bilinear_rvalid),
 						.m_mem_rready			(bilinear_rready)
 					);
+			/*
+			jelly_texture_bilinear
+					#(
+						.COMPONENT_NUM			(COMPONENT_NUM),
+						.DATA_WIDTH				(DATA_WIDTH),
+						.USER_WIDTH				(SAMPLER2D_USER_WIDTH),
+						.X_INT_WIDTH			(SAMPLER2D_X_INT_WIDTH),
+						.X_FRAC_WIDTH			(SAMPLER2D_X_FRAC_WIDTH),
+						.Y_INT_WIDTH			(SAMPLER2D_Y_INT_WIDTH),
+						.Y_FRAC_WIDTH			(SAMPLER2D_Y_FRAC_WIDTH),
+						.COEFF_INT_WIDTH		(SAMPLER2D_COEFF_INT_WIDTH),
+						.COEFF_FRAC_WIDTH		(SAMPLER2D_COEFF_FRAC_WIDTH),
+						.S_REGS					(SAMPLER2D_S_REGS),
+						.M_REGS					(SAMPLER2D_M_REGS),
+						.USER_FIFO_PTR_WIDTH	(SAMPLER2D_USER_FIFO_PTR_WIDTH),
+						.USER_FIFO_RAM_TYPE		(SAMPLER2D_USER_FIFO_RAM_TYPE),
+						.USER_FIFO_M_REGS		(SAMPLER2D_USER_FIFO_M_REGS),
+						.DEVICE					(DEVICE)
+					)
+				i_texture_bilinear
+					(
+						.reset					(reset),
+						.clk					(clk),
+						.cke					(1'b1),
+						
+						.param_nearestneighbor	(param_nearestneighbor),
+						.param_blank_value		(param_blank_value),
+						
+						.s_user					(s_sampler2d_user  [i*SAMPLER2D_USER_BITS      +: SAMPLER2D_USER_BITS]),
+						.s_x					(s_sampler2d_x     [i*SAMPLER2D_X_WIDTH        +: SAMPLER2D_X_WIDTH]),
+						.s_y					(s_sampler2d_y     [i*SAMPLER2D_Y_WIDTH        +: SAMPLER2D_Y_WIDTH]),
+						.s_strb					(s_sampler2d_strb  [i]),
+						.s_valid				(s_sampler2d_valid [i]),
+						.s_ready				(s_sampler2d_ready [i]),
+						.m_user					(m_sampler2d_user  [i*SAMPLER2D_USER_BITS      +: SAMPLER2D_USER_BITS]),
+						
+						.m_data					(m_sampler2d_data  [i*COMPONENT_NUM*DATA_WIDTH +: COMPONENT_NUM*DATA_WIDTH]),
+						.m_strb					(m_sampler2d_strb  [i]),
+						.m_valid				(m_sampler2d_valid [i]),
+						.m_ready				(m_sampler2d_ready [i]),
+						
+						.m_mem_araddrx			(bilinear_araddrx),
+						.m_mem_araddry			(bilinear_araddry),
+						.m_mem_arstrb			(bilinear_arstrb),
+						.m_mem_arvalid			(bilinear_arvalid),
+						.m_mem_arready			(bilinear_arready),
+						.m_mem_rdata			(bilinear_rdata),
+						.m_mem_rstrb			(bilinear_rstrb),
+						.m_mem_rvalid			(bilinear_rvalid),
+						.m_mem_rready			(bilinear_rready)
+					);
+			*/
 		end
 		else begin : blk_nearestneighbor
 			wire	signed	[SAMPLER2D_X_WIDTH-1:0]	tmp_x = s_sampler2d_x[i*SAMPLER2D_X_WIDTH +: SAMPLER2D_X_WIDTH] + ((1 << SAMPLER2D_X_FRAC_WIDTH) >> 1);
