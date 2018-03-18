@@ -29,7 +29,7 @@ module jelly_texture_bilinear
 			parameter	M_REGS              = 1,
 			parameter	DEVICE              = "RTL",
 			
-			parameter	USER_FIFO_PTR_WIDTH = 6,
+			parameter	USER_FIFO_PTR_WIDTH = 5,
 			parameter	USER_FIFO_RAM_TYPE  = "distributed",
 			parameter	USER_FIFO_M_REGS    = 0,
 			
@@ -41,7 +41,7 @@ module jelly_texture_bilinear
 		(
 			input	wire									reset,
 			input	wire									clk,
-			input	wire									cke,
+//			input	wire									cke,
 			
 			input	wire									param_nearestneighbor,
 			input	wire	[COMPONENT_NUM*DATA_WIDTH-1:0]	param_blank_value,
@@ -73,6 +73,7 @@ module jelly_texture_bilinear
 			output	wire									m_mem_rready
 		);
 		
+	wire									cke = 1;
 	
 	// -------------------------------------
 	//  Insert FF
