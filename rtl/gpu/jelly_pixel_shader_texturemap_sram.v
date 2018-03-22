@@ -174,7 +174,7 @@ module jelly_pixel_shader_texturemap_sram
 	wire	signed	[SHADER_PARAM_WIDTH-1:0]	pc_u_tmp;
 	wire	signed	[SHADER_PARAM_WIDTH-1:0]	pc_v_tmp;
 	wire										pc_valid;
-	wire										pc_ready;
+//	wire										pc_ready;
 	
 	wire	signed	[U_WIDTH-1:0]				pc_u = (pc_u_tmp >>> (SHADER_PARAM_Q - U_WIDTH));
 	wire	signed	[V_WIDTH-1:0]				pc_v = (pc_v_tmp >>> (SHADER_PARAM_Q - V_WIDTH));
@@ -245,6 +245,7 @@ module jelly_pixel_shader_texturemap_sram
 	wire										tex_frame_start;
 	wire										tex_line_end;
 	wire										tex_polygon_enable;
+	wire	[INDEX_WIDTH-1:0]					tex_polygon_index;
 	wire	[U_FRAC_WIDTH-1:0]					tex_u;
 	wire	[V_FRAC_WIDTH-1:0]					tex_v;
 	wire	[COMPONENT_NUM*DATA_WIDTH-1:0]		tex_data00;
@@ -252,11 +253,11 @@ module jelly_pixel_shader_texturemap_sram
 	wire	[COMPONENT_NUM*DATA_WIDTH-1:0]		tex_data10;
 	wire	[COMPONENT_NUM*DATA_WIDTH-1:0]		tex_data11;
 	wire										tex_valid;
-	wire										tex_ready;
+//	wire										tex_ready;
 	
 	jelly_ram_quad_read
 			#(
-				.USER_WIDTH					(3 + V_FRAC_WIDTH + U_FRAC_WIDTH),
+				.USER_WIDTH					(3 + INDEX_WIDTH + V_FRAC_WIDTH + U_FRAC_WIDTH),
 				.ADDR_X_WIDTH				(U_INT_WIDTH),
 				.ADDR_Y_WIDTH				(V_INT_WIDTH),
 				.DATA_WIDTH					(COMPONENT_NUM*DATA_WIDTH),
@@ -287,6 +288,7 @@ module jelly_pixel_shader_texturemap_sram
 												pc_frame_start,
 												pc_line_end,
 												pc_polygon_enable,
+												pc_polygon_index,
 												pc_u[U_FRAC_WIDTH-1:0],
 												pc_v[V_FRAC_WIDTH-1:0]
 											}),
@@ -298,6 +300,7 @@ module jelly_pixel_shader_texturemap_sram
 												tex_frame_start,
 												tex_line_end,
 												tex_polygon_enable,
+												tex_polygon_index,
 												tex_u,
 												tex_v
 											}),
@@ -314,6 +317,7 @@ module jelly_pixel_shader_texturemap_sram
 	// -------------------------------------
 	
 	wire	[0:0]								axi4s_bilinear_tuser;
+	wire	[INDEX_WIDTH-1:0]					axi4s_bilinear_tindex;
 	wire										axi4s_bilinear_tlast;
 	wire	[COMPONENT_NUM*DATA_WIDTH-1:0]		axi4s_bilinear_tdata;
 	wire										axi4s_bilinear_tstrb;
@@ -323,7 +327,7 @@ module jelly_pixel_shader_texturemap_sram
 			#(
 				.COMPONENT_NUM				(COMPONENT_NUM),
 				.DATA_WIDTH					(DATA_WIDTH),
-				.TUSER_WIDTH				(2),
+				.TUSER_WIDTH				(2+INDEX_WIDTH),
 				.TDATA_WIDTH				(COMPONENT_NUM*DATA_WIDTH),
 				.X_WIDTH					(U_FRAC_WIDTH),
 				.Y_WIDTH					(V_FRAC_WIDTH),
@@ -336,7 +340,7 @@ module jelly_pixel_shader_texturemap_sram
 				.aclk						(clk),
 				.aclken						(cke),
 				
-				.s_tuser					({tex_frame_start, tex_polygon_enable}),
+				.s_tuser					({tex_frame_start, tex_polygon_enable, tex_polygon_index}),
 				.s_tlast					(tex_line_end),
 				.s_tx						(tex_u),
 				.s_ty						(tex_v),
@@ -347,7 +351,7 @@ module jelly_pixel_shader_texturemap_sram
 				.s_tvalid					(tex_valid),
 				.s_tready					(),
 				
-				.m_tuser					({axi4s_bilinear_tuser, axi4s_bilinear_tstrb}),
+				.m_tuser					({axi4s_bilinear_tuser, axi4s_bilinear_tstrb, axi4s_bilinear_tindex}),
 				.m_tlast					(axi4s_bilinear_tlast),
 				.m_tdata					(axi4s_bilinear_tdata),
 				.m_tvalid					(axi4s_bilinear_tvalid),
@@ -373,7 +377,7 @@ module jelly_pixel_shader_texturemap_sram
 			axi4s_bgc_tstrb  <= 1'bx;
 			axi4s_bgc_tvalid <= 1'b0;
 		end
-		else begin
+		else if ( cke ) begin
 			axi4s_bgc_tuser  <= axi4s_bilinear_tuser;
 			axi4s_bgc_tlast  <= axi4s_bilinear_tlast;
 			axi4s_bgc_tdata  <= axi4s_bilinear_tstrb ? axi4s_bilinear_tdata : reg_shadow_bgc;

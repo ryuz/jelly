@@ -242,8 +242,9 @@ proc create_root_design { parentCell } {
    CONFIG.ASSOCIATED_BUSIF {m_axi4l_peri00} \
  ] $peri_aclk
   set peri_aresetn [ create_bd_port -dir O -from 0 -to 0 -type rst peri_aresetn ]
+  set ref200_clk [ create_bd_port -dir O -type clk ref200_clk ]
+  set ref200_reset [ create_bd_port -dir O -from 0 -to 0 -type rst ref200_reset ]
   set video_clk [ create_bd_port -dir O -type clk video_clk ]
-  set video_clk_x5 [ create_bd_port -dir O -type clk video_clk_x5 ]
   set video_reset [ create_bd_port -dir O -from 0 -to 0 -type rst video_reset ]
 
   # Create instance: axi_interconnect_0, and set properties
@@ -276,6 +277,9 @@ proc create_root_design { parentCell } {
   # Create instance: proc_sys_reset_peri, and set properties
   set proc_sys_reset_peri [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 proc_sys_reset_peri ]
 
+  # Create instance: proc_sys_reset_ref200, and set properties
+  set proc_sys_reset_ref200 [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 proc_sys_reset_ref200 ]
+
   # Create instance: proc_sys_reset_video, and set properties
   set proc_sys_reset_video [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 proc_sys_reset_video ]
 
@@ -291,8 +295,8 @@ proc create_root_design { parentCell } {
    CONFIG.PCW_ACT_ENET1_PERIPHERAL_FREQMHZ {10.000000} \
    CONFIG.PCW_ACT_FPGA0_PERIPHERAL_FREQMHZ {100.000000} \
    CONFIG.PCW_ACT_FPGA1_PERIPHERAL_FREQMHZ {175.000000} \
-   CONFIG.PCW_ACT_FPGA2_PERIPHERAL_FREQMHZ {25.000000} \
-   CONFIG.PCW_ACT_FPGA3_PERIPHERAL_FREQMHZ {125.000000} \
+   CONFIG.PCW_ACT_FPGA2_PERIPHERAL_FREQMHZ {150.000000} \
+   CONFIG.PCW_ACT_FPGA3_PERIPHERAL_FREQMHZ {200.000000} \
    CONFIG.PCW_ACT_I2C_PERIPHERAL_FREQMHZ {50} \
    CONFIG.PCW_ACT_PCAP_PERIPHERAL_FREQMHZ {200.000000} \
    CONFIG.PCW_ACT_QSPI_PERIPHERAL_FREQMHZ {200.000000} \
@@ -333,8 +337,8 @@ proc create_root_design { parentCell } {
    CONFIG.PCW_CAN_PERIPHERAL_VALID {0} \
    CONFIG.PCW_CLK0_FREQ {100000000} \
    CONFIG.PCW_CLK1_FREQ {175000000} \
-   CONFIG.PCW_CLK2_FREQ {25000000} \
-   CONFIG.PCW_CLK3_FREQ {125000000} \
+   CONFIG.PCW_CLK2_FREQ {150000000} \
+   CONFIG.PCW_CLK3_FREQ {200000000} \
    CONFIG.PCW_CORE0_FIQ_INTR {0} \
    CONFIG.PCW_CORE0_IRQ_INTR {0} \
    CONFIG.PCW_CORE1_FIQ_INTR {0} \
@@ -458,20 +462,20 @@ proc create_root_design { parentCell } {
    CONFIG.PCW_FCLK1_PERIPHERAL_CLKSRC {DDR PLL} \
    CONFIG.PCW_FCLK1_PERIPHERAL_DIVISOR0 {3} \
    CONFIG.PCW_FCLK1_PERIPHERAL_DIVISOR1 {2} \
-   CONFIG.PCW_FCLK2_PERIPHERAL_CLKSRC {IO PLL} \
-   CONFIG.PCW_FCLK2_PERIPHERAL_DIVISOR0 {8} \
-   CONFIG.PCW_FCLK2_PERIPHERAL_DIVISOR1 {5} \
+   CONFIG.PCW_FCLK2_PERIPHERAL_CLKSRC {DDR PLL} \
+   CONFIG.PCW_FCLK2_PERIPHERAL_DIVISOR0 {7} \
+   CONFIG.PCW_FCLK2_PERIPHERAL_DIVISOR1 {1} \
    CONFIG.PCW_FCLK3_PERIPHERAL_CLKSRC {IO PLL} \
-   CONFIG.PCW_FCLK3_PERIPHERAL_DIVISOR0 {4} \
-   CONFIG.PCW_FCLK3_PERIPHERAL_DIVISOR1 {2} \
+   CONFIG.PCW_FCLK3_PERIPHERAL_DIVISOR0 {5} \
+   CONFIG.PCW_FCLK3_PERIPHERAL_DIVISOR1 {1} \
    CONFIG.PCW_FCLK_CLK0_BUF {TRUE} \
    CONFIG.PCW_FCLK_CLK1_BUF {TRUE} \
    CONFIG.PCW_FCLK_CLK2_BUF {TRUE} \
    CONFIG.PCW_FCLK_CLK3_BUF {TRUE} \
    CONFIG.PCW_FPGA0_PERIPHERAL_FREQMHZ {100.000000} \
    CONFIG.PCW_FPGA1_PERIPHERAL_FREQMHZ {175.000000} \
-   CONFIG.PCW_FPGA2_PERIPHERAL_FREQMHZ {25.000000} \
-   CONFIG.PCW_FPGA3_PERIPHERAL_FREQMHZ {125.000000} \
+   CONFIG.PCW_FPGA2_PERIPHERAL_FREQMHZ {150.000000} \
+   CONFIG.PCW_FPGA3_PERIPHERAL_FREQMHZ {200.000000} \
    CONFIG.PCW_FPGA_FCLK0_ENABLE {1} \
    CONFIG.PCW_FPGA_FCLK1_ENABLE {1} \
    CONFIG.PCW_FPGA_FCLK2_ENABLE {1} \
@@ -1052,12 +1056,13 @@ proc create_root_design { parentCell } {
   connect_bd_net -net proc_sys_reset_mem_peripheral_aresetn [get_bd_ports mem_aresetn] [get_bd_pins proc_sys_reset_mem/peripheral_aresetn]
   connect_bd_net -net proc_sys_reset_peri_interconnect_aresetn [get_bd_pins axi_interconnect_0/ARESETN] [get_bd_pins axi_interconnect_0/M00_ARESETN] [get_bd_pins axi_interconnect_0/S00_ARESETN] [get_bd_pins axi_protocol_converter_0/aresetn] [get_bd_pins proc_sys_reset_peri/interconnect_aresetn]
   connect_bd_net -net proc_sys_reset_peri_peripheral_aresetn [get_bd_ports peri_aresetn] [get_bd_pins proc_sys_reset_peri/peripheral_aresetn]
+  connect_bd_net -net proc_sys_reset_ref200_peripheral_reset [get_bd_ports ref200_reset] [get_bd_pins proc_sys_reset_ref200/peripheral_reset]
   connect_bd_net -net proc_sys_reset_video_peripheral_reset [get_bd_ports video_reset] [get_bd_pins proc_sys_reset_video/peripheral_reset]
   connect_bd_net -net processing_system7_0_FCLK_CLK0 [get_bd_ports peri_aclk] [get_bd_pins axi_interconnect_0/ACLK] [get_bd_pins axi_interconnect_0/M00_ACLK] [get_bd_pins axi_interconnect_0/S00_ACLK] [get_bd_pins axi_protocol_converter_0/aclk] [get_bd_pins proc_sys_reset_peri/slowest_sync_clk] [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins processing_system7_0/M_AXI_GP0_ACLK]
   connect_bd_net -net processing_system7_0_FCLK_CLK1 [get_bd_ports mem_aclk] [get_bd_pins axi_interconnect_1/ACLK] [get_bd_pins axi_interconnect_1/M00_ACLK] [get_bd_pins axi_interconnect_1/S00_ACLK] [get_bd_pins proc_sys_reset_mem/slowest_sync_clk] [get_bd_pins processing_system7_0/FCLK_CLK1] [get_bd_pins processing_system7_0/S_AXI_HP0_ACLK]
   connect_bd_net -net processing_system7_0_FCLK_CLK2 [get_bd_ports video_clk] [get_bd_pins proc_sys_reset_video/slowest_sync_clk] [get_bd_pins processing_system7_0/FCLK_CLK2]
-  connect_bd_net -net processing_system7_0_FCLK_CLK3 [get_bd_ports video_clk_x5] [get_bd_pins processing_system7_0/FCLK_CLK3]
-  connect_bd_net -net processing_system7_0_FCLK_RESET0_N [get_bd_pins proc_sys_reset_mem/ext_reset_in] [get_bd_pins proc_sys_reset_peri/ext_reset_in] [get_bd_pins proc_sys_reset_video/ext_reset_in] [get_bd_pins processing_system7_0/FCLK_RESET0_N]
+  connect_bd_net -net processing_system7_0_FCLK_CLK3 [get_bd_ports ref200_clk] [get_bd_pins proc_sys_reset_ref200/slowest_sync_clk] [get_bd_pins processing_system7_0/FCLK_CLK3]
+  connect_bd_net -net processing_system7_0_FCLK_RESET0_N [get_bd_pins proc_sys_reset_mem/ext_reset_in] [get_bd_pins proc_sys_reset_peri/ext_reset_in] [get_bd_pins proc_sys_reset_ref200/ext_reset_in] [get_bd_pins proc_sys_reset_video/ext_reset_in] [get_bd_pins processing_system7_0/FCLK_RESET0_N]
 
   # Create address segments
   create_bd_addr_seg -range 0x40000000 -offset 0x40000000 [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs m_axi4l_peri00/Reg] SEG_m_axi4l_peri00_Reg

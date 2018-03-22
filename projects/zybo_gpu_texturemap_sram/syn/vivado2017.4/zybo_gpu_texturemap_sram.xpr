@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Product Version: Vivado v2017.4 (64-bit)              -->
+<!-- Product Version: Vivado v2017.4.1 (64-bit)              -->
 <!--                                                         -->
 <!-- Copyright 1986-2017 Xilinx, Inc. All Rights Reserved.   -->
 
-<Project Version="7" Minor="35" Path="H:/jelly/projects/zybo_gpu_texturemap_sram/syn/vivado2017.4/zybo_gpu_texturemap_sram.xpr">
+<Project Version="7" Minor="35" Path="D:/home/ryuji/git_work/github/jelly/projects/zybo_gpu_texturemap_sram/syn/vivado2017.4/zybo_gpu_texturemap_sram.xpr">
   <DefaultLaunch Dir="$PRUNDIR"/>
   <Configuration>
     <Option Name="Id" Val="4eee7edabca149d3841b5b4d814b775c"/>
@@ -89,6 +89,13 @@
         </FileInfo>
       </File>
       <File Path="$PPRDIR/../../../../rtl/library/jelly_data_delay.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../../rtl/library/jelly_data_expand.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -460,8 +467,8 @@
           <Option Id="ResourceSharing">2</Option>
           <Option Id="ShregMinSize">5</Option>
           <Option Id="RepFanoutThreshold">400</Option>
-          <Option Id="NoCombineLuts">1</Option>
           <Option Id="KeepEquivalentRegisters">1</Option>
+          <Option Id="NoCombineLuts">1</Option>
           <Option Id="FsmExtraction">1</Option>
         </Step>
       </Strategy>

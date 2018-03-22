@@ -755,7 +755,19 @@ module top
 	//  Debug
 	// ----------------------------------------
 	
-	assign pmod_a[7:0] = 0;
+	reg		reg_frame;
+	always @(posedge oled_clk) begin
+		if ( oled_reset ) begin
+			reg_frame <= 1'b0;
+		end
+		else begin
+			if ( axi4s_oled_tuser[0] && axi4s_oled_tvalid && axi4s_oled_tready ) begin
+				reg_frame <= ~reg_frame;
+			end
+		end
+	end
+	
+	assign pmod_a[7:0] = {8{reg_frame}};
 	
 //	assign pmod_a[0]   = core_clk;
 //	assign pmod_a[1]   = axi4s_vout_tvalid;
