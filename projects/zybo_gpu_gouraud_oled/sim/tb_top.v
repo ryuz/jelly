@@ -26,8 +26,10 @@ module tb_top();
 	
 //	parameter	X_NUM = 1920;
 //	parameter	Y_NUM = 1080;
-	parameter	X_NUM = 640;
-	parameter	Y_NUM = 480;
+//	parameter	X_NUM = 640;
+//	parameter	Y_NUM = 480;
+	parameter	X_NUM = 96;
+	parameter	Y_NUM = 64;
 	
 	reg		clk125 = 1'b1;
 	always #(RATE125/2.0)	clk125 = ~clk125;
@@ -51,13 +53,21 @@ module tb_top();
 	
 	
 	// èoóÕï€ë∂
-	wire			vout_reset        = i_top.vout_reset;
-	wire			vout_clk          = i_top.vout_clk;
-	wire	[0:0]	axi4s_vout_tuser  = i_top.axi4s_vout_tuser;
-	wire			axi4s_vout_tlast  = i_top.axi4s_vout_tlast;
-	wire	[23:0]	axi4s_vout_tdata  = i_top.axi4s_vout_tdata;
-	wire			axi4s_vout_tvalid = i_top.axi4s_vout_tvalid;
-	wire			axi4s_vout_tready = i_top.axi4s_vout_tready;
+//	wire			vout_reset        = i_top.vout_reset;
+//	wire			vout_clk          = i_top.vout_clk;
+//	wire	[0:0]	axi4s_vout_tuser  = i_top.axi4s_vout_tuser;
+//	wire			axi4s_vout_tlast  = i_top.axi4s_vout_tlast;
+//	wire	[23:0]	axi4s_vout_tdata  = i_top.axi4s_vout_tdata;
+//	wire			axi4s_vout_tvalid = i_top.axi4s_vout_tvalid;
+//	wire			axi4s_vout_tready = i_top.axi4s_vout_tready;
+
+	wire			vout_reset        = i_top.core_reset;
+	wire			vout_clk          = i_top.core_clk;
+	wire	[0:0]	axi4s_vout_tuser  = i_top.axi4s_gpu_tuser;
+	wire			axi4s_vout_tlast  = i_top.axi4s_gpu_tlast;
+	wire	[23:0]	axi4s_vout_tdata  = i_top.axi4s_gpu_tdata;
+	wire			axi4s_vout_tvalid = i_top.axi4s_gpu_tvalid;
+	wire			axi4s_vout_tready = i_top.axi4s_gpu_tready;
 	
 	integer			axi4s_vout_x = 0;
 	always @(posedge vout_clk) begin
@@ -90,6 +100,7 @@ module tb_top();
 	
 	
 	// VOUT
+	/*
 	wire			vout_vsync = i_top.vout_vsync;
 	wire			vout_hsync = i_top.vout_hsync;
 	wire			vout_de    = i_top.vout_de;
@@ -111,7 +122,7 @@ module tb_top();
 			 	vout_data[8*0 +: 8]);
 		end
 	end
-	
+	*/
 	
 	
 	
@@ -210,7 +221,255 @@ module tb_top();
 		wb_write(32'h40022010, 32'h000000aa, 4'hf);
 		wb_write(32'h40022010, 32'h00000155, 4'hf);
 		wb_write(32'h40022010, 32'h000001aa, 4'hf);
+		
+		wb_write(32'h4002200c, 32'h00000001, 4'hf);
+		
+		
+		// GPU
+wb_write(32'h40104000, 32'hfffffd22, 4'hf);
+wb_write(32'h40104004, 32'h00011080, 4'hf);
+wb_write(32'h40104008, 32'h00003046, 4'hf);
+wb_write(32'h4010400c, 32'h00000083, 4'hf);
+wb_write(32'h40104010, 32'hffffd1d5, 4'hf);
+wb_write(32'h40104014, 32'hffff7c86, 4'hf);
+wb_write(32'h40104018, 32'hfffffd4c, 4'hf);
+wb_write(32'h4010401c, 32'h000100c3, 4'hf);
+wb_write(32'h40104020, 32'h00009cbe, 4'hf);
+wb_write(32'h40104024, 32'h00000059, 4'hf);
+wb_write(32'h40104028, 32'hffffe192, 4'hf);
+wb_write(32'h4010402c, 32'hffffefb3, 4'hf);
+wb_write(32'h40104030, 32'h000000b1, 4'hf);
+wb_write(32'h40104034, 32'hffffc10d, 4'hf);
+wb_write(32'h40104038, 32'hffff24f8, 4'hf);
+wb_write(32'h4010403c, 32'hfffffcb9, 4'hf);
+wb_write(32'h40104040, 32'h00013768, 4'hf);
+wb_write(32'h40104044, 32'h00007198, 4'hf);
+wb_write(32'h40104048, 32'h0000007a, 4'hf);
+wb_write(32'h4010404c, 32'hffffd5a9, 4'hf);
+wb_write(32'h40104050, 32'hffffb795, 4'hf);
+wb_write(32'h40104054, 32'hfffffcf0, 4'hf);
+wb_write(32'h40104058, 32'h000122cc, 4'hf);
+wb_write(32'h4010405c, 32'h0000fcab, 4'hf);
+wb_write(32'h40104060, 32'hffffff3a, 4'hf);
+wb_write(32'h40104064, 32'h00004afa, 4'hf);
+wb_write(32'h40104068, 32'h00002e5c, 4'hf);
+wb_write(32'h4010406c, 32'hffffff19, 4'hf);
+wb_write(32'h40104070, 32'h000056e3, 4'hf);
+wb_write(32'h40104074, 32'h00000aaf, 4'hf);
+wb_write(32'h40104078, 32'hfffffede, 4'hf);
+wb_write(32'h4010407c, 32'h00006d03, 4'hf);
+wb_write(32'h40104080, 32'h00000722, 4'hf);
+wb_write(32'h40104084, 32'hfffffeb0, 4'hf);
+wb_write(32'h40104088, 32'h00007dcb, 4'hf);
+wb_write(32'h4010408c, 32'hffffe05a, 4'hf);
+wb_write(32'h40104090, 32'hfffffe77, 4'hf);
+wb_write(32'h40104094, 32'h000091d3, 4'hf);
+wb_write(32'h40104098, 32'h000054ce, 4'hf);
+wb_write(32'h4010409c, 32'hffffff41, 4'hf);
+wb_write(32'h401040a0, 32'h000046ce, 4'hf);
+wb_write(32'h401040a4, 32'h00002cab, 4'hf);
+wb_write(32'h401040a8, 32'hfffffe57, 4'hf);
+wb_write(32'h401040ac, 32'h00009db3, 4'hf);
+wb_write(32'h401040b0, 32'h00005a2d, 4'hf);
+wb_write(32'h401040b4, 32'hffffff61, 4'hf);
+wb_write(32'h401040b8, 32'h00003aee, 4'hf);
+wb_write(32'h401040bc, 32'h000023f0, 4'hf);
+wb_write(32'h401040c0, 32'hffffff44, 4'hf);
+wb_write(32'h401040c4, 32'h0000458c, 4'hf);
+wb_write(32'h401040c8, 32'h00002143, 4'hf);
+wb_write(32'h401040cc, 32'hfffffe79, 4'hf);
+wb_write(32'h401040d0, 32'h00009123, 4'hf);
+wb_write(32'h401040d4, 32'h00002ce2, 4'hf);
+wb_write(32'h401040d8, 32'hffffff63, 4'hf);
+wb_write(32'h401040dc, 32'h00003a09, 4'hf);
+wb_write(32'h401040e0, 32'h000017d5, 4'hf);
+wb_write(32'h401040e4, 32'hfffffe5a, 4'hf);
+wb_write(32'h401040e8, 32'h00009ca6, 4'hf);
+wb_write(32'h401040ec, 32'h00002aea, 4'hf);
+wb_write(32'h401040f0, 32'h0000000c, 4'hf);
+wb_write(32'h401040f4, 32'hfffff9d5, 4'hf);
+wb_write(32'h401040f8, 32'h000037c5, 4'hf);
+wb_write(32'h401040fc, 32'h0000000a, 4'hf);
+wb_write(32'h40104100, 32'hfffffaba, 4'hf);
+wb_write(32'h40104104, 32'h00002359, 4'hf);
+wb_write(32'h40104108, 32'h0000000f, 4'hf);
+wb_write(32'h4010410c, 32'hfffff8c8, 4'hf);
+wb_write(32'h40104110, 32'h000061a0, 4'hf);
+wb_write(32'h40104114, 32'h0000000c, 4'hf);
+wb_write(32'h40104118, 32'hfffffa0a, 4'hf);
+wb_write(32'h4010411c, 32'h0000474d, 4'hf);
+wb_write(32'h40108000, 32'hfffffaaa, 4'hf);
+wb_write(32'h40108004, 32'h0001f738, 4'hf);
+wb_write(32'h40108008, 32'h000be968, 4'hf);
+wb_write(32'h4010800c, 32'h00000000, 4'hf);
+wb_write(32'h40108010, 32'h00000000, 4'hf);
+wb_write(32'h40108014, 32'h00800000, 4'hf);
+wb_write(32'h40108018, 32'h00067e63, 4'hf);
+wb_write(32'h4010801c, 32'hfd96d3a9, 4'hf);
+wb_write(32'h40108020, 32'hff95c7d6, 4'hf);
+wb_write(32'h40108024, 32'h000128d3, 4'hf);
+wb_write(32'h40108028, 32'hff976151, 4'hf);
+wb_write(32'h4010802c, 32'hffd55208, 4'hf);
+wb_write(32'h40108030, 32'hfffff960, 4'hf);
+wb_write(32'h40108034, 32'h000270c9, 4'hf);
+wb_write(32'h40108038, 32'h000ecb19, 4'hf);
+wb_write(32'h4010803c, 32'h00000000, 4'hf);
+wb_write(32'h40108040, 32'h00000000, 4'hf);
+wb_write(32'h40108044, 32'h00800000, 4'hf);
+wb_write(32'h40108048, 32'hfffec6ea, 4'hf);
+wb_write(32'h4010804c, 32'h006f529f, 4'hf);
+wb_write(32'h40108050, 32'h0185cf1e, 4'hf);
+wb_write(32'h40108054, 32'hfffa2bd3, 4'hf);
+wb_write(32'h40108058, 32'h0229d693, 4'hf);
+wb_write(32'h4010805c, 32'h01cb63b0, 4'hf);
+wb_write(32'h40108060, 32'h00000000, 4'hf);
+wb_write(32'h40108064, 32'h00002441, 4'hf);
+wb_write(32'h40108068, 32'h000ae755, 4'hf);
+wb_write(32'h4010806c, 32'h00000000, 4'hf);
+wb_write(32'h40108070, 32'h00000000, 4'hf);
+wb_write(32'h40108074, 32'h00800000, 4'hf);
+wb_write(32'h40108078, 32'h00023268, 4'hf);
+wb_write(32'h4010807c, 32'hff3fbe13, 4'hf);
+wb_write(32'h40108080, 32'hff95c0b1, 4'hf);
+wb_write(32'h40108084, 32'h0004e3ba, 4'hf);
+wb_write(32'h40108088, 32'hfe2600dd, 4'hf);
+wb_write(32'h4010808c, 32'hffd77c8f, 4'hf);
+wb_write(32'h40108090, 32'h00001468, 4'hf);
+wb_write(32'h40108094, 32'hfff86a0e, 4'hf);
+wb_write(32'h40108098, 32'h000611a0, 4'hf);
+wb_write(32'h4010809c, 32'h00000000, 4'hf);
+wb_write(32'h401080a0, 32'h00000000, 4'hf);
+wb_write(32'h401080a4, 32'h00800000, 4'hf);
+wb_write(32'h401080a8, 32'h000b58c4, 4'hf);
+wb_write(32'h401080ac, 32'hfbca3612, 4'hf);
+wb_write(32'h401080b0, 32'hfd6cca14, 4'hf);
+wb_write(32'h401080b4, 32'hfffb3d66, 4'hf);
+wb_write(32'h401080b8, 32'h01ca1219, 4'hf);
+wb_write(32'h401080bc, 32'h011c42cc, 4'hf);
+wb_write(32'h401080c0, 32'h00000000, 4'hf);
+wb_write(32'h401080c4, 32'h000015c0, 4'hf);
+wb_write(32'h401080c8, 32'h00068acc, 4'hf);
+wb_write(32'h401080cc, 32'h00000000, 4'hf);
+wb_write(32'h401080d0, 32'h00000000, 4'hf);
+wb_write(32'h401080d4, 32'h00800000, 4'hf);
+wb_write(32'h401080d8, 32'h00022d53, 4'hf);
+wb_write(32'h401080dc, 32'hff3b902d, 4'hf);
+wb_write(32'h401080e0, 32'hfdcf3234, 4'hf);
+wb_write(32'h401080e4, 32'hfffa6f04, 4'hf);
+wb_write(32'h401080e8, 32'h02157f52, 4'hf);
+wb_write(32'h401080ec, 32'h007b5634, 4'hf);
+wb_write(32'h401080f0, 32'h00002007, 4'hf);
+wb_write(32'h401080f4, 32'hfff41825, 4'hf);
+wb_write(32'h401080f8, 32'h0009862f, 4'hf);
+wb_write(32'h401080fc, 32'h00000000, 4'hf);
+wb_write(32'h40108100, 32'h00000000, 4'hf);
+wb_write(32'h40108104, 32'h00800000, 4'hf);
+wb_write(32'h40108108, 32'h000e290b, 4'hf);
+wb_write(32'h4010810c, 32'hfabe2d25, 4'hf);
+wb_write(32'h40108110, 32'hff18600e, 4'hf);
+wb_write(32'h40108114, 32'h00047289, 4'hf);
+wb_write(32'h40108118, 32'hfe53bb73, 4'hf);
+wb_write(32'h4010811c, 32'h00cef743, 4'hf);
+wb_write(32'h40108120, 32'hfffec746, 4'hf);
+wb_write(32'h40108124, 32'h00740595, 4'hf);
+wb_write(32'h40108128, 32'h00509b94, 4'hf);
+wb_write(32'h4010812c, 32'h00000000, 4'hf);
+wb_write(32'h40108130, 32'h00000000, 4'hf);
+wb_write(32'h40108134, 32'h00800000, 4'hf);
+wb_write(32'h40108138, 32'hff13e59b, 4'hf);
+wb_write(32'h4010813c, 32'h579b6d5d, 4'hf);
+wb_write(32'h40108140, 32'h33425100, 4'hf);
+wb_write(32'h40108144, 32'h00726123, 4'hf);
+wb_write(32'h40108148, 32'hd59983fe, 4'hf);
+wb_write(32'h4010814c, 32'he62d2d40, 4'hf);
+wb_write(32'h40108150, 32'hffffa6c8, 4'hf);
+wb_write(32'h40108154, 32'h002119a9, 4'hf);
+wb_write(32'h40108158, 32'h0016ff50, 4'hf);
+wb_write(32'h4010815c, 32'h00000000, 4'hf);
+wb_write(32'h40108160, 32'h00000000, 4'hf);
+wb_write(32'h40108164, 32'h00800000, 4'hf);
+wb_write(32'h40108168, 32'hffdf296e, 4'hf);
+wb_write(32'h4010816c, 32'h0c25f2b6, 4'hf);
+wb_write(32'h40108170, 32'h05c9f2c0, 4'hf);
+wb_write(32'h40108174, 32'h00444be2, 4'hf);
+wb_write(32'h40108178, 32'he6a63159, 4'hf);
+wb_write(32'h4010817c, 32'hf90ef858, 4'hf);
+wb_write(32'h40108180, 32'h00000000, 4'hf);
+wb_write(32'h40108184, 32'h00001f13, 4'hf);
+wb_write(32'h40108188, 32'h00095892, 4'hf);
+wb_write(32'h4010818c, 32'h00000000, 4'hf);
+wb_write(32'h40108190, 32'h00000000, 4'hf);
+wb_write(32'h40108194, 32'h00800000, 4'hf);
+wb_write(32'h40108198, 32'hfff6b254, 4'hf);
+wb_write(32'h4010819c, 32'h0372ad7a, 4'hf);
+wb_write(32'h401081a0, 32'h021eb7b0, 4'hf);
+wb_write(32'h401081a4, 32'hffff48b8, 4'hf);
+wb_write(32'h401081a8, 32'h005da83c, 4'hf);
+wb_write(32'h401081ac, 32'hfdb6df28, 4'hf);
+wb_write(32'h401081b0, 32'h00000100, 4'hf);
+wb_write(32'h401081b4, 32'hffff9c37, 4'hf);
+wb_write(32'h401081b8, 32'h000df0ec, 4'hf);
+wb_write(32'h401081bc, 32'h00000000, 4'hf);
+wb_write(32'h401081c0, 32'h00000000, 4'hf);
+wb_write(32'h401081c4, 32'h00800000, 4'hf);
+wb_write(32'h401081c8, 32'hfff65017, 4'hf);
+wb_write(32'h401081cc, 32'h03983278, 4'hf);
+wb_write(32'h401081d0, 32'h020efa24, 4'hf);
+wb_write(32'h401081d4, 32'hffffaaa1, 4'hf);
+wb_write(32'h401081d8, 32'h00295324, 4'hf);
+wb_write(32'h401081dc, 32'hfec72144, 4'hf);
+wb_write(32'h401081e0, 32'h00000000, 4'hf);
+wb_write(32'h401081e4, 32'h0000182b, 4'hf);
+wb_write(32'h401081e8, 32'h000744e3, 4'hf);
+wb_write(32'h401081ec, 32'h00000000, 4'hf);
+wb_write(32'h401081f0, 32'h00000000, 4'hf);
+wb_write(32'h401081f4, 32'h00800000, 4'hf);
+wb_write(32'h401081f8, 32'hfff56fd2, 4'hf);
+wb_write(32'h401081fc, 32'h03ea6fb6, 4'hf);
+wb_write(32'h40108200, 32'h027a2adc, 4'hf);
+wb_write(32'h40108204, 32'h0000ad46, 4'hf);
+wb_write(32'h40108208, 32'hffaa44a4, 4'hf);
+wb_write(32'h4010820c, 32'h04f39be8, 4'hf);
+wb_write(32'h40108210, 32'h000000e6, 4'hf);
+wb_write(32'h40108214, 32'hffffa65a, 4'hf);
+wb_write(32'h40108218, 32'h000c84a6, 4'hf);
+wb_write(32'h4010821c, 32'h00000000, 4'hf);
+wb_write(32'h40108220, 32'h00000000, 4'hf);
+wb_write(32'h40108224, 32'h00800000, 4'hf);
+wb_write(32'h40108228, 32'hfff5c2a1, 4'hf);
+wb_write(32'h4010822c, 32'h03ccabf8, 4'hf);
+wb_write(32'h40108230, 32'h02391c9c, 4'hf);
+wb_write(32'h40108234, 32'h000043c0, 4'hf);
+wb_write(32'h40108238, 32'hffdc7215, 4'hf);
+wb_write(32'h4010823c, 32'h01ef0c08, 4'hf);
+wb_write(32'h4010c000, 32'h0000000f, 4'hf);
+wb_write(32'h4010c004, 32'h0000000c, 4'hf);
+wb_write(32'h4010c008, 32'h000000f0, 4'hf);
+wb_write(32'h4010c00c, 32'h00000030, 4'hf);
+wb_write(32'h4010c010, 32'h00000348, 4'hf);
+wb_write(32'h4010c014, 32'h00000240, 4'hf);
+wb_write(32'h4010c018, 32'h00000584, 4'hf);
+wb_write(32'h4010c01c, 32'h00000180, 4'hf);
+wb_write(32'h4010c020, 32'h00000c12, 4'hf);
+wb_write(32'h4010c024, 32'h00000402, 4'hf);
+wb_write(32'h4010c028, 32'h00000a21, 4'hf);
+wb_write(32'h4010c02c, 32'h00000801, 4'hf);
+wb_write(32'h4010c030, 32'h0000f000, 4'hf);
+wb_write(32'h4010c034, 32'h0000c000, 4'hf);
+wb_write(32'h4010c038, 32'h000f0000, 4'hf);
+wb_write(32'h4010c03c, 32'h00030000, 4'hf);
+wb_write(32'h4010c040, 32'h00348000, 4'hf);
+wb_write(32'h4010c044, 32'h00240000, 4'hf);
+wb_write(32'h4010c048, 32'h00584000, 4'hf);
+wb_write(32'h4010c04c, 32'h00180000, 4'hf);
+wb_write(32'h4010c050, 32'h00c12000, 4'hf);
+wb_write(32'h4010c054, 32'h00402000, 4'hf);
+wb_write(32'h4010c058, 32'h00a21000, 4'hf);
+wb_write(32'h4010c05c, 32'h00801000, 4'hf);
 	
+	
+	
+	/*
 	if ( X_NUM == 1920 ) begin
 		// 1080
 		wb_write(32'h40104000, 32'hffffcf99, 4'hf);
@@ -698,6 +957,7 @@ module tb_top();
 		wb_write(32'h4010c058, 32'h00a21000, 4'hf);
 		wb_write(32'h4010c05c, 32'h00801000, 4'hf);
 	end
+	*/
 	
 	#100
 		$display("start");

@@ -4,15 +4,18 @@
 
 module oled_control
 		#(
-			parameter	WB_ADR_WIDTH                  = 16,
-			parameter	WB_DAT_WIDTH                  = 32,
-			parameter	WB_SEL_WIDTH                  = (WB_DAT_WIDTH / 8)
+			parameter	WB_ADR_WIDTH  = 16,
+			parameter	WB_DAT_WIDTH  = 32,
+			parameter	WB_SEL_WIDTH  = (WB_DAT_WIDTH / 8),
+			parameter	TUSER_WIDTH   = 1,
+			parameter	TDATA_WIDTH   = 8
 		)
 		(
 			input	wire						reset,
 			input	wire						clk,
 			input	wire						clk_x7,
 			
+			// wishbone
 			input	wire						s_wb_rst_i,
 			input	wire						s_wb_clk_i,
 			input	wire	[WB_ADR_WIDTH-1:0]	s_wb_adr_i,
@@ -23,6 +26,13 @@ module oled_control
 			input	wire						s_wb_stb_i,
 			output	wire						s_wb_ack_o,
 			
+			// video input
+			input	wire	[TUSER_WIDTH-1:0]	s_axi4s_tuser,
+			input	wire						s_axi4s_tlast,
+			input	wire	[TDATA_WIDTH-1:0]	s_axi4s_tdata,
+			input	wire						s_axi4s_tvalid,
+			output	wire						s_axi4s_tready,
+			
 			input	wire	[4:0]				gpo,
 			
 			output	wire	[4:1]				pmod_p,
@@ -32,11 +42,14 @@ module oled_control
 	reg					reg_oled_res_n;
 	reg		[2:1]		reg_oled_bs;
 	reg					reg_oled_pwr_en;
+	reg					reg_oled_vin_en;
+	
 	always @(posedge s_wb_clk_i) begin
 		if ( s_wb_rst_i ) begin
 			reg_oled_res_n  <= 1'b0;
 			reg_oled_bs     <= 2'b11;
 			reg_oled_pwr_en <= 1'b0;
+			reg_oled_vin_en <= 1'b0;
 		end
 		else begin
 			if ( s_wb_stb_i && s_wb_we_i ) begin
@@ -44,6 +57,7 @@ module oled_control
 				0:	reg_oled_res_n  <= s_wb_dat_i;
 				1:	reg_oled_bs     <= s_wb_dat_i;
 				2:	reg_oled_pwr_en <= s_wb_dat_i;
+				3:	reg_oled_vin_en <= s_wb_dat_i;
 				endcase
 			end
 		end
@@ -80,6 +94,59 @@ module oled_control
 				.m_ready		(async_ready)
 			);
 	
+	
+	// video input
+	(* ASYNC_REG = "true" *)	reg		reg_vin_en_ff, reg_vin_en;
+	always @(posedge clk) begin
+		if ( reset ) begin
+			reg_vin_en_ff <= 1'b0;
+			reg_vin_en    <= 0;
+		end
+		else begin
+			reg_vin_en_ff <= reg_oled_vin_en;
+			reg_vin_en    <= reg_vin_en_ff;
+		end
+	end
+	
+	
+	wire	[TUSER_WIDTH-1:0]	axi4s_vin_tuser;
+	wire						axi4s_vin_tlast;
+	wire	[TDATA_WIDTH-1:0]	axi4s_vin_tdata;
+	wire						axi4s_vin_tvalid;
+	wire						axi4s_vin_tready;
+	
+	jelly_video_gate_core
+			#(
+				.TUSER_WIDTH		(TUSER_WIDTH),
+				.TDATA_WIDTH		(TDATA_WIDTH)
+			)
+		i_video_gate_core
+			(
+				.aresetn			(~reset),
+				.aclk				(clk),
+				.aclken				(1'b1),
+				
+				.enable				(reg_vin_en),
+				.busy				(),
+				
+				.param_skip			(1'b0),
+				
+				.s_axi4s_tuser		(s_axi4s_tuser),
+				.s_axi4s_tlast		(s_axi4s_tlast),
+				.s_axi4s_tdata		(s_axi4s_tdata),
+				.s_axi4s_tvalid		(s_axi4s_tvalid),
+				.s_axi4s_tready		(s_axi4s_tready),
+				
+				.m_axi4s_tuser		(axi4s_vin_tuser),
+				.m_axi4s_tlast		(axi4s_vin_tlast),
+				.m_axi4s_tdata		(axi4s_vin_tdata),
+				.m_axi4s_tvalid		(axi4s_vin_tvalid),
+				.m_axi4s_tready		(axi4s_vin_tready)
+			);
+	
+	
+	
+	// write control
 	reg				reg_busy;
 	reg		[3:0]	reg_count;
 	reg				reg_cs_n;
@@ -106,14 +173,21 @@ module oled_control
 				if ( async_valid ) begin
 					reg_busy  <= 1;
 					reg_cs_n  <= 1'b0;
-					reg_wr_n  <= 1'b1;
+					reg_wr_n  <= 1'b0;
 					reg_dc_n  <= ~async_cmd;
 					reg_data  <= async_data;
+				end
+				else if ( axi4s_vin_tvalid ) begin
+					reg_busy  <= 1;
+					reg_cs_n  <= 1'b0;
+					reg_wr_n  <= 1'b0;
+					reg_dc_n  <= 1'b1;
+					reg_data  <= axi4s_vin_tdata;
 				end
 			end
 			else begin
 				reg_count <= reg_count + 1;
-				if ( reg_count == 15 ) begin
+				if ( reg_count == 7 ) begin
 					reg_busy <= 1'b0;
 				end
 				
@@ -121,12 +195,12 @@ module oled_control
 				0:			begin	reg_cs_n  = 1'b0;	reg_wr_n  = 1'b0;	end
 				1:			begin	reg_cs_n  = 1'b0;	reg_wr_n  = 1'b0;	end
 				2:			begin	reg_cs_n  = 1'b0;	reg_wr_n  = 1'b0;	end
-				3:			begin	reg_cs_n  = 1'b0;	reg_wr_n  = 1'b0;	end
-				4:			begin	reg_cs_n  = 1'b0;	reg_wr_n  = 1'b0;	end
+				3:			begin	reg_cs_n  = 1'b0;	reg_wr_n  = 1'b1;	end
+				4:			begin	reg_cs_n  = 1'b0;	reg_wr_n  = 1'b1;	end
 				5:			begin	reg_cs_n  = 1'b0;	reg_wr_n  = 1'b1;	end
-				6:			begin	reg_cs_n  = 1'b0;	reg_wr_n  = 1'b1;	end
-				7:			begin	reg_cs_n  = 1'b0;	reg_wr_n  = 1'b1;	end
-				8:			begin	reg_cs_n  = 1'b0;	reg_wr_n  = 1'b1;	end
+				6:			begin	reg_cs_n  = 1'b1;	reg_wr_n  = 1'b1;	end
+				7:			begin	reg_cs_n  = 1'b1;	reg_wr_n  = 1'b1;	end
+				8:			begin	reg_cs_n  = 1'b1;	reg_wr_n  = 1'b1;	end
 				9:			begin	reg_cs_n  = 1'b1;	reg_wr_n  = 1'b1;	end
 				10:			begin	reg_cs_n  = 1'b1;	reg_wr_n  = 1'b1;	end
 				11:			begin	reg_cs_n  = 1'b1;	reg_wr_n  = 1'b1;	end
@@ -140,8 +214,8 @@ module oled_control
 		end
 	end
 	
-	assign async_ready = !reg_busy;
-	
+	assign async_ready      = !reg_busy;
+	assign axi4s_vin_tready = (!reg_busy && !async_valid);
 	
 	
 	oled_control_if

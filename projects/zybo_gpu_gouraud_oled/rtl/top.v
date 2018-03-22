@@ -473,6 +473,7 @@ module top
 			);
 	
 	
+	/*
 	wire	[0:0]			axi4s_vout_tuser;
 	wire					axi4s_vout_tlast;
 	wire	[23:0]			axi4s_vout_tdata;
@@ -513,7 +514,6 @@ module top
 				.m_data_count	()
 			);
 	
-	
 	wire					vout_vsgen_vsync;
 	wire					vout_vsgen_hsync;
 	wire					vout_vsgen_de;
@@ -527,20 +527,20 @@ module top
 				.WB_ADR_WIDTH		(8),
 				.WB_DAT_WIDTH		(32),
 				.INIT_CTL_CONTROL	(1'b1),
-				/*
-				.INIT_HTOTAL		(96 + 16 + VOUT_X_NUM + 48),
-				.INIT_HDISP_START	(96 + 16),
-				.INIT_HDISP_END		(96 + 16 + VOUT_X_NUM),
-				.INIT_HSYNC_START	(0),
-				.INIT_HSYNC_END		(96),
-				.INIT_HSYNC_POL		(0),
-				.INIT_VTOTAL		(2 + 10 + VOUT_Y_NUM + 33),
-				.INIT_VDISP_START	(2 + 10),
-				.INIT_VDISP_END		(2 + 10 + VOUT_Y_NUM),
-				.INIT_VSYNC_START	(0),
-				.INIT_VSYNC_END		(2),
-				.INIT_VSYNC_POL		(0)
-				*/
+				
+	//			.INIT_HTOTAL		(96 + 16 + VOUT_X_NUM + 48),
+	//			.INIT_HDISP_START	(96 + 16),
+	//			.INIT_HDISP_END		(96 + 16 + VOUT_X_NUM),
+	//			.INIT_HSYNC_START	(0),
+	//			.INIT_HSYNC_END		(96),
+	//			.INIT_HSYNC_POL		(0),
+	//			.INIT_VTOTAL		(2 + 10 + VOUT_Y_NUM + 33),
+	//			.INIT_VDISP_START	(2 + 10),
+	//			.INIT_VDISP_END		(2 + 10 + VOUT_Y_NUM),
+	//			.INIT_VSYNC_START	(0),
+	//			.INIT_VSYNC_END		(2),
+	//			.INIT_VSYNC_POL		(0)
+	
 				.INIT_HTOTAL		(VOUT_X_NUM + (2200 - 1920)),
 				.INIT_HDISP_START	(148),
 				.INIT_HDISP_END		(148 + VOUT_X_NUM),
@@ -633,13 +633,40 @@ module top
 	assign vga_r     = reg_vga_r;
 	assign vga_g     = reg_vga_g;
 	assign vga_b     = reg_vga_b;
-	
+	*/
 	
 	
 	
 	// ----------------------------------------
 	//  OLED
 	// ----------------------------------------
+	
+	wire	[0:0]			axi4s_oled_tuser;
+	wire					axi4s_oled_tlast;
+	wire	[7:0]			axi4s_oled_tdata;
+	wire					axi4s_oled_tvalid;
+	wire					axi4s_oled_tready;
+	
+	video_oled_cnv
+		i_video_oled_cnv
+			(
+				.aresetn			(~oled_reset),
+				.aclk				(oled_clk),
+				.aclken				(1'b1),
+				
+				.s_axi4s_tuser		(axi4s_gpu_tuser),
+				.s_axi4s_tlast		(axi4s_gpu_tlast),
+				.s_axi4s_tdata		(axi4s_gpu_tdata),
+				.s_axi4s_tvalid		(axi4s_gpu_tvalid),
+				.s_axi4s_tready		(axi4s_gpu_tready),
+				
+				.m_axi4s_tuser		(axi4s_oled_tuser),
+				.m_axi4s_tlast		(axi4s_oled_tlast),
+				.m_axi4s_tdata		(axi4s_oled_tdata),
+				.m_axi4s_tvalid		(axi4s_oled_tvalid),
+				.m_axi4s_tready		(axi4s_oled_tready)
+			);
+	
 	
 	wire	[31:0]			wb_oled_dat_o;
 	wire					wb_oled_stb_i;
@@ -666,6 +693,13 @@ module top
 				.s_wb_stb_i			(wb_oled_stb_i),
 				.s_wb_ack_o			(wb_oled_ack_o),
 				
+				.s_axi4s_tuser		(axi4s_oled_tuser),
+				.s_axi4s_tlast		(axi4s_oled_tlast),
+				.s_axi4s_tdata		(axi4s_oled_tdata),
+				.s_axi4s_tvalid		(axi4s_oled_tvalid),
+				.s_axi4s_tready		(axi4s_oled_tready),
+				
+				
 				.gpo				({dip_sw[0], dip_sw[3:0]}),
 				
 				.pmod_p				(pmod_jb_p),
@@ -679,18 +713,18 @@ module top
 	// ----------------------------------------
 	
 	assign wb_gpu_stb_i   = wb_host_stb_o & (wb_host_adr_o[29:18] == 20'h401);
-	assign wb_vsgen_stb_i = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_1);
+//	assign wb_vsgen_stb_i = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_1);
 	assign wb_gpio_stb_i  = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4002_1);
 	assign wb_oled_stb_i  = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4002_2);
 	
 	assign wb_host_dat_i  = wb_gpu_stb_i   ? wb_gpu_dat_o   :
-	                        wb_vsgen_stb_i ? wb_vsgen_dat_o :
+//	                        wb_vsgen_stb_i ? wb_vsgen_dat_o :
 	                        wb_gpio_stb_i  ? wb_gpio_dat_o  :
 	                        wb_oled_stb_i  ? wb_oled_dat_o  :
 	                        32'h0000_0000;
 	
 	assign wb_host_ack_i  = wb_gpu_stb_i   ? wb_gpu_ack_o   :
-	                        wb_vsgen_stb_i ? wb_vsgen_ack_o :
+//	                        wb_vsgen_stb_i ? wb_vsgen_ack_o :
 	                        wb_gpio_stb_i  ? wb_gpio_ack_o  :
 	                        wb_oled_stb_i  ? wb_oled_ack_o  :
 	                        wb_host_stb_o;
