@@ -2,7 +2,7 @@
 <spirit:busDefinition xmlns:xilinx="http://www.xilinx.com" xmlns:spirit="http://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <spirit:vendor>ryuz.my.coocan.jp</spirit:vendor>
   <spirit:library>wishbone_jelly_s</spirit:library>
-  <spirit:name>WISHBONE</spirit:name>
+  <spirit:name>WISHBONE_JELLY_S</spirit:name>
   <spirit:version>1.0</spirit:version>
   <spirit:directConnection>true</spirit:directConnection>
   <spirit:isAddressable>true</spirit:isAddressable>

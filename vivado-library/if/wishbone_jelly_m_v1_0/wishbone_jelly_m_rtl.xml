@@ -2,44 +2,13 @@
 <spirit:abstractionDefinition xmlns:xilinx="http://www.xilinx.com" xmlns:spirit="http://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <spirit:vendor>ryuz.my.coocan.jp</spirit:vendor>
   <spirit:library>wishbone_jelly_m</spirit:library>
-  <spirit:name>WISHBONE_rtl</spirit:name>
+  <spirit:name>WISHBONE_JELLY_M_rtl</spirit:name>
   <spirit:version>1.0</spirit:version>
-  <spirit:busType spirit:vendor="ryuz.my.coocan.jp" spirit:library="wishbone_jelly_m" spirit:name="WISHBONE" spirit:version="1.0"/>
+  <spirit:busType spirit:vendor="ryuz.my.coocan.jp" spirit:library="wishbone_jelly_m" spirit:name="WISHBONE_JELLY_M" spirit:version="1.0"/>
   <spirit:ports>
     <spirit:port>
-      <spirit:logicalName>rst_i</spirit:logicalName>
-      <spirit:wire>
-        <spirit:qualifier>
-          <spirit:isReset>true</spirit:isReset>
-        </spirit:qualifier>
-        <spirit:onMaster>
-          <spirit:width>1</spirit:width>
-          <spirit:direction>in</spirit:direction>
-        </spirit:onMaster>
-        <spirit:onSlave>
-          <spirit:width>1</spirit:width>
-          <spirit:direction>in</spirit:direction>
-        </spirit:onSlave>
-      </spirit:wire>
-    </spirit:port>
-    <spirit:port>
-      <spirit:logicalName>clk_i</spirit:logicalName>
-      <spirit:wire>
-        <spirit:qualifier>
-          <spirit:isClock>true</spirit:isClock>
-        </spirit:qualifier>
-        <spirit:onMaster>
-          <spirit:width>1</spirit:width>
-          <spirit:direction>in</spirit:direction>
-        </spirit:onMaster>
-        <spirit:onSlave>
-          <spirit:width>1</spirit:width>
-          <spirit:direction>in</spirit:direction>
-        </spirit:onSlave>
-      </spirit:wire>
-    </spirit:port>
-    <spirit:port>
       <spirit:logicalName>adr_o</spirit:logicalName>
+      <spirit:description>address</spirit:description>
       <spirit:wire>
         <spirit:qualifier>
           <spirit:isAddress>true</spirit:isAddress>
@@ -55,6 +24,7 @@
     </spirit:port>
     <spirit:port>
       <spirit:logicalName>dat_i</spirit:logicalName>
+      <spirit:description>data input</spirit:description>
       <spirit:wire>
         <spirit:onMaster>
           <spirit:presence>required</spirit:presence>
@@ -67,6 +37,7 @@
     </spirit:port>
     <spirit:port>
       <spirit:logicalName>dat_o</spirit:logicalName>
+      <spirit:description>data output</spirit:description>
       <spirit:wire>
         <spirit:qualifier>
           <spirit:isData>true</spirit:isData>
@@ -82,6 +53,7 @@
     </spirit:port>
     <spirit:port>
       <spirit:logicalName>sel_o</spirit:logicalName>
+      <spirit:description>select</spirit:description>
       <spirit:wire>
         <spirit:onMaster/>
         <spirit:onSlave>
@@ -91,6 +63,7 @@
     </spirit:port>
     <spirit:port>
       <spirit:logicalName>we_o</spirit:logicalName>
+      <spirit:description>write enable</spirit:description>
       <spirit:wire>
         <spirit:onMaster>
           <spirit:presence>required</spirit:presence>
@@ -105,6 +78,7 @@
     </spirit:port>
     <spirit:port>
       <spirit:logicalName>stb_o</spirit:logicalName>
+      <spirit:description>strobe</spirit:description>
       <spirit:wire>
         <spirit:onMaster>
           <spirit:presence>required</spirit:presence>
@@ -119,6 +93,7 @@
     </spirit:port>
     <spirit:port>
       <spirit:logicalName>ack_i</spirit:logicalName>
+      <spirit:description>acknowledge</spirit:description>
       <spirit:wire>
         <spirit:onMaster>
           <spirit:presence>required</spirit:presence>
