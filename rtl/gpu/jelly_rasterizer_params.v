@@ -14,41 +14,42 @@
 
 module jelly_rasterizer_params
 		#(
-			parameter	X_WIDTH            = 12,
-			parameter	Y_WIDTH            = 12,
+			parameter	X_WIDTH             = 12,
+			parameter	Y_WIDTH             = 12,
 			
-			parameter	WB_ADR_WIDTH       = 14,
-			parameter	WB_DAT_WIDTH       = 32,
-			parameter	WB_SEL_WIDTH       = (WB_DAT_WIDTH / 8),
+			parameter	WB_ADR_WIDTH        = 14,
+			parameter	WB_DAT_WIDTH        = 32,
+			parameter	WB_SEL_WIDTH        = (WB_DAT_WIDTH / 8),
 			
-			parameter	BANK_NUM           = 2,
-			parameter	BANK_ADDR_WIDTH    = 12,
-			parameter	PARAMS_ADDR_WIDTH  = 10,
+			parameter	BANK_NUM            = 2,
+			parameter	BANK_ADDR_WIDTH     = 12,
+			parameter	PARAMS_ADDR_WIDTH   = 10,
 			
-			parameter	EDGE_NUM           = 12,
-			parameter	POLYGON_NUM        = 6,
-			parameter	SHADER_PARAM_NUM   = 3,
+			parameter	EDGE_NUM            = 12,
+			parameter	POLYGON_NUM         = 6,
+			parameter	SHADER_PARAM_NUM    = 3,
 			
-			parameter	EDGE_PARAM_WIDTH   = 32,
-			parameter	EDGE_RAM_TYPE      = "distributed",
+			parameter	EDGE_PARAM_WIDTH    = 32,
+			parameter	EDGE_RAM_TYPE       = "distributed",
 			
-			parameter	SHADER_PARAM_WIDTH = 32,
-			parameter	SHADER_RAM_TYPE    = "distributed",
+			parameter	SHADER_PARAM_WIDTH  = 32,
+			parameter	SHADER_RAM_TYPE     = "distributed",
 			
-			parameter	REGION_PARAM_WIDTH = EDGE_NUM,
-			parameter	REGION_RAM_TYPE    = "distributed",
+			parameter	REGION_PARAM_WIDTH  = EDGE_NUM,
+			parameter	REGION_RAM_TYPE     = "distributed",
 			
-			parameter	USE_PARAM_CFG_READ = 1,
+			parameter	USE_PARAM_CFG_READ  = 1,
 			
-			parameter	CFG_SHADER_TYPE    = 32'h0000_0000,
-			parameter	CFG_VERSION        = 32'h0000_0000,
+			parameter	CFG_SHADER_TYPE     = 32'h0000_0000,
+			parameter	CFG_VERSION         = 32'h0000_0000,
+			parameter	CFG_CORE_ADDR_WIDTH = 14,
 			
-			parameter	INIT_CTL_ENABLE    = 1'b0,
-			parameter	INIT_CTL_UPDATE    = 1'b0,
-			parameter	INIT_PARAM_WIDTH   = 640-1,
-			parameter	INIT_PARAM_HEIGHT  = 480-1,
-			parameter	INIT_PARAM_CULLING = 2'b01,
-			parameter	INIT_PARAM_BANK    = 0,
+			parameter	INIT_CTL_ENABLE     = 1'b0,
+			parameter	INIT_CTL_UPDATE     = 1'b0,
+			parameter	INIT_PARAM_WIDTH    = 640-1,
+			parameter	INIT_PARAM_HEIGHT   = 480-1,
+			parameter	INIT_PARAM_CULLING  = 2'b01,
+			parameter	INIT_PARAM_BANK     = 0,
 			
 			// local
 			parameter	PARAMS_EDGE_SIZE   = EDGE_NUM*3,
@@ -164,24 +165,27 @@ module jelly_rasterizer_params
 	
 	
 	// アドレス定義
-	localparam	REG_ADDR_CTL_ENABLE             = 6'h00;
-	localparam	REG_ADDR_CTL_UPDATE             = 6'h01;
-	localparam	REG_ADDR_PARAM_WIDTH            = 6'h02;
-	localparam	REG_ADDR_PARAM_HEIGHT           = 6'h03;
-	localparam	REG_ADDR_PARAM_CULLING          = 6'h04;
-	localparam	REG_ADDR_PARAM_BANK             = 6'h08;
+	localparam	REG_ADDR_WIDTH                  = 6;
 	
-	localparam	REG_ADDR_CFG_SHADER_TYPE        = 6'h20;
-	localparam	REG_ADDR_CFG_VERSION            = 6'h21;
-	localparam	REG_ADDR_CFG_BANK_ADDR_WIDTH    = 6'h22;
-	localparam	REG_ADDR_CFG_PARAMS_ADDR_WIDTH  = 6'h23;
-	localparam	REG_ADDR_CFG_BANK_NUM           = 6'h24;
-	localparam	REG_ADDR_CFG_EDGE_NUM           = 6'h25;
-	localparam	REG_ADDR_CFG_POLYGON_NUM        = 6'h26;
-	localparam	REG_ADDR_CFG_SHADER_PARAM_NUM   = 6'h27;
-	localparam	REG_ADDR_CFG_EDGE_PARAM_WIDTH   = 6'h28;
-	localparam	REG_ADDR_CFG_SHADER_PARAM_WIDTH = 6'h29;
-	localparam	REG_ADDR_CFG_REGION_PARAM_WIDTH = 6'h2a;
+	localparam	REG_ADDR_CFG_SHADER_TYPE        = 32'h00;
+	localparam	REG_ADDR_CFG_VERSION            = 32'h01;
+	localparam	REG_ADDR_CFG_CORE_ADDR_WIDTH    = 32'h04;
+	localparam	REG_ADDR_CFG_BANK_ADDR_WIDTH    = 32'h05;
+	localparam	REG_ADDR_CFG_PARAMS_ADDR_WIDTH  = 32'h06;
+	localparam	REG_ADDR_CFG_BANK_NUM           = 32'h07;
+	localparam	REG_ADDR_CFG_EDGE_NUM           = 32'h08;
+	localparam	REG_ADDR_CFG_POLYGON_NUM        = 32'h09;
+	localparam	REG_ADDR_CFG_SHADER_PARAM_NUM   = 32'h0a;
+	localparam	REG_ADDR_CFG_EDGE_PARAM_WIDTH   = 32'h0b;
+	localparam	REG_ADDR_CFG_SHADER_PARAM_WIDTH = 32'h0c;
+	localparam	REG_ADDR_CFG_REGION_PARAM_WIDTH = 32'h0d;
+	
+	localparam	REG_ADDR_CTL_ENABLE             = 32'h20;
+	localparam	REG_ADDR_CTL_UPDATE             = 32'h21;
+	localparam	REG_ADDR_PARAM_WIDTH            = 32'h22;
+	localparam	REG_ADDR_PARAM_HEIGHT           = 32'h23;
+	localparam	REG_ADDR_PARAM_CULLING          = 32'h24;
+	localparam	REG_ADDR_PARAM_BANK             = 32'h28;
 	
 	
 	// 制御レジスタ
@@ -232,7 +236,7 @@ module jelly_rasterizer_params
 			end
 			
 			if ( wb_regs_stb_i && s_wb_we_i ) begin
-				case ( s_wb_adr_i[5:0] )
+				case ( s_wb_adr_i[REG_ADDR_WIDTH-1:0] )
 				REG_ADDR_CTL_ENABLE:	reg_ctl_enable    <= s_wb_dat_i;
 				REG_ADDR_CTL_UPDATE:	reg_ctl_update    <= s_wb_dat_i;
 				REG_ADDR_PARAM_WIDTH:	reg_param_width   <= s_wb_dat_i;
@@ -252,19 +256,12 @@ module jelly_rasterizer_params
 	reg		[WB_DAT_WIDTH-1:0]	tmp_wb_regs_dat_o;
 	always @* begin
 		tmp_wb_regs_dat_o = {WB_DAT_WIDTH{1'b0}};
-		case ( s_wb_adr_i[5:0] )
-		REG_ADDR_CTL_ENABLE:	tmp_wb_regs_dat_o = reg_ctl_enable;
-		REG_ADDR_CTL_UPDATE:	tmp_wb_regs_dat_o = reg_ctl_update;
-		REG_ADDR_PARAM_WIDTH:	tmp_wb_regs_dat_o = reg_param_width;
-		REG_ADDR_PARAM_HEIGHT:	tmp_wb_regs_dat_o = reg_param_height;
-		REG_ADDR_PARAM_CULLING:	tmp_wb_regs_dat_o = reg_param_culling;
-		REG_ADDR_PARAM_BANK:	tmp_wb_regs_dat_o = reg_param_bank;
-		endcase
 		
 		if ( USE_PARAM_CFG_READ ) begin
-			case ( s_wb_adr_i[5:0] )
+			case ( s_wb_adr_i[REG_ADDR_WIDTH-1:0] )
 			REG_ADDR_CFG_SHADER_TYPE:			tmp_wb_regs_dat_o = CFG_SHADER_TYPE;
 			REG_ADDR_CFG_VERSION:				tmp_wb_regs_dat_o = CFG_VERSION;
+			REG_ADDR_CFG_CORE_ADDR_WIDTH:		tmp_wb_regs_dat_o = CFG_CORE_ADDR_WIDTH;
 			REG_ADDR_CFG_BANK_ADDR_WIDTH:		tmp_wb_regs_dat_o = BANK_ADDR_WIDTH;
 			REG_ADDR_CFG_PARAMS_ADDR_WIDTH:		tmp_wb_regs_dat_o = PARAMS_ADDR_WIDTH;
 			REG_ADDR_CFG_BANK_NUM:				tmp_wb_regs_dat_o = BANK_NUM;
@@ -276,6 +273,16 @@ module jelly_rasterizer_params
 			REG_ADDR_CFG_REGION_PARAM_WIDTH:	tmp_wb_regs_dat_o = REGION_PARAM_WIDTH;
 			endcase
 		end
+		
+		case ( s_wb_adr_i[REG_ADDR_WIDTH-1:0] )
+		REG_ADDR_CTL_ENABLE:	tmp_wb_regs_dat_o = reg_ctl_enable;
+		REG_ADDR_CTL_UPDATE:	tmp_wb_regs_dat_o = reg_ctl_update;
+		REG_ADDR_PARAM_WIDTH:	tmp_wb_regs_dat_o = reg_param_width;
+		REG_ADDR_PARAM_HEIGHT:	tmp_wb_regs_dat_o = reg_param_height;
+		REG_ADDR_PARAM_CULLING:	tmp_wb_regs_dat_o = reg_param_culling;
+		REG_ADDR_PARAM_BANK:	tmp_wb_regs_dat_o = reg_param_bank;
+		endcase
+		
 	end
 	
 	assign wb_regs_dat_o = tmp_wb_regs_dat_o;

@@ -51,6 +51,8 @@ module jelly_gpu_gouraud
 			parameter	CULLING_ONLY                  = 0,
 			parameter	Z_SORT_MIN                    = 0,	// 1Ç≈è¨Ç≥Ç¢ílóDêÊ(Zé≤âúå¸Ç´)
 			
+			parameter	USE_PARAM_CFG_READ            = 1,
+			
 			parameter	RASTERIZER_INIT_CTL_ENABLE    = 1'b0,
 			parameter	RASTERIZER_INIT_CTL_UPDATE    = 1'b0,
 			parameter	RASTERIZER_INIT_PARAM_WIDTH   = 640-1,
@@ -149,9 +151,10 @@ module jelly_gpu_gouraud
 				.CULLING_ONLY					(CULLING_ONLY),
 				.Z_SORT_MIN						(Z_SORT_MIN),
 				
+				.USE_PARAM_CFG_READ				(USE_PARAM_CFG_READ),
 				.CFG_SHADER_TYPE				(CFG_SHADER_TYPE),
 				.CFG_VERSION					(CFG_VERSION),
-				.CFG_SHADER_PARAM_Q				(SHADER_PARAM_Q),
+				.CFG_CORE_ADDR_WIDTH			(CORE_ADDR_WIDTH),
 				
 				.INIT_CTL_ENABLE				(RASTERIZER_INIT_CTL_ENABLE),
 				.INIT_CTL_UPDATE				(RASTERIZER_INIT_CTL_UPDATE),
@@ -213,7 +216,7 @@ module jelly_gpu_gouraud
 				.SHADER_PARAM_WIDTH				(SHADER_PARAM_WIDTH),
 				.SHADER_PARAM_Q					(SHADER_PARAM_Q),
 				
-				.USE_PARAM_CFG_READ				(1),
+				.USE_PARAM_CFG_READ				(USE_PARAM_CFG_READ),
 				
 				.INIT_PARAM_BGC					(SHADER_INIT_PARAM_BGC)
 			)

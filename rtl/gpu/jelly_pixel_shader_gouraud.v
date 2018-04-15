@@ -73,10 +73,11 @@ module jelly_pixel_shader_gouraud
 	// -------------------------------------
 	
 	// アドレス
-	localparam	REG_ADDR_PARAM_BGC              = 6'h00;
-	localparam	REG_ADDR_CFG_SHADER_PARAM_NUM   = 6'h10;
-	localparam	REG_ADDR_CFG_SHADER_PARAM_WIDTH = 6'h11;
-	localparam	REG_ADDR_CFG_SHADER_PARAM_Q     = 6'h12;
+	localparam	REG_ADDR_CFG_SHADER_PARAM_NUM   = 6'h00;
+	localparam	REG_ADDR_CFG_SHADER_PARAM_WIDTH = 6'h01;
+	localparam	REG_ADDR_CFG_SHADER_PARAM_Q     = 6'h02;
+	
+	localparam	REG_ADDR_PARAM_BGC              = 6'h20;
 	
 	// 表レジスタ
 	reg		[AXI4S_TDATA_WIDTH-1:0]			reg_param_bgc;
@@ -100,9 +101,6 @@ module jelly_pixel_shader_gouraud
 	reg		[WB_DAT_WIDTH-1:0]	tmp_wb_dat_o;
 	always @* begin
 		tmp_wb_dat_o = {WB_DAT_WIDTH{1'b0}};
-		case ( s_wb_adr_i )
-		REG_ADDR_PARAM_BGC:		tmp_wb_dat_o = reg_param_bgc;
-		endcase
 		
 		if ( USE_PARAM_CFG_READ ) begin
 			case ( s_wb_adr_i )
@@ -111,6 +109,11 @@ module jelly_pixel_shader_gouraud
 			REG_ADDR_CFG_SHADER_PARAM_Q: 		tmp_wb_dat_o = SHADER_PARAM_Q;
 			endcase
 		end
+		
+		case ( s_wb_adr_i )
+		REG_ADDR_PARAM_BGC:		tmp_wb_dat_o = reg_param_bgc;
+		endcase
+		
 	end
 	
 	assign s_wb_dat_o = tmp_wb_dat_o;

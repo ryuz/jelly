@@ -326,6 +326,20 @@ module top
 	assign axi4_mem00_rready   = 0;
 	
 	
+	
+	// ----------------------------------------
+	//  Global ID
+	// ----------------------------------------
+	
+	wire	[31:0]			wb_gid_dat_o;
+	wire					wb_gid_stb_i;
+	wire					wb_gid_ack_o;
+	
+	assign wb_gid_dat_o = 32'h01234567;
+	assign wb_gid_ack_o = wb_gid_stb_i;
+	
+	
+	
 	// ----------------------------------------
 	//  GPO (LED)
 	// ----------------------------------------
@@ -597,20 +611,23 @@ module top
 	//  WISHBONE address decoder
 	// ----------------------------------------
 	
+	assign wb_gid_stb_i   = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4000_0);
 	assign wb_gpu_stb_i   = wb_host_stb_o & (wb_host_adr_o[29:18] == 20'h401);
 //	assign wb_vdmar_stb_i = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_0);
 	assign wb_vsgen_stb_i = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_1);
 //	assign wb_vdmaw_stb_i = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_8);
 	assign wb_gpio_stb_i  = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4002_1);
 	
-	assign wb_host_dat_i  = wb_gpu_stb_i   ? wb_gpu_dat_o   :
+	assign wb_host_dat_i  = wb_gid_stb_i   ? wb_gid_dat_o   :
+//	                        wb_gpu_stb_i   ? wb_gpu_dat_o   :
 //	                        wb_vdmar_stb_i ? wb_vdmar_dat_o :
 	                        wb_vsgen_stb_i ? wb_vsgen_dat_o :
 //	                        wb_vdmaw_stb_i ? wb_vdmaw_dat_o :
 	                        wb_gpio_stb_i  ? wb_gpio_dat_o  :
 	                        32'h0000_0000;
 	
-	assign wb_host_ack_i  = wb_gpu_stb_i   ? wb_gpu_ack_o   :
+	assign wb_host_ack_i  = wb_gid_stb_i   ? wb_gid_ack_o   :
+//	                        wb_gpu_stb_i   ? wb_gpu_ack_o   :
 //	                        wb_vdmar_stb_i ? wb_vdmar_ack_o :
 	                        wb_vsgen_stb_i ? wb_vsgen_ack_o :
 //	                        wb_vdmaw_stb_i ? wb_vdmaw_ack_o :
@@ -622,6 +639,9 @@ module top
 	// ----------------------------------------
 	//  LED
 	// ----------------------------------------
+
+	reg		[31:0]		reg_counter_peri_clk;
+	always @(posedge peri_aclk)	reg_counter_peri_clk <= reg_counter_peri_clk + 1;
 	
 	reg		[31:0]		reg_counter_core_clk;
 	always @(posedge core_clk)	reg_counter_core_clk <= reg_counter_core_clk + 1;
@@ -637,11 +657,15 @@ module top
 //	assign led[2] = gpio_led[2];
 //	assign led[3] = gpio_led[3];
 	
-	assign led[0] = vout_reset;
-	assign led[1] = reg_counter_vout_clk[26];
-	assign led[2] = reg_counter_vout_clk_x5[26];
-	assign led[3] = reg_counter_core_clk[26];
+//	assign led[0] = vout_reset;
+//	assign led[1] = reg_counter_vout_clk[26];
+//	assign led[2] = reg_counter_vout_clk_x5[26];
+//	assign led[3] = reg_counter_core_clk[26];
 	
+	assign led[0] = peri_aresetn;
+	assign led[1] = reg_counter_peri_clk[26];
+	assign led[2] = reg_counter_core_clk[26];
+	assign led[3] = reg_counter_vout_clk[26];
 	
 	
 	// ----------------------------------------
