@@ -7,6 +7,8 @@
 #include <sys/mman.h>
 #include <errno.h>
 
+void gpu_test(void *gpu_addr);
+
 
 int SearchUioId(const char *name, int max_id=256)
 {
@@ -56,18 +58,24 @@ int main()
     }
 	
 	volatile uint32_t *map_addr;
-	map_addr = (volatile uint32_t *)mmap((void*)0x00100000, 0x1000, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+	map_addr = (volatile uint32_t *)mmap(NULL, 0x00200000, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 	if ( map_addr == MAP_FAILED ) {
 		printf("mmap error\n");
 		return 1;
 	}
 	
-	for ( int i = 0; i < 16; i++ ) {
-		printf("%08x\n", map_addr[0x20+i]);
-	}
+//	for ( int i = 0; i < 16; i++ ) {
+//		printf("%08x\n", map_addr[0x00100000/4 + i]);
+//	}
 	
-	munmap((void*)map_addr, 0x1000);
+	
+	gpu_test((void*)&map_addr[0x00100000/4]);
+	
+	
+	munmap((uint32_t*)map_addr, 0x0010000);
 	close(fd);
+	
+	
 	
 	return 0;
 }

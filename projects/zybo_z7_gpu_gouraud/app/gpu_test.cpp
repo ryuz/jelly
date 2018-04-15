@@ -41,6 +41,7 @@ void gpu_test(void *gpu_addr)
 	int		width  = 1280;
 	int		height = 720;
 	
+	volatile uint32_t* base_addr = (volatile uint32_t *)gpu_addr;
 	
 	JGL	jgl;
 	jgl.SetEdgeParamFracWidth(4);
@@ -68,7 +69,7 @@ void gpu_test(void *gpu_addr)
 	f.points.push_back(JGL::FacePoint(3, 2, {0.5f, 1.0f, 1.0f}));
 	f.points.push_back(JGL::FacePoint(1, 3, {0.5f, 1.0f, 0.0f}));
 	face_table.push_back(f);
-
+	
 	f.points.clear();
 	f.points.push_back(JGL::FacePoint(7, 0, {0.5f, 0.0f, 0.0f}));
 	f.points.push_back(JGL::FacePoint(6, 1, {0.5f, 0.0f, 1.0f}));
@@ -152,21 +153,18 @@ void gpu_test(void *gpu_addr)
 
 	jgl.SetFaceBuffer(face_table);
 	jgl.MakeDrawList();
-
-//	Mpu9250Data	mpu;
-
+	
+	
 	float angle00 = 0;
 	float angle01 = 0;
 	float angle02 = 0;
 	float angle1  = 0;
-
+	
 	float angle_view[3] = {0, 0, 0};
 	do {
-//		Mpu9250_Read(mpu);
-
 		// viewport
 		jgl.SetViewport(0, 0, width, height);
-
+		
 		// model0
 		JGL::Mat4	matRotate00 = JGL::RotateMat4(angle00, {0, 1, 0});	//angle00 -= (float)mpu.gyro[0] / 10000.0f;
 		JGL::Mat4	matRotate01 = JGL::RotateMat4(angle01, {0, 0, 1});	//angle01 -= (float)mpu.gyro[1] / 10000.0f;
@@ -192,38 +190,19 @@ void gpu_test(void *gpu_addr)
 		look_at_vec[0] += 5;
 		look_at_vec[1] += -8;
 		look_at_vec[2] += 20;
-
+		
 		JGL::Mat4	matLookAt       = JGL::LookAtMat4({5, -8, 20}, look_at_vec, {0, 1, 0});
 		JGL::Mat4	matPerspectivet = JGL::PerspectiveMat4(30.0f, (float)width/(float)height, 0.1f, 1000.0f);
 		jgl.SetViewMatrix(JGL::MulMat(matPerspectivet, matLookAt));
-
+		
 		//draw
 		jgl.DrawSetup();
-
+		
 		jgl.DrawHw(0);
-		while ( *(volatile unsigned long *)0x40100084 != 0 )
+		while ( base_addr[0x21] != 0 )
 			;
-		*(volatile unsigned long *)0x40100084 = 1;
-		*(volatile unsigned long *)0x40100080 = 1;
-
-		/*
-		if ( bank == 0 ) {
-			jgl.DrawHw(0);
-			*(volatile unsigned long *)0x40000004 = 0;
-			*(volatile unsigned long *)0x40000000 = 1;
-			while ( *(volatile unsigned long *)0x40000044 != 0 )
-				;
-			bank = 1;
-		}
-		else {
-			jgl.DrawHw(1);
-			*(volatile unsigned long *)0x40000004 = 0;
-			*(volatile unsigned long *)0x40000000 = 1;
-			while ( *(volatile unsigned long *)0x40000044 != 0 )
-				;
-			bank = 0;
-		}
-		*/
+		base_addr[0x21] = 1;
+		base_addr[0x20] = 1;
 	} while ( 1 );
 }
 
