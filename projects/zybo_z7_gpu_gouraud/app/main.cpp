@@ -6,6 +6,8 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <errno.h>
+#include <sys/ioctl.h>
+#include <linux/i2c-dev.h> 
 
 void gpu_test(void *gpu_addr);
 
@@ -43,6 +45,31 @@ int SearchUioId(const char *name, int max_id=256)
 
 int main()
 {
+	int i2c = open("/dev/i2c-0",O_RDWR);
+	if ( i2c < 0 ) {
+		printf("I2C open error\n");
+		return 1;
+	}
+	printf("I2C:%d\n", i2c);
+	
+//	ioctl(i2c, I2C_SET_SPEED, 400000);
+	ioctl(i2c, I2C_SLAVE, 0x68);
+	
+	uint8_t	buf[16];
+	int ret = 0;
+	buf[0] = 0x75;
+    ret = write(i2c, buf, 1);
+    printf("write:%d\n\r", ret);
+	
+	buf[0] = 0xff;
+    ret = read(i2c, buf, 1);
+    printf("read:%d\n\r", ret);
+    
+    printf("WHO_AM_I:0x%02x\n\r", buf[0]);
+	close(i2c);
+	return 0;
+	
+	
 	int uio_id = SearchUioId("my_pl_peri");
 	if ( uio_id < 0 ) {
 		printf("UIO not found\n");
