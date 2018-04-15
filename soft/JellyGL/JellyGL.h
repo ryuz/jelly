@@ -163,14 +163,14 @@ protected:
 	uint32_t		m_hw_bank_step        = 0x00001000;
 	uint32_t		m_hw_params_step      = 0x00004000;
 	uint32_t		m_hw_bank_num         = 2;
-	uint32_t		m_hw_edge_num         = 12*1;
-	uint32_t		m_hw_polygon_num      = 6*1;
-	uint32_t		m_hw_shader_param_num = 3; // 4;
+	uint32_t		m_hw_edge_num         = 12*2;
+	uint32_t		m_hw_polygon_num      = 6*2;
+	uint32_t		m_hw_shader_param_num = 4;
 	uint32_t		m_hw_shader_param_q   = 24;
 
 	bool			m_hw_shader_param_has_z        = true;
-	bool			m_hw_shader_param_has_tex_cord = true; 
-	bool			m_hw_shader_param_has_color    = false;
+	bool			m_hw_shader_param_has_tex_cord = false;
+	bool			m_hw_shader_param_has_color    = true;
 
 	const unsigned long	REG_ADDR_CFG_SHDER_TYPE         = 0x00*4;
 	const unsigned long	REG_ADDR_CFG_VERSION            = 0x01*4;

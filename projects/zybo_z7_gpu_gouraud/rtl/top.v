@@ -135,7 +135,7 @@ module top
 	wire			axi4_mem00_rvalid;
 	wire			axi4_mem00_rready;
 	
-	ps_core_wrapper
+	ps_core
 		i_ps_core
 			(
 				.reset							(1'b0),
@@ -613,24 +613,18 @@ module top
 	
 	assign wb_gid_stb_i   = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4000_0);
 	assign wb_gpu_stb_i   = wb_host_stb_o & (wb_host_adr_o[29:18] == 20'h401);
-//	assign wb_vdmar_stb_i = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_0);
 	assign wb_vsgen_stb_i = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_1);
-//	assign wb_vdmaw_stb_i = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_8);
 	assign wb_gpio_stb_i  = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4002_1);
 	
 	assign wb_host_dat_i  = wb_gid_stb_i   ? wb_gid_dat_o   :
-//	                        wb_gpu_stb_i   ? wb_gpu_dat_o   :
-//	                        wb_vdmar_stb_i ? wb_vdmar_dat_o :
+	                        wb_gpu_stb_i   ? wb_gpu_dat_o   :
 	                        wb_vsgen_stb_i ? wb_vsgen_dat_o :
-//	                        wb_vdmaw_stb_i ? wb_vdmaw_dat_o :
 	                        wb_gpio_stb_i  ? wb_gpio_dat_o  :
 	                        32'h0000_0000;
 	
 	assign wb_host_ack_i  = wb_gid_stb_i   ? wb_gid_ack_o   :
-//	                        wb_gpu_stb_i   ? wb_gpu_ack_o   :
-//	                        wb_vdmar_stb_i ? wb_vdmar_ack_o :
+	                        wb_gpu_stb_i   ? wb_gpu_ack_o   :
 	                        wb_vsgen_stb_i ? wb_vsgen_ack_o :
-//	                        wb_vdmaw_stb_i ? wb_vdmaw_ack_o :
 	                        wb_gpio_stb_i  ? wb_gpio_ack_o  :
 	                        wb_host_stb_o;
 	
