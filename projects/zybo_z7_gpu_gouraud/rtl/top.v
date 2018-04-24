@@ -4,10 +4,6 @@
 `default_nettype none
 
 module top
-		#(
-			parameter	VOUT_X_NUM = 1280,
-			parameter	VOUT_Y_NUM = 720
-		)
 		(
 			input	wire			in_clk125,
 			

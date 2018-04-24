@@ -51,6 +51,10 @@ module top
 		);
 	
 	
+						wire			sys_reset;
+	(* KEEP = "true" *)	wire			sys_clk100;
+	(* KEEP = "true" *)	wire			sys_clk200;
+	
 	wire			IIC_0_0_scl_i;
 	wire			IIC_0_0_scl_o;
 	wire			IIC_0_0_scl_t;
@@ -58,17 +62,15 @@ module top
 	wire			IIC_0_0_sda_o;
 	wire			IIC_0_0_sda_t;
 	
-	wire			esc_reset;
-	wire			esc_clk;
-	
 	design_1
 		i_design_1
 			(
 				.sys_reset				(1'b0),
 				.sys_clock				(in_clk125),
 				
-				.out_esc_reset			(esc_reset),
-				.out_esc_clk			(esc_clk),
+				.out_reset				(sys_reset),
+				.out_clk100				(sys_clk100),
+				.out_clk200				(sys_clk200),
 				
 				.DDR_addr				(DDR_addr),
 				.DDR_ba					(DDR_ba),
@@ -121,7 +123,7 @@ module top
 			);
 	
 	
-	(* MARK_DEBUG = "true" *)	wire				rxbyteclkhs;
+								wire				rxbyteclkhs;
 	(* MARK_DEBUG = "true" *)	wire				system_rst_out;
 	(* MARK_DEBUG = "true" *)	wire				init_done;
 	
@@ -177,12 +179,26 @@ module top
 	(* MARK_DEBUG = "true" *)	wire				dl1_errsyncesc;
 	(* MARK_DEBUG = "true" *)	wire				dl1_errcontrol;
 	
+	/*
+	(* MARK_DEBUG = "true" *)	reg		[7:0]		dbg_dl0_rxdatahs;
+	(* MARK_DEBUG = "true" *)	reg		[7:0]		dbg_dl0_rxdataesc;
+	(* MARK_DEBUG = "true" *)	reg		[7:0]		dbg_dl1_rxdatahs;
+	(* MARK_DEBUG = "true" *)	reg		[7:0]		dbg_dl1_rxdataesc;
+	
+	always @(posedge clk100) begin
+		dbg_dl0_rxdatahs  <= dl0_rxdatahs ;
+		dbg_dl0_rxdataesc <= dl0_rxdataesc;
+		dbg_dl1_rxdatahs  <= dl1_rxdatahs ;
+		dbg_dl1_rxdataesc <= dl1_rxdataesc;
+	end
+	*/
+	
 	
 	mipi_dphy_cam
 		i_mipi_dphy_cam
 			(
-				.core_clk			(esc_clk),
-				.core_rst			(esc_reset),
+				.core_clk			(sys_clk200),
+				.core_rst			(sys_reset),
 				.rxbyteclkhs		(rxbyteclkhs),
 				.system_rst_out		(system_rst_out),
 				.init_done			(init_done),
@@ -249,19 +265,23 @@ module top
 				.data_lp_rxn		(cam_data_lp_n)
 		   );
 	
-//	reg		[31:0]		reg_counter_cam_clk;
-//	always @(posedge cam_clk)	reg_counter_cam_clk <= reg_counter_cam_clk + 1;
+	reg		[31:0]		reg_counter_rxbyteclkhs;
+	always @(posedge rxbyteclkhs)	reg_counter_rxbyteclkhs <= reg_counter_rxbyteclkhs + 1;
 	
-	reg		[31:0]		reg_counter_esc_clk;
-	always @(posedge esc_clk)	reg_counter_esc_clk <= reg_counter_esc_clk + 1;
+	reg		[31:0]		reg_counter_clk200;
+	always @(posedge sys_clk200)	reg_counter_clk200 <= reg_counter_clk200 + 1;
 	
-	assign led[0] = 0; // reg_counter_cam_clk[24];
-	assign led[1] = reg_counter_esc_clk[24];
-	assign led[2] = cam_gpio;
-	assign led[3] = 0;
+	reg		[31:0]		reg_counter_clk100;
+	always @(posedge sys_clk100)	reg_counter_clk100 <= reg_counter_clk100 + 1;
+	
+	assign led[0] = reg_counter_rxbyteclkhs[24];
+	assign led[1] = reg_counter_clk200[24];
+	assign led[2] = reg_counter_clk100[24];
+	assign led[3] = cam_gpio;
 	
 	assign pmod_a[0]   = cam_clk;
-	assign pmod_a[7:1] = 0;
+	assign pmod_a[1]   = reg_counter_rxbyteclkhs[2];
+	assign pmod_a[7:2] = 0;
 	
 	
 	

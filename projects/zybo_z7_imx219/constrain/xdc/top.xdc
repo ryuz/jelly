@@ -31,6 +31,9 @@ create_clock -period 8.000 -name in_clk125 -waveform {0.000 4.000} [get_ports in
 #set_false_path -from [get_clocks mmcm_clk200] -to [get_clocks mmcm_clk]
 
 
+set_false_path -from [get_clocks rxbyteclkhs]  -to [get_clocks clk_out1_design_1_clk_wiz_0_0]
+
+
 
 ################################
 # I/O
