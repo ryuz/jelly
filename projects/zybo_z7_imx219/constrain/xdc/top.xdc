@@ -12,27 +12,35 @@ create_clock -period 8.000 -name in_clk125 -waveform {0.000 4.000} [get_ports in
 # create_clock -period 36.101 -name hdmi_clk_p -waveform {0.000 18.050} [get_ports hdmi_clk_p]
 
 
-# clk_fpga_0                    100MHz  10.000ns
-# clk_fpga_1                    150MHz   6.666ns
-# clk_out1_ps_core_clk_wiz_0_0  75MHz   13.333ns
-# clk_out2_ps_core_clk_wiz_0_0  375MHz   2.666ns
+# clk_fpga_0                     133MHz   7.500ns
+# clk_fpga_1                     100MHz  10.000ns
+# clk_out1_design_1_clk_wiz_0_0  100MHz  10.000ns
+# clk_out2_design_1_clk_wiz_0_0  200MHz   5.000ns
+# rxbyteclkhs                             8.768ns
 
 
-#set_max_delay -datapath_only -from [get_clocks clk_fpga_0]  -to [get_clocks clk_fpga_1]  6.666
-#set_max_delay -datapath_only -from [get_clocks clk_fpga_1]  -to [get_clocks clk_fpga_0]  6.666
+set_max_delay -datapath_only -from [get_clocks clk_fpga_0]  -to [get_clocks clk_fpga_1]  7.500
+set_max_delay -datapath_only -from [get_clocks clk_fpga_1]  -to [get_clocks clk_fpga_0]  7.500
 
-#set_max_delay -datapath_only -from [get_clocks clk_fpga_0]  -to [get_clocks clk_out1_ps_core_clk_wiz_0_0]  10.000
-#set_max_delay -datapath_only -from [get_clocks clk_out1_ps_core_clk_wiz_0_0]  -to [get_clocks clk_fpga_0]  10.000
+set_max_delay -datapath_only -from [get_clocks clk_fpga_0]  -to [get_clocks clk_out2_design_1_clk_wiz_0_0]  5.000
+set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0]  -to [get_clocks clk_fpga_0]  5.000
 
-#set_max_delay -datapath_only -from [get_clocks clk_fpga_1]  -to [get_clocks clk_out1_ps_core_clk_wiz_0_0]   6.666
-#set_max_delay -datapath_only -from [get_clocks clk_out1_ps_core_clk_wiz_0_0]  -to [get_clocks clk_fpga_1]   6.666
+set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0]  -to [get_clocks clk_out1_design_1_clk_wiz_0_0] 5.000
+set_max_delay -datapath_only -from [get_clocks clk_out1_design_1_clk_wiz_0_0]  -to [get_clocks clk_out2_design_1_clk_wiz_0_0] 5.000
+
+set_max_delay -datapath_only -from [get_clocks rxbyteclkhs]  -to [get_clocks clk_out2_design_1_clk_wiz_0_0] 5.000
+set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0]  -to [get_clocks rxbyteclkhs] 5.000
+
+set_max_delay -datapath_only -from [get_clocks rxbyteclkhs]  -to [get_clocks clk_fpga_1] 10.000
+set_max_delay -datapath_only -from [get_clocks clk_fpga_1]  -to [get_clocks rxbyteclkhs] 10.000
+
 
 #set_false_path -from [get_clocks clk_fpga_1]  -to [get_clocks mmcm_clk200]
 #set_false_path -from [get_clocks mmcm_clk200] -to [get_clocks mmcm_clk]
 
 
-set_false_path -from [get_clocks rxbyteclkhs]  -to [get_clocks clk_out1_design_1_clk_wiz_0_0]
-
+#set_false_path -from [get_clocks rxbyteclkhs]  -to [get_clocks clk_out1_design_1_clk_wiz_0_0]
+#set_false_path -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -to [get_clocks rxbyteclkhs]
 
 
 ################################
@@ -55,8 +63,8 @@ set_property PACKAGE_PIN L16 [get_ports {cam_data_hs_p[1]}]
 set_property PACKAGE_PIN L17 [get_ports {cam_data_hs_n[1]}]
 set_property PACKAGE_PIN H20 [get_ports cam_clk_lp_p]
 set_property PACKAGE_PIN J19 [get_ports cam_clk_lp_n]
-set_property PACKAGE_PIN M18 [get_ports {cam_data_lp_p[0]}]
-set_property PACKAGE_PIN L19 [get_ports {cam_data_lp_n[0]}]
+set_property PACKAGE_PIN L19 [get_ports {cam_data_lp_p[0]}]
+set_property PACKAGE_PIN M18 [get_ports {cam_data_lp_n[0]}]
 set_property PACKAGE_PIN J20 [get_ports {cam_data_lp_p[1]}]
 set_property PACKAGE_PIN L20 [get_ports {cam_data_lp_n[1]}]
 set_property PACKAGE_PIN G19 [get_ports cam_clk]
