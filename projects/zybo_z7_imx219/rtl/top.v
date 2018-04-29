@@ -78,30 +78,30 @@ module top
 	wire			axi4l_peri_rready;
 	
 	
-	wire			axi4_mem_aresetn;
-	wire			axi4_mem_aclk;
+	(* MARK_DEBUG = "true" *)	wire			axi4_mem_aresetn;
+								wire			axi4_mem_aclk;
 	
-	wire	[5:0]	axi4_mem0_awid;
-	wire	[31:0]	axi4_mem0_awaddr;
-	wire	[1:0]	axi4_mem0_awburst;
-	wire	[3:0]	axi4_mem0_awcache;
-	wire	[7:0]	axi4_mem0_awlen;
-	wire	[0:0]	axi4_mem0_awlock;
-	wire	[2:0]	axi4_mem0_awprot;
-	wire	[3:0]	axi4_mem0_awqos;
-	wire	[3:0]	axi4_mem0_awregion;
-	wire	[2:0]	axi4_mem0_awsize;
-	wire			axi4_mem0_awvalid;
-	wire			axi4_mem0_awready;
-	wire	[7:0]	axi4_mem0_wstrb;
-	wire	[63:0]	axi4_mem0_wdata;
-	wire			axi4_mem0_wlast;
-	wire			axi4_mem0_wvalid;
-	wire			axi4_mem0_wready;
-	wire	[5:0]	axi4_mem0_bid;
-	wire	[1:0]	axi4_mem0_bresp;
-	wire			axi4_mem0_bvalid;
-	wire			axi4_mem0_bready;
+	(* MARK_DEBUG = "true" *)	wire	[5:0]	axi4_mem0_awid;
+	(* MARK_DEBUG = "true" *)	wire	[31:0]	axi4_mem0_awaddr;
+								wire	[1:0]	axi4_mem0_awburst;
+								wire	[3:0]	axi4_mem0_awcache;
+	(* MARK_DEBUG = "true" *)	wire	[7:0]	axi4_mem0_awlen;
+								wire	[0:0]	axi4_mem0_awlock;
+								wire	[2:0]	axi4_mem0_awprot;
+								wire	[3:0]	axi4_mem0_awqos;
+								wire	[3:0]	axi4_mem0_awregion;
+								wire	[2:0]	axi4_mem0_awsize;
+	(* MARK_DEBUG = "true" *)	wire			axi4_mem0_awvalid;
+	(* MARK_DEBUG = "true" *)	wire			axi4_mem0_awready;
+								wire	[7:0]	axi4_mem0_wstrb;
+	(* MARK_DEBUG = "true" *)	wire	[63:0]	axi4_mem0_wdata;
+	(* MARK_DEBUG = "true" *)	wire			axi4_mem0_wlast;
+	(* MARK_DEBUG = "true" *)	wire			axi4_mem0_wvalid;
+	(* MARK_DEBUG = "true" *)	wire			axi4_mem0_wready;
+	(* MARK_DEBUG = "true" *)	wire	[5:0]	axi4_mem0_bid;
+								wire	[1:0]	axi4_mem0_bresp;
+	(* MARK_DEBUG = "true" *)	wire			axi4_mem0_bvalid;
+	(* MARK_DEBUG = "true" *)	wire			axi4_mem0_bready;
 	wire	[5:0]	axi4_mem0_arid;
 	wire	[31:0]	axi4_mem0_araddr;
 	wire	[1:0]	axi4_mem0_arburst;
@@ -553,8 +553,8 @@ module top
 				.s_ready			(),
 				.s_free_count		(),
 				
-				.m_reset			(sys_reset),
-				.m_clk				(sys_clk200),
+				.m_reset			(~axi4_mem_aresetn),
+				.m_clk				(axi4_mem_aclk),
 				.m_data				({
 										fifo_dl0_rxdatahs,
 										fifo_dl0_rxvalidhs,
@@ -580,13 +580,13 @@ module top
 	//  DMA write
 	// ----------------------------------------
 	
-	wire	[0:0]			axi4s_memw_tuser;
-	wire					axi4s_memw_tlast;
-	wire	[31:0]			axi4s_memw_tdata;
-	wire					axi4s_memw_tvalid;
-	wire					axi4s_memw_tready;
+	(* MARK_DEBUG = "true" *)	wire	[0:0]			axi4s_memw_tuser;
+	(* MARK_DEBUG = "true" *)	wire					axi4s_memw_tlast;
+	(* MARK_DEBUG = "true" *)	wire	[31:0]			axi4s_memw_tdata;
+	(* MARK_DEBUG = "true" *)	wire					axi4s_memw_tvalid;
+	(* MARK_DEBUG = "true" *)	wire					axi4s_memw_tready;
 	
-	assign axi4s_memw_tuser       = fifo_dl0_rxvalidhs;
+	assign axi4s_memw_tuser       = fifo_dl0_rxsynchs;
 	assign axi4s_memw_tlast       = 1'b0;
 	assign axi4s_memw_tdata[15:0] = {
 										fifo_dl0_errsotsynchs,
@@ -609,10 +609,86 @@ module top
 	
 	
 	
-	wire	[31:0]			wb_vdmaw_dat_o;
-	wire					wb_vdmaw_stb_i;
-	wire					wb_vdmaw_ack_o;
+	(* MARK_DEBUG = "true" *)	wire	[31:0]			wb_vdmaw_dat_o;
+	(* MARK_DEBUG = "true" *)	wire					wb_vdmaw_stb_i;
+	(* MARK_DEBUG = "true" *)	wire					wb_vdmaw_ack_o;
 	
+	reg				vdmaw_enable;
+	wire			vdmaw_busy;
+	
+	always @(posedge wb_clk_o ) begin
+		if ( wb_rst_o ) begin
+			vdmaw_enable <= 0;
+		end
+		else begin
+			vdmaw_enable <= 0;
+			if ( wb_vdmaw_stb_i && wb_host_we_o ) begin
+				vdmaw_enable <= wb_host_dat_o;
+			end
+		end
+	end
+	
+	assign wb_vdmaw_dat_o = vdmaw_busy;
+	assign wb_vdmaw_ack_o = wb_vdmaw_stb_i;
+	
+	reg				vdmaw_enable_ff0, vdmaw_enable_ff1;
+	always @(posedge axi4_mem_aclk) begin
+		vdmaw_enable_ff0 <= vdmaw_enable;
+		vdmaw_enable_ff1 <= vdmaw_enable_ff0;
+	end
+	
+	
+	jelly_axi4_dma_writer
+			#(
+				.AXI4_ID_WIDTH		(6),
+				.AXI4_ADDR_WIDTH	(32),
+				.AXI4_DATA_SIZE		(3)		// 0:8bit, 1:16bit, 2:32bit ...
+			)
+		i_axi4_dma_writer
+			(
+				.aresetn			(axi4_mem_aresetn),
+				.aclk				(axi4_mem_aclk),
+				
+				.enable				(vdmaw_enable_ff1),
+				.busy				(vdmaw_busy),
+				
+				.queue_counter		(0),
+				
+				.param_addr			(32'h1000_0000),
+				.param_count		(64*1024*1024),
+				.param_maxlen		(7),
+				.param_wstrb		(8'hff),
+				
+				.m_axi4_awid		(axi4_mem0_awid),
+				.m_axi4_awaddr		(axi4_mem0_awaddr),
+				.m_axi4_awburst		(axi4_mem0_awburst),
+				.m_axi4_awcache		(axi4_mem0_awcache),
+				.m_axi4_awlen		(axi4_mem0_awlen),
+				.m_axi4_awlock		(axi4_mem0_awlock),
+				.m_axi4_awprot		(axi4_mem0_awprot),
+				.m_axi4_awqos		(axi4_mem0_awqos),
+				.m_axi4_awregion	(),
+				.m_axi4_awsize		(axi4_mem0_awsize),
+				.m_axi4_awvalid		(axi4_mem0_awvalid),
+				.m_axi4_awready		(axi4_mem0_awready),
+				.m_axi4_wstrb		(axi4_mem0_wstrb),
+				.m_axi4_wdata		(axi4_mem0_wdata),
+				.m_axi4_wlast		(axi4_mem0_wlast),
+				.m_axi4_wvalid		(axi4_mem0_wvalid),
+				.m_axi4_wready		(axi4_mem0_wready),
+				.m_axi4_bid			(axi4_mem0_bid),
+				.m_axi4_bresp		(axi4_mem0_bresp),
+				.m_axi4_bvalid		(axi4_mem0_bvalid),
+				.m_axi4_bready		(axi4_mem0_bready),
+				
+				.s_axi4s_tdata		({32'd0, axi4s_memw_tdata}),
+				.s_axi4s_tvalid		(axi4s_memw_tvalid),
+				.s_axi4s_tready		(axi4s_memw_tready)
+			);
+	
+	
+	
+	/*
 	jelly_vdma_axi4s_to_axi4
 			#(
 				.ASYNC				(1),
@@ -622,17 +698,17 @@ module top
 				.AXI4_ID_WIDTH		(6),
 				.AXI4_ADDR_WIDTH	(32),
 				.AXI4_DATA_SIZE		(3),	// 64bit
-				.AXI4_LEN_WIDTH		(4),	// AXI3,
-				.AXI4_QOS_WIDTH		(4),
 				.AXI4S_DATA_SIZE	(2),	// 32bit
 				.AXI4S_USER_WIDTH	(1),
 				.INDEX_WIDTH		(8),
 				.STRIDE_WIDTH		(14),
 				.H_WIDTH			(12),
 				.V_WIDTH			(12),
+				.SIZE_WIDTH			(32),
+				
 				.WB_ADR_WIDTH		(8),
 				.WB_DAT_WIDTH		(32),
-				.INIT_CTL_CONTROL	(2'b11),
+				.INIT_CTL_CONTROL	(2'b00),
 				.INIT_PARAM_ADDR	(32'h1800_0000),
 				.INIT_PARAM_STRIDE	(4096),
 				.INIT_PARAM_WIDTH	(1024),
@@ -684,6 +760,21 @@ module top
 				.s_wb_stb_i			(wb_vdmaw_stb_i),
 				.s_wb_ack_o			(wb_vdmaw_ack_o)
 			);
+	*/
+	
+	// read ‚Í–¢Žg—p
+	assign axi4_mem0_arid     = 0;
+	assign axi4_mem0_araddr   = 0;
+	assign axi4_mem0_arburst  = 0;
+	assign axi4_mem0_arcache  = 0;
+	assign axi4_mem0_arlen    = 0;
+	assign axi4_mem0_arlock   = 0;
+	assign axi4_mem0_arprot   = 0;
+	assign axi4_mem0_arqos    = 0;
+	assign axi4_mem0_arregion = 0;
+	assign axi4_mem0_arsize   = 0;
+	assign axi4_mem0_arvalid  = 0;
+	assign axi4_mem0_rready   = 0;
 	
 	
 	
