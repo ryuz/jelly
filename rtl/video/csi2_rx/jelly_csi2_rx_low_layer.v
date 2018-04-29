@@ -27,6 +27,7 @@ module jelly_csi2_rx_low_layer
 			output	wire			out_request_sync,
 			output	wire			out_frame_start,
 			output	wire			out_frame_end,
+			output	wire			out_crc_error,
 			
 			input	wire	[0:0]	s_axi4s_tuser,
 			input	wire	[7:0]	s_axi4s_tdata,
@@ -39,8 +40,20 @@ module jelly_csi2_rx_low_layer
 			input	wire			m_axi4s_tready
 		);
 	
+	// CRC
+	function [15:0]		calc_crc(input [15:0] crc, input [7:0] data);
+	integer	i;
+	begin
+		calc_crc = crc;
+		for ( i = 0; i < 8; i = i+1 ) begin
+			calc_crc = ((calc_crc >> 1) ^ ((calc_crc[0] ^ st0_data[i]) ? 16'h8408 : 16'h0000));
+		end
+	end
+	endfunction
 	
-	wire				cke = m_axi4s_tready;
+	
+	
+	wire				cke;
 	
 	
 	// stage 0 (header parser)
@@ -95,17 +108,17 @@ module jelly_csi2_rx_low_layer
 						st0_ecc      <= 8'hxx;
 						if ( s_axi4s_tvalid ) begin
 							st0_state    <= ST0_WC1;
-							st0_wc[15:8] <= s_axi4s_tdata;
+							st0_wc[7:0]  <= s_axi4s_tdata;
 						end
 					end
 				
 				ST0_WC1:
 					begin
-						st0_wc[7:0] <= 8'hxx;
-						st0_ecc     <= 8'hxx;
+						st0_wc[15:8] <= 8'hxx;
+						st0_ecc      <= 8'hxx;
 						if ( s_axi4s_tvalid ) begin
-							st0_state   <= ST0_ECC;
-							st0_wc[7:0] <= s_axi4s_tdata;
+							st0_state    <= ST0_ECC;
+							st0_wc[15:8] <= s_axi4s_tdata;
 						end
 					end
 					
@@ -138,14 +151,16 @@ module jelly_csi2_rx_low_layer
 	
 	reg		[1:0]	st1_state;
 	reg		[15:0]	st1_wc;
-	reg		[15:0]	st1_crc;
 	reg		[15:0]	st1_counter;
+	reg		[15:0]	st1_crc;
+	reg		[15:0]	st1_crc_sum;
 	reg				st1_last;
 	reg		[7:0]	st1_data;
 	reg				st1_valid;
 	reg				st1_req_sync;
 	reg				st1_frame_start;
 	reg				st1_frame_end;
+	reg				st1_crc_error;
 	
 	always @(posedge aclk) begin
 		if ( ~aresetn ) begin
@@ -153,17 +168,20 @@ module jelly_csi2_rx_low_layer
 			st1_wc          <= 16'hxxxx;
 			st1_counter     <= 16'hxxxx;
 			st1_crc         <= 16'hxxxx;
+			st1_crc_sum     <= 16'hxxxx;
 			st1_data        <= 8'hxx;
 			st1_last        <= 1'bx;
 			st1_valid       <= 1'b0;
 			st1_req_sync    <= 1'b0;
 			st1_frame_start <= 1'b0;
 			st1_frame_end   <= 1'b0;
+			st1_crc_error   <= 1'b0;
 		end
 		else if ( cke ) begin
 			st1_req_sync    <= 1'b0;
 			st1_frame_start <= 1'b0;
 			st1_frame_end   <= 1'b0;
+			st1_crc_error   <= 1'b0;
 			st1_data        <= st0_data;
 			st1_last        <= 1'b0;
 			st1_valid       <= 1'b0;
@@ -176,6 +194,7 @@ module jelly_csi2_rx_low_layer
 						st1_wc          <= 16'hxxxx;
 						st1_counter     <= 16'hxxxx;
 						st1_crc         <= 16'hxxxx;
+						st1_crc_sum     <= 16'hxxxx;
 						st1_req_sync    <= 1'b1;
 						st1_frame_start <= (st0_id[3:0] == 4'h0);
 						st1_frame_end   <= (st0_id[3:0] == 4'h1);
@@ -186,6 +205,7 @@ module jelly_csi2_rx_low_layer
 						st1_wc       <= st0_wc;
 						st1_counter  <= 16'h0001;
 						st1_crc      <= 16'hxxxx;
+						st1_crc_sum  <= 16'hffff;
 					end
 				end
 				else begin
@@ -195,6 +215,8 @@ module jelly_csi2_rx_low_layer
 							st1_valid   <= 1'b1;
 							st1_counter <= st1_counter + 1'b1;
 							st1_crc     <= 16'hxxxx;
+							st1_crc_sum <= calc_crc(st1_crc_sum, st0_data);
+							
 							if ( st1_counter == st1_wc ) begin
 								st1_state <= ST1_CRC0;
 							end
@@ -204,15 +226,15 @@ module jelly_csi2_rx_low_layer
 						begin
 							st1_state     <= ST1_CRC1;
 							st1_crc       <= 16'hxxxx;
-							st1_crc[15:8] <= st0_data;
+							st1_crc[7:0]  <= st0_data;
 						end
 					
 					ST1_CRC1:
 						begin
-							st1_state    <= ST1_IDLE;
-							st1_crc[7:0] <= st0_data;
-							st1_last     <= 1'b1;
-							st1_req_sync <= 1'b1;
+							st1_state     <= ST1_IDLE;
+							st1_crc[15:8] <= st0_data;
+							st1_last      <= 1'b1;
+							st1_req_sync  <= 1'b1;
 						end
 					
 					default:
@@ -225,6 +247,8 @@ module jelly_csi2_rx_low_layer
 					endcase
 				end
 			end
+			
+			st1_crc_error <= st1_last && (st1_crc_sum != st1_crc);
 		end
 	end
 	
@@ -232,6 +256,7 @@ module jelly_csi2_rx_low_layer
 	assign out_request_sync = st1_req_sync;
 	assign out_frame_start  = st1_frame_start;
 	assign out_frame_end    = st1_frame_end;
+	assign out_crc_error    = st1_crc_error;
 	
 	assign s_axi4s_tready   = cke;
 	

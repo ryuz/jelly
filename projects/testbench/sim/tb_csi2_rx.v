@@ -106,7 +106,7 @@ module tb_csi2_rx();
 				dl0_rxactivehs,
 				dl0_rxvalidhs,
 				dl0_rxdatahs
-			} = rx_data[data_count][15:0];
+			} = rx_data[data_count+0][15:0];
 	
 	assign {
 				dl1_errsotsynchs,
@@ -115,12 +115,29 @@ module tb_csi2_rx();
 				dl1_rxactivehs,
 				dl1_rxvalidhs,
 				dl1_rxdatahs
-			} = rx_data[data_count+1][31:16];
+			} = rx_data[data_count+0][31:16];
 	
 	assign rxdatahs   = {dl1_rxdatahs,   dl0_rxdatahs};
 	assign rxvalidhs  = {dl1_rxvalidhs,  dl0_rxvalidhs};
 	assign rxactivehs = {dl1_rxactivehs, dl0_rxactivehs};
 	assign rxsynchs   = {dl1_rxsynchs,   dl0_rxsynchs};
+	
+	
+	
+	integer		fp_img;
+	initial begin
+		 fp_img = $fopen("out_img.pgm", "w");
+		 $fdisplay(fp_img, "P2");
+		 $fdisplay(fp_img, "%d %d", 32'h0802, 1024);
+		 $fdisplay(fp_img, "255");
+	end
+	
+	always @(posedge clk) begin
+		if ( !reset && m_axi4s_tvalid && m_axi4s_tready ) begin
+			 $fdisplay(fp_img, "%d", m_axi4s_tdata[7:0]);
+		end
+	end
+	
 	
 	
 	

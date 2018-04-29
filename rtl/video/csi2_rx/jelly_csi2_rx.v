@@ -82,22 +82,19 @@ module jelly_csi2_rx
 				.out_request_sync	(request_sync),
 				.out_frame_start	(),
 				.out_frame_end		(),
+				.out_crc_error		(),
 				
 				.s_axi4s_tuser		(marge_tuser),
 				.s_axi4s_tdata		(marge_tdata),
 				.s_axi4s_tvalid		(marge_tvalid),
 				.s_axi4s_tready		(marge_tready),
 				
-				.m_axi4s_tlast		(),
-				.m_axi4s_tdata		(),
-				.m_axi4s_tvalid		(),
-				.m_axi4s_tready		(1)
+				.m_axi4s_tlast		(m_axi4s_tlast),
+				.m_axi4s_tdata		(m_axi4s_tdata),
+				.m_axi4s_tvalid		(m_axi4s_tvalid),
+				.m_axi4s_tready		(m_axi4s_tready)
 			);
 	
-	
-	
-//	assign marge_tready = 1;
-//	assign request_sync = 0;
 	
 endmodule
 
