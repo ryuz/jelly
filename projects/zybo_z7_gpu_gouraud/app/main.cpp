@@ -7,7 +7,9 @@
 #include <sys/mman.h>
 #include <errno.h>
 #include <sys/ioctl.h>
-#include <linux/i2c-dev.h> 
+#include <linux/i2c-dev.h>
+#include "UioMmap.h"
+
 
 void gpu_test(void *gpu_addr);
 
@@ -45,6 +47,7 @@ int SearchUioId(const char *name, int max_id=256)
 
 int main()
 {
+#if 0
 	int i2c = open("/dev/i2c-0",O_RDWR);
 	if ( i2c < 0 ) {
 		printf("I2C open error\n");
@@ -52,7 +55,6 @@ int main()
 	}
 	printf("I2C:%d\n", i2c);
 	
-//	ioctl(i2c, I2C_SET_SPEED, 400000);
 	ioctl(i2c, I2C_SLAVE, 0x68);
 	
 	uint8_t	buf[16];
@@ -68,8 +70,9 @@ int main()
     printf("WHO_AM_I:0x%02x\n\r", buf[0]);
 	close(i2c);
 	return 0;
+#endif	
 	
-	
+#if 0
 	int uio_id = SearchUioId("my_pl_peri");
 	if ( uio_id < 0 ) {
 		printf("UIO not found\n");
@@ -94,13 +97,16 @@ int main()
 //	for ( int i = 0; i < 16; i++ ) {
 //		printf("%08x\n", map_addr[0x00100000/4 + i]);
 //	}
-	
+#else
+	UioMmap um_pl_peri("my_pl_peri", 0x00200000);
+	volatile uint32_t *map_addr = (volatile uint32_t *)um_pl_peri.GetAddress();
+#endif
 	
 	gpu_test((void*)&map_addr[0x00100000/4]);
 	
 	
 	munmap((uint32_t*)map_addr, 0x0010000);
-	close(fd);
+//	close(fd);
 	
 	
 	

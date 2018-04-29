@@ -48,7 +48,7 @@ public:
 		char	uio_name[64];
 		FILE	*fp;
 		
-		for ( int i = 0; i < max_id; i++ ) {
+		for ( int i = 0; i < 256; i++ ) {
 			// read name
 			snprintf(dev_fname, 32, "/sys/class/uio/uio%d/name", i);
 			if ( (fp = fopen(dev_fname, "r")) == NULL ) {
@@ -117,6 +117,17 @@ public:
 	}
 	
 	
+	int GetUioId(void)
+	{
+		return m_id;
+	}
+	
+	void* GetAddress(void)
+	{
+		return m_addr;
+	}
+	
+	
 protected:
 	int		m_fd;
 	int		m_id;
@@ -125,7 +136,7 @@ protected:
 };
 
 
-#endif	__RYUZ__JELLY__UIO_MEMMAP_H__
+#endif	// __RYUZ__JELLY__UIO_MEMMAP_H__
 
 
 // end of file
