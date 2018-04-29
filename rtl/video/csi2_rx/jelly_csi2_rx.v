@@ -41,7 +41,7 @@ module jelly_csi2_rx
 	
 	wire	[0:0]				marge_tuser;
 	wire	[7:0]				marge_tdata;
-	wire	[0:0]				marge_tvalid;
+	wire						marge_tvalid;
 	wire						marge_tready;
 	
 	wire						request_sync;
@@ -71,6 +71,11 @@ module jelly_csi2_rx
 			);
 	
 	
+	wire						low_tlast;
+	wire	[7:0]				low_tdata;
+	wire						low_tvalid;
+	wire						low_tready;
+	
 	jelly_csi2_rx_low_layer
 		i_csi2_rx_low_layer
 			(
@@ -89,6 +94,30 @@ module jelly_csi2_rx
 				.s_axi4s_tvalid		(marge_tvalid),
 				.s_axi4s_tready		(marge_tready),
 				
+				.m_axi4s_tlast		(low_tlast),
+				.m_axi4s_tdata		(low_tdata),
+				.m_axi4s_tvalid		(low_tvalid),
+				.m_axi4s_tready		(low_tready)
+			);
+	
+	
+	jelly_csi2_rx_raw10
+			#(
+				.S_AXI4S_REGS		(0),
+				.M_AXI4S_REGS		(0)
+			)
+		i_csi2_rx_raw10
+			(
+				.aresetn			(aresetn),
+				.aclk				(aclk),
+				
+				.s_axi4s_tuser		(0),
+				.s_axi4s_tlast		(low_tlast),
+				.s_axi4s_tdata		(low_tdata),
+				.s_axi4s_tvalid		(low_tvalid),
+				.s_axi4s_tready		(low_tready),
+				
+				.m_axi4s_tuser		(m_axi4s_tuser),
 				.m_axi4s_tlast		(m_axi4s_tlast),
 				.m_axi4s_tdata		(m_axi4s_tdata),
 				.m_axi4s_tvalid		(m_axi4s_tvalid),

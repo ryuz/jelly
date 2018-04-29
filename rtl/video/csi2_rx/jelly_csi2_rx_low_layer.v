@@ -15,9 +15,6 @@
 
 // パケットの受信
 module jelly_csi2_rx_low_layer
-		#(
-			parameter M_AXI4S_REGS = 0
-		)
 		(
 			input	wire			aresetn,
 			input	wire			aclk,
@@ -150,6 +147,7 @@ module jelly_csi2_rx_low_layer
 	localparam	[1:0]	ST1_IDLE = 0, ST1_DATA = 1, ST1_CRC0 = 2, ST1_CRC1 = 3;
 	
 	reg		[1:0]	st1_state;
+	reg				st1_de;
 	reg		[15:0]	st1_wc;
 	reg		[15:0]	st1_counter;
 	reg		[15:0]	st1_crc;
@@ -165,6 +163,7 @@ module jelly_csi2_rx_low_layer
 	always @(posedge aclk) begin
 		if ( ~aresetn ) begin
 			st1_state       <= ST0_IDLE;
+			st1_de          <= 1'bx;
 			st1_wc          <= 16'hxxxx;
 			st1_counter     <= 16'hxxxx;
 			st1_crc         <= 16'hxxxx;
@@ -202,6 +201,7 @@ module jelly_csi2_rx_low_layer
 					else begin
 						// long packet
 						st1_state    <= ST1_DATA;
+						st1_de       <= (st0_id == param_data_type);
 						st1_wc       <= st0_wc;
 						st1_counter  <= 16'h0001;
 						st1_crc      <= 16'hxxxx;
@@ -212,7 +212,7 @@ module jelly_csi2_rx_low_layer
 					case ( st1_state )
 					ST1_DATA:
 						begin
-							st1_valid   <= 1'b1;
+							st1_valid   <= st1_de;
 							st1_counter <= st1_counter + 1'b1;
 							st1_crc     <= 16'hxxxx;
 							st1_crc_sum <= calc_crc(st1_crc_sum, st0_data);

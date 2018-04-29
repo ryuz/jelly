@@ -10,10 +10,10 @@ module tb_csi2_rx();
 	
 	initial begin
 		$dumpfile("tb_csi2_rx.vcd");
-		$dumpvars(0, tb_csi2_rx);
+		$dumpvars(1, tb_csi2_rx);
 	
-	#2000000
-		$finish;
+//	#2000000
+//		$finish;
 	end
 	
 	
@@ -128,13 +128,13 @@ module tb_csi2_rx();
 	initial begin
 		 fp_img = $fopen("out_img.pgm", "w");
 		 $fdisplay(fp_img, "P2");
-		 $fdisplay(fp_img, "%d %d", 32'h0802, 1024);
-		 $fdisplay(fp_img, "255");
+		 $fdisplay(fp_img, "%d %d", 32'h0802*8/10, 1024);
+		 $fdisplay(fp_img, "1023");
 	end
 	
 	always @(posedge clk) begin
 		if ( !reset && m_axi4s_tvalid && m_axi4s_tready ) begin
-			 $fdisplay(fp_img, "%d", m_axi4s_tdata[7:0]);
+			 $fdisplay(fp_img, "%d", m_axi4s_tdata);
 		end
 	end
 	
