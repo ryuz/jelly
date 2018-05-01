@@ -25,8 +25,15 @@ module tb_video_normalizer();
 	end
 	
 	
-//	localparam	X_NUM = 128;
-//	localparam	Y_NUM = 128;
+	reg		timeout_busy = 0;
+	initial begin
+		#(RATE*5000)	timeout_busy = 1'b1;
+		#(RATE*100)		timeout_busy = 1'b0;
+	end
+	
+	
+	localparam	X_NUM = 128;
+	localparam	Y_NUM = 128;
 
 //	localparam	X_NUM = 128*2;
 //	localparam	Y_NUM = 128;
@@ -49,29 +56,44 @@ module tb_video_normalizer();
 //	localparam	X_NUM = 128*2;
 //	localparam	Y_NUM = 128*2;
 
-	localparam	X_NUM = 128/2;
-	localparam	Y_NUM = 128*2;
+//	localparam	X_NUM = 128/2;
+//	localparam	Y_NUM = 128*2;
 	
 	
-	parameter	TUSER_WIDTH   = 1;
-	parameter	TDATA_WIDTH   = 24;
-	parameter	X_WIDTH       = 12;
-	parameter	Y_WIDTH       = 12;
-	parameter	TIMER_WIDTH   = 32;
-	parameter	S_SLAVE_REGS  = 1;
-	parameter	S_MASTER_REGS = 1;
-	parameter	M_SLAVE_REGS  = 1;
-	parameter	M_MASTER_REGS = 1;
+	
+	parameter	WB_ADR_WIDTH       = 8;
+	parameter	WB_DAT_WIDTH       = 32;
+	parameter	WB_SEL_WIDTH       = (WB_DAT_WIDTH / 8);
+	
+	parameter	TUSER_WIDTH        = 1;
+	parameter	TDATA_WIDTH        = 24;
+	parameter	X_WIDTH            = 12;
+	parameter	Y_WIDTH            = 12;
+	parameter	TIMER_WIDTH        = 32;
+	parameter	S_SLAVE_REGS       = 1;
+	parameter	S_MASTER_REGS      = 1;
+	parameter	M_SLAVE_REGS       = 1;
+	parameter	M_MASTER_REGS      = 1;
+	
+	parameter	INIT_CTL_ENABLE    = 1;
+	parameter	INIT_PARAM_WIDTH   = X_NUM;
+	parameter	INIT_PARAM_HEIGHT  = Y_NUM;
+	parameter	INIT_PARAM_FILL    = 24'h00ff00;
+	parameter	INIT_PARAM_TIMEOUT = 64;
 	
 	wire						aresetn = ~reset;
 	wire						aclk    = clk;
 	reg							aclken  = 1;
 	
-	reg							param_enable  = 1;
-	reg		[X_WIDTH-1:0]		param_width   = X_NUM;
-	reg		[Y_WIDTH-1:0]		param_height  = Y_NUM;
-	reg		[TDATA_WIDTH-1:0]	param_fill    = 24'h00ff00;
-	reg		[TIMER_WIDTH-1:0]	param_timeout = 64;
+	wire						s_wb_rst_i = reset;
+	wire						s_wb_clk_i = clk;
+	wire	[WB_ADR_WIDTH-1:0]	s_wb_adr_i = 0;
+	wire	[WB_DAT_WIDTH-1:0]	s_wb_dat_i = 0;
+	wire	[WB_DAT_WIDTH-1:0]	s_wb_dat_o;
+	wire						s_wb_we_i  = 0;
+	wire	[WB_SEL_WIDTH-1:0]	s_wb_sel_i = 0;
+	wire						s_wb_stb_i = 0;
+	wire						s_wb_ack_o;
 	
 	wire	[TUSER_WIDTH-1:0]	s_axi4s_tuser;
 	wire						s_axi4s_tlast;
@@ -109,13 +131,17 @@ module tb_video_normalizer();
 				.m_axi4s_tlast		(s_axi4s_tlast),
 				.m_axi4s_tdata		(s_axi4s_tdata),
 				.m_axi4s_tvalid		(s_axi4s_tvalid),
-				.m_axi4s_tready		(s_axi4s_tready)
+				.m_axi4s_tready		(s_axi4s_tready & !timeout_busy)
 			);
 	
 	
 	// core
-	jelly_video_normalizer_core
+	jelly_video_normalizer
 			#(
+				.WB_ADR_WIDTH		(WB_ADR_WIDTH),
+				.WB_DAT_WIDTH		(WB_DAT_WIDTH),
+				.WB_SEL_WIDTH		(WB_SEL_WIDTH),
+				
 				.TUSER_WIDTH		(TUSER_WIDTH),
 				.TDATA_WIDTH		(TDATA_WIDTH),
 				.X_WIDTH			(X_WIDTH),
@@ -124,24 +150,34 @@ module tb_video_normalizer();
 				.S_SLAVE_REGS		(S_SLAVE_REGS),
 				.S_MASTER_REGS		(S_MASTER_REGS),
 				.M_SLAVE_REGS		(M_SLAVE_REGS),
-				.M_MASTER_REGS		(M_MASTER_REGS)
+				.M_MASTER_REGS		(M_MASTER_REGS),
+				
+				.INIT_CTL_ENABLE	(INIT_CTL_ENABLE),
+				.INIT_PARAM_WIDTH	(INIT_PARAM_WIDTH),
+				.INIT_PARAM_HEIGHT	(INIT_PARAM_HEIGHT),
+				.INIT_PARAM_FILL	(INIT_PARAM_FILL),
+				.INIT_PARAM_TIMEOUT	(INIT_PARAM_TIMEOUT)
 			)
-		i_video_normalizer_core
+		i_video_normalizer
 			(
 				.aresetn			(aresetn),
 				.aclk				(aclk),
 				.aclken				(aclken),
 				
-				.param_enable		(param_enable),
-				.param_width		(param_width),
-				.param_height		(param_height),
-				.param_fill			(param_fill),
-				.param_timeout		(param_timeout),
+				.s_wb_rst_i			(s_wb_rst_i),
+				.s_wb_clk_i			(s_wb_clk_i),
+				.s_wb_adr_i			(s_wb_adr_i),
+				.s_wb_dat_i			(s_wb_dat_i),
+				.s_wb_dat_o			(s_wb_dat_o),
+				.s_wb_we_i			(s_wb_we_i),
+				.s_wb_sel_i			(s_wb_sel_i),
+				.s_wb_stb_i			(s_wb_stb_i),
+				.s_wb_ack_o			(s_wb_ack_o),
 				
 				.s_axi4s_tuser		(s_axi4s_tuser),
 				.s_axi4s_tlast		(s_axi4s_tlast),
 				.s_axi4s_tdata		(s_axi4s_tdata),
-				.s_axi4s_tvalid		(s_axi4s_tvalid),
+				.s_axi4s_tvalid		(s_axi4s_tvalid & !timeout_busy),
 				.s_axi4s_tready		(s_axi4s_tready),
 				
 				.m_axi4s_tuser		(m_axi4s_tuser),

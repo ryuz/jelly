@@ -153,6 +153,7 @@ module jelly_csi2_rx_low_layer
 	reg		[15:0]	st1_crc;
 	reg		[15:0]	st1_crc_sum;
 	reg				st1_last;
+	reg				st1_end;
 	reg		[7:0]	st1_data;
 	reg				st1_valid;
 	reg				st1_req_sync;
@@ -170,6 +171,7 @@ module jelly_csi2_rx_low_layer
 			st1_crc_sum     <= 16'hxxxx;
 			st1_data        <= 8'hxx;
 			st1_last        <= 1'bx;
+			st1_end         <= 1'bx;
 			st1_valid       <= 1'b0;
 			st1_req_sync    <= 1'b0;
 			st1_frame_start <= 1'b0;
@@ -183,6 +185,7 @@ module jelly_csi2_rx_low_layer
 			st1_crc_error   <= 1'b0;
 			st1_data        <= st0_data;
 			st1_last        <= 1'b0;
+			st1_end         <= 1'b0;
 			st1_valid       <= 1'b0;
 			
 			if ( st0_valid ) begin
@@ -219,6 +222,7 @@ module jelly_csi2_rx_low_layer
 							
 							if ( st1_counter == st1_wc ) begin
 								st1_state <= ST1_CRC0;
+								st1_last  <= 1'b1;
 							end
 						end
 					
@@ -233,7 +237,7 @@ module jelly_csi2_rx_low_layer
 						begin
 							st1_state     <= ST1_IDLE;
 							st1_crc[15:8] <= st0_data;
-							st1_last      <= 1'b1;
+							st1_end       <= 1'b1;
 							st1_req_sync  <= 1'b1;
 						end
 					
@@ -248,7 +252,7 @@ module jelly_csi2_rx_low_layer
 				end
 			end
 			
-			st1_crc_error <= st1_last && (st1_crc_sum != st1_crc);
+			st1_crc_error <= st1_end && (st1_crc_sum != st1_crc);
 		end
 	end
 	

@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- the soft-core processor system
-//   math
+//
 //
 //                                 Copyright (C) 2008-2018 by Ryuji Fuchikami
 //                                 http://ryuz.my.coocan.jp/
@@ -29,7 +29,9 @@ module jelly_video_normalizer_core
 			input	wire						aclk,
 			input	wire						aclken,
 			
-			input	wire						param_enable,
+			input	wire						ctl_enable,
+			output	wire						ctl_busy,
+			
 			input	wire	[X_WIDTH-1:0]		param_width,
 			input	wire	[Y_WIDTH-1:0]		param_height,
 			input	wire	[TDATA_WIDTH-1:0]	param_fill,
@@ -108,10 +110,10 @@ module jelly_video_normalizer_core
 	reg							reg_tvalid;
 	wire						sig_tready;
 	
-	wire						sig_valid = (!reg_busy && (in_tuser[0] && in_tvalid && param_enable))
+	wire						sig_valid = (!reg_busy && (in_tuser[0] && in_tvalid && ctl_enable))
 												|| (reg_busy && ((!reg_skip && in_tvalid && in_tready) || (reg_fill_h || reg_fill_v)));
 	
-	assign in_tready = cke && ((!reg_busy && (~in_tuser[0] || param_enable)) || (reg_busy && ((~in_tuser[0] && !reg_fill_h) || reg_skip)));
+	assign in_tready = cke && ((!reg_busy && (~in_tuser[0] || ctl_enable)) || (reg_busy && ((~in_tuser[0] && !reg_fill_h) || reg_skip)));
 	
 	assign cke = aclken && (!reg_tvalid || sig_tready);
 	
@@ -164,7 +166,7 @@ module jelly_video_normalizer_core
 			
 			// timer
 			reg_timer <= reg_timer + 1;
-			if ( reg_timer == reg_param_timeout ) begin
+			if ( reg_param_timeout != 0 && reg_timer == reg_param_timeout ) begin
 				reg_timeout <= 1'b1;
 			end
 			if ( !reg_busy || in_tvalid ) begin
@@ -192,7 +194,7 @@ module jelly_video_normalizer_core
 				reg_param_fill    <= {TDATA_WIDTH{1'bx}};
 				reg_param_timeout <= {TIMER_WIDTH{1'bx}};
 				
-				if ( (in_tuser[0] && in_tvalid) && param_enable ) begin
+				if ( (in_tuser[0] && in_tvalid) && ctl_enable ) begin
 					// start
 					reg_busy          <= 1'b1;
 					reg_skip          <= 1'b0;
@@ -230,6 +232,7 @@ module jelly_video_normalizer_core
 		end
 	end
 	
+	assign ctl_busy = reg_busy;
 	
 	
 	// output FF

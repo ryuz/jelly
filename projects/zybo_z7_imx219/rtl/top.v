@@ -6,6 +6,10 @@
 
 
 module top
+		#(
+			parameter	X_NUM = 3280 / 2,
+			parameter	Y_NUM = 2464 / 2
+		)
 		(
 			input	wire			in_clk125,
 			
@@ -549,9 +553,17 @@ module top
 	(* MARK_DEBUG = "true" *)	wire			axi4s_memw_tvalid;
 	(* MARK_DEBUG = "true" *)	wire			axi4s_memw_tready;
 	
-		// core
-	jelly_video_normalizer_core
+	
+	// core
+	wire	[31:0]			wb_norm_dat_o;
+	wire					wb_norm_stb_i;
+	wire					wb_norm_ack_o;
+	
+	jelly_video_normalizer
 			#(
+				.WB_ADR_WIDTH		(8),
+				.WB_DAT_WIDTH		(32),
+				
 				.TUSER_WIDTH		(1),
 				.TDATA_WIDTH		(10),
 				.X_WIDTH			(12),
@@ -560,19 +572,29 @@ module top
 				.S_SLAVE_REGS		(1),
 				.S_MASTER_REGS		(1),
 				.M_SLAVE_REGS		(1),
-				.M_MASTER_REGS		(1)
+				.M_MASTER_REGS		(1),
+				
+				.INIT_CTL_ENABLE	(1),
+				.INIT_PARAM_WIDTH	(X_NUM),
+				.INIT_PARAM_HEIGHT	(Y_NUM),
+				.INIT_PARAM_FILL	(10'd0),
+				.INIT_PARAM_TIMEOUT	(32'h00010000)
 			)
-		i_video_normalizer_core
+		i_video_normalizer
 			(
 				.aresetn			(~sys_reset),
 				.aclk				(sys_clk200),
 				.aclken				(1'b1),
-				
-				.param_enable		(1'b1),
-				.param_width		(1640),
-				.param_height		(1232),
-				.param_fill			(10'd0),
-				.param_timeout		(32'h00100000),
+
+				.s_wb_rst_i			(wb_rst_o),
+				.s_wb_clk_i			(wb_clk_o),
+				.s_wb_adr_i			(wb_host_adr_o[7:0]),
+				.s_wb_dat_o			(wb_norm_dat_o),
+				.s_wb_dat_i			(wb_host_dat_o),
+				.s_wb_we_i			(wb_host_we_o),
+				.s_wb_sel_i			(wb_host_sel_o),
+				.s_wb_stb_i			(wb_norm_stb_i),
+				.s_wb_ack_o			(wb_norm_ack_o),
 				
 				.s_axi4s_tuser		(axi4s_csi2_tuser),
 				.s_axi4s_tlast		(axi4s_csi2_tlast),
@@ -602,7 +624,7 @@ module top
 				.AXI4_ID_WIDTH		(6),
 				.AXI4_ADDR_WIDTH	(32),
 				.AXI4_DATA_SIZE		(3),	// 64bit
-				.AXI4S_DATA_SIZE	(2),	// 32bit
+				.AXI4S_DATA_SIZE	(1),	// 32bit
 				.AXI4S_USER_WIDTH	(1),
 				.INDEX_WIDTH		(8),
 				.STRIDE_WIDTH		(14),
@@ -613,11 +635,11 @@ module top
 				.WB_ADR_WIDTH		(8),
 				.WB_DAT_WIDTH		(32),
 				.INIT_CTL_CONTROL	(2'b00),
-				.INIT_PARAM_ADDR	(32'h1800_0000),
-				.INIT_PARAM_STRIDE	(4096),
-				.INIT_PARAM_WIDTH	(1024),
-				.INIT_PARAM_HEIGHT	(1024),
-				.INIT_PARAM_SIZE	(16*1024*1024),
+				.INIT_PARAM_ADDR	(32'h3000_0000),
+				.INIT_PARAM_STRIDE	(X_NUM*2),
+				.INIT_PARAM_WIDTH	(X_NUM),
+				.INIT_PARAM_HEIGHT	(Y_NUM),
+				.INIT_PARAM_SIZE	(X_NUM*Y_NUM),
 				.INIT_PARAM_AWLEN	(7)
 			)
 		i_vdma_axi4s_to_axi4
@@ -872,15 +894,17 @@ module top
 	
 	assign wb_gid_stb_i   = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4000_0);
 	assign wb_vdmaw_stb_i = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_0);
+	assign wb_norm_stb_i  = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_1);
 	
 	assign wb_host_dat_i  = wb_gid_stb_i   ? wb_gid_dat_o   :
 	                        wb_vdmaw_stb_i ? wb_vdmaw_dat_o :
+	                        wb_norm_stb_i  ? wb_norm_dat_o  :
 	                        32'h0000_0000;
 	
 	assign wb_host_ack_i  = wb_gid_stb_i   ? wb_gid_ack_o   :
 	                        wb_vdmaw_stb_i ? wb_vdmaw_ack_o :
+	                        wb_norm_stb_i  ? wb_norm_ack_o  :
 	                        wb_host_stb_o;
-	
 	
 	
 	
