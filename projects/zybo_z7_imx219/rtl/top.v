@@ -507,6 +507,171 @@ module top
 	*/
 	
 	
+	
+	// ----------------------------------------
+	//  video DMA write
+	// ----------------------------------------
+	
+	(* MARK_DEBUG = "true" *)	wire	[0:0]	axi4s_csi2_tuser;
+	(* MARK_DEBUG = "true" *)	wire			axi4s_csi2_tlast;
+	(* MARK_DEBUG = "true" *)	wire	[9:0]	axi4s_csi2_tdata;
+	(* MARK_DEBUG = "true" *)	wire			axi4s_csi2_tvalid;
+	(* MARK_DEBUG = "true" *)	wire			axi4s_csi2_tready;
+	
+	jelly_csi2_rx
+			#(
+				.LANE_NUM			(2),
+				.DATA_WIDTH			(10)
+			)
+		i_csi2_rx
+			(
+				.rxreseths			(system_rst_out),
+				.rxbyteclkhs		(rxbyteclkhs),
+				.rxdatahs			({dl1_rxdatahs,   dl0_rxdatahs  }),
+				.rxvalidhs			({dl1_rxvalidhs,  dl0_rxvalidhs }),
+				.rxactivehs			({dl1_rxactivehs, dl0_rxactivehs}),
+				.rxsynchs			({dl1_rxsynchs,   dl0_rxsynchs  }),
+				
+				.aresetn			(~sys_reset),
+				.aclk				(sys_clk200),
+				.m_axi4s_tuser		(axi4s_csi2_tuser),
+				.m_axi4s_tlast		(axi4s_csi2_tlast),
+				.m_axi4s_tdata		(axi4s_csi2_tdata),
+				.m_axi4s_tvalid		(axi4s_csi2_tvalid),
+				.m_axi4s_tready		(axi4s_csi2_tready)
+			);
+	
+	
+	// normalize
+	(* MARK_DEBUG = "true" *)	wire	[0:0]	axi4s_memw_tuser;
+	(* MARK_DEBUG = "true" *)	wire			axi4s_memw_tlast;
+	(* MARK_DEBUG = "true" *)	wire	[9:0]	axi4s_memw_tdata;
+	(* MARK_DEBUG = "true" *)	wire			axi4s_memw_tvalid;
+	(* MARK_DEBUG = "true" *)	wire			axi4s_memw_tready;
+	
+		// core
+	jelly_video_normalizer_core
+			#(
+				.TUSER_WIDTH		(1),
+				.TDATA_WIDTH		(10),
+				.X_WIDTH			(12),
+				.Y_WIDTH			(12),
+				.TIMER_WIDTH		(32),
+				.S_SLAVE_REGS		(1),
+				.S_MASTER_REGS		(1),
+				.M_SLAVE_REGS		(1),
+				.M_MASTER_REGS		(1)
+			)
+		i_video_normalizer_core
+			(
+				.aresetn			(~sys_reset),
+				.aclk				(sys_clk200),
+				.aclken				(1'b1),
+				
+				.param_enable		(1'b1),
+				.param_width		(1640),
+				.param_height		(1232),
+				.param_fill			(10'd0),
+				.param_timeout		(32'h00100000),
+				
+				.s_axi4s_tuser		(axi4s_csi2_tuser),
+				.s_axi4s_tlast		(axi4s_csi2_tlast),
+				.s_axi4s_tdata		(axi4s_csi2_tdata),
+				.s_axi4s_tvalid		(axi4s_csi2_tvalid),
+				.s_axi4s_tready		(axi4s_csi2_tready),
+				
+				.m_axi4s_tuser		(axi4s_memw_tuser),
+				.m_axi4s_tlast		(axi4s_memw_tlast),
+				.m_axi4s_tdata		(axi4s_memw_tdata),
+				.m_axi4s_tvalid		(axi4s_memw_tvalid),
+				.m_axi4s_tready		(axi4s_memw_tready)
+			);
+	
+	
+	// DMA write
+	wire	[31:0]			wb_vdmaw_dat_o;
+	wire					wb_vdmaw_stb_i;
+	wire					wb_vdmaw_ack_o;
+	
+	jelly_vdma_axi4s_to_axi4
+			#(
+				.ASYNC				(1),
+				.FIFO_PTR_WIDTH		(10),
+				
+				.PIXEL_SIZE			(1),	// 16bit
+				.AXI4_ID_WIDTH		(6),
+				.AXI4_ADDR_WIDTH	(32),
+				.AXI4_DATA_SIZE		(3),	// 64bit
+				.AXI4S_DATA_SIZE	(2),	// 32bit
+				.AXI4S_USER_WIDTH	(1),
+				.INDEX_WIDTH		(8),
+				.STRIDE_WIDTH		(14),
+				.H_WIDTH			(12),
+				.V_WIDTH			(12),
+				.SIZE_WIDTH			(32),
+				
+				.WB_ADR_WIDTH		(8),
+				.WB_DAT_WIDTH		(32),
+				.INIT_CTL_CONTROL	(2'b00),
+				.INIT_PARAM_ADDR	(32'h1800_0000),
+				.INIT_PARAM_STRIDE	(4096),
+				.INIT_PARAM_WIDTH	(1024),
+				.INIT_PARAM_HEIGHT	(1024),
+				.INIT_PARAM_SIZE	(16*1024*1024),
+				.INIT_PARAM_AWLEN	(7)
+			)
+		i_vdma_axi4s_to_axi4
+			(
+				.m_axi4_aresetn		(axi4_mem_aresetn),
+				.m_axi4_aclk		(axi4_mem_aclk),
+				.m_axi4_awid		(axi4_mem0_awid),
+				.m_axi4_awaddr		(axi4_mem0_awaddr),
+				.m_axi4_awburst		(axi4_mem0_awburst),
+				.m_axi4_awcache		(axi4_mem0_awcache),
+				.m_axi4_awlen		(axi4_mem0_awlen),
+				.m_axi4_awlock		(axi4_mem0_awlock),
+				.m_axi4_awprot		(axi4_mem0_awprot),
+				.m_axi4_awqos		(axi4_mem0_awqos),
+				.m_axi4_awregion	(),
+				.m_axi4_awsize		(axi4_mem0_awsize),
+				.m_axi4_awvalid		(axi4_mem0_awvalid),
+				.m_axi4_awready		(axi4_mem0_awready),
+				.m_axi4_wstrb		(axi4_mem0_wstrb),
+				.m_axi4_wdata		(axi4_mem0_wdata),
+				.m_axi4_wlast		(axi4_mem0_wlast),
+				.m_axi4_wvalid		(axi4_mem0_wvalid),
+				.m_axi4_wready		(axi4_mem0_wready),
+				.m_axi4_bid			(axi4_mem0_bid),
+				.m_axi4_bresp		(axi4_mem0_bresp),
+				.m_axi4_bvalid		(axi4_mem0_bvalid),
+				.m_axi4_bready		(axi4_mem0_bready),
+				
+				.s_axi4s_aresetn	(~sys_reset),
+				.s_axi4s_aclk		(sys_clk200),
+				.s_axi4s_tuser		(axi4s_memw_tuser),
+				.s_axi4s_tlast		(axi4s_memw_tlast),
+				.s_axi4s_tdata		({axi4s_memw_tdata, 6'd0}),
+				.s_axi4s_tvalid		(axi4s_memw_tvalid),
+				.s_axi4s_tready		(axi4s_memw_tready),
+				
+				.s_wb_rst_i			(wb_rst_o),
+				.s_wb_clk_i			(wb_clk_o),
+				.s_wb_adr_i			(wb_host_adr_o[7:0]),
+				.s_wb_dat_o			(wb_vdmaw_dat_o),
+				.s_wb_dat_i			(wb_host_dat_o),
+				.s_wb_we_i			(wb_host_we_o),
+				.s_wb_sel_i			(wb_host_sel_o),
+				.s_wb_stb_i			(wb_vdmaw_stb_i),
+				.s_wb_ack_o			(wb_vdmaw_ack_o)
+			);
+	
+	
+	
+	
+	// ----------------------------------------
+	//  単純ダンプ
+	// ----------------------------------------
+	/*
 	// FIFO
 	(* MARK_DEBUG = "true" *)	wire	[7:0]		fifo_dl0_rxdatahs;
 	(* MARK_DEBUG = "true" *)	wire				fifo_dl0_rxvalidhs;
@@ -574,11 +739,6 @@ module top
 				.m_data_count		()
 			);
 	
-	
-	
-	// ----------------------------------------
-	//  DMA write
-	// ----------------------------------------
 	
 	(* MARK_DEBUG = "true" *)	wire	[0:0]			axi4s_memw_tuser;
 	(* MARK_DEBUG = "true" *)	wire					axi4s_memw_tlast;
@@ -685,82 +845,10 @@ module top
 				.s_axi4s_tvalid		(axi4s_memw_tvalid),
 				.s_axi4s_tready		(axi4s_memw_tready)
 			);
-	
-	
-	
-	/*
-	jelly_vdma_axi4s_to_axi4
-			#(
-				.ASYNC				(1),
-				.FIFO_PTR_WIDTH		(10),
-				
-				.PIXEL_SIZE			(2),	// 32bit
-				.AXI4_ID_WIDTH		(6),
-				.AXI4_ADDR_WIDTH	(32),
-				.AXI4_DATA_SIZE		(3),	// 64bit
-				.AXI4S_DATA_SIZE	(2),	// 32bit
-				.AXI4S_USER_WIDTH	(1),
-				.INDEX_WIDTH		(8),
-				.STRIDE_WIDTH		(14),
-				.H_WIDTH			(12),
-				.V_WIDTH			(12),
-				.SIZE_WIDTH			(32),
-				
-				.WB_ADR_WIDTH		(8),
-				.WB_DAT_WIDTH		(32),
-				.INIT_CTL_CONTROL	(2'b00),
-				.INIT_PARAM_ADDR	(32'h1800_0000),
-				.INIT_PARAM_STRIDE	(4096),
-				.INIT_PARAM_WIDTH	(1024),
-				.INIT_PARAM_HEIGHT	(1024),
-				.INIT_PARAM_SIZE	(16*1024*1024),
-				.INIT_PARAM_AWLEN	(7)
-			)
-		i_vdma_axi4s_to_axi4
-			(
-				.m_axi4_aresetn		(axi4_mem_aresetn),
-				.m_axi4_aclk		(axi4_mem_aclk),
-				.m_axi4_awid		(axi4_mem0_awid),
-				.m_axi4_awaddr		(axi4_mem0_awaddr),
-				.m_axi4_awburst		(axi4_mem0_awburst),
-				.m_axi4_awcache		(axi4_mem0_awcache),
-				.m_axi4_awlen		(axi4_mem0_awlen),
-				.m_axi4_awlock		(axi4_mem0_awlock),
-				.m_axi4_awprot		(axi4_mem0_awprot),
-				.m_axi4_awqos		(axi4_mem0_awqos),
-				.m_axi4_awregion	(),
-				.m_axi4_awsize		(axi4_mem0_awsize),
-				.m_axi4_awvalid		(axi4_mem0_awvalid),
-				.m_axi4_awready		(axi4_mem0_awready),
-				.m_axi4_wstrb		(axi4_mem0_wstrb),
-				.m_axi4_wdata		(axi4_mem0_wdata),
-				.m_axi4_wlast		(axi4_mem0_wlast),
-				.m_axi4_wvalid		(axi4_mem0_wvalid),
-				.m_axi4_wready		(axi4_mem0_wready),
-				.m_axi4_bid			(axi4_mem0_bid),
-				.m_axi4_bresp		(axi4_mem0_bresp),
-				.m_axi4_bvalid		(axi4_mem0_bvalid),
-				.m_axi4_bready		(axi4_mem0_bready),
-				
-				.s_axi4s_aresetn	(~sys_reset),
-				.s_axi4s_aclk		(sys_clk200),
-				.s_axi4s_tuser		(axi4s_memw_tuser),
-				.s_axi4s_tlast		(axi4s_memw_tlast),
-				.s_axi4s_tdata		(axi4s_memw_tdata),
-				.s_axi4s_tvalid		(axi4s_memw_tvalid),
-				.s_axi4s_tready		(axi4s_memw_tready),
-				
-				.s_wb_rst_i			(wb_rst_o),
-				.s_wb_clk_i			(wb_clk_o),
-				.s_wb_adr_i			(wb_host_adr_o[7:0]),
-				.s_wb_dat_o			(wb_vdmaw_dat_o),
-				.s_wb_dat_i			(wb_host_dat_o),
-				.s_wb_we_i			(wb_host_we_o),
-				.s_wb_sel_i			(wb_host_sel_o),
-				.s_wb_stb_i			(wb_vdmaw_stb_i),
-				.s_wb_ack_o			(wb_vdmaw_ack_o)
-			);
 	*/
+	
+	
+	
 	
 	// read は未使用
 	assign axi4_mem0_arid     = 0;

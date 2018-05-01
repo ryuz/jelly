@@ -45,6 +45,9 @@ module jelly_csi2_rx
 	wire						marge_tready;
 	
 	wire						request_sync;
+	wire						frame_start;
+	wire						frame_end;
+	wire						crc_error;
 	
 	jelly_csi2_rx_lane_merging
 			#(
@@ -85,9 +88,9 @@ module jelly_csi2_rx
 				.param_data_type	(8'h2b),
 				
 				.out_request_sync	(request_sync),
-				.out_frame_start	(),
-				.out_frame_end		(),
-				.out_crc_error		(),
+				.out_frame_start	(frame_start),
+				.out_frame_end		(frame_end),
+				.out_crc_error		(crc_error),
 				
 				.s_axi4s_tuser		(marge_tuser),
 				.s_axi4s_tdata		(marge_tdata),
@@ -100,6 +103,21 @@ module jelly_csi2_rx
 				.m_axi4s_tready		(low_tready)
 			);
 	
+	reg			reg_tuser;
+	always @(posedge aclk) begin
+		if ( ~aresetn ) begin
+			reg_tuser <= 1'b1;
+		end
+		else begin
+			if ( frame_start || frame_end ) begin
+				reg_tuser <= 1'b1;
+			end
+			
+			if ( low_tvalid && low_tready ) begin
+				reg_tuser <= 1'b0;
+			end
+		end
+	end
 	
 	jelly_csi2_rx_raw10
 			#(
@@ -111,7 +129,7 @@ module jelly_csi2_rx
 				.aresetn			(aresetn),
 				.aclk				(aclk),
 				
-				.s_axi4s_tuser		(0),
+				.s_axi4s_tuser		(reg_tuser),
 				.s_axi4s_tlast		(low_tlast),
 				.s_axi4s_tdata		(low_tdata),
 				.s_axi4s_tvalid		(low_tvalid),
