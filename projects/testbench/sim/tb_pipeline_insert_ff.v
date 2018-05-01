@@ -36,7 +36,7 @@ module tb_pipeline_insert_ff();
 			#(
 				.DATA_WIDTH		(DATA_WIDTH),
 				.SLAVE_REGS		(1),
-				.MASTER_REGS	(0)
+				.MASTER_REGS	(1)
 			)
 		i_pipeline_insert_ff
 			(

@@ -83,155 +83,156 @@ module jelly_video_normalizer_core
 	
 	wire						cke;
 	
-	reg		[X_WIDTH-1:0]		st0_param_width;
-	reg		[Y_WIDTH-1:0]		st0_param_height;
-	reg		[TDATA_WIDTH-1:0]	st0_param_fill;
-	reg		[TIMER_WIDTH-1:0]	st0_param_timeout;
+	reg		[X_WIDTH-1:0]		reg_param_width;
+	reg		[Y_WIDTH-1:0]		reg_param_height;
+	reg		[TDATA_WIDTH-1:0]	reg_param_fill;
+	reg		[TIMER_WIDTH-1:0]	reg_param_timeout;
 	
-	localparam	[1:0]	ST_IDLE = 0, ST_BYPASS = 1, ST_FILL = 2, ST_SKIP = 3;
+	reg							reg_busy;
+	reg							reg_fill_h;
+	reg							reg_fill_v;
+	reg							reg_skip;
 	
-	reg							st0_state;
-	reg							st0_skip;
-	reg							st0_timeout;
-	reg		[TIMER_WIDTH-1:0]	st0_timer;
-	reg		[X_WIDTH-1:0]		st0_x;
-	reg		[Y_WIDTH-1:0]		st0_y;
-	wire						st0_x_last = (st0_x == st0_param_width);
-	wire						st0_y_last = (st0_y == st0_param_height);
+	reg							reg_timeout;
+	reg		[TIMER_WIDTH-1:0]	reg_timer;
+	reg		[X_WIDTH-1:0]		reg_x;
+	reg		[Y_WIDTH-1:0]		reg_y;
+	wire						sig_x_first = (reg_x == 0);
+	wire						sig_y_first = (reg_y == 0);
+	wire						sig_x_last  = (reg_x == reg_param_width);
+	wire						sig_y_last  = (reg_y == reg_param_height);
 	
-	reg		[TUSER_WIDTH-1:0]	st0_tuser;
-	reg							st0_tlast;
-	reg		[TDATA_WIDTH-1:0]	st0_tdata;
-	reg							st0_tvalid;
-	wire						st0_tready;
+	reg		[TUSER_WIDTH-1:0]	reg_tuser;
+	reg							reg_tlast;
+	reg		[TDATA_WIDTH-1:0]	reg_tdata;
+	reg							reg_tvalid;
+	wire						sig_tready;
+	
+	wire						sig_valid = (!reg_busy && (in_tuser[0] && in_tvalid && param_enable))
+												|| (reg_busy && ((!reg_skip && in_tvalid && in_tready) || (reg_fill_h || reg_fill_v)));
+	
+	assign in_tready = cke && ((!reg_busy && (~in_tuser[0] || param_enable)) || (reg_busy && ((~in_tuser[0] && !reg_fill_h) || reg_skip)));
+	
+	assign cke = aclken && (!reg_tvalid || sig_tready);
+	
 	
 	always @(posedge aclk) begin
 		if ( ~aresetn ) begin
-			st0_param_width   <= {X_WIDTH{1'bx}};
-			st0_param_height  <= {Y_WIDTH{1'bx}};
-			st0_param_fill    <= {TDATA_WIDTH{1'bx}};
-			st0_param_timeout <= {TIMER_WIDTH{1'bx}};
+			reg_param_width   <= {X_WIDTH{1'bx}};
+			reg_param_height  <= {Y_WIDTH{1'bx}};
+			reg_param_fill    <= {TDATA_WIDTH{1'bx}};
+			reg_param_timeout <= {TIMER_WIDTH{1'bx}};
 			
-			st0_state         <= ST_IDLE;
-			st0_timeout       <= 1'b0;
-			st0_timer         <= {TIMER_WIDTH{1'bx}};
-			st0_x             <= {X_WIDTH{1'bx}};
-			st0_y             <= {Y_WIDTH{1'bx}};
+			reg_busy          <= 1'b0;
+			reg_fill_h        <= 1'bx;
+			reg_fill_v        <= 1'bx;
+			reg_skip          <= 1'bx;
+			reg_timeout       <= 1'bx;
+			reg_timer         <= {TIMER_WIDTH{1'bx}};
+			reg_x             <= {X_WIDTH{1'bx}};
+			reg_y             <= {Y_WIDTH{1'bx}};
 			
-			st0_tuser         <= {TUSER_WIDTH{1'bx}};
-			st0_tlast         <= 1'bx;
-			st0_tdata         <= {TDATA_WIDTH{1'bx}};
-			st0_tvalid        <= 1'b0;
+			reg_tuser         <= {TUSER_WIDTH{1'bx}};
+			reg_tlast         <= 1'bx;
+			reg_tdata         <= {TDATA_WIDTH{1'bx}};
+			reg_tvalid        <= 1'b0;
 		end
 		else if ( cke ) begin
+			// skip
+			if ( (sig_x_last && sig_valid) && !reg_fill_h ) begin
+				reg_skip <= 1'b1;
+			end
+			if ( in_tlast && in_tvalid ) begin
+				reg_skip <= 1'b0;
+			end
+			
+			// fill_h
+			if ( !reg_skip && (in_tlast && in_tvalid) ) begin
+				reg_fill_h <= 1'b1;
+			end
+			if ( sig_x_last && sig_valid ) begin
+				reg_fill_h <= 1'b0;
+			end
+			
+			// fill_v
+			if ( reg_busy && (in_tuser[0] && in_tvalid) ) begin
+				reg_fill_v <= 1'b1;
+			end
+			if ( sig_x_last && sig_y_last && sig_valid) begin
+				reg_fill_v <= 1'b0;
+			end
+			
+			// timer
+			reg_timer <= reg_timer + 1;
+			if ( reg_timer == reg_param_timeout ) begin
+				reg_timeout <= 1'b1;
+			end
+			if ( !reg_busy || in_tvalid ) begin
+				reg_timer   <= {TIMER_WIDTH{1'b0}};
+				reg_timeout <= 1'b0;
+			end
+			
+			if ( reg_timeout ) begin
+				reg_skip   <= 1'b1;
+				reg_fill_h <= 1'b1;
+				reg_fill_v <= 1'b1;
+			end
+			
+			
+			// control
+			if ( !reg_busy ) begin
+				reg_skip    <= 1'b1;
+				reg_fill_h  <= 1'b0;
+				reg_fill_v  <= 1'b0;
+				reg_x       <= {X_WIDTH{1'b0}};
+				reg_y       <= {Y_WIDTH{1'b0}};
+				
+				reg_param_width   <= {X_WIDTH{1'bx}};
+				reg_param_height  <= {Y_WIDTH{1'bx}};
+				reg_param_fill    <= {TDATA_WIDTH{1'bx}};
+				reg_param_timeout <= {TIMER_WIDTH{1'bx}};
+				
+				if ( (in_tuser[0] && in_tvalid) && param_enable ) begin
+					// start
+					reg_busy          <= 1'b1;
+					reg_skip          <= 1'b0;
+					
+					reg_param_width   <= param_width  - 1;
+					reg_param_height  <= param_height - 1;
+					reg_param_fill    <= param_fill;
+					reg_param_timeout <= param_timeout;
+				end
+			end
+			else begin
+				if ( sig_x_last && sig_y_last && sig_valid ) begin
+					reg_busy <= 1'b0;
+				end
+			end
+			
 			// x-y count
-			if ( st0_tvalid ) begin
-				st0_x <= st0_x + 1'b1;
-				if ( st0_x_last ) begin
-					st0_x <= {X_WIDTH{1'b0}};
-					st0_y <= st0_y + 1'b1;
-					if ( st0_y_last ) begin
-						st0_y <= {Y_WIDTH{1'b0}};
+			if ( sig_valid ) begin
+				reg_x <= reg_x + 1'b1;
+				if ( sig_x_last ) begin
+					reg_x <= {X_WIDTH{1'b0}};
+					reg_y <= reg_y + 1'b1;
+					if ( sig_y_last ) begin
+						reg_y <= {Y_WIDTH{1'b0}};
 					end
 				end
 			end
 			
-			case ( st0_state )
-			ST_IDLE:
-				begin
-					st0_param_width   <= {X_WIDTH{1'bx}};
-					st0_param_height  <= {Y_WIDTH{1'bx}};
-					st0_param_timeout <= {TIMER_WIDTH{1'bx}};
-					
-					st0_busy          <= 1'b0;
-					st0_timeout       <= 1'b0;
-					st0_timer         <= {TIMER_WIDTH{1'bx}};
-					st0_x             <= {X_WIDTH{1'bx}};
-					st0_y             <= {Y_WIDTH{1'bx}};
-					
-					st0_tuser         <= {TUSER_WIDTH{1'bx}};
-					st0_tlast         <= 1'bx;
-					st0_tdata         <= {TDATA_WIDTH{1'bx}};
-					st0_tvalid        <= 1'b0;
-					
-					if ( in_tuser[0] && in_tvalid && param_enable ) begin
-						// start
-						st0_param_width   <= param_width  - 1;
-						st0_param_height  <= param_height - 1;
-						st0_param_fill    <= param_fill;
-						st0_param_timeout <= param_timeout;
-						
-						st0_busy   <= 1'b1;
-						st0_timer  <= {TIMER_WIDTH{1'b0}};
-						st0_x      <= {X_WIDTH{1'b0}};
-						st0_y      <= {Y_WIDTH{1'b0}};
-						
-						st0_tuser  <= in_tuser;
-						st0_tlast  <= in_tlast;
-						st0_tdata  <= in_tdata;
-						st0_tvalid <= in_tvalid;
-					end
-				end
 			
-			ST_BYPASS:
-				begin
-					st0_tuser  <= in_tuser;
-					st0_tlast  <= in_tlast;
-					st0_tdata  <= in_tdata;
-					st0_tvalid <= in_tvalid;
-					
-					if ( st0_x_last && !st0_tlast ) begin
-						st0_state  <= ST_SKIP;
-						st0_tvalid <= 1'b0;
-					end
-					
-					if ( st0_tlast && !st0_x_last ) begin
-						st0_state  <= ST_SKIP;
-						st0_tvalid <= 1'b0;
-					end
-					
-				
-				// timer
-				st0_timer <= st0_timer + 1;
-				if ( in_tvalid ) begin
-					st0_timer <= {TIMER_WIDTH{1'b0}};
-				end
-				if ( st0_timer == st0_param_timeout ) begin
-					st0_timeout <= 1'b1;
-				end
-				
-				// normalize
-				if ( st0_tvalid ) begin
-					if ( st0_x_last && !st0_tlast ) begin
-						st0_tvalid <= 1'b0;		// skip (wait for line end)
-					end
-					
-					if ( (st0_tlast && !st0_x_last) || st0_timeout ) begin
-						st0_tlast  <= 1'b1;
-						st0_tdata  <= st0_param_fill;
-						st0_tvalid <= 1'b1;
-					end
-				end
-			end
-			
-			if ( st0_x_last && st0_y_last ) begin
-				st0_busy   <= 1'b0;
-				st0_tuser  <= {TUSER_WIDTH{1'bx}};
-				st0_tlast  <= 1'bx;
-				st0_tdata  <= {TDATA_WIDTH{1'bx}};
-				st0_tvalid <= 1'b0;
-			end
+			// data
+			reg_tuser  <= sig_x_first && sig_y_first;
+			reg_tlast  <= sig_x_last;
+			reg_tdata  <= reg_fill_h || reg_fill_v ? reg_param_fill : in_tdata;
+			reg_tvalid <= sig_valid;
 		end
 	end
 	
-	assign in_tready = cke && ((!st0_busy && in_tuser[0] && in_tvalid && param_enable)
-								|| (st0_busy && !st0_tlast || (st0_x_last && !st0_y_last)));
-	
-	assign cke = !st0_tvalid || st0_tready;
 	
 	
 	// output FF
-
 	jelly_pipeline_insert_ff
 			#(
 				.DATA_WIDTH		(TUSER_WIDTH + 1 + TDATA_WIDTH),
@@ -244,9 +245,9 @@ module jelly_video_normalizer_core
 				.clk			(aclk),
 				.cke			(aclken),
 				
-				.s_data			({st0_tuser, st0_x_last, st0_tdata}),
-				.s_valid		(st0_tvalid),
-				.s_ready		(st0_tready),
+				.s_data			({reg_tuser, reg_tlast, reg_tdata}),
+				.s_valid		(reg_tvalid),
+				.s_ready		(sig_tready),
 				
 				.m_data			({m_axi4s_tuser, m_axi4s_tlast, m_axi4s_tdata}),
 				.m_valid		(m_axi4s_tvalid),
@@ -271,10 +272,10 @@ module jelly_video_normalizer_core
 			st1_tvalid <= 1'b0;
 		end
 		else if ( cke ) begin
-			st1_tuser  <= st0_tuser;
-			st1_tlast  <= st0_x_last;
-			st1_tdata  <= st0_tdata;
-			st1_tvalid <= st0_tvalid;
+			st1_tuser  <= reg_tuser;
+			st1_tlast  <= reg_x_last;
+			st1_tdata  <= reg_tdata;
+			st1_tvalid <= reg_tvalid;
 		end
 	end
 	*/

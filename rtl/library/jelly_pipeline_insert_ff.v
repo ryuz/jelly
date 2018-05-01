@@ -47,7 +47,7 @@ module jelly_pipeline_insert_ff
 	
 	// slave port
 	generate
-	if ( SLAVE_REGS ) begin
+	if ( SLAVE_REGS ) begin : blk_slave
 		reg							reg_s_ready,   next_s_ready;
 		reg		[DATA_WIDTH-1:0]	reg_buf_data,  next_buf_data;
 		reg							reg_buf_valid, next_buf_valid;
@@ -86,7 +86,7 @@ module jelly_pipeline_insert_ff
 			end
 		end
 		assign internal_data   = reg_buf_valid ? reg_buf_data : s_data;
-		assign internal_valid  = reg_buf_valid ? 1'b1         : s_valid;
+		assign internal_valid  = reg_buf_valid ? 1'b1         : s_valid & reg_s_ready;
 		assign s_ready         = reg_s_ready;
 		assign buffered        = reg_buf_valid;
 		assign s_ready_next    = next_s_ready;
@@ -103,7 +103,7 @@ module jelly_pipeline_insert_ff
 	
 	// master port
 	generate
-	if ( MASTER_REGS ) begin
+	if ( MASTER_REGS ) begin : blk_master
 		reg		[DATA_WIDTH-1:0]	reg_m_data;
 		reg							reg_m_valid;
 		

@@ -19,11 +19,38 @@ module tb_video_normalizer();
 	always #(RATE/2.0)	clk = ~clk;
 	
 	reg		reset = 1'b1;
-	always #(RATE*100)	reset = 1'b0;
+	initial begin
+		#(RATE*100);
+		@(posedge clk)	reset <= 1'b0;
+	end
 	
 	
+//	localparam	X_NUM = 128;
+//	localparam	Y_NUM = 128;
+
+//	localparam	X_NUM = 128*2;
+//	localparam	Y_NUM = 128;
+
+//	localparam	X_NUM = 128/2;
+//	localparam	Y_NUM = 128;
+
+//	localparam	X_NUM = 128;
+//	localparam	Y_NUM = 128/2;
+
+//	localparam	X_NUM = 128*2;
+//	localparam	Y_NUM = 128/2;
+
+//	localparam	X_NUM = 128/2;
+//	localparam	Y_NUM = 128/2;
+
+//	localparam	X_NUM = 128;
+//	localparam	Y_NUM = 128*2;
+
+//	localparam	X_NUM = 128*2;
+//	localparam	Y_NUM = 128*2;
+
 	localparam	X_NUM = 128/2;
-	localparam	Y_NUM = 128;
+	localparam	Y_NUM = 128*2;
 	
 	
 	parameter	TUSER_WIDTH   = 1;
@@ -58,6 +85,10 @@ module tb_video_normalizer();
 	wire						m_axi4s_tvalid;
 	reg							m_axi4s_tready = 1;
 	
+	always @(posedge aclk) begin
+		m_axi4s_tready <= {$random()};
+	end
+	
 	
 	// model
 	jelly_axi4s_master_model
@@ -66,7 +97,7 @@ module tb_video_normalizer();
 				.X_NUM				(128),
 				.Y_NUM				(128),
 				.PPM_FILE			("lena_128x128.ppm"),
-				.BUSY_RATE			(0),
+				.BUSY_RATE			(50),
 				.RANDOM_SEED		(0)
 			)
 		i_axi4s_master_model
@@ -136,8 +167,15 @@ module tb_video_normalizer();
 		end
 	end
 	
-	
-	
+	integer frame_count = 0;
+	always @(posedge clk) begin
+		if ( !reset && m_axi4s_tuser[0] && m_axi4s_tvalid && m_axi4s_tready ) begin
+			frame_count = frame_count + 1;
+			if ( frame_count > 6 ) begin
+				$finish();
+			end
+		end
+	end
 	
 	/*
 	integer fp;
