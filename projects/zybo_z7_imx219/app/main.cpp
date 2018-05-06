@@ -15,6 +15,7 @@
 //#include <opencv2/highgui.hpp>
 #include <opencv2/opencv.hpp>
 
+#define FRAME_NUM		3
 #define IMAGE_WIDTH		(3280 / 2)
 #define IMAGE_HEIGHT	(2464 / 2)
 
@@ -50,15 +51,15 @@ int i2c_test(void)
 
 
 
-void capture_still_image(UioMmap& um_pl_peri, int width, int height)
+void capture_still_image(UioMmap& um_pl_peri, int width, int height, int frame_num)
 {
 	// DMA start (one shot)
 	um_pl_peri.WriteWord32(0x00010020, 0x30000000);
-	um_pl_peri.WriteWord32(0x00010024, width*2);			// stride
-	um_pl_peri.WriteWord32(0x00010028, width);				// width
-	um_pl_peri.WriteWord32(0x0001002c, height);				// height
-	um_pl_peri.WriteWord32(0x00010030, width*height*10);	// size
-	um_pl_peri.WriteWord32(0x0001003c, 31);					// awlen
+	um_pl_peri.WriteWord32(0x00010024, width*2);				// stride
+	um_pl_peri.WriteWord32(0x00010028, width);					// width
+	um_pl_peri.WriteWord32(0x0001002c, height);					// height
+	um_pl_peri.WriteWord32(0x00010030, width*height*frame_num);	// size
+	um_pl_peri.WriteWord32(0x0001003c, 31);						// awlen
 	um_pl_peri.WriteWord32(0x00010010, 0x07);
 	
 	// normalizer start
@@ -111,6 +112,9 @@ int main()
 	
 //	cv::Mat img(IMAGE_HEIGHT, IMAGE_WIDTH, CV_16U);
 	
+	
+	int w = 640;
+	int h = 132;
 	
 	I2cAccess	i2c;
 	
@@ -168,12 +172,12 @@ int main()
 	i2c.WriteAddr16Word(0x016C, 0x0668);   // 0x668=1640     x_output_size
 	i2c.WriteAddr16Word(0x016E, 0x04D0);   // 0x4d0=1232     y_output_size
 #else
-	i2c.WriteAddr16Word(0x0164, 3280/2 - 640);   //      X_ADD_STA_A  x_addr_start  X-address of the top left corner of the visible pixel data Units: Pixels
-	i2c.WriteAddr16Word(0x0166, 3280/2 + 639);   // 0xccf=3279     X_ADD_END_A
-	i2c.WriteAddr16Word(0x0168, 2464/2 - 120);   //      Y_ADD_STA_A
-	i2c.WriteAddr16Word(0x016A, 2464/2 + 119);   // 0x99f=2463     Y_ADD_END_A
-	i2c.WriteAddr16Word(0x016C, 640);   // 0x668=1640     x_output_size
-	i2c.WriteAddr16Word(0x016E, 120);   // 0x4d0=1232     y_output_size
+	i2c.WriteAddr16Word(0x0164, 3280/2 - w);    //      X_ADD_STA_A  x_addr_start  X-address of the top left corner of the visible pixel data Units: Pixels
+	i2c.WriteAddr16Word(0x0166, 3280/2 + w-1);  // 0xccf=3279     X_ADD_END_A
+	i2c.WriteAddr16Word(0x0168, 2464/2 - h);    //      Y_ADD_STA_A
+	i2c.WriteAddr16Word(0x016A, 2464/2 + h-1);  // 0x99f=2463     Y_ADD_END_A
+	i2c.WriteAddr16Word(0x016C, w);   // 0x668=1640     x_output_size
+	i2c.WriteAddr16Word(0x016E, h);   // 0x4d0=1232     y_output_size
 #endif
 	
 	
@@ -185,7 +189,9 @@ int main()
 	i2c.WriteAddr16Byte(0x0301, 0x05  );   // * VTPXCK_DIV  Video Timing Pixel Clock Divider Value
 	i2c.WriteAddr16Word(0x0303, 0x0103);   // * VTSYCK_DIV  PREPLLCK_VT_DIV(3: EXCK_FREQ 24 MHz to 27 MHz)
 	i2c.WriteAddr16Word(0x0305, 0x0300);   // * PREPLLCK_OP_DIV(3: EXCK_FREQ 24 MHz to 27 MHz)  / PLL_VT_MPY ãÊêÿÇËÇ™Ç®Ç©ÇµÇ¢éüÇ…ë±Ç≠
-	i2c.WriteAddr16Byte(0x0307, 0x39  );   // * PLL_VT_MPY
+//	i2c.WriteAddr16Byte(0x0307, 0x39  );   // * PLL_VT_MPY
+//	i2c.WriteAddr16Byte(0x0307, 84  );   // r PLL_VT_MPY
+	i2c.WriteAddr16Byte(0x0307, 87  );   // r PLL_VT_MPY
 	i2c.WriteAddr16Byte(0x0309, 0x0A  );   // * OPPXCK_DIV
 	i2c.WriteAddr16Word(0x030B, 0x0100);   // * OPSYCK_DIV PLL_OP_MPY[10:8] / ãÊêÿÇËÇ™Ç®Ç©ÇµÇ¢éüÇ…ë±Ç≠
 	i2c.WriteAddr16Byte(0x030D, 0x72  );   // * PLL_OP_MPY[10:8]
@@ -204,22 +210,23 @@ int main()
 	i2c.WriteAddr16Byte(0x479B, 0x0E  );   //
 
 	i2c.WriteAddr16Byte(0x0172, 0x03  );   //      IMG_ORIENTATION_A
-	i2c.WriteAddr16Word(0x0160, 0x06E3);   //      FRM_LENGTH_A[15:8]
-	i2c.WriteAddr16Word(0x0162, 0x0D78);   //      LINE_LENGTH_A
-	i2c.WriteAddr16Word(0x015A, 0x0422);   //      COARSE_INTEGRATION_TIME_A
-	i2c.WriteAddr16Byte(0x0157, 0x00  );   //      ANA_GAIN_GLOBAL_A
+	
+//	i2c.WriteAddr16Word(0x0160, 0x06E3);   //      FRM_LENGTH_A[15:8]
+//	i2c.WriteAddr16Word(0x0162, 0x0D78);   //      LINE_LENGTH_A
+//	i2c.WriteAddr16Word(0x015A, 0x0422);   //      COARSE_INTEGRATION_TIME_A
+//	i2c.WriteAddr16Byte(0x0157, 0x00  );   //      ANA_GAIN_GLOBAL_A
 
-	i2c.WriteAddr16Byte(0x0157, 0x00  );   //      ANA_GAIN_GLOBAL_A
-	i2c.WriteAddr16Word(0x0160, 0x06E3);   //      FRM_LENGTH_A
-	i2c.WriteAddr16Word(0x0162, 0x0D78);   //      LINE_LENGTH_A (line_length_pck Units: Pixels)
-	i2c.WriteAddr16Word(0x015A, 0x0422);   //      COARSE_INTEGRATION_TIME_A
+//	i2c.WriteAddr16Byte(0x0157, 0x00  );   //      ANA_GAIN_GLOBAL_A
+//	i2c.WriteAddr16Word(0x0160, 0x06E3);   //      FRM_LENGTH_A
+//	i2c.WriteAddr16Word(0x0162, 0x0D78);   //      LINE_LENGTH_A (line_length_pck Units: Pixels)
+//	i2c.WriteAddr16Word(0x015A, 0x0422);   //      COARSE_INTEGRATION_TIME_A
 
 	i2c.WriteAddr16Byte(0x0100, 0x01  );   //      mode_select [4:0] 0: SW standby, 1: Streaming
 
-	i2c.WriteAddr16Byte(0x0157, 0x00  );   //      ANA_GAIN_GLOBAL_A
-	i2c.WriteAddr16Word(0x0160, 0x06E3);   // 0x06E3=3330   FRM_LENGTH_A
-	i2c.WriteAddr16Word(0x0162, 0x0D78);   // 0x0D78=3448   LINE_LENGTH_A
-	i2c.WriteAddr16Word(0x015A, 0x0421);   // 0x0421=1057   COARSE_INTEGRATION_TIME_A
+//	i2c.WriteAddr16Byte(0x0157, 0x00  );   //      ANA_GAIN_GLOBAL_A
+//	i2c.WriteAddr16Word(0x0160, 0x06E3);   // 0x06E3=3330   FRM_LENGTH_A
+//	i2c.WriteAddr16Word(0x0162, 0x0D78);   // 0x0D78=3448   LINE_LENGTH_A
+//	i2c.WriteAddr16Word(0x015A, 0x0421);   // 0x0421=1057   COARSE_INTEGRATION_TIME_A
 
 #if 0
 	i2c.WriteAddr16Byte(0x0157, 0x00  );   //      ANA_GAIN_GLOBAL_A
@@ -229,14 +236,11 @@ int main()
 	i2c.WriteAddr16Byte(0x0157, 0xE0  );   //      ANA_GAIN_GLOBAL_A
 #else
 	i2c.WriteAddr16Byte(0x0157, 0x00  );   //      ANA_GAIN_GLOBAL_A
-	i2c.WriteAddr16Word(0x0160, 120/2);   // 0x0D02=3330   FRM_LENGTH_A
+	i2c.WriteAddr16Word(0x0160, 80);       // 0x0D02=3330   FRM_LENGTH_A
 	i2c.WriteAddr16Word(0x0162, 0x0D78);   // 0x0D78=3448   LINE_LENGTH_A (line_length_pck Units: Pixels)
-	i2c.WriteAddr16Word(0x015A, 50);   // 0x0D02=3330   COARSE_INTEGRATION_TIME_A
+	i2c.WriteAddr16Word(0x015A, 50);       // 0x0D02=3330   COARSE_INTEGRATION_TIME_A
 	i2c.WriteAddr16Byte(0x0157, 0xE0  );   //      ANA_GAIN_GLOBAL_A
 #endif
-	
-	printf("5\n");
-	getchar();
 	
 	
 	
@@ -244,25 +248,28 @@ int main()
 //	int height = 120; // IMAGE_HEIGHT;
 //	int width  = 0x48e; // 640; // IMAGE_WIDTH;
 //	int height = 0xD78; // 120; // IMAGE_HEIGHT;
-	int width  = 640;
-	int height = 120; // IMAGE_HEIGHT / 2;
+	int width  = w;
+	int height = h; // IMAGE_HEIGHT / 2;
 	
 	void* mem_addr = um_pl_mem.GetAddress();
 	
 	{
+		int		frame_num = 3;
 		int		key;
 		while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
-			cv::Mat img(height*10, width, CV_16U);
-			memcpy(img.data, (void *)mem_addr, width * height * 2 *10);
+			cv::Mat img(height*frame_num, width, CV_16U);
+			memcpy(img.data, (void *)mem_addr, width * height * 2 * frame_num);
 			cv::imshow("img", img);
-			cv::imwrite("img.png", img);
-			cv::createTrackbar("width",  "img", &width,  IMAGE_WIDTH);
-			cv::createTrackbar("height", "img", &height, IMAGE_HEIGHT);
+//			cv::imwrite("img.png", img);
+			cv::createTrackbar("width",  "img", &width,     IMAGE_WIDTH);
+			cv::createTrackbar("height", "img", &height,    IMAGE_HEIGHT);
+			cv::createTrackbar("frame",  "img", &frame_num, 10);
+			
 			width &= 0xfffffff0;
 			if ( width  < 16 ) { width  = 16; }
 			if ( height < 2 )  { height = 2; }
 			
-			capture_still_image(um_pl_peri, width, height);
+			capture_still_image(um_pl_peri, width, height, frame_num);
 		}
 	}
 	
