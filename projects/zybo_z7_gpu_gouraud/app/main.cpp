@@ -11,6 +11,7 @@
 #include "UioMmap.h"
 
 
+
 void gpu_test(void *gpu_addr);
 
 
@@ -106,7 +107,7 @@ int main()
 	
 	
 	munmap((uint32_t*)map_addr, 0x0010000);
-//	close(fd);
+	close(fd);
 	
 	
 	
