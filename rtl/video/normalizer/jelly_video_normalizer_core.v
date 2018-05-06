@@ -14,40 +14,47 @@
 
 module jelly_video_normalizer_core
 		#(
-			parameter	TUSER_WIDTH   = 1,
-			parameter	TDATA_WIDTH   = 24,
-			parameter	X_WIDTH       = 12,
-			parameter	Y_WIDTH       = 12,
-			parameter	TIMER_WIDTH   = 32,
-			parameter	S_SLAVE_REGS  = 1,
-			parameter	S_MASTER_REGS = 1,
-			parameter	M_SLAVE_REGS  = 1,
-			parameter	M_MASTER_REGS = 1
+			parameter	TUSER_WIDTH       = 1,
+			parameter	TDATA_WIDTH       = 24,
+			parameter	X_WIDTH           = 12,
+			parameter	Y_WIDTH           = 12,
+			parameter	INDEX_WIDTH       = 1,
+			parameter	FRAME_TIMER_WIDTH = 32,
+			parameter	TIMER_WIDTH       = 32,
+			parameter	S_SLAVE_REGS      = 1,
+			parameter	S_MASTER_REGS     = 1,
+			parameter	M_SLAVE_REGS      = 1,
+			parameter	M_MASTER_REGS     = 1
 		)
 		(
-			input	wire						aresetn,
-			input	wire						aclk,
-			input	wire						aclken,
+			input	wire							aresetn,
+			input	wire							aclk,
+			input	wire							aclken,
 			
-			input	wire						ctl_enable,
-			output	wire						ctl_busy,
+			input	wire							ctl_enable,
+			input	wire							ctl_update,
+			output	wire	[INDEX_WIDTH-1:0]		ctl_index,
+			output	wire							ctl_busy,
+			input	wire							ctl_skip,
+			input	wire							ctl_frame_blank,
+			input	wire	[FRAME_TIMER_WIDTH-1:0]	ctl_frame_timeout,
 			
-			input	wire	[X_WIDTH-1:0]		param_width,
-			input	wire	[Y_WIDTH-1:0]		param_height,
-			input	wire	[TDATA_WIDTH-1:0]	param_fill,
-			input	wire	[TIMER_WIDTH-1:0]	param_timeout,
+			input	wire	[X_WIDTH-1:0]			param_width,
+			input	wire	[Y_WIDTH-1:0]			param_height,
+			input	wire	[TDATA_WIDTH-1:0]		param_fill,
+			input	wire	[TIMER_WIDTH-1:0]		param_timeout,
 			
-			input	wire	[TUSER_WIDTH-1:0]	s_axi4s_tuser,
-			input	wire						s_axi4s_tlast,
-			input	wire	[TDATA_WIDTH-1:0]	s_axi4s_tdata,
-			input	wire						s_axi4s_tvalid,
-			output	wire						s_axi4s_tready,
+			input	wire	[TUSER_WIDTH-1:0]		s_axi4s_tuser,
+			input	wire							s_axi4s_tlast,
+			input	wire	[TDATA_WIDTH-1:0]		s_axi4s_tdata,
+			input	wire							s_axi4s_tvalid,
+			output	wire							s_axi4s_tready,
 			
-			output	wire	[TUSER_WIDTH-1:0]	m_axi4s_tuser,
-			output	wire						m_axi4s_tlast,
-			output	wire	[TDATA_WIDTH-1:0]	m_axi4s_tdata,
-			output	wire						m_axi4s_tvalid,
-			input	wire						m_axi4s_tready
+			output	wire	[TUSER_WIDTH-1:0]		m_axi4s_tuser,
+			output	wire							m_axi4s_tlast,
+			output	wire	[TDATA_WIDTH-1:0]		m_axi4s_tdata,
+			output	wire							m_axi4s_tvalid,
+			input	wire							m_axi4s_tready
 		);
 	
 	
@@ -83,47 +90,63 @@ module jelly_video_normalizer_core
 			);
 	
 	
-	wire						cke;
+	wire							cke;
 	
-	reg		[X_WIDTH-1:0]		reg_param_width;
-	reg		[Y_WIDTH-1:0]		reg_param_height;
-	reg		[TDATA_WIDTH-1:0]	reg_param_fill;
-	reg		[TIMER_WIDTH-1:0]	reg_param_timeout;
+	reg		[INDEX_WIDTH-1:0]		reg_index;
+	reg		[X_WIDTH-1:0]			reg_param_width;
+	reg		[Y_WIDTH-1:0]			reg_param_height;
+	reg		[TDATA_WIDTH-1:0]		reg_param_fill;
+	reg		[TIMER_WIDTH-1:0]		reg_param_timeout;
 	
-	reg							reg_busy;
-	reg							reg_fill_h;
-	reg							reg_fill_v;
-	reg							reg_skip;
+	reg								reg_busy;
+	reg								reg_fill_h;
+	reg								reg_fill_v;
+	reg								reg_skip;
 	
-	reg							reg_timeout;
-	reg		[TIMER_WIDTH-1:0]	reg_timer;
-	reg		[X_WIDTH-1:0]		reg_x;
-	reg		[Y_WIDTH-1:0]		reg_y;
-	wire						sig_x_first = (reg_x == 0);
-	wire						sig_y_first = (reg_y == 0);
-	wire						sig_x_last  = (reg_x == reg_param_width);
-	wire						sig_y_last  = (reg_y == reg_param_height);
+	reg								reg_frame_timeout;
+	reg		[FRAME_TIMER_WIDTH-1:0]	reg_frame_timer;
 	
-	reg		[TUSER_WIDTH-1:0]	reg_tuser;
-	reg							reg_tlast;
-	reg		[TDATA_WIDTH-1:0]	reg_tdata;
-	reg							reg_tvalid;
-	wire						sig_tready;
+	reg								reg_timeout;
+	reg		[TIMER_WIDTH-1:0]		reg_timer;
+	reg		[X_WIDTH-1:0]			reg_x;
+	reg		[Y_WIDTH-1:0]			reg_y;
+	reg								reg_x_last;
+	reg								reg_y_last;
 	
-	wire						sig_valid = (!reg_busy && (in_tuser[0] && in_tvalid && ctl_enable))
-												|| (reg_busy && ((!reg_skip && in_tvalid && in_tready) || (reg_fill_h || reg_fill_v)));
+	wire							sig_x_first = (reg_x == 0);
+	wire							sig_y_first = (reg_y == 0);
+//	wire							sig_x_last  = (reg_x == reg_param_width);
+//	wire							sig_y_last  = (reg_y == reg_param_height);
+	wire							sig_x_last  = reg_x_last;
+	wire							sig_y_last  = reg_y_last;
 	
-	assign in_tready = cke && ((!reg_busy && (~in_tuser[0] || ctl_enable)) || (reg_busy && ((~in_tuser[0] && !reg_fill_h) || reg_skip)));
+	reg		[TUSER_WIDTH-1:0]		reg_tuser;
+	reg								reg_tlast;
+	reg		[TDATA_WIDTH-1:0]		reg_tdata;
+	reg								reg_tvalid;
+	wire							sig_tready;
 	
-	assign cke = aclken && (!reg_tvalid || sig_tready);
+	wire							sig_valid;
+	
+	
+	assign sig_valid = (!reg_busy && (((in_tuser[0] && in_tvalid) || reg_frame_timeout) && ctl_enable))
+							|| (reg_busy && ((!reg_skip && in_tvalid && in_tready) || (reg_fill_h || reg_fill_v)));
+	
+	assign in_tready = cke && ((!reg_busy && (~in_tuser[0] || ctl_enable || ctl_skip)) || (reg_busy && ((~in_tuser[0] && !reg_fill_h) || reg_skip)));
+	
+	assign cke       = aclken && (!reg_tvalid || sig_tready);
 	
 	
 	always @(posedge aclk) begin
 		if ( ~aresetn ) begin
+			reg_index         <= {INDEX_WIDTH{1'b0}};
 			reg_param_width   <= {X_WIDTH{1'bx}};
 			reg_param_height  <= {Y_WIDTH{1'bx}};
 			reg_param_fill    <= {TDATA_WIDTH{1'bx}};
 			reg_param_timeout <= {TIMER_WIDTH{1'bx}};
+			
+			reg_frame_timeout <= 1'b0;
+			reg_frame_timer   <= {FRAME_TIMER_WIDTH{1'b0}};
 			
 			reg_busy          <= 1'b0;
 			reg_fill_h        <= 1'bx;
@@ -132,7 +155,9 @@ module jelly_video_normalizer_core
 			reg_timeout       <= 1'bx;
 			reg_timer         <= {TIMER_WIDTH{1'bx}};
 			reg_x             <= {X_WIDTH{1'bx}};
+			reg_x_last        <= 1'bx;
 			reg_y             <= {Y_WIDTH{1'bx}};
+			reg_y_last        <= 1'bx;
 			
 			reg_tuser         <= {TUSER_WIDTH{1'bx}};
 			reg_tlast         <= 1'bx;
@@ -180,6 +205,34 @@ module jelly_video_normalizer_core
 				reg_fill_v <= 1'b1;
 			end
 			
+			// frame timer
+			reg_frame_timeout <= 1'b0;
+			if ( ctl_enable && ctl_frame_blank && ~reg_busy ) begin
+				reg_frame_timer   <= reg_frame_timer + 1'b1;
+				if ( reg_frame_timer == ctl_frame_timeout ) begin
+					reg_frame_timeout <= 1'b1;
+				end
+			end
+			else begin
+				reg_frame_timer   <= {FRAME_TIMER_WIDTH{1'b0}};
+			end
+			
+			
+			// x-y count
+			if ( sig_valid ) begin
+				reg_x      <= reg_x + 1'b1;
+				reg_x_last <= ((reg_x + 1'b1) == reg_param_width);
+				if ( sig_x_last ) begin
+					reg_x      <= {X_WIDTH{1'b0}};
+					reg_x_last <= 1'b0; // (reg_param_width == 1);
+					reg_y      <= reg_y + 1'b1;
+					reg_y_last <= ((reg_y + 1'b1) == reg_param_height);
+	//				if ( sig_y_last ) begin
+	//					reg_y      <= {Y_WIDTH{1'bx}};
+	//					reg_y_last <= 1'bx;
+	//				end
+				end
+			end
 			
 			// control
 			if ( !reg_busy ) begin
@@ -187,39 +240,43 @@ module jelly_video_normalizer_core
 				reg_fill_h  <= 1'b0;
 				reg_fill_v  <= 1'b0;
 				reg_x       <= {X_WIDTH{1'b0}};
+				reg_x_last  <= 1'b0; // (param_width == 1);
 				reg_y       <= {Y_WIDTH{1'b0}};
+				reg_y_last  <= 1'b0; // (param_height == 1);
 				
 				reg_param_width   <= {X_WIDTH{1'bx}};
 				reg_param_height  <= {Y_WIDTH{1'bx}};
 				reg_param_fill    <= {TDATA_WIDTH{1'bx}};
-				reg_param_timeout <= {TIMER_WIDTH{1'bx}};
 				
-				if ( (in_tuser[0] && in_tvalid) && ctl_enable ) begin
+				if ( ((in_tuser[0] && in_tvalid) || reg_frame_timeout) && ctl_enable ) begin
 					// start
 					reg_busy          <= 1'b1;
 					reg_skip          <= 1'b0;
+					reg_x             <= 1;
 					
-					reg_param_width   <= param_width  - 1;
-					reg_param_height  <= param_height - 1;
-					reg_param_fill    <= param_fill;
-					reg_param_timeout <= param_timeout;
+					if ( reg_frame_timeout ) begin
+						reg_fill_v  <= 1'b1;
+					end
+					
+					if ( ctl_update ) begin
+						// parameter update
+						reg_index         <= reg_index + 1'b1;
+						reg_param_width   <= param_width  - 1;
+						reg_param_height  <= param_height - 1;
+						reg_param_fill    <= param_fill;
+						reg_param_timeout <= param_timeout;
+					end
 				end
 			end
 			else begin
 				if ( sig_x_last && sig_y_last && sig_valid ) begin
-					reg_busy <= 1'b0;
-				end
-			end
-			
-			// x-y count
-			if ( sig_valid ) begin
-				reg_x <= reg_x + 1'b1;
-				if ( sig_x_last ) begin
-					reg_x <= {X_WIDTH{1'b0}};
-					reg_y <= reg_y + 1'b1;
-					if ( sig_y_last ) begin
-						reg_y <= {Y_WIDTH{1'b0}};
-					end
+					// end
+					reg_busy   <= 1'b0;
+					
+					reg_x      <= {X_WIDTH{1'bx}};
+					reg_x_last <= 1'bx;
+					reg_y      <= {Y_WIDTH{1'bx}};
+					reg_y_last <= 1'bx;
 				end
 			end
 			
@@ -227,13 +284,13 @@ module jelly_video_normalizer_core
 			// data
 			reg_tuser  <= sig_x_first && sig_y_first;
 			reg_tlast  <= sig_x_last;
-			reg_tdata  <= reg_fill_h || reg_fill_v ? reg_param_fill : in_tdata;
+			reg_tdata  <= reg_fill_h || reg_fill_v || reg_frame_timeout ? reg_param_fill : in_tdata;
 			reg_tvalid <= sig_valid;
 		end
 	end
 	
-	assign ctl_busy = reg_busy;
-	
+	assign ctl_busy  = reg_busy;
+	assign ctl_index = reg_index;
 	
 	// output FF
 	jelly_pipeline_insert_ff

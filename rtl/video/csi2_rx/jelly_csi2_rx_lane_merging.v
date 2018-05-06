@@ -52,8 +52,8 @@ module jelly_csi2_rx_lane_merging
 	for ( i = 0; i < LANE_NUM; i = i+1 ) begin : loop_lane
 		jelly_csi2_rx_lane_recv
 				#(
-					.PRE_DELAY			(i == 0 ? 0 : 1),		// 開始時に必ずlane0基準になるようにする
-					.FIFO_PTR_WIDTH		(5),
+					.PRE_DELAY			(i == 0 ? 0 : 2),		// 開始時に必ずlane0基準になるようにする
+					.FIFO_PTR_WIDTH		(6),
 					.FIFO_RAM_TYPE		("distributed"),
 					.M_AXI4S_REGS		(0)
 				)

@@ -56,13 +56,13 @@ module jelly_csi2_rx_low_layer
 	// stage 0 (header parser)
 	localparam	[2:0]	ST0_IDLE = 0, ST0_ID = 1, ST0_WC0 = 2, ST0_WC1 = 3, ST0_ECC = 4;
 	
-	reg		[2:0]		st0_state;
-	reg		[7:0]		st0_id;
-	reg		[15:0]		st0_wc;
-	reg		[7:0]		st0_ecc;
-	reg					st0_ph;
-	reg		[7:0]		st0_data;
-	reg					st0_valid;
+	(* MARK_DEBUG = "true" *)	reg		[2:0]		st0_state;
+	(* MARK_DEBUG = "true" *)	reg		[7:0]		st0_id;
+	(* MARK_DEBUG = "true" *)	reg		[15:0]		st0_wc;
+	(* MARK_DEBUG = "true" *)	reg		[7:0]		st0_ecc;
+	(* MARK_DEBUG = "true" *)	reg					st0_ph;
+	(* MARK_DEBUG = "true" *)	reg		[7:0]		st0_data;
+	(* MARK_DEBUG = "true" *)	reg					st0_valid;
 	
 	always @(posedge aclk) begin
 		if ( ~aresetn || out_request_sync ) begin
@@ -146,20 +146,20 @@ module jelly_csi2_rx_low_layer
 	// stage1
 	localparam	[1:0]	ST1_IDLE = 0, ST1_DATA = 1, ST1_CRC0 = 2, ST1_CRC1 = 3;
 	
-	reg		[1:0]	st1_state;
-	reg				st1_de;
-	reg		[15:0]	st1_wc;
-	reg		[15:0]	st1_counter;
-	reg		[15:0]	st1_crc;
-	reg		[15:0]	st1_crc_sum;
-	reg				st1_last;
-	reg				st1_end;
-	reg		[7:0]	st1_data;
-	reg				st1_valid;
-	reg				st1_req_sync;
-	reg				st1_frame_start;
-	reg				st1_frame_end;
-	reg				st1_crc_error;
+	(* MARK_DEBUG = "true" *)	reg		[1:0]	st1_state;
+	(* MARK_DEBUG = "true" *)	reg				st1_de;
+	(* MARK_DEBUG = "true" *)	reg		[15:0]	st1_wc;
+	(* MARK_DEBUG = "true" *)	reg		[15:0]	st1_counter;
+	(* MARK_DEBUG = "true" *)	reg		[15:0]	st1_crc;
+	(* MARK_DEBUG = "true" *)	reg		[15:0]	st1_crc_sum;
+	(* MARK_DEBUG = "true" *)	reg				st1_last;
+	(* MARK_DEBUG = "true" *)	reg				st1_end;
+	(* MARK_DEBUG = "true" *)	reg		[7:0]	st1_data;
+	(* MARK_DEBUG = "true" *)	reg				st1_valid;
+	(* MARK_DEBUG = "true" *)	reg				st1_req_sync;
+	(* MARK_DEBUG = "true" *)	reg				st1_frame_start;
+	(* MARK_DEBUG = "true" *)	reg				st1_frame_end;
+	(* MARK_DEBUG = "true" *)	reg				st1_crc_error;
 	
 	always @(posedge aclk) begin
 		if ( ~aresetn ) begin

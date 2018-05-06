@@ -5,7 +5,7 @@
 # Timing
 ################################
 
-# in_clk128
+# in_clk125
 create_clock -period 8.000 -name in_clk125 -waveform {0.000 4.000} [get_ports in_clk125]
 
 # HDMI-RX 480p (27.7MHz)
@@ -18,6 +18,11 @@ create_clock -period 8.000 -name in_clk125 -waveform {0.000 4.000} [get_ports in
 # clk_out2_design_1_clk_wiz_0_0  200MHz   5.000ns
 # rxbyteclkhs                             8.768ns
 
+# set_clock_groups -name async_clks0 -asynchronous -group [get_clocks -include_generated_clocks in_clk125]   -group {clk_fpga_0 clk_fpga_1}
+# set_clock_groups -name async_clks1 -asynchronous -group [get_clocks -include_generated_clocks rxbyteclkhs] -group {clk_fpga_0 clk_fpga_1}
+# set_clock_groups -name async_clks2 -asynchronous -group [get_clocks -include_generated_clocks rxbyteclkhs] -group [get_clocks -include_generated_clocks in_clk125]
+# set_clock_groups -name async_clks3 -asynchronous -group {clk_fpga_1} -group {clk_out2_design_1_clk_wiz_0_0}
+
 
 set_max_delay -datapath_only -from [get_clocks clk_fpga_0] -to [get_clocks clk_fpga_1] 7.500
 set_max_delay -datapath_only -from [get_clocks clk_fpga_1] -to [get_clocks clk_fpga_0] 7.500
@@ -25,14 +30,36 @@ set_max_delay -datapath_only -from [get_clocks clk_fpga_1] -to [get_clocks clk_f
 set_max_delay -datapath_only -from [get_clocks clk_fpga_0] -to [get_clocks clk_out2_design_1_clk_wiz_0_0] 5.000
 set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -to [get_clocks clk_fpga_0] 5.000
 
+set_max_delay -datapath_only -from [get_clocks clk_fpga_0] -to [get_clocks clk_out3_design_1_clk_wiz_0_0] 4.000
+set_max_delay -datapath_only -from [get_clocks clk_out3_design_1_clk_wiz_0_0] -to [get_clocks clk_fpga_0] 4.000
+
+set_max_delay -datapath_only -from [get_clocks clk_fpga_1] -to [get_clocks clk_out3_design_1_clk_wiz_0_0] 4.000
+set_max_delay -datapath_only -from [get_clocks clk_out3_design_1_clk_wiz_0_0] -to [get_clocks clk_fpga_1] 4.000
+
+set_max_delay -datapath_only -from [get_clocks clk_fpga_1] -to [get_clocks clk_out2_design_1_clk_wiz_0_0] 5.000
+set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -to [get_clocks clk_fpga_1] 5.000
+
 set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -to [get_clocks clk_out1_design_1_clk_wiz_0_0] 5.000
 set_max_delay -datapath_only -from [get_clocks clk_out1_design_1_clk_wiz_0_0] -to [get_clocks clk_out2_design_1_clk_wiz_0_0] 5.000
+
+set_max_delay -datapath_only -from [get_clocks clk_out3_design_1_clk_wiz_0_0] -to [get_clocks clk_out1_design_1_clk_wiz_0_0] 4.000
+set_max_delay -datapath_only -from [get_clocks clk_out1_design_1_clk_wiz_0_0] -to [get_clocks clk_out3_design_1_clk_wiz_0_0] 4.000
+
+set_max_delay -datapath_only -from [get_clocks clk_out3_design_1_clk_wiz_0_0] -to [get_clocks clk_out2_design_1_clk_wiz_0_0] 4.000
+set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -to [get_clocks clk_out3_design_1_clk_wiz_0_0] 4.000
 
 set_max_delay -datapath_only -from [get_clocks rxbyteclkhs] -to [get_clocks clk_out2_design_1_clk_wiz_0_0] 5.000
 set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -to [get_clocks rxbyteclkhs] 5.000
 
-set_max_delay -datapath_only -from [get_clocks rxbyteclkhs] -to [get_clocks clk_fpga_1] 10.000
-set_max_delay -datapath_only -from [get_clocks clk_fpga_1] -to [get_clocks rxbyteclkhs] 10.000
+set_max_delay -datapath_only -from [get_clocks rxbyteclkhs] -to [get_clocks clk_out3_design_1_clk_wiz_0_0] 4.000
+set_max_delay -datapath_only -from [get_clocks clk_out3_design_1_clk_wiz_0_0] -to [get_clocks rxbyteclkhs] 4.000
+
+set_max_delay -datapath_only -from [get_clocks rxbyteclkhs] -to [get_clocks clk_fpga_1] 8.768
+set_max_delay -datapath_only -from [get_clocks clk_fpga_1] -to [get_clocks rxbyteclkhs] 8.768
+
+set_max_delay -datapath_only -from [get_clocks rxbyteclkhs] -to [get_clocks clk_out1_design_1_clk_wiz_0_0] 8.768
+
+set_max_delay -datapath_only -from [get_clocks clk_out3_design_1_clk_wiz_0_0] -to [get_clocks clk_fpga_1] 4.000
 
 
 #set_false_path -from [get_clocks clk_fpga_1]  -to [get_clocks mmcm_clk200]

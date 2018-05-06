@@ -52,6 +52,7 @@ module design_1
     m_axi4l_peri_wvalid,
     out_clk100,
     out_clk200,
+    out_clk250,
     out_reset,
     s_axi4_mem0_araddr,
     s_axi4_mem0_arburst,
@@ -144,6 +145,7 @@ module design_1
    output m_axi4l_peri_wvalid;
    output out_clk100;
    output out_clk200;
+   output out_clk250;
    output [0:0]out_reset;
    input [31:0]s_axi4_mem0_araddr;
    input [1:0]s_axi4_mem0_arburst;
@@ -190,6 +192,7 @@ module design_1
   
 	localparam RATE100 = 1000.0/100.00;
 	localparam RATE200 = 1000.0/200.00;
+	localparam RATE250 = 1000.0/250.00;
 	localparam RATE133 = 1000.0/133.33;
 	
 	reg			reset = 1;
@@ -201,6 +204,9 @@ module design_1
 	reg			clk200 = 1'b1;
 	always #(RATE200/2.0) clk200 <= ~clk200;
 	
+	reg			clk250 = 1'b1;
+	always #(RATE250/2.0) clk250 <= ~clk250;
+	
 	reg			clk133 = 1'b1;
 	always #(RATE133/2.0) clk133 <= ~clk133;
 	
@@ -208,6 +214,7 @@ module design_1
 	assign out_reset             = reset;
 	assign out_clk100            = clk100;
 	assign out_clk200            = clk200;
+	assign out_clk250            = clk250;
 	assign m_axi4l_peri_aresetn  = ~reset;
 	assign m_axi4l_peri_aclk     = clk100;
 	assign s_axi4_mem_aresetn    = ~reset;

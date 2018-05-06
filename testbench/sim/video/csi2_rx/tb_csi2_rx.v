@@ -4,13 +4,14 @@
 
 
 module tb_csi2_rx();
-	localparam RATE    = 1000.0/200.0;
-	localparam RATE_HS = 1000.0/91.2;
+	localparam RATE200 = 1000.0/200.0;
+	localparam RATE250 = 1000.0/250.0;
+	localparam RATE_HS = 1000.0/(912.0 / 8.0);
 	
 	
 	initial begin
 		$dumpfile("tb_csi2_rx.vcd");
-		$dumpvars(1, tb_csi2_rx);
+		$dumpvars(0, tb_csi2_rx);
 	
 //	#2000000
 //		$finish;
@@ -18,10 +19,13 @@ module tb_csi2_rx();
 	
 	
 	reg		reset = 1'b1;
-	always #(RATE*100)	reset = 1'b0;
+	always #(RATE200*100)	reset = 1'b0;
 	
-	reg		clk = 1'b1;
-	always #(RATE/2.0)	clk = ~clk;
+	reg		clk200 = 1'b1;
+	always #(RATE200/2.0)	clk200 = ~clk200;
+	
+	reg		clk250 = 1'b1;
+	always #(RATE250/2.0)	clk250 = ~clk250;
 	
 	reg		hs_clk = 1'b1;
 	always #(RATE_HS/2.0)	hs_clk = ~hs_clk;
@@ -38,7 +42,10 @@ module tb_csi2_rx();
 	wire	[LANE_NUM-1:0]		rxsynchs;
 	
 	wire						aresetn = ~reset;
-	wire						aclk    = clk;
+	wire						aclk    = clk250;
+	
+	wire						m_axi4s_aresetn = ~reset;
+	wire						m_axi4s_aclk    = clk200;
 	wire	[0:0]				m_axi4s_tuser;
 	wire						m_axi4s_tlast;
 	wire	[DATA_WIDTH-1:0]	m_axi4s_tdata;
@@ -52,15 +59,18 @@ module tb_csi2_rx();
 			)
 		i_csi2_rx
 			(
+				.aresetn			(aresetn),
+				.aclk				(aclk),
+				
 				.rxreseths			(rxreseths),
 				.rxbyteclkhs		(rxbyteclkhs),
 				.rxdatahs			(rxdatahs),
 				.rxvalidhs			(rxvalidhs),
 				.rxactivehs			(rxactivehs),
 				.rxsynchs			(rxsynchs),
-				                     
-				.aresetn			(aresetn),
-				.aclk				(aclk),
+				
+				.m_axi4s_aresetn	(m_axi4s_aresetn),
+				.m_axi4s_aclk		(m_axi4s_aclk),
 				.m_axi4s_tuser		(m_axi4s_tuser),
 				.m_axi4s_tlast		(m_axi4s_tlast),
 				.m_axi4s_tdata		(m_axi4s_tdata),
@@ -132,8 +142,8 @@ module tb_csi2_rx();
 		 $fdisplay(fp_img, "1023");
 	end
 	
-	always @(posedge clk) begin
-		if ( !reset && m_axi4s_tvalid && m_axi4s_tready ) begin
+	always @(posedge m_axi4s_aclk) begin
+		if ( m_axi4s_aresetn && m_axi4s_tvalid && m_axi4s_tready ) begin
 			 $fdisplay(fp_img, "%d", m_axi4s_tdata);
 		end
 	end

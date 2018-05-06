@@ -48,6 +48,7 @@ module jelly_csi2_rx_lane_recv
 	wire	[7:0]		dly_data;
 	wire				dly_sync;
 	wire				dly_valid;
+	wire				dly_ready;
 	
 	jelly_data_delay
 			#(
@@ -65,6 +66,12 @@ module jelly_csi2_rx_lane_recv
 				
 				.out_data		({dly_data, dly_sync, dly_valid})
 			);
+	
+	(* MARK_DEBUG = "true" *)	reg		reg_overfloaw;
+	always @(posedge rxbyteclkhs) begin
+		reg_overfloaw <= (dly_valid && !dly_ready);
+	end
+	
 	
 	// FIFO
 	wire	[7:0]		fifo_data;
@@ -89,7 +96,7 @@ module jelly_csi2_rx_lane_recv
 				.s_clk			(rxbyteclkhs),
 				.s_data			({dly_data, dly_sync}),
 				.s_valid		(dly_valid),
-				.s_ready		(),
+				.s_ready		(dly_ready),
 				.s_free_count	(),
 				
 				.m_reset		(~aresetn),

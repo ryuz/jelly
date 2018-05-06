@@ -15,10 +15,16 @@
 
 module jelly_csi2_rx
 		#(
-			parameter LANE_NUM   = 2,
-			parameter DATA_WIDTH = 10
+			parameter LANE_NUM         = 2,
+			parameter DATA_WIDTH       = 10,
+			parameter M_FIFO_ASYNC     = 1,
+			parameter M_FIFO_PTR_WIDTH = M_FIFO_ASYNC ? 6 : 0,
+			parameter M_FIFO_RAM_TYPE  = "distributed"
 		)
 		(
+			input	wire						aresetn,
+			input	wire						aclk,
+			
 			// input
 			input	wire						rxreseths,
 			input	wire						rxbyteclkhs,
@@ -29,8 +35,8 @@ module jelly_csi2_rx
 			
 			
 			// output
-			input	wire						aresetn,
-			input	wire						aclk,
+			input	wire						m_axi4s_aresetn,
+			input	wire						m_axi4s_aclk,
 			output	wire	[0:0]				m_axi4s_tuser,
 			output	wire						m_axi4s_tlast,
 			output	wire	[DATA_WIDTH-1:0]	m_axi4s_tdata,
@@ -39,15 +45,15 @@ module jelly_csi2_rx
 		);
 	
 	
-	wire	[0:0]				marge_tuser;
-	wire	[7:0]				marge_tdata;
-	wire						marge_tvalid;
-	wire						marge_tready;
+	(* MARK_DEBUG = "true" *)	wire	[0:0]				marge_tuser;
+	(* MARK_DEBUG = "true" *)	wire	[7:0]				marge_tdata;
+	(* MARK_DEBUG = "true" *)	wire						marge_tvalid;
+	(* MARK_DEBUG = "true" *)	wire						marge_tready;
 	
-	wire						request_sync;
-	wire						frame_start;
-	wire						frame_end;
-	wire						crc_error;
+	(* MARK_DEBUG = "true" *)	wire						request_sync;
+	(* MARK_DEBUG = "true" *)	wire						frame_start;
+	(* MARK_DEBUG = "true" *)	wire						frame_end;
+								wire						crc_error;
 	
 	jelly_csi2_rx_lane_merging
 			#(
@@ -74,10 +80,10 @@ module jelly_csi2_rx
 			);
 	
 	
-	wire						low_tlast;
-	wire	[7:0]				low_tdata;
-	wire						low_tvalid;
-	wire						low_tready;
+	(* MARK_DEBUG = "true" *)	wire						low_tlast;
+	(* MARK_DEBUG = "true" *)	wire	[7:0]				low_tdata;
+	(* MARK_DEBUG = "true" *)	wire						low_tvalid;
+	(* MARK_DEBUG = "true" *)	wire						low_tready;
 	
 	jelly_csi2_rx_low_layer
 		i_csi2_rx_low_layer
@@ -119,10 +125,18 @@ module jelly_csi2_rx
 		end
 	end
 	
+	
+	// RAW10
+	(* MARK_DEBUG = "true" *)	wire	[0:0]				out_tuser;
+	(* MARK_DEBUG = "true" *)	wire						out_tlast;
+	(* MARK_DEBUG = "true" *)	wire	[DATA_WIDTH-1:0]	out_tdata;
+	(* MARK_DEBUG = "true" *)	wire	[0:0]				out_tvalid;
+	(* MARK_DEBUG = "true" *)	wire						out_tready;
+	
 	jelly_csi2_rx_raw10
 			#(
-				.S_AXI4S_REGS		(0),
-				.M_AXI4S_REGS		(0)
+				.S_AXI4S_REGS		(1),
+				.M_AXI4S_REGS		(1)
 			)
 		i_csi2_rx_raw10
 			(
@@ -135,11 +149,40 @@ module jelly_csi2_rx
 				.s_axi4s_tvalid		(low_tvalid),
 				.s_axi4s_tready		(low_tready),
 				
-				.m_axi4s_tuser		(m_axi4s_tuser),
-				.m_axi4s_tlast		(m_axi4s_tlast),
-				.m_axi4s_tdata		(m_axi4s_tdata),
-				.m_axi4s_tvalid		(m_axi4s_tvalid),
-				.m_axi4s_tready		(m_axi4s_tready)
+				.m_axi4s_tuser		(out_tuser),
+				.m_axi4s_tlast		(out_tlast),
+				.m_axi4s_tdata		(out_tdata),
+				.m_axi4s_tvalid		(out_tvalid),
+				.m_axi4s_tready		(out_tready)
+			);
+	
+	
+	jelly_fifo_generic_fwtf
+			#(
+				.ASYNC				(M_FIFO_ASYNC),
+				.DATA_WIDTH			(2+DATA_WIDTH),
+				.PTR_WIDTH			(M_FIFO_PTR_WIDTH),
+				.DOUT_REGS			(0),
+				.RAM_TYPE			(M_FIFO_RAM_TYPE),
+				.LOW_DEALY			(0),
+				.SLAVE_REGS			(0),
+				.MASTER_REGS		(1)
+			)
+		i_fifo_generic_fwtf
+			(
+				.s_reset			(~aresetn),
+				.s_clk				(aclk),
+				.s_data				({out_tuser, out_tlast, out_tdata}),
+				.s_valid			(out_tvalid),
+				.s_ready			(out_tready),
+				.s_free_count		(),
+				
+				.m_reset			(~m_axi4s_aresetn),
+				.m_clk				(m_axi4s_aclk),
+				.m_data				({m_axi4s_tuser, m_axi4s_tlast, m_axi4s_tdata}),
+				.m_valid			(m_axi4s_tvalid),
+				.m_ready			(m_axi4s_tready),
+				.m_data_count		()
 			);
 	
 	

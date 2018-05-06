@@ -31,9 +31,16 @@ module tb_video_normalizer();
 		#(RATE*100)		timeout_busy = 1'b0;
 	end
 	
+	localparam	FRAME_NUM = 10;
 	
-	localparam	X_NUM = 128;
-	localparam	Y_NUM = 128;
+	localparam	X_NUM = 128*2;
+	localparam	Y_NUM = 128/2;
+
+//	localparam	X_NUM = 128/2;
+//	localparam	Y_NUM = 128*2;
+	
+//	localparam	X_NUM = 128;
+//	localparam	Y_NUM = 128;
 
 //	localparam	X_NUM = 128*2;
 //	localparam	Y_NUM = 128;
@@ -44,9 +51,6 @@ module tb_video_normalizer();
 //	localparam	X_NUM = 128;
 //	localparam	Y_NUM = 128/2;
 
-//	localparam	X_NUM = 128*2;
-//	localparam	Y_NUM = 128/2;
-
 //	localparam	X_NUM = 128/2;
 //	localparam	Y_NUM = 128/2;
 
@@ -56,8 +60,6 @@ module tb_video_normalizer();
 //	localparam	X_NUM = 128*2;
 //	localparam	Y_NUM = 128*2;
 
-//	localparam	X_NUM = 128/2;
-//	localparam	Y_NUM = 128*2;
 	
 	
 	
@@ -75,7 +77,7 @@ module tb_video_normalizer();
 	parameter	M_SLAVE_REGS       = 1;
 	parameter	M_MASTER_REGS      = 1;
 	
-	parameter	INIT_CTL_ENABLE    = 1;
+	parameter	INIT_CONTROL       = 2'b11;
 	parameter	INIT_PARAM_WIDTH   = X_NUM;
 	parameter	INIT_PARAM_HEIGHT  = Y_NUM;
 	parameter	INIT_PARAM_FILL    = 24'h00ff00;
@@ -87,12 +89,12 @@ module tb_video_normalizer();
 	
 	wire						s_wb_rst_i = reset;
 	wire						s_wb_clk_i = clk;
-	wire	[WB_ADR_WIDTH-1:0]	s_wb_adr_i = 0;
-	wire	[WB_DAT_WIDTH-1:0]	s_wb_dat_i = 0;
+	wire	[WB_ADR_WIDTH-1:0]	s_wb_adr_i;
+	wire	[WB_DAT_WIDTH-1:0]	s_wb_dat_i;
 	wire	[WB_DAT_WIDTH-1:0]	s_wb_dat_o;
-	wire						s_wb_we_i  = 0;
-	wire	[WB_SEL_WIDTH-1:0]	s_wb_sel_i = 0;
-	wire						s_wb_stb_i = 0;
+	wire						s_wb_we_i;
+	wire	[WB_SEL_WIDTH-1:0]	s_wb_sel_i;
+	wire						s_wb_stb_i;
 	wire						s_wb_ack_o;
 	
 	wire	[TUSER_WIDTH-1:0]	s_axi4s_tuser;
@@ -152,7 +154,7 @@ module tb_video_normalizer();
 				.M_SLAVE_REGS		(M_SLAVE_REGS),
 				.M_MASTER_REGS		(M_MASTER_REGS),
 				
-				.INIT_CTL_ENABLE	(INIT_CTL_ENABLE),
+				.INIT_CONTROL		(INIT_CONTROL),
 				.INIT_PARAM_WIDTH	(INIT_PARAM_WIDTH),
 				.INIT_PARAM_HEIGHT	(INIT_PARAM_HEIGHT),
 				.INIT_PARAM_FILL	(INIT_PARAM_FILL),
@@ -193,7 +195,7 @@ module tb_video_normalizer();
 	initial begin
 		 fp_img = $fopen("out_img.ppm", "w");
 		 $fdisplay(fp_img, "P3");
-		 $fdisplay(fp_img, "%d %d", X_NUM, Y_NUM*5);
+		 $fdisplay(fp_img, "%d %d", X_NUM, Y_NUM*FRAME_NUM);
 		 $fdisplay(fp_img, "255");
 	end
 	
@@ -206,8 +208,9 @@ module tb_video_normalizer();
 	integer frame_count = 0;
 	always @(posedge clk) begin
 		if ( !reset && m_axi4s_tuser[0] && m_axi4s_tvalid && m_axi4s_tready ) begin
+			$display("frame : %d", frame_count);
 			frame_count = frame_count + 1;
-			if ( frame_count > 6 ) begin
+			if ( frame_count > FRAME_NUM+1 ) begin
 				$finish();
 			end
 		end
@@ -222,6 +225,137 @@ module tb_video_normalizer();
 		end
 	end
 	*/
+	
+	
+	
+	
+	
+	
+	// ----------------------------------
+	//  WISHBONE master
+	// ----------------------------------
+	
+	wire							wb_rst_i = s_wb_rst_i;
+	wire							wb_clk_i = s_wb_clk_i;
+	reg		[WB_ADR_WIDTH-1:0]		wb_adr_o;
+	wire	[WB_DAT_WIDTH-1:0]		wb_dat_i = s_wb_dat_o;
+	reg		[WB_DAT_WIDTH-1:0]		wb_dat_o;
+	reg								wb_we_o;
+	reg		[WB_SEL_WIDTH-1:0]		wb_sel_o;
+	reg								wb_stb_o = 0;
+	wire							wb_ack_i = s_wb_ack_o;
+	
+	assign s_wb_adr_i = wb_adr_o;
+	assign s_wb_dat_i = wb_dat_o;
+	assign s_wb_we_i  = wb_we_o;
+	assign s_wb_sel_i = wb_sel_o;
+	assign s_wb_stb_i = wb_stb_o;
+	
+	
+	reg		[WB_DAT_WIDTH-1:0]		reg_wb_dat;
+	reg								reg_wb_ack;
+	always @(posedge wb_clk_i) begin
+		if ( ~wb_we_o & wb_stb_o & wb_ack_i ) begin
+			reg_wb_dat <= wb_dat_i;
+		end
+		reg_wb_ack <= wb_ack_i;
+	end
+	
+	
+	task wb_write(
+				input [31:0]	adr,
+				input [31:0]	dat,
+				input [3:0]		sel
+			);
+	begin
+		$display("WISHBONE_WRITE(adr:%h dat:%h sel:%b)", adr, dat, sel);
+		@(negedge wb_clk_i);
+			wb_adr_o = (adr >> 2);
+			wb_dat_o = dat;
+			wb_sel_o = sel;
+			wb_we_o  = 1'b1;
+			wb_stb_o = 1'b1;
+		@(negedge wb_clk_i);
+			while ( reg_wb_ack == 1'b0 ) begin
+				@(negedge wb_clk_i);
+			end
+			wb_adr_o = {WB_ADR_WIDTH{1'bx}};
+			wb_dat_o = {WB_DAT_WIDTH{1'bx}};
+			wb_sel_o = {WB_SEL_WIDTH{1'bx}};
+			wb_we_o  = 1'bx;
+			wb_stb_o = 1'b0;
+	end
+	endtask
+	
+	task wb_read(
+				input [31:0]	adr
+			);
+	begin
+		@(negedge wb_clk_i);
+			wb_adr_o = (adr >> 2);
+			wb_dat_o = {WB_DAT_WIDTH{1'bx}};
+			wb_sel_o = {WB_SEL_WIDTH{1'b1}};
+			wb_we_o  = 1'b0;
+			wb_stb_o = 1'b1;
+		@(negedge wb_clk_i);
+			while ( reg_wb_ack == 1'b0 ) begin
+				@(negedge wb_clk_i);
+			end
+			wb_adr_o = {WB_ADR_WIDTH{1'bx}};
+			wb_dat_o = {WB_DAT_WIDTH{1'bx}};
+			wb_sel_o = {WB_SEL_WIDTH{1'bx}};
+			wb_we_o  = 1'bx;
+			wb_stb_o = 1'b0;
+			$display("WISHBONE_READ(adr:%h dat:%h)", adr, reg_wb_dat);
+	end
+	endtask
+	
+	
+	initial begin
+		#(RATE*200);
+		$display("start");
+		wb_read(32'h00000000);
+		wb_read(32'h00000004);
+		wb_read(32'h00000008);
+		wb_read(32'h0000000c);
+		wb_read(32'h00000020);
+		wb_read(32'h00000024);
+		wb_read(32'h00000028);
+		wb_read(32'h0000002c);
+		
+		
+		#(RATE*100);
+		$display("enable");
+		wb_write(32'h00000000, 1, 4'b1111);
+		wb_read(32'h00000000);
+		wb_read(32'h00000004);
+		
+		#1000000;
+		$display("disable");
+		wb_write(32'h00000000, 0, 4'b1111);
+		wb_read(32'h00000000);
+		wb_read(32'h00000004);
+		
+		#2000000;
+		$display("enable");
+		wb_write(32'h00000000, 1, 4'b1111);
+		wb_read(32'h00000000);
+		wb_read(32'h00000004);
+		
+		// frame timeout
+		#1000000;
+		$display("frame timeout");
+		wb_write(32'h00000014, 100000, 4'b1111);
+		wb_write(32'h00000010, 1,      4'b1111);
+		wb_write(32'h00000028, 24'hff0000, 4'b1111);
+		wb_write(32'h00000000, 3, 4'b1111);
+		#10000;
+		timeout_busy = 1;
+		#1000000;
+		timeout_busy = 0;
+		wb_write(32'h00000028, 24'h0000ff, 4'b1111);
+		wb_write(32'h00000000, 3, 4'b1111);
+	end
 	
 	
 endmodule

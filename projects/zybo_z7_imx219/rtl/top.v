@@ -58,6 +58,7 @@ module top
 						wire			sys_reset;
 	(* KEEP = "true" *)	wire			sys_clk100;
 	(* KEEP = "true" *)	wire			sys_clk200;
+	(* KEEP = "true" *)	wire			sys_clk250;
 	
 	wire			axi4l_peri_aresetn;
 	wire			axi4l_peri_aclk;
@@ -82,30 +83,30 @@ module top
 	wire			axi4l_peri_rready;
 	
 	
-	(* MARK_DEBUG = "true" *)	wire			axi4_mem_aresetn;
-								wire			axi4_mem_aclk;
+	wire			axi4_mem_aresetn;
+	wire			axi4_mem_aclk;
 	
-	(* MARK_DEBUG = "true" *)	wire	[5:0]	axi4_mem0_awid;
-	(* MARK_DEBUG = "true" *)	wire	[31:0]	axi4_mem0_awaddr;
-								wire	[1:0]	axi4_mem0_awburst;
-								wire	[3:0]	axi4_mem0_awcache;
-	(* MARK_DEBUG = "true" *)	wire	[7:0]	axi4_mem0_awlen;
-								wire	[0:0]	axi4_mem0_awlock;
-								wire	[2:0]	axi4_mem0_awprot;
-								wire	[3:0]	axi4_mem0_awqos;
-								wire	[3:0]	axi4_mem0_awregion;
-								wire	[2:0]	axi4_mem0_awsize;
-	(* MARK_DEBUG = "true" *)	wire			axi4_mem0_awvalid;
-	(* MARK_DEBUG = "true" *)	wire			axi4_mem0_awready;
-								wire	[7:0]	axi4_mem0_wstrb;
-	(* MARK_DEBUG = "true" *)	wire	[63:0]	axi4_mem0_wdata;
-	(* MARK_DEBUG = "true" *)	wire			axi4_mem0_wlast;
-	(* MARK_DEBUG = "true" *)	wire			axi4_mem0_wvalid;
-	(* MARK_DEBUG = "true" *)	wire			axi4_mem0_wready;
-	(* MARK_DEBUG = "true" *)	wire	[5:0]	axi4_mem0_bid;
-								wire	[1:0]	axi4_mem0_bresp;
-	(* MARK_DEBUG = "true" *)	wire			axi4_mem0_bvalid;
-	(* MARK_DEBUG = "true" *)	wire			axi4_mem0_bready;
+	wire	[5:0]	axi4_mem0_awid;
+	wire	[31:0]	axi4_mem0_awaddr;
+	wire	[1:0]	axi4_mem0_awburst;
+	wire	[3:0]	axi4_mem0_awcache;
+	wire	[7:0]	axi4_mem0_awlen;
+	wire	[0:0]	axi4_mem0_awlock;
+	wire	[2:0]	axi4_mem0_awprot;
+	wire	[3:0]	axi4_mem0_awqos;
+	wire	[3:0]	axi4_mem0_awregion;
+	wire	[2:0]	axi4_mem0_awsize;
+	wire			axi4_mem0_awvalid;
+	wire			axi4_mem0_awready;
+	wire	[7:0]	axi4_mem0_wstrb;
+	wire	[63:0]	axi4_mem0_wdata;
+	wire			axi4_mem0_wlast;
+	wire			axi4_mem0_wvalid;
+	wire			axi4_mem0_wready;
+	wire	[5:0]	axi4_mem0_bid;
+	wire	[1:0]	axi4_mem0_bresp;
+	wire			axi4_mem0_bvalid;
+	wire			axi4_mem0_bready;
 	wire	[5:0]	axi4_mem0_arid;
 	wire	[31:0]	axi4_mem0_araddr;
 	wire	[1:0]	axi4_mem0_arburst;
@@ -141,6 +142,7 @@ module top
 				.out_reset				(sys_reset),
 				.out_clk100				(sys_clk100),
 				.out_clk200				(sys_clk200),
+				.out_clk250				(sys_clk250),
 				
 				.m_axi4l_peri_aresetn	(axi4l_peri_aresetn),
 				.m_axi4l_peri_aclk		(axi4l_peri_aclk),
@@ -262,13 +264,13 @@ module top
 	// AXI4L => WISHBONE
 	wire					wb_rst_o;
 	wire					wb_clk_o;
-	(* MARK_DEBUG = "true" *)	wire	[29:0]			wb_host_adr_o;
-	(* MARK_DEBUG = "true" *)	wire	[31:0]			wb_host_dat_o;
-	(* MARK_DEBUG = "true" *)	wire	[31:0]			wb_host_dat_i;
-	(* MARK_DEBUG = "true" *)	wire					wb_host_we_o;
-	(* MARK_DEBUG = "true" *)	wire	[3:0]			wb_host_sel_o;
-	(* MARK_DEBUG = "true" *)	wire					wb_host_stb_o;
-	(* MARK_DEBUG = "true" *)	wire					wb_host_ack_i;
+	wire	[29:0]			wb_host_adr_o;
+	wire	[31:0]			wb_host_dat_o;
+	wire	[31:0]			wb_host_dat_i;
+	wire					wb_host_we_o;
+	wire	[3:0]			wb_host_sel_o;
+	wire					wb_host_stb_o;
+	wire					wb_host_ack_i;
 	
 	jelly_axi4l_to_wishbone
 			#(
@@ -327,65 +329,66 @@ module top
 	//  MIPI D-PHY RX
 	// ----------------------------------------
 	
-	(* KEEP = "true" *)			wire				rxbyteclkhs;
-	(* MARK_DEBUG = "true" *)	wire				system_rst_out;
-	(* MARK_DEBUG = "true" *)	wire				init_done;
+	(* KEEP = "true" *)
+	wire				rxbyteclkhs;
+	wire				system_rst_out;
+	wire				init_done;
 	
-	(* MARK_DEBUG = "true" *)	wire				cl_rxclkactivehs;
-	(* MARK_DEBUG = "true" *)	wire				cl_stopstate;
-	(* MARK_DEBUG = "true" *)	wire				cl_enable         = 1;
-	(* MARK_DEBUG = "true" *)	wire				cl_rxulpsclknot;
-	(* MARK_DEBUG = "true" *)	wire				cl_ulpsactivenot;
+	wire				cl_rxclkactivehs;
+	wire				cl_stopstate;
+	wire				cl_enable         = 1;
+	wire				cl_rxulpsclknot;
+	wire				cl_ulpsactivenot;
 	
 	(* MARK_DEBUG = "true" *)	wire	[7:0]		dl0_rxdatahs;
 	(* MARK_DEBUG = "true" *)	wire				dl0_rxvalidhs;
 	(* MARK_DEBUG = "true" *)	wire				dl0_rxactivehs;
 	(* MARK_DEBUG = "true" *)	wire				dl0_rxsynchs;
 	
-	(* MARK_DEBUG = "true" *)	wire				dl0_forcerxmode   = 0;
-	(* MARK_DEBUG = "true" *)	wire				dl0_stopstate;
-	(* MARK_DEBUG = "true" *)	wire				dl0_enable        = 1;
-	(* MARK_DEBUG = "true" *)	wire				dl0_ulpsactivenot;
+	wire				dl0_forcerxmode   = 0;
+	wire				dl0_stopstate;
+	wire				dl0_enable        = 1;
+	wire				dl0_ulpsactivenot;
 	
-	(* MARK_DEBUG = "true" *)	wire				dl0_rxclkesc;
-	(* MARK_DEBUG = "true" *)	wire				dl0_rxlpdtesc;
-	(* MARK_DEBUG = "true" *)	wire				dl0_rxulpsesc;
-	(* MARK_DEBUG = "true" *)	wire	[3:0]		dl0_rxtriggeresc;
-	(* MARK_DEBUG = "true" *)	wire	[7:0]		dl0_rxdataesc;
-	(* MARK_DEBUG = "true" *)	wire				dl0_rxvalidesc;
+	wire				dl0_rxclkesc;
+	wire				dl0_rxlpdtesc;
+	wire				dl0_rxulpsesc;
+	wire	[3:0]		dl0_rxtriggeresc;
+	wire	[7:0]		dl0_rxdataesc;
+	wire				dl0_rxvalidesc;
 	
-	(* MARK_DEBUG = "true" *)	wire				dl0_errsoths;
-	(* MARK_DEBUG = "true" *)	wire				dl0_errsotsynchs;
-	(* MARK_DEBUG = "true" *)	wire				dl0_erresc;
-	(* MARK_DEBUG = "true" *)	wire				dl0_errsyncesc;
-	(* MARK_DEBUG = "true" *)	wire				dl0_errcontrol;
+	wire				dl0_errsoths;
+	wire				dl0_errsotsynchs;
+	wire				dl0_erresc;
+	wire				dl0_errsyncesc;
+	wire				dl0_errcontrol;
 	
-	(* MARK_DEBUG = "true" *)	wire	[7:0]		dl1_rxdatahs;
-	(* MARK_DEBUG = "true" *)	wire				dl1_rxvalidhs;
-	(* MARK_DEBUG = "true" *)	wire				dl1_rxactivehs;
-	(* MARK_DEBUG = "true" *)	wire				dl1_rxsynchs;
+	wire	[7:0]		dl1_rxdatahs;
+	wire				dl1_rxvalidhs;
+	wire				dl1_rxactivehs;
+	wire				dl1_rxsynchs;
 	
-	(* MARK_DEBUG = "true" *)	wire				dl1_forcerxmode   = 0;
-	(* MARK_DEBUG = "true" *)	wire				dl1_stopstate;
-	(* MARK_DEBUG = "true" *)	wire				dl1_enable        = 1;
-	(* MARK_DEBUG = "true" *)	wire				dl1_ulpsactivenot;
+	wire				dl1_forcerxmode   = 0;
+	wire				dl1_stopstate;
+	wire				dl1_enable        = 1;
+	wire				dl1_ulpsactivenot;
 	
-	(* MARK_DEBUG = "true" *)	wire				dl1_rxclkesc;
-	(* MARK_DEBUG = "true" *)	wire				dl1_rxlpdtesc;
-	(* MARK_DEBUG = "true" *)	wire				dl1_rxulpsesc;
-	(* MARK_DEBUG = "true" *)	wire	[3:0]		dl1_rxtriggeresc;
-	(* MARK_DEBUG = "true" *)	wire	[7:0]		dl1_rxdataesc;
-	(* MARK_DEBUG = "true" *)	wire				dl1_rxvalidesc;
+	wire				dl1_rxclkesc;
+	wire				dl1_rxlpdtesc;
+	wire				dl1_rxulpsesc;
+	wire	[3:0]		dl1_rxtriggeresc;
+	wire	[7:0]		dl1_rxdataesc;
+	wire				dl1_rxvalidesc;
 	
-	(* MARK_DEBUG = "true" *)	wire				dl1_errsoths;
-	(* MARK_DEBUG = "true" *)	wire				dl1_errsotsynchs;
-	(* MARK_DEBUG = "true" *)	wire				dl1_erresc;
-	(* MARK_DEBUG = "true" *)	wire				dl1_errsyncesc;
-	(* MARK_DEBUG = "true" *)	wire				dl1_errcontrol;
+	wire				dl1_errsoths;
+	wire				dl1_errsotsynchs;
+	wire				dl1_erresc;
+	wire				dl1_errsyncesc;
+	wire				dl1_errcontrol;
 	
 	
-	(* MARK_DEBUG = "true" *)	reg		[31:0]		dbg_dl0_count;
-	(* MARK_DEBUG = "true" *)	reg		[31:0]		dbg_dl1_count;
+	reg		[31:0]		dbg_dl0_count;
+	reg		[31:0]		dbg_dl1_count;
 	always @(posedge rxbyteclkhs) begin
 		if (dl0_rxactivehs ) begin
 			dbg_dl0_count <= dbg_dl0_count + 1;
@@ -490,8 +493,8 @@ module top
 		   );
 	
 	
-								wire		dphy_clk   = rxbyteclkhs;
-	(* MARK_DEBUG = "true" *)	wire		dphy_reset = system_rst_out;
+	wire		dphy_clk   = rxbyteclkhs;
+	wire		dphy_reset = system_rst_out;
 	
 	/*
 	jelly_reset
@@ -516,6 +519,10 @@ module top
 	//  video DMA write
 	// ----------------------------------------
 	
+	
+	wire			axi4s_cam_aresetn = ~sys_reset;
+	wire			axi4s_cam_aclk    = sys_clk200;
+	
 	(* MARK_DEBUG = "true" *)	wire	[0:0]	axi4s_csi2_tuser;
 	(* MARK_DEBUG = "true" *)	wire			axi4s_csi2_tlast;
 	(* MARK_DEBUG = "true" *)	wire	[9:0]	axi4s_csi2_tdata;
@@ -525,10 +532,14 @@ module top
 	jelly_csi2_rx
 			#(
 				.LANE_NUM			(2),
-				.DATA_WIDTH			(10)
+				.DATA_WIDTH			(10),
+				.M_FIFO_ASYNC		(1)
 			)
 		i_csi2_rx
 			(
+				.aresetn			(~sys_reset),
+				.aclk				(sys_clk250),
+				
 				.rxreseths			(system_rst_out),
 				.rxbyteclkhs		(rxbyteclkhs),
 				.rxdatahs			({dl1_rxdatahs,   dl0_rxdatahs  }),
@@ -536,22 +547,79 @@ module top
 				.rxactivehs			({dl1_rxactivehs, dl0_rxactivehs}),
 				.rxsynchs			({dl1_rxsynchs,   dl0_rxsynchs  }),
 				
-				.aresetn			(~sys_reset),
-				.aclk				(sys_clk200),
+				.m_axi4s_aresetn	(axi4s_cam_aresetn),
+				.m_axi4s_aclk		(axi4s_cam_aclk),
 				.m_axi4s_tuser		(axi4s_csi2_tuser),
 				.m_axi4s_tlast		(axi4s_csi2_tlast),
 				.m_axi4s_tdata		(axi4s_csi2_tdata),
 				.m_axi4s_tvalid		(axi4s_csi2_tvalid),
-				.m_axi4s_tready		(axi4s_csi2_tready)
+				.m_axi4s_tready		(1'b1)	// (axi4s_csi2_tready)
+			);
+	
+	jelly_axi4s_debug_monitor
+			#(
+				.TUSER_WIDTH		(1),
+				.TDATA_WIDTH		(10),
+				.TIMER_WIDTH		(32),
+				.FRAME_WIDTH		(32),
+				.PIXEL_WIDTH		(32),
+				.X_WIDTH			(16),
+				.Y_WIDTH			(16)
+			)
+		i_axi4s_debug_monitor
+			(
+				.aresetn			(axi4s_cam_aresetn),
+				.aclk				(axi4s_cam_aclk),
+				.aclken				(1'b1),
+				
+				.axi4s_tuser		(axi4s_csi2_tuser),
+				.axi4s_tlast		(axi4s_csi2_tlast),
+				.axi4s_tdata		(axi4s_csi2_tdata),
+				.axi4s_tvalid		(axi4s_csi2_tvalid),
+				.axi4s_tready		(axi4s_csi2_tready)
 			);
 	
 	
+	wire	[0:0]	axi4s_fifo_tuser;
+	wire			axi4s_fifo_tlast;
+	wire	[9:0]	axi4s_fifo_tdata;
+	wire			axi4s_fifo_tvalid;
+	wire			axi4s_fifo_tready;
+	
+	jelly_fifo_fwtf
+			#(
+				.DATA_WIDTH			(2+10),
+				.PTR_WIDTH			(10),
+				.DOUT_REGS			(0),
+				.RAM_TYPE			("block"),
+				.LOW_DEALY			(0),
+				.SLAVE_REGS			(0),
+				.MASTER_REGS		(1)
+			)
+		i_fifo_fifo_fwtf_csi2
+			(
+				.reset				(~axi4s_cam_aresetn),
+				.clk				(axi4s_cam_aclk),
+				
+				.s_data				({axi4s_csi2_tuser, axi4s_csi2_tlast, axi4s_csi2_tdata}),
+				.s_valid			(axi4s_csi2_tvalid),
+				.s_ready			(axi4s_csi2_tready),
+				.s_free_count		(),
+				
+				.m_data				({axi4s_fifo_tuser, axi4s_fifo_tlast, axi4s_fifo_tdata}),
+				.m_valid			(axi4s_fifo_tvalid),
+				.m_ready			(axi4s_fifo_tready),
+				.m_data_count		()
+			);
+	
+	
+	
 	// normalize
-	(* MARK_DEBUG = "true" *)	wire	[0:0]	axi4s_memw_tuser;
-	(* MARK_DEBUG = "true" *)	wire			axi4s_memw_tlast;
-	(* MARK_DEBUG = "true" *)	wire	[9:0]	axi4s_memw_tdata;
-	(* MARK_DEBUG = "true" *)	wire			axi4s_memw_tvalid;
-	(* MARK_DEBUG = "true" *)	wire			axi4s_memw_tready;
+	wire	[0:0]	axi4s_memw_tuser;
+	wire			axi4s_memw_tlast;
+	wire	[9:0]	axi4s_memw_tdata;
+	wire			axi4s_memw_tvalid;
+	wire			axi4s_memw_tready;
 	
 	
 	// core
@@ -566,15 +634,16 @@ module top
 				
 				.TUSER_WIDTH		(1),
 				.TDATA_WIDTH		(10),
-				.X_WIDTH			(12),
-				.Y_WIDTH			(12),
+				.X_WIDTH			(16),
+				.Y_WIDTH			(16),
 				.TIMER_WIDTH		(32),
 				.S_SLAVE_REGS		(1),
 				.S_MASTER_REGS		(1),
 				.M_SLAVE_REGS		(1),
 				.M_MASTER_REGS		(1),
 				
-				.INIT_CTL_ENABLE	(1),
+				.INIT_CONTROL		(2'b00),
+				.INIT_SKIP			(1),
 				.INIT_PARAM_WIDTH	(X_NUM),
 				.INIT_PARAM_HEIGHT	(Y_NUM),
 				.INIT_PARAM_FILL	(10'd0),
@@ -582,8 +651,8 @@ module top
 			)
 		i_video_normalizer
 			(
-				.aresetn			(~sys_reset),
-				.aclk				(sys_clk200),
+				.aresetn			(axi4s_cam_aresetn),
+				.aclk				(axi4s_cam_aclk),
 				.aclken				(1'b1),
 
 				.s_wb_rst_i			(wb_rst_o),
@@ -596,11 +665,11 @@ module top
 				.s_wb_stb_i			(wb_norm_stb_i),
 				.s_wb_ack_o			(wb_norm_ack_o),
 				
-				.s_axi4s_tuser		(axi4s_csi2_tuser),
-				.s_axi4s_tlast		(axi4s_csi2_tlast),
-				.s_axi4s_tdata		(axi4s_csi2_tdata),
-				.s_axi4s_tvalid		(axi4s_csi2_tvalid),
-				.s_axi4s_tready		(axi4s_csi2_tready),
+				.s_axi4s_tuser		(axi4s_fifo_tuser),
+				.s_axi4s_tlast		(axi4s_fifo_tlast),
+				.s_axi4s_tdata		(axi4s_fifo_tdata),
+				.s_axi4s_tvalid		(axi4s_fifo_tvalid),
+				.s_axi4s_tready		(axi4s_fifo_tready),
 				
 				.m_axi4s_tuser		(axi4s_memw_tuser),
 				.m_axi4s_tlast		(axi4s_memw_tlast),
@@ -618,7 +687,7 @@ module top
 	jelly_vdma_axi4s_to_axi4
 			#(
 				.ASYNC				(1),
-				.FIFO_PTR_WIDTH		(10),
+				.FIFO_PTR_WIDTH		(12),
 				
 				.PIXEL_SIZE			(1),	// 16bit
 				.AXI4_ID_WIDTH		(6),
@@ -668,8 +737,8 @@ module top
 				.m_axi4_bvalid		(axi4_mem0_bvalid),
 				.m_axi4_bready		(axi4_mem0_bready),
 				
-				.s_axi4s_aresetn	(~sys_reset),
-				.s_axi4s_aclk		(sys_clk200),
+				.s_axi4s_aresetn	(axi4s_cam_aresetn),
+				.s_axi4s_aclk		(axi4s_cam_aclk),
 				.s_axi4s_tuser		(axi4s_memw_tuser),
 				.s_axi4s_tlast		(axi4s_memw_tlast),
 				.s_axi4s_tdata		({axi4s_memw_tdata, 6'd0}),
@@ -921,15 +990,35 @@ module top
 	reg		[31:0]		reg_counter_clk100;
 	always @(posedge sys_clk100)	reg_counter_clk100 <= reg_counter_clk100 + 1;
 	
+	
+	reg		frame_toggle = 0;
+	always @(posedge axi4s_cam_aclk) begin
+		if ( axi4s_csi2_tuser[0] && axi4s_csi2_tvalid && axi4s_csi2_tready ) begin
+			frame_toggle <= ~frame_toggle;
+		end
+	end
+	
+	
 	assign led[0] = reg_counter_rxbyteclkhs[24];
 	assign led[1] = reg_counter_clk200[24];
 	assign led[2] = reg_counter_clk100[24];
-	assign led[3] = cam_gpio;
+	assign led[3] = frame_toggle;
 	
-	assign pmod_a[0]   = cam_clk;
+	assign pmod_a[0]   = frame_toggle;
 	assign pmod_a[1]   = reg_counter_rxbyteclkhs[5];
-	assign pmod_a[7:2] = 0;
+	assign pmod_a[2]   = reg_counter_clk200[5];
+	assign pmod_a[3]   = reg_counter_clk100[5];
+	assign pmod_a[7:4] = 0;
 	
+	
+	(* MARK_DEBUG = "true" *) reg	dbg_clk200;
+	(* MARK_DEBUG = "true" *) reg	dbg_clk100;
+	(* MARK_DEBUG = "true" *) reg	dbg_rxbyteclkhs;
+	always @(posedge sys_clk100) begin
+		dbg_clk200       <= reg_counter_clk200[5];
+		dbg_clk100       <= reg_counter_clk100[5];
+		dbg_rxbyteclkhs  <= reg_counter_rxbyteclkhs[5];
+	end
 	
 	
 endmodule
