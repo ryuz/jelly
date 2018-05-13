@@ -37,6 +37,7 @@ int main(int argc, char *argv[])
 	cv::Mat imgB(imgSrc.size(), CV_16S);
 	cv::Mat imgRgb(imgSrc.size(), CV_8UC3);
 
+	int pix = 0;
 	for (int y = 0; y < imgRaw.rows; y++) {
 		for (int x = 0; x < imgRaw.cols; x++) {
 			int raw11 = GetPixel(imgRaw, x - 2, y - 2);
@@ -81,10 +82,18 @@ int main(int argc, char *argv[])
 			else {
 				tmp_g = ((raw23 + raw43 + raw32 + raw34) * 2 + (-raw13 - raw31 + 4 * raw33 - raw53 - raw35)) / 8;
 			}
-			imgTmpG.at<short>(y, x) = tmp_g;
+
+			imgTmpG.at<short>(y, x) = std::min(std::max(tmp_g, 0), 1023);
+
+			// debug
+			if (pix == 326) {
+				printf("%d\n", tmp_g);
+			}
+			pix++;
 		}
 	}
 
+	pix = 0;
 	for (int y = 0; y < imgRaw.rows; y++) {
 		for (int x = 0; x < imgRaw.cols; x++) {
 			int raw11 = GetPixel(imgRaw, x - 1, y - 1);
@@ -113,6 +122,9 @@ int main(int argc, char *argv[])
 			int tmpX;
 			int tmpH;
 			int tmpV;
+
+			int tmpL = ((raw11 + raw33) * 2 + (-tg11 + 2 * tg22 - tg33));
+			int tmpR = ((raw13 + raw31) * 2 + (-tg13 + 2 * tg22 - tg31));
 
 			if (alpha < beta) {
 				tmpX = ((raw13 + raw31) * 2 + (-tg13 + 2 * tg22 - tg31)) * 2;
@@ -166,6 +178,12 @@ int main(int argc, char *argv[])
 			imgR.at<short>(y, x) = R;
 			imgG.at<short>(y, x) = G;
 			imgB.at<short>(y, x) = B;
+
+			// debug
+			if (pix == 1641) {
+				printf("%d\n", X);
+			}
+			pix++;
 		}
 	}
 
@@ -182,8 +200,6 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	cv::imshow("imgRgb", imgRgb);
-	cv::waitKey();
 
 	{
 		FILE *fp;
@@ -213,6 +229,8 @@ int main(int argc, char *argv[])
 		fclose(fp);
 	}
 
+	cv::imshow("imgRgb", imgRgb);
+	cv::waitKey();
 
 	return 0;
 }

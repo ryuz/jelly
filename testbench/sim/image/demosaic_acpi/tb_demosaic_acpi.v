@@ -184,8 +184,24 @@ module tb_demosaic_acpi();
 			);
 	
 	
+	// G phase dump
+	integer		fp_g;
+	initial begin
+		 fp_g = $fopen("out_g.pgm", "w");
+		 $fdisplay(fp_g, "P2");
+		 $fdisplay(fp_g, "%1d %1d", X_NUM, Y_NUM*FRAME_NUM);
+		 $fdisplay(fp_g, "1023");
+	end
 	
-	// dump
+	always @(posedge clk) begin
+		if ( !reset && img_cke && i_img_demosaic_acpi_core.img_g_de && i_img_demosaic_acpi_core.img_g_valid ) begin
+			$fdisplay(fp_g, "%1d", i_img_demosaic_acpi_core.img_g_g);
+		end
+	end
+	
+	
+	
+	// image dump
 	localparam	FRAME_NUM = 1;
 	
 	integer		fp_img;
@@ -196,12 +212,14 @@ module tb_demosaic_acpi();
 		 $fdisplay(fp_img, "1023");
 	end
 	
+	integer		count_out = 0;
 	always @(posedge clk) begin
 		if ( !reset && axi4s_out_tvalid && axi4s_out_tready ) begin
 			$fdisplay(fp_img, "%1d %1d %1d",
 					axi4s_out_tdata[2*DATA_WIDTH +: DATA_WIDTH],
 					axi4s_out_tdata[1*DATA_WIDTH +: DATA_WIDTH],
 					axi4s_out_tdata[0*DATA_WIDTH +: DATA_WIDTH]);
+			count_out <= count_out + 1;
 		end
 	end
 	
@@ -217,6 +235,19 @@ module tb_demosaic_acpi();
 	end
 	
 	
+	integer		count_g   = 0;
+	integer		count_rb  = 0;
+	always @(posedge clk) begin
+		if ( img_cke ) begin
+			if ( i_img_demosaic_acpi_core.img_g_de ) begin
+				count_g <= count_g + 1;
+			end
+			
+			if ( i_img_demosaic_acpi_core.m_img_de ) begin
+				count_rb <= count_rb + 1;
+			end
+		end
+	end
 	
 endmodule
 

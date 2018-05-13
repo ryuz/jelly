@@ -198,7 +198,7 @@ module jelly_img_demosaic_acpi_rb_unit
 			st3_phase <= st2_phase;
 			st3_raw   <= st2_raw;
 			st3_g     <= st2_g;
-			st3_x     <= ((st2_a > st2_b ? st2_r : st2_l) + (st2_b > st2_a ? st2_l : st2_r)) >>> 3;
+			st3_x     <= ((st2_a > st2_b ? st2_l : st2_r) + (st2_b > st2_a ? st2_r : st2_l)) >>> 3;
 			st3_v     <= st2_v >>> 2;
 			st3_h     <= st2_h >>> 2;
 			
