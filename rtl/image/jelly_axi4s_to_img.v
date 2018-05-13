@@ -17,11 +17,14 @@
 
 module jelly_axi4s_to_img
 		#(
-			parameter	DATA_WIDTH   = 8,
+			parameter	TUSER_WIDTH  = 1,
+			parameter	TDATA_WIDTH  = 8,
 			parameter	IMG_Y_WIDTH  = 9,
 			parameter	IMG_Y_NUM    = 480,
 			parameter	IMG_CKE_BUFG = 0,
-			parameter	USE_VALID    = 0
+			parameter	USE_VALID    = 0,
+			
+			parameter	USER_WIDTH   = TUSER_WIDTH > 1 ? TUSER_WIDTH - 1 : 0
 		)
 		(
 			input	wire								reset,
@@ -30,9 +33,9 @@ module jelly_axi4s_to_img
 			
 			input	wire	[IMG_Y_WIDTH-1:0]			param_y_num,
 			
-			input	wire	[DATA_WIDTH-1:0]			s_axi4s_tdata,
+			input	wire	[TDATA_WIDTH-1:0]			s_axi4s_tdata,
 			input	wire								s_axi4s_tlast,
-			input	wire	[0:0]						s_axi4s_tuser,
+			input	wire	[TUSER_WIDTH-1:0]			s_axi4s_tuser,
 			input	wire								s_axi4s_tvalid,
 			output	wire								s_axi4s_tready,
 			
@@ -42,7 +45,8 @@ module jelly_axi4s_to_img
 			output	wire								m_img_pixel_first,
 			output	wire								m_img_pixel_last,
 			output	wire								m_img_de,
-			output	wire	[DATA_WIDTH-1:0]			m_img_data,
+			output	wire	[USER_WIDTH-1:0]			m_img_user,
+			output	wire	[TDATA_WIDTH-1:0]			m_img_data,
 			output	wire								m_img_valid
 		);
 	
@@ -53,7 +57,8 @@ module jelly_axi4s_to_img
 	reg							reg_pixel_first;
 	reg							reg_pixel_last;
 	reg							reg_de;
-	reg		[DATA_WIDTH-1:0]	reg_data;
+	reg		[USER_WIDTH-1:0]	reg_user;
+	reg		[TDATA_WIDTH-1:0]	reg_data;
 	reg							reg_valid;
 	reg		[IMG_Y_WIDTH-1:0]	reg_y_count;
 	
@@ -65,7 +70,8 @@ module jelly_axi4s_to_img
 			reg_pixel_first <= USE_VALID ? 1'bx : 1'b0;
 			reg_pixel_last  <= USE_VALID ? 1'bx : 1'b0;
 			reg_de          <= USE_VALID ? 1'bx : 1'b0;
-			reg_data        <= {DATA_WIDTH{1'bx}};
+			reg_user        <= {USER_WIDTH{1'bx}};
+			reg_data        <= {TDATA_WIDTH{1'bx}};
 			reg_valid       <= 1'b0;
 			reg_y_count     <= {IMG_Y_WIDTH{1'bx}};
 		end
@@ -88,7 +94,7 @@ module jelly_axi4s_to_img
 					end
 				end
 				
-				if ( s_axi4s_tuser ) begin
+				if ( s_axi4s_tuser[0] ) begin
 					reg_line_first  <= 1'b1;
 					reg_pixel_first <= 1'b1;
 					reg_y_count     <= {IMG_Y_WIDTH{1'b0}};
@@ -96,6 +102,7 @@ module jelly_axi4s_to_img
 				end
 				
 				reg_pixel_last <= s_axi4s_tlast;
+				reg_user       <= (s_axi4s_tuser >> 1);
 				reg_data       <= s_axi4s_tdata;
 			end
 			
@@ -125,6 +132,7 @@ module jelly_axi4s_to_img
 	assign m_img_pixel_first = reg_pixel_first;
 	assign m_img_pixel_last  = reg_pixel_last;
 	assign m_img_de          = reg_de;
+	assign m_img_user        = reg_user;
 	assign m_img_data        = reg_data;
 	assign m_img_valid       = reg_valid;
 	

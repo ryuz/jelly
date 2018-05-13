@@ -14,12 +14,14 @@
 
 module jelly_axi4s_insert_blank
 		#(
-			parameter	DATA_WIDTH     = 8,
+			parameter	TDATA_WIDTH    = 8,
+			parameter	TUSER_WIDTH    = 1,
 			parameter	FIFO_PTR_WIDTH = 0,
 			parameter	IMG_X_WIDTH    = 10,
 			parameter	IMG_Y_WIDTH    = 10,
 			parameter	BLANK_Y_WIDTH  = 8,
-			parameter	BLANK_DATA     = {DATA_WIDTH{1'b0}},
+			parameter	BLANK_TDATA    = {TDATA_WIDTH{1'b0}},
+			parameter	BLANK_TUSER    = {TUSER_WIDTH{1'b0}},
 			parameter	INIT_Y_NUM     = 0
 		)
 		(
@@ -31,15 +33,15 @@ module jelly_axi4s_insert_blank
 			output	wire	[IMG_X_WIDTH-1:0]	monitor_x_num,
 			output	wire	[IMG_Y_WIDTH-1:0]	monitor_y_num,
 			
-			input	wire	[DATA_WIDTH-1:0]	s_axi4s_tdata,
+			input	wire	[TUSER_WIDTH-1:0]	s_axi4s_tuser,
 			input	wire						s_axi4s_tlast,
-			input	wire	[0:0]				s_axi4s_tuser,
+			input	wire	[TDATA_WIDTH-1:0]	s_axi4s_tdata,
 			input	wire						s_axi4s_tvalid,
 			output	wire						s_axi4s_tready,
 			
-			output	wire	[DATA_WIDTH-1:0]	m_axi4s_tdata,
+			output	wire	[TUSER_WIDTH-1:0]	m_axi4s_tuser,
 			output	wire						m_axi4s_tlast,
-			output	wire	[0:0]				m_axi4s_tuser,
+			output	wire	[TDATA_WIDTH-1:0]	m_axi4s_tdata,
 			output	wire						m_axi4s_tvalid,
 			input	wire						m_axi4s_tready
 		);
@@ -58,9 +60,9 @@ module jelly_axi4s_insert_blank
 	reg							reg_blank;
 	reg							reg_frame_last;
 	
-	reg		[DATA_WIDTH-1:0]	reg_tdata;
+	reg		[TDATA_WIDTH-1:0]	reg_tdata;
 	reg							reg_tlast;
-	reg		[0:0]				reg_tuser;
+	reg		[TUSER_WIDTH-1:0]	reg_tuser;
 	reg							reg_tvalid;
 	
 	always @(posedge clk) begin
@@ -75,9 +77,9 @@ module jelly_axi4s_insert_blank
 			reg_blank      <= 1'b0;
 			reg_frame_last <= 1'b0;
 			
-			reg_tdata      <= {DATA_WIDTH{1'bx}};
 			reg_tlast      <= 1'bx;
-			reg_tuser      <= 1'bx;
+			reg_tdata      <= {TDATA_WIDTH{1'bx}};
+			reg_tuser      <= {TUSER_WIDTH{1'bx}};
 			reg_tvalid     <= 1'b0;
 		end
 		else begin
@@ -90,7 +92,7 @@ module jelly_axi4s_insert_blank
 					reg_y_counter <= reg_y_counter + 1;
 				end
 				
-				if ( s_axi4s_tuser ) begin
+				if ( s_axi4s_tuser[0] ) begin
 					if ( reg_y_counter > 0 ) begin
 						reg_y_num <= reg_y_counter;		// Yサイズ記録
 					end
@@ -113,9 +115,9 @@ module jelly_axi4s_insert_blank
 						reg_y_blank    <= reg_y_blank + 1'b1;
 						reg_x_blank    <= {IMG_X_WIDTH{1'b0}};
 						reg_blank      <= 1'b1;
-						reg_tdata      <= BLANK_DATA;
+						reg_tuser      <= BLANK_TUSER;
 						reg_tlast      <= ({IMG_X_WIDTH{1'b0}} == reg_x_num);
-						reg_tuser      <= 1'b0;
+						reg_tdata      <= BLANK_TDATA;
 						reg_tvalid     <= 1'b1;
 						reg_frame_last <= ({IMG_X_WIDTH{1'b0}} == reg_x_num);
 					end
@@ -128,9 +130,9 @@ module jelly_axi4s_insert_blank
 						else begin
 							reg_x_blank <= reg_x_blank + 1'b1;
 						end
-						reg_tdata      <= BLANK_DATA;
+						reg_tuser      <= BLANK_TUSER;
 						reg_tlast      <= (reg_x_blank + 1'b1 == reg_x_num);
-						reg_tuser      <= 1'b0;
+						reg_tdata      <= BLANK_TDATA;
 						reg_tvalid     <= 1'b1;
 						reg_frame_last <= (reg_x_blank + 1'b1 == reg_x_num);
 					end

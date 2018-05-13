@@ -19,8 +19,9 @@
 
 module jelly_axi4s_img
 		#(
-			parameter	S_DATA_WIDTH   = 8,
-			parameter	M_DATA_WIDTH   = 24,
+			parameter	TUSER_WIDTH    = 1,
+			parameter	S_TDATA_WIDTH  = 8,
+			parameter	M_TDATA_WIDTH  = 24,
 			parameter	IMG_X_WIDTH    = 10,
 			parameter	IMG_Y_WIDTH    = 9,
 			parameter	IMG_Y_NUM      = 480,
@@ -30,7 +31,9 @@ module jelly_axi4s_img
 			parameter	INIT_Y_NUM     = IMG_Y_NUM,
 			parameter	FIFO_PTR_WIDTH = 9,
 			parameter	FIFO_RAM_TYPE  = "block",
-			parameter	IMG_CKE_BUFG   = 0
+			parameter	IMG_CKE_BUFG   = 0,
+			
+			parameter	USER_WIDTH     = TUSER_WIDTH > 1 ? TUSER_WIDTH - 1 : 1
 		)
 		(
 			input	wire								reset,
@@ -38,15 +41,15 @@ module jelly_axi4s_img
 			
 			input	wire	[BLANK_Y_WIDTH-1:0]			param_blank_num,
 			
-			input	wire	[S_DATA_WIDTH-1:0]			s_axi4s_tdata,
+			input	wire	[TUSER_WIDTH-1:0]			s_axi4s_tuser,
 			input	wire								s_axi4s_tlast,
-			input	wire	[0:0]						s_axi4s_tuser,
+			input	wire	[S_TDATA_WIDTH-1:0]			s_axi4s_tdata,
 			input	wire								s_axi4s_tvalid,
 			output	wire								s_axi4s_tready,
 			
-			output	wire	[M_DATA_WIDTH-1:0]			m_axi4s_tdata,
+			output	wire	[TUSER_WIDTH-1:0]			m_axi4s_tuser,
 			output	wire								m_axi4s_tlast,
-			output	wire	[0:0]						m_axi4s_tuser,
+			output	wire	[M_TDATA_WIDTH-1:0]			m_axi4s_tdata,
 			output	wire								m_axi4s_tvalid,
 			input	wire								m_axi4s_tready,
 			
@@ -58,7 +61,8 @@ module jelly_axi4s_img
 			output	wire								src_img_pixel_first,
 			output	wire								src_img_pixel_last,
 			output	wire								src_img_de,
-			output	wire	[S_DATA_WIDTH-1:0]			src_img_data,
+			output	wire	[USER_WIDTH-1:0]			src_img_user,
+			output	wire	[S_TDATA_WIDTH-1:0]			src_img_data,
 			output	wire								src_img_valid,
 			
 			input	wire								sink_img_line_first,
@@ -66,21 +70,22 @@ module jelly_axi4s_img
 			input	wire								sink_img_pixel_first,
 			input	wire								sink_img_pixel_last,
 			input	wire								sink_img_de,
-			input	wire	[M_DATA_WIDTH-1:0]			sink_img_data,
+			input	wire	[USER_WIDTH-1:0]			sink_img_user,
+			input	wire	[M_TDATA_WIDTH-1:0]			sink_img_data,
 			input	wire								sink_img_valid
 		);
 	
 	
 	// ブランキング追加中に次フレームが来てしまった場合の吸収用FIFO
-	wire	[S_DATA_WIDTH-1:0]	axi4s_fifo_tdata;
+	wire	[S_TDATA_WIDTH-1:0]	axi4s_fifo_tdata;
 	wire						axi4s_fifo_tlast;
-	wire	[0:0]				axi4s_fifo_tuser;
+	wire	[TUSER_WIDTH-1:0]	axi4s_fifo_tuser;
 	wire						axi4s_fifo_tvalid;
 	wire						axi4s_fifo_tready;
 	
 	jelly_fifo_fwtf
 			#(
-				.DATA_WIDTH		(2+S_DATA_WIDTH),
+				.DATA_WIDTH		(TUSER_WIDTH+1+S_TDATA_WIDTH),
 				.PTR_WIDTH		(FIFO_PTR_WIDTH),
 				.RAM_TYPE		(FIFO_RAM_TYPE)
 			)
@@ -89,12 +94,12 @@ module jelly_axi4s_img
 				.reset			(reset),
 				.clk			(clk),
 				
-				.s_data			({s_axi4s_tlast, s_axi4s_tuser, s_axi4s_tdata}),
+				.s_data			({s_axi4s_tuser, s_axi4s_tlast, s_axi4s_tdata}),
 				.s_valid		(s_axi4s_tvalid),
 				.s_ready		(s_axi4s_tready),
 				.s_free_count	(),
 				
-				.m_data			({axi4s_fifo_tlast, axi4s_fifo_tuser, axi4s_fifo_tdata}),
+				.m_data			({axi4s_fifo_tuser, axi4s_fifo_tlast, axi4s_fifo_tdata}),
 				.m_valid		(axi4s_fifo_tvalid),
 				.m_ready		(axi4s_fifo_tready),
 				.m_data_count	()
@@ -102,9 +107,9 @@ module jelly_axi4s_img
 
 	
 	// ブロック処理吐き出し用にブランキングをフレーム末尾に追加
-	wire	[S_DATA_WIDTH-1:0]	axi4s_blank_tdata;
+	wire	[S_TDATA_WIDTH-1:0]	axi4s_blank_tdata;
 	wire						axi4s_blank_tlast;
-	wire	[0:0]				axi4s_blank_tuser;
+	wire	[TUSER_WIDTH-1:0]	axi4s_blank_tuser;
 	wire						axi4s_blank_tvalid;
 	wire						axi4s_blank_tready;
 	
@@ -112,7 +117,8 @@ module jelly_axi4s_img
 	
 	jelly_axi4s_insert_blank
 			#(
-				.DATA_WIDTH			(S_DATA_WIDTH),
+				.TUSER_WIDTH		(TUSER_WIDTH),
+				.TDATA_WIDTH		(S_TDATA_WIDTH),
 				.IMG_X_WIDTH		(IMG_X_WIDTH),
 				.IMG_Y_WIDTH		(IMG_Y_WIDTH),
 				.BLANK_Y_WIDTH		(BLANK_Y_WIDTH),
@@ -148,7 +154,8 @@ module jelly_axi4s_img
 	
 	jelly_axi4s_to_img
 			#(
-				.DATA_WIDTH			(S_DATA_WIDTH),
+				.TUSER_WIDTH		(TUSER_WIDTH),
+				.TDATA_WIDTH		(S_TDATA_WIDTH),
 				.IMG_Y_WIDTH		(IMG_Y_WIDTH),
 				.IMG_Y_NUM			(IMG_Y_NUM),
 				.IMG_CKE_BUFG		(IMG_CKE_BUFG),
@@ -174,19 +181,21 @@ module jelly_axi4s_img
 				.m_img_pixel_first	(src_img_pixel_first),
 				.m_img_pixel_last	(src_img_pixel_last),
 				.m_img_de			(src_img_de),
+				.m_img_user			(src_img_user),
 				.m_img_data			(src_img_data),
 				.m_img_valid		(src_img_valid)
 			);
 	
 	
-	wire	[M_DATA_WIDTH-1:0]	axi4s_0_tdata;
+	wire	[M_TDATA_WIDTH-1:0]	axi4s_0_tdata;
 	wire						axi4s_0_tlast;
-	wire	[0:0]				axi4s_0_tuser;
+	wire	[TUSER_WIDTH-1:0]	axi4s_0_tuser;
 	wire						axi4s_0_tvalid;
 	
 	jelly_img_to_axi4s
 			#(
-				.DATA_WIDTH			(M_DATA_WIDTH),
+				.TUSER_WIDTH		(TUSER_WIDTH),
+				.TDATA_WIDTH		(M_TDATA_WIDTH),
 				.USE_DE				(USE_DE),
 				.USE_VALID			(USE_VALID)
 			)
@@ -201,24 +210,25 @@ module jelly_axi4s_img
 				.s_img_pixel_first	(sink_img_pixel_first),
 				.s_img_pixel_last	(sink_img_pixel_last),
 				.s_img_de			(sink_img_de),
+				.s_img_user			(sink_img_user),
 				.s_img_data			(sink_img_data),
 				.s_img_valid		(sink_img_valid),
 				
-				.m_axi4s_tdata		(axi4s_0_tdata),
-				.m_axi4s_tlast		(axi4s_0_tlast),
 				.m_axi4s_tuser		(axi4s_0_tuser),
+				.m_axi4s_tlast		(axi4s_0_tlast),
+				.m_axi4s_tdata		(axi4s_0_tdata),
 				.m_axi4s_tvalid		(axi4s_0_tvalid)
 			);
 	
-	wire	[M_DATA_WIDTH-1:0]	axi4s_1_tdata;
+	wire	[M_TDATA_WIDTH-1:0]	axi4s_1_tdata;
 	wire						axi4s_1_tlast;
-	wire	[0:0]				axi4s_1_tuser;
+	wire	[TUSER_WIDTH-1:0]	axi4s_1_tuser;
 	wire						axi4s_1_tvalid;
 	wire						axi4s_1_tready;
 	
 	jelly_pipeline_insert_ff
 			#(
-				.DATA_WIDTH			(2+M_DATA_WIDTH)
+				.DATA_WIDTH			(TUSER_WIDTH+1+M_TDATA_WIDTH)
 			)
 		i_pipeline_insert_ff_0
 			(
@@ -226,11 +236,11 @@ module jelly_axi4s_img
 				.clk				(clk),
 				.cke				(1'b1),
 				
-				.s_data				({axi4s_0_tlast, axi4s_0_tuser, axi4s_0_tdata}),
+				.s_data				({axi4s_0_tuser, axi4s_0_tlast, axi4s_0_tdata}),
 				.s_valid			(axi4s_0_tvalid),
 				.s_ready			(),
 				
-				.m_data				({axi4s_1_tlast, axi4s_1_tuser, axi4s_1_tdata}),
+				.m_data				({axi4s_1_tuser, axi4s_1_tlast, axi4s_1_tdata}),
 				.m_valid			(axi4s_1_tvalid),
 				.m_ready			(axi4s_1_tready),
 				
@@ -240,7 +250,7 @@ module jelly_axi4s_img
 	
 	jelly_pipeline_insert_ff
 			#(
-				.DATA_WIDTH			(2+M_DATA_WIDTH)
+				.DATA_WIDTH			(TUSER_WIDTH+1+M_TDATA_WIDTH)
 			)
 		i_pipeline_insert_ff_1
 			(
@@ -248,11 +258,11 @@ module jelly_axi4s_img
 				.clk				(clk),
 				.cke				(1'b1),
 				
-				.s_data				({axi4s_1_tlast, axi4s_1_tuser, axi4s_1_tdata}),
+				.s_data				({axi4s_1_tuser, axi4s_1_tlast, axi4s_1_tdata}),
 				.s_valid			(axi4s_1_tvalid),
 				.s_ready			(axi4s_1_tready),
 				
-				.m_data				({m_axi4s_tlast, m_axi4s_tuser, m_axi4s_tdata}),
+				.m_data				({m_axi4s_tuser, m_axi4s_tlast, m_axi4s_tdata}),
 				.m_valid			(m_axi4s_tvalid),
 				.m_ready			(m_axi4s_tready),
 				

@@ -8,7 +8,7 @@ module tb_demosaic_acpi();
 	
 	initial begin
 		$dumpfile("tb_demosaic_acpi.vcd");
-		$dumpvars(0, tb_demosaic_acpi);
+		$dumpvars(1, tb_demosaic_acpi);
 	end
 	
 	reg		clk = 1'b1;
@@ -22,21 +22,25 @@ module tb_demosaic_acpi();
 	parameter	DATA_WIDTH = 10;
 //	parameter	X_NUM      = 640;
 //	parameter	Y_NUM      = 396;
-	parameter	X_NUM      = 1640;
-	parameter	Y_NUM      = 1024;
-	parameter	X_WIDTH    = 10;
-	parameter	Y_WIDTH    = 9;
-	parameter	USE_VALID  = 0;
+
+	parameter	USER_WIDTH  = 32;
+	parameter	TUSER_WIDTH = 33;
+	
+	parameter	X_NUM       = 1640;
+	parameter	Y_NUM       = 1024;
+	parameter	X_WIDTH     = 12;
+	parameter	Y_WIDTH     = 12;
+	parameter	USE_VALID   = 0;
 	
 	
 	
-	wire	[0:0]						axi4s_in_tuser;
+	wire	[TUSER_WIDTH-1:0]			axi4s_in_tuser;
 	wire								axi4s_in_tlast;
 	wire	[DATA_WIDTH-1:0]			axi4s_in_tdata;
 	wire								axi4s_in_tvalid;
 	wire								axi4s_in_tready;
 	
-	wire	[0:0]						axi4s_out_tuser;
+	wire	[TUSER_WIDTH-1:0]			axi4s_out_tuser;
 	wire								axi4s_out_tlast;
 	wire	[4*DATA_WIDTH-1:0]			axi4s_out_tdata;
 	wire								axi4s_out_tvalid;
@@ -59,6 +63,7 @@ module tb_demosaic_acpi();
 	wire								src_img_pixel_first;
 	wire								src_img_pixel_last;
 	wire								src_img_de;
+	wire	[USER_WIDTH-1:0]			src_img_user;
 	wire	[DATA_WIDTH-1:0]			src_img_data;
 	wire								src_img_valid;
 	
@@ -67,6 +72,7 @@ module tb_demosaic_acpi();
 	wire								sink_img_pixel_first;
 	wire								sink_img_pixel_last;
 	wire								sink_img_de;
+	wire	[USER_WIDTH-1:0]			sink_img_user;
 	wire	[4*DATA_WIDTH-1:0]			sink_img_data;
 	wire								sink_img_valid;
 	
@@ -88,7 +94,7 @@ module tb_demosaic_acpi();
 				.aresetn				(~reset),
 				.aclk					(clk),
 				
-				.m_axi4s_tuser			(axi4s_in_tuser),
+				.m_axi4s_tuser			(axi4s_in_tuser[0]),
 				.m_axi4s_tlast			(axi4s_in_tlast),
 //				.m_axi4s_tdata			(axi4s_in_tdata),
 				.m_axi4s_tdata			(axi4s_in_tdata[9:2]),
@@ -97,11 +103,27 @@ module tb_demosaic_acpi();
 			);
 	assign axi4s_in_tdata[1:0] = 0;
 	
+	reg		[USER_WIDTH-1:0]			reg_in_user;
+	assign axi4s_in_tuser[TUSER_WIDTH-1:1] = reg_in_user;
+	
+	always @(posedge clk) begin
+		if ( reset ) begin
+			reg_in_user <= 0;
+		end
+		else begin
+			if ( axi4s_in_tvalid & axi4s_in_tready ) begin
+				reg_in_user <= reg_in_user + 1;
+			end
+		end
+	end
+	
+	
 	// img
 	jelly_axi4s_img
 			#(
-				.S_DATA_WIDTH			(DATA_WIDTH),
-				.M_DATA_WIDTH			(4*DATA_WIDTH),
+				.TUSER_WIDTH			(TUSER_WIDTH),
+				.S_TDATA_WIDTH			(DATA_WIDTH),
+				.M_TDATA_WIDTH			(4*DATA_WIDTH),
 				.IMG_Y_NUM				(Y_NUM),
 				.IMG_Y_WIDTH			(Y_WIDTH),
 				.BLANK_Y_WIDTH			(8),
@@ -134,6 +156,7 @@ module tb_demosaic_acpi();
 				.src_img_pixel_first	(src_img_pixel_first),
 				.src_img_pixel_last		(src_img_pixel_last),
 				.src_img_de				(src_img_de),
+				.src_img_user			(src_img_user),
 				.src_img_data			(src_img_data),
 				.src_img_valid			(src_img_valid),
 				
@@ -141,6 +164,7 @@ module tb_demosaic_acpi();
 				.sink_img_line_last		(sink_img_line_last),
 				.sink_img_pixel_first	(sink_img_pixel_first),
 				.sink_img_pixel_last	(sink_img_pixel_last),
+				.sink_img_user			(sink_img_user),
 				.sink_img_de			(sink_img_de),
 				.sink_img_data			(sink_img_data),
 				.sink_img_valid			(sink_img_valid)
@@ -149,7 +173,7 @@ module tb_demosaic_acpi();
 	
 	jelly_img_demosaic_acpi_core
 			#(
-				.USER_WIDTH				(0),
+				.USER_WIDTH				(USER_WIDTH),
 				.DATA_WIDTH				(DATA_WIDTH),
 				.MAX_X_NUM				(4096),
 	//			.RAM_TYPE				("block"),
@@ -168,6 +192,7 @@ module tb_demosaic_acpi();
 				.s_img_pixel_first		(src_img_pixel_first),
 				.s_img_pixel_last		(src_img_pixel_last),
 				.s_img_de				(src_img_de),
+				.s_img_user				(src_img_user),
 				.s_img_raw				(src_img_data),
 				.s_img_valid			(src_img_valid),
 				
@@ -176,6 +201,7 @@ module tb_demosaic_acpi();
 				.m_img_pixel_first		(sink_img_pixel_first),
 				.m_img_pixel_last		(sink_img_pixel_last),
 				.m_img_de				(sink_img_de),
+				.m_img_user				(sink_img_user),
 				.m_img_raw				(sink_img_data[DATA_WIDTH*3 +: DATA_WIDTH]),
 				.m_img_r				(sink_img_data[DATA_WIDTH*2 +: DATA_WIDTH]),
 				.m_img_g				(sink_img_data[DATA_WIDTH*1 +: DATA_WIDTH]),

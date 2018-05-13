@@ -18,6 +18,8 @@ module jelly_img_demosaic_acpi_core
 			parameter	DATA_WIDTH = 10,
 			parameter	MAX_X_NUM  = 4096,
 			parameter	USE_VALID  = 0,
+			parameter	RAM_TYPE   = "block",
+
 			
 			parameter	USER_BITS  = USER_WIDTH > 0 ? USER_WIDTH : 1
 		)
@@ -67,6 +69,7 @@ module jelly_img_demosaic_acpi_core
 				.USER_WIDTH			(USER_WIDTH),
 				.DATA_WIDTH			(DATA_WIDTH),
 				.MAX_X_NUM			(MAX_X_NUM),
+				.RAM_TYPE			(RAM_TYPE),
 				.USE_VALID			(USE_VALID)
 			)
 		i_img_demosaic_acpi_g_core
@@ -102,6 +105,7 @@ module jelly_img_demosaic_acpi_core
 				.USER_WIDTH			(USER_WIDTH),
 				.DATA_WIDTH			(DATA_WIDTH),
 				.MAX_X_NUM			(MAX_X_NUM),
+				.RAM_TYPE			(RAM_TYPE),
 				.USE_VALID			(USE_VALID)
 			)
 		i_img_demosaic_acpi_rb_core

@@ -17,6 +17,7 @@ module jelly_img_demosaic_acpi_rb_core
 			parameter	USER_WIDTH = 0,
 			parameter	DATA_WIDTH = 10,
 			parameter	MAX_X_NUM  = 4096,
+			parameter	RAM_TYPE   = "block",
 			parameter	USE_VALID  = 0,
 			
 			parameter	USER_BITS  = USER_WIDTH > 0 ? USER_WIDTH : 1
@@ -63,11 +64,12 @@ module jelly_img_demosaic_acpi_rb_core
 	
 	jelly_img_blk_buffer
 			#(
+				.USER_WIDTH			(USER_WIDTH),
 				.DATA_WIDTH			(2*DATA_WIDTH),
 				.LINE_NUM			(3),
 				.PIXEL_NUM			(3),
 				.MAX_X_NUM			(MAX_X_NUM),
-				.RAM_TYPE			("block"),
+				.RAM_TYPE			(RAM_TYPE),
 				.BORDER_MODE		("REFLECT_101")
 			)
 		i_img_blk_buffer
