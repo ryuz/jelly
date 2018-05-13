@@ -38,6 +38,7 @@ module jelly_img_pixel_buffer
 			input	wire								s_img_de,
 			input	wire	[USER_BITS-1:0]				s_img_user,
 			input	wire	[DATA_WIDTH-1:0]			s_img_data,
+			input	wire								s_img_valid,
 			
 			// master (output)
 			output	wire								m_img_line_first,
@@ -46,7 +47,8 @@ module jelly_img_pixel_buffer
 			output	wire								m_img_pixel_last,
 			output	wire								m_img_de,
 			output	wire	[USER_BITS-1:0]				m_img_user,
-			output	wire	[PIXEL_NUM*DATA_WIDTH-1:0]	m_img_data
+			output	wire	[PIXEL_NUM*DATA_WIDTH-1:0]	m_img_data,
+			output	wire								m_img_valid
 		);
 	
 	localparam	CENTER      = ENDIAN ? PIXEL_CENTER : PIXEL_NUM-1 - PIXEL_CENTER;
@@ -64,6 +66,7 @@ module jelly_img_pixel_buffer
 		reg		[CENTER-1:0]					st0_buf_de;
 		reg		[(CENTER+1)*USER_BITS-1:0]		st0_buf_user;
 		reg		[(PIXEL_NUM-1)*DATA_WIDTH-1:0]	st0_buf_data;
+		reg		[CENTER-1:0]					st0_buf_valid;
 		wire	[CENTER:0]						st0_line_first  = {st0_buf_line_first,  s_img_line_first};
 		wire	[CENTER:0]						st0_line_last   = {st0_buf_line_last,   s_img_line_last};
 		wire	[CENTER:0]						st0_pixel_first = {st0_buf_pixel_first, s_img_pixel_first};
@@ -71,6 +74,7 @@ module jelly_img_pixel_buffer
 		wire	[CENTER:0]						st0_de          = {st0_buf_de,          s_img_de};
 		wire	[(CENTER+1)*USER_BITS-1:0]		st0_user        = {st0_buf_user,        s_img_user};
 		wire	[PIXEL_NUM*DATA_WIDTH-1:0]		st0_data        = {st0_buf_data,        s_img_data};
+		wire	[CENTER:0]						st0_valid       = {st0_buf_valid,       s_img_valid};
 		
 		reg		[REFLECT_NUM*DATA_WIDTH-1:0]	st0_reflect;
 		
@@ -83,6 +87,7 @@ module jelly_img_pixel_buffer
 				st0_buf_de          <= {((PIXEL_NUM-1)){1'b0}};
 				st0_buf_user        <= {((USER_BITS-1)*USER_BITS){1'bx}};
 				st0_buf_data        <= {((PIXEL_NUM-1)*DATA_WIDTH){1'bx}};
+				st0_buf_valid       <= {((PIXEL_NUM-1)){1'b0}};
 			end
 			else if ( cke ) begin
 				st0_buf_line_first  <= {st0_buf_line_first,  s_img_line_first};
@@ -92,6 +97,7 @@ module jelly_img_pixel_buffer
 				st0_buf_de          <= {st0_buf_de,          s_img_de};
 				st0_buf_user        <= {st0_buf_user,        s_img_user};
 				st0_buf_data        <= {st0_buf_data,        s_img_data};
+				st0_buf_valid       <= {st0_buf_valid,       s_img_valid};
 				
 				st0_reflect <= (st0_reflect >> DATA_WIDTH);
 				if ( st0_pixel_last[0] ) begin
@@ -109,6 +115,7 @@ module jelly_img_pixel_buffer
 		reg		[USER_BITS-1:0]				st1_user;
 		reg		[PIXEL_NUM*DATA_WIDTH-1:0]	st1_data;
 		reg									st1_last_en;
+		reg									st1_valid;
 		
 		always @(posedge clk) begin
 			if ( reset ) begin
@@ -120,6 +127,7 @@ module jelly_img_pixel_buffer
 				st1_user        <= {USER_BITS{1'bx}};
 				st1_data        <= {(PIXEL_NUM*DATA_WIDTH){1'bx}};
 				st1_last_en     <= 1'bx;
+				st1_valid       <= 1'b0;
 			end
 			else if ( cke ) begin
 				st1_line_first  <= st0_line_first[CENTER];
@@ -128,6 +136,7 @@ module jelly_img_pixel_buffer
 				st1_pixel_last  <= st0_pixel_last[CENTER];
 				st1_de          <= st0_de[CENTER];
 				st1_user        <= st0_user[CENTER*USER_BITS +: USER_BITS];
+				st1_valid       <= st0_valid[CENTER];
 				if ( st0_pixel_first[CENTER] ) begin
 					st1_data  <= st0_data;
 				end
@@ -193,6 +202,7 @@ module jelly_img_pixel_buffer
 		wire								out_de;
 		wire	[USER_BITS-1:0]				out_user;
 		wire	[PIXEL_NUM*DATA_WIDTH-1:0]	out_data;
+		wire								out_valid;
 		
 		if ( BORDER_MODE == "NONE" ) begin
 			assign out_line_first  = st0_line_first[CENTER];
@@ -202,6 +212,7 @@ module jelly_img_pixel_buffer
 			assign out_de          = st0_de[CENTER];
 			assign out_user        = st0_user[CENTER*USER_BITS +: USER_BITS];
 			assign out_data        = st0_data;
+			assign out_valid       = st0_valid[CENTER];
 		end
 		else begin
 			assign out_line_first  = st1_line_first;
@@ -211,6 +222,7 @@ module jelly_img_pixel_buffer
 			assign out_de          = st1_de;
 			assign out_user        = st1_user;
 			assign out_data        = st1_data;
+			assign out_valid       = st1_valid;
 		end
 		
 		
@@ -220,6 +232,7 @@ module jelly_img_pixel_buffer
 		assign m_img_pixel_last  = out_pixel_last;
 		assign m_img_de          = out_de;
 		assign m_img_user        = out_user;
+		assign m_img_valid       = out_valid;
 		for ( i = 0; i < PIXEL_NUM; i = i+1 ) begin :loop_endian
 			if ( ENDIAN ) begin
 				assign m_img_data[i*DATA_WIDTH +: DATA_WIDTH] = out_data[i*DATA_WIDTH +: DATA_WIDTH];
@@ -237,6 +250,7 @@ module jelly_img_pixel_buffer
 		assign m_img_de          = s_img_de;
 		assign m_img_user        = s_img_user;
 		assign m_img_data        = s_img_data;
+		assign m_img_valid       = s_img_valid;
 	end
 	endgenerate
 	

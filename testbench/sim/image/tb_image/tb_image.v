@@ -103,7 +103,8 @@ module tb_image();
 	
 	jelly_axi4s_img
 			#(
-				.DATA_WIDTH				(DATA_WIDTH),
+				.S_DATA_WIDTH			(DATA_WIDTH),
+				.M_DATA_WIDTH			(DATA_WIDTH),
 				.IMG_Y_NUM				(Y_NUM),
 				.IMG_Y_WIDTH			(Y_WIDTH),
 				.BLANK_Y_WIDTH			(8),
