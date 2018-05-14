@@ -30,7 +30,7 @@ module tb_demosaic_acpi();
 	parameter	Y_NUM       = 1024;
 	parameter	X_WIDTH     = 12;
 	parameter	Y_WIDTH     = 12;
-	parameter	USE_VALID   = 0;
+	parameter	USE_VALID   = 1;
 	
 	
 	
@@ -171,21 +171,31 @@ module tb_demosaic_acpi();
 			);
 	
 	
-	jelly_img_demosaic_acpi_core
+	jelly_img_demosaic_acpi
 			#(
 				.USER_WIDTH				(USER_WIDTH),
 				.DATA_WIDTH				(DATA_WIDTH),
 				.MAX_X_NUM				(4096),
-	//			.RAM_TYPE				("block"),
-				.USE_VALID				(USE_VALID)
+				.RAM_TYPE				("block"),
+				.USE_VALID				(USE_VALID),
+				
+				.INIT_PARAM_PHASE		(2'b11)
 			)
-		i_img_demosaic_acpi_core
+		i_img_demosaic_acpi
 			(
 				.reset					(reset),
 				.clk					(clk),
 				.cke					(img_cke),
 				
-				.param_phase			(2'b11),
+				.s_wb_rst_i				(reset),
+				.s_wb_clk_i				(clk),
+				.s_wb_adr_i				(0),
+				.s_wb_dat_i				(0),
+				.s_wb_dat_o				(),
+				.s_wb_we_i				(0),
+				.s_wb_sel_i				(0),
+				.s_wb_stb_i				(0),
+				.s_wb_ack_o				(),
 				
 				.s_img_line_first		(src_img_line_first),
 				.s_img_line_last		(src_img_line_last),
@@ -220,8 +230,8 @@ module tb_demosaic_acpi();
 	end
 	
 	always @(posedge clk) begin
-		if ( !reset && img_cke && i_img_demosaic_acpi_core.img_g_de && i_img_demosaic_acpi_core.img_g_valid ) begin
-			$fdisplay(fp_g, "%1d", i_img_demosaic_acpi_core.img_g_g);
+		if ( !reset && img_cke && i_img_demosaic_acpi.i_img_demosaic_acpi_core.img_g_de && i_img_demosaic_acpi.i_img_demosaic_acpi_core.img_g_valid ) begin
+			$fdisplay(fp_g, "%1d", i_img_demosaic_acpi.i_img_demosaic_acpi_core.img_g_g);
 		end
 	end
 	
@@ -265,11 +275,11 @@ module tb_demosaic_acpi();
 	integer		count_rb  = 0;
 	always @(posedge clk) begin
 		if ( img_cke ) begin
-			if ( i_img_demosaic_acpi_core.img_g_de ) begin
+			if ( i_img_demosaic_acpi.i_img_demosaic_acpi_core.img_g_de ) begin
 				count_g <= count_g + 1;
 			end
 			
-			if ( i_img_demosaic_acpi_core.m_img_de ) begin
+			if ( i_img_demosaic_acpi.i_img_demosaic_acpi_core.m_img_de ) begin
 				count_rb <= count_rb + 1;
 			end
 		end
