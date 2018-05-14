@@ -17,15 +17,21 @@ module tb_demosaic_acpi();
 	reg		reset = 1'b1;
 	always #(RATE*100)	reset = 1'b0;
 	
+	reg		wb_clk = 1'b1;
+	always #(RATE/2.0)	wb_clk = ~wb_clk;
+	
+	reg		wb_rst = 1'b1;
+	always #(RATE*20)	wb_rst = 1'b0;
+	
 	
 //	parameter	DATA_WIDTH = 8;
 	parameter	DATA_WIDTH = 10;
-//	parameter	X_NUM      = 640;
-//	parameter	Y_NUM      = 396;
-
 	parameter	USER_WIDTH  = 32;
 	parameter	TUSER_WIDTH = 33;
-	
+
+
+//	parameter	X_NUM       = 640;
+//	parameter	Y_NUM       = 396;
 	parameter	X_NUM       = 1640;
 	parameter	Y_NUM       = 1024;
 	parameter	X_WIDTH     = 12;
@@ -171,6 +177,20 @@ module tb_demosaic_acpi();
 			);
 	
 	
+	
+	// demosaic
+	wire								demosaic_img_line_first;
+	wire								demosaic_img_line_last;
+	wire								demosaic_img_pixel_first;
+	wire								demosaic_img_pixel_last;
+	wire								demosaic_img_de;
+	wire	[USER_WIDTH-1:0]			demosaic_img_user;
+	wire	[DATA_WIDTH-1:0]			demosaic_img_raw;
+	wire	[DATA_WIDTH-1:0]			demosaic_img_r;
+	wire	[DATA_WIDTH-1:0]			demosaic_img_g;
+	wire	[DATA_WIDTH-1:0]			demosaic_img_b;
+	wire								demosaic_img_valid;
+	
 	jelly_img_demosaic_acpi
 			#(
 				.USER_WIDTH				(USER_WIDTH),
@@ -187,8 +207,8 @@ module tb_demosaic_acpi();
 				.clk					(clk),
 				.cke					(img_cke),
 				
-				.s_wb_rst_i				(reset),
-				.s_wb_clk_i				(clk),
+				.s_wb_rst_i				(wb_rst),
+				.s_wb_clk_i				(wb_clk),
 				.s_wb_adr_i				(0),
 				.s_wb_dat_i				(0),
 				.s_wb_dat_o				(),
@@ -206,18 +226,99 @@ module tb_demosaic_acpi();
 				.s_img_raw				(src_img_data),
 				.s_img_valid			(src_img_valid),
 				
+				.m_img_line_first		(demosaic_img_line_first),
+				.m_img_line_last		(demosaic_img_line_last),
+				.m_img_pixel_first		(demosaic_img_pixel_first),
+				.m_img_pixel_last		(demosaic_img_pixel_last),
+				.m_img_de				(demosaic_img_de),
+				.m_img_user				(demosaic_img_user),
+				.m_img_raw				(demosaic_img_raw),
+				.m_img_r				(demosaic_img_r),
+				.m_img_g				(demosaic_img_g),
+				.m_img_b				(demosaic_img_b),
+				.m_img_valid			(demosaic_img_valid)
+			);
+	
+	
+	jelly_img_color_matrix
+			#(
+				.USER_WIDTH           	(USER_WIDTH),
+				.DATA_WIDTH           	(DATA_WIDTH),
+				.INTERNAL_WIDTH       	(DATA_WIDTH+2),
+				
+				.COEFF_INT_WIDTH      	(17),
+				.COEFF_FRAC_WIDTH     	(8),
+				.COEFF3_INT_WIDTH     	(17),
+				.COEFF3_FRAC_WIDTH    	(8),
+				.STATIC_COEFF         	(1),
+				.DEVICE               	("7SERIES"),
+				
+				.INIT_PARAM_MATRIX00  	(25'h200),
+				.INIT_PARAM_MATRIX11  	(25'h100),
+				.INIT_PARAM_MATRIX22  	(25'h200)
+				
+				/*
+				.INIT_PARAM_MATRIX00  	((1 << COEFF_FRAC_WIDTH),
+				.INIT_PARAM_MATRIX01  	(0,
+				.INIT_PARAM_MATRIX02  	(0,
+				.INIT_PARAM_MATRIX03  	(0,
+				.INIT_PARAM_MATRIX10  	(0,
+				.INIT_PARAM_MATRIX11  	((1 << COEFF_FRAC_WIDTH),
+				.INIT_PARAM_MATRIX12  	(0,
+				.INIT_PARAM_MATRIX13  	(0,
+				.INIT_PARAM_MATRIX20  	(0,
+				.INIT_PARAM_MATRIX21  	(0,
+				.INIT_PARAM_MATRIX22  	((1 << COEFF_FRAC_WIDTH),
+				.INIT_PARAM_MATRIX23  	(0,
+				.INIT_PARAM_CLIP_MIN0 	({DATA_WIDTH{1'b0}},
+				.INIT_PARAM_CLIP_MAX0 	({DATA_WIDTH{1'b1}},
+				.INIT_PARAM_CLIP_MIN1 	({DATA_WIDTH{1'b0}},
+				.INIT_PARAM_CLIP_MAX1 	({DATA_WIDTH{1'b1}},
+				.INIT_PARAM_CLIP_MIN2 	({DATA_WIDTH{1'b0}},
+				.INIT_PARAM_CLIP_MAX2 	({DATA_WIDTH{1'b1}},
+				*/
+			)
+		i_img_color_matrix
+			(
+				.reset					(reset),
+				.clk					(clk),
+				.cke					(img_cke),
+				
+				.s_wb_rst_i				(wb_rst),
+				.s_wb_clk_i				(wb_clk),
+				.s_wb_adr_i				(0),
+				.s_wb_dat_i				(0),
+				.s_wb_dat_o				(),
+				.s_wb_we_i				(0),
+				.s_wb_sel_i				(0),
+				.s_wb_stb_i				(0),
+				.s_wb_ack_o				(),
+				
+				.s_img_line_first		(demosaic_img_line_first),
+				.s_img_line_last		(demosaic_img_line_last),
+				.s_img_pixel_first		(demosaic_img_pixel_first),
+				.s_img_pixel_last		(demosaic_img_pixel_last),
+				.s_img_de				(demosaic_img_de),
+				.s_img_user				({demosaic_img_user, demosaic_img_raw}),
+				.s_img_color0			(demosaic_img_r),
+				.s_img_color1			(demosaic_img_g),
+				.s_img_color2			(demosaic_img_b),
+				.s_img_valid			(demosaic_img_valid),
+				
 				.m_img_line_first		(sink_img_line_first),
 				.m_img_line_last		(sink_img_line_last),
 				.m_img_pixel_first		(sink_img_pixel_first),
 				.m_img_pixel_last		(sink_img_pixel_last),
 				.m_img_de				(sink_img_de),
-				.m_img_user				(sink_img_user),
-				.m_img_raw				(sink_img_data[DATA_WIDTH*3 +: DATA_WIDTH]),
-				.m_img_r				(sink_img_data[DATA_WIDTH*2 +: DATA_WIDTH]),
-				.m_img_g				(sink_img_data[DATA_WIDTH*1 +: DATA_WIDTH]),
-				.m_img_b				(sink_img_data[DATA_WIDTH*0 +: DATA_WIDTH]),
+				.m_img_user				({sink_img_user, sink_img_data[DATA_WIDTH*3 +: DATA_WIDTH]}),
+				.m_img_color0			(sink_img_data[DATA_WIDTH*2 +: DATA_WIDTH]),
+				.m_img_color1			(sink_img_data[DATA_WIDTH*1 +: DATA_WIDTH]),
+				.m_img_color2			(sink_img_data[DATA_WIDTH*0 +: DATA_WIDTH]),
 				.m_img_valid			(sink_img_valid)
 			);
+	
+	
+	
 	
 	
 	// G phase dump

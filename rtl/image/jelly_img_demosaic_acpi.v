@@ -82,7 +82,7 @@ module jelly_img_demosaic_acpi
 	assign s_wb_ack_o = s_wb_stb_i;
 	
 	
-	(* ASYNC_REG="true" *)	reg	ff0_param_phase, ff1_param_phase;
+	(* ASYNC_REG="true" *)	reg			[1:0]	ff0_param_phase, ff1_param_phase;
 	always @(posedge clk) begin
 		ff0_param_phase <= reg_param_phase;
 		ff1_param_phase <= ff0_param_phase;

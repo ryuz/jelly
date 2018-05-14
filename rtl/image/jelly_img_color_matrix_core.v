@@ -167,23 +167,23 @@ module jelly_img_color_matrix_core
 	
 	
 	// clip
-	wire	signed	[DATA_WIDTH-1:0]	clip_min0 = {1'b0, param_clip_min0};
-	wire	signed	[DATA_WIDTH-1:0]	clip_max0 = {1'b0, param_clip_max0};
-	wire	signed	[DATA_WIDTH-1:0]	clip_min1 = {1'b0, param_clip_min1};
-	wire	signed	[DATA_WIDTH-1:0]	clip_max1 = {1'b0, param_clip_max1};
-	wire	signed	[DATA_WIDTH-1:0]	clip_min2 = {1'b0, param_clip_min2};
-	wire	signed	[DATA_WIDTH-1:0]	clip_max2 = {1'b0, param_clip_max2};
+	wire	signed	[INTERNAL_WIDTH-1:0]	clip_min0 = {1'b0, param_clip_min0};
+	wire	signed	[INTERNAL_WIDTH-1:0]	clip_max0 = {1'b0, param_clip_max0};
+	wire	signed	[INTERNAL_WIDTH-1:0]	clip_min1 = {1'b0, param_clip_min1};
+	wire	signed	[INTERNAL_WIDTH-1:0]	clip_max1 = {1'b0, param_clip_max1};
+	wire	signed	[INTERNAL_WIDTH-1:0]	clip_min2 = {1'b0, param_clip_min2};
+	wire	signed	[INTERNAL_WIDTH-1:0]	clip_max2 = {1'b0, param_clip_max2};
 	
-	reg									clip_line_first;
-	reg									clip_line_last;
-	reg									clip_pixel_first;
-	reg									clip_pixel_last;
-	reg									clip_de;
-	reg				[USER_BITS-1:0]		clip_user;
-	reg				[DATA_WIDTH-1:0]	clip_color0;
-	reg				[DATA_WIDTH-1:0]	clip_color1;
-	reg				[DATA_WIDTH-1:0]	clip_color2;
-	reg									clip_valid;
+	reg										clip_line_first;
+	reg										clip_line_last;
+	reg										clip_pixel_first;
+	reg										clip_pixel_last;
+	reg										clip_de;
+	reg				[USER_BITS-1:0]			clip_user;
+	reg				[DATA_WIDTH-1:0]		clip_color0;
+	reg				[DATA_WIDTH-1:0]		clip_color1;
+	reg				[DATA_WIDTH-1:0]		clip_color2;
+	reg										clip_valid;
 	
 	always @(posedge clk) begin
 		if ( cke ) begin
