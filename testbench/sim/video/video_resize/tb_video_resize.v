@@ -86,6 +86,44 @@ module tb_video_resize();
 	
 	
 	// core
+	
+	wire	[TUSER_WIDTH-1:0]	axi4s_v_tuser;
+	wire						axi4s_v_tlast;
+	wire	[TDATA_WIDTH-1:0]	axi4s_v_tdata;
+	wire						axi4s_v_tvalid;
+	wire						axi4s_v_tready;
+	
+	jelly_video_resize_half_v_core
+			#(
+				.TUSER_WIDTH		(TUSER_WIDTH),
+				.COMPONENT_NUM		(COMPONENT_NUM),
+				.DATA_WIDTH			(DATA_WIDTH),
+				.M_SLAVE_REGS		(M_SLAVE_REGS),
+				.M_MASTER_REGS		(M_MASTER_REGS)
+			)
+		i_video_resize_half_v_core
+			(
+				.aresetn			(aresetn),
+				.aclk				(aclk),
+				.aclken				(aclken),
+				
+				.param_enable		(param_enable),
+				
+				.s_axi4s_tuser		(s_axi4s_tuser),
+				.s_axi4s_tlast		(s_axi4s_tlast),
+				.s_axi4s_tdata		(s_axi4s_tdata),
+				.s_axi4s_tvalid		(s_axi4s_tvalid),
+				.s_axi4s_tready		(s_axi4s_tready),
+				
+				.m_axi4s_tuser		(axi4s_v_tuser),
+				.m_axi4s_tlast		(axi4s_v_tlast),
+				.m_axi4s_tdata		(axi4s_v_tdata),
+				.m_axi4s_tvalid		(axi4s_v_tvalid),
+				.m_axi4s_tready		(axi4s_v_tready)
+			);
+	
+	
+	
 	jelly_video_resize_half_h_core
 			#(
 				.TUSER_WIDTH		(TUSER_WIDTH),
@@ -103,11 +141,11 @@ module tb_video_resize();
 				
 				.param_enable		(param_enable),
 				
-				.s_axi4s_tuser		(s_axi4s_tuser),
-				.s_axi4s_tlast		(s_axi4s_tlast),
-				.s_axi4s_tdata		(s_axi4s_tdata),
-				.s_axi4s_tvalid		(s_axi4s_tvalid),
-				.s_axi4s_tready		(s_axi4s_tready),
+				.s_axi4s_tuser		(axi4s_v_tuser),
+				.s_axi4s_tlast		(axi4s_v_tlast),
+				.s_axi4s_tdata		(axi4s_v_tdata),
+				.s_axi4s_tvalid		(axi4s_v_tvalid),
+				.s_axi4s_tready		(axi4s_v_tready),
 				
 				.m_axi4s_tuser		(m_axi4s_tuser),
 				.m_axi4s_tlast		(m_axi4s_tlast),
