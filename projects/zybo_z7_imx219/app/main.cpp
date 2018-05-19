@@ -55,7 +55,7 @@ void capture_still_image(UioMmap& um_pl_peri, int width, int height, int frame_n
 {
 	// DMA start (one shot)
 	um_pl_peri.WriteWord32(0x00010020, 0x30000000);
-	um_pl_peri.WriteWord32(0x00010024, width*2);				// stride
+	um_pl_peri.WriteWord32(0x00010024, width*4);				// stride
 	um_pl_peri.WriteWord32(0x00010028, width);					// width
 	um_pl_peri.WriteWord32(0x0001002c, height);					// height
 	um_pl_peri.WriteWord32(0x00010030, width*height*frame_num);	// size
@@ -240,6 +240,8 @@ int main()
 	i2c.WriteAddr16Word(0x0162, 0x0D78);   // 0x0D78=3448   LINE_LENGTH_A (line_length_pck Units: Pixels)
 	i2c.WriteAddr16Word(0x015A, 50);       // 0x0D02=3330   COARSE_INTEGRATION_TIME_A
 	i2c.WriteAddr16Byte(0x0157, 0xE0  );   //      ANA_GAIN_GLOBAL_A
+//	i2c.WriteAddr16Byte(0x0157, 0xFF  );   //      ANA_GAIN_GLOBAL_A
+	i2c.WriteAddr16Word(0x0158, 0x0FFF);   //      ANA_GAIN_GLOBAL_A
 #endif
 	
 	
@@ -254,13 +256,13 @@ int main()
 	void* mem_addr = um_pl_mem.GetAddress();
 	
 	{
-		int		frame_num = 3;
+		int		frame_num = 1;
 		int		key;
 		while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
-			cv::Mat img(height*frame_num, width, CV_16U);
-			memcpy(img.data, (void *)mem_addr, width * height * 2 * frame_num);
+			cv::Mat img(height*frame_num, width, CV_8UC4);
+			memcpy(img.data, (void *)mem_addr, width * height * 4 * frame_num);
 			cv::imshow("img", img);
-//			cv::imwrite("img.png", img);
+			cv::imwrite("img.png", img);
 			cv::createTrackbar("width",  "img", &width,     IMAGE_WIDTH);
 			cv::createTrackbar("height", "img", &height,    IMAGE_HEIGHT);
 			cv::createTrackbar("frame",  "img", &frame_num, 10);
@@ -270,74 +272,23 @@ int main()
 			if ( height < 2 )  { height = 2; }
 			
 			capture_still_image(um_pl_peri, width, height, frame_num);
+			
+			if ( key == 'r' ) {
+				printf("record\n");
+				capture_still_image(um_pl_peri, width, height, 100);
+				char* p = (char*)mem_addr;
+				for ( int i = 0; i< 100; i++ ) {
+					char fname[64];
+					sprintf(fname, "rec_%04d.png", i);
+					cv::Mat imgRec(height, width, CV_8UC4);
+					memcpy(imgRec.data, p, width * height * 4);	p += width * height * 4;
+					cv::Mat imgRgb;
+					cv::cvtColor(imgRec, imgRgb, CV_BGRA2BGR);
+					cv::imwrite(fname, imgRgb);
+				}
+			}
 		}
 	}
-	
-	return 0;
-	
-	
-	// DMA stop
-	um_pl_peri.WriteWord32(0x00010010, 0x00);
-	usleep(100000);
-//	while ( um_pl_peri.ReadWord32(0x00010014) != 0 ) {
-//		um_pl_peri.WriteWord32(0x00011000, 1);
-//		usleep(100000);
-//	}
-//	um_pl_peri.WriteWord32(0x00011000, 0);
-//	usleep(100000);
-	
-	
-	// normalizer
-	um_pl_peri.WriteWord32(0x00011010, 1);
-	um_pl_peri.WriteWord32(0x00011014, 100000000);
-	um_pl_peri.WriteWord32(0x00011020, width);
-	um_pl_peri.WriteWord32(0x00011024, height);
-	um_pl_peri.WriteWord32(0x00011028, 0xfff);
-	um_pl_peri.WriteWord32(0x0001102c, 0x10000);
-	um_pl_peri.WriteWord32(0x00011000, 3);
-	usleep(1000000);
-	
-	printf("normalizer\n");
-	printf("0x00011000:%08x\n", um_pl_peri.ReadWord32(0x00011000));
-	printf("0x00011004:%08x\n", um_pl_peri.ReadWord32(0x00011004));
-	printf("0x00011008:%08x\n", um_pl_peri.ReadWord32(0x00011008));
-	printf("0x0001100c:%08x\n", um_pl_peri.ReadWord32(0x0001100c));
-	printf("0x00011010:%08x\n", um_pl_peri.ReadWord32(0x00011010));
-	printf("0x00011014:%08x\n", um_pl_peri.ReadWord32(0x00011014));
-	printf("0x00011020:%08x\n", um_pl_peri.ReadWord32(0x00011020));	// width);
-	printf("0x00011024:%08x\n", um_pl_peri.ReadWord32(0x00011024));	// height);
-	printf("0x00011028:%08x\n", um_pl_peri.ReadWord32(0x00011028));	// 0x400);
-	printf("0x0001102c:%08x\n", um_pl_peri.ReadWord32(0x0001102c));	// 0xfff);
-	
-	int		enable = 1;
-	
-	int		key;
-	while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
-		cv::Mat img(height, width, CV_16U);
-		memcpy(img.data, (void *)mem_addr, width * height * 2);
-		cv::imshow("img", img);
-		cv::createTrackbar("en", "img", &enable, 1);
-		
-		um_pl_peri.WriteWord32(0x00010020, 0x30000000);
-		um_pl_peri.WriteWord32(0x00010024, width*2);		// stride
-		um_pl_peri.WriteWord32(0x00010028, width);			// width
-		um_pl_peri.WriteWord32(0x0001002c, height);			// height
-		um_pl_peri.WriteWord32(0x00010030, width*height);	// size
-		um_pl_peri.WriteWord32(0x0001003c, 31);				// awlen
-		um_pl_peri.WriteWord32(0x00010010, 0x07);
-		
-		// Žæ‚èž‚ÝŠ®—¹‚ð‘Ò‚Â
-		usleep(10000);
-		while ( um_pl_peri.ReadWord32(0x00010014) != 0 ) {
-			usleep(10000);
-			printf(".");
-		}
-		printf("\n");
-	}
-	
-	
-	um_pl_peri.WriteWord32(0x00010010, 0x00);
-	usleep(100000);
 	
 	return 0;
 }
