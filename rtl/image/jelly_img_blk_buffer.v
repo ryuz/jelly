@@ -60,7 +60,7 @@ module jelly_img_blk_buffer
 	wire								img_lbuf_pixel_first;
 	wire								img_lbuf_pixel_last;
 	wire								img_lbuf_de;
-	wire	[LINE_NUM*USER_BITS-1:0]	img_lbuf_user;
+	wire	[USER_BITS-1:0]				img_lbuf_user;
 	wire	[LINE_NUM*DATA_WIDTH-1:0]	img_lbuf_data;
 	wire								img_lbuf_valid;
 	
@@ -112,7 +112,7 @@ module jelly_img_blk_buffer
 	
 	jelly_img_pixel_buffer
 			#(
-				.USER_WIDTH				(LINE_NUM*USER_WIDTH),
+				.USER_WIDTH				(USER_WIDTH),
 				.DATA_WIDTH				(LINE_NUM*DATA_WIDTH),
 				.PIXEL_NUM				(PIXEL_NUM),
 				.PIXEL_CENTER			(PIXEL_CENTER),

@@ -7,8 +7,8 @@
 
 module top
 		#(
-			parameter	X_NUM = 3280 / 2,
-			parameter	Y_NUM = 2464 / 2
+			parameter	X_NUM = 640, // 3280 / 2,
+			parameter	Y_NUM = 132  // 2464 / 2
 		)
 		(
 			input	wire			in_clk125,
@@ -708,7 +708,7 @@ module top
 				
 				.DATA_WIDTH			(10),
 				
-				.IMG_Y_NUM			(480),
+				.IMG_Y_NUM			(Y_NUM),
 				.IMG_Y_WIDTH		(12),
 				
 				.TUSER_WIDTH		(1)
@@ -812,7 +812,7 @@ module top
 										axi4s_rgb_tdata[ 9: 2]
 									}),
 				.s_axi4s_tvalid		(axi4s_rgb_tvalid),
-				.s_axi4s_tready		(),
+				.s_axi4s_tready		(), // (axi4s_rgb_tready),
 				
 				.s_wb_rst_i			(wb_rst_o),
 				.s_wb_clk_i			(wb_clk_o),
@@ -867,10 +867,16 @@ module top
 				.aclken				(1'b1),
 				
 				.param_enable		(1'b1),
-				.param_x_start		((640-96)/2),
-				.param_x_end		((640+96)/2-1),
-				.param_y_start		(0),
-				.param_y_end		(63),
+	//			.param_x_start		(((640-96)/2),
+	//			.param_x_end		((640+96)/2-1),
+	//			.param_y_start		(0),
+	//			.param_y_end		(63),
+				
+				.param_x_start		(1),
+				.param_x_end		(96),
+				.param_y_start		(1),
+				.param_y_end		(64),
+				
 				
 				.s_axi4s_tuser		(axi4s_rgb_tuser),
 				.s_axi4s_tlast		(axi4s_rgb_tlast),
@@ -892,14 +898,14 @@ module top
 	
 	wire	[0:0]	axi4s_oledfifo_tuser;
 	wire			axi4s_oledfifo_tlast;
-	wire	[9:0]	axi4s_oledfifo_tdata;
+	wire	[23:0]	axi4s_oledfifo_tdata;
 	wire			axi4s_oledfifo_tvalid;
 	wire			axi4s_oledfifo_tready;
 	
 	jelly_fifo_async_fwtf
 			#(
 				.DATA_WIDTH			(2+24),
-				.PTR_WIDTH			(9),
+				.PTR_WIDTH			(13),
 				.DOUT_REGS			(0),
 				.RAM_TYPE			("block"),
 				.SLAVE_REGS			(0),

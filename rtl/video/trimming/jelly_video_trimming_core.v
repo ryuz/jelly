@@ -91,6 +91,7 @@ module jelly_video_trimming_core
 			
 			// stage2
 			st2_tuser    <= st1_tuser;
+			st2_tuser[0] <= st2_tuser[0];
 			st2_tlast    <= (st1_x == param_x_end);
 			st2_tdata    <= st1_tdata;
 			if ( st1_tvalid ) begin

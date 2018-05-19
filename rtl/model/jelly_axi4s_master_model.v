@@ -21,7 +21,8 @@ module jelly_axi4s_master_model
 			parameter	PGM_FILE         = "",
 			parameter	PPM_FILE         = "",
 			parameter	BUSY_RATE        = 0,
-			parameter	RANDOM_SEED      = 0
+			parameter	RANDOM_SEED      = 0,
+			parameter	INTERVAL         = 0
 		)
 		(
 			input	wire							aresetn,
@@ -46,7 +47,9 @@ module jelly_axi4s_master_model
 		end
 	end
 	
-	wire	busy = ((reg_rand % 100) < BUSY_RATE);
+	integer interval_count = 0;
+	
+	wire	busy = ((reg_rand % 100) < BUSY_RATE) || (interval_count > 0);
 	
 	
 	reg		[AXI4S_DATA_WIDTH-1:0]		mem		[0:X_NUM*Y_NUM-1];
@@ -120,6 +123,23 @@ module jelly_axi4s_master_model
 			end
 		end
 	end
+	
+	always @(posedge aclk) begin
+		if ( !aresetn ) begin
+			interval_count <= 0;
+		end
+		else begin
+			if ( interval_count > 0 ) begin
+				interval_count <= interval_count - 1;
+			end
+			else begin
+				if ( x == (X_NUM-1) && y == (Y_NUM-1) && m_axi4s_tvalid && m_axi4s_tready ) begin
+					interval_count <= INTERVAL;
+				end
+			end
+		end
+	end
+	
 	
 	assign m_axi4s_tuser = (x == 0) && (y == 0);
 	assign m_axi4s_tlast = (x == X_NUM-1);

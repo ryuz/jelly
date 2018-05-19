@@ -215,11 +215,11 @@ module jelly_img_color_matrix_core
 		end
 	end
 	
-	assign m_img_line_first  = clip_line_first;
-	assign m_img_line_last   = clip_line_last;
-	assign m_img_pixel_first = clip_pixel_first;
-	assign m_img_pixel_last  = clip_pixel_last;
-	assign m_img_de          = clip_de;
+	assign m_img_line_first  = clip_valid & clip_line_first;
+	assign m_img_line_last   = clip_valid & clip_line_last;
+	assign m_img_pixel_first = clip_valid & clip_pixel_first;
+	assign m_img_pixel_last  = clip_valid & clip_pixel_last;
+	assign m_img_de          = clip_valid & clip_de;
 	assign m_img_user        = clip_user;
 	assign m_img_color0      = clip_color0;
 	assign m_img_color1      = clip_color1;

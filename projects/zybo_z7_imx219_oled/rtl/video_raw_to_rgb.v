@@ -54,8 +54,8 @@ module video_raw_to_rgb
 			input	wire						m_axi4s_tready
 		);
 	
-	localparam	USE_VALID = 0;
-	
+	localparam	USE_VALID  = 0;
+	localparam	USER_WIDTH = TUSER_WIDTH > 1 ? TUSER_WIDTH - 1: 1;
 	
 	wire								reset = ~aresetn;
 	wire								clk   = aclk;
@@ -66,7 +66,7 @@ module video_raw_to_rgb
 	wire								src_img_pixel_first;
 	wire								src_img_pixel_last;
 	wire								src_img_de;
-	wire	[TUSER_WIDTH-1:0]			src_img_user;
+	wire	[USER_WIDTH-1:0]			src_img_user;
 	wire	[S_TDATA_WIDTH-1:0]			src_img_data;
 	wire								src_img_valid;
 	
@@ -75,8 +75,8 @@ module video_raw_to_rgb
 	wire								sink_img_pixel_first;
 	wire								sink_img_pixel_last;
 	wire								sink_img_de;
-	wire	[TUSER_WIDTH-1:0]			sink_img_user;
-	wire	[4*M_TDATA_WIDTH-1:0]		sink_img_data;
+	wire	[USER_WIDTH-1:0]			sink_img_user;
+	wire	[M_TDATA_WIDTH-1:0]			sink_img_data;
 	wire								sink_img_valid;
 	
 	// img
@@ -139,7 +139,7 @@ module video_raw_to_rgb
 	wire								demosaic_img_pixel_first;
 	wire								demosaic_img_pixel_last;
 	wire								demosaic_img_de;
-	wire	[TUSER_WIDTH-1:0]			demosaic_img_user;
+	wire	[USER_WIDTH-1:0]			demosaic_img_user;
 	wire	[DATA_WIDTH-1:0]			demosaic_img_raw;
 	wire	[DATA_WIDTH-1:0]			demosaic_img_r;
 	wire	[DATA_WIDTH-1:0]			demosaic_img_g;
@@ -208,7 +208,7 @@ module video_raw_to_rgb
 	
 	jelly_img_color_matrix
 			#(
-				.USER_WIDTH           	(TUSER_WIDTH),
+				.USER_WIDTH           	(USER_WIDTH+DATA_WIDTH),
 				.DATA_WIDTH           	(DATA_WIDTH),
 				.INTERNAL_WIDTH       	(DATA_WIDTH+2),
 				

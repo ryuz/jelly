@@ -24,7 +24,7 @@ module jelly_axi4s_to_img
 			parameter	IMG_CKE_BUFG = 0,
 			parameter	USE_VALID    = 0,
 			
-			parameter	USER_WIDTH   = TUSER_WIDTH > 1 ? TUSER_WIDTH - 1 : 0
+			parameter	USER_WIDTH   = (TUSER_WIDTH > 1) ? (TUSER_WIDTH - 1) : 1
 		)
 		(
 			input	wire								reset,
@@ -33,9 +33,9 @@ module jelly_axi4s_to_img
 			
 			input	wire	[IMG_Y_WIDTH-1:0]			param_y_num,
 			
-			input	wire	[TDATA_WIDTH-1:0]			s_axi4s_tdata,
-			input	wire								s_axi4s_tlast,
 			input	wire	[TUSER_WIDTH-1:0]			s_axi4s_tuser,
+			input	wire								s_axi4s_tlast,
+			input	wire	[TDATA_WIDTH-1:0]			s_axi4s_tdata,
 			input	wire								s_axi4s_tvalid,
 			output	wire								s_axi4s_tready,
 			
