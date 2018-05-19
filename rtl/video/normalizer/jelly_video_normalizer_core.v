@@ -154,10 +154,10 @@ module jelly_video_normalizer_core
 			reg_skip          <= 1'bx;
 			reg_timeout       <= 1'bx;
 			reg_timer         <= {TIMER_WIDTH{1'bx}};
-			reg_x             <= {X_WIDTH{1'bx}};
-			reg_x_last        <= 1'bx;
-			reg_y             <= {Y_WIDTH{1'bx}};
-			reg_y_last        <= 1'bx;
+			reg_x             <= {X_WIDTH{1'b0}};
+			reg_x_last        <= 1'b0;
+			reg_y             <= {Y_WIDTH{1'b0}};
+			reg_y_last        <= 1'b0;
 			
 			reg_tuser         <= {TUSER_WIDTH{1'bx}};
 			reg_tlast         <= 1'bx;
@@ -227,10 +227,10 @@ module jelly_video_normalizer_core
 					reg_x_last <= 1'b0; // (reg_param_width == 1);
 					reg_y      <= reg_y + 1'b1;
 					reg_y_last <= ((reg_y + 1'b1) == reg_param_height);
-	//				if ( sig_y_last ) begin
-	//					reg_y      <= {Y_WIDTH{1'bx}};
-	//					reg_y_last <= 1'bx;
-	//				end
+					if ( sig_y_last ) begin
+						reg_y      <= {Y_WIDTH{1'b0}};
+						reg_y_last <= 1'b0;
+					end
 				end
 			end
 			
@@ -273,10 +273,10 @@ module jelly_video_normalizer_core
 					// end
 					reg_busy   <= 1'b0;
 					
-					reg_x      <= {X_WIDTH{1'bx}};
-					reg_x_last <= 1'bx;
-					reg_y      <= {Y_WIDTH{1'bx}};
-					reg_y_last <= 1'bx;
+					reg_x      <= {X_WIDTH{1'b0}};
+					reg_x_last <= 1'b0;
+					reg_y      <= {Y_WIDTH{1'b0}};
+					reg_y_last <= 1'b0;
 				end
 			end
 			
