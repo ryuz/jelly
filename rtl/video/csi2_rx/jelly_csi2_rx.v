@@ -25,6 +25,8 @@ module jelly_csi2_rx
 			input	wire						aresetn,
 			input	wire						aclk,
 			
+			output	wire						overflow,
+			
 			// input
 			input	wire						rxreseths,
 			input	wire						rxbyteclkhs,
@@ -127,11 +129,11 @@ module jelly_csi2_rx
 	
 	
 	// RAW10
-	(* MARK_DEBUG = "true" *)	wire	[0:0]				out_tuser;
-	(* MARK_DEBUG = "true" *)	wire						out_tlast;
-	(* MARK_DEBUG = "true" *)	wire	[DATA_WIDTH-1:0]	out_tdata;
-	(* MARK_DEBUG = "true" *)	wire	[0:0]				out_tvalid;
-	(* MARK_DEBUG = "true" *)	wire						out_tready;
+	wire	[0:0]				out_tuser;
+	wire						out_tlast;
+	wire	[DATA_WIDTH-1:0]	out_tdata;
+	wire	[0:0]				out_tvalid;
+	wire						out_tready;
 	
 	jelly_csi2_rx_raw10
 			#(
@@ -153,8 +155,10 @@ module jelly_csi2_rx
 				.m_axi4s_tlast		(out_tlast),
 				.m_axi4s_tdata		(out_tdata),
 				.m_axi4s_tvalid		(out_tvalid),
-				.m_axi4s_tready		(out_tready)
+				.m_axi4s_tready		(1'b1)
 			);
+	
+	assign	overflow = (out_tvalid & !out_tready);
 	
 	
 	jelly_fifo_generic_fwtf

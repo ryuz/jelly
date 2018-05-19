@@ -29,11 +29,11 @@
     </file>
     <file xil_pn:name="../../../rtl/library/jelly_pipeline_insert_ff.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="0"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="2"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="1"/>
     </file>
     <file xil_pn:name="../../../rtl/library/jelly_pipeline_control.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="0"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="4"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
     <file xil_pn:name="../../../rtl/library/jelly_multiplexer.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="0"/>
@@ -81,7 +81,7 @@
     </file>
     <file xil_pn:name="../../../rtl/primitive/jelly_mul_add_dsp48e1.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="334"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="1"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
     <file xil_pn:name="../../../rtl/library/jelly_ram_simple_dualport.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="181"/>
@@ -518,19 +518,23 @@
     </file>
     <file xil_pn:name="../../../rtl/math/jelly_fixed_matrix3x4.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="356"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="5"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
     <file xil_pn:name="../../../rtl/primitive/jelly_mul_add3.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="357"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="3"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
     <file xil_pn:name="../../../rtl/image/jelly_img_color_matrix.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="369"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="7"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
     <file xil_pn:name="../../../rtl/image/jelly_img_color_matrix_core.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="370"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="6"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
+    </file>
+    <file xil_pn:name="../../../rtl/video/resize/jelly_video_resize_half_h_core.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="393"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="2"/>
     </file>
   </files>
 
@@ -650,9 +654,9 @@
     <property xil_pn:name="ISim UUT Instance Name" xil_pn:value="UUT" xil_pn:valueState="default"/>
     <property xil_pn:name="Ignore User Timing Constraints Map" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Ignore User Timing Constraints Par" xil_pn:value="false" xil_pn:valueState="default"/>
-    <property xil_pn:name="Implementation Top" xil_pn:value="Module|jelly_img_color_matrix" xil_pn:valueState="non-default"/>
-    <property xil_pn:name="Implementation Top File" xil_pn:value="../../../rtl/image/jelly_img_color_matrix.v" xil_pn:valueState="non-default"/>
-    <property xil_pn:name="Implementation Top Instance Path" xil_pn:value="/jelly_img_color_matrix" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Implementation Top" xil_pn:value="Module|jelly_video_resize_half_h_core" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Implementation Top File" xil_pn:value="../../../rtl/video/resize/jelly_video_resize_half_h_core.v" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Implementation Top Instance Path" xil_pn:value="/jelly_video_resize_half_h_core" xil_pn:valueState="non-default"/>
     <property xil_pn:name="Include 'uselib Directive in Verilog File" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Include SIMPRIM Models in Verilog File" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Include UNISIM Models in Verilog File" xil_pn:value="false" xil_pn:valueState="default"/>
@@ -709,7 +713,7 @@
     <property xil_pn:name="Other XPWR Command Line Options" xil_pn:value="" xil_pn:valueState="default"/>
     <property xil_pn:name="Other XST Command Line Options" xil_pn:value="" xil_pn:valueState="default"/>
     <property xil_pn:name="Output Extended Identifiers" xil_pn:value="false" xil_pn:valueState="default"/>
-    <property xil_pn:name="Output File Name" xil_pn:value="jelly_img_color_matrix" xil_pn:valueState="default"/>
+    <property xil_pn:name="Output File Name" xil_pn:value="jelly_video_resize_half_h_core" xil_pn:valueState="default"/>
     <property xil_pn:name="Overwrite Compiled Libraries" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Pack I/O Registers into IOBs" xil_pn:value="Auto" xil_pn:valueState="default"/>
     <property xil_pn:name="Pack I/O Registers/Latches into IOBs" xil_pn:value="Off" xil_pn:valueState="default"/>
@@ -723,10 +727,10 @@
     <property xil_pn:name="Placer Effort Level Map" xil_pn:value="High" xil_pn:valueState="default"/>
     <property xil_pn:name="Placer Extra Effort Map" xil_pn:value="None" xil_pn:valueState="default"/>
     <property xil_pn:name="Port to be used" xil_pn:value="Auto - default" xil_pn:valueState="default"/>
-    <property xil_pn:name="Post Map Simulation Model Name" xil_pn:value="jelly_img_color_matrix_map.v" xil_pn:valueState="default"/>
-    <property xil_pn:name="Post Place &amp; Route Simulation Model Name" xil_pn:value="jelly_img_color_matrix_timesim.v" xil_pn:valueState="default"/>
-    <property xil_pn:name="Post Synthesis Simulation Model Name" xil_pn:value="jelly_img_color_matrix_synthesis.v" xil_pn:valueState="default"/>
-    <property xil_pn:name="Post Translate Simulation Model Name" xil_pn:value="jelly_img_color_matrix_translate.v" xil_pn:valueState="default"/>
+    <property xil_pn:name="Post Map Simulation Model Name" xil_pn:value="jelly_video_resize_half_h_core_map.v" xil_pn:valueState="default"/>
+    <property xil_pn:name="Post Place &amp; Route Simulation Model Name" xil_pn:value="jelly_video_resize_half_h_core_timesim.v" xil_pn:valueState="default"/>
+    <property xil_pn:name="Post Synthesis Simulation Model Name" xil_pn:value="jelly_video_resize_half_h_core_synthesis.v" xil_pn:valueState="default"/>
+    <property xil_pn:name="Post Translate Simulation Model Name" xil_pn:value="jelly_video_resize_half_h_core_translate.v" xil_pn:valueState="default"/>
     <property xil_pn:name="Power Down Device if Over Safe Temperature" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Power Reduction Map virtex6" xil_pn:value="Off" xil_pn:valueState="default"/>
     <property xil_pn:name="Power Reduction Par" xil_pn:value="false" xil_pn:valueState="default"/>

@@ -52,9 +52,9 @@ module tb_demosaic_acpi();
 	wire								axi4s_out_tvalid;
 	reg									axi4s_out_tready = 1'b1;
 	
-//	always @(posedge clk) begin
-//		axi4s_out_tready <= {$random};
-//	end
+	always @(posedge clk) begin
+		axi4s_out_tready <= {$random};
+	end
 	
 	wire	[DATA_WIDTH-1:0]	axi4s_out_tdata0 = axi4s_out_tdata[0*DATA_WIDTH +: DATA_WIDTH];
 	wire	[DATA_WIDTH-1:0]	axi4s_out_tdata1 = axi4s_out_tdata[1*DATA_WIDTH +: DATA_WIDTH];
@@ -92,7 +92,7 @@ module tb_demosaic_acpi();
 				.Y_NUM					(Y_NUM),
 				.PGM_FILE				("caputure_img.pgm"),
 	//			.PGM_FILE				("img_20180513.pgm"),
-				.BUSY_RATE				(0),
+				.BUSY_RATE				(50),
 				.RANDOM_SEED			(123)
 			)
 		i_axi4s_master_model
