@@ -36,8 +36,8 @@ module jelly_video_normalizer_core
 			output	wire	[INDEX_WIDTH-1:0]		ctl_index,
 			output	wire							ctl_busy,
 			input	wire							ctl_skip,
-			input	wire							ctl_frame_blank,
-			input	wire	[FRAME_TIMER_WIDTH-1:0]	ctl_frame_timeout,
+			input	wire							ctl_frm_timer_en,
+			input	wire	[FRAME_TIMER_WIDTH-1:0]	ctl_frm_timeout,
 			
 			input	wire	[X_WIDTH-1:0]			param_width,
 			input	wire	[Y_WIDTH-1:0]			param_height,
@@ -207,14 +207,14 @@ module jelly_video_normalizer_core
 			
 			// frame timer
 			reg_frame_timeout <= 1'b0;
-			if ( ctl_enable && ctl_frame_blank && ~reg_busy ) begin
-				reg_frame_timer   <= reg_frame_timer + 1'b1;
-				if ( reg_frame_timer == ctl_frame_timeout ) begin
+			if ( ctl_enable && ctl_frm_timer_en && ~reg_busy ) begin
+				reg_frame_timer <= reg_frame_timer + 1'b1;
+				if ( reg_frame_timer == ctl_frm_timeout ) begin
 					reg_frame_timeout <= 1'b1;
 				end
 			end
 			else begin
-				reg_frame_timer   <= {FRAME_TIMER_WIDTH{1'b0}};
+				reg_frame_timer <= {FRAME_TIMER_WIDTH{1'b0}};
 			end
 			
 			

@@ -33,8 +33,8 @@ module jelly_video_normalizer
 			
 			parameter	INIT_CONTROL       = 2'b00,
 			parameter	INIT_SKIP          = 1,
-			parameter	INIT_FRAME_BLANK   = 1,
-			parameter	INIT_FRAME_TIMEOUT = 100000,
+			parameter	INIT_FRM_TIMER_EN  = 0,
+			parameter	INIT_FRM_TIMEOUT   = 1000000,
 			parameter	INIT_PARAM_WIDTH   = 640,
 			parameter	INIT_PARAM_HEIGHT  = 480,
 			parameter	INIT_PARAM_FILL    = {TDATA_WIDTH{1'b0}},
@@ -75,8 +75,8 @@ module jelly_video_normalizer
 	localparam	REG_ADDR_BUSY          = 32'h01;
 	localparam	REG_ADDR_INDEX         = 32'h02;
 	localparam	REG_ADDR_SKIP          = 32'h03;
-	localparam	REG_ADDR_FRAME_BLANK   = 32'h04;
-	localparam	REG_ADDR_FRAME_TIMEOUT = 32'h05;
+	localparam	REG_ADDR_FRM_TIMER_EN  = 32'h04;
+	localparam	REG_ADDR_FRM_TIMEOUT   = 32'h05;
 	localparam	REG_ADDR_PARAM_WIDTH   = 32'h08;
 	localparam	REG_ADDR_PARAM_HEIGHT  = 32'h09;
 	localparam	REG_ADDR_PARAM_FILL    = 32'h0a;
@@ -84,8 +84,8 @@ module jelly_video_normalizer
 	
 	reg		[1:0]					reg_control;
 	reg								reg_skip;
-	reg								reg_frame_blank;
-	reg		[FRAME_TIMER_WIDTH-1:0]	reg_frame_timeout;
+	reg								reg_frm_timer_en;
+	reg		[FRAME_TIMER_WIDTH-1:0]	reg_frm_timeout;
 	reg		[X_WIDTH-1:0]			reg_param_width;
 	reg		[Y_WIDTH-1:0]			reg_param_height;
 	reg		[TDATA_WIDTH-1:0]		reg_param_fill;
@@ -109,8 +109,8 @@ module jelly_video_normalizer
 		if ( s_wb_rst_i ) begin
 			reg_control       <= INIT_CONTROL;
 			reg_skip          <= INIT_SKIP;
-			reg_frame_blank   <= INIT_FRAME_BLANK;
-			reg_frame_timeout <= INIT_FRAME_TIMEOUT;
+			reg_frm_timer_en  <= INIT_FRM_TIMER_EN;
+			reg_frm_timeout   <= INIT_FRM_TIMEOUT;
 			reg_param_width   <= INIT_PARAM_WIDTH;
 			reg_param_height  <= INIT_PARAM_HEIGHT;
 			reg_param_fill    <= INIT_PARAM_FILL;
@@ -125,8 +125,8 @@ module jelly_video_normalizer
 				case ( s_wb_adr_i )
 				REG_ADDR_CONTROL:		reg_control       <= s_wb_dat_i;
 				REG_ADDR_SKIP:			reg_skip          <= s_wb_dat_i;
-				REG_ADDR_FRAME_BLANK:	reg_frame_blank   <= s_wb_dat_i;
-				REG_ADDR_FRAME_TIMEOUT:	reg_frame_timeout <= s_wb_dat_i;
+				REG_ADDR_FRM_TIMER_EN:	reg_frm_timer_en  <= s_wb_dat_i;
+				REG_ADDR_FRM_TIMEOUT:	reg_frm_timeout   <= s_wb_dat_i;
 				REG_ADDR_PARAM_WIDTH:	reg_param_width   <= s_wb_dat_i;
 				REG_ADDR_PARAM_HEIGHT:	reg_param_height  <= s_wb_dat_i;
 				REG_ADDR_PARAM_FILL:	reg_param_fill    <= s_wb_dat_i;
@@ -144,8 +144,8 @@ module jelly_video_normalizer
 		REG_ADDR_BUSY:			wb_dat_o = ff1_busy;
 		REG_ADDR_INDEX:			wb_dat_o = ff1_index;
 		REG_ADDR_SKIP:			wb_dat_o = reg_skip;
-		REG_ADDR_FRAME_BLANK:	wb_dat_o = reg_frame_blank;
-		REG_ADDR_FRAME_TIMEOUT:	wb_dat_o = reg_frame_timeout;
+		REG_ADDR_FRM_TIMER_EN:	wb_dat_o = reg_frm_timer_en;
+		REG_ADDR_FRM_TIMEOUT:	wb_dat_o = reg_frm_timeout;
 		REG_ADDR_PARAM_WIDTH:	wb_dat_o = reg_param_width;
 		REG_ADDR_PARAM_HEIGHT:	wb_dat_o = reg_param_height;
 		REG_ADDR_PARAM_FILL:	wb_dat_o = reg_param_fill;
@@ -162,8 +162,8 @@ module jelly_video_normalizer
 	(* ASYNC_REG = "true" *)	reg								ff0_ctl_enable,    ff1_ctl_enable,    ff2_ctl_enable;
 	(* ASYNC_REG = "true" *)	reg								ff0_ctl_update,    ff1_ctl_update;
 	(* ASYNC_REG = "true" *)	reg								ff0_ctl_skip,      ff1_ctl_skip;
-	(* ASYNC_REG = "true" *)	reg								ff0_frame_blank,   ff1_frame_blank;
-	(* ASYNC_REG = "true" *)	reg		[FRAME_TIMER_WIDTH-1:0]	ff0_frame_timeout, ff1_frame_timeout;
+	(* ASYNC_REG = "true" *)	reg								ff0_frm_timer_en,  ff1_frm_timer_en;
+	(* ASYNC_REG = "true" *)	reg		[FRAME_TIMER_WIDTH-1:0]	ff0_frm_timeout,   ff1_frm_timeout;
 	
 	(* ASYNC_REG = "true" *)	reg		[X_WIDTH-1:0]			ff0_param_width,   ff1_param_width;
 	(* ASYNC_REG = "true" *)	reg		[Y_WIDTH-1:0]			ff0_param_height,  ff1_param_height;
@@ -179,8 +179,8 @@ module jelly_video_normalizer
 			ff0_ctl_skip    <= 1'b0;
 			ff1_ctl_skip    <= 1'b0;
 			
-			ff0_frame_blank <= 1'b0;
-			ff1_frame_blank <= 1'b0;
+			ff0_frm_timer_en <= 1'b0;
+			ff1_frm_timer_en <= 1'b0;
 		end
 		else begin
 			ff0_ctl_enable  <= reg_control[0];
@@ -190,14 +190,14 @@ module jelly_video_normalizer
 			ff0_ctl_skip    <= reg_skip;
 			ff1_ctl_skip    <= ff0_ctl_skip;
 			
-			ff0_frame_blank <= reg_frame_blank;
-			ff1_frame_blank <= ff0_frame_blank;
+			ff0_frm_timer_en <= reg_frm_timer_en;
+			ff1_frm_timer_en <= ff0_frm_timer_en;
 		end
 	end
 	
 	always @(posedge aclk) begin
 		ff0_ctl_update    <= reg_control[1];
-		ff0_frame_timeout <= reg_frame_timeout;
+		ff0_frm_timeout <= reg_frm_timeout;
 		ff0_param_width   <= reg_param_width;
 		ff0_param_height  <= reg_param_height;
 		ff0_param_fill    <= reg_param_fill;
@@ -205,7 +205,7 @@ module jelly_video_normalizer
 		
 		
 		ff1_ctl_update    <= ff0_ctl_update;
-		ff1_frame_timeout <= ff0_frame_timeout;
+		ff1_frm_timeout <= ff0_frm_timeout;
 		ff1_param_width   <= ff0_param_width;
 		ff1_param_height  <= ff0_param_height;
 		ff1_param_fill    <= ff0_param_fill;
@@ -237,8 +237,8 @@ module jelly_video_normalizer
 				.ctl_update			(ff1_ctl_enable),
 				.ctl_index			(index),
 				.ctl_skip			(ff1_ctl_skip),
-				.ctl_frame_blank	(ff1_frame_blank),
-				.ctl_frame_timeout	(ff1_frame_timeout),
+				.ctl_frm_timer_en	(ff1_frm_timer_en),
+				.ctl_frm_timeout	(ff1_frm_timeout),
 				
 				.param_width		(ff1_param_width),
 				.param_height		(ff1_param_height),

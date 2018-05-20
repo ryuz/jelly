@@ -566,7 +566,7 @@ module top
 				.m_axi4s_tlast		(axi4s_csi2_tlast),
 				.m_axi4s_tdata		(axi4s_csi2_tdata),
 				.m_axi4s_tvalid		(axi4s_csi2_tvalid),
-				.m_axi4s_tready		(1'b1)	// (axi4s_csi2_tready)
+				.m_axi4s_tready		(axi4s_csi2_tready)
 			);
 	
 	jelly_axi4s_debug_monitor
@@ -592,7 +592,7 @@ module top
 				.axi4s_tready		(axi4s_csi2_tready)
 			);
 	
-	
+	/*
 	wire	[0:0]	axi4s_fifo_tuser;
 	wire			axi4s_fifo_tlast;
 	wire	[9:0]	axi4s_fifo_tdata;
@@ -624,6 +624,7 @@ module top
 				.m_ready			(axi4s_fifo_tready),
 				.m_data_count		()
 			);
+	*/
 	
 	
 	
@@ -676,11 +677,17 @@ module top
 				.s_wb_stb_i			(wb_norm_stb_i),
 				.s_wb_ack_o			(wb_norm_ack_o),
 				
-				.s_axi4s_tuser		(axi4s_fifo_tuser),
-				.s_axi4s_tlast		(axi4s_fifo_tlast),
-				.s_axi4s_tdata		(axi4s_fifo_tdata),
-				.s_axi4s_tvalid		(axi4s_fifo_tvalid),
-				.s_axi4s_tready		(axi4s_fifo_tready),
+		//		.s_axi4s_tuser		(axi4s_fifo_tuser),
+		//		.s_axi4s_tlast		(axi4s_fifo_tlast),
+		//		.s_axi4s_tdata		(axi4s_fifo_tdata),
+		//		.s_axi4s_tvalid		(axi4s_fifo_tvalid),
+		//		.s_axi4s_tready		(axi4s_fifo_tready),
+				
+				.s_axi4s_tuser		(axi4s_csi2_tuser),
+				.s_axi4s_tlast		(axi4s_csi2_tlast),
+				.s_axi4s_tdata		(axi4s_csi2_tdata),
+				.s_axi4s_tvalid		(axi4s_csi2_tvalid),
+				.s_axi4s_tready		(axi4s_csi2_tready),
 				
 				.m_axi4s_tuser		(axi4s_norm_tuser),
 				.m_axi4s_tlast		(axi4s_norm_tlast),
@@ -846,6 +853,50 @@ module top
 	//  OLED
 	// ----------------------------------------
 	
+	wire	[0:0]		axi4s_resize_tuser;
+	wire				axi4s_resize_tlast;
+	wire	[23:0]		axi4s_resize_tdata;
+	wire				axi4s_resize_tvalid;
+	wire				axi4s_resize_tready;
+	
+	jelly_video_resize_half_core
+			#(
+				.TUSER_WIDTH		(1),
+				.COMPONENT_NUM		(3),
+				.DATA_WIDTH			(8),
+				.MAX_X_NUM			(1024),
+				.RAM_TYPE			("block"),
+				.M_SLAVE_REGS		(1),
+				.M_MASTER_REGS		(1)
+			)
+		i_video_resize_half_core
+			(
+				.aresetn			(axi4s_cam_aresetn),
+				.aclk				(axi4s_cam_aclk),
+				.aclken				(1'b1),
+				
+				.param_v_enable		(1),
+				.param_h_enable		(1),
+				
+				.s_axi4s_tuser		(axi4s_rgb_tuser),
+				.s_axi4s_tlast		(axi4s_rgb_tlast),
+				.s_axi4s_tdata		({
+										axi4s_rgb_tdata[29:22],
+										axi4s_rgb_tdata[19:12],
+										axi4s_rgb_tdata[ 9: 2]
+									}),
+				.s_axi4s_tvalid		(axi4s_rgb_tvalid),
+				.s_axi4s_tready		(axi4s_rgb_tready),
+				
+				.m_axi4s_tuser		(axi4s_resize_tuser),
+				.m_axi4s_tlast		(axi4s_resize_tlast),
+				.m_axi4s_tdata		(axi4s_resize_tdata),
+				.m_axi4s_tvalid		(axi4s_resize_tvalid),
+				.m_axi4s_tready		(axi4s_resize_tready)
+		);
+	
+	
+	
 	wire	[0:0]		axi4s_trim_tuser;
 	wire				axi4s_trim_tlast;
 	wire	[23:0]		axi4s_trim_tdata;
@@ -878,15 +929,11 @@ module top
 				.param_y_end		(64),
 				
 				
-				.s_axi4s_tuser		(axi4s_rgb_tuser),
-				.s_axi4s_tlast		(axi4s_rgb_tlast),
-				.s_axi4s_tdata		({
-										axi4s_rgb_tdata[29:22],
-										axi4s_rgb_tdata[19:12],
-										axi4s_rgb_tdata[ 9: 2]
-									}),
-				.s_axi4s_tvalid		(axi4s_rgb_tvalid),
-				.s_axi4s_tready		(axi4s_rgb_tready),
+				.s_axi4s_tuser		(axi4s_resize_tuser),
+				.s_axi4s_tlast		(axi4s_resize_tlast),
+				.s_axi4s_tdata		(axi4s_resize_tdata),
+				.s_axi4s_tvalid		(axi4s_resize_tvalid),
+				.s_axi4s_tready		(axi4s_resize_tready),
 				                     
 				.m_axi4s_tuser		(axi4s_trim_tuser),
 				.m_axi4s_tlast		(axi4s_trim_tlast),

@@ -96,7 +96,7 @@ module jelly_video_resize_half_v_core
 	jelly_ram_singleport
 			#(
 				.ADDR_WIDTH			(X_WIDTH),
-				.DATA_WIDTH			(MAX_X_NUM),
+				.DATA_WIDTH			(TDATA_WIDTH),
 				.MEM_SIZE			(MAX_X_NUM),
 				.RAM_TYPE			(RAM_TYPE),
 				.DOUT_REGS			(1),
@@ -146,9 +146,16 @@ module jelly_video_resize_half_v_core
 			
 			
 			// stage 3
-			st3_tuser <= st2_tuser;
-			st3_tlast <= st2_tlast;
-			st3_tdata <= st2_tdata;
+			st3_tuser    <= st2_tuser;
+			st3_tuser[0] <= st3_tuser[0];
+			if ( st3_tvalid) begin
+				st3_tuser[0] <= 1'b0;
+			end
+			if ( st2_tuser[0] && st2_tvalid ) begin
+				st3_tuser[0] <= 1'b1;
+			end
+			st3_tlast    <= st2_tlast;
+			st3_tdata    <= st2_tdata;
 			if ( param_enable ) begin
 				for ( i = 0; i < COMPONENT_NUM; i = i+1 ) begin
 					st3_tdata[i*DATA_WIDTH +: DATA_WIDTH] <=
