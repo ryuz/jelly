@@ -116,7 +116,7 @@ module tb_gpu_texturemap_sram();
 	wire	[AXI4S_TDATA_WIDTH-1:0]			m_axi4s_tdata;
 	wire									m_axi4s_tstrb;
 	wire									m_axi4s_tvalid;
-	reg										m_axi4s_tready = 1;
+	wire										m_axi4s_tready;
 	
 	jelly_gpu_texturemap_sram
 			#(
@@ -213,6 +213,32 @@ module tb_gpu_texturemap_sram();
 	end
 	
 	
+	jelly_axi4s_slave_model
+			#(
+				.COMPONENT_NUM		(3),
+				.DATA_WIDTH			(8),
+				.INIT_FRAME_NUM		(0),
+				.FILE_NAME			("out_img/out_%0d.ppm"),
+				.BUSY_RATE			(0),
+				.RANDOM_SEED		(1234)
+			)
+		i_axi4s_slave_model
+			(
+				.aresetn			(~reset),
+				.aclk				(clk),
+				.aclken				(1'b1),
+				
+				.param_width		(X_NUM),
+				.param_height		(Y_NUM),
+				
+				.s_axi4s_tuser		(m_axi4s_tuser),
+				.s_axi4s_tlast		(m_axi4s_tlast),
+				.s_axi4s_tdata		(m_axi4s_tdata),
+				.s_axi4s_tvalid		(m_axi4s_tvalid),
+				.s_axi4s_tready		(m_axi4s_tready)
+			);
+	
+	
 	
 	// WISHBONE master
 	wire							wb_rst_i = s_wb_rst_i;
@@ -292,7 +318,6 @@ module tb_gpu_texturemap_sram();
 			$display("WISHBONE_READ(adr:%h dat:%h)", adr, reg_wb_dat);
 	end
 	endtask
-	
 	
 	initial begin
 	@(negedge wb_rst_i);
@@ -403,8 +428,8 @@ wb_write(32'h4000c02c, 32'h00000801, 4'hf);
 
 		
 		$display("start");
-		wb_write(32'h0000_0004, 32'h0000_0001, 4'b1111);
-		wb_write(32'h0000_0000, 32'h0000_0001, 4'b1111);
+		wb_write(32'h0000_0084, 32'h0000_0001, 4'b1111);
+		wb_write(32'h0000_0080, 32'h0000_0001, 4'b1111);
 		
 	#100000000
 		$finish();

@@ -107,8 +107,9 @@ module jelly_gpu_texturemap_sram
 		);
 	
 	
-	localparam	CFG_SHADER_TYPE    = 32'h0002_0003;			//  color:yes textue:no z:yes
-	localparam	CFG_VERSION        = 32'h0001_0000;
+	localparam	CFG_SHADER_TYPE     = 32'h0002_0003;		//  color:yes textue:no z:yes
+	localparam	CFG_VERSION         = 32'h0001_0000;
+	localparam	CFG_CORE_ADDR_WIDTH = 14;
 	
 	localparam	INDEX_WIDTH         = POLYGON_NUM <=     2 ?  1 :
 	                                  POLYGON_NUM <=     4 ?  2 :
@@ -176,7 +177,7 @@ module jelly_gpu_texturemap_sram
 				
 				.CFG_SHADER_TYPE				(CFG_SHADER_TYPE),
 				.CFG_VERSION					(CFG_VERSION),
-				.CFG_SHADER_PARAM_Q				(SHADER_PARAM_Q),
+				.CFG_CORE_ADDR_WIDTH			(CFG_CORE_ADDR_WIDTH),
 				
 				.INIT_CTL_ENABLE				(RASTERIZER_INIT_CTL_ENABLE),
 				.INIT_CTL_UPDATE				(RASTERIZER_INIT_CTL_UPDATE),

@@ -16,7 +16,7 @@ module tb_top();
 	initial begin
 		$dumpfile("tb_top.vcd");
 		$dumpvars(1, tb_top);
-		$dumpvars(1, tb_top.i_top);
+		$dumpvars(0, tb_top.i_top);
 		
 	#100000000
 		$finish;
@@ -317,6 +317,7 @@ module tb_top();
 	
 	
 	
+	
 	initial begin
 	@(negedge wb_rst_i);
 	#100
@@ -427,8 +428,8 @@ wb_write(32'h4010c02c, 32'h00000801, 4'hf);
 	
 	#100
 		$display("start");
-		wb_write(32'h4010_0004, 32'h0000_0001, 4'b1111);	// UPDATE
-		wb_write(32'h4010_0000, 32'h0000_0001, 4'b1111);	// ENABLE
+		wb_write(32'h4010_0084, 32'h0000_0001, 4'b1111);	// UPDATE
+		wb_write(32'h4010_0080, 32'h0000_0001, 4'b1111);	// ENABLE
 	
 	#100000000
 		$finish();

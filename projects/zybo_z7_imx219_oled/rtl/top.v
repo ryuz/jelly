@@ -853,48 +853,63 @@ module top
 	//  OLED
 	// ----------------------------------------
 	
-	wire	[0:0]		axi4s_resize_tuser;
-	wire				axi4s_resize_tlast;
-	wire	[23:0]		axi4s_resize_tdata;
-	wire				axi4s_resize_tvalid;
-	wire				axi4s_resize_tready;
+	wire	[0:0]			axi4s_resize_tuser;
+	wire					axi4s_resize_tlast;
+	wire	[23:0]			axi4s_resize_tdata;
+	wire					axi4s_resize_tvalid;
+	wire					axi4s_resize_tready;
 	
-	jelly_video_resize_half_core
+	wire	[31:0]			wb_resize_dat_o;
+	wire					wb_resize_stb_i;
+	wire					wb_resize_ack_o;
+	
+	jelly_video_resize_half_wb
 			#(
-				.TUSER_WIDTH		(1),
-				.COMPONENT_NUM		(3),
-				.DATA_WIDTH			(8),
-				.MAX_X_NUM			(1024),
-				.RAM_TYPE			("block"),
-				.M_SLAVE_REGS		(1),
-				.M_MASTER_REGS		(1)
+				.COMPONENT_NUM			(3),
+				.DATA_WIDTH				(8),
+				.MAX_X_NUM				(1024),
+				.RAM_TYPE				("block"),
+				.M_SLAVE_REGS			(1),
+				.M_MASTER_REGS			(1),
+				.AXI4S_TUSER_WIDTH		(1),
+				.WB_ADR_WIDTH			(8),
+				.WB_DAT_SIZE			(2),	// 0:8bit, 1:16bit, 2:32bit, ...
+				
+				.INIT_PARAM_V_ENABLE	(1),
+				.INIT_PARAM_H_ENABLE	(1)
 			)
-		i_video_resize_half_core
+		i_video_resize_half_wb
 			(
-				.aresetn			(axi4s_cam_aresetn),
-				.aclk				(axi4s_cam_aclk),
-				.aclken				(1'b1),
+				.aresetn				(axi4s_cam_aresetn),
+				.aclk					(axi4s_cam_aclk),
+				.aclken					(1'b1),
 				
-				.param_v_enable		(1),
-				.param_h_enable		(1),
+				.s_axi4s_tuser			(axi4s_rgb_tuser),
+				.s_axi4s_tlast			(axi4s_rgb_tlast),
+				.s_axi4s_tdata			({
+											axi4s_rgb_tdata[29:22],
+											axi4s_rgb_tdata[19:12],
+											axi4s_rgb_tdata[ 9: 2]
+										}),
+				.s_axi4s_tvalid			(axi4s_rgb_tvalid),
+				.s_axi4s_tready			(axi4s_rgb_tready),
 				
-				.s_axi4s_tuser		(axi4s_rgb_tuser),
-				.s_axi4s_tlast		(axi4s_rgb_tlast),
-				.s_axi4s_tdata		({
-										axi4s_rgb_tdata[29:22],
-										axi4s_rgb_tdata[19:12],
-										axi4s_rgb_tdata[ 9: 2]
-									}),
-				.s_axi4s_tvalid		(axi4s_rgb_tvalid),
-				.s_axi4s_tready		(axi4s_rgb_tready),
-				
-				.m_axi4s_tuser		(axi4s_resize_tuser),
-				.m_axi4s_tlast		(axi4s_resize_tlast),
-				.m_axi4s_tdata		(axi4s_resize_tdata),
-				.m_axi4s_tvalid		(axi4s_resize_tvalid),
-				.m_axi4s_tready		(axi4s_resize_tready)
+				.m_axi4s_tuser			(axi4s_resize_tuser),
+				.m_axi4s_tlast			(axi4s_resize_tlast),
+				.m_axi4s_tdata			(axi4s_resize_tdata),
+				.m_axi4s_tvalid			(axi4s_resize_tvalid),
+				.m_axi4s_tready			(axi4s_resize_tready),
+
+				.s_wb_rst_i				(wb_rst_o),
+				.s_wb_clk_i				(wb_clk_o),
+				.s_wb_adr_i				(wb_host_adr_o[7:0]),
+				.s_wb_dat_o				(wb_resize_dat_o),
+				.s_wb_dat_i				(wb_host_dat_o),
+				.s_wb_we_i				(wb_host_we_o),
+				.s_wb_sel_i				(wb_host_sel_o),
+				.s_wb_stb_i				(wb_resize_stb_i),
+				.s_wb_ack_o				(wb_resize_ack_o)
 		);
-	
 	
 	
 	wire	[0:0]		axi4s_trim_tuser;
@@ -1049,25 +1064,28 @@ module top
 	//  WISHBONE address decoder
 	// ----------------------------------------
 	
-	assign wb_gid_stb_i   = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4000_0);
-	assign wb_vdmaw_stb_i = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_0);
-	assign wb_norm_stb_i  = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_1);
-	assign wb_rgb_stb_i   = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_2);
-	assign wb_oled_stb_i  = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4002_2);
+	assign wb_gid_stb_i    = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4000_0);
+	assign wb_vdmaw_stb_i  = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_0);
+	assign wb_norm_stb_i   = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_1);
+	assign wb_rgb_stb_i    = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_2);
+	assign wb_resize_stb_i = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_4);
+	assign wb_oled_stb_i   = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4002_2);
 	
 	
-	assign wb_host_dat_i  = wb_gid_stb_i   ? wb_gid_dat_o   :
-	                        wb_vdmaw_stb_i ? wb_vdmaw_dat_o :
-	                        wb_norm_stb_i  ? wb_norm_dat_o  :
-	                        wb_rgb_stb_i   ? wb_rgb_dat_o   :
-	                        wb_oled_stb_i  ? wb_oled_dat_o  :
+	assign wb_host_dat_i  = wb_gid_stb_i    ? wb_gid_dat_o    :
+	                        wb_vdmaw_stb_i  ? wb_vdmaw_dat_o  :
+	                        wb_norm_stb_i   ? wb_norm_dat_o   :
+	                        wb_rgb_stb_i    ? wb_rgb_dat_o    :
+	                        wb_resize_stb_i ? wb_resize_dat_o :
+	                        wb_oled_stb_i   ? wb_oled_dat_o   :
 	                        32'h0000_0000;
 	
-	assign wb_host_ack_i  = wb_gid_stb_i   ? wb_gid_ack_o   :
-	                        wb_vdmaw_stb_i ? wb_vdmaw_ack_o :
-	                        wb_norm_stb_i  ? wb_norm_ack_o  :
-	                        wb_rgb_stb_i   ? wb_rgb_ack_o   :
-	                        wb_oled_stb_i  ? wb_oled_ack_o  :
+	assign wb_host_ack_i  = wb_gid_stb_i    ? wb_gid_ack_o    :
+	                        wb_vdmaw_stb_i  ? wb_vdmaw_ack_o  :
+	                        wb_norm_stb_i   ? wb_norm_ack_o   :
+	                        wb_rgb_stb_i    ? wb_rgb_ack_o    :
+	                        wb_resize_stb_i ? wb_resize_ack_o :
+	                        wb_oled_stb_i   ? wb_oled_ack_o   :
 	                        wb_host_stb_o;
 	
 	
