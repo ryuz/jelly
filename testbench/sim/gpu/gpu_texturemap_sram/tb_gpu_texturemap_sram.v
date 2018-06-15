@@ -10,7 +10,7 @@ module tb_gpu_texturemap_sram();
 	
 	initial begin
 		$dumpfile("tb_gpu_texturemap_sram.vcd");
-		$dumpvars(1, tb_gpu_texturemap_sram);
+		$dumpvars(0, tb_gpu_texturemap_sram);
 	end
 	
 	reg		clk = 1'b1;
@@ -22,8 +22,8 @@ module tb_gpu_texturemap_sram();
 	reg		reset = 1'b1;
 	always #(RATE*100)	reset = 1'b0;
 	
-	parameter X_NUM = 640;
-	parameter Y_NUM = 480;
+	parameter X_NUM = 640 / 10;
+	parameter Y_NUM = 480 / 10;
 	parameter U_NUM = 640;
 	parameter V_NUM = 480;
 	
@@ -86,8 +86,8 @@ module tb_gpu_texturemap_sram();
 	
 	parameter	RASTERIZER_INIT_CTL_ENABLE    = 1'b0;
 	parameter	RASTERIZER_INIT_CTL_UPDATE    = 1'b0;
-	parameter	RASTERIZER_INIT_PARAM_WIDTH   = 640-1;
-	parameter	RASTERIZER_INIT_PARAM_HEIGHT  = 480-1;
+	parameter	RASTERIZER_INIT_PARAM_WIDTH   = X_NUM-1;
+	parameter	RASTERIZER_INIT_PARAM_HEIGHT  = Y_NUM-1;
 	parameter	RASTERIZER_INIT_PARAM_CULLING = 2'b01;
 	parameter	RASTERIZER_INIT_PARAM_BANK    = 0;
 	
@@ -116,7 +116,7 @@ module tb_gpu_texturemap_sram();
 	wire	[AXI4S_TDATA_WIDTH-1:0]			m_axi4s_tdata;
 	wire									m_axi4s_tstrb;
 	wire									m_axi4s_tvalid;
-	wire										m_axi4s_tready;
+	wire									m_axi4s_tready;
 	
 	jelly_gpu_texturemap_sram
 			#(
@@ -426,10 +426,13 @@ wb_write(32'h4000c024, 32'h00000402, 4'hf);
 wb_write(32'h4000c028, 32'h00000a21, 4'hf);
 wb_write(32'h4000c02c, 32'h00000801, 4'hf);	
 
-		
 		$display("start");
-		wb_write(32'h0000_0084, 32'h0000_0001, 4'b1111);
-		wb_write(32'h0000_0080, 32'h0000_0001, 4'b1111);
+		wb_write(32'h0000_0084, 32'h0000_0001, 4'b1111);	// UPDATE
+		wb_write(32'h0000_0080, 32'h0000_0001, 4'b1111);	// ENABLE
+		
+	#10000
+		wb_write(32'h0000_00a4, 32'h0000_0001, 4'b1111);	// SELECT
+		wb_write(32'h0000_0084, 32'h0000_0001, 4'b1111);	// UPDATE
 		
 	#100000000
 		$finish();
