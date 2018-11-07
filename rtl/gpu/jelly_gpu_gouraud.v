@@ -19,6 +19,8 @@ module jelly_gpu_gouraud
 			parameter	WB_DAT_WIDTH                  = 32,
 			parameter	WB_SEL_WIDTH                  = (WB_DAT_WIDTH / 8),
 			
+			parameter	USE_S_AX4S                    = 0,
+			
 			parameter	COMPONENT_NUM                 = 3,
 			parameter	DATA_WIDTH                    = 8,
 			
@@ -60,7 +62,8 @@ module jelly_gpu_gouraud
 			parameter	RASTERIZER_INIT_PARAM_CULLING = 2'b01,
 			parameter	RASTERIZER_INIT_PARAM_BANK    = 0,
 			
-			parameter	SHADER_INIT_PARAM_BGC         = 24'h00_00_ff
+			parameter	SHADER_INIT_PARAM_BG_MODE     = 1'b0,
+			parameter	SHADER_INIT_PARAM_BG_COLOR    = 24'h00_00_ff
 		)
 		(
 			input	wire								reset,
@@ -75,6 +78,12 @@ module jelly_gpu_gouraud
 			input	wire	[WB_SEL_WIDTH-1:0]			s_wb_sel_i,
 			input	wire								s_wb_stb_i,
 			output	wire								s_wb_ack_o,
+			
+			input	wire	[AXI4S_TUSER_WIDTH-1:0]		s_axi4s_tuser,
+			input	wire								s_axi4s_tlast,
+			input	wire	[AXI4S_TDATA_WIDTH-1:0]		s_axi4s_tdata,
+			input	wire								s_axi4s_tvalid,
+			output	wire								s_axi4s_tready,
 			
 			output	wire	[AXI4S_TUSER_WIDTH-1:0]		m_axi4s_tuser,
 			output	wire								m_axi4s_tlast,
@@ -175,6 +184,7 @@ module jelly_gpu_gouraud
 				
 				.m_frame_start					(rasterizer_frame_start),
 				.m_line_end						(rasterizer_line_end),
+				.m_select						(),
 				.m_polygon_enable				(rasterizer_polygon_enable),
 				.m_polygon_index				(rasterizer_polygon_index),
 				.m_shader_params				(rasterizer_shader_params),
@@ -193,10 +203,72 @@ module jelly_gpu_gouraud
 	
 	
 	
+	// combiner
+	wire												combiner_frame_start;
+	wire												combiner_line_end;
+	wire												combiner_polygon_enable;
+	wire	[INDEX_WIDTH-1:0]							combiner_polygon_index;
+	wire	[SHADER_PARAM_NUM*SHADER_PARAM_WIDTH-1:0]	combiner_shader_params;
+	wire	[AXI4S_TDATA_WIDTH-1:0]						combiner_bg_color;
+	wire												combiner_valid;
+	wire												combiner_ready;
+	
+	generate
+	if ( USE_S_AX4S ) begin : blk_combiner
+		jelly_video_combiner2
+				#(
+					.S0_TUSER_WIDTH				(AXI4S_TUSER_WIDTH),
+					.S0_TDATA_WIDTH				(AXI4S_TDATA_WIDTH),
+					.S1_TUSER_WIDTH				(1),
+					.S1_TDATA_WIDTH				(1+INDEX_WIDTH+SHADER_PARAM_NUM*SHADER_PARAM_WIDTH),
+					.S0_REGS					(1),
+					.S1_REGS					(1),
+					.M_REGS						(1)
+				)
+			i_video_combiner2
+				(
+					.reset						(reset),
+					.clk						(clk),
+					.cke						(1'b1),
+					
+					.s0_axi4s_tlast				(s_axi4s_tlast),
+					.s0_axi4s_tuser				(s_axi4s_tuser),
+					.s0_axi4s_tdata				(s_axi4s_tdata),
+					.s0_axi4s_tvalid			(s_axi4s_tvalid),
+					.s0_axi4s_tready			(s_axi4s_tready),
+					
+					.s1_axi4s_tlast				(rasterizer_line_end),
+					.s1_axi4s_tuser				(rasterizer_frame_start),
+					.s1_axi4s_tdata				({rasterizer_polygon_enable, rasterizer_polygon_index, rasterizer_shader_params}),
+					.s1_axi4s_tvalid			(rasterizer_valid),
+					.s1_axi4s_tready			(cke),
+					
+					.m_axi4s_tlast				(combiner_line_end),
+					.m_axi4s_tuser0				(combiner_frame_start),
+					.m_axi4s_tuser1				(),
+					.m_axi4s_tdata0				(combiner_bg_color),
+					.m_axi4s_tdata1				({combiner_polygon_enable, combiner_polygon_index, combiner_shader_params}),
+					.m_axi4s_tvalid				(combiner_valid),
+					.m_axi4s_tready				(combiner_ready)
+				);
+	end
+	else begin : blk_no_combiner
+		assign combiner_frame_start    = rasterizer_frame_start;
+		assign combiner_line_end       = rasterizer_line_end;
+		assign combiner_polygon_enable = rasterizer_polygon_enable;
+		assign combiner_polygon_index  = rasterizer_polygon_index;
+		assign combiner_shader_params  = rasterizer_shader_params;
+		assign combiner_bg_color       = {AXI4S_TDATA_WIDTH{1'b0}};
+		assign combiner_valid          = rasterizer_valid;
+		assign cke                     = combiner_ready;
+	end
+	endgenerate
+	
+	
 	// pixel shader
-	wire	[WB_DAT_WIDTH-1:0]							wb_shader_dat_o;
-	wire												wb_shader_stb_i;
-	wire												wb_shader_ack_o;
+	wire	[WB_DAT_WIDTH-1:0]		wb_shader_dat_o;
+	wire							wb_shader_stb_i;
+	wire							wb_shader_ack_o;
 	
 	jelly_pixel_shader_gouraud
 			#(
@@ -218,7 +290,8 @@ module jelly_gpu_gouraud
 				
 				.USE_PARAM_CFG_READ				(USE_PARAM_CFG_READ),
 				
-				.INIT_PARAM_BGC					(SHADER_INIT_PARAM_BGC)
+				.INIT_PARAM_BG_MODE				(SHADER_INIT_PARAM_BG_MODE),
+				.INIT_PARAM_BG_COLOR			(SHADER_INIT_PARAM_BG_COLOR)
 			)
 		i_pixel_shader_gouraud
 			(
@@ -239,13 +312,14 @@ module jelly_gpu_gouraud
 				.s_wb_stb_i						(wb_shader_stb_i),
 				.s_wb_ack_o						(wb_shader_ack_o),
 				
-				.s_rasterizer_frame_start		(rasterizer_frame_start),
-				.s_rasterizer_line_end			(rasterizer_line_end),
-				.s_rasterizer_polygon_enable	(rasterizer_polygon_enable),
-				.s_rasterizer_polygon_index		(rasterizer_polygon_index),
-				.s_rasterizer_shader_params		(rasterizer_shader_params[SHADER_PARAM_NUM*SHADER_PARAM_WIDTH-1:SHADER_PARAM_WIDTH]),	// ZÇèúãé
-				.s_rasterizer_valid				(rasterizer_valid),
-				.s_rasterizer_ready				(cke),
+				.s_rasterizer_frame_start		(combiner_frame_start),
+				.s_rasterizer_line_end			(combiner_line_end),
+				.s_rasterizer_polygon_enable	(combiner_polygon_enable),
+				.s_rasterizer_polygon_index		(combiner_polygon_index),
+				.s_rasterizer_shader_params		(combiner_shader_params[SHADER_PARAM_NUM*SHADER_PARAM_WIDTH-1:SHADER_PARAM_WIDTH]),	// ZÇèúãé
+				.s_rasterizer_bg_color			(combiner_bg_color),
+				.s_rasterizer_valid				(combiner_valid),
+				.s_rasterizer_ready				(combiner_ready),
 				
 				.m_axi4s_tuser					(m_axi4s_tuser),
 				.m_axi4s_tlast					(m_axi4s_tlast),

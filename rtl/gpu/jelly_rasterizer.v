@@ -38,6 +38,7 @@ module jelly_rasterizer
 			parameter	REGION_PARAM_WIDTH  = EDGE_NUM,
 			parameter	REGION_RAM_TYPE     = "distributed",
 			
+			parameter	SELECT_WIDTH        = 1,
 			parameter	INDEX_WIDTH         = POLYGON_NUM <=     2 ?  1 :
 			                                  POLYGON_NUM <=     4 ?  2 :
 			                                  POLYGON_NUM <=     8 ?  3 :
@@ -90,6 +91,7 @@ module jelly_rasterizer
 			
 			output	wire												m_frame_start,
 			output	wire												m_line_end,
+			output	wire	[SELECT_WIDTH-1:0]							m_select,
 			output	wire												m_polygon_enable,
 			output	wire	[INDEX_WIDTH-1:0]							m_polygon_index,
 			output	wire	[SHADER_PARAM_NUM*SHADER_PARAM_WIDTH-1:0]	m_shader_params,
@@ -123,6 +125,7 @@ module jelly_rasterizer
 				.BANK_NUM				(BANK_NUM),
 				.BANK_ADDR_WIDTH		(BANK_ADDR_WIDTH),
 				.PARAMS_ADDR_WIDTH		(PARAMS_ADDR_WIDTH),
+				.SELECT_WIDTH			(SELECT_WIDTH),
 				
 				.EDGE_NUM				(EDGE_NUM),
 				.POLYGON_NUM			(POLYGON_NUM),
@@ -162,6 +165,7 @@ module jelly_rasterizer
 				.param_width			(param_width),
 				.param_height			(param_height),
 				.param_culling			(param_culling),
+				.param_select			(m_select),
 				
 				.params_edge			(params_edge),
 				.params_shader			(params_shader),

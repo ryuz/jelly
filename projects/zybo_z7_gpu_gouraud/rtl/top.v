@@ -40,6 +40,9 @@ module top
 			inout	wire			FIXED_IO_ps_srstb
 		);
 	
+	localparam	VOUT_X_NUM = 1280;
+	localparam	VOUT_Y_NUM = 720;
+	
 	
 	// ----------------------------------------
 	//  Processor System
@@ -430,7 +433,8 @@ module top
 				.RASTERIZER_INIT_PARAM_HEIGHT	(VOUT_Y_NUM-1),
 				.RASTERIZER_INIT_PARAM_CULLING	(2'b01),
 				.RASTERIZER_INIT_PARAM_BANK		(0),
-				.SHADER_INIT_PARAM_BGC			(24'h00_00_ff)
+				.SHADER_INIT_PARAM_BG_MODE		(1'b1),
+				.SHADER_INIT_PARAM_BG_COLOR		(24'h00_00_ff)
 			)
 		i_gpu_gouraud
 			(

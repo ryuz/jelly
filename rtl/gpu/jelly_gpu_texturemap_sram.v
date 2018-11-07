@@ -29,6 +29,7 @@ module jelly_gpu_texturemap_sram
 			parameter	PARAMS_ADDR_WIDTH             = 12,
 			parameter	BANK_ADDR_WIDTH               = 10,
 			
+			parameter	SELECT_WIDTH                  = 1,
 			parameter	BANK_NUM                      = 1,
 			parameter	EDGE_NUM                      = 12,
 			parameter	POLYGON_NUM                   = 6,
@@ -137,6 +138,7 @@ module jelly_gpu_texturemap_sram
 	
 	wire												rasterizer_frame_start;
 	wire												rasterizer_line_end;
+	wire	[SELECT_WIDTH-1:0]							rasterizer_select;
 	wire												rasterizer_polygon_enable;
 	wire	[INDEX_WIDTH-1:0]							rasterizer_polygon_index;
 	wire	[SHADER_PARAM_NUM*SHADER_PARAM_WIDTH-1:0]	rasterizer_shader_params;
@@ -172,6 +174,9 @@ module jelly_gpu_texturemap_sram
 				.REGION_PARAM_WIDTH				(REGION_PARAM_WIDTH),
 				.REGION_RAM_TYPE				(REGION_RAM_TYPE),
 				
+				.SELECT_WIDTH					(SELECT_WIDTH),
+				.INDEX_WIDTH					(INDEX_WIDTH),
+				
 				.CULLING_ONLY					(CULLING_ONLY),
 				.Z_SORT_MIN						(Z_SORT_MIN),
 				
@@ -198,6 +203,7 @@ module jelly_gpu_texturemap_sram
 				
 				.m_frame_start					(rasterizer_frame_start),
 				.m_line_end						(rasterizer_line_end),
+				.m_select						(rasterizer_select),
 				.m_polygon_enable				(rasterizer_polygon_enable),
 				.m_polygon_index				(rasterizer_polygon_index),
 				.m_shader_params				(rasterizer_shader_params),

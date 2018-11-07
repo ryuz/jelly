@@ -15,25 +15,26 @@
 // グーローシェーディング
 module jelly_pixel_shader_gouraud
 		#(
-			parameter	COMPONENT_NUM      = 3,
-			parameter	DATA_WIDTH         = 8,
+			parameter	COMPONENT_NUM       = 3,
+			parameter	DATA_WIDTH          = 8,
 			
-			parameter	WB_ADR_WIDTH       = 8,
-			parameter	WB_DAT_WIDTH       = 32,
-			parameter	WB_SEL_WIDTH       = (WB_DAT_WIDTH / 8),
+			parameter	WB_ADR_WIDTH        = 8,
+			parameter	WB_DAT_WIDTH        = 32,
+			parameter	WB_SEL_WIDTH        = (WB_DAT_WIDTH / 8),
 			
-			parameter	AXI4S_TUSER_WIDTH  = 1,
-			parameter	AXI4S_TDATA_WIDTH  = COMPONENT_NUM*DATA_WIDTH,
+			parameter	AXI4S_TUSER_WIDTH   = 1,
+			parameter	AXI4S_TDATA_WIDTH   = COMPONENT_NUM*DATA_WIDTH,
 			
-			parameter	INDEX_WIDTH        = 4,
+			parameter	INDEX_WIDTH         = 4,
 			
-			parameter	SHADER_PARAM_NUM   = COMPONENT_NUM,
-			parameter	SHADER_PARAM_WIDTH = 32,
-			parameter	SHADER_PARAM_Q     = 24,
+			parameter	SHADER_PARAM_NUM    = COMPONENT_NUM,
+			parameter	SHADER_PARAM_WIDTH  = 32,
+			parameter	SHADER_PARAM_Q      = 24,
 			
-			parameter	USE_PARAM_CFG_READ = 1,
+			parameter	USE_PARAM_CFG_READ  = 1,
 			
-			parameter	INIT_PARAM_BGC     = 24'h00_00_ff
+			parameter	INIT_PARAM_BG_MODE  = 1'b0,
+			parameter	INIT_PARAM_BG_COLOR = 24'h00_00_ff
 		)
 		(
 			input	wire												reset,
@@ -58,6 +59,7 @@ module jelly_pixel_shader_gouraud
 			input	wire												s_rasterizer_polygon_enable,
 			input	wire	[INDEX_WIDTH-1:0]							s_rasterizer_polygon_index,
 			input	wire	[SHADER_PARAM_NUM*SHADER_PARAM_WIDTH-1:0]	s_rasterizer_shader_params,
+			input	wire	[AXI4S_TDATA_WIDTH-1:0]						s_rasterizer_bg_color,
 			input	wire												s_rasterizer_valid,
 			output	wire												s_rasterizer_ready,
 			
@@ -77,22 +79,27 @@ module jelly_pixel_shader_gouraud
 	localparam	REG_ADDR_CFG_SHADER_PARAM_WIDTH = 6'h01;
 	localparam	REG_ADDR_CFG_SHADER_PARAM_Q     = 6'h02;
 	
-	localparam	REG_ADDR_PARAM_BGC              = 6'h20;
+	localparam	REG_ADDR_PARAM_BG_MODE          = 6'h20;
+	localparam	REG_ADDR_PARAM_BG_COLOR         = 6'h21;
 	
 	// 表レジスタ
-	reg		[AXI4S_TDATA_WIDTH-1:0]			reg_param_bgc;
+	reg		[0:0]							reg_param_bg_mode;
+	reg		[AXI4S_TDATA_WIDTH-1:0]			reg_param_bg_color;
 	
 	// 裏レジスタ
-	reg		[AXI4S_TDATA_WIDTH-1:0]			reg_shadow_bgc;
+	reg		[0:0]							reg_shadow_bg_mode;
+	reg		[AXI4S_TDATA_WIDTH-1:0]			reg_shadow_bg_color;
 	
 	always @(posedge s_wb_clk_i ) begin
 		if ( s_wb_rst_i ) begin
-			reg_param_bgc <= INIT_PARAM_BGC;
+			reg_param_bg_mode  <= INIT_PARAM_BG_MODE;
+			reg_param_bg_color <= INIT_PARAM_BG_COLOR;
 		end
 		else begin
 			if ( s_wb_stb_i && s_wb_we_i ) begin
 				case ( s_wb_adr_i )
-				REG_ADDR_PARAM_BGC:	reg_param_bgc <= s_wb_dat_i;
+				REG_ADDR_PARAM_BG_MODE:		reg_param_bg_mode  <= s_wb_dat_i;
+				REG_ADDR_PARAM_BG_COLOR:	reg_param_bg_color <= s_wb_dat_i;
 				endcase
 			end
 		end
@@ -111,9 +118,9 @@ module jelly_pixel_shader_gouraud
 		end
 		
 		case ( s_wb_adr_i )
-		REG_ADDR_PARAM_BGC:		tmp_wb_dat_o = reg_param_bgc;
+		REG_ADDR_PARAM_BG_MODE:			tmp_wb_dat_o = reg_param_bg_mode;
+		REG_ADDR_PARAM_BG_COLOR:		tmp_wb_dat_o = reg_param_bg_color;
 		endcase
-		
 	end
 	
 	assign s_wb_dat_o = tmp_wb_dat_o;
@@ -123,7 +130,8 @@ module jelly_pixel_shader_gouraud
 	// update_param信号の前後ではレジスタ変化が無い前提で非同期受け渡し
 	always @(posedge clk ) begin
 		if ( update ) begin
-			reg_shadow_bgc <= reg_param_bgc;
+			reg_shadow_bg_mode  <= reg_param_bg_mode;
+			reg_shadow_bg_color <= reg_param_bg_color;
 		end
 	end
 	
@@ -149,7 +157,11 @@ module jelly_pixel_shader_gouraud
 		if ( cke ) begin
 			pixel_frame_start <= s_rasterizer_frame_start;
 			pixel_line_end    <= s_rasterizer_line_end;
-			pixel_data        <= reg_shadow_bgc;
+			pixel_data        <= s_rasterizer_bg_color;
+			
+			if ( reg_shadow_bg_mode == 1'b1 ) begin
+				pixel_data <= reg_shadow_bg_color;
+			end
 			
 			if ( s_rasterizer_polygon_enable ) begin
 				for ( i = 0; i < COMPONENT_NUM; i = i+1 ) begin

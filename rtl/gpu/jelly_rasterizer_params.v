@@ -24,6 +24,7 @@ module jelly_rasterizer_params
 			parameter	BANK_NUM            = 2,
 			parameter	BANK_ADDR_WIDTH     = 12,
 			parameter	PARAMS_ADDR_WIDTH   = 10,
+			parameter	SELECT_WIDTH        = 1,
 			
 			parameter	EDGE_NUM            = 12,
 			parameter	POLYGON_NUM         = 6,
@@ -50,6 +51,7 @@ module jelly_rasterizer_params
 			parameter	INIT_PARAM_HEIGHT   = 480-1,
 			parameter	INIT_PARAM_CULLING  = 2'b01,
 			parameter	INIT_PARAM_BANK     = 0,
+			parameter	INIT_PARAM_SELECT   = 0,
 			
 			// local
 			parameter	PARAMS_EDGE_SIZE   = EDGE_NUM*3,
@@ -68,6 +70,7 @@ module jelly_rasterizer_params
 			output	wire	[X_WIDTH-1:0]								param_width,
 			output	wire	[Y_WIDTH-1:0]								param_height,
 			output	wire	[1:0]										param_culling,
+			output	wire	[SELECT_WIDTH-1:0]							param_select,
 			
 			output	wire	[PARAMS_EDGE_SIZE*EDGE_PARAM_WIDTH-1:0]		params_edge,
 			output	wire	[PARAMS_SHADER_SIZE*SHADER_PARAM_WIDTH-1:0]	params_shader,
@@ -186,6 +189,7 @@ module jelly_rasterizer_params
 	localparam	REG_ADDR_PARAM_HEIGHT           = 32'h23;
 	localparam	REG_ADDR_PARAM_CULLING          = 32'h24;
 	localparam	REG_ADDR_PARAM_BANK             = 32'h28;
+	localparam	REG_ADDR_PARAM_SELECT           = 32'h29;
 	
 	
 	// 制御レジスタ
@@ -197,12 +201,14 @@ module jelly_rasterizer_params
 	reg		[Y_WIDTH-1:0]		reg_param_height;
 	reg		[1:0]				reg_param_culling;
 	reg		[BANK_BITS-1:0]		reg_param_bank;
-
+	reg		[SELECT_WIDTH-1:0]	reg_param_select;
+	
 	// パラメータ(裏)
 	reg		[X_WIDTH-1:0]		reg_shadow_width;
 	reg		[Y_WIDTH-1:0]		reg_shadow_height;
 	reg		[1:0]				reg_shadow_culling;
 	reg		[BANK_BITS-1:0]		reg_shadow_bank;
+	reg		[SELECT_WIDTH-1:0]	reg_shadow_select;
 	
 	// 非同期ラッチ(パラメータの更新完了を受け取る)
 	wire						update_ack;
@@ -229,6 +235,7 @@ module jelly_rasterizer_params
 			reg_param_height  <= INIT_PARAM_HEIGHT;
 			reg_param_culling <= INIT_PARAM_CULLING;
 			reg_param_bank    <= INIT_PARAM_BANK;
+			reg_param_select  <= INIT_PARAM_SELECT;
 		end
 		else begin
 			if ( ff1_update_ack != ff2_update_ack ) begin
@@ -243,6 +250,7 @@ module jelly_rasterizer_params
 				REG_ADDR_PARAM_HEIGHT:	reg_param_height  <= s_wb_dat_i;
 				REG_ADDR_PARAM_CULLING:	reg_param_culling <= s_wb_dat_i;
 				REG_ADDR_PARAM_BANK:	reg_param_bank    <= s_wb_dat_i;
+				REG_ADDR_PARAM_SELECT:	reg_param_select  <= s_wb_dat_i;
 				endcase
 			end
 			
@@ -281,6 +289,7 @@ module jelly_rasterizer_params
 		REG_ADDR_PARAM_HEIGHT:	tmp_wb_regs_dat_o = reg_param_height;
 		REG_ADDR_PARAM_CULLING:	tmp_wb_regs_dat_o = reg_param_culling;
 		REG_ADDR_PARAM_BANK:	tmp_wb_regs_dat_o = reg_param_bank;
+		REG_ADDR_PARAM_SELECT:	tmp_wb_regs_dat_o = reg_param_select;
 		endcase
 		
 	end
@@ -296,12 +305,14 @@ module jelly_rasterizer_params
 			reg_shadow_height  <= reg_param_height;
 			reg_shadow_culling <= reg_param_culling;
 			reg_shadow_bank    <= reg_param_bank;
+			reg_shadow_select  <= reg_param_select;
 		end
 	end
 	
 	assign param_width   = reg_shadow_width;
 	assign param_height  = reg_shadow_height;
 	assign param_culling = reg_shadow_culling;
+	assign param_select  = reg_shadow_select;
 	
 	
 	

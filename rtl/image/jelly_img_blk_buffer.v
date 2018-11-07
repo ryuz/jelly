@@ -16,13 +16,13 @@
 module jelly_img_blk_buffer
 		#(
 			parameter	USER_WIDTH   = 0,
-			parameter	DATA_WIDTH   = 8,
-			parameter	PIXEL_NUM    = 31,
-			parameter	LINE_NUM     = 31,
+			parameter	DATA_WIDTH   = 36,
+			parameter	PIXEL_NUM    = 3,
+			parameter	LINE_NUM     = 3,
 			parameter	PIXEL_CENTER = PIXEL_NUM / 2,
 			parameter	LINE_CENTER  = LINE_NUM / 2,
 			parameter	MAX_X_NUM    = 1024,
-			parameter	BORDER_MODE  = "REPLICATE",			// NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
+			parameter	BORDER_MODE  = "NONE",			// NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
 			parameter	BORDER_VALUE = {DATA_WIDTH{1'b0}},
 			parameter	RAM_TYPE     = "block",
 			parameter	ENDIAN       = 0,					// 0: little, 1:big
