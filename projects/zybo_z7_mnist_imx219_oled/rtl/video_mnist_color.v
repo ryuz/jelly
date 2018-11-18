@@ -86,11 +86,12 @@ module video_mnist_color
 			
 			st1_user   <= st0_user;
 			st1_last   <= st0_last;
-			st1_data   <= st0_data;
+			st1_data   <= st0_data; // 24'h40_40_40;
 			if ( st0_en ) begin
-				st1_data[ 7: 0] <= (({1'b0, st0_data[ 7: 0]} + {1'b0, st0_color[ 7: 0]}) >> 1);
-				st1_data[15: 8] <= (({1'b0, st0_data[15: 8]} + {1'b0, st0_color[15: 8]}) >> 1);
-				st1_data[23:16] <= (({1'b0, st0_data[23:16]} + {1'b0, st0_color[23:16]}) >> 1);
+	//			st1_data[ 7: 0] <= (({1'b0, st0_data[ 7: 0]} + {1'b0, st0_color[ 7: 0]}) >> 1);
+	//			st1_data[15: 8] <= (({1'b0, st0_data[15: 8]} + {1'b0, st0_color[15: 8]}) >> 1);
+	//			st1_data[23:16] <= (({1'b0, st0_data[23:16]} + {1'b0, st0_color[23:16]}) >> 1);
+				st1_data <= st0_color;
 			end
 			st1_valid  <= st0_valid;
 		end

@@ -97,7 +97,7 @@ module jelly_axi4s_slave_model
 				reg_rand      <= {$random(reg_rand_seed)};
 			end
 		end
-		assign	busy = ((reg_rand % 100) < BUSY_RATE) || (interval_count > 0);
+		assign	busy = ((reg_rand % 100) < BUSY_RATE);
 	end
 	else begin : blk_no_busy
 		assign	busy = 0;

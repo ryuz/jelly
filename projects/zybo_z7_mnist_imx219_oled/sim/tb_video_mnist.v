@@ -16,6 +16,7 @@ module tb_video_mnist();
 		$dumpfile("tb_video_mnist.vcd");
 		$dumpvars(1, tb_video_mnist);
 		$dumpvars(1, tb_video_mnist.i_video_mnist);
+		$dumpvars(1, tb_video_mnist.i_video_mnist_color);
 		$dumpvars(1, tb_video_mnist.i_video_mnist.i_img_mnist);
 		$dumpvars(1, tb_video_mnist.i_video_mnist.i_img_mnist.i_img_mnist_core);
 		$dumpvars(1, tb_video_mnist.i_video_mnist.i_img_mnist.i_img_mnist_core.i_img_mnist_unit);
@@ -34,8 +35,8 @@ module tb_video_mnist();
 	wire	cke = 1'b1;
 	
 	
-	localparam IMG_X_NUM = 640;
-	localparam IMG_Y_NUM = 480;
+	localparam IMG_X_NUM = 640 / 4;
+	localparam IMG_Y_NUM = 480 / 4;
 	
 	
 	localparam	DATA_WIDTH    = 8;
@@ -70,9 +71,10 @@ module tb_video_mnist();
 				.AXI4S_DATA_WIDTH	(24),
 				.X_NUM				(IMG_X_NUM),
 				.Y_NUM				(IMG_Y_NUM),
-				.PPM_FILE			("mnist_test.ppm"),
-				.BUSY_RATE			(0),
-				.RANDOM_SEED		(0),
+		//		.PPM_FILE			("mnist_test_640x480.ppm"),
+				.PPM_FILE			("mnist_test_160x120.ppm"),
+				.BUSY_RATE			(5),
+				.RANDOM_SEED		(776),
 				.INTERVAL			(200000)
 			)
 		i_axi4s_master_model
@@ -198,7 +200,7 @@ module tb_video_mnist();
 	wire						axi4s_color_tlast;
 	wire	[31:0]				axi4s_color_tdata;
 	wire						axi4s_color_tvalid;
-	reg							axi4s_color_tready = 1;
+	wire						axi4s_color_tready;
 	
 	video_mnist_color
 			#(
@@ -236,7 +238,7 @@ module tb_video_mnist();
 				.Y_WIDTH			(32),
 				.FILE_NAME			("col_%04d.ppm"),
 				.MAX_PATH			(64),
-				.BUSY_RATE			(0),
+				.BUSY_RATE			(5),
 				.RANDOM_SEED		(1234)
 			)
 		jelly_axi4s_slave_model_col
@@ -252,7 +254,7 @@ module tb_video_mnist();
 				.s_axi4s_tlast		(axi4s_color_tlast),
 				.s_axi4s_tdata		(axi4s_color_tdata[23:0]),
 				.s_axi4s_tvalid		(axi4s_color_tvalid),
-				.s_axi4s_tready		()
+				.s_axi4s_tready		(axi4s_color_tready)
 			);
 	
 	
@@ -282,7 +284,7 @@ module tb_video_mnist();
 				.s_axi4s_tuser		(m_axi4s_tuser),
 				.s_axi4s_tlast		(m_axi4s_tlast),
 				.s_axi4s_tdata		(m_axi4s_tdata[23:0]),
-				.s_axi4s_tvalid		(m_axi4s_tvalid),
+				.s_axi4s_tvalid		(m_axi4s_tvalid & m_axi4s_tready),
 				.s_axi4s_tready		()
 			);
 	
