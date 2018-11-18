@@ -7,8 +7,8 @@
 
 module mnist_lut_net
 		#(
-			parameter	USER_WIDTH = 8,
-			parameter	INPUT_WIDTH = 28*28,
+			parameter	USER_WIDTH   = 8,
+			parameter	INPUT_WIDTH  = 28*28,
 			parameter	LAYER0_WIDTH = 8192,
 			parameter	LAYER1_WIDTH = 4096,
 			parameter	LAYER2_WIDTH = 1080,
