@@ -67,7 +67,7 @@ module img_mnist_core
 				.LINE_CENTER		(13),
 				.MAX_X_NUM			(MAX_X_NUM),
 				.RAM_TYPE			(RAM_TYPE),
-				.BORDER_MODE		("REFLECT_101")
+				.BORDER_MODE		("CONSTANT")	// ("REFLECT_101")
 			)
 		i_img_blk_buffer
 			(
@@ -115,7 +115,7 @@ module img_mnist_core
 										img_blk_de
 									}),
 				.in_data			(img_blk_data),
-				.in_valid			(),
+				.in_valid			(img_blk_valid),
 				
 				.out_user			({
 										m_img_user,

@@ -14,7 +14,12 @@ module tb_video_mnist();
 	
 	initial begin
 		$dumpfile("tb_video_mnist.vcd");
-		$dumpvars(0, tb_video_mnist);
+		$dumpvars(1, tb_video_mnist);
+		$dumpvars(1, tb_video_mnist.i_video_mnist);
+		$dumpvars(1, tb_video_mnist.i_video_mnist.i_img_mnist);
+		$dumpvars(1, tb_video_mnist.i_video_mnist.i_img_mnist.i_img_mnist_core);
+		$dumpvars(1, tb_video_mnist.i_video_mnist.i_img_mnist.i_img_mnist_core.i_img_mnist_unit);
+//		$dumpvars(0, tb_video_mnist.i_video_mnist.i_img_mnist.i_img_mnist_core.i_img_blk_buffer);
 		
 	#20000000
 		$finish;
@@ -94,7 +99,7 @@ module tb_video_mnist();
 	
 	integer		fp_img0;
 	initial begin
-		 fp_img0 = $fopen("out_img0.ppm", "w");
+		 fp_img0 = $fopen("src_img0.ppm", "w");
 		 $fdisplay(fp_img0, "P3");
 		 $fdisplay(fp_img0, "%d %d", IMG_X_NUM, IMG_Y_NUM*FRAME_NUM);
 		 $fdisplay(fp_img0, "255");
@@ -131,7 +136,7 @@ module tb_video_mnist();
 	wire	[0:0]				m_axi4s_tbinary;
 	wire	[M_TDATA_WIDTH-1:0]	m_axi4s_tdata;
 	wire						m_axi4s_tvalid;
-	reg							m_axi4s_tready = 1;
+	wire						m_axi4s_tready;
 	
 	wire						s_wb_rst_i = reset;
 	wire						s_wb_clk_i = clk;
@@ -144,49 +149,175 @@ module tb_video_mnist();
 	wire						s_wb_ack_o;
 	
 	video_mnist
-		#(
-			.DATA_WIDTH			(DATA_WIDTH),
-			.IMG_Y_NUM			(IMG_Y_NUM),
-			.IMG_Y_WIDTH		(IMG_Y_WIDTH),
-			.TUSER_WIDTH		(TUSER_WIDTH),
-			.S_TDATA_WIDTH		(S_TDATA_WIDTH),
-			.M_TDATA_WIDTH		(M_TDATA_WIDTH),
-			.WB_ADR_WIDTH		(WB_ADR_WIDTH),
-			.WB_DAT_WIDTH		(WB_DAT_WIDTH),
-			.WB_SEL_WIDTH		(WB_SEL_WIDTH),
-			.INIT_PARAM_TH		(INIT_PARAM_TH),
-			.INIT_PARAM_INV		(INIT_PARAM_INV)
-		)
+			#(
+				.DATA_WIDTH			(DATA_WIDTH),
+				.IMG_Y_NUM			(IMG_Y_NUM),
+				.IMG_Y_WIDTH		(IMG_Y_WIDTH),
+				.TUSER_WIDTH		(TUSER_WIDTH),
+				.S_TDATA_WIDTH		(S_TDATA_WIDTH),
+				.M_TDATA_WIDTH		(M_TDATA_WIDTH),
+				.WB_ADR_WIDTH		(WB_ADR_WIDTH),
+				.WB_DAT_WIDTH		(WB_DAT_WIDTH),
+				.WB_SEL_WIDTH		(WB_SEL_WIDTH),
+				.INIT_PARAM_TH		(INIT_PARAM_TH),
+				.INIT_PARAM_INV		(INIT_PARAM_INV)
+			)
 		i_video_mnist
 			(
-				.aresetn		(~reset),
-				.aclk			(clk),
+				.aresetn			(~reset),
+				.aclk				(clk),
 				
-				.s_axi4s_tuser	(s_axi4s_tuser),
-				.s_axi4s_tlast	(s_axi4s_tlast),
-				.s_axi4s_tdata	(s_axi4s_tdata),
-				.s_axi4s_tvalid	(s_axi4s_tvalid),
-				.s_axi4s_tready	(s_axi4s_tready),
+				.s_axi4s_tuser		(s_axi4s_tuser),
+				.s_axi4s_tlast		(s_axi4s_tlast),
+				.s_axi4s_tdata		(s_axi4s_tdata),
+				.s_axi4s_tvalid		(s_axi4s_tvalid),
+				.s_axi4s_tready		(s_axi4s_tready),
 				
-				.m_axi4s_tuser	(m_axi4s_tuser),
-				.m_axi4s_tlast	(m_axi4s_tlast),
-				.m_axi4s_tnumber(m_axi4s_tnumber),
-				.m_axi4s_tcount	(m_axi4s_tcount),
-				.m_axi4s_tbinary(m_axi4s_tbinary),
-				.m_axi4s_tdata	(m_axi4s_tdata),
-				.m_axi4s_tvalid	(m_axi4s_tvalid),
-				.m_axi4s_tready	(m_axi4s_tready),
+				.m_axi4s_tuser		(m_axi4s_tuser),
+				.m_axi4s_tlast		(m_axi4s_tlast),
+				.m_axi4s_tnumber	(m_axi4s_tnumber),
+				.m_axi4s_tcount		(m_axi4s_tcount),
+				.m_axi4s_tbinary	(m_axi4s_tbinary),
+				.m_axi4s_tdata		(m_axi4s_tdata),
+				.m_axi4s_tvalid		(m_axi4s_tvalid),
+				.m_axi4s_tready		(m_axi4s_tready),
 				
-				.s_wb_rst_i		(s_wb_rst_i),
-				.s_wb_clk_i		(s_wb_clk_i),
-				.s_wb_adr_i		(s_wb_adr_i),
-				.s_wb_dat_i		(s_wb_dat_i),
-				.s_wb_dat_o		(s_wb_dat_o),
-				.s_wb_we_i		(s_wb_we_i),
-				.s_wb_sel_i		(s_wb_sel_i),
-				.s_wb_stb_i		(s_wb_stb_i),
-				.s_wb_ack_o		(s_wb_ack_o)
+				.s_wb_rst_i			(s_wb_rst_i),
+				.s_wb_clk_i			(s_wb_clk_i),
+				.s_wb_adr_i			(s_wb_adr_i),
+				.s_wb_dat_i			(s_wb_dat_i),
+				.s_wb_dat_o			(s_wb_dat_o),
+				.s_wb_we_i			(s_wb_we_i),
+				.s_wb_sel_i			(s_wb_sel_i),
+				.s_wb_stb_i			(s_wb_stb_i),
+				.s_wb_ack_o			(s_wb_ack_o)
 			);
+	
+	
+	wire	[0:0]				axi4s_color_tuser;
+	wire						axi4s_color_tlast;
+	wire	[31:0]				axi4s_color_tdata;
+	wire						axi4s_color_tvalid;
+	reg							axi4s_color_tready = 1;
+	
+	video_mnist_color
+			#(
+				.DATA_WIDTH			(DATA_WIDTH),
+				.TUSER_WIDTH		(1)
+			)
+		i_video_mnist_color
+			(
+				.aresetn			(~reset),
+				.aclk				(clk),
+				
+				.s_axi4s_tuser		(m_axi4s_tuser),
+				.s_axi4s_tlast		(m_axi4s_tlast),
+				.s_axi4s_tnumber	(m_axi4s_tnumber),
+				.s_axi4s_tcount		(m_axi4s_tcount),
+				.s_axi4s_tdata		(m_axi4s_tdata),
+				.s_axi4s_tvalid		(m_axi4s_tvalid),
+				.s_axi4s_tready		(m_axi4s_tready),
+				
+				.m_axi4s_tuser		(axi4s_color_tuser),
+				.m_axi4s_tlast		(axi4s_color_tlast),
+				.m_axi4s_tdata		(axi4s_color_tdata),
+				.m_axi4s_tvalid		(axi4s_color_tvalid),
+				.m_axi4s_tready		(axi4s_color_tready)
+			);
+	
+		
+	jelly_axi4s_slave_model
+			#(
+				.COMPONENT_NUM		(3),
+				.DATA_WIDTH			(DATA_WIDTH),
+				.INIT_FRAME_NUM		(0),
+				.FRAME_WIDTH		(32),
+				.X_WIDTH			(32),
+				.Y_WIDTH			(32),
+				.FILE_NAME			("col_%04d.ppm"),
+				.MAX_PATH			(64),
+				.BUSY_RATE			(0),
+				.RANDOM_SEED		(1234)
+			)
+		jelly_axi4s_slave_model_col
+			(
+				.aresetn			(~reset),
+				.aclk				(clk),
+				.aclken				(1'b1),
+				
+				.param_width		(IMG_X_NUM),
+				.param_height		(IMG_Y_NUM),
+				
+				.s_axi4s_tuser		(axi4s_color_tuser),
+				.s_axi4s_tlast		(axi4s_color_tlast),
+				.s_axi4s_tdata		(axi4s_color_tdata[23:0]),
+				.s_axi4s_tvalid		(axi4s_color_tvalid),
+				.s_axi4s_tready		()
+			);
+	
+	
+	
+	jelly_axi4s_slave_model
+			#(
+				.COMPONENT_NUM		(3),
+				.DATA_WIDTH			(DATA_WIDTH),
+				.INIT_FRAME_NUM		(0),
+				.FRAME_WIDTH		(32),
+				.X_WIDTH			(32),
+				.Y_WIDTH			(32),
+				.FILE_NAME			("rgb_%04d.ppm"),
+				.MAX_PATH			(64),
+				.BUSY_RATE			(0),
+				.RANDOM_SEED		(1234)
+			)
+		jelly_axi4s_slave_model_rgb
+			(
+				.aresetn			(~reset),
+				.aclk				(clk),
+				.aclken				(1'b1),
+				
+				.param_width		(IMG_X_NUM),
+				.param_height		(IMG_Y_NUM),
+				
+				.s_axi4s_tuser		(m_axi4s_tuser),
+				.s_axi4s_tlast		(m_axi4s_tlast),
+				.s_axi4s_tdata		(m_axi4s_tdata[23:0]),
+				.s_axi4s_tvalid		(m_axi4s_tvalid),
+				.s_axi4s_tready		()
+			);
+	
+	
+	
+	// ----------------------------------
+	//
+	// ----------------------------------
+	
+	/*
+	wire				img_blk_cke   = i_video_mnist.i_img_mnist.i_img_mnist_core.cke;
+	wire				img_blk_de    = i_video_mnist.i_img_mnist.i_img_mnist_core.img_blk_de;
+	wire	[28*28-1:0]	img_blk_data  = i_video_mnist.i_img_mnist.i_img_mnist_core.img_blk_data;
+	wire				img_blk_valid = i_video_mnist.i_img_mnist.i_img_mnist_core.img_blk_valid;
+	
+	integer					blk_frame = 0;
+	reg		[256*8-1:0]		blk_filename;
+	integer					blk_fp = 0;
+	integer					blk_i;
+	
+	always @(posedge clk) begin
+		if ( !reset && img_blk_cke && img_blk_valid && img_blk_de ) begin
+			$sformat(blk_filename, "blk/blk_%04d.pgm", blk_frame);
+			blk_fp = $fopen(blk_filename, "w");
+			$fdisplay(blk_fp, "P2");
+			$fdisplay(blk_fp, "28 28");
+			$fdisplay(blk_fp, "1");
+			for ( blk_i = 0; blk_i < 28*28; blk_i = blk_i+1 ) begin
+				$fdisplay(blk_fp, "%d", img_blk_data[blk_i]);
+			end
+			$fclose(blk_fp);
+			blk_frame = blk_frame + 1;
+		end
+	end
+	*/
 	
 	
 	// ----------------------------------

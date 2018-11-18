@@ -57,6 +57,12 @@ module jelly_img_pixel_buffer
 	genvar		i;
 	integer		j, k;
 	
+	wire	ss_img_line_first  = s_img_valid & s_img_line_first;
+	wire	ss_img_line_last   = s_img_valid & s_img_line_last;
+	wire	ss_img_pixel_first = s_img_valid & s_img_pixel_first;
+	wire	ss_img_pixel_last  = s_img_valid & s_img_pixel_last;
+	wire	ss_img_de          = s_img_valid & s_img_de;
+	
 	generate
 	if ( PIXEL_NUM > 1 ) begin : blk_border
 		reg		[CENTER-1:0]					st0_buf_line_first;
@@ -67,11 +73,11 @@ module jelly_img_pixel_buffer
 		reg		[(CENTER+1)*USER_BITS-1:0]		st0_buf_user;
 		reg		[(PIXEL_NUM-1)*DATA_WIDTH-1:0]	st0_buf_data;
 		reg		[CENTER-1:0]					st0_buf_valid;
-		wire	[CENTER:0]						st0_line_first  = {st0_buf_line_first,  s_img_line_first};
-		wire	[CENTER:0]						st0_line_last   = {st0_buf_line_last,   s_img_line_last};
-		wire	[CENTER:0]						st0_pixel_first = {st0_buf_pixel_first, s_img_pixel_first};
-		wire	[CENTER:0]						st0_pixel_last  = {st0_buf_pixel_last,  s_img_pixel_last};
-		wire	[CENTER:0]						st0_de          = {st0_buf_de,          s_img_de};
+		wire	[CENTER:0]						st0_line_first  = {st0_buf_line_first,  ss_img_line_first};
+		wire	[CENTER:0]						st0_line_last   = {st0_buf_line_last,   ss_img_line_last};
+		wire	[CENTER:0]						st0_pixel_first = {st0_buf_pixel_first, ss_img_pixel_first};
+		wire	[CENTER:0]						st0_pixel_last  = {st0_buf_pixel_last,  ss_img_pixel_last};
+		wire	[CENTER:0]						st0_de          = {st0_buf_de,          ss_img_de};
 		wire	[(CENTER+1)*USER_BITS-1:0]		st0_user        = {st0_buf_user,        s_img_user};
 		wire	[PIXEL_NUM*DATA_WIDTH-1:0]		st0_data        = {st0_buf_data,        s_img_data};
 		wire	[CENTER:0]						st0_valid       = {st0_buf_valid,       s_img_valid};

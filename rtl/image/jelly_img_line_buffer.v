@@ -288,7 +288,7 @@ module jelly_img_line_buffer
 			end
 			else if ( cke ) begin
 				// stage 0
-				if ( s_img_pixel_first ) begin
+				if ( s_img_valid && s_img_pixel_first ) begin
 					st0_we   <= ((st0_we >> 1) | (st0_we[0] << (MEM_NUM-1)));
 					st0_addr <= {MEM_ADDR_WIDTH{1'b0}};
 				end
@@ -296,11 +296,11 @@ module jelly_img_line_buffer
 					st0_addr <= st0_addr + 1'b1;
 				end
 				
-				st0_line_first  <= s_img_line_first;
-				st0_line_last   <= s_img_line_last;
-				st0_pixel_first <= s_img_pixel_first;
-				st0_pixel_last  <= s_img_pixel_last;
-				st0_de          <= s_img_de;
+				st0_line_first  <= s_img_line_first  & s_img_valid;
+				st0_line_last   <= s_img_line_last   & s_img_valid;
+				st0_pixel_first <= s_img_pixel_first & s_img_valid;
+				st0_pixel_last  <= s_img_pixel_last  & s_img_valid;
+				st0_de          <= s_img_de          & s_img_valid;
 				st0_user        <= s_img_user;
 				st0_data        <= s_img_data;
 				st0_valid       <= s_img_valid;
@@ -316,7 +316,7 @@ module jelly_img_line_buffer
 				st1_valid       <= st0_valid;
 				
 				// stage2
-				if ( st1_pixel_first ) begin
+				if ( st1_valid && st1_pixel_first ) begin
 					st2_sel <= st2_sel - 1'b1;
 					if ( st2_sel == {LINE_SEL_WIDTH{1'b0}} ) begin
 						st2_sel <= MEM_NUM-1;
@@ -332,7 +332,7 @@ module jelly_img_line_buffer
 				st2_valid       <= st1_valid;
 				
 				// stage3
-				if ( st2_pixel_first ) begin
+				if ( st2_valid && st2_pixel_first ) begin
 					st3_line_first[LINE_NUM-1:1] <= st3_line_first[LINE_NUM-2:0];
 					st3_line_last[LINE_NUM-1:1]  <= st3_line_last[LINE_NUM-2:0];
 					st3_de[LINE_NUM-1:1]         <= st3_de[LINE_NUM-2:0];
