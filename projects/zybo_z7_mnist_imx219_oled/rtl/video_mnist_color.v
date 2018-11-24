@@ -14,9 +14,15 @@
 
 module video_mnist_color
 		#(
-			parameter	DATA_WIDTH  = 8,
-			parameter	TUSER_WIDTH = 1,
-			parameter	TDATA_WIDTH = 4*DATA_WIDTH
+			parameter	DATA_WIDTH      = 8,
+			parameter	TUSER_WIDTH     = 1,
+			parameter	TDATA_WIDTH     = 4*DATA_WIDTH,
+			
+			parameter	WB_ADR_WIDTH    = 8,
+			parameter	WB_DAT_WIDTH    = 32,
+			parameter	WB_SEL_WIDTH    = (WB_DAT_WIDTH / 8),
+			parameter	INIT_PARAM_MODE = 2'b10,
+			parameter	INIT_PARAM_TH   = 3
 		)
 		(
 			input	wire						aresetn,
@@ -27,6 +33,7 @@ module video_mnist_color
 			input	wire	[3:0]				s_axi4s_tnumber,
 			input	wire	[1:0]				s_axi4s_tcount,
 			input	wire	[TDATA_WIDTH-1:0]	s_axi4s_tdata,
+			input	wire	[0:0]				s_axi4s_tbinary,
 			input	wire						s_axi4s_tvalid,
 			output	wire						s_axi4s_tready,
 			
@@ -34,75 +41,85 @@ module video_mnist_color
 			output	wire						m_axi4s_tlast,
 			output	wire	[TDATA_WIDTH-1:0]	m_axi4s_tdata,
 			output	wire						m_axi4s_tvalid,
-			input	wire						m_axi4s_tready
+			input	wire						m_axi4s_tready,
+			
+			input	wire						s_wb_rst_i,
+			input	wire						s_wb_clk_i,
+			input	wire	[WB_ADR_WIDTH-1:0]	s_wb_adr_i,
+			input	wire	[WB_DAT_WIDTH-1:0]	s_wb_dat_i,
+			output	wire	[WB_DAT_WIDTH-1:0]	s_wb_dat_o,
+			input	wire						s_wb_we_i,
+			input	wire	[WB_SEL_WIDTH-1:0]	s_wb_sel_i,
+			input	wire						s_wb_stb_i,
+			output	wire						s_wb_ack_o
 		);
 	
 	
-	reg		[TUSER_WIDTH-1:0]		st0_user;
-	reg								st0_last;
-	reg		[TDATA_WIDTH-1:0]		st0_data;
-	reg								st0_en;
-	reg		[23:0]					st0_color;
-	reg								st0_valid;
-	
-	reg		[TUSER_WIDTH-1:0]		st1_user;
-	reg								st1_last;
-	reg		[TDATA_WIDTH-1:0]		st1_data;
-	reg								st1_valid;
-	
-	always @(posedge aclk) begin
-		if ( ~aresetn ) begin
-			st0_user   <= {TUSER_WIDTH{1'bx}};
-			st0_last   <= 1'bx;
-			st0_data   <= {TDATA_WIDTH{1'bx}};
-			st0_en     <= 1'bx;
-			st0_color  <= 24'hxx_xx_xx;
-			st0_valid  <= 1'b0;
-			
-			st1_user   <= {TUSER_WIDTH{1'bx}};
-			st1_last   <= 1'bx;
-			st1_data   <= {TDATA_WIDTH{1'bx}};
-			st1_valid  <= 1'b0;
+	reg		[1:0]			reg_param_mode;
+	reg		[1:0]			reg_param_th;
+	always @(posedge s_wb_clk_i) begin
+		if ( s_wb_rst_i ) begin
+			reg_param_mode <= INIT_PARAM_MODE;
+			reg_param_th   <= INIT_PARAM_TH;
 		end
-		else if ( s_axi4s_tready ) begin
-			st0_user   <= s_axi4s_tuser;
-			st0_last   <= s_axi4s_tlast;
-			st0_data   <= s_axi4s_tdata;
-			st0_en     <= (s_axi4s_tcount >= 3);
-			case ( s_axi4s_tnumber )
-			4'd0:		st0_color <= 24'h00_00_00;	// •
-			4'd1:		st0_color <= 24'h00_00_80;	// ’ƒ
-			4'd2:		st0_color <= 24'h00_00_ff;	// Ô
-			4'd3:		st0_color <= 24'h4c_b7_ff;	// žò
-			4'd4:		st0_color <= 24'h00_ff_ff;	// ‰©
-			4'd5:		st0_color <= 24'h00_80_00;	// —Î
-			4'd6:		st0_color <= 24'hff_00_00;	// Â
-			4'd7:		st0_color <= 24'h80_00_80;	// Ž‡
-			4'd8:		st0_color <= 24'h80_80_80;	// ŠD
-			4'd9:		st0_color <= 24'hff_ff_ff;	// ”’
-			default:	st0_color <= 24'hxx_xx_xx;
-			endcase
-			st0_valid  <= s_axi4s_tvalid;
-			
-			st1_user   <= st0_user;
-			st1_last   <= st0_last;
-			st1_data   <= st0_data; // 24'h40_40_40;
-			if ( st0_en ) begin
-	//			st1_data[ 7: 0] <= (({1'b0, st0_data[ 7: 0]} + {1'b0, st0_color[ 7: 0]}) >> 1);
-	//			st1_data[15: 8] <= (({1'b0, st0_data[15: 8]} + {1'b0, st0_color[15: 8]}) >> 1);
-	//			st1_data[23:16] <= (({1'b0, st0_data[23:16]} + {1'b0, st0_color[23:16]}) >> 1);
-				st1_data <= st0_color;
+		else begin
+			if ( s_wb_stb_i && s_wb_we_i ) begin
+				case ( s_wb_adr_i )
+				0:	reg_param_mode <= s_wb_dat_i;
+				1:	reg_param_th   <= s_wb_dat_i;
+				endcase
 			end
-			st1_valid  <= st0_valid;
 		end
 	end
 	
-	assign s_axi4s_tready = (m_axi4s_tready || !m_axi4s_tvalid);
+	assign s_wb_dat_o = (s_wb_adr_i == 0) ? reg_param_mode :
+	                    (s_wb_adr_i == 1) ? reg_param_th   :
+	                    0;
+	assign s_wb_ack_o = s_wb_stb_i;
 	
-	assign m_axi4s_tuser  = st1_user;
-	assign m_axi4s_tlast  = st1_last;
-	assign m_axi4s_tdata  = st1_data;
-	assign m_axi4s_tvalid = st1_valid;
+	
+	(* ASYNC_REG="true" *)	reg			[1:0]	ff0_param_mode, ff1_param_mode;
+	(* ASYNC_REG="true" *)	reg			[1:0]	ff0_param_th,   ff1_param_th;
+	always @(posedge aclk) begin
+		ff0_param_mode <= reg_param_mode;
+		ff1_param_mode <= ff0_param_mode;
+		
+		ff0_param_th   <= reg_param_th;
+		ff1_param_th   <= ff0_param_th;
+	end
+	
+	
+	video_mnist_color_core
+			#(
+				.DATA_WIDTH			(DATA_WIDTH	),
+				.TUSER_WIDTH		(TUSER_WIDTH),
+				.TDATA_WIDTH		(TDATA_WIDTH)
+			)
+		i_video_mnist_color_core
+			(
+				.aresetn			(aresetn),
+				.aclk				(aclk),
+				
+				.param_mode			(ff1_param_mode),
+				.param_th			(ff1_param_th),
+				
+				.s_axi4s_tuser		(s_axi4s_tuser),
+				.s_axi4s_tlast		(s_axi4s_tlast),
+				.s_axi4s_tnumber	(s_axi4s_tnumber),
+				.s_axi4s_tcount		(s_axi4s_tcount),
+				.s_axi4s_tdata		(s_axi4s_tdata),
+				.s_axi4s_tbinary	(s_axi4s_tbinary),
+				.s_axi4s_tvalid		(s_axi4s_tvalid),
+				.s_axi4s_tready		(s_axi4s_tready),
+				
+				.m_axi4s_tuser		(m_axi4s_tuser),
+				.m_axi4s_tlast		(m_axi4s_tlast),
+				.m_axi4s_tdata		(m_axi4s_tdata),
+				.m_axi4s_tvalid		(m_axi4s_tvalid),
+				.m_axi4s_tready		(m_axi4s_tready)
+			);
+	
+	
 	
 endmodule
 

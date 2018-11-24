@@ -755,6 +755,7 @@ module top
 	wire	[31:0]			axi4s_mnist_tdata;
 	wire	[1:0]			axi4s_mnist_tcount;
 	wire	[3:0]			axi4s_mnist_tnumber;
+	wire	[0:0]			axi4s_mnist_tbinary;
 	wire					axi4s_mnist_tvalid;
 	wire					axi4s_mnist_tready;
 	
@@ -793,7 +794,7 @@ module top
 				.m_axi4s_tlast		(axi4s_mnist_tlast),
 				.m_axi4s_tnumber	(axi4s_mnist_tnumber),
 				.m_axi4s_tcount		(axi4s_mnist_tcount),
-				.m_axi4s_tbinary	(),
+				.m_axi4s_tbinary	(axi4s_mnist_tbinary),
 				.m_axi4s_tdata		(axi4s_mnist_tdata),
 				.m_axi4s_tvalid		(axi4s_mnist_tvalid),
 				.m_axi4s_tready		(axi4s_mnist_tready),
@@ -816,6 +817,10 @@ module top
 	wire						axi4s_mcol_tvalid;
 	wire						axi4s_mcol_tready;
 	
+	wire	[31:0]				wb_mcol_dat_o;
+	wire						wb_mcol_stb_i;
+	wire						wb_mcol_ack_o;
+	
 	video_mnist_color
 			#(
 				.DATA_WIDTH			(8),
@@ -831,6 +836,7 @@ module top
 				.s_axi4s_tnumber	(axi4s_mnist_tnumber),
 				.s_axi4s_tcount		(axi4s_mnist_tcount),
 				.s_axi4s_tdata		(axi4s_mnist_tdata),
+				.s_axi4s_tbinary	(axi4s_mnist_tbinary),
 				.s_axi4s_tvalid		(axi4s_mnist_tvalid),
 				.s_axi4s_tready		(axi4s_mnist_tready),
 				
@@ -838,7 +844,17 @@ module top
 				.m_axi4s_tlast		(axi4s_mcol_tlast),
 				.m_axi4s_tdata		(axi4s_mcol_tdata),
 				.m_axi4s_tvalid		(axi4s_mcol_tvalid),
-				.m_axi4s_tready		(axi4s_mcol_tready)
+				.m_axi4s_tready		(axi4s_mcol_tready),
+				
+				.s_wb_rst_i			(wb_rst_o),
+				.s_wb_clk_i			(wb_clk_o),
+				.s_wb_adr_i			(wb_host_adr_o[7:0]),
+				.s_wb_dat_o			(wb_mcol_dat_o),
+				.s_wb_dat_i			(wb_host_dat_o),
+				.s_wb_we_i			(wb_host_we_o),
+				.s_wb_sel_i			(wb_host_sel_o),
+				.s_wb_stb_i			(wb_mcol_stb_i),
+				.s_wb_ack_o			(wb_mcol_ack_o)
 			);
 	
 	
@@ -1153,8 +1169,9 @@ module top
 	assign wb_vdmaw_stb_i  = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_0);
 	assign wb_norm_stb_i   = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_1);
 	assign wb_rgb_stb_i    = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_2);
-	assign wb_mnist_stb_i  = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_3);
 	assign wb_resize_stb_i = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_4);
+	assign wb_mnist_stb_i  = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_8);
+	assign wb_mcol_stb_i   = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_9);
 	assign wb_oled_stb_i   = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4002_2);
 	
 	
@@ -1162,8 +1179,9 @@ module top
 	                        wb_vdmaw_stb_i  ? wb_vdmaw_dat_o  :
 	                        wb_norm_stb_i   ? wb_norm_dat_o   :
 	                        wb_rgb_stb_i    ? wb_rgb_dat_o    :
-	                        wb_mnist_stb_i  ? wb_mnist_dat_o  :
 	                        wb_resize_stb_i ? wb_resize_dat_o :
+	                        wb_mnist_stb_i  ? wb_mnist_dat_o  :
+	                        wb_mcol_stb_i   ? wb_mcol_dat_o   :
 	                        wb_oled_stb_i   ? wb_oled_dat_o   :
 	                        32'h0000_0000;
 	
@@ -1171,8 +1189,9 @@ module top
 	                        wb_vdmaw_stb_i  ? wb_vdmaw_ack_o  :
 	                        wb_norm_stb_i   ? wb_norm_ack_o   :
 	                        wb_rgb_stb_i    ? wb_rgb_ack_o    :
-	                        wb_mnist_stb_i  ? wb_mnist_ack_o  :
 	                        wb_resize_stb_i ? wb_resize_ack_o :
+	                        wb_mnist_stb_i  ? wb_mnist_ack_o  :
+	                        wb_mcol_stb_i   ? wb_mcol_ack_o   :
 	                        wb_oled_stb_i   ? wb_oled_ack_o   :
 	                        wb_host_stb_o;
 	

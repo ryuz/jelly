@@ -58,6 +58,8 @@ module img_mnist_unit
 				.out_valid		(lutnet_valid)
 			);
 	
+//	lutnet_layers
+	
 	
 	// counting
 	reg		[USER_BITS-1:0]		counting_user;
@@ -78,7 +80,8 @@ module img_mnist_unit
 		end
 	end
 	
-/*	
+	
+	
 	// select max
 	jelly_minmax
 			#(
@@ -109,10 +112,10 @@ module img_mnist_unit
 				.m_en				(),
 				.m_valid			(out_valid)
 			);
-*/	
 	
 	
-	// select max
+	
+	/*
 	
 	reg		[USER_BITS-1:0]			st0_user;
 	reg		[9:0]					st0_hi;
@@ -234,6 +237,9 @@ module img_mnist_unit
 	assign out_count  = st3_count;
 	assign out_number = st3_number;
 	assign out_valid  = st3_valid;
+	*/
+	
+	
 	
 endmodule
 

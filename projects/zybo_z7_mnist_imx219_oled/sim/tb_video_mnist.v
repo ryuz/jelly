@@ -217,6 +217,7 @@ module tb_video_mnist();
 				.s_axi4s_tnumber	(m_axi4s_tnumber),
 				.s_axi4s_tcount		(m_axi4s_tcount),
 				.s_axi4s_tdata		(m_axi4s_tdata),
+				.s_axi4s_tbinary	(m_axi4s_tbinary),
 				.s_axi4s_tvalid		(m_axi4s_tvalid),
 				.s_axi4s_tready		(m_axi4s_tready),
 				
@@ -224,10 +225,21 @@ module tb_video_mnist();
 				.m_axi4s_tlast		(axi4s_color_tlast),
 				.m_axi4s_tdata		(axi4s_color_tdata),
 				.m_axi4s_tvalid		(axi4s_color_tvalid),
-				.m_axi4s_tready		(axi4s_color_tready)
-			);
+				.m_axi4s_tready		(axi4s_color_tready),
+				
+				.s_wb_rst_i			(s_wb_rst_i),
+				.s_wb_clk_i			(s_wb_clk_i),
+				.s_wb_adr_i			(0),
+				.s_wb_dat_i			(0),
+				.s_wb_dat_o			(),
+				.s_wb_we_i			(0),
+				.s_wb_sel_i			(0),
+				.s_wb_stb_i			(0),
+				.s_wb_ack_o			()
+		);
 	
-		
+	
+	
 	jelly_axi4s_slave_model
 			#(
 				.COMPONENT_NUM		(3),

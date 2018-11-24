@@ -59,7 +59,6 @@ module video_mnist
 			input	wire	[WB_SEL_WIDTH-1:0]	s_wb_sel_i,
 			input	wire						s_wb_stb_i,
 			output	wire						s_wb_ack_o
-			
 		);
 	
 	localparam	USE_VALID  = 1;

@@ -81,7 +81,7 @@ module tb_top();
 				.PGM_FILE			("lena_256x256.pgm"),
 				.BUSY_RATE			(0),
 				.RANDOM_SEED		(0),
-				.INTERVAL			(200000)
+				.INTERVAL			(1000)
 			)
 		i_axi4s_master_model
 			(

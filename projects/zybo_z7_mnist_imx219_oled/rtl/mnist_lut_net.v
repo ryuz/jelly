@@ -33,6 +33,24 @@ module mnist_lut_net
 		);
 	
 	
+	// input
+	reg		[USER_WIDTH-1:0]	reg_in_user;
+	reg		[INPUT_WIDTH-1:0]	reg_in_data;
+	reg							reg_in_valid;
+	always @(posedge clk) begin
+		if ( reset ) begin
+			reg_in_user  <= INIT_USER;
+			reg_in_data  <= {INPUT_WIDTH{1'bx}};
+			reg_in_valid <= 1'b0;
+		end
+		else if ( cke ) begin
+			reg_in_user  <= in_user;
+			reg_in_data  <= in_data;
+			reg_in_valid <= in_valid;
+		end
+	end
+	
+	
 	// layer 0
 	wire	[LAYER0_WIDTH-1:0]		layer0_data;
 	
@@ -43,7 +61,7 @@ module mnist_lut_net
 				.clk			(clk),
 				.cke			(cke),
 				
-				.in_data		(in_data),
+				.in_data		(reg_in_data),
 				.out_data		(layer0_data)
 			);
 	
@@ -55,8 +73,8 @@ module mnist_lut_net
 			layer0_valid <= 1'b0;
 		end
 		else if  ( cke ) begin
-			layer0_user  <= in_user;
-			layer0_valid <= in_valid;
+			layer0_user  <= reg_in_user;
+			layer0_valid <= reg_in_valid;
 		end
 	end
 	
