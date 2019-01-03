@@ -14,18 +14,26 @@
 
 module video_mnist_core
 		#(
-			parameter	MAX_X_NUM     = 1024,
-			parameter	RAM_TYPE      = "block",
+			parameter	TUSER_WIDTH    = 1,
 			
-			parameter	IMG_Y_NUM     = 480,
-			parameter	IMG_Y_WIDTH   = 12,
+			parameter	MAX_X_NUM      = 1024,
+			parameter	IMG_Y_NUM      = 480,
+			parameter	IMG_X_WIDTH    = 12,
+			parameter	IMG_Y_WIDTH    = 12,
+			parameter	BLANK_Y_WIDTH  = 8,
 			
-			parameter	S_TDATA_WIDTH = 1,
-			parameter	M_TDATA_WIDTH = 80,
+			parameter	INIT_Y_NUM     = IMG_Y_NUM,
 			
-			parameter	TUSER_WIDTH   = 1,
+			parameter	S_TDATA_WIDTH  = 1,
+			parameter	M_TDATA_WIDTH  = 80,
+
+			parameter	RAM_TYPE       = "block",
+			parameter	FIFO_PTR_WIDTH = 9,
+			parameter	FIFO_RAM_TYPE  = "block",
+			parameter	IMG_CKE_BUFG   = 0,
 			
-			parameter	DEVICE        = "rtl",
+			
+			parameter	DEVICE         = "rtl"
 		)
 		(
 			input	wire						aresetn,
@@ -104,9 +112,9 @@ module video_mnist_core
 				.TUSER_WIDTH		(TUSER_WIDTH),
 				.IMG_X_WIDTH		(IMG_X_WIDTH),
 				.IMG_Y_WIDTH		(IMG_Y_WIDTH),
-				.IMG_Y_NUM			(IMG_Y_NUM),
+				.IMG_Y_NUM			(IMG_Y_NUM/2),
 				.BLANK_Y_WIDTH  	(BLANK_Y_WIDTH),
-				.INIT_Y_NUM			(INIT_Y_NUM),
+				.INIT_Y_NUM			(INIT_Y_NUM/2),
 				.FIFO_PTR_WIDTH		(FIFO_PTR_WIDTH),
 				.FIFO_RAM_TYPE		(FIFO_RAM_TYPE),
 				.IMG_CKE_BUFG		(IMG_CKE_BUFG),
@@ -139,9 +147,9 @@ module video_mnist_core
 				.TUSER_WIDTH		(TUSER_WIDTH),
 				.IMG_X_WIDTH		(IMG_X_WIDTH),
 				.IMG_Y_WIDTH		(IMG_Y_WIDTH),
-				.IMG_Y_NUM			(IMG_Y_NUM),
+				.IMG_Y_NUM			(IMG_Y_NUM/4),
 				.BLANK_Y_WIDTH  	(BLANK_Y_WIDTH),
-				.INIT_Y_NUM			(INIT_Y_NUM),
+				.INIT_Y_NUM			(INIT_Y_NUM/4),
 				.FIFO_PTR_WIDTH		(FIFO_PTR_WIDTH),
 				.FIFO_RAM_TYPE		(FIFO_RAM_TYPE),
 				.IMG_CKE_BUFG		(IMG_CKE_BUFG),
@@ -154,11 +162,11 @@ module video_mnist_core
 				
 				.param_blank_num	(param_blank_num),
 				
-				.s_axi4s_tuser		(xi4s_l1_tuser),
-				.s_axi4s_tlast		(xi4s_l1_tlast),
-				.s_axi4s_tdata		(xi4s_l1_tdata),
-				.s_axi4s_tvalid		(xi4s_l1_tvalid),
-				.s_axi4s_tready		(xi4s_l1_tready),
+				.s_axi4s_tuser		(axi4s_l1_tuser),
+				.s_axi4s_tlast		(axi4s_l1_tlast),
+				.s_axi4s_tdata		(axi4s_l1_tdata),
+				.s_axi4s_tvalid		(axi4s_l1_tvalid),
+				.s_axi4s_tready		(axi4s_l1_tready),
 				
 				.m_axi4s_tuser		(m_axi4s_tuser),
 				.m_axi4s_tlast		(m_axi4s_tlast),

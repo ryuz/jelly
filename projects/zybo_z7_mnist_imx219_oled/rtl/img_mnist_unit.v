@@ -33,15 +33,82 @@ module img_mnist_unit
 			output	wire							out_valid
 		);
 	
-	integer		i;
+	integer		i, j;
 	
+	reg							st0_edge_and;
+	reg							st0_edge_or;
+	reg							st0_inner_and;
+	reg							st0_inner_or;
+	reg		[USER_BITS-1:0]		st0_user;
+	reg		[28*28-1:0]			st0_data;
+	reg							st0_valid;
+	
+	reg							st1_enable;
+	reg		[USER_BITS-1:0]		st1_user;
+	reg		[28*28-1:0]			st1_data;
+	reg							st1_valid;
+	
+	always @(posedge clk) begin
+		if ( reset ) begin
+			st0_edge_and  <= 1'bx;
+			st0_edge_or   <= 1'bx;
+			st0_inner_and <= 1'bx;
+			st0_inner_or  <= 1'bx;
+			st0_user      <= {USER_BITS{1'bx}};
+			st0_data      <= {(28*28){1'bx}};
+			st0_valid     <= 1'b0;
+			
+			st1_enable    <= 1'bx;
+			st1_user      <= {USER_BITS{1'bx}};
+			st1_data      <= {(28*28){1'bx}};
+			st1_valid     <= 1'b0;
+		end
+		else if ( cke ) begin
+			st0_edge_and  <= 1'b1;
+			st0_edge_or   <= 1'b0;
+			st0_inner_and <= 1'b1;
+			st0_inner_or  <= 1'b0;
+			for ( i = 0; i < 28; i = i+1 ) begin
+				for ( j = 0; j < 28; j = j+1 ) begin
+					if ( i == 0 || i == 27 || j == 0 || j == 27 ) begin
+						if ( in_data[i*28+j] ) begin
+							st0_edge_or <= 1'b1;
+						end
+						else begin
+							st0_edge_and <= 1'b0;
+						end
+					end
+					else begin
+						if ( in_data[i*28+j] ) begin
+							st0_inner_or <= 1'b1;
+						end
+						else begin
+							st0_inner_and <= 1'b0;
+						end
+					end
+				end
+			end
+			st0_user      <= in_user;
+			st0_data      <= in_data;
+			st0_valid     <= in_valid;
+			
+			st1_enable    <= (!st0_edge_or && st0_inner_or) || (st0_edge_and && !st0_inner_and);
+			st1_user      <= st0_user;
+			st1_data      <= st0_data;
+			st1_valid     <= st0_valid;
+		end
+	end
+	
+	
+	wire						lutnet_enable;
 	wire	[USER_BITS-1:0]		lutnet_user;
 	wire	[3*10-1:0]			lutnet_data;
 	wire						lutnet_valid;
 	
-	mnist_lut_net
+	lutnet_layers
+//	mnist_lut_net
 			#(
-				.USER_WIDTH		(USER_WIDTH)
+				.USER_WIDTH		(USER_WIDTH+1)
 			)
 		i_mnist_lut_net
 			(
@@ -49,11 +116,11 @@ module img_mnist_unit
 				.clk			(clk),
 				.cke			(cke),
 				
-				.in_user		(in_user),
-				.in_data		(in_data),
-				.in_valid		(in_valid),
+				.in_user		({st1_user, st1_enable}),
+				.in_data		(st1_data),
+				.in_valid		(st1_valid),
 				
-				.out_user		(lutnet_user),
+				.out_user		({lutnet_user, lutnet_enable}),
 				.out_data		(lutnet_data),
 				.out_valid		(lutnet_valid)
 			);
@@ -75,6 +142,9 @@ module img_mnist_unit
 			counting_user   <= lutnet_user;
 			for ( i = 0; i < 10; i = i+1 ) begin
 				counting_count[2*i +:2] <= lutnet_data[i] + lutnet_data[10+i] + lutnet_data[20+i];
+			end
+			if ( !lutnet_enable ) begin
+				counting_count <= {20{1'b0}};
 			end
 			counting_valid  <= 1'b0;
 		end

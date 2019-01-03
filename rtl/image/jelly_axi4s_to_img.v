@@ -65,11 +65,11 @@ module jelly_axi4s_to_img
 	always @(posedge clk) begin
 		if ( reset ) begin
 			reg_cke         <= 1'b0;
-			reg_line_first  <= USE_VALID ? 1'bx : 1'b0;
-			reg_line_last   <= USE_VALID ? 1'bx : 1'b0;
-			reg_pixel_first <= USE_VALID ? 1'bx : 1'b0;
-			reg_pixel_last  <= USE_VALID ? 1'bx : 1'b0;
-			reg_de          <= USE_VALID ? 1'bx : 1'b0;
+			reg_line_first  <= 1'b0;
+			reg_line_last   <= 1'b0;
+			reg_pixel_first <= 1'b0;
+			reg_pixel_last  <= 1'b0;
+			reg_de          <= 1'b0;
 			reg_user        <= {USER_WIDTH{1'bx}};
 			reg_data        <= {TDATA_WIDTH{1'bx}};
 			reg_valid       <= 1'b0;

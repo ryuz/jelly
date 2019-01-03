@@ -52,7 +52,7 @@ module jelly_img_pixel_buffer
 		);
 	
 	localparam	CENTER      = ENDIAN ? PIXEL_CENTER : PIXEL_NUM-1 - PIXEL_CENTER;
-	localparam	REFLECT_NUM = CENTER > 0 ? CENTER+1 : 1;
+	localparam	REFLECT_NUM = (CENTER > 0 ? CENTER+1 : 1) + 1;
 	
 	genvar		i;
 	integer		j, k;

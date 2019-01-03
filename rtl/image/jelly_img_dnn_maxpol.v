@@ -17,8 +17,8 @@ module jelly_img_dnn_maxpol
 			parameter	C          = 1,
 			parameter	N          = 2,
 			parameter	M          = 2,
-			parameter	NC         = N / 2,
-			parameter	MC         = M / M,
+			parameter	NC         = N-1,// (N-1) / 2,
+			parameter	MC         = M-1,// (M-1) / 2,
 			parameter	USER_WIDTH = 0,
 			parameter	MAX_X_NUM  = 4096,
 			parameter	RAM_TYPE   = "block",
@@ -62,7 +62,7 @@ module jelly_img_dnn_maxpol
 	jelly_img_blk_buffer
 			#(
 				.USER_WIDTH			(USER_WIDTH),
-				.DATA_WIDTH			(DATA_WIDTH),
+				.DATA_WIDTH			(C),
 				.PIXEL_NUM			(N),
 				.LINE_NUM			(N),
 				.PIXEL_CENTER		(NC),
@@ -151,8 +151,6 @@ module jelly_img_dnn_maxpol
 			st0_data        <= {C{1'bx}};
 			st0_valid       <= 1'b0;
 			
-			st1_n_count     <= {N_WIDTH{1'bx}};
-			st1_m_count     <= {M_WIDTH{1'bx}};
 			st1_line_first  <= 1'bx;
 			st1_line_last   <= 1'bx;
 			st1_pixel_first <= 1'bx;
@@ -165,25 +163,25 @@ module jelly_img_dnn_maxpol
 		else if ( cke ) begin
 			// stage 0
 			if ( img_blk_valid && img_blk_line_first ) begin
-				reg_n_count <= {N_WIDTH{1'b0}};
+				st0_n_count <= {N_WIDTH{1'b0}};
 			end
 			else begin
 				if ( img_blk_valid && img_blk_pixel_first ) begin
-					reg_n_count <= reg_n_count + 1;
-					if ( reg_n_count == (N - 1) ) begin
-						reg_n_count <= {N_WIDTH{1'b0}};
+					st0_n_count <= st0_n_count + 1;
+					if ( st0_n_count == (N - 1) ) begin
+						st0_n_count <= {N_WIDTH{1'b0}};
 					end
 				end
 			end
 			
 			if ( img_blk_valid && img_blk_pixel_first ) begin
-				reg_m_count <= {M_WIDTH{1'b0}};
+				st0_m_count <= {M_WIDTH{1'b0}};
 			end
 			else begin
 				if ( img_blk_valid && img_blk_de ) begin
-					reg_m_count <= reg_m_count + 1;
-					if ( reg_m_count == (M - 1) ) begin
-						reg_m_count <= {M_WIDTH{1'b0}};
+					st0_m_count <= st0_m_count + 1;
+					if ( st0_m_count == (M - 1) ) begin
+						st0_m_count <= {M_WIDTH{1'b0}};
 					end
 				end
 			end
@@ -197,11 +195,11 @@ module jelly_img_dnn_maxpol
 			st0_valid       <= img_blk_valid;
 			
 			for ( i = 0; i < C; i = i+1 ) begin
-				reg_data[i] <= 1'b0;
+				st0_data[i] <= 1'b0;
 				for ( j = 0; j < N; j = j+1 ) begin
 					for ( k = 0; k < M; k = k+1 ) begin
 						if ( img_blk_data[(j*M + k)*C + i] ) begin
-							reg_data[i] <= 1'b1;
+							st0_data[i] <= 1'b1;
 						end
 					end
 				end
@@ -212,7 +210,7 @@ module jelly_img_dnn_maxpol
 			st1_line_last   <= st0_line_last;
 			st1_pixel_first <= st0_pixel_first;
 			st1_pixel_last  <= st0_pixel_last;
-			st1_de          <= st0_de && (st1_n_count == NC && st1_m_count == MC);
+			st1_de          <= st0_de && (st0_n_count == NC && st0_m_count == MC);
 			st1_user        <= st0_user;
 			st1_data        <= st0_data;
 			st1_valid       <= st0_valid;
@@ -229,6 +227,7 @@ module jelly_img_dnn_maxpol
 	assign m_img_user        = st1_user;
 	assign m_img_data        = st1_data;
 	assign m_img_valid       = st1_valid;
+	
 	
 endmodule
 

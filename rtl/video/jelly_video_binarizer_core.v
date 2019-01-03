@@ -46,9 +46,9 @@ module jelly_video_binarizer_core
 	reg		[TDATA_WIDTH-1:0]		st0_tdata;
 	reg								st0_tvalid;
 	
-	always @(posedge clk) begin
-		if ( reset ) begin
-			st0_tuser       <= {TUSER_BITS{1'bx}};
+	always @(posedge aclk) begin
+		if ( ~aresetn ) begin
+			st0_tuser       <= {TUSER_WIDTH{1'bx}};
 			st0_tlast       <= 1'bx;
 			st0_tdata       <= {TDATA_WIDTH{1'bx}};
 			st0_tbinary     <= 1'bx;

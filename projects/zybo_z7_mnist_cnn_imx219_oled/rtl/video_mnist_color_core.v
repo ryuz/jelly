@@ -14,21 +14,22 @@
 
 module video_mnist_color_core
 		#(
-			parameter	DATA_WIDTH  = 8,
-			parameter	TUSER_WIDTH = 1,
-			parameter	TDATA_WIDTH = 4*DATA_WIDTH
+			parameter	TUSER_WIDTH   = 1,
+			parameter	TDATA_WIDTH   = 24,
+			parameter	TNUMBER_WIDTH = 4,
+			parameter	TCOUNT_WIDTH  = 4
 		)
 		(
 			input	wire						aresetn,
 			input	wire						aclk,
 			
 			input	wire	[1:0]				param_mode,
-			input	wire	[1:0]				param_th,
+			input	wire	[TCOUNT_WIDTH-1:0]	param_th,
 			
 			input	wire	[TUSER_WIDTH-1:0]	s_axi4s_tuser,
 			input	wire						s_axi4s_tlast,
-			input	wire	[3:0]				s_axi4s_tnumber,
-			input	wire	[1:0]				s_axi4s_tcount,
+			input	wire	[TNUMBER_WIDTH-1:0]	s_axi4s_tnumber,
+			input	wire	[TCOUNT_WIDTH-1:0]	s_axi4s_tcount,
 			input	wire	[TDATA_WIDTH-1:0]	s_axi4s_tdata,
 			input	wire	[0:0]				s_axi4s_tbinary,
 			input	wire						s_axi4s_tvalid,

@@ -271,6 +271,64 @@ module jelly_axi4s_img
 			);
 	
 	
+	
+	// debug
+	integer	dbg_s_axi4s_x;
+	integer	dbg_s_axi4s_x_size;
+	integer	dbg_m_axi4s_x;
+	integer	dbg_m_axi4s_x_size;
+
+	integer	dbg_src_img_x;
+	integer	dbg_src_img_x_size;
+	integer	dbg_sink_img_x;
+	integer	dbg_sink_img_x_size;
+
+	always @(posedge clk) begin
+		if ( s_axi4s_tvalid & s_axi4s_tready ) begin
+			dbg_s_axi4s_x <= dbg_s_axi4s_x + 1;
+			if ( s_axi4s_tlast ) begin
+				dbg_s_axi4s_x <= 0;
+				dbg_s_axi4s_x_size <= dbg_s_axi4s_x;
+			end
+		end
+	
+		if ( m_axi4s_tvalid & m_axi4s_tready ) begin
+			dbg_m_axi4s_x <= dbg_m_axi4s_x + 1;
+			if ( m_axi4s_tlast ) begin
+				dbg_m_axi4s_x <= 0;
+				dbg_m_axi4s_x_size <= dbg_m_axi4s_x;
+			end
+		end
+		
+		if ( img_cke ) begin
+			if ( src_img_valid ) begin
+				if ( src_img_pixel_first ) begin
+					dbg_src_img_x <= 0;
+				end
+				else if ( src_img_de ) begin
+					dbg_src_img_x <= dbg_src_img_x + 1;
+				end
+				
+				if ( src_img_pixel_last && dbg_src_img_x > 0 ) begin
+					dbg_src_img_x_size <= dbg_src_img_x;
+				end
+			end
+			
+			if ( sink_img_valid ) begin
+				if ( sink_img_pixel_first ) begin
+					dbg_sink_img_x <= 0;
+				end
+				else if ( sink_img_de ) begin
+					dbg_sink_img_x <= dbg_sink_img_x + 1;
+				end
+				
+				if ( sink_img_pixel_last &&  dbg_sink_img_x > 0 ) begin
+					dbg_sink_img_x_size <= dbg_sink_img_x;
+				end
+			end
+		end
+	end
+	
 endmodule
 
 
