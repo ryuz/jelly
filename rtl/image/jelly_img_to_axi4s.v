@@ -68,35 +68,35 @@ module jelly_img_to_axi4s
 			reg_tdata  <= {TDATA_WIDTH{1'bx}};
 			reg_tvalid <= 1'b0;
 		end
-		else begin
-			if ( cke ) begin
-				reg_tuser    <= {s_user, reg_tuser[0]};
-				if ( s_valid && s_line_first && s_pixel_first ) begin
-					reg_tuser[0] <= 1'b1;
-				end
-				
-				reg_tlast    <= s_pixel_last;
-				reg_tdata    <= s_data;
-				
-				if ( USE_DE ) begin
-					reg_tvalid <= s_de;
-				end
-				else begin
-					// auto create de
-					if ( s_line_first ) begin
-						reg_de <= 1'b1;
-					end
-					else if ( s_line_last ) begin
-						reg_de <= 1'b0;
-					end
-//					reg_tvalid <= (s_line_first || s_line_last || reg_de);
-					reg_tvalid <= reg_de;
-				end
+		else if ( cke ) begin
+			reg_tuser <= {s_user, reg_tuser[0]};
+			if ( reg_tvalid ) begin
+				reg_tuser[0] <= 1'b0;
 			end
-			else begin
-				reg_tvalid <= 1'b0;
+			if ( s_valid && s_line_first && s_pixel_first ) begin
+				reg_tuser[0] <= 1'b1;
 			end
 			
+			reg_tlast    <= s_pixel_last;
+			reg_tdata    <= s_data;
+			
+			if ( USE_DE ) begin
+				reg_tvalid <= s_de;
+			end
+			else begin
+				// auto create de
+				if ( s_line_first ) begin
+					reg_de <= 1'b1;
+				end
+				else if ( s_line_last ) begin
+					reg_de <= 1'b0;
+				end
+//				reg_tvalid <= (s_line_first || s_line_last || reg_de);
+				reg_tvalid <= reg_de;
+			end
+		end
+		else begin
+			reg_tvalid <= 1'b0;
 			if ( reg_tvalid ) begin
 				reg_tuser[0] <= 1'b0;
 			end

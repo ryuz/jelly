@@ -38,8 +38,10 @@ module tb_video_mnist();
 	wire	cke = 1'b1;
 	
 	
-	localparam IMG_X_NUM = 640 / 4;
-	localparam IMG_Y_NUM = 480 / 4;
+	localparam IMG_X_NUM = 640;
+	localparam IMG_Y_NUM = 480;
+//	localparam IMG_X_NUM = 640 / 4;
+//	localparam IMG_Y_NUM = 480 / 4;
 	
 	
 	localparam	DATA_WIDTH    = 8;
@@ -76,8 +78,8 @@ module tb_video_mnist();
 				.AXI4S_DATA_WIDTH	(24),
 				.X_NUM				(IMG_X_NUM),
 				.Y_NUM				(IMG_Y_NUM),
-		//		.PPM_FILE			("mnist_test_640x480.ppm"),
-				.PPM_FILE			("mnist_test_160x120.ppm"),
+				.PPM_FILE			("mnist_test_640x480.ppm"),
+		//		.PPM_FILE			("mnist_test_160x120.ppm"),
 				.BUSY_RATE			(0), // (5),
 				.RANDOM_SEED		(776),
 				.INTERVAL			(1000)
@@ -212,7 +214,7 @@ module tb_video_mnist();
 				.DATA_WIDTH			(DATA_WIDTH),
 				.TUSER_WIDTH		(1),
 				.INIT_PARAM_MODE	(2'b10),
-				.INIT_PARAM_TH		(4)
+				.INIT_PARAM_TH		(7)
 			)
 		i_video_mnist_color
 			(
@@ -223,7 +225,7 @@ module tb_video_mnist();
 				.s_axi4s_tlast		(m_axi4s_tlast),
 				.s_axi4s_tnumber	(m_axi4s_tnumber),
 				.s_axi4s_tcount		(m_axi4s_tcount),
-				.s_axi4s_tdata		(0),					// (m_axi4s_tdata),
+				.s_axi4s_tdata		(24'h202020),		// (m_axi4s_tdata),
 				.s_axi4s_tbinary	(m_axi4s_tdata),	// (m_axi4s_tbinary),
 				.s_axi4s_tvalid		(m_axi4s_tvalid),
 				.s_axi4s_tready		(m_axi4s_tready),
@@ -257,7 +259,7 @@ module tb_video_mnist();
 				.Y_WIDTH			(32),
 				.FILE_NAME			("col_%04d.ppm"),
 				.MAX_PATH			(64),
-				.BUSY_RATE			(5),
+				.BUSY_RATE			(0),
 				.RANDOM_SEED		(1234)
 			)
 		jelly_axi4s_slave_model_col

@@ -24,7 +24,7 @@ module video_mnist_color
 			parameter	WB_DAT_WIDTH    = 32,
 			parameter	WB_SEL_WIDTH    = (WB_DAT_WIDTH / 8),
 			parameter	INIT_PARAM_MODE = 2'b10,
-			parameter	INIT_PARAM_TH   = 1
+			parameter	INIT_PARAM_TH   = 3
 		)
 		(
 			input	wire							aresetn,
