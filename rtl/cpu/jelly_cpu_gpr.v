@@ -166,6 +166,7 @@ module jelly_cpu_gpr
 					(
 						.clk0			(clk),
 						.en0			(ram_write_en),
+						.regcke0		(1'b0),
 						.we0			(1'b1),
 						.addr0			(ram_write_addr),
 						.din0			(ram_write_data),
@@ -173,6 +174,7 @@ module jelly_cpu_gpr
 						
 						.clk1			(clk),
 						.en1			(ram_read_en),
+						.regcke1		(1'b0),
 						.we1			(1'b0),
 						.addr1			(ram_read_addr),
 						.din1			({DATA_WIDTH{1'b0}}),

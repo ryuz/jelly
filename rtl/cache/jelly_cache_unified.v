@@ -231,6 +231,7 @@ module jelly_cache_unified
 			(
 				.clk0				(clk),
 				.en0				(ram_init_busy ? 1'b1                   : ram0_en),
+				.regcke0			(1'b0),
 				.we0				(ram_init_busy ? 1'b1                   : ram0_we),
 				.addr0				(ram_init_busy ? ram_init_addr          : ram0_addr),
 				.din0				(ram_init_busy ? {RAM_DATA_WIDTH{1'b0}} : ram0_wdata),
@@ -238,6 +239,7 @@ module jelly_cache_unified
 				
 				.clk1				(clk),
 				.en1				(ram1_en & !ram_init_busy),
+				.regcke1			(1'b0),
 				.we1				(ram1_we),
 				.addr1				(ram1_addr),
 				.din1				(ram1_wdata),

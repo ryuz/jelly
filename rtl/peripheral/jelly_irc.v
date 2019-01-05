@@ -128,7 +128,7 @@ module jelly_irc
 		assign f_factor_id = i;
 		
 		wire	[WB_DAT_WIDTH-1:0]		f_wb_dat_o;
-		irc_factor
+		jelly_irc_factor
 				#(
 					.FACTOR_ID_WIDTH	(FACTOR_ID_WIDTH),
 					.PRIORITY_WIDTH		(PRIORITY_WIDTH),

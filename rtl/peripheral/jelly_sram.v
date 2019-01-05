@@ -82,6 +82,7 @@ module jelly_sram
 			(
 				.clk			(clk),
 				.en				(ram_en),
+				.regcke			(1'b0),
 				.we				(ram_we),
 				.addr			(ram_addr),
 				.din			(ram_wdata),

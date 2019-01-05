@@ -182,35 +182,35 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/video/csi2_rx/jelly_csi2_rx.v">
+      <File Path="$PPRDIR/../../../../rtl/video/jelly_csi2_rx.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/video/csi2_rx/jelly_csi2_rx_lane_merging.v">
+      <File Path="$PPRDIR/../../../../rtl/video/jelly_csi2_rx_lane_merging.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/video/csi2_rx/jelly_csi2_rx_lane_recv.v">
+      <File Path="$PPRDIR/../../../../rtl/video/jelly_csi2_rx_lane_recv.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/video/csi2_rx/jelly_csi2_rx_low_layer.v">
+      <File Path="$PPRDIR/../../../../rtl/video/jelly_csi2_rx_low_layer.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/video/csi2_rx/jelly_csi2_rx_raw10.v">
+      <File Path="$PPRDIR/../../../../rtl/video/jelly_csi2_rx_raw10.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -525,84 +525,84 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/video/vdma/jelly_vdma_axi4s_to_axi4.v">
+      <File Path="$PPRDIR/../../../../rtl/video/jelly_vdma_axi4s_to_axi4.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/video/vdma/jelly_vdma_axi4s_to_axi4_control.v">
+      <File Path="$PPRDIR/../../../../rtl/video/jelly_vdma_axi4s_to_axi4_control.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/video/vdma/jelly_vdma_axi4s_to_axi4_core.v">
+      <File Path="$PPRDIR/../../../../rtl/video/jelly_vdma_axi4s_to_axi4_core.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/video/gate/jelly_video_gate_core.v">
+      <File Path="$PPRDIR/../../../../rtl/video/jelly_video_gate_core.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/video/normalizer/jelly_video_normalizer.v">
+      <File Path="$PPRDIR/../../../../rtl/video/jelly_video_normalizer.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/video/normalizer/jelly_video_normalizer_core.v">
+      <File Path="$PPRDIR/../../../../rtl/video/jelly_video_normalizer_core.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/video/resize/jelly_video_resize_half.v">
+      <File Path="$PPRDIR/../../../../rtl/video/jelly_video_resize_half.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/video/resize/jelly_video_resize_half_core.v">
+      <File Path="$PPRDIR/../../../../rtl/video/jelly_video_resize_half_core.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/video/resize/jelly_video_resize_half_h_core.v">
+      <File Path="$PPRDIR/../../../../rtl/video/jelly_video_resize_half_h_core.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/video/resize/jelly_video_resize_half_v_core.v">
+      <File Path="$PPRDIR/../../../../rtl/video/jelly_video_resize_half_v_core.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/video/resize/jelly_video_resize_half_wb.v">
+      <File Path="$PPRDIR/../../../../rtl/video/jelly_video_resize_half_wb.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/video/trimming/jelly_video_trimming_core.v">
+      <File Path="$PPRDIR/../../../../rtl/video/jelly_video_trimming_core.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>

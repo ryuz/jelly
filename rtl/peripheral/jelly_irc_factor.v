@@ -13,7 +13,7 @@
 
 
 
-module irc_factor
+module jelly_irc_factor
 		#(
 			parameter FACTOR_ID_WIDTH = 2,
 			parameter PRIORITY_WIDTH  = 3,
