@@ -91,7 +91,7 @@ module jelly_img_pixel_buffer
 				st0_buf_pixel_first <= {((PIXEL_NUM-1)){1'b0}};
 				st0_buf_pixel_last  <= {((PIXEL_NUM-1)){1'b0}};
 				st0_buf_de          <= {((PIXEL_NUM-1)){1'b0}};
-				st0_buf_user        <= {((USER_BITS-1)*USER_BITS){1'bx}};
+				st0_buf_user        <= {((CENTER+1)*USER_BITS){1'bx}};
 				st0_buf_data        <= {((PIXEL_NUM-1)*DATA_WIDTH){1'bx}};
 				st0_buf_valid       <= {((PIXEL_NUM-1)){1'b0}};
 			end
