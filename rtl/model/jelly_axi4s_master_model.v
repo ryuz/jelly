@@ -57,6 +57,7 @@ module jelly_axi4s_master_model
 	integer								i;
 	integer								w, h, d;
 	integer								p0, p1, p2;
+	integer								tmp0, tmp1;
 	
 	initial begin
 		for ( i = 0; i < X_NUM*Y_NUM; i = i+1 ) begin
@@ -66,12 +67,12 @@ module jelly_axi4s_master_model
 		if ( PGM_FILE != "" ) begin
 			fp = $fopen(PGM_FILE, "r");
 			if ( fp != 0 ) begin
-				$fscanf(fp, "P2");
-				$fscanf(fp, "%d%d", w, h);
-				$fscanf(fp, "%d", d);
+				tmp0 = $fscanf(fp, "P2", tmp1);
+				tmp0 = $fscanf(fp, "%d%d", w, h);
+				tmp0 = $fscanf(fp, "%d", d);
 				
 				for ( i = 0; i < X_NUM*Y_NUM; i = i+1 ) begin
-					$fscanf(fp, "%d", p0);
+					tmp0 = $fscanf(fp, "%d", p0);
 					mem[i] = p0;
 				end
 				
@@ -85,12 +86,12 @@ module jelly_axi4s_master_model
 		if ( PPM_FILE != "" ) begin
 			fp = $fopen(PPM_FILE, "r");
 			if ( fp != 0 ) begin
-				$fscanf(fp, "P3");
-				$fscanf(fp, "%d%d", w, h);
-				$fscanf(fp, "%d", d);
+				tmp0 = $fscanf(fp, "P3", tmp1);
+				tmp0 = $fscanf(fp, "%d%d", w, h);
+				tmp0 = $fscanf(fp, "%d", d);
 				
 				for ( i = 0; i < X_NUM*Y_NUM; i = i+1 ) begin
-					$fscanf(fp, "%d%d%d", p0, p1, p2);
+					tmp0 = $fscanf(fp, "%d%d%d", p0, p1, p2);
 					mem[i] = ((p2<<16) | (p1 << 8) | p0);
 				end
 				
