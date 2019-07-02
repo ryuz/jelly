@@ -220,7 +220,7 @@ proc create_root_design { parentCell } {
    CONFIG.HAS_REGION {1} \
    CONFIG.HAS_RRESP {1} \
    CONFIG.HAS_WSTRB {1} \
-   CONFIG.ID_WIDTH {0} \
+   CONFIG.ID_WIDTH {6} \
    CONFIG.MAX_BURST_LENGTH {256} \
    CONFIG.NUM_READ_OUTSTANDING {1} \
    CONFIG.NUM_READ_THREADS {1} \
@@ -250,6 +250,10 @@ proc create_root_design { parentCell } {
   set_property -dict [ list \
    CONFIG.FREQ_HZ {200000000} \
  ] $out_clk200
+  set out_clk250 [ create_bd_port -dir O -type clk out_clk250 ]
+  set_property -dict [ list \
+   CONFIG.FREQ_HZ {250000000} \
+ ] $out_clk250
   set out_reset [ create_bd_port -dir O -from 0 -to 0 -type rst out_reset ]
   set s_axi4_mem_aclk [ create_bd_port -dir O -type clk s_axi4_mem_aclk ]
   set_property -dict [ list \
@@ -277,11 +281,16 @@ proc create_root_design { parentCell } {
    CONFIG.CLKOUT2_PHASE_ERROR {96.948} \
    CONFIG.CLKOUT2_REQUESTED_OUT_FREQ {200.000} \
    CONFIG.CLKOUT2_USED {true} \
+   CONFIG.CLKOUT3_JITTER {104.759} \
+   CONFIG.CLKOUT3_PHASE_ERROR {96.948} \
+   CONFIG.CLKOUT3_REQUESTED_OUT_FREQ {250.000} \
+   CONFIG.CLKOUT3_USED {true} \
    CONFIG.CLK_IN1_BOARD_INTERFACE {sys_clock} \
    CONFIG.MMCM_CLKOUT0_DIVIDE_F {10.000} \
    CONFIG.MMCM_CLKOUT1_DIVIDE {5} \
+   CONFIG.MMCM_CLKOUT2_DIVIDE {4} \
    CONFIG.MMCM_DIVCLK_DIVIDE {1} \
-   CONFIG.NUM_OUT_CLKS {2} \
+   CONFIG.NUM_OUT_CLKS {3} \
    CONFIG.USE_BOARD_FLOW {true} \
  ] $clk_wiz_0
 
@@ -804,6 +813,7 @@ proc create_root_design { parentCell } {
   # Create port connections
   connect_bd_net -net clk_wiz_0_clk_out1 [get_bd_ports out_clk100] [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins proc_sys_reset_0/slowest_sync_clk]
   connect_bd_net -net clk_wiz_0_clk_out2 [get_bd_ports out_clk200] [get_bd_pins clk_wiz_0/clk_out2]
+  connect_bd_net -net clk_wiz_0_clk_out3 [get_bd_ports out_clk250] [get_bd_pins clk_wiz_0/clk_out3]
   connect_bd_net -net clk_wiz_0_locked [get_bd_pins clk_wiz_0/locked] [get_bd_pins proc_sys_reset_0/dcm_locked]
   connect_bd_net -net proc_sys_reset_0_peripheral_reset [get_bd_ports out_reset] [get_bd_pins proc_sys_reset_0/peripheral_reset]
   connect_bd_net -net proc_sys_reset_1_interconnect_aresetn [get_bd_ports m_axi4l_peri_aresetn] [get_bd_pins proc_sys_reset_1/interconnect_aresetn] [get_bd_pins smartconnect_1/aresetn]
