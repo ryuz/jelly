@@ -18,7 +18,8 @@
 //   フレーム末尾で吐き出しのためにブランクデータを入れる際は
 // line_first と line_last は正しく制御が必要
 
-module jelly_img_line_buffer2
+// メモリ直列配置版
+module jelly_img_line_buffer_series
 		#(
 			parameter	USER_WIDTH   = 0,
 			parameter	DATA_WIDTH   = 8,
