@@ -29,7 +29,7 @@
     </file>
     <file xil_pn:name="../../../rtl/library/jelly_pipeline_insert_ff.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="0"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="2"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
     <file xil_pn:name="../../../rtl/library/jelly_pipeline_control.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="0"/>
@@ -175,31 +175,31 @@
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="97"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
-    <file xil_pn:name="../../../rtl/video/vdma/jelly_vdma_axi4_to_axi4s.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../rtl/video/jelly_vdma_axi4_to_axi4s.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="151"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
-    <file xil_pn:name="../../../rtl/video/vdma/jelly_vdma_axi4_to_axi4s_control.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../rtl/video/jelly_vdma_axi4_to_axi4s_control.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="152"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
-    <file xil_pn:name="../../../rtl/video/vdma/jelly_vdma_axi4_to_axi4s_core.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../rtl/video/jelly_vdma_axi4_to_axi4s_core.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="153"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
-    <file xil_pn:name="../../../rtl/video/vdma/jelly_vdma_axi4s_to_axi4.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../rtl/video/jelly_vdma_axi4s_to_axi4.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="154"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
-    <file xil_pn:name="../../../rtl/video/vdma/jelly_vdma_axi4s_to_axi4_control.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../rtl/video/jelly_vdma_axi4s_to_axi4_control.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="155"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
-    <file xil_pn:name="../../../rtl/video/vdma/jelly_vdma_axi4s_to_axi4_core.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../rtl/video/jelly_vdma_axi4s_to_axi4_core.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="156"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
-    <file xil_pn:name="../../../rtl/video/vdma/jelly_vdma_axi4s_to_axi4s.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../rtl/video/jelly_vdma_axi4s_to_axi4s.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="157"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
@@ -392,7 +392,7 @@
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="233"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
-    <file xil_pn:name="../../../rtl/video/bilinear/jelly_bilinear_axi4s.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../rtl/video/jelly_bilinear_axi4s.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="115"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
@@ -428,23 +428,23 @@
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="232"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
-    <file xil_pn:name="../../../rtl/video/csi2_rx/jelly_csi2_rx.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../rtl/video/jelly_csi2_rx.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="255"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
-    <file xil_pn:name="../../../rtl/video/csi2_rx/jelly_csi2_rx_lane_merging.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../rtl/video/jelly_csi2_rx_lane_merging.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="256"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
-    <file xil_pn:name="../../../rtl/video/csi2_rx/jelly_csi2_rx_lane_recv.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../rtl/video/jelly_csi2_rx_lane_recv.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="257"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
-    <file xil_pn:name="../../../rtl/video/csi2_rx/jelly_csi2_rx_low_layer.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../rtl/video/jelly_csi2_rx_low_layer.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="258"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
-    <file xil_pn:name="../../../rtl/video/csi2_rx/jelly_csi2_rx_raw10.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../rtl/video/jelly_csi2_rx_raw10.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="259"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
@@ -452,7 +452,7 @@
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="260"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
-    <file xil_pn:name="../../../rtl/video/normalizer/jelly_video_normalizer_core.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../rtl/video/jelly_video_normalizer_core.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="271"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
@@ -470,15 +470,15 @@
     </file>
     <file xil_pn:name="../../../rtl/image/jelly_img_blk_buffer.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="285"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="4"/>
     </file>
     <file xil_pn:name="../../../rtl/image/jelly_img_line_buffer.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="286"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="3"/>
     </file>
     <file xil_pn:name="../../../rtl/image/jelly_img_pixel_buffer.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="287"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="2"/>
     </file>
     <file xil_pn:name="../../../rtl/image/jelly_img_sobel_filter.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="288"/>
@@ -532,28 +532,32 @@
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="370"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
-    <file xil_pn:name="../../../rtl/video/resize/jelly_video_resize_half_h_core.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../rtl/video/jelly_video_resize_half_h_core.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="393"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="4"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
-    <file xil_pn:name="../../../rtl/video/resize/jelly_video_resize_half_core.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../rtl/video/jelly_video_resize_half_core.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="132"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="5"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
-    <file xil_pn:name="../../../rtl/video/resize/jelly_video_resize_half_v_core.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../rtl/video/jelly_video_resize_half_v_core.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="133"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="3"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
     <file xil_pn:name="../../../rtl/library/jelly_shadow_reg_ctl.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="148"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="6"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
-    <file xil_pn:name="../../../rtl/video/resize/jelly_video_resize_half.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../rtl/video/jelly_video_resize_half.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="159"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="7"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
-    <file xil_pn:name="../../../rtl/video/resize/jelly_video_resize_half_wb.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../rtl/video/jelly_video_resize_half_wb.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="171"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
+    </file>
+    <file xil_pn:name="../../../rtl/image/jelly_img_line_buffer2.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="202"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
   </files>
@@ -674,9 +678,9 @@
     <property xil_pn:name="ISim UUT Instance Name" xil_pn:value="UUT" xil_pn:valueState="default"/>
     <property xil_pn:name="Ignore User Timing Constraints Map" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Ignore User Timing Constraints Par" xil_pn:value="false" xil_pn:valueState="default"/>
-    <property xil_pn:name="Implementation Top" xil_pn:value="Module|jelly_video_resize_half_wb" xil_pn:valueState="non-default"/>
-    <property xil_pn:name="Implementation Top File" xil_pn:value="../../../rtl/video/resize/jelly_video_resize_half_wb.v" xil_pn:valueState="non-default"/>
-    <property xil_pn:name="Implementation Top Instance Path" xil_pn:value="/jelly_video_resize_half_wb" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Implementation Top" xil_pn:value="Module|jelly_img_blk_buffer" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Implementation Top File" xil_pn:value="../../../rtl/image/jelly_img_blk_buffer.v" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Implementation Top Instance Path" xil_pn:value="/jelly_img_demosaic_acpi/i_img_demosaic_acpi_core/i_img_demosaic_acpi_g_core/i_img_blk_buffer" xil_pn:valueState="non-default"/>
     <property xil_pn:name="Include 'uselib Directive in Verilog File" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Include SIMPRIM Models in Verilog File" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Include UNISIM Models in Verilog File" xil_pn:value="false" xil_pn:valueState="default"/>
@@ -733,7 +737,7 @@
     <property xil_pn:name="Other XPWR Command Line Options" xil_pn:value="" xil_pn:valueState="default"/>
     <property xil_pn:name="Other XST Command Line Options" xil_pn:value="" xil_pn:valueState="default"/>
     <property xil_pn:name="Output Extended Identifiers" xil_pn:value="false" xil_pn:valueState="default"/>
-    <property xil_pn:name="Output File Name" xil_pn:value="jelly_video_resize_half_wb" xil_pn:valueState="default"/>
+    <property xil_pn:name="Output File Name" xil_pn:value="jelly_img_blk_buffer" xil_pn:valueState="default"/>
     <property xil_pn:name="Overwrite Compiled Libraries" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Pack I/O Registers into IOBs" xil_pn:value="Auto" xil_pn:valueState="default"/>
     <property xil_pn:name="Pack I/O Registers/Latches into IOBs" xil_pn:value="Off" xil_pn:valueState="default"/>
@@ -747,10 +751,10 @@
     <property xil_pn:name="Placer Effort Level Map" xil_pn:value="High" xil_pn:valueState="default"/>
     <property xil_pn:name="Placer Extra Effort Map" xil_pn:value="None" xil_pn:valueState="default"/>
     <property xil_pn:name="Port to be used" xil_pn:value="Auto - default" xil_pn:valueState="default"/>
-    <property xil_pn:name="Post Map Simulation Model Name" xil_pn:value="jelly_video_resize_half_wb_map.v" xil_pn:valueState="default"/>
-    <property xil_pn:name="Post Place &amp; Route Simulation Model Name" xil_pn:value="jelly_video_resize_half_wb_timesim.v" xil_pn:valueState="default"/>
-    <property xil_pn:name="Post Synthesis Simulation Model Name" xil_pn:value="jelly_video_resize_half_wb_synthesis.v" xil_pn:valueState="default"/>
-    <property xil_pn:name="Post Translate Simulation Model Name" xil_pn:value="jelly_video_resize_half_wb_translate.v" xil_pn:valueState="default"/>
+    <property xil_pn:name="Post Map Simulation Model Name" xil_pn:value="jelly_img_blk_buffer_map.v" xil_pn:valueState="default"/>
+    <property xil_pn:name="Post Place &amp; Route Simulation Model Name" xil_pn:value="jelly_img_blk_buffer_timesim.v" xil_pn:valueState="default"/>
+    <property xil_pn:name="Post Synthesis Simulation Model Name" xil_pn:value="jelly_img_blk_buffer_synthesis.v" xil_pn:valueState="default"/>
+    <property xil_pn:name="Post Translate Simulation Model Name" xil_pn:value="jelly_img_blk_buffer_translate.v" xil_pn:valueState="default"/>
     <property xil_pn:name="Power Down Device if Over Safe Temperature" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Power Reduction Map virtex6" xil_pn:value="Off" xil_pn:valueState="default"/>
     <property xil_pn:name="Power Reduction Par" xil_pn:value="false" xil_pn:valueState="default"/>
