@@ -46,7 +46,7 @@ module jelly_ram_singleport
 	reg		[DATA_WIDTH-1:0]	tmp_dout;
 	
 	generate
-	if ( MODE == "WRITE_FIRST" ) begin
+	if ( MODE == "WRITE_FIRST" ) begin : blk_write_first
 		// write first
 		always @ ( posedge clk ) begin
 			if ( en ) begin
@@ -63,7 +63,7 @@ module jelly_ram_singleport
 			end
 		end
 	end
-	else begin
+	else begin : blk_read_first
 		// read first
 		always @ ( posedge clk ) begin
 			if ( en ) begin
@@ -76,7 +76,7 @@ module jelly_ram_singleport
 	end
 	
 	// DOUT FF insert
-	if ( DOUT_REGS ) begin
+	if ( DOUT_REGS ) begin : blk_dout_regs
 		reg		[DATA_WIDTH-1:0]	reg_dout;
 		always @(posedge clk) begin
 			if ( regcke ) begin
@@ -85,7 +85,7 @@ module jelly_ram_singleport
 		end
 		assign dout = reg_dout;
 	end
-	else begin
+	else begin: blk_dout
 		assign dout = tmp_dout;
 	end
 	endgenerate
