@@ -184,9 +184,7 @@ module jelly_img_pixel_buffer
 				
 				if ( !st0_pixel_first[CENTER] && st1_last_en ) begin
 					if ( BORDER_MODE == "CONSTANT" ) begin
-						if ( st0_pixel_last[1] ) begin
-							st1_data[DATA_WIDTH-1:0] <= BORDER_VALUE;
-						end
+						st1_data[DATA_WIDTH-1:0] <= BORDER_VALUE;
 					end
 					else if ( BORDER_MODE == "REPLICATE" ) begin
 						st1_data[DATA_WIDTH-1:0] <= st1_data[DATA_WIDTH-1:0];

@@ -397,7 +397,7 @@ module jelly_img_line_buffer
 						if ( y > st4_pos_first ) begin
 							if      ( BORDER_MODE == "CONSTANT"    ) begin st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= LINE_NUM;                end
 							else if ( BORDER_MODE == "REPLICATE"   ) begin st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= st4_pos_first;           end
-							else if ( BORDER_MODE == "REFLECT"     ) begin st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= st4_pos_first*2 - y - 1; end
+							else if ( BORDER_MODE == "REFLECT"     ) begin st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= st4_pos_first*2 - y + 1; end
 							else if ( BORDER_MODE == "REFLECT_101" ) begin st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= st4_pos_first*2 - y;     end
 						end
 					end
@@ -405,7 +405,7 @@ module jelly_img_line_buffer
 						if ( y < st4_pos_last ) begin
 							if      ( BORDER_MODE == "CONSTANT"    ) begin st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= LINE_NUM;                end
 							else if ( BORDER_MODE == "REPLICATE"   ) begin st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= st4_pos_last;            end
-							else if ( BORDER_MODE == "REFLECT"     ) begin st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= st4_pos_last*2 - y + 1;  end
+							else if ( BORDER_MODE == "REFLECT"     ) begin st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= st4_pos_last*2 - y - 1;  end
 							else if ( BORDER_MODE == "REFLECT_101" ) begin st5_pos_data[y*POS_WIDTH +: POS_WIDTH] <= st4_pos_last*2 - y;      end
 						end
 					end
@@ -485,6 +485,8 @@ module jelly_img_line_buffer
 		assign m_img_line_last   = s_img_line_last;
 		assign m_img_pixel_first = s_img_pixel_first;
 		assign m_img_pixel_last  = s_img_pixel_last;
+		assign m_img_de          = s_img_de;
+		assign m_img_user        = s_img_user;
 		assign m_img_data        = s_img_data;
 		assign m_img_valid       = s_img_valid;
 	end
