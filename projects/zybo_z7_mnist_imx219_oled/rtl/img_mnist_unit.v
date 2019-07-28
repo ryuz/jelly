@@ -105,12 +105,11 @@ module img_mnist_unit
 	wire	[3*10-1:0]			lutnet_data;
 	wire						lutnet_valid;
 	
-	lutnet_layers
-//	mnist_lut_net
+	MnistSparseLutMlp
 			#(
 				.USER_WIDTH		(USER_WIDTH+1)
 			)
-		i_mnist_lut_net
+		i_MnistSparseLutMlp
 			(
 				.reset			(reset),
 				.clk			(clk),
