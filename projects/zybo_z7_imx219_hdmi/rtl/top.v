@@ -861,7 +861,7 @@ module top
 	localparam	VOUT_Y_NUM = 720;
 	
 	
-	wire	[23:0]					axi4s_vout_tdata;
+	wire	[31:0]					axi4s_vout_tdata;
 	wire							axi4s_vout_tlast;
 	wire	[0:0]					axi4s_vout_tuser;
 	wire							axi4s_vout_tvalid;
@@ -918,8 +918,8 @@ module top
 				
 				.INDEX_WIDTH		(8),
 				.STRIDE_WIDTH		(14),
-				.H_WIDTH			(10),
-				.V_WIDTH			(10),
+				.H_WIDTH			(12),
+				.V_WIDTH			(12),
 				
 				.WB_ADR_WIDTH		(8),
 				.WB_DAT_WIDTH		(32),
@@ -980,6 +980,30 @@ module top
 				.trig_clk			(wb_clk_o),
 				.trig_start			(0)
 			);
+	
+	jelly_axi4s_debug_monitor
+			#(
+				.TUSER_WIDTH		(1),
+				.TDATA_WIDTH		(10),
+				.TIMER_WIDTH		(32),
+				.FRAME_WIDTH		(32),
+				.PIXEL_WIDTH		(32),
+				.X_WIDTH			(16),
+				.Y_WIDTH			(16)
+			)
+		i_axi4s_debug_monitor_vout
+			(
+				.aresetn			(~vout_reset),
+				.aclk				(vout_clk),
+				.aclken				(1'b1),
+				
+				.axi4s_tuser		(axi4s_vout_tuser),
+				.axi4s_tlast		(axi4s_vout_tlast),
+				.axi4s_tdata		(axi4s_vout_tdata),
+				.axi4s_tvalid		(axi4s_vout_tvalid),
+				.axi4s_tready		(axi4s_vout_tready)
+			);
+	
 	
 //	// read ‚Í–¢Žg—p
 //	assign axi4_mem0_arid     = 0;
@@ -1064,7 +1088,7 @@ module top
 				
 				.s_axi4s_tuser		(axi4s_vout_tuser),
 				.s_axi4s_tlast		(axi4s_vout_tlast),
-				.s_axi4s_tdata		(axi4s_vout_tdata),
+				.s_axi4s_tdata		(axi4s_vout_tdata[23:0]),
 				.s_axi4s_tvalid		(axi4s_vout_tvalid),
 				.s_axi4s_tready		(axi4s_vout_tready),
 				

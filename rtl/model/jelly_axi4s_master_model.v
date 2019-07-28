@@ -35,10 +35,15 @@ module jelly_axi4s_master_model
 			input	wire							m_axi4s_tready
 		);
 	
+	reg		reg_aresetn = 1'b0;
+	always @( posedge aclk ) begin
+		reg_aresetn <= aresetn;
+	end
+	
 	reg		[31:0]		reg_rand_seed = RANDOM_SEED;
 	reg		[31:0]		reg_rand;
 	always @( posedge aclk ) begin
-		if ( !aresetn ) begin
+		if ( !reg_aresetn ) begin
 			reg_rand_seed <= RANDOM_SEED;
 			reg_rand      <= 99;
 		end
@@ -109,7 +114,7 @@ module jelly_axi4s_master_model
 	integer		x = 0;
 	integer		y = 0;
 	always @(posedge aclk) begin
-		if ( !aresetn ) begin
+		if ( !reg_aresetn ) begin
 			x <= 0;
 			y <= 0;
 		end
@@ -126,7 +131,7 @@ module jelly_axi4s_master_model
 	end
 	
 	always @(posedge aclk) begin
-		if ( !aresetn ) begin
+		if ( !reg_aresetn ) begin
 			interval_count <= 0;
 		end
 		else begin
@@ -150,7 +155,7 @@ module jelly_axi4s_master_model
 //	assign m_axi4s_tdata[15:8]  = (x<<4) + 2;
 //	assign m_axi4s_tdata[23:16] = (x<<4) + 3;
 	assign m_axi4s_tdata  = mem[y*X_NUM + x];
-	assign m_axi4s_tvalid = aresetn & !busy;
+	assign m_axi4s_tvalid = reg_aresetn & !busy;
 	
 endmodule
 

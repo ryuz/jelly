@@ -69,6 +69,9 @@ set_max_delay -datapath_only -from [get_clocks clk_out3_design_1_clk_wiz_0_0] -t
 set_max_delay -datapath_only -from [get_clocks clk_fpga_0] -to [get_clocks clk_out1_design_1_clk_wiz_1_0] 7.500
 set_max_delay -datapath_only -from [get_clocks clk_out1_design_1_clk_wiz_1_0] -to [get_clocks clk_fpga_0] 7.500
 
+set_max_delay -datapath_only -from [get_clocks clk_fpga_1] -to [get_clocks clk_out1_design_1_clk_wiz_1_0] 10.000
+set_max_delay -datapath_only -from [get_clocks clk_out1_design_1_clk_wiz_1_0] -to [get_clocks clk_fpga_1] 10.000
+
 
 #set_false_path -from [get_clocks clk_fpga_1]  -to [get_clocks mmcm_clk200]
 #set_false_path -from [get_clocks mmcm_clk200] -to [get_clocks mmcm_clk]

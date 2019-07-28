@@ -16,7 +16,10 @@ module tb_top();
 		$dumpfile("tb_top.vcd");
 		$dumpvars(1, tb_top);
 		$dumpvars(1, tb_top.i_top);
-//		$dumpvars(0, tb_top.i_top.i_vdma_axi4_to_axi4s);
+		$dumpvars(0, tb_top.i_top.i_axi4s_debug_monitor_vout);
+		$dumpvars(0, tb_top.i_axi4s_master_model);
+		$dumpvars(0, tb_top.i_top.i_vdma_axi4_to_axi4s);
+//		$dumpvars(0, tb_top.i_top.i_video_normalizer);
 		
 	#100000000
 		$finish;
@@ -26,7 +29,7 @@ module tb_top();
 	always #(RATE125/2.0)	clk125 = ~clk125;
 	
 	localparam	X_NUM = 1640;
-	localparam	Y_NUM = 4;//1232;
+	localparam	Y_NUM = 1232;
 	
 	
 	top
@@ -88,6 +91,47 @@ module tb_top();
 		force i_top.axi4s_csi2_tdata  = {axi4s_model_tdata, 2'd0};
 		force i_top.axi4s_csi2_tvalid = axi4s_model_tvalid;
 	end
+	
+	
+	
+	// ----------------------------------
+	//  save output
+	// ----------------------------------
+	
+	wire			vout_vsync = i_top.vout_vsync;
+	wire			vout_hsync = i_top.vout_hsync;
+	wire			vout_de    = i_top.vout_de   ;
+	wire	[23:0]	vout_data  = i_top.vout_data ;
+	wire	[3:0]	vout_ctl   = i_top.vout_ctl  ;
+	
+	jelly_axi4s_slave_model
+			#(
+				.COMPONENT_NUM    	(3),
+				.DATA_WIDTH       	(8),
+				.INIT_FRAME_NUM   	(0),
+				.FRAME_WIDTH      	(32),
+				.X_WIDTH          	(32),
+				.Y_WIDTH          	(32),
+				.FILE_NAME        	("img_%04d.ppm"),
+				.MAX_PATH         	(64),
+				.BUSY_RATE        	(0)
+			)
+		i_axi4s_slave_model_vout
+			(
+				.aresetn			(~i_top.vout_reset),
+				.aclk				(i_top.vout_clk),
+				.aclken				(1),
+				
+				.param_width		(1280),
+				.param_height		(720),
+				
+				.s_axi4s_tuser		(i_top.axi4s_vout_tuser),
+				.s_axi4s_tlast		(i_top.axi4s_vout_tlast),
+				.s_axi4s_tdata		(i_top.axi4s_vout_tdata),
+				.s_axi4s_tvalid		(i_top.axi4s_vout_tvalid),
+				.s_axi4s_tready		(i_top.axi4s_vout_tready)
+			);
+	
 	
 	
 	
@@ -214,7 +258,7 @@ module tb_top();
 		wb_write(32'h40020010,            3, 4'b1111);		// control
 		
 		// vout vsync generator
-		wb_write(32'h40021020, 32'h30000001, 4'b1111);		// control
+		wb_write(32'h40021010,            1, 4'b1111);		// control
 	end
 	
 	
