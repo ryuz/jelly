@@ -45,6 +45,7 @@ module jelly_img_to_axi4s
 			output	wire						m_axi4s_tvalid
 		);
 	
+	wire						s_valid       = USE_VALID ? s_img_valid : 1'b1;
 	wire						s_line_first  = (s_valid & s_img_line_first);
 	wire						s_line_last   = (s_valid & s_img_line_last);
 	wire						s_pixel_first = (s_valid & s_img_pixel_first);
@@ -52,7 +53,6 @@ module jelly_img_to_axi4s
 	wire						s_de          = (s_valid & s_img_de);
 	wire	[USER_WIDTH-1:0]	s_user        = s_img_user;
 	wire	[TDATA_WIDTH-1:0]	s_data        = s_img_data;
-	wire						s_valid       = USE_VALID ? s_img_valid : 1'b1;
 	
 	reg							reg_de;
 	reg		[TUSER_WIDTH-1:0]	reg_tuser;
