@@ -50,7 +50,7 @@ module tb_video_mnist();
 	
 	localparam	TUSER_WIDTH   = 1;
 	localparam	S_TDATA_WIDTH = 8;
-	localparam	M_TDATA_WIDTH = 80;
+	localparam	M_TDATA_WIDTH = 70;
 	
 	localparam	WB_ADR_WIDTH   = 8;
 	localparam	WB_DAT_WIDTH   = 32;
@@ -140,7 +140,7 @@ module tb_video_mnist();
 	
 	wire	[TUSER_WIDTH-1:0]		m_axi4s_tuser;
 	wire							m_axi4s_tlast;
-	wire	[79:0]					m_axi4s_tdata;
+	wire	[69:0]					m_axi4s_tdata;
 	wire	[M_TNUMBER_WIDTH-1:0]	m_axi4s_tnumber;
 	wire	[M_TCOUNT_WIDTH-1:0]	m_axi4s_tcount;
 	wire							m_axi4s_tvalid;

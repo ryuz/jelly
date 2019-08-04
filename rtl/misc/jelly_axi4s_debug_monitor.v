@@ -77,13 +77,13 @@ module jelly_axi4s_debug_monitor
 				if ( axi4s_tlast ) begin
 					dbg_x     <= 0;
 					dbg_y     <= dbg_y + 1;
-					dbg_width <= dbg_x;
+					dbg_width <= dbg_x + 1;
 				end
 				
 				if ( axi4s_tuser[0] ) begin
 					dbg_frame  <= dbg_frame + 1;
 					dbg_pixel  <= 0;
-					dbg_x      <= 0;
+	//				dbg_x      <= 0;
 					dbg_y      <= 0;
 					dbg_height <= dbg_y;
 				end
