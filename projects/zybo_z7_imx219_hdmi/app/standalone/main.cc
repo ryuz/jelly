@@ -59,16 +59,16 @@
 #define IMG_MEM_ADDR						0x30000000
 
 #define VIN_NORM_BASE_ADDR					0x40011000
-#define	VIN_NORM_REG_CONTROL      			(VIN_NORM_BASE_ADDR + 0x00)
-#define	VIN_NORM_REG_BUSY         			(VIN_NORM_BASE_ADDR + 0x01)
-#define	VIN_NORM_REG_INDEX        			(VIN_NORM_BASE_ADDR + 0x02)
-#define	VIN_NORM_REG_SKIP         			(VIN_NORM_BASE_ADDR + 0x03)
-#define	VIN_NORM_REG_FRM_TIMER_EN 			(VIN_NORM_BASE_ADDR + 0x04)
-#define	VIN_NORM_REG_FRM_TIMEOUT  			(VIN_NORM_BASE_ADDR + 0x05)
-#define	VIN_NORM_REG_PARAM_WIDTH  			(VIN_NORM_BASE_ADDR + 0x08)
-#define	VIN_NORM_REG_PARAM_HEIGHT 			(VIN_NORM_BASE_ADDR + 0x09)
-#define	VIN_NORM_REG_PARAM_FILL   			(VIN_NORM_BASE_ADDR + 0x0a)
-#define	VIN_NORM_REG_PARAM_TIMEOUT			(VIN_NORM_BASE_ADDR + 0x0b)
+#define	VIN_NORM_REG_CONTROL      			(VIN_NORM_BASE_ADDR + 0x00*4)
+#define	VIN_NORM_REG_BUSY         			(VIN_NORM_BASE_ADDR + 0x01*4)
+#define	VIN_NORM_REG_INDEX        			(VIN_NORM_BASE_ADDR + 0x02*4)
+#define	VIN_NORM_REG_SKIP         			(VIN_NORM_BASE_ADDR + 0x03*4)
+#define	VIN_NORM_REG_FRM_TIMER_EN 			(VIN_NORM_BASE_ADDR + 0x04*4)
+#define	VIN_NORM_REG_FRM_TIMEOUT  			(VIN_NORM_BASE_ADDR + 0x05*4)
+#define	VIN_NORM_REG_PARAM_WIDTH  			(VIN_NORM_BASE_ADDR + 0x08*4)
+#define	VIN_NORM_REG_PARAM_HEIGHT 			(VIN_NORM_BASE_ADDR + 0x09*4)
+#define	VIN_NORM_REG_PARAM_FILL   			(VIN_NORM_BASE_ADDR + 0x0a*4)
+#define	VIN_NORM_REG_PARAM_TIMEOUT			(VIN_NORM_BASE_ADDR + 0x0b*4)
 
 #define VDMAW_BASE_ADDR						0x40010000
 #define VDMAW_REG_ID						(VDMAW_BASE_ADDR + 0x0000)
@@ -127,10 +127,18 @@
 #define	VOUT_VSGEN_REG_PARAM_VSYNC_END   	(VOUT_VSGEN_BASE_ADDR + 0x005c)
 
 
-void imx219_init(void);
+void imx219_init(int width, int height);
+
 
 int main()
 {
+//	int width  = 1640;
+//	int height = 1232;
+//	int stride = width*4;
+	int width  = 640;
+	int height = 132;
+	int stride = 8192;
+
     init_platform();
     Xil_DCacheDisable();
 
@@ -154,25 +162,32 @@ int main()
 #endif
 
 
-    imx219_init();
+    imx219_init(width, height);
 
+    /*
+	*(volatile unsigned int *)VDMAW_REG_CTL_CONTROL  = 0x0;
+	*(volatile unsigned int *)VDMAR_REG_CTL_CONTROL  = 0x0;
+	usleep(100000);
+    *(volatile unsigned int *)VIN_NORM_REG_CONTROL   = 0;
+	usleep(100000);
+	*/
 
-//	*(volatile unsigned int *)0x40010000 = 1;
-
-    *(volatile unsigned int *)VIN_NORM_REG_CONTROL = 1;
+    *(volatile unsigned int *)VIN_NORM_REG_PARAM_WIDTH  = width;
+	*(volatile unsigned int *)VIN_NORM_REG_PARAM_HEIGHT = height;
+    *(volatile unsigned int *)VIN_NORM_REG_CONTROL      = 1;
 
 	// start write
 	*(volatile unsigned int *)VDMAW_REG_PARAM_ADDR   = IMG_MEM_ADDR;
-	*(volatile unsigned int *)VDMAW_REG_PARAM_STRIDE = 1640*4;			// stride
-	*(volatile unsigned int *)VDMAW_REG_PARAM_WIDTH  = 1640;			// width
-	*(volatile unsigned int *)VDMAW_REG_PARAM_HEIGHT = 1232;			// height
-	*(volatile unsigned int *)VDMAW_REG_PARAM_SIZE   = 1640*1232;       //16*1024*1024;	// size
+	*(volatile unsigned int *)VDMAW_REG_PARAM_STRIDE = stride;			// stride
+	*(volatile unsigned int *)VDMAW_REG_PARAM_WIDTH  = width;			// width
+	*(volatile unsigned int *)VDMAW_REG_PARAM_HEIGHT = height;			// height
+	*(volatile unsigned int *)VDMAW_REG_PARAM_SIZE   = width*height;    //16*1024*1024;	// size
 	*(volatile unsigned int *)VDMAW_REG_PARAM_AWLEN  = 31;				// awlen
 	*(volatile unsigned int *)VDMAW_REG_CTL_CONTROL  = 0x03;
 
 	// start read
 	*(volatile unsigned int *)VDMAR_REG_PARAM_ADDR   = IMG_MEM_ADDR;
-	*(volatile unsigned int *)VDMAR_REG_PARAM_STRIDE = 1640*4;
+	*(volatile unsigned int *)VDMAR_REG_PARAM_STRIDE = stride;
 	*(volatile unsigned int *)VDMAR_REG_PARAM_WIDTH  = 1280;
 	*(volatile unsigned int *)VDMAR_REG_PARAM_HEIGHT = 720;
 	*(volatile unsigned int *)VDMAR_REG_PARAM_SIZE   = 1280*720;

@@ -100,7 +100,7 @@ int imx219_write_word(u16 addr, u16 data)
 
 
 
-int imx219_init(void)
+int imx219_init(int width, int height)
 {
     int Status;
      XIicPs_Config *Config;  /**< configuration information for the device */
@@ -137,22 +137,28 @@ int imx219_init(void)
 #endif
 
 
+#define ORG_SETTING		0
+
 	imx219_write_byte(0x0102, 0x01  );   // ???? (Reserved)
 	//	imx219_write_word();
 	imx219_write_byte(0x0100, 0x00  );   // mode_select [4:0]  (0: SW standby, 1: Streaming)
 	imx219_write_word(0x6620, 0x0101);   // ????
 	imx219_write_word(0x6622, 0x0101);
+
 	imx219_write_byte(0x30EB, 0x0C  );   // Access command sequence Seq. No. 2
 	imx219_write_byte(0x30EB, 0x05);
 	imx219_write_word(0x300A, 0xFFFF);
 	imx219_write_byte(0x30EB, 0x05);
 	imx219_write_byte(0x30EB, 0x09);
+
 	imx219_write_byte(0x0114, 0x01  );   // CSI_LANE_MODE (03: 4Lane 01: 2Lane)
 	imx219_write_byte(0x0128, 0x00  );   // DPHY_CTRL (MIPI Global timing setting 0: auto mode, 1: manual mode)
 	imx219_write_word(0x012a, 0x1800);   // INCK frequency [MHz] 6,144MHz
 	imx219_write_byte(0x0157, 0x00  );   //      ANA_GAIN_GLOBAL_A
 	imx219_write_word(0x015A, 0x09BD);   //      COARSE_INTEGRATION_TIME_A
 	imx219_write_word(0x0160, 0x0372);   //      FRM_LENGTH_A
+
+#if ORG_SETTING
 	imx219_write_word(0x0162, 0x0D78);   //      LINE_LENGTH_A (line_length_pck Units: Pixels)
 	imx219_write_word(0x0164, 0x0000);   //      X_ADD_STA_A  x_addr_start  X-address of the top left corner of the visible pixel data Units: Pixels
 	imx219_write_word(0x0166, 0x0CCF);   //      X_ADD_END_A
@@ -160,13 +166,32 @@ int imx219_init(void)
 	imx219_write_word(0x016A, 0x099F);   //      Y_ADD_END_A
 	imx219_write_word(0x016C, 0x0668);   //      x_output_size
 	imx219_write_word(0x016E, 0x04D0);   //      y_output_size
+#else
+	imx219_write_word(0x0164, 3280/2 - width);    //      X_ADD_STA_A  x_addr_start  X-address of the top left corner of the visible pixel data Units: Pixels
+	imx219_write_word(0x0166, 3280/2 + width-1);  // 0xccf=3279     X_ADD_END_A
+	imx219_write_word(0x0168, 2464/2 - height);    //      Y_ADD_STA_A
+	imx219_write_word(0x016A, 2464/2 + height-1);  // 0x99f=2463     Y_ADD_END_A
+	imx219_write_word(0x016C, width);    // 0x668=1640     x_output_size
+	imx219_write_word(0x016E, height);   // 0x4d0=1232     y_output_size
+#endif
+
+#if ORG_SETTING
 	imx219_write_word(0x0170, 0x0101);   //      X_ODD_INC_A  Increment for odd pixels 1, 3
 	imx219_write_word(0x0174, 0x0101);   //      BINNING_MODE_H_A  0: no-binning, 1: x2-binning, 2: x4-binning, 3: x2-analog (special) binning
+#else
+	imx219_write_word(0x0174, 0x0303);   // r     BINNING_MODE_H_A  0: no-binning, 1: x2-binning, 2: x4-binning, 3: x2-analog (special) binning
+#endif
+
 	imx219_write_word(0x018C, 0x0A0A);   //      CSI_DATA_FORMAT_A   CSI-2 data format
 	imx219_write_byte(0x0301, 0x05  );   //      VTPXCK_DIV  Video Timing Pixel Clock Divider Value
 	imx219_write_word(0x0303, 0x0103);   //      VTSYCK_DIV  PREPLLCK_VT_DIV(3: EXCK_FREQ 24 MHz to 27 MHz)
 	imx219_write_word(0x0305, 0x0300);   //      PREPLLCK_OP_DIV(3: EXCK_FREQ 24 MHz to 27 MHz)  / PLL_VT_MPY ‹æØ‚è‚ª‚¨‚©‚µ‚¢ŽŸ‚É‘±‚­
+#if ORG_SETTING
 	imx219_write_byte(0x0307, 0x39  );   //      PLL_VT_MPY
+#else
+	imx219_write_byte(0x0307, 87  );   // r PLL_VT_MPY
+#endif
+
 	imx219_write_byte(0x0309, 0x0A  );   //      OPPXCK_DIV
 	imx219_write_word(0x030B, 0x0100);   //      OPSYCK_DIV PLL_OP_MPY[10:8] / ‹æØ‚è‚ª‚¨‚©‚µ‚¢ŽŸ‚É‘±‚­
 	imx219_write_byte(0x030D, 0x72  );   //      PLL_OP_MPY[10:8]
@@ -183,6 +208,8 @@ int imx219_init(void)
 	imx219_write_byte(0x4797, 0x0E  );   //
 	imx219_write_byte(0x479B, 0x0E  );   //
 
+
+#if ORG_SETTING
 	imx219_write_byte(0x0172, 0x03  );   //      IMG_ORIENTATION_A
 	imx219_write_word(0x0160, 0x06E3);   //      FRM_LENGTH_A[15:8]
 	imx219_write_word(0x0162, 0x0D78);   //      LINE_LENGTH_A
@@ -207,6 +234,17 @@ int imx219_init(void)
 	imx219_write_word(0x0162, 0x0D78);   //      INE_LENGTH_A (line_length_pck Units: Pixels)
 	imx219_write_word(0x015A, 0x0D02);   //      COARSE_INTEGRATION_TIME_A
 	imx219_write_byte(0x0157, 0xE0  );   //      ANA_GAIN_GLOBAL_A
+#else
+	imx219_write_byte(0x0172, 0x00  );   //      IMG_ORIENTATION_A
+	imx219_write_byte(0x0100, 0x01  );   //      mode_select [4:0] 0: SW standby, 1: Streaming
+	imx219_write_byte(0x0157, 0x00  );   //      ANA_GAIN_GLOBAL_A
+	imx219_write_word(0x0160, 80);       // 0x0D02=3330   FRM_LENGTH_A
+	imx219_write_word(0x0162, 0x0D78);   // 0x0D78=3448   LINE_LENGTH_A (line_length_pck Units: Pixels)
+	imx219_write_word(0x015A, 50);       // 0x0D02=3330   COARSE_INTEGRATION_TIME_A
+	imx219_write_byte(0x0157, 0xE0  );   //      ANA_GAIN_GLOBAL_A
+//	imx219_write_byte(0x0157, 0xFF  );   //      ANA_GAIN_GLOBAL_A
+	imx219_write_word(0x0158, 0x0FFF);   //      ANA_GAIN_GLOBAL_A
+#endif
 
 	return 0;
 }
