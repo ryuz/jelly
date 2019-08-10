@@ -55,6 +55,8 @@ module jelly_video_normalizer
 			input	wire						s_wb_stb_i,
 			output	wire						s_wb_ack_o,
 			
+			output	wire	[X_WIDTH-1:0]		out_param_width,
+			output	wire	[Y_WIDTH-1:0]		out_param_height,
 			
 			input	wire	[TUSER_WIDTH-1:0]	s_axi4s_tuser,
 			input	wire						s_axi4s_tlast,
@@ -156,6 +158,8 @@ module jelly_video_normalizer
 	assign s_wb_dat_o = wb_dat_o;
 	assign s_wb_ack_o = s_wb_stb_i;
 	
+	assign out_param_width  = reg_param_width;
+	assign out_param_height = reg_param_height;
 	
 	
 	// core
@@ -197,7 +201,7 @@ module jelly_video_normalizer
 	
 	always @(posedge aclk) begin
 		ff0_ctl_update    <= reg_control[1];
-		ff0_frm_timeout <= reg_frm_timeout;
+		ff0_frm_timeout   <= reg_frm_timeout;
 		ff0_param_width   <= reg_param_width;
 		ff0_param_height  <= reg_param_height;
 		ff0_param_fill    <= reg_param_fill;
@@ -205,7 +209,7 @@ module jelly_video_normalizer
 		
 		
 		ff1_ctl_update    <= ff0_ctl_update;
-		ff1_frm_timeout <= ff0_frm_timeout;
+		ff1_frm_timeout   <= ff0_frm_timeout;
 		ff1_param_width   <= ff0_param_width;
 		ff1_param_height  <= ff0_param_height;
 		ff1_param_fill    <= ff0_param_fill;
