@@ -24,6 +24,8 @@ module jelly_video_integrator_bram_core
 			parameter	MAX_X_NUM     = (1 << X_WIDTH),
 			parameter	MAX_Y_NUM     = (1 << Y_WIDTH),
 			parameter	RAM_TYPE      = "block",
+			parameter	FILLMEM       = 1,
+			parameter	FILLMEM_DATA  = 0,
 			parameter	COMPACT       = 1,
 			parameter	M_SLAVE_REGS  = 1,
 			parameter	M_MASTER_REGS = 1
@@ -68,8 +70,8 @@ module jelly_video_integrator_bram_core
 				.MEM_SIZE		((1 << X_WIDTH)*MAX_Y_NUM),
 				.RAM_TYPE		(RAM_TYPE),
 				.DOUT_REGS		(1),
-				.FILLMEM		(1),
-				.FILLMEM_DATA	(0)
+				.FILLMEM		(FILLMEM),
+				.FILLMEM_DATA	(FILLMEM_DATA)
 			)
 		i_ram_simple_dualport
 			(
@@ -211,7 +213,6 @@ module jelly_video_integrator_bram_core
 	assign ram_wr_en   = sum_tvalid;
 	assign ram_wr_addr = {sum_y, sum_x};
 	assign ram_wr_din  = sum_tdata;
-	
 	
 	// output
 	jelly_pipeline_insert_ff
