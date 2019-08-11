@@ -35,30 +35,17 @@ module tb_video_pwm_modulator();
 	localparam	Y_NUM = 128;
 	
 	
-	parameter	TUSER_WIDTH   = 1;
-	parameter	TDATA_WIDTH   = 8;
+	parameter	TUSER_WIDTH  = 1;
+	parameter	TDATA_WIDTH  = 8;
 	
-	parameter	WB_ADR_WIDTH        = 8;
-	parameter	WB_DAT_SIZE         = 2;	// 0:8bit, 1:16bit, 2:32bit, ...
-	parameter	WB_DAT_WIDTH        = (8 << WB_DAT_SIZE);
-	parameter	WB_SEL_WIDTH        = (WB_DAT_WIDTH / 8);
+	parameter	WB_ADR_WIDTH = 8;
+	parameter	WB_DAT_SIZE  = 2;	// 0:8bit, 1:16bit, 2:32bit, ...
+	parameter	WB_DAT_WIDTH = (8 << WB_DAT_SIZE);
+	parameter	WB_SEL_WIDTH = (WB_DAT_WIDTH / 8);
 	
 	wire						aresetn = ~reset;
 	wire						aclk    = clk;
 	wire						aclken  = 1'b1;
-	
-	wire	[TUSER_WIDTH-1:0]	s_axi4s_tuser;
-	wire						s_axi4s_tlast;
-	wire	[TDATA_WIDTH-1:0]	s_axi4s_tdata;
-	wire						s_axi4s_tvalid;
-	wire						s_axi4s_tready;
-	
-	wire	[TUSER_WIDTH-1:0]	m_axi4s_tuser;
-	wire						m_axi4s_tlast;
-	wire	[0:0]				m_axi4s_tbinary;
-	wire	[TDATA_WIDTH-1:0]	m_axi4s_tdata;
-	wire						m_axi4s_tvalid;
-	wire						m_axi4s_tready;
 	
 	wire						s_wb_rst_i = reset;
 	wire						s_wb_clk_i = wb_clk;
@@ -73,6 +60,12 @@ module tb_video_pwm_modulator();
 	
 	
 	// model
+	wire	[TUSER_WIDTH-1:0]	axi4s_src_tuser;
+	wire						axi4s_src_tlast;
+	wire	[TDATA_WIDTH-1:0]	axi4s_src_tdata;
+	wire						axi4s_src_tvalid;
+	wire						axi4s_src_tready;
+	
 	jelly_axi4s_master_model
 			#(
 				.AXI4S_DATA_WIDTH		(TDATA_WIDTH),
@@ -88,37 +81,22 @@ module tb_video_pwm_modulator();
 				.aresetn				(aresetn),
 				.aclk					(aclk),
 				
-				.m_axi4s_tuser			(s_axi4s_tuser),
-				.m_axi4s_tlast			(s_axi4s_tlast),
-				.m_axi4s_tdata			(s_axi4s_tdata),
-				.m_axi4s_tvalid			(s_axi4s_tvalid),
-				.m_axi4s_tready			(s_axi4s_tready)
+				.m_axi4s_tuser			(axi4s_src_tuser),
+				.m_axi4s_tlast			(axi4s_src_tlast),
+				.m_axi4s_tdata			(axi4s_src_tdata),
+				.m_axi4s_tvalid			(axi4s_src_tvalid),
+				.m_axi4s_tready			(axi4s_src_tready)
 			);
 	
-	jelly_axi4s_debug_monitor
-			#(
-				.TUSER_WIDTH			(1),
-				.TDATA_WIDTH			(24),
-				.TIMER_WIDTH			(32),
-				.FRAME_WIDTH			(32),
-				.PIXEL_WIDTH			(32),
-				.X_WIDTH				(16),
-				.Y_WIDTH				(16)
-			)
-		i_axi4s_debug_monitor
-			(
-				.aresetn				(aresetn),
-				.aclk					(aclk),
-				.aclken					(aclken),
-				
-				.axi4s_tuser			(s_axi4s_tuser),
-				.axi4s_tlast			(s_axi4s_tlast),
-				.axi4s_tdata			(s_axi4s_tdata),
-				.axi4s_tvalid			(s_axi4s_tvalid),
-				.axi4s_tready			(s_axi4s_tready)
-			);
 	
-	// core
+	// PWM
+	wire	[TUSER_WIDTH-1:0]	axi4s_pwm_tuser;
+	wire						axi4s_pwm_tlast;
+	wire	[0:0]				axi4s_pwm_tbinary;
+	wire	[TDATA_WIDTH-1:0]	axi4s_pwm_tdata;
+	wire						axi4s_pwm_tvalid;
+	wire						axi4s_pwm_tready;
+	
 	jelly_video_pwm_modulator
 			#(
 				.TUSER_WIDTH			(TUSER_WIDTH),
@@ -136,18 +114,18 @@ module tb_video_pwm_modulator();
 				.aclk					(aclk),
 				.aclken					(aclken),
 				
-				.s_axi4s_tuser			(s_axi4s_tuser),
-				.s_axi4s_tlast			(s_axi4s_tlast),
-				.s_axi4s_tdata			(s_axi4s_tdata),
-				.s_axi4s_tvalid			(s_axi4s_tvalid),
-				.s_axi4s_tready			(s_axi4s_tready),
+				.s_axi4s_tuser			(axi4s_src_tuser),
+				.s_axi4s_tlast			(axi4s_src_tlast),
+				.s_axi4s_tdata			(axi4s_src_tdata),
+				.s_axi4s_tvalid			(axi4s_src_tvalid),
+				.s_axi4s_tready			(axi4s_src_tready),
 				
-				.m_axi4s_tuser			(m_axi4s_tuser),
-				.m_axi4s_tlast			(m_axi4s_tlast),
-				.m_axi4s_tbinary		(m_axi4s_tbinary),
-				.m_axi4s_tdata			(m_axi4s_tdata),
-				.m_axi4s_tvalid			(m_axi4s_tvalid),
-				.m_axi4s_tready			(m_axi4s_tready),
+				.m_axi4s_tuser			(axi4s_pwm_tuser),
+				.m_axi4s_tlast			(axi4s_pwm_tlast),
+				.m_axi4s_tbinary		(axi4s_pwm_tbinary),
+				.m_axi4s_tdata			(axi4s_pwm_tdata),
+				.m_axi4s_tvalid			(axi4s_pwm_tvalid),
+				.m_axi4s_tready			(axi4s_pwm_tready),
 				
 				.s_wb_rst_i				(s_wb_rst_i),
 				.s_wb_clk_i				(s_wb_clk_i),
@@ -158,6 +136,48 @@ module tb_video_pwm_modulator();
 				.s_wb_sel_i				(s_wb_sel_i),
 				.s_wb_stb_i				(s_wb_stb_i),
 				.s_wb_ack_o				(s_wb_ack_o)
+			);
+	
+	
+	// integrator
+	wire	[TUSER_WIDTH-1:0]	axi4s_int_tuser;
+	wire						axi4s_int_tlast;
+	wire	[TDATA_WIDTH-1:0]	axi4s_int_tdata;
+	wire						axi4s_int_tvalid;
+	wire						axi4s_int_tready;
+	
+	jelly_video_integrator_bram_core
+			#(
+				.COMPONENT_NUM			(1),
+				.DATA_WIDTH				(TDATA_WIDTH),
+				.RATE_WIDTH				(4),
+				.TUSER_WIDTH			(1),
+				.X_WIDTH				(10),
+				.Y_WIDTH				(8),
+				.MAX_X_NUM				(1024),
+				.MAX_Y_NUM				(256),
+				.RAM_TYPE				("block"),
+				.COMPACT				(1)
+			)
+		i_video_integrator_bram_core
+			(
+				.aresetn				(aresetn),
+				.aclk					(aclk),
+				.aclken					(aclken),
+				
+				.param_rate				(14),
+				
+				.s_axi4s_tuser			(axi4s_pwm_tuser),
+				.s_axi4s_tlast			(axi4s_pwm_tlast),
+				.s_axi4s_tdata			({TDATA_WIDTH{axi4s_pwm_tbinary}}),
+				.s_axi4s_tvalid			(axi4s_pwm_tvalid),
+				.s_axi4s_tready			(axi4s_pwm_tready),
+				
+				.m_axi4s_tuser			(axi4s_int_tuser),
+				.m_axi4s_tlast			(axi4s_int_tlast),
+				.m_axi4s_tdata			(axi4s_int_tdata),
+				.m_axi4s_tvalid			(axi4s_int_tvalid),
+				.m_axi4s_tready			(axi4s_int_tready)
 			);
 	
 	
@@ -193,7 +213,7 @@ module tb_video_pwm_modulator();
 				.COMPONENT_NUM			(1),
 				.DATA_WIDTH				(1),
 				.INIT_FRAME_NUM			(0),
-				.FILE_NAME				("pwm_%04d.pgm"),
+				.FILE_NAME				("output/pwm_%04d.pgm"),
 				.BUSY_RATE				(0),
 				.RANDOM_SEED			(1234)
 			)
@@ -206,23 +226,23 @@ module tb_video_pwm_modulator();
 				.param_width			(X_NUM),
 				.param_height			(Y_NUM),
 				
-				.s_axi4s_tuser			(m_axi4s_tuser),
-				.s_axi4s_tlast			(m_axi4s_tlast),
-				.s_axi4s_tdata			(m_axi4s_tbinary),
-				.s_axi4s_tvalid			(m_axi4s_tvalid),
-				.s_axi4s_tready			(m_axi4s_tready)
+				.s_axi4s_tuser			(axi4s_pwm_tuser),
+				.s_axi4s_tlast			(axi4s_pwm_tlast),
+				.s_axi4s_tdata			(axi4s_pwm_tbinary),
+				.s_axi4s_tvalid			(axi4s_pwm_tvalid & axi4s_pwm_tready),
+				.s_axi4s_tready			()
 			);
 	
-	/*
 	jelly_axi4s_slave_model
 			#(
 				.COMPONENT_NUM			(1),
 				.DATA_WIDTH				(TDATA_WIDTH),
 				.INIT_FRAME_NUM			(0),
-				.FILE_NAME				("out_%04d.pgm"),
-				.BUSY_RATE				(0)
+				.FILE_NAME				("output/int_%04d.pgm"),
+				.BUSY_RATE				(0),
+				.RANDOM_SEED			(4321)
 			)
-		i_axi4s_slave_model_rgb
+		i_axi4s_slave_model_int
 			(
 				.aresetn				(aresetn),
 				.aclk					(aclk),
@@ -231,13 +251,12 @@ module tb_video_pwm_modulator();
 				.param_width			(X_NUM),
 				.param_height			(Y_NUM),
 				
-				.s_axi4s_tuser			(m_axi4s_tuser),
-				.s_axi4s_tlast			(m_axi4s_tlast),
-				.s_axi4s_tdata			(m_axi4s_tdata),
-				.s_axi4s_tvalid			(m_axi4s_tvalid & m_axi4s_tready),
-				.s_axi4s_tready			()
+				.s_axi4s_tuser			(axi4s_int_tuser),
+				.s_axi4s_tlast			(axi4s_int_tlast),
+				.s_axi4s_tdata			(axi4s_int_tdata),
+				.s_axi4s_tvalid			(axi4s_int_tvalid),
+				.s_axi4s_tready			(axi4s_int_tready)
 			);
-	*/
 	
 	
 	wire		[WB_DAT_WIDTH-1:0]	wb_read_dat;
