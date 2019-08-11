@@ -7,8 +7,12 @@
 
 module top
 		#(
-			parameter	X_NUM = 3280 / 2,
-			parameter	Y_NUM = 2464 / 2
+			parameter	X_WIDTH   = 10,
+			parameter	Y_WIDTH   = 8,
+			parameter	X_NUM     = 512,
+			parameter	Y_NUM     = 128,
+			parameter	MAX_X_NUM = 512,
+			parameter	MAX_Y_NUM = 128
 		)
 		(
 			input	wire			in_clk125,
@@ -300,15 +304,15 @@ module top
 	
 	
 	// AXI4L => WISHBONE
-	wire					wb_rst_o;
-	wire					wb_clk_o;
-	wire	[29:0]			wb_host_adr_o;
-	wire	[31:0]			wb_host_dat_o;
-	wire	[31:0]			wb_host_dat_i;
-	wire					wb_host_we_o;
-	wire	[3:0]			wb_host_sel_o;
-	wire					wb_host_stb_o;
-	wire					wb_host_ack_i;
+								wire					wb_rst_o;
+								wire					wb_clk_o;
+	(* MARK_DEBUG = "true" *)	wire	[29:0]			wb_host_adr_o;
+	(* MARK_DEBUG = "true" *)	wire	[31:0]			wb_host_dat_o;
+	(* MARK_DEBUG = "true" *)	wire	[31:0]			wb_host_dat_i;
+	(* MARK_DEBUG = "true" *)	wire					wb_host_we_o;
+	(* MARK_DEBUG = "true" *)	wire	[3:0]			wb_host_sel_o;
+	(* MARK_DEBUG = "true" *)	wire					wb_host_stb_o;
+	(* MARK_DEBUG = "true" *)	wire					wb_host_ack_i;
 	
 	jelly_axi4l_to_wishbone
 			#(
@@ -580,30 +584,7 @@ module top
 				.m_axi4s_tready		(1'b1)	// (axi4s_csi2_tready)
 			);
 	
-	jelly_axi4s_debug_monitor
-			#(
-				.TUSER_WIDTH		(1),
-				.TDATA_WIDTH		(10),
-				.TIMER_WIDTH		(32),
-				.FRAME_WIDTH		(32),
-				.PIXEL_WIDTH		(32),
-				.X_WIDTH			(16),
-				.Y_WIDTH			(16)
-			)
-		i_axi4s_debug_monitor_csi2
-			(
-				.aresetn			(axi4s_cam_aresetn),
-				.aclk				(axi4s_cam_aclk),
-				.aclken				(1'b1),
-				
-				.axi4s_tuser		(axi4s_csi2_tuser),
-				.axi4s_tlast		(axi4s_csi2_tlast),
-				.axi4s_tdata		(axi4s_csi2_tdata),
-				.axi4s_tvalid		(axi4s_csi2_tvalid),
-				.axi4s_tready		(axi4s_csi2_tready)
-			);
 	
-	/*
 	wire	[0:0]	axi4s_fifo_tuser;
 	wire			axi4s_fifo_tlast;
 	wire	[9:0]	axi4s_fifo_tdata;
@@ -613,7 +594,7 @@ module top
 	jelly_fifo_fwtf
 			#(
 				.DATA_WIDTH			(2+10),
-				.PTR_WIDTH			(10),
+				.PTR_WIDTH			(0),	// bypass
 				.DOUT_REGS			(0),
 				.RAM_TYPE			("block"),
 				.LOW_DEALY			(0),
@@ -635,19 +616,22 @@ module top
 				.m_ready			(axi4s_fifo_tready),
 				.m_data_count		()
 			);
-	*/
+	
 	
 	
 	// normalize
-	wire	[0:0]		axi4s_norm_tuser;
-	wire				axi4s_norm_tlast;
-	wire	[9:0]		axi4s_norm_tdata;
-	wire				axi4s_norm_tvalid;
-	wire				axi4s_norm_tready;
+	wire	[0:0]			axi4s_norm_tuser;
+	wire					axi4s_norm_tlast;
+	wire	[9:0]			axi4s_norm_tdata;
+	wire					axi4s_norm_tvalid;
+	wire					axi4s_norm_tready;
 	
-	wire	[31:0]		wb_norm_dat_o;
-	wire				wb_norm_stb_i;
-	wire				wb_norm_ack_o;
+	wire	[31:0]			wb_norm_dat_o;
+	wire					wb_norm_stb_i;
+	wire					wb_norm_ack_o;
+	
+	wire	[X_WIDTH-1:0]	image_width;
+	wire	[Y_WIDTH-1:0]	image_height;
 	
 	jelly_video_normalizer
 			#(
@@ -656,8 +640,8 @@ module top
 				
 				.TUSER_WIDTH		(1),
 				.TDATA_WIDTH		(10),
-				.X_WIDTH			(16),
-				.Y_WIDTH			(16),
+				.X_WIDTH			(X_WIDTH),
+				.Y_WIDTH			(Y_WIDTH),
 				.TIMER_WIDTH		(32),
 				.S_SLAVE_REGS		(1),
 				.S_MASTER_REGS		(1),
@@ -686,20 +670,23 @@ module top
 				.s_wb_sel_i			(wb_host_sel_o),
 				.s_wb_stb_i			(wb_norm_stb_i),
 				.s_wb_ack_o			(wb_norm_ack_o),
+
+				.out_param_width	(image_width),
+				.out_param_height	(image_height),
 				
-				/*
 				.s_axi4s_tuser		(axi4s_fifo_tuser),
 				.s_axi4s_tlast		(axi4s_fifo_tlast),
 				.s_axi4s_tdata		(axi4s_fifo_tdata),
 				.s_axi4s_tvalid		(axi4s_fifo_tvalid),
 				.s_axi4s_tready		(axi4s_fifo_tready),
-				*/
 				
+				/*
 				.s_axi4s_tuser		(axi4s_csi2_tuser),
 				.s_axi4s_tlast		(axi4s_csi2_tlast),
 				.s_axi4s_tdata		(axi4s_csi2_tdata),
 				.s_axi4s_tvalid		(axi4s_csi2_tvalid),
 				.s_axi4s_tready		(axi4s_csi2_tready),
+				*/
 				
 				.m_axi4s_tuser		(axi4s_norm_tuser),
 				.m_axi4s_tlast		(axi4s_norm_tlast),
@@ -727,8 +714,8 @@ module top
 				
 				.DATA_WIDTH			(10),
 				
-				.IMG_Y_NUM			(480),
-				.IMG_Y_WIDTH		(12),
+				.IMG_Y_NUM			(Y_NUM),
+				.IMG_Y_WIDTH		(Y_WIDTH),
 				
 				.TUSER_WIDTH		(1)
 			)
@@ -810,12 +797,12 @@ module top
 	
 	video_mnist
 			#(
-				.MAX_X_NUM			(2048),
+				.MAX_X_NUM			(MAX_X_NUM),
 				.DATA_WIDTH			(8),
 				.IMG_Y_NUM			(Y_NUM),
-				.IMG_Y_WIDTH		(12),
+				.IMG_Y_WIDTH		(Y_WIDTH),
 				.TUSER_WIDTH		(1),
-				.WB_ADR_WIDTH		(8),
+				.WB_ADR_WIDTH		(10),
 				.WB_DAT_WIDTH		(32),
 				.INIT_PARAM_TH		(127),
 				.INIT_PARAM_INV		(0)
@@ -841,7 +828,7 @@ module top
 				
 				.s_wb_rst_i			(wb_rst_o),
 				.s_wb_clk_i			(wb_clk_o),
-				.s_wb_adr_i			(wb_host_adr_o[7:0]),
+				.s_wb_adr_i			(wb_host_adr_o[9:0]),
 				.s_wb_dat_o			(wb_mnist_dat_o),
 				.s_wb_dat_i			(wb_host_dat_o),
 				.s_wb_we_i			(wb_host_we_o),
@@ -868,10 +855,10 @@ module top
 				.DIV_X					(2),
 				.DIV_Y					(2),
 				
-				.X_WIDTH				(12),
-				.Y_WIDTH				(12),
-				.MAX_X_NUM				(2048),//(1024),
-				.MAX_Y_NUM				(1024),//(512),
+				.X_WIDTH				(X_WIDTH),
+				.Y_WIDTH				(Y_WIDTH),
+				.MAX_X_NUM				(MAX_X_NUM),
+				.MAX_Y_NUM				(MAX_Y_NUM),
 				.RAM_TYPE				("block")
 			)
 		i_video_dnn_fmem
@@ -950,27 +937,63 @@ module top
 			);
 	
 	
-	jelly_axi4s_debug_monitor
+	
+	// integrator
+	wire	[0:0]				axi4s_int_tuser;
+	wire						axi4s_int_tlast;
+	wire	[23:0]				axi4s_int_tdata;
+	wire						axi4s_int_tvalid;
+	wire						axi4s_int_tready;
+	
+	wire	[31:0]				wb_int_dat_o;
+	wire						wb_int_stb_i;
+	wire						wb_int_ack_o;
+	
+	jelly_video_integrator_bram
 			#(
-				.TUSER_WIDTH		(1),
-				.TDATA_WIDTH		(32),
-				.TIMER_WIDTH		(32),
-				.FRAME_WIDTH		(32),
-				.PIXEL_WIDTH		(32),
-				.X_WIDTH			(16),
-				.Y_WIDTH			(16)
+				.COMPONENT_NUM			(3),
+				.DATA_WIDTH				(8),
+				.RATE_WIDTH				(8),
+				.WB_ADR_WIDTH			(8),
+				.WB_DAT_WIDTH			(32),
+				.TUSER_WIDTH			(1),
+				.X_WIDTH				(9),
+				.Y_WIDTH				(8),
+				.MAX_X_NUM				(512),
+				.MAX_Y_NUM				(128),
+				.RAM_TYPE				("block"),
+				.FILLMEM				(1),
+				.FILLMEM_DATA			(24'h7f7f7f),
+				.COMPACT				(1),
+				.INIT_PARAM_RATE		(8'hf0)
 			)
-		i_axi4s_debug_monitor_mcol
+		i_video_integrator_bram
 			(
-				.aresetn			(axi4s_cam_aresetn),
-				.aclk				(axi4s_cam_aclk),
-				.aclken				(1'b1),
+				.aresetn				(axi4s_cam_aresetn),
+				.aclk					(axi4s_cam_aclk),
+				.aclken					(1'b1),
 				
-				.axi4s_tuser		(axi4s_mcol_tuser),
-				.axi4s_tlast		(axi4s_mcol_tlast),
-				.axi4s_tdata		(axi4s_mcol_tdata),
-				.axi4s_tvalid		(axi4s_mcol_tvalid),
-				.axi4s_tready		(axi4s_mcol_tready)
+				.s_wb_rst_i				(wb_rst_o),
+				.s_wb_clk_i				(wb_clk_o),
+				.s_wb_adr_i				(wb_host_adr_o[7:0]),
+				.s_wb_dat_o				(wb_int_dat_o),
+				.s_wb_dat_i				(wb_host_dat_o),
+				.s_wb_we_i				(wb_host_we_o),
+				.s_wb_sel_i				(wb_host_sel_o),
+				.s_wb_stb_i				(wb_int_stb_i),
+				.s_wb_ack_o				(wb_int_ack_o),
+				
+				.s_axi4s_tuser			(axi4s_mcol_tuser),
+				.s_axi4s_tlast			(axi4s_mcol_tlast),
+				.s_axi4s_tdata			(axi4s_mcol_tdata[23:0]),
+				.s_axi4s_tvalid			(axi4s_mcol_tvalid),
+				.s_axi4s_tready			(axi4s_mcol_tready),
+				
+				.m_axi4s_tuser			(axi4s_int_tuser),
+				.m_axi4s_tlast			(axi4s_int_tlast),
+				.m_axi4s_tdata			(axi4s_int_tdata),
+				.m_axi4s_tvalid			(axi4s_int_tvalid),
+				.m_axi4s_tready			(axi4s_int_tready)
 			);
 	
 	
@@ -1051,11 +1074,11 @@ module top
 				
 				.s_axi4s_aresetn	(axi4s_cam_aresetn),
 				.s_axi4s_aclk		(axi4s_cam_aclk),
-				.s_axi4s_tuser		(axi4s_mcol_tuser),
-				.s_axi4s_tlast		(axi4s_mcol_tlast),
-				.s_axi4s_tdata		(axi4s_mcol_tdata),
-				.s_axi4s_tvalid		(axi4s_mcol_tvalid),
-				.s_axi4s_tready		(axi4s_mcol_tready), // (axi4s_rgb_tready),
+				.s_axi4s_tuser		(axi4s_int_tuser),
+				.s_axi4s_tlast		(axi4s_int_tlast),
+				.s_axi4s_tdata		({8'd0, axi4s_int_tdata}),
+				.s_axi4s_tvalid		(axi4s_int_tvalid),
+				.s_axi4s_tready		(axi4s_int_tready), // (axi4s_rgb_tready),
 				
 				
 				.s_wb_rst_i			(wb_rst_o),
@@ -1204,29 +1227,6 @@ module top
 				.trig_start			(0)
 			);
 	
-	jelly_axi4s_debug_monitor
-			#(
-				.TUSER_WIDTH		(1),
-				.TDATA_WIDTH		(32),
-				.TIMER_WIDTH		(32),
-				.FRAME_WIDTH		(32),
-				.PIXEL_WIDTH		(32),
-				.X_WIDTH			(16),
-				.Y_WIDTH			(16)
-			)
-		i_axi4s_debug_monitor_vout
-			(
-				.aresetn			(~vout_reset),
-				.aclk				(vout_clk),
-				.aclken				(1'b1),
-				
-				.axi4s_tuser		(axi4s_vout_tuser),
-				.axi4s_tlast		(axi4s_vout_tlast),
-				.axi4s_tdata		(axi4s_vout_tdata),
-				.axi4s_tvalid		(axi4s_vout_tvalid),
-				.axi4s_tready		(axi4s_vout_tready)
-			);
-	
 	
 //	// read ‚Í–¢Žg—p
 //	assign axi4_mem0_arid     = 0;
@@ -1241,8 +1241,6 @@ module top
 //	assign axi4_mem0_arsize   = 0;
 //	assign axi4_mem0_arvalid  = 0;
 //	assign axi4_mem0_rready   = 0;
-
-	
 	
 	
 	wire					vout_vsgen_vsync;
@@ -1542,6 +1540,7 @@ module top
 	assign wb_rgb_stb_i   = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_2);
 	assign wb_mnist_stb_i = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_8);
 	assign wb_mcol_stb_i  = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_9);
+	assign wb_int_stb_i   = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_a);
 	assign wb_vdmar_stb_i = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4002_0);
 	assign wb_vsgen_stb_i = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4002_1);
 	
@@ -1552,6 +1551,7 @@ module top
 	                        wb_rgb_stb_i   ? wb_rgb_dat_o   :
 	                        wb_mnist_stb_i ? wb_mnist_dat_o :
 	                        wb_mcol_stb_i  ? wb_mcol_dat_o  :
+	                        wb_int_stb_i   ? wb_int_dat_o   :
 	                        wb_vdmar_stb_i ? wb_vdmar_dat_o :
 	                        wb_vsgen_stb_i ? wb_vsgen_dat_o :
 	                        32'h0000_0000;
@@ -1562,6 +1562,7 @@ module top
 	                        wb_rgb_stb_i   ? wb_rgb_ack_o   :
 	                        wb_mnist_stb_i ? wb_mnist_ack_o :
 	                        wb_mcol_stb_i  ? wb_mcol_ack_o  :
+	                        wb_int_stb_i   ? wb_int_ack_o   :
 	                        wb_vdmar_stb_i ? wb_vdmar_ack_o :
 	                        wb_vsgen_stb_i ? wb_vsgen_ack_o :
 	                        wb_host_stb_o;

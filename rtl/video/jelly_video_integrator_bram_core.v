@@ -57,11 +57,11 @@ module jelly_video_integrator_bram_core
 	localparam	ADDR_WIDTH = Y_WIDTH + X_WIDTH;
 	
 	wire	[ADDR_WIDTH-1:0]	ram_rd_addr;
-	wire	[DATA_WIDTH-1:0]	ram_rd_dout;
+	wire	[TDATA_WIDTH-1:0]	ram_rd_dout;
 	
 	wire						ram_wr_en;
 	wire	[ADDR_WIDTH-1:0]	ram_wr_addr;
-	wire	[DATA_WIDTH-1:0]	ram_wr_din;
+	wire	[TDATA_WIDTH-1:0]	ram_wr_din;
 	
 	jelly_ram_simple_dualport
 			#(

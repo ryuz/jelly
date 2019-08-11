@@ -16,11 +16,15 @@ module tb_top();
 		$dumpfile("tb_top.vcd");
 		$dumpvars(1, tb_top);
 		$dumpvars(1, tb_top.i_top);
+		$dumpvars(0, tb_top.i_top.i_video_mnist);
+//		$dumpvars(0, tb_top.i_top.i_video_mnist.i_video_tbl_modulator);
+		
+		
 		$dumpvars(0, tb_top.i_top.i_axi4s_debug_monitor_csi2);
 		$dumpvars(0, tb_top.i_top.i_axi4s_debug_monitor_mcol);
 		$dumpvars(0, tb_top.i_top.i_axi4s_debug_monitor_vout);
 		$dumpvars(1, tb_top.i_axi4s_master_model);
-		$dumpvars(1, tb_top.i_top.i_video_mnist);
+		$dumpvars(2, tb_top.i_top.i_video_mnist);
 		$dumpvars(1, tb_top.i_top.i_vdma_axi4_to_axi4s);
 //		$dumpvars(0, tb_top.i_top.i_video_normalizer);
 		
@@ -124,7 +128,7 @@ module tb_top();
 				
 				.s_axi4s_tuser		(i_top.axi4s_rgb_tuser),
 				.s_axi4s_tlast		(i_top.axi4s_rgb_tlast),
-				.s_axi4s_tdata		(i_top.axi4s_rgb_tdata),
+				.s_axi4s_tdata		(i_top.axi4s_rgb_tdata[29:0]),
 				.s_axi4s_tvalid		(i_top.axi4s_rgb_tvalid & i_top.axi4s_rgb_tready),
 				.s_axi4s_tready		()
 			);
@@ -152,7 +156,7 @@ module tb_top();
 				
 				.s_axi4s_tuser		(i_top.axi4s_mcol_tuser),
 				.s_axi4s_tlast		(i_top.axi4s_mcol_tlast),
-				.s_axi4s_tdata		(i_top.axi4s_mcol_tdata),
+				.s_axi4s_tdata		(i_top.axi4s_mcol_tdata[23:0]),
 				.s_axi4s_tvalid		(i_top.axi4s_mcol_tvalid & i_top.axi4s_mcol_tready),
 				.s_axi4s_tready		()
 			);
@@ -188,7 +192,7 @@ module tb_top();
 				
 				.s_axi4s_tuser		(i_top.axi4s_vout_tuser),
 				.s_axi4s_tlast		(i_top.axi4s_vout_tlast),
-				.s_axi4s_tdata		(i_top.axi4s_vout_tdata),
+				.s_axi4s_tdata		(i_top.axi4s_vout_tdata[23:0]),
 				.s_axi4s_tvalid		(i_top.axi4s_vout_tvalid & i_top.axi4s_vout_tready),
 				.s_axi4s_tready		()
 			);
@@ -296,6 +300,31 @@ module tb_top();
 		wb_write(32'h40011028,     0, 4'b1111);				// fill
 		wb_write(32'h4001102c,  1024, 4'b1111);				// timeout
 		wb_write(32'h40011000,     1, 4'b1111);				// enable
+		
+		wb_write(32'h40012000, 0, 4'hf);	// DEMOSAIC_REG_PARAM_PHASE
+		
+		wb_write(32'h40018000 + 4*0,  32'h10, 4'hf);
+		wb_write(32'h40018000 + 4*1,  32'hf0, 4'hf);
+		wb_write(32'h40018000 + 4*2,  32'h70, 4'hf);
+		wb_write(32'h40018000 + 4*3,  32'h90, 4'hf);
+		wb_write(32'h40018000 + 4*4,  32'h30, 4'hf);
+		wb_write(32'h40018000 + 4*5,  32'hd0, 4'hf);
+		wb_write(32'h40018000 + 4*6,  32'h50, 4'hf);
+		wb_write(32'h40018000 + 4*7,  32'hb0, 4'hf);
+		wb_write(32'h40018000 + 4*8,  32'h20, 4'hf);
+		wb_write(32'h40018000 + 4*9,  32'he0, 4'hf);
+		wb_write(32'h40018000 + 4*10, 32'h60, 4'hf);
+		wb_write(32'h40018000 + 4*11, 32'ha0, 4'hf);
+		wb_write(32'h40018000 + 4*12, 32'h40, 4'hf);
+		wb_write(32'h40018000 + 4*13, 32'hc0, 4'hf);
+		wb_write(32'h40018000 + 4*14, 32'h80, 4'hf);
+		wb_write(32'h40018000 + 32'h10, 14, 4'hf);	 // MNIST_MOD_REG_PARAM_END
+		
+		wb_write(32'h4001a000, 0, 4'hf);	// INTEGRATOR_REG_PARAM_RATE
+
+//	*(volatile unsigned int *)MNIST_COLOR_REG_PARAM_MODE = 0;
+		
+		
 		
 	#10000;
 		// vin write DMA

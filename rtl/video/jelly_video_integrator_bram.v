@@ -22,12 +22,12 @@ module jelly_video_integrator_bram
 			parameter	WB_SEL_WIDTH     = (WB_DAT_WIDTH / 8),
 			parameter	TUSER_WIDTH      = 1,
 			parameter	TDATA_WIDTH      = COMPONENT_NUM * DATA_WIDTH,
-			parameter	X_WIDTH          = 10,
-			parameter	Y_WIDTH          = 8,
+			parameter	X_WIDTH          = 9,
+			parameter	Y_WIDTH          = 7,
 			parameter	MAX_X_NUM        = (1 << X_WIDTH),
 			parameter	MAX_Y_NUM        = (1 << Y_WIDTH),
 			parameter	RAM_TYPE         = "block",
-			parameter	FILLMEM          = 1,
+			parameter	FILLMEM          = 0,
 			parameter	FILLMEM_DATA     = 0,
 			parameter	COMPACT          = 1,
 			parameter	M_SLAVE_REGS     = 1,
@@ -67,6 +67,7 @@ module jelly_video_integrator_bram
 	// register
 	localparam	REG_ADDR_PARAM_RATE = 32'h00;
 	
+	(* MARK_DEBUG = "true" *)
 	reg		[RATE_WIDTH-1:0]		reg_param_rate;
 	
 	always @(posedge s_wb_clk_i) begin
