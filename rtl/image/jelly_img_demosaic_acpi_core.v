@@ -29,6 +29,7 @@ module jelly_img_demosaic_acpi_core
 			input	wire							cke,
 			
 			input	wire	[1:0]					param_phase,
+			input	wire	[0:0]					param_bypass,
 			
 			input	wire							s_img_line_first,
 			input	wire							s_img_line_last,
@@ -100,6 +101,18 @@ module jelly_img_demosaic_acpi_core
 	
 	
 	// R,B
+	wire							img_rb_line_first;
+	wire							img_rb_line_last;
+	wire							img_rb_pixel_first;
+	wire							img_rb_pixel_last;
+	wire							img_rb_de;
+	wire	[USER_BITS-1:0]			img_rb_user;
+	wire	[DATA_WIDTH-1:0]		img_rb_raw;
+	wire	[DATA_WIDTH-1:0]		img_rb_r;
+	wire	[DATA_WIDTH-1:0]		img_rb_g;
+	wire	[DATA_WIDTH-1:0]		img_rb_b;
+	wire							img_rb_valid;
+	
 	jelly_img_demosaic_acpi_rb_core
 			#(
 				.USER_WIDTH			(USER_WIDTH),
@@ -126,19 +139,30 @@ module jelly_img_demosaic_acpi_core
 				.s_img_g			(img_g_g),
 				.s_img_valid		(img_g_valid),
 				
-				.m_img_line_first	(m_img_line_first),
-				.m_img_line_last	(m_img_line_last),
-				.m_img_pixel_first	(m_img_pixel_first),
-				.m_img_pixel_last	(m_img_pixel_last),
-				.m_img_de			(m_img_de),
-				.m_img_user			(m_img_user),
-				.m_img_raw			(m_img_raw),
-				.m_img_r			(m_img_r),
-				.m_img_g			(m_img_g),
-				.m_img_b			(m_img_b),
-				.m_img_valid		(m_img_valid)
+				.m_img_line_first	(img_rb_line_first),
+				.m_img_line_last	(img_rb_line_last),
+				.m_img_pixel_first	(img_rb_pixel_first),
+				.m_img_pixel_last	(img_rb_pixel_last),
+				.m_img_de			(img_rb_de),
+				.m_img_user			(img_rb_user),
+				.m_img_raw			(img_rb_raw),
+				.m_img_r			(img_rb_r),
+				.m_img_g			(img_rb_g),
+				.m_img_b			(img_rb_b),
+				.m_img_valid		(img_rb_valid)
 			);
 	
+	assign m_img_line_first  = img_rb_line_first;
+	assign m_img_line_last   = img_rb_line_last;
+	assign m_img_pixel_first = img_rb_pixel_first;
+	assign m_img_pixel_last  = img_rb_pixel_last;
+	assign m_img_de          = img_rb_de;
+	assign m_img_user        = img_rb_user;
+	assign m_img_raw         = img_rb_raw;
+	assign m_img_r           = param_bypass ? img_rb_raw : img_rb_r;
+	assign m_img_g           = param_bypass ? img_rb_raw : img_rb_g;
+	assign m_img_b           = param_bypass ? img_rb_raw : img_rb_b;
+	assign m_img_valid       = img_rb_valid;
 	
 endmodule
 

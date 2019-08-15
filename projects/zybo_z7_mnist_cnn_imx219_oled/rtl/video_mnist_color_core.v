@@ -14,8 +14,9 @@
 
 module video_mnist_color_core
 		#(
+			parameter	RAW_WIDTH     = 10,
+			parameter	DATA_WIDTH    = 8,
 			parameter	TUSER_WIDTH   = 1,
-			parameter	TDATA_WIDTH   = 24,
 			parameter	TNUMBER_WIDTH = 4,
 			parameter	TCOUNT_WIDTH  = 4
 		)
@@ -25,22 +26,28 @@ module video_mnist_color_core
 			
 			input	wire	[1:0]				param_mode,
 			input	wire	[TCOUNT_WIDTH-1:0]	param_th,
+			input	wire	[3:0]				param_sel,
 			
 			input	wire	[TUSER_WIDTH-1:0]	s_axi4s_tuser,
 			input	wire						s_axi4s_tlast,
 			input	wire	[TNUMBER_WIDTH-1:0]	s_axi4s_tnumber,
 			input	wire	[TCOUNT_WIDTH-1:0]	s_axi4s_tcount,
-			input	wire	[TDATA_WIDTH-1:0]	s_axi4s_tdata,
+			input	wire	[RAW_WIDTH-1:0]		s_axi4s_traw,
+			input	wire	[1*DATA_WIDTH-1:0]	s_axi4s_tgray,
+			input	wire	[3*DATA_WIDTH-1:0]	s_axi4s_trgb,
 			input	wire	[0:0]				s_axi4s_tbinary,
+			input	wire	[0:0]				s_axi4s_tvalidation,
 			input	wire						s_axi4s_tvalid,
 			output	wire						s_axi4s_tready,
 			
 			output	wire	[TUSER_WIDTH-1:0]	m_axi4s_tuser,
 			output	wire						m_axi4s_tlast,
-			output	wire	[TDATA_WIDTH-1:0]	m_axi4s_tdata,
+			output	wire	[3*DATA_WIDTH-1:0]	m_axi4s_tdata,
 			output	wire						m_axi4s_tvalid,
 			input	wire						m_axi4s_tready
 		);
+	
+	localparam TDATA_WIDTH = 3*DATA_WIDTH;
 	
 	
 	reg		[TUSER_WIDTH-1:0]		st0_user;
@@ -70,10 +77,27 @@ module video_mnist_color_core
 			st1_valid  <= 1'b0;
 		end
 		else if ( s_axi4s_tready ) begin
+			// stage0
 			st0_user   <= s_axi4s_tuser;
 			st0_last   <= s_axi4s_tlast;
-			st0_data   <= param_mode[0] ? {TDATA_WIDTH{s_axi4s_tbinary}} : s_axi4s_tdata;
-			st0_en     <= (param_mode[1] && (s_axi4s_tcount >= param_th));
+			
+			case ( param_sel )
+			4'd0: 		st0_data <= s_axi4s_trgb;
+			4'd1: 		st0_data <= {TDATA_WIDTH{s_axi4s_tvalidation}};
+			4'd2: 		st0_data <= {TDATA_WIDTH{s_axi4s_tbinary}};
+			4'd3: 		st0_data <= {3{s_axi4s_tgray}};
+			4'd4: 		st0_data <= {3{s_axi4s_traw[9:2]}};
+			4'd5: 		st0_data <= s_axi4s_traw;
+			4'd6: 		st0_data <= {TDATA_WIDTH{1'b0}};
+			4'd7: 		st0_data <= {TDATA_WIDTH{1'b1}};
+			4'd8: 		st0_data <= 24'h00_40_00;
+			4'd9: 		st0_data <= 24'h00_00_40;
+			4'd10: 		st0_data <= 24'h40_00_00;
+			4'd11: 		st0_data <= 24'h40_40_40;
+			default:	st0_data <= s_axi4s_trgb;
+			endcase
+			
+			st0_en <= ((s_axi4s_tnumber < 10) && (s_axi4s_tcount >= param_th) && (s_axi4s_tvalidation || ~param_mode[1]));
 			case ( s_axi4s_tnumber )
 			4'd0:		st0_color <= 24'h00_00_00;	// •
 			4'd1:		st0_color <= 24'h00_00_80;	// ’ƒ
@@ -89,14 +113,11 @@ module video_mnist_color_core
 			endcase
 			st0_valid  <= s_axi4s_tvalid;
 			
+			// stage2
 			st1_user   <= st0_user;
 			st1_last   <= st0_last;
-			st1_data   <= st0_data; // 24'h40_40_40;
-			if ( st0_en ) begin
-	//			st1_data[ 7: 0] <= (({1'b0, st0_data[ 7: 0]} + {1'b0, st0_color[ 7: 0]}) >> 1);
-	//			st1_data[15: 8] <= (({1'b0, st0_data[15: 8]} + {1'b0, st0_color[15: 8]}) >> 1);
-	//			st1_data[23:16] <= (({1'b0, st0_data[23:16]} + {1'b0, st0_color[23:16]}) >> 1);
-	//			st1_data <= st0_color;
+			st1_data   <= st0_data;
+			if ( param_mode[0] && st0_en ) begin
 				st1_data <= {st0_color[7:0], st0_color[15:8], st0_color[23:16]};
 			end
 			st1_valid  <= st0_valid;

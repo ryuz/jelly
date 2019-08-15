@@ -14,18 +14,19 @@
 
 module jelly_img_demosaic_acpi
 		#(
-			parameter	USER_WIDTH       = 0,
-			parameter	DATA_WIDTH       = 10,
-			parameter	MAX_X_NUM        = 4096,
-			parameter	USE_VALID        = 0,
-			parameter	RAM_TYPE         = "block",
+			parameter	USER_WIDTH        = 0,
+			parameter	DATA_WIDTH        = 10,
+			parameter	MAX_X_NUM         = 4096,
+			parameter	USE_VALID         = 0,
+			parameter	RAM_TYPE          = "block",
 			
-			parameter	WB_ADR_WIDTH     = 8,
-			parameter	WB_DAT_WIDTH     = 32,
-			parameter	WB_SEL_WIDTH     = (WB_DAT_WIDTH / 8),
-			parameter	INIT_PARAM_PHASE = 2'b11,
+			parameter	WB_ADR_WIDTH      = 8,
+			parameter	WB_DAT_WIDTH      = 32,
+			parameter	WB_SEL_WIDTH      = (WB_DAT_WIDTH / 8),
+			parameter	INIT_PARAM_PHASE  = 2'b11,
+			parameter	INIT_PARAM_BYPASS = 1'b0,
 			
-			parameter	USER_BITS        = USER_WIDTH > 0 ? USER_WIDTH : 1
+			parameter	USER_BITS         = USER_WIDTH > 0 ? USER_WIDTH : 1
 		)
 		(
 			input	wire							reset,
@@ -65,27 +66,36 @@ module jelly_img_demosaic_acpi
 		);
 	
 	reg		[1:0]		reg_param_phase;
+	reg		[0:0]		reg_param_bypass;
 	always @(posedge s_wb_clk_i) begin
 		if ( s_wb_rst_i ) begin
-			reg_param_phase <= INIT_PARAM_PHASE;
+			reg_param_phase  <= INIT_PARAM_PHASE;
+			reg_param_bypass <= INIT_PARAM_BYPASS;
 		end
 		else begin
 			if ( s_wb_stb_i && s_wb_we_i ) begin
 				case ( s_wb_adr_i )
-				0:	reg_param_phase <= s_wb_dat_i;
+				0:	reg_param_phase  <= s_wb_dat_i;
+				1:	reg_param_bypass <= s_wb_dat_i;
 				endcase
 			end
 		end
 	end
 	
-	assign s_wb_dat_o = (s_wb_adr_i == 0) ? reg_param_phase : 0;
+	assign s_wb_dat_o = (s_wb_adr_i == 0) ? reg_param_phase  :
+	                    (s_wb_adr_i == 1) ? reg_param_bypass :
+	                    0;
 	assign s_wb_ack_o = s_wb_stb_i;
 	
 	
-	(* ASYNC_REG="true" *)	reg			[1:0]	ff0_param_phase, ff1_param_phase;
+	(* ASYNC_REG="true" *)	reg			[1:0]	ff0_param_phase,  ff1_param_phase;
+	(* ASYNC_REG="true" *)	reg			[0:0]	ff0_param_bypass, ff1_param_bypass;
 	always @(posedge clk) begin
-		ff0_param_phase <= reg_param_phase;
-		ff1_param_phase <= ff0_param_phase;
+		ff0_param_phase  <= reg_param_phase;
+		ff1_param_phase  <= ff0_param_phase;
+		
+		ff0_param_bypass <= reg_param_bypass;
+		ff1_param_bypass <= ff0_param_bypass;
 	end
 	
 	
@@ -104,6 +114,7 @@ module jelly_img_demosaic_acpi
 				.cke				(cke),
 				
 				.param_phase		(ff1_param_phase),
+				.param_bypass		(ff1_param_bypass),
 				
 				.s_img_line_first	(s_img_line_first),
 				.s_img_line_last	(s_img_line_last),
