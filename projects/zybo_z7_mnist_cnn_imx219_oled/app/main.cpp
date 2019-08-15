@@ -276,6 +276,7 @@ int main()
 	int mnist_th  = 127;
 	int mcol_mode = 2;
 	int mcol_th   = 3;
+	int mcol_sel  = 0;
 	
 	void* mem_addr = um_pl_mem.GetAddress();
 	
@@ -287,12 +288,13 @@ int main()
 			memcpy(img.data, (void *)mem_addr, width * height * 4 * frame_num);
 			cv::imshow("img", img);
 			cv::imwrite("img.png", img);
-			cv::createTrackbar("width",  "img", &width,     IMAGE_WIDTH);
-			cv::createTrackbar("height", "img", &height,    IMAGE_HEIGHT);
-	//		cv::createTrackbar("frame",  "img", &frame_num, 10);
-			cv::createTrackbar("m_th",   "img", &mnist_th, 255);
-			cv::createTrackbar("mode",   "img", &mcol_mode, 3);
-			cv::createTrackbar("col_th", "img", &mcol_th, 8);
+			cv::createTrackbar("width",   "img", &width,     IMAGE_WIDTH);
+			cv::createTrackbar("height",  "img", &height,    IMAGE_HEIGHT);
+	//		cv::createTrackbar("frame",   "img", &frame_num, 10);
+			cv::createTrackbar("bin_th",  "img", &mnist_th, 255);
+			cv::createTrackbar("mode",    "img", &mcol_mode, 3);
+			cv::createTrackbar("col_th",  "img", &mcol_th, 8);
+			cv::createTrackbar("col_sel", "img", &mcol_sel, 15);
 			
 			width &= 0xfffffff0;
 			if ( width  < 16 ) { width  = 16; }
@@ -300,9 +302,11 @@ int main()
 			
 			capture_still_image(um_pl_peri, width, height, frame_num);
 			
-			um_pl_peri.WriteWord32(0x00018000, mnist_th);
+			um_pl_peri.WriteWord32(0x00018100, mnist_th);
+			
 			um_pl_peri.WriteWord32(0x00019000, mcol_mode);
 			um_pl_peri.WriteWord32(0x00019004, mcol_th);
+			um_pl_peri.WriteWord32(0x00019008, mcol_sel);
 			
 			if ( key == 'r' ) {
 				printf("record\n");
