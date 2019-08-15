@@ -18,8 +18,11 @@ module tb_top();
 		$dumpvars(1, tb_top.i_top);
 //		$dumpvars(1, tb_top.i_top.i_video_rgb_to_gray);
 //		$dumpvars(0, tb_top.i_top.i_video_raw_to_rgb);
-		$dumpvars(3, tb_top.i_top.i_video_mnist);
-		$dumpvars(0, tb_top.i_top.i_video_dnn_fmem);
+//		$dumpvars(3, tb_top.i_top.i_video_mnist);
+//		$dumpvars(0, tb_top.i_top.i_video_normalizer);
+//		$dumpvars(0, tb_top.i_top.i_video_tbl_modulator);
+//		$dumpvars(0, tb_top.i_top.i_video_mnist_color);
+//		$dumpvars(0, tb_top.i_top.i_video_dnn_fmem);
 //		$dumpvars(0, tb_top.i_top.i_video_mnist.i_video_dnn_max_count);
 //		$dumpvars(0, tb_top.i_top.i_video_trimming_core);
 //		$dumpvars(0, tb_top.i_top.i_video_oled_cnv);
@@ -43,13 +46,13 @@ module tb_top();
 //	localparam IMG_Y_NUM = 256;
 //	localparam PGM_FILE  = "lena_256x256.pgm";
 	
-//	localparam IMG_X_NUM = 160;
-//	localparam IMG_Y_NUM = 120;
-//	localparam PGM_FILE  = "mnist_test_160x120.pgm";
+	localparam IMG_X_NUM = 160;
+	localparam IMG_Y_NUM = 64;
+	localparam PGM_FILE  = "mnist_test_160x120.pgm";
 	
-	localparam IMG_X_NUM = 640;
-	localparam IMG_Y_NUM = 132;
-	localparam PGM_FILE  = "mnist_test_640x480.pgm";
+//	localparam IMG_X_NUM = 640;
+//	localparam IMG_Y_NUM = 132;
+//	localparam PGM_FILE  = "mnist_test_640x480.pgm";
 	
 	
 	// ----------------------------------
@@ -78,7 +81,7 @@ module tb_top();
 	//  dummy video
 	// ----------------------------------
 	
-	wire			axi4s_model_aresetn = i_top.axi4s_cam_aresetn;
+	reg				axi4s_model_aresetn = 1'b0;
 	wire			axi4s_model_aclk    = i_top.axi4s_cam_aclk;
 	wire	[0:0]	axi4s_model_tuser;
 	wire			axi4s_model_tlast;
@@ -194,7 +197,7 @@ module tb_top();
 	
 	always @(posedge axi4s_dump1_aclk) begin
 		if ( axi4s_dump1_aresetn && axi4s_dump1_tvalid && axi4s_dump1_tready ) begin
-			 $fdisplay(fp_img1, "%d %d %d", axi4s_dump1_tdata[0*8 +: 8], axi4s_dump1_tdata[1*8 +: 8], axi4s_dump1_tdata[2*8 +: 8]);
+			 $fdisplay(fp_img1, "%d %d %d", axi4s_dump1_tdata[2*8 +: 8], axi4s_dump1_tdata[1*8 +: 8], axi4s_dump1_tdata[0*8 +: 8]);
 		end
 	end
 	
@@ -220,6 +223,38 @@ module tb_top();
 			 $fdisplay(fp_img2, "%d %d %d", {axi4s_dump2_tdata[1:0], 1'b0}, axi4s_dump2_tdata[4:2], axi4s_dump2_tdata[7:5]);
 		end
 	end
+	
+	
+	
+	integer		fp_validate;
+	initial begin
+		 fp_validate = $fopen("validate.pgm", "w");
+		 $fdisplay(fp_validate, "P2");
+		 $fdisplay(fp_validate, "%d %d", IMG_X_NUM/4, IMG_Y_NUM/4*FRAME_NUM);
+		 $fdisplay(fp_validate, "1");
+	end
+	
+	always @(posedge i_top.axi4s_cam_aclk) begin
+		if ( i_top.axi4s_cam_aresetn && i_top.axi4s_mnist_tvalid ) begin
+			 $fdisplay(fp_validate, "%d", i_top.axi4s_mnist_tvalidation);
+		end
+	end
+	
+	integer		fp_bin;
+	initial begin
+		 fp_bin = $fopen("bin.pgm", "w");
+		 $fdisplay(fp_bin, "P2");
+		 $fdisplay(fp_bin, "%d %d", IMG_X_NUM, IMG_Y_NUM*FRAME_NUM);
+		 $fdisplay(fp_bin, "1");
+	end
+	
+	always @(posedge i_top.axi4s_cam_aclk) begin
+		if ( i_top.axi4s_cam_aresetn && i_top.axi4s_bin_tvalid && i_top.axi4s_bin_tready ) begin
+			 $fdisplay(fp_bin, "%d", i_top.axi4s_bin_tbinary);
+		end
+	end
+	
+	
 	
 	
 	// ----------------------------------
@@ -311,28 +346,54 @@ module tb_top();
 	
 	initial begin
 	@(negedge wb_rst_i);
-	#10000;
+	#1000;
 		$display("start");
-		wb_write(32'h00010010, 32'h00, 4'b1111);
-	#10000;
+		wb_write(32'h00010010,     32'h00, 4'hf);
+	#1000;
 		
-		wb_write(32'h4002200c, 1, 4'b1111);
+		// OLED
+		wb_write(32'h4002200c,          1, 4'hf);
 		
+		// demosaic
+		wb_write(32'h40012004,          1, 4'hf);		// bypass
 		
-		wb_write(32'h40011020,  IMG_X_NUM, 4'b1111);		// width
-		wb_write(32'h40011024,  IMG_Y_NUM, 4'b1111);		// height
-		wb_write(32'h40011028,     0, 4'b1111);		// fill
-		wb_write(32'h4001102c,     0, 4'b1111);		// timeout
-		wb_write(32'h40011000,     1, 4'b1111);		// enable
-		wb_write(32'h40011000,     1, 4'b1111);		// enable
+		// normarizer
+		wb_write(32'h40011020,  IMG_X_NUM, 4'hf);		// width
+		wb_write(32'h40011024,  IMG_Y_NUM, 4'hf);		// height
+		wb_write(32'h40011028,          0, 4'hf);		// fill
+		wb_write(32'h4001102c,          0, 4'hf);		// timeout
+		wb_write(32'h40011000,          1, 4'hf);		// enable
+		
+		// pwm
+		wb_write(32'h40018100 + 4*0,  32'h10, 4'hf);
+		wb_write(32'h40018100 + 4*1,  32'hf0, 4'hf);
+		wb_write(32'h40018100 + 4*2,  32'h70, 4'hf);
+		wb_write(32'h40018100 + 4*3,  32'h90, 4'hf);
+		wb_write(32'h40018100 + 4*4,  32'h30, 4'hf);
+		wb_write(32'h40018100 + 4*5,  32'hd0, 4'hf);
+		wb_write(32'h40018100 + 4*6,  32'h50, 4'hf);
+		wb_write(32'h40018100 + 4*7,  32'hb0, 4'hf);
+		wb_write(32'h40018100 + 4*8,  32'h20, 4'hf);
+		wb_write(32'h40018100 + 4*9,  32'he0, 4'hf);
+		wb_write(32'h40018100 + 4*10, 32'h60, 4'hf);
+		wb_write(32'h40018100 + 4*11, 32'ha0, 4'hf);
+		wb_write(32'h40018100 + 4*12, 32'h40, 4'hf);
+		wb_write(32'h40018100 + 4*13, 32'hc0, 4'hf);
+		wb_write(32'h40018100 + 4*14, 32'h80, 4'hf);
+		wb_write(32'h40018010, 14, 4'hf);		 // MNIST_MOD_REG_PARAM_END
+		
+	#1000;
+		// vin start
+		$display("vin start");
+		axi4s_model_aresetn = 1'b1;
+		
 	#100000;
-		
 		wb_write(32'h40010020, 32'h30000000, 4'b1111);
-		wb_write(32'h40010024, IMG_X_NUM*4,  4'b1111);		// stride
-		wb_write(32'h40010028, IMG_X_NUM,    4'b1111);		// width
-		wb_write(32'h4001002c, IMG_Y_NUM,    4'b1111);		// height
-		wb_write(32'h40010030, IMG_X_NUM*IMG_Y_NUM, 4'b1111);		// size
-		wb_write(32'h4001003c,      31, 4'b1111);		// awlen
+		wb_write(32'h40010024, IMG_X_NUM*4,  4'b1111);			// stride
+		wb_write(32'h40010028, IMG_X_NUM,    4'b1111);			// width
+		wb_write(32'h4001002c, IMG_Y_NUM,    4'b1111);			// height
+		wb_write(32'h40010030, IMG_X_NUM*IMG_Y_NUM, 4'b1111);	// size
+		wb_write(32'h4001003c,      31, 4'b1111);				// awlen
 		wb_write(32'h40010010,      3, 4'b1111);
 	#10000;
 

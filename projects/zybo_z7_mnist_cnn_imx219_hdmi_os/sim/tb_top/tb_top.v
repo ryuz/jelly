@@ -37,8 +37,8 @@ module tb_top();
 	reg		clk125 = 1'b1;
 	always #(RATE125/2.0)	clk125 = ~clk125;
 	
-	localparam	X_NUM = 1640;
-	localparam	Y_NUM = 1232;
+	localparam	X_NUM = 512;
+	localparam	Y_NUM = 128;
 	
 	
 	top
@@ -78,7 +78,7 @@ module tb_top();
 				.X_NUM				(X_NUM),
 				.Y_NUM				(Y_NUM),
 	//			.PGM_FILE			("lena_128x128.pgm"),
-				.PGM_FILE			("Chrysanthemum_1640x1232.pgm"),
+				.PGM_FILE			("mnist_test_512x128.pgm"),
 				.BUSY_RATE			(0),
 				.RANDOM_SEED		(0)
 			)

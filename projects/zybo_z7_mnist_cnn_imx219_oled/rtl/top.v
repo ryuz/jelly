@@ -285,42 +285,42 @@ module top
 	
 	jelly_axi4l_to_wishbone
 			#(
-				.AXI4L_ADDR_WIDTH	(32),
-				.AXI4L_DATA_SIZE	(2)		// 0:8bit, 1:16bit, 2:32bit ...
+				.AXI4L_ADDR_WIDTH		(32),
+				.AXI4L_DATA_SIZE		(2)		// 0:8bit, 1:16bit, 2:32bit ...
 			)
 		i_axi4l_to_wishbone
 			(
-				.s_axi4l_aresetn	(axi4l_peri_aresetn),
-				.s_axi4l_aclk		(axi4l_peri_aclk),
-				.s_axi4l_awaddr		(axi4l_peri_awaddr),
-				.s_axi4l_awprot		(axi4l_peri_awprot),
-				.s_axi4l_awvalid	(axi4l_peri_awvalid),
-				.s_axi4l_awready	(axi4l_peri_awready),
-				.s_axi4l_wstrb		(axi4l_peri_wstrb),
-				.s_axi4l_wdata		(axi4l_peri_wdata),
-				.s_axi4l_wvalid		(axi4l_peri_wvalid),
-				.s_axi4l_wready		(axi4l_peri_wready),
-				.s_axi4l_bresp		(axi4l_peri_bresp),
-				.s_axi4l_bvalid		(axi4l_peri_bvalid),
-				.s_axi4l_bready		(axi4l_peri_bready),
-				.s_axi4l_araddr		(axi4l_peri_araddr),
-				.s_axi4l_arprot		(axi4l_peri_arprot),
-				.s_axi4l_arvalid	(axi4l_peri_arvalid),
-				.s_axi4l_arready	(axi4l_peri_arready),
-				.s_axi4l_rdata		(axi4l_peri_rdata),
-				.s_axi4l_rresp		(axi4l_peri_rresp),
-				.s_axi4l_rvalid		(axi4l_peri_rvalid),
-				.s_axi4l_rready		(axi4l_peri_rready),
+				.s_axi4l_aresetn		(axi4l_peri_aresetn),
+				.s_axi4l_aclk			(axi4l_peri_aclk),
+				.s_axi4l_awaddr			(axi4l_peri_awaddr),
+				.s_axi4l_awprot			(axi4l_peri_awprot),
+				.s_axi4l_awvalid		(axi4l_peri_awvalid),
+				.s_axi4l_awready		(axi4l_peri_awready),
+				.s_axi4l_wstrb			(axi4l_peri_wstrb),
+				.s_axi4l_wdata			(axi4l_peri_wdata),
+				.s_axi4l_wvalid			(axi4l_peri_wvalid),
+				.s_axi4l_wready			(axi4l_peri_wready),
+				.s_axi4l_bresp			(axi4l_peri_bresp),
+				.s_axi4l_bvalid			(axi4l_peri_bvalid),
+				.s_axi4l_bready			(axi4l_peri_bready),
+				.s_axi4l_araddr			(axi4l_peri_araddr),
+				.s_axi4l_arprot			(axi4l_peri_arprot),
+				.s_axi4l_arvalid		(axi4l_peri_arvalid),
+				.s_axi4l_arready		(axi4l_peri_arready),
+				.s_axi4l_rdata			(axi4l_peri_rdata),
+				.s_axi4l_rresp			(axi4l_peri_rresp),
+				.s_axi4l_rvalid			(axi4l_peri_rvalid),
+				.s_axi4l_rready			(axi4l_peri_rready),
 				
-				.m_wb_rst_o			(wb_rst_o),
-				.m_wb_clk_o			(wb_clk_o),
-				.m_wb_adr_o			(wb_host_adr_o),
-				.m_wb_dat_o			(wb_host_dat_o),
-				.m_wb_dat_i			(wb_host_dat_i),
-				.m_wb_we_o			(wb_host_we_o),
-				.m_wb_sel_o			(wb_host_sel_o),
-				.m_wb_stb_o			(wb_host_stb_o),
-				.m_wb_ack_i			(wb_host_ack_i)
+				.m_wb_rst_o				(wb_rst_o),
+				.m_wb_clk_o				(wb_clk_o),
+				.m_wb_adr_o				(wb_host_adr_o),
+				.m_wb_dat_o				(wb_host_dat_o),
+				.m_wb_dat_i				(wb_host_dat_i),
+				.m_wb_we_o				(wb_host_we_o),
+				.m_wb_sel_o				(wb_host_sel_o),
+				.m_wb_stb_o				(wb_host_stb_o),
+				.m_wb_ack_i				(wb_host_ack_i)
 			);
 	
 	// ----------------------------------------
@@ -435,72 +435,72 @@ module top
 	mipi_dphy_cam
 		i_mipi_dphy_cam
 			(
-				.core_clk			(sys_clk200),
-				.core_rst			(sys_reset),
-				.rxbyteclkhs		(rxbyteclkhs),
-				.system_rst_out		(system_rst_out),
-				.init_done			(init_done),
+				.core_clk				(sys_clk200),
+				.core_rst				(sys_reset),
+				.rxbyteclkhs			(rxbyteclkhs),
+				.system_rst_out			(system_rst_out),
+				.init_done				(init_done),
 				
-				.cl_rxclkactivehs	(cl_rxclkactivehs),
-				.cl_stopstate		(cl_stopstate),
-				.cl_enable			(cl_enable),
-				.cl_rxulpsclknot	(cl_rxulpsclknot),
-				.cl_ulpsactivenot	(cl_ulpsactivenot),
+				.cl_rxclkactivehs		(cl_rxclkactivehs),
+				.cl_stopstate			(cl_stopstate),
+				.cl_enable				(cl_enable),
+				.cl_rxulpsclknot		(cl_rxulpsclknot),
+				.cl_ulpsactivenot		(cl_ulpsactivenot),
 				
-				.dl0_rxdatahs		(dl0_rxdatahs),
-				.dl0_rxvalidhs		(dl0_rxvalidhs),
-				.dl0_rxactivehs		(dl0_rxactivehs),
-				.dl0_rxsynchs		(dl0_rxsynchs),
+				.dl0_rxdatahs			(dl0_rxdatahs),
+				.dl0_rxvalidhs			(dl0_rxvalidhs),
+				.dl0_rxactivehs			(dl0_rxactivehs),
+				.dl0_rxsynchs			(dl0_rxsynchs),
 				
-				.dl0_forcerxmode	(dl0_forcerxmode),
-				.dl0_stopstate		(dl0_stopstate),
-				.dl0_enable			(dl0_enable),
-				.dl0_ulpsactivenot	(dl0_ulpsactivenot),
+				.dl0_forcerxmode		(dl0_forcerxmode),
+				.dl0_stopstate			(dl0_stopstate),
+				.dl0_enable				(dl0_enable),
+				.dl0_ulpsactivenot		(dl0_ulpsactivenot),
 				
-				.dl0_rxclkesc		(dl0_rxclkesc),
-				.dl0_rxlpdtesc		(dl0_rxlpdtesc),
-				.dl0_rxulpsesc		(dl0_rxulpsesc),
-				.dl0_rxtriggeresc	(dl0_rxtriggeresc),
-				.dl0_rxdataesc		(dl0_rxdataesc),
-				.dl0_rxvalidesc		(dl0_rxvalidesc),
+				.dl0_rxclkesc			(dl0_rxclkesc),
+				.dl0_rxlpdtesc			(dl0_rxlpdtesc),
+				.dl0_rxulpsesc			(dl0_rxulpsesc),
+				.dl0_rxtriggeresc		(dl0_rxtriggeresc),
+				.dl0_rxdataesc			(dl0_rxdataesc),
+				.dl0_rxvalidesc			(dl0_rxvalidesc),
 				
-				.dl0_errsoths		(dl0_errsoths),
-				.dl0_errsotsynchs	(dl0_errsotsynchs),
-				.dl0_erresc			(dl0_erresc),
-				.dl0_errsyncesc		(dl0_errsyncesc),
-				.dl0_errcontrol		(dl0_errcontrol),
+				.dl0_errsoths			(dl0_errsoths),
+				.dl0_errsotsynchs		(dl0_errsotsynchs),
+				.dl0_erresc				(dl0_erresc),
+				.dl0_errsyncesc			(dl0_errsyncesc),
+				.dl0_errcontrol			(dl0_errcontrol),
 				
-				.dl1_rxdatahs		(dl1_rxdatahs),
-				.dl1_rxvalidhs		(dl1_rxvalidhs),
-				.dl1_rxactivehs		(dl1_rxactivehs),
-				.dl1_rxsynchs		(dl1_rxsynchs),
+				.dl1_rxdatahs			(dl1_rxdatahs),
+				.dl1_rxvalidhs			(dl1_rxvalidhs),
+				.dl1_rxactivehs			(dl1_rxactivehs),
+				.dl1_rxsynchs			(dl1_rxsynchs),
 				
-				.dl1_forcerxmode	(dl1_forcerxmode),
-				.dl1_stopstate		(dl1_stopstate),
-				.dl1_enable			(dl1_enable),
-				.dl1_ulpsactivenot	(dl1_ulpsactivenot),
+				.dl1_forcerxmode		(dl1_forcerxmode),
+				.dl1_stopstate			(dl1_stopstate),
+				.dl1_enable				(dl1_enable),
+				.dl1_ulpsactivenot		(dl1_ulpsactivenot),
 				
-				.dl1_rxclkesc		(dl1_rxclkesc),
-				.dl1_rxlpdtesc		(dl1_rxlpdtesc),
-				.dl1_rxulpsesc		(dl1_rxulpsesc),
-				.dl1_rxtriggeresc	(dl1_rxtriggeresc),
-				.dl1_rxdataesc		(dl1_rxdataesc),
-				.dl1_rxvalidesc		(dl1_rxvalidesc),
+				.dl1_rxclkesc			(dl1_rxclkesc),
+				.dl1_rxlpdtesc			(dl1_rxlpdtesc),
+				.dl1_rxulpsesc			(dl1_rxulpsesc),
+				.dl1_rxtriggeresc		(dl1_rxtriggeresc),
+				.dl1_rxdataesc			(dl1_rxdataesc),
+				.dl1_rxvalidesc			(dl1_rxvalidesc),
 				
-				.dl1_errsoths		(dl1_errsoths),
-				.dl1_errsotsynchs	(dl1_errsotsynchs),
-				.dl1_erresc			(dl1_erresc),
-				.dl1_errsyncesc		(dl1_errsyncesc),
-				.dl1_errcontrol		(dl1_errcontrol),
+				.dl1_errsoths			(dl1_errsoths),
+				.dl1_errsotsynchs		(dl1_errsotsynchs),
+				.dl1_erresc				(dl1_erresc),
+				.dl1_errsyncesc			(dl1_errsyncesc),
+				.dl1_errcontrol			(dl1_errcontrol),
 				
-				.clk_hs_rxp			(cam_clk_hs_p),
-				.clk_hs_rxn			(cam_clk_hs_n),
-				.clk_lp_rxp			(cam_clk_lp_p),
-				.clk_lp_rxn			(cam_clk_lp_n),
-				.data_hs_rxp		(cam_data_hs_p),
-				.data_hs_rxn		(cam_data_hs_n),
-				.data_lp_rxp		(cam_data_lp_p),
-				.data_lp_rxn		(cam_data_lp_n)
+				.clk_hs_rxp				(cam_clk_hs_p),
+				.clk_hs_rxn				(cam_clk_hs_n),
+				.clk_lp_rxp				(cam_clk_lp_p),
+				.clk_lp_rxn				(cam_clk_lp_n),
+				.data_hs_rxp			(cam_data_hs_p),
+				.data_hs_rxn			(cam_data_hs_n),
+				.data_lp_rxp			(cam_data_lp_p),
+				.data_lp_rxn			(cam_data_lp_n)
 		   );
 	
 	
@@ -512,17 +512,17 @@ module top
 	wire		dphy_reset;
 	jelly_reset
 			#(
-				.IN_LOW_ACTIVE		(0),
-				.OUT_LOW_ACTIVE		(0),
-				.INPUT_REGS			(2),
-				.COUNTER_WIDTH		(5),
-				.INSERT_BUFG		(0)
+				.IN_LOW_ACTIVE			(0),
+				.OUT_LOW_ACTIVE			(0),
+				.INPUT_REGS				(2),
+				.COUNTER_WIDTH			(5),
+				.INSERT_BUFG			(0)
 			)
 		i_reset
 			(
-				.clk				(dphy_clk),
-				.in_reset			(sys_reset || system_rst_out),
-				.out_reset			(dphy_reset)
+				.clk					(dphy_clk),
+				.in_reset				(sys_reset || system_rst_out),
+				.out_reset				(dphy_reset)
 			);
 	
 	
@@ -544,55 +544,54 @@ module top
 	
 	jelly_csi2_rx
 			#(
-				.LANE_NUM			(2),
-				.DATA_WIDTH			(10),
-				.M_FIFO_ASYNC		(1)
+				.LANE_NUM				(2),
+				.DATA_WIDTH				(10),
+				.M_FIFO_ASYNC			(1)
 			)
 		i_csi2_rx
 			(
-				.aresetn			(~sys_reset),
-				.aclk				(sys_clk250),
+				.aresetn				(~sys_reset),
+				.aclk					(sys_clk250),
 				
-				.rxreseths			(system_rst_out),
-				.rxbyteclkhs		(rxbyteclkhs),
-				.rxdatahs			({dl1_rxdatahs,   dl0_rxdatahs  }),
-				.rxvalidhs			({dl1_rxvalidhs,  dl0_rxvalidhs }),
-				.rxactivehs			({dl1_rxactivehs, dl0_rxactivehs}),
-				.rxsynchs			({dl1_rxsynchs,   dl0_rxsynchs  }),
+				.rxreseths				(system_rst_out),
+				.rxbyteclkhs			(rxbyteclkhs),
+				.rxdatahs				({dl1_rxdatahs,   dl0_rxdatahs  }),
+				.rxvalidhs				({dl1_rxvalidhs,  dl0_rxvalidhs }),
+				.rxactivehs				({dl1_rxactivehs, dl0_rxactivehs}),
+				.rxsynchs				({dl1_rxsynchs,   dl0_rxsynchs  }),
 				
-				.m_axi4s_aresetn	(axi4s_cam_aresetn),
-				.m_axi4s_aclk		(axi4s_cam_aclk),
-				.m_axi4s_tuser		(axi4s_csi2_tuser),
-				.m_axi4s_tlast		(axi4s_csi2_tlast),
-				.m_axi4s_tdata		(axi4s_csi2_tdata),
-				.m_axi4s_tvalid		(axi4s_csi2_tvalid),
-				.m_axi4s_tready		(axi4s_csi2_tready)
+				.m_axi4s_aresetn		(axi4s_cam_aresetn),
+				.m_axi4s_aclk			(axi4s_cam_aclk),
+				.m_axi4s_tuser			(axi4s_csi2_tuser),
+				.m_axi4s_tlast			(axi4s_csi2_tlast),
+				.m_axi4s_tdata			(axi4s_csi2_tdata),
+				.m_axi4s_tvalid			(axi4s_csi2_tvalid),
+				.m_axi4s_tready			(axi4s_csi2_tready)
 			);
 	
 	jelly_axi4s_debug_monitor
 			#(
-				.TUSER_WIDTH		(1),
-				.TDATA_WIDTH		(10),
-				.TIMER_WIDTH		(32),
-				.FRAME_WIDTH		(32),
-				.PIXEL_WIDTH		(32),
-				.X_WIDTH			(16),
-				.Y_WIDTH			(16)
+				.TUSER_WIDTH			(1),
+				.TDATA_WIDTH			(10),
+				.TIMER_WIDTH			(32),
+				.FRAME_WIDTH			(32),
+				.PIXEL_WIDTH			(32),
+				.X_WIDTH				(16),
+				.Y_WIDTH				(16)
 			)
 		i_axi4s_debug_monitor
 			(
-				.aresetn			(axi4s_cam_aresetn),
-				.aclk				(axi4s_cam_aclk),
-				.aclken				(1'b1),
+				.aresetn				(axi4s_cam_aresetn),
+				.aclk					(axi4s_cam_aclk),
+				.aclken					(1'b1),
 				
-				.axi4s_tuser		(axi4s_csi2_tuser),
-				.axi4s_tlast		(axi4s_csi2_tlast),
-				.axi4s_tdata		(axi4s_csi2_tdata),
-				.axi4s_tvalid		(axi4s_csi2_tvalid),
-				.axi4s_tready		(axi4s_csi2_tready)
+				.axi4s_tuser			(axi4s_csi2_tuser),
+				.axi4s_tlast			(axi4s_csi2_tlast),
+				.axi4s_tdata			(axi4s_csi2_tdata),
+				.axi4s_tvalid			(axi4s_csi2_tvalid),
+				.axi4s_tready			(axi4s_csi2_tready)
 			);
 	
-	/*
 	wire	[0:0]	axi4s_fifo_tuser;
 	wire			axi4s_fifo_tlast;
 	wire	[9:0]	axi4s_fifo_tdata;
@@ -601,31 +600,29 @@ module top
 	
 	jelly_fifo_fwtf
 			#(
-				.DATA_WIDTH			(2+10),
-				.PTR_WIDTH			(10),
-				.DOUT_REGS			(0),
-				.RAM_TYPE			("block"),
-				.LOW_DEALY			(0),
-				.SLAVE_REGS			(0),
-				.MASTER_REGS		(1)
+				.DATA_WIDTH				(2+10),
+				.PTR_WIDTH				(0),
+				.DOUT_REGS				(0),
+				.RAM_TYPE				("block"),
+				.LOW_DEALY				(0),
+				.SLAVE_REGS				(0),
+				.MASTER_REGS			(1)
 			)
 		i_fifo_fifo_fwtf_csi2
 			(
-				.reset				(~axi4s_cam_aresetn),
-				.clk				(axi4s_cam_aclk),
+				.reset					(~axi4s_cam_aresetn),
+				.clk					(axi4s_cam_aclk),
 				
-				.s_data				({axi4s_csi2_tuser, axi4s_csi2_tlast, axi4s_csi2_tdata}),
-				.s_valid			(axi4s_csi2_tvalid),
-				.s_ready			(axi4s_csi2_tready),
-				.s_free_count		(),
+				.s_data					({axi4s_csi2_tuser, axi4s_csi2_tlast, axi4s_csi2_tdata}),
+				.s_valid				(axi4s_csi2_tvalid),
+				.s_ready				(axi4s_csi2_tready),
+				.s_free_count			(),
 				
-				.m_data				({axi4s_fifo_tuser, axi4s_fifo_tlast, axi4s_fifo_tdata}),
-				.m_valid			(axi4s_fifo_tvalid),
-				.m_ready			(axi4s_fifo_tready),
-				.m_data_count		()
+				.m_data					({axi4s_fifo_tuser, axi4s_fifo_tlast, axi4s_fifo_tdata}),
+				.m_valid				(axi4s_fifo_tvalid),
+				.m_ready				(axi4s_fifo_tready),
+				.m_data_count			()
 			);
-	*/
-	
 	
 	
 	// normalize
@@ -641,59 +638,53 @@ module top
 	
 	jelly_video_normalizer
 			#(
-				.WB_ADR_WIDTH		(8),
-				.WB_DAT_WIDTH		(32),
+				.WB_ADR_WIDTH			(8),
+				.WB_DAT_WIDTH			(32),
 				
-				.TUSER_WIDTH		(1),
-				.TDATA_WIDTH		(10),
-				.X_WIDTH			(16),
-				.Y_WIDTH			(16),
-				.TIMER_WIDTH		(32),
-				.S_SLAVE_REGS		(1),
-				.S_MASTER_REGS		(1),
-				.M_SLAVE_REGS		(1),
-				.M_MASTER_REGS		(1),
+				.TUSER_WIDTH			(1),
+				.TDATA_WIDTH			(10),
+				.X_WIDTH				(16),
+				.Y_WIDTH				(16),
+				.TIMER_WIDTH			(32),
+				.S_SLAVE_REGS			(1),
+				.S_MASTER_REGS			(1),
+				.M_SLAVE_REGS			(1),
+				.M_MASTER_REGS			(1),
 				
-				.INIT_CONTROL		(2'b00),
-				.INIT_SKIP			(1),
-				.INIT_PARAM_WIDTH	(X_NUM),
-				.INIT_PARAM_HEIGHT	(Y_NUM),
-				.INIT_PARAM_FILL	(10'd0),
-				.INIT_PARAM_TIMEOUT	(32'h00010000)
+				.INIT_CONTROL			(2'b00),
+				.INIT_SKIP				(1),
+				.INIT_PARAM_WIDTH		(X_NUM),
+				.INIT_PARAM_HEIGHT		(Y_NUM),
+				.INIT_PARAM_FILL		(10'd0),
+				.INIT_PARAM_TIMEOUT		(32'h00010000)
 			)
 		i_video_normalizer
 			(
-				.aresetn			(axi4s_cam_aresetn),
-				.aclk				(axi4s_cam_aclk),
-				.aclken				(1'b1),
+				.aresetn				(axi4s_cam_aresetn),
+				.aclk					(axi4s_cam_aclk),
+				.aclken					(1'b1),
 				
-				.s_wb_rst_i			(wb_rst_o),
-				.s_wb_clk_i			(wb_clk_o),
-				.s_wb_adr_i			(wb_host_adr_o[7:0]),
-				.s_wb_dat_o			(wb_norm_dat_o),
-				.s_wb_dat_i			(wb_host_dat_o),
-				.s_wb_we_i			(wb_host_we_o),
-				.s_wb_sel_i			(wb_host_sel_o),
-				.s_wb_stb_i			(wb_norm_stb_i),
-				.s_wb_ack_o			(wb_norm_ack_o),
+				.s_wb_rst_i				(wb_rst_o),
+				.s_wb_clk_i				(wb_clk_o),
+				.s_wb_adr_i				(wb_host_adr_o[7:0]),
+				.s_wb_dat_o				(wb_norm_dat_o),
+				.s_wb_dat_i				(wb_host_dat_o),
+				.s_wb_we_i				(wb_host_we_o),
+				.s_wb_sel_i				(wb_host_sel_o),
+				.s_wb_stb_i				(wb_norm_stb_i),
+				.s_wb_ack_o				(wb_norm_ack_o),
 				
-		//		.s_axi4s_tuser		(axi4s_fifo_tuser),
-		//		.s_axi4s_tlast		(axi4s_fifo_tlast),
-		//		.s_axi4s_tdata		(axi4s_fifo_tdata),
-		//		.s_axi4s_tvalid		(axi4s_fifo_tvalid),
-		//		.s_axi4s_tready		(axi4s_fifo_tready),
+				.s_axi4s_tuser			(axi4s_fifo_tuser),
+				.s_axi4s_tlast			(axi4s_fifo_tlast),
+				.s_axi4s_tdata			(axi4s_fifo_tdata),
+				.s_axi4s_tvalid			(axi4s_fifo_tvalid),
+				.s_axi4s_tready			(axi4s_fifo_tready),
 				
-				.s_axi4s_tuser		(axi4s_csi2_tuser),
-				.s_axi4s_tlast		(axi4s_csi2_tlast),
-				.s_axi4s_tdata		(axi4s_csi2_tdata),
-				.s_axi4s_tvalid		(axi4s_csi2_tvalid),
-				.s_axi4s_tready		(axi4s_csi2_tready),
-				
-				.m_axi4s_tuser		(axi4s_norm_tuser),
-				.m_axi4s_tlast		(axi4s_norm_tlast),
-				.m_axi4s_tdata		(axi4s_norm_tdata),
-				.m_axi4s_tvalid		(axi4s_norm_tvalid),
-				.m_axi4s_tready		(axi4s_norm_tready)
+				.m_axi4s_tuser			(axi4s_norm_tuser),
+				.m_axi4s_tlast			(axi4s_norm_tlast),
+				.m_axi4s_tdata			(axi4s_norm_tdata),
+				.m_axi4s_tvalid			(axi4s_norm_tvalid),
+				.m_axi4s_tready			(axi4s_norm_tready)
 			);
 	
 	
@@ -710,42 +701,42 @@ module top
 	
 	video_raw_to_rgb
 			#(
-				.WB_ADR_WIDTH		(10),
-				.WB_DAT_WIDTH		(32),
+				.WB_ADR_WIDTH			(10),
+				.WB_DAT_WIDTH			(32),
 				
-				.DATA_WIDTH			(10),
+				.DATA_WIDTH				(10),
 				
-				.IMG_Y_NUM			(Y_NUM),
-				.IMG_Y_WIDTH		(12),
+				.IMG_Y_NUM				(Y_NUM),
+				.IMG_Y_WIDTH			(12),
 				
-				.TUSER_WIDTH		(1)
+				.TUSER_WIDTH			(1)
 			)
 		i_video_raw_to_rgb
 			(
-				.aresetn			(axi4s_cam_aresetn),
-				.aclk				(axi4s_cam_aclk),
+				.aresetn				(axi4s_cam_aresetn),
+				.aclk					(axi4s_cam_aclk),
 				
-				.s_wb_rst_i			(wb_rst_o),
-				.s_wb_clk_i			(wb_clk_o),
-				.s_wb_adr_i			(wb_host_adr_o[9:0]),
-				.s_wb_dat_o			(wb_rgb_dat_o),
-				.s_wb_dat_i			(wb_host_dat_o),
-				.s_wb_we_i			(wb_host_we_o),
-				.s_wb_sel_i			(wb_host_sel_o),
-				.s_wb_stb_i			(wb_rgb_stb_i),
-				.s_wb_ack_o			(wb_rgb_ack_o),
+				.s_wb_rst_i				(wb_rst_o),
+				.s_wb_clk_i				(wb_clk_o),
+				.s_wb_adr_i				(wb_host_adr_o[9:0]),
+				.s_wb_dat_o				(wb_rgb_dat_o),
+				.s_wb_dat_i				(wb_host_dat_o),
+				.s_wb_we_i				(wb_host_we_o),
+				.s_wb_sel_i				(wb_host_sel_o),
+				.s_wb_stb_i				(wb_rgb_stb_i),
+				.s_wb_ack_o				(wb_rgb_ack_o),
 				
-				.s_axi4s_tuser		(axi4s_norm_tuser),
-				.s_axi4s_tlast		(axi4s_norm_tlast),
-				.s_axi4s_tdata		(axi4s_norm_tdata),
-				.s_axi4s_tvalid		(axi4s_norm_tvalid),
-				.s_axi4s_tready		(axi4s_norm_tready),
+				.s_axi4s_tuser			(axi4s_norm_tuser),
+				.s_axi4s_tlast			(axi4s_norm_tlast),
+				.s_axi4s_tdata			(axi4s_norm_tdata),
+				.s_axi4s_tvalid			(axi4s_norm_tvalid),
+				.s_axi4s_tready			(axi4s_norm_tready),
 				
-				.m_axi4s_tuser		(axi4s_rgb_tuser),
-				.m_axi4s_tlast		(axi4s_rgb_tlast),
-				.m_axi4s_tdata		(axi4s_rgb_tdata),
-				.m_axi4s_tvalid		(axi4s_rgb_tvalid),
-				.m_axi4s_tready		(axi4s_rgb_tready)
+				.m_axi4s_tuser			(axi4s_rgb_tuser),
+				.m_axi4s_tlast			(axi4s_rgb_tlast),
+				.m_axi4s_tdata			(axi4s_rgb_tdata),
+				.m_axi4s_tvalid			(axi4s_rgb_tvalid),
+				.m_axi4s_tready			(axi4s_rgb_tready)
 			);
 	
 	wire	[23:0]		axi4s_rgb_trgb = {axi4s_rgb_tdata[29:22], axi4s_rgb_tdata[19:12], axi4s_rgb_tdata[9:2]};
@@ -754,34 +745,94 @@ module top
 	
 	
 	// ÉÇÉmÉNÉçâª
+	wire	[9:0]		axi4s_gray_traw;
 	wire	[0:0]		axi4s_gray_tuser;
 	wire				axi4s_gray_tlast;
-	wire	[9:0]		axi4s_gray_tdata;
+	wire	[29:0]		axi4s_gray_tdata;
+	wire	[9:0]		axi4s_gray_tgray;
 	wire				axi4s_gray_tvalid;
+	wire				axi4s_gray_tready;
+	
+	wire	[23:0]		axi4s_gray_trgb = {axi4s_gray_tdata[29:22], axi4s_gray_tdata[19:12], axi4s_gray_tdata[9:2]};
 	
 	jelly_video_rgb_to_gray
 			#(
-				.COMPONENT_NUM		(3),
-				.DATA_WIDTH			(10),
-				.TUSER_WIDTH		(1)
+				.COMPONENT_NUM			(3),
+				.DATA_WIDTH				(10),
+				.TUSER_WIDTH			(10 + 1)
 			)
 		i_video_rgb_to_gray
 			(
-				.aresetn			(axi4s_cam_aresetn),
-				.aclk				(axi4s_cam_aclk),
+				.aresetn				(axi4s_cam_aresetn),
+				.aclk					(axi4s_cam_aclk),
 				
-				.s_axi4s_tuser		(axi4s_rgb_tuser),
-				.s_axi4s_tlast		(axi4s_rgb_tlast),
-				.s_axi4s_tdata		(axi4s_rgb_tdata[29:0]),
-				.s_axi4s_tvalid		(axi4s_rgb_tvalid),
-				.s_axi4s_tready		(),
+				.s_axi4s_tuser			({axi4s_rgb_tdata[39:30], axi4s_rgb_tuser}),
+				.s_axi4s_tlast			(axi4s_rgb_tlast),
+				.s_axi4s_tdata			(axi4s_rgb_tdata[29:0]),
+				.s_axi4s_tvalid			(axi4s_rgb_tvalid),
+				.s_axi4s_tready			(axi4s_rgb_tready),
 				
-				.m_axi4s_tuser		(axi4s_gray_tuser),
-				.m_axi4s_tlast		(axi4s_gray_tlast),
-				.m_axi4s_tdata		(),
-				.m_axi4s_tgray		(axi4s_gray_tdata),
-				.m_axi4s_tvalid		(axi4s_gray_tvalid),
-				.m_axi4s_tready		(1'b1)
+				.m_axi4s_tuser			({axi4s_gray_traw, axi4s_gray_tuser}),
+				.m_axi4s_tlast			(axi4s_gray_tlast),
+				.m_axi4s_tdata			(axi4s_gray_tdata),
+				.m_axi4s_tgray			(axi4s_gray_tgray),
+				.m_axi4s_tvalid			(axi4s_gray_tvalid),
+				.m_axi4s_tready			(axi4s_gray_tready)
+			);
+	
+	
+	
+	// binary modulation
+	wire	[0:0]				axi4s_bin_tuser;
+	wire						axi4s_bin_tlast;
+	wire	[9:0]				axi4s_bin_traw;
+	wire	[23:0]				axi4s_bin_trgb;
+	wire	[7:0]				axi4s_bin_tgray;
+	wire	[0:0]				axi4s_bin_tbinary;
+	wire						axi4s_bin_tvalid;
+	wire						axi4s_bin_tready;
+	
+	wire	[31:0]				wb_bin_dat_o;
+	wire						wb_bin_stb_i;
+	wire						wb_bin_ack_o;
+	
+	jelly_video_tbl_modulator
+			#(
+				.TUSER_WIDTH			(10 + 24 + 1),
+				.TDATA_WIDTH			(8),
+				.WB_ADR_WIDTH			(10),
+				.WB_DAT_WIDTH			(32),
+				.INIT_PARAM_END			(0),
+				.INIT_PARAM_INV			(0)
+			)
+		i_video_tbl_modulator
+			(
+				.aresetn				(axi4s_cam_aresetn),
+				.aclk					(axi4s_cam_aclk),
+				.aclken					(1'b1),
+				
+				.s_axi4s_tuser			({axi4s_gray_traw, axi4s_gray_trgb, axi4s_gray_tuser}),
+				.s_axi4s_tlast			(axi4s_gray_tlast),
+				.s_axi4s_tdata			(axi4s_gray_tgray[9:2]),
+				.s_axi4s_tvalid			(axi4s_gray_tvalid),
+				.s_axi4s_tready			(axi4s_gray_tready),
+				
+				.m_axi4s_tuser			({axi4s_bin_traw, axi4s_bin_trgb, axi4s_bin_tuser}),
+				.m_axi4s_tlast			(axi4s_bin_tlast),
+				.m_axi4s_tbinary		(axi4s_bin_tbinary),
+				.m_axi4s_tdata			(axi4s_bin_tgray),
+				.m_axi4s_tvalid			(axi4s_bin_tvalid),
+				.m_axi4s_tready			(axi4s_bin_tready),
+				
+				.s_wb_rst_i				(wb_rst_o),
+				.s_wb_clk_i				(wb_clk_o),
+				.s_wb_adr_i				(wb_host_adr_o[9:0]),
+				.s_wb_dat_o				(wb_bin_dat_o),
+				.s_wb_dat_i				(wb_host_dat_o),
+				.s_wb_we_i				(wb_host_we_o),
+				.s_wb_sel_i				(wb_host_sel_o),
+				.s_wb_stb_i				(wb_bin_stb_i),
+				.s_wb_ack_o				(wb_bin_ack_o)
 			);
 	
 	
@@ -790,67 +841,55 @@ module top
 	wire					axi4s_mnist_tlast;
 	wire	[3:0]			axi4s_mnist_tcount;
 	wire	[3:0]			axi4s_mnist_tnumber;
+	wire					axi4s_mnist_tvalidation;
 	wire					axi4s_mnist_tvalid;
-	
-	wire	[31:0]			wb_mnist_dat_o;
-	wire					wb_mnist_stb_i;
-	wire					wb_mnist_ack_o;
 	
 	video_mnist
 			#(
-				.DATA_WIDTH			(8),
-				.IMG_Y_NUM			(Y_NUM),
-				.IMG_Y_WIDTH		(12),
-				.TUSER_WIDTH		(1),
-				.WB_ADR_WIDTH		(8),
-				.WB_DAT_WIDTH		(32),
-				.INIT_PARAM_TH		(127),
-				.INIT_PARAM_INV		(0)
+				.IMG_Y_NUM				(Y_NUM),
+				.IMG_Y_WIDTH			(12),
+				.TUSER_WIDTH			(1)
 			)
 		i_video_mnist
 			(
-				.aresetn			(axi4s_cam_aresetn),
-				.aclk				(axi4s_cam_aclk),
+				.aresetn				(axi4s_cam_aresetn),
+				.aclk					(axi4s_cam_aclk),
 				
-				.s_axi4s_tuser		(axi4s_gray_tuser),
-				.s_axi4s_tlast		(axi4s_gray_tlast),
-				.s_axi4s_tdata		(axi4s_gray_tdata[9:2]),
-				.s_axi4s_tvalid		(axi4s_gray_tvalid),
-				.s_axi4s_tready		(),
+				.s_axi4s_tuser			(axi4s_bin_tuser),
+				.s_axi4s_tlast			(axi4s_bin_tlast),
+				.s_axi4s_tdata			(axi4s_bin_tbinary),
+				.s_axi4s_tvalid			(axi4s_bin_tvalid & axi4s_bin_tready),
+				.s_axi4s_tready			(),
 				
-				.m_axi4s_tuser		(axi4s_mnist_tuser),
-				.m_axi4s_tlast		(axi4s_mnist_tlast),
-				.m_axi4s_tnumber	(axi4s_mnist_tnumber),
-				.m_axi4s_tcount		(axi4s_mnist_tcount),
-				.m_axi4s_tdata		(),
-				.m_axi4s_tvalid		(axi4s_mnist_tvalid),
-				.m_axi4s_tready		(1'b1),
-				
-				.s_wb_rst_i			(wb_rst_o),
-				.s_wb_clk_i			(wb_clk_o),
-				.s_wb_adr_i			(wb_host_adr_o[7:0]),
-				.s_wb_dat_o			(wb_mnist_dat_o),
-				.s_wb_dat_i			(wb_host_dat_o),
-				.s_wb_we_i			(wb_host_we_o),
-				.s_wb_sel_i			(wb_host_sel_o),
-				.s_wb_stb_i			(wb_mnist_stb_i),
-				.s_wb_ack_o			(wb_mnist_ack_o)
+				.m_axi4s_tuser			(axi4s_mnist_tuser),
+				.m_axi4s_tlast			(axi4s_mnist_tlast),
+				.m_axi4s_tnumber		(axi4s_mnist_tnumber),
+				.m_axi4s_tcount			(axi4s_mnist_tcount),
+				.m_axi4s_tdata			(),
+				.m_axi4s_tvalidation	(axi4s_mnist_tvalidation),
+				.m_axi4s_tvalid			(axi4s_mnist_tvalid),
+				.m_axi4s_tready			(1'b1)
 			);
+	
 	
 	// frame buffer
 	wire	[0:0]			axi4s_fmem_tuser;
 	wire					axi4s_fmem_tlast;
-	wire	[23:0]			axi4s_fmem_tdata;
+	wire	[9:0]			axi4s_fmem_traw;
+	wire	[7:0]			axi4s_fmem_tgray;
+	wire	[23:0]			axi4s_fmem_trgb;
+	wire	[0:0]			axi4s_fmem_tbinary;
 	wire	[3:0]			axi4s_fmem_tcount;
 	wire	[3:0]			axi4s_fmem_tnumber;
+	wire	[0:0]			axi4s_fmem_tvalidation;
 	wire					axi4s_fmem_tvalid;
 	wire					axi4s_fmem_tready;
 	
 	video_dnn_fmem
 			#(
 				.TUSER_WIDTH			(1),
-				.TDATA_WIDTH			(24),
-				.STORE_TDATA_WIDTH		(4+4),
+				.TDATA_WIDTH			(10+8+1+24),
+				.STORE_TDATA_WIDTH		(4+4+1),
 				
 				.DIV_X					(2),
 				.DIV_Y					(2),
@@ -866,26 +905,25 @@ module top
 				.aresetn				(axi4s_cam_aresetn),
 				.aclk					(axi4s_cam_aclk),
 				
-				.s_axi4s_tuser			(axi4s_rgb_tuser),
-				.s_axi4s_tlast			(axi4s_rgb_tlast),
-				.s_axi4s_tdata			(axi4s_rgb_trgb),
-				.s_axi4s_tvalid			(axi4s_rgb_tvalid),
-				.s_axi4s_tready			(axi4s_rgb_tready),
-				
-				.m_axi4s_tuser			(axi4s_fmem_tuser),
-				.m_axi4s_tlast			(axi4s_fmem_tlast),
-				.m_axi4s_tdata			(axi4s_fmem_tdata),
-				.m_axi4s_tdata_store	({axi4s_fmem_tnumber, axi4s_fmem_tcount}),
-				.m_axi4s_tvalid			(axi4s_fmem_tvalid),
-				.m_axi4s_tready			(axi4s_fmem_tready),
-				
-				
 				.s_axi4s_store_aresetn	(axi4s_cam_aresetn),
 				.s_axi4s_store_aclk		(axi4s_cam_aclk),
 				.s_axi4s_store_tuser	(axi4s_mnist_tuser),
 				.s_axi4s_store_tlast	(axi4s_mnist_tlast),
-				.s_axi4s_store_tdata	({axi4s_mnist_tnumber, axi4s_mnist_tcount}),
-				.s_axi4s_store_tvalid	(axi4s_mnist_tvalid)
+				.s_axi4s_store_tdata	({axi4s_mnist_tnumber, axi4s_mnist_tcount, axi4s_mnist_tvalidation}),
+				.s_axi4s_store_tvalid	(axi4s_mnist_tvalid),
+				
+				.s_axi4s_tuser			(axi4s_bin_tuser),
+				.s_axi4s_tlast			(axi4s_bin_tlast),
+				.s_axi4s_tdata			({axi4s_bin_traw, axi4s_bin_tgray, axi4s_bin_tbinary, axi4s_bin_trgb}),
+				.s_axi4s_tvalid			(axi4s_bin_tvalid),
+				.s_axi4s_tready			(axi4s_bin_tready),
+				
+				.m_axi4s_tuser			(axi4s_fmem_tuser),
+				.m_axi4s_tlast			(axi4s_fmem_tlast),
+				.m_axi4s_tdata			({axi4s_fmem_traw, axi4s_fmem_tgray, axi4s_fmem_tbinary, axi4s_fmem_trgb}),
+				.m_axi4s_tdata_store	({axi4s_fmem_tnumber, axi4s_fmem_tcount, axi4s_fmem_tvalidation}),
+				.m_axi4s_tvalid			(axi4s_fmem_tvalid),
+				.m_axi4s_tready			(axi4s_fmem_tready)
 			);
 	
 	
@@ -902,40 +940,47 @@ module top
 	
 	video_mnist_color
 			#(
-				.DATA_WIDTH			(8),
-				.TUSER_WIDTH		(1)
+				.RAW_WIDTH				(10),
+				.DATA_WIDTH				(8),
+				.TUSER_WIDTH			(1),
+				.INIT_PARAM_MODE		(2'b11),
+				.INIT_PARAM_TH			(5),
+				.INIT_PARAM_SEL			(0)
 			)
 		i_video_mnist_color
 			(
-				.aresetn			(axi4s_cam_aresetn),
-				.aclk				(axi4s_cam_aclk),
+				.aresetn				(axi4s_cam_aresetn),
+				.aclk					(axi4s_cam_aclk),
 				
-				.s_axi4s_tuser		(axi4s_fmem_tuser),
-				.s_axi4s_tlast		(axi4s_fmem_tlast),
-				.s_axi4s_tnumber	(axi4s_fmem_tnumber),
-				.s_axi4s_tcount		(axi4s_fmem_tcount),
-				.s_axi4s_tdata		({8'h00, axi4s_fmem_tdata}),
-				.s_axi4s_tbinary	(1'b0),
-				.s_axi4s_tvalid		(axi4s_fmem_tvalid),
-				.s_axi4s_tready		(axi4s_fmem_tready),
+				.s_axi4s_tuser			(axi4s_fmem_tuser),
+				.s_axi4s_tlast			(axi4s_fmem_tlast),
+				.s_axi4s_tnumber		(axi4s_fmem_tnumber),
+				.s_axi4s_tcount			(axi4s_fmem_tcount),
+				.s_axi4s_traw			(axi4s_fmem_traw),
+				.s_axi4s_tgray			(axi4s_fmem_tgray),
+				.s_axi4s_trgb			(axi4s_fmem_trgb),
+				.s_axi4s_tbinary		(axi4s_fmem_tbinary),
+				.s_axi4s_tvalidation	(axi4s_fmem_tvalidation),
+				.s_axi4s_tvalid			(axi4s_fmem_tvalid),
+				.s_axi4s_tready			(axi4s_fmem_tready),
 				
-				.m_axi4s_tuser		(axi4s_mcol_tuser),
-				.m_axi4s_tlast		(axi4s_mcol_tlast),
-				.m_axi4s_tdata		(axi4s_mcol_tdata),
-				.m_axi4s_tvalid		(axi4s_mcol_tvalid),
-				.m_axi4s_tready		(axi4s_mcol_tready),
+				.m_axi4s_tuser			(axi4s_mcol_tuser),
+				.m_axi4s_tlast			(axi4s_mcol_tlast),
+				.m_axi4s_tdata			(axi4s_mcol_tdata[23:0]),
+				.m_axi4s_tvalid			(axi4s_mcol_tvalid),
+				.m_axi4s_tready			(axi4s_mcol_tready),
 				
-				.s_wb_rst_i			(wb_rst_o),
-				.s_wb_clk_i			(wb_clk_o),
-				.s_wb_adr_i			(wb_host_adr_o[7:0]),
-				.s_wb_dat_o			(wb_mcol_dat_o),
-				.s_wb_dat_i			(wb_host_dat_o),
-				.s_wb_we_i			(wb_host_we_o),
-				.s_wb_sel_i			(wb_host_sel_o),
-				.s_wb_stb_i			(wb_mcol_stb_i),
-				.s_wb_ack_o			(wb_mcol_ack_o)
+				.s_wb_rst_i				(wb_rst_o),
+				.s_wb_clk_i				(wb_clk_o),
+				.s_wb_adr_i				(wb_host_adr_o[7:0]),
+				.s_wb_dat_o				(wb_mcol_dat_o),
+				.s_wb_dat_i				(wb_host_dat_o),
+				.s_wb_we_i				(wb_host_we_o),
+				.s_wb_sel_i				(wb_host_sel_o),
+				.s_wb_stb_i				(wb_mcol_stb_i),
+				.s_wb_ack_o				(wb_mcol_ack_o)
 			);
-	
+	assign axi4s_mcol_tdata[31:24] = 0;
 	
 	
 	
@@ -946,74 +991,74 @@ module top
 	
 	jelly_vdma_axi4s_to_axi4
 			#(
-				.ASYNC				(1),
-				.FIFO_PTR_WIDTH		(12),
+				.ASYNC					(1),
+				.FIFO_PTR_WIDTH			(12),
 				
-				.PIXEL_SIZE			(2),	// 32bit
-				.AXI4_ID_WIDTH		(6),
-				.AXI4_ADDR_WIDTH	(32),
-				.AXI4_DATA_SIZE		(3),	// 64bit
-				.AXI4S_DATA_SIZE	(2),	// 32bit
-				.AXI4S_USER_WIDTH	(1),
-				.INDEX_WIDTH		(8),
-				.STRIDE_WIDTH		(14),
-				.H_WIDTH			(12),
-				.V_WIDTH			(12),
-				.SIZE_WIDTH			(32),
+				.PIXEL_SIZE				(2),	// 32bit
+				.AXI4_ID_WIDTH			(6),
+				.AXI4_ADDR_WIDTH		(32),
+				.AXI4_DATA_SIZE			(3),	// 64bit
+				.AXI4S_DATA_SIZE		(2),	// 32bit
+				.AXI4S_USER_WIDTH		(1),
+				.INDEX_WIDTH			(8),
+				.STRIDE_WIDTH			(14),
+				.H_WIDTH				(12),
+				.V_WIDTH				(12),
+				.SIZE_WIDTH				(32),
 				
-				.WB_ADR_WIDTH		(8),
-				.WB_DAT_WIDTH		(32),
-				.INIT_CTL_CONTROL	(2'b00),
-				.INIT_PARAM_ADDR	(32'h3000_0000),
-				.INIT_PARAM_STRIDE	(X_NUM*2),
-				.INIT_PARAM_WIDTH	(X_NUM),
-				.INIT_PARAM_HEIGHT	(Y_NUM),
-				.INIT_PARAM_SIZE	(X_NUM*Y_NUM),
-				.INIT_PARAM_AWLEN	(7)
+				.WB_ADR_WIDTH			(8),
+				.WB_DAT_WIDTH			(32),
+				.INIT_CTL_CONTROL		(2'b00),
+				.INIT_PARAM_ADDR		(32'h3000_0000),
+				.INIT_PARAM_STRIDE		(X_NUM*2),
+				.INIT_PARAM_WIDTH		(X_NUM),
+				.INIT_PARAM_HEIGHT		(Y_NUM),
+				.INIT_PARAM_SIZE		(X_NUM*Y_NUM),
+				.INIT_PARAM_AWLEN		(7)
 			)
 		i_vdma_axi4s_to_axi4
 			(
-				.m_axi4_aresetn		(axi4_mem_aresetn),
-				.m_axi4_aclk		(axi4_mem_aclk),
-				.m_axi4_awid		(axi4_mem0_awid),
-				.m_axi4_awaddr		(axi4_mem0_awaddr),
-				.m_axi4_awburst		(axi4_mem0_awburst),
-				.m_axi4_awcache		(axi4_mem0_awcache),
-				.m_axi4_awlen		(axi4_mem0_awlen),
-				.m_axi4_awlock		(axi4_mem0_awlock),
-				.m_axi4_awprot		(axi4_mem0_awprot),
-				.m_axi4_awqos		(axi4_mem0_awqos),
-				.m_axi4_awregion	(),
-				.m_axi4_awsize		(axi4_mem0_awsize),
-				.m_axi4_awvalid		(axi4_mem0_awvalid),
-				.m_axi4_awready		(axi4_mem0_awready),
-				.m_axi4_wstrb		(axi4_mem0_wstrb),
-				.m_axi4_wdata		(axi4_mem0_wdata),
-				.m_axi4_wlast		(axi4_mem0_wlast),
-				.m_axi4_wvalid		(axi4_mem0_wvalid),
-				.m_axi4_wready		(axi4_mem0_wready),
-				.m_axi4_bid			(axi4_mem0_bid),
-				.m_axi4_bresp		(axi4_mem0_bresp),
-				.m_axi4_bvalid		(axi4_mem0_bvalid),
-				.m_axi4_bready		(axi4_mem0_bready),
+				.m_axi4_aresetn			(axi4_mem_aresetn),
+				.m_axi4_aclk			(axi4_mem_aclk),
+				.m_axi4_awid			(axi4_mem0_awid),
+				.m_axi4_awaddr			(axi4_mem0_awaddr),
+				.m_axi4_awburst			(axi4_mem0_awburst),
+				.m_axi4_awcache			(axi4_mem0_awcache),
+				.m_axi4_awlen			(axi4_mem0_awlen),
+				.m_axi4_awlock			(axi4_mem0_awlock),
+				.m_axi4_awprot			(axi4_mem0_awprot),
+				.m_axi4_awqos			(axi4_mem0_awqos),
+				.m_axi4_awregion		(),
+				.m_axi4_awsize			(axi4_mem0_awsize),
+				.m_axi4_awvalid			(axi4_mem0_awvalid),
+				.m_axi4_awready			(axi4_mem0_awready),
+				.m_axi4_wstrb			(axi4_mem0_wstrb),
+				.m_axi4_wdata			(axi4_mem0_wdata),
+				.m_axi4_wlast			(axi4_mem0_wlast),
+				.m_axi4_wvalid			(axi4_mem0_wvalid),
+				.m_axi4_wready			(axi4_mem0_wready),
+				.m_axi4_bid				(axi4_mem0_bid),
+				.m_axi4_bresp			(axi4_mem0_bresp),
+				.m_axi4_bvalid			(axi4_mem0_bvalid),
+				.m_axi4_bready			(axi4_mem0_bready),
 				
-				.s_axi4s_aresetn	(axi4s_cam_aresetn),
-				.s_axi4s_aclk		(axi4s_cam_aclk),
-				.s_axi4s_tuser		(axi4s_mcol_tuser),
-				.s_axi4s_tlast		(axi4s_mcol_tlast),
-				.s_axi4s_tdata		(axi4s_mcol_tdata),
-				.s_axi4s_tvalid		(axi4s_mcol_tvalid),
-				.s_axi4s_tready		(), // (axi4s_rgb_tready),
+				.s_axi4s_aresetn		(axi4s_cam_aresetn),
+				.s_axi4s_aclk			(axi4s_cam_aclk),
+				.s_axi4s_tuser			(axi4s_mcol_tuser),
+				.s_axi4s_tlast			(axi4s_mcol_tlast),
+				.s_axi4s_tdata			(axi4s_mcol_tdata),
+				.s_axi4s_tvalid			(axi4s_mcol_tvalid),
+				.s_axi4s_tready			(), // (axi4s_rgb_tready),
 				
-				.s_wb_rst_i			(wb_rst_o),
-				.s_wb_clk_i			(wb_clk_o),
-				.s_wb_adr_i			(wb_host_adr_o[7:0]),
-				.s_wb_dat_o			(wb_vdmaw_dat_o),
-				.s_wb_dat_i			(wb_host_dat_o),
-				.s_wb_we_i			(wb_host_we_o),
-				.s_wb_sel_i			(wb_host_sel_o),
-				.s_wb_stb_i			(wb_vdmaw_stb_i),
-				.s_wb_ack_o			(wb_vdmaw_ack_o)
+				.s_wb_rst_i				(wb_rst_o),
+				.s_wb_clk_i				(wb_clk_o),
+				.s_wb_adr_i				(wb_host_adr_o[7:0]),
+				.s_wb_dat_o				(wb_vdmaw_dat_o),
+				.s_wb_dat_i				(wb_host_dat_o),
+				.s_wb_we_i				(wb_host_we_o),
+				.s_wb_sel_i				(wb_host_sel_o),
+				.s_wb_stb_i				(wb_vdmaw_stb_i),
+				.s_wb_ack_o				(wb_vdmaw_ack_o)
 			);
 	
 	
@@ -1101,40 +1146,40 @@ module top
 	
 	jelly_video_trimming_core
 			#(
-				.TUSER_WIDTH		(1),
-				.TDATA_WIDTH		(24),
-				.X_WIDTH			(12),
-				.Y_WIDTH			(12)
+				.TUSER_WIDTH			(1),
+				.TDATA_WIDTH			(24),
+				.X_WIDTH				(12),
+				.Y_WIDTH				(12)
 			)
 		i_video_trimming_core
 			(
-				.aresetn			(axi4s_cam_aresetn),
-				.aclk				(axi4s_cam_aclk),
-				.aclken				(1'b1),
+				.aresetn				(axi4s_cam_aresetn),
+				.aclk					(axi4s_cam_aclk),
+				.aclken					(1'b1),
 				
-				.param_enable		(1'b1),
-	//			.param_x_start		(((640-96)/2),
-	//			.param_x_end		((640+96)/2-1),
-	//			.param_y_start		(0),
-	//			.param_y_end		(63),
+				.param_enable			(1'b1),
+	//			.param_x_start			(((640-96)/2),
+	//			.param_x_end			((640+96)/2-1),
+	//			.param_y_start			(0),
+	//			.param_y_end			(63),
 				
-				.param_x_start		(1),
-				.param_x_end		(96),
-				.param_y_start		(1),
-				.param_y_end		(64),
+				.param_x_start			(1),
+				.param_x_end			(96),
+				.param_y_start			(1),
+				.param_y_end			(64),
 				
 				
-				.s_axi4s_tuser		(axi4s_resize_tuser),
-				.s_axi4s_tlast		(axi4s_resize_tlast),
-				.s_axi4s_tdata		(axi4s_resize_tdata),
-				.s_axi4s_tvalid		(axi4s_resize_tvalid),
-				.s_axi4s_tready		(axi4s_resize_tready),
-				                     
-				.m_axi4s_tuser		(axi4s_trim_tuser),
-				.m_axi4s_tlast		(axi4s_trim_tlast),
-				.m_axi4s_tdata		(axi4s_trim_tdata),
-				.m_axi4s_tvalid		(axi4s_trim_tvalid),
-				.m_axi4s_tready		(axi4s_trim_tready)
+				.s_axi4s_tuser			(axi4s_resize_tuser),
+				.s_axi4s_tlast			(axi4s_resize_tlast),
+				.s_axi4s_tdata			(axi4s_resize_tdata),
+				.s_axi4s_tvalid			(axi4s_resize_tvalid),
+				.s_axi4s_tready			(axi4s_resize_tready),
+				                    	 
+				.m_axi4s_tuser			(axi4s_trim_tuser),
+				.m_axi4s_tlast			(axi4s_trim_tlast),
+				.m_axi4s_tdata			(axi4s_trim_tdata),
+				.m_axi4s_tvalid			(axi4s_trim_tvalid),
+				.m_axi4s_tready			(axi4s_trim_tready)
 			);
 	
 	
@@ -1146,28 +1191,28 @@ module top
 	
 	jelly_fifo_async_fwtf
 			#(
-				.DATA_WIDTH			(2+24),
-				.PTR_WIDTH			(13),
-				.DOUT_REGS			(0),
-				.RAM_TYPE			("block"),
-				.SLAVE_REGS			(0),
-				.MASTER_REGS		(1)
+				.DATA_WIDTH				(2+24),
+				.PTR_WIDTH				(13),
+				.DOUT_REGS				(0),
+				.RAM_TYPE				("block"),
+				.SLAVE_REGS				(0),
+				.MASTER_REGS			(1)
 			)
 		i_fifo_async_fwtf_oled
 			(
-				.s_reset			(~axi4s_cam_aresetn),
-				.s_clk				(axi4s_cam_aclk),
-				.s_data				({axi4s_trim_tuser, axi4s_trim_tlast, axi4s_trim_tdata}),
-				.s_valid			(axi4s_trim_tvalid),
-				.s_ready			(axi4s_trim_tready),
-				.s_free_count		(),
+				.s_reset				(~axi4s_cam_aresetn),
+				.s_clk					(axi4s_cam_aclk),
+				.s_data					({axi4s_trim_tuser, axi4s_trim_tlast, axi4s_trim_tdata}),
+				.s_valid				(axi4s_trim_tvalid),
+				.s_ready				(axi4s_trim_tready),
+				.s_free_count			(),
 				
-				.m_reset			(oled_reset),
-				.m_clk				(oled_clk),
-				.m_data				({axi4s_oledfifo_tuser, axi4s_oledfifo_tlast, axi4s_oledfifo_tdata}),
-				.m_valid			(axi4s_oledfifo_tvalid),
-				.m_ready			(axi4s_oledfifo_tready),
-				.m_data_count		()
+				.m_reset				(oled_reset),
+				.m_clk					(oled_clk),
+				.m_data					({axi4s_oledfifo_tuser, axi4s_oledfifo_tlast, axi4s_oledfifo_tdata}),
+				.m_valid				(axi4s_oledfifo_tvalid),
+				.m_ready				(axi4s_oledfifo_tready),
+				.m_data_count			()
 			);
 	
 	
@@ -1180,21 +1225,21 @@ module top
 	video_oled_cnv
 		i_video_oled_cnv
 			(
-				.aresetn			(~oled_reset),
-				.aclk				(oled_clk),
-				.aclken				(1'b1),
+				.aresetn				(~oled_reset),
+				.aclk					(oled_clk),
+				.aclken					(1'b1),
 				
-				.s_axi4s_tuser		(axi4s_oledfifo_tuser),
-				.s_axi4s_tlast		(axi4s_oledfifo_tlast),
-				.s_axi4s_tdata		(axi4s_oledfifo_tdata),
-				.s_axi4s_tvalid		(axi4s_oledfifo_tvalid),
-				.s_axi4s_tready		(axi4s_oledfifo_tready),
+				.s_axi4s_tuser			(axi4s_oledfifo_tuser),
+				.s_axi4s_tlast			(axi4s_oledfifo_tlast),
+				.s_axi4s_tdata			(axi4s_oledfifo_tdata),
+				.s_axi4s_tvalid			(axi4s_oledfifo_tvalid),
+				.s_axi4s_tready			(axi4s_oledfifo_tready),
 				
-				.m_axi4s_tuser		(axi4s_oled_tuser),
-				.m_axi4s_tlast		(axi4s_oled_tlast),
-				.m_axi4s_tdata		(axi4s_oled_tdata),
-				.m_axi4s_tvalid		(axi4s_oled_tvalid),
-				.m_axi4s_tready		(axi4s_oled_tready)
+				.m_axi4s_tuser			(axi4s_oled_tuser),
+				.m_axi4s_tlast			(axi4s_oled_tlast),
+				.m_axi4s_tdata			(axi4s_oled_tdata),
+				.m_axi4s_tvalid			(axi4s_oled_tvalid),
+				.m_axi4s_tready			(axi4s_oled_tready)
 			);
 	
 	
@@ -1204,36 +1249,36 @@ module top
 	
 	oled_control
 			#(
-				.WB_ADR_WIDTH		(4),
-				.WB_DAT_WIDTH		(32)
+				.WB_ADR_WIDTH			(4),
+				.WB_DAT_WIDTH			(32)
 			)
 		i_oled_control
 			(
-				.reset				(oled_reset),
-				.clk				(oled_clk),
-				.clk_x7				(oled_clk_x7),
+				.reset					(oled_reset),
+				.clk					(oled_clk),
+				.clk_x7					(oled_clk_x7),
 				
-				.s_wb_rst_i			(wb_rst_o),
-				.s_wb_clk_i			(wb_clk_o),
-				.s_wb_adr_i			(wb_host_adr_o[3:0]),
-				.s_wb_dat_o			(wb_oled_dat_o),
-				.s_wb_dat_i			(wb_host_dat_o),
-				.s_wb_we_i			(wb_host_we_o),
-				.s_wb_sel_i			(wb_host_sel_o),
-				.s_wb_stb_i			(wb_oled_stb_i),
-				.s_wb_ack_o			(wb_oled_ack_o),
+				.s_wb_rst_i				(wb_rst_o),
+				.s_wb_clk_i				(wb_clk_o),
+				.s_wb_adr_i				(wb_host_adr_o[3:0]),
+				.s_wb_dat_o				(wb_oled_dat_o),
+				.s_wb_dat_i				(wb_host_dat_o),
+				.s_wb_we_i				(wb_host_we_o),
+				.s_wb_sel_i				(wb_host_sel_o),
+				.s_wb_stb_i				(wb_oled_stb_i),
+				.s_wb_ack_o				(wb_oled_ack_o),
 				
-				.s_axi4s_tuser		(axi4s_oled_tuser),
-				.s_axi4s_tlast		(axi4s_oled_tlast),
-				.s_axi4s_tdata		(axi4s_oled_tdata),
-				.s_axi4s_tvalid		(axi4s_oled_tvalid),
-				.s_axi4s_tready		(axi4s_oled_tready),
+				.s_axi4s_tuser			(axi4s_oled_tuser),
+				.s_axi4s_tlast			(axi4s_oled_tlast),
+				.s_axi4s_tdata			(axi4s_oled_tdata),
+				.s_axi4s_tvalid			(axi4s_oled_tvalid),
+				.s_axi4s_tready			(axi4s_oled_tready),
 				
 				
-				.gpo				({dip_sw[0], dip_sw[3:0]}),
+				.gpo					({dip_sw[0], dip_sw[3:0]}),
 				
-				.pmod_p				(pmod_jb_p),
-				.pmod_n				(pmod_jb_n)
+				.pmod_p					(pmod_jb_p),
+				.pmod_n					(pmod_jb_n)
 			);
 	
 	
@@ -1249,7 +1294,7 @@ module top
 	assign wb_norm_stb_i   = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_1);
 	assign wb_rgb_stb_i    = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_2);
 	assign wb_resize_stb_i = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_4);
-	assign wb_mnist_stb_i  = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_8);
+	assign wb_bin_stb_i    = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_8);
 	assign wb_mcol_stb_i   = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_9);
 	assign wb_oled_stb_i   = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4002_2);
 	
@@ -1259,7 +1304,7 @@ module top
 	                        wb_norm_stb_i   ? wb_norm_dat_o   :
 	                        wb_rgb_stb_i    ? wb_rgb_dat_o    :
 	                        wb_resize_stb_i ? wb_resize_dat_o :
-	                        wb_mnist_stb_i  ? wb_mnist_dat_o  :
+	                        wb_bin_stb_i    ? wb_bin_dat_o  :
 	                        wb_mcol_stb_i   ? wb_mcol_dat_o   :
 	                        wb_oled_stb_i   ? wb_oled_dat_o   :
 	                        32'h0000_0000;
@@ -1269,7 +1314,7 @@ module top
 	                        wb_norm_stb_i   ? wb_norm_ack_o   :
 	                        wb_rgb_stb_i    ? wb_rgb_ack_o    :
 	                        wb_resize_stb_i ? wb_resize_ack_o :
-	                        wb_mnist_stb_i  ? wb_mnist_ack_o  :
+	                        wb_bin_stb_i    ? wb_bin_ack_o    :
 	                        wb_mcol_stb_i   ? wb_mcol_ack_o   :
 	                        wb_oled_stb_i   ? wb_oled_ack_o   :
 	                        wb_host_stb_o;

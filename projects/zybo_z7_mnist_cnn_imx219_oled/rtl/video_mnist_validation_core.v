@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-module video_mnist_core
+module video_mnist_validation_core
 		#(
 			parameter	TUSER_WIDTH    = 1,
 			
@@ -25,7 +25,7 @@ module video_mnist_core
 			parameter	INIT_Y_NUM     = IMG_Y_NUM,
 			
 			parameter	S_TDATA_WIDTH  = 1,
-			parameter	M_TDATA_WIDTH  = 70,
+			parameter	M_TDATA_WIDTH  = 1,
 
 			parameter	RAM_TYPE       = "block",
 			parameter	FIFO_PTR_WIDTH = 9,
@@ -54,8 +54,8 @@ module video_mnist_core
 			input	wire						m_axi4s_tready
 		);
 	
-	localparam	L0_TDATA_WIDTH = 32;
-	localparam	L1_TDATA_WIDTH = 64;
+	localparam	L0_TDATA_WIDTH = 16;
+	localparam	L1_TDATA_WIDTH = 32;
 	localparam	L2_TDATA_WIDTH = M_TDATA_WIDTH;
 	
 	
@@ -66,7 +66,7 @@ module video_mnist_core
 	wire							axi4s_l0_tvalid;
 	wire							axi4s_l0_tready;
 	
-	MnistSparseLutCnnCnv0
+	MnistValidationSparseLutCnnCnv0
 			#(
 				.TUSER_WIDTH		(TUSER_WIDTH),
 				.IMG_X_WIDTH		(IMG_X_WIDTH),
@@ -80,7 +80,7 @@ module video_mnist_core
 				.IMG_CKE_BUFG		(IMG_CKE_BUFG),
 				.DEVICE         	(DEVICE)
 			)
-		i_MnistSparseLutCnnCnv0
+		i_MnistValidationSparseLutCnnCnv0
 			(
 				.reset				(~aresetn),
 				.clk				(aclk),
@@ -108,7 +108,7 @@ module video_mnist_core
 	wire							axi4s_l1_tvalid;
 	wire							axi4s_l1_tready;
 	
-	MnistSparseLutCnnCnv1
+	MnistValidationSparseLutCnnCnv1
 			#(
 				.TUSER_WIDTH		(TUSER_WIDTH),
 				.IMG_X_WIDTH		(IMG_X_WIDTH),
@@ -122,7 +122,7 @@ module video_mnist_core
 				.IMG_CKE_BUFG		(IMG_CKE_BUFG),
 				.DEVICE         	(DEVICE)
 			)
-		i_MnistSparseLutCnnCnv1
+		i_MnistValidationSparseLutCnnCnv1
 			(
 				.reset				(~aresetn),
 				.clk				(aclk),
@@ -144,7 +144,7 @@ module video_mnist_core
 	
 	
 	// L2
-	MnistSparseLutCnnCnv2
+	MnistValidationSparseLutCnnCnv2
 			#(
 				.TUSER_WIDTH		(TUSER_WIDTH),
 				.IMG_X_WIDTH		(IMG_X_WIDTH),
@@ -158,7 +158,7 @@ module video_mnist_core
 				.IMG_CKE_BUFG		(IMG_CKE_BUFG),
 				.DEVICE         	(DEVICE)
 			)
-		i_MnistSparseLutCnnCnv2
+		i_MnistValidationSparseLutCnnCnv2
 			(
 				.reset				(~aresetn),
 				.clk				(aclk),
