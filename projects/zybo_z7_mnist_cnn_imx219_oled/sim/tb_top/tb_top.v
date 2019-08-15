@@ -46,13 +46,13 @@ module tb_top();
 //	localparam IMG_Y_NUM = 256;
 //	localparam PGM_FILE  = "lena_256x256.pgm";
 	
-	localparam IMG_X_NUM = 160;
-	localparam IMG_Y_NUM = 64;
-	localparam PGM_FILE  = "mnist_test_160x120.pgm";
+//	localparam IMG_X_NUM = 160;
+//	localparam IMG_Y_NUM = 64;
+//	localparam PGM_FILE  = "mnist_test_160x120.pgm";
 	
-//	localparam IMG_X_NUM = 640;
-//	localparam IMG_Y_NUM = 132;
-//	localparam PGM_FILE  = "mnist_test_640x480.pgm";
+	localparam IMG_X_NUM = 640;
+	localparam IMG_Y_NUM = 132;
+	localparam PGM_FILE  = "mnist_test_640x480.pgm";
 	
 	
 	// ----------------------------------
