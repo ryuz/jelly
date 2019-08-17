@@ -14,37 +14,39 @@
 
 module video_mnist_color_core
 		#(
-			parameter	RAW_WIDTH     = 10,
-			parameter	DATA_WIDTH    = 8,
-			parameter	TUSER_WIDTH   = 1,
-			parameter	TNUMBER_WIDTH = 4,
-			parameter	TCOUNT_WIDTH  = 4
+			parameter	RAW_WIDTH         = 10,
+			parameter	DATA_WIDTH        = 8,
+			parameter	TUSER_WIDTH       = 1,
+			parameter	TNUMBER_WIDTH     = 4,
+			parameter	TCOUNT_WIDTH      = 8,
+			parameter	TVALIDATION_WIDTH = 8
 		)
 		(
-			input	wire						aresetn,
-			input	wire						aclk,
+			input	wire							aresetn,
+			input	wire							aclk,
 			
-			input	wire	[1:0]				param_mode,
-			input	wire	[TCOUNT_WIDTH-1:0]	param_th,
-			input	wire	[3:0]				param_sel,
+			input	wire	[1:0]					param_mode,
+			input	wire	[TCOUNT_WIDTH-1:0]		param_th_count,
+			input	wire	[3:0]					param_sel,
+			input	wire	[TVALIDATION_WIDTH-1:0]	param_th_validation,
 			
-			input	wire	[TUSER_WIDTH-1:0]	s_axi4s_tuser,
-			input	wire						s_axi4s_tlast,
-			input	wire	[TNUMBER_WIDTH-1:0]	s_axi4s_tnumber,
-			input	wire	[TCOUNT_WIDTH-1:0]	s_axi4s_tcount,
-			input	wire	[RAW_WIDTH-1:0]		s_axi4s_traw,
-			input	wire	[1*DATA_WIDTH-1:0]	s_axi4s_tgray,
-			input	wire	[3*DATA_WIDTH-1:0]	s_axi4s_trgb,
-			input	wire	[0:0]				s_axi4s_tbinary,
-			input	wire	[0:0]				s_axi4s_tvalidation,
-			input	wire						s_axi4s_tvalid,
-			output	wire						s_axi4s_tready,
+			input	wire	[TUSER_WIDTH-1:0]		s_axi4s_tuser,
+			input	wire							s_axi4s_tlast,
+			input	wire	[TNUMBER_WIDTH-1:0]		s_axi4s_tnumber,
+			input	wire	[TCOUNT_WIDTH-1:0]		s_axi4s_tcount,
+			input	wire	[RAW_WIDTH-1:0]			s_axi4s_traw,
+			input	wire	[1*DATA_WIDTH-1:0]		s_axi4s_tgray,
+			input	wire	[3*DATA_WIDTH-1:0]		s_axi4s_trgb,
+			input	wire	[0:0]					s_axi4s_tbinary,
+			input	wire	[TVALIDATION_WIDTH-1:0]	s_axi4s_tvalidation,
+			input	wire							s_axi4s_tvalid,
+			output	wire							s_axi4s_tready,
 			
-			output	wire	[TUSER_WIDTH-1:0]	m_axi4s_tuser,
-			output	wire						m_axi4s_tlast,
-			output	wire	[3*DATA_WIDTH-1:0]	m_axi4s_tdata,
-			output	wire						m_axi4s_tvalid,
-			input	wire						m_axi4s_tready
+			output	wire	[TUSER_WIDTH-1:0]		m_axi4s_tuser,
+			output	wire							m_axi4s_tlast,
+			output	wire	[3*DATA_WIDTH-1:0]		m_axi4s_tdata,
+			output	wire							m_axi4s_tvalid,
+			input	wire							m_axi4s_tready
 		);
 	
 	localparam TDATA_WIDTH = 3*DATA_WIDTH;
@@ -97,7 +99,7 @@ module video_mnist_color_core
 			default:	st0_data <= s_axi4s_trgb;
 			endcase
 			
-			st0_en <= ((s_axi4s_tnumber < 10) && (s_axi4s_tcount >= param_th) && (s_axi4s_tvalidation || ~param_mode[1]));
+			st0_en <= ((s_axi4s_tnumber < 10) && (s_axi4s_tcount >= param_th_count) && ((s_axi4s_tvalidation >= param_th_validation) || ~param_mode[1]));
 			case ( s_axi4s_tnumber )
 			4'd0:		st0_color <= 24'h00_00_00;	// •
 			4'd1:		st0_color <= 24'h00_00_80;	// ’ƒ
