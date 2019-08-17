@@ -148,7 +148,7 @@ module jelly_video_tbl_modulator_core
 			st0_tvalid  <= s_axi4s_tvalid;
 			
 			// stage 1
-			if ( st0_tvalid && st0_tuser ) begin
+			if ( st0_tvalid && st0_tuser[0] ) begin
 				if ( st1_addr != param_end ) begin
 					st1_addr <= st1_addr + 1'b1;
 				end
