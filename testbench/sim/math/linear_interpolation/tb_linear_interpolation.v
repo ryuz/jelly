@@ -21,13 +21,14 @@ module tb_linear_interpolation();
 	always #(RATE*20)	reset = 1'b0;
 	
 	
-	parameter	RATE_WIDTH    = 4;
+	parameter	RATE_WIDTH    = 8;//4;
 	parameter	COMPONENT_NUM = 1;
 	parameter	DATA_WIDTH    = 8;
 	parameter	DATA_SIGNED   = 0;
 	parameter	USER_WIDTH    = COMPONENT_NUM*DATA_WIDTH;
-	parameter	ROUNDING      = 0;
-	parameter	COMPACT       = 0;
+	parameter	ROUNDING      = 1;
+	parameter	COMPACT       = 1;
+	parameter	BLENDING      = 1;
 	
 	// local
 	parameter	USER_BITS     = USER_WIDTH > 0 ? USER_WIDTH : 1;
@@ -119,7 +120,8 @@ module tb_linear_interpolation();
 				.DATA_WIDTH 		(DATA_WIDTH),
 				.DATA_SIGNED  		(DATA_SIGNED),
 				.ROUNDING			(ROUNDING),
-				.COMPACT			(COMPACT)
+				.COMPACT			(COMPACT),
+				.BLENDING			(BLENDING)
 			)
 		i_linear_interpolation
 			(

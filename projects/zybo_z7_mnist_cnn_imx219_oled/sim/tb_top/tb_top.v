@@ -18,9 +18,11 @@ module tb_top();
 		$dumpvars(1, tb_top.i_top);
 //		$dumpvars(1, tb_top.i_top.i_video_rgb_to_gray);
 //		$dumpvars(0, tb_top.i_top.i_video_raw_to_rgb);
-//		$dumpvars(3, tb_top.i_top.i_video_mnist);
+		$dumpvars(1, tb_top.i_top.i_video_mnist);
+		$dumpvars(0, tb_top.i_top.i_video_mnist.i_video_integrator_bram_classifier);
+		$dumpvars(0, tb_top.i_top.i_video_mnist.i_video_integrator_bram_validation);
 //		$dumpvars(0, tb_top.i_top.i_video_normalizer);
-//		$dumpvars(0, tb_top.i_top.i_video_tbl_modulator);
+		$dumpvars(0, tb_top.i_top.i_video_tbl_modulator);
 //		$dumpvars(0, tb_top.i_top.i_video_mnist_color);
 //		$dumpvars(0, tb_top.i_top.i_video_dnn_fmem);
 //		$dumpvars(0, tb_top.i_top.i_video_mnist.i_video_dnn_max_count);
@@ -47,7 +49,7 @@ module tb_top();
 //	localparam PGM_FILE  = "lena_256x256.pgm";
 	
 //	localparam IMG_X_NUM = 160;
-//	localparam IMG_Y_NUM = 64;
+//	localparam IMG_Y_NUM = 32;
 //	localparam PGM_FILE  = "mnist_test_160x120.pgm";
 	
 	localparam IMG_X_NUM = 640;
@@ -365,6 +367,7 @@ module tb_top();
 		wb_write(32'h40011000,          1, 4'hf);		// enable
 		
 		// pwm
+		/*
 		wb_write(32'h40018100 + 4*0,  32'h10, 4'hf);
 		wb_write(32'h40018100 + 4*1,  32'hf0, 4'hf);
 		wb_write(32'h40018100 + 4*2,  32'h70, 4'hf);
@@ -381,6 +384,11 @@ module tb_top();
 		wb_write(32'h40018100 + 4*13, 32'hc0, 4'hf);
 		wb_write(32'h40018100 + 4*14, 32'h80, 4'hf);
 		wb_write(32'h40018010, 14, 4'hf);		 // MNIST_MOD_REG_PARAM_END
+		*/
+		
+		wb_write(32'h40015000, 32'hf0, 4'hf);
+		wb_write(32'h40015040, 32'hf0, 4'hf);
+		
 		
 	#1000;
 		// vin start

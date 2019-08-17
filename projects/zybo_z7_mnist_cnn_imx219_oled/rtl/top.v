@@ -839,16 +839,22 @@ module top
 	// mnist
 	wire	[0:0]			axi4s_mnist_tuser;
 	wire					axi4s_mnist_tlast;
-	wire	[3:0]			axi4s_mnist_tcount;
+	wire	[7:0]			axi4s_mnist_tcount;
 	wire	[3:0]			axi4s_mnist_tnumber;
-	wire					axi4s_mnist_tvalidation;
+	wire	[7:0]			axi4s_mnist_tvalidation;
 	wire					axi4s_mnist_tvalid;
+	
+	wire	[31:0]			wb_mnist_dat_o;
+	wire					wb_mnist_stb_i;
+	wire					wb_mnist_ack_o;
 	
 	video_mnist
 			#(
 				.IMG_Y_NUM				(Y_NUM),
 				.IMG_Y_WIDTH			(12),
-				.TUSER_WIDTH			(1)
+				.TUSER_WIDTH			(1),
+				.WB_ADR_WIDTH			(10),
+				.WB_DAT_WIDTH			(32)
 			)
 		i_video_mnist
 			(
@@ -868,7 +874,17 @@ module top
 				.m_axi4s_tdata			(),
 				.m_axi4s_tvalidation	(axi4s_mnist_tvalidation),
 				.m_axi4s_tvalid			(axi4s_mnist_tvalid),
-				.m_axi4s_tready			(1'b1)
+				.m_axi4s_tready			(1'b1),
+				
+				.s_wb_rst_i				(wb_rst_o),
+				.s_wb_clk_i				(wb_clk_o),
+				.s_wb_adr_i				(wb_host_adr_o[9:0]),
+				.s_wb_dat_o				(wb_mnist_dat_o),
+				.s_wb_dat_i				(wb_host_dat_o),
+				.s_wb_we_i				(wb_host_we_o),
+				.s_wb_sel_i				(wb_host_sel_o),
+				.s_wb_stb_i				(wb_mnist_stb_i),
+				.s_wb_ack_o				(wb_mnist_ack_o)
 			);
 	
 	
@@ -879,9 +895,9 @@ module top
 	wire	[7:0]			axi4s_fmem_tgray;
 	wire	[23:0]			axi4s_fmem_trgb;
 	wire	[0:0]			axi4s_fmem_tbinary;
-	wire	[3:0]			axi4s_fmem_tcount;
+	wire	[7:0]			axi4s_fmem_tcount;
 	wire	[3:0]			axi4s_fmem_tnumber;
-	wire	[0:0]			axi4s_fmem_tvalidation;
+	wire	[7:0]			axi4s_fmem_tvalidation;
 	wire					axi4s_fmem_tvalid;
 	wire					axi4s_fmem_tready;
 	
@@ -889,7 +905,7 @@ module top
 			#(
 				.TUSER_WIDTH			(1),
 				.TDATA_WIDTH			(10+8+1+24),
-				.STORE_TDATA_WIDTH		(4+4+1),
+				.STORE_TDATA_WIDTH		(4+8+8),
 				
 				.DIV_X					(2),
 				.DIV_Y					(2),
@@ -944,8 +960,9 @@ module top
 				.DATA_WIDTH				(8),
 				.TUSER_WIDTH			(1),
 				.INIT_PARAM_MODE		(2'b11),
-				.INIT_PARAM_TH			(5),
-				.INIT_PARAM_SEL			(0)
+				.INIT_PARAM_TH_COUNT	(127),
+				.INIT_PARAM_SEL			(0),
+				.INIT_PARAM_TH_VALIDATION(127)
 			)
 		i_video_mnist_color
 			(
@@ -1294,6 +1311,7 @@ module top
 	assign wb_norm_stb_i   = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_1);
 	assign wb_rgb_stb_i    = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_2);
 	assign wb_resize_stb_i = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_4);
+	assign wb_mnist_stb_i  = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_5);
 	assign wb_bin_stb_i    = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_8);
 	assign wb_mcol_stb_i   = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_9);
 	assign wb_oled_stb_i   = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4002_2);
@@ -1304,7 +1322,8 @@ module top
 	                        wb_norm_stb_i   ? wb_norm_dat_o   :
 	                        wb_rgb_stb_i    ? wb_rgb_dat_o    :
 	                        wb_resize_stb_i ? wb_resize_dat_o :
-	                        wb_bin_stb_i    ? wb_bin_dat_o  :
+	                        wb_mnist_stb_i  ? wb_mnist_dat_o  :
+	                        wb_bin_stb_i    ? wb_bin_dat_o    :
 	                        wb_mcol_stb_i   ? wb_mcol_dat_o   :
 	                        wb_oled_stb_i   ? wb_oled_dat_o   :
 	                        32'h0000_0000;
@@ -1314,6 +1333,7 @@ module top
 	                        wb_norm_stb_i   ? wb_norm_ack_o   :
 	                        wb_rgb_stb_i    ? wb_rgb_ack_o    :
 	                        wb_resize_stb_i ? wb_resize_ack_o :
+	                        wb_mnist_stb_i  ? wb_mnist_ack_o  :
 	                        wb_bin_stb_i    ? wb_bin_ack_o    :
 	                        wb_mcol_stb_i   ? wb_mcol_ack_o   :
 	                        wb_oled_stb_i   ? wb_oled_ack_o   :

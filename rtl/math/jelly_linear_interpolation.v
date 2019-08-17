@@ -21,7 +21,7 @@ module jelly_linear_interpolation
 			parameter	DATA_SIGNED   = 1,
 			parameter	ROUNDING      = 0,
 			parameter	COMPACT       = 0,
-			
+			parameter	BLENDING      = 0,		// ƒ¿ƒuƒŒƒ“ƒh—p(rate ‚Ìmax‚ð 1.0ˆµ‚¢‚·‚é)
 			
 			// local
 			parameter	USER_BITS     = USER_WIDTH > 0 ? USER_WIDTH : 1
@@ -101,7 +101,8 @@ module jelly_linear_interpolation
 					.COMPONENT_NUM	(COMPONENT_NUM),
 					.DATA_WIDTH		(DATA_BITS),
 					.DATA_SIGNED	(DATA_SIGNED),
-					.COMPACT		(COMPACT)
+					.COMPACT		(COMPACT),
+					.BLENDING		(BLENDING)
 				)
 			i_linear_interpolation_unit
 				(
@@ -141,7 +142,7 @@ module jelly_linear_interpolation
 				.dout				(m_data)
 			);
 	
-	assign m_user  = USER_WIDTH > 0 ? pipeline_user [RATE_WIDTH*USER_BITS +: USER_BITS] : 1'b1;
+	assign m_user  = USER_WIDTH > 0 ? pipeline_user [RATE_WIDTH*USER_BITS +: USER_BITS] : 1'bx;
 	assign m_valid = pipeline_valid[RATE_WIDTH];
 	
 endmodule
@@ -156,7 +157,8 @@ module jelly_linear_interpolation_unit
 			parameter	COMPONENT_NUM = 3,
 			parameter	DATA_WIDTH    = 8,
 			parameter	DATA_SIGNED   = 1,
-			parameter	COMPACT       = 0
+			parameter	COMPACT       = 0,
+			parameter	BLENDING      = 0
 		)
 		(
 			input	wire									reset,
@@ -184,7 +186,8 @@ module jelly_linear_interpolation_unit
 			jelly_linear_interpolation_signed
 					#(
 						.DATA_WIDTH		(DATA_WIDTH),
-						.COMPACT		(COMPACT)
+						.COMPACT		(COMPACT),
+						.BLENDING		(BLENDING)
 					)
 				i_linear_interpolation_signed
 					(
@@ -203,7 +206,8 @@ module jelly_linear_interpolation_unit
 			jelly_linear_interpolation_unsigned
 					#(
 						.DATA_WIDTH		(DATA_WIDTH),
-						.COMPACT		(COMPACT)
+						.COMPACT		(COMPACT),
+						.BLENDING		(BLENDING)
 					)
 				i_linear_interpolation_unsigned
 					(
@@ -251,7 +255,8 @@ endmodule
 module jelly_linear_interpolation_signed
 		#(
 			parameter	DATA_WIDTH = 8,
-			parameter	COMPACT    = 0
+			parameter	COMPACT    = 0,
+			parameter	BLENDING   = 0
 		)
 		(
 			input	wire								clk,
@@ -287,7 +292,8 @@ endmodule
 module jelly_linear_interpolation_unsigned
 		#(
 			parameter	DATA_WIDTH = 8,
-			parameter	COMPACT    = 0
+			parameter	COMPACT    = 0,
+			parameter	BLENDING   = 0
 		)
 		(
 			input	wire						clk,
@@ -302,18 +308,24 @@ module jelly_linear_interpolation_unsigned
 		);
 
 	reg		[DATA_WIDTH:0]		reg_data0;
-	reg		[DATA_WIDTH:0]		reg_data1;	
+	reg		[DATA_WIDTH:0]		reg_data1;
 	wire	[DATA_WIDTH-1:0]	tmp_data = s_sel ? s_data1 : s_data0;
 	
 	always @(posedge clk) begin
 		if ( cke ) begin
-			reg_data0 <= s_data0 + tmp_data;
-			reg_data1 <= s_data1 + tmp_data;
+			if ( BLENDING ) begin
+				reg_data0 <= s_data0 + tmp_data + s_sel;
+				reg_data1 <= s_data1 + tmp_data + s_sel;
+			end
+			else begin
+				reg_data0 <= s_data0 + tmp_data;
+				reg_data1 <= s_data1 + tmp_data;
+			end
 		end
 	end
 	
 	assign m_data0 = reg_data0[COMPACT +: DATA_WIDTH];
-	assign m_data1 = reg_data1[COMPACT +: DATA_WIDTH]; 
+	assign m_data1 = reg_data1[COMPACT +: DATA_WIDTH];
 	
 endmodule
 
