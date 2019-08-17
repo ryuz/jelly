@@ -26,7 +26,8 @@ module jelly_video_integrator_bram_core
 			parameter	RAM_TYPE      = "block",
 			parameter	FILLMEM       = 1,
 			parameter	FILLMEM_DATA  = 0,
-			parameter	COMPACT       = 1,
+			parameter	ROUNDING      = 1,
+			parameter	COMPACT       = 0,
 			parameter	M_SLAVE_REGS  = 1,
 			parameter	M_MASTER_REGS = 1
 		)
@@ -123,7 +124,7 @@ module jelly_video_integrator_bram_core
 			st0_tdata <= s_axi4s_tdata;
 			
 			// stage 1
-			if ( st0_tvalid && st0_tuser ) begin
+			if ( st0_tvalid && st0_tuser[0] ) begin
 				st1_x <= {X_WIDTH{1'b0}};
 				st1_y <= {Y_WIDTH{1'b0}};
 			end
@@ -191,7 +192,9 @@ module jelly_video_integrator_bram_core
 				.COMPONENT_NUM		(COMPONENT_NUM),
 				.DATA_WIDTH			(DATA_WIDTH),
 				.DATA_SIGNED		(0),
-				.COMPACT			(COMPACT)
+				.ROUNDING			(ROUNDING),
+				.COMPACT			(COMPACT),
+				.BLENDING 			(1)
 			)
 		i_linear_interpolation
 			(

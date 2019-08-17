@@ -29,7 +29,8 @@ module jelly_video_integrator_bram
 			parameter	RAM_TYPE         = "block",
 			parameter	FILLMEM          = 0,
 			parameter	FILLMEM_DATA     = 0,
-			parameter	COMPACT          = 1,
+			parameter	ROUNDING         = 1,
+			parameter	COMPACT          = 0,
 			parameter	M_SLAVE_REGS     = 1,
 			parameter	M_MASTER_REGS    = 1,
 			
@@ -107,6 +108,7 @@ module jelly_video_integrator_bram
 				.RAM_TYPE				(RAM_TYPE),
 				.FILLMEM				(FILLMEM),
 				.FILLMEM_DATA			(FILLMEM_DATA),
+				.ROUNDING				(ROUNDING),
 				.COMPACT				(COMPACT)
 			)
 		i_video_integrator_bram_core
