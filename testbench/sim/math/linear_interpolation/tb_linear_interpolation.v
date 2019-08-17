@@ -27,7 +27,7 @@ module tb_linear_interpolation();
 	parameter	DATA_SIGNED   = 0;
 	parameter	USER_WIDTH    = COMPONENT_NUM*DATA_WIDTH;
 	parameter	ROUNDING      = 1;
-	parameter	COMPACT       = 1;
+	parameter	COMPACT       = 0;
 	parameter	BLENDING      = 1;
 	
 	// local
@@ -72,10 +72,11 @@ module tb_linear_interpolation();
 		end
 		else if ( cke ) begin
 			s_valid <= 1'b1;
-//			s_rate  <= s_rate + s_valid;
+			s_rate  <= 0;//s_rate + s_valid;
+			s_data0 <= s_data0 + 1;
 			
-			s_rate  <= {$random()};
-			s_data0 <= $random();
+//			s_rate  <= {$random()};
+//			s_data0 <= $random();
 			s_data1 <= $random();
 		end
 	end

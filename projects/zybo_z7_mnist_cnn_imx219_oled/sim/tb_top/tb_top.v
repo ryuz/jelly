@@ -22,8 +22,8 @@ module tb_top();
 		$dumpvars(0, tb_top.i_top.i_video_mnist.i_video_integrator_bram_classifier);
 		$dumpvars(0, tb_top.i_top.i_video_mnist.i_video_integrator_bram_validation);
 //		$dumpvars(0, tb_top.i_top.i_video_normalizer);
-		$dumpvars(0, tb_top.i_top.i_video_tbl_modulator);
-//		$dumpvars(0, tb_top.i_top.i_video_mnist_color);
+//		$dumpvars(0, tb_top.i_top.i_video_tbl_modulator);
+		$dumpvars(0, tb_top.i_top.i_video_mnist_color);
 //		$dumpvars(0, tb_top.i_top.i_video_dnn_fmem);
 //		$dumpvars(0, tb_top.i_top.i_video_mnist.i_video_dnn_max_count);
 //		$dumpvars(0, tb_top.i_top.i_video_trimming_core);
@@ -48,13 +48,13 @@ module tb_top();
 //	localparam IMG_Y_NUM = 256;
 //	localparam PGM_FILE  = "lena_256x256.pgm";
 	
-//	localparam IMG_X_NUM = 160;
-//	localparam IMG_Y_NUM = 32;
-//	localparam PGM_FILE  = "mnist_test_160x120.pgm";
+	localparam IMG_X_NUM = 160;
+	localparam IMG_Y_NUM = 32;
+	localparam PGM_FILE  = "mnist_test_160x120.pgm";
 	
-	localparam IMG_X_NUM = 640;
-	localparam IMG_Y_NUM = 132;
-	localparam PGM_FILE  = "mnist_test_640x480.pgm";
+//	localparam IMG_X_NUM = 640;
+//	localparam IMG_Y_NUM = 132;
+//	localparam PGM_FILE  = "mnist_test_640x480.pgm";
 	
 	
 	// ----------------------------------
@@ -77,6 +77,17 @@ module tb_top();
 			);
 	
 	
+	// debug
+	wire	[2:0]	axi4s_count_tcount0 = tb_top.i_top.i_video_mnist.axi4s_count_tcount[0*3 +: 3];
+	wire	[2:0]	axi4s_count_tcount1 = tb_top.i_top.i_video_mnist.axi4s_count_tcount[1*3 +: 3];
+	wire	[2:0]	axi4s_count_tcount2 = tb_top.i_top.i_video_mnist.axi4s_count_tcount[2*3 +: 3];
+	wire	[2:0]	axi4s_count_tcount3 = tb_top.i_top.i_video_mnist.axi4s_count_tcount[3*3 +: 3];
+	wire	[2:0]	axi4s_count_tcount4 = tb_top.i_top.i_video_mnist.axi4s_count_tcount[4*3 +: 3];
+	wire	[2:0]	axi4s_count_tcount5 = tb_top.i_top.i_video_mnist.axi4s_count_tcount[5*3 +: 3];
+	wire	[2:0]	axi4s_count_tcount6 = tb_top.i_top.i_video_mnist.axi4s_count_tcount[6*3 +: 3];
+	wire	[2:0]	axi4s_count_tcount7 = tb_top.i_top.i_video_mnist.axi4s_count_tcount[7*3 +: 3];
+	wire	[2:0]	axi4s_count_tcount8 = tb_top.i_top.i_video_mnist.axi4s_count_tcount[8*3 +: 3];
+	wire	[2:0]	axi4s_count_tcount9 = tb_top.i_top.i_video_mnist.axi4s_count_tcount[9*3 +: 3];
 	
 	
 	// ----------------------------------
@@ -367,7 +378,6 @@ module tb_top();
 		wb_write(32'h40011000,          1, 4'hf);		// enable
 		
 		// pwm
-		/*
 		wb_write(32'h40018100 + 4*0,  32'h10, 4'hf);
 		wb_write(32'h40018100 + 4*1,  32'hf0, 4'hf);
 		wb_write(32'h40018100 + 4*2,  32'h70, 4'hf);
@@ -384,10 +394,12 @@ module tb_top();
 		wb_write(32'h40018100 + 4*13, 32'hc0, 4'hf);
 		wb_write(32'h40018100 + 4*14, 32'h80, 4'hf);
 		wb_write(32'h40018010, 14, 4'hf);		 // MNIST_MOD_REG_PARAM_END
-		*/
 		
-		wb_write(32'h40015000, 32'hf0, 4'hf);
-		wb_write(32'h40015040, 32'hf0, 4'hf);
+		wb_write(32'h40015000, 32'hf0, 4'hf);	// LPF rate
+		wb_write(32'h40015040, 32'hf0, 4'hf);	// LPF rate
+		
+		wb_write(32'h40019008, 126, 4'hf);	// color th0
+		wb_write(32'h4001900c, 128, 4'hf);	// color th1
 		
 		
 	#1000;

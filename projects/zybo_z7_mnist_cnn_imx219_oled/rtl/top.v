@@ -960,8 +960,8 @@ module top
 				.DATA_WIDTH				(8),
 				.TUSER_WIDTH			(1),
 				.INIT_PARAM_MODE		(2'b11),
-				.INIT_PARAM_TH_COUNT	(127),
 				.INIT_PARAM_SEL			(0),
+				.INIT_PARAM_TH_COUNT	(127),
 				.INIT_PARAM_TH_VALIDATION(127)
 			)
 		i_video_mnist_color

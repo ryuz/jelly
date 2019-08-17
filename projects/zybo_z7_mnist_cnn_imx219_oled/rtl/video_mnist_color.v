@@ -25,8 +25,8 @@ module video_mnist_color
 			parameter	WB_DAT_WIDTH             = 32,
 			parameter	WB_SEL_WIDTH             = (WB_DAT_WIDTH / 8),
 			parameter	INIT_PARAM_MODE          = 2'b11,
-			parameter	INIT_PARAM_TH_COUNT      = 127,
 			parameter	INIT_PARAM_SEL           = 0,
+			parameter	INIT_PARAM_TH_COUNT      = 127,
 			parameter	INIT_PARAM_TH_VALIDATION = 127
 		)
 		(
@@ -78,8 +78,8 @@ module video_mnist_color
 			if ( s_wb_stb_i && s_wb_we_i ) begin
 				case ( s_wb_adr_i )
 				0:	reg_param_mode          <= s_wb_dat_i;
-				1:	reg_param_th_count      <= s_wb_dat_i;
-				2:	reg_param_sel           <= s_wb_dat_i;
+				1:	reg_param_sel           <= s_wb_dat_i;
+				2:	reg_param_th_count      <= s_wb_dat_i;
 				3:	reg_param_th_validation <= s_wb_dat_i;
 				endcase
 			end
@@ -87,9 +87,9 @@ module video_mnist_color
 	end
 	
 	assign s_wb_dat_o = (s_wb_adr_i == 0) ? reg_param_mode          :
-	                    (s_wb_adr_i == 1) ? reg_param_th_count      :
-	                    (s_wb_adr_i == 2) ? reg_param_sel           :
-	                    (s_wb_adr_i == 1) ? reg_param_th_validation :
+	                    (s_wb_adr_i == 1) ? reg_param_sel           :
+	                    (s_wb_adr_i == 2) ? reg_param_th_count      :
+	                    (s_wb_adr_i == 3) ? reg_param_th_validation :
 	                    0;
 	assign s_wb_ack_o = s_wb_stb_i;
 	
