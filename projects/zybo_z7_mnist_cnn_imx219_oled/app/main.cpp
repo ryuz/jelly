@@ -15,10 +15,6 @@
 #include "I2cAccess.h"
 
 
-//#define FRAME_NUM       3
-//#define IMAGE_WIDTH     (3280 / 2)
-//#define IMAGE_HEIGHT    (2464 / 2)
-
 
 void oled_init(UioMmap* p);
 int  oled_main();
@@ -27,9 +23,15 @@ void capture_still_image(UioMmap& um_pl_peri, int width, int height, int frame_n
 void camera_setup(I2cAccess& i2c, int w, int h);                                        // カメラ初期化
 
 
+
 // メイン関数
-int main()
+int main(int argc, char *argv[])
 {
+    bool gui = false;
+    if ( argc >= 2 && strcmp(argv[1], "gui") == 0 ) {
+        gui = true;
+    }
+    
     // UIOオープン
     UioMmap um_pl_peri("my_pl_peri", 0x00200000);
     if ( !um_pl_peri.IsMapped() ) {
@@ -84,100 +86,121 @@ int main()
     // demosaic param_phase
     um_pl_peri.WriteWord32(0x00012000, 0);
     
+    // color map
+    um_pl_peri.WriteWord32(0x00019040, 0x0000000);  // 黒
+    um_pl_peri.WriteWord32(0x00019044, 0x0000080);  // 茶
+    um_pl_peri.WriteWord32(0x00019048, 0x00000ff);  // 赤
+    um_pl_peri.WriteWord32(0x0001904c, 0x04cb7ff);  // 橙
+    um_pl_peri.WriteWord32(0x00019050, 0x000ffff);  // 黄
+    um_pl_peri.WriteWord32(0x00019054, 0x0008000);  // 緑
+    um_pl_peri.WriteWord32(0x00019058, 0x0ff0000);  // 青
+    um_pl_peri.WriteWord32(0x0001905c, 0x0800080);  // 紫
+    um_pl_peri.WriteWord32(0x00019060, 0x0808080);  // 灰
+    um_pl_peri.WriteWord32(0x00019064, 0x0ffffff);  // 白
+    
     
     // UI
-    int bin_th         = 127;
-    int view_mode0     = 1;     // 表示モード
-    int view_mode1     = 1;     // 表示モード
-    int view_sel       = 0;
-    int classifier_th  = 127;
-    int classifier_lpf = 0;
-    int validaion_th   = 127;
-    int validaion_lpf  = 0;
+    int view_sel   = 0;     // 表示ソースの選択
+    int bin_th     = 127;   // 2値化閾値
+    int dnn0_en    = 1;     // DNN0の表示有効化
+    int dnn1_en    = 1;     // DNN1の表示有効化
+    int dnn0_th    = 127;   // classifierの閾値
+    int dnn0_lpf   = 0;     // classifierのLPF強度
+    int dnn1_th    = 127;   // detectorの閾値
+    int dnn1_lpf   = 0;     // detectorのLPF強度
     
-    {
-        int     frame_num = 1;
-        int     key;
-        while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
-            // 画像取り込み＆表示
-            capture_still_image(um_pl_peri, width, height, 1);
-            cv::Mat img(height*frame_num, width, CV_8UC4);
-            memcpy(img.data, (void *)mem_addr, width * height * 4 * frame_num);
+    
+    // パラメータ設定
+    um_pl_peri.WriteWord32(0x00019000, dnn0_en + (dnn1_en << 1));
+    um_pl_peri.WriteWord32(0x00019004, view_sel);
+    um_pl_peri.WriteWord32(0x00019008, dnn0_th);
+    um_pl_peri.WriteWord32(0x0001900c, dnn1_th);
+    um_pl_peri.WriteWord32(0x00015000, dnn0_lpf);
+    um_pl_peri.WriteWord32(0x00015040, dnn1_lpf);
+    
+    
+    int     frame_num = 1;
+    int     key = -1;
+    do {
+        // 画像取り込み
+        capture_still_image(um_pl_peri, width, height, frame_num);
+        cv::Mat img(height*frame_num, width, CV_8UC4);
+        memcpy(img.data, (void *)mem_addr, width * height * 4 * frame_num);
+        
+        // GUI表示
+        if ( gui ) {
             cv::imshow("img", img);
-    //      cv::imwrite("img.png", img);
             
     //      cv::createTrackbar("width",   "img", &width,      IMAGE_WIDTH);
     //      cv::createTrackbar("height",  "img", &height,     IMAGE_HEIGHT);
     //      cv::createTrackbar("frame",   "img", &frame_num,  10);
             
-            cv::createTrackbar("sel",      "img", &view_sel,        15);
-            cv::createTrackbar("bin_th",   "img", &bin_th,         255);
-            cv::createTrackbar("dnn0_en",  "img", &view_mode0,       1);
-            cv::createTrackbar("dnn1_en",  "img", &view_mode1,       1);
-            cv::createTrackbar("dnn0_th",  "img", &classifier_th,  255);
-            cv::createTrackbar("dnn0_lpf", "img", &classifier_lpf, 255);
-            cv::createTrackbar("dnn1_th",  "img", &validaion_th,   255);
-            cv::createTrackbar("dnn1_lpf", "img", &validaion_lpf,  255);
-            
-            width &= 0xfffffff0;
-            if ( width  < 16 ) { width  = 16; }
-            if ( height < 2 )  { height = 2; }
-            
-//          if ( key = 'd' ) {
-//              capture_still_image(um_pl_peri, width, height, frame_num);
-//          }
-            
-            
-            if ( bin_th == 0 ) {
-                // PWMモード(テーブルサイズ=15)
-                um_pl_peri.WriteWord32(0x00018100 + 4*0,  0x10);
-                um_pl_peri.WriteWord32(0x00018100 + 4*1,  0xf0);
-                um_pl_peri.WriteWord32(0x00018100 + 4*2,  0x70);
-                um_pl_peri.WriteWord32(0x00018100 + 4*3,  0x90);
-                um_pl_peri.WriteWord32(0x00018100 + 4*4,  0x30);
-                um_pl_peri.WriteWord32(0x00018100 + 4*5,  0xd0);
-                um_pl_peri.WriteWord32(0x00018100 + 4*6,  0x50);
-                um_pl_peri.WriteWord32(0x00018100 + 4*7,  0xb0);
-                um_pl_peri.WriteWord32(0x00018100 + 4*8,  0x20);
-                um_pl_peri.WriteWord32(0x00018100 + 4*9,  0xe0);
-                um_pl_peri.WriteWord32(0x00018100 + 4*10, 0x60);
-                um_pl_peri.WriteWord32(0x00018100 + 4*11, 0xa0);
-                um_pl_peri.WriteWord32(0x00018100 + 4*12, 0x40);
-                um_pl_peri.WriteWord32(0x00018100 + 4*13, 0xc0);
-                um_pl_peri.WriteWord32(0x00018100 + 4*14, 0x80);
-                um_pl_peri.WriteWord32(0x00018010, 14);      // MNIST_MOD_REG_PARAM_END
-            }
-            else {
-                // 単純2値化(テーブルサイズ=1)
-                um_pl_peri.WriteWord32(0x00018100, bin_th);
-                um_pl_peri.WriteWord32(0x00018010, 0);       // MNIST_MOD_REG_PARAM_END
-            }
-            
-            // パラメータ設定
-            um_pl_peri.WriteWord32(0x00019000, view_mode0 + (view_mode1 << 1));
-            um_pl_peri.WriteWord32(0x00019004, classifier_th);
-            um_pl_peri.WriteWord32(0x00019008, view_sel);
-            um_pl_peri.WriteWord32(0x0001900c, validaion_th);
-            um_pl_peri.WriteWord32(0x00015000, classifier_lpf);
-            um_pl_peri.WriteWord32(0x00015040, validaion_lpf);
-            
-            // 録画
-            if ( key == 'r' ) {
-                printf("record\n");
-                capture_still_image(um_pl_peri, width, height, 100);
-                char* p = (char*)mem_addr;
-                for ( int i = 0; i< 100; i++ ) {
-                    char fname[64];
-                    sprintf(fname, "rec_%04d.png", i);
-                    cv::Mat imgRec(height, width, CV_8UC4);
-                    memcpy(imgRec.data, p, width * height * 4); p += width * height * 4;
-                    cv::Mat imgRgb;
-                    cv::cvtColor(imgRec, imgRgb, CV_BGRA2BGR);
-                    cv::imwrite(fname, imgRgb);
-                }
+            cv::createTrackbar("view_sel", "img", &view_sel,  15);
+            cv::createTrackbar("bin_th",   "img", &bin_th,   255);
+            cv::createTrackbar("dnn0_en",  "img", &dnn0_en,    1);
+            cv::createTrackbar("dnn1_en",  "img", &dnn1_en,    1);
+            cv::createTrackbar("dnn0_th",  "img", &dnn0_th,  255);
+            cv::createTrackbar("dnn0_lpf", "img", &dnn0_lpf, 255);
+            cv::createTrackbar("dnn1_th",  "img", &dnn1_th,  255);
+            cv::createTrackbar("dnn1_lpf", "img", &dnn1_lpf, 255);
+        }
+        
+        
+        width &= 0xfffffff0;
+        if ( width  < 16 ) { width  = 16; }
+        if ( height < 2 )  { height = 2; }
+        
+        
+        if ( bin_th == 0 ) {
+            // PWMモード(テーブルサイズ=15)
+            um_pl_peri.WriteWord32(0x00018100 + 4*0,  0x10);
+            um_pl_peri.WriteWord32(0x00018100 + 4*1,  0xf0);
+            um_pl_peri.WriteWord32(0x00018100 + 4*2,  0x70);
+            um_pl_peri.WriteWord32(0x00018100 + 4*3,  0x90);
+            um_pl_peri.WriteWord32(0x00018100 + 4*4,  0x30);
+            um_pl_peri.WriteWord32(0x00018100 + 4*5,  0xd0);
+            um_pl_peri.WriteWord32(0x00018100 + 4*6,  0x50);
+            um_pl_peri.WriteWord32(0x00018100 + 4*7,  0xb0);
+            um_pl_peri.WriteWord32(0x00018100 + 4*8,  0x20);
+            um_pl_peri.WriteWord32(0x00018100 + 4*9,  0xe0);
+            um_pl_peri.WriteWord32(0x00018100 + 4*10, 0x60);
+            um_pl_peri.WriteWord32(0x00018100 + 4*11, 0xa0);
+            um_pl_peri.WriteWord32(0x00018100 + 4*12, 0x40);
+            um_pl_peri.WriteWord32(0x00018100 + 4*13, 0xc0);
+            um_pl_peri.WriteWord32(0x00018100 + 4*14, 0x80);
+            um_pl_peri.WriteWord32(0x00018010, 14);      // MNIST_MOD_REG_PARAM_END
+        }
+        else {
+            // 単純2値化(テーブルサイズ=1)
+            um_pl_peri.WriteWord32(0x00018100, bin_th);
+            um_pl_peri.WriteWord32(0x00018010, 0);       // MNIST_MOD_REG_PARAM_END
+        }
+        
+        // パラメータ設定
+        um_pl_peri.WriteWord32(0x00019000, dnn0_en + (dnn1_en << 1));
+        um_pl_peri.WriteWord32(0x00019004, view_sel);
+        um_pl_peri.WriteWord32(0x00019008, dnn0_th);
+        um_pl_peri.WriteWord32(0x0001900c, dnn1_th);
+        um_pl_peri.WriteWord32(0x00015000, dnn0_lpf);
+        um_pl_peri.WriteWord32(0x00015040, dnn1_lpf);
+        
+        // 録画
+        if ( key == 'r' ) {
+            printf("record\n");
+            capture_still_image(um_pl_peri, width, height, 100);
+            char* p = (char*)mem_addr;
+            for ( int i = 0; i< 100; i++ ) {
+                char fname[64];
+                sprintf(fname, "rec_%04d.png", i);
+                cv::Mat imgRec(height, width, CV_8UC4);
+                memcpy(imgRec.data, p, width * height * 4); p += width * height * 4;
+                cv::Mat imgRgb;
+                cv::cvtColor(imgRec, imgRgb, CV_BGRA2BGR);
+                cv::imwrite(fname, imgRgb);
             }
         }
-    }
+    } while ( gui && ((key = (cv::waitKey(10) & 0xff)) != 0x1b) );
+    
     
     return 0;
 }

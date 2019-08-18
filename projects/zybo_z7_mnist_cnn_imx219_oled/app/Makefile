@@ -1,17 +1,20 @@
-.PHONY: all
-all: imx219_test
-
 
 
 CFLAGS  += -I../../../soft/Utility -I/usr/local/include/opencv2 -I/usr/local/include/opencv
 LDFLAGS += -L/usr/local/lib -lopencv_core -lopencv_imgcodecs -lopencv_highgui -lopencv_imgproc
 
 
-TARGET = imx219_test
+TARGET = mnist_demo
 OBJS   = main.o oled.o
 
+.PHONY: all
+all: $(TARGET)
+
 run: all
-	sudo ./imx219_test
+	sudo ./$(TARGET) gui
+
+start: all
+	sudo ./$(TARGET)
 
 $(TARGET): $(OBJS)
 	g++ $(LDFLAGS) -o $(TARGET) $(OBJS)
