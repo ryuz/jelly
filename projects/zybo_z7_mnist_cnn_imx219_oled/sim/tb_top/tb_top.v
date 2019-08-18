@@ -20,7 +20,7 @@ module tb_top();
 //		$dumpvars(0, tb_top.i_top.i_video_raw_to_rgb);
 		$dumpvars(1, tb_top.i_top.i_video_mnist);
 		$dumpvars(0, tb_top.i_top.i_video_mnist.i_video_integrator_bram_classifier);
-		$dumpvars(0, tb_top.i_top.i_video_mnist.i_video_integrator_bram_validation);
+		$dumpvars(0, tb_top.i_top.i_video_mnist.i_video_integrator_bram_detect);
 //		$dumpvars(0, tb_top.i_top.i_video_normalizer);
 //		$dumpvars(0, tb_top.i_top.i_video_tbl_modulator);
 		$dumpvars(0, tb_top.i_top.i_video_mnist_color);
@@ -63,6 +63,7 @@ module tb_top();
 	
 	top
 			#(
+				.WITH_HDMI_TX	(0),
 				.X_NUM			(IMG_X_NUM),
 				.Y_NUM			(IMG_Y_NUM)
 			)
@@ -239,17 +240,17 @@ module tb_top();
 	
 	
 	
-	integer		fp_validate;
+	integer		fp_detect;
 	initial begin
-		 fp_validate = $fopen("validate.pgm", "w");
-		 $fdisplay(fp_validate, "P2");
-		 $fdisplay(fp_validate, "%d %d", IMG_X_NUM/4, IMG_Y_NUM/4*FRAME_NUM);
-		 $fdisplay(fp_validate, "1");
+		 fp_detect = $fopen("detect.pgm", "w");
+		 $fdisplay(fp_detect, "P2");
+		 $fdisplay(fp_detect, "%d %d", IMG_X_NUM/4, IMG_Y_NUM/4*FRAME_NUM);
+		 $fdisplay(fp_detect, "1");
 	end
 	
 	always @(posedge i_top.axi4s_cam_aclk) begin
 		if ( i_top.axi4s_cam_aresetn && i_top.axi4s_mnist_tvalid ) begin
-			 $fdisplay(fp_validate, "%d", i_top.axi4s_mnist_tvalidation);
+			 $fdisplay(fp_detect, "%d", i_top.axi4s_mnist_tdetect);
 		end
 	end
 	
@@ -410,13 +411,13 @@ module tb_top();
 		axi4s_model_aresetn = 1'b1;
 		
 	#100000;
-		wb_write(32'h40010020, 32'h30000000, 4'b1111);
-		wb_write(32'h40010024, IMG_X_NUM*4,  4'b1111);			// stride
+		wb_write(32'h40010020, 32'h30000000 + 1506560, 4'b1111);
+		wb_write(32'h40010024, 1280*4,       4'b1111);			// stride
 		wb_write(32'h40010028, IMG_X_NUM,    4'b1111);			// width
 		wb_write(32'h4001002c, IMG_Y_NUM,    4'b1111);			// height
 		wb_write(32'h40010030, IMG_X_NUM*IMG_Y_NUM, 4'b1111);	// size
 		wb_write(32'h4001003c,      31, 4'b1111);				// awlen
-		wb_write(32'h40010010,      3, 4'b1111);
+		wb_write(32'h40010010,       3, 4'b1111);
 	#10000;
 
 		wb_read(32'h40010014);
@@ -424,6 +425,7 @@ module tb_top();
 		wb_read(32'h40010014);
 		wb_read(32'h40010014);
 	#10000;
+		/*
 		wb_write(32'h40010010,      0, 4'b1111);
 		
 		// 取り込み完了を待つ
@@ -433,8 +435,11 @@ module tb_top();
 			wb_read(32'h40010014);
 		end
 		#10000;
+		*/
 		
 		
+		
+		/*
 		// サイズを不整合で書いてみる
 		wb_write(32'h40010020, 32'h30000000, 4'b1111);
 		wb_write(32'h40010024, 128*4, 4'b1111);			// stride
@@ -452,7 +457,7 @@ module tb_top();
 			wb_read(32'h40010014);
 		end
 		#10000;
-		
+		*/
 		
 	end
 	

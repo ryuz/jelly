@@ -3,7 +3,7 @@
 <!--                                                         -->
 <!-- Copyright 1986-2019 Xilinx, Inc. All Rights Reserved.   -->
 
-<Project Version="7" Minor="40" Path="H:/jelly/projects/zybo_z7_mnist_cnn_imx219_hdmi_os/syn/vivado2019.1/zybo_z7_mnist_cnn_imx219_hdmi_os.xpr">
+<Project Version="7" Minor="40" Path="D:/home/ryuji/git_work/github/jelly/projects/zybo_z7_mnist_cnn_imx219_hdmi_os/syn/vivado2019.1/zybo_z7_mnist_cnn_imx219_hdmi_os.xpr">
   <DefaultLaunch Dir="$PRUNDIR"/>
   <Configuration>
     <Option Name="Id" Val="a8751467a641406596f468d6b128e3c0"/>

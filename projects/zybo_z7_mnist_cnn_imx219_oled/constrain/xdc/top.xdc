@@ -25,6 +25,9 @@ create_clock -period 2.1929 -name cam_clk_hs_p -waveform {0.000 1.09649} [get_po
 # clk_out1_design_1_clk_wiz_0_0  100MHz  10.000ns
 # clk_out2_design_1_clk_wiz_0_0  200MHz   5.000ns
 # rxbyteclkhs                             8.768ns
+# clk_out1_clk_wiz_vout           75MHz  13.333ns
+# clk_out2_clk_wiz_vout          375MHz   2.666ns
+
 
 # set_clock_groups -name async_clks0 -asynchronous -group [get_clocks -include_generated_clocks in_clk125]   -group {clk_fpga_0 clk_fpga_1}
 # set_clock_groups -name async_clks1 -asynchronous -group [get_clocks -include_generated_clocks rxbyteclkhs] -group {clk_fpga_0 clk_fpga_1}
@@ -77,6 +80,12 @@ set_max_delay -datapath_only -from [get_clocks clk_out3_design_1_clk_wiz_0_0] -t
 
 set_max_delay -datapath_only -from [get_clocks clk_out1_design_1_clk_wiz_0_1_1] -to [get_clocks clk_out2_design_1_clk_wiz_0_0] 5.000
 set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -to [get_clocks clk_out1_design_1_clk_wiz_0_1_1] 5.000
+
+set_max_delay -datapath_only -from [get_clocks clk_fpga_0] -to [get_clocks clk_out1_clk_wiz_vout] 7.500
+set_max_delay -datapath_only -from [get_clocks clk_out1_clk_wiz_vout] -to [get_clocks clk_fpga_0] 7.500
+
+set_max_delay -datapath_only -from [get_clocks clk_fpga_1] -to [get_clocks clk_out1_clk_wiz_vout] 10.000
+set_max_delay -datapath_only -from [get_clocks clk_out1_clk_wiz_vout] -to [get_clocks clk_fpga_1] 10.000
 
 
 #set_false_path -from [get_clocks clk_fpga_1]  -to [get_clocks mmcm_clk200]
@@ -133,6 +142,16 @@ set_property IOSTANDARD LVCMOS33 [get_ports cam_gpio]
 set_property IOSTANDARD LVCMOS33 [get_ports cam_scl]
 set_property IOSTANDARD LVCMOS33 [get_ports cam_sda]
 
+
+# HDMI TX
+set_property PACKAGE_PIN H16 [get_ports hdmi_tx_clk_p]
+set_property PACKAGE_PIN D19 [get_ports {hdmi_tx_data_p[0]}]
+set_property PACKAGE_PIN C20 [get_ports {hdmi_tx_data_p[1]}]
+set_property PACKAGE_PIN B19 [get_ports {hdmi_tx_data_p[2]}]
+set_property IOSTANDARD TMDS_33 [get_ports hdmi_tx_clk_p]
+set_property IOSTANDARD TMDS_33 [get_ports {hdmi_tx_data_p[0]}]
+set_property IOSTANDARD TMDS_33 [get_ports {hdmi_tx_data_p[1]}]
+set_property IOSTANDARD TMDS_33 [get_ports {hdmi_tx_data_p[2]}]
 
 # DIP-SW
 set_property PACKAGE_PIN G15 [get_ports {dip_sw[0]}]

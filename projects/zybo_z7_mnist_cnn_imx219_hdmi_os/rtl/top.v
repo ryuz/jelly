@@ -964,7 +964,8 @@ module top
 				.RAM_TYPE				("block"),
 				.FILLMEM				(1),
 				.FILLMEM_DATA			(24'h7f7f7f),
-				.COMPACT				(1),
+				.COMPACT				(0),
+				.ROUNDING				(1),
 				.INIT_PARAM_RATE		(8'hf0)
 			)
 		i_video_integrator_bram

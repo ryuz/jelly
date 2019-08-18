@@ -14,20 +14,20 @@
 
 module video_mnist_color
 		#(
-			parameter	RAW_WIDTH                = 10,
-			parameter	DATA_WIDTH               = 8,
-			parameter	TUSER_WIDTH              = 1,
-			parameter	TNUMBER_WIDTH            = 4,
-			parameter	TCOUNT_WIDTH             = 8,
-			parameter	TVALIDATION_WIDTH        = 8,
+			parameter	RAW_WIDTH            = 10,
+			parameter	DATA_WIDTH           = 8,
+			parameter	TUSER_WIDTH          = 1,
+			parameter	TNUMBER_WIDTH        = 4,
+			parameter	TCOUNT_WIDTH         = 8,
+			parameter	TDETECT_WIDTH        = 8,
 		
-			parameter	WB_ADR_WIDTH             = 8,
-			parameter	WB_DAT_WIDTH             = 32,
-			parameter	WB_SEL_WIDTH             = (WB_DAT_WIDTH / 8),
-			parameter	INIT_PARAM_MODE          = 2'b11,
-			parameter	INIT_PARAM_SEL           = 0,
-			parameter	INIT_PARAM_TH_COUNT      = 127,
-			parameter	INIT_PARAM_TH_VALIDATION = 127
+			parameter	WB_ADR_WIDTH         = 8,
+			parameter	WB_DAT_WIDTH         = 32,
+			parameter	WB_SEL_WIDTH         = (WB_DAT_WIDTH / 8),
+			parameter	INIT_PARAM_MODE      = 2'b11,
+			parameter	INIT_PARAM_SEL       = 0,
+			parameter	INIT_PARAM_TH_COUNT  = 127,
+			parameter	INIT_PARAM_TH_DETECT = 127
 		)
 		(
 			input	wire							aresetn,
@@ -41,7 +41,7 @@ module video_mnist_color
 			input	wire	[DATA_WIDTH-1:0]		s_axi4s_tgray,
 			input	wire	[3*DATA_WIDTH-1:0]		s_axi4s_trgb,
 			input	wire	[0:0]					s_axi4s_tbinary,
-			input	wire	[TVALIDATION_WIDTH-1:0]	s_axi4s_tvalidation,
+			input	wire	[TDETECT_WIDTH-1:0]		s_axi4s_tdetect,
 			input	wire							s_axi4s_tvalid,
 			output	wire							s_axi4s_tready,
 			
@@ -66,30 +66,73 @@ module video_mnist_color
 	reg		[1:0]					reg_param_mode;
 	reg		[TCOUNT_WIDTH-1:0]		reg_param_th_count;
 	reg		[3:0]					reg_param_sel;
-	reg		[TVALIDATION_WIDTH-1:0]	reg_param_th_validation;
+	reg		[TDETECT_WIDTH-1:0]		reg_param_th_detect;
+	
+	reg		[24:0]					reg_param_color0;
+	reg		[24:0]					reg_param_color1;
+	reg		[24:0]					reg_param_color2;
+	reg		[24:0]					reg_param_color3;
+	reg		[24:0]					reg_param_color4;
+	reg		[24:0]					reg_param_color5;
+	reg		[24:0]					reg_param_color6;
+	reg		[24:0]					reg_param_color7;
+	reg		[24:0]					reg_param_color8;
+	reg		[24:0]					reg_param_color9;
+	
 	always @(posedge s_wb_clk_i) begin
 		if ( s_wb_rst_i ) begin
-			reg_param_mode          <= INIT_PARAM_MODE;
-			reg_param_th_count      <= INIT_PARAM_TH_COUNT;
-			reg_param_sel           <= INIT_PARAM_SEL;
-			reg_param_th_validation <= INIT_PARAM_TH_VALIDATION;
+			reg_param_mode      <= INIT_PARAM_MODE;
+			reg_param_sel       <= INIT_PARAM_SEL;
+			reg_param_th_count  <= INIT_PARAM_TH_COUNT;
+			reg_param_th_detect <= INIT_PARAM_TH_DETECT;
+			
+			reg_param_color0    <= 25'h0_00_00_00;	// •
+			reg_param_color1    <= 25'h0_00_00_80;	// ’ƒ
+			reg_param_color2    <= 25'h0_00_00_ff;	// Ô
+			reg_param_color3    <= 25'h0_4c_b7_ff;	// žò
+			reg_param_color4    <= 25'h0_00_ff_ff;	// ‰©
+			reg_param_color5    <= 25'h0_00_80_00;	// —Î
+			reg_param_color6    <= 25'h0_ff_00_00;	// Â
+			reg_param_color7    <= 25'h0_80_00_80;	// Ž‡
+			reg_param_color8    <= 25'h0_80_80_80;	// ŠD
+			reg_param_color9    <= 25'h0_ff_ff_ff;	// ”’
 		end
 		else begin
 			if ( s_wb_stb_i && s_wb_we_i ) begin
 				case ( s_wb_adr_i )
-				0:	reg_param_mode          <= s_wb_dat_i;
-				1:	reg_param_sel           <= s_wb_dat_i;
-				2:	reg_param_th_count      <= s_wb_dat_i;
-				3:	reg_param_th_validation <= s_wb_dat_i;
+				32'h00:	reg_param_mode      <= s_wb_dat_i;
+				32'h01:	reg_param_sel       <= s_wb_dat_i;
+				32'h02:	reg_param_th_count  <= s_wb_dat_i;
+				32'h03:	reg_param_th_detect <= s_wb_dat_i;
+				32'h10:	reg_param_color0    <= s_wb_dat_i;
+				32'h11:	reg_param_color1    <= s_wb_dat_i;
+				32'h12:	reg_param_color2    <= s_wb_dat_i;
+				32'h13:	reg_param_color3    <= s_wb_dat_i;
+				32'h14:	reg_param_color4    <= s_wb_dat_i;
+				32'h15:	reg_param_color5    <= s_wb_dat_i;
+				32'h16:	reg_param_color6    <= s_wb_dat_i;
+				32'h17:	reg_param_color7    <= s_wb_dat_i;
+				32'h18:	reg_param_color8    <= s_wb_dat_i;
+				32'h19:	reg_param_color9    <= s_wb_dat_i;
 				endcase
 			end
 		end
 	end
 	
-	assign s_wb_dat_o = (s_wb_adr_i == 0) ? reg_param_mode          :
-	                    (s_wb_adr_i == 1) ? reg_param_sel           :
-	                    (s_wb_adr_i == 2) ? reg_param_th_count      :
-	                    (s_wb_adr_i == 3) ? reg_param_th_validation :
+	assign s_wb_dat_o = (s_wb_adr_i == 32'h00) ? reg_param_mode      :
+	                    (s_wb_adr_i == 32'h01) ? reg_param_sel       :
+	                    (s_wb_adr_i == 32'h02) ? reg_param_th_count  :
+	                    (s_wb_adr_i == 32'h03) ? reg_param_th_detect :
+	                    (s_wb_adr_i == 32'h10) ? reg_param_color0    :
+	                    (s_wb_adr_i == 32'h11) ? reg_param_color1    :
+	                    (s_wb_adr_i == 32'h12) ? reg_param_color2    :
+	                    (s_wb_adr_i == 32'h13) ? reg_param_color3    :
+	                    (s_wb_adr_i == 32'h14) ? reg_param_color4    :
+	                    (s_wb_adr_i == 32'h15) ? reg_param_color5    :
+	                    (s_wb_adr_i == 32'h16) ? reg_param_color6    :
+	                    (s_wb_adr_i == 32'h17) ? reg_param_color7    :
+	                    (s_wb_adr_i == 32'h18) ? reg_param_color8    :
+	                    (s_wb_adr_i == 32'h19) ? reg_param_color9    :
 	                    0;
 	assign s_wb_ack_o = s_wb_stb_i;
 	
@@ -101,7 +144,7 @@ module video_mnist_color
 				.TUSER_WIDTH			(TUSER_WIDTH),
 				.TNUMBER_WIDTH			(TNUMBER_WIDTH),
 				.TCOUNT_WIDTH			(TCOUNT_WIDTH),
-				.TVALIDATION_WIDTH		(TVALIDATION_WIDTH)
+				.TDETECT_WIDTH			(TDETECT_WIDTH)
 			)
 		i_video_mnist_color_core
 			(
@@ -111,7 +154,19 @@ module video_mnist_color
 				.param_mode				(reg_param_mode),
 				.param_th_count			(reg_param_th_count),
 				.param_sel				(reg_param_sel),
-				.param_th_validation	(reg_param_th_validation),
+				.param_th_detect		(reg_param_th_detect),
+				
+				.param_color0			(reg_param_color0),
+				.param_color1			(reg_param_color1),
+				.param_color2			(reg_param_color2),
+				.param_color3			(reg_param_color3),
+				.param_color4			(reg_param_color4),
+				.param_color5			(reg_param_color5),
+				.param_color6			(reg_param_color6),
+				.param_color7			(reg_param_color7),
+				.param_color8			(reg_param_color8),
+				.param_color9			(reg_param_color9),
+				
 				
 				.s_axi4s_tuser			(s_axi4s_tuser),
 				.s_axi4s_tlast			(s_axi4s_tlast),
@@ -121,7 +176,7 @@ module video_mnist_color
 				.s_axi4s_tgray			(s_axi4s_tgray),
 				.s_axi4s_trgb			(s_axi4s_trgb),
 				.s_axi4s_tbinary		(s_axi4s_tbinary),
-				.s_axi4s_tvalidation	(s_axi4s_tvalidation),
+				.s_axi4s_tdetect		(s_axi4s_tdetect),
 				.s_axi4s_tvalid			(s_axi4s_tvalid),
 				.s_axi4s_tready			(s_axi4s_tready),
 				

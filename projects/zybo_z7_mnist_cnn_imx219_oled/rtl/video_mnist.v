@@ -21,7 +21,7 @@ module video_mnist
 			parameter	CHANNEL_WIDTH       = 7,
 			parameter	NUMBER_WIDTH        = 4,
 			parameter	COUNT_WIDTH         = 3,
-			parameter	VALIDATION_WIDTH    = 1,
+			parameter	DETECT_WIDTH        = 1,
 			parameter	INTEGRATION_WIDTH   = 8,
 			
 			parameter	IMG_X_NUM           = 640,
@@ -34,7 +34,7 @@ module video_mnist
 			parameter	WB_ADR_WIDTH        = 8,
 			parameter	WB_DAT_WIDTH        = 32,
 			parameter	WB_SEL_WIDTH        = (WB_DAT_WIDTH / 8),
-			parameter	WITH_VALIDATION     = 1,
+			parameter	WITH_DETECTOR       = 1,
 			
 			parameter	DEVICE              = "rtl",
 			
@@ -42,7 +42,7 @@ module video_mnist
 			parameter	M_TDATA_WIDTH       = NUM_CALSS*CHANNEL_WIDTH,
 			parameter	M_TNUMBER_WIDTH     = NUMBER_WIDTH,
 			parameter	M_TCOUNT_WIDTH      = INTEGRATION_WIDTH,
-			parameter	M_TVALIDATION_WIDTH = INTEGRATION_WIDTH
+			parameter	M_TDETECT_WIDTH     = INTEGRATION_WIDTH
 		)
 		(
 			input	wire								aresetn,
@@ -59,7 +59,7 @@ module video_mnist
 			output	wire	[M_TNUMBER_WIDTH-1:0]		m_axi4s_tnumber,
 			output	wire	[M_TCOUNT_WIDTH-1:0]		m_axi4s_tcount,
 			output	wire	[M_TDATA_WIDTH-1:0]			m_axi4s_tdata,
-			output	wire	[M_TVALIDATION_WIDTH-1:0]	m_axi4s_tvalidation,
+			output	wire	[M_TDETECT_WIDTH-1:0]		m_axi4s_tdetect,
 			output	wire								m_axi4s_tvalid,
 			input	wire								m_axi4s_tready,
 			
@@ -83,7 +83,7 @@ module video_mnist
 	wire	[TUSER_WIDTH-1:0]		axi4s_dnn_tuser;
 	wire							axi4s_dnn_tlast;
 	wire	[M_TDATA_WIDTH-1:0]		axi4s_dnn_tdata;
-	wire	[VALIDATION_WIDTH-1:0]	axi4s_dnn_tvalidation;
+	wire	[DETECT_WIDTH-1:0]		axi4s_dnn_tdetect;
 	wire							axi4s_dnn_tvalid;
 	wire							axi4s_dnn_tready;
 	
@@ -122,8 +122,8 @@ module video_mnist
 			);
 	
 	generate
-	if ( WITH_VALIDATION ) begin : blk_validation
-		video_mnist_validation_core
+	if ( WITH_DETECTOR ) begin : blk_detector
+		video_mnist_detector_core
 				#(
 					.MAX_X_NUM			(MAX_X_NUM),
 					.RAM_TYPE			(RAM_TYPE),
@@ -137,7 +137,7 @@ module video_mnist
 					
 					.DEVICE				(DEVICE)
 				)
-			i_video_mnist_validation_core
+			i_video_mnist_detector_core
 				(
 					.aresetn			(aresetn),
 					.aclk				(aclk),
@@ -152,13 +152,13 @@ module video_mnist
 					
 					.m_axi4s_tuser		(),
 					.m_axi4s_tlast		(),
-					.m_axi4s_tdata		(axi4s_dnn_tvalidation),
+					.m_axi4s_tdata		(axi4s_dnn_tdetect),
 					.m_axi4s_tvalid		(),
 					.m_axi4s_tready		(axi4s_dnn_tready)
 				);
 	end
-	else begin : bypass_validation
-		assign axi4s_dnn_tvalidation = 1'b1;
+	else begin : bypass_detector
+		assign axi4s_dnn_tdetect = 1'b1;
 	end
 	endgenerate
 	
@@ -167,7 +167,7 @@ module video_mnist
 	wire								axi4s_count_tlast;
 	wire	[NUM_CALSS*COUNT_WIDTH-1:0]	axi4s_count_tcount;
 	wire	[M_TDATA_WIDTH-1:0]			axi4s_count_tdata;
-	wire	[VALIDATION_WIDTH-1:0]		axi4s_count_tvalidation;
+	wire	[DETECT_WIDTH-1:0]			axi4s_count_tdetect;
 	wire								axi4s_count_tvalid;
 	wire								axi4s_count_tready;
 	
@@ -176,7 +176,7 @@ module video_mnist
 				.NUM_CALSS			(NUM_CALSS),
 				.COUNT_WIDTH		(COUNT_WIDTH),
 				.CHANNEL_WIDTH		(CHANNEL_WIDTH),
-				.TUSER_WIDTH		(VALIDATION_WIDTH + TUSER_WIDTH),
+				.TUSER_WIDTH		(DETECT_WIDTH + TUSER_WIDTH),
 				.M_SLAVE_REGS		(1),
 				.M_MASTER_REGS		(1)
 			)
@@ -186,13 +186,13 @@ module video_mnist
 				.aclk				(aclk),
 				.aclken				(1'b1),
 				
-				.s_axi4s_tuser		({axi4s_dnn_tvalidation, axi4s_dnn_tuser}),
+				.s_axi4s_tuser		({axi4s_dnn_tdetect, axi4s_dnn_tuser}),
 				.s_axi4s_tlast		(axi4s_dnn_tlast),
 				.s_axi4s_tdata		(axi4s_dnn_tdata),
 				.s_axi4s_tvalid		(axi4s_dnn_tvalid),
 				.s_axi4s_tready		(axi4s_dnn_tready),
 				
-				.m_axi4s_tuser		({axi4s_count_tvalidation, axi4s_count_tuser}),
+				.m_axi4s_tuser		({axi4s_count_tdetect, axi4s_count_tuser}),
 				.m_axi4s_tlast		(axi4s_count_tlast),
 				.m_axi4s_tcount		(axi4s_count_tcount),
 				.m_axi4s_tdata		(axi4s_count_tdata),
@@ -214,17 +214,17 @@ module video_mnist
 				.dout				(axi4s_count_tcount_int)
 			);
 	
-	wire	[INTEGRATION_WIDTH-1:0]				axi4s_count_tvalidation_int;
+	wire	[INTEGRATION_WIDTH-1:0]				axi4s_count_tdetect_int;
 	jelly_data_linear_expand
 			#(
 				.NUM				(1),
-				.IN_DATA_WIDTH		(VALIDATION_WIDTH),
+				.IN_DATA_WIDTH		(DETECT_WIDTH),
 				.OUT_DATA_WIDTH		(INTEGRATION_WIDTH)
 			)
-		i_data_linear_expand_tvalidation
+		i_data_linear_expand_tdetect
 			(
-				.din				(axi4s_count_tvalidation),
-				.dout				(axi4s_count_tvalidation_int)
+				.din				(axi4s_count_tdetect),
+				.dout				(axi4s_count_tdetect_int)
 			);
 	
 	
@@ -233,7 +233,7 @@ module video_mnist
 	wire										axi4s_int_tlast;
 	wire	[NUM_CALSS*INTEGRATION_WIDTH-1:0]	axi4s_int_tcount;
 	wire	[M_TDATA_WIDTH-1:0]					axi4s_int_tdata;
-	wire	[INTEGRATION_WIDTH-1:0]				axi4s_int_tvalidation;
+	wire	[INTEGRATION_WIDTH-1:0]				axi4s_int_tdetect;
 	wire										axi4s_int_tvalid;
 	wire										axi4s_int_tready;
 	
@@ -321,7 +321,7 @@ module video_mnist
 				
 				.INIT_PARAM_RATE	(0)
 			)
-		i_video_integrator_bram_validation
+		i_video_integrator_bram_detect
 			(
 				.aresetn			(aresetn),
 				.aclk				(aclk),
@@ -339,13 +339,13 @@ module video_mnist
 				
 				.s_axi4s_tuser		(axi4s_count_tuser),
 				.s_axi4s_tlast		(axi4s_count_tlast),
-				.s_axi4s_tdata		(axi4s_count_tvalidation_int),
+				.s_axi4s_tdata		(axi4s_count_tdetect_int),
 				.s_axi4s_tvalid		(axi4s_count_tvalid & axi4s_count_tready),
 				.s_axi4s_tready		(),
 				
 				.m_axi4s_tuser		(),
 				.m_axi4s_tlast		(),
-				.m_axi4s_tdata		(axi4s_int_tvalidation),
+				.m_axi4s_tdata		(axi4s_int_tdetect),
 				.m_axi4s_tvalid		(),
 				.m_axi4s_tready		(axi4s_int_tready)
 			);
@@ -357,7 +357,7 @@ module video_mnist
 				.COUNT_WIDTH		(INTEGRATION_WIDTH),
 				.CHANNEL_WIDTH		(CHANNEL_WIDTH),
 				
-				.TUSER_WIDTH		(M_TVALIDATION_WIDTH + TUSER_WIDTH),
+				.TUSER_WIDTH		(M_TDETECT_WIDTH + TUSER_WIDTH),
 				.TNUMBER_WIDTH		(M_TNUMBER_WIDTH),
 				
 				.M_SLAVE_REGS		(1),
@@ -369,14 +369,14 @@ module video_mnist
 				.aclk				(aclk),
 				.aclken				(1'b1),
 				
-				.s_axi4s_tuser		({axi4s_int_tvalidation, axi4s_int_tuser}),
+				.s_axi4s_tuser		({axi4s_int_tdetect, axi4s_int_tuser}),
 				.s_axi4s_tlast		(axi4s_int_tlast),
 				.s_axi4s_tcount		(axi4s_int_tcount),
 				.s_axi4s_tdata		(axi4s_int_tdata),
 				.s_axi4s_tvalid		(axi4s_int_tvalid),
 				.s_axi4s_tready		(axi4s_int_tready),
 				
-				.m_axi4s_tuser		({m_axi4s_tvalidation, m_axi4s_tuser}),
+				.m_axi4s_tuser		({m_axi4s_tdetect, m_axi4s_tuser}),
 				.m_axi4s_tlast		(m_axi4s_tlast),
 				.m_axi4s_tnumber	(m_axi4s_tnumber),
 				.m_axi4s_tcount		(m_axi4s_tcount),

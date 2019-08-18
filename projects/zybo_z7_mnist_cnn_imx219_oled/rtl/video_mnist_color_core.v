@@ -14,12 +14,12 @@
 
 module video_mnist_color_core
 		#(
-			parameter	RAW_WIDTH         = 10,
-			parameter	DATA_WIDTH        = 8,
-			parameter	TUSER_WIDTH       = 1,
-			parameter	TNUMBER_WIDTH     = 4,
-			parameter	TCOUNT_WIDTH      = 8,
-			parameter	TVALIDATION_WIDTH = 8
+			parameter	RAW_WIDTH     = 10,
+			parameter	DATA_WIDTH    = 8,
+			parameter	TUSER_WIDTH   = 1,
+			parameter	TNUMBER_WIDTH = 4,
+			parameter	TCOUNT_WIDTH  = 8,
+			parameter	TDETECT_WIDTH = 8
 		)
 		(
 			input	wire							aresetn,
@@ -28,7 +28,18 @@ module video_mnist_color_core
 			input	wire	[1:0]					param_mode,
 			input	wire	[3:0]					param_sel,
 			input	wire	[TCOUNT_WIDTH-1:0]		param_th_count,
-			input	wire	[TVALIDATION_WIDTH-1:0]	param_th_validation,
+			input	wire	[TDETECT_WIDTH-1:0]		param_th_detect,
+			
+			input	wire	[24:0]					param_color0,
+			input	wire	[24:0]					param_color1,
+			input	wire	[24:0]					param_color2,
+			input	wire	[24:0]					param_color3,
+			input	wire	[24:0]					param_color4,
+			input	wire	[24:0]					param_color5,
+			input	wire	[24:0]					param_color6,
+			input	wire	[24:0]					param_color7,
+			input	wire	[24:0]					param_color8,
+			input	wire	[24:0]					param_color9,
 			
 			input	wire	[TUSER_WIDTH-1:0]		s_axi4s_tuser,
 			input	wire							s_axi4s_tlast,
@@ -38,7 +49,7 @@ module video_mnist_color_core
 			input	wire	[1*DATA_WIDTH-1:0]		s_axi4s_tgray,
 			input	wire	[3*DATA_WIDTH-1:0]		s_axi4s_trgb,
 			input	wire	[0:0]					s_axi4s_tbinary,
-			input	wire	[TVALIDATION_WIDTH-1:0]	s_axi4s_tvalidation,
+			input	wire	[TDETECT_WIDTH-1:0]		s_axi4s_tdetect,
 			input	wire							s_axi4s_tvalid,
 			output	wire							s_axi4s_tready,
 			
@@ -63,7 +74,7 @@ module video_mnist_color_core
 	reg		[1*DATA_WIDTH-1:0]		st0_tgray;
 	reg		[3*DATA_WIDTH-1:0]		st0_trgb;
 	reg		[0:0]					st0_tbinary;
-	reg		[TVALIDATION_WIDTH-1:0]	st0_tvalidation;
+	reg		[TDETECT_WIDTH-1:0]		st0_tdetect;
 	reg								st0_tvalid;
 	
 	reg		[TUSER_WIDTH-1:0]		st1_tuser;
@@ -71,6 +82,7 @@ module video_mnist_color_core
 	reg		[TDATA_WIDTH-1:0]		st1_tdata;
 	reg								st1_en0;
 	reg								st1_en1;
+	reg								st1_cmask;
 	reg		[23:0]					st1_color;
 	reg								st1_tvalid;
 	
@@ -83,7 +95,7 @@ module video_mnist_color_core
 		if ( s_axi4s_tready ) begin
 			// stage 0
 			st0_en0         <= (s_axi4s_tcount >= param_th_count);
-			st0_en1         <= (s_axi4s_tvalidation >= param_th_validation);
+			st0_en1         <= (s_axi4s_tdetect >= param_th_detect);
 			st0_tuser       <= s_axi4s_tuser;
 			st0_tlast       <= s_axi4s_tlast;
 			st0_tnumber     <= s_axi4s_tnumber;
@@ -92,7 +104,7 @@ module video_mnist_color_core
 			st0_tgray       <= s_axi4s_tgray;
 			st0_trgb        <= s_axi4s_trgb;
 			st0_tbinary     <= s_axi4s_tbinary;
-			st0_tvalidation <= s_axi4s_tvalidation;
+			st0_tdetect     <= s_axi4s_tdetect;
 			
 			
 			// stage1
@@ -103,7 +115,7 @@ module video_mnist_color_core
 			
 			case ( param_sel )
 			4'd0: 		st1_tdata <= st0_trgb;
-			4'd1: 		st1_tdata <= {TDATA_WIDTH{st0_tvalidation}};
+			4'd1: 		st1_tdata <= {TDATA_WIDTH{st0_tdetect}};
 			4'd2: 		st1_tdata <= {TDATA_WIDTH{st0_tbinary}};
 			4'd3: 		st1_tdata <= {3{st0_tgray}};
 			4'd4: 		st1_tdata <= {3{st0_traw[9:2]}};
@@ -119,26 +131,26 @@ module video_mnist_color_core
 			default:	st1_tdata <= st0_trgb;
 			endcase
 			
+			st1_cmask <= 1'b0;
 			case ( st0_tnumber )
-			4'd0:		st1_color <= 24'h00_00_00;	// •
-			4'd1:		st1_color <= 24'h00_00_80;	// ’ƒ
-			4'd2:		st1_color <= 24'h00_00_ff;	// Ô
-			4'd3:		st1_color <= 24'h4c_b7_ff;	// žò
-			4'd4:		st1_color <= 24'h00_ff_ff;	// ‰©
-			4'd5:		st1_color <= 24'h00_80_00;	// —Î
-			4'd6:		st1_color <= 24'hff_00_00;	// Â
-			4'd7:		st1_color <= 24'h80_00_80;	// Ž‡
-			4'd8:		st1_color <= 24'h80_80_80;	// ŠD
-			4'd9:		st1_color <= 24'hff_ff_ff;	// ”’
-			default:	st1_color <= 24'hxx_xx_xx;
+			4'd0:		{st1_cmask, st1_color} <= param_color0;
+			4'd1:		{st1_cmask, st1_color} <= param_color1;
+			4'd2:		{st1_cmask, st1_color} <= param_color2;
+			4'd3:		{st1_cmask, st1_color} <= param_color3;
+			4'd4:		{st1_cmask, st1_color} <= param_color4;
+			4'd5:		{st1_cmask, st1_color} <= param_color5;
+			4'd6:		{st1_cmask, st1_color} <= param_color6;
+			4'd7:		{st1_cmask, st1_color} <= param_color7;
+			4'd8:		{st1_cmask, st1_color} <= param_color8;
+			4'd9:		{st1_cmask, st1_color} <= param_color9;
+			default:	{st1_cmask, st1_color} <= 25'h1_xx_xx_xx;
 			endcase
-			
 			
 			// stage2
 			st2_tuser   <= st1_tuser;
 			st2_tlast   <= st1_tlast;
 			st2_tdata   <= st1_tdata;
-			if ( (param_mode[0] && st1_en0) && (~param_mode[1] || st1_en1) ) begin
+			if ( (param_mode[0] && st1_en0 && !st1_cmask) && (~param_mode[1] || st1_en1) ) begin
 				st2_tdata <= {st1_color[7:0], st1_color[15:8], st1_color[23:16]};
 			end
 		end

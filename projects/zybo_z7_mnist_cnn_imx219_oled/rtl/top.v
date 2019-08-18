@@ -7,8 +7,9 @@
 
 module top
 		#(
-			parameter	X_NUM = 640, // 3280 / 2,
-			parameter	Y_NUM = 132  // 2464 / 2
+			parameter	WITH_HDMI_TX = 1,
+			parameter	X_NUM        = 640, // 3280 / 2,
+			parameter	Y_NUM        = 132  // 2464 / 2
 		)
 		(
 			input	wire			in_clk125,
@@ -32,6 +33,11 @@ module top
 			output	wire			cam_gpio,
 			inout	wire			cam_scl,
 			inout	wire			cam_sda,
+			
+			output	wire			hdmi_tx_clk_p,
+			output	wire			hdmi_tx_clk_n,
+			output	wire	[2:0]	hdmi_tx_data_p,
+			output	wire	[2:0]	hdmi_tx_data_n,
 			
 			inout	wire	[14:0]	DDR_addr,
 			inout	wire	[2:0]	DDR_ba,
@@ -65,6 +71,11 @@ module top
 						wire			oled_reset;
 	(* KEEP = "true" *)	wire			oled_clk;
 	(* KEEP = "true" *)	wire			oled_clk_x7;
+	
+	wire	in_clk125_in;
+	wire	in_clk125_buf;
+	IBUFG	i_ibufg_clk125(.I(in_clk125),    .O(in_clk125_in));
+	BUFG	i_bufg_clk125 (.I(in_clk125_in), .O(in_clk125_buf));
 	
 	
 	wire			axi4l_peri_aresetn;
@@ -144,7 +155,7 @@ module top
 		i_design_1
 			(
 				.sys_reset				(1'b0),
-				.sys_clock				(in_clk125),
+				.sys_clock				(in_clk125_buf),
 				
 				.out_reset				(sys_reset),
 				.out_clk100				(sys_clk100),
@@ -569,6 +580,7 @@ module top
 				.m_axi4s_tready			(axi4s_csi2_tready)
 			);
 	
+	/*
 	jelly_axi4s_debug_monitor
 			#(
 				.TUSER_WIDTH			(1),
@@ -591,6 +603,7 @@ module top
 				.axi4s_tvalid			(axi4s_csi2_tvalid),
 				.axi4s_tready			(axi4s_csi2_tready)
 			);
+	*/
 	
 	wire	[0:0]	axi4s_fifo_tuser;
 	wire			axi4s_fifo_tlast;
@@ -841,7 +854,7 @@ module top
 	wire					axi4s_mnist_tlast;
 	wire	[7:0]			axi4s_mnist_tcount;
 	wire	[3:0]			axi4s_mnist_tnumber;
-	wire	[7:0]			axi4s_mnist_tvalidation;
+	wire	[7:0]			axi4s_mnist_tdetect;
 	wire					axi4s_mnist_tvalid;
 	
 	wire	[31:0]			wb_mnist_dat_o;
@@ -872,7 +885,7 @@ module top
 				.m_axi4s_tnumber		(axi4s_mnist_tnumber),
 				.m_axi4s_tcount			(axi4s_mnist_tcount),
 				.m_axi4s_tdata			(),
-				.m_axi4s_tvalidation	(axi4s_mnist_tvalidation),
+				.m_axi4s_tdetect		(axi4s_mnist_tdetect),
 				.m_axi4s_tvalid			(axi4s_mnist_tvalid),
 				.m_axi4s_tready			(1'b1),
 				
@@ -897,7 +910,7 @@ module top
 	wire	[0:0]			axi4s_fmem_tbinary;
 	wire	[7:0]			axi4s_fmem_tcount;
 	wire	[3:0]			axi4s_fmem_tnumber;
-	wire	[7:0]			axi4s_fmem_tvalidation;
+	wire	[7:0]			axi4s_fmem_tdetect;
 	wire					axi4s_fmem_tvalid;
 	wire					axi4s_fmem_tready;
 	
@@ -925,7 +938,7 @@ module top
 				.s_axi4s_store_aclk		(axi4s_cam_aclk),
 				.s_axi4s_store_tuser	(axi4s_mnist_tuser),
 				.s_axi4s_store_tlast	(axi4s_mnist_tlast),
-				.s_axi4s_store_tdata	({axi4s_mnist_tnumber, axi4s_mnist_tcount, axi4s_mnist_tvalidation}),
+				.s_axi4s_store_tdata	({axi4s_mnist_tnumber, axi4s_mnist_tcount, axi4s_mnist_tdetect}),
 				.s_axi4s_store_tvalid	(axi4s_mnist_tvalid),
 				
 				.s_axi4s_tuser			(axi4s_bin_tuser),
@@ -937,7 +950,7 @@ module top
 				.m_axi4s_tuser			(axi4s_fmem_tuser),
 				.m_axi4s_tlast			(axi4s_fmem_tlast),
 				.m_axi4s_tdata			({axi4s_fmem_traw, axi4s_fmem_tgray, axi4s_fmem_tbinary, axi4s_fmem_trgb}),
-				.m_axi4s_tdata_store	({axi4s_fmem_tnumber, axi4s_fmem_tcount, axi4s_fmem_tvalidation}),
+				.m_axi4s_tdata_store	({axi4s_fmem_tnumber, axi4s_fmem_tcount, axi4s_fmem_tdetect}),
 				.m_axi4s_tvalid			(axi4s_fmem_tvalid),
 				.m_axi4s_tready			(axi4s_fmem_tready)
 			);
@@ -962,7 +975,7 @@ module top
 				.INIT_PARAM_MODE		(2'b11),
 				.INIT_PARAM_SEL			(0),
 				.INIT_PARAM_TH_COUNT	(127),
-				.INIT_PARAM_TH_VALIDATION(127)
+				.INIT_PARAM_TH_DETECT	(127)
 			)
 		i_video_mnist_color
 			(
@@ -977,7 +990,7 @@ module top
 				.s_axi4s_tgray			(axi4s_fmem_tgray),
 				.s_axi4s_trgb			(axi4s_fmem_trgb),
 				.s_axi4s_tbinary		(axi4s_fmem_tbinary),
-				.s_axi4s_tvalidation	(axi4s_fmem_tvalidation),
+				.s_axi4s_tdetect		(axi4s_fmem_tdetect),
 				.s_axi4s_tvalid			(axi4s_fmem_tvalid),
 				.s_axi4s_tready			(axi4s_fmem_tready),
 				
@@ -1079,19 +1092,264 @@ module top
 			);
 	
 	
-	// read は未使用
-	assign axi4_mem0_arid     = 0;
-	assign axi4_mem0_araddr   = 0;
-	assign axi4_mem0_arburst  = 0;
-	assign axi4_mem0_arcache  = 0;
-	assign axi4_mem0_arlen    = 0;
-	assign axi4_mem0_arlock   = 0;
-	assign axi4_mem0_arprot   = 0;
-	assign axi4_mem0_arqos    = 0;
-	assign axi4_mem0_arregion = 0;
-	assign axi4_mem0_arsize   = 0;
-	assign axi4_mem0_arvalid  = 0;
-	assign axi4_mem0_rready   = 0;
+	
+	// ----------------------------------------
+	//  HDMI TX
+	// ----------------------------------------
+	
+	localparam	VOUT_X_NUM = 1280;
+	localparam	VOUT_Y_NUM = 720;
+	
+	wire	[31:0]			wb_vdmar_dat_o;
+	wire					wb_vdmar_stb_i;
+	wire					wb_vdmar_ack_o;
+	
+	wire	[31:0]			wb_vsgen_dat_o;
+	wire					wb_vsgen_stb_i;
+	wire					wb_vsgen_ack_o;
+	
+	generate
+	if ( WITH_HDMI_TX ) begin : blk_with_hdmi
+		
+		// clock & reset
+		wire			vout_reset;
+		wire			vout_clk;
+		wire			vout_clk_x5;
+		
+		wire	vout_locked;
+		clk_wiz_vout
+			i_clk_wiz_vout
+				(
+					.reset				(sys_reset),
+					.clk_in1			(in_clk125_buf),
+					
+					.clk_out1			(vout_clk),
+					.clk_out2			(vout_clk_x5),
+					.locked				(vout_locked)
+				);
+		
+		jelly_reset
+			i_reset_vout
+				(
+					.clk				(vout_clk),
+					.in_reset			(sys_reset | ~vout_locked),
+					.out_reset			(vout_reset)
+				);
+		
+		
+		
+		// DMA read
+		wire	[31:0]					axi4s_vout_tdata;
+		wire							axi4s_vout_tlast;
+		wire	[0:0]					axi4s_vout_tuser;
+		wire							axi4s_vout_tvalid;
+		wire							axi4s_vout_tready;
+		
+		jelly_vdma_axi4_to_axi4s
+				#(
+					.ASYNC				(1),
+					.FIFO_PTR_WIDTH 	(9),
+					
+					.PIXEL_SIZE 		(2),	// 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
+					
+					.AXI4_ID_WIDTH		(6),
+					.AXI4_ADDR_WIDTH	(32),
+					.AXI4_DATA_SIZE 	(3),	// 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
+					
+					.AXI4S_DATA_SIZE	(2),	// 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
+					.AXI4S_USER_WIDTH	(1),
+					
+					.AXI4_AR_REGS		(1),
+					.AXI4_R_REGS		(1),
+					.AXI4S_REGS 		(1),
+					
+					.INDEX_WIDTH		(8),
+					.STRIDE_WIDTH		(16),
+					.H_WIDTH			(14),
+					.V_WIDTH			(14),
+					
+					.WB_ADR_WIDTH		(8),
+					.WB_DAT_WIDTH		(32),
+					
+					.TRIG_ASYNC 		(1),	// WISHBONEと非同期の場合
+					.TRIG_START_ENABLE	(0),
+					
+					.INIT_CTL_CONTROL	(4'b0000),
+					.INIT_PARAM_ADDR	(32'h3000_0000),
+					.INIT_PARAM_STRIDE	(8192),
+					.INIT_PARAM_WIDTH	(VOUT_X_NUM),
+					.INIT_PARAM_HEIGHT	(VOUT_Y_NUM),
+					.INIT_PARAM_ARLEN	(8'h07)
+				)
+			i_vdma_axi4_to_axi4s
+				(
+					.m_axi4_aresetn		(axi4_mem_aresetn),
+					.m_axi4_aclk		(axi4_mem_aclk),
+					.m_axi4_arid		(axi4_mem0_arid),
+					.m_axi4_araddr		(axi4_mem0_araddr),
+					.m_axi4_arlen		(axi4_mem0_arlen),
+					.m_axi4_arsize		(axi4_mem0_arsize),
+					.m_axi4_arburst		(axi4_mem0_arburst),
+					.m_axi4_arlock		(axi4_mem0_arlock),
+					.m_axi4_arcache		(axi4_mem0_arcache),
+					.m_axi4_arprot		(axi4_mem0_arprot),
+					.m_axi4_arqos		(axi4_mem0_arqos),
+					.m_axi4_arregion	(axi4_mem0_arregion),
+					.m_axi4_arvalid		(axi4_mem0_arvalid),
+					.m_axi4_arready		(axi4_mem0_arready),
+					.m_axi4_rid			(axi4_mem0_rid),
+					.m_axi4_rdata		(axi4_mem0_rdata),
+					.m_axi4_rresp		(axi4_mem0_rresp),
+					.m_axi4_rlast		(axi4_mem0_rlast),
+					.m_axi4_rvalid		(axi4_mem0_rvalid),
+					.m_axi4_rready		(axi4_mem0_rready),
+					
+					.m_axi4s_aresetn	(~vout_reset),
+					.m_axi4s_aclk		(vout_clk),
+					.m_axi4s_tdata		(axi4s_vout_tdata),
+					.m_axi4s_tlast		(axi4s_vout_tlast),
+					.m_axi4s_tuser		(axi4s_vout_tuser),
+					.m_axi4s_tvalid		(axi4s_vout_tvalid),
+					.m_axi4s_tready		(axi4s_vout_tready),
+					
+					.s_wb_rst_i			(wb_rst_o),
+					.s_wb_clk_i			(wb_clk_o),
+					.s_wb_adr_i			(wb_host_adr_o[7:0]),
+					.s_wb_dat_i			(wb_host_dat_o),
+					.s_wb_dat_o			(wb_vdmar_dat_o),
+					.s_wb_we_i			(wb_host_we_o),
+					.s_wb_sel_i			(wb_host_sel_o),
+					.s_wb_stb_i			(wb_vdmar_stb_i),
+					.s_wb_ack_o			(wb_vdmar_ack_o),
+					.out_irq			(),
+					
+					.trig_reset			(wb_rst_o),
+					.trig_clk			(wb_clk_o),
+					.trig_start			(0)
+				);
+		
+		
+		// vsync generator
+		wire					vout_vsgen_vsync;
+		wire					vout_vsgen_hsync;
+		wire					vout_vsgen_de;
+		
+		jelly_vsync_generator
+				#(
+					.WB_ADR_WIDTH		(8),
+					.WB_DAT_WIDTH		(32),
+					.INIT_CTL_CONTROL	(1'b0),
+					
+					.INIT_HTOTAL		(1650),
+					.INIT_HDISP_START	(0),
+					.INIT_HDISP_END		(VOUT_X_NUM),
+					.INIT_HSYNC_START	(1390),
+					.INIT_HSYNC_END		(1430),
+					.INIT_HSYNC_POL		(1),
+					.INIT_VTOTAL		(750),
+					.INIT_VDISP_START	(0),
+					.INIT_VDISP_END		(VOUT_Y_NUM),
+					.INIT_VSYNC_START	(725),
+					.INIT_VSYNC_END		(730),
+					.INIT_VSYNC_POL		(1)
+				)
+			i_vsync_generator
+				(
+					.reset				(vout_reset),
+					.clk				(vout_clk),
+					
+					.out_vsync			(vout_vsgen_vsync),
+					.out_hsync			(vout_vsgen_hsync),
+					.out_de				(vout_vsgen_de),
+					
+					.s_wb_rst_i			(wb_rst_o),
+					.s_wb_clk_i			(wb_clk_o),
+					.s_wb_adr_i			(wb_host_adr_o[7:0]),
+					.s_wb_dat_o			(wb_vsgen_dat_o),
+					.s_wb_dat_i			(wb_host_dat_o),
+					.s_wb_we_i			(wb_host_we_o),
+					.s_wb_sel_i			(wb_host_sel_o),
+					.s_wb_stb_i			(wb_vsgen_stb_i),
+					.s_wb_ack_o			(wb_vsgen_ack_o)
+				);
+		
+		
+		wire			vout_vsync;
+		wire			vout_hsync;
+		wire			vout_de;
+		wire	[23:0]	vout_data;
+		wire	[3:0]	vout_ctl;
+		
+		jelly_vout_axi4s
+				#(
+					.WIDTH				(24)
+				)
+			i_vout_axi4s
+				(
+					.reset				(vout_reset),
+					.clk				(vout_clk),
+					
+					.s_axi4s_tuser		(axi4s_vout_tuser),
+					.s_axi4s_tlast		(axi4s_vout_tlast),
+					.s_axi4s_tdata		(axi4s_vout_tdata[23:0]),
+					.s_axi4s_tvalid		(axi4s_vout_tvalid),
+					.s_axi4s_tready		(axi4s_vout_tready),
+					
+					.in_vsync			(vout_vsgen_vsync),
+					.in_hsync			(vout_vsgen_hsync),
+					.in_de				(vout_vsgen_de),
+					.in_ctl				(4'd0),
+					
+					.out_vsync			(vout_vsync),
+					.out_hsync			(vout_hsync),
+					.out_de				(vout_de),
+					.out_data			(vout_data),
+					.out_ctl			(vout_ctl)
+				);
+		
+		jelly_dvi_tx
+			i_dvi_tx
+				(
+					.reset				(vout_reset),
+					.clk				(vout_clk),
+					.clk_x5				(vout_clk_x5),
+					
+					.in_vsync			(vout_vsync),
+					.in_hsync			(vout_hsync),
+					.in_de				(vout_de),
+					.in_data			(vout_data),
+					.in_ctl				(4'd0),
+					
+					.out_clk_p			(hdmi_tx_clk_p),
+					.out_clk_n			(hdmi_tx_clk_n),
+					.out_data_p			(hdmi_tx_data_p),
+					.out_data_n			(hdmi_tx_data_n)
+				);
+	end
+	else begin
+		// HDMI未使用
+		OBUFDS	i_obufds_hdmi_tx_clk  (.I(1'b0), .O(hdmi_tx_clk_p),     .OB(hdmi_tx_clk_n));
+		OBUFDS	i_obufds_hdmi_tx_data0(.I(1'b0), .O(hdmi_tx_data_p[0]), .OB(hdmi_tx_data_n[0]));
+		OBUFDS	i_obufds_hdmi_tx_data1(.I(1'b0), .O(hdmi_tx_data_p[1]), .OB(hdmi_tx_data_n[1]));
+		OBUFDS	i_obufds_hdmi_tx_data2(.I(1'b0), .O(hdmi_tx_data_p[2]), .OB(hdmi_tx_data_n[2]));
+		
+		assign axi4_mem0_arid     = 0;
+		assign axi4_mem0_araddr   = 0;
+		assign axi4_mem0_arburst  = 0;
+		assign axi4_mem0_arcache  = 0;
+		assign axi4_mem0_arlen    = 0;
+		assign axi4_mem0_arlock   = 0;
+		assign axi4_mem0_arprot   = 0;
+		assign axi4_mem0_arqos    = 0;
+		assign axi4_mem0_arregion = 0;
+		assign axi4_mem0_arsize   = 0;
+		assign axi4_mem0_arvalid  = 0;
+		assign axi4_mem0_rready   = 0;
+		
+		assign wb_vdmar_ack_o = wb_vdmar_stb_i;
+		assign wb_vsgen_ack_o = wb_vsgen_stb_i;
+	end
+	endgenerate
 	
 	
 	
@@ -1315,6 +1573,8 @@ module top
 	assign wb_bin_stb_i    = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_8);
 	assign wb_mcol_stb_i   = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_9);
 	assign wb_oled_stb_i   = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4002_2);
+	assign wb_vdmar_stb_i  = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4002_0);
+	assign wb_vsgen_stb_i  = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4002_1);
 	
 	
 	assign wb_host_dat_i  = wb_gid_stb_i    ? wb_gid_dat_o    :
@@ -1326,6 +1586,8 @@ module top
 	                        wb_bin_stb_i    ? wb_bin_dat_o    :
 	                        wb_mcol_stb_i   ? wb_mcol_dat_o   :
 	                        wb_oled_stb_i   ? wb_oled_dat_o   :
+	                        wb_vdmar_stb_i  ? wb_vdmar_dat_o  :
+	                        wb_vsgen_stb_i  ? wb_vsgen_dat_o  :
 	                        32'h0000_0000;
 	
 	assign wb_host_ack_i  = wb_gid_stb_i    ? wb_gid_ack_o    :
@@ -1337,6 +1599,8 @@ module top
 	                        wb_bin_stb_i    ? wb_bin_ack_o    :
 	                        wb_mcol_stb_i   ? wb_mcol_ack_o   :
 	                        wb_oled_stb_i   ? wb_oled_ack_o   :
+	                        wb_vdmar_stb_i  ? wb_vdmar_ack_o  :
+	                        wb_vsgen_stb_i  ? wb_vsgen_ack_o  :
 	                        wb_host_stb_o;
 	
 	
