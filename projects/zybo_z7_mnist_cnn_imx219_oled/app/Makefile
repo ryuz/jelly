@@ -10,11 +10,15 @@ OBJS   = main.o oled.o
 .PHONY: all
 all: $(TARGET)
 
+start: all
+	sudo ./$(TARGET)
+
+stop: all
+	sudo ./$(TARGET) stop
+
 run: all
 	sudo ./$(TARGET) gui
 
-start: all
-	sudo ./$(TARGET)
 
 $(TARGET): $(OBJS)
 	g++ $(LDFLAGS) -o $(TARGET) $(OBJS)
