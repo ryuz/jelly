@@ -94,13 +94,23 @@
 
 
 
-void oled_init(UioMmap* p);
-int  oled_main();
+void oled_init(UioMmap* p);     // OLED初期化
+int  oled_main();               // 古いOLEDアプリを動かすことで初期化を代用(手抜き)
 
-void camera_setup(I2cAccess& i2c, int w, int h);                                                                 // カメラ初期化
-void capture_still_image(UioMmap& um_pl_peri, int offset, int width, int height, int stride, int frame_num);    // DDR3-SDRAM経由で画像をキャプチャ
-void start_viewer_dma   (UioMmap& um_pl_peri, int offset, int width, int height, int stride, int frame_num);
+void camera_setup(I2cAccess& i2c, int w, int h);    // カメラ初期化
+
 void write_back_image(void* mem_addr);
+
+void vin_start(UioMmap& um_pl_peri);    // 画像取り込み開始
+void vin_stop(UioMmap& um_pl_peri);     // 画像取り込み停止
+
+void vin_dma_start(UioMmap& um_pl_peri, int offset, int width, int height, int stride, int frame_num, bool oneshot);
+void vin_dma_stop(UioMmap& um_pl_peri);
+
+void vout_start(UioMmap& um_pl_peri);
+void vout_stop(UioMmap& um_pl_peri);
+
+
 
 // メイン関数
 int main(int argc, char *argv[])
@@ -130,21 +140,9 @@ int main(int argc, char *argv[])
     
     
     // 一旦すべてのDMA等を止める
-    um_pl_peri.WriteWord32(VDMAR_REG_CTL_CONTROL, 0x0);
-    um_pl_peri.WriteWord32(VDMAW_REG_CTL_CONTROL, 0x0);
-    while ( um_pl_peri.ReadWord32(VDMAR_REG_CTL_STATUS) != 0 ) {
-        usleep(1000);
-    }
-    while ( um_pl_peri.ReadWord32(VDMAW_REG_CTL_STATUS) != 0 ) {
-        usleep(1000);
-    }
-    
-    // normalizer stop
-    um_pl_peri.WriteWord32(0x00011000, 0);
-    usleep(1000);
-    while ( um_pl_peri.ReadWord32(0x00011004) != 0 ) {
-        usleep(1000);
-    }
+    vout_stop(um_pl_peri);
+    vin_dma_stop(um_pl_peri);
+    vin_stop(um_pl_peri);
     
     // 止めるだけならここで終了
     if ( stop ) {
@@ -177,6 +175,7 @@ int main(int argc, char *argv[])
         printf("I2C open error\n");
         return 1;
     }
+    
     
     i2c.WriteAddr16Byte(0x0103, 0x01);
     usleep(10000);
@@ -230,15 +229,7 @@ int main(int argc, char *argv[])
     
     
     // DVI-TX start DMA read
-    um_pl_peri.WriteWord32(VDMAR_REG_PARAM_ADDR,   0x30000000);
-    um_pl_peri.WriteWord32(VDMAR_REG_PARAM_STRIDE, DVITX_STRIDE);
-    um_pl_peri.WriteWord32(VDMAR_REG_PARAM_WIDTH,  DVITX_WIDTH);
-    um_pl_peri.WriteWord32(VDMAR_REG_PARAM_HEIGHT, DVITX_HEIGHT);
-    um_pl_peri.WriteWord32(VDMAR_REG_PARAM_SIZE,   DVITX_WIDTH*DVITX_HEIGHT);
-    um_pl_peri.WriteWord32(VDMAR_REG_PARAM_ARLEN,  31);
-    um_pl_peri.WriteWord32(VDMAR_REG_CTL_CONTROL,  0x3);
-    
-    um_pl_peri.WriteWord32(VOUT_VSGEN_REG_CTL_CONTROL, 1);
+    vout_start(um_pl_peri);
     
     
     
@@ -246,7 +237,7 @@ int main(int argc, char *argv[])
     int     key = -1;
     do {
         // 画像取り込み
-        capture_still_image(um_pl_peri, offset, width, height, stride, frame_num);
+        vin_dma_start(um_pl_peri, offset, width, height, stride, frame_num, true);  // ワンショット取り込み
         cv::Mat img(height*frame_num, width, CV_8UC4);
         {
             char* p = (char*)mem_addr;
@@ -317,7 +308,7 @@ int main(int argc, char *argv[])
         // 録画
         if ( key == 'r' ) {
             printf("record\n");
-            capture_still_image(um_pl_peri, 0, width, height, width*4, 100);
+            vin_dma_start(um_pl_peri, 0, width, height, width*4, 100, true);
             char* p = (char*)mem_addr;
             for ( int i = 0; i< 100; i++ ) {
                 char fname[64];
@@ -337,13 +328,14 @@ int main(int argc, char *argv[])
     
     
     // DVI用にDMAを動きっぱなしにする
-    start_viewer_dma(um_pl_peri, offset, width, height, stride, frame_num);
+    vin_dma_start(um_pl_peri, offset, width, height, stride, frame_num, false);
     
     return 0;
 }
 
 
 
+// 背景画像書き込み
 void write_back_image(void* mem_addr)
 {
     unsigned char* p = (unsigned char*)mem_addr;
@@ -360,61 +352,88 @@ void write_back_image(void* mem_addr)
 
 
 
-// DDR3-SDRAM経由で画像をキャプチャ
-void capture_still_image(UioMmap& um_pl_peri, int offset, int width, int height, int stride, int frame_num)
+// 画像取り込み開始
+void vin_start(UioMmap& um_pl_peri, int width, int height)
 {
-    // DMA start (one shot)
-    um_pl_peri.WriteWord32(0x00010020, 0x30000000 + offset);
-    um_pl_peri.WriteWord32(0x00010024, stride);                 // stride
-    um_pl_peri.WriteWord32(0x00010028, width);                  // width
-    um_pl_peri.WriteWord32(0x0001002c, height);                 // height
-    um_pl_peri.WriteWord32(0x00010030, width*height*frame_num); // size
-    um_pl_peri.WriteWord32(0x0001003c, 31);                     // awlen
-    um_pl_peri.WriteWord32(0x00010010, 0x07);   // one-shot
-    
     // normalizer start
-    um_pl_peri.WriteWord32(0x00011010, 1);
-    um_pl_peri.WriteWord32(0x00011014, 100000000);
-    um_pl_peri.WriteWord32(0x00011020, width);
-    um_pl_peri.WriteWord32(0x00011024, height);
-    um_pl_peri.WriteWord32(0x00011028, 0xfff);
-    um_pl_peri.WriteWord32(0x0001102c, 0x10000);
-    um_pl_peri.WriteWord32(0x00011000, 3);
-//  usleep(100000);
-    
-    // wait for DMA end
+    um_pl_peri.WriteWord32(VIN_NORM_REG_FRM_TIMER_EN,  1);
+    um_pl_peri.WriteWord32(VIN_NORM_REG_FRM_TIMEOUT,   100000000);
+    um_pl_peri.WriteWord32(VIN_NORM_REG_PARAM_WIDTH,   width);
+    um_pl_peri.WriteWord32(VIN_NORM_REG_PARAM_HEIGHT,  height);
+    um_pl_peri.WriteWord32(VIN_NORM_REG_PARAM_FILL,    0xfff);
+    um_pl_peri.WriteWord32(VIN_NORM_REG_PARAM_TIMEOUT, 0x10000);
+    um_pl_peri.WriteWord32(VIN_NORM_REG_CONTROL,       3);
+}
+
+
+// 画像取り込み停止
+void vin_stop(UioMmap& um_pl_peri)
+{
+    um_pl_peri.WriteWord32(VIN_NORM_REG_CONTROL, 0);
     usleep(1000);
-    while ( um_pl_peri.ReadWord32(0x00010014) != 0 ) {
-        usleep(10000);
+    while ( um_pl_peri.ReadWord32(VIN_NORM_REG_BUSY) != 0 ) {
+        usleep(1000);
     }
 }
 
 
-void start_viewer_dma(UioMmap& um_pl_peri, int offset, int width, int height, int stride, int frame_num)
+// キャプチャ用DMA開始
+void vin_dma_start(UioMmap& um_pl_peri, int offset, int width, int height, int stride, int frame_num, bool oneshot)
 {
-    while ( um_pl_peri.ReadWord32(0x00010014) != 0 ) {
-        usleep(10000);
-    }
+    // 一旦止める
+    vin_dma_stop(um_pl_peri);
     
     // DMA start (one shot)
-    um_pl_peri.WriteWord32(VDMAW_REG_PARAM_ADDR, 0x30000000 + offset);
-    um_pl_peri.WriteWord32(VDMAW_REG_PARAM_STRIDE, stride);                 // stride
+    um_pl_peri.WriteWord32(VDMAW_REG_PARAM_ADDR, IMG_MEM_ADDR + offset);
+    um_pl_peri.WriteWord32(VDMAW_REG_PARAM_STRIDE, stride);                // stride
     um_pl_peri.WriteWord32(VDMAW_REG_PARAM_WIDTH, width);                  // width
-    um_pl_peri.WriteWord32(VDMAW_REG_PARAM_HEIGHT, height);                 // height
-    um_pl_peri.WriteWord32(VDMAW_REG_PARAM_SIZE, width*height*frame_num); // size
+    um_pl_peri.WriteWord32(VDMAW_REG_PARAM_HEIGHT, height);                // height
+    um_pl_peri.WriteWord32(VDMAW_REG_PARAM_SIZE, width*height*frame_num);  // size
     um_pl_peri.WriteWord32(VDMAW_REG_PARAM_AWLEN, 3);                      // awlen
-    um_pl_peri.WriteWord32(VDMAW_REG_CTL_CONTROL, 0x03);
+    um_pl_peri.WriteWord32(VDMAW_REG_CTL_CONTROL, oneshot ? 0x7 : 0x3);
     
     // normalizer start
-    um_pl_peri.WriteWord32(0x00011010, 1);
-    um_pl_peri.WriteWord32(0x00011014, 100000000);
-    um_pl_peri.WriteWord32(0x00011020, width);
-    um_pl_peri.WriteWord32(0x00011024, height);
-    um_pl_peri.WriteWord32(0x00011028, 0xfff);
-    um_pl_peri.WriteWord32(0x0001102c, 0x10000);
-    um_pl_peri.WriteWord32(0x00011000, 3);
+    vin_start(um_pl_peri, width, height);
+    
+    // ワンショットなら止まるまで待つ
+    if ( oneshot ) {
+        vin_dma_stop(um_pl_peri);
+    }
 }
 
+
+// キャプチャ用DMA停止
+void vin_dma_stop(UioMmap& um_pl_peri)
+{
+    um_pl_peri.WriteWord32(VDMAW_REG_CTL_CONTROL, 0x00);
+    while ( um_pl_peri.ReadWord32(VDMAW_REG_CTL_STATUS) != 0 ) {
+        usleep(10000);
+    }
+}
+
+
+// VOUT開始
+void vout_start(UioMmap& um_pl_peri)
+{
+    um_pl_peri.WriteWord32(VDMAR_REG_PARAM_ADDR,   IMG_MEM_ADDR);
+    um_pl_peri.WriteWord32(VDMAR_REG_PARAM_STRIDE, DVITX_STRIDE);
+    um_pl_peri.WriteWord32(VDMAR_REG_PARAM_WIDTH,  DVITX_WIDTH);
+    um_pl_peri.WriteWord32(VDMAR_REG_PARAM_HEIGHT, DVITX_HEIGHT);
+    um_pl_peri.WriteWord32(VDMAR_REG_PARAM_SIZE,   DVITX_WIDTH*DVITX_HEIGHT);
+    um_pl_peri.WriteWord32(VDMAR_REG_PARAM_ARLEN,  31);
+    um_pl_peri.WriteWord32(VDMAR_REG_CTL_CONTROL,  0x3);
+    
+    um_pl_peri.WriteWord32(VOUT_VSGEN_REG_CTL_CONTROL, 1);
+}
+
+// VOUT停止
+void vout_stop(UioMmap& um_pl_peri)
+{
+    um_pl_peri.WriteWord32(VDMAR_REG_CTL_CONTROL, 0x0);
+    while ( um_pl_peri.ReadWord32(VDMAR_REG_CTL_STATUS) != 0 ) {
+        usleep(1000);
+    }
+}
 
 
 // カメラ初期化
