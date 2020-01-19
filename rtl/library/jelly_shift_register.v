@@ -14,29 +14,29 @@
 
 // SRLC32E ‘z’è
 module jelly_shift_register
-		#(
-			parameter	SEL_WIDTH = 5,
-			parameter	NUM       = (1 << SEL_WIDTH)
-		)
-		(
-			input	wire						clk,
-			input	wire						cke,
-			
-			input	wire	[SEL_WIDTH-1:0]		sel,
-			input	wire						in_data,
-			output	wire						out_data
-		);
-	
-	reg		[NUM-1:0]	reg_shift;
-	
-	always @(posedge clk) begin
-		if ( cke ) begin
-			reg_shift <= {reg_shift, in_data};
-		end
-	end
-	
-	assign out_data = reg_shift[sel];
-	
+        #(
+            parameter   SEL_WIDTH = 5,
+            parameter   NUM       = (1 << SEL_WIDTH)
+        )
+        (
+            input   wire                        clk,
+            input   wire                        cke,
+            
+            input   wire    [SEL_WIDTH-1:0]     sel,
+            input   wire                        in_data,
+            output  wire                        out_data
+        );
+    
+    reg     [NUM-1:0]   reg_shift;
+    
+    always @(posedge clk) begin
+        if ( cke ) begin
+            reg_shift <= {reg_shift, in_data};
+        end
+    end
+    
+    assign out_data = reg_shift[sel];
+    
 endmodule
 
 

@@ -4,321 +4,321 @@
 
 
 module tb_gpu_gouraud();
-	localparam RATE    = 10.0;
-	localparam WB_RATE = 33.3;
-	
-	
-	initial begin
-		$dumpfile("tb_gpu_gouraud.vcd");
-		$dumpvars(0, tb_gpu_gouraud);
-	end
-	
-	reg		clk = 1'b1;
-	always #(RATE/2.0)	clk = ~clk;
-	
-	reg		wb_clk = 1'b1;
-	always #(WB_RATE/2.0)	wb_clk = ~wb_clk;
-	
-	reg		reset = 1'b1;
-	always #(RATE*100)	reset = 1'b0;
-	
-//	parameter X_NUM = 96;
-//	parameter Y_NUM = 64;
-	parameter X_NUM = 128;
-	parameter Y_NUM = 128;
-	
-	
-	// core
-	parameter	COMPONENT_NUM                 = 3;
-	parameter	DATA_WIDTH                    = 8;
-	
-	parameter	USE_S_AX4S                    = 1;
-	
-	parameter	WB_ADR_WIDTH                  = 16;
-	parameter	WB_DAT_WIDTH                  = 32;
-	parameter	WB_SEL_WIDTH                  = (WB_DAT_WIDTH / 8);
-	
-	parameter	AXI4S_TUSER_WIDTH             = 1;
-	parameter	AXI4S_TDATA_WIDTH             = COMPONENT_NUM*DATA_WIDTH;
-	
-	parameter	CORE_ADDR_WIDTH               = 14;
-	parameter	PARAMS_ADDR_WIDTH             = 12;
-	parameter	BANK_ADDR_WIDTH               = 10;
-	
-	parameter	BANK_NUM                      = 1;
-	parameter	EDGE_NUM                      = 12;
-	parameter	POLYGON_NUM                   = 6;
-	parameter	SHADER_PARAM_NUM              = 1 + COMPONENT_NUM;	// Z + RGB
-	
-	parameter	EDGE_PARAM_WIDTH              = 32;
-	parameter	EDGE_RAM_TYPE                 = "distributed";
-	
-	parameter	SHADER_PARAM_WIDTH            = 32;
-	parameter	SHADER_PARAM_Q                = 24;
-	parameter	SHADER_RAM_TYPE               = "distributed";
-	
-	parameter	REGION_PARAM_WIDTH            = EDGE_NUM;
-	parameter	REGION_RAM_TYPE               = "distributed";
-	
-	parameter	CULLING_ONLY                  = 0;
-	parameter	Z_SORT_MIN                    = 0;	// 1Ç≈è¨Ç≥Ç¢ílóDêÊ(Zé≤âúå¸Ç´)
-	
-	parameter	X_WIDTH                       = 12;
-	parameter	Y_WIDTH                       = 12;
-	
-	parameter	RASTERIZER_INIT_CTL_ENABLE    = 1'b0;
-	parameter	RASTERIZER_INIT_CTL_UPDATE    = 1'b0;
-	parameter	RASTERIZER_INIT_PARAM_WIDTH   = X_NUM-1;
-	parameter	RASTERIZER_INIT_PARAM_HEIGHT  = Y_NUM-1;
-	parameter	RASTERIZER_INIT_PARAM_CULLING = 2'b01;
-	parameter	RASTERIZER_INIT_PARAM_BANK    = 0;
-	
-	parameter	SHADER_INIT_PARAM_BG_MODE     = 0;
-	parameter	SHADER_INIT_PARAM_BG_COLOR    = 24'hff_00_00;
-	
-	
-	
-	wire									s_wb_rst_i = reset;
-	wire									s_wb_clk_i = wb_clk;
-	wire	[WB_ADR_WIDTH-1:0]				s_wb_adr_i;
-	wire	[WB_DAT_WIDTH-1:0]				s_wb_dat_o;
-	wire	[WB_DAT_WIDTH-1:0]				s_wb_dat_i;
-	wire									s_wb_we_i;
-	wire	[WB_SEL_WIDTH-1:0]				s_wb_sel_i;
-	wire									s_wb_stb_i;
-	wire									s_wb_ack_o;
-	
-	wire	[AXI4S_TUSER_WIDTH-1:0]			s_axi4s_tuser;
-	wire									s_axi4s_tlast;
-	wire	[AXI4S_TDATA_WIDTH-1:0]			s_axi4s_tdata;
-	wire									s_axi4s_tvalid;
-	wire									s_axi4s_tready;
-	
-	wire	[AXI4S_TUSER_WIDTH-1:0]			m_axi4s_tuser;
-	wire									m_axi4s_tlast;
-	wire	[AXI4S_TDATA_WIDTH-1:0]			m_axi4s_tdata;
-	wire									m_axi4s_tstrb;
-	wire									m_axi4s_tvalid;
-	wire									m_axi4s_tready;
-	
-	
-	// model
-	jelly_axi4s_master_model
-			#(
-				.AXI4S_DATA_WIDTH				(AXI4S_TDATA_WIDTH),
-				.X_NUM							(X_NUM),
-				.Y_NUM							(Y_NUM),
-				.PPM_FILE						("lena_128x128.ppm"),
-				.BUSY_RATE						(0),
-				.RANDOM_SEED					(7),
-				.INTERVAL						(0)
-			)
-		i_axi4s_master_model
-			(
-				.aresetn						(~reset),
-				.aclk							(clk),
-				
-				.m_axi4s_tuser					(s_axi4s_tuser),
-				.m_axi4s_tlast					(s_axi4s_tlast),
-				.m_axi4s_tdata					(s_axi4s_tdata),
-				.m_axi4s_tvalid					(s_axi4s_tvalid),
-				.m_axi4s_tready					(s_axi4s_tready)
-			);
-	
-	
-	// GPU
-	jelly_gpu_gouraud
-			#(
-				.COMPONENT_NUM					(COMPONENT_NUM),
-				.DATA_WIDTH 					(DATA_WIDTH),
-				.WB_ADR_WIDTH					(WB_ADR_WIDTH),
-				.WB_DAT_WIDTH					(WB_DAT_WIDTH),
-				.WB_SEL_WIDTH					(WB_SEL_WIDTH),
-				.USE_S_AX4S						(USE_S_AX4S),
-				.AXI4S_TUSER_WIDTH				(AXI4S_TUSER_WIDTH),
-				.AXI4S_TDATA_WIDTH				(AXI4S_TDATA_WIDTH),
-				.CORE_ADDR_WIDTH				(CORE_ADDR_WIDTH),
-				.PARAMS_ADDR_WIDTH				(PARAMS_ADDR_WIDTH),
-				.BANK_ADDR_WIDTH				(BANK_ADDR_WIDTH),
-				.BANK_NUM						(BANK_NUM),
-				.EDGE_NUM						(EDGE_NUM),
-				.POLYGON_NUM					(POLYGON_NUM),
-				.SHADER_PARAM_NUM				(SHADER_PARAM_NUM),
-				.EDGE_PARAM_WIDTH				(EDGE_PARAM_WIDTH),
-				.EDGE_RAM_TYPE					(EDGE_RAM_TYPE),
-				.SHADER_PARAM_WIDTH 			(SHADER_PARAM_WIDTH),
-				.SHADER_PARAM_Q 				(SHADER_PARAM_Q),
-				.SHADER_RAM_TYPE				(SHADER_RAM_TYPE),
-				.REGION_PARAM_WIDTH 			(REGION_PARAM_WIDTH),
-				.REGION_RAM_TYPE				(REGION_RAM_TYPE),
-				.CULLING_ONLY					(CULLING_ONLY),
-				.Z_SORT_MIN 					(Z_SORT_MIN),
-				.X_WIDTH						(X_WIDTH),
-				.Y_WIDTH						(Y_WIDTH),
-				.RASTERIZER_INIT_CTL_ENABLE 	(RASTERIZER_INIT_CTL_ENABLE),
-				.RASTERIZER_INIT_CTL_UPDATE 	(RASTERIZER_INIT_CTL_UPDATE),
-				.RASTERIZER_INIT_PARAM_WIDTH	(RASTERIZER_INIT_PARAM_WIDTH),
-				.RASTERIZER_INIT_PARAM_HEIGHT	(RASTERIZER_INIT_PARAM_HEIGHT),
-				.RASTERIZER_INIT_PARAM_CULLING	(RASTERIZER_INIT_PARAM_CULLING),
-				.RASTERIZER_INIT_PARAM_BANK 	(RASTERIZER_INIT_PARAM_BANK),
-				.SHADER_INIT_PARAM_BG_MODE		(SHADER_INIT_PARAM_BG_MODE),
-				.SHADER_INIT_PARAM_BG_COLOR		(SHADER_INIT_PARAM_BG_COLOR)
-			)
-		i_gpu_gouraud
-			(
-				.reset							(reset),
-				.clk							(clk),
-				
-				.s_wb_rst_i 					(s_wb_rst_i),
-				.s_wb_clk_i 					(s_wb_clk_i),
-				.s_wb_adr_i 					(s_wb_adr_i),
-				.s_wb_dat_o 					(s_wb_dat_o),
-				.s_wb_dat_i 					(s_wb_dat_i),
-				.s_wb_we_i						(s_wb_we_i),
-				.s_wb_sel_i 					(s_wb_sel_i),
-				.s_wb_stb_i 					(s_wb_stb_i),
-				.s_wb_ack_o 					(s_wb_ack_o),
-				
-				.s_axi4s_tuser					(s_axi4s_tuser),
-				.s_axi4s_tlast					(s_axi4s_tlast),
-				.s_axi4s_tdata					(s_axi4s_tdata),
-				.s_axi4s_tvalid 				(s_axi4s_tvalid),
-				.s_axi4s_tready 				(s_axi4s_tready),
-				
-				.m_axi4s_tuser					(m_axi4s_tuser),
-				.m_axi4s_tlast					(m_axi4s_tlast),
-				.m_axi4s_tdata					(m_axi4s_tdata),
-	//			.m_axi4s_tstrb					(m_axi4s_tstrb),
-				.m_axi4s_tvalid 				(m_axi4s_tvalid),
-				.m_axi4s_tready 				(m_axi4s_tready)
-			);
-	
-	
-	// image output
-	integer		fp;
-	initial begin
-		 fp = $fopen("out_img.ppm", "w");
-		 $fdisplay(fp, "P3");
-		 $fdisplay(fp, "%d %d", X_NUM, Y_NUM);
-		 $fdisplay(fp, "255");
-	end
-	
-	always @(posedge clk) begin
-		if ( !reset && m_axi4s_tvalid && m_axi4s_tready ) begin
-			 $fdisplay(fp, "%d %d %d", m_axi4s_tdata[7:0], m_axi4s_tdata[15:8], m_axi4s_tdata[23:16]);
-		end
-	end
-	
-	
-	jelly_axi4s_slave_model
-			#(
-				.COMPONENT_NUM		(3),
-				.DATA_WIDTH			(8),
-				.INIT_FRAME_NUM		(0),
-				.FILE_NAME			("out_img/out_%0d.ppm"),
-				.BUSY_RATE			(0),
-				.RANDOM_SEED		(1234)
-			)
-		i_axi4s_slave_model
-			(
-				.aresetn			(~reset),
-				.aclk				(clk),
-				.aclken				(1'b1),
-				
-				.param_width		(X_NUM),
-				.param_height		(Y_NUM),
-				
-				.s_axi4s_tuser		(m_axi4s_tuser),
-				.s_axi4s_tlast		(m_axi4s_tlast),
-				.s_axi4s_tdata		(m_axi4s_tdata),
-				.s_axi4s_tvalid		(m_axi4s_tvalid),
-				.s_axi4s_tready		(m_axi4s_tready)
-			);
-	
-	
-	
-	// WISHBONE master
-	wire							wb_rst_i = s_wb_rst_i;
-	wire							wb_clk_i = s_wb_clk_i;
-	reg		[WB_ADR_WIDTH-1:0]		wb_adr_o;
-	wire	[WB_DAT_WIDTH-1:0]		wb_dat_i;
-	reg		[WB_DAT_WIDTH-1:0]		wb_dat_o;
-	reg								wb_we_o;
-	reg		[WB_SEL_WIDTH-1:0]		wb_sel_o;
-	reg								wb_stb_o = 0;
-	wire							wb_ack_i;
-	
-	assign s_wb_adr_i = wb_adr_o;
-	assign s_wb_dat_i = wb_dat_o;
-	assign s_wb_we_i  = wb_we_o;
-	assign s_wb_sel_i = wb_sel_o;
-	assign s_wb_stb_i = wb_stb_o;
-	assign wb_dat_i   = s_wb_dat_o;
-	assign wb_ack_i   = s_wb_ack_o;
-	
-	
-	
-	reg		[WB_DAT_WIDTH-1:0]		reg_wb_dat;
-	reg								reg_wb_ack;
-	always @(posedge wb_clk_i) begin
-		if ( ~wb_we_o & wb_stb_o & wb_stb_o ) begin
-			reg_wb_dat <= wb_dat_i;
-		end
-		reg_wb_ack <= wb_ack_i;
-	end
-	
-	task wb_write(
-				input [WB_ADR_WIDTH-1:0]	adr,
-				input [WB_DAT_WIDTH-1:0]	dat,
-				input [WB_SEL_WIDTH-1:0]	sel
-			);
-	begin
-		$display("WISHBONE_WRITE(adr:%h dat:%h sel:%b)", adr, dat, sel);
-		@(negedge wb_clk_i);
-			wb_adr_o = (adr >> 2);
-			wb_dat_o = dat;
-			wb_sel_o = sel;
-			wb_we_o  = 1'b1;
-			wb_stb_o = 1'b1;
-		@(negedge wb_clk_i);
-			while ( reg_wb_ack == 1'b0 ) begin
-				@(negedge wb_clk_i);
-			end
-			wb_adr_o = {WB_ADR_WIDTH{1'bx}};
-			wb_dat_o = {WB_DAT_WIDTH{1'bx}};
-			wb_sel_o = {WB_SEL_WIDTH{1'bx}};
-			wb_we_o  = 1'bx;
-			wb_stb_o = 1'b0;
-	end
-	endtask
-	
-	
-	task wb_read(
-				input [WB_ADR_WIDTH-1:0]	adr
-			);
-	begin
-		@(negedge wb_clk_i);
-			wb_adr_o = (adr >> 2);
-			wb_dat_o = {WB_DAT_WIDTH{1'bx}};
-			wb_sel_o = {WB_SEL_WIDTH{1'b1}};
-			wb_we_o  = 1'b0;
-			wb_stb_o = 1'b1;
-		@(negedge wb_clk_i);
-			while ( reg_wb_ack == 1'b0 ) begin
-				@(negedge wb_clk_i);
-			end
-			wb_adr_o = {WB_ADR_WIDTH{1'bx}};
-			wb_dat_o = {WB_DAT_WIDTH{1'bx}};
-			wb_sel_o = {WB_SEL_WIDTH{1'bx}};
-			wb_we_o  = 1'bx;
-			wb_stb_o = 1'b0;
-			$display("WISHBONE_READ(adr:%h dat:%h)", adr, reg_wb_dat);
-	end
-	endtask
-	
-	initial begin
-	@(negedge wb_rst_i);
-	#100
+    localparam RATE    = 10.0;
+    localparam WB_RATE = 33.3;
+    
+    
+    initial begin
+        $dumpfile("tb_gpu_gouraud.vcd");
+        $dumpvars(0, tb_gpu_gouraud);
+    end
+    
+    reg     clk = 1'b1;
+    always #(RATE/2.0)  clk = ~clk;
+    
+    reg     wb_clk = 1'b1;
+    always #(WB_RATE/2.0)   wb_clk = ~wb_clk;
+    
+    reg     reset = 1'b1;
+    always #(RATE*100)  reset = 1'b0;
+    
+//  parameter X_NUM = 96;
+//  parameter Y_NUM = 64;
+    parameter X_NUM = 128;
+    parameter Y_NUM = 128;
+    
+    
+    // core
+    parameter   COMPONENT_NUM                 = 3;
+    parameter   DATA_WIDTH                    = 8;
+    
+    parameter   USE_S_AX4S                    = 1;
+    
+    parameter   WB_ADR_WIDTH                  = 16;
+    parameter   WB_DAT_WIDTH                  = 32;
+    parameter   WB_SEL_WIDTH                  = (WB_DAT_WIDTH / 8);
+    
+    parameter   AXI4S_TUSER_WIDTH             = 1;
+    parameter   AXI4S_TDATA_WIDTH             = COMPONENT_NUM*DATA_WIDTH;
+    
+    parameter   CORE_ADDR_WIDTH               = 14;
+    parameter   PARAMS_ADDR_WIDTH             = 12;
+    parameter   BANK_ADDR_WIDTH               = 10;
+    
+    parameter   BANK_NUM                      = 1;
+    parameter   EDGE_NUM                      = 12;
+    parameter   POLYGON_NUM                   = 6;
+    parameter   SHADER_PARAM_NUM              = 1 + COMPONENT_NUM;  // Z + RGB
+    
+    parameter   EDGE_PARAM_WIDTH              = 32;
+    parameter   EDGE_RAM_TYPE                 = "distributed";
+    
+    parameter   SHADER_PARAM_WIDTH            = 32;
+    parameter   SHADER_PARAM_Q                = 24;
+    parameter   SHADER_RAM_TYPE               = "distributed";
+    
+    parameter   REGION_PARAM_WIDTH            = EDGE_NUM;
+    parameter   REGION_RAM_TYPE               = "distributed";
+    
+    parameter   CULLING_ONLY                  = 0;
+    parameter   Z_SORT_MIN                    = 0;  // 1Ç≈è¨Ç≥Ç¢ílóDêÊ(Zé≤âúå¸Ç´)
+    
+    parameter   X_WIDTH                       = 12;
+    parameter   Y_WIDTH                       = 12;
+    
+    parameter   RASTERIZER_INIT_CTL_ENABLE    = 1'b0;
+    parameter   RASTERIZER_INIT_CTL_UPDATE    = 1'b0;
+    parameter   RASTERIZER_INIT_PARAM_WIDTH   = X_NUM-1;
+    parameter   RASTERIZER_INIT_PARAM_HEIGHT  = Y_NUM-1;
+    parameter   RASTERIZER_INIT_PARAM_CULLING = 2'b01;
+    parameter   RASTERIZER_INIT_PARAM_BANK    = 0;
+    
+    parameter   SHADER_INIT_PARAM_BG_MODE     = 0;
+    parameter   SHADER_INIT_PARAM_BG_COLOR    = 24'hff_00_00;
+    
+    
+    
+    wire                                    s_wb_rst_i = reset;
+    wire                                    s_wb_clk_i = wb_clk;
+    wire    [WB_ADR_WIDTH-1:0]              s_wb_adr_i;
+    wire    [WB_DAT_WIDTH-1:0]              s_wb_dat_o;
+    wire    [WB_DAT_WIDTH-1:0]              s_wb_dat_i;
+    wire                                    s_wb_we_i;
+    wire    [WB_SEL_WIDTH-1:0]              s_wb_sel_i;
+    wire                                    s_wb_stb_i;
+    wire                                    s_wb_ack_o;
+    
+    wire    [AXI4S_TUSER_WIDTH-1:0]         s_axi4s_tuser;
+    wire                                    s_axi4s_tlast;
+    wire    [AXI4S_TDATA_WIDTH-1:0]         s_axi4s_tdata;
+    wire                                    s_axi4s_tvalid;
+    wire                                    s_axi4s_tready;
+    
+    wire    [AXI4S_TUSER_WIDTH-1:0]         m_axi4s_tuser;
+    wire                                    m_axi4s_tlast;
+    wire    [AXI4S_TDATA_WIDTH-1:0]         m_axi4s_tdata;
+    wire                                    m_axi4s_tstrb;
+    wire                                    m_axi4s_tvalid;
+    wire                                    m_axi4s_tready;
+    
+    
+    // model
+    jelly_axi4s_master_model
+            #(
+                .AXI4S_DATA_WIDTH               (AXI4S_TDATA_WIDTH),
+                .X_NUM                          (X_NUM),
+                .Y_NUM                          (Y_NUM),
+                .PPM_FILE                       ("lena_128x128.ppm"),
+                .BUSY_RATE                      (0),
+                .RANDOM_SEED                    (7),
+                .INTERVAL                       (0)
+            )
+        i_axi4s_master_model
+            (
+                .aresetn                        (~reset),
+                .aclk                           (clk),
+                
+                .m_axi4s_tuser                  (s_axi4s_tuser),
+                .m_axi4s_tlast                  (s_axi4s_tlast),
+                .m_axi4s_tdata                  (s_axi4s_tdata),
+                .m_axi4s_tvalid                 (s_axi4s_tvalid),
+                .m_axi4s_tready                 (s_axi4s_tready)
+            );
+    
+    
+    // GPU
+    jelly_gpu_gouraud
+            #(
+                .COMPONENT_NUM                  (COMPONENT_NUM),
+                .DATA_WIDTH                     (DATA_WIDTH),
+                .WB_ADR_WIDTH                   (WB_ADR_WIDTH),
+                .WB_DAT_WIDTH                   (WB_DAT_WIDTH),
+                .WB_SEL_WIDTH                   (WB_SEL_WIDTH),
+                .USE_S_AX4S                     (USE_S_AX4S),
+                .AXI4S_TUSER_WIDTH              (AXI4S_TUSER_WIDTH),
+                .AXI4S_TDATA_WIDTH              (AXI4S_TDATA_WIDTH),
+                .CORE_ADDR_WIDTH                (CORE_ADDR_WIDTH),
+                .PARAMS_ADDR_WIDTH              (PARAMS_ADDR_WIDTH),
+                .BANK_ADDR_WIDTH                (BANK_ADDR_WIDTH),
+                .BANK_NUM                       (BANK_NUM),
+                .EDGE_NUM                       (EDGE_NUM),
+                .POLYGON_NUM                    (POLYGON_NUM),
+                .SHADER_PARAM_NUM               (SHADER_PARAM_NUM),
+                .EDGE_PARAM_WIDTH               (EDGE_PARAM_WIDTH),
+                .EDGE_RAM_TYPE                  (EDGE_RAM_TYPE),
+                .SHADER_PARAM_WIDTH             (SHADER_PARAM_WIDTH),
+                .SHADER_PARAM_Q                 (SHADER_PARAM_Q),
+                .SHADER_RAM_TYPE                (SHADER_RAM_TYPE),
+                .REGION_PARAM_WIDTH             (REGION_PARAM_WIDTH),
+                .REGION_RAM_TYPE                (REGION_RAM_TYPE),
+                .CULLING_ONLY                   (CULLING_ONLY),
+                .Z_SORT_MIN                     (Z_SORT_MIN),
+                .X_WIDTH                        (X_WIDTH),
+                .Y_WIDTH                        (Y_WIDTH),
+                .RASTERIZER_INIT_CTL_ENABLE     (RASTERIZER_INIT_CTL_ENABLE),
+                .RASTERIZER_INIT_CTL_UPDATE     (RASTERIZER_INIT_CTL_UPDATE),
+                .RASTERIZER_INIT_PARAM_WIDTH    (RASTERIZER_INIT_PARAM_WIDTH),
+                .RASTERIZER_INIT_PARAM_HEIGHT   (RASTERIZER_INIT_PARAM_HEIGHT),
+                .RASTERIZER_INIT_PARAM_CULLING  (RASTERIZER_INIT_PARAM_CULLING),
+                .RASTERIZER_INIT_PARAM_BANK     (RASTERIZER_INIT_PARAM_BANK),
+                .SHADER_INIT_PARAM_BG_MODE      (SHADER_INIT_PARAM_BG_MODE),
+                .SHADER_INIT_PARAM_BG_COLOR     (SHADER_INIT_PARAM_BG_COLOR)
+            )
+        i_gpu_gouraud
+            (
+                .reset                          (reset),
+                .clk                            (clk),
+                
+                .s_wb_rst_i                     (s_wb_rst_i),
+                .s_wb_clk_i                     (s_wb_clk_i),
+                .s_wb_adr_i                     (s_wb_adr_i),
+                .s_wb_dat_o                     (s_wb_dat_o),
+                .s_wb_dat_i                     (s_wb_dat_i),
+                .s_wb_we_i                      (s_wb_we_i),
+                .s_wb_sel_i                     (s_wb_sel_i),
+                .s_wb_stb_i                     (s_wb_stb_i),
+                .s_wb_ack_o                     (s_wb_ack_o),
+                
+                .s_axi4s_tuser                  (s_axi4s_tuser),
+                .s_axi4s_tlast                  (s_axi4s_tlast),
+                .s_axi4s_tdata                  (s_axi4s_tdata),
+                .s_axi4s_tvalid                 (s_axi4s_tvalid),
+                .s_axi4s_tready                 (s_axi4s_tready),
+                
+                .m_axi4s_tuser                  (m_axi4s_tuser),
+                .m_axi4s_tlast                  (m_axi4s_tlast),
+                .m_axi4s_tdata                  (m_axi4s_tdata),
+    //          .m_axi4s_tstrb                  (m_axi4s_tstrb),
+                .m_axi4s_tvalid                 (m_axi4s_tvalid),
+                .m_axi4s_tready                 (m_axi4s_tready)
+            );
+    
+    
+    // image output
+    integer     fp;
+    initial begin
+         fp = $fopen("out_img.ppm", "w");
+         $fdisplay(fp, "P3");
+         $fdisplay(fp, "%d %d", X_NUM, Y_NUM);
+         $fdisplay(fp, "255");
+    end
+    
+    always @(posedge clk) begin
+        if ( !reset && m_axi4s_tvalid && m_axi4s_tready ) begin
+             $fdisplay(fp, "%d %d %d", m_axi4s_tdata[7:0], m_axi4s_tdata[15:8], m_axi4s_tdata[23:16]);
+        end
+    end
+    
+    
+    jelly_axi4s_slave_model
+            #(
+                .COMPONENT_NUM      (3),
+                .DATA_WIDTH         (8),
+                .INIT_FRAME_NUM     (0),
+                .FILE_NAME          ("out_img/out_%0d.ppm"),
+                .BUSY_RATE          (0),
+                .RANDOM_SEED        (1234)
+            )
+        i_axi4s_slave_model
+            (
+                .aresetn            (~reset),
+                .aclk               (clk),
+                .aclken             (1'b1),
+                
+                .param_width        (X_NUM),
+                .param_height       (Y_NUM),
+                
+                .s_axi4s_tuser      (m_axi4s_tuser),
+                .s_axi4s_tlast      (m_axi4s_tlast),
+                .s_axi4s_tdata      (m_axi4s_tdata),
+                .s_axi4s_tvalid     (m_axi4s_tvalid),
+                .s_axi4s_tready     (m_axi4s_tready)
+            );
+    
+    
+    
+    // WISHBONE master
+    wire                            wb_rst_i = s_wb_rst_i;
+    wire                            wb_clk_i = s_wb_clk_i;
+    reg     [WB_ADR_WIDTH-1:0]      wb_adr_o;
+    wire    [WB_DAT_WIDTH-1:0]      wb_dat_i;
+    reg     [WB_DAT_WIDTH-1:0]      wb_dat_o;
+    reg                             wb_we_o;
+    reg     [WB_SEL_WIDTH-1:0]      wb_sel_o;
+    reg                             wb_stb_o = 0;
+    wire                            wb_ack_i;
+    
+    assign s_wb_adr_i = wb_adr_o;
+    assign s_wb_dat_i = wb_dat_o;
+    assign s_wb_we_i  = wb_we_o;
+    assign s_wb_sel_i = wb_sel_o;
+    assign s_wb_stb_i = wb_stb_o;
+    assign wb_dat_i   = s_wb_dat_o;
+    assign wb_ack_i   = s_wb_ack_o;
+    
+    
+    
+    reg     [WB_DAT_WIDTH-1:0]      reg_wb_dat;
+    reg                             reg_wb_ack;
+    always @(posedge wb_clk_i) begin
+        if ( ~wb_we_o & wb_stb_o & wb_stb_o ) begin
+            reg_wb_dat <= wb_dat_i;
+        end
+        reg_wb_ack <= wb_ack_i;
+    end
+    
+    task wb_write(
+                input [WB_ADR_WIDTH-1:0]    adr,
+                input [WB_DAT_WIDTH-1:0]    dat,
+                input [WB_SEL_WIDTH-1:0]    sel
+            );
+    begin
+        $display("WISHBONE_WRITE(adr:%h dat:%h sel:%b)", adr, dat, sel);
+        @(negedge wb_clk_i);
+            wb_adr_o = (adr >> 2);
+            wb_dat_o = dat;
+            wb_sel_o = sel;
+            wb_we_o  = 1'b1;
+            wb_stb_o = 1'b1;
+        @(negedge wb_clk_i);
+            while ( reg_wb_ack == 1'b0 ) begin
+                @(negedge wb_clk_i);
+            end
+            wb_adr_o = {WB_ADR_WIDTH{1'bx}};
+            wb_dat_o = {WB_DAT_WIDTH{1'bx}};
+            wb_sel_o = {WB_SEL_WIDTH{1'bx}};
+            wb_we_o  = 1'bx;
+            wb_stb_o = 1'b0;
+    end
+    endtask
+    
+    
+    task wb_read(
+                input [WB_ADR_WIDTH-1:0]    adr
+            );
+    begin
+        @(negedge wb_clk_i);
+            wb_adr_o = (adr >> 2);
+            wb_dat_o = {WB_DAT_WIDTH{1'bx}};
+            wb_sel_o = {WB_SEL_WIDTH{1'b1}};
+            wb_we_o  = 1'b0;
+            wb_stb_o = 1'b1;
+        @(negedge wb_clk_i);
+            while ( reg_wb_ack == 1'b0 ) begin
+                @(negedge wb_clk_i);
+            end
+            wb_adr_o = {WB_ADR_WIDTH{1'bx}};
+            wb_dat_o = {WB_DAT_WIDTH{1'bx}};
+            wb_sel_o = {WB_SEL_WIDTH{1'bx}};
+            wb_we_o  = 1'bx;
+            wb_stb_o = 1'b0;
+            $display("WISHBONE_READ(adr:%h dat:%h)", adr, reg_wb_dat);
+    end
+    endtask
+    
+    initial begin
+    @(negedge wb_rst_i);
+    #100
 
 //128x128
 wb_write(32'h40104000, 32'hfffffd8f, 4'hf);
@@ -567,20 +567,20 @@ wb_write(32'h4010c028, 32'h00000a21, 4'hf);
 wb_write(32'h4010c02c, 32'h00000801, 4'hf);
 */
 
-		$display("start");
-		wb_write(32'h0000_0084, 32'h0000_0001, 4'b1111);	// UPDATE
-		wb_write(32'h0000_0080, 32'h0000_0001, 4'b1111);	// ENABLE
-		
-	#10000
-		wb_write(32'h0000_00a4, 32'h0000_0001, 4'b1111);	// SELECT
-		wb_write(32'h0000_0084, 32'h0000_0001, 4'b1111);	// UPDATE
-		
-	#100000000
-		$finish();
-	end
-	
-	
-	
+        $display("start");
+        wb_write(32'h0000_0084, 32'h0000_0001, 4'b1111);    // UPDATE
+        wb_write(32'h0000_0080, 32'h0000_0001, 4'b1111);    // ENABLE
+        
+    #10000
+        wb_write(32'h0000_00a4, 32'h0000_0001, 4'b1111);    // SELECT
+        wb_write(32'h0000_0084, 32'h0000_0001, 4'b1111);    // UPDATE
+        
+    #100000000
+        $finish();
+    end
+    
+    
+    
 endmodule
 
 
