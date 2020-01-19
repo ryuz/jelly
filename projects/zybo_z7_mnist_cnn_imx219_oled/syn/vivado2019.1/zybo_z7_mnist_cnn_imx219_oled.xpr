@@ -39,13 +39,13 @@
     <Option Name="WTVcsLaunchSim" Val="0"/>
     <Option Name="WTRivieraLaunchSim" Val="0"/>
     <Option Name="WTActivehdlLaunchSim" Val="0"/>
-    <Option Name="WTXSimExportSim" Val="3"/>
-    <Option Name="WTModelSimExportSim" Val="3"/>
-    <Option Name="WTQuestaExportSim" Val="3"/>
-    <Option Name="WTIesExportSim" Val="3"/>
-    <Option Name="WTVcsExportSim" Val="3"/>
-    <Option Name="WTRivieraExportSim" Val="3"/>
-    <Option Name="WTActivehdlExportSim" Val="3"/>
+    <Option Name="WTXSimExportSim" Val="4"/>
+    <Option Name="WTModelSimExportSim" Val="4"/>
+    <Option Name="WTQuestaExportSim" Val="4"/>
+    <Option Name="WTIesExportSim" Val="4"/>
+    <Option Name="WTVcsExportSim" Val="4"/>
+    <Option Name="WTRivieraExportSim" Val="4"/>
+    <Option Name="WTActivehdlExportSim" Val="4"/>
     <Option Name="GenerateIPUpgradeLog" Val="TRUE"/>
     <Option Name="XSimRadix" Val="hex"/>
     <Option Name="XSimTimeUnit" Val="ns"/>
@@ -57,6 +57,13 @@
   <FileSets Version="1" Minor="31">
     <FileSet Name="sources_1" Type="DesignSrcs" RelSrcDir="$PSRCDIR/sources_1">
       <Filter Type="Srcs"/>
+      <File Path="$PPRDIR/../../ip/vivado2019.1/clk_wiz_vout/clk_wiz_vout.xci">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
       <File Path="$PSRCDIR/sources_1/bd/design_1/design_1.bd">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
@@ -66,26 +73,26 @@
         <CompFileExtendedInfo CompFileName="design_1.bd" FileRelPathName="ip/design_1_clk_wiz_0_0/design_1_clk_wiz_0_0.xci">
           <Proxy FileSetName="design_1_clk_wiz_0_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="design_1.bd" FileRelPathName="ip/design_1_proc_sys_reset_0_0/design_1_proc_sys_reset_0_0.xci">
-          <Proxy FileSetName="design_1_proc_sys_reset_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="design_1.bd" FileRelPathName="ip/design_1_smartconnect_0_0/design_1_smartconnect_0_0.xci">
-          <Proxy FileSetName="design_1_smartconnect_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="design_1.bd" FileRelPathName="ip/design_1_smartconnect_0_1/design_1_smartconnect_0_1.xci">
-          <Proxy FileSetName="design_1_smartconnect_0_1"/>
+        <CompFileExtendedInfo CompFileName="design_1.bd" FileRelPathName="ip/design_1_proc_sys_reset_1_1/design_1_proc_sys_reset_1_1.xci">
+          <Proxy FileSetName="design_1_proc_sys_reset_1_1"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="design_1.bd" FileRelPathName="ip/design_1_proc_sys_reset_1_0/design_1_proc_sys_reset_1_0.xci">
           <Proxy FileSetName="design_1_proc_sys_reset_1_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="design_1.bd" FileRelPathName="ip/design_1_proc_sys_reset_1_1/design_1_proc_sys_reset_1_1.xci">
-          <Proxy FileSetName="design_1_proc_sys_reset_1_1"/>
+        <CompFileExtendedInfo CompFileName="design_1.bd" FileRelPathName="ip/design_1_smartconnect_0_0/design_1_smartconnect_0_0.xci">
+          <Proxy FileSetName="design_1_smartconnect_0_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="design_1.bd" FileRelPathName="ip/design_1_clk_wiz_0_1/design_1_clk_wiz_0_1.xci">
           <Proxy FileSetName="design_1_clk_wiz_0_1"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="design_1.bd" FileRelPathName="ip/design_1_proc_sys_reset_0_1/design_1_proc_sys_reset_0_1.xci">
           <Proxy FileSetName="design_1_proc_sys_reset_0_1"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="design_1.bd" FileRelPathName="ip/design_1_proc_sys_reset_0_0/design_1_proc_sys_reset_0_0.xci">
+          <Proxy FileSetName="design_1_proc_sys_reset_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="design_1.bd" FileRelPathName="ip/design_1_smartconnect_0_1/design_1_smartconnect_0_1.xci">
+          <Proxy FileSetName="design_1_smartconnect_0_1"/>
         </CompFileExtendedInfo>
       </File>
       <File Path="$PPRDIR/../../rtl/MnistSparseLutCnn.v">
@@ -891,19 +898,6 @@
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
-    <FileSet Name="clk_wiz_vout" Type="BlockSrcs" RelSrcDir="$PSRCDIR/clk_wiz_vout">
-      <File Path="$PSRCDIR/sources_1/ip/clk_wiz_vout/clk_wiz_vout.xci">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <Config>
-        <Option Name="TopModule" Val="clk_wiz_vout"/>
-        <Option Name="UseBlackboxStub" Val="1"/>
-      </Config>
-    </FileSet>
   </FileSets>
   <Simulators>
     <Simulator Name="XSim">
@@ -1008,17 +1002,6 @@
     <Run Id="mipi_dphy_cam_synth_1" Type="Ft3:Synth" SrcSet="mipi_dphy_cam" Part="xc7z020clg400-1" ConstrsSet="mipi_dphy_cam" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/mipi_dphy_cam_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019"/>
-        <Step Id="synth_design"/>
-      </Strategy>
-      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
-      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2019"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-    </Run>
-    <Run Id="clk_wiz_vout_synth_1" Type="Ft3:Synth" SrcSet="clk_wiz_vout" Part="xc7z020clg400-1" ConstrsSet="clk_wiz_vout" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/clk_wiz_vout_synth_1" IncludeInArchive="true">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -1173,24 +1156,6 @@
     <Run Id="mipi_dphy_cam_impl_1" Type="Ft2:EntireDesign" Part="xc7z020clg400-1" ConstrsSet="mipi_dphy_cam" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="mipi_dphy_cam_synth_1" IncludeInArchive="false" GenFullBitstream="true">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019"/>
-        <Step Id="init_design"/>
-        <Step Id="opt_design"/>
-        <Step Id="power_opt_design"/>
-        <Step Id="place_design"/>
-        <Step Id="post_place_power_opt_design"/>
-        <Step Id="phys_opt_design"/>
-        <Step Id="route_design"/>
-        <Step Id="post_route_phys_opt_design"/>
-        <Step Id="write_bitstream"/>
-      </Strategy>
-      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2019"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-    </Run>
-    <Run Id="clk_wiz_vout_impl_1" Type="Ft2:EntireDesign" Part="xc7z020clg400-1" ConstrsSet="clk_wiz_vout" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="clk_wiz_vout_synth_1" IncludeInArchive="false" GenFullBitstream="true">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
