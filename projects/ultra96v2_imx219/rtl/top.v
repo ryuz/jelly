@@ -14,11 +14,15 @@ module top
             input   wire            cam_clk_p,
             input   wire            cam_clk_n,
             input   wire    [1:0]   cam_data_p,
-            input   wire    [1:0]   cam_data_n
+            input   wire    [1:0]   cam_data_n,
 //          input   wire            cam_clk,
 //          output  wire            cam_gpio,
 //          inout   wire            cam_scl,
-//          inout   wire            cam_sda
+//          inout   wire            cam_sda,
+            
+            output  wire    [1:0]   radio_led,
+            output  wire    [15:0]  hd_gpio
+            
         );
     
     
@@ -254,6 +258,8 @@ module top
     
     (* KEEP = "true" *)
     wire                rxbyteclkhs;
+    wire                clkoutphy_out;
+    wire                pll_lock_out;
     wire                system_rst_out;
     wire                init_done;
     
@@ -328,31 +334,23 @@ module top
         end
     end
     
-    
-    /*
-    (* MARK_DEBUG = "true" *)   reg     [7:0]       dbg_dl0_rxdatahs;
-    (* MARK_DEBUG = "true" *)   reg     [7:0]       dbg_dl0_rxdataesc;
-    (* MARK_DEBUG = "true" *)   reg     [7:0]       dbg_dl1_rxdatahs;
-    (* MARK_DEBUG = "true" *)   reg     [7:0]       dbg_dl1_rxdataesc;
-    
-    always @(posedge clk100) begin
-        dbg_dl0_rxdatahs  <= dl0_rxdatahs ;
-        dbg_dl0_rxdataesc <= dl0_rxdataesc;
-        dbg_dl1_rxdatahs  <= dl1_rxdatahs ;
-        dbg_dl1_rxdataesc <= dl1_rxdataesc;
+    reg     [31:0]      rst_counter;
+    reg                 phy_reset;
+    always @(posedge sys_clk200) begin
+        rst_counter <= rst_counter + 1;
+        phy_reset   <= (rst_counter[23:8] == 0);
     end
-    */
     
     
     mipi_dphy_cam
         i_mipi_dphy_cam
             (
                 .core_clk           (sys_clk200),
-                .core_rst           (sys_reset),
+                .core_rst           (sys_reset | phy_reset),
                 .rxbyteclkhs        (rxbyteclkhs),
                 
-                .clkoutphy_out      (),
-                .pll_lock_out       (),
+                .clkoutphy_out      (clkoutphy_out),
+                .pll_lock_out       (pll_lock_out),
                 .system_rst_out     (system_rst_out),
                 .init_done          (init_done),
                 
@@ -974,12 +972,14 @@ module top
     reg     [31:0]      reg_counter_rxbyteclkhs;
     always @(posedge rxbyteclkhs)   reg_counter_rxbyteclkhs <= reg_counter_rxbyteclkhs + 1;
     
-    reg     [31:0]      reg_counter_clk200;
-    always @(posedge sys_clk200)    reg_counter_clk200 <= reg_counter_clk200 + 1;
-    
     reg     [31:0]      reg_counter_clk100;
     always @(posedge sys_clk100)    reg_counter_clk100 <= reg_counter_clk100 + 1;
     
+    reg     [31:0]      reg_counter_clk200;
+    always @(posedge sys_clk200)    reg_counter_clk200 <= reg_counter_clk200 + 1;
+    
+    reg     [31:0]      reg_counter_clk250;
+    always @(posedge sys_clk250)    reg_counter_clk250 <= reg_counter_clk250 + 1;
     
     reg     frame_toggle = 0;
     always @(posedge axi4s_cam_aclk) begin
@@ -988,28 +988,58 @@ module top
         end
     end
     
-    /*
-    assign led[0] = reg_counter_rxbyteclkhs[24];
-    assign led[1] = reg_counter_clk200[24];
-    assign led[2] = reg_counter_clk100[24];
-    assign led[3] = frame_toggle;
     
-    assign pmod_a[0]   = frame_toggle;
-    assign pmod_a[1]   = reg_counter_rxbyteclkhs[5];
-    assign pmod_a[2]   = reg_counter_clk200[5];
-    assign pmod_a[3]   = reg_counter_clk100[5];
-    assign pmod_a[7:4] = 0;
+    assign radio_led[1] = reg_counter_clk100[24];
+    assign radio_led[0] = reg_counter_rxbyteclkhs[1];
+    
+    assign hd_gpio[0] = sys_reset;
+    assign hd_gpio[1] = reg_counter_clk100[5]; 
+    assign hd_gpio[2] = reg_counter_clk200[5];
+    assign hd_gpio[3] = reg_counter_clk250[5];
+    assign hd_gpio[4] = reg_counter_rxbyteclkhs[5];
+    assign hd_gpio[15:5] = 0;
     
     
-    (* MARK_DEBUG = "true" *) reg   dbg_clk200;
-    (* MARK_DEBUG = "true" *) reg   dbg_clk100;
-    (* MARK_DEBUG = "true" *) reg   dbg_rxbyteclkhs;
-    always @(posedge sys_clk100) begin
-        dbg_clk200       <= reg_counter_clk200[5];
-        dbg_clk100       <= reg_counter_clk100[5];
-        dbg_rxbyteclkhs  <= reg_counter_rxbyteclkhs[5];
+    
+    
+    (* MARK_DEBUG = "true" *)   reg                 dbg_sys_reset;
+    (* MARK_DEBUG = "true" *)   reg                 dbg_phy_reset;
+    (* MARK_DEBUG = "true" *)   reg                 dbg_rxbyteclkhs;
+//  (* MARK_DEBUG = "true" *)   reg                 dbg_clkoutphy_out;
+    (* MARK_DEBUG = "true" *)   reg                 dbg_pll_lock_out;
+    (* MARK_DEBUG = "true" *)   reg                 dbg_system_rst_out;
+    (* MARK_DEBUG = "true" *)   reg                 dbg_init_done;
+    (* MARK_DEBUG = "true" *)   reg                 dbg_cl_rxclkactivehs;
+    (* MARK_DEBUG = "true" *)   reg                 dbg_cl_stopstate;
+    (* MARK_DEBUG = "true" *)   reg                 dbg_cl_enable;
+    (* MARK_DEBUG = "true" *)   reg                 dbg_cl_rxulpsclknot;
+    (* MARK_DEBUG = "true" *)   reg                 dbg_cl_ulpsactivenot;
+    
+    (* MARK_DEBUG = "true" *)   reg     [7:0]       dbg_dl0_rxdatahs;
+    (* MARK_DEBUG = "true" *)   reg     [7:0]       dbg_dl0_rxdataesc;
+    (* MARK_DEBUG = "true" *)   reg     [7:0]       dbg_dl1_rxdatahs;
+    (* MARK_DEBUG = "true" *)   reg     [7:0]       dbg_dl1_rxdataesc;
+    
+    always @(posedge sys_clk200) begin
+        dbg_sys_reset        <= sys_reset ; 
+        dbg_phy_reset        <= phy_reset;
+        dbg_rxbyteclkhs      <= reg_counter_rxbyteclkhs[0];
+//      dbg_clkoutphy_out    <= clkoutphy_out   ;
+        dbg_pll_lock_out     <= pll_lock_out    ;
+        dbg_system_rst_out   <= system_rst_out  ;
+        dbg_init_done        <= init_done       ;
+        dbg_cl_rxclkactivehs <= cl_rxclkactivehs;
+        dbg_cl_stopstate     <= cl_stopstate    ;
+        dbg_cl_enable        <= cl_enable       ;
+        dbg_cl_rxulpsclknot  <= cl_rxulpsclknot ;
+        dbg_cl_ulpsactivenot <= cl_ulpsactivenot;
+        dbg_dl0_rxdatahs     <= dl0_rxdatahs ;
+        dbg_dl0_rxdataesc    <= dl0_rxdataesc;
+        dbg_dl1_rxdatahs     <= dl1_rxdatahs ;
+        dbg_dl1_rxdataesc    <= dl1_rxdataesc;
     end
-    */
+    
+    
     
 endmodule
 
