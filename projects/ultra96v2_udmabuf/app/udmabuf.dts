@@ -1,28 +1,19 @@
 /dts-v1/; /plugin/;
 
 / {
-    fragment@0 { /* Bitstream  Fragment */
+    /*
+    fragment@0 {
         target = <&fpga_full>;
         overlay0: __overlay__ {
             #address-cells = <2>;
             #size-cells = <2>;
-            firmware-name = "ultra96v2_led_top.bit";
+            firmware-name = "ultra96v2_udmabuf_top.bit";
             resets = <&rst 116>;
         };
     };
-    
+    */
+
     fragment@1 {
-        target-path = "/amba";
-        __overlay__ {
-            udmabuf4 {
-                compatible = "ikwzm,udmabuf-0.10.a";
-                minor-number = <4>;
-                size = <0x00400000>;
-            };
-        };
-    };
-    
-    fragment@2 {
         target-path = "/amba_pl@0";
         
         #address-cells = <2>;
@@ -32,7 +23,8 @@
             #size-cells = <2>;
             afi0 {
                 compatible    = "xlnx,afi-fpga";
-                config-afi    = <0 0>, <1 0>, <14 0x200>;
+                config-afi    = <0 0>, <1 0>,  /* S_AXI_HPC0_FPD : 128bit */
+                                <14 0x100>;    /* M_AXI_HPM0_FPD : 64bit */
             };
             clocking0: clocking0 {
                 #clock-cells = <0>;
@@ -44,4 +36,23 @@
             };
         };
     } ;
+    
+    fragment@2 {
+        target-path = "/amba";
+        __overlay__ {
+            #address-cells = <0x1>;
+            #size-cells = <0x1>;
+/*          uio4@a0000000 { */
+            uio_pl_peri {
+                compatible = "generic-uio";
+                reg = <0xa0000000 0x08000000>;
+            };
+
+            udmabuf4 {
+                compatible = "ikwzm,udmabuf-0.10.a";
+                minor-number = <4>;
+                size = <0x00400000>;
+            };
+        };
+    };
 };
