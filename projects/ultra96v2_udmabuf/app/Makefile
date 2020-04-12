@@ -2,9 +2,11 @@
 
 all: teat_app udmabuf.dtbo
 
+clean:
+	rm teat_app
 
-teat_app: main.cpp UioMmap.h
-	g++ -o teat_app main.cpp
+teat_app: main.cpp
+	g++ -o teat_app -I../../../soft/Utility main.cpp
 
 udmabuf.dtbo: udmabuf.dts
 	dtc -I dts -O dtb -o udmabuf.dtbo udmabuf.dts
