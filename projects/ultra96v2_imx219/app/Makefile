@@ -8,7 +8,7 @@ LDFLAGS += -L/usr/local/lib -lopencv_core -lopencv_imgcodecs -lopencv_highgui -l
 
 
 TARGET = imx219_test
-OBJS   = main.o oled.o
+OBJS   = main.o #oled.o
 
 run: all
 	sudo ./imx219_test
@@ -19,8 +19,8 @@ $(TARGET): $(OBJS)
 main.o: main.cpp I2cAccess.h
 	g++ $(CFLAGS) -c main.cpp
 
-oled.o: oled.cpp
-	g++ $(CFLAGS) -c oled.cpp
+#oled.o: oled.cpp
+#	g++ $(CFLAGS) -c oled.cpp
 
 
 .PHONY: clean
