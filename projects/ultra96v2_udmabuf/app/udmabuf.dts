@@ -1,0 +1,47 @@
+/dts-v1/; /plugin/;
+
+/ {
+    fragment@0 { /* Bitstream  Fragment */
+        target = <&fpga_full>;
+        overlay0: __overlay__ {
+            #address-cells = <2>;
+            #size-cells = <2>;
+            firmware-name = "ultra96v2_led_top.bit";
+            resets = <&rst 116>;
+        };
+    };
+    
+    fragment@1 {
+        target-path = "/amba";
+        __overlay__ {
+            udmabuf4 {
+                compatible = "ikwzm,udmabuf-0.10.a";
+                minor-number = <4>;
+                size = <0x00400000>;
+            };
+        };
+    };
+    
+    fragment@2 {
+        target-path = "/amba_pl@0";
+        
+        #address-cells = <2>;
+        #size-cells = <2>;
+        __overlay__ {
+            #address-cells = <2>;
+            #size-cells = <2>;
+            afi0 {
+                compatible    = "xlnx,afi-fpga";
+                config-afi    = <0 0>, <1 0>, <14 0x200>;
+            };
+            clocking0: clocking0 {
+                #clock-cells = <0>;
+                assigned-clock-rates = <100000000>;
+                assigned-clocks = <&zynqmp_clk 71>;
+                clock-output-names = "fabric_clk";
+                clocks = <&zynqmp_clk 71>;
+                compatible = "xlnx,fclk";
+            };
+        };
+    } ;
+};
