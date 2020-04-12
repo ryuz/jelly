@@ -1,4 +1,4 @@
-*.*
+*
 
 !.gitignore
 !README
@@ -13,3 +13,4 @@
 !*.c
 !*.cpp
 !*.vtakprj
+!*.dts
