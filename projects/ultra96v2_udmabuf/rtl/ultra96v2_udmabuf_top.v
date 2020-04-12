@@ -40,7 +40,7 @@ module ultra96v2_udmabuf_top
     wire    [2:0]   axi4_mem_awprot;
     wire    [3:0]   axi4_mem_awqos;
     wire    [2:0]   axi4_mem_awsize;
-    wire            axi4_mem_awvalid = 0;
+    wire            axi4_mem_awvalid;
     wire            axi4_mem_awready;
     wire    [127:0] axi4_mem_wdata;
     wire    [15:0]  axi4_mem_wstrb;
@@ -50,7 +50,7 @@ module ultra96v2_udmabuf_top
     wire    [5:0]   axi4_mem_bid;
     wire    [1:0]   axi4_mem_bresp;
     wire            axi4_mem_bvalid;
-    wire            axi4_mem_bready = 0;
+    wire            axi4_mem_bready;
     wire    [5:0]   axi4_mem_arid;
     wire            axi4_mem_aruser;
     wire    [48:0]  axi4_mem_araddr;
@@ -61,14 +61,14 @@ module ultra96v2_udmabuf_top
     wire    [2:0]   axi4_mem_arprot;
     wire    [3:0]   axi4_mem_arqos;
     wire    [2:0]   axi4_mem_arsize;
-    wire            axi4_mem_arvalid = 0;
+    wire            axi4_mem_arvalid;
     wire            axi4_mem_arready;
     wire    [5:0]   axi4_mem_rid;
     wire    [1:0]   axi4_mem_rresp;
     wire    [127:0] axi4_mem_rdata;
     wire            axi4_mem_rlast;
     wire            axi4_mem_rvalid;
-    wire            axi4_mem_rready = 0;
+    wire            axi4_mem_rready;
     
     
     design_1_wrapper
@@ -156,7 +156,7 @@ module ultra96v2_udmabuf_top
     
     jelly_axi4l_to_wishbone
             #(
-                .AXI4L_ADDR_WIDTH       (32),
+                .AXI4L_ADDR_WIDTH       (40),
                 .AXI4L_DATA_SIZE        (3)     // 0:8bit, 1:16bit, 2:32bit, 3:64bit, ...
             )
         i_axi4l_to_wishbone
@@ -195,8 +195,71 @@ module ultra96v2_udmabuf_top
             );
     
     
-    assign wb_peri_dat_o = wb_peri_adr_i;
-    assign wb_peri_ack_o = wb_peri_stb_i;
+    test_dma
+            #(
+                .WB_ADR_WIDTH       (8),
+                .WB_DAT_SIZE        (WB_DAT_SIZE),
+                
+                .AXI4_ID_WIDTH      (6),
+                .AXI4_ADDR_WIDTH    (49),
+                .AXI4_DATA_SIZE     (4)   // 0:8bit, 1:16bit, 2:32bit ...
+            )
+        i_test_dma
+            (
+                .reset              (~resetn),
+                .clk                (clk),
+                
+                .s_wb_adr_i         (wb_peri_adr_i[7:0]),
+                .s_wb_dat_i         (wb_peri_dat_i),
+                .s_wb_dat_o         (wb_peri_dat_o),
+                .s_wb_we_i          (wb_peri_we_i),
+                .s_wb_sel_i         (wb_peri_sel_i),
+                .s_wb_stb_i         (wb_peri_stb_i),
+                .s_wb_ack_o         (wb_peri_ack_o),
+                
+                .m_axi4_awid        (axi4_mem_awid     ),
+                .m_axi4_awaddr      (axi4_mem_awaddr   ),
+                .m_axi4_awlen       (axi4_mem_awlen    ),
+                .m_axi4_awsize      (axi4_mem_awsize   ),
+                .m_axi4_awburst     (axi4_mem_awburst  ),
+                .m_axi4_awlock      (axi4_mem_awlock   ),
+                .m_axi4_awcache     (axi4_mem_awcache  ),
+                .m_axi4_awprot      (axi4_mem_awprot   ),
+                .m_axi4_awqos       (axi4_mem_awqos    ),
+                .m_axi4_awregion    (), // (axi4_mem_awregion ),
+                .m_axi4_awvalid     (axi4_mem_awvalid  ),
+                .m_axi4_awready     (axi4_mem_awready  ),
+                .m_axi4_wdata       (axi4_mem_wdata    ),
+                .m_axi4_wstrb       (axi4_mem_wstrb    ),
+                .m_axi4_wlast       (axi4_mem_wlast    ),
+                .m_axi4_wvalid      (axi4_mem_wvalid   ),
+                .m_axi4_wready      (axi4_mem_wready   ),
+                .m_axi4_bid         (axi4_mem_bid      ),
+                .m_axi4_bresp       (axi4_mem_bresp    ),
+                .m_axi4_bvalid      (axi4_mem_bvalid   ),
+                .m_axi4_bready      (axi4_mem_bready   ),
+                .m_axi4_arid        (axi4_mem_arid     ),
+                .m_axi4_araddr      (axi4_mem_araddr   ),
+                .m_axi4_arlen       (axi4_mem_arlen    ),
+                .m_axi4_arsize      (axi4_mem_arsize   ),
+                .m_axi4_arburst     (axi4_mem_arburst  ),
+                .m_axi4_arlock      (axi4_mem_arlock   ),
+                .m_axi4_arcache     (axi4_mem_arcache  ),
+                .m_axi4_arprot      (axi4_mem_arprot   ),
+                .m_axi4_arqos       (axi4_mem_arqos    ),
+                .m_axi4_arregion    (), // (axi4_mem_arregion ),
+                .m_axi4_arvalid     (axi4_mem_arvalid  ),
+                .m_axi4_arready     (axi4_mem_arready  ),
+                .m_axi4_rid         (axi4_mem_rid      ),
+                .m_axi4_rdata       (axi4_mem_rdata    ),
+                .m_axi4_rresp       (axi4_mem_rresp    ),
+                .m_axi4_rlast       (axi4_mem_rlast    ),
+                .m_axi4_rvalid      (axi4_mem_rvalid   ),
+                .m_axi4_rready      (axi4_mem_rready   )
+            );
+    
+//    assign wb_peri_dat_o = wb_peri_adr_i;
+//    assign wb_peri_ack_o = wb_peri_stb_i;
     
     
     
