@@ -1,8 +1,8 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- the signal processor system
 //
-//                                 Copyright (C) 2008-2018 by Ryuji Fuchikami
-//                                 http://ryuz.my.coocan.jp/
+//                                 Copyright (C) 2008-2020 by Ryuji Fuchikami
+//                                 https://github.com/ryuz/
 // ---------------------------------------------------------------------------
 
 
@@ -10,7 +10,13 @@
 #define	__RYUZ__JELLY__UIO_MEMMAP_H__
 
 
+#include <string.h>
 #include <stdint.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/mman.h>
+#include <sys/ioctl.h>
+#include <errno.h>
 
 
 class UioMmap
@@ -55,7 +61,7 @@ public:
 			// read name
 			snprintf(dev_fname, 32, "/sys/class/uio/uio%d/name", i);
 			if ( (fp = fopen(dev_fname, "r")) == NULL ) {
-				return -1;
+				return false;
 			}
 			fgets(uio_name, 64, fp);
 			fclose(fp);
@@ -132,14 +138,24 @@ public:
 	}
 	
 	
-	void WriteWord32(size_t long offset, uint32_t data)
+	void WriteWord32(long addr, uint32_t data)
 	{
-		*(volatile uint32_t *)GetOffsetAddr(offset) = data;
+		*(volatile uint32_t *)GetOffsetAddr(addr) = data;
 	}
 	
-	uint32_t ReadWord32(size_t long offset)
+	uint32_t ReadWord32(long addr)
 	{
-		return *(volatile uint32_t *)GetOffsetAddr(offset);
+		return *(volatile uint32_t *)GetOffsetAddr(addr);
+	}
+	
+	void WriteWord64(long addr, uint64_t data)
+	{
+		*(volatile uint64_t *)GetOffsetAddr(addr) = data;
+	}
+	
+	uint64_t ReadWord64(long addr)
+	{
+		return *(volatile uint64_t *)GetOffsetAddr(addr);
 	}
 	
 	

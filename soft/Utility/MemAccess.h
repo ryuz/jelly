@@ -12,8 +12,9 @@
 
 #include <cstdint>
 
+namespace jelly {
 
-template <typename DataType=std::intptr_t, typename MemAddrType=std::intptr_t, typename RegAddrType=std::intptr_t>
+template <typename DataType=std::uintptr_t, typename MemAddrType=std::uintptr_t, typename RegAddrType=std::uintptr_t>
 class MemAccess_
 {
 protected:
@@ -38,10 +39,21 @@ public:
         return GetPointer_<void*>(addr);
     }
 
+    template <typename DT=DataType, typename MT=MemAddrType, typename RT=RegAddrType>
+    MemAccess_<DT, MT, RT> GetMemAccess_(MemAddrType addr)
+    {
+        return MemAccess_<DT, MT, RT>(GetPointer(addr));
+    }
+
+    MemAccess_<DataType, MemAddrType, RegAddrType> GetMemAccess(MemAddrType addr)
+    {
+        return MemAccess_<DataType, MemAddrType, RegAddrType>(GetPointer(addr));
+    }
+
     template <typename T=DataType>
     void WriteMem_(MemAddrType addr, T data)
     {
-        *GetPointer_<volatile T*>GetPointer(addr) = data;
+        *GetPointer_<volatile T*>(addr) = data;
         // メモリバリアを入れるべきか悩む
     }
 
@@ -49,7 +61,7 @@ public:
     T ReadMem_(MemAddrType addr)
     {
         // メモリバリアを入れるべきか悩む
-        return *GetPointer_<volatile T*>GetPointer(addr);
+        return *GetPointer_<volatile T*>(addr);
     }
 
     void WriteMem   (MemAddrType addr, DataType      data) { WriteMem_<DataType>     (addr, data); }
@@ -73,18 +85,45 @@ public:
     std::int8_t     ReadMemS8 (MemAddrType addr) { return ReadMem_<std::int8_t>  (addr); }
 
 
-    void WriteReg   (MemAddrType reg, DataType      data) { WriteMem_<DataType>     (reg, data); }
-    void WriteReg64 (MemAddrType reg, std::uint64_t data) { WriteMem_<std::uint64_t>(reg, data); }
-    void WriteReg32 (MemAddrType reg, std::uint32_t data) { WriteMem_<std::uint32_t>(reg, data); }
-    void WriteReg16 (MemAddrType reg, std::uint16_t data) { WriteMem_<std::uint16_t>(reg, data); }
-    void WriteReg8  (MemAddrType reg, std::uint8_t  data) { WriteMem_<std::uint8_t> (reg, data); }
-    void WriteRegS64(MemAddrType reg, std::int64_t  data) { WriteMem_<std::int64_t> (reg, data); }
-    void WriteRegS32(MemAddrType reg, std::int32_t  data) { WriteMem_<std::int32_t> (reg, data); }
-    void WriteRegS16(MemAddrType reg, std::int16_t  data) { WriteMem_<std::int16_t> (reg, data); }
-    void WriteRegS8 (MemAddrType reg, std::int8_t   data) { WriteMem_<std::int8_t>  (reg, data); }
+    template <typename T=DataType>
+    void WriteReg_(RegAddrType reg, T data)
+    {
+        WriteMem_(static_cast<MemAddrType>(reg*sizeof(DataType), data));
+    }
 
+    template <typename T=DataType>
+    T ReadReg_(RegAddrType reg)
+    {
+        return ReadMem_(static_cast<MemAddrType>(reg*sizeof(DataType)));
+    }
+
+    void WriteReg   (MemAddrType reg, DataType      data) { WriteReg_<DataType>     (reg, data); }
+    void WriteReg64 (MemAddrType reg, std::uint64_t data) { WriteReg_<std::uint64_t>(reg, data); }
+    void WriteReg32 (MemAddrType reg, std::uint32_t data) { WriteReg_<std::uint32_t>(reg, data); }
+    void WriteReg16 (MemAddrType reg, std::uint16_t data) { WriteReg_<std::uint16_t>(reg, data); }
+    void WriteReg8  (MemAddrType reg, std::uint8_t  data) { WriteReg_<std::uint8_t> (reg, data); }
+    void WriteRegS64(MemAddrType reg, std::int64_t  data) { WriteReg_<std::int64_t> (reg, data); }
+    void WriteRegS32(MemAddrType reg, std::int32_t  data) { WriteReg_<std::int32_t> (reg, data); }
+    void WriteRegS16(MemAddrType reg, std::int16_t  data) { WriteReg_<std::int16_t> (reg, data); }
+    void WriteRegS8 (MemAddrType reg, std::int8_t   data) { WriteReg_<std::int8_t>  (reg, data); }
+
+    DataType        ReadReg   (MemAddrType reg) { return ReadReg_<DataType>     (reg); }
+    std::uint64_t   ReadReg64 (MemAddrType reg) { return ReadReg_<std::uint64_t>(reg); }
+    std::uint32_t   ReadReg32 (MemAddrType reg) { return ReadReg_<std::uint32_t>(reg); }
+    std::uint16_t   ReadReg16 (MemAddrType reg) { return ReadReg_<std::uint16_t>(reg); }
+    std::uint8_t    ReadReg8  (MemAddrType reg) { return ReadReg_<std::uint8_t> (reg); }
+    std::int64_t    ReadRegS64(MemAddrType reg) { return ReadReg_<std::int64_t> (reg); }
+    std::int32_t    ReadRegS32(MemAddrType reg) { return ReadReg_<std::int32_t> (reg); }
+    std::int16_t    ReadRegS16(MemAddrType reg) { return ReadReg_<std::int16_t> (reg); }
+    std::int8_t     ReadRegS8 (MemAddrType reg) { return ReadReg_<std::int8_t>  (reg); }
 };
 
+
+using MemAccess   = MemAccess_<>;
+using MemAccess32 = MemAccess_<std::uint32_t, std::uint32_t, std::uint32_t>
+using MemAccess64 = MemAccess_<std::uint64_t, std::uint64_t, std::uint64_t>
+
+}
 
 #endif  // __RYUZ__JELLY__MEM_ACCESS_H__
 

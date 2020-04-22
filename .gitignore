@@ -10,6 +10,7 @@
 !*.xise
 !*.ucf
 !*.pl
+!*.h
 !*.c
 !*.cpp
 !*.vtakprj
