@@ -1,0 +1,92 @@
+// ---------------------------------------------------------------------------
+//  Jelly  -- the signal processor system
+//
+//                                 Copyright (C) 2008-2020 by Ryuji Fuchikami
+//                                 https://github.com/ryuz/
+// ---------------------------------------------------------------------------
+
+
+#ifndef	__RYUZ__JELLY__MEM_ACCESS_H__
+#define	__RYUZ__JELLY__MEM_ACCESS_H__
+
+
+#include <cstdint>
+
+
+template <typename DataType=std::intptr_t, typename MemAddrType=std::intptr_t, typename RegAddrType=std::intptr_t>
+class MemAccess_
+{
+protected:
+    void*   m_base_ptr = nullptr;
+
+public:
+    MemAccess_(){}
+    MemAccess_(void* base_ptr) { m_base_ptr = base_ptr; }
+    ~MemAccess_(){}
+
+    void  SetBasePtr(void *base_ptr) { m_base_ptr = base_ptr; }
+    void* GetBasePtr(void) { return m_base_ptr; }
+    
+    template <typename T=void*>
+    T GetPointer_(MemAddrType addr=0)
+    {
+        return reinterpret_cast<T>(reinterpret_cast<std::int8_t*>(m_base_ptr) + addr);
+    }
+
+    void* GetPointer(MemAddrType addr=0)
+    {
+        return GetPointer_<void*>(addr);
+    }
+
+    template <typename T=DataType>
+    void WriteMem_(MemAddrType addr, T data)
+    {
+        *GetPointer_<volatile T*>GetPointer(addr) = data;
+        // メモリバリアを入れるべきか悩む
+    }
+
+    template <typename T=DataType>
+    T ReadMem_(MemAddrType addr)
+    {
+        // メモリバリアを入れるべきか悩む
+        return *GetPointer_<volatile T*>GetPointer(addr);
+    }
+
+    void WriteMem   (MemAddrType addr, DataType      data) { WriteMem_<DataType>     (addr, data); }
+    void WriteMem64 (MemAddrType addr, std::uint64_t data) { WriteMem_<std::uint64_t>(addr, data); }
+    void WriteMem32 (MemAddrType addr, std::uint32_t data) { WriteMem_<std::uint32_t>(addr, data); }
+    void WriteMem16 (MemAddrType addr, std::uint16_t data) { WriteMem_<std::uint16_t>(addr, data); }
+    void WriteMem8  (MemAddrType addr, std::uint8_t  data) { WriteMem_<std::uint8_t> (addr, data); }
+    void WriteMemS64(MemAddrType addr, std::int64_t  data) { WriteMem_<std::int64_t> (addr, data); }
+    void WriteMemS32(MemAddrType addr, std::int32_t  data) { WriteMem_<std::int32_t> (addr, data); }
+    void WriteMemS16(MemAddrType addr, std::int16_t  data) { WriteMem_<std::int16_t> (addr, data); }
+    void WriteMemS8 (MemAddrType addr, std::int8_t   data) { WriteMem_<std::int8_t>  (addr, data); }
+    
+    DataType        ReadMem   (MemAddrType addr) { return ReadMem_<DataType>     (addr); }
+    std::uint64_t   ReadMem64 (MemAddrType addr) { return ReadMem_<std::uint64_t>(addr); }
+    std::uint32_t   ReadMem32 (MemAddrType addr) { return ReadMem_<std::uint32_t>(addr); }
+    std::uint16_t   ReadMem16 (MemAddrType addr) { return ReadMem_<std::uint16_t>(addr); }
+    std::uint8_t    ReadMem8  (MemAddrType addr) { return ReadMem_<std::uint8_t> (addr); }
+    std::int64_t    ReadMemS64(MemAddrType addr) { return ReadMem_<std::int64_t> (addr); }
+    std::int32_t    ReadMemS32(MemAddrType addr) { return ReadMem_<std::int32_t> (addr); }
+    std::int16_t    ReadMemS16(MemAddrType addr) { return ReadMem_<std::int16_t> (addr); }
+    std::int8_t     ReadMemS8 (MemAddrType addr) { return ReadMem_<std::int8_t>  (addr); }
+
+
+    void WriteReg   (MemAddrType reg, DataType      data) { WriteMem_<DataType>     (reg, data); }
+    void WriteReg64 (MemAddrType reg, std::uint64_t data) { WriteMem_<std::uint64_t>(reg, data); }
+    void WriteReg32 (MemAddrType reg, std::uint32_t data) { WriteMem_<std::uint32_t>(reg, data); }
+    void WriteReg16 (MemAddrType reg, std::uint16_t data) { WriteMem_<std::uint16_t>(reg, data); }
+    void WriteReg8  (MemAddrType reg, std::uint8_t  data) { WriteMem_<std::uint8_t> (reg, data); }
+    void WriteRegS64(MemAddrType reg, std::int64_t  data) { WriteMem_<std::int64_t> (reg, data); }
+    void WriteRegS32(MemAddrType reg, std::int32_t  data) { WriteMem_<std::int32_t> (reg, data); }
+    void WriteRegS16(MemAddrType reg, std::int16_t  data) { WriteMem_<std::int16_t> (reg, data); }
+    void WriteRegS8 (MemAddrType reg, std::int8_t   data) { WriteMem_<std::int8_t>  (reg, data); }
+
+};
+
+
+#endif  // __RYUZ__JELLY__MEM_ACCESS_H__
+
+
+// end of file
