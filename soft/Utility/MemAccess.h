@@ -10,6 +10,7 @@
 #define	__RYUZ__JELLY__MEM_ACCESS_H__
 
 
+#include <cstring> 
 #include <cstdint>
 
 namespace jelly {
@@ -64,6 +65,18 @@ public:
         return *GetPointer_<volatile T*>(addr);
     }
 
+
+    // memory access (byte addressing)
+    void MemCopyTo(MemAddrType dst_addr, const void* src_ptr, std::size_t size)
+    {
+        memcpy(GetPointer(dst_addr), src_ptr, size);
+    }
+
+    void MemCopyFrom(void* dst_ptr, MemAddrType src_addr, std::size_t size)
+    {
+        memcpy(dst_ptr, GetPointer(src_addr), size);
+    }
+
     void WriteMem   (MemAddrType addr, DataType      data) { WriteMem_<DataType>     (addr, data); }
     void WriteMem64 (MemAddrType addr, std::uint64_t data) { WriteMem_<std::uint64_t>(addr, data); }
     void WriteMem32 (MemAddrType addr, std::uint32_t data) { WriteMem_<std::uint32_t>(addr, data); }
@@ -85,6 +98,7 @@ public:
     std::int8_t     ReadMemS8 (MemAddrType addr) { return ReadMem_<std::int8_t>  (addr); }
 
 
+    // register access (word addressing with DataType)
     template <typename T=DataType>
     void WriteReg_(RegAddrType reg, T data)
     {
@@ -120,10 +134,13 @@ public:
 
 
 using MemAccess   = MemAccess_<>;
-using MemAccess32 = MemAccess_<std::uint32_t, std::uint32_t, std::uint32_t>
-using MemAccess64 = MemAccess_<std::uint64_t, std::uint64_t, std::uint64_t>
+using MemAccess64 = MemAccess_<std::uint64_t>;
+using MemAccess32 = MemAccess_<std::uint32_t>;
+using MemAccess16 = MemAccess_<std::uint16_t>;
+using MemAccess8  = MemAccess_<std::uint8_t>;
 
 }
+
 
 #endif  // __RYUZ__JELLY__MEM_ACCESS_H__
 

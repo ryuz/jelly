@@ -1,17 +1,9 @@
-*
+*.json
+*.bak
+*.o
+*.bin
+*.bit
+*.dtbo
 
-!.gitignore
-!README
-!*.v
-!*.tcl
-!*.xpr
-!*.xdc
-!*.xci
-!*.xise
-!*.ucf
-!*.pl
-!*.h
-!*.c
-!*.cpp
-!*.vtakprj
-!*.dts
+imx219_test
+test_app

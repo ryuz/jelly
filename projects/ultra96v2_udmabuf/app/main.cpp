@@ -2,6 +2,7 @@
 #include "UioMmap.h"
 #include "UdmabufMmap.h"
 #include "MemAccess.h"
+#include "MmapAccess.h"
 
 
 #define ADR_STATUS  0
