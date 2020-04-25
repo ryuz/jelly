@@ -1,9 +1,12 @@
+
 *.json
-*.bak
 *.o
 *.bin
 *.bit
 *.dtbo
+
+*.bak
+*_
 
 imx219_test
 test_app

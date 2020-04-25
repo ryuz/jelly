@@ -108,9 +108,9 @@ public:
 
 
 	
-	std::shared_ptr<AccessUioManager> GetMmapManager(void)
+	std::shared_ptr<AccessUioManager> GetUioManager(void)
 	{
-		return dynamic_cast< std::shared_ptr<AccessUioManager> >(this->m_mem_manager);
+		return std::dynamic_pointer_cast<AccessUioManager>(this->m_mem_manager);
 	}
 
 	static int SearchDeviceId(const char* name)

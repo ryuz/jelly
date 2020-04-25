@@ -48,7 +48,7 @@ public:
 protected:
 	bool Mmap(int fd, size_t size)
 	{
-		void* ptr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, m_fd, 0);
+		void* ptr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 		if ( ptr == MAP_FAILED ) {
 			return false;
 		}
@@ -89,7 +89,7 @@ public:
 	
 	std::shared_ptr<AccessMmapManager> GetMmapManager(void)
 	{
-		return dynamic_cast< std::shared_ptr<AccessMmapManager> >(this->m_mem_manager);
+		return std::dynamic_pointer_cast<AccessMmapManager>(this->m_mem_manager);
 	}
 
 	bool IsMapped(void) { 
@@ -99,7 +99,7 @@ public:
 		}
 		return mmap_manager->IsMapped();
 	}
-	
+
 	int GetFd(void) {
 		auto mmap_manager = GetMmapManager();
 		if ( !mmap_manager ) {

@@ -21,7 +21,34 @@ using namespace jelly;
 int main()
 {
     std::cout << "Hello" << std::endl;
-//    UioAccess("uio_pl_peri", 0x08000000);
+
+    // mmap uio
+    UioAccess uio_acc("uio_pl_peri", 0x08000000);
+    if ( !uio_acc.IsMapped() ) {
+        std::cout << "uio mmap error" << std::endl;
+        return 1;
+    }
+
+    std::cout << "REG_DMA_STATUS : " << std::hex << uio_acc.ReadReg(REG_DMA_STATUS) << std::endl;
+    std::cout << "REG_DMA_WSTART : " << std::hex << uio_acc.ReadReg(REG_DMA_WSTART) << std::endl;
+    std::cout << "REG_DMA_RSTART : " << std::hex << uio_acc.ReadReg(REG_DMA_RSTART) << std::endl;
+    std::cout << "REG_DMA_ADDR   : " << std::hex << uio_acc.ReadReg(REG_DMA_ADDR)   << std::endl;
+    std::cout << "REG_DMA_WDATA0 : " << std::hex << uio_acc.ReadReg(REG_DMA_WDATA0) << std::endl;
+    std::cout << "REG_DMA_WDATA1 : " << std::hex << uio_acc.ReadReg(REG_DMA_WDATA1) << std::endl;
+    std::cout << "REG_DMA_RDATA0 : " << std::hex << uio_acc.ReadReg(REG_DMA_RDATA0) << std::endl;
+    std::cout << "REG_DMA_RDATA1 : " << std::hex << uio_acc.ReadReg(REG_DMA_RDATA1) << std::endl;
+    std::cout << "OTHER :          " << std::hex << uio_acc.ReadReg(8) << std::endl;
+
+    uio_acc.WriteReg(REG_DMA_RSTART, 1);
+    std::cout << "REG_DMA_STATUS : " << std::hex << uio_acc.ReadReg(REG_DMA_STATUS) << std::endl;
+    std::cout << "REG_DMA_WSTART : " << std::hex << uio_acc.ReadReg(REG_DMA_WSTART) << std::endl;
+    std::cout << "REG_DMA_RSTART : " << std::hex << uio_acc.ReadReg(REG_DMA_RSTART) << std::endl;
+    std::cout << "REG_DMA_ADDR   : " << std::hex << uio_acc.ReadReg(REG_DMA_ADDR)   << std::endl;
+    std::cout << "REG_DMA_WDATA0 : " << std::hex << uio_acc.ReadReg(REG_DMA_WDATA0) << std::endl;
+    std::cout << "REG_DMA_WDATA1 : " << std::hex << uio_acc.ReadReg(REG_DMA_WDATA1) << std::endl;
+    std::cout << "REG_DMA_RDATA0 : " << std::hex << uio_acc.ReadReg(REG_DMA_RDATA0) << std::endl;
+    std::cout << "REG_DMA_RDATA1 : " << std::hex << uio_acc.ReadReg(REG_DMA_RDATA1) << std::endl;
+    std::cout << "OTHER :          " << std::hex << uio_acc.ReadReg(8) << std::endl;
 
     return 0;
 

@@ -146,13 +146,13 @@ public:
     template <typename T=DataType>
     void WriteReg_(RegAddrType reg, T data)
     {
-        WriteMem_(static_cast<MemAddrType>(reg*sizeof(DataType), data));
+        WriteMem_<T>(static_cast<MemAddrType>(reg * sizeof(DataType)), data);
     }
 
     template <typename T=DataType>
     T ReadReg_(RegAddrType reg)
     {
-        return ReadMem_(static_cast<MemAddrType>(reg*sizeof(DataType)));
+        return ReadMem_<T>(static_cast<MemAddrType>(reg * sizeof(DataType)));
     }
 
     void WriteReg   (MemAddrType reg, DataType      data) { WriteReg_<DataType>     (reg, data); }
