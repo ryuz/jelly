@@ -1,24 +1,31 @@
+
 #include <iostream>
 #include "UioMmap.h"
 #include "UdmabufMmap.h"
 #include "MemAccess.h"
 #include "MmapAccess.h"
+#include "UioAccess.h"
 
+using namespace jelly;
 
-#define ADR_STATUS  0
-#define ADR_WSTART  1
-#define ADR_RSTART  2
-#define ADR_ADDR    3
-#define ADR_WDATA0  4
-#define ADR_WDATA1  5
-#define ADR_RDATA0  6
-#define ADR_RDATA1  7
+#define REG_DMA_STATUS  0
+#define REG_DMA_WSTART  1
+#define REG_DMA_RSTART  2
+#define REG_DMA_ADDR    3
+#define REG_DMA_WDATA0  4
+#define REG_DMA_WDATA1  5
+#define REG_DMA_RDATA0  6
+#define REG_DMA_RDATA1  7
 
 
 int main()
 {
     std::cout << "Hello" << std::endl;
+//    UioAccess("uio_pl_peri", 0x08000000);
 
+    return 0;
+
+#if 0
     UdmabufMmap dmabuf("udmabuf4");
     if ( !dmabuf.IsMapped() ) {
         std::cout << "udmabuf mapped error" << std::endl;
@@ -49,4 +56,5 @@ int main()
     std::cout << um.ReadWord64(ADR_RDATA1*8) << std::endl;
 
     return 0;
+#endif
 }

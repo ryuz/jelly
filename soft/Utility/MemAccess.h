@@ -12,49 +12,93 @@
 
 #include <cstring> 
 #include <cstdint>
+#include <memory>
+
 
 namespace jelly {
 
+// memory manager
+class AccessMemManager
+{
+protected:
+    void*       m_ptr = nullptr;
+    std::size_t m_size = 0;
+
+    AccessMemManager() {}
+    AccessMemManager(void* ptr, std::size_t size) { m_ptr = ptr; m_size = size; }
+
+public:
+    virtual ~AccessMemManager() {}
+
+    static std::shared_ptr<AccessMemManager> Create(void* ptr, std::size_t size = 0)
+    {
+        return std::shared_ptr<AccessMemManager>(new AccessMemManager(ptr, size));
+    }
+
+    void*       GetPtr(void)  { return m_ptr; }
+    std::size_t GetSize(void) { return m_size; }
+};
+
+// memory access
 template <typename DataType=std::uintptr_t, typename MemAddrType=std::uintptr_t, typename RegAddrType=std::uintptr_t>
 class MemAccess_
 {
 protected:
-    void*   m_base_ptr = nullptr;
+    std::shared_ptr<AccessMemManager>   m_mem_manager;
+    void*                               m_base_ptr = nullptr;
 
 public:
-    MemAccess_(){}
-    MemAccess_(void* base_ptr) { m_base_ptr = base_ptr; }
     ~MemAccess_(){}
+    MemAccess_(){}
 
-    void  SetBasePtr(void *base_ptr) { m_base_ptr = base_ptr; }
-    void* GetBasePtr(void) { return m_base_ptr; }
-    
-    template <typename T=void*>
-    T GetPointer_(MemAddrType addr=0)
-    {
-        return reinterpret_cast<T>(reinterpret_cast<std::int8_t*>(m_base_ptr) + addr);
+    MemAccess_(std::shared_ptr<AccessMemManager> mem_manager, std::size_t offset=0) {
+        SetMemManager(mem_manager, offset);
     }
 
-    void* GetPointer(MemAddrType addr=0)
+    MemAccess_(void *ptr, std::size_t size=0, std::size_t offset=0)
     {
-        return GetPointer_<void*>(addr);
+        SetMemManager(ptr, size, offset);
     }
+
+
+    void  SetMemManager(std::shared_ptr<AccessMemManager> mem_manager, std::size_t offset=0) {
+        m_mem_manager = mem_manager;
+        m_base_ptr = reinterpret_cast<void*>(reinterpret_cast<std::int8_t*>(m_mem_manager->GetPtr()) + offset);
+    }
+
+    void  SetMappedMemory(void *ptr, std::size_t size=0, std::size_t offset=0) {
+        SetMemManager(AccessMemManager::Create(ptr, size), offset);
+    }
+
 
     template <typename DT=DataType, typename MT=MemAddrType, typename RT=RegAddrType>
     MemAccess_<DT, MT, RT> GetMemAccess_(MemAddrType addr)
     {
-        return MemAccess_<DT, MT, RT>(GetPointer(addr));
+        return MemAccess_<DT, MT, RT>(m_mem_manager, addr);
     }
 
     MemAccess_<DataType, MemAddrType, RegAddrType> GetMemAccess(MemAddrType addr)
     {
-        return MemAccess_<DataType, MemAddrType, RegAddrType>(GetPointer(addr));
+        return MemAccess_<DataType, MemAddrType, RegAddrType>(addr);
     }
+
+
+    template <typename T=void*>
+    T GetPtr_(MemAddrType addr=0)
+    {
+        return reinterpret_cast<T>(reinterpret_cast<std::int8_t*>(m_base_ptr) + addr);
+    }
+
+    void* GetPtr(MemAddrType addr=0)
+    {
+        return GetPtr_<void*>(addr);
+    }
+
 
     template <typename T=DataType>
     void WriteMem_(MemAddrType addr, T data)
     {
-        *GetPointer_<volatile T*>(addr) = data;
+        *GetPtr_<volatile T*>(addr) = data;
         // メモリバリアを入れるべきか悩む
     }
 
@@ -62,7 +106,7 @@ public:
     T ReadMem_(MemAddrType addr)
     {
         // メモリバリアを入れるべきか悩む
-        return *GetPointer_<volatile T*>(addr);
+        return *GetPtr_<volatile T*>(addr);
     }
 
 
