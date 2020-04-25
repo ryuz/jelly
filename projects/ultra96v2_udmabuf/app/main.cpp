@@ -5,6 +5,7 @@
 #include "MemAccess.h"
 #include "MmapAccess.h"
 #include "UioAccess.h"
+#include "UdmabufAccess.h"
 
 using namespace jelly;
 
@@ -25,9 +26,18 @@ int main()
     // mmap uio
     UioAccess uio_acc("uio_pl_peri", 0x08000000);
     if ( !uio_acc.IsMapped() ) {
-        std::cout << "uio mmap error" << std::endl;
+        std::cout << "uio_pl_peri mmap error" << std::endl;
         return 1;
     }
+
+    // mmap udmabuf
+    UdmabufAccess udmabuf_acc("udmabuf4");
+    if ( !udmabuf_acc.IsMapped() ) {
+        std::cout << "udmabuf4 mmap error" << std::endl;
+        return 1;
+    }
+    std::cout << "udmabuf4 phys addr : " << std::hex << udmabuf_acc.GetPhysAddr() << std::endl;
+    std::cout << "udmabuf4 size      : " << std::hex << udmabuf_acc.GetSize()     << std::endl;
 
     std::cout << "REG_DMA_STATUS : " << std::hex << uio_acc.ReadReg(REG_DMA_STATUS) << std::endl;
     std::cout << "REG_DMA_WSTART : " << std::hex << uio_acc.ReadReg(REG_DMA_WSTART) << std::endl;

@@ -70,6 +70,19 @@ public:
         SetMemManager(AccessMemManager::Create(ptr, size), offset);
     }
 
+	std::shared_ptr<AccessMemManager> GetMemManager(void)
+	{
+		return m_mem_manager;
+	}
+
+    std::size_t GetSize(void)
+    {
+        auto mem_manager = GetMemManager();
+        if ( !mem_manager ) {
+            return 0;
+        }
+        return mem_manager->GetSize();
+    }
 
     template <typename DT=DataType, typename MT=MemAddrType, typename RT=RegAddrType>
     MemAccess_<DT, MT, RT> GetMemAccess_(MemAddrType addr)
