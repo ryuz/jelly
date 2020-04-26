@@ -5,8 +5,20 @@
 *.bit
 *.dtbo
 
+*.png
+*.jpg
+
 *.bak
 *_
+*コピー
+*コピー.*
 
+a.out
+bitmap.h
+
+# exefile
+*.exe
+mnist_demo
+gpu_gouraud
 imx219_test
 test_app
