@@ -23,8 +23,11 @@
             #size-cells = <2>;
             afi0 {
                 compatible    = "xlnx,afi-fpga";
-                config-afi    = <0 0>, <1 0>,  /* S_AXI_HPC0_FPD : 128bit */
-                                <14 0x100>;    /* M_AXI_HPM0_FPD : 64bit */
+                config-afi    = <0 0>,      /* S_AXI_HPC0_FPD(read)  : 0:128bit, 1:64bit, 2:32bit */
+                                <1 0>,      /* S_AXI_HPC0_FPD(write) : 0:128bit, 1:64bit, 2:32bit */
+                                <2 0>,      /* S_AXI_HPC1_FPD(read)  : 0:128bit, 1:64bit, 2:32bit */
+                                <3 0>,      /* S_AXI_HPC1_FPD(write) : 0:128bit, 1:64bit, 2:32bit */
+                                <14 0x1100>;/* M_AXI_HPM0_FPD[9:8], M_AXI_HPM0_FPD[11:10] : 0:32bit, 1:64bit, 2:128bit */
             };
             clocking0: clocking0 {
                 #clock-cells = <0>;
@@ -42,7 +45,7 @@
         __overlay__ {
             #address-cells = <0x1>;
             #size-cells = <0x1>;
-/*          uio4@a0000000 { */
+            
             uio_pl_peri {
                 compatible = "generic-uio";
                 reg = <0xa0000000 0x08000000>;

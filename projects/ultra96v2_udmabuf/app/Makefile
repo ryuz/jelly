@@ -1,4 +1,6 @@
-TARGET = test_app
+
+TARGET   = test_udmabuf
+BIT_FILE = ultra96v2_udmabuf_top.bit
 
 CFLAGS  += -I../../../soft/Utility
 LDFLAGS += 
@@ -29,11 +31,10 @@ udmabuf.dtbo: udmabuf.dts
 .PHONY: load
 load: udmabuf.dtbo
 	sudo fpgautil -R
-	sudo fpgautil -b ultra96v2_udmabuf_top.bit -o udmabuf.dtbo
-	sudo fpgautil -b ultra96v2_udmabuf_top.bit
+	sudo fpgautil -b $(BIT_FILE) -o udmabuf.dtbo
+	sudo fpgautil -b $(BIT_FILE)
 
 .PHONY: unload
 unload:
 	sudo fpgautil -R
-#	sudo fpgautil -b ultra96v2_base_top.bit
-#	sudo fpgautil -b ultra96v2_base_top.bit -o udmabuf.dtbo
+

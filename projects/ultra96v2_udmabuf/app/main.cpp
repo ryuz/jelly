@@ -96,16 +96,17 @@ int main()
     dma0_acc.WriteReg(REG_DMA_RSTART, 1);
     while ( dma0_acc.ReadReg(REG_DMA_STATUS) )
         ;
-    std::cout << "REG_DMA_RDATA0 : " << std::hex << dma0_acc.ReadReg(REG_DMA_RDATA0) << std::endl;
-    std::cout << "REG_DMA_RDATA1 : " << std::hex << dma0_acc.ReadReg(REG_DMA_RDATA1) << std::endl;
+    std::cout << "REG_DMA0_RDATA0 : " << std::hex << dma0_acc.ReadReg(REG_DMA_RDATA0) << std::endl;
+    std::cout << "REG_DMA0_RDATA1 : " << std::hex << dma0_acc.ReadReg(REG_DMA_RDATA1) << std::endl;
 
-    std::cout << "\n<DMA0 read test>" << std::endl;
-    dma0_acc.WriteReg(REG_DMA_ADDR, udmabuf_acc.GetPhysAddr());
-    dma0_acc.WriteReg(REG_DMA_RSTART, 1);
-    while ( dma0_acc.ReadReg(REG_DMA_STATUS) )
+    // DMA1でread
+    std::cout << "\n<DMA1 read test>" << std::endl;
+    dma1_acc.WriteReg(REG_DMA_ADDR, udmabuf_acc.GetPhysAddr());
+    dma1_acc.WriteReg(REG_DMA_RSTART, 1);
+    while ( dma1_acc.ReadReg(REG_DMA_STATUS) )
         ;
-    std::cout << "REG_DMA_RDATA0 : " << std::hex << dma0_acc.ReadReg(REG_DMA_RDATA0) << std::endl;
-    std::cout << "REG_DMA_RDATA1 : " << std::hex << dma0_acc.ReadReg(REG_DMA_RDATA1) << std::endl;
+    std::cout << "REG_DMA1_RDATA0 : " << std::hex << dma1_acc.ReadReg(REG_DMA_RDATA0) << std::endl;
+    std::cout << "REG_DMA1_RDATA1 : " << std::hex << dma1_acc.ReadReg(REG_DMA_RDATA1) << std::endl;
 
 
     // DMA1でwrite
@@ -126,6 +127,15 @@ int main()
         std::cout << "ptr[3] : " << std::hex << ptr[3] << std::endl;
         // キャッシュフラッシュ不要なのか？
     }
+    
+    // DMA0でread
+    std::cout << "\n<DMA0 read test>" << std::endl;
+    dma0_acc.WriteReg(REG_DMA_ADDR, udmabuf_acc.GetPhysAddr());
+    dma0_acc.WriteReg(REG_DMA_RSTART, 1);
+    while ( dma0_acc.ReadReg(REG_DMA_STATUS) )
+        ;
+    std::cout << "REG_DMA0_RDATA0 : " << std::hex << dma0_acc.ReadReg(REG_DMA_RDATA0) << std::endl;
+    std::cout << "REG_DMA0_RDATA1 : " << std::hex << dma0_acc.ReadReg(REG_DMA_RDATA1) << std::endl;
 
     // LED点滅
     std::cout << "\n<LED test>" << std::endl;
