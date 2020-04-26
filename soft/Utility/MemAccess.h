@@ -92,7 +92,27 @@ public:
 
     MemAccess_<DataType, MemAddrType, RegAddrType> GetMemAccess(MemAddrType addr)
     {
-        return MemAccess_<DataType, MemAddrType, RegAddrType>(addr);
+        return GetMemAccess_<DataType, MemAddrType, RegAddrType>(addr);
+    }
+
+    MemAccess_<std::uint64_t, MemAddrType, RegAddrType> GetMemAccess64(MemAddrType addr)
+    {
+        return GetMemAccess_<std::uint64_t, MemAddrType, RegAddrType>(addr);
+    }
+
+    MemAccess_<std::uint32_t, MemAddrType, RegAddrType> GetMemAccess32(MemAddrType addr)
+    {
+        return GetMemAccess_<std::uint32_t, MemAddrType, RegAddrType>(addr);
+    }
+
+    MemAccess_<std::uint16_t, MemAddrType, RegAddrType> GetMemAccess16(MemAddrType addr)
+    {
+        return GetMemAccess_<std::uint16_t, MemAddrType, RegAddrType>(addr);
+    }
+
+    MemAccess_<std::uint8_t, MemAddrType, RegAddrType> GetMemAccess8(MemAddrType addr)
+    {
+        return GetMemAccess_<std::uint8_t, MemAddrType, RegAddrType>(addr);
     }
 
 

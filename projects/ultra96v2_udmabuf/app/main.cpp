@@ -1,9 +1,13 @@
+// ---------------------------------------------------------------------------
+//  udmabuf テスト
+//                                  Copyright (C) 2015-2020 by Ryuji Fuchikami
+//                                  https://github.com/ryuz/
+// ---------------------------------------------------------------------------
+
 
 #include <iostream>
-#include "UioMmap.h"
-#include "UdmabufMmap.h"
-#include "MemAccess.h"
-#include "MmapAccess.h"
+#include <unistd.h>
+
 #include "UioAccess.h"
 #include "UdmabufAccess.h"
 
@@ -17,20 +21,15 @@ using namespace jelly;
 #define REG_DMA_WDATA1  5
 #define REG_DMA_RDATA0  6
 #define REG_DMA_RDATA1  7
+#define REG_DMA_CORE_ID 8
 
 
 int main()
 {
-    std::cout << "Hello" << std::endl;
-
-    // mmap uio
-    UioAccess uio_acc("uio_pl_peri", 0x08000000);
-    if ( !uio_acc.IsMapped() ) {
-        std::cout << "uio_pl_peri mmap error" << std::endl;
-        return 1;
-    }
+    std::cout << "--- udmabuf test ---" << std::endl;
 
     // mmap udmabuf
+    std::cout << "\nudmabuf4 open" << std::endl;
     UdmabufAccess udmabuf_acc("udmabuf4");
     if ( !udmabuf_acc.IsMapped() ) {
         std::cout << "udmabuf4 mmap error" << std::endl;
@@ -39,59 +38,108 @@ int main()
     std::cout << "udmabuf4 phys addr : " << std::hex << udmabuf_acc.GetPhysAddr() << std::endl;
     std::cout << "udmabuf4 size      : " << std::hex << udmabuf_acc.GetSize()     << std::endl;
 
-    std::cout << "REG_DMA_STATUS : " << std::hex << uio_acc.ReadReg(REG_DMA_STATUS) << std::endl;
-    std::cout << "REG_DMA_WSTART : " << std::hex << uio_acc.ReadReg(REG_DMA_WSTART) << std::endl;
-    std::cout << "REG_DMA_RSTART : " << std::hex << uio_acc.ReadReg(REG_DMA_RSTART) << std::endl;
-    std::cout << "REG_DMA_ADDR   : " << std::hex << uio_acc.ReadReg(REG_DMA_ADDR)   << std::endl;
-    std::cout << "REG_DMA_WDATA0 : " << std::hex << uio_acc.ReadReg(REG_DMA_WDATA0) << std::endl;
-    std::cout << "REG_DMA_WDATA1 : " << std::hex << uio_acc.ReadReg(REG_DMA_WDATA1) << std::endl;
-    std::cout << "REG_DMA_RDATA0 : " << std::hex << uio_acc.ReadReg(REG_DMA_RDATA0) << std::endl;
-    std::cout << "REG_DMA_RDATA1 : " << std::hex << uio_acc.ReadReg(REG_DMA_RDATA1) << std::endl;
-    std::cout << "OTHER :          " << std::hex << uio_acc.ReadReg(8) << std::endl;
-
-    uio_acc.WriteReg(REG_DMA_RSTART, 1);
-    std::cout << "REG_DMA_STATUS : " << std::hex << uio_acc.ReadReg(REG_DMA_STATUS) << std::endl;
-    std::cout << "REG_DMA_WSTART : " << std::hex << uio_acc.ReadReg(REG_DMA_WSTART) << std::endl;
-    std::cout << "REG_DMA_RSTART : " << std::hex << uio_acc.ReadReg(REG_DMA_RSTART) << std::endl;
-    std::cout << "REG_DMA_ADDR   : " << std::hex << uio_acc.ReadReg(REG_DMA_ADDR)   << std::endl;
-    std::cout << "REG_DMA_WDATA0 : " << std::hex << uio_acc.ReadReg(REG_DMA_WDATA0) << std::endl;
-    std::cout << "REG_DMA_WDATA1 : " << std::hex << uio_acc.ReadReg(REG_DMA_WDATA1) << std::endl;
-    std::cout << "REG_DMA_RDATA0 : " << std::hex << uio_acc.ReadReg(REG_DMA_RDATA0) << std::endl;
-    std::cout << "REG_DMA_RDATA1 : " << std::hex << uio_acc.ReadReg(REG_DMA_RDATA1) << std::endl;
-    std::cout << "OTHER :          " << std::hex << uio_acc.ReadReg(8) << std::endl;
-
-    return 0;
-
-#if 0
-    UdmabufMmap dmabuf("udmabuf4");
-    if ( !dmabuf.IsMapped() ) {
-        std::cout << "udmabuf mapped error" << std::endl;
-        return 1;
-    }
-    printf("addr :0x%llx\n", dmabuf.GetPhysicalAddress());
-    printf("size :0x%x\n", dmabuf.GetSize());
-
-    UioMmap um("uio_pl_peri", 0x08000000);
-    if ( !um.IsMapped() ) {
-        std::cout << "uio mapped error" << std::endl;
+    // mmap uio
+    std::cout << "\nuio open" << std::endl;
+    UioAccess uio_acc("uio_pl_peri", 0x08000000);
+    if ( !uio_acc.IsMapped() ) {
+        std::cout << "uio_pl_peri mmap error" << std::endl;
         return 1;
     }
 
-    auto addr = (unsigned long*)um.GetAddress();
-    for ( int i = 0; i < 16; ++i ) {
-        printf("%016lx\n", addr[i]);
+    // UIOの中をさらにコアごとに割り当て
+    auto dma0_acc = uio_acc.GetMemAccess(0x0000);
+    auto dma1_acc = uio_acc.GetMemAccess(0x0800);
+    auto led_acc  = uio_acc.GetMemAccess(0x8000);
+
+
+    // メモリアドレスでアクセス
+    std::cout << "\n<test MemRead>" << std::endl;
+    std::cout << "DMA0_CORE_ID : " << std::hex << uio_acc.ReadMem(0x0040) << std::endl;
+    std::cout << "DMA1_CORE_ID : " << std::hex << uio_acc.ReadMem(0x0840) << std::endl;
+    
+    // レジスタ番号でアクセス
+    std::cout << "\n<test RegRead>" << std::endl;
+    std::cout << "DMA0_CORE_ID : " << std::hex << dma0_acc.ReadReg(REG_DMA_CORE_ID) << std::endl;
+    std::cout << "DMA1_CORE_ID : " << std::hex << dma1_acc.ReadReg(REG_DMA_CORE_ID) << std::endl;
+ 
+    std::cout << "\n<test DMA0 RegRead>" << std::endl;
+    std::cout << "DMA0_STATUS  : " << std::hex << dma0_acc.ReadReg(REG_DMA_STATUS)  << std::endl;
+    std::cout << "DMA0_WSTART  : " << std::hex << dma0_acc.ReadReg(REG_DMA_WSTART)  << std::endl;
+    std::cout << "DMA0_RSTART  : " << std::hex << dma0_acc.ReadReg(REG_DMA_RSTART)  << std::endl;
+    std::cout << "DMA0_ADDR    : " << std::hex << dma0_acc.ReadReg(REG_DMA_ADDR)    << std::endl;
+    std::cout << "DMA0_WDATA0  : " << std::hex << dma0_acc.ReadReg(REG_DMA_WDATA0)  << std::endl;
+    std::cout << "DMA0_WDATA1  : " << std::hex << dma0_acc.ReadReg(REG_DMA_WDATA1)  << std::endl;
+    std::cout << "DMA0_RDATA0  : " << std::hex << dma0_acc.ReadReg(REG_DMA_RDATA0)  << std::endl;
+    std::cout << "DMA0_RDATA1  : " << std::hex << dma0_acc.ReadReg(REG_DMA_RDATA1)  << std::endl;
+    std::cout << "DMA0_CORE_ID : " << std::hex << dma0_acc.ReadReg(REG_DMA_CORE_ID) << std::endl;
+
+
+    // udma領域アクセス
+    std::cout << "\n<test udmabuf access>" << std::endl;
+    {
+        auto ptr = (std::int32_t *)udmabuf_acc.GetPtr();
+        ptr[0] = 0x10101010;
+        ptr[1] = 0x20202020;
+        ptr[2] = 0x30303030;
+        ptr[3] = 0x40404040;
+        std::cout << "ptr[0] : " << std::hex << ptr[0] << std::endl;
+        std::cout << "ptr[1] : " << std::hex << ptr[1] << std::endl;
+        std::cout << "ptr[2] : " << std::hex << ptr[2] << std::endl;
+        std::cout << "ptr[3] : " << std::hex << ptr[3] << std::endl;
+        // キャッシュフラッシュ不要なのか？
     }
 
-    um.WriteWord64(ADR_ADDR*8, dmabuf.GetPhysicalAddress());
-    std::cout << um.ReadWord64(ADR_ADDR*8) << std::endl;
-    std::cout << um.ReadWord64(ADR_RDATA0*8) << std::endl;
-    std::cout << um.ReadWord64(ADR_RDATA1*8) << std::endl;
-    um.WriteWord64(ADR_RSTART*8, 1);
-    std::cout << um.ReadWord64(ADR_RDATA0*8) << std::endl;
-    std::cout << um.ReadWord64(ADR_RDATA1*8) << std::endl;
-    std::cout << um.ReadWord64(ADR_RDATA0*8) << std::endl;
-    std::cout << um.ReadWord64(ADR_RDATA1*8) << std::endl;
+
+    // DMA0でread
+    std::cout << "\n<DMA0 read test>" << std::endl;
+    dma0_acc.WriteReg(REG_DMA_ADDR, udmabuf_acc.GetPhysAddr());
+    dma0_acc.WriteReg(REG_DMA_RSTART, 1);
+    while ( dma0_acc.ReadReg(REG_DMA_STATUS) )
+        ;
+    std::cout << "REG_DMA_RDATA0 : " << std::hex << dma0_acc.ReadReg(REG_DMA_RDATA0) << std::endl;
+    std::cout << "REG_DMA_RDATA1 : " << std::hex << dma0_acc.ReadReg(REG_DMA_RDATA1) << std::endl;
+
+    std::cout << "\n<DMA0 read test>" << std::endl;
+    dma0_acc.WriteReg(REG_DMA_ADDR, udmabuf_acc.GetPhysAddr());
+    dma0_acc.WriteReg(REG_DMA_RSTART, 1);
+    while ( dma0_acc.ReadReg(REG_DMA_STATUS) )
+        ;
+    std::cout << "REG_DMA_RDATA0 : " << std::hex << dma0_acc.ReadReg(REG_DMA_RDATA0) << std::endl;
+    std::cout << "REG_DMA_RDATA1 : " << std::hex << dma0_acc.ReadReg(REG_DMA_RDATA1) << std::endl;
+
+
+    // DMA1でwrite
+    std::cout << "\n<DMA1 write test>" << std::endl;
+    dma1_acc.WriteReg(REG_DMA_ADDR, udmabuf_acc.GetPhysAddr());
+    dma1_acc.WriteReg(REG_DMA_WDATA0, 0xfedcba9876543210UL);
+    dma1_acc.WriteReg(REG_DMA_WDATA1, 0x0123456789abcdefUL);
+    dma1_acc.WriteReg(REG_DMA_WSTART, 1);
+    while ( dma1_acc.ReadReg(REG_DMA_STATUS) )
+        ;
+
+    // udma領域アクセス
+    {
+        auto ptr = (std::int32_t *)udmabuf_acc.GetPtr();
+        std::cout << "ptr[0] : " << std::hex << ptr[0] << std::endl;
+        std::cout << "ptr[1] : " << std::hex << ptr[1] << std::endl;
+        std::cout << "ptr[2] : " << std::hex << ptr[2] << std::endl;
+        std::cout << "ptr[3] : " << std::hex << ptr[3] << std::endl;
+        // キャッシュフラッシュ不要なのか？
+    }
+
+    // LED点滅
+    std::cout << "\n<LED test>" << std::endl;
+    for ( int i = 0; i < 3; i++) {
+        std::cout << "LED : ON" << std::endl;
+        led_acc.WriteReg(0, 1);
+        sleep(1);
+
+        std::cout << "LED : OFF" << std::endl;
+        led_acc.WriteReg(0, 0);
+        sleep(1);
+    }
 
     return 0;
-#endif
 }
+
+// end of file
