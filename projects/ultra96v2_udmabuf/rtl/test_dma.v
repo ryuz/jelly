@@ -1,3 +1,11 @@
+// ---------------------------------------------------------------------------
+//  Jelly  -- the system on fpga system
+//
+//  Test DMA
+//
+//                                 Copyright (C) 2008-2020 by Ryuji Fuchikami
+//                                 https://github.com/ryuz/jelly.git
+// ---------------------------------------------------------------------------
 
 
 `timescale 1ns / 1ps
@@ -6,10 +14,12 @@
 
 module test_dma
         #(
-            parameter   WB_ADR_WIDTH = 6,
-            parameter   WB_DAT_SIZE  = 3,
-            parameter   WB_DAT_WIDTH = (8 << WB_DAT_SIZE),
-            parameter   WB_SEL_WIDTH = (1 << WB_DAT_SIZE),
+            parameter   CORE_ID         = 64'h0000,
+            
+            parameter   WB_ADR_WIDTH    = 6,
+            parameter   WB_DAT_SIZE     = 3,
+            parameter   WB_DAT_WIDTH    = (8 << WB_DAT_SIZE),
+            parameter   WB_SEL_WIDTH    = (1 << WB_DAT_SIZE),
             
             parameter   AXI4_ID_WIDTH   = 6,
             parameter   AXI4_ADDR_WIDTH = 64,
@@ -88,6 +98,19 @@ module test_dma
             output  wire                                m_axi4_rready
         );
     
+    function [WB_DAT_WIDTH-1:0] reg_mask(
+                                        input [WB_DAT_WIDTH-1:0] org,
+                                        input [WB_DAT_WIDTH-1:0] wdat,
+                                        input [WB_SEL_WIDTH-1:0] msk
+                                    );
+    integer i;
+    begin
+        for ( i = 0; i < WB_DAT_WIDTH; i = i+1 ) begin
+            reg_mask[i] = msk[i/8] ? wdat[i] : org[i];
+        end
+    end
+    endfunction
+    
     localparam  ADR_STATUS  = 0;
     localparam  ADR_WSTART  = 1;
     localparam  ADR_RSTART  = 2;
@@ -96,6 +119,7 @@ module test_dma
     localparam  ADR_WDATA1  = 5;
     localparam  ADR_RDATA0  = 6;
     localparam  ADR_RDATA1  = 7;
+    localparam  ADR_ID      = 8;
     
     wire                            busy;
     wire    [WB_DAT_WIDTH-1:0]      rdata0;
@@ -120,11 +144,11 @@ module test_dma
             reg_rstart <= 1'b0;
             if ( s_wb_stb_i && s_wb_we_i ) begin
                 case ( s_wb_adr_i )
-                ADR_WSTART: reg_wstart <= s_wb_dat_i;
-                ADR_RSTART: reg_rstart <= s_wb_dat_i;
-                ADR_ADDR:   reg_addr   <= s_wb_dat_i;
-                ADR_WDATA0: reg_wdata0 <= s_wb_dat_i;
-                ADR_WDATA1: reg_wdata1 <= s_wb_dat_i;
+                ADR_WSTART: reg_wstart <= reg_mask(reg_wstart, s_wb_dat_i, s_wb_sel_i);
+                ADR_RSTART: reg_rstart <= reg_mask(reg_rstart, s_wb_dat_i, s_wb_sel_i);
+                ADR_ADDR:   reg_addr   <= reg_mask(reg_addr  , s_wb_dat_i, s_wb_sel_i);
+                ADR_WDATA0: reg_wdata0 <= reg_mask(reg_wdata0, s_wb_dat_i, s_wb_sel_i);
+                ADR_WDATA1: reg_wdata1 <= reg_mask(reg_wdata1, s_wb_dat_i, s_wb_sel_i);
                 endcase
             end
         end
@@ -138,7 +162,8 @@ module test_dma
                         (s_wb_adr_i == ADR_WDATA1) ? reg_wdata1 :
                         (s_wb_adr_i == ADR_RDATA0) ? rdata0     :
                         (s_wb_adr_i == ADR_RDATA1) ? rdata1     :
-                        64'h0102030405060708090a0b0c0d0f;
+                        (s_wb_adr_i == ADR_ID    ) ? CORE_ID    :
+                        0;
     assign s_wb_ack_o = s_wb_stb_i;
     
     

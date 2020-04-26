@@ -1,4 +1,11 @@
-
+// ---------------------------------------------------------------------------
+//  Jelly  -- the system on fpga system
+//
+//  Test DMA
+//
+//                                 Copyright (C) 2008-2020 by Ryuji Fuchikami
+//                                 https://github.com/ryuz/jelly.git
+// ---------------------------------------------------------------------------
 
 
 `timescale 1ns / 1ps
