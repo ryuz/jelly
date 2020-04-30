@@ -1,0 +1,5 @@
+all:
+{
+    zybo_z7_udmabuf_top.bit
+}
+

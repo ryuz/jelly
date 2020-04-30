@@ -99,7 +99,7 @@ public:
 
 	UioAccess_(const char* name, std::size_t size, std::size_t offset=0) {
 		int id = SearchDeviceId(name);
-		if ( id > 0 ) {
+		if ( id >= 0 ) {
 			Open(id, size, offset);
 		}
 	}
@@ -126,7 +126,7 @@ public:
 			char	uio_name[64];
 			fgets(uio_name, 64, fp);
 			fclose(fp);
-			
+
 			// chomp
 			int len = strlen(uio_name);
 			if ( len > 0 && uio_name[len-1] == '\n' ) {
