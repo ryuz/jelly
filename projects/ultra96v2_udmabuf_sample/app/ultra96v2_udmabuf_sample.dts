@@ -6,7 +6,7 @@
         __overlay__ {
             #address-cells = <2>;
             #size-cells = <2>;
-            firmware-name = "ultra96v2_udmabuf_top.bit.bin";
+            firmware-name = "ultra96v2_udmabuf_sample.bit.bin";
         };
     };
     
