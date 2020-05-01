@@ -1,6 +1,6 @@
 
 TARGET    = test_udmabuf
-DT_NAME   = udmabuf
+DT_NAME   = zybo_z7_udmabuf
 BIT_NAME  = zybo_z7_udmabuf_top
 
 DTS_FILE  = $(DT_NAME).dts
@@ -10,11 +10,13 @@ BIT_FILE  = $(BIT_NAME).bit
 BIF_FILE  = $(BIT_NAME).bif
 BIN_FILE  = $(BIT_FILE).bin
 
+FIRMWARE_PATH = /lib/firmware
+DEVTREE_PATH  = /configfs/device-tree
 
 CFLAGS  += -I../../../soft/Utility
 LDFLAGS += 
 
-OBJS   = main.o
+OBJS = main.o
 
 
 .PHONY: all
@@ -25,7 +27,7 @@ clean:
 	rm -rf $(TARGET) $(OBJS) $(DTBO_FILE) $(BIN_FILE)
 
 .PHONY: run
-run:
+run: $(TARGET) load
 	sudo ./$(TARGET)
 
 $(TARGET): $(OBJS)
@@ -40,24 +42,44 @@ $(DTBO_FILE): $(DTS_FILE)
 $(BIN_FILE): $(BIF_FILE) $(BIT_FILE)
 	bootgen -image $(BIF_FILE) -arch zynq -process_bitstream bin
 
-.PHONY: load
-load: $(DTBO_FILE) $(BIN_FILE)
-	sudo mkdir -p /lib/firmware
-	sudo cp $(BIN_FILE) /lib/firmware/
-	sudo cp $(DTBO_FILE) /lib/firmware/
+$(DEVTREE_PATH):
 	sudo mkdir -p /configfs
 	sudo mount -t configfs configfs /configfs
-	sudo mkdir -p /configfs/device-tree/overlays/full
-	sudo cp $(DTBO_FILE) /configfs/device-tree/overlays/full/dtbo
-	sudo sh -c "echo 1 > /config/device-tree/overlays/full/status"
 
-#	sudo fpgautil -R
-#	sudo fpgautil -b $(BIT_FILE) -o $(DTBO_FILE)
-#	sudo fpgautil -b $(BIT_FILE)
+
+.PHONY: mount
+mount: $(DEVTREE_PATH)
+
+.PHONY: umount
+umount: unload
+	@if [ -d $(DEVTREE_PATH) ] ; then \
+		echo umount configfs ; \
+		sudo umount /configfs ; \
+	fi
+
+.PHONY: load
+load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
+	sudo mkdir -p $(FIRMWARE_PATH)
+	sudo cp $(BIN_FILE) $(FIRMWARE_PATH)
+	sudo mkdir -p $(DEVTREE_PATH)/overlays/full
+	sudo cp $(DTBO_FILE) $(DEVTREE_PATH)/overlays/full/dtbo
+	sudo sh -c "echo 1 > $(DEVTREE_PATH)/overlays/full/status"
+	sudo rm /lib/firmware/$(BIN_FILE)
 
 .PHONY: unload
 unload:
-	sudo sh -c "echo 0 > /config/device-tree/overlays/full/status"
-	sudo umount /configfs
-#	sudo fpgautil -R
+	@if [ -f /config/device-tree/overlays/full/status ] ; then \
+		echo unload ; \
+		sudo sh -c "echo 0 > /config/device-tree/overlays/full/status" ; \
+		sudo rmdir $(DEVTREE_PATH)/overlays/full ; \
+	fi
 
+.PHONY: load2
+load2: $(DTBO_FILE) $(BIN_FILE)
+	sudo fpgautil -R
+	sudo fpgautil -b $(BIT_FILE) -o udmabuf.dtbo
+	sudo fpgautil -b $(BIT_FILE)
+
+.PHONY: unload2
+unload2:
+	sudo fpgautil -R
