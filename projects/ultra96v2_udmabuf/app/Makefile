@@ -1,6 +1,6 @@
 
 TARGET   = test_udmabuf
-DT_NAME   = udmabuf
+DT_NAME   = ultra96v2_udmabuf
 BIT_NAME  = ultra96v2_udmabuf_top
 
 DTS_FILE  = $(DT_NAME).dts
@@ -46,6 +46,17 @@ $(DEVTREE_PATH):
 	sudo mkdir -p /configfs
 	sudo mount -t configfs configfs /configfs
 
+
+.PHONY: mount
+mount: $(DEVTREE_PATH)
+
+.PHONY: umount
+umount: unload
+	@if [ -d $(DEVTREE_PATH) ] ; then \
+		echo umount configfs ; \
+		sudo umount /configfs ; \
+	fi
+
 .PHONY: load
 load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
 	sudo mkdir -p $(FIRMWARE_PATH)
@@ -60,15 +71,16 @@ load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
 
 .PHONY: unload
 unload:
-#	sudo mkdir -p $(FIRMWARE_PATH)
-	-sudo rmdir $(DEVTREE_PATH)/overlays/full
-
+	@if [ -e $(DEVTREE_PATH)/overlays/full ] ; then \
+		echo unload ; \
+		sudo rmdir $(DEVTREE_PATH)/overlays/full ; \
+	fi
 
 .PHONY: load2
 load2: $(DTBO_FILE) $(BIN_FILE)
 	sudo fpgautil -R
 	sudo fpgautil -b $(BIT_FILE) -o udmabuf.dtbo
-	sudo fpgautil -b $(BIT_FILE)
+#	sudo fpgautil -b $(BIT_FILE)
 
 .PHONY: unload2
 unload2:
