@@ -70,16 +70,7 @@ load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
 unload:
 	@if [ -f /config/device-tree/overlays/full/status ] ; then \
 		echo unload ; \
-		sudo sh -c "echo 0 > /config/device-tree/overlays/full/status" ; \
+		sudo sh -c "echo 0 > $(DEVTREE_PATH)/overlays/full/status" ; \
 		sudo rmdir $(DEVTREE_PATH)/overlays/full ; \
 	fi
 
-.PHONY: load2
-load2: $(DTBO_FILE) $(BIN_FILE)
-	sudo fpgautil -R
-	sudo fpgautil -b $(BIT_FILE) -o udmabuf.dtbo
-	sudo fpgautil -b $(BIT_FILE)
-
-.PHONY: unload2
-unload2:
-	sudo fpgautil -R
