@@ -84,8 +84,8 @@ bitmap.h
 
 # exefile
 *.exe
-test_udmabuf
 mnist_demo
 gpu_gouraud
 imx219_test
 test_app
+udmabuf_sample

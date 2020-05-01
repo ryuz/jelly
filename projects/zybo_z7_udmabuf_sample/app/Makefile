@@ -1,7 +1,7 @@
 
-TARGET    = test_udmabuf
-DT_NAME   = zybo_z7_udmabuf
-BIT_NAME  = zybo_z7_udmabuf_top
+TARGET    = udmabuf_sample
+DT_NAME   = zybo_z7_udmabuf_sample
+BIT_NAME  = zybo_z7_udmabuf_sample
 
 DTS_FILE  = $(DT_NAME).dts
 DTBO_FILE = $(DT_NAME).dtbo

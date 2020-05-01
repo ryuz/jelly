@@ -10,7 +10,7 @@
             #address-cells = <1>;
             #size-cells = <1>;
   
-            firmware-name = "zybo_z7_udmabuf_top.bit.bin";
+            firmware-name = "zybo_z7_udmabuf_sample.bit.bin";
         };
     };
 
