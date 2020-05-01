@@ -28,7 +28,7 @@ module tb_top();
     
     wire    [3:0]       led;
     
-    zybo_z7_udmabuf_top
+    zybo_z7_udmabuf_sample
         i_top
             (
                 .led    (led)
@@ -159,39 +159,39 @@ module tb_top();
     
     #10000;
         $display(" --- dma1 --- ");
-        wb_read (32'h000800 + 8*8); // CORE_ID
+        wb_read (32'h000400 + 8*4); // CORE_ID
         
-        wb_read (32'h000800 + 4*4);
-        wb_write(32'h000800 + 4*4, 32'h89ab_cdef, 4'h3); // ADR_WDATA0
-        wb_read (32'h000800 + 4*4);
-        wb_write(32'h000800 + 4*4, 32'h89ab_FFFF, 4'hc); // ADR_WDATA0
-        wb_read (32'h000800 + 4*4);
+        wb_read (32'h000400 + 4*4);
+        wb_write(32'h000400 + 4*4, 32'h89ab_cdef, 4'h3); // ADR_WDATA0
+        wb_read (32'h000400 + 4*4);
+        wb_write(32'h000400 + 4*4, 32'h89ab_FFFF, 4'hc); // ADR_WDATA0
+        wb_read (32'h000400 + 4*4);
         
         $display("write start");
-        wb_write(32'h000800 + 4*4, 32'h0123_4567, 4'hf); // ADR_WDATA0
-        wb_write(32'h000800 + 5*4, 32'hfedc_ba98, 4'hf); // ADR_WDATA1
-        wb_write(32'h000800 + 3*4, 32'h0000_0100, 4'hf); // ADR_ADDR
-        wb_write(32'h000800 + 1*4, 32'h0000_0001, 4'hf); // ADR_WSTART
+        wb_write(32'h000400 + 4*4, 32'h0123_4567, 4'hf); // ADR_WDATA0
+        wb_write(32'h000400 + 5*4, 32'hfedc_ba98, 4'hf); // ADR_WDATA1
+        wb_write(32'h000400 + 3*4, 32'h0000_0100, 4'hf); // ADR_ADDR
+        wb_write(32'h000400 + 1*4, 32'h0000_0001, 4'hf); // ADR_WSTART
     #10000;
     
-        wb_write(32'h000800 + 3*4, 32'h0000_0100, 4'hf); // ADR_ADDR
-        wb_write(32'h000800 + 2*4, 32'h0000_0001, 4'hf); // ADR_RSTART
-        wb_read (32'h000800 + 0*4);    // ADR_STATUS
+        wb_write(32'h000400 + 3*4, 32'h0000_0100, 4'hf); // ADR_ADDR
+        wb_write(32'h000400 + 2*4, 32'h0000_0001, 4'hf); // ADR_RSTART
+        wb_read (32'h000400 + 0*4);    // ADR_STATUS
         
     #10000;
-        wb_read (32'h000800 + 0*4);    // ADR_STATUS
-        wb_read (32'h000800 + 6*4);    // ADR_RDATA0
-        wb_read (32'h000800 + 7*4);    // ADR_RDATA1
+        wb_read (32'h000400 + 0*4);    // ADR_STATUS
+        wb_read (32'h000400 + 6*4);    // ADR_RDATA0
+        wb_read (32'h000400 + 7*4);    // ADR_RDATA1
     
     
     #10000;
         $display(" --- led --- ");
-        wb_read (32'h008000);
-        wb_write(32'h008000, 5, 4'hf);
+        wb_read (32'h004000);
+        wb_write(32'h004000, 5, 4'hf);
     #10000;
-        wb_write(32'h008000, 2, 4'hf);
+        wb_write(32'h004000, 2, 4'hf);
     #10000;
-        wb_write(32'h008000, 0, 4'hf);
+        wb_write(32'h004000, 0, 4'hf);
     
     #10000;
         $finish();

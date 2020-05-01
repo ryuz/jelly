@@ -28,7 +28,7 @@ module tb_top();
     
     wire    [1:0]       radio_led;
     
-    ultra96v2_udmabuf_top
+    ultra96v2_udmabuf_sample
         i_top
             (
                 .led    (radio_led)
