@@ -1,22 +1,33 @@
 
 TARGET   = test_udmabuf
-BIT_FILE = ultra96v2_udmabuf_top.bit
+DT_NAME   = udmabuf
+BIT_NAME  = ultra96v2_udmabuf_top
+
+DTS_FILE  = $(DT_NAME).dts
+DTBO_FILE = $(DT_NAME).dtbo
+
+BIT_FILE  = $(BIT_NAME).bit
+BIF_FILE  = $(BIT_NAME).bif
+BIN_FILE  = $(BIT_FILE).bin
+
+FIRMWARE_PATH = /lib/firmware
+DEVTREE_PATH  = /configfs/device-tree
 
 CFLAGS  += -I../../../soft/Utility
 LDFLAGS += 
 
-OBJS   = main.o
+OBJS = main.o
 
 
 .PHONY: all
-all: $(TARGET) udmabuf.dtbo
+all: $(TARGET) $(DTBO_FILE) $(BIN_FILE)
 
 .PHONY: clean
 clean:
-	rm -rf $(TARGET) $(OBJS) udmabuf.dtbo
+	rm -rf $(TARGET) $(OBJS) $(DTBO_FILE) $(BIN_FILE)
 
 .PHONY: run
-run:
+run: $(TARGET) load
 	sudo ./$(TARGET)
 
 $(TARGET): $(OBJS)
@@ -25,16 +36,41 @@ $(TARGET): $(OBJS)
 main.o: main.cpp
 	g++ $(CFLAGS) -c main.cpp
 
-udmabuf.dtbo: udmabuf.dts
-	dtc -I dts -O dtb -o udmabuf.dtbo udmabuf.dts
+$(DTBO_FILE): $(DTS_FILE)
+	dtc -I dts -O dtb -o $(DTBO_FILE) $(DTS_FILE)
+
+$(BIN_FILE): $(BIF_FILE) $(BIT_FILE)
+	bootgen -image $(BIF_FILE) -arch zynqmp -process_bitstream bin
+
+$(DEVTREE_PATH):
+	sudo mkdir -p /configfs
+	sudo mount -t configfs configfs /configfs
 
 .PHONY: load
-load: udmabuf.dtbo
+load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
+	sudo mkdir -p $(FIRMWARE_PATH)
+	sudo cp $(BIN_FILE) $(FIRMWARE_PATH)
+	sudo cp $(DTBO_FILE) $(FIRMWARE_PATH)
+	sudo sh -c "echo 0 > /sys/class/fpga_manager/fpga0/flags"
+	sudo mkdir $(DEVTREE_PATH)/overlays/full
+	sudo sh -c "echo -n $(DTBO_FILE) > /configfs/device-tree/overlays/full/path"
+	cat $(DEVTREE_PATH)/overlays/full/status
+	sudo rm /lib/firmware/$(DTBO_FILE)
+	sudo rm /lib/firmware/$(BIN_FILE)
+
+.PHONY: unload
+unload:
+#	sudo mkdir -p $(FIRMWARE_PATH)
+	-sudo rmdir $(DEVTREE_PATH)/overlays/full
+
+
+.PHONY: load2
+load2: $(DTBO_FILE) $(BIN_FILE)
 	sudo fpgautil -R
 	sudo fpgautil -b $(BIT_FILE) -o udmabuf.dtbo
 	sudo fpgautil -b $(BIT_FILE)
 
-.PHONY: unload
-unload:
+.PHONY: unload2
+unload2:
 	sudo fpgautil -R
 

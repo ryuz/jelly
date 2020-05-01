@@ -1,18 +1,15 @@
 /dts-v1/; /plugin/;
 
 / {
-    /*
     fragment@0 {
         target = <&fpga_full>;
-        overlay0: __overlay__ {
+        __overlay__ {
             #address-cells = <2>;
             #size-cells = <2>;
-            firmware-name = "ultra96v2_udmabuf_top.bit";
-            resets = <&rst 116>;
+            firmware-name = "ultra96v2_udmabuf_top.bit.bin";
         };
     };
-    */
-
+    
     fragment@1 {
         target-path = "/amba_pl@0";
         
