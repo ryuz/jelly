@@ -3,18 +3,15 @@
 / {
     fragment@0 {  
         target = <&fpga_full>;
-        #address-cells = <1>;
-        #size-cells = <1>;
-  
         __overlay__ {
             #address-cells = <1>;
             #size-cells = <1>;
-  
+
             firmware-name = "zybo_z7_udmabuf_sample.bit.bin";
         };
     };
 
-    fragment@2 {
+    fragment@1 {
         target-path = "/amba";
         __overlay__ {
             #address-cells = <0x1>;
