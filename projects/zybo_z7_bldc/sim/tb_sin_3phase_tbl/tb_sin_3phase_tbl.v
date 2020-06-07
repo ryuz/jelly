@@ -9,12 +9,12 @@
 `default_nettype none
 
 
-module tb_sin_3phase();
+module tb_sin_3phase_tbl();
     localparam RATE = 1000.0/125.0;
     
     initial begin
-        $dumpfile("tb_sin_3phase.vcd");
-        $dumpvars(0, tb_sin_3phase);
+        $dumpfile("tb_sin_3phase_tbl.vcd");
+        $dumpvars(0, tb_sin_3phase_tbl);
         
     #100000
         $finish;
