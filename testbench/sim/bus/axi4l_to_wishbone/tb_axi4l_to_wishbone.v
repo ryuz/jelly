@@ -10,7 +10,7 @@ module tb_axi4l_to_wishbone();
         $dumpfile("tb_axi4l_to_wishbone.vcd");
         $dumpvars(0, tb_axi4l_to_wishbone);
         
-        #1000000;
+        #2000000;
             $finish;
     end
     
@@ -22,38 +22,43 @@ module tb_axi4l_to_wishbone();
     
     parameter   AXI4L_ADDR_WIDTH = 32;
     parameter   AXI4L_DATA_SIZE  = 2;                       // 0:8bit, 1:16bit, 2:32bit ...
-    parameter   AXI4L_DATA_WIDTH = (8 << AXI4L_DATA_SIZE);
     parameter   AXI4L_STRB_WIDTH = (1 << AXI4L_DATA_SIZE);
+    parameter   AXI4L_DATA_WIDTH = (8 << AXI4L_DATA_SIZE);
     
-    wire    [AXI4L_ADDR_WIDTH-1:0]                  axi4l_awaddr;
-    wire    [2:0]                                   axi4l_awprot = 0;
-    wire                                            axi4l_awvalid;
-    wire                                            axi4l_awready;
-    wire    [AXI4L_STRB_WIDTH-1:0]                  axi4l_wstrb;
-    wire    [AXI4L_DATA_WIDTH-1:0]                  axi4l_wdata;
-    wire                                            axi4l_wvalid;
-    wire                                            axi4l_wready;
-    wire    [1:0]                                   axi4l_bresp;
-    wire                                            axi4l_bvalid;
-    wire                                            axi4l_bready;
-    wire    [AXI4L_ADDR_WIDTH-1:0]                  axi4l_araddr;
-    wire    [2:0]                                   axi4l_arprot = 0;
-    wire                                            axi4l_arvalid;
-    wire                                            axi4l_arready;
-    wire    [AXI4L_DATA_WIDTH-1:0]                  axi4l_rdata;
-    wire    [1:0]                                   axi4l_rresp;
-    wire                                            axi4l_rvalid;
-    wire                                            axi4l_rready;
+    parameter   WB_ADR_WIDTH     = AXI4L_ADDR_WIDTH - AXI4L_DATA_SIZE;
+    parameter   WB_SEL_WIDTH     = AXI4L_STRB_WIDTH;
+    parameter   WB_DAT_WIDTH     = AXI4L_DATA_WIDTH;
     
-    wire                                            wb_rst_o;
-    wire                                            wb_clk_o;
-    wire    [AXI4L_ADDR_WIDTH-1:AXI4L_DATA_SIZE]    wb_adr_o;
-    wire    [AXI4L_DATA_WIDTH-1:0]                  wb_dat_o;
-    wire    [AXI4L_DATA_WIDTH-1:0]                  wb_dat_i;
-    wire                                            wb_we_o;
-    wire    [AXI4L_STRB_WIDTH-1:0]                  wb_sel_o;
-    wire                                            wb_stb_o;
-    wire                                            wb_ack_i;
+    
+    wire    [AXI4L_ADDR_WIDTH-1:0]   axi4l_awaddr;
+    wire    [2:0]                    axi4l_awprot;
+    wire                             axi4l_awvalid;
+    wire                             axi4l_awready;
+    wire    [AXI4L_STRB_WIDTH-1:0]   axi4l_wstrb;
+    wire    [AXI4L_DATA_WIDTH-1:0]   axi4l_wdata;
+    wire                             axi4l_wvalid;
+    wire                             axi4l_wready;
+    wire    [1:0]                    axi4l_bresp;
+    wire                             axi4l_bvalid;
+    wire                             axi4l_bready;
+    wire    [AXI4L_ADDR_WIDTH-1:0]   axi4l_araddr;
+    wire    [2:0]                    axi4l_arprot;
+    wire                             axi4l_arvalid;
+    wire                             axi4l_arready;
+    wire    [AXI4L_DATA_WIDTH-1:0]   axi4l_rdata;
+    wire    [1:0]                    axi4l_rresp;
+    wire                             axi4l_rvalid;
+    wire                             axi4l_rready;
+    
+    wire                             wb_rst_o;
+    wire                             wb_clk_o;
+    wire    [WB_ADR_WIDTH-1:0]       wb_adr_o;
+    wire    [WB_DAT_WIDTH-1:0]       wb_dat_o;
+    wire    [WB_DAT_WIDTH-1:0]       wb_dat_i;
+    wire                             wb_we_o;
+    wire    [WB_SEL_WIDTH-1:0]       wb_sel_o;
+    wire                             wb_stb_o;
+    wire                             wb_ack_i;
     
     jelly_axi4l_to_wishbone
             #(
@@ -95,16 +100,19 @@ module tb_axi4l_to_wishbone();
                 .m_wb_ack_i             (wb_ack_i)
             );
     
+    reg                             reg_tb_end = 0;
     
-    reg     [AXI4L_ADDR_WIDTH-1:0]                  reg_axi4l_awaddr;
-    reg                                             reg_axi4l_awvalid;
-    reg     [AXI4L_STRB_WIDTH-1:0]                  reg_axi4l_wstrb;
-    reg     [AXI4L_DATA_WIDTH-1:0]                  reg_axi4l_wdata;
-    reg                                             reg_axi4l_wvalid;
-    reg                                             reg_axi4l_bready;
-    reg     [AXI4L_ADDR_WIDTH-1:0]                  reg_axi4l_araddr;
-    reg                                             reg_axi4l_arvalid;
-    reg                                             reg_axi4l_rready;
+    reg     [AXI4L_ADDR_WIDTH-1:0]  reg_axi4l_awaddr;
+    reg                             reg_axi4l_awvalid;
+    reg     [AXI4L_STRB_WIDTH-1:0]  reg_axi4l_wstrb;
+    reg     [AXI4L_DATA_WIDTH-1:0]  reg_axi4l_wdata;
+    reg                             reg_axi4l_wvalid;
+    reg                             reg_axi4l_bready;
+    reg     [AXI4L_ADDR_WIDTH-1:0]  reg_axi4l_araddr;
+    reg                             reg_axi4l_arvalid;
+    reg                             reg_axi4l_rready;
+    
+    reg     [AXI4L_DATA_WIDTH-1:0]  exp_rdata;
     
     always @(posedge aclk) begin
         if ( ~aresetn ) begin
@@ -117,17 +125,19 @@ module tb_axi4l_to_wishbone();
             reg_axi4l_araddr  <= 0;
             reg_axi4l_arvalid <= 0;
             reg_axi4l_rready  <= 0;
+            
+            exp_rdata         <= 0;
         end
         else begin
             if ( !axi4l_awvalid || axi4l_awready ) begin
-                reg_axi4l_awvalid <= ({$random()} % 4 == 0);
+                reg_axi4l_awvalid <= ({$random()} % 4 == 0) && !reg_tb_end;
             end
             
             if ( !axi4l_wvalid || axi4l_wready ) begin
-                reg_axi4l_wvalid <= ({$random()} % 4 == 0);
+                reg_axi4l_wvalid <= ({$random()} % 4 == 0) && !reg_tb_end;
             end
             
-            reg_axi4l_bready <= ({$random()} % 4 == 0);
+            reg_axi4l_bready <= ({$random()} % 4 == 0) || reg_tb_end;
             
             if ( axi4l_awvalid && axi4l_awready ) begin
                 reg_axi4l_awaddr <= reg_axi4l_awaddr + (1 << AXI4L_DATA_SIZE);
@@ -141,45 +151,90 @@ module tb_axi4l_to_wishbone();
             
             
             if ( !axi4l_arvalid || axi4l_arready ) begin
-                reg_axi4l_arvalid <= ({$random()} % 8 == 0);
+                reg_axi4l_arvalid <= ({$random()} % 8 == 0) && !reg_tb_end;
             end
             
-            reg_axi4l_rready <= ({$random()} % 4 == 0);
+            reg_axi4l_rready <= ({$random()} % 4 == 0) || reg_tb_end;
             
             if ( axi4l_arvalid && axi4l_arready ) begin
                 reg_axi4l_araddr <= reg_axi4l_araddr + (1 << AXI4L_DATA_SIZE);
             end
+            
+            if ( axi4l_rvalid && axi4l_rready ) begin
+                if ( axi4l_rdata != exp_rdata ) begin
+                    $display("read error!");
+                    $stop();
+                end
+                exp_rdata <= exp_rdata + 1;
+            end
         end
     end
     
-    
-    assign axi4l_awaddr  = reg_axi4l_awaddr;
+    assign axi4l_awprot  = reg_axi4l_awvalid ? 3'b000           : 3'bxxx;
+    assign axi4l_awaddr  = reg_axi4l_awvalid ? reg_axi4l_awaddr : {AXI4L_ADDR_WIDTH{1'bx}};
     assign axi4l_awvalid = reg_axi4l_awvalid;
-    assign axi4l_wstrb   = reg_axi4l_wstrb;
-    assign axi4l_wdata   = reg_axi4l_wdata;
+    assign axi4l_wstrb   = reg_axi4l_wvalid  ? reg_axi4l_wstrb  : {AXI4L_STRB_WIDTH{1'bx}};
+    assign axi4l_wdata   = reg_axi4l_wvalid  ? reg_axi4l_wdata  : {AXI4L_DATA_WIDTH{1'bx}};
     assign axi4l_wvalid  = reg_axi4l_wvalid;
     assign axi4l_bready  = reg_axi4l_bready;
-    assign axi4l_araddr  = reg_axi4l_araddr;
+    assign axi4l_arprot  = reg_axi4l_arvalid ? 3'b000           : 3'bxxx;
+    assign axi4l_araddr  = reg_axi4l_arvalid ? reg_axi4l_araddr : {AXI4L_ADDR_WIDTH{1'bx}};
     assign axi4l_arvalid = reg_axi4l_arvalid;
     assign axi4l_rready  = reg_axi4l_rready;
     
-    reg    [AXI4L_DATA_WIDTH-1:0]   reg_wb_dat_i;
+    
+    
+    reg    [WB_DAT_WIDTH-1:0]       reg_wb_dat_i;
     reg                             reg_wb_ack_i;
+    
+    reg    [WB_ADR_WIDTH-1:0]       exp_wadr_o;
+    reg    [WB_ADR_WIDTH-1:0]       exp_radr_o;
+    reg    [WB_SEL_WIDTH-1:0]       exp_sel_o;
+    reg    [WB_DAT_WIDTH-1:0]       exp_dat_o;
+    
     always @(posedge wb_clk_o) begin
         if ( wb_rst_o ) begin
             reg_wb_dat_i <= 0;
             reg_wb_ack_i <= 0;
+            
+            exp_wadr_o   <= 0;
+            exp_radr_o   <= 0;
+            exp_sel_o    <= 0;
+            exp_dat_o    <= 0;
         end
         else begin
             if ( wb_stb_o && wb_ack_i && ~wb_we_o ) begin
                 reg_wb_dat_i <= reg_wb_dat_i + 1;
             end
             reg_wb_ack_i <= {$random()};
+            
+            
+            if ( wb_stb_o && wb_ack_i && wb_we_o ) begin
+                if ( wb_adr_o != exp_wadr_o ) begin
+                    $display("wb_adr_o error!");
+                end
+                if ( wb_sel_o != exp_sel_o ) begin
+                    $display("wb_sel_o error!");
+                end
+                if ( wb_dat_o != exp_dat_o ) begin
+                    $display("exp_dat_o error!");
+                end
+                exp_wadr_o <= exp_wadr_o + 1;
+                exp_sel_o  <= exp_sel_o  + 1;
+                exp_dat_o  <= exp_dat_o  + 1;
+            end
+            if ( wb_stb_o && wb_ack_i && ~wb_we_o ) begin
+                if ( wb_adr_o != exp_radr_o ) begin
+                    $display("wb_adr_o error!");
+                end
+                exp_radr_o <= exp_radr_o + 1;
+            end
         end
     end
     
-    assign wb_dat_i = reg_wb_dat_i;
+    assign wb_dat_i = (wb_stb_o & ~wb_we_o & wb_ack_i) ? reg_wb_dat_i : {AXI4L_DATA_WIDTH{1'bx}};
     assign wb_ack_i = wb_stb_o & reg_wb_ack_i;
+    
     
     
     integer count_aw   = 0;
@@ -191,6 +246,11 @@ module tb_axi4l_to_wishbone();
     integer count_wb_r = 0;
     always @(posedge aclk) begin
         if ( ~aresetn ) begin
+            count_aw <= 0;
+            count_w  <= 0;
+            count_b  <= 0;
+            count_ar <= 0;
+            count_r  <= 0;
         end
         else begin
             if ( axi4l_awvalid && axi4l_awready )   count_aw <= count_aw + 1;
@@ -198,12 +258,37 @@ module tb_axi4l_to_wishbone();
             if ( axi4l_bvalid  && axi4l_bready  )   count_b  <= count_b  + 1;
             if ( axi4l_arvalid && axi4l_arready )   count_ar <= count_ar + 1;
             if ( axi4l_rvalid  && axi4l_rready  )   count_r  <= count_r  + 1;
+        end
+    end
             
+    always @(posedge wb_clk_o) begin
+        if ( wb_rst_o ) begin
+            count_wb_w <= 0;
+            count_wb_r <= 0;
+        end
+        else begin
             if ( wb_stb_o && wb_ack_i && wb_we_o  ) count_wb_w <= count_wb_w + 1;
             if ( wb_stb_o && wb_ack_i && !wb_we_o ) count_wb_r <= count_wb_r + 1;
         end
     end
     
+    
+    
+    initial begin
+        #1000000;
+            reg_tb_end = 1;
+        #1000;
+            if ( count_w != count_aw || count_b != count_aw || count_wb_w != count_aw ) begin
+                $display("write error!");
+            end
+            if ( count_r != count_ar || count_wb_r != count_ar ) begin
+                $display("write error!");
+            end
+            
+            
+            $finish;
+    end
+
 endmodule
 
 
