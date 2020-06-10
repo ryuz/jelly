@@ -6,6 +6,7 @@
 *.dtbo
 *.obj
 *.vcd
+*.elf
 
 *.png
 *.jpg
