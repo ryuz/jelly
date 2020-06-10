@@ -40,7 +40,7 @@ $(DTBO_FILE): $(DTS_FILE)
 	dtc -I dts -O dtb -o $(DTBO_FILE) $(DTS_FILE)
 
 $(BIN_FILE): $(BIF_FILE) $(BIT_FILE)
-	bootgen -image $(BIF_FILE) -arch zynqmp -process_bitstream bin
+	bootgen -w -image $(BIF_FILE) -arch zynqmp -process_bitstream bin
 
 $(DEVTREE_PATH):
 	sudo mkdir -p /configfs
