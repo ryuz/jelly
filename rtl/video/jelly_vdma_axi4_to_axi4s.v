@@ -121,7 +121,8 @@ module jelly_vdma_axi4_to_axi4s
             input   wire                            trig_start
         );
     
-    localparam  [AXI4_ADDR_WIDTH-1:0]   ADDR_MASK = ~((1 << AXI4_DATA_SIZE) - 1);
+    localparam  [AXI4_ADDR_WIDTH-1:0]   ADDR_MASK = ~((64'd1 << AXI4_DATA_SIZE) - 1);
+    
     
     
     // ---------------------------------
@@ -129,26 +130,23 @@ module jelly_vdma_axi4_to_axi4s
     // ---------------------------------
     
     // register address offset
-    localparam  REGOFFSET_ID             = 32'h0000_0000 >> 2;
-    localparam  REGOFFSET_VERSION        = 32'h0000_0004 >> 2;
-    
-    localparam  REGOFFSET_CTL_CONTROL    = 32'h0000_0010 >> 2;
-    localparam  REGOFFSET_CTL_STATUS     = 32'h0000_0014 >> 2;
-    localparam  REGOFFSET_CTL_INDEX      = 32'h0000_001c >> 2;
-    
-    localparam  REGOFFSET_PARAM_ADDR     = 32'h0000_0020 >> 2;
-    localparam  REGOFFSET_PARAM_STRIDE   = 32'h0000_0024 >> 2;
-    localparam  REGOFFSET_PARAM_WIDTH    = 32'h0000_0028 >> 2;
-    localparam  REGOFFSET_PARAM_HEIGHT   = 32'h0000_002c >> 2;
-    localparam  REGOFFSET_PARAM_SIZE     = 32'h0000_0030 >> 2;
-    localparam  REGOFFSET_PARAM_ARLEN    = 32'h0000_003c >> 2;
-    
-    localparam  REGOFFSET_MONITOR_ADDR   = 32'h0000_0040 >> 2;
-    localparam  REGOFFSET_MONITOR_STRIDE = 32'h0000_0044 >> 2;
-    localparam  REGOFFSET_MONITOR_WIDTH  = 32'h0000_0048 >> 2;
-    localparam  REGOFFSET_MONITOR_HEIGHT = 32'h0000_004c >> 2;
-    localparam  REGOFFSET_MONITOR_SIZE   = 32'h0000_0050 >> 2;
-    localparam  REGOFFSET_MONITOR_ARLEN  = 32'h0000_005c >> 2;
+    localparam  REGOFFSET_ID             = 8'h00;
+    localparam  REGOFFSET_VERSION        = 8'h01;
+    localparam  REGOFFSET_CTL_CONTROL    = 8'h04;
+    localparam  REGOFFSET_CTL_STATUS     = 8'h05;
+    localparam  REGOFFSET_CTL_INDEX      = 8'h06;
+    localparam  REGOFFSET_PARAM_ADDR     = 8'h08;
+    localparam  REGOFFSET_PARAM_STRIDE   = 8'h09;
+    localparam  REGOFFSET_PARAM_WIDTH    = 8'h0a;
+    localparam  REGOFFSET_PARAM_HEIGHT   = 8'h0b;
+    localparam  REGOFFSET_PARAM_SIZE     = 8'h0c;
+    localparam  REGOFFSET_PARAM_ARLEN    = 8'h0f;
+    localparam  REGOFFSET_MONITOR_ADDR   = 8'h10;
+    localparam  REGOFFSET_MONITOR_STRIDE = 8'h11;
+    localparam  REGOFFSET_MONITOR_WIDTH  = 8'h12;
+    localparam  REGOFFSET_MONITOR_HEIGHT = 8'h13;
+    localparam  REGOFFSET_MONITOR_SIZE   = 8'h14;
+    localparam  REGOFFSET_MONITOR_ARLEN  = 8'h17;
     
     localparam  CONTROL_WIDTH            = TRIG_START_ENABLE ? 4 : 3;
     localparam  STATUS_WIDTH             = 1;
@@ -178,6 +176,19 @@ module jelly_vdma_axi4_to_axi4s
     reg                             reg_irq;
     
     
+    function [WB_DAT_WIDTH-1:0] reg_mask(
+                                        input [WB_DAT_WIDTH-1:0] org,
+                                        input [WB_DAT_WIDTH-1:0] wdat,
+                                        input [WB_SEL_WIDTH-1:0] msk
+                                    );
+    integer i;
+    begin
+        for ( i = 0; i < WB_DAT_WIDTH; i = i+1 ) begin
+            reg_mask[i] = msk[i/8] ? wdat[i] : org[i];
+        end
+    end
+    endfunction
+    
     always @(posedge s_wb_clk_i ) begin
         if ( s_wb_rst_i ) begin
             reg_ctl_control  <= INIT_CTL_CONTROL;
@@ -194,13 +205,13 @@ module jelly_vdma_axi4_to_axi4s
             // register write
             if ( s_wb_stb_i && s_wb_we_i ) begin
                 case ( s_wb_adr_i )
-                REGOFFSET_CTL_CONTROL:  reg_ctl_control  <= s_wb_dat_i[CONTROL_WIDTH-1:0];
-                REGOFFSET_PARAM_ADDR:   reg_param_addr   <= s_wb_dat_i[AXI4_ADDR_WIDTH-1:0] & ADDR_MASK;
-                REGOFFSET_PARAM_STRIDE: reg_param_stride <= s_wb_dat_i[STRIDE_WIDTH-1:0]    & ADDR_MASK;
-                REGOFFSET_PARAM_WIDTH:  reg_param_width  <= s_wb_dat_i[H_WIDTH-1:0];
-                REGOFFSET_PARAM_HEIGHT: reg_param_height <= s_wb_dat_i[V_WIDTH-1:0];
-                REGOFFSET_PARAM_SIZE:   reg_param_size   <= s_wb_dat_i[SIZE_WIDTH-1:0];
-                REGOFFSET_PARAM_ARLEN:  reg_param_arlen  <= s_wb_dat_i[AXI4_LEN_WIDTH-1:0];
+                REGOFFSET_CTL_CONTROL:  reg_ctl_control  <= reg_mask(reg_ctl_control,  s_wb_dat_i, s_wb_sel_i);
+                REGOFFSET_PARAM_ADDR:   reg_param_addr   <= reg_mask(reg_param_addr,   s_wb_dat_i, s_wb_sel_i) & ADDR_MASK;
+                REGOFFSET_PARAM_STRIDE: reg_param_stride <= reg_mask(reg_param_stride, s_wb_dat_i, s_wb_sel_i) & ADDR_MASK;
+                REGOFFSET_PARAM_WIDTH:  reg_param_width  <= reg_mask(reg_param_width,  s_wb_dat_i, s_wb_sel_i);
+                REGOFFSET_PARAM_HEIGHT: reg_param_height <= reg_mask(reg_param_height, s_wb_dat_i, s_wb_sel_i);
+                REGOFFSET_PARAM_SIZE:   reg_param_size   <= reg_mask(reg_param_size,   s_wb_dat_i, s_wb_sel_i);
+                REGOFFSET_PARAM_ARLEN:  reg_param_arlen  <= reg_mask(reg_param_arlen,  s_wb_dat_i, s_wb_sel_i);
                 endcase
             end
             
