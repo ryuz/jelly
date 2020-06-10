@@ -45,7 +45,6 @@
 *.dcp
 *.veo
 *.vho
-*.xdc
 *.btree
 *.bgn
 *.bld
