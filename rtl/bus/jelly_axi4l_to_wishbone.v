@@ -93,7 +93,7 @@ module jelly_axi4l_to_wishbone
     assign m_wb_dat_o      = s_axi4l_wdata;
     assign m_wb_we_o       = ~s_axi4l_arvalid;
     assign m_wb_sel_o      = s_axi4l_wstrb;
-    assign m_wb_stb_o      = ((s_axi4l_awvalid & s_axi4l_wvalid) | s_axi4l_arvalid);
+    assign m_wb_stb_o      = ((s_axi4l_awvalid & s_axi4l_wvalid) | s_axi4l_arvalid) && !s_axi4l_bvalid && !s_axi4l_rvalid;
     
     assign s_axi4l_awready = (m_wb_stb_o & m_wb_we_o & m_wb_ack_i);
     assign s_axi4l_wready  = (m_wb_stb_o & m_wb_we_o & m_wb_ack_i);
