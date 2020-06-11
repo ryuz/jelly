@@ -5,111 +5,140 @@
 `default_nettype none
 
 
-module top
+module zybo_z7_imx219
         #(
             parameter   X_NUM = 3280 / 2,
             parameter   Y_NUM = 2464 / 2
         )
         (
-            input   wire            cam_clk_p,
-            input   wire            cam_clk_n,
-            input   wire    [1:0]   cam_data_p,
-            input   wire    [1:0]   cam_data_n,
-//          input   wire            cam_clk,
-//          output  wire            cam_gpio,
-//          inout   wire            cam_scl,
-//          inout   wire            cam_sda,
+            input   wire            in_clk125,
             
-            output  wire    [1:0]   radio_led,
-            output  wire    [15:0]  hd_gpio
+            input   wire    [3:0]   push_sw,
+            input   wire    [3:0]   dip_sw,
+            output  wire    [3:0]   led,
+            output  wire    [7:0]   pmod_a,
             
+            input   wire            cam_clk_hs_p,
+            input   wire            cam_clk_hs_n,
+            input   wire            cam_clk_lp_p,
+            input   wire            cam_clk_lp_n,
+            input   wire    [1:0]   cam_data_hs_p,
+            input   wire    [1:0]   cam_data_hs_n,
+            input   wire    [1:0]   cam_data_lp_p,
+            input   wire    [1:0]   cam_data_lp_n,
+            input   wire            cam_clk,
+            output  wire            cam_gpio,
+            inout   wire            cam_scl,
+            inout   wire            cam_sda,
+            
+            inout   wire    [14:0]  DDR_addr,
+            inout   wire    [2:0]   DDR_ba,
+            inout   wire            DDR_cas_n,
+            inout   wire            DDR_ck_n,
+            inout   wire            DDR_ck_p,
+            inout   wire            DDR_cke,
+            inout   wire            DDR_cs_n,
+            inout   wire    [3:0]   DDR_dm,
+            inout   wire    [31:0]  DDR_dq,
+            inout   wire    [3:0]   DDR_dqs_n,
+            inout   wire    [3:0]   DDR_dqs_p,
+            inout   wire            DDR_odt,
+            inout   wire            DDR_ras_n,
+            inout   wire            DDR_reset_n,
+            inout   wire            DDR_we_n,
+            inout   wire            FIXED_IO_ddr_vrn,
+            inout   wire            FIXED_IO_ddr_vrp,
+            inout   wire    [53:0]  FIXED_IO_mio,
+            inout   wire            FIXED_IO_ps_clk,
+            inout   wire            FIXED_IO_ps_porb,
+            inout   wire            FIXED_IO_ps_srstb
         );
     
     
+                        wire            sys_reset;
+    (* KEEP = "true" *) wire            sys_clk100;
+    (* KEEP = "true" *) wire            sys_clk200;
+    (* KEEP = "true" *) wire            sys_clk250;
     
-    wire            sys_reset;
-    wire            sys_clk100;
-    wire            sys_clk200;
-    wire            sys_clk250;
-    
-    localparam  AXI4L_PERI_ADDR_WIDTH = 40;
-    localparam  AXI4L_PERI_DATA_SIZE  = 2;     // 0:8bit, 1:16bit, 2:32bit ...
-    localparam  AXI4L_PERI_DATA_WIDTH = (8 << AXI4L_PERI_DATA_SIZE);
-    localparam  AXI4L_PERI_STRB_WIDTH = AXI4L_PERI_DATA_WIDTH / 8;
-    
-    wire                                 axi4l_peri_aresetn;
-    wire                                 axi4l_peri_aclk;
-    wire    [AXI4L_PERI_ADDR_WIDTH-1:0]  axi4l_peri_awaddr;
-    wire    [2:0]                        axi4l_peri_awprot;
-    wire                                 axi4l_peri_awvalid;
-    wire                                 axi4l_peri_awready;
-    wire    [AXI4L_PERI_STRB_WIDTH-1:0]  axi4l_peri_wstrb;
-    wire    [AXI4L_PERI_DATA_WIDTH-1:0]  axi4l_peri_wdata;
-    wire                                 axi4l_peri_wvalid;
-    wire                                 axi4l_peri_wready;
-    wire    [1:0]                        axi4l_peri_bresp;
-    wire                                 axi4l_peri_bvalid;
-    wire                                 axi4l_peri_bready;
-    wire    [AXI4L_PERI_ADDR_WIDTH-1:0]  axi4l_peri_araddr;
-    wire    [2:0]                        axi4l_peri_arprot;
-    wire                                 axi4l_peri_arvalid;
-    wire                                 axi4l_peri_arready;
-    wire    [AXI4L_PERI_DATA_WIDTH-1:0]  axi4l_peri_rdata;
-    wire    [1:0]                        axi4l_peri_rresp;
-    wire                                 axi4l_peri_rvalid;
-    wire                                 axi4l_peri_rready;
+    wire            axi4l_peri_aresetn;
+    wire            axi4l_peri_aclk;
+    wire    [31:0]  axi4l_peri_awaddr;
+    wire    [2:0]   axi4l_peri_awprot;
+    wire            axi4l_peri_awvalid;
+    wire            axi4l_peri_awready;
+    wire    [3:0]   axi4l_peri_wstrb;
+    wire    [31:0]  axi4l_peri_wdata;
+    wire            axi4l_peri_wvalid;
+    wire            axi4l_peri_wready;
+    wire    [1:0]   axi4l_peri_bresp;
+    wire            axi4l_peri_bvalid;
+    wire            axi4l_peri_bready;
+    wire    [31:0]  axi4l_peri_araddr;
+    wire    [2:0]   axi4l_peri_arprot;
+    wire            axi4l_peri_arvalid;
+    wire            axi4l_peri_arready;
+    wire    [31:0]  axi4l_peri_rdata;
+    wire    [1:0]   axi4l_peri_rresp;
+    wire            axi4l_peri_rvalid;
+    wire            axi4l_peri_rready;
     
     
-    localparam  AXI4_MEM0_ADDR_WIDTH = 49;
-    localparam  AXI4_MEM0_STRB_WIDTH = 8;
-    localparam  AXI4_MEM0_DATA_WIDTH = 64;
+    wire            axi4_mem_aresetn;
+    wire            axi4_mem_aclk;
     
-    wire                                 axi4_mem_aresetn;
-    wire                                 axi4_mem_aclk;
+    wire    [5:0]   axi4_mem0_awid;
+    wire    [31:0]  axi4_mem0_awaddr;
+    wire    [1:0]   axi4_mem0_awburst;
+    wire    [3:0]   axi4_mem0_awcache;
+    wire    [7:0]   axi4_mem0_awlen;
+    wire    [0:0]   axi4_mem0_awlock;
+    wire    [2:0]   axi4_mem0_awprot;
+    wire    [3:0]   axi4_mem0_awqos;
+    wire    [3:0]   axi4_mem0_awregion;
+    wire    [2:0]   axi4_mem0_awsize;
+    wire            axi4_mem0_awvalid;
+    wire            axi4_mem0_awready;
+    wire    [7:0]   axi4_mem0_wstrb;
+    wire    [63:0]  axi4_mem0_wdata;
+    wire            axi4_mem0_wlast;
+    wire            axi4_mem0_wvalid;
+    wire            axi4_mem0_wready;
+    wire    [5:0]   axi4_mem0_bid;
+    wire    [1:0]   axi4_mem0_bresp;
+    wire            axi4_mem0_bvalid;
+    wire            axi4_mem0_bready;
+    wire    [5:0]   axi4_mem0_arid;
+    wire    [31:0]  axi4_mem0_araddr;
+    wire    [1:0]   axi4_mem0_arburst;
+    wire    [3:0]   axi4_mem0_arcache;
+    wire    [7:0]   axi4_mem0_arlen;
+    wire    [0:0]   axi4_mem0_arlock;
+    wire    [2:0]   axi4_mem0_arprot;
+    wire    [3:0]   axi4_mem0_arqos;
+    wire    [3:0]   axi4_mem0_arregion;
+    wire    [2:0]   axi4_mem0_arsize;
+    wire            axi4_mem0_arvalid;
+    wire            axi4_mem0_arready;
+    wire    [5:0]   axi4_mem0_rid;
+    wire    [1:0]   axi4_mem0_rresp;
+    wire    [63:0]  axi4_mem0_rdata;
+    wire            axi4_mem0_rlast;
+    wire            axi4_mem0_rvalid;
+    wire            axi4_mem0_rready;
     
-    wire    [5:0]                        axi4_mem0_awid;
-    wire    [AXI4_MEM0_ADDR_WIDTH-1:0]   axi4_mem0_awaddr;
-    wire    [1:0]                        axi4_mem0_awburst;
-    wire    [3:0]                        axi4_mem0_awcache;
-    wire    [7:0]                        axi4_mem0_awlen;
-    wire    [0:0]                        axi4_mem0_awlock;
-    wire    [2:0]                        axi4_mem0_awprot;
-    wire    [3:0]                        axi4_mem0_awqos;
-    wire    [3:0]                        axi4_mem0_awregion;
-    wire    [2:0]                        axi4_mem0_awsize;
-    wire                                 axi4_mem0_awvalid;
-    wire                                 axi4_mem0_awready;
-    wire    [AXI4_MEM0_STRB_WIDTH-1:0]   axi4_mem0_wstrb;
-    wire    [AXI4_MEM0_DATA_WIDTH-1:0]   axi4_mem0_wdata;
-    wire                                 axi4_mem0_wlast;
-    wire                                 axi4_mem0_wvalid;
-    wire                                 axi4_mem0_wready;
-    wire    [5:0]                        axi4_mem0_bid;
-    wire    [1:0]                        axi4_mem0_bresp;
-    wire                                 axi4_mem0_bvalid;
-    wire                                 axi4_mem0_bready;
-    wire    [5:0]                        axi4_mem0_arid;
-    wire    [AXI4_MEM0_ADDR_WIDTH-1:0]   axi4_mem0_araddr;
-    wire    [1:0]                        axi4_mem0_arburst;
-    wire    [3:0]                        axi4_mem0_arcache;
-    wire    [7:0]                        axi4_mem0_arlen;
-    wire    [0:0]                        axi4_mem0_arlock;
-    wire    [2:0]                        axi4_mem0_arprot;
-    wire    [3:0]                        axi4_mem0_arqos;
-    wire    [3:0]                        axi4_mem0_arregion;
-    wire    [2:0]                        axi4_mem0_arsize;
-    wire                                 axi4_mem0_arvalid;
-    wire                                 axi4_mem0_arready;
-    wire    [5:0]                        axi4_mem0_rid;
-    wire    [1:0]                        axi4_mem0_rresp;
-    wire    [AXI4_MEM0_DATA_WIDTH-1:0]   axi4_mem0_rdata;
-    wire                                 axi4_mem0_rlast;
-    wire                                 axi4_mem0_rvalid;
-    wire                                 axi4_mem0_rready;
+    wire            IIC_0_0_scl_i;
+    wire            IIC_0_0_scl_o;
+    wire            IIC_0_0_scl_t;
+    wire            IIC_0_0_sda_i;
+    wire            IIC_0_0_sda_o;
+    wire            IIC_0_0_sda_t;
     
     design_1
         i_design_1
             (
+                .sys_reset              (1'b0),
+                .sys_clock              (in_clk125),
+                
                 .out_reset              (sys_reset),
                 .out_clk100             (sys_clk100),
                 .out_clk200             (sys_clk200),
@@ -179,30 +208,74 @@ module top
                 .s_axi4_mem0_rdata      (axi4_mem0_rdata),
                 .s_axi4_mem0_rlast      (axi4_mem0_rlast),
                 .s_axi4_mem0_rvalid     (axi4_mem0_rvalid),
-                .s_axi4_mem0_rready     (axi4_mem0_rready)
+                .s_axi4_mem0_rready     (axi4_mem0_rready),
+                
+                .DDR_addr               (DDR_addr),
+                .DDR_ba                 (DDR_ba),
+                .DDR_cas_n              (DDR_cas_n),
+                .DDR_ck_n               (DDR_ck_n),
+                .DDR_ck_p               (DDR_ck_p),
+                .DDR_cke                (DDR_cke),
+                .DDR_cs_n               (DDR_cs_n),
+                .DDR_dm                 (DDR_dm),
+                .DDR_dq                 (DDR_dq),
+                .DDR_dqs_n              (DDR_dqs_n),
+                .DDR_dqs_p              (DDR_dqs_p),
+                .DDR_odt                (DDR_odt),
+                .DDR_ras_n              (DDR_ras_n),
+                .DDR_reset_n            (DDR_reset_n),
+                .DDR_we_n               (DDR_we_n),
+                .FIXED_IO_ddr_vrn       (FIXED_IO_ddr_vrn),
+                .FIXED_IO_ddr_vrp       (FIXED_IO_ddr_vrp),
+                .FIXED_IO_mio           (FIXED_IO_mio),
+                .FIXED_IO_ps_clk        (FIXED_IO_ps_clk),
+                .FIXED_IO_ps_porb       (FIXED_IO_ps_porb),
+                .FIXED_IO_ps_srstb      (FIXED_IO_ps_srstb),
+                
+                .IIC_0_0_scl_i          (IIC_0_0_scl_i),
+                .IIC_0_0_scl_o          (IIC_0_0_scl_o),
+                .IIC_0_0_scl_t          (IIC_0_0_scl_t),
+                .IIC_0_0_sda_i          (IIC_0_0_sda_i),
+                .IIC_0_0_sda_o          (IIC_0_0_sda_o),
+                .IIC_0_0_sda_t          (IIC_0_0_sda_t)
             );
     
+    assign cam_gpio = dip_sw[0];
     
+    IOBUF
+        i_IOBUF_cam_scl
+            (
+                .IO     (cam_scl),
+                .I      (IIC_0_0_scl_o),
+                .O      (IIC_0_0_scl_i),
+                .T      (IIC_0_0_scl_t)
+            );
+
+    IOBUF
+        i_iobuf_cam_sda
+            (
+                .IO     (cam_sda),
+                .I      (IIC_0_0_sda_o),
+                .O      (IIC_0_0_sda_i),
+                .T      (IIC_0_0_sda_t)
+            );
     
+        
     // AXI4L => WISHBONE
-    localparam  WB_PERI_ADR_WIDTH = 38;
-    localparam  WB_PERI_SEL_WIDTH = 4;
-    localparam  WB_PERI_DAT_WIDTH = 32;
-    
-    wire                                wb_rst_o;
-    wire                                wb_clk_o;
-    wire    [WB_PERI_ADR_WIDTH-1:0]     wb_host_adr_o;
-    wire    [WB_PERI_DAT_WIDTH-1:0]     wb_host_dat_o;
-    wire    [WB_PERI_DAT_WIDTH-1:0]     wb_host_dat_i;
-    wire                                wb_host_we_o;
-    wire    [WB_PERI_SEL_WIDTH-1:0]     wb_host_sel_o;
-    wire                                wb_host_stb_o;
-    wire                                wb_host_ack_i;
+    wire                    wb_rst_o;
+    wire                    wb_clk_o;
+    wire    [29:0]          wb_host_adr_o;
+    wire    [31:0]          wb_host_dat_o;
+    wire    [31:0]          wb_host_dat_i;
+    wire                    wb_host_we_o;
+    wire    [3:0]           wb_host_sel_o;
+    wire                    wb_host_stb_o;
+    wire                    wb_host_ack_i;
     
     jelly_axi4l_to_wishbone
             #(
-                .AXI4L_ADDR_WIDTH   (AXI4L_PERI_ADDR_WIDTH),
-                .AXI4L_DATA_SIZE    (AXI4L_PERI_DATA_SIZE)     // 0:8bit, 1:16bit, 2:32bit ...
+                .AXI4L_ADDR_WIDTH   (32),
+                .AXI4L_DATA_SIZE    (2)     // 0:8bit, 1:16bit, 2:32bit ...
             )
         i_axi4l_to_wishbone
             (
@@ -243,9 +316,9 @@ module top
     //  Global ID
     // ----------------------------------------
     
-    wire    [WB_PERI_DAT_WIDTH-1:0] wb_gid_dat_o;
-    wire                            wb_gid_stb_i;
-    wire                            wb_gid_ack_o;
+    wire    [31:0]          wb_gid_dat_o;
+    wire                    wb_gid_stb_i;
+    wire                    wb_gid_ack_o;
     
     assign wb_gid_dat_o = 32'h01234567;
     assign wb_gid_ack_o = wb_gid_stb_i;
@@ -258,8 +331,6 @@ module top
     
     (* KEEP = "true" *)
     wire                rxbyteclkhs;
-    wire                clkoutphy_out;
-    wire                pll_lock_out;
     wire                system_rst_out;
     wire                init_done;
     
@@ -334,23 +405,28 @@ module top
         end
     end
     
-    reg     [31:0]      rst_counter;
-    reg                 phy_reset;
-    always @(posedge sys_clk200) begin
-        rst_counter <= rst_counter + 1;
-        phy_reset   <= (rst_counter[23:8] == 0);
+    
+    /*
+    (* MARK_DEBUG = "true" *)   reg     [7:0]       dbg_dl0_rxdatahs;
+    (* MARK_DEBUG = "true" *)   reg     [7:0]       dbg_dl0_rxdataesc;
+    (* MARK_DEBUG = "true" *)   reg     [7:0]       dbg_dl1_rxdatahs;
+    (* MARK_DEBUG = "true" *)   reg     [7:0]       dbg_dl1_rxdataesc;
+    
+    always @(posedge clk100) begin
+        dbg_dl0_rxdatahs  <= dl0_rxdatahs ;
+        dbg_dl0_rxdataesc <= dl0_rxdataesc;
+        dbg_dl1_rxdatahs  <= dl1_rxdatahs ;
+        dbg_dl1_rxdataesc <= dl1_rxdataesc;
     end
+    */
     
     
     mipi_dphy_cam
         i_mipi_dphy_cam
             (
                 .core_clk           (sys_clk200),
-                .core_rst           (sys_reset | phy_reset),
+                .core_rst           (sys_reset),
                 .rxbyteclkhs        (rxbyteclkhs),
-                
-                .clkoutphy_out      (clkoutphy_out),
-                .pll_lock_out       (pll_lock_out),
                 .system_rst_out     (system_rst_out),
                 .init_done          (init_done),
                 
@@ -406,10 +482,14 @@ module top
                 .dl1_errsyncesc     (dl1_errsyncesc),
                 .dl1_errcontrol     (dl1_errcontrol),
                 
-                .clk_rxp            (cam_clk_p),
-                .clk_rxn            (cam_clk_n),
-                .data_rxp           (cam_data_p),
-                .data_rxn           (cam_data_n)
+                .clk_hs_rxp         (cam_clk_hs_p),
+                .clk_hs_rxn         (cam_clk_hs_n),
+                .clk_lp_rxp         (cam_clk_lp_p),
+                .clk_lp_rxn         (cam_clk_lp_n),
+                .data_hs_rxp        (cam_data_hs_p),
+                .data_hs_rxn        (cam_data_hs_n),
+                .data_lp_rxp        (cam_data_lp_p),
+                .data_lp_rxn        (cam_data_lp_n)
            );
     
     
@@ -972,14 +1052,17 @@ module top
     reg     [31:0]      reg_counter_rxbyteclkhs;
     always @(posedge rxbyteclkhs)   reg_counter_rxbyteclkhs <= reg_counter_rxbyteclkhs + 1;
     
-    reg     [31:0]      reg_counter_clk100;
-    always @(posedge sys_clk100)    reg_counter_clk100 <= reg_counter_clk100 + 1;
-    
     reg     [31:0]      reg_counter_clk200;
     always @(posedge sys_clk200)    reg_counter_clk200 <= reg_counter_clk200 + 1;
     
-    reg     [31:0]      reg_counter_clk250;
-    always @(posedge sys_clk250)    reg_counter_clk250 <= reg_counter_clk250 + 1;
+    reg     [31:0]      reg_counter_clk100;
+    always @(posedge sys_clk100)    reg_counter_clk100 <= reg_counter_clk100 + 1;
+    
+    reg     [31:0]      reg_counter_peri_aclk;
+    always @(posedge axi4l_peri_aclk)   reg_counter_peri_aclk <= reg_counter_peri_aclk + 1;
+    
+    reg     [31:0]      reg_counter_mem_aclk;
+    always @(posedge axi4_mem_aclk) reg_counter_mem_aclk <= reg_counter_mem_aclk + 1;
     
     reg     frame_toggle = 0;
     always @(posedge axi4s_cam_aclk) begin
@@ -989,56 +1072,26 @@ module top
     end
     
     
-    assign radio_led[1] = reg_counter_clk100[24];
-    assign radio_led[0] = reg_counter_rxbyteclkhs[1];
+    assign led[0] = reg_counter_rxbyteclkhs[24];
+    assign led[1] = reg_counter_peri_aclk[24]; // reg_counter_clk200[24];
+    assign led[2] = reg_counter_mem_aclk[24];  // reg_counter_clk100[24];
+    assign led[3] = frame_toggle;
     
-    assign hd_gpio[0] = sys_reset;
-    assign hd_gpio[1] = reg_counter_clk100[5]; 
-    assign hd_gpio[2] = reg_counter_clk200[5];
-    assign hd_gpio[3] = reg_counter_clk250[5];
-    assign hd_gpio[4] = reg_counter_rxbyteclkhs[5];
-    assign hd_gpio[15:5] = 0;
+    assign pmod_a[0]   = frame_toggle;
+    assign pmod_a[1]   = reg_counter_rxbyteclkhs[5];
+    assign pmod_a[2]   = reg_counter_clk200[5];
+    assign pmod_a[3]   = reg_counter_clk100[5];
+    assign pmod_a[7:4] = 0;
     
     
-    
-    
-    (* MARK_DEBUG = "true" *)   reg                 dbg_sys_reset;
-    (* MARK_DEBUG = "true" *)   reg                 dbg_phy_reset;
-    (* MARK_DEBUG = "true" *)   reg                 dbg_rxbyteclkhs;
-//  (* MARK_DEBUG = "true" *)   reg                 dbg_clkoutphy_out;
-    (* MARK_DEBUG = "true" *)   reg                 dbg_pll_lock_out;
-    (* MARK_DEBUG = "true" *)   reg                 dbg_system_rst_out;
-    (* MARK_DEBUG = "true" *)   reg                 dbg_init_done;
-    (* MARK_DEBUG = "true" *)   reg                 dbg_cl_rxclkactivehs;
-    (* MARK_DEBUG = "true" *)   reg                 dbg_cl_stopstate;
-    (* MARK_DEBUG = "true" *)   reg                 dbg_cl_enable;
-    (* MARK_DEBUG = "true" *)   reg                 dbg_cl_rxulpsclknot;
-    (* MARK_DEBUG = "true" *)   reg                 dbg_cl_ulpsactivenot;
-    
-    (* MARK_DEBUG = "true" *)   reg     [7:0]       dbg_dl0_rxdatahs;
-    (* MARK_DEBUG = "true" *)   reg     [7:0]       dbg_dl0_rxdataesc;
-    (* MARK_DEBUG = "true" *)   reg     [7:0]       dbg_dl1_rxdatahs;
-    (* MARK_DEBUG = "true" *)   reg     [7:0]       dbg_dl1_rxdataesc;
-    
-    always @(posedge sys_clk200) begin
-        dbg_sys_reset        <= sys_reset ; 
-        dbg_phy_reset        <= phy_reset;
-        dbg_rxbyteclkhs      <= reg_counter_rxbyteclkhs[0];
-//      dbg_clkoutphy_out    <= clkoutphy_out   ;
-        dbg_pll_lock_out     <= pll_lock_out    ;
-        dbg_system_rst_out   <= system_rst_out  ;
-        dbg_init_done        <= init_done       ;
-        dbg_cl_rxclkactivehs <= cl_rxclkactivehs;
-        dbg_cl_stopstate     <= cl_stopstate    ;
-        dbg_cl_enable        <= cl_enable       ;
-        dbg_cl_rxulpsclknot  <= cl_rxulpsclknot ;
-        dbg_cl_ulpsactivenot <= cl_ulpsactivenot;
-        dbg_dl0_rxdatahs     <= dl0_rxdatahs ;
-        dbg_dl0_rxdataesc    <= dl0_rxdataesc;
-        dbg_dl1_rxdatahs     <= dl1_rxdatahs ;
-        dbg_dl1_rxdataesc    <= dl1_rxdataesc;
+    (* MARK_DEBUG = "true" *) reg   dbg_clk200;
+    (* MARK_DEBUG = "true" *) reg   dbg_clk100;
+    (* MARK_DEBUG = "true" *) reg   dbg_rxbyteclkhs;
+    always @(posedge sys_clk100) begin
+        dbg_clk200       <= reg_counter_clk200[5];
+        dbg_clk100       <= reg_counter_clk100[5];
+        dbg_rxbyteclkhs  <= reg_counter_rxbyteclkhs[5];
     end
-    
     
     
 endmodule
