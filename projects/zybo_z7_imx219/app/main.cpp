@@ -15,6 +15,14 @@
 //#include <opencv2/highgui.hpp>
 #include <opencv2/opencv.hpp>
 
+#include "UioAccess.h"
+#include "UdmabufAccess.h"
+
+using namespace jelly;
+
+
+
+
 #define FRAME_NUM		3
 #define IMAGE_WIDTH		(3280 / 2)
 #define IMAGE_HEIGHT	(2464 / 2)
@@ -51,10 +59,10 @@ int i2c_test(void)
 
 
 
-void capture_still_image(UioMmap& um_pl_peri, int width, int height, int frame_num)
+void capture_still_image(unsigned long bufadr, UioMmap& um_pl_peri, int width, int height, int frame_num)
 {
 	// DMA start (one shot)
-	um_pl_peri.WriteWord32(0x00010020, 0x30000000);
+	um_pl_peri.WriteWord32(0x00010020, bufadr); // 0x30000000);
 	um_pl_peri.WriteWord32(0x00010024, width*4);				// stride
 	um_pl_peri.WriteWord32(0x00010028, width);					// width
 	um_pl_peri.WriteWord32(0x0001002c, height);					// height
@@ -94,18 +102,30 @@ int main()
 {
 //	return i2c_test();
 	
-	UioMmap um_pl_peri("my_pl_peri", 0x00200000);
+	UioMmap um_pl_peri("uio_pl_peri", 0x00200000);
 	if ( !um_pl_peri.IsMapped() ) {
-		printf("map error : my_pl_peri\n");
+		printf("map error : uio_pl_peri\n");
 		return 1;
 	}
 	
-	UioMmap um_pl_mem("my_pl_ddr3", 0x10000000);
-	if ( !um_pl_mem.IsMapped() ) {
-		printf("map error : my_pl_ddr3\n");
-		return 1;
-	}
 	
+//	UioMmap um_pl_mem("my_pl_ddr3", 0x10000000);
+//	if ( !um_pl_mem.IsMapped() ) {
+//		printf("map error : my_pl_ddr3\n");
+//		return 1;
+//	}
+	
+   	// mmap udmabuf
+    std::cout << "\nudmabuf0 open" << std::endl;
+    UdmabufAccess udmabuf_acc("udmabuf0");
+    if ( !udmabuf_acc.IsMapped() ) {
+        std::cout << "udmabuf0 mmap error" << std::endl;
+        return 1;
+    }
+    std::cout << "udmabuf0 phys addr : " << std::hex << udmabuf_acc.GetPhysAddr() << std::endl;
+    std::cout << "udmabuf0 size      : " << std::hex << udmabuf_acc.GetSize()     << std::endl;
+
+
 //	volatile uint32_t *peri_addr = (volatile uint32_t *)um_pl_peri.GetAddress();
 //	printf("hello:%x\n", peri_addr[0]);
 	
@@ -253,8 +273,9 @@ int main()
 	int width  = w;
 	int height = h; // IMAGE_HEIGHT / 2;
 	
-	void* mem_addr = um_pl_mem.GetAddress();
-	
+//	void* mem_addr = um_pl_mem.GetAddress();
+	void* mem_addr = udmabuf_acc.GetPtr();
+
 	{
 		int		frame_num = 1;
 		int		key;
@@ -271,11 +292,11 @@ int main()
 			if ( width  < 16 ) { width  = 16; }
 			if ( height < 2 )  { height = 2; }
 			
-			capture_still_image(um_pl_peri, width, height, frame_num);
+			capture_still_image(udmabuf_acc.GetPhysAddr(), um_pl_peri, width, height, frame_num);
 			
 			if ( key == 'r' ) {
 				printf("record\n");
-				capture_still_image(um_pl_peri, width, height, 100);
+				capture_still_image(udmabuf_acc.GetPhysAddr(), um_pl_peri, width, height, 100);
 				char* p = (char*)mem_addr;
 				for ( int i = 0; i< 100; i++ ) {
 					char fname[64];
