@@ -1,26 +1,79 @@
+
+TARGET    = zybo_z7_imx219.out
+DT_NAME   = zybo_z7_imx219
+BIT_NAME  = zybo_z7_imx219
+
+DTS_FILE  = $(DT_NAME).dts
+DTBO_FILE = $(DT_NAME).dtbo
+
+BIT_FILE  = $(BIT_NAME).bit
+BIF_FILE  = $(BIT_NAME).bif
+BIN_FILE  = $(BIT_FILE).bin
+
+FIRMWARE_PATH = /lib/firmware
+DEVTREE_PATH  = /configfs/device-tree
+
+CFLAGS  += `pkg-config --cflags opencv` -I../../../soft/Utility
+LDFLAGS += `pkg-config --libs opencv`
+
+OBJS = main.o
+
+
 .PHONY: all
-all: imx219_test
+all: $(TARGET) $(DTBO_FILE) $(BIN_FILE)
 
+.PHONY: clean
+clean:
+	rm -rf $(TARGET) $(OBJS) $(DTBO_FILE) $(BIN_FILE)
 
-
-CFLAGS  += -I../../../soft/Utility -I/usr/local/include/opencv2 -I/usr/local/include/opencv
-LDFLAGS += -L/usr/local/lib -lopencv_core -lopencv_imgcodecs -lopencv_highgui -lopencv_imgproc
-
-
-TARGET = imx219_test
-OBJS   = main.o
-
-run: all
-	sudo ./imx219_test
+.PHONY: run
+run: $(TARGET) load
+	sudo chmod 666 /dev/i2c-0
+#	sudo chmod 777 /dev/uio0
+#	sudo chmod 777 /dev/udmabuf0
+	./$(TARGET)
 
 $(TARGET): $(OBJS)
 	g++ $(LDFLAGS) -o $(TARGET) $(OBJS)
 
-main.o: main.cpp I2cAccess.h
-	g++ $(CFLAGS) -c main.cpp
+%.o : %.cpp
+	g++ $(CFLAGS) -c $< -o $@
+
+$(DTBO_FILE): $(DTS_FILE)
+	dtc -I dts -O dtb -o $(DTBO_FILE) $(DTS_FILE)
+
+$(BIN_FILE): $(BIF_FILE) $(BIT_FILE)
+	bootgen -image $(BIF_FILE) -arch zynq -process_bitstream bin
+
+$(DEVTREE_PATH):
+	sudo mkdir -p /configfs
+	sudo mount -t configfs configfs /configfs
 
 
-.PHONY: clean
-clean:
-	rm -rf $(TARGET) $(OBJS)
+.PHONY: mount
+mount: $(DEVTREE_PATH)
+
+.PHONY: umount
+umount: unload
+	@if [ -d $(DEVTREE_PATH) ] ; then \
+		echo umount configfs ; \
+		sudo umount /configfs ; \
+	fi
+
+.PHONY: load
+load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
+	sudo mkdir -p $(FIRMWARE_PATH)
+	sudo cp $(BIN_FILE) $(FIRMWARE_PATH)
+	sudo mkdir -p $(DEVTREE_PATH)/overlays/full
+	sudo cp $(DTBO_FILE) $(DEVTREE_PATH)/overlays/full/dtbo
+	sudo sh -c "echo 1 > $(DEVTREE_PATH)/overlays/full/status"
+	sudo rm /lib/firmware/$(BIN_FILE)
+
+.PHONY: unload
+unload:
+	@if [ -f /config/device-tree/overlays/full/status ] ; then \
+		echo unload ; \
+		sudo sh -c "echo 0 > $(DEVTREE_PATH)/overlays/full/status" ; \
+		sudo rmdir $(DEVTREE_PATH)/overlays/full ; \
+	fi
 
