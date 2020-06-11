@@ -236,7 +236,54 @@ module tb_axi4l_to_wishbone();
     assign wb_ack_i = wb_stb_o & reg_wb_ack_i;
     
     
+    // WISHBONE protocol check
+    reg    [WB_ADR_WIDTH-1:0]       prev_wb_adr_o;
+    reg    [WB_SEL_WIDTH-1:0]       prev_wb_sel_o;
+    reg    [WB_DAT_WIDTH-1:0]       prev_wb_dat_o;
+    reg                             prev_wb_we_o;
+    reg                             prev_wb_stb_o;
+    reg                             prev_wb_ack_i;
+    always @(posedge wb_clk_o) begin
+        if ( wb_rst_o ) begin
+            prev_wb_adr_o <= {WB_ADR_WIDTH{1'bx}};
+            prev_wb_sel_o <= {WB_SEL_WIDTH{1'bx}};
+            prev_wb_dat_o <= {WB_DAT_WIDTH{1'bx}};
+            prev_wb_we_o  <= 1'b0;
+            prev_wb_stb_o <= 1'b0;
+            prev_wb_ack_i <= 1'b0;
+        end
+        else begin
+            prev_wb_adr_o <= wb_adr_o;
+            prev_wb_sel_o <= wb_sel_o;
+            prev_wb_dat_o <= wb_dat_o;
+            prev_wb_we_o  <= wb_we_o; 
+            prev_wb_stb_o <= wb_stb_o; 
+            prev_wb_ack_i <= wb_ack_i; 
+            
+            if ( prev_wb_stb_o && !prev_wb_ack_i ) begin
+                if ( !wb_stb_o ) begin
+                    $display("error : wb_stb_o fall without ack");
+                end
+                if ( prev_wb_adr_o != wb_adr_o ) begin
+                    $display("error : wb_adr_o change without ack");
+                end
+                if ( prev_wb_we_o != wb_we_o ) begin
+                    $display("error : wb_we_o change without ack");
+                end
+                if ( prev_wb_we_o ) begin
+                    if ( prev_wb_sel_o != wb_sel_o ) begin
+                        $display("error : wb_sel_o change without ack");
+                    end
+                    if ( prev_wb_dat_o != wb_dat_o ) begin
+                        $display("error : wb_sel_o change without ack");
+                    end
+                end
+            end
+        end
+    end
     
+    
+    // access count
     integer count_aw   = 0;
     integer count_w    = 0;
     integer count_b    = 0;
