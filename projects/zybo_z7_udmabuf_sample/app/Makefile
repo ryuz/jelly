@@ -33,8 +33,8 @@ run: $(TARGET) load
 $(TARGET): $(OBJS)
 	g++ $(LDFLAGS) -o $(TARGET) $(OBJS)
 
-main.o: main.cpp
-	g++ $(CFLAGS) -c main.cpp
+%.o : %.cpp
+	g++ $(CFLAGS) -c $< -o $@
 
 $(DTBO_FILE): $(DTS_FILE)
 	dtc -I dts -O dtb -o $(DTBO_FILE) $(DTS_FILE)
