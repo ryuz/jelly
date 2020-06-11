@@ -8,19 +8,15 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
-#include "UioMmap.h"
-#include "I2cAccess.h"
-//#include <opencv2/core.hpp>
-//#include <opencv2/imgcodecs.hpp>
-//#include <opencv2/highgui.hpp>
 #include <opencv2/opencv.hpp>
 
-#include "UioAccess.h"
-#include "UdmabufAccess.h"
+// #include "UioMmap.h"
+
+#include "jelly/UioAccess.h"
+#include "jelly/UdmabufAccess.h"
+#include "I2cAccess.h"
 
 using namespace jelly;
-
-
 
 
 #define FRAME_NUM		3
@@ -57,63 +53,85 @@ int i2c_test(void)
 }
 */
 
+// Video Write-DMA
+#define REG_WDMA_ID            		0x00
+#define REG_WDMA_VERSION       		0x01
+#define REG_WDMA_CTL_CONTROL   		0x04
+#define REG_WDMA_CTL_STATUS    		0x05
+#define REG_WDMA_CTL_INDEX     		0x07
+#define REG_WDMA_PARAM_ADDR    		0x08
+#define REG_WDMA_PARAM_STRIDE  		0x09
+#define REG_WDMA_PARAM_WIDTH   		0x0a
+#define REG_WDMA_PARAM_HEIGHT  		0x0b
+#define REG_WDMA_PARAM_SIZE    		0x0c
+#define REG_WDMA_PARAM_AWLEN   		0x0f
+#define REG_WDMA_MONITOR_ADDR  		0x10
+#define REG_WDMA_MONITOR_STRIDE		0x11
+#define REG_WDMA_MONITOR_WIDTH 		0x12
+#define REG_WDMA_MONITOR_HEIGHT		0x13
+#define REG_WDMA_MONITOR_SIZE  		0x14
+#define REG_WDMA_MONITOR_AWLEN 		0x17
+
+// Video Normalizer
+#define REG_NORM_CONTROL            0x00
+#define REG_NORM_BUSY               0x01
+#define REG_NORM_INDEX              0x02
+#define REG_NORM_SKIP               0x03
+#define REG_NORM_FRM_TIMER_EN       0x04
+#define REG_NORM_FRM_TIMEOUT        0x05
+#define REG_NORM_PARAM_WIDTH        0x08
+#define REG_NORM_PARAM_HEIGHT       0x09
+#define REG_NORM_PARAM_FILL         0x0a
+#define REG_NORM_PARAM_TIMEOUT      0x0b
 
 
-void capture_still_image(unsigned long bufadr, UioMmap& um_pl_peri, int width, int height, int frame_num)
+void capture_still_image(MemAccess& reg_wdma, MemAccess& reg_norm, std::uintptr_t bufaddr, int width, int height, int frame_num)
 {
 	// DMA start (one shot)
-	um_pl_peri.WriteWord32(0x00010020, bufadr); // 0x30000000);
-	um_pl_peri.WriteWord32(0x00010024, width*4);				// stride
-	um_pl_peri.WriteWord32(0x00010028, width);					// width
-	um_pl_peri.WriteWord32(0x0001002c, height);					// height
-	um_pl_peri.WriteWord32(0x00010030, width*height*frame_num);	// size
-	um_pl_peri.WriteWord32(0x0001003c, 31);						// awlen
-	um_pl_peri.WriteWord32(0x00010010, 0x07);
+	reg_wdma.WriteReg(REG_WDMA_PARAM_ADDR, bufaddr); // 0x30000000);
+	reg_wdma.WriteReg(REG_WDMA_PARAM_STRIDE, width*4);				// stride
+	reg_wdma.WriteReg(REG_WDMA_PARAM_WIDTH, width);					// width
+	reg_wdma.WriteReg(REG_WDMA_PARAM_HEIGHT, height);				// height
+	reg_wdma.WriteReg(REG_WDMA_PARAM_SIZE, width*height*frame_num);	// size
+	reg_wdma.WriteReg(REG_WDMA_PARAM_AWLEN, 31);					// awlen
+	reg_wdma.WriteReg(REG_WDMA_CTL_CONTROL, 0x07);
 	
 	// normalizer start
-	um_pl_peri.WriteWord32(0x00011010, 1);
-	um_pl_peri.WriteWord32(0x00011014, 100000000);
-	um_pl_peri.WriteWord32(0x00011020, width);
-	um_pl_peri.WriteWord32(0x00011024, height);
-	um_pl_peri.WriteWord32(0x00011028, 0xfff);
-	um_pl_peri.WriteWord32(0x0001102c, 0x10000);
-	um_pl_peri.WriteWord32(0x00011000, 3);
+	reg_norm.WriteReg(REG_NORM_FRM_TIMER_EN, 1);
+	reg_norm.WriteReg(REG_NORM_FRM_TIMEOUT, 100000000);
+	reg_norm.WriteReg(REG_NORM_PARAM_WIDTH, width);
+	reg_norm.WriteReg(REG_NORM_PARAM_HEIGHT, height);
+	reg_norm.WriteReg(REG_NORM_PARAM_FILL, 0xfff);
+	reg_norm.WriteReg(REG_NORM_PARAM_TIMEOUT, 0x10000);
+	reg_norm.WriteReg(REG_NORM_CONTROL, 0x03);
 	usleep(100000);
-	
 	
 	// éÊÇËçûÇ›äÆóπÇë“Ç¬
 	usleep(10000);
-	while ( um_pl_peri.ReadWord32(0x00010014) != 0 ) {
+	while ( reg_wdma.ReadReg(REG_WDMA_CTL_STATUS) != 0 ) {
 		usleep(10000);
 	}
 	
 	// normalizer stop
-	um_pl_peri.WriteWord32(0x00011000, 0);
+	reg_norm.WriteReg(REG_NORM_CONTROL, 0x00);
 	usleep(1000);
-	while ( um_pl_peri.ReadWord32(0x00011004) != 0 ) {
+	while ( reg_wdma.ReadReg(REG_NORM_BUSY) != 0 ) {
 		usleep(1000);
 	}
 }
 
 
-
-
 int main()
 {
-//	return i2c_test();
-	
-	UioMmap um_pl_peri("uio_pl_peri", 0x00200000);
-	if ( !um_pl_peri.IsMapped() ) {
-		printf("map error : uio_pl_peri\n");
-		return 1;
-	}
-	
-	
-//	UioMmap um_pl_mem("my_pl_ddr3", 0x10000000);
-//	if ( !um_pl_mem.IsMapped() ) {
-//		printf("map error : my_pl_ddr3\n");
-//		return 1;
-//	}
+	// mmap uio
+    std::cout << "\nuio open" << std::endl;
+    UioAccess uio_acc("uio_pl_peri", 0x00100000);
+    if ( !uio_acc.IsMapped() ) {
+        std::cout << "uio_pl_peri mmap error" << std::endl;
+        return 1;
+    }
+	auto reg_wdma = uio_acc.GetMemAccess(0x00010000);
+	auto reg_norm = uio_acc.GetMemAccess(0x00011000);
 	
    	// mmap udmabuf
     std::cout << "\nudmabuf0 open" << std::endl;
@@ -126,18 +144,11 @@ int main()
     std::cout << "udmabuf0 size      : " << std::hex << udmabuf_acc.GetSize()     << std::endl;
 
 
-//	volatile uint32_t *peri_addr = (volatile uint32_t *)um_pl_peri.GetAddress();
-//	printf("hello:%x\n", peri_addr[0]);
-	
-	
-//	cv::Mat img(IMAGE_HEIGHT, IMAGE_WIDTH, CV_16U);
-	
 	
 	int w = 640;
 	int h = 132;
 	
 	I2cAccess	i2c;
-	
 	if ( !i2c.Open("/dev/i2c-0", 0x10) ) {
 		printf("I2C open error\n");
 		return 1;
@@ -274,14 +285,15 @@ int main()
 	int height = h; // IMAGE_HEIGHT / 2;
 	
 //	void* mem_addr = um_pl_mem.GetAddress();
-	void* mem_addr = udmabuf_acc.GetPtr();
+	auto dmabuf_ptr      = udmabuf_acc.GetPtr();
+	auto dmabuf_phys_adr = udmabuf_acc.GetPhysAddr();
 
 	{
 		int		frame_num = 1;
 		int		key;
 		while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
 			cv::Mat img(height*frame_num, width, CV_8UC4);
-			memcpy(img.data, (void *)mem_addr, width * height * 4 * frame_num);
+			memcpy(img.data, dmabuf_ptr, width * height * 4 * frame_num);
 			cv::imshow("img", img);
 			cv::imwrite("img.png", img);
 			cv::createTrackbar("width",  "img", &width,     IMAGE_WIDTH);
@@ -292,12 +304,12 @@ int main()
 			if ( width  < 16 ) { width  = 16; }
 			if ( height < 2 )  { height = 2; }
 			
-			capture_still_image(udmabuf_acc.GetPhysAddr(), um_pl_peri, width, height, frame_num);
+			capture_still_image(reg_wdma, reg_norm, dmabuf_phys_adr, width, height, frame_num);
 			
 			if ( key == 'r' ) {
 				printf("record\n");
-				capture_still_image(udmabuf_acc.GetPhysAddr(), um_pl_peri, width, height, 100);
-				char* p = (char*)mem_addr;
+				capture_still_image(reg_wdma, reg_norm, dmabuf_phys_adr, width, height, 100);
+				char* p = (char*)dmabuf_ptr;
 				for ( int i = 0; i< 100; i++ ) {
 					char fname[64];
 					sprintf(fname, "rec_%04d.png", i);
