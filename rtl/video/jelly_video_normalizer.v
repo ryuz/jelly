@@ -73,16 +73,16 @@ module jelly_video_normalizer
     
     
     // register
-    localparam  REG_ADDR_CONTROL       = 32'h00;
-    localparam  REG_ADDR_BUSY          = 32'h01;
-    localparam  REG_ADDR_INDEX         = 32'h02;
-    localparam  REG_ADDR_SKIP          = 32'h03;
-    localparam  REG_ADDR_FRM_TIMER_EN  = 32'h04;
-    localparam  REG_ADDR_FRM_TIMEOUT   = 32'h05;
-    localparam  REG_ADDR_PARAM_WIDTH   = 32'h08;
-    localparam  REG_ADDR_PARAM_HEIGHT  = 32'h09;
-    localparam  REG_ADDR_PARAM_FILL    = 32'h0a;
-    localparam  REG_ADDR_PARAM_TIMEOUT = 32'h0b;
+    localparam  ADR_CONTROL       = 32'h00;
+    localparam  ADR_BUSY          = 32'h01;
+    localparam  ADR_INDEX         = 32'h02;
+    localparam  ADR_SKIP          = 32'h03;
+    localparam  ADR_FRM_TIMER_EN  = 32'h04;
+    localparam  ADR_FRM_TIMEOUT   = 32'h05;
+    localparam  ADR_PARAM_WIDTH   = 32'h08;
+    localparam  ADR_PARAM_HEIGHT  = 32'h09;
+    localparam  ADR_PARAM_FILL    = 32'h0a;
+    localparam  ADR_PARAM_TIMEOUT = 32'h0b;
     
     reg     [1:0]                   reg_control;
     reg                             reg_skip;
@@ -107,6 +107,19 @@ module jelly_video_normalizer
         ff2_index <= ff1_index;
     end
     
+    function [WB_DAT_WIDTH-1:0] reg_mask(
+                                        input [WB_DAT_WIDTH-1:0] org,
+                                        input [WB_DAT_WIDTH-1:0] wdat,
+                                        input [WB_SEL_WIDTH-1:0] msk
+                                    );
+    integer i;
+    begin
+        for ( i = 0; i < WB_DAT_WIDTH; i = i+1 ) begin
+            reg_mask[i] = msk[i/8] ? wdat[i] : org[i];
+        end
+    end
+    endfunction
+    
     always @(posedge s_wb_clk_i) begin
         if ( s_wb_rst_i ) begin
             reg_control       <= INIT_CONTROL;
@@ -125,14 +138,14 @@ module jelly_video_normalizer
             
             if ( s_wb_stb_i && s_wb_we_i ) begin
                 case ( s_wb_adr_i )
-                REG_ADDR_CONTROL:       reg_control       <= s_wb_dat_i;
-                REG_ADDR_SKIP:          reg_skip          <= s_wb_dat_i;
-                REG_ADDR_FRM_TIMER_EN:  reg_frm_timer_en  <= s_wb_dat_i;
-                REG_ADDR_FRM_TIMEOUT:   reg_frm_timeout   <= s_wb_dat_i;
-                REG_ADDR_PARAM_WIDTH:   reg_param_width   <= s_wb_dat_i;
-                REG_ADDR_PARAM_HEIGHT:  reg_param_height  <= s_wb_dat_i;
-                REG_ADDR_PARAM_FILL:    reg_param_fill    <= s_wb_dat_i;
-                REG_ADDR_PARAM_TIMEOUT: reg_param_timeout <= s_wb_dat_i;
+                ADR_CONTROL:        reg_control       <= reg_mask(s_wb_dat_i, s_wb_dat_i, s_wb_sel_i);
+                ADR_SKIP:           reg_skip          <= reg_mask(s_wb_dat_i, s_wb_dat_i, s_wb_sel_i);
+                ADR_FRM_TIMER_EN:   reg_frm_timer_en  <= reg_mask(s_wb_dat_i, s_wb_dat_i, s_wb_sel_i);
+                ADR_FRM_TIMEOUT:    reg_frm_timeout   <= reg_mask(s_wb_dat_i, s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_WIDTH:    reg_param_width   <= reg_mask(s_wb_dat_i, s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_HEIGHT:   reg_param_height  <= reg_mask(s_wb_dat_i, s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_FILL:     reg_param_fill    <= reg_mask(s_wb_dat_i, s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_TIMEOUT:  reg_param_timeout <= reg_mask(s_wb_dat_i, s_wb_dat_i, s_wb_sel_i);
                 endcase
             end
         end
@@ -142,16 +155,16 @@ module jelly_video_normalizer
     always @* begin
         wb_dat_o = {WB_DAT_WIDTH{1'b0}};
         case ( s_wb_adr_i )
-        REG_ADDR_CONTROL:       wb_dat_o = reg_control;
-        REG_ADDR_BUSY:          wb_dat_o = ff1_busy;
-        REG_ADDR_INDEX:         wb_dat_o = ff1_index;
-        REG_ADDR_SKIP:          wb_dat_o = reg_skip;
-        REG_ADDR_FRM_TIMER_EN:  wb_dat_o = reg_frm_timer_en;
-        REG_ADDR_FRM_TIMEOUT:   wb_dat_o = reg_frm_timeout;
-        REG_ADDR_PARAM_WIDTH:   wb_dat_o = reg_param_width;
-        REG_ADDR_PARAM_HEIGHT:  wb_dat_o = reg_param_height;
-        REG_ADDR_PARAM_FILL:    wb_dat_o = reg_param_fill;
-        REG_ADDR_PARAM_TIMEOUT: wb_dat_o = reg_param_timeout;
+        ADR_CONTROL:        wb_dat_o = reg_control;
+        ADR_BUSY:           wb_dat_o = ff1_busy;
+        ADR_INDEX:          wb_dat_o = ff1_index;
+        ADR_SKIP:           wb_dat_o = reg_skip;
+        ADR_FRM_TIMER_EN:   wb_dat_o = reg_frm_timer_en;
+        ADR_FRM_TIMEOUT:    wb_dat_o = reg_frm_timeout;
+        ADR_PARAM_WIDTH:    wb_dat_o = reg_param_width;
+        ADR_PARAM_HEIGHT:   wb_dat_o = reg_param_height;
+        ADR_PARAM_FILL:     wb_dat_o = reg_param_fill;
+        ADR_PARAM_TIMEOUT:  wb_dat_o = reg_param_timeout;
         endcase
     end
     
