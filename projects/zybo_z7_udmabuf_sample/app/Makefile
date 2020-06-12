@@ -13,7 +13,7 @@ BIN_FILE  = $(BIT_FILE).bin
 FIRMWARE_PATH = /lib/firmware
 DEVTREE_PATH  = /configfs/device-tree
 
-CFLAGS  += -I../../../soft/Utility
+CFLAGS  += -I../../../include
 LDFLAGS += 
 
 OBJS = main.o
@@ -40,7 +40,7 @@ $(DTBO_FILE): $(DTS_FILE)
 	dtc -I dts -O dtb -o $(DTBO_FILE) $(DTS_FILE)
 
 $(BIN_FILE): $(BIF_FILE) $(BIT_FILE)
-	bootgen -image $(BIF_FILE) -arch zynq -process_bitstream bin
+	bootgen -w -image $(BIF_FILE) -arch zynq -process_bitstream bin
 
 $(DEVTREE_PATH):
 	sudo mkdir -p /configfs

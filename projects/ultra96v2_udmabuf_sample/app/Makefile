@@ -1,5 +1,5 @@
 
-TARGET    = udmabuf_sample
+TARGET    = udmabuf_sample.out
 DT_NAME   = ultra96v2_udmabuf_sample
 BIT_NAME  = ultra96v2_udmabuf_sample
 
@@ -13,7 +13,7 @@ BIN_FILE  = $(BIT_FILE).bin
 FIRMWARE_PATH = /lib/firmware
 DEVTREE_PATH  = /configfs/device-tree
 
-CFLAGS  += -g -O0 -I../../../soft/Utility
+CFLAGS  += -g -O0 -I../../../include
 LDFLAGS += 
 
 OBJS = main.o
@@ -33,8 +33,8 @@ run: $(TARGET) load
 $(TARGET): $(OBJS)
 	g++ $(LDFLAGS) -o $(TARGET) $(OBJS)
 
-main.o: main.cpp
-	g++ $(CFLAGS) -c main.cpp
+%.o : %.cpp
+	g++ $(CFLAGS) -c $< -o $@
 
 $(DTBO_FILE): $(DTS_FILE)
 	dtc -I dts -O dtb -o $(DTBO_FILE) $(DTS_FILE)
