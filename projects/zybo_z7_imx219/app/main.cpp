@@ -112,16 +112,18 @@ int main()
         std::cout << "udmabuf0 mmap error" << std::endl;
         return 1;
     }
-    std::cout << "udmabuf0 phys addr : " << std::hex << udmabuf_acc.GetPhysAddr() << std::endl;
-    std::cout << "udmabuf0 size      : " << std::hex << udmabuf_acc.GetSize()     << std::endl;
+	auto dmabuf_ptr      = udmabuf_acc.GetPtr();
+	auto dmabuf_phys_adr = udmabuf_acc.GetPhysAddr();
+    std::cout << "udmabuf0 phys addr : " << std::hex << dmabuf_ptr << std::endl;
+    std::cout << "udmabuf0 size      : " << std::hex << dmabuf_phys_adr << std::endl;
 
 
-	
-//	int width = 640;
-//	int height = 480; // 132;
-	
 	int width  = 3280; // 3280 / 4;
 	int height = 2464; // 2464;
+
+//			width &= 0xfffffff0;
+//			if ( width  < 16 ) { width  = 16; }
+//			if ( height < 2 )  { height = 2; }
 
 	IMX219ControlI2c imx219;
 	if ( !imx219.Open("/dev/i2c-0", 0x10) ) {
@@ -136,48 +138,50 @@ int main()
 	imx219.SetGain(30.0);
 	imx219.SetDigitalGain(30.0);
 	imx219.SetAoi(width, height, -1, -1, true, true);
-	imx219.Setup();
+//	imx219.Setup();
 #else
+	width  = 3280;
+	height = 2464;
 	imx219.SetPixelClock(91000000);
 	imx219.SetGain(10.0);
-//	imx219.SetDigitalGain(0x0FFF);
 	imx219.SetDigitalGain(0.0);
 	imx219.SetAoi(width, height, 8, 8, false, false);
-	imx219.Setup();
+//	imx219.Setup();
 #endif
+	imx219.SetFlip(true, true);
 
 	imx219.Start();
 
-	imx219.SetFrameRate(1000);
-	imx219.SetFlip(true, true);
-
-	printf("pixel clock   : %f [Hz]\n",  imx219.GetPixelClock());
-	printf("frame rate    : %f [fps]\n", imx219.GetFrameRate());
-	printf("exposure time : %f [s]\n",   imx219.GetExposureTime());
-	printf("analog  gain  : %f [db]\n",  imx219.GetGain());
-	printf("digital gain  : %f [db]\n",  imx219.GetDigitalGain());
-	
-//	void* mem_addr = um_pl_mem.GetAddress();
-	auto dmabuf_ptr      = udmabuf_acc.GetPtr();
-	auto dmabuf_phys_adr = udmabuf_acc.GetPhysAddr();
-
+	int fps      = 1000;
+	int exposure = 1;
+	int a_gain   = 20;
+	int d_gain   = 24;
 	{
 		int		frame_num = 1;
 		int		key;
 		while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
+			capture_still_image(reg_wdma, reg_norm, dmabuf_phys_adr, width, height, frame_num);
 			cv::Mat img(height*frame_num, width, CV_8UC4);
 			memcpy(img.data, dmabuf_ptr, width * height * 4 * frame_num);
 			cv::imshow("img", img);
-			cv::createTrackbar("width",  "img", &width,     IMAGE_WIDTH);
-			cv::createTrackbar("height", "img", &height,    IMAGE_HEIGHT);
-			cv::createTrackbar("frame",  "img", &frame_num, 10);
-			
-			width &= 0xfffffff0;
-			if ( width  < 16 ) { width  = 16; }
-			if ( height < 2 )  { height = 2; }
-			
-			capture_still_image(reg_wdma, reg_norm, dmabuf_phys_adr, width, height, frame_num);
-			
+			cv::createTrackbar("fps",      "img", &fps, 1000);
+			cv::createTrackbar("exposure", "img", &exposure, 100);
+			cv::createTrackbar("a_gain",   "img", &a_gain, 20);
+			cv::createTrackbar("d_gain",   "img", &d_gain, 24);
+
+			imx219.SetFrameRate(fps);
+			imx219.SetExposureTime(exposure / 1000.0);
+			imx219.SetGain(a_gain);
+			imx219.SetDigitalGain(d_gain);
+
+			if ( key == 'p' ) {
+				std::cout << "pixel clock   : " << imx219.GetPixelClock()   << " [Hz]"  << std::endl;
+				std::cout << "frame rate    : " << imx219.GetFrameRate()    << " [fps]" << std::endl;
+				std::cout << "exposure time : " << imx219.GetExposureTime() << " [s]"   << std::endl;
+				std::cout << "analog  gain  : " << imx219.GetGain()         << " [db]"  << std::endl;
+				std::cout << "digital gain  : " << imx219.GetDigitalGain()  << " [db]"  << std::endl;
+			}
+
 			if ( key == 'd' ) {
 				cv::Mat imgRgb;
 				cv::cvtColor(img, imgRgb, CV_BGRA2BGR);

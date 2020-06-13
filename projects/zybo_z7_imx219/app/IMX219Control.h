@@ -365,11 +365,6 @@ public:
 	int GetSensorCenterX(void) { return m_binning_h  ? (8 + (3280 / 2)) / 2 : 8 + (3280 / 2); }
 	int GetSensorCenterY(void) { return m_binning_v  ? (8 + (2464 / 2)) / 2 : 8 + (2464 / 2); }
 
-	int GetAoiWidth(void) { return m_width; }
-	int GetAoiHeight(void) { return m_height; }
-	int GetAoiX(void) { return m_aoi_x; }
-	int GetAoiY(void) { return m_aoi_y; }
-
 	bool SetAoi(int width, int height, int x=-1, int y=-1, bool binning_h=false, bool binning_v=false)
 	{
 		if ( !IsOpend() ) { return false; }
@@ -396,6 +391,11 @@ public:
 		return true;
 	}
 
+	int GetAoiWidth(void) { return m_width; }
+	int GetAoiHeight(void) { return m_height; }
+	int GetAoiX(void) { return m_aoi_x; }
+	int GetAoiY(void) { return m_aoi_y; }
+
 	bool SetFlip(bool flip_h, bool flip_v)
 	{
 		m_flip_h = flip_h;
@@ -409,6 +409,7 @@ public:
 		return true;
 	}
 
+protected:
 	bool Setup(void)
 	{
 		if ( !IsOpend() ) {
@@ -453,14 +454,6 @@ public:
 		return true;
 	}
 
-protected:
-
-	/*
-	int GetMinFrmLength(void)
-	{
-		return m_binning_v ? m_height / 2 + 14 : m_height + 16;
-	}
-	*/
 
 	int I2cWriteAddr16(unsigned short addr, const void* data, int len)
 	{
@@ -524,10 +517,10 @@ protected:
 		return I2cWriteAddr16(addr, buf, 2);
 	}
 	
-	unsigned char I2cReadAddr16Byte(unsigned short addr)
+	unsigned char I2cRead8bit(unsigned short addr)
 	{
 		unsigned char buf[1];
-		I2cReadAddr16(addr, buf, 1);
+		I2cRead(addr, buf, 1);
 		return buf[0];
 	}
 	*/
