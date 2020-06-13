@@ -76,7 +76,7 @@ module video_raw_to_rgb
 	wire								sink_img_pixel_last;
 	wire								sink_img_de;
 	wire	[TUSER_WIDTH-1:0]			sink_img_user;
-	wire	[4*M_TDATA_WIDTH-1:0]		sink_img_data;
+	wire	[M_TDATA_WIDTH-1:0] 		sink_img_data;
 	wire								sink_img_valid;
 	
 	// img
@@ -208,7 +208,7 @@ module video_raw_to_rgb
 	
 	jelly_img_color_matrix
 			#(
-				.USER_WIDTH           	(TUSER_WIDTH),
+				.USER_WIDTH           	(TUSER_WIDTH+10),
 				.DATA_WIDTH           	(DATA_WIDTH),
 				.INTERNAL_WIDTH       	(DATA_WIDTH+2),
 				

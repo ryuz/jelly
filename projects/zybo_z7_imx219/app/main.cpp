@@ -4,54 +4,19 @@
 #include <stdint.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <sys/mman.h>
-#include <errno.h>
-#include <sys/ioctl.h>
-#include <linux/i2c-dev.h>
+//#include <sys/mman.h>
+//#include <errno.h>
+//#include <sys/ioctl.h>
+//#include <linux/i2c-dev.h>
 #include <opencv2/opencv.hpp>
-
-// #include "UioMmap.h"
 
 #include "jelly/UioAccess.h"
 #include "jelly/UdmabufAccess.h"
 #include "I2cAccess.h"
+#include "IMX219Control.h"
 
 using namespace jelly;
 
-
-#define FRAME_NUM		3
-#define IMAGE_WIDTH		(3280 / 2)
-#define IMAGE_HEIGHT	(2464 / 2)
-
-
-/*
-int i2c_test(void)
-{
-	int i2c = open("/dev/i2c-0", O_RDWR);
-	if ( i2c < 0 ) {
-		printf("I2C open error\n");
-		return 1;
-	}
-	printf("I2C:%d\n", i2c);
-	
-	ioctl(i2c, I2C_SLAVE, 0x10);
-	
-	uint8_t	buf[16];
-	int ret = 0;
-	buf[0] = 0x00;
-	buf[1] = 0x00;
-    ret = write(i2c, buf, 2);
-    printf("write:%d\n\r", ret);
-	
-	buf[0] = 0xff;
-    ret = read(i2c, buf, 1);
-    printf("read:%d\n\r", ret);
-    
-    printf("read:0x%02x\n\r", buf[0]);
-	close(i2c);
-	return 0;
-}
-*/
 
 // Video Write-DMA
 #define REG_WDMA_ID            		0x00
@@ -84,7 +49,229 @@ int i2c_test(void)
 #define REG_NORM_PARAM_FILL         0x0a
 #define REG_NORM_PARAM_TIMEOUT      0x0b
 
+// Raw to RGB
+#define REG_RAW2RGB_DEMOSAIC_PHASE 	0x00
+#define REG_RAW2RGB_DEMOSAIC_BYPASS 0x01
 
+
+void capture_still_image(MemAccess& reg_wdma, MemAccess& reg_norm, std::uintptr_t bufaddr, int width, int height, int frame_num);
+
+
+int main(int argc, char *argv[])
+{
+	double 	pixel_clock = 139200000.0;
+	bool	binning     = true;
+	int    	width       = 640;
+	int    	height      = 132;
+	int		aoi_x       = -1;
+	int		aoi_y       = -1;
+	bool	flip_h      = false;
+	bool	flip_v      = false;
+	int     frame_rate  = 1000;
+	int		exposure    = 10;
+	int		a_gain      = 20;
+	int		d_gain      = 10;
+	int		bayer_phase = 0;
+	int		view_scale  = 1;
+
+	for ( int i = 1; i < argc; ++i ) {
+		if ( strcmp(argv[i], "full") == 0 ) {
+			pixel_clock = 91000000;
+			binning    = false;
+			width      = 3280;
+			height     = 2464;
+			aoi_x      = 0;
+			aoi_y      = 0;
+			frame_rate = 20;
+			exposure   = 33;
+			a_gain     = 20;
+			d_gain     = 0;
+			view_scale = 4;
+		}
+		else if ( strcmp(argv[i], "-pixel_clock") == 0 && i+1 < argc) {
+			++i;
+			pixel_clock = strtof(argv[i], nullptr);
+		}
+		else if ( strcmp(argv[i], "-binning") == 0 && i+1 < argc) {
+			++i;
+			binning = (strtol(argv[i], nullptr, 0) != 0);
+		}
+		else if ( strcmp(argv[i], "-width") == 0 && i+1 < argc) {
+			++i;
+			width = strtol(argv[i], nullptr, 0);
+		}
+		else if ( strcmp(argv[i], "-height") == 0 && i+1 < argc) {
+			++i;
+			height = strtol(argv[i], nullptr, 0);
+		}
+		else if ( strcmp(argv[i], "-aoi_x") == 0 && i+1 < argc) {
+			++i;
+			aoi_x = strtol(argv[i], nullptr, 0);
+		}
+		else if ( strcmp(argv[i], "-aoi_y") == 0 && i+1 < argc) {
+			++i;
+			aoi_y = strtol(argv[i], nullptr, 0);
+		}
+		else if ( strcmp(argv[i], "-frame_rate") == 0 && i+1 < argc) {
+			++i;
+			frame_rate = (int)strtof(argv[i], nullptr);
+		}
+		else if ( strcmp(argv[i], "-exposure") == 0 && i+1 < argc) {
+			++i;
+			exposure = (int)strtof(argv[i], nullptr);
+		}
+		else if ( strcmp(argv[i], "-a_gain") == 0 && i+1 < argc) {
+			++i;
+			a_gain = (int)strtof(argv[i], nullptr);
+		}
+		else if ( strcmp(argv[i], "-d_gain") == 0 && i+1 < argc) {
+			++i;
+			d_gain = (int)strtof(argv[i], nullptr);
+		}
+		else if ( strcmp(argv[i], "-bayer_phase") == 0 && i+1 < argc) {
+			++i;
+			bayer_phase = strtol(argv[i], nullptr, 0);
+		}
+		else if ( strcmp(argv[i], "-view_scale") == 0 && i+1 < argc) {
+			++i;
+			view_scale = strtol(argv[i], nullptr, 0);
+		}
+		else {
+			std::cout << "unknown option : " << argv[i] << std::endl;
+			return 1;
+		}
+	}
+	
+	width &= ~0xf;
+	width  = std::max(width, 16);
+	height = std::max(height, 2);
+
+
+	// mmap uio
+//  std::cout << "\nuio open" << std::endl;
+    UioAccess uio_acc("uio_pl_peri", 0x00100000);
+    if ( !uio_acc.IsMapped() ) {
+        std::cout << "uio_pl_peri mmap error" << std::endl;
+        return 1;
+    }
+	auto reg_wdma = uio_acc.GetMemAccess(0x00010000);
+	auto reg_norm = uio_acc.GetMemAccess(0x00011000);
+	auto reg_rgb  = uio_acc.GetMemAccess(0x00012000);
+	
+   	// mmap udmabuf
+ // std::cout << "\nudmabuf0 open" << std::endl;
+    UdmabufAccess udmabuf_acc("udmabuf0");
+    if ( !udmabuf_acc.IsMapped() ) {
+        std::cout << "udmabuf0 mmap error" << std::endl;
+        return 1;
+    }
+
+	auto dmabuf_phys_adr = udmabuf_acc.GetPhysAddr();
+	auto dmabuf_mem_size = udmabuf_acc.GetSize();
+//  std::cout << "udmabuf0 phys addr : 0x" << std::hex << dmabuf_phys_adr << std::endl;
+//  std::cout << "udmabuf0 size      : " << std::dec << dmabuf_mem_size << std::endl;
+
+
+	// IMX219 I2C control
+	IMX219ControlI2c imx219;
+	if ( !imx219.Open("/dev/i2c-0", 0x10) ) {
+		printf("I2C open error\n");
+		return 1;
+	}
+
+	imx219.SetPixelClock(pixel_clock);
+	imx219.SetAoi(width, height, aoi_x, aoi_y, binning, binning);
+	imx219.Start();
+
+	int		rec_frame_num = std::min(100, (int)(dmabuf_mem_size / (width * height * 4)));
+	int     frame_num     = 1;
+
+	int		key;
+	while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
+		// è¨­å®š
+		imx219.SetFrameRate(frame_rate);
+		imx219.SetExposureTime(exposure / 1000.0);
+		imx219.SetGain(a_gain);
+		imx219.SetDigitalGain(d_gain);
+		imx219.SetFlip(flip_h, flip_v);
+		reg_rgb.WriteReg(REG_RAW2RGB_DEMOSAIC_PHASE, bayer_phase);
+
+		// ã‚­ãƒ£ãƒ—ãƒãƒ£
+		capture_still_image(reg_wdma, reg_norm, dmabuf_phys_adr, width, height, frame_num);
+		cv::Mat img(height*frame_num, width, CV_8UC4);
+		udmabuf_acc.MemCopyFrom(img.data, 0, width * height * 4 * frame_num);
+		
+		// è¡¨ç¤º
+		cv::Mat view_img;
+		cv::resize(img, view_img, cv::Size(), 1.0/view_scale, 1.0/view_scale);
+
+		cv::imshow("img", view_img);
+		cv::createTrackbar("scale",    "img", &view_scale, 4);
+		cv::createTrackbar("fps",      "img", &frame_rate, 1000);
+		cv::createTrackbar("exposure", "img", &exposure, 1000);
+		cv::createTrackbar("a_gain",   "img", &a_gain, 200);
+		cv::createTrackbar("d_gain",   "img", &d_gain, 240);
+		cv::createTrackbar("bayer" ,   "img", &bayer_phase, 3);
+
+		// ãƒ¦ãƒ¼ã‚¶ãƒ¼æ“ä½œ
+		if ( key == 'p' ) {
+			std::cout << "pixel clock   : " << imx219.GetPixelClock()   << " [Hz]"  << std::endl;
+			std::cout << "frame rate    : " << imx219.GetFrameRate()    << " [fps]" << std::endl;
+			std::cout << "exposure time : " << imx219.GetExposureTime() << " [s]"   << std::endl;
+			std::cout << "analog  gain  : " << imx219.GetGain()         << " [db]"  << std::endl;
+			std::cout << "digital gain  : " << imx219.GetDigitalGain()  << " [db]"  << std::endl;
+			std::cout << "AOI width     : " << imx219.GetAoiWidth()  << std::endl;
+			std::cout << "AOI height    : " << imx219.GetAoiHeight() << std::endl;
+			std::cout << "AOI x         : " << imx219.GetAoiX() << std::endl;
+			std::cout << "AOI y         : " << imx219.GetAoiY() << std::endl;
+			std::cout << "flip h        : " << imx219.GetFlipH() << std::endl;
+			std::cout << "flip v        : " << imx219.GetFlipV() << std::endl;
+		}
+		
+		if ( key == 'h' ) {
+			flip_h = !flip_h;
+		}
+
+		if ( key == 'v' ) {
+			flip_v = !flip_v;
+		}
+
+		if ( key == 'd' ) {
+			// image dump
+			cv::Mat imgRgb;
+			cv::cvtColor(img, imgRgb, CV_BGRA2BGR);
+			cv::imwrite("img_dump.png", imgRgb);
+		}
+
+		if ( key == 'r' ) {
+			// image record
+			std::cout << "record" << std::endl;
+			capture_still_image(reg_wdma, reg_norm, dmabuf_phys_adr, width, height, rec_frame_num);
+			int offset = 0;
+			for ( int i = 0; i < rec_frame_num; i++ ) {
+				char fname[64];
+				sprintf(fname, "rec_%04d.png", i);
+				cv::Mat imgRec(height, width, CV_8UC4);
+				udmabuf_acc.MemCopyFrom(imgRec.data, offset, width * height * 4);
+				offset += width * height * 4;
+				cv::Mat imgRgb;
+				cv::cvtColor(imgRec, imgRgb, CV_BGRA2BGR);
+				cv::imwrite(fname, imgRgb);
+			}
+		}
+	}
+
+	// close
+	imx219.Stop();
+	imx219.Close();
+	
+	return 0;
+}
+
+
+
+
+// é™æ­¢ç”»ã‚­ãƒ£ãƒ—ãƒãƒ£
 void capture_still_image(MemAccess& reg_wdma, MemAccess& reg_norm, std::uintptr_t bufaddr, int width, int height, int frame_num)
 {
 	// DMA start (one shot)
@@ -101,12 +288,12 @@ void capture_still_image(MemAccess& reg_wdma, MemAccess& reg_norm, std::uintptr_
 	reg_norm.WriteReg(REG_NORM_FRM_TIMEOUT, 100000000);
 	reg_norm.WriteReg(REG_NORM_PARAM_WIDTH, width);
 	reg_norm.WriteReg(REG_NORM_PARAM_HEIGHT, height);
-	reg_norm.WriteReg(REG_NORM_PARAM_FILL, 0xfff);
-	reg_norm.WriteReg(REG_NORM_PARAM_TIMEOUT, 0x10000);
+	reg_norm.WriteReg(REG_NORM_PARAM_FILL, 0x0ff);
+	reg_norm.WriteReg(REG_NORM_PARAM_TIMEOUT, 0x100000);
 	reg_norm.WriteReg(REG_NORM_CONTROL, 0x03);
 	usleep(100000);
 	
-	// Žæ‚èž‚ÝŠ®—¹‚ð‘Ò‚Â
+	// å–ã‚Šè¾¼ã¿å®Œäº†ã‚’å¾…ã¤
 	usleep(10000);
 	while ( reg_wdma.ReadReg(REG_WDMA_CTL_STATUS) != 0 ) {
 		usleep(10000);
@@ -121,210 +308,4 @@ void capture_still_image(MemAccess& reg_wdma, MemAccess& reg_norm, std::uintptr_
 }
 
 
-int main()
-{
-	// mmap uio
-    std::cout << "\nuio open" << std::endl;
-    UioAccess uio_acc("uio_pl_peri", 0x00100000);
-    if ( !uio_acc.IsMapped() ) {
-        std::cout << "uio_pl_peri mmap error" << std::endl;
-        return 1;
-    }
-	auto reg_wdma = uio_acc.GetMemAccess(0x00010000);
-	auto reg_norm = uio_acc.GetMemAccess(0x00011000);
-	
-   	// mmap udmabuf
-    std::cout << "\nudmabuf0 open" << std::endl;
-    UdmabufAccess udmabuf_acc("udmabuf0");
-    if ( !udmabuf_acc.IsMapped() ) {
-        std::cout << "udmabuf0 mmap error" << std::endl;
-        return 1;
-    }
-    std::cout << "udmabuf0 phys addr : " << std::hex << udmabuf_acc.GetPhysAddr() << std::endl;
-    std::cout << "udmabuf0 size      : " << std::hex << udmabuf_acc.GetSize()     << std::endl;
-
-
-	
-	int w = 640;
-	int h = 132;
-	
-	I2cAccess	i2c;
-	if ( !i2c.Open("/dev/i2c-0", 0x10) ) {
-		printf("I2C open error\n");
-		return 1;
-	}
-	
-//	printf("0x00 : %02x\n", i2c.ReadAddr16Byte(0x00));
-//	printf("0x01 : %02x\n", i2c.ReadAddr16Byte(0x01));
-	
-	i2c.WriteAddr16Byte(0x0103, 0x01);
-	usleep(10000);
-	i2c.WriteAddr16Byte(0x0103, 0x00);
-	usleep(10000);
-	printf("0x00 : %02x\n", i2c.ReadAddr16Byte(0x00));
-	printf("0x01 : %02x\n", i2c.ReadAddr16Byte(0x01));
-	printf("%02x\n", i2c.ReadAddr16Byte(0x0103));
-	
-	
-	i2c.WriteAddr16Byte(0x0102, 0x01  );   // ???? (Reserved)
-//	i2c.WriteAddr16Word();
-	i2c.WriteAddr16Byte(0x0100, 0x00  );   // mode_select [4:0]  (0: SW standby, 1: Streaming)
-	i2c.WriteAddr16Word(0x6620, 0x0101);   // ????
-	i2c.WriteAddr16Word(0x6622, 0x0101);
-	
-	/*
-	i2c.WriteAddr16Byte(0x30EB, 0x0C  );   // Access command sequence Seq. No. 2
-	i2c.WriteAddr16Byte(0x30EB, 0x05);
-	i2c.WriteAddr16Word(0x300A, 0xFFFF);
-	i2c.WriteAddr16Byte(0x30EB, 0x05);
-	i2c.WriteAddr16Byte(0x30EB, 0x09);
-	*/
-	
-	i2c.WriteAddr16Byte(0x30EB, 0x05);   // Access command sequence Seq.
-	i2c.WriteAddr16Byte(0x30EB, 0x0C);
-	i2c.WriteAddr16Byte(0x300A, 0xFF);
-	i2c.WriteAddr16Byte(0x300B, 0xFF);
-	i2c.WriteAddr16Byte(0x30EB, 0x05);
-	i2c.WriteAddr16Byte(0x30EB, 0x09);
-	
-	i2c.WriteAddr16Byte(0x0114, 0x01  );   // * CSI_LANE_MODE (03: 4Lane 01: 2Lane)
-	i2c.WriteAddr16Byte(0x0128, 0x00  );   //   DPHY_CTRL (MIPI Global timing setting 0: auto mode, 1: manual mode)
-	i2c.WriteAddr16Word(0x012a, 0x1800);   // * INCK frequency [MHz] 6,144MHz
-	i2c.WriteAddr16Byte(0x0157, 0x00  );   //      ANA_GAIN_GLOBAL_A
-	i2c.WriteAddr16Word(0x015A, 0x09BD);   // 0x9bd=2493     COARSE_INTEGRATION_TIME_A
-	i2c.WriteAddr16Word(0x0160, 0x0372);   // 0x372= 882     FRM_LENGTH_A
-	
-#if 0
-	i2c.WriteAddr16Word(0x0162, 0x0D78);   // 0xD78=3448     LINE_LENGTH_A (line_length_pck Units: Pixels)  
-	i2c.WriteAddr16Word(0x0164, 0x0000);   //      X_ADD_STA_A  x_addr_start  X-address of the top left corner of the visible pixel data Units: Pixels
-	i2c.WriteAddr16Word(0x0166, 0x0CCF);   // 0xccf=3279     X_ADD_END_A
-	i2c.WriteAddr16Word(0x0168, 0x0000);   //      Y_ADD_STA_A
-	i2c.WriteAddr16Word(0x016A, 0x099F);   // 0x99f=2463     Y_ADD_END_A
-	i2c.WriteAddr16Word(0x016C, 0x0668);   // 0x668=1640     x_output_size
-	i2c.WriteAddr16Word(0x016E, 0x04D0);   // 0x4d0=1232     y_output_size
-#else
-	i2c.WriteAddr16Word(0x0164, 3280/2 - w);    //      X_ADD_STA_A  x_addr_start  X-address of the top left corner of the visible pixel data Units: Pixels
-	i2c.WriteAddr16Word(0x0166, 3280/2 + w-1);  // 0xccf=3279     X_ADD_END_A
-	i2c.WriteAddr16Word(0x0168, 2464/2 - h);    //      Y_ADD_STA_A
-	i2c.WriteAddr16Word(0x016A, 2464/2 + h-1);  // 0x99f=2463     Y_ADD_END_A
-	i2c.WriteAddr16Word(0x016C, w);   // 0x668=1640     x_output_size
-	i2c.WriteAddr16Word(0x016E, h);   // 0x4d0=1232     y_output_size
-#endif
-	
-	
-	i2c.WriteAddr16Word(0x0170, 0x0101);   //      X_ODD_INC_A  Increment for odd pixels 1, 3
-//	i2c.WriteAddr16Word(0x0170, 0x0303);   // r     X_ODD_INC_A  Increment for odd pixels 1, 3
-//	i2c.WriteAddr16Word(0x0174, 0x0101);   //      BINNING_MODE_H_A  0: no-binning, 1: x2-binning, 2: x4-binning, 3: x2-analog (special) binning
-	i2c.WriteAddr16Word(0x0174, 0x0303);   // r     BINNING_MODE_H_A  0: no-binning, 1: x2-binning, 2: x4-binning, 3: x2-analog (special) binning
-	i2c.WriteAddr16Word(0x018C, 0x0A0A);   //      CSI_DATA_FORMAT_A   CSI-2 data format
-	i2c.WriteAddr16Byte(0x0301, 0x05  );   // * VTPXCK_DIV  Video Timing Pixel Clock Divider Value
-	i2c.WriteAddr16Word(0x0303, 0x0103);   // * VTSYCK_DIV  PREPLLCK_VT_DIV(3: EXCK_FREQ 24 MHz to 27 MHz)
-	i2c.WriteAddr16Word(0x0305, 0x0300);   // * PREPLLCK_OP_DIV(3: EXCK_FREQ 24 MHz to 27 MHz)  / PLL_VT_MPY ‹æØ‚è‚ª‚¨‚©‚µ‚¢ŽŸ‚É‘±‚­
-//	i2c.WriteAddr16Byte(0x0307, 0x39  );   // * PLL_VT_MPY
-//	i2c.WriteAddr16Byte(0x0307, 84  );   // r PLL_VT_MPY
-	i2c.WriteAddr16Byte(0x0307, 87  );   // r PLL_VT_MPY
-	i2c.WriteAddr16Byte(0x0309, 0x0A  );   // * OPPXCK_DIV
-	i2c.WriteAddr16Word(0x030B, 0x0100);   // * OPSYCK_DIV PLL_OP_MPY[10:8] / ‹æØ‚è‚ª‚¨‚©‚µ‚¢ŽŸ‚É‘±‚­
-	i2c.WriteAddr16Byte(0x030D, 0x72  );   // * PLL_OP_MPY[10:8]
-	
-	i2c.WriteAddr16Byte(0x455E, 0x00  );   //
-	i2c.WriteAddr16Byte(0x471E, 0x4B  );   //
-	i2c.WriteAddr16Byte(0x4767, 0x0F  );   //
-	i2c.WriteAddr16Byte(0x4750, 0x14  );   //
-	i2c.WriteAddr16Byte(0x4540, 0x00  );   //
-	i2c.WriteAddr16Byte(0x47B4, 0x14  );   //
-	i2c.WriteAddr16Byte(0x4713, 0x30  );   //
-	i2c.WriteAddr16Byte(0x478B, 0x10  );   //
-	i2c.WriteAddr16Byte(0x478F, 0x10  );   //
-	i2c.WriteAddr16Byte(0x4793, 0x10  );   //
-	i2c.WriteAddr16Byte(0x4797, 0x0E  );   //
-	i2c.WriteAddr16Byte(0x479B, 0x0E  );   //
-
-	i2c.WriteAddr16Byte(0x0172, 0x03  );   //      IMG_ORIENTATION_A
-	
-//	i2c.WriteAddr16Word(0x0160, 0x06E3);   //      FRM_LENGTH_A[15:8]
-//	i2c.WriteAddr16Word(0x0162, 0x0D78);   //      LINE_LENGTH_A
-//	i2c.WriteAddr16Word(0x015A, 0x0422);   //      COARSE_INTEGRATION_TIME_A
-//	i2c.WriteAddr16Byte(0x0157, 0x00  );   //      ANA_GAIN_GLOBAL_A
-
-//	i2c.WriteAddr16Byte(0x0157, 0x00  );   //      ANA_GAIN_GLOBAL_A
-//	i2c.WriteAddr16Word(0x0160, 0x06E3);   //      FRM_LENGTH_A
-//	i2c.WriteAddr16Word(0x0162, 0x0D78);   //      LINE_LENGTH_A (line_length_pck Units: Pixels)
-//	i2c.WriteAddr16Word(0x015A, 0x0422);   //      COARSE_INTEGRATION_TIME_A
-
-	i2c.WriteAddr16Byte(0x0100, 0x01  );   //      mode_select [4:0] 0: SW standby, 1: Streaming
-
-//	i2c.WriteAddr16Byte(0x0157, 0x00  );   //      ANA_GAIN_GLOBAL_A
-//	i2c.WriteAddr16Word(0x0160, 0x06E3);   // 0x06E3=3330   FRM_LENGTH_A
-//	i2c.WriteAddr16Word(0x0162, 0x0D78);   // 0x0D78=3448   LINE_LENGTH_A
-//	i2c.WriteAddr16Word(0x015A, 0x0421);   // 0x0421=1057   COARSE_INTEGRATION_TIME_A
-
-#if 0
-	i2c.WriteAddr16Byte(0x0157, 0x00  );   //      ANA_GAIN_GLOBAL_A
-	i2c.WriteAddr16Word(0x0160, 0x0D02);   // 0x0D02=3330   FRM_LENGTH_A
-	i2c.WriteAddr16Word(0x0162, 0x0D78);   // 0x0D78=3448   INE_LENGTH_A (line_length_pck Units: Pixels)
-	i2c.WriteAddr16Word(0x015A, 0x0D02);   // 0x0D02=3330   COARSE_INTEGRATION_TIME_A
-	i2c.WriteAddr16Byte(0x0157, 0xE0  );   //      ANA_GAIN_GLOBAL_A
-#else
-	i2c.WriteAddr16Byte(0x0157, 0x00  );   //      ANA_GAIN_GLOBAL_A
-	i2c.WriteAddr16Word(0x0160, 80);       // 0x0D02=3330   FRM_LENGTH_A
-	i2c.WriteAddr16Word(0x0162, 0x0D78);   // 0x0D78=3448   LINE_LENGTH_A (line_length_pck Units: Pixels)
-	i2c.WriteAddr16Word(0x015A, 50);       // 0x0D02=3330   COARSE_INTEGRATION_TIME_A
-	i2c.WriteAddr16Byte(0x0157, 0xE0  );   //      ANA_GAIN_GLOBAL_A
-//	i2c.WriteAddr16Byte(0x0157, 0xFF  );   //      ANA_GAIN_GLOBAL_A
-	i2c.WriteAddr16Word(0x0158, 0x0FFF);   //      ANA_GAIN_GLOBAL_A
-#endif
-	
-	
-	
-//	int width  = 640; // IMAGE_WIDTH;
-//	int height = 120; // IMAGE_HEIGHT;
-//	int width  = 0x48e; // 640; // IMAGE_WIDTH;
-//	int height = 0xD78; // 120; // IMAGE_HEIGHT;
-	int width  = w;
-	int height = h; // IMAGE_HEIGHT / 2;
-	
-//	void* mem_addr = um_pl_mem.GetAddress();
-	auto dmabuf_ptr      = udmabuf_acc.GetPtr();
-	auto dmabuf_phys_adr = udmabuf_acc.GetPhysAddr();
-
-	{
-		int		frame_num = 1;
-		int		key;
-		while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
-			cv::Mat img(height*frame_num, width, CV_8UC4);
-			memcpy(img.data, dmabuf_ptr, width * height * 4 * frame_num);
-			cv::imshow("img", img);
-			cv::imwrite("img.png", img);
-			cv::createTrackbar("width",  "img", &width,     IMAGE_WIDTH);
-			cv::createTrackbar("height", "img", &height,    IMAGE_HEIGHT);
-			cv::createTrackbar("frame",  "img", &frame_num, 10);
-			
-			width &= 0xfffffff0;
-			if ( width  < 16 ) { width  = 16; }
-			if ( height < 2 )  { height = 2; }
-			
-			capture_still_image(reg_wdma, reg_norm, dmabuf_phys_adr, width, height, frame_num);
-			
-			if ( key == 'r' ) {
-				printf("record\n");
-				capture_still_image(reg_wdma, reg_norm, dmabuf_phys_adr, width, height, 100);
-				char* p = (char*)dmabuf_ptr;
-				for ( int i = 0; i< 100; i++ ) {
-					char fname[64];
-					sprintf(fname, "rec_%04d.png", i);
-					cv::Mat imgRec(height, width, CV_8UC4);
-					memcpy(imgRec.data, p, width * height * 4);	p += width * height * 4;
-					cv::Mat imgRgb;
-					cv::cvtColor(imgRec, imgRgb, CV_BGRA2BGR);
-					cv::imwrite(fname, imgRgb);
-				}
-			}
-		}
-	}
-	
-	return 0;
-}
-
-
-
+// end of file

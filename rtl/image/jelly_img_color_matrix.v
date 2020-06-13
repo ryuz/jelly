@@ -94,24 +94,24 @@ module jelly_img_color_matrix
     
     
     // register
-    localparam  REG_ADDR_PARAM_MATRIX00  = 32'h0000;
-    localparam  REG_ADDR_PARAM_MATRIX01  = 32'h0001;
-    localparam  REG_ADDR_PARAM_MATRIX02  = 32'h0002;
-    localparam  REG_ADDR_PARAM_MATRIX03  = 32'h0003;
-    localparam  REG_ADDR_PARAM_MATRIX10  = 32'h0004;
-    localparam  REG_ADDR_PARAM_MATRIX11  = 32'h0005;
-    localparam  REG_ADDR_PARAM_MATRIX12  = 32'h0006;
-    localparam  REG_ADDR_PARAM_MATRIX13  = 32'h0007;
-    localparam  REG_ADDR_PARAM_MATRIX20  = 32'h0008;
-    localparam  REG_ADDR_PARAM_MATRIX21  = 32'h0009;
-    localparam  REG_ADDR_PARAM_MATRIX22  = 32'h000a;
-    localparam  REG_ADDR_PARAM_MATRIX23  = 32'h000b;
-    localparam  REG_ADDR_PARAM_CLIP_MIN0 = 32'h0010;
-    localparam  REG_ADDR_PARAM_CLIP_MAX0 = 32'h0011;
-    localparam  REG_ADDR_PARAM_CLIP_MIN1 = 32'h0012;
-    localparam  REG_ADDR_PARAM_CLIP_MAX1 = 32'h0013;
-    localparam  REG_ADDR_PARAM_CLIP_MIN2 = 32'h0014;
-    localparam  REG_ADDR_PARAM_CLIP_MAX2 = 32'h0015;
+    localparam  ADR_PARAM_MATRIX00  = 8'h00;
+    localparam  ADR_PARAM_MATRIX01  = 8'h01;
+    localparam  ADR_PARAM_MATRIX02  = 8'h02;
+    localparam  ADR_PARAM_MATRIX03  = 8'h03;
+    localparam  ADR_PARAM_MATRIX10  = 8'h04;
+    localparam  ADR_PARAM_MATRIX11  = 8'h05;
+    localparam  ADR_PARAM_MATRIX12  = 8'h06;
+    localparam  ADR_PARAM_MATRIX13  = 8'h07;
+    localparam  ADR_PARAM_MATRIX20  = 8'h08;
+    localparam  ADR_PARAM_MATRIX21  = 8'h09;
+    localparam  ADR_PARAM_MATRIX22  = 8'h0a;
+    localparam  ADR_PARAM_MATRIX23  = 8'h0b;
+    localparam  ADR_PARAM_CLIP_MIN0 = 8'h10;
+    localparam  ADR_PARAM_CLIP_MAX0 = 8'h11;
+    localparam  ADR_PARAM_CLIP_MIN1 = 8'h12;
+    localparam  ADR_PARAM_CLIP_MAX1 = 8'h13;
+    localparam  ADR_PARAM_CLIP_MIN2 = 8'h14;
+    localparam  ADR_PARAM_CLIP_MAX2 = 8'h15;
     
     
     reg     signed  [COEFF_WIDTH-1:0]   reg_param_matrix00;
@@ -132,6 +132,21 @@ module jelly_img_color_matrix
     reg             [DATA_WIDTH-1:0]    reg_param_clip_max1;
     reg             [DATA_WIDTH-1:0]    reg_param_clip_min2;
     reg             [DATA_WIDTH-1:0]    reg_param_clip_max2;
+    
+    
+    function [WB_DAT_WIDTH-1:0] reg_mask(
+                                        input [WB_DAT_WIDTH-1:0] org,
+                                        input [WB_DAT_WIDTH-1:0] wdat,
+                                        input [WB_SEL_WIDTH-1:0] msk
+                                    );
+    integer i;
+    begin
+        for ( i = 0; i < WB_DAT_WIDTH; i = i+1 ) begin
+            reg_mask[i] = msk[i/8] ? wdat[i] : org[i];
+        end
+    end
+    endfunction
+    
     always @(posedge s_wb_clk_i) begin
         if ( s_wb_rst_i ) begin
             reg_param_matrix00  <= INIT_PARAM_MATRIX00;
@@ -156,24 +171,24 @@ module jelly_img_color_matrix
         else begin
             if ( s_wb_stb_i && s_wb_we_i ) begin
                 case ( s_wb_adr_i )
-                REG_ADDR_PARAM_MATRIX00:    reg_param_matrix00  <= s_wb_dat_i;
-                REG_ADDR_PARAM_MATRIX01:    reg_param_matrix01  <= s_wb_dat_i;
-                REG_ADDR_PARAM_MATRIX02:    reg_param_matrix02  <= s_wb_dat_i;
-                REG_ADDR_PARAM_MATRIX03:    reg_param_matrix03  <= s_wb_dat_i;
-                REG_ADDR_PARAM_MATRIX10:    reg_param_matrix10  <= s_wb_dat_i;
-                REG_ADDR_PARAM_MATRIX11:    reg_param_matrix11  <= s_wb_dat_i;
-                REG_ADDR_PARAM_MATRIX12:    reg_param_matrix12  <= s_wb_dat_i;
-                REG_ADDR_PARAM_MATRIX13:    reg_param_matrix13  <= s_wb_dat_i;
-                REG_ADDR_PARAM_MATRIX20:    reg_param_matrix20  <= s_wb_dat_i;
-                REG_ADDR_PARAM_MATRIX21:    reg_param_matrix21  <= s_wb_dat_i;
-                REG_ADDR_PARAM_MATRIX22:    reg_param_matrix22  <= s_wb_dat_i;
-                REG_ADDR_PARAM_MATRIX23:    reg_param_matrix23  <= s_wb_dat_i;
-                REG_ADDR_PARAM_CLIP_MIN0:   reg_param_clip_min0 <= s_wb_dat_i;
-                REG_ADDR_PARAM_CLIP_MAX0:   reg_param_clip_max0 <= s_wb_dat_i;
-                REG_ADDR_PARAM_CLIP_MIN1:   reg_param_clip_min1 <= s_wb_dat_i;
-                REG_ADDR_PARAM_CLIP_MAX1:   reg_param_clip_max1 <= s_wb_dat_i;
-                REG_ADDR_PARAM_CLIP_MIN2:   reg_param_clip_min2 <= s_wb_dat_i;
-                REG_ADDR_PARAM_CLIP_MAX2:   reg_param_clip_max2 <= s_wb_dat_i;
+                ADR_PARAM_MATRIX00:    reg_param_matrix00  <= reg_mask(reg_param_matrix00 , s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_MATRIX01:    reg_param_matrix01  <= reg_mask(reg_param_matrix01 , s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_MATRIX02:    reg_param_matrix02  <= reg_mask(reg_param_matrix02 , s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_MATRIX03:    reg_param_matrix03  <= reg_mask(reg_param_matrix03 , s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_MATRIX10:    reg_param_matrix10  <= reg_mask(reg_param_matrix10 , s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_MATRIX11:    reg_param_matrix11  <= reg_mask(reg_param_matrix11 , s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_MATRIX12:    reg_param_matrix12  <= reg_mask(reg_param_matrix12 , s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_MATRIX13:    reg_param_matrix13  <= reg_mask(reg_param_matrix13 , s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_MATRIX20:    reg_param_matrix20  <= reg_mask(reg_param_matrix20 , s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_MATRIX21:    reg_param_matrix21  <= reg_mask(reg_param_matrix21 , s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_MATRIX22:    reg_param_matrix22  <= reg_mask(reg_param_matrix22 , s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_MATRIX23:    reg_param_matrix23  <= reg_mask(reg_param_matrix23 , s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_CLIP_MIN0:   reg_param_clip_min0 <= reg_mask(reg_param_clip_min0, s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_CLIP_MAX0:   reg_param_clip_max0 <= reg_mask(reg_param_clip_max0, s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_CLIP_MIN1:   reg_param_clip_min1 <= reg_mask(reg_param_clip_min1, s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_CLIP_MAX1:   reg_param_clip_max1 <= reg_mask(reg_param_clip_max1, s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_CLIP_MIN2:   reg_param_clip_min2 <= reg_mask(reg_param_clip_min2, s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_CLIP_MAX2:   reg_param_clip_max2 <= reg_mask(reg_param_clip_max2, s_wb_dat_i, s_wb_sel_i);
                 endcase
             end
         end
@@ -196,24 +211,24 @@ module jelly_img_color_matrix
     always @* begin
         tmp_wb_dat_o = {WB_DAT_WIDTH{1'b0}};
         case ( s_wb_adr_i )
-        REG_ADDR_PARAM_MATRIX00:    tmp_wb_dat_o = signed_param_matrix00;
-        REG_ADDR_PARAM_MATRIX01:    tmp_wb_dat_o = signed_param_matrix01;
-        REG_ADDR_PARAM_MATRIX02:    tmp_wb_dat_o = signed_param_matrix02;
-        REG_ADDR_PARAM_MATRIX03:    tmp_wb_dat_o = signed_param_matrix03;
-        REG_ADDR_PARAM_MATRIX10:    tmp_wb_dat_o = signed_param_matrix10;
-        REG_ADDR_PARAM_MATRIX11:    tmp_wb_dat_o = signed_param_matrix11;
-        REG_ADDR_PARAM_MATRIX12:    tmp_wb_dat_o = signed_param_matrix12;
-        REG_ADDR_PARAM_MATRIX13:    tmp_wb_dat_o = signed_param_matrix13;
-        REG_ADDR_PARAM_MATRIX20:    tmp_wb_dat_o = signed_param_matrix20;
-        REG_ADDR_PARAM_MATRIX21:    tmp_wb_dat_o = signed_param_matrix21;
-        REG_ADDR_PARAM_MATRIX22:    tmp_wb_dat_o = signed_param_matrix22;
-        REG_ADDR_PARAM_MATRIX23:    tmp_wb_dat_o = signed_param_matrix23;
-        REG_ADDR_PARAM_CLIP_MIN0:   tmp_wb_dat_o = reg_param_clip_min0;
-        REG_ADDR_PARAM_CLIP_MAX0:   tmp_wb_dat_o = reg_param_clip_max0;
-        REG_ADDR_PARAM_CLIP_MIN1:   tmp_wb_dat_o = reg_param_clip_min1;
-        REG_ADDR_PARAM_CLIP_MAX1:   tmp_wb_dat_o = reg_param_clip_max1;
-        REG_ADDR_PARAM_CLIP_MIN2:   tmp_wb_dat_o = reg_param_clip_min2;
-        REG_ADDR_PARAM_CLIP_MAX2:   tmp_wb_dat_o = reg_param_clip_max2;
+        ADR_PARAM_MATRIX00:    tmp_wb_dat_o = signed_param_matrix00;
+        ADR_PARAM_MATRIX01:    tmp_wb_dat_o = signed_param_matrix01;
+        ADR_PARAM_MATRIX02:    tmp_wb_dat_o = signed_param_matrix02;
+        ADR_PARAM_MATRIX03:    tmp_wb_dat_o = signed_param_matrix03;
+        ADR_PARAM_MATRIX10:    tmp_wb_dat_o = signed_param_matrix10;
+        ADR_PARAM_MATRIX11:    tmp_wb_dat_o = signed_param_matrix11;
+        ADR_PARAM_MATRIX12:    tmp_wb_dat_o = signed_param_matrix12;
+        ADR_PARAM_MATRIX13:    tmp_wb_dat_o = signed_param_matrix13;
+        ADR_PARAM_MATRIX20:    tmp_wb_dat_o = signed_param_matrix20;
+        ADR_PARAM_MATRIX21:    tmp_wb_dat_o = signed_param_matrix21;
+        ADR_PARAM_MATRIX22:    tmp_wb_dat_o = signed_param_matrix22;
+        ADR_PARAM_MATRIX23:    tmp_wb_dat_o = signed_param_matrix23;
+        ADR_PARAM_CLIP_MIN0:   tmp_wb_dat_o = reg_param_clip_min0;
+        ADR_PARAM_CLIP_MAX0:   tmp_wb_dat_o = reg_param_clip_max0;
+        ADR_PARAM_CLIP_MIN1:   tmp_wb_dat_o = reg_param_clip_min1;
+        ADR_PARAM_CLIP_MAX1:   tmp_wb_dat_o = reg_param_clip_max1;
+        ADR_PARAM_CLIP_MIN2:   tmp_wb_dat_o = reg_param_clip_min2;
+        ADR_PARAM_CLIP_MAX2:   tmp_wb_dat_o = reg_param_clip_max2;
         endcase
     end
     

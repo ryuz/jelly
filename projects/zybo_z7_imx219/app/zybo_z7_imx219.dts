@@ -41,7 +41,7 @@
             udmabuf0 {
                 compatible = "ikwzm,udmabuf-0.10.a";
                 minor-number = <0>;
-                size = <0x00100000>;
+                size = <0x03000000>;
             };
         };
     };
@@ -59,7 +59,6 @@
                 reg = <0xe0004000 0x1000>;
                 #address-cells = <0x1>;
                 #size-cells = <0x0>;
-    /*			phandle = <0x10>; */
             };
 		};
     };

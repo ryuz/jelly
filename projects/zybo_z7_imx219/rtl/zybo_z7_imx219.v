@@ -1,3 +1,12 @@
+// ---------------------------------------------------------------------------
+//  Jelly  -- the soft-core processor system
+//
+//
+//                                 Copyright (C) 2008-2020 by Ryuji Fuchikami
+//                                 https://github.com/ryuz/
+// ---------------------------------------------------------------------------
+
+
 
 
 
@@ -7,8 +16,8 @@
 
 module zybo_z7_imx219
         #(
-            parameter   X_NUM = 3280 / 2,
-            parameter   Y_NUM = 2464 / 2
+            parameter   X_NUM = 3280,
+            parameter   Y_NUM = 2464
         )
         (
             input   wire            in_clk125,
@@ -55,10 +64,10 @@ module zybo_z7_imx219
         );
     
     
-                        wire            sys_reset;
-    (* KEEP = "true" *) wire            sys_clk100;
-    (* KEEP = "true" *) wire            sys_clk200;
-    (* KEEP = "true" *) wire            sys_clk250;
+    wire            sys_reset;
+    wire            sys_clk100;
+    wire            sys_clk200;
+    wire            sys_clk250;
     
     wire            axi4l_peri_aresetn;
     wire            axi4l_peri_aclk;
@@ -329,7 +338,6 @@ module zybo_z7_imx219
     //  MIPI D-PHY RX
     // ----------------------------------------
     
-    (* KEEP = "true" *)
     wire                rxbyteclkhs;
     wire                system_rst_out;
     wire                init_done;
@@ -340,10 +348,10 @@ module zybo_z7_imx219
     wire                cl_rxulpsclknot;
     wire                cl_ulpsactivenot;
     
-    (* MARK_DEBUG = "true" *)   wire    [7:0]       dl0_rxdatahs;
-    (* MARK_DEBUG = "true" *)   wire                dl0_rxvalidhs;
-    (* MARK_DEBUG = "true" *)   wire                dl0_rxactivehs;
-    (* MARK_DEBUG = "true" *)   wire                dl0_rxsynchs;
+    wire    [7:0]       dl0_rxdatahs;
+    wire                dl0_rxvalidhs;
+    wire                dl0_rxactivehs;
+    wire                dl0_rxsynchs;
     
     wire                dl0_forcerxmode   = 0;
     wire                dl0_stopstate;
@@ -385,41 +393,6 @@ module zybo_z7_imx219
     wire                dl1_erresc;
     wire                dl1_errsyncesc;
     wire                dl1_errcontrol;
-    
-    
-    reg     [31:0]      dbg_dl0_count;
-    reg     [31:0]      dbg_dl1_count;
-    always @(posedge rxbyteclkhs) begin
-        if (dl0_rxactivehs ) begin
-            dbg_dl0_count <= dbg_dl0_count + 1;
-        end
-        if ( dl0_rxsynchs ) begin
-            dbg_dl0_count <= 0;
-        end
-        
-        if (dl1_rxactivehs ) begin
-            dbg_dl1_count <= dbg_dl1_count + 1;
-        end
-        if ( dl1_rxsynchs ) begin
-            dbg_dl1_count <= 0;
-        end
-    end
-    
-    
-    /*
-    (* MARK_DEBUG = "true" *)   reg     [7:0]       dbg_dl0_rxdatahs;
-    (* MARK_DEBUG = "true" *)   reg     [7:0]       dbg_dl0_rxdataesc;
-    (* MARK_DEBUG = "true" *)   reg     [7:0]       dbg_dl1_rxdatahs;
-    (* MARK_DEBUG = "true" *)   reg     [7:0]       dbg_dl1_rxdataesc;
-    
-    always @(posedge clk100) begin
-        dbg_dl0_rxdatahs  <= dl0_rxdatahs ;
-        dbg_dl0_rxdataesc <= dl0_rxdataesc;
-        dbg_dl1_rxdatahs  <= dl1_rxdatahs ;
-        dbg_dl1_rxdataesc <= dl1_rxdataesc;
-    end
-    */
-    
     
     mipi_dphy_cam
         i_mipi_dphy_cam
@@ -493,10 +466,6 @@ module zybo_z7_imx219
            );
     
     
-//  wire        dphy_clk   = rxbyteclkhs;
-//  wire        dphy_reset = system_rst_out;
-    
-    
     wire        dphy_clk   = rxbyteclkhs;
     wire        dphy_reset;
     jelly_reset
@@ -525,11 +494,11 @@ module zybo_z7_imx219
     wire            axi4s_cam_aresetn = ~sys_reset;
     wire            axi4s_cam_aclk    = sys_clk200;
     
-    (* MARK_DEBUG = "true" *)   wire    [0:0]   axi4s_csi2_tuser;
-    (* MARK_DEBUG = "true" *)   wire            axi4s_csi2_tlast;
-    (* MARK_DEBUG = "true" *)   wire    [9:0]   axi4s_csi2_tdata;
-    (* MARK_DEBUG = "true" *)   wire            axi4s_csi2_tvalid;
-    (* MARK_DEBUG = "true" *)   wire            axi4s_csi2_tready;
+    wire    [0:0]   axi4s_csi2_tuser;
+    wire            axi4s_csi2_tlast;
+    wire    [9:0]   axi4s_csi2_tdata;
+    wire            axi4s_csi2_tvalid;
+    wire            axi4s_csi2_tready;
     
     jelly_csi2_rx
             #(
@@ -557,63 +526,6 @@ module zybo_z7_imx219
                 .m_axi4s_tvalid     (axi4s_csi2_tvalid),
                 .m_axi4s_tready     (1'b1)  // (axi4s_csi2_tready)
             );
-    
-    jelly_axi4s_debug_monitor
-            #(
-                .TUSER_WIDTH        (1),
-                .TDATA_WIDTH        (10),
-                .TIMER_WIDTH        (32),
-                .FRAME_WIDTH        (32),
-                .PIXEL_WIDTH        (32),
-                .X_WIDTH            (16),
-                .Y_WIDTH            (16)
-            )
-        i_axi4s_debug_monitor
-            (
-                .aresetn            (axi4s_cam_aresetn),
-                .aclk               (axi4s_cam_aclk),
-                .aclken             (1'b1),
-                
-                .axi4s_tuser        (axi4s_csi2_tuser),
-                .axi4s_tlast        (axi4s_csi2_tlast),
-                .axi4s_tdata        (axi4s_csi2_tdata),
-                .axi4s_tvalid       (axi4s_csi2_tvalid),
-                .axi4s_tready       (axi4s_csi2_tready)
-            );
-    
-    /*
-    wire    [0:0]   axi4s_fifo_tuser;
-    wire            axi4s_fifo_tlast;
-    wire    [9:0]   axi4s_fifo_tdata;
-    wire            axi4s_fifo_tvalid;
-    wire            axi4s_fifo_tready;
-    
-    jelly_fifo_fwtf
-            #(
-                .DATA_WIDTH         (2+10),
-                .PTR_WIDTH          (10),
-                .DOUT_REGS          (0),
-                .RAM_TYPE           ("block"),
-                .LOW_DEALY          (0),
-                .SLAVE_REGS         (0),
-                .MASTER_REGS        (1)
-            )
-        i_fifo_fifo_fwtf_csi2
-            (
-                .reset              (~axi4s_cam_aresetn),
-                .clk                (axi4s_cam_aclk),
-                
-                .s_data             ({axi4s_csi2_tuser, axi4s_csi2_tlast, axi4s_csi2_tdata}),
-                .s_valid            (axi4s_csi2_tvalid),
-                .s_ready            (axi4s_csi2_tready),
-                .s_free_count       (),
-                
-                .m_data             ({axi4s_fifo_tuser, axi4s_fifo_tlast, axi4s_fifo_tdata}),
-                .m_valid            (axi4s_fifo_tvalid),
-                .m_ready            (axi4s_fifo_tready),
-                .m_data_count       ()
-            );
-    */
     
     
     // normalize
@@ -664,14 +576,6 @@ module zybo_z7_imx219
                 .s_wb_sel_i         (wb_host_sel_o),
                 .s_wb_stb_i         (wb_norm_stb_i),
                 .s_wb_ack_o         (wb_norm_ack_o),
-                
-                /*
-                .s_axi4s_tuser      (axi4s_fifo_tuser),
-                .s_axi4s_tlast      (axi4s_fifo_tlast),
-                .s_axi4s_tdata      (axi4s_fifo_tdata),
-                .s_axi4s_tvalid     (axi4s_fifo_tvalid),
-                .s_axi4s_tready     (axi4s_fifo_tready),
-                */
                 
                 .s_axi4s_tuser      (axi4s_csi2_tuser),
                 .s_axi4s_tlast      (axi4s_csi2_tlast),
@@ -822,190 +726,6 @@ module zybo_z7_imx219
             );
     
     
-    
-    
-    // ----------------------------------------
-    //  単純ダンプ
-    // ----------------------------------------
-    /*
-    // FIFO
-    (* MARK_DEBUG = "true" *)   wire    [7:0]       fifo_dl0_rxdatahs;
-    (* MARK_DEBUG = "true" *)   wire                fifo_dl0_rxvalidhs;
-    (* MARK_DEBUG = "true" *)   wire                fifo_dl0_rxactivehs;
-    (* MARK_DEBUG = "true" *)   wire                fifo_dl0_rxsynchs;
-    (* MARK_DEBUG = "true" *)   wire                fifo_dl0_errsoths;
-    (* MARK_DEBUG = "true" *)   wire                fifo_dl0_errsotsynchs;
-    (* MARK_DEBUG = "true" *)   wire    [7:0]       fifo_dl1_rxdatahs;
-    (* MARK_DEBUG = "true" *)   wire                fifo_dl1_rxvalidhs;
-    (* MARK_DEBUG = "true" *)   wire                fifo_dl1_rxactivehs;
-    (* MARK_DEBUG = "true" *)   wire                fifo_dl1_rxsynchs;
-    (* MARK_DEBUG = "true" *)   wire                fifo_dl1_errsoths;
-    (* MARK_DEBUG = "true" *)   wire                fifo_dl1_errsotsynchs;
-    (* MARK_DEBUG = "true" *)   wire                fifo_valid;
-    
-    jelly_fifo_async_fwtf
-            #(
-                .DATA_WIDTH         ((5+8)*2),
-                .PTR_WIDTH          (6),
-                .DOUT_REGS          (0),
-                .RAM_TYPE           ("distributed"),
-                .SLAVE_REGS         (0),
-                .MASTER_REGS        (1)
-            )
-        i_fifo_async_fwtf
-            (
-                .s_reset            (dphy_reset),
-                .s_clk              (dphy_clk),
-                .s_data             ({
-                                        dl0_rxdatahs,
-                                        dl0_rxvalidhs,
-                                        dl0_rxactivehs,
-                                        dl0_rxsynchs,
-                                        dl0_errsoths,
-                                        dl0_errsotsynchs,
-                                        dl1_rxdatahs,
-                                        dl1_rxvalidhs,
-                                        dl1_rxactivehs,
-                                        dl1_rxsynchs,
-                                        dl1_errsoths,
-                                        dl1_errsotsynchs
-                                    }),
-                .s_valid            (1'b1),
-                .s_ready            (),
-                .s_free_count       (),
-                
-                .m_reset            (~axi4_mem_aresetn),
-                .m_clk              (axi4_mem_aclk),
-                .m_data             ({
-                                        fifo_dl0_rxdatahs,
-                                        fifo_dl0_rxvalidhs,
-                                        fifo_dl0_rxactivehs,
-                                        fifo_dl0_rxsynchs,
-                                        fifo_dl0_errsoths,
-                                        fifo_dl0_errsotsynchs,
-                                        fifo_dl1_rxdatahs,
-                                        fifo_dl1_rxvalidhs,
-                                        fifo_dl1_rxactivehs,
-                                        fifo_dl1_rxsynchs,
-                                        fifo_dl1_errsoths,
-                                        fifo_dl1_errsotsynchs
-                                    }),
-                .m_valid            (fifo_valid),
-                .m_ready            (1'b1),
-                .m_data_count       ()
-            );
-    
-    
-    (* MARK_DEBUG = "true" *)   wire    [0:0]           axi4s_memw_tuser;
-    (* MARK_DEBUG = "true" *)   wire                    axi4s_memw_tlast;
-    (* MARK_DEBUG = "true" *)   wire    [31:0]          axi4s_memw_tdata;
-    (* MARK_DEBUG = "true" *)   wire                    axi4s_memw_tvalid;
-    (* MARK_DEBUG = "true" *)   wire                    axi4s_memw_tready;
-    
-    assign axi4s_memw_tuser       = fifo_dl0_rxsynchs;
-    assign axi4s_memw_tlast       = 1'b0;
-    assign axi4s_memw_tdata[15:0] = {
-                                        fifo_dl0_errsotsynchs,
-                                        fifo_dl0_errsoths,
-                                        fifo_dl0_rxsynchs,
-                                        fifo_dl0_rxactivehs,
-                                        fifo_dl0_rxvalidhs,
-                                        fifo_dl0_rxdatahs
-                                    };
-    assign axi4s_memw_tdata[31:16] = {
-                                        fifo_dl1_errsotsynchs,
-                                        fifo_dl1_errsoths,
-                                        fifo_dl1_rxsynchs,
-                                        fifo_dl1_rxactivehs,
-                                        fifo_dl1_rxvalidhs,
-                                        fifo_dl1_rxdatahs
-                                    };
-    
-    assign axi4s_memw_tvalid       = fifo_valid;
-    
-    
-    
-    (* MARK_DEBUG = "true" *)   wire    [31:0]          wb_vdmaw_dat_o;
-    (* MARK_DEBUG = "true" *)   wire                    wb_vdmaw_stb_i;
-    (* MARK_DEBUG = "true" *)   wire                    wb_vdmaw_ack_o;
-    
-    reg             vdmaw_enable;
-    wire            vdmaw_busy;
-    
-    always @(posedge wb_clk_o ) begin
-        if ( wb_rst_o ) begin
-            vdmaw_enable <= 0;
-        end
-        else begin
-            vdmaw_enable <= 0;
-            if ( wb_vdmaw_stb_i && wb_host_we_o ) begin
-                vdmaw_enable <= wb_host_dat_o;
-            end
-        end
-    end
-    
-    assign wb_vdmaw_dat_o = vdmaw_busy;
-    assign wb_vdmaw_ack_o = wb_vdmaw_stb_i;
-    
-    reg             vdmaw_enable_ff0, vdmaw_enable_ff1;
-    always @(posedge axi4_mem_aclk) begin
-        vdmaw_enable_ff0 <= vdmaw_enable;
-        vdmaw_enable_ff1 <= vdmaw_enable_ff0;
-    end
-    
-    
-    jelly_axi4_dma_writer
-            #(
-                .AXI4_ID_WIDTH      (6),
-                .AXI4_ADDR_WIDTH    (32),
-                .AXI4_DATA_SIZE     (3)     // 0:8bit, 1:16bit, 2:32bit ...
-            )
-        i_axi4_dma_writer
-            (
-                .aresetn            (axi4_mem_aresetn),
-                .aclk               (axi4_mem_aclk),
-                
-                .enable             (vdmaw_enable_ff1),
-                .busy               (vdmaw_busy),
-                
-                .queue_counter      (0),
-                
-                .param_addr         (32'h1000_0000),
-                .param_count        (64*1024*1024),
-                .param_maxlen       (7),
-                .param_wstrb        (8'hff),
-                
-                .m_axi4_awid        (axi4_mem0_awid),
-                .m_axi4_awaddr      (axi4_mem0_awaddr),
-                .m_axi4_awburst     (axi4_mem0_awburst),
-                .m_axi4_awcache     (axi4_mem0_awcache),
-                .m_axi4_awlen       (axi4_mem0_awlen),
-                .m_axi4_awlock      (axi4_mem0_awlock),
-                .m_axi4_awprot      (axi4_mem0_awprot),
-                .m_axi4_awqos       (axi4_mem0_awqos),
-                .m_axi4_awregion    (),
-                .m_axi4_awsize      (axi4_mem0_awsize),
-                .m_axi4_awvalid     (axi4_mem0_awvalid),
-                .m_axi4_awready     (axi4_mem0_awready),
-                .m_axi4_wstrb       (axi4_mem0_wstrb),
-                .m_axi4_wdata       (axi4_mem0_wdata),
-                .m_axi4_wlast       (axi4_mem0_wlast),
-                .m_axi4_wvalid      (axi4_mem0_wvalid),
-                .m_axi4_wready      (axi4_mem0_wready),
-                .m_axi4_bid         (axi4_mem0_bid),
-                .m_axi4_bresp       (axi4_mem0_bresp),
-                .m_axi4_bvalid      (axi4_mem0_bvalid),
-                .m_axi4_bready      (axi4_mem0_bready),
-                
-                .s_axi4s_tdata      ({32'd0, axi4s_memw_tdata}),
-                .s_axi4s_tvalid     (axi4s_memw_tvalid),
-                .s_axi4s_tready     (axi4s_memw_tready)
-            );
-    */
-    
-    
-    
-    
     // read は未使用
     assign axi4_mem0_arid     = 0;
     assign axi4_mem0_araddr   = 0;
@@ -1082,16 +802,6 @@ module zybo_z7_imx219
     assign pmod_a[2]   = reg_counter_clk200[5];
     assign pmod_a[3]   = reg_counter_clk100[5];
     assign pmod_a[7:4] = 0;
-    
-    
-    (* MARK_DEBUG = "true" *) reg   dbg_clk200;
-    (* MARK_DEBUG = "true" *) reg   dbg_clk100;
-    (* MARK_DEBUG = "true" *) reg   dbg_rxbyteclkhs;
-    always @(posedge sys_clk100) begin
-        dbg_clk200       <= reg_counter_clk200[5];
-        dbg_clk100       <= reg_counter_clk100[5];
-        dbg_rxbyteclkhs  <= reg_counter_rxbyteclkhs[5];
-    end
     
     
 endmodule
