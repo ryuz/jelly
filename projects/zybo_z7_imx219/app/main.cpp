@@ -128,16 +128,34 @@ int main()
 		printf("I2C open error\n");
 		return 1;
 	}
+
+#if 1
+	width  = 640;
+	height = 132;
+	imx219.SetPixelClock(139200000);
+	imx219.SetGain(30.0);
+	imx219.SetDigitalGain(30.0);
+	imx219.SetAoi(width, height, -1, -1, true, true);
+	imx219.Setup();
+#else
 	imx219.SetPixelClock(91000000);
 	imx219.SetGain(10.0);
 //	imx219.SetDigitalGain(0x0FFF);
 	imx219.SetDigitalGain(0.0);
 	imx219.SetAoi(width, height, 8, 8, false, false);
 	imx219.Setup();
-	printf("pixel clock  :%f [Hz]\n",  imx219.GetPixelClock());
-	printf("frame rate   :%f [fps]\n", imx219.GetFrameRate());
-	printf("analog  gain :%f [db]\n",  imx219.GetGain());
-	printf("digital gain :%f [db]\n",  imx219.GetDigitalGain());
+#endif
+
+	imx219.Start();
+
+	imx219.SetFrameRate(1000);
+	imx219.SetFlip(true, true);
+
+	printf("pixel clock   : %f [Hz]\n",  imx219.GetPixelClock());
+	printf("frame rate    : %f [fps]\n", imx219.GetFrameRate());
+	printf("exposure time : %f [s]\n",   imx219.GetExposureTime());
+	printf("analog  gain  : %f [db]\n",  imx219.GetGain());
+	printf("digital gain  : %f [db]\n",  imx219.GetDigitalGain());
 	
 //	void* mem_addr = um_pl_mem.GetAddress();
 	auto dmabuf_ptr      = udmabuf_acc.GetPtr();

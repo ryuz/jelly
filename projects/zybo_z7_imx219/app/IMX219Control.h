@@ -177,8 +177,11 @@ class IMX219ControlI2c
 protected:
 	I2cAccess	m_i2c;
 
-	bool		m_binning_x = true;//true;
-	bool		m_binning_y = true;
+	bool 		m_auto_stop = true;
+	bool		m_running = false;
+
+	bool		m_binning_h = true;//true;
+	bool		m_binning_v = true;
 	int			m_aoi_x  = 0;//3280/2 - 640;
 	int			m_aoi_y  = 0;//2464/2 - 132;
 	int			m_width  = 640;
@@ -187,6 +190,9 @@ protected:
 	float		m_framerate = 1000;
 	float		m_exposure  = 1;
 	float		m_gain = 1;
+
+	bool		m_flip_h;
+	bool		m_flip_v;
 
 	int			m_pll_vt_mpy = 87;
 	int			m_line_length = 3448;	// 固定値 
@@ -197,8 +203,9 @@ protected:
 	int			m_dig_gain_global = 0x0FFF;
 
 public:
-	IMX219ControlI2c() {}
 	~IMX219ControlI2c() {}
+	IMX219ControlI2c() {}
+	IMX219ControlI2c(bool auto_stop) { m_auto_stop = auto_stop; }
 
 	bool Open(const char* fname, unsigned char dev)
 	{
@@ -211,6 +218,7 @@ public:
 
 	void Close(const char* fname, unsigned char dev)
 	{
+		// 動かしたまま close を許す
 		return m_i2c.Close();
 	}
 
@@ -227,20 +235,37 @@ public:
 		I2cWrite8bit(IMX219_SW_RESET, 0x01);
 		usleep(100);
 
+		// 初期設定
+		I2cWrite8bit(IMX219_CSI_LANE_MODE, 0x01);   		// 03: 4Lane, 01: 2Lane
+		I2cWrite8bit(IMX219_DPHY_CTRL, 0x00);   			// MIPI Global timing setting (0: auto mode, 1: manual mode)
+		I2cWrite16bit(IMX219_EXCK_FREQ, 0x1800); 			// INCK frequency [MHz] 24.00MHz
+
+		I2cWrite16bit(IMX219_CSI_DATA_FORMAT_A, 0x0A0A);	// CSI-2 data format(0x0808:RAW8, 0x0A0A: RAW10)
+		I2cWrite8bit(IMX219_VTPXCK_DIV, 0x05);				// vt_pix_clk_div
+		I2cWrite8bit(IMX219_VTSYCK_DIV, 0x01);   			// vt_sys_clk_div
+		I2cWrite8bit(IMX219_PREPLLCK_VT_DIV, 0x03);   		// pre_pll_clk_vt_div(EXCK_FREQ 0:6-12MHz, 2:12-24MHz, 3:24-27MHz)
+		I2cWrite8bit(IMX219_PREPLLCK_OP_DIV, 0x03);   		// pre_pll_clk_op_div(EXCK_FREQ 0:6-12MHz, 2:12-24MHz, 3:24-27MHz)
+		I2cWrite16bit(IMX219_PLL_VT_MPY, m_pll_vt_mpy);		// pll_vt_multiplier
+		I2cWrite8bit(IMX219_OPPXCK_DIV, 0x0A);   			// op_pix_clk_div
+		I2cWrite8bit(IMX219_OPSYCK_DIV, 0x01);				// op_sys_clk_div
+		I2cWrite16bit(IMX219_PLL_OP_MPY, 0x0072);   		// pll_op_multiplier
+
 		return true;
 	}
 	
 	bool Start(void)
 	{
 		if ( !IsOpend() ) { return false; }
-		I2cWriteAddr16Byte(IMX219_MODE_SEL, 0x01);	// mode_select [4:0] 0: SW standby, 1: Streaming
+		I2cWrite8bit(IMX219_MODE_SEL, 0x01);	// mode_select [4:0] 0: SW standby, 1: Streaming
+		m_running = true;
 		return true;
 	}
 
 	bool Stop(void)
 	{
 		if ( !IsOpend() ) { return false; }
-		I2cWriteAddr16Byte(IMX219_MODE_SEL, 0x00);	// mode_select [4:0] 0: SW standby, 1: Streaming
+		I2cWrite8bit(IMX219_MODE_SEL, 0x00);	// mode_select [4:0] 0: SW standby, 1: Streaming
+		m_running = false;
 		return true;
 	}
 
@@ -262,10 +287,14 @@ public:
 
 	bool SetGain(double db)
 	{
+		if ( !IsOpend() ) { return false; }
+
 		db = std::max(db, 0.0);
 		db = std::min(db, 20.57);
 		double gain = std::pow(10, db/20.0);
 		m_ana_gain_global = (int)(256 * ((gain - 1) / gain));
+		I2cWrite8bit(IMX219_ANA_GAIN_GLOBAL_A, m_ana_gain_global);
+
 		return true;
 	}
 
@@ -277,21 +306,35 @@ public:
 
 	bool SetDigitalGain(double db)
 	{
+		if ( !IsOpend() ) { return false; }
+
 		db = std::max(db, 0.0);
 		db = std::min(db, 24.0);
 		double gain = std::pow(10, db/20.0);
 		m_dig_gain_global = (int)(gain * 256);
+		I2cWrite16bit(IMX219_DIG_GAIN_GLOBAL_A, m_dig_gain_global);
+		
 		return true;
 	}
 
 	double GetDigitalGain(void)
 	{
 		double gain = m_dig_gain_global / 256.0;
-		return 10.0 * std::log10(gain);
+		return 20.0 * std::log10(gain);
 	}
 
 	bool SetFrameRate(double fps)
 	{
+		if ( !IsOpend() ) { return false; }
+
+		int new_frm_length = (2.0 * GetPixelClock()) / (m_line_length * fps);
+		int min_frm_length = m_binning_v ? m_height / 2 + 14 : m_height + 16;
+		m_frm_length = std::max(new_frm_length, min_frm_length);
+		m_coarse_integration_time = std::min(m_coarse_integration_time, m_frm_length - 4);
+
+		I2cWrite16bit(IMX219_FRM_LENGTH_A, m_frm_length);
+		I2cWrite16bit(IMX219_COARSE_INTEGRATION_TIME_A, m_coarse_integration_time);
+		
 		return true;
 	}
 	
@@ -300,20 +343,39 @@ public:
 		return (2.0 * GetPixelClock()) / (m_frm_length * m_line_length);
 	}
 
-	int GetSensorWidth(void) { return m_binning_x  ? 3296 / 2 : 3296; }
-	int GetSensorHeight(void) { return m_binning_y ? (2480+16+16+8) / 2 : (2480+16+16+8); }
-	int GetSensorCenterX(void) { return m_binning_x  ? (8 + (3280 / 2)) / 2 : 8 + (3280 / 2); }
-	int GetSensorCenterY(void) { return m_binning_y  ? (8 + (2464 / 2)) / 2 : 8 + (2464 / 2); }
+	bool SetExposureTime(double exposure_time)
+	{
+		if ( !IsOpend() ) { return false; }
+
+		int new_coarse_integration_time = (2.0 * GetPixelClock()) * exposure_time / m_line_length;
+		m_coarse_integration_time = std::min(new_coarse_integration_time, m_frm_length - 4);
+
+		I2cWrite16bit(IMX219_COARSE_INTEGRATION_TIME_A, m_coarse_integration_time);
+		
+		return true;
+	}
+
+	double GetExposureTime(void)
+	{
+		return (m_coarse_integration_time * m_line_length) / (2.0 * GetPixelClock());
+	}
+
+	int GetSensorWidth(void) { return m_binning_h  ? 3296 / 2 : 3296; }
+	int GetSensorHeight(void) { return m_binning_v ? (2480+16+16+8) / 2 : (2480+16+16+8); }
+	int GetSensorCenterX(void) { return m_binning_h  ? (8 + (3280 / 2)) / 2 : 8 + (3280 / 2); }
+	int GetSensorCenterY(void) { return m_binning_v  ? (8 + (2464 / 2)) / 2 : 8 + (2464 / 2); }
 
 	int GetAoiWidth(void) { return m_width; }
 	int GetAoiHeight(void) { return m_height; }
 	int GetAoiX(void) { return m_aoi_x; }
 	int GetAoiY(void) { return m_aoi_y; }
 
-	bool SetAoi(int width, int height, int x=-1, int y=-1, bool binning_x=false, bool binning_y=false)
+	bool SetAoi(int width, int height, int x=-1, int y=-1, bool binning_h=false, bool binning_v=false)
 	{
-		m_binning_x = binning_x;
-		m_binning_y = binning_y;
+		if ( !IsOpend() ) { return false; }
+
+		m_binning_h = binning_h;
+		m_binning_v = binning_v;
 		int sensor_width  = GetSensorWidth();
 		int sensor_height = GetSensorHeight();
 		m_width  = std::min(width,  sensor_width);
@@ -325,8 +387,24 @@ public:
 		m_aoi_x = std::min(sensor_width  - m_width, x);
 		m_aoi_y = std::min(sensor_height - m_height, y);
 
-		m_frm_length = m_binning_y ? m_height / 2 + 14 : m_height + 16;
-		m_coarse_integration_time = m_frm_length - 4;
+		int min_frm_length = m_binning_v ? m_height / 2 + 14 : m_height + 16;
+		m_frm_length = std::max(m_frm_length, min_frm_length);
+		m_coarse_integration_time = std::min(m_coarse_integration_time, m_frm_length - 4);
+
+		Setup();
+
+		return true;
+	}
+
+	bool SetFlip(bool flip_h, bool flip_v)
+	{
+		m_flip_h = flip_h;
+		m_flip_v = flip_v;
+
+		int flip = 0;
+		if ( m_flip_h ) { flip |= 0x01; }
+		if ( m_flip_v ) { flip |= 0x02; }
+		I2cWrite8bit(IMX219_IMG_ORIENTATION_A, flip);
 
 		return true;
 	}
@@ -337,67 +415,52 @@ public:
 			return false;
 		}
 
-
 		I2cWrite8bit(IMX219_MODE_SEL, 0x00);   // mode_select [4:0]  (0: SW standby, 1: Streaming)
 
-		I2cWrite8bit(IMX219_CSI_LANE_MODE, 0x01);   	// CSI_LANE_MODE (03: 4Lane 01: 2Lane)
-		I2cWrite8bit(IMX219_DPHY_CTRL, 0x00);   		// DPHY_CTRL (MIPI Global timing setting 0: auto mode, 1: manual mode)
-		I2cWrite16bit(IMX219_EXCK_FREQ, 0x1800); 		// INCK frequency [MHz] 24.00MHz
-		I2cWrite8bit(IMX219_ANA_GAIN_GLOBAL_A, 0x00); 	// ANA_GAIN_GLOBAL_A
-		I2cWrite16bit(IMX219_COARSE_INTEGRATION_TIME_A, 0x09BD);	// 0x9bd=2493     COARSE_INTEGRATION_TIME_A
-		I2cWrite16bit(IMX219_FRM_LENGTH_A, 0x0372);		// 0x372= 882     FRM_LENGTH_A
+		I2cWrite16bit(IMX219_CSI_DATA_FORMAT_A, 0x0A0A);	// CSI-2 data format(0x0808:RAW8, 0x0A0A: RAW10)
+		I2cWrite8bit(IMX219_VTPXCK_DIV, 0x05);				// vt_pix_clk_div
+		I2cWrite8bit(IMX219_VTSYCK_DIV, 0x01);   			// vt_sys_clk_div
+		I2cWrite8bit(IMX219_PREPLLCK_VT_DIV, 0x03);   		// pre_pll_clk_vt_div(EXCK_FREQ 0:6-12MHz, 2:12-24MHz, 3:24-27MHz)
+		I2cWrite8bit(IMX219_PREPLLCK_OP_DIV, 0x03);   		// pre_pll_clk_op_div(EXCK_FREQ 0:6-12MHz, 2:12-24MHz, 3:24-27MHz)
+		I2cWrite16bit(IMX219_PLL_VT_MPY, m_pll_vt_mpy);		// pll_vt_multiplier
+		I2cWrite8bit(IMX219_OPPXCK_DIV, 0x0A);   			// op_pix_clk_div
+		I2cWrite8bit(IMX219_OPSYCK_DIV, 0x01);				// op_sys_clk_div
+		I2cWrite16bit(IMX219_PLL_OP_MPY, 0x0072);   		// pll_op_multiplier
 
-		int aoi_x = m_binning_x ? m_aoi_x  * 2 : m_aoi_x;
-		int aoi_y = m_binning_y ? m_aoi_y  * 2 : m_aoi_y;
-		int aoi_w = m_binning_x ? m_width  * 2 : m_width;
-		int aoi_h = m_binning_y ? m_height * 2 : m_height;
+		int aoi_x = m_binning_h ? m_aoi_x  * 2 : m_aoi_x;
+		int aoi_y = m_binning_v ? m_aoi_y  * 2 : m_aoi_y;
+		int aoi_w = m_binning_h ? m_width  * 2 : m_width;
+		int aoi_h = m_binning_v ? m_height * 2 : m_height;
 		I2cWrite16bit(IMX219_X_ADD_STA_A, aoi_x);    			// x_addr_start  X-address of the top left corner of the visible pixel data Units: Pixels
 		I2cWrite16bit(IMX219_X_ADD_END_A, aoi_x + aoi_w - 1);  	// 
 		I2cWrite16bit(IMX219_Y_ADD_STA_A, aoi_y);    			// 
 		I2cWrite16bit(IMX219_Y_ADD_END_A, aoi_y + aoi_h - 1);  	// 
 		I2cWrite16bit(IMX219_X_OUTPUT_SIZE, m_width); 			// x_output_size
 		I2cWrite16bit(IMX219_Y_OUTPUT_SIZE, m_height);			// y_output_size
-	
-		I2cWrite8bit(IMX219_BINNING_MODE_H_A, m_binning_x ? 0x03 : 0x00);   // 0:no-binning, 1:x2-binning, 2:x4-binning, 3:x2 analog (special)
-		I2cWrite8bit(IMX219_BINNING_MODE_V_A, m_binning_y ? 0x03 : 0x00);	// 0:no-binning, 1:x2-binning, 2:x4-binning, 3:x2 analog (special)
-		
-		I2cWrite16bit(IMX219_CSI_DATA_FORMAT_A, 0x0A0A);	// CSI-2 data format(0x0808:RAW8, 0x0A0A: RAW10)
-		I2cWrite8bit(IMX219_VTPXCK_DIV, 0x05);				// vt_pix_clk_div
-		I2cWrite8bit(IMX219_VTSYCK_DIV, 0x01);   			// vt_sys_clk_div
-		I2cWrite8bit(IMX219_PREPLLCK_VT_DIV, 0x03);   		// pre_pll_clk_vt_div(EXCK_FREQ 0:6-12MHz, 2:12-24MHz, 3:24-27MHz)
-		I2cWrite8bit(IMX219_PREPLLCK_OP_DIV, 0x03);   		// pre_pll_clk_op_div(EXCK_FREQ 0:6-12MHz, 2:12-24MHz, 3:24-27MHz)
-		I2cWrite16bit(IMX219_PLL_VT_MPY, m_pll_vt_mpy); //87);				// pll_vt_multiplier
-		I2cWrite8bit(IMX219_OPPXCK_DIV, 0x0A);   			// op_pix_clk_div
-		I2cWrite8bit(IMX219_OPSYCK_DIV, 0x01);				// op_sys_clk_div
-		I2cWrite16bit(IMX219_PLL_OP_MPY, 0x0072);   		// pll_op_multiplier
-		
-		I2cWrite8bit(IMX219_IMG_ORIENTATION_A, 0x03);   	// IMG_ORIENTATION_A
-		
-		I2cWriteAddr16Byte(IMX219_MODE_SEL, 0x01);   		// mode_select [4:0] 0: SW standby, 1: Streaming
 
-//		I2cWriteAddr16Word(IMX219_FRM_LENGTH_A, 80);       	// 0x0D02=3330   FRM_LENGTH_A
-//		I2cWriteAddr16Word(IMX219_FRM_LENGTH_A, 80*2*4);    // 0x0D02=3330   FRM_LENGTH_A
-
-		I2cWriteAddr16Word(IMX219_LINE_LENGTH_A, 0x0D78);   // 0x0D78=3448   LINE_LENGTH_A (line_length_pck Units: Pixels)
-//		I2cWriteAddr16Word(IMX219_COARSE_INTEGRATION_TIME_A, 50);       // 0x0D02=3330   COARSE_INTEGRATION_TIME_A
-//		I2cWriteAddr16Word(IMX219_COARSE_INTEGRATION_TIME_A, 80-4);       // 0x0D02=3330   COARSE_INTEGRATION_TIME_A
-
-		I2cWriteAddr16Word(IMX219_FRM_LENGTH_A, m_frm_length);
-		I2cWriteAddr16Word(IMX219_COARSE_INTEGRATION_TIME_A, m_coarse_integration_time);
+		I2cWrite8bit(IMX219_BINNING_MODE_H_A, m_binning_h ? 0x03 : 0x00);   // 0:no-binning, 1:x2-binning, 2:x4-binning, 3:x2 analog (special)
+		I2cWrite8bit(IMX219_BINNING_MODE_V_A, m_binning_v ? 0x03 : 0x00);	// 0:no-binning, 1:x2-binning, 2:x4-binning, 3:x2 analog (special)
 		
-		I2cWriteAddr16Byte(IMX219_ANA_GAIN_GLOBAL_A, m_ana_gain_global);   // ANA_GAIN_GLOBAL_A
-		I2cWriteAddr16Word(IMX219_DIG_GAIN_GLOBAL_A, m_dig_gain_global);   // ANA_GAIN_GLOBAL_A
+		I2cWrite16bit(IMX219_LINE_LENGTH_A, 3448);   	// 0x0D78=3448   LINE_LENGTH_A (line_length_pck Units: Pixels)
+		I2cWrite16bit(IMX219_FRM_LENGTH_A, m_frm_length);
+		I2cWrite16bit(IMX219_COARSE_INTEGRATION_TIME_A, m_coarse_integration_time);
+		
+		// restart
+		if ( m_running ) {
+			I2cWrite8bit(IMX219_MODE_SEL, 0x01);	// mode_select [4:0] 0: SW standby, 1: Streaming
+		}
 
 		return true;
 	}
 
 protected:
 
+	/*
 	int GetMinFrmLength(void)
 	{
-		return m_binning_y ? m_height / 2 + 14 : m_height + 16;
+		return m_binning_v ? m_height / 2 + 14 : m_height + 16;
 	}
-
+	*/
 
 	int I2cWriteAddr16(unsigned short addr, const void* data, int len)
 	{
@@ -447,7 +510,7 @@ protected:
 		I2cWriteAddr16(addr, buf, 3);
 	}
 
-
+	/*
 	int I2cWriteAddr16Byte(unsigned short addr, unsigned char data)
 	{
 		return I2cWriteAddr16(addr, &data, 1);
@@ -467,6 +530,7 @@ protected:
 		I2cReadAddr16(addr, buf, 1);
 		return buf[0];
 	}
+	*/
 };
 
 
