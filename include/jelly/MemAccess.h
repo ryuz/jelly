@@ -146,12 +146,12 @@ public:
     // memory access (byte addressing)
     void MemCopyTo(MemAddrType dst_addr, const void* src_ptr, std::size_t size)
     {
-        memcpy(GetPointer(dst_addr), src_ptr, size);
+        memcpy(GetPtr(dst_addr), src_ptr, size);
     }
 
     void MemCopyFrom(void* dst_ptr, MemAddrType src_addr, std::size_t size)
     {
-        memcpy(dst_ptr, GetPointer(src_addr), size);
+        memcpy(dst_ptr, GetPtr(src_addr), size);
     }
 
     void WriteMem   (MemAddrType addr, DataType      data) { WriteMem_<DataType>     (addr, data); }

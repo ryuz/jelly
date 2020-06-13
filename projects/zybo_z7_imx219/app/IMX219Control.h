@@ -1,26 +1,22 @@
+// --------------------------------------------------------------------------
+//  RaspberryPi Camera V2 (Sony IMX219) ZYBO-Z7 接続時制御クラス
+//
+//                                     Copyright (C) 2020 by Ryuji Fuchikami
+// --------------------------------------------------------------------------
+
 
 #ifndef __JELLY__IMX219_CONTORL__H__
 #define __JELLY__IMX219_CONTORL__H__
 
-//#include <stdio.h>
-//#include <stdlib.h>
-//#include <string.h>
+
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
 
-//#include <stdint.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/mman.h>
-#include <errno.h>
-#include <sys/ioctl.h>
-//#include <opencv2/opencv.hpp>
-
-#include <linux/i2c-dev.h>
 #include "I2cAccess.h"
 
 
+// レジスタ定義
 #define IMX219_MODEL_ID_0                  0x0000
 #define IMX219_MODEL_ID_1                  0x0001
 #define IMX219_FABRICATION_TOP             0x0002
@@ -171,7 +167,6 @@
 #define IMX219_FLASH_STATUS                0x0321
 
 
-
 class IMX219ControlI2c
 {
 protected:
@@ -180,10 +175,10 @@ protected:
 	bool 		m_auto_stop = true;
 	bool		m_running = false;
 
-	bool		m_binning_h = true;//true;
+	bool		m_binning_h = true;
 	bool		m_binning_v = true;
-	int			m_aoi_x  = 0;//3280/2 - 640;
-	int			m_aoi_y  = 0;//2464/2 - 132;
+	int			m_aoi_x  = 0;
+	int			m_aoi_y  = 0;
 	int			m_width  = 640;
 	int			m_height = 132;
 
@@ -191,12 +186,12 @@ protected:
 	float		m_exposure  = 1;
 	float		m_gain = 1;
 
-	bool		m_flip_h;
-	bool		m_flip_v;
+	bool		m_flip_h = false;
+	bool		m_flip_v = false;
 
-	int			m_pll_vt_mpy = 87;
+	int			m_pll_vt_mpy  = 87;
 	int			m_line_length = 3448;	// 固定値 
-	int			m_frm_length = 80;
+	int			m_frm_length  = 80;
 	int			m_coarse_integration_time = 80-4;
 	
 	int			m_ana_gain_global = 0xE0;
@@ -216,9 +211,13 @@ public:
 		return Reset();
 	}
 
-	void Close(const char* fname, unsigned char dev)
+	void Close(void)
 	{
-		// 動かしたまま close を許す
+		// 動かしたまま close も許す
+		if ( m_auto_stop ) {
+			Stop();
+		}
+
 		return m_i2c.Close();
 	}
 
@@ -391,6 +390,16 @@ public:
 		return true;
 	}
 
+	bool SetAoiSize(int width, int height)
+	{
+		return SetAoi(width, height, m_aoi_x, m_aoi_y, m_binning_h, m_binning_v);
+	}
+
+	bool SetAoiPosition(int x, int y)
+	{
+		return SetAoi(m_width, m_height, x, y, m_binning_h, m_binning_v);
+	}
+
 	int GetAoiWidth(void) { return m_width; }
 	int GetAoiHeight(void) { return m_height; }
 	int GetAoiX(void) { return m_aoi_x; }
@@ -408,6 +417,9 @@ public:
 
 		return true;
 	}
+
+	bool GetFlipH(void) { return m_flip_h; }
+	bool GetFlipV(void) { return m_flip_v; }
 
 protected:
 	bool Setup(void)
@@ -455,7 +467,9 @@ protected:
 	}
 
 
-	int I2cWriteAddr16(unsigned short addr, const void* data, int len)
+protected:
+
+	int I2cWrite(unsigned short addr, const void* data, int len)
 	{
 		unsigned char buf[2+len];
 		
@@ -467,7 +481,7 @@ protected:
 		return len;
 	}
 	
-	int I2cReadAddr16(unsigned short addr, void* buf, int len)
+	int I2cRead(unsigned short addr, void* buf, int len)
 	{
 		unsigned char addr_buf[2];
 		
@@ -483,7 +497,7 @@ protected:
 	{
 		std::uint8_t buf[1];
 	 	buf[0] = (data & 0xff);
-		I2cWriteAddr16(addr, buf, 1);
+		I2cWrite(addr, buf, 1);
 	}
 
 	void I2cWrite16bit(unsigned short addr, int data)
@@ -491,7 +505,7 @@ protected:
 		std::uint8_t buf[2];
 	 	buf[0] = ((data >> 8) & 0xff);
 	 	buf[1] = ((data >> 0) & 0xff);
-		I2cWriteAddr16(addr, buf, 2);
+		I2cWrite(addr, buf, 2);
 	}
 
 	void I2cWrite24bit(unsigned short addr, int data)
@@ -500,21 +514,7 @@ protected:
 	 	buf[0] = ((data >> 16) & 0xff);
 	 	buf[1] = ((data >> 8) & 0xff);
 	 	buf[2] = ((data >> 0) & 0xff);
-		I2cWriteAddr16(addr, buf, 3);
-	}
-
-	/*
-	int I2cWriteAddr16Byte(unsigned short addr, unsigned char data)
-	{
-		return I2cWriteAddr16(addr, &data, 1);
-	}
-	
-	int I2cWriteAddr16Word(unsigned short addr, unsigned short data)
-	{
-		unsigned char buf[2];
-	 	buf[0] = ((data >> 8) & 0xff);
-	 	buf[1] = ((data >> 0) & 0xff);
-		return I2cWriteAddr16(addr, buf, 2);
+		I2cWrite(addr, buf, 3);
 	}
 	
 	unsigned char I2cRead8bit(unsigned short addr)
@@ -523,7 +523,6 @@ protected:
 		I2cRead(addr, buf, 1);
 		return buf[0];
 	}
-	*/
 };
 
 

@@ -1,3 +1,8 @@
+// --------------------------------------------------------------------------
+//  Linux 用 I2C アクセス ラッパークラス
+//
+//                                     Copyright (C) 2020 by Ryuji Fuchikami
+// --------------------------------------------------------------------------
 
 
 #ifndef	__RYUZ__JELLY__I2C_ACCESS__H__
@@ -10,6 +15,9 @@
 
 class I2cAccess
 {
+protected:
+	int	m_fd;
+
 public:
 	I2cAccess()
 	{
@@ -78,60 +86,7 @@ public:
 //		printf("I2C read : %d\n", ret);
 		return ret;
 	}
-	
-#if 0
-	int WriteAddr16(unsigned short addr, const void* data, size_t len)
-	{
-		unsigned char buf[2+len];
-		
-		buf[0] = ((addr >> 8) & 0xff);
-		buf[1] = ((addr >> 0) & 0xff);
-		memcpy(&buf[2], data, len);
-		Write(buf, 2+len);
-		
-		return len;
-	}
-	
-	
-	ssize_t ReadAddr16(unsigned short addr, void* buf, size_t len)
-	{
-		unsigned char addr_buf[2];
-		
-		addr_buf[0] = ((addr >> 8) & 0xff);
-		addr_buf[1] = ((addr >> 0) & 0xff);
-		Write(addr_buf, 2);
-		Read(buf, len);
-		
-		return len;
-	}
-	
-	
-	ssize_t WriteAddr16Byte(unsigned short addr, unsigned char data)
-	{
-		return WriteAddr16(addr, &data, 1);
-	}
-	
-	int WriteAddr16Word(unsigned short addr, unsigned short data)
-	{
-		unsigned char buf[2];
-	 	buf[0] = ((data >> 8) & 0xff);
-	 	buf[1] = ((data >> 0) & 0xff);
-		return WriteAddr16(addr, buf, 2);
-	}
-	
-	
-	unsigned char ReadAddr16Byte(unsigned short addr)
-	{
-		unsigned char buf[1];
-		ReadAddr16(addr, buf, 1);
-		return buf[0];
-	}
-#endif
-	
-protected:
-	int	m_fd;
 };
-
 
 
 #endif	// __RYUZ__JELLY__I2C_ACCESS__H__
