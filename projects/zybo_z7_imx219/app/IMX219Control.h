@@ -48,6 +48,26 @@
 #define IMX219_CSI_CH_ID                   0x0110
 #define IMX219_CSI_SIG_MODE                0x0111
 #define IMX219_CSI_LANE_MODE               0x0114
+#define IMX219_TCLK_POST_0                 0x0118
+#define IMX219_TCLK_POST_1                 0x0119
+#define IMX219_THS_PREPARE_0               0x011A
+#define IMX219_THS_PREPARE_1               0x011B
+#define IMX219_THS_ZERO_MIN_0              0x011C
+#define IMX219_THS_ZERO_MIN_1              0x011D
+#define IMX219_THS_TRAIL_0                 0x011E
+#define IMX219_THS_TRAIL_1                 0x011F
+#define IMX219_TCLK_TRAIL_MIN_0            0x0120
+#define IMX219_TCLK_TRAIL_MIN_1            0x0121
+#define IMX219_TCLK_PREPARE_0              0x0122
+#define IMX219_TCLK_PREPARE_1              0x0123
+#define IMX219_TCLK_ZERO_0                 0x0124
+#define IMX219_TCLK_ZERO_1                 0x0125
+#define IMX219_TLPX_0                      0x0126
+#define IMX219_TLPX_1                      0x0127
+#define IMX219_DPHY_CTRL                   0x0128
+#define IMX219_EXCK_FREQ                   0x012A
+#define IMX219_EXCK_FREQ_0                 0x012A
+#define IMX219_EXCK_FREQ_1                 0x012B
 #define IMX219_TEMPERATURE_EN_VAL          0x0140
 #define IMX219_READOUT_V_CNT_0             0x0142
 #define IMX219_READOUT_V_CNT_1             0x0143
@@ -57,25 +77,35 @@
 #define IMX219_FRAME_DURATION_A            0x0154
 #define IMX219_COMP_ENABLE_A               0x0155
 #define IMX219_ANA_GAIN_GLOBAL_A           0x0157
+#define IMX219_DIG_GAIN_GLOBAL_A           0x0158
 #define IMX219_DIG_GAIN_GLOBAL_A_0         0x0158
 #define IMX219_DIG_GAIN_GLOBAL_A_1         0x0159
+#define IMX219_COARSE_INTEGRATION_TIME_A   0x015A
 #define IMX219_COARSE_INTEGRATION_TIME_A_0 0x015A
 #define IMX219_COARSE_INTEGRATION_TIME_A_1 0x015B
 #define IMX219_SENSOR_MODE_A               0x015D
+#define IMX219_FRM_LENGTH_A                0x0160
 #define IMX219_FRM_LENGTH_A_0              0x0160
 #define IMX219_FRM_LENGTH_A_1              0x0161
+#define IMX219_LINE_LENGTH_A               0x0162
 #define IMX219_LINE_LENGTH_A_0             0x0162
 #define IMX219_LINE_LENGTH_A_1             0x0163
+#define IMX219_X_ADD_STA_A                 0x0164
 #define IMX219_X_ADD_STA_A_0               0x0164
 #define IMX219_X_ADD_STA_A_1               0x0165
+#define IMX219_X_ADD_END_A                 0x0166
 #define IMX219_X_ADD_END_A_0               0x0166
 #define IMX219_X_ADD_END_A_1               0x0167
+#define IMX219_Y_ADD_STA_A                 0x0168
 #define IMX219_Y_ADD_STA_A_0               0x0168
 #define IMX219_Y_ADD_STA_A_1               0x0169
+#define IMX219_Y_ADD_END_A                 0x016A
 #define IMX219_Y_ADD_END_A_0               0x016A
 #define IMX219_Y_ADD_END_A_1               0x016B
+#define IMX219_X_OUTPUT_SIZE               0x016C
 #define IMX219_X_OUTPUT_SIZE_0             0x016C
 #define IMX219_X_OUTPUT_SIZE_1             0x016D
+#define IMX219_Y_OUTPUT_SIZE               0x016E
 #define IMX219_Y_OUTPUT_SIZE_0             0x016E
 #define IMX219_Y_OUTPUT_SIZE_1             0x016F
 #define IMX219_X_ODD_INC_A                 0x0170
@@ -89,6 +119,7 @@
 #define IMX219_ANA_GAIN_GLOBAL_SHORT_A     0x0189
 #define IMX219_COARSE_INTEG_TIME_SHORT_0_A 0x018A
 #define IMX219_COARSE_INTEG_TIME_SHORT_1_A 0x018B
+#define IMX219_CSI_DATA_FORMAT_A           0x018C
 #define IMX219_CSI_DATA_FORMAT_0_A         0x018C
 #define IMX219_CSI_DATA_FORMAT_1_A         0x018D
 #define IMX219_LSC_ENABLE_A                0x0190
@@ -116,10 +147,12 @@
 #define IMX219_VTSYCK_DIV                  0x0303
 #define IMX219_PREPLLCK_VT_DIV             0x0304
 #define IMX219_PREPLLCK_OP_DIV             0x0305
+#define IMX219_PLL_VT_MPY                  0x0306
 #define IMX219_PLL_VT_MPY_0                0x0306
 #define IMX219_PLL_VT_MPY_1                0x0307
 #define IMX219_OPPXCK_DIV                  0x0309
 #define IMX219_OPSYCK_DIV                  0x030B
+#define IMX219_PLL_OP_MPY                  0x030C
 #define IMX219_PLL_OP_MPY_0                0x030C
 #define IMX219_PLL_OP_MPY_1                0x030D
 #define IMX219_RESERVE_3                   0x030E
@@ -140,16 +173,20 @@ class IMX219ControlI2c
 protected:
 	I2cAccess	m_i2c;
 
-	bool		m_binning_x = true;
+	bool		m_binning_x = true;//true;
 	bool		m_binning_y = true;
-	int			m_aoi_x  = 3280/2 - 640;
-	int			m_aoi_y  = 2464/2 - 132;
+	int			m_aoi_x  = 0;//3280/2 - 640;
+	int			m_aoi_y  = 0;//2464/2 - 132;
 	int			m_width  = 640;
 	int			m_height = 132;
 
 	float		m_framerate = 1000;
 	float		m_exposure  = 1;
 	float		m_gain = 1;
+
+	int			m_frm_length = 80;
+	int			m_coarse_integration_time = 80-4;
+
 
 public:
 	IMX219ControlI2c() {}
@@ -170,6 +207,37 @@ public:
 		return m_i2c.IsOpend();
 	}
 	
+	int GetSensorWidth(void) { return m_binning_x  ? 3296 / 2 : 3296; }
+	int GetSensorHeight(void) { return m_binning_y ? (2480+16+16+8) / 2 : (2480+16+16+8); }
+	int GetSensorCenterX(void) { return m_binning_x  ? (8 + (3280 / 2)) / 2 : 8 + (3280 / 2); }
+	int GetSensorCenterY(void) { return m_binning_y  ? (8 + (2464 / 2)) / 2 : 8 + (2464 / 2); }
+
+	int GetAoiWidth(void) { return m_width; }
+	int GetAoiHeight(void) { return m_height; }
+	int GetAoiX(void) { return m_aoi_x; }
+	int GetAoiY(void) { return m_aoi_y; }
+
+	bool SetAoi(int width, int height, int x=-1, int y=-1, bool binning_x=false, bool binning_y=false)
+	{
+		m_binning_x = binning_x;
+		m_binning_y = binning_y;
+		int sensor_width  = GetSensorWidth();
+		int sensor_height = GetSensorHeight();
+		m_width  = std::min(width,  sensor_width);
+		m_height = std::min(height, sensor_height);
+
+		if ( x < 0 ) { x = GetSensorCenterX() - (m_width / 2); }
+		if ( y < 0 ) { y = GetSensorCenterY() - (m_height / 2); }
+
+		m_aoi_x = std::min(sensor_width  - m_width, x);
+		m_aoi_y = std::min(sensor_height - m_height, y);
+
+		m_frm_length = m_binning_y ? m_height / 2 + 14 : m_height;
+		m_coarse_integration_time = m_frm_length - 4;
+
+		return true;
+	}
+
 	bool Setup(void)
 	{
 		if ( !IsOpend() ) {
@@ -177,112 +245,71 @@ public:
 		}
 
 		// ソフトリセット
-		I2cWriteAddr16Byte(IMX219_SW_RESET, 0x01);
+		I2cWrite8bit(IMX219_SW_RESET, 0x01);
 		usleep(100);
-//		I2cWriteAddr16Byte(0x0103, 0x00);
-//		usleep(10000);
 
-		I2cWriteAddr16Byte(0x0102, 0x01);   // ???? (Reserved)
-		I2cWriteAddr16Byte(0x0100, 0x00);   // mode_select [4:0]  (0: SW standby, 1: Streaming)
-		I2cWriteAddr16Word(0x6620, 0x0101);   // ????
-		I2cWriteAddr16Word(0x6622, 0x0101);
+
+	//	I2cWrite8bit(0x0102, 0x01);   // ???? (Reserved)
+		I2cWrite8bit(IMX219_MODE_SEL, 0x00);   // mode_select [4:0]  (0: SW standby, 1: Streaming)
+	//	I2cWriteWord(0x6620, 0x0101);   // ????
+	//	I2cWriteWord(0x6622, 0x0101);
 	
-		I2cWriteAddr16Byte(0x30EB, 0x05);   // Access command sequence Seq.
-		I2cWriteAddr16Byte(0x30EB, 0x0C);
-		I2cWriteAddr16Byte(0x300A, 0xFF);
-		I2cWriteAddr16Byte(0x300B, 0xFF);
-		I2cWriteAddr16Byte(0x30EB, 0x05);
-		I2cWriteAddr16Byte(0x30EB, 0x09);
-
-		I2cWriteAddr16Byte(0x0114, 0x01  );   // * CSI_LANE_MODE (03: 4Lane 01: 2Lane)
-		I2cWriteAddr16Byte(0x0128, 0x00  );   //   DPHY_CTRL (MIPI Global timing setting 0: auto mode, 1: manual mode)
-		I2cWriteAddr16Word(0x012a, 0x1800);   // * INCK frequency [MHz] 6,144MHz
-		I2cWriteAddr16Byte(0x0157, 0x00  );   //      ANA_GAIN_GLOBAL_A
-		I2cWriteAddr16Word(0x015A, 0x09BD);   // 0x9bd=2493     COARSE_INTEGRATION_TIME_A
-		I2cWriteAddr16Word(0x0160, 0x0372);   // 0x372= 882     FRM_LENGTH_A
-
-		int	w = 640;
-		int	h = 132;
 #if 0
-		I2cWriteAddr16Word(0x0162, 0x0D78);   // 0xD78=3448     LINE_LENGTH_A (line_length_pck Units: Pixels)  
-		I2cWriteAddr16Word(0x0164, 0x0000);   //      X_ADD_STA_A  x_addr_start  X-address of the top left corner of the visible pixel data Units: Pixels
-		I2cWriteAddr16Word(0x0166, 0x0CCF);   // 0xccf=3279     X_ADD_END_A
-		I2cWriteAddr16Word(0x0168, 0x0000);   //      Y_ADD_STA_A
-		I2cWriteAddr16Word(0x016A, 0x099F);   // 0x99f=2463     Y_ADD_END_A
-		I2cWriteAddr16Word(0x016C, 0x0668);   // 0x668=1640     x_output_size
-		I2cWriteAddr16Word(0x016E, 0x04D0);   // 0x4d0=1232     y_output_size
-#else
-		I2cWriteAddr16Word(0x0164, 3280/2 - w);    //      X_ADD_STA_A  x_addr_start  X-address of the top left corner of the visible pixel data Units: Pixels
-		I2cWriteAddr16Word(0x0166, 3280/2 + w-1);  // 0xccf=3279     X_ADD_END_A
-		I2cWriteAddr16Word(0x0168, 2464/2 - h);    //      Y_ADD_STA_A
-		I2cWriteAddr16Word(0x016A, 2464/2 + h-1);  // 0x99f=2463     Y_ADD_END_A
-		I2cWriteAddr16Word(0x016C, w);   // 0x668=1640     x_output_size
-		I2cWriteAddr16Word(0x016E, h);   // 0x4d0=1232     y_output_size
+		I2cWrite8bit(0x30EB, 0x05);   // Access command sequence Seq.
+		I2cWrite8bit(0x30EB, 0x0C);
+		I2cWrite8bit(0x300A, 0xFF);
+		I2cWrite8bit(0x300B, 0xFF);
+		I2cWrite8bit(0x30EB, 0x05);
+		I2cWrite8bit(0x30EB, 0x09);
 #endif
+
+		I2cWrite8bit(IMX219_CSI_LANE_MODE, 0x01);   	// CSI_LANE_MODE (03: 4Lane 01: 2Lane)
+		I2cWrite8bit(IMX219_DPHY_CTRL, 0x00);   		// DPHY_CTRL (MIPI Global timing setting 0: auto mode, 1: manual mode)
+		I2cWrite16bit(IMX219_EXCK_FREQ, 0x1800); 		// INCK frequency [MHz] 24.00MHz
+		I2cWrite8bit(IMX219_ANA_GAIN_GLOBAL_A, 0x00); 	// ANA_GAIN_GLOBAL_A
+		I2cWrite16bit(IMX219_COARSE_INTEGRATION_TIME_A, 0x09BD);	// 0x9bd=2493     COARSE_INTEGRATION_TIME_A
+		I2cWrite16bit(IMX219_FRM_LENGTH_A, 0x0372);		// 0x372= 882     FRM_LENGTH_A
+
+		int aoi_x = m_binning_x ? m_aoi_x  * 2 : m_aoi_x;
+		int aoi_y = m_binning_y ? m_aoi_y  * 2 : m_aoi_y;
+		int aoi_w = m_binning_x ? m_width  * 2 : m_width;
+		int aoi_h = m_binning_y ? m_height * 2 : m_height;
+		I2cWrite16bit(IMX219_X_ADD_STA_A, aoi_x);    	// x_addr_start  X-address of the top left corner of the visible pixel data Units: Pixels
+		I2cWrite16bit(IMX219_X_ADD_END_A, aoi_x + aoi_w - 1);  	// 
+		I2cWrite16bit(IMX219_Y_ADD_STA_A, aoi_y);    	// 
+		I2cWrite16bit(IMX219_Y_ADD_END_A, aoi_y + aoi_h - 1);  	// 
+		I2cWrite16bit(IMX219_X_OUTPUT_SIZE, m_width); 		// x_output_size
+		I2cWrite16bit(IMX219_Y_OUTPUT_SIZE, m_height);		// y_output_size
 	
-	
-		I2cWriteAddr16Word(0x0170, 0x0101);   //      X_ODD_INC_A  Increment for odd pixels 1, 3
-	//	I2cWriteAddr16Word(0x0170, 0x0303);   // r     X_ODD_INC_A  Increment for odd pixels 1, 3
-	//	I2cWriteAddr16Word(0x0174, 0x0101);   //      BINNING_MODE_H_A  0: no-binning, 1: x2-binning, 2: x4-binning, 3: x2-analog (special) binning
-		I2cWriteAddr16Word(0x0174, 0x0303);   // r     BINNING_MODE_H_A  0: no-binning, 1: x2-binning, 2: x4-binning, 3: x2-analog (special) binning
-		I2cWriteAddr16Word(0x018C, 0x0A0A);   //      CSI_DATA_FORMAT_A   CSI-2 data format
-		I2cWriteAddr16Byte(0x0301, 0x05  );   // * VTPXCK_DIV  Video Timing Pixel Clock Divider Value
-		I2cWriteAddr16Word(0x0303, 0x0103);   // * VTSYCK_DIV  PREPLLCK_VT_DIV(3: EXCK_FREQ 24 MHz to 27 MHz)
-		I2cWriteAddr16Word(0x0305, 0x0300);   // * PREPLLCK_OP_DIV(3: EXCK_FREQ 24 MHz to 27 MHz)  / PLL_VT_MPY 区切りがおかしい次に続く
-	//	I2cWriteAddr16Byte(0x0307, 0x39  );   // * PLL_VT_MPY
-	//	I2cWriteAddr16Byte(0x0307, 84  );   // r PLL_VT_MPY
-		I2cWriteAddr16Byte(0x0307, 87  );   // r PLL_VT_MPY
-		I2cWriteAddr16Byte(0x0309, 0x0A  );   // * OPPXCK_DIV
-		I2cWriteAddr16Word(0x030B, 0x0100);   // * OPSYCK_DIV PLL_OP_MPY[10:8] / 区切りがおかしい次に続く
-		I2cWriteAddr16Byte(0x030D, 0x72  );   // * PLL_OP_MPY[10:8]
+		I2cWrite8bit(IMX219_BINNING_MODE_H_A, m_binning_x ? 0x03 : 0x00);   // 0:no-binning, 1:x2-binning, 2:x4-binning, 3:x2 analog (special)
+		I2cWrite8bit(IMX219_BINNING_MODE_V_A, m_binning_y ? 0x03 : 0x00);	// 0:no-binning, 1:x2-binning, 2:x4-binning, 3:x2 analog (special)
 		
-		I2cWriteAddr16Byte(0x455E, 0x00  );   //
-		I2cWriteAddr16Byte(0x471E, 0x4B  );   //
-		I2cWriteAddr16Byte(0x4767, 0x0F  );   //
-		I2cWriteAddr16Byte(0x4750, 0x14  );   //
-		I2cWriteAddr16Byte(0x4540, 0x00  );   //
-		I2cWriteAddr16Byte(0x47B4, 0x14  );   //
-		I2cWriteAddr16Byte(0x4713, 0x30  );   //
-		I2cWriteAddr16Byte(0x478B, 0x10  );   //
-		I2cWriteAddr16Byte(0x478F, 0x10  );   //
-		I2cWriteAddr16Byte(0x4793, 0x10  );   //
-		I2cWriteAddr16Byte(0x4797, 0x0E  );   //
-		I2cWriteAddr16Byte(0x479B, 0x0E  );   //
-
-		I2cWriteAddr16Byte(0x0172, 0x03  );   //      IMG_ORIENTATION_A
+		I2cWrite16bit(IMX219_CSI_DATA_FORMAT_A, 0x0A0A);	// CSI-2 data format(0x0808:RAW8, 0x0A0A: RAW10)
+		I2cWrite8bit(IMX219_VTPXCK_DIV, 0x05);				// vt_pix_clk_div
+		I2cWrite8bit(IMX219_VTSYCK_DIV, 0x01);   			// vt_sys_clk_div
+		I2cWrite8bit(IMX219_PREPLLCK_VT_DIV, 0x03);   		// pre_pll_clk_vt_div(EXCK_FREQ 0:6-12MHz, 2:12-24MHz, 3:24-27MHz)
+		I2cWrite8bit(IMX219_PREPLLCK_OP_DIV, 0x03);   		// pre_pll_clk_op_div(EXCK_FREQ 0:6-12MHz, 2:12-24MHz, 3:24-27MHz)
+		I2cWrite16bit(IMX219_PLL_VT_MPY, 87);				// pll_vt_multiplier
+		I2cWrite8bit(IMX219_OPPXCK_DIV, 0x0A);   			// op_pix_clk_div
+		I2cWrite8bit(IMX219_OPSYCK_DIV, 0x01);				// op_sys_clk_div
+		I2cWrite16bit(IMX219_PLL_OP_MPY, 0x0072);   		// pll_op_multiplier
 		
-	//	i2c.WriteAddr16Word(0x0160, 0x06E3);   //      FRM_LENGTH_A[15:8]
-	//	i2c.WriteAddr16Word(0x0162, 0x0D78);   //      LINE_LENGTH_A
-	//	i2c.WriteAddr16Word(0x015A, 0x0422);   //      COARSE_INTEGRATION_TIME_A
-	//	i2c.WriteAddr16Byte(0x0157, 0x00  );   //      ANA_GAIN_GLOBAL_A
+		I2cWrite8bit(IMX219_IMG_ORIENTATION_A, 0x03);   //      IMG_ORIENTATION_A
+		
+		I2cWriteAddr16Byte(IMX219_MODE_SEL, 0x01);   // mode_select [4:0] 0: SW standby, 1: Streaming
 
-	//	i2c.WriteAddr16Byte(0x0157, 0x00  );   //      ANA_GAIN_GLOBAL_A
-	//	i2c.WriteAddr16Word(0x0160, 0x06E3);   //      FRM_LENGTH_A
-	//	i2c.WriteAddr16Word(0x0162, 0x0D78);   //      LINE_LENGTH_A (line_length_pck Units: Pixels)
-	//	i2c.WriteAddr16Word(0x015A, 0x0422);   //      COARSE_INTEGRATION_TIME_A
+//		I2cWriteAddr16Word(IMX219_FRM_LENGTH_A, 80);       // 0x0D02=3330   FRM_LENGTH_A
+//		I2cWriteAddr16Word(IMX219_FRM_LENGTH_A, 80*2*4);       // 0x0D02=3330   FRM_LENGTH_A
 
-		I2cWriteAddr16Byte(0x0100, 0x01  );   //      mode_select [4:0] 0: SW standby, 1: Streaming
+		I2cWriteAddr16Word(IMX219_LINE_LENGTH_A, 0x0D78);   // 0x0D78=3448   LINE_LENGTH_A (line_length_pck Units: Pixels)
+//		I2cWriteAddr16Word(IMX219_COARSE_INTEGRATION_TIME_A, 50);       // 0x0D02=3330   COARSE_INTEGRATION_TIME_A
+//		I2cWriteAddr16Word(IMX219_COARSE_INTEGRATION_TIME_A, 80-4);       // 0x0D02=3330   COARSE_INTEGRATION_TIME_A
 
-	//	i2c.WriteAddr16Byte(0x0157, 0x00  );   //      ANA_GAIN_GLOBAL_A
-	//	i2c.WriteAddr16Word(0x0160, 0x06E3);   // 0x06E3=3330   FRM_LENGTH_A
-	//	i2c.WriteAddr16Word(0x0162, 0x0D78);   // 0x0D78=3448   LINE_LENGTH_A
-	//	i2c.WriteAddr16Word(0x015A, 0x0421);   // 0x0421=1057   COARSE_INTEGRATION_TIME_A
+		I2cWriteAddr16Word(IMX219_FRM_LENGTH_A, m_frm_length);
+		I2cWriteAddr16Word(IMX219_COARSE_INTEGRATION_TIME_A, m_coarse_integration_time);
 
-	#if 0
-		I2cWriteAddr16Byte(0x0157, 0x00  );   //      ANA_GAIN_GLOBAL_A
-		I2cWriteAddr16Word(0x0160, 0x0D02);   // 0x0D02=3330   FRM_LENGTH_A
-		I2cWriteAddr16Word(0x0162, 0x0D78);   // 0x0D78=3448   INE_LENGTH_A (line_length_pck Units: Pixels)
-		I2cWriteAddr16Word(0x015A, 0x0D02);   // 0x0D02=3330   COARSE_INTEGRATION_TIME_A
-		I2cWriteAddr16Byte(0x0157, 0xE0  );   //      ANA_GAIN_GLOBAL_A
-	#else
-		I2cWriteAddr16Byte(0x0157, 0x00  );   //      ANA_GAIN_GLOBAL_A
-		I2cWriteAddr16Word(0x0160, 80);       // 0x0D02=3330   FRM_LENGTH_A
-		I2cWriteAddr16Word(0x0162, 0x0D78);   // 0x0D78=3448   LINE_LENGTH_A (line_length_pck Units: Pixels)
-		I2cWriteAddr16Word(0x015A, 50);       // 0x0D02=3330   COARSE_INTEGRATION_TIME_A
-		I2cWriteAddr16Byte(0x0157, 0xE0  );   //      ANA_GAIN_GLOBAL_A
-	//	I2cWriteAddr16Byte(0x0157, 0xFF  );   //      ANA_GAIN_GLOBAL_A
-		I2cWriteAddr16Word(0x0158, 0x0FFF);   //      ANA_GAIN_GLOBAL_A
-	#endif
+		I2cWriteAddr16Byte(IMX219_ANA_GAIN_GLOBAL_A, 0xE0  );   // ANA_GAIN_GLOBAL_A
+		I2cWriteAddr16Word(IMX219_DIG_GAIN_GLOBAL_A, 0x0FFF);   // ANA_GAIN_GLOBAL_A
 
 		return true;
 	}
@@ -313,7 +340,32 @@ protected:
 		
 		return len;
 	}
-	
+
+	void I2cWrite8bit(unsigned short addr, int data)
+	{
+		std::uint8_t buf[1];
+	 	buf[0] = (data & 0xff);
+		I2cWriteAddr16(addr, buf, 1);
+	}
+
+	void I2cWrite16bit(unsigned short addr, int data)
+	{
+		std::uint8_t buf[2];
+	 	buf[0] = ((data >> 8) & 0xff);
+	 	buf[1] = ((data >> 0) & 0xff);
+		I2cWriteAddr16(addr, buf, 2);
+	}
+
+	void I2cWrite24bit(unsigned short addr, int data)
+	{
+		unsigned char buf[3];
+	 	buf[0] = ((data >> 16) & 0xff);
+	 	buf[1] = ((data >> 8) & 0xff);
+	 	buf[2] = ((data >> 0) & 0xff);
+		I2cWriteAddr16(addr, buf, 3);
+	}
+
+
 	int I2cWriteAddr16Byte(unsigned short addr, unsigned char data)
 	{
 		return I2cWriteAddr16(addr, &data, 1);
