@@ -39,6 +39,8 @@ $(TARGET): $(OBJS)
 %.o : %.cpp
 	g++ $(CFLAGS) -c $< -o $@
 
+main.o: IMX219Control.h I2cAccess.h
+
 $(DTBO_FILE): $(DTS_FILE)
 	dtc -I dts -O dtb -o $(DTBO_FILE) $(DTS_FILE)
 

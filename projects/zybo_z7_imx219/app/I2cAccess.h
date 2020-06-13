@@ -1,7 +1,7 @@
 
 
-#ifndef	__RYUZ__JELLY__I2C_ACCESS_H__
-#define	__RYUZ__JELLY__I2C_ACCESS_H__
+#ifndef	__RYUZ__JELLY__I2C_ACCESS__H__
+#define	__RYUZ__JELLY__I2C_ACCESS__H__
 
 
 #include <sys/ioctl.h>
@@ -79,7 +79,7 @@ public:
 		return ret;
 	}
 	
-	
+#if 0
 	int WriteAddr16(unsigned short addr, const void* data, size_t len)
 	{
 		unsigned char buf[2+len];
@@ -126,7 +126,7 @@ public:
 		ReadAddr16(addr, buf, 1);
 		return buf[0];
 	}
-	
+#endif
 	
 protected:
 	int	m_fd;
@@ -134,5 +134,6 @@ protected:
 
 
 
-#endif	// __RYUZ__JELLY__I2C_ACCESS_H__
+#endif	// __RYUZ__JELLY__I2C_ACCESS__H__
 
+// end of file

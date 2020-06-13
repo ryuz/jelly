@@ -15,6 +15,7 @@
 #include "jelly/UioAccess.h"
 #include "jelly/UdmabufAccess.h"
 #include "I2cAccess.h"
+#include "IMX219Control.h"
 
 using namespace jelly;
 
@@ -148,11 +149,48 @@ int main()
 	int w = 640;
 	int h = 132;
 	
+	IMX219ControlI2c imx219;
+	if ( !imx219.Open("/dev/i2c-0", 0x10) ) {
+		printf("I2C open error\n");
+		return 1;
+	}
+	imx219.Setup();
+
+#if 0
 	I2cAccess	i2c;
 	if ( !i2c.Open("/dev/i2c-0", 0x10) ) {
 		printf("I2C open error\n");
 		return 1;
 	}
+
+	i2c.WriteAddr16Byte(0x0103, 0x01);
+	usleep(10000);
+	i2c.WriteAddr16Byte(0x0103, 0x00);
+	usleep(10000);
+
+	printf("%02x\n", i2c.ReadAddr16Byte(0x0162));
+	printf("%02x\n", i2c.ReadAddr16Byte(0x0163));
+	i2c.WriteAddr16Word(0x0162, 0x0D76);
+	printf("%02x\n", i2c.ReadAddr16Byte(0x0162));
+	printf("%02x\n", i2c.ReadAddr16Byte(0x0163));
+	i2c.WriteAddr16Byte(0x0103, 0x01);
+	usleep(10000);
+	printf("%02x\n", i2c.ReadAddr16Byte(0x0162));
+	printf("%02x\n", i2c.ReadAddr16Byte(0x0163));
+	return 0;
+
+/*
+	FILE* fp = fopen("reg_log.txt", "w");
+	for ( int i = 0; i < 0x4000; ++i ) {
+		if ( i % 16 == 0 ) { fprintf(fp, "%04x : ", i); }
+		fprintf(fp, "%02x ", i2c.ReadAddr16Byte(i));
+		if ( i % 16 == 15 ) { fprintf(fp, "\n"); }
+	}
+	fclose(fp);
+*/
+
+//	i2c.WriteAddr16Byte(0x0103, 1);
+//	printf("SW_RESET:%02x\n", i2c.ReadAddr16Byte(0x0103));
 	
 //	printf("0x00 : %02x\n", i2c.ReadAddr16Byte(0x00));
 //	printf("0x01 : %02x\n", i2c.ReadAddr16Byte(0x01));
@@ -275,7 +313,7 @@ int main()
 	i2c.WriteAddr16Word(0x0158, 0x0FFF);   //      ANA_GAIN_GLOBAL_A
 #endif
 	
-	
+#endif	
 	
 //	int width  = 640; // IMAGE_WIDTH;
 //	int height = 120; // IMAGE_HEIGHT;
