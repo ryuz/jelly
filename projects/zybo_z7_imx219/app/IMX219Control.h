@@ -114,7 +114,7 @@
 #define IMX219_BINNING_MODE_H_A            0x0174
 #define IMX219_BINNING_MODE_V_A            0x0175
 #define IMX219_BINNING_CAL_MODE_H_A        0x0176
-#define IMX219_BINNING_ CAL_MODE_V_A       0x0177
+#define IMX219_BINNING_CAL_MODE_V_A        0x0177
 #define IMX219_RESERVE_0                   0x0188
 #define IMX219_ANA_GAIN_GLOBAL_SHORT_A     0x0189
 #define IMX219_COARSE_INTEG_TIME_SHORT_0_A 0x018A
@@ -527,5 +527,6 @@ protected:
 
 
 #endif  // __JELLY__IMX219_CONTORL__H__
+
 
 // end of file
