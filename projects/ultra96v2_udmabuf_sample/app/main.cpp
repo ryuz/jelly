@@ -8,8 +8,8 @@
 #include <iostream>
 #include <unistd.h>
 
-#include "UioAccess.h"
-#include "UdmabufAccess.h"
+#include "jelly/UioAccess.h"
+#include "jelly/UdmabufAccess.h"
 
 using namespace jelly;
 
