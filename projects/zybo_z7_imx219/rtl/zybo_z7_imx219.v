@@ -249,7 +249,7 @@ module zybo_z7_imx219
                 .IIC_0_0_sda_t          (IIC_0_0_sda_t)
             );
     
-    assign cam_gpio = dip_sw[0];
+    assign cam_gpio = ~push_sw[0]; // dip_sw[0];
     
     IOBUF
         i_IOBUF_cam_scl
