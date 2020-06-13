@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
 	int		bayer_phase = 0;
 	int		view_scale  = 1;
 
-	for ( int i = 0; i < argc; ++i ) {
+	for ( int i = 1; i < argc; ++i ) {
 		if ( strcmp(argv[i], "full") == 0 ) {
 			pixel_clock = 91000000;
 			binning    = false;
