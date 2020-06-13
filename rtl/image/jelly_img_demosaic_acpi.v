@@ -65,8 +65,26 @@ module jelly_img_demosaic_acpi
             output  wire                            m_img_valid
         );
     
+    // register
+    localparam  ADR_PARAM_PHASE  = 8'h00;
+    localparam  ADR_PARAM_BYPASS = 8'h01;
+    
     reg     [1:0]       reg_param_phase;
     reg     [0:0]       reg_param_bypass;
+    
+    function [WB_DAT_WIDTH-1:0] reg_mask(
+                                        input [WB_DAT_WIDTH-1:0] org,
+                                        input [WB_DAT_WIDTH-1:0] wdat,
+                                        input [WB_SEL_WIDTH-1:0] msk
+                                    );
+    integer i;
+    begin
+        for ( i = 0; i < WB_DAT_WIDTH; i = i+1 ) begin
+            reg_mask[i] = msk[i/8] ? wdat[i] : org[i];
+        end
+    end
+    endfunction
+    
     always @(posedge s_wb_clk_i) begin
         if ( s_wb_rst_i ) begin
             reg_param_phase  <= INIT_PARAM_PHASE;
@@ -75,15 +93,15 @@ module jelly_img_demosaic_acpi
         else begin
             if ( s_wb_stb_i && s_wb_we_i ) begin
                 case ( s_wb_adr_i )
-                0:  reg_param_phase  <= s_wb_dat_i;
-                1:  reg_param_bypass <= s_wb_dat_i;
+                ADR_PARAM_PHASE:    reg_param_phase  <= reg_mask(reg_param_phase,  s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_BYPASS:   reg_param_bypass <= reg_mask(reg_param_bypass, s_wb_dat_i, s_wb_sel_i);
                 endcase
             end
         end
     end
     
-    assign s_wb_dat_o = (s_wb_adr_i == 0) ? reg_param_phase  :
-                        (s_wb_adr_i == 1) ? reg_param_bypass :
+    assign s_wb_dat_o = (s_wb_adr_i == ADR_PARAM_PHASE)  ? reg_param_phase  :
+                        (s_wb_adr_i == ADR_PARAM_BYPASS) ? reg_param_bypass :
                         0;
     assign s_wb_ack_o = s_wb_stb_i;
     

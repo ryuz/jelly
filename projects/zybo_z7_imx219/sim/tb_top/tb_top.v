@@ -24,7 +24,10 @@ module tb_top();
 	always #(RATE125/2.0)	clk125 = ~clk125;
 	
 	
-	top
+    parameter   X_NUM = 2048; // 3280 / 2;
+    parameter   Y_NUM = 16; // 2464 / 2;
+	
+	zybo_z7_imx219
 		i_top
 			(
 				.in_clk125		(clk125),
@@ -53,10 +56,10 @@ module tb_top();
 	jelly_axi4s_master_model
 			#(
 				.AXI4S_DATA_WIDTH	(8),
-				.X_NUM				(128),
-				.Y_NUM				(128),
-				.PGM_FILE			("lena_128x128.pgm"),
-				.BUSY_RATE			(50),
+				.X_NUM				(X_NUM), // (128),
+				.Y_NUM				(Y_NUM),   // (128),
+//				.PGM_FILE			("lena_128x128.pgm"),
+				.BUSY_RATE			(0), // (50),
 				.RANDOM_SEED		(0)
 			)
 		i_axi4s_master_model
@@ -174,8 +177,8 @@ module tb_top();
 		wb_write(32'h00010010, 32'h00, 4'b1111);
 	#10000;
 		
-		wb_write(32'h40011020,   256, 4'b1111);		// width
-		wb_write(32'h40011024,    64, 4'b1111);		// height
+		wb_write(32'h40011020, X_NUM, 4'b1111);		// width
+		wb_write(32'h40011024, Y_NUM, 4'b1111);		// height
 		wb_write(32'h40011028,     0, 4'b1111);		// fill
 		wb_write(32'h4001102c,  1024, 4'b1111);		// timeout
 		wb_write(32'h40011000,     1, 4'b1111);		// enable
@@ -183,12 +186,12 @@ module tb_top();
 	#100000;
 		
 		wb_write(32'h40010020, 32'h30000000, 4'b1111);
-		wb_write(32'h40010024,  256*2, 4'b1111);		// stride
-		wb_write(32'h40010028,    256, 4'b1111);		// width
-		wb_write(32'h4001002c,     64, 4'b1111);		// height
-		wb_write(32'h40010030, 256*64, 4'b1111);		// size
+		wb_write(32'h40010024, X_NUM*4,     4'b1111);		// stride
+		wb_write(32'h40010028, X_NUM,       4'b1111);		// width
+		wb_write(32'h4001002c, Y_NUM,       4'b1111);		// height
+		wb_write(32'h40010030, X_NUM*Y_NUM, 4'b1111);		// size
 		wb_write(32'h4001003c,     31, 4'b1111);		// awlen
-		wb_write(32'h40010010,      3, 4'b1111);
+		wb_write(32'h40010010,     3, 4'b1111);
 	#10000;
 
 		wb_read(32'h40010014);
