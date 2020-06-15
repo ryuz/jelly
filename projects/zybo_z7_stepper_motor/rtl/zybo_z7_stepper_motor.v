@@ -13,7 +13,7 @@
 
 module zybo_z7_stepper_motor
             #(
-                parameter   MICROSTEP_WIDTH = 8
+                parameter   MICROSTEP_WIDTH = 11    // PWM : 125MHz / 2^11 = 61kHz
             )
             (
                 input   wire            in_reset,
@@ -40,9 +40,17 @@ module zybo_z7_stepper_motor
     
     wire                update;
     
-    reg     [31:0]      reg_counter = 0;
+    reg     [31:0]      reg_speed = 0;
+    reg     [31:0]      reg_phase = 0;
     always @(posedge clk) begin
-        reg_counter <= reg_counter + 1;
+        if ( reset ) begin
+            reg_speed <= 0;
+            reg_phase <= 0;
+        end
+        else begin
+            reg_speed <= reg_speed + 1;
+            reg_phase <= reg_phase + reg_speed[31:26];
+        end
     end
     
     
@@ -62,7 +70,7 @@ module zybo_z7_stepper_motor
                 .nanostep_en        (dip_sw[2]),
                 .asyc_update_en     (dip_sw[3]),
                 
-                .phase              (reg_counter),
+                .phase              (reg_phase),
                 .update             (update),
                 
                 .out_a              (out_a),
@@ -109,7 +117,7 @@ module zybo_z7_stepper_motor
     assign led[0] = dip_sw[0];
     assign led[1] = bldc_ap_hl;
     assign led[2] = bldc_bp_hl;
-    assign led[3] = reg_counter[24];
+    assign led[3] = reg_phase[24];
     
     
 endmodule
