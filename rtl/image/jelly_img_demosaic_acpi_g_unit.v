@@ -94,10 +94,14 @@ module jelly_img_demosaic_acpi_g_unit
     reg     signed  [CALC_WIDTH-1:0]    st2_h;
     
     reg     signed  [CALC_WIDTH-1:0]    st3_raw;
-    reg     signed  [CALC_WIDTH-1:0]    st3_g;
+    reg     signed  [CALC_WIDTH-1:0]    st3_g0;
+    reg     signed  [CALC_WIDTH-1:0]    st3_g1;
     
     reg     signed  [CALC_WIDTH-1:0]    st4_raw;
     reg     signed  [CALC_WIDTH-1:0]    st4_g;
+    
+    reg     signed  [CALC_WIDTH-1:0]    st5_raw;
+    reg     signed  [CALC_WIDTH-1:0]    st5_g;
     
     always @(posedge clk) begin
         if ( cke ) begin
@@ -124,16 +128,20 @@ module jelly_img_demosaic_acpi_g_unit
             st2_h   <= st1_h * 2 + st1_b0;
             
             st3_raw <= st2_raw;
-            st3_g   <= ((st2_a < st2_b ? st2_v : st2_h) + (st2_a > st2_b ? st2_h : st2_v)) >>> 3;
+            st3_g0  <= (st2_a < st2_b ? st2_v : st2_h);
+            st3_g1  <= (st2_a > st2_b ? st2_h : st2_v);
             
             st4_raw <= st3_raw;
-            st4_g   <= st3_g < {DATA_WIDTH{1'b0}} ? {DATA_WIDTH{1'b0}} : st3_g;
-            st4_g   <= st3_g > {DATA_WIDTH{1'b1}} ? {DATA_WIDTH{1'b1}} : st3_g;
+            st4_g   <= (st3_g0 + st3_g1) >>> 3;
+            
+            st5_raw <= st4_raw;
+            st5_g   <= st4_g < {DATA_WIDTH{1'b0}} ? {DATA_WIDTH{1'b0}} : st4_g;
+            st5_g   <= st4_g > {DATA_WIDTH{1'b1}} ? {DATA_WIDTH{1'b1}} : st4_g;
         end
     end
     
-    assign  out_raw  = st4_raw;
-    assign  out_g    = st4_g;
+    assign  out_raw  = st5_raw;
+    assign  out_g    = st5_g;
     
 endmodule
 

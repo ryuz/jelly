@@ -114,7 +114,8 @@ module jelly_img_demosaic_acpi_rb_unit
     reg             [1:0]               st3_phase;
     reg     signed  [CALC_WIDTH-1:0]    st3_raw;
     reg     signed  [CALC_WIDTH-1:0]    st3_g;
-    reg     signed  [CALC_WIDTH-1:0]    st3_x;
+    reg     signed  [CALC_WIDTH-1:0]    st3_x0;
+    reg     signed  [CALC_WIDTH-1:0]    st3_x1;
     reg     signed  [CALC_WIDTH-1:0]    st3_v;
     reg     signed  [CALC_WIDTH-1:0]    st3_h;
     
@@ -125,10 +126,17 @@ module jelly_img_demosaic_acpi_rb_unit
     reg     signed  [CALC_WIDTH-1:0]    st4_v;
     reg     signed  [CALC_WIDTH-1:0]    st4_h;
     
+    reg             [1:0]               st5_phase;
     reg     signed  [CALC_WIDTH-1:0]    st5_raw;
-    reg     signed  [CALC_WIDTH-1:0]    st5_r;
     reg     signed  [CALC_WIDTH-1:0]    st5_g;
-    reg     signed  [CALC_WIDTH-1:0]    st5_b;
+    reg     signed  [CALC_WIDTH-1:0]    st5_x;
+    reg     signed  [CALC_WIDTH-1:0]    st5_v;
+    reg     signed  [CALC_WIDTH-1:0]    st5_h;
+    
+    reg     signed  [CALC_WIDTH-1:0]    st6_raw;
+    reg     signed  [CALC_WIDTH-1:0]    st6_r;
+    reg     signed  [CALC_WIDTH-1:0]    st6_g;
+    reg     signed  [CALC_WIDTH-1:0]    st6_b;
     
     always @(posedge clk) begin
         if ( cke ) begin
@@ -198,41 +206,51 @@ module jelly_img_demosaic_acpi_rb_unit
             st3_phase <= st2_phase;
             st3_raw   <= st2_raw;
             st3_g     <= st2_g;
-            st3_x     <= ((st2_a > st2_b ? st2_l : st2_r) + (st2_b > st2_a ? st2_r : st2_l)) >>> 3;
-            st3_v     <= st2_v >>> 2;
-            st3_h     <= st2_h >>> 2;
+            st3_x0    <= (st2_a > st2_b ? st2_l : st2_r);
+            st3_x1    <= (st2_b > st2_a ? st2_r : st2_l);
+            st3_v     <= st2_v;
+            st3_h     <= st2_h;
             
             
             // stage 4
             st4_phase <= st3_phase;
             st4_raw   <= st3_raw;
             st4_g     <= st3_g;
-            st4_x     <= st3_x;
-            st4_v     <= st3_v;
-            st4_h     <= st3_h;
-            if ( st3_x < {DATA_WIDTH{1'b0}} ) st4_x <= {DATA_WIDTH{1'b0}};
-            if ( st3_x > {DATA_WIDTH{1'b1}} ) st4_x <= {DATA_WIDTH{1'b1}};
-            if ( st3_v < {DATA_WIDTH{1'b0}} ) st4_v <= {DATA_WIDTH{1'b0}};
-            if ( st3_v > {DATA_WIDTH{1'b1}} ) st4_v <= {DATA_WIDTH{1'b1}};
-            if ( st3_h < {DATA_WIDTH{1'b0}} ) st4_h <= {DATA_WIDTH{1'b0}};
-            if ( st3_h > {DATA_WIDTH{1'b1}} ) st4_h <= {DATA_WIDTH{1'b1}};
+            st4_x     <= (st3_x0 + st3_x1) >>> 3;
+            st4_v     <= st3_v >>> 2;
+            st4_h     <= st3_h >>> 2;
             
             
             // stage 5
-            st5_raw <= st4_raw;
+            st5_phase <= st4_phase;
+            st5_raw   <= st4_raw;
+            st5_g     <= st4_g;
+            st5_x     <= st4_x;
+            st5_v     <= st4_v;
+            st5_h     <= st4_h;
+            if ( st4_x < {DATA_WIDTH{1'b0}} ) st5_x <= {DATA_WIDTH{1'b0}};
+            if ( st4_x > {DATA_WIDTH{1'b1}} ) st5_x <= {DATA_WIDTH{1'b1}};
+            if ( st4_v < {DATA_WIDTH{1'b0}} ) st5_v <= {DATA_WIDTH{1'b0}};
+            if ( st4_v > {DATA_WIDTH{1'b1}} ) st5_v <= {DATA_WIDTH{1'b1}};
+            if ( st4_h < {DATA_WIDTH{1'b0}} ) st5_h <= {DATA_WIDTH{1'b0}};
+            if ( st4_h > {DATA_WIDTH{1'b1}} ) st5_h <= {DATA_WIDTH{1'b1}};
+            
+            
+            // stage 6
+            st6_raw <= st5_raw;
             case ( st4_phase )
-            2'b00:  begin st5_r <= st4_raw; st5_g <= st4_g;   st5_b <= st4_x;   end
-            2'b01:  begin st5_r <= st4_h;   st5_g <= st4_raw; st5_b <= st4_v;   end
-            2'b10:  begin st5_r <= st4_v;   st5_g <= st4_raw; st5_b <= st4_h;   end
-            2'b11:  begin st5_r <= st4_x;   st5_g <= st4_g;   st5_b <= st4_raw; end
+            2'b00:  begin st6_r <= st5_raw; st6_g <= st5_g;   st6_b <= st5_x;   end
+            2'b01:  begin st6_r <= st5_h;   st6_g <= st5_raw; st6_b <= st5_v;   end
+            2'b10:  begin st6_r <= st5_v;   st6_g <= st5_raw; st6_b <= st5_h;   end
+            2'b11:  begin st6_r <= st5_x;   st6_g <= st5_g;   st6_b <= st5_raw; end
             endcase
         end
     end
     
-    assign  out_raw  = st5_raw;
-    assign  out_r    = st5_r;
-    assign  out_g    = st5_g;
-    assign  out_b    = st5_b;
+    assign  out_raw  = st6_raw;
+    assign  out_r    = st6_r;
+    assign  out_g    = st6_g;
+    assign  out_b    = st6_b;
     
 endmodule
 
