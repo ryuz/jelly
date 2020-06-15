@@ -11,9 +11,9 @@
 `timescale 1ns / 1ps
 `default_nettype none
 
-module zybo_z7_stepping_motor
+module zybo_z7_stepper_motor
             #(
-                parameter   SUB_PAHSE_WIDTH = 12
+                parameter   MICROSTEP_WIDTH = 8
             )
             (
                 input   wire            in_reset,
@@ -38,28 +38,32 @@ module zybo_z7_stepping_motor
     wire    clk = in_clk125;
     
     
+    wire                update;
     
-    reg     [31:0]     reg_counter;
+    reg     [31:0]      reg_counter = 0;
     always @(posedge clk) begin
-        reg_counter <= reg_counter + 5;
+        reg_counter <= reg_counter + 1;
     end
     
     
     wire    out_a;
     wire    out_b;
-    stepping_motor_drive
+    bipolar_stepper_motor_drive
             #(
-                .MICROSTEP_WIDTH    (12),
-                .ASYNC_UPDATE       (0)
+                .Q_WIDTH            (24),
+                .MICROSTEP_WIDTH    (MICROSTEP_WIDTH)
             )
-        i_stepping_motor_drive
+        i_bipolar_stepper_motor_drive
             (
                 .reset              (reset),
                 .clk                (clk),
                 
                 .microstep_en       (dip_sw[1]),
-                .phase              (reg_counter[25-3:12-3]),
-                .update             (),
+                .nanostep_en        (dip_sw[2]),
+                .asyc_update_en     (dip_sw[3]),
+                
+                .phase              (reg_counter),
+                .update             (update),
                 
                 .out_a              (out_a),
                 .out_b              (out_b)
