@@ -130,23 +130,23 @@ module jelly_vdma_axi4_to_axi4s
     // ---------------------------------
     
     // register address offset
-    localparam  REGOFFSET_ID             = 8'h00;
-    localparam  REGOFFSET_VERSION        = 8'h01;
-    localparam  REGOFFSET_CTL_CONTROL    = 8'h04;
-    localparam  REGOFFSET_CTL_STATUS     = 8'h05;
-    localparam  REGOFFSET_CTL_INDEX      = 8'h06;
-    localparam  REGOFFSET_PARAM_ADDR     = 8'h08;
-    localparam  REGOFFSET_PARAM_STRIDE   = 8'h09;
-    localparam  REGOFFSET_PARAM_WIDTH    = 8'h0a;
-    localparam  REGOFFSET_PARAM_HEIGHT   = 8'h0b;
-    localparam  REGOFFSET_PARAM_SIZE     = 8'h0c;
-    localparam  REGOFFSET_PARAM_ARLEN    = 8'h0f;
-    localparam  REGOFFSET_MONITOR_ADDR   = 8'h10;
-    localparam  REGOFFSET_MONITOR_STRIDE = 8'h11;
-    localparam  REGOFFSET_MONITOR_WIDTH  = 8'h12;
-    localparam  REGOFFSET_MONITOR_HEIGHT = 8'h13;
-    localparam  REGOFFSET_MONITOR_SIZE   = 8'h14;
-    localparam  REGOFFSET_MONITOR_ARLEN  = 8'h17;
+    localparam  ADR_CORE_ID        = 8'h00;
+    localparam  ADR_CORE_VERSION   = 8'h01;
+    localparam  ADR_CTL_CONTROL    = 8'h04;
+    localparam  ADR_CTL_STATUS     = 8'h05;
+    localparam  ADR_CTL_INDEX      = 8'h06;
+    localparam  ADR_PARAM_ADDR     = 8'h08;
+    localparam  ADR_PARAM_STRIDE   = 8'h09;
+    localparam  ADR_PARAM_WIDTH    = 8'h0a;
+    localparam  ADR_PARAM_HEIGHT   = 8'h0b;
+    localparam  ADR_PARAM_SIZE     = 8'h0c;
+    localparam  ADR_PARAM_ARLEN    = 8'h0f;
+    localparam  ADR_MONITOR_ADDR   = 8'h10;
+    localparam  ADR_MONITOR_STRIDE = 8'h11;
+    localparam  ADR_MONITOR_WIDTH  = 8'h12;
+    localparam  ADR_MONITOR_HEIGHT = 8'h13;
+    localparam  ADR_MONITOR_SIZE   = 8'h14;
+    localparam  ADR_MONITOR_ARLEN  = 8'h17;
     
     localparam  CONTROL_WIDTH            = TRIG_START_ENABLE ? 4 : 3;
     localparam  STATUS_WIDTH             = 1;
@@ -205,13 +205,13 @@ module jelly_vdma_axi4_to_axi4s
             // register write
             if ( s_wb_stb_i && s_wb_we_i ) begin
                 case ( s_wb_adr_i )
-                REGOFFSET_CTL_CONTROL:  reg_ctl_control  <= reg_mask(reg_ctl_control,  s_wb_dat_i, s_wb_sel_i);
-                REGOFFSET_PARAM_ADDR:   reg_param_addr   <= reg_mask(reg_param_addr,   s_wb_dat_i, s_wb_sel_i) & ADDR_MASK;
-                REGOFFSET_PARAM_STRIDE: reg_param_stride <= reg_mask(reg_param_stride, s_wb_dat_i, s_wb_sel_i) & ADDR_MASK;
-                REGOFFSET_PARAM_WIDTH:  reg_param_width  <= reg_mask(reg_param_width,  s_wb_dat_i, s_wb_sel_i);
-                REGOFFSET_PARAM_HEIGHT: reg_param_height <= reg_mask(reg_param_height, s_wb_dat_i, s_wb_sel_i);
-                REGOFFSET_PARAM_SIZE:   reg_param_size   <= reg_mask(reg_param_size,   s_wb_dat_i, s_wb_sel_i);
-                REGOFFSET_PARAM_ARLEN:  reg_param_arlen  <= reg_mask(reg_param_arlen,  s_wb_dat_i, s_wb_sel_i);
+                ADR_CTL_CONTROL:  reg_ctl_control  <= reg_mask(reg_ctl_control,  s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_ADDR:   reg_param_addr   <= reg_mask(reg_param_addr,   s_wb_dat_i, s_wb_sel_i) & ADDR_MASK;
+                ADR_PARAM_STRIDE: reg_param_stride <= reg_mask(reg_param_stride, s_wb_dat_i, s_wb_sel_i) & ADDR_MASK;
+                ADR_PARAM_WIDTH:  reg_param_width  <= reg_mask(reg_param_width,  s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_HEIGHT: reg_param_height <= reg_mask(reg_param_height, s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_SIZE:   reg_param_size   <= reg_mask(reg_param_size,   s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_ARLEN:  reg_param_arlen  <= reg_mask(reg_param_arlen,  s_wb_dat_i, s_wb_sel_i);
                 endcase
             end
             
@@ -237,23 +237,23 @@ module jelly_vdma_axi4_to_axi4s
     end
     
     // register read
-    assign s_wb_dat_o = (s_wb_adr_i == REGOFFSET_ID)             ? CORE_ID            :
-                        (s_wb_adr_i == REGOFFSET_VERSION)        ? CORE_VERSION       :
-                        (s_wb_adr_i == REGOFFSET_CTL_CONTROL)    ? reg_ctl_control    :
-                        (s_wb_adr_i == REGOFFSET_CTL_STATUS)     ? sig_ctl_status     :
-                        (s_wb_adr_i == REGOFFSET_CTL_INDEX)      ? sig_ctl_index      :
-                        (s_wb_adr_i == REGOFFSET_PARAM_ADDR)     ? reg_param_addr     :
-                        (s_wb_adr_i == REGOFFSET_PARAM_STRIDE)   ? reg_param_stride   :
-                        (s_wb_adr_i == REGOFFSET_PARAM_WIDTH)    ? reg_param_width    :
-                        (s_wb_adr_i == REGOFFSET_PARAM_HEIGHT)   ? reg_param_height   :
-                        (s_wb_adr_i == REGOFFSET_PARAM_SIZE)     ? reg_param_size     :
-                        (s_wb_adr_i == REGOFFSET_PARAM_ARLEN)    ? reg_param_arlen    :
-                        (s_wb_adr_i == REGOFFSET_MONITOR_ADDR)   ? sig_monitor_addr   :
-                        (s_wb_adr_i == REGOFFSET_MONITOR_STRIDE) ? sig_monitor_stride :
-                        (s_wb_adr_i == REGOFFSET_MONITOR_WIDTH)  ? sig_monitor_width  :
-                        (s_wb_adr_i == REGOFFSET_MONITOR_HEIGHT) ? sig_monitor_height :
-                        (s_wb_adr_i == REGOFFSET_MONITOR_SIZE)   ? sig_monitor_size   :
-                        (s_wb_adr_i == REGOFFSET_MONITOR_ARLEN)  ? sig_monitor_arlen  :
+    assign s_wb_dat_o = (s_wb_adr_i == ADR_CORE_ID)        ? CORE_ID            :
+                        (s_wb_adr_i == ADR_CORE_VERSION)   ? CORE_VERSION       :
+                        (s_wb_adr_i == ADR_CTL_CONTROL)    ? reg_ctl_control    :
+                        (s_wb_adr_i == ADR_CTL_STATUS)     ? sig_ctl_status     :
+                        (s_wb_adr_i == ADR_CTL_INDEX)      ? sig_ctl_index      :
+                        (s_wb_adr_i == ADR_PARAM_ADDR)     ? reg_param_addr     :
+                        (s_wb_adr_i == ADR_PARAM_STRIDE)   ? reg_param_stride   :
+                        (s_wb_adr_i == ADR_PARAM_WIDTH)    ? reg_param_width    :
+                        (s_wb_adr_i == ADR_PARAM_HEIGHT)   ? reg_param_height   :
+                        (s_wb_adr_i == ADR_PARAM_SIZE)     ? reg_param_size     :
+                        (s_wb_adr_i == ADR_PARAM_ARLEN)    ? reg_param_arlen    :
+                        (s_wb_adr_i == ADR_MONITOR_ADDR)   ? sig_monitor_addr   :
+                        (s_wb_adr_i == ADR_MONITOR_STRIDE) ? sig_monitor_stride :
+                        (s_wb_adr_i == ADR_MONITOR_WIDTH)  ? sig_monitor_width  :
+                        (s_wb_adr_i == ADR_MONITOR_HEIGHT) ? sig_monitor_height :
+                        (s_wb_adr_i == ADR_MONITOR_SIZE)   ? sig_monitor_size   :
+                        (s_wb_adr_i == ADR_MONITOR_ARLEN)  ? sig_monitor_arlen  :
                         32'h0000_0000;
     
     assign s_wb_ack_o = s_wb_stb_i;
