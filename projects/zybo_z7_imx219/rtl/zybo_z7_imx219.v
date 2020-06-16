@@ -1,11 +1,11 @@
 // ---------------------------------------------------------------------------
-//  Jelly  -- the soft-core processor system
+//  Jelly  -- The FPGA processing system
 //
+//  IMX219 capture sample
 //
 //                                 Copyright (C) 2008-2020 by Ryuji Fuchikami
 //                                 https://github.com/ryuz/
 // ---------------------------------------------------------------------------
-
 
 
 
@@ -269,65 +269,76 @@ module zybo_z7_imx219
                 .T      (IIC_0_0_sda_t)
             );
     
-        
-    // AXI4L => WISHBONE
-    wire                    wb_rst_o;
-    wire                    wb_clk_o;
-    wire    [29:0]          wb_host_adr_o;
-    wire    [31:0]          wb_host_dat_o;
-    wire    [31:0]          wb_host_dat_i;
-    wire                    wb_host_we_o;
-    wire    [3:0]           wb_host_sel_o;
-    wire                    wb_host_stb_o;
-    wire                    wb_host_ack_i;
+    
+    
+    // -----------------------------
+    //  Peripheral BUS (WISHBONE)
+    // -----------------------------
+    
+    localparam  WB_DAT_SIZE  = 2;
+    localparam  WB_ADR_WIDTH = 32 - WB_DAT_SIZE;
+    localparam  WB_DAT_WIDTH = (8 << WB_DAT_SIZE);
+    localparam  WB_SEL_WIDTH = (1 << WB_DAT_SIZE);
+    
+    wire                            wb_peri_rst_i;
+    wire                            wb_peri_clk_i;
+    wire    [WB_ADR_WIDTH-1:0]      wb_peri_adr_i;
+    wire    [WB_DAT_WIDTH-1:0]      wb_peri_dat_i;
+    wire    [WB_DAT_WIDTH-1:0]      wb_peri_dat_o;
+    wire                            wb_peri_we_i;
+    wire    [WB_SEL_WIDTH-1:0]      wb_peri_sel_i;
+    wire                            wb_peri_stb_i;
+    wire                            wb_peri_ack_o;
     
     jelly_axi4l_to_wishbone
             #(
-                .AXI4L_ADDR_WIDTH   (32),
-                .AXI4L_DATA_SIZE    (2)     // 0:8bit, 1:16bit, 2:32bit ...
+                .AXI4L_ADDR_WIDTH       (32),
+                .AXI4L_DATA_SIZE        (2)     // 0:8bit, 1:16bit, 2:32bit, 3:64bit, ...
             )
         i_axi4l_to_wishbone
             (
-                .s_axi4l_aresetn    (axi4l_peri_aresetn),
-                .s_axi4l_aclk       (axi4l_peri_aclk),
-                .s_axi4l_awaddr     (axi4l_peri_awaddr),
-                .s_axi4l_awprot     (axi4l_peri_awprot),
-                .s_axi4l_awvalid    (axi4l_peri_awvalid),
-                .s_axi4l_awready    (axi4l_peri_awready),
-                .s_axi4l_wstrb      (axi4l_peri_wstrb),
-                .s_axi4l_wdata      (axi4l_peri_wdata),
-                .s_axi4l_wvalid     (axi4l_peri_wvalid),
-                .s_axi4l_wready     (axi4l_peri_wready),
-                .s_axi4l_bresp      (axi4l_peri_bresp),
-                .s_axi4l_bvalid     (axi4l_peri_bvalid),
-                .s_axi4l_bready     (axi4l_peri_bready),
-                .s_axi4l_araddr     (axi4l_peri_araddr),
-                .s_axi4l_arprot     (axi4l_peri_arprot),
-                .s_axi4l_arvalid    (axi4l_peri_arvalid),
-                .s_axi4l_arready    (axi4l_peri_arready),
-                .s_axi4l_rdata      (axi4l_peri_rdata),
-                .s_axi4l_rresp      (axi4l_peri_rresp),
-                .s_axi4l_rvalid     (axi4l_peri_rvalid),
-                .s_axi4l_rready     (axi4l_peri_rready),
+                .s_axi4l_aresetn        (axi4l_peri_aresetn),
+                .s_axi4l_aclk           (axi4l_peri_aclk),
+                .s_axi4l_awaddr         (axi4l_peri_awaddr),
+                .s_axi4l_awprot         (axi4l_peri_awprot),
+                .s_axi4l_awvalid        (axi4l_peri_awvalid),
+                .s_axi4l_awready        (axi4l_peri_awready),
+                .s_axi4l_wstrb          (axi4l_peri_wstrb),
+                .s_axi4l_wdata          (axi4l_peri_wdata),
+                .s_axi4l_wvalid         (axi4l_peri_wvalid),
+                .s_axi4l_wready         (axi4l_peri_wready),
+                .s_axi4l_bresp          (axi4l_peri_bresp),
+                .s_axi4l_bvalid         (axi4l_peri_bvalid),
+                .s_axi4l_bready         (axi4l_peri_bready),
+                .s_axi4l_araddr         (axi4l_peri_araddr),
+                .s_axi4l_arprot         (axi4l_peri_arprot),
+                .s_axi4l_arvalid        (axi4l_peri_arvalid),
+                .s_axi4l_arready        (axi4l_peri_arready),
+                .s_axi4l_rdata          (axi4l_peri_rdata),
+                .s_axi4l_rresp          (axi4l_peri_rresp),
+                .s_axi4l_rvalid         (axi4l_peri_rvalid),
+                .s_axi4l_rready         (axi4l_peri_rready),
                 
-                .m_wb_rst_o         (wb_rst_o),
-                .m_wb_clk_o         (wb_clk_o),
-                .m_wb_adr_o         (wb_host_adr_o),
-                .m_wb_dat_o         (wb_host_dat_o),
-                .m_wb_dat_i         (wb_host_dat_i),
-                .m_wb_we_o          (wb_host_we_o),
-                .m_wb_sel_o         (wb_host_sel_o),
-                .m_wb_stb_o         (wb_host_stb_o),
-                .m_wb_ack_i         (wb_host_ack_i)
+                .m_wb_rst_o             (wb_peri_rst_i),
+                .m_wb_clk_o             (wb_peri_clk_i),
+                .m_wb_adr_o             (wb_peri_adr_i),
+                .m_wb_dat_o             (wb_peri_dat_i),
+                .m_wb_dat_i             (wb_peri_dat_o),
+                .m_wb_we_o              (wb_peri_we_i),
+                .m_wb_sel_o             (wb_peri_sel_i),
+                .m_wb_stb_o             (wb_peri_stb_i),
+                .m_wb_ack_i             (wb_peri_ack_o)
             );
+    
+    
     
     // ----------------------------------------
     //  Global ID
     // ----------------------------------------
     
-    wire    [31:0]          wb_gid_dat_o;
-    wire                    wb_gid_stb_i;
-    wire                    wb_gid_ack_o;
+    wire    [WB_DAT_WIDTH-1:0]  wb_gid_dat_o;
+    wire                        wb_gid_stb_i;
+    wire                        wb_gid_ack_o;
     
     assign wb_gid_dat_o = 32'h01234567;
     assign wb_gid_ack_o = wb_gid_stb_i;
@@ -529,20 +540,20 @@ module zybo_z7_imx219
     
     
     // normalize
-    wire    [0:0]       axi4s_norm_tuser;
-    wire                axi4s_norm_tlast;
-    wire    [9:0]       axi4s_norm_tdata;
-    wire                axi4s_norm_tvalid;
-    wire                axi4s_norm_tready;
+    wire    [0:0]               axi4s_norm_tuser;
+    wire                        axi4s_norm_tlast;
+    wire    [9:0]               axi4s_norm_tdata;
+    wire                        axi4s_norm_tvalid;
+    wire                        axi4s_norm_tready;
     
-    wire    [31:0]      wb_norm_dat_o;
-    wire                wb_norm_stb_i;
-    wire                wb_norm_ack_o;
+    wire    [WB_DAT_WIDTH-1:0]  wb_norm_dat_o;
+    wire                        wb_norm_stb_i;
+    wire                        wb_norm_ack_o;
     
     jelly_video_normalizer
             #(
                 .WB_ADR_WIDTH       (8),
-                .WB_DAT_WIDTH       (32),
+                .WB_DAT_WIDTH       (WB_DAT_WIDTH),
                 
                 .TUSER_WIDTH        (1),
                 .TDATA_WIDTH        (10),
@@ -567,13 +578,13 @@ module zybo_z7_imx219
                 .aclk               (axi4s_cam_aclk),
                 .aclken             (1'b1),
                 
-                .s_wb_rst_i         (wb_rst_o),
-                .s_wb_clk_i         (wb_clk_o),
-                .s_wb_adr_i         (wb_host_adr_o[7:0]),
+                .s_wb_rst_i         (wb_peri_rst_i),
+                .s_wb_clk_i         (wb_peri_clk_i),
+                .s_wb_adr_i         (wb_peri_adr_i[7:0]),
                 .s_wb_dat_o         (wb_norm_dat_o),
-                .s_wb_dat_i         (wb_host_dat_o),
-                .s_wb_we_i          (wb_host_we_o),
-                .s_wb_sel_i         (wb_host_sel_o),
+                .s_wb_dat_i         (wb_peri_dat_i),
+                .s_wb_we_i          (wb_peri_we_i),
+                .s_wb_sel_i         (wb_peri_sel_i),
                 .s_wb_stb_i         (wb_norm_stb_i),
                 .s_wb_ack_o         (wb_norm_ack_o),
                 
@@ -592,20 +603,20 @@ module zybo_z7_imx219
     
     
     // Œ»‘œ
-    wire    [0:0]       axi4s_rgb_tuser;
-    wire                axi4s_rgb_tlast;
-    wire    [39:0]      axi4s_rgb_tdata;
-    wire                axi4s_rgb_tvalid;
-    wire                axi4s_rgb_tready;
+    wire    [0:0]               axi4s_rgb_tuser;
+    wire                        axi4s_rgb_tlast;
+    wire    [39:0]              axi4s_rgb_tdata;
+    wire                        axi4s_rgb_tvalid;
+    wire                        axi4s_rgb_tready;
     
-    wire    [31:0]      wb_rgb_dat_o;
-    wire                wb_rgb_stb_i;
-    wire                wb_rgb_ack_o;
+    wire    [WB_DAT_WIDTH-1:0]  wb_rgb_dat_o;
+    wire                        wb_rgb_stb_i;
+    wire                        wb_rgb_ack_o;
     
     video_raw_to_rgb
             #(
                 .WB_ADR_WIDTH       (10),
-                .WB_DAT_WIDTH       (32),
+                .WB_DAT_WIDTH       (WB_DAT_WIDTH),
                 
                 .DATA_WIDTH         (10),
                 
@@ -619,13 +630,13 @@ module zybo_z7_imx219
                 .aresetn            (axi4s_cam_aresetn),
                 .aclk               (axi4s_cam_aclk),
                 
-                .s_wb_rst_i         (wb_rst_o),
-                .s_wb_clk_i         (wb_clk_o),
-                .s_wb_adr_i         (wb_host_adr_o[9:0]),
+                .s_wb_rst_i         (wb_peri_rst_i),
+                .s_wb_clk_i         (wb_peri_clk_i),
+                .s_wb_adr_i         (wb_peri_adr_i[9:0]),
                 .s_wb_dat_o         (wb_rgb_dat_o),
-                .s_wb_dat_i         (wb_host_dat_o),
-                .s_wb_we_i          (wb_host_we_o),
-                .s_wb_sel_i         (wb_host_sel_o),
+                .s_wb_dat_i         (wb_peri_dat_i),
+                .s_wb_we_i          (wb_peri_we_i),
+                .s_wb_sel_i         (wb_peri_sel_i),
                 .s_wb_stb_i         (wb_rgb_stb_i),
                 .s_wb_ack_o         (wb_rgb_ack_o),
                 
@@ -644,9 +655,9 @@ module zybo_z7_imx219
     
     
     // DMA write
-    wire    [31:0]          wb_vdmaw_dat_o;
-    wire                    wb_vdmaw_stb_i;
-    wire                    wb_vdmaw_ack_o;
+    wire    [WB_DAT_WIDTH-1:0]  wb_vdmaw_dat_o;
+    wire                        wb_vdmaw_stb_i;
+    wire                        wb_vdmaw_ack_o;
     
     jelly_vdma_axi4s_to_axi4
             #(
@@ -666,7 +677,7 @@ module zybo_z7_imx219
                 .SIZE_WIDTH         (32),
                 
                 .WB_ADR_WIDTH       (8),
-                .WB_DAT_WIDTH       (32),
+                .WB_DAT_WIDTH       (WB_DAT_WIDTH),
                 .INIT_CTL_CONTROL   (2'b00),
                 .INIT_PARAM_ADDR    (32'h3000_0000),
                 .INIT_PARAM_STRIDE  (X_NUM*2),
@@ -714,13 +725,13 @@ module zybo_z7_imx219
                 .s_axi4s_tvalid     (axi4s_rgb_tvalid),
                 .s_axi4s_tready     (axi4s_rgb_tready),
                 
-                .s_wb_rst_i         (wb_rst_o),
-                .s_wb_clk_i         (wb_clk_o),
-                .s_wb_adr_i         (wb_host_adr_o[7:0]),
+                .s_wb_rst_i         (wb_peri_rst_i),
+                .s_wb_clk_i         (wb_peri_clk_i),
+                .s_wb_adr_i         (wb_peri_adr_i[7:0]),
                 .s_wb_dat_o         (wb_vdmaw_dat_o),
-                .s_wb_dat_i         (wb_host_dat_o),
-                .s_wb_we_i          (wb_host_we_o),
-                .s_wb_sel_i         (wb_host_sel_o),
+                .s_wb_dat_i         (wb_peri_dat_i),
+                .s_wb_we_i          (wb_peri_we_i),
+                .s_wb_sel_i         (wb_peri_sel_i),
                 .s_wb_stb_i         (wb_vdmaw_stb_i),
                 .s_wb_ack_o         (wb_vdmaw_ack_o)
             );
@@ -746,22 +757,22 @@ module zybo_z7_imx219
     //  WISHBONE address decoder
     // ----------------------------------------
     
-    assign wb_gid_stb_i   = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4000_0);
-    assign wb_vdmaw_stb_i = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_0);
-    assign wb_norm_stb_i  = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_1);
-    assign wb_rgb_stb_i   = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_2);
+    assign wb_gid_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4000_0);
+    assign wb_vdmaw_stb_i = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4001_0);
+    assign wb_norm_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4001_1);
+    assign wb_rgb_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4001_2);
     
-    assign wb_host_dat_i  = wb_gid_stb_i   ? wb_gid_dat_o   :
+    assign wb_peri_dat_o  = wb_gid_stb_i   ? wb_gid_dat_o   :
                             wb_vdmaw_stb_i ? wb_vdmaw_dat_o :
                             wb_norm_stb_i  ? wb_norm_dat_o  :
                             wb_rgb_stb_i   ? wb_rgb_dat_o   :
                             32'h0000_0000;
     
-    assign wb_host_ack_i  = wb_gid_stb_i   ? wb_gid_ack_o   :
+    assign wb_peri_ack_o  = wb_gid_stb_i   ? wb_gid_ack_o   :
                             wb_vdmaw_stb_i ? wb_vdmaw_ack_o :
                             wb_norm_stb_i  ? wb_norm_ack_o  :
                             wb_rgb_stb_i   ? wb_rgb_ack_o   :
-                            wb_host_stb_o;
+                            wb_peri_stb_i;
     
     
     
