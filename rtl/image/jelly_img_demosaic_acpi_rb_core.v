@@ -123,7 +123,7 @@ module jelly_img_demosaic_acpi_rb_core
     jelly_img_delay
             #(
                 .USER_WIDTH         (USER_WIDTH),
-                .LATENCY            (6),
+                .LATENCY            (7),
                 .USE_VALID          (USE_VALID)
             )
         i_img_delay
