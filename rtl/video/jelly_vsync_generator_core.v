@@ -103,7 +103,7 @@ module jelly_vsync_generator_core
             
             // stage1
             if ( reg_h_count == param_hdisp_start ) begin
-                st1_hde <= 1'b1;
+                st1_hde <= reg_busy;
             end
             
             if ( reg_h_count == param_hdisp_end ) begin
@@ -118,7 +118,7 @@ module jelly_vsync_generator_core
             end
             
             if ( reg_v_count == param_vdisp_start ) begin
-                st1_vde <= 1'b1;
+                st1_vde <= reg_busy;
             end
             if ( reg_v_count == param_vdisp_end /*&& reg_h_last*/ ) begin
                 st1_vde <= 1'b0;
@@ -139,6 +139,7 @@ module jelly_vsync_generator_core
         end
     end
     
+    assign ctl_busy  = reg_busy;
     
     assign out_vsync = st2_vsync;
     assign out_hsync = st2_hsync;

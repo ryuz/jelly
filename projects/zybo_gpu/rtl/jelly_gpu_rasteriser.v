@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- the system on fpga system
-//   GPU—pƒ‰ƒXƒ^ƒ‰ƒCƒU•”•ª
+//   GPUç”¨ãƒ©ã‚¹ã‚¿ãƒ©ã‚¤ã‚¶éƒ¨åˆ†
 //
 //                                 Copyright (C) 2015 by Ryuji Fuchikami
 //                                 http://ryuz.my.coocan.jp/
@@ -12,32 +12,32 @@
 `default_nettype none
 
 
-// ƒ‰ƒXƒ^ƒ‰ƒCƒYÀs•”
+// ãƒ©ã‚¹ã‚¿ãƒ©ã‚¤ã‚ºå®Ÿè¡Œéƒ¨
 module jelly_gpu_rasteriser
 		#(
-			// XYÀ•W‚Ì•
+			// XYåº§æ¨™ã®å¹…
 			parameter	X_WIDTH          = 12,
 			parameter	Y_WIDTH          = 12,
 			
-			// —Ìˆæ”»’è®‚ÌŒÂ”‚Æ¸“x
+			// é ˜åŸŸåˆ¤å®šå¼ã®å€‹æ•°ã¨ç²¾åº¦
 			parameter	EVAL_NUM         = 3,
 			parameter	EVAL_INT_WIDTH   = 28,
 			parameter	EVAL_FRAC_WIDTH  = 4,
 			parameter	EVAL_DATA_WIDTH  = EVAL_INT_WIDTH + EVAL_FRAC_WIDTH,
 			
-			// ƒO[ƒ[ƒVƒF[ƒfƒBƒ“ƒOŒvZ—p‚ÌŒÅ’è¬”ƒpƒ‰ƒ[ƒ^‚ÌŒÂ”‚Æ¸“x
+			// ã‚°ãƒ¼ãƒ­ãƒ¼ã‚·ã‚§ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°è¨ˆç®—ç”¨ã®å›ºå®šå°æ•°ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®å€‹æ•°ã¨ç²¾åº¦
 			parameter	FIXED_NUM        = 3,
 			parameter	FIXED_INT_WIDTH  = 28,
 			parameter	FIXED_FRAC_WIDTH = 4,
 			parameter	FIXED_DATA_WIDTH = FIXED_INT_WIDTH + FIXED_FRAC_WIDTH,
 			
-			// ƒO[ƒ[ƒVƒF[ƒfƒBƒ“ƒOŒvZ—p‚Ì•‚“®¬”“_ƒpƒ‰ƒ[ƒ^‚ÌŒÂ”‚Æ¸“x
+			// ã‚°ãƒ¼ãƒ­ãƒ¼ã‚·ã‚§ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°è¨ˆç®—ç”¨ã®æµ®å‹•å°æ•°ç‚¹ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®å€‹æ•°ã¨ç²¾åº¦
 			parameter	FLOAT_NUM        = 3,
 			parameter	FLOAT_EXP_WIDTH  = 8,
 			parameter	FLOAT_FRAC_WIDTH = 23,
 			parameter	FLOAT_DATA_WIDTH = 1 + FLOAT_EXP_WIDTH + FLOAT_FRAC_WIDTH,
 			
-			// o—Í‚ÌFF‘}“ü
+			// å‡ºåŠ›ã®FFæŒ¿å…¥
 			parameter	MASTER_REGS      = 1
 		)
 		(
@@ -80,7 +80,7 @@ module jelly_gpu_rasteriser
 	
 	
 	// -------------------------------------
-	//  ƒpƒCƒvƒ‰ƒCƒ“§Œä
+	//  ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³åˆ¶å¾¡
 	// -------------------------------------
 	
 	localparam	PIPELINE_STAGES = 12;
@@ -192,7 +192,7 @@ module jelly_gpu_rasteriser
 				.buffered			()
 			);
 	
-	// §ŒäM†
+	// åˆ¶å¾¡ä¿¡å·
 	reg		[PIPELINE_STAGES-1:0]	stage_initial;
 	reg		[PIPELINE_STAGES-1:0]	stage_newline;
 	always @(posedge clk) begin
@@ -214,7 +214,7 @@ module jelly_gpu_rasteriser
 	
 	
 	// -------------------------------------
-	//  —Ìˆæ”»•Ê®
+	//  é ˜åŸŸåˆ¤åˆ¥å¼
 	// -------------------------------------
 	
 	wire	[EVAL_NUM*EVAL_DATA_WIDTH-1:0]	st0_eval_data;
@@ -272,7 +272,7 @@ module jelly_gpu_rasteriser
 	end
 	endgenerate
 	
-	// ”»’è“‡ (stage2)
+	// åˆ¤å®šçµ±åˆ (stage2)
 	always @(posedge clk) begin
 		if ( stage_cke[2] ) begin
 			st2_eval_valid <= 1'b1;
@@ -301,7 +301,7 @@ module jelly_gpu_rasteriser
 	
 	
 	// -------------------------------------
-	//  ŒÅ’è¬”“_•âŠÔ
+	//  å›ºå®šå°æ•°ç‚¹è£œé–“
 	// -------------------------------------
 	
 	wire	[FIXED_NUM*FIXED_DATA_WIDTH-1:0]	st0_fixed_data;
@@ -379,7 +379,7 @@ module jelly_gpu_rasteriser
 	
 	
 	// -------------------------------------
-	//  •‚“®¬”“_•âŠÔ
+	//  æµ®å‹•å°æ•°ç‚¹è£œé–“
 	// -------------------------------------
 	
 	reg		[FLOAT_NUM*FLOAT_DATA_WIDTH-1:0]	st0_param_float_xstep;
@@ -394,7 +394,7 @@ module jelly_gpu_rasteriser
 	
 	generate
 		for ( i = 0; i < FLOAT_NUM; i = i+1 ) begin : float_loop
-			// YÀ•W float 
+			// Yåº§æ¨™ float 
 			jelly_float_step
 					#(
 						.EXP_WIDTH		(FLOAT_EXP_WIDTH),
@@ -413,7 +413,7 @@ module jelly_gpu_rasteriser
 						.m_data			(st5_float_data       [i*FLOAT_DATA_WIDTH +: FLOAT_DATA_WIDTH])
 					);
 			
-			// XÀ•W float 
+			// Xåº§æ¨™ float 
 			jelly_float_step
 					#(
 						.EXP_WIDTH		(FLOAT_EXP_WIDTH),
@@ -443,12 +443,12 @@ module jelly_gpu_rasteriser
 		if ( stage_cke[5] ) begin st5_param_float_xstep <= st4_param_float_xstep; end
 	end
 	
-	// o—Í
+	// å‡ºåŠ›
 	assign sink_float_data = st11_float_data;
 
 
 	// -------------------------------------
-	//  X-YÀ•W¶¬
+	//  X-Yåº§æ¨™ç”Ÿæˆ
 	// -------------------------------------
 	
 	reg		[X_WIDTH-1:0]	st0_x;
@@ -507,13 +507,13 @@ module jelly_gpu_rasteriser
 		if ( stage_cke[11] ) begin st11_x <= st10_x; st11_y <= st10_y; end
 	end
 		
-	// o—Í
+	// å‡ºåŠ›
 	assign sink_x = st11_x;
 	assign sink_y = st11_y;
 	
 	
 	// --------------------------------------
-	//  —LŒøƒf[ƒ^§Œä
+	//  æœ‰åŠ¹ãƒ‡ãƒ¼ã‚¿åˆ¶å¾¡
 	// --------------------------------------
 	
 	assign next_valid[0]  = src_valid;

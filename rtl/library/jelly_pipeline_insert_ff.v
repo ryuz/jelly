@@ -58,7 +58,7 @@ module jelly_pipeline_insert_ff
             next_buf_valid = reg_buf_valid;
             
             if ( !reg_buf_valid && s_valid && !internal_ready ) begin
-                // 次のステージに送れない状況でバッファリング
+                // 谺｡縺ｮ繧ｹ繝�繝ｼ繧ｸ縺ｫ騾√ｌ縺ｪ縺�迥ｶ豕√〒繝舌ャ繝輔ぃ繝ｪ繝ｳ繧ｰ
                 next_s_ready   = 1'b0;
                 next_buf_data  = s_data;
                 next_buf_valid = 1'b1;

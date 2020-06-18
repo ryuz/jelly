@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-// ƒO[ƒ[ƒVƒF[ƒfƒBƒ“ƒO”Å
+// ã‚°ãƒ¼ãƒ­ãƒ¼ã‚·ã‚§ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°ç‰ˆ
 module jelly_gpu_gouraud
         #(
             parameter   WB_ADR_WIDTH                  = 16,
@@ -51,7 +51,7 @@ module jelly_gpu_gouraud
             parameter   REGION_RAM_TYPE               = "distributed",
             
             parameter   CULLING_ONLY                  = 0,
-            parameter   Z_SORT_MIN                    = 0,  // 1‚Å¬‚³‚¢’l—Dæ(Z²‰œŒü‚«)
+            parameter   Z_SORT_MIN                    = 0,  // 1ã§å°ã•ã„å€¤å„ªå…ˆ(Zè»¸å¥¥å‘ã)
             
             parameter   USE_PARAM_CFG_READ            = 1,
             
@@ -113,7 +113,7 @@ module jelly_gpu_gouraud
                                       POLYGON_NUM <= 32768 ? 15 : 16;
     
     
-    // ƒ‰ƒXƒ^ƒ‰ƒCƒU
+    // ãƒ©ã‚¹ã‚¿ãƒ©ã‚¤ã‚¶
     wire                                                cke;
     
     wire                                                start;
@@ -284,7 +284,7 @@ module jelly_gpu_gouraud
                 
                 .INDEX_WIDTH                    (INDEX_WIDTH),
                 
-                .SHADER_PARAM_NUM               (SHADER_PARAM_NUM - 1), // 0”Ô–Ú‚ÍZ‚È‚Ì‚ÅœŠO
+                .SHADER_PARAM_NUM               (SHADER_PARAM_NUM - 1), // 0ç•ªç›®ã¯Zãªã®ã§é™¤å¤–
                 .SHADER_PARAM_WIDTH             (SHADER_PARAM_WIDTH),
                 .SHADER_PARAM_Q                 (SHADER_PARAM_Q),
                 
@@ -316,7 +316,7 @@ module jelly_gpu_gouraud
                 .s_rasterizer_line_end          (combiner_line_end),
                 .s_rasterizer_polygon_enable    (combiner_polygon_enable),
                 .s_rasterizer_polygon_index     (combiner_polygon_index),
-                .s_rasterizer_shader_params     (combiner_shader_params[SHADER_PARAM_NUM*SHADER_PARAM_WIDTH-1:SHADER_PARAM_WIDTH]), // Z‚ğœ‹
+                .s_rasterizer_shader_params     (combiner_shader_params[SHADER_PARAM_NUM*SHADER_PARAM_WIDTH-1:SHADER_PARAM_WIDTH]), // Zã‚’é™¤å»
                 .s_rasterizer_bg_color          (combiner_bg_color),
                 .s_rasterizer_valid             (combiner_valid),
                 .s_rasterizer_ready             (combiner_ready),

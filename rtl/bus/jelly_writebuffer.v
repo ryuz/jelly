@@ -21,7 +21,7 @@ module jelly_writebuffer
             parameter   S_DATA_SIZE  = 2,
             parameter   S_DATA_WIDTH = (8 << S_DATA_SIZE),
             parameter   S_STRB_WIDTH = (1 << S_DATA_SIZE),
-            parameter   M_DATA_SIZE  = 3,                   // S_DATA_SIZEˆÈã‚Æ‚·‚é‚±‚Æ
+            parameter   M_DATA_SIZE  = 3,                   // S_DATA_SIZEä»¥ä¸Šã¨ã™ã‚‹ã“ã¨
             parameter   M_DATA_WIDTH = (8 << M_DATA_SIZE),
             parameter   M_STRB_WIDTH = (1 << M_DATA_SIZE),
             

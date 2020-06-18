@@ -13,7 +13,7 @@
 
 
 
-//  AXI4 Ç÷ Write Ç∑ÇÈÉRÉA
+//  AXI4 „Å∏ Write „Åô„Çã„Ç≥„Ç¢
 module jelly_axi4_writer_core
         #(
             parameter   S_LEN_WIDTH            = 24,
@@ -354,7 +354,7 @@ module jelly_axi4_writer_core
     //  data
     // ---------------------------------
     
-    // wlastïtó^
+    // wlast‰ªò‰∏é
     jelly_axi_data_last
             #(
                 .BYPASS                     (0),
@@ -399,7 +399,7 @@ module jelly_axi4_writer_core
     
     
     // ---------------------------------
-    //  busy ÉJÉEÉìÉ^
+    //  busy „Ç´„Ç¶„É≥„Çø
     // ---------------------------------
     
     reg                                 reg_busy;

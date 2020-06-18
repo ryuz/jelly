@@ -416,7 +416,7 @@ module top
 	//  memory
 	// ----------------------------------------
 	
-	// égÇÌÇ»Ç¢
+	// ‰Ωø„Çè„Å™„ÅÑ
 	assign axi4_mem00_awid     = 0;
 	assign axi4_mem00_awaddr   = 0;
 	assign axi4_mem00_awburst  = 0;

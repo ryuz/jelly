@@ -79,7 +79,7 @@ module jelly_stream_token_ring_unit
             reg_sink_token   <= INIT_TOKEN;
         end
         else if ( cke ) begin
-            // ƒf[ƒ^“]‘—
+            // ãƒ‡ãƒ¼ã‚¿è»¢é€
             reg_sink_id_to   <= src_id_to;
             reg_sink_id_from <= src_id_from;
             reg_sink_last    <= src_last;
@@ -87,7 +87,7 @@ module jelly_stream_token_ring_unit
             reg_sink_valid   <= src_valid;
             reg_sink_token   <= src_token;
             
-            // ƒf[ƒ^Žæ‚èo‚µ
+            // ãƒ‡ãƒ¼ã‚¿å–ã‚Šå‡ºã—
             if ( m_valid && m_ready ) begin
                 reg_sink_id_to   <= {ID_TO_BITS{1'bx}};
                 reg_sink_id_from <= {ID_FROM_BITS{1'bx}};
@@ -96,15 +96,15 @@ module jelly_stream_token_ring_unit
                 reg_sink_valid   <= 1'b0;
             end
             
-            // ƒg[ƒNƒ“Žæ“¾(‘—Mƒf[ƒ^‚ª‚ ‚é‚Æ‚«‚Éƒg[ƒNƒ“‚ª—¬‚ê‚Ä‚«‚½)
+            // ãƒˆãƒ¼ã‚¯ãƒ³å–å¾—(é€ä¿¡ãƒ‡ãƒ¼ã‚¿ãŒã‚ã‚‹ã¨ãã«ãƒˆãƒ¼ã‚¯ãƒ³ãŒæµã‚Œã¦ããŸ)
             if ( s_valid && src_token ) begin
                 reg_token      <= 1'b1;
                 reg_sink_token <= 1'b0;
             end
             
-            // ƒf[ƒ^‘}“ü
+            // ãƒ‡ãƒ¼ã‚¿æŒ¿å…¥
             if ( s_valid && s_ready ) begin
-                // ƒf[ƒ^‘}“ü
+                // ãƒ‡ãƒ¼ã‚¿æŒ¿å…¥
                 reg_sink_id_to   <= s_id_to;
                 reg_sink_id_from <= UNIT_ID_FROM;
                 reg_sink_last    <= s_last;
@@ -112,7 +112,7 @@ module jelly_stream_token_ring_unit
                 reg_sink_valid   <= s_valid;
                 
                 if ( s_last ) begin
-                    // ƒg[ƒNƒ“ŠJ•ú
+                    // ãƒˆãƒ¼ã‚¯ãƒ³é–‹æ”¾
                     reg_token      <= 1'b0;
                     reg_sink_token <= 1'b1;
                 end
@@ -121,7 +121,7 @@ module jelly_stream_token_ring_unit
     end
     
     
-    // §Œä
+    // åˆ¶å¾¡
     assign s_ready      = ((!src_valid || (m_valid && m_ready)) && (src_token || reg_token));
     
     assign m_id_from    = src_id_from;

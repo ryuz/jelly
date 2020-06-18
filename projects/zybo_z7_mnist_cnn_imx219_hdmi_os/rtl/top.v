@@ -696,7 +696,7 @@ module top
 			);
 	
 	
-	// Œ»‘œ
+	// ç¾åƒ
 	wire	[0:0]		axi4s_rgb_tuser;
 	wire				axi4s_rgb_tlast;
 	wire	[39:0]		axi4s_rgb_tdata;
@@ -749,7 +749,7 @@ module top
 	
 	
 	
-	// ƒ‚ƒmƒNƒ‰»
+	// ãƒ¢ãƒã‚¯ãƒ­åŒ–
 	wire	[23:0]		axi4s_rgb_trgb = {axi4s_rgb_tdata[29:22], axi4s_rgb_tdata[19:12], axi4s_rgb_tdata[9:2]};
 	wire	[7:0]		axi4s_rgb_traw = axi4s_rgb_tdata[39:32];
 	
@@ -889,7 +889,7 @@ module top
 			);
 	
 	
-	// Œ‹‰Ê‚Å’…F
+	// çµæœã§ç€è‰²
 	wire	[0:0]				axi4s_mcol_tuser;
 	wire						axi4s_mcol_tlast;
 	wire	[31:0]				axi4s_mcol_tdata;
@@ -1171,7 +1171,7 @@ module top
 				.WB_ADR_WIDTH		(8),
 				.WB_DAT_WIDTH		(32),
 				
-				.TRIG_ASYNC 		(1),	// WISHBONE‚Æ”ñ“¯Šú‚Ìê‡
+				.TRIG_ASYNC 		(1),	// WISHBONEã¨éåŒæœŸã®å ´åˆ
 				.TRIG_START_ENABLE	(0),
 				
 				.INIT_CTL_CONTROL	(4'b0000),
@@ -1229,7 +1229,7 @@ module top
 			);
 	
 	
-//	// read ‚Í–¢g—p
+//	// read ã¯æœªä½¿ç”¨
 //	assign axi4_mem0_arid     = 0;
 //	assign axi4_mem0_araddr   = 0;
 //	assign axi4_mem0_arburst  = 0;
@@ -1346,7 +1346,7 @@ module top
 	
 	
 	// ----------------------------------------
-	//  ’Pƒƒ_ƒ“ƒv
+	//  å˜ç´”ãƒ€ãƒ³ãƒ—
 	// ----------------------------------------
 	/*
 	// FIFO

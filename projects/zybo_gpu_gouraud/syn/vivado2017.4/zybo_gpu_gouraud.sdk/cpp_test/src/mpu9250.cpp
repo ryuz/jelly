@@ -83,13 +83,13 @@ int Mpu9250_Init(void)
     XIicPs_SetSClk(&Iic, IIC_SCLK_RATE);
     printf("I2C configuration done.\n");
 
-    // ì«Ç›èoÇµ
+    // Ë™≠„ÅøÂá∫„Åó
 	u8    buff[16];
     i2c_write(&Iic, 0x75, MPU9250_ADDRESS);
     i2c_read(&Iic, buff, 1, MPU9250_ADDRESS);
     printf("WHO_AM_I:0x%02x\n\r", buff[0]);
 
-    // ãNìÆ
+    // Ëµ∑Âãï
     i2c_write(&Iic, 0x6b, MPU9250_ADDRESS);
     i2c_write(&Iic, 0x00, MPU9250_ADDRESS);
 

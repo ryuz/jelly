@@ -226,7 +226,7 @@ module jelly_texture_cache_core
                 .CACHE_NUM              (L1_CACHE_NUM),
                 
                 .COMPONENT_NUM          (1),
-                .COMPONENT_DATA_WIDTH   (COMPONENT_NUM * COMPONENT_DATA_WIDTH), // ìùçá
+                .COMPONENT_DATA_WIDTH   (COMPONENT_NUM * COMPONENT_DATA_WIDTH), // Áµ±Âêà
                 .ADDR_X_WIDTH           (ADDR_X_WIDTH),
                 .ADDR_Y_WIDTH           (ADDR_Y_WIDTH),
                 .BLK_X_SIZE             (L1_BLK_X_SIZE),

@@ -107,7 +107,7 @@ module jelly_float_reciprocal
     
     generate
     if ( FRAC_WIDTH == 23 && D_WIDTH == 6 && GRAD_WIDTH == 23 && !MAKE_TABLE && !WRITE_TABLE && !READ_TABLE ) begin
-        // ‚Ç‚ñ‚È‡¬Ší‚Å‚à‚Pí—Ş‚Í“®‚­‚æ‚¤‚Éƒe[ƒuƒ‹‰»
+        // ã©ã‚“ãªåˆæˆå™¨ã§ã‚‚ï¼‘ç¨®é¡ã¯å‹•ãã‚ˆã†ã«ãƒ†ãƒ¼ãƒ–ãƒ«åŒ–
         jelly_float_reciprocal_frac23_d6
             i_float_reciprocal_frac23_d6
                 (
@@ -122,7 +122,7 @@ module jelly_float_reciprocal
                 );
     end
     else begin
-        // ƒe[ƒuƒ‹¶¬
+        // ãƒ†ãƒ¼ãƒ–ãƒ«ç”Ÿæˆ
         jelly_float_reciprocal_table
                 #(
                     .FRAC_WIDTH     (FRAC_WIDTH),
@@ -254,14 +254,14 @@ module jelly_float_reciprocal_table
         );
     
     
-    // ƒe[ƒuƒ‹’è‹`
+    // ãƒ†ãƒ¼ãƒ–ãƒ«å®šç¾©
     localparam  TBL_WIDTH = FRAC_WIDTH + GRAD_WIDTH;
     localparam  TBL_SIZE  = (1 << D_WIDTH);
     
     (* RAM_STYLE=RAM_TYPE *)    reg     [TBL_WIDTH-1:0]     mem [0:TBL_SIZE-1];
     
     
-    // ƒe[ƒuƒ‹‰Šú‰»
+    // ãƒ†ãƒ¼ãƒ–ãƒ«åˆæœŸåŒ–
     integer                     i;
     integer                     fp;
     
@@ -297,7 +297,7 @@ module jelly_float_reciprocal_table
         end
 //      $display("grad_max:%h", grad_max);
         
-        // ƒe[ƒuƒ‹‚ğƒtƒ@ƒCƒ‹o—Í
+        // ãƒ†ãƒ¼ãƒ–ãƒ«ã‚’ãƒ•ã‚¡ã‚¤ãƒ«å‡ºåŠ›
         if ( WRITE_TABLE ) begin
             fp = $fopen(FILE_NAME, "w");
             for ( i = 0; i < TBL_SIZE; i = i+1 ) begin
@@ -306,7 +306,7 @@ module jelly_float_reciprocal_table
             $fclose(fp);
         end
         
-        // ƒe[ƒuƒ‹‚ğƒtƒ@ƒCƒ‹‚©‚ç“ü—Í
+        // ãƒ†ãƒ¼ãƒ–ãƒ«ã‚’ãƒ•ã‚¡ã‚¤ãƒ«ã‹ã‚‰å…¥åŠ›
         if ( READ_TABLE) begin
             $readmemh(FILE_NAME, mem);
         end
@@ -346,7 +346,7 @@ endmodule
 
 
 
-// ŒÅ’èƒe[ƒuƒ‹
+// å›ºå®šãƒ†ãƒ¼ãƒ–ãƒ«
 module jelly_float_reciprocal_frac23_d6
         (
             input   wire                reset,

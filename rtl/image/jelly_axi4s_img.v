@@ -12,10 +12,10 @@
 `default_nettype none
 
 
-//   ƒtƒŒ[ƒ€ŠúŠÔ’†‚Ìƒf[ƒ^“ü—Í‚Ì–³‚¢ŠúŠÔ‚Í cke ‚ð—Ž‚Æ‚·‚±‚Æ‚ð
-// ‘O’ñ‚Æ‚µ‚Äƒf[ƒ^âf–§‚ÅAƒƒ‚ƒŠ‚ð READ_FIRST ƒ‚[ƒh‚ÅÅ“K‰»
-//   ƒtƒŒ[ƒ€––”ö‚Å“f‚«o‚µ‚Ì‚½‚ß‚Éƒuƒ‰ƒ“ƒNƒf[ƒ^‚ð“ü‚ê‚éÛ‚Í
-// line_first ‚Æ line_last ‚Í³‚µ‚­§Œä‚ª•K—v
+//   ãƒ•ãƒ¬ãƒ¼ãƒ æœŸé–“ä¸­ã®ãƒ‡ãƒ¼ã‚¿å…¥åŠ›ã®ç„¡ã„æœŸé–“ã¯ cke ã‚’è½ã¨ã™ã“ã¨ã‚’
+// å‰æã¨ã—ã¦ãƒ‡ãƒ¼ã‚¿ç¨ å¯†ã§ã€ãƒ¡ãƒ¢ãƒªã‚’ READ_FIRST ãƒ¢ãƒ¼ãƒ‰ã§æœ€é©åŒ–
+//   ãƒ•ãƒ¬ãƒ¼ãƒ æœ«å°¾ã§åãå‡ºã—ã®ãŸã‚ã«ãƒ–ãƒ©ãƒ³ã‚¯ãƒ‡ãƒ¼ã‚¿ã‚’å…¥ã‚Œã‚‹éš›ã¯
+// line_first ã¨ line_last ã¯æ­£ã—ãåˆ¶å¾¡ãŒå¿…è¦
 
 module jelly_axi4s_img
         #(
@@ -76,7 +76,7 @@ module jelly_axi4s_img
         );
     
     
-    // ƒuƒ‰ƒ“ƒLƒ“ƒO’Ç‰Á’†‚ÉŽŸƒtƒŒ[ƒ€‚ª—ˆ‚Ä‚µ‚Ü‚Á‚½ê‡‚Ì‹zŽû—pFIFO
+    // ãƒ–ãƒ©ãƒ³ã‚­ãƒ³ã‚°è¿½åŠ ä¸­ã«æ¬¡ãƒ•ãƒ¬ãƒ¼ãƒ ãŒæ¥ã¦ã—ã¾ã£ãŸå ´åˆã®å¸åŽç”¨FIFO
     wire    [S_TDATA_WIDTH-1:0] axi4s_fifo_tdata;
     wire                        axi4s_fifo_tlast;
     wire    [TUSER_WIDTH-1:0]   axi4s_fifo_tuser;
@@ -106,7 +106,7 @@ module jelly_axi4s_img
             );
 
     
-    // ƒuƒƒbƒNˆ—“f‚«o‚µ—p‚Éƒuƒ‰ƒ“ƒLƒ“ƒO‚ðƒtƒŒ[ƒ€––”ö‚É’Ç‰Á
+    // ãƒ–ãƒ­ãƒƒã‚¯å‡¦ç†åãå‡ºã—ç”¨ã«ãƒ–ãƒ©ãƒ³ã‚­ãƒ³ã‚°ã‚’ãƒ•ãƒ¬ãƒ¼ãƒ æœ«å°¾ã«è¿½åŠ 
     wire    [S_TDATA_WIDTH-1:0] axi4s_blank_tdata;
     wire                        axi4s_blank_tlast;
     wire    [TUSER_WIDTH-1:0]   axi4s_blank_tuser;
@@ -149,7 +149,7 @@ module jelly_axi4s_img
             );
     
     
-    // ‰æ‘œˆ——p‚ÌƒtƒH[ƒ}ƒbƒg‚É•ÏŠ·
+    // ç”»åƒå‡¦ç†ç”¨ã®ãƒ•ã‚©ãƒ¼ãƒžãƒƒãƒˆã«å¤‰æ›
     wire                        cke;
     
     jelly_axi4s_to_img

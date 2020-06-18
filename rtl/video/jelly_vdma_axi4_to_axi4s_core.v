@@ -13,7 +13,7 @@
 
 
 
-//  AXI4 ‚©‚ç Read ‚µ‚Ä AXI4Stream‚É‚·‚éƒRƒA
+//  AXI4 ã‹ã‚‰ Read ã—ã¦ AXI4Streamã«ã™ã‚‹ã‚³ã‚¢
 module jelly_vdma_axi4_to_axi4s_core
         #(
             parameter   ASYNC               = 0,

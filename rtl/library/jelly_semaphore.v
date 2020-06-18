@@ -13,8 +13,8 @@
 
 
 
-// AXI‚È‚Ç‚ÌƒRƒ}ƒ“ƒh”­s§ŒÀ—p‚ğ‘z’è
-// ãŒÀ/‰ºŒÀƒ`ƒFƒbƒN‚Ís‚í‚È‚¢‚Ì‚ÅAãˆÊ‘¤‚Å•ÛØ‚·‚é‚±‚Æ
+// AXIãªã©ã®ã‚³ãƒãƒ³ãƒ‰ç™ºè¡Œåˆ¶é™ç”¨ã‚’æƒ³å®š
+// ä¸Šé™/ä¸‹é™ãƒã‚§ãƒƒã‚¯ã¯è¡Œã‚ãªã„ã®ã§ã€ä¸Šä½å´ã§ä¿è¨¼ã™ã‚‹ã“ã¨
 
 
 // semaphore
@@ -25,13 +25,13 @@ module jelly_semaphore
             parameter   INIT_COUNTER  = 256
         )
         (
-            // ƒJƒEƒ“ƒ^’l•Ô‹p‘¤
+            // ã‚«ã‚¦ãƒ³ã‚¿å€¤è¿”å´å´
             input   wire                        rel_reset,
             input   wire                        rel_clk,
             input   wire    [COUNTER_WIDTH-1:0] rel_add,
             input   wire                        rel_valid,
             
-            // ƒJƒEƒ“ƒ^’læ“¾‘¤
+            // ã‚«ã‚¦ãƒ³ã‚¿å€¤å–å¾—å´
             input   wire                        req_reset,
             input   wire                        req_clk,
             input   wire    [COUNTER_WIDTH-1:0] req_sub,

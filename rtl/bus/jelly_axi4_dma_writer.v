@@ -11,7 +11,7 @@
 `default_nettype none
 
 
-//  AXI4Stream ‚ğ AXI4‚É Write ‚·‚éƒRƒA
+//  AXI4Stream ã‚’ AXI4ã« Write ã™ã‚‹ã‚³ã‚¢
 module jelly_axi4_dma_writer
         #(
             parameter   AXI4_ID_WIDTH       = 6,

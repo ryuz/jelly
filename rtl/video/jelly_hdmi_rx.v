@@ -255,7 +255,7 @@ module jelly_hdmi_rx
             case ( reg_state )
             ST_START:
                 begin
-                    // ƒLƒƒƒŠƒuƒŒ[ƒVƒ‡ƒ“ŠJn
+                    // ã‚­ãƒ£ãƒªãƒ–ãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³é–‹å§‹
                     reg_state       <= ST_SETUP;
                     reg_psen        <= 1'b1;
                     reg_wait_psdone <= 1'b1;
@@ -265,7 +265,7 @@ module jelly_hdmi_rx
                 
             ST_SETUP:
                 begin
-                    // ƒZƒbƒgƒAƒbƒv(EYE‚Ì’†‚É‚¢‚½‚çˆê’U•Ï‰»“_‚Ü‚ÅˆÚ“®)
+                    // ã‚»ãƒƒãƒˆã‚¢ãƒƒãƒ—(EYEã®ä¸­ã«ã„ãŸã‚‰ä¸€æ—¦å¤‰åŒ–ç‚¹ã¾ã§ç§»å‹•)
                     if ( !reg_wait_psdone && sig_phase_valid0 ) begin
                         reg_psen        <= 1'b1;
                         reg_wait_psdone <= 1'b1;
@@ -278,7 +278,7 @@ module jelly_hdmi_rx
             
             ST_SEARCH:
                 begin
-                    // EYE‚Ì”ÍˆÍ‚ğ’T‚·(PHASE_ADJ_TH ˆÈã‚Ì•‚Åæ‚ê‚éêŠ‚ğ’T‚·)
+                    // EYEã®ç¯„å›²ã‚’æ¢ã™(PHASE_ADJ_TH ä»¥ä¸Šã®å¹…ã§å–ã‚Œã‚‹å ´æ‰€ã‚’æ¢ã™)
                     if ( !reg_wait_psdone && sig_phase_valid0 ) begin
                         reg_psen        <= 1'b1;
                         reg_wait_psdone <= 1'b1;
@@ -287,13 +287,13 @@ module jelly_hdmi_rx
                         end
                         else begin
                             if ( reg_pscounter >= PHASE_ADJ_TH ) begin
-                                // \•ª‚È•‚ÌEYE‚ğ”­Œ©
+                                // ååˆ†ãªå¹…ã®EYEã‚’ç™ºè¦‹
                                 reg_state     <= ST_MOVE;
                                 reg_psincdec  <= 1'b0;
                                 reg_pscounter <= (reg_pscounter >> 1);
                             end
                             else begin
-                                // ’TõŒp‘±
+                                // æ¢ç´¢ç¶™ç¶š
                                 reg_pscounter <= 0;
                             end
                         end
@@ -302,7 +302,7 @@ module jelly_hdmi_rx
                 
             ST_MOVE:
                 begin
-                    // EYE ‚Ì’†‰›‚ÉˆÚ“®
+                    // EYE ã®ä¸­å¤®ã«ç§»å‹•
                     if ( !reg_wait_psdone ) begin
                         reg_pscounter <= reg_pscounter - 1'b1;
                         if ( reg_pscounter == 0 ) begin
@@ -318,7 +318,7 @@ module jelly_hdmi_rx
                 
             ST_PHASE_CALIB:
                 begin
-                    // ‘¼‚Ìƒf[ƒ^ü‚ÌˆÚ‘Š’²®
+                    // ä»–ã®ãƒ‡ãƒ¼ã‚¿ç·šã®ç§»ç›¸èª¿æ•´
                     if ( !reg_dpa_start && !sig_dpa_busy1 && !sig_dpa_busy2 ) begin
                         reg_state         <= ST_BITSLIP_CALIB;
                         reg_bitslip_start <= 1'b1;
@@ -327,7 +327,7 @@ module jelly_hdmi_rx
             
             ST_BITSLIP_CALIB:
                 begin
-                    // BITSLIP’²®
+                    // BITSLIPèª¿æ•´
                     if ( !reg_bitslip_start && !sig_bitslip_busy0 && !sig_bitslip_busy1 && !sig_bitslip_busy2 ) begin
                         if ( sig_bitslip_ready0 && sig_bitslip_ready1 && sig_bitslip_ready2 ) begin
                             reg_state <= ST_STANDBY;

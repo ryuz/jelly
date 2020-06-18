@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- the system on fpga system
-//   GPU用シェーダー演算ソース側制御
+//   GPU逕ｨ繧ｷ繧ｧ繝ｼ繝繝ｼ貍皮ｮ励た繝ｼ繧ｹ蛛ｴ蛻ｶ蠕｡
 //
 //                                 Copyright (C) 2015 by Ryuji Fuchikami
 //                                 http://ryuz.my.coocan.jp/
@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-// シェーダー
+// 繧ｷ繧ｧ繝ｼ繝繝ｼ
 module jelly_gpu_shadert
 		#(
 			parameter	PC_WIDTH     = 9,

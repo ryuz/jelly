@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-// SRAM”ÅƒeƒNƒXƒ`ƒƒƒ}ƒbƒsƒ“ƒO
+// SRAMç‰ˆãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒãƒƒãƒ”ãƒ³ã‚°
 module jelly_gpu_texturemap_sram
         #(
             parameter   COMPONENT_NUM                 = 3,
@@ -46,7 +46,7 @@ module jelly_gpu_texturemap_sram
             parameter   REGION_RAM_TYPE               = "distributed",
             
             parameter   CULLING_ONLY                  = 0,
-            parameter   Z_SORT_MIN                    = 0,  // 1‚Å¬‚³‚¢’l—Dæ(Z²‰œŒü‚«)
+            parameter   Z_SORT_MIN                    = 0,  // 1ã§å°ã•ã„å€¤å„ªå…ˆ(Zè»¸å¥¥å‘ã)
             
             parameter   X_WIDTH                       = 12,
             parameter   Y_WIDTH                       = 12,
@@ -129,7 +129,7 @@ module jelly_gpu_texturemap_sram
                                       POLYGON_NUM <= 32768 ? 15 : 16;
     
     
-    // ƒ‰ƒXƒ^ƒ‰ƒCƒU
+    // ãƒ©ã‚¹ã‚¿ãƒ©ã‚¤ã‚¶
     wire                                                cke;
     
     wire                                                start;

@@ -13,7 +13,7 @@
 
 
 
-//  AXI4Stream ‚ğ AXI4‚É Write ‚·‚éƒRƒA
+//  AXI4Stream ã‚’ AXI4ã« Write ã™ã‚‹ã‚³ã‚¢
 module jelly_vdma_axi4s_to_axi4_core
         #(
             parameter   ASYNC               = 0,

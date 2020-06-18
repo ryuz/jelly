@@ -200,7 +200,7 @@ module video_mnist
 				.m_axi4s_tready		(axi4s_count_tready)
 			);
 	
-	// Ï•ª—p‚Ébit•Šg’£
+	// ç©åˆ†ç”¨ã«bitå¹…æ‹¡å¼µ
 	wire	[NUM_CALSS*INTEGRATION_WIDTH-1:0]	axi4s_count_tcount_int;
 	jelly_data_linear_expand
 			#(

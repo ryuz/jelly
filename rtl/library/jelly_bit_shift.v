@@ -46,7 +46,7 @@ module jelly_bit_shift
                                  (({in_data, stuffing} >> shift));
     end
     else begin : blk_mux
-        // LEFTŽž‚É primitive ‚Ìƒ}ƒ‹ƒ`ƒvƒŒƒNƒT‚É“K‡‚·‚é‚æ‚¤‚ÉŒ‹ü‚ðƒŠƒo[ƒX‚·‚é
+        // LEFTæ™‚ã« primitive ã®ãƒžãƒ«ãƒãƒ—ãƒ¬ã‚¯ã‚µã«é©åˆã™ã‚‹ã‚ˆã†ã«çµç·šã‚’ãƒªãƒãƒ¼ã‚¹ã™ã‚‹
         
         // input reverse
         wire    [DATA_WIDTH-1:0]    rev_stuffing;

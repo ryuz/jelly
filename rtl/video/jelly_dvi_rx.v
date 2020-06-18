@@ -274,11 +274,11 @@ module jelly_dvi_rx
         else begin
             reg_psen <= 1'b0;           
             if ( reg_bitslip_ok && !sig_bitslip_ok ) begin
-                // ƒGƒ‰[Žž‚ÌÄƒXƒ^[ƒg
+                // ã‚¨ãƒ©ãƒ¼æ™‚ã®å†ã‚¹ã‚¿ãƒ¼ãƒˆ
                 reg_calib_start <= 1'b1;
             end
             else if ( reg_calib_start ) begin
-                // ƒLƒƒƒŠƒuƒŒ[ƒVƒ‡ƒ“ŠJŽn
+                // ã‚­ãƒ£ãƒªãƒ–ãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³é–‹å§‹
                 reg_calib_start     <= 1'b0;
                 reg_setup_ok        <= 1'b0;
                 reg_search_ok       <= 1'b0;
@@ -296,7 +296,7 @@ module jelly_dvi_rx
                 reg_bitslip_counter <= BITSLIP_WAIT;
             end
             else if ( !reg_setup_ok ) begin
-                // ƒZƒbƒgƒAƒbƒv(EYE‚Ì’†‚É‚¢‚½‚çˆê’U•Ï‰»“_‚Ü‚ÅˆÚ“®)
+                // ã‚»ãƒƒãƒˆã‚¢ãƒƒãƒ—(EYEã®ä¸­ã«ã„ãŸã‚‰ä¸€æ—¦å¤‰åŒ–ç‚¹ã¾ã§ç§»å‹•)
                 if ( sig_psdone ) begin
                     reg_psen      <= 1'b1;
                     reg_data_prev <= clk_data;
@@ -307,7 +307,7 @@ module jelly_dvi_rx
                 end
             end
             else if ( !reg_search_ok ) begin
-                // EYE‚Ì”ÍˆÍ‚ð’T‚·(PHASE_ADJ_TH ˆÈã‚Ì•‚ÅŽæ‚ê‚éêŠ‚ð’T‚·)
+                // EYEã®ç¯„å›²ã‚’æŽ¢ã™(PHASE_ADJ_TH ä»¥ä¸Šã®å¹…ã§å–ã‚Œã‚‹å ´æ‰€ã‚’æŽ¢ã™)
                 if ( sig_psdone ) begin
                     reg_psen      <= 1'b1;
                     reg_data_prev <= clk_data;
@@ -327,7 +327,7 @@ module jelly_dvi_rx
                 end
             end
             else if ( !reg_phase_ok ) begin
-                // EYE ‚Ì’†‰›‚ÉˆÚ“®
+                // EYE ã®ä¸­å¤®ã«ç§»å‹•
                 if ( sig_psdone ) begin
                     reg_pscounter <= reg_pscounter - 1'b1;
                     if ( reg_pscounter == 0 ) begin
@@ -344,7 +344,7 @@ module jelly_dvi_rx
                 end
             end
             else if ( !reg_bitslip_ok ) begin
-                // –Ú“I‚Ì”z’u‚É bitslip
+                // ç›®çš„ã®é…ç½®ã« bitslip
                 reg_bitslip <= 1'b0;
                 if ( reg_bitslip_counter != 0 ) begin
                     reg_bitslip_counter <= reg_bitslip_counter - 1'b1;

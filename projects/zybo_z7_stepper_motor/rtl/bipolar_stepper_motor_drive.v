@@ -14,7 +14,7 @@
 
 module bipolar_stepper_motor_drive
         #(
-            parameter   Q_WIDTH         = 16,       // 小数点サイズ
+            parameter   Q_WIDTH         = 16,       // 蟆乗焚轤ｹ繧ｵ繧､繧ｺ
             parameter   MICROSTEP_WIDTH = 12,
             parameter   PAHSE_WIDTH     = 2 + Q_WIDTH
         )

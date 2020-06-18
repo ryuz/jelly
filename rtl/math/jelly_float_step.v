@@ -13,7 +13,7 @@
 
 
 
-// •‚“®¬”“_‚Ì‡ŸƒCƒ“ƒNƒŠƒƒ“ƒg/ƒfƒNƒŠƒƒ“ƒg’l¶¬ƒRƒA
+// æµ®å‹•å°æ•°ç‚¹ã®é †æ¬¡ã‚¤ãƒ³ã‚¯ãƒªãƒ¡ãƒ³ãƒˆ/ãƒ‡ã‚¯ãƒªãƒ¡ãƒ³ãƒˆå€¤ç”Ÿæˆã‚³ã‚¢
 module jelly_float_step
         #(
             parameter   EXP_WIDTH  = 8,
@@ -86,7 +86,7 @@ module jelly_float_step
     integer                             i;
     
     always @(posedge clk) begin
-        // stage 0 (w”•”‚ğ‚Ç‚¿‚ç‚É‡‚í‚¹‚é‚©”»•Ê)
+        // stage 0 (æŒ‡æ•°éƒ¨ã‚’ã©ã¡ã‚‰ã«åˆã‚ã›ã‚‹ã‹åˆ¤åˆ¥)
         if ( stage_cke[0] ) begin
             st0_init_sign <= src_init_sign;
             st0_init_frac <= src_init_frac;
@@ -107,7 +107,7 @@ module jelly_float_step
         end
         
         
-        // stage 1 (Œ…‚ ‚í‚¹)
+        // stage 1 (æ¡ã‚ã‚ã›)
         if ( stage_cke[1] ) begin
             st1_init_sign <= st0_init_sign;
             st1_init_exp  <= st0_init_exp;
@@ -119,10 +119,10 @@ module jelly_float_step
         end
         
         
-        // stage 2 (ƒCƒ“ƒNƒŠƒƒ“ƒgŒvZ)
+        // stage 2 (ã‚¤ãƒ³ã‚¯ãƒªãƒ¡ãƒ³ãƒˆè¨ˆç®—)
         if ( stage_cke[2] ) begin
             if ( st1_initial ) begin
-                // ‰Šú‰»
+                // åˆæœŸåŒ–
                 st2_base_sign <= st1_init_sign;
                 st2_base_exp  <= st1_init_exp;
                 st2_base_frac <= {1'b0, st1_init_frac};
@@ -130,7 +130,7 @@ module jelly_float_step
                 st2_shift     <= 1'b0;
             end
             else if ( st1_increment ) begin
-                // ƒCƒ“ƒNƒŠƒƒ“ƒg
+                // ã‚¤ãƒ³ã‚¯ãƒªãƒ¡ãƒ³ãƒˆ
                 st2_shift <= (st2_inc_frac[FRAC_WIDTH+2] != st2_inc_frac[FRAC_WIDTH+1])
                                 || (st2_inc_frac[FRAC_WIDTH+1] && st2_inc_frac[FRAC_WIDTH:0] == 0);
                 st2_base_exp  <= st2_base_exp + st2_shift;
@@ -139,7 +139,7 @@ module jelly_float_step
         end
         
         
-        // stage 3 (•„†®Œ`)
+        // stage 3 (ç¬¦å·æ•´å½¢)
         if ( stage_cke[3] ) begin
             st3_sign  <= st2_base_frac[FRAC_WIDTH+2] ? ~st2_base_sign : st2_base_sign ;
             st3_exp   <= st2_base_exp + st2_shift;
@@ -147,7 +147,7 @@ module jelly_float_step
         end
         
         
-        // stage 4 (Œ…—‚¿ŒŸo)
+        // stage 4 (æ¡è½ã¡æ¤œå‡º)
         if ( stage_cke[4] ) begin
             st4_sign  <= st3_sign;
             st4_exp   <= st3_exp;
@@ -160,7 +160,7 @@ module jelly_float_step
             end
         end
         
-        // stage 5 (Œ…—‚¿•â³)
+        // stage 5 (æ¡è½ã¡è£œæ­£)
         if ( stage_cke[5] ) begin
             st5_sign  <= st4_sign;
             st5_exp   <= st4_exp - st4_shift;

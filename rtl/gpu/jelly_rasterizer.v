@@ -56,7 +56,7 @@ module jelly_rasterizer
                                               POLYGON_NUM <= 32768 ? 15 : 16,
             
             parameter   CULLING_ONLY        = 1,
-            parameter   Z_SORT_MIN          = 0,    // Z‚Ì‘å¬‚Ç‚¿‚ç‚ð—Dæ‚·‚é‚©(ZŽ²‚ÌŒü‚«)
+            parameter   Z_SORT_MIN          = 0,    // Zã®å¤§å°ã©ã¡ã‚‰ã‚’å„ªå…ˆã™ã‚‹ã‹(Zè»¸ã®å‘ã)
             
             parameter   USE_PARAM_CFG_READ  = 1,
             parameter   CFG_SHADER_TYPE     = 32'h0000_0000,

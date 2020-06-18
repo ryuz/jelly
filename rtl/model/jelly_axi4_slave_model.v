@@ -25,7 +25,7 @@ module jelly_axi4_slave_model
             parameter   MEM_WIDTH             = 16,
             parameter   MEM_SIZE              = (1 << MEM_WIDTH),
             
-            parameter   READ_DATA_ADDR        = 0,      // リード結果をアドレスとする
+            parameter   READ_DATA_ADDR        = 0,      // 繝ｪ繝ｼ繝臥ｵ先棡繧偵い繝峨Ξ繧ｹ縺ｨ縺吶ｋ
             
             parameter   WRITE_LOG_FILE        = "",
             parameter   READ_LOG_FILE         = "",

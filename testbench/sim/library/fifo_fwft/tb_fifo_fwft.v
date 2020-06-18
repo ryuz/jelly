@@ -58,7 +58,7 @@ module tb_fifo_fwft();
                 .m_data_count   (m_data_count)
             );
     
-    // ˜A‘±«ƒeƒXƒg
+    // é€£ç¶šæ€§ãƒ†ã‚¹ãƒˆ
     /*
     reg     [DATA_WIDTH-1:0]    reg_data  = 0;
     reg                         reg_valid = 0;
@@ -104,7 +104,7 @@ module tb_fifo_fwft();
     */
     
     
-    // ƒ‰ƒ“ƒ_ƒ€ƒeƒXƒg
+    // ãƒ©ãƒ³ãƒ€ãƒ ãƒ†ã‚¹ãƒˆ
     
     // write
     reg     [DATA_WIDTH-1:0]    reg_data;

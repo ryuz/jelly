@@ -65,13 +65,13 @@ module jelly_ring_bus_unit
             reg_sink_valid   <= 1'b0;
         end
         else if ( cke ) begin
-            // ƒf[ƒ^“]‘—
+            // ãƒ‡ãƒ¼ã‚¿è»¢é€
             reg_sink_id_to   <= src_id_to;
             reg_sink_id_from <= src_id_from;
             reg_sink_data    <= src_data;
             reg_sink_valid   <= src_valid;
             
-            // ƒf[ƒ^Žæ‚èo‚µ
+            // ãƒ‡ãƒ¼ã‚¿å–ã‚Šå‡ºã—
             if ( m_valid && m_ready ) begin
                 reg_sink_id_to   <= {ID_TO_BITS{1'bx}};
                 reg_sink_id_from <= {ID_FROM_BITS{1'bx}};
@@ -79,7 +79,7 @@ module jelly_ring_bus_unit
                 reg_sink_valid   <= 1'b0;
             end
             
-            // ƒf[ƒ^‘}“ü
+            // ãƒ‡ãƒ¼ã‚¿æŒ¿å…¥
             if ( s_valid && s_ready ) begin
                 reg_sink_id_to   <= s_id_to;
                 reg_sink_id_from <= UNIT_ID_FROM;
@@ -90,7 +90,7 @@ module jelly_ring_bus_unit
     end
     
     
-    // §Œä
+    // åˆ¶å¾¡
     assign s_ready      = (!src_valid || (m_valid && m_ready));
     
     assign m_id_from    = src_id_from;

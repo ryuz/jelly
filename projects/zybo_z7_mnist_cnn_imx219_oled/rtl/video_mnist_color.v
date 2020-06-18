@@ -86,16 +86,16 @@ module video_mnist_color
 			reg_param_th_count  <= INIT_PARAM_TH_COUNT;
 			reg_param_th_detect <= INIT_PARAM_TH_DETECT;
 			
-			reg_param_color0    <= 25'h0_00_00_00;	// •
-			reg_param_color1    <= 25'h0_00_00_80;	// ’ƒ
-			reg_param_color2    <= 25'h0_00_00_ff;	// Ô
-			reg_param_color3    <= 25'h0_4c_b7_ff;	// žò
-			reg_param_color4    <= 25'h0_00_ff_ff;	// ‰©
-			reg_param_color5    <= 25'h0_00_80_00;	// —Î
-			reg_param_color6    <= 25'h0_ff_00_00;	// Â
-			reg_param_color7    <= 25'h0_80_00_80;	// Ž‡
-			reg_param_color8    <= 25'h0_80_80_80;	// ŠD
-			reg_param_color9    <= 25'h0_ff_ff_ff;	// ”’
+			reg_param_color0    <= 25'h0_00_00_00;	// é»’
+			reg_param_color1    <= 25'h0_00_00_80;	// èŒ¶
+			reg_param_color2    <= 25'h0_00_00_ff;	// èµ¤
+			reg_param_color3    <= 25'h0_4c_b7_ff;	// æ©™
+			reg_param_color4    <= 25'h0_00_ff_ff;	// é»„
+			reg_param_color5    <= 25'h0_00_80_00;	// ç·‘
+			reg_param_color6    <= 25'h0_ff_00_00;	// é’
+			reg_param_color7    <= 25'h0_80_00_80;	// ç´«
+			reg_param_color8    <= 25'h0_80_80_80;	// ç°
+			reg_param_color9    <= 25'h0_ff_ff_ff;	// ç™½
 		end
 		else begin
 			if ( s_wb_stb_i && s_wb_we_i ) begin

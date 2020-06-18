@@ -53,7 +53,7 @@ module tb_fixed_matrix_divider();
     
     
     
-    // É}ÉNÉç
+    // „Éû„ÇØ„É≠
     localparam  FLOAT_EXP_WIDTH  = DIVISOR_FLOAT_EXP_WIDTH;
     localparam  FLOAT_EXP_OFFSET = DIVISOR_FLOAT_EXP_OFFSET;
     localparam  FLOAT_FRAC_WIDTH = DIVISOR_FLOAT_FRAC_WIDTH;

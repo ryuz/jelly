@@ -83,18 +83,18 @@ module jelly_axi4s_insert_blank
             reg_tvalid     <= 1'b0;
         end
         else begin
-            // 画像サイズ計測
+            // 逕ｻ蜒上し繧､繧ｺ險域ｸｬ
             if ( s_axi4s_tvalid && s_axi4s_tready ) begin
                 reg_x_counter <= reg_x_counter + 1'b1;
                 if ( s_axi4s_tlast ) begin
-                    reg_x_num     <= reg_x_counter;         // Xサイズ記録
+                    reg_x_num     <= reg_x_counter;         // X繧ｵ繧､繧ｺ險倬鹸
                     reg_x_counter <= {IMG_X_WIDTH{1'b0}};
                     reg_y_counter <= reg_y_counter + 1;
                 end
                 
                 if ( s_axi4s_tuser[0] ) begin
                     if ( reg_y_counter > 0 ) begin
-                        reg_y_num <= reg_y_counter;     // Yサイズ記録
+                        reg_y_num <= reg_y_counter;     // Y繧ｵ繧､繧ｺ險倬鹸
                     end
                     reg_y_counter <= {IMG_Y_WIDTH{1'b0}};
                 end

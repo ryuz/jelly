@@ -13,7 +13,7 @@
 
 
 
-//  AXI ‚É‘Î‚·‚é“]‘—’·‚ğ•ªŠ„‚·‚é
+//  AXI ã«å¯¾ã™ã‚‹è»¢é€é•·ã‚’åˆ†å‰²ã™ã‚‹
 module jelly_axi_addr_len
         #(
             parameter   BYPASS        = 0,

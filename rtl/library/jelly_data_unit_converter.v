@@ -40,8 +40,8 @@ module jelly_data_unit_converter
             input   wire                        s_valid,
             output  wire                        s_ready,
             
-            output  wire    [USER_BITS-1:0]     m_user_first,   // �ŏ��̃f�[�^�ɕt������user
-            output  wire    [USER_BITS-1:0]     m_user_last,    // �����̃f�[�^�ɕt������user
+            output  wire    [USER_BITS-1:0]     m_user_first,   // 最初のデータに付随するuser
+            output  wire    [USER_BITS-1:0]     m_user_last,    // 末尾のデータに付随するuser
             output  wire                        m_last,
             output  wire    [M_DATA_WIDTH-1:0]  m_data,
             output  wire                        m_valid,

@@ -13,7 +13,7 @@
 
 
 
-//  AXI4 ‚©‚ç Read ‚µ‚Ä AXI4Stream‚É‚·‚éƒRƒA
+//  AXI4 ã‹ã‚‰ Read ã—ã¦ AXI4Streamã«ã™ã‚‹ã‚³ã‚¢
 module jelly_vdma_axi4_to_axi4s_control
         #(
             parameter   PIXEL_SIZE               = 2,   // 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
@@ -172,7 +172,7 @@ module jelly_vdma_axi4_to_axi4s_control
     end
     
     
-    // ƒsƒNƒZƒ‹”‚ğ“]‘—”‚É•ÏŠ·
+    // ãƒ”ã‚¯ã‚»ãƒ«æ•°ã‚’è»¢é€æ•°ã«å¤‰æ›
     function    [SIZE_WIDTH-1:0]    pixels_to_count(input [SIZE_WIDTH-1:0] pixels);
     begin
         if ( AXI4_DATA_SIZE >= PIXEL_SIZE ) begin
@@ -184,7 +184,7 @@ module jelly_vdma_axi4_to_axi4s_control
     end
     endfunction
     
-    // ƒsƒNƒZƒ‹”‚ğƒoƒCƒg”‚É•ÏŠ·
+    // ãƒ”ã‚¯ã‚»ãƒ«æ•°ã‚’ãƒã‚¤ãƒˆæ•°ã«å¤‰æ›
     function    [AXI4_ADDR_WIDTH-1:0]   pixels_to_byte(input [SIZE_WIDTH-1:0] pixels);
     begin
         pixels_to_byte = pixels << PIXEL_SIZE;
@@ -192,9 +192,9 @@ module jelly_vdma_axi4_to_axi4s_control
     endfunction
     
     
-    // ó‘ÔŠÇ—
+    // çŠ¶æ…‹ç®¡ç†
     reg                             reg_busy;
-    reg     [INDEX_WIDTH-1:0]       reg_index;          // ‚±‚Ì•Ï‰»‚ÅƒzƒXƒg‚Íó•tŠm”F
+    reg     [INDEX_WIDTH-1:0]       reg_index;          // ã“ã®å¤‰åŒ–ã§ãƒ›ã‚¹ãƒˆã¯å—ä»˜ç¢ºèª
     
     wire                            sig_arbusy;
     reg                             reg_arenable;
@@ -211,7 +211,7 @@ module jelly_vdma_axi4_to_axi4s_control
     wire                            sig_rcount_down = (m_axi4_rlast && m_axi4_rvalid && m_axi4_rready);
     wire                            next_rcount     = reg_rcount + sig_rcount_up - sig_rcount_down;
     
-    // ƒVƒƒƒh[ƒŒƒWƒXƒ^
+    // ã‚·ãƒ£ãƒ‰ãƒ¼ãƒ¬ã‚¸ã‚¹ã‚¿
     reg     [AXI4_ADDR_WIDTH-1:0]   reg_param_addr;
     reg     [STRIDE_WIDTH-1:0]      reg_param_stride;
     reg     [H_WIDTH-1:0]           reg_param_width;

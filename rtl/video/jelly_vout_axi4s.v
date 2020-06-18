@@ -44,7 +44,7 @@ module jelly_vout_axi4s
             output  wire    [3:0]       out_ctl
         );
     
-    // “ü—Í‚ğFFó‚¯
+    // å…¥åŠ›ã‚’FFå—ã‘
     wire    [0:0]       axi4s_tuser;
     wire                axi4s_tlast;
     wire    [WIDTH-1:0] axi4s_tdata;
@@ -83,17 +83,17 @@ module jelly_vout_axi4s
                 .s_ready_next   ()
             );
     
-    // ‚’¼“¯ŠúŒŸ’n
+    // å‚ç›´åŒæœŸæ¤œåœ°
     reg         prev_vsync;
     always @(posedge clk) begin
         prev_vsync <= in_vsync;
     end
     wire    sig_vsync = (prev_vsync != in_vsync);
     
-    // ƒtƒŒ[ƒ€ƒXƒ^[ƒg
+    // ãƒ•ãƒ¬ãƒ¼ãƒ ã‚¹ã‚¿ãƒ¼ãƒˆ
     wire    sig_frame_start = (axi4s_tvalid & axi4s_tuser & in_de);
     
-    // ƒnƒ“ƒhƒVƒF[ƒN(ƒtƒŒ[ƒ€ƒXƒ^[ƒg‚Åaxi4s‚Æ‘Ò‚¿‡‚í‚¹)
+    // ãƒãƒ³ãƒ‰ã‚·ã‚§ãƒ¼ã‚¯(ãƒ•ãƒ¬ãƒ¼ãƒ ã‚¹ã‚¿ãƒ¼ãƒˆã§axi4sã¨å¾…ã¡åˆã‚ã›)
     reg         reg_busy;
     always @(posedge clk) begin
         if ( reset ) begin
@@ -117,7 +117,7 @@ module jelly_vout_axi4s
                              || (!reg_busy && ~axi4s_tuser);
     
     
-    // o—Í
+    // å‡ºåŠ›
     reg                 reg_vsync;
     reg                 reg_hsync;
     reg                 reg_de;

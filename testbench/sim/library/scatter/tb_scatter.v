@@ -18,7 +18,7 @@ module tb_scatter();
     always #(RATE*100)  reset = 1'b0;
     
     
-    // 4ƒTƒCƒNƒ‹‚©‚©‚éˆ—‚ð4•À—ñ‚ÅŽÀs‚µ‚ÄAƒXƒ‹[ƒvƒbƒg‚ð‚P‚É‚·‚é
+    // 4ã‚µã‚¤ã‚¯ãƒ«ã‹ã‹ã‚‹å‡¦ç†ã‚’4ä¸¦åˆ—ã§å®Ÿè¡Œã—ã¦ã€ã‚¹ãƒ«ãƒ¼ãƒ—ãƒƒãƒˆã‚’ï¼‘ã«ã™ã‚‹
     
     parameter   PORT_NUM   = 4;
     parameter   DATA_WIDTH = 16;

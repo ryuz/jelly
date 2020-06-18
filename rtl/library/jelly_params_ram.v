@@ -33,7 +33,7 @@ module jelly_params_ram
                                       NUM      <=  4096 ? 12 :
                                       NUM      <=  8192 ? 13 :
                                       NUM      <= 16384 ? 14 :
-                                      NUM      <= 32768 ? 15 : 16,  // ˆê•”ˆ—Œn‚Å $clog2 ‚ª³‚µ‚­“®‚©‚È‚¢‚Ì‚Å
+                                      NUM      <= 32768 ? 15 : 16,  // ä¸€éƒ¨å‡¦ç†ç³»ã§ $clog2 ãŒæ­£ã—ãå‹•ã‹ãªã„ã®ã§
             
             parameter   BANK_WIDTH  = BANK_NUM <=     1 ?  0 :
                                       BANK_NUM <=     2 ?  1 :
@@ -50,7 +50,7 @@ module jelly_params_ram
                                       BANK_NUM <=  4096 ? 12 :
                                       BANK_NUM <=  8192 ? 13 :
                                       BANK_NUM <= 16384 ? 14 :
-                                      BANK_NUM <= 32768 ? 15 : 16,  // ˆê•”ˆ—Œn‚Å $clog2 ‚ª³‚µ‚­“®‚©‚È‚¢‚Ì‚Å
+                                      BANK_NUM <= 32768 ? 15 : 16,  // ä¸€éƒ¨å‡¦ç†ç³»ã§ $clog2 ãŒæ­£ã—ãå‹•ã‹ãªã„ã®ã§
             
             parameter   WRITE_ONLY    = 1,
             parameter   MEM_DOUT_REGS = 0,

@@ -38,8 +38,8 @@ module tb_minmax();
     parameter   USER_WIDTH        = 4;
     parameter   DATA_WIDTH        = 8;
     parameter   DATA_SIGNED       = 0;
-    parameter   CMP_MIN           = 0;      // min��max��
-    parameter   CMP_EQ            = 0;      // ���l�̂Ƃ� data0 �� data1 �ǂ����D�悷�邩
+    parameter   CMP_MIN           = 0;      // minかmaxか
+    parameter   CMP_EQ            = 0;      // 同値のとき data0 と data1 どちらを優先するか
     
     parameter   COMMON_USER_BITS  = COMMON_USER_WIDTH > 0 ? COMMON_USER_WIDTH : 1;
     parameter   USER_BITS         = USER_WIDTH        > 0 ? USER_WIDTH        : 1;
@@ -270,7 +270,7 @@ endmodule
 
 
 
-// �Â������C�}�C�`�o�[�W���������Ғl��r�Ɏg��
+// 古い合成イマイチバージョンを期待値比較に使う
 module jelly_minmax_exp
         #(
             parameter   NUM               = 12,
@@ -293,8 +293,8 @@ module jelly_minmax_exp
             parameter   USER_WIDTH        = 32,
             parameter   DATA_WIDTH        = 32,
             parameter   DATA_SIGNED       = 1,
-            parameter   CMP_MIN           = 0,      // min��max��
-            parameter   CMP_EQ            = 0,      // ���l�̂Ƃ� data0 �� data1 �ǂ����D�悷�邩
+            parameter   CMP_MIN           = 0,      // minかmaxか
+            parameter   CMP_EQ            = 0,      // 同値のとき data0 と data1 どちらを優先するか
             
             parameter   COMMON_USER_BITS  = COMMON_USER_WIDTH > 0 ? COMMON_USER_WIDTH : 1,
             parameter   USER_BITS         = USER_WIDTH        > 0 ? USER_WIDTH        : 1
@@ -319,7 +319,7 @@ module jelly_minmax_exp
         );
     
     
-    // �ꕔ�����n�� $clog2 �������������Ȃ��̂�
+    // 一部処理系で $clog2 が正しく動かないので
     localparam  STAGES = NUM <=     2 ?  1 :
                          NUM <=     4 ?  2 :
                          NUM <=     8 ?  3 :
@@ -339,7 +339,7 @@ module jelly_minmax_exp
     localparam  N      = (1 << (STAGES-1));
     
     
-    // ��r
+    // 比較
     function cmp_data(
                     input   [DATA_WIDTH-1:0]    in_data0,
                     input                       in_en0,

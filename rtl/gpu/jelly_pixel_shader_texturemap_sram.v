@@ -94,10 +94,10 @@ module jelly_pixel_shader_texturemap_sram
     
     
     // -------------------------------------
-    //  ƒŒƒWƒXƒ^
+    //  ãƒ¬ã‚¸ã‚¹ã‚¿
     // -------------------------------------
     
-    // ƒAƒhƒŒƒX
+    // ã‚¢ãƒ‰ãƒ¬ã‚¹
     localparam  REG_ADDR_PARAM_BGC              = 6'h00;
     localparam  REG_ADDR_CFG_SHADER_PARAM_NUM   = 6'h10;
     localparam  REG_ADDR_CFG_SHADER_PARAM_WIDTH = 6'h11;
@@ -108,10 +108,10 @@ module jelly_pixel_shader_texturemap_sram
     localparam  REG_ADDR_CFG_V_FRAC_WIDTH       = 6'h17;
 
     
-    // •\ƒŒƒWƒXƒ^
+    // è¡¨ãƒ¬ã‚¸ã‚¹ã‚¿
     reg     [AXI4S_TDATA_WIDTH-1:0]         reg_param_bgc;
     
-    // — ƒŒƒWƒXƒ^
+    // è£ãƒ¬ã‚¸ã‚¹ã‚¿
     reg     [AXI4S_TDATA_WIDTH-1:0]         reg_shadow_bgc;
     
     always @(posedge s_wb_clk_i ) begin
@@ -151,7 +151,7 @@ module jelly_pixel_shader_texturemap_sram
     assign s_wb_ack_o = s_wb_stb_i;
     
     
-    // update_paramM†‚Ì‘OŒã‚Å‚ÍƒŒƒWƒXƒ^•Ï‰»‚ª–³‚¢‘O’ñ‚Å”ñ“¯Šúó‚¯“n‚µ
+    // update_paramä¿¡å·ã®å‰å¾Œã§ã¯ãƒ¬ã‚¸ã‚¹ã‚¿å¤‰åŒ–ãŒç„¡ã„å‰æã§éåŒæœŸå—ã‘æ¸¡ã—
     always @(posedge clk ) begin
         if ( update ) begin
             reg_shadow_bgc <= reg_param_bgc;
@@ -162,7 +162,7 @@ module jelly_pixel_shader_texturemap_sram
     
     
     // -------------------------------------
-    // ƒp[ƒXƒyƒNƒeƒBƒuƒRƒŒƒNƒVƒ‡ƒ“
+    // ãƒ‘ãƒ¼ã‚¹ãƒšã‚¯ãƒ†ã‚£ãƒ–ã‚³ãƒ¬ã‚¯ã‚·ãƒ§ãƒ³
     // -------------------------------------
     
     wire                                        cke;
@@ -239,7 +239,7 @@ module jelly_pixel_shader_texturemap_sram
     
     
     // -------------------------------------
-    //  ƒeƒNƒXƒ`ƒƒƒƒ‚ƒŠ
+    //  ãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒ¡ãƒ¢ãƒª
     // -------------------------------------
     
     wire                                        tex_frame_start;
@@ -313,7 +313,7 @@ module jelly_pixel_shader_texturemap_sram
     
     
     // -------------------------------------
-    //  ƒoƒCƒŠƒjƒA
+    //  ãƒã‚¤ãƒªãƒ‹ã‚¢
     // -------------------------------------
     
     wire    [0:0]                               axi4s_bilinear_tuser;
@@ -360,7 +360,7 @@ module jelly_pixel_shader_texturemap_sram
     
     
     // -------------------------------------
-    //  ƒoƒbƒNƒOƒ‰ƒEƒ“ƒhFİ’è
+    //  ãƒãƒƒã‚¯ã‚°ãƒ©ã‚¦ãƒ³ãƒ‰è‰²è¨­å®š
     // -------------------------------------
     
     reg     [0:0]                               axi4s_bgc_tuser;
@@ -389,7 +389,7 @@ module jelly_pixel_shader_texturemap_sram
     
     
     // -------------------------------------
-    //  o—Í(cke‚ÉFF‘}“ü)
+    //  å‡ºåŠ›(ckeã«FFæŒ¿å…¥)
     // -------------------------------------
     
     jelly_pipeline_insert_ff

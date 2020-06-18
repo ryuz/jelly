@@ -73,7 +73,7 @@ void capture_still_image(UioMmap& um_pl_peri, int width, int height, int frame_n
 	usleep(100000);
 	
 	
-	// æ‚è‚İŠ®—¹‚ğ‘Ò‚Â
+	// å–ã‚Šè¾¼ã¿å®Œäº†ã‚’å¾…ã¤
 	usleep(10000);
 	while ( um_pl_peri.ReadWord32(0x00010014) != 0 ) {
 		usleep(10000);
@@ -237,12 +237,12 @@ int main()
 	i2c.WriteAddr16Word(0x018C, 0x0A0A);   //      CSI_DATA_FORMAT_A   CSI-2 data format
 	i2c.WriteAddr16Byte(0x0301, 0x05  );   // * VTPXCK_DIV  Video Timing Pixel Clock Divider Value
 	i2c.WriteAddr16Word(0x0303, 0x0103);   // * VTSYCK_DIV  PREPLLCK_VT_DIV(3: EXCK_FREQ 24 MHz to 27 MHz)
-	i2c.WriteAddr16Word(0x0305, 0x0300);   // * PREPLLCK_OP_DIV(3: EXCK_FREQ 24 MHz to 27 MHz)  / PLL_VT_MPY ‹æØ‚è‚ª‚¨‚©‚µ‚¢Ÿ‚É‘±‚­
+	i2c.WriteAddr16Word(0x0305, 0x0300);   // * PREPLLCK_OP_DIV(3: EXCK_FREQ 24 MHz to 27 MHz)  / PLL_VT_MPY åŒºåˆ‡ã‚ŠãŒãŠã‹ã—ã„æ¬¡ã«ç¶šã
 //	i2c.WriteAddr16Byte(0x0307, 0x39  );   // * PLL_VT_MPY
 //	i2c.WriteAddr16Byte(0x0307, 84  );   // r PLL_VT_MPY
 	i2c.WriteAddr16Byte(0x0307, 87  );   // r PLL_VT_MPY
 	i2c.WriteAddr16Byte(0x0309, 0x0A  );   // * OPPXCK_DIV
-	i2c.WriteAddr16Word(0x030B, 0x0100);   // * OPSYCK_DIV PLL_OP_MPY[10:8] / ‹æØ‚è‚ª‚¨‚©‚µ‚¢Ÿ‚É‘±‚­
+	i2c.WriteAddr16Word(0x030B, 0x0100);   // * OPSYCK_DIV PLL_OP_MPY[10:8] / åŒºåˆ‡ã‚ŠãŒãŠã‹ã—ã„æ¬¡ã«ç¶šã
 	i2c.WriteAddr16Byte(0x030D, 0x72  );   // * PLL_OP_MPY[10:8]
 	
 	i2c.WriteAddr16Byte(0x455E, 0x00  );   //

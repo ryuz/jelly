@@ -19,7 +19,7 @@ module jelly_data_joint_priority
             parameter   NUM         = 16,
             parameter   ID_WIDTH    = 4,
             parameter   DATA_WIDTH  = 32,
-            parameter   NO_CONFLICT = 0,            // “¯‚Éƒf[ƒ^‚ª—ˆ‚È‚¢ê‡
+            parameter   NO_CONFLICT = 0,            // åŒæ™‚ã«ãƒ‡ãƒ¼ã‚¿ãŒæ¥ãªã„å ´åˆ
             parameter   S_REGS      = !NO_CONFLICT,
             parameter   M_REGS      = 1
         )

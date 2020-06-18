@@ -60,7 +60,7 @@ module jelly_jbus_to_wishbone
                 reg_buf_en <= 1'b0;
             end
             else begin
-                // –³Œø’†‚É—ˆ‚½ƒf[ƒ^‚ð•Û‘¶
+                // ç„¡åŠ¹ä¸­ã«æ¥ãŸãƒ‡ãƒ¼ã‚¿ã‚’ä¿å­˜
                 if ( m_wb_stb_o & m_wb_ack_i ) begin
                     reg_buf_en <= 1'b1;
                 end

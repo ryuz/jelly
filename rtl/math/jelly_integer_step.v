@@ -13,7 +13,7 @@
 
 
 
-// ®”‚Ì‡ŽŸƒCƒ“ƒNƒŠƒƒ“ƒg/ƒfƒNƒŠƒƒ“ƒg’l¶¬ƒRƒA
+// æ•´æ•°ã®é †æ¬¡ã‚¤ãƒ³ã‚¯ãƒªãƒ¡ãƒ³ãƒˆ/ãƒ‡ã‚¯ãƒªãƒ¡ãƒ³ãƒˆå€¤ç”Ÿæˆã‚³ã‚¢
 module jelly_integer_step
         #(
             parameter   DATA_WIDTH = 32

@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-// ƒf[ƒ^•Šg’£
+// ãƒ‡ãƒ¼ã‚¿å¹…æ‹¡å¼µ
 module jelly_data_expand
         #(
             parameter   NUM            = 1,

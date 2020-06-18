@@ -82,7 +82,7 @@ module tb_rasterizer_plane_calc();
         vertex_c2[2] = 255;
         
         
-        // À•W”ÍˆÍ
+        // åº§æ¨™ç¯„å›²
         for ( j = 0; j < 3; j = j+1 ) begin
             k = (j + 1) % 3;
             dx     = vertex_y[k] - vertex_y[j];
@@ -95,11 +95,11 @@ module tb_rasterizer_plane_calc();
             region_dy_stride[j] = region_dy[j] - ((X_NUM-1)*region_dx[j]);
         end
         
-        // ƒJƒ‰[
+        // ã‚«ãƒ©ãƒ¼
         // dx(x - X0) + dy(y - Y0) + dz(z - Z0) = 0
         // z = (-dx*x + -dy*y + (dx*X0 + dy*Y0 + dz*Z0)) / dz
         for ( j = 0; j < 3; j = j+1 ) begin
-            // ŠOÏŒvZ
+            // å¤–ç©è¨ˆç®—
             vx0 = vertex_x[1] - vertex_x[0];
             vx1 = vertex_x[2] - vertex_x[0];
             vy0 = vertex_y[1] - vertex_y[0];

@@ -119,7 +119,7 @@ module tb_vdma_axi4s_to_axi4s();
     parameter   WB_DAT_WIDTH         = 32;
     parameter   WB_SEL_WIDTH         = (WB_DAT_WIDTH / 8);
     
-    parameter   TRIG_ASYNC           = 1;   // WISHBONE�Ɣ񓯊��̏ꍇ
+    parameter   TRIG_ASYNC           = 1;   // WISHBONEと非同期の場合
     parameter   TRIG_WSTART_ENABLE   = 1;
     parameter   TRIG_RSTART_ENABLE   = 1;
     

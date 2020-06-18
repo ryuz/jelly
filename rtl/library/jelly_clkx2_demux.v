@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-// ”{‘¬ƒNƒƒbƒN‘½d‰»•ª—£•”
+// å€é€Ÿã‚¯ãƒ­ãƒƒã‚¯å¤šé‡åŒ–åˆ†é›¢éƒ¨
 module jelly_clkx2_demux
         #(
             parameter   DATA_WIDTH = 32

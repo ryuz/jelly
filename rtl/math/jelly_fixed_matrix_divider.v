@@ -14,8 +14,8 @@
 
 
 
-// ŒÅ’è¬”“_‚ÅŽË‰e•ÏŠ·‚ðs‚¤ê‡‚ÌœŽZ•”
-// •‚“®¬”“_‰»‚µ‚½‹t”‚ð‚P‚Â‚¾‚¯ì‚èŠe€‚ðæŽZ
+// å›ºå®šå°æ•°ç‚¹ã§å°„å½±å¤‰æ›ã‚’è¡Œã†å ´åˆã®é™¤ç®—éƒ¨
+// æµ®å‹•å°æ•°ç‚¹åŒ–ã—ãŸé€†æ•°ã‚’ï¼‘ã¤ã ã‘ä½œã‚Šå„é …ã‚’ä¹—ç®—
 
 module jelly_fixed_matrix_divider
         #(

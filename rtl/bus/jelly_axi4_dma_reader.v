@@ -13,7 +13,7 @@
 
 
 
-//  AXI4 ‚©‚ç Read ‚µ‚Ä AXI4Stream‚É‚·‚éƒRƒA
+//  AXI4 ã‹ã‚‰ Read ã—ã¦ AXI4Streamã«ã™ã‚‹ã‚³ã‚¢
 module jelly_axi4_dma_reader
         #(
             parameter   AXI4_ID_WIDTH            = 6,
@@ -51,21 +51,21 @@ module jelly_axi4_dma_reader
             input   wire                                    enable,
             output  wire                                    busy,
             
-            input   wire    [ACCEPTABLE_COUNTER_WIDTH-1:0]  acceptable_counter,     // ó‚¯“ü‚ê‰Â”\ƒTƒCƒY
+            input   wire    [ACCEPTABLE_COUNTER_WIDTH-1:0]  acceptable_counter,     // å—ã‘å…¥ã‚Œå¯èƒ½ã‚µã‚¤ã‚º
             
             input   wire                                    issue_reset,
             input   wire                                    issue_clk,
-            input   wire    [ISSUE_COUNTER_WIDTH-1:0]       issue_add,              // ”­s”‚Ì‰ÁZ(•Ô‹p)
+            input   wire    [ISSUE_COUNTER_WIDTH-1:0]       issue_add,              // ç™ºè¡Œæ•°ã®åŠ ç®—(è¿”å´)
             input   wire                                    issue_valid,
             
             // parameter
-            input   wire    [AXI4_ADDR_WIDTH-1:0]           param_addr,             // ŠJnƒAƒhƒŒƒX
-            input   wire    [COUNT_WIDTH-1:0]               param_count,            // “]‘—ŒÂ”
-            input   wire    [AXI4_LEN_WIDTH-1:0]            param_maxlen,           // arlen‚ÌÅ‘å’l
-            input   wire                                    param_last_end,         // “]‘—‚ÌÅŒã‚Élast•t—^
-            input   wire                                    param_last_through,     // last‚ÍƒXƒ‹[‚·‚é
-            input   wire                                    param_last_unit,        // unit’PˆÊ‚Ålast•t—^
-            input   wire    [COUNT_WIDTH-1:0]               param_unit,             // unitƒTƒCƒY
+            input   wire    [AXI4_ADDR_WIDTH-1:0]           param_addr,             // é–‹å§‹ã‚¢ãƒ‰ãƒ¬ã‚¹
+            input   wire    [COUNT_WIDTH-1:0]               param_count,            // è»¢é€å€‹æ•°
+            input   wire    [AXI4_LEN_WIDTH-1:0]            param_maxlen,           // arlenã®æœ€å¤§å€¤
+            input   wire                                    param_last_end,         // è»¢é€ã®æœ€å¾Œã«lastä»˜ä¸
+            input   wire                                    param_last_through,     // lastã¯ã‚¹ãƒ«ãƒ¼ã™ã‚‹
+            input   wire                                    param_last_unit,        // unitå˜ä½ã§lastä»˜ä¸
+            input   wire    [COUNT_WIDTH-1:0]               param_unit,             // unitã‚µã‚¤ã‚º
             
             // master AXI4 (read)
             output  wire    [AXI4_ID_WIDTH-1:0]             m_axi4_arid,
@@ -213,7 +213,7 @@ module jelly_axi4_dma_reader
     
     generate
     if ( USE_ISSUE_ADD ) begin : blk_semaphore
-        // ƒZƒ}ƒtƒHƒJƒEƒ“ƒ^‚ÅŠÇ—
+        // ã‚»ãƒãƒ•ã‚©ã‚«ã‚¦ãƒ³ã‚¿ã§ç®¡ç†
         wire    [ISSUE_COUNTER_WIDTH-1:0]   semaphore_counter;
         jelly_semaphore
                 #(
@@ -239,7 +239,7 @@ module jelly_axi4_dma_reader
         assign sig_limiter_arready = (semaphore_counter > axi4_ctl_arlen);
     end
     else begin : blk_acceptable
-        // ó‚¯“ü‚ê‰Â”\ƒTƒCƒY‚©‚çŒvZ
+        // å—ã‘å…¥ã‚Œå¯èƒ½ã‚µã‚¤ã‚ºã‹ã‚‰è¨ˆç®—
         reg     [ISSUE_COUNTER_WIDTH-1:0]   reg_issue_counter, next_issue_counter;
         always @* begin
             next_issue_counter = reg_issue_counter;

@@ -214,7 +214,7 @@ module jelly_texture_cache_l2
     localparam  S_R_PACKET_WIDTH  = 1 + S_DATA_WIDTH;
     
     
-    // ƒRƒ}ƒ“ƒhƒpƒPƒbƒg¶¬
+    // ã‚³ãƒãƒ³ãƒ‰ãƒ‘ã‚±ãƒƒãƒˆç”Ÿæˆ
     localparam  BLK_ADDR_X_WIDTH = ADDR_X_WIDTH - BLK_X_SIZE;
     localparam  BLK_ADDR_Y_WIDTH = ADDR_Y_WIDTH - BLK_Y_SIZE;
     
@@ -256,7 +256,7 @@ module jelly_texture_cache_l2
     endgenerate
     
     
-    // ƒRƒ}ƒ“ƒhƒpƒPƒbƒg’²’â
+    // ã‚³ãƒãƒ³ãƒ‰ãƒ‘ã‚±ãƒƒãƒˆèª¿åœ
     wire    [CACHE_NUM*S_ID_WIDTH-1:0]          arbit_arid;
     wire    [CACHE_NUM*S_AR_PACKET_WIDTH-1:0]   arbit_arpacket;
     wire    [CACHE_NUM-1:0]                     arbit_arvalid;
@@ -304,7 +304,7 @@ module jelly_texture_cache_l2
     
     
     
-    // ƒf[ƒ^—pƒNƒƒXƒo[
+    // ãƒ‡ãƒ¼ã‚¿ç”¨ã‚¯ãƒ­ã‚¹ãƒãƒ¼
     wire    [CACHE_NUM*S_ID_WIDTH-1:0]          arbit_rid;
     wire    [CACHE_NUM-1:0]                     arbit_rlast;
     wire    [CACHE_NUM*S_DATA_WIDTH-1:0]        arbit_rdata;
@@ -471,7 +471,7 @@ module jelly_texture_cache_l2
                     .USE_M_RREADY           (USE_M_RREADY),
                     
                     .S_USER_WIDTH           (S_ID_WIDTH),
-                    .S_DATA_SIZE            (S_DATA_SIZE+COMPONENT_DATA_SIZE),  // AXI‚É‚ ‚í‚¹‚ÄƒoƒCƒg’PˆÊ‚ÉŠ·Z
+                    .S_DATA_SIZE            (S_DATA_SIZE+COMPONENT_DATA_SIZE),  // AXIã«ã‚ã‚ã›ã¦ãƒã‚¤ãƒˆå˜ä½ã«æ›ç®—
                     .S_BLK_X_NUM            (S_BLK_X_NUM),
                     .S_BLK_Y_NUM            (S_BLK_Y_NUM),
                     

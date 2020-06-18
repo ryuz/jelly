@@ -13,7 +13,7 @@
 
 
 
-// USE_VALID ‚Å valid M†‚ðŽg‚¤‚ÆAM†‚Í‘‚¦‚é‚ª‰Šú‰»‚ªŒ¸‚é
+// USE_VALID ã§ valid ä¿¡å·ã‚’ä½¿ã†ã¨ã€ä¿¡å·ã¯å¢—ãˆã‚‹ãŒåˆæœŸåŒ–ãŒæ¸›ã‚‹
 
 module jelly_axi4s_to_img
         #(
@@ -110,7 +110,7 @@ module jelly_axi4s_to_img
         end
     end
     
-    // Žd‘g‚Ýã cke ‚Ì fanout ‚ª‘å‚«‚­‚È‚é‚Ì‚ÅBUFG‚ðŽg‚¦‚é‚æ‚¤‚É‚µ‚Ä‚¨‚­
+    // ä»•çµ„ã¿ä¸Š cke ã® fanout ãŒå¤§ãããªã‚‹ã®ã§BUFGã‚’ä½¿ãˆã‚‹ã‚ˆã†ã«ã—ã¦ãŠã
     generate
     if ( IMG_CKE_BUFG ) begin
         BUFG

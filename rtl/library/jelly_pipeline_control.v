@@ -70,7 +70,7 @@ module jelly_pipeline_control
     
     generate
     if ( MASTER_IN_REGS ) begin
-        // CKE‚ğFF‘Å‚¿
+        // CKEã‚’FFæ‰“ã¡
         
         // cke
         integer                         i;
@@ -146,7 +146,7 @@ module jelly_pipeline_control
         assign src_valid   = s_valid;
     end
     else begin
-        // CKE‚ğ‘g‚İ‡‚í‚¹¶¬
+        // CKEã‚’çµ„ã¿åˆã‚ã›ç”Ÿæˆ
         
         // master port
         wire    ff_valid;

@@ -1,130 +1,130 @@
-# ZYBO-Z7 �� Raspberry Pi Camera Module V2 (Sony IMX219) �� 1000fps�Ŏg���T���v��
+# ZYBO-Z7 で Raspberry Pi Camera Module V2 (Sony IMX219) を 1000fpsで使うサンプル
 
-## �T�v
-�^�C�g���̂Ƃ���AZYBO-Z7 �� Raspberry Pi Camera Module V2 (Sony IMX219) �� 1000fps�Ŏg���T���v���ł��B
-������� 3280�~2464@20fps �������Ƃł��܂��̂ł����S���B
+## 概要
+タイトルのとおり、ZYBO-Z7 で Raspberry Pi Camera Module V2 (Sony IMX219) を 1000fpsで使うサンプルです。
+もちろん 3280×2464@20fps もちゃんとできますのでご安心を。
 
 
-## ��
+## 環境
 
-���̂悤�Ȋ��Ŏ��{���Ă���܂��B
+このような環境で実施しております。
 
-- Digilent�� [Zybo Z7-20](https://reference.digilentinc.com/reference/programmable-logic/zybo-z7/start) (�����ĂȂ��ł������� Z7-10�ł����v�Ǝv���܂�)
+- Digilent社 [Zybo Z7-20](https://reference.digilentinc.com/reference/programmable-logic/zybo-z7/start) (試してないですが多分 Z7-10でも大丈夫と思います)
 - Raspberry Pi Camera Module V2
 - [Vivado 2019.2.1](https://japan.xilinx.com/support/download.html)
-- [ikwzm��](https://qiita.com/ikwzm) �� [Debian�u�[�g�C���[�W](https://qiita.com/ikwzm/items/7e90f0ca2165dbb9a577)
-- Debian�C���[�W�ւ� OpenCV �ȂǊe��J�����̃C���X�g�[��
-- X-Window server �ƂȂ�PC (��҂� Windows10 + [Xming](https://sourceforge.net/projects/xming/) �Ŏ��{)
+- [ikwzm氏](https://qiita.com/ikwzm) の [Debianブートイメージ](https://qiita.com/ikwzm/items/7e90f0ca2165dbb9a577)
+- Debianイメージへの OpenCV など各種開発環境のインストール
+- X-Window server となるPC (作者は Windows10 + [Xming](https://sourceforge.net/projects/xming/) で実施)
 
-��{�I�Ȋ��\�z��[������̃u���O](https://ryuz.qrunch.io/entries/jU8BkKu8bxqOeGAC)�ł��Љ�Ă���܂��̂ŎQ�l�ɂ��Ă��������B
+基本的な環境構築は[こちらのブログ](https://ryuz.qrunch.io/entries/jU8BkKu8bxqOeGAC)でも紹介しておりますので参考にしてください。
 
-�\�t�g�E�F�A�� Debian �C���[�W��ŃZ���t�R���p�C���\�ł��̂ŁA�z�X�gPC���� Vivado �݂̂ł��J�����\�ł�(Vitis�Ȃǂ���������悢�ł���)�B
+ソフトウェアは Debian イメージ上でセルフコンパイル可能ですので、ホストPC側は Vivado のみでも開発が可能です(Vitisなどもある方がよいですが)。
 
 
-## ��������
+## 動かし方
 
-### git���|�W�g���擾
+### gitリポジトリ取得
 
 ```
 git clone https://github.com/ryuz/jelly.git
 ```
 
-�ňꎮ�擾���Ă��������B
+で一式取得してください。
 
-### Vivado�� bit �t�@�C�������
+### Vivadoで bit ファイルを作る
 
 projects/zybo_z7_imx219/syn/vivado2019.2
 
-�Ɉړ����� Vivado ���� zybo_z7_imx219.xpr ���J���Ă��������B
+に移動して Vivado から zybo_z7_imx219.xpr を開いてください。
 
-�ŏ��� BlockDesign �� tcl ����č\������K�v����܂��B
+最初に BlockDesign を tcl から再構成する必要がります。
 
-���ɓo�^����Ă��� i_design_1 ���蓮�ō폜���Ă���A���j���[�́uTools�v���uRun Tcl Script�v�ŁA�����f�B���N�g���ɂ��� design_1.tcl �����s����Ε����ł��܂��B
+既に登録されている i_design_1 を手動で削除してから、メニューの「Tools」→「Run Tcl Script」で、同じディレクトリにある design_1.tcl を実行すれば復元できます。
 
-�������� Vivado �̃J�����g�f�B���N�g�����v���W�F�N�g�̂���f�B���N�g���ɂ��邱�Ƃ��m�F���������� update_design.tcl �����s����ƍ폜�ƍ\�z���܂Ƃ߂Ď��s�ł��܂��B
+もしくは Vivado のカレントディレクトリがプロジェクトのあるディレクトリにあることを確認したうえで update_design.tcl を実行すると削除と構築をまとめて実行できます。
 
-design_1 ���������ꂽ��uFlow�v���uRun Implementation�v�ō������s���܂��B����ɍ����ł����
+design_1 が生成されたら「Flow」→「Run Implementation」で合成を行います。正常に合成できれば
 
 zybo_z7_imx219.runs/impl_1
 
-�� zybo_z7_imx219.bit ���o���オ��܂��B
+に zybo_z7_imx219.bit が出来上がります。
 
-### Debian�N�����̃p�����[�^�ݒ�(CMA�̈摝��)
+### Debian起動時のパラメータ設定(CMA領域増量)
 
-����̓���ł́AIMX219�C���[�W�Z���T�[����PL�o�R�ŉ摜����荞�݂܂����A���̍ۂ� ikwzm���� [udmabuf](https://qiita.com/ikwzm/items/cc1bb33ff43a491440ea) ��p���āACMA(DMA Contiguous Memory Allocator)�̈悩��̈�����蓖�Ă܂��B
-IMX219 �� 3280x2464 �Ƃ������ɑ傫�ȉ摜���擾�ł��܂��̂ŁA�̈���g�傷��K�v������܂��B
+今回の動作では、IMX219イメージセンサーからPL経由で画像を取り込みますが、その際に ikwzm氏の [udmabuf](https://qiita.com/ikwzm/items/cc1bb33ff43a491440ea) を用いて、CMA(DMA Contiguous Memory Allocator)領域から領域を割り当てます。
+IMX219 は 3280x2464 という非常に大きな画像が取得できますので、領域を拡大する必要があります。
 
-SD�J�[�h�̋N���p�[�e�B�[�V����(Debian�C���[�W����� /mnt/boot �Ƀ}�E���g����Ă���͂�)�� uEnv.txt �� linux_boot_args �� cma=128M ��ǉ����Ă��������B
+SDカードの起動パーティーション(Debianイメージからは /mnt/boot にマウントされているはず)の uEnv.txt の linux_boot_args に cma=128M を追加してください。
 
 ```
 linux_boot_args=console=ttyPS0,115200 root=/dev/mmcblk0p2 rw rootwait uio_pdrv_genirq.of_id=generic-uio cma=128M
 ```
 
-����Ȋ����ɂȂ�͂��ł��B
+こんな感じになるはずです。
 
 
-### ZYBO Z7 �Ŏ��s
+### ZYBO Z7 で実行
 
-��t�����ɒ��ӂ��� ZYBO-Z7 �� MIPI�R�l�N�^(J2) �ɁACamera Module V2 ��ڑ����܂��B�t���L�̐ړ_���o�Ă��鑤����̊O���������܂��B
+取付向きに注意して ZYBO-Z7 の MIPIコネクタ(J2) に、Camera Module V2 を接続します。フレキの接点が出ている側が基板の外側を向きます。
 
-���� projects/zybo_z7_imx219/app �̓��e�ꎮ�Ɛ�قǍ������� zybo_z7_imx219.bit ���AZYBO �� Debian �ō�Ƃł���K���ȃf�B���N�g���ɃR�s�[���܂��Bbit�t�@�C��������app�f�B���N�g���ɓ���Ă��������B
+次に projects/zybo_z7_imx219/app の内容一式と先ほど合成した zybo_z7_imx219.bit を、ZYBO の Debian で作業できる適当なディレクトリにコピーします。bitファイルも同じappディレクトリに入れてください。
 
-ZYBO ���ł� Debian ���N���ς݂� ssh �ȂǂŐڑ����ł��Ă���O��ł��̂� scp �� samba �ȂǂŃR�s�[����Ɨǂ��ł��傤�Bapp �Ɋւ��Ă� ZYBO ���� git �� clone ���邱�Ƃ��\�ł��B
+ZYBO 側では Debian が起動済みで ssh などで接続ができている前提ですので scp や samba などでコピーすると良いでしょう。app に関しては ZYBO から git で clone することも可能です。
 
-���̎��A
+この時、
 
-- OpenCV �� bootgen �ȂǕK�v�ȃc�[�����C���X�g�[���ł��Ă��邱��
-- ssh �|�[�g�t�H���[�f�B���O�ȂǂŁAPC�� X-Window ���J����Ԃɂ��Ă�������
-- /dev/uio �� /dev/i2c-0 �Ȃǂ̃f�o�C�X�̃A�N�Z�X���������邱��
-- sudo �����̂��郆�[�U�[�Ŏ��s���邱��
+- OpenCV や bootgen など必要なツールがインストールできていること
+- ssh ポートフォワーディングなどで、PCに X-Window が開く状態にしておくこと
+- /dev/uio や /dev/i2c-0 などのデバイスのアクセス権が得られること
+- sudo 権限のあるユーザーで実行すること
 
-�Ȃǂ̉�����������܂��̂ŁA�u���O�ȂǎQ�l�ɐݒ肭�������B
+などの下準備がありますので、ブログなど参考に設定ください。
 
-���Ȃ���΁Aapp ���R�s�[�����f�B���N�g����
+問題なければ、app をコピーしたディレクトリで
 
 ```
 make all
 ```
 
-�Ǝ��s����� zybo_z7_imx219.out �Ƃ������s�t�@�C������������܂��B
+と実行すれば zybo_z7_imx219.out という実行ファイルが生成されます。
 
-������
+ここで
 
 ```
 make run
 ```
 
-�Ƃ���ƁADevice Tree overlay �ɂ���āAbit �t�@�C���̏������݂Ȃǂ��s������Ƀv���O�������N�����A�z�X�gPC�̕��� X-Window �ɁA�J�����摜���\�������͂��ł��B
-��ʂ� 'r' �L�[���������ƂŃ������̋����͈͂ōő�100�t���[���܂ł̘A���B�e���s���܂�(�J�����g�f�B���N�g���ɘA�ԐÎ~�悪�o�͂���܂�)�B
+とすると、Device Tree overlay によって、bit ファイルの書き込みなどを行った後にプログラムが起動し、ホストPCの方の X-Window に、カメラ画像が表示されるはずです。
+画面で 'r' キーを押すことでメモリの許す範囲で最大100フレームまでの連続撮影を行えます(カレントディレクトリに連番静止画が出力されます)。
 
-�Ȃ��ADevice Tree overlay �̃��[�h�^�A�����[�h��
+ない、Device Tree overlay のロード／アンロードは
 
 ```
 make load
 make unload
 ```
 
-�Ƃ������R�}���h�Ŏ��{�\�ł��B
+といったコマンドで実施可能です。
 
-�Ȃ��A�f�t�H���g�� 1000fps ���[�h(640x132)�ŋN�����܂����A
+なお、デフォルトで 1000fps モード(640x132)で起動しますが、
 
 ```
 make load
 ./zybo_z7_imx219.out full
 ```
 
-�̂悤�ɂ���΁A3280x2464 �̃t���T�C�Y�ɂ��؂�ւ��܂��B
+のようにすれば、3280x2464 のフルサイズにも切り替わります。
 
-���̑��ׂ̍����R�}���h�� main.cpp �̒����m�F���������B
+その他の細かいコマンドは main.cpp の中を確認ください。
 
 
-## �Q�l���
+## 参考情報
 
-- �u���O�L��
-    - [Zybo Z7 �ւ� Raspberry Pi Camera V2 �ڑ�(MIPI CSI-2��M)](http://ryuz.txt-nifty.com/blog/2018/04/zybo-z7-raspber.html)
-    - [Zybo Z7 �ւ� Raspberry Pi Camera V2 �ڑ� (1000fps����)](http://ryuz.txt-nifty.com/blog/2018/05/zybo-z7-raspber.html)
+- ブログ記事
+    - [Zybo Z7 への Raspberry Pi Camera V2 接続(MIPI CSI-2受信)](http://ryuz.txt-nifty.com/blog/2018/04/zybo-z7-raspber.html)
+    - [Zybo Z7 への Raspberry Pi Camera V2 接続 (1000fps動作)](http://ryuz.txt-nifty.com/blog/2018/05/zybo-z7-raspber.html)
 
 - [https://github.com/lvsoft/Sony-IMX219-Raspberry-Pi-V2-CMOS](https://github.com/lvsoft/Sony-IMX219-Raspberry-Pi-V2-CMOS)
-    - Raspberry Pi Camera Module V2 �̊e����iIMX219�̃f�[�^�V�[�g����)
+    - Raspberry Pi Camera Module V2 の各種情報（IMX219のデータシートあり)
 - [https://www.raspberrypi.org/forums/viewtopic.php?t=160611&start=25](https://www.raspberrypi.org/forums/viewtopic.php?t=160611&start=25)
-    - �e����B[��H�}](https://cdn.hackaday.io/images/5813621484631479007.jpg)�̏�񂠂�
+    - 各種情報。[回路図](https://cdn.hackaday.io/images/5813621484631479007.jpg)の情報あり

@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-// tuser Ç∆ tlast Çïtó^
+// tuser „Å® tlast „Çí‰ªò‰∏é
 module jelly_axi4s_add_control_signal
         #(
             parameter   X_WIDTH     = 10,

@@ -165,7 +165,7 @@ module jelly_texture_bilinear_unit
     assign {s_ff_x_int, s_ff_x_frac} = s_ff_x;
     assign {s_ff_y_int, s_ff_y_frac} = s_ff_y;
     
-    // バイリニア
+    // 繝舌う繝ｪ繝九い
     assign s_ff_coeffx0 = {1'b1, {X_FRAC_WIDTH{1'b0}}} - s_ff_x_frac;
     assign s_ff_coeffx1 = {1'b0, s_ff_x_frac};
     assign s_ff_coeffy0 = {1'b1, {Y_FRAC_WIDTH{1'b0}}} - s_ff_y_frac;

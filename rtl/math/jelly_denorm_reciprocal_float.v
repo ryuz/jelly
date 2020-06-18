@@ -13,7 +13,7 @@
 
 
 
-// �Œ菬���_���A���������_�̋t���ɕϊ�
+// 固定小数点を、浮動小数点の逆数に変換
 module jelly_denorm_reciprocal_float
         #(
             parameter   DENORM_SIGNED      = 1,

@@ -13,7 +13,7 @@
 
 
 
-//  AXI ƒf[ƒ^‚É last M†‚ğ•t—^
+//  AXI ãƒ‡ãƒ¼ã‚¿ã« last ä¿¡å·ã‚’ä»˜ä¸
 module jelly_axi_data_last
         #(
             parameter   BYPASS         = 0,

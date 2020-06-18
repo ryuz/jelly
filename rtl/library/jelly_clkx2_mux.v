@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-// 倍速クロック多重化部
+// 蛟埼溘け繝ｭ繝�繧ｯ螟夐㍾蛹夜Κ
 module jelly_clkx2_mux
         #(
             parameter   DATA_WIDTH = 32

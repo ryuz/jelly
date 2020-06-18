@@ -13,7 +13,7 @@
 
 
 
-//  AXI4 Ç©ÇÁ Read
+//  AXI4 „Åã„Çâ Read
 module jelly_axi4_reader
         #(
             parameter   S_LEN_WIDTH              = 24,
@@ -293,7 +293,7 @@ module jelly_axi4_reader
                 .m_data_count               ()
             );
     
-    // tlastïtó^
+    // tlast‰ªò‰∏é
     jelly_axi_data_last
             #(
                 .BYPASS                     (BYPASS_LAST),

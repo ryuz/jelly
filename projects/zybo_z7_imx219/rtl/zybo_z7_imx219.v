@@ -602,7 +602,7 @@ module zybo_z7_imx219
             );
     
     
-    // åªëú
+    // ÁèæÂÉè
     wire    [0:0]               axi4s_rgb_tuser;
     wire                        axi4s_rgb_tlast;
     wire    [39:0]              axi4s_rgb_tdata;
@@ -671,9 +671,9 @@ module zybo_z7_imx219
                 .AXI4S_DATA_SIZE    (2),    // 32bit
                 .AXI4S_USER_WIDTH   (1),
                 .INDEX_WIDTH        (8),
-                .STRIDE_WIDTH       (14),
-                .H_WIDTH            (12),
-                .V_WIDTH            (12),
+                .STRIDE_WIDTH       (16),
+                .H_WIDTH            (14),
+                .V_WIDTH            (14),
                 .SIZE_WIDTH         (32),
                 
                 .WB_ADR_WIDTH       (8),
@@ -737,7 +737,7 @@ module zybo_z7_imx219
             );
     
     
-    // read ÇÕñ¢égóp
+    // read „ÅØÊú™‰ΩøÁî®
     assign axi4_mem0_arid     = 0;
     assign axi4_mem0_araddr   = 0;
     assign axi4_mem0_arburst  = 0;

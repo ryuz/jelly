@@ -13,7 +13,7 @@
 
 
 
-// パケットの受信
+// 繝代こ繝�繝医�ｮ蜿嶺ｿ｡
 module jelly_csi2_rx_low_layer
         (
             input   wire            aresetn,
