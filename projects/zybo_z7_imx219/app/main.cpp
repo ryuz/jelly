@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
         // キャプチャ
         capture_still_image(reg_wdma, reg_norm, dmabuf_phys_adr, width, height, frame_num);
         cv::Mat img(height*frame_num, width, CV_8UC4);
-        udmabuf_acc.MemCopyFrom(img.data, 0, width * height * 4 * frame_num);
+        udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4 * frame_num);
         
         // 表示
         cv::Mat view_img;
@@ -252,7 +252,7 @@ int main(int argc, char *argv[])
                 char fname[64];
                 sprintf(fname, "rec_%04d.png", i);
                 cv::Mat imgRec(height, width, CV_8UC4);
-                udmabuf_acc.MemCopyFrom(imgRec.data, offset, width * height * 4);
+                udmabuf_acc.MemCopyTo(imgRec.data, offset, width * height * 4);
                 offset += width * height * 4;
                 cv::Mat imgRgb;
                 cv::cvtColor(imgRec, imgRgb, CV_BGRA2BGR);
