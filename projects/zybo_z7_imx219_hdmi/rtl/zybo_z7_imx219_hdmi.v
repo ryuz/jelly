@@ -1,12 +1,3 @@
-// ---------------------------------------------------------------------------
-//  Jelly  -- The FPGA processing system
-//
-//  IMX219 capture sample
-//
-//                                 Copyright (C) 2008-2020 by Ryuji Fuchikami
-//                                 https://github.com/ryuz/
-// ---------------------------------------------------------------------------
-
 
 
 
@@ -14,10 +5,11 @@
 `default_nettype none
 
 
-module zybo_z7_imx219
+module zybo_z7_imx219_hdmi
         #(
-            parameter   X_NUM = 3280,
-            parameter   Y_NUM = 2464
+            parameter   X_NUM       = 3280 / 2,
+            parameter   Y_NUM       = 2464 / 2,
+            parameter   PATTERN_GEN = 0
         )
         (
             input   wire            in_clk125,
@@ -39,6 +31,11 @@ module zybo_z7_imx219
             output  wire            cam_gpio,
             inout   wire            cam_scl,
             inout   wire            cam_sda,
+            
+            output  wire            hdmi_tx_clk_p,
+            output  wire            hdmi_tx_clk_n,
+            output  wire    [2:0]   hdmi_tx_data_p,
+            output  wire    [2:0]   hdmi_tx_data_n,
             
             inout   wire    [14:0]  DDR_addr,
             inout   wire    [2:0]   DDR_ba,
@@ -64,10 +61,39 @@ module zybo_z7_imx219
         );
     
     
+    // ----------------------------------------
+    //  input clock
+    // ----------------------------------------
+    
+    wire                                in_clk125_i;
+    wire                                in_clk125_buf;
+    IBUFG
+        i_ibufg_in_clk125
+            (
+                .I  (in_clk125),
+                .O  (in_clk125_i)
+            );
+    BUFG
+        i_bufg_in_clk125
+            (
+                .I  (in_clk125_i),
+                .O  (in_clk125_buf)
+            );
+    
+    
+    
+    // ----------------------------------------
+    //  block design (PS)
+    // ----------------------------------------
+    
     wire            sys_reset;
     wire            sys_clk100;
     wire            sys_clk200;
     wire            sys_clk250;
+    
+    wire            vout_reset;
+    wire            vout_clk;
+    wire            vout_clk_x5;
     
     wire            axi4l_peri_aresetn;
     wire            axi4l_peri_aclk;
@@ -146,12 +172,16 @@ module zybo_z7_imx219
         i_design_1
             (
                 .sys_reset              (1'b0),
-                .sys_clock              (in_clk125),
+                .sys_clock              (in_clk125_buf),
                 
                 .out_reset              (sys_reset),
                 .out_clk100             (sys_clk100),
                 .out_clk200             (sys_clk200),
                 .out_clk250             (sys_clk250),
+                
+                .vout_reset             (vout_reset),
+                .vout_clk               (vout_clk),
+                .vout_clk_x5            (vout_clk_x5),
                 
                 .m_axi4l_peri_aresetn   (axi4l_peri_aresetn),
                 .m_axi4l_peri_aclk      (axi4l_peri_aclk),
@@ -249,7 +279,7 @@ module zybo_z7_imx219
                 .IIC_0_0_sda_t          (IIC_0_0_sda_t)
             );
     
-    assign cam_gpio = ~push_sw[0]; // dip_sw[0];
+    assign cam_gpio = dip_sw[0];
     
     IOBUF
         i_IOBUF_cam_scl
@@ -268,7 +298,6 @@ module zybo_z7_imx219
                 .O      (IIC_0_0_sda_i),
                 .T      (IIC_0_0_sda_t)
             );
-    
     
     
     // -----------------------------
@@ -331,7 +360,6 @@ module zybo_z7_imx219
             );
     
     
-    
     // ----------------------------------------
     //  Global ID
     // ----------------------------------------
@@ -349,6 +377,7 @@ module zybo_z7_imx219
     //  MIPI D-PHY RX
     // ----------------------------------------
     
+    (* KEEP = "true" *)
     wire                rxbyteclkhs;
     wire                system_rst_out;
     wire                init_done;
@@ -404,6 +433,26 @@ module zybo_z7_imx219
     wire                dl1_erresc;
     wire                dl1_errsyncesc;
     wire                dl1_errcontrol;
+    
+    
+    reg     [31:0]      dbg_dl0_count;
+    reg     [31:0]      dbg_dl1_count;
+    always @(posedge rxbyteclkhs) begin
+        if (dl0_rxactivehs ) begin
+            dbg_dl0_count <= dbg_dl0_count + 1;
+        end
+        if ( dl0_rxsynchs ) begin
+            dbg_dl0_count <= 0;
+        end
+        
+        if (dl1_rxactivehs ) begin
+            dbg_dl1_count <= dbg_dl1_count + 1;
+        end
+        if ( dl1_rxsynchs ) begin
+            dbg_dl1_count <= 0;
+        end
+    end
+    
     
     mipi_dphy_cam
         i_mipi_dphy_cam
@@ -496,11 +545,9 @@ module zybo_z7_imx219
     
     
     
-    
     // ----------------------------------------
     //  CSI-2
     // ----------------------------------------
-    
     
     wire            axi4s_cam_aresetn = ~sys_reset;
     wire            axi4s_cam_aclk    = sys_clk200;
@@ -538,6 +585,29 @@ module zybo_z7_imx219
                 .m_axi4s_tready     (1'b1)  // (axi4s_csi2_tready)
             );
     
+    jelly_axi4s_debug_monitor
+            #(
+                .TUSER_WIDTH        (1),
+                .TDATA_WIDTH        (10),
+                .TIMER_WIDTH        (32),
+                .FRAME_WIDTH        (32),
+                .PIXEL_WIDTH        (32),
+                .X_WIDTH            (16),
+                .Y_WIDTH            (16)
+            )
+        i_axi4s_debug_monitor
+            (
+                .aresetn            (axi4s_cam_aresetn),
+                .aclk               (axi4s_cam_aclk),
+                .aclken             (1'b1),
+                
+                .axi4s_tuser        (axi4s_csi2_tuser),
+                .axi4s_tlast        (axi4s_csi2_tlast),
+                .axi4s_tdata        (axi4s_csi2_tdata),
+                .axi4s_tvalid       (axi4s_csi2_tvalid),
+                .axi4s_tready       (axi4s_csi2_tready)
+            );
+    
     
     // normalize
     wire    [0:0]               axi4s_norm_tuser;
@@ -565,7 +635,7 @@ module zybo_z7_imx219
                 .M_SLAVE_REGS       (1),
                 .M_MASTER_REGS      (1),
                 
-                .INIT_CONTROL       (2'b00),
+                .INIT_CONTROL       (2'b11),
                 .INIT_SKIP          (1),
                 .INIT_PARAM_WIDTH   (X_NUM),
                 .INIT_PARAM_HEIGHT  (Y_NUM),
@@ -678,9 +748,11 @@ module zybo_z7_imx219
                 
                 .WB_ADR_WIDTH       (8),
                 .WB_DAT_WIDTH       (WB_DAT_WIDTH),
+                
                 .INIT_CTL_CONTROL   (2'b00),
                 .INIT_PARAM_ADDR    (32'h3000_0000),
-                .INIT_PARAM_STRIDE  (X_NUM*2),
+//              .INIT_PARAM_STRIDE  (X_NUM*2),
+                .INIT_PARAM_STRIDE  (8192),
                 .INIT_PARAM_WIDTH   (X_NUM),
                 .INIT_PARAM_HEIGHT  (Y_NUM),
                 .INIT_PARAM_SIZE    (X_NUM*Y_NUM),
@@ -733,23 +805,267 @@ module zybo_z7_imx219
                 .s_wb_we_i          (wb_peri_we_i),
                 .s_wb_sel_i         (wb_peri_sel_i),
                 .s_wb_stb_i         (wb_vdmaw_stb_i),
-                .s_wb_ack_o         (wb_vdmaw_ack_o)
+                .s_wb_ack_o         (wb_vdmaw_ack_o),
+                .out_irq            (),
+                
+                .trig_reset         (wb_peri_rst_i),
+                .trig_clk           (wb_peri_clk_i),
+                .trig_start         ()
             );
     
     
-    // read は未使用
-    assign axi4_mem0_arid     = 0;
-    assign axi4_mem0_araddr   = 0;
-    assign axi4_mem0_arburst  = 0;
-    assign axi4_mem0_arcache  = 0;
-    assign axi4_mem0_arlen    = 0;
-    assign axi4_mem0_arlock   = 0;
-    assign axi4_mem0_arprot   = 0;
-    assign axi4_mem0_arqos    = 0;
-    assign axi4_mem0_arregion = 0;
-    assign axi4_mem0_arsize   = 0;
-    assign axi4_mem0_arvalid  = 0;
-    assign axi4_mem0_rready   = 0;
+    
+    
+    // ----------------------------------------
+    //  VOUT
+    // ----------------------------------------
+    
+    localparam  VOUT_X_NUM = 1280;
+    localparam  VOUT_Y_NUM = 720;
+    
+    
+    wire    [31:0]              axi4s_vout_tdata;
+    wire                        axi4s_vout_tlast;
+    wire    [0:0]               axi4s_vout_tuser;
+    wire                        axi4s_vout_tvalid;
+    wire                        axi4s_vout_tready;
+    
+    wire    [WB_DAT_WIDTH-1:0]  wb_vdmar_dat_o;
+    wire                        wb_vdmar_stb_i;
+    wire                        wb_vdmar_ack_o;
+    
+    generate
+    if ( PATTERN_GEN ) begin : blk_pattern_gen
+        jelly_pattern_generator_axi4s
+                #(
+                    .AXI4S_DATA_WIDTH   (24),
+                    .X_NUM              (VOUT_X_NUM),
+                    .Y_NUM              (VOUT_Y_NUM),
+                    .X_WIDTH            (12),
+                    .Y_WIDTH            (12)
+                )
+            i_pattern_generator_axi4s
+                (
+                    .aresetn            (~vout_reset),
+                    .aclk               (vout_clk),
+                    
+                    .enable             (1'b1),
+                    .busy               (),
+                    
+                    .m_axi4s_tdata      (axi4s_vout_tdata),
+                    .m_axi4s_tlast      (axi4s_vout_tlast),
+                    .m_axi4s_tuser      (axi4s_vout_tuser),
+                    .m_axi4s_tvalid     (axi4s_vout_tvalid),
+                    .m_axi4s_tready     (axi4s_vout_tready)
+                );
+        
+        // read は未使用
+        assign axi4_mem0_arid     = 0;
+        assign axi4_mem0_araddr   = 0;
+        assign axi4_mem0_arburst  = 0;
+        assign axi4_mem0_arcache  = 0;
+        assign axi4_mem0_arlen    = 0;
+        assign axi4_mem0_arlock   = 0;
+        assign axi4_mem0_arprot   = 0;
+        assign axi4_mem0_arqos    = 0;
+        assign axi4_mem0_arregion = 0;
+        assign axi4_mem0_arsize   = 0;
+        assign axi4_mem0_arvalid  = 0;
+        assign axi4_mem0_rready   = 0;
+        
+        assign wb_vdmar_dat_o = 0;
+        assign wb_vdmar_ack_o = wb_vdmar_stb_i;
+    end
+    else begin : blk_read_vdma
+        // DMA read
+        
+        jelly_vdma_axi4_to_axi4s
+                #(
+                    .ASYNC              (1),
+                    .FIFO_PTR_WIDTH     (9),
+                    
+                    .PIXEL_SIZE         (2),    // 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
+                    
+                    .AXI4_ID_WIDTH      (6),
+                    .AXI4_ADDR_WIDTH    (32),
+                    .AXI4_DATA_SIZE     (3),    // 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
+                    
+                    .AXI4S_DATA_SIZE    (2),    // 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
+                    .AXI4S_USER_WIDTH   (1),
+                    
+                    .AXI4_AR_REGS       (1),
+                    .AXI4_R_REGS        (1),
+                    .AXI4S_REGS         (1),
+                    
+                    .INDEX_WIDTH        (8),
+                    .STRIDE_WIDTH       (14),
+                    .H_WIDTH            (12),
+                    .V_WIDTH            (12),
+                    
+                    .WB_ADR_WIDTH       (8),
+                    .WB_DAT_WIDTH       (WB_DAT_WIDTH),
+                    
+                    .TRIG_ASYNC         (1),    // WISHBONEと非同期の場合
+                    .TRIG_START_ENABLE  (0),
+                    
+                    .INIT_CTL_CONTROL   (4'b0000),
+                    .INIT_PARAM_ADDR    (32'h3000_0000),
+                    .INIT_PARAM_STRIDE  (8192),
+                    .INIT_PARAM_WIDTH   (VOUT_X_NUM),
+                    .INIT_PARAM_HEIGHT  (VOUT_Y_NUM),
+                    .INIT_PARAM_ARLEN   (8'h07)
+                )
+            i_vdma_axi4_to_axi4s
+                (
+                    .m_axi4_aresetn     (axi4_mem_aresetn),
+                    .m_axi4_aclk        (axi4_mem_aclk),
+                    .m_axi4_arid        (axi4_mem0_arid),
+                    .m_axi4_araddr      (axi4_mem0_araddr),
+                    .m_axi4_arlen       (axi4_mem0_arlen),
+                    .m_axi4_arsize      (axi4_mem0_arsize),
+                    .m_axi4_arburst     (axi4_mem0_arburst),
+                    .m_axi4_arlock      (axi4_mem0_arlock),
+                    .m_axi4_arcache     (axi4_mem0_arcache),
+                    .m_axi4_arprot      (axi4_mem0_arprot),
+                    .m_axi4_arqos       (axi4_mem0_arqos),
+                    .m_axi4_arregion    (axi4_mem0_arregion),
+                    .m_axi4_arvalid     (axi4_mem0_arvalid),
+                    .m_axi4_arready     (axi4_mem0_arready),
+                    .m_axi4_rid         (axi4_mem0_rid),
+                    .m_axi4_rdata       (axi4_mem0_rdata),
+                    .m_axi4_rresp       (axi4_mem0_rresp),
+                    .m_axi4_rlast       (axi4_mem0_rlast),
+                    .m_axi4_rvalid      (axi4_mem0_rvalid),
+                    .m_axi4_rready      (axi4_mem0_rready),
+                    
+                    .m_axi4s_aresetn    (~vout_reset),
+                    .m_axi4s_aclk       (vout_clk),
+                    .m_axi4s_tdata      (axi4s_vout_tdata),
+                    .m_axi4s_tlast      (axi4s_vout_tlast),
+                    .m_axi4s_tuser      (axi4s_vout_tuser),
+                    .m_axi4s_tvalid     (axi4s_vout_tvalid),
+                    .m_axi4s_tready     (axi4s_vout_tready),
+                    
+                    .s_wb_rst_i         (wb_peri_rst_i),
+                    .s_wb_clk_i         (wb_peri_clk_i),
+                    .s_wb_adr_i         (wb_peri_adr_i[7:0]),
+                    .s_wb_dat_i         (wb_peri_dat_i),
+                    .s_wb_dat_o         (wb_vdmar_dat_o),
+                    .s_wb_we_i          (wb_peri_we_i),
+                    .s_wb_sel_i         (wb_peri_sel_i),
+                    .s_wb_stb_i         (wb_vdmar_stb_i),
+                    .s_wb_ack_o         (wb_vdmar_ack_o),
+                    .out_irq            (),
+                    
+                    .trig_reset         (wb_peri_rst_i),
+                    .trig_clk           (wb_peri_clk_i),
+                    .trig_start         (0)
+                );
+    end
+    endgenerate
+    
+    
+    
+    wire                        vout_vsgen_vsync;
+    wire                        vout_vsgen_hsync;
+    wire                        vout_vsgen_de;
+    
+    wire    [WB_DAT_WIDTH-1:0]  wb_vsgen_dat_o;
+    wire                        wb_vsgen_stb_i;
+    wire                        wb_vsgen_ack_o;
+    
+    jelly_vsync_generator
+            #(
+                .WB_ADR_WIDTH       (8),
+                .WB_DAT_WIDTH       (WB_DAT_WIDTH),
+                .INIT_CTL_CONTROL   (1'b0),
+                
+                .INIT_HTOTAL        (1650),
+                .INIT_HDISP_START   (0),
+                .INIT_HDISP_END     (VOUT_X_NUM),
+                .INIT_HSYNC_START   (1390),
+                .INIT_HSYNC_END     (1430),
+                .INIT_HSYNC_POL     (1),
+                .INIT_VTOTAL        (750),
+                .INIT_VDISP_START   (0),
+                .INIT_VDISP_END     (VOUT_Y_NUM),
+                .INIT_VSYNC_START   (725),
+                .INIT_VSYNC_END     (730),
+                .INIT_VSYNC_POL     (1)
+            )
+        i_vsync_generator
+            (
+                .reset              (vout_reset),
+                .clk                (vout_clk),
+                
+                .out_vsync          (vout_vsgen_vsync),
+                .out_hsync          (vout_vsgen_hsync),
+                .out_de             (vout_vsgen_de),
+                
+                .s_wb_rst_i         (wb_peri_rst_i),
+                .s_wb_clk_i         (wb_peri_clk_i),
+                .s_wb_adr_i         (wb_peri_adr_i[7:0]),
+                .s_wb_dat_o         (wb_vsgen_dat_o),
+                .s_wb_dat_i         (wb_peri_dat_i),
+                .s_wb_we_i          (wb_peri_we_i),
+                .s_wb_sel_i         (wb_peri_sel_i),
+                .s_wb_stb_i         (wb_vsgen_stb_i),
+                .s_wb_ack_o         (wb_vsgen_ack_o)
+            );
+    
+    
+    
+    (* MARK_DEBUG="true" *) wire            vout_vsync;
+    (* MARK_DEBUG="true" *) wire            vout_hsync;
+    (* MARK_DEBUG="true" *) wire            vout_de;
+    (* MARK_DEBUG="true" *) wire    [23:0]  vout_data;
+    (* MARK_DEBUG="true" *) wire    [3:0]   vout_ctl;
+    
+    jelly_vout_axi4s
+            #(
+                .WIDTH              (24)
+            )
+        i_vout_axi4s
+            (
+                .reset              (vout_reset),
+                .clk                (vout_clk),
+                
+                .s_axi4s_tuser      (axi4s_vout_tuser),
+                .s_axi4s_tlast      (axi4s_vout_tlast),
+                .s_axi4s_tdata      (axi4s_vout_tdata[23:0]),
+                .s_axi4s_tvalid     (axi4s_vout_tvalid),
+                .s_axi4s_tready     (axi4s_vout_tready),
+                
+                .in_vsync           (vout_vsgen_vsync),
+                .in_hsync           (vout_vsgen_hsync),
+                .in_de              (vout_vsgen_de),
+                .in_ctl             (4'd0),
+                
+                .out_vsync          (vout_vsync),
+                .out_hsync          (vout_hsync),
+                .out_de             (vout_de),
+                .out_data           (vout_data),
+                .out_ctl            (vout_ctl)
+            );
+    
+    jelly_dvi_tx
+        i_dvi_tx
+            (
+                .reset              (vout_reset),
+                .clk                (vout_clk),
+                .clk_x5             (vout_clk_x5),
+                
+                .in_vsync           (vout_vsync),
+                .in_hsync           (vout_hsync),
+                .in_de              (vout_de),
+                .in_data            (vout_data),
+                .in_ctl             (4'd0),
+                
+                .out_clk_p          (hdmi_tx_clk_p),
+                .out_clk_n          (hdmi_tx_clk_n),
+                .out_data_p         (hdmi_tx_data_p),
+                .out_data_n         (hdmi_tx_data_n)
+            );
     
     
     
@@ -761,17 +1077,23 @@ module zybo_z7_imx219
     assign wb_vdmaw_stb_i = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4001_0);
     assign wb_norm_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4001_1);
     assign wb_rgb_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4001_2);
+    assign wb_vdmar_stb_i = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4002_0);
+    assign wb_vsgen_stb_i = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4002_1);
     
     assign wb_peri_dat_o  = wb_gid_stb_i   ? wb_gid_dat_o   :
                             wb_vdmaw_stb_i ? wb_vdmaw_dat_o :
                             wb_norm_stb_i  ? wb_norm_dat_o  :
                             wb_rgb_stb_i   ? wb_rgb_dat_o   :
+                            wb_vdmar_stb_i ? wb_vdmar_dat_o :
+                            wb_vsgen_stb_i ? wb_vsgen_dat_o :
                             32'h0000_0000;
     
     assign wb_peri_ack_o  = wb_gid_stb_i   ? wb_gid_ack_o   :
                             wb_vdmaw_stb_i ? wb_vdmaw_ack_o :
                             wb_norm_stb_i  ? wb_norm_ack_o  :
                             wb_rgb_stb_i   ? wb_rgb_ack_o   :
+                            wb_vdmar_stb_i ? wb_vdmar_ack_o :
+                            wb_vsgen_stb_i ? wb_vsgen_ack_o :
                             wb_peri_stb_i;
     
     
@@ -789,11 +1111,6 @@ module zybo_z7_imx219
     reg     [31:0]      reg_counter_clk100;
     always @(posedge sys_clk100)    reg_counter_clk100 <= reg_counter_clk100 + 1;
     
-    reg     [31:0]      reg_counter_peri_aclk;
-    always @(posedge axi4l_peri_aclk)   reg_counter_peri_aclk <= reg_counter_peri_aclk + 1;
-    
-    reg     [31:0]      reg_counter_mem_aclk;
-    always @(posedge axi4_mem_aclk) reg_counter_mem_aclk <= reg_counter_mem_aclk + 1;
     
     reg     frame_toggle = 0;
     always @(posedge axi4s_cam_aclk) begin
@@ -804,8 +1121,8 @@ module zybo_z7_imx219
     
     
     assign led[0] = reg_counter_rxbyteclkhs[24];
-    assign led[1] = reg_counter_peri_aclk[24]; // reg_counter_clk200[24];
-    assign led[2] = reg_counter_mem_aclk[24];  // reg_counter_clk100[24];
+    assign led[1] = reg_counter_clk200[24];
+    assign led[2] = reg_counter_clk100[24];
     assign led[3] = frame_toggle;
     
     assign pmod_a[0]   = frame_toggle;
@@ -813,6 +1130,16 @@ module zybo_z7_imx219
     assign pmod_a[2]   = reg_counter_clk200[5];
     assign pmod_a[3]   = reg_counter_clk100[5];
     assign pmod_a[7:4] = 0;
+    
+    
+    (* MARK_DEBUG = "true" *) reg   dbg_clk200;
+    (* MARK_DEBUG = "true" *) reg   dbg_clk100;
+    (* MARK_DEBUG = "true" *) reg   dbg_rxbyteclkhs;
+    always @(posedge sys_clk100) begin
+        dbg_clk200       <= reg_counter_clk200[5];
+        dbg_clk100       <= reg_counter_clk100[5];
+        dbg_rxbyteclkhs  <= reg_counter_rxbyteclkhs[5];
+    end
     
     
 endmodule

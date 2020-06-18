@@ -91,22 +91,22 @@ module tb_top();
 	parameter	WB_DAT_WIDTH        = 32;
 	parameter	WB_SEL_WIDTH        = (WB_DAT_WIDTH / 8);
 	
-	wire							wb_rst_i = i_top.wb_rst_o;
-	wire							wb_clk_i = i_top.wb_clk_o;
+	wire							wb_rst_i = i_top.wb_peri_rst_i;
+	wire							wb_clk_i = i_top.wb_peri_clk_i;
 	reg		[WB_ADR_WIDTH-1:0]		wb_adr_o;
-	wire	[WB_DAT_WIDTH-1:0]		wb_dat_i = i_top.wb_host_dat_i;
+	wire	[WB_DAT_WIDTH-1:0]		wb_dat_i = i_top.wb_peri_dat_o;
 	reg		[WB_DAT_WIDTH-1:0]		wb_dat_o;
 	reg								wb_we_o;
 	reg		[WB_SEL_WIDTH-1:0]		wb_sel_o;
 	reg								wb_stb_o = 0;
-	wire							wb_ack_i = i_top.wb_host_ack_i;
+	wire							wb_ack_i = i_top.wb_peri_ack_o;
 	
 	initial begin
-		force i_top.wb_host_adr_o = wb_adr_o;
-		force i_top.wb_host_dat_o = wb_dat_o;
-		force i_top.wb_host_we_o  = wb_we_o;
-		force i_top.wb_host_sel_o = wb_sel_o;
-		force i_top.wb_host_stb_o = wb_stb_o;
+		force i_top.wb_peri_adr_i = wb_adr_o;
+		force i_top.wb_peri_dat_i = wb_dat_o;
+		force i_top.wb_peri_we_i  = wb_we_o;
+		force i_top.wb_peri_sel_i = wb_sel_o;
+		force i_top.wb_peri_stb_i = wb_stb_o;
 	end
 	
 	
