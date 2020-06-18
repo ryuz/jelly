@@ -98,6 +98,9 @@ void vout_stop(MemAccess& reg_rdma, MemAccess& reg_vsgen);
 
 void WriteImage(MemAccess& mem_acc, const cv::Mat& img);
 
+
+const int stride = 4096*4;
+
 int main(int argc, char *argv[])
 {
     double  pixel_clock = 91000000.0;
@@ -228,10 +231,14 @@ int main(int argc, char *argv[])
     }
 
     auto dmabuf_phys_adr = udmabuf_acc.GetPhysAddr();
-//  auto dmabuf_mem_size = udmabuf_acc.GetSize();
+    auto dmabuf_mem_size = udmabuf_acc.GetSize();
 //  std::cout << "udmabuf0 phys addr : 0x" << std::hex << dmabuf_phys_adr << std::endl;
 //  std::cout << "udmabuf0 size      : " << std::dec << dmabuf_mem_size << std::endl;
 
+    if ( dmabuf_mem_size < stride * height * 4 ) {
+        printf("udmabuf size error\n");
+        return 0;
+    }
 
     // IMX219 I2C control
     IMX219ControlI2c imx219;
@@ -328,7 +335,7 @@ int main(int argc, char *argv[])
 }
 
 
-const int stride = 4096*4;
+
 
 void WriteImage(MemAccess& mem_acc, const cv::Mat& img)
 {
