@@ -100,23 +100,39 @@ void WriteImage(MemAccess& mem_acc, const cv::Mat& img);
 
 int main(int argc, char *argv[])
 {
-    double  pixel_clock = 139200000.0;
+    double  pixel_clock = 91000000.0;
     bool    binning     = true;
-    int     width       = 640;
-    int     height      = 132;
+    int     width       = 1280;
+    int     height      = 720;
     int     aoi_x       = -1;
     int     aoi_y       = -1;
     bool    flip_h      = false;
     bool    flip_v      = false;
-    int     frame_rate  = 1000;
-    int     exposure    = 10;
+    int     frame_rate  = 60;
+    int     exposure    = 20;
     int     a_gain      = 20;
     int     d_gain      = 10;
     int     bayer_phase = 0;
     int     view_scale  = 1;
-
+    
     for ( int i = 1; i < argc; ++i ) {
-        if ( strcmp(argv[i], "full") == 0 ) {
+        if ( strcmp(argv[i], "1000fps") == 0 ) {
+            pixel_clock = 139200000.0;
+            binning     = true;
+            width       = 640;
+            height      = 132;
+            aoi_x       = -1;
+            aoi_y       = -1;
+            flip_h      = false;
+            flip_v      = false;
+            frame_rate  = 1000;
+            exposure    = 1;
+            a_gain      = 20;
+            d_gain      = 10;
+            bayer_phase = 0;
+            view_scale  = 1;
+        }
+        else if ( strcmp(argv[i], "full") == 0 ) {
             pixel_clock = 91000000;
             binning    = false;
             width      = 3280;
@@ -242,7 +258,6 @@ int main(int argc, char *argv[])
             p[i] = 0x12345678;
         }
     }
-    return 0;
 
     int     key;
     while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
