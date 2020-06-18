@@ -66,24 +66,23 @@ module jelly_vsync_generator
     // ---------------------------------
     
     // register address offset
-    localparam  REGOFFSET_ID                = 32'h0000_0000 >> 2;
-    localparam  REGOFFSET_VERSION           = 32'h0000_0004 >> 2;
+    localparam  ADR_CORE_ID           = 8'h00;
+    localparam  ADR_CORE_VERSION      = 8'h01;
+    localparam  ADR_CTL_CONTROL       = 8'h04;
+    localparam  ADR_CTL_STATUS        = 8'h05;
+    localparam  ADR_PARAM_HTOTAL      = 8'h08;
+    localparam  ADR_PARAM_HSYNC_POL   = 8'h0B;
+    localparam  ADR_PARAM_HDISP_START = 8'h0C;
+    localparam  ADR_PARAM_HDISP_END   = 8'h0D;
+    localparam  ADR_PARAM_HSYNC_START = 8'h0E;
+    localparam  ADR_PARAM_HSYNC_END   = 8'h0F;
+    localparam  ADR_PARAM_VTOTAL      = 8'h10;
+    localparam  ADR_PARAM_VSYNC_POL   = 8'h13;
+    localparam  ADR_PARAM_VDISP_START = 8'h14;
+    localparam  ADR_PARAM_VDISP_END   = 8'h15;
+    localparam  ADR_PARAM_VSYNC_START = 8'h16;
+    localparam  ADR_PARAM_VSYNC_END   = 8'h17;
     
-    localparam  REGOFFSET_CTL_CONTROL       = 32'h0000_0010 >> 2;
-    localparam  REGOFFSET_CTL_STATUS        = 32'h0000_0014 >> 2;
-    
-    localparam  REGOFFSET_PARAM_HTOTAL      = 32'h0000_0020 >> 2;
-    localparam  REGOFFSET_PARAM_HSYNC_POL   = 32'h0000_002c >> 2;
-    localparam  REGOFFSET_PARAM_HDISP_START = 32'h0000_0030 >> 2;
-    localparam  REGOFFSET_PARAM_HDISP_END   = 32'h0000_0034 >> 2;
-    localparam  REGOFFSET_PARAM_HSYNC_START = 32'h0000_0038 >> 2;
-    localparam  REGOFFSET_PARAM_HSYNC_END   = 32'h0000_003c >> 2;
-    localparam  REGOFFSET_PARAM_VTOTAL      = 32'h0000_0040 >> 2;
-    localparam  REGOFFSET_PARAM_VSYNC_POL   = 32'h0000_004c >> 2;
-    localparam  REGOFFSET_PARAM_VDISP_START = 32'h0000_0050 >> 2;
-    localparam  REGOFFSET_PARAM_VDISP_END   = 32'h0000_0054 >> 2;
-    localparam  REGOFFSET_PARAM_VSYNC_START = 32'h0000_0058 >> 2;
-    localparam  REGOFFSET_PARAM_VSYNC_END   = 32'h0000_005c >> 2;
     
     // registers
     reg     [0:0]                   reg_ctl_control;
@@ -101,6 +100,19 @@ module jelly_vsync_generator
     reg     [V_COUNTER_WIDTH-1:0]   reg_param_vsync_start;
     reg     [V_COUNTER_WIDTH-1:0]   reg_param_vsync_end;
     reg                             reg_param_vsync_pol;        // 0:n 1:p
+    
+    function [WB_DAT_WIDTH-1:0] reg_mask(
+                                        input [WB_DAT_WIDTH-1:0] org,
+                                        input [WB_DAT_WIDTH-1:0] wdat,
+                                        input [WB_SEL_WIDTH-1:0] msk
+                                    );
+    integer i;
+    begin
+        for ( i = 0; i < WB_DAT_WIDTH; i = i+1 ) begin
+            reg_mask[i] = msk[i/8] ? wdat[i] : org[i];
+        end
+    end
+    endfunction
     
     always @(posedge s_wb_clk_i ) begin
         if ( s_wb_rst_i ) begin
@@ -120,39 +132,39 @@ module jelly_vsync_generator
         end
         else if ( s_wb_stb_i && s_wb_we_i ) begin
             case ( s_wb_adr_i )
-            REGOFFSET_CTL_CONTROL:          reg_ctl_control       <= s_wb_dat_i[0];
-            REGOFFSET_PARAM_HTOTAL:         reg_param_htotal      <= s_wb_dat_i[V_COUNTER_WIDTH-1:0];
-            REGOFFSET_PARAM_HDISP_START:    reg_param_hdisp_start <= s_wb_dat_i[V_COUNTER_WIDTH-1:0];
-            REGOFFSET_PARAM_HDISP_END:      reg_param_hdisp_end   <= s_wb_dat_i[V_COUNTER_WIDTH-1:0];
-            REGOFFSET_PARAM_HSYNC_START:    reg_param_hsync_start <= s_wb_dat_i[V_COUNTER_WIDTH-1:0];
-            REGOFFSET_PARAM_HSYNC_END:      reg_param_hsync_end   <= s_wb_dat_i[V_COUNTER_WIDTH-1:0];
-            REGOFFSET_PARAM_HSYNC_POL:      reg_param_hsync_pol   <= s_wb_dat_i[0];
-            REGOFFSET_PARAM_VTOTAL:         reg_param_vtotal      <= s_wb_dat_i[V_COUNTER_WIDTH-1:0];
-            REGOFFSET_PARAM_VDISP_START:    reg_param_vdisp_start <= s_wb_dat_i[V_COUNTER_WIDTH-1:0];
-            REGOFFSET_PARAM_VDISP_END:      reg_param_vdisp_end   <= s_wb_dat_i[V_COUNTER_WIDTH-1:0];
-            REGOFFSET_PARAM_VSYNC_START:    reg_param_vsync_start <= s_wb_dat_i[V_COUNTER_WIDTH-1:0];
-            REGOFFSET_PARAM_VSYNC_END:      reg_param_vsync_end   <= s_wb_dat_i[V_COUNTER_WIDTH-1:0];
-            REGOFFSET_PARAM_VSYNC_POL:      reg_param_vsync_pol   <= s_wb_dat_i[0];
+            ADR_CTL_CONTROL:          reg_ctl_control       <= reg_mask(reg_ctl_control,       s_wb_dat_i, s_wb_sel_i);
+            ADR_PARAM_HTOTAL:         reg_param_htotal      <= reg_mask(reg_param_htotal,      s_wb_dat_i, s_wb_sel_i);
+            ADR_PARAM_HDISP_START:    reg_param_hdisp_start <= reg_mask(reg_param_hdisp_start, s_wb_dat_i, s_wb_sel_i);
+            ADR_PARAM_HDISP_END:      reg_param_hdisp_end   <= reg_mask(reg_param_hdisp_end,   s_wb_dat_i, s_wb_sel_i);
+            ADR_PARAM_HSYNC_START:    reg_param_hsync_start <= reg_mask(reg_param_hsync_start, s_wb_dat_i, s_wb_sel_i);
+            ADR_PARAM_HSYNC_END:      reg_param_hsync_end   <= reg_mask(reg_param_hsync_end ,  s_wb_dat_i, s_wb_sel_i);
+            ADR_PARAM_HSYNC_POL:      reg_param_hsync_pol   <= reg_mask(reg_param_hsync_pol,   s_wb_dat_i, s_wb_sel_i);
+            ADR_PARAM_VTOTAL:         reg_param_vtotal      <= reg_mask(reg_param_vtotal,      s_wb_dat_i, s_wb_sel_i);
+            ADR_PARAM_VDISP_START:    reg_param_vdisp_start <= reg_mask(reg_param_vdisp_start, s_wb_dat_i, s_wb_sel_i);
+            ADR_PARAM_VDISP_END:      reg_param_vdisp_end   <= reg_mask(reg_param_vdisp_end,   s_wb_dat_i, s_wb_sel_i);
+            ADR_PARAM_VSYNC_START:    reg_param_vsync_start <= reg_mask(reg_param_vsync_start, s_wb_dat_i, s_wb_sel_i);
+            ADR_PARAM_VSYNC_END:      reg_param_vsync_end   <= reg_mask(reg_param_vsync_end,   s_wb_dat_i, s_wb_sel_i);
+            ADR_PARAM_VSYNC_POL:      reg_param_vsync_pol   <= reg_mask(reg_param_vsync_pol,   s_wb_dat_i, s_wb_sel_i);
             endcase
         end
     end
     
-    assign s_wb_dat_o = (s_wb_adr_i == REGOFFSET_ID)                ? CORE_ID               :
-                        (s_wb_adr_i == REGOFFSET_VERSION)           ? CORE_VERSION          :
-                        (s_wb_adr_i == REGOFFSET_CTL_CONTROL)       ? reg_ctl_control       :
-                        (s_wb_adr_i == REGOFFSET_CTL_STATUS)        ? sig_ctl_status        :
-                        (s_wb_adr_i == REGOFFSET_PARAM_HTOTAL)      ? reg_param_htotal      :
-                        (s_wb_adr_i == REGOFFSET_PARAM_HDISP_START) ? reg_param_hdisp_start :
-                        (s_wb_adr_i == REGOFFSET_PARAM_HDISP_END)   ? reg_param_hdisp_end   :
-                        (s_wb_adr_i == REGOFFSET_PARAM_HSYNC_START) ? reg_param_hsync_start :
-                        (s_wb_adr_i == REGOFFSET_PARAM_HSYNC_END)   ? reg_param_hsync_end   :
-                        (s_wb_adr_i == REGOFFSET_PARAM_HSYNC_POL)   ? reg_param_hsync_pol   :
-                        (s_wb_adr_i == REGOFFSET_PARAM_VTOTAL)      ? reg_param_vtotal      :
-                        (s_wb_adr_i == REGOFFSET_PARAM_VDISP_START) ? reg_param_vdisp_start :
-                        (s_wb_adr_i == REGOFFSET_PARAM_VDISP_END)   ? reg_param_vdisp_end   :
-                        (s_wb_adr_i == REGOFFSET_PARAM_VSYNC_START) ? reg_param_vsync_start :
-                        (s_wb_adr_i == REGOFFSET_PARAM_VSYNC_END)   ? reg_param_vsync_end   :
-                        (s_wb_adr_i == REGOFFSET_PARAM_VSYNC_POL)   ? reg_param_vsync_pol   :
+    assign s_wb_dat_o = (s_wb_adr_i == ADR_CORE_ID)           ? CORE_ID               :
+                        (s_wb_adr_i == ADR_CORE_VERSION)      ? CORE_VERSION          :
+                        (s_wb_adr_i == ADR_CTL_CONTROL)       ? reg_ctl_control       :
+                        (s_wb_adr_i == ADR_CTL_STATUS)        ? sig_ctl_status        :
+                        (s_wb_adr_i == ADR_PARAM_HTOTAL)      ? reg_param_htotal      :
+                        (s_wb_adr_i == ADR_PARAM_HDISP_START) ? reg_param_hdisp_start :
+                        (s_wb_adr_i == ADR_PARAM_HDISP_END)   ? reg_param_hdisp_end   :
+                        (s_wb_adr_i == ADR_PARAM_HSYNC_START) ? reg_param_hsync_start :
+                        (s_wb_adr_i == ADR_PARAM_HSYNC_END)   ? reg_param_hsync_end   :
+                        (s_wb_adr_i == ADR_PARAM_HSYNC_POL)   ? reg_param_hsync_pol   :
+                        (s_wb_adr_i == ADR_PARAM_VTOTAL)      ? reg_param_vtotal      :
+                        (s_wb_adr_i == ADR_PARAM_VDISP_START) ? reg_param_vdisp_start :
+                        (s_wb_adr_i == ADR_PARAM_VDISP_END)   ? reg_param_vdisp_end   :
+                        (s_wb_adr_i == ADR_PARAM_VSYNC_START) ? reg_param_vsync_start :
+                        (s_wb_adr_i == ADR_PARAM_VSYNC_END)   ? reg_param_vsync_end   :
+                        (s_wb_adr_i == ADR_PARAM_VSYNC_POL)   ? reg_param_vsync_pol   :
                         32'h0000_0000;
     
     assign s_wb_ack_o = s_wb_stb_i;

@@ -671,9 +671,9 @@ module zybo_z7_imx219
                 .AXI4S_DATA_SIZE    (2),    // 32bit
                 .AXI4S_USER_WIDTH   (1),
                 .INDEX_WIDTH        (8),
-                .STRIDE_WIDTH       (14),
-                .H_WIDTH            (12),
-                .V_WIDTH            (12),
+                .STRIDE_WIDTH       (16),
+                .H_WIDTH            (14),
+                .V_WIDTH            (14),
                 .SIZE_WIDTH         (32),
                 
                 .WB_ADR_WIDTH       (8),

@@ -1,3 +1,12 @@
+// ---------------------------------------------------------------------------
+//  Jelly  -- The FPGA processing system
+//
+//  IMX219 and HDMI-TX sample
+//
+//                                 Copyright (C) 2008-2020 by Ryuji Fuchikami
+//                                 https://github.com/ryuz/
+// ---------------------------------------------------------------------------
+
 
 
 
@@ -7,8 +16,8 @@
 
 module zybo_z7_imx219_hdmi
         #(
-            parameter   X_NUM       = 3280 / 2,
-            parameter   Y_NUM       = 2464 / 2,
+            parameter   X_NUM       = 3280,
+            parameter   Y_NUM       = 2464,
             parameter   PATTERN_GEN = 0
         )
         (
@@ -279,7 +288,7 @@ module zybo_z7_imx219_hdmi
                 .IIC_0_0_sda_t          (IIC_0_0_sda_t)
             );
     
-    assign cam_gpio = dip_sw[0];
+    assign cam_gpio = ~push_sw[0]; // dip_sw[0];
     
     IOBUF
         i_IOBUF_cam_scl
@@ -298,6 +307,7 @@ module zybo_z7_imx219_hdmi
                 .O      (IIC_0_0_sda_i),
                 .T      (IIC_0_0_sda_t)
             );
+    
     
     
     // -----------------------------
@@ -377,7 +387,6 @@ module zybo_z7_imx219_hdmi
     //  MIPI D-PHY RX
     // ----------------------------------------
     
-    (* KEEP = "true" *)
     wire                rxbyteclkhs;
     wire                system_rst_out;
     wire                init_done;
@@ -434,26 +443,7 @@ module zybo_z7_imx219_hdmi
     wire                dl1_errsyncesc;
     wire                dl1_errcontrol;
     
-    
-    reg     [31:0]      dbg_dl0_count;
-    reg     [31:0]      dbg_dl1_count;
-    always @(posedge rxbyteclkhs) begin
-        if (dl0_rxactivehs ) begin
-            dbg_dl0_count <= dbg_dl0_count + 1;
-        end
-        if ( dl0_rxsynchs ) begin
-            dbg_dl0_count <= 0;
-        end
-        
-        if (dl1_rxactivehs ) begin
-            dbg_dl1_count <= dbg_dl1_count + 1;
-        end
-        if ( dl1_rxsynchs ) begin
-            dbg_dl1_count <= 0;
-        end
-    end
-    
-    
+   
     mipi_dphy_cam
         i_mipi_dphy_cam
             (
@@ -741,9 +731,9 @@ module zybo_z7_imx219_hdmi
                 .AXI4S_DATA_SIZE    (2),    // 32bit
                 .AXI4S_USER_WIDTH   (1),
                 .INDEX_WIDTH        (8),
-                .STRIDE_WIDTH       (14),
-                .H_WIDTH            (12),
-                .V_WIDTH            (12),
+                .STRIDE_WIDTH       (16),
+                .H_WIDTH            (14),
+                .V_WIDTH            (14),
                 .SIZE_WIDTH         (32),
                 
                 .WB_ADR_WIDTH       (8),
@@ -850,7 +840,7 @@ module zybo_z7_imx219_hdmi
                     .aclk               (vout_clk),
                     
                     .enable             (1'b1),
-                    .busy               (),
+                    .busy               (1'b0),
                     
                     .m_axi4s_tdata      (axi4s_vout_tdata),
                     .m_axi4s_tlast      (axi4s_vout_tlast),
@@ -898,9 +888,9 @@ module zybo_z7_imx219_hdmi
                     .AXI4S_REGS         (1),
                     
                     .INDEX_WIDTH        (8),
-                    .STRIDE_WIDTH       (14),
-                    .H_WIDTH            (12),
-                    .V_WIDTH            (12),
+                    .STRIDE_WIDTH       (16),
+                    .H_WIDTH            (14),
+                    .V_WIDTH            (14),
                     
                     .WB_ADR_WIDTH       (8),
                     .WB_DAT_WIDTH       (WB_DAT_WIDTH),
