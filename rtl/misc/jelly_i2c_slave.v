@@ -99,15 +99,15 @@ module jelly_i2c_slave
         else begin
             reg_bus_en <= 1'b0;
             if ( reg_clk_en ) begin
-                // M†Žæ‚èž‚Ý
+                // ä¿¡å·å–ã‚Šè¾¼ã¿
                 reg_scl[0] <= reg_scl_ff[1];
                 reg_scl[1] <= reg_scl[0];
                 reg_sda[0] <= reg_sda_ff[1];
                 reg_sda[1] <= reg_sda[0];
                 
-                // ƒf[ƒ^“]‘—
+                // ãƒ‡ãƒ¼ã‚¿è»¢é€
                 if ( reg_state == ST_ADDR || reg_state == ST_DATA ) begin
-                    // SCL—§‚¿‰º‚ª‚è‚Å‘—M
+                    // SCLç«‹ã¡ä¸‹ãŒã‚Šã§é€ä¿¡
                     if ( reg_scl == 2'b10 ) begin
                         reg_sda_t <= reg_send[7];
                         reg_send  <= {reg_send[6:0], reg_rw};
@@ -116,39 +116,39 @@ module jelly_i2c_slave
                             reg_bus_en <= 1'b1;
                         end
                         
-                        // ƒAƒhƒŒƒXŽóM––”ö‚È‚ç
+                        // ã‚¢ãƒ‰ãƒ¬ã‚¹å—ä¿¡æœ«å°¾ãªã‚‰
                         if ( reg_state == ST_ADDR && reg_counter[3] ) begin
                             reg_rw <= reg_recv[0];
                             if ( reg_recv[7:1] == addr ) begin
-                                reg_sda_t <= 1'b0;  // ACKo—Í
+                                reg_sda_t <= 1'b0;  // ACKå‡ºåŠ›
                             end
                             else begin
-                                reg_sda_t  <= 1'b1; // NAKo—Í
+                                reg_sda_t  <= 1'b1; // NAKå‡ºåŠ›
                                 reg_state  <= ST_IDLE;
                                 reg_bus_en <= 1'b0;
                             end
                         end
                     end
                     
-                    // SCL—§‚¿ã‚ª‚è‚ÅŽóM
+                    // SCLç«‹ã¡ä¸ŠãŒã‚Šã§å—ä¿¡
                     if ( reg_scl == 2'b01 ) begin
                         reg_counter <= reg_counter + 1'b1;
                         
-                        // ACKƒtƒF[ƒY
+                        // ACKãƒ•ã‚§ãƒ¼ã‚º
                         if ( reg_counter[3] ) begin
                             reg_counter <= 0;
                             
-                            // ŽŸ‚ÌƒtƒF[ƒY€”õ
+                            // æ¬¡ã®ãƒ•ã‚§ãƒ¼ã‚ºæº–å‚™
                             reg_state   <= ST_DATA;
                             if ( reg_rw == 1'b0 ) begin
-                                // write€”õ
+                                // writeæº–å‚™
                                 reg_send  <= 8'hff;
                             end
                             else begin
-                                // ŽŸ‚Ìread€”õ
+                                // æ¬¡ã®readæº–å‚™
                                 reg_send  <= bus_rdata;
                                 
-                                // read ‚Å ack ‚ª‚È‚¯‚ê‚ÎƒGƒ‰[
+                                // read ã§ ack ãŒãªã‘ã‚Œã°ã‚¨ãƒ©ãƒ¼
                                 if ( reg_sda != 1'b0 ) begin
                                     reg_sda_t <= 1'b1;
                                     reg_state <= ST_IDLE;
@@ -156,7 +156,7 @@ module jelly_i2c_slave
                             end
                         end
                         else begin
-                            // ŽóM
+                            // å—ä¿¡
                             reg_recv <= {reg_recv[6:0], reg_sda[0]};
                         end
                     end
@@ -164,7 +164,7 @@ module jelly_i2c_slave
                 
                 // start conditon
                 if ( reg_scl == 2'b11 && reg_sda == 2'b10 ) begin
-                    reg_state   <= ST_ADDR;     // ƒAƒhƒŒƒXŽóMŠJŽn
+                    reg_state   <= ST_ADDR;     // ã‚¢ãƒ‰ãƒ¬ã‚¹å—ä¿¡é–‹å§‹
                     reg_counter <= 0;
                     reg_send    <= 8'hff;
                     reg_rw      <= 1'b0;
@@ -172,7 +172,7 @@ module jelly_i2c_slave
                 
                 // stop condition
                 if ( reg_scl == 2'b11 && reg_sda == 2'b01 ) begin
-                    reg_state <= ST_IDLE;       // ‹­§“I‚ÉƒAƒCƒhƒ‹‚É–ß‚é
+                    reg_state <= ST_IDLE;       // å¼·åˆ¶çš„ã«ã‚¢ã‚¤ãƒ‰ãƒ«ã«æˆ»ã‚‹
                 end
             end
         end

@@ -52,7 +52,7 @@ module tb_rasterizer();
     parameter   REGION_RAM_TYPE     = "distributed";
     
     parameter   CULLING_ONLY        = 0;
-    parameter   Z_SORT_MIN          = 0;    // 1‚Å¬‚³‚¢’l—Dæ(Z²‰œŒü‚«)
+    parameter   Z_SORT_MIN          = 0;    // 1ã§å°ã•ã„å€¤å„ªå…ˆ(Zè»¸å¥¥å‘ã)
     
     parameter   INIT_CTL_ENABLE     = 1'b0;
     parameter   INIT_CTL_UPDATE     = 1'b0;

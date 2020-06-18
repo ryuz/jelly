@@ -13,7 +13,7 @@
 
 
 
-// コマンド発行量の容量管理を行う
+// 繧ｳ繝槭Φ繝臥匱陦碁㍼縺ｮ螳ｹ驥冗ｮ｡逅�繧定｡後≧
 module jelly_axi_addr_capacity
         #(
             parameter   BYPASS                 = 0,

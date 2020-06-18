@@ -71,25 +71,25 @@ module jelly_texture_border_unit
             output  wire                                m_rready
         );
     
-    // ‰ÁZƒtƒF[ƒY‚ª LUT5 ‚Éû‚Ü‚é‚æ‚¤‚É 2stage ‚Å op ‚ğÅ“K‰»
-    // ISE‚¾‚ÆÅ“K‰»‚µ‚Ä‚­‚ê‚È‚¢‚ªAVivado‚¾‚ÆƒRƒ“ƒpƒNƒg‚Éû‚Ü‚é–Í—l
+    // åŠ ç®—ãƒ•ã‚§ãƒ¼ã‚ºãŒ LUT5 ã«åã¾ã‚‹ã‚ˆã†ã« 2stage ã§ op ã‚’æœ€é©åŒ–
+    // ISEã ã¨æœ€é©åŒ–ã—ã¦ãã‚Œãªã„ãŒã€Vivadoã ã¨ã‚³ãƒ³ãƒ‘ã‚¯ãƒˆã«åã¾ã‚‹æ¨¡æ§˜
     //
     //
-    // op:3'b000 BORDER_TRANSPARENT borderƒtƒ‰ƒO‚ğ—§‚Ä‚ÄƒXƒ‹[(Œã’i‚ÅƒPƒA)
-    // op:3'b000 BORDER_CONSTANT        borderƒtƒ‰ƒO‚ğ—§‚Ä‚ÄƒXƒ‹[(Œã’i‚ÅƒPƒA)
+    // op:3'b000 BORDER_TRANSPARENT borderãƒ•ãƒ©ã‚°ã‚’ç«‹ã¦ã¦ã‚¹ãƒ«ãƒ¼(å¾Œæ®µã§ã‚±ã‚¢)
+    // op:3'b000 BORDER_CONSTANT        borderãƒ•ãƒ©ã‚°ã‚’ç«‹ã¦ã¦ã‚¹ãƒ«ãƒ¼(å¾Œæ®µã§ã‚±ã‚¢)
     // op:3'b100 BORDER_REPLICATE
     //      overflow  : param_width - 1                             : w - ((w-x-1) + 1)  n  :  w-0 n  (st1_op:3'b110)
     //      underflow : 0                                           : 0 - ((0    ) + 0)  c  :  0-X c  (st1_op:3'b101)
     // op:3'b101 BORDER_REFLECT
     //      overflow  : (param_width - 1) - (x - param_width)       : w + ((w-x-1) + 0)  n  :  w+X n  (st1_op:3'b010)
     //      underflow : -x-1                                        : 0 - ((0+x  ) + 1)  n  :  0-X n  (st1_op:3'b100)
-    // op:3'b110 BORDER_REFLECT101 (width ‚É‚Í 1¬‚³‚¢”‚ğİ’è‚·‚é‚±‚Æ)
+    // op:3'b110 BORDER_REFLECT101 (width ã«ã¯ 1å°ã•ã„æ•°ã‚’è¨­å®šã™ã‚‹ã“ã¨)
     //      overflow  : (param_width - 1) - (x - param_width) - 1   : w + ((w-x-1) + 1)  c  :  w+X c  (st1_op:3'b011)
     //      underflow : -x                                          : 0 - ((0+x  ) + 0)  c  :  0-X c  (st1_op:3'b101)
     // op:3'b111 BORDER_WRAP
     //      overflow  : x - param_width                             : 0 - ((w-x-1) + 1)  n  :  0-X n  (st1_op:3'b100)
     //      underflow : x + param_width                             : w + ((0+x  ) + 0)  n  :  w+X n  (st1_op:3'b010)
-    // BORDERˆÈŠO‚Ì‰ÓŠ
+    // BORDERä»¥å¤–ã®ç®‡æ‰€
     //                  x                                           : w - ((w-x-1) + 1)  n  :  w-X n  (st1_op:3'b000)
     
     

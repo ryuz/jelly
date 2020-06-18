@@ -46,7 +46,7 @@ module tb_fixed_float_mul();
     
     
     
-    // É}ÉNÉç
+    // „Éû„ÇØ„É≠
     localparam  FLOAT_EXP_WIDTH  = S_FLOAT_EXP_WIDTH;
     localparam  FLOAT_EXP_OFFSET = S_FLOAT_EXP_OFFSET;
     localparam  FLOAT_FRAC_WIDTH = S_FLOAT_FRAC_WIDTH;

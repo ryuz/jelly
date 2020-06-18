@@ -13,7 +13,7 @@
 
 
 
-// 1ƒŒ[ƒ“•ª‚ÌóM
+// 1ãƒ¬ãƒ¼ãƒ³åˆ†ã®å—ä¿¡
 module jelly_csi2_rx_lane_recv
         #(
             parameter PRE_DELAY      = 0,

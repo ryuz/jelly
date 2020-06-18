@@ -8,7 +8,7 @@
 typedef	JellyGL<>	JGL;
 
 
-// ƒ‚ƒfƒ‹‚Ì’¸“_ƒŠƒXƒg
+// ãƒ¢ãƒ‡ãƒ«ã®é ‚ç‚¹ãƒªã‚¹ãƒˆ
 std::array<float, 3> table_vertex[8*2] = {
 	{-2, -2, -2},
 	{+2, -2, -2},
@@ -28,7 +28,7 @@ std::array<float, 3> table_vertex[8*2] = {
 	{+1, +1, +1},
 };
 
-// ƒeƒNƒXƒ`ƒƒÀ•WƒŠƒXƒg
+// ãƒ†ã‚¯ã‚¹ãƒãƒ£åº§æ¨™ãƒªã‚¹ãƒˆ
 std::array<float, 2> table_tex_cord[4] = {
 	{0, 0},
 	{1, 0},
@@ -67,7 +67,7 @@ void rasterizer_test(void)
 	std::vector<JGL::Face>	face_table;
 	JGL::Face				f;
 
-	// ƒLƒ…[ƒu‚Ì‚U–Ê‚ğİ’è
+	// ã‚­ãƒ¥ãƒ¼ãƒ–ã®ï¼–é¢ã‚’è¨­å®š
 	f.matrial = 0;
 	f.points.clear();
 	f.points.push_back(JGL::FacePoint(0, 0, {0.5f, 0.0f, 0.0f}));
@@ -112,7 +112,7 @@ void rasterizer_test(void)
 	face_table.push_back(f);
 
 #if 1
-	// ‚QŒÂ–Ú‚ÌƒLƒ…[ƒu‚Ì‚U–Ê‚ğİ’è
+	// ï¼’å€‹ç›®ã®ã‚­ãƒ¥ãƒ¼ãƒ–ã®ï¼–é¢ã‚’è¨­å®š
 	f.matrial = 1;
 	f.points.clear();
 	f.points.push_back(JGL::FacePoint(8+0, 0, {0.5f, 0.0f, 0.0f}));
@@ -241,7 +241,7 @@ void rasterizer_test(void)
 typedef	JellyGL<float>	JGL;
 
 
-// ƒ‚ƒfƒ‹‚Ì’¸“_ƒŠƒXƒg
+// ãƒ¢ãƒ‡ãƒ«ã®é ‚ç‚¹ãƒªã‚¹ãƒˆ
 std::array<float, 3> table_vertex[8*2] = {
 	{-2, -2, -2},
 	{+2, -2, -2},
@@ -261,7 +261,7 @@ std::array<float, 3> table_vertex[8*2] = {
 	{+1, +1, +1},
 };
 
-// ƒeƒNƒXƒ`ƒƒÀ•WƒŠƒXƒg
+// ãƒ†ã‚¯ã‚¹ãƒãƒ£åº§æ¨™ãƒªã‚¹ãƒˆ
 std::array<float, 2> table_tex_cord[4] = {
 	{0, 0},
 	{1, 0},
@@ -270,7 +270,7 @@ std::array<float, 2> table_tex_cord[4] = {
 };
 
 
-// •`‰æƒvƒƒV[ƒWƒƒ
+// æç”»ãƒ—ãƒ­ã‚·ãƒ¼ã‚¸ãƒ£
 void RenderProc(int x, int y, bool polygon, JGL::PixelParam pp, void* user)
 {
 //	cv::Mat& tex = imgTex[pp.matrial];
@@ -310,7 +310,7 @@ void rasterizer_test(void)
 	std::vector<JGL::Face>	face_table;
 	JGL::Face				f;
 
-	// ƒLƒ…[ƒu‚Ì‚U–Ê‚ğİ’è
+	// ã‚­ãƒ¥ãƒ¼ãƒ–ã®ï¼–é¢ã‚’è¨­å®š
 	f.matrial = 0;
 	f.points.clear();
 	f.points.push_back(JGL::FacePoint(0, 0, {0.5f, 0.0f, 0.0f}));
@@ -355,7 +355,7 @@ void rasterizer_test(void)
 	face_table.push_back(f);
 
 #if 1
-	// ‚QŒÂ–Ú‚ÌƒLƒ…[ƒu‚Ì‚U–Ê‚ğİ’è
+	// ï¼’å€‹ç›®ã®ã‚­ãƒ¥ãƒ¼ãƒ–ã®ï¼–é¢ã‚’è¨­å®š
 	f.matrial = 1;
 	f.points.clear();
 	f.points.push_back(JGL::FacePoint(8+0, 0));

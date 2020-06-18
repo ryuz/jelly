@@ -13,7 +13,7 @@
 
 
 
-// RAW10óM
+// RAW10å—ä¿¡
 module jelly_csi2_rx_raw10
         #(
             parameter S_AXI4S_REGS = 0,

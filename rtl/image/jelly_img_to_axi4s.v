@@ -12,16 +12,16 @@
 `default_nettype none
 
 
-// ‘SƒtƒŒ[ƒ€—LŒøƒf[ƒ^‚Ìê‡‚Í de ‚Í frame_start ‚Æ frame_end ‚Å¶¬‰Â”\‚È‚Ì‚ÅÈ—ª‚Å‚«‚é
-// valid ‚à ŠeM†‚Ì0‰Šú‰»‚ª•ÛØ‚³‚ê‚Ä‚¢‚ê‚ÎÈ—ª‚Å‚«‚é
+// å…¨ãƒ•ãƒ¬ãƒ¼ãƒ æœ‰åŠ¹ãƒ‡ãƒ¼ã‚¿ã®å ´åˆã¯ de ã¯ frame_start ã¨ frame_end ã§ç”Ÿæˆå¯èƒ½ãªã®ã§çœç•¥ã§ãã‚‹
+// valid ã‚‚ å„ä¿¡å·ã®0åˆæœŸåŒ–ãŒä¿è¨¼ã•ã‚Œã¦ã„ã‚Œã°çœç•¥ã§ãã‚‹
 
 
 module jelly_img_to_axi4s
         #(
             parameter   TUSER_WIDTH = 8,
             parameter   TDATA_WIDTH = 8,
-            parameter   USE_DE      = 1,        // s_img_de ‚ð—˜—p‚·‚é
-            parameter   USE_VALID   = 0,        // s_img_valid ‚ð—˜—p‚·‚é
+            parameter   USE_DE      = 1,        // s_img_de ã‚’åˆ©ç”¨ã™ã‚‹
+            parameter   USE_VALID   = 0,        // s_img_valid ã‚’åˆ©ç”¨ã™ã‚‹
             
             parameter   USER_WIDTH  = TUSER_WIDTH > 1 ? TUSER_WIDTH - 1 : 1
         )

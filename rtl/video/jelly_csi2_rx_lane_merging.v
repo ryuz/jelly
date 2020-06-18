@@ -52,7 +52,7 @@ module jelly_csi2_rx_lane_merging
     for ( i = 0; i < LANE_NUM; i = i+1 ) begin : loop_lane
         jelly_csi2_rx_lane_recv
                 #(
-                    .PRE_DELAY          (i == 0 ? 0 : 2),       // ŠJŽnŽž‚É•K‚¸lane0Šî€‚É‚È‚é‚æ‚¤‚É‚·‚é
+                    .PRE_DELAY          (i == 0 ? 0 : 2),       // é–‹å§‹æ™‚ã«å¿…ãšlane0åŸºæº–ã«ãªã‚‹ã‚ˆã†ã«ã™ã‚‹
                     .FIFO_PTR_WIDTH     (6),
                     .FIFO_RAM_TYPE      ("distributed"),
                     .M_AXI4S_REGS       (0)

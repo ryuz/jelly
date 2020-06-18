@@ -1,5 +1,5 @@
 // --------------------------------------------------------------------------
-//  Jelly ‚Ì GPU•`‰æ—p‚Ìƒ‰ƒCƒuƒ‰ƒŠ
+//  Jelly ã® GPUæç”»ç”¨ã®ãƒ©ã‚¤ãƒ–ãƒ©ãƒª
 //
 //                                     Copyright (C) 2017 by Ryuji Fuchikami
 // --------------------------------------------------------------------------
@@ -20,39 +20,39 @@ template <int SIMULATION=0, class T=float, class TI=int32_t>
 class JellyGL
 {
 	// -----------------------------------------
-	//   Œ^’è‹`
+	//   å‹å®šç¾©
 	// -----------------------------------------
 public:
-	typedef	std::array< std::array<T, 4>, 4>	Mat4;					// s—ñ4x4
-	typedef	std::array<T, 4>					Vec4;					// ƒxƒNƒ^x4
-	typedef	std::array<T, 3>					Vec3;					// ƒxƒNƒ^x3
-	typedef	std::array<T, 2>					Vec2;					// ƒxƒNƒ^x2
-	typedef	std::array<TI, 3>					RasterizerParameter;	// ƒ‰ƒXƒ^ƒ‰ƒCƒUƒpƒ‰ƒ[ƒ^
+	typedef	std::array< std::array<T, 4>, 4>	Mat4;					// è¡Œåˆ—4x4
+	typedef	std::array<T, 4>					Vec4;					// ãƒ™ã‚¯ã‚¿x4
+	typedef	std::array<T, 3>					Vec3;					// ãƒ™ã‚¯ã‚¿x3
+	typedef	std::array<T, 2>					Vec2;					// ãƒ™ã‚¯ã‚¿x2
+	typedef	std::array<TI, 3>					RasterizerParameter;	// ãƒ©ã‚¹ã‚¿ãƒ©ã‚¤ã‚¶ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
 
-	// –Ê’è‹`š‚Ì’¸“_î•ñ
+	// é¢å®šç¾©å­—ã®é ‚ç‚¹æƒ…å ±
 	struct FacePoint {
-		size_t	vertex;			// ’¸“_ƒCƒ“ƒfƒbƒNƒX		
-		size_t	tex_cord;		// ƒeƒNƒXƒ`ƒƒÀ•WƒCƒ“ƒfƒbƒNƒX
-		Vec3	color;			// F
+		size_t	vertex;			// é ‚ç‚¹ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹		
+		size_t	tex_cord;		// ãƒ†ã‚¯ã‚¹ãƒãƒ£åº§æ¨™ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹
+		Vec3	color;			// è‰²
 		FacePoint() {}
 		FacePoint(size_t v, size_t t)         { vertex = v; tex_cord = t; }
 		FacePoint(size_t v, size_t t, Vec3 c) { vertex = v; tex_cord = t; color = c; }
 		FacePoint(size_t v, Vec3 c)           { vertex = v; color = c; }
 	};
 	
-	// –Êî•ñ
+	// é¢æƒ…å ±
 	struct Face {
 		int						matrial;
 		std::vector<FacePoint>	points;
 	};
 
-	// ƒ|ƒŠƒSƒ“—Ìˆæ
+	// ãƒãƒªã‚´ãƒ³é ˜åŸŸ
 	struct PolygonRegion {
 		size_t	edge;
 		bool	inverse;
 	};
 
-	// ƒsƒNƒZƒ‹î•ñ
+	// ãƒ”ã‚¯ã‚»ãƒ«æƒ…å ±
 	struct PixelParam {
 		int		matrial;
 		int		index;
@@ -62,31 +62,31 @@ public:
 	};
 
 protected:
-	typedef	std::array<size_t, 2>	Edge;			// ƒGƒbƒWî•ñ
+	typedef	std::array<size_t, 2>	Edge;			// ã‚¨ãƒƒã‚¸æƒ…å ±
 
-	// ƒ|ƒŠƒSƒ“î•ñ
+	// ãƒãƒªã‚´ãƒ³æƒ…å ±
 	struct Polygon {
 		int							matrial;
-		std::vector<PolygonRegion>	region;			// •`‰æ”ÍˆÍ
-		size_t						vertex[3];		// ’¸“_ƒCƒ“ƒfƒbƒNƒX		
-		size_t						tex_cord[3];	// ƒeƒNƒXƒ`ƒƒÀ•WƒCƒ“ƒfƒbƒNƒX
-		Vec3						color[3];		// F		
+		std::vector<PolygonRegion>	region;			// æç”»ç¯„å›²
+		size_t						vertex[3];		// é ‚ç‚¹ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹		
+		size_t						tex_cord[3];	// ãƒ†ã‚¯ã‚¹ãƒãƒ£åº§æ¨™ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹
+		Vec3						color[3];		// è‰²		
 	};
 
-	// ƒ‰ƒXƒ^ƒ‰ƒCƒYŒW”
+	// ãƒ©ã‚¹ã‚¿ãƒ©ã‚¤ã‚ºä¿‚æ•°
 	struct RasterizeCoeff {
 		TI		dx;
 		TI		dy;
 		TI		c;
 
-		// ƒ‰ƒXƒ^ƒ‰ƒCƒUƒpƒ‰ƒ[ƒ^‚É•ÏŠ·
+		// ãƒ©ã‚¹ã‚¿ãƒ©ã‚¤ã‚¶ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã«å¤‰æ›
 		RasterizerParameter	GetRasterizerParameter(int width)
 		{
 			return {dx, dy - (dx * (TI)(width - 1)), c};
 		}
 	};
 	
-	// ŒvZƒ†ƒjƒbƒg(ƒGƒbƒW”»’è‚Æƒpƒ‰ƒ[ƒ^•âŠ®‚Å‹¤’Ê‰»)
+	// è¨ˆç®—ãƒ¦ãƒ‹ãƒƒãƒˆ(ã‚¨ãƒƒã‚¸åˆ¤å®šã¨ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿è£œå®Œã§å…±é€šåŒ–)
 	class RasterizerUnit
 	{
 	public:
@@ -112,7 +112,7 @@ protected:
 			return m_value;
 		}
 
-		// ƒXƒeƒbƒvŒvZ(ƒn[ƒhƒEƒFƒA‰»‘z’è‰ÓŠ)
+		// ã‚¹ãƒ†ãƒƒãƒ—è¨ˆç®—(ãƒãƒ¼ãƒ‰ã‚¦ã‚§ã‚¢åŒ–æƒ³å®šç®‡æ‰€)
 		void CalcNext(bool line_end)
 		{
 			m_value += line_end ? m_y_stride : m_dx;
@@ -125,7 +125,7 @@ protected:
 
 
 	// -----------------------------------------
-	//  ƒƒ“ƒo•Ï”
+	//  ãƒ¡ãƒ³ãƒå¤‰æ•°
 	// -----------------------------------------
 protected:
 	int							m_width          = 640;
@@ -136,27 +136,27 @@ protected:
 	int							m_shader_param_q = 24;
 	bool						m_perspective_correction = true;
 
-	std::vector<Vec3>			m_vertex;			// ’¸“_ƒŠƒXƒg
-	std::vector<int>			m_vertex_model;		// ’¸“_‚Ì‘®‚·‚éƒ‚ƒfƒ‹”Ô†
-	std::vector<Vec2>			m_tex_cord;			// ƒeƒNƒXƒ`ƒƒÀ•WƒŠƒXƒg
-	std::vector<Face>			m_face;				// •`‰æ–Ê
-	std::vector<Polygon>		m_polygon;			// ƒ|ƒŠƒSƒ“ƒf[ƒ^
+	std::vector<Vec3>			m_vertex;			// é ‚ç‚¹ãƒªã‚¹ãƒˆ
+	std::vector<int>			m_vertex_model;		// é ‚ç‚¹ã®å±ã™ã‚‹ãƒ¢ãƒ‡ãƒ«ç•ªå·
+	std::vector<Vec2>			m_tex_cord;			// ãƒ†ã‚¯ã‚¹ãƒãƒ£åº§æ¨™ãƒªã‚¹ãƒˆ
+	std::vector<Face>			m_face;				// æç”»é¢
+	std::vector<Polygon>		m_polygon;			// ãƒãƒªã‚´ãƒ³ãƒ‡ãƒ¼ã‚¿
 
-	std::vector <Vec4>			m_draw_vertex;		// •`‰æ—p’¸“_ƒŠƒXƒg
+	std::vector <Vec4>			m_draw_vertex;		// æç”»ç”¨é ‚ç‚¹ãƒªã‚¹ãƒˆ
 	
-	std::vector <Mat4>			m_model_matrix;		// ƒ‚ƒfƒ‹s—ñ
-	Mat4						m_view_matrix;		// ƒrƒ…[s—ñ
+	std::vector <Mat4>			m_model_matrix;		// ãƒ¢ãƒ‡ãƒ«è¡Œåˆ—
+	Mat4						m_view_matrix;		// ãƒ“ãƒ¥ãƒ¼è¡Œåˆ—
 	Mat4						m_viewport_matrix;	// viewport
 
-	std::vector<Edge>			m_edge;				// •Ó
-	std::map< Edge, size_t>		m_edge_index;		// •Ó‚ÌƒCƒ“ƒfƒbƒNƒX’Tõ—p
+	std::vector<Edge>			m_edge;				// è¾º
+	std::map< Edge, size_t>		m_edge_index;		// è¾ºã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹æ¢ç´¢ç”¨
 
 
-	std::vector<RasterizeCoeff>					m_coeffsEdge;	// ƒGƒbƒW”»’èƒpƒ‰ƒ[ƒ^ŒW”
-	std::vector< std::vector<RasterizeCoeff> >	m_coeffsShader;	//  ƒVƒF[ƒ_[ƒpƒ‰ƒ[ƒ^ŒW”
+	std::vector<RasterizeCoeff>					m_coeffsEdge;	// ã‚¨ãƒƒã‚¸åˆ¤å®šãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ä¿‚æ•°
+	std::vector< std::vector<RasterizeCoeff> >	m_coeffsShader;	//  ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ä¿‚æ•°
 
 
-	// H/WƒGƒ“ƒWƒ“İ’è
+	// H/Wã‚¨ãƒ³ã‚¸ãƒ³è¨­å®š
 	uint32_t		m_hw_base_addr        = 0x40100000;
 	uint32_t		m_hw_shader_type      = 0;
 	uint32_t		m_hw_version          = 0;
@@ -195,40 +195,40 @@ protected:
 
 
 	// -----------------------------------------
-	//  ƒƒ\ƒbƒh
+	//  ãƒ¡ã‚½ãƒƒãƒ‰
 	// -----------------------------------------
 public:
-	// ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+	// ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	JellyGL()
 	{
 		m_view_matrix     = IdentityMat4();
 		m_viewport_matrix = IdentityMat4();
 	}
 
-	// ƒfƒXƒgƒ‰ƒNƒ^
+	// ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	~JellyGL()
 	{
 	}
 
-	// ¸“xİ’è
+	// ç²¾åº¦è¨­å®š
 	void SetEdgeParamFracWidth(int q)	{ m_edge_param_q   = q;	}
 	void SetShaderParamFracWidth(int q)	{ m_shader_param_q = q;	}
 
-	// ƒTƒCƒYİ’è
+	// ã‚µã‚¤ã‚ºè¨­å®š
 	void SetSize(int width, int height)
 	{
 		m_width  = width;
 		m_height = height;
 	}
 
-	// ƒJƒŠƒ“ƒOİ’è
+	// ã‚«ãƒªãƒ³ã‚°è¨­å®š
 	void SetCulling(bool cw, bool ccw)
 	{
 		m_culling_cw  = cw;
 		m_culling_ccw = ccw;
 	}
 
-	// ’¸“_ƒoƒbƒtƒ@İ’è
+	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡è¨­å®š
 	void SetVertexBuffer(const std::vector<Vec3>& vertex)
 	{
 		m_vertex = vertex;
@@ -237,7 +237,7 @@ public:
 		m_model_matrix.push_back(IdentityMat4());
 	}
 
-	// ƒ‚ƒfƒ‹İ’è
+	// ãƒ¢ãƒ‡ãƒ«è¨­å®š
 	void SetModel(int model, int begin, int end)
 	{
 		while ( model >= (int)m_model_matrix.size() ) {
@@ -248,31 +248,31 @@ public:
 		}
 	}
 	
-	// ƒeƒNƒXƒ`ƒƒÀ•Wƒoƒbƒtƒ@İ’è
+	// ãƒ†ã‚¯ã‚¹ãƒãƒ£åº§æ¨™ãƒãƒƒãƒ•ã‚¡è¨­å®š
 	void SetTexCordBuffer(const std::vector<Vec2>& tex_cord)
 	{
 		m_tex_cord = tex_cord;
 	}
 
-	// –Êƒoƒbƒtƒ@İ’è
+	// é¢ãƒãƒƒãƒ•ã‚¡è¨­å®š
 	void SetFaceBuffer(const std::vector<Face>& face)
 	{
 		m_face = face;
 	}
 	
-	// Viewportİ’è
+	// Viewportè¨­å®š
 	void SetViewport(int x, int y, int width, int height)
 	{
 		m_viewport_matrix = ViewportMat4(x,y ,width, height); 
 	}
 
-	// Viewƒ}ƒgƒŠƒbƒNƒXİ’è
+	// Viewãƒãƒˆãƒªãƒƒã‚¯ã‚¹è¨­å®š
 	void SetViewMatrix(Mat4 mat)
 	{
 		m_view_matrix = mat;
 	}
 
-	// Modelƒ}ƒgƒŠƒbƒNƒXİ’è
+	// Modelãƒãƒˆãƒªãƒƒã‚¯ã‚¹è¨­å®š
 	void SetModelMatrix(int model, Mat4 mat)
 	{
 		while ( model >= (int)m_model_matrix.size() ) {
@@ -281,13 +281,13 @@ public:
 		m_model_matrix[model] = mat;
 	}
 
-	// •`‰æƒŠƒXƒg¶¬
+	// æç”»ãƒªã‚¹ãƒˆç”Ÿæˆ
 	void MakeDrawList(void)
 	{
 		for ( auto f : m_face ) {
 			Polygon	polygon;
 
-			// •`‰æ”ÍˆÍİ’è
+			// æç”»ç¯„å›²è¨­å®š
 			for ( size_t i = 0; i < f.points.size(); ++i ) {
 				size_t j = (i + 1) % f.points.size();
 
@@ -304,19 +304,19 @@ public:
 					region.inverse = true;
 				}
 
-				// ƒGƒbƒW‚Ì“o˜^
+				// ã‚¨ãƒƒã‚¸ã®ç™»éŒ²
 				if ( m_edge_index.find(edge) == m_edge_index.end() ) {
-					// V‹K“o˜^
+					// æ–°è¦ç™»éŒ²
 					region.edge = m_edge.size();
 					m_edge.push_back(edge);
 					m_edge_index[edge] = region.edge;
 				}
 				else {
-					// Šù‚É“o˜^‚ ‚è
+					// æ—¢ã«ç™»éŒ²ã‚ã‚Š
 					region.edge = m_edge_index[edge];
 				}
 
-				// “o˜^
+				// ç™»éŒ²
 				polygon.region.push_back(region);
 			}
 
@@ -333,22 +333,22 @@ public:
 	}
 	
 
-	// •`‰æÀ{
+	// æç”»å®Ÿæ–½
 	void DrawSetup(void)
 	{
-		// ƒ}ƒgƒŠƒbƒNƒXì¬
+		// ãƒãƒˆãƒªãƒƒã‚¯ã‚¹ä½œæˆ
 		std::vector<Mat4> matrix;
 		for ( auto& mat : m_model_matrix ) {
 			matrix.push_back(MulMat(m_viewport_matrix, MulMat(m_view_matrix, mat)));
 		}
 
-		// ’¸“_À•WŒvZ
+		// é ‚ç‚¹åº§æ¨™è¨ˆç®—
 		m_draw_vertex.clear();
 		for ( size_t i = 0; i < m_vertex.size(); ++i ) {
 			m_draw_vertex.push_back(MulPerspectiveVec4(matrix[m_vertex_model[i]] , m_vertex[i]));
 		}
 
-		// ƒ‰ƒXƒ^ƒ‰ƒCƒUƒpƒ‰ƒ[ƒ^¶¬
+		// ãƒ©ã‚¹ã‚¿ãƒ©ã‚¤ã‚¶ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ç”Ÿæˆ
 		m_coeffsEdge.clear();
 		for ( auto edge : m_edge ) {
 			m_coeffsEdge.push_back(EdgeToRasterizeCoeff(m_draw_vertex[edge[0]], m_draw_vertex[edge[1]], m_edge_param_q));
@@ -395,7 +395,7 @@ public:
 	}
 	
 
-	// ƒ‰ƒXƒ^ƒ‰ƒCƒUİ’è—pƒpƒ‰ƒ[ƒ^Zo(edge)
+	// ãƒ©ã‚¹ã‚¿ãƒ©ã‚¤ã‚¶è¨­å®šç”¨ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ç®—å‡º(edge)
 	void CalcEdgeRasterizerParameter(void (*procEdge)(size_t index, RasterizerParameter rp, void* user), void* user=0)				
 	{
 		// edge
@@ -404,7 +404,7 @@ public:
 		}
 	}
 
-	// ƒ‰ƒXƒ^ƒ‰ƒCƒUİ’è—pƒpƒ‰ƒ[ƒ^Zo(shader)
+	// ãƒ©ã‚¹ã‚¿ãƒ©ã‚¤ã‚¶è¨­å®šç”¨ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ç®—å‡º(shader)
 	void CalcShaderRasterizerParameter(void (*procShader)(size_t index, const std::vector<RasterizerParameter>& rps, void* user), void* user=0)
 	{
 		// shader param
@@ -417,7 +417,7 @@ public:
 		}
 	}
 	
-	// ƒ‰ƒXƒ^ƒ‰ƒCƒUİ’è—pƒpƒ‰ƒ[ƒ^Zo(region)
+	// ãƒ©ã‚¹ã‚¿ãƒ©ã‚¤ã‚¶è¨­å®šç”¨ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ç®—å‡º(region)
 	void CalcRegionRasterizerParameter(void (*procRegion)(size_t index, const std::vector<PolygonRegion>& region, void* user), void* user=0)
 	{
 		// region
@@ -426,10 +426,10 @@ public:
 		}
 	}
 	
-	// •`‰æƒVƒ~ƒ…ƒŒ[ƒVƒ‡ƒ“
+	// æç”»ã‚·ãƒŸãƒ¥ãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³
 	void Draw(void (*proc)(int x, int y, bool polygon, PixelParam pp, void* user), void* user=0)
 	{
-		// ŒvZ—pƒ†ƒjƒbƒgİ’è
+		// è¨ˆç®—ç”¨ãƒ¦ãƒ‹ãƒƒãƒˆè¨­å®š
 		std::vector<RasterizerUnit> rasterizerEdge;
 		for ( auto& rc : m_coeffsEdge ) {
 			rasterizerEdge.push_back(RasterizerUnit(rc.GetRasterizerParameter(m_width)));
@@ -443,16 +443,16 @@ public:
 			rasterizerParam.push_back(vec);
 		}
 
-		// •`‰æ		
+		// æç”»		
 		std::vector<bool>	edge_flags(m_coeffsEdge.size());
 		for ( int y = 0; y < m_height; ++y ) {
 			for ( int x = 0; x < m_width; ++x ) {
-				// ƒGƒbƒW”»’è
+				// ã‚¨ãƒƒã‚¸åˆ¤å®š
 				for ( size_t i = 0; i < rasterizerEdge.size(); ++i ) {
 					edge_flags[i] = rasterizerEdge[i].GetEdgeDiscriminantValue();
 				}
 				
-				// Z”»’è
+				// Zåˆ¤å®š
 				PixelParam	pp = {};
 				bool		valid = false;
 				for ( size_t i = 0; i < m_polygon.size(); ++i ) {
@@ -492,10 +492,10 @@ public:
 					}
 				}
 
-				// •`‰æˆ—
+				// æç”»å‡¦ç†
 				proc(x, y, valid, pp, user);
 
-				// ƒpƒ‰ƒ[ƒ^ƒCƒ“ƒNƒŠƒƒ“ƒg
+				// ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚¤ãƒ³ã‚¯ãƒªãƒ¡ãƒ³ãƒˆ
 				for ( auto& ras : rasterizerEdge ) {
 					ras.CalcNext(x == (m_width-1));
 				}
@@ -510,7 +510,7 @@ public:
 
 
 protected:
-	// —Ìˆæ”»’è
+	// é ˜åŸŸåˆ¤å®š
 	bool CheckRegion(const std::vector<PolygonRegion>& region, const std::vector<bool>& edge_flags) {
 		bool	and_flag = true;
 		bool	or_flag  = false;
@@ -522,7 +522,7 @@ protected:
 		return (m_culling_cw && and_flag) || (m_culling_ccw && !or_flag);
 	}
 	
-	// ƒGƒbƒW”»’èŒW”Zo
+	// ã‚¨ãƒƒã‚¸åˆ¤å®šä¿‚æ•°ç®—å‡º
 	RasterizeCoeff	EdgeToRasterizeCoeff(Vec4 v0, Vec4 v1, int param_q)
 	{
 		TI ix0 = (TI)round(v0[0]);
@@ -544,7 +544,7 @@ protected:
 		return rc;
 	}
 
-	// ƒ|ƒŠƒSƒ“ƒpƒ‰ƒ[ƒ^ŒW”ŒvZ
+	// ãƒãƒªã‚´ãƒ³ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ä¿‚æ•°è¨ˆç®—
 	RasterizeCoeff	ShaderParamToRasterizeCoeff(Vec3 vertex[3], int param_q)
 	{
 		Vec3	vector0 = SubVec3(vertex[1], vertex[0]);
@@ -565,24 +565,24 @@ protected:
 	
 
 	// -----------------------------------------
-	//  H/W§Œä
+	//  H/Wåˆ¶å¾¡
 	// -----------------------------------------
 
 protected:
-	// H/W‘‚«‚İ
+	// H/Wæ›¸ãè¾¼ã¿
 	inline void WriteHwWord(uint32_t addr, uint32_t data)
 	{
 		if ( SIMULATION == 0 ) {
-			// À‹@
+			// å®Ÿæ©Ÿ
 			*(volatile uint32_t*)addr = data;
 		}
 		else if ( SIMULATION == 1 ) {
-			// verilog testbench—p
+			// verilog testbenchç”¨
 			printf("wb_write(32'h%08lx, 32'h%08lx, 4'hf);\n", (unsigned long)addr, (unsigned long)data);
 		}
 	}
 
-	// H/W“Ç‚İo‚µ
+	// H/Wèª­ã¿å‡ºã—
 	inline uint32_t ReadHwWord(uint32_t addr)
 	{
 		if ( SIMULATION == 0 ) {
@@ -592,13 +592,13 @@ protected:
 		return 0;
 	}
 
-	// ƒAƒhƒŒƒXæ“¾
+	// ã‚¢ãƒ‰ãƒ¬ã‚¹å–å¾—
 	inline uint32_t GetHwParamAddr(uint32_t bank, uint32_t param)
 	{
 		return m_hw_base_addr + (bank * m_hw_bank_step) + (param * m_hw_params_step);
 	}
 
-	// ƒ‰ƒXƒ^ƒ‰ƒCƒUİ’è
+	// ãƒ©ã‚¹ã‚¿ãƒ©ã‚¤ã‚¶è¨­å®š
 	inline void WriteHwRasterizerParameter(uint32_t& addr, const RasterizerParameter& rp)
 	{
 		WriteHwWord(addr, rp[0]);	addr += 4;
@@ -606,13 +606,13 @@ protected:
 		WriteHwWord(addr, rp[2]);	addr += 4;
 	}
 
-	// ƒŒƒWƒXƒ^‘‚«‚İ
+	// ãƒ¬ã‚¸ã‚¹ã‚¿æ›¸ãè¾¼ã¿
 	void WriteHwRegister(uint32_t addr, uint32_t data)
 	{
 		WriteHwWord(m_hw_base_addr + addr, data);
 	}
 
-	// ƒŒƒWƒXƒ^“Ç‚İ‚İ
+	// ãƒ¬ã‚¸ã‚¹ã‚¿èª­ã¿è¾¼ã¿
 	uint32_t ReadHwRegister(uint32_t add)
 	{
 		return ReadHwWord(m_hw_base_addr + add);
@@ -620,13 +620,13 @@ protected:
 
 #if 0
 	
-	// ƒpƒ‰ƒ[ƒ^ƒŒƒWƒXƒ^‘‚«‚İ
+	// ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ãƒ¬ã‚¸ã‚¹ã‚¿æ›¸ãè¾¼ã¿
 	void WriteHwParamRegister(uint32_t bank, uint32_t param, uint32_t addr, uint32_t data)
 	{
 		WriteHwRegister((bank * m_hw_bank_step) + (param * m_hw_params_step) + addr, data);
 	}
 	
-	// ƒGƒbƒWƒpƒ‰ƒ[ƒ^‘‚«‚İ
+	// ã‚¨ãƒƒã‚¸ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿æ›¸ãè¾¼ã¿
 	void WriteHwEdgeParam(uint32_t bank, uint32_t index, RasterizerParameter rp)
 	{
 		uint32_t addr = index * 3 * 4;
@@ -635,7 +635,7 @@ protected:
 		WriteHwParamRegister(bank, 1, addr, rp[2]);
 	}
 
-	// ƒVƒF[ƒ_[ƒpƒ‰ƒ[ƒ^‘‚«‚İ
+	// ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿æ›¸ãè¾¼ã¿
 	void WriteHwEdgeParam(uint32_t bank, uint32_t polygon_index, uint32_t param_index, RasterizerParameter rp)
 	{
 		uint32_t addr = (polygon_index * m_hw_shader_param_num + param_index) * 3 * 4;
@@ -644,7 +644,7 @@ protected:
 		WriteHwParamRegister(bank, 2, addr, rp[2]);
 	}
 
-	// —Ìˆæƒpƒ‰ƒ[ƒ^‘‚«‚İ
+	// é ˜åŸŸãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿æ›¸ãè¾¼ã¿
 	void WriteHwEdgeParam(uint32_t bank, uint32_t index, uint32_t flag, uint32_t polality)
 	{
 		uint32_t addr = index * 2 * 4;
@@ -654,13 +654,13 @@ protected:
 #endif
 
 public:
-	// H/W‰Šú‰»
+	// H/WåˆæœŸåŒ–
 	void SetupHwCore(uint32_t base_addr, bool auto_config=true)
 	{
-		// ƒx[ƒXƒAƒhƒŒƒXİ’è
+		// ãƒ™ãƒ¼ã‚¹ã‚¢ãƒ‰ãƒ¬ã‚¹è¨­å®š
 		m_hw_base_addr = base_addr;
 
-		// İ’è“Ç‚İo‚µ
+		// è¨­å®šèª­ã¿å‡ºã—
 		if ( auto_config ) {
 			m_hw_shader_type      = ReadHwRegister(REG_ADDR_CFG_SHDER_TYPE);
 			m_hw_version          = ReadHwRegister(REG_ADDR_CFG_VERSION);
@@ -681,7 +681,7 @@ public:
 		}
 	}
 
-	// •`‰æÀ{
+	// æç”»å®Ÿæ–½
 	void DrawHw(uint32_t bank)
 	{
 		uint32_t addr;
@@ -714,7 +714,7 @@ public:
 		addr = GetHwParamAddr(bank, 3);
 		for ( uint32_t index = 0; index < m_hw_polygon_num; ++index ) {
 			if ( (size_t)index < m_polygon.size() ) {
-				// bitƒ}ƒXƒN¶¬
+				// bitãƒã‚¹ã‚¯ç”Ÿæˆ
 				unsigned long edge_flag = 0;
 				unsigned long pol_flag  = 0;
 				for ( auto& r : m_polygon[index].region ) {
@@ -736,10 +736,10 @@ public:
 
 
 	// -----------------------------------------
-	//  CG—ps—ñŒvZ•â•ŠÖ”
+	//  CGç”¨è¡Œåˆ—è¨ˆç®—è£œåŠ©é–¢æ•°
 	// -----------------------------------------
 public:
-	// ƒrƒ…[ƒ|[ƒgİ’è
+	// ãƒ“ãƒ¥ãƒ¼ãƒãƒ¼ãƒˆè¨­å®š
 	static	Mat4 ViewportMat4(int x, int y, int width, int height)
 	{
 		Mat4 mat = IdentityMat4();
@@ -750,7 +750,7 @@ public:
 		return mat;
 	}
 
-	// ‹“_İ’è
+	// è¦–ç‚¹è¨­å®š
 	static	Mat4 LookAtMat4(Vec3 eye, Vec3 center, Vec3 up)
 	{
 		up = NormalizeVec3(up);
@@ -764,7 +764,7 @@ public:
 		return MulMat(mat, TranslatedMat4(NegVec3(eye)));
 	}
 
-	// •½sˆÚ“®
+	// å¹³è¡Œç§»å‹•
 	static	Mat4 TranslatedMat4(Vec3 translated)
 	{
 		Mat4 mat = IdentityMat4();
@@ -774,7 +774,7 @@ public:
 		return mat;
 	}
 	
-	// ‰ñ“]
+	// å›è»¢
 	static	Mat4 RotateMat4(T angle,  Vec3 up)
 	{
 		angle *= (T)(3.14159265358979 / 180.0);
@@ -795,7 +795,7 @@ public:
 		return mat;
 	}
 
-	// ‹“_İ’è
+	// è¦–ç‚¹è¨­å®š
 	static	Mat4 PerspectiveMat4(T fovy, T aspect, T zNear, T zFar)
 	{
 		fovy *= (T)(3.14159265358979 / 180.0);
@@ -812,10 +812,10 @@ public:
 	
 	
 	// -----------------------------------------
-	//  s—ñŒvZ•â•ŠÖ”
+	//  è¡Œåˆ—è¨ˆç®—è£œåŠ©é–¢æ•°
 	// -----------------------------------------
 public:
-	// ’PˆÊs—ñ¶¬
+	// å˜ä½è¡Œåˆ—ç”Ÿæˆ
 	static	Mat4 IdentityMat4(void)
 	{
 		Mat4	mat;
@@ -827,7 +827,7 @@ public:
 		return mat;
 	}
 	
-	// ’PˆÊs—ñ¶¬
+	// å˜ä½è¡Œåˆ—ç”Ÿæˆ
 	static	Mat4 ZeroMat4(void)
 	{
 		Mat4	mat;
@@ -840,7 +840,7 @@ public:
 	}
 
 
-	// s—ñæZ
+	// è¡Œåˆ—ä¹—ç®—
 	static	Mat4 MulMat(const Mat4 matSrc0, const Mat4 matSrc1)
 	{
 		Mat4	matDst;
@@ -855,7 +855,7 @@ public:
 		return matDst;
 	}
 
-	// s—ñ‚ÌƒxƒNƒ^‚Ö‚Ì“K—p
+	// è¡Œåˆ—ã®ãƒ™ã‚¯ã‚¿ã¸ã®é©ç”¨
 	static	Vec4 MulMat(const Mat4 matSrc, const Vec4 vecSrc)
 	{
 		Vec4 vecDst;
@@ -868,7 +868,7 @@ public:
 		return vecDst;
 	}
 	
-	// s—ñ‚ÌƒxƒNƒ^‚Ö‚Ì“K—p(Ë‰e)
+	// è¡Œåˆ—ã®ãƒ™ã‚¯ã‚¿ã¸ã®é©ç”¨(å°„å½±)
 	static	Vec3 MulPerspectiveVec3(const Mat4 matSrc, const Vec3 vecSrc)
 	{
 		Vec4	vecIn;
@@ -888,7 +888,7 @@ public:
 	}
 	
 
-	// s—ñ‚ÌƒxƒNƒ^‚Ö‚Ì“K—p(Ë‰e)
+	// è¡Œåˆ—ã®ãƒ™ã‚¯ã‚¿ã¸ã®é©ç”¨(å°„å½±)
 	static	Vec4 MulPerspectiveVec4(const Mat4 matSrc, const Vec3 vecSrc)
 	{
 		Vec4	vecIn;
@@ -906,7 +906,7 @@ public:
 		return vecDst;
 	}
 
-	// ƒxƒNƒgƒ‹‚Ì•„†”½“]
+	// ãƒ™ã‚¯ãƒˆãƒ«ã®ç¬¦å·åè»¢
 	static	Vec3 NegVec3(const Vec3 vecSrc) {
 		Vec3 vecDst;
 		for ( size_t i = 0; i < vecDst.size(); i++ ) {
@@ -915,7 +915,7 @@ public:
 		return vecDst;
 	}
 
-	// ƒxƒNƒgƒ‹‚ÌŒ¸Z
+	// ãƒ™ã‚¯ãƒˆãƒ«ã®æ¸›ç®—
 	static	Vec3 SubVec3(const Vec3 vec0, const Vec3 vec1) {
 		Vec3 vecDst;
 		for ( size_t i = 0; i < vecDst.size(); i++ ) {
@@ -924,7 +924,7 @@ public:
 		return vecDst;
 	}
 	
-	// ƒxƒNƒgƒ‹‚ÌŠOÏ
+	// ãƒ™ã‚¯ãƒˆãƒ«ã®å¤–ç©
 	static	Vec3 CrossVec3(const Vec3 vec0, const Vec3 vec1)
 	{
 		Vec3	vecCross;
@@ -934,7 +934,7 @@ public:
 		return vecCross;
 	}
 
-	// ƒmƒ‹ƒ€ŒvZ
+	// ãƒãƒ«ãƒ è¨ˆç®—
 	static	T NormVec3(const Vec3 vec)
 	{
 		T norm = 0;
@@ -944,7 +944,7 @@ public:
 		return sqrt(norm);
 	}
 
-	// ’PˆÊƒxƒNƒgƒ‹‰»
+	// å˜ä½ãƒ™ã‚¯ãƒˆãƒ«åŒ–
 	static	Vec3 NormalizeVec3(const Vec3 vec)
 	{
 		T norm = NormVec3(vec);

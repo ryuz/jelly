@@ -1,48 +1,48 @@
 # Jelly -- SoC platform for FPGA
 
-## �T�v
+## 概要
 
-MIPS�݊���CPU�R�A�������n�߂��̂����������ł����A����ł�FPGA��SoC����������ׂ̃v���b�g�t�H�[���ɂȂ����܂��B
-��� Xilinx ��FPGA���^�[�Q�b�g�ɂ����A�l�X�ȃR�[�h��~�ς��Ă���A��� Verilog 2001 �ŊJ�����Ă���܂��B
+MIPS互換のCPUコアを書き始めたのがきっかけですが、現状ではFPGAでSoCを実現する為のプラットフォームになりつつあります。
+主に Xilinx のFPGAをターゲットにした、様々なコードを蓄積しており、主に Verilog 2001 で開発しております。
 
-�ŋ߂́A�M�҂̔��Ă���FPGA�p�̃o�C�i���j���[�����l�b�g�ł��� LUT-Network �̎��s�ɂ��ꕔ�R�[�h�𗬗p���Ă���A�d�v�������܂��Ă���܂��B
+最近は、筆者の発案したFPGA用のバイナリニューラルネットである LUT-Network の実行にも一部コードを流用しており、重要性が高まっております。
 
-��{�I�ɂ͐F�X�Ȃ��̂��������ςŊ܂�ł���󋵂ł��B
+基本的には色々なものをごった煮で含んでいる状況です。
 
 
-## MIPS-I �݊��v���Z�b�T
+## MIPS-I 互換プロセッサ
 
 /rtl/cpu/
-�ȉ��ɂ���܂��B
+以下にあります。
 
-Verilog�̕׋����n�߂����� Spartan-3 �����Ɏ����ɏ����Ă݂��v���Z�b�T�ł��B
+Verilogの勉強を始めた頃に Spartan-3 向けに試しに書いてみたプロセッサです。
 
-�u���b�N�}�Ȃǂ�[Web�T�C�g](http://ryuz.my.coocan.jp/jelly/index.html)�̕��ɂ���܂��B
+ブロック図などは[Webサイト](http://ryuz.my.coocan.jp/jelly/index.html)の方にあります。
 
 
-## ���A���^�C��GPU
+## リアルタイムGPU
 
 /rtl/gpu
-�ȉ��ɂ���܂��B
+以下にあります。
 
-�t���[�����������g��Ȃ��t�B���^�^�̒�x���ȃ��A���^�C���`���ڎw�������̂ł��B
+フレームメモリを使わないフィルタ型の低遅延なリアルタイム描画を目指したものです。
 
-[����](https://www.youtube.com/watch?v=vl-lhSOOlSk)�͂�����ł��B
-
-
-## ���C�u�����Q
-
-���͂₱�ꂪ Jelly �̃��C�������ł�
-
-- rtl/library      FIFO�Ƃ�RAM�Ƃ��l�X��RTL�̃p�[�c
-- rtl/bus          AXI�Ƃ�WISHBONE�Ƃ��̃o�X�u���b�W���̃p�[�c
-- rtl/math         GPU�Ƃ��Ŏg���悤�ȎZ�p�p�[�c
-- rtl/peripheral   UART�Ƃ�I2C�Ƃ�TIMER�Ƃ��̂̃p�[�c
-- rtl/video        DVI�Ƃ�HDMI�Ƃ��̃r�f�I����
-- rtl/image        �摜�����p�p�[�c(�j���[�����l�b�g�̏�ݍ��݂ł����p)
-- rtl/model        �V�~�����[�V�����p�֗̕����f�����낢��
+[動画](https://www.youtube.com/watch?v=vl-lhSOOlSk)はこちらです。
 
 
-## ���C�Z���X
-  license.txt �ɂ���ʂ�AMIT ���C�Z���X�Ƃ��Ēu���Ă����܂��B
+## ライブラリ群
+
+もはやこれが Jelly のメインかもです
+
+- rtl/library      FIFOとかRAMとか様々なRTLのパーツ
+- rtl/bus          AXIとかWISHBONEとかのバスブリッジ等のパーツ
+- rtl/math         GPUとかで使うような算術パーツ
+- rtl/peripheral   UARTとかI2CとかTIMERとかののパーツ
+- rtl/video        DVIとかHDMIとかのビデオ処理
+- rtl/image        画像処理用パーツ(ニューラルネットの畳み込みでも利用)
+- rtl/model        シミュレーション用の便利モデルいろいろ
+
+
+## ライセンス
+  license.txt にある通り、MIT ライセンスとして置いておきます。
 

@@ -11,7 +11,7 @@
 `default_nettype none
 
 
-// AXI4 Ç… Write
+// AXI4 „Å´ Write
 module jelly_axi4_writer
         #(
             parameter   S_LEN_WIDTH            = 24,

@@ -13,7 +13,7 @@
 
 
 
-//  AXI ‚É‘Î‚·‚éƒAƒhƒŒƒXƒRƒ}ƒ“ƒhƒAƒ‰ƒCƒ“’²®(4k‹«ŠEŒ×‚¬•ªŠ„—p)
+//  AXI ã«å¯¾ã™ã‚‹ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚³ãƒžãƒ³ãƒ‰ã‚¢ãƒ©ã‚¤ãƒ³èª¿æ•´(4kå¢ƒç•Œè·¨ãŽåˆ†å‰²ç”¨)
 module jelly_axi_addr_align
         #(
             parameter   BYPASS        = 0,

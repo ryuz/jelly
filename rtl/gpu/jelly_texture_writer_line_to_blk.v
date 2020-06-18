@@ -13,7 +13,7 @@
 
 
 
-// ƒpƒ‰ƒ[ƒ^‚ğ•Ï‚¦‚éê‡‚Í busy ‚ª—‚¿‚Ä‚©‚çs‚¤‚±‚Æ
+// ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’å¤‰ãˆã‚‹å ´åˆã¯ busy ãŒè½ã¡ã¦ã‹ã‚‰è¡Œã†ã“ã¨
 
 module jelly_texture_writer_line_to_blk
         #(
@@ -264,7 +264,7 @@ module jelly_texture_writer_line_to_blk
         end
         else begin
             if ( !wr_busy ) begin
-                wr_busy       <= (enable && (s_first && s_valid));  // frame start ‚ÅŠJn
+                wr_busy       <= (enable && (s_first && s_valid));  // frame start ã§é–‹å§‹
                 wr_blk_x_num  <= blk_x_num;
                 wr_step_y_num <= step_y_num;
                 wr_stride_c   <= param_stride_c;
@@ -297,7 +297,7 @@ module jelly_texture_writer_line_to_blk
         end
         else if ( wr_cke ) begin
             if ( !wr_busy ) begin
-                // ƒ|ƒCƒ“ƒ^ƒAƒhƒŒƒX‚Í‚»‚Ì‚Ü‚Ü‚É‘¼‚Ì—v‘f‚ğƒŠƒZƒbƒg
+                // ãƒã‚¤ãƒ³ã‚¿ã‚¢ãƒ‰ãƒ¬ã‚¹ã¯ãã®ã¾ã¾ã«ä»–ã®è¦ç´ ã‚’ãƒªã‚»ãƒƒãƒˆ
                 wr0_x_count      <= {PIX_X_WIDTH{1'b0}};
                 wr0_x_last       <= (PIX_X_NUM == 1);
                 wr0_blk_count    <= {BLK_X_WIDTH{1'b0}};
@@ -368,7 +368,7 @@ module jelly_texture_writer_line_to_blk
         end
         else if ( wr_cke ) begin
             if ( !wr_busy ) begin
-                // ƒ|ƒCƒ“ƒ^ƒAƒhƒŒƒX‚Í‚»‚Ì‚Ü‚Ü‚É‘¼‚Ì—v‘f‚ğƒŠƒZƒbƒg
+                // ãƒã‚¤ãƒ³ã‚¿ã‚¢ãƒ‰ãƒ¬ã‚¹ã¯ãã®ã¾ã¾ã«ä»–ã®è¦ç´ ã‚’ãƒªã‚»ãƒƒãƒˆ
                 wr0_x_count      <= {PIX_X_WIDTH{1'b0}};
                 wr0_x_last       <= (PIX_X_NUM == 1);
                 wr0_blk_count    <= {BLK_X_WIDTH{1'b0}};
@@ -424,7 +424,7 @@ module jelly_texture_writer_line_to_blk
     
     assign  wr_cke      = !buf_full;
     
-    assign  s_ready     = wr_cke && (wr_busy || !(s_valid & s_first));  // ”ñbusy  frame start ˆÈŠO‚ğƒXƒLƒbƒv
+    assign  s_ready     = wr_cke && (wr_busy || !(s_valid & s_first));  // ébusy æ™‚ frame start ä»¥å¤–ã‚’ã‚¹ã‚­ãƒƒãƒ—
     
     assign  buf_wr_req  = (wr_cke && wr0_valid && wr0_x_last && wr0_step_y_last && wr0_blk_last);
     assign  buf_wr_end  = (wr_cke && wr0_valid && wr0_x_last && wr0_step_y_last);
@@ -497,7 +497,7 @@ module jelly_texture_writer_line_to_blk
         end
         else begin
             if ( !rd_busy ) begin
-                // Šeƒpƒ‰ƒ[ƒ^‚Í wr ‚©‚ç“`”d
+                // å„ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã¯ wr ã‹ã‚‰ä¼æ’­
                 rd_ready      <= wr_busy;
                 rd_busy       <= wr_busy;
                 rd_blk_x_num  <= wr_blk_x_num;
@@ -554,7 +554,7 @@ module jelly_texture_writer_line_to_blk
         end
         else if ( rd_cke ) begin
             if ( !rd_busy ) begin
-                // ƒ|ƒCƒ“ƒ^ƒAƒhƒŒƒX‚Í‚»‚Ì‚Ü‚Ü‚É‘¼‚Ì—v‘f‚ğƒŠƒZƒbƒg
+                // ãƒã‚¤ãƒ³ã‚¿ã‚¢ãƒ‰ãƒ¬ã‚¹ã¯ãã®ã¾ã¾ã«ä»–ã®è¦ç´ ã‚’ãƒªã‚»ãƒƒãƒˆ
                 rd0_pix_count    <= {PIX_STEP_WIDTH{1'b0}};
                 rd0_pix_last     <= (PIX_STEP_NUM == M_UNIT);
                 rd0_cmp_count    <= {COMPONENT_SEL_WIDTH{1'b0}};

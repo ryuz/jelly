@@ -20,7 +20,7 @@ module jelly_bus_shift
             parameter   DATA_WIDTH    = 8,
             
             parameter   LEFT          = 0,
-            parameter   ARITHMETIC    = 0,      // <- Žg‚í‚È‚¢H
+            parameter   ARITHMETIC    = 0,      // <- ä½¿ã‚ãªã„ï¼Ÿ
             parameter   ROTATION      = 0,
             
             parameter   USE_PRIMITIVE = 0,

@@ -60,7 +60,7 @@ module jelly_vdma_axi4_to_axi4s
             parameter   WB_DAT_WIDTH        = 32,
             parameter   WB_SEL_WIDTH        = (WB_DAT_WIDTH / 8),
             
-            parameter   TRIG_ASYNC          = 1,    // WISHBONE�Ɣ񓯊��̏ꍇ
+            parameter   TRIG_ASYNC          = 1,    // WISHBONEと非同期の場合
             parameter   TRIG_START_ENABLE   = 0,
             
             parameter   INIT_CTL_CONTROL    = 4'b0000,

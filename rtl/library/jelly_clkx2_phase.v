@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-// 倍速クロック位相検知
+// 蛟埼溘け繝ｭ繝�繧ｯ菴咲嶌讀懃衍
 module jelly_clkx2_phase
         #(
             parameter   DATA_WIDTH = 32

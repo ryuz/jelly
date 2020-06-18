@@ -10,7 +10,7 @@ typedef	JellyGL<1>	JGL;
 
 #if 1
 
-// ƒ‚ƒfƒ‹‚Ì’¸“_ƒŠƒXƒg
+// ãƒ¢ãƒ‡ãƒ«ã®é ‚ç‚¹ãƒªã‚¹ãƒˆ
 std::array<float, 3> table_vertex[8*2] = {
 	{-2, -2, -2},
 	{+2, -2, -2},
@@ -30,7 +30,7 @@ std::array<float, 3> table_vertex[8*2] = {
 	{+1, +1, +1},
 };
 
-// ƒeƒNƒXƒ`ƒƒÀ•WƒŠƒXƒg
+// ãƒ†ã‚¯ã‚¹ãƒãƒ£åº§æ¨™ãƒªã‚¹ãƒˆ
 std::array<float, 2> table_tex_cord[4] = {
 	{0, 0},
 	{1, 0},
@@ -39,12 +39,12 @@ std::array<float, 2> table_tex_cord[4] = {
 };
 
 
-// •`‰æ
+// æç”»
 cv::Mat img;
 cv::Mat imgTex[2];
 
 
-// •`‰æƒvƒƒV[ƒWƒƒ
+// æç”»ãƒ—ãƒ­ã‚·ãƒ¼ã‚¸ãƒ£
 void RenderProc(int x, int y, bool polygon, JGL::PixelParam pp, void* user)
 {
 	cv::Mat& tex = imgTex[pp.matrial];
@@ -87,7 +87,7 @@ void PrintSimRasterizerParameter(unsigned int addr, JGL::RasterizerParameter rp)
 }
 
 
-// ƒpƒ‰ƒ[ƒ^o—Í
+// ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿å‡ºåŠ›
 void SimEdgeParamProc(size_t index, JGL::RasterizerParameter rp, void* user)
 {
 	unsigned int	addr = 0x1000 + ((unsigned int)index * 3*4);
@@ -105,7 +105,7 @@ void SimShadereParamProc(size_t index, const std::vector<JGL::RasterizerParamete
 
 void SimRegionParamProc(size_t index, const std::vector<JGL::PolygonRegion>& regions, void* user)
 {
-	// bitƒ}ƒXƒN¶¬
+	// bitãƒã‚¹ã‚¯ç”Ÿæˆ
 	unsigned long edge_flag = 0;
 	unsigned long pol_flag  = 0;
 	for ( auto& r : regions ) {
@@ -115,7 +115,7 @@ void SimRegionParamProc(size_t index, const std::vector<JGL::PolygonRegion>& reg
 		}
 	}
 
-	// o—Í
+	// å‡ºåŠ›
 	unsigned int	addr = 0x3000 + ((unsigned int)index * 2*4);
 	PrintSimWbWrite(addr, edge_flag);	addr += 4;
 	PrintSimWbWrite(addr, pol_flag);	addr += 4;
@@ -156,7 +156,7 @@ void main(void)
 	std::vector<JGL::Face>	face_table;
 	JGL::Face				f;
 	
-	// ƒLƒ…[ƒu‚Ì‚U–Ê‚ğİ’è
+	// ã‚­ãƒ¥ãƒ¼ãƒ–ã®ï¼–é¢ã‚’è¨­å®š
 	f.matrial = 0;
 	f.points.clear();
 	f.points.push_back(JGL::FacePoint(0, 0, {0.5f, 0.0f, 0.0f}));
@@ -201,7 +201,7 @@ void main(void)
 	face_table.push_back(f);
 
 #if 0
-	// ‚QŒÂ–Ú‚ÌƒLƒ…[ƒu‚Ì‚U–Ê‚ğİ’è
+	// ï¼’å€‹ç›®ã®ã‚­ãƒ¥ãƒ¼ãƒ–ã®ï¼–é¢ã‚’è¨­å®š
 	f.matrial = 1;
 	f.points.clear();
 	f.points.push_back(JGL::FacePoint(8+0, 0, {0.5f, 0.0f, 0.0f}));
@@ -279,7 +279,7 @@ void main(void)
 		jgl.DrawSetup();
 	//	jgl.PrintHwParam(width);
 		
-		// ƒVƒ~ƒ…ƒŒ[ƒVƒ‡ƒ“—po—Í
+		// ã‚·ãƒŸãƒ¥ãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³ç”¨å‡ºåŠ›
 	//	printf("\n$display(\"[edge]\");\n");	jgl.CalcEdgeRasterizerParameter(SimEdgeParamProc);
 	//	printf("\n$display(\"[shader]\");\n");	jgl.CalcShaderRasterizerParameter(SimShadereParamProc);
 	//	printf("\n$display(\"[region]\");\n");	jgl.CalcRegionRasterizerParameter(SimRegionParamProc);
@@ -288,7 +288,7 @@ void main(void)
 		printf("------------\n");	
 		jgl.DrawHw(0);
 
-		// •`‰æ
+		// æç”»
 		jgl.Draw(RenderProc);
 
 		// show
@@ -345,7 +345,7 @@ void rasterizer_test(void)
 	std::vector<JGL::Face>	face_table;
 	JGL::Face				f;
 	
-	// ‚P–Ê‚ğİ’è
+	// ï¼‘é¢ã‚’è¨­å®š
 	f.clear();
 	f.push_back(JGL::FacePoint(0, 0));
 	f.push_back(JGL::FacePoint(1, 1));

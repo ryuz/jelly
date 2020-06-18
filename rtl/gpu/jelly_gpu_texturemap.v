@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-// ƒeƒNƒXƒ`ƒƒƒ}ƒbƒsƒ“ƒO”Å
+// ãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒãƒƒãƒ”ãƒ³ã‚°ç‰ˆ
 module jelly_gpu_texturemap
         #(
             parameter   COMPONENT_NUM                     = 3,
@@ -71,7 +71,7 @@ module jelly_gpu_texturemap
             parameter   REGION_RAM_TYPE                   = "distributed",
             
             parameter   CULLING_ONLY                      = 0,
-            parameter   Z_SORT_MIN                        = 0,  // 1‚Å¬‚³‚¢’l—Dæ(Z²‰œŒü‚«)
+            parameter   Z_SORT_MIN                        = 0,  // 1ã§å°ã•ã„å€¤å„ªå…ˆ(Zè»¸å¥¥å‘ã)
             
             parameter   RASTERIZER_INIT_CTL_ENABLE        = 1'b0,
             parameter   RASTERIZER_INIT_CTL_UPDATE        = 1'b0,
@@ -255,7 +255,7 @@ module jelly_gpu_texturemap
                                       POLYGON_NUM <= 32768 ? 15 : 16;
     
     
-    // ƒ‰ƒXƒ^ƒ‰ƒCƒU
+    // ãƒ©ã‚¹ã‚¿ãƒ©ã‚¤ã‚¶
     wire                                                cke;
     
     wire                                                start;

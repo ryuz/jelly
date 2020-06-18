@@ -13,12 +13,12 @@
 `default_nettype none
 
 
-//   ƒtƒŒ[ƒ€ŠúŠÔ’†‚Ìƒf[ƒ^“ü—Í‚Ì–³‚¢ŠúŠÔ‚Í cke ‚ð—Ž‚Æ‚·‚±‚Æ‚ð
-// ‘O’ñ‚Æ‚µ‚Äƒf[ƒ^âf–§‚ÅAƒƒ‚ƒŠ‚ð READ_FIRST ƒ‚[ƒh‚ÅÅ“K‰»
-//   ƒtƒŒ[ƒ€––”ö‚Å“f‚«o‚µ‚Ì‚½‚ß‚Éƒuƒ‰ƒ“ƒNƒf[ƒ^‚ð“ü‚ê‚éÛ‚Í
-// line_first ‚Æ line_last ‚Í³‚µ‚­§Œä‚ª•K—v
+//   ãƒ•ãƒ¬ãƒ¼ãƒ æœŸé–“ä¸­ã®ãƒ‡ãƒ¼ã‚¿å…¥åŠ›ã®ç„¡ã„æœŸé–“ã¯ cke ã‚’è½ã¨ã™ã“ã¨ã‚’
+// å‰æã¨ã—ã¦ãƒ‡ãƒ¼ã‚¿ç¨ å¯†ã§ã€ãƒ¡ãƒ¢ãƒªã‚’ READ_FIRST ãƒ¢ãƒ¼ãƒ‰ã§æœ€é©åŒ–
+//   ãƒ•ãƒ¬ãƒ¼ãƒ æœ«å°¾ã§åãå‡ºã—ã®ãŸã‚ã«ãƒ–ãƒ©ãƒ³ã‚¯ãƒ‡ãƒ¼ã‚¿ã‚’å…¥ã‚Œã‚‹éš›ã¯
+// line_first ã¨ line_last ã¯æ­£ã—ãåˆ¶å¾¡ãŒå¿…è¦
 
-// ƒƒ‚ƒŠ’¼—ñ”z’u”Å
+// ãƒ¡ãƒ¢ãƒªç›´åˆ—é…ç½®ç‰ˆ
 module jelly_img_line_buffer_series
         #(
             parameter   USER_WIDTH   = 0,

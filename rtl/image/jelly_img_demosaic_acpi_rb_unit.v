@@ -34,7 +34,7 @@ module jelly_img_demosaic_acpi_rb_unit
         );
     
     
-    // 計算用に余裕を持った幅を定義
+    // 險育ｮ礼畑縺ｫ菴呵｣輔ｒ謖√▲縺溷ｹ�繧貞ｮ夂ｾｩ
     localparam      CALC_WIDTH = DATA_WIDTH + 5;
     
     

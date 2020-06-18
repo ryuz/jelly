@@ -142,7 +142,7 @@ module tb_float_reciprocal();
     end
     
     
-    // 進行モニタ
+    // 騾ｲ陦後Δ繝九ち
     initial begin
         while (1) begin
             #100000;

@@ -13,7 +13,7 @@
 
 
 
-//  AXI4 Ç©ÇÁ Read Ç∑ÇÈÉRÉA
+//  AXI4 „Åã„Çâ Read „Åô„Çã„Ç≥„Ç¢
 module jelly_axi4_reader_core
         #(
             parameter   S_LEN_WIDTH            = 24,
@@ -358,7 +358,7 @@ module jelly_axi4_reader_core
     //  data
     // ---------------------------------
     
-    // tlastïtó^
+    // tlast‰ªò‰∏é
     jelly_axi_data_last
             #(
                 .BYPASS                     (BYPASS_LAST),
@@ -402,7 +402,7 @@ module jelly_axi4_reader_core
     
     
     // ---------------------------------
-    //  busy ÉJÉEÉìÉ^
+    //  busy „Ç´„Ç¶„É≥„Çø
     // ---------------------------------
     
     reg                                 reg_busy;

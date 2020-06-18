@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-// データの線形拡張(要はbitを繰り返す)
+// 繝�繝ｼ繧ｿ縺ｮ邱壼ｽ｢諡｡蠑ｵ(隕√�ｯbit繧堤ｹｰ繧願ｿ斐☆)
 module jelly_data_linear_expand
         #(
             parameter   NUM            = 1,

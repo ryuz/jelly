@@ -94,15 +94,15 @@
 
 
 
-void oled_init(UioMmap* p);     // OLED‰Šú‰»
-int  oled_main();               // ŒÃ‚¢OLEDƒAƒvƒŠ‚ğ“®‚©‚·‚±‚Æ‚Å‰Šú‰»‚ğ‘ã—p(è”²‚«)
+void oled_init(UioMmap* p);     // OLEDåˆæœŸåŒ–
+int  oled_main();               // å¤ã„OLEDã‚¢ãƒ—ãƒªã‚’å‹•ã‹ã™ã“ã¨ã§åˆæœŸåŒ–ã‚’ä»£ç”¨(æ‰‹æŠœã)
 
-void camera_setup(I2cAccess& i2c, int w, int h);    // ƒJƒƒ‰‰Šú‰»
+void camera_setup(I2cAccess& i2c, int w, int h);    // ã‚«ãƒ¡ãƒ©åˆæœŸåŒ–
 
 void write_back_image(void* mem_addr);
 
-void vin_start(UioMmap& um_pl_peri);    // ‰æ‘œæ‚è‚İŠJn
-void vin_stop(UioMmap& um_pl_peri);     // ‰æ‘œæ‚è‚İ’â~
+void vin_start(UioMmap& um_pl_peri);    // ç”»åƒå–ã‚Šè¾¼ã¿é–‹å§‹
+void vin_stop(UioMmap& um_pl_peri);     // ç”»åƒå–ã‚Šè¾¼ã¿åœæ­¢
 
 void vin_dma_start(UioMmap& um_pl_peri, int offset, int width, int height, int stride, int frame_num, bool oneshot);
 void vin_dma_stop(UioMmap& um_pl_peri);
@@ -112,7 +112,7 @@ void vout_stop(UioMmap& um_pl_peri);
 
 
 
-// ƒƒCƒ“ŠÖ”
+// ãƒ¡ã‚¤ãƒ³é–¢æ•°
 int main(int argc, char *argv[])
 {
     bool gui  = false;
@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
     }
     
     
-    // UIOƒI[ƒvƒ“
+    // UIOã‚ªãƒ¼ãƒ—ãƒ³
     UioMmap um_pl_peri("my_pl_peri", 0x00200000);
     if ( !um_pl_peri.IsMapped() ) {
         printf("map error : my_pl_peri\n");
@@ -139,28 +139,28 @@ int main(int argc, char *argv[])
     }
     
     
-    // ˆê’U‚·‚×‚Ä‚ÌDMA“™‚ğ~‚ß‚é
+    // ä¸€æ—¦ã™ã¹ã¦ã®DMAç­‰ã‚’æ­¢ã‚ã‚‹
     vout_stop(um_pl_peri);
     vin_dma_stop(um_pl_peri);
     vin_stop(um_pl_peri);
     
-    // ~‚ß‚é‚¾‚¯‚È‚ç‚±‚±‚ÅI—¹
+    // æ­¢ã‚ã‚‹ã ã‘ãªã‚‰ã“ã“ã§çµ‚äº†
     if ( stop ) {
         printf("stop\n");
         return 0;
     }
     
     
-    // OLED‰Šú‰»
+    // OLEDåˆæœŸåŒ–
     oled_init(&um_pl_peri);
     oled_main();
     
     
-    // ƒJƒƒ‰ƒTƒCƒY
+    // ã‚«ãƒ¡ãƒ©ã‚µã‚¤ã‚º
     int width  = 640;
     int height = 132;
     
-    // DVI‚Ö‚Ì•\¦ˆÊ’u
+    // DVIã¸ã®è¡¨ç¤ºä½ç½®
     int dvi_x  = (DVITX_WIDTH  - width ) / 2;
     int dvi_y  = (DVITX_HEIGHT - height) / 2;
     
@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
     void* mem_addr = um_pl_mem.GetAddress();
     
     
-    // ƒJƒƒ‰‰Šú‰»
+    // ã‚«ãƒ¡ãƒ©åˆæœŸåŒ–
     I2cAccess   i2c;
     if ( !i2c.Open("/dev/i2c-0", 0x10) ) {
         printf("I2C open error\n");
@@ -193,30 +193,30 @@ int main(int argc, char *argv[])
     um_pl_peri.WriteWord32(0x00012000, 0);
     
     // color map
-    um_pl_peri.WriteWord32(0x00019040, 0x0000000);  // •
-    um_pl_peri.WriteWord32(0x00019044, 0x0000080);  // ’ƒ
-    um_pl_peri.WriteWord32(0x00019048, 0x00000ff);  // Ô
-    um_pl_peri.WriteWord32(0x0001904c, 0x04cb7ff);  // ò
-    um_pl_peri.WriteWord32(0x00019050, 0x000ffff);  // ‰©
-    um_pl_peri.WriteWord32(0x00019054, 0x0008000);  // —Î
-    um_pl_peri.WriteWord32(0x00019058, 0x0ff0000);  // Â
-    um_pl_peri.WriteWord32(0x0001905c, 0x0800080);  // ‡
-    um_pl_peri.WriteWord32(0x00019060, 0x0808080);  // ŠD
-    um_pl_peri.WriteWord32(0x00019064, 0x0ffffff);  // ”’
+    um_pl_peri.WriteWord32(0x00019040, 0x0000000);  // é»’
+    um_pl_peri.WriteWord32(0x00019044, 0x0000080);  // èŒ¶
+    um_pl_peri.WriteWord32(0x00019048, 0x00000ff);  // èµ¤
+    um_pl_peri.WriteWord32(0x0001904c, 0x04cb7ff);  // æ©™
+    um_pl_peri.WriteWord32(0x00019050, 0x000ffff);  // é»„
+    um_pl_peri.WriteWord32(0x00019054, 0x0008000);  // ç·‘
+    um_pl_peri.WriteWord32(0x00019058, 0x0ff0000);  // é’
+    um_pl_peri.WriteWord32(0x0001905c, 0x0800080);  // ç´«
+    um_pl_peri.WriteWord32(0x00019060, 0x0808080);  // ç°
+    um_pl_peri.WriteWord32(0x00019064, 0x0ffffff);  // ç™½
     
     
     // UI
-    int view_sel   = 0;     // •\¦ƒ\[ƒX‚Ì‘I‘ğ
-    int bin_th     = 127;   // 2’l‰»è‡’l
-    int dnn0_en    = 1;     // DNN0‚Ì•\¦—LŒø‰»
-    int dnn1_en    = 1;     // DNN1‚Ì•\¦—LŒø‰»
-    int dnn0_th    = 127;   // classifier‚Ìè‡’l
-    int dnn0_lpf   = 0;     // classifier‚ÌLPF‹­“x
-    int dnn1_th    = 127;   // detector‚Ìè‡’l
-    int dnn1_lpf   = 0;     // detector‚ÌLPF‹­“x
+    int view_sel   = 0;     // è¡¨ç¤ºã‚½ãƒ¼ã‚¹ã®é¸æŠ
+    int bin_th     = 127;   // 2å€¤åŒ–é–¾å€¤
+    int dnn0_en    = 1;     // DNN0ã®è¡¨ç¤ºæœ‰åŠ¹åŒ–
+    int dnn1_en    = 1;     // DNN1ã®è¡¨ç¤ºæœ‰åŠ¹åŒ–
+    int dnn0_th    = 127;   // classifierã®é–¾å€¤
+    int dnn0_lpf   = 0;     // classifierã®LPFå¼·åº¦
+    int dnn1_th    = 127;   // detectorã®é–¾å€¤
+    int dnn1_lpf   = 0;     // detectorã®LPFå¼·åº¦
     
     
-    // ƒpƒ‰ƒ[ƒ^İ’è
+    // ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿è¨­å®š
     um_pl_peri.WriteWord32(0x00019000, dnn0_en + (dnn1_en << 1));
     um_pl_peri.WriteWord32(0x00019004, view_sel);
     um_pl_peri.WriteWord32(0x00019008, dnn0_th);
@@ -224,7 +224,7 @@ int main(int argc, char *argv[])
     um_pl_peri.WriteWord32(0x00015000, dnn0_lpf);
     um_pl_peri.WriteWord32(0x00015040, dnn1_lpf);
     
-    // ”wŒi‰æ‘œ“WŠJ
+    // èƒŒæ™¯ç”»åƒå±•é–‹
     write_back_image(mem_addr);
     
     
@@ -236,8 +236,8 @@ int main(int argc, char *argv[])
     int     frame_num = 1;
     int     key = -1;
     do {
-        // ‰æ‘œæ‚è‚İ
-        vin_dma_start(um_pl_peri, offset, width, height, stride, frame_num, true);  // ƒƒ“ƒVƒ‡ƒbƒgæ‚è‚İ
+        // ç”»åƒå–ã‚Šè¾¼ã¿
+        vin_dma_start(um_pl_peri, offset, width, height, stride, frame_num, true);  // ãƒ¯ãƒ³ã‚·ãƒ§ãƒƒãƒˆå–ã‚Šè¾¼ã¿
         cv::Mat img(height*frame_num, width, CV_8UC4);
         {
             char* p = (char*)mem_addr;
@@ -248,7 +248,7 @@ int main(int argc, char *argv[])
             }
         }
         
-        // GUI•\¦
+        // GUIè¡¨ç¤º
         if ( gui ) {
             cv::imshow("img", img);
             
@@ -273,7 +273,7 @@ int main(int argc, char *argv[])
         
         
         if ( bin_th == 0 ) {
-            // PWMƒ‚[ƒh(ƒe[ƒuƒ‹ƒTƒCƒY=15)
+            // PWMãƒ¢ãƒ¼ãƒ‰(ãƒ†ãƒ¼ãƒ–ãƒ«ã‚µã‚¤ã‚º=15)
             um_pl_peri.WriteWord32(0x00018100 + 4*0,  0x10);
             um_pl_peri.WriteWord32(0x00018100 + 4*1,  0xf0);
             um_pl_peri.WriteWord32(0x00018100 + 4*2,  0x70);
@@ -292,12 +292,12 @@ int main(int argc, char *argv[])
             um_pl_peri.WriteWord32(0x00018010, 14);      // MNIST_MOD_REG_PARAM_END
         }
         else {
-            // ’Pƒ2’l‰»(ƒe[ƒuƒ‹ƒTƒCƒY=1)
+            // å˜ç´”2å€¤åŒ–(ãƒ†ãƒ¼ãƒ–ãƒ«ã‚µã‚¤ã‚º=1)
             um_pl_peri.WriteWord32(0x00018100, bin_th);
             um_pl_peri.WriteWord32(0x00018010, 0);       // MNIST_MOD_REG_PARAM_END
         }
         
-        // ƒpƒ‰ƒ[ƒ^İ’è
+        // ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿è¨­å®š
         um_pl_peri.WriteWord32(0x00019000, dnn0_en + (dnn1_en << 1));
         um_pl_peri.WriteWord32(0x00019004, view_sel);
         um_pl_peri.WriteWord32(0x00019008, dnn0_th);
@@ -305,7 +305,7 @@ int main(int argc, char *argv[])
         um_pl_peri.WriteWord32(0x00015000, dnn0_lpf);
         um_pl_peri.WriteWord32(0x00015040, dnn1_lpf);
         
-        // ˜^‰æ
+        // éŒ²ç”»
         if ( key == 'r' ) {
             printf("record\n");
             vin_dma_start(um_pl_peri, 0, width, height, width*4, 100, true);
@@ -321,13 +321,13 @@ int main(int argc, char *argv[])
             }
             
             
-            // ”wŒi‰æ‘œ“WŠJ
+            // èƒŒæ™¯ç”»åƒå±•é–‹
             write_back_image(mem_addr);
         }
     } while ( gui && ((key = (cv::waitKey(10) & 0xff)) != 0x1b) );
     
     
-    // DVI—p‚ÉDMA‚ğ“®‚«‚Á‚Ï‚È‚µ‚É‚·‚é
+    // DVIç”¨ã«DMAã‚’å‹•ãã£ã±ãªã—ã«ã™ã‚‹
     vin_dma_start(um_pl_peri, offset, width, height, stride, frame_num, false);
     
     return 0;
@@ -335,12 +335,12 @@ int main(int argc, char *argv[])
 
 
 
-// ”wŒi‰æ‘œ‘‚«‚İ
+// èƒŒæ™¯ç”»åƒæ›¸ãè¾¼ã¿
 void write_back_image(void* mem_addr)
 {
     unsigned char* p = (unsigned char*)mem_addr;
     
-    // ”wŒi‰æ‘œ“WŠJ
+    // èƒŒæ™¯ç”»åƒå±•é–‹
     cv::Mat img = cv::imread("back.png");
     if ( !img.empty() ) {
         cv::cvtColor(img, img, CV_RGB2RGBA);
@@ -352,7 +352,7 @@ void write_back_image(void* mem_addr)
 
 
 
-// ‰æ‘œæ‚è‚İŠJn
+// ç”»åƒå–ã‚Šè¾¼ã¿é–‹å§‹
 void vin_start(UioMmap& um_pl_peri, int width, int height)
 {
     // normalizer start
@@ -366,7 +366,7 @@ void vin_start(UioMmap& um_pl_peri, int width, int height)
 }
 
 
-// ‰æ‘œæ‚è‚İ’â~
+// ç”»åƒå–ã‚Šè¾¼ã¿åœæ­¢
 void vin_stop(UioMmap& um_pl_peri)
 {
     um_pl_peri.WriteWord32(VIN_NORM_REG_CONTROL, 0);
@@ -377,10 +377,10 @@ void vin_stop(UioMmap& um_pl_peri)
 }
 
 
-// ƒLƒƒƒvƒ`ƒƒ—pDMAŠJn
+// ã‚­ãƒ£ãƒ—ãƒãƒ£ç”¨DMAé–‹å§‹
 void vin_dma_start(UioMmap& um_pl_peri, int offset, int width, int height, int stride, int frame_num, bool oneshot)
 {
-    // ˆê’U~‚ß‚é
+    // ä¸€æ—¦æ­¢ã‚ã‚‹
     vin_dma_stop(um_pl_peri);
     
     // DMA start (one shot)
@@ -395,14 +395,14 @@ void vin_dma_start(UioMmap& um_pl_peri, int offset, int width, int height, int s
     // normalizer start
     vin_start(um_pl_peri, width, height);
     
-    // ƒƒ“ƒVƒ‡ƒbƒg‚È‚ç~‚Ü‚é‚Ü‚Å‘Ò‚Â
+    // ãƒ¯ãƒ³ã‚·ãƒ§ãƒƒãƒˆãªã‚‰æ­¢ã¾ã‚‹ã¾ã§å¾…ã¤
     if ( oneshot ) {
         vin_dma_stop(um_pl_peri);
     }
 }
 
 
-// ƒLƒƒƒvƒ`ƒƒ—pDMA’â~
+// ã‚­ãƒ£ãƒ—ãƒãƒ£ç”¨DMAåœæ­¢
 void vin_dma_stop(UioMmap& um_pl_peri)
 {
     um_pl_peri.WriteWord32(VDMAW_REG_CTL_CONTROL, 0x00);
@@ -412,7 +412,7 @@ void vin_dma_stop(UioMmap& um_pl_peri)
 }
 
 
-// VOUTŠJn
+// VOUTé–‹å§‹
 void vout_start(UioMmap& um_pl_peri)
 {
     um_pl_peri.WriteWord32(VDMAR_REG_PARAM_ADDR,   IMG_MEM_ADDR);
@@ -426,7 +426,7 @@ void vout_start(UioMmap& um_pl_peri)
     um_pl_peri.WriteWord32(VOUT_VSGEN_REG_CTL_CONTROL, 1);
 }
 
-// VOUT’â~
+// VOUTåœæ­¢
 void vout_stop(UioMmap& um_pl_peri)
 {
     um_pl_peri.WriteWord32(VDMAR_REG_CTL_CONTROL, 0x0);
@@ -436,7 +436,7 @@ void vout_stop(UioMmap& um_pl_peri)
 }
 
 
-// ƒJƒƒ‰‰Šú‰»
+// ã‚«ãƒ¡ãƒ©åˆæœŸåŒ–
 void camera_setup(I2cAccess& i2c, int w, int h)
 {
     /*
@@ -494,12 +494,12 @@ void camera_setup(I2cAccess& i2c, int w, int h)
     i2c.WriteAddr16Word(0x018C, 0x0A0A);   //      CSI_DATA_FORMAT_A   CSI-2 data format
     i2c.WriteAddr16Byte(0x0301, 0x05  );   // * VTPXCK_DIV  Video Timing Pixel Clock Divider Value
     i2c.WriteAddr16Word(0x0303, 0x0103);   // * VTSYCK_DIV  PREPLLCK_VT_DIV(3: EXCK_FREQ 24 MHz to 27 MHz)
-    i2c.WriteAddr16Word(0x0305, 0x0300);   // * PREPLLCK_OP_DIV(3: EXCK_FREQ 24 MHz to 27 MHz)  / PLL_VT_MPY ‹æØ‚è‚ª‚¨‚©‚µ‚¢Ÿ‚É‘±‚­
+    i2c.WriteAddr16Word(0x0305, 0x0300);   // * PREPLLCK_OP_DIV(3: EXCK_FREQ 24 MHz to 27 MHz)  / PLL_VT_MPY åŒºåˆ‡ã‚ŠãŒãŠã‹ã—ã„æ¬¡ã«ç¶šã
 //  i2c.WriteAddr16Byte(0x0307, 0x39  );   // * PLL_VT_MPY
 //  i2c.WriteAddr16Byte(0x0307, 84  );      // r PLL_VT_MPY
     i2c.WriteAddr16Byte(0x0307, 87  );      // r PLL_VT_MPY
     i2c.WriteAddr16Byte(0x0309, 0x0A  );   // * OPPXCK_DIV
-    i2c.WriteAddr16Word(0x030B, 0x0100);   // * OPSYCK_DIV PLL_OP_MPY[10:8] / ‹æØ‚è‚ª‚¨‚©‚µ‚¢Ÿ‚É‘±‚­
+    i2c.WriteAddr16Word(0x030B, 0x0100);   // * OPSYCK_DIV PLL_OP_MPY[10:8] / åŒºåˆ‡ã‚ŠãŒãŠã‹ã—ã„æ¬¡ã«ç¶šã
     i2c.WriteAddr16Byte(0x030D, 0x72  );   // * PLL_OP_MPY[10:8]
     
     i2c.WriteAddr16Byte(0x455E, 0x00  );   //

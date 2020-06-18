@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-// ƒO[ƒ[ƒVƒF[ƒfƒBƒ“ƒO
+// ã‚°ãƒ¼ãƒ­ãƒ¼ã‚·ã‚§ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°
 module jelly_pixel_shader_gouraud
         #(
             parameter   COMPONENT_NUM       = 3,
@@ -71,10 +71,10 @@ module jelly_pixel_shader_gouraud
         );
     
     // -------------------------------------
-    //  ƒŒƒWƒXƒ^
+    //  ãƒ¬ã‚¸ã‚¹ã‚¿
     // -------------------------------------
     
-    // ƒAƒhƒŒƒX
+    // ã‚¢ãƒ‰ãƒ¬ã‚¹
     localparam  REG_ADDR_CFG_SHADER_PARAM_NUM   = 6'h00;
     localparam  REG_ADDR_CFG_SHADER_PARAM_WIDTH = 6'h01;
     localparam  REG_ADDR_CFG_SHADER_PARAM_Q     = 6'h02;
@@ -82,11 +82,11 @@ module jelly_pixel_shader_gouraud
     localparam  REG_ADDR_PARAM_BG_MODE          = 6'h20;
     localparam  REG_ADDR_PARAM_BG_COLOR         = 6'h21;
     
-    // •\ƒŒƒWƒXƒ^
+    // è¡¨ãƒ¬ã‚¸ã‚¹ã‚¿
     reg     [0:0]                           reg_param_bg_mode;
     reg     [AXI4S_TDATA_WIDTH-1:0]         reg_param_bg_color;
     
-    // — ƒŒƒWƒXƒ^
+    // è£ãƒ¬ã‚¸ã‚¹ã‚¿
     reg     [0:0]                           reg_shadow_bg_mode;
     reg     [AXI4S_TDATA_WIDTH-1:0]         reg_shadow_bg_color;
     
@@ -127,7 +127,7 @@ module jelly_pixel_shader_gouraud
     assign s_wb_ack_o = s_wb_stb_i;
     
     
-    // update_paramM†‚Ì‘OŒã‚Å‚ÍƒŒƒWƒXƒ^•Ï‰»‚ª–³‚¢‘O’ñ‚Å”ñ“¯Šúó‚¯“n‚µ
+    // update_paramä¿¡å·ã®å‰å¾Œã§ã¯ãƒ¬ã‚¸ã‚¹ã‚¿å¤‰åŒ–ãŒç„¡ã„å‰æã§éåŒæœŸå—ã‘æ¸¡ã—
     always @(posedge clk ) begin
         if ( update ) begin
             reg_shadow_bg_mode  <= reg_param_bg_mode;
@@ -138,7 +138,7 @@ module jelly_pixel_shader_gouraud
     
     
     // -------------------------------------
-    //  ƒsƒNƒZƒ‹ƒVƒF[ƒfƒBƒ“ƒO
+    //  ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°
     // -------------------------------------
     
     wire                                        cke;
@@ -188,7 +188,7 @@ module jelly_pixel_shader_gouraud
     
     
     // -------------------------------------
-    //  o—Í(cke‚ÉFF‘}“ü)
+    //  å‡ºåŠ›(ckeã«FFæŒ¿å…¥)
     // -------------------------------------
     
     jelly_pipeline_insert_ff

@@ -42,7 +42,7 @@ module jelly_rasterizer_core
                                              POLYGON_NUM <= 32768 ? 15 : 16,
             
             parameter   CULLING_ONLY       = 1,
-            parameter   Z_SORT_MIN         = 0, // Z‚Ì‘å¬‚Ç‚¿‚ç‚ð—Dæ‚·‚é‚©(ZŽ²‚ÌŒü‚«)
+            parameter   Z_SORT_MIN         = 0, // Zã®å¤§å°ã©ã¡ã‚‰ã‚’å„ªå…ˆã™ã‚‹ã‹(Zè»¸ã®å‘ã)
             
             // local
             parameter   PARAMS_EDGE_SIZE   = EDGE_NUM*3,
@@ -78,7 +78,7 @@ module jelly_rasterizer_core
     
     
     // -----------------------------------------
-    //  ƒ^ƒCƒ~ƒ“ƒO¶¬
+    //  ã‚¿ã‚¤ãƒŸãƒ³ã‚°ç”Ÿæˆ
     // -----------------------------------------
     
     reg     [X_WIDTH-1:0]       timgen_x;
@@ -132,7 +132,7 @@ module jelly_rasterizer_core
     
     
     // -----------------------------------------
-    //  ƒpƒ‰ƒ[ƒ^ŒvŽZ
+    //  ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿è¨ˆç®—
     // -----------------------------------------
 
     wire    [EDGE_NUM-1:0]                                          calc_edge_sign;
@@ -141,7 +141,7 @@ module jelly_rasterizer_core
     reg                                                             calc_line_end;
     reg                                                             calc_valid;
     
-    // ƒGƒbƒW”»’è‰ñ˜H
+    // ã‚¨ãƒƒã‚¸åˆ¤å®šå›žè·¯
     generate
     for ( i = 0; i < EDGE_NUM; i = i+1 ) begin : loop_edge
         jelly_rasterizer_plane_calc
@@ -167,7 +167,7 @@ module jelly_rasterizer_core
     end
     endgenerate
     
-    // ƒ|ƒŠƒSƒ“ƒpƒ‰ƒ[ƒ^”»’è‰ñ˜H
+    // ãƒãƒªã‚´ãƒ³ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿åˆ¤å®šå›žè·¯
     generate
     for ( i = 0; i < POLYGON_NUM; i = i+1 ) begin : loop_polygon
         for ( j = 0; j < SHADER_PARAM_NUM; j = j+1 ) begin : loop_shader_param
@@ -213,7 +213,7 @@ module jelly_rasterizer_core
     
     
     // -----------------------------------------
-    //  —Ìˆæ”»’è
+    //  é ˜åŸŸåˆ¤å®š
     // -----------------------------------------
     
     reg                                                             region_frame_start;
@@ -261,7 +261,7 @@ module jelly_rasterizer_core
     
     
     // -----------------------------------------
-    //  ƒ\[ƒeƒBƒ“ƒO
+    //  ã‚½ãƒ¼ãƒ†ã‚£ãƒ³ã‚°
     // -----------------------------------------
     
     parameter   SORT_PARAM_NUM   = SHADER_PARAM_NUM - 1;
@@ -277,7 +277,7 @@ module jelly_rasterizer_core
     
     generate
     if ( CULLING_ONLY ) begin : blk_culling
-        // ƒJƒŠƒ“ƒO‚Ì‚Ý
+        // ã‚«ãƒªãƒ³ã‚°ã®ã¿
         wire    [INDEX_WIDTH-1:0]   region_polygon_index;
         jelly_bit_encoder
                 #(
@@ -353,7 +353,7 @@ module jelly_rasterizer_core
                         = region_shader_params[i*SHADER_PARAM_NUM*SHADER_PARAM_WIDTH +: SHADER_PARAM_NUM*SHADER_PARAM_WIDTH];
         end
         
-        // Zƒ\[ƒg
+        // Zã‚½ãƒ¼ãƒˆ
         jelly_minmax
                 #(
                     .NUM                    (POLYGON_NUM),

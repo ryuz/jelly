@@ -61,7 +61,7 @@ module tb_gpu_gouraud();
     parameter   REGION_RAM_TYPE               = "distributed";
     
     parameter   CULLING_ONLY                  = 0;
-    parameter   Z_SORT_MIN                    = 0;  // 1‚Å¬‚³‚¢’l—Dæ(Z²‰œŒü‚«)
+    parameter   Z_SORT_MIN                    = 0;  // 1ã§å°ã•ã„å€¤å„ªå…ˆ(Zè»¸å¥¥å‘ã)
     
     parameter   X_WIDTH                       = 12;
     parameter   Y_WIDTH                       = 12;

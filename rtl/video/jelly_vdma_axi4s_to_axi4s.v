@@ -87,7 +87,7 @@ module jelly_vdma_axi4s_to_axi4s
             parameter   WB_DAT_WIDTH         = 32,
             parameter   WB_SEL_WIDTH         = (WB_DAT_WIDTH / 8),
             
-            parameter   TRIG_ASYNC           = 1,   // WISHBONE‚Æ”ñ“¯Šú‚Ìê‡
+            parameter   TRIG_ASYNC           = 1,   // WISHBONEã¨éžåŒæœŸã®å ´åˆ
             parameter   TRIG_WSTART_ENABLE   = 0,
             parameter   TRIG_RSTART_ENABLE   = 0,
             
@@ -474,9 +474,9 @@ module jelly_vdma_axi4s_to_axi4s
     reg     [AXI4_ADDR_WIDTH-1:0]   sig_wparam_addr;
     reg     [AXI4_ADDR_WIDTH-1:0]   sig_rparam_addr;
     
-    reg     [1:0]                   reg_buf_new,   next_buf_new;    // ÅV‰æ‘œ
-    reg     [1:0]                   reg_buf_write, next_buf_write;  // ‘‚«ž‚Ý’†
-    reg     [1:0]                   reg_buf_read,  next_buf_read;   // “Ç‚Ýo‚µ’†
+    reg     [1:0]                   reg_buf_new,   next_buf_new;    // æœ€æ–°ç”»åƒ
+    reg     [1:0]                   reg_buf_write, next_buf_write;  // æ›¸ãè¾¼ã¿ä¸­
+    reg     [1:0]                   reg_buf_read,  next_buf_read;   // èª­ã¿å‡ºã—ä¸­
     
     always @* begin
         next_buf_new     = reg_buf_new;
@@ -485,17 +485,17 @@ module jelly_vdma_axi4s_to_axi4s
         sig_wparam_addr  = reg_wparam_addr;
         sig_rparam_addr  = reg_rparam_addr;
         
-        // ‘‚«ž‚ÝXV‚È‚çÅVƒoƒbƒtƒ@XV
+        // æ›¸ãè¾¼ã¿æ›´æ–°ãªã‚‰æœ€æ–°ãƒãƒƒãƒ•ã‚¡æ›´æ–°
         if ( sig_wctl_start ) begin
             next_buf_new = reg_buf_write;
         end
         
-        // “Ç‚Ýo‚µŠJŽn‚È‚çÅVƒoƒbƒtƒ@‚ðŠ„‚è“–‚Ä
+        // èª­ã¿å‡ºã—é–‹å§‹ãªã‚‰æœ€æ–°ãƒãƒƒãƒ•ã‚¡ã‚’å‰²ã‚Šå½“ã¦
         if ( sig_rctl_start ) begin
             next_buf_read = next_buf_new;
         end
         
-        // ‘‚«ž‚ÝŠJŽn‚È‚ç‹ó‚¢‚Ä‚¢‚éƒoƒbƒtƒ@‚ðŠ„‚è“–‚Ä
+        // æ›¸ãè¾¼ã¿é–‹å§‹ãªã‚‰ç©ºã„ã¦ã„ã‚‹ãƒãƒƒãƒ•ã‚¡ã‚’å‰²ã‚Šå½“ã¦
         if ( sig_wctl_start ) begin
             for ( i = 2; i >= 0; i = i-1 ) begin
                 if ( next_buf_read != i &&  reg_buf_write != i ) begin

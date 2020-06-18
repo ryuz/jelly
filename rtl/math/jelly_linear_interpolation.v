@@ -21,7 +21,7 @@ module jelly_linear_interpolation
             parameter   DATA_SIGNED   = 1,
             parameter   ROUNDING      = 0,
             parameter   COMPACT       = 0,
-            parameter   BLENDING      = 0,      // ƒ¿ƒuƒŒƒ“ƒh—p(rate ‚Ìmax‚ğ 1.0ˆµ‚¢‚·‚é)
+            parameter   BLENDING      = 0,      // Î±ãƒ–ãƒ¬ãƒ³ãƒ‰ç”¨(rate ã®maxã‚’ 1.0æ‰±ã„ã™ã‚‹)
             
             // local
             parameter   USER_BITS     = USER_WIDTH > 0 ? USER_WIDTH : 1
@@ -47,7 +47,7 @@ module jelly_linear_interpolation
     
     genvar          i;
     
-    // ƒpƒCƒvƒ‰ƒCƒ“\¬
+    // ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³æ§‹æˆ
     wire    [(RATE_WIDTH+1)*USER_BITS-1:0]                  pipeline_user;
     wire    [(RATE_WIDTH+1)*RATE_WIDTH-1:0]                 pipeline_rate;
     wire    [(RATE_WIDTH+1)*COMPONENT_NUM*DATA_BITS-1:0]    pipeline_data0;
@@ -58,7 +58,7 @@ module jelly_linear_interpolation
     assign pipeline_rate [RATE_WIDTH-1:0] = s_rate;
     assign pipeline_valid[0]              = s_valid;
     
-    // •„†Šg’£
+    // ç¬¦å·æ‹¡å¼µ
     jelly_data_expand
             #(
                 .NUM                (COMPONENT_NUM),
@@ -91,7 +91,7 @@ module jelly_linear_interpolation
                 .dout               (pipeline_data1[COMPONENT_NUM*DATA_BITS-1:0])
             );
     
-    // ƒpƒCƒvƒ‰ƒCƒ“‰‰Z
+    // ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³æ¼”ç®—
     generate
     for ( i = 0; i < RATE_WIDTH; i = i+1 ) begin : loop_rate
         jelly_linear_interpolation_unit
@@ -125,7 +125,7 @@ module jelly_linear_interpolation
     end
     endgenerate
     
-    // ŠÛ‚ß
+    // ä¸¸ã‚
     jelly_data_expand
             #(
                 .NUM                (COMPONENT_NUM),

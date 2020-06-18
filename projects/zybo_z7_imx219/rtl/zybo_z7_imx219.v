@@ -602,7 +602,7 @@ module zybo_z7_imx219
             );
     
     
-    // Œ»‘œ
+    // ç¾åƒ
     wire    [0:0]               axi4s_rgb_tuser;
     wire                        axi4s_rgb_tlast;
     wire    [39:0]              axi4s_rgb_tdata;
@@ -737,7 +737,7 @@ module zybo_z7_imx219
             );
     
     
-    // read ‚Í–¢g—p
+    // read ã¯æœªä½¿ç”¨
     assign axi4_mem0_arid     = 0;
     assign axi4_mem0_araddr   = 0;
     assign axi4_mem0_arburst  = 0;

@@ -13,7 +13,7 @@
 
 
 
-//  AXI4‚É‘Î‚·‚éƒAƒhƒŒƒXƒRƒ}ƒ“ƒh¶¬
+//  AXI4ã«å¯¾ã™ã‚‹ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚³ãƒãƒ³ãƒ‰ç”Ÿæˆ
 module jelly_axi4_dma_addr
         #(
             parameter   AXI4_ID_WIDTH    = 6,
@@ -61,9 +61,9 @@ module jelly_axi4_dma_addr
     reg     [11:AXI4_DATA_SIZE]                 reg_axi4_len4k;
     reg                                         reg_axi4_valid;
     
-    wire    [COUNT_WIDTH-1:0]                   next_axi4_count = reg_axi4_count - reg_axi4_len - 1'b1; // Ÿ‚Ìc“]‘—”
-    wire    [AXI4_ADDR_WIDTH-1:AXI4_DATA_SIZE]  next_axi4_addr  = reg_axi4_addr  + reg_axi4_len + 1'b1; // Ÿ‚ÌƒAƒhƒŒƒX
-    wire    [11:AXI4_DATA_SIZE]                 next_axi4_len4k = ~next_axi4_addr[11:AXI4_DATA_SIZE];   // Ÿ‚Ì4k‹«ŠE‚Ü‚Å‚ÌƒTƒCƒY
+    wire    [COUNT_WIDTH-1:0]                   next_axi4_count = reg_axi4_count - reg_axi4_len - 1'b1; // æ¬¡ã®æ®‹è»¢é€æ•°
+    wire    [AXI4_ADDR_WIDTH-1:AXI4_DATA_SIZE]  next_axi4_addr  = reg_axi4_addr  + reg_axi4_len + 1'b1; // æ¬¡ã®ã‚¢ãƒ‰ãƒ¬ã‚¹
+    wire    [11:AXI4_DATA_SIZE]                 next_axi4_len4k = ~next_axi4_addr[11:AXI4_DATA_SIZE];   // æ¬¡ã®4kå¢ƒç•Œã¾ã§ã®ã‚µã‚¤ã‚º
     
     
     always @(posedge aclk) begin

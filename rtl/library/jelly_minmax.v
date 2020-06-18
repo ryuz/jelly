@@ -35,8 +35,8 @@ module jelly_minmax
             parameter   USER_WIDTH        = 32,
             parameter   DATA_WIDTH        = 32,
             parameter   DATA_SIGNED       = 1,
-            parameter   CMP_MIN           = 0,      // min‚©max‚©
-            parameter   CMP_EQ            = 0,      // “¯’l‚Ì‚Æ‚« data0 ‚Æ data1 ‚Ç‚¿‚ç‚ğ—Dæ‚·‚é‚©
+            parameter   CMP_MIN           = 0,      // minã‹maxã‹
+            parameter   CMP_EQ            = 0,      // åŒå€¤ã®ã¨ã data0 ã¨ data1 ã©ã¡ã‚‰ã‚’å„ªå…ˆã™ã‚‹ã‹
             
             parameter   COMMON_USER_BITS  = COMMON_USER_WIDTH > 0 ? COMMON_USER_WIDTH : 1,
             parameter   USER_BITS         = USER_WIDTH        > 0 ? USER_WIDTH        : 1
@@ -61,12 +61,12 @@ module jelly_minmax
         );
     
     
-    // ŒÀŠE’l’è‹`
+    // é™ç•Œå€¤å®šç¾©
     wire    [DATA_WIDTH-1:0]        data_min   = DATA_SIGNED ? {1'b1, {(DATA_WIDTH-1){1'b0}}} : {DATA_WIDTH{1'b0}};
     wire    [DATA_WIDTH-1:0]        data_max   = DATA_SIGNED ? {1'b0, {(DATA_WIDTH-1){1'b1}}} : {DATA_WIDTH{1'b1}};
     wire    [DATA_WIDTH-1:0]        data_limit = CMP_MIN ? data_max : data_min;
     
-    // ˆê•”ˆ—Œn‚Å $clog2 ‚ª³‚µ‚­“®‚©‚È‚¢‚Ì‚Å
+    // ä¸€éƒ¨å‡¦ç†ç³»ã§ $clog2 ãŒæ­£ã—ãå‹•ã‹ãªã„ã®ã§
     localparam  STAGES = NUM <=     2 ?  1 :
                          NUM <=     4 ?  2 :
                          NUM <=     8 ?  3 :
@@ -183,15 +183,15 @@ module jelly_minmax
 endmodule
 
 
-// ‘I‘ğƒ†ƒjƒbƒg
+// é¸æŠãƒ¦ãƒ‹ãƒƒãƒˆ
 module jelly_minmax_unit
         #(
             parameter   INDEX_WIDTH = 5,
             parameter   USER_WIDTH  = 32,
             parameter   DATA_WIDTH  = 32,
             parameter   DATA_SIGNED = 1,
-            parameter   CMP_MIN     = 0,        // min‚©max‚©
-            parameter   CMP_EQ      = 0         // “¯’l‚Ì‚Æ‚« data0 ‚Æ data1 ‚Ç‚¿‚ç‚ğ—Dæ‚·‚é‚©
+            parameter   CMP_MIN     = 0,        // minã‹maxã‹
+            parameter   CMP_EQ      = 0         // åŒå€¤ã®ã¨ã data0 ã¨ data1 ã©ã¡ã‚‰ã‚’å„ªå…ˆã™ã‚‹ã‹
         )
         (
             input   wire                                clk,
@@ -213,7 +213,7 @@ module jelly_minmax_unit
             output  wire                                out_en
         );
     
-    // •„†•t‚«‚ÉŠg’£
+    // ç¬¦å·ä»˜ãã«æ‹¡å¼µ
     wire    signed  [DATA_WIDTH:0]  data0 = DATA_SIGNED ? {in_data0[DATA_WIDTH-1], in_data0} : {1'b0, in_data0};
     wire    signed  [DATA_WIDTH:0]  data1 = DATA_SIGNED ? {in_data1[DATA_WIDTH-1], in_data1} : {1'b0, in_data1};
     reg                             tmp_sel;
@@ -225,7 +225,7 @@ module jelly_minmax_unit
     
     always @(posedge clk) begin
         if ( cke ) begin
-            // ‘I‘ğ
+            // é¸æŠ
             if ( in_en0 && in_en1 ) begin
                 if ( CMP_EQ ) begin
                     tmp_sel = CMP_MIN ? (data1 <= data0) : (data1 >= data0);

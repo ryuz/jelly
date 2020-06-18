@@ -22,7 +22,7 @@ module tb_texture_cache_unit();
     initial #(RATE*100.5)   reset = 1'b0;
     
     
-    // ƒ‰ƒ“ƒ_ƒ€ BUSY
+    // ãƒ©ãƒ³ãƒ€ãƒ  BUSY
     localparam  RAND_BUSY = 1;
     
     
@@ -171,7 +171,7 @@ module tb_texture_cache_unit();
     
     
     // -----------------------------------------
-    //  ‰º‘wƒƒ‚ƒŠ (À•W‚ğƒf[ƒ^‚Å•Ô‚·)
+    //  ä¸‹å±¤ãƒ¡ãƒ¢ãƒª (åº§æ¨™ã‚’ãƒ‡ãƒ¼ã‚¿ã§è¿”ã™)
     // -----------------------------------------
     
     integer                         reg_count;
@@ -232,7 +232,7 @@ module tb_texture_cache_unit();
     
     
     // -----------------------------------------
-    //  ƒ‰ƒ“ƒ_ƒ€‚Å BUSY ‚ğì‚é
+    //  ãƒ©ãƒ³ãƒ€ãƒ ã§ BUSY ã‚’ä½œã‚‹
     // -----------------------------------------
     
     always @(posedge clk) begin
@@ -244,7 +244,7 @@ module tb_texture_cache_unit();
     
     
     // -----------------------------------------
-    //  ŒŸØ•Œ‹‰Êo—Í
+    //  æ¤œè¨¼ï¼†çµæœå‡ºåŠ›
     // -----------------------------------------
     
     integer     count = 0;
@@ -262,7 +262,7 @@ module tb_texture_cache_unit();
         if ( !reset ) begin
             ng <= 0;
             if ( s_rvalid & s_rready ) begin
-                // Œ‹‰Êo—Í
+                // çµæœå‡ºåŠ›
                 $fdisplay(fp, "%h", s_rdata);
                 count = count + 1;
                 if ( count > 32*500 ) begin
@@ -270,7 +270,7 @@ module tb_texture_cache_unit();
                 end
                 
                 
-                // Œ‹‰Êƒ`ƒFƒbƒN
+                // çµæœãƒã‚§ãƒƒã‚¯
                 if ( s_ruser_x < 0 || s_ruser_x >= param_width || s_ruser_x < 0 || s_ruser_y >= param_height ) begin
                     if ( s_rdata == BORDER_DATA ) begin
                         $display("[OK] %d %d BORDER", s_ruser_y, s_ruser_x);

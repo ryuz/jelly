@@ -12,8 +12,8 @@
 `default_nettype none
 
 
-// a*x + b*y + c �����X�^�X�L�������Ɍv�Z����
-// (�v�͕��ʂ̎��̕����ŁA�����̂ǂ��瑤�̗̈�ɂ��邩���肷��̂Ɏg��)
+// a*x + b*y + c をラスタスキャン順に計算する
+// (要は平面の式の符号で、直線のどちら側の領域にいるか判定するのに使う)
 module jelly_rasterizer_plane_calc
         #(
             parameter   WIDTH = 16

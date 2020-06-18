@@ -662,7 +662,7 @@ module zybo_z7_imx219_hdmi
             );
     
     
-    // Œ»‘œ
+    // ç¾åƒ
     wire    [0:0]               axi4s_rgb_tuser;
     wire                        axi4s_rgb_tlast;
     wire    [39:0]              axi4s_rgb_tdata;
@@ -849,7 +849,7 @@ module zybo_z7_imx219_hdmi
                     .m_axi4s_tready     (axi4s_vout_tready)
                 );
         
-        // read ‚Í–¢g—p
+        // read ã¯æœªä½¿ç”¨
         assign axi4_mem0_arid     = 0;
         assign axi4_mem0_araddr   = 0;
         assign axi4_mem0_arburst  = 0;
@@ -895,7 +895,7 @@ module zybo_z7_imx219_hdmi
                     .WB_ADR_WIDTH       (8),
                     .WB_DAT_WIDTH       (WB_DAT_WIDTH),
                     
-                    .TRIG_ASYNC         (1),    // WISHBONE‚Æ”ñ“¯Šú‚Ìê‡
+                    .TRIG_ASYNC         (1),    // WISHBONEã¨éåŒæœŸã®å ´åˆ
                     .TRIG_START_ENABLE  (0),
                     
                     .INIT_CTL_CONTROL   (4'b0000),

@@ -186,16 +186,16 @@ module tb_axi4_reader();
     
     initial begin
         if ( RAND_BUSY ) begin
-            // ready ‚ğ—‚Æ‚µ‚Äempty‚³‚¹‚é
+            // ready ã‚’è½ã¨ã—ã¦emptyã•ã›ã‚‹
             m_axi4s_tready = 0;
             #(AXI4_RATE*2000);
             
-            // ‹t‚Éfull‚³‚¹‚é
+            // é€†ã«fullã•ã›ã‚‹
             @(negedge m_axi4s_aclk)
             m_axi4s_tready = 1;
             #(AXI4_RATE*2000);
             
-            // Œã‚Íƒ‰ƒ“ƒ_ƒ€
+            // å¾Œã¯ãƒ©ãƒ³ãƒ€ãƒ 
             while ( 1 ) begin
                 @(negedge m_axi4s_aclk)
                 m_axi4s_tready = {$random()};
@@ -226,7 +226,7 @@ module tb_axi4_reader();
             end
             
             if ( !m_axi4_rready ) begin
-                $display("m_axi4_rready down");     // ƒŠƒZƒbƒg‰ğœ‚Éˆê‰ño‚é‚¯‚Ç‹C‚É‚µ‚È‚¢
+                $display("m_axi4_rready down");     // ãƒªã‚»ãƒƒãƒˆè§£é™¤æ™‚ã«ä¸€å›å‡ºã‚‹ã‘ã©æ°—ã«ã—ãªã„
             end
         end
     end

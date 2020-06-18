@@ -49,7 +49,7 @@ module tb_top();
 	
 	
 	
-	// �o�͕ۑ�
+	// 出力保存
 	wire			vout_reset        = i_top.vout_reset;
 	wire			vout_clk          = i_top.vout_clk;
 	wire	[0:0]	axi4s_vout_tuser  = i_top.axi4s_vout_tuser;

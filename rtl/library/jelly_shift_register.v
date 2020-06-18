@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-// SRLC32E ‘z’è
+// SRLC32E æƒ³å®š
 module jelly_shift_register
         #(
             parameter   SEL_WIDTH = 5,

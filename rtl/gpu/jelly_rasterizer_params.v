@@ -88,7 +88,7 @@ module jelly_rasterizer_params
         );
     
     
-    // ˆê•”ˆ—Œn‚Å $clog2 ‚ª³‚µ‚­“®‚©‚È‚¢‚Ì‚Å
+    // ä¸€éƒ¨å‡¦ç†ç³»ã§ $clog2 ãŒæ­£ã—ãå‹•ã‹ãªã„ã®ã§
     localparam  BANK_WIDTH        = BANK_NUM           <=     1 ?  0 :
                                     BANK_NUM           <=     2 ?  1 :
                                     BANK_NUM           <=     4 ?  2 :
@@ -159,7 +159,7 @@ module jelly_rasterizer_params
     
     
     // -----------------------------------------
-    //  ƒŒƒWƒXƒ^
+    //  ãƒ¬ã‚¸ã‚¹ã‚¿
     // -----------------------------------------
 
     wire    [WB_DAT_WIDTH-1:0]  wb_regs_dat_o;
@@ -167,7 +167,7 @@ module jelly_rasterizer_params
     wire                        wb_regs_ack_o;
     
     
-    // ƒAƒhƒŒƒX’è‹`
+    // ã‚¢ãƒ‰ãƒ¬ã‚¹å®šç¾©
     localparam  REG_ADDR_WIDTH                  = 6;
     
     localparam  REG_ADDR_CFG_SHADER_TYPE        = 32'h00;
@@ -192,25 +192,25 @@ module jelly_rasterizer_params
     localparam  REG_ADDR_PARAM_SELECT           = 32'h29;
     
     
-    // §ŒäƒŒƒWƒXƒ^
+    // åˆ¶å¾¡ãƒ¬ã‚¸ã‚¹ã‚¿
     reg                         reg_ctl_enable;
     reg                         reg_ctl_update;
     
-    // ƒpƒ‰ƒ[ƒ^(•\)
+    // ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿(è¡¨)
     reg     [X_WIDTH-1:0]       reg_param_width;
     reg     [Y_WIDTH-1:0]       reg_param_height;
     reg     [1:0]               reg_param_culling;
     reg     [BANK_BITS-1:0]     reg_param_bank;
     reg     [SELECT_WIDTH-1:0]  reg_param_select;
     
-    // ƒpƒ‰ƒ[ƒ^(— )
+    // ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿(è£)
     reg     [X_WIDTH-1:0]       reg_shadow_width;
     reg     [Y_WIDTH-1:0]       reg_shadow_height;
     reg     [1:0]               reg_shadow_culling;
     reg     [BANK_BITS-1:0]     reg_shadow_bank;
     reg     [SELECT_WIDTH-1:0]  reg_shadow_select;
     
-    // ”ñ“¯Šúƒ‰ƒbƒ`(ƒpƒ‰ƒ[ƒ^‚ÌXVŠ®—¹‚ğó‚¯æ‚é)
+    // éåŒæœŸãƒ©ãƒƒãƒ(ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®æ›´æ–°å®Œäº†ã‚’å—ã‘å–ã‚‹)
     wire                        update_ack;
     
     (* ASYNC_REG="true" *)  reg     ff0_update_ack, ff1_update_ack, ff2_update_ack;
@@ -254,7 +254,7 @@ module jelly_rasterizer_params
                 endcase
             end
             
-            // ƒoƒ“ƒN–³‚µ‚È‚ç’l‚ğŒÅ’è(‡¬‚ÅÁ‚³‚ê‚é)
+            // ãƒãƒ³ã‚¯ç„¡ã—ãªã‚‰å€¤ã‚’å›ºå®š(åˆæˆã§æ¶ˆã•ã‚Œã‚‹)
             if ( BANK_WIDTH == 0 ) begin
                 reg_param_bank <= INIT_PARAM_BANK;
             end
@@ -298,7 +298,7 @@ module jelly_rasterizer_params
     assign wb_regs_ack_o = wb_regs_stb_i;
     
     
-    // update_paramM†‚Ì‘OŒã‚Å‚ÍƒŒƒWƒXƒ^•Ï‰»‚ª–³‚¢‘O’ñ‚Å”ñ“¯Šúó‚¯“n‚µ
+    // update_paramä¿¡å·ã®å‰å¾Œã§ã¯ãƒ¬ã‚¸ã‚¹ã‚¿å¤‰åŒ–ãŒç„¡ã„å‰æã§éåŒæœŸå—ã‘æ¸¡ã—
     always @(posedge clk ) begin
         if ( update ) begin
             reg_shadow_width   <= reg_param_width;
@@ -317,7 +317,7 @@ module jelly_rasterizer_params
     
     
     // -----------------------------------------
-    //  ƒGƒbƒW”»’èŠí—pƒ‰ƒXƒ^ƒ‰ƒCƒUƒpƒ‰ƒ[ƒ^
+    //  ã‚¨ãƒƒã‚¸åˆ¤å®šå™¨ç”¨ãƒ©ã‚¹ã‚¿ãƒ©ã‚¤ã‚¶ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
     // -----------------------------------------
     
     wire    [WB_DAT_WIDTH-1:0]  wb_edge_dat_o;
@@ -363,7 +363,7 @@ module jelly_rasterizer_params
     assign wb_edge_ack_o = wb_edge_stb_i;
     
     
-    // ƒVƒF[ƒ_[ƒpƒ‰ƒ[ƒ^—pƒ‰ƒXƒ^ƒ‰ƒCƒUƒpƒ‰ƒ[ƒ^
+    // ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ç”¨ãƒ©ã‚¹ã‚¿ãƒ©ã‚¤ã‚¶ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
     wire    [WB_DAT_WIDTH-1:0]  wb_shader_dat_o;
     wire                        wb_shader_stb_i;
     wire                        wb_shader_ack_o;
@@ -407,7 +407,7 @@ module jelly_rasterizer_params
     assign wb_shader_ack_o = wb_shader_stb_i;
     
     
-    // ƒ|ƒŠƒSƒ“—Ìˆæ”»’è—pƒpƒ‰ƒ[ƒ^
+    // ãƒãƒªã‚´ãƒ³é ˜åŸŸåˆ¤å®šç”¨ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
     wire    [WB_DAT_WIDTH-1:0]  wb_region_dat_o;
     wire                        wb_region_stb_i;
     wire                        wb_region_ack_o;
@@ -450,14 +450,14 @@ module jelly_rasterizer_params
     assign wb_region_ack_o = wb_region_stb_i;
     
     
-    // busy (ˆê”Ô’x‚¢‚à‚Ì‚ğŠî€‚É‚·‚é)
+    // busy (ä¸€ç•ªé…ã„ã‚‚ã®ã‚’åŸºæº–ã«ã™ã‚‹)
     wire    params_busy = (PARAMS_EDGE_SIZE   >= PARAMS_SHADER_SIZE && PARAMS_EDGE_SIZE   >= PARAMS_REGION_SIZE) ? edge_busy   :
                           (PARAMS_SHADER_SIZE >= PARAMS_EDGE_SIZE   && PARAMS_SHADER_SIZE >= PARAMS_REGION_SIZE) ? shader_busy :
                           region_busy;
     
     
     
-    // ”ñ“¯Šúƒ‰ƒbƒ`
+    // éåŒæœŸãƒ©ãƒƒãƒ
     (* ASYNC_REG="true" *)  reg     ff0_ctl_enable, ff1_ctl_enable;
     (* ASYNC_REG="true" *)  reg     ff0_ctl_update, ff1_ctl_update;
     always @(posedge clk) begin
@@ -478,7 +478,7 @@ module jelly_rasterizer_params
     end
     
     
-    // ƒXƒe[ƒgƒ}ƒVƒ“
+    // ã‚¹ãƒ†ãƒ¼ãƒˆãƒã‚·ãƒ³
     localparam  ST_IDLE         = 4'b0000;
     localparam  ST_UPDATE_START = 4'b1001;
     localparam  ST_UPDATE_BUSY  = 4'b1100;

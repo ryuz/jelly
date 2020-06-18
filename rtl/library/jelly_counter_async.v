@@ -13,7 +13,7 @@
 
 
 
-// カウンタ積算値を非同期先に伝播
+// 繧ｫ繧ｦ繝ｳ繧ｿ遨咲ｮ怜､繧帝撼蜷梧悄蜈医↓莨晄眺
 module jelly_counter_async
         #(
             parameter   ASYNC         = 1,

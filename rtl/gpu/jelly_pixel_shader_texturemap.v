@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-// ƒeƒNƒXƒ`ƒƒƒ}ƒbƒv—pƒVƒF[ƒ_[
+// ãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒãƒƒãƒ—ç”¨ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼
 module jelly_pixel_shader_texturemap
         #(
             parameter   IMAGE_X_NUM                   = 640,
@@ -262,10 +262,10 @@ module jelly_pixel_shader_texturemap
     
     
     // -------------------------------------
-    //  ƒŒƒWƒXƒ^
+    //  ãƒ¬ã‚¸ã‚¹ã‚¿
     // -------------------------------------
     
-    // ƒAƒhƒŒƒX
+    // ã‚¢ãƒ‰ãƒ¬ã‚¹
     localparam  REG_ADDR_PARAM_ADDR             = 6'h00;
     localparam  REG_ADDR_PARAM_WIDTH            = 6'h01;
     localparam  REG_ADDR_PARAM_HEIGHT           = 6'h02;
@@ -281,7 +281,7 @@ module jelly_pixel_shader_texturemap
     localparam  REG_ADDR_CFG_SHADER_PARAM_WIDTH = 6'h11;
     localparam  REG_ADDR_CFG_SHADER_PARAM_Q     = 6'h12;
     
-    // •\ƒŒƒWƒXƒ^
+    // è¡¨ãƒ¬ã‚¸ã‚¹ã‚¿
     reg     [M_AXI4_ADDR_WIDTH-1:0]             reg_param_addr;
     reg     [ADDR_X_WIDTH-1:0]                  reg_param_width;
     reg     [ADDR_Y_WIDTH-1:0]                  reg_param_height;
@@ -294,7 +294,7 @@ module jelly_pixel_shader_texturemap
     reg     [COMPONENT_NUM*DATA_WIDTH-1:0]      reg_param_border_value;
     reg     [COMPONENT_NUM*DATA_WIDTH-1:0]      reg_param_bgc;
     
-    // — ƒŒƒWƒXƒ^
+    // è£ãƒ¬ã‚¸ã‚¹ã‚¿
     reg     [M_AXI4_ADDR_WIDTH-1:0]             reg_shadow_addr;
     reg     [ADDR_X_WIDTH-1:0]                  reg_shadow_width;
     reg     [ADDR_Y_WIDTH-1:0]                  reg_shadow_height;
@@ -370,7 +370,7 @@ module jelly_pixel_shader_texturemap
     assign s_wb_ack_o = s_wb_stb_i;
     
     
-    // update_paramM†‚Ì‘OŒã‚Å‚ÍƒŒƒWƒXƒ^•Ï‰»‚ª–³‚¢‘O’ñ‚Å”ñ“¯Šúó‚¯“n‚µ
+    // update_paramä¿¡å·ã®å‰å¾Œã§ã¯ãƒ¬ã‚¸ã‚¹ã‚¿å¤‰åŒ–ãŒç„¡ã„å‰æã§éåŒæœŸå—ã‘æ¸¡ã—
     always @(posedge clk ) begin
         if ( update ) begin
             reg_shadow_addr            <= reg_param_addr;
@@ -391,7 +391,7 @@ module jelly_pixel_shader_texturemap
     
     
     // -------------------------------------
-    // ƒp[ƒXƒyƒNƒeƒBƒuƒRƒŒƒNƒVƒ‡ƒ“
+    // ãƒ‘ãƒ¼ã‚¹ãƒšã‚¯ãƒ†ã‚£ãƒ–ã‚³ãƒ¬ã‚¯ã‚·ãƒ§ãƒ³
     // -------------------------------------
     
     wire                                        cke;

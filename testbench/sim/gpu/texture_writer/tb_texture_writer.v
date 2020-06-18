@@ -25,7 +25,7 @@ module tb_texture_writer();
     initial #(RATE*100.5)   reset = 1'b0;
     
     
-    // ÉâÉìÉ_ÉÄ BUSY
+    // „É©„É≥„ÉÄ„É† BUSY
     localparam  RAND_BUSY   = 1;
     
     localparam  MONO        = 0;    // 1;
@@ -208,7 +208,7 @@ module tb_texture_writer();
             #(
                 .AXI4S_DATA_WIDTH   (COMPONENT_NUM * COMPONENT_DATA_WIDTH),
                 .X_NUM              (X_NUM),
-                .Y_NUM              (Y_NUM + 3),    // ÇÌÇ¥Ç∆ïsêÆçáÇ…ÇµÇƒÇ›ÇÈ
+                .Y_NUM              (Y_NUM + 3),    // „Çè„Åñ„Å®‰∏çÊï¥Âêà„Å´„Åó„Å¶„Åø„Çã
                 .PGM_FILE           (MONO  ? "image.pgm" : ""),
                 .PPM_FILE           (!MONO ? "image.ppm" : ""),
                 .BUSY_RATE          (RAND_BUSY ? 5 : 0)
