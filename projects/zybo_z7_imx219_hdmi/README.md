@@ -125,7 +125,10 @@ make load
 
 ## 参考情報
 
-- ブログ記事
+- 作者ブログ記事
+    - [ZyboでDVI出力](http://ryuz.txt-nifty.com/blog/2015/02/zybodvi-19ac.html)
+    - [続・ZyboでDVI出力](http://ryuz.txt-nifty.com/blog/2015/04/zybodvi-f103.html)
+    - [続々・ZyboでDVI出力](http://ryuz.txt-nifty.com/blog/2015/04/zybodvi-d9d1.html)
     - [Zybo Z7 への Raspberry Pi Camera V2 接続(MIPI CSI-2受信)](http://ryuz.txt-nifty.com/blog/2018/04/zybo-z7-raspber.html)
     - [Zybo Z7 への Raspberry Pi Camera V2 接続 (1000fps動作)](http://ryuz.txt-nifty.com/blog/2018/05/zybo-z7-raspber.html)
 
