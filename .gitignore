@@ -73,8 +73,12 @@
 *.sdk/
 *.srcs/
 *.gise
+*.ip_user_files/
 
 **/ip/*
+
+# ローカル便利ツール除外
+copy_bit.bat
 
 *.bak
 *_
