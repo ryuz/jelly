@@ -64,6 +64,15 @@
 #define REG_RAW2RGB_DEMOSAIC_PHASE  0x00
 #define REG_RAW2RGB_DEMOSAIC_BYPASS 0x01
 
+// MNIST color
+#define REG_MCOL_PARAM_MODE         0x00
+#define REG_MCOL_PARAM_TH           0x01
+
+// Binarizer
+#define REG_BIN_PARAM_END           0x04
+#define REG_BIN_PARAM_INV           0x05
+#define REG_BIN_TBL(x)              (0x40 +(x))
+
 // Video sync generator
 #define REG_VSGEN_CORE_ID           0x00
 #define REG_VSGEN_CORE_VERSION      0x01
@@ -132,8 +141,9 @@ int main()
     auto reg_rdma   = uio_acc.GetMemAccess(0x00020000);
     auto reg_vsgen  = uio_acc.GetMemAccess(0x00021000);
 
-    std::cout << "reg_wdma : " << std::hex << reg_wdma.ReadReg(0) << std::endl;
-    std::cout << "reg_rdma : " << std::hex << reg_rdma.ReadReg(0) << std::endl;
+//  std::cout << "reg_gid  : " << std::hex << reg_gid.ReadReg(0) << std::endl;
+//  std::cout << "reg_wdma : " << std::hex << reg_wdma.ReadReg(0) << std::endl;
+//  std::cout << "reg_rdma : " << std::hex << reg_rdma.ReadReg(0) << std::endl;
 
     // IMX219 I2C control
     IMX219ControlI2c imx219;
@@ -148,16 +158,11 @@ int main()
     imx219.Start();
 
     // OLED初期化
-    SSD1331Control olde(reg_oled);
-    olde.Setup();
+    SSD1331Control oled(reg_oled);
+    oled.Setup();
 
-
-
-
-    // demosaic param_phase
-    reg_rgb.WriteReg(0x0000, 1);
-    
     // color map
+    /*
     reg_mcol.WriteReg(0x040/4, 0x0000000);  // 黒
     reg_mcol.WriteReg(0x044/4, 0x0000080);  // 茶
     reg_mcol.WriteReg(0x048/4, 0x00000ff);  // 赤
@@ -168,26 +173,17 @@ int main()
     reg_mcol.WriteReg(0x05c/4, 0x0800080);  // 紫
     reg_mcol.WriteReg(0x060/4, 0x0808080);  // 灰
     reg_mcol.WriteReg(0x064/4, 0x0ffffff);  // 白
+    */
 
     // UI
-    int view_sel   = 0;     // 表示ソースの選択
-    int bin_th     = 127;   // 2値化閾値
-    int dnn0_en    = 1;     // DNN0の表示有効化
-    int dnn1_en    = 1;     // DNN1の表示有効化
-    int dnn0_th    = 127;   // classifierの閾値
-    int dnn0_lpf   = 0;     // classifierのLPF強度
-    int dnn1_th    = 127;   // detectorの閾値
-    int dnn1_lpf   = 0;     // detectorのLPF強度
-
-    // パラメータ設定
-    reg_mcol.WriteReg(0x000000/4, dnn0_en + (dnn1_en << 1));
-    reg_mcol.WriteReg(0x000004/4, view_sel);
-    reg_mcol.WriteReg(0x000008/4, dnn0_th);
-    reg_mcol.WriteReg(0x00000c/4, dnn1_th);
-
-    reg_mnist.WriteReg(0x00, dnn0_lpf);
-    reg_mnist.WriteReg(0x10, dnn1_lpf);
-
+    int bin_th      = 127;   // 2値化閾値
+    int col_mode    = 0;     // 色付けモード
+    int col_th      = 0;     // 色付け閾値
+    int a_gain      = 20;
+    int d_gain      = 10;
+    int bayer_phase = 0;
+    
+    // 開始
     CaptureStart(reg_wdma, reg_norm, dmabuf_phys_adr);
     VoutStart(reg_rdma, reg_vsgen, dmabuf_phys_adr);
     
@@ -195,54 +191,63 @@ int main()
     while ( (key = (cv::waitKeyEx(10) & 0xff)) != 0x1b ) {
         auto img = ReadImage(udmabuf_acc);
         cv::imshow("img", img);
-        cv::createTrackbar("view_sel", "img", &view_sel,  15);
         cv::createTrackbar("bin_th",   "img", &bin_th,   255);
-        cv::createTrackbar("dnn0_en",  "img", &dnn0_en,    1);
-        cv::createTrackbar("dnn1_en",  "img", &dnn1_en,    1);
-        cv::createTrackbar("dnn0_th",  "img", &dnn0_th,  255);
-        cv::createTrackbar("dnn0_lpf", "img", &dnn0_lpf, 255);
-        cv::createTrackbar("dnn1_th",  "img", &dnn1_th,  255);
-        cv::createTrackbar("dnn1_lpf", "img", &dnn1_lpf, 255);
+        cv::createTrackbar("col_mode", "img", &col_mode,   3);
+        cv::createTrackbar("col_th",   "img", &col_th,    15);
+        cv::createTrackbar("a_gain",   "img", &a_gain, 20);
+        cv::createTrackbar("d_gain",   "img", &d_gain, 24);
+        cv::createTrackbar("bayer" ,   "img", &bayer_phase, 3);
 
-
+        // パラメータ設定
+        reg_mcol.WriteReg(REG_MCOL_PARAM_MODE, col_mode);
+        reg_mcol.WriteReg(REG_MCOL_PARAM_TH, col_th);
+        
         if ( bin_th == 0 ) {
             // PWMモード(テーブルサイズ=15)
-            reg_bin.WriteReg(0x000100/4 + 0,  0x10);
-            reg_bin.WriteReg(0x000100/4 + 1,  0xf0);
-            reg_bin.WriteReg(0x000100/4 + 2,  0x70);
-            reg_bin.WriteReg(0x000100/4 + 3,  0x90);
-            reg_bin.WriteReg(0x000100/4 + 4,  0x30);
-            reg_bin.WriteReg(0x000100/4 + 5,  0xd0);
-            reg_bin.WriteReg(0x000100/4 + 6,  0x50);
-            reg_bin.WriteReg(0x000100/4 + 7,  0xb0);
-            reg_bin.WriteReg(0x000100/4 + 8,  0x20);
-            reg_bin.WriteReg(0x000100/4 + 9,  0xe0);
-            reg_bin.WriteReg(0x000100/4 + 10, 0x60);
-            reg_bin.WriteReg(0x000100/4 + 11, 0xa0);
-            reg_bin.WriteReg(0x000100/4 + 12, 0x40);
-            reg_bin.WriteReg(0x000100/4 + 13, 0xc0);
-            reg_bin.WriteReg(0x000100/4 + 14, 0x80);
-            reg_bin.WriteReg(0x000010/4, 14);      // MNIST_MOD_REG_PARAM_END
+            reg_bin.WriteReg(REG_BIN_TBL(0),  0x10);
+            reg_bin.WriteReg(REG_BIN_TBL(1),  0xf0);
+            reg_bin.WriteReg(REG_BIN_TBL(2),  0x70);
+            reg_bin.WriteReg(REG_BIN_TBL(3),  0x90);
+            reg_bin.WriteReg(REG_BIN_TBL(4),  0x30);
+            reg_bin.WriteReg(REG_BIN_TBL(5),  0xd0);
+            reg_bin.WriteReg(REG_BIN_TBL(6),  0x50);
+            reg_bin.WriteReg(REG_BIN_TBL(7),  0xb0);
+            reg_bin.WriteReg(REG_BIN_TBL(8),  0x20);
+            reg_bin.WriteReg(REG_BIN_TBL(9),  0xe0);
+            reg_bin.WriteReg(REG_BIN_TBL(10), 0x60);
+            reg_bin.WriteReg(REG_BIN_TBL(11), 0xa0);
+            reg_bin.WriteReg(REG_BIN_TBL(12), 0x40);
+            reg_bin.WriteReg(REG_BIN_TBL(13), 0xc0);
+            reg_bin.WriteReg(REG_BIN_TBL(14), 0x80);
+            reg_bin.WriteReg(REG_BIN_PARAM_END, 14);      // MNIST_MOD_REG_PARAM_END
         }
         else {
             // 単純2値化(テーブルサイズ=1)
             reg_bin.WriteReg(0x000100/4, bin_th);
-            reg_bin.WriteReg(0x000010/4, 0);       // MNIST_MOD_REG_PARAM_END
+            reg_bin.WriteReg(REG_BIN_PARAM_END, 0);       // MNIST_MOD_REG_PARAM_END
         }
         
-        // パラメータ設定
-        reg_mcol.WriteReg(0x000000/4, dnn0_en + (dnn1_en << 1));
-        reg_mcol.WriteReg(0x000004/4, view_sel);
-        reg_mcol.WriteReg(0x000008/4, dnn0_th);
-        reg_mcol.WriteReg(0x00000c/4, dnn1_th);
+        // set camera
+        imx219.SetGain(a_gain);
+        imx219.SetDigitalGain(d_gain);
+        reg_rgb.WriteReg(REG_RAW2RGB_DEMOSAIC_PHASE, bayer_phase);
 
-        reg_mnist.WriteReg(0x000000/4, dnn0_lpf);
-        reg_mnist.WriteReg(0x000040/4, dnn1_lpf);
+        // ユーザー操作
+        switch ( key ) {
+        case 'h':  imx219.SetFlip(imx219.GetFlipH(), !imx219.GetFlipV()); break;
+        case 'v':  imx219.SetFlip(!imx219.GetFlipH(), imx219.GetFlipV()); break;
+        case 'w':  imx219.SetAoiPosition(imx219.GetAoiX(), imx219.GetAoiY() - 4);    break;
+        case 'z':  imx219.SetAoiPosition(imx219.GetAoiX(), imx219.GetAoiY() + 4);    break;
+        case 'a':  imx219.SetAoiPosition(imx219.GetAoiX() - 4, imx219.GetAoiY());    break;
+        case 's':  imx219.SetAoiPosition(imx219.GetAoiX() + 4, imx219.GetAoiY());    break;
+        }
     }
-    
+
     CaptureStop(reg_wdma, reg_norm);
     VoutStop(reg_rdma, reg_vsgen);
-
+    oled.Stop();
+    imx219.Stop();
+    
     return 0;
 }
 

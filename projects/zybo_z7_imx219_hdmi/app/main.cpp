@@ -297,8 +297,8 @@ int main(int argc, char *argv[])
     cv::createTrackbar("scale",    "camera", &view_scale, 4);
     cv::createTrackbar("fps",      "camera", &frame_rate, 1000);
     cv::createTrackbar("exposure", "camera", &exposure, 1000);
-    cv::createTrackbar("a_gain",   "camera", &a_gain, 200);
-    cv::createTrackbar("d_gain",   "camera", &d_gain, 240);
+    cv::createTrackbar("a_gain",   "camera", &a_gain, 20);
+    cv::createTrackbar("d_gain",   "camera", &d_gain, 24);
     cv::createTrackbar("bayer" ,   "camera", &bayer_phase, 3);
     
     int     key;

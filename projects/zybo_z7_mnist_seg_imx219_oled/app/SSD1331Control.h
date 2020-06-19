@@ -245,6 +245,13 @@ public:
 		WriteReg(REG_ADR_VIN_EN, 0x01);
 	}
 
+	void Stop(void)
+	{
+		WriteReg(REG_ADR_VIN_EN, 0x00);
+		WriteReg(REG_ADR_PWR_EN, 0x00);
+	}
+	
+
 #if 0
 	void DrawBitmap8(u8 c1, u8 r1, u8 c2, u8 r2, u8 *bitmapR, u8 *bitmapG, u8 *bitmapB, int sx, int sy)
 	{
