@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
     int     exposure    = 10;
     int     a_gain      = 20;
     int     d_gain      = 10;
-    int     bayer_phase = 0;
+    int     bayer_phase = 1;
     int     view_scale  = 1;
 
     for ( int i = 1; i < argc; ++i ) {
@@ -154,10 +154,14 @@ int main(int argc, char *argv[])
         std::cout << "uio_pl_peri mmap error" << std::endl;
         return 1;
     }
-    auto reg_wdma = uio_acc.GetMemAccess(0x00010000);
-    auto reg_norm = uio_acc.GetMemAccess(0x00011000);
-    auto reg_rgb  = uio_acc.GetMemAccess(0x00012000);
-    
+//    auto reg_wdma = uio_acc.GetMemAccess(0x00010000);
+//    auto reg_norm = uio_acc.GetMemAccess(0x00011000);
+//    auto reg_rgb  = uio_acc.GetMemAccess(0x00012000);
+    auto reg_wdma = uio_acc.GetRegAccess(0x00010000>>2);
+    auto reg_norm = uio_acc.GetRegAccess(0x00011000>>2);
+    auto reg_rgb  = uio_acc.GetRegAccess(0x00012000>>2);
+
+
     // mmap udmabuf
  // std::cout << "\nudmabuf0 open" << std::endl;
     UdmabufAccess udmabuf_acc("udmabuf0");

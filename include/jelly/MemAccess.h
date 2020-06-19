@@ -51,7 +51,8 @@ public:
     ~MemAccess_(){}
     MemAccess_(){}
 
-    MemAccess_(std::shared_ptr<AccessMemManager> mem_manager, std::size_t offset=0) {
+    MemAccess_(std::shared_ptr<AccessMemManager> mem_manager, std::size_t offset=0)
+    {
         SetMemManager(mem_manager, offset);
     }
 
@@ -84,6 +85,7 @@ public:
         return mem_manager->GetSize();
     }
 
+
     template <typename DT=DataType, typename MT=MemAddrType, typename RT=RegAddrType>
     MemAccess_<DT, MT, RT> GetMemAccess_(MemAddrType addr)
     {
@@ -113,6 +115,38 @@ public:
     MemAccess_<std::uint8_t, MemAddrType, RegAddrType> GetMemAccess8(MemAddrType addr)
     {
         return GetMemAccess_<std::uint8_t, MemAddrType, RegAddrType>(addr);
+    }
+
+
+    template <typename DT=DataType, typename MT=MemAddrType, typename RT=RegAddrType>
+    MemAccess_<DT, MT, RT> GetRegAccess_(RegAddrType reg)
+    {
+        return MemAccess_<DT, MT, RT>(m_mem_manager, reg * sizeof(DataType));
+    }
+
+    MemAccess_<DataType, MemAddrType, RegAddrType> GetRegAccess(RegAddrType reg)
+    {
+        return GetRegAccess_<DataType, MemAddrType, RegAddrType>(reg);
+    }
+
+    MemAccess_<std::uint64_t, MemAddrType, RegAddrType> GetRegAccess64(RegAddrType reg)
+    {
+        return GetRegAccess_<std::uint64_t, MemAddrType, RegAddrType>(reg);
+    }
+
+    MemAccess_<std::uint32_t, MemAddrType, RegAddrType> GetRegAccess32(RegAddrType reg)
+    {
+        return GetRegAccess_<std::uint32_t, MemAddrType, RegAddrType>(reg);
+    }
+
+    MemAccess_<std::uint16_t, MemAddrType, RegAddrType> GetRegAccess16(RegAddrType reg)
+    {
+        return GetRegAccess_<std::uint16_t, MemAddrType, RegAddrType>(reg);
+    }
+
+    MemAccess_<std::uint8_t, MemAddrType, RegAddrType> GetRegAccess8(RegAddrType reg)
+    {
+        return GetRegAccess_<std::uint8_t, MemAddrType, RegAddrType>(reg);
     }
 
 
