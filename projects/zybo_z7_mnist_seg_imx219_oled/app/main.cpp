@@ -1,0 +1,346 @@
+#include "SSD1331Control.h"
+
+#include "IMX219Control.h"
+
+#include "jelly/UioAccess.h"
+#include "jelly/UdmabufAccess.h"
+
+#include <opencv2/opencv.hpp>
+
+#include <iostream>
+
+
+// Video Write-DMA
+#define REG_WDMA_ID                 0x00
+#define REG_WDMA_VERSION            0x01
+#define REG_WDMA_CTL_CONTROL        0x04
+#define REG_WDMA_CTL_STATUS         0x05
+#define REG_WDMA_CTL_INDEX          0x07
+#define REG_WDMA_PARAM_ADDR         0x08
+#define REG_WDMA_PARAM_STRIDE       0x09
+#define REG_WDMA_PARAM_WIDTH        0x0a
+#define REG_WDMA_PARAM_HEIGHT       0x0b
+#define REG_WDMA_PARAM_SIZE         0x0c
+#define REG_WDMA_PARAM_AWLEN        0x0f
+#define REG_WDMA_MONITOR_ADDR       0x10
+#define REG_WDMA_MONITOR_STRIDE     0x11
+#define REG_WDMA_MONITOR_WIDTH      0x12
+#define REG_WDMA_MONITOR_HEIGHT     0x13
+#define REG_WDMA_MONITOR_SIZE       0x14
+#define REG_WDMA_MONITOR_AWLEN      0x17
+
+// Video Read-DMA
+#define REG_RDMA_CORE_ID            0x00
+#define REG_RDMA_CORE_VERSION       0x01
+#define REG_RDMA_CTL_CONTROL        0x04
+#define REG_RDMA_CTL_STATUS         0x05
+#define REG_RDMA_CTL_INDEX          0x06
+#define REG_RDMA_PARAM_ADDR         0x08
+#define REG_RDMA_PARAM_STRIDE       0x09
+#define REG_RDMA_PARAM_WIDTH        0x0a
+#define REG_RDMA_PARAM_HEIGHT       0x0b
+#define REG_RDMA_PARAM_SIZE         0x0c
+#define REG_RDMA_PARAM_ARLEN        0x0f
+#define REG_RDMA_MONITOR_ADDR       0x10
+#define REG_RDMA_MONITOR_STRIDE     0x11
+#define REG_RDMA_MONITOR_WIDTH      0x12
+#define REG_RDMA_MONITOR_HEIGHT     0x13
+#define REG_RDMA_MONITOR_SIZE       0x14
+#define REG_RDMA_MONITOR_ARLEN      0x17
+
+// Video Normalizer
+#define REG_NORM_CONTROL            0x00
+#define REG_NORM_BUSY               0x01
+#define REG_NORM_INDEX              0x02
+#define REG_NORM_SKIP               0x03
+#define REG_NORM_FRM_TIMER_EN       0x04
+#define REG_NORM_FRM_TIMEOUT        0x05
+#define REG_NORM_PARAM_WIDTH        0x08
+#define REG_NORM_PARAM_HEIGHT       0x09
+#define REG_NORM_PARAM_FILL         0x0a
+#define REG_NORM_PARAM_TIMEOUT      0x0b
+
+// Raw to RGB
+#define REG_RAW2RGB_DEMOSAIC_PHASE  0x00
+#define REG_RAW2RGB_DEMOSAIC_BYPASS 0x01
+
+// Video sync generator
+#define REG_VSGEN_CORE_ID           0x00
+#define REG_VSGEN_CORE_VERSION      0x01
+#define REG_VSGEN_CTL_CONTROL       0x04
+#define REG_VSGEN_CTL_STATUS        0x05
+#define REG_VSGEN_PARAM_HTOTAL      0x08
+#define REG_VSGEN_PARAM_HSYNC_POL   0x0B
+#define REG_VSGEN_PARAM_HDISP_START 0x0C
+#define REG_VSGEN_PARAM_HDISP_END   0x0D
+#define REG_VSGEN_PARAM_HSYNC_START 0x0E
+#define REG_VSGEN_PARAM_HSYNC_END   0x0F
+#define REG_VSGEN_PARAM_VTOTAL      0x10
+#define REG_VSGEN_PARAM_VSYNC_POL   0x13
+#define REG_VSGEN_PARAM_VDISP_START 0x14
+#define REG_VSGEN_PARAM_VDISP_END   0x15
+#define REG_VSGEN_PARAM_VSYNC_START 0x16
+#define REG_VSGEN_PARAM_VSYNC_END   0x17
+
+
+// parameter define
+const int cam_width  = 640;
+const int cam_height = 132;
+const int dvi_width  = 1280;
+const int dvi_height = 720;
+const int buf_stride = 2048*4;
+
+// private functions
+void    CaptureStart(jelly::MemAccess& reg_wdma, jelly::MemAccess& reg_norm, std::uintptr_t bufaddr);
+void    CaptureStop(jelly::MemAccess& reg_wdma, jelly::MemAccess& reg_norm);
+void    VoutStart(jelly::MemAccess& reg_rdma, jelly::MemAccess& reg_vsgen, std::uintptr_t bufaddr);
+void    VoutStop(jelly::MemAccess& reg_rdma, jelly::MemAccess& reg_vsgen);
+void    WriteImage(jelly::MemAccess& mem_acc, const cv::Mat& img);
+cv::Mat ReadImage(jelly::MemAccess& mem_acc);
+
+
+// main
+int main()
+{
+    // mmap udmabuf
+    jelly::UdmabufAccess udmabuf_acc("udmabuf0");
+    if ( !udmabuf_acc.IsMapped() ) {
+        std::cout << "udmabuf0 mmap error" << std::endl;
+        return 1;
+    }
+    auto dmabuf_phys_adr = udmabuf_acc.GetPhysAddr();
+    auto dmabuf_mem_size = udmabuf_acc.GetSize();
+    std::cout << "udmabuf0 phys addr : 0x" << std::hex << dmabuf_phys_adr << std::endl;
+    std::cout << "udmabuf0 size      : " << std::dec << dmabuf_mem_size << std::endl;
+
+
+    // mmap uio
+    jelly::UioAccess uio_acc("uio_pl_peri", 0x00100000);
+    if ( !uio_acc.IsMapped() ) {
+        std::cout << "uio_pl_peri mmap error" << std::endl;
+        return 1;
+    }
+    auto reg_gid    = uio_acc.GetMemAccess(0x00000000);
+    auto reg_wdma   = uio_acc.GetMemAccess(0x00010000);
+    auto reg_norm   = uio_acc.GetMemAccess(0x00011000);
+    auto reg_rgb    = uio_acc.GetMemAccess(0x00012000);
+    auto reg_resize = uio_acc.GetMemAccess(0x00014000);
+    auto reg_mnist  = uio_acc.GetMemAccess(0x00015000);
+    auto reg_bin    = uio_acc.GetMemAccess(0x00018000);
+    auto reg_mcol   = uio_acc.GetMemAccess(0x00019000);
+    auto reg_oled   = uio_acc.GetMemAccess(0x00022000);
+    auto reg_rdma   = uio_acc.GetMemAccess(0x00020000);
+    auto reg_vsgen  = uio_acc.GetMemAccess(0x00021000);
+
+    std::cout << "reg_wdma : " << std::hex << reg_wdma.ReadReg(0) << std::endl;
+    std::cout << "reg_rdma : " << std::hex << reg_rdma.ReadReg(0) << std::endl;
+
+    // IMX219 I2C control
+    IMX219ControlI2c imx219;
+    if ( !imx219.Open("/dev/i2c-0", 0x10) ) {
+        std::cout << "I2C open error" << std::endl;
+        return 1;
+    }
+
+    // camera 設定
+    imx219.SetPixelClock(139200000);
+    imx219.SetAoi(640, 132, (3280/2 - 640)/2, (2464/2 - 132)/2, true, true);
+    imx219.Start();
+
+    // OLED初期化
+    SSD1331Control olde(reg_oled);
+    olde.Setup();
+
+
+
+
+    // demosaic param_phase
+    reg_rgb.WriteReg(0x0000, 1);
+    
+    // color map
+    reg_mcol.WriteReg(0x040/4, 0x0000000);  // 黒
+    reg_mcol.WriteReg(0x044/4, 0x0000080);  // 茶
+    reg_mcol.WriteReg(0x048/4, 0x00000ff);  // 赤
+    reg_mcol.WriteReg(0x04c/4, 0x04cb7ff);  // 橙
+    reg_mcol.WriteReg(0x050/4, 0x000ffff);  // 黄
+    reg_mcol.WriteReg(0x054/4, 0x0008000);  // 緑
+    reg_mcol.WriteReg(0x058/4, 0x0ff0000);  // 青
+    reg_mcol.WriteReg(0x05c/4, 0x0800080);  // 紫
+    reg_mcol.WriteReg(0x060/4, 0x0808080);  // 灰
+    reg_mcol.WriteReg(0x064/4, 0x0ffffff);  // 白
+
+    // UI
+    int view_sel   = 0;     // 表示ソースの選択
+    int bin_th     = 127;   // 2値化閾値
+    int dnn0_en    = 1;     // DNN0の表示有効化
+    int dnn1_en    = 1;     // DNN1の表示有効化
+    int dnn0_th    = 127;   // classifierの閾値
+    int dnn0_lpf   = 0;     // classifierのLPF強度
+    int dnn1_th    = 127;   // detectorの閾値
+    int dnn1_lpf   = 0;     // detectorのLPF強度
+
+    // パラメータ設定
+    reg_mcol.WriteReg(0x000000/4, dnn0_en + (dnn1_en << 1));
+    reg_mcol.WriteReg(0x000004/4, view_sel);
+    reg_mcol.WriteReg(0x000008/4, dnn0_th);
+    reg_mcol.WriteReg(0x00000c/4, dnn1_th);
+
+    reg_mnist.WriteReg(0x00, dnn0_lpf);
+    reg_mnist.WriteReg(0x10, dnn1_lpf);
+
+    CaptureStart(reg_wdma, reg_norm, dmabuf_phys_adr);
+    VoutStart(reg_rdma, reg_vsgen, dmabuf_phys_adr);
+    
+    int     key;
+    while ( (key = (cv::waitKeyEx(10) & 0xff)) != 0x1b ) {
+        auto img = ReadImage(udmabuf_acc);
+        cv::imshow("img", img);
+        cv::createTrackbar("view_sel", "img", &view_sel,  15);
+        cv::createTrackbar("bin_th",   "img", &bin_th,   255);
+        cv::createTrackbar("dnn0_en",  "img", &dnn0_en,    1);
+        cv::createTrackbar("dnn1_en",  "img", &dnn1_en,    1);
+        cv::createTrackbar("dnn0_th",  "img", &dnn0_th,  255);
+        cv::createTrackbar("dnn0_lpf", "img", &dnn0_lpf, 255);
+        cv::createTrackbar("dnn1_th",  "img", &dnn1_th,  255);
+        cv::createTrackbar("dnn1_lpf", "img", &dnn1_lpf, 255);
+
+
+        if ( bin_th == 0 ) {
+            // PWMモード(テーブルサイズ=15)
+            reg_bin.WriteReg(0x000100/4 + 0,  0x10);
+            reg_bin.WriteReg(0x000100/4 + 1,  0xf0);
+            reg_bin.WriteReg(0x000100/4 + 2,  0x70);
+            reg_bin.WriteReg(0x000100/4 + 3,  0x90);
+            reg_bin.WriteReg(0x000100/4 + 4,  0x30);
+            reg_bin.WriteReg(0x000100/4 + 5,  0xd0);
+            reg_bin.WriteReg(0x000100/4 + 6,  0x50);
+            reg_bin.WriteReg(0x000100/4 + 7,  0xb0);
+            reg_bin.WriteReg(0x000100/4 + 8,  0x20);
+            reg_bin.WriteReg(0x000100/4 + 9,  0xe0);
+            reg_bin.WriteReg(0x000100/4 + 10, 0x60);
+            reg_bin.WriteReg(0x000100/4 + 11, 0xa0);
+            reg_bin.WriteReg(0x000100/4 + 12, 0x40);
+            reg_bin.WriteReg(0x000100/4 + 13, 0xc0);
+            reg_bin.WriteReg(0x000100/4 + 14, 0x80);
+            reg_bin.WriteReg(0x000010/4, 14);      // MNIST_MOD_REG_PARAM_END
+        }
+        else {
+            // 単純2値化(テーブルサイズ=1)
+            reg_bin.WriteReg(0x000100/4, bin_th);
+            reg_bin.WriteReg(0x000010/4, 0);       // MNIST_MOD_REG_PARAM_END
+        }
+        
+        // パラメータ設定
+        reg_mcol.WriteReg(0x000000/4, dnn0_en + (dnn1_en << 1));
+        reg_mcol.WriteReg(0x000004/4, view_sel);
+        reg_mcol.WriteReg(0x000008/4, dnn0_th);
+        reg_mcol.WriteReg(0x00000c/4, dnn1_th);
+
+        reg_mnist.WriteReg(0x000000/4, dnn0_lpf);
+        reg_mnist.WriteReg(0x000040/4, dnn1_lpf);
+    }
+    
+    CaptureStop(reg_wdma, reg_norm);
+    VoutStop(reg_rdma, reg_vsgen);
+
+    return 0;
+}
+
+
+
+void WriteImage(jelly::MemAccess& mem_acc, const cv::Mat& img)
+{
+    for ( int i = 0; i < img.rows; i++ )
+    {
+        mem_acc.MemCopyFrom(i*buf_stride, img.data + img.step*i, img.cols*4);
+    }
+}
+
+cv::Mat ReadImage(jelly::MemAccess& mem_acc)
+{
+    int x = (dvi_width  - cam_width) / 2;
+    int y = (dvi_height - cam_height) / 2;
+
+    cv::Mat img(cam_height, cam_width, CV_8UC4);
+    for ( int i = 0; i < img.rows; i++ )
+    {
+        mem_acc.MemCopyTo(img.data + i*img.step, (y+i)*buf_stride + x*4, img.cols*4);
+    }
+    return img;
+}
+
+void CaptureStart(jelly::MemAccess& reg_wdma, jelly::MemAccess& reg_norm, std::uintptr_t bufaddr)
+{
+    int x = (dvi_width  - cam_width) / 2;
+    int y = (dvi_height - cam_height) / 2;
+
+    // DMA start
+    reg_wdma.WriteReg(REG_WDMA_PARAM_ADDR, bufaddr + y*buf_stride + x*4);
+    reg_wdma.WriteReg(REG_WDMA_PARAM_STRIDE, buf_stride);               // stride
+    reg_wdma.WriteReg(REG_WDMA_PARAM_WIDTH, cam_width);                 // width
+    reg_wdma.WriteReg(REG_WDMA_PARAM_HEIGHT, cam_height);               // height
+    reg_wdma.WriteReg(REG_WDMA_PARAM_SIZE, cam_width*cam_height);       // size
+    reg_wdma.WriteReg(REG_WDMA_PARAM_AWLEN, 7);                         // awlen
+    reg_wdma.WriteReg(REG_WDMA_CTL_CONTROL, 0x03);
+
+    // normalizer start
+    reg_norm.WriteReg(REG_NORM_FRM_TIMER_EN, 1);
+    reg_norm.WriteReg(REG_NORM_FRM_TIMEOUT, 100000000);
+    reg_norm.WriteReg(REG_NORM_PARAM_WIDTH, cam_width);
+    reg_norm.WriteReg(REG_NORM_PARAM_HEIGHT, cam_height);
+    reg_norm.WriteReg(REG_NORM_PARAM_FILL, 0x0ff);
+    reg_norm.WriteReg(REG_NORM_PARAM_TIMEOUT, 0x100000);
+    reg_norm.WriteReg(REG_NORM_CONTROL, 0x03);
+}
+
+void CaptureStop(jelly::MemAccess& reg_wdma, jelly::MemAccess& reg_norm)
+{
+    reg_wdma.WriteReg(REG_WDMA_CTL_CONTROL, 0x00);
+    while ( reg_wdma.ReadReg(REG_WDMA_CTL_STATUS) != 0 ) {
+        usleep(100);
+    }
+
+    reg_norm.WriteReg(REG_NORM_CONTROL, 0x00);
+}
+
+
+void VoutStart(jelly::MemAccess& reg_rdma, jelly::MemAccess& reg_vsgen, std::uintptr_t bufaddr)
+{
+    // VSync Start
+    reg_vsgen.WriteReg(REG_VSGEN_PARAM_HTOTAL,      1650);
+    reg_vsgen.WriteReg(REG_VSGEN_PARAM_HDISP_START,    0);
+    reg_vsgen.WriteReg(REG_VSGEN_PARAM_HDISP_END,   dvi_width);
+    reg_vsgen.WriteReg(REG_VSGEN_PARAM_HSYNC_START, 1390);
+    reg_vsgen.WriteReg(REG_VSGEN_PARAM_HSYNC_END,   1430);
+    reg_vsgen.WriteReg(REG_VSGEN_PARAM_HSYNC_POL,      1);
+    reg_vsgen.WriteReg(REG_VSGEN_PARAM_VTOTAL,       750);
+    reg_vsgen.WriteReg(REG_VSGEN_PARAM_VDISP_START,    0);
+    reg_vsgen.WriteReg(REG_VSGEN_PARAM_VDISP_END,    dvi_height);
+    reg_vsgen.WriteReg(REG_VSGEN_PARAM_VSYNC_START,  725);
+    reg_vsgen.WriteReg(REG_VSGEN_PARAM_VSYNC_END,    730);
+    reg_vsgen.WriteReg(REG_VSGEN_PARAM_VSYNC_POL,      1);
+    reg_vsgen.WriteReg(REG_VSGEN_CTL_CONTROL,          1);
+
+    // DMA start
+    reg_rdma.WriteReg(REG_RDMA_PARAM_ADDR, bufaddr);
+    reg_rdma.WriteReg(REG_RDMA_PARAM_STRIDE, buf_stride);
+    reg_rdma.WriteReg(REG_RDMA_PARAM_WIDTH, dvi_width);
+    reg_rdma.WriteReg(REG_RDMA_PARAM_HEIGHT, dvi_height);
+    reg_rdma.WriteReg(REG_RDMA_PARAM_SIZE, dvi_width*dvi_height);
+    reg_rdma.WriteReg(REG_RDMA_PARAM_ARLEN, 31);
+    reg_rdma.WriteReg(REG_RDMA_CTL_CONTROL, 0x03);
+}
+
+
+void VoutStop(jelly::MemAccess& reg_rdma, jelly::MemAccess& reg_vsgen)
+{
+    reg_rdma.WriteReg(REG_RDMA_CTL_CONTROL, 0x00);
+    while ( reg_rdma.ReadReg(REG_RDMA_CTL_STATUS) != 0 ) {
+        usleep(100);
+    }
+
+    reg_vsgen.WriteReg(REG_VSGEN_CTL_CONTROL, 0x00);
+}
+
+
+// end of file
