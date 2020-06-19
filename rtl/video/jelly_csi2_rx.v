@@ -47,15 +47,15 @@ module jelly_csi2_rx
         );
     
     
-    (* MARK_DEBUG = "true" *)   wire    [0:0]               marge_tuser;
-    (* MARK_DEBUG = "true" *)   wire    [7:0]               marge_tdata;
-    (* MARK_DEBUG = "true" *)   wire                        marge_tvalid;
-    (* MARK_DEBUG = "true" *)   wire                        marge_tready;
+    wire    [0:0]               marge_tuser;
+    wire    [7:0]               marge_tdata;
+    wire                        marge_tvalid;
+    wire                        marge_tready;
     
-    (* MARK_DEBUG = "true" *)   wire                        request_sync;
-    (* MARK_DEBUG = "true" *)   wire                        frame_start;
-    (* MARK_DEBUG = "true" *)   wire                        frame_end;
-                                wire                        crc_error;
+    wire                        request_sync;
+    wire                        frame_start;
+    wire                        frame_end;
+    wire                        crc_error;
     
     jelly_csi2_rx_lane_merging
             #(
@@ -82,10 +82,10 @@ module jelly_csi2_rx
             );
     
     
-    (* MARK_DEBUG = "true" *)   wire                        low_tlast;
-    (* MARK_DEBUG = "true" *)   wire    [7:0]               low_tdata;
-    (* MARK_DEBUG = "true" *)   wire                        low_tvalid;
-    (* MARK_DEBUG = "true" *)   wire                        low_tready;
+    wire                        low_tlast;
+    wire    [7:0]               low_tdata;
+    wire                        low_tvalid;
+    wire                        low_tready;
     
     jelly_csi2_rx_low_layer
         i_csi2_rx_low_layer

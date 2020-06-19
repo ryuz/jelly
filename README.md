@@ -46,9 +46,9 @@ Verilogの勉強を始めた頃に Spartan-3 向けに試しに書いてみた�
 ## Zynqベースのシステム
 
 - projects/ultra96v2_udmabuf_sample
-    - [Ultra96V2 でudmabufを試す](projects/ultra96v2_udmabuf_sample/README.md)
+    - [Ultra96V2 でudmabufを試すサンプル](projects/ultra96v2_udmabuf_sample/README.md)
 - projects/zybo_z7_udmabuf_sample
-    - [Zybo Z7 でudmabufを試す](projects/zybo_z7_udmabuf_sample/README.md)
+    - [Zybo Z7 でudmabufを試すサンプル](projects/zybo_z7_udmabuf_sample/README.md)
 - projects/zybo_z7_imx219
     - [Zybo Z7 で RaspberryPI Camera Module V2(Sony IMX219)](projects/zybo_z7_imx219/README.md)
 - projects/zybo_z7_imx219_hdmi
