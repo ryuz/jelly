@@ -252,15 +252,17 @@ int main()
 }
 
 
-
+// udmabuf領域へ画像を書き込む
 void WriteImage(jelly::MemAccess& mem_acc, const cv::Mat& img)
 {
+    // ストライド幅に合わせて1ラインずつ転送
     for ( int i = 0; i < img.rows; i++ )
     {
         mem_acc.MemCopyFrom(i*buf_stride, img.data + img.step*i, img.cols*4);
     }
 }
 
+// udmabuf領域から画像を読み出す
 cv::Mat ReadImage(jelly::MemAccess& mem_acc)
 {
     int x = (dvi_width  - cam_width) / 2;
@@ -274,6 +276,7 @@ cv::Mat ReadImage(jelly::MemAccess& mem_acc)
     return img;
 }
 
+// カメラキャプチャ開始
 void CaptureStart(jelly::MemAccess& reg_wdma, jelly::MemAccess& reg_norm, std::uintptr_t bufaddr)
 {
     int x = (dvi_width  - cam_width) / 2;
@@ -298,6 +301,7 @@ void CaptureStart(jelly::MemAccess& reg_wdma, jelly::MemAccess& reg_norm, std::u
     reg_norm.WriteReg(REG_NORM_CONTROL, 0x03);
 }
 
+// カメラキャプチャ停止
 void CaptureStop(jelly::MemAccess& reg_wdma, jelly::MemAccess& reg_norm)
 {
     reg_wdma.WriteReg(REG_WDMA_CTL_CONTROL, 0x00);
@@ -308,7 +312,7 @@ void CaptureStop(jelly::MemAccess& reg_wdma, jelly::MemAccess& reg_norm)
     reg_norm.WriteReg(REG_NORM_CONTROL, 0x00);
 }
 
-
+// DVI出力開始
 void VoutStart(jelly::MemAccess& reg_rdma, jelly::MemAccess& reg_vsgen, std::uintptr_t bufaddr)
 {
     // VSync Start
@@ -337,6 +341,7 @@ void VoutStart(jelly::MemAccess& reg_rdma, jelly::MemAccess& reg_vsgen, std::uin
 }
 
 
+// DVI出力停止
 void VoutStop(jelly::MemAccess& reg_rdma, jelly::MemAccess& reg_vsgen)
 {
     reg_rdma.WriteReg(REG_RDMA_CTL_CONTROL, 0x00);
