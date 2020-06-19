@@ -39,9 +39,9 @@ projects/zybo_z7_imx219/syn/vivado2019.2
 
 最初に BlockDesign を tcl から再構成する必要がります。
 
-既に登録されている i_design_1 を手動で削除してから、メニューの「Tools」→「Run Tcl Script」で、同じディレクトリにある design_1.tcl を実行すれば復元できます。
+Vivado メニューの「Tools」→「Run Tcl Script」で、プロジェクトと同じディレクトリにある update_design.tcl を実行すると再構築を行うようにしています。
 
-もしくは Vivado のカレントディレクトリがプロジェクトのあるディレクトリにあることを確認したうえで update_design.tcl を実行すると削除と構築をまとめて実行できます。
+うまくいかない場合は、既に登録されている i_design_1 を手動で削除してから、design_1.tcl を実行しても同じことができるはずです。
 
 design_1 が生成されたら「Flow」→「Run Implementation」で合成を行います。正常に合成できれば
 
