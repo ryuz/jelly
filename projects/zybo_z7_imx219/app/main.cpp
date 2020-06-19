@@ -154,12 +154,9 @@ int main(int argc, char *argv[])
         std::cout << "uio_pl_peri mmap error" << std::endl;
         return 1;
     }
-//    auto reg_wdma = uio_acc.GetMemAccess(0x00010000);
-//    auto reg_norm = uio_acc.GetMemAccess(0x00011000);
-//    auto reg_rgb  = uio_acc.GetMemAccess(0x00012000);
-    auto reg_wdma = uio_acc.GetRegAccess(0x00010000>>2);
-    auto reg_norm = uio_acc.GetRegAccess(0x00011000>>2);
-    auto reg_rgb  = uio_acc.GetRegAccess(0x00012000>>2);
+    auto reg_wdma = uio_acc.GetMemAccess(0x00010000);
+    auto reg_norm = uio_acc.GetMemAccess(0x00011000);
+    auto reg_rgb  = uio_acc.GetMemAccess(0x00012000);
 
 
     // mmap udmabuf
@@ -179,16 +176,21 @@ int main(int argc, char *argv[])
     // IMX219 I2C control
     IMX219ControlI2c imx219;
     if ( !imx219.Open("/dev/i2c-0", 0x10) ) {
-        printf("I2C open error\n");
+        std::cout << "I2C open error" << std::endl;
         return 1;
     }
 
+    // camera 設定
     imx219.SetPixelClock(pixel_clock);
     imx219.SetAoi(width, height, aoi_x, aoi_y, binning, binning);
     imx219.Start();
 
     int     rec_frame_num = std::min(100, (int)(dmabuf_mem_size / (width * height * 4)));
     int     frame_num     = 1;
+
+    if ( rec_frame_num <= 0 ) {
+        std::cout << "udmabuf size error" << std::endl;
+    }
 
     int     key;
     while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
@@ -218,7 +220,8 @@ int main(int argc, char *argv[])
         cv::createTrackbar("bayer" ,   "img", &bayer_phase, 3);
 
         // ユーザー操作
-        if ( key == 'p' ) {
+        switch ( key ) {
+        case 'p':
             std::cout << "pixel clock   : " << imx219.GetPixelClock()   << " [Hz]"  << std::endl;
             std::cout << "frame rate    : " << imx219.GetFrameRate()    << " [fps]" << std::endl;
             std::cout << "exposure time : " << imx219.GetExposureTime() << " [s]"   << std::endl;
@@ -230,25 +233,27 @@ int main(int argc, char *argv[])
             std::cout << "AOI y         : " << imx219.GetAoiY() << std::endl;
             std::cout << "flip h        : " << imx219.GetFlipH() << std::endl;
             std::cout << "flip v        : " << imx219.GetFlipV() << std::endl;
-        }
+            break;
         
-        if ( key == 'h' ) {
-            flip_h = !flip_h;
-        }
+        // flip
+        case 'h':  flip_h = !flip_h;  break;
+        case 'v':  flip_v = !flip_v;  break;
+        
+        // aoi position
+        case 'w':  imx219.SetAoiPosition(imx219.GetAoiX(), imx219.GetAoiY() - 4);    break;
+        case 'z':  imx219.SetAoiPosition(imx219.GetAoiX(), imx219.GetAoiY() + 4);    break;
+        case 'a':  imx219.SetAoiPosition(imx219.GetAoiX() - 4, imx219.GetAoiY());    break;
+        case 's':  imx219.SetAoiPosition(imx219.GetAoiX() + 4, imx219.GetAoiY());    break;
 
-        if ( key == 'v' ) {
-            flip_v = !flip_v;
-        }
+        case 'd':   // image dump
+            {
+                cv::Mat imgRgb;
+                cv::cvtColor(img, imgRgb, CV_BGRA2BGR);
+                cv::imwrite("img_dump.png", imgRgb);
+            }
+            break;
 
-        if ( key == 'd' ) {
-            // image dump
-            cv::Mat imgRgb;
-            cv::cvtColor(img, imgRgb, CV_BGRA2BGR);
-            cv::imwrite("img_dump.png", imgRgb);
-        }
-
-        if ( key == 'r' ) {
-            // image record
+        case 'r': // image record
             std::cout << "record" << std::endl;
             capture_still_image(reg_wdma, reg_norm, dmabuf_phys_adr, width, height, rec_frame_num);
             int offset = 0;
@@ -262,6 +267,7 @@ int main(int argc, char *argv[])
                 cv::cvtColor(imgRec, imgRgb, CV_BGRA2BGR);
                 cv::imwrite(fname, imgRgb);
             }
+            break;
         }
     }
 
