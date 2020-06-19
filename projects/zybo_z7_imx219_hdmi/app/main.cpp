@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
     bool    flip_v      = false;
     int     frame_rate  = 60;
     int     exposure    = 20;
-    int     a_gain      = 20;
+    int     a_gain      = 12;
     int     d_gain      = 0;
     int     bayer_phase = 1;
     int     view_scale  = 1;
@@ -281,7 +281,7 @@ int main(int argc, char *argv[])
     }
     cv::cvtColor(imgBack, imgBack, CV_BGR2BGRA);
     WriteImage(udmabuf_acc, imgBack);
-
+    
     // camera setup
     imx219.SetPixelClock(pixel_clock);
     imx219.SetAoi(width, height, aoi_x, aoi_y, binning, binning);

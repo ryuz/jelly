@@ -148,7 +148,6 @@ int main(int argc, char *argv[])
 
 
     // mmap uio
-//  std::cout << "\nuio open" << std::endl;
     UioAccess uio_acc("uio_pl_peri", 0x00100000);
     if ( !uio_acc.IsMapped() ) {
         std::cout << "uio_pl_peri mmap error" << std::endl;
@@ -160,7 +159,6 @@ int main(int argc, char *argv[])
 
 
     // mmap udmabuf
- // std::cout << "\nudmabuf0 open" << std::endl;
     UdmabufAccess udmabuf_acc("udmabuf0");
     if ( !udmabuf_acc.IsMapped() ) {
         std::cout << "udmabuf0 mmap error" << std::endl;
@@ -215,8 +213,8 @@ int main(int argc, char *argv[])
         cv::createTrackbar("scale",    "img", &view_scale, 4);
         cv::createTrackbar("fps",      "img", &frame_rate, 1000);
         cv::createTrackbar("exposure", "img", &exposure, 1000);
-        cv::createTrackbar("a_gain",   "img", &a_gain, 200);
-        cv::createTrackbar("d_gain",   "img", &d_gain, 240);
+        cv::createTrackbar("a_gain",   "img", &a_gain, 20);
+        cv::createTrackbar("d_gain",   "img", &d_gain, 24);
         cv::createTrackbar("bayer" ,   "img", &bayer_phase, 3);
 
         // ユーザー操作
