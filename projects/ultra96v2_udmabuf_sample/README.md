@@ -51,8 +51,10 @@ git clone https://github.com/ryuz/jelly
 PS用のbitstreamは PC(WindowsやLinuxなど)で Vivado を使って行います。
 
 Vivado のプロジェクトは
-/projects/ultra96v2_udmabuf_sample/syn/vivado2019.2
-のにありますので Vivado で開いてください。
+
+/projects/ultra96v2_udmabuf_sample/syn/vivado2019.2/ultra96v2_udmabuf_sample.xpr
+
+にありますので Vivado で開いてください。
 
 最初に BlockDesign を tcl から再構成する必要がります。
 
@@ -114,6 +116,7 @@ ultra96v2_udmabuf_sample.dts が Device Tree overlay のソースファイルと
 なお、dtsファイルのコンパイルは、実行環境で行うことが必要なようです(内部で既存のDevice Treeのシンボルを参照する為)。
 
 ### bitstream 指定
+
 ``` 
     fragment@0 {
         target = <&fpga_full>;
