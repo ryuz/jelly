@@ -65,8 +65,8 @@ module video_dnn_argmax
 				.USER_WIDTH			(0),
 				.DATA_WIDTH			(COUNT_WIDTH),
 				.DATA_SIGNED		(0),
-				.CMP_MIN			(0),	// minã‹maxã‹
-				.CMP_EQ				(0)		// åŒå€¤ã®ã¨ã data0 ã¨ data1 ã©ã¡ã‚‰ã‚’å„ªå…ˆã™ã‚‹ã‹
+				.CMP_MIN			(0),	// min‚©max‚©
+				.CMP_EQ				(0)		// “¯’l‚Ì‚Æ‚« data0 ‚Æ data1 ‚Ç‚¿‚ç‚ğ—Dæ‚·‚é‚©
 			)
 		i_minmax
 			(
