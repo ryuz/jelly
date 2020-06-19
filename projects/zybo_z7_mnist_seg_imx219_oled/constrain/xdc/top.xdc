@@ -12,88 +12,49 @@ create_clock -period 8.000 -name in_clk125 -waveform {0.000 4.000} [get_ports in
 create_clock -period 2.1929 -name cam_clk_hs_p -waveform {0.000 1.09649} [get_ports cam_clk_hs_p]
 
 
-# HDMI-RX 480p (27.7MHz)
-# create_clock -period 36.101 -name hdmi_clk_p -waveform {0.000 18.050} [get_ports hdmi_clk_p]
+# clk_fpga_0                        133MHz   7.500ns
+# clk_fpga_1                        100MHz  10.000ns
+# clk_out1_design_1_clk_wiz_0_0     100MHz  10.000ns
+# clk_out2_design_1_clk_wiz_0_0     200MHz   5.000ns
+# clk_out3_design_1_clk_wiz_0_0     250MHz   4.000ns
+# clk_out4_design_1_clk_wiz_0_0     125MHz   8.000ns
+# clk_out1_design_1_clk_wiz_1_0_1  62.5MHz  16.000ns
+# clk_out2_design_1_clk_wiz_1_0_1 437.5MHz   2.285ns
+# clk_out1_clk_wiz_vout              75MHz  13.333ns
+# clk_out2_clk_wiz_vout             375MHz   2.666ns
+# rxbyteclkhs                       114MHz   8.771ns
 
+set_max_delay -datapath_only -from [get_clocks clk_fpga_0]                      -to [get_clocks clk_fpga_1]                       7.500
+set_max_delay -datapath_only -from [get_clocks clk_fpga_0]                      -to [get_clocks clk_out1_clk_wiz_vout]            7.500
+set_max_delay -datapath_only -from [get_clocks clk_fpga_0]                      -to [get_clocks clk_out2_design_1_clk_wiz_0_0]    5.000
 
-#create_clock -period  5.000 -name sys_clk200 -waveform {0.000 2.500} [get_nets sys_clk200]
-#create_clock -period 10.000 -name sys_clk100 -waveform {0.000 5.000} [get_nets sys_clk100]
+set_max_delay -datapath_only -from [get_clocks clk_fpga_1]                      -to [get_clocks clk_fpga_0]                       7.500
+set_max_delay -datapath_only -from [get_clocks clk_fpga_1]                      -to [get_clocks clk_out1_clk_wiz_vout]           10.000
+set_max_delay -datapath_only -from [get_clocks clk_fpga_1]                      -to [get_clocks clk_out1_design_1_clk_wiz_1_0_1] 10.000
+set_max_delay -datapath_only -from [get_clocks clk_fpga_1]                      -to [get_clocks clk_out2_design_1_clk_wiz_0_0]    5.000
 
+set_max_delay -datapath_only -from [get_clocks clk_out1_clk_wiz_vout]           -to [get_clocks clk_fpga_0]                       7.500
+set_max_delay -datapath_only -from [get_clocks clk_out1_clk_wiz_vout]           -to [get_clocks clk_fpga_1]                      10.000
 
-# clk_fpga_0                     133MHz   7.500ns
-# clk_fpga_1                     100MHz  10.000ns
-# clk_out1_design_1_clk_wiz_0_0  100MHz  10.000ns
-# clk_out2_design_1_clk_wiz_0_0  200MHz   5.000ns
-# rxbyteclkhs                             8.768ns
-# clk_out1_clk_wiz_vout           75MHz  13.333ns
-# clk_out2_clk_wiz_vout          375MHz   2.666ns
+set_max_delay -datapath_only -from [get_clocks clk_out1_design_1_clk_wiz_0_0]   -to [get_clocks clk_out2_design_1_clk_wiz_0_0]    5.000
+set_max_delay -datapath_only -from [get_clocks clk_out1_design_1_clk_wiz_0_0]   -to [get_clocks clk_out3_design_1_clk_wiz_0_0]    4.000
 
+set_max_delay -datapath_only -from [get_clocks clk_out1_design_1_clk_wiz_1_0_1] -to [get_clocks clk_fpga_1]                      10.000
+set_max_delay -datapath_only -from [get_clocks clk_out1_design_1_clk_wiz_1_0_1] -to [get_clocks clk_out2_design_1_clk_wiz_0_0]    5.000
 
-# set_clock_groups -name async_clks0 -asynchronous -group [get_clocks -include_generated_clocks in_clk125]   -group {clk_fpga_0 clk_fpga_1}
-# set_clock_groups -name async_clks1 -asynchronous -group [get_clocks -include_generated_clocks rxbyteclkhs] -group {clk_fpga_0 clk_fpga_1}
-# set_clock_groups -name async_clks2 -asynchronous -group [get_clocks -include_generated_clocks rxbyteclkhs] -group [get_clocks -include_generated_clocks in_clk125]
-# set_clock_groups -name async_clks3 -asynchronous -group {clk_fpga_1} -group {clk_out2_design_1_clk_wiz_0_0}
+set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0]   -to [get_clocks clk_fpga_0]                       5.000
+set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0]   -to [get_clocks clk_fpga_1]                       5.000
+set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0]   -to [get_clocks clk_out1_design_1_clk_wiz_0_0]    5.000
+set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0]   -to [get_clocks clk_out1_design_1_clk_wiz_1_0_1]  5.000
+set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0]   -to [get_clocks clk_out3_design_1_clk_wiz_0_0]    4.000
+set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0]   -to [get_clocks rxbyteclkhs]                      5.000
 
+set_max_delay -datapath_only -from [get_clocks clk_out3_design_1_clk_wiz_0_0]   -to [get_clocks clk_out2_design_1_clk_wiz_0_0]    4.000
+set_max_delay -datapath_only -from [get_clocks clk_out3_design_1_clk_wiz_0_0]   -to [get_clocks rxbyteclkhs]                      4.000
 
-set_max_delay -datapath_only -from [get_clocks clk_fpga_0] -to [get_clocks clk_fpga_1] 7.500
-set_max_delay -datapath_only -from [get_clocks clk_fpga_1] -to [get_clocks clk_fpga_0] 7.500
+set_max_delay -datapath_only -from [get_clocks rxbyteclkhs]                     -to [get_clocks clk_out1_design_1_clk_wiz_0_0]    8.771
+set_max_delay -datapath_only -from [get_clocks rxbyteclkhs]                     -to [get_clocks clk_out3_design_1_clk_wiz_0_0]    4.000
 
-set_max_delay -datapath_only -from [get_clocks clk_fpga_0] -to [get_clocks clk_out2_design_1_clk_wiz_0_0] 5.000
-set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -to [get_clocks clk_fpga_0] 5.000
-
-set_max_delay -datapath_only -from [get_clocks clk_fpga_0] -to [get_clocks clk_out3_design_1_clk_wiz_0_0] 4.000
-set_max_delay -datapath_only -from [get_clocks clk_out3_design_1_clk_wiz_0_0] -to [get_clocks clk_fpga_0] 4.000
-
-set_max_delay -datapath_only -from [get_clocks clk_fpga_1] -to [get_clocks clk_out3_design_1_clk_wiz_0_0] 4.000
-set_max_delay -datapath_only -from [get_clocks clk_out3_design_1_clk_wiz_0_0] -to [get_clocks clk_fpga_1] 4.000
-
-set_max_delay -datapath_only -from [get_clocks clk_fpga_1] -to [get_clocks clk_out2_design_1_clk_wiz_0_0] 5.000
-set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -to [get_clocks clk_fpga_1] 5.000
-
-set_max_delay -datapath_only -from [get_clocks clk_out1_design_1_clk_wiz_0_0] -to [get_clocks clk_out2_design_1_clk_wiz_0_0] 5.000
-set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -to [get_clocks clk_out1_design_1_clk_wiz_0_0] 5.000
-
-set_max_delay -datapath_only -from [get_clocks clk_fpga_1] -to [get_clocks clk_out1_design_1_clk_wiz_0_1_1] 5.000
-set_max_delay -datapath_only -from [get_clocks clk_out1_design_1_clk_wiz_0_1_1] -to [get_clocks clk_fpga_1] 5.000
-
-set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -to [get_clocks clk_out1_design_1_clk_wiz_0_0] 5.000
-set_max_delay -datapath_only -from [get_clocks clk_out1_design_1_clk_wiz_0_0] -to [get_clocks clk_out2_design_1_clk_wiz_0_0] 5.000
-
-set_max_delay -datapath_only -from [get_clocks clk_out3_design_1_clk_wiz_0_0] -to [get_clocks clk_out1_design_1_clk_wiz_0_0] 4.000
-set_max_delay -datapath_only -from [get_clocks clk_out1_design_1_clk_wiz_0_0] -to [get_clocks clk_out3_design_1_clk_wiz_0_0] 4.000
-
-set_max_delay -datapath_only -from [get_clocks clk_out3_design_1_clk_wiz_0_0] -to [get_clocks clk_out2_design_1_clk_wiz_0_0] 4.000
-set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -to [get_clocks clk_out3_design_1_clk_wiz_0_0] 4.000
-
-set_max_delay -datapath_only -from [get_clocks rxbyteclkhs] -to [get_clocks clk_out2_design_1_clk_wiz_0_0] 5.000
-set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -to [get_clocks rxbyteclkhs] 5.000
-
-set_max_delay -datapath_only -from [get_clocks rxbyteclkhs] -to [get_clocks clk_out3_design_1_clk_wiz_0_0] 4.000
-set_max_delay -datapath_only -from [get_clocks clk_out3_design_1_clk_wiz_0_0] -to [get_clocks rxbyteclkhs] 4.000
-
-set_max_delay -datapath_only -from [get_clocks rxbyteclkhs] -to [get_clocks clk_fpga_1] 8.768
-set_max_delay -datapath_only -from [get_clocks clk_fpga_1] -to [get_clocks rxbyteclkhs] 8.768
-
-set_max_delay -datapath_only -from [get_clocks rxbyteclkhs] -to [get_clocks clk_out1_design_1_clk_wiz_0_0] 8.768
-
-set_max_delay -datapath_only -from [get_clocks clk_out3_design_1_clk_wiz_0_0] -to [get_clocks clk_fpga_1] 4.000
-
-set_max_delay -datapath_only -from [get_clocks clk_out1_design_1_clk_wiz_0_1_1] -to [get_clocks clk_out2_design_1_clk_wiz_0_0] 5.000
-set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -to [get_clocks clk_out1_design_1_clk_wiz_0_1_1] 5.000
-
-set_max_delay -datapath_only -from [get_clocks clk_fpga_0] -to [get_clocks clk_out1_clk_wiz_vout] 7.500
-set_max_delay -datapath_only -from [get_clocks clk_out1_clk_wiz_vout] -to [get_clocks clk_fpga_0] 7.500
-
-set_max_delay -datapath_only -from [get_clocks clk_fpga_1] -to [get_clocks clk_out1_clk_wiz_vout] 10.000
-set_max_delay -datapath_only -from [get_clocks clk_out1_clk_wiz_vout] -to [get_clocks clk_fpga_1] 10.000
-
-
-#set_false_path -from [get_clocks clk_fpga_1]  -to [get_clocks mmcm_clk200]
-#set_false_path -from [get_clocks mmcm_clk200] -to [get_clocks mmcm_clk]
-
-
-#set_false_path -from [get_clocks rxbyteclkhs]  -to [get_clocks clk_out1_design_1_clk_wiz_0_0]
-#set_false_path -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -to [get_clocks rxbyteclkhs]
 
 
 ################################
