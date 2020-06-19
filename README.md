@@ -5,9 +5,9 @@
 MIPS互換のCPUコアを書き始めたのがきっかけですが、現状ではFPGAでSoCを実現する為のプラットフォームになりつつあります。
 主に Xilinx のFPGAをターゲットにした、様々なコードを蓄積しており、主に Verilog 2001 で開発しております。
 
-最近は、筆者の発案したFPGA用のバイナリニューラルネットである LUT-Network の実行にも一部コードを流用しており、重要性が高まっております。
+最近は、作者の発案したFPGA用のバイナリニューラルネットである LUT-Network の実行にも一部コードを流用しており、作者の中でも重要性が高まっております。
 
-基本的には色々なものをごった煮で含んでいる状況です。
+基本的には色々なものをごった煮で含んでいる状況ですが、参考になる部分だけ活用いただければと思います。
 
 
 ## MIPS-I 互換プロセッサ
@@ -43,6 +43,19 @@ Verilogの勉強を始めた頃に Spartan-3 向けに試しに書いてみた�
 - rtl/model        シミュレーション用の便利モデルいろいろ
 
 
+## Zynqベースのシステム
+
+- projects/ultra96v2_udmabuf_sample
+    - [Ultra96V2 でudmabufを試す](projects/ultra96v2_udmabuf_sample/README.md)
+- projects/zybo_z7_udmabuf_sample
+    - [Zybo Z7 でudmabufを試す](projects/zybo_z7_udmabuf_sample/README.md)
+- projects/zybo_z7_imx219
+    - [Zybo Z7 で RaspberryPI Camera Module V2(Sony IMX219)](projects/zybo_z7_imx219/README.md)
+- projects/zybo_z7_imx219_hdmi
+    - [Zybo Z7 で カメラ画像(IMX219) をHDMIコネクタから表示](projects/zybo_z7_imx219_hdmi/README.md)
+
+
 ## ライセンス
+
   license.txt にある通り、MIT ライセンスとして置いておきます。
 

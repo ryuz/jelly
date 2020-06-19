@@ -1,8 +1,11 @@
-# ZYBO-Z7 で Raspberry Pi Camera Module V2 (Sony IMX219) を 1000fpsで使うサンプル
+# ZYBO-Z7 で Raspberry Pi Camera Module V2 (Sony IMX219) をHDMIコネクタから表示
 
 ## 概要
-タイトルのとおり、ZYBO-Z7 で Raspberry Pi Camera Module V2 (Sony IMX219) を 1000fpsで使うサンプルです。
-もちろん 3280×2464@20fps もちゃんとできますのでご安心を。
+
+ZYBO-Z7 で Raspberry Pi Camera Module V2 (Sony IMX219) をHDMIコネクタから表示するサンプルです。
+なおコネクタはHDMIですが内部の電気的信号はDVIとなっております。
+
+また、現状同期制御などしていませんのでティアリングが出ますがご容赦ください。
 
 
 ## 環境
@@ -33,9 +36,9 @@ git clone https://github.com/ryuz/jelly.git
 
 ### Vivadoで bit ファイルを作る
 
-projects/zybo_z7_imx219/syn/vivado2019.2
+projects/zybo_z7_imx219_hdmi/syn/vivado2019.2
 
-に移動して Vivado から zybo_z7_imx219.xpr を開いてください。
+に移動して Vivado から zybo_z7_imx219_hdmi.xpr を開いてください。
 
 最初に BlockDesign を tcl から再構成する必要がります。
 
@@ -43,11 +46,12 @@ Vivado メニューの「Tools」→「Run Tcl Script」で、プロジェクト
 
 うまくいかない場合は、既に登録されている i_design_1 を手動で削除してから、design_1.tcl を実行しても同じことができるはずです。
 
+
 design_1 が生成されたら「Flow」→「Run Implementation」で合成を行います。正常に合成できれば
 
-zybo_z7_imx219.runs/impl_1
+zybo_z7_imx219_hdmi.runs/impl_1
 
-に zybo_z7_imx219.bit が出来上がります。
+に zybo_z7_imx219_hdmi.bit が出来上がります。
 
 ### Debian起動時のパラメータ設定(CMA領域増量)
 
@@ -66,8 +70,9 @@ linux_boot_args=console=ttyPS0,115200 root=/dev/mmcblk0p2 rw rootwait uio_pdrv_g
 ### ZYBO Z7 で実行
 
 取付向きに注意して ZYBO-Z7 の MIPIコネクタ(J2) に、Camera Module V2 を接続します。フレキの接点が出ている側が基板の外側を向きます。
+また HDMI TX 取付向きに注意して ZYBO-Z7 の MIPIコネクタ(J8) に、PCモニタなどを接続します(720pが表示出来れば大丈夫なはずです)。
 
-次に projects/zybo_z7_imx219/app の内容一式と先ほど合成した zybo_z7_imx219.bit を、ZYBO の Debian で作業できる適当なディレクトリにコピーします。bitファイルも同じappディレクトリに入れてください。
+次に projects/zybo_z7_imx219_hdmi/app の内容一式と先ほど合成した zybo_z7_imx219_hdmi.bit を、ZYBO の Debian で作業できる適当なディレクトリにコピーします。bitファイルも同じappディレクトリに入れてください。
 
 ZYBO 側では Debian が起動済みで ssh などで接続ができている前提ですので scp や samba などでコピーすると良いでしょう。app に関しては ZYBO から git で clone することも可能です。
 
@@ -86,7 +91,7 @@ ZYBO 側では Debian が起動済みで ssh などで接続ができている�
 make all
 ```
 
-と実行すれば zybo_z7_imx219.out という実行ファイルが生成されます。
+と実行すれば zybo_z7_imx219_hdmi.out という実行ファイルが生成されます。
 
 ここで
 
@@ -106,14 +111,14 @@ make unload
 
 といったコマンドで実施可能です。
 
-なお、デフォルトで 1000fps モード(640x132)で起動しますが、
+なお、デフォルトで 1280x720サイズでの撮影モードで起動しますが、
 
 ```
 make load
-./zybo_z7_imx219.out full
+./zybo_z7_imx219.out 1000fps
 ```
 
-のようにすれば、3280x2464 のフルサイズにも切り替わります。
+のようにすれば、640x132での 1000fps モードにも切り替わります(カメラが1000fpsで動くだけで、表示は間引かれて60fpsです)。
 
 その他の細かいコマンドは main.cpp の中を確認ください。
 
@@ -121,11 +126,16 @@ make load
 ## 参考情報
 
 - 作者ブログ記事
+    - [ZyboでDVI出力](http://ryuz.txt-nifty.com/blog/2015/02/zybodvi-19ac.html)
+    - [続・ZyboでDVI出力](http://ryuz.txt-nifty.com/blog/2015/04/zybodvi-f103.html)
+    - [続々・ZyboでDVI出力](http://ryuz.txt-nifty.com/blog/2015/04/zybodvi-d9d1.html)
     - [Zybo Z7 への Raspberry Pi Camera V2 接続(MIPI CSI-2受信)](http://ryuz.txt-nifty.com/blog/2018/04/zybo-z7-raspber.html)
     - [Zybo Z7 への Raspberry Pi Camera V2 接続 (1000fps動作)](http://ryuz.txt-nifty.com/blog/2018/05/zybo-z7-raspber.html)
-    - [ZYBO-Z7 で Raspberry Pi Camera Module V2 (Sony IMX219) を 1000fpsで使うサンプル](https://ryuz.qrunch.io/entries/HHNg4YlfKOugd19G)
+
+- [Digital Visual InterfaceDVI](http://www.cs.unc.edu/Research/stc/FAQs/Video/dvi_spec-V1_0.pdf)
 
 - [https://github.com/lvsoft/Sony-IMX219-Raspberry-Pi-V2-CMOS](https://github.com/lvsoft/Sony-IMX219-Raspberry-Pi-V2-CMOS)
     - Raspberry Pi Camera Module V2 の各種情報（IMX219のデータシートあり)
 - [https://www.raspberrypi.org/forums/viewtopic.php?t=160611&start=25](https://www.raspberrypi.org/forums/viewtopic.php?t=160611&start=25)
     - 各種情報。[回路図](https://cdn.hackaday.io/images/5813621484631479007.jpg)の情報あり
+
