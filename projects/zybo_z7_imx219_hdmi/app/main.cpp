@@ -249,8 +249,6 @@ int main(int argc, char *argv[])
     auto reg_rdma  = uio_acc.GetMemAccess(0x00020000);  // Read-DMA
     auto reg_vsgen = uio_acc.GetMemAccess(0x00021000);  // Video out sync generator
     
-//  reg_vsgen.WriteReg(REG_VSGEN_CTL_CONTROL, 1);
-
     // mmap udmabuf
     UdmabufAccess udmabuf_acc("udmabuf0");
     if ( !udmabuf_acc.IsMapped() ) {
