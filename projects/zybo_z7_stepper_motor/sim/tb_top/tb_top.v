@@ -32,14 +32,14 @@ module tb_top();
     //  top net
     // ----------------------------------
     
-    wire            bldc_ap_en;
-    wire            bldc_an_en;
-    wire            bldc_bp_en;
-    wire            bldc_bn_en;
-    wire            bldc_ap_hl;
-    wire            bldc_an_hl;
-    wire            bldc_bp_hl;
-    wire            bldc_bn_hl;
+    wire            stm_ap_en;
+    wire            stm_an_en;
+    wire            stm_bp_en;
+    wire            stm_bn_en;
+    wire            stm_ap_hl;
+    wire            stm_an_hl;
+    wire            stm_bp_hl;
+    wire            stm_bn_hl;
     
     wire    [3:0]   led;
     
@@ -54,14 +54,14 @@ module tb_top();
                 
                 .dip_sw             (4'b0111),
                 
-                .bldc_ap_en         (bldc_ap_en),
-                .bldc_an_en         (bldc_an_en),
-                .bldc_bp_en         (bldc_bp_en),
-                .bldc_bn_en         (bldc_bn_en),
-                .bldc_ap_hl         (bldc_ap_hl),
-                .bldc_an_hl         (bldc_an_hl),
-                .bldc_bp_hl         (bldc_bp_hl),
-                .bldc_bn_hl         (bldc_bn_hl)
+                .stm_ap_en          (stm_ap_en),
+                .stm_an_en          (stm_an_en),
+                .stm_bp_en          (stm_bp_en),
+                .stm_bn_en          (stm_bn_en),
+                .stm_ap_hl          (stm_ap_hl),
+                .stm_an_hl          (stm_an_hl),
+                .stm_bp_hl          (stm_bp_hl),
+                .stm_bn_hl          (stm_bn_hl)
             );
     
     
