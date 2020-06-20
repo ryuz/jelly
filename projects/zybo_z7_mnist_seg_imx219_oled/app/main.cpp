@@ -177,11 +177,11 @@ int main()
 
     // UI
     int bin_th      = 127;   // 2値化閾値
-    int col_mode    = 0;     // 色付けモード
+    int col_mode    = 2;     // 色付けモード
     int col_th      = 0;     // 色付け閾値
     int a_gain      = 20;
     int d_gain      = 10;
-    int bayer_phase = 0;
+    int bayer_phase = 1;
     
     // 開始
     CaptureStart(reg_wdma, reg_norm, dmabuf_phys_adr);
@@ -192,7 +192,7 @@ int main()
         auto img = ReadImage(udmabuf_acc);
         cv::imshow("img", img);
         cv::createTrackbar("bin_th",   "img", &bin_th,   255);
-        cv::createTrackbar("col_mode", "img", &col_mode,   3);
+        cv::createTrackbar("col_mode", "img", &col_mode,  15);
         cv::createTrackbar("col_th",   "img", &col_th,    15);
         cv::createTrackbar("a_gain",   "img", &a_gain, 20);
         cv::createTrackbar("d_gain",   "img", &d_gain, 24);
