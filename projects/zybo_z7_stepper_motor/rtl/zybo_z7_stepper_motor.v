@@ -224,11 +224,11 @@ module zybo_z7_stepper_motor
                 .WB_ADR_WIDTH       (8),
                 .WB_DAT_SIZE        (WB_DAT_SIZE),
                 
-                .Q_WIDTH            (16),       // 小数点サイズ
+                .Q_WIDTH            (24),       // 小数点サイズ
                 .MICROSTEP_WIDTH    (12),
-                .POS_WIDTH          (32),
-                .SPEED_WIDTH        (12),
-                .ACC_WIDTH          (12),
+                .POS_WIDTH          (48),
+                .SPEED_WIDTH        (24),
+                .ACC_WIDTH          (24),
                 
                 .INIT_CONTROL       (0),
                 .INIT_CUR_POS       (0),

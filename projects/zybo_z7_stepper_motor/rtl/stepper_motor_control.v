@@ -21,18 +21,19 @@ module stepper_motor_control
             parameter   WB_DAT_WIDTH    = (8 << WB_DAT_SIZE),
             parameter   WB_SEL_WIDTH    = (1 << WB_DAT_SIZE),
             
-            parameter   Q_WIDTH         = 16,       // 小数点サイズ
             parameter   MICROSTEP_WIDTH = 12,
-            parameter   POS_WIDTH       = 16 + Q_WIDTH,
-            parameter   SPEED_WIDTH     = Q_WIDTH,
+            parameter   Q_WIDTH         = 24,
             parameter   ACC_WIDTH       = Q_WIDTH,
+            parameter   SPEED_WIDTH     = Q_WIDTH,
+            parameter   POS_WIDTH       = 24 + Q_WIDTH,
+            parameter   POS_SHIFT       = Q_WIDTH - 8,
             
             parameter   INIT_CONTROL    = 4'b0000,
-            parameter   INIT_CUR_POS    = 0,
             parameter   INIT_CUR_ACC    = 0,
             parameter   INIT_CUR_SPEED  = 0,
+            parameter   INIT_CUR_POS    = 0,
             parameter   INIT_MAX_ACC    = 100,
-            parameter   INIT_MAX_SPEED  = 100
+            parameter   INIT_MAX_SPEED  = 1000
         )
         (
             input   wire                        reset,
@@ -132,13 +133,13 @@ module stepper_motor_control
         end
     end
     
-    assign s_wb_dat_o = (s_wb_adr_i == ADR_CORE_ID  ) ? CORE_ID       :
-                        (s_wb_adr_i == ADR_CONTROL  ) ? reg_control   :
-                        (s_wb_adr_i == ADR_CUR_POS  ) ? reg_cur_pos   :
-                        (s_wb_adr_i == ADR_CUR_ACC  ) ? reg_cur_acc   :
-                        (s_wb_adr_i == ADR_CUR_SPEED) ? reg_cur_speed :
-                        (s_wb_adr_i == ADR_MAX_ACC  ) ? reg_max_acc   :
-                        (s_wb_adr_i == ADR_MAX_SPEED) ? reg_max_speed :
+    assign s_wb_dat_o = (s_wb_adr_i == ADR_CORE_ID  ) ? CORE_ID                       :
+                        (s_wb_adr_i == ADR_CONTROL  ) ? reg_control                   :
+                        (s_wb_adr_i == ADR_CUR_POS  ) ? reg_cur_pos                   :
+                        (s_wb_adr_i == ADR_CUR_ACC  ) ? reg_cur_acc                   :
+                        (s_wb_adr_i == ADR_CUR_SPEED) ? (reg_cur_speed >>> POS_SHIFT) :
+                        (s_wb_adr_i == ADR_MAX_ACC  ) ? reg_max_acc                   :
+                        (s_wb_adr_i == ADR_MAX_SPEED) ? reg_max_speed                 :
                         0;
     assign s_wb_ack_o = s_wb_stb_i;
     
