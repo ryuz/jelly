@@ -224,25 +224,28 @@ module zybo_z7_stepper_motor
                 .WB_ADR_WIDTH       (8),
                 .WB_DAT_SIZE        (WB_DAT_SIZE),
                 
-                .Q_WIDTH            (16),       // 小数点サイズ
+                .Q_WIDTH            (24),       // 小数点サイズ
                 .MICROSTEP_WIDTH    (12),
-                .POS_WIDTH          (32),
-                .SPEED_WIDTH        (12),
-                .ACC_WIDTH          (12),
+                .X_WIDTH            (48),
+                .V_WIDTH            (24),
+                .A_WIDTH            (24),
                 
-                .INIT_CONTROL       (0),
-                .INIT_CUR_POS       (0),
-                .INIT_CUR_ACC       (0),
-                .INIT_CUR_SPEED     (0),
-                .INIT_MAX_ACC       (100),
-                .INIT_MAX_SPEED     (100)
+                .INIT_CTL_ENABLE    (1'b0),
+                .INIT_CTL_TARGET    (3'b0),
+                .INIT_CTL_PWM       (2'b11),
+                .INIT_TARGET_X      (0),
+                .INIT_TARGET_V      (0),
+                .INIT_TARGET_A      (0),
+                .INIT_MAX_V         (1000),
+                .INIT_MAX_A         (100),
+                .INIT_MAX_A_NEAR    (120)
             )
         i_stepper_motor_control
             (
                 .reset              (wb_peri_rst_i),
                 .clk                (wb_peri_clk_i),
                 
-                .s_wb_adr_i         (wb_peri_adr_i),
+                .s_wb_adr_i         (wb_peri_adr_i[7:0]),
                 .s_wb_dat_i         (wb_peri_dat_i),
                 .s_wb_dat_o         (wb_stmc_dat_o),
                 .s_wb_we_i          (wb_peri_we_i),
@@ -250,9 +253,9 @@ module zybo_z7_stepper_motor
                 .s_wb_stb_i         (wb_stmc_stb_i),
                 .s_wb_ack_o         (wb_stmc_ack_o),
                 
-                .out_en             (stmc_out_en),
-                .out_a              (stmc_out_a),
-                .out_b              (stmc_out_b)
+                .motor_en           (stmc_out_en),
+                .motor_a            (stmc_out_a),
+                .motor_b            (stmc_out_b)
             );
     
     assign stm_ap_en = stmc_out_en & dip_sw[0];
