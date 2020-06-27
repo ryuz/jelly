@@ -46,12 +46,12 @@ module stepper_motor_control_calc
     reg     signed  [X_WIDTH:0]     st0_d;
     reg                             st0_valid;
     
-    reg             [X_WIDTH:0]     st1_d;
-    reg             [V_WIDTH-1:0]   st1_v;
+    reg     signed  [X_WIDTH+1:0]   st1_d;
+    reg     signed  [V_WIDTH:0]     st1_v;
     reg                             st1_sign;
     reg                             st1_valid;
     
-    reg             [X_WIDTH+3:0]   st2_d;
+    reg             [X_WIDTH+4:0]   st2_d;
     reg                             st2_near;
     reg                             st2_valid;
     
@@ -60,15 +60,15 @@ module stepper_motor_control_calc
     
     always @(posedge clk) begin
         if ( reset ) begin
-            st0_d     <= {(X_WIDTH+1){1'bx}};
+            st0_d     <= {(1+X_WIDTH){1'bx}};
             st0_valid <= 1'b0;
             
-            st1_d     <= {X_WIDTH{1'bx}};
-            st1_v     <= {V_WIDTH{1'bx}};
+            st1_d     <= {(2+X_WIDTH){1'bx}};
+            st1_v     <= {(1+V_WIDTH){1'bx}};
             st1_sign  <= 1'bx;
             st1_valid <= 1'b0;
             
-            st2_d     <= {(X_WIDTH+3){1'bx}};
+            st2_d     <= {(X_WIDTH+5){1'bx}};
             st2_near  <= 1'bx;
             st2_valid <= 1'b0;
             
@@ -104,10 +104,10 @@ module stepper_motor_control_calc
         end
     end
     
-    wire                            d_sign = st1_sign;  // 符号(方向)
-    wire                            d_near = st2_near;  // 目標近傍
-    wire    signed  [X_WIDTH:0]     d_abs  = st1_d;          // 距離の絶対値
-    wire    signed  [V_WIDTH:0]     v_abs  = {1'b0, st1_v};  // 速度の絶対値
+    wire                            d_sign = st1_sign;       // 符号(方向)
+    wire                            d_near = st2_near;       // 目標近傍
+    wire    signed  [X_WIDTH:0]     d_dir  = st1_d;          // 目標方向の距離(絶対値)
+    wire    signed  [V_WIDTH:0]     v_dir  = st1_v;          // 目標方向の速度
     
     
     // stage 4
@@ -194,11 +194,11 @@ module stepper_motor_control_calc
             st6_valid <= st5_valid;
             
             // stage 7
-            st7_lim_v <= d_near ? d_abs : {1'b0, st6_lim_v};
+            st7_lim_v <= d_near ? d_dir : {1'b0, st6_lim_v};
             st7_valid <= st6_valid;
             
             // stage 8
-            st8_a     <= st7_lim_v - v_abs;
+            st8_a     <= st7_lim_v - v_dir;
             st8_max_a <= d_near ? max_a_near : max_a;
             st8_valid <= st7_valid;
             

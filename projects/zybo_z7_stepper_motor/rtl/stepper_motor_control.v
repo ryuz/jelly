@@ -69,20 +69,21 @@ module stepper_motor_control
     localparam  ADR_CUR_X       = 8'h10;
     localparam  ADR_CUR_V       = 8'h12;
     localparam  ADR_CUR_A       = 8'h13;
+    localparam  ADR_TIME        = 8'h20;
     
     
     wire                                update;
     
     reg             [0:0]               reg_ctl_enable;
-    reg             [0:0]               reg_ctl_target;
+    reg             [2:0]               reg_ctl_target;
     reg             [1:0]               reg_ctl_pwm;
-    reg             [X_WIDTH-1:0]       reg_target_x;
+    reg     signed  [X_WIDTH-1:0]       reg_target_x;
     reg     signed  [V_WIDTH:0]         reg_target_v;
     reg     signed  [A_WIDTH:0]         reg_target_a;
     reg             [V_WIDTH-1:0]       reg_max_v;
     reg             [A_WIDTH-1:0]       reg_max_a;
     reg             [A_WIDTH-1:0]       reg_max_a_near;
-    reg             [X_WIDTH-1:0]       reg_cur_x;
+    reg     signed  [X_WIDTH-1:0]       reg_cur_x;
     reg     signed  [V_WIDTH:0]         reg_cur_v;
     reg     signed  [A_WIDTH:0]         reg_cur_a;
     reg             [31:0]              reg_time;
@@ -93,9 +94,10 @@ module stepper_motor_control
     wire    signed  [A_WIDTH:0]         min_a = -max_a;
     
     reg                                 reg_start;
+    reg     signed  [A_WIDTH:0]         reg_a_tmp;
     reg     signed  [A_WIDTH:0]         reg_a;
-    reg     signed  [V_WIDTH:0]         reg_v;
     reg     signed  [V_WIDTH:0]         reg_v_tmp;
+    reg     signed  [V_WIDTH:0]         reg_v;
     
     wire    signed  [A_WIDTH:0]         calc_a;
     wire                                calc_valid;
@@ -130,27 +132,35 @@ module stepper_motor_control
             reg_time        <= 0;
             
             reg_start       <= 1'b0;
+            reg_a_tmp       <= 0;
             reg_a           <= 0;
-            reg_v           <= 0;
             reg_v_tmp       <= 0;
+            reg_v           <= 0;
         end
         else begin
             // start
             reg_start <= update;
             
             // acceleration
+            reg_a_tmp <= 0;
+            if ( reg_ctl_target[2] ) begin
+                reg_a_tmp <= reg_target_a;
+            end
+            else if ( reg_ctl_target[1] ) begin
+                reg_a_tmp <= reg_target_v - reg_cur_v;
+            end
             if ( reg_ctl_target[0] ) begin
                 reg_a <= calc_a;
             end
             else begin
-                reg_a <= reg_target_a;
-                if ( reg_target_a > +max_a ) begin reg_a <= +max_a; end
-                if ( reg_target_a < -max_a ) begin reg_a <= -max_a; end
+                reg_a <= reg_a_tmp;
+                if ( reg_a_tmp > +max_a ) begin reg_a <= +max_a; end
+                if ( reg_a_tmp < -max_a ) begin reg_a <= -max_a; end
             end
             
             // speed
             reg_v_tmp <= reg_cur_v + reg_a;
-            reg_v     <= reg_v_tmp;
+            reg_v <= reg_v_tmp;
             if ( reg_v_tmp > +max_v ) begin reg_v <= +max_v; end
             if ( reg_v_tmp < -max_v ) begin reg_v <= -max_v; end
             
@@ -193,6 +203,7 @@ module stepper_motor_control
                         (s_wb_adr_i == ADR_CUR_X)       ? (reg_cur_x >>> X_SHIFT) :
                         (s_wb_adr_i == ADR_CUR_V)       ? reg_cur_v               :
                         (s_wb_adr_i == ADR_CUR_A)       ? reg_cur_a               :
+                        (s_wb_adr_i == ADR_TIME)        ? reg_time                :
                         0;
     assign s_wb_ack_o = s_wb_stb_i;
     

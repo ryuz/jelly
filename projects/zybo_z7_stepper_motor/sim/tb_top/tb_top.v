@@ -171,15 +171,40 @@ module tb_top();
         #200;
             $display("start");
             wb_read(STMC_ADR_CORE_ID);
+            
+            wb_write(STMC_ADR_MAX_A,       100, 4'b1111);
+            wb_write(STMC_ADR_MAX_V,    200000, 4'b1111);
+            wb_write(STMC_ADR_CTL_ENABLE,    1, 4'b1111);
+            
+        #100;
+            $display("forward acc");
+            wb_write(STMC_ADR_CTL_TARGET,  3'b100, 4'b1111);
+            wb_write(STMC_ADR_TARGET_A,        10, 4'b1111);
+        #1000;
+            
+            $display("back acc");
+            wb_write(STMC_ADR_CTL_TARGET,  3'b100, 4'b1111);
+            wb_write(STMC_ADR_TARGET_A,       -10, 4'b1111);
+            wb_write(STMC_ADR_CTL_ENABLE ,      1, 4'b1111);
+        #3000;
+            
+            $display("goto target");
             wb_write(STMC_ADR_MAX_V,        20<<16, 4'b1111);
             wb_write(STMC_ADR_MAX_A,         1<<16, 4'b1111);
             wb_write(STMC_ADR_MAX_A_NEAR,    2<<16, 4'b1111);
-            wb_write(STMC_ADR_TARGET_X,   1000, 4'b1111);
-            wb_write(STMC_ADR_CTL_TARGET,    1, 4'b1111);
-            wb_write(STMC_ADR_CTL_ENABLE,    1, 4'b1111);
+            wb_write(STMC_ADR_TARGET_X,     100000, 4'b1111);
+            wb_write(STMC_ADR_CTL_TARGET,   3'b001, 4'b1111);
+            
+        #4000;
+            $display("set speed");
+            wb_write(STMC_ADR_TARGET_V,       1000, 4'b1111);
+            wb_write(STMC_ADR_CTL_TARGET,   3'b010, 4'b1111);
+            
+        #1000;
+            $finish();
     end
-
-
+    
+    
 endmodule
 
 
