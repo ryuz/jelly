@@ -1,8 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- the system on fpga system
 //
-//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
-//                                 http://ryuz.my.coocan.jp/
+//                                 Copyright (C) 2008-2020 by Ryuji Fuchikami
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
@@ -14,7 +13,7 @@
 
 
 // マルチサイクル平方根
-module jelly_sqrt_multicycle
+module jelly_unsigned_sqrt_multicycle
         #(
             parameter   DATA_WIDTH = 32
         )

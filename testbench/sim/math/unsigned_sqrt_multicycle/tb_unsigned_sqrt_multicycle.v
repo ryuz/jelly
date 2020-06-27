@@ -3,12 +3,12 @@
 `default_nettype none
 
 
-module tb_sqrt_multicycle();
+module tb_unsigned_sqrt_multicycle();
     localparam RATE    = 1000.0/200.0;
     
     initial begin
-        $dumpfile("tb_sqrt_multicycle.vcd");
-        $dumpvars(0, tb_sqrt_multicycle);
+        $dumpfile("tb_unsigned_sqrt_multicycle.vcd");
+        $dumpvars(0, tb_unsigned_sqrt_multicycle);
         
         #100000;
             $finish;
@@ -45,11 +45,11 @@ module tb_sqrt_multicycle();
     end
     
     // マルチサイクル平方根
-    jelly_sqrt_multicycle
+    jelly_unsigned_sqrt_multicycle
             #(
                 .DATA_WIDTH     (DATA_WIDTH)
             )
-        i_sqrt_multicycle
+        i_unsigned_sqrt_multicycle
             (
                 .reset          (reset),
                 .clk            (clk),
