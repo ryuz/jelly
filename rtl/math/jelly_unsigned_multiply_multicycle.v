@@ -71,7 +71,7 @@ module jelly_unsigned_multiply_multicycle
             end
             else if ( reg_busy ) begin
                 if ( reg_k[0] ) begin
-                    reg_q <= reg_q + reg_m
+                    reg_q <= reg_q + reg_m;
                 end
                 reg_k <= reg_k >> 1;
                 reg_m <= reg_m << 1;
