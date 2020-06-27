@@ -65,6 +65,121 @@ module tb_top();
             );
     
     
+    
+    // ----------------------------------
+    //  WISHBONE master
+    // ----------------------------------
+    
+    parameter   WB_ADR_WIDTH        = 30;
+    parameter   WB_DAT_SIZE         = 2;
+    parameter   WB_DAT_WIDTH        = (8 << WB_DAT_SIZE);
+    parameter   WB_SEL_WIDTH        = (WB_DAT_WIDTH / 8);
+    
+    wire                            wb_rst_i = i_top.wb_peri_rst_i;
+    wire                            wb_clk_i = i_top.wb_peri_clk_i;
+    reg     [WB_ADR_WIDTH-1:0]      wb_adr_o;
+    wire    [WB_DAT_WIDTH-1:0]      wb_dat_i = i_top.wb_peri_dat_o;
+    reg     [WB_DAT_WIDTH-1:0]      wb_dat_o;
+    reg                             wb_we_o;
+    reg     [WB_SEL_WIDTH-1:0]      wb_sel_o;
+    reg                             wb_stb_o = 0;
+    wire                            wb_ack_i = i_top.wb_peri_ack_o;
+    
+    initial begin
+        force i_top.wb_peri_adr_i = wb_adr_o;
+        force i_top.wb_peri_dat_i = wb_dat_o;
+        force i_top.wb_peri_we_i  = wb_we_o;
+        force i_top.wb_peri_sel_i = wb_sel_o;
+        force i_top.wb_peri_stb_i = wb_stb_o;
+    end
+    
+    
+    reg     [WB_DAT_WIDTH-1:0]      reg_wb_dat;
+    reg                             reg_wb_ack;
+    always @(posedge wb_clk_i) begin
+        if ( ~wb_we_o & wb_stb_o & wb_ack_i ) begin
+            reg_wb_dat <= wb_dat_i;
+        end
+        reg_wb_ack <= wb_ack_i;
+    end
+    
+    
+    task wb_write(
+                input [31:0]    adr,
+                input [31:0]    dat,
+                input [3:0]     sel
+            );
+    begin
+        $display("WISHBONE_WRITE(adr:%h(%h) dat:%h sel:%b)", adr, (adr << WB_DAT_SIZE), dat, sel);
+        @(negedge wb_clk_i);
+            wb_adr_o = adr;
+            wb_dat_o = dat;
+            wb_sel_o = sel;
+            wb_we_o  = 1'b1;
+            wb_stb_o = 1'b1;
+        @(negedge wb_clk_i);
+            while ( reg_wb_ack == 1'b0 ) begin
+                @(negedge wb_clk_i);
+            end
+            wb_adr_o = {WB_ADR_WIDTH{1'bx}};
+            wb_dat_o = {WB_DAT_WIDTH{1'bx}};
+            wb_sel_o = {WB_SEL_WIDTH{1'bx}};
+            wb_we_o  = 1'bx;
+            wb_stb_o = 1'b0;
+    end
+    endtask
+    
+    task wb_read(
+                input [31:0]    adr
+            );
+    begin
+        @(negedge wb_clk_i);
+            wb_adr_o = adr;
+            wb_dat_o = {WB_DAT_WIDTH{1'bx}};
+            wb_sel_o = {WB_SEL_WIDTH{1'b1}};
+            wb_we_o  = 1'b0;
+            wb_stb_o = 1'b1;
+        @(negedge wb_clk_i);
+            while ( reg_wb_ack == 1'b0 ) begin
+                @(negedge wb_clk_i);
+            end
+            wb_adr_o = {WB_ADR_WIDTH{1'bx}};
+            wb_dat_o = {WB_DAT_WIDTH{1'bx}};
+            wb_sel_o = {WB_SEL_WIDTH{1'bx}};
+            wb_we_o  = 1'bx;
+            wb_stb_o = 1'b0;
+            $display("WISHBONE_READ(adr:%h(%h) dat:%h)", adr, (adr << WB_DAT_SIZE), reg_wb_dat);
+    end
+    endtask
+    
+    localparam  STMC_ADR_BASE        = 32'h00100;
+    localparam  STMC_ADR_CORE_ID     = STMC_ADR_BASE + 8'h00;
+    localparam  STMC_ADR_CTL_ENABLE  = STMC_ADR_BASE + 8'h01;
+    localparam  STMC_ADR_CTL_TARGET  = STMC_ADR_BASE + 8'h02;
+    localparam  STMC_ADR_CTL_PWM     = STMC_ADR_BASE + 8'h03;
+    localparam  STMC_ADR_TARGET_X    = STMC_ADR_BASE + 8'h04;
+    localparam  STMC_ADR_TARGET_V    = STMC_ADR_BASE + 8'h06;
+    localparam  STMC_ADR_TARGET_A    = STMC_ADR_BASE + 8'h07;
+    localparam  STMC_ADR_MAX_V       = STMC_ADR_BASE + 8'h09;
+    localparam  STMC_ADR_MAX_A       = STMC_ADR_BASE + 8'h0a;
+    localparam  STMC_ADR_MAX_A_NEAR  = STMC_ADR_BASE + 8'h0f;
+    localparam  STMC_ADR_CUR_X       = STMC_ADR_BASE + 8'h10;
+    localparam  STMC_ADR_CUR_V       = STMC_ADR_BASE + 8'h12;
+    localparam  STMC_ADR_CUR_A       = STMC_ADR_BASE + 8'h13;
+    
+    initial begin
+        #200;
+            $display("start");
+            wb_read(STMC_ADR_CORE_ID);
+            wb_write(STMC_ADR_MAX_V,        20<<16, 4'b1111);
+            wb_write(STMC_ADR_MAX_A,         1<<16, 4'b1111);
+            wb_write(STMC_ADR_MAX_A_NEAR,    2<<16, 4'b1111);
+            wb_write(STMC_ADR_TARGET_X,   1000, 4'b1111);
+            wb_write(STMC_ADR_CTL_TARGET,    1, 4'b1111);
+            wb_write(STMC_ADR_CTL_ENABLE,    1, 4'b1111);
+    end
+
+
 endmodule
 
 

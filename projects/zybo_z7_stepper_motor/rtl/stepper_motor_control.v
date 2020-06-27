@@ -14,26 +14,29 @@
 
 module stepper_motor_control
         #(
-            parameter   CORE_ID         = 32'h5a5a_5a5a,
+            parameter   CORE_ID          = 32'h5a5a_5a5a,
             
-            parameter   WB_ADR_WIDTH    = 6,
-            parameter   WB_DAT_SIZE     = 3,
-            parameter   WB_DAT_WIDTH    = (8 << WB_DAT_SIZE),
-            parameter   WB_SEL_WIDTH    = (1 << WB_DAT_SIZE),
+            parameter   WB_ADR_WIDTH     = 6,
+            parameter   WB_DAT_SIZE      = 3,
+            parameter   WB_DAT_WIDTH     = (8 << WB_DAT_SIZE),
+            parameter   WB_SEL_WIDTH     = (1 << WB_DAT_SIZE),
             
-            parameter   MICROSTEP_WIDTH = 12,
-            parameter   Q_WIDTH         = 24,
-            parameter   ACC_WIDTH       = Q_WIDTH,
-            parameter   SPEED_WIDTH     = Q_WIDTH,
-            parameter   POS_WIDTH       = 24 + Q_WIDTH,
-            parameter   POS_SHIFT       = Q_WIDTH - 8,
+            parameter   MICROSTEP_WIDTH  = 12,
+            parameter   Q_WIDTH          = 24,
+            parameter   X_WIDTH          = 24 + Q_WIDTH,
+            parameter   X_SHIFT          = Q_WIDTH - 8,
+            parameter   V_WIDTH          = Q_WIDTH,
+            parameter   A_WIDTH          = Q_WIDTH,
             
-            parameter   INIT_CONTROL    = 4'b0000,
-            parameter   INIT_CUR_ACC    = 0,
-            parameter   INIT_CUR_SPEED  = 0,
-            parameter   INIT_CUR_POS    = 0,
-            parameter   INIT_MAX_ACC    = 100,
-            parameter   INIT_MAX_SPEED  = 1000
+            parameter   INIT_CTL_ENABLE  = 1'b0,
+            parameter   INIT_CTL_TARGET  = 1'b0,
+            parameter   INIT_CTL_PWM     = 2'b11,
+            parameter   INIT_TARGET_X    = 0,
+            parameter   INIT_TARGET_V    = 0,
+            parameter   INIT_TARGET_A    = 0,
+            parameter   INIT_MAX_V       = 1000,
+            parameter   INIT_MAX_A       = 100,
+            parameter   INIT_MAX_A_NEAR  = 120
         )
         (
             input   wire                        reset,
@@ -47,36 +50,55 @@ module stepper_motor_control
             input   wire                        s_wb_stb_i,
             output  wire                        s_wb_ack_o,
             
-            output  wire                        out_en,
-            output  wire                        out_a,
-            output  wire                        out_b
+            output  wire                        motor_en,
+            output  wire                        motor_a,
+            output  wire                        motor_b
         );
     
     
-    localparam  ADR_CORE_ID    = 0;
-    localparam  ADR_CONTROL    = 2;
+    localparam  ADR_CORE_ID     = 8'h00;
+    localparam  ADR_CTL_ENABLE  = 8'h01;
+    localparam  ADR_CTL_TARGET  = 8'h02;
+    localparam  ADR_CTL_PWM     = 8'h03;
+    localparam  ADR_TARGET_X    = 8'h04;
+    localparam  ADR_TARGET_V    = 8'h06;
+    localparam  ADR_TARGET_A    = 8'h07;
+    localparam  ADR_MAX_V       = 8'h09;
+    localparam  ADR_MAX_A       = 8'h0a;
+    localparam  ADR_MAX_A_NEAR  = 8'h0f;
+    localparam  ADR_CUR_X       = 8'h10;
+    localparam  ADR_CUR_V       = 8'h12;
+    localparam  ADR_CUR_A       = 8'h13;
     
-    localparam  ADR_CUR_ACC    = 4;
-    localparam  ADR_CUR_SPEED  = 5;
-    localparam  ADR_CUR_POS    = 6;
-    
-    localparam  ADR_MAX_ACC    = 8;
-    localparam  ADR_MAX_SPEED  = 9;
     
     wire                                update;
     
-    reg             [3:0]               reg_control;
-    reg     signed  [POS_WIDTH-1:0]     reg_cur_pos;
-    reg     signed  [ACC_WIDTH-1:0]     reg_cur_acc;
-    reg     signed  [SPEED_WIDTH-1:0]   reg_cur_speed;
-    reg             [ACC_WIDTH-1:0]     reg_max_acc;
-    reg             [SPEED_WIDTH-1:0]   reg_max_speed;
+    reg             [0:0]               reg_ctl_enable;
+    reg             [0:0]               reg_ctl_target;
+    reg             [1:0]               reg_ctl_pwm;
+    reg             [X_WIDTH-1:0]       reg_target_x;
+    reg     signed  [V_WIDTH:0]         reg_target_v;
+    reg     signed  [A_WIDTH:0]         reg_target_a;
+    reg             [V_WIDTH-1:0]       reg_max_v;
+    reg             [A_WIDTH-1:0]       reg_max_a;
+    reg             [A_WIDTH-1:0]       reg_max_a_near;
+    reg             [X_WIDTH-1:0]       reg_cur_x;
+    reg     signed  [V_WIDTH:0]         reg_cur_v;
+    reg     signed  [A_WIDTH:0]         reg_cur_a;
+    reg             [31:0]              reg_time;
     
-    wire    signed  [ACC_WIDTH:0]       max_acc   = {1'b0, reg_max_acc};
-    wire    signed  [SPEED_WIDTH:0]     max_speed = {1'b0, reg_max_speed};
+    wire    signed  [V_WIDTH:0]         max_v = {1'b0, reg_max_v};
+    wire    signed  [A_WIDTH:0]         max_a = {1'b0, reg_max_a};
+    wire    signed  [V_WIDTH:0]         min_v = -max_v;
+    wire    signed  [A_WIDTH:0]         min_a = -max_a;
     
-    reg     signed  [ACC_WIDTH-1:0]     reg_acc;
-    reg     signed  [SPEED_WIDTH-1:0]   reg_speed;
+    reg                                 reg_start;
+    reg     signed  [A_WIDTH:0]         reg_a;
+    reg     signed  [V_WIDTH:0]         reg_v;
+    reg     signed  [V_WIDTH:0]         reg_v_tmp;
+    
+    wire    signed  [A_WIDTH:0]         calc_a;
+    wire                                calc_valid;
     
     function [WB_DAT_WIDTH-1:0] reg_mask(
                                         input [WB_DAT_WIDTH-1:0] org,
@@ -93,57 +115,114 @@ module stepper_motor_control
     
     always @(posedge clk) begin
         if ( reset ) begin
-            reg_control   <= INIT_CONTROL;
-            reg_cur_pos   <= INIT_CUR_POS;
-            reg_cur_acc   <= INIT_CUR_ACC;
-            reg_cur_speed <= INIT_CUR_SPEED;
-            reg_max_acc   <= INIT_MAX_ACC;
-            reg_max_speed <= INIT_MAX_SPEED;
+            reg_ctl_enable  <= INIT_CTL_ENABLE;
+            reg_ctl_target  <= INIT_CTL_TARGET;
+            reg_ctl_pwm     <= INIT_CTL_PWM;
+            reg_target_x    <= INIT_TARGET_X;
+            reg_target_v    <= INIT_TARGET_V;
+            reg_target_a    <= INIT_TARGET_A;
+            reg_max_v       <= INIT_MAX_V;
+            reg_max_a       <= INIT_MAX_A;
+            reg_max_a_near  <= INIT_MAX_A_NEAR;
+            reg_cur_x       <= 0;
+            reg_cur_v       <= 0;
+            reg_cur_a       <= 0;
+            reg_time        <= 0;
             
-            reg_acc       <= 0;
-            reg_speed     <= 0;
+            reg_start       <= 1'b0;
+            reg_a           <= 0;
+            reg_v           <= 0;
+            reg_v_tmp       <= 0;
         end
         else begin
+            // start
+            reg_start <= update;
+            
             // acceleration
-            reg_acc   <= reg_cur_acc;
-            if ( reg_cur_acc > +max_acc ) begin reg_acc <= +max_acc; end
-            if ( reg_cur_acc < -max_acc ) begin reg_acc <= -max_acc; end
+            if ( reg_ctl_target[0] ) begin
+                reg_a <= calc_a;
+            end
+            else begin
+                reg_a <= reg_target_a;
+                if ( reg_target_a > +max_a ) begin reg_a <= +max_a; end
+                if ( reg_target_a < -max_a ) begin reg_a <= -max_a; end
+            end
             
             // speed
-            reg_speed <= reg_cur_speed + reg_acc;
-            if ( reg_speed + reg_acc > +max_speed ) begin reg_speed <= +max_speed; end
-            if ( reg_speed + reg_acc < -max_speed ) begin reg_speed <= -max_speed; end
+            reg_v_tmp <= reg_cur_v + reg_a;
+            reg_v     <= reg_v_tmp;
+            if ( reg_v_tmp > +max_v ) begin reg_v <= +max_v; end
+            if ( reg_v_tmp < -max_v ) begin reg_v <= -max_v; end
             
             // update
-            if ( update && reg_control[0] ) begin
-                reg_cur_pos   <= reg_cur_pos + reg_speed;
-                reg_cur_speed <= reg_speed;
+            if ( update && reg_ctl_enable ) begin
+                reg_cur_x <= reg_cur_x + reg_v;
+                reg_cur_v <= reg_v;
+                reg_cur_a <= reg_a;
+                reg_time  <= reg_time + 1;
             end
+            
             
             // write
             if ( s_wb_stb_i && s_wb_we_i ) begin
                 case ( s_wb_adr_i )
-                ADR_CONTROL:    reg_control   <= reg_mask(reg_control,   s_wb_dat_i, s_wb_sel_i);
-                ADR_CUR_ACC:    reg_cur_acc   <= reg_mask(reg_cur_acc,   s_wb_dat_i, s_wb_sel_i);
-                ADR_CUR_SPEED:  reg_cur_speed <= reg_mask(reg_cur_speed, s_wb_dat_i, s_wb_sel_i);
-                ADR_MAX_ACC:    reg_max_acc   <= reg_mask(reg_max_acc,   s_wb_dat_i, s_wb_sel_i);
-                ADR_MAX_SPEED:  reg_max_speed <= reg_mask(reg_max_speed, s_wb_dat_i, s_wb_sel_i);
+                ADR_CTL_ENABLE:  reg_ctl_enable  <= reg_mask(reg_ctl_enable,  s_wb_dat_i, s_wb_sel_i);
+                ADR_CTL_TARGET:  reg_ctl_target  <= reg_mask(reg_ctl_target,  s_wb_dat_i, s_wb_sel_i);
+                ADR_CTL_PWM:     reg_ctl_pwm     <= reg_mask(reg_ctl_pwm,     s_wb_dat_i, s_wb_sel_i);
+                ADR_TARGET_X:    reg_target_x    <= reg_mask(reg_target_x,    s_wb_dat_i, s_wb_sel_i);
+                ADR_TARGET_V:    reg_target_v    <= reg_mask(reg_target_v,    s_wb_dat_i, s_wb_sel_i);
+                ADR_TARGET_A:    reg_target_a    <= reg_mask(reg_target_a,    s_wb_dat_i, s_wb_sel_i);
+                ADR_MAX_V:       reg_max_v       <= reg_mask(reg_max_v,       s_wb_dat_i, s_wb_sel_i);
+                ADR_MAX_A:       reg_max_a       <= reg_mask(reg_max_a,       s_wb_dat_i, s_wb_sel_i);
+                ADR_MAX_A_NEAR:  reg_max_a_near  <= reg_mask(reg_max_a_near,  s_wb_dat_i, s_wb_sel_i);
                 endcase
             end
         end
     end
     
-    assign s_wb_dat_o = (s_wb_adr_i == ADR_CORE_ID  ) ? CORE_ID                       :
-                        (s_wb_adr_i == ADR_CONTROL  ) ? reg_control                   :
-                        (s_wb_adr_i == ADR_CUR_POS  ) ? reg_cur_pos                   :
-                        (s_wb_adr_i == ADR_CUR_ACC  ) ? reg_cur_acc                   :
-                        (s_wb_adr_i == ADR_CUR_SPEED) ? (reg_cur_speed >>> POS_SHIFT) :
-                        (s_wb_adr_i == ADR_MAX_ACC  ) ? reg_max_acc                   :
-                        (s_wb_adr_i == ADR_MAX_SPEED) ? reg_max_speed                 :
+    assign s_wb_dat_o = (s_wb_adr_i == ADR_CORE_ID)     ? CORE_ID                 :
+                        (s_wb_adr_i == ADR_CTL_ENABLE)  ? reg_ctl_enable          :
+                        (s_wb_adr_i == ADR_CTL_TARGET)  ? reg_ctl_target          :
+                        (s_wb_adr_i == ADR_CTL_PWM)     ? reg_ctl_pwm             :
+                        (s_wb_adr_i == ADR_TARGET_X)    ? reg_target_x            :
+                        (s_wb_adr_i == ADR_TARGET_V)    ? reg_target_v            :
+                        (s_wb_adr_i == ADR_TARGET_A)    ? reg_target_a            :
+                        (s_wb_adr_i == ADR_MAX_V)       ? reg_max_v               :
+                        (s_wb_adr_i == ADR_MAX_A)       ? reg_max_a               :
+                        (s_wb_adr_i == ADR_MAX_A_NEAR)  ? reg_max_a_near          :
+                        (s_wb_adr_i == ADR_CUR_X)       ? (reg_cur_x >>> X_SHIFT) :
+                        (s_wb_adr_i == ADR_CUR_V)       ? reg_cur_v               :
+                        (s_wb_adr_i == ADR_CUR_A)       ? reg_cur_a               :
                         0;
     assign s_wb_ack_o = s_wb_stb_i;
     
     
+    // calc
+    stepper_motor_control_calc
+            #(
+                .X_WIDTH            (X_WIDTH),
+                .V_WIDTH            (V_WIDTH),
+                .A_WIDTH            (A_WIDTH)
+            )
+        i_stepper_motor_control_calc
+            (
+                .reset              (reset),
+                .clk                (clk),
+                .cke                (1'b1),
+                
+                .start              (reg_start),
+                
+                .target_x           (reg_target_x <<< X_SHIFT),
+                .cur_x              (reg_cur_x),
+                .cur_v              (reg_cur_v),
+                .max_a              (reg_max_a),
+                .max_a_near         (reg_max_a_near),
+                
+                .out_a              (calc_a),
+                .out_valid          (calc_valid)
+            );
+    
+    // drive
     bipolar_stepper_motor_drive
             #(
                 .Q_WIDTH            (Q_WIDTH),
@@ -154,18 +233,18 @@ module stepper_motor_control
                 .reset              (reset),
                 .clk                (clk),
                 
-                .microstep_en       (~reg_control[1]),
-                .nanostep_en        (~reg_control[2]),
-                .asyc_update_en     (reg_control[3]),
+                .microstep_en       (reg_ctl_pwm[0]),
+                .nanostep_en        (reg_ctl_pwm[1]),
+                .asyc_update_en     (1'b0),
                 
-                .phase              (reg_cur_pos[Q_WIDTH+1:0]),
+                .phase              (reg_cur_x[Q_WIDTH+1:0]),
                 .update             (update),
                 
-                .out_a              (out_a),
-                .out_b              (out_b)
+                .out_a              (motor_a),
+                .out_b              (motor_b)
             );
     
-    assign out_en = reg_control[0];
+    assign motor_en = reg_ctl_enable;
     
 endmodule
 

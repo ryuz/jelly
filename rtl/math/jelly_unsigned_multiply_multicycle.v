@@ -15,41 +15,42 @@
 // 符号なし整数マルチサイクル乗算器
 module jelly_unsigned_multiply_multicycle
         #(
-            parameter   DATA_WIDTH = 32
+            parameter   DATA_WIDTH0 = 32,
+            parameter   DATA_WIDTH1 = 32
         )
         (
-            input   wire                        reset,
-            input   wire                        clk,
-            input   wire                        cke,
+            input   wire                                    reset,
+            input   wire                                    clk,
+            input   wire                                    cke,
             
             // input
-            input   wire    [DATA_WIDTH-1:0]    s_data0,
-            input   wire    [DATA_WIDTH-1:0]    s_data1,
-            input   wire                        s_valid,
-            output  wire                        s_ready,
+            input   wire    [DATA_WIDTH0-1:0]               s_data0,
+            input   wire    [DATA_WIDTH1-1:0]               s_data1,
+            input   wire                                    s_valid,
+            output  wire                                    s_ready,
             
             // output
-            output  wire    [2*DATA_WIDTH-1:0]  m_data,
-            output  wire                        m_valid,
-            input   wire                        m_ready
+            output  wire    [DATA_WIDTH0+DATA_WIDTH1-1:0]   m_data,
+            output  wire                                    m_valid,
+            input   wire                                    m_ready
         );
     
-    reg                             reg_busy;
-    reg                             reg_ready;
-    reg                             reg_valid;
+    reg                                     reg_busy;
+    reg                                     reg_ready;
+    reg                                     reg_valid;
     
-    reg     [DATA_WIDTH-1:0]        reg_k;
-    reg     [2*DATA_WIDTH-1:0]      reg_m;
-    reg     [2*DATA_WIDTH-1:0]      reg_q;
+    reg     [DATA_WIDTH1-1:0]               reg_k;
+    reg     [DATA_WIDTH0+DATA_WIDTH1-1:0]   reg_m;
+    reg     [DATA_WIDTH0+DATA_WIDTH1-1:0]   reg_q;
     
     always @(posedge clk) begin
         if ( reset ) begin
             reg_busy    <= 1'b0;
             reg_ready   <= 1'b0;
             reg_valid   <= 1'b0;
-            reg_k       <= {DATA_WIDTH{1'bx}};
-            reg_m       <= {(2*DATA_WIDTH){1'bx}};
-            reg_q       <= {(2*DATA_WIDTH){1'bx}};
+            reg_k       <= {DATA_WIDTH1{1'bx}};
+            reg_m       <= {(DATA_WIDTH0+DATA_WIDTH1){1'bx}};
+            reg_q       <= {(DATA_WIDTH0+DATA_WIDTH1){1'bx}};
         end
         else if ( cke ) begin
             if ( !reg_busy && !reg_valid ) begin

@@ -129,4 +129,18 @@ module design_1
   wire [3:0]m_axi4l_peri_wstrb;
   wire m_axi4l_peri_wvalid;
 
+
+    localparam RATE = 1000.0/100.0;
+    
+    reg     reset = 1'b1;
+    initial #(RATE*100) reset = 1'b0;
+    
+    reg     clk = 1'b1;
+    always #(RATE/2.0) clk = ~clk;
+    
+    assign m_axi4l_peri_aclk    = clk;
+    assign m_axi4l_peri_aresetn = ~reset;
+    
+    
+    
 endmodule

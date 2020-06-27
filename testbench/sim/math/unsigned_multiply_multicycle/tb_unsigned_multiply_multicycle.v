@@ -48,7 +48,8 @@ module tb_unsigned_multiply_multicycle();
     
     jelly_unsigned_multiply_multicycle
             #(
-                .DATA_WIDTH     (DATA_WIDTH)
+                .DATA_WIDTH0    (DATA_WIDTH),
+                .DATA_WIDTH1    (DATA_WIDTH)
             )
         i_unsigned_multiply_multicycle
             (
