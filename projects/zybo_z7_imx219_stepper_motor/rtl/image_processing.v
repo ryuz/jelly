@@ -14,7 +14,7 @@
 
 module image_processing
         #(
-            parameter   WB_ADR_WIDTH   = 8,
+            parameter   WB_ADR_WIDTH   = 10,
             parameter   WB_DAT_SIZE    = 2,
             parameter   WB_DAT_WIDTH   = (8 << WB_DAT_SIZE),
             parameter   WB_SEL_WIDTH   = (WB_DAT_WIDTH / 8),
@@ -168,7 +168,7 @@ module image_processing
                 .RAM_TYPE               ("block"),
                 .USE_VALID              (USE_VALID),
                 
-                .WB_ADR_WIDTH           (6),
+                .WB_ADR_WIDTH           (8),
                 .WB_DAT_WIDTH           (WB_DAT_WIDTH),
                 
                 .INIT_PARAM_PHASE       (2'b11)
@@ -181,7 +181,7 @@ module image_processing
                 
                 .s_wb_rst_i             (s_wb_rst_i),
                 .s_wb_clk_i             (s_wb_clk_i),
-                .s_wb_adr_i             (s_wb_adr_i[5:0]),
+                .s_wb_adr_i             (s_wb_adr_i[7:0]),
                 .s_wb_dat_i             (s_wb_dat_i),
                 .s_wb_dat_o             (wb_demosaic_dat_o),
                 .s_wb_we_i              (s_wb_we_i),
@@ -239,7 +239,7 @@ module image_processing
                 .STATIC_COEFF           (1),
                 .DEVICE                 ("7SERIES"),
                 
-                .WB_ADR_WIDTH           (6),
+                .WB_ADR_WIDTH           (8),
                 .WB_DAT_WIDTH           (WB_DAT_WIDTH),
                 
                 .INIT_PARAM_MATRIX00    (2 << 16),
@@ -269,7 +269,7 @@ module image_processing
                 
                 .s_wb_rst_i             (s_wb_rst_i),
                 .s_wb_clk_i             (s_wb_clk_i),
-                .s_wb_adr_i             (s_wb_adr_i[5:0]),
+                .s_wb_adr_i             (s_wb_adr_i[7:0]),
                 .s_wb_dat_i             (s_wb_dat_i),
                 .s_wb_dat_o             (wb_matrix_dat_o),
                 .s_wb_we_i              (s_wb_we_i),
@@ -418,6 +418,8 @@ module image_processing
     
     jelly_img_mass_center
             #(
+                .WB_ADR_WIDTH           (6),
+                .WB_DAT_WIDTH           (WB_DAT_WIDTH),
                 .DATA_WIDTH             (DATA_WIDTH),
                 .Q_WIDTH                (CENTER_Q_WIDTH),
                 .X_WIDTH                (IMG_X_WIDTH),
@@ -436,7 +438,7 @@ module image_processing
                 
                 .s_wb_rst_i             (s_wb_rst_i),
                 .s_wb_clk_i             (s_wb_clk_i),
-                .s_wb_adr_i             (s_wb_adr_i[7:0]),
+                .s_wb_adr_i             (s_wb_adr_i[5:0]),
                 .s_wb_dat_i             (s_wb_dat_i),
                 .s_wb_dat_o             (wb_center_dat_o),
                 .s_wb_we_i              (s_wb_we_i),
@@ -460,10 +462,10 @@ module image_processing
     
     
     // WISHBONE address decode
-    assign wb_demosaic_stb_i = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:6] == 0);
-    assign wb_matrix_stb_i   = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:6] == 1);
-    assign wb_bin_stb_i      = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:6] == 2);
-    assign wb_center_stb_i   = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:6] == 3);
+    assign wb_demosaic_stb_i = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == 0);
+    assign wb_matrix_stb_i   = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == 1);
+    assign wb_bin_stb_i      = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == 2);
+    assign wb_center_stb_i   = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == 3);
     
     assign s_wb_dat_o        = wb_demosaic_stb_i ? wb_demosaic_dat_o :
                                wb_matrix_stb_i   ? wb_matrix_dat_o   :

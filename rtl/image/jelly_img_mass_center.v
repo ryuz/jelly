@@ -141,7 +141,7 @@ module jelly_img_mass_center
             reg_param_range_bottom <= INIT_PARAM_RANGE_BOTTOM;
         end
         else begin
-            if ( update_ack & reg_ctl_control[2] ) begin
+            if ( update_ack && !reg_ctl_control[2] ) begin
                 reg_ctl_control[1] <= 1'b0;     // auto clear
             end
             

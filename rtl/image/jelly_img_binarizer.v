@@ -144,7 +144,7 @@ module jelly_img_binarizer
             reg_param_val1   <= INIT_PARAM_VAL1;
         end
         else begin
-            if ( update_ack & reg_ctl_control[2] ) begin
+            if ( update_ack && !reg_ctl_control[2] ) begin
                 reg_ctl_control[1] <= 1'b0;     // auto clear
             end
             
@@ -206,7 +206,7 @@ module jelly_img_binarizer
                 .current_enable     (core_ctl_status),
                 .current_th         (core_current_th),
                 .current_val0       (core_current_val0),
-                .current_val1       (core_current_val0),
+                .current_val1       (core_current_val1),
                 .current_inv        (core_current_inv),
                 
                 
