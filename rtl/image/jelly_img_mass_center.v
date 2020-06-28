@@ -14,20 +14,45 @@
 
 module jelly_img_mass_center
         #(
-            parameter   DATA_WIDTH    = 8,
-            parameter   Q_WIDTH       = 0,
-            parameter   X_WIDTH       = 14 + Q_WIDTH,
-            parameter   Y_WIDTH       = 14 + Q_WIDTH,
-            parameter   X_COUNT_WIDTH = 32,
-            parameter   Y_COUNT_WIDTH = 32,
-            parameter   N_COUNT_WIDTH = 32,
-            parameter   INIT_X        = (640 / 2) << Q_WIDTH,
-            parameter   INIT_Y        = (132 / 2) << Q_WIDTH
+            parameter   CORE_ID                 = 32'h527a_0102,
+            parameter   CORE_VERSION            = 32'h0001_0000,
+            
+            parameter   INDEX_WIDTH             = 1,
+            
+            parameter   WB_ADR_WIDTH            = 8,
+            parameter   WB_DAT_WIDTH            = 32,
+            parameter   WB_SEL_WIDTH            = (WB_DAT_WIDTH / 8),
+            
+            parameter   DATA_WIDTH              = 8,
+            parameter   Q_WIDTH                 = 0,
+            parameter   X_WIDTH                 = 14,
+            parameter   Y_WIDTH                 = 14,
+            parameter   OUT_X_WIDTH             = 14 + Q_WIDTH,
+            parameter   OUT_Y_WIDTH             = 14 + Q_WIDTH,
+            parameter   X_COUNT_WIDTH           = 32,
+            parameter   Y_COUNT_WIDTH           = 32,
+            parameter   N_COUNT_WIDTH           = 32,
+            
+            parameter   INIT_CTL_CONTROL        = 3'b011,
+            parameter   INIT_PARAM_RANGE_LEFT   = 0,
+            parameter   INIT_PARAM_RANGE_RIGHT  = {X_WIDTH{1'b1}},
+            parameter   INIT_PARAM_RANGE_TOP    = 0,
+            parameter   INIT_PARAM_RANGE_BOTTOM = {Y_WIDTH{1'b1}}
         )
         (
             input   wire                            reset,
             input   wire                            clk,
             input   wire                            cke,
+            
+            input   wire                            s_wb_rst_i,
+            input   wire                            s_wb_clk_i,
+            input   wire    [WB_ADR_WIDTH-1:0]      s_wb_adr_i,
+            input   wire    [WB_DAT_WIDTH-1:0]      s_wb_dat_i,
+            output  wire    [WB_DAT_WIDTH-1:0]      s_wb_dat_o,
+            input   wire                            s_wb_we_i,
+            input   wire    [WB_SEL_WIDTH-1:0]      s_wb_sel_i,
+            input   wire                            s_wb_stb_i,
+            output  wire                            s_wb_ack_o,
             
             input   wire                            s_img_line_first,
             input   wire                            s_img_line_last,
@@ -42,179 +67,163 @@ module jelly_img_mass_center
             output  wire                            out_valid
         );
     
-    reg                             st0_first;
-    reg                             st0_last;
-    reg                             st0_de;
-    reg     [DATA_WIDTH-1:0]        st0_data;
-    reg     [X_COUNT_WIDTH-1:0]     st0_x;
-    reg     [Y_COUNT_WIDTH-1:0]     st0_y;
     
-    reg                             st1_first;
-    reg                             st1_last;
-    reg                             st1_de;
-    reg     [DATA_WIDTH-1:0]        st1_data;
-    reg     [X_COUNT_WIDTH-1:0]     st1_x;
-    reg     [Y_COUNT_WIDTH-1:0]     st1_y;
+    // ---------------------------------
+    //  Register
+    // ---------------------------------
     
-    reg                             st2_last;
-    reg                             st2_de;
-    reg     [X_COUNT_WIDTH-1:0]     st2_x;
-    reg     [Y_COUNT_WIDTH-1:0]     st2_y;
-    reg     [N_COUNT_WIDTH-1:0]     st2_n;
+    // register address offset
+    localparam  ADR_CORE_ID              = 8'h00;
+    localparam  ADR_CORE_VERSION         = 8'h01;
+    localparam  ADR_CTL_CONTROL          = 8'h04;
+    localparam  ADR_CTL_STATUS           = 8'h05;
+    localparam  ADR_CTL_INDEX            = 8'h07;
+    localparam  ADR_PARAM_RANGE_LEFT     = 8'h08;
+    localparam  ADR_PARAM_RANGE_RIGHT    = 8'h09;
+    localparam  ADR_PARAM_RANGE_TOP      = 8'h0a;
+    localparam  ADR_PARAM_RANGE_BOTTOM   = 8'h0b;
+    localparam  ADR_CURRENT_RANGE_LEFT   = 8'h18;
+    localparam  ADR_CURRENT_RANGE_RIGHT  = 8'h19;
+    localparam  ADR_CURRENT_RANGE_TOP    = 8'h1a;
+    localparam  ADR_CURRENT_RANGE_BOTTOM = 8'h1b;
     
-    reg                             st3_zero;
+    // handshake
+    wire    [INDEX_WIDTH-1:0]   update_index;
+    wire                        update_ack;
+    wire    [INDEX_WIDTH-1:0]   ctl_index;
     
-    always @(posedge clk) begin
-        if ( reset ) begin
-            st0_first <= 1'b0;
-            st0_last  <= 1'b0;
-            st0_de    <= 1'b0;
-            st0_data  <= {DATA_WIDTH{1'bx}};
-            st0_x     <= {X_COUNT_WIDTH{1'bx}};
-            st0_y     <= {Y_COUNT_WIDTH{1'bx}};
-            
-            st1_first <= 1'b0;
-            st1_last  <= 1'b0;
-            st1_de    <= 1'b0;
-            st1_data  <= {DATA_WIDTH{1'bx}};
-            st1_x     <= {X_COUNT_WIDTH{1'bx}};
-            st1_y     <= {Y_COUNT_WIDTH{1'bx}};
-            
-            st2_last  <= 1'b0;
-            st2_de    <= 1'b0;
-            st2_x     <= {X_COUNT_WIDTH{1'bx}};
-            st2_y     <= {Y_COUNT_WIDTH{1'bx}};
-            
-            st3_zero  <= 1'bx;
+    jelly_param_update_master
+            #(
+                .INDEX_WIDTH    (INDEX_WIDTH)
+            )
+        i_param_update_master
+            (
+                .reset          (s_wb_rst_i),
+                .clk            (s_wb_clk_i),
+                .cke            (1'b1),
+                .in_index       (update_index),
+                .out_ack        (update_ack),
+                .out_index      (ctl_index)
+            );
+    
+    // registers
+    reg     [2:0]               reg_ctl_control;
+    reg     [X_WIDTH-1:0]       reg_param_range_left;
+    reg     [X_WIDTH-1:0]       reg_param_range_right;
+    reg     [Y_WIDTH-1:0]       reg_param_range_top;
+    reg     [Y_WIDTH-1:0]       reg_param_range_bottom;
+    
+    // core status
+    wire    [X_WIDTH-1:0]       core_current_range_left;
+    wire    [X_WIDTH-1:0]       core_current_range_right;
+    wire    [Y_WIDTH-1:0]       core_current_range_top;
+    wire    [Y_WIDTH-1:0]       core_current_range_bottom;
+    
+    function [WB_DAT_WIDTH-1:0] reg_mask(
+                                        input [WB_DAT_WIDTH-1:0] org,
+                                        input [WB_DAT_WIDTH-1:0] wdat,
+                                        input [WB_SEL_WIDTH-1:0] msk
+                                    );
+    integer i;
+    begin
+        for ( i = 0; i < WB_DAT_WIDTH; i = i+1 ) begin
+            reg_mask[i] = msk[i/8] ? wdat[i] : org[i];
         end
-        else if ( cke ) begin
-            // stage 0
-            st0_first <= (s_img_valid & s_img_line_first & s_img_pixel_first);
-            st0_last  <= (s_img_valid & s_img_line_last  & s_img_pixel_last);
-            st0_de    <= (s_img_valid & s_img_de);
-            st0_data  <= (s_img_valid & s_img_de) ? s_img_data : 0;
-            if ( s_img_valid ) begin
-                st0_x <= st0_x + s_img_de;
-                if ( s_img_pixel_first ) begin
-                    st0_x <= 0;
-                    st0_y <= st0_y + 1;
-                    if ( s_img_line_first ) begin
-                        st0_y <= 0;
-                    end
-                end
+    end
+    endfunction
+    
+    always @(posedge s_wb_clk_i) begin
+        if ( s_wb_rst_i ) begin
+            reg_ctl_control        <= INIT_CTL_CONTROL;
+            reg_param_range_left   <= INIT_PARAM_RANGE_LEFT;
+            reg_param_range_right  <= INIT_PARAM_RANGE_RIGHT;
+            reg_param_range_top    <= INIT_PARAM_RANGE_TOP;
+            reg_param_range_bottom <= INIT_PARAM_RANGE_BOTTOM;
+        end
+        else begin
+            if ( update_ack & reg_ctl_control[2] ) begin
+                reg_ctl_control[1] <= 1'b0;     // auto clear
             end
             
-            // stage 1
-            st1_first <= st0_first;
-            st1_last  <= st0_last;
-            st1_de    <= st0_de;
-            st1_data  <= st0_data;
-            st1_x     <= st0_data * st0_x;
-            st1_y     <= st0_data * st0_y;
-            
-            // stage 2
-            st2_last <= st1_last;
-            if ( st1_de ) begin
-                if ( st1_first ) begin
-                    st2_x <= st1_x;
-                    st2_y <= st1_y;
-                    st2_n <= st1_data;
-                end
-                else begin
-                    st2_x <= st2_x + st1_x;
-                    st2_y <= st2_y + st1_y;
-                    st2_n <= st2_n + st1_data;
-                end
-            end
-            
-            // stage3
-            if ( st2_last ) begin
-                st3_zero <= (st2_n == 0);
+            if ( s_wb_stb_i && s_wb_we_i ) begin
+                case ( s_wb_adr_i )
+                ADR_CTL_CONTROL:        reg_ctl_control        <= reg_mask(reg_ctl_control,        s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_RANGE_LEFT:   reg_param_range_left   <= reg_mask(reg_param_range_left,   s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_RANGE_RIGHT:  reg_param_range_right  <= reg_mask(reg_param_range_right,  s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_RANGE_TOP:    reg_param_range_top    <= reg_mask(reg_param_range_top,    s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_RANGE_BOTTOM: reg_param_range_bottom <= reg_mask(reg_param_range_bottom, s_wb_dat_i, s_wb_sel_i);
+                endcase
             end
         end
     end
     
+    assign s_wb_dat_o = (s_wb_adr_i == ADR_CORE_ID)              ? CORE_ID                   :
+                        (s_wb_adr_i == ADR_CORE_VERSION)         ? CORE_VERSION              :
+                        (s_wb_adr_i == ADR_CTL_CONTROL)          ? reg_ctl_control           :
+                        (s_wb_adr_i == ADR_CTL_STATUS)           ? 0                         :
+                        (s_wb_adr_i == ADR_CTL_INDEX)            ? ctl_index                 :
+                        (s_wb_adr_i == ADR_PARAM_RANGE_LEFT)     ? reg_param_range_left      :
+                        (s_wb_adr_i == ADR_PARAM_RANGE_RIGHT)    ? reg_param_range_right     :
+                        (s_wb_adr_i == ADR_PARAM_RANGE_TOP)      ? reg_param_range_top       :
+                        (s_wb_adr_i == ADR_PARAM_RANGE_BOTTOM)   ? reg_param_range_bottom    :
+                        (s_wb_adr_i == ADR_CURRENT_RANGE_LEFT)   ? core_current_range_left   :
+                        (s_wb_adr_i == ADR_CURRENT_RANGE_RIGHT)  ? core_current_range_right  :
+                        (s_wb_adr_i == ADR_CURRENT_RANGE_TOP)    ? core_current_range_top    :
+                        (s_wb_adr_i == ADR_CURRENT_RANGE_BOTTOM) ? core_current_range_bottom :
+                        0;
+    assign s_wb_ack_o = s_wb_stb_i;
     
-    // divider
-    localparam XY_MAX_WIDTH = X_COUNT_WIDTH > Y_COUNT_WIDTH ? X_COUNT_WIDTH : Y_COUNT_WIDTH;
-    localparam MAX_WIDTH    = XY_MAX_WIDTH  > N_COUNT_WIDTH ? XY_MAX_WIDTH  : N_COUNT_WIDTH;
     
-    localparam DIV_WIDTH    = Q_WIDTH + MAX_WIDTH;
     
-    wire    [DIV_WIDTH-1:0] st2_xx = st2_x << Q_WIDTH;
-    wire    [DIV_WIDTH-1:0] st2_yy = st2_y << Q_WIDTH;
+    // ---------------------------------
+    //  Core
+    // ---------------------------------
     
-    wire    [DIV_WIDTH-1:0] div_x;
-    wire    [DIV_WIDTH-1:0] div_y;
-    wire                    div_valid;
-    
-    jelly_unsigned_divide_multicycle
+    jelly_img_mass_center_core
             #(
-                .DATA_WIDTH     (DIV_WIDTH)
+                .INDEX_WIDTH            (INDEX_WIDTH),
+                .DATA_WIDTH             (DATA_WIDTH),
+                .Q_WIDTH                (Q_WIDTH),
+                .X_WIDTH                (X_WIDTH),
+                .Y_WIDTH                (Y_WIDTH),
+                .OUT_X_WIDTH            (OUT_X_WIDTH),
+                .OUT_Y_WIDTH            (OUT_Y_WIDTH),
+                .X_COUNT_WIDTH          (X_COUNT_WIDTH),
+                .Y_COUNT_WIDTH          (Y_COUNT_WIDTH),
+                .N_COUNT_WIDTH          (N_COUNT_WIDTH)
             )
-        i_unsigned_divide_multicycle_x
+        i_img_mass_center_core
             (
-                .reset          (reset),
-                .clk            (clk),
-                .cke            (1'b1),
+                .reset                  (reset),
+                .clk                    (clk),
+                .cke                    (cke),
                 
-                .s_data0        (st2_xx),
-                .s_data1        (st2_n),
-                .s_valid        (st2_last),
-                .s_ready        (),
+                .ctl_update             (reg_ctl_control[1]),
+                .ctl_index              (update_index),
                 
-                .m_quotient     (div_x),
-                .m_remainder    (),
-                .m_valid        (div_valid),
-                .m_ready        (cke)
+                .param_range_left       (reg_param_range_left),
+                .param_range_right      (reg_param_range_right),
+                .param_range_top        (reg_param_range_top),
+                .param_range_bottom     (reg_param_range_bottom),
+                
+                .current_range_left     (core_current_range_left),
+                .current_range_right    (core_current_range_right),
+                .current_range_top      (core_current_range_top),
+                .current_range_bottom   (core_current_range_bottom),
+                
+                .s_img_line_first       (s_img_line_first),
+                .s_img_line_last        (s_img_line_last),
+                .s_img_pixel_first      (s_img_pixel_first),
+                .s_img_pixel_last       (s_img_pixel_last),
+                .s_img_de               (s_img_de),
+                .s_img_data             (s_img_data),
+                .s_img_valid            (s_img_valid),
+                
+                .out_x                  (out_x),
+                .out_y                  (out_y),
+                .out_valid              (out_valid)
             );
     
-    jelly_unsigned_divide_multicycle
-            #(
-                .DATA_WIDTH     (DIV_WIDTH)
-            )
-        i_unsigned_divide_multicycle_y
-            (
-                .reset          (reset),
-                .clk            (clk),
-                .cke            (1'b1),
-                
-                .s_data0        (st2_yy),
-                .s_data1        (st2_n),
-                .s_valid        (st2_last),
-                .s_ready        (),
-                
-                .m_quotient     (div_y),
-                .m_remainder    (),
-                .m_valid        (),
-                .m_ready        (cke)
-            );
-    
-    
-    // output
-    reg     [X_WIDTH-1:0]   reg_out_x;
-    reg     [Y_WIDTH-1:0]   reg_out_y;
-    reg                     reg_out_valid;
-    
-    always @(posedge clk) begin
-        if ( reset ) begin
-            reg_out_x     <= INIT_X;
-            reg_out_y     <= INIT_Y;
-            reg_out_valid <= 1'b0;
-        end
-        else if ( cke ) begin
-            reg_out_valid <= 1'b0;
-            if ( div_valid && !st3_zero ) begin
-                reg_out_x     <= div_x;
-                reg_out_y     <= div_y;
-                reg_out_valid <= 1'b1;
-            end
-       end
-    end
-    
-    assign out_x     = reg_out_x;
-    assign out_y     = reg_out_y;
-    assign out_valid = reg_out_valid;
     
 endmodule
 

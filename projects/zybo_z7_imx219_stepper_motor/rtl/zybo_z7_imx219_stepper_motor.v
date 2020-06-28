@@ -806,7 +806,7 @@ module zybo_z7_imx219_stepper_motor
                 .reset              (wb_peri_rst_i),
                 .clk                (wb_peri_clk_i),
                 
-                .s_wb_adr_i         (wb_peri_adr_i[9:0]),
+                .s_wb_adr_i         (wb_peri_adr_i[7:0]),
                 .s_wb_dat_o         (wb_posc_dat_o),
                 .s_wb_dat_i         (wb_peri_dat_i),
                 .s_wb_we_i          (wb_peri_we_i),

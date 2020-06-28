@@ -310,6 +310,7 @@ module image_processing
     assign img_sink_valid       = img_matrix_valid;
     
     
+    
     // RGB to Gray
     wire                            img_gray_line_first;
     wire                            img_gray_line_last;
@@ -350,17 +351,82 @@ module image_processing
                 .m_img_valid            (img_gray_valid)
             );
     
+    
+    // binarize
+    wire                            img_bin_line_first;
+    wire                            img_bin_line_last;
+    wire                            img_bin_pixel_first;
+    wire                            img_bin_pixel_last;
+    wire                            img_bin_de;
+    wire    [DATA_WIDTH-1:0]        img_bin_data;
+    wire                            img_bin_valid;
+    
+    wire    [WB_DAT_WIDTH-1:0]      wb_bin_dat_o;
+    wire                            wb_bin_stb_i;
+    wire                            wb_bin_ack_o;
+    
+    jelly_img_binarizer
+            #(
+                .USER_WIDTH             (0),
+                .DATA_WIDTH             (DATA_WIDTH),
+                .BINARY_WIDTH           (DATA_WIDTH),
+                
+                .WB_ADR_WIDTH           (8),
+                .WB_DAT_WIDTH           (WB_DAT_WIDTH)
+            )
+        i_img_binarizer
+            (
+                .reset                  (reset),
+                .clk                    (clk),
+                .cke                    (cke),
+                
+                .s_wb_rst_i             (s_wb_rst_i),
+                .s_wb_clk_i             (s_wb_clk_i),
+                .s_wb_adr_i             (s_wb_adr_i[7:0]),
+                .s_wb_dat_i             (s_wb_dat_i),
+                .s_wb_dat_o             (wb_bin_dat_o),
+                .s_wb_we_i              (s_wb_we_i),
+                .s_wb_sel_i             (s_wb_sel_i),
+                .s_wb_stb_i             (wb_bin_stb_i),
+                .s_wb_ack_o             (wb_bin_ack_o),
+                
+                .s_img_line_first       (img_gray_line_first),
+                .s_img_line_last        (img_gray_line_last),
+                .s_img_pixel_first      (img_gray_pixel_first),
+                .s_img_pixel_last       (img_gray_pixel_last),
+                .s_img_de               (img_gray_de),
+                .s_img_user             (),
+                .s_img_data             (img_gray_gray),
+                .s_img_valid            (img_gray_valid),
+                
+                .m_img_line_first       (img_bin_line_first),
+                .m_img_line_last        (img_bin_line_last),
+                .m_img_pixel_first      (img_bin_pixel_first),
+                .m_img_pixel_last       (img_bin_pixel_last),
+                .m_img_de               (img_bin_de),
+                .m_img_user             (),
+                .m_img_data             (),
+                .m_img_binary           (img_bin_data),
+                .m_img_valid            (img_bin_valid)
+            );
+    
+    
+    // detect mass center
+    wire    [WB_DAT_WIDTH-1:0]      wb_center_dat_o;
+    wire                            wb_center_stb_i;
+    wire                            wb_center_ack_o;
+    
     jelly_img_mass_center
             #(
                 .DATA_WIDTH             (DATA_WIDTH),
                 .Q_WIDTH                (CENTER_Q_WIDTH),
-                .X_WIDTH                (CENTER_X_WIDTH),
-                .Y_WIDTH                (CENTER_Y_WIDTH),
+                .X_WIDTH                (IMG_X_WIDTH),
+                .Y_WIDTH                (IMG_Y_WIDTH),
+                .OUT_X_WIDTH            (CENTER_X_WIDTH),
+                .OUT_Y_WIDTH            (CENTER_Y_WIDTH),
                 .X_COUNT_WIDTH          (32),
                 .Y_COUNT_WIDTH          (32),
-                .N_COUNT_WIDTH          (32),
-                .INIT_X                 (0),
-                .INIT_Y                 (0)
+                .N_COUNT_WIDTH          (32)
             )
         i_img_mass_center
             (
@@ -368,13 +434,23 @@ module image_processing
                 .clk                    (clk),
                 .cke                    (cke),
                 
-                .s_img_line_first       (img_gray_line_first),
-                .s_img_line_last        (img_gray_line_last),
-                .s_img_pixel_first      (img_gray_pixel_first),
-                .s_img_pixel_last       (img_gray_pixel_last),
-                .s_img_de               (img_gray_de),
-                .s_img_data             (img_gray_gray),
-                .s_img_valid            (img_gray_valid),
+                .s_wb_rst_i             (s_wb_rst_i),
+                .s_wb_clk_i             (s_wb_clk_i),
+                .s_wb_adr_i             (s_wb_adr_i[7:0]),
+                .s_wb_dat_i             (s_wb_dat_i),
+                .s_wb_dat_o             (wb_center_dat_o),
+                .s_wb_we_i              (s_wb_we_i),
+                .s_wb_sel_i             (s_wb_sel_i),
+                .s_wb_stb_i             (wb_center_stb_i),
+                .s_wb_ack_o             (wb_center_ack_o),
+                
+                .s_img_line_first       (img_bin_line_first),
+                .s_img_line_last        (img_bin_line_last),
+                .s_img_pixel_first      (img_bin_pixel_first),
+                .s_img_pixel_last       (img_bin_pixel_last),
+                .s_img_de               (img_bin_de),
+                .s_img_data             (img_bin_data),
+                .s_img_valid            (img_bin_valid),
                 
                 .out_x                  (out_center_x),
                 .out_y                  (out_center_y),
@@ -386,13 +462,19 @@ module image_processing
     // WISHBONE address decode
     assign wb_demosaic_stb_i = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:6] == 0);
     assign wb_matrix_stb_i   = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:6] == 1);
+    assign wb_bin_stb_i      = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:6] == 2);
+    assign wb_center_stb_i   = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:6] == 3);
     
     assign s_wb_dat_o        = wb_demosaic_stb_i ? wb_demosaic_dat_o :
                                wb_matrix_stb_i   ? wb_matrix_dat_o   :
+                               wb_bin_stb_i      ? wb_bin_dat_o      :
+                               wb_center_stb_i   ? wb_center_dat_o   :
                                32'h0000_0000;
     
     assign s_wb_ack_o        = wb_demosaic_stb_i ? wb_demosaic_ack_o :
                                wb_matrix_stb_i   ? wb_matrix_ack_o   :
+                               wb_bin_stb_i      ? wb_bin_ack_o      :
+                               wb_center_stb_i   ? wb_center_ack_o   :
                                s_wb_stb_i;
     
     
