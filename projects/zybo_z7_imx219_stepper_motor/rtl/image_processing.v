@@ -105,7 +105,7 @@ module image_processing
                 .reset                  (reset),
                 .clk                    (clk),
                 
-                .param_blank_num        (8'h00),
+                .param_blank_num        (8'h04),
                 
                 .s_axi4s_tdata          (s_axi4s_tdata),
                 .s_axi4s_tlast          (s_axi4s_tlast),
@@ -491,7 +491,7 @@ module image_processing
     assign img_sel_pixel_last [1]                = img_bin_pixel_last;
     assign img_sel_de         [1]                = img_bin_de;
     assign img_sel_user       [1*SEL_U +: SEL_U] = 0;
-    assign img_sel_data       [1*SEL_D +: SEL_D] = img_bin_data;
+    assign img_sel_data       [1*SEL_D +: SEL_D] = {4{img_bin_data}};
     assign img_sel_valid      [1]                = img_bin_valid;
     
     wire    [WB_DAT_WIDTH-1:0]      wb_sel_dat_o;

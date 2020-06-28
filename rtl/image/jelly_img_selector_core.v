@@ -57,6 +57,7 @@ module jelly_img_selector_core
     
     
     reg                         reg_busy;
+    reg                         reg_change;
     reg     [SEL_WIDTH-1:0]     reg_sel;
     
     reg                         reg_line_first;
@@ -83,6 +84,7 @@ module jelly_img_selector_core
     always @(posedge clk) begin
         if ( reset ) begin
             reg_busy        <= 0;
+            reg_change      <= 0;
             reg_sel         <= 0;
             reg_line_first  <= 1'b0;
             reg_line_last   <= 1'b0;
@@ -94,7 +96,9 @@ module jelly_img_selector_core
             reg_valid       <= 1'b0;
         end
         else if ( cke ) begin
-            if ( frame_start ) begin
+            reg_change <= (reg_sel != ff1_sel);
+            
+            if ( frame_start && !reg_change ) begin
                 reg_busy <= 1'b1;
             end
             else if ( frame_end ) begin

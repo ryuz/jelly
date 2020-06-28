@@ -60,7 +60,8 @@ module tb_top();
                 .Y_NUM              (Y_NUM),   // (128),
 //              .PGM_FILE           ("lena_128x128.pgm"),
                 .BUSY_RATE          (0), // (50),
-                .RANDOM_SEED        (0)
+                .RANDOM_SEED        (0),
+                .INTERVAL           (X_NUM * 10)
             )
         i_axi4s_master_model
             (
@@ -185,13 +186,14 @@ module tb_top();
         wb_write(32'h40020008, 32'h0009, 4'b1111);     // ctl_target
         
         
-        wb_write(32'h40012000,     0, 4'b1111);        // byer phase
-        wb_write(32'h40012c20,    16, 4'b1111);        // left
-        wb_write(32'h40012c24,   100, 4'b1111);        // right
-        wb_write(32'h40012c28,    11, 4'b1111);        // top
-        wb_write(32'h40012c2c,    50, 4'b1111);        // bottom
-        wb_write(32'h40012c10,     3, 4'b1111);        // update
+        wb_write(32'h40032000,     0, 4'b1111);        // byer phase
+        wb_write(32'h40030c20,    16, 4'b1111);        // left
+        wb_write(32'h40030c24,   100, 4'b1111);        // right
+        wb_write(32'h40030c28,    11, 4'b1111);        // top
+        wb_write(32'h40030c2c,    50, 4'b1111);        // bottom
+        wb_write(32'h40030c10,     3, 4'b1111);        // update
         
+        wb_write(32'h40033c00,     1, 4'b1111);        // selector
         
         wb_write(32'h40011020, X_NUM, 4'b1111);     // width
         
@@ -227,6 +229,8 @@ module tb_top();
             wb_read(32'h40010014);
         end
         #10000;
+        
+        wb_write(32'h40033c00,     0, 4'b1111);        // selector
         
         
         // サイズを不整合で書いてみる

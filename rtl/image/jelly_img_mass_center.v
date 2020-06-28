@@ -86,6 +86,8 @@ module jelly_img_mass_center
     localparam  ADR_CURRENT_RANGE_RIGHT  = 8'h19;
     localparam  ADR_CURRENT_RANGE_TOP    = 8'h1a;
     localparam  ADR_CURRENT_RANGE_BOTTOM = 8'h1b;
+    localparam  ADR_MONITOR_OUT_X        = 8'h20;
+    localparam  ADR_MONITOR_OUT_Y        = 8'h20;
     
     // handshake
     wire    [INDEX_WIDTH-1:0]   update_index;
@@ -170,6 +172,8 @@ module jelly_img_mass_center
                         (s_wb_adr_i == ADR_CURRENT_RANGE_RIGHT)  ? core_current_range_right  :
                         (s_wb_adr_i == ADR_CURRENT_RANGE_TOP)    ? core_current_range_top    :
                         (s_wb_adr_i == ADR_CURRENT_RANGE_BOTTOM) ? core_current_range_bottom :
+                        (s_wb_adr_i == ADR_MONITOR_OUT_X)        ? out_x                     :
+                        (s_wb_adr_i == ADR_MONITOR_OUT_Y)        ? out_y                     :
                         0;
     assign s_wb_ack_o = s_wb_stb_i;
     
