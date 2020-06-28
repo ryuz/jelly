@@ -796,8 +796,9 @@ module zybo_z7_imx219_stepper_motor
                 .COEFF_X_WIDTH      (24),
                 .COEFF_Y_WIDTH      (24),
                 .OFFSET_WIDTH       (32),
-                .INIT_COEFF_X       (24'h000100),
-                .INIT_COEFF_Y       (24'h000100),
+                .INIT_ENABLE        (1),
+                .INIT_COEFF_X       (24'h000010),
+                .INIT_COEFF_Y       (24'h000010),
                 .INIT_OFFSET        (0)
             )
         i_position_calc
