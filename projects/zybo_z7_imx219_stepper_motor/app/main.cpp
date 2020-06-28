@@ -19,58 +19,89 @@ using namespace jelly;
 
 
 // Video Write-DMA
-#define REG_WDMA_ID                 0x00
-#define REG_WDMA_VERSION            0x01
-#define REG_WDMA_CTL_CONTROL        0x04
-#define REG_WDMA_CTL_STATUS         0x05
-#define REG_WDMA_CTL_INDEX          0x07
-#define REG_WDMA_PARAM_ADDR         0x08
-#define REG_WDMA_PARAM_STRIDE       0x09
-#define REG_WDMA_PARAM_WIDTH        0x0a
-#define REG_WDMA_PARAM_HEIGHT       0x0b
-#define REG_WDMA_PARAM_SIZE         0x0c
-#define REG_WDMA_PARAM_AWLEN        0x0f
-#define REG_WDMA_MONITOR_ADDR       0x10
-#define REG_WDMA_MONITOR_STRIDE     0x11
-#define REG_WDMA_MONITOR_WIDTH      0x12
-#define REG_WDMA_MONITOR_HEIGHT     0x13
-#define REG_WDMA_MONITOR_SIZE       0x14
-#define REG_WDMA_MONITOR_AWLEN      0x17
+#define REG_WDMA_ID                     0x00
+#define REG_WDMA_VERSION                0x01
+#define REG_WDMA_CTL_CONTROL            0x04
+#define REG_WDMA_CTL_STATUS             0x05
+#define REG_WDMA_CTL_INDEX              0x07
+#define REG_WDMA_PARAM_ADDR             0x08
+#define REG_WDMA_PARAM_STRIDE           0x09
+#define REG_WDMA_PARAM_WIDTH            0x0a
+#define REG_WDMA_PARAM_HEIGHT           0x0b
+#define REG_WDMA_PARAM_SIZE             0x0c
+#define REG_WDMA_PARAM_AWLEN            0x0f
+#define REG_WDMA_MONITOR_ADDR           0x10
+#define REG_WDMA_MONITOR_STRIDE         0x11
+#define REG_WDMA_MONITOR_WIDTH          0x12
+#define REG_WDMA_MONITOR_HEIGHT         0x13
+#define REG_WDMA_MONITOR_SIZE           0x14
+#define REG_WDMA_MONITOR_AWLEN          0x17
 
 // Video Normalizer
-#define REG_NORM_CONTROL            0x00
-#define REG_NORM_BUSY               0x01
-#define REG_NORM_INDEX              0x02
-#define REG_NORM_SKIP               0x03
-#define REG_NORM_FRM_TIMER_EN       0x04
-#define REG_NORM_FRM_TIMEOUT        0x05
-#define REG_NORM_PARAM_WIDTH        0x08
-#define REG_NORM_PARAM_HEIGHT       0x09
-#define REG_NORM_PARAM_FILL         0x0a
-#define REG_NORM_PARAM_TIMEOUT      0x0b
+#define REG_NORM_CONTROL                0x00
+#define REG_NORM_BUSY                   0x01
+#define REG_NORM_INDEX                  0x02
+#define REG_NORM_SKIP                   0x03
+#define REG_NORM_FRM_TIMER_EN           0x04
+#define REG_NORM_FRM_TIMEOUT            0x05
+#define REG_NORM_PARAM_WIDTH            0x08
+#define REG_NORM_PARAM_HEIGHT           0x09
+#define REG_NORM_PARAM_FILL             0x0a
+#define REG_NORM_PARAM_TIMEOUT          0x0b
 
 // Raw to RGB
-#define REG_RAW2RGB_DEMOSAIC_PHASE  0x00
-#define REG_RAW2RGB_DEMOSAIC_BYPASS 0x01
+#define REG_RAW2RGB_DEMOSAIC_PHASE      0x00
+#define REG_RAW2RGB_DEMOSAIC_BYPASS     0x01
 
-#define REG_POSC_COEFF_X            0x00
-#define REG_POSC_COEFF_Y            0x01
-#define REG_POSC_OFFSET             0x02
+// binarizer
+#define REG_BIN_CORE_ID                 0x00
+#define REG_BIN_CORE_VERSION            0x01
+#define REG_BIN_CTL_CONTROL             0x04
+#define REG_BIN_CTL_STATUS              0x05
+#define REG_BIN_CTL_INDEX               0x07
+#define REG_BIN_PARAM_TH                0x08
+#define REG_BIN_PARAM_INV               0x09
+#define REG_BIN_PARAM_VAL0              0x0a
+#define REG_BIN_PARAM_VAL1              0x0b
+#define REG_BIN_CURRENT_TH              0x18
+#define REG_BIN_CURRENT_INV             0x19
+#define REG_BIN_CURRENT_VAL0            0x1a
+#define REG_BIN_CURRENT_VAL1            0x1b
 
-#define REG_STMC_CORE_ID            0x00
-#define REG_STMC_CTL_ENABLE         0x01
-#define REG_STMC_CTL_TARGET         0x02
-#define REG_STMC_CTL_PWM            0x03
-#define REG_STMC_TARGET_X           0x04
-#define REG_STMC_TARGET_V           0x06
-#define REG_STMC_TARGET_A           0x07
-#define REG_STMC_MAX_V              0x09
-#define REG_STMC_MAX_A              0x0a
-#define REG_STMC_MAX_A_NEAR         0x0f
-#define REG_STMC_CUR_X              0x10
-#define REG_STMC_CUR_V              0x12
-#define REG_STMC_CUR_A              0x13
-#define REG_STMC_TIME               0x20
+// mass_center
+#define REG_CENT_CORE_ID                0x00
+#define REG_CENT_CORE_VERSION           0x01
+#define REG_CENT_CTL_CONTROL            0x04
+#define REG_CENT_CTL_STATUS             0x05
+#define REG_CENT_CTL_INDEX              0x07
+#define REG_CENT_PARAM_RANGE_LEFT       0x08
+#define REG_CENT_PARAM_RANGE_RIGHT      0x09
+#define REG_CENT_PARAM_RANGE_TOP        0x0a
+#define REG_CENT_PARAM_RANGE_BOTTOM     0x0b
+#define REG_CENT_CURRENT_RANGE_LEFT     0x18
+#define REG_CENT_CURRENT_RANGE_RIGHT    0x19
+#define REG_CENT_CURRENT_RANGE_TOP      0x1a
+#define REG_CENT_CURRENT_RANGE_BOTTOM   0x1b
+
+#define REG_POSC_ENABLE                 0x00
+#define REG_POSC_COEFF_X                0x01
+#define REG_POSC_COEFF_Y                0x02
+#define REG_POSC_OFFSET                 0x03
+
+#define REG_STMC_CORE_ID                0x00
+#define REG_STMC_CTL_ENABLE             0x01
+#define REG_STMC_CTL_TARGET             0x02
+#define REG_STMC_CTL_PWM                0x03
+#define REG_STMC_TARGET_X               0x04
+#define REG_STMC_TARGET_V               0x06
+#define REG_STMC_TARGET_A               0x07
+#define REG_STMC_MAX_V                  0x09
+#define REG_STMC_MAX_A                  0x0a
+#define REG_STMC_MAX_A_NEAR             0x0f
+#define REG_STMC_CUR_X                  0x10
+#define REG_STMC_CUR_V                  0x12
+#define REG_STMC_CUR_A                  0x13
+#define REG_STMC_TIME                   0x20
 
 
 void capture_still_image(MemAccess& reg_wdma, MemAccess& reg_norm, std::uintptr_t bufaddr, int width, int height, int frame_num);
@@ -174,7 +205,11 @@ int main(int argc, char *argv[])
     }
     auto reg_wdma = uio_acc.GetMemAccess(0x00010000);
     auto reg_norm = uio_acc.GetMemAccess(0x00011000);
-    auto reg_rgb  = uio_acc.GetMemAccess(0x00012000);
+    auto reg_rgb  = uio_acc.GetMemAccess(0x00030000);
+    auto reg_cmtx = uio_acc.GetMemAccess(0x00030400);
+    auto reg_bin  = uio_acc.GetMemAccess(0x00030800);
+    auto reg_cent = uio_acc.GetMemAccess(0x00030c00);
+    auto reg_sel  = uio_acc.GetMemAccess(0x00033c00);
     auto reg_stmc = uio_acc.GetMemAccess(0x00020000);
     auto reg_posc = uio_acc.GetMemAccess(0x00021000);
 
@@ -186,9 +221,12 @@ int main(int argc, char *argv[])
 //  reg_stmc.WriteReg(REG_STMC_TARGET_V, 10000);
  	reg_stmc.WriteReg(REG_STMC_CTL_TARGET, 8 + 1);
 
-	reg_posc.WriteReg(REG_POSC_COEFF_X, 0x000001);
-	reg_posc.WriteReg(REG_POSC_COEFF_Y, 0x000000);
-	reg_posc.WriteReg(REG_POSC_OFFSET,  0x000000);
+	reg_posc.WriteReg(REG_POSC_ENABLE,  0x00000001);
+	reg_posc.WriteReg(REG_POSC_COEFF_X, 0x00100000);
+	reg_posc.WriteReg(REG_POSC_COEFF_Y, 0x00000000);
+	reg_posc.WriteReg(REG_POSC_OFFSET,  0x00000000);
+    
+    reg_sel.WriteReg(0, 0);
 
     // mmap udmabuf
     UdmabufAccess udmabuf_acc("udmabuf0");
@@ -222,6 +260,8 @@ int main(int argc, char *argv[])
         std::cout << "udmabuf size error" << std::endl;
     }
 
+    int bin_th = 127;
+
     int     key;
     while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
         // 設定
@@ -231,6 +271,9 @@ int main(int argc, char *argv[])
         imx219.SetDigitalGain(d_gain);
         imx219.SetFlip(flip_h, flip_v);
         reg_rgb.WriteReg(REG_RAW2RGB_DEMOSAIC_PHASE, bayer_phase);
+
+        reg_bin.WriteReg(REG_BIN_PARAM_TH, bin_th);
+        reg_bin.WriteReg(REG_BIN_CTL_CONTROL, 3);
 
         // キャプチャ
         capture_still_image(reg_wdma, reg_norm, dmabuf_phys_adr, width, height, frame_num);
@@ -248,6 +291,7 @@ int main(int argc, char *argv[])
         cv::createTrackbar("a_gain",   "img", &a_gain, 20);
         cv::createTrackbar("d_gain",   "img", &d_gain, 24);
         cv::createTrackbar("bayer" ,   "img", &bayer_phase, 3);
+        cv::createTrackbar("th" ,      "img", &bin_th, 4095);
 
         // ユーザー操作
         switch ( key ) {
@@ -265,6 +309,9 @@ int main(int argc, char *argv[])
             std::cout << "flip v        : " << imx219.GetFlipV() << std::endl;
             break;
         
+        case '0':   reg_sel.WriteReg(0, 0); break;
+        case '1':   reg_sel.WriteReg(0, 1); break;
+
         // flip
         case 'h':  flip_h = !flip_h;  break;
         case 'v':  flip_v = !flip_v;  break;
