@@ -185,6 +185,17 @@ module tb_top();
         wb_write(32'h40020008, 32'h0009, 4'b1111);     // ctl_target
         
         
+        wb_write(32'h40012000,     0, 4'b1111);        // byer phase
+        wb_write(32'h40012c20,    16, 4'b1111);        // left
+        wb_write(32'h40012c24,   100, 4'b1111);        // right
+        wb_write(32'h40012c28,    11, 4'b1111);        // top
+        wb_write(32'h40012c2c,    50, 4'b1111);        // bottom
+        wb_write(32'h40012c10,     3, 4'b1111);        // update
+        
+        
+        wb_write(32'h40011020, X_NUM, 4'b1111);     // width
+        
+        
         wb_write(32'h40011020, X_NUM, 4'b1111);     // width
         wb_write(32'h40011024, Y_NUM, 4'b1111);     // height
         wb_write(32'h40011028,     0, 4'b1111);     // fill

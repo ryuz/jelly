@@ -622,13 +622,13 @@ module zybo_z7_imx219_stepper_motor
     wire    [13:0]              image_center_y;
     wire                        image_center_valid;
     
-    wire    [WB_DAT_WIDTH-1:0]  wb_rgb_dat_o;
-    wire                        wb_rgb_stb_i;
-    wire                        wb_rgb_ack_o;
+    wire    [WB_DAT_WIDTH-1:0]  wb_imgp_dat_o;
+    wire                        wb_imgp_stb_i;
+    wire                        wb_imgp_ack_o;
     
     image_processing
             #(
-                .WB_ADR_WIDTH       (10),
+                .WB_ADR_WIDTH       (14),
                 .WB_DAT_WIDTH       (WB_DAT_WIDTH),
                 
                 .DATA_WIDTH         (10),
@@ -647,13 +647,13 @@ module zybo_z7_imx219_stepper_motor
                 
                 .s_wb_rst_i         (wb_peri_rst_i),
                 .s_wb_clk_i         (wb_peri_clk_i),
-                .s_wb_adr_i         (wb_peri_adr_i[9:0]),
-                .s_wb_dat_o         (wb_rgb_dat_o),
+                .s_wb_adr_i         (wb_peri_adr_i[13:0]),
+                .s_wb_dat_o         (wb_imgp_dat_o),
                 .s_wb_dat_i         (wb_peri_dat_i),
                 .s_wb_we_i          (wb_peri_we_i),
                 .s_wb_sel_i         (wb_peri_sel_i),
-                .s_wb_stb_i         (wb_rgb_stb_i),
-                .s_wb_ack_o         (wb_rgb_ack_o),
+                .s_wb_stb_i         (wb_imgp_stb_i),
+                .s_wb_ack_o         (wb_imgp_ack_o),
                 
                 .s_axi4s_tuser      (axi4s_norm_tuser),
                 .s_axi4s_tlast      (axi4s_norm_tlast),
@@ -806,7 +806,7 @@ module zybo_z7_imx219_stepper_motor
                 .reset              (wb_peri_rst_i),
                 .clk                (wb_peri_clk_i),
                 
-                .s_wb_adr_i         (wb_peri_adr_i[9:0]),
+                .s_wb_adr_i         (wb_peri_adr_i[7:0]),
                 .s_wb_dat_o         (wb_posc_dat_o),
                 .s_wb_dat_i         (wb_peri_dat_i),
                 .s_wb_we_i          (wb_peri_we_i),
@@ -901,24 +901,24 @@ module zybo_z7_imx219_stepper_motor
     assign wb_gid_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4000_0);
     assign wb_vdmaw_stb_i = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4001_0);
     assign wb_norm_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4001_1);
-    assign wb_rgb_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4001_2);
     assign wb_stmc_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4002_0);
     assign wb_posc_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4002_1);
+    assign wb_imgp_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[29:14] == 20'h4003);
     
     assign wb_peri_dat_o  = wb_gid_stb_i   ? wb_gid_dat_o   :
                             wb_vdmaw_stb_i ? wb_vdmaw_dat_o :
                             wb_norm_stb_i  ? wb_norm_dat_o  :
-                            wb_rgb_stb_i   ? wb_rgb_dat_o   :
                             wb_stmc_stb_i  ? wb_stmc_dat_o  :
                             wb_posc_stb_i  ? wb_posc_dat_o  :
+                            wb_imgp_stb_i  ? wb_imgp_dat_o  :
                             32'h0000_0000;
     
     assign wb_peri_ack_o  = wb_gid_stb_i   ? wb_gid_ack_o   :
                             wb_vdmaw_stb_i ? wb_vdmaw_ack_o :
                             wb_norm_stb_i  ? wb_norm_ack_o  :
-                            wb_rgb_stb_i   ? wb_rgb_ack_o   :
                             wb_stmc_stb_i  ? wb_stmc_ack_o  :
                             wb_posc_stb_i  ? wb_posc_ack_o  :
+                            wb_imgp_stb_i  ? wb_imgp_ack_o   :
                             wb_peri_stb_i;
     
     
