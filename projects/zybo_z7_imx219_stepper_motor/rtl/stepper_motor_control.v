@@ -50,6 +50,9 @@ module stepper_motor_control
             input   wire                        s_wb_stb_i,
             output  wire                        s_wb_ack_o,
             
+            input   wire    [X_WIDTH-1:0]       in_x,
+            input   wire                        in_valid,
+            
             output  wire                        motor_en,
             output  wire                        motor_a,
             output  wire                        motor_b
@@ -75,7 +78,7 @@ module stepper_motor_control
     wire                                update;
     
     reg             [0:0]               reg_ctl_enable;
-    reg             [2:0]               reg_ctl_target;
+    reg             [3:0]               reg_ctl_target;
     reg             [1:0]               reg_ctl_pwm;
     reg     signed  [X_WIDTH-1:0]       reg_target_x;
     reg     signed  [V_WIDTH:0]         reg_target_v;
@@ -140,6 +143,10 @@ module stepper_motor_control
         else begin
             // start
             reg_start <= update;
+            
+            if ( reg_ctl_target[3] && in_valid ) begin
+                reg_target_x <= in_x;
+            end
             
             // acceleration
             reg_a_tmp <= 0;

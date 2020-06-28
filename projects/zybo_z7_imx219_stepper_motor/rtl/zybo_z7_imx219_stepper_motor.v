@@ -618,6 +618,10 @@ module zybo_z7_imx219_stepper_motor
     wire                        axi4s_rgb_tvalid;
     wire                        axi4s_rgb_tready;
     
+    wire    [13:0]              image_center_x;
+    wire    [13:0]              image_center_y;
+    wire                        image_center_valid;
+    
     wire    [WB_DAT_WIDTH-1:0]  wb_rgb_dat_o;
     wire                        wb_rgb_stb_i;
     wire                        wb_rgb_ack_o;
@@ -629,8 +633,10 @@ module zybo_z7_imx219_stepper_motor
                 
                 .DATA_WIDTH         (10),
                 
-                .IMG_Y_NUM          (480),
-                .IMG_Y_WIDTH        (12),
+                .IMG_X_NUM          (640),
+                .IMG_Y_NUM          (132),
+                .IMG_X_WIDTH        (14),
+                .IMG_Y_WIDTH        (14),
                 
                 .TUSER_WIDTH        (1)
             )
@@ -659,7 +665,11 @@ module zybo_z7_imx219_stepper_motor
                 .m_axi4s_tlast      (axi4s_rgb_tlast),
                 .m_axi4s_tdata      (axi4s_rgb_tdata),
                 .m_axi4s_tvalid     (axi4s_rgb_tvalid),
-                .m_axi4s_tready     (axi4s_rgb_tready)
+                .m_axi4s_tready     (axi4s_rgb_tready),
+                
+                .out_center_x       (image_center_x),
+                .out_center_y       (image_center_y),
+                .out_center_valid   (image_center_valid)
             );
     
     
@@ -763,6 +773,59 @@ module zybo_z7_imx219_stepper_motor
     
     
     
+    
+    // -----------------------------
+    //  position_calc
+    // -----------------------------
+    
+    wire    [47:0]              position_data;
+    wire                        position_valid;
+    
+    wire    [WB_DAT_WIDTH-1:0]  wb_posc_dat_o;
+    wire                        wb_posc_stb_i;
+    wire                        wb_posc_ack_o;
+    
+    position_calc
+            #(
+                .WB_ADR_WIDTH       (8),
+                .WB_DAT_WIDTH       (WB_DAT_WIDTH),
+                .ASYNC              (1),
+                .IN_X_WIDTH         (14),
+                .IN_Y_WIDTH         (14),
+                .OUT_WIDTH          (48),
+                .COEFF_X_WIDTH      (24),
+                .COEFF_Y_WIDTH      (24),
+                .OFFSET_WIDTH       (32),
+                .INIT_COEFF_X       (24'h000100),
+                .INIT_COEFF_Y       (24'h000100),
+                .INIT_OFFSET        (0)
+            )
+        i_position_calc
+            (
+                .reset              (wb_peri_rst_i),
+                .clk                (wb_peri_clk_i),
+                
+                .s_wb_adr_i         (wb_peri_adr_i[9:0]),
+                .s_wb_dat_o         (wb_posc_dat_o),
+                .s_wb_dat_i         (wb_peri_dat_i),
+                .s_wb_we_i          (wb_peri_we_i),
+                .s_wb_sel_i         (wb_peri_sel_i),
+                .s_wb_stb_i         (wb_posc_stb_i),
+                .s_wb_ack_o         (wb_posc_ack_o),
+                
+                .in_reset           (~axi4s_cam_aresetn),
+                .in_clk             (axi4s_cam_aclk),
+                .in_x               (image_center_x),
+                .in_y               (image_center_y),
+                .in_valid           (image_center_valid),
+                
+                .out_reset          (wb_peri_rst_i),
+                .out_clk            (wb_peri_clk_i),
+                .out_data           (position_data),
+                .out_valid          (position_valid)
+            );
+    
+    
     // -----------------------------
     //  stepper moter control
     // -----------------------------
@@ -809,6 +872,9 @@ module zybo_z7_imx219_stepper_motor
                 .s_wb_stb_i         (wb_stmc_stb_i),
                 .s_wb_ack_o         (wb_stmc_ack_o),
                 
+                .in_x               (position_data),
+                .in_valid           (position_valid),
+                
                 .motor_en           (stmc_out_en),
                 .motor_a            (stmc_out_a),
                 .motor_b            (stmc_out_b)
@@ -836,12 +902,14 @@ module zybo_z7_imx219_stepper_motor
     assign wb_norm_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4001_1);
     assign wb_rgb_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4001_2);
     assign wb_stmc_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4002_0);
+    assign wb_posc_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4002_1);
     
     assign wb_peri_dat_o  = wb_gid_stb_i   ? wb_gid_dat_o   :
                             wb_vdmaw_stb_i ? wb_vdmaw_dat_o :
                             wb_norm_stb_i  ? wb_norm_dat_o  :
                             wb_rgb_stb_i   ? wb_rgb_dat_o   :
                             wb_stmc_stb_i  ? wb_stmc_dat_o  :
+                            wb_posc_stb_i  ? wb_posc_dat_o  :
                             32'h0000_0000;
     
     assign wb_peri_ack_o  = wb_gid_stb_i   ? wb_gid_ack_o   :
@@ -849,6 +917,7 @@ module zybo_z7_imx219_stepper_motor
                             wb_norm_stb_i  ? wb_norm_ack_o  :
                             wb_rgb_stb_i   ? wb_rgb_ack_o   :
                             wb_stmc_stb_i  ? wb_stmc_ack_o  :
+                            wb_posc_stb_i  ? wb_posc_ack_o  :
                             wb_peri_stb_i;
     
     

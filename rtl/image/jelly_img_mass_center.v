@@ -38,7 +38,7 @@ module jelly_img_mass_center
             input   wire                            s_img_valid,
             
             output  wire    [X_WIDTH-1:0]           out_x,
-            output  wire    [X_WIDTH-1:0]           out_y,
+            output  wire    [Y_WIDTH-1:0]           out_y,
             output  wire                            out_valid
         );
     
