@@ -24,8 +24,8 @@ module tb_top();
 	always #(RATE125/2.0)	clk125 = ~clk125;
 	
 	
-    parameter   X_NUM = 2048; // 3280 / 2;
-    parameter   Y_NUM = 16; // 2464 / 2;
+    parameter   X_NUM = 320; // 2048; // 3280 / 2;
+    parameter   Y_NUM = 16;  // 2464 / 2;
 	
 	zybo_z7_imx219_stepper_motor
 		i_top
