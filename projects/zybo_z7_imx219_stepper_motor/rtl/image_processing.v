@@ -14,7 +14,7 @@
 
 module image_processing
         #(
-            parameter   WB_ADR_WIDTH   = 10,
+            parameter   WB_ADR_WIDTH   = 14,
             parameter   WB_DAT_SIZE    = 2,
             parameter   WB_DAT_WIDTH   = (8 << WB_DAT_SIZE),
             parameter   WB_SEL_WIDTH   = (WB_DAT_WIDTH / 8),
@@ -300,6 +300,7 @@ module image_processing
                 .m_img_valid            (img_matrix_valid)
             );
     
+    /*
     assign img_sink_line_first  = img_matrix_line_first;
     assign img_sink_line_last   = img_matrix_line_last;
     assign img_sink_pixel_first = img_matrix_pixel_first;
@@ -308,7 +309,7 @@ module image_processing
     assign img_sink_user        = img_matrix_user;
     assign img_sink_data        = img_matrix_data;
     assign img_sink_valid       = img_matrix_valid;
-    
+    */
     
     
     // RGB to Gray
@@ -418,7 +419,7 @@ module image_processing
     
     jelly_img_mass_center
             #(
-                .WB_ADR_WIDTH           (6),
+                .WB_ADR_WIDTH           (8),
                 .WB_DAT_WIDTH           (WB_DAT_WIDTH),
                 .DATA_WIDTH             (DATA_WIDTH),
                 .Q_WIDTH                (CENTER_Q_WIDTH),
@@ -438,7 +439,7 @@ module image_processing
                 
                 .s_wb_rst_i             (s_wb_rst_i),
                 .s_wb_clk_i             (s_wb_clk_i),
-                .s_wb_adr_i             (s_wb_adr_i[5:0]),
+                .s_wb_adr_i             (s_wb_adr_i[7:0]),
                 .s_wb_dat_i             (s_wb_dat_i),
                 .s_wb_dat_o             (wb_center_dat_o),
                 .s_wb_we_i              (s_wb_we_i),
@@ -460,23 +461,108 @@ module image_processing
             );
     
     
+    // selector
+    localparam  SEL_N = 2;
+    localparam  SEL_U = TUSER_WIDTH;
+    localparam  SEL_D = M_TDATA_WIDTH;
+    
+    wire    [SEL_N-1:0]         img_sel_line_first;
+    wire    [SEL_N-1:0]         img_sel_line_last;
+    wire    [SEL_N-1:0]         img_sel_pixel_first;
+    wire    [SEL_N-1:0]         img_sel_pixel_last;
+    wire    [SEL_N-1:0]         img_sel_de;
+    wire    [SEL_N*SEL_U-1:0]   img_sel_user;
+    wire    [SEL_N*SEL_D-1:0]   img_sel_data;
+    wire    [SEL_N-1:0]         img_sel_valid;
+    
+    
+    assign img_sel_line_first [0]                = img_matrix_line_first;
+    assign img_sel_line_last  [0]                = img_matrix_line_last;
+    assign img_sel_pixel_first[0]                = img_matrix_pixel_first;
+    assign img_sel_pixel_last [0]                = img_matrix_pixel_last;
+    assign img_sel_de         [0]                = img_matrix_de;
+    assign img_sel_user       [0*SEL_U +: SEL_U] = img_matrix_user;
+    assign img_sel_data       [0*SEL_D +: SEL_D] = img_matrix_data;
+    assign img_sel_valid      [0]                = img_matrix_valid;
+    
+    assign img_sel_line_first [1]                = img_bin_line_first;
+    assign img_sel_line_last  [1]                = img_bin_line_last;
+    assign img_sel_pixel_first[1]                = img_bin_pixel_first;
+    assign img_sel_pixel_last [1]                = img_bin_pixel_last;
+    assign img_sel_de         [1]                = img_bin_de;
+    assign img_sel_user       [1*SEL_U +: SEL_U] = 0;
+    assign img_sel_data       [1*SEL_D +: SEL_D] = img_bin_data;
+    assign img_sel_valid      [1]                = img_bin_valid;
+    
+    wire    [WB_DAT_WIDTH-1:0]      wb_sel_dat_o;
+    wire                            wb_sel_stb_i;
+    wire                            wb_sel_ack_o;
+    
+    jelly_img_selector
+            #(
+                .NUM            (SEL_N),
+                .USER_WIDTH     (SEL_U),
+                .DATA_WIDTH     (SEL_D),
+                .WB_ADR_WIDTH   (8),
+                .WB_DAT_WIDTH   (WB_DAT_WIDTH),
+                .INIT_SEL       (0)
+            )
+        i_img_selector
+            (
+                .reset                  (reset),
+                .clk                    (clk),
+                .cke                    (cke),
+                
+                .s_wb_rst_i             (s_wb_rst_i),
+                .s_wb_clk_i             (s_wb_clk_i),
+                .s_wb_adr_i             (s_wb_adr_i[7:0]),
+                .s_wb_dat_i             (s_wb_dat_i),
+                .s_wb_dat_o             (wb_sel_dat_o),
+                .s_wb_we_i              (s_wb_we_i),
+                .s_wb_sel_i             (s_wb_sel_i),
+                .s_wb_stb_i             (wb_sel_stb_i),
+                .s_wb_ack_o             (wb_sel_ack_o),
+                
+                .s_img_line_first       (img_sel_line_first),
+                .s_img_line_last        (img_sel_line_last),
+                .s_img_pixel_first      (img_sel_pixel_first),
+                .s_img_pixel_last       (img_sel_pixel_last),
+                .s_img_de               (img_sel_de),
+                .s_img_user             (img_sel_user),
+                .s_img_data             (img_sel_data),
+                .s_img_valid            (img_sel_valid),
+                
+                .m_img_line_first       (img_sink_line_first),
+                .m_img_line_last        (img_sink_line_last),
+                .m_img_pixel_first      (img_sink_pixel_first),
+                .m_img_pixel_last       (img_sink_pixel_last),
+                .m_img_de               (img_sink_de),
+                .m_img_user             (img_sink_user),
+                .m_img_data             (img_sink_data),
+                .m_img_valid            (img_sink_valid)
+            );
+    
+    
     
     // WISHBONE address decode
-    assign wb_demosaic_stb_i = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == 0);
-    assign wb_matrix_stb_i   = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == 1);
-    assign wb_bin_stb_i      = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == 2);
-    assign wb_center_stb_i   = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == 3);
+    assign wb_demosaic_stb_i = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == 8'h00);
+    assign wb_matrix_stb_i   = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == 8'h01);
+    assign wb_bin_stb_i      = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == 8'h02);
+    assign wb_center_stb_i   = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == 8'h03);
+    assign wb_sel_stb_i      = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == 8'h0f);
     
     assign s_wb_dat_o        = wb_demosaic_stb_i ? wb_demosaic_dat_o :
                                wb_matrix_stb_i   ? wb_matrix_dat_o   :
                                wb_bin_stb_i      ? wb_bin_dat_o      :
                                wb_center_stb_i   ? wb_center_dat_o   :
+                               wb_sel_stb_i      ? wb_sel_dat_o      :
                                32'h0000_0000;
     
     assign s_wb_ack_o        = wb_demosaic_stb_i ? wb_demosaic_ack_o :
                                wb_matrix_stb_i   ? wb_matrix_ack_o   :
                                wb_bin_stb_i      ? wb_bin_ack_o      :
                                wb_center_stb_i   ? wb_center_ack_o   :
+                               wb_sel_stb_i      ? wb_sel_ack_o      :
                                s_wb_stb_i;
     
     
