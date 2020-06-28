@@ -15,9 +15,9 @@
 module position_calc
         #(
             parameter   WB_ADR_WIDTH    = 6,
-            parameter   WB_DAT_SIZE     = 3,
+            parameter   WB_DAT_SIZE     = 2,
             parameter   WB_DAT_WIDTH    = (8 << WB_DAT_SIZE),
-            parameter   WB_SEL_WIDTH    = (1 << WB_DAT_SIZE),
+            parameter   WB_SEL_WIDTH    = WB_DAT_WIDTH / 8,
             
             parameter   ASYNC           = 1,
             parameter   IN_X_WIDTH      = 14,
@@ -28,6 +28,7 @@ module position_calc
             parameter   COEFF_Y_WIDTH   = 24,
             parameter   OFFSET_WIDTH    = 32,
             
+            parameter   INIT_ENABLE     = 0,
             parameter   INIT_COEFF_X    = 24'h000100,
             parameter   INIT_COEFF_Y    = 24'h000100,
             parameter   INIT_OFFSET     = 0
@@ -62,10 +63,12 @@ module position_calc
     //  Registers
     // -----------------------------------------
     
-    localparam  ADR_COEFF_X  = 0;
-    localparam  ADR_COEFF_Y  = 1;
-    localparam  ADR_OFFSET_Y = 2;
+    localparam  ADR_ENABLE  = 0;
+    localparam  ADR_COEFF_X = 1;
+    localparam  ADR_COEFF_Y = 2;
+    localparam  ADR_OFFSET  = 3;
     
+    reg                                 reg_enable;
     reg     signed  [COEFF_X_WIDTH-1:0] reg_coef_x;
     reg     signed  [COEFF_Y_WIDTH-1:0] reg_coef_y;
     reg     signed  [OFFSET_WIDTH-1:0]  reg_offset;
@@ -85,6 +88,7 @@ module position_calc
     
     always @(posedge clk) begin
         if ( reset ) begin
+            reg_enable <= INIT_ENABLE;
             reg_coef_x <= INIT_COEFF_X;
             reg_coef_y <= INIT_COEFF_Y;
             reg_offset <= INIT_OFFSET;
@@ -92,17 +96,19 @@ module position_calc
         else begin
             if ( s_wb_stb_i && s_wb_we_i ) begin
                 case ( s_wb_adr_i )
-                INIT_COEFF_X:   reg_coef_x <= reg_mask(reg_coef_x, s_wb_dat_i, s_wb_sel_i);
-                INIT_COEFF_Y:   reg_coef_y <= reg_mask(reg_coef_y, s_wb_dat_i, s_wb_sel_i);
-                INIT_OFFSET:    reg_offset <= reg_mask(reg_offset, s_wb_dat_i, s_wb_sel_i);
+                ADR_ENABLE:    reg_enable <= reg_mask(reg_enable, s_wb_dat_i, s_wb_sel_i);
+                ADR_COEFF_X:   reg_coef_x <= reg_mask(reg_coef_x, s_wb_dat_i, s_wb_sel_i);
+                ADR_COEFF_Y:   reg_coef_y <= reg_mask(reg_coef_y, s_wb_dat_i, s_wb_sel_i);
+                ADR_OFFSET:    reg_offset <= reg_mask(reg_offset, s_wb_dat_i, s_wb_sel_i);
                 endcase
             end
         end
     end
     
-    assign s_wb_dat_o = (s_wb_adr_i == INIT_COEFF_X) ? reg_coef_x :
-                        (s_wb_adr_i == INIT_COEFF_Y) ? reg_coef_y :
-                        (s_wb_adr_i == INIT_OFFSET)  ? reg_offset :
+    assign s_wb_dat_o = (s_wb_adr_i == ADR_ENABLE)  ? reg_enable :
+                        (s_wb_adr_i == ADR_COEFF_X) ? reg_coef_x :
+                        (s_wb_adr_i == ADR_COEFF_Y) ? reg_coef_y :
+                        (s_wb_adr_i == ADR_OFFSET)  ? reg_offset :
                         0;
     assign s_wb_ack_o = s_wb_stb_i;
     
@@ -161,7 +167,7 @@ module position_calc
             // stage 0
             st0_x     <= src_x * reg_coef_x;
             st0_y     <= src_y * reg_coef_y;
-            st0_valid <= src_valid;
+            st0_valid <= (src_valid & reg_enable);
             
             // stage 1
             st1_data  <= st0_x + st0_y;

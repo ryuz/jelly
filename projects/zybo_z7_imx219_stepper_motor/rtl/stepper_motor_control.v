@@ -183,34 +183,34 @@ module stepper_motor_control
             // write
             if ( s_wb_stb_i && s_wb_we_i ) begin
                 case ( s_wb_adr_i )
-                ADR_CTL_ENABLE:  reg_ctl_enable  <= reg_mask(reg_ctl_enable,  s_wb_dat_i, s_wb_sel_i);
-                ADR_CTL_TARGET:  reg_ctl_target  <= reg_mask(reg_ctl_target,  s_wb_dat_i, s_wb_sel_i);
-                ADR_CTL_PWM:     reg_ctl_pwm     <= reg_mask(reg_ctl_pwm,     s_wb_dat_i, s_wb_sel_i);
-                ADR_TARGET_X:    reg_target_x    <= reg_mask(reg_target_x,    s_wb_dat_i, s_wb_sel_i);
-                ADR_TARGET_V:    reg_target_v    <= reg_mask(reg_target_v,    s_wb_dat_i, s_wb_sel_i);
-                ADR_TARGET_A:    reg_target_a    <= reg_mask(reg_target_a,    s_wb_dat_i, s_wb_sel_i);
-                ADR_MAX_V:       reg_max_v       <= reg_mask(reg_max_v,       s_wb_dat_i, s_wb_sel_i);
-                ADR_MAX_A:       reg_max_a       <= reg_mask(reg_max_a,       s_wb_dat_i, s_wb_sel_i);
-                ADR_MAX_A_NEAR:  reg_max_a_near  <= reg_mask(reg_max_a_near,  s_wb_dat_i, s_wb_sel_i);
+                ADR_CTL_ENABLE:  reg_ctl_enable  <= reg_mask(reg_ctl_enable,             s_wb_dat_i, s_wb_sel_i);
+                ADR_CTL_TARGET:  reg_ctl_target  <= reg_mask(reg_ctl_target,             s_wb_dat_i, s_wb_sel_i);
+                ADR_CTL_PWM:     reg_ctl_pwm     <= reg_mask(reg_ctl_pwm,                s_wb_dat_i, s_wb_sel_i);
+                ADR_TARGET_X:    reg_target_x    <= reg_mask((reg_target_x >>> X_SHIFT), s_wb_dat_i, s_wb_sel_i) <<< X_SHIFT;
+                ADR_TARGET_V:    reg_target_v    <= reg_mask(reg_target_v,               s_wb_dat_i, s_wb_sel_i);
+                ADR_TARGET_A:    reg_target_a    <= reg_mask(reg_target_a,               s_wb_dat_i, s_wb_sel_i);
+                ADR_MAX_V:       reg_max_v       <= reg_mask(reg_max_v,                  s_wb_dat_i, s_wb_sel_i);
+                ADR_MAX_A:       reg_max_a       <= reg_mask(reg_max_a,                  s_wb_dat_i, s_wb_sel_i);
+                ADR_MAX_A_NEAR:  reg_max_a_near  <= reg_mask(reg_max_a_near,             s_wb_dat_i, s_wb_sel_i);
                 endcase
             end
         end
     end
     
-    assign s_wb_dat_o = (s_wb_adr_i == ADR_CORE_ID)     ? CORE_ID                 :
-                        (s_wb_adr_i == ADR_CTL_ENABLE)  ? reg_ctl_enable          :
-                        (s_wb_adr_i == ADR_CTL_TARGET)  ? reg_ctl_target          :
-                        (s_wb_adr_i == ADR_CTL_PWM)     ? reg_ctl_pwm             :
-                        (s_wb_adr_i == ADR_TARGET_X)    ? reg_target_x            :
-                        (s_wb_adr_i == ADR_TARGET_V)    ? reg_target_v            :
-                        (s_wb_adr_i == ADR_TARGET_A)    ? reg_target_a            :
-                        (s_wb_adr_i == ADR_MAX_V)       ? reg_max_v               :
-                        (s_wb_adr_i == ADR_MAX_A)       ? reg_max_a               :
-                        (s_wb_adr_i == ADR_MAX_A_NEAR)  ? reg_max_a_near          :
-                        (s_wb_adr_i == ADR_CUR_X)       ? (reg_cur_x >>> X_SHIFT) :
-                        (s_wb_adr_i == ADR_CUR_V)       ? reg_cur_v               :
-                        (s_wb_adr_i == ADR_CUR_A)       ? reg_cur_a               :
-                        (s_wb_adr_i == ADR_TIME)        ? reg_time                :
+    assign s_wb_dat_o = (s_wb_adr_i == ADR_CORE_ID)     ? CORE_ID                    :
+                        (s_wb_adr_i == ADR_CTL_ENABLE)  ? reg_ctl_enable             :
+                        (s_wb_adr_i == ADR_CTL_TARGET)  ? reg_ctl_target             :
+                        (s_wb_adr_i == ADR_CTL_PWM)     ? reg_ctl_pwm                :
+                        (s_wb_adr_i == ADR_TARGET_X)    ? (reg_target_x >>> X_SHIFT) :
+                        (s_wb_adr_i == ADR_TARGET_V)    ? reg_target_v               :
+                        (s_wb_adr_i == ADR_TARGET_A)    ? reg_target_a               :
+                        (s_wb_adr_i == ADR_MAX_V)       ? reg_max_v                  :
+                        (s_wb_adr_i == ADR_MAX_A)       ? reg_max_a                  :
+                        (s_wb_adr_i == ADR_MAX_A_NEAR)  ? reg_max_a_near             :
+                        (s_wb_adr_i == ADR_CUR_X)       ? (reg_cur_x >>> X_SHIFT)    :
+                        (s_wb_adr_i == ADR_CUR_V)       ? reg_cur_v                  :
+                        (s_wb_adr_i == ADR_CUR_A)       ? reg_cur_a                  :
+                        (s_wb_adr_i == ADR_TIME)        ? reg_time                   :
                         0;
     assign s_wb_ack_o = s_wb_stb_i;
     
@@ -230,7 +230,7 @@ module stepper_motor_control
                 
                 .start              (reg_start),
                 
-                .target_x           (reg_target_x <<< X_SHIFT),
+                .target_x           (reg_target_x),
                 .cur_x              (reg_cur_x),
                 .cur_v              (reg_cur_v),
                 .max_a              (reg_max_a),
