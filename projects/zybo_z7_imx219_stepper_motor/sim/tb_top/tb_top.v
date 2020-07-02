@@ -24,8 +24,12 @@ module tb_top();
     always #(RATE125/2.0)   clk125 = ~clk125;
     
     
-    parameter   X_NUM = 320; // 2048; // 3280 / 2;
-    parameter   Y_NUM = 16;  // 2464 / 2;
+//    parameter   X_NUM = 320; // 2048; // 3280 / 2;
+//    parameter   Y_NUM = 16;  // 2464 / 2;
+
+    parameter   X_NUM = 32;
+    parameter   Y_NUM = 16;
+    
     
     zybo_z7_imx219_stepper_motor
         i_top
@@ -60,7 +64,8 @@ module tb_top();
                 .Y_NUM              (Y_NUM),   // (128),
 //              .PGM_FILE           ("lena_128x128.pgm"),
                 .BUSY_RATE          (0), // (50),
-                .RANDOM_SEED        (0)
+                .RANDOM_SEED        (0),
+                .INTERVAL           (X_NUM * 10)
             )
         i_axi4s_master_model
             (
@@ -174,34 +179,75 @@ module tb_top();
     @(negedge wb_rst_i);
     #10000;
         $display("start");
-        wb_write(32'h00010010, 32'h00, 4'b1111);
-    #10000;
-    
-        wb_write(32'h40021000, 32'h0001, 4'b1111);     // enable
-        wb_write(32'h40021004, 32'h0001, 4'b1111);     // coef_x
-        wb_write(32'h40021008, 32'h0002, 4'b1111);     // coef_y
-        wb_write(32'h4002100c, 32'h0003, 4'b1111);     // offset
         
-        wb_write(32'h40020008, 32'h0009, 4'b1111);     // ctl_target
-        
-        
-        wb_write(32'h40012000,     0, 4'b1111);        // byer phase
-        wb_write(32'h40012c20,    16, 4'b1111);        // left
-        wb_write(32'h40012c24,   100, 4'b1111);        // right
-        wb_write(32'h40012c28,    11, 4'b1111);        // top
-        wb_write(32'h40012c2c,    50, 4'b1111);        // bottom
-        wb_write(32'h40012c10,     3, 4'b1111);        // update
-        
-        
+        // normalizer (取り込み開始)
         wb_write(32'h40011020, X_NUM, 4'b1111);     // width
-        
-        
         wb_write(32'h40011020, X_NUM, 4'b1111);     // width
         wb_write(32'h40011024, Y_NUM, 4'b1111);     // height
         wb_write(32'h40011028,     0, 4'b1111);     // fill
         wb_write(32'h4001102c,  1024, 4'b1111);     // timeout
         wb_write(32'h40011000,     1, 4'b1111);     // enable
-        wb_write(32'h40011000,     1, 4'b1111);     // enable
+        
+    #1000;
+        // 画像コアID読み出し
+        wb_read(32'h40030000);  // demosaic
+        wb_read(32'h40030400);  // col mat
+        wb_read(32'h40030800);  // gauss
+        wb_read(32'h40030c00);  // mask
+        wb_read(32'h40033c00);  // sel
+
+    #1000;
+        // demosaic
+        wb_write(32'h40030000,     0, 4'b1111);        // byer phase
+
+
+
+    #40000;
+        // gauss
+        wb_write(32'h40030800 + 8'h08*4, 32'h0003, 4'b1111);     // param_enable
+        wb_write(32'h40030800 + 8'h04*4, 32'h0003, 4'b1111);     // ctl_control
+        wb_read (32'h40030800 + 8'h18*4);     // current_enable
+    #10000;
+        wb_read (32'h40030800 + 8'h18*4);     // current_enable
+
+        wb_write(32'h40030800 + 8'h8*4, 32'h0000, 4'b1111);     // param_enable
+        wb_write(32'h40030800 + 8'h4*4, 32'h0003, 4'b1111);     // ctl_control
+        wb_read (32'h40030800 + 8'h18*4);     // current_enable
+    #10000;
+        wb_read (32'h40030800 + 8'h18*4);     // current_enable
+
+        wb_write(32'h40030800 + 8'h8*4, 32'h000f, 4'b1111);     // param_enable
+        wb_write(32'h40030800 + 8'h4*4, 32'h0003, 4'b1111);     // ctl_control
+        wb_read (32'h40030800 + 8'h18*4);     // current_enable
+    #10000;
+        wb_read (32'h40030800 + 8'h18*4);     // current_enable
+
+
+    #10000;
+/*
+        // position
+        wb_write(32'h40021000, 32'h0001, 4'b1111);     // enable
+        wb_write(32'h40021004, 32'h0001, 4'b1111);     // coef_x
+        wb_write(32'h40021008, 32'h0002, 4'b1111);     // coef_y
+        wb_write(32'h4002100c, 32'h0003, 4'b1111);     // offset
+        wb_write(32'h40020008, 32'h0009, 4'b1111);     // ctl_target
+*/
+
+        
+        /*
+        wb_write(32'h40030c20,    16, 4'b1111);        // left
+        wb_write(32'h40030c24,   100, 4'b1111);        // right
+        wb_write(32'h40030c28,    11, 4'b1111);        // top
+        wb_write(32'h40030c2c,    50, 4'b1111);        // bottom
+        wb_write(32'h40030c10,     3, 4'b1111);        // update
+*/
+
+        
+        wb_write(32'h40033c00,     1, 4'b1111);        // selector
+        
+
+/*
+        
     #100000;
         
         wb_write(32'h40010020, 32'h30000000, 4'b1111);
@@ -213,6 +259,10 @@ module tb_top();
         wb_write(32'h40010010,     3, 4'b1111);
     #10000;
 
+
+
+
+/*
         wb_read(32'h40010014);
         wb_read(32'h40010014);
         wb_read(32'h40010014);
@@ -227,6 +277,8 @@ module tb_top();
             wb_read(32'h40010014);
         end
         #10000;
+        
+        wb_write(32'h40033c00,     0, 4'b1111);        // selector
         
         
         // サイズを不整合で書いてみる
@@ -246,7 +298,7 @@ module tb_top();
             wb_read(32'h40010014);
         end
         #10000;
-        
+        */
         
     end
     

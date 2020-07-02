@@ -667,9 +667,8 @@ module zybo_z7_imx219_stepper_motor
                 .m_axi4s_tvalid     (axi4s_rgb_tvalid),
                 .m_axi4s_tready     (axi4s_rgb_tready),
                 
-                .out_center_x       (image_center_x),
-                .out_center_y       (image_center_y),
-                .out_center_valid   (image_center_valid)
+                .out_angle          (),
+                .out_valid          ()
             );
     
     
