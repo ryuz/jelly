@@ -218,8 +218,10 @@ int main(int argc, char *argv[])
 	reg_stmc.WriteReg(REG_STMC_CTL_ENABLE,    1);
 
     std::cout << "speed 1000" << std::endl;
-//  reg_stmc.WriteReg(REG_STMC_TARGET_V, 10000);
- 	reg_stmc.WriteReg(REG_STMC_CTL_TARGET, 8 + 1);
+    reg_stmc.WriteReg(REG_STMC_TARGET_V, 100000);
+ 	reg_stmc.WriteReg(REG_STMC_CTL_TARGET, 2);
+
+// 	reg_stmc.WriteReg(REG_STMC_CTL_TARGET, 8 + 1);
 
 	reg_posc.WriteReg(REG_POSC_ENABLE,  0x00000001);
 	reg_posc.WriteReg(REG_POSC_COEFF_X, 0x00100000);
