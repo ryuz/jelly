@@ -33,15 +33,21 @@ module jelly_param_update_slave
     (* ASYNC_REG="true" *)  reg         ff0_update, ff1_update;
                             reg         reg_update;
     always @(posedge clk) begin
-        ff0_update <= in_update;
-        ff1_update <= ff0_update;
-        reg_update <= ff1_update;
+        if ( reset ) begin
+            ff0_update <= 1'b0;
+            ff1_update <= 1'b0;
+            reg_update <= 1'b0;
+        end
+        else begin
+            ff0_update <= in_update;
+            ff1_update <= ff0_update;
+            reg_update <= ff1_update;
+        end
     end
     
     reg     [INDEX_WIDTH-1:0]   reg_index;
     always @(posedge clk) begin
         if ( reset ) begin
-            reg_update <= 1'b0;
             reg_index  <= {INDEX_WIDTH{1'b0}};
         end
         else if ( cke ) begin

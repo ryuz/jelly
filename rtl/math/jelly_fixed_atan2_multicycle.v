@@ -93,7 +93,7 @@ module jelly_fixed_atan2_multicycle
     assign tbl[29] = make_tbl(32'h00000008, 29);
     assign tbl[30] = make_tbl(32'h00000004, 30);
     assign tbl[31] = make_tbl(32'h00000002, 31);
-​   
+    
     
     // CORDIC core
     reg                                 reg_busy;

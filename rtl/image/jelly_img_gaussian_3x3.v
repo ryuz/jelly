@@ -106,8 +106,7 @@ module jelly_img_gaussian_3x3
     // registers
     reg     [2:0]               reg_ctl_control;
     reg     [NUM-1:0]           reg_param_enable;
-    
-    wire                        current_enable;
+    reg     [NUM-1:0]           reg_current_enable;
     
     function [WB_DAT_WIDTH-1:0] reg_mask(
                                         input [WB_DAT_WIDTH-1:0] org,
@@ -124,8 +123,8 @@ module jelly_img_gaussian_3x3
     
     always @(posedge s_wb_clk_i) begin
         if ( s_wb_rst_i ) begin
-            reg_ctl_control        <= INIT_CTL_CONTROL;
-            reg_param_enable       <= INIT_PARAM_ENABLE;
+            reg_ctl_control  <= INIT_CTL_CONTROL;
+            reg_param_enable <= INIT_PARAM_ENABLE;
         end
         else begin
             if ( update_ack && !reg_ctl_control[2] ) begin
@@ -141,13 +140,13 @@ module jelly_img_gaussian_3x3
         end
     end
     
-    assign s_wb_dat_o = (s_wb_adr_i == ADR_CORE_ID)        ? CORE_ID          :
-                        (s_wb_adr_i == ADR_CORE_VERSION)   ? CORE_VERSION     :
-                        (s_wb_adr_i == ADR_CTL_CONTROL)    ? reg_ctl_control  :
-                        (s_wb_adr_i == ADR_CTL_STATUS)     ? 0                :
-                        (s_wb_adr_i == ADR_CTL_INDEX)      ? ctl_index        :
-                        (s_wb_adr_i == ADR_PARAM_ENABLE)   ? reg_param_enable :
-                        (s_wb_adr_i == ADR_CURRENT_ENABLE) ? current_enable   :
+    assign s_wb_dat_o = (s_wb_adr_i == ADR_CORE_ID)        ? CORE_ID            :
+                        (s_wb_adr_i == ADR_CORE_VERSION)   ? CORE_VERSION       :
+                        (s_wb_adr_i == ADR_CTL_CONTROL)    ? reg_ctl_control    :
+                        (s_wb_adr_i == ADR_CTL_STATUS)     ? 0                  :
+                        (s_wb_adr_i == ADR_CTL_INDEX)      ? ctl_index          :
+                        (s_wb_adr_i == ADR_PARAM_ENABLE)   ? reg_param_enable   :
+                        (s_wb_adr_i == ADR_CURRENT_ENABLE) ? reg_current_enable :
                         0;
     assign s_wb_ack_o = s_wb_stb_i;
     
@@ -176,14 +175,15 @@ module jelly_img_gaussian_3x3
     
     reg     [NUM-1:0]       reg_core_enable;
     always @(posedge clk) begin
-        if ( cke ) begin
+        if ( reset ) begin
+            reg_current_enable <= INIT_PARAM_ENABLE;
+        end
+        else if ( cke ) begin
             if ( update_trig & update_en ) begin
-                reg_core_enable <= reg_ctl_control[0] ? reg_param_enable : 0;
+                reg_current_enable <= reg_ctl_control[0] ? reg_param_enable : 0;
             end
         end
     end
-    
-    assign current_enable = reg_core_enable;
     
     
     
@@ -214,7 +214,7 @@ module jelly_img_gaussian_3x3
                     .clk                (clk),
                     .cke                (cke),
                     
-                    .enable             (reg_core_enable[i]),
+                    .enable             (reg_current_enable[i]),
                     
                     .s_img_line_first   (img_line_first [i]),
                     .s_img_line_last    (img_line_last  [i]),

@@ -29,10 +29,14 @@ module jelly_img_area_mask_core
             input   wire                            clk,
             input   wire                            cke,
             
-            input   wire                            mask_en,
-            input   wire     [DATA_WIDTH-1:0]       mask_value,
+            input   wire                            enable,
+            
+            input   wire     [DATA_WIDTH-1:0]       mask_value0,
+            input   wire     [DATA_WIDTH-1:0]       mask_value1,
             input   wire                            mask_or,
             input   wire                            mask_inv,
+            input   wire                            mask_en0,
+            input   wire                            mask_en1,
             
             input   wire                            thresh_en,
             input   wire                            thresh_inv,
@@ -160,8 +164,17 @@ module jelly_img_area_mask_core
             
             // stage 7
             st7_data        <= st6_data;
-            st7_masked_data <= (mask_en & st6_mask) ? mask_value : st6_data;
-            st7_mask        <= st6_mask;
+            st7_masked_data <= st6_data;
+            st7_mask        <= 1'b0;
+            if ( enable ) begin
+                if ( mask_en0 & ~st6_mask ) begin
+                    st7_masked_data <= mask_value0;
+                end
+                if ( mask_en1 & st6_mask ) begin
+                    st7_masked_data <= mask_value1;
+                end
+                st7_mask  <= st6_mask;
+            end
         end
     end
     
