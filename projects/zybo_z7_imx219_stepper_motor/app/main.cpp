@@ -53,35 +53,19 @@ using namespace jelly;
 #define REG_RAW2RGB_DEMOSAIC_PHASE      0x00
 #define REG_RAW2RGB_DEMOSAIC_BYPASS     0x01
 
-// binarizer
-#define REG_BIN_CORE_ID                 0x00
-#define REG_BIN_CORE_VERSION            0x01
-#define REG_BIN_CTL_CONTROL             0x04
-#define REG_BIN_CTL_STATUS              0x05
-#define REG_BIN_CTL_INDEX               0x07
-#define REG_BIN_PARAM_TH                0x08
-#define REG_BIN_PARAM_INV               0x09
-#define REG_BIN_PARAM_VAL0              0x0a
-#define REG_BIN_PARAM_VAL1              0x0b
-#define REG_BIN_CURRENT_TH              0x18
-#define REG_BIN_CURRENT_INV             0x19
-#define REG_BIN_CURRENT_VAL0            0x1a
-#define REG_BIN_CURRENT_VAL1            0x1b
+// gaussian_3x3
+#define REG_GAUSS_CORE_ID               0x00
+#define REG_GAUSS_CORE_VERSION          0x01
+#define REG_GAUSS_CTL_CONTROL           0x04
+#define REG_GAUSS_CTL_STATUS            0x05
+#define REG_GAUSS_CTL_INDEX             0x07
+#define REG_GAUSS_PARAM_ENABLE          0x08
+#define REG_GAUSS_CURRENT_ENABLE        0x18
 
-// mass_center
-#define REG_CENT_CORE_ID                0x00
-#define REG_CENT_CORE_VERSION           0x01
-#define REG_CENT_CTL_CONTROL            0x04
-#define REG_CENT_CTL_STATUS             0x05
-#define REG_CENT_CTL_INDEX              0x07
-#define REG_CENT_PARAM_RANGE_LEFT       0x08
-#define REG_CENT_PARAM_RANGE_RIGHT      0x09
-#define REG_CENT_PARAM_RANGE_TOP        0x0a
-#define REG_CENT_PARAM_RANGE_BOTTOM     0x0b
-#define REG_CENT_CURRENT_RANGE_LEFT     0x18
-#define REG_CENT_CURRENT_RANGE_RIGHT    0x19
-#define REG_CENT_CURRENT_RANGE_TOP      0x1a
-#define REG_CENT_CURRENT_RANGE_BOTTOM   0x1b
+
+#define REG_IMGSEL_SELECT               0x00
+
+
 
 #define REG_POSC_ENABLE                 0x00
 #define REG_POSC_COEFF_X                0x01
@@ -203,15 +187,15 @@ int main(int argc, char *argv[])
         std::cout << "uio_pl_peri mmap error" << std::endl;
         return 1;
     }
-    auto reg_wdma = uio_acc.GetMemAccess(0x00010000);
-    auto reg_norm = uio_acc.GetMemAccess(0x00011000);
-    auto reg_rgb  = uio_acc.GetMemAccess(0x00030000);
-    auto reg_cmtx = uio_acc.GetMemAccess(0x00030400);
-    auto reg_bin  = uio_acc.GetMemAccess(0x00030800);
-    auto reg_cent = uio_acc.GetMemAccess(0x00030c00);
-    auto reg_sel  = uio_acc.GetMemAccess(0x00033c00);
-    auto reg_stmc = uio_acc.GetMemAccess(0x00020000);
-    auto reg_posc = uio_acc.GetMemAccess(0x00021000);
+    auto reg_wdma  = uio_acc.GetMemAccess(0x00010000);
+    auto reg_norm  = uio_acc.GetMemAccess(0x00011000);
+    auto reg_rgb   = uio_acc.GetMemAccess(0x00030000);
+    auto reg_cmtx  = uio_acc.GetMemAccess(0x00030400);
+    auto reg_gauss = uio_acc.GetMemAccess(0x00030800);
+    auto reg_mask  = uio_acc.GetMemAccess(0x00030c00);
+    auto reg_sel   = uio_acc.GetMemAccess(0x00033c00);
+    auto reg_stmc  = uio_acc.GetMemAccess(0x00020000);
+    auto reg_posc  = uio_acc.GetMemAccess(0x00021000);
 
 	reg_stmc.WriteReg(REG_STMC_MAX_A,       100);
 	reg_stmc.WriteReg(REG_STMC_MAX_V,    200000);
@@ -262,7 +246,8 @@ int main(int argc, char *argv[])
         std::cout << "udmabuf size error" << std::endl;
     }
 
-    int bin_th = 127;
+    int gauss = 0;
+
 
     int     key;
     while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
@@ -274,8 +259,14 @@ int main(int argc, char *argv[])
         imx219.SetFlip(flip_h, flip_v);
         reg_rgb.WriteReg(REG_RAW2RGB_DEMOSAIC_PHASE, bayer_phase);
 
-        reg_bin.WriteReg(REG_BIN_PARAM_TH, bin_th);
-        reg_bin.WriteReg(REG_BIN_CTL_CONTROL, 3);
+        reg_rgb.WriteReg(REG_RAW2RGB_DEMOSAIC_PHASE, bayer_phase);
+
+        reg_gauss.WriteReg(REG_GAUSS_PARAM_ENABLE, (1 << gauss) - 1);
+        reg_gauss.WriteReg(REG_GAUSS_CTL_CONTROL,  0x3);
+        std::cout << "gauss : " << reg_gauss.ReadReg(REG_GAUSS_CORE_ID)
+                  << " " << reg_gauss.ReadReg(REG_GAUSS_CTL_CONTROL)
+                  << " " << reg_gauss.ReadReg(REG_GAUSS_PARAM_ENABLE)
+                  << " " << reg_gauss.ReadReg(REG_GAUSS_CURRENT_ENABLE) << std::endl;
 
         // キャプチャ
         capture_still_image(reg_wdma, reg_norm, dmabuf_phys_adr, width, height, frame_num);
@@ -293,7 +284,7 @@ int main(int argc, char *argv[])
         cv::createTrackbar("a_gain",   "img", &a_gain, 20);
         cv::createTrackbar("d_gain",   "img", &d_gain, 24);
         cv::createTrackbar("bayer" ,   "img", &bayer_phase, 3);
-        cv::createTrackbar("th" ,      "img", &bin_th, 4095);
+        cv::createTrackbar("gauss" ,   "img", &gauss, 4);
 
         // ユーザー操作
         switch ( key ) {
@@ -311,8 +302,10 @@ int main(int argc, char *argv[])
             std::cout << "flip v        : " << imx219.GetFlipV() << std::endl;
             break;
         
-        case '0':   reg_sel.WriteReg(0, 0); break;
-        case '1':   reg_sel.WriteReg(0, 1); break;
+        case '0':   reg_sel.WriteReg(REG_IMGSEL_SELECT, 0); break;
+        case '1':   reg_sel.WriteReg(REG_IMGSEL_SELECT, 1); break;
+        case '2':   reg_sel.WriteReg(REG_IMGSEL_SELECT, 2); break;
+        case '3':   reg_sel.WriteReg(REG_IMGSEL_SELECT, 3); break;
 
         // flip
         case 'h':  flip_h = !flip_h;  break;
