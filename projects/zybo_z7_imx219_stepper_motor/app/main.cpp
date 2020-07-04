@@ -62,15 +62,54 @@ using namespace jelly;
 #define REG_GAUSS_PARAM_ENABLE          0x08
 #define REG_GAUSS_CURRENT_ENABLE        0x18
 
+#define REG_MASK_CORE_ID                0x00
+#define REG_MASK_CORE_VERSION           0x01
+#define REG_MASK_CTL_CONTROL            0x04
+#define REG_MASK_CTL_STATUS             0x05
+#define REG_MASK_CTL_INDEX              0x07
+#define REG_MASK_PARAM_MASK_FLAG        0x10
+#define REG_MASK_PARAM_MASK_VALUE0      0x12
+#define REG_MASK_PARAM_MASK_VALUE1      0x13
+#define REG_MASK_PARAM_THRESH_FLAG      0x14
+#define REG_MASK_PARAM_THRESH_VALUE     0x15
+#define REG_MASK_PARAM_RECT_FLAG        0x21
+#define REG_MASK_PARAM_RECT_LEFT        0x24
+#define REG_MASK_PARAM_RECT_RIGHT       0x25
+#define REG_MASK_PARAM_RECT_TOP         0x26
+#define REG_MASK_PARAM_RECT_BOTTOM      0x27
+#define REG_MASK_PARAM_CIRCLE_FLAG      0x50
+#define REG_MASK_PARAM_CIRCLE_X         0x54
+#define REG_MASK_PARAM_CIRCLE_Y         0x55
+#define REG_MASK_PARAM_CIRCLE_RADIUS2   0x56
+#define REG_MASK_CURRENT_MASK_FLAG      0x90
+#define REG_MASK_CURRENT_MASK_VALUE0    0x92
+#define REG_MASK_CURRENT_MASK_VALUE1    0x93
+#define REG_MASK_CURRENT_THRESH_FLAG    0x94
+#define REG_MASK_CURRENT_THRESH_VALUE   0x95
+#define REG_MASK_CURRENT_RECT_FLAG      0xa1
+#define REG_MASK_CURRENT_RECT_LEFT      0xa4
+#define REG_MASK_CURRENT_RECT_RIGHT     0xa5
+#define REG_MASK_CURRENT_RECT_TOP       0xa6
+#define REG_MASK_CURRENT_RECT_BOTTOM    0xa7
+#define REG_MASK_CURRENT_CIRCLE_FLAG    0xd0
+#define REG_MASK_CURRENT_CIRCLE_X       0xd4
+#define REG_MASK_CURRENT_CIRCLE_Y       0xd5
+#define REG_MASK_CURRENT_CIRCLE_RADIUS2 0xd6
 
 #define REG_IMGSEL_SELECT               0x00
 
+#define REG_DIFF_ENABLE                 0x00
+#define REG_DIFF_TARGET                 0x01
+#define REG_DIFF_GAIN                   0x02
+#define REG_DIFF_INPUT                  0x03
+#define REG_DIFF_OUTPUT                 0x04
 
-
+/*
 #define REG_POSC_ENABLE                 0x00
 #define REG_POSC_COEFF_X                0x01
 #define REG_POSC_COEFF_Y                0x02
 #define REG_POSC_OFFSET                 0x03
+*/
 
 #define REG_STMC_CORE_ID                0x00
 #define REG_STMC_CTL_ENABLE             0x01
@@ -86,6 +125,7 @@ using namespace jelly;
 #define REG_STMC_CUR_V                  0x12
 #define REG_STMC_CUR_A                  0x13
 #define REG_STMC_TIME                   0x20
+#define REG_STMC_IN_X_DIFF              0x21
 
 
 void capture_still_image(MemAccess& reg_wdma, MemAccess& reg_norm, std::uintptr_t bufaddr, int width, int height, int frame_num);
@@ -197,23 +237,6 @@ int main(int argc, char *argv[])
     auto reg_stmc  = uio_acc.GetMemAccess(0x00020000);
     auto reg_posc  = uio_acc.GetMemAccess(0x00021000);
 
-	reg_stmc.WriteReg(REG_STMC_MAX_A,       100);
-	reg_stmc.WriteReg(REG_STMC_MAX_V,    200000);
-	reg_stmc.WriteReg(REG_STMC_CTL_ENABLE,    1);
-
-    std::cout << "speed 1000" << std::endl;
-    reg_stmc.WriteReg(REG_STMC_TARGET_V, 100000);
- 	reg_stmc.WriteReg(REG_STMC_CTL_TARGET, 2);
-
-// 	reg_stmc.WriteReg(REG_STMC_CTL_TARGET, 8 + 1);
-
-	reg_posc.WriteReg(REG_POSC_ENABLE,  0x00000001);
-	reg_posc.WriteReg(REG_POSC_COEFF_X, 0x00100000);
-	reg_posc.WriteReg(REG_POSC_COEFF_Y, 0x00000000);
-	reg_posc.WriteReg(REG_POSC_OFFSET,  0x00000000);
-    
-    reg_sel.WriteReg(0, 0);
-
     // mmap udmabuf
     UdmabufAccess udmabuf_acc("udmabuf0");
     if ( !udmabuf_acc.IsMapped() ) {
@@ -226,6 +249,25 @@ int main(int argc, char *argv[])
 //  std::cout << "udmabuf0 phys addr : 0x" << std::hex << dmabuf_phys_adr << std::endl;
 //  std::cout << "udmabuf0 size      : " << std::dec << dmabuf_mem_size << std::endl;
 
+
+    // motro initialize
+	reg_stmc.WriteReg(REG_STMC_MAX_A,       100);
+	reg_stmc.WriteReg(REG_STMC_MAX_V,    200000);
+	reg_stmc.WriteReg(REG_STMC_CTL_ENABLE,    1);
+
+//   test
+//   std::cout << "speed 1000" << std::endl;
+//   reg_stmc.WriteReg(REG_STMC_TARGET_V, 100000);
+//   reg_stmc.WriteReg(REG_STMC_CTL_TARGET, 2);
+
+    // feedback 
+// 	reg_stmc.WriteReg(REG_STMC_CTL_TARGET, 8 + 1);
+
+//	reg_posc.WriteReg(REG_DIFF_ENABLE,  0x00000001);
+//	reg_posc.WriteReg(REG_DIFF_TARGET,  0x40000000);
+//	reg_posc.WriteReg(REG_DIFF_GAIN,    -0x1000);
+
+    reg_sel.WriteReg(0, 0);
 
     // IMX219 I2C control
     IMX219ControlI2c imx219;
@@ -246,8 +288,63 @@ int main(int argc, char *argv[])
         std::cout << "udmabuf size error" << std::endl;
     }
 
-    int gauss = 0;
+    int gauss = 5;
 
+    // mask
+    int mask_flag        = 0;
+    int mask_en          = 1;
+    int mask_th_flag     = 1;
+    int mask_th_val      = 88;
+    int mask_rect_flag   = 0;
+    int mask_rect_left   = 0;
+    int mask_rect_right  = 640;
+    int mask_rect_top    = 0;
+    int mask_rect_bottom = 132;
+    int mask_circle_flag = 1;
+    int mask_circle_x    = 294; // 640/2;
+    int mask_circle_y    = 66;  //132/2;
+    int mask_circle_r    = 100; // 100;
+    cv::namedWindow("mask");
+    cv::resizeWindow("mask", 320, 480);
+    cv::createTrackbar("mask_flag",   "mask", &mask_flag,           3);
+    cv::createTrackbar("mask_en",     "mask", &mask_en,             3);
+    cv::createTrackbar("th_flag",     "mask", &mask_th_flag,        3);
+    cv::createTrackbar("th_val",      "mask", &mask_th_val,      1024);
+    cv::createTrackbar("rc_flag",     "mask", &mask_rect_flag,      3);
+    cv::createTrackbar("rc_left",     "mask", &mask_rect_left,    639);
+    cv::createTrackbar("rc_right",    "mask", &mask_rect_right,   639);
+    cv::createTrackbar("rc_top",      "mask", &mask_rect_top,     131);
+    cv::createTrackbar("rc_bottom",   "mask", &mask_rect_bottom,  131);
+    cv::createTrackbar("circle_flag", "mask", &mask_circle_flag,    3);    
+    cv::createTrackbar("circle_x",    "mask", &mask_circle_x,     639);
+    cv::createTrackbar("circle_y",    "mask", &mask_circle_y,     131);
+    cv::createTrackbar("circle_r",    "mask", &mask_circle_r,     640);
+    
+    // feedback
+    int feedback_en     = 1;
+    int feedback_target = 0;
+    int feedback_gain   = 100;
+    cv::namedWindow("feedback");
+    cv::resizeWindow("feedback", 320, 480);
+    cv::createTrackbar("enable", "feedback", &feedback_en, 1);
+    cv::createTrackbar("target", "feedback", &feedback_target, 400);
+    cv::createTrackbar("gain",   "feedback", &feedback_gain,   200);
+    
+    // motor
+    int motor_en         = 1;
+    int motor_mode       = 2;
+    int motor_x          = 200;
+    int motor_v          = 100;
+    int motor_max_v      = 1000;
+    int motor_max_a      = 10;
+    cv::namedWindow("motor");
+    cv::resizeWindow("motor", 320, 300);
+    cv::createTrackbar("en",    "motor", &motor_en,       1);
+    cv::createTrackbar("mode",  "motor", &motor_mode,     2);
+    cv::createTrackbar("x",     "motor", &motor_x,       400);
+    cv::createTrackbar("v",     "motor", &motor_v,       200);
+    cv::createTrackbar("max_v", "motor", &motor_max_v,   100);
+    cv::createTrackbar("max_a", "motor", &motor_max_a,   100);
 
     int     key;
     while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
@@ -257,16 +354,46 @@ int main(int argc, char *argv[])
         imx219.SetGain(a_gain);
         imx219.SetDigitalGain(d_gain);
         imx219.SetFlip(flip_h, flip_v);
-        reg_rgb.WriteReg(REG_RAW2RGB_DEMOSAIC_PHASE, bayer_phase);
 
         reg_rgb.WriteReg(REG_RAW2RGB_DEMOSAIC_PHASE, bayer_phase);
 
         reg_gauss.WriteReg(REG_GAUSS_PARAM_ENABLE, (1 << gauss) - 1);
         reg_gauss.WriteReg(REG_GAUSS_CTL_CONTROL,  0x3);
-        std::cout << "gauss : " << reg_gauss.ReadReg(REG_GAUSS_CORE_ID)
-                  << " " << reg_gauss.ReadReg(REG_GAUSS_CTL_CONTROL)
-                  << " " << reg_gauss.ReadReg(REG_GAUSS_PARAM_ENABLE)
-                  << " " << reg_gauss.ReadReg(REG_GAUSS_CURRENT_ENABLE) << std::endl;
+
+        reg_mask.WriteReg(REG_MASK_PARAM_MASK_FLAG,      mask_flag | (mask_en << 2));
+        reg_mask.WriteReg(REG_MASK_PARAM_THRESH_FLAG,    mask_th_flag);
+        reg_mask.WriteReg(REG_MASK_PARAM_THRESH_VALUE,   mask_th_val);
+        reg_mask.WriteReg(REG_MASK_PARAM_RECT_FLAG,      mask_rect_flag);
+        reg_mask.WriteReg(REG_MASK_PARAM_RECT_LEFT,      mask_rect_left);
+        reg_mask.WriteReg(REG_MASK_PARAM_RECT_RIGHT,     mask_rect_right);
+        reg_mask.WriteReg(REG_MASK_PARAM_RECT_TOP,       mask_rect_top);
+        reg_mask.WriteReg(REG_MASK_PARAM_RECT_BOTTOM,    mask_rect_bottom);
+        reg_mask.WriteReg(REG_MASK_PARAM_CIRCLE_FLAG,    mask_circle_flag);
+        reg_mask.WriteReg(REG_MASK_PARAM_CIRCLE_X,       mask_circle_x);
+        reg_mask.WriteReg(REG_MASK_PARAM_CIRCLE_Y,       mask_circle_y);
+        reg_mask.WriteReg(REG_MASK_PARAM_CIRCLE_RADIUS2, mask_circle_r*mask_circle_r);
+        reg_mask.WriteReg(REG_MASK_CTL_CONTROL, 0x7);
+
+        reg_posc.WriteReg(REG_DIFF_ENABLE,  feedback_en);
+        reg_posc.WriteReg(REG_DIFF_TARGET,  feedback_target * 0x100);
+        reg_posc.WriteReg(REG_DIFF_GAIN,    (feedback_gain - 100) * 0x10);
+
+        const int motor_mode_tbl[] = {0x01, 0x02, 0x09, 0x00};
+        reg_stmc.WriteReg(REG_STMC_CTL_TARGET, motor_mode_tbl[motor_mode]);
+        reg_stmc.WriteReg(REG_STMC_MAX_A,       motor_max_a);
+        reg_stmc.WriteReg(REG_STMC_MAX_V,       motor_max_v*0x10000);
+        if ( motor_mode != 2 ) {
+            reg_stmc.WriteReg(REG_STMC_TARGET_X,    (motor_x - 200) * 0x100);
+            reg_stmc.WriteReg(REG_STMC_TARGET_V,    (motor_v - 100) * 1000);
+        }
+        reg_stmc.WriteReg(REG_STMC_CTL_ENABLE,  motor_en);
+
+//	    std::cout << (int)reg_posc.ReadReg(REG_DIFF_INPUT) << std::endl;
+	    printf("%10d %10d %10d %10d\n",
+                    (int)reg_posc.ReadReg(REG_DIFF_INPUT),
+                    (int)reg_posc.ReadReg(REG_DIFF_OUTPUT),
+                    (int)reg_stmc.ReadReg(REG_STMC_IN_X_DIFF),
+                    (int)reg_stmc.ReadReg(REG_STMC_TARGET_X));
 
         // キャプチャ
         capture_still_image(reg_wdma, reg_norm, dmabuf_phys_adr, width, height, frame_num);
@@ -306,6 +433,12 @@ int main(int argc, char *argv[])
         case '1':   reg_sel.WriteReg(REG_IMGSEL_SELECT, 1); break;
         case '2':   reg_sel.WriteReg(REG_IMGSEL_SELECT, 2); break;
         case '3':   reg_sel.WriteReg(REG_IMGSEL_SELECT, 3); break;
+        case '4':   reg_sel.WriteReg(REG_IMGSEL_SELECT, 4); break;
+        case '5':   reg_sel.WriteReg(REG_IMGSEL_SELECT, 5); break;
+        case '6':   reg_sel.WriteReg(REG_IMGSEL_SELECT, 6); break;
+        case '7':   reg_sel.WriteReg(REG_IMGSEL_SELECT, 7); break;
+        case '8':   reg_sel.WriteReg(REG_IMGSEL_SELECT, 8); break;
+        case '9':   reg_sel.WriteReg(REG_IMGSEL_SELECT, 9); break;
 
         // flip
         case 'h':  flip_h = !flip_h;  break;
