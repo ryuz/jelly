@@ -14,7 +14,11 @@ module tb_top();
     
     initial begin
         $dumpfile("tb_top.vcd");
-        $dumpvars(0, tb_top);
+        $dumpvars(1, tb_top);
+        $dumpvars(1, i_axi4s_master_model);
+        $dumpvars(1, i_top);
+        $dumpvars(1, i_top.i_image_processing);
+        $dumpvars(0, i_top.i_image_processing.i_img_mean_grad_to_angle);
         
     #100000000
         $finish;
@@ -24,11 +28,11 @@ module tb_top();
     always #(RATE125/2.0)   clk125 = ~clk125;
     
     
-//    parameter   X_NUM = 320; // 2048; // 3280 / 2;
-//    parameter   Y_NUM = 16;  // 2464 / 2;
+//    parameter   X_NUM = 640;
+//    parameter   Y_NUM = 132;
 
-    parameter   X_NUM = 32;
-    parameter   Y_NUM = 16;
+    parameter   X_NUM = 64;
+    parameter   Y_NUM = 64;
     
     
     zybo_z7_imx219_stepper_motor
@@ -42,12 +46,34 @@ module tb_top();
                 .pmod_a         ()
             );
     
-    
+    wire                    atan_clk         = i_top.i_image_processing.clk;
+    wire                    atan_cke         = i_top.i_image_processing.cke;
+    wire    signed  [46:0]  atan_s_x     = i_top.i_image_processing.i_img_mean_grad_to_angle.i_fixed_atan2_multicycle.s_x;
+    wire    signed  [46:0]  atan_s_y     = i_top.i_image_processing.i_img_mean_grad_to_angle.i_fixed_atan2_multicycle.s_y;
+    wire                    atan_s_valid = i_top.i_image_processing.i_img_mean_grad_to_angle.i_fixed_atan2_multicycle.s_valid;
+    wire    signed  [31:0]  atan_m_angle = i_top.i_image_processing.i_img_mean_grad_to_angle.i_fixed_atan2_multicycle.m_angle;
+    wire                    atan_m_valid = i_top.i_image_processing.i_img_mean_grad_to_angle.i_fixed_atan2_multicycle.m_valid;
+    reg     signed  [46:0]  reg_atan_x;
+    reg     signed  [46:0]  reg_atan_y;
+    reg     signed  [31:0]  reg_atan_angle;
+    always @(posedge atan_clk) begin
+        if ( atan_cke ) begin
+            if ( atan_s_valid ) begin
+                reg_atan_x <= atan_s_x;
+                reg_atan_y <= atan_s_y;
+            end
+            if ( atan_m_valid ) begin
+                reg_atan_angle <= atan_m_angle;
+            end
+        end
+    end
     
     
     // ----------------------------------
     //  summy video
     // ----------------------------------
+    
+    reg             axi4s_model_enbale = 1'b0;
     
     wire            axi4s_model_aresetn = i_top.axi4s_cam_aresetn;
     wire            axi4s_model_aclk    = i_top.axi4s_cam_aclk;
@@ -55,14 +81,17 @@ module tb_top();
     wire            axi4s_model_tlast;
     wire    [7:0]   axi4s_model_tdata;
     wire            axi4s_model_tvalid;
-    wire            axi4s_model_tready = i_top.axi4s_csi2_tready;
+    wire            axi4s_model_tready = i_top.axi4s_csi2_tready & axi4s_model_enbale;
     
     jelly_axi4s_master_model
             #(
                 .AXI4S_DATA_WIDTH   (8),
-                .X_NUM              (X_NUM), // (128),
-                .Y_NUM              (Y_NUM),   // (128),
-//              .PGM_FILE           ("lena_128x128.pgm"),
+                .X_NUM              (X_NUM),
+                .Y_NUM              (Y_NUM),
+                .PGM_FILE           ("img_0000.pgm"),
+                .SEQUENTIAL_FILE    (1),
+                .DIGIT_NUM          (4),
+                .DIGIT_POS          (4),
                 .BUSY_RATE          (0), // (50),
                 .RANDOM_SEED        (0),
                 .INTERVAL           (X_NUM * 10)
@@ -83,8 +112,36 @@ module tb_top();
         force i_top.axi4s_csi2_tuser  = axi4s_model_tuser;
         force i_top.axi4s_csi2_tlast  = axi4s_model_tlast;
         force i_top.axi4s_csi2_tdata  = {axi4s_model_tdata, 2'd0};
-        force i_top.axi4s_csi2_tvalid = axi4s_model_tvalid;
+        force i_top.axi4s_csi2_tvalid = axi4s_model_tvalid & axi4s_model_enbale;
     end
+    
+    
+    
+    // src
+    jelly_img_record_model
+            #(
+                .COMPONENT_NUM  (1),
+                .DATA_WIDTH     (10),
+                .FILE_NAME      ("src_%04d.pgm")
+            )
+        i_img_record_model_src
+            (
+                .reset              (i_top.i_image_processing.reset),
+                .clk                (i_top.i_image_processing.clk),
+                .cke                (i_top.i_image_processing.cke),
+                
+                .param_width        (X_NUM),
+                .param_height       (Y_NUM),
+                
+                .s_img_line_first   (i_top.i_image_processing.img_src_line_first),
+                .s_img_line_last    (i_top.i_image_processing.img_src_line_last),
+                .s_img_pixel_first  (i_top.i_image_processing.img_src_pixel_first),
+                .s_img_pixel_last   (i_top.i_image_processing.img_src_pixel_last),
+                .s_img_de           (i_top.i_image_processing.img_src_de),
+                .s_img_data         (i_top.i_image_processing.img_src_data),
+                .s_img_valid        (i_top.i_image_processing.img_src_valid)
+            );
+    
     
     
     
@@ -180,13 +237,6 @@ module tb_top();
     #10000;
         $display("start");
         
-        // normalizer (取り込み開始)
-        wb_write(32'h40011020, X_NUM, 4'b1111);     // width
-        wb_write(32'h40011020, X_NUM, 4'b1111);     // width
-        wb_write(32'h40011024, Y_NUM, 4'b1111);     // height
-        wb_write(32'h40011028,     0, 4'b1111);     // fill
-        wb_write(32'h4001102c,  1024, 4'b1111);     // timeout
-        wb_write(32'h40011000,     1, 4'b1111);     // enable
         
     #1000;
         // 画像コアID読み出し
@@ -200,48 +250,28 @@ module tb_top();
         // demosaic
         wb_write(32'h40030000,     0, 4'b1111);        // byer phase
 
-
-
-    #40000;
         // gauss
-        wb_write(32'h40030800 + 8'h08*4, 32'h0003, 4'b1111);     // param_enable
+        wb_write(32'h40030800 + 8'h08*4, 32'h000f, 4'b1111);     // param_enable
         wb_write(32'h40030800 + 8'h04*4, 32'h0003, 4'b1111);     // ctl_control
-        wb_read (32'h40030800 + 8'h18*4);     // current_enable
-    #10000;
-        wb_read (32'h40030800 + 8'h18*4);     // current_enable
-
-        wb_write(32'h40030800 + 8'h8*4, 32'h0000, 4'b1111);     // param_enable
-        wb_write(32'h40030800 + 8'h4*4, 32'h0003, 4'b1111);     // ctl_control
-        wb_read (32'h40030800 + 8'h18*4);     // current_enable
-    #10000;
-        wb_read (32'h40030800 + 8'h18*4);     // current_enable
-
-        wb_write(32'h40030800 + 8'h8*4, 32'h000f, 4'b1111);     // param_enable
-        wb_write(32'h40030800 + 8'h4*4, 32'h0003, 4'b1111);     // ctl_control
-        wb_read (32'h40030800 + 8'h18*4);     // current_enable
-    #10000;
-        wb_read (32'h40030800 + 8'h18*4);     // current_enable
-
-
-    #10000;
-/*
-        // position
-        wb_write(32'h40021000, 32'h0001, 4'b1111);     // enable
-        wb_write(32'h40021004, 32'h0001, 4'b1111);     // coef_x
-        wb_write(32'h40021008, 32'h0002, 4'b1111);     // coef_y
-        wb_write(32'h4002100c, 32'h0003, 4'b1111);     // offset
-        wb_write(32'h40020008, 32'h0009, 4'b1111);     // ctl_target
-*/
-
         
-        /*
-        wb_write(32'h40030c20,    16, 4'b1111);        // left
-        wb_write(32'h40030c24,   100, 4'b1111);        // right
-        wb_write(32'h40030c28,    11, 4'b1111);        // top
-        wb_write(32'h40030c2c,    50, 4'b1111);        // bottom
-        wb_write(32'h40030c10,     3, 4'b1111);        // update
-*/
-
+        // mask
+//        wb_write(32'h40030800 + 8'h08*4, 32'h000f, 4'b1111);     // param_enable
+//        wb_write(32'h40030800 + 8'h04*4, 32'h0003, 4'b1111);     // ctl_control
+        
+        
+        // normalizer (取り込み開始)
+        wb_write(32'h40011020, X_NUM, 4'b1111);     // width
+        wb_write(32'h40011020, X_NUM, 4'b1111);     // width
+        wb_write(32'h40011024, Y_NUM, 4'b1111);     // height
+        wb_write(32'h40011028,     0, 4'b1111);     // fill
+        wb_write(32'h4001102c,  1024, 4'b1111);     // timeout
+        wb_write(32'h40011000,     1, 4'b1111);     // enable
+    
+    #1000;
+        axi4s_model_enbale = 1'b1;
+        
+    #10000;
+        
         
         wb_write(32'h40033c00,     1, 4'b1111);        // selector
         

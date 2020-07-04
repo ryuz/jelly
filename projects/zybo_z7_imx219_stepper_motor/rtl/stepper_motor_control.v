@@ -27,6 +27,7 @@ module stepper_motor_control
             parameter   X_SHIFT          = Q_WIDTH - 8,
             parameter   V_WIDTH          = Q_WIDTH,
             parameter   A_WIDTH          = Q_WIDTH,
+            parameter   X_DIFF_WIDTH     = 32,
             
             parameter   INIT_CTL_ENABLE  = 1'b0,
             parameter   INIT_CTL_TARGET  = 1'b0,
@@ -39,25 +40,42 @@ module stepper_motor_control
             parameter   INIT_MAX_A_NEAR  = 120
         )
         (
-            input   wire                        reset,
-            input   wire                        clk,
+            input   wire                                reset,
+            input   wire                                clk,
             
-            input   wire    [WB_ADR_WIDTH-1:0]  s_wb_adr_i,
-            input   wire    [WB_DAT_WIDTH-1:0]  s_wb_dat_i,
-            output  wire    [WB_DAT_WIDTH-1:0]  s_wb_dat_o,
-            input   wire                        s_wb_we_i,
-            input   wire    [WB_SEL_WIDTH-1:0]  s_wb_sel_i,
-            input   wire                        s_wb_stb_i,
-            output  wire                        s_wb_ack_o,
+            input   wire            [WB_ADR_WIDTH-1:0]  s_wb_adr_i,
+            input   wire            [WB_DAT_WIDTH-1:0]  s_wb_dat_i,
+            output  wire            [WB_DAT_WIDTH-1:0]  s_wb_dat_o,
+            input   wire                                s_wb_we_i,
+            input   wire            [WB_SEL_WIDTH-1:0]  s_wb_sel_i,
+            input   wire                                s_wb_stb_i,
+            output  wire                                s_wb_ack_o,
             
-            input   wire    [X_WIDTH-1:0]       in_x,
-            input   wire                        in_valid,
+            input   wire    signed  [X_DIFF_WIDTH-1:0]  in_x_diff,
+            input   wire                                in_valid,
             
-            output  wire                        motor_en,
-            output  wire                        motor_a,
-            output  wire                        motor_b
+            output  wire                                motor_en,
+            output  wire                                motor_a,
+            output  wire                                motor_b
         );
     
+    
+    // -----------------------------------------
+    //  latch input
+    // -----------------------------------------
+    
+    reg     signed  [X_DIFF_WIDTH-1:0]   reg_in_x_diff;
+    always @(posedge clk) begin
+        if ( in_valid ) begin
+            reg_in_x_diff <= in_x_diff;
+        end
+    end
+    
+    
+    
+    // -----------------------------------------
+    //  registers
+    // -----------------------------------------
     
     localparam  ADR_CORE_ID     = 8'h00;
     localparam  ADR_CTL_ENABLE  = 8'h01;
@@ -73,6 +91,7 @@ module stepper_motor_control
     localparam  ADR_CUR_V       = 8'h12;
     localparam  ADR_CUR_A       = 8'h13;
     localparam  ADR_TIME        = 8'h20;
+    localparam  ADR_IN_X_DIFF   = 8'h21;
     
     
     wire                                update;
@@ -145,7 +164,7 @@ module stepper_motor_control
             reg_start <= update;
             
             if ( reg_ctl_target[3] && in_valid ) begin
-                reg_target_x <= in_x;
+                reg_target_x <= reg_target_x + in_x_diff;
             end
             
             // acceleration
@@ -197,20 +216,21 @@ module stepper_motor_control
         end
     end
     
-    assign s_wb_dat_o = (s_wb_adr_i == ADR_CORE_ID)     ? CORE_ID                    :
-                        (s_wb_adr_i == ADR_CTL_ENABLE)  ? reg_ctl_enable             :
-                        (s_wb_adr_i == ADR_CTL_TARGET)  ? reg_ctl_target             :
-                        (s_wb_adr_i == ADR_CTL_PWM)     ? reg_ctl_pwm                :
-                        (s_wb_adr_i == ADR_TARGET_X)    ? (reg_target_x >>> X_SHIFT) :
-                        (s_wb_adr_i == ADR_TARGET_V)    ? reg_target_v               :
-                        (s_wb_adr_i == ADR_TARGET_A)    ? reg_target_a               :
-                        (s_wb_adr_i == ADR_MAX_V)       ? reg_max_v                  :
-                        (s_wb_adr_i == ADR_MAX_A)       ? reg_max_a                  :
-                        (s_wb_adr_i == ADR_MAX_A_NEAR)  ? reg_max_a_near             :
-                        (s_wb_adr_i == ADR_CUR_X)       ? (reg_cur_x >>> X_SHIFT)    :
-                        (s_wb_adr_i == ADR_CUR_V)       ? reg_cur_v                  :
-                        (s_wb_adr_i == ADR_CUR_A)       ? reg_cur_a                  :
-                        (s_wb_adr_i == ADR_TIME)        ? reg_time                   :
+    assign s_wb_dat_o = (s_wb_adr_i == ADR_CORE_ID)     ? CORE_ID                     :
+                        (s_wb_adr_i == ADR_CTL_ENABLE)  ? reg_ctl_enable              :
+                        (s_wb_adr_i == ADR_CTL_TARGET)  ? reg_ctl_target              :
+                        (s_wb_adr_i == ADR_CTL_PWM)     ? reg_ctl_pwm                 :
+                        (s_wb_adr_i == ADR_TARGET_X)    ? (reg_target_x >>> X_SHIFT)  :
+                        (s_wb_adr_i == ADR_TARGET_V)    ? reg_target_v                :
+                        (s_wb_adr_i == ADR_TARGET_A)    ? reg_target_a                :
+                        (s_wb_adr_i == ADR_MAX_V)       ? reg_max_v                   :
+                        (s_wb_adr_i == ADR_MAX_A)       ? reg_max_a                   :
+                        (s_wb_adr_i == ADR_MAX_A_NEAR)  ? reg_max_a_near              :
+                        (s_wb_adr_i == ADR_CUR_X)       ? (reg_cur_x >>> X_SHIFT)     :
+                        (s_wb_adr_i == ADR_CUR_V)       ? reg_cur_v                   :
+                        (s_wb_adr_i == ADR_CUR_A)       ? reg_cur_a                   :
+                        (s_wb_adr_i == ADR_TIME)        ? reg_time                    :
+                        (s_wb_adr_i == ADR_IN_X_DIFF)   ? reg_in_x_diff               :
                         0;
     assign s_wb_ack_o = s_wb_stb_i;
     
