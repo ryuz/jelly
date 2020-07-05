@@ -401,7 +401,7 @@ module image_processing
     
     
     // sobel
-    localparam  GRAD_WIDTH = DATA_WIDTH + 2;
+    localparam  GRAD_WIDTH = DATA_WIDTH + 1;
     
     wire                                img_sobel_line_first;
     wire                                img_sobel_line_last;
@@ -445,7 +445,8 @@ module image_processing
                 .m_img_valid            (img_sobel_valid)
             );
     
-    localparam  GRAD2_WIDTH = 2 * GRAD_WIDTH;
+    localparam  GRAD2_WIDTH  = 2 * GRAD_WIDTH;
+    localparam  WEIGHT_WIDTH = GRAD_WIDTH + 3;
     
     wire                                img_xyss_line_first;
     wire                                img_xyss_line_last;
@@ -454,8 +455,8 @@ module image_processing
     wire                                img_xyss_de;
     wire    signed  [GRAD_WIDTH-1:0]    img_xyss_x;
     wire    signed  [GRAD_WIDTH-1:0]    img_xyss_y;
-    wire    signed  [GRAD2_WIDTH-1:0]   img_xyss_grad2_tmp;
-    wire    signed  [GRAD_WIDTH-1:0]    img_xyss_grad2 = (img_xyss_grad2_tmp >>> (GRAD_WIDTH));
+    wire    signed  [GRAD2_WIDTH-1:0]   img_xyss_grad2;
+    wire    signed  [WEIGHT_WIDTH-1:0]  img_xyss_weight;
     wire                                img_xyss_valid;
     
     jelly_img_xy_ss
@@ -487,9 +488,13 @@ module image_processing
                 .m_img_user             (),
                 .m_img_x                (img_xyss_x),
                 .m_img_y                (img_xyss_y),
-                .m_img_ss               (img_xyss_grad2_tmp),
+                .m_img_ss               (img_xyss_grad2),
                 .m_img_valid            (img_xyss_valid)
             );
+    
+    assign img_xyss_weight = (img_xyss_grad2 >>> (GRAD2_WIDTH - WEIGHT_WIDTH));
+    
+    
     
     // mask
     wire                                img_mask_line_first;
@@ -499,7 +504,7 @@ module image_processing
     wire                                img_mask_de;
     wire    signed  [GRAD_WIDTH-1:0]    img_mask_x;
     wire    signed  [GRAD_WIDTH-1:0]    img_mask_y;
-    wire            [GRAD_WIDTH-1:0]    img_mask_grad2;
+    wire            [WEIGHT_WIDTH-1:0]  img_mask_weight;
     wire                                img_mask_mask;
     wire                                img_mask_valid;
     
@@ -510,13 +515,25 @@ module image_processing
     jelly_img_area_mask
             #(
                 .USER_WIDTH                 (GRAD_WIDTH+GRAD_WIDTH),
-                .DATA_WIDTH                 (GRAD_WIDTH),
-                
-                .INIT_CTL_CONTROL           (3'b111),
-                .INIT_PARAM_CIRCLE_FLAG     (2'b11),
-                .INIT_PARAM_CIRCLE_X        (120),
-                .INIT_PARAM_CIRCLE_Y        (55),
-                .INIT_PARAM_CIRCLE_RADIUS2  (50*50)
+                .DATA_WIDTH                 (WEIGHT_WIDTH),
+                .X_WIDTH                    (IMG_X_WIDTH),
+                .Y_WIDTH                    (IMG_Y_WIDTH),
+                .USE_VALID                  (USE_VALID),
+                .INIT_CTL_CONTROL           (3'b110),
+                .INIT_PARAM_MASK_FLAG       (3'b1100),
+                .INIT_PARAM_MASK_VALUE0     (0), //({GRAD_WIDTH{1'b0}}),
+                .INIT_PARAM_MASK_VALUE1     (1), //({GRAD_WIDTH{1'b1}}),
+                .INIT_PARAM_THRESH_FLAG     (3'b01),
+                .INIT_PARAM_THRESH_VALUE    (100),
+                .INIT_PARAM_RECT_FLAG       (1'b00),
+                .INIT_PARAM_RECT_LEFT       (0),
+                .INIT_PARAM_RECT_RIGHT      (IMG_X_NUM),
+                .INIT_PARAM_RECT_TOP        (0),
+                .INIT_PARAM_RECT_BOTTOM     (IMG_Y_NUM),
+                .INIT_PARAM_CIRCLE_FLAG     (2'b00),
+                .INIT_PARAM_CIRCLE_X        (278),
+                .INIT_PARAM_CIRCLE_Y        (62),
+                .INIT_PARAM_CIRCLE_RADIUS2  (60*60)
             )
         i_img_area_mask
             (
@@ -540,7 +557,7 @@ module image_processing
                 .s_img_pixel_last           (img_xyss_pixel_last),
                 .s_img_de                   (img_xyss_de),
                 .s_img_user                 ({img_xyss_y, img_xyss_x}),
-                .s_img_data                 (img_xyss_grad2),
+                .s_img_data                 (img_xyss_weight),
                 .s_img_valid                (img_xyss_valid),
                 
                 .m_img_line_first           (img_mask_line_first),
@@ -550,7 +567,7 @@ module image_processing
                 .m_img_de                   (img_mask_de),
                 .m_img_user                 ({img_mask_y, img_mask_x}),
                 .m_img_data                 (),
-                .m_img_masked_data          (img_mask_grad2),
+                .m_img_masked_data          (img_mask_weight),
                 .m_img_mask                 (img_mask_mask),
                 .m_img_valid                (img_mask_valid)
             );
@@ -560,7 +577,7 @@ module image_processing
             #(
                 .X_WIDTH                    (GRAD_WIDTH),
                 .Y_WIDTH                    (GRAD_WIDTH),
-                .WEIGHT_WIDTH               (GRAD_WIDTH),
+                .WEIGHT_WIDTH               (WEIGHT_WIDTH),
                 .ANGLE_WIDTH                (ANGLE_WIDTH)
             )
         i_img_mean_grad_to_angle
@@ -576,7 +593,7 @@ module image_processing
                 .s_img_de                   (img_mask_de),
                 .s_img_x                    (img_mask_x),
                 .s_img_y                    (img_mask_y),
-                .s_img_weight               (img_mask_grad2),
+                .s_img_weight               (img_mask_weight),
                 .s_img_valid                (img_mask_valid),
                 
                 .out_angle                  (out_angle),
@@ -585,7 +602,7 @@ module image_processing
     
     
     // selector
-    localparam  SEL_N = 4;
+    localparam  SEL_N = 5;
     localparam  SEL_U = TUSER_WIDTH;
     localparam  SEL_D = M_TDATA_WIDTH;
     
@@ -617,26 +634,36 @@ module image_processing
     assign img_sel_data       [1*SEL_D +: SEL_D] = {4{img_gauss_data}};
     assign img_sel_valid      [1]                = img_gauss_valid;
     
-    wire    [DATA_WIDTH-1:0]    img_mask_view_x     = (img_mask_x + (1 << (GRAD_WIDTH-1))) >> (GRAD_WIDTH - DATA_WIDTH);
-    wire    [DATA_WIDTH-1:0]    img_mask_view_y     = (img_mask_y + (1 << (GRAD_WIDTH-1))) >> (GRAD_WIDTH - DATA_WIDTH);
-    wire    [DATA_WIDTH-1:0]    img_mask_view_grad2 = img_mask_grad2 >> (GRAD_WIDTH - DATA_WIDTH);
+    wire    [DATA_WIDTH-1:0]    img_mask_view_x      = (img_mask_x + (1 << (GRAD_WIDTH-1))) >> (GRAD_WIDTH - DATA_WIDTH);
+    wire    [DATA_WIDTH-1:0]    img_mask_view_y      = (img_mask_y + (1 << (GRAD_WIDTH-1))) >> (GRAD_WIDTH - DATA_WIDTH);
+    wire    [DATA_WIDTH-1:0]    img_mask_view_weight = img_mask_weight >> (WEIGHT_WIDTH - DATA_WIDTH);
     assign img_sel_line_first [2]                = img_mask_line_first;
     assign img_sel_line_last  [2]                = img_mask_line_last;
     assign img_sel_pixel_first[2]                = img_mask_pixel_first;
     assign img_sel_pixel_last [2]                = img_mask_pixel_last;
     assign img_sel_de         [2]                = img_mask_de;
     assign img_sel_user       [2*SEL_U +: SEL_U] = 0;
-    assign img_sel_data       [2*SEL_D +: SEL_D] = {img_mask_grad2, img_mask_y, img_mask_x};
+    assign img_sel_data       [2*SEL_D +: SEL_D] = {img_mask_view_y, {DATA_WIDTH{1'b0}}, img_mask_view_x};
+    assign img_sel_valid      [2]                = img_mask_valid;
     
-    assign img_sel_valid      [3]                = img_mask_valid;
     assign img_sel_line_first [3]                = img_mask_line_first;
     assign img_sel_line_last  [3]                = img_mask_line_last;
     assign img_sel_pixel_first[3]                = img_mask_pixel_first;
     assign img_sel_pixel_last [3]                = img_mask_pixel_last;
     assign img_sel_de         [3]                = img_mask_de;
     assign img_sel_user       [3*SEL_U +: SEL_U] = 0;
-    assign img_sel_data       [3*SEL_D +: SEL_D] = {SEL_D{img_mask_mask}};
+    assign img_sel_data       [3*SEL_D +: SEL_D] = {img_mask_view_weight, img_mask_view_weight, img_mask_view_weight};
     assign img_sel_valid      [3]                = img_mask_valid;
+    
+    assign img_sel_line_first [4]                = img_mask_line_first;
+    assign img_sel_line_last  [4]                = img_mask_line_last;
+    assign img_sel_pixel_first[4]                = img_mask_pixel_first;
+    assign img_sel_pixel_last [4]                = img_mask_pixel_last;
+    assign img_sel_de         [4]                = img_mask_de;
+    assign img_sel_user       [4*SEL_U +: SEL_U] = 0;
+    assign img_sel_data       [4*SEL_D +: SEL_D] = {SEL_D{img_mask_mask}};
+    assign img_sel_valid      [4]                = img_mask_valid;
+    
     
     wire    [WB_DAT_WIDTH-1:0]      wb_sel_dat_o;
     wire                            wb_sel_stb_i;
@@ -644,12 +671,12 @@ module image_processing
     
     jelly_img_selector
             #(
-                .NUM            (SEL_N),
-                .USER_WIDTH     (SEL_U),
-                .DATA_WIDTH     (SEL_D),
-                .WB_ADR_WIDTH   (8),
-                .WB_DAT_WIDTH   (WB_DAT_WIDTH),
-                .INIT_SEL       (0)
+                .NUM                    (SEL_N),
+                .USER_WIDTH             (SEL_U),
+                .DATA_WIDTH             (SEL_D),
+                .WB_ADR_WIDTH           (8),
+                .WB_DAT_WIDTH           (WB_DAT_WIDTH),
+                .INIT_SEL               (0)
             )
         i_img_selector
             (

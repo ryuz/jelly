@@ -15,14 +15,18 @@
 
 module jelly_axi4s_master_model
         #(
-            parameter   AXI4S_DATA_WIDTH = 32,
-            parameter   X_NUM            = 640,
-            parameter   Y_NUM            = 480,
-            parameter   PGM_FILE         = "",
-            parameter   PPM_FILE         = "",
-            parameter   BUSY_RATE        = 0,
-            parameter   RANDOM_SEED      = 0,
-            parameter   INTERVAL         = 0
+            parameter AXI4S_DATA_WIDTH = 32,
+            parameter X_NUM            = 640,
+            parameter Y_NUM            = 480,
+            parameter PGM_FILE         = "",
+            parameter PPM_FILE         = "",
+            parameter BUSY_RATE        = 0,
+            parameter RANDOM_SEED      = 0,
+            parameter INTERVAL         = 0,
+            parameter SEQUENTIAL_FILE  = 0,
+            parameter DIGIT_NUM        = 4,
+            parameter DIGIT_POS        = 4,
+            parameter MAX_PATH         = 64
         )
         (
             input   wire                            aresetn,
@@ -64,14 +68,35 @@ module jelly_axi4s_master_model
     integer                             p0, p1, p2;
     integer                             tmp0, tmp1;
     
-    initial begin
+    function [8*MAX_PATH-1:0] make_fname(input [8*MAX_PATH-1:0] fname, input [31:0] frame);
+    integer i;
+    integer pos;
+    begin
+        if ( SEQUENTIAL_FILE ) begin
+            pos = DIGIT_POS * 8;
+            for ( i = 0; i < DIGIT_NUM; i = i+1 ) begin
+                fname[pos +: 8] = "0" + frame % 10;
+                frame = frame / 10;
+                pos   = pos + 8;
+            end
+        end
+        make_fname = fname;
+    end
+    endfunction
+    
+    
+    task read_image(input [31:0] frame);
+    reg     [8*MAX_PATH-1:0]   fname;
+    begin
         for ( i = 0; i < X_NUM*Y_NUM; i = i+1 ) begin
             mem[i] = i;
         end
         
         if ( PGM_FILE != "" ) begin
-            fp = $fopen(PGM_FILE, "r");
+            fname = make_fname(PGM_FILE, frame);
+            fp = $fopen(fname, "r");
             if ( fp != 0 ) begin
+                $display("image read %s", fname);
                 tmp0 = $fscanf(fp, "P2", tmp1);
                 tmp0 = $fscanf(fp, "%d%d", w, h);
                 tmp0 = $fscanf(fp, "%d", d);
@@ -84,12 +109,13 @@ module jelly_axi4s_master_model
                 $fclose(fp);
             end
             else begin
-                $display("open error : %s", PGM_FILE);
+                $display("open error : %s", fname);
             end
         end
         
         if ( PPM_FILE != "" ) begin
-            fp = $fopen(PPM_FILE, "r");
+            fname = make_fname(PPM_FILE, frame);
+            fp = $fopen(fname, "r");
             if ( fp != 0 ) begin
                 tmp0 = $fscanf(fp, "P3", tmp1);
                 tmp0 = $fscanf(fp, "%d%d", w, h);
@@ -103,28 +129,40 @@ module jelly_axi4s_master_model
                 $fclose(fp);
             end
             else begin
-                $display("open error : %s", PPM_FILE);
+                $display("open error : %s", fname);
             end
         end
+    end
+    endtask
+    
+    initial begin
+        read_image(0);
     end
     
     
     wire        cke = (!m_axi4s_tvalid || m_axi4s_tready) && !busy;
     
-    integer     x = 0;
-    integer     y = 0;
+    integer     frame = 0;
+    integer     x     = 0;
+    integer     y     = 0;
     always @(posedge aclk) begin
         if ( !reg_aresetn ) begin
+            frame <= 0;
             x <= 0;
             y <= 0;
         end
         else if ( cke ) begin
+            if ( x == 0 && y == 0 ) begin
+            end
+            
             x <= x + 1;
             if ( x == (X_NUM-1) ) begin
                 x <= 0;
                 y <= y + 1;
                 if ( y == (Y_NUM-1) ) begin
                     y <= 0;
+                    frame <= frame + 1;
+                    read_image(frame + 1);
                 end
             end
         end
