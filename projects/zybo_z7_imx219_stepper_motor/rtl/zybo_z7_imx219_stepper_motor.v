@@ -611,19 +611,21 @@ module zybo_z7_imx219_stepper_motor
             );
     
     
-    // 現像
-    wire    [0:0]               axi4s_rgb_tuser;
-    wire                        axi4s_rgb_tlast;
-    wire    [39:0]              axi4s_rgb_tdata;
-    wire                        axi4s_rgb_tvalid;
-    wire                        axi4s_rgb_tready;
+    // 画像処理
+    localparam  IMG_ANGLE_WIDTH = 32;
     
-    wire    [31:0]              image_angle;
-    wire                        image_valid;
+    wire    [0:0]                   axi4s_rgb_tuser;
+    wire                            axi4s_rgb_tlast;
+    wire    [39:0]                  axi4s_rgb_tdata;
+    wire                            axi4s_rgb_tvalid;
+    wire                            axi4s_rgb_tready;
     
-    wire    [WB_DAT_WIDTH-1:0]  wb_imgp_dat_o;
-    wire                        wb_imgp_stb_i;
-    wire                        wb_imgp_ack_o;
+    wire    [IMG_ANGLE_WIDTH-1:0]   image_angle;
+    wire                            image_valid;
+    
+    wire    [WB_DAT_WIDTH-1:0]      wb_imgp_dat_o;
+    wire                            wb_imgp_stb_i;
+    wire                            wb_imgp_ack_o;
     
     image_processing
             #(
@@ -631,6 +633,9 @@ module zybo_z7_imx219_stepper_motor
                 .WB_DAT_WIDTH       (WB_DAT_WIDTH),
                 
                 .DATA_WIDTH         (10),
+                .ANGLE_WIDTH        (IMG_ANGLE_WIDTH),
+                .ATAN2_X_WIDTH      (32),
+                .ATAN2_Y_WIDTH      (32),
                 
                 .IMG_X_NUM          (640),
                 .IMG_Y_NUM          (132),
@@ -666,6 +671,8 @@ module zybo_z7_imx219_stepper_motor
                 .m_axi4s_tvalid     (axi4s_rgb_tvalid),
                 .m_axi4s_tready     (axi4s_rgb_tready),
                 
+                .out_reset          (wb_peri_rst_i),
+                .out_clk            (wb_peri_clk_i),
                 .out_angle          (image_angle),
                 .out_valid          (image_valid)
             );
@@ -776,7 +783,7 @@ module zybo_z7_imx219_stepper_motor
     //  position_calc
     // -----------------------------
     
-    wire    [31:0]              position_data;
+    wire    [31:0]              position_diff;
     wire                        position_valid;
     
     wire    [WB_DAT_WIDTH-1:0]  wb_posc_dat_o;
@@ -787,12 +794,12 @@ module zybo_z7_imx219_stepper_motor
             #(
                 .WB_ADR_WIDTH       (8),
                 .WB_DAT_WIDTH       (WB_DAT_WIDTH),
-                .ASYNC              (1),
-                .IN_WIDTH           (32),
+                .ASYNC              (0),
+                .IN_WIDTH           (IMG_ANGLE_WIDTH),
                 .OUT_WIDTH          (32),
                 .GAIN_WIDTH         (18),
                 .Q_WIDTH            (16),
-                .INIT_ENABLE        (0),
+                .INIT_ENABLE        (1),
                 .INIT_TARGET        (0),
                 .INIT_GAIN          (18'h10000)
             )
@@ -808,14 +815,14 @@ module zybo_z7_imx219_stepper_motor
                 .s_wb_stb_i         (wb_posc_stb_i),
                 .s_wb_ack_o         (wb_posc_ack_o),
                 
-                .in_reset           (~axi4s_cam_aresetn),
-                .in_clk             (axi4s_cam_aclk),
+                .in_reset           (wb_peri_rst_i),
+                .in_clk             (wb_peri_clk_i),
                 .in_data            (image_angle),
                 .in_valid           (image_valid),
                 
                 .out_reset          (wb_peri_rst_i),
                 .out_clk            (wb_peri_clk_i),
-                .out_data           (position_data),
+                .out_data           (position_diff),
                 .out_valid          (position_valid)
             );
     
@@ -827,6 +834,14 @@ module zybo_z7_imx219_stepper_motor
     wire                            stmc_out_en;
     wire                            stmc_out_a;
     wire                            stmc_out_b;
+    
+    wire                            stmc_update;
+    wire    signed  [47:0]          stmc_cur_x;
+    wire    signed  [24:0]          stmc_cur_v;
+    wire    signed  [24:0]          stmc_cur_a;
+    wire    signed  [47:0]          stmc_target_x;
+    wire    signed  [24:0]          stmc_target_v;
+    wire    signed  [24:0]          stmc_target_a;
     
     wire    [WB_DAT_WIDTH-1:0]      wb_stmc_dat_o;
     wire                            wb_stmc_stb_i;
@@ -867,12 +882,20 @@ module zybo_z7_imx219_stepper_motor
                 .s_wb_stb_i         (wb_stmc_stb_i),
                 .s_wb_ack_o         (wb_stmc_ack_o),
                 
-                .in_x_diff          (position_data),
+                .in_x_diff          (position_diff),
                 .in_valid           (position_valid),
                 
                 .motor_en           (stmc_out_en),
                 .motor_a            (stmc_out_a),
-                .motor_b            (stmc_out_b)
+                .motor_b            (stmc_out_b),
+                
+                .monitor_update     (stmc_update),
+                .monitor_cur_x      (stmc_cur_x),
+                .monitor_cur_v      (stmc_cur_v),
+                .monitor_cur_a      (stmc_cur_a),
+                .monitor_target_x   (stmc_target_x),
+                .monitor_target_v   (stmc_target_v),
+                .monitor_target_a   (stmc_target_a)
             );
     
     assign stm_ap_en = stmc_out_en & dip_sw[0];
@@ -889,6 +912,125 @@ module zybo_z7_imx219_stepper_motor
     
     
     // ----------------------------------------
+    //  logging
+    // ----------------------------------------
+    
+    // image log
+    /*
+    wire    [IMG_ANGLE_WIDTH-1:0]   log_image_angle;
+    wire                            log_image_valid;
+    wire                            log_image_ready;
+    
+    jelly_data_async
+            #(
+                .ASYNC          (1),
+                .DATA_WIDTH     (IMG_ANGLE_WIDTH)
+            )
+        i_data_async
+            (
+                .s_reset        (~axi4s_cam_aresetn),
+                .s_clk          (axi4s_cam_aclk),
+                .s_data         (image_angle),
+                .s_valid        (image_valid),
+                .s_ready        (),
+                
+                .m_reset        (wb_peri_rst_i),
+                .m_clk          (wb_peri_clk_i),
+                .m_data         (log_image_angle),
+                .m_valid        (log_image_valid),
+                .m_ready        (log_image_ready)
+            );
+    */
+    
+    wire    [WB_DAT_WIDTH-1:0]  wb_log0_dat_o;
+    wire                        wb_log0_stb_i;
+    wire                        wb_log0_ack_o;
+    
+    jelly_data_logger_fifo
+            #(
+                .WB_ADR_WIDTH       (8),
+                .WB_DAT_WIDTH       (WB_DAT_WIDTH),
+                .DATA_WIDTH         (IMG_ANGLE_WIDTH),
+                .TIMER_WIDTH        (48),
+                .FIFO_ASYNC         (0),
+                .FIFO_PTR_WIDTH     (10),
+                .FIFO_RAM_TYPE      ("block")
+            )
+        i_data_logger_fifo_img
+            (
+                .reset              (wb_peri_rst_i),
+                .clk                (wb_peri_clk_i),
+                
+                .s_data             (image_angle),
+                .s_valid            (image_valid),
+                .s_ready            (),
+                
+                .s_wb_rst_i         (wb_peri_rst_i),
+                .s_wb_clk_i         (wb_peri_clk_i),
+                .s_wb_adr_i         (wb_peri_adr_i[7:0]),
+                .s_wb_dat_o         (wb_log0_dat_o),
+                .s_wb_dat_i         (wb_peri_dat_i),
+                .s_wb_we_i          (wb_peri_we_i),
+                .s_wb_sel_i         (wb_peri_sel_i),
+                .s_wb_stb_i         (wb_log0_stb_i),
+                .s_wb_ack_o         (wb_log0_ack_o)
+            );
+    
+    
+    // motor log
+    
+    wire    [8*WB_DAT_WIDTH-1:0]    log_stmc_data;
+    wire                            log_stmc_valid = stmc_update;
+    
+    assign log_stmc_data[0*WB_DAT_WIDTH +: WB_DAT_WIDTH] = (stmc_cur_x >> (0*WB_DAT_WIDTH));
+    assign log_stmc_data[1*WB_DAT_WIDTH +: WB_DAT_WIDTH] = (stmc_cur_x >> (1*WB_DAT_WIDTH));
+    assign log_stmc_data[2*WB_DAT_WIDTH +: WB_DAT_WIDTH] = stmc_cur_v;
+    assign log_stmc_data[3*WB_DAT_WIDTH +: WB_DAT_WIDTH] = stmc_cur_a;
+    assign log_stmc_data[4*WB_DAT_WIDTH +: WB_DAT_WIDTH] = (stmc_target_x >> (0*WB_DAT_WIDTH));
+    assign log_stmc_data[5*WB_DAT_WIDTH +: WB_DAT_WIDTH] = (stmc_target_x >> (1*WB_DAT_WIDTH));
+    assign log_stmc_data[6*WB_DAT_WIDTH +: WB_DAT_WIDTH] = stmc_target_v;
+    assign log_stmc_data[7*WB_DAT_WIDTH +: WB_DAT_WIDTH] = stmc_target_a;
+    
+    
+    wire    [WB_DAT_WIDTH-1:0]  wb_log1_dat_o;
+    wire                        wb_log1_stb_i;
+    wire                        wb_log1_ack_o;
+    
+    jelly_data_logger_fifo
+            #(
+                .WB_ADR_WIDTH       (8),
+                .WB_DAT_WIDTH       (WB_DAT_WIDTH),
+                .DATA_WIDTH         (8*WB_DAT_WIDTH),
+                .TIMER_WIDTH        (48),
+                .FIFO_ASYNC         (0),
+                .FIFO_PTR_WIDTH     (14),
+                .FIFO_RAM_TYPE      ("block")
+            )
+        i_data_logger_fifo_motor
+            (
+                .reset              (wb_peri_rst_i),
+                .clk                (wb_peri_clk_i),
+                
+                .s_data             (log_stmc_data),
+                .s_valid            (log_stmc_valid),
+                .s_ready            (),
+                
+                .s_wb_rst_i         (wb_peri_rst_i),
+                .s_wb_clk_i         (wb_peri_clk_i),
+                .s_wb_adr_i         (wb_peri_adr_i[7:0]),
+                .s_wb_dat_o         (wb_log1_dat_o),
+                .s_wb_dat_i         (wb_peri_dat_i),
+                .s_wb_we_i          (wb_peri_we_i),
+                .s_wb_sel_i         (wb_peri_sel_i),
+                .s_wb_stb_i         (wb_log1_stb_i),
+                .s_wb_ack_o         (wb_log1_ack_o)
+            );
+    
+    
+    
+    
+    
+    // ----------------------------------------
     //  WISHBONE address decoder
     // ----------------------------------------
     
@@ -898,6 +1040,8 @@ module zybo_z7_imx219_stepper_motor
     assign wb_stmc_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4002_0);
     assign wb_posc_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4002_1);
     assign wb_imgp_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[29:14] == 20'h4003);
+    assign wb_log0_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4007_0);
+    assign wb_log1_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4007_1);
     
     assign wb_peri_dat_o  = wb_gid_stb_i   ? wb_gid_dat_o   :
                             wb_vdmaw_stb_i ? wb_vdmaw_dat_o :
@@ -905,6 +1049,8 @@ module zybo_z7_imx219_stepper_motor
                             wb_stmc_stb_i  ? wb_stmc_dat_o  :
                             wb_posc_stb_i  ? wb_posc_dat_o  :
                             wb_imgp_stb_i  ? wb_imgp_dat_o  :
+                            wb_log0_stb_i  ? wb_log0_dat_o  :
+                            wb_log1_stb_i  ? wb_log1_dat_o  :
                             32'h0000_0000;
     
     assign wb_peri_ack_o  = wb_gid_stb_i   ? wb_gid_ack_o   :
@@ -912,7 +1058,9 @@ module zybo_z7_imx219_stepper_motor
                             wb_norm_stb_i  ? wb_norm_ack_o  :
                             wb_stmc_stb_i  ? wb_stmc_ack_o  :
                             wb_posc_stb_i  ? wb_posc_ack_o  :
-                            wb_imgp_stb_i  ? wb_imgp_ack_o   :
+                            wb_imgp_stb_i  ? wb_imgp_ack_o  :
+                            wb_log0_stb_i  ? wb_log0_ack_o  :
+                            wb_log1_stb_i  ? wb_log1_ack_o  :
                             wb_peri_stb_i;
     
     

@@ -185,7 +185,7 @@ module stepper_motor_control_calc
             st8_valid  <= 1'b0;
             st9_a      <= {(1+A_WIDTH){1'bx}};
             st9_valid  <= 1'b0;
-            st10_a     <= {(1+A_WIDTH){1'bx}};
+            st10_a     <= {(1+A_WIDTH){1'b0}};
             st10_valid <= 1'b0;
         end
         else begin

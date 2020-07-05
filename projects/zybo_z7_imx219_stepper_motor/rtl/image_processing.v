@@ -20,7 +20,9 @@ module image_processing
             parameter   WB_SEL_WIDTH   = (WB_DAT_WIDTH / 8),
             
             parameter   DATA_WIDTH     = 10,
-            parameter   ANGLE_WIDTH    = 32,
+            parameter   ANGLE_WIDTH    = 24,
+            parameter   ATAN2_X_WIDTH  = 24,
+            parameter   ATAN2_Y_WIDTH  = 24,
             
             parameter   TUSER_WIDTH    = 1,
             parameter   S_TDATA_WIDTH  = DATA_WIDTH,
@@ -61,6 +63,8 @@ module image_processing
             output  wire                            m_axi4s_tvalid,
             input   wire                            m_axi4s_tready,
             
+            input   wire                            out_reset,
+            input   wire                            out_clk,
             output  wire    [ANGLE_WIDTH-1:0]       out_angle,
             output  wire                            out_valid
         );
@@ -578,7 +582,9 @@ module image_processing
                 .X_WIDTH                    (GRAD_WIDTH),
                 .Y_WIDTH                    (GRAD_WIDTH),
                 .WEIGHT_WIDTH               (WEIGHT_WIDTH),
-                .ANGLE_WIDTH                (ANGLE_WIDTH)
+                .ANGLE_WIDTH                (ANGLE_WIDTH),
+                .ATAN2_X_WIDTH              (ATAN2_X_WIDTH),
+                .ATAN2_Y_WIDTH              (ATAN2_Y_WIDTH)
             )
         i_img_mean_grad_to_angle
             (
@@ -596,6 +602,8 @@ module image_processing
                 .s_img_weight               (img_mask_weight),
                 .s_img_valid                (img_mask_valid),
                 
+                .out_reset                  (out_reset),
+                .out_clk                    (out_clk),
                 .out_angle                  (out_angle),
                 .out_valid                  (out_valid)
             );

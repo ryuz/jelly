@@ -14,12 +14,15 @@
 
 module jelly_img_mean_grad_to_angle
         #(
-            parameter   X_WIDTH      = 8,
-            parameter   Y_WIDTH      = 8,
-            parameter   WEIGHT_WIDTH = 8,
-            parameter   ANGLE_WIDTH  = 32,
-            parameter   X_SUM_WIDTH  = X_WIDTH + WEIGHT_WIDTH + (X_WIDTH + Y_WIDTH),
-            parameter   Y_SUM_WIDTH  = Y_WIDTH + WEIGHT_WIDTH + (X_WIDTH + Y_WIDTH)
+            parameter   X_WIDTH       = 8,
+            parameter   Y_WIDTH       = 8,
+            parameter   WEIGHT_WIDTH  = 8,
+            parameter   ANGLE_WIDTH   = 32,
+            parameter   X_SUM_WIDTH   = X_WIDTH + WEIGHT_WIDTH + (X_WIDTH + Y_WIDTH),
+            parameter   Y_SUM_WIDTH   = Y_WIDTH + WEIGHT_WIDTH + (X_WIDTH + Y_WIDTH),
+            parameter   ATAN2_X_WIDTH = X_SUM_WIDTH,
+            parameter   ATAN2_Y_WIDTH = Y_SUM_WIDTH,
+            parameter   OUT_ASYNC     = 1
         )
         (
             input   wire                                reset,
@@ -36,6 +39,8 @@ module jelly_img_mean_grad_to_angle
             input   wire            [WEIGHT_WIDTH-1:0]  s_img_weight,
             input   wire                                s_img_valid,
             
+            input   wire                                out_reset,
+            input   wire                                out_clk,
             output  wire    [ANGLE_WIDTH-1:0]           out_angle,
             output  wire                                out_valid
         );
@@ -121,27 +126,56 @@ module jelly_img_mean_grad_to_angle
     end
     
     
-    wire    [ANGLE_WIDTH-1:0]   atan2_angle;
-    wire                        atan2_valid;
+    wire    signed  [ATAN2_X_WIDTH-1:0] st3_x_tmp;
+    wire    signed  [ATAN2_Y_WIDTH-1:0] st3_y_tmp;
+    assign st3_x_tmp = (st3_x >>> (X_SUM_WIDTH - ATAN2_X_WIDTH));
+    assign st3_y_tmp = (st3_y >>> (Y_SUM_WIDTH - ATAN2_Y_WIDTH));
+    
+    wire    signed  [ATAN2_X_WIDTH-1:0] async_x;
+    wire    signed  [ATAN2_Y_WIDTH-1:0] async_y;
+    wire                                async_valid;
+    
+    jelly_data_async
+            #(
+                .ASYNC          (1),
+                .DATA_WIDTH     (ATAN2_Y_WIDTH + ATAN2_X_WIDTH)
+            )
+        i_data_async
+            (
+                .s_reset        (reset),
+                .s_clk          (clk),
+                .s_data         ({st3_y_tmp, st3_x_tmp}),
+                .s_valid        (st3_valid & cke),
+                .s_ready        (),
+                
+                .m_reset        (out_reset),
+                .m_clk          (out_clk),
+                .m_data         ({async_y, async_x}),
+                .m_valid        (async_valid),
+                .m_ready        (1'b1)
+            );
+    
+    
+    wire            [ANGLE_WIDTH-1:0]   atan2_angle;
+    wire                                atan2_valid;
     
     jelly_fixed_atan2_multicycle
             #(
                 .SCALED_RADIAN  (1),
-                .X_WIDTH        (X_SUM_WIDTH),
-                .Y_WIDTH        (Y_SUM_WIDTH),
+                .X_WIDTH        (ATAN2_X_WIDTH),
+                .Y_WIDTH        (ATAN2_Y_WIDTH),
                 .ANGLE_WIDTH    (ANGLE_WIDTH)
             )
         i_fixed_atan2_multicycle
             (
-                 .reset         (reset),
-                 .clk           (clk),
-                 .cke           (cke),
+                 .reset         (out_reset),
+                 .clk           (out_clk),
+                 .cke           (1'b1),
                 
-                 .s_x           (st3_x),
-                 .s_y           (st3_y),
-                 .s_valid       (st3_valid),
+                 .s_x           (async_x),
+                 .s_y           (async_y),
+                 .s_valid       (async_valid),
                  .s_ready       (),
-                
                 
                  .m_angle       (atan2_angle),
                  .m_valid       (atan2_valid),
@@ -150,8 +184,8 @@ module jelly_img_mean_grad_to_angle
     
     reg     [ANGLE_WIDTH-1:0]   reg_out_angle;
     reg                         reg_out_valid;
-    always @(posedge clk) begin
-        if ( reset ) begin
+    always @(posedge out_clk) begin
+        if ( out_reset ) begin
             reg_out_angle <= 0;
             reg_out_valid <= 1'b0;
         end

@@ -27,7 +27,7 @@ module tb_fixed_atan2_multicycle();
     parameter   SCALED_RADIAN = 0;
     parameter   X_WIDTH       = 30;
     parameter   Y_WIDTH       = 30;
-    parameter   ANGLE_WIDTH   = 30;
+    parameter   ANGLE_WIDTH   = 16;
     parameter   Q_WIDTH       = SCALED_RADIAN ? ANGLE_WIDTH : ANGLE_WIDTH - 4;
     
     

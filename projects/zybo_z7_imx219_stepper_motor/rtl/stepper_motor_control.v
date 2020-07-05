@@ -56,7 +56,16 @@ module stepper_motor_control
             
             output  wire                                motor_en,
             output  wire                                motor_a,
-            output  wire                                motor_b
+            output  wire                                motor_b,
+            
+            
+            output  wire                                monitor_update,
+            output  wire    signed  [X_WIDTH-1:0]       monitor_cur_x,
+            output  wire    signed  [V_WIDTH:0]         monitor_cur_v,
+            output  wire    signed  [A_WIDTH:0]         monitor_cur_a,
+            output  wire    signed  [X_WIDTH-1:0]       monitor_target_x,
+            output  wire    signed  [V_WIDTH:0]         monitor_target_v,
+            output  wire    signed  [A_WIDTH:0]         monitor_target_a
         );
     
     
@@ -120,6 +129,7 @@ module stepper_motor_control
     reg     signed  [A_WIDTH:0]         reg_a;
     reg     signed  [V_WIDTH:0]         reg_v_tmp;
     reg     signed  [V_WIDTH:0]         reg_v;
+    reg                                 reg_update;
     
     wire    signed  [A_WIDTH:0]         calc_a;
     wire                                calc_valid;
@@ -158,6 +168,8 @@ module stepper_motor_control
             reg_a           <= 0;
             reg_v_tmp       <= 0;
             reg_v           <= 0;
+            
+            reg_update      <= 1'b0;
         end
         else begin
             // start
@@ -191,11 +203,13 @@ module stepper_motor_control
             if ( reg_v_tmp < -max_v ) begin reg_v <= -max_v; end
             
             // update
+            reg_update <= 1'b0;
             if ( update && reg_ctl_enable ) begin
-                reg_cur_x <= reg_cur_x + reg_v;
-                reg_cur_v <= reg_v;
-                reg_cur_a <= reg_a;
-                reg_time  <= reg_time + 1;
+                reg_update <= 1'b1;
+                reg_cur_x  <= reg_cur_x + reg_v;
+                reg_cur_v  <= reg_v;
+                reg_cur_a  <= reg_a;
+                reg_time   <= reg_time + 1;
             end
             
             
@@ -283,6 +297,16 @@ module stepper_motor_control
             );
     
     assign motor_en = reg_ctl_enable;
+    
+    
+    // monitor
+    assign monitor_update   = reg_update;
+    assign monitor_cur_x    = reg_cur_x;
+    assign monitor_cur_v    = reg_cur_v;
+    assign monitor_cur_a    = reg_cur_a;
+    assign monitor_target_x = reg_target_x;
+    assign monitor_target_v = reg_target_v;
+    assign monitor_target_a = reg_target_a;
     
 endmodule
 
