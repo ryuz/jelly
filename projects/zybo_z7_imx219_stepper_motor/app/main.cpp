@@ -378,9 +378,9 @@ int main(int argc, char *argv[])
     
     // motor
     int motor_en         = 1;
-    int motor_mode       = 2;
+    int motor_mode       = 1;
     int motor_x          = 200;
-    int motor_v          = 100;
+    int motor_v          = 105;
     int motor_max_v      = 1000;
     int motor_max_a      = 10;
     cv::namedWindow("motor");
@@ -503,7 +503,7 @@ int main(int argc, char *argv[])
         
         case 'l':
             std::cout << "start logging" << std::endl;
-            write_log(reg_log0, reg_log1, 3000, 100000);
+            write_log(reg_log0, reg_log1, 3000, 500000);
             std::cout << "end logging" << std::endl;
             break;
 
@@ -616,7 +616,7 @@ void write_log(MemAccess& reg_log0, MemAccess& reg_log1, int num0, int num1)
     // 一旦クリア
     reg_log0.WriteReg(REG_LOG_CTL_CONTROL, 3);
     reg_log1.WriteReg(REG_LOG_CTL_CONTROL, 3);
-    sleep(0.1);
+    sleep(1);
     reg_log0.WriteReg(REG_LOG_CTL_CONTROL, 0);
     reg_log1.WriteReg(REG_LOG_CTL_CONTROL, 0);
 
@@ -656,7 +656,8 @@ void write_log(MemAccess& reg_log0, MemAccess& reg_log1, int num0, int num1)
     {
         std::ofstream ofs("log0.csv");
         for ( auto li : vec_img ) {
-            ofs << li.time << ", " << li.angle << "\n";
+            ofs << li.time << ", "
+                << li.angle << "\n";
         }
     }
 
@@ -669,8 +670,7 @@ void write_log(MemAccess& reg_log0, MemAccess& reg_log1, int num0, int num1)
                 << lm.cur_a << ", "
                 << lm.target_x << ", "
                 << lm.target_v << ", "
-                << lm.target_a << ", "
-                << "\n";
+                << lm.target_a << "\n";
         }
     }
 }
