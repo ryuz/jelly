@@ -4,6 +4,10 @@
 #include <stdint.h>
 #include <fcntl.h>
 #include <unistd.h>
+
+#include <iostream>
+#include <fstream>
+#include <vector>
 //#include <sys/mman.h>
 //#include <errno.h>
 //#include <sys/ioctl.h>
@@ -104,13 +108,6 @@ using namespace jelly;
 #define REG_DIFF_INPUT                  0x03
 #define REG_DIFF_OUTPUT                 0x04
 
-/*
-#define REG_POSC_ENABLE                 0x00
-#define REG_POSC_COEFF_X                0x01
-#define REG_POSC_COEFF_Y                0x02
-#define REG_POSC_OFFSET                 0x03
-*/
-
 #define REG_STMC_CORE_ID                0x00
 #define REG_STMC_CTL_ENABLE             0x01
 #define REG_STMC_CTL_TARGET             0x02
@@ -128,7 +125,34 @@ using namespace jelly;
 #define REG_STMC_IN_X_DIFF              0x21
 
 
+#define REG_LOG_CORE_ID                 0x00
+#define REG_LOG_CORE_VERSION            0x01
+#define REG_LOG_CTL_CONTROL             0x04
+#define REG_LOG_CTL_STATUS              0x05
+#define REG_LOG_CTL_COUNT               0x07
+#define REG_LOG_POL_TIMER0              0x08
+#define REG_LOG_POL_TIMER1              0x09
+#define REG_LOG_POL_DATA0               0x10
+#define REG_LOG_POL_DATA1               0x11
+#define REG_LOG_POL_DATA2               0x12
+#define REG_LOG_POL_DATA3               0x13
+#define REG_LOG_POL_DATA4               0x14
+#define REG_LOG_POL_DATA5               0x15
+#define REG_LOG_POL_DATA6               0x16
+#define REG_LOG_POL_DATA7               0x17
+#define REG_LOG_POL_DATA8               0x18
+#define REG_LOG_POL_DATA9               0x19
+#define REG_LOG_POL_DATA10              0x1a
+#define REG_LOG_POL_DATA11              0x1b
+#define REG_LOG_POL_DATA12              0x1c
+#define REG_LOG_POL_DATA13              0x1d
+#define REG_LOG_POL_DATA14              0x1e
+#define REG_LOG_POL_DATA15              0x1f
+#define REG_LOG_READ_DATA               0x20
+
+
 void capture_still_image(MemAccess& reg_wdma, MemAccess& reg_norm, std::uintptr_t bufaddr, int width, int height, int frame_num);
+void write_log(MemAccess& reg_log0, MemAccess& reg_log1, int num0, int num1);
 
 
 int main(int argc, char *argv[])
@@ -139,13 +163,13 @@ int main(int argc, char *argv[])
     int     height      = 132;
     int     aoi_x       = -1;
     int     aoi_y       = -1;
-    bool    flip_h      = false;
-    bool    flip_v      = false;
+    bool    flip_h      = true;
+    bool    flip_v      = true;
     int     frame_rate  = 1000;
     int     exposure    = 10;
     int     a_gain      = 20;
     int     d_gain      = 10;
-    int     bayer_phase = 1;
+    int     bayer_phase = 2;
     int     view_scale  = 1;
 
     for ( int i = 1; i < argc; ++i ) {
@@ -236,6 +260,8 @@ int main(int argc, char *argv[])
     auto reg_sel   = uio_acc.GetMemAccess(0x00033c00);
     auto reg_stmc  = uio_acc.GetMemAccess(0x00020000);
     auto reg_posc  = uio_acc.GetMemAccess(0x00021000);
+    auto reg_log0  = uio_acc.GetMemAccess(0x00070000);
+    auto reg_log1  = uio_acc.GetMemAccess(0x00071000);
 
     // mmap udmabuf
     UdmabufAccess udmabuf_acc("udmabuf0");
@@ -281,6 +307,26 @@ int main(int argc, char *argv[])
     imx219.SetAoi(width, height, aoi_x, aoi_y, binning, binning);
     imx219.Start();
 
+    // DMA start (contine)
+    reg_wdma.WriteReg(REG_WDMA_PARAM_ADDR, dmabuf_phys_adr);        // addr
+    reg_wdma.WriteReg(REG_WDMA_PARAM_STRIDE, width*4);              // stride
+    reg_wdma.WriteReg(REG_WDMA_PARAM_WIDTH, width);                 // width
+    reg_wdma.WriteReg(REG_WDMA_PARAM_HEIGHT, height);               // height
+    reg_wdma.WriteReg(REG_WDMA_PARAM_SIZE, width*height);           // size
+    reg_wdma.WriteReg(REG_WDMA_PARAM_AWLEN, 31);                    // awlen
+    reg_wdma.WriteReg(REG_WDMA_CTL_CONTROL, 0x03);
+
+    // normalizer start
+    reg_norm.WriteReg(REG_NORM_FRM_TIMER_EN, 1);
+    reg_norm.WriteReg(REG_NORM_FRM_TIMEOUT, 100000000);
+    reg_norm.WriteReg(REG_NORM_PARAM_WIDTH, width);
+    reg_norm.WriteReg(REG_NORM_PARAM_HEIGHT, height);
+    reg_norm.WriteReg(REG_NORM_PARAM_FILL, 0x0ff);
+    reg_norm.WriteReg(REG_NORM_PARAM_TIMEOUT, 0x100000);
+    reg_norm.WriteReg(REG_NORM_CONTROL, 0x03);
+
+//      capture_still_image(reg_wdma, reg_norm, dmabuf_phys_adr, width, height, frame_num);
+
     int     rec_frame_num = std::min(100, (int)(dmabuf_mem_size / (width * height * 4)));
     int     frame_num     = 1;
 
@@ -322,12 +368,12 @@ int main(int argc, char *argv[])
     
     // feedback
     int feedback_en     = 1;
-    int feedback_target = 0;
+    int feedback_target = 5;
     int feedback_gain   = 100;
     cv::namedWindow("feedback");
-    cv::resizeWindow("feedback", 320, 480);
+    cv::resizeWindow("feedback", 640, 200);
     cv::createTrackbar("enable", "feedback", &feedback_en, 1);
-    cv::createTrackbar("target", "feedback", &feedback_target, 400);
+    cv::createTrackbar("target", "feedback", &feedback_target, 0x1000);
     cv::createTrackbar("gain",   "feedback", &feedback_gain,   200);
     
     // motor
@@ -348,6 +394,16 @@ int main(int argc, char *argv[])
 
     int     key;
     while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
+        /*
+        std::cout << reg_log0.ReadReg(REG_LOG_CTL_STATUS) << std::endl;
+        std::cout << reg_log0.ReadReg(REG_LOG_CTL_COUNT) << std::endl;
+        if ( reg_log0.ReadReg(REG_LOG_CTL_COUNT) > 600 ) {
+            reg_log0.WriteReg(REG_LOG_CTL_CONTROL, 3);
+            sleep(0.1);
+            reg_log0.WriteReg(REG_LOG_CTL_CONTROL, 0);
+        }
+        */
+
         // 設定
         imx219.SetFrameRate(frame_rate);
         imx219.SetExposureTime(exposure / 1000.0);
@@ -375,7 +431,7 @@ int main(int argc, char *argv[])
         reg_mask.WriteReg(REG_MASK_CTL_CONTROL, 0x7);
 
         reg_posc.WriteReg(REG_DIFF_ENABLE,  feedback_en);
-        reg_posc.WriteReg(REG_DIFF_TARGET,  feedback_target * 0x100);
+        reg_posc.WriteReg(REG_DIFF_TARGET,  feedback_target * 0x100000);
         reg_posc.WriteReg(REG_DIFF_GAIN,    (feedback_gain - 100) * 0x10);
 
         const int motor_mode_tbl[] = {0x01, 0x02, 0x09, 0x00};
@@ -388,15 +444,16 @@ int main(int argc, char *argv[])
         }
         reg_stmc.WriteReg(REG_STMC_CTL_ENABLE,  motor_en);
 
-//	    std::cout << (int)reg_posc.ReadReg(REG_DIFF_INPUT) << std::endl;
-	    printf("%10d %10d %10d %10d\n",
-                    (int)reg_posc.ReadReg(REG_DIFF_INPUT),
+#if 0
+	    printf("%f %10d %10d %10d\n",
+                    (int)reg_posc.ReadReg(REG_DIFF_INPUT) * (180.0 / (double)0x8000UL),
                     (int)reg_posc.ReadReg(REG_DIFF_OUTPUT),
                     (int)reg_stmc.ReadReg(REG_STMC_IN_X_DIFF),
                     (int)reg_stmc.ReadReg(REG_STMC_TARGET_X));
+#endif
 
         // キャプチャ
-        capture_still_image(reg_wdma, reg_norm, dmabuf_phys_adr, width, height, frame_num);
+//      capture_still_image(reg_wdma, reg_norm, dmabuf_phys_adr, width, height, frame_num);
         cv::Mat img(height*frame_num, width, CV_8UC4);
         udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4 * frame_num);
         
@@ -444,6 +501,12 @@ int main(int argc, char *argv[])
         case 'h':  flip_h = !flip_h;  break;
         case 'v':  flip_v = !flip_v;  break;
         
+        case 'l':
+            std::cout << "start logging" << std::endl;
+            write_log(reg_log0, reg_log1, 3000, 100000);
+            std::cout << "end logging" << std::endl;
+            break;
+
         // aoi position
         case 'w':  imx219.SetAoiPosition(imx219.GetAoiX(), imx219.GetAoiY() - 4);    break;
         case 'z':  imx219.SetAoiPosition(imx219.GetAoiX(), imx219.GetAoiY() + 4);    break;
@@ -521,6 +584,97 @@ void capture_still_image(MemAccess& reg_wdma, MemAccess& reg_norm, std::uintptr_
         usleep(1000);
     }
 }
+
+
+struct logger_image
+{
+    std::uint64_t   time;
+    std::uint32_t   angle;
+};
+
+struct logger_motor
+{
+    std::uint64_t   time;
+    std::int64_t    cur_x;
+    std::int32_t    cur_v;
+    std::int32_t    cur_a;
+    std::int64_t    target_x;
+    std::int32_t    target_v;
+    std::int32_t    target_a;
+};
+
+void write_log(MemAccess& reg_log0, MemAccess& reg_log1, int num0, int num1)
+{
+    std::vector<logger_image>   vec_img;
+    std::vector<logger_motor>   vec_mot;
+    vec_img.reserve(num0);
+    vec_mot.reserve(num1);
+
+    std::cout << reg_log0.ReadReg(REG_LOG_CTL_STATUS) << std::endl;
+    std::cout << reg_log0.ReadReg(REG_LOG_CTL_COUNT) << std::endl;
+
+    // 一旦クリア
+    reg_log0.WriteReg(REG_LOG_CTL_CONTROL, 3);
+    reg_log1.WriteReg(REG_LOG_CTL_CONTROL, 3);
+    sleep(0.1);
+    reg_log0.WriteReg(REG_LOG_CTL_CONTROL, 0);
+    reg_log1.WriteReg(REG_LOG_CTL_CONTROL, 0);
+
+    std::cout << reg_log0.ReadReg(REG_LOG_CTL_STATUS) << std::endl;
+    std::cout << reg_log0.ReadReg(REG_LOG_CTL_COUNT) << std::endl;
+
+    // ロギング
+    std::cout << "start" << std::endl;
+    while ( (int)vec_img.size() < num0 && (int)vec_mot.size() < num1 ) {
+        if ( reg_log0.ReadReg(REG_LOG_CTL_STATUS) ) {
+            logger_image li;
+            li.time  = ((std::uint64_t)reg_log0.ReadReg(REG_LOG_POL_TIMER0) << 0)
+                     + ((std::uint64_t)reg_log0.ReadReg(REG_LOG_POL_TIMER1) << 32);
+            li.angle = (std::uint32_t)reg_log0.ReadReg(REG_LOG_POL_DATA0);
+            reg_log0.WriteReg(REG_LOG_CTL_CONTROL, 1);
+            vec_img.push_back(li);
+        }
+
+        if ( reg_log1.ReadReg(REG_LOG_CTL_STATUS) ) {
+            logger_motor lm;
+            lm.time     = ((std::uint64_t)reg_log1.ReadReg(REG_LOG_POL_TIMER0) << 0)
+                        + ((std::uint64_t)reg_log1.ReadReg(REG_LOG_POL_TIMER1) << 32);
+            lm.cur_x    = ((std::uint64_t)reg_log1.ReadReg(REG_LOG_POL_DATA0) << 0)
+                        + ((std::uint64_t)reg_log1.ReadReg(REG_LOG_POL_DATA1) << 32);
+            lm.cur_v    = ((std::uint32_t)reg_log1.ReadReg(REG_LOG_POL_DATA2) << 0);
+            lm.cur_a    = ((std::uint32_t)reg_log1.ReadReg(REG_LOG_POL_DATA3) << 0);
+            lm.target_x = ((std::uint64_t)reg_log1.ReadReg(REG_LOG_POL_DATA4) << 0)
+                        + ((std::uint64_t)reg_log1.ReadReg(REG_LOG_POL_DATA5) << 32);
+            lm.target_v = ((std::uint32_t)reg_log1.ReadReg(REG_LOG_POL_DATA6) << 0);
+            lm.target_a = ((std::uint32_t)reg_log1.ReadReg(REG_LOG_POL_DATA7) << 0);
+            reg_log1.WriteReg(REG_LOG_CTL_CONTROL, 1);
+            vec_mot.push_back(lm);
+        }
+    }
+    std::cout << "end" << std::endl;
+
+    {
+        std::ofstream ofs("log0.csv");
+        for ( auto li : vec_img ) {
+            ofs << li.time << ", " << li.angle << "\n";
+        }
+    }
+
+    {
+        std::ofstream ofs("log1.csv");
+        for ( auto lm : vec_mot ) {
+            ofs << lm.time << ", "
+                << lm.cur_x << ", "
+                << lm.cur_v << ", "
+                << lm.cur_a << ", "
+                << lm.target_x << ", "
+                << lm.target_v << ", "
+                << lm.target_a << ", "
+                << "\n";
+        }
+    }
+}
+
 
 
 // end of file
