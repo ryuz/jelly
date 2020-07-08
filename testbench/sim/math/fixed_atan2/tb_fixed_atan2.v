@@ -22,7 +22,10 @@ module tb_fixed_atan2();
     
     parameter   DATA_WIDTH = 32;
     
-    wire                        cke = 1'b1;
+    reg                      cke = 1'b1;
+    always @(posedge clk) cke <= {$random()};
+    
+    
     
     parameter   SCALED_RADIAN = 1;
     parameter   X_WIDTH       = 30;
@@ -121,27 +124,39 @@ module tb_fixed_atan2();
     
     wire            [31:0]              m_user;
     wire                                m_valid;
-    wire                                m_ready = 1'b1;
+    reg                                 m_ready = 1'b1;
+    always @(posedge clk) begin
+        if ( cke ) begin
+            m_ready <= {$random()};
+        end
+    end
     
     integer index = 0;
     always @(posedge clk) begin
         if ( !reset ) begin
-            if ( s_valid & s_ready ) begin
-                if ( index < TBL_NUM ) begin
-                    index <= index + 1;
-                end
-            end
-            
-            if ( m_valid & m_ready ) begin
-                if ( SCALED_RADIAN ) begin
-                    $display("%d: %10f %10f", (m_user*10 % 360), $itor(m_angle) * 360 / (1 << Q_WIDTH), $itor(m_angle_unsign) * 360 / (1 << Q_WIDTH));
-                end
-                else begin
-                    $display("%f: %10f", (m_user*10 % 360)*3.14159265/180, $itor(m_angle) / (1 << Q_WIDTH));
+            if ( cke ) begin
+                if ( !s_valid || s_ready ) begin
+                    s_valid <= {$random()};
                 end
                 
-                if ( m_user >= (TBL_NUM-1) ) begin
-                    $finish();
+                if ( s_valid & s_ready ) begin
+                    if ( index < TBL_NUM ) begin
+                        index <= index + 1;
+                    end
+                end
+                
+                if ( m_valid & m_ready ) begin
+                    if ( SCALED_RADIAN ) begin
+                        $display("%d: %10f %10f diff:%f", (m_user*10 % 360), $itor(m_angle) * 360 / (1 << Q_WIDTH), $itor(m_angle_unsign) * 360 / (1 << Q_WIDTH),
+                                                     (m_user*10 % 360) - ($itor(m_angle_unsign) * 360 / (1 << Q_WIDTH)));
+                    end
+                    else begin
+                        $display("%f: %10f", (m_user*10 % 360)*3.14159265/180, $itor(m_angle) / (1 << Q_WIDTH));
+                    end
+                    
+                    if ( m_user >= (TBL_NUM-1) ) begin
+                        $finish();
+                    end
                 end
             end
         end

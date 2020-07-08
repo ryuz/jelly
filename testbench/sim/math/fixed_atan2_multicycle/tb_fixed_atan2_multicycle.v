@@ -22,9 +22,12 @@ module tb_fixed_atan2_multicycle();
     
     parameter   DATA_WIDTH = 32;
     
-    wire                        cke = 1'b1;
+    reg                      cke = 1'b1;
+    always @(posedge clk) cke <= {$random()};
     
-    parameter   SCALED_RADIAN = 0;
+    
+    
+    parameter   SCALED_RADIAN = 1;
     parameter   X_WIDTH       = 30;
     parameter   Y_WIDTH       = 30;
     parameter   ANGLE_WIDTH   = 16;
@@ -119,35 +122,50 @@ module tb_fixed_atan2_multicycle();
     wire    signed  [ANGLE_WIDTH-1:0]   m_angle;
     wire            [ANGLE_WIDTH-1:0]   m_angle_unsign = m_angle;
     
+    wire            [31:0]              m_user;
     wire                                m_valid;
-    wire                                m_ready = 1'b1;
+    reg                                 m_ready = 1'b1;
+    always @(posedge clk) begin
+        if ( cke ) begin
+            m_ready <= {$random()};
+        end
+    end
     
     integer index = 0;
-    integer out_count = 0;
     always @(posedge clk) begin
-        if ( s_valid & s_ready ) begin
-            if ( index < TBL_NUM ) begin
-                index <= index + 1;
+        if ( !reset ) begin
+            if ( cke ) begin
+                if ( !s_valid || s_ready ) begin
+                    s_valid <= {$random()};
+                end
+                
+                if ( s_valid & s_ready ) begin
+                    if ( index < TBL_NUM ) begin
+                        index <= index + 1;
+                    end
+                end
+                
+                if ( m_valid & m_ready ) begin
+                    if ( SCALED_RADIAN ) begin
+                        $display("%d: %10f %10f diff:%f", (m_user*10 % 360), $itor(m_angle) * 360 / (1 << Q_WIDTH), $itor(m_angle_unsign) * 360 / (1 << Q_WIDTH),
+                                                     (m_user*10 % 360) - ($itor(m_angle_unsign) * 360 / (1 << Q_WIDTH)));
+                    end
+                    else begin
+                        $display("%f: %10f", (m_user*10 % 360)*3.14159265/180, $itor(m_angle) / (1 << Q_WIDTH));
+                    end
+                    
+                    if ( m_user >= (TBL_NUM-1) ) begin
+                        $finish();
+                    end
+                end
             end
-            else begin
-                $finish();
-            end
-        end
-        
-        if ( m_valid & m_ready ) begin
-            if ( SCALED_RADIAN ) begin
-                $display("%d: %10f %10f", (out_count*10 % 360), $itor(m_angle) * 360 / (1 << Q_WIDTH), $itor(m_angle_unsign) * 360 / (1 << Q_WIDTH));
-            end
-            else begin
-                $display("%f: %10f", (out_count*10 % 360)*3.14159265/180, $itor(m_angle) / (1 << Q_WIDTH));
-            end
-            out_count <= out_count + 1;
         end
     end
     
     jelly_fixed_atan2_multicycle
             #(
                 .SCALED_RADIAN  (SCALED_RADIAN),
+                .USER_WIDTH     (32),
                 .X_WIDTH        (X_WIDTH),
                 .Y_WIDTH        (Y_WIDTH),
                 .ANGLE_WIDTH    (ANGLE_WIDTH)
@@ -158,11 +176,13 @@ module tb_fixed_atan2_multicycle();
                 .clk            (clk),
                 .cke            (cke),
                 
+                .s_user         (index),
                 .s_x            (x_tbl[index]),
                 .s_y            (y_tbl[index]),
                 .s_valid        (s_valid),
                 .s_ready        (s_ready),
                 
+                .m_user         (m_user),
                 .m_angle        (m_angle),
                 .m_valid        (m_valid),
                 .m_ready        (m_ready)

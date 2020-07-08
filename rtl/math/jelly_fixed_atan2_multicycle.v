@@ -16,10 +16,13 @@
 module jelly_fixed_atan2_multicycle
         #(
             parameter   SCALED_RADIAN = 1,
+            parameter   USER_WIDTH    = 0,
             parameter   X_WIDTH       = 32,
             parameter   Y_WIDTH       = 32,
             parameter   ANGLE_WIDTH   = 32,
-            parameter   Q_WIDTH       = SCALED_RADIAN ? ANGLE_WIDTH : ANGLE_WIDTH - 4 // max:32
+            parameter   Q_WIDTH       = SCALED_RADIAN ? ANGLE_WIDTH : ANGLE_WIDTH - 4, // max:32
+            
+            parameter   USER_BITS     = USER_WIDTH > 0 ? USER_WIDTH : 1
         )
         (
             input   wire                                reset,
@@ -27,12 +30,14 @@ module jelly_fixed_atan2_multicycle
             input   wire                                cke,
             
             // input
+            input   wire            [USER_BITS-1:0]     s_user,
             input   wire    signed  [X_WIDTH-1:0]       s_x,
             input   wire    signed  [Y_WIDTH-1:0]       s_y,
             input   wire                                s_valid,
             output  wire                                s_ready,
             
             // output
+            output  wire            [USER_BITS-1:0]     m_user,
             output  wire    signed  [ANGLE_WIDTH-1:0]   m_angle,
             output  wire                                m_valid,
             input   wire                                m_ready
@@ -124,6 +129,7 @@ module jelly_fixed_atan2_multicycle
     reg                                 reg_valid;
     
     reg             [STEP_WIDTH-1:0]    reg_step;
+    reg             [USER_BITS-1:0]     reg_user;
     reg     signed  [XY_WIDTH-1:0]      reg_x;
     reg     signed  [XY_WIDTH-1:0]      reg_y;
     reg     signed  [ANGLE_WIDTH-1:0]   reg_angle;
@@ -150,6 +156,7 @@ module jelly_fixed_atan2_multicycle
             
             if ( s_valid & s_ready & !m_valid ) begin
                 // start
+                reg_user <= s_user;
                 if ( s_y >= 0 ) begin
                     // XY入れ替えて 90度起点で計算
                     reg_x     <= +(s_y <<< Q_WIDTH);
@@ -189,6 +196,7 @@ module jelly_fixed_atan2_multicycle
     
     assign s_ready = reg_ready;
     
+    assign m_user  = reg_user;
     assign m_angle = reg_angle;
     assign m_valid = reg_valid;
     
