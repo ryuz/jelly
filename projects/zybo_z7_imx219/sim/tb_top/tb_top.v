@@ -177,12 +177,12 @@ module tb_top();
         wb_write(32'h00010010, 32'h00, 4'b1111);
     #10000;
         $display("set normalizer");
-        wb_read (32'h40011000);                     // CORE ID
-        wb_write(32'h40011040, X_NUM, 4'b1111);     // width
-        wb_write(32'h40011044, Y_NUM, 4'b1111);     // height
-        wb_write(32'h40011048,     0, 4'b1111);     // fill
-        wb_write(32'h4001104c,  1024, 4'b1111);     // timeout
-        wb_write(32'h40011010,     1, 4'b1111);     // enable
+        wb_read (32'h40010000);                     // CORE ID
+        wb_write(32'h40010040, X_NUM, 4'b1111);     // width
+        wb_write(32'h40010044, Y_NUM, 4'b1111);     // height
+        wb_write(32'h40010048,     0, 4'b1111);     // fill
+        wb_write(32'h4001004c,  1024, 4'b1111);     // timeout
+        wb_write(32'h40010010,     1, 4'b1111);     // enable
     #100000;
         
         $display("set write DMA");

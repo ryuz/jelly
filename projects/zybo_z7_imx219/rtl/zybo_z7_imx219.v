@@ -540,15 +540,15 @@ module zybo_z7_imx219
     
     
     // normalize
-    wire    [0:0]               axi4s_fmtreg_tuser;
-    wire                        axi4s_fmtreg_tlast;
-    wire    [9:0]               axi4s_fmtreg_tdata;
-    wire                        axi4s_fmtreg_tvalid;
-    wire                        axi4s_fmtreg_tready;
+    wire    [0:0]               axi4s_fmtr_tuser;
+    wire                        axi4s_fmtr_tlast;
+    wire    [9:0]               axi4s_fmtr_tdata;
+    wire                        axi4s_fmtr_tvalid;
+    wire                        axi4s_fmtr_tready;
     
-    wire    [WB_DAT_WIDTH-1:0]  wb_fmtreg_dat_o;
-    wire                        wb_fmtreg_stb_i;
-    wire                        wb_fmtreg_ack_o;
+    wire    [WB_DAT_WIDTH-1:0]  wb_fmtr_dat_o;
+    wire                        wb_fmtr_stb_i;
+    wire                        wb_fmtr_ack_o;
     
     jelly_video_format_regularizer
             #(
@@ -581,12 +581,12 @@ module zybo_z7_imx219
                 .s_wb_rst_i         (wb_peri_rst_i),
                 .s_wb_clk_i         (wb_peri_clk_i),
                 .s_wb_adr_i         (wb_peri_adr_i[7:0]),
-                .s_wb_dat_o         (wb_fmtreg_dat_o),
+                .s_wb_dat_o         (wb_fmtr_dat_o),
                 .s_wb_dat_i         (wb_peri_dat_i),
                 .s_wb_we_i          (wb_peri_we_i),
                 .s_wb_sel_i         (wb_peri_sel_i),
-                .s_wb_stb_i         (wb_fmtreg_stb_i),
-                .s_wb_ack_o         (wb_fmtreg_ack_o),
+                .s_wb_stb_i         (wb_fmtr_stb_i),
+                .s_wb_ack_o         (wb_fmtr_ack_o),
                 
                 .s_axi4s_tuser      (axi4s_csi2_tuser),
                 .s_axi4s_tlast      (axi4s_csi2_tlast),
@@ -594,20 +594,20 @@ module zybo_z7_imx219
                 .s_axi4s_tvalid     (axi4s_csi2_tvalid),
                 .s_axi4s_tready     (axi4s_csi2_tready),
                 
-                .m_axi4s_tuser      (axi4s_fmtreg_tuser),
-                .m_axi4s_tlast      (axi4s_fmtreg_tlast),
-                .m_axi4s_tdata      (axi4s_fmtreg_tdata),
-                .m_axi4s_tvalid     (axi4s_fmtreg_tvalid),
-                .m_axi4s_tready     (axi4s_fmtreg_tready)
+                .m_axi4s_tuser      (axi4s_fmtr_tuser),
+                .m_axi4s_tlast      (axi4s_fmtr_tlast),
+                .m_axi4s_tdata      (axi4s_fmtr_tdata),
+                .m_axi4s_tvalid     (axi4s_fmtr_tvalid),
+                .m_axi4s_tready     (axi4s_fmtr_tready)
             );
     
     
     // parameter update(フレーム単位で一括パラメータ更新できるように)
     wire                            parameter_update_req;
     
-    wire    [WB_DAT_WIDTH-1:0]      wb_parup_dat_o;
-    wire                            wb_parup_stb_i;
-    wire                            wb_parup_ack_o;
+    wire    [WB_DAT_WIDTH-1:0]      wb_prmup_dat_o;
+    wire                            wb_prmup_stb_i;
+    wire                            wb_prmup_ack_o;
     
     jelly_video_parameter_update
             #(
@@ -637,16 +637,16 @@ module zybo_z7_imx219
                 .s_wb_clk_i         (wb_peri_clk_i),
                 .s_wb_adr_i         (wb_peri_adr_i[7:0]),
                 .s_wb_dat_i         (wb_peri_dat_i),
-                .s_wb_dat_o         (wb_parup_dat_o),
+                .s_wb_dat_o         (wb_prmup_dat_o),
                 .s_wb_we_i          (wb_peri_we_i),
                 .s_wb_sel_i         (wb_peri_sel_i),
-                .s_wb_stb_i         (wb_parup_stb_i),
-                .s_wb_ack_o         (wb_parup_ack_o),
+                .s_wb_stb_i         (wb_prmup_stb_i),
+                .s_wb_ack_o         (wb_prmup_ack_o),
                 
-                .s_axi4s_tdata      (axi4s_fmtreg_tdata),
-                .s_axi4s_tlast      (axi4s_fmtreg_tlast),
-                .s_axi4s_tuser      (axi4s_fmtreg_tuser),
-                .s_axi4s_tvalid     (axi4s_fmtreg_tvalid),
+                .s_axi4s_tdata      (axi4s_fmtr_tdata),
+                .s_axi4s_tlast      (axi4s_fmtr_tlast),
+                .s_axi4s_tuser      (axi4s_fmtr_tuser),
+                .s_axi4s_tvalid     (axi4s_fmtr_tvalid),
                 .s_axi4s_tready     (),
                 
                 .m_axi4s_tuser      (),
@@ -699,11 +699,11 @@ module zybo_z7_imx219
                 .s_wb_stb_i         (wb_rgb_stb_i),
                 .s_wb_ack_o         (wb_rgb_ack_o),
                 
-                .s_axi4s_tuser      (axi4s_fmtreg_tuser),
-                .s_axi4s_tlast      (axi4s_fmtreg_tlast),
-                .s_axi4s_tdata      (axi4s_fmtreg_tdata),
-                .s_axi4s_tvalid     (axi4s_fmtreg_tvalid),
-                .s_axi4s_tready     (axi4s_fmtreg_tready),
+                .s_axi4s_tuser      (axi4s_fmtr_tuser),
+                .s_axi4s_tlast      (axi4s_fmtr_tlast),
+                .s_axi4s_tdata      (axi4s_fmtr_tdata),
+                .s_axi4s_tvalid     (axi4s_fmtr_tvalid),
+                .s_axi4s_tready     (axi4s_fmtr_tready),
                 
                 .m_axi4s_tuser      (axi4s_rgb_tuser),
                 .m_axi4s_tlast      (axi4s_rgb_tlast),
@@ -817,20 +817,21 @@ module zybo_z7_imx219
     // ----------------------------------------
     
     assign wb_gid_stb_i    = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4000_0);   // 0x40000000-0x40000fff
-    assign wb_fmtreg_stb_i = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4001_1);   // 0x40011000-0x40011fff
+    assign wb_fmtr_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4001_0);   // 0x40010000-0x40010fff
+    assign wb_prmup_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4001_1);   // 0x40011000-0x40011fff
     assign wb_rgb_stb_i    = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4001_2);   // 0x40012000-0x40012fff
     assign wb_vdmaw_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4002_1);   // 0x40021000-0x40021fff
     
-    assign wb_peri_dat_o  = wb_gid_stb_i    ? wb_gid_dat_o    :
-                            wb_vdmaw_stb_i  ? wb_vdmaw_dat_o  :
-                            wb_fmtreg_stb_i ? wb_fmtreg_dat_o :
-                            wb_rgb_stb_i    ? wb_rgb_dat_o    :
+    assign wb_peri_dat_o  = wb_gid_stb_i   ? wb_gid_dat_o   :
+                            wb_vdmaw_stb_i ? wb_vdmaw_dat_o :
+                            wb_fmtr_stb_i  ? wb_fmtr_dat_o  :
+                            wb_rgb_stb_i   ? wb_rgb_dat_o   :
                             32'h0000_0000;
     
-    assign wb_peri_ack_o  = wb_gid_stb_i    ? wb_gid_ack_o    :
-                            wb_vdmaw_stb_i  ? wb_vdmaw_ack_o  :
-                            wb_fmtreg_stb_i ? wb_fmtreg_ack_o :
-                            wb_rgb_stb_i    ? wb_rgb_ack_o    :
+    assign wb_peri_ack_o  = wb_gid_stb_i   ? wb_gid_ack_o   :
+                            wb_vdmaw_stb_i ? wb_vdmaw_ack_o :
+                            wb_fmtr_stb_i  ? wb_fmtr_ack_o  :
+                            wb_rgb_stb_i   ? wb_rgb_ack_o   :
                             wb_peri_stb_i;
     
     
