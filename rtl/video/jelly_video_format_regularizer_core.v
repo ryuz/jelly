@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-module jelly_video_normalizer_core
+module jelly_video_format_regularizer_core
         #(
             parameter   TUSER_WIDTH       = 1,
             parameter   TDATA_WIDTH       = 24,
