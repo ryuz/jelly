@@ -101,7 +101,7 @@ module jelly_img_color_matrix
     
     
     // -------------------------------------
-    //  registers
+    //  registers domain
     // -------------------------------------
     
     // register address offset
@@ -208,7 +208,7 @@ module jelly_img_color_matrix
             );
     
     // write mask
-    function [WB_DAT_WIDTH-1:0] reg_mask(
+    function [WB_DAT_WIDTH-1:0] write_mask(
                                         input [WB_DAT_WIDTH-1:0] org,
                                         input [WB_DAT_WIDTH-1:0] wdat,
                                         input [WB_SEL_WIDTH-1:0] msk
@@ -216,7 +216,7 @@ module jelly_img_color_matrix
     integer i;
     begin
         for ( i = 0; i < WB_DAT_WIDTH; i = i+1 ) begin
-            reg_mask[i] = msk[i/8] ? wdat[i] : org[i];
+            write_mask[i] = msk[i/8] ? wdat[i] : org[i];
         end
     end
     endfunction
@@ -253,25 +253,25 @@ module jelly_img_color_matrix
             // write
             if ( s_wb_stb_i && s_wb_we_i ) begin
                 case ( s_wb_adr_i )
-                ADR_CTL_CONTROL:       reg_ctl_control     <= reg_mask(reg_param_matrix00 , s_wb_dat_i, s_wb_sel_i) | 1;
-                ADR_PARAM_MATRIX00:    reg_param_matrix00  <= reg_mask(reg_param_matrix00 , s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_MATRIX01:    reg_param_matrix01  <= reg_mask(reg_param_matrix01 , s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_MATRIX02:    reg_param_matrix02  <= reg_mask(reg_param_matrix02 , s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_MATRIX03:    reg_param_matrix03  <= reg_mask(reg_param_matrix03 , s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_MATRIX10:    reg_param_matrix10  <= reg_mask(reg_param_matrix10 , s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_MATRIX11:    reg_param_matrix11  <= reg_mask(reg_param_matrix11 , s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_MATRIX12:    reg_param_matrix12  <= reg_mask(reg_param_matrix12 , s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_MATRIX13:    reg_param_matrix13  <= reg_mask(reg_param_matrix13 , s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_MATRIX20:    reg_param_matrix20  <= reg_mask(reg_param_matrix20 , s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_MATRIX21:    reg_param_matrix21  <= reg_mask(reg_param_matrix21 , s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_MATRIX22:    reg_param_matrix22  <= reg_mask(reg_param_matrix22 , s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_MATRIX23:    reg_param_matrix23  <= reg_mask(reg_param_matrix23 , s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_CLIP_MIN0:   reg_param_clip_min0 <= reg_mask(reg_param_clip_min0, s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_CLIP_MAX0:   reg_param_clip_max0 <= reg_mask(reg_param_clip_max0, s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_CLIP_MIN1:   reg_param_clip_min1 <= reg_mask(reg_param_clip_min1, s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_CLIP_MAX1:   reg_param_clip_max1 <= reg_mask(reg_param_clip_max1, s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_CLIP_MIN2:   reg_param_clip_min2 <= reg_mask(reg_param_clip_min2, s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_CLIP_MAX2:   reg_param_clip_max2 <= reg_mask(reg_param_clip_max2, s_wb_dat_i, s_wb_sel_i);
+                ADR_CTL_CONTROL:       reg_ctl_control     <= write_mask(reg_param_matrix00 , s_wb_dat_i, s_wb_sel_i) | 1;
+                ADR_PARAM_MATRIX00:    reg_param_matrix00  <= write_mask(reg_param_matrix00 , s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_MATRIX01:    reg_param_matrix01  <= write_mask(reg_param_matrix01 , s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_MATRIX02:    reg_param_matrix02  <= write_mask(reg_param_matrix02 , s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_MATRIX03:    reg_param_matrix03  <= write_mask(reg_param_matrix03 , s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_MATRIX10:    reg_param_matrix10  <= write_mask(reg_param_matrix10 , s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_MATRIX11:    reg_param_matrix11  <= write_mask(reg_param_matrix11 , s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_MATRIX12:    reg_param_matrix12  <= write_mask(reg_param_matrix12 , s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_MATRIX13:    reg_param_matrix13  <= write_mask(reg_param_matrix13 , s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_MATRIX20:    reg_param_matrix20  <= write_mask(reg_param_matrix20 , s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_MATRIX21:    reg_param_matrix21  <= write_mask(reg_param_matrix21 , s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_MATRIX22:    reg_param_matrix22  <= write_mask(reg_param_matrix22 , s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_MATRIX23:    reg_param_matrix23  <= write_mask(reg_param_matrix23 , s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_CLIP_MIN0:   reg_param_clip_min0 <= write_mask(reg_param_clip_min0, s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_CLIP_MAX0:   reg_param_clip_max0 <= write_mask(reg_param_clip_max0, s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_CLIP_MIN1:   reg_param_clip_min1 <= write_mask(reg_param_clip_min1, s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_CLIP_MAX1:   reg_param_clip_max1 <= write_mask(reg_param_clip_max1, s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_CLIP_MIN2:   reg_param_clip_min2 <= write_mask(reg_param_clip_min2, s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_CLIP_MAX2:   reg_param_clip_max2 <= write_mask(reg_param_clip_max2, s_wb_dat_i, s_wb_sel_i);
                 endcase
             end
         end
@@ -354,10 +354,10 @@ module jelly_img_color_matrix
     
     
     // -------------------------------------
-    //  core
+    //  core domain
     // -------------------------------------
     
-    // handshake(slave)
+    // handshake with registers domain
     wire    update_trig = (s_img_valid & s_img_line_first & s_img_pixel_first);
     wire    update_en;
     
@@ -380,8 +380,6 @@ module jelly_img_color_matrix
     
     // wait for frame start to update parameters
     reg                 reg_update_req;
-    reg     [0:0]       reg_current_control;
-    reg     [1:0]       reg_current_phase;
     always @(posedge clk) begin
         if ( reset ) begin
             reg_update_req        <= 1'b0;

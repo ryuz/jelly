@@ -15,17 +15,20 @@
 
 module jelly_img_selector
         #(
-            parameter   NUM          = 2,
-            parameter   USER_WIDTH   = 0,
-            parameter   DATA_WIDTH   = 32,
+            parameter   NUM             = 2,
+            parameter   USER_WIDTH      = 0,
+            parameter   DATA_WIDTH      = 32,
             
-            parameter   WB_ADR_WIDTH = 8,
-            parameter   WB_DAT_WIDTH = 32,
-            parameter   WB_SEL_WIDTH = (WB_DAT_WIDTH / 8),
+            parameter   WB_ADR_WIDTH    = 8,
+            parameter   WB_DAT_WIDTH    = 32,
+            parameter   WB_SEL_WIDTH    = (WB_DAT_WIDTH / 8),
             
-            parameter   INIT_SEL     = 0,
+            parameter   CORE_ID         = 32'h527a_2f10,
+            parameter   CORE_VERSION    = 32'h0001_0000,
             
-            parameter   USER_BITS    = USER_WIDTH > 0 ? USER_WIDTH : 1
+            parameter   INIT_CTL_SELECT = 0,
+            
+            parameter   USER_BITS       = USER_WIDTH > 0 ? USER_WIDTH : 1
         )
         (
             input   wire                            reset,
@@ -76,12 +79,15 @@ module jelly_img_selector
     // ---------------------------------
     
     // register address offset
-    localparam  ADR_SEL = 8'h00;
+    localparam  ADR_CORE_ID      = 8'h00;
+    localparam  ADR_CORE_VERSION = 8'h01;
+    localparam  ADR_CTL_SELECT   = 8'h08;
+    localparam  ADR_CONFIG_NUM   = 8'h10;
     
     // registers
-    reg     [SEL_WIDTH-1:0]     reg_sel;
+    reg     [SEL_WIDTH-1:0]     reg_ctl_select;
     
-    function [WB_DAT_WIDTH-1:0] reg_mask(
+    function [WB_DAT_WIDTH-1:0] write_mask(
                                         input [WB_DAT_WIDTH-1:0] org,
                                         input [WB_DAT_WIDTH-1:0] wdat,
                                         input [WB_SEL_WIDTH-1:0] msk
@@ -89,26 +95,30 @@ module jelly_img_selector
     integer i;
     begin
         for ( i = 0; i < WB_DAT_WIDTH; i = i+1 ) begin
-            reg_mask[i] = msk[i/8] ? wdat[i] : org[i];
+            write_mask[i] = msk[i/8] ? wdat[i] : org[i];
         end
     end
     endfunction
     
     always @(posedge s_wb_clk_i) begin
         if ( s_wb_rst_i ) begin
-            reg_sel <= INIT_SEL;
+            reg_ctl_select <= INIT_CTL_SELECT;
         end
         else begin
             if ( s_wb_stb_i && s_wb_we_i ) begin
                 case ( s_wb_adr_i )
-                ADR_SEL:    reg_sel <= reg_mask(reg_sel, s_wb_dat_i, s_wb_sel_i);
+                ADR_CTL_SELECT:    reg_ctl_select <= write_mask(reg_ctl_select, s_wb_dat_i, s_wb_sel_i);
                 endcase
             end
         end
     end
     
-    assign s_wb_dat_o = (s_wb_adr_i == ADR_SEL) ? reg_sel :
-                        0;
+    assign s_wb_dat_o = (s_wb_adr_i == ADR_CORE_ID)      ? CORE_ID        :
+                        (s_wb_adr_i == ADR_CORE_VERSION) ? CORE_VERSION   :
+                        (s_wb_adr_i == ADR_CTL_SELECT)   ? reg_ctl_select :
+                        (s_wb_adr_i == ADR_CONFIG_NUM)   ? NUM            :
+                        {WB_DAT_WIDTH{1'b0}};
+    
     assign s_wb_ack_o = s_wb_stb_i;
     
     
@@ -130,7 +140,7 @@ module jelly_img_selector
                 .clk                (clk),
                 .cke                (cke),
                 
-                .sel                (reg_sel),
+                .sel                (reg_ctl_select),
                 
                 .s_img_line_first   (s_img_line_first),
                 .s_img_line_last    (s_img_line_last),

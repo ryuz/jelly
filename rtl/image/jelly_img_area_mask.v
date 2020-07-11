@@ -20,7 +20,7 @@ module jelly_img_area_mask
             parameter   Y_WIDTH                   = 14,
             parameter   USE_VALID                 = 0,
             
-            parameter   CORE_ID                   = 32'h527a_0104,
+            parameter   CORE_ID                   = 32'h527a_2820,
             parameter   CORE_VERSION              = 32'h0001_0000,
             parameter   INDEX_WIDTH               = 1,
             
@@ -50,6 +50,8 @@ module jelly_img_area_mask
             input   wire                            reset,
             input   wire                            clk,
             input   wire                            cke,
+            
+            input   wire                            in_update_req,
             
             input   wire                            s_wb_rst_i,
             input   wire                            s_wb_clk_i,
@@ -86,9 +88,9 @@ module jelly_img_area_mask
     localparam  RADIUS_WIDTH = 2 * XY_WIDTH;
     
     
-    // ---------------------------------
-    //  Register
-    // ---------------------------------
+    // -------------------------------------
+    //  registers domain
+    // -------------------------------------
     
     // register address offset
     localparam  ADR_CORE_ID                = 8'h00;
@@ -125,8 +127,42 @@ module jelly_img_area_mask
     localparam  ADR_CURRENT_CIRCLE_Y       = 8'hd5;
     localparam  ADR_CURRENT_CIRCLE_RADIUS2 = 8'hd6;
     
+    // registers
+    reg     [2:0]                   reg_ctl_control;
+    reg     [3:0]                   reg_param_mask_flag;
+    reg     [DATA_WIDTH-1:0]        reg_param_mask_value0;
+    reg     [DATA_WIDTH-1:0]        reg_param_mask_value1;
+    reg     [1:0]                   reg_param_rect_flag;
+    reg     [X_WIDTH-1:0]           reg_param_rect_left;
+    reg     [X_WIDTH-1:0]           reg_param_rect_right;
+    reg     [Y_WIDTH-1:0]           reg_param_rect_top;
+    reg     [Y_WIDTH-1:0]           reg_param_rect_bottom;
+    reg     [1:0]                   reg_param_circle_flag;
+    reg     [X_WIDTH-1:0]           reg_param_circle_x;
+    reg     [Y_WIDTH-1:0]           reg_param_circle_y;
+    reg     [RADIUS_WIDTH-1:0]      reg_param_circle_radius2;   // îºåaÇÃ2èÊ
+    reg     [1:0]                   reg_param_thresh_flag;
+    reg     [DATA_WIDTH-1:0]        reg_param_thresh_value;
     
-    // handshake
+    // shadow registers(core domain)
+    reg     [0:0]                   reg_current_control;
+    reg     [3:0]                   reg_current_mask_flag;
+    reg     [DATA_WIDTH-1:0]        reg_current_mask_value0;
+    reg     [DATA_WIDTH-1:0]        reg_current_mask_value1;
+    reg     [1:0]                   reg_current_rect_flag;
+    reg     [X_WIDTH-1:0]           reg_current_rect_left;
+    reg     [X_WIDTH-1:0]           reg_current_rect_right;
+    reg     [Y_WIDTH-1:0]           reg_current_rect_top;
+    reg     [Y_WIDTH-1:0]           reg_current_rect_bottom;
+    reg     [1:0]                   reg_current_circle_flag;
+    reg     [X_WIDTH-1:0]           reg_current_circle_x;
+    reg     [Y_WIDTH-1:0]           reg_current_circle_y;
+    reg     [RADIUS_WIDTH-1:0]      reg_current_circle_radius2;
+    reg     [1:0]                   reg_current_thresh_flag;
+    reg     [DATA_WIDTH-1:0]        reg_current_thresh_value;
+    
+    
+    // handshake with core domain
     wire    [INDEX_WIDTH-1:0]   update_index;
     wire                        update_ack;
     wire    [INDEX_WIDTH-1:0]   ctl_index;
@@ -145,40 +181,9 @@ module jelly_img_area_mask
                 .out_index      (ctl_index)
             );
     
-    // registers
-    reg     [2:0]                   reg_ctl_control;
-    reg     [3:0]                   reg_param_mask_flag;
-    reg     [DATA_WIDTH-1:0]        reg_param_mask_value0;
-    reg     [DATA_WIDTH-1:0]        reg_param_mask_value1;
-    reg     [1:0]                   reg_param_rect_flag;
-    reg     [X_WIDTH-1:0]           reg_param_rect_left;
-    reg     [X_WIDTH-1:0]           reg_param_rect_right;
-    reg     [Y_WIDTH-1:0]           reg_param_rect_top;
-    reg     [Y_WIDTH-1:0]           reg_param_rect_bottom;
-    reg     [1:0]                   reg_param_circle_flag;
-    reg     [X_WIDTH-1:0]           reg_param_circle_x;
-    reg     [Y_WIDTH-1:0]           reg_param_circle_y;
-    reg     [RADIUS_WIDTH-1:0]      reg_param_circle_radius2;   // îºåaÇÃ2èÊ
-    reg     [1:0]                   reg_param_thresh_flag;
-    reg     [DATA_WIDTH-1:0]        reg_param_thresh_value;
     
-    reg                             reg_current_enable;
-    reg     [3:0]                   reg_current_mask_flag;
-    reg     [DATA_WIDTH-1:0]        reg_current_mask_value0;
-    reg     [DATA_WIDTH-1:0]        reg_current_mask_value1;
-    reg     [1:0]                   reg_current_rect_flag;
-    reg     [X_WIDTH-1:0]           reg_current_rect_left;
-    reg     [X_WIDTH-1:0]           reg_current_rect_right;
-    reg     [Y_WIDTH-1:0]           reg_current_rect_top;
-    reg     [Y_WIDTH-1:0]           reg_current_rect_bottom;
-    reg     [1:0]                   reg_current_circle_flag;
-    reg     [X_WIDTH-1:0]           reg_current_circle_x;
-    reg     [Y_WIDTH-1:0]           reg_current_circle_y;
-    reg     [RADIUS_WIDTH-1:0]      reg_current_circle_radius2;
-    reg     [1:0]                   reg_current_thresh_flag;
-    reg     [DATA_WIDTH-1:0]        reg_current_thresh_value;
-    
-    function [WB_DAT_WIDTH-1:0] reg_mask(
+    // write mask
+    function [WB_DAT_WIDTH-1:0] write_mask(
                                         input [WB_DAT_WIDTH-1:0] org,
                                         input [WB_DAT_WIDTH-1:0] wdat,
                                         input [WB_SEL_WIDTH-1:0] msk
@@ -186,11 +191,12 @@ module jelly_img_area_mask
     integer i;
     begin
         for ( i = 0; i < WB_DAT_WIDTH; i = i+1 ) begin
-            reg_mask[i] = msk[i/8] ? wdat[i] : org[i];
+            write_mask[i] = msk[i/8] ? wdat[i] : org[i];
         end
     end
     endfunction
     
+    // registers control
     always @(posedge s_wb_clk_i) begin
         if ( s_wb_rst_i ) begin
             reg_ctl_control          <= INIT_CTL_CONTROL;
@@ -216,30 +222,31 @@ module jelly_img_area_mask
             
             if ( s_wb_stb_i && s_wb_we_i ) begin
                 case ( s_wb_adr_i )
-                ADR_CTL_CONTROL:            reg_ctl_control          <= reg_mask(reg_ctl_control,           s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_MASK_FLAG:        reg_param_mask_flag      <= reg_mask(reg_param_mask_flag,       s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_MASK_VALUE0:      reg_param_mask_value0    <= reg_mask(reg_param_mask_value0,     s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_MASK_VALUE1:      reg_param_mask_value1    <= reg_mask(reg_param_mask_value1,     s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_THRESH_FLAG:      reg_param_thresh_flag    <= reg_mask(reg_param_thresh_flag,     s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_THRESH_VALUE:     reg_param_thresh_value   <= reg_mask(reg_param_thresh_value,    s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_RECT_FLAG:        reg_param_rect_flag      <= reg_mask(reg_param_rect_flag,       s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_RECT_LEFT:        reg_param_rect_left      <= reg_mask(reg_param_rect_left,       s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_RECT_RIGHT:       reg_param_rect_right     <= reg_mask(reg_param_rect_right,      s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_RECT_TOP:         reg_param_rect_top       <= reg_mask(reg_param_rect_top,        s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_RECT_BOTTOM:      reg_param_rect_bottom    <= reg_mask(reg_param_rect_bottom,     s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_CIRCLE_FLAG:      reg_param_circle_flag    <= reg_mask(reg_param_circle_flag,     s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_CIRCLE_X:         reg_param_circle_x       <= reg_mask(reg_param_circle_x,        s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_CIRCLE_Y:         reg_param_circle_y       <= reg_mask(reg_param_circle_y,        s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_CIRCLE_RADIUS2:   reg_param_circle_radius2 <= reg_mask(reg_param_circle_radius2,  s_wb_dat_i, s_wb_sel_i);
+                ADR_CTL_CONTROL:            reg_ctl_control          <= write_mask(reg_ctl_control,           s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_MASK_FLAG:        reg_param_mask_flag      <= write_mask(reg_param_mask_flag,       s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_MASK_VALUE0:      reg_param_mask_value0    <= write_mask(reg_param_mask_value0,     s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_MASK_VALUE1:      reg_param_mask_value1    <= write_mask(reg_param_mask_value1,     s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_THRESH_FLAG:      reg_param_thresh_flag    <= write_mask(reg_param_thresh_flag,     s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_THRESH_VALUE:     reg_param_thresh_value   <= write_mask(reg_param_thresh_value,    s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_RECT_FLAG:        reg_param_rect_flag      <= write_mask(reg_param_rect_flag,       s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_RECT_LEFT:        reg_param_rect_left      <= write_mask(reg_param_rect_left,       s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_RECT_RIGHT:       reg_param_rect_right     <= write_mask(reg_param_rect_right,      s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_RECT_TOP:         reg_param_rect_top       <= write_mask(reg_param_rect_top,        s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_RECT_BOTTOM:      reg_param_rect_bottom    <= write_mask(reg_param_rect_bottom,     s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_CIRCLE_FLAG:      reg_param_circle_flag    <= write_mask(reg_param_circle_flag,     s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_CIRCLE_X:         reg_param_circle_x       <= write_mask(reg_param_circle_x,        s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_CIRCLE_Y:         reg_param_circle_y       <= write_mask(reg_param_circle_y,        s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_CIRCLE_RADIUS2:   reg_param_circle_radius2 <= write_mask(reg_param_circle_radius2,  s_wb_dat_i, s_wb_sel_i);
                 endcase
             end
         end
     end
     
+    // read
     assign s_wb_dat_o = (s_wb_adr_i == ADR_CORE_ID)                ? CORE_ID                    :
                         (s_wb_adr_i == ADR_CORE_VERSION)           ? CORE_VERSION               :
                         (s_wb_adr_i == ADR_CTL_CONTROL)            ? reg_ctl_control            :
-                        (s_wb_adr_i == ADR_CTL_STATUS)             ? reg_current_enable         :
+                        (s_wb_adr_i == ADR_CTL_STATUS)             ? reg_current_control        :
                         (s_wb_adr_i == ADR_CTL_INDEX)              ? ctl_index                  :
                         (s_wb_adr_i == ADR_PARAM_MASK_FLAG)        ? reg_param_mask_flag        :
                         (s_wb_adr_i == ADR_PARAM_MASK_VALUE0)      ? reg_param_mask_value0      :
@@ -270,11 +277,16 @@ module jelly_img_area_mask
                         (s_wb_adr_i == ADR_CURRENT_CIRCLE_Y)       ? reg_current_circle_y       :
                         (s_wb_adr_i == ADR_CURRENT_CIRCLE_RADIUS2) ? reg_current_circle_radius2 :
                         0;
+    
     assign s_wb_ack_o = s_wb_stb_i;
     
     
+
+    // -------------------------------------
+    //  core domain
+    // -------------------------------------
     
-    // parameter latch
+    // handshake with registers domain
     wire    update_trig = (s_img_valid & s_img_line_first & s_img_pixel_first);
     wire    update_en;
     
@@ -295,39 +307,57 @@ module jelly_img_area_mask
                 .out_index      (update_index)
             );
     
+    // wait for frame start to update parameters
+    reg                 reg_update_req;
     always @(posedge clk) begin
         if ( reset ) begin
-            reg_current_enable <= 1'b0;
-        end
-        else if ( cke ) begin
-            if ( update_trig ) begin
-                reg_current_enable <= reg_ctl_control[0];
+            reg_update_req             <= 1'b0;
+            reg_current_control        <= INIT_CTL_CONTROL;
+            reg_current_mask_flag      <= INIT_PARAM_MASK_FLAG;
+            reg_current_mask_value0    <= INIT_PARAM_MASK_VALUE0;
+            reg_current_mask_value1    <= INIT_PARAM_MASK_VALUE1;
+            reg_current_rect_flag      <= INIT_PARAM_THRESH_FLAG;
+            reg_current_rect_left      <= INIT_PARAM_THRESH_VALUE;
+            reg_current_rect_right     <= INIT_PARAM_RECT_FLAG;
+            reg_current_rect_top       <= INIT_PARAM_RECT_LEFT;
+            reg_current_rect_bottom    <= INIT_PARAM_RECT_RIGHT;
+            reg_current_circle_flag    <= INIT_PARAM_RECT_TOP;
+            reg_current_circle_x       <= INIT_PARAM_RECT_BOTTOM;
+            reg_current_circle_y       <= INIT_PARAM_CIRCLE_FLAG;
+            reg_current_circle_radius2 <= INIT_PARAM_CIRCLE_X;
+            reg_current_thresh_flag    <= INIT_PARAM_CIRCLE_Y;
+            reg_current_thresh_value   <= INIT_PARAM_CIRCLE_RADIUS2;
+       end
+        else begin
+            if ( in_update_req ) begin
+                reg_update_req <= 1'b1;
+            end
+            
+            if ( cke ) begin
+                if ( reg_update_req & update_trig & update_en ) begin
+                    reg_update_req             <= 1'b0;
+                    
+                    reg_current_control        <= reg_ctl_control[0];
+                    reg_current_mask_flag      <= reg_param_mask_flag;
+                    reg_current_mask_value0    <= reg_param_mask_value0;
+                    reg_current_mask_value1    <= reg_param_mask_value1;
+                    reg_current_rect_flag      <= reg_param_rect_flag;
+                    reg_current_rect_left      <= reg_param_rect_left;
+                    reg_current_rect_right     <= reg_param_rect_right;
+                    reg_current_rect_top       <= reg_param_rect_top;
+                    reg_current_rect_bottom    <= reg_param_rect_bottom;
+                    reg_current_circle_flag    <= reg_param_circle_flag;
+                    reg_current_circle_x       <= reg_param_circle_x;
+                    reg_current_circle_y       <= reg_param_circle_y;
+                    reg_current_circle_radius2 <= reg_param_circle_radius2;
+                    reg_current_thresh_flag    <= reg_param_thresh_flag;
+                    reg_current_thresh_value   <= reg_param_thresh_value;
+                end
             end
         end
     end
     
-    always @(posedge clk) begin
-        if ( cke ) begin
-            if ( update_trig & update_en ) begin
-                reg_current_mask_flag      <= reg_param_mask_flag;
-                reg_current_mask_value0    <= reg_param_mask_value0;
-                reg_current_mask_value1    <= reg_param_mask_value1;
-                reg_current_rect_flag      <= reg_param_rect_flag;
-                reg_current_rect_left      <= reg_param_rect_left;
-                reg_current_rect_right     <= reg_param_rect_right;
-                reg_current_rect_top       <= reg_param_rect_top;
-                reg_current_rect_bottom    <= reg_param_rect_bottom;
-                reg_current_circle_flag    <= reg_param_circle_flag;
-                reg_current_circle_x       <= reg_param_circle_x;
-                reg_current_circle_y       <= reg_param_circle_y;
-                reg_current_circle_radius2 <= reg_param_circle_radius2;
-                reg_current_thresh_flag    <= reg_param_thresh_flag;
-                reg_current_thresh_value   <= reg_param_thresh_value;
-            end
-        end
-    end
-    
-    
+    // core
     jelly_img_area_mask_core
             #(
                 .USER_WIDTH         (USER_WIDTH),
@@ -342,7 +372,7 @@ module jelly_img_area_mask
                 .clk                (clk),
                 .cke                (cke),
                 
-                .enable             (reg_current_enable),
+                .enable             (reg_current_control[0]),
                 
                 .mask_or            (reg_current_mask_flag[0]),
                 .mask_inv           (reg_current_mask_flag[1]),
