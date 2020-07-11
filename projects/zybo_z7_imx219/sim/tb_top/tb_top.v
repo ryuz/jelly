@@ -172,20 +172,20 @@ module tb_top();
     
     initial begin
     @(negedge wb_rst_i);
-    #10000;
         $display("start");
-        wb_write(32'h00010010, 32'h00, 4'b1111);
+
     #10000;
-        $display("set normalizer");
-        wb_read (32'h40010000);                     // CORE ID
-        wb_write(32'h40010040, X_NUM, 4'b1111);     // width
-        wb_write(32'h40010044, Y_NUM, 4'b1111);     // height
-        wb_write(32'h40010048,     0, 4'b1111);     // fill
-        wb_write(32'h4001004c,  1024, 4'b1111);     // timeout
-        wb_write(32'h40010010,     1, 4'b1111);     // enable
+        $display("set format regularizer");
+        wb_read (32'h40010000);                         // CORE ID
+        wb_write(32'h40010040,        X_NUM, 4'b1111);  // width
+        wb_write(32'h40010044,        Y_NUM, 4'b1111);  // height
+        wb_write(32'h40010048,            0, 4'b1111);  // fill
+        wb_write(32'h4001004c,         1024, 4'b1111);  // timeout
+        wb_write(32'h40010010,            1, 4'b1111);  // enable
     #100000;
         
         $display("set write DMA");
+        wb_read (32'h40021000);                         // CORE ID
         wb_write(32'h40021020, 32'h30000000, 4'b1111);  // address
         wb_write(32'h40021024,      4*X_NUM, 4'b1111);  // stride
         wb_write(32'h40021028,        X_NUM, 4'b1111);  // width

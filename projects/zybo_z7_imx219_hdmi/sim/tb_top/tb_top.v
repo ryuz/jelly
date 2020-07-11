@@ -238,41 +238,41 @@ module tb_top();
     
     initial begin
     @(negedge wb_rst_i);
-    #10000;
         $display("start");
-        wb_write(32'h00010010, 32'h00, 4'b1111);
     #10000;
         
-        // normarizer
-        wb_write(32'h40011020, X_NUM, 4'b1111);             // width
-        wb_write(32'h40011024, Y_NUM, 4'b1111);             // height
-        wb_write(32'h40011028,     0, 4'b1111);             // fill
-        wb_write(32'h4001102c,  1024, 4'b1111);             // timeout
-        wb_write(32'h40011000,     1, 4'b1111);             // enable
+        $display("set format regularizer");
+        wb_read (32'h40010000);                     // CORE ID
+        wb_write(32'h40010040,        X_NUM, 4'b1111);     // width
+        wb_write(32'h40010044,        Y_NUM, 4'b1111);     // height
+        wb_write(32'h40010048,            0, 4'b1111);     // fill
+        wb_write(32'h4001004c,         1024, 4'b1111);     // timeout
+        wb_write(32'h40010010,            1, 4'b1111);     // enable
         
     #10000;
-        // vin write DMA
-        wb_write(32'h40010020, 32'h30000000, 4'b1111);
-        wb_write(32'h40010024,       STRIDE, 4'b1111);      // stride
-        wb_write(32'h40010028,        X_NUM, 4'b1111);      // width
-        wb_write(32'h4001002c,        Y_NUM, 4'b1111);      // height
-        wb_write(32'h40010030,  X_NUM*Y_NUM, 4'b1111);      // size
-        wb_write(32'h4001003c,           31, 4'b1111);      // awlen
-        wb_write(32'h40010010,            3, 4'b1111);
+        $display("vin write DMA");
+        wb_read (32'h40021000);                             // CORE ID
+        wb_write(32'h40021020, 32'h30000000, 4'b1111);      // address
+        wb_write(32'h40021024,       STRIDE, 4'b1111);      // stride
+        wb_write(32'h40021028,        X_NUM, 4'b1111);      // width
+        wb_write(32'h4002102c,        Y_NUM, 4'b1111);      // height
+        wb_write(32'h40021030,  X_NUM*Y_NUM, 4'b1111);      // size
+        wb_write(32'h4002103c,           31, 4'b1111);      // awlen
+        wb_write(32'h40021010,            3, 4'b1111);      // update & enable
         axi4s_model_aresetn = 1'b1;
         
     #100000;
-        // vout read DMA
-        wb_write(32'h40020020, 32'h30000000, 4'b1111);
-        wb_write(32'h40020024,       STRIDE, 4'b1111);      // stride
-        wb_write(32'h40020028,         1280, 4'b1111);      // width
-        wb_write(32'h4002002c,          720, 4'b1111);      // height
-        wb_write(32'h40020030,     1280*720, 4'b1111);      // size
-        wb_write(32'h4002003c,           31, 4'b1111);      // awlen
-        wb_write(32'h40020010,            3, 4'b1111);      // control
+        $display("vout read DMA");
+        wb_write(32'h40024020, 32'h30000000, 4'b1111);      // address
+        wb_write(32'h40024024,       STRIDE, 4'b1111);      // stride
+        wb_write(32'h40024028,         1280, 4'b1111);      // width
+        wb_write(32'h4002402c,          720, 4'b1111);      // height
+        wb_write(32'h40024030,     1280*720, 4'b1111);      // size
+        wb_write(32'h4002403c,           31, 4'b1111);      // awlen
+        wb_write(32'h40024010,            3, 4'b1111);      // update & enable
         
-        // vout vsync generator
-        wb_write(32'h40021010,            1, 4'b1111);      // control
+        $display("vout vsync generator");
+        wb_write(32'h40026010,            1, 4'b1111);      // enable
     end
     
     
