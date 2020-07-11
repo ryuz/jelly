@@ -170,7 +170,7 @@ void gpu_test(void *gpu_addr)
 		JGL::Mat4	matRotate01 = JGL::RotateMat4(angle01, {0, 0, 1});	//angle01 -= (float)mpu.gyro[1] / 10000.0f;
 		JGL::Mat4	matRotate02 = JGL::RotateMat4(angle02, {1, 0, 0});	//angle02 -= (float)mpu.gyro[2] / 10000.0f;
 		jgl.SetModelMatrix(0, JGL::MulMat(matRotate00, JGL::MulMat(matRotate01, matRotate02)));
-		angle00 += 0.1;
+		angle00 += 0.2;
 //		angle00 *= 0.98f;
 //		angle01 *= 0.98f;
 //		angle02 *= 0.98f;
@@ -203,7 +203,7 @@ void gpu_test(void *gpu_addr)
 			;
 		base_addr[0x21] = 1;
 		base_addr[0x20] = 1;
-	} while ( 1 );
+	} while ( angle00 < 360 );
 }
 
 
