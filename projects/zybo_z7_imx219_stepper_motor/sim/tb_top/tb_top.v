@@ -18,8 +18,7 @@ module tb_top();
         $dumpvars(1, i_axi4s_master_model);
         $dumpvars(1, i_top);
         $dumpvars(1, i_top.i_image_processing);
-        $dumpvars(0, i_top.i_image_processing.i_video_parameter_update);
-        $dumpvars(0, i_top.i_image_processing.i_img_mean_grad_to_angle);
+        $dumpvars(1, i_top.i_image_processing.i_img_mean_grad_to_angle);
         $dumpvars(1, i_top.i_data_logger_fifo_img);
         $dumpvars(1, i_top.i_data_logger_fifo_motor);
         
@@ -239,21 +238,27 @@ module tb_top();
     @(negedge wb_rst_i);
     #10000;
         $display("start");
-        
-        
+
     #1000;
-        // 画像コアID読み出し
-        $display("read image core ID");
+        $display("read core ID");
+        wb_read(32'h40010000);
+        wb_read(32'h40011000);
+        wb_read(32'h40021000);
         wb_read(32'h40030000);  // demosaic
         wb_read(32'h40030400);  // col mat
         wb_read(32'h40030800);  // gauss
         wb_read(32'h40030c00);  // mask
         wb_read(32'h40033c00);  // sel
-
+        wb_read(32'h40041000);
+        wb_read(32'h40042000);
+        wb_read(32'h40070000);
+        wb_read(32'h40071000);
+        
     #1000;
         // demosaic
         $display("set demosaic");
-        wb_write(32'h40030000,     0, 4'b1111);        // byer phase
+        wb_write(32'h40030040,     0, 4'b1111);        // byer phase
+        wb_write(32'h40030010,     3, 4'b1111);        // enable
 
         // gauss
         $display("set gauss");
@@ -261,106 +266,105 @@ module tb_top();
         wb_write(32'h40030800 + 8'h04*4, 32'h0003, 4'b1111);     // ctl_control
         
         // mask
-//      wb_write(32'h40030800 + 8'h08*4, 32'h000f, 4'b1111);     // param_enable
-//      wb_write(32'h40030800 + 8'h04*4, 32'h0003, 4'b1111);     // ctl_control
+//      wb_write(32'h40040c00 + 8'h08*4, 32'h000f, 4'b1111);     // param_enable
+//      wb_write(32'h40040c00 + 8'h04*4, 32'h0003, 4'b1111);     // ctl_control
         
         
-        // normalizer (取り込み開始)
-        $display("set normalizer");
-        wb_write(32'h40011020, X_NUM, 4'b1111);     // width
-        wb_write(32'h40011020, X_NUM, 4'b1111);     // width
-        wb_write(32'h40011024, Y_NUM, 4'b1111);     // height
-        wb_write(32'h40011028,     0, 4'b1111);     // fill
-        wb_write(32'h4001102c,  1024, 4'b1111);     // timeout
-        wb_write(32'h40011000,     1, 4'b1111);     // enable
+        // 取り込み開始
+        $display("set format reg");
+        wb_write(32'h40010040, X_NUM, 4'b1111);     // width
+        wb_write(32'h40010044, Y_NUM, 4'b1111);     // height
+        wb_write(32'h40010048,     0, 4'b1111);     // fill
+        wb_write(32'h4001004c,  1024, 4'b1111);     // timeout
+        wb_write(32'h40010010,     1, 4'b1111);     // enable
     
     #1000;
         $display("start image input");
         axi4s_model_enbale = 1'b1;
         
         $display("start motor");
-        wb_write(32'h40020000 + 4*8'h09,  10000, 4'b1111);     // MAX_V
-        wb_write(32'h40020000 + 4*8'h0a,    100, 4'b1111);     // MAX_A
-        wb_write(32'h40020000 + 4*8'h0f,    200, 4'b1111);     // MAX_A_NEAR
-        wb_write(32'h40020000 + 4*8'h04, 100000, 4'b1111);     // ARGET_X
-        wb_write(32'h40020000 + 4*8'h02,      1, 4'b1111);     // CTL_TARGET
-        wb_write(32'h40020000 + 4*8'h01,      1, 4'b1111);     // CTL_ENABLE
+        wb_write(32'h40031000 + 4*8'h09,  10000, 4'b1111);     // MAX_V
+        wb_write(32'h40031000 + 4*8'h0a,    100, 4'b1111);     // MAX_A
+        wb_write(32'h40031000 + 4*8'h0f,    200, 4'b1111);     // MAX_A_NEAR
+        wb_write(32'h40031000 + 4*8'h04, 100000, 4'b1111);     // ARGET_X
+        wb_write(32'h40031000 + 4*8'h02,      1, 4'b1111);     // CTL_TARGET
+        wb_write(32'h40031000 + 4*8'h01,      1, 4'b1111);     // CTL_ENABLE
         
         
     #10000;
         $display("set selector");
-        wb_write(32'h40033c00,     1, 4'b1111);        // selector
+        wb_write(32'h40043c00,     1, 4'b1111);        // selector
         
         
     #1000000;
         $display("log0 read0");
-        wb_read(32'h40070000 + 4*8'h05); // CTL_STATUS 
-        wb_read(32'h40070000 + 4*8'h07); // CTL_COUNT  
-        wb_read(32'h40070000 + 4*8'h08); // POL_TIMER0 
-        wb_read(32'h40070000 + 4*8'h09); // POL_TIMER1 
-        wb_read(32'h40070000 + 4*8'h10); // POL_DATA0  
+        wb_read (32'h40070000 + 4*8'h05); // CTL_STATUS 
+        wb_read (32'h40070000 + 4*8'h07); // CTL_COUNT  
+        wb_read (32'h40070000 + 4*8'h08); // POL_TIMER0 
+        wb_read (32'h40070000 + 4*8'h09); // POL_TIMER1 
+        wb_read (32'h40070000 + 4*8'h10); // POL_DATA0  
         wb_write(32'h40070000 + 4*8'h04, 1, 4'b1111);     // CTL_CONTROL 
         
         $display("log0 read1");
-        wb_read(32'h40070000 + 4*8'h05); // CTL_STATUS 
-        wb_read(32'h40070000 + 4*8'h07); // CTL_COUNT  
-        wb_read(32'h40070000 + 4*8'h08); // POL_TIMER0 
-        wb_read(32'h40070000 + 4*8'h09); // POL_TIMER1 
-        wb_read(32'h40070000 + 4*8'h10); // POL_DATA0  
+        wb_read (32'h40070000 + 4*8'h05); // CTL_STATUS 
+        wb_read (32'h40070000 + 4*8'h07); // CTL_COUNT  
+        wb_read (32'h40070000 + 4*8'h08); // POL_TIMER0 
+        wb_read (32'h40070000 + 4*8'h09); // POL_TIMER1 
+        wb_read (32'h40070000 + 4*8'h10); // POL_DATA0  
         wb_write(32'h40070000 + 4*8'h04, 1, 4'b1111);     // CTL_CONTROL 
         
         $display("log0 read2");
-        wb_read(32'h40070000 + 4*8'h05); // CTL_STATUS 
-        wb_read(32'h40070000 + 4*8'h07); // CTL_COUNT  
-        wb_read(32'h40070000 + 4*8'h08); // POL_TIMER0 
-        wb_read(32'h40070000 + 4*8'h09); // POL_TIMER1 
-        wb_read(32'h40070000 + 4*8'h10); // POL_DATA0  
+        wb_read (32'h40070000 + 4*8'h05); // CTL_STATUS 
+        wb_read (32'h40070000 + 4*8'h07); // CTL_COUNT  
+        wb_read (32'h40070000 + 4*8'h08); // POL_TIMER0 
+        wb_read (32'h40070000 + 4*8'h09); // POL_TIMER1 
+        wb_read (32'h40070000 + 4*8'h10); // POL_DATA0  
         wb_write(32'h40070000 + 4*8'h04, 1, 4'b1111);     // CTL_CONTROL 
         
         
         $display("log1 read0");
-        wb_read(32'h40071000 + 4*8'h05); // CTL_STATUS 
-        wb_read(32'h40071000 + 4*8'h07); // CTL_COUNT  
-        wb_read(32'h40071000 + 4*8'h08); // POL_TIMER0 
-        wb_read(32'h40071000 + 4*8'h09); // POL_TIMER1 
-        wb_read(32'h40071000 + 4*8'h10); // POL_DATA0  
-        wb_read(32'h40071000 + 4*8'h11); // POL_DATA1  
-        wb_read(32'h40071000 + 4*8'h12); // POL_DATA2  
-        wb_read(32'h40071000 + 4*8'h13); // POL_DATA3  
-        wb_read(32'h40071000 + 4*8'h14); // POL_DATA4  
-        wb_read(32'h40071000 + 4*8'h15); // POL_DATA5  
-        wb_read(32'h40071000 + 4*8'h16); // POL_DATA6  
-        wb_read(32'h40071000 + 4*8'h17); // POL_DATA7  
+        wb_read (32'h40071000 + 4*8'h05); // CTL_STATUS 
+        wb_read (32'h40071000 + 4*8'h07); // CTL_COUNT  
+        wb_read (32'h40071000 + 4*8'h08); // POL_TIMER0 
+        wb_read (32'h40071000 + 4*8'h09); // POL_TIMER1 
+        wb_read (32'h40071000 + 4*8'h10); // POL_DATA0  
+        wb_read (32'h40071000 + 4*8'h11); // POL_DATA1  
+        wb_read (32'h40071000 + 4*8'h12); // POL_DATA2  
+        wb_read (32'h40071000 + 4*8'h13); // POL_DATA3  
+        wb_read (32'h40071000 + 4*8'h14); // POL_DATA4  
+        wb_read (32'h40071000 + 4*8'h15); // POL_DATA5  
+        wb_read (32'h40071000 + 4*8'h16); // POL_DATA6  
+        wb_read (32'h40071000 + 4*8'h17); // POL_DATA7  
         wb_write(32'h40071000 + 4*8'h04, 1, 4'b1111);     // CTL_CONTROL 
         
         $display("log1 read1");
-        wb_read(32'h40071000 + 4*8'h05); // CTL_STATUS 
-        wb_read(32'h40071000 + 4*8'h07); // CTL_COUNT  
-        wb_read(32'h40071000 + 4*8'h08); // POL_TIMER0 
-        wb_read(32'h40071000 + 4*8'h09); // POL_TIMER1 
-        wb_read(32'h40071000 + 4*8'h10); // POL_DATA0  
-        wb_read(32'h40071000 + 4*8'h11); // POL_DATA1  
-        wb_read(32'h40071000 + 4*8'h12); // POL_DATA2  
-        wb_read(32'h40071000 + 4*8'h13); // POL_DATA3  
-        wb_read(32'h40071000 + 4*8'h14); // POL_DATA4  
-        wb_read(32'h40071000 + 4*8'h15); // POL_DATA5  
-        wb_read(32'h40071000 + 4*8'h16); // POL_DATA6  
-        wb_read(32'h40071000 + 4*8'h17); // POL_DATA7  
+        wb_read (32'h40071000 + 4*8'h05); // CTL_STATUS 
+        wb_read (32'h40071000 + 4*8'h07); // CTL_COUNT  
+        wb_read (32'h40071000 + 4*8'h08); // POL_TIMER0 
+        wb_read (32'h40071000 + 4*8'h09); // POL_TIMER1 
+        wb_read (32'h40071000 + 4*8'h10); // POL_DATA0  
+        wb_read (32'h40071000 + 4*8'h11); // POL_DATA1  
+        wb_read (32'h40071000 + 4*8'h12); // POL_DATA2  
+        wb_read (32'h40071000 + 4*8'h13); // POL_DATA3  
+        wb_read (32'h40071000 + 4*8'h14); // POL_DATA4  
+        wb_read (32'h40071000 + 4*8'h15); // POL_DATA5  
+        wb_read (32'h40071000 + 4*8'h16); // POL_DATA6  
+        wb_read (32'h40071000 + 4*8'h17); // POL_DATA7  
         wb_write(32'h40071000 + 4*8'h04, 1, 4'b1111);     // CTL_CONTROL 
         
         $display("log0 read2");
-        wb_read(32'h40071000 + 4*8'h05); // CTL_STATUS 
-        wb_read(32'h40071000 + 4*8'h07); // CTL_COUNT  
-        wb_read(32'h40071000 + 4*8'h08); // POL_TIMER0 
-        wb_read(32'h40071000 + 4*8'h09); // POL_TIMER1 
-        wb_read(32'h40071000 + 4*8'h10); // POL_DATA0  
-        wb_read(32'h40071000 + 4*8'h11); // POL_DATA1  
-        wb_read(32'h40071000 + 4*8'h12); // POL_DATA2  
-        wb_read(32'h40071000 + 4*8'h13); // POL_DATA3  
-        wb_read(32'h40071000 + 4*8'h14); // POL_DATA4  
-        wb_read(32'h40071000 + 4*8'h15); // POL_DATA5  
-        wb_read(32'h40071000 + 4*8'h16); // POL_DATA6  
-        wb_read(32'h40071000 + 4*8'h17); // POL_DATA7  
+        wb_read (32'h40071000 + 4*8'h05); // CTL_STATUS 
+        wb_read (32'h40071000 + 4*8'h07); // CTL_COUNT  
+        wb_read (32'h40071000 + 4*8'h08); // POL_TIMER0 
+        wb_read (32'h40071000 + 4*8'h09); // POL_TIMER1 
+        wb_read (32'h40071000 + 4*8'h10); // POL_DATA0  
+        wb_read (32'h40071000 + 4*8'h11); // POL_DATA1  
+        wb_read (32'h40071000 + 4*8'h12); // POL_DATA2  
+        wb_read (32'h40071000 + 4*8'h13); // POL_DATA3  
+        wb_read (32'h40071000 + 4*8'h14); // POL_DATA4  
+        wb_read (32'h40071000 + 4*8'h15); // POL_DATA5  
+        wb_read (32'h40071000 + 4*8'h16); // POL_DATA6  
+        wb_read (32'h40071000 + 4*8'h17); // POL_DATA7  
         wb_write(32'h40071000 + 4*8'h04, 1, 4'b1111);     // CTL_CONTROL 
         
 /*
