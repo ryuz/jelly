@@ -380,7 +380,7 @@ int main(int argc, char *argv[])
     int motor_en         = 1;
     int motor_mode       = 1;
     int motor_x          = 200;
-    int motor_v          = 105;
+    int motor_v          = 101;
     int motor_max_v      = 1000;
     int motor_max_a      = 10;
     cv::namedWindow("motor");
@@ -620,12 +620,18 @@ void write_log(MemAccess& reg_log0, MemAccess& reg_log1, int num0, int num1)
     reg_log0.WriteReg(REG_LOG_CTL_CONTROL, 0);
     reg_log1.WriteReg(REG_LOG_CTL_CONTROL, 0);
 
-    std::cout << reg_log0.ReadReg(REG_LOG_CTL_STATUS) << std::endl;
-    std::cout << reg_log0.ReadReg(REG_LOG_CTL_COUNT) << std::endl;
+//    std::cout << reg_log0.ReadReg(REG_LOG_CTL_STATUS) << std::endl;
+//    std::cout << reg_log0.ReadReg(REG_LOG_CTL_COUNT) << std::endl;
+
+    int max_img = 0;
+    int max_mot = 0;
 
     // ロギング
     std::cout << "start" << std::endl;
     while ( (int)vec_img.size() < num0 && (int)vec_mot.size() < num1 ) {
+        max_img = std::max(max_img, (int)reg_log0.ReadReg(REG_LOG_CTL_COUNT));
+        max_mot = std::max(max_mot, (int)reg_log1.ReadReg(REG_LOG_CTL_COUNT));
+
         if ( reg_log0.ReadReg(REG_LOG_CTL_STATUS) ) {
             logger_image li;
             li.time  = ((std::uint64_t)reg_log0.ReadReg(REG_LOG_POL_TIMER0) << 0)
@@ -652,6 +658,8 @@ void write_log(MemAccess& reg_log0, MemAccess& reg_log1, int num0, int num1)
         }
     }
     std::cout << "end" << std::endl;
+    std::cout << "max_img : " << max_img << std::endl;
+    std::cout << "max_mot : " << max_mot << std::endl;
 
     {
         std::ofstream ofs("log0.csv");
