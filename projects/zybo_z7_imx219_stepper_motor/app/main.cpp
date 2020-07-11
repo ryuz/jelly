@@ -8,20 +8,18 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-//#include <sys/mman.h>
-//#include <errno.h>
-//#include <sys/ioctl.h>
-//#include <linux/i2c-dev.h>
+
 #include <opencv2/opencv.hpp>
 
+#include "jelly/JellyRegs.h"
 #include "jelly/UioAccess.h"
 #include "jelly/UdmabufAccess.h"
 #include "I2cAccess.h"
 #include "IMX219Control.h"
 
-using namespace jelly;
+//using namespace jelly;
 
-
+/*
 // Video Write-DMA
 #define REG_WDMA_ID                     0x00
 #define REG_WDMA_VERSION                0x01
@@ -101,6 +99,7 @@ using namespace jelly;
 #define REG_MASK_CURRENT_CIRCLE_RADIUS2 0xd6
 
 #define REG_IMGSEL_SELECT               0x00
+*/
 
 #define REG_DIFF_ENABLE                 0x00
 #define REG_DIFF_TARGET                 0x01
@@ -151,8 +150,8 @@ using namespace jelly;
 #define REG_LOG_READ_DATA               0x20
 
 
-void capture_still_image(MemAccess& reg_wdma, MemAccess& reg_norm, std::uintptr_t bufaddr, int width, int height, int frame_num);
-void write_log(MemAccess& reg_log0, MemAccess& reg_log1, int num0, int num1);
+void capture_still_image(jelly::MemAccess& reg_wdma, jelly::MemAccess& reg_norm, std::uintptr_t bufaddr, int width, int height, int frame_num);
+void write_log(jelly::MemAccess& reg_log0, jelly::MemAccess& reg_log1, int num0, int num1);
 
 
 int main(int argc, char *argv[])
@@ -246,25 +245,42 @@ int main(int argc, char *argv[])
 
 
     // mmap uio
-    UioAccess uio_acc("uio_pl_peri", 0x00100000);
+    jelly::UioAccess uio_acc("uio_pl_peri", 0x00100000);
     if ( !uio_acc.IsMapped() ) {
         std::cout << "uio_pl_peri mmap error" << std::endl;
         return 1;
     }
-    auto reg_wdma  = uio_acc.GetMemAccess(0x00010000);
-    auto reg_norm  = uio_acc.GetMemAccess(0x00011000);
+    auto reg_fmtr  = uio_acc.GetMemAccess(0x00010000);
+    auto reg_prmup = uio_acc.GetMemAccess(0x00011000);
+    auto reg_wdma  = uio_acc.GetMemAccess(0x00021000);
     auto reg_rgb   = uio_acc.GetMemAccess(0x00030000);
     auto reg_cmtx  = uio_acc.GetMemAccess(0x00030400);
     auto reg_gauss = uio_acc.GetMemAccess(0x00030800);
     auto reg_mask  = uio_acc.GetMemAccess(0x00030c00);
     auto reg_sel   = uio_acc.GetMemAccess(0x00033c00);
-    auto reg_stmc  = uio_acc.GetMemAccess(0x00020000);
-    auto reg_posc  = uio_acc.GetMemAccess(0x00021000);
+    auto reg_stmc  = uio_acc.GetMemAccess(0x00041000);
+    auto reg_posc  = uio_acc.GetMemAccess(0x00042000);
     auto reg_log0  = uio_acc.GetMemAccess(0x00070000);
     auto reg_log1  = uio_acc.GetMemAccess(0x00071000);
 
+    std::cout << "CORE IDs" << std::endl;
+    std::cout << "reg_fmtr  : " << std::hex << reg_fmtr .ReadReg(0) << std::endl;
+    std::cout << "reg_prmup : " << std::hex << reg_prmup.ReadReg(0) << std::endl;
+    std::cout << "reg_wdma  : " << std::hex << reg_wdma .ReadReg(0) << std::endl;
+    std::cout << "reg_rgb   : " << std::hex << reg_rgb  .ReadReg(0) << std::endl;
+    std::cout << "reg_cmtx  : " << std::hex << reg_cmtx .ReadReg(0) << std::endl;
+    std::cout << "reg_gauss : " << std::hex << reg_gauss.ReadReg(0) << std::endl;
+    std::cout << "reg_mask  : " << std::hex << reg_mask .ReadReg(0) << std::endl;
+    std::cout << "reg_sel   : " << std::hex << reg_sel  .ReadReg(0) << std::endl;
+//  std::cout << "reg_stmc  : " << std::hex << reg_stmc .ReadReg(0) << std::endl;
+//  std::cout << "reg_posc  : " << std::hex << reg_posc .ReadReg(0) << std::endl;
+    std::cout << "reg_log0  : " << std::hex << reg_log0 .ReadReg(0) << std::endl;
+    std::cout << "reg_log1  : " << std::hex << reg_log1 .ReadReg(0) << std::endl;
+    std::cout << "" << std::endl;
+
+
     // mmap udmabuf
-    UdmabufAccess udmabuf_acc("udmabuf0");
+    jelly::UdmabufAccess udmabuf_acc("udmabuf0");
     if ( !udmabuf_acc.IsMapped() ) {
         std::cout << "udmabuf0 mmap error" << std::endl;
         return 1;
@@ -293,7 +309,7 @@ int main(int argc, char *argv[])
 //	reg_posc.WriteReg(REG_DIFF_TARGET,  0x40000000);
 //	reg_posc.WriteReg(REG_DIFF_GAIN,    -0x1000);
 
-    reg_sel.WriteReg(0, 0);
+    reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 0);
 
     // IMX219 I2C control
     IMX219ControlI2c imx219;
@@ -308,22 +324,22 @@ int main(int argc, char *argv[])
     imx219.Start();
 
     // DMA start (contine)
-    reg_wdma.WriteReg(REG_WDMA_PARAM_ADDR, dmabuf_phys_adr);        // addr
-    reg_wdma.WriteReg(REG_WDMA_PARAM_STRIDE, width*4);              // stride
-    reg_wdma.WriteReg(REG_WDMA_PARAM_WIDTH, width);                 // width
-    reg_wdma.WriteReg(REG_WDMA_PARAM_HEIGHT, height);               // height
-    reg_wdma.WriteReg(REG_WDMA_PARAM_SIZE, width*height);           // size
-    reg_wdma.WriteReg(REG_WDMA_PARAM_AWLEN, 31);                    // awlen
-    reg_wdma.WriteReg(REG_WDMA_CTL_CONTROL, 0x03);
+    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_ADDR, dmabuf_phys_adr);        // addr
+    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_STRIDE, width*4);              // stride
+    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_WIDTH, width);                 // width
+    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_HEIGHT, height);               // height
+    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_SIZE, width*height);           // size
+    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_AWLEN, 31);                    // awlen
+    reg_wdma.WriteReg(REG_VIDEO_WDMA_CTL_CONTROL, 0x03);
 
     // normalizer start
-    reg_norm.WriteReg(REG_NORM_FRM_TIMER_EN, 1);
-    reg_norm.WriteReg(REG_NORM_FRM_TIMEOUT, 100000000);
-    reg_norm.WriteReg(REG_NORM_PARAM_WIDTH, width);
-    reg_norm.WriteReg(REG_NORM_PARAM_HEIGHT, height);
-    reg_norm.WriteReg(REG_NORM_PARAM_FILL, 0x0ff);
-    reg_norm.WriteReg(REG_NORM_PARAM_TIMEOUT, 0x100000);
-    reg_norm.WriteReg(REG_NORM_CONTROL, 0x03);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN, 1);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT, 100000000);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_WIDTH, width);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_HEIGHT, height);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_FILL, 0x0ff);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_TIMEOUT, 0x100000);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL, 0x03);
 
 //      capture_still_image(reg_wdma, reg_norm, dmabuf_phys_adr, width, height, frame_num);
 
@@ -411,24 +427,25 @@ int main(int argc, char *argv[])
         imx219.SetDigitalGain(d_gain);
         imx219.SetFlip(flip_h, flip_v);
 
-        reg_rgb.WriteReg(REG_RAW2RGB_DEMOSAIC_PHASE, bayer_phase);
+        reg_rgb.WriteReg(REG_IMG_DEMOSAIC_PARAM_PHASE, bayer_phase);
+        reg_rgb.WriteReg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3);
 
-        reg_gauss.WriteReg(REG_GAUSS_PARAM_ENABLE, (1 << gauss) - 1);
-        reg_gauss.WriteReg(REG_GAUSS_CTL_CONTROL,  0x3);
+        reg_gauss.WriteReg(REG_IMG_GAUSS3X3_PARAM_ENABLE, (1 << gauss) - 1);
+        reg_gauss.WriteReg(REG_IMG_GAUSS3X3_CTL_CONTROL,  0x3);
 
-        reg_mask.WriteReg(REG_MASK_PARAM_MASK_FLAG,      mask_flag | (mask_en << 2));
-        reg_mask.WriteReg(REG_MASK_PARAM_THRESH_FLAG,    mask_th_flag);
-        reg_mask.WriteReg(REG_MASK_PARAM_THRESH_VALUE,   mask_th_val);
-        reg_mask.WriteReg(REG_MASK_PARAM_RECT_FLAG,      mask_rect_flag);
-        reg_mask.WriteReg(REG_MASK_PARAM_RECT_LEFT,      mask_rect_left);
-        reg_mask.WriteReg(REG_MASK_PARAM_RECT_RIGHT,     mask_rect_right);
-        reg_mask.WriteReg(REG_MASK_PARAM_RECT_TOP,       mask_rect_top);
-        reg_mask.WriteReg(REG_MASK_PARAM_RECT_BOTTOM,    mask_rect_bottom);
-        reg_mask.WriteReg(REG_MASK_PARAM_CIRCLE_FLAG,    mask_circle_flag);
-        reg_mask.WriteReg(REG_MASK_PARAM_CIRCLE_X,       mask_circle_x);
-        reg_mask.WriteReg(REG_MASK_PARAM_CIRCLE_Y,       mask_circle_y);
-        reg_mask.WriteReg(REG_MASK_PARAM_CIRCLE_RADIUS2, mask_circle_r*mask_circle_r);
-        reg_mask.WriteReg(REG_MASK_CTL_CONTROL, 0x7);
+        reg_mask.WriteReg(REG_IMG_AREAMASK_PARAM_MASK_FLAG,      mask_flag | (mask_en << 2));
+        reg_mask.WriteReg(REG_IMG_AREAMASK_PARAM_THRESH_FLAG,    mask_th_flag);
+        reg_mask.WriteReg(REG_IMG_AREAMASK_PARAM_THRESH_VALUE,   mask_th_val);
+        reg_mask.WriteReg(REG_IMG_AREAMASK_PARAM_RECT_FLAG,      mask_rect_flag);
+        reg_mask.WriteReg(REG_IMG_AREAMASK_PARAM_RECT_LEFT,      mask_rect_left);
+        reg_mask.WriteReg(REG_IMG_AREAMASK_PARAM_RECT_RIGHT,     mask_rect_right);
+        reg_mask.WriteReg(REG_IMG_AREAMASK_PARAM_RECT_TOP,       mask_rect_top);
+        reg_mask.WriteReg(REG_IMG_AREAMASK_PARAM_RECT_BOTTOM,    mask_rect_bottom);
+        reg_mask.WriteReg(REG_IMG_AREAMASK_PARAM_CIRCLE_FLAG,    mask_circle_flag);
+        reg_mask.WriteReg(REG_IMG_AREAMASK_PARAM_CIRCLE_X,       mask_circle_x);
+        reg_mask.WriteReg(REG_IMG_AREAMASK_PARAM_CIRCLE_Y,       mask_circle_y);
+        reg_mask.WriteReg(REG_IMG_AREAMASK_PARAM_CIRCLE_RADIUS2, mask_circle_r*mask_circle_r);
+        reg_mask.WriteReg(REG_IMG_AREAMASK_CTL_CONTROL, 0x7);
 
         reg_posc.WriteReg(REG_DIFF_ENABLE,  feedback_en);
         reg_posc.WriteReg(REG_DIFF_TARGET,  feedback_target * 0x100000);
@@ -486,16 +503,16 @@ int main(int argc, char *argv[])
             std::cout << "flip v        : " << imx219.GetFlipV() << std::endl;
             break;
         
-        case '0':   reg_sel.WriteReg(REG_IMGSEL_SELECT, 0); break;
-        case '1':   reg_sel.WriteReg(REG_IMGSEL_SELECT, 1); break;
-        case '2':   reg_sel.WriteReg(REG_IMGSEL_SELECT, 2); break;
-        case '3':   reg_sel.WriteReg(REG_IMGSEL_SELECT, 3); break;
-        case '4':   reg_sel.WriteReg(REG_IMGSEL_SELECT, 4); break;
-        case '5':   reg_sel.WriteReg(REG_IMGSEL_SELECT, 5); break;
-        case '6':   reg_sel.WriteReg(REG_IMGSEL_SELECT, 6); break;
-        case '7':   reg_sel.WriteReg(REG_IMGSEL_SELECT, 7); break;
-        case '8':   reg_sel.WriteReg(REG_IMGSEL_SELECT, 8); break;
-        case '9':   reg_sel.WriteReg(REG_IMGSEL_SELECT, 9); break;
+        case '0':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 0); break;
+        case '1':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 1); break;
+        case '2':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 2); break;
+        case '3':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 3); break;
+        case '4':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 4); break;
+        case '5':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 5); break;
+        case '6':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 6); break;
+        case '7':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 7); break;
+        case '8':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 8); break;
+        case '9':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 9); break;
 
         // flip
         case 'h':  flip_h = !flip_h;  break;
@@ -523,7 +540,7 @@ int main(int argc, char *argv[])
 
         case 'r': // image record
             std::cout << "record" << std::endl;
-            capture_still_image(reg_wdma, reg_norm, dmabuf_phys_adr, width, height, rec_frame_num);
+            capture_still_image(reg_wdma, reg_fmtr, dmabuf_phys_adr, width, height, rec_frame_num);
             int offset = 0;
             for ( int i = 0; i < rec_frame_num; i++ ) {
                 char fname[64];
@@ -550,37 +567,37 @@ int main(int argc, char *argv[])
 
 
 // 静止画キャプチャ
-void capture_still_image(MemAccess& reg_wdma, MemAccess& reg_norm, std::uintptr_t bufaddr, int width, int height, int frame_num)
+void capture_still_image(jelly::MemAccess& reg_wdma, jelly::MemAccess& reg_fmtr, std::uintptr_t bufaddr, int width, int height, int frame_num)
 {
     // DMA start (one shot)
-    reg_wdma.WriteReg(REG_WDMA_PARAM_ADDR, bufaddr); // 0x30000000);
-    reg_wdma.WriteReg(REG_WDMA_PARAM_STRIDE, width*4);              // stride
-    reg_wdma.WriteReg(REG_WDMA_PARAM_WIDTH, width);                 // width
-    reg_wdma.WriteReg(REG_WDMA_PARAM_HEIGHT, height);               // height
-    reg_wdma.WriteReg(REG_WDMA_PARAM_SIZE, width*height*frame_num); // size
-    reg_wdma.WriteReg(REG_WDMA_PARAM_AWLEN, 31);                    // awlen
-    reg_wdma.WriteReg(REG_WDMA_CTL_CONTROL, 0x07);
+    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_ADDR, bufaddr); // 0x30000000);
+    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_STRIDE, width*4);              // stride
+    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_WIDTH, width);                 // width
+    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_HEIGHT, height);               // height
+    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_SIZE, width*height*frame_num); // size
+    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_AWLEN, 31);                    // awlen
+    reg_wdma.WriteReg(REG_VIDEO_WDMA_CTL_CONTROL, 0x07);
     
     // normalizer start
-    reg_norm.WriteReg(REG_NORM_FRM_TIMER_EN, 1);
-    reg_norm.WriteReg(REG_NORM_FRM_TIMEOUT, 100000000);
-    reg_norm.WriteReg(REG_NORM_PARAM_WIDTH, width);
-    reg_norm.WriteReg(REG_NORM_PARAM_HEIGHT, height);
-    reg_norm.WriteReg(REG_NORM_PARAM_FILL, 0x0ff);
-    reg_norm.WriteReg(REG_NORM_PARAM_TIMEOUT, 0x100000);
-    reg_norm.WriteReg(REG_NORM_CONTROL, 0x03);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN, 1);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT, 100000000);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_WIDTH, width);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_HEIGHT, height);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_FILL, 0x0ff);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_TIMEOUT, 0x100000);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL, 0x03);
     usleep(100000);
     
     // 取り込み完了を待つ
     usleep(10000);
-    while ( reg_wdma.ReadReg(REG_WDMA_CTL_STATUS) != 0 ) {
+    while ( reg_wdma.ReadReg(REG_VIDEO_WDMA_CTL_STATUS) != 0 ) {
         usleep(10000);
     }
     
     // normalizer stop
-    reg_norm.WriteReg(REG_NORM_CONTROL, 0x00);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL, 0x00);
     usleep(1000);
-    while ( reg_wdma.ReadReg(REG_NORM_BUSY) != 0 ) {
+    while ( reg_wdma.ReadReg(REG_VIDEO_FMTREG_CTL_STATUS) != 0 ) {
         usleep(1000);
     }
 }
@@ -603,7 +620,7 @@ struct logger_motor
     std::int32_t    target_a;
 };
 
-void write_log(MemAccess& reg_log0, MemAccess& reg_log1, int num0, int num1)
+void write_log(jelly::MemAccess& reg_log0, jelly::MemAccess& reg_log1, int num0, int num1)
 {
     std::vector<logger_image>   vec_img;
     std::vector<logger_motor>   vec_mot;
