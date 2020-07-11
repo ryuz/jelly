@@ -147,7 +147,7 @@ module diff_calc
                 .m_ready        (1'b1)
             );
     
-    localparam  DIFF_WIDTH = IN_WIDTH + 1;
+    localparam  DIFF_WIDTH = IN_WIDTH;
     localparam  MUL_WIDTH  = DIFF_WIDTH + GAIN_WIDTH;
     
     

@@ -953,8 +953,8 @@ module zybo_z7_imx219_stepper_motor
                 .DATA_WIDTH         (IMG_ANGLE_WIDTH),
                 .TIMER_WIDTH        (48),
                 .FIFO_ASYNC         (0),
-                .FIFO_PTR_WIDTH     (10),
-                .FIFO_RAM_TYPE      ("block")
+                .FIFO_PTR_WIDTH     (6),
+                .FIFO_RAM_TYPE      ("distributed")
             )
         i_data_logger_fifo_img
             (
@@ -1003,8 +1003,8 @@ module zybo_z7_imx219_stepper_motor
                 .DATA_WIDTH         (8*WB_DAT_WIDTH),
                 .TIMER_WIDTH        (48),
                 .FIFO_ASYNC         (0),
-                .FIFO_PTR_WIDTH     (14),
-                .FIFO_RAM_TYPE      ("block")
+                .FIFO_PTR_WIDTH     (6),
+                .FIFO_RAM_TYPE      ("distributed")
             )
         i_data_logger_fifo_motor
             (

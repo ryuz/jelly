@@ -69,8 +69,65 @@ module image_processing
             output  wire                            out_valid
         );
     
-    localparam  USE_VALID = 0;
     
+    // parameter update
+    wire                            parameter_update;
+    
+    wire    [WB_DAT_WIDTH-1:0]      wb_parmup_dat_o;
+    wire                            wb_parmup_stb_i;
+    wire                            wb_parmup_ack_o;
+    
+    jelly_video_parameter_update
+            #(
+                .WB_ADR_WIDTH           (8),
+                .WB_DAT_SIZE            (WB_DAT_SIZE),
+                .WB_DAT_WIDTH           (WB_DAT_WIDTH),
+                
+                .AXI4S_TUSER_WIDTH      (TUSER_WIDTH),
+                .AXI4S_TDATA_WIDTH      (S_TDATA_WIDTH),
+                
+                .INDEX_WIDTH            (1),
+                .FRAME_WIDTH            (32),
+                
+                .INIT_CONTROL           (2'b11),
+                
+                .DELAY                  (0)
+            )
+        i_video_parameter_update
+            (
+                .aresetn                (aresetn),
+                .aclk                   (aclk),
+                .aclken                 (1'b1),
+                
+                .s_axi4s_tdata          (s_axi4s_tdata),
+                .s_axi4s_tlast          (s_axi4s_tlast),
+                .s_axi4s_tuser          (s_axi4s_tuser),
+                .s_axi4s_tvalid         (s_axi4s_tvalid),
+                .s_axi4s_tready         (s_axi4s_tready),
+                
+                .m_axi4s_tuser          (),
+                .m_axi4s_tlast          (),
+                .m_axi4s_tdata          (),
+                .m_axi4s_tvalid         (),
+                .m_axi4s_tready         (1'b1),
+                
+                .update                 (parameter_update),
+                
+                .s_wb_rst_i             (s_wb_rst_i),
+                .s_wb_clk_i             (s_wb_clk_i),
+                .s_wb_adr_i             (s_wb_adr_i[7:0]),
+                .s_wb_dat_i             (s_wb_dat_i),
+                .s_wb_dat_o             (wb_parmup_dat_o),
+                .s_wb_we_i              (s_wb_we_i),
+                .s_wb_sel_i             (s_wb_sel_i),
+                .s_wb_stb_i             (wb_parmup_stb_i),
+                .s_wb_ack_o             (wb_parmup_ack_o)
+            );
+    
+    
+    
+    // axi4s to image
+    localparam  USE_VALID = 0;
     
     wire                                reset = ~aresetn;
     wire                                clk   = aclk;
@@ -110,7 +167,7 @@ module image_processing
                 .reset                  (reset),
                 .clk                    (clk),
                 
-                .param_blank_num        (8'h04),
+                .param_blank_num        (8'h20),
                 
                 .s_axi4s_tdata          (s_axi4s_tdata),
                 .s_axi4s_tlast          (s_axi4s_tlast),
@@ -728,16 +785,19 @@ module image_processing
     assign wb_colmat_stb_i   = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == 6'h1);
     assign wb_gauss_stb_i    = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == 6'h2);
     assign wb_mask_stb_i     = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == 6'h3);
+    assign wb_parmup_stb_i   = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == 6'h8);
     assign wb_sel_stb_i      = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == 6'hf);
     
-    assign s_wb_dat_o        = wb_demosaic_stb_i ? wb_demosaic_dat_o :
+    assign s_wb_dat_o        = wb_parmup_stb_i   ? wb_parmup_dat_o   :
+                               wb_demosaic_stb_i ? wb_demosaic_dat_o :
                                wb_colmat_stb_i   ? wb_colmat_dat_o   :
                                wb_gauss_stb_i    ? wb_gauss_dat_o    :
                                wb_mask_stb_i     ? wb_mask_dat_o     :
                                wb_sel_stb_i      ? wb_sel_dat_o      :
                                32'h0000_0000;
     
-    assign s_wb_ack_o        = wb_demosaic_stb_i ? wb_demosaic_ack_o :
+    assign s_wb_ack_o        = wb_parmup_stb_i   ? wb_parmup_ack_o   :
+                               wb_demosaic_stb_i ? wb_demosaic_ack_o :
                                wb_colmat_stb_i   ? wb_colmat_ack_o   :
                                wb_gauss_stb_i    ? wb_gauss_ack_o    :
                                wb_mask_stb_i     ? wb_mask_ack_o     :
