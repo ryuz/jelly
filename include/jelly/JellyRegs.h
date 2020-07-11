@@ -72,6 +72,23 @@
 #define REG_VIDEO_FMTREG_PARAM_FILL             0x12
 #define REG_VIDEO_FMTREG_PARAM_TIMEOUT          0x13
 
+// Video sync generator
+#define REG_VIDEO_VSGEN_CORE_ID                 0x00
+#define REG_VIDEO_VSGEN_CORE_VERSION            0x01
+#define REG_VIDEO_VSGEN_CTL_CONTROL             0x04
+#define REG_VIDEO_VSGEN_CTL_STATUS              0x05
+#define REG_VIDEO_VSGEN_PARAM_HTOTAL            0x08
+#define REG_VIDEO_VSGEN_PARAM_HSYNC_POL         0x0B
+#define REG_VIDEO_VSGEN_PARAM_HDISP_START       0x0C
+#define REG_VIDEO_VSGEN_PARAM_HDISP_END         0x0D
+#define REG_VIDEO_VSGEN_PARAM_HSYNC_START       0x0E
+#define REG_VIDEO_VSGEN_PARAM_HSYNC_END         0x0F
+#define REG_VIDEO_VSGEN_PARAM_VTOTAL            0x10
+#define REG_VIDEO_VSGEN_PARAM_VSYNC_POL         0x13
+#define REG_VIDEO_VSGEN_PARAM_VDISP_START       0x14
+#define REG_VIDEO_VSGEN_PARAM_VDISP_END         0x15
+#define REG_VIDEO_VSGEN_PARAM_VSYNC_START       0x16
+#define REG_VIDEO_VSGEN_PARAM_VSYNC_END         0x17
 
 
 /* ---------------------------------- */
