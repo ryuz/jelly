@@ -84,7 +84,7 @@ module jelly_img_gaussian_3x3
     localparam  ADR_PARAM_ENABLE         = 8'h08;
     localparam  ADR_CURRENT_ENABLE       = 8'h18;
     
-    // handshake
+    // handshake(master)
     wire    [INDEX_WIDTH-1:0]   update_index;
     wire                        update_ack;
     wire    [INDEX_WIDTH-1:0]   ctl_index;
@@ -152,7 +152,7 @@ module jelly_img_gaussian_3x3
     
     
     
-    // parameter latch
+    // handshake(slave)
     wire    update_trig = (s_img_valid & s_img_line_first & s_img_pixel_first);
     wire    update_en;
     
