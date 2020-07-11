@@ -4,57 +4,18 @@
 #include <stdint.h>
 #include <fcntl.h>
 #include <unistd.h>
-//#include <sys/mman.h>
-//#include <errno.h>
-//#include <sys/ioctl.h>
-//#include <linux/i2c-dev.h>
+
 #include <opencv2/opencv.hpp>
 
 #include "jelly/UioAccess.h"
 #include "jelly/UdmabufAccess.h"
+#include "jelly/JellyRegs.h"
+
 #include "I2cAccess.h"
 #include "IMX219Control.h"
 
-using namespace jelly;
 
-
-// Video Write-DMA
-#define REG_WDMA_ID                 0x00
-#define REG_WDMA_VERSION            0x01
-#define REG_WDMA_CTL_CONTROL        0x04
-#define REG_WDMA_CTL_STATUS         0x05
-#define REG_WDMA_CTL_INDEX          0x07
-#define REG_WDMA_PARAM_ADDR         0x08
-#define REG_WDMA_PARAM_STRIDE       0x09
-#define REG_WDMA_PARAM_WIDTH        0x0a
-#define REG_WDMA_PARAM_HEIGHT       0x0b
-#define REG_WDMA_PARAM_SIZE         0x0c
-#define REG_WDMA_PARAM_AWLEN        0x0f
-#define REG_WDMA_MONITOR_ADDR       0x10
-#define REG_WDMA_MONITOR_STRIDE     0x11
-#define REG_WDMA_MONITOR_WIDTH      0x12
-#define REG_WDMA_MONITOR_HEIGHT     0x13
-#define REG_WDMA_MONITOR_SIZE       0x14
-#define REG_WDMA_MONITOR_AWLEN      0x17
-
-// Video Normalizer
-#define REG_NORM_CONTROL            0x00
-#define REG_NORM_BUSY               0x01
-#define REG_NORM_INDEX              0x02
-#define REG_NORM_SKIP               0x03
-#define REG_NORM_FRM_TIMER_EN       0x04
-#define REG_NORM_FRM_TIMEOUT        0x05
-#define REG_NORM_PARAM_WIDTH        0x08
-#define REG_NORM_PARAM_HEIGHT       0x09
-#define REG_NORM_PARAM_FILL         0x0a
-#define REG_NORM_PARAM_TIMEOUT      0x0b
-
-// Raw to RGB
-#define REG_RAW2RGB_DEMOSAIC_PHASE  0x00
-#define REG_RAW2RGB_DEMOSAIC_BYPASS 0x01
-
-
-void capture_still_image(MemAccess& reg_wdma, MemAccess& reg_norm, std::uintptr_t bufaddr, int width, int height, int frame_num);
+void capture_still_image(jelly::MemAccess& reg_wdma, jelly::MemAccess& reg_fmtr, std::uintptr_t bufaddr, int width, int height, int frame_num);
 
 
 int main(int argc, char *argv[])
@@ -148,18 +109,20 @@ int main(int argc, char *argv[])
 
 
     // mmap uio
-    UioAccess uio_acc("uio_pl_peri", 0x00100000);
+    jelly::UioAccess uio_acc("uio_pl_peri", 0x00100000);
     if ( !uio_acc.IsMapped() ) {
         std::cout << "uio_pl_peri mmap error" << std::endl;
         return 1;
     }
-    auto reg_wdma = uio_acc.GetMemAccess(0x00010000);
-    auto reg_norm = uio_acc.GetMemAccess(0x00011000);
-    auto reg_rgb  = uio_acc.GetMemAccess(0x00012000);
 
+    auto reg_fmtr  = uio_acc.GetMemAccess(0x00010000);
+    auto reg_prmup = uio_acc.GetMemAccess(0x00011000);
+    auto reg_rgb   = uio_acc.GetMemAccess(0x00012000);
+    auto reg_wdma  = uio_acc.GetMemAccess(0x00021000);
 
+    
     // mmap udmabuf
-    UdmabufAccess udmabuf_acc("udmabuf0");
+    jelly::UdmabufAccess udmabuf_acc("udmabuf0");
     if ( !udmabuf_acc.IsMapped() ) {
         std::cout << "udmabuf0 mmap error" << std::endl;
         return 1;
@@ -198,10 +161,11 @@ int main(int argc, char *argv[])
         imx219.SetGain(a_gain);
         imx219.SetDigitalGain(d_gain);
         imx219.SetFlip(flip_h, flip_v);
-        reg_rgb.WriteReg(REG_RAW2RGB_DEMOSAIC_PHASE, bayer_phase);
+        reg_rgb.WriteReg(REG_IMG_DEMOSAIC_PARAM_PHASE, bayer_phase);
+        reg_rgb.WriteReg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3);  // update & enable
 
         // キャプチャ
-        capture_still_image(reg_wdma, reg_norm, dmabuf_phys_adr, width, height, frame_num);
+        capture_still_image(reg_wdma, reg_fmtr, dmabuf_phys_adr, width, height, frame_num);
         cv::Mat img(height*frame_num, width, CV_8UC4);
         udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4 * frame_num);
         
@@ -253,7 +217,7 @@ int main(int argc, char *argv[])
 
         case 'r': // image record
             std::cout << "record" << std::endl;
-            capture_still_image(reg_wdma, reg_norm, dmabuf_phys_adr, width, height, rec_frame_num);
+            capture_still_image(reg_wdma, reg_fmtr, dmabuf_phys_adr, width, height, rec_frame_num);
             int offset = 0;
             for ( int i = 0; i < rec_frame_num; i++ ) {
                 char fname[64];
@@ -278,39 +242,38 @@ int main(int argc, char *argv[])
 
 
 
-
 // 静止画キャプチャ
-void capture_still_image(MemAccess& reg_wdma, MemAccess& reg_norm, std::uintptr_t bufaddr, int width, int height, int frame_num)
+void capture_still_image(jelly::MemAccess& reg_wdma, jelly::MemAccess& reg_fmtr, std::uintptr_t bufaddr, int width, int height, int frame_num)
 {
     // DMA start (one shot)
-    reg_wdma.WriteReg(REG_WDMA_PARAM_ADDR, bufaddr); // 0x30000000);
-    reg_wdma.WriteReg(REG_WDMA_PARAM_STRIDE, width*4);              // stride
-    reg_wdma.WriteReg(REG_WDMA_PARAM_WIDTH, width);                 // width
-    reg_wdma.WriteReg(REG_WDMA_PARAM_HEIGHT, height);               // height
-    reg_wdma.WriteReg(REG_WDMA_PARAM_SIZE, width*height*frame_num); // size
-    reg_wdma.WriteReg(REG_WDMA_PARAM_AWLEN, 31);                    // awlen
-    reg_wdma.WriteReg(REG_WDMA_CTL_CONTROL, 0x07);
+    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_ADDR,   bufaddr);
+    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_STRIDE, width*4);
+    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_WIDTH,  width);
+    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_HEIGHT, height);
+    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_SIZE,   width*height*frame_num);
+    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_AWLEN,  31);
+    reg_wdma.WriteReg(REG_VIDEO_WDMA_CTL_CONTROL,  0x07);
     
-    // normalizer start
-    reg_norm.WriteReg(REG_NORM_FRM_TIMER_EN, 1);
-    reg_norm.WriteReg(REG_NORM_FRM_TIMEOUT, 100000000);
-    reg_norm.WriteReg(REG_NORM_PARAM_WIDTH, width);
-    reg_norm.WriteReg(REG_NORM_PARAM_HEIGHT, height);
-    reg_norm.WriteReg(REG_NORM_PARAM_FILL, 0x0ff);
-    reg_norm.WriteReg(REG_NORM_PARAM_TIMEOUT, 0x100000);
-    reg_norm.WriteReg(REG_NORM_CONTROL, 0x03);
+    // video format regularizer
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN,  1);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT,   10000000);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_WIDTH,       width);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_HEIGHT,      height);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_FILL,        0x000);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_TIMEOUT,     100000);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL,       0x03);
     usleep(100000);
     
     // 取り込み完了を待つ
     usleep(10000);
-    while ( reg_wdma.ReadReg(REG_WDMA_CTL_STATUS) != 0 ) {
+    while ( reg_wdma.ReadReg(REG_VIDEO_WDMA_CTL_STATUS) != 0 ) {
         usleep(10000);
     }
     
     // normalizer stop
-    reg_norm.WriteReg(REG_NORM_CONTROL, 0x00);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL, 0x00);
     usleep(1000);
-    while ( reg_wdma.ReadReg(REG_NORM_BUSY) != 0 ) {
+    while ( reg_wdma.ReadReg(REG_VIDEO_FMTREG_CTL_STATUS) != 0 ) {
         usleep(1000);
     }
 }
