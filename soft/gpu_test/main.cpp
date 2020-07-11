@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 #include "opencv2/opencv.hpp"
-#include "JellyGL.h"
+#include "jelly/JellyGL.h"
 
 
 typedef	JellyGL<1>	JGL;
@@ -123,7 +123,7 @@ void SimRegionParamProc(size_t index, const std::vector<JGL::PolygonRegion>& reg
 
 
 
-void main(void)
+int main(void)
 {
 	int		width  = 96;
 	int		height = 64;
@@ -139,6 +139,8 @@ void main(void)
 	imgTex[0] = cv::imread("Penguins.jpg");
 	imgTex[1] = cv::imread("Chrysanthemum.jpg");
 	img = cv::Mat::zeros(height, width, CV_8UC3);
+	if ( imgTex[0].empty() ) { return 1; }
+	if ( imgTex[1].empty() ) { return 1; }
 
 	JGL	jgl;
 	jgl.SetEdgeParamFracWidth(4);
@@ -295,6 +297,8 @@ void main(void)
 		cv::imshow("img", img);
 //		writer << img;
 	} while ( cv::waitKey(0) != 0x1b );
+
+	return 0;
 }
 
 
