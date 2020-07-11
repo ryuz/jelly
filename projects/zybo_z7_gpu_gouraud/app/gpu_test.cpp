@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <algorithm>
-#include "JellyGL.h"
+#include "jelly/JellyGL.h"
 
 typedef	JellyGL<>	JGL;
 
