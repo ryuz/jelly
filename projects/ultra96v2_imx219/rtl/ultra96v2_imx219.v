@@ -33,7 +33,7 @@ module ultra96v2_imx219
     wire            sys_clk250;
     
     localparam  AXI4L_PERI_ADDR_WIDTH = 40;
-    localparam  AXI4L_PERI_DATA_SIZE  = 2;     // 0:8bit, 1:16bit, 2:32bit ...
+    localparam  AXI4L_PERI_DATA_SIZE  = 3;     // 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
     localparam  AXI4L_PERI_DATA_WIDTH = (8 << AXI4L_PERI_DATA_SIZE);
     localparam  AXI4L_PERI_STRB_WIDTH = AXI4L_PERI_DATA_WIDTH / 8;
     
@@ -60,14 +60,17 @@ module ultra96v2_imx219
     wire                                 axi4l_peri_rready;
     
     
+    
+    localparam  AXI4_MEM0_ID_WIDTH   = 6;
     localparam  AXI4_MEM0_ADDR_WIDTH = 49;
-    localparam  AXI4_MEM0_STRB_WIDTH = 8;
-    localparam  AXI4_MEM0_DATA_WIDTH = 64;
+    localparam  AXI4_MEM0_DATA_SIZE  = 4;   // 2:32bit, 3:64bit, 4:128bit
+    localparam  AXI4_MEM0_DATA_WIDTH = (8 << AXI4_MEM0_DATA_SIZE);
+    localparam  AXI4_MEM0_STRB_WIDTH = AXI4_MEM0_DATA_WIDTH / 8;
     
     wire                                 axi4_mem_aresetn;
     wire                                 axi4_mem_aclk;
     
-    wire    [5:0]                        axi4_mem0_awid;
+    wire    [AXI4_MEM0_ID_WIDTH-1:0]     axi4_mem0_awid;
     wire    [AXI4_MEM0_ADDR_WIDTH-1:0]   axi4_mem0_awaddr;
     wire    [1:0]                        axi4_mem0_awburst;
     wire    [3:0]                        axi4_mem0_awcache;
@@ -84,11 +87,11 @@ module ultra96v2_imx219
     wire                                 axi4_mem0_wlast;
     wire                                 axi4_mem0_wvalid;
     wire                                 axi4_mem0_wready;
-    wire    [5:0]                        axi4_mem0_bid;
+    wire    [AXI4_MEM0_ID_WIDTH-1:0]     axi4_mem0_bid;
     wire    [1:0]                        axi4_mem0_bresp;
     wire                                 axi4_mem0_bvalid;
     wire                                 axi4_mem0_bready;
-    wire    [5:0]                        axi4_mem0_arid;
+    wire    [AXI4_MEM0_ID_WIDTH-1:0]     axi4_mem0_arid;
     wire    [AXI4_MEM0_ADDR_WIDTH-1:0]   axi4_mem0_araddr;
     wire    [1:0]                        axi4_mem0_arburst;
     wire    [3:0]                        axi4_mem0_arcache;
@@ -100,7 +103,7 @@ module ultra96v2_imx219
     wire    [2:0]                        axi4_mem0_arsize;
     wire                                 axi4_mem0_arvalid;
     wire                                 axi4_mem0_arready;
-    wire    [5:0]                        axi4_mem0_rid;
+    wire    [AXI4_MEM0_ID_WIDTH-1:0]     axi4_mem0_rid;
     wire    [1:0]                        axi4_mem0_rresp;
     wire    [AXI4_MEM0_DATA_WIDTH-1:0]   axi4_mem0_rdata;
     wire                                 axi4_mem0_rlast;
@@ -185,19 +188,19 @@ module ultra96v2_imx219
     
     
     // AXI4L => WISHBONE
-    localparam  WB_PERI_ADR_WIDTH = 38;
-    localparam  WB_PERI_SEL_WIDTH = 4;
-    localparam  WB_PERI_DAT_WIDTH = 32;
+    localparam  WB_ADR_WIDTH = AXI4L_PERI_ADDR_WIDTH - AXI4L_PERI_DATA_SIZE;
+    localparam  WB_DAT_WIDTH = AXI4L_PERI_DATA_WIDTH;
+    localparam  WB_SEL_WIDTH = AXI4L_PERI_STRB_WIDTH;
     
-    wire                                wb_rst_o;
-    wire                                wb_clk_o;
-    wire    [WB_PERI_ADR_WIDTH-1:0]     wb_host_adr_o;
-    wire    [WB_PERI_DAT_WIDTH-1:0]     wb_host_dat_o;
-    wire    [WB_PERI_DAT_WIDTH-1:0]     wb_host_dat_i;
-    wire                                wb_host_we_o;
-    wire    [WB_PERI_SEL_WIDTH-1:0]     wb_host_sel_o;
-    wire                                wb_host_stb_o;
-    wire                                wb_host_ack_i;
+    wire                           wb_peri_rst_i;
+    wire                           wb_peri_clk_i;
+    wire    [WB_ADR_WIDTH-1:0]     wb_peri_adr_i;
+    wire    [WB_DAT_WIDTH-1:0]     wb_peri_dat_o;
+    wire    [WB_DAT_WIDTH-1:0]     wb_peri_dat_i;
+    wire    [WB_SEL_WIDTH-1:0]     wb_peri_sel_i;
+    wire                           wb_peri_we_i;
+    wire                           wb_peri_stb_i;
+    wire                           wb_peri_ack_o;
     
     jelly_axi4l_to_wishbone
             #(
@@ -228,24 +231,25 @@ module ultra96v2_imx219
                 .s_axi4l_rvalid     (axi4l_peri_rvalid),
                 .s_axi4l_rready     (axi4l_peri_rready),
                 
-                .m_wb_rst_o         (wb_rst_o),
-                .m_wb_clk_o         (wb_clk_o),
-                .m_wb_adr_o         (wb_host_adr_o),
-                .m_wb_dat_o         (wb_host_dat_o),
-                .m_wb_dat_i         (wb_host_dat_i),
-                .m_wb_we_o          (wb_host_we_o),
-                .m_wb_sel_o         (wb_host_sel_o),
-                .m_wb_stb_o         (wb_host_stb_o),
-                .m_wb_ack_i         (wb_host_ack_i)
+                .m_wb_rst_o         (wb_peri_rst_i),
+                .m_wb_clk_o         (wb_peri_clk_i),
+                .m_wb_adr_o         (wb_peri_adr_i),
+                .m_wb_dat_i         (wb_peri_dat_o),
+                .m_wb_dat_o         (wb_peri_dat_i),
+                .m_wb_sel_o         (wb_peri_sel_i),
+                .m_wb_we_o          (wb_peri_we_i),
+                .m_wb_stb_o         (wb_peri_stb_i),
+                .m_wb_ack_i         (wb_peri_ack_o)
             );
+    
     
     // ----------------------------------------
     //  Global ID
     // ----------------------------------------
     
-    wire    [WB_PERI_DAT_WIDTH-1:0] wb_gid_dat_o;
-    wire                            wb_gid_stb_i;
-    wire                            wb_gid_ack_o;
+    wire    [WB_DAT_WIDTH-1:0]  wb_gid_dat_o;
+    wire                        wb_gid_stb_i;
+    wire                        wb_gid_ack_o;
     
     assign wb_gid_dat_o = 32'h01234567;
     assign wb_gid_ack_o = wb_gid_stb_i;
@@ -501,56 +505,22 @@ module ultra96v2_imx219
                 .axi4s_tready       (axi4s_csi2_tready)
             );
     
-    /*
-    wire    [0:0]   axi4s_fifo_tuser;
-    wire            axi4s_fifo_tlast;
-    wire    [9:0]   axi4s_fifo_tdata;
-    wire            axi4s_fifo_tvalid;
-    wire            axi4s_fifo_tready;
     
-    jelly_fifo_fwtf
-            #(
-                .DATA_WIDTH         (2+10),
-                .PTR_WIDTH          (10),
-                .DOUT_REGS          (0),
-                .RAM_TYPE           ("block"),
-                .LOW_DEALY          (0),
-                .SLAVE_REGS         (0),
-                .MASTER_REGS        (1)
-            )
-        i_fifo_fifo_fwtf_csi2
-            (
-                .reset              (~axi4s_cam_aresetn),
-                .clk                (axi4s_cam_aclk),
-                
-                .s_data             ({axi4s_csi2_tuser, axi4s_csi2_tlast, axi4s_csi2_tdata}),
-                .s_valid            (axi4s_csi2_tvalid),
-                .s_ready            (axi4s_csi2_tready),
-                .s_free_count       (),
-                
-                .m_data             ({axi4s_fifo_tuser, axi4s_fifo_tlast, axi4s_fifo_tdata}),
-                .m_valid            (axi4s_fifo_tvalid),
-                .m_ready            (axi4s_fifo_tready),
-                .m_data_count       ()
-            );
-    */
+    // format regularizer
+    wire    [0:0]               axi4s_fmtr_tuser;
+    wire                        axi4s_fmtr_tlast;
+    wire    [9:0]               axi4s_fmtr_tdata;
+    wire                        axi4s_fmtr_tvalid;
+    wire                        axi4s_fmtr_tready;
     
+    wire    [WB_DAT_WIDTH-1:0]  wb_fmtr_dat_o;
+    wire                        wb_fmtr_stb_i;
+    wire                        wb_fmtr_ack_o;
     
-    // normalize
-    wire    [0:0]       axi4s_norm_tuser;
-    wire                axi4s_norm_tlast;
-    wire    [9:0]       axi4s_norm_tdata;
-    wire                axi4s_norm_tvalid;
-    wire                axi4s_norm_tready;
-    
-    wire    [31:0]      wb_norm_dat_o;
-    wire                wb_norm_stb_i;
-    wire                wb_norm_ack_o;
-    
-    jelly_video_normalizer
+    jelly_video_format_regularizer
             #(
                 .WB_ADR_WIDTH       (8),
-                .WB_DAT_WIDTH       (32),
+                .WB_DAT_WIDTH       (WB_DAT_WIDTH),
                 
                 .TUSER_WIDTH        (1),
                 .TDATA_WIDTH        (10),
@@ -562,36 +532,28 @@ module ultra96v2_imx219
                 .M_SLAVE_REGS       (1),
                 .M_MASTER_REGS      (1),
                 
-                .INIT_CONTROL       (2'b00),
-                .INIT_SKIP          (1),
+                .INIT_CTL_CONTROL   (2'b00),
+                .INIT_CTL_SKIP      (1),
                 .INIT_PARAM_WIDTH   (X_NUM),
                 .INIT_PARAM_HEIGHT  (Y_NUM),
                 .INIT_PARAM_FILL    (10'd0),
                 .INIT_PARAM_TIMEOUT (32'h00010000)
             )
-        i_video_normalizer
+        i_video_format_regularizer
             (
                 .aresetn            (axi4s_cam_aresetn),
                 .aclk               (axi4s_cam_aclk),
                 .aclken             (1'b1),
                 
-                .s_wb_rst_i         (wb_rst_o),
-                .s_wb_clk_i         (wb_clk_o),
-                .s_wb_adr_i         (wb_host_adr_o[7:0]),
-                .s_wb_dat_o         (wb_norm_dat_o),
-                .s_wb_dat_i         (wb_host_dat_o),
-                .s_wb_we_i          (wb_host_we_o),
-                .s_wb_sel_i         (wb_host_sel_o),
-                .s_wb_stb_i         (wb_norm_stb_i),
-                .s_wb_ack_o         (wb_norm_ack_o),
-                
-                /*
-                .s_axi4s_tuser      (axi4s_fifo_tuser),
-                .s_axi4s_tlast      (axi4s_fifo_tlast),
-                .s_axi4s_tdata      (axi4s_fifo_tdata),
-                .s_axi4s_tvalid     (axi4s_fifo_tvalid),
-                .s_axi4s_tready     (axi4s_fifo_tready),
-                */
+                .s_wb_rst_i         (wb_peri_rst_i),
+                .s_wb_clk_i         (wb_peri_clk_i),
+                .s_wb_adr_i         (wb_peri_adr_i[7:0]),
+                .s_wb_dat_o         (wb_fmtr_dat_o),
+                .s_wb_dat_i         (wb_peri_dat_i),
+                .s_wb_we_i          (wb_peri_we_i),
+                .s_wb_sel_i         (wb_peri_sel_i),
+                .s_wb_stb_i         (wb_fmtr_stb_i),
+                .s_wb_ack_o         (wb_fmtr_ack_o),
                 
                 .s_axi4s_tuser      (axi4s_csi2_tuser),
                 .s_axi4s_tlast      (axi4s_csi2_tlast),
@@ -599,29 +561,29 @@ module ultra96v2_imx219
                 .s_axi4s_tvalid     (axi4s_csi2_tvalid),
                 .s_axi4s_tready     (axi4s_csi2_tready),
                 
-                .m_axi4s_tuser      (axi4s_norm_tuser),
-                .m_axi4s_tlast      (axi4s_norm_tlast),
-                .m_axi4s_tdata      (axi4s_norm_tdata),
-                .m_axi4s_tvalid     (axi4s_norm_tvalid),
-                .m_axi4s_tready     (axi4s_norm_tready)
+                .m_axi4s_tuser      (axi4s_fmtr_tuser),
+                .m_axi4s_tlast      (axi4s_fmtr_tlast),
+                .m_axi4s_tdata      (axi4s_fmtr_tdata),
+                .m_axi4s_tvalid     (axi4s_fmtr_tvalid),
+                .m_axi4s_tready     (axi4s_fmtr_tready)
             );
     
     
     // 現像
-    wire    [0:0]       axi4s_rgb_tuser;
-    wire                axi4s_rgb_tlast;
-    wire    [39:0]      axi4s_rgb_tdata;
-    wire                axi4s_rgb_tvalid;
-    wire                axi4s_rgb_tready;
+    wire    [0:0]               axi4s_rgb_tuser;
+    wire                        axi4s_rgb_tlast;
+    wire    [39:0]              axi4s_rgb_tdata;
+    wire                        axi4s_rgb_tvalid;
+    wire                        axi4s_rgb_tready;
     
-    wire    [31:0]      wb_rgb_dat_o;
-    wire                wb_rgb_stb_i;
-    wire                wb_rgb_ack_o;
+    wire    [WB_DAT_WIDTH-1:0]  wb_rgb_dat_o;
+    wire                        wb_rgb_stb_i;
+    wire                        wb_rgb_ack_o;
     
     video_raw_to_rgb
             #(
                 .WB_ADR_WIDTH       (10),
-                .WB_DAT_WIDTH       (32),
+                .WB_DAT_WIDTH       (WB_DAT_WIDTH),
                 
                 .DATA_WIDTH         (10),
                 
@@ -635,21 +597,23 @@ module ultra96v2_imx219
                 .aresetn            (axi4s_cam_aresetn),
                 .aclk               (axi4s_cam_aclk),
                 
-                .s_wb_rst_i         (wb_rst_o),
-                .s_wb_clk_i         (wb_clk_o),
-                .s_wb_adr_i         (wb_host_adr_o[9:0]),
+                .in_update_req      (1'b1),
+                
+                .s_wb_rst_i         (wb_peri_rst_i),
+                .s_wb_clk_i         (wb_peri_clk_i),
+                .s_wb_adr_i         (wb_peri_adr_i[9:0]),
                 .s_wb_dat_o         (wb_rgb_dat_o),
-                .s_wb_dat_i         (wb_host_dat_o),
-                .s_wb_we_i          (wb_host_we_o),
-                .s_wb_sel_i         (wb_host_sel_o),
+                .s_wb_dat_i         (wb_peri_dat_i),
+                .s_wb_we_i          (wb_peri_we_i),
+                .s_wb_sel_i         (wb_peri_sel_i),
                 .s_wb_stb_i         (wb_rgb_stb_i),
                 .s_wb_ack_o         (wb_rgb_ack_o),
                 
-                .s_axi4s_tuser      (axi4s_norm_tuser),
-                .s_axi4s_tlast      (axi4s_norm_tlast),
-                .s_axi4s_tdata      (axi4s_norm_tdata),
-                .s_axi4s_tvalid     (axi4s_norm_tvalid),
-                .s_axi4s_tready     (axi4s_norm_tready),
+                .s_axi4s_tuser      (axi4s_fmtr_tuser),
+                .s_axi4s_tlast      (axi4s_fmtr_tlast),
+                .s_axi4s_tdata      (axi4s_fmtr_tdata),
+                .s_axi4s_tvalid     (axi4s_fmtr_tvalid),
+                .s_axi4s_tready     (axi4s_fmtr_tready),
                 
                 .m_axi4s_tuser      (axi4s_rgb_tuser),
                 .m_axi4s_tlast      (axi4s_rgb_tlast),
@@ -660,29 +624,29 @@ module ultra96v2_imx219
     
     
     // DMA write
-    wire    [31:0]          wb_vdmaw_dat_o;
-    wire                    wb_vdmaw_stb_i;
-    wire                    wb_vdmaw_ack_o;
+    wire    [WB_DAT_WIDTH-1:0]  wb_vdmaw_dat_o;
+    wire                        wb_vdmaw_stb_i;
+    wire                        wb_vdmaw_ack_o;
     
     jelly_vdma_axi4s_to_axi4
             #(
                 .ASYNC              (1),
-                .FIFO_PTR_WIDTH     (12),
+                .FIFO_PTR_WIDTH     (13),
                 
                 .PIXEL_SIZE         (2),    // 32bit
-                .AXI4_ID_WIDTH      (6),
-                .AXI4_ADDR_WIDTH    (32),
-                .AXI4_DATA_SIZE     (3),    // 64bit
+                .AXI4_ID_WIDTH      (AXI4_MEM0_ID_WIDTH),
+                .AXI4_ADDR_WIDTH    (AXI4_MEM0_ADDR_WIDTH),
+                .AXI4_DATA_SIZE     (AXI4_MEM0_DATA_SIZE),
                 .AXI4S_DATA_SIZE    (2),    // 32bit
                 .AXI4S_USER_WIDTH   (1),
                 .INDEX_WIDTH        (8),
-                .STRIDE_WIDTH       (14),
-                .H_WIDTH            (12),
-                .V_WIDTH            (12),
+                .STRIDE_WIDTH       (16),
+                .H_WIDTH            (14),
+                .V_WIDTH            (14),
                 .SIZE_WIDTH         (32),
                 
                 .WB_ADR_WIDTH       (8),
-                .WB_DAT_WIDTH       (32),
+                .WB_DAT_WIDTH       (WB_DAT_WIDTH),
                 .INIT_CTL_CONTROL   (2'b00),
                 .INIT_PARAM_ADDR    (32'h3000_0000),
                 .INIT_PARAM_STRIDE  (X_NUM*2),
@@ -730,13 +694,13 @@ module ultra96v2_imx219
                 .s_axi4s_tvalid     (axi4s_rgb_tvalid),
                 .s_axi4s_tready     (axi4s_rgb_tready),
                 
-                .s_wb_rst_i         (wb_rst_o),
-                .s_wb_clk_i         (wb_clk_o),
-                .s_wb_adr_i         (wb_host_adr_o[7:0]),
+                .s_wb_rst_i         (wb_peri_rst_i),
+                .s_wb_clk_i         (wb_peri_clk_i),
+                .s_wb_adr_i         (wb_peri_adr_i[7:0]),
                 .s_wb_dat_o         (wb_vdmaw_dat_o),
-                .s_wb_dat_i         (wb_host_dat_o),
-                .s_wb_we_i          (wb_host_we_o),
-                .s_wb_sel_i         (wb_host_sel_o),
+                .s_wb_dat_i         (wb_peri_dat_i),
+                .s_wb_we_i          (wb_peri_we_i),
+                .s_wb_sel_i         (wb_peri_sel_i),
                 .s_wb_stb_i         (wb_vdmaw_stb_i),
                 .s_wb_ack_o         (wb_vdmaw_ack_o)
             );
@@ -852,14 +816,14 @@ module ultra96v2_imx219
     reg             vdmaw_enable;
     wire            vdmaw_busy;
     
-    always @(posedge wb_clk_o ) begin
-        if ( wb_rst_o ) begin
+    always @(posedge wb_peri_clk_i ) begin
+        if ( wb_peri_rst_i ) begin
             vdmaw_enable <= 0;
         end
         else begin
             vdmaw_enable <= 0;
-            if ( wb_vdmaw_stb_i && wb_host_we_o ) begin
-                vdmaw_enable <= wb_host_dat_o;
+            if ( wb_vdmaw_stb_i && wb_peri_we_i ) begin
+                vdmaw_enable <= wb_peri_dat_i;
             end
         end
     end
@@ -946,22 +910,22 @@ module ultra96v2_imx219
     //  WISHBONE address decoder
     // ----------------------------------------
     
-    assign wb_gid_stb_i   = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4000_0);
-    assign wb_vdmaw_stb_i = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_0);
-    assign wb_norm_stb_i  = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_1);
-    assign wb_rgb_stb_i   = wb_host_stb_o & (wb_host_adr_o[29:10] == 20'h4001_2);
+    assign wb_gid_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h000);   // 0x80000000-0x8000ffff
+    assign wb_fmtr_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h010);   // 0x80100000-0x8010ffff
+    assign wb_rgb_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h012);   // 0x80120000-0x8012ffff
+    assign wb_vdmaw_stb_i = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h021);   // 0x80210000-0x8021ffff
     
-    assign wb_host_dat_i  = wb_gid_stb_i   ? wb_gid_dat_o   :
-                            wb_vdmaw_stb_i ? wb_vdmaw_dat_o :
-                            wb_norm_stb_i  ? wb_norm_dat_o  :
+    assign wb_peri_dat_o  = wb_gid_stb_i   ? wb_gid_dat_o   :
+                            wb_fmtr_stb_i  ? wb_fmtr_dat_o  :
                             wb_rgb_stb_i   ? wb_rgb_dat_o   :
-                            32'h0000_0000;
+                            wb_vdmaw_stb_i ? wb_vdmaw_dat_o :
+                            {WB_DAT_WIDTH{1'b0}};
     
-    assign wb_host_ack_i  = wb_gid_stb_i   ? wb_gid_ack_o   :
-                            wb_vdmaw_stb_i ? wb_vdmaw_ack_o :
-                            wb_norm_stb_i  ? wb_norm_ack_o  :
+    assign wb_peri_ack_o  = wb_gid_stb_i   ? wb_gid_ack_o   :
+                            wb_fmtr_stb_i  ? wb_fmtr_ack_o  :
                             wb_rgb_stb_i   ? wb_rgb_ack_o   :
-                            wb_host_stb_o;
+                            wb_vdmaw_stb_i ? wb_vdmaw_ack_o :
+                            wb_peri_stb_i;
     
     
     
@@ -989,8 +953,44 @@ module ultra96v2_imx219
     end
     
     
-    assign radio_led[1] = reg_counter_clk100[24];
-    assign radio_led[0] = reg_counter_rxbyteclkhs[1];
+    reg     [31:0]      reg_clk200_time;
+    reg                 reg_clk200_led;
+    always @(posedge sys_clk200) begin
+        if ( sys_reset ) begin
+            reg_clk200_time <= 0;
+            reg_clk200_led  <= 0;
+        end
+        else begin
+            reg_clk200_time <= reg_clk200_time + 1;
+            if ( reg_clk200_time == 200000000-1 ) begin
+                reg_clk200_time <= 0;
+                reg_clk200_led  <= ~reg_clk200_led;
+            end
+        end
+    end
+    
+    reg     [31:0]      reg_clk250_time;
+    reg                 reg_clk250_led;
+    always @(posedge sys_clk250) begin
+        if ( sys_reset ) begin
+            reg_clk250_time <= 0;
+            reg_clk250_led  <= 0;
+        end
+        else begin
+            reg_clk250_time <= reg_clk250_time + 1;
+            if ( reg_clk250_time == 250000000-1 ) begin
+                reg_clk250_time <= 0;
+                reg_clk250_led  <= ~reg_clk250_led;
+            end
+        end
+    end
+    
+    
+    assign radio_led[1] = reg_clk200_led;
+    assign radio_led[0] = reg_clk250_led;
+    
+//    assign radio_led[1] = reg_counter_clk100[24];
+//    assign radio_led[0] = reg_counter_rxbyteclkhs[1];
     
     assign hd_gpio[0] = sys_reset;
     assign hd_gpio[1] = reg_counter_clk100[5]; 

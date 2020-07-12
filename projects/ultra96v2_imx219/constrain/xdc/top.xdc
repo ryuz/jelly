@@ -4,34 +4,35 @@
 # Timing
 ################################
 
-#set_max_delay -datapath_only -from [get_clocks clk_fpga_0] -to [get_clocks clk_fpga_1] 7.500
-#set_max_delay -datapath_only -from [get_clocks clk_fpga_1] -to [get_clocks clk_fpga_0] 7.500
-
-set_max_delay -datapath_only -from [get_clocks cam_clk_p_FIFO_WRCLK_OUT] -to [get_clocks clk_out2_design_1_clk_wiz_0_0] 5.000
-
-set_max_delay -datapath_only -from [get_clocks cam_clk_p_FIFO_WRCLK_OUT] -to [get_clocks clk_out3_design_1_clk_wiz_0_0] 5.000
-set_max_delay -datapath_only -from [get_clocks clk_out1_design_1_clk_wiz_0_0] -to [get_clocks clk_out2_design_1_clk_wiz_0_0] 5.000
-set_max_delay -datapath_only -from [get_clocks clk_out1_design_1_clk_wiz_0_0] -to [get_clocks clk_out3_design_1_clk_wiz_0_0] 5.000
-set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -to [get_clocks cam_clk_p_FIFO_WRCLK_OUT] 5.000
-set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -to [get_clocks clk_out3_design_1_clk_wiz_0_0] 5.000
-set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -to [get_clocks clk_pl_0] 5.000
-set_max_delay -datapath_only -from [get_clocks clk_out3_design_1_clk_wiz_0_0] -to [get_clocks cam_clk_p_FIFO_WRCLK_OUT] 5.000
-set_max_delay -datapath_only -from [get_clocks clk_out3_design_1_clk_wiz_0_0] -to [get_clocks clk_out2_design_1_clk_wiz_0_0] 5.000
-set_max_delay -datapath_only -from [get_clocks clk_pl_0] -to [get_clocks clk_out2_design_1_clk_wiz_0_0] 5.000
-
-
-# clk_pl_0                           100MHz
+# cam_clk_p                          456MHz(912Mbps)
+# cam_clk_p_FIFO_WRCLK_OUT
 # GEN_PLL_IN_IP_USP.pll0_clkout0
 # clk_out1_design_1_clk_wiz_0_0      100MHz
 # clk_out2_design_1_clk_wiz_0_0      200MHz
 # clk_out3_design_1_clk_wiz_0_0      250MHz
-# i_design_1/clk_wiz_0/inst/clk_in1
+# clk_pl_0                           100MHz
+# clkoutphy_out                      114MHz   8.771ns
+# i_design_1/clk_wiz_0/inst/clk_in1  
+
+# cam_clk_p
+create_clock -period 2.1929 -name cam_clk_p -waveform {0.000 1.0964} [get_ports cam_clk_p]
+
+set_max_delay -datapath_only -from [get_clocks cam_clk_p_FIFO_WRCLK_OUT]      -to [get_clocks clk_out2_design_1_clk_wiz_0_0]  5.000
+set_max_delay -datapath_only -from [get_clocks cam_clk_p_FIFO_WRCLK_OUT]      -to [get_clocks clk_out3_design_1_clk_wiz_0_0]  4.000
+set_max_delay -datapath_only -from [get_clocks clk_out1_design_1_clk_wiz_0_0] -to [get_clocks clk_out2_design_1_clk_wiz_0_0]  5.000
+set_max_delay -datapath_only -from [get_clocks clk_out1_design_1_clk_wiz_0_0] -to [get_clocks clk_out3_design_1_clk_wiz_0_0]  4.000
+set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -to [get_clocks cam_clk_p_FIFO_WRCLK_OUT]       5.000
+set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -to [get_clocks clk_out3_design_1_clk_wiz_0_0]  5.000
+set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -to [get_clocks clk_pl_0]                       5.000
+set_max_delay -datapath_only -from [get_clocks clk_out3_design_1_clk_wiz_0_0] -to [get_clocks cam_clk_p_FIFO_WRCLK_OUT]       4.000
+set_max_delay -datapath_only -from [get_clocks clk_out3_design_1_clk_wiz_0_0] -to [get_clocks clk_out2_design_1_clk_wiz_0_0]  4.000
+set_max_delay -datapath_only -from [get_clocks clk_pl_0]                      -to [get_clocks clk_out2_design_1_clk_wiz_0_0]  5.000
+
 
 
 ################################
 # I/O
 ################################
-
 
 # MIPI
 set_property PACKAGE_PIN N2 [get_ports cam_clk_p]
