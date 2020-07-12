@@ -21,7 +21,7 @@ module jelly_img_gaussian_3x3
             parameter   RAM_TYPE          = "block",
             parameter   USE_VALID         = 0,
             
-            parameter   CORE_ID           = 32'h527a_0103,
+            parameter   CORE_ID           = 32'h527a_2310,
             parameter   CORE_VERSION      = 32'h0001_0000,
             parameter   INDEX_WIDTH       = 1,
             
@@ -38,6 +38,8 @@ module jelly_img_gaussian_3x3
             input   wire                            reset,
             input   wire                            clk,
             input   wire                            cke,
+            
+            input   wire                            in_update_req,
             
             input   wire                            s_wb_rst_i,
             input   wire                            s_wb_clk_i,
@@ -71,9 +73,9 @@ module jelly_img_gaussian_3x3
     genvar      i;
     
     
-    // ---------------------------------
-    //  Register
-    // ---------------------------------
+    // -------------------------------------
+    //  registers domain
+    // -------------------------------------
     
     // register address offset
     localparam  ADR_CORE_ID              = 8'h00;
@@ -84,7 +86,16 @@ module jelly_img_gaussian_3x3
     localparam  ADR_PARAM_ENABLE         = 8'h08;
     localparam  ADR_CURRENT_ENABLE       = 8'h18;
     
-    // handshake(master)
+    // registers
+    reg     [2:0]               reg_ctl_control;
+    reg     [NUM-1:0]           reg_param_enable;
+    
+    // shadow registers(core domain)
+    reg     [0:0]               reg_current_control;
+    reg     [NUM-1:0]           reg_current_enable;
+    
+    
+    // handshake with core domain
     wire    [INDEX_WIDTH-1:0]   update_index;
     wire                        update_ack;
     wire    [INDEX_WIDTH-1:0]   ctl_index;
@@ -103,12 +114,8 @@ module jelly_img_gaussian_3x3
                 .out_index      (ctl_index)
             );
     
-    // registers
-    reg     [2:0]               reg_ctl_control;
-    reg     [NUM-1:0]           reg_param_enable;
-    reg     [NUM-1:0]           reg_current_enable;
-    
-    function [WB_DAT_WIDTH-1:0] reg_mask(
+    // write mask
+    function [WB_DAT_WIDTH-1:0] write_mask(
                                         input [WB_DAT_WIDTH-1:0] org,
                                         input [WB_DAT_WIDTH-1:0] wdat,
                                         input [WB_SEL_WIDTH-1:0] msk
@@ -116,11 +123,12 @@ module jelly_img_gaussian_3x3
     integer i;
     begin
         for ( i = 0; i < WB_DAT_WIDTH; i = i+1 ) begin
-            reg_mask[i] = msk[i/8] ? wdat[i] : org[i];
+            write_mask[i] = msk[i/8] ? wdat[i] : org[i];
         end
     end
     endfunction
     
+    // registers control
     always @(posedge s_wb_clk_i) begin
         if ( s_wb_rst_i ) begin
             reg_ctl_control  <= INIT_CTL_CONTROL;
@@ -133,26 +141,32 @@ module jelly_img_gaussian_3x3
             
             if ( s_wb_stb_i && s_wb_we_i ) begin
                 case ( s_wb_adr_i )
-                ADR_CTL_CONTROL:  reg_ctl_control  <= reg_mask(reg_ctl_control,  s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_ENABLE: reg_param_enable <= reg_mask(reg_param_enable, s_wb_dat_i, s_wb_sel_i);
+                ADR_CTL_CONTROL:  reg_ctl_control  <= write_mask(reg_ctl_control,  s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_ENABLE: reg_param_enable <= write_mask(reg_param_enable, s_wb_dat_i, s_wb_sel_i);
                 endcase
             end
         end
     end
     
-    assign s_wb_dat_o = (s_wb_adr_i == ADR_CORE_ID)        ? CORE_ID            :
-                        (s_wb_adr_i == ADR_CORE_VERSION)   ? CORE_VERSION       :
-                        (s_wb_adr_i == ADR_CTL_CONTROL)    ? reg_ctl_control    :
-                        (s_wb_adr_i == ADR_CTL_STATUS)     ? 0                  :
-                        (s_wb_adr_i == ADR_CTL_INDEX)      ? ctl_index          :
-                        (s_wb_adr_i == ADR_PARAM_ENABLE)   ? reg_param_enable   :
-                        (s_wb_adr_i == ADR_CURRENT_ENABLE) ? reg_current_enable :
-                        0;
+    // read
+    assign s_wb_dat_o = (s_wb_adr_i == ADR_CORE_ID)        ? CORE_ID             :
+                        (s_wb_adr_i == ADR_CORE_VERSION)   ? CORE_VERSION        :
+                        (s_wb_adr_i == ADR_CTL_CONTROL)    ? reg_ctl_control     :
+                        (s_wb_adr_i == ADR_CTL_STATUS)     ? reg_current_control :
+                        (s_wb_adr_i == ADR_CTL_INDEX)      ? ctl_index           :
+                        (s_wb_adr_i == ADR_PARAM_ENABLE)   ? reg_param_enable    :
+                        (s_wb_adr_i == ADR_CURRENT_ENABLE) ? reg_current_enable  :
+                        {WB_DAT_WIDTH{1'b0}};
     assign s_wb_ack_o = s_wb_stb_i;
     
     
     
-    // handshake(slave)
+    
+    // -------------------------------------
+    //  core domain
+    // -------------------------------------
+    
+    // handshake with registers domain
     wire    update_trig = (s_img_valid & s_img_line_first & s_img_pixel_first);
     wire    update_en;
     
@@ -173,18 +187,28 @@ module jelly_img_gaussian_3x3
                 .out_index      (update_index)
             );
     
-    reg     [NUM-1:0]       reg_core_enable;
+    // wait for frame start to update parameters
+    reg                 reg_update_req;
     always @(posedge clk) begin
         if ( reset ) begin
-            reg_current_enable <= INIT_PARAM_ENABLE;
+            reg_update_req      <= 1'b0;
+            reg_current_control <= INIT_CTL_CONTROL;
+            reg_current_enable  <= INIT_PARAM_ENABLE;
         end
-        else if ( cke ) begin
-            if ( update_trig & update_en ) begin
-                reg_current_enable <= reg_ctl_control[0] ? reg_param_enable : 0;
+        else begin
+            if ( in_update_req ) begin
+                reg_update_req <= 1'b1;
+            end
+            
+            if ( cke ) begin
+                if ( reg_update_req & update_trig & update_en ) begin
+                    reg_update_req      <= 1'b0;
+                    reg_current_control <= reg_ctl_control[0];
+                    reg_current_enable  <= reg_ctl_control[0] ? reg_param_enable : 0;
+                end
             end
         end
     end
-    
     
     
     // cores

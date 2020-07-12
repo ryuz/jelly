@@ -3,7 +3,7 @@
 `timescale 1ns / 1ps
 `default_nettype none
 
-module top
+module zybo_z7_gpu_gouraud
 		(
 			input	wire			in_clk125,
 			
