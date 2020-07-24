@@ -296,10 +296,10 @@ module ultra96v2_imx219
     wire                dl0_errsyncesc;
     wire                dl0_errcontrol;
     
-    wire    [7:0]       dl1_rxdatahs;
-    wire                dl1_rxvalidhs;
-    wire                dl1_rxactivehs;
-    wire                dl1_rxsynchs;
+    (* MARK_DEBUG = "true" *)   wire    [7:0]       dl1_rxdatahs;
+    (* MARK_DEBUG = "true" *)   wire                dl1_rxvalidhs;
+    (* MARK_DEBUG = "true" *)   wire                dl1_rxactivehs;
+    (* MARK_DEBUG = "true" *)   wire                dl1_rxsynchs;
     
     wire                dl1_forcerxmode   = 0;
     wire                dl1_stopstate;
@@ -338,19 +338,20 @@ module ultra96v2_imx219
         end
     end
     
+    /*
     reg     [31:0]      rst_counter;
     reg                 phy_reset;
     always @(posedge sys_clk200) begin
         rst_counter <= rst_counter + 1;
         phy_reset   <= (rst_counter[23:8] == 0);
     end
-    
+    */
     
     mipi_dphy_cam
         i_mipi_dphy_cam
             (
                 .core_clk           (sys_clk200),
-                .core_rst           (sys_reset | phy_reset),
+                .core_rst           (sys_reset), //  | phy_reset),
                 .rxbyteclkhs        (rxbyteclkhs),
                 
                 .clkoutphy_out      (clkoutphy_out),
@@ -455,13 +456,14 @@ module ultra96v2_imx219
     (* MARK_DEBUG = "true" *)   wire            axi4s_csi2_tvalid;
     (* MARK_DEBUG = "true" *)   wire            axi4s_csi2_tready;
     
-    jelly_csi2_rx
+    jelly_mipi_csi2_rx
             #(
-                .LANE_NUM           (2),
+                .LANES              (2),
                 .DATA_WIDTH         (10),
-                .M_FIFO_ASYNC       (1)
+                .M_FIFO_ASYNC       (1),
+                .M_FIFO_PTR_WIDTH   (10)
             )
-        i_csi2_rx
+        i_mipi_csi2_rx
             (
                 .aresetn            (~sys_reset),
                 .aclk               (sys_clk250),
@@ -482,6 +484,7 @@ module ultra96v2_imx219
                 .m_axi4s_tready     (1'b1)  // (axi4s_csi2_tready)
             );
     
+    /*
     jelly_axi4s_debug_monitor
             #(
                 .TUSER_WIDTH        (1),
@@ -504,7 +507,7 @@ module ultra96v2_imx219
                 .axi4s_tvalid       (axi4s_csi2_tvalid),
                 .axi4s_tready       (axi4s_csi2_tready)
             );
-    
+    */
     
     // format regularizer
     wire    [0:0]               axi4s_fmtr_tuser;
@@ -631,7 +634,7 @@ module ultra96v2_imx219
     jelly_vdma_axi4s_to_axi4
             #(
                 .ASYNC              (1),
-                .FIFO_PTR_WIDTH     (13),
+                .FIFO_PTR_WIDTH     (12),
                 
                 .PIXEL_SIZE         (2),    // 32bit
                 .AXI4_ID_WIDTH      (AXI4_MEM0_ID_WIDTH),
@@ -1003,7 +1006,7 @@ module ultra96v2_imx219
     
     
     (* MARK_DEBUG = "true" *)   reg                 dbg_sys_reset;
-    (* MARK_DEBUG = "true" *)   reg                 dbg_phy_reset;
+//    (* MARK_DEBUG = "true" *)   reg                 dbg_phy_reset;
     (* MARK_DEBUG = "true" *)   reg                 dbg_rxbyteclkhs;
 //  (* MARK_DEBUG = "true" *)   reg                 dbg_clkoutphy_out;
     (* MARK_DEBUG = "true" *)   reg                 dbg_pll_lock_out;
@@ -1022,7 +1025,7 @@ module ultra96v2_imx219
     
     always @(posedge sys_clk200) begin
         dbg_sys_reset        <= sys_reset ; 
-        dbg_phy_reset        <= phy_reset;
+//        dbg_phy_reset        <= phy_reset;
         dbg_rxbyteclkhs      <= reg_counter_rxbyteclkhs[0];
 //      dbg_clkoutphy_out    <= clkoutphy_out   ;
         dbg_pll_lock_out     <= pll_lock_out    ;

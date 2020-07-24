@@ -359,10 +359,10 @@ module zybo_z7_imx219
     wire                cl_rxulpsclknot;
     wire                cl_ulpsactivenot;
     
-    wire    [7:0]       dl0_rxdatahs;
-    wire                dl0_rxvalidhs;
-    wire                dl0_rxactivehs;
-    wire                dl0_rxsynchs;
+    (* mark_debug="true" *)  wire    [7:0]       dl0_rxdatahs;
+    (* mark_debug="true" *)  wire                dl0_rxvalidhs;
+    (* mark_debug="true" *)  wire                dl0_rxactivehs;
+    (* mark_debug="true" *)  wire                dl0_rxsynchs;
     
     wire                dl0_forcerxmode   = 0;
     wire                dl0_stopstate;
@@ -382,10 +382,10 @@ module zybo_z7_imx219
     wire                dl0_errsyncesc;
     wire                dl0_errcontrol;
     
-    wire    [7:0]       dl1_rxdatahs;
-    wire                dl1_rxvalidhs;
-    wire                dl1_rxactivehs;
-    wire                dl1_rxsynchs;
+    (* mark_debug="true" *)  wire    [7:0]       dl1_rxdatahs;
+    (* mark_debug="true" *)  wire                dl1_rxvalidhs;
+    (* mark_debug="true" *)  wire                dl1_rxactivehs;
+    (* mark_debug="true" *)  wire                dl1_rxsynchs;
     
     wire                dl1_forcerxmode   = 0;
     wire                dl1_stopstate;
@@ -511,13 +511,13 @@ module zybo_z7_imx219
     wire            axi4s_csi2_tvalid;
     wire            axi4s_csi2_tready;
     
-    jelly_csi2_rx
+    jelly_mipi_csi2_rx
             #(
-                .LANE_NUM           (2),
+                .LANES              (2),
                 .DATA_WIDTH         (10),
                 .M_FIFO_ASYNC       (1)
             )
-        i_csi2_rx
+        i_mipi_csi2_rx
             (
                 .aresetn            (~sys_reset),
                 .aclk               (sys_clk250),
@@ -602,7 +602,7 @@ module zybo_z7_imx219
             );
     
     
-    // parameter update(フレーム単位で一括パラメータ更新できるように)
+    // parameter update(フレー�?単位で�?括パラメータ更新できるように)
     wire                            parameter_update_req;
     
     wire    [WB_DAT_WIDTH-1:0]      wb_prmup_dat_o;
@@ -659,7 +659,7 @@ module zybo_z7_imx219
     
     
     
-    // 現像
+    // 現�?
     wire    [0:0]               axi4s_rgb_tuser;
     wire                        axi4s_rgb_tlast;
     wire    [39:0]              axi4s_rgb_tdata;
