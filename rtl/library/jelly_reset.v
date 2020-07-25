@@ -35,8 +35,8 @@ module jelly_reset
     // input REGS (remove metastable)
     wire    in_regs_reset;
     generate
-    if ( INPUT_REGS > 0 ) begin
-        reg     [INPUT_REGS-1:0]    reg_in_reset;
+    if ( INPUT_REGS > 0 ) begin : blk_input_reg
+        (* ASYNC_REG="true" *)  reg     [INPUT_REGS-1:0]    reg_in_reset;
         always @(posedge clk or posedge input_reset) begin
             if ( input_reset ) begin
                 reg_in_reset <= {INPUT_REGS{1'b1}};
@@ -47,7 +47,7 @@ module jelly_reset
         end
         assign in_regs_reset = reg_in_reset[0];
     end
-    else begin
+    else begin : bypass_input_reg
         assign in_regs_reset = input_reset;
     end
     endgenerate
@@ -56,7 +56,7 @@ module jelly_reset
     // counter
     wire    counter_reset;
     generate
-    if ( COUNTER_WIDTH > 0 ) begin
+    if ( COUNTER_WIDTH > 0 ) begin : blk_counter
         reg     [COUNTER_WIDTH-1:0] reg_counter;
         always @(posedge clk) begin
             if ( in_regs_reset ) begin
@@ -68,9 +68,9 @@ module jelly_reset
                 end
             end
         end
-        assign counter_reset = (reg_counter == 0);
+        assign counter_reset = (reg_counter != 0);
     end
-    else begin
+    else begin : bypass_counter
         assign counter_reset = in_regs_reset;
     end
     endgenerate
@@ -90,10 +90,10 @@ module jelly_reset
     
     // insert BUFG
     generate
-    if ( INSERT_BUFG ) begin
+    if ( INSERT_BUFG ) begin : blk_bufg
         BUFG    i_bufg  (.I(reg_reset), .O(out_reset));
     end
-    else begin
+    else begin : bypass_bufg
         assign out_reset = reg_reset;
     end
     endgenerate
