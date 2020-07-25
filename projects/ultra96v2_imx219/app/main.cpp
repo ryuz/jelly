@@ -121,13 +121,14 @@ int main(int argc, char *argv[])
     auto reg_colmat = uio_acc.GetMemAccess(0x00120200);
     auto reg_wdma   = uio_acc.GetMemAccess(0x00210000);
 
+#if 0
     std::cout << "CORE ID" << std::endl;
     std::cout << std::hex << uio_acc.ReadReg(0) << std::endl;
     std::cout << std::hex << reg_fmtr.ReadReg(0) << std::endl;
     std::cout << std::hex << reg_demos.ReadReg(0) << std::endl;
     std::cout << std::hex << reg_colmat.ReadReg(0) << std::endl;
     std::cout << std::hex << reg_wdma.ReadReg(0) << std::endl;
-
+#endif
     
     // mmap udmabuf
     jelly::UdmabufAccess udmabuf_acc("udmabuf0");
@@ -148,6 +149,8 @@ int main(int argc, char *argv[])
         std::cout << "I2C open error" << std::endl;
         return 1;
     }
+
+    std::cout << "Model ID : " << std::hex << std::setfill('0') << std::setw(4) << imx219.GetModelId() << std::endl;
 
     // camera 設定
     imx219.SetPixelClock(pixel_clock);

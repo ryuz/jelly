@@ -17,6 +17,7 @@
 
 
 // レジスタ定義
+#define IMX219_MODEL_ID                    0x0000
 #define IMX219_MODEL_ID_0                  0x0000
 #define IMX219_MODEL_ID_1                  0x0001
 #define IMX219_FABRICATION_TOP             0x0002
@@ -224,6 +225,11 @@ public:
     bool IsOpend(void)
     {
         return m_i2c.IsOpend();
+    }
+
+    int GetModelId()
+    {
+        return I2cRead16bit(IMX219_MODEL_ID);
     }
 
     bool Reset(void)
@@ -522,6 +528,13 @@ protected:
         unsigned char buf[1];
         I2cRead(addr, buf, 1);
         return buf[0];
+    }
+
+    unsigned short I2cRead16bit(unsigned short addr)
+    {
+        unsigned char buf[2];
+        I2cRead(addr, buf, 2);
+        return (buf[0] << 8) | buf[1];
     }
 };
 

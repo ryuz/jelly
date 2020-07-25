@@ -1,9 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdint.h>
-#include <fcntl.h>
-#include <unistd.h>
+#include <iostream>
+#include <iomanip>
+#include <ios>
+#include <cstdint>
 
 #include <opencv2/opencv.hpp>
 
@@ -140,6 +138,8 @@ int main(int argc, char *argv[])
         std::cout << "I2C open error" << std::endl;
         return 1;
     }
+
+    std::cout << "Model ID : " << std::hex << std::setfill('0') << std::setw(4) << imx219.GetModelId() << std::endl;
 
     // camera 設定
     imx219.SetPixelClock(pixel_clock);
