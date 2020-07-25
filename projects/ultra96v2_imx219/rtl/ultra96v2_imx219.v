@@ -25,6 +25,10 @@ module ultra96v2_imx219
             
         );
     
+    wire    [7:0]   pmod1;
+    wire    [7:0]   pmod2;
+    assign hd_gpio[7:0]  = pmod1;
+    assign hd_gpio[15:8] = pmod2;
     
     
     wire            sys_reset;
@@ -273,10 +277,10 @@ module ultra96v2_imx219
     wire                cl_rxulpsclknot;
     wire                cl_ulpsactivenot;
     
-    (* MARK_DEBUG = "true" *)   wire    [7:0]       dl0_rxdatahs;
-    (* MARK_DEBUG = "true" *)   wire                dl0_rxvalidhs;
-    (* MARK_DEBUG = "true" *)   wire                dl0_rxactivehs;
-    (* MARK_DEBUG = "true" *)   wire                dl0_rxsynchs;
+    wire    [7:0]       dl0_rxdatahs;
+    wire                dl0_rxvalidhs;
+    wire                dl0_rxactivehs;
+    wire                dl0_rxsynchs;
     
     wire                dl0_forcerxmode   = 0;
     wire                dl0_stopstate;
@@ -296,10 +300,10 @@ module ultra96v2_imx219
     wire                dl0_errsyncesc;
     wire                dl0_errcontrol;
     
-    (* MARK_DEBUG = "true" *)   wire    [7:0]       dl1_rxdatahs;
-    (* MARK_DEBUG = "true" *)   wire                dl1_rxvalidhs;
-    (* MARK_DEBUG = "true" *)   wire                dl1_rxactivehs;
-    (* MARK_DEBUG = "true" *)   wire                dl1_rxsynchs;
+    wire    [7:0]       dl1_rxdatahs;
+    wire                dl1_rxvalidhs;
+    wire                dl1_rxactivehs;
+    wire                dl1_rxsynchs;
     
     wire                dl1_forcerxmode   = 0;
     wire                dl1_stopstate;
@@ -319,39 +323,11 @@ module ultra96v2_imx219
     wire                dl1_errsyncesc;
     wire                dl1_errcontrol;
     
-    
-    reg     [31:0]      dbg_dl0_count;
-    reg     [31:0]      dbg_dl1_count;
-    always @(posedge rxbyteclkhs) begin
-        if (dl0_rxactivehs ) begin
-            dbg_dl0_count <= dbg_dl0_count + 1;
-        end
-        if ( dl0_rxsynchs ) begin
-            dbg_dl0_count <= 0;
-        end
-        
-        if (dl1_rxactivehs ) begin
-            dbg_dl1_count <= dbg_dl1_count + 1;
-        end
-        if ( dl1_rxsynchs ) begin
-            dbg_dl1_count <= 0;
-        end
-    end
-    
-    /*
-    reg     [31:0]      rst_counter;
-    reg                 phy_reset;
-    always @(posedge sys_clk200) begin
-        rst_counter <= rst_counter + 1;
-        phy_reset   <= (rst_counter[23:8] == 0);
-    end
-    */
-    
     mipi_dphy_cam
         i_mipi_dphy_cam
             (
                 .core_clk           (sys_clk200),
-                .core_rst           (sys_reset), //  | phy_reset),
+                .core_rst           (sys_reset),
                 .rxbyteclkhs        (rxbyteclkhs),
                 
                 .clkoutphy_out      (clkoutphy_out),
@@ -417,11 +393,6 @@ module ultra96v2_imx219
                 .data_rxn           (cam_data_n)
            );
     
-    
-//  wire        dphy_clk   = rxbyteclkhs;
-//  wire        dphy_reset = system_rst_out;
-    
-    
     wire        dphy_clk   = rxbyteclkhs;
     wire        dphy_reset;
     jelly_reset
@@ -441,7 +412,6 @@ module ultra96v2_imx219
     
     
     
-    
     // ----------------------------------------
     //  CSI-2
     // ----------------------------------------
@@ -450,11 +420,19 @@ module ultra96v2_imx219
     wire            axi4s_cam_aresetn = ~sys_reset;
     wire            axi4s_cam_aclk    = sys_clk200;
     
-    (* MARK_DEBUG = "true" *)   wire    [0:0]   axi4s_csi2_tuser;
-    (* MARK_DEBUG = "true" *)   wire            axi4s_csi2_tlast;
-    (* MARK_DEBUG = "true" *)   wire    [9:0]   axi4s_csi2_tdata;
-    (* MARK_DEBUG = "true" *)   wire            axi4s_csi2_tvalid;
-    (* MARK_DEBUG = "true" *)   wire            axi4s_csi2_tready;
+    wire    [0:0]   axi4s_csi2_tuser;
+    wire            axi4s_csi2_tlast;
+    wire    [9:0]   axi4s_csi2_tdata;
+    wire            axi4s_csi2_tvalid;
+    wire            axi4s_csi2_tready;
+    
+    wire            mipi_ecc_corrected;
+    wire            mipi_ecc_error;
+    wire            mipi_ecc_valid;
+    wire            mipi_crc_error;
+    wire            mipi_crc_valid;
+    wire            mipi_packet_lost;
+    wire            mipi_fifo_overflow;
     
     jelly_mipi_csi2_rx
             #(
@@ -467,6 +445,14 @@ module ultra96v2_imx219
             (
                 .aresetn            (~sys_reset),
                 .aclk               (sys_clk250),
+                
+                .ecc_corrected      (mipi_ecc_corrected),
+                .ecc_error          (mipi_ecc_error),
+                .ecc_valid          (mipi_ecc_valid),
+                .crc_error          (mipi_crc_error),
+                .crc_valid          (mipi_crc_valid),
+                .packet_lost        (mipi_packet_lost),
+                .fifo_overflow      (mipi_fifo_overflow),
                 
                 .rxreseths          (system_rst_out),
                 .rxbyteclkhs        (rxbyteclkhs),
@@ -484,30 +470,6 @@ module ultra96v2_imx219
                 .m_axi4s_tready     (1'b1)  // (axi4s_csi2_tready)
             );
     
-    /*
-    jelly_axi4s_debug_monitor
-            #(
-                .TUSER_WIDTH        (1),
-                .TDATA_WIDTH        (10),
-                .TIMER_WIDTH        (32),
-                .FRAME_WIDTH        (32),
-                .PIXEL_WIDTH        (32),
-                .X_WIDTH            (16),
-                .Y_WIDTH            (16)
-            )
-        i_axi4s_debug_monitor
-            (
-                .aresetn            (axi4s_cam_aresetn),
-                .aclk               (axi4s_cam_aclk),
-                .aclken             (1'b1),
-                
-                .axi4s_tuser        (axi4s_csi2_tuser),
-                .axi4s_tlast        (axi4s_csi2_tlast),
-                .axi4s_tdata        (axi4s_csi2_tdata),
-                .axi4s_tvalid       (axi4s_csi2_tvalid),
-                .axi4s_tready       (axi4s_csi2_tready)
-            );
-    */
     
     // format regularizer
     wire    [0:0]               axi4s_fmtr_tuser;
@@ -995,53 +957,120 @@ module ultra96v2_imx219
 //    assign radio_led[1] = reg_counter_clk100[24];
 //    assign radio_led[0] = reg_counter_rxbyteclkhs[1];
     
+    /*
     assign hd_gpio[0] = sys_reset;
     assign hd_gpio[1] = reg_counter_clk100[5]; 
     assign hd_gpio[2] = reg_counter_clk200[5];
     assign hd_gpio[3] = reg_counter_clk250[5];
     assign hd_gpio[4] = reg_counter_rxbyteclkhs[5];
     assign hd_gpio[15:5] = 0;
+    */
     
+    /*
+    assign pmod1[0]   = sys_reset;
+    assign pmod1[1]   = reg_counter_clk100[10]; 
+    assign pmod1[2]   = reg_counter_clk200[10];
+    assign pmod1[3]   = reg_counter_clk250[10];
+    assign pmod1[4]   = reg_counter_rxbyteclkhs[10];
+    assign pmod1[7:5] = 0;
+    */
+    assign pmod1 = reg_counter_clk100[15:8];
     
-    
-    
-    (* MARK_DEBUG = "true" *)   reg                 dbg_sys_reset;
-//    (* MARK_DEBUG = "true" *)   reg                 dbg_phy_reset;
-    (* MARK_DEBUG = "true" *)   reg                 dbg_rxbyteclkhs;
-//  (* MARK_DEBUG = "true" *)   reg                 dbg_clkoutphy_out;
-    (* MARK_DEBUG = "true" *)   reg                 dbg_pll_lock_out;
-    (* MARK_DEBUG = "true" *)   reg                 dbg_system_rst_out;
-    (* MARK_DEBUG = "true" *)   reg                 dbg_init_done;
-    (* MARK_DEBUG = "true" *)   reg                 dbg_cl_rxclkactivehs;
-    (* MARK_DEBUG = "true" *)   reg                 dbg_cl_stopstate;
-    (* MARK_DEBUG = "true" *)   reg                 dbg_cl_enable;
-    (* MARK_DEBUG = "true" *)   reg                 dbg_cl_rxulpsclknot;
-    (* MARK_DEBUG = "true" *)   reg                 dbg_cl_ulpsactivenot;
-    
-    (* MARK_DEBUG = "true" *)   reg     [7:0]       dbg_dl0_rxdatahs;
-    (* MARK_DEBUG = "true" *)   reg     [7:0]       dbg_dl0_rxdataesc;
-    (* MARK_DEBUG = "true" *)   reg     [7:0]       dbg_dl1_rxdatahs;
-    (* MARK_DEBUG = "true" *)   reg     [7:0]       dbg_dl1_rxdataesc;
-    
-    always @(posedge sys_clk200) begin
-        dbg_sys_reset        <= sys_reset ; 
-//        dbg_phy_reset        <= phy_reset;
-        dbg_rxbyteclkhs      <= reg_counter_rxbyteclkhs[0];
-//      dbg_clkoutphy_out    <= clkoutphy_out   ;
-        dbg_pll_lock_out     <= pll_lock_out    ;
-        dbg_system_rst_out   <= system_rst_out  ;
-        dbg_init_done        <= init_done       ;
-        dbg_cl_rxclkactivehs <= cl_rxclkactivehs;
-        dbg_cl_stopstate     <= cl_stopstate    ;
-        dbg_cl_enable        <= cl_enable       ;
-        dbg_cl_rxulpsclknot  <= cl_rxulpsclknot ;
-        dbg_cl_ulpsactivenot <= cl_ulpsactivenot;
-        dbg_dl0_rxdatahs     <= dl0_rxdatahs ;
-        dbg_dl0_rxdataesc    <= dl0_rxdataesc;
-        dbg_dl1_rxdatahs     <= dl1_rxdatahs ;
-        dbg_dl1_rxdataesc    <= dl1_rxdataesc;
+    reg     [7:0]   reg_frame_count;
+    always @(posedge axi4s_cam_aclk) begin
+        if ( axi4s_csi2_tuser && axi4s_csi2_tvalid ) begin
+            reg_frame_count <= reg_frame_count + 1;
+        end
     end
     
+    assign pmod2 = reg_frame_count;
+    
+    
+    // Debug
+    (* mark_debug = "true" *)   wire    [7:0]       dbg0_rxdatahs;
+    (* mark_debug = "true" *)   wire                dbg0_rxvalidhs;
+    (* mark_debug = "true" *)   wire                dbg0_rxactivehs;
+    (* mark_debug = "true" *)   wire                dbg0_rxsynchs;
+    (* mark_debug = "true" *)   wire    [7:0]       dbg1_rxdatahs;
+    (* mark_debug = "true" *)   wire                dbg1_rxvalidhs;
+    (* mark_debug = "true" *)   wire                dbg1_rxactivehs;
+    (* mark_debug = "true" *)   wire                dbg1_rxsynchs;
+    (* mark_debug = "true" *)   wire                dbg1_valid;
+    jelly_fifo_generic_fwtf
+            #(
+                .ASYNC              (1),
+                .DATA_WIDTH         (2*(3+8)),
+                .PTR_WIDTH          (6),
+                .DOUT_REGS          (1),
+                .RAM_TYPE           ("distributed"),
+                .LOW_DEALY          (0),
+                .SLAVE_REGS         (0),
+                .MASTER_REGS        (1)
+            )
+        i_fifo_generic_fwtf
+            (
+                .s_reset            (system_rst_out),
+                .s_clk              (rxbyteclkhs),
+                .s_data             ({
+                                        dl0_rxdatahs,
+                                        dl0_rxvalidhs,
+                                        dl0_rxactivehs,
+                                        dl0_rxsynchs,
+                                        dl1_rxdatahs,
+                                        dl1_rxvalidhs,
+                                        dl1_rxactivehs,
+                                        dl1_rxsynchs
+                                    }),
+                .s_valid            (1'b1),
+                .s_ready            (),
+                .s_free_count       (),
+                
+                .m_reset            (sys_reset),
+                .m_clk              (sys_clk200),
+                .m_data             ({
+                                        dbg0_rxdatahs,
+                                        dbg0_rxvalidhs,
+                                        dbg0_rxactivehs,
+                                        dbg0_rxsynchs,
+                                        dbg1_rxdatahs,
+                                        dbg1_rxvalidhs,
+                                        dbg1_rxactivehs,
+                                        dbg1_rxsynchs
+                                    }),
+                .m_valid            (dbg1_valid),
+                .m_ready            (1'b1),
+                .m_data_count       ()
+            );
+    
+    
+    (* mark_debug = "true" *)  reg     [31:0]      reg_mipi_ecc_count;
+    (* mark_debug = "true" *)  reg     [31:0]      reg_mipi_ecc_error;
+    (* mark_debug = "true" *)  reg     [31:0]      reg_mipi_ecc_corrected;
+    (* mark_debug = "true" *)  reg     [31:0]      reg_mipi_crc_count;
+    (* mark_debug = "true" *)  reg     [31:0]      reg_mipi_crc_error;
+    (* mark_debug = "true" *)  reg     [31:0]      reg_mipi_packet_lost;
+    always @(posedge sys_clk250) begin
+        if ( sys_reset ) begin
+            reg_mipi_ecc_count     <= 0;
+            reg_mipi_ecc_error     <= 0;
+            reg_mipi_ecc_corrected <= 0;
+            reg_mipi_crc_count     <= 0;
+            reg_mipi_crc_error     <= 0;
+            reg_mipi_packet_lost   <= 0;
+        end
+        else begin
+            if ( mipi_ecc_valid ) begin
+                reg_mipi_ecc_count     <= reg_mipi_ecc_count + 1'b1;
+                reg_mipi_ecc_error     <= reg_mipi_ecc_error + mipi_ecc_error;
+                reg_mipi_ecc_corrected <= reg_mipi_ecc_corrected + mipi_ecc_corrected;
+            end
+            if ( mipi_crc_valid ) begin
+                reg_mipi_crc_count <= reg_mipi_crc_count + 1'b1;
+                reg_mipi_crc_error <= reg_mipi_crc_error + mipi_crc_error;
+            end
+            reg_mipi_packet_lost <= reg_mipi_packet_lost + mipi_packet_lost;
+        end
+    end
     
     
 endmodule

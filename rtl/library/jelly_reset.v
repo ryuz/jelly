@@ -20,7 +20,7 @@ module jelly_reset
             parameter   OUT_LOW_ACTIVE = 0,
             parameter   INPUT_REGS     = 2,
             parameter   COUNTER_WIDTH  = 0,
-            parameter   COUNTER_VALUE  = {COUNTER_WIDTH{1'b1}},
+            parameter   COUNTER_VALUE  = COUNTER_WIDTH > 0 ? {COUNTER_WIDTH{1'b1}} : 0,
             parameter   INSERT_BUFG    = 0
         )
         (
@@ -58,7 +58,7 @@ module jelly_reset
     generate
     if ( COUNTER_WIDTH > 0 ) begin
         reg     [COUNTER_WIDTH-1:0] reg_counter;
-        always @(posedge clk or posedge in_regs_reset) begin
+        always @(posedge clk) begin
             if ( in_regs_reset ) begin
                 reg_counter <= COUNTER_VALUE;
             end
@@ -78,7 +78,7 @@ module jelly_reset
     
     // syncrnous reset
     reg     reg_reset;
-    always @(posedge clk or posedge counter_reset) begin
+    always @(posedge clk) begin
         if ( counter_reset ) begin
             reg_reset <= OUT_LOW_ACTIVE ? 1'b0 : 1'b1;
         end

@@ -548,13 +548,13 @@ module zybo_z7_imx219_hdmi
     wire            axi4s_csi2_tvalid;
     wire            axi4s_csi2_tready;
     
-    jelly_csi2_rx
+    jelly_mipi_csi2_rx
             #(
-                .LANE_NUM           (2),
+                .LANES              (2),
                 .DATA_WIDTH         (10),
                 .M_FIFO_ASYNC       (1)
             )
-        i_csi2_rx
+        i_mipi_csi2_rx
             (
                 .aresetn            (~sys_reset),
                 .aclk               (sys_clk250),
@@ -575,6 +575,7 @@ module zybo_z7_imx219_hdmi
                 .m_axi4s_tready     (1'b1)  // (axi4s_csi2_tready)
             );
     
+    /*
     jelly_axi4s_debug_monitor
             #(
                 .TUSER_WIDTH        (1),
@@ -597,7 +598,7 @@ module zybo_z7_imx219_hdmi
                 .axi4s_tvalid       (axi4s_csi2_tvalid),
                 .axi4s_tready       (axi4s_csi2_tready)
             );
-    
+    */
     
     // normalize
     wire    [0:0]               axi4s_fmtr_tuser;
@@ -662,7 +663,7 @@ module zybo_z7_imx219_hdmi
             );
     
     
-    // 現像
+    // 現�?
     wire    [0:0]               axi4s_rgb_tuser;
     wire                        axi4s_rgb_tlast;
     wire    [39:0]              axi4s_rgb_tdata;
@@ -897,7 +898,7 @@ module zybo_z7_imx219_hdmi
                     .WB_ADR_WIDTH       (8),
                     .WB_DAT_WIDTH       (WB_DAT_WIDTH),
                     
-                    .TRIG_ASYNC         (1),    // WISHBONEと非同期の場合
+                    .TRIG_ASYNC         (1),    // WISHBONEと非同期�?�場�?
                     .TRIG_START_ENABLE  (0),
                     
                     .INIT_CTL_CONTROL   (4'b0000),
