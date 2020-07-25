@@ -27,7 +27,7 @@ module tb_top();
     parameter   X_NUM = 2048; // 3280 / 2;
     parameter   Y_NUM = 16; // 2464 / 2;
     
-    ultra96v2_imx219
+    ultra96v2_imx219_stepper_motor
         i_top
             (
                 .cam_clk_p      (),
@@ -35,8 +35,7 @@ module tb_top();
                 .cam_data_p     (),
                 .cam_data_n     (),
                 
-                .radio_led      (),
-                .hd_gpio        ()
+                .radio_led      ()
             );
     
     
