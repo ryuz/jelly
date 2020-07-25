@@ -23,7 +23,15 @@ module jelly_mipi_csi2_rx_low_layer
             
             output  wire            out_frame_start,
             output  wire            out_frame_end,
+            
+            output  wire            out_ecc_corrected,
+            output  wire            out_ecc_error,
+            output  wire            out_ecc_valid,
+            
             output  wire            out_crc_error,
+            output  wire            out_crc_valid,
+            
+            output  wire            out_packet_lost,
             
             input   wire    [0:0]   s_axi4s_tuser,
             input   wire            s_axi4s_tlast,
@@ -37,33 +45,38 @@ module jelly_mipi_csi2_rx_low_layer
             input   wire            m_axi4s_tready
         );
     
+    
+    wire                cke;
+    
+    
     // CRC
     function [15:0]     calc_crc(input [15:0] crc, input [7:0] data);
     integer i;
     begin
-        calc_crc = crc;
         for ( i = 0; i < 8; i = i+1 ) begin
-            calc_crc = ((calc_crc >> 1) ^ ((calc_crc[0] ^ st0_data[i]) ? 16'h8408 : 16'h0000));
+            if ( crc[0] ^ data[i] ) begin
+                crc = ((crc >> 1) ^ 16'h8408);
+            end
+            else begin
+                crc = (crc >> 1);
+            end
         end
+        calc_crc = crc;
     end
     endfunction
-    
-    
-    
-    wire                cke;
     
     
     // stage 0 (header parser)
     localparam  [1:0]   ST0_IDLE = 0, ST0_WC0 = 1, ST0_WC1 = 2, ST0_ECC = 3;
     
-    (* MARK_DEBUG = "true" *)   reg     [1:0]       st0_state;
-    (* MARK_DEBUG = "true" *)   reg     [7:0]       st0_id;
-    (* MARK_DEBUG = "true" *)   reg     [15:0]      st0_wc;
-    (* MARK_DEBUG = "true" *)   reg     [7:0]       st0_ecc;
-    (* MARK_DEBUG = "true" *)   reg                 st0_ph;
-    (* MARK_DEBUG = "true" *)   reg                 st0_last;
-    (* MARK_DEBUG = "true" *)   reg     [7:0]       st0_data;
-    (* MARK_DEBUG = "true" *)   reg                 st0_valid;
+    reg     [1:0]       st0_state;
+    reg     [7:0]       st0_id;
+    reg     [15:0]      st0_wc;
+    reg     [7:0]       st0_ecc;
+    reg                 st0_ph;
+    reg                 st0_last;
+    reg     [7:0]       st0_data;
+    reg                 st0_valid;
     
     always @(posedge aclk) begin
         if ( ~aresetn ) begin
@@ -135,14 +148,14 @@ module jelly_mipi_csi2_rx_low_layer
     
     
     
-    (* MARK_DEBUG = "true" *)   wire                    ecc_ph;
-    (* MARK_DEBUG = "true" *)   wire                    ecc_last;
-    (* MARK_DEBUG = "true" *)   wire    [7:0]           ecc_data;
-    (* MARK_DEBUG = "true" *)   wire    [7:0]           ecc_id;
-    (* MARK_DEBUG = "true" *)   wire    [15:0]          ecc_wc;
-    (* MARK_DEBUG = "true" *)   wire                    ecc_error;
-    (* MARK_DEBUG = "true" *)   wire                    ecc_corrected;
-    (* MARK_DEBUG = "true" *)   wire                    ecc_valid;
+    wire                    ecc_ph;
+    wire                    ecc_last;
+    wire    [7:0]           ecc_data;
+    wire    [7:0]           ecc_id;
+    wire    [15:0]          ecc_wc;
+    wire                    ecc_error;
+    wire                    ecc_corrected;
+    wire                    ecc_valid;
     
     jelly_mipi_ecc24
             #(
@@ -156,7 +169,7 @@ module jelly_mipi_csi2_rx_low_layer
                 
                 .s_user         ({st0_ph, st0_last, st0_data}),
                 .s_data         ({st0_wc, st0_id}),
-                .s_ecc          (st0_ecc),
+                .s_ecc          (st0_ecc[5:0]),
                 .s_valid        (st0_valid),
                 
                 .m_user         ({ecc_ph, ecc_last, ecc_data}),
@@ -171,19 +184,21 @@ module jelly_mipi_csi2_rx_low_layer
     // stage1
     localparam  [1:0]   ST1_IDLE = 0, ST1_DATA = 1, ST1_CRC0 = 2, ST1_CRC1 = 3;
     
-    (* MARK_DEBUG = "true" *)   reg     [1:0]   st1_state;
-    (* MARK_DEBUG = "true" *)   reg             st1_de;
-    (* MARK_DEBUG = "true" *)   reg     [15:0]  st1_wc;
-    (* MARK_DEBUG = "true" *)   reg     [15:0]  st1_counter;
-    (* MARK_DEBUG = "true" *)   reg     [15:0]  st1_crc;
-    (* MARK_DEBUG = "true" *)   reg     [15:0]  st1_crc_sum;
-    (* MARK_DEBUG = "true" *)   reg             st1_last;
-    (* MARK_DEBUG = "true" *)   reg             st1_end;
-    (* MARK_DEBUG = "true" *)   reg     [7:0]   st1_data;
-    (* MARK_DEBUG = "true" *)   reg             st1_valid;
-    (* MARK_DEBUG = "true" *)   reg             st1_frame_start;
-    (* MARK_DEBUG = "true" *)   reg             st1_frame_end;
-    (* MARK_DEBUG = "true" *)   reg             st1_crc_error;
+    reg     [1:0]   st1_state;
+    reg             st1_de;
+    reg     [15:0]  st1_wc;
+    reg     [15:0]  st1_counter;
+    reg     [15:0]  st1_crc;
+    reg     [15:0]  st1_crc_sum;
+    reg             st1_last;
+    reg             st1_end;
+    reg     [7:0]   st1_data;
+    reg             st1_valid;
+    reg             st1_frame_start;
+    reg             st1_frame_end;
+    reg             st1_crc_error;
+    reg             st1_crc_valid;
+    reg             st1_lost;
     
     always @(posedge aclk) begin
         if ( ~aresetn ) begin
@@ -200,11 +215,14 @@ module jelly_mipi_csi2_rx_low_layer
             st1_frame_start <= 1'b0;
             st1_frame_end   <= 1'b0;
             st1_crc_error   <= 1'b0;
+            st1_lost        <= 1'b0;
         end
         else if ( cke ) begin
             st1_frame_start <= 1'b0;
             st1_frame_end   <= 1'b0;
             st1_crc_error   <= 1'b0;
+            st1_crc_valid   <= 1'b0;
+            st1_lost        <= 1'b0;
             st1_data        <= ecc_data;
             st1_last        <= ecc_last;
             st1_end         <= 1'b0;
@@ -277,16 +295,26 @@ module jelly_mipi_csi2_rx_low_layer
             if ( ecc_last ) begin
                 st1_state  <= ST1_IDLE;
                 st1_de     <= 1'b0;
+                st1_lost   <= (st1_state != ST1_IDLE && st1_state != ST1_CRC1);
             end
             
             st1_crc_error <= st1_end && (st1_crc_sum != st1_crc);
+            st1_crc_valid <= st1_end;
         end
     end
     
     
     assign out_frame_start  = st1_frame_start;
     assign out_frame_end    = st1_frame_end;
+    
+    assign out_ecc_corrected = ecc_corrected;
+    assign out_ecc_error     = (ecc_error && !ecc_corrected);
+    assign out_ecc_valid     = ecc_valid & ecc_ph;
+    
     assign out_crc_error    = st1_crc_error;
+    assign out_crc_valid    = st1_crc_valid;
+    
+    assign out_packet_lost  = st1_lost;
     
     assign s_axi4s_tready   = cke;
     

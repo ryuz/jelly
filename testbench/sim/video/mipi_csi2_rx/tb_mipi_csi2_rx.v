@@ -94,7 +94,7 @@ module tb_mipi_csi2_rx();
     reg     [31:0]      rx_data     [0:16*1024*1024-1];
     
     initial begin
-        $readmemh("data_err.hex", rx_data);
+        $readmemh("data_ila_crc_err.hex", rx_data);
     end
     
     integer     data_count = 0;

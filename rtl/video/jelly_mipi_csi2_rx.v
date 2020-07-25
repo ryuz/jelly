@@ -25,7 +25,13 @@ module jelly_mipi_csi2_rx
             input   wire                        aresetn,
             input   wire                        aclk,
             
-            output  wire                        overflow,
+            output  wire                        ecc_corrected,
+            output  wire                        ecc_error,
+            output  wire                        ecc_valid,
+            output  wire                        crc_error,
+            output  wire                        crc_valid,
+            output  wire                        packet_lost,
+            output  wire                        fifo_overflow,
             
             // input
             input   wire                        rxreseths,
@@ -79,7 +85,6 @@ module jelly_mipi_csi2_rx
     
     wire                        frame_start;
     wire                        frame_end;
-    wire                        crc_error;
     
     wire                        axi4s_low_tlast;
     wire    [7:0]               axi4s_low_tdata;
@@ -96,7 +101,13 @@ module jelly_mipi_csi2_rx
                 
                 .out_frame_start    (frame_start),
                 .out_frame_end      (frame_end),
+                
+                .out_ecc_corrected  (ecc_corrected),
+                .out_ecc_error      (ecc_error),
+                .out_ecc_valid      (ecc_valid),
                 .out_crc_error      (crc_error),
+                .out_crc_valid      (crc_valid),
+                .out_packet_lost    (packet_lost),
                 
                 .s_axi4s_tuser      (axi4s_lane_tuser),
                 .s_axi4s_tlast      (axi4s_lane_tlast),
@@ -157,7 +168,7 @@ module jelly_mipi_csi2_rx
                 .m_axi4s_tready     (1'b1)
             );
     
-    assign  overflow = (axi4s_out_tvalid & !axi4s_out_tready);
+    assign  fifo_overflow = (axi4s_out_tvalid & !axi4s_out_tready);
     
     
     jelly_fifo_generic_fwtf
@@ -187,103 +198,6 @@ module jelly_mipi_csi2_rx
                 .m_ready            (m_axi4s_tready),
                 .m_data_count       ()
             );
-    
-    
-    
-    // debug
-    jelly_axi4s_debug_monitor
-            #(
-                .TUSER_WIDTH        (1),
-                .TDATA_WIDTH        (8),
-                .TIMER_WIDTH        (16),
-                .FRAME_WIDTH        (16),
-                .PIXEL_WIDTH        (16),
-                .X_WIDTH            (16),
-                .Y_WIDTH            (8)
-            )
-        i_axi4s_debug_monitor_lane
-            (
-                .aresetn            (aresetn),
-                .aclk               (aclk),
-                .aclken             (1'b1),
-                
-                .axi4s_tuser        (axi4s_lane_tuser),
-                .axi4s_tlast        (axi4s_lane_tlast),
-                .axi4s_tdata        (axi4s_lane_tdata),
-                .axi4s_tvalid       (axi4s_lane_tvalid),
-                .axi4s_tready       (axi4s_lane_tready)
-            );
-    
-    jelly_axi4s_debug_monitor
-            #(
-                .TUSER_WIDTH        (1),
-                .TDATA_WIDTH        (8),
-                .TIMER_WIDTH        (16),
-                .FRAME_WIDTH        (16),
-                .PIXEL_WIDTH        (24),
-                .X_WIDTH            (16),
-                .Y_WIDTH            (16)
-            )
-        i_axi4s_debug_monitor_low
-            (
-                .aresetn            (aresetn),
-                .aclk               (aclk),
-                .aclken             (1'b1),
-                
-                .axi4s_tuser        (reg_low_tuser),
-                .axi4s_tlast        (axi4s_low_tlast),
-                .axi4s_tdata        (axi4s_low_tdata),
-                .axi4s_tvalid       (axi4s_low_tvalid),
-                .axi4s_tready       (axi4s_low_tready)
-            );
-    
-    jelly_axi4s_debug_monitor
-            #(
-                .TUSER_WIDTH        (1),
-                .TDATA_WIDTH        (10),
-                .TIMER_WIDTH        (16),
-                .FRAME_WIDTH        (16),
-                .PIXEL_WIDTH        (16),
-                .X_WIDTH            (16),
-                .Y_WIDTH            (8)
-            )
-        i_axi4s_debug_monitor_out
-            (
-                .aresetn            (aresetn),
-                .aclk               (aclk),
-                .aclken             (1'b1),
-                
-                .axi4s_tuser        (axi4s_out_tuser),
-                .axi4s_tlast        (axi4s_out_tlast),
-                .axi4s_tdata        (axi4s_out_tdata),
-                .axi4s_tvalid       (axi4s_out_tvalid),
-                .axi4s_tready       (axi4s_out_tready)
-            );
-    
-    jelly_axi4s_debug_monitor
-            #(
-                .TUSER_WIDTH        (1),
-                .TDATA_WIDTH        (10),
-                .TIMER_WIDTH        (16),
-                .FRAME_WIDTH        (16),
-                .PIXEL_WIDTH        (16),
-                .X_WIDTH            (16),
-                .Y_WIDTH            (8)
-            )
-        i_axi4s_debug_monitor_m
-            (
-                .aresetn            (m_axi4s_aresetn),
-                .aclk               (m_axi4s_aclk),
-                .aclken             (1'b1),
-                
-                .axi4s_tuser        (m_axi4s_tuser),
-                .axi4s_tlast        (m_axi4s_tlast),
-                .axi4s_tdata        (m_axi4s_tdata),
-                .axi4s_tvalid       (m_axi4s_tvalid),
-                .axi4s_tready       (m_axi4s_tready)
-            );
-    
-    
     
     
 endmodule
