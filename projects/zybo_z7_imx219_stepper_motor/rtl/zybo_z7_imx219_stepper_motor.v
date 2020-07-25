@@ -520,19 +520,19 @@ module zybo_z7_imx219_stepper_motor
     wire            axi4s_csi2_tvalid;
     wire            axi4s_csi2_tready;
     
-    jelly_csi2_rx
+    jelly_mipi_csi2_rx
             #(
-                .LANE_NUM           (2),
+                .LANES              (2),
                 .DATA_WIDTH         (10),
                 .M_FIFO_ASYNC       (1)
             )
-        i_csi2_rx
+        i_mipi_csi2_rx
             (
                 .aresetn            (~sys_reset),
                 .aclk               (sys_clk250),
                 
-                .rxreseths          (system_rst_out),
-                .rxbyteclkhs        (rxbyteclkhs),
+                .rxreseths          (dphy_reset),   // (system_rst_out)
+                .rxbyteclkhs        (dphy_clk),
                 .rxdatahs           ({dl1_rxdatahs,   dl0_rxdatahs  }),
                 .rxvalidhs          ({dl1_rxvalidhs,  dl0_rxvalidhs }),
                 .rxactivehs         ({dl1_rxactivehs, dl0_rxactivehs}),
@@ -1133,6 +1133,9 @@ module zybo_z7_imx219_stepper_motor
     reg     [31:0]      reg_counter_rxbyteclkhs;
     always @(posedge rxbyteclkhs)   reg_counter_rxbyteclkhs <= reg_counter_rxbyteclkhs + 1;
     
+    reg     [31:0]      reg_counter_dphy_clk;
+    always @(posedge dphy_clk)      reg_counter_dphy_clk <= reg_counter_dphy_clk + 1;
+    
     reg     [31:0]      reg_counter_clk200;
     always @(posedge sys_clk200)    reg_counter_clk200 <= reg_counter_clk200 + 1;
     
@@ -1153,10 +1156,10 @@ module zybo_z7_imx219_stepper_motor
     end
     
     
-    assign led[0] = reg_counter_rxbyteclkhs[24];
-    assign led[1] = reg_counter_peri_aclk[24]; // reg_counter_clk200[24];
-    assign led[2] = reg_counter_mem_aclk[24];  // reg_counter_clk100[24];
-    assign led[3] = frame_toggle;
+    assign led[0] = reg_counter_dphy_clk[24];   // reg_counter_rxbyteclkhs[24];
+    assign led[1] = sys_reset;                  // reg_counter_peri_aclk[24]; // reg_counter_clk200[24];
+    assign led[2] = system_rst_out;             // reg_counter_mem_aclk[24];  // reg_counter_clk100[24];
+    assign led[3] = dphy_reset;                 // frame_toggle;
     
     assign pmod_a[0]   = frame_toggle;
     assign pmod_a[1]   = reg_counter_rxbyteclkhs[5];
