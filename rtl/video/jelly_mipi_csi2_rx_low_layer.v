@@ -13,20 +13,20 @@
 
 
 
-// パケットの受信
-module jelly_csi2_rx_low_layer
+// 
+module jelly_mipi_csi2_rx_low_layer
         (
             input   wire            aresetn,
             input   wire            aclk,
             
             input   wire    [7:0]   param_data_type,
             
-            output  wire            out_request_sync,
             output  wire            out_frame_start,
             output  wire            out_frame_end,
             output  wire            out_crc_error,
             
             input   wire    [0:0]   s_axi4s_tuser,
+            input   wire            s_axi4s_tlast,
             input   wire    [7:0]   s_axi4s_tdata,
             input   wire            s_axi4s_tvalid,
             output  wire            s_axi4s_tready,
@@ -54,51 +54,43 @@ module jelly_csi2_rx_low_layer
     
     
     // stage 0 (header parser)
-    localparam  [2:0]   ST0_IDLE = 0, ST0_ID = 1, ST0_WC0 = 2, ST0_WC1 = 3, ST0_ECC = 4;
+    localparam  [1:0]   ST0_IDLE = 0, ST0_WC0 = 1, ST0_WC1 = 2, ST0_ECC = 3;
     
-    (* MARK_DEBUG = "true" *)   reg     [2:0]       st0_state;
+    (* MARK_DEBUG = "true" *)   reg     [1:0]       st0_state;
     (* MARK_DEBUG = "true" *)   reg     [7:0]       st0_id;
     (* MARK_DEBUG = "true" *)   reg     [15:0]      st0_wc;
     (* MARK_DEBUG = "true" *)   reg     [7:0]       st0_ecc;
     (* MARK_DEBUG = "true" *)   reg                 st0_ph;
+    (* MARK_DEBUG = "true" *)   reg                 st0_last;
     (* MARK_DEBUG = "true" *)   reg     [7:0]       st0_data;
     (* MARK_DEBUG = "true" *)   reg                 st0_valid;
     
     always @(posedge aclk) begin
-        if ( ~aresetn || out_request_sync ) begin
+        if ( ~aresetn ) begin
             st0_state <= ST0_IDLE;
             st0_id    <= 8'hxx;
             st0_wc    <= 16'hxxxx;
             st0_ecc   <= 8'hxx;
             st0_ph    <= 1'bx;
+            st0_last  <= 1'bx;
             st0_data  <= 8'hxx;
             st0_valid <= 1'b0;
         end
         else if ( cke ) begin
             st0_ph    <= 1'b0;
+            st0_last  <= s_axi4s_tlast;
             st0_data  <= s_axi4s_tdata;
             st0_valid <= s_axi4s_tvalid;
             
             if ( s_axi4s_tuser && s_axi4s_tvalid ) begin
                 // start
-                st0_state <= ST0_ID;
-                st0_id    <= 8'hxx;
+                st0_state <= ST0_WC0;
+                st0_id    <= s_axi4s_tdata;
                 st0_wc    <= 16'hxxxx;
                 st0_ecc   <= 8'hxx;
             end
             else begin
                 case ( st0_state )
-                ST0_ID:
-                    begin
-                        st0_id  <= 8'hxx;
-                        st0_wc  <= 16'hxxxx;
-                        st0_ecc <= 8'hxx;
-                        if ( s_axi4s_tvalid ) begin
-                            st0_state <= ST0_WC0;
-                            st0_id    <= s_axi4s_tdata;
-                        end
-                    end
-                
                 ST0_WC0:
                     begin
                         st0_wc       <= 16'hxxxx;
@@ -144,6 +136,7 @@ module jelly_csi2_rx_low_layer
     
     
     (* MARK_DEBUG = "true" *)   wire                    ecc_ph;
+    (* MARK_DEBUG = "true" *)   wire                    ecc_last;
     (* MARK_DEBUG = "true" *)   wire    [7:0]           ecc_data;
     (* MARK_DEBUG = "true" *)   wire    [7:0]           ecc_id;
     (* MARK_DEBUG = "true" *)   wire    [15:0]          ecc_wc;
@@ -153,7 +146,7 @@ module jelly_csi2_rx_low_layer
     
     jelly_mipi_ecc24
             #(
-                .USER_WIDTH     (1+8)
+                .USER_WIDTH     (2+8)
             )
         i_mipi_ecc24
             (
@@ -161,12 +154,12 @@ module jelly_csi2_rx_low_layer
                 .clk            (aclk),
                 .cke            (cke),
                 
-                .s_user         ({st0_ph, st0_data}),
+                .s_user         ({st0_ph, st0_last, st0_data}),
                 .s_data         ({st0_wc, st0_id}),
                 .s_ecc          (st0_ecc),
                 .s_valid        (st0_valid),
                 
-                .m_user         ({ecc_ph, ecc_data}),
+                .m_user         ({ecc_ph, ecc_last, ecc_data}),
                 .m_data         ({ecc_wc, ecc_id}),
                 .m_error        (ecc_error),
                 .m_corrected    (ecc_corrected),
@@ -188,7 +181,6 @@ module jelly_csi2_rx_low_layer
     (* MARK_DEBUG = "true" *)   reg             st1_end;
     (* MARK_DEBUG = "true" *)   reg     [7:0]   st1_data;
     (* MARK_DEBUG = "true" *)   reg             st1_valid;
-    (* MARK_DEBUG = "true" *)   reg             st1_req_sync;
     (* MARK_DEBUG = "true" *)   reg             st1_frame_start;
     (* MARK_DEBUG = "true" *)   reg             st1_frame_end;
     (* MARK_DEBUG = "true" *)   reg             st1_crc_error;
@@ -205,18 +197,16 @@ module jelly_csi2_rx_low_layer
             st1_last        <= 1'bx;
             st1_end         <= 1'bx;
             st1_valid       <= 1'b0;
-            st1_req_sync    <= 1'b0;
             st1_frame_start <= 1'b0;
             st1_frame_end   <= 1'b0;
             st1_crc_error   <= 1'b0;
         end
         else if ( cke ) begin
-            st1_req_sync    <= 1'b0;
             st1_frame_start <= 1'b0;
             st1_frame_end   <= 1'b0;
             st1_crc_error   <= 1'b0;
             st1_data        <= ecc_data;
-            st1_last        <= 1'b0;
+            st1_last        <= ecc_last;
             st1_end         <= 1'b0;
             st1_valid       <= 1'b0;
             
@@ -229,7 +219,6 @@ module jelly_csi2_rx_low_layer
                         st1_counter     <= 16'hxxxx;
                         st1_crc         <= 16'hxxxx;
                         st1_crc_sum     <= 16'hxxxx;
-                        st1_req_sync    <= 1'b1;
                         st1_frame_start <= (ecc_id[3:0] == 4'h0);
                         st1_frame_end   <= (ecc_id[3:0] == 4'h1);
                     end
@@ -263,6 +252,7 @@ module jelly_csi2_rx_low_layer
                             st1_state     <= ST1_CRC1;
                             st1_crc       <= 16'hxxxx;
                             st1_crc[7:0]  <= ecc_data;
+                            st1_de        <= 1'b0;
                         end
                     
                     ST1_CRC1:
@@ -270,7 +260,7 @@ module jelly_csi2_rx_low_layer
                             st1_state     <= ST1_IDLE;
                             st1_crc[15:8] <= ecc_data;
                             st1_end       <= 1'b1;
-                            st1_req_sync  <= 1'b1;
+                            st1_de        <= 1'b0;
                         end
                     
                     default:
@@ -279,9 +269,14 @@ module jelly_csi2_rx_low_layer
                             st1_wc       <= 16'hxxxx;
                             st1_counter  <= 16'hxxxx;
                             st1_crc      <= 16'hxxxx;
+                            st1_de       <= 1'b0;
                         end
                     endcase
                 end
+            end
+            if ( ecc_last ) begin
+                st1_state  <= ST1_IDLE;
+                st1_de     <= 1'b0;
             end
             
             st1_crc_error <= st1_end && (st1_crc_sum != st1_crc);
@@ -289,7 +284,6 @@ module jelly_csi2_rx_low_layer
     end
     
     
-    assign out_request_sync = st1_req_sync;
     assign out_frame_start  = st1_frame_start;
     assign out_frame_end    = st1_frame_end;
     assign out_crc_error    = st1_crc_error;
