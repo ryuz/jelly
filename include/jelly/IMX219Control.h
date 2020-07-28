@@ -15,6 +15,7 @@
 
 #include "I2cAccess.h"
 
+namespace jelly {
 
 // レジスタ定義
 #define IMX219_MODEL_ID                    0x0000
@@ -538,6 +539,7 @@ protected:
     }
 };
 
+}
 
 #endif  // __JELLY__IMX219_CONTORL__H__
 
