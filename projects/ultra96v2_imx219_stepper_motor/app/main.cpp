@@ -163,17 +163,17 @@ int main(int argc, char *argv[])
     // mmap uio
     jelly::UioAccess uio_acc("uio_pl_peri", 0x00100000);
     if ( !uio_acc.IsMapped() ) {
-        std::cout << "uio_pl_peri : open error or mmap error" << std::endl;
+        std::cout << "uio_pl_peri mmap error" << std::endl;
         return 1;
     }
     auto reg_fmtr  = uio_acc.GetMemAccess(0x00010000);
     auto reg_prmup = uio_acc.GetMemAccess(0x00011000);
     auto reg_wdma  = uio_acc.GetMemAccess(0x00021000);
     auto reg_rgb   = uio_acc.GetMemAccess(0x00030000);
-    auto reg_cmtx  = uio_acc.GetMemAccess(0x00030400);
-    auto reg_gauss = uio_acc.GetMemAccess(0x00030800);
-    auto reg_mask  = uio_acc.GetMemAccess(0x00030c00);
-    auto reg_sel   = uio_acc.GetMemAccess(0x00033c00);
+    auto reg_cmtx  = uio_acc.GetMemAccess(0x00030800);
+    auto reg_gauss = uio_acc.GetMemAccess(0x00031000);
+    auto reg_mask  = uio_acc.GetMemAccess(0x00031800);
+    auto reg_sel   = uio_acc.GetMemAccess(0x00037800);
     auto reg_stmc  = uio_acc.GetMemAccess(0x00041000);
     auto reg_posc  = uio_acc.GetMemAccess(0x00042000);
     auto reg_log0  = uio_acc.GetMemAccess(0x00070000);
@@ -188,17 +188,16 @@ int main(int argc, char *argv[])
     std::cout << "reg_gauss : " << std::hex << reg_gauss.ReadReg(0) << std::endl;
     std::cout << "reg_mask  : " << std::hex << reg_mask .ReadReg(0) << std::endl;
     std::cout << "reg_sel   : " << std::hex << reg_sel  .ReadReg(0) << std::endl;
-//  std::cout << "reg_stmc  : " << std::hex << reg_stmc .ReadReg(0) << std::endl;
+    std::cout << "reg_stmc  : " << std::hex << reg_stmc .ReadReg(0) << std::endl;
 //  std::cout << "reg_posc  : " << std::hex << reg_posc .ReadReg(0) << std::endl;
     std::cout << "reg_log0  : " << std::hex << reg_log0 .ReadReg(0) << std::endl;
     std::cout << "reg_log1  : " << std::hex << reg_log1 .ReadReg(0) << std::endl;
     std::cout << "" << std::endl;
 
-
     // mmap udmabuf
     jelly::UdmabufAccess udmabuf_acc("udmabuf0");
     if ( !udmabuf_acc.IsMapped() ) {
-        std::cout << "udmabuf0 : open error or mmap error" << std::endl;
+        std::cout << "udmabuf0 mmap error" << std::endl;
         return 1;
     }
 
@@ -206,7 +205,6 @@ int main(int argc, char *argv[])
     auto dmabuf_mem_size = udmabuf_acc.GetSize();
 //  std::cout << "udmabuf0 phys addr : 0x" << std::hex << dmabuf_phys_adr << std::endl;
 //  std::cout << "udmabuf0 size      : " << std::dec << dmabuf_mem_size << std::endl;
-
 
     // motro initialize
 	reg_stmc.WriteReg(REG_STMC_MAX_A,       100);
@@ -229,7 +227,7 @@ int main(int argc, char *argv[])
 
     // IMX219 I2C control
     jelly::Imx219ControlI2c imx219;
-    if ( !imx219.Open("/dev/i2c-0", 0x10) ) {
+    if ( !imx219.Open("/dev/i2c-4", 0x10) ) {
         std::cout << "I2C open error" << std::endl;
         return 1;
     }

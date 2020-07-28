@@ -65,6 +65,7 @@ load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
 	sudo sh -c "echo 0 > /sys/class/fpga_manager/fpga0/flags"
 	sudo mkdir $(DEVTREE_PATH)/overlays/full
 	sudo sh -c "echo -n $(DTBO_FILE) > /configfs/device-tree/overlays/full/path"
+	sleep 1
 	cat $(DEVTREE_PATH)/overlays/full/status
 	sudo rm /lib/firmware/$(DTBO_FILE)
 	sudo rm /lib/firmware/$(BIN_FILE)

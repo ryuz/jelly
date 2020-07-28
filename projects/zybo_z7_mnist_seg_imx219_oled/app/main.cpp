@@ -1,13 +1,12 @@
-#include "SSD1331Control.h"
 
-#include "IMX219Control.h"
+#include <iostream>
+#include <opencv2/opencv.hpp>
 
 #include "jelly/UioAccess.h"
 #include "jelly/UdmabufAccess.h"
+#include "jelly/Imx219Control.h"
 
-#include <opencv2/opencv.hpp>
-
-#include <iostream>
+#include "Ssd1331Control.h"
 
 
 // Video Write-DMA
@@ -146,7 +145,7 @@ int main()
 //  std::cout << "reg_rdma : " << std::hex << reg_rdma.ReadReg(0) << std::endl;
 
     // IMX219 I2C control
-    IMX219ControlI2c imx219;
+    jelly::Imx219ControlI2c imx219;
     if ( !imx219.Open("/dev/i2c-0", 0x10) ) {
         std::cout << "I2C open error" << std::endl;
         return 1;
@@ -158,7 +157,7 @@ int main()
     imx219.Start();
 
     // OLED初期化
-    SSD1331Control oled(reg_oled);
+    Ssd1331Control oled(reg_oled);
     oled.Setup();
 
     // color map

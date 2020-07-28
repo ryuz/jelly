@@ -15,6 +15,7 @@
 
 #include "I2cAccess.h"
 
+namespace jelly {
 
 // レジスタ定義
 #define IMX219_MODEL_ID                    0x0000
@@ -168,7 +169,7 @@
 #define IMX219_FLASH_STATUS                0x0321
 
 
-class IMX219ControlI2c
+class Imx219ControlI2c
 {
 protected:
     I2cAccess   m_i2c;
@@ -199,9 +200,9 @@ protected:
     int         m_dig_gain_global = 0x0FFF;
 
 public:
-    ~IMX219ControlI2c() {}
-    IMX219ControlI2c() {}
-    IMX219ControlI2c(bool auto_stop) { m_auto_stop = auto_stop; }
+    ~Imx219ControlI2c() {}
+    Imx219ControlI2c() {}
+    Imx219ControlI2c(bool auto_stop) { m_auto_stop = auto_stop; }
 
     bool Open(const char* fname, unsigned char dev)
     {
@@ -538,6 +539,7 @@ protected:
     }
 };
 
+}
 
 #endif  // __JELLY__IMX219_CONTORL__H__
 

@@ -12,6 +12,7 @@
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
 
+namespace jelly {
 
 class I2cAccess
 {
@@ -88,6 +89,7 @@ public:
     }
 };
 
+}
 
 #endif  // __RYUZ__JELLY__I2C_ACCESS__H__
 

@@ -8,9 +8,7 @@
 #include "jelly/UioAccess.h"
 #include "jelly/UdmabufAccess.h"
 #include "jelly/JellyRegs.h"
-
-#include "I2cAccess.h"
-#include "IMX219Control.h"
+#include "jelly/Imx219Control.h"
 
 
 void capture_still_image(jelly::MemAccess& reg_wdma, jelly::MemAccess& reg_fmtr, std::uintptr_t bufaddr, int width, int height, int frame_num);
@@ -133,7 +131,7 @@ int main(int argc, char *argv[])
 
 
     // IMX219 I2C control
-    IMX219ControlI2c imx219;
+    jelly::Imx219ControlI2c imx219;
     if ( !imx219.Open("/dev/i2c-0", 0x10) ) {
         std::cout << "I2C open error" << std::endl;
         return 1;

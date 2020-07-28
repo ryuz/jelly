@@ -1,7 +1,7 @@
 
-TARGET    = zybo_z7_imx219_hdmi.out
-DT_NAME   = zybo_z7_imx219_hdmi
-BIT_NAME  = zybo_z7_imx219_hdmi
+TARGET    = ultra96v2_imx219_stepper_motor.out
+DT_NAME   = ultra96v2_imx219_stepper_motor
+BIT_NAME  = ultra96v2_imx219_stepper_motor
 
 DTS_FILE  = $(DT_NAME).dts
 DTBO_FILE = $(DT_NAME).dtbo
@@ -14,7 +14,7 @@ FIRMWARE_PATH = /lib/firmware
 DEVTREE_PATH  = /configfs/device-tree
 
 CFLAGS  += -Wall -g -O0 `pkg-config --cflags opencv` -I../../../include
-LDFLAGS += `pkg-config --libs opencv`
+LDFLAGS += -g  `pkg-config --libs opencv`
 
 OBJS = main.o
 
@@ -40,7 +40,7 @@ $(DTBO_FILE): $(DTS_FILE)
 	dtc -I dts -O dtb -o $(DTBO_FILE) $(DTS_FILE)
 
 $(BIN_FILE): $(BIF_FILE) $(BIT_FILE)
-	bootgen -w -image $(BIF_FILE) -arch zynq -process_bitstream bin
+	bootgen -w -image $(BIF_FILE) -arch zynqmp -process_bitstream bin
 
 $(DEVTREE_PATH):
 	sudo mkdir -p /configfs
@@ -61,20 +61,32 @@ umount: unload
 load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
 	sudo mkdir -p $(FIRMWARE_PATH)
 	sudo cp $(BIN_FILE) $(FIRMWARE_PATH)
-	sudo mkdir -p $(DEVTREE_PATH)/overlays/full
-	sudo cp $(DTBO_FILE) $(DEVTREE_PATH)/overlays/full/dtbo
-	sudo sh -c "echo 1 > $(DEVTREE_PATH)/overlays/full/status"
+	sudo cp $(DTBO_FILE) $(FIRMWARE_PATH)
+	sudo sh -c "echo 0 > /sys/class/fpga_manager/fpga0/flags"
+	sudo mkdir $(DEVTREE_PATH)/overlays/full
+	sudo sh -c "echo -n $(DTBO_FILE) > /configfs/device-tree/overlays/full/path"
 	sleep 1
+	cat $(DEVTREE_PATH)/overlays/full/status
+	sudo rm /lib/firmware/$(DTBO_FILE)
 	sudo rm /lib/firmware/$(BIN_FILE)
-	sudo chmod 666 /dev/i2c-0
-	sudo chmod 666 /dev/uio0
-	sudo chmod 666 /dev/udmabuf0
+	sudo chmod 666 /dev/uio*
+	sudo chmod 666 /dev/udmabuf*
+	sudo chmod 666 /dev/i2c-4
 
 .PHONY: unload
 unload:
-	@if [ -f /config/device-tree/overlays/full/status ] ; then \
+	@if [ -e $(DEVTREE_PATH)/overlays/full ] ; then \
 		echo unload ; \
-		sudo sh -c "echo 0 > $(DEVTREE_PATH)/overlays/full/status" ; \
 		sudo rmdir $(DEVTREE_PATH)/overlays/full ; \
 	fi
+
+.PHONY: load2
+load2: $(DTBO_FILE) $(BIN_FILE)
+	sudo fpgautil -R
+	sudo fpgautil -b $(BIT_FILE) -o udmabuf.dtbo
+#	sudo fpgautil -b $(BIT_FILE)
+
+.PHONY: unload2
+unload2:
+	sudo fpgautil -R
 

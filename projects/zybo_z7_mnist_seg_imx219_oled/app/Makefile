@@ -36,7 +36,7 @@ $(TARGET): $(OBJS)
 %.o : %.cpp
 	g++ $(CFLAGS) -c $< -o $@
 
-main.o: SSD1331Control.h IMX219Control.h I2cAccess.h
+main.o: Ssd1331Control.h
 
 $(DTBO_FILE): $(DTS_FILE)
 	dtc -I dts -O dtb -o $(DTBO_FILE) $(DTS_FILE)
@@ -66,6 +66,7 @@ load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
 	sudo mkdir -p $(DEVTREE_PATH)/overlays/full
 	sudo cp $(DTBO_FILE) $(DEVTREE_PATH)/overlays/full/dtbo
 	sudo sh -c "echo 1 > $(DEVTREE_PATH)/overlays/full/status"
+	sleep 1
 	sudo rm /lib/firmware/$(BIN_FILE)
 	sudo chmod 666 /dev/i2c-0
 	sudo chmod 666 /dev/uio0*
