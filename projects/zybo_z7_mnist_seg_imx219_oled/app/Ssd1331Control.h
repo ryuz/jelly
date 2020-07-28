@@ -14,7 +14,7 @@
 #include "jelly/MemAccess.h"
 
 
-class SSD1331Control
+class Ssd1331Control
 {
 protected:
 	jelly::MemAccess	m_reg_acc;
@@ -75,7 +75,7 @@ protected:
 
 
 public:
-	SSD1331Control(jelly::MemAccess	reg_acc)
+	Ssd1331Control(jelly::MemAccess	reg_acc)
 	{
 		m_reg_acc = reg_acc;
 	}

@@ -64,6 +64,7 @@ load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
 	sudo mkdir -p $(DEVTREE_PATH)/overlays/full
 	sudo cp $(DTBO_FILE) $(DEVTREE_PATH)/overlays/full/dtbo
 	sudo sh -c "echo 1 > $(DEVTREE_PATH)/overlays/full/status"
+	sleep 1
 	sudo rm /lib/firmware/$(BIN_FILE)
 
 .PHONY: unload

@@ -14,92 +14,8 @@
 #include "jelly/JellyRegs.h"
 #include "jelly/UioAccess.h"
 #include "jelly/UdmabufAccess.h"
-#include "I2cAccess.h"
-#include "IMX219Control.h"
+#include "jelly/Imx219Control.h"
 
-//using namespace jelly;
-
-/*
-// Video Write-DMA
-#define REG_WDMA_ID                     0x00
-#define REG_WDMA_VERSION                0x01
-#define REG_WDMA_CTL_CONTROL            0x04
-#define REG_WDMA_CTL_STATUS             0x05
-#define REG_WDMA_CTL_INDEX              0x07
-#define REG_WDMA_PARAM_ADDR             0x08
-#define REG_WDMA_PARAM_STRIDE           0x09
-#define REG_WDMA_PARAM_WIDTH            0x0a
-#define REG_WDMA_PARAM_HEIGHT           0x0b
-#define REG_WDMA_PARAM_SIZE             0x0c
-#define REG_WDMA_PARAM_AWLEN            0x0f
-#define REG_WDMA_MONITOR_ADDR           0x10
-#define REG_WDMA_MONITOR_STRIDE         0x11
-#define REG_WDMA_MONITOR_WIDTH          0x12
-#define REG_WDMA_MONITOR_HEIGHT         0x13
-#define REG_WDMA_MONITOR_SIZE           0x14
-#define REG_WDMA_MONITOR_AWLEN          0x17
-
-// Video Normalizer
-#define REG_NORM_CONTROL                0x00
-#define REG_NORM_BUSY                   0x01
-#define REG_NORM_INDEX                  0x02
-#define REG_NORM_SKIP                   0x03
-#define REG_NORM_FRM_TIMER_EN           0x04
-#define REG_NORM_FRM_TIMEOUT            0x05
-#define REG_NORM_PARAM_WIDTH            0x08
-#define REG_NORM_PARAM_HEIGHT           0x09
-#define REG_NORM_PARAM_FILL             0x0a
-#define REG_NORM_PARAM_TIMEOUT          0x0b
-
-// Raw to RGB
-#define REG_RAW2RGB_DEMOSAIC_PHASE      0x00
-#define REG_RAW2RGB_DEMOSAIC_BYPASS     0x01
-
-// gaussian_3x3
-#define REG_GAUSS_CORE_ID               0x00
-#define REG_GAUSS_CORE_VERSION          0x01
-#define REG_GAUSS_CTL_CONTROL           0x04
-#define REG_GAUSS_CTL_STATUS            0x05
-#define REG_GAUSS_CTL_INDEX             0x07
-#define REG_GAUSS_PARAM_ENABLE          0x08
-#define REG_GAUSS_CURRENT_ENABLE        0x18
-
-#define REG_MASK_CORE_ID                0x00
-#define REG_MASK_CORE_VERSION           0x01
-#define REG_MASK_CTL_CONTROL            0x04
-#define REG_MASK_CTL_STATUS             0x05
-#define REG_MASK_CTL_INDEX              0x07
-#define REG_MASK_PARAM_MASK_FLAG        0x10
-#define REG_MASK_PARAM_MASK_VALUE0      0x12
-#define REG_MASK_PARAM_MASK_VALUE1      0x13
-#define REG_MASK_PARAM_THRESH_FLAG      0x14
-#define REG_MASK_PARAM_THRESH_VALUE     0x15
-#define REG_MASK_PARAM_RECT_FLAG        0x21
-#define REG_MASK_PARAM_RECT_LEFT        0x24
-#define REG_MASK_PARAM_RECT_RIGHT       0x25
-#define REG_MASK_PARAM_RECT_TOP         0x26
-#define REG_MASK_PARAM_RECT_BOTTOM      0x27
-#define REG_MASK_PARAM_CIRCLE_FLAG      0x50
-#define REG_MASK_PARAM_CIRCLE_X         0x54
-#define REG_MASK_PARAM_CIRCLE_Y         0x55
-#define REG_MASK_PARAM_CIRCLE_RADIUS2   0x56
-#define REG_MASK_CURRENT_MASK_FLAG      0x90
-#define REG_MASK_CURRENT_MASK_VALUE0    0x92
-#define REG_MASK_CURRENT_MASK_VALUE1    0x93
-#define REG_MASK_CURRENT_THRESH_FLAG    0x94
-#define REG_MASK_CURRENT_THRESH_VALUE   0x95
-#define REG_MASK_CURRENT_RECT_FLAG      0xa1
-#define REG_MASK_CURRENT_RECT_LEFT      0xa4
-#define REG_MASK_CURRENT_RECT_RIGHT     0xa5
-#define REG_MASK_CURRENT_RECT_TOP       0xa6
-#define REG_MASK_CURRENT_RECT_BOTTOM    0xa7
-#define REG_MASK_CURRENT_CIRCLE_FLAG    0xd0
-#define REG_MASK_CURRENT_CIRCLE_X       0xd4
-#define REG_MASK_CURRENT_CIRCLE_Y       0xd5
-#define REG_MASK_CURRENT_CIRCLE_RADIUS2 0xd6
-
-#define REG_IMGSEL_SELECT               0x00
-*/
 
 #define REG_DIFF_ENABLE                 0x00
 #define REG_DIFF_TARGET                 0x01
@@ -247,7 +163,7 @@ int main(int argc, char *argv[])
     // mmap uio
     jelly::UioAccess uio_acc("uio_pl_peri", 0x00100000);
     if ( !uio_acc.IsMapped() ) {
-        std::cout << "uio_pl_peri mmap error" << std::endl;
+        std::cout << "uio_pl_peri : open error or mmap error" << std::endl;
         return 1;
     }
     auto reg_fmtr  = uio_acc.GetMemAccess(0x00010000);
@@ -282,7 +198,7 @@ int main(int argc, char *argv[])
     // mmap udmabuf
     jelly::UdmabufAccess udmabuf_acc("udmabuf0");
     if ( !udmabuf_acc.IsMapped() ) {
-        std::cout << "udmabuf0 mmap error" << std::endl;
+        std::cout << "udmabuf0 : open error or mmap error" << std::endl;
         return 1;
     }
 
@@ -312,7 +228,7 @@ int main(int argc, char *argv[])
     reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 0);
 
     // IMX219 I2C control
-    IMX219ControlI2c imx219;
+    jelly::Imx219ControlI2c imx219;
     if ( !imx219.Open("/dev/i2c-0", 0x10) ) {
         std::cout << "I2C open error" << std::endl;
         return 1;

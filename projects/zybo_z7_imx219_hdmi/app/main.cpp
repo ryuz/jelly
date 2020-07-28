@@ -10,8 +10,7 @@
 #include "jelly/JellyRegs.h"
 #include "jelly/UioAccess.h"
 #include "jelly/UdmabufAccess.h"
-#include "I2cAccess.h"
-#include "IMX219Control.h"
+#include "jelly/Imx219Control.h"
 
 
 const int stride = 4096*4;
@@ -161,7 +160,7 @@ int main(int argc, char *argv[])
     // mmap uio
     jelly::UioAccess uio_acc("uio_pl_peri", 0x00100000);
     if ( !uio_acc.IsMapped() ) {
-        std::cout << "uio_pl_peri mmap error" << std::endl;
+        std::cout << "uio_pl_peri : open error or mmap error" << std::endl;
         return 1;
     }
 
@@ -175,7 +174,7 @@ int main(int argc, char *argv[])
     // mmap udmabuf
     jelly::UdmabufAccess udmabuf_acc("udmabuf0");
     if ( !udmabuf_acc.IsMapped() ) {
-        std::cout << "udmabuf0 mmap error" << std::endl;
+        std::cout << "udmabuf0 : open error or mmap error" << std::endl;
         return 1;
     }
 
@@ -190,7 +189,7 @@ int main(int argc, char *argv[])
     }
 
     // IMX219 I2C control
-    IMX219ControlI2c imx219;
+    jelly::Imx219ControlI2c imx219;
     if ( !imx219.Open("/dev/i2c-0", 0x10) ) {
         printf("I2C open error\n");
         return 1;
