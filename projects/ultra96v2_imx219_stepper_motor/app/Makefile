@@ -1,7 +1,7 @@
 
-TARGET    = ultra96v2_imx219.out
-DT_NAME   = ultra96v2_imx219
-BIT_NAME  = ultra96v2_imx219
+TARGET    = ultra96v2_imx219_stepper_motor.out
+DT_NAME   = ultra96v2_imx219_stepper_motor
+BIT_NAME  = ultra96v2_imx219_stepper_motor
 
 DTS_FILE  = $(DT_NAME).dts
 DTBO_FILE = $(DT_NAME).dtbo
