@@ -369,47 +369,49 @@ module image_processing
     
     jelly_img_gaussian_3x3
             #(
-                .NUM                         (4),
+                .NUM                        (4),
                 
-                .USER_WIDTH                  (),
-                .DATA_WIDTH                  (DATA_WIDTH),
+                .WB_ADR_WIDTH               (8),
+                .WB_DAT_WIDTH               (WB_DAT_WIDTH),
+                .USER_WIDTH                 (0),
+                .DATA_WIDTH                 (DATA_WIDTH),
                 
-                .INIT_CTL_CONTROL            (3'b111),
-                .INIT_PARAM_ENABLE           (4'b1111)
+                .INIT_CTL_CONTROL           (3'b111),
+                .INIT_PARAM_ENABLE          (4'b1111)
             )
         i_img_gaussian_3x3
             (
-                .reset                       (reset),
-                .clk                         (clk),
-                .cke                         (cke),
+                .reset                      (reset),
+                .clk                        (clk),
+                .cke                        (cke),
                 
-                .in_update_req               (in_update_req),
+                .in_update_req              (in_update_req),
                 
-                .s_wb_rst_i                  (s_wb_rst_i),
-                .s_wb_clk_i                  (s_wb_clk_i),
-                .s_wb_adr_i                  (s_wb_adr_i[7:0]),
-                .s_wb_dat_i                  (s_wb_dat_i),
-                .s_wb_dat_o                  (wb_gauss_dat_o),
-                .s_wb_we_i                   (s_wb_we_i),
-                .s_wb_sel_i                  (s_wb_sel_i),
-                .s_wb_stb_i                  (wb_gauss_stb_i),
-                .s_wb_ack_o                  (wb_gauss_ack_o),
+                .s_wb_rst_i                 (s_wb_rst_i),
+                .s_wb_clk_i                 (s_wb_clk_i),
+                .s_wb_adr_i                 (s_wb_adr_i[7:0]),
+                .s_wb_dat_i                 (s_wb_dat_i),
+                .s_wb_dat_o                 (wb_gauss_dat_o),
+                .s_wb_we_i                  (s_wb_we_i),
+                .s_wb_sel_i                 (s_wb_sel_i),
+                .s_wb_stb_i                 (wb_gauss_stb_i),
+                .s_wb_ack_o                 (wb_gauss_ack_o),
                 
-                .s_img_line_first            (img_gray_line_first),
-                .s_img_line_last             (img_gray_line_last),
-                .s_img_pixel_first           (img_gray_pixel_first),
-                .s_img_pixel_last            (img_gray_pixel_last),
-                .s_img_de                    (img_gray_de),
-                .s_img_data                  (img_gray_data),
-                .s_img_valid                 (img_gray_valid),
+                .s_img_line_first           (img_gray_line_first),
+                .s_img_line_last            (img_gray_line_last),
+                .s_img_pixel_first          (img_gray_pixel_first),
+                .s_img_pixel_last           (img_gray_pixel_last),
+                .s_img_de                   (img_gray_de),
+                .s_img_data                 (img_gray_data),
+                .s_img_valid                (img_gray_valid),
                 
-                .m_img_line_first            (img_gauss_line_first),
-                .m_img_line_last             (img_gauss_line_last),
-                .m_img_pixel_first           (img_gauss_pixel_first),
-                .m_img_pixel_last            (img_gauss_pixel_last),
-                .m_img_de                    (img_gauss_de),
-                .m_img_data                  (img_gauss_data),
-                .m_img_valid                 (img_gauss_valid)
+                .m_img_line_first           (img_gauss_line_first),
+                .m_img_line_last            (img_gauss_line_last),
+                .m_img_pixel_first          (img_gauss_pixel_first),
+                .m_img_pixel_last           (img_gauss_pixel_last),
+                .m_img_de                   (img_gauss_de),
+                .m_img_data                 (img_gauss_data),
+                .m_img_valid                (img_gauss_valid)
             );
     
     
@@ -527,6 +529,8 @@ module image_processing
     
     jelly_img_area_mask
             #(
+                .WB_ADR_WIDTH               (8),
+                .WB_DAT_WIDTH               (WB_DAT_WIDTH),
                 .USER_WIDTH                 (GRAD_WIDTH+GRAD_WIDTH),
                 .DATA_WIDTH                 (WEIGHT_WIDTH),
                 .X_WIDTH                    (IMG_X_WIDTH),

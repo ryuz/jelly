@@ -177,12 +177,53 @@ module tb_top();
     #1000;
         $display("read core ID");
         wb_read (32'h80000000);     // gid
-        wb_read (32'h80100000);     // fmtr
-        wb_read (32'h80120000);     // demosaic
-        wb_read (32'h80120200);     // col mat
-        wb_read (32'h80210000);     // wdma
-
-    #10000;
+        wb_read (32'h80010000);     // fmtr 
+        wb_read (32'h80011000);     // prmup
+        wb_read (32'h80021000);     // wdma 
+        wb_read (32'h80030000);     // rgb  
+        wb_read (32'h80030800);     // cmtx 
+        wb_read (32'h80031000);     // gauss
+        wb_read (32'h80031800);     // mask 
+        wb_read (32'h80037800);     // sel  
+        wb_read (32'h80041000);     // stmc 
+        wb_read (32'h80042000);     // posc 
+        wb_read (32'h80070000);     // log0 
+        wb_read (32'h80071000);     // log1 
+        
+        
+        $display("STMC");
+        wb_write(32'h80041000 + 8*8'h04, 9000000, 8'h0f);   // TARGET_X   0x04
+        wb_write(32'h80041000 + 8*8'h06,   10000, 8'h0f);   // TARGET_V   0x06
+        wb_write(32'h80041000 + 8*8'h07,   10000, 8'h0f);   // TARGET_A   0x07
+        wb_write(32'h80041000 + 8*8'h09, 1000000, 8'h0f);   // MAX_V      0x09
+        wb_write(32'h80041000 + 8*8'h0a,   10000, 8'h0f);   // MAX_A      0x0a
+        wb_write(32'h80041000 + 8*8'h0f,   20000, 8'h0f);   // MAX_A_NEAR 0x0f
+//      wb_write(32'h80041000 + 8*8'h03,       0, 8'h0f);   // CTL_PWM    0x03
+        wb_write(32'h80041000 + 8*8'h02,       1, 8'h0f);   // CTL_TARGET 0x02
+        wb_write(32'h80041000 + 8*8'h01,       3, 8'h0f);   // CTL_ENABLE 0x01
+        
+        
+// #define REG_STMC_CORE_ID                0x00
+// #define REG_STMC_CTL_ENABLE             0x01
+// #define REG_STMC_CTL_TARGET             0x02
+// #define REG_STMC_CTL_PWM                0x03
+// #define REG_STMC_TARGET_X               0x04
+// #define REG_STMC_TARGET_V               0x06
+// #define REG_STMC_TARGET_A               0x07
+// #define REG_STMC_MAX_V                  0x09
+// #define REG_STMC_MAX_A                  0x0a
+// #define REG_STMC_MAX_A_NEAR             0x0f
+// #define REG_STMC_CUR_X                  0x10
+// #define REG_STMC_CUR_V                  0x12
+// #define REG_STMC_CUR_A                  0x13
+// #define REG_STMC_TIME                   0x20
+// #define REG_STMC_IN_X_DIFF              0x21
+        
+        
+        
+        
+        
+  #10000;
         $display("set format regularizer");
         wb_read (32'h80100000);                         // CORE ID
         wb_write(32'h80100080,        X_NUM, 4'b1111);  // width
@@ -236,7 +277,7 @@ module tb_top();
             wb_read(32'h80210028);
         end
     #10000;
-        $finish();
+//        $finish();
     end
     
     
