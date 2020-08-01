@@ -9,6 +9,9 @@ module tb_img_canny();
     initial begin
         $dumpfile("tb_img_canny.vcd");
         $dumpvars(0, tb_img_canny);
+        
+    #2000000
+        $finish();
     end
     
     reg     clk = 1'b1;
@@ -177,7 +180,7 @@ module tb_img_canny();
                 .DATA_WIDTH             (DATA_WIDTH),
                 
                 .INIT_CTL_CONTROL       (3'b111),
-                .INIT_PARAM_TH          (127)
+                .INIT_PARAM_TH          (127*127)
             )
         i_img_canny
             (
@@ -248,13 +251,23 @@ module tb_img_canny();
             );
     
     
+    wire    [24:0]      img_canny_color;
+    jelly_colormap_table
+            #(
+                .COLORMAP           ("HSV")
+            )
+        i_colormap_table
+            (
+                .in_data            (img_canny_angle),
+                .out_data           (img_canny_color)
+            );
+    
+    
     jelly_axi4s_slave_model
             #(
-                .COMPONENT_NUM      (1),
+                .COMPONENT_NUM      (3),
                 .DATA_WIDTH         (8),
-                .FILE_NAME          ("ang_%04d.pgm"),
-                .BUSY_RATE          (0),
-                .RANDOM_SEED        (23456)
+                .FILE_NAME          ("ang_%04d.ppm")
             )
         i_axi4s_slave_model_angle
             (
@@ -267,7 +280,7 @@ module tb_img_canny();
                 
                 .s_axi4s_tuser      (img_canny_line_first & img_canny_pixel_first),
                 .s_axi4s_tlast      (img_canny_pixel_last),
-                .s_axi4s_tdata      (img_canny_angle),
+                .s_axi4s_tdata      (img_canny_color),
                 .s_axi4s_tvalid     (img_canny_de & img_canny_valid),
                 .s_axi4s_tready     ()
             );
