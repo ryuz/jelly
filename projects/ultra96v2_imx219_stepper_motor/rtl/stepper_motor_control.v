@@ -14,7 +14,7 @@
 
 module stepper_motor_control
         #(
-            parameter   CORE_ID          = 32'h5a5a_5a5a,
+            parameter   CORE_ID          = 32'h5a5a_3333,
             
             parameter   WB_ADR_WIDTH     = 6,
             parameter   WB_DAT_SIZE      = 3,

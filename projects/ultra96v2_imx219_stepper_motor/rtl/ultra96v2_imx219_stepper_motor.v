@@ -616,7 +616,7 @@ module ultra96v2_imx219_stepper_motor
     
     image_processing
             #(
-                .WB_ADR_WIDTH       (14),
+                .WB_ADR_WIDTH       (13),
                 .WB_DAT_WIDTH       (WB_DAT_WIDTH),
                 
                 .DATA_WIDTH         (10),
@@ -640,7 +640,7 @@ module ultra96v2_imx219_stepper_motor
                 
                 .s_wb_rst_i         (wb_peri_rst_i),
                 .s_wb_clk_i         (wb_peri_clk_i),
-                .s_wb_adr_i         (wb_peri_adr_i[13:0]),
+                .s_wb_adr_i         (wb_peri_adr_i[12:0]),
                 .s_wb_dat_o         (wb_imgp_dat_o),
                 .s_wb_dat_i         (wb_peri_dat_i),
                 .s_wb_we_i          (wb_peri_we_i),
@@ -678,9 +678,9 @@ module ultra96v2_imx219_stepper_motor
                 .FIFO_PTR_WIDTH     (12),
                 
                 .PIXEL_SIZE         (2),    // 32bit
-                .AXI4_ID_WIDTH      (6),
-                .AXI4_ADDR_WIDTH    (32),
-                .AXI4_DATA_SIZE     (3),    // 64bit
+                .AXI4_ID_WIDTH      (AXI4_MEM0_ID_WIDTH),
+                .AXI4_ADDR_WIDTH    (AXI4_MEM0_ADDR_WIDTH),
+                .AXI4_DATA_SIZE     (AXI4_MEM0_DATA_SIZE),
                 .AXI4S_DATA_SIZE    (2),    // 32bit
                 .AXI4S_USER_WIDTH   (1),
                 .INDEX_WIDTH        (8),
