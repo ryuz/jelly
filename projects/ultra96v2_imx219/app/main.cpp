@@ -11,6 +11,7 @@
 #include "jelly/UdmabufAccess.h"
 #include "jelly/JellyRegs.h"
 #include "jelly/Imx219Control.h"
+#include "jelly/GpioAccess.h"
 
 
 void capture_still_image(jelly::MemAccess& reg_wdma, jelly::MemAccess& reg_fmtr, std::uintptr_t bufaddr, int width, int height, int frame_num);
@@ -113,14 +114,16 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    auto reg_gid    = uio_acc.GetMemAccess(0x00000000);
     auto reg_fmtr   = uio_acc.GetMemAccess(0x00100000);
 //  auto reg_prmup  = uio_acc.GetMemAccess(0x00011000);
     auto reg_demos  = uio_acc.GetMemAccess(0x00120000);
     auto reg_colmat = uio_acc.GetMemAccess(0x00120200);
     auto reg_wdma   = uio_acc.GetMemAccess(0x00210000);
 
-#if 0
+#if 1
     std::cout << "CORE ID" << std::endl;
+    std::cout << std::hex << reg_gid.ReadReg(0) << std::endl;
     std::cout << std::hex << uio_acc.ReadReg(0) << std::endl;
     std::cout << std::hex << reg_fmtr.ReadReg(0) << std::endl;
     std::cout << std::hex << reg_demos.ReadReg(0) << std::endl;
@@ -140,6 +143,11 @@ int main(int argc, char *argv[])
 //  std::cout << "udmabuf0 phys addr : 0x" << std::hex << dmabuf_phys_adr << std::endl;
 //  std::cout << "udmabuf0 size      : " << std::dec << dmabuf_mem_size << std::endl;
 
+    // カメラ電源ON
+    jelly::GpioAccess gpio(36);
+    gpio.SetDirection(true);
+    gpio.SetValue(1);
+    usleep(200);
 
     // IMX219 I2C control
     jelly::Imx219ControlI2c imx219;
@@ -162,6 +170,10 @@ int main(int argc, char *argv[])
     if ( rec_frame_num <= 0 ) {
         std::cout << "udmabuf size error" << std::endl;
     }
+
+    reg_gid.WriteReg(0, 1);
+    usleep(10);
+    reg_gid.WriteReg(0, 0);
 
     int     key;
     while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
@@ -269,7 +281,7 @@ void capture_still_image(jelly::MemAccess& reg_wdma, jelly::MemAccess& reg_fmtr,
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT,   10000000);
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_WIDTH,       width);
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_HEIGHT,      height);
-    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_FILL,        0x000);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_FILL,        0x100);
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_TIMEOUT,     100000);
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL,       0x03);
     usleep(100000);
