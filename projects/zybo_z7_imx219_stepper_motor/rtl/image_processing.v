@@ -150,7 +150,6 @@ module image_processing
             );
     
     
-    
     // demosaic
     wire                           img_demos_line_first;
     wire                           img_demos_line_last;
