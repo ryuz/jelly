@@ -257,6 +257,16 @@ module tb_top();
         wb_write(32'h4010004c,         1024, 4'b1111);     // timeout
         wb_write(32'h40100010,            1, 4'b1111);     // enable
         
+        $display("set colmat");
+        wb_read (32'h40210000);                     // CORE ID
+        wb_write(32'h40210010,            3, 4'b1111);     // CTL_CONTROL
+        
+        $display("set gauss");
+        wb_read (32'h40240000);                     // CORE ID
+        wb_write(32'h40240020,            7, 4'b1111);     // PARAM_ENABLE
+        wb_write(32'h40240010,            3, 4'b1111);     // CTL_CONTROL
+        
+        
     #10000;
         $display("vin write DMA");
         wb_read (32'h40310000);                             // CORE ID

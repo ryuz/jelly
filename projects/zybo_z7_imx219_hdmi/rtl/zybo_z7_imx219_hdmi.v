@@ -674,7 +674,7 @@ module zybo_z7_imx219_hdmi
     wire                        wb_rgb_stb_i;
     wire                        wb_rgb_ack_o;
     
-    video_raw_to_rgb
+    image_processing
             #(
                 .WB_ADR_WIDTH       (18),
                 .WB_DAT_WIDTH       (WB_DAT_WIDTH),
@@ -687,7 +687,7 @@ module zybo_z7_imx219_hdmi
                 
                 .TUSER_WIDTH        (1)
             )
-        i_video_raw_to_rgb
+        i_image_processing
             (
                 .aresetn            (axi4s_cam_aresetn),
                 .aclk               (axi4s_cam_aclk),
