@@ -35,24 +35,6 @@ module ultra96v2_imx219_stepper_motor
         );
     
     
-    wire            stm_ap_en;
-    wire            stm_an_en;
-    wire            stm_bp_en;
-    wire            stm_bn_en;
-    wire            stm_ap_hl;
-    wire            stm_an_hl;
-    wire            stm_bp_hl;
-    wire            stm_bn_hl;
-    assign pmod1[0] = stm_ap_en;
-    assign pmod1[1] = stm_an_en;
-    assign pmod1[2] = stm_bp_en;
-    assign pmod1[3] = stm_bn_en;
-    assign pmod1[4] = stm_ap_hl;
-    assign pmod1[5] = stm_an_hl;
-    assign pmod1[6] = stm_bp_hl;
-    assign pmod1[7] = stm_bn_hl;
-    
-    
     wire            sys_reset;
     wire            sys_clk100;
     wire            sys_clk200;
@@ -887,16 +869,10 @@ module ultra96v2_imx219_stepper_motor
                 .monitor_target_a   (stmc_target_a)
             );
     
-    assign stm_ap_en = stmc_out_en;
-    assign stm_an_en = stmc_out_en;
-    assign stm_bp_en = stmc_out_en;
-    assign stm_bn_en = stmc_out_en;
-    
-    assign stm_ap_hl =  stmc_out_a;
-    assign stm_an_hl = ~stmc_out_a;
-    assign stm_bp_hl =  stmc_out_b;
-    assign stm_bn_hl = ~stmc_out_b;
-    
+    assign pmod0[0]   = stmc_out_a;
+    assign pmod0[1]   = stmc_out_b;
+    assign pmod0[2]   = stmc_out_en;
+    assign pmod0[7:3] = 0;
     
     
     
@@ -1089,11 +1065,11 @@ module ultra96v2_imx219_stepper_motor
     assign led[2] = reg_counter_mem_aclk[24];  // reg_counter_clk100[24];
     assign led[3] = frame_toggle;
     
-    assign pmod0[0]   = frame_toggle;
-    assign pmod0[1]   = reg_counter_rxbyteclkhs[5];
-    assign pmod0[2]   = reg_counter_clk200[5];
-    assign pmod0[3]   = reg_counter_clk100[5];
-    assign pmod0[7:4] = 0;
+    assign pmod1[0]   = frame_toggle;
+    assign pmod1[1]   = reg_counter_rxbyteclkhs[5];
+    assign pmod1[2]   = reg_counter_clk200[5];
+    assign pmod1[3]   = reg_counter_clk100[5];
+    assign pmod1[7:4] = 0;
     
     
 endmodule
