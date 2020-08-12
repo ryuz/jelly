@@ -663,10 +663,10 @@ module zybo_z7_imx219_hdmi
             );
     
     
-    // 現�?
+    // 現像
     wire    [0:0]               axi4s_rgb_tuser;
     wire                        axi4s_rgb_tlast;
-    wire    [39:0]              axi4s_rgb_tdata;
+    wire    [31:0]              axi4s_rgb_tdata;
     wire                        axi4s_rgb_tvalid;
     wire                        axi4s_rgb_tready;
     
@@ -676,10 +676,11 @@ module zybo_z7_imx219_hdmi
     
     video_raw_to_rgb
             #(
-                .WB_ADR_WIDTH       (10),
+                .WB_ADR_WIDTH       (18),
                 .WB_DAT_WIDTH       (WB_DAT_WIDTH),
                 
-                .DATA_WIDTH         (10),
+                .S_DATA_WIDTH       (10),
+                .M_DATA_WIDTH       (8),
                 
                 .IMG_Y_NUM          (480),
                 .IMG_Y_WIDTH        (12),
@@ -695,7 +696,7 @@ module zybo_z7_imx219_hdmi
                 
                 .s_wb_rst_i         (wb_peri_rst_i),
                 .s_wb_clk_i         (wb_peri_clk_i),
-                .s_wb_adr_i         (wb_peri_adr_i[9:0]),
+                .s_wb_adr_i         (wb_peri_adr_i[17:0]),
                 .s_wb_dat_o         (wb_rgb_dat_o),
                 .s_wb_dat_i         (wb_peri_dat_i),
                 .s_wb_we_i          (wb_peri_we_i),
@@ -781,12 +782,7 @@ module zybo_z7_imx219_hdmi
                 .s_axi4s_aclk       (axi4s_cam_aclk),
                 .s_axi4s_tuser      (axi4s_rgb_tuser),
                 .s_axi4s_tlast      (axi4s_rgb_tlast),
-                .s_axi4s_tdata      ({
-                                        axi4s_rgb_tdata[39:32],
-                                        axi4s_rgb_tdata[29:22],
-                                        axi4s_rgb_tdata[19:12],
-                                        axi4s_rgb_tdata[ 9: 2]
-                                    }),
+                .s_axi4s_tdata      (axi4s_rgb_tdata),
                 .s_axi4s_tvalid     (axi4s_rgb_tvalid),
                 .s_axi4s_tready     (axi4s_rgb_tready),
                 
@@ -852,7 +848,7 @@ module zybo_z7_imx219_hdmi
                     .m_axi4s_tready     (axi4s_vout_tready)
                 );
         
-        // read は未使用
+        // read 縺ｯ譛ｪ菴ｿ逕ｨ
         assign axi4_mem0_arid     = 0;
         assign axi4_mem0_araddr   = 0;
         assign axi4_mem0_arburst  = 0;
@@ -898,7 +894,7 @@ module zybo_z7_imx219_hdmi
                     .WB_ADR_WIDTH       (8),
                     .WB_DAT_WIDTH       (WB_DAT_WIDTH),
                     
-                    .TRIG_ASYNC         (1),    // WISHBONEと非同期�?�場�?
+                    .TRIG_ASYNC         (1),    // WISHBONE縺ｨ髱槫酔譛溘?ｮ蝣ｴ蜷?
                     .TRIG_START_ENABLE  (0),
                     
                     .INIT_CTL_CONTROL   (4'b0000),
@@ -1066,12 +1062,12 @@ module zybo_z7_imx219_hdmi
     //  WISHBONE address decoder
     // ----------------------------------------
     
-    assign wb_gid_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4000_0);   // 0x40000000-0x40000fff
-    assign wb_fmtr_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4001_0);   // 0x40010000-0x40010fff
-    assign wb_rgb_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4001_2);   // 0x40012000-0x40012fff
-    assign wb_vdmaw_stb_i = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4002_1);   // 0x40021000-0x40021fff
-    assign wb_vdmar_stb_i = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4002_4);   // 0x40024000-0x40024fff
-    assign wb_vsgen_stb_i = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4002_6);   // 0x40026000-0x40026fff
+    assign wb_gid_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[25:14] == 12'h000);   // 0x40000000-0x4000ffff
+    assign wb_fmtr_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[25:14] == 12'h010);   // 0x40100000-0x4010ffff
+    assign wb_rgb_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[25:18] ==  8'h02);    // 0x40200000-0x402fffff
+    assign wb_vdmaw_stb_i = wb_peri_stb_i & (wb_peri_adr_i[25:14] == 12'h031);   // 0x40310000-0x4031ffff
+    assign wb_vdmar_stb_i = wb_peri_stb_i & (wb_peri_adr_i[25:14] == 12'h034);   // 0x40340000-0x4034ffff
+    assign wb_vsgen_stb_i = wb_peri_stb_i & (wb_peri_adr_i[25:14] == 12'h036);   // 0x40360000-0x4036ffff
     
     assign wb_peri_dat_o  = wb_gid_stb_i   ? wb_gid_dat_o   :
                             wb_fmtr_stb_i  ? wb_fmtr_dat_o  :
