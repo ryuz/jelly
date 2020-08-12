@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <cmath>
 
 #include <opencv2/opencv.hpp>
 
@@ -42,6 +43,10 @@ int main(int argc, char *argv[])
     int     view_scale  = 1;
     int     view_x      = -1;
     int     view_y      = -1;
+    bool    colmat_en   = false;
+    int     gamma       = 22;
+    int     gauss_level = 0;
+    int     canny_th    = 127;
     cv::Mat imgBack;
     
     for ( int i = 1; i < argc; ++i ) {
@@ -158,19 +163,39 @@ int main(int argc, char *argv[])
     if ( view_y < 0 ) { view_y = (720  - height) / 2; }
 
     // mmap uio
-    jelly::UioAccess uio_acc("uio_pl_peri", 0x00100000);
+    jelly::UioAccess uio_acc("uio_pl_peri", 0x10000000);
     if ( !uio_acc.IsMapped() ) {
         std::cout << "uio_pl_peri : open error or mmap error" << std::endl;
         return 1;
     }
 
     // PLのコアのアドレスでマップ
-    auto reg_fmtr  = uio_acc.GetMemAccess(0x00010000);  // ビデオサイズ正規化
-    auto reg_rgb   = uio_acc.GetMemAccess(0x00012000);  // 現像
-    auto reg_wdma  = uio_acc.GetMemAccess(0x00021000);  // Write-DMA
-    auto reg_rdma  = uio_acc.GetMemAccess(0x00024000);  // Read-DMA
-    auto reg_vsgen = uio_acc.GetMemAccess(0x00026000);  // Video out sync generator
+    auto reg_fmtr   = uio_acc.GetMemAccess(0x00100000);  // ビデオサイズ正規化
+    auto reg_demos  = uio_acc.GetMemAccess(0x00200000);  // デモザイク
+    auto reg_colmat = uio_acc.GetMemAccess(0x00210000);  // カラーマトリックス
+    auto reg_gamma  = uio_acc.GetMemAccess(0x00220000);  // ガンマ補正
+    auto reg_gauss  = uio_acc.GetMemAccess(0x00240000);  // ガウシアンフィルタ
+    auto reg_canny  = uio_acc.GetMemAccess(0x00250000);  // Cannyフィルタ
+    auto reg_sel    = uio_acc.GetMemAccess(0x002f0000);  // 出力切り替え
+    auto reg_wdma   = uio_acc.GetMemAccess(0x00310000);  // Write-DMA
+    auto reg_rdma   = uio_acc.GetMemAccess(0x00340000);  // Read-DMA
+    auto reg_vsgen  = uio_acc.GetMemAccess(0x00360000);  // Video out sync generator
     
+#if 1
+    // ID確認
+    std::cout << "CORE ID" << std::endl;
+    std::cout << std::hex << reg_fmtr.ReadReg(0) << std::endl;
+    std::cout << std::hex << reg_demos.ReadReg(0) << std::endl;
+    std::cout << std::hex << reg_colmat.ReadReg(0) << std::endl;
+    std::cout << std::hex << reg_gamma.ReadReg(0) << std::endl;
+    std::cout << std::hex << reg_gauss.ReadReg(0) << std::endl;
+    std::cout << std::hex << reg_canny.ReadReg(0) << std::endl;
+    std::cout << std::hex << reg_sel.ReadReg(0) << std::endl;
+    std::cout << std::hex << reg_wdma.ReadReg(0) << std::endl;
+    std::cout << std::hex << reg_rdma.ReadReg(0) << std::endl;
+    std::cout << std::hex << reg_vsgen.ReadReg(0) << std::endl;
+#endif
+
     // mmap udmabuf
     jelly::UdmabufAccess udmabuf_acc("udmabuf0");
     if ( !udmabuf_acc.IsMapped() ) {
@@ -187,6 +212,7 @@ int main(int argc, char *argv[])
         printf("udmabuf size error\n");
         return 0;
     }
+
 
     // IMX219 I2C control
     jelly::Imx219ControlI2c imx219;
@@ -213,6 +239,35 @@ int main(int argc, char *argv[])
     capture_start(reg_wdma, reg_fmtr, dmabuf_phys_adr, width, height, view_x, view_y);    
     vout_start(reg_rdma, reg_vsgen, dmabuf_phys_adr);    
 
+#if 1
+    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX22, (int)( 1.114257813 * (1 << 16)));
+    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX21, (int)(-0.200195313 * (1 << 16)));
+    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX20, (int)( 0.085937500 * (1 << 16)));
+    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX23, (int)( 0.000000000 * (1 << 16)));
+    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX12, (int)(-0.050781250 * (1 << 16)));		
+    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX11, (int)( 1.200195313 * (1 << 16)));
+    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX10, (int)(-0.150390625 * (1 << 16)));
+    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX13, (int)( 0.000000000 * (1 << 16)));
+    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX02, (int)( 0.068359375 * (1 << 16)));
+    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX01, (int)(-0.219726563 * (1 << 16)));
+    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX00, (int)( 1.151367188 * (1 << 16)));
+    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX03, (int)( 0.000000000 * (1 << 16)));
+#else
+    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX00, (int)( 1.000000000 * (1 << 16)));
+    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX01, (int)( 0.000000000 * (1 << 16)));
+    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX02, (int)( 0.000000000 * (1 << 16)));
+    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX03, (int)( 0.000000000 * (1 << 16)));
+    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX10, (int)( 0.000000000 * (1 << 16)));		
+    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX11, (int)( 1.000000000 * (1 << 16)));
+    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX12, (int)( 0.000000000 * (1 << 16)));
+    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX13, (int)( 0.000000000 * (1 << 16)));
+    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX20, (int)( 0.000000000 * (1 << 16)));
+    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX21, (int)( 0.000000000 * (1 << 16)));
+    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX22, (int)( 1.000000000 * (1 << 16)));
+    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX23, (int)( 0.000000000 * (1 << 16)));
+#endif
+    reg_colmat.WriteReg(REG_IMG_COLMAT_CTL_CONTROL, 3);
+
     // 操作
     cv::namedWindow("camera");
     cv::resizeWindow("camera", 640, 480);
@@ -222,21 +277,70 @@ int main(int argc, char *argv[])
     cv::createTrackbar("a_gain",   "camera", &a_gain, 20);
     cv::createTrackbar("d_gain",   "camera", &d_gain, 24);
     cv::createTrackbar("bayer" ,   "camera", &bayer_phase, 3);
+    cv::createTrackbar("gamm" ,    "camera", &gamma, 30);
+    cv::createTrackbar("gauss" ,   "camera", &gauss_level, 3);
+    cv::createTrackbar("canny" ,   "camera", &canny_th, 256);
     
+    int gamma_prev = 0;
     int     key;
     while ( (key = (cv::waitKeyEx(10) & 0xff)) != 0x1b ) {
-
-        // 設定
+        // カメラ設定
         imx219.SetFrameRate(frame_rate);
         imx219.SetExposureTime(exposure / 1000.0);
         imx219.SetGain(a_gain);
         imx219.SetDigitalGain(d_gain);
         imx219.SetFlip(flip_h, flip_v);
-        reg_rgb.WriteReg(REG_IMG_DEMOSAIC_PARAM_PHASE, bayer_phase);
-        reg_rgb.WriteReg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3);  // update & enable
+
+        // demosaic
+        reg_demos.WriteReg(REG_IMG_DEMOSAIC_PARAM_PHASE, bayer_phase);
+        reg_demos.WriteReg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3);  // update & enable
+
+        // color matrix
+        reg_colmat.WriteReg(REG_IMG_COLMAT_CTL_CONTROL, colmat_en ? 3 : 2 );
+
+        // gamma
+        gamma = std::max(1, gamma);
+        if ( gamma != gamma_prev ) {
+            float g = gamma / 10.0f;
+            int gamma_tbl_addr  = (int)reg_gamma.ReadReg(REG_IMG_GAMMA_CFG_TBL_ADDR);
+            int gamma_tbl_size  = (int)reg_gamma.ReadReg(REG_IMG_GAMMA_CFG_TBL_SIZE);
+            int gamma_tbl_width = (int)reg_gamma.ReadReg(REG_IMG_GAMMA_CFG_TBL_WIDTH);
+//          std::cout << "gamma_tbl_addr  : 0x" << std::hex << gamma_tbl_addr << std::endl;
+//          std::cout << "gamma_tbl_size  : 0x" << std::hex << gamma_tbl_size << std::endl;
+//          std::cout << "gamma_tbl_width : "               << gamma_tbl_width << std::endl;
+            for ( int i = 0; i < gamma_tbl_size; ++i) {
+                int v = (int)(std::pow((float)i / (float)(gamma_tbl_size-1), 1.0f/g)*((1<<gamma_tbl_width)-1));
+                for ( int c = 0; c < 3; ++c) {
+                    reg_gamma.WriteReg(gamma_tbl_addr*(c+1)+i, v);
+                }
+            }
+            reg_gamma.WriteReg(REG_IMG_GAMMA_PARAM_ENABLE, 0x7);
+            reg_gamma.WriteReg(REG_IMG_GAMMA_CTL_CONTROL, 0x3);
+
+            gamma_prev = gamma;
+        }
+
+        // gauss
+        reg_gauss.WriteReg(REG_IMG_GAUSS3X3_PARAM_ENABLE, (1 << gauss_level)-1);
+        reg_gauss.WriteReg(REG_IMG_GAUSS3X3_CTL_CONTROL, 0x3);
+
+        // canny
+        reg_canny.WriteReg(REG_IMG_CANNY_PARAM_TH, canny_th*canny_th);
+        reg_canny.WriteReg(REG_IMG_CANNY_CTL_CONTROL, 0x3);
 
         // ユーザー操作
         switch ( key ) {
+        case '0':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 0); break;
+        case '1':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 1); break;
+        case '2':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 2); break;
+        case '3':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 3); break;
+        case '4':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 4); break;
+        case '5':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 5); break;
+        case '6':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 6); break;
+        case '7':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 7); break;
+        case '8':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 8); break;
+        case '9':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 9); break;
+    
         case 'p':
             std::cout << "pixel clock   : " << imx219.GetPixelClock()   << " [Hz]"  << std::endl;
             std::cout << "frame rate    : " << imx219.GetFrameRate()    << " [fps]" << std::endl;
@@ -260,6 +364,8 @@ int main(int argc, char *argv[])
         case 'z':  imx219.SetAoiPosition(imx219.GetAoiX(), imx219.GetAoiY() + 4);    break;
         case 'a':  imx219.SetAoiPosition(imx219.GetAoiX() - 4, imx219.GetAoiY());    break;
         case 's':  imx219.SetAoiPosition(imx219.GetAoiX() + 4, imx219.GetAoiY());    break;
+
+        case 'c':   colmat_en = !colmat_en; break;
 
         case 'd':   // image dump
             capture_stop(reg_wdma, reg_fmtr);
