@@ -16,6 +16,7 @@ module jelly_img_gaussian_3x3
         #(
             parameter   NUM               = 1,
             parameter   USER_WIDTH        = 0,
+            parameter   COMPONENTS        = 1,
             parameter   DATA_WIDTH        = 8,
             parameter   MAX_X_NUM         = 4096,
             parameter   RAM_TYPE          = "block",
@@ -35,39 +36,39 @@ module jelly_img_gaussian_3x3
             parameter   USER_BITS         = USER_WIDTH > 0 ? USER_WIDTH : 1
         )
         (
-            input   wire                            reset,
-            input   wire                            clk,
-            input   wire                            cke,
+            input   wire                                reset,
+            input   wire                                clk,
+            input   wire                                cke,
             
-            input   wire                            in_update_req,
+            input   wire                                in_update_req,
             
-            input   wire                            s_wb_rst_i,
-            input   wire                            s_wb_clk_i,
-            input   wire    [WB_ADR_WIDTH-1:0]      s_wb_adr_i,
-            input   wire    [WB_DAT_WIDTH-1:0]      s_wb_dat_i,
-            output  wire    [WB_DAT_WIDTH-1:0]      s_wb_dat_o,
-            input   wire                            s_wb_we_i,
-            input   wire    [WB_SEL_WIDTH-1:0]      s_wb_sel_i,
-            input   wire                            s_wb_stb_i,
-            output  wire                            s_wb_ack_o,
+            input   wire                                s_wb_rst_i,
+            input   wire                                s_wb_clk_i,
+            input   wire    [WB_ADR_WIDTH-1:0]          s_wb_adr_i,
+            input   wire    [WB_DAT_WIDTH-1:0]          s_wb_dat_i,
+            output  wire    [WB_DAT_WIDTH-1:0]          s_wb_dat_o,
+            input   wire                                s_wb_we_i,
+            input   wire    [WB_SEL_WIDTH-1:0]          s_wb_sel_i,
+            input   wire                                s_wb_stb_i,
+            output  wire                                s_wb_ack_o,
             
-            input   wire                            s_img_line_first,
-            input   wire                            s_img_line_last,
-            input   wire                            s_img_pixel_first,
-            input   wire                            s_img_pixel_last,
-            input   wire                            s_img_de,
-            input   wire    [USER_BITS-1:0]         s_img_user,
-            input   wire    [DATA_WIDTH-1:0]        s_img_data,
-            input   wire                            s_img_valid,
+            input   wire                                s_img_line_first,
+            input   wire                                s_img_line_last,
+            input   wire                                s_img_pixel_first,
+            input   wire                                s_img_pixel_last,
+            input   wire                                s_img_de,
+            input   wire    [USER_BITS-1:0]             s_img_user,
+            input   wire    [COMPONENTS*DATA_WIDTH-1:0] s_img_data,
+            input   wire                                s_img_valid,
             
-            output  wire                            m_img_line_first,
-            output  wire                            m_img_line_last,
-            output  wire                            m_img_pixel_first,
-            output  wire                            m_img_pixel_last,
-            output  wire                            m_img_de,
-            output  wire    [USER_BITS-1:0]         m_img_user,
-            output  wire    [DATA_WIDTH-1:0]        m_img_data,
-            output  wire                            m_img_valid
+            output  wire                                m_img_line_first,
+            output  wire                                m_img_line_last,
+            output  wire                                m_img_pixel_first,
+            output  wire                                m_img_pixel_last,
+            output  wire                                m_img_de,
+            output  wire    [USER_BITS-1:0]             m_img_user,
+            output  wire    [COMPONENTS*DATA_WIDTH-1:0] m_img_data,
+            output  wire                                m_img_valid
         );
     
     genvar      i;
@@ -212,19 +213,20 @@ module jelly_img_gaussian_3x3
     
     
     // cores
-    wire    [(NUM+1)-1:0]                   img_line_first;
-    wire    [(NUM+1)-1:0]                   img_line_last;
-    wire    [(NUM+1)-1:0]                   img_pixel_first;
-    wire    [(NUM+1)-1:0]                   img_pixel_last;
-    wire    [(NUM+1)-1:0]                   img_de;
-    wire    [(NUM+1)*USER_BITS-1:0]         img_user;
-    wire    [(NUM+1)*DATA_WIDTH-1:0]        img_data;
-    wire    [(NUM+1)-1:0]                   img_valid;
+    wire    [(NUM+1)-1:0]                       img_line_first;
+    wire    [(NUM+1)-1:0]                       img_line_last;
+    wire    [(NUM+1)-1:0]                       img_pixel_first;
+    wire    [(NUM+1)-1:0]                       img_pixel_last;
+    wire    [(NUM+1)-1:0]                       img_de;
+    wire    [(NUM+1)*USER_BITS-1:0]             img_user;
+    wire    [(NUM+1)*COMPONENTS*DATA_WIDTH-1:0] img_data;
+    wire    [(NUM+1)-1:0]                       img_valid;
     
     generate
     for ( i = 0; i < NUM; i = i+1 ) begin : loop_filter
         jelly_img_gaussian_3x3_core
                 #(
+                    .COMPONENTS         (COMPONENTS),
                     .USER_WIDTH         (USER_WIDTH),
                     .DATA_WIDTH         (DATA_WIDTH),
                     .OUT_DATA_WIDTH     (DATA_WIDTH),
@@ -245,8 +247,8 @@ module jelly_img_gaussian_3x3
                     .s_img_pixel_first  (img_pixel_first[i]),
                     .s_img_pixel_last   (img_pixel_last [i]),
                     .s_img_de           (img_de         [i]),
-                    .s_img_user         (img_user       [i*USER_BITS  +: USER_BITS]),
-                    .s_img_data         (img_data       [i*DATA_WIDTH +: DATA_WIDTH]),
+                    .s_img_user         (img_user       [i*USER_BITS             +: USER_BITS]),
+                    .s_img_data         (img_data       [i*COMPONENTS*DATA_WIDTH +: COMPONENTS*DATA_WIDTH]),
                     .s_img_valid        (img_valid      [i]),
                     
                     .m_img_line_first   (img_line_first [i+1]),
@@ -254,29 +256,29 @@ module jelly_img_gaussian_3x3
                     .m_img_pixel_first  (img_pixel_first[i+1]),
                     .m_img_pixel_last   (img_pixel_last [i+1]),
                     .m_img_de           (img_de         [i+1]),
-                    .m_img_user         (img_user       [(i+1)*USER_BITS  +: USER_BITS]),
-                    .m_img_data         (img_data       [(i+1)*DATA_WIDTH +: DATA_WIDTH]),
+                    .m_img_user         (img_user       [(i+1)*USER_BITS             +: USER_BITS]),
+                    .m_img_data         (img_data       [(i+1)*COMPONENTS*DATA_WIDTH +: COMPONENTS*DATA_WIDTH]),
                     .m_img_valid        (img_valid      [i+1])
                 );
     end
     endgenerate
     
-    assign img_line_first [0]                          = s_img_line_first;
-    assign img_line_last  [0]                          = s_img_line_last;
-    assign img_pixel_first[0]                          = s_img_pixel_first;
-    assign img_pixel_last [0]                          = s_img_pixel_last;
-    assign img_de         [0]                          = s_img_de;
-    assign img_user       [0*USER_BITS  +: USER_BITS]  = s_img_user;
-    assign img_data       [0*DATA_WIDTH +: DATA_WIDTH] = s_img_data;
-    assign img_valid      [0]                          = s_img_valid;
+    assign img_line_first [0]                                                = s_img_line_first;
+    assign img_line_last  [0]                                                = s_img_line_last;
+    assign img_pixel_first[0]                                                = s_img_pixel_first;
+    assign img_pixel_last [0]                                                = s_img_pixel_last;
+    assign img_de         [0]                                                = s_img_de;
+    assign img_user       [0*USER_BITS             +: USER_BITS]             = s_img_user;
+    assign img_data       [0*COMPONENTS*DATA_WIDTH +: COMPONENTS*DATA_WIDTH] = s_img_data;
+    assign img_valid      [0]                                                = s_img_valid;
     
     assign m_img_line_first  = img_line_first [NUM];
     assign m_img_line_last   = img_line_last  [NUM];
     assign m_img_pixel_first = img_pixel_first[NUM];
     assign m_img_pixel_last  = img_pixel_last [NUM];
     assign m_img_de          = img_de         [NUM];
-    assign m_img_user        = img_user       [NUM*USER_BITS  +: USER_BITS];
-    assign m_img_data        = img_data       [NUM*DATA_WIDTH +: DATA_WIDTH];
+    assign m_img_user        = img_user       [NUM*USER_BITS             +: USER_BITS];
+    assign m_img_data        = img_data       [NUM*COMPONENTS*DATA_WIDTH +: COMPONENTS*DATA_WIDTH];
     assign m_img_valid       = img_valid      [NUM];
     
     
