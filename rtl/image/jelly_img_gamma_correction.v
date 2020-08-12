@@ -21,7 +21,7 @@ module jelly_img_gamma_correction
             parameter   USE_VALID         = 0,
             parameter   RAM_TYPE          = "block",
             
-            parameter   CORE_ID           = 32'h527a_ffff,
+            parameter   CORE_ID           = 32'h527a_2120,
             parameter   CORE_VERSION      = 32'h0001_0000,
             parameter   INDEX_WIDTH       = 1,
             
