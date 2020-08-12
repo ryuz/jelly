@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <cmath>
 
 #include <opencv2/opencv.hpp>
 
@@ -42,6 +43,7 @@ int main(int argc, char *argv[])
     int     view_scale  = 1;
     int     view_x      = -1;
     int     view_y      = -1;
+    int     gamma       = 22;
     cv::Mat imgBack;
     
     for ( int i = 1; i < argc; ++i ) {
@@ -158,18 +160,20 @@ int main(int argc, char *argv[])
     if ( view_y < 0 ) { view_y = (720  - height) / 2; }
 
     // mmap uio
-    jelly::UioAccess uio_acc("uio_pl_peri", 0x00100000);
+    jelly::UioAccess uio_acc("uio_pl_peri", 0x10000000);
     if ( !uio_acc.IsMapped() ) {
         std::cout << "uio_pl_peri : open error or mmap error" << std::endl;
         return 1;
     }
 
     // PLのコアのアドレスでマップ
-    auto reg_fmtr  = uio_acc.GetMemAccess(0x00010000);  // ビデオサイズ正規化
-    auto reg_rgb   = uio_acc.GetMemAccess(0x00012000);  // 現像
-    auto reg_wdma  = uio_acc.GetMemAccess(0x00021000);  // Write-DMA
-    auto reg_rdma  = uio_acc.GetMemAccess(0x00024000);  // Read-DMA
-    auto reg_vsgen = uio_acc.GetMemAccess(0x00026000);  // Video out sync generator
+    auto reg_fmtr   = uio_acc.GetMemAccess(0x00100000);  // ビデオサイズ正規化
+    auto reg_demos  = uio_acc.GetMemAccess(0x00200000);  // デモザイク
+    auto reg_colmat = uio_acc.GetMemAccess(0x00210000);  // カラーマトリックス
+    auto reg_gamma  = uio_acc.GetMemAccess(0x00220000);  // ガンマ補正
+    auto reg_wdma   = uio_acc.GetMemAccess(0x00310000);  // Write-DMA
+    auto reg_rdma   = uio_acc.GetMemAccess(0x00340000);  // Read-DMA
+    auto reg_vsgen  = uio_acc.GetMemAccess(0x00360000);  // Video out sync generator
     
     // mmap udmabuf
     jelly::UdmabufAccess udmabuf_acc("udmabuf0");
@@ -187,6 +191,7 @@ int main(int argc, char *argv[])
         printf("udmabuf size error\n");
         return 0;
     }
+
 
     // IMX219 I2C control
     jelly::Imx219ControlI2c imx219;
@@ -222,18 +227,40 @@ int main(int argc, char *argv[])
     cv::createTrackbar("a_gain",   "camera", &a_gain, 20);
     cv::createTrackbar("d_gain",   "camera", &d_gain, 24);
     cv::createTrackbar("bayer" ,   "camera", &bayer_phase, 3);
+    cv::createTrackbar("gamm" ,    "camera", &gamma, 30);
     
+    int gamma_prev = 0;
     int     key;
     while ( (key = (cv::waitKeyEx(10) & 0xff)) != 0x1b ) {
-
         // 設定
         imx219.SetFrameRate(frame_rate);
         imx219.SetExposureTime(exposure / 1000.0);
         imx219.SetGain(a_gain);
         imx219.SetDigitalGain(d_gain);
         imx219.SetFlip(flip_h, flip_v);
-        reg_rgb.WriteReg(REG_IMG_DEMOSAIC_PARAM_PHASE, bayer_phase);
-        reg_rgb.WriteReg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3);  // update & enable
+        reg_demos.WriteReg(REG_IMG_DEMOSAIC_PARAM_PHASE, bayer_phase);
+        reg_demos.WriteReg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3);  // update & enable
+        
+        gamma = std::max(1, gamma);
+        if ( gamma != gamma_prev ) {
+            float g = gamma / 10.0f;
+            int gamma_tbl_addr  = (int)reg_gamma.ReadReg(REG_IMG_GAMMA_CFG_TBL_ADDR);
+            int gamma_tbl_size  = (int)reg_gamma.ReadReg(REG_IMG_GAMMA_CFG_TBL_SIZE);
+            int gamma_tbl_width = (int)reg_gamma.ReadReg(REG_IMG_GAMMA_CFG_TBL_WIDTH);
+//          std::cout << "gamma_tbl_addr  : 0x" << std::hex << gamma_tbl_addr << std::endl;
+//          std::cout << "gamma_tbl_size  : 0x" << std::hex << gamma_tbl_size << std::endl;
+//          std::cout << "gamma_tbl_width : "               << gamma_tbl_width << std::endl;
+            for ( int i = 0; i < gamma_tbl_size; ++i) {
+                int v = (int)(std::pow((float)i / (float)(gamma_tbl_size-1), 1.0f/g)*((1<<gamma_tbl_width)-1));
+                for ( int c = 0; c < 3; ++c) {
+                    reg_gamma.WriteReg(gamma_tbl_addr*(c+1)+i, v);
+                }
+            }
+            reg_gamma.WriteReg(REG_IMG_GAMMA_PARAM_ENABLE, 0x7);
+            reg_gamma.WriteReg(REG_IMG_GAMMA_CTL_CONTROL, 0x0);
+
+            gamma_prev = gamma;
+        }
 
         // ユーザー操作
         switch ( key ) {

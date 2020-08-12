@@ -147,6 +147,18 @@
 #define REG_IMG_COLMAT_CURRENT_CLIP_MIN2        0xa4
 #define REG_IMG_COLMAT_CURRENT_CLIP_MAX2        0xa5
 
+/* gamma  */
+#define REG_IMG_GAMMA_CORE_ID                   0x00
+#define REG_IMG_GAMMA_CORE_VERSION              0x01
+#define REG_IMG_GAMMA_CTL_CONTROL               0x04
+#define REG_IMG_GAMMA_CTL_STATUS                0x05
+#define REG_IMG_GAMMA_CTL_INDEX                 0x07
+#define REG_IMG_GAMMA_PARAM_ENABLE              0x08
+#define REG_IMG_GAMMA_CURRENT_ENABLE            0x18
+#define REG_IMG_GAMMA_CFG_TBL_ADDR              0x80
+#define REG_IMG_GAMMA_CFG_TBL_SIZE              0x81
+#define REG_IMG_GAMMA_CFG_TBL_WIDTH             0x82
+
 /* gaussian 3x3 */
 #define REG_IMG_GAUSS3X3_CORE_ID                0x00
 #define REG_IMG_GAUSS3X3_CORE_VERSION           0x01
