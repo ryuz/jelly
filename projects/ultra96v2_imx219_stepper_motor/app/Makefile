@@ -1,7 +1,7 @@
 
-TARGET    = udmabuf_sample.out
-DT_NAME   = ultra96v2_udmabuf_sample
-BIT_NAME  = ultra96v2_udmabuf_sample
+TARGET    = ultra96v2_imx219_stepper_motor.out
+DT_NAME   = ultra96v2_imx219_stepper_motor
+BIT_NAME  = ultra96v2_imx219_stepper_motor
 
 DTS_FILE  = $(DT_NAME).dts
 DTBO_FILE = $(DT_NAME).dtbo
@@ -13,8 +13,8 @@ BIN_FILE  = $(BIT_FILE).bin
 FIRMWARE_PATH = /lib/firmware
 DEVTREE_PATH  = /configfs/device-tree
 
-CFLAGS  += -g -O0 -I../../../include
-LDFLAGS += 
+CFLAGS  += -Wall -g -O0 `pkg-config --cflags opencv` -I../../../include
+LDFLAGS += -g  `pkg-config --libs opencv`
 
 OBJS = main.o
 
@@ -28,11 +28,7 @@ clean:
 
 .PHONY: run
 run: $(TARGET) load
-	sudo ./$(TARGET)
-
-.PHONY: run_server
-run_server: load
-	python3 flask_sample.py
+	./$(TARGET)
 
 $(TARGET): $(OBJS)
 	g++ $(LDFLAGS) -o $(TARGET) $(OBJS)
@@ -75,6 +71,7 @@ load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
 	sudo rm /lib/firmware/$(BIN_FILE)
 	sudo chmod 666 /dev/uio*
 	sudo chmod 666 /dev/udmabuf*
+	sudo chmod 666 /dev/i2c-4
 
 .PHONY: unload
 unload:

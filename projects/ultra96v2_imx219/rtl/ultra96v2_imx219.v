@@ -15,21 +15,11 @@ module ultra96v2_imx219
             input   wire            cam_clk_n,
             input   wire    [1:0]   cam_data_p,
             input   wire    [1:0]   cam_data_n,
-//          input   wire            cam_clk,
-//          output  wire            cam_gpio,
-//          inout   wire            cam_scl,
-//          inout   wire            cam_sda,
             
             output  wire    [1:0]   radio_led,
-            output  wire    [15:0]  hd_gpio
-            
+            output  wire    [7:0]   pmod0,
+            output  wire    [7:0]   pmod1
         );
-    
-    wire    [7:0]   pmod1;
-    wire    [7:0]   pmod2;
-    assign hd_gpio[7:0]  = pmod1;
-    assign hd_gpio[15:8] = pmod2;
-    
     
     wire            sys_reset;
     wire            sys_clk100;
@@ -394,21 +384,7 @@ module ultra96v2_imx219
            );
     
     wire        dphy_clk   = rxbyteclkhs;
-    wire        dphy_reset;
-    jelly_reset
-            #(
-                .IN_LOW_ACTIVE      (0),
-                .OUT_LOW_ACTIVE     (0),
-                .INPUT_REGS         (2),
-                .COUNTER_WIDTH      (5),
-                .INSERT_BUFG        (0)
-            )
-        i_reset
-            (
-                .clk                (dphy_clk),
-                .in_reset           (sys_reset || system_rst_out),
-                .out_reset          (dphy_reset)
-            );
+    wire        dphy_reset = system_rst_out;
     
     
     
@@ -454,8 +430,8 @@ module ultra96v2_imx219
                 .packet_lost        (mipi_packet_lost),
                 .fifo_overflow      (mipi_fifo_overflow),
                 
-                .rxreseths          (system_rst_out),
-                .rxbyteclkhs        (rxbyteclkhs),
+                .rxreseths          (dphy_reset),
+                .rxbyteclkhs        (dphy_clk),
                 .rxdatahs           ({dl1_rxdatahs,   dl0_rxdatahs  }),
                 .rxvalidhs          ({dl1_rxvalidhs,  dl0_rxvalidhs }),
                 .rxactivehs         ({dl1_rxactivehs, dl0_rxactivehs}),
@@ -974,7 +950,7 @@ module ultra96v2_imx219
     assign pmod1[4]   = reg_counter_rxbyteclkhs[10];
     assign pmod1[7:5] = 0;
     */
-    assign pmod1 = reg_counter_clk100[15:8];
+    assign pmod0 = reg_counter_clk100[15:8];
     
     reg     [7:0]   reg_frame_count;
     always @(posedge axi4s_cam_aclk) begin
@@ -983,10 +959,11 @@ module ultra96v2_imx219
         end
     end
     
-    assign pmod2 = reg_frame_count;
+    assign pmod1 = reg_frame_count;
     
     
     // Debug
+    /*
     (* mark_debug = "true" *)   wire    [7:0]       dbg0_rxdatahs;
     (* mark_debug = "true" *)   wire                dbg0_rxvalidhs;
     (* mark_debug = "true" *)   wire                dbg0_rxactivehs;
@@ -1071,7 +1048,7 @@ module ultra96v2_imx219
             reg_mipi_packet_lost <= reg_mipi_packet_lost + mipi_packet_lost;
         end
     end
-    
+    */
     
 endmodule
 

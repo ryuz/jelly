@@ -14,7 +14,7 @@ module tb_top();
     
     initial begin
         $dumpfile("tb_top.vcd");
-        $dumpvars(1, tb_top);
+        $dumpvars(0, tb_top);
         $dumpvars(1, tb_top.i_top);
 //      $dumpvars(0, tb_top.i_top.blk_read_vdma.i_vdma_axi4_to_axi4s);
 //      $dumpvars(0, tb_top.i_top.i_vsync_generator);
@@ -237,42 +237,50 @@ module tb_top();
     
     
     initial begin
-    @(negedge wb_rst_i);
         $display("start");
     #10000;
+        $display("read id");
+        wb_read (32'h40000000);
+        wb_read (32'h40100000);
+        wb_read (32'h40200000);
+        wb_read (32'h40210000);
+        wb_read (32'h40220000);
+        wb_read (32'h40310000);
+        wb_read (32'h40340000);
+        wb_read (32'h40360000);
         
         $display("set format regularizer");
-        wb_read (32'h40010000);                     // CORE ID
-        wb_write(32'h40010040,        X_NUM, 4'b1111);     // width
-        wb_write(32'h40010044,        Y_NUM, 4'b1111);     // height
-        wb_write(32'h40010048,            0, 4'b1111);     // fill
-        wb_write(32'h4001004c,         1024, 4'b1111);     // timeout
-        wb_write(32'h40010010,            1, 4'b1111);     // enable
+        wb_read (32'h40100000);                     // CORE ID
+        wb_write(32'h40100040,        X_NUM, 4'b1111);     // width
+        wb_write(32'h40100044,        Y_NUM, 4'b1111);     // height
+        wb_write(32'h40100048,            0, 4'b1111);     // fill
+        wb_write(32'h4010004c,         1024, 4'b1111);     // timeout
+        wb_write(32'h40100010,            1, 4'b1111);     // enable
         
     #10000;
         $display("vin write DMA");
-        wb_read (32'h40021000);                             // CORE ID
-        wb_write(32'h40021020, 32'h30000000, 4'b1111);      // address
-        wb_write(32'h40021024,       STRIDE, 4'b1111);      // stride
-        wb_write(32'h40021028,        X_NUM, 4'b1111);      // width
-        wb_write(32'h4002102c,        Y_NUM, 4'b1111);      // height
-        wb_write(32'h40021030,  X_NUM*Y_NUM, 4'b1111);      // size
-        wb_write(32'h4002103c,           31, 4'b1111);      // awlen
-        wb_write(32'h40021010,            3, 4'b1111);      // update & enable
+        wb_read (32'h40310000);                             // CORE ID
+        wb_write(32'h40310020, 32'h30000000, 4'b1111);      // address
+        wb_write(32'h40310024,       STRIDE, 4'b1111);      // stride
+        wb_write(32'h40310028,        X_NUM, 4'b1111);      // width
+        wb_write(32'h4031002c,        Y_NUM, 4'b1111);      // height
+        wb_write(32'h40310030,  X_NUM*Y_NUM, 4'b1111);      // size
+        wb_write(32'h4031003c,           31, 4'b1111);      // awlen
+        wb_write(32'h40310010,            3, 4'b1111);      // update & enable
         axi4s_model_aresetn = 1'b1;
         
     #100000;
         $display("vout read DMA");
-        wb_write(32'h40024020, 32'h30000000, 4'b1111);      // address
-        wb_write(32'h40024024,       STRIDE, 4'b1111);      // stride
-        wb_write(32'h40024028,         1280, 4'b1111);      // width
-        wb_write(32'h4002402c,          720, 4'b1111);      // height
-        wb_write(32'h40024030,     1280*720, 4'b1111);      // size
-        wb_write(32'h4002403c,           31, 4'b1111);      // awlen
-        wb_write(32'h40024010,            3, 4'b1111);      // update & enable
+        wb_write(32'h40340020, 32'h30000000, 4'b1111);      // address
+        wb_write(32'h40340024,       STRIDE, 4'b1111);      // stride
+        wb_write(32'h40340028,         1280, 4'b1111);      // width
+        wb_write(32'h4034002c,          720, 4'b1111);      // height
+        wb_write(32'h40340030,     1280*720, 4'b1111);      // size
+        wb_write(32'h4034003c,           31, 4'b1111);      // awlen
+        wb_write(32'h40340010,            3, 4'b1111);      // update & enable
         
         $display("vout vsync generator");
-        wb_write(32'h40026010,            1, 4'b1111);      // enable
+        wb_write(32'h4036010,            1, 4'b1111);      // enable
     end
     
     

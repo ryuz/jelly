@@ -25,7 +25,11 @@ module zybo_z7_imx219
             input   wire    [3:0]   push_sw,
             input   wire    [3:0]   dip_sw,
             output  wire    [3:0]   led,
-            output  wire    [7:0]   pmod_a,
+            inout   wire    [7:0]   pmod_a,
+            inout   wire    [7:0]   pmod_b,
+            inout   wire    [7:0]   pmod_c,
+            inout   wire    [7:0]   pmod_d,
+            inout   wire    [7:0]   pmod_e,
             
             input   wire            cam_clk_hs_p,
             input   wire            cam_clk_hs_n,
