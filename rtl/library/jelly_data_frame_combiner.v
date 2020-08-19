@@ -14,8 +14,8 @@
 // フレーム単位で同期させる
 module jelly_data_frame_combiner
         #(
-            parameter   NUM        = 32,
-            parameter   DATA_WIDTH = 8,
+            parameter   NUM        = 2,
+            parameter   DATA_WIDTH = 32,
             parameter   S_REGS     = 1,
             parameter   M_REGS     = 1
         )
@@ -67,11 +67,11 @@ module jelly_data_frame_combiner
                     .clk            (clk),
                     .cke            (cke),
                     
-                    .s_data         ({s_frame_start, s_data [i*DATA_WIDTH +: DATA_WIDTH]}),
+                    .s_data         ({s_frame_start[i], s_data[i*DATA_WIDTH +: DATA_WIDTH]}),
                     .s_valid        (s_valid[i]),
                     .s_ready        (s_ready[i]),
                     
-                    .m_data         ({ff_s_frame_start, ff_s_data [i*DATA_WIDTH +: DATA_WIDTH]}),
+                    .m_data         ({ff_s_frame_start[i], ff_s_data[i*DATA_WIDTH +: DATA_WIDTH]}),
                     .m_valid        (ff_s_valid[i]),
                     .m_ready        (ff_s_ready[i]),
                     
@@ -117,14 +117,14 @@ module jelly_data_frame_combiner
     reg                             sig_m_valid;
     
     always @* begin
-        sig_s_ready = {NUM{1'b1};
+        sig_s_ready = {NUM{1'b1}};
         sig_m_valid = 1'b0;
         
         if ( |frame_start ) begin
             // 1つでも frame_start があればすべて揃うまで流す
             if ( &frame_start ) begin
                 sig_m_valid = 1'b1;
-                sig_s_ready = {NUM{1'b1};
+                sig_s_ready = {NUM{1'b1}};
             end
             else begin
                 sig_s_ready = ~ff_s_frame_start;
@@ -132,15 +132,16 @@ module jelly_data_frame_combiner
         end
         else begin
             // それ以外では通常の combiner 動作
+            sig_s_ready = {NUM{&ff_s_valid}};
             sig_m_valid = &ff_s_valid;
-            sig_s_ready = &ff_s_valid;
         end
     end
     
-    assign ff_s_ready = sig_s_ready;
+    assign ff_s_ready       = sig_s_ready;
     
-    assign ff_m_data  = ff_s_data;
-    assign ff_m_valid = sig_m_valid;
+    assign ff_m_frame_start = &frame_start;
+    assign ff_m_data        = ff_s_data;
+    assign ff_m_valid       = sig_m_valid;
     
 endmodule
 
