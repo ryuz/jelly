@@ -60,15 +60,17 @@ module jelly_capacity_control
         if ( reset ) begin
             reg_request_size     <= {CAPACITY_WIDTH{1'b0}};
             reg_charge_size      <= {CAPACITY_WIDTH{1'b0}};
+            
             reg_queued_request   <= INIT_REQUEST;
             reg_current_capacity <= INIT_CAPACITY;
+            
             reg_issue_size       <= {ISSUE_WIDTH{1'bx}};
             reg_issue_valid      <= 1'b0;
         end
         else if ( cke ) begin
             // queue input
-            reg_request_size <= (ready ? 0 : reg_request_size) + (s_reques_valid ? s_request_size : 0);
-            reg_charge_size  <= (ready ? 0 : reg_charge_size)  + (s_charge_valid ? s_charge_size  : 0);
+            reg_request_size <= (ready ? {CAPACITY_WIDTH{1'b0}} : reg_request_size) + (s_request_valid ? s_request_size : {CAPACITY_WIDTH{1'b0}});
+            reg_charge_size  <= (ready ? {CAPACITY_WIDTH{1'b0}} : reg_charge_size ) + (s_charge_valid  ? s_charge_size  : {CAPACITY_WIDTH{1'b0}});
             
             // capacity control
             if ( ready ) begin
@@ -85,8 +87,8 @@ module jelly_capacity_control
     
     assign ready = (!m_issue_valid || m_issue_ready);
     
-    assign m_issue_size = reg_issue_size;
-    assign m_issue_size = reg_issue_valid;
+    assign m_issue_size  = reg_issue_size;
+    assign m_issue_valid = reg_issue_valid;
     
     assign current_capacity = reg_current_capacity;
     assign queued_request   = reg_queued_request;
