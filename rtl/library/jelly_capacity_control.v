@@ -21,15 +21,7 @@ module jelly_capacity_control
             parameter   ISSUE_WIDTH    = CAPACITY_WIDTH,
             
             parameter   INIT_CAPACITY  = {CAPACITY_WIDTH{1'b0}},
-            parameter   INIT_REQUEST   = {CAPACITY_WIDTH{1'b0}},
-            
-            parameter   S_REQUEST_REGS = 1,
-            parameter   S_CHARGE_REGS  = 1,
-            parameter   M_ISSUE_REGS   = 1,
-            
-            parameter   M_REQUEST_REGS = 1,
-            parameter   M_CHARGE_REGS  = 1,
-            parameter   S_ISSUE_REGS   = 1
+            parameter   INIT_REQUEST   = {CAPACITY_WIDTH{1'b0}}
         )
         (
             input   wire                            reset,
