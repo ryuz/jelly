@@ -61,26 +61,27 @@ module jelly_capacity_size_limitter
         next_issue_size     = reg_issue_size;
         next_issue_valid    = reg_issue_valid;
         
+        if ( s_request_valid ) begin
+            next_queued_request = next_queued_request + s_request_size + REQUEST_SIZE_OFFSET;
+        end
+        
         if ( ready ) begin
             next_issue_size  = {ISSUE_WIDTH{1'bx}};
             next_issue_valid = 1'b0;
-            if ( reg_queued_request > 0 ) begin
+            if ( next_queued_request > 0 ) begin
                 if ( next_queued_request >= ({1'b0, max_issue_size} + ISSUE_SIZE_OFFSET) ) begin
                     next_issue_size     = max_issue_size;
                     next_issue_valid    = 1'b1;
                     next_queued_request = next_queued_request - ({1'b0, max_issue_size} + ISSUE_SIZE_OFFSET);
                 end
                 else begin
-                    next_issue_size     = reg_queued_request - ISSUE_SIZE_OFFSET;
+                    next_issue_size     = next_queued_request - ISSUE_SIZE_OFFSET;
                     next_issue_valid    = 1'b1;
                     next_queued_request = {CAPACITY_WIDTH{1'b0}};
                 end
             end
         end
         
-        if ( s_request_valid ) begin
-            next_queued_request = next_queued_request + s_request_size + REQUEST_SIZE_OFFSET;
-        end
     end
     
     assign queued_request = reg_queued_request;
