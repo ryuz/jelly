@@ -56,7 +56,7 @@ module jelly_axi4s_video_fifo_width_converter
     
     
     generate
-    if ( S_TDATA_SIZE >= M_TDATA_SIZE ) begin : blk_cnv_wide
+    if ( M_TDATA_SIZE < S_TDATA_SIZE ) begin : blk_cnv_narrow
         
         wire    [0:0]                   axi4s_fifo_tuser;
         wire                            axi4s_fifo_tlast;
@@ -128,7 +128,7 @@ module jelly_axi4s_video_fifo_width_converter
         assign s_fifo_wr_signal = (s_axi4s_tvalid & s_axi4s_tready);
         assign m_fifo_rd_signal = (axi4s_fifo_tvalid & axi4s_fifo_tready);
     end
-    else begin : blk_cnv_narrow
+    else begin : blk_cnv_wide
         wire    [0:0]                   axi4s_wide_tuser;
         wire                            axi4s_wide_tlast;
         wire    [M_TDATA_WIDTH-1:0]     axi4s_wide_tdata;

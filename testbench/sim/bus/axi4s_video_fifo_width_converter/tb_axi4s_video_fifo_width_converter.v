@@ -29,8 +29,8 @@ module tb_axi4s_video_fifo_width_converter();
     
     parameter   ASYNC            = 1;
     parameter   UNIT_WIDTH       = 8;
-    parameter   S_TDATA_SIZE     = 1;   // log2 (0:1byte, 1:2byte, 2:4byte, 3:81byte...)
-    parameter   M_TDATA_SIZE     = 2;   // log2 (0:1byte, 1:2byte, 2:4byte, 3:81byte...)
+    parameter   S_TDATA_SIZE     = 2;   // log2 (0:1byte, 1:2byte, 2:4byte, 3:81byte...)
+    parameter   M_TDATA_SIZE     = 1;   // log2 (0:1byte, 1:2byte, 2:4byte, 3:81byte...)
     
     parameter   FIFO_PTR_WIDTH   = 10;
     parameter   FIFO_RAM_TYPE    = "block";
@@ -113,7 +113,7 @@ module tb_axi4s_video_fifo_width_converter();
                 .m_axi4s_tdata      (axi4s_dst_tdata),
                 .m_axi4s_tvalid     (axi4s_dst_tvalid),
                 .m_axi4s_tready     (axi4s_dst_tready),
-                .m_fifo_free_count  (),
+                .m_fifo_data_count  (),
                 .s_fifo_rd_signal   ()
             );
     
