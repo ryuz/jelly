@@ -16,9 +16,9 @@
 module jelly_capacity_control
         #(
             parameter   CAPACITY_WIDTH      = 32,
-            parameter   REQUEST_WIDTH       = 8,//CAPACITY_WIDTH,
-            parameter   CHARGE_WIDTH        = 8,//CAPACITY_WIDTH,
-            parameter   ISSUE_WIDTH         = 8,//CAPACITY_WIDTH,
+            parameter   REQUEST_WIDTH       = CAPACITY_WIDTH,
+            parameter   CHARGE_WIDTH        = CAPACITY_WIDTH,
+            parameter   ISSUE_WIDTH         = CAPACITY_WIDTH,   // CAPACITY_WIDTH より大きくすること
             parameter   REQUEST_SIZE_OFFSET = 1'b0,
             parameter   CHARGE_SIZE_OFFSET  = 1'b0,
             parameter   ISSUE_SIZE_OFFSET   = 1'b0,
@@ -30,8 +30,6 @@ module jelly_capacity_control
             input   wire                            reset,
             input   wire                            clk,
             input   wire                            cke,
-            
-            input   wire    [ISSUE_WIDTH-1:0]       max_issue_size,
             
             output  wire    [CAPACITY_WIDTH-1:0]    current_capacity,
             output  wire    [CAPACITY_WIDTH-1:0]    queued_request,
@@ -47,46 +45,53 @@ module jelly_capacity_control
             input   wire                            m_issue_ready
         );
     
-    wire                            ready;
+    wire                            ready = (!m_issue_valid || m_issue_ready);
     
-    reg     [CAPACITY_WIDTH-1:0]    reg_request_size;
-    reg     [CAPACITY_WIDTH-1:0]    reg_charge_size;
-    
-    reg     [CAPACITY_WIDTH-1:0]    reg_queued_request;
-    reg     [CAPACITY_WIDTH-1:0]    reg_current_capacity;
-    
-    reg     [CAPACITY_WIDTH-1:0]    tmp_issue_size;
-    reg     [ISSUE_WIDTH-1:0]       reg_issue_size;
-    reg                             reg_issue_valid;
+    reg     [CAPACITY_WIDTH-1:0]    reg_queued_request,   next_queued_request;
+    reg     [CAPACITY_WIDTH-1:0]    reg_current_capacity, next_current_capacity;
+                                                               
+    reg     [ISSUE_WIDTH-1:0]       reg_issue_size,       next_issue_size;
+    reg                             reg_issue_valid,      next_issue_valid;
     
     always @(posedge clk) begin
         if ( reset ) begin
-            reg_request_size     <= {CAPACITY_WIDTH{1'b0}};
-            reg_charge_size      <= {CAPACITY_WIDTH{1'b0}};
-            
             reg_queued_request   <= INIT_REQUEST;
             reg_current_capacity <= INIT_CAPACITY;
-            
-            reg_issue_size       <= {ISSUE_WIDTH{1'b0}};
+            reg_issue_size       <= {ISSUE_WIDTH{1'bx}};
             reg_issue_valid      <= 1'b0;
         end
         else if ( cke ) begin
-            // queue input
-            reg_request_size <= (ready ? {CAPACITY_WIDTH{1'b0}} : reg_request_size) + (s_request_valid ? (s_request_size + REQUEST_SIZE_OFFSET) : {CAPACITY_WIDTH{1'b0}});
-            reg_charge_size  <= (ready ? {CAPACITY_WIDTH{1'b0}} : reg_charge_size ) + (s_charge_valid  ? (s_charge_size  + CHARGE_SIZE_OFFSET ) : {CAPACITY_WIDTH{1'b0}});
-            
-            // capacity control
-            if ( ready ) begin
-                reg_queued_request   <= reg_queued_request   + reg_charge_size  - reg_issue_size;
-                reg_current_capacity <= reg_current_capacity + reg_request_size - reg_issue_size;
-            end
-            
-            // issue
-            tmp_issue_size = ((reg_queued_request <= reg_current_capacity) ? reg_queued_request : reg_current_capacity) - ISSUE_SIZE_OFFSET;
-            reg_issue_size  <= (tmp_issue_size <= max_issue_size) ? tmp_issue_size : max_issue_size;
-            reg_issue_valid <= (reg_queued_request > 0 && reg_current_capacity > 0);
+            reg_queued_request   <= next_queued_request;
+            reg_current_capacity <= next_current_capacity;
+            reg_issue_size       <= next_issue_size;
+            reg_issue_valid      <= next_issue_valid;
         end
     end
+    
+    always @* begin
+        next_queued_request   = reg_queued_request;
+        next_current_capacity = reg_current_capacity;
+        next_issue_size       = reg_issue_size;
+        next_issue_valid      = reg_issue_valid;
+        
+        if ( s_request_valid ) begin
+            next_queued_request   = next_queued_request   + s_request_size + REQUEST_SIZE_OFFSET;
+        end
+        if ( s_charge_valid ) begin
+            next_current_capacity = next_current_capacity + s_charge_size  + CHARGE_SIZE_OFFSET;
+        end
+        
+        if ( ready ) begin
+            next_issue_valid = (reg_queued_request > 0) && (reg_current_capacity > 0);
+            next_issue_size  = reg_queued_request < reg_current_capacity ? reg_queued_request : reg_current_capacity;
+            
+            next_queued_request   = next_queued_request   - next_issue_size;
+            next_current_capacity = next_current_capacity - next_issue_size;
+            
+            next_issue_size = next_issue_size - ISSUE_SIZE_OFFSET;
+        end
+    end
+    
     
     assign ready = (!m_issue_valid || m_issue_ready);
     
