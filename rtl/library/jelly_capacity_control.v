@@ -15,13 +15,16 @@
 // コマンド等の発行量管理
 module jelly_capacity_control
         #(
-            parameter   CAPACITY_WIDTH = 16,
-            parameter   REQUEST_WIDTH  = CAPACITY_WIDTH,
-            parameter   CHARGE_WIDTH   = CAPACITY_WIDTH,
-            parameter   ISSUE_WIDTH    = CAPACITY_WIDTH,
+            parameter   CAPACITY_WIDTH      = 32,
+            parameter   REQUEST_WIDTH       = 8,//CAPACITY_WIDTH,
+            parameter   CHARGE_WIDTH        = 8,//CAPACITY_WIDTH,
+            parameter   ISSUE_WIDTH         = 8,//CAPACITY_WIDTH,
+            parameter   REQUEST_SIZE_OFFSET = 1'b0,
+            parameter   CHARGE_SIZE_OFFSET  = 1'b0,
+            parameter   ISSUE_SIZE_OFFSET   = 1'b0,
             
-            parameter   INIT_CAPACITY  = {CAPACITY_WIDTH{1'b0}},
-            parameter   INIT_REQUEST   = {CAPACITY_WIDTH{1'b0}}
+            parameter   INIT_CAPACITY       = {CAPACITY_WIDTH{1'b0}},
+            parameter   INIT_REQUEST        = {CAPACITY_WIDTH{1'b0}}
         )
         (
             input   wire                            reset,
@@ -64,13 +67,13 @@ module jelly_capacity_control
             reg_queued_request   <= INIT_REQUEST;
             reg_current_capacity <= INIT_CAPACITY;
             
-            reg_issue_size       <= {ISSUE_WIDTH{1'bx}};
+            reg_issue_size       <= {ISSUE_WIDTH{1'b0}};
             reg_issue_valid      <= 1'b0;
         end
         else if ( cke ) begin
             // queue input
-            reg_request_size <= (ready ? {CAPACITY_WIDTH{1'b0}} : reg_request_size) + (s_request_valid ? s_request_size : {CAPACITY_WIDTH{1'b0}});
-            reg_charge_size  <= (ready ? {CAPACITY_WIDTH{1'b0}} : reg_charge_size ) + (s_charge_valid  ? s_charge_size  : {CAPACITY_WIDTH{1'b0}});
+            reg_request_size <= (ready ? {CAPACITY_WIDTH{1'b0}} : reg_request_size) + (s_request_valid ? (s_request_size + REQUEST_SIZE_OFFSET) : {CAPACITY_WIDTH{1'b0}});
+            reg_charge_size  <= (ready ? {CAPACITY_WIDTH{1'b0}} : reg_charge_size ) + (s_charge_valid  ? (s_charge_size  + CHARGE_SIZE_OFFSET ) : {CAPACITY_WIDTH{1'b0}});
             
             // capacity control
             if ( ready ) begin
@@ -79,7 +82,7 @@ module jelly_capacity_control
             end
             
             // issue
-            tmp_issue_size = (reg_queued_request <= reg_current_capacity) ? reg_queued_request : reg_current_capacity;
+            tmp_issue_size = ((reg_queued_request <= reg_current_capacity) ? reg_queued_request : reg_current_capacity) - ISSUE_SIZE_OFFSET;
             reg_issue_size  <= (tmp_issue_size <= max_issue_size) ? tmp_issue_size : max_issue_size;
             reg_issue_valid <= (reg_queued_request > 0 && reg_current_capacity > 0);
         end
