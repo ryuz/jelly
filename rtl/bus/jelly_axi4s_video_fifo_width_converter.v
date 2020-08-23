@@ -50,7 +50,7 @@ module jelly_axi4s_video_fifo_width_converter
             output  wire    [M_TDATA_WIDTH-1:0] m_axi4s_tdata,
             output  wire                        m_axi4s_tvalid,
             input   wire                        m_axi4s_tready,
-            output  wire    [FIFO_PTR_WIDTH:0]  m_fifo_free_count,
+            output  wire    [FIFO_PTR_WIDTH:0]  m_fifo_data_count,
             output  wire                        s_fifo_rd_signal
         );
     
@@ -95,7 +95,7 @@ module jelly_axi4s_video_fifo_width_converter
                     .m_axi4s_tdata      (axi4s_fifo_tdata),
                     .m_axi4s_tvalid     (axi4s_fifo_tvalid),
                     .m_axi4s_tready     (axi4s_fifo_tready),
-                    .m_fifo_data_count  (m_fifo_free_count)
+                    .m_fifo_data_count  (m_fifo_data_count)
                 );
         
         jelly_axi4s_video_width_converter
@@ -193,7 +193,7 @@ module jelly_axi4s_video_fifo_width_converter
                     .m_axi4s_tdata      (m_axi4s_tdata),
                     .m_axi4s_tvalid     (m_axi4s_tvalid),
                     .m_axi4s_tready     (m_axi4s_tready),
-                    .m_fifo_data_count  (m_fifo_free_count)
+                    .m_fifo_data_count  (m_fifo_data_count)
                 );
         
         assign s_fifo_wr_signal = (axi4s_wide_tvalid & axi4s_wide_tready);
