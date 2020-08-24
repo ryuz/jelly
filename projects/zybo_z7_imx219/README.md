@@ -118,6 +118,38 @@ make load
 その他の細かいコマンドは main.cpp の中を確認ください。
 
 
+## 内部構成(参考)
+
+### 全体図
+
+![全体図](doc/block_diagram_system.png)
+
+
+### MIPI受信
+
+![全体図](doc/block_diagram_mipi_rx.png)
+
+### RGB化部分
+
+![全体図](doc/block_diagram_raw2rgb.png)
+
+画像処理部分は img バスという独自の形式を用いています。
+画素の無効区間で cke を落とすことで、パイプラインのバブルを排除しています。その為、前後のパイプラインに左右の画像が存在していることが保証でき、簡潔にRTLを記述できるようにしています。
+
+|信号名|説明|
+|---|---|
+|img_line_first | 先頭ライン(上辺)であることを示します |
+|img_line_last  | 末尾ライン(下辺)であることを示します |
+|img_pixel_first| 先頭ピクセル(左辺)であることを示します |
+|img_pixel_last | 末尾ピクセル(右辺)であることを示します |
+|img_de         | ピクセルが有効であることを示します<br>(落とすことで画像縮小など可能です) |
+|img_user       | ユーザーデータ(自由に利用できます)|
+|img_data       | 画素データ|
+|img_valid      | 各信号が有効である事を示します(オプション)<br>利用するとvalidが0の時は他の信号の不定値を許します) |
+
+当初、img_line_first, img_line_last, img_pixel_first, img_pixel_last, img_de はリセット時に0を必須としていましたが、現在 img_valid を設けています。validを使うとリセット信号のファンアウトを抑えることが可能です。
+
+
 ## 参考情報
 
 - 作者ブログ記事
