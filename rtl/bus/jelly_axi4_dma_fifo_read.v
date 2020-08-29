@@ -152,7 +152,7 @@ module jelly_axi4_dma_fifo_read
                 .s_valid                (fifo_valid),
                 .s_ready                (fifo_ready),
                 .s_free_count           (),
-                .s_wr_signal            (),
+                .s_wr_signal            (m_rd_valid),
                 
                 .m_reset                (m_reset),
                 .m_clk                  (m_clk),
@@ -160,7 +160,7 @@ module jelly_axi4_dma_fifo_read
                 .m_valid                (m_valid),
                 .m_ready                (m_ready),
                 .m_data_count           (),
-                .m_rd_signal            (m_rd_valid)
+                .m_rd_signal            ()
             );
     
     
@@ -206,9 +206,9 @@ module jelly_axi4_dma_fifo_read
             #(
                 .CAPACITY_WIDTH         (CAPACITY_WIDTH),
                 .ISSUE_WIDTH            (REQUEST_SIZE_WIDTH),
-                .COMPLETE_WIDTH         (COMPLETE_SIZE_WIDTH),
+                .COMPLETE_WIDTH         (CAPACITY_WIDTH),
                 .ISSUE_SIZE_OFFSET      (1'b1),
-                .COMPLETE_SIZE_OFFSET   (1'b1)
+                .COMPLETE_SIZE_OFFSET   (1'b0)
             )
         i_busy_control
             (
@@ -224,8 +224,8 @@ module jelly_axi4_dma_fifo_read
                 .s_issue_size           (read_request_size),
                 .s_issue_valid          (read_request_valid),
                 
-                .s_complete_size        (1'b0),
-                .s_complete_valid       (m_axi4_rvalid & m_axi4_rready)
+                .s_complete_size        (m_rd_size),
+                .s_complete_valid       (m_rd_valid)
             );
     
     
