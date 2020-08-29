@@ -24,7 +24,7 @@ module jelly_axi4_dma_fifo
             
             parameter   WB_ADR_WIDTH         = 8,
             parameter   WB_DAT_SIZE          = 3,     // 0:8bit, 1:16bit, 2:32bit ...
-            parameter   WB_DAT_WIDTH         = (1 << WB_DAT_SIZE),
+            parameter   WB_DAT_WIDTH         = (8 << WB_DAT_SIZE),
             parameter   WB_SEL_WIDTH         = (WB_DAT_WIDTH / 8),
             
             parameter   AXI4_ID_WIDTH        = 6,
@@ -66,7 +66,7 @@ module jelly_axi4_dma_fifo
             parameter   PARAM_ARLEN_WIDTH    = AXI4_LEN_WIDTH,
             parameter   PARAM_RTIMEOUT_WIDTH = 8,
             
-            parameter   INIT_CTL_CONTROL     = 3'b000,
+            parameter   INIT_CTL_CONTROL     = 2'b00,
             parameter   INIT_PARAM_ADDR      = 0,
             parameter   INIT_PARAM_SIZE      = 0,
             parameter   INIT_PARAM_AWLEN     = 8'h0f,
@@ -182,7 +182,7 @@ module jelly_axi4_dma_fifo
     //  Register
     // ---------------------------------
     
-    localparam  [AXI4_ADDR_WIDTH-1:0]   ADDR_MASK = ~((1 << AXI4_DATA_SIZE) - 1);
+    wire  [AXI4_ADDR_WIDTH-1:0]   ADDR_MASK = ~((1 << AXI4_DATA_SIZE) - 1);
     
     
     // register address offset
