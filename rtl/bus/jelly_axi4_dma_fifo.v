@@ -134,7 +134,6 @@ module jelly_axi4_dma_fifo
             input   wire                                m_ready,
             
             // AXI4(memory bus)
-            // reset & clock
             input   wire                                m_axi4_aresetn,
             input   wire                                m_axi4_aclk,
             output  wire    [AXI4_ID_WIDTH-1:0]         m_axi4_awid,
@@ -175,7 +174,10 @@ module jelly_axi4_dma_fifo
             input   wire    [1:0]                       m_axi4_rresp,
             input   wire                                m_axi4_rlast,
             input   wire                                m_axi4_rvalid,
-            output  wire                                m_axi4_rready
+            output  wire                                m_axi4_rready,
+            
+            output  wire                                status_enable,
+            output  wire                                status_busy
         );
     
     // ---------------------------------
@@ -513,6 +515,9 @@ module jelly_axi4_dma_fifo
                 .m_axi4_rvalid          (m_axi4_rvalid),
                 .m_axi4_rready          (m_axi4_rready)
             );
+    
+    assign status_enable = reg_enable;
+    assign status_busy   = busy;
     
     
 endmodule
