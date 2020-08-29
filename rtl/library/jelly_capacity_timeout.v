@@ -18,9 +18,9 @@ module jelly_capacity_timeout
             parameter   TIMER_WIDTH         = 8,
             parameter   CAPACITY_WIDTH      = 32,               // オーバーフローしないサイズとする
             parameter   REQUEST_WIDTH       = CAPACITY_WIDTH,
-            parameter   ISSUE_WIDTH         = CAPACITY_WIDTH,
+            parameter   ISSUE_WIDTH         = 8,
             parameter   REQUEST_SIZE_OFFSET = 1'b0,
-            parameter   ISSUE_SIZE_OFFSET   = 1'b0,
+            parameter   ISSUE_SIZE_OFFSET   = 1'b1,
             
             parameter   INIT_REQUEST        = {CAPACITY_WIDTH{1'b0}}
         )
@@ -73,6 +73,7 @@ module jelly_capacity_timeout
         
         if ( s_request_valid ) begin
             next_queued_request = next_queued_request + s_request_size + REQUEST_SIZE_OFFSET;
+            next_timer = timeout;
         end
         
         if ( ready ) begin

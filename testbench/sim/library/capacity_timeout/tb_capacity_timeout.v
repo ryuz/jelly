@@ -28,7 +28,7 @@ module tb_capacity_timeout();
     parameter   CAPACITY_WIDTH      = 32;
     parameter   REQUEST_WIDTH       = CAPACITY_WIDTH;
     parameter   ISSUE_WIDTH         = 8;
-    parameter   REQUEST_SIZE_OFFSET = 1'b1;
+    parameter   REQUEST_SIZE_OFFSET = 1'b0;
     parameter   ISSUE_SIZE_OFFSET   = 1'b1;
     parameter   INIT_REQUEST        = {CAPACITY_WIDTH{1'b0}};
     
@@ -90,7 +90,7 @@ module tb_capacity_timeout();
             i = i + 1;
             if ( i < 2000 ) begin
                 s_request_size  <= {$random()} & 32'hff;
-                s_request_valid <= ({$random()} % 5 == 0);
+                s_request_valid <= ({$random()} % 10 == 0);
                 m_issue_ready   <= {$random()};
             end
             else begin

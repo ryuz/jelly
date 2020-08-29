@@ -47,7 +47,7 @@ module jelly_fifo_width_converter
             output  wire                        m_valid,
             input   wire                        m_ready,
             output  wire    [FIFO_PTR_WIDTH:0]  m_data_count,
-            output  wire                        s_rd_signal
+            output  wire                        m_rd_signal
         );
     
     
@@ -113,8 +113,8 @@ module jelly_fifo_width_converter
                     .m_ready            (m_ready)
                 );
         
-        assign s_fifo_wr_signal = (s_valid & s_ready);
-        assign m_fifo_rd_signal = (fifo_valid & fifo_ready);
+        assign s_wr_signal = (s_valid & s_ready);
+        assign m_rd_signal = (fifo_valid & fifo_ready);
     end
     else begin : blk_cnv_wide
         wire    [M_DATA_WIDTH-1:0]      wide_data;
@@ -176,8 +176,8 @@ module jelly_fifo_width_converter
                     .m_data_count       (m_data_count)
                 );
         
-        assign s_fifo_wr_signal = (wide_valid & wide_ready);
-        assign m_fifo_rd_signal = (m_valid & m_ready);
+        assign s_wr_signal = (wide_valid & wide_ready);
+        assign m_rd_signal = (m_valid & m_ready);
     end
     endgenerate
     

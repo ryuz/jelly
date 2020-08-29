@@ -29,14 +29,17 @@ module tb_capacity_control();
     parameter   REQUEST_WIDTH       = 8;
     parameter   CHARGE_WIDTH        = 8;
     parameter   ISSUE_WIDTH         = CAPACITY_WIDTH;
-    parameter   REQUEST_SIZE_OFFSET = 1'b1;
+    parameter   REQUEST_SIZE_OFFSET = 1'b0;
     parameter   CHARGE_SIZE_OFFSET  = 1'b1;
-    parameter   ISSUE_SIZE_OFFSET   = 1'b1;
+    parameter   ISSUE_SIZE_OFFSET   = 1'b0;
     parameter   INIT_CAPACITY       = {CAPACITY_WIDTH{1'b0}};
     parameter   INIT_REQUEST        = {CAPACITY_WIDTH{1'b0}};
     
     
     integer                         i = 0;
+    
+    wire    [CAPACITY_WIDTH-1:0]    initial_capacity = 0;
+    wire    [CAPACITY_WIDTH-1:0]    initial_request  = 0;
     
     wire    [CAPACITY_WIDTH-1:0]    current_capacity;
     wire    [CAPACITY_WIDTH-1:0]    queued_request;
@@ -60,15 +63,18 @@ module tb_capacity_control();
                 .ISSUE_WIDTH            (ISSUE_WIDTH),
                 .REQUEST_SIZE_OFFSET    (REQUEST_SIZE_OFFSET),
                 .CHARGE_SIZE_OFFSET     (CHARGE_SIZE_OFFSET),
-                .ISSUE_SIZE_OFFSET      (ISSUE_SIZE_OFFSET),
-                .INIT_CAPACITY          (INIT_CAPACITY),
-                .INIT_REQUEST           (INIT_REQUEST)
+                .ISSUE_SIZE_OFFSET      (ISSUE_SIZE_OFFSET)
+//                .INIT_CAPACITY          (INIT_CAPACITY),
+//                .INIT_REQUEST           (INIT_REQUEST)
             )
         i_capacity_control
             (
                 .reset                  (reset),
                 .clk                    (clk),
                 .cke                    (cke),
+                
+                .initial_capacity       (initial_capacity),
+                .initial_request        (initial_request),
                 
                 .current_capacity       (current_capacity),
                 .queued_request         (queued_request),

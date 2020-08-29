@@ -21,15 +21,15 @@ module jelly_capacity_control
             parameter   ISSUE_WIDTH         = CAPACITY_WIDTH,   // CAPACITY_WIDTH より大きくすること
             parameter   REQUEST_SIZE_OFFSET = 1'b0,
             parameter   CHARGE_SIZE_OFFSET  = 1'b0,
-            parameter   ISSUE_SIZE_OFFSET   = 1'b0,
-            
-            parameter   INIT_CAPACITY       = {CAPACITY_WIDTH{1'b0}},
-            parameter   INIT_REQUEST        = {CAPACITY_WIDTH{1'b0}}
+            parameter   ISSUE_SIZE_OFFSET   = 1'b0
         )
         (
             input   wire                            reset,
             input   wire                            clk,
             input   wire                            cke,
+            
+            input   wire    [CAPACITY_WIDTH-1:0]    initial_capacity,
+            input   wire    [CAPACITY_WIDTH-1:0]    initial_request,
             
             output  wire    [CAPACITY_WIDTH-1:0]    current_capacity,
             output  wire    [CAPACITY_WIDTH-1:0]    queued_request,
@@ -55,8 +55,8 @@ module jelly_capacity_control
     
     always @(posedge clk) begin
         if ( reset ) begin
-            reg_queued_request   <= INIT_REQUEST;
-            reg_current_capacity <= INIT_CAPACITY;
+            reg_queued_request   <= initial_request;
+            reg_current_capacity <= initial_capacity;
             reg_issue_size       <= {ISSUE_WIDTH{1'bx}};
             reg_issue_valid      <= 1'b0;
         end
