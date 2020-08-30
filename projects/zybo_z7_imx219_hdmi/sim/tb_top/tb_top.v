@@ -14,8 +14,10 @@ module tb_top();
     
     initial begin
         $dumpfile("tb_top.vcd");
-        $dumpvars(0, tb_top);
+        $dumpvars(1, tb_top);
         $dumpvars(1, tb_top.i_top);
+        $dumpvars(1, tb_top.i_top.i_image_processing);
+        $dumpvars(0, tb_top.i_top.i_image_processing.i_img_previous_frame);
 //      $dumpvars(0, tb_top.i_top.blk_read_vdma.i_vdma_axi4_to_axi4s);
 //      $dumpvars(0, tb_top.i_top.i_vsync_generator);
         
@@ -26,8 +28,10 @@ module tb_top();
     reg     clk125 = 1'b1;
     always #(RATE125/2.0)   clk125 = ~clk125;
     
-    localparam  X_NUM = 1640;
-    localparam  Y_NUM = 1232;
+//  localparam  X_NUM = 1640;
+//  localparam  Y_NUM = 1232;
+    localparam  X_NUM = 128;
+    localparam  Y_NUM = 16;
     
     
     zybo_z7_imx219_hdmi
@@ -66,8 +70,8 @@ module tb_top();
                 .AXI4S_DATA_WIDTH   (8),
                 .X_NUM              (X_NUM),
                 .Y_NUM              (Y_NUM),
-    //          .PGM_FILE           ("lena_128x128.pgm"),
-                .PGM_FILE           ("Chrysanthemum_1640x1232.pgm"),
+                .PGM_FILE           ("lena_128x128.pgm"),
+    //          .PGM_FILE           ("Chrysanthemum_1640x1232.pgm"),
                 .BUSY_RATE          (0),
                 .RANDOM_SEED        (0)
             )

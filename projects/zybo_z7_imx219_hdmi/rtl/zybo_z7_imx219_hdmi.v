@@ -95,87 +95,146 @@ module zybo_z7_imx219_hdmi
     //  block design (PS)
     // ----------------------------------------
     
-    wire            sys_reset;
-    wire            sys_clk100;
-    wire            sys_clk200;
-    wire            sys_clk250;
+    wire                                 sys_reset;
+    wire                                 sys_clk100;
+    wire                                 sys_clk200;
+    wire                                 sys_clk250;
     
-    wire            vout_reset;
-    wire            vout_clk;
-    wire            vout_clk_x5;
-    
-    wire            axi4l_peri_aresetn;
-    wire            axi4l_peri_aclk;
-    wire    [31:0]  axi4l_peri_awaddr;
-    wire    [2:0]   axi4l_peri_awprot;
-    wire            axi4l_peri_awvalid;
-    wire            axi4l_peri_awready;
-    wire    [3:0]   axi4l_peri_wstrb;
-    wire    [31:0]  axi4l_peri_wdata;
-    wire            axi4l_peri_wvalid;
-    wire            axi4l_peri_wready;
-    wire    [1:0]   axi4l_peri_bresp;
-    wire            axi4l_peri_bvalid;
-    wire            axi4l_peri_bready;
-    wire    [31:0]  axi4l_peri_araddr;
-    wire    [2:0]   axi4l_peri_arprot;
-    wire            axi4l_peri_arvalid;
-    wire            axi4l_peri_arready;
-    wire    [31:0]  axi4l_peri_rdata;
-    wire    [1:0]   axi4l_peri_rresp;
-    wire            axi4l_peri_rvalid;
-    wire            axi4l_peri_rready;
+    wire                                 vout_reset;
+    wire                                 vout_clk;
+    wire                                 vout_clk_x5;
     
     
-    wire            axi4_mem_aresetn;
-    wire            axi4_mem_aclk;
+    localparam  AXI4L_PERI_ADDR_WIDTH = 32;
+    localparam  AXI4L_PERI_DATA_SIZE  = 2;     // 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
+    localparam  AXI4L_PERI_DATA_WIDTH = (8 << AXI4L_PERI_DATA_SIZE);
+    localparam  AXI4L_PERI_STRB_WIDTH = AXI4L_PERI_DATA_WIDTH / 8;
     
-    wire    [5:0]   axi4_mem0_awid;
-    wire    [31:0]  axi4_mem0_awaddr;
-    wire    [1:0]   axi4_mem0_awburst;
-    wire    [3:0]   axi4_mem0_awcache;
-    wire    [7:0]   axi4_mem0_awlen;
-    wire    [0:0]   axi4_mem0_awlock;
-    wire    [2:0]   axi4_mem0_awprot;
-    wire    [3:0]   axi4_mem0_awqos;
-    wire    [3:0]   axi4_mem0_awregion;
-    wire    [2:0]   axi4_mem0_awsize;
-    wire            axi4_mem0_awvalid;
-    wire            axi4_mem0_awready;
-    wire    [7:0]   axi4_mem0_wstrb;
-    wire    [63:0]  axi4_mem0_wdata;
-    wire            axi4_mem0_wlast;
-    wire            axi4_mem0_wvalid;
-    wire            axi4_mem0_wready;
-    wire    [5:0]   axi4_mem0_bid;
-    wire    [1:0]   axi4_mem0_bresp;
-    wire            axi4_mem0_bvalid;
-    wire            axi4_mem0_bready;
-    wire    [5:0]   axi4_mem0_arid;
-    wire    [31:0]  axi4_mem0_araddr;
-    wire    [1:0]   axi4_mem0_arburst;
-    wire    [3:0]   axi4_mem0_arcache;
-    wire    [7:0]   axi4_mem0_arlen;
-    wire    [0:0]   axi4_mem0_arlock;
-    wire    [2:0]   axi4_mem0_arprot;
-    wire    [3:0]   axi4_mem0_arqos;
-    wire    [3:0]   axi4_mem0_arregion;
-    wire    [2:0]   axi4_mem0_arsize;
-    wire            axi4_mem0_arvalid;
-    wire            axi4_mem0_arready;
-    wire    [5:0]   axi4_mem0_rid;
-    wire    [1:0]   axi4_mem0_rresp;
-    wire    [63:0]  axi4_mem0_rdata;
-    wire            axi4_mem0_rlast;
-    wire            axi4_mem0_rvalid;
-    wire            axi4_mem0_rready;
+    wire                                 axi4l_peri_aresetn;
+    wire                                 axi4l_peri_aclk;
+    wire    [AXI4L_PERI_ADDR_WIDTH-1:0]  axi4l_peri_awaddr;
+    wire    [2:0]                        axi4l_peri_awprot;
+    wire                                 axi4l_peri_awvalid;
+    wire                                 axi4l_peri_awready;
+    wire    [AXI4L_PERI_STRB_WIDTH-1:0]  axi4l_peri_wstrb;
+    wire    [AXI4L_PERI_DATA_WIDTH-1:0]  axi4l_peri_wdata;
+    wire                                 axi4l_peri_wvalid;
+    wire                                 axi4l_peri_wready;
+    wire    [1:0]                        axi4l_peri_bresp;
+    wire                                 axi4l_peri_bvalid;
+    wire                                 axi4l_peri_bready;
+    wire    [AXI4L_PERI_ADDR_WIDTH-1:0]  axi4l_peri_araddr;
+    wire    [2:0]                        axi4l_peri_arprot;
+    wire                                 axi4l_peri_arvalid;
+    wire                                 axi4l_peri_arready;
+    wire    [AXI4L_PERI_DATA_WIDTH-1:0]  axi4l_peri_rdata;
+    wire    [1:0]                        axi4l_peri_rresp;
+    wire                                 axi4l_peri_rvalid;
+    wire                                 axi4l_peri_rready;
     
-    wire            IIC_0_0_scl_i;
-    wire            IIC_0_0_scl_o;
-    wire            IIC_0_0_scl_t;
-    wire            IIC_0_0_sda_i;
-    wire            IIC_0_0_sda_o;
-    wire            IIC_0_0_sda_t;
+    
+    
+    localparam  AXI4_MEM0_ID_WIDTH   = 6;
+    localparam  AXI4_MEM0_ADDR_WIDTH = 32;
+    localparam  AXI4_MEM0_DATA_SIZE  = 3;   // 2:32bit, 3:64bit
+    localparam  AXI4_MEM0_DATA_WIDTH = (8 << AXI4_MEM0_DATA_SIZE);
+    localparam  AXI4_MEM0_STRB_WIDTH = AXI4_MEM0_DATA_WIDTH / 8;
+    
+    localparam  AXI4_MEM1_ID_WIDTH   = 6;
+    localparam  AXI4_MEM1_ADDR_WIDTH = 32;
+    localparam  AXI4_MEM1_DATA_SIZE  = 3;   // 2:32bit, 3:64bit
+    localparam  AXI4_MEM1_DATA_WIDTH = (8 << AXI4_MEM1_DATA_SIZE);
+    localparam  AXI4_MEM1_STRB_WIDTH = AXI4_MEM1_DATA_WIDTH / 8;
+    
+    wire                                 axi4_mem_aresetn;
+    wire                                 axi4_mem_aclk;
+    
+    wire    [AXI4_MEM0_ID_WIDTH-1:0]     axi4_mem0_awid;
+    wire    [AXI4_MEM0_ADDR_WIDTH-1:0]   axi4_mem0_awaddr;
+    wire    [1:0]                        axi4_mem0_awburst;
+    wire    [3:0]                        axi4_mem0_awcache;
+    wire    [7:0]                        axi4_mem0_awlen;
+    wire    [0:0]                        axi4_mem0_awlock;
+    wire    [2:0]                        axi4_mem0_awprot;
+    wire    [3:0]                        axi4_mem0_awqos;
+    wire    [3:0]                        axi4_mem0_awregion;
+    wire    [2:0]                        axi4_mem0_awsize;
+    wire                                 axi4_mem0_awvalid;
+    wire                                 axi4_mem0_awready;
+    wire    [AXI4_MEM0_STRB_WIDTH-1:0]   axi4_mem0_wstrb;
+    wire    [AXI4_MEM0_DATA_WIDTH-1:0]   axi4_mem0_wdata;
+    wire                                 axi4_mem0_wlast;
+    wire                                 axi4_mem0_wvalid;
+    wire                                 axi4_mem0_wready;
+    wire    [AXI4_MEM0_ID_WIDTH-1:0]     axi4_mem0_bid;
+    wire    [1:0]                        axi4_mem0_bresp;
+    wire                                 axi4_mem0_bvalid;
+    wire                                 axi4_mem0_bready;
+    wire    [AXI4_MEM0_ID_WIDTH-1:0]     axi4_mem0_arid;
+    wire    [AXI4_MEM0_ADDR_WIDTH-1:0]   axi4_mem0_araddr;
+    wire    [1:0]                        axi4_mem0_arburst;
+    wire    [3:0]                        axi4_mem0_arcache;
+    wire    [7:0]                        axi4_mem0_arlen;
+    wire    [0:0]                        axi4_mem0_arlock;
+    wire    [2:0]                        axi4_mem0_arprot;
+    wire    [3:0]                        axi4_mem0_arqos;
+    wire    [3:0]                        axi4_mem0_arregion;
+    wire    [2:0]                        axi4_mem0_arsize;
+    wire                                 axi4_mem0_arvalid;
+    wire                                 axi4_mem0_arready;
+    wire    [AXI4_MEM0_ID_WIDTH-1:0]     axi4_mem0_rid;
+    wire    [1:0]                        axi4_mem0_rresp;
+    wire    [AXI4_MEM0_DATA_WIDTH-1:0]   axi4_mem0_rdata;
+    wire                                 axi4_mem0_rlast;
+    wire                                 axi4_mem0_rvalid;
+    wire                                 axi4_mem0_rready;
+    
+    wire    [AXI4_MEM1_ID_WIDTH-1:0]     axi4_mem1_awid;
+    wire    [AXI4_MEM1_ADDR_WIDTH-1:0]   axi4_mem1_awaddr;
+    wire    [1:0]                        axi4_mem1_awburst;
+    wire    [3:0]                        axi4_mem1_awcache;
+    wire    [7:0]                        axi4_mem1_awlen;
+    wire    [0:0]                        axi4_mem1_awlock;
+    wire    [2:0]                        axi4_mem1_awprot;
+    wire    [3:0]                        axi4_mem1_awqos;
+    wire    [3:0]                        axi4_mem1_awregion;
+    wire    [2:0]                        axi4_mem1_awsize;
+    wire                                 axi4_mem1_awvalid;
+    wire                                 axi4_mem1_awready;
+    wire    [AXI4_MEM1_STRB_WIDTH-1:0]   axi4_mem1_wstrb;
+    wire    [AXI4_MEM1_DATA_WIDTH-1:0]   axi4_mem1_wdata;
+    wire                                 axi4_mem1_wlast;
+    wire                                 axi4_mem1_wvalid;
+    wire                                 axi4_mem1_wready;
+    wire    [AXI4_MEM1_ID_WIDTH-1:0]     axi4_mem1_bid;
+    wire    [1:0]                        axi4_mem1_bresp;
+    wire                                 axi4_mem1_bvalid;
+    wire                                 axi4_mem1_bready;
+    wire    [AXI4_MEM1_ID_WIDTH-1:0]     axi4_mem1_arid;
+    wire    [AXI4_MEM1_ADDR_WIDTH-1:0]   axi4_mem1_araddr;
+    wire    [1:0]                        axi4_mem1_arburst;
+    wire    [3:0]                        axi4_mem1_arcache;
+    wire    [7:0]                        axi4_mem1_arlen;
+    wire    [0:0]                        axi4_mem1_arlock;
+    wire    [2:0]                        axi4_mem1_arprot;
+    wire    [3:0]                        axi4_mem1_arqos;
+    wire    [3:0]                        axi4_mem1_arregion;
+    wire    [2:0]                        axi4_mem1_arsize;
+    wire                                 axi4_mem1_arvalid;
+    wire                                 axi4_mem1_arready;
+    wire    [AXI4_MEM1_ID_WIDTH-1:0]     axi4_mem1_rid;
+    wire    [1:0]                        axi4_mem1_rresp;
+    wire    [AXI4_MEM1_DATA_WIDTH-1:0]   axi4_mem1_rdata;
+    wire                                 axi4_mem1_rlast;
+    wire                                 axi4_mem1_rvalid;
+    wire                                 axi4_mem1_rready;
+    
+    wire                                 IIC_0_0_scl_i;
+    wire                                 IIC_0_0_scl_o;
+    wire                                 IIC_0_0_scl_t;
+    wire                                 IIC_0_0_sda_i;
+    wire                                 IIC_0_0_sda_o;
+    wire                                 IIC_0_0_sda_t;
     
     design_1
         i_design_1
@@ -258,6 +317,46 @@ module zybo_z7_imx219_hdmi
                 .s_axi4_mem0_rvalid     (axi4_mem0_rvalid),
                 .s_axi4_mem0_rready     (axi4_mem0_rready),
                 
+                .s_axi4_mem1_awid       (axi4_mem1_awid),
+                .s_axi4_mem1_awaddr     (axi4_mem1_awaddr),
+                .s_axi4_mem1_awburst    (axi4_mem1_awburst),
+                .s_axi4_mem1_awcache    (axi4_mem1_awcache),
+                .s_axi4_mem1_awlen      (axi4_mem1_awlen),
+                .s_axi4_mem1_awlock     (axi4_mem1_awlock),
+                .s_axi4_mem1_awprot     (axi4_mem1_awprot),
+                .s_axi4_mem1_awqos      (axi4_mem1_awqos),
+    //          .s_axi4_mem1_awregion   (axi4_mem1_awregion),
+                .s_axi4_mem1_awsize     (axi4_mem1_awsize),
+                .s_axi4_mem1_awvalid    (axi4_mem1_awvalid),
+                .s_axi4_mem1_awready    (axi4_mem1_awready),
+                .s_axi4_mem1_wstrb      (axi4_mem1_wstrb),
+                .s_axi4_mem1_wdata      (axi4_mem1_wdata),
+                .s_axi4_mem1_wlast      (axi4_mem1_wlast),
+                .s_axi4_mem1_wvalid     (axi4_mem1_wvalid),
+                .s_axi4_mem1_wready     (axi4_mem1_wready),
+                .s_axi4_mem1_bid        (axi4_mem1_bid),
+                .s_axi4_mem1_bresp      (axi4_mem1_bresp),
+                .s_axi4_mem1_bvalid     (axi4_mem1_bvalid),
+                .s_axi4_mem1_bready     (axi4_mem1_bready),
+                .s_axi4_mem1_araddr     (axi4_mem1_araddr),
+                .s_axi4_mem1_arburst    (axi4_mem1_arburst),
+                .s_axi4_mem1_arcache    (axi4_mem1_arcache),
+                .s_axi4_mem1_arid       (axi4_mem1_arid),
+                .s_axi4_mem1_arlen      (axi4_mem1_arlen),
+                .s_axi4_mem1_arlock     (axi4_mem1_arlock),
+                .s_axi4_mem1_arprot     (axi4_mem1_arprot),
+                .s_axi4_mem1_arqos      (axi4_mem1_arqos),
+    //          .s_axi4_mem1_arregion   (axi4_mem1_arregion),
+                .s_axi4_mem1_arsize     (axi4_mem1_arsize),
+                .s_axi4_mem1_arvalid    (axi4_mem1_arvalid),
+                .s_axi4_mem1_arready    (axi4_mem1_arready),
+                .s_axi4_mem1_rid        (axi4_mem1_rid),
+                .s_axi4_mem1_rresp      (axi4_mem1_rresp),
+                .s_axi4_mem1_rdata      (axi4_mem1_rdata),
+                .s_axi4_mem1_rlast      (axi4_mem1_rlast),
+                .s_axi4_mem1_rvalid     (axi4_mem1_rvalid),
+                .s_axi4_mem1_rready     (axi4_mem1_rready),
+                
                 .DDR_addr               (DDR_addr),
                 .DDR_ba                 (DDR_ba),
                 .DDR_cas_n              (DDR_cas_n),
@@ -309,15 +408,15 @@ module zybo_z7_imx219_hdmi
             );
     
     
-    
     // -----------------------------
     //  Peripheral BUS (WISHBONE)
     // -----------------------------
     
-    localparam  WB_DAT_SIZE  = 2;
-    localparam  WB_ADR_WIDTH = 32 - WB_DAT_SIZE;
-    localparam  WB_DAT_WIDTH = (8 << WB_DAT_SIZE);
-    localparam  WB_SEL_WIDTH = (1 << WB_DAT_SIZE);
+    localparam  WB_ADR_WIDTH = AXI4L_PERI_ADDR_WIDTH - AXI4L_PERI_DATA_SIZE;
+    localparam  WB_DAT_SIZE  = AXI4L_PERI_DATA_SIZE;
+    localparam  WB_DAT_WIDTH = AXI4L_PERI_DATA_WIDTH;
+    localparam  WB_SEL_WIDTH = AXI4L_PERI_STRB_WIDTH;
+    
     
     wire                            wb_peri_rst_i;
     wire                            wb_peri_clk_i;
@@ -679,11 +778,15 @@ module zybo_z7_imx219_hdmi
                 .WB_ADR_WIDTH       (18),
                 .WB_DAT_WIDTH       (WB_DAT_WIDTH),
                 
+                .AXI4_ID_WIDTH      (AXI4_MEM1_ID_WIDTH),
+                .AXI4_ADDR_WIDTH    (AXI4_MEM1_ADDR_WIDTH),
+                .AXI4_DATA_SIZE     (AXI4_MEM1_DATA_SIZE),
+                
                 .S_DATA_WIDTH       (10),
                 .M_DATA_WIDTH       (8),
                 
-                .IMG_Y_NUM          (480),
-                .IMG_Y_WIDTH        (12),
+                .IMG_Y_NUM          (Y_NUM),
+                .IMG_Y_WIDTH        (14),
                 
                 .TUSER_WIDTH        (1)
             )
@@ -714,7 +817,49 @@ module zybo_z7_imx219_hdmi
                 .m_axi4s_tlast      (axi4s_rgb_tlast),
                 .m_axi4s_tdata      (axi4s_rgb_tdata),
                 .m_axi4s_tvalid     (axi4s_rgb_tvalid),
-                .m_axi4s_tready     (axi4s_rgb_tready)
+                .m_axi4s_tready     (axi4s_rgb_tready),
+                
+                .m_axi4_aresetn     (axi4_mem_aresetn),
+                .m_axi4_aclk        (axi4_mem_aclk),
+                .m_axi4_awid        (axi4_mem1_awid),
+                .m_axi4_awaddr      (axi4_mem1_awaddr),
+                .m_axi4_awlen       (axi4_mem1_awlen),
+                .m_axi4_awsize      (axi4_mem1_awsize),
+                .m_axi4_awburst     (axi4_mem1_awburst),
+                .m_axi4_awlock      (axi4_mem1_awlock),
+                .m_axi4_awcache     (axi4_mem1_awcache),
+                .m_axi4_awprot      (axi4_mem1_awprot),
+                .m_axi4_awqos       (axi4_mem1_awqos),
+                .m_axi4_awregion    (axi4_mem1_awregion),
+                .m_axi4_awvalid     (axi4_mem1_awvalid),
+                .m_axi4_awready     (axi4_mem1_awready),
+                .m_axi4_wdata       (axi4_mem1_wdata),
+                .m_axi4_wstrb       (axi4_mem1_wstrb),
+                .m_axi4_wlast       (axi4_mem1_wlast),
+                .m_axi4_wvalid      (axi4_mem1_wvalid),
+                .m_axi4_wready      (axi4_mem1_wready),
+                .m_axi4_bid         (axi4_mem1_bid),
+                .m_axi4_bresp       (axi4_mem1_bresp),
+                .m_axi4_bvalid      (axi4_mem1_bvalid),
+                .m_axi4_bready      (axi4_mem1_bready),
+                .m_axi4_arid        (axi4_mem1_arid),
+                .m_axi4_araddr      (axi4_mem1_araddr),
+                .m_axi4_arlen       (axi4_mem1_arlen),
+                .m_axi4_arsize      (axi4_mem1_arsize),
+                .m_axi4_arburst     (axi4_mem1_arburst),
+                .m_axi4_arlock      (axi4_mem1_arlock),
+                .m_axi4_arcache     (axi4_mem1_arcache),
+                .m_axi4_arprot      (axi4_mem1_arprot),
+                .m_axi4_arqos       (axi4_mem1_arqos),
+                .m_axi4_arregion    (axi4_mem1_arregion),
+                .m_axi4_arvalid     (axi4_mem1_arvalid),
+                .m_axi4_arready     (axi4_mem1_arready),
+                .m_axi4_rid         (axi4_mem1_rid),
+                .m_axi4_rdata       (axi4_mem1_rdata),
+                .m_axi4_rresp       (axi4_mem1_rresp),
+                .m_axi4_rlast       (axi4_mem1_rlast),
+                .m_axi4_rvalid      (axi4_mem1_rvalid),
+                .m_axi4_rready      (axi4_mem1_rready)
             );
     
     

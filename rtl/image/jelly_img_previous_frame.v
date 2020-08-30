@@ -1,9 +1,8 @@
 // ---------------------------------------------------------------------------
-//  Jelly  -- the soft-core processor system
-//   image processing
+//  Jelly  -- The FPGA processing system
 //
-//                                 Copyright (C) 2008-2016 by Ryuji Fuchikami
-//                                 http://ryuz.my.coocan.jp/
+//                                 Copyright (C) 2008-2020 by Ryuji Fuchikami
+//                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
 
@@ -486,8 +485,19 @@ module jelly_img_previous_frame
     
     assign m_ready = (cke & st1_read_ready) | ~ff1_enable;
     
+    assign m_img_line_first  = st2_line_first;
+    assign m_img_line_last   = st2_line_last;
+    assign m_img_pixel_first = st2_pixel_first;
+    assign m_img_pixel_last  = st2_pixel_last;
+    assign m_img_de          = st2_de;
+    assign m_img_user        = st2_user;
+    assign m_img_data        = st2_data;
+    assign m_img_prev_de     = st2_prev_de;
+    assign m_img_prev_data   = st2_prev_data;
+    assign m_img_valid       = st2_valid;
     
     
+    // write
     reg                         reg_write_enable;
     reg                         reg_write_de;
     reg     [DATA_WIDTH-1:0]    reg_write_data;
@@ -500,7 +510,7 @@ module jelly_img_previous_frame
         end
         if ( cke ) begin
             if ( s_img_store_valid & s_img_store_line_first & s_img_store_pixel_first ) begin
-                reg_write_enable <= ff1_enable;
+                reg_write_enable <= ff1_busy;
             end
             reg_write_de   <= s_img_store_valid & s_img_store_de;
             reg_write_data <= s_img_store_data;
