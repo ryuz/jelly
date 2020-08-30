@@ -530,7 +530,7 @@ module jelly_img_previous_frame_core
     end
     
     assign s_data  = reg_write_data;
-    assign s_valid = reg_write_enable & reg_write_de;
+    assign s_valid = reg_write_enable & reg_write_de & cke;
     
     
 endmodule
