@@ -240,6 +240,7 @@ module jelly_axi4_dma_fifo_core
                 .enable                 (enable),
                 .busy                   (write_busy),
                 
+                .update_param           (~busy),
                 .param_addr             (param_addr),
                 .param_size             (param_size),
                 .param_awlen            (param_awlen),
@@ -332,6 +333,7 @@ module jelly_axi4_dma_fifo_core
                 .enable                 (enable | write_busy),
                 .busy                   (read_busy),
                 
+                .update_param           (~busy),
                 .param_addr             (param_addr),
                 .param_size             (param_size),
                 .param_arlen            (param_arlen),
@@ -368,6 +370,75 @@ module jelly_axi4_dma_fifo_core
                 .m_axi4_rvalid          (m_axi4_rvalid),
                 .m_axi4_rready          (m_axi4_rready)
             );
+    
+    
+    
+    // debug (for simulation)
+    integer total_s;
+    always @(posedge s_clk) begin
+        if ( s_reset ) begin
+            total_s <= 0;
+        end
+        else begin
+            if ( s_valid & s_ready ) begin
+                total_s <= total_s + 1;
+            end
+        end
+    end
+    
+    integer total_m;
+    always @(posedge m_clk) begin
+        if ( m_reset ) begin
+            total_m <= 0;
+        end
+        else begin
+            if ( m_valid & m_ready ) begin
+                total_m <= total_m + 1;
+            end
+        end
+    end
+    
+    integer total_aw;
+    integer total_ar;
+    integer total_r;
+    always @(posedge aclk) begin
+        if ( ~aresetn ) begin
+            total_aw <= 0;
+            total_ar <= 0;
+            total_r  <= 0;
+        end
+        else begin
+            if ( m_axi4_awvalid & m_axi4_awready ) begin
+                total_aw <= total_aw + m_axi4_awlen + 1'b1;
+            end
+            
+            if ( m_axi4_arvalid & m_axi4_arready ) begin
+                total_ar <= total_ar + m_axi4_arlen + 1'b1;
+            end
+            
+            if ( m_axi4_rvalid & m_axi4_rready ) begin
+                total_r <= total_r + 1'b1;
+            end
+        end
+    end
+    
+    integer total_write;
+    integer total_read;
+    always @(posedge aclk) begin
+        if ( ~aresetn || !busy ) begin
+            total_write <= 0;
+            total_read  <= 0;
+        end
+        else begin
+            if ( write_complete_valid ) begin
+                total_write <= total_write + write_complete_size + 1'b1;
+            end
+            
+            if ( read_complete_valid ) begin
+                total_read <= total_read + read_complete_size + 1'b1;
+            end
+        end
+    end
     
 endmodule
 

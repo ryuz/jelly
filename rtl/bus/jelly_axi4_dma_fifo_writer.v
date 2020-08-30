@@ -79,6 +79,7 @@ module jelly_axi4_dma_fifo_writer
             input   wire                                enable,
             output  wire                                busy,
             
+            input   wire                                update_param,
             input   wire    [PARAM_ADDR_WIDTH-1:0]      param_addr,
             input   wire    [PARAM_SIZE_WIDTH-1:0]      param_size,
             input   wire    [PARAM_AWLEN_WIDTH-1:0]     param_awlen,
@@ -269,7 +270,7 @@ module jelly_axi4_dma_fifo_writer
             )
         i_capacity_control
             (
-                .reset                  (~aresetn | ~busy),
+                .reset                  (~aresetn | (~busy & update_param)),
                 .clk                    (aclk),
                 .cke                    (1'b1),
                 
@@ -280,7 +281,7 @@ module jelly_axi4_dma_fifo_writer
                 .queued_request         (),
                 
                 .s_request_size         (fifo_wr_size),
-                .s_request_valid        (fifo_wr_valid & busy & enable),
+                .s_request_valid        (fifo_wr_valid & fifo_wr_ready),
                 
                 .s_charge_size          (write_permit_size),
                 .s_charge_valid         (write_permit_valid),
@@ -348,7 +349,7 @@ module jelly_axi4_dma_fifo_writer
             )
         i_address_generator_range
             (
-                .reset                  (~aresetn | ~busy),
+                .reset                  (~aresetn | (~busy & update_param)),
                 .clk                    (aclk),
                 .cke                    (1'b1),
                 
@@ -592,6 +593,21 @@ module jelly_axi4_dma_fifo_writer
     assign write_complete_valid = (blen_valid & blen_ready);
     
     assign m_axi4_bready        = 1'b1;
+    
+    
+    
+    // debug (for dimulation)
+    integer     total_fifo;
+    always @(posedge aclk) begin
+        if ( ~aresetn ) begin
+            total_fifo <= 0;
+        end
+        else begin
+            if ( fifo_valid & fifo_ready ) begin
+                total_fifo <= total_fifo + 1;
+            end
+        end
+    end
     
 endmodule
 

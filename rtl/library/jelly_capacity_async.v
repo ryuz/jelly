@@ -151,6 +151,33 @@ module jelly_capacity_async
     end
     endgenerate
     
+    
+    
+    // debug (for simulation)
+    integer total_request;
+    always @(posedge s_clk) begin
+        if ( s_reset ) begin
+            total_request <= 0;
+        end
+        else begin
+            if ( s_request_valid ) begin
+                total_request <= total_request + s_request_size + REQUEST_SIZE_OFFSET;
+            end
+        end
+    end
+    
+    integer total_issue;
+    always @(posedge m_clk) begin
+        if ( m_reset ) begin
+            total_issue <= 0;
+        end
+        else begin
+            if ( m_issue_valid & m_issue_ready ) begin
+                total_issue <= total_issue + m_issue_size + ISSUE_SIZE_OFFSET;
+            end
+        end
+    end
+    
 endmodule
 
 

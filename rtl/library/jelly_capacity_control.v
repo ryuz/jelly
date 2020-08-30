@@ -98,6 +98,34 @@ module jelly_capacity_control
     assign current_capacity = reg_current_capacity;
     assign queued_request   = reg_queued_request;
     
+    
+    
+    // debug (simulation only)
+    integer     total_request;
+    integer     total_charge;
+    integer     total_issue;
+    always @(posedge clk) begin
+        if ( reset ) begin
+            total_request <= 0;
+            total_charge  <= 0;
+            total_issue   <= 0;
+        end
+        else if ( cke ) begin
+            if ( s_request_valid ) begin
+                total_request <= total_request + s_request_size + REQUEST_SIZE_OFFSET;
+            end
+            
+            if ( s_charge_valid ) begin
+                total_charge <= total_charge + s_charge_size + CHARGE_SIZE_OFFSET;
+            end
+            
+            if ( m_issue_valid & m_issue_ready ) begin
+                total_issue <= total_issue + m_issue_size + ISSUE_SIZE_OFFSET;
+            end
+        end
+    end
+    
+    
 endmodule
 
 

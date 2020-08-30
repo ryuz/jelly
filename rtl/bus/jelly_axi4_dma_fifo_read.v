@@ -65,6 +65,7 @@ module jelly_axi4_dma_fifo_read
             input   wire                                enable,
             output  wire                                busy,
             
+            input   wire                                update_param,
             input   wire    [PARAM_ADDR_WIDTH-1:0]      param_addr,
             input   wire    [PARAM_SIZE_WIDTH-1:0]      param_size,
             input   wire    [PARAM_ARLEN_WIDTH-1:0]     param_arlen,
@@ -152,7 +153,7 @@ module jelly_axi4_dma_fifo_read
                 .s_valid                (fifo_valid),
                 .s_ready                (fifo_ready),
                 .s_free_count           (),
-                .s_wr_signal            (m_rd_valid),
+                .s_wr_signal            (),
                 
                 .m_reset                (m_reset),
                 .m_clk                  (m_clk),
@@ -160,7 +161,7 @@ module jelly_axi4_dma_fifo_read
                 .m_valid                (m_valid),
                 .m_ready                (m_ready),
                 .m_data_count           (),
-                .m_rd_signal            ()
+                .m_rd_signal            (m_rd_valid)
             );
     
     
@@ -224,8 +225,8 @@ module jelly_axi4_dma_fifo_read
                 .s_issue_size           (read_request_size),
                 .s_issue_valid          (read_request_valid),
                 
-                .s_complete_size        (m_rd_size),
-                .s_complete_valid       (m_rd_valid)
+                .s_complete_size        (fifo_rd_size),
+                .s_complete_valid       (fifo_rd_valid)
             );
     
     
@@ -254,7 +255,7 @@ module jelly_axi4_dma_fifo_read
             )
         i_capacity_control
             (
-                .reset                  (~aresetn | ~busy),
+                .reset                  (~aresetn | (~busy & update_param)),
                 .clk                    (aclk),
                 .cke                    (1'b1),
                 
@@ -274,6 +275,8 @@ module jelly_axi4_dma_fifo_read
                 .m_issue_valid          (control_valid),
                 .m_issue_ready          (1'b1)
             );
+    
+    assign fifo_rd_ready = 1'b1;
     
     
     // すぐに書き込まずにタイムアウトするまで待ってなるべくまとまった単位で書き込む
@@ -329,7 +332,7 @@ module jelly_axi4_dma_fifo_read
             )
         i_address_generator_range
             (
-                .reset                  (~aresetn | ~busy),
+                .reset                  (~aresetn | (~busy & update_param)),
                 .clk                    (aclk),
                 .cke                    (1'b1),
                 
@@ -451,6 +454,19 @@ module jelly_axi4_dma_fifo_read
 //  assign m_axi4_rready = fifo_ready;
     assign m_axi4_rready = 1'b1;    // FIFOが開いている分しかコマンド発行しない
     
+    
+    // debug (for dimulation)
+    integer     total_fifo;
+    always @(posedge aclk) begin
+        if ( ~aresetn ) begin
+            total_fifo <= 0;
+        end
+        else begin
+            if ( fifo_valid & fifo_ready ) begin
+                total_fifo <= total_fifo + 1;
+            end
+        end
+    end
     
 endmodule
 

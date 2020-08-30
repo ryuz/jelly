@@ -15,7 +15,7 @@
 module jelly_img_previous_frame
         #(
             parameter   USER_WIDTH           = 0,
-            parameter   DATA_SIZE            = 8,
+            parameter   DATA_SIZE            = 2,     // 0:8bit, 1:16bit, 2:32bit ...
             parameter   DEFAULT_DATA         = 0,
             
             parameter   WB_ADR_WIDTH         = 8,
@@ -103,7 +103,7 @@ module jelly_img_previous_frame
             
             // local
             parameter   DATA_WIDTH           = (8 << DATA_SIZE),
-            parameter   USER_BITS            = USER_WIDTH > 1 ? USER_WIDTH - 1 : 1
+            parameter   USER_BITS            = USER_WIDTH > 1 ? USER_WIDTH : 1
         )
         (
             input   wire                                reset,
@@ -200,12 +200,12 @@ module jelly_img_previous_frame
     wire                                s_valid;
     wire                                s_ready;
     
-    wire    [DATA_WIDTH-1:0]            m_data   = s_img_store_data;
-    wire                                m_valid  = cke & s_img_store_valid & s_img_store_de;
+    wire    [DATA_WIDTH-1:0]            m_data;
+    wire                                m_valid;
     wire                                m_ready;
     
-    wire                                underflow = s_ready & !s_valid;
-    wire                                overflow  = m_valid & !m_ready;
+    wire                                overflow  = s_valid & !s_ready;
+    wire                                underflow = m_ready & !m_valid;
     
     wire                                enable;
     wire                                busy;
@@ -217,6 +217,11 @@ module jelly_img_previous_frame
                 .UNIT_WIDTH             (8),
                 .S_DATA_SIZE            (DATA_SIZE),
                 .M_DATA_SIZE            (DATA_SIZE),
+                
+                .WB_ADR_WIDTH           (WB_ADR_WIDTH),
+                .WB_DAT_SIZE            (WB_DAT_SIZE),
+                .WB_DAT_WIDTH           (WB_DAT_WIDTH),
+                .WB_SEL_WIDTH           (WB_SEL_WIDTH),
                 
                 .AXI4_ID_WIDTH          (AXI4_ID_WIDTH),
                 .AXI4_ADDR_WIDTH        (AXI4_ADDR_WIDTH),
@@ -254,6 +259,15 @@ module jelly_img_previous_frame
                 .PARAM_WTIMEOUT_WIDTH   (PARAM_WTIMEOUT_WIDTH),
                 .PARAM_ARLEN_WIDTH      (PARAM_ARLEN_WIDTH),
                 .PARAM_RTIMEOUT_WIDTH   (PARAM_RTIMEOUT_WIDTH),
+                
+                .INIT_CTL_CONTROL       (INIT_CTL_CONTROL),
+                .INIT_PARAM_ADDR        (INIT_PARAM_ADDR),
+                .INIT_PARAM_SIZE        (INIT_PARAM_SIZE),
+                .INIT_PARAM_AWLEN       (INIT_PARAM_AWLEN),
+                .INIT_PARAM_WSTRB       (INIT_PARAM_WSTRB),
+                .INIT_PARAM_WTIMEOUT    (INIT_PARAM_WTIMEOUT),
+                .INIT_PARAM_ARLEN       (INIT_PARAM_ARLEN),
+                .INIT_PARAM_RTIMEOUT    (INIT_PARAM_RTIMEOUT),
                 
                 .WDATA_FIFO_PTR_WIDTH   (WDATA_FIFO_PTR_WIDTH),
                 .WDATA_FIFO_RAM_TYPE    (WDATA_FIFO_RAM_TYPE),
@@ -464,13 +478,13 @@ module jelly_img_previous_frame
             st2_de          <= st1_de;
             st2_user        <= st1_user;
             st2_data        <= st1_data;
-            st2_prev_de     <= (s_valid & s_ready);
-            st2_prev_data   <= (s_valid & s_ready) ? s_data : DEFAULT_DATA;
+            st2_prev_de     <= (m_valid & m_ready);
+            st2_prev_data   <= (m_valid & m_ready) ? m_data : DEFAULT_DATA;
             st2_valid       <= st1_valid;
         end
     end
     
-    assign s_ready = (cke & st1_read_ready) | ~ff1_enable;
+    assign m_ready = (cke & st1_read_ready) | ~ff1_enable;
     
     
     
