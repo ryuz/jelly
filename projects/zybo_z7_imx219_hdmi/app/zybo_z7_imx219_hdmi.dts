@@ -24,6 +24,17 @@
                 clocks      = <&clkc 16>;
                 insert-rate = "100000000";
             };
+
+            afi0: afi0 {
+                compatible = "xlnx,zynq-afi-fpga";
+                reg = <0xf8008000 0x1000>;
+                xlnx,afi-buswidth = <0>;
+            };
+            afi1: afi1 {
+                compatible = "xlnx,zynq-afi-fpga";
+                reg = <0xf8009000 0x1000>;
+                xlnx,afi-buswidth = <0>;
+            };
         };
     };
 
@@ -43,6 +54,12 @@
                 minor-number = <0>;
                 size = <0x03000000>;
             };
+
+            udmabuf1 {
+                compatible = "ikwzm,udmabuf-0.10.a";
+                minor-number = <1>;
+                size = <0x007b5200>;
+            };
         };
     };
 
@@ -60,7 +77,7 @@
                 #address-cells = <0x1>;
                 #size-cells = <0x0>;
             };
-		};
+        };
     };
 };
 

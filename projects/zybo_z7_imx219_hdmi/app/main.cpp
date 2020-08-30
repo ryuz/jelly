@@ -44,9 +44,10 @@ int main(int argc, char *argv[])
     int     view_x      = -1;
     int     view_y      = -1;
     bool    colmat_en   = false;
-    int     gamma       = 22;
+    int     gamma       = 16;
     int     gauss_level = 0;
     int     canny_th    = 127;
+    int     diff_th     = 127;
     cv::Mat imgBack;
     
     for ( int i = 1; i < argc; ++i ) {
@@ -170,16 +171,18 @@ int main(int argc, char *argv[])
     }
 
     // PLのコアのアドレスでマップ
-    auto reg_fmtr   = uio_acc.GetMemAccess(0x00100000);  // ビデオサイズ正規化
-    auto reg_demos  = uio_acc.GetMemAccess(0x00200000);  // デモザイク
-    auto reg_colmat = uio_acc.GetMemAccess(0x00210000);  // カラーマトリックス
-    auto reg_gamma  = uio_acc.GetMemAccess(0x00220000);  // ガンマ補正
-    auto reg_gauss  = uio_acc.GetMemAccess(0x00240000);  // ガウシアンフィルタ
-    auto reg_canny  = uio_acc.GetMemAccess(0x00250000);  // Cannyフィルタ
-    auto reg_sel    = uio_acc.GetMemAccess(0x002f0000);  // 出力切り替え
-    auto reg_wdma   = uio_acc.GetMemAccess(0x00310000);  // Write-DMA
-    auto reg_rdma   = uio_acc.GetMemAccess(0x00340000);  // Read-DMA
-    auto reg_vsgen  = uio_acc.GetMemAccess(0x00360000);  // Video out sync generator
+    auto reg_fmtr    = uio_acc.GetMemAccess(0x00100000);  // ビデオサイズ正規化
+    auto reg_demos   = uio_acc.GetMemAccess(0x00200000);  // デモザイク
+    auto reg_colmat  = uio_acc.GetMemAccess(0x00210000);  // カラーマトリックス
+    auto reg_gamma   = uio_acc.GetMemAccess(0x00220000);  // ガンマ補正
+    auto reg_gauss   = uio_acc.GetMemAccess(0x00240000);  // ガウシアンフィルタ
+    auto reg_canny   = uio_acc.GetMemAccess(0x00250000);  // Cannyフィルタ
+    auto reg_imgdma  = uio_acc.GetMemAccess(0x00260000);  // FIFO dma
+    auto reg_bindiff = uio_acc.GetMemAccess(0x00270000);  // 前画像との差分バイナライズ
+    auto reg_sel     = uio_acc.GetMemAccess(0x002f0000);  // 出力切り替え
+    auto reg_wdma    = uio_acc.GetMemAccess(0x00310000);  // Write-DMA
+    auto reg_rdma    = uio_acc.GetMemAccess(0x00340000);  // Read-DMA
+    auto reg_vsgen   = uio_acc.GetMemAccess(0x00360000);  // Video out sync generator
     
 #if 1
     // ID確認
@@ -190,6 +193,8 @@ int main(int argc, char *argv[])
     std::cout << std::hex << reg_gamma.ReadReg(0) << std::endl;
     std::cout << std::hex << reg_gauss.ReadReg(0) << std::endl;
     std::cout << std::hex << reg_canny.ReadReg(0) << std::endl;
+    std::cout << std::hex << reg_imgdma.ReadReg(0) << std::endl;
+    std::cout << std::hex << reg_bindiff.ReadReg(0) << std::endl;
     std::cout << std::hex << reg_sel.ReadReg(0) << std::endl;
     std::cout << std::hex << reg_wdma.ReadReg(0) << std::endl;
     std::cout << std::hex << reg_rdma.ReadReg(0) << std::endl;
@@ -213,6 +218,29 @@ int main(int argc, char *argv[])
         return 0;
     }
 
+
+    // memmeap iamge fifo
+    jelly::UdmabufAccess udmabuf1_acc("udmabuf1");
+    if ( !udmabuf1_acc.IsMapped() ) {
+        std::cout << "udmabuf1 : open error or mmap error" << std::endl;
+        return 1;
+    }
+
+    reg_imgdma.WriteReg(REG_DAM_FIFO_CTL_CONTROL, 0x0);
+    usleep(100);
+
+    auto fifobuf_phys_adr = udmabuf1_acc.GetPhysAddr();
+    auto fifobuf_mem_size = udmabuf1_acc.GetSize();
+    std::cout << "udmabuf1 phys addr : 0x" << std::hex << fifobuf_phys_adr << std::endl;
+    std::cout << "udmabuf1 size      : " << std::dec << fifobuf_mem_size << std::endl;
+    reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_ADDR, fifobuf_phys_adr);
+    reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_SIZE, fifobuf_mem_size);
+    reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_AWLEN, 0x0f);
+    reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_WTIMEOUT, 0xff);
+    reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_ARLEN, 0x0f);
+    reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_RTIMEOUT, 0xff);
+    reg_imgdma.WriteReg(REG_DAM_FIFO_CTL_CONTROL, 0x3);
+    
 
     // IMX219 I2C control
     jelly::Imx219ControlI2c imx219;
@@ -239,48 +267,20 @@ int main(int argc, char *argv[])
     capture_start(reg_wdma, reg_fmtr, dmabuf_phys_adr, width, height, view_x, view_y);    
     vout_start(reg_rdma, reg_vsgen, dmabuf_phys_adr);    
 
-#if 1
-    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX22, (int)( 1.114257813 * (1 << 16)));
-    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX21, (int)(-0.200195313 * (1 << 16)));
-    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX20, (int)( 0.085937500 * (1 << 16)));
-    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX23, (int)( 0.000000000 * (1 << 16)));
-    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX12, (int)(-0.050781250 * (1 << 16)));		
-    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX11, (int)( 1.200195313 * (1 << 16)));
-    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX10, (int)(-0.150390625 * (1 << 16)));
-    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX13, (int)( 0.000000000 * (1 << 16)));
-    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX02, (int)( 0.068359375 * (1 << 16)));
-    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX01, (int)(-0.219726563 * (1 << 16)));
-    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX00, (int)( 1.151367188 * (1 << 16)));
-    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX03, (int)( 0.000000000 * (1 << 16)));
-#else
-    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX00, (int)( 1.000000000 * (1 << 16)));
-    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX01, (int)( 0.000000000 * (1 << 16)));
-    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX02, (int)( 0.000000000 * (1 << 16)));
-    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX03, (int)( 0.000000000 * (1 << 16)));
-    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX10, (int)( 0.000000000 * (1 << 16)));		
-    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX11, (int)( 1.000000000 * (1 << 16)));
-    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX12, (int)( 0.000000000 * (1 << 16)));
-    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX13, (int)( 0.000000000 * (1 << 16)));
-    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX20, (int)( 0.000000000 * (1 << 16)));
-    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX21, (int)( 0.000000000 * (1 << 16)));
-    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX22, (int)( 1.000000000 * (1 << 16)));
-    reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX23, (int)( 0.000000000 * (1 << 16)));
-#endif
-    reg_colmat.WriteReg(REG_IMG_COLMAT_CTL_CONTROL, 3);
-
     // 操作
-    cv::namedWindow("camera");
-    cv::resizeWindow("camera", 640, 480);
-    cv::createTrackbar("scale",    "camera", &view_scale, 4);
-    cv::createTrackbar("fps",      "camera", &frame_rate, 1000);
-    cv::createTrackbar("exposure", "camera", &exposure, 1000);
-    cv::createTrackbar("a_gain",   "camera", &a_gain, 20);
-    cv::createTrackbar("d_gain",   "camera", &d_gain, 24);
-    cv::createTrackbar("bayer" ,   "camera", &bayer_phase, 3);
-    cv::createTrackbar("gamm" ,    "camera", &gamma, 30);
-    cv::createTrackbar("gauss" ,   "camera", &gauss_level, 3);
-    cv::createTrackbar("canny" ,   "camera", &canny_th, 256);
-    
+    cv::namedWindow("control");
+    cv::resizeWindow("control", 640, 480);
+    cv::createTrackbar("scale",     "control", &view_scale, 4);
+    cv::createTrackbar("fps",       "control", &frame_rate, 1000);
+    cv::createTrackbar("exposure",  "control", &exposure, 1000);
+    cv::createTrackbar("a_gain",    "control", &a_gain, 20);
+    cv::createTrackbar("d_gain",    "control", &d_gain, 24);
+    cv::createTrackbar("bayer" ,    "control", &bayer_phase, 3);
+    cv::createTrackbar("gamm" ,     "control", &gamma, 30);
+    cv::createTrackbar("gauss" ,    "control", &gauss_level, 3);
+    cv::createTrackbar("canny_th" , "control", &canny_th, 255);
+    cv::createTrackbar("diff_th" ,  "control", &diff_th, 255);
+
     int gamma_prev = 0;
     int     key;
     while ( (key = (cv::waitKeyEx(10) & 0xff)) != 0x1b ) {
@@ -296,7 +296,36 @@ int main(int argc, char *argv[])
         reg_demos.WriteReg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3);  // update & enable
 
         // color matrix
-        reg_colmat.WriteReg(REG_IMG_COLMAT_CTL_CONTROL, colmat_en ? 3 : 2 );
+        if ( colmat_en ) {
+            // てきとー
+            reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX22, (int)( 1.114257813 * (1 << 16)));
+            reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX21, (int)(-0.200195313 * (1 << 16)));
+            reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX20, (int)( 0.085937500 * (1 << 16)));
+            reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX23, (int)( 0.000000000 * (1 << 16)));
+            reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX12, (int)(-0.050781250 * (1 << 16)));		
+            reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX11, (int)( 1.200195313 * (1 << 16)));
+            reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX10, (int)(-0.150390625 * (1 << 16)));
+            reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX13, (int)( 0.000000000 * (1 << 16)));
+            reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX02, (int)( 0.068359375 * (1 << 16)));
+            reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX01, (int)(-0.219726563 * (1 << 16)));
+            reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX00, (int)( 1.151367188 * (1 << 16)));
+            reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX03, (int)( 0.000000000 * (1 << 16)));
+        }
+        else {
+            reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX00, (int)( 1.000000000 * (1 << 16)));
+            reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX01, (int)( 0.000000000 * (1 << 16)));
+            reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX02, (int)( 0.000000000 * (1 << 16)));
+            reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX03, (int)( 0.000000000 * (1 << 16)));
+            reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX10, (int)( 0.000000000 * (1 << 16)));		
+            reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX11, (int)( 1.000000000 * (1 << 16)));
+            reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX12, (int)( 0.000000000 * (1 << 16)));
+            reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX13, (int)( 0.000000000 * (1 << 16)));
+            reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX20, (int)( 0.000000000 * (1 << 16)));
+            reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX21, (int)( 0.000000000 * (1 << 16)));
+            reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX22, (int)( 1.000000000 * (1 << 16)));
+            reg_colmat.WriteReg(REG_IMG_COLMAT_PARAM_MATRIX23, (int)( 0.000000000 * (1 << 16)));
+        }
+        reg_colmat.WriteReg(REG_IMG_COLMAT_CTL_CONTROL, 0x3);
 
         // gamma
         gamma = std::max(1, gamma);
@@ -327,6 +356,10 @@ int main(int argc, char *argv[])
         // canny
         reg_canny.WriteReg(REG_IMG_CANNY_PARAM_TH, canny_th*canny_th);
         reg_canny.WriteReg(REG_IMG_CANNY_CTL_CONTROL, 0x3);
+
+        // diff binarize
+        reg_bindiff.WriteReg(REG_IMG_BINARIZER_PARAM_TH, diff_th);
+        reg_bindiff.WriteReg(REG_IMG_BINARIZER_CTL_CONTROL, 0x3);
 
         // ユーザー操作
         switch ( key ) {
@@ -385,6 +418,9 @@ int main(int argc, char *argv[])
     imx219.Stop();
     imx219.Close();
     
+    // FIFO停止
+    reg_imgdma.WriteReg(REG_DAM_FIFO_CTL_CONTROL, 0x0);
+
     return 0;
 }
 

@@ -13,6 +13,27 @@
 #define CORE_ID_VIDEO_FMTREG                    0x527a1220
 
 
+/* FIFO with DMA */
+#define REG_DAM_FIFO_CORE_ID                    0x00
+#define REG_DAM_FIFO_CORE_VERSION               0x01
+#define REG_DAM_FIFO_CTL_CONTROL                0x04
+#define REG_DAM_FIFO_CTL_STATUS                 0x05
+#define REG_DAM_FIFO_CTL_INDEX                  0x06
+#define REG_DAM_FIFO_PARAM_ADDR                 0x08
+#define REG_DAM_FIFO_PARAM_SIZE                 0x09
+#define REG_DAM_FIFO_PARAM_AWLEN                0x10
+#define REG_DAM_FIFO_PARAM_WSTRB                0x11
+#define REG_DAM_FIFO_PARAM_WTIMEOUT             0x13
+#define REG_DAM_FIFO_PARAM_ARLEN                0x14
+#define REG_DAM_FIFO_PARAM_RTIMEOUT             0x17
+#define REG_DAM_FIFO_CURRENT_ADDR               0x28
+#define REG_DAM_FIFO_CURRENT_SIZE               0x29
+#define REG_DAM_FIFO_CURRENT_AWLEN              0x30
+#define REG_DAM_FIFO_CURRENT_WSTRB              0x31
+#define REG_DAM_FIFO_CURRENT_WTIMEOUT           0x33
+#define REG_DAM_FIFO_CURRENT_ARLEN              0x34
+#define REG_DAM_FIFO_CURRENT_RTIMEOUT           0x37
+
 /* parameter update control */
 #define REG_VIDEO_PRMUP_CORE_ID                 0x00
 #define REG_VIDEO_PRMUP_CORE_VERSION            0x01
@@ -184,6 +205,21 @@
 #define REG_IMG_CANNY_CTL_INDEX                 0x07
 #define REG_IMG_CANNY_PARAM_TH                  0x08
 #define REG_IMG_CANNY_CURRENT_TH                0x18
+
+/* binarizer */
+#define REG_IMG_BINARIZER_CORE_ID               0x00
+#define REG_IMG_BINARIZER_CORE_VERSION          0x01
+#define REG_IMG_BINARIZER_CTL_CONTROL           0x04
+#define REG_IMG_BINARIZER_CTL_STATUS            0x05
+#define REG_IMG_BINARIZER_CTL_INDEX             0x07
+#define REG_IMG_BINARIZER_PARAM_TH              0x08
+#define REG_IMG_BINARIZER_PARAM_INV             0x09
+#define REG_IMG_BINARIZER_PARAM_VAL0            0x0a
+#define REG_IMG_BINARIZER_PARAM_VAL1            0x0b
+#define REG_IMG_BINARIZER_CURRENT_TH            0x18
+#define REG_IMG_BINARIZER_CURRENT_INV           0x19
+#define REG_IMG_BINARIZER_CURRENT_VAL0          0x1a
+#define REG_IMG_BINARIZER_CURRENT_VAL1          0x1b
 
 /* area mask */
 #define REG_IMG_AREAMASK_CORE_ID                0x00
