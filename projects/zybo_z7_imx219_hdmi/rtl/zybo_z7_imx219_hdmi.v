@@ -1236,15 +1236,20 @@ module zybo_z7_imx219_hdmi
     //  Debug
     // ----------------------------------------
     
-    reg     [31:0]      reg_counter_rxbyteclkhs;
-    always @(posedge rxbyteclkhs)   reg_counter_rxbyteclkhs <= reg_counter_rxbyteclkhs + 1;
+    reg     [31:0]      reg_counter_rxbyteclkhs = 0;
+    always @(posedge rxbyteclkhs)       reg_counter_rxbyteclkhs <= reg_counter_rxbyteclkhs + 1;
     
-    reg     [31:0]      reg_counter_clk200;
-    always @(posedge sys_clk200)    reg_counter_clk200 <= reg_counter_clk200 + 1;
+    reg     [31:0]      reg_counter_clk200 = 0;
+    always @(posedge sys_clk200)        reg_counter_clk200 <= reg_counter_clk200 + 1;
     
-    reg     [31:0]      reg_counter_clk100;
-    always @(posedge sys_clk100)    reg_counter_clk100 <= reg_counter_clk100 + 1;
+    reg     [31:0]      reg_counter_clk100 = 0;
+    always @(posedge sys_clk100)        reg_counter_clk100 <= reg_counter_clk100 + 1;
     
+    reg     [31:0]      reg_counter_peri_clk;
+    always @(posedge axi4l_peri_aclk)   reg_counter_peri_clk <= reg_counter_peri_clk + 1;
+    
+    reg     [31:0]      reg_counter_mem_clk;
+    always @(posedge axi4_mem_aclk)   reg_counter_mem_clk <= reg_counter_mem_clk + 1;
     
     reg     frame_toggle = 0;
     always @(posedge axi4s_cam_aclk) begin
@@ -1254,16 +1259,18 @@ module zybo_z7_imx219_hdmi
     end
     
     
-    assign led[0] = reg_counter_rxbyteclkhs[24];
-    assign led[1] = reg_counter_clk200[24];
-    assign led[2] = reg_counter_clk100[24];
-    assign led[3] = frame_toggle;
+    assign led[0] = frame_toggle;
+    assign led[1] = reg_counter_rxbyteclkhs[24];
+    assign led[2] = reg_counter_mem_clk[25];
+    assign led[3] = reg_counter_peri_clk[25];
     
     assign pmod_a[0]   = frame_toggle;
     assign pmod_a[1]   = reg_counter_rxbyteclkhs[5];
     assign pmod_a[2]   = reg_counter_clk200[5];
     assign pmod_a[3]   = reg_counter_clk100[5];
-    assign pmod_a[7:4] = 0;
+    assign pmod_a[4]   = reg_counter_mem_clk[5];
+    assign pmod_a[5]   = reg_counter_peri_clk[5];
+    assign pmod_a[7:6] = 0;
     
     
     (* MARK_DEBUG = "true" *) reg   dbg_clk200;

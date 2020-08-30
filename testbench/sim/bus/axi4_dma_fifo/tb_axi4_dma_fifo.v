@@ -4,10 +4,10 @@
 
 
 module tb_axi4_dma_fifo();
-    localparam S_RATE    = 1000.0 / 150.3;
-    localparam M_RATE    = 1000.0 / 123.7;
+    localparam S_RATE    = 1000.0 / 80.3;
+    localparam M_RATE    = 1000.0 / 95.7;
     localparam WB_RATE   = 1000.0 / 100.1;
-    localparam AXI4_RATE = 1000.0 / 166.6;
+    localparam AXI4_RATE = 1000.0 / 153.3;
     
     
     initial begin
@@ -54,10 +54,10 @@ module tb_axi4_dma_fifo();
     //  Core
     // -----------------------------------------
     
-    parameter   S_ASYNC                  = 1;
-    parameter   S_DATA_SIZE              = 2;    // 0:8bit, 1:16bit, 2:32bit ...
     parameter   UNIT_WIDTH               = 8;
+    parameter   S_ASYNC                  = 1;
     parameter   M_ASYNC                  = 1;
+    parameter   S_DATA_SIZE              = 2;    // 0:8bit, 1:16bit, 2:32bit ...
     parameter   M_DATA_SIZE              = 2;    // 0:8bit, 1:16bit, 2:32bit ...
     
     parameter   WB_ADR_WIDTH             = 8;
@@ -67,7 +67,7 @@ module tb_axi4_dma_fifo();
     
     parameter   AXI4_ID_WIDTH            = 6;
     parameter   AXI4_ADDR_WIDTH          = 32;
-    parameter   AXI4_DATA_SIZE           = 2;   // 0:8bit, 1:16bit, 2:32bit ...
+    parameter   AXI4_DATA_SIZE           = 3;   // 0:8bit, 1:16bit, 2:32bit ...
     parameter   AXI4_DATA_WIDTH          = (8 << AXI4_DATA_SIZE);
     parameter   AXI4_STRB_WIDTH          = (1 << AXI4_DATA_SIZE);
     parameter   AXI4_LEN_WIDTH           = 8;
@@ -156,7 +156,7 @@ module tb_axi4_dma_fifo();
     reg                                     s_valid;
     wire                                    s_ready;
     
-    wire    [S_DATA_WIDTH-1:0]              m_data;
+    wire    [M_DATA_WIDTH-1:0]              m_data;
     wire                                    m_valid;
     reg                                     m_ready;
     
@@ -293,7 +293,7 @@ module tb_axi4_dma_fifo();
                 
                 .m_reset                (m_reset),
                 .m_clk                  (m_clk),
-                .m_data                 (m_data ),
+                .m_data                 (m_data),
                 .m_valid                (m_valid),
                 .m_ready                (m_ready),
                 
@@ -621,6 +621,7 @@ module tb_axi4_dma_fifo();
         
     #10000;
         $display("change parameter");
+        /*
         wb_write(ADR_PARAM_ADDR,     32'h0000_2340, {WB_SEL_WIDTH{1'b1}});
         wb_write(ADR_PARAM_SIZE,     32'h0000_0380, {WB_SEL_WIDTH{1'b1}});
         wb_write(ADR_PARAM_AWLEN,    32'h0000_0000, {WB_SEL_WIDTH{1'b1}});
@@ -628,6 +629,7 @@ module tb_axi4_dma_fifo();
         wb_write(ADR_PARAM_WTIMEOUT, 32'h0000_0000, {WB_SEL_WIDTH{1'b1}});
         wb_write(ADR_PARAM_ARLEN,    32'h0000_0000, {WB_SEL_WIDTH{1'b1}});
         wb_write(ADR_PARAM_RTIMEOUT, 32'h0000_0000, {WB_SEL_WIDTH{1'b1}});
+        */
         
         $display("start");
         wb_write(ADR_CTL_CONTROL,    32'h0000_0003, {WB_SEL_WIDTH{1'b1}});
