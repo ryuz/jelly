@@ -129,8 +129,8 @@ module jelly_fifo_width_converter
                 )
             i_data_width_converter
                 (
-                    .reset              (m_reset),
-                    .clk                (m_clk),
+                    .reset              (s_reset),
+                    .clk                (s_clk),
                     .cke                (1'b1),
                     
                     .endian             (endian),
