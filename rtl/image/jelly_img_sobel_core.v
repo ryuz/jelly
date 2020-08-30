@@ -118,7 +118,7 @@ module jelly_img_sobel_core
     jelly_img_delay
             #(
                 .USER_WIDTH         (USER_WIDTH),
-                .LATENCY            (4),
+                .LATENCY            (5),
                 .USE_VALID          (USE_VALID)
             )
         i_img_delay
