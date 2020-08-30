@@ -895,7 +895,7 @@ module zybo_z7_imx219_hdmi
                 .INIT_PARAM_WIDTH   (X_NUM),
                 .INIT_PARAM_HEIGHT  (Y_NUM),
                 .INIT_PARAM_SIZE    (X_NUM*Y_NUM),
-                .INIT_PARAM_AWLEN   (7)
+                .INIT_PARAM_AWLEN   (8'h0f)
             )
         i_vdma_axi4s_to_axi4
             (
@@ -1047,7 +1047,7 @@ module zybo_z7_imx219_hdmi
                     .INIT_PARAM_STRIDE  (8192),
                     .INIT_PARAM_WIDTH   (VOUT_X_NUM),
                     .INIT_PARAM_HEIGHT  (VOUT_Y_NUM),
-                    .INIT_PARAM_ARLEN   (8'h07)
+                    .INIT_PARAM_ARLEN   (8'h0f)
                 )
             i_vdma_axi4_to_axi4s
                 (
