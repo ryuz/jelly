@@ -25,7 +25,11 @@ module zybo_z7_imx219_stepper_motor
             input   wire    [3:0]   push_sw,
             input   wire    [3:0]   dip_sw,
             output  wire    [3:0]   led,
-            output  wire    [7:0]   pmod_a,
+            inout   wire    [7:0]   pmod_a,
+            inout   wire    [7:0]   pmod_b,
+            inout   wire    [7:0]   pmod_c,
+            inout   wire    [7:0]   pmod_d,
+            inout   wire    [7:0]   pmod_e,
             
             input   wire            cam_clk_hs_p,
             input   wire            cam_clk_hs_n,
@@ -39,15 +43,6 @@ module zybo_z7_imx219_stepper_motor
             output  wire            cam_gpio,
             inout   wire            cam_scl,
             inout   wire            cam_sda,
-            
-            output  wire            stm_ap_en,
-            output  wire            stm_an_en,
-            output  wire            stm_bp_en,
-            output  wire            stm_bn_en,
-            output  wire            stm_ap_hl,
-            output  wire            stm_an_hl,
-            output  wire            stm_bp_hl,
-            output  wire            stm_bn_hl,
             
             inout   wire    [14:0]  DDR_addr,
             inout   wire    [2:0]   DDR_ba,
@@ -71,7 +66,6 @@ module zybo_z7_imx219_stepper_motor
             inout   wire            FIXED_IO_ps_porb,
             inout   wire            FIXED_IO_ps_srstb
         );
-    
     
     wire            sys_reset;
     wire            sys_clk100;
@@ -956,16 +950,31 @@ module zybo_z7_imx219_stepper_motor
                 .monitor_target_a   (stmc_target_a)
             );
     
-    assign stm_ap_en = stmc_out_en & dip_sw[0];
-    assign stm_an_en = stmc_out_en & dip_sw[0];
-    assign stm_bp_en = stmc_out_en & dip_sw[0];
-    assign stm_bn_en = stmc_out_en & dip_sw[0];
+    wire    stm_a  = dip_sw[1] ? pmod_e[0] : stmc_out_a;
+    wire    stm_b  = dip_sw[1] ? pmod_e[1] : stmc_out_b;
+    wire    stm_en = dip_sw[1] ? pmod_e[2] : stmc_out_en;
     
-    assign stm_ap_hl =  stmc_out_a;
-    assign stm_an_hl = ~stmc_out_a;
-    assign stm_bp_hl =  stmc_out_b;
-    assign stm_bn_hl = ~stmc_out_b;
+    wire    stm_remote_a  = pmod_e[0];
+    wire    stm_remote_b  = pmod_e[1];
+    wire    stm_remote_en = pmod_e[2];
     
+    wire    stm_ap_en = stm_en & dip_sw[0];
+    wire    stm_an_en = stm_en & dip_sw[0];
+    wire    stm_bp_en = stm_en & dip_sw[0];
+    wire    stm_bn_en = stm_en & dip_sw[0];
+    wire    stm_ap_hl =  stm_a;
+    wire    stm_an_hl = ~stm_a;
+    wire    stm_bp_hl =  stm_b;
+    wire    stm_bn_hl = ~stm_b;
+    
+    assign pmod_d[0] = stm_ap_en;
+    assign pmod_d[1] = stm_an_en;
+    assign pmod_d[2] = stm_bp_en;
+    assign pmod_d[3] = stm_bn_en;
+    assign pmod_d[4] = stm_ap_hl;
+    assign pmod_d[5] = stm_an_hl;
+    assign pmod_d[6] = stm_bp_hl;
+    assign pmod_d[7] = stm_bn_hl;
     
     
     

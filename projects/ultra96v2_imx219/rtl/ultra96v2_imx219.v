@@ -248,6 +248,17 @@ module ultra96v2_imx219
     assign wb_gid_dat_o = 32'h01234567;
     assign wb_gid_ack_o = wb_gid_stb_i;
     
+    reg     reg_sw_reset;
+    always @(posedge wb_peri_clk_i) begin
+        if ( wb_peri_rst_i ) begin
+            reg_sw_reset <= 1'b0;
+        end
+        else begin
+            if ( wb_gid_stb_i && wb_peri_we_i ) begin
+                reg_sw_reset <= wb_peri_dat_i;
+            end
+        end
+    end
     
     
     // ----------------------------------------
@@ -317,7 +328,7 @@ module ultra96v2_imx219
         i_mipi_dphy_cam
             (
                 .core_clk           (sys_clk200),
-                .core_rst           (sys_reset),
+                .core_rst           (sys_reset | reg_sw_reset),
                 .rxbyteclkhs        (rxbyteclkhs),
                 
                 .clkoutphy_out      (clkoutphy_out),
@@ -396,11 +407,11 @@ module ultra96v2_imx219
     wire            axi4s_cam_aresetn = ~sys_reset;
     wire            axi4s_cam_aclk    = sys_clk200;
     
-    wire    [0:0]   axi4s_csi2_tuser;
-    wire            axi4s_csi2_tlast;
-    wire    [9:0]   axi4s_csi2_tdata;
-    wire            axi4s_csi2_tvalid;
-    wire            axi4s_csi2_tready;
+    (* mark_debug="true" *) wire    [0:0]   axi4s_csi2_tuser;
+    (* mark_debug="true" *) wire            axi4s_csi2_tlast;
+    (* mark_debug="true" *) wire    [9:0]   axi4s_csi2_tdata;
+    (* mark_debug="true" *) wire            axi4s_csi2_tvalid;
+    (* mark_debug="true" *) wire            axi4s_csi2_tready;
     
     wire            mipi_ecc_corrected;
     wire            mipi_ecc_error;
@@ -962,17 +973,32 @@ module ultra96v2_imx219
     assign pmod1 = reg_frame_count;
     
     
+    
+    
     // Debug
+    (* mark_debug = "true" *)   reg                 dbg_reset;
+    (* mark_debug = "true" *)   reg     [7:0]       dbg0_rxdatahs;
+    (* mark_debug = "true" *)   reg                 dbg0_rxvalidhs;
+    (* mark_debug = "true" *)   reg                 dbg0_rxactivehs;
+    (* mark_debug = "true" *)   reg                 dbg0_rxsynchs;
+    (* mark_debug = "true" *)   reg     [7:0]       dbg1_rxdatahs;
+    (* mark_debug = "true" *)   reg                 dbg1_rxvalidhs;
+    (* mark_debug = "true" *)   reg                 dbg1_rxactivehs;
+    (* mark_debug = "true" *)   reg                 dbg1_rxsynchs;
+    always @(posedge dphy_clk) begin
+        dbg_reset       <=  sys_reset | reg_sw_reset;
+        dbg0_rxdatahs   <= dl0_rxdatahs;
+        dbg0_rxvalidhs  <= dl0_rxvalidhs;
+        dbg0_rxactivehs <= dl0_rxactivehs;
+        dbg0_rxsynchs   <= dl0_rxsynchs;
+        dbg1_rxdatahs   <= dl1_rxdatahs;
+        dbg1_rxvalidhs  <= dl1_rxvalidhs;
+        dbg1_rxactivehs <= dl1_rxactivehs;
+        dbg1_rxsynchs   <= dl1_rxsynchs;
+    end
+    
+    
     /*
-    (* mark_debug = "true" *)   wire    [7:0]       dbg0_rxdatahs;
-    (* mark_debug = "true" *)   wire                dbg0_rxvalidhs;
-    (* mark_debug = "true" *)   wire                dbg0_rxactivehs;
-    (* mark_debug = "true" *)   wire                dbg0_rxsynchs;
-    (* mark_debug = "true" *)   wire    [7:0]       dbg1_rxdatahs;
-    (* mark_debug = "true" *)   wire                dbg1_rxvalidhs;
-    (* mark_debug = "true" *)   wire                dbg1_rxactivehs;
-    (* mark_debug = "true" *)   wire                dbg1_rxsynchs;
-    (* mark_debug = "true" *)   wire                dbg1_valid;
     jelly_fifo_generic_fwtf
             #(
                 .ASYNC              (1),

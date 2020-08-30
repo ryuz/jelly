@@ -3,12 +3,12 @@
 `default_nettype none
 
 
-module tb_video_normalizer();
+module tb_video_format_regularizer();
     localparam RATE  = 10.0;
     
     initial begin
-        $dumpfile("tb_video_normalizer.vcd");
-        $dumpvars(0, tb_video_normalizer);
+        $dumpfile("tb_video_format_regularizer.vcd");
+        $dumpvars(0, tb_video_format_regularizer);
     
     #10000000
         $finish;
@@ -77,7 +77,7 @@ module tb_video_normalizer();
     parameter   M_SLAVE_REGS       = 1;
     parameter   M_MASTER_REGS      = 1;
     
-    parameter   INIT_CONTROL       = 2'b11;
+    parameter   INIT_CTL_CONTROL   = 2'b11;
     parameter   INIT_PARAM_WIDTH   = X_NUM;
     parameter   INIT_PARAM_HEIGHT  = Y_NUM;
     parameter   INIT_PARAM_FILL    = 24'h00ff00;
@@ -138,7 +138,7 @@ module tb_video_normalizer();
     
     
     // core
-    jelly_video_normalizer
+    jelly_video_format_regularizer
             #(
                 .WB_ADR_WIDTH       (WB_ADR_WIDTH),
                 .WB_DAT_WIDTH       (WB_DAT_WIDTH),
@@ -154,13 +154,13 @@ module tb_video_normalizer();
                 .M_SLAVE_REGS       (M_SLAVE_REGS),
                 .M_MASTER_REGS      (M_MASTER_REGS),
                 
-                .INIT_CONTROL       (INIT_CONTROL),
+                .INIT_CTL_CONTROL   (INIT_CTL_CONTROL),
                 .INIT_PARAM_WIDTH   (INIT_PARAM_WIDTH),
                 .INIT_PARAM_HEIGHT  (INIT_PARAM_HEIGHT),
                 .INIT_PARAM_FILL    (INIT_PARAM_FILL),
                 .INIT_PARAM_TIMEOUT (INIT_PARAM_TIMEOUT)
             )
-        i_video_normalizer
+        i_video_format_regularizer
             (
                 .aresetn            (aresetn),
                 .aclk               (aclk),
