@@ -596,7 +596,40 @@ module jelly_axi4_dma_fifo_writer
     
     
     
-    // debug (for dimulation)
+    // ---------------------------------
+    //  debug (for dimulation)
+    // ---------------------------------
+    
+    integer total_s;
+    always @(posedge s_clk) begin
+        if ( s_reset ) begin
+            total_s <= 0;
+        end
+        else begin
+            if ( s_valid & s_ready ) begin
+                total_s <= total_s + 1;
+            end
+        end
+    end
+    
+    integer total_aw;
+    integer total_w;
+    always @(posedge aclk) begin
+        if ( ~aresetn ) begin
+            total_aw <= 0;
+            total_w  <= 0;
+        end
+        else begin
+            if ( m_axi4_awvalid & m_axi4_awready ) begin
+                total_aw <= total_aw + m_axi4_awlen + 1'b1;
+            end
+            
+            if ( m_axi4_wvalid & m_axi4_wready ) begin
+                total_w <= total_w + 'b1;
+            end
+        end
+    end
+    
     integer     total_fifo;
     always @(posedge aclk) begin
         if ( ~aresetn ) begin
@@ -605,6 +638,24 @@ module jelly_axi4_dma_fifo_writer
         else begin
             if ( fifo_valid & fifo_ready ) begin
                 total_fifo <= total_fifo + 1;
+            end
+        end
+    end
+    
+    integer total_permit;
+    integer total_complete;
+    always @(posedge aclk) begin
+        if ( ~aresetn || (!busy & update_param) ) begin
+            total_permit   <= 0;
+            total_complete <= 0;
+        end
+        else begin
+            if ( write_permit_valid ) begin
+                total_permit <= total_permit + write_permit_size + 1'b1;
+            end
+            
+            if ( write_complete_valid ) begin
+                total_complete <= total_complete + write_complete_size + 1'b1;
             end
         end
     end

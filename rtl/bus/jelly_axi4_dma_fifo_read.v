@@ -455,7 +455,52 @@ module jelly_axi4_dma_fifo_read
     assign m_axi4_rready = 1'b1;    // FIFOが開いている分しかコマンド発行しない
     
     
-    // debug (for dimulation)
+    
+    
+    
+    // ---------------------------------
+    //  debug (for dimulation)
+    // ---------------------------------
+    
+    always @(posedge aclk) begin
+        if ( aresetn ) begin
+            if ( busy & !fifo_ready ) begin
+                $display("FIFO overflow");
+                $stop();
+            end
+        end
+    end
+    
+    integer total_m;
+    always @(posedge m_clk) begin
+        if ( m_reset ) begin
+            total_m <= 0;
+        end
+        else begin
+            if ( m_valid & m_ready ) begin
+                total_m <= total_m + 1;
+            end
+        end
+    end
+    
+    integer total_ar;
+    integer total_r;
+    always @(posedge aclk) begin
+        if ( ~aresetn ) begin
+            total_ar <= 0;
+            total_r  <= 0;
+        end
+        else begin
+            if ( m_axi4_arvalid & m_axi4_arready ) begin
+                total_ar <= total_ar + m_axi4_arlen + 1'b1;
+            end
+            
+            if ( m_axi4_rvalid & m_axi4_rready ) begin
+                total_r <= total_r + 1'b1;
+            end
+        end
+    end
+    
     integer     total_fifo;
     always @(posedge aclk) begin
         if ( ~aresetn ) begin
@@ -464,6 +509,24 @@ module jelly_axi4_dma_fifo_read
         else begin
             if ( fifo_valid & fifo_ready ) begin
                 total_fifo <= total_fifo + 1;
+            end
+        end
+    end
+    
+    integer total_request;
+    integer total_complete;
+    always @(posedge aclk) begin
+        if ( ~aresetn || (!busy & update_param) ) begin
+            total_request  <= 0;
+            total_complete <= 0;
+        end
+        else begin
+            if ( read_request_valid ) begin
+                total_request <= total_request + read_request_size + 1'b1;
+            end
+            
+            if ( read_complete_valid ) begin
+                total_complete <= total_complete + read_complete_size + 1'b1;
             end
         end
     end
