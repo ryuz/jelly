@@ -263,6 +263,56 @@ int main(int argc, char *argv[])
     imx219.SetAoi(width, height, aoi_x, aoi_y, binning, binning);
     imx219.Start();
 
+#if 0
+    // normalizer start
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN, 1);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT, 100000000);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_WIDTH, width);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_HEIGHT, height);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_FILL, 0x0ff);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_TIMEOUT, 0x100000);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL, 0x03);
+
+    // FIFO
+    reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_ADDR, fifobuf_phys_adr);
+    reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_SIZE, width*height);
+    reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_AWLEN, 0x0f);
+    reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_WTIMEOUT, 0xff);
+    reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_ARLEN, 0x0f);
+    reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_RTIMEOUT, 0xff);
+
+    std::cout << reg_imgdma.ReadReg(REG_DAM_FIFO_CTL_STATUS) << std::endl;
+    reg_imgdma.WriteReg(REG_DAM_FIFO_CTL_CONTROL, 0x3);
+    std::cout << reg_imgdma.ReadReg(REG_DAM_FIFO_CTL_STATUS) << std::endl;
+    usleep(100);
+    std::cout << reg_imgdma.ReadReg(REG_DAM_FIFO_CTL_STATUS) << std::endl;
+    for ( int i = 0; i < 10; ++i ) {
+        usleep(1000);
+        std::cout << reg_imgdma.ReadReg(REG_DAM_FIFO_CTL_STATUS) << std::endl;
+    }
+
+    #if 0
+    while ( (cv::waitKey(100)&0xff) != 0x1b ) {
+            cv::Mat img(height, width, CV_8UC1);
+//            udmabuf1_acc.MemCopyTo(img.data, 0, width*height);
+            cv::imshow("img", img);
+            std::cout << reg_imgdma.ReadReg(REG_DAM_FIFO_CTL_STATUS) << std::endl;
+        }        
+    }
+#endif
+
+    // close
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL, 0x00);
+    usleep(100);
+    reg_imgdma.WriteReg(REG_DAM_FIFO_CTL_CONTROL, 0x0);
+    usleep(100);
+    imx219.Stop();
+    imx219.Close();
+    
+    return 0;
+#endif
+////////////////////////////////////////////////////////////////
+
     // start
     capture_start(reg_wdma, reg_fmtr, dmabuf_phys_adr, width, height, view_x, view_y);    
     vout_start(reg_rdma, reg_vsgen, dmabuf_phys_adr);    
@@ -409,6 +459,8 @@ int main(int argc, char *argv[])
             cv::imwrite("img_dump.png", imgRgb);
             break;
         }
+
+        std::cout << reg_imgdma.ReadReg(REG_DAM_FIFO_CTL_STATUS) << std::endl;
     }
 
     // close

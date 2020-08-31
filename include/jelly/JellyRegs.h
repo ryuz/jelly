@@ -256,6 +256,29 @@
 #define REG_IMG_AREAMASK_CURRENT_CIRCLE_Y       0xd5
 #define REG_IMG_AREAMASK_CURRENT_CIRCLE_RADIUS2 0xd6
 
+/* FIFO with DMA */
+#define REG_IMG_PREVFRM_CORE_ID                 0x00
+#define REG_IMG_PREVFRM_CORE_VERSION            0x01
+#define REG_IMG_PREVFRM_CTL_CONTROL             0x04
+#define REG_IMG_PREVFRM_CTL_STATUS              0x05
+#define REG_IMG_PREVFRM_CTL_INDEX               0x06
+#define REG_IMG_PREVFRM_PARAM_ADDR              0x08
+#define REG_IMG_PREVFRM_PARAM_SIZE              0x09
+#define REG_IMG_PREVFRM_PARAM_AWLEN             0x10
+#define REG_IMG_PREVFRM_PARAM_WSTRB             0x11
+#define REG_IMG_PREVFRM_PARAM_WTIMEOUT          0x13
+#define REG_IMG_PREVFRM_PARAM_ARLEN             0x14
+#define REG_IMG_PREVFRM_PARAM_RTIMEOUT          0x17
+#define REG_IMG_PREVFRM_PARAM_INITDATA          0x18
+#define REG_IMG_PREVFRM_CURRENT_ADDR            0x28
+#define REG_IMG_PREVFRM_CURRENT_SIZE            0x29
+#define REG_IMG_PREVFRM_CURRENT_AWLEN           0x30
+#define REG_IMG_PREVFRM_CURRENT_WSTRB           0x31
+#define REG_IMG_PREVFRM_CURRENT_WTIMEOUT        0x33
+#define REG_IMG_PREVFRM_CURRENT_ARLEN           0x34
+#define REG_IMG_PREVFRM_CURRENT_RTIMEOUT        0x37
+#define REG_IMG_PREVFRM_CURRENT_INITDATA        0x38
+
 /* image selector */
 #define REG_IMG_SELECTOR_CORE_ID                0x00
 #define REG_IMG_SELECTOR_CORE_VERSION           0x01
