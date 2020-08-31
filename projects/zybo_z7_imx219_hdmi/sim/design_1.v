@@ -315,7 +315,7 @@ module design_1
     assign m_axi4l_peri_aresetn  = ~reset;
     assign m_axi4l_peri_aclk     = clk100;
     assign s_axi4_mem_aresetn    = ~reset;
-    assign s_axi4_mem_aclk       = clk133;
+    assign s_axi4_mem_aclk       = clk200;
     
     
     
@@ -338,11 +338,11 @@ module design_1
                 .AR_FIFO_PTR_WIDTH      (4),
                 .R_FIFO_PTR_WIDTH       (4),
                 
-                .AW_BUSY_RATE           (0),
-                .W_BUSY_RATE            (0),
-                .B_BUSY_RATE            (0),
-                .AR_BUSY_RATE           (0),
-                .R_BUSY_RATE            (0)
+                .AW_BUSY_RATE           (50),
+                .W_BUSY_RATE            (50),
+                .B_BUSY_RATE            (50),
+                .AR_BUSY_RATE           (50),
+                .R_BUSY_RATE            (50)
             )
         i_axi4_slave_model_0
             (
@@ -398,8 +398,8 @@ module design_1
                 .WRITE_LOG_FILE         ("axi4_1_write.txt"),
                 .READ_LOG_FILE          ("axi4_1_read.txt"),
                 
-                .AW_DELAY               (10),
-                .AR_DELAY               (10),
+                .AW_DELAY               (100),
+                .AR_DELAY               (100),
                 
                 .AW_FIFO_PTR_WIDTH      (4),
                 .W_FIFO_PTR_WIDTH       (4),
@@ -407,11 +407,11 @@ module design_1
                 .AR_FIFO_PTR_WIDTH      (4),
                 .R_FIFO_PTR_WIDTH       (4),
                 
-                .AW_BUSY_RATE           (0),
-                .W_BUSY_RATE            (0),
-                .B_BUSY_RATE            (0),
-                .AR_BUSY_RATE           (0),
-                .R_BUSY_RATE            (0)
+                .AW_BUSY_RATE           (50),
+                .W_BUSY_RATE            (50),
+                .B_BUSY_RATE            (50),
+                .AR_BUSY_RATE           (50),
+                .R_BUSY_RATE            (50)
             )
         i_axi4_slave_model_1
             (

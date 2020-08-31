@@ -6,32 +6,22 @@
 // ---------------------------------------------------------------------------
 
 
+
 `timescale 1ns / 1ps
 `default_nettype none
 
 
-// 外部メモリをFIFO的に使う為のDMAコア
-module jelly_axi4_dma_fifo
+module jelly_img_previous_frame_core
         #(
-            parameter   CORE_ID              = 32'h527a_0140,
-            parameter   CORE_VERSION         = 32'h0000_0000,
+            parameter   USER_WIDTH           = 0,
+            parameter   DATA_SIZE            = 2,     // 0:8bit, 1:16bit, 2:32bit ...
             
-            parameter   S_ASYNC              = 1,
-            parameter   M_ASYNC              = 1,
-            parameter   UNIT_WIDTH           = 8,
-            parameter   S_DATA_SIZE          = 2,    // 0:8bit, 1:16bit, 2:32bit ...
-            parameter   M_DATA_SIZE          = 2,    // 0:8bit, 1:16bit, 2:32bit ...
-            
-            parameter   WB_ADR_WIDTH         = 8,
-            parameter   WB_DAT_SIZE          = 3,     // 0:8bit, 1:16bit, 2:32bit ...
-            parameter   WB_DAT_WIDTH         = (8 << WB_DAT_SIZE),
-            parameter   WB_SEL_WIDTH         = (WB_DAT_WIDTH / 8),
-            
+            parameter   ASYNC                = 1,
             parameter   AXI4_ID_WIDTH        = 6,
             parameter   AXI4_ADDR_WIDTH      = 49,
             parameter   AXI4_DATA_SIZE       = 2,    // 0:8bit, 1:16bit, 2:32bit ...
-            parameter   AXI4_DATA_WIDTH      = (UNIT_WIDTH << AXI4_DATA_SIZE),
-            parameter   AXI4_STRB_WIDTH      = AXI4_DATA_WIDTH / UNIT_WIDTH,
+            parameter   AXI4_DATA_WIDTH      = (8 << AXI4_DATA_SIZE),
+            parameter   AXI4_STRB_WIDTH      = AXI4_DATA_WIDTH / 8,
             parameter   AXI4_LEN_WIDTH       = 8,
             parameter   AXI4_QOS_WIDTH       = 4,
             parameter   AXI4_AWID            = {AXI4_ID_WIDTH{1'b0}},
@@ -103,39 +93,63 @@ module jelly_axi4_dma_fifo
             parameter   RDATA_FIFO_S_REGS    = 1,
             parameter   RDATA_FIFO_M_REGS    = 1,
             
+            
             // local
-            parameter   S_DATA_WIDTH         = (UNIT_WIDTH << S_DATA_SIZE),
-            parameter   M_DATA_WIDTH         = (UNIT_WIDTH << M_DATA_SIZE)
+            parameter   DATA_WIDTH           = (8 << DATA_SIZE),
+            parameter   USER_BITS            = USER_WIDTH > 1 ? USER_WIDTH : 1
         )
         (
-            // WISHBONE (register access)
-            input   wire                                s_wb_rst_i,
-            input   wire                                s_wb_clk_i,
-            input   wire    [WB_ADR_WIDTH-1:0]          s_wb_adr_i,
-            input   wire    [WB_DAT_WIDTH-1:0]          s_wb_dat_i,
-            output  wire    [WB_DAT_WIDTH-1:0]          s_wb_dat_o,
-            input   wire                                s_wb_we_i,
-            input   wire    [WB_SEL_WIDTH-1:0]          s_wb_sel_i,
-            input   wire                                s_wb_stb_i,
-            output  wire                                s_wb_ack_o,
+            input   wire                                reset,
+            input   wire                                clk,
+            input   wire                                cke,
             
-            // data stream bus slave port (write)
-            input   wire                                s_reset,
-            input   wire                                s_clk,
-            input   wire    [S_DATA_WIDTH-1:0]          s_data,
-            input   wire                                s_valid,
-            output  wire                                s_ready,
+            input   wire                                s_img_line_first,
+            input   wire                                s_img_line_last,
+            input   wire                                s_img_pixel_first,
+            input   wire                                s_img_pixel_last,
+            input   wire                                s_img_de,
+            input   wire    [USER_BITS-1:0]             s_img_user,
+            input   wire    [DATA_WIDTH-1:0]            s_img_data,
+            input   wire                                s_img_valid,
             
-            // data stream bus master port (read)
-            input   wire                                m_reset,
-            input   wire                                m_clk,
-            output  wire    [M_DATA_WIDTH-1:0]          m_data,
-            output  wire                                m_valid,
-            input   wire                                m_ready,
+            output  wire                                m_img_line_first,
+            output  wire                                m_img_line_last,
+            output  wire                                m_img_pixel_first,
+            output  wire                                m_img_pixel_last,
+            output  wire                                m_img_de,
+            output  wire    [USER_BITS-1:0]             m_img_user,
+            output  wire    [DATA_WIDTH-1:0]            m_img_data,
+            output  wire                                m_img_prev_de,
+            output  wire    [DATA_WIDTH-1:0]            m_img_prev_data,
+            output  wire                                m_img_valid,
             
-            // AXI4(memory bus)
-            input   wire                                m_axi4_aresetn,
-            input   wire                                m_axi4_aclk,
+            input   wire                                s_img_store_line_first,
+            input   wire                                s_img_store_line_last,
+            input   wire                                s_img_store_pixel_first,
+            input   wire                                s_img_store_pixel_last,
+            input   wire                                s_img_store_de,
+            input   wire    [DATA_WIDTH-1:0]            s_img_store_data,
+            input   wire                                s_img_store_valid,
+            
+            
+            input   wire                                aresetn,
+            input   wire                                aclk,
+            
+            input   wire                                enable,
+            output  wire                                busy,
+            
+            input   wire    [PARAM_ADDR_WIDTH-1:0]      param_addr,
+            input   wire    [PARAM_SIZE_WIDTH-1:0]      param_size,
+            input   wire    [PARAM_AWLEN_WIDTH-1:0]     param_awlen,
+            input   wire    [PARAM_WSTRB_WIDTH-1:0]     param_wstrb,
+            input   wire    [PARAM_WTIMEOUT_WIDTH-1:0]  param_wtimeout,
+            input   wire    [PARAM_ARLEN_WIDTH-1:0]     param_arlen,
+            input   wire    [PARAM_RTIMEOUT_WIDTH-1:0]  param_rtimeout,
+            input   wire    [DATA_WIDTH-1:0]            param_initdata,
+            
+            output  wire                                status_overflow,
+            output  wire                                status_underflow,
+            
             output  wire    [AXI4_ID_WIDTH-1:0]         m_axi4_awid,
             output  wire    [AXI4_ADDR_WIDTH-1:0]       m_axi4_awaddr,
             output  wire    [AXI4_LEN_WIDTH-1:0]        m_axi4_awlen,
@@ -174,211 +188,29 @@ module jelly_axi4_dma_fifo
             input   wire    [1:0]                       m_axi4_rresp,
             input   wire                                m_axi4_rlast,
             input   wire                                m_axi4_rvalid,
-            output  wire                                m_axi4_rready,
-            
-            output  wire                                status_enable,
-            output  wire                                status_busy
+            output  wire                                m_axi4_rready
         );
     
-    // ---------------------------------
-    //  Register
-    // ---------------------------------
     
-    wire  [AXI4_ADDR_WIDTH-1:0]   ADDR_MASK = ~((1 << AXI4_DATA_SIZE) - 1);
+    // --------------------------------
+    //  DAM
+    // --------------------------------
     
+    wire    [DATA_WIDTH-1:0]            s_data;
+    wire                                s_valid;
+    wire                                s_ready;
     
-    // register address offset
-    localparam  ADR_CORE_ID          = 8'h00;
-    localparam  ADR_CORE_VERSION     = 8'h01;
-    localparam  ADR_CTL_CONTROL      = 8'h04;
-    localparam  ADR_CTL_STATUS       = 8'h05;
-    localparam  ADR_CTL_INDEX        = 8'h06;
-    localparam  ADR_PARAM_ADDR       = 8'h08;
-    localparam  ADR_PARAM_SIZE       = 8'h09;
-    localparam  ADR_PARAM_AWLEN      = 8'h10;
-    localparam  ADR_PARAM_WSTRB      = 8'h11;
-    localparam  ADR_PARAM_WTIMEOUT   = 8'h13;
-    localparam  ADR_PARAM_ARLEN      = 8'h14;
-    localparam  ADR_PARAM_RTIMEOUT   = 8'h17;
-    localparam  ADR_CURRENT_ADDR     = 8'h28;
-    localparam  ADR_CURRENT_SIZE     = 8'h29;
-    localparam  ADR_CURRENT_AWLEN    = 8'h30;
-    localparam  ADR_CURRENT_WSTRB    = 8'h31;
-    localparam  ADR_CURRENT_WTIMEOUT = 8'h33;
-    localparam  ADR_CURRENT_ARLEN    = 8'h34;
-    localparam  ADR_CURRENT_RTIMEOUT = 8'h37;
-    
-    
-    // registers
-    reg     [1:0]                       reg_ctl_control;
-    reg     [PARAM_ADDR_WIDTH-1:0]      reg_param_addr;
-    reg     [PARAM_SIZE_WIDTH-1:0]      reg_param_size;
-    reg     [PARAM_AWLEN_WIDTH-1:0]     reg_param_awlen;
-    reg     [PARAM_WSTRB_WIDTH-1:0]     reg_param_wstrb;
-    reg     [PARAM_WTIMEOUT_WIDTH-1:0]  reg_param_wtimeout;
-    reg     [PARAM_ARLEN_WIDTH-1:0]     reg_param_arlen;
-    reg     [PARAM_RTIMEOUT_WIDTH-1:0]  reg_param_rtimeout;
-    
-    wire                                busy;
-    reg     [INDEX_WIDTH-1:0]           reg_core_index;
-    reg     [PARAM_ADDR_WIDTH-1:0]      reg_core_addr;
-    reg     [PARAM_SIZE_WIDTH-1:0]      reg_core_size;
-    reg     [PARAM_AWLEN_WIDTH-1:0]     reg_core_awlen;
-    reg     [PARAM_WSTRB_WIDTH-1:0]     reg_core_wstrb;
-    reg     [PARAM_WTIMEOUT_WIDTH-1:0]  reg_core_wtimeout;
-    reg     [PARAM_ARLEN_WIDTH-1:0]     reg_core_arlen;
-    reg     [PARAM_RTIMEOUT_WIDTH-1:0]  reg_core_rtimeout;
-    
-    
-    // async
-    (* ASYNC_REG = "true" *)    reg     ff0_busy,  ff1_busy;
-    (* ASYNC_REG = "true" *)    reg     ff0_index, ff1_index, ff2_index;
-    always @(posedge s_wb_clk_i ) begin
-        ff0_busy  <= busy;
-        ff1_busy  <= ff0_busy;
-        
-        ff0_index <= reg_core_index;
-        ff1_index <= ff0_index;
-        ff2_index <= ff1_index;
-    end
-    
-    
-    function [WB_DAT_WIDTH-1:0] reg_write(
-                                        input [WB_DAT_WIDTH-1:0] org,
-                                        input [WB_DAT_WIDTH-1:0] wdat,
-                                        input [WB_SEL_WIDTH-1:0] msk
-                                    );
-    integer i;
-    begin
-        for ( i = 0; i < WB_DAT_WIDTH; i = i+1 ) begin
-            reg_write[i] = msk[i/8] ? wdat[i] : org[i];
-        end
-    end
-    endfunction
-    
-    always @(posedge s_wb_clk_i ) begin
-        if ( s_wb_rst_i ) begin
-            reg_ctl_control    <= INIT_CTL_CONTROL;
-            reg_param_addr     <= INIT_PARAM_ADDR;
-            reg_param_size     <= INIT_PARAM_SIZE;
-            reg_param_awlen    <= INIT_PARAM_AWLEN;
-            reg_param_wstrb    <= INIT_PARAM_WSTRB;
-            reg_param_wtimeout <= INIT_PARAM_WTIMEOUT;
-            reg_param_arlen    <= INIT_PARAM_ARLEN;
-            reg_param_rtimeout <= INIT_PARAM_RTIMEOUT;
-        end
-        else begin
-            // register write
-            if ( s_wb_stb_i && s_wb_we_i ) begin
-                case ( s_wb_adr_i )
-                ADR_CTL_CONTROL:    reg_ctl_control    <= reg_write(reg_ctl_control,    s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_ADDR:     reg_param_addr     <= reg_write(reg_param_addr,     s_wb_dat_i, s_wb_sel_i) & ADDR_MASK;
-                ADR_PARAM_SIZE:     reg_param_size     <= reg_write(reg_param_size,     s_wb_dat_i, s_wb_sel_i) & ADDR_MASK;
-                ADR_PARAM_AWLEN:    reg_param_awlen    <= reg_write(reg_param_awlen,    s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_WSTRB:    reg_param_wstrb    <= reg_write(reg_param_wstrb,    s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_WTIMEOUT: reg_param_wtimeout <= reg_write(reg_param_wtimeout, s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_ARLEN:    reg_param_arlen    <= reg_write(reg_param_arlen,    s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_RTIMEOUT: reg_param_rtimeout <= reg_write(reg_param_rtimeout, s_wb_dat_i, s_wb_sel_i);
-                endcase
-            end
-            
-            // update
-            if ( ff1_index != ff2_index ) begin
-                // update flag auto clear
-                reg_ctl_control[1] <= 1'b0;
-                
-                // auto stop
-       //       if ( reg_ctl_control[2] ) begin
-       //           reg_ctl_control[0] <= 1'b0;
-       //           reg_ctl_control[2] <= 1'b0;
-       //       end
-            end
-        end
-    end
-    
-    // register read
-    assign s_wb_dat_o = (s_wb_adr_i == ADR_CORE_ID)          ? CORE_ID            :
-                        (s_wb_adr_i == ADR_CORE_VERSION)     ? CORE_VERSION       :
-                        (s_wb_adr_i == ADR_CTL_CONTROL)      ? reg_ctl_control    :
-                        (s_wb_adr_i == ADR_CTL_STATUS)       ? ff1_busy           :
-                        (s_wb_adr_i == ADR_CTL_INDEX)        ? ff2_index          :
-                        (s_wb_adr_i == ADR_PARAM_ADDR)       ? reg_param_addr     :
-                        (s_wb_adr_i == ADR_PARAM_SIZE)       ? reg_param_size     :
-                        (s_wb_adr_i == ADR_PARAM_AWLEN)      ? reg_param_awlen    :
-                        (s_wb_adr_i == ADR_PARAM_WSTRB)      ? reg_param_wstrb    :
-                        (s_wb_adr_i == ADR_PARAM_WTIMEOUT)   ? reg_param_wtimeout :
-                        (s_wb_adr_i == ADR_PARAM_ARLEN)      ? reg_param_arlen    :
-                        (s_wb_adr_i == ADR_PARAM_RTIMEOUT)   ? reg_param_rtimeout :
-                        (s_wb_adr_i == ADR_CURRENT_ADDR)     ? reg_param_addr     :
-                        (s_wb_adr_i == ADR_CURRENT_SIZE)     ? reg_core_size      :
-                        (s_wb_adr_i == ADR_CURRENT_AWLEN)    ? reg_core_awlen     :
-                        (s_wb_adr_i == ADR_CURRENT_WSTRB)    ? reg_core_wstrb     :
-                        (s_wb_adr_i == ADR_CURRENT_WTIMEOUT) ? reg_core_wtimeout  :
-                        (s_wb_adr_i == ADR_CURRENT_ARLEN)    ? reg_core_arlen     :
-                        (s_wb_adr_i == ADR_CURRENT_RTIMEOUT) ? reg_core_rtimeout  :
-                        {WB_DAT_WIDTH{1'b0}};
-    
-    assign s_wb_ack_o = s_wb_stb_i;
-    
-    
-    
-    
-    // ---------------------------------
-    //  core domain
-    // ---------------------------------
-    
-    
-    (* ASYNC_REG = "true" *)    reg     [1:0]   ff0_ctl_control, ff1_ctl_control;
-    always @(posedge m_axi4_aclk) begin
-        if ( ~m_axi4_aresetn ) begin
-            ff0_ctl_control <= 2'b00;
-            ff1_ctl_control <= 2'b00;
-        end
-        else begin
-            ff0_ctl_control <= reg_ctl_control;
-            ff1_ctl_control <= ff0_ctl_control;
-        end
-    end
-    
-    reg                 reg_enable;
-    
-    always @(posedge m_axi4_aclk) begin
-        if ( ~m_axi4_aresetn ) begin
-            reg_enable        <= 1'b0;
-            
-            reg_core_addr     <= INIT_PARAM_ADDR;
-            reg_core_size     <= INIT_PARAM_SIZE;
-            reg_core_awlen    <= INIT_PARAM_AWLEN;
-            reg_core_wstrb    <= INIT_PARAM_WSTRB;
-            reg_core_wtimeout <= INIT_PARAM_WTIMEOUT;
-            reg_core_arlen    <= INIT_PARAM_ARLEN;
-            reg_core_rtimeout <= INIT_PARAM_WTIMEOUT;
-        end
-        else begin
-            reg_enable <= ff1_ctl_control[0];
-            
-            if ( !busy && ff1_ctl_control[1] ) begin
-                reg_core_index    <= reg_core_index + 1'b1;
-                
-                reg_core_addr     <= reg_param_addr;
-                reg_core_size     <= reg_param_size;
-                reg_core_awlen    <= reg_param_awlen;
-                reg_core_wstrb    <= reg_param_wstrb;
-                reg_core_wtimeout <= reg_param_wtimeout;
-                reg_core_arlen    <= reg_param_arlen;
-                reg_core_rtimeout <= reg_param_rtimeout;
-            end
-        end
-    end
-    
+    wire    [DATA_WIDTH-1:0]            m_data;
+    wire                                m_valid;
+    wire                                m_ready;
     
     jelly_axi4_dma_fifo_core
             #(
-                .S_ASYNC                (S_ASYNC),
-                .M_ASYNC                (M_ASYNC),
-                .UNIT_WIDTH             (UNIT_WIDTH),
-                .S_DATA_SIZE            (S_DATA_SIZE),
-                .M_DATA_SIZE            (M_DATA_SIZE),
+                .S_ASYNC                (ASYNC),
+                .M_ASYNC                (ASYNC),
+                .UNIT_WIDTH             (8),
+                .S_DATA_SIZE            (DATA_SIZE),
+                .M_DATA_SIZE            (DATA_SIZE),
                 
                 .AXI4_ID_WIDTH          (AXI4_ID_WIDTH),
                 .AXI4_ADDR_WIDTH        (AXI4_ADDR_WIDTH),
@@ -447,29 +279,29 @@ module jelly_axi4_dma_fifo
             )
         i_axi4_dma_fifo_core
             (
-                .aresetn                (m_axi4_aresetn),
-                .aclk                   (m_axi4_aclk),
+                .aresetn                (aresetn),
+                .aclk                   (aclk),
                 
-                .enable                 (reg_enable),
+                .enable                 (enable),
                 .busy                   (busy),
                 
-                .param_addr             (reg_core_addr),
-                .param_size             (reg_core_size),
-                .param_awlen            (reg_core_awlen),
-                .param_wstrb            (reg_core_wstrb),
-                .param_wtimeout         (reg_core_wtimeout),
-                .param_arlen            (reg_core_arlen),
-                .param_rtimeout         (reg_core_rtimeout),
+                .param_addr             (param_addr),
+                .param_size             (param_size),
+                .param_awlen            (param_awlen),
+                .param_wstrb            (param_wstrb),
+                .param_wtimeout         (param_wtimeout),
+                .param_arlen            (param_arlen),
+                .param_rtimeout         (param_rtimeout),
                 
-                .s_reset                (s_reset),
-                .s_clk                  (s_clk),
+                .s_reset                (reset),
+                .s_clk                  (clk),
                 .s_data                 (s_data ),
                 .s_valid                (s_valid),
                 .s_ready                (s_ready),
                 
-                .m_reset                (m_reset),
-                .m_clk                  (m_clk),
-                .m_data                 (m_data ),
+                .m_reset                (reset),
+                .m_clk                  (clk),
+                .m_data                 (m_data),
                 .m_valid                (m_valid),
                 .m_ready                (m_ready),
                 
@@ -514,8 +346,191 @@ module jelly_axi4_dma_fifo
                 .m_axi4_rready          (m_axi4_rready)
             );
     
-    assign status_enable = reg_enable;
-    assign status_busy   = busy;
+    
+    
+    // --------------------------------
+    //  control
+    // --------------------------------
+    
+    (* ASYNC_REG = "true" *)   reg     ff0_enable, ff1_enable;
+    (* ASYNC_REG = "true" *)   reg     ff0_busy,   ff1_busy;
+    
+    always @(posedge clk) begin
+        ff0_enable <= enable;
+        ff1_enable <= ff0_enable;
+        
+        ff0_busy   <= busy;
+        ff1_busy   <= ff0_busy;
+    end
+    
+    
+    wire   overflow  = s_valid & !s_ready;
+    wire   underflow = m_ready & !m_valid;
+    
+    reg     reg_overflow;
+    reg     reg_underflow;
+    always @(posedge clk) begin
+        if ( reset ) begin
+            reg_overflow  <= 1'b0;
+            reg_underflow <= 1'b0;
+        end
+        else begin
+            if ( !ff1_enable && !ff1_busy ) begin
+                reg_overflow  <= 1'b0;
+                reg_underflow <= 1'b0;
+            end
+            else begin
+                if ( overflow ) begin
+                    reg_overflow  <= 1'b1;
+                end
+                
+                if ( underflow ) begin
+                    reg_underflow  <= 1'b1;
+                end
+            end
+        end
+    end
+    
+    assign status_overflow  = reg_overflow;
+    assign status_underflow = reg_underflow;
+    
+    
+    reg                             st0_line_first;
+    reg                             st0_line_last;
+    reg                             st0_pixel_first;
+    reg                             st0_pixel_last;
+    reg                             st0_de;
+    reg     [USER_BITS-1:0]         st0_user;
+    reg     [DATA_WIDTH-1:0]        st0_data;
+    reg                             st0_read_enable;
+    reg                             st0_valid;
+    
+    reg                             st1_line_first;
+    reg                             st1_line_last;
+    reg                             st1_pixel_first;
+    reg                             st1_pixel_last;
+    reg                             st1_de;
+    reg     [USER_BITS-1:0]         st1_user;
+    reg     [DATA_WIDTH-1:0]        st1_data;
+    reg                             st1_read_ready;
+    reg                             st1_valid;
+    
+    reg                             st2_line_first;
+    reg                             st2_line_last;
+    reg                             st2_pixel_first;
+    reg                             st2_pixel_last;
+    reg                             st2_de;
+    reg     [USER_BITS-1:0]         st2_user;
+    reg     [DATA_WIDTH-1:0]        st2_data;
+    reg                             st2_prev_de;
+    reg     [DATA_WIDTH-1:0]        st2_prev_data;
+    reg                             st2_valid;
+    
+    always @(posedge clk) begin
+        if ( reset ) begin
+            st0_line_first  <= 1'bx;
+            st0_line_last   <= 1'bx;
+            st0_pixel_first <= 1'bx;
+            st0_pixel_last  <= 1'bx;
+            st0_de          <= 1'bx;
+            st0_user        <= 1'bx;
+            st0_data        <= {DATA_WIDTH{1'bx}};
+            st0_read_enable <= 1'b0;
+            st0_valid       <= 1'b0;
+            
+            st1_line_first  <= 1'bx;
+            st1_line_last   <= 1'bx;
+            st1_pixel_first <= 1'bx;
+            st1_pixel_last  <= 1'bx;
+            st1_de          <= 1'bx;
+            st1_user        <= 1'bx;
+            st1_data        <= {DATA_WIDTH{1'bx}};
+            st1_read_ready  <= 1'b0;
+            st1_valid       <= 1'b0;
+            
+            st2_line_first  <= 1'bx;
+            st2_line_last   <= 1'bx;
+            st2_pixel_first <= 1'bx;
+            st2_pixel_last  <= 1'bx;
+            st2_de          <= 1'bx;
+            st2_user        <= 1'bx;
+            st2_data        <= {DATA_WIDTH{1'bx}};
+            st2_prev_de     <= 1'bx;
+            st2_prev_data   <= {DATA_WIDTH{1'bx}};
+            st2_valid       <= 1'b0;
+        end
+        else if ( cke ) begin
+            st0_line_first  <= s_img_line_first;
+            st0_line_last   <= s_img_line_last;
+            st0_pixel_first <= s_img_pixel_first;
+            st0_pixel_last  <= s_img_pixel_last;
+            st0_de          <= s_img_de;
+            st0_user        <= s_img_user;
+            st0_data        <= s_img_data;
+            st0_valid       <= s_img_valid;
+            if ( s_img_valid & s_img_line_first & s_img_pixel_first ) begin
+                st0_read_enable <= m_valid;
+            end
+            
+            st1_line_first  <= st0_line_first;
+            st1_line_last   <= st0_line_last;
+            st1_pixel_first <= st0_pixel_first;
+            st1_pixel_last  <= st0_pixel_last;
+            st1_de          <= st0_de;
+            st1_user        <= st0_user;
+            st1_data        <= st0_data;
+            st1_valid       <= st0_valid;
+            st1_read_ready  <= st0_valid & st0_read_enable & st0_de;
+            
+            st2_line_first  <= st1_line_first;
+            st2_line_last   <= st1_line_last;
+            st2_pixel_first <= st1_pixel_first;
+            st2_pixel_last  <= st1_pixel_last;
+            st2_de          <= st1_de;
+            st2_user        <= st1_user;
+            st2_data        <= st1_data;
+            st2_prev_de     <= (m_valid & m_ready);
+            st2_prev_data   <= (m_valid & m_ready) ? m_data : param_initdata;
+            st2_valid       <= st1_valid;
+        end
+    end
+    
+    assign m_ready = (cke & st1_read_ready) | ~ff1_enable;
+    
+    assign m_img_line_first  = st2_line_first;
+    assign m_img_line_last   = st2_line_last;
+    assign m_img_pixel_first = st2_pixel_first;
+    assign m_img_pixel_last  = st2_pixel_last;
+    assign m_img_de          = st2_de;
+    assign m_img_user        = st2_user;
+    assign m_img_data        = st2_data;
+    assign m_img_prev_de     = st2_prev_de;
+    assign m_img_prev_data   = st2_prev_data;
+    assign m_img_valid       = st2_valid;
+    
+    
+    // write
+    reg                         reg_write_enable;
+    reg                         reg_write_de;
+    reg     [DATA_WIDTH-1:0]    reg_write_data;
+    
+    always @(posedge clk) begin
+        if ( reset ) begin
+            reg_write_enable <= 1'b0;
+            reg_write_de   <= 1'bx;
+            reg_write_data <= {DATA_WIDTH{1'bx}};
+        end
+        if ( cke ) begin
+            if ( s_img_store_valid & s_img_store_line_first & s_img_store_pixel_first ) begin
+                reg_write_enable <= ff1_busy;
+            end
+            reg_write_de   <= s_img_store_valid & s_img_store_de;
+            reg_write_data <= s_img_store_data;
+        end
+    end
+    
+    assign s_data  = reg_write_data;
+    assign s_valid = reg_write_enable & reg_write_de & cke;
     
     
 endmodule

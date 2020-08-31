@@ -3,34 +3,32 @@
 `default_nettype none
 
 
-module tb_axi4_dma_fifo();
-    localparam S_RATE    = 1000.0 / 80.3;
-    localparam M_RATE    = 1000.0 / 95.7;
+module tb_img_previous_frame();
+    localparam RATE      = 1000.0 / 200.3;
     localparam WB_RATE   = 1000.0 / 100.1;
-    localparam AXI4_RATE = 1000.0 / 153.3;
+    localparam AXI4_RATE = 1000.0 / 133.3;
     
     
     initial begin
-        $dumpfile("tb_axi4_dma_fifo.vcd");
-        $dumpvars(0, tb_axi4_dma_fifo);
+        $dumpfile("tb_img_previous_frame.vcd");
+        $dumpvars(0, tb_img_previous_frame);
         
         #1000000;
             $finish;
     end
     
-    reg     s_reset = 1'b1;
-    initial #(S_RATE*100)       s_reset = 1'b0;
     
-    reg     s_clk = 1'b1;
-    always #(S_RATE/2.0)        s_clk = ~s_clk;
+    localparam  RAND_BUSY = 1;
     
     
-    reg     m_reset = 1'b1;
-    initial #(M_RATE*100)       m_reset = 1'b0;
+    reg     reset = 1'b1;
+    initial #(RATE*100)         reset = 1'b0;
     
-    reg     m_clk = 1'b1;
-    always #(M_RATE/2.0)        m_clk = ~m_clk;
+    reg     clk = 1'b1;
+    always #(RATE/2.0)          clk = ~clk;
     
+    reg     cke = 1'b1;
+    always @(posedge clk)       cke <= RAND_BUSY ? {$random()} : 1'b1;
     
     reg     wb_rst_i = 1'b1;
     initial #(WB_RATE*100)      wb_rst_i = 1'b0;
@@ -47,24 +45,23 @@ module tb_axi4_dma_fifo();
     
     
     
-    localparam  RAND_BUSY = 1;
-    
     
     // -----------------------------------------
     //  Core
     // -----------------------------------------
     
-    parameter   UNIT_WIDTH               = 8;
-    parameter   S_ASYNC                  = 1;
-    parameter   M_ASYNC                  = 1;
-    parameter   S_DATA_SIZE              = 2;    // 0:8bit, 1:16bit, 2:32bit ...
-    parameter   M_DATA_SIZE              = 2;    // 0:8bit, 1:16bit, 2:32bit ...
+    parameter   USER_WIDTH               = Y_WIDTH+X_WIDTH;
+    parameter   USER_BITS                = USER_WIDTH > 1 ? USER_WIDTH : 1;
+    
+    parameter   DATA_SIZE                = 0;    // 0:8bit, 1:16bit, 2:32bit ...
+    parameter   DATA_WIDTH               = (8 << DATA_SIZE);
     
     parameter   WB_ADR_WIDTH             = 8;
     parameter   WB_DAT_SIZE              = 3;     // 0:8bit, 1:16bit, 2:32bit ...
     parameter   WB_DAT_WIDTH             = (8 << WB_DAT_SIZE);
     parameter   WB_SEL_WIDTH             = (WB_DAT_WIDTH / 8);
     
+    parameter   ASYNC                    = 1;
     parameter   AXI4_ID_WIDTH            = 6;
     parameter   AXI4_ADDR_WIDTH          = 32;
     parameter   AXI4_DATA_SIZE           = 3;   // 0:8bit, 1:16bit, 2:32bit ...
@@ -140,9 +137,83 @@ module tb_axi4_dma_fifo();
     parameter   RDATA_FIFO_M_REGS        = 1;
     
     
-    parameter   S_DATA_WIDTH             = (UNIT_WIDTH << S_DATA_SIZE);
-    parameter   M_DATA_WIDTH             = (UNIT_WIDTH << M_DATA_SIZE);
+    // model
+    parameter   X_NUM                    = 128;
+    parameter   Y_NUM                    = 48;
+    parameter   X_WIDTH                  = 32;
+    parameter   Y_WIDTH                  = 32;
     
+    wire                        img_src_line_first;
+    wire                        img_src_line_last;
+    wire                        img_src_pixel_first;
+    wire                        img_src_pixel_last;
+    wire                        img_src_de;
+    wire    [DATA_WIDTH-1:0]    img_src_data;
+    wire    [X_WIDTH-1:0]       img_src_x;
+    wire    [Y_WIDTH-1:0]       img_src_y;
+    wire                        img_src_valid;
+    jelly_img_master_model
+            #(
+                .DATA_WIDTH         (DATA_WIDTH),
+                .X_NUM              (X_NUM),
+                .Y_NUM              (Y_NUM),
+                .X_BLANK            (0),     // 基本ゼロ
+                .Y_BLANK            (2),     // 末尾にde落ちラインを追加
+                .X_WIDTH            (32),
+                .Y_WIDTH            (32),
+                .PGM_FILE           (""),
+                .PPM_FILE           (""),
+                .SEQUENTIAL_FILE    (0),
+                .DIGIT_NUM          (4),
+                .DIGIT_POS          (4),
+                .MAX_PATH           (64)
+            )
+        i_img_master_model
+            (
+                .reset              (reset),
+                .clk                (clk),
+                .cke                (cke),
+                                     
+                .m_img_line_first   (img_src_line_first),
+                .m_img_line_last    (img_src_line_last),
+                .m_img_pixel_first  (img_src_pixel_first),
+                .m_img_pixel_last   (img_src_pixel_last),
+                .m_img_de           (img_src_de),
+                .m_img_data         (img_src_data),
+                .m_img_x            (img_src_x),
+                .m_img_y            (img_src_y),
+                .m_img_valid        (img_src_valid)
+            );
+    
+    
+    
+    wire                                    s_img_line_first  = img_src_line_first;
+    wire                                    s_img_line_last   = img_src_line_last;
+    wire                                    s_img_pixel_first = img_src_pixel_first;
+    wire                                    s_img_pixel_last  = img_src_pixel_last;
+    wire                                    s_img_de          = img_src_de;
+    wire    [USER_BITS-1:0]                 s_img_user        = {img_src_y, img_src_x};
+    wire    [DATA_WIDTH-1:0]                s_img_data        = img_src_data;
+    wire                                    s_img_valid       = img_src_valid;
+    
+    wire                                    m_img_line_first;
+    wire                                    m_img_line_last;
+    wire                                    m_img_pixel_first;
+    wire                                    m_img_pixel_last;
+    wire                                    m_img_de;
+    wire    [USER_BITS-1:0]                 m_img_user;
+    wire    [DATA_WIDTH-1:0]                m_img_data;
+    wire                                    m_img_prev_de;
+    wire    [DATA_WIDTH-1:0]                m_img_prev_data;
+    wire                                    m_img_valid;
+    
+    wire                                    s_img_store_line_first  = img_src_line_first;
+    wire                                    s_img_store_line_last   = img_src_line_last;
+    wire                                    s_img_store_pixel_first = img_src_pixel_first;
+    wire                                    s_img_store_pixel_last  = img_src_pixel_last;
+    wire                                    s_img_store_de          = img_src_de;
+    wire    [DATA_WIDTH-1:0]                s_img_store_data        = img_src_data;
+    wire                                    s_img_store_valid       = img_src_valid;
     
     wire    [WB_ADR_WIDTH-1:0]              s_wb_adr_i;
     wire    [WB_DAT_WIDTH-1:0]              s_wb_dat_i;
@@ -151,14 +222,6 @@ module tb_axi4_dma_fifo();
     wire    [WB_SEL_WIDTH-1:0]              s_wb_sel_i;
     wire                                    s_wb_stb_i;
     wire                                    s_wb_ack_o;
-    
-    reg     [S_DATA_WIDTH-1:0]              s_data;
-    reg                                     s_valid;
-    wire                                    s_ready;
-    
-    wire    [M_DATA_WIDTH-1:0]              m_data;
-    wire                                    m_valid;
-    reg                                     m_ready;
     
     wire    [AXI4_ID_WIDTH-1:0]             m_axi4_awid;
     wire    [AXI4_ADDR_WIDTH-1:0]           m_axi4_awaddr;
@@ -200,193 +263,167 @@ module tb_axi4_dma_fifo();
     wire                                    m_axi4_rvalid;
     wire                                    m_axi4_rready;
     
-    jelly_axi4_dma_fifo
+    jelly_img_previous_frame
             #(
-                .S_ASYNC                (S_ASYNC),
-                .M_ASYNC                (M_ASYNC),
-                .UNIT_WIDTH             (UNIT_WIDTH),
-                .S_DATA_SIZE            (S_DATA_SIZE),
-                .M_DATA_SIZE            (M_DATA_SIZE),
+                .USER_WIDTH                 (USER_WIDTH),
+                .DATA_SIZE                  (DATA_SIZE),     // 0:8bit, 1:16bit, 2:32bit ...
                 
-                .AXI4_ID_WIDTH          (AXI4_ID_WIDTH),
-                .AXI4_ADDR_WIDTH        (AXI4_ADDR_WIDTH),
-                .AXI4_DATA_SIZE         (AXI4_DATA_SIZE),
-                .AXI4_DATA_WIDTH        (AXI4_DATA_WIDTH),
-                .AXI4_STRB_WIDTH        (AXI4_STRB_WIDTH),
-                .AXI4_LEN_WIDTH         (AXI4_LEN_WIDTH),
-                .AXI4_QOS_WIDTH         (AXI4_QOS_WIDTH),
-                .AXI4_AWID              (AXI4_AWID),
-                .AXI4_AWSIZE            (AXI4_AWSIZE),
-                .AXI4_AWBURST           (AXI4_AWBURST),
-                .AXI4_AWLOCK            (AXI4_AWLOCK),
-                .AXI4_AWCACHE           (AXI4_AWCACHE),
-                .AXI4_AWPROT            (AXI4_AWPROT),
-                .AXI4_AWQOS             (AXI4_AWQOS),
-                .AXI4_AWREGION          (AXI4_AWREGION),
-                .AXI4_ARID              (AXI4_ARID),
-                .AXI4_ARSIZE            (AXI4_ARSIZE),
-                .AXI4_ARBURST           (AXI4_ARBURST),
-                .AXI4_ARLOCK            (AXI4_ARLOCK),
-                .AXI4_ARCACHE           (AXI4_ARCACHE),
-                .AXI4_ARPROT            (AXI4_ARPROT),
-                .AXI4_ARQOS             (AXI4_ARQOS),
-                .AXI4_ARREGION          (AXI4_ARREGION),
+                .WB_ADR_WIDTH               (WB_ADR_WIDTH),
+                .WB_DAT_SIZE                (WB_DAT_SIZE),     // 0:8bit, 1:16bit, 2:32bit ...
                 
-                .BYPASS_ADDR_OFFSET     (BYPASS_ADDR_OFFSET),
-                .BYPASS_ALIGN           (BYPASS_ALIGN),
-                .AXI4_ALIGN             (AXI4_ALIGN),
+                .ASYNC                      (ASYNC),
+                .AXI4_ID_WIDTH              (AXI4_ID_WIDTH),
+                .AXI4_ADDR_WIDTH            (AXI4_ADDR_WIDTH),
+                .AXI4_DATA_SIZE             (AXI4_DATA_SIZE),
+                .AXI4_DATA_WIDTH            (AXI4_DATA_WIDTH),
+                .AXI4_STRB_WIDTH            (AXI4_STRB_WIDTH),
+                .AXI4_LEN_WIDTH             (AXI4_LEN_WIDTH),
+                .AXI4_QOS_WIDTH             (AXI4_QOS_WIDTH),
+                .AXI4_AWID                  (AXI4_AWID),
+                .AXI4_AWSIZE                (AXI4_AWSIZE),
+                .AXI4_AWBURST               (AXI4_AWBURST),
+                .AXI4_AWLOCK                (AXI4_AWLOCK),
+                .AXI4_AWCACHE               (AXI4_AWCACHE),
+                .AXI4_AWPROT                (AXI4_AWPROT),
+                .AXI4_AWQOS                 (AXI4_AWQOS),
+                .AXI4_AWREGION              (AXI4_AWREGION),
+                .AXI4_ARID                  (AXI4_ARID),
+                .AXI4_ARSIZE                (AXI4_ARSIZE),
+                .AXI4_ARBURST               (AXI4_ARBURST),
+                .AXI4_ARLOCK                (AXI4_ARLOCK),
+                .AXI4_ARCACHE               (AXI4_ARCACHE),
+                .AXI4_ARPROT                (AXI4_ARPROT),
+                .AXI4_ARQOS                 (AXI4_ARQOS),
+                .AXI4_ARREGION              (AXI4_ARREGION),
                 
-                .PARAM_ADDR_WIDTH       (PARAM_ADDR_WIDTH),
-                .PARAM_SIZE_WIDTH       (PARAM_SIZE_WIDTH),
-                .PARAM_SIZE_OFFSET      (PARAM_SIZE_OFFSET),
-                .PARAM_AWLEN_WIDTH      (PARAM_AWLEN_WIDTH),
-                .PARAM_WSTRB_WIDTH      (PARAM_WSTRB_WIDTH),
-                .PARAM_WTIMEOUT_WIDTH   (PARAM_WTIMEOUT_WIDTH),
-                .PARAM_ARLEN_WIDTH      (PARAM_ARLEN_WIDTH),
-                .PARAM_RTIMEOUT_WIDTH   (PARAM_RTIMEOUT_WIDTH),
+                .BYPASS_ADDR_OFFSET         (BYPASS_ADDR_OFFSET),
+                .BYPASS_ALIGN               (BYPASS_ALIGN),
+                .AXI4_ALIGN                 (AXI4_ALIGN),
                 
-                .WDATA_FIFO_PTR_WIDTH   (WDATA_FIFO_PTR_WIDTH),
-                .WDATA_FIFO_RAM_TYPE    (WDATA_FIFO_RAM_TYPE),
-                .WDATA_FIFO_LOW_DEALY   (WDATA_FIFO_LOW_DEALY),
-                .WDATA_FIFO_DOUT_REGS   (WDATA_FIFO_DOUT_REGS),
-                .WDATA_FIFO_S_REGS      (WDATA_FIFO_S_REGS),
-                .WDATA_FIFO_M_REGS      (WDATA_FIFO_M_REGS),
+                .PARAM_ADDR_WIDTH           (PARAM_ADDR_WIDTH),
+                .PARAM_SIZE_WIDTH           (PARAM_SIZE_WIDTH),
+                .PARAM_SIZE_OFFSET          (PARAM_SIZE_OFFSET),
+                .PARAM_AWLEN_WIDTH          (PARAM_AWLEN_WIDTH),
+                .PARAM_WSTRB_WIDTH          (PARAM_WSTRB_WIDTH),
+                .PARAM_WTIMEOUT_WIDTH       (PARAM_WTIMEOUT_WIDTH),
+                .PARAM_ARLEN_WIDTH          (PARAM_ARLEN_WIDTH),
+                .PARAM_RTIMEOUT_WIDTH       (PARAM_RTIMEOUT_WIDTH),
                 
-                .AWLEN_FIFO_PTR_WIDTH   (AWLEN_FIFO_PTR_WIDTH),
-                .AWLEN_FIFO_RAM_TYPE    (AWLEN_FIFO_RAM_TYPE),
-                .AWLEN_FIFO_LOW_DEALY   (AWLEN_FIFO_LOW_DEALY),
-                .AWLEN_FIFO_DOUT_REGS   (AWLEN_FIFO_DOUT_REGS),
-                .AWLEN_FIFO_S_REGS      (AWLEN_FIFO_S_REGS),
-                .AWLEN_FIFO_M_REGS      (AWLEN_FIFO_M_REGS),
+                .WDATA_FIFO_PTR_WIDTH       (WDATA_FIFO_PTR_WIDTH),
+                .WDATA_FIFO_RAM_TYPE        (WDATA_FIFO_RAM_TYPE),
+                .WDATA_FIFO_LOW_DEALY       (WDATA_FIFO_LOW_DEALY),
+                .WDATA_FIFO_DOUT_REGS       (WDATA_FIFO_DOUT_REGS),
+                .WDATA_FIFO_S_REGS          (WDATA_FIFO_S_REGS),
+                .WDATA_FIFO_M_REGS          (WDATA_FIFO_M_REGS),
                 
-                .BLEN_FIFO_PTR_WIDTH    (BLEN_FIFO_PTR_WIDTH),
-                .BLEN_FIFO_RAM_TYPE     (BLEN_FIFO_RAM_TYPE),
-                .BLEN_FIFO_LOW_DEALY    (BLEN_FIFO_LOW_DEALY),
-                .BLEN_FIFO_DOUT_REGS    (BLEN_FIFO_DOUT_REGS),
-                .BLEN_FIFO_S_REGS       (BLEN_FIFO_S_REGS),
-                .BLEN_FIFO_M_REGS       (BLEN_FIFO_M_REGS),
-                                         
-                .RDATA_FIFO_PTR_WIDTH   (RDATA_FIFO_PTR_WIDTH),
-                .RDATA_FIFO_RAM_TYPE    (RDATA_FIFO_RAM_TYPE),
-                .RDATA_FIFO_LOW_DEALY   (RDATA_FIFO_LOW_DEALY),
-                .RDATA_FIFO_DOUT_REGS   (RDATA_FIFO_DOUT_REGS),
-                .RDATA_FIFO_S_REGS      (RDATA_FIFO_S_REGS),
-                .RDATA_FIFO_M_REGS      (RDATA_FIFO_M_REGS)
+                .AWLEN_FIFO_PTR_WIDTH       (AWLEN_FIFO_PTR_WIDTH),
+                .AWLEN_FIFO_RAM_TYPE        (AWLEN_FIFO_RAM_TYPE),
+                .AWLEN_FIFO_LOW_DEALY       (AWLEN_FIFO_LOW_DEALY),
+                .AWLEN_FIFO_DOUT_REGS       (AWLEN_FIFO_DOUT_REGS),
+                .AWLEN_FIFO_S_REGS          (AWLEN_FIFO_S_REGS),
+                .AWLEN_FIFO_M_REGS          (AWLEN_FIFO_M_REGS),
+                
+                .BLEN_FIFO_PTR_WIDTH        (BLEN_FIFO_PTR_WIDTH),
+                .BLEN_FIFO_RAM_TYPE         (BLEN_FIFO_RAM_TYPE),
+                .BLEN_FIFO_LOW_DEALY        (BLEN_FIFO_LOW_DEALY),
+                .BLEN_FIFO_DOUT_REGS        (BLEN_FIFO_DOUT_REGS),
+                .BLEN_FIFO_S_REGS           (BLEN_FIFO_S_REGS),
+                .BLEN_FIFO_M_REGS           (BLEN_FIFO_M_REGS),
+                                             
+                .RDATA_FIFO_PTR_WIDTH       (RDATA_FIFO_PTR_WIDTH),
+                .RDATA_FIFO_RAM_TYPE        (RDATA_FIFO_RAM_TYPE),
+                .RDATA_FIFO_LOW_DEALY       (RDATA_FIFO_LOW_DEALY),
+                .RDATA_FIFO_DOUT_REGS       (RDATA_FIFO_DOUT_REGS),
+                .RDATA_FIFO_S_REGS          (RDATA_FIFO_S_REGS),
+                .RDATA_FIFO_M_REGS          (RDATA_FIFO_M_REGS)
             )
-        i_axi4_dma_fifo
+        i_img_previous_frame
             (
-                .s_wb_rst_i             (wb_rst_i),
-                .s_wb_clk_i             (wb_clk_i),
-                .s_wb_adr_i             (s_wb_adr_i),
-                .s_wb_dat_i             (s_wb_dat_i),
-                .s_wb_dat_o             (s_wb_dat_o),
-                .s_wb_we_i              (s_wb_we_i),
-                .s_wb_sel_i             (s_wb_sel_i),
-                .s_wb_stb_i             (s_wb_stb_i),
-                .s_wb_ack_o             (s_wb_ack_o),
+                .reset                      (reset),
+                .clk                        (clk),
+                .cke                        (cke),
+                                             
+                .s_img_line_first           (s_img_line_first),
+                .s_img_line_last            (s_img_line_last),
+                .s_img_pixel_first          (s_img_pixel_first),
+                .s_img_pixel_last           (s_img_pixel_last),
+                .s_img_de                   (s_img_de),
+                .s_img_user                 (s_img_user),
+                .s_img_data                 (s_img_data),
+                .s_img_valid                (s_img_valid),
+                                             
+                .m_img_line_first           (m_img_line_first),
+                .m_img_line_last            (m_img_line_last),
+                .m_img_pixel_first          (m_img_pixel_first),
+                .m_img_pixel_last           (m_img_pixel_last),
+                .m_img_de                   (m_img_de),
+                .m_img_user                 (m_img_user),
+                .m_img_data                 (m_img_data),
+                .m_img_prev_de              (m_img_prev_de),
+                .m_img_prev_data            (m_img_prev_data),
+                .m_img_valid                (m_img_valid),
+                                             
+                .s_img_store_line_first     (s_img_store_line_first),
+                .s_img_store_line_last      (s_img_store_line_last),
+                .s_img_store_pixel_first    (s_img_store_pixel_first),
+                .s_img_store_pixel_last     (s_img_store_pixel_last),
+                .s_img_store_de             (s_img_store_de),
+                .s_img_store_data           (s_img_store_data),
+                .s_img_store_valid          (s_img_store_valid),
                 
-                .s_reset                (s_reset),
-                .s_clk                  (s_clk),
-                .s_data                 (s_data ),
-                .s_valid                (s_valid),
-                .s_ready                (s_ready),
+                .s_wb_rst_i                 (wb_rst_i),
+                .s_wb_clk_i                 (wb_clk_i),
+                .s_wb_adr_i                 (s_wb_adr_i),
+                .s_wb_dat_i                 (s_wb_dat_i),
+                .s_wb_dat_o                 (s_wb_dat_o),
+                .s_wb_we_i                  (s_wb_we_i),
+                .s_wb_sel_i                 (s_wb_sel_i),
+                .s_wb_stb_i                 (s_wb_stb_i),
+                .s_wb_ack_o                 (s_wb_ack_o),
                 
-                .m_reset                (m_reset),
-                .m_clk                  (m_clk),
-                .m_data                 (m_data),
-                .m_valid                (m_valid),
-                .m_ready                (m_ready),
-                
-                .m_axi4_aresetn         (aresetn),
-                .m_axi4_aclk            (aclk),
-                .m_axi4_awid            (m_axi4_awid),
-                .m_axi4_awaddr          (m_axi4_awaddr),
-                .m_axi4_awlen           (m_axi4_awlen),
-                .m_axi4_awsize          (m_axi4_awsize),
-                .m_axi4_awburst         (m_axi4_awburst),
-                .m_axi4_awlock          (m_axi4_awlock),
-                .m_axi4_awcache         (m_axi4_awcache),
-                .m_axi4_awprot          (m_axi4_awprot),
-                .m_axi4_awqos           (m_axi4_awqos),
-                .m_axi4_awregion        (m_axi4_awregion),
-                .m_axi4_awvalid         (m_axi4_awvalid),
-                .m_axi4_awready         (m_axi4_awready),
-                .m_axi4_wdata           (m_axi4_wdata),
-                .m_axi4_wstrb           (m_axi4_wstrb),
-                .m_axi4_wlast           (m_axi4_wlast),
-                .m_axi4_wvalid          (m_axi4_wvalid),
-                .m_axi4_wready          (m_axi4_wready),
-                .m_axi4_bid             (m_axi4_bid),
-                .m_axi4_bresp           (m_axi4_bresp),
-                .m_axi4_bvalid          (m_axi4_bvalid),
-                .m_axi4_bready          (m_axi4_bready),
-                .m_axi4_arid            (m_axi4_arid),
-                .m_axi4_araddr          (m_axi4_araddr),
-                .m_axi4_arlen           (m_axi4_arlen),
-                .m_axi4_arsize          (m_axi4_arsize),
-                .m_axi4_arburst         (m_axi4_arburst),
-                .m_axi4_arlock          (m_axi4_arlock),
-                .m_axi4_arcache         (m_axi4_arcache),
-                .m_axi4_arprot          (m_axi4_arprot),
-                .m_axi4_arqos           (m_axi4_arqos),
-                .m_axi4_arregion        (m_axi4_arregion),
-                .m_axi4_arvalid         (m_axi4_arvalid),
-                .m_axi4_arready         (m_axi4_arready),
-                .m_axi4_rid             (m_axi4_rid),
-                .m_axi4_rdata           (m_axi4_rdata),
-                .m_axi4_rresp           (m_axi4_rresp),
-                .m_axi4_rlast           (m_axi4_rlast),
-                .m_axi4_rvalid          (m_axi4_rvalid),
-                .m_axi4_rready          (m_axi4_rready)
+                .m_axi4_aresetn             (aresetn),
+                .m_axi4_aclk                (aclk),
+                .m_axi4_awid                (m_axi4_awid),
+                .m_axi4_awaddr              (m_axi4_awaddr),
+                .m_axi4_awlen               (m_axi4_awlen),
+                .m_axi4_awsize              (m_axi4_awsize),
+                .m_axi4_awburst             (m_axi4_awburst),
+                .m_axi4_awlock              (m_axi4_awlock),
+                .m_axi4_awcache             (m_axi4_awcache),
+                .m_axi4_awprot              (m_axi4_awprot),
+                .m_axi4_awqos               (m_axi4_awqos),
+                .m_axi4_awregion            (m_axi4_awregion),
+                .m_axi4_awvalid             (m_axi4_awvalid),
+                .m_axi4_awready             (m_axi4_awready),
+                .m_axi4_wdata               (m_axi4_wdata),
+                .m_axi4_wstrb               (m_axi4_wstrb),
+                .m_axi4_wlast               (m_axi4_wlast),
+                .m_axi4_wvalid              (m_axi4_wvalid),
+                .m_axi4_wready              (m_axi4_wready),
+                .m_axi4_bid                 (m_axi4_bid),
+                .m_axi4_bresp               (m_axi4_bresp),
+                .m_axi4_bvalid              (m_axi4_bvalid),
+                .m_axi4_bready              (m_axi4_bready),
+                .m_axi4_arid                (m_axi4_arid),
+                .m_axi4_araddr              (m_axi4_araddr),
+                .m_axi4_arlen               (m_axi4_arlen),
+                .m_axi4_arsize              (m_axi4_arsize),
+                .m_axi4_arburst             (m_axi4_arburst),
+                .m_axi4_arlock              (m_axi4_arlock),
+                .m_axi4_arcache             (m_axi4_arcache),
+                .m_axi4_arprot              (m_axi4_arprot),
+                .m_axi4_arqos               (m_axi4_arqos),
+                .m_axi4_arregion            (m_axi4_arregion),
+                .m_axi4_arvalid             (m_axi4_arvalid),
+                .m_axi4_arready             (m_axi4_arready),
+                .m_axi4_rid                 (m_axi4_rid),
+                .m_axi4_rdata               (m_axi4_rdata),
+                .m_axi4_rresp               (m_axi4_rresp),
+                .m_axi4_rlast               (m_axi4_rlast),
+                .m_axi4_rvalid              (m_axi4_rvalid),
+                .m_axi4_rready              (m_axi4_rready)
             );
     
-    
-    // ---------------------------------
-    //  dummy stream Write & Read
-    // ---------------------------------
-    
-    reg         s_enable = 0;
-    
-    // write
-    always @(posedge s_clk) begin
-        if ( s_reset ) begin
-            s_data  <= 0;
-            s_valid <= 1'b0;
-        end
-        else begin
-            if ( s_valid & s_ready ) begin
-                s_data <= s_data + 1;
-            end
-            
-            if ( !s_valid || s_ready ) begin
-                s_valid <= s_enable & (RAND_BUSY ? {$random()} : 1'b1);
-            end
-        end
-    end
-    
-    reg     [M_DATA_WIDTH-1:0]  expect_m_data;
-    reg                         m_data_error;
-    always @(posedge m_clk) begin
-        if ( m_reset ) begin
-            m_ready       <= 1'b0;
-            expect_m_data <= 0;
-        end
-        else begin
-            m_ready <= RAND_BUSY ? {$random()} : 1'b1;
-            
-            m_data_error = 0;
-            if ( m_valid && m_ready ) begin
-                expect_m_data <= expect_m_data + 1'b1;
-                if ( m_data != expect_m_data ) begin
-                    $display("ERROR");
-                    m_data_error = 1;
-                end
-                else begin
-//                 $display("OK");
-                end
-            end
-        end
-    end
     
     
     // ---------------------------------
@@ -415,14 +452,14 @@ module tb_axi4_dma_fifo();
                 .AW_FIFO_PTR_WIDTH      (RAND_BUSY ? 4 : 0),
                 .W_FIFO_PTR_WIDTH       (RAND_BUSY ? 4 : 0),
                 .B_FIFO_PTR_WIDTH       (RAND_BUSY ? 4 : 0),
-                .AR_FIFO_PTR_WIDTH      (0),
-                .R_FIFO_PTR_WIDTH       (0),
+                .AR_FIFO_PTR_WIDTH      (RAND_BUSY ? 4 : 0),
+                .R_FIFO_PTR_WIDTH       (RAND_BUSY ? 4 : 0),
                 
-                .AW_BUSY_RATE           (RAND_BUSY ? 10 : 0),
-                .W_BUSY_RATE            (RAND_BUSY ? 10 : 0),
-                .B_BUSY_RATE            (RAND_BUSY ? 10 : 0),
-                .AR_BUSY_RATE           (0),
-                .R_BUSY_RATE            (0)
+                .AW_BUSY_RATE           (RAND_BUSY ? 50 : 0),
+                .W_BUSY_RATE            (RAND_BUSY ? 50 : 0),
+                .B_BUSY_RATE            (RAND_BUSY ? 50 : 0),
+                .AR_BUSY_RATE           (RAND_BUSY ? 50 : 0),
+                .R_BUSY_RATE            (RAND_BUSY ? 50 : 0)
             )
         i_axi4_slave_model
             (
@@ -590,7 +627,7 @@ module tb_axi4_dma_fifo();
     #10000;
         $display("set parameter");
         wb_write(ADR_PARAM_ADDR,     32'h0000_1000, {WB_SEL_WIDTH{1'b1}});
-        wb_write(ADR_PARAM_SIZE,     32'h0000_1000, {WB_SEL_WIDTH{1'b1}});
+        wb_write(ADR_PARAM_SIZE,       X_NUM*Y_NUM, {WB_SEL_WIDTH{1'b1}});
         wb_write(ADR_PARAM_AWLEN,    32'h0000_000f, {WB_SEL_WIDTH{1'b1}});
         wb_write(ADR_PARAM_WSTRB,    32'hffff_ffff, {WB_SEL_WIDTH{1'b1}});
         wb_write(ADR_PARAM_WTIMEOUT, 32'h0000_000f, {WB_SEL_WIDTH{1'b1}});
@@ -600,23 +637,19 @@ module tb_axi4_dma_fifo();
         $display("start");
         wb_write(ADR_CTL_CONTROL,    32'h0000_0003, {WB_SEL_WIDTH{1'b1}});
     #1000;
-        s_enable = 1;
         
         
     #10000;
         $display("stop");
         wb_write(ADR_CTL_CONTROL,    32'h0000_0000, {WB_SEL_WIDTH{1'b1}});
-        s_enable = 0;
         
     #10000;
         $display("restart");
         wb_write(ADR_CTL_CONTROL,    32'h0000_0001, {WB_SEL_WIDTH{1'b1}});
-        s_enable = 1;
         
     #10000;
         $display("stop");
         wb_write(ADR_CTL_CONTROL,    32'h0000_0000, {WB_SEL_WIDTH{1'b1}});
-        s_enable = 0;
         
         
     #10000;
@@ -634,15 +667,13 @@ module tb_axi4_dma_fifo();
         $display("start");
         wb_write(ADR_CTL_CONTROL,    32'h0000_0003, {WB_SEL_WIDTH{1'b1}});
     #1000;
-        s_enable = 1;
         
     #10000;
-        $display("stop");
-        wb_write(ADR_CTL_CONTROL,    32'h0000_0000, {WB_SEL_WIDTH{1'b1}});
-        s_enable = 0;
+//        $display("stop");
+//        wb_write(ADR_CTL_CONTROL,    32'h0000_0000, {WB_SEL_WIDTH{1'b1}});
         
     #10000;
-        $finish();
+//        $finish();
     end
     
     

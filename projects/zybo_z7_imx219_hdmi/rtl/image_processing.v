@@ -669,7 +669,6 @@ module image_processing
             #(
                 .USER_WIDTH             (USER_BITS + 3*M_DATA_WIDTH),
                 .DATA_SIZE              (0),     // 0:8bit, 1:16bit, 2:32bit ...
-                .DEFAULT_DATA           (0),
                 
                 .WB_ADR_WIDTH           (8),
                 .WB_DAT_WIDTH           (WB_DAT_WIDTH),
@@ -682,14 +681,27 @@ module image_processing
                 .AXI4_LEN_WIDTH         (AXI4_LEN_WIDTH),
                 .AXI4_QOS_WIDTH         (AXI4_QOS_WIDTH),
                 
-                .INIT_CTL_CONTROL       (2'b11),
+                .PARAM_ADDR_WIDTH       (AXI4_ADDR_WIDTH),
+                .PARAM_SIZE_WIDTH       (24),
+                .PARAM_AWLEN_WIDTH      (8),
+                .PARAM_WTIMEOUT_WIDTH   (8),
+                .PARAM_ARLEN_WIDTH      (8),
+                .PARAM_RTIMEOUT_WIDTH   (8),
+                
+                .WDATA_FIFO_PTR_WIDTH   (9),
+                .WDATA_FIFO_RAM_TYPE    ("block"),
+                .RDATA_FIFO_PTR_WIDTH   (9),
+                .RDATA_FIFO_RAM_TYPE    ("block"),
+                
+                .INIT_CTL_CONTROL       (2'b00),
                 .INIT_PARAM_ADDR        (32'h00000000),
-                .INIT_PARAM_SIZE        (32'h00010000),
+                .INIT_PARAM_SIZE        (32'h00000000),
                 .INIT_PARAM_AWLEN       (8'h0f),
                 .INIT_PARAM_WSTRB       ({AXI4_STRB_WIDTH{1'b1}}),
                 .INIT_PARAM_WTIMEOUT    (16),
                 .INIT_PARAM_ARLEN       (8'h0f),
-                .INIT_PARAM_RTIMEOUT    (16)
+                .INIT_PARAM_RTIMEOUT    (16),
+                .INIT_PARAM_INITDATA    (0)
             )
         i_img_previous_frame
             (
@@ -884,7 +896,7 @@ module image_processing
                 
                 .s_wb_rst_i             (s_wb_rst_i),
                 .s_wb_clk_i             (s_wb_clk_i),
-                .s_wb_adr_i             (s_wb_adr_i[5:0]),
+                .s_wb_adr_i             (s_wb_adr_i[7:0]),
                 .s_wb_dat_i             (s_wb_dat_i),
                 .s_wb_dat_o             (wb_bindiff_dat_o),
                 .s_wb_we_i              (s_wb_we_i),
@@ -895,7 +907,7 @@ module image_processing
     
     
     // selector
-    localparam  SEL_N = 8;
+    localparam  SEL_N = 9;
     localparam  SEL_U = USER_BITS;
     localparam  SEL_D = M_TDATA_WIDTH;
     
@@ -980,6 +992,16 @@ module image_processing
     assign img_sel_user       [7*SEL_U +: SEL_U] = img_bindiff_user;
     assign img_sel_data       [7*SEL_D +: SEL_D] = img_bindiff_binary ? img_bindiff_rgb : 0;
     assign img_sel_valid      [7]                = img_bindiff_valid;
+    
+    assign img_sel_line_first [8]                = img_prvfrm_line_first;
+    assign img_sel_line_last  [8]                = img_prvfrm_line_last;
+    assign img_sel_pixel_first[8]                = img_prvfrm_pixel_first;
+    assign img_sel_pixel_last [8]                = img_prvfrm_pixel_last;
+    assign img_sel_de         [8]                = img_prvfrm_de;
+    assign img_sel_user       [8*SEL_U +: SEL_U] = img_prvfrm_user;
+    assign img_sel_data       [8*SEL_D +: SEL_D] = {4{img_prvfrm_prev_gray}};
+    assign img_sel_valid      [8]                = img_prvfrm_valid;
+    
     
     wire    [WB_DAT_WIDTH-1:0]      wb_sel_dat_o;
     wire                            wb_sel_stb_i;

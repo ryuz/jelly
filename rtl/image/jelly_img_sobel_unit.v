@@ -71,7 +71,14 @@ module jelly_img_sobel_unit
     reg             [DATA_WIDTH-1:0]    st3_data;
     reg     signed  [GRAD_X_WIDTH+3:0]  st3_grad_x;
     reg     signed  [GRAD_Y_WIDTH+3:0]  st3_grad_y;
+    reg                                 st3_min_x;
+    reg                                 st3_max_x;
+    reg                                 st3_min_y;
+    reg                                 st3_max_y;
     
+    reg             [DATA_WIDTH-1:0]    st4_data;
+    reg     signed  [GRAD_X_WIDTH+3:0]  st4_grad_x;
+    reg     signed  [GRAD_Y_WIDTH+3:0]  st4_grad_y;
     
     always @(posedge clk) begin
         if ( cke ) begin
@@ -103,16 +110,25 @@ module jelly_img_sobel_unit
             st3_data    <= st2_data;
             st3_grad_x  <= st2_grad_x;
             st3_grad_y  <= st2_grad_y;
-            if ( st2_grad_x < grad_x_min ) begin st3_grad_x <= grad_x_min; end
-            if ( st2_grad_x > grad_x_max ) begin st3_grad_x <= grad_x_max; end
-            if ( st2_grad_y < grad_y_min ) begin st3_grad_y <= grad_y_min; end
-            if ( st2_grad_y > grad_y_max ) begin st3_grad_y <= grad_y_max; end
+            st3_min_x   <= (st2_grad_x < grad_x_min);
+            st3_max_x   <= (st2_grad_x > grad_x_max);
+            st3_min_y   <= (st2_grad_y < grad_y_min);
+            st3_max_y   <= (st2_grad_y > grad_y_max);
+            
+            // stage4
+            st4_data    <= st3_data;
+            st4_grad_x  <= st3_grad_x;
+            st4_grad_y  <= st3_grad_y;
+            if ( st3_min_x ) begin st4_grad_x <= grad_x_min; end
+            if ( st3_max_x ) begin st4_grad_x <= grad_x_max; end
+            if ( st3_min_y ) begin st4_grad_y <= grad_y_min; end
+            if ( st3_max_y ) begin st4_grad_y <= grad_y_max; end
         end
     end
     
-    assign out_data   = st3_data;
-    assign out_grad_x = st3_grad_x;
-    assign out_grad_y = st3_grad_y;
+    assign out_data   = st4_data;
+    assign out_grad_x = st4_grad_x;
+    assign out_grad_y = st4_grad_y;
     
 endmodule
 

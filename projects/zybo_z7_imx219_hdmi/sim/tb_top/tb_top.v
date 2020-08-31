@@ -30,7 +30,7 @@ module tb_top();
     
 //  localparam  X_NUM = 1640;
 //  localparam  Y_NUM = 1232;
-    localparam  X_NUM = 128;
+    localparam  X_NUM = 256;
     localparam  Y_NUM = 16;
     
     
@@ -245,13 +245,25 @@ module tb_top();
     #10000;
         $display("read id");
         wb_read (32'h40000000);
-        wb_read (32'h40100000);
-        wb_read (32'h40200000);
-        wb_read (32'h40210000);
-        wb_read (32'h40220000);
-        wb_read (32'h40310000);
-        wb_read (32'h40340000);
-        wb_read (32'h40360000);
+        wb_read (32'h40100000);  // ビデオサイズ正規化
+        wb_read (32'h40200000);  // デモザイク
+        wb_read (32'h40210000);  // カラーマトリックス
+        wb_read (32'h40220000);  // ガンマ補正
+        wb_read (32'h40240000);  // ガウシアンフィルタ
+        wb_read (32'h40250000);  // Cannyフィルタ
+        wb_read (32'h40260000);  // FIFO dma
+        wb_read (32'h40270000);  // 前画像との差分バイナライズ
+        wb_read (32'h402f0000);  // 出力切り替え
+        wb_read (32'h40310000);  // Write-DMA
+        wb_read (32'h40340000);  // Read-DMA
+        wb_read (32'h40360000);  // Video out sync generator
+        
+        $display("set DMA FIFO");
+        wb_read (32'h40260000);                     // CORE ID
+        wb_write(32'h40260020, 32'h0000_1000, 4'b1111); // PARAM_ADDR
+        wb_write(32'h40260024, 32'h0010_0000, 4'b1111); // PARAM_SZIE
+        wb_write(32'h40260010, 32'h0000_0003, 4'b1111); // CTL_CONTROL
+        
         
         $display("set format regularizer");
         wb_read (32'h40100000);                     // CORE ID
@@ -295,6 +307,11 @@ module tb_top();
         
         $display("vout vsync generator");
         wb_write(32'h4036010,            1, 4'b1111);      // enable
+
+        while(1) begin
+            #10000;
+            wb_read(32'h40260014);
+        end
     end
     
     

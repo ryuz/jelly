@@ -14,7 +14,7 @@
 
 module jelly_img_binarizer
         #(
-            parameter   CORE_ID          = 32'h527a_0101,
+            parameter   CORE_ID          = 32'h527a_2210,
             parameter   CORE_VERSION     = 32'h0001_0000,
             
             parameter   USER_WIDTH       = 0,
