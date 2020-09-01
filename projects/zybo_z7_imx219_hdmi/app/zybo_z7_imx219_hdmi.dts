@@ -28,22 +28,22 @@
             afi0: afi0 {
                 compatible = "xlnx,zynq-afi-fpga";
                 reg = <0xf8008000 0x1000>;
-                xlnx,afi-buswidth = <0>;  /* 0:64bit, 1:32bit */
+                xlnx,afi-width = <0>;  /* 0:64bit, 1:32bit */
             };
             afi1: afi1 {
                 compatible = "xlnx,zynq-afi-fpga";
                 reg = <0xf8009000 0x1000>;
-                xlnx,afi-buswidth = <0>;  /* 0:64bit, 1:32bit */
+                xlnx,afi-width = <0>;  /* 0:64bit, 1:32bit */
             };
             afi2: afi2 {
                 compatible = "xlnx,zynq-afi-fpga";
                 reg = <0xf800a000 0x1000>;
-                xlnx,afi-buswidth = <0>;  /* 0:64bit, 1:32bit */
+                xlnx,afi-width = <0>;  /* 0:64bit, 1:32bit */
             };
             afi3: afi3 {
                 compatible = "xlnx,zynq-afi-fpga";
                 reg = <0xf800b000 0x1000>;
-                xlnx,afi-buswidth = <0>;  /* 0:64bit, 1:32bit */
+                xlnx,afi-width = <0>;  /* 0:64bit, 1:32bit */
             };
         };
     };
