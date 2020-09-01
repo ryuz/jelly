@@ -40,12 +40,14 @@ module tb_data_unit_converter();
     
     wire    [USER_BITS-1:0]         s_user = {(count[2:0] == 3'b111), (count[2:0] == 3'b000)};
     wire                            s_last = (count[2:0] == 3'b111);
+    wire                            s_first = (count[2:0] == 3'b000);
     reg     [S_DATA_WIDTH-1:0]      s_data;
     reg                             s_valid;
     wire                            s_ready;
     
     wire    [USER_BITS-1:0]         m_user_first;
     wire    [USER_BITS-1:0]         m_user_last;
+    wire                            m_first;
     wire                            m_last;
     wire    [M_DATA_WIDTH-1:0]      m_data;
     wire                            m_valid;
@@ -102,6 +104,7 @@ module tb_data_unit_converter();
                 .endian             (endian),
                 
                 .s_user             (s_user),
+                .s_first            (s_first),
                 .s_last             (s_last),
                 .s_data             (s_data),
                 .s_valid            (s_valid),
@@ -109,6 +112,7 @@ module tb_data_unit_converter();
                 
                 .m_user_first       (m_user_first),
                 .m_user_last        (m_user_last),
+                .m_first            (m_first),
                 .m_last             (m_last),
                 .m_data             (m_data),
                 .m_valid            (m_valid),

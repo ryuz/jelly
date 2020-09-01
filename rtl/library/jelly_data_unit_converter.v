@@ -35,6 +35,7 @@ module jelly_data_unit_converter
             input   wire                        endian,
             
             input   wire    [USER_BITS-1:0]     s_user,
+            input   wire                        s_first,
             input   wire                        s_last,
             input   wire    [S_DATA_WIDTH-1:0]  s_data,
             input   wire                        s_valid,
@@ -42,6 +43,7 @@ module jelly_data_unit_converter
             
             output  wire    [USER_BITS-1:0]     m_user_first,   // 最初のデータに付随するuser
             output  wire    [USER_BITS-1:0]     m_user_last,    // 末尾のデータに付随するuser
+            output  wire                        m_first,
             output  wire                        m_last,
             output  wire    [M_DATA_WIDTH-1:0]  m_data,
             output  wire                        m_valid,
@@ -79,6 +81,7 @@ module jelly_data_unit_converter
         // -----------------------------------------
         
         wire    [USER_BITS-1:0]         ff_s_user;
+        wire                            ff_s_first;
         wire                            ff_s_last;
         wire    [S_DATA_WIDTH-1:0]      ff_s_data;
         wire                            ff_s_valid;
@@ -86,6 +89,7 @@ module jelly_data_unit_converter
         
         wire    [USER_BITS-1:0]         ff_m_user_first;
         wire    [USER_BITS-1:0]         ff_m_user_last;
+        wire                            ff_m_first;
         wire                            ff_m_last;
         wire    [M_DATA_WIDTH-1:0]      ff_m_data;
         wire                            ff_m_valid;
@@ -93,7 +97,7 @@ module jelly_data_unit_converter
         
         jelly_pipeline_insert_ff
                 #(
-                    .DATA_WIDTH     (USER_BITS + 1 + S_DATA_WIDTH),
+                    .DATA_WIDTH     (USER_BITS + 1 + 1 + S_DATA_WIDTH),
                     .SLAVE_REGS     (S_REGS),
                     .MASTER_REGS    (S_REGS)
                 )
@@ -103,11 +107,11 @@ module jelly_data_unit_converter
                     .clk            (clk),
                     .cke            (cke),
                     
-                    .s_data         ({s_user, s_last, s_data}),
+                    .s_data         ({s_user, s_last, s_first, s_data}),
                     .s_valid        (s_valid),
                     .s_ready        (s_ready),
                     
-                    .m_data         ({ff_s_user, ff_s_last, ff_s_data}),
+                    .m_data         ({ff_s_user, ff_s_last, ff_s_first, ff_s_data}),
                     .m_valid        (ff_s_valid),
                     .m_ready        (ff_s_ready),
                     
@@ -117,7 +121,7 @@ module jelly_data_unit_converter
         
         jelly_pipeline_insert_ff
                 #(
-                    .DATA_WIDTH     (USER_BITS + USER_BITS + 1 + M_DATA_WIDTH),
+                    .DATA_WIDTH     (USER_BITS + USER_BITS + 1 + 1 + M_DATA_WIDTH),
                     .SLAVE_REGS     (M_REGS),
                     .MASTER_REGS    (M_REGS)
                 )
@@ -127,11 +131,11 @@ module jelly_data_unit_converter
                     .clk            (clk),
                     .cke            (cke),
                     
-                    .s_data         ({ff_m_user_first, ff_m_user_last, ff_m_last, ff_m_data}),
+                    .s_data         ({ff_m_user_first, ff_m_user_last, ff_m_last, ff_m_first, ff_m_data}),
                     .s_valid        (ff_m_valid),
                     .s_ready        (ff_m_ready),
                     
-                    .m_data         ({m_user_first, m_user_last, m_last, m_data}),
+                    .m_data         ({m_user_first, m_user_last, m_last, m_first, m_data}),
                     .m_valid        (m_valid),
                     .m_ready        (m_ready),
                     
@@ -149,6 +153,7 @@ module jelly_data_unit_converter
         reg     [BUF_NUM*UNIT_WIDTH-1:0]    reg_buf_data,   next_buf_data,   tmp_buf_data;
         reg     [BUF_NUM*USER_BITS-1:0]     reg_buf_user_f, next_buf_user_f, tmp_buf_user_f;
         reg     [BUF_NUM*USER_BITS-1:0]     reg_buf_user_l, next_buf_user_l, tmp_buf_user_l;
+        reg                                 reg_buf_first,  next_buf_first;
         reg     [BUF_NUM-1:0]               reg_buf_last,   next_buf_last,   tmp_buf_last;
         
         reg                                 reg_m_valid,    next_m_valid;
@@ -165,8 +170,17 @@ module jelly_data_unit_converter
             next_buf_data   = reg_buf_data;
             next_buf_user_f = reg_buf_user_f;
             next_buf_user_l = reg_buf_user_l;
+            next_buf_first  = reg_buf_first;
             next_buf_last   = reg_buf_last;
             next_m_valid    = reg_m_valid;
+            
+            if ( ff_m_valid && ff_m_ready ) begin
+                next_buf_first = 1'b0;
+            end
+            if ( ff_s_valid && ff_s_ready && ff_s_first ) begin
+                next_data_count = 0;
+                next_buf_first  = 1'b1;
+            end
             
             tmp_buf_data    = {(BUF_NUM*UNIT_WIDTH){1'bx}};
             tmp_buf_user_f  = {(BUF_NUM*USER_BITS){1'bx}};
@@ -255,6 +269,7 @@ module jelly_data_unit_converter
                 reg_buf_data   <= {(BUF_NUM*UNIT_WIDTH){1'bx}};
                 reg_buf_user_f <= {(BUF_NUM*USER_BITS){1'bx}};
                 reg_buf_user_l <= {(BUF_NUM*USER_BITS){1'bx}};
+                reg_buf_first  <= 1'bx;
                 reg_buf_last   <= {BUF_NUM{1'bx}};
                 reg_m_valid    <= 1'b0;
             end
@@ -263,6 +278,7 @@ module jelly_data_unit_converter
                 reg_buf_data   <= next_buf_data;
                 reg_buf_user_f <= next_buf_user_f;
                 reg_buf_user_l <= next_buf_user_l;
+                reg_buf_first  <= next_buf_first;
                 reg_buf_last   <= next_buf_last;
                 reg_m_valid    <= next_m_valid;
             end
@@ -278,12 +294,14 @@ module jelly_data_unit_converter
         assign ff_m_data       = tmp_m_data;
         assign ff_m_user_first = endian ? tmp_m_user_f[(M_NUM-1)*USER_BITS +: USER_BITS] : tmp_m_user_f[       0 *USER_BITS +: USER_BITS];
         assign ff_m_user_last  = endian ? tmp_m_user_l[       0 *USER_BITS +: USER_BITS] : tmp_m_user_l[(M_NUM-1)*USER_BITS +: USER_BITS];
+        assign ff_m_first      = reg_buf_first;
         assign ff_m_last       = endian ? tmp_m_last  [0]                                : tmp_m_last  [M_NUM-1];
         assign ff_m_valid      = reg_m_valid;
     end
     else begin : blk_bypass
         assign m_user_first = s_user;
         assign m_user_last  = s_user;
+        assign m_first      = s_first;
         assign m_last       = s_last;
         assign m_data       = s_data;
         assign m_valid      = s_valid;

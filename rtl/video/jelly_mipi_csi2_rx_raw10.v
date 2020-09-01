@@ -62,6 +62,7 @@ module jelly_mipi_csi2_rx_raw10
                 .endian         (1'b0),
                 
                 .s_user         (s_axi4s_tuser),
+                .s_first        (1'b0),
                 .s_last         (s_axi4s_tlast),
                 .s_data         (s_axi4s_tdata),
                 .s_valid        (s_axi4s_tvalid),
@@ -69,6 +70,7 @@ module jelly_mipi_csi2_rx_raw10
                 
                 .m_user_first   (conv_tuser),
                 .m_user_last    (),
+                .m_first        (),
                 .m_last         (conv_tlast),
                 .m_data         (conv_tdata8),
                 .m_valid        (conv_tvalid),
@@ -102,6 +104,7 @@ module jelly_mipi_csi2_rx_raw10
                 .endian         (1'b0),
                 
                 .s_user         (conv_tuser),
+                .s_first        (1'b0),
                 .s_last         (conv_tlast),
                 .s_data         (conv_tdata10),
                 .s_valid        (conv_tvalid),
@@ -109,6 +112,7 @@ module jelly_mipi_csi2_rx_raw10
                 
                 .m_user_first   (m_axi4s_tuser),
                 .m_user_last    (),
+                .m_first        (),
                 .m_last         (m_axi4s_tlast),
                 .m_data         (m_axi4s_tdata),
                 .m_valid        (m_axi4s_tvalid),
