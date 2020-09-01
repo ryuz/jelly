@@ -424,6 +424,7 @@ module tb_img_previous_frame();
                 .m_axi4_rready              (m_axi4_rready)
             );
     
+    wire    data_eq = (m_img_data == m_img_prev_data);
     
     
     // ---------------------------------
@@ -634,27 +635,17 @@ module tb_img_previous_frame();
         wb_write(ADR_PARAM_ARLEN,    32'h0000_000f, {WB_SEL_WIDTH{1'b1}});
         wb_write(ADR_PARAM_RTIMEOUT, 32'h0000_000f, {WB_SEL_WIDTH{1'b1}});
         
+    #1000;
         $display("start");
         wb_write(ADR_CTL_CONTROL,    32'h0000_0003, {WB_SEL_WIDTH{1'b1}});
-    #1000;
         
         
-    #10000;
-        $display("stop");
-        wb_write(ADR_CTL_CONTROL,    32'h0000_0000, {WB_SEL_WIDTH{1'b1}});
-        
-    #10000;
-        $display("restart");
-        wb_write(ADR_CTL_CONTROL,    32'h0000_0001, {WB_SEL_WIDTH{1'b1}});
-        
-    #10000;
-        $display("stop");
-        wb_write(ADR_CTL_CONTROL,    32'h0000_0000, {WB_SEL_WIDTH{1'b1}});
-        
-        
-    #10000;
+    #400000;
+          $display("stop");
+          wb_write(ADR_CTL_CONTROL,    32'h0000_0000, {WB_SEL_WIDTH{1'b1}});
+    
+    #100000;
         $display("change parameter");
-        /*
         wb_write(ADR_PARAM_ADDR,     32'h0000_2340, {WB_SEL_WIDTH{1'b1}});
         wb_write(ADR_PARAM_SIZE,     32'h0000_0380, {WB_SEL_WIDTH{1'b1}});
         wb_write(ADR_PARAM_AWLEN,    32'h0000_0000, {WB_SEL_WIDTH{1'b1}});
@@ -662,18 +653,17 @@ module tb_img_previous_frame();
         wb_write(ADR_PARAM_WTIMEOUT, 32'h0000_0000, {WB_SEL_WIDTH{1'b1}});
         wb_write(ADR_PARAM_ARLEN,    32'h0000_0000, {WB_SEL_WIDTH{1'b1}});
         wb_write(ADR_PARAM_RTIMEOUT, 32'h0000_0000, {WB_SEL_WIDTH{1'b1}});
-        */
         
+    #1000;
         $display("start");
         wb_write(ADR_CTL_CONTROL,    32'h0000_0003, {WB_SEL_WIDTH{1'b1}});
-    #1000;
         
-    #10000;
-//        $display("stop");
-//        wb_write(ADR_CTL_CONTROL,    32'h0000_0000, {WB_SEL_WIDTH{1'b1}});
+    #400000;
+          $display("stop");
+          wb_write(ADR_CTL_CONTROL,    32'h0000_0000, {WB_SEL_WIDTH{1'b1}});
         
-    #10000;
-//        $finish();
+    #100000;
+          $finish();
     end
     
     

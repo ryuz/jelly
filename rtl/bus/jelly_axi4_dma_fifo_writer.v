@@ -177,7 +177,7 @@ module jelly_axi4_dma_fifo_writer
                 .m_clk                  (aclk),
                 .m_data                 (fifo_data),
                 .m_valid                (fifo_valid),
-                .m_ready                (fifo_ready),
+                .m_ready                (fifo_ready | ~busy),
                 .m_data_count           (),
                 .m_rd_signal            ()
             );
