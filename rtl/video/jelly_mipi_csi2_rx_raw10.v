@@ -44,16 +44,13 @@ module jelly_mipi_csi2_rx_raw10
     wire                conv_tvalid;
     wire                conv_tready;
     
-    jelly_data_unit_converter
+    jelly_data_packing
             #(
-                .USER_WIDTH     (1),
-                .UNIT_WIDTH     (8),
-                .S_NUM          (1),
-                .M_NUM          (5),
-                .S_REGS         (S_AXI4S_REGS),
-                .M_REGS         (1)
+                .S_DATA_WIDTH   (8),
+                .M_DATA_WIDTH   (40),
+                .S_REGS         (1)
             )
-        i_data_unit_converter_s
+        i_data_packing_s
             (
                 .reset          (~aresetn),
                 .clk            (aclk),
@@ -61,22 +58,18 @@ module jelly_mipi_csi2_rx_raw10
                 
                 .endian         (1'b0),
                 
-                .s_user         (s_axi4s_tuser),
-                .s_first        (1'b0),
+                .s_first        (s_axi4s_tuser),
                 .s_last         (s_axi4s_tlast),
                 .s_data         (s_axi4s_tdata),
                 .s_valid        (s_axi4s_tvalid),
                 .s_ready        (s_axi4s_tready),
                 
-                .m_user_first   (conv_tuser),
-                .m_user_last    (),
-                .m_first        (),
+                .m_first        (conv_tuser),
                 .m_last         (conv_tlast),
                 .m_data         (conv_tdata8),
                 .m_valid        (conv_tvalid),
                 .m_ready        (conv_tready)
             );
-    
     
     wire    [7:0]   lsb_data = conv_tdata8[4*8 +: 8];
     
@@ -85,17 +78,13 @@ module jelly_mipi_csi2_rx_raw10
     assign conv_tdata10[2*10 +: 10] = {conv_tdata8[2*8 +: 8], lsb_data[2*2 +: 2]};
     assign conv_tdata10[3*10 +: 10] = {conv_tdata8[3*8 +: 8], lsb_data[3*2 +: 2]};
     
-    
-    jelly_data_unit_converter
+    jelly_data_packing
             #(
-                .USER_WIDTH     (1),
-                .UNIT_WIDTH     (10),
-                .S_NUM          (4),
-                .M_NUM          (1),
-                .S_REGS         (1),
-                .M_REGS         (M_AXI4S_REGS)
+                .S_DATA_WIDTH   (40),
+                .M_DATA_WIDTH   (10),
+                .S_REGS         (1)
             )
-        i_data_unit_converter_m
+        i_data_packing_m
             (
                 .reset          (~aresetn),
                 .clk            (aclk),
@@ -103,22 +92,18 @@ module jelly_mipi_csi2_rx_raw10
                 
                 .endian         (1'b0),
                 
-                .s_user         (conv_tuser),
-                .s_first        (1'b0),
+                .s_first        (conv_tuser),
                 .s_last         (conv_tlast),
                 .s_data         (conv_tdata10),
                 .s_valid        (conv_tvalid),
                 .s_ready        (conv_tready),
                 
-                .m_user_first   (m_axi4s_tuser),
-                .m_user_last    (),
-                .m_first        (),
+                .m_first        (m_axi4s_tuser),
                 .m_last         (m_axi4s_tlast),
                 .m_data         (m_axi4s_tdata),
                 .m_valid        (m_axi4s_tvalid),
                 .m_ready        (m_axi4s_tready)
             );
-    
     
 endmodule
 

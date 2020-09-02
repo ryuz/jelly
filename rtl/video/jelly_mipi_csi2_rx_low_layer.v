@@ -33,13 +33,14 @@ module jelly_mipi_csi2_rx_low_layer
             
             output  wire            out_packet_lost,
             
-            input   wire    [0:0]   s_axi4s_tuser,
-            input   wire            s_axi4s_tlast,
+            input   wire    [0:0]   s_axi4s_tuser,  // packet first
+            input   wire            s_axi4s_tlast,  // packet last
             input   wire    [7:0]   s_axi4s_tdata,
             input   wire            s_axi4s_tvalid,
             output  wire            s_axi4s_tready,
             
-            output  wire            m_axi4s_tlast,
+            output  wire            m_axi4s_tuser,  // packet first
+            output  wire            m_axi4s_tlast,  // packet last
             output  wire    [7:0]   m_axi4s_tdata,
             output  wire            m_axi4s_tvalid,
             input   wire            m_axi4s_tready
@@ -190,6 +191,7 @@ module jelly_mipi_csi2_rx_low_layer
     reg     [15:0]  st1_counter;
     reg     [15:0]  st1_crc;
     reg     [15:0]  st1_crc_sum;
+    reg             st1_first;
     reg             st1_last;
     reg             st1_end;
     reg     [7:0]   st1_data;
@@ -209,6 +211,7 @@ module jelly_mipi_csi2_rx_low_layer
             st1_crc         <= 16'hxxxx;
             st1_crc_sum     <= 16'hxxxx;
             st1_data        <= 8'hxx;
+            st1_first       <= 1'bx;
             st1_last        <= 1'bx;
             st1_end         <= 1'bx;
             st1_valid       <= 1'b0;
@@ -258,6 +261,7 @@ module jelly_mipi_csi2_rx_low_layer
                             st1_counter <= st1_counter + 1'b1;
                             st1_crc     <= 16'hxxxx;
                             st1_crc_sum <= calc_crc(st1_crc_sum, ecc_data);
+                            st1_first   <= (st1_counter == 16'h0001);
                             
                             if ( st1_counter == st1_wc ) begin
                                 st1_state <= ST1_CRC0;
@@ -318,6 +322,7 @@ module jelly_mipi_csi2_rx_low_layer
     
     assign s_axi4s_tready   = cke;
     
+    assign m_axi4s_tuser    = st1_first;
     assign m_axi4s_tlast    = st1_last;
     assign m_axi4s_tdata    = st1_data;
     assign m_axi4s_tvalid   = st1_valid;

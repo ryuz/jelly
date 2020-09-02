@@ -76,7 +76,7 @@ module jelly_data_packing
             #(
                 .DATA_WIDTH     (1 + 1 + S_DATA_WIDTH),
                 .SLAVE_REGS     (S_REGS),
-                .MASTER_REGS    (0)
+                .MASTER_REGS    (1)
             )
         i_pipeline_insert_ff_s
             (
@@ -146,21 +146,21 @@ module jelly_data_packing
             next_last  = reg_last;
             next_valid = reg_valid;
             
-            // 出力完了処理
+            // 出力完�?処�?
             if ( m_ready ) begin
                 next_valid = 1'b0;
                 
                 if ( m_valid  ) begin
-                    // 出力実施の場合
+                    // 出力実施の場�?
                     next_first = 1'b0;
                     if ( m_last ) begin
-                        // 最後なら初期化
+                        // �?後なら�?�期�?
                         next_final = 1'b0;
                         next_buf   = {BUF_WIDTH{1'bx}};
                         next_count = 0;
                     end
                     else begin
-                        // データシフト
+                        // �?ータシフト
                         if ( endian ) begin
                             next_buf   = {next_buf, {M_DATA_WIDTH{1'bx}}};                   // big endian
                         end
@@ -176,10 +176,10 @@ module jelly_data_packing
             // 入力データ受付可否
             sig_ready = (!next_final && (BUF_WIDTH - next_count >= S_DATA_WIDTH) || ((!m_valid || m_ready) && ff_s_valid && ff_s_first));
             
-            // 入力受付
+            // 入力受�?
             if ( ff_s_valid && sig_ready ) begin
                 if ( ff_s_first ) begin
-                    // 初期化
+                    // 初期�?
                     next_count = 0;
                     next_first = 1'b1;
                     next_buf   = {BUF_WIDTH{1'bx}};
@@ -188,7 +188,7 @@ module jelly_data_packing
                     next_final = 1'b1;
                 end
                 
-                // データ格納
+                // �?ータ格�?
                 if ( endian ) begin
                     next_buf[BUF_WIDTH-1 - next_count -: S_DATA_WIDTH] = ff_s_data; // big endian
                 end
@@ -198,7 +198,7 @@ module jelly_data_packing
                 next_count = next_count + S_DATA_WIDTH;
             end
             
-            // 残部分をパディング
+            // 残部�?をパ�?ィング
             for ( i = 0; i < M_DATA_WIDTH; i = i+1 ) begin
                 if ( i >= next_count ) begin
                     if ( endian ) begin
@@ -210,7 +210,7 @@ module jelly_data_packing
                 end
             end
             
-            // 出力判定
+            // 出力判�?
             if ( next_count >= M_DATA_WIDTH || next_final ) begin
                 next_last  = (next_count <= M_DATA_WIDTH) && next_final;
                 next_valid = 1'b1;
