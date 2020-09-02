@@ -177,10 +177,6 @@ module jelly_data_unit_converter
             if ( ff_m_valid && ff_m_ready ) begin
                 next_buf_first = 1'b0;
             end
-            if ( ff_s_valid && ff_s_ready && ff_s_first ) begin
-                next_data_count = 0;
-                next_buf_first  = 1'b1;
-            end
             
             tmp_buf_data    = {(BUF_NUM*UNIT_WIDTH){1'bx}};
             tmp_buf_user_f  = {(BUF_NUM*USER_BITS){1'bx}};
@@ -221,6 +217,11 @@ module jelly_data_unit_converter
             
             // slave in
             if ( ff_s_valid && ff_s_ready ) begin
+                if ( ff_s_first ) begin
+                    next_data_count = 0;
+                    next_buf_first  = 1'b1;
+                end
+                
                 if ( endian ) begin
                     tmp_buf_data   = (ff_s_data      << ((BUF_NUM - S_NUM) * UNIT_WIDTH));
                     tmp_buf_user_f = (tmp_s_user_f   << ((BUF_NUM - S_NUM) * USER_BITS));
