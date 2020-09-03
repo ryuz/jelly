@@ -17,12 +17,12 @@ module jelly_axi4s_video_fifo
             parameter   TUSER_WIDTH = 1,
             parameter   TDATA_WIDTH = 32,
             
-            parameter   ASYNC       = 0,
+            parameter   ASYNC       = 1,
             parameter   PTR_WIDTH   = 10,
-            parameter   DOUT_REGS   = 0,
+            parameter   DOUT_REGS   = 1,
             parameter   RAM_TYPE    = "block",
             parameter   LOW_DEALY   = 0,
-            parameter   SLAVE_REGS  = 0,
+            parameter   SLAVE_REGS  = 1,
             parameter   MASTER_REGS = 1
         )
         (
