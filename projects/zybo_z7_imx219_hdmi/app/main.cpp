@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
     int     gamma       = 16;
     int     gauss_level = 0;
     int     canny_th    = 127;
-    int     diff_th     = 127;
+    int     diff_th     = 15;
     cv::Mat imgBack;
     
     for ( int i = 1; i < argc; ++i ) {
