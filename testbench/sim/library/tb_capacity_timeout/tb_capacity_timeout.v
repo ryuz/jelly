@@ -107,7 +107,7 @@ module tb_capacity_timeout();
                 issue_count = issue_count + m_issue_size + ISSUE_SIZE_OFFSET;
             end
             
-            if ( i > 3000 ) begin
+            if ( i > 5000 ) begin
                 $display("request_count = %d, issue_count=%d", request_count, issue_count);
                 if ( request_count == issue_count ) begin
                     $display("OK");
