@@ -14,10 +14,15 @@
 
 module jelly_data_packing
         #(
-            parameter S_DATA_WIDTH = 10,
-            parameter M_DATA_WIDTH = 12,
-            parameter PADDING_DATA = {(M_DATA_WIDTH){1'b0}},
-            parameter S_REGS       = 1
+            parameter UNIT_WIDTH   = 8,
+            parameter S_NUM        = 3,
+            parameter M_NUM        = 4,
+            parameter PADDING_DATA = {(M_NUM*UNIT_WIDTH){1'b0}},
+            parameter S_REGS       = 1,
+            
+            // local
+            parameter S_DATA_WIDTH = S_NUM*UNIT_WIDTH,
+            parameter M_DATA_WIDTH = M_NUM*UNIT_WIDTH
         )
         (
             input   wire                        reset,
@@ -44,22 +49,23 @@ module jelly_data_packing
     //  localparam
     // -----------------------------------------
     
-    localparam  BUF_WIDTH   = S_DATA_WIDTH + M_DATA_WIDTH - 1;
-    localparam  COUNT_WIDTH = BUF_WIDTH <     2 ?  1 :
-                              BUF_WIDTH <     4 ?  2 :
-                              BUF_WIDTH <     8 ?  3 :
-                              BUF_WIDTH <    16 ?  4 :
-                              BUF_WIDTH <    32 ?  5 :
-                              BUF_WIDTH <    64 ?  6 :
-                              BUF_WIDTH <   128 ?  7 :
-                              BUF_WIDTH <   256 ?  8 :
-                              BUF_WIDTH <   512 ?  9 :
-                              BUF_WIDTH <  1024 ? 10 :
-                              BUF_WIDTH <  2048 ? 11 :
-                              BUF_WIDTH <  4096 ? 12 :
-                              BUF_WIDTH <  8192 ? 13 :
-                              BUF_WIDTH < 16384 ? 14 :
-                              BUF_WIDTH < 32768 ? 15 : 16;
+    localparam  BUF_NUM     = S_NUM + M_NUM - 1;
+    localparam  BUF_WIDTH   = BUF_NUM * UNIT_WIDTH;
+    localparam  COUNT_WIDTH = BUF_NUM <     2 ?  1 :
+                              BUF_NUM <     4 ?  2 :
+                              BUF_NUM <     8 ?  3 :
+                              BUF_NUM <    16 ?  4 :
+                              BUF_NUM <    32 ?  5 :
+                              BUF_NUM <    64 ?  6 :
+                              BUF_NUM <   128 ?  7 :
+                              BUF_NUM <   256 ?  8 :
+                              BUF_NUM <   512 ?  9 :
+                              BUF_NUM <  1024 ? 10 :
+                              BUF_NUM <  2048 ? 11 :
+                              BUF_NUM <  4096 ? 12 :
+                              BUF_NUM <  8192 ? 13 :
+                              BUF_NUM < 16384 ? 14 :
+                              BUF_NUM < 32768 ? 15 : 16;
     
     
     // -----------------------------------------
@@ -76,7 +82,7 @@ module jelly_data_packing
             #(
                 .DATA_WIDTH     (1 + 1 + S_DATA_WIDTH),
                 .SLAVE_REGS     (S_REGS),
-                .MASTER_REGS    (1)
+                .MASTER_REGS    (S_REGS)
             )
         i_pipeline_insert_ff_s
             (
@@ -146,40 +152,40 @@ module jelly_data_packing
             next_last  = reg_last;
             next_valid = reg_valid;
             
-            // 出力完�?処�?
+            // 出力完了処理
             if ( m_ready ) begin
                 next_valid = 1'b0;
                 
                 if ( m_valid  ) begin
-                    // 出力実施の場�?
+                    // 出力実施の場合
                     next_first = 1'b0;
                     if ( m_last ) begin
-                        // �?後なら�?�期�?
+                        // 最後なら初期化
                         next_final = 1'b0;
                         next_buf   = {BUF_WIDTH{1'bx}};
                         next_count = 0;
                     end
                     else begin
-                        // �?ータシフト
+                        // データシフト
                         if ( endian ) begin
-                            next_buf   = {next_buf, {M_DATA_WIDTH{1'bx}}};                   // big endian
+                            next_buf = {next_buf, {M_DATA_WIDTH{1'bx}}};                   // big endian
                         end
                         else begin
-                            next_buf  = {{M_DATA_WIDTH{1'bx}}, next_buf} >> M_DATA_WIDTH;    // little endian
+                            next_buf = {{M_DATA_WIDTH{1'bx}}, next_buf} >> M_DATA_WIDTH;    // little endian
                         end
-                        next_count = next_count - M_DATA_WIDTH;
+                        next_count = next_count - M_NUM;
                     end
                 end
             end
             
             
             // 入力データ受付可否
-            sig_ready = (!next_final && (BUF_WIDTH - next_count >= S_DATA_WIDTH) || ((!m_valid || m_ready) && ff_s_valid && ff_s_first));
+            sig_ready = (!next_final && (BUF_NUM - next_count >= S_NUM) || ((!m_valid || m_ready) && ff_s_valid && ff_s_first));
             
-            // 入力受�?
+            // 入力受付
             if ( ff_s_valid && sig_ready ) begin
                 if ( ff_s_first ) begin
-                    // 初期�?
+                    // 初期化
                     next_count = 0;
                     next_first = 1'b1;
                     next_buf   = {BUF_WIDTH{1'bx}};
@@ -188,19 +194,19 @@ module jelly_data_packing
                     next_final = 1'b1;
                 end
                 
-                // �?ータ格�?
+                // データ格納
                 if ( endian ) begin
-                    next_buf[BUF_WIDTH-1 - next_count -: S_DATA_WIDTH] = ff_s_data; // big endian
+                    next_buf[(BUF_NUM-1 - next_count)*UNIT_WIDTH -: S_DATA_WIDTH] = ff_s_data; // big endian
                 end
                 else begin
-                    next_buf[next_count +: S_DATA_WIDTH] = ff_s_data;               // little endian
+                    next_buf[next_count*UNIT_WIDTH +: S_DATA_WIDTH] = ff_s_data;               // little endian
                 end
-                next_count = next_count + S_DATA_WIDTH;
+                next_count = next_count + S_NUM;
             end
             
-            // 残部�?をパ�?ィング
+            // 残部分をパディング
             for ( i = 0; i < M_DATA_WIDTH; i = i+1 ) begin
-                if ( i >= next_count ) begin
+                if ( i >= next_count*UNIT_WIDTH ) begin
                     if ( endian ) begin
                         next_buf[BUF_WIDTH-1 - i] = padding_data[M_DATA_WIDTH-1 - i];
                     end
@@ -210,9 +216,9 @@ module jelly_data_packing
                 end
             end
             
-            // 出力判�?
-            if ( next_count >= M_DATA_WIDTH || next_final ) begin
-                next_last  = (next_count <= M_DATA_WIDTH) && next_final;
+            // 出力判定
+            if ( next_count >= M_NUM || next_final ) begin
+                next_last  = (next_count <= M_NUM) && next_final;
                 next_valid = 1'b1;
             end
         end

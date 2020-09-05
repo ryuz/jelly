@@ -45,57 +45,72 @@ module jelly_capacity_timeout
     
     wire                            ready = (!m_issue_valid || m_issue_ready);
     
-    reg     [CAPACITY_WIDTH-1:0]    reg_queued_request,   next_queued_request;
-    reg     [TIMER_WIDTH-1:0]       reg_timer,            next_timer;
-    reg     [ISSUE_WIDTH-1:0]       reg_issue_size,       next_issue_size;
-    reg                             reg_issue_valid,      next_issue_valid;
+    reg     [CAPACITY_WIDTH-1:0]    reg_queued_request,    next_queued_request;
+    reg     [TIMER_WIDTH-1:0]       reg_timer,             next_timer;
+    reg                             reg_timeout,           next_timeout;
+    reg     [ISSUE_WIDTH-1:0]       reg_issue_size,        next_issue_size;
+    reg                             reg_issue_valid,       next_issue_valid;
     
     always @(posedge clk) begin
         if ( reset ) begin
-            reg_queued_request <= INIT_REQUEST;
-            reg_timer          <= timeout;
-            reg_issue_size     <= {ISSUE_WIDTH{1'bx}};
-            reg_issue_valid    <= 1'b0;
+            reg_queued_request    <= INIT_REQUEST;
+            reg_timer             <= {TIMER_WIDTH{1'b0}};
+            reg_timeout           <= 1'b0;
+            reg_issue_size        <= {ISSUE_WIDTH{1'bx}};
+            reg_issue_valid       <= 1'b0;
         end
         else if ( cke ) begin
-            reg_queued_request <= next_queued_request;
-            reg_timer          <= next_timer;
-            reg_issue_size     <= next_issue_size;
-            reg_issue_valid    <= next_issue_valid;
+            reg_queued_request    <= next_queued_request;
+            reg_timer             <= next_timer;
+            reg_timeout           <= next_timeout;
+            reg_issue_size        <= next_issue_size;
+            reg_issue_valid       <= next_issue_valid;
         end
     end
     
     always @* begin
-        next_timer          = reg_timer;
-        next_queued_request = reg_queued_request;
-        next_issue_size     = reg_issue_size;
-        next_issue_valid    = reg_issue_valid;
+        next_queued_request    = reg_queued_request;
+        next_timer             = reg_timer;
+        next_timeout           = 1'b0;
+        next_issue_size        = reg_issue_size;
+        next_issue_valid       = reg_issue_valid;
         
-        if ( s_request_valid ) begin
-            next_queued_request = next_queued_request + s_request_size + REQUEST_SIZE_OFFSET;
-            next_timer = timeout;
+        // issue request
+        if ( m_issue_valid & m_issue_ready ) begin
+            next_queued_request = next_queued_request - m_issue_size - ISSUE_SIZE_OFFSET;
         end
         
-        if ( ready ) begin
+        // next issue
+        if ( !m_issue_valid || m_issue_ready ) begin
             next_issue_valid = 1'b0;
-            if ( next_queued_request > 0 ) begin
-                if ( next_queued_request >= ({1'b0, max_issue_size} + ISSUE_SIZE_OFFSET) ) begin
-                    next_issue_size     = max_issue_size;
-                    next_issue_valid    = 1'b1;
-                    next_queued_request = next_queued_request - max_issue_size - ISSUE_SIZE_OFFSET;
-                end
-                else if ( next_timer == 0 ) begin
-                    next_issue_size     = next_queued_request - ISSUE_SIZE_OFFSET;
-                    next_issue_valid    = 1'b1;
-                    next_queued_request = next_queued_request - next_issue_size - ISSUE_SIZE_OFFSET;
-                end
-                else begin
-                    next_timer = next_timer - 1'b1;
-                end
+            next_issue_size  = {ISSUE_WIDTH{1'bx}};
+            if ( (next_queued_request >= ({1'b0, max_issue_size} + ISSUE_SIZE_OFFSET)) ) begin
+                 next_issue_size  = max_issue_size;
+                 next_issue_valid = 1'b1;
             end
             else begin
-                next_timer = timeout;
+                if ( next_queued_request != 0 ) begin
+                    if ( reg_timeout ) begin
+                        next_issue_valid = 1'b1;
+                        next_issue_size  = reg_queued_request - ISSUE_SIZE_OFFSET;
+                    end
+                    else begin
+                        next_timer = next_timer + 1'b1;
+                        if ( next_timer == timeout ) begin
+                            next_timeout = 1'b1;
+                        end
+                    end
+                end
             end
+        end
+        
+        if ( reg_timeout || next_issue_valid ) begin
+            next_timer = 0;
+        end
+        
+        // queueing the request
+        if ( s_request_valid ) begin
+            next_queued_request = next_queued_request + s_request_size + REQUEST_SIZE_OFFSET;
         end
     end
     

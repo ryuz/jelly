@@ -46,8 +46,9 @@ module jelly_mipi_csi2_rx_raw10
     
     jelly_data_packing
             #(
-                .S_DATA_WIDTH   (8),
-                .M_DATA_WIDTH   (40),
+                .UNIT_WIDTH     (8),
+                .S_NUM          (1),
+                .M_NUM          (5),
                 .S_REGS         (1)
             )
         i_data_packing_s
@@ -80,9 +81,12 @@ module jelly_mipi_csi2_rx_raw10
     
     jelly_data_packing
             #(
-                .S_DATA_WIDTH   (40),
-                .M_DATA_WIDTH   (10),
+                .UNIT_WIDTH     (10),
+                .S_NUM          (4),
+                .M_NUM          (1),
                 .S_REGS         (1)
+//                .S_DATA_WIDTH   (40),
+//                .M_DATA_WIDTH   (10),
             )
         i_data_packing_m
             (
