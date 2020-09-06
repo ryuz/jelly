@@ -452,42 +452,42 @@ module jelly_axi4_dma_fifo_write
     //  address command split
     // ---------------------------------
     
-    // コマンド発行用とデータ管理用に2分岐させる
-    wire    [AXI4_ADDR_WIDTH-1:0]           cmd0_awaddr;
-    wire    [AXI4_LEN_WIDTH-1:0]            cmd0_awlen;
-    wire                                    cmd0_awvalid;
-    wire                                    cmd0_awready;
+    // コマンド発行用とデータ管理用と終了管理用に3分岐させる
+    wire    [AXI4_ADDR_WIDTH-1:0]   cmd0_awaddr;
+    wire    [AXI4_LEN_WIDTH-1:0]    cmd0_awlen;
+    wire                            cmd0_awvalid;
+    wire                            cmd0_awready;
     
-    wire    [AXI4_ADDR_WIDTH-1:0]           cmd1_awaddr;
-    wire    [AXI4_LEN_WIDTH-1:0]            cmd1_awlen;
-    wire                                    cmd1_awvalid;
-    wire                                    cmd1_awready;
+    wire    [AXI4_ADDR_WIDTH-1:0]   cmd1_awaddr;
+    wire    [AXI4_LEN_WIDTH-1:0]    cmd1_awlen;
+    wire                            cmd1_awvalid;
+    wire                            cmd1_awready;
 
-    wire    [AXI4_ADDR_WIDTH-1:0]           cmd2_awaddr;
-    wire    [AXI4_LEN_WIDTH-1:0]            cmd2_awlen;
-    wire                                    cmd2_awvalid;
-    wire                                    cmd2_awready;
+    wire    [AXI4_ADDR_WIDTH-1:0]   cmd2_awaddr;
+    wire    [AXI4_LEN_WIDTH-1:0]    cmd2_awlen;
+    wire                            cmd2_awvalid;
+    wire                            cmd2_awready;
     
     jelly_data_spliter
             #(
-                .NUM            (3),
-                .DATA_WIDTH     (AXI4_ADDR_WIDTH+AXI4_LEN_WIDTH),
-                .S_REGS         (0),
-                .M_REGS         (0)
+                .NUM                    (3),
+                .DATA_WIDTH             (AXI4_ADDR_WIDTH+AXI4_LEN_WIDTH),
+                .S_REGS                 (0),
+                .M_REGS                 (0)
             )
         i_data_spliter
             (
-                .reset          (aresetn),
-                .clk            (aclk),
-                .cke            (1'b1),
+                .reset                  (aresetn),
+                .clk                    (aclk),
+                .cke                    (1'b1),
                 
-                .s_data         ({3{align_awaddr, align_awlen}}),
-                .s_valid        (align_awvalid),
-                .s_ready        (align_awready),
+                .s_data                 ({3{align_awaddr, align_awlen}}),
+                .s_valid                (align_awvalid),
+                .s_ready                (align_awready),
                 
-                .m_data         ({{cmd2_awaddr, cmd2_awlen}, {cmd1_awaddr, cmd1_awlen}, {cmd0_awaddr, cmd0_awlen}}),
-                .m_valid        ({cmd2_awvalid,              cmd1_awvalid,              cmd0_awvalid}),
-                .m_ready        ({cmd2_awready,              cmd1_awready,              cmd0_awready})
+                .m_data                 ({{cmd2_awaddr, cmd2_awlen}, {cmd1_awaddr, cmd1_awlen}, {cmd0_awaddr, cmd0_awlen}}),
+                .m_valid                ({cmd2_awvalid,              cmd1_awvalid,              cmd0_awvalid}),
+                .m_ready                ({cmd2_awready,              cmd1_awready,              cmd0_awready})
             );
     
     // aw
@@ -512,42 +512,42 @@ module jelly_axi4_dma_fifo_write
     // wlast付与
     jelly_axi_data_last
             #(
-                .BYPASS                     (0),
-                .USER_WIDTH                 (0),
-                .DATA_WIDTH                 (AXI4_DATA_WIDTH),
-                .LEN_WIDTH                  (AXI4_LEN_WIDTH),
-                .FIFO_ASYNC                 (0),
-                .FIFO_PTR_WIDTH             (AWLEN_FIFO_PTR_WIDTH),
-                .FIFO_RAM_TYPE              (AWLEN_FIFO_RAM_TYPE),
-                .S_SLAVE_REGS               (0),
-                .S_MASTER_REGS              (0),
-                .M_SLAVE_REGS               (0),
-                .M_MASTER_REGS              (1)
+                .BYPASS                 (0),
+                .USER_WIDTH             (0),
+                .DATA_WIDTH             (AXI4_DATA_WIDTH),
+                .LEN_WIDTH              (AXI4_LEN_WIDTH),
+                .FIFO_ASYNC             (0),
+                .FIFO_PTR_WIDTH         (AWLEN_FIFO_PTR_WIDTH),
+                .FIFO_RAM_TYPE          (AWLEN_FIFO_RAM_TYPE),
+                .S_SLAVE_REGS           (0),
+                .S_MASTER_REGS          (0),
+                .M_SLAVE_REGS           (0),
+                .M_MASTER_REGS          (1)
             )
         i_axi_data_last
             (
-                .aresetn                    (aresetn),
-                .aclk                       (aclk),
-                .aclken                     (1'b1),
+                .aresetn                (aresetn),
+                .aclk                   (aclk),
+                .aclken                 (1'b1),
                 
-                .s_cmd_aresetn              (aresetn),
-                .s_cmd_aclk                 (aclk),
-                .s_cmd_aclken               (1'b1),
-                .s_cmd_len                  (cmd1_awlen),
-                .s_cmd_valid                (cmd1_awvalid),
-                .s_cmd_ready                (cmd1_awready),
+                .s_cmd_aresetn          (aresetn),
+                .s_cmd_aclk             (aclk),
+                .s_cmd_aclken           (1'b1),
+                .s_cmd_len              (cmd1_awlen),
+                .s_cmd_valid            (cmd1_awvalid),
+                .s_cmd_ready            (cmd1_awready),
                 
-                .s_user                     (1'b0),
-                .s_last                     (1'b1),
-                .s_data                     (fifo_data),
-                .s_valid                    (fifo_valid),
-                .s_ready                    (fifo_ready),
+                .s_user                 (1'b0),
+                .s_last                 (1'b1),
+                .s_data                 (fifo_data),
+                .s_valid                (fifo_valid),
+                .s_ready                (fifo_ready),
                 
-                .m_user                     (),
-                .m_last                     (m_axi4_wlast),
-                .m_data                     (m_axi4_wdata),
-                .m_valid                    (m_axi4_wvalid),
-                .m_ready                    (m_axi4_wready)
+                .m_user                 (),
+                .m_last                 (m_axi4_wlast),
+                .m_data                 (m_axi4_wdata),
+                .m_valid                (m_axi4_wvalid),
+                .m_ready                (m_axi4_wready)
             );
     
     assign m_axi4_wstrb  = param_wstrb;
@@ -557,34 +557,34 @@ module jelly_axi4_dma_fifo_write
     //  write complete
     // ---------------------------------
     
-    wire    [AXI4_LEN_WIDTH-1:0]        blen_awlen;
-    wire                                blen_valid;
-    wire                                blen_ready;
+    wire    [AXI4_LEN_WIDTH-1:0]    blen_awlen;
+    wire                            blen_valid;
+    wire                            blen_ready;
     
     jelly_fifo_fwtf
             #(
-                .DATA_WIDTH                 (AXI4_LEN_WIDTH),
-                .PTR_WIDTH                  (BLEN_FIFO_PTR_WIDTH),
-                .DOUT_REGS                  (BLEN_FIFO_DOUT_REGS),
-                .RAM_TYPE                   (BLEN_FIFO_RAM_TYPE),
-                .LOW_DEALY                  (BLEN_FIFO_LOW_DEALY),
-                .SLAVE_REGS                 (BLEN_FIFO_S_REGS),
-                .MASTER_REGS                (BLEN_FIFO_M_REGS)
+                .DATA_WIDTH             (AXI4_LEN_WIDTH),
+                .PTR_WIDTH              (BLEN_FIFO_PTR_WIDTH),
+                .DOUT_REGS              (BLEN_FIFO_DOUT_REGS),
+                .RAM_TYPE               (BLEN_FIFO_RAM_TYPE),
+                .LOW_DEALY              (BLEN_FIFO_LOW_DEALY),
+                .SLAVE_REGS             (BLEN_FIFO_S_REGS),
+                .MASTER_REGS            (BLEN_FIFO_M_REGS)
             )
         i_fifo_fwtf_blen
             (
-                .reset                      (~aresetn),
-                .clk                        (aclk),
+                .reset                  (~aresetn),
+                .clk                    (aclk),
                 
-                .s_data                     (cmd2_awlen),
-                .s_valid                    (cmd2_awvalid),
-                .s_ready                    (cmd2_awready),
-                .s_free_count               (),
+                .s_data                 (cmd2_awlen),
+                .s_valid                (cmd2_awvalid),
+                .s_ready                (cmd2_awready),
+                .s_free_count           (),
                 
-                .m_data                     (blen_awlen),
-                .m_valid                    (blen_valid),
-                .m_ready                    (blen_ready),
-                .m_data_count               ()
+                .m_data                 (blen_awlen),
+                .m_valid                (blen_valid),
+                .m_ready                (blen_ready),
+                .m_data_count           ()
             );
     
     assign blen_ready           = (m_axi4_bvalid & m_axi4_bready);
