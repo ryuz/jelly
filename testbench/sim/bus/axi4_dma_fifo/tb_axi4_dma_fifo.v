@@ -605,18 +605,21 @@ module tb_axi4_dma_fifo();
         
     #10000;
         $display("stop");
-        wb_write(ADR_CTL_CONTROL,    32'h0000_0000, {WB_SEL_WIDTH{1'b1}});
         s_enable = 0;
+    #1000;
+        wb_write(ADR_CTL_CONTROL,    32'h0000_0000, {WB_SEL_WIDTH{1'b1}});
         
     #10000;
         $display("restart");
         wb_write(ADR_CTL_CONTROL,    32'h0000_0001, {WB_SEL_WIDTH{1'b1}});
+    #100;
         s_enable = 1;
         
     #10000;
         $display("stop");
-        wb_write(ADR_CTL_CONTROL,    32'h0000_0000, {WB_SEL_WIDTH{1'b1}});
         s_enable = 0;
+    #1000;
+        wb_write(ADR_CTL_CONTROL,    32'h0000_0000, {WB_SEL_WIDTH{1'b1}});
         
         
     #10000;
