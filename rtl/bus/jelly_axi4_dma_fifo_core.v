@@ -175,7 +175,7 @@ module jelly_axi4_dma_fifo_core
     
     
     // write
-    jelly_axi4_dma_fifo_writer
+    jelly_axi4_dma_fifo_write
             #(
                 .ASYNC                  (S_ASYNC),
                 .UNIT_WIDTH             (UNIT_WIDTH),
@@ -232,7 +232,7 @@ module jelly_axi4_dma_fifo_core
                 .BLEN_FIFO_S_REGS       (BLEN_FIFO_S_REGS),
                 .BLEN_FIFO_M_REGS       (BLEN_FIFO_M_REGS)
             )
-        i_axi4_dma_fifo_writer
+        i_axi4_dma_fifo_write
             (
                 .aresetn                (aresetn),
                 .aclk                   (aclk),

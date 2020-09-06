@@ -12,7 +12,7 @@
 
 
 // AXI4 DMA FIFO用 データ書き込みコア
-module jelly_axi4_dma_fifo_writer
+module jelly_axi4_dma_fifo_write
         #(
             parameter   ASYNC                = 1,
             parameter   UNIT_WIDTH           = 8,
