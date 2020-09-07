@@ -58,7 +58,7 @@ module jelly_capacity_size
             #(
                 .DATA_WIDTH         (CMD_USER_BITS + CMD_SIZE_WIDTH ),
                 .SLAVE_REGS         (S_REGS),
-                .MASTER_REGS        (0)
+                .MASTER_REGS        (S_REGS)
             )
         i_pipeline_insert_ff_s
             (
