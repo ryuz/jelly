@@ -14,15 +14,17 @@
 
 module jelly_data_packing
         #(
-            parameter UNIT_WIDTH   = 8,
-            parameter S_NUM        = 3,
-            parameter M_NUM        = 4,
-            parameter PADDING_DATA = {(M_NUM*UNIT_WIDTH){1'b0}},
-            parameter S_REGS       = 1,
+            parameter UNIT_WIDTH       = 8,
+            parameter S_NUM            = 3,
+            parameter M_NUM            = 4,
+            parameter PADDING_DATA     = {(M_NUM*UNIT_WIDTH){1'b0}},
+            parameter FIRST_FORCE_LAST = 1,  // firstで前方吐き出し時に残変換があれば強制的にlastを付与
+            parameter FIRST_OVERWRITE  = 0,  // first時前方に残変換があれば吐き出さずに上書き
+            parameter S_REGS           = 1,
             
             // local
-            parameter S_DATA_WIDTH = S_NUM*UNIT_WIDTH,
-            parameter M_DATA_WIDTH = M_NUM*UNIT_WIDTH
+            parameter S_DATA_WIDTH     = S_NUM*UNIT_WIDTH,
+            parameter M_DATA_WIDTH     = M_NUM*UNIT_WIDTH
         )
         (
             input   wire                        reset,
@@ -31,8 +33,8 @@ module jelly_data_packing
             
             input   wire                        endian,
             
-            input   wire                        s_first,
-            input   wire                        s_last,
+            input   wire                        s_first,    // 前方に残変換があれば上書き
+            input   wire                        s_last,     // 後方が不足していればパディング
             input   wire    [S_DATA_WIDTH-1:0]  s_data,
             input   wire                        s_valid,
             output  wire                        s_ready,
@@ -117,6 +119,7 @@ module jelly_data_packing
         reg     [COUNT_WIDTH-1:0]   reg_count, next_count;
         reg     [BUF_WIDTH-1:0]     reg_buf,   next_buf;
         reg                         reg_final, next_final;
+        reg                         reg_lflag, next_lflag;
         
         reg                         sig_ready;
         
@@ -138,6 +141,7 @@ module jelly_data_packing
                 reg_count <= next_count;
                 reg_buf   <= next_buf;
                 reg_final <= next_final;
+                reg_lflag <= next_lflag;
                 reg_first <= next_first;
                 reg_last  <= next_last;
                 reg_valid <= next_valid;
@@ -148,6 +152,7 @@ module jelly_data_packing
             next_count = reg_count;
             next_buf   = reg_buf;
             next_final = reg_final;
+            next_lflag = reg_lflag;
             next_first = reg_first;
             next_last  = reg_last;
             next_valid = reg_valid;
@@ -159,16 +164,17 @@ module jelly_data_packing
                 if ( m_valid  ) begin
                     // 出力実施の場合
                     next_first = 1'b0;
-                    if ( m_last ) begin
+                    if ( reg_last ) begin
                         // 最後なら初期化
                         next_final = 1'b0;
+                        next_lflag = 1'b0;
                         next_buf   = {BUF_WIDTH{1'bx}};
                         next_count = 0;
                     end
                     else begin
                         // データシフト
                         if ( endian ) begin
-                            next_buf = {next_buf, {M_DATA_WIDTH{1'bx}}};                   // big endian
+                            next_buf = {next_buf, {M_DATA_WIDTH{1'bx}}};                    // big endian
                         end
                         else begin
                             next_buf = {{M_DATA_WIDTH{1'bx}}, next_buf} >> M_DATA_WIDTH;    // little endian
@@ -180,7 +186,18 @@ module jelly_data_packing
             
             
             // 入力データ受付可否
-            sig_ready = (!next_final && (BUF_NUM - next_count >= S_NUM) || ((!m_valid || m_ready) && ff_s_valid && ff_s_first));
+            if ( FIRST_OVERWRITE ) begin
+                // first 時は残があっても受け入れ(上書き)
+                sig_ready = (!next_final && (BUF_NUM - next_count >= S_NUM) || ((!m_valid || m_ready) && ff_s_valid && ff_s_first));
+            end
+            else begin
+                // first 時は残があれば吐き出し待ち
+                if ( ff_s_valid && ff_s_first && next_count > 0 ) begin
+                    next_final = 1'b1;
+                    next_lflag = FIRST_FORCE_LAST;
+                end
+                sig_ready = (!next_final && (BUF_NUM - next_count >= S_NUM));
+            end
             
             // 入力受付
             if ( ff_s_valid && sig_ready ) begin
@@ -192,6 +209,7 @@ module jelly_data_packing
                 end
                 if ( ff_s_last ) begin
                     next_final = 1'b1;
+                    next_lflag = 1'b1;
                 end
                 
                 // データ格納
@@ -225,7 +243,7 @@ module jelly_data_packing
         
         assign ff_s_ready = sig_ready;
         assign m_first    = reg_first;
-        assign m_last     = reg_last;
+        assign m_last     = reg_last & reg_lflag;
         assign m_data     = endian ? reg_buf[BUF_WIDTH-1 -: M_DATA_WIDTH] : reg_buf[0 +: M_DATA_WIDTH];
         assign m_valid    = reg_valid;
     end
