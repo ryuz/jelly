@@ -17,7 +17,6 @@ module jelly_data_packing
             parameter UNIT_WIDTH       = 8,
             parameter S_NUM            = 3,
             parameter M_NUM            = 4,
-            parameter PADDING_DATA     = {(M_NUM*UNIT_WIDTH){1'b0}},
             parameter FIRST_FORCE_LAST = 1,  // firstで前方吐き出し時に残変換があれば強制的にlastを付与
             parameter FIRST_OVERWRITE  = 0,  // first時前方に残変換があれば吐き出さずに上書き
             parameter S_REGS           = 1,
@@ -32,9 +31,10 @@ module jelly_data_packing
             input   wire                        cke,
             
             input   wire                        endian,
+            input   wire    [M_DATA_WIDTH-1:0]  padding_data,
             
-            input   wire                        s_first,    // 前方に残変換があれば上書き
-            input   wire                        s_last,     // 後方が不足していればパディング
+            input   wire                        s_first,
+            input   wire                        s_last,
             input   wire    [S_DATA_WIDTH-1:0]  s_data,
             input   wire                        s_valid,
             output  wire                        s_ready,
@@ -111,8 +111,6 @@ module jelly_data_packing
     
     generate
     if ( S_DATA_WIDTH != M_DATA_WIDTH ) begin : blk_packing
-        
-        wire    [M_DATA_WIDTH-1:0]  padding_data = PADDING_DATA;
         
         integer                     i;
         
