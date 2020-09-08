@@ -17,13 +17,13 @@ module jelly_axi4_dma_write
             parameter   AWASYNC              = 1,
             parameter   WASYNC               = 1,
             parameter   BASYNC               = 1,
-            parameter   UNIT_WIDTH           = 8,
+            parameter   BYTE_WIDTH           = 8,
             
             parameter   AXI4_ID_WIDTH        = 6,
             parameter   AXI4_ADDR_WIDTH      = 49,
             parameter   AXI4_DATA_SIZE       = 2,    // 0:8bit, 1:16bit, 2:32bit ...
-            parameter   AXI4_DATA_WIDTH      = (UNIT_WIDTH << AXI4_DATA_SIZE),
-            parameter   AXI4_STRB_WIDTH      = AXI4_DATA_WIDTH / UNIT_WIDTH,
+            parameter   AXI4_DATA_WIDTH      = (BYTE_WIDTH << AXI4_DATA_SIZE),
+            parameter   AXI4_STRB_WIDTH      = AXI4_DATA_WIDTH / BYTE_WIDTH,
             parameter   AXI4_LEN_WIDTH       = 8,
             parameter   AXI4_QOS_WIDTH       = 4,
             parameter   AXI4_AWID            = {AXI4_ID_WIDTH{1'b0}},
@@ -38,13 +38,13 @@ module jelly_axi4_dma_write
             parameter   BYPASS_ALIGN         = 0,
             parameter   AXI4_ALIGN           = 12,
             
-            parameter   S_AWADDR_WIDTH       = AXI4_ADDR_WIDTH,
             parameter   S_WDATA_SIZE         = 2,    // 0:8bit, 1:16bit, 2:32bit ...
-            parameter   S_WDATA_WIDTH        = (UNIT_WIDTH << S_WDATA_SIZE),
+            parameter   S_WDATA_WIDTH        = (BYTE_WIDTH << S_WDATA_SIZE),
+            parameter   S_WSTRB_WIDTH        = S_WDATA_WIDTH / BYTE_WIDTH,
+            parameter   S_AWADDR_WIDTH       = AXI4_ADDR_WIDTH,
             parameter   S_AWLEN_WIDTH        = 32,
             parameter   S_AWLEN_SIZE         = S_WDATA_SIZE,
             parameter   S_AWLEN_OFFSET       = 1'b1,
-            parameter   S_WSTRB_WIDTH        = AXI4_STRB_WIDTH,
             
             parameter   AWFIFO_PTR_WIDTH     = 4,
             parameter   AWFIFO_RAM_TYPE      = "distributed",
@@ -82,6 +82,8 @@ module jelly_axi4_dma_write
             parameter   BCMD_FIFO_M_REGS     = 1
         )
         (
+            input   wire                                endian,
+            
             input   wire                                s_awresetn,
             input   wire                                s_awclk,
             input   wire    [S_AWADDR_WIDTH-1:0]        s_awaddr,
@@ -127,7 +129,6 @@ module jelly_axi4_dma_write
             output  wire                                m_axi4_bready
         );
     
-    genvar  i;
     
     // ---------------------------------
     //  localparam
@@ -211,12 +212,55 @@ module jelly_axi4_dma_write
     wire    [CAPACITY_WIDTH-1:0]    s_wfifo_wr_size = (1 << WDATA_FIFO_SIZE);
     wire                            s_wfifo_wr_signal;
     
-    wire    [S_WSTRB_WIDTH+AXI4_DATA_WIDTH-1:0]     s_wpack;
+    /*
+    jelly_axi4s_width_converter
+            #(
+                .UNIT_WIDTH             (BYTE_WIDTH),
+                .S_DATA_WIDTH           (S_WDATA_WIDTH),
+                .M_DATA_WIDTH           (AXI4_DATA_WIDTH),
+                .S_USER_WIDTH           (0),
+                .WITH_FIRST             (0),
+                .WITH_LAST              (1),
+                .WITH_STRB              (1),
+                .WITH_KEEP              (0),
+                .FIRST_FORCE_LAST       (1),
+                .FIRST_OVERWRITE        (0),
+                .S_REGS                 (1)
+            )
+        i_axi4s_width_converter_wdata
+            (
+                .aresetn                (),
+                .aclk,
+                .cke,
+                .endian                  (endian),
+                
+                .s_axi4s_tuser,
+                .s_axi4s_tdata,
+                .s_axi4s_tstrb,
+                .s_axi4s_tkeep,
+                .s_axi4s_tfirst,   // 独自仕様
+                .s_axi4s_tlast,
+                .s_axi4s_tvalid,
+                .s_axi4s_tready,
+                
+                .m_axi4s_tuser,
+                .m_axi4s_tdata,
+                .m_axi4s_tstrb,
+                .m_axi4s_tkeep,
+                .m_axi4s_tfirst,   // 独自仕様
+                .m_axi4s_tlast,
+                .m_axi4s_tvalid,
+                .m_axi4s_tready
+            );
+    */
+    
+    
+    wire    [S_WSTRB_WIDTH+S_WDATA_WIDTH-1:0]     s_wpack;
     jelly_func_pack2
             #(
                 .N      (S_WSTRB_WIDTH),
                 .W0     (1),
-                .W1     (UNIT_WIDTH)
+                .W1     (BYTE_WIDTH)
             )
         i_func_pack2
             (
@@ -230,7 +274,7 @@ module jelly_axi4_dma_write
             #(
                 .N      (AXI4_STRB_WIDTH),
                 .W0     (1),
-                .W1     (UNIT_WIDTH)
+                .W1     (BYTE_WIDTH)
             )
         i_func_unpack2
             (
@@ -242,7 +286,7 @@ module jelly_axi4_dma_write
     jelly_fifo_width_converter
             #(
                 .ASYNC                  (WASYNC),
-                .UNIT_WIDTH             (1+UNIT_WIDTH),
+                .UNIT_WIDTH             (1+BYTE_WIDTH),
                 .S_DATA_SIZE            (S_WDATA_SIZE),
                 .M_DATA_SIZE            (AXI4_DATA_SIZE),
                 
@@ -273,6 +317,8 @@ module jelly_axi4_dma_write
                 .m_data_count           (),
                 .m_rd_signal            ()
             );
+    
+    
     
     
     wire    [CAPACITY_WIDTH-1:0]    wfifo_wr_size;
@@ -601,14 +647,14 @@ module jelly_axi4_dma_write
     jelly_fifo_fwtf
             #(
                 .DATA_WIDTH                 (1'b1),
-                .PTR_WIDTH                  (BFIFO_PTR_WIDTH),
-                .DOUT_REGS                  (BFIFO_DOUT_REGS),
-                .RAM_TYPE                   (BFIFO_RAM_TYPE),
-                .LOW_DEALY                  (BFIFO_LOW_DEALY),
-                .SLAVE_REGS                 (BFIFO_S_REGS),
-                .MASTER_REGS                (BFIFO_M_REGS)
+                .PTR_WIDTH                  (BCMD_FIFO_PTR_WIDTH),
+                .DOUT_REGS                  (BCMD_FIFO_DOUT_REGS),
+                .RAM_TYPE                   (BCMD_FIFO_RAM_TYPE),
+                .LOW_DEALY                  (BCMD_FIFO_LOW_DEALY),
+                .SLAVE_REGS                 (BCMD_FIFO_S_REGS),
+                .MASTER_REGS                (BCMD_FIFO_M_REGS)
             )
-        i_fifo_fwtf_blen
+        i_fifo_fwtf_bcmd
             (
                 .reset                      (~m_aresetn),
                 .clk                        (m_aclk),
