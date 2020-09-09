@@ -212,10 +212,10 @@ module jelly_data_packing
                 
                 // データ格納
                 if ( endian ) begin
-                    next_buf[(BUF_NUM-1 - next_count)*UNIT_WIDTH -: S_DATA_WIDTH] = ff_s_data; // big endian
+                    next_buf[(BUF_WIDTH-1) - (next_count*UNIT_WIDTH) -: S_DATA_WIDTH] = ff_s_data;  // big endian
                 end
                 else begin
-                    next_buf[next_count*UNIT_WIDTH +: S_DATA_WIDTH] = ff_s_data;               // little endian
+                    next_buf[next_count*UNIT_WIDTH +: S_DATA_WIDTH] = ff_s_data;                    // little endian
                 end
                 next_count = next_count + S_NUM;
             end
