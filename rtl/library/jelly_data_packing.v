@@ -19,7 +19,7 @@ module jelly_data_packing
             parameter M_NUM            = 4,
             parameter FIRST_FORCE_LAST = 1,  // firstで前方吐き出し時に残変換があれば強制的にlastを付与
             parameter FIRST_OVERWRITE  = 0,  // first時前方に残変換があれば吐き出さずに上書き
-            parameter S_REGS           = 1,
+            parameter S_REGS           = (S_NUM != M_NUM),
             
             // local
             parameter S_DATA_WIDTH     = S_NUM*UNIT_WIDTH,
@@ -131,8 +131,9 @@ module jelly_data_packing
                 reg_count <= 0;
                 reg_buf   <= {BUF_WIDTH{1'bx}};
                 reg_final <= 1'b0;
+                reg_lflag <= 1'b0;
                 reg_first <= 1'b0;
-                reg_last  <= 1'bx;
+                reg_last  <= 1'b0;
                 reg_valid <= 1'b0;
             end
             else if ( cke ) begin
@@ -253,7 +254,6 @@ module jelly_data_packing
         assign m_valid    = ff_s_valid;
     end
     endgenerate
-    
     
 endmodule
 
