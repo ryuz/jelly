@@ -108,11 +108,6 @@ module jelly_data_combiner
     //  combiner
     // -----------------------------------------
     
-    reg     [NUM-1:0]               sig_s_ready;
-    
-    reg     [DATA_WIDTH-1:0]        sig_m_data;
-    reg                             sig_m_valid;
-    
     generate
     for ( i = 0; i < NUM; i = i+1 ) begin : loop_s_ready
         assign ff_s_ready[i] = (ff_m_valid && ff_m_ready);

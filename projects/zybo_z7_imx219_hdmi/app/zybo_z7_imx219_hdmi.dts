@@ -17,12 +17,34 @@
             fclk0 {
                 compatible  = "ikwzm,fclkcfg-0.10.a";
                 clocks      = <&clkc 15>;
-                insert-rate = "133333333";
+                insert-rate = "100000000";
             };
             fclk1 {
                 compatible  = "ikwzm,fclkcfg-0.10.a";
                 clocks      = <&clkc 16>;
-                insert-rate = "100000000";
+/*              insert-rate = "125000000"; */
+                insert-rate = "133333344";
+            };
+
+            afi0: afi0 {
+                compatible = "xlnx,zynq-afi-fpga";
+                reg = <0xf8008000 0x1000>;
+                xlnx,afi-width = <0>;  /* 0:64bit, 1:32bit */
+            };
+            afi1: afi1 {
+                compatible = "xlnx,zynq-afi-fpga";
+                reg = <0xf8009000 0x1000>;
+                xlnx,afi-width = <0>;  /* 0:64bit, 1:32bit */
+            };
+            afi2: afi2 {
+                compatible = "xlnx,zynq-afi-fpga";
+                reg = <0xf800a000 0x1000>;
+                xlnx,afi-width = <0>;  /* 0:64bit, 1:32bit */
+            };
+            afi3: afi3 {
+                compatible = "xlnx,zynq-afi-fpga";
+                reg = <0xf800b000 0x1000>;
+                xlnx,afi-width = <0>;  /* 0:64bit, 1:32bit */
             };
         };
     };
@@ -35,13 +57,19 @@
             
             uio_pl_peri {
                 compatible = "generic-uio";
-                reg = <0x40000000 0x01000000>;
+                reg = <0x40000000 0x10000000>;
             };
 
             udmabuf0 {
                 compatible = "ikwzm,udmabuf-0.10.a";
                 minor-number = <0>;
                 size = <0x03000000>;
+            };
+
+            udmabuf1 {
+                compatible = "ikwzm,udmabuf-0.10.a";
+                minor-number = <1>;
+                size = <0x007b5200>;
             };
         };
     };
@@ -60,7 +88,7 @@
                 #address-cells = <0x1>;
                 #size-cells = <0x0>;
             };
-		};
+        };
     };
 };
 

@@ -162,7 +162,7 @@ module jelly_video_format_regularizer
         end
     end
     
-   // read
+    // read
     assign s_wb_dat_o = (s_wb_adr_i == ADR_CORE_ID)          ? CORE_ID              :
                         (s_wb_adr_i == ADR_CORE_VERSION)     ? CORE_VERSION         :
                         (s_wb_adr_i == ADR_CTL_CONTROL)      ? reg_ctl_control      :

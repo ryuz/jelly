@@ -12,11 +12,12 @@
 
 
 // colormap
-module jelly_colormap_table
+module jelly_colormap
         #(
-            parameter   USER_WIDTH      = 0,
-            parameter   COLORMAP = "JET"   // "HSV"
-            parameter   USER_BITS       = USER_WIDTH > 0 ? USER_WIDTH : 1
+            parameter   USER_WIDTH = 0,
+            parameter   COLORMAP   = "JET",   // "HSV"
+            
+            parameter   USER_BITS  = USER_WIDTH > 0 ? USER_WIDTH : 1
         )
         (
             input   wire                        reset,
@@ -54,10 +55,10 @@ module jelly_colormap_table
     
     always @(posedge clk) begin
         if ( reset ) begin
-    reg     [USER_BITS-1:0]     reg_user;
-    reg     [7:0]               reg_data;
-    reg     [23:0]              reg_color;
-    reg                         reg_valid;
+            reg_user  <= {USER_BITS{1'bx}};
+            reg_data  <= {8{1'bx}};
+            reg_color <= {24{1'bx}};
+            reg_valid <= 1'b0;
         end
         else if ( cke ) begin
             if ( s_ready ) begin

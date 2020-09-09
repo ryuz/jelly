@@ -18,7 +18,7 @@ module jelly_colormap_table
         )
         (
             input   wire    [7:0]       in_data,
-            output  reg     [24:0]      out_data
+            output  reg     [23:0]      out_data
         );
     
     always @* begin

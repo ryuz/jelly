@@ -105,47 +105,55 @@ module jelly_img_color_matrix
     // -------------------------------------
     
     // register address offset
-    localparam  ADR_CORE_ID           = 8'h00;
-    localparam  ADR_CORE_VERSION      = 8'h01;
-    localparam  ADR_CTL_CONTROL       = 8'h04;
-    localparam  ADR_CTL_STATUS        = 8'h05;
-    localparam  ADR_CTL_INDEX         = 8'h07;
-    localparam  ADR_PARAM_MATRIX00    = 8'h10;
-    localparam  ADR_PARAM_MATRIX01    = 8'h11;
-    localparam  ADR_PARAM_MATRIX02    = 8'h12;
-    localparam  ADR_PARAM_MATRIX03    = 8'h13;
-    localparam  ADR_PARAM_MATRIX10    = 8'h14;
-    localparam  ADR_PARAM_MATRIX11    = 8'h15;
-    localparam  ADR_PARAM_MATRIX12    = 8'h16;
-    localparam  ADR_PARAM_MATRIX13    = 8'h17;
-    localparam  ADR_PARAM_MATRIX20    = 8'h18;
-    localparam  ADR_PARAM_MATRIX21    = 8'h19;
-    localparam  ADR_PARAM_MATRIX22    = 8'h1a;
-    localparam  ADR_PARAM_MATRIX23    = 8'h1b;
-    localparam  ADR_PARAM_CLIP_MIN0   = 8'h20;
-    localparam  ADR_PARAM_CLIP_MAX0   = 8'h21;
-    localparam  ADR_PARAM_CLIP_MIN1   = 8'h22;
-    localparam  ADR_PARAM_CLIP_MAX1   = 8'h23;
-    localparam  ADR_PARAM_CLIP_MIN2   = 8'h24;
-    localparam  ADR_PARAM_CLIP_MAX2   = 8'h25;
-    localparam  ADR_CURRENT_MATRIX00  = 8'h90;
-    localparam  ADR_CURRENT_MATRIX01  = 8'h91;
-    localparam  ADR_CURRENT_MATRIX02  = 8'h92;
-    localparam  ADR_CURRENT_MATRIX03  = 8'h93;
-    localparam  ADR_CURRENT_MATRIX10  = 8'h94;
-    localparam  ADR_CURRENT_MATRIX11  = 8'h95;
-    localparam  ADR_CURRENT_MATRIX12  = 8'h96;
-    localparam  ADR_CURRENT_MATRIX13  = 8'h97;
-    localparam  ADR_CURRENT_MATRIX20  = 8'h98;
-    localparam  ADR_CURRENT_MATRIX21  = 8'h99;
-    localparam  ADR_CURRENT_MATRIX22  = 8'h9a;
-    localparam  ADR_CURRENT_MATRIX23  = 8'h9b;
-    localparam  ADR_CURRENT_CLIP_MIN0 = 8'ha0;
-    localparam  ADR_CURRENT_CLIP_MAX0 = 8'ha1;
-    localparam  ADR_CURRENT_CLIP_MIN1 = 8'ha2;
-    localparam  ADR_CURRENT_CLIP_MAX1 = 8'ha3;
-    localparam  ADR_CURRENT_CLIP_MIN2 = 8'ha4;
-    localparam  ADR_CURRENT_CLIP_MAX2 = 8'ha5;
+    localparam  ADR_CORE_ID               = 8'h00;
+    localparam  ADR_CORE_VERSION          = 8'h01;
+    localparam  ADR_CTL_CONTROL           = 8'h04;
+    localparam  ADR_CTL_STATUS            = 8'h05;
+    localparam  ADR_CTL_INDEX             = 8'h07;
+    localparam  ADR_PARAM_MATRIX00        = 8'h10;
+    localparam  ADR_PARAM_MATRIX01        = 8'h11;
+    localparam  ADR_PARAM_MATRIX02        = 8'h12;
+    localparam  ADR_PARAM_MATRIX03        = 8'h13;
+    localparam  ADR_PARAM_MATRIX10        = 8'h14;
+    localparam  ADR_PARAM_MATRIX11        = 8'h15;
+    localparam  ADR_PARAM_MATRIX12        = 8'h16;
+    localparam  ADR_PARAM_MATRIX13        = 8'h17;
+    localparam  ADR_PARAM_MATRIX20        = 8'h18;
+    localparam  ADR_PARAM_MATRIX21        = 8'h19;
+    localparam  ADR_PARAM_MATRIX22        = 8'h1a;
+    localparam  ADR_PARAM_MATRIX23        = 8'h1b;
+    localparam  ADR_PARAM_CLIP_MIN0       = 8'h20;
+    localparam  ADR_PARAM_CLIP_MAX0       = 8'h21;
+    localparam  ADR_PARAM_CLIP_MIN1       = 8'h22;
+    localparam  ADR_PARAM_CLIP_MAX1       = 8'h23;
+    localparam  ADR_PARAM_CLIP_MIN2       = 8'h24;
+    localparam  ADR_PARAM_CLIP_MAX2       = 8'h25;
+    localparam  ADR_CFG_COEFF0_WIDTH      = 8'h40;
+    localparam  ADR_CFG_COEFF1_WIDTH      = 8'h41;
+    localparam  ADR_CFG_COEFF2_WIDTH      = 8'h42;
+    localparam  ADR_CFG_COEFF3_WIDTH      = 8'h43;
+    localparam  ADR_CFG_COEFF0_FRAC_WIDTH = 8'h44;
+    localparam  ADR_CFG_COEFF1_FRAC_WIDTH = 8'h45;
+    localparam  ADR_CFG_COEFF2_FRAC_WIDTH = 8'h46;
+    localparam  ADR_CFG_COEFF3_FRAC_WIDTH = 8'h47;
+    localparam  ADR_CURRENT_MATRIX00      = 8'h90;
+    localparam  ADR_CURRENT_MATRIX01      = 8'h91;
+    localparam  ADR_CURRENT_MATRIX02      = 8'h92;
+    localparam  ADR_CURRENT_MATRIX03      = 8'h93;
+    localparam  ADR_CURRENT_MATRIX10      = 8'h94;
+    localparam  ADR_CURRENT_MATRIX11      = 8'h95;
+    localparam  ADR_CURRENT_MATRIX12      = 8'h96;
+    localparam  ADR_CURRENT_MATRIX13      = 8'h97;
+    localparam  ADR_CURRENT_MATRIX20      = 8'h98;
+    localparam  ADR_CURRENT_MATRIX21      = 8'h99;
+    localparam  ADR_CURRENT_MATRIX22      = 8'h9a;
+    localparam  ADR_CURRENT_MATRIX23      = 8'h9b;
+    localparam  ADR_CURRENT_CLIP_MIN0     = 8'ha0;
+    localparam  ADR_CURRENT_CLIP_MAX0     = 8'ha1;
+    localparam  ADR_CURRENT_CLIP_MIN1     = 8'ha2;
+    localparam  ADR_CURRENT_CLIP_MAX1     = 8'ha3;
+    localparam  ADR_CURRENT_CLIP_MIN2     = 8'ha4;
+    localparam  ADR_CURRENT_CLIP_MAX2     = 8'ha5;
     
     // registers
     reg             [2:0]               reg_ctl_control; 
@@ -305,47 +313,55 @@ module jelly_img_color_matrix
     wire    signed  [WB_DAT_WIDTH-1:0]  signed_current_matrix23 = reg_current_matrix23;
     
     // read (shadow register は クロック同期してないのであくまでデバッグ用)
-    assign s_wb_dat_o = (s_wb_adr_i == ADR_CORE_ID)           ? CORE_ID                 :
-                        (s_wb_adr_i == ADR_CORE_VERSION)      ? CORE_VERSION            :
-                        (s_wb_adr_i == ADR_CTL_CONTROL)       ? reg_ctl_control         :
-                        (s_wb_adr_i == ADR_CTL_STATUS)        ? 1                       :
-                        (s_wb_adr_i == ADR_CTL_INDEX)         ? ctl_index               :
-                        (s_wb_adr_i == ADR_PARAM_MATRIX00)    ? signed_param_matrix00   :
-                        (s_wb_adr_i == ADR_PARAM_MATRIX01)    ? signed_param_matrix01   :
-                        (s_wb_adr_i == ADR_PARAM_MATRIX02)    ? signed_param_matrix02   :
-                        (s_wb_adr_i == ADR_PARAM_MATRIX03)    ? signed_param_matrix03   :
-                        (s_wb_adr_i == ADR_PARAM_MATRIX10)    ? signed_param_matrix10   :
-                        (s_wb_adr_i == ADR_PARAM_MATRIX11)    ? signed_param_matrix11   :
-                        (s_wb_adr_i == ADR_PARAM_MATRIX12)    ? signed_param_matrix12   :
-                        (s_wb_adr_i == ADR_PARAM_MATRIX13)    ? signed_param_matrix13   :
-                        (s_wb_adr_i == ADR_PARAM_MATRIX20)    ? signed_param_matrix20   :
-                        (s_wb_adr_i == ADR_PARAM_MATRIX21)    ? signed_param_matrix21   :
-                        (s_wb_adr_i == ADR_PARAM_MATRIX22)    ? signed_param_matrix22   :
-                        (s_wb_adr_i == ADR_PARAM_MATRIX23)    ? signed_param_matrix23   :
-                        (s_wb_adr_i == ADR_PARAM_CLIP_MIN0)   ? reg_param_clip_min0     :
-                        (s_wb_adr_i == ADR_PARAM_CLIP_MAX0)   ? reg_param_clip_max0     :
-                        (s_wb_adr_i == ADR_PARAM_CLIP_MIN1)   ? reg_param_clip_min1     :
-                        (s_wb_adr_i == ADR_PARAM_CLIP_MAX1)   ? reg_param_clip_max1     :
-                        (s_wb_adr_i == ADR_PARAM_CLIP_MIN2)   ? reg_param_clip_min2     :
-                        (s_wb_adr_i == ADR_PARAM_CLIP_MAX2)   ? reg_param_clip_max2     :
-                        (s_wb_adr_i == ADR_CURRENT_MATRIX00)  ? signed_current_matrix00 :   // for debug
-                        (s_wb_adr_i == ADR_CURRENT_MATRIX01)  ? signed_current_matrix01 :   // for debug
-                        (s_wb_adr_i == ADR_CURRENT_MATRIX02)  ? signed_current_matrix02 :   // for debug
-                        (s_wb_adr_i == ADR_CURRENT_MATRIX03)  ? signed_current_matrix03 :   // for debug
-                        (s_wb_adr_i == ADR_CURRENT_MATRIX10)  ? signed_current_matrix10 :   // for debug
-                        (s_wb_adr_i == ADR_CURRENT_MATRIX11)  ? signed_current_matrix11 :   // for debug
-                        (s_wb_adr_i == ADR_CURRENT_MATRIX12)  ? signed_current_matrix12 :   // for debug
-                        (s_wb_adr_i == ADR_CURRENT_MATRIX13)  ? signed_current_matrix13 :   // for debug
-                        (s_wb_adr_i == ADR_CURRENT_MATRIX20)  ? signed_current_matrix20 :   // for debug
-                        (s_wb_adr_i == ADR_CURRENT_MATRIX21)  ? signed_current_matrix21 :   // for debug
-                        (s_wb_adr_i == ADR_CURRENT_MATRIX22)  ? signed_current_matrix22 :   // for debug
-                        (s_wb_adr_i == ADR_CURRENT_MATRIX23)  ? signed_current_matrix23 :   // for debug
-                        (s_wb_adr_i == ADR_CURRENT_CLIP_MIN0) ? reg_current_clip_min0   :   // for debug
-                        (s_wb_adr_i == ADR_CURRENT_CLIP_MAX0) ? reg_current_clip_max0   :   // for debug
-                        (s_wb_adr_i == ADR_CURRENT_CLIP_MIN1) ? reg_current_clip_min1   :   // for debug
-                        (s_wb_adr_i == ADR_CURRENT_CLIP_MAX1) ? reg_current_clip_max1   :   // for debug
-                        (s_wb_adr_i == ADR_CURRENT_CLIP_MIN2) ? reg_current_clip_min2   :   // for debug
-                        (s_wb_adr_i == ADR_CURRENT_CLIP_MAX2) ? reg_current_clip_max2   :   // for debug
+    assign s_wb_dat_o = (s_wb_adr_i == ADR_CORE_ID)               ? CORE_ID                 :
+                        (s_wb_adr_i == ADR_CORE_VERSION)          ? CORE_VERSION            :
+                        (s_wb_adr_i == ADR_CTL_CONTROL)           ? reg_ctl_control         :
+                        (s_wb_adr_i == ADR_CTL_STATUS)            ? 1                       :
+                        (s_wb_adr_i == ADR_CTL_INDEX)             ? ctl_index               :
+                        (s_wb_adr_i == ADR_PARAM_MATRIX00)        ? signed_param_matrix00   :
+                        (s_wb_adr_i == ADR_PARAM_MATRIX01)        ? signed_param_matrix01   :
+                        (s_wb_adr_i == ADR_PARAM_MATRIX02)        ? signed_param_matrix02   :
+                        (s_wb_adr_i == ADR_PARAM_MATRIX03)        ? signed_param_matrix03   :
+                        (s_wb_adr_i == ADR_PARAM_MATRIX10)        ? signed_param_matrix10   :
+                        (s_wb_adr_i == ADR_PARAM_MATRIX11)        ? signed_param_matrix11   :
+                        (s_wb_adr_i == ADR_PARAM_MATRIX12)        ? signed_param_matrix12   :
+                        (s_wb_adr_i == ADR_PARAM_MATRIX13)        ? signed_param_matrix13   :
+                        (s_wb_adr_i == ADR_PARAM_MATRIX20)        ? signed_param_matrix20   :
+                        (s_wb_adr_i == ADR_PARAM_MATRIX21)        ? signed_param_matrix21   :
+                        (s_wb_adr_i == ADR_PARAM_MATRIX22)        ? signed_param_matrix22   :
+                        (s_wb_adr_i == ADR_PARAM_MATRIX23)        ? signed_param_matrix23   :
+                        (s_wb_adr_i == ADR_PARAM_CLIP_MIN0)       ? reg_param_clip_min0     :
+                        (s_wb_adr_i == ADR_PARAM_CLIP_MAX0)       ? reg_param_clip_max0     :
+                        (s_wb_adr_i == ADR_PARAM_CLIP_MIN1)       ? reg_param_clip_min1     :
+                        (s_wb_adr_i == ADR_PARAM_CLIP_MAX1)       ? reg_param_clip_max1     :
+                        (s_wb_adr_i == ADR_PARAM_CLIP_MIN2)       ? reg_param_clip_min2     :
+                        (s_wb_adr_i == ADR_PARAM_CLIP_MAX2)       ? reg_param_clip_max2     :
+                        (s_wb_adr_i == ADR_CFG_COEFF0_WIDTH)      ? COEFF_WIDTH             :
+                        (s_wb_adr_i == ADR_CFG_COEFF1_WIDTH)      ? COEFF_WIDTH             :
+                        (s_wb_adr_i == ADR_CFG_COEFF2_WIDTH)      ? COEFF_WIDTH             :
+                        (s_wb_adr_i == ADR_CFG_COEFF3_WIDTH)      ? COEFF3_WIDTH            :
+                        (s_wb_adr_i == ADR_CFG_COEFF0_FRAC_WIDTH) ? COEFF_FRAC_WIDTH        :
+                        (s_wb_adr_i == ADR_CFG_COEFF1_FRAC_WIDTH) ? COEFF_FRAC_WIDTH        :
+                        (s_wb_adr_i == ADR_CFG_COEFF2_FRAC_WIDTH) ? COEFF_FRAC_WIDTH        :
+                        (s_wb_adr_i == ADR_CFG_COEFF3_FRAC_WIDTH) ? COEFF3_FRAC_WIDTH       :
+                        (s_wb_adr_i == ADR_CURRENT_MATRIX00)      ? signed_current_matrix00 :   // for debug
+                        (s_wb_adr_i == ADR_CURRENT_MATRIX01)      ? signed_current_matrix01 :   // for debug
+                        (s_wb_adr_i == ADR_CURRENT_MATRIX02)      ? signed_current_matrix02 :   // for debug
+                        (s_wb_adr_i == ADR_CURRENT_MATRIX03)      ? signed_current_matrix03 :   // for debug
+                        (s_wb_adr_i == ADR_CURRENT_MATRIX10)      ? signed_current_matrix10 :   // for debug
+                        (s_wb_adr_i == ADR_CURRENT_MATRIX11)      ? signed_current_matrix11 :   // for debug
+                        (s_wb_adr_i == ADR_CURRENT_MATRIX12)      ? signed_current_matrix12 :   // for debug
+                        (s_wb_adr_i == ADR_CURRENT_MATRIX13)      ? signed_current_matrix13 :   // for debug
+                        (s_wb_adr_i == ADR_CURRENT_MATRIX20)      ? signed_current_matrix20 :   // for debug
+                        (s_wb_adr_i == ADR_CURRENT_MATRIX21)      ? signed_current_matrix21 :   // for debug
+                        (s_wb_adr_i == ADR_CURRENT_MATRIX22)      ? signed_current_matrix22 :   // for debug
+                        (s_wb_adr_i == ADR_CURRENT_MATRIX23)      ? signed_current_matrix23 :   // for debug
+                        (s_wb_adr_i == ADR_CURRENT_CLIP_MIN0)     ? reg_current_clip_min0   :   // for debug
+                        (s_wb_adr_i == ADR_CURRENT_CLIP_MAX0)     ? reg_current_clip_max0   :   // for debug
+                        (s_wb_adr_i == ADR_CURRENT_CLIP_MIN1)     ? reg_current_clip_min1   :   // for debug
+                        (s_wb_adr_i == ADR_CURRENT_CLIP_MAX1)     ? reg_current_clip_max1   :   // for debug
+                        (s_wb_adr_i == ADR_CURRENT_CLIP_MIN2)     ? reg_current_clip_min2   :   // for debug
+                        (s_wb_adr_i == ADR_CURRENT_CLIP_MAX2)     ? reg_current_clip_max2   :   // for debug
                         {WB_DAT_WIDTH{1'b0}};
     
     assign s_wb_ack_o = s_wb_stb_i;

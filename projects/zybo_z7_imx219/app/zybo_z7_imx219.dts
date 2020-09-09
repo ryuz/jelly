@@ -17,12 +17,12 @@
             fclk0 {
                 compatible  = "ikwzm,fclkcfg-0.10.a";
                 clocks      = <&clkc 15>;
-                insert-rate = "133333333";
+                insert-rate = "100000000";
             };
             fclk1 {
                 compatible  = "ikwzm,fclkcfg-0.10.a";
                 clocks      = <&clkc 16>;
-                insert-rate = "100000000";
+                insert-rate = "133333333";
             };
         };
     };

@@ -16,6 +16,8 @@ module tb_top();
         $dumpfile("tb_top.vcd");
         $dumpvars(1, tb_top);
         $dumpvars(1, tb_top.i_top);
+        $dumpvars(1, tb_top.i_top.i_image_processing);
+        $dumpvars(0, tb_top.i_top.i_image_processing.i_img_previous_frame);
 //      $dumpvars(0, tb_top.i_top.blk_read_vdma.i_vdma_axi4_to_axi4s);
 //      $dumpvars(0, tb_top.i_top.i_vsync_generator);
         
@@ -26,8 +28,10 @@ module tb_top();
     reg     clk125 = 1'b1;
     always #(RATE125/2.0)   clk125 = ~clk125;
     
-    localparam  X_NUM = 1640;
-    localparam  Y_NUM = 1232;
+//  localparam  X_NUM = 1640;
+//  localparam  Y_NUM = 1232;
+    localparam  X_NUM = 256;
+    localparam  Y_NUM = 16;
     
     
     zybo_z7_imx219_hdmi
@@ -66,8 +70,8 @@ module tb_top();
                 .AXI4S_DATA_WIDTH   (8),
                 .X_NUM              (X_NUM),
                 .Y_NUM              (Y_NUM),
-    //          .PGM_FILE           ("lena_128x128.pgm"),
-                .PGM_FILE           ("Chrysanthemum_1640x1232.pgm"),
+                .PGM_FILE           ("lena_128x128.pgm"),
+    //          .PGM_FILE           ("Chrysanthemum_1640x1232.pgm"),
                 .BUSY_RATE          (0),
                 .RANDOM_SEED        (0)
             )
@@ -237,42 +241,77 @@ module tb_top();
     
     
     initial begin
-    @(negedge wb_rst_i);
         $display("start");
     #10000;
+        $display("read id");
+        wb_read (32'h40000000);
+        wb_read (32'h40100000);  // ビデオサイズ正規化
+        wb_read (32'h40200000);  // デモザイク
+        wb_read (32'h40210000);  // カラーマトリックス
+        wb_read (32'h40220000);  // ガンマ補正
+        wb_read (32'h40240000);  // ガウシアンフィルタ
+        wb_read (32'h40250000);  // Cannyフィルタ
+        wb_read (32'h40260000);  // FIFO dma
+        wb_read (32'h40270000);  // 前画像との差分バイナライズ
+        wb_read (32'h402f0000);  // 出力切り替え
+        wb_read (32'h40310000);  // Write-DMA
+        wb_read (32'h40340000);  // Read-DMA
+        wb_read (32'h40360000);  // Video out sync generator
+        
+        $display("set DMA FIFO");
+        wb_read (32'h40260000);                     // CORE ID
+        wb_write(32'h40260020, 32'h0000_1000, 4'b1111); // PARAM_ADDR
+        wb_write(32'h40260024, 32'h0010_0000, 4'b1111); // PARAM_SZIE
+        wb_write(32'h40260010, 32'h0000_0003, 4'b1111); // CTL_CONTROL
+        
         
         $display("set format regularizer");
-        wb_read (32'h40010000);                     // CORE ID
-        wb_write(32'h40010040,        X_NUM, 4'b1111);     // width
-        wb_write(32'h40010044,        Y_NUM, 4'b1111);     // height
-        wb_write(32'h40010048,            0, 4'b1111);     // fill
-        wb_write(32'h4001004c,         1024, 4'b1111);     // timeout
-        wb_write(32'h40010010,            1, 4'b1111);     // enable
+        wb_read (32'h40100000);                     // CORE ID
+        wb_write(32'h40100040,        X_NUM, 4'b1111);     // width
+        wb_write(32'h40100044,        Y_NUM, 4'b1111);     // height
+        wb_write(32'h40100048,            0, 4'b1111);     // fill
+        wb_write(32'h4010004c,         1024, 4'b1111);     // timeout
+        wb_write(32'h40100010,            1, 4'b1111);     // enable
+        
+        $display("set colmat");
+        wb_read (32'h40210000);                     // CORE ID
+        wb_write(32'h40210010,            3, 4'b1111);     // CTL_CONTROL
+        
+        $display("set gauss");
+        wb_read (32'h40240000);                     // CORE ID
+        wb_write(32'h40240020,            7, 4'b1111);     // PARAM_ENABLE
+        wb_write(32'h40240010,            3, 4'b1111);     // CTL_CONTROL
+        
         
     #10000;
         $display("vin write DMA");
-        wb_read (32'h40021000);                             // CORE ID
-        wb_write(32'h40021020, 32'h30000000, 4'b1111);      // address
-        wb_write(32'h40021024,       STRIDE, 4'b1111);      // stride
-        wb_write(32'h40021028,        X_NUM, 4'b1111);      // width
-        wb_write(32'h4002102c,        Y_NUM, 4'b1111);      // height
-        wb_write(32'h40021030,  X_NUM*Y_NUM, 4'b1111);      // size
-        wb_write(32'h4002103c,           31, 4'b1111);      // awlen
-        wb_write(32'h40021010,            3, 4'b1111);      // update & enable
+        wb_read (32'h40310000);                             // CORE ID
+        wb_write(32'h40310020, 32'h30000000, 4'b1111);      // address
+        wb_write(32'h40310024,       STRIDE, 4'b1111);      // stride
+        wb_write(32'h40310028,        X_NUM, 4'b1111);      // width
+        wb_write(32'h4031002c,        Y_NUM, 4'b1111);      // height
+        wb_write(32'h40310030,  X_NUM*Y_NUM, 4'b1111);      // size
+        wb_write(32'h4031003c,           31, 4'b1111);      // awlen
+        wb_write(32'h40310010,            3, 4'b1111);      // update & enable
         axi4s_model_aresetn = 1'b1;
         
     #100000;
         $display("vout read DMA");
-        wb_write(32'h40024020, 32'h30000000, 4'b1111);      // address
-        wb_write(32'h40024024,       STRIDE, 4'b1111);      // stride
-        wb_write(32'h40024028,         1280, 4'b1111);      // width
-        wb_write(32'h4002402c,          720, 4'b1111);      // height
-        wb_write(32'h40024030,     1280*720, 4'b1111);      // size
-        wb_write(32'h4002403c,           31, 4'b1111);      // awlen
-        wb_write(32'h40024010,            3, 4'b1111);      // update & enable
+        wb_write(32'h40340020, 32'h30000000, 4'b1111);      // address
+        wb_write(32'h40340024,       STRIDE, 4'b1111);      // stride
+        wb_write(32'h40340028,         1280, 4'b1111);      // width
+        wb_write(32'h4034002c,          720, 4'b1111);      // height
+        wb_write(32'h40340030,     1280*720, 4'b1111);      // size
+        wb_write(32'h4034003c,           31, 4'b1111);      // awlen
+        wb_write(32'h40340010,            3, 4'b1111);      // update & enable
         
         $display("vout vsync generator");
-        wb_write(32'h40026010,            1, 4'b1111);      // enable
+        wb_write(32'h4036010,            1, 4'b1111);      // enable
+
+        while(1) begin
+            #10000;
+            wb_read(32'h40260014);
+        end
     end
     
     

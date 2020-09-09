@@ -53,12 +53,12 @@ module jelly_mipi_csi2_rx
         );
     
     
+    // MIPI lane reciver
     wire    [0:0]               axi4s_lane_tuser;
     wire                        axi4s_lane_tlast;
     wire    [7:0]               axi4s_lane_tdata;
     wire                        axi4s_lane_tvalid;
     wire                        axi4s_lane_tready;
-    
     
     jelly_mipi_rx_lane
             #(
@@ -83,9 +83,11 @@ module jelly_mipi_csi2_rx
             );
     
     
+    // MIPI low layer parser
     wire                        frame_start;
     wire                        frame_end;
     
+    wire                        axi4s_low_tuser;
     wire                        axi4s_low_tlast;
     wire    [7:0]               axi4s_low_tdata;
     wire                        axi4s_low_tvalid;
@@ -115,35 +117,20 @@ module jelly_mipi_csi2_rx
                 .s_axi4s_tvalid     (axi4s_lane_tvalid),
                 .s_axi4s_tready     (axi4s_lane_tready),
                 
+                .m_axi4s_tuser      (axi4s_low_tuser),
                 .m_axi4s_tlast      (axi4s_low_tlast),
                 .m_axi4s_tdata      (axi4s_low_tdata),
                 .m_axi4s_tvalid     (axi4s_low_tvalid),
                 .m_axi4s_tready     (axi4s_low_tready)
             );
     
-    reg         reg_low_tuser;
-    always @(posedge aclk) begin
-        if ( ~aresetn ) begin
-            reg_low_tuser <= 1'b1;
-        end
-        else begin
-            if ( frame_start || frame_end ) begin
-                reg_low_tuser <= 1'b1;
-            end
-            
-            if ( axi4s_low_tvalid && axi4s_low_tready ) begin
-                reg_low_tuser <= 1'b0;
-            end
-        end
-    end
     
-    
-    // RAW10
-    wire    [0:0]               axi4s_out_tuser;
-    wire                        axi4s_out_tlast;
-    wire    [DATA_WIDTH-1:0]    axi4s_out_tdata;
-    wire    [0:0]               axi4s_out_tvalid;
-    wire                        axi4s_out_tready;
+    // RAW10 decoder
+    wire    [0:0]               axi4s_raw10_tuser;
+    wire                        axi4s_raw10_tlast;
+    wire    [DATA_WIDTH-1:0]    axi4s_raw10_tdata;
+    wire    [0:0]               axi4s_raw10_tvalid;
+    wire                        axi4s_raw10_tready;
     
     jelly_mipi_csi2_rx_raw10
             #(
@@ -155,21 +142,53 @@ module jelly_mipi_csi2_rx
                 .aresetn            (aresetn),
                 .aclk               (aclk),
                 
-                .s_axi4s_tuser      (reg_low_tuser),
+                .s_axi4s_tuser      (axi4s_low_tuser),
                 .s_axi4s_tlast      (axi4s_low_tlast),
                 .s_axi4s_tdata      (axi4s_low_tdata),
                 .s_axi4s_tvalid     (axi4s_low_tvalid),
                 .s_axi4s_tready     (axi4s_low_tready),
                 
-                .m_axi4s_tuser      (axi4s_out_tuser),
-                .m_axi4s_tlast      (axi4s_out_tlast),
-                .m_axi4s_tdata      (axi4s_out_tdata),
-                .m_axi4s_tvalid     (axi4s_out_tvalid),
-                .m_axi4s_tready     (1'b1)
+                .m_axi4s_tuser      (axi4s_raw10_tuser),
+                .m_axi4s_tlast      (axi4s_raw10_tlast),
+                .m_axi4s_tdata      (axi4s_raw10_tdata),
+                .m_axi4s_tvalid     (axi4s_raw10_tvalid),
+                .m_axi4s_tready     (axi4s_raw10_tready)
             );
     
-    assign  fifo_overflow = (axi4s_out_tvalid & !axi4s_out_tready);
     
+    // output
+    wire    [0:0]               axi4s_out_tuser;
+    wire                        axi4s_out_tlast;
+    wire    [DATA_WIDTH-1:0]    axi4s_out_tdata;
+    wire    [0:0]               axi4s_out_tvalid;
+    wire                        axi4s_out_tready;
+    
+    // frame start
+    reg         reg_out_tuser;
+    always @(posedge aclk) begin
+        if ( ~aresetn ) begin
+            reg_out_tuser <= 1'b0;
+        end
+        else begin
+            if ( frame_start || frame_end ) begin
+                reg_out_tuser <= 1'b1;
+            end
+            
+            if ( axi4s_out_tvalid && axi4s_out_tready ) begin
+                reg_out_tuser <= 1'b0;
+            end
+        end
+    end
+    
+    assign axi4s_out_tuser    = reg_out_tuser;
+    assign axi4s_out_tlast    = axi4s_raw10_tlast;
+    assign axi4s_out_tdata    = axi4s_raw10_tdata;
+    assign axi4s_out_tvalid   = axi4s_raw10_tvalid;
+    assign axi4s_raw10_tready = 1'b1;
+    
+    
+    // output fifo
+    assign  fifo_overflow = (axi4s_out_tvalid & !axi4s_out_tready);
     
     jelly_fifo_generic_fwtf
             #(
