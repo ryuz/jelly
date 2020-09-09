@@ -171,7 +171,7 @@ module jelly_axi4s_fifo_width_converter
                 (
                     .aresetn            (m_aresetn),
                     .aclk               (m_aclk),
-                    .cke                (1'b1),
+                    .aclken             (1'b1),
                     .endian             (endian),
                     
                     .s_axi4s_tdata      (fifo_tdata),

@@ -13,7 +13,7 @@ module tb_data_packing();
         $finish();
     end
     
-    parameter   BUSY = 1;
+    parameter   BUSY = 0;
     
     reg     reset = 1'b1;
     always #(RATE*100)      reset = 1'b0;
@@ -26,22 +26,22 @@ module tb_data_packing();
     
     
     parameter   UNIT_WIDTH = 8;
-    parameter   S_NUM      = 4*1;
-    parameter   M_NUM      = 3*1;
+    parameter   S_NUM      = 4;
+    parameter   M_NUM      = 5;
     
     
     parameter   S_DATA_WIDTH     = S_NUM * UNIT_WIDTH;
     parameter   M_DATA_WIDTH     = M_NUM * UNIT_WIDTH;
     parameter   PADDING_DATA     = 32'hxxxx_xxxx; // 32'h55aa5a5a;
     parameter   FIRST_FORCE_LAST = 1;  // firstで前方吐き出し時に残変換があればlastを付与
-    parameter   FIRST_OVERWRITE  = 1;  // first時前方に残変換があれば吐き出さずに上書き
+    parameter   FIRST_OVERWRITE  = 0;  // first時前方に残変換があれば吐き出さずに上書き
 
     
     reg                             endian = 0;
     
     reg     [31:0]                  count;
     
-    wire                            s_first = (count[0:0] == 1'b0);
+    wire                            s_first = 0;//(count[0:0] == 1'b0);
     wire                            s_last  = 0;//(count[0:0] == 1'b1);
     reg     [S_DATA_WIDTH-1:0]      s_data;
     reg                             s_valid;
@@ -89,7 +89,6 @@ module tb_data_packing();
                 .M_NUM              (M_NUM),
                 .S_DATA_WIDTH       (S_DATA_WIDTH),
                 .M_DATA_WIDTH       (M_DATA_WIDTH),
-                .PADDING_DATA       (PADDING_DATA),
                 .FIRST_FORCE_LAST   (FIRST_FORCE_LAST),
                 .FIRST_OVERWRITE    (FIRST_OVERWRITE)
             )
@@ -100,6 +99,7 @@ module tb_data_packing();
                 .cke                (cke),
                 
                 .endian             (endian),
+                .padding_data       (PADDING_DATA),
                 
                 .s_first            (s_first),
                 .s_last             (s_last),
