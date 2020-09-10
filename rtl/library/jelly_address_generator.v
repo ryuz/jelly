@@ -96,41 +96,22 @@ module jelly_address_generator
         else if ( cke ) begin
             if ( !st0_valid || st0_ready ) begin
                 if ( !st0_valid ) begin
-                    if ( ff_s_valid ) begin
-                        st0_addr_base <= ff_s_addr;
-                        st0_size      <= ff_s_size;
-                        st0_max_len   <= ff_s_max_len;
-                        st0_addr      <= {SIZE_WIDTH{1'b0}};
-                        st0_valid     <= 1'b1;
-                    end
-                    else begin
-                        st0_addr_base <= {ADDR_WIDTH{1'bx}};
-                        st0_addr      <= {SIZE_WIDTH{1'bx}};
-                        st0_size      <= {SIZE_WIDTH{1'bx}};
-                        st0_max_len   <= {LEN_WIDTH{1'bx}};
-                        st0_valid     <= 1'b0;
-                    end
+                    st0_addr_base <= ff_s_addr;
+                    st0_size      <= ff_s_size;
+                    st0_max_len   <= ff_s_max_len;
+                    st0_addr      <= {SIZE_WIDTH{1'b0}};
+                    st0_valid     <= ff_s_valid;
                 end
                 else begin
-                    if ( st0_last ) begin
-                        st0_addr_base <= {ADDR_WIDTH{1'bx}};
-                        st0_addr      <= {SIZE_WIDTH{1'bx}};
-                        st0_size      <= {SIZE_WIDTH{1'bx}};
-                        st0_max_len   <= {LEN_WIDTH{1'bx}};
-                        st0_valid     <= 1'b0;
-                    end
-                    else begin
-                        st0_addr      <= st0_addr + st0_max_len + LEN_OFFSET;
-                        st0_size      <= st0_size - st0_max_len - LEN_OFFSET;
-                        st0_valid     <= 1'b1;
-                    end
+                    st0_addr      <= st0_addr + st0_max_len + LEN_OFFSET;
+                    st0_size      <= st0_size - st0_max_len - LEN_OFFSET;
+                    st0_valid     <= !st0_last;
                 end
             end
         end
     end
     
     assign ff_s_ready = (!st0_valid || st0_ready) && !st0_valid;
-    
     
     
     // stage1
