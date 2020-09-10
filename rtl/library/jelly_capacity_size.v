@@ -22,6 +22,7 @@ module jelly_capacity_size
             parameter   CHARGE_WIDTH       = CAPACITY_WIDTH,
             parameter   CHARGE_SIZE_OFFSET = 1'b0,
             parameter   S_REGS             = 1,
+            parameter   M_REGS             = 1,
             
             // local
             parameter   CMD_USER_BITS      = CMD_USER_WIDTH > 0 ? CMD_USER_WIDTH : 1
@@ -32,7 +33,6 @@ module jelly_capacity_size
             input   wire                            cke,
             
             input   wire    [CAPACITY_WIDTH-1:0]    initial_capacity,
-            
             output  wire    [CAPACITY_WIDTH-1:0]    current_capacity,
             
             input   wire    [CHARGE_WIDTH-1:0]      s_charge_size,
@@ -50,10 +50,10 @@ module jelly_capacity_size
         );
     
     // insert FF
-    wire    [CMD_USER_BITS-1:0]     ff_s_cmd_user;
-    wire    [CMD_SIZE_WIDTH-1:0]    ff_s_cmd_size;
-    wire                            ff_s_cmd_valid;
-    wire                            ff_s_cmd_ready;
+    wire    [CMD_USER_BITS-1:0]     ff_s_user;
+    wire    [CMD_SIZE_WIDTH-1:0]    ff_s_size;
+    wire                            ff_s_valid;
+    wire                            ff_s_ready;
     jelly_pipeline_insert_ff
             #(
                 .DATA_WIDTH         (CMD_USER_BITS + CMD_SIZE_WIDTH ),
@@ -70,95 +70,122 @@ module jelly_capacity_size
                 .s_valid            (s_cmd_valid),
                 .s_ready            (s_cmd_ready),
                 
-                .m_data             ({ff_s_cmd_user, ff_s_cmd_size}),
-                .m_valid            (ff_s_cmd_valid),
-                .m_ready            (ff_s_cmd_ready),
+                .m_data             ({ff_s_user, ff_s_size}),
+                .m_valid            (ff_s_valid),
+                .m_ready            (ff_s_ready),
                 
                 .buffered           (),
                 .s_ready_next       ()
             );
     
+    // recieve request
+    wire    [CMD_USER_BITS-1:0]     rx_user;
+    wire    [CMD_SIZE_WIDTH-1:0]    rx_size;
+    wire    [CAPACITY_WIDTH-1:0]    rx_issue;
+    wire                            rx_valid;
+    wire                            rx_ready;
+    generate
+    if ( S_REGS ) begin : rx_reg
+        reg     [CMD_USER_BITS-1:0]     reg_rx_user;
+        reg     [CMD_SIZE_WIDTH-1:0]    reg_rx_size;
+        reg     [CAPACITY_WIDTH-1:0]    reg_rx_issue;
+        reg                             reg_rx_valid;
+        always @(posedge clk) begin
+            if ( reset ) begin
+                reg_rx_user  <= {CMD_USER_BITS{1'bx}};
+                reg_rx_size  <= {CMD_SIZE_WIDTH{1'bx}};
+                reg_rx_issue <= {CAPACITY_WIDTH{1'b0}};
+                reg_rx_valid <= 1'b0;
+            end
+            else if ( cke && ff_s_ready ) begin
+                reg_rx_user  <= ff_s_user;
+                reg_rx_size  <= ff_s_size;
+                reg_rx_issue <= ff_s_valid ? ({1'b0, ff_s_size} + CMD_SIZE_OFFSET) : 0;
+                reg_rx_valid <= ff_s_valid;
+            end
+        end
+        assign ff_s_ready = (!rx_valid || rx_ready);
+        assign rx_user    = reg_rx_user;
+        assign rx_size    = reg_rx_size;
+        assign rx_issue   = rx_ready ? reg_rx_issue : 0;
+        assign rx_valid   = reg_rx_valid;
+    end
+    else begin : rx_bypass
+        assign ff_s_ready = rx_ready;
+        assign rx_user    = ff_s_user;
+        assign rx_size    = ff_s_size;
+        assign rx_issue   = (ff_s_valid & ff_s_ready) ? ({1'b0, ff_s_size} + CMD_SIZE_OFFSET) : 0;
+        assign rx_valid   = ff_s_valid;
+    end
+    endgenerate
+    
     
     // capacity control
-    reg     [CAPACITY_WIDTH-1:0]    reg_capacity,  next_capacity;
-    reg     [CMD_USER_BITS-1:0]     reg_cmd_user,  next_cmd_user;
-    reg     [CMD_SIZE_WIDTH-1:0]    reg_cmd_size,  next_cmd_size;
-    reg                             reg_cmd_valid, next_cmd_valid;
+    reg     [CAPACITY_WIDTH-1:0]    reg_charge;
+    wire    [CAPACITY_WIDTH-1:0]    issue_size;
+    wire                            issue_valid;
+    
+    reg     [CAPACITY_WIDTH-1:0]    reg_capacity;
+    reg     [CAPACITY_WIDTH-1:0]    reg_capacity_sub;
+    reg                             reg_select_sub;
     
     always @(posedge clk) begin
         if ( reset ) begin
-            reg_capacity  <= initial_capacity;
-            reg_cmd_user  <= {CMD_USER_BITS{1'bx}};
-            reg_cmd_size  <= {CMD_SIZE_WIDTH{1'bx}};
-            reg_cmd_valid <= 1'b0;
+            reg_charge       <= initial_capacity;
+            
+            reg_capacity     <= {CAPACITY_WIDTH{1'b0}};
+            reg_capacity_sub <= {CAPACITY_WIDTH{1'bx}};
+            reg_select_sub   <= 1'b0;
         end
-        else if ( cke ) begin
-            reg_capacity  <= next_capacity;
-            reg_cmd_user  <= next_cmd_user;
-            reg_cmd_size  <= next_cmd_size;
-            reg_cmd_valid <= next_cmd_valid;
+        else begin
+            reg_charge       <= s_charge_valid ? ({1'b0, s_charge_size} + CHARGE_SIZE_OFFSET) : 0;
+            
+            reg_capacity     <= current_capacity + reg_charge;
+            reg_capacity_sub <= current_capacity + reg_charge - issue_size;
+            reg_select_sub   <= issue_valid;
         end
     end
     
-    always @* begin
-        next_capacity  = reg_capacity;
-        next_cmd_user  = reg_cmd_user;
-        next_cmd_size  = reg_cmd_size;
-        next_cmd_valid = reg_cmd_valid;
-        
-        if ( m_cmd_ready ) begin
-            next_cmd_user  = {CMD_USER_BITS{1'bx}};
-            next_cmd_size  = {CMD_SIZE_WIDTH{1'bx}};
-            next_cmd_valid = 1'b0;
-        end
-        
-        if ( ff_s_cmd_valid && ff_s_cmd_ready ) begin
-            next_cmd_user  = ff_s_cmd_user;
-            next_cmd_size  = ff_s_cmd_size;
-            next_cmd_valid = 1'b1;
-            
-            next_capacity  = next_capacity - next_cmd_size - CMD_SIZE_OFFSET;
-        end
-        
-        if ( s_charge_valid ) begin
-            next_capacity  = next_capacity + s_charge_size + CHARGE_SIZE_OFFSET;
-        end
-    end
-    
-    assign ff_s_cmd_ready = (!m_cmd_valid || m_cmd_ready) && (ff_s_cmd_valid && (reg_capacity >= {1'b0, ff_s_cmd_size} + CMD_SIZE_OFFSET));
-    
-    assign m_cmd_user  = reg_cmd_user;
-    assign m_cmd_size  = reg_cmd_size;
-    assign m_cmd_valid = reg_cmd_valid;
-    
-    assign current_capacity = next_capacity;
+    assign current_capacity = reg_select_sub ? reg_capacity_sub : reg_capacity;
+    assign issue_valid      = (current_capacity >= issue_size);
     
     
+    // transmit command
+    wire    [CMD_USER_BITS-1:0]     tx_user;
+    wire    [CMD_SIZE_WIDTH-1:0]    tx_size;
+    wire                            tx_valid;
+    wire                            tx_ready;
     
-    // debug (simulation only)
-    integer     total_s_size;
-    integer     total_m_size;
-    integer     total_charge;
-    always @(posedge clk) begin
-        if ( reset ) begin
-            total_s_size <= 0;
-            total_m_size <= 0;
-            total_charge <= 0;
-        end
-        else if ( cke ) begin
-            if ( s_cmd_valid && s_cmd_valid ) begin
-                total_s_size <= total_s_size + s_cmd_size + CMD_SIZE_OFFSET;
-            end
-            
-            if ( m_cmd_valid && m_cmd_valid ) begin
-                total_m_size <= total_m_size + m_cmd_size + CMD_SIZE_OFFSET;
-            end
-            
-            if ( s_charge_valid ) begin
-                total_charge <= total_charge + s_charge_size + CHARGE_SIZE_OFFSET;
-            end
-        end
-    end
+    assign issue_size  = rx_issue;
+    assign rx_ready    = tx_ready && issue_valid;
+    
+    assign tx_user     = rx_user;
+    assign tx_size     = rx_size;
+    assign tx_valid    = rx_valid;
+    
+    jelly_pipeline_insert_ff
+            #(
+                .DATA_WIDTH         (CMD_USER_BITS + CMD_SIZE_WIDTH),
+                .SLAVE_REGS         (M_REGS),
+                .MASTER_REGS        (M_REGS)
+            )
+        i_pipeline_insert_ff_m
+            (
+                .reset              (reset),
+                .clk                (clk),
+                .cke                (cke),
+                
+                .s_data             ({tx_user, tx_size}),
+                .s_valid            (tx_valid),
+                .s_ready            (tx_ready),
+                
+                .m_data             ({m_cmd_user, m_cmd_size}),
+                .m_valid            (m_cmd_valid),
+                .m_ready            (m_cmd_ready),
+                
+                .buffered           (),
+                .s_ready_next       ()
+            );
     
     
 endmodule
