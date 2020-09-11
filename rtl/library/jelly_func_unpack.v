@@ -11,7 +11,7 @@
 `default_nettype none
 
 
-// unpack
+// サイズゼロを許容したパラメータ等のアンパッキング機能(サイズ上限あり)
 module jelly_func_unpack
         #(
             parameter   N   = 1,

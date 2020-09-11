@@ -11,7 +11,7 @@
 `default_nettype none
 
 
-// パラメータのパッキング
+// サイズゼロを許容したパラメータ等のパッキング機能(サイズ上限あり)
 module jelly_func_pack
         #(
             parameter   N  = 1,

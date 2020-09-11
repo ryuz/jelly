@@ -46,7 +46,8 @@ module jelly_data_width_convert_pack
             parameter M_DATA7_WIDTH    = M_NUM * UNIT7_WIDTH,
             parameter M_DATA8_WIDTH    = M_NUM * UNIT8_WIDTH,
             parameter M_DATA9_WIDTH    = M_NUM * UNIT9_WIDTH,
-            
+            parameter USER_F_WIDTH     = 0,
+            parameter USER_L_WIDTH     = 0,
             parameter FIRST_FORCE_LAST = 1,  // firstで前方吐き出し時に残変換があれば強制的にlastを付与
             parameter FIRST_OVERWRITE  = 0,  // first時前方に残変換があれば吐き出さずに上書き
             parameter S_REGS           = 1,
@@ -81,7 +82,9 @@ module jelly_data_width_convert_pack
             parameter M_DATA6_BITS     = M_DATA6_WIDTH > 0 ? M_DATA6_WIDTH : 1,
             parameter M_DATA7_BITS     = M_DATA7_WIDTH > 0 ? M_DATA7_WIDTH : 1,
             parameter M_DATA8_BITS     = M_DATA8_WIDTH > 0 ? M_DATA8_WIDTH : 1,
-            parameter M_DATA9_BITS     = M_DATA9_WIDTH > 0 ? M_DATA9_WIDTH : 1
+            parameter M_DATA9_BITS     = M_DATA9_WIDTH > 0 ? M_DATA9_WIDTH : 1,
+            parameter USER_F_BITS      = USER_F_WIDTH  > 0 ? USER_F_WIDTH  : 1,
+            parameter USER_L_BITS      = USER_L_WIDTH  > 0 ? USER_L_WIDTH  : 1
         )
         (
             input   wire                        reset,
@@ -113,6 +116,8 @@ module jelly_data_width_convert_pack
             input   wire    [S_DATA7_BITS-1:0]  s_data7,
             input   wire    [S_DATA8_BITS-1:0]  s_data8,
             input   wire    [S_DATA9_BITS-1:0]  s_data9,
+            input   wire    [USER_F_BITS-1:0]   s_user_f,   // アライメント先頭前提で伝搬するユーザーデータ
+            input   wire    [USER_L_BITS-1:0]   s_user_l,   // アライメント末尾前提で伝搬するユーザーデータ
             input   wire                        s_valid,
             output  wire                        s_ready,
             
@@ -128,6 +133,8 @@ module jelly_data_width_convert_pack
             output  wire    [M_DATA7_BITS-1:0]  m_data7,
             output  wire    [M_DATA8_BITS-1:0]  m_data8,
             output  wire    [M_DATA9_BITS-1:0]  m_data9,
+            output  wire    [USER_F_BITS-1:0]   m_user_f,
+            output  wire    [USER_L_BITS-1:0]   m_user_l,
             output  wire                        m_valid,
             input   wire                        m_ready
         );
@@ -213,16 +220,17 @@ module jelly_data_width_convert_pack
     
     
     // padding
-    localparam  PADDING0_WIDTH = UNIT0_WIDTH * M_NUM;
-    localparam  PADDING1_WIDTH = UNIT1_WIDTH * M_NUM;
-    localparam  PADDING2_WIDTH = UNIT2_WIDTH * M_NUM;
-    localparam  PADDING3_WIDTH = UNIT3_WIDTH * M_NUM;
-    localparam  PADDING4_WIDTH = UNIT4_WIDTH * M_NUM;
-    localparam  PADDING5_WIDTH = UNIT5_WIDTH * M_NUM;
-    localparam  PADDING6_WIDTH = UNIT6_WIDTH * M_NUM;
-    localparam  PADDING7_WIDTH = UNIT7_WIDTH * M_NUM;
-    localparam  PADDING8_WIDTH = UNIT8_WIDTH * M_NUM;
-    localparam  PADDING9_WIDTH = UNIT9_WIDTH * M_NUM;
+    localparam  PADDING0_WIDTH = UNIT0_WIDTH * NUM_GCD;
+    localparam  PADDING1_WIDTH = UNIT1_WIDTH * NUM_GCD;
+    localparam  PADDING2_WIDTH = UNIT2_WIDTH * NUM_GCD;
+    localparam  PADDING3_WIDTH = UNIT3_WIDTH * NUM_GCD;
+    localparam  PADDING4_WIDTH = UNIT4_WIDTH * NUM_GCD;
+    localparam  PADDING5_WIDTH = UNIT5_WIDTH * NUM_GCD;
+    localparam  PADDING6_WIDTH = UNIT6_WIDTH * NUM_GCD;
+    localparam  PADDING7_WIDTH = UNIT7_WIDTH * NUM_GCD;
+    localparam  PADDING8_WIDTH = UNIT8_WIDTH * NUM_GCD;
+    localparam  PADDING9_WIDTH = UNIT9_WIDTH * NUM_GCD;
+    localparam  PADDING_WIDTH  = PACK_UNIT   * NUM_GCD;
     localparam  PADDING0_BITS  = PADDING0_WIDTH > 0 ? PADDING0_WIDTH : 1;
     localparam  PADDING1_BITS  = PADDING1_WIDTH > 0 ? PADDING1_WIDTH : 1;
     localparam  PADDING2_BITS  = PADDING2_WIDTH > 0 ? PADDING2_WIDTH : 1;
@@ -233,21 +241,22 @@ module jelly_data_width_convert_pack
     localparam  PADDING7_BITS  = PADDING7_WIDTH > 0 ? PADDING7_WIDTH : 1;
     localparam  PADDING8_BITS  = PADDING8_WIDTH > 0 ? PADDING8_WIDTH : 1;
     localparam  PADDING9_BITS  = PADDING9_WIDTH > 0 ? PADDING9_WIDTH : 1;
+    localparam  PADDING_BITS   = PADDING_WIDTH  > 0 ? PADDING_WIDTH  : 1;
     
-    wire    [PADDING0_BITS-1:0]     padding_data0 = {M_NUM{padding0}};
-    wire    [PADDING1_BITS-1:0]     padding_data1 = {M_NUM{padding1}};
-    wire    [PADDING2_BITS-1:0]     padding_data2 = {M_NUM{padding2}};
-    wire    [PADDING3_BITS-1:0]     padding_data3 = {M_NUM{padding3}};
-    wire    [PADDING4_BITS-1:0]     padding_data4 = {M_NUM{padding4}};
-    wire    [PADDING5_BITS-1:0]     padding_data5 = {M_NUM{padding5}};
-    wire    [PADDING6_BITS-1:0]     padding_data6 = {M_NUM{padding6}};
-    wire    [PADDING7_BITS-1:0]     padding_data7 = {M_NUM{padding7}};
-    wire    [PADDING8_BITS-1:0]     padding_data8 = {M_NUM{padding8}};
-    wire    [PADDING9_BITS-1:0]     padding_data9 = {M_NUM{padding9}};
-    wire    [M_PACK_BITS-1:0]       padding_pack;
+    wire    [PADDING0_BITS-1:0]     padding_data0 = {NUM_GCD{padding0}};
+    wire    [PADDING1_BITS-1:0]     padding_data1 = {NUM_GCD{padding1}};
+    wire    [PADDING2_BITS-1:0]     padding_data2 = {NUM_GCD{padding2}};
+    wire    [PADDING3_BITS-1:0]     padding_data3 = {NUM_GCD{padding3}};
+    wire    [PADDING4_BITS-1:0]     padding_data4 = {NUM_GCD{padding4}};
+    wire    [PADDING5_BITS-1:0]     padding_data5 = {NUM_GCD{padding5}};
+    wire    [PADDING6_BITS-1:0]     padding_data6 = {NUM_GCD{padding6}};
+    wire    [PADDING7_BITS-1:0]     padding_data7 = {NUM_GCD{padding7}};
+    wire    [PADDING8_BITS-1:0]     padding_data8 = {NUM_GCD{padding8}};
+    wire    [PADDING9_BITS-1:0]     padding_data9 = {NUM_GCD{padding9}};
+    wire    [PADDING_BITS-1:0]      padding_pack;
     jelly_func_pack
             #(
-                .N          (M_NUM / NUM_GCD),
+                .N          (1),
                 .W0         (UNIT0_WIDTH * NUM_GCD),
                 .W1         (UNIT1_WIDTH * NUM_GCD),
                 .W2         (UNIT2_WIDTH * NUM_GCD),
@@ -276,7 +285,7 @@ module jelly_data_width_convert_pack
     
     
     // packing
-    jelly_data_packing
+    jelly_data_width_convert
             #(
                 .UNIT_WIDTH         (PACK_UNIT * NUM_GCD),
                 .S_NUM              (S_NUM / NUM_GCD),
@@ -285,24 +294,28 @@ module jelly_data_width_convert_pack
                 .FIRST_OVERWRITE    (FIRST_OVERWRITE),
                 .S_REGS             (S_REGS)
             )
-        i_data_packing
+        i_data_width_convert
             (
                 .reset              (reset),
                 .clk                (clk),
                 .cke                (cke),
                 
                 .endian             (endian),
-                .padding_data       (padding_pack),
+                .padding            (padding_pack),
                 
                 .s_first            (s_first),
                 .s_last             (s_last),
                 .s_data             (s_pack),
+                .s_user_f           (s_user_f),
+                .s_user_l           (s_user_l),
                 .s_valid            (s_valid),
                 .s_ready            (s_ready),
                 
                 .m_first            (m_first),
                 .m_last             (m_last),
                 .m_data             (m_pack),
+                .m_user_f           (m_user_f),
+                .m_user_l           (m_user_l),
                 .m_valid            (m_valid),
                 .m_ready            (m_ready)
             );
