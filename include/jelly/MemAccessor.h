@@ -259,7 +259,6 @@ public:
 
         pybind11::array_t<T> a{shape};
         pybind11::buffer_info info = a.request();
-//        void* ptr = info.ptr;
         MemCopyTo(info.ptr, offset, size*sizeof(T));
         return a;
     }
