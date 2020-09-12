@@ -9,6 +9,7 @@
 #include "jelly/MmapAccessor.h"
 #include "jelly/UioAccessor.h"
 #include "jelly/UdmabufAccessor.h"
+#include "jelly/GpioAccessor.h"
 #include "jelly/Imx219Control.h"
 
 
@@ -98,6 +99,20 @@ PYBIND11_MODULE(jellypy, m) {
         .def("get_phys_addr", ((std::intptr_t (jelly::UdmabufAccessor::*)())&jelly::UdmabufAccessor::GetPhysAddr))
         ;
 
+
+    py::class_<jelly::GpioAccessor>(m, "GpioAccessor")
+        .def(py::init<int, bool>(),
+            py::arg("gpio"),
+            py::arg("auto_export") = true)
+        .def("exists",               &jelly::GpioAccessor::Exists)
+        .def("export",               &jelly::GpioAccessor::Export)
+        .def("unexport",             &jelly::GpioAccessor::Unexport)
+        .def("set_direction",        &jelly::GpioAccessor::SetDirection,
+            py::arg("dir_output"))
+        .def("set_value",            &jelly::GpioAccessor::SetValue,
+            py::arg("value"))
+        .def("get_value",            &jelly::GpioAccessor::GetValue)
+        ;
 
     py::class_<jelly::Imx219ControlI2c>(m, "Imx219ControlI2c")
         .def(py::init<>())
