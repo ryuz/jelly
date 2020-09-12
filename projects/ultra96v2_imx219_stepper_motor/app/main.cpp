@@ -166,6 +166,7 @@ int main(int argc, char *argv[])
         std::cout << "uio_pl_peri mmap error" << std::endl;
         return 1;
     }
+    auto reg_gid   = uio_acc.GetMemAccess(0x00000000);
     auto reg_fmtr  = uio_acc.GetMemAccess(0x00010000);
     auto reg_prmup = uio_acc.GetMemAccess(0x00011000);
     auto reg_wdma  = uio_acc.GetMemAccess(0x00021000);
@@ -180,6 +181,7 @@ int main(int argc, char *argv[])
     auto reg_log1  = uio_acc.GetMemAccess(0x00071000);
 
     std::cout << "CORE IDs" << std::endl;
+    std::cout << "reg_gid   : " << std::hex << reg_gid  .ReadReg(0) << std::endl;
     std::cout << "reg_fmtr  : " << std::hex << reg_fmtr .ReadReg(0) << std::endl;
     std::cout << "reg_prmup : " << std::hex << reg_prmup.ReadReg(0) << std::endl;
     std::cout << "reg_wdma  : " << std::hex << reg_wdma .ReadReg(0) << std::endl;
@@ -231,6 +233,8 @@ int main(int argc, char *argv[])
         std::cout << "I2C open error" << std::endl;
         return 1;
     }
+    
+    std::cout << "Model ID : " << std::hex << std::setfill('0') << std::setw(4) << imx219.GetModelId() << std::endl;
 
     // camera 設定
     imx219.SetPixelClock(pixel_clock);
