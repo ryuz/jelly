@@ -38,6 +38,9 @@ module jelly_axi4_dma_write
             parameter   BYPASS_ALIGN         = 0,
             parameter   AXI4_ALIGN           = 12,
             
+            parameter   HAS_WSTRB            = 1,
+            parameter   HAS_WFIRST           = 0,
+            parameter   HAS_WLAST            = 0,
             parameter   S_WDATA_SIZE         = 2,    // 0:8bit, 1:16bit, 2:32bit ...
             parameter   S_WDATA_WIDTH        = (BYTE_WIDTH << S_WDATA_SIZE),
             parameter   S_WSTRB_WIDTH        = S_WDATA_WIDTH / BYTE_WIDTH,
@@ -79,7 +82,7 @@ module jelly_axi4_dma_write
             parameter   BCMD_FIFO_LOW_DEALY  = 1,
             parameter   BCMD_FIFO_DOUT_REGS  = 0,
             parameter   BCMD_FIFO_S_REGS     = 0,
-            parameter   BCMD_FIFO_M_REGS     = 1
+            parameter   BCMD_FIFO_M_REGS     = 1,
         )
         (
             input   wire                                endian,
@@ -94,8 +97,10 @@ module jelly_axi4_dma_write
             
             input   wire                                s_wresetn,
             input   wire                                s_wclk,
-            input   wire    [S_WSTRB_WIDTH-1:0]         s_wstrb,
             input   wire    [S_WDATA_WIDTH-1:0]         s_wdata,
+            input   wire    [S_WSTRB_WIDTH-1:0]         s_wstrb,
+            input   wire                                s_wtfirst,
+            input   wire                                s_wtlast,
             input   wire                                s_wvalid,
             output  wire                                s_wready,
             
@@ -151,14 +156,14 @@ module jelly_axi4_dma_write
     // 内部アドレスに換算
     wire    [ADDR_WIDTH-1:0]    s_addr = (s_awaddr >> AXI4_DATA_SIZE);
     wire    [LEN_WIDTH-1:0]     s_len;
-    jelly_func_parameter_shift
+    jelly_func_shift
             #(
                 .IN_WIDTH       (S_AWLEN_WIDTH),
                 .OUT_WIDTH      (LEN_WIDTH),
                 .SHIFT_LEFT     (S_AWLEN_SIZE),
                 .SHIFT_RIGHT    (AXI4_DATA_SIZE)
             )
-        i_func_parameter_shift
+        i_func_shift
             (
                 .in             (s_awlen),
                 .out            (s_len)
@@ -212,113 +217,64 @@ module jelly_axi4_dma_write
     wire    [CAPACITY_WIDTH-1:0]    s_wfifo_wr_size = (1 << WDATA_FIFO_SIZE);
     wire                            s_wfifo_wr_signal;
     
-    /*
-    jelly_axi4s_width_converter
-            #(
-                .UNIT_WIDTH             (BYTE_WIDTH),
-                .S_DATA_WIDTH           (S_WDATA_WIDTH),
-                .M_DATA_WIDTH           (AXI4_DATA_WIDTH),
-                .S_USER_WIDTH           (0),
-                .WITH_FIRST             (0),
-                .WITH_LAST              (1),
-                .WITH_STRB              (1),
-                .WITH_KEEP              (0),
-                .FIRST_FORCE_LAST       (1),
-                .FIRST_OVERWRITE        (0),
-                .S_REGS                 (1)
-            )
-        i_axi4s_width_converter_wdata
-            (
-                .aresetn                (),
-                .aclk,
-                .cke,
-                .endian                  (endian),
-                
-                .s_axi4s_tuser,
-                .s_axi4s_tdata,
-                .s_axi4s_tstrb,
-                .s_axi4s_tkeep,
-                .s_axi4s_tfirst,   // 独自仕様
-                .s_axi4s_tlast,
-                .s_axi4s_tvalid,
-                .s_axi4s_tready,
-                
-                .m_axi4s_tuser,
-                .m_axi4s_tdata,
-                .m_axi4s_tstrb,
-                .m_axi4s_tkeep,
-                .m_axi4s_tfirst,   // 独自仕様
-                .m_axi4s_tlast,
-                .m_axi4s_tvalid,
-                .m_axi4s_tready
-            );
-    */
-    
-    
-    wire    [S_WSTRB_WIDTH+S_WDATA_WIDTH-1:0]     s_wpack;
-    jelly_func_pack2
-            #(
-                .N      (S_WSTRB_WIDTH),
-                .W0     (1),
-                .W1     (BYTE_WIDTH)
-            )
-        i_func_pack2
-            (
-                .in0    (s_wstrb),
-                .in1    (s_wdata),
-                .out    (s_wpack)
-            );
-    
-    wire    [AXI4_STRB_WIDTH+AXI4_DATA_WIDTH-1:0]   wfifo_wpack;
-    jelly_func_unpack2
-            #(
-                .N      (AXI4_STRB_WIDTH),
-                .W0     (1),
-                .W1     (BYTE_WIDTH)
-            )
-        i_func_unpack2
-            (
-                .in      (wfifo_wpack),
-                .out0    (wfifo_wstrb),
-                .out1    (wfifo_wdata)
-            );
-    
-    jelly_fifo_width_converter
+    jelly_axi4s_fifo_width_converter
             #(
                 .ASYNC                  (WASYNC),
-                .UNIT_WIDTH             (1+BYTE_WIDTH),
-                .S_DATA_SIZE            (S_WDATA_SIZE),
-                .M_DATA_SIZE            (AXI4_DATA_SIZE),
-                
                 .FIFO_PTR_WIDTH         (WFIFO_PTR_WIDTH),
                 .FIFO_RAM_TYPE          (WFIFO_RAM_TYPE),
                 .FIFO_LOW_DEALY         (WFIFO_LOW_DEALY),
                 .FIFO_DOUT_REGS         (WFIFO_DOUT_REGS),
-                .FIFO_SLAVE_REGS        (WFIFO_S_REGS),
-                .FIFO_MASTER_REGS       (WFIFO_M_REGS)
+                .FIFO_S_REGS            (WFIFO_S_REGS),
+                .FIFO_M_REGS            (WFIFO_M_REGS),
+                
+                .HAS_STRB               (S_WDATA_HAS_STRB),
+                .HAS_KEEP               (0),
+                .HAS_FIRST              (S_WDATA_HAS_FIRST),
+                .HAS_LAST               (S_WDATA_HAS_LAST),
+                
+                .BYTE_WIDTH             (BYTE_WIDTH),
+                .S_TDATA_WIDTH          (S_WDATA_WIDTH),
+                .M_TDATA_WIDTH          (AXI4_DATA_WIDTH),
+                .DATA_WIDTH_GCD         (BYTE_WIDTH),
+                
+                .ALLOW_UNALIGN_FIRST    (HAS_WFIRST),
+                .ALLOW_UNALIGN_LAST     (HAS_WLAST),
+                .FIRST_FORCE_LAST       (1),
+                .FIRST_OVERWRITE        (0),
+                
+                .CONVERT_S_REGS         (1),
+                .POST_CONVERT           (!HAS_WFIRST && !WLAST && (S_TDATA_WIDTH > M_TDATA_WIDTH))
             )
-        i_fifo_width_converter_w
+        i_axi4s_fifo_width_converter
             (
-                .endian                 (1'b0),
+                .endian                 (endian),
                 
-                .s_reset                (~s_wresetn),
-                .s_clk                  (s_wclk),
-                .s_data                 (s_wpack),
-                .s_valid                (s_wvalid),
-                .s_ready                (s_wready),
-                .s_free_count           (),
-                .s_wr_signal            (s_wfifo_wr_signal),
+                .s_aresetn              (s_wresetn),
+                .s_aclk                 (s_wclk),
+                .s_axi4s_tdata          (s_wdata),
+                .s_axi4s_tstrb          (s_wstrb),
+                .s_axi4s_tkeep          (),
+                .s_axi4s_tfirst         (s_wtfirst),
+                .s_axi4s_tlast          (s_wtlast),
+                .s_axi4s_tuser          (),
+                .s_axi4s_tvalid         (s_wvalid),
+                .s_axi4s_tready         (s_wready),
+                .s_fifo_free_count      (),
+                .s_fifo_wr_signal       (s_wfifo_wr_signal),
                 
-                .m_reset                (~m_aresetn),
-                .m_clk                  (m_aclk),
-                .m_data                 (wfifo_wpack),
-                .m_valid                (wfifo_wvalid),
-                .m_ready                (wfifo_wready),
-                .m_data_count           (),
-                .m_rd_signal            ()
+                .m_aresetn              (m_aresetn),
+                .m_aclk                 (m_aclk),
+                .m_axi4s_tdata          (wfifo_wdata),
+                .m_axi4s_tstrb          (wfifo_wstrb),
+                .m_axi4s_tkeep          (),
+                .m_axi4s_tfirst         (),
+                .m_axi4s_tlast          (),
+                .m_axi4s_tuser          (),
+                .m_axi4s_tvalid         (wfifo_wvalid),
+                .m_axi4s_tready         (wfifo_wready),
+                .m_fifo_data_count      (),
+                .m_fifo_rd_signal       ()
             );
-    
-    
     
     
     wire    [CAPACITY_WIDTH-1:0]    wfifo_wr_size;

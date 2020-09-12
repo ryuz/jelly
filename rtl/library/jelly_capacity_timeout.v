@@ -69,48 +69,43 @@ module jelly_capacity_timeout
     end
     
     always @* begin
-        next_queued_request    = reg_queued_request;
-        next_timer             = reg_timer;
-        next_timeout           = 1'b0;
-        next_issue_size        = reg_issue_size;
-        next_issue_valid       = reg_issue_valid;
+        next_queued_request = reg_queued_request;
+        next_timer          = reg_timer;
+        next_timeout        = 1'b0;
+        next_issue_size     = reg_issue_size;
+        next_issue_valid    = reg_issue_valid;
         
-        // issue request
-        if ( m_issue_valid & m_issue_ready ) begin
-            next_queued_request = next_queued_request - m_issue_size - ISSUE_SIZE_OFFSET;
-        end
-        
-        // next issue
-        if ( !m_issue_valid || m_issue_ready ) begin
+        // issue complete
+        if ( m_issue_ready ) begin
             next_issue_valid = 1'b0;
-            next_issue_size  = {ISSUE_WIDTH{1'bx}};
-            if ( (next_queued_request >= ({1'b0, max_issue_size} + ISSUE_SIZE_OFFSET)) ) begin
-                 next_issue_size  = max_issue_size;
-                 next_issue_valid = 1'b1;
+        end
+        
+        // issue
+        if ( !next_issue_valid ) begin
+            if ( reg_queued_request >= ({1'b0, max_issue_size} + ISSUE_SIZE_OFFSET) ) begin
+                next_issue_size     = max_issue_size;
+                next_issue_valid    = 1'b1;
+                next_queued_request = next_queued_request - max_issue_size - ISSUE_SIZE_OFFSET;
             end
-            else begin
-                if ( next_queued_request != 0 ) begin
-                    if ( reg_timeout ) begin
-                        next_issue_valid = 1'b1;
-                        next_issue_size  = reg_queued_request - ISSUE_SIZE_OFFSET;
-                    end
-                    else begin
-                        next_timer = next_timer + 1'b1;
-                        if ( next_timer == timeout ) begin
-                            next_timeout = 1'b1;
-                        end
-                    end
-                end
+            else if ( reg_timeout ) begin
+                next_issue_size     = next_queued_request - ISSUE_SIZE_OFFSET;
+                next_issue_valid    = 1'b1;
+                next_queued_request = 0;
             end
         end
         
-        if ( reg_timeout || next_issue_valid ) begin
-            next_timer = 0;
-        end
-        
-        // queueing the request
+        // request
         if ( s_request_valid ) begin
             next_queued_request = next_queued_request + s_request_size + REQUEST_SIZE_OFFSET;
+        end
+        
+        // timeout
+        if ( next_issue_valid || s_request_valid ) begin
+            next_timer = 0;
+        end
+        else if ( reg_queued_request > 0 ) begin
+            next_timeout = (next_timer >= timeout);
+            next_timer   = next_timer + 1;
         end
     end
     

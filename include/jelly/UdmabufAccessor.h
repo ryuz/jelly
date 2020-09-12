@@ -6,8 +6,8 @@
 // ---------------------------------------------------------------------------
 
 
-#ifndef	__RYUZ__JELLY__UDMABUF_ACCESS_H__
-#define	__RYUZ__JELLY__UDMABUF_ACCESS_H__
+#ifndef	__RYUZ__JELLY__UDMABUF_ACCESSOR_H__
+#define	__RYUZ__JELLY__UDMABUF_ACCESSOR_H__
 
 
 #include <string.h>
@@ -19,17 +19,17 @@
 #include <string>
 #include <errno.h>
 
-#include "UioAccess.h"
+#include "UioAccessor.h"
 
 
 namespace jelly {
 
 // memory manager
-using AccessUdmabufManager = AccessUioManager;
+using AccessorUdmabufManager = AccessorUioManager;
 
 
 template <typename DataType=std::uintptr_t, typename MemAddrType=std::uintptr_t, typename RegAddrType=std::uintptr_t>
-class UdmabufAccess_ : public UioAccess_<DataType, MemAddrType, RegAddrType>
+class UdmabufAccessor_ : public UioAccessor_<DataType, MemAddrType, RegAddrType>
 {
 protected:
 	std::intptr_t	m_phys_addr = 0;
@@ -38,7 +38,7 @@ protected:
 	{
 		std::string fname = "/dev/";
 		fname += name;
-		auto udmabuf_manager = AccessUdmabufManager::Create(fname.c_str(), size);
+		auto udmabuf_manager = AccessorUdmabufManager::Create(fname.c_str(), size);
 		if ( udmabuf_manager->IsMapped() ) {
 			this->SetMemManager(udmabuf_manager, offset);
 			return true;
@@ -47,9 +47,9 @@ protected:
 	}
 
 public:
-	UdmabufAccess_() {}
+	UdmabufAccessor_() {}
 
-	UdmabufAccess_(const char* name, std::size_t offset=0) {
+	UdmabufAccessor_(const char* name, std::size_t offset=0) {
 		auto size = GetPhysSize(name);
 		if ( size > 0 ) {
 			m_phys_addr = GetPhysAddr(name);
@@ -57,16 +57,16 @@ public:
 		}
 	}
 
-	~UdmabufAccess_()	{}
+	~UdmabufAccessor_()	{}
 
 	std::intptr_t GetPhysAddr(void)
 	{
 		return m_phys_addr;
 	}
 	
-	std::shared_ptr<AccessUdmabufManager> GetUdmabufManager(void)
+	std::shared_ptr<AccessorUdmabufManager> GetUdmabufManager(void)
 	{
-		return std::dynamic_pointer_cast<AccessUdmabufManager>(this->m_mem_manager);
+		return std::dynamic_pointer_cast<AccessorUdmabufManager>(this->m_mem_manager);
 	}
 
 	// get phys_addr
@@ -103,15 +103,15 @@ public:
 
 
 
-using UdmabufAccess   = UdmabufAccess_<>;
-using UdmabufAccess64 = UdmabufAccess_<std::uint64_t>;
-using UdmabufAccess32 = UdmabufAccess_<std::uint32_t>;
-using UdmabufAccess16 = UdmabufAccess_<std::uint16_t>;
-using UdmabufAccess8  = UdmabufAccess_<std::uint8_t>;
+using UdmabufAccessor   = UdmabufAccessor_<>;
+using UdmabufAccessor64 = UdmabufAccessor_<std::uint64_t>;
+using UdmabufAccessor32 = UdmabufAccessor_<std::uint32_t>;
+using UdmabufAccessor16 = UdmabufAccessor_<std::uint16_t>;
+using UdmabufAccessor8  = UdmabufAccessor_<std::uint8_t>;
 
 }
 
-#endif	// __RYUZ__JELLY__UDMABUF_ACCESS_H__
+#endif	// __RYUZ__JELLY__UDMABUF_ACCESSOR_H__
 
 
 // end of file

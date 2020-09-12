@@ -129,7 +129,7 @@ module jelly_axi4_dma_fifo_read
     wire    [CAPACITY_WIDTH-1:0]    m_rd_size = (1 << RDATA_FIFO_SIZE);
     wire                            m_rd_valid;
     
-    jelly_fifo_width_converter
+    jelly_fifo_width_convert
             #(
                 .ASYNC                  (ASYNC),
                 .UNIT_WIDTH             (UNIT_WIDTH),
@@ -143,7 +143,7 @@ module jelly_axi4_dma_fifo_read
                 .FIFO_SLAVE_REGS        (RDATA_FIFO_S_REGS),
                 .FIFO_MASTER_REGS       (RDATA_FIFO_M_REGS)
             )
-        i_fifo_width_converter_wdata
+        i_fifo_width_convert_rdata
             (
                 .endian                 (1'b0),
                 

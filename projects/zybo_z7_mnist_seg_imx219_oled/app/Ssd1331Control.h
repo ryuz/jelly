@@ -11,13 +11,13 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 
-#include "jelly/MemAccess.h"
+#include "jelly/MemAccessor.h"
 
 
 class Ssd1331Control
 {
 protected:
-	jelly::MemAccess	m_reg_acc;
+	jelly::MemAccessor	m_reg_acc;
 
 	const int	REG_ADR_RES_N  = 0;		// RES_N 制御
 	const int	REG_ADR_BS     = 1;		// BS 制御
@@ -75,7 +75,7 @@ protected:
 
 
 public:
-	Ssd1331Control(jelly::MemAccess	reg_acc)
+	Ssd1331Control(jelly::MemAccessor	reg_acc)
 	{
 		m_reg_acc = reg_acc;
 	}

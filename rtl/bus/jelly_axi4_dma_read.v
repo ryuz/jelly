@@ -16,12 +16,12 @@ module jelly_axi4_dma_read
         #(
             parameter   ARASYNC              = 1,
             parameter   RASYNC               = 1,
-            parameter   UNIT_WIDTH           = 8,
+            parameter   BYTE_WIDTH           = 8,
             
             parameter   AXI4_ID_WIDTH        = 6,
             parameter   AXI4_ADDR_WIDTH      = 49,
             parameter   AXI4_DATA_SIZE       = 2,    // 0:8bit, 1:16bit, 2:32bit ...
-            parameter   AXI4_DATA_WIDTH      = (UNIT_WIDTH << AXI4_DATA_SIZE),
+            parameter   AXI4_DATA_WIDTH      = (BYTE_WIDTH << AXI4_DATA_SIZE),
             parameter   AXI4_LEN_WIDTH       = 8,
             parameter   AXI4_QOS_WIDTH       = 4,
             parameter   AXI4_ARID            = {AXI4_ID_WIDTH{1'b0}},
@@ -37,11 +37,13 @@ module jelly_axi4_dma_read
             parameter   AXI4_ALIGN           = 12,
             
             parameter   S_RDATA_SIZE         = 2,    // 0:8bit, 1:16bit, 2:32bit ...
-            parameter   S_RDATA_WIDTH        = (UNIT_WIDTH << S_RDATA_SIZE),
+            parameter   S_RDATA_WIDTH        = (BYTE_WIDTH << S_RDATA_SIZE),
             parameter   S_ARADDR_WIDTH       = AXI4_ADDR_WIDTH,
             parameter   S_ARLEN_WIDTH        = 32,
             parameter   S_ARLEN_SIZE         = S_RDATA_SIZE,
             parameter   S_ARLEN_OFFSET       = 1'b1,
+            parameter   HAS_RLAST            = 1,
+            parameter   ALLOW_UNALIGN_RLAST  = 0,
             
             parameter   ARFIFO_PTR_WIDTH     = 4,
             parameter   ARFIFO_RAM_TYPE      = "distributed",
@@ -50,12 +52,12 @@ module jelly_axi4_dma_read
             parameter   ARFIFO_S_REGS        = 1,
             parameter   ARFIFO_M_REGS        = 1,
             
-            parameter   RDATA_FIFO_PTR_WIDTH = 9,
-            parameter   RDATA_FIFO_RAM_TYPE  = "block",
-            parameter   RDATA_FIFO_LOW_DEALY = 0,
-            parameter   RDATA_FIFO_DOUT_REGS = 1,
-            parameter   RDATA_FIFO_S_REGS    = 1,
-            parameter   RDATA_FIFO_M_REGS    = 1,
+            parameter   RFIFO_PTR_WIDTH      = 9,
+            parameter   RFIFO_RAM_TYPE       = "block",
+            parameter   RFIFO_LOW_DEALY      = 0,
+            parameter   RFIFO_DOUT_REGS      = 1,
+            parameter   RFIFO_S_REGS         = 1,
+            parameter   RFIFO_M_REGS         = 1,
             
             parameter   RCMD_FIFO_PTR_WIDTH  = 4,
             parameter   RCMD_FIFO_RAM_TYPE   = "distributed",
@@ -65,6 +67,8 @@ module jelly_axi4_dma_read
             parameter   RCMD_FIFO_M_REGS     = 1
         )
         (
+            input   wire                                endian,
+            
             input   wire                                s_arresetn,
             input   wire                                s_arclk,
             input   wire    [S_ARADDR_WIDTH-1:0]        s_araddr,
@@ -122,14 +126,14 @@ module jelly_axi4_dma_read
     // 内部アドレスに換算
     wire    [ADDR_WIDTH-1:0]    s_addr = (s_araddr >> AXI4_DATA_SIZE);
     wire    [LEN_WIDTH-1:0]     s_len;
-    jelly_func_parameter_shift
+    jelly_func_shift
             #(
                 .IN_WIDTH               (S_ARLEN_WIDTH),
                 .OUT_WIDTH              (LEN_WIDTH),
                 .SHIFT_LEFT             (S_ARLEN_SIZE),
                 .SHIFT_RIGHT            (AXI4_DATA_SIZE)
             )
-        i_func_parameter_shift
+        i_func_shift
             (
                 .in                     (s_arlen),
                 .out                    (s_len)
@@ -183,41 +187,60 @@ module jelly_axi4_dma_read
     wire    [CAPACITY_WIDTH-1:0]    s_rfifo_rd_size = (1 << RDATA_FIFO_SIZE);
     wire                            s_rfifo_rd_signal;
     
-    jelly_fifo_width_converter
+    jelly_axi4s_fifo_width_converter
             #(
                 .ASYNC                  (RASYNC),
-                .UNIT_WIDTH             (UNIT_WIDTH),
-                .S_DATA_SIZE            (1+AXI4_DATA_SIZE),
-                .M_DATA_SIZE            (1+S_RDATA_SIZE),
+                .FIFO_PTR_WIDTH         (RFIFO_PTR_WIDTH),
+                .FIFO_RAM_TYPE          (RFIFO_RAM_TYPE),
+                .FIFO_LOW_DEALY         (RFIFO_LOW_DEALY),
+                .FIFO_DOUT_REGS         (RFIFO_DOUT_REGS),
+                .FIFO_S_REGS            (RFIFO_S_REGS),
+                .FIFO_M_REGS            (RFIFO_M_REGS),
                 
-                .FIFO_PTR_WIDTH         (RDATA_FIFO_PTR_WIDTH),
-                .FIFO_RAM_TYPE          (RDATA_FIFO_RAM_TYPE),
-                .FIFO_LOW_DEALY         (RDATA_FIFO_LOW_DEALY),
-                .FIFO_DOUT_REGS         (RDATA_FIFO_DOUT_REGS),
-                .FIFO_SLAVE_REGS        (RDATA_FIFO_S_REGS),
-                .FIFO_MASTER_REGS       (RDATA_FIFO_M_REGS)
+                .HAS_STRB               (0),
+                .HAS_KEEP               (0),
+                .HAS_FIRST              (0),
+                .HAS_LAST               (HAS_RLAST),
+                
+                .BYTE_WIDTH             (BYTE_WIDTH),
+                .S_TDATA_WIDTH          (AXI4_DATA_WIDTH),
+                .M_TDATA_WIDTH          (S_RDATA_WIDTH),
+                .ALLOW_UNALIGN_FIRST    (0),
+                .ALLOW_UNALIGN_LAST     (ALLOW_UNALIGN_RLAST),
+                .FIRST_FORCE_LAST       (1),
+                .FIRST_OVERWRITE        (0),
+                .CONVERT_S_REGS         (1)
             )
-        i_fifo_width_converter_rdata
+        i_axi4s_fifo_width_converter
             (
-                .endian                 (1'b0),
+                .endian                 (endian),
                 
-                .s_reset                (~m_aresetn),
-                .s_clk                  (m_aclk),
-                .s_data                 ({rfifo_rlast, rfifo_rdata}),
-                .s_valid                (rfifo_rvalid),
-                .s_ready                (rfifo_rready),
-                .s_free_count           (),
-                .s_wr_signal            (),
+                .s_aresetn              (m_aresetn),
+                .s_aclk                 (m_aclk),
+                .s_axi4s_tdata          (rfifo_rdata),
+                .s_axi4s_tstrb          (1'b0),
+                .s_axi4s_tkeep          (1'b0),
+                .s_axi4s_tfirst         (1'b0),
+                .s_axi4s_tlast          (rfifo_rlast),
+                .s_axi4s_tuser          (1'b0),
+                .s_axi4s_tvalid         (rfifo_rvalid),
+                .s_axi4s_tready         (rfifo_rready),
+                .s_fifo_free_count      (),
+                .s_fifo_wr_signal       (),
                 
-                .m_reset                (~s_rresetn),
-                .m_clk                  (s_rclk),
-                .m_data                 ({s_rlast, s_rdata}),
-                .m_valid                (s_rvalid),
-                .m_ready                (s_rready),
-                .m_data_count           (),
-                .m_rd_signal            (s_rfifo_rd_signal)
+                .m_aresetn              (s_rresetn),
+                .m_aclk                 (s_rclk),
+                .m_axi4s_tdata          (s_rdata),
+                .m_axi4s_tstrb          (),
+                .m_axi4s_tkeep          (),
+                .m_axi4s_tfirst         (),
+                .m_axi4s_tlast          (s_rlast),
+                .m_axi4s_tuser          (),
+                .m_axi4s_tvalid         (s_rvalid),
+                .m_axi4s_tready         (s_rready),
+                .m_fifo_data_count      (),
+                .m_fifo_rd_signal       (s_rfifo_rd_signal)
             );
-    
     
     wire    [CAPACITY_WIDTH-1:0]    rfifo_rd_size;
     wire                            rfifo_rd_valid;
@@ -289,6 +312,7 @@ module jelly_axi4_dma_read
     
     
     // capacity
+    wire    [CAPACITY_WIDTH-1:0]    initial_capacity = (1 << RFIFO_PTR_WIDTH);
     wire    [ADDR_WIDTH-1:0]        capsiz_addr;
     wire    [AXI4_LEN_WIDTH-1:0]    capsiz_len;
     wire                            capsiz_last;
@@ -310,7 +334,7 @@ module jelly_axi4_dma_read
                 .clk                    (m_aclk),
                 .cke                    (1'b1),
                 
-                .initial_capacity       (1 << RDATA_FIFO_PTR_WIDTH),
+                .initial_capacity       (initial_capacity),
                 .current_capacity       (),
                 
                 .s_charge_size          (rfifo_rd_size),
@@ -483,7 +507,7 @@ module jelly_axi4_dma_read
     
     assign rfifo_rlast   = m_axi4_rlast & rcmd_arlast;
     assign rfifo_rdata   = m_axi4_rdata;
-    assign rfifo_rvalid  = m_axi4_rvalid;
+    assign rfifo_rvalid  = m_axi4_rvalid & m_axi4_rready;
     
     
     

@@ -12,7 +12,7 @@
 #include <opencv2/opencv.hpp>
 
 #include "UioMmap.h"
-#include "I2cAccess.h"
+#include "I2cAccessor.h"
 
 
 
@@ -97,7 +97,7 @@
 void oled_init(UioMmap* p);     // OLED初期化
 int  oled_main();               // 古いOLEDアプリを動かすことで初期化を代用(手抜き)
 
-void camera_setup(I2cAccess& i2c, int w, int h);    // カメラ初期化
+void camera_setup(I2cAccessor& i2c, int w, int h);    // カメラ初期化
 
 void write_back_image(void* mem_addr);
 
@@ -170,7 +170,7 @@ int main(int argc, char *argv[])
     
     
     // カメラ初期化
-    I2cAccess   i2c;
+    I2cAccessor   i2c;
     if ( !i2c.Open("/dev/i2c-0", 0x10) ) {
         printf("I2C open error\n");
         return 1;
@@ -437,7 +437,7 @@ void vout_stop(UioMmap& um_pl_peri)
 
 
 // カメラ初期化
-void camera_setup(I2cAccess& i2c, int w, int h)
+void camera_setup(I2cAccessor& i2c, int w, int h)
 {
     /*
     i2c.WriteAddr16Byte(0x0102, 0x01  );   // ???? (Reserved)

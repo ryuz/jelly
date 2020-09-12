@@ -8,21 +8,21 @@
 #include <linux/i2c-dev.h>
 
 
-class I2cAccess
+class I2cAccessor
 {
 public:
-	I2cAccess()
+	I2cAccessor()
 	{
 		m_fd = -1;
 	}
 	
-	I2cAccess(const char* fname, unsigned char dev)
+	I2cAccessor(const char* fname, unsigned char dev)
 	{
 		m_fd = -1;
 		Open(fname, dev);
 	}
 	
-	~I2cAccess()
+	~I2cAccessor()
 	{
 		Close();
 	}

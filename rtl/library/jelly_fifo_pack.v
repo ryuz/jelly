@@ -162,7 +162,7 @@ module jelly_fifo_pack
     jelly_fifo_generic_fwtf
             #(
                 .ASYNC          (ASYNC),
-                .DATA_WIDTH     (DATA_WIDTH),
+                .DATA_WIDTH     (PACK_WIDTH),
                 .PTR_WIDTH      (PTR_WIDTH),
                 .DOUT_REGS      (DOUT_REGS),
                 .RAM_TYPE       (RAM_TYPE),

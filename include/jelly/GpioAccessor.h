@@ -5,8 +5,8 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef __RYUZ__JELLY__GPIO_ACCESS__H__
-#define __RYUZ__JELLY__GPIO_ACCESS__H__
+#ifndef __RYUZ__JELLY__GPIO_ACCESSOR__H__
+#define __RYUZ__JELLY__GPIO_ACCESSOR__H__
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -17,14 +17,14 @@
 namespace jelly {
 
 
-class GpioAccess
+class GpioAccessor
 {
 protected:
     int     m_gpio;
     bool    m_unexport;
 
 public:
-    GpioAccess(int gpio, bool auto_export=true)
+    GpioAccessor(int gpio, bool auto_export=true)
     {
         m_gpio     = gpio;
         m_unexport = false;
@@ -36,7 +36,7 @@ public:
         }
     }
     
-    ~GpioAccess()
+    ~GpioAccessor()
     {
         if ( m_unexport ) {
             Unexport();  // 最初に存在していなければ元に戻す
@@ -135,6 +135,6 @@ public:
 
 }
 
-#endif  // __RYUZ__JELLY__GPIO_ACCESS__H__
+#endif  // __RYUZ__JELLY__GPIO_ACCESSOR__H__
 
 // end of file

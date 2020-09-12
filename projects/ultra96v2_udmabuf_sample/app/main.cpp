@@ -8,8 +8,8 @@
 #include <iostream>
 #include <unistd.h>
 
-#include "jelly/UioAccess.h"
-#include "jelly/UdmabufAccess.h"
+#include "jelly/UioAccessor.h"
+#include "jelly/UdmabufAccessor.h"
 
 using namespace jelly;
 
@@ -30,7 +30,7 @@ int main()
 
     // mmap udmabuf
     std::cout << "\nudmabuf4 open" << std::endl;
-    UdmabufAccess udmabuf_acc("udmabuf4");
+    UdmabufAccessor udmabuf_acc("udmabuf4");
     if ( !udmabuf_acc.IsMapped() ) {
         std::cout << "udmabuf4 mmap error" << std::endl;
         return 1;
@@ -40,16 +40,16 @@ int main()
 
     // mmap uio
     std::cout << "\nuio open" << std::endl;
-    UioAccess uio_acc("uio_pl_peri", 0x08000000);
+    UioAccessor uio_acc("uio_pl_peri", 0x08000000);
     if ( !uio_acc.IsMapped() ) {
         std::cout << "uio_pl_peri mmap error" << std::endl;
         return 1;
     }
 
     // UIOの中をさらにコアごとに割り当て
-    auto dma0_acc = uio_acc.GetMemAccess(0x0000);
-    auto dma1_acc = uio_acc.GetMemAccess(0x0800);
-    auto led_acc  = uio_acc.GetMemAccess(0x8000);
+    auto dma0_acc = uio_acc.GetAccessor(0x0000);
+    auto dma1_acc = uio_acc.GetAccessor(0x0800);
+    auto led_acc  = uio_acc.GetAccessor(0x8000);
 
 
     // メモリアドレスでアクセス

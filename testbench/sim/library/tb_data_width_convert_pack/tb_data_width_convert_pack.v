@@ -25,7 +25,7 @@ module tb_data_width_convert_pack();
     always @(posedge clk)   cke <= BUSY ? {$random} : 1'b1;
     
     
-    parameter NUM_GCD          = 1; // S_NUM と M_NUM の最大公約数(人力)
+    parameter NUM_GCD          = 2; // S_NUM と M_NUM の最大公約数(人力)
     parameter S_NUM            = 4;
     parameter M_NUM            = 6;
     parameter UNIT0_WIDTH      = 32;
@@ -96,10 +96,10 @@ module tb_data_width_convert_pack();
     parameter M_DATA9_BITS     = M_DATA9_WIDTH > 0 ? M_DATA9_WIDTH : 1;
     
     
-    wire                        endian = 0;
-    wire    [UNIT0_BITS-1:0]    padding0 = 32'hffeeffee;
-    wire    [UNIT1_BITS-1:0]    padding1 = 16'haaaa;
-    wire    [UNIT2_BITS-1:0]    padding2 = 8'hbb;
+    wire                        endian = 1;
+    wire    [UNIT0_BITS-1:0]    padding0 = 32'hxxfxxxxx;
+    wire    [UNIT1_BITS-1:0]    padding1 = 16'haxxa;
+    wire    [UNIT2_BITS-1:0]    padding2 = 8'hbx;
     wire    [UNIT3_BITS-1:0]    padding3;
     wire    [UNIT4_BITS-1:0]    padding4;
     wire    [UNIT5_BITS-1:0]    padding5;

@@ -6,8 +6,8 @@
 // ---------------------------------------------------------------------------
 
 
-#ifndef	__RYUZ__JELLY__MEM_ACCESS_H__
-#define	__RYUZ__JELLY__MEM_ACCESS_H__
+#ifndef __RYUZ__JELLY__MEM_ACCESSOR_H__
+#define __RYUZ__JELLY__MEM_ACCESSOR_H__
 
 
 #include <cstring> 
@@ -18,67 +18,67 @@
 namespace jelly {
 
 // memory manager
-class AccessMemManager
+class AccessorMemManager
 {
 protected:
     void*       m_ptr = nullptr;
     std::size_t m_size = 0;
 
-    AccessMemManager() {}
-    AccessMemManager(void* ptr, std::size_t size) { m_ptr = ptr; m_size = size; }
+    AccessorMemManager() {}
+    AccessorMemManager(void* ptr, std::size_t size) { m_ptr = ptr; m_size = size; }
 
 public:
-    virtual ~AccessMemManager() {}
+    virtual ~AccessorMemManager() {}
 
-    static std::shared_ptr<AccessMemManager> Create(void* ptr, std::size_t size = 0)
+    static std::shared_ptr<AccessorMemManager> Create(void* ptr, std::size_t size = 0)
     {
-        return std::shared_ptr<AccessMemManager>(new AccessMemManager(ptr, size));
+        return std::shared_ptr<AccessorMemManager>(new AccessorMemManager(ptr, size));
     }
 
     void*       GetPtr(void)  { return m_ptr; }
     std::size_t GetSize(void) { return m_size; }
 };
 
-// memory access
+// memory accessor
 template <typename DataType=std::uintptr_t, typename MemAddrType=std::uintptr_t, typename RegAddrType=std::uintptr_t>
-class MemAccess_
+class MemAccessor_
 {
 protected:
-    std::shared_ptr<AccessMemManager>   m_mem_manager;
+    std::shared_ptr<AccessorMemManager>   m_mem_manager;
     void*                               m_base_ptr = nullptr;
 
 public:
-    ~MemAccess_(){}
-    MemAccess_(){}
+    ~MemAccessor_(){}
+    MemAccessor_(){}
 
-    MemAccess_(std::shared_ptr<AccessMemManager> mem_manager, std::size_t offset=0)
+    MemAccessor_(std::shared_ptr<AccessorMemManager> mem_manager, std::size_t offset=0)
     {
         SetMemManager(mem_manager, offset);
     }
 
-    MemAccess_(void *ptr, std::size_t size=0, std::size_t offset=0)
+    MemAccessor_(void *ptr, std::size_t size=0, std::size_t offset=0)
     {
         SetMemManager(ptr, size, offset);
     }
 
 
-    void  SetMemManager(std::shared_ptr<AccessMemManager> mem_manager, std::size_t offset=0) {
+    void  SetMemManager(std::shared_ptr<AccessorMemManager> mem_manager, std::size_t offset=0) {
         m_mem_manager = mem_manager;
         m_base_ptr = reinterpret_cast<void*>(reinterpret_cast<std::int8_t*>(m_mem_manager->GetPtr()) + offset);
     }
 
     void  SetMappedMemory(void *ptr, std::size_t size=0, std::size_t offset=0) {
-        SetMemManager(AccessMemManager::Create(ptr, size), offset);
+        SetMemManager(AccessorMemManager::Create(ptr, size), offset);
     }
 
-	std::shared_ptr<AccessMemManager> GetMemManager(void)
-	{
-		return m_mem_manager;
-	}
+    std::shared_ptr<AccessorMemManager> GetManager(void)
+    {
+        return m_mem_manager;
+    }
 
     std::size_t GetSize(void)
     {
-        auto mem_manager = GetMemManager();
+        auto mem_manager = GetManager();
         if ( !mem_manager ) {
             return 0;
         }
@@ -87,66 +87,66 @@ public:
 
 
     template <typename DT=DataType, typename MT=MemAddrType, typename RT=RegAddrType>
-    MemAccess_<DT, MT, RT> GetMemAccess_(MemAddrType addr)
+    MemAccessor_<DT, MT, RT> GetAccessor_(MemAddrType addr)
     {
-        return MemAccess_<DT, MT, RT>(m_mem_manager, addr);
+        return MemAccessor_<DT, MT, RT>(m_mem_manager, addr);
     }
 
-    MemAccess_<DataType, MemAddrType, RegAddrType> GetMemAccess(MemAddrType addr)
+    MemAccessor_<DataType, MemAddrType, RegAddrType> GetAccessor(MemAddrType addr)
     {
-        return GetMemAccess_<DataType, MemAddrType, RegAddrType>(addr);
+        return GetAccessor_<DataType, MemAddrType, RegAddrType>(addr);
     }
 
-    MemAccess_<std::uint64_t, MemAddrType, RegAddrType> GetMemAccess64(MemAddrType addr)
+    MemAccessor_<std::uint64_t, MemAddrType, RegAddrType> GetAccessor64(MemAddrType addr)
     {
-        return GetMemAccess_<std::uint64_t, MemAddrType, RegAddrType>(addr);
+        return GetAccessor_<std::uint64_t, MemAddrType, RegAddrType>(addr);
     }
 
-    MemAccess_<std::uint32_t, MemAddrType, RegAddrType> GetMemAccess32(MemAddrType addr)
+    MemAccessor_<std::uint32_t, MemAddrType, RegAddrType> GetAccessor32(MemAddrType addr)
     {
-        return GetMemAccess_<std::uint32_t, MemAddrType, RegAddrType>(addr);
+        return GetAccessor_<std::uint32_t, MemAddrType, RegAddrType>(addr);
     }
 
-    MemAccess_<std::uint16_t, MemAddrType, RegAddrType> GetMemAccess16(MemAddrType addr)
+    MemAccessor_<std::uint16_t, MemAddrType, RegAddrType> GetAccessor16(MemAddrType addr)
     {
-        return GetMemAccess_<std::uint16_t, MemAddrType, RegAddrType>(addr);
+        return GetAccessor_<std::uint16_t, MemAddrType, RegAddrType>(addr);
     }
 
-    MemAccess_<std::uint8_t, MemAddrType, RegAddrType> GetMemAccess8(MemAddrType addr)
+    MemAccessor_<std::uint8_t, MemAddrType, RegAddrType> GetAccessor8(MemAddrType addr)
     {
-        return GetMemAccess_<std::uint8_t, MemAddrType, RegAddrType>(addr);
+        return GetAccessor_<std::uint8_t, MemAddrType, RegAddrType>(addr);
     }
 
 
     template <typename DT=DataType, typename MT=MemAddrType, typename RT=RegAddrType>
-    MemAccess_<DT, MT, RT> GetRegAccess_(RegAddrType reg)
+    MemAccessor_<DT, MT, RT> GetRegAccessor_(RegAddrType reg)
     {
-        return MemAccess_<DT, MT, RT>(m_mem_manager, reg * sizeof(DataType));
+        return MemAccessor_<DT, MT, RT>(m_mem_manager, reg * sizeof(DataType));
     }
 
-    MemAccess_<DataType, MemAddrType, RegAddrType> GetRegAccess(RegAddrType reg)
+    MemAccessor_<DataType, MemAddrType, RegAddrType> GetRegAccessor(RegAddrType reg)
     {
-        return GetRegAccess_<DataType, MemAddrType, RegAddrType>(reg);
+        return GetRegAccessor_<DataType, MemAddrType, RegAddrType>(reg);
     }
 
-    MemAccess_<std::uint64_t, MemAddrType, RegAddrType> GetRegAccess64(RegAddrType reg)
+    MemAccessor_<std::uint64_t, MemAddrType, RegAddrType> GetRegAccessor64(RegAddrType reg)
     {
-        return GetRegAccess_<std::uint64_t, MemAddrType, RegAddrType>(reg);
+        return GetRegAccessor_<std::uint64_t, MemAddrType, RegAddrType>(reg);
     }
 
-    MemAccess_<std::uint32_t, MemAddrType, RegAddrType> GetRegAccess32(RegAddrType reg)
+    MemAccessor_<std::uint32_t, MemAddrType, RegAddrType> GetRegAccessor32(RegAddrType reg)
     {
-        return GetRegAccess_<std::uint32_t, MemAddrType, RegAddrType>(reg);
+        return GetRegAccessor_<std::uint32_t, MemAddrType, RegAddrType>(reg);
     }
 
-    MemAccess_<std::uint16_t, MemAddrType, RegAddrType> GetRegAccess16(RegAddrType reg)
+    MemAccessor_<std::uint16_t, MemAddrType, RegAddrType> GetRegAccessor16(RegAddrType reg)
     {
-        return GetRegAccess_<std::uint16_t, MemAddrType, RegAddrType>(reg);
+        return GetRegAccessor_<std::uint16_t, MemAddrType, RegAddrType>(reg);
     }
 
-    MemAccess_<std::uint8_t, MemAddrType, RegAddrType> GetRegAccess8(RegAddrType reg)
+    MemAccessor_<std::uint8_t, MemAddrType, RegAddrType> GetRegAccessor8(RegAddrType reg)
     {
-        return GetRegAccess_<std::uint8_t, MemAddrType, RegAddrType>(reg);
+        return GetRegAccessor_<std::uint8_t, MemAddrType, RegAddrType>(reg);
     }
 
 
@@ -244,16 +244,16 @@ public:
 };
 
 
-using MemAccess   = MemAccess_<>;
-using MemAccess64 = MemAccess_<std::uint64_t>;
-using MemAccess32 = MemAccess_<std::uint32_t>;
-using MemAccess16 = MemAccess_<std::uint16_t>;
-using MemAccess8  = MemAccess_<std::uint8_t>;
+using MemAccessor   = MemAccessor_<>;
+using MemAccessor64 = MemAccessor_<std::uint64_t>;
+using MemAccessor32 = MemAccessor_<std::uint32_t>;
+using MemAccessor16 = MemAccessor_<std::uint16_t>;
+using MemAccessor8  = MemAccessor_<std::uint8_t>;
 
 }
 
 
-#endif  // __RYUZ__JELLY__MEM_ACCESS_H__
+#endif  // __RYUZ__JELLY__MEM_ACCESSOR_H__
 
 
 // end of file

@@ -22,7 +22,7 @@
             fclk1 {
                 compatible  = "ikwzm,fclkcfg-0.10.a";
                 clocks      = <&clkc 16>;
-                insert-rate = "133333333";
+                insert-rate = "133333344";
             };
         };
     };

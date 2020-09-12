@@ -2,8 +2,8 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
-#include "jelly/UioAccess.h"
-#include "jelly/UdmabufAccess.h"
+#include "jelly/UioAccessor.h"
+#include "jelly/UdmabufAccessor.h"
 #include "jelly/Imx219Control.h"
 
 #include "Ssd1331Control.h"
@@ -99,19 +99,19 @@ const int dvi_height = 720;
 const int buf_stride = 2048*4;
 
 // private functions
-void    CaptureStart(jelly::MemAccess& reg_wdma, jelly::MemAccess& reg_norm, std::uintptr_t bufaddr);
-void    CaptureStop(jelly::MemAccess& reg_wdma, jelly::MemAccess& reg_norm);
-void    VoutStart(jelly::MemAccess& reg_rdma, jelly::MemAccess& reg_vsgen, std::uintptr_t bufaddr);
-void    VoutStop(jelly::MemAccess& reg_rdma, jelly::MemAccess& reg_vsgen);
-void    WriteImage(jelly::MemAccess& mem_acc, const cv::Mat& img);
-cv::Mat ReadImage(jelly::MemAccess& mem_acc);
+void    CaptureStart(jelly::MemAccessor& reg_wdma, jelly::MemAccessor& reg_norm, std::uintptr_t bufaddr);
+void    CaptureStop(jelly::MemAccessor& reg_wdma, jelly::MemAccessor& reg_norm);
+void    VoutStart(jelly::MemAccessor& reg_rdma, jelly::MemAccessor& reg_vsgen, std::uintptr_t bufaddr);
+void    VoutStop(jelly::MemAccessor& reg_rdma, jelly::MemAccessor& reg_vsgen);
+void    WriteImage(jelly::MemAccessor& mem_acc, const cv::Mat& img);
+cv::Mat ReadImage(jelly::MemAccessor& mem_acc);
 
 
 // main
 int main()
 {
     // mmap udmabuf
-    jelly::UdmabufAccess udmabuf_acc("udmabuf0");
+    jelly::UdmabufAccessor udmabuf_acc("udmabuf0");
     if ( !udmabuf_acc.IsMapped() ) {
         std::cout << "udmabuf0 mmap error" << std::endl;
         return 1;
@@ -123,22 +123,22 @@ int main()
 
 
     // mmap uio
-    jelly::UioAccess uio_acc("uio_pl_peri", 0x00100000);
+    jelly::UioAccessor uio_acc("uio_pl_peri", 0x00100000);
     if ( !uio_acc.IsMapped() ) {
         std::cout << "uio_pl_peri mmap error" << std::endl;
         return 1;
     }
-    auto reg_gid    = uio_acc.GetMemAccess(0x00000000);
-    auto reg_wdma   = uio_acc.GetMemAccess(0x00010000);
-    auto reg_norm   = uio_acc.GetMemAccess(0x00011000);
-    auto reg_rgb    = uio_acc.GetMemAccess(0x00012000);
-    auto reg_resize = uio_acc.GetMemAccess(0x00014000);
-    auto reg_mnist  = uio_acc.GetMemAccess(0x00015000);
-    auto reg_bin    = uio_acc.GetMemAccess(0x00018000);
-    auto reg_mcol   = uio_acc.GetMemAccess(0x00019000);
-    auto reg_oled   = uio_acc.GetMemAccess(0x00022000);
-    auto reg_rdma   = uio_acc.GetMemAccess(0x00020000);
-    auto reg_vsgen  = uio_acc.GetMemAccess(0x00021000);
+    auto reg_gid    = uio_acc.GetAccessor(0x00000000);
+    auto reg_wdma   = uio_acc.GetAccessor(0x00010000);
+    auto reg_norm   = uio_acc.GetAccessor(0x00011000);
+    auto reg_rgb    = uio_acc.GetAccessor(0x00012000);
+    auto reg_resize = uio_acc.GetAccessor(0x00014000);
+    auto reg_mnist  = uio_acc.GetAccessor(0x00015000);
+    auto reg_bin    = uio_acc.GetAccessor(0x00018000);
+    auto reg_mcol   = uio_acc.GetAccessor(0x00019000);
+    auto reg_oled   = uio_acc.GetAccessor(0x00022000);
+    auto reg_rdma   = uio_acc.GetAccessor(0x00020000);
+    auto reg_vsgen  = uio_acc.GetAccessor(0x00021000);
 
 //  std::cout << "reg_gid  : " << std::hex << reg_gid.ReadReg(0) << std::endl;
 //  std::cout << "reg_wdma : " << std::hex << reg_wdma.ReadReg(0) << std::endl;
@@ -252,7 +252,7 @@ int main()
 
 
 // udmabuf領域へ画像を書き込む
-void WriteImage(jelly::MemAccess& mem_acc, const cv::Mat& img)
+void WriteImage(jelly::MemAccessor& mem_acc, const cv::Mat& img)
 {
     // ストライド幅に合わせて1ラインずつ転送
     for ( int i = 0; i < img.rows; i++ )
@@ -262,7 +262,7 @@ void WriteImage(jelly::MemAccess& mem_acc, const cv::Mat& img)
 }
 
 // udmabuf領域から画像を読み出す
-cv::Mat ReadImage(jelly::MemAccess& mem_acc)
+cv::Mat ReadImage(jelly::MemAccessor& mem_acc)
 {
     int x = (dvi_width  - cam_width) / 2;
     int y = (dvi_height - cam_height) / 2;
@@ -276,7 +276,7 @@ cv::Mat ReadImage(jelly::MemAccess& mem_acc)
 }
 
 // カメラキャプチャ開始
-void CaptureStart(jelly::MemAccess& reg_wdma, jelly::MemAccess& reg_norm, std::uintptr_t bufaddr)
+void CaptureStart(jelly::MemAccessor& reg_wdma, jelly::MemAccessor& reg_norm, std::uintptr_t bufaddr)
 {
     int x = (dvi_width  - cam_width) / 2;
     int y = (dvi_height - cam_height) / 2;
@@ -301,7 +301,7 @@ void CaptureStart(jelly::MemAccess& reg_wdma, jelly::MemAccess& reg_norm, std::u
 }
 
 // カメラキャプチャ停止
-void CaptureStop(jelly::MemAccess& reg_wdma, jelly::MemAccess& reg_norm)
+void CaptureStop(jelly::MemAccessor& reg_wdma, jelly::MemAccessor& reg_norm)
 {
     reg_wdma.WriteReg(REG_WDMA_CTL_CONTROL, 0x00);
     while ( reg_wdma.ReadReg(REG_WDMA_CTL_STATUS) != 0 ) {
@@ -312,7 +312,7 @@ void CaptureStop(jelly::MemAccess& reg_wdma, jelly::MemAccess& reg_norm)
 }
 
 // DVI出力開始
-void VoutStart(jelly::MemAccess& reg_rdma, jelly::MemAccess& reg_vsgen, std::uintptr_t bufaddr)
+void VoutStart(jelly::MemAccessor& reg_rdma, jelly::MemAccessor& reg_vsgen, std::uintptr_t bufaddr)
 {
     // VSync Start
     reg_vsgen.WriteReg(REG_VSGEN_PARAM_HTOTAL,      1650);
@@ -341,7 +341,7 @@ void VoutStart(jelly::MemAccess& reg_rdma, jelly::MemAccess& reg_vsgen, std::uin
 
 
 // DVI出力停止
-void VoutStop(jelly::MemAccess& reg_rdma, jelly::MemAccess& reg_vsgen)
+void VoutStop(jelly::MemAccessor& reg_rdma, jelly::MemAccessor& reg_vsgen)
 {
     reg_rdma.WriteReg(REG_RDMA_CTL_CONTROL, 0x00);
     while ( reg_rdma.ReadReg(REG_RDMA_CTL_STATUS) != 0 ) {
