@@ -14,46 +14,50 @@
 
 module jelly_axi4s_fifo_width_converter
         #(
-            parameter   ASYNC            = 1,
-            parameter   FIFO_PTR_WIDTH   = 9,
-            parameter   FIFO_RAM_TYPE    = "block",
-            parameter   FIFO_LOW_DEALY   = 0,
-            parameter   FIFO_DOUT_REGS   = 1,
-            parameter   FIFO_S_REGS      = 1,
-            parameter   FIFO_M_REGS      = 1,
+            parameter   ASYNC               = 1,
+            parameter   FIFO_PTR_WIDTH      = 9,
+            parameter   FIFO_RAM_TYPE       = "block",
+            parameter   FIFO_LOW_DEALY      = 0,
+            parameter   FIFO_DOUT_REGS      = 1,
+            parameter   FIFO_S_REGS         = 1,
+            parameter   FIFO_M_REGS         = 1,
             
-            parameter   HAS_STRB         = 1,
-            parameter   HAS_KEEP         = 1,
-            parameter   HAS_FIRST        = 1,
-            parameter   HAS_LAST         = 1,
+            parameter   HAS_STRB            = 1,
+            parameter   HAS_KEEP            = 1,
+            parameter   HAS_FIRST           = 1,
+            parameter   HAS_LAST            = 1,
             
-            parameter   BYTE_WIDTH       = 8,
-            parameter   S_TDATA_WIDTH    = 8,
-            parameter   M_TDATA_WIDTH    = 32,
-            parameter   DATA_WIDTH_GCD   = BYTE_WIDTH,
+            parameter   BYTE_WIDTH          = 8,
+            parameter   S_TDATA_WIDTH       = 8,
+            parameter   M_TDATA_WIDTH       = 32,
+            parameter   DATA_WIDTH_GCD      = BYTE_WIDTH,
             
-            parameter   S_TSTRB_WIDTH    = HAS_STRB ? (S_TDATA_WIDTH / BYTE_WIDTH) : 0,
-            parameter   S_TKEEP_WIDTH    = HAS_KEEP ? (S_TDATA_WIDTH / BYTE_WIDTH) : 0,
-            parameter   S_TUSER_WIDTH    = 0,
+            parameter   S_TSTRB_WIDTH       = HAS_STRB ? (S_TDATA_WIDTH / BYTE_WIDTH) : 0,
+            parameter   S_TKEEP_WIDTH       = HAS_KEEP ? (S_TDATA_WIDTH / BYTE_WIDTH) : 0,
+            parameter   S_TUSER_WIDTH       = 0,
             
-            parameter   M_TSTRB_WIDTH    = HAS_STRB ? (M_TDATA_WIDTH / BYTE_WIDTH) : 0,
-            parameter   M_TKEEP_WIDTH    = HAS_KEEP ? (M_TDATA_WIDTH / BYTE_WIDTH) : 0,
-            parameter   M_TUSER_WIDTH    = S_TUSER_WIDTH * M_TDATA_WIDTH / S_TDATA_WIDTH,
+            parameter   M_TSTRB_WIDTH       = HAS_STRB ? (M_TDATA_WIDTH / BYTE_WIDTH) : 0,
+            parameter   M_TKEEP_WIDTH       = HAS_KEEP ? (M_TDATA_WIDTH / BYTE_WIDTH) : 0,
+            parameter   M_TUSER_WIDTH       = S_TUSER_WIDTH * M_TDATA_WIDTH / S_TDATA_WIDTH,
             
-            parameter   FIRST_FORCE_LAST = 1,
-            parameter   FIRST_OVERWRITE  = 0,
+            parameter   ALLOW_UNALIGN_FIRST = 1,
+            parameter   ALLOW_UNALIGN_LAST  = 1,
+            parameter   FIRST_FORCE_LAST    = 1,
+            parameter   FIRST_OVERWRITE     = 0,
             
-            parameter   S_REGS           = 1,
+            parameter   CONVERT_S_REGS      = 1,
+            
+            parameter   POST_CONVERT        = (M_TDATA_WIDTH < S_TDATA_WIDTH),
             
             // local
-            parameter   S_TDATA_BITS     = S_TDATA_WIDTH > 0 ? S_TDATA_WIDTH : 1,
-            parameter   S_TSTRB_BITS     = S_TSTRB_WIDTH > 0 ? S_TSTRB_WIDTH : 1,
-            parameter   S_TKEEP_BITS     = S_TKEEP_WIDTH > 0 ? S_TKEEP_WIDTH : 1,
-            parameter   S_TUSER_BITS     = S_TUSER_WIDTH > 0 ? S_TUSER_WIDTH : 1,
-            parameter   M_TDATA_BITS     = M_TDATA_WIDTH > 0 ? M_TDATA_WIDTH : 1,
-            parameter   M_TSTRB_BITS     = M_TSTRB_WIDTH > 0 ? M_TSTRB_WIDTH : 1,
-            parameter   M_TKEEP_BITS     = M_TKEEP_WIDTH > 0 ? M_TKEEP_WIDTH : 1,
-            parameter   M_TUSER_BITS     = M_TUSER_WIDTH > 0 ? M_TUSER_WIDTH : 1
+            parameter   S_TDATA_BITS        = S_TDATA_WIDTH > 0 ? S_TDATA_WIDTH : 1,
+            parameter   S_TSTRB_BITS        = S_TSTRB_WIDTH > 0 ? S_TSTRB_WIDTH : 1,
+            parameter   S_TKEEP_BITS        = S_TKEEP_WIDTH > 0 ? S_TKEEP_WIDTH : 1,
+            parameter   S_TUSER_BITS        = S_TUSER_WIDTH > 0 ? S_TUSER_WIDTH : 1,
+            parameter   M_TDATA_BITS        = M_TDATA_WIDTH > 0 ? M_TDATA_WIDTH : 1,
+            parameter   M_TSTRB_BITS        = M_TSTRB_WIDTH > 0 ? M_TSTRB_WIDTH : 1,
+            parameter   M_TKEEP_BITS        = M_TKEEP_WIDTH > 0 ? M_TKEEP_WIDTH : 1,
+            parameter   M_TUSER_BITS        = M_TUSER_WIDTH > 0 ? M_TUSER_WIDTH : 1
         )
         (
             input   wire                        endian,
@@ -87,7 +91,7 @@ module jelly_axi4s_fifo_width_converter
         );
     
     generate
-    if ( M_TDATA_WIDTH < S_TDATA_WIDTH ) begin : blk_cnv_narrow
+    if ( POST_CONVERT ) begin : blk_post_cnv
         
         // FIFO
         wire    [S_TUSER_BITS-1:0]      fifo_tuser;
@@ -147,7 +151,7 @@ module jelly_axi4s_fifo_width_converter
                 );
         
         // width convert
-        jelly_axi4s_width_converter
+        jelly_axi4s_width_convert
                 #(
                     .HAS_STRB           (HAS_STRB),
                     .HAS_KEEP           (HAS_KEEP),
@@ -163,11 +167,13 @@ module jelly_axi4s_fifo_width_converter
                     .M_TSTRB_WIDTH      (M_TSTRB_WIDTH),
                     .M_TKEEP_WIDTH      (M_TKEEP_WIDTH),
                     .M_TUSER_WIDTH      (M_TUSER_WIDTH),
+                    .ALLOW_UNALIGN_FIRST(ALLOW_UNALIGN_FIRST),
+                    .ALLOW_UNALIGN_LAST (ALLOW_UNALIGN_LAST),
                     .FIRST_FORCE_LAST   (FIRST_FORCE_LAST),
                     .FIRST_OVERWRITE    (FIRST_OVERWRITE),
-                    .S_REGS             (S_REGS)
+                    .S_REGS             (CONVERT_S_REGS)
                 )
-            i_axi4s_width_converter
+            i_axi4s_width_convert
                 (
                     .aresetn            (m_aresetn),
                     .aclk               (m_aclk),
@@ -196,7 +202,7 @@ module jelly_axi4s_fifo_width_converter
         assign s_fifo_wr_signal = (s_axi4s_tvalid & s_axi4s_tready);
         assign m_fifo_rd_signal = (fifo_tvalid & fifo_tready);
     end
-    else begin : blk_cnv_wide
+    else begin : blk_pre_cnv
         
         // width convert
         wire    [M_TDATA_WIDTH-1:0]     wide_tdata;
@@ -208,7 +214,7 @@ module jelly_axi4s_fifo_width_converter
         wire                            wide_tvalid;
         wire                            wide_tready;
         
-        jelly_axi4s_width_converter
+        jelly_axi4s_width_convert
                 #(
                     .HAS_STRB           (HAS_STRB),
                     .HAS_KEEP           (HAS_KEEP),
@@ -224,11 +230,13 @@ module jelly_axi4s_fifo_width_converter
                     .M_TSTRB_WIDTH      (M_TSTRB_WIDTH),
                     .M_TKEEP_WIDTH      (M_TKEEP_WIDTH),
                     .M_TUSER_WIDTH      (M_TUSER_WIDTH),
+                    .ALLOW_UNALIGN_FIRST(ALLOW_UNALIGN_FIRST),
+                    .ALLOW_UNALIGN_LAST (ALLOW_UNALIGN_LAST),
                     .FIRST_FORCE_LAST   (FIRST_FORCE_LAST),
                     .FIRST_OVERWRITE    (FIRST_OVERWRITE),
-                    .S_REGS             (S_REGS)
+                    .S_REGS             (CONVERT_S_REGS)
                 )
-            i_axi4s_width_converter
+            i_axi4s_width_convert
                 (
                     .aresetn            (s_aresetn),
                     .aclk               (s_aclk),

@@ -12,7 +12,7 @@
 
 
 // この手の演算することが多いので定式化する
-module jelly_func_parameter_shift
+module jelly_func_shift
         #(
             parameter   IN_WIDTH    = 32,
             parameter   OUT_WIDTH   = 32,

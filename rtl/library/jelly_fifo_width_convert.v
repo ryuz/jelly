@@ -12,7 +12,7 @@
 
 
 
-module jelly_fifo_width_converter
+module jelly_fifo_width_convert
         #(
             parameter   ASYNC            = 1,
             parameter   UNIT_WIDTH       = 8,
@@ -86,13 +86,13 @@ module jelly_fifo_width_converter
                     .m_data_count       (m_data_count)
                 );
         
-        jelly_data_width_converter
+        jelly_data_width_convert
                 #(
                     .UNIT_WIDTH         (UNIT_WIDTH),
                     .S_DATA_SIZE        (S_DATA_SIZE),
                     .M_DATA_SIZE        (M_DATA_SIZE)
                 )
-            i_data_width_converter
+            i_data_width_convert
                 (
                     .reset              (m_reset),
                     .clk                (m_clk),

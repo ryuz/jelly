@@ -43,6 +43,7 @@ module jelly_axi4_dma_read
             parameter   S_ARLEN_SIZE         = S_RDATA_SIZE,
             parameter   S_ARLEN_OFFSET       = 1'b1,
             parameter   HAS_RLAST            = 1,
+            parameter   ALLOW_UNALIGN_RLAST  = 0,
             
             parameter   ARFIFO_PTR_WIDTH     = 4,
             parameter   ARFIFO_RAM_TYPE      = "distributed",
@@ -125,14 +126,14 @@ module jelly_axi4_dma_read
     // 内部アドレスに換算
     wire    [ADDR_WIDTH-1:0]    s_addr = (s_araddr >> AXI4_DATA_SIZE);
     wire    [LEN_WIDTH-1:0]     s_len;
-    jelly_func_parameter_shift
+    jelly_func_shift
             #(
                 .IN_WIDTH               (S_ARLEN_WIDTH),
                 .OUT_WIDTH              (LEN_WIDTH),
                 .SHIFT_LEFT             (S_ARLEN_SIZE),
                 .SHIFT_RIGHT            (AXI4_DATA_SIZE)
             )
-        i_func_parameter_shift
+        i_func_shift
             (
                 .in                     (s_arlen),
                 .out                    (s_len)
@@ -204,9 +205,11 @@ module jelly_axi4_dma_read
                 .BYTE_WIDTH             (BYTE_WIDTH),
                 .S_TDATA_WIDTH          (AXI4_DATA_WIDTH),
                 .M_TDATA_WIDTH          (S_RDATA_WIDTH),
+                .ALLOW_UNALIGN_FIRST    (0),
+                .ALLOW_UNALIGN_LAST     (ALLOW_UNALIGN_RLAST),
                 .FIRST_FORCE_LAST       (1),
                 .FIRST_OVERWRITE        (0),
-                .S_REGS                 (1)
+                .CONVERT_S_REGS         (1)
             )
         i_axi4s_fifo_width_converter
             (
@@ -238,44 +241,6 @@ module jelly_axi4_dma_read
                 .m_fifo_data_count      (),
                 .m_fifo_rd_signal       (s_rfifo_rd_signal)
             );
-    
-    /*
-    jelly_fifo_width_converter
-            #(
-                .ASYNC                  (RASYNC),
-                .UNIT_WIDTH             (UNIT_WIDTH),
-                .S_DATA_SIZE            (1+AXI4_DATA_SIZE),
-                .M_DATA_SIZE            (1+S_RDATA_SIZE),
-                
-                .FIFO_PTR_WIDTH         (RDATA_FIFO_PTR_WIDTH),
-                .FIFO_RAM_TYPE          (RDATA_FIFO_RAM_TYPE),
-                .FIFO_LOW_DEALY         (RDATA_FIFO_LOW_DEALY),
-                .FIFO_DOUT_REGS         (RDATA_FIFO_DOUT_REGS),
-                .FIFO_SLAVE_REGS        (RDATA_FIFO_S_REGS),
-                .FIFO_MASTER_REGS       (RDATA_FIFO_M_REGS)
-            )
-        i_fifo_width_converter_rdata
-            (
-                .endian                 (1'b0),
-                
-                .s_reset                (~m_aresetn),
-                .s_clk                  (m_aclk),
-                .s_data                 ({rfifo_rlast, rfifo_rdata}),
-                .s_valid                (rfifo_rvalid),
-                .s_ready                (rfifo_rready),
-                .s_free_count           (),
-                .s_wr_signal            (),
-                
-                .m_reset                (~s_rresetn),
-                .m_clk                  (s_rclk),
-                .m_data                 ({s_rlast, s_rdata}),
-                .m_valid                (s_rvalid),
-                .m_ready                (s_rready),
-                .m_data_count           (),
-                .m_rd_signal            (s_rfifo_rd_signal)
-            );
-    */
-    
     
     wire    [CAPACITY_WIDTH-1:0]    rfifo_rd_size;
     wire                            rfifo_rd_valid;
@@ -347,6 +312,7 @@ module jelly_axi4_dma_read
     
     
     // capacity
+    wire    [CAPACITY_WIDTH-1:0]    initial_capacity = (1 << RFIFO_PTR_WIDTH);
     wire    [ADDR_WIDTH-1:0]        capsiz_addr;
     wire    [AXI4_LEN_WIDTH-1:0]    capsiz_len;
     wire                            capsiz_last;
@@ -368,7 +334,7 @@ module jelly_axi4_dma_read
                 .clk                    (m_aclk),
                 .cke                    (1'b1),
                 
-                .initial_capacity       (1 << RFIFO_PTR_WIDTH),
+                .initial_capacity       (initial_capacity),
                 .current_capacity       (),
                 
                 .s_charge_size          (rfifo_rd_size),

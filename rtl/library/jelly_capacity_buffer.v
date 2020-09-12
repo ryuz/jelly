@@ -40,47 +40,54 @@ module jelly_capacity_buffer
     
     wire                            ready = (!m_issue_valid || m_issue_ready);
     
-    reg     [CAPACITY_WIDTH-1:0]    reg_queued_request,   next_queued_request;
+    reg     [CAPACITY_WIDTH-1:0]    reg_queued_request, next_queued_request;
+    reg                             reg_request_empty,  next_request_empty;
     
-    reg     [ISSUE_WIDTH-1:0]       reg_issue_size,       next_issue_size;
-    reg                             reg_issue_valid,      next_issue_valid;
+    reg     [ISSUE_WIDTH-1:0]       reg_issue_size,     next_issue_size;
+    reg                             reg_issue_valid,    next_issue_valid;
     
     always @(posedge clk) begin
         if ( reset ) begin
             reg_queued_request <= INIT_REQUEST;
+            reg_request_empty  <= (INIT_REQUEST == 0);
             reg_issue_size     <= {ISSUE_WIDTH{1'bx}};
             reg_issue_valid    <= 1'b0;
         end
         else if ( cke ) begin
             reg_queued_request <= next_queued_request;
+            reg_request_empty  <= next_request_empty;
             reg_issue_size     <= next_issue_size;
             reg_issue_valid    <= next_issue_valid;
         end
     end
     
     always @* begin
-        next_queued_request   = reg_queued_request;
-        next_issue_size       = reg_issue_size;
-        next_issue_valid      = reg_issue_valid;
+        next_queued_request = reg_queued_request;
+        next_request_empty  = reg_request_empty;
+        next_issue_size     = reg_issue_size;
+        next_issue_valid    = reg_issue_valid;
+        
+        if ( m_issue_ready ) begin
+            next_issue_valid = 1'b0;
+        end
+        
+        if ( !next_issue_valid && !next_request_empty ) begin
+            next_issue_size  = next_queued_request - ISSUE_SIZE_OFFSET;
+            next_issue_valid = 1'b1;
+            next_queued_request = 0;
+            next_request_empty  = 1'b1;
+        end
         
         if ( s_request_valid ) begin
             next_queued_request = next_queued_request + s_request_size + REQUEST_SIZE_OFFSET;
-        end
-        
-        if ( ready ) begin
-            next_issue_valid = (reg_queued_request > 0);
-            next_issue_size  = reg_queued_request;
-            
-            next_queued_request = next_queued_request - next_issue_size;
-            
-            next_issue_size = next_issue_size - ISSUE_SIZE_OFFSET;
+            next_request_empty  = (({1'b0, s_request_size} + REQUEST_SIZE_OFFSET) == 0);
         end
     end
     
     assign m_issue_size  = reg_issue_size;
     assign m_issue_valid = reg_issue_valid;
     
-    assign queued_request   = reg_queued_request;
+    assign queued_request = reg_queued_request;
     
 endmodule
 

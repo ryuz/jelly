@@ -13,7 +13,7 @@ module tb_axi4_dma_read();
         $dumpfile("tb_axi4_dma_read.vcd");
         $dumpvars(0, tb_axi4_dma_read);
         
-        #1000000;
+        #100000;
             $finish;
     end
     
@@ -53,7 +53,7 @@ module tb_axi4_dma_read();
     
     parameter   AXI4_ID_WIDTH        = 6;
     parameter   AXI4_ADDR_WIDTH      = 49;
-    parameter   AXI4_DATA_SIZE       = 5;    // 0:8bit; 1:16bit; 2:32bit ...
+    parameter   AXI4_DATA_SIZE       = 4;    // 0:8bit; 1:16bit; 2:32bit ...
     parameter   AXI4_DATA_WIDTH      = (BYTE_WIDTH << AXI4_DATA_SIZE);
     parameter   AXI4_LEN_WIDTH       = 8;
     parameter   AXI4_QOS_WIDTH       = 4;
@@ -240,6 +240,21 @@ module tb_axi4_dma_read();
         end
     end
     
+    
+    integer fp;
+    initial begin
+        fp = $fopen("out.txt", "w");
+    end
+    
+    always @(posedge s_rclk) begin
+        if ( ~s_rresetn ) begin
+        end
+        else begin
+            if ( s_rvalid && s_rready ) begin
+                $fdisplay(fp, "%h %b", s_rdata, s_rlast);
+            end
+        end
+    end
     
     
     

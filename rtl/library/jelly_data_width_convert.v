@@ -14,20 +14,22 @@
 
 module jelly_data_width_convert
         #(
-            parameter UNIT_WIDTH       = 8,
-            parameter S_NUM            = 3,
-            parameter M_NUM            = 4,
-            parameter USER_F_WIDTH     = 0,
-            parameter USER_L_WIDTH     = 0,
-            parameter FIRST_FORCE_LAST = 1,  // firstで前方吐き出し時に残変換があれば強制的にlastを付与
-            parameter FIRST_OVERWRITE  = 0,  // first時前方に残変換があれば吐き出さずに上書き
-            parameter S_REGS           = (S_NUM != M_NUM),
+            parameter UNIT_WIDTH          = 8,
+            parameter S_NUM               = 3,
+            parameter M_NUM               = 4,
+            parameter USER_F_WIDTH        = 0,
+            parameter USER_L_WIDTH        = 0,
+            parameter ALLOW_UNALIGN_FIRST = 1, // アライメントに合わない first を許す
+            parameter ALLOW_UNALIGN_LAST  = 1, // アライメントに合わない last を許す
+            parameter FIRST_FORCE_LAST    = 1,  // firstで前方吐き出し時に残変換があれば強制的にlastを付与
+            parameter FIRST_OVERWRITE     = 0,  // first時前方に残変換があれば吐き出さずに上書き
+            parameter S_REGS              = (S_NUM != M_NUM),
             
             // local
-            parameter S_DATA_WIDTH     = S_NUM*UNIT_WIDTH,
-            parameter M_DATA_WIDTH     = M_NUM*UNIT_WIDTH,
-            parameter USER_F_BITS      = USER_F_WIDTH > 0 ? USER_F_WIDTH : 1,
-            parameter USER_L_BITS      = USER_L_WIDTH > 0 ? USER_L_WIDTH : 1
+            parameter S_DATA_WIDTH        = S_NUM*UNIT_WIDTH,
+            parameter M_DATA_WIDTH        = M_NUM*UNIT_WIDTH,
+            parameter USER_F_BITS         = USER_F_WIDTH > 0 ? USER_F_WIDTH : 1,
+            parameter USER_L_BITS         = USER_L_WIDTH > 0 ? USER_L_WIDTH : 1
         )
         (
             input   wire                        reset,
@@ -222,7 +224,7 @@ module jelly_data_width_convert
             end
             else begin
                 // first 時は残があれば吐き出し待ち
-                if ( ff_s_valid && ff_s_first && next_count > 0 ) begin
+                if ( ALLOW_UNALIGN_FIRST && ff_s_valid && ff_s_first && next_count > 0 ) begin
                     next_final = 1'b1;
                     next_lflag = FIRST_FORCE_LAST;
                 end
@@ -233,9 +235,11 @@ module jelly_data_width_convert
             if ( ff_s_valid && sig_ready ) begin
                 if ( ff_s_first ) begin
                     // 初期化
-                    next_count = 0;
                     next_first = 1'b1;
-                    next_buf   = {BUF_WIDTH{1'bx}};
+                    if ( ALLOW_UNALIGN_FIRST ) begin
+                        next_count = 0;
+                        next_buf   = {BUF_WIDTH{1'bx}};
+                    end
                 end
                 if ( ff_s_last ) begin
                     next_final = 1'b1;

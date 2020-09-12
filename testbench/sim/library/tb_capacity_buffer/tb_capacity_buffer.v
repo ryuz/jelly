@@ -3,12 +3,12 @@
 `default_nettype none
 
 
-module tb_capacity_timeout();
+module tb_capacity_buffer();
     localparam RATE = 1000.0/20.0;
     
     initial begin
-        $dumpfile("tb_capacity_timeout.vcd");
-        $dumpvars(0, tb_capacity_timeout);
+        $dumpfile("tb_capacity_buffer.vcd");
+        $dumpvars(0, tb_capacity_buffer);
         
 //      #100000;
 //         $finish;
@@ -24,19 +24,15 @@ module tb_capacity_timeout();
     reg     cke = 1'b1;
     
     
-    parameter   TIMER_WIDTH         = 8;
     parameter   CAPACITY_WIDTH      = 32;
     parameter   REQUEST_WIDTH       = CAPACITY_WIDTH;
-    parameter   ISSUE_WIDTH         = 8;
+    parameter   ISSUE_WIDTH         = CAPACITY_WIDTH;
     parameter   REQUEST_SIZE_OFFSET = 1'b0;
     parameter   ISSUE_SIZE_OFFSET   = 1'b1;
     parameter   INIT_REQUEST        = {CAPACITY_WIDTH{1'b0}};
     
     
-    reg     [ISSUE_WIDTH-1:0]       max_issue_size = 8'h7f;
-    wire    [TIMER_WIDTH-1:0]       timeout        = 8'h0f;
     wire    [CAPACITY_WIDTH-1:0]    queued_request;
-    wire    [TIMER_WIDTH-1:0]       current_timer;
     
     reg     [REQUEST_WIDTH-1:0]     s_request_size  = 0;
     reg                             s_request_valid = 0;
@@ -45,9 +41,8 @@ module tb_capacity_timeout();
     wire                            m_issue_valid;
     reg                             m_issue_ready = 1;
     
-    jelly_capacity_timeout
+    jelly_capacity_buffer
             #(
-                .TIMER_WIDTH            (TIMER_WIDTH),
                 .CAPACITY_WIDTH         (CAPACITY_WIDTH),
                 .REQUEST_WIDTH          (REQUEST_WIDTH),
                 .ISSUE_WIDTH            (ISSUE_WIDTH),
@@ -55,17 +50,13 @@ module tb_capacity_timeout();
                 .ISSUE_SIZE_OFFSET      (ISSUE_SIZE_OFFSET),
                 .INIT_REQUEST           (INIT_REQUEST)
             )
-        i_capacity_timeout
+        i_capacity_buffer
             (
                 .reset                  (reset),
                 .clk                    (clk),
                 .cke                    (cke),
                 
-                .max_issue_size         (max_issue_size),
-                .timeout                (timeout),
-                
                 .queued_request         (queued_request),
-                .current_timer          (current_timer),
                 
                 .s_request_size         (s_request_size),
                 .s_request_valid        (s_request_valid),
@@ -77,8 +68,8 @@ module tb_capacity_timeout();
     
     integer     i = 0;
     
-    integer     request_count = 0;
-    integer     issue_count   = 0;
+    integer     count_request = 0;
+    integer     count_issue   = 0;
     
     always @(posedge clk) begin
         if ( reset ) begin
@@ -100,16 +91,16 @@ module tb_capacity_timeout();
             
             
             if ( s_request_valid ) begin
-                request_count = request_count + s_request_size + REQUEST_SIZE_OFFSET;
+                count_request = count_request + s_request_size + REQUEST_SIZE_OFFSET;
             end
             
             if ( m_issue_valid && m_issue_ready ) begin
-                issue_count = issue_count + m_issue_size + ISSUE_SIZE_OFFSET;
+                count_issue = count_issue + m_issue_size + ISSUE_SIZE_OFFSET;
             end
             
             if ( i > 5000 ) begin
-                $display("request_count = %d, issue_count=%d", request_count, issue_count);
-                if ( request_count == issue_count ) begin
+                $display("count_request = %d, count_issue=%d", count_request, count_issue);
+                if ( count_request == count_issue ) begin
                     $display("OK");
                 end
                 else begin
