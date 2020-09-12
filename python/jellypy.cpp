@@ -1,5 +1,10 @@
 
+
+
 #include <pybind11/pybind11.h>
+
+#define __JELLY__PYBIND11__
+
 #include "jelly/MemAccessor.h"
 #include "jelly/MmapAccessor.h"
 #include "jelly/UioAccessor.h"
