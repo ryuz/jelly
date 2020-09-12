@@ -9,6 +9,10 @@
 #ifndef __RYUZ__JELLY__MEM_ACCESSOR_H__
 #define __RYUZ__JELLY__MEM_ACCESSOR_H__
 
+#ifdef __JELLY__PYBIND11__
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
+#endif
 
 #include <cstring> 
 #include <cstdint>
@@ -241,6 +245,19 @@ public:
     std::int32_t    ReadRegS32(MemAddrType reg) { return ReadReg_<std::int32_t> (reg); }
     std::int16_t    ReadRegS16(MemAddrType reg) { return ReadReg_<std::int16_t> (reg); }
     std::int8_t     ReadRegS8 (MemAddrType reg) { return ReadReg_<std::int8_t>  (reg); }
+
+
+#ifdef __JELLY__PYBIND11__
+    /*
+    template<typename T>
+    auto GetArray_(std::vector<ssize_t> shape, std::size_t offset=0)
+    {
+        py::array_t<T> y{shape};
+//      ary.
+        return y;
+    }
+    */
+#endif
 };
 
 
