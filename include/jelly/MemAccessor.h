@@ -12,6 +12,7 @@
 #ifdef __JELLY__PYBIND11__
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
+#include <pybind11/stl.h>
 #endif
 
 #include <cstring> 
@@ -248,15 +249,20 @@ public:
 
 
 #ifdef __JELLY__PYBIND11__
-    /*
     template<typename T>
-    auto GetArray_(std::vector<ssize_t> shape, std::size_t offset=0)
+    pybind11::array_t<T> GetArray_(std::vector<ssize_t> shape, std::size_t offset=0)
     {
-        py::array_t<T> y{shape};
-//      ary.
-        return y;
+        std::size_t size = 1;
+        for (auto s : shape) {
+            size *= s;
+        }
+
+        pybind11::array_t<T> a{shape};
+        pybind11::buffer_info info = a.request();
+//        void* ptr = info.ptr;
+        MemCopyTo(info.ptr, offset, size*sizeof(T));
+        return a;
     }
-    */
 #endif
 };
 
