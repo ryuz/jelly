@@ -7,14 +7,14 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "jelly/UioAccess.h"
-#include "jelly/UdmabufAccess.h"
+#include "jelly/UioAccessor.h"
+#include "jelly/UdmabufAccessor.h"
 #include "jelly/JellyRegs.h"
 #include "jelly/Imx219Control.h"
-#include "jelly/GpioAccess.h"
+#include "jelly/GpioAccessor.h"
 
 
-void capture_still_image(jelly::MemAccess& reg_wdma, jelly::MemAccess& reg_fmtr, std::uintptr_t bufaddr, int width, int height, int frame_num);
+void capture_still_image(jelly::MemAccessor& reg_wdma, jelly::MemAccessor& reg_fmtr, std::uintptr_t bufaddr, int width, int height, int frame_num);
 
 
 int main(int argc, char *argv[])
@@ -108,18 +108,18 @@ int main(int argc, char *argv[])
 
 
     // mmap uio
-    jelly::UioAccess uio_acc("uio_pl_peri", 0x10000000);
+    jelly::UioAccessor uio_acc("uio_pl_peri", 0x10000000);
     if ( !uio_acc.IsMapped() ) {
         std::cout << "uio_pl_peri mmap error" << std::endl;
         return 1;
     }
 
-    auto reg_gid    = uio_acc.GetMemAccess(0x00000000);
-    auto reg_fmtr   = uio_acc.GetMemAccess(0x00100000);
-//  auto reg_prmup  = uio_acc.GetMemAccess(0x00011000);
-    auto reg_demos  = uio_acc.GetMemAccess(0x00120000);
-    auto reg_colmat = uio_acc.GetMemAccess(0x00120200);
-    auto reg_wdma   = uio_acc.GetMemAccess(0x00210000);
+    auto reg_gid    = uio_acc.GetAccessor(0x00000000);
+    auto reg_fmtr   = uio_acc.GetAccessor(0x00100000);
+//  auto reg_prmup  = uio_acc.GetAccessor(0x00011000);
+    auto reg_demos  = uio_acc.GetAccessor(0x00120000);
+    auto reg_colmat = uio_acc.GetAccessor(0x00120200);
+    auto reg_wdma   = uio_acc.GetAccessor(0x00210000);
 
 #if 1
     std::cout << "CORE ID" << std::endl;
@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
 #endif
     
     // mmap udmabuf
-    jelly::UdmabufAccess udmabuf_acc("udmabuf0");
+    jelly::UdmabufAccessor udmabuf_acc("udmabuf0");
     if ( !udmabuf_acc.IsMapped() ) {
         std::cout << "udmabuf0 mmap error" << std::endl;
         return 1;
@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
 //  std::cout << "udmabuf0 size      : " << std::dec << dmabuf_mem_size << std::endl;
 
     // カメラ電源ON
-    jelly::GpioAccess gpio(36);
+    jelly::GpioAccessor gpio(36);
     gpio.SetDirection(true);
     gpio.SetValue(1);
     usleep(200);
@@ -265,7 +265,7 @@ int main(int argc, char *argv[])
 
 
 // 静止画キャプチャ
-void capture_still_image(jelly::MemAccess& reg_wdma, jelly::MemAccess& reg_fmtr, std::uintptr_t bufaddr, int width, int height, int frame_num)
+void capture_still_image(jelly::MemAccessor& reg_wdma, jelly::MemAccessor& reg_fmtr, std::uintptr_t bufaddr, int width, int height, int frame_num)
 {
     // DMA start (one shot)
     reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_ADDR,   bufaddr);

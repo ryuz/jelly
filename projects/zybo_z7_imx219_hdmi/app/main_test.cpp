@@ -9,20 +9,20 @@
 #include <opencv2/opencv.hpp>
 
 #include "jelly/JellyRegs.h"
-#include "jelly/UioAccess.h"
-#include "jelly/UdmabufAccess.h"
+#include "jelly/UioAccessor.h"
+#include "jelly/UdmabufAccessor.h"
 #include "jelly/Imx219Control.h"
 
 
 const int stride = 4096*4;
 
 
-void    capture_start(jelly::MemAccess& reg_wdma, jelly::MemAccess& reg_fmtr, std::uintptr_t bufaddr, int width, int height, int x, int y);
-void    capture_stop(jelly::MemAccess& reg_wdma, jelly::MemAccess& reg_fmtr);
-void    vout_start(jelly::MemAccess& reg_rdma, jelly::MemAccess& reg_vsgen, std::uintptr_t bufaddr);
-void    vout_stop(jelly::MemAccess& reg_rdma, jelly::MemAccess& reg_vsgen);
-void    WriteImage(jelly::MemAccess& mem_acc, const cv::Mat& img);
-cv::Mat ReadImage(jelly::MemAccess& mem_acc, int width, int height);
+void    capture_start(jelly::MemAccessor& reg_wdma, jelly::MemAccessor& reg_fmtr, std::uintptr_t bufaddr, int width, int height, int x, int y);
+void    capture_stop(jelly::MemAccessor& reg_wdma, jelly::MemAccessor& reg_fmtr);
+void    vout_start(jelly::MemAccessor& reg_rdma, jelly::MemAccessor& reg_vsgen, std::uintptr_t bufaddr);
+void    vout_stop(jelly::MemAccessor& reg_rdma, jelly::MemAccessor& reg_vsgen);
+void    WriteImage(jelly::MemAccessor& mem_acc, const cv::Mat& img);
+cv::Mat ReadImage(jelly::MemAccessor& mem_acc, int width, int height);
 
 
 int main(int argc, char *argv[])
@@ -164,25 +164,25 @@ int main(int argc, char *argv[])
     if ( view_y < 0 ) { view_y = (720  - height) / 2; }
 
     // mmap uio
-    jelly::UioAccess uio_acc("uio_pl_peri", 0x10000000);
+    jelly::UioAccessor uio_acc("uio_pl_peri", 0x10000000);
     if ( !uio_acc.IsMapped() ) {
         std::cout << "uio_pl_peri : open error or mmap error" << std::endl;
         return 1;
     }
 
     // PLのコアのアドレスでマップ
-    auto reg_fmtr    = uio_acc.GetMemAccess(0x00100000);  // ビデオサイズ正規化
-    auto reg_demos   = uio_acc.GetMemAccess(0x00200000);  // デモザイク
-    auto reg_colmat  = uio_acc.GetMemAccess(0x00210000);  // カラーマトリックス
-    auto reg_gamma   = uio_acc.GetMemAccess(0x00220000);  // ガンマ補正
-    auto reg_gauss   = uio_acc.GetMemAccess(0x00240000);  // ガウシアンフィルタ
-    auto reg_canny   = uio_acc.GetMemAccess(0x00250000);  // Cannyフィルタ
-    auto reg_imgdma  = uio_acc.GetMemAccess(0x00260000);  // FIFO dma
-    auto reg_bindiff = uio_acc.GetMemAccess(0x00270000);  // 前画像との差分バイナライズ
-    auto reg_sel     = uio_acc.GetMemAccess(0x002f0000);  // 出力切り替え
-    auto reg_wdma    = uio_acc.GetMemAccess(0x00310000);  // Write-DMA
-    auto reg_rdma    = uio_acc.GetMemAccess(0x00340000);  // Read-DMA
-    auto reg_vsgen   = uio_acc.GetMemAccess(0x00360000);  // Video out sync generator
+    auto reg_fmtr    = uio_acc.GetAccessor(0x00100000);  // ビデオサイズ正規化
+    auto reg_demos   = uio_acc.GetAccessor(0x00200000);  // デモザイク
+    auto reg_colmat  = uio_acc.GetAccessor(0x00210000);  // カラーマトリックス
+    auto reg_gamma   = uio_acc.GetAccessor(0x00220000);  // ガンマ補正
+    auto reg_gauss   = uio_acc.GetAccessor(0x00240000);  // ガウシアンフィルタ
+    auto reg_canny   = uio_acc.GetAccessor(0x00250000);  // Cannyフィルタ
+    auto reg_imgdma  = uio_acc.GetAccessor(0x00260000);  // FIFO dma
+    auto reg_bindiff = uio_acc.GetAccessor(0x00270000);  // 前画像との差分バイナライズ
+    auto reg_sel     = uio_acc.GetAccessor(0x002f0000);  // 出力切り替え
+    auto reg_wdma    = uio_acc.GetAccessor(0x00310000);  // Write-DMA
+    auto reg_rdma    = uio_acc.GetAccessor(0x00340000);  // Read-DMA
+    auto reg_vsgen   = uio_acc.GetAccessor(0x00360000);  // Video out sync generator
     
 #if 1
     // ID確認
@@ -202,7 +202,7 @@ int main(int argc, char *argv[])
 #endif
 
     // mmap udmabuf
-    jelly::UdmabufAccess udmabuf_acc("udmabuf0");
+    jelly::UdmabufAccessor udmabuf_acc("udmabuf0");
     if ( !udmabuf_acc.IsMapped() ) {
         std::cout << "udmabuf0 : open error or mmap error" << std::endl;
         return 1;
@@ -220,7 +220,7 @@ int main(int argc, char *argv[])
 
 
     // memmeap iamge fifo
-    jelly::UdmabufAccess udmabuf1_acc("udmabuf1");
+    jelly::UdmabufAccessor udmabuf1_acc("udmabuf1");
     if ( !udmabuf1_acc.IsMapped() ) {
         std::cout << "udmabuf1 : open error or mmap error" << std::endl;
         return 1;
@@ -477,7 +477,7 @@ int main(int argc, char *argv[])
 }
 
 
-void WriteImage(jelly::MemAccess& mem_acc, const cv::Mat& img)
+void WriteImage(jelly::MemAccessor& mem_acc, const cv::Mat& img)
 {
     for ( int i = 0; i < img.rows; i++ )
     {
@@ -485,7 +485,7 @@ void WriteImage(jelly::MemAccess& mem_acc, const cv::Mat& img)
     }
 }
 
-cv::Mat ReadImage(jelly::MemAccess& mem_acc, int width, int height)
+cv::Mat ReadImage(jelly::MemAccessor& mem_acc, int width, int height)
 {
     cv::Mat img(height, width, CV_8UC4);
     for ( int i = 0; i < img.rows; i++ )
@@ -495,7 +495,7 @@ cv::Mat ReadImage(jelly::MemAccess& mem_acc, int width, int height)
     return img;
 }
 
-void capture_start(jelly::MemAccess& reg_wdma, jelly::MemAccess& reg_fmtr, std::uintptr_t bufaddr, int width, int height, int x, int y)
+void capture_start(jelly::MemAccessor& reg_wdma, jelly::MemAccessor& reg_fmtr, std::uintptr_t bufaddr, int width, int height, int x, int y)
 {
     // DMA start
     reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_ADDR, bufaddr + stride*y + 4*x);
@@ -516,7 +516,7 @@ void capture_start(jelly::MemAccess& reg_wdma, jelly::MemAccess& reg_fmtr, std::
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL, 0x03);
 }
 
-void capture_stop(jelly::MemAccess& reg_wdma, jelly::MemAccess& reg_fmtr)
+void capture_stop(jelly::MemAccessor& reg_wdma, jelly::MemAccessor& reg_fmtr)
 {
     reg_wdma.WriteReg(REG_VIDEO_WDMA_CTL_CONTROL, 0x00);
     while ( reg_wdma.ReadReg(REG_VIDEO_WDMA_CTL_STATUS) != 0 ) {
@@ -527,7 +527,7 @@ void capture_stop(jelly::MemAccess& reg_wdma, jelly::MemAccess& reg_fmtr)
 }
 
 
-void vout_start(jelly::MemAccess& reg_rdma, jelly::MemAccess& reg_vsgen, std::uintptr_t bufaddr)
+void vout_start(jelly::MemAccessor& reg_rdma, jelly::MemAccessor& reg_vsgen, std::uintptr_t bufaddr)
 {
     // VSync Start
     reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_HTOTAL,      1650);
@@ -555,7 +555,7 @@ void vout_start(jelly::MemAccess& reg_rdma, jelly::MemAccess& reg_vsgen, std::ui
 }
 
 
-void vout_stop(jelly::MemAccess& reg_rdma, jelly::MemAccess& reg_vsgen)
+void vout_stop(jelly::MemAccessor& reg_rdma, jelly::MemAccessor& reg_vsgen)
 {
     reg_rdma.WriteReg(REG_VIDEO_RDMA_CTL_CONTROL, 0x00);
     while ( reg_rdma.ReadReg(REG_VIDEO_RDMA_CTL_STATUS) != 0 ) {

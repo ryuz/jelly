@@ -8,8 +8,8 @@
 #include <iostream>
 #include <unistd.h>
 
-#include "jelly/UioAccess.h"
-#include "jelly/UdmabufAccess.h"
+#include "jelly/UioAccessor.h"
+#include "jelly/UdmabufAccessor.h"
 
 #define REG_STMC_CORE_ID        0x00
 #define REG_STMC_CTL_ENABLE     0x01
@@ -29,15 +29,15 @@
 int main()
 {
     // mmap uio
-    jelly::UioAccess uio_acc("uio_pl_peri", 0x00100000);
+    jelly::UioAccessor uio_acc("uio_pl_peri", 0x00100000);
     if ( !uio_acc.IsMapped() ) {
         std::cout << "uio_pl_peri mmap error" << std::endl;
         return 1;
     }
 
     // UIOの中をさらにコアごとに割り当て
-    auto gid_acc  = uio_acc.GetMemAccess(0x0000);
-    auto stmc_acc = uio_acc.GetMemAccess(0x0400);
+    auto gid_acc  = uio_acc.GetAccessor(0x0000);
+    auto stmc_acc = uio_acc.GetAccessor(0x0400);
 
     std::cout << "gid  : " << std::hex << gid_acc.ReadReg(0)  << std::endl;
     std::cout << "stmc : " << std::hex << stmc_acc.ReadReg(0) << std::endl;

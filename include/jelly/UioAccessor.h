@@ -6,8 +6,8 @@
 // ---------------------------------------------------------------------------
 
 
-#ifndef	__RYUZ__JELLY__UIO_ACCESS_H__
-#define	__RYUZ__JELLY__UIO_ACCESS_H__
+#ifndef	__RYUZ__JELLY__UIO_ACCESSOR_H__
+#define	__RYUZ__JELLY__UIO_ACCESSOR_H__
 
 
 #include <string.h>
@@ -18,25 +18,25 @@
 #include <sys/ioctl.h>
 #include <errno.h>
 
-#include "MmapAccess.h"
+#include "MmapAccessor.h"
 
 
 namespace jelly {
 
 // memory manager
-class AccessUioManager : public AccessMmapManager
+class AccessorUioManager : public AccessorMmapManager
 {
-	using _super = AccessMmapManager;
+	using _super = AccessorMmapManager;
 
 protected:
-	AccessUioManager(const char* fname, std::size_t size) { Mmap(fname, size); }
+	AccessorUioManager(const char* fname, std::size_t size) { Mmap(fname, size); }
 
 public:
-	~AccessUioManager() { Munmap(); }
+	~AccessorUioManager() { Munmap(); }
 	
-	static std::shared_ptr<AccessUioManager> Create(const char* fname, size_t size)
+	static std::shared_ptr<AccessorUioManager> Create(const char* fname, size_t size)
     {
-        return std::shared_ptr<AccessUioManager>(new AccessUioManager(fname, size));
+        return std::shared_ptr<AccessorUioManager>(new AccessorUioManager(fname, size));
     }
 
 protected:
@@ -70,12 +70,12 @@ protected:
 
 
 template <typename DataType=std::uintptr_t, typename MemAddrType=std::uintptr_t, typename RegAddrType=std::uintptr_t>
-class UioAccess_ : public MmapAccess_<DataType, MemAddrType, RegAddrType>
+class UioAccessor_ : public MmapAccessor_<DataType, MemAddrType, RegAddrType>
 {
 protected:
 	bool Open(const char* dev_fname, std::size_t size, std::size_t offset)
 	{
-		auto uio_manager = AccessUioManager::Create(dev_fname, size);
+		auto uio_manager = AccessorUioManager::Create(dev_fname, size);
 		if ( uio_manager->IsMapped() ) {
 			this->SetMemManager(uio_manager, offset);
 			return true;
@@ -91,26 +91,26 @@ protected:
 	}
 
 public:
-	UioAccess_() {}
+	UioAccessor_() {}
 
-	UioAccess_(int id, std::size_t size, std::size_t offset=0) {
+	UioAccessor_(int id, std::size_t size, std::size_t offset=0) {
 		Open(id, size, offset);
 	}
 
-	UioAccess_(const char* name, std::size_t size, std::size_t offset=0) {
+	UioAccessor_(const char* name, std::size_t size, std::size_t offset=0) {
 		int id = SearchDeviceId(name);
 		if ( id >= 0 ) {
 			Open(id, size, offset);
 		}
 	}
 
-	~UioAccess_()	{}
+	~UioAccessor_()	{}
 
 
 	
-	std::shared_ptr<AccessUioManager> GetUioManager(void)
+	std::shared_ptr<AccessorUioManager> GetUioManager(void)
 	{
-		return std::dynamic_pointer_cast<AccessUioManager>(this->m_mem_manager);
+		return std::dynamic_pointer_cast<AccessorUioManager>(this->m_mem_manager);
 	}
 
 	static int SearchDeviceId(const char* name)
@@ -143,15 +143,15 @@ public:
 };
 
 
-using UioAccess   = UioAccess_<>;
-using UioAccess64 = UioAccess_<std::uint64_t>;
-using UioAccess32 = UioAccess_<std::uint32_t>;
-using UioAccess16 = UioAccess_<std::uint16_t>;
-using UioAccess8  = UioAccess_<std::uint8_t>;
+using UioAccessor   = UioAccessor_<>;
+using UioAccessor64 = UioAccessor_<std::uint64_t>;
+using UioAccessor32 = UioAccessor_<std::uint32_t>;
+using UioAccessor16 = UioAccessor_<std::uint16_t>;
+using UioAccessor8  = UioAccessor_<std::uint8_t>;
 
 }
 
-#endif	// __RYUZ__JELLY__MMAP_ACCESS_H__
+#endif	// __RYUZ__JELLY__MMAP_ACCESSOR_H__
 
 
 // end of file

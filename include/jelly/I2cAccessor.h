@@ -5,8 +5,8 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef __RYUZ__JELLY__I2C_ACCESS__H__
-#define __RYUZ__JELLY__I2C_ACCESS__H__
+#ifndef __RYUZ__JELLY__I2C_ACCESSOR__H__
+#define __RYUZ__JELLY__I2C_ACCESSOR__H__
 
 
 #include <sys/ioctl.h>
@@ -14,24 +14,24 @@
 
 namespace jelly {
 
-class I2cAccess
+class I2cAccessor
 {
 protected:
     int m_fd;
 
 public:
-    I2cAccess()
+    I2cAccessor()
     {
         m_fd = -1;
     }
     
-    I2cAccess(const char* fname, unsigned char dev)
+    I2cAccessor(const char* fname, unsigned char dev)
     {
         m_fd = -1;
         Open(fname, dev);
     }
     
-    ~I2cAccess()
+    ~I2cAccessor()
     {
         Close();
     }
@@ -91,6 +91,6 @@ public:
 
 }
 
-#endif  // __RYUZ__JELLY__I2C_ACCESS__H__
+#endif  // __RYUZ__JELLY__I2C_ACCESSOR__H__
 
 // end of file

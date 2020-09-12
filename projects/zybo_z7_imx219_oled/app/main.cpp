@@ -9,7 +9,7 @@
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
 #include "UioMmap.h"
-#include "I2cAccess.h"
+#include "I2cAccessor.h"
 //#include <opencv2/core.hpp>
 //#include <opencv2/imgcodecs.hpp>
 //#include <opencv2/highgui.hpp>
@@ -135,7 +135,7 @@ int main()
 	int w = 640;
 	int h = 132;
 	
-	I2cAccess	i2c;
+	I2cAccessor	i2c;
 	
 	if ( !i2c.Open("/dev/i2c-0", 0x10) ) {
 		printf("I2C open error\n");

@@ -6,8 +6,8 @@
 // ---------------------------------------------------------------------------
 
 
-#ifndef	__RYUZ__JELLY__MMAP_ACCESS_H__
-#define	__RYUZ__JELLY__MMAP_ACCESS_H__
+#ifndef	__RYUZ__JELLY__MMAP_ACCESSOR_H__
+#define	__RYUZ__JELLY__MMAP_ACCESSOR_H__
 
 
 #include <string.h>
@@ -18,28 +18,28 @@
 #include <sys/ioctl.h>
 #include <errno.h>
 
-#include "MemAccess.h"
+#include "MemAccessoror.h"
 
 
 namespace jelly {
 
 
 // memory manager
-class AccessMmapManager : public AccessMemManager
+class AccessorMmapManager : public AccessorMemManager
 {
 protected:
 	bool	m_mapped = false;
 	int		m_fd   = 0;
 
-	AccessMmapManager() {}
-	AccessMmapManager(int fd, size_t size) { Mmap(fd, size); }
+	AccessorMmapManager() {}
+	AccessorMmapManager(int fd, size_t size) { Mmap(fd, size); }
 
 public:
-	~AccessMmapManager() { Munmap(); }
+	~AccessorMmapManager() { Munmap(); }
 	
-	static std::shared_ptr<AccessMmapManager> Create(int fd, size_t size = 0)
+	static std::shared_ptr<AccessorMmapManager> Create(int fd, size_t size = 0)
     {
-        return std::shared_ptr<AccessMmapManager>(new AccessMmapManager(fd, size));
+        return std::shared_ptr<AccessorMmapManager>(new AccessorMmapManager(fd, size));
     }
 
 	bool IsMapped(void) { return m_mapped; }
@@ -75,21 +75,21 @@ protected:
 
 
 template <typename DataType=std::uintptr_t, typename MemAddrType=std::uintptr_t, typename RegAddrType=std::uintptr_t>
-class MmapAccess_ : public MemAccess_<DataType, MemAddrType, RegAddrType>
+class MmapAccessor_ : public MemAccessor_<DataType, MemAddrType, RegAddrType>
 {
 public:
-	MmapAccess_() {}
-	MmapAccess_(int fd, std::size_t size, std::size_t offset=0) {
-		auto mmap_manager = AccessMmapManager::Create(fd, size);
+	MmapAccessor_() {}
+	MmapAccessor_(int fd, std::size_t size, std::size_t offset=0) {
+		auto mmap_manager = AccessorMmapManager::Create(fd, size);
 		if ( mmap_manager->IsMapped() ) {
 			this->SetMemManager(mmap_manager, offset);
 		}
 	}
-	~MmapAccess_()	{}
+	~MmapAccessor_()	{}
 	
-	std::shared_ptr<AccessMmapManager> GetMmapManager(void)
+	std::shared_ptr<AccessorMmapManager> GetMmapManager(void)
 	{
-		return std::dynamic_pointer_cast<AccessMmapManager>(this->m_mem_manager);
+		return std::dynamic_pointer_cast<AccessorMmapManager>(this->m_mem_manager);
 	}
 
 	bool IsMapped(void) { 
@@ -109,15 +109,15 @@ public:
 	}
 };
 
-using MmapAccess   = MmapAccess_<>;
-using MmapAccess64 = MmapAccess_<std::uint64_t>;
-using MmapAccess32 = MmapAccess_<std::uint32_t>;
-using MmapAccess16 = MmapAccess_<std::uint16_t>;
-using MmapAccess8  = MmapAccess_<std::uint8_t>;
+using MmapAccessor   = MmapAccessor_<>;
+using MmapAccessor64 = MmapAccessor_<std::uint64_t>;
+using MmapAccessor32 = MmapAccessor_<std::uint32_t>;
+using MmapAccessor16 = MmapAccessor_<std::uint16_t>;
+using MmapAccessor8  = MmapAccessor_<std::uint8_t>;
 
 }
 
-#endif	// __RYUZ__JELLY__MMAP_ACCESS_H__
+#endif	// __RYUZ__JELLY__MMAP_ACCESSOR_H__
 
 
 // end of file
