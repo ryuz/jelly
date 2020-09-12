@@ -13,7 +13,7 @@
 #include <cmath>
 #include <cstdint>
 
-#include "I2cAccess.h"
+#include "I2cAccessor.h"
 
 namespace jelly {
 
@@ -172,7 +172,7 @@ namespace jelly {
 class Imx219ControlI2c
 {
 protected:
-    I2cAccess   m_i2c;
+    I2cAccessor m_i2c;
 
     bool        m_auto_stop = true;
     bool        m_running = false;

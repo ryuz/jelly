@@ -18,7 +18,7 @@
 #include <sys/ioctl.h>
 #include <errno.h>
 
-#include "MemAccessoror.h"
+#include "MemAccessor.h"
 
 
 namespace jelly {
