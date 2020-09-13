@@ -1,7 +1,9 @@
 
 
-
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+#include <pybind11/operators.h>
+
 
 #define __JELLY__PYBIND11__
 
@@ -15,39 +17,51 @@
 
 namespace py = pybind11;
 
+std::string GetVersion(void)   { return "0.1"; }
+std::string GetBuildDate(void) { return __DATE__; }
+std::string GetBuildTime(void) { return __TIME__; }
+
 
 PYBIND11_MODULE(jellypy, m) {
     m.doc() = "JellyPy made by pybind11";
 
-    py::class_<jelly::MemAccessor>(m, "MemAccessor")
+    m.def("get_version",    &GetVersion);
+    m.def("get_build_date", &GetBuildDate);
+    m.def("get_build_time", &GetBuildTime);
+
+//  py::class_< jelly::MemAccessor, std::shared_ptr<jelly::MemAccessor> >(m, "MemAccessor")
+    py::class_< jelly::MemAccessor >(m, "MemAccessor")
         .def(py::init<>())
-        .def("get_size",         &jelly::MemAccessor::GetSize)
-        .def("get_accessor",     &jelly::MemAccessor::GetAccessor)
-        .def("get_accessor8",    &jelly::MemAccessor::GetAccessor8)
-        .def("get_accessor16",   &jelly::MemAccessor::GetAccessor16)
-        .def("get_accessor32",   &jelly::MemAccessor::GetAccessor32)
-        .def("get_accessor64",   &jelly::MemAccessor::GetAccessor64)
-        .def("write_reg",        &jelly::MemAccessor::WriteReg)
-        .def("write_reg8",       &jelly::MemAccessor::WriteReg8)
-        .def("write_reg16",      &jelly::MemAccessor::WriteReg16)
-        .def("write_reg32",      &jelly::MemAccessor::WriteReg32)
-        .def("write_reg64",      &jelly::MemAccessor::WriteReg64)
-        .def("read_reg",         &jelly::MemAccessor::ReadReg)
-        .def("read_reg8",        &jelly::MemAccessor::ReadReg8)
-        .def("read_reg16",       &jelly::MemAccessor::ReadReg16)
-        .def("read_reg32",       &jelly::MemAccessor::ReadReg32)
-        .def("read_reg64",       &jelly::MemAccessor::ReadReg64)
-        .def("write_mem",        &jelly::MemAccessor::WriteMem)
-        .def("write_mem8",       &jelly::MemAccessor::WriteMem8)
-        .def("write_mem16",      &jelly::MemAccessor::WriteMem16)
-        .def("write_mem32",      &jelly::MemAccessor::WriteMem32)
-        .def("write_mem64",      &jelly::MemAccessor::WriteMem64)
-        .def("read_mem",         &jelly::MemAccessor::ReadMem)
-        .def("read_mem8",        &jelly::MemAccessor::ReadMem8)
-        .def("read_mem16",       &jelly::MemAccessor::ReadMem16)
-        .def("read_mem32",       &jelly::MemAccessor::ReadMem32)
-        .def("read_mem64",       &jelly::MemAccessor::ReadMem64)
-        .def("get_array_uint8",  &jelly::MemAccessor::GetArray_<std::uint8_t>,
+        .def("get_size",          &jelly::MemAccessor::GetSize)
+        .def("get_accessor",      &jelly::MemAccessor::GetAccessor,
+            py::arg("addr"),
+            py::arg("reg_unit")=0)
+        .def("get_accessor_reg",  &jelly::MemAccessor::GetAccessorReg,
+            py::arg("addr"),
+            py::arg("reg_unit")=0)
+        .def("set_reg_addr_unit", &jelly::MemAccessor::SetRegAddrUnit)
+        .def("get_reg_addr_unit", &jelly::MemAccessor::GetRegAddrUnit)
+        .def("write_reg",         &jelly::MemAccessor::WriteReg)
+        .def("write_reg8",        &jelly::MemAccessor::WriteReg8)
+        .def("write_reg16",       &jelly::MemAccessor::WriteReg16)
+        .def("write_reg32",       &jelly::MemAccessor::WriteReg32)
+        .def("write_reg64",       &jelly::MemAccessor::WriteReg64)
+        .def("read_reg",          &jelly::MemAccessor::ReadReg)
+        .def("read_reg8",         &jelly::MemAccessor::ReadReg8)
+        .def("read_reg16",        &jelly::MemAccessor::ReadReg16)
+        .def("read_reg32",        &jelly::MemAccessor::ReadReg32)
+        .def("read_reg64",        &jelly::MemAccessor::ReadReg64)
+        .def("write_mem",         &jelly::MemAccessor::WriteMem)
+        .def("write_mem8",        &jelly::MemAccessor::WriteMem8)
+        .def("write_mem16",       &jelly::MemAccessor::WriteMem16)
+        .def("write_mem32",       &jelly::MemAccessor::WriteMem32)
+        .def("write_mem64",       &jelly::MemAccessor::WriteMem64)
+        .def("read_mem",          &jelly::MemAccessor::ReadMem)
+        .def("read_mem8",         &jelly::MemAccessor::ReadMem8)
+        .def("read_mem16",        &jelly::MemAccessor::ReadMem16)
+        .def("read_mem32",        &jelly::MemAccessor::ReadMem32)
+        .def("read_mem64",        &jelly::MemAccessor::ReadMem64)
+        .def("get_array_uint8",   &jelly::MemAccessor::GetArray_<std::uint8_t>,
             py::arg("shape"),
             py::arg("offset") = 0)
         .def("get_array_int8",   &jelly::MemAccessor::GetArray_<std::int8_t>,
@@ -73,12 +87,14 @@ PYBIND11_MODULE(jellypy, m) {
             py::arg("offset") = 0)
         ;
 
-    py::class_<jelly::MmapAccessor, jelly::MemAccessor>(m, "MmapAccessor")
+//  py::class_< jelly::MmapAccessor, jelly::MemAccessor, std::shared_ptr<jelly::MmapAccessor> >(m, "MmapAccessor")
+    py::class_< jelly::MmapAccessor, jelly::MemAccessor>(m, "MmapAccessor")
         .def(py::init<>())
         .def("is_mapped",  &jelly::MmapAccessor::IsMapped)
         ;
 
-    py::class_<jelly::UioAccessor, jelly::MmapAccessor>(m, "UioAccessor")
+//  py::class_< jelly::UioAccessor, jelly::MmapAccessor, std::shared_ptr<jelly::UioAccessor> >(m, "UioAccessor")
+    py::class_< jelly::UioAccessor, jelly::MmapAccessor >(m, "UioAccessor")
         .def(py::init<>())
         .def(py::init<const char*, std::size_t, std::size_t>(),
             py::arg("name"),
@@ -91,7 +107,8 @@ PYBIND11_MODULE(jellypy, m) {
         .def_static("search_device_id", &jelly::UioAccessor::SearchDeviceId) 
         ;
 
-    py::class_<jelly::UdmabufAccessor, jelly::MmapAccessor>(m, "UdmabufAccessor")
+//  py::class_< jelly::UdmabufAccessor, jelly::MmapAccessor, std::shared_ptr<jelly::UdmabufAccessor> >(m, "UdmabufAccessor")
+    py::class_< jelly::UdmabufAccessor, jelly::MmapAccessor >(m, "UdmabufAccessor")
         .def(py::init<>())
         .def(py::init<const char*, std::size_t>(),
             py::arg("name"),
@@ -100,7 +117,7 @@ PYBIND11_MODULE(jellypy, m) {
         ;
 
 
-    py::class_<jelly::GpioAccessor>(m, "GpioAccessor")
+    py::class_< jelly::GpioAccessor >(m, "GpioAccessor")
         .def(py::init<int, bool>(),
             py::arg("gpio"),
             py::arg("auto_export") = true)
@@ -114,7 +131,7 @@ PYBIND11_MODULE(jellypy, m) {
         .def("get_value",            &jelly::GpioAccessor::GetValue)
         ;
 
-    py::class_<jelly::Imx219ControlI2c>(m, "Imx219ControlI2c")
+    py::class_< jelly::Imx219ControlI2c >(m, "Imx219ControlI2c")
         .def(py::init<>())
         .def(py::init<bool>())
         .def("open",                &jelly::Imx219ControlI2c::Open,
