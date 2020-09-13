@@ -1,0 +1,8 @@
+sphinx
+recommonmark
+sphinx_rtd_theme
+sphinx-markdown-tables
+sphinxcontrib-blockdiag
+sphinxcontrib-seqdiag
+sphinxcontrib-actdiag
+sphinxcontrib-nwdiag
