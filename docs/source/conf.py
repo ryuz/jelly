@@ -73,13 +73,13 @@ html_style = "css/my_theme.css"
 html_static_path = ['_static']
 
 
-source_suffix = ['.rst', '.md']
 
 from recommonmark.parser import CommonMarkParser
-
 source_parsers = {
     '.md': CommonMarkParser,
 }
+
+source_suffix = ['.rst', '.md']
 
 
 from recommonmark.transform import AutoStructify
