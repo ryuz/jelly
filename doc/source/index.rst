@@ -10,6 +10,7 @@ Welcome to Jelly's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   video_format_regularizer
    vdma_axi4s_to_axi4
    vdma_axi4_to_axi4s
 
