@@ -59,7 +59,7 @@ module jelly_mipi_csi2_rx_raw10
                 .cke                (1'b1),
                 
                 .endian             (1'b0),
-                .padding_data       ({40{1'bx}}),
+                .padding            ({8{1'bx}}),
                 
                 .s_first            (s_axi4s_tuser),
                 .s_last             (s_axi4s_tlast),
@@ -96,7 +96,7 @@ module jelly_mipi_csi2_rx_raw10
                 .cke                (1'b1),
                 
                 .endian             (1'b0),
-                .padding_data       ({10{1'bx}}),
+                .padding            ({10{1'bx}}),
                 
                 .s_first            (conv_tuser),
                 .s_last             (conv_tlast),

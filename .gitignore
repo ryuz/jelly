@@ -69,6 +69,7 @@
 *.ngm
 *.psr
 
+*.Xil/
 *.cache/
 *.hw/
 *.runs/
@@ -77,9 +78,9 @@
 *.gise
 *.ip_user_files/
 .ipynb_checkpoints/
+doc/build/
 
 **/ip/*
-
 
 # ローカル便利ツール除外
 copy_bit.bat
@@ -101,3 +102,7 @@ gpu_gouraud
 imx219_test
 test_app
 udmabuf_sample
+
+
+
+projects/arty_a7_35t_sample/

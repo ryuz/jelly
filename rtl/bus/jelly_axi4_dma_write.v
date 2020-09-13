@@ -82,7 +82,7 @@ module jelly_axi4_dma_write
             parameter   BCMD_FIFO_LOW_DEALY  = 1,
             parameter   BCMD_FIFO_DOUT_REGS  = 0,
             parameter   BCMD_FIFO_S_REGS     = 0,
-            parameter   BCMD_FIFO_M_REGS     = 1,
+            parameter   BCMD_FIFO_M_REGS     = 1
         )
         (
             input   wire                                endian,

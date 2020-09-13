@@ -108,10 +108,6 @@ module jelly_fifo_width_convert
             )
         i_fifo_width_convert_pack
             (
-                .reset                  (reset),
-                .clk                    (clk),
-                .cke                    (cke),
-                
                 .endian                 (endian),
                 .padding0               (padding),
                 

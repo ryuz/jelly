@@ -133,15 +133,15 @@ module jelly_axi4_dma_fifo_read
             #(
                 .ASYNC                  (ASYNC),
                 .UNIT_WIDTH             (UNIT_WIDTH),
-                .S_DATA_SIZE            (AXI4_DATA_SIZE),
-                .M_DATA_SIZE            (M_DATA_SIZE),
+                .S_NUM                  (1<<AXI4_DATA_SIZE),
+                .M_NUM                  (1<<M_DATA_SIZE),
                 
                 .FIFO_PTR_WIDTH         (RDATA_FIFO_PTR_WIDTH),
                 .FIFO_RAM_TYPE          (RDATA_FIFO_RAM_TYPE),
                 .FIFO_LOW_DEALY         (RDATA_FIFO_LOW_DEALY),
                 .FIFO_DOUT_REGS         (RDATA_FIFO_DOUT_REGS),
-                .FIFO_SLAVE_REGS        (RDATA_FIFO_S_REGS),
-                .FIFO_MASTER_REGS       (RDATA_FIFO_M_REGS)
+                .FIFO_S_REGS            (RDATA_FIFO_S_REGS),
+                .FIFO_M_REGS            (RDATA_FIFO_M_REGS)
             )
         i_fifo_width_convert_rdata
             (
@@ -152,16 +152,16 @@ module jelly_axi4_dma_fifo_read
                 .s_data                 (fifo_data),
                 .s_valid                (fifo_valid),
                 .s_ready                (fifo_ready),
-                .s_free_count           (),
-                .s_wr_signal            (),
+                .s_fifo_free_count      (),
+                .s_fifo_wr_signal       (),
                 
                 .m_reset                (m_reset),
                 .m_clk                  (m_clk),
                 .m_data                 (m_data),
                 .m_valid                (m_valid),
                 .m_ready                (m_ready),
-                .m_data_count           (),
-                .m_rd_signal            (m_rd_valid)
+                .m_fifo_data_count      (),
+                .m_fifo_rd_signal       (m_rd_valid)
             );
     
     
