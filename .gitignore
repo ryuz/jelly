@@ -76,8 +76,10 @@
 *.srcs/
 *.gise
 *.ip_user_files/
+.ipynb_checkpoints/
 
 **/ip/*
+
 
 # ローカル便利ツール除外
 copy_bit.bat
@@ -86,6 +88,8 @@ copy_bit.bat
 *_
 *コピー
 *コピー.*
+* copy.*
+Untitled.*
 
 a.out
 bitmap.h
