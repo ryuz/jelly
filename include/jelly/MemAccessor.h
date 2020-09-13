@@ -74,7 +74,8 @@ public:
     }
 
 
-    void SetMemManager(std::shared_ptr<AccessorMemManager> mem_manager, std::size_t offset=0) {
+    void SetMemManager(std::shared_ptr<AccessorMemManager> mem_manager, std::size_t offset=0)
+    {
         m_mem_manager = mem_manager;
         m_base_ptr = reinterpret_cast<void*>(reinterpret_cast<std::int8_t*>(m_mem_manager->GetPtr()) + offset);
     }
@@ -171,70 +172,6 @@ public:
         return GetAccessorReg_<std::uint8_t, MemAddrType, RegAddrType>(reg, reg_unit);
     }
 
-#if 0
-    template <typename DT=DataType, typename MT=MemAddrType, typename RT=RegAddrType>
-    std::shared_ptr< MemAccessor_<DT, MT, RT> > GetAccessorPtr_(MemAddrType addr, std::size_t reg_unit=0)
-    {
-        if ( reg_unit==0 ) { reg_unit = m_reg_unit; }
-        return std::shared_ptr< MemAccessor_<DT, MT, RT> >(new MemAccessor_<DT, MT, RT>(m_mem_manager, addr, reg_unit));
-    }
-
-    std::shared_ptr< MemAccessor_<DataType, MemAddrType, RegAddrType> > GetAccessorPtr(MemAddrType addr, std::size_t reg_unit=0)
-    {
-        return GetAccessorPtr_<DataType, MemAddrType, RegAddrType>(addr, reg_unit);
-    }
-
-    std::shared_ptr< MemAccessor_<std::uint64_t, MemAddrType, RegAddrType> > GetAccessor64Ptr(MemAddrType addr)
-    {
-        return GetAccessorPtr_<std::uint64_t, MemAddrType, RegAddrType>(addr);
-    }
-
-    std::shared_ptr< MemAccessor_<std::uint32_t, MemAddrType, RegAddrType> > GetAccessor32Ptr(MemAddrType addr)
-    {
-        return GetAccessorPtr_<std::uint32_t, MemAddrType, RegAddrType>(addr);
-    }
-
-    std::shared_ptr< MemAccessor_<std::uint16_t, MemAddrType, RegAddrType> > GetAccessor16Ptr(MemAddrType addr)
-    {
-        return GetAccessorPtr_<std::uint16_t, MemAddrType, RegAddrType>(addr);
-    }
-
-    std::shared_ptr< MemAccessor_<std::uint8_t, MemAddrType, RegAddrType> > GetAccessor8Ptr(MemAddrType addr)
-    {
-        return GetAccessorPtr_<std::uint8_t, MemAddrType, RegAddrType>(addr);
-    }
-
-    template <typename DT=DataType, typename MT=MemAddrType, typename RT=RegAddrType>
-    std::shared_ptr< MemAccessor_<DT, MT, RT> > GetAccessorRegPtr_(RegAddrType reg)
-    {
-        return GetAccessorPtr_<DT, MT, RT>(reg * m_reg_unit);
-    }
-
-    std::shared_ptr< MemAccessor_<DataType, MemAddrType, RegAddrType> > GetAccessorRegPtr(MemAddrType reg)
-    {
-        return GetAccessorRegPtr_<DataType, MemAddrType, RegAddrType>(reg);
-    }
-
-    std::shared_ptr< MemAccessor_<std::uint64_t, MemAddrType, RegAddrType> > GetAccessorReg64Ptr(MemAddrType reg)
-    {
-        return GetAccessorRegPtr_<std::uint64_t, MemAddrType, RegAddrType>(reg);
-    }
-
-    std::shared_ptr< MemAccessor_<std::uint32_t, MemAddrType, RegAddrType> > GetAccessorReg32Ptr(MemAddrType reg)
-    {
-        return GetAccessorRegPtr_<std::uint32_t, MemAddrType, RegAddrType>(reg);
-    }
-
-    std::shared_ptr< MemAccessor_<std::uint16_t, MemAddrType, RegAddrType> > GetAccessorReg16Ptr(MemAddrType reg)
-    {
-        return GetAccessorRegPtr_<std::uint16_t, MemAddrType, RegAddrType>(reg);
-    }
-
-    std::shared_ptr< MemAccessor_<std::uint8_t, MemAddrType, RegAddrType> > GetAccessorReg8Ptr(MemAddrType reg)
-    {
-        return GetAccessorRegPtr_<std::uint8_t, MemAddrType, RegAddrType>(reg);
-    }
-#endif
 
     template <typename T=void*>
     T GetPtr_(MemAddrType addr=0)
