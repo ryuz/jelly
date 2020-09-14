@@ -10,9 +10,13 @@ Welcome to Jelly's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   video_format_regularizer
+   overview
    vdma_axi4s_to_axi4
    vdma_axi4_to_axi4s
+   video_format_regularizer
+   video_parameter_update
+
+   cpu
 
 
 Indices and tables
@@ -21,3 +25,4 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
