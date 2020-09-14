@@ -16,8 +16,8 @@ Welcome to Jelly's documentation!
    video_format_regularizer
    video_parameter_update
 
-   cpu
-
+   cpu_core
+   cpu_system
 
 Indices and tables
 ==================
