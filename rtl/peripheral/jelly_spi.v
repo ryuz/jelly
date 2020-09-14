@@ -16,12 +16,14 @@
 // SPI
 module jelly_spi
         #(
-            parameter                           DIVIDER_WIDTH = 16,
-            parameter                           DIVIDER_INIT  = 100,
+            parameter DIVIDER_WIDTH = 16,
+            parameter DIVIDER_INIT  = 100,
+            parameter LSB_FIRST     = 0,
+            parameter CS_N_INIT     = 1'b1,
             
-            parameter                           WB_ADR_WIDTH  = 3,
-            parameter                           WB_DAT_WIDTH  = 32,
-            parameter                           WB_SEL_WIDTH  = (WB_DAT_WIDTH / 8)
+            parameter WB_ADR_WIDTH  = 3,
+            parameter WB_DAT_WIDTH  = 32,
+            parameter WB_SEL_WIDTH  = (WB_DAT_WIDTH / 8)
         )
         (
             // system
@@ -47,18 +49,19 @@ module jelly_spi
         );
     
     // register address
-    localparam  SPI_STATUS  = 3'b000;
-    localparam  SPI_CONTROL = 3'b001;
-    localparam  SPI_SEND    = 3'b010;
-    localparam  SPI_RECV    = 3'b011;
-    localparam  SPI_DIVIDER = 3'b100;
-    
+    localparam  SPI_STATUS    = 3'b000;
+    localparam  SPI_CONTROL   = 3'b001;
+    localparam  SPI_SEND      = 3'b010;
+    localparam  SPI_RECV      = 3'b011;
+    localparam  SPI_DIVIDER   = 3'b100;
+    localparam  SPI_LSB_FIRST = 3'b101;
     
     // -------------------------
     //   Core
     // -------------------------
     
     reg     [DIVIDER_WIDTH-1:0] clk_dvider;
+    reg                         lsb_first;
     reg                         reg_spi_cs_n;
     wire    [7:0]               tx_data;
     wire                        tx_valid;
@@ -76,6 +79,7 @@ module jelly_spi
                 .clk                (clk),
                 
                 .clk_dvider         (clk_dvider),
+                .lsb_first          (lsb_first),
                 
                 .spi_clk            (spi_clk),
                 .spi_di             (spi_di),
@@ -98,7 +102,8 @@ module jelly_spi
     always @(posedge clk) begin
         if ( reset ) begin
             clk_dvider   <= DIVIDER_INIT;
-            reg_spi_cs_n <= 1'b1;
+            lsb_first    <= LSB_FIRST;
+            reg_spi_cs_n <= CS_N_INIT;
         end
         else begin
             if ( s_wb_stb_i & s_wb_we_i ) begin
@@ -107,6 +112,9 @@ module jelly_spi
                 end
                 if ( s_wb_adr_i == SPI_DIVIDER ) begin
                     clk_dvider   <= s_wb_dat_i;
+                end
+                if ( s_wb_adr_i == SPI_LSB_FIRST ) begin
+                    lsb_first    <=  s_wb_dat_i[0];
                 end
             end
         end

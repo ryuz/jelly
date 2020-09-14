@@ -23,6 +23,7 @@ module jelly_spi_core
             input   wire                        clk,
             
             input   wire    [DIVIDER_WIDTH-1:0] clk_dvider,
+            input   wire                        lsb_first,
             
             output  wire                        spi_clk,
             output  wire                        spi_di,
@@ -31,7 +32,7 @@ module jelly_spi_core
             input   wire    [7:0]               tx_data,
             input   wire                        tx_valid,
             output  wire                        tx_ready,
-
+            
             output  wire    [7:0]               rx_data,
             output  wire                        rx_valid,
             
@@ -61,7 +62,7 @@ module jelly_spi_core
                 end
                 else begin
                     reg_clk_counter <= reg_clk_counter - 1'b1;
-                    reg_clk_triger  <= 1'b0;                        
+                    reg_clk_triger  <= 1'b0;
                 end
             end
             else begin
@@ -87,8 +88,8 @@ module jelly_spi_core
         if ( reset ) begin
             reg_busy       <= 1'b0;
             reg_counter    <= 4'd0;
-            reg_recv_data  <= 8'hxx;
-            reg_send_data  <= 8'hxx;
+            reg_recv_data  <= 8'h00;
+            reg_send_data  <= 8'h00;
         end
         else begin
             if ( tx_valid & tx_ready ) begin
@@ -103,10 +104,10 @@ module jelly_spi_core
                     end
                     else begin
                         if ( reg_counter[0] ) begin
-                            reg_send_data <= {reg_send_data[6:0], 1'b0};
+                            reg_send_data <= lsb_first ? {1'b0, reg_send_data[7:1]}   : {reg_send_data[6:0], 1'b0};
                         end
                         else begin
-                            reg_recv_data <= {reg_recv_data[6:0], spi_do};
+                            reg_recv_data <= lsb_first ? {spi_do, reg_recv_data[7:1]} : {reg_recv_data[6:0], spi_do};
                         end
                     end
                 end
@@ -119,7 +120,7 @@ module jelly_spi_core
     end
     
     assign spi_clk  = reg_counter[0];
-    assign spi_di   = reg_send_data[7];
+    assign spi_di   = lsb_first ? reg_send_data[0] : reg_send_data[7];
     
     assign tx_ready = ~reg_busy | (reg_clk_triger & reg_last);
     
