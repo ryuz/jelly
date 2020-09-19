@@ -22,8 +22,8 @@ module jelly_axi4s_video_fifo
             parameter   DOUT_REGS   = 1,
             parameter   RAM_TYPE    = "block",
             parameter   LOW_DEALY   = 0,
-            parameter   SLAVE_REGS  = 1,
-            parameter   MASTER_REGS = 1
+            parameter   S_REGS      = 1,
+            parameter   M_REGS      = 1
         )
         (
             input   wire                        s_axi4s_aresetn,
@@ -53,8 +53,8 @@ module jelly_axi4s_video_fifo
                 .DOUT_REGS      (DOUT_REGS),
                 .RAM_TYPE       (RAM_TYPE),
                 .LOW_DEALY      (LOW_DEALY),
-                .SLAVE_REGS     (SLAVE_REGS),
-                .MASTER_REGS    (MASTER_REGS)
+                .SLAVE_REGS     (S_REGS),
+                .MASTER_REGS    (M_REGS)
             )
         i_fifo_generic_fwtf
             (

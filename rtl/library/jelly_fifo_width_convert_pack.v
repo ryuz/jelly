@@ -193,7 +193,7 @@ module jelly_fifo_width_convert_pack
                 );
         
         // convert
-        jelly_data_width_convert_pack
+        jelly_stream_width_convert_pack
                 #(
                     .NUM_GCD                (NUM_GCD),
                     .S_NUM                  (S_NUM),
@@ -224,7 +224,7 @@ module jelly_fifo_width_convert_pack
                     .FIRST_OVERWRITE        (FIRST_OVERWRITE),
                     .S_REGS                 (CONVERT_S_REGS)
                 )
-            i_data_width_convert_pack
+            i_stream_width_convert_pack
                 (
                     .reset                  (m_reset),
                     .clk                    (m_clk),
@@ -283,7 +283,7 @@ module jelly_fifo_width_convert_pack
         wire    [USER_L_BITS-1:0]   conv_user_l;
         wire                        conv_valid;
         wire                        conv_ready;
-        jelly_data_width_convert_pack
+        jelly_stream_width_convert_pack
                 #(
                     .NUM_GCD                (NUM_GCD),
                     .S_NUM                  (S_NUM),
@@ -314,7 +314,7 @@ module jelly_fifo_width_convert_pack
                     .FIRST_OVERWRITE        (FIRST_OVERWRITE),
                     .S_REGS                 (CONVERT_S_REGS)
                 )
-            i_data_width_convert_pack
+            i_stream_width_convert_pack
                 (
                     .reset                  (s_reset),
                     .clk                    (s_clk),

@@ -44,7 +44,7 @@ module jelly_mipi_csi2_rx_raw10
     wire                conv_tvalid;
     wire                conv_tready;
     
-    jelly_data_width_convert
+    jelly_stream_width_convert
             #(
                 .UNIT_WIDTH         (8),
                 .S_NUM              (1),
@@ -52,7 +52,7 @@ module jelly_mipi_csi2_rx_raw10
                 .S_REGS             (1),
                 .FIRST_OVERWRITE    (1)
             )
-        i_data_width_convert_s
+        i_data_stream_convert_s
             (
                 .reset              (~aresetn),
                 .clk                (aclk),
@@ -81,7 +81,7 @@ module jelly_mipi_csi2_rx_raw10
     assign conv_tdata10[2*10 +: 10] = {conv_tdata8[2*8 +: 8], lsb_data[2*2 +: 2]};
     assign conv_tdata10[3*10 +: 10] = {conv_tdata8[3*8 +: 8], lsb_data[3*2 +: 2]};
     
-    jelly_data_width_convert
+    jelly_stream_width_convert
             #(
                 .UNIT_WIDTH         (10),
                 .S_NUM              (4),
@@ -89,7 +89,7 @@ module jelly_mipi_csi2_rx_raw10
                 .S_REGS             (1),
                 .FIRST_OVERWRITE    (1)
             )
-        i_data_width_convert_m
+        i_stream_width_convert_m
             (
                 .reset              (~aresetn),
                 .clk                (aclk),

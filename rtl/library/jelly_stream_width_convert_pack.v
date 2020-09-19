@@ -11,7 +11,7 @@
 `default_nettype none
 
 
-module jelly_data_width_convert_pack
+module jelly_stream_width_convert_pack
         #(
             parameter NUM_GCD             = 1, // S_NUM と M_NUM の最大公約数(人力)
             parameter S_NUM               = 1,
@@ -287,7 +287,7 @@ module jelly_data_width_convert_pack
     
     
     // packing
-    jelly_data_width_convert
+    jelly_stream_width_convert
             #(
                 .UNIT_WIDTH         (PACK_UNIT * NUM_GCD),
                 .S_NUM              (S_NUM / NUM_GCD),
@@ -300,7 +300,7 @@ module jelly_data_width_convert_pack
                 .FIRST_OVERWRITE    (FIRST_OVERWRITE),
                 .S_REGS             (S_REGS)
             )
-        i_data_width_convert
+        i_stream_width_convert
             (
                 .reset              (reset),
                 .clk                (clk),

@@ -12,7 +12,7 @@
 
 
 
-module jelly_data_width_convert
+module jelly_stream_width_convert
         #(
             parameter UNIT_WIDTH          = 8,
             parameter S_NUM               = 3,
