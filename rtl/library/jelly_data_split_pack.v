@@ -26,6 +26,7 @@ module jelly_data_split_pack
             parameter DATA8_WIDTH = 0,
             parameter DATA9_WIDTH = 0,
             parameter S_REGS      = 1,
+            parameter M_REGS      = 1,
             
             // local
             parameter DATA0_BITS  = DATA0_WIDTH > 0 ? DATA0_WIDTH : 1,
@@ -99,7 +100,327 @@ module jelly_data_split_pack
         );
     
     
-    // pack
+    // -----------------------------------------
+    //  insert FF
+    // -----------------------------------------
+    
+    wire    [DATA0_BITS-1:0]    ff_s_data0;
+    wire    [DATA1_BITS-1:0]    ff_s_data1;
+    wire    [DATA2_BITS-1:0]    ff_s_data2;
+    wire    [DATA3_BITS-1:0]    ff_s_data3;
+    wire    [DATA4_BITS-1:0]    ff_s_data4;
+    wire    [DATA5_BITS-1:0]    ff_s_data5;
+    wire    [DATA6_BITS-1:0]    ff_s_data6;
+    wire    [DATA7_BITS-1:0]    ff_s_data7;
+    wire    [DATA8_BITS-1:0]    ff_s_data8;
+    wire    [DATA9_BITS-1:0]    ff_s_data9;
+    wire                        ff_s_valid;
+    wire                        ff_s_ready;
+    
+    wire    [DATA0_BITS-1:0]    ff_m0_data;
+    wire                        ff_m0_valid;
+    wire                        ff_m0_ready;
+    
+    wire    [DATA1_BITS-1:0]    ff_m1_data;
+    wire                        ff_m1_valid;
+    wire                        ff_m1_ready;
+    
+    wire    [DATA2_BITS-1:0]    ff_m2_data;
+    wire                        ff_m2_valid;
+    wire                        ff_m2_ready;
+    
+    wire    [DATA3_BITS-1:0]    ff_m3_data;
+    wire                        ff_m3_valid;
+    wire                        ff_m3_ready;
+    
+    wire    [DATA4_BITS-1:0]    ff_m4_data;
+    wire                        ff_m4_valid;
+    wire                        ff_m4_ready;
+    
+    wire    [DATA5_BITS-1:0]    ff_m5_data;
+    wire                        ff_m5_valid;
+    wire                        ff_m5_ready;
+    
+    wire    [DATA6_BITS-1:0]    ff_m6_data;
+    wire                        ff_m6_valid;
+    wire                        ff_m6_ready;
+    
+    wire    [DATA7_BITS-1:0]    ff_m7_data;
+    wire                        ff_m7_valid;
+    wire                        ff_m7_ready;
+    
+    wire    [DATA8_BITS-1:0]    ff_m8_data;
+    wire                        ff_m8_valid;
+    wire                        ff_m8_ready;
+    
+    wire    [DATA9_BITS-1:0]    ff_m9_data;
+    wire                        ff_m9_valid;
+    wire                        ff_m9_ready;
+    
+    jelly_data_ff_pack
+            #(
+                .DATA0_WIDTH    (DATA0_WIDTH),
+                .DATA1_WIDTH    (DATA1_WIDTH),
+                .DATA2_WIDTH    (DATA2_WIDTH),
+                .DATA3_WIDTH    (DATA3_WIDTH),
+                .DATA4_WIDTH    (DATA4_WIDTH),
+                .DATA5_WIDTH    (DATA5_WIDTH),
+                .DATA6_WIDTH    (DATA6_WIDTH),
+                .DATA7_WIDTH    (DATA7_WIDTH),
+                .DATA8_WIDTH    (DATA8_WIDTH),
+                .DATA9_WIDTH    (DATA9_WIDTH),
+                .S_REGS         (S_REGS),
+                .M_REGS         (0)
+            )
+        i_data_ff_pack_s
+            (
+                .reset          (reset),
+                .clk            (clk),
+                .cke            (cke),
+                
+                .s_data0        (s_data0),
+                .s_data1        (s_data1),
+                .s_data2        (s_data2),
+                .s_data3        (s_data3),
+                .s_data4        (s_data4),
+                .s_data5        (s_data5),
+                .s_data6        (s_data6),
+                .s_data7        (s_data7),
+                .s_data8        (s_data8),
+                .s_data9        (s_data9),
+                .s_valid        (s_valid),
+                .s_ready        (s_ready),
+                
+                .m_data0        (ff_s_data0),
+                .m_data1        (ff_s_data1),
+                .m_data2        (ff_s_data2),
+                .m_data3        (ff_s_data3),
+                .m_data4        (ff_s_data4),
+                .m_data5        (ff_s_data5),
+                .m_data6        (ff_s_data6),
+                .m_data7        (ff_s_data7),
+                .m_data8        (ff_s_data8),
+                .m_data9        (ff_s_data9),
+                .m_valid        (ff_s_valid),
+                .m_ready        (ff_s_ready)
+            );
+    
+    jelly_data_ff
+            #(
+                .DATA_WIDTH     (DATA0_WIDTH),
+                .S_REGS         (0),
+                .M_REGS         (M_REGS)
+            )
+        i_data_ff_m0
+            (
+                .reset          (reset),
+                .clk            (clk),
+                .cke            (cke),
+                
+                .s_data         (ff_m0_data),
+                .s_valid        (ff_m0_valid),
+                .s_ready        (ff_m0_ready),
+                
+                .m_data         (m0_data),
+                .m_valid        (m0_valid),
+                .m_ready        (m0_ready)
+            );
+        
+    jelly_data_ff
+            #(
+                .DATA_WIDTH     (DATA1_WIDTH),
+                .S_REGS         (0),
+                .M_REGS         (M_REGS)
+            )
+        i_data_ff_m1
+            (
+                .reset          (reset),
+                .clk            (clk),
+                .cke            (cke),
+                
+                .s_data         (ff_m1_data),
+                .s_valid        (ff_m1_valid),
+                .s_ready        (ff_m1_ready),
+                
+                .m_data         (m1_data),
+                .m_valid        (m1_valid),
+                .m_ready        (m1_ready)
+            );
+    
+    jelly_data_ff
+            #(
+                .DATA_WIDTH     (DATA2_WIDTH),
+                .S_REGS         (0),
+                .M_REGS         (M_REGS)
+            )
+        i_data_ff_m2
+            (
+                .reset          (reset),
+                .clk            (clk),
+                .cke            (cke),
+                
+                .s_data         (ff_m2_data),
+                .s_valid        (ff_m2_valid),
+                .s_ready        (ff_m2_ready),
+                
+                .m_data         (m2_data),
+                .m_valid        (m2_valid),
+                .m_ready        (m2_ready)
+            );
+    
+    jelly_data_ff
+            #(
+                .DATA_WIDTH     (DATA3_WIDTH),
+                .S_REGS         (0),
+                .M_REGS         (M_REGS)
+            )
+        i_data_ff_m3
+            (
+                .reset          (reset),
+                .clk            (clk),
+                .cke            (cke),
+                
+                .s_data         (ff_m3_data),
+                .s_valid        (ff_m3_valid),
+                .s_ready        (ff_m3_ready),
+                
+                .m_data         (m3_data),
+                .m_valid        (m3_valid),
+                .m_ready        (m3_ready)
+            );
+    
+    jelly_data_ff
+            #(
+                .DATA_WIDTH     (DATA4_WIDTH),
+                .S_REGS         (0),
+                .M_REGS         (M_REGS)
+            )
+        i_data_ff_m4
+            (
+                .reset          (reset),
+                .clk            (clk),
+                .cke            (cke),
+                
+                .s_data         (ff_m4_data),
+                .s_valid        (ff_m4_valid),
+                .s_ready        (ff_m4_ready),
+                
+                .m_data         (m4_data),
+                .m_valid        (m4_valid),
+                .m_ready        (m4_ready)
+            );
+    
+    jelly_data_ff
+            #(
+                .DATA_WIDTH     (DATA5_WIDTH),
+                .S_REGS         (0),
+                .M_REGS         (M_REGS)
+            )
+        i_data_ff_m5
+            (
+                .reset          (reset),
+                .clk            (clk),
+                .cke            (cke),
+                
+                .s_data         (ff_m5_data),
+                .s_valid        (ff_m5_valid),
+                .s_ready        (ff_m5_ready),
+                
+                .m_data         (m5_data),
+                .m_valid        (m5_valid),
+                .m_ready        (m5_ready)
+            );
+    
+    jelly_data_ff
+            #(
+                .DATA_WIDTH     (DATA6_WIDTH),
+                .S_REGS         (0),
+                .M_REGS         (M_REGS)
+            )
+        i_data_ff_m6
+            (
+                .reset          (reset),
+                .clk            (clk),
+                .cke            (cke),
+                
+                .s_data         (ff_m6_data),
+                .s_valid        (ff_m6_valid),
+                .s_ready        (ff_m6_ready),
+                
+                .m_data         (m6_data),
+                .m_valid        (m6_valid),
+                .m_ready        (m6_ready)
+            );
+    
+    jelly_data_ff
+            #(
+                .DATA_WIDTH     (DATA7_WIDTH),
+                .S_REGS         (0),
+                .M_REGS         (M_REGS)
+            )
+        i_data_ff_m7
+            (
+                .reset          (reset),
+                .clk            (clk),
+                .cke            (cke),
+                
+                .s_data         (ff_m7_data),
+                .s_valid        (ff_m7_valid),
+                .s_ready        (ff_m7_ready),
+                
+                .m_data         (m7_data),
+                .m_valid        (m7_valid),
+                .m_ready        (m7_ready)
+            );
+    
+    jelly_data_ff
+            #(
+                .DATA_WIDTH     (DATA8_WIDTH),
+                .S_REGS         (0),
+                .M_REGS         (M_REGS)
+            )
+        i_data_ff_m8
+            (
+                .reset          (reset),
+                .clk            (clk),
+                .cke            (cke),
+                
+                .s_data         (ff_m8_data),
+                .s_valid        (ff_m8_valid),
+                .s_ready        (ff_m8_ready),
+                
+                .m_data         (m8_data),
+                .m_valid        (m8_valid),
+                .m_ready        (m8_ready)
+            );
+    
+    jelly_data_ff
+            #(
+                .DATA_WIDTH     (DATA9_WIDTH),
+                .S_REGS         (0),
+                .M_REGS         (M_REGS)
+            )
+        i_data_ff_m9
+            (
+                .reset          (reset),
+                .clk            (clk),
+                .cke            (cke),
+                
+                .s_data         (ff_m9_data),
+                .s_valid        (ff_m9_valid),
+                .s_ready        (ff_m9_ready),
+                
+                .m_data         (m9_data),
+                .m_valid        (m9_valid),
+                .m_ready        (m9_ready)
+            );
+    
+    
+    
+    // -----------------------------------------
+    //  pack
+    // -----------------------------------------
+    
     localparam PACK_WIDTH   = DATA0_WIDTH
                             + DATA1_WIDTH
                             + DATA2_WIDTH
@@ -113,14 +434,14 @@ module jelly_data_split_pack
     
     localparam PACK_BITS    = PACK_WIDTH > 0 ? PACK_WIDTH : 1;
     
-    wire    [PACK_BITS-1:0]     s_pack;
+    wire    [PACK_BITS-1:0]     ff_s_pack;
     
-    wire    [PACK_BITS-1:0]     m_pack;
-    wire    [NUM-1:0]           m_valid;
-    wire    [NUM-1:0]           m_ready;
+    wire    [PACK_BITS-1:0]     ff_m_pack;
+    wire    [NUM-1:0]           ff_m_valid;
+    wire    [NUM-1:0]           ff_m_ready;
     
-    assign {m9_valid, m8_valid, m7_valid, m6_valid, m5_valid, m4_valid, m3_valid, m2_valid, m1_valid, m0_valid} = m_valid;
-    assign m_ready = {m9_ready, m8_ready, m7_ready, m6_ready, m5_ready, m4_ready, m3_ready, m2_ready, m1_ready, m0_ready};
+    assign {ff_m9_valid, ff_m8_valid, ff_m7_valid, ff_m6_valid, ff_m5_valid, ff_m4_valid, ff_m3_valid, ff_m2_valid, ff_m1_valid, ff_m0_valid} = ff_m_valid;
+    assign ff_m_ready = {ff_m9_ready, ff_m8_ready, ff_m7_ready, ff_m6_ready, ff_m5_ready, ff_m4_ready, ff_m3_ready, ff_m2_ready, ff_m1_ready, ff_m0_ready};
     
     jelly_func_pack
             #(
@@ -138,17 +459,17 @@ module jelly_data_split_pack
             )
         i_func_pack
             (
-                .in0        (s_data0),
-                .in1        (s_data1),
-                .in2        (s_data2),
-                .in3        (s_data3),
-                .in4        (s_data4),
-                .in5        (s_data5),
-                .in6        (s_data6),
-                .in7        (s_data7),
-                .in8        (s_data8),
-                .in9        (s_data9),
-                .out        (s_pack)
+                .in0        (ff_s_data0),
+                .in1        (ff_s_data1),
+                .in2        (ff_s_data2),
+                .in3        (ff_s_data3),
+                .in4        (ff_s_data4),
+                .in5        (ff_s_data5),
+                .in6        (ff_s_data6),
+                .in7        (ff_s_data7),
+                .in8        (ff_s_data8),
+                .in9        (ff_s_data9),
+                .out        (ff_s_pack)
             );
     
     jelly_func_unpack
@@ -167,40 +488,38 @@ module jelly_data_split_pack
             )
         i_func_unpack
             (
-                .in         (m_pack),
-                .out0       (m0_data),
-                .out1       (m1_data),
-                .out2       (m2_data),
-                .out3       (m3_data),
-                .out4       (m4_data),
-                .out5       (m5_data),
-                .out6       (m6_data),
-                .out7       (m7_data),
-                .out8       (m8_data),
-                .out9       (m9_data)
+                .in         (ff_m_pack),
+                .out0       (ff_m0_data),
+                .out1       (ff_m1_data),
+                .out2       (ff_m2_data),
+                .out3       (ff_m3_data),
+                .out4       (ff_m4_data),
+                .out5       (ff_m5_data),
+                .out6       (ff_m6_data),
+                .out7       (ff_m7_data),
+                .out8       (ff_m8_data),
+                .out9       (ff_m9_data)
             );
     
-    // split
-    jelly_data_split
-            #(
-                .NUM        (NUM),
-                .DATA_WIDTH (PACK_WIDTH),
-                .S_REGS     (S_REGS)
-            )
-        i_data_split
-            (
-                .reset      (reset),
-                .clk        (clk),
-                .cke        (cke),
-                
-                .s_data     (s_pack),
-                .s_valid    (s_valid),
-                .s_ready    (s_ready),
-                
-                .m_data     (m_pack),
-                .m_valid    (m_valid),
-                .m_ready    (m_ready)
-            );
+    // -----------------------------------------
+    //  split
+    // -----------------------------------------
+    
+    genvar                          i;
+    
+    reg     [NUM-1:0]               sig_s_ready;
+    
+    reg     [PACK_WIDTH-1:0]        sig_m_pack;
+    reg                             sig_m_valid;
+    
+    generate
+    for ( i = 0; i < NUM; i = i+1 ) begin : loop_m_valid
+        assign ff_m_valid[i] = (ff_s_valid && ff_s_ready);
+    end
+    endgenerate
+    
+    assign ff_m_pack  = ff_s_pack;
+    assign ff_s_ready = &ff_m_ready;
     
     
 endmodule

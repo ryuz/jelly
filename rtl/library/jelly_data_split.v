@@ -17,38 +17,43 @@ module jelly_data_split
             parameter   NUM        = 16,
             parameter   DATA_WIDTH = 8,
             parameter   S_REGS     = 1,
-            
-            parameter   DATA_BITS  = DATA_WIDTH > 0 ? DATA_WIDTH : 1
+            parameter   M_REGS     = 1
         )
         (
-            input   wire                        reset,
-            input   wire                        clk,
-            input   wire                        cke,
+            input   wire                            reset,
+            input   wire                            clk,
+            input   wire                            cke,
             
-            input   wire    [DATA_WIDTH-1:0]    s_data,
-            input   wire                        s_valid,
-            output  wire                        s_ready,
+            input   wire    [NUM*DATA_WIDTH-1:0]    s_data,
+            input   wire                            s_valid,
+            output  wire                            s_ready,
             
-            output  wire    [DATA_WIDTH-1:0]    m_data,
-            output  wire    [NUM-1:0]           m_valid,
-            input   wire    [NUM-1:0]           m_ready
+            output  wire    [NUM*DATA_WIDTH-1:0]    m_data,
+            output  wire    [NUM-1:0]               m_valid,
+            input   wire    [NUM-1:0]               m_ready
         );
     
+    
+    genvar      i;
     
     
     // -----------------------------------------
     //  insert FF
     // -----------------------------------------
     
-    wire    [DATA_WIDTH-1:0]    ff_s_data;
-    wire                        ff_s_valid;
-    wire                        ff_s_ready;
+    wire    [NUM*DATA_WIDTH-1:0]    ff_s_data;
+    wire                            ff_s_valid;
+    wire                            ff_s_ready;
+    
+    wire    [NUM*DATA_WIDTH-1:0]    ff_m_data;
+    wire    [NUM-1:0]               ff_m_valid;
+    wire    [NUM-1:0]               ff_m_ready;
     
     jelly_data_ff
             #(
-                .DATA_WIDTH     (DATA_WIDTH),
+                .DATA_WIDTH     (NUM*DATA_WIDTH),
                 .S_REGS         (S_REGS),
-                .M_REGS         (1)
+                .M_REGS         (S_REGS)
             )
         i_data_ff_s
             (
@@ -66,34 +71,50 @@ module jelly_data_split
             );
     
     
+    generate
+    for ( i = 0; i < NUM; i = i+1 ) begin : loop_ff_m
+        jelly_data_ff
+                #(
+                    .DATA_WIDTH     (DATA_WIDTH),
+                    .S_REGS         (M_REGS),
+                    .M_REGS         (M_REGS)
+                )
+            i_data_ff_m
+                (
+                    .reset          (reset),
+                    .clk            (clk),
+                    .cke            (cke),
+                    
+                    .s_data         (ff_m_data [i*DATA_WIDTH +: DATA_WIDTH]),
+                    .s_valid        (ff_m_valid[i]),
+                    .s_ready        (ff_m_ready[i]),
+                    
+                    .m_data         (m_data [i*DATA_WIDTH +: DATA_WIDTH]),
+                    .m_valid        (m_valid[i]),
+                    .m_ready        (m_ready[i])
+                );
+    end
+    endgenerate
+    
+    
     
     // -----------------------------------------
     //  split
     // -----------------------------------------
     
-    reg     [DATA_BITS-1:0]         reg_data;
-    reg     [NUM-1:0]               reg_valid;
+    reg     [NUM-1:0]               sig_s_ready;
     
-    assign ff_s_ready = &(~m_valid | m_ready);
+    reg     [DATA_WIDTH-1:0]        sig_m_data;
+    reg                             sig_m_valid;
     
-    always @(posedge clk) begin
-        if ( reset ) begin
-            reg_data  <= {DATA_BITS{1'bx}};
-            reg_valid <= {NUM{1'bx}};
-        end
-        else if ( cke ) begin
-            if ( ff_s_ready ) begin
-                reg_data  <= ff_s_data;
-                reg_valid <= {NUM{ff_s_valid}};
-            end
-            else begin
-                reg_valid <= (reg_valid & ~m_ready);
-            end
-        end
+    generate
+    for ( i = 0; i < NUM; i = i+1 ) begin : loop_m_valid
+        assign ff_m_valid[i] = (ff_s_valid && ff_s_ready);
     end
+    endgenerate
     
-    assign m_data  = reg_data;
-    assign m_valid = reg_valid;
+    assign ff_m_data  = ff_s_data;
+    assign ff_s_ready = &ff_m_ready;
     
     
 endmodule
