@@ -168,10 +168,7 @@ module jelly_data_ff_pack
                 
                 .m_data             (m_pack),
                 .m_valid            (m_valid),
-                .m_ready            (m_ready),
-                
-                .buffered           (),
-                .s_ready_next       ()
+                .m_ready            (m_ready)
             );
     
 endmodule

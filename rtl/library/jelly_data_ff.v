@@ -11,17 +11,16 @@
 `default_nettype none
 
 
-// jelly_pipeline_insert_ff と互換
-// 名前統一の為再定義
-
 
 // insert FF
 module jelly_data_ff
         #(
             parameter   DATA_WIDTH = 8,
-            parameter   INIT_DATA  = {DATA_WIDTH{1'bx}},
             parameter   S_REGS     = 1,
-            parameter   M_REGS     = 1
+            parameter   M_REGS     = 1,
+            
+            parameter   DATA_BITS  = DATA_WIDTH > 0 ? DATA_WIDTH : 1,
+            parameter   INIT_DATA  = {DATA_BITS{1'bx}}
         )
         (
             input   wire                        reset,
@@ -29,110 +28,42 @@ module jelly_data_ff
             input   wire                        cke,
             
             // slave port
-            input   wire    [DATA_WIDTH-1:0]    s_data,
+            input   wire    [DATA_BITS-1:0]     s_data,
             input   wire                        s_valid,
             output  wire                        s_ready,
             
             // master port
-            output  wire    [DATA_WIDTH-1:0]    m_data,
+            output  wire    [DATA_BITS-1:0]     m_data,
             output  wire                        m_valid,
-            input   wire                        m_ready,
-            
-            // status
-            output  wire                        buffered,
-            output  wire                        s_ready_next
+            input   wire                        m_ready
         );
     
-    // internal signal
-    wire    [DATA_WIDTH-1:0]    internal_data;
-    wire                        internal_valid;
-    wire                        internal_ready;
     
-    // slave port
-    generate
-    if ( S_REGS ) begin : blk_slave
-        reg                         reg_s_ready,   next_s_ready;
-        reg     [DATA_WIDTH-1:0]    reg_buf_data,  next_buf_data;
-        reg                         reg_buf_valid, next_buf_valid;
-        
-        always @* begin
-            next_s_ready   = reg_s_ready;
-            next_buf_data  = reg_buf_data;
-            next_buf_valid = reg_buf_valid;
-            
-            if ( !reg_buf_valid && s_valid && !internal_ready ) begin
-                // 次のステージに送れない状況でバッファリング
-                next_s_ready   = 1'b0;
-                next_buf_data  = s_data;
-                next_buf_valid = 1'b1;
-            end
-            else begin
-                if ( internal_ready ) begin
-                    next_buf_valid = 1'b0;
-                end
-                if ( !internal_valid || internal_ready ) begin
-                    next_s_ready = 1'b1;
-                end
-            end
-        end
-        
-        always @(posedge clk) begin
-            if ( reset ) begin
-                reg_s_ready   <= 1'b0;
-                reg_buf_valid <= 1'b0;
-                reg_buf_data  <= INIT_DATA;
-            end
-            else if ( cke ) begin
-                reg_s_ready   <= next_s_ready;
-                reg_buf_data  <= next_buf_data;
-                reg_buf_valid <= next_buf_valid;
-            end
-        end
-        assign internal_data   = reg_buf_valid ? reg_buf_data : s_data;
-        assign internal_valid  = reg_buf_valid ? 1'b1         : s_valid & reg_s_ready;
-        assign s_ready         = reg_s_ready;
-        assign buffered        = reg_buf_valid;
-        assign s_ready_next    = next_s_ready;
-    end
-    else begin
-        assign internal_data   = s_data;
-        assign internal_valid  = s_valid;
-        assign s_ready         = internal_ready;
-        assign buffered        = 1'b0;
-        assign s_ready_next    = 1'bx;
-    end
-    endgenerate
+    jelly_pipeline_insert_ff
+            #(
+                .DATA_WIDTH     (DATA_BITS),
+                .SLAVE_REGS     (S_REGS),
+                .MASTER_REGS    (M_REGS),
+                .INIT_DATA      (INIT_DATA)
+            )
+        i_pipeline_insert_ff
+            (
+                .reset          (reset),
+                .clk            (clk),
+                .cke            (cke),
+                
+                .s_data         (s_data),
+                .s_valid        (s_valid),
+                .s_ready        (s_ready),
+                
+                .m_data         (m_data),
+                .m_valid        (m_valid),
+                .m_ready        (m_ready),
+                
+                .buffered       (),
+                .s_ready_next   ()
+            );
     
-    
-    // master port
-    generate
-    if ( M_REGS ) begin : blk_master
-        reg     [DATA_WIDTH-1:0]    reg_m_data;
-        reg                         reg_m_valid;
-        
-        always @(posedge clk) begin
-            if ( reset ) begin
-                reg_m_data  <= INIT_DATA;
-                reg_m_valid <= 1'b0;
-            end
-            else if ( cke ) begin
-                if ( ~m_valid || m_ready ) begin
-                    reg_m_data  <= internal_data;
-                    reg_m_valid <= internal_valid;
-                end
-            end
-        end
-        
-        assign internal_ready = (!m_valid || m_ready);
-        assign m_data         = reg_m_data;
-        assign m_valid        = reg_m_valid;
-    end
-    else begin
-        assign internal_ready = m_ready;
-        assign m_data         = internal_data;
-        assign m_valid        = internal_valid;
-    end
-    endgenerate
     
 endmodule
 
