@@ -12,8 +12,8 @@
 
 
 
-// 許可された個数だけデータを通す
-module jelly_data_gate_len
+// 許可された個数で first last を付与して stream にする
+module jelly_stream_gate_len
         #(
             parameter   DATA_WIDTH    = 32,
             parameter   LEN_WIDTH     = 32,

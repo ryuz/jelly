@@ -12,8 +12,8 @@
 
 
 
-// 境界を合わせて許可された個数だけデータを通す
-module jelly_data_gate_sync
+// 境界を合わせて許可されたデータ数だけストリームを通す
+module jelly_stream_gate_sync
         #(
             parameter   DATA_WIDTH    = 32,
             parameter   LEN_WIDTH     = 32,
