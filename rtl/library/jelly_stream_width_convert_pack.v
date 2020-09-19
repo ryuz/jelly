@@ -52,7 +52,29 @@ module jelly_stream_width_convert_pack
             parameter ALLOW_UNALIGN_LAST  = 1,
             parameter FIRST_FORCE_LAST    = 1,  // firstで前方吐き出し時に残変換があれば強制的にlastを付与
             parameter FIRST_OVERWRITE     = 0,  // first時前方に残変換があれば吐き出さずに上書き
+            parameter AUTO_FIRST          = 1,
+            parameter HAS_FIRST_SALIGN    = 0,
+            parameter HAS_FIRST_MALIGN    = 0,
+            parameter S_ALIGN_WIDTH       = S_NUM / NUM_GCD <=   2 ? 1 :
+                                            S_NUM / NUM_GCD <=   4 ? 2 :
+                                            S_NUM / NUM_GCD <=   8 ? 3 :
+                                            S_NUM / NUM_GCD <=  16 ? 4 :
+                                            S_NUM / NUM_GCD <=  32 ? 5 :
+                                            S_NUM / NUM_GCD <=  64 ? 6 :
+                                            S_NUM / NUM_GCD <= 128 ? 7 :
+                                            S_NUM / NUM_GCD <= 256 ? 8 :
+                                            S_NUM / NUM_GCD <= 512 ? 9 : 10,
+            parameter M_ALIGN_WIDTH       = M_NUM / NUM_GCD <=   2 ? 1 :
+                                            M_NUM / NUM_GCD <=   4 ? 2 :
+                                            M_NUM / NUM_GCD <=   8 ? 3 :
+                                            M_NUM / NUM_GCD <=  16 ? 4 :
+                                            M_NUM / NUM_GCD <=  32 ? 5 :
+                                            M_NUM / NUM_GCD <=  64 ? 6 :
+                                            M_NUM / NUM_GCD <= 128 ? 7 :
+                                            M_NUM / NUM_GCD <= 256 ? 8 :
+                                            M_NUM / NUM_GCD <= 512 ? 9 : 10,
             parameter S_REGS              = 1,
+            
             
             // local
             parameter UNIT0_BITS          = UNIT0_WIDTH   > 0 ? UNIT0_WIDTH   : 1,
@@ -106,6 +128,8 @@ module jelly_stream_width_convert_pack
             input   wire    [UNIT8_BITS-1:0]    padding8,
             input   wire    [UNIT9_BITS-1:0]    padding9,
             
+            input   wire    [S_ALIGN_WIDTH-1:0] s_first_salign,
+            input   wire    [M_ALIGN_WIDTH-1:0] s_first_malign,
             input   wire                        s_first,
             input   wire                        s_last,
             input   wire    [S_DATA0_BITS-1:0]  s_data0,
@@ -298,6 +322,11 @@ module jelly_stream_width_convert_pack
                 .ALLOW_UNALIGN_LAST (ALLOW_UNALIGN_LAST),
                 .FIRST_FORCE_LAST   (FIRST_FORCE_LAST),
                 .FIRST_OVERWRITE    (FIRST_OVERWRITE),
+                .AUTO_FIRST         (AUTO_FIRST),
+                .HAS_FIRST_SALIGN   (HAS_FIRST_SALIGN),
+                .HAS_FIRST_MALIGN   (HAS_FIRST_MALIGN),
+                .S_ALIGN_WIDTH      (S_ALIGN_WIDTH),
+                .M_ALIGN_WIDTH      (M_ALIGN_WIDTH),
                 .S_REGS             (S_REGS)
             )
         i_stream_width_convert
@@ -309,6 +338,8 @@ module jelly_stream_width_convert_pack
                 .endian             (endian),
                 .padding            (padding_pack),
                 
+                .s_first_salign     (s_first_salign),
+                .s_first_malign     (s_first_malign),
                 .s_first            (s_first),
                 .s_last             (s_last),
                 .s_data             (s_pack),

@@ -3,12 +3,12 @@
 `default_nettype none
 
 
-module tb_data_width_convert_pack();
+module tb_stream_width_convert_pack();
     localparam RATE    = 10.0;
     
     initial begin
-        $dumpfile("tb_data_width_convert_pack.vcd");
-        $dumpvars(0, tb_data_width_convert_pack);
+        $dumpfile("tb_stream_width_convert_pack.vcd");
+        $dumpvars(0, tb_stream_width_convert_pack);
         #100000
         $finish();
     end
@@ -25,81 +25,103 @@ module tb_data_width_convert_pack();
     always @(posedge clk)   cke <= BUSY ? {$random} : 1'b1;
     
     
-    parameter NUM_GCD          = 2; // S_NUM と M_NUM の最大公約数(人力)
-    parameter S_NUM            = 4;
-    parameter M_NUM            = 6;
-    parameter UNIT0_WIDTH      = 32;
-    parameter UNIT1_WIDTH      = 16;
-    parameter UNIT2_WIDTH      = 8;
-    parameter UNIT3_WIDTH      = 0;
-    parameter UNIT4_WIDTH      = 0;
-    parameter UNIT5_WIDTH      = 0;
-    parameter UNIT6_WIDTH      = 0;
-    parameter UNIT7_WIDTH      = 0;
-    parameter UNIT8_WIDTH      = 0;
-    parameter UNIT9_WIDTH      = 0;
-    parameter S_DATA0_WIDTH    = S_NUM * UNIT0_WIDTH;
-    parameter S_DATA1_WIDTH    = S_NUM * UNIT1_WIDTH;
-    parameter S_DATA2_WIDTH    = S_NUM * UNIT2_WIDTH;
-    parameter S_DATA3_WIDTH    = S_NUM * UNIT3_WIDTH;
-    parameter S_DATA4_WIDTH    = S_NUM * UNIT4_WIDTH;
-    parameter S_DATA5_WIDTH    = S_NUM * UNIT5_WIDTH;
-    parameter S_DATA6_WIDTH    = S_NUM * UNIT6_WIDTH;
-    parameter S_DATA7_WIDTH    = S_NUM * UNIT7_WIDTH;
-    parameter S_DATA8_WIDTH    = S_NUM * UNIT8_WIDTH;
-    parameter S_DATA9_WIDTH    = S_NUM * UNIT9_WIDTH;
-    parameter M_DATA0_WIDTH    = M_NUM * UNIT0_WIDTH;
-    parameter M_DATA1_WIDTH    = M_NUM * UNIT1_WIDTH;
-    parameter M_DATA2_WIDTH    = M_NUM * UNIT2_WIDTH;
-    parameter M_DATA3_WIDTH    = M_NUM * UNIT3_WIDTH;
-    parameter M_DATA4_WIDTH    = M_NUM * UNIT4_WIDTH;
-    parameter M_DATA5_WIDTH    = M_NUM * UNIT5_WIDTH;
-    parameter M_DATA6_WIDTH    = M_NUM * UNIT6_WIDTH;
-    parameter M_DATA7_WIDTH    = M_NUM * UNIT7_WIDTH;
-    parameter M_DATA8_WIDTH    = M_NUM * UNIT8_WIDTH;
-    parameter M_DATA9_WIDTH    = M_NUM * UNIT9_WIDTH;
-    
-    parameter FIRST_FORCE_LAST = 1;  // firstで前方吐き出し時に残変換があれば強制的にlastを付与
-    parameter FIRST_OVERWRITE  = 0;  // first時前方に残変換があれば吐き出さずに上書き
-    parameter S_REGS           = 1;
+    parameter NUM_GCD             = 1; // S_NUM と M_NUM の最大公約数(人力)
+    parameter S_NUM               = 3;
+    parameter M_NUM               = 4;
+    parameter UNIT0_WIDTH         = 32;
+    parameter UNIT1_WIDTH         = 16;
+    parameter UNIT2_WIDTH         = 8;
+    parameter UNIT3_WIDTH         = 0;
+    parameter UNIT4_WIDTH         = 0;
+    parameter UNIT5_WIDTH         = 0;
+    parameter UNIT6_WIDTH         = 0;
+    parameter UNIT7_WIDTH         = 0;
+    parameter UNIT8_WIDTH         = 0;
+    parameter UNIT9_WIDTH         = 0;
+    parameter S_DATA0_WIDTH       = S_NUM * UNIT0_WIDTH;
+    parameter S_DATA1_WIDTH       = S_NUM * UNIT1_WIDTH;
+    parameter S_DATA2_WIDTH       = S_NUM * UNIT2_WIDTH;
+    parameter S_DATA3_WIDTH       = S_NUM * UNIT3_WIDTH;
+    parameter S_DATA4_WIDTH       = S_NUM * UNIT4_WIDTH;
+    parameter S_DATA5_WIDTH       = S_NUM * UNIT5_WIDTH;
+    parameter S_DATA6_WIDTH       = S_NUM * UNIT6_WIDTH;
+    parameter S_DATA7_WIDTH       = S_NUM * UNIT7_WIDTH;
+    parameter S_DATA8_WIDTH       = S_NUM * UNIT8_WIDTH;
+    parameter S_DATA9_WIDTH       = S_NUM * UNIT9_WIDTH;
+    parameter M_DATA0_WIDTH       = M_NUM * UNIT0_WIDTH;
+    parameter M_DATA1_WIDTH       = M_NUM * UNIT1_WIDTH;
+    parameter M_DATA2_WIDTH       = M_NUM * UNIT2_WIDTH;
+    parameter M_DATA3_WIDTH       = M_NUM * UNIT3_WIDTH;
+    parameter M_DATA4_WIDTH       = M_NUM * UNIT4_WIDTH;
+    parameter M_DATA5_WIDTH       = M_NUM * UNIT5_WIDTH;
+    parameter M_DATA6_WIDTH       = M_NUM * UNIT6_WIDTH;
+    parameter M_DATA7_WIDTH       = M_NUM * UNIT7_WIDTH;
+    parameter M_DATA8_WIDTH       = M_NUM * UNIT8_WIDTH;
+    parameter M_DATA9_WIDTH       = M_NUM * UNIT9_WIDTH;
+    parameter ALLOW_UNALIGN_FIRST = 1;
+    parameter ALLOW_UNALIGN_LAST  = 1;
+    parameter FIRST_FORCE_LAST    = 1;  // firstで前方吐き出し時に残変換があれば強制的にlastを付与
+    parameter FIRST_OVERWRITE     = 0;  // first時前方に残変換があれば吐き出さずに上書き
+    parameter AUTO_FIRST          = 1;
+    parameter HAS_FIRST_SALIGN    = 1;
+    parameter HAS_FIRST_MALIGN    = 0;
+    parameter S_ALIGN_WIDTH       = S_NUM / NUM_GCD <=   2 ? 1 :
+                                    S_NUM / NUM_GCD <=   4 ? 2 :
+                                    S_NUM / NUM_GCD <=   8 ? 3 :
+                                    S_NUM / NUM_GCD <=  16 ? 4 :
+                                    S_NUM / NUM_GCD <=  32 ? 5 :
+                                    S_NUM / NUM_GCD <=  64 ? 6 :
+                                    S_NUM / NUM_GCD <= 128 ? 7 :
+                                    S_NUM / NUM_GCD <= 256 ? 8 :
+                                    S_NUM / NUM_GCD <= 512 ? 9 : 10;
+    parameter M_ALIGN_WIDTH       = M_NUM / NUM_GCD <=   2 ? 1 :
+                                    M_NUM / NUM_GCD <=   4 ? 2 :
+                                    M_NUM / NUM_GCD <=   8 ? 3 :
+                                    M_NUM / NUM_GCD <=  16 ? 4 :
+                                    M_NUM / NUM_GCD <=  32 ? 5 :
+                                    M_NUM / NUM_GCD <=  64 ? 6 :
+                                    M_NUM / NUM_GCD <= 128 ? 7 :
+                                    M_NUM / NUM_GCD <= 256 ? 8 :
+                                    M_NUM / NUM_GCD <= 512 ? 9 : 10;
+    parameter S_REGS              = 1;
     
     // local
-    parameter UNIT0_BITS       = UNIT0_WIDTH   > 0 ? UNIT0_WIDTH   : 1;
-    parameter UNIT1_BITS       = UNIT1_WIDTH   > 0 ? UNIT1_WIDTH   : 1;
-    parameter UNIT2_BITS       = UNIT2_WIDTH   > 0 ? UNIT2_WIDTH   : 1;
-    parameter UNIT3_BITS       = UNIT3_WIDTH   > 0 ? UNIT3_WIDTH   : 1;
-    parameter UNIT4_BITS       = UNIT4_WIDTH   > 0 ? UNIT4_WIDTH   : 1;
-    parameter UNIT5_BITS       = UNIT5_WIDTH   > 0 ? UNIT5_WIDTH   : 1;
-    parameter UNIT6_BITS       = UNIT6_WIDTH   > 0 ? UNIT6_WIDTH   : 1;
-    parameter UNIT7_BITS       = UNIT7_WIDTH   > 0 ? UNIT7_WIDTH   : 1;
-    parameter UNIT8_BITS       = UNIT8_WIDTH   > 0 ? UNIT8_WIDTH   : 1;
-    parameter UNIT9_BITS       = UNIT9_WIDTH   > 0 ? UNIT9_WIDTH   : 1;
-    parameter S_DATA0_BITS     = S_DATA0_WIDTH > 0 ? S_DATA0_WIDTH : 1;
-    parameter S_DATA1_BITS     = S_DATA1_WIDTH > 0 ? S_DATA1_WIDTH : 1;
-    parameter S_DATA2_BITS     = S_DATA2_WIDTH > 0 ? S_DATA2_WIDTH : 1;
-    parameter S_DATA3_BITS     = S_DATA3_WIDTH > 0 ? S_DATA3_WIDTH : 1;
-    parameter S_DATA4_BITS     = S_DATA4_WIDTH > 0 ? S_DATA4_WIDTH : 1;
-    parameter S_DATA5_BITS     = S_DATA5_WIDTH > 0 ? S_DATA5_WIDTH : 1;
-    parameter S_DATA6_BITS     = S_DATA6_WIDTH > 0 ? S_DATA6_WIDTH : 1;
-    parameter S_DATA7_BITS     = S_DATA7_WIDTH > 0 ? S_DATA7_WIDTH : 1;
-    parameter S_DATA8_BITS     = S_DATA8_WIDTH > 0 ? S_DATA8_WIDTH : 1;
-    parameter S_DATA9_BITS     = S_DATA9_WIDTH > 0 ? S_DATA9_WIDTH : 1;
-    parameter M_DATA0_BITS     = M_DATA0_WIDTH > 0 ? M_DATA0_WIDTH : 1;
-    parameter M_DATA1_BITS     = M_DATA1_WIDTH > 0 ? M_DATA1_WIDTH : 1;
-    parameter M_DATA2_BITS     = M_DATA2_WIDTH > 0 ? M_DATA2_WIDTH : 1;
-    parameter M_DATA3_BITS     = M_DATA3_WIDTH > 0 ? M_DATA3_WIDTH : 1;
-    parameter M_DATA4_BITS     = M_DATA4_WIDTH > 0 ? M_DATA4_WIDTH : 1;
-    parameter M_DATA5_BITS     = M_DATA5_WIDTH > 0 ? M_DATA5_WIDTH : 1;
-    parameter M_DATA6_BITS     = M_DATA6_WIDTH > 0 ? M_DATA6_WIDTH : 1;
-    parameter M_DATA7_BITS     = M_DATA7_WIDTH > 0 ? M_DATA7_WIDTH : 1;
-    parameter M_DATA8_BITS     = M_DATA8_WIDTH > 0 ? M_DATA8_WIDTH : 1;
-    parameter M_DATA9_BITS     = M_DATA9_WIDTH > 0 ? M_DATA9_WIDTH : 1;
+    parameter UNIT0_BITS          = UNIT0_WIDTH   > 0 ? UNIT0_WIDTH   : 1;
+    parameter UNIT1_BITS          = UNIT1_WIDTH   > 0 ? UNIT1_WIDTH   : 1;
+    parameter UNIT2_BITS          = UNIT2_WIDTH   > 0 ? UNIT2_WIDTH   : 1;
+    parameter UNIT3_BITS          = UNIT3_WIDTH   > 0 ? UNIT3_WIDTH   : 1;
+    parameter UNIT4_BITS          = UNIT4_WIDTH   > 0 ? UNIT4_WIDTH   : 1;
+    parameter UNIT5_BITS          = UNIT5_WIDTH   > 0 ? UNIT5_WIDTH   : 1;
+    parameter UNIT6_BITS          = UNIT6_WIDTH   > 0 ? UNIT6_WIDTH   : 1;
+    parameter UNIT7_BITS          = UNIT7_WIDTH   > 0 ? UNIT7_WIDTH   : 1;
+    parameter UNIT8_BITS          = UNIT8_WIDTH   > 0 ? UNIT8_WIDTH   : 1;
+    parameter UNIT9_BITS          = UNIT9_WIDTH   > 0 ? UNIT9_WIDTH   : 1;
+    parameter S_DATA0_BITS        = S_DATA0_WIDTH > 0 ? S_DATA0_WIDTH : 1;
+    parameter S_DATA1_BITS        = S_DATA1_WIDTH > 0 ? S_DATA1_WIDTH : 1;
+    parameter S_DATA2_BITS        = S_DATA2_WIDTH > 0 ? S_DATA2_WIDTH : 1;
+    parameter S_DATA3_BITS        = S_DATA3_WIDTH > 0 ? S_DATA3_WIDTH : 1;
+    parameter S_DATA4_BITS        = S_DATA4_WIDTH > 0 ? S_DATA4_WIDTH : 1;
+    parameter S_DATA5_BITS        = S_DATA5_WIDTH > 0 ? S_DATA5_WIDTH : 1;
+    parameter S_DATA6_BITS        = S_DATA6_WIDTH > 0 ? S_DATA6_WIDTH : 1;
+    parameter S_DATA7_BITS        = S_DATA7_WIDTH > 0 ? S_DATA7_WIDTH : 1;
+    parameter S_DATA8_BITS        = S_DATA8_WIDTH > 0 ? S_DATA8_WIDTH : 1;
+    parameter S_DATA9_BITS        = S_DATA9_WIDTH > 0 ? S_DATA9_WIDTH : 1;
+    parameter M_DATA0_BITS        = M_DATA0_WIDTH > 0 ? M_DATA0_WIDTH : 1;
+    parameter M_DATA1_BITS        = M_DATA1_WIDTH > 0 ? M_DATA1_WIDTH : 1;
+    parameter M_DATA2_BITS        = M_DATA2_WIDTH > 0 ? M_DATA2_WIDTH : 1;
+    parameter M_DATA3_BITS        = M_DATA3_WIDTH > 0 ? M_DATA3_WIDTH : 1;
+    parameter M_DATA4_BITS        = M_DATA4_WIDTH > 0 ? M_DATA4_WIDTH : 1;
+    parameter M_DATA5_BITS        = M_DATA5_WIDTH > 0 ? M_DATA5_WIDTH : 1;
+    parameter M_DATA6_BITS        = M_DATA6_WIDTH > 0 ? M_DATA6_WIDTH : 1;
+    parameter M_DATA7_BITS        = M_DATA7_WIDTH > 0 ? M_DATA7_WIDTH : 1;
+    parameter M_DATA8_BITS        = M_DATA8_WIDTH > 0 ? M_DATA8_WIDTH : 1;
+    parameter M_DATA9_BITS        = M_DATA9_WIDTH > 0 ? M_DATA9_WIDTH : 1;
     
     
-    wire                        endian = 1;
-    wire    [UNIT0_BITS-1:0]    padding0 = 32'hxxfxxxxx;
-    wire    [UNIT1_BITS-1:0]    padding1 = 16'haxxa;
-    wire    [UNIT2_BITS-1:0]    padding2 = 8'hbx;
+    wire                        endian   = 1;
+    wire    [UNIT0_BITS-1:0]    padding0 = 32'hffffffff;
+    wire    [UNIT1_BITS-1:0]    padding1 = 16'haaaa;
+    wire    [UNIT2_BITS-1:0]    padding2 = 8'hbb;
     wire    [UNIT3_BITS-1:0]    padding3;
     wire    [UNIT4_BITS-1:0]    padding4;
     wire    [UNIT5_BITS-1:0]    padding5;
@@ -108,8 +130,10 @@ module tb_data_width_convert_pack();
     wire    [UNIT8_BITS-1:0]    padding8;
     wire    [UNIT9_BITS-1:0]    padding9;
     
-    wire                        s_first = (count[0:0] == 1'b0);
-    wire                        s_last  = 0;//(count[0:0] == 1'b1);
+    wire    [S_ALIGN_WIDTH-1:0] s_first_salign = 1;
+    wire    [M_ALIGN_WIDTH-1:0] s_first_malign = 0;
+    wire                        s_first = 0; //(count[0:0] == 1'b0);
+    wire                        s_last  = (count[1:0] == 2'b11);
     reg     [S_DATA0_BITS-1:0]  s_data0;
     reg     [S_DATA1_BITS-1:0]  s_data1;
     reg     [S_DATA2_BITS-1:0]  s_data2;
@@ -139,7 +163,7 @@ module tb_data_width_convert_pack();
     reg                         m_ready;
     
     
-    jelly_data_width_convert_pack
+    jelly_stream_width_convert_pack
             #(
                 .NUM_GCD            (NUM_GCD),
                 .S_NUM              (S_NUM),
@@ -174,11 +198,18 @@ module tb_data_width_convert_pack();
                 .M_DATA7_WIDTH      (M_DATA7_WIDTH),
                 .M_DATA8_WIDTH      (M_DATA8_WIDTH),
                 .M_DATA9_WIDTH      (M_DATA9_WIDTH),
+                .ALLOW_UNALIGN_FIRST(ALLOW_UNALIGN_FIRST),
+                .ALLOW_UNALIGN_LAST (ALLOW_UNALIGN_LAST),
                 .FIRST_FORCE_LAST   (FIRST_FORCE_LAST),
                 .FIRST_OVERWRITE    (FIRST_OVERWRITE),
+                .AUTO_FIRST         (AUTO_FIRST),
+                .HAS_FIRST_SALIGN   (HAS_FIRST_SALIGN),
+                .HAS_FIRST_MALIGN   (HAS_FIRST_MALIGN),
+                .S_ALIGN_WIDTH      (S_ALIGN_WIDTH),
+                .M_ALIGN_WIDTH      (M_ALIGN_WIDTH),
                 .S_REGS             (S_REGS)
             )
-        i_data_width_convert_pack
+        i_stream_width_convert_pack
             (
                 .reset              (reset),
                 .clk                (clk),
@@ -194,6 +225,8 @@ module tb_data_width_convert_pack();
                 .padding7           (padding7),
                 .padding8           (padding8),
                 .padding9           (padding9),
+                .s_first_salign     (s_first_salign),
+                .s_first_malign     (s_first_malign),
                 .s_first            (s_first),
                 .s_last             (s_last),
                 .s_data0            (s_data0),

@@ -12,7 +12,7 @@
 
 
 
-module jelly_axi4s_fifo_width_converter
+module jelly_axi4s_fifo_width_convert
         #(
             parameter   ASYNC               = 1,
             parameter   FIFO_PTR_WIDTH      = 9,

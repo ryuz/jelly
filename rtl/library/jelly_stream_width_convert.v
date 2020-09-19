@@ -19,10 +19,31 @@ module jelly_stream_width_convert
             parameter M_NUM               = 4,
             parameter USER_F_WIDTH        = 0,
             parameter USER_L_WIDTH        = 0,
-            parameter ALLOW_UNALIGN_FIRST = 1, // アライメントに合わない first を許す
-            parameter ALLOW_UNALIGN_LAST  = 1, // アライメントに合わない last を許す
+            parameter ALLOW_UNALIGN_FIRST = 1,  // アライメントに合わない時に first が来るのを許す(再アライメントする)
+            parameter ALLOW_UNALIGN_LAST  = 1,  // アライメントに合わない last  が来るのを許す(再アライメントする)
             parameter FIRST_FORCE_LAST    = 1,  // firstで前方吐き出し時に残変換があれば強制的にlastを付与
             parameter FIRST_OVERWRITE     = 0,  // first時前方に残変換があれば吐き出さずに上書き
+            parameter AUTO_FIRST          = 1,  // last の次を自動的に first とする
+            parameter HAS_FIRST_SALIGN    = 0,  // 先頭でslave側のアラインを指定する
+            parameter HAS_FIRST_MALIGN    = 1,  // 先頭でmaster側のアラインを指定する
+            parameter S_ALIGN_WIDTH       = S_NUM <=   2 ? 1 :
+                                            S_NUM <=   4 ? 2 :
+                                            S_NUM <=   8 ? 3 :
+                                            S_NUM <=  16 ? 4 :
+                                            S_NUM <=  32 ? 5 :
+                                            S_NUM <=  64 ? 6 :
+                                            S_NUM <= 128 ? 7 :
+                                            S_NUM <= 256 ? 8 :
+                                            S_NUM <= 512 ? 9 : 10,
+            parameter M_ALIGN_WIDTH       = M_NUM <=   2 ? 1 :
+                                            M_NUM <=   4 ? 2 :
+                                            M_NUM <=   8 ? 3 :
+                                            M_NUM <=  16 ? 4 :
+                                            M_NUM <=  32 ? 5 :
+                                            M_NUM <=  64 ? 6 :
+                                            M_NUM <= 128 ? 7 :
+                                            M_NUM <= 256 ? 8 :
+                                            M_NUM <= 512 ? 9 : 10,
             parameter S_REGS              = (S_NUM != M_NUM),
             
             // local
@@ -39,11 +60,13 @@ module jelly_stream_width_convert
             input   wire                        endian,
             input   wire    [UNIT_WIDTH-1:0]    padding,
             
-            input   wire                        s_first,    // アライメント先頭
-            input   wire                        s_last,     // アライメント末尾
+            input   wire    [S_ALIGN_WIDTH-1:0] s_first_salign,
+            input   wire    [M_ALIGN_WIDTH-1:0] s_first_malign,
+            input   wire                        s_first,        // アライメント先頭
+            input   wire                        s_last,         // アライメント末尾
             input   wire    [S_DATA_WIDTH-1:0]  s_data,
-            input   wire    [USER_F_BITS-1:0]   s_user_f,   // アライメント先頭前提で伝搬するユーザーデータ
-            input   wire    [USER_L_BITS-1:0]   s_user_l,   // アライメント末尾前提で伝搬するユーザーデータ
+            input   wire    [USER_F_BITS-1:0]   s_user_f,       // アライメント先頭前提で伝搬するユーザーデータ
+            input   wire    [USER_L_BITS-1:0]   s_user_l,       // アライメント末尾前提で伝搬するユーザーデータ
             input   wire                        s_valid,
             output  wire                        s_ready,
             
@@ -84,6 +107,8 @@ module jelly_stream_width_convert
     //  insert FF
     // -----------------------------------------
     
+    wire    [S_ALIGN_WIDTH-1:0]     ff_s_first_salign;
+    wire    [M_ALIGN_WIDTH-1:0]     ff_s_first_malign;
     wire                            ff_s_first;
     wire                            ff_s_last;
     wire    [S_DATA_WIDTH-1:0]      ff_s_data;
@@ -99,6 +124,8 @@ module jelly_stream_width_convert
                 .DATA2_WIDTH    (S_DATA_WIDTH),
                 .DATA3_WIDTH    (USER_F_WIDTH),
                 .DATA4_WIDTH    (USER_L_WIDTH),
+                .DATA5_WIDTH    (S_ALIGN_WIDTH),
+                .DATA6_WIDTH    (M_ALIGN_WIDTH),
                 .S_REGS         (S_REGS),
                 .M_REGS         (S_REGS)
             )
@@ -113,6 +140,8 @@ module jelly_stream_width_convert
                 .s_data2        (s_data),
                 .s_data3        (s_user_f),
                 .s_data4        (s_user_l),
+                .s_data5        (s_first_salign),
+                .s_data6        (s_first_malign),
                 .s_valid        (s_valid),
                 .s_ready        (s_ready),
                 
@@ -121,9 +150,26 @@ module jelly_stream_width_convert
                 .m_data2        (ff_s_data),
                 .m_data3        (ff_s_user_f),
                 .m_data4        (ff_s_user_l),
+                .m_data5        (ff_s_first_salign),
+                .m_data6        (ff_s_first_malign),
                 .m_valid        (ff_s_valid),
                 .m_ready        (ff_s_ready)
             );
+    
+    // auto first
+    reg     reg_auto_first;
+    always @(posedge clk ) begin
+        if ( reset ) begin
+            reg_auto_first <= 1'b1;
+        end
+        else if ( cke ) begin
+            if ( ff_s_valid && ff_s_ready ) begin
+                reg_auto_first <= ff_s_last;
+            end
+        end
+    end
+    wire    auto_first = (AUTO_FIRST && reg_auto_first);
+    
     
     
     // -----------------------------------------
@@ -233,12 +279,12 @@ module jelly_stream_width_convert
             
             // 入力受付
             if ( ff_s_valid && sig_ready ) begin
-                if ( ff_s_first ) begin
+                if ( ff_s_first || auto_first ) begin
                     // 初期化
                     next_first = 1'b1;
                     if ( ALLOW_UNALIGN_FIRST ) begin
-                        next_count = 0;
-                        next_buf   = {BUF_WIDTH{1'bx}};
+                        next_count = HAS_FIRST_MALIGN ? ff_s_first_malign : 0;
+                        next_buf   = {M_NUM{padding}};
                     end
                 end
                 if ( ff_s_last ) begin
@@ -260,7 +306,19 @@ module jelly_stream_width_convert
                     next_buf[next_count*UNIT_WIDTH +: S_DATA_WIDTH] = ff_s_data;                    // little endian
                 end
                 next_count = next_count + S_NUM;
+                
+                // s_align
+                if ( (ff_s_first || auto_first) && HAS_FIRST_SALIGN ) begin
+                    if ( endian ) begin
+                        next_buf = next_buf << (ff_s_first_salign * UNIT_WIDTH);
+                    end
+                    else begin
+                        next_buf = next_buf >> (ff_s_first_salign * UNIT_WIDTH);
+                    end
+                    next_count = next_count - ff_s_first_salign;
+                end
             end
+            
             
             // 残部分をパディング
             for ( i = 0; i < M_DATA_WIDTH; i = i+1 ) begin
@@ -291,7 +349,7 @@ module jelly_stream_width_convert
     end
     else begin : blk_bypass
         assign ff_s_ready = m_ready;
-        assign m_first    = ff_s_first;
+        assign m_first    = ff_s_first | auto_first;
         assign m_last     = ff_s_last;
         assign m_data     = ff_s_data;
         assign m_user_f   = ff_s_user_f;
@@ -299,6 +357,10 @@ module jelly_stream_width_convert
         assign m_valid    = ff_s_valid;
     end
     endgenerate
+    
+    integer iUNIT_WIDTH       = UNIT_WIDTH;
+    integer iHAS_FIRST_SALIGN = HAS_FIRST_SALIGN;
+    integer iHAS_FIRST_MALIGN = HAS_FIRST_MALIGN;
     
 endmodule
 
