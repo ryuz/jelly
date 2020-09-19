@@ -7,32 +7,31 @@
 
 
 
+
 `timescale 1ns / 1ps
 `default_nettype none
 
 
 
-module jelly_data_combin
+module jelly_data_combine
         #(
-            parameter   NUM        = 2,
-            parameter   DATA_WIDTH = 32,
+            parameter   NUM        = 32,
+            parameter   DATA_WIDTH = 8,
             parameter   S_REGS     = 1,
-            parameter   M_REGS     = 1,
-            
-            parameter   DATA_BITS  = DATA_WIDTH > 0 ? DATA_WIDTH : 1
+            parameter   M_REGS     = 1
         )
         (
-            input   wire                        reset,
-            input   wire                        clk,
-            input   wire                        cke,
+            input   wire                            reset,
+            input   wire                            clk,
+            input   wire                            cke,
             
-            input   wire    [DATA_BITS-1:0]     s_data,
-            input   wire    [NUM-1:0]           s_valid,
-            output  wire    [NUM-1:0]           s_ready,
+            input   wire    [NUM*DATA_WIDTH-1:0]    s_data,
+            input   wire    [NUM-1:0]               s_valid,
+            output  wire    [NUM-1:0]               s_ready,
             
-            output  wire    [DATA_BITS-1:0]     m_data,
-            output  wire                        m_valid,
-            input   wire                        m_ready
+            output  wire    [NUM*DATA_WIDTH-1:0]    m_data,
+            output  wire                            m_valid,
+            input   wire                            m_ready
         );
     
     
@@ -53,19 +52,19 @@ module jelly_data_combin
     
     generate
     for ( i = 0; i < NUM; i = i+1 ) begin : loop_ff_s
-        jelly_pipeline_insert_ff
+        jelly_data_ff
                 #(
                     .DATA_WIDTH     (DATA_WIDTH),
                     .SLAVE_REGS     (S_REGS),
-                    .MASTER_REGS    (S_REGS)
+                    .MASTER_REGS    (0)
                 )
-            i_pipeline_insert_ff_s
+            i_data_ff_s
                 (
                     .reset          (reset),
                     .clk            (clk),
                     .cke            (cke),
                     
-                    .s_data         (s_data),
+                    .s_data         (s_data [i*DATA_WIDTH +: DATA_WIDTH]),
                     .s_valid        (s_valid[i]),
                     .s_ready        (s_ready[i]),
                     
@@ -82,7 +81,7 @@ module jelly_data_combin
     jelly_pipeline_insert_ff
             #(
                 .DATA_WIDTH     (NUM*DATA_WIDTH),
-                .SLAVE_REGS     (M_REGS),
+                .SLAVE_REGS     (0),
                 .MASTER_REGS    (M_REGS)
             )
         i_pipeline_insert_ff_m
@@ -106,7 +105,7 @@ module jelly_data_combin
     
     
     // -----------------------------------------
-    //  combiner
+    //  combin
     // -----------------------------------------
     
     generate
