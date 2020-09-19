@@ -416,101 +416,18 @@ module jelly_data_split_pack
             );
     
     
-    
-    // -----------------------------------------
-    //  pack
-    // -----------------------------------------
-    
-    localparam PACK_WIDTH   = DATA0_WIDTH
-                            + DATA1_WIDTH
-                            + DATA2_WIDTH
-                            + DATA3_WIDTH
-                            + DATA4_WIDTH
-                            + DATA5_WIDTH
-                            + DATA6_WIDTH
-                            + DATA7_WIDTH
-                            + DATA8_WIDTH
-                            + DATA9_WIDTH;
-    
-    localparam PACK_BITS    = PACK_WIDTH > 0 ? PACK_WIDTH : 1;
-    
-    wire    [PACK_BITS-1:0]     ff_s_pack;
-    
-    wire    [PACK_BITS-1:0]     ff_m_pack;
     wire    [NUM-1:0]           ff_m_valid;
     wire    [NUM-1:0]           ff_m_ready;
     
     assign {ff_m9_valid, ff_m8_valid, ff_m7_valid, ff_m6_valid, ff_m5_valid, ff_m4_valid, ff_m3_valid, ff_m2_valid, ff_m1_valid, ff_m0_valid} = ff_m_valid;
     assign ff_m_ready = {ff_m9_ready, ff_m8_ready, ff_m7_ready, ff_m6_ready, ff_m5_ready, ff_m4_ready, ff_m3_ready, ff_m2_ready, ff_m1_ready, ff_m0_ready};
     
-    jelly_func_pack
-            #(
-                .N          (1),
-                .W0         (DATA0_WIDTH),
-                .W1         (DATA1_WIDTH),
-                .W2         (DATA2_WIDTH),
-                .W3         (DATA3_WIDTH),
-                .W4         (DATA4_WIDTH),
-                .W5         (DATA5_WIDTH),
-                .W6         (DATA6_WIDTH),
-                .W7         (DATA7_WIDTH),
-                .W8         (DATA8_WIDTH),
-                .W9         (DATA9_WIDTH)
-            )
-        i_func_pack
-            (
-                .in0        (ff_s_data0),
-                .in1        (ff_s_data1),
-                .in2        (ff_s_data2),
-                .in3        (ff_s_data3),
-                .in4        (ff_s_data4),
-                .in5        (ff_s_data5),
-                .in6        (ff_s_data6),
-                .in7        (ff_s_data7),
-                .in8        (ff_s_data8),
-                .in9        (ff_s_data9),
-                .out        (ff_s_pack)
-            );
-    
-    jelly_func_unpack
-            #(
-                .N          (1),
-                .W0         (DATA0_WIDTH),
-                .W1         (DATA1_WIDTH),
-                .W2         (DATA2_WIDTH),
-                .W3         (DATA3_WIDTH),
-                .W4         (DATA4_WIDTH),
-                .W5         (DATA5_WIDTH),
-                .W6         (DATA6_WIDTH),
-                .W7         (DATA7_WIDTH),
-                .W8         (DATA8_WIDTH),
-                .W9         (DATA9_WIDTH)
-            )
-        i_func_unpack
-            (
-                .in         (ff_m_pack),
-                .out0       (ff_m0_data),
-                .out1       (ff_m1_data),
-                .out2       (ff_m2_data),
-                .out3       (ff_m3_data),
-                .out4       (ff_m4_data),
-                .out5       (ff_m5_data),
-                .out6       (ff_m6_data),
-                .out7       (ff_m7_data),
-                .out8       (ff_m8_data),
-                .out9       (ff_m9_data)
-            );
     
     // -----------------------------------------
     //  split
     // -----------------------------------------
     
-    genvar                          i;
-    
-    reg     [NUM-1:0]               sig_s_ready;
-    
-    reg     [PACK_WIDTH-1:0]        sig_m_pack;
-    reg                             sig_m_valid;
+    genvar      i;
     
     generate
     for ( i = 0; i < NUM; i = i+1 ) begin : loop_m_valid
@@ -518,7 +435,16 @@ module jelly_data_split_pack
     end
     endgenerate
     
-    assign ff_m_pack  = ff_s_pack;
+    assign ff_m0_data = ff_s_data0;
+    assign ff_m1_data = ff_s_data1;
+    assign ff_m2_data = ff_s_data2;
+    assign ff_m3_data = ff_s_data3;
+    assign ff_m4_data = ff_s_data4;
+    assign ff_m5_data = ff_s_data5;
+    assign ff_m6_data = ff_s_data6;
+    assign ff_m7_data = ff_s_data7;
+    assign ff_m8_data = ff_s_data8;
+    assign ff_m9_data = ff_s_data9;
     assign ff_s_ready = &ff_m_ready;
     
     
