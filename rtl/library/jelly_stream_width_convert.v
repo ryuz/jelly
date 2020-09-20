@@ -24,7 +24,7 @@ module jelly_stream_width_convert
             parameter FIRST_FORCE_LAST    = 1,  // firstで前方吐き出し時に残変換があれば強制的にlastを付与
             parameter FIRST_OVERWRITE     = 0,  // first時前方に残変換があれば吐き出さずに上書き
             parameter AUTO_FIRST          = 1,  // last の次を自動的に first とする
-            parameter HAS_FIRST_SALIGN    = 0,  // 先頭でslave側のアラインを指定する
+            parameter HAS_FIRST_SALIGN    = 1,  // 先頭でslave側のアラインを指定する
             parameter HAS_FIRST_MALIGN    = 1,  // 先頭でmaster側のアラインを指定する
             parameter S_ALIGN_WIDTH       = S_NUM <=   2 ? 1 :
                                             S_NUM <=   4 ? 2 :
@@ -104,6 +104,42 @@ module jelly_stream_width_convert
     
     
     // -----------------------------------------
+    //  slave align
+    // -----------------------------------------
+    
+    // auto first flag
+    reg     reg_auto_first;
+    always @(posedge clk ) begin
+        if ( reset ) begin
+            reg_auto_first <= 1'b1;
+        end
+        else if ( cke ) begin
+            if ( s_valid && s_ready ) begin
+                reg_auto_first <= s_last;
+            end
+        end
+    end
+    wire    auto_first = (AUTO_FIRST && reg_auto_first);
+    
+    
+    // align
+    reg     [S_DATA_WIDTH-1:0]  s_data_align;
+    always @* begin
+        s_data_align = s_data;
+        if ( HAS_FIRST_SALIGN && (s_first || auto_first) ) begin
+            if ( endian ) begin
+                s_data_align = s_data << (s_first_salign * UNIT_WIDTH);
+            end
+            else begin
+                s_data_align = s_data >> (s_first_salign * UNIT_WIDTH);
+            end
+        end
+    end
+    
+    
+    
+    
+    // -----------------------------------------
     //  insert FF
     // -----------------------------------------
     
@@ -127,7 +163,7 @@ module jelly_stream_width_convert
                 .DATA5_WIDTH    (S_ALIGN_WIDTH),
                 .DATA6_WIDTH    (M_ALIGN_WIDTH),
                 .S_REGS         (S_REGS),
-                .M_REGS         (S_REGS)
+                .M_REGS         (HAS_FIRST_SALIGN)
             )
         i_data_ff_pack_s
             (
@@ -136,8 +172,8 @@ module jelly_stream_width_convert
                 .cke            (cke),
                 
                 .s_data0        (s_last),
-                .s_data1        (s_first),
-                .s_data2        (s_data),
+                .s_data1        (s_first | auto_first),
+                .s_data2        (s_data_align),
                 .s_data3        (s_user_f),
                 .s_data4        (s_user_l),
                 .s_data5        (s_first_salign),
@@ -155,21 +191,6 @@ module jelly_stream_width_convert
                 .m_valid        (ff_s_valid),
                 .m_ready        (ff_s_ready)
             );
-    
-    // auto first
-    reg     reg_auto_first;
-    always @(posedge clk ) begin
-        if ( reset ) begin
-            reg_auto_first <= 1'b1;
-        end
-        else if ( cke ) begin
-            if ( ff_s_valid && ff_s_ready ) begin
-                reg_auto_first <= ff_s_last;
-            end
-        end
-    end
-    wire    auto_first = (AUTO_FIRST && reg_auto_first);
-    
     
     
     // -----------------------------------------
@@ -279,7 +300,7 @@ module jelly_stream_width_convert
             
             // 入力受付
             if ( ff_s_valid && sig_ready ) begin
-                if ( ff_s_first || auto_first ) begin
+                if ( ff_s_first ) begin
                     // 初期化
                     next_first = 1'b1;
                     if ( ALLOW_UNALIGN_FIRST ) begin
@@ -308,13 +329,7 @@ module jelly_stream_width_convert
                 next_count = next_count + S_NUM;
                 
                 // s_align
-                if ( (ff_s_first || auto_first) && HAS_FIRST_SALIGN ) begin
-                    if ( endian ) begin
-                        next_buf = next_buf << (ff_s_first_salign * UNIT_WIDTH);
-                    end
-                    else begin
-                        next_buf = next_buf >> (ff_s_first_salign * UNIT_WIDTH);
-                    end
+                if ( ff_s_first && HAS_FIRST_SALIGN ) begin
                     next_count = next_count - ff_s_first_salign;
                 end
             end
@@ -349,7 +364,7 @@ module jelly_stream_width_convert
     end
     else begin : blk_bypass
         assign ff_s_ready = m_ready;
-        assign m_first    = ff_s_first | auto_first;
+        assign m_first    = ff_s_first;
         assign m_last     = ff_s_last;
         assign m_data     = ff_s_data;
         assign m_user_f   = ff_s_user_f;
