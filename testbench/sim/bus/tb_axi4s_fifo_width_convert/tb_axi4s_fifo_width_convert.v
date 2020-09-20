@@ -3,14 +3,14 @@
 `default_nettype none
 
 
-module tb_axi4s_fifo_width_converter();
+module tb_axi4s_fifo_width_convert();
     localparam S_RATE  = 1000.0/100.0;
     localparam M_RATE  = 1000.0/100.0;
     
     
     initial begin
-        $dumpfile("tb_axi4s_fifo_width_converter.vcd");
-        $dumpvars(0, tb_axi4s_fifo_width_converter);
+        $dumpfile("tb_axi4s_fifo_width_convert.vcd");
+        $dumpvars(0, tb_axi4s_fifo_width_convert);
     
     #100000
         $finish;
@@ -58,7 +58,7 @@ module tb_axi4s_fifo_width_converter();
     parameter   FIRST_FORCE_LAST = 1;
     parameter   FIRST_OVERWRITE  = 0;
     
-    parameter   S_REGS           = 1;
+    parameter   CONVERT_S_REGS   = 1;
     
     // local
     parameter   S_TDATA_BITS     = S_TDATA_WIDTH > 0 ? S_TDATA_WIDTH : 1;
@@ -102,7 +102,7 @@ module tb_axi4s_fifo_width_converter();
     wire    [FIFO_PTR_WIDTH:0]  m_fifo_data_count;
     wire                        m_fifo_rd_signal;
     
-    jelly_axi4s_fifo_width_converter
+    jelly_axi4s_fifo_width_convert
             #(
                 .ASYNC              (ASYNC),
                 .FIFO_PTR_WIDTH     (FIFO_PTR_WIDTH),
@@ -127,9 +127,9 @@ module tb_axi4s_fifo_width_converter();
                 .M_TUSER_WIDTH      (M_TUSER_WIDTH),
                 .FIRST_FORCE_LAST   (FIRST_FORCE_LAST),
                 .FIRST_OVERWRITE    (FIRST_OVERWRITE),
-                .S_REGS             (S_REGS)
+                .CONVERT_S_REGS     (CONVERT_S_REGS)
             )
-        i_axi4s_fifo_width_converter
+        i_axi4s_fifo_width_convert
             (
                 .endian             (endian),
                 

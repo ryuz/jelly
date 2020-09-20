@@ -217,7 +217,7 @@ module jelly_axi4_dma_write
     wire    [CAPACITY_WIDTH-1:0]    s_wfifo_wr_size = (1 << WDATA_FIFO_SIZE);
     wire                            s_wfifo_wr_signal;
     
-    jelly_axi4s_fifo_width_converter
+    jelly_axi4s_fifo_width_convert
             #(
                 .ASYNC                  (WASYNC),
                 .FIFO_PTR_WIDTH         (WFIFO_PTR_WIDTH),
@@ -245,7 +245,7 @@ module jelly_axi4_dma_write
                 .CONVERT_S_REGS         (1),
                 .POST_CONVERT           (!HAS_WFIRST && !WLAST && (S_TDATA_WIDTH > M_TDATA_WIDTH))
             )
-        i_axi4s_fifo_width_converter
+        i_axi4s_fifo_width_convert
             (
                 .endian                 (endian),
                 

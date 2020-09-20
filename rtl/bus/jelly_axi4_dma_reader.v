@@ -6,7 +6,7 @@
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
-
+// 将来削除予定
 
 `timescale 1ns / 1ps
 `default_nettype none

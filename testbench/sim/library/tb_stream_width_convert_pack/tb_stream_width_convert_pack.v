@@ -130,7 +130,7 @@ module tb_stream_width_convert_pack();
     wire    [UNIT8_BITS-1:0]    padding8;
     wire    [UNIT9_BITS-1:0]    padding9;
     
-    wire    [S_ALIGN_WIDTH-1:0] s_first_salign = 1;
+    wire    [S_ALIGN_WIDTH-1:0] s_first_salign = 2;
     wire    [M_ALIGN_WIDTH-1:0] s_first_malign = 0;
     wire                        s_first = 0; //(count[0:0] == 1'b0);
     wire                        s_last  = (count[1:0] == 2'b11);

@@ -120,7 +120,7 @@ module jelly_axi4s_width_convert
     wire                        m_conv_tvalid;
     wire                        m_conv_tready;
     
-    jelly_data_width_convert_pack
+    jelly_stream_width_convert_pack
             #(
                 .NUM_GCD            (NUM_GCD),
                 .S_NUM              (S_NUM),
@@ -137,7 +137,7 @@ module jelly_axi4s_width_convert
                 .FIRST_OVERWRITE    (FIRST_OVERWRITE),
                 .S_REGS             (S_REGS)
             )
-        i_data_width_convert_pack
+        i_stream_width_convert_pack
             (
                 .reset              (~aresetn),
                 .clk                (aclk),
