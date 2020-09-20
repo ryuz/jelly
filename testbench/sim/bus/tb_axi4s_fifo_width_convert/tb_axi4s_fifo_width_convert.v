@@ -4,8 +4,9 @@
 
 
 module tb_axi4s_fifo_width_convert();
-    localparam S_RATE  = 1000.0/100.0;
-    localparam M_RATE  = 1000.0/100.0;
+    localparam RATE0  = 1000.0/200.0;
+    localparam RATE1  = 1000.0/130.0;
+    localparam RATE2  = 1000.0/180.0;
     
     
     initial begin
@@ -16,148 +17,111 @@ module tb_axi4s_fifo_width_convert();
         $finish;
     end
     
-    reg     s_aresetn = 1'b0;
-    initial #(S_RATE*100)   s_aresetn = 1'b1;
+    // バス幅を広げて戻すテスト
     
-    reg     s_aclk = 1'b1;
-    always #(S_RATE/2.0)    s_aclk = ~s_aclk;
+    reg     aresetn0 = 1'b0;
+    initial #(RATE0*100)    aresetn0 = 1'b1;
     
-    reg     m_aresetn = 1'b0;
-    initial #(M_RATE*100)   m_aresetn = 1'b1;
+    reg     aclk0 = 1'b1;
+    always #(RATE0/2.0)     aclk0 = ~aclk0;
     
-    reg     m_aclk = 1'b1;
-    always #(M_RATE/2.0)    m_aclk = ~m_aclk;
+    reg     aresetn1 = 1'b0;
+    initial #(RATE1*100)     aresetn1 = 1'b1;
     
+    reg     aclk1 = 1'b1;
+    always #(RATE1/2.0)      aclk1 = ~aclk1;
     
-    parameter   ASYNC            = 1;
-    parameter   FIFO_PTR_WIDTH   = 9;
-    parameter   FIFO_RAM_TYPE    = "block";
-    parameter   FIFO_LOW_DEALY   = 0;
-    parameter   FIFO_DOUT_REGS   = 1;
-    parameter   FIFO_S_REGS      = 1;
-    parameter   FIFO_M_REGS      = 1;
+    reg     aresetn2 = 1'b0;
+    initial #(RATE2*100)     aresetn1 = 1'b1;
     
-    parameter   HAS_STRB         = 1;
-    parameter   HAS_KEEP         = 1;
-    parameter   HAS_FIRST        = 1;
-    parameter   HAS_LAST         = 1;
-    
-    parameter   BYTE_WIDTH       = 8;
-    parameter   S_TDATA_WIDTH    = 32;
-    parameter   M_TDATA_WIDTH    = 32*3;
-    parameter   DATA_WIDTH_GCD   = BYTE_WIDTH;
-    
-    parameter   S_TSTRB_WIDTH    = HAS_STRB ? (S_TDATA_WIDTH / BYTE_WIDTH) : 0;
-    parameter   S_TKEEP_WIDTH    = HAS_KEEP ? (S_TDATA_WIDTH / BYTE_WIDTH) : 0;
-    parameter   S_TUSER_WIDTH    = 0;
-    
-    parameter   M_TSTRB_WIDTH    = HAS_STRB ? (M_TDATA_WIDTH / BYTE_WIDTH) : 0;
-    parameter   M_TKEEP_WIDTH    = HAS_KEEP ? (M_TDATA_WIDTH / BYTE_WIDTH) : 0;
-    parameter   M_TUSER_WIDTH    = S_TUSER_WIDTH * M_TDATA_WIDTH / S_TDATA_WIDTH;
-    
-    parameter   FIRST_FORCE_LAST = 1;
-    parameter   FIRST_OVERWRITE  = 0;
-    
-    parameter   CONVERT_S_REGS   = 1;
-    
-    // local
-    parameter   S_TDATA_BITS     = S_TDATA_WIDTH > 0 ? S_TDATA_WIDTH : 1;
-    parameter   S_TSTRB_BITS     = S_TSTRB_WIDTH > 0 ? S_TSTRB_WIDTH : 1;
-    parameter   S_TKEEP_BITS     = S_TKEEP_WIDTH > 0 ? S_TKEEP_WIDTH : 1;
-    parameter   S_TUSER_BITS     = S_TUSER_WIDTH > 0 ? S_TUSER_WIDTH : 1;
-    parameter   M_TDATA_BITS     = M_TDATA_WIDTH > 0 ? M_TDATA_WIDTH : 1;
-    parameter   M_TSTRB_BITS     = M_TSTRB_WIDTH > 0 ? M_TSTRB_WIDTH : 1;
-    parameter   M_TKEEP_BITS     = M_TKEEP_WIDTH > 0 ? M_TKEEP_WIDTH : 1;
-    parameter   M_TUSER_BITS     = M_TUSER_WIDTH > 0 ? M_TUSER_WIDTH : 1;
+    reg     aclk2 = 1'b1;
+    always #(RATE2/2.0)      aclk2 = ~aclk2;
     
     
-    localparam S_NUM = S_TDATA_WIDTH / BYTE_WIDTH;
-    localparam M_NUM = M_TDATA_WIDTH / BYTE_WIDTH;
+    
+    parameter   TDATA_WIDTH0     = 24;
+    parameter   TDATA_WIDTH1     = 64;
+    parameter   TUSER_WIDTH0     = 4;
+    
+    parameter   TSTRB_WIDTH0     = TDATA_WIDTH0 / 8;
+    parameter   TSTRB_WIDTH1     = TDATA_WIDTH1 / 8;
+    parameter   TUSER_WIDTH1     = TUSER_WIDTH0 * TDATA_WIDTH1 / TDATA_WIDTH0;
     
     
-    integer     i;
-    integer     count;
     
     reg                         endian = 1;
     
-    reg     [S_TDATA_BITS-1:0]  s_axi4s_tdata;
-    reg     [S_TSTRB_BITS-1:0]  s_axi4s_tstrb;
-    reg     [S_TKEEP_BITS-1:0]  s_axi4s_tkeep;
-    wire                        s_axi4s_tfirst = 0;//(count[1:0] == 1'b0);
-    wire                        s_axi4s_tlast  = (count[1:0] == 1'b1);
-    reg     [S_TUSER_BITS-1:0]  s_axi4s_tuser = 0;
-    reg                         s_axi4s_tvalid;
-    wire                        s_axi4s_tready;
-    wire    [FIFO_PTR_WIDTH:0]  s_fifo_free_count;
-    wire                        s_fifo_wr_signal;
+    reg     [TDATA_WIDTH0-1:0]  axi4s_src_tdata;
+    reg     [TSTRB_WIDTH0-1:0]  axi4s_src_tstrb;
+    wire                        axi4s_src_tlast  = (axi4s_src_tuser[2:0] == 3'b111);
+    reg     [TUSER_WIDTH0-1:0]  axi4s_src_tuser  = 0;
+    reg                         axi4s_src_tvalid;
+    wire                        axi4s_src_tready;
     
-    wire    [M_TDATA_BITS-1:0]  m_axi4s_tdata;
-    wire    [M_TSTRB_BITS-1:0]  m_axi4s_tstrb;
-    wire    [M_TKEEP_BITS-1:0]  m_axi4s_tkeep;
-    wire                        m_axi4s_tfirst;
-    wire                        m_axi4s_tlast;
-    wire    [M_TUSER_BITS-1:0]  m_axi4s_tuser;
-    wire                        m_axi4s_tvalid;
-    reg                         m_axi4s_tready;
-    wire    [FIFO_PTR_WIDTH:0]  m_fifo_data_count;
-    wire                        m_fifo_rd_signal;
+    wire    [TDATA_WIDTH1-1:0]  axi4s_cnv_tdata;
+    wire    [TSTRB_WIDTH1-1:0]  axi4s_cnv_tstrb;
+    wire                        axi4s_cnv_tfirst;
+    wire                        axi4s_cnv_tlast;
+    wire    [TUSER_WIDTH1-1:0]  axi4s_cnv_tuser;
+    wire                        axi4s_cnv_tvalid;
+    wire                        axi4s_cnv_tready;
+    
+    wire    [TDATA_WIDTH0-1:0]  axi4s_dst_tdata;
+    wire    [TSTRB_WIDTH0-1:0]  axi4s_dst_tstrb;
+    wire                        axi4s_dst_tfirst;
+    wire                        axi4s_dst_tlast;
+    wire    [TUSER_WIDTH0-1:0]  axi4s_dst_tuser;
+    wire                        axi4s_dst_tvalid;
+    reg                         axi4s_dst_tready;
+    
     
     jelly_axi4s_fifo_width_convert
             #(
-                .ASYNC              (ASYNC),
-                .FIFO_PTR_WIDTH     (FIFO_PTR_WIDTH),
-                .FIFO_RAM_TYPE      (FIFO_RAM_TYPE),
-                .FIFO_LOW_DEALY     (FIFO_LOW_DEALY),
-                .FIFO_DOUT_REGS     (FIFO_DOUT_REGS),
-                .FIFO_S_REGS        (FIFO_S_REGS),
-                .FIFO_M_REGS        (FIFO_M_REGS),
-                .HAS_STRB           (HAS_STRB),
-                .HAS_KEEP           (HAS_KEEP),
-                .HAS_FIRST          (HAS_FIRST),
-                .HAS_LAST           (HAS_LAST),
-                .BYTE_WIDTH         (BYTE_WIDTH),
-                .S_TDATA_WIDTH      (S_TDATA_WIDTH),
-                .M_TDATA_WIDTH      (M_TDATA_WIDTH),
-                .DATA_WIDTH_GCD     (DATA_WIDTH_GCD),
-                .S_TSTRB_WIDTH      (S_TSTRB_WIDTH),
-                .S_TKEEP_WIDTH      (S_TKEEP_WIDTH),
-                .S_TUSER_WIDTH      (S_TUSER_WIDTH),
-                .M_TSTRB_WIDTH      (M_TSTRB_WIDTH),
-                .M_TKEEP_WIDTH      (M_TKEEP_WIDTH),
-                .M_TUSER_WIDTH      (M_TUSER_WIDTH),
-                .FIRST_FORCE_LAST   (FIRST_FORCE_LAST),
-                .FIRST_OVERWRITE    (FIRST_OVERWRITE),
-                .CONVERT_S_REGS     (CONVERT_S_REGS)
+                .ASYNC              (1),
+                .HAS_STRB           (1),
+                .HAS_KEEP           (0),
+                .HAS_FIRST          (0),
+                .HAS_LAST           (1),
+                .S_TDATA_WIDTH      (TDATA_WIDTH0),
+                .M_TDATA_WIDTH      (TDATA_WIDTH1),
+                .M_TUSER_WIDTH      (TUSER_WIDTH0),
+  //            .FIRST_FORCE_LAST   (1),
+  //            .FIRST_OVERWRITE    (0)
+                .HAS_FIRST_SALIGN    = 1;
+                .HAS_FIRST_MALIGN    = 0;
             )
         i_axi4s_fifo_width_convert
             (
                 .endian             (endian),
                 
-                .s_aresetn          (s_aresetn),
-                .s_aclk             (s_aclk),
-                .s_axi4s_tdata      (s_axi4s_tdata),
-                .s_axi4s_tstrb      (s_axi4s_tstrb),
-                .s_axi4s_tkeep      (s_axi4s_tkeep),
-                .s_axi4s_tfirst     (s_axi4s_tfirst),
-                .s_axi4s_tlast      (s_axi4s_tlast),
-                .s_axi4s_tuser      (s_axi4s_tuser),
-                .s_axi4s_tvalid     (s_axi4s_tvalid),
-                .s_axi4s_tready     (s_axi4s_tready),
-                .s_fifo_free_count  (s_fifo_free_count),
-                .s_fifo_wr_signal   (s_fifo_wr_signal),
+                .s_aresetn          (aresetn0),
+                .s_aclk             (aclk0),
                 
-                .m_aresetn          (m_aresetn),
-                .m_aclk             (m_aclk),
-                .m_axi4s_tdata      (m_axi4s_tdata),
-                .m_axi4s_tstrb      (m_axi4s_tstrb),
-                .m_axi4s_tkeep      (m_axi4s_tkeep),
-                .m_axi4s_tfirst     (m_axi4s_tfirst),
-                .m_axi4s_tlast      (m_axi4s_tlast),
-                .m_axi4s_tuser      (m_axi4s_tuser),
-                .m_axi4s_tvalid     (m_axi4s_tvalid),
-                .m_axi4s_tready     (m_axi4s_tready),
-                .m_fifo_data_count  (m_fifo_data_count),
-                .m_fifo_rd_signal   (m_fifo_rd_signal)
+                .s_axi4s_tdata      (axi4s_src_tdata),
+                .s_axi4s_tstrb      (axi4s_src_tstrb),
+                .s_axi4s_tkeep      (1'b1),
+                .s_axi4s_tfirst     (axi4s_src_tfirst),
+                .s_axi4s_tlast      (axi4s_src_tlast),
+                .s_axi4s_tuser      (axi4s_src_tuser),
+                .s_axi4s_tvalid     (axi4s_src_tvalid),
+                .s_axi4s_tready     (axi4s_src_tready),
+                .s_first_salign     (),
+                .s_first_malign     (),
+                .s_fifo_free_count  (),
+                .s_fifo_wr_signal   (),
+                
+                .m_aresetn          (aresetn1),
+                .m_aclk             (aclk1),
+                .m_axi4s_tdata      (axi4s_cnv_tdata),
+                .m_axi4s_tstrb      (axi4s_cnv_tstrb),
+                .m_axi4s_tkeep      (),
+                .m_axi4s_tfirst     (axi4s_cnv_tfirst),
+                .m_axi4s_tlast      (axi4s_cnv_tlast),
+                .m_axi4s_tuser      (axi4s_cnv_tuser),
+                .m_axi4s_tvalid     (axi4s_cnv_tvalid),
+                .m_axi4s_tready     (axi4s_cnv_tready),
+                .m_fifo_data_count  (),
+                .m_fifo_rd_signal   ()
             );
     
     

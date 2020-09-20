@@ -3,14 +3,14 @@
 `default_nettype none
 
 
-module tb_fifo_width_converter();
+module tb_fifo_width_convert();
     localparam S_RATE  = 1000.0/100.0;
     localparam M_RATE  = 1000.0/100.0;
     
     
     initial begin
-        $dumpfile("tb_fifo_width_converter.vcd");
-        $dumpvars(0, tb_fifo_width_converter);
+        $dumpfile("tb_fifo_width_convert.vcd");
+        $dumpvars(0, tb_fifo_width_convert);
     
     #10000000
         $finish;
@@ -27,22 +27,22 @@ module tb_fifo_width_converter();
     initial #(S_RATE*100)   reset <= 1'b0;
     
     
-    parameter   ASYNC            = 1;
-    parameter   UNIT_WIDTH       = 8;
-    parameter   S_DATA_SIZE      = 2;   // log2 (0:1byte, 1:2byte, 2:4byte, 3:81byte...)
-    parameter   M_DATA_SIZE      = 1;   // log2 (0:1byte, 1:2byte, 2:4byte, 3:81byte...)
+    parameter ASYNC            = 1;
+    parameter UNIT_WIDTH       = 8;
+    parameter S_NUM            = 4;
+    parameter M_NUM            = 8;
+    parameter S_DATA_WIDTH     = (UNIT_WIDTH * S_NUM);
+    parameter M_DATA_WIDTH     = (UNIT_WIDTH * M_NUM);
     
-    parameter   FIFO_PTR_WIDTH   = 10;
-    parameter   FIFO_RAM_TYPE    = "block";
-    parameter   FIFO_LOW_DEALY   = 0;
-    parameter   FIFO_DOUT_REGS   = 1;
-    parameter   FIFO_SLAVE_REGS  = 1;
-    parameter   FIFO_MASTER_REGS = 1;
+    parameter FIFO_PTR_WIDTH   = 8;
+    parameter FIFO_RAM_TYPE    = "block";
+    parameter FIFO_LOW_DEALY   = 0;
+    parameter FIFO_DOUT_REGS   = 1;
+    parameter FIFO_S_REGS      = 1;
+    parameter FIFO_M_REGS      = 1;
     
-    parameter   S_DATA_WIDTH = (UNIT_WIDTH << S_DATA_SIZE);
-    parameter   M_DATA_WIDTH = (UNIT_WIDTH << M_DATA_SIZE);
     
-        
+    
     genvar                          i;
     
     reg     [S_DATA_WIDTH-1:0]      src_data;
@@ -73,19 +73,20 @@ module tb_fifo_width_converter();
     
     
     // target
-    jelly_fifo_width_converter
+    jelly_fifo_width_convert
             #(
                 .ASYNC              (ASYNC),
                 .UNIT_WIDTH         (UNIT_WIDTH),
-                .S_DATA_SIZE        (S_DATA_SIZE),
-                .M_DATA_SIZE        (M_DATA_SIZE),
+                .S_NUM              (S_NUM),
+                .M_NUM              (M_NUM),
                 .FIFO_PTR_WIDTH     (FIFO_PTR_WIDTH),
                 .FIFO_RAM_TYPE      (FIFO_RAM_TYPE),
                 .FIFO_LOW_DEALY     (FIFO_LOW_DEALY),
                 .FIFO_DOUT_REGS     (FIFO_DOUT_REGS),
-                .FIFO_SLAVE_REGS    (FIFO_SLAVE_REGS)
+                .FIFO_S_REGS        (FIFO_S_REGS),
+                .FIFO_M_REGS        (FIFO_M_REGS)
             )
-        i_axi4s_video_fifo_width_converter
+        i_fifo_width_convert
             (
                 .endian             (1'b0),
                 
@@ -94,16 +95,16 @@ module tb_fifo_width_converter();
                 .s_data             (src_data),
                 .s_valid            (src_valid),
                 .s_ready            (src_ready),
-                .s_free_count       (),
-                .s_wr_signal        (),
+                .s_fifo_free_count  (),
+                .s_fifo_wr_signal   (),
                 
                 .m_reset            (reset),
                 .m_clk              (m_clk),
                 .m_data             (dst_data),
                 .m_valid            (dst_valid),
                 .m_ready            (dst_ready),
-                .m_data_count       (),
-                .s_rd_signal        ()
+                .m_fifo_data_count  (),
+                .m_fifo_rd_signal   ()
             );
     
     

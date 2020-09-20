@@ -13,7 +13,6 @@
 
 module jelly_stream_width_convert_pack
         #(
-            parameter NUM_GCD             = 1, // S_NUM と M_NUM の最大公約数(人力)
             parameter S_NUM               = 1,
             parameter M_NUM               = 1,
             parameter UNIT0_WIDTH         = 32,
@@ -46,34 +45,35 @@ module jelly_stream_width_convert_pack
             parameter M_DATA7_WIDTH       = M_NUM * UNIT7_WIDTH,
             parameter M_DATA8_WIDTH       = M_NUM * UNIT8_WIDTH,
             parameter M_DATA9_WIDTH       = M_NUM * UNIT9_WIDTH,
+            
+            parameter HAS_FIRST           = 0,                          // first を備える
+            parameter HAS_LAST            = 0,                          // last を備える
+            parameter AUTO_FIRST          = (HAS_LAST & !HAS_FIRST),    // last の次を自動的に first とする
+            parameter HAS_ALIGN_S         = 1,                          // slave 側のアライメントを指定する
+            parameter HAS_ALIGN_M         = 1,                          // master 側のアライメントを指定する
+            parameter FIRST_OVERWRITE     = 0,  // first時前方に残変換があれば吐き出さずに上書き
+            parameter FIRST_FORCE_LAST    = 0,  // first時前方に残変換があれば強制的にlastを付与(残が無い場合はlastはつかない)
+            parameter ALIGN_S_WIDTH       = S_NUM <=   2 ? 1 :
+                                            S_NUM <=   4 ? 2 :
+                                            S_NUM <=   8 ? 3 :
+                                            S_NUM <=  16 ? 4 :
+                                            S_NUM <=  32 ? 5 :
+                                            S_NUM <=  64 ? 6 :
+                                            S_NUM <= 128 ? 7 :
+                                            S_NUM <= 256 ? 8 :
+                                            S_NUM <= 512 ? 9 : 10,
+            parameter ALIGN_M_WIDTH       = M_NUM <=   2 ? 1 :
+                                            M_NUM <=   4 ? 2 :
+                                            M_NUM <=   8 ? 3 :
+                                            M_NUM <=  16 ? 4 :
+                                            M_NUM <=  32 ? 5 :
+                                            M_NUM <=  64 ? 6 :
+                                            M_NUM <= 128 ? 7 :
+                                            M_NUM <= 256 ? 8 :
+                                            M_NUM <= 512 ? 9 : 10,
             parameter USER_F_WIDTH        = 0,
             parameter USER_L_WIDTH        = 0,
-            parameter ALLOW_UNALIGN_FIRST = 1,
-            parameter ALLOW_UNALIGN_LAST  = 1,
-            parameter FIRST_FORCE_LAST    = 1,  // firstで前方吐き出し時に残変換があれば強制的にlastを付与
-            parameter FIRST_OVERWRITE     = 0,  // first時前方に残変換があれば吐き出さずに上書き
-            parameter AUTO_FIRST          = 1,
-            parameter HAS_FIRST_SALIGN    = 0,
-            parameter HAS_FIRST_MALIGN    = 0,
-            parameter S_ALIGN_WIDTH       = S_NUM / NUM_GCD <=   2 ? 1 :
-                                            S_NUM / NUM_GCD <=   4 ? 2 :
-                                            S_NUM / NUM_GCD <=   8 ? 3 :
-                                            S_NUM / NUM_GCD <=  16 ? 4 :
-                                            S_NUM / NUM_GCD <=  32 ? 5 :
-                                            S_NUM / NUM_GCD <=  64 ? 6 :
-                                            S_NUM / NUM_GCD <= 128 ? 7 :
-                                            S_NUM / NUM_GCD <= 256 ? 8 :
-                                            S_NUM / NUM_GCD <= 512 ? 9 : 10,
-            parameter M_ALIGN_WIDTH       = M_NUM / NUM_GCD <=   2 ? 1 :
-                                            M_NUM / NUM_GCD <=   4 ? 2 :
-                                            M_NUM / NUM_GCD <=   8 ? 3 :
-                                            M_NUM / NUM_GCD <=  16 ? 4 :
-                                            M_NUM / NUM_GCD <=  32 ? 5 :
-                                            M_NUM / NUM_GCD <=  64 ? 6 :
-                                            M_NUM / NUM_GCD <= 128 ? 7 :
-                                            M_NUM / NUM_GCD <= 256 ? 8 :
-                                            M_NUM / NUM_GCD <= 512 ? 9 : 10,
-            parameter S_REGS              = 1,
+            parameter S_REGS              = (S_NUM != M_NUM),
             
             
             // local
@@ -128,8 +128,8 @@ module jelly_stream_width_convert_pack
             input   wire    [UNIT8_BITS-1:0]    padding8,
             input   wire    [UNIT9_BITS-1:0]    padding9,
             
-            input   wire    [S_ALIGN_WIDTH-1:0] s_first_salign,
-            input   wire    [M_ALIGN_WIDTH-1:0] s_first_malign,
+            input   wire    [ALIGN_S_WIDTH-1:0] s_align_s,
+            input   wire    [ALIGN_M_WIDTH-1:0] s_align_m,
             input   wire                        s_first,
             input   wire                        s_last,
             input   wire    [S_DATA0_BITS-1:0]  s_data0,
@@ -187,17 +187,17 @@ module jelly_stream_width_convert_pack
     
     jelly_func_pack
             #(
-                .N          (S_NUM / NUM_GCD),
-                .W0         (UNIT0_WIDTH * NUM_GCD),
-                .W1         (UNIT1_WIDTH * NUM_GCD),
-                .W2         (UNIT2_WIDTH * NUM_GCD),
-                .W3         (UNIT3_WIDTH * NUM_GCD),
-                .W4         (UNIT4_WIDTH * NUM_GCD),
-                .W5         (UNIT5_WIDTH * NUM_GCD),
-                .W6         (UNIT6_WIDTH * NUM_GCD),
-                .W7         (UNIT7_WIDTH * NUM_GCD),
-                .W8         (UNIT8_WIDTH * NUM_GCD),
-                .W9         (UNIT9_WIDTH * NUM_GCD)
+                .N          (S_NUM),
+                .W0         (UNIT0_WIDTH),
+                .W1         (UNIT1_WIDTH),
+                .W2         (UNIT2_WIDTH),
+                .W3         (UNIT3_WIDTH),
+                .W4         (UNIT4_WIDTH),
+                .W5         (UNIT5_WIDTH),
+                .W6         (UNIT6_WIDTH),
+                .W7         (UNIT7_WIDTH),
+                .W8         (UNIT8_WIDTH),
+                .W9         (UNIT9_WIDTH)
             )
         i_func_pack
             (
@@ -216,17 +216,17 @@ module jelly_stream_width_convert_pack
     
     jelly_func_unpack
             #(
-                .N          (M_NUM / NUM_GCD),
-                .W0         (UNIT0_WIDTH * NUM_GCD),
-                .W1         (UNIT1_WIDTH * NUM_GCD),
-                .W2         (UNIT2_WIDTH * NUM_GCD),
-                .W3         (UNIT3_WIDTH * NUM_GCD),
-                .W4         (UNIT4_WIDTH * NUM_GCD),
-                .W5         (UNIT5_WIDTH * NUM_GCD),
-                .W6         (UNIT6_WIDTH * NUM_GCD),
-                .W7         (UNIT7_WIDTH * NUM_GCD),
-                .W8         (UNIT8_WIDTH * NUM_GCD),
-                .W9         (UNIT9_WIDTH * NUM_GCD)
+                .N          (M_NUM),
+                .W0         (UNIT0_WIDTH),
+                .W1         (UNIT1_WIDTH),
+                .W2         (UNIT2_WIDTH),
+                .W3         (UNIT3_WIDTH),
+                .W4         (UNIT4_WIDTH),
+                .W5         (UNIT5_WIDTH),
+                .W6         (UNIT6_WIDTH),
+                .W7         (UNIT7_WIDTH),
+                .W8         (UNIT8_WIDTH),
+                .W9         (UNIT9_WIDTH)
             )
         i_func_unpack
             (
@@ -246,17 +246,17 @@ module jelly_stream_width_convert_pack
     
     
     // padding
-    localparam  PADDING0_WIDTH = UNIT0_WIDTH * NUM_GCD;
-    localparam  PADDING1_WIDTH = UNIT1_WIDTH * NUM_GCD;
-    localparam  PADDING2_WIDTH = UNIT2_WIDTH * NUM_GCD;
-    localparam  PADDING3_WIDTH = UNIT3_WIDTH * NUM_GCD;
-    localparam  PADDING4_WIDTH = UNIT4_WIDTH * NUM_GCD;
-    localparam  PADDING5_WIDTH = UNIT5_WIDTH * NUM_GCD;
-    localparam  PADDING6_WIDTH = UNIT6_WIDTH * NUM_GCD;
-    localparam  PADDING7_WIDTH = UNIT7_WIDTH * NUM_GCD;
-    localparam  PADDING8_WIDTH = UNIT8_WIDTH * NUM_GCD;
-    localparam  PADDING9_WIDTH = UNIT9_WIDTH * NUM_GCD;
-    localparam  PADDING_WIDTH  = PACK_UNIT   * NUM_GCD;
+    /*
+    localparam  PADDING0_WIDTH = UNIT0_WIDTH;
+    localparam  PADDING1_WIDTH = UNIT1_WIDTH;
+    localparam  PADDING2_WIDTH = UNIT2_WIDTH;
+    localparam  PADDING3_WIDTH = UNIT3_WIDTH;
+    localparam  PADDING4_WIDTH = UNIT4_WIDTH;
+    localparam  PADDING5_WIDTH = UNIT5_WIDTH;
+    localparam  PADDING6_WIDTH = UNIT6_WIDTH;
+    localparam  PADDING7_WIDTH = UNIT7_WIDTH;
+    localparam  PADDING8_WIDTH = UNIT8_WIDTH;
+    localparam  PADDING9_WIDTH = UNIT9_WIDTH;
     localparam  PADDING0_BITS  = PADDING0_WIDTH > 0 ? PADDING0_WIDTH : 1;
     localparam  PADDING1_BITS  = PADDING1_WIDTH > 0 ? PADDING1_WIDTH : 1;
     localparam  PADDING2_BITS  = PADDING2_WIDTH > 0 ? PADDING2_WIDTH : 1;
@@ -267,7 +267,6 @@ module jelly_stream_width_convert_pack
     localparam  PADDING7_BITS  = PADDING7_WIDTH > 0 ? PADDING7_WIDTH : 1;
     localparam  PADDING8_BITS  = PADDING8_WIDTH > 0 ? PADDING8_WIDTH : 1;
     localparam  PADDING9_BITS  = PADDING9_WIDTH > 0 ? PADDING9_WIDTH : 1;
-    localparam  PADDING_BITS   = PADDING_WIDTH  > 0 ? PADDING_WIDTH  : 1;
     
     wire    [PADDING0_BITS-1:0]     padding_data0 = {NUM_GCD{padding0}};
     wire    [PADDING1_BITS-1:0]     padding_data1 = {NUM_GCD{padding1}};
@@ -279,54 +278,59 @@ module jelly_stream_width_convert_pack
     wire    [PADDING7_BITS-1:0]     padding_data7 = {NUM_GCD{padding7}};
     wire    [PADDING8_BITS-1:0]     padding_data8 = {NUM_GCD{padding8}};
     wire    [PADDING9_BITS-1:0]     padding_data9 = {NUM_GCD{padding9}};
-    wire    [PADDING_BITS-1:0]      padding_pack;
+    */
+    
+    localparam  PADDING_WIDTH  = PACK_UNIT;
+    localparam  PADDING_BITS   = PADDING_WIDTH  > 0 ? PADDING_WIDTH  : 1;
+    
+    wire    [PADDING_BITS-1:0]  padding_pack;
     jelly_func_pack
             #(
-                .N          (1),
-                .W0         (UNIT0_WIDTH * NUM_GCD),
-                .W1         (UNIT1_WIDTH * NUM_GCD),
-                .W2         (UNIT2_WIDTH * NUM_GCD),
-                .W3         (UNIT3_WIDTH * NUM_GCD),
-                .W4         (UNIT4_WIDTH * NUM_GCD),
-                .W5         (UNIT5_WIDTH * NUM_GCD),
-                .W6         (UNIT6_WIDTH * NUM_GCD),
-                .W7         (UNIT7_WIDTH * NUM_GCD),
-                .W8         (UNIT8_WIDTH * NUM_GCD),
-                .W9         (UNIT9_WIDTH * NUM_GCD)
+                .N                  (1),
+                .W0                 (UNIT0_WIDTH),
+                .W1                 (UNIT1_WIDTH),
+                .W2                 (UNIT2_WIDTH),
+                .W3                 (UNIT3_WIDTH),
+                .W4                 (UNIT4_WIDTH),
+                .W5                 (UNIT5_WIDTH),
+                .W6                 (UNIT6_WIDTH),
+                .W7                 (UNIT7_WIDTH),
+                .W8                 (UNIT8_WIDTH),
+                .W9                 (UNIT9_WIDTH)
             )
         i_func_pack_padding
             (
-                .in0        (padding_data0),
-                .in1        (padding_data1),
-                .in2        (padding_data2),
-                .in3        (padding_data3),
-                .in4        (padding_data4),
-                .in5        (padding_data5),
-                .in6        (padding_data6),
-                .in7        (padding_data7),
-                .in8        (padding_data8),
-                .in9        (padding_data9),
-                .out        (padding_pack)
+                .in0                (padding0),
+                .in1                (padding1),
+                .in2                (padding2),
+                .in3                (padding3),
+                .in4                (padding4),
+                .in5                (padding5),
+                .in6                (padding6),
+                .in7                (padding7),
+                .in8                (padding8),
+                .in9                (padding9),
+                .out                (padding_pack)
             );
     
     
     // packing
     jelly_stream_width_convert
             #(
-                .UNIT_WIDTH         (PACK_UNIT * NUM_GCD),
-                .S_NUM              (S_NUM / NUM_GCD),
-                .M_NUM              (M_NUM / NUM_GCD),
+                .UNIT_WIDTH         (PACK_UNIT),
+                .S_NUM              (S_NUM),
+                .M_NUM              (M_NUM),
+                .HAS_FIRST          (HAS_FIRST),
+                .HAS_LAST           (HAS_LAST),
+                .AUTO_FIRST         (AUTO_FIRST),
+                .HAS_ALIGN_S        (HAS_ALIGN_S),
+                .HAS_ALIGN_M        (HAS_ALIGN_M),
+                .FIRST_OVERWRITE    (FIRST_OVERWRITE),
+                .FIRST_FORCE_LAST   (FIRST_FORCE_LAST),
+                .ALIGN_S_WIDTH      (ALIGN_S_WIDTH),
+                .ALIGN_M_WIDTH      (ALIGN_M_WIDTH),
                 .USER_F_WIDTH       (USER_F_WIDTH),
                 .USER_L_WIDTH       (USER_L_WIDTH),
-                .ALLOW_UNALIGN_FIRST(ALLOW_UNALIGN_FIRST),
-                .ALLOW_UNALIGN_LAST (ALLOW_UNALIGN_LAST),
-                .FIRST_FORCE_LAST   (FIRST_FORCE_LAST),
-                .FIRST_OVERWRITE    (FIRST_OVERWRITE),
-                .AUTO_FIRST         (AUTO_FIRST),
-                .HAS_FIRST_SALIGN   (HAS_FIRST_SALIGN),
-                .HAS_FIRST_MALIGN   (HAS_FIRST_MALIGN),
-                .S_ALIGN_WIDTH      (S_ALIGN_WIDTH),
-                .M_ALIGN_WIDTH      (M_ALIGN_WIDTH),
                 .S_REGS             (S_REGS)
             )
         i_stream_width_convert
@@ -338,8 +342,8 @@ module jelly_stream_width_convert_pack
                 .endian             (endian),
                 .padding            (padding_pack),
                 
-                .s_first_salign     (s_first_salign),
-                .s_first_malign     (s_first_malign),
+                .s_align_s          (s_align_s),
+                .s_align_m          (s_align_m),
                 .s_first            (s_first),
                 .s_last             (s_last),
                 .s_data             (s_pack),

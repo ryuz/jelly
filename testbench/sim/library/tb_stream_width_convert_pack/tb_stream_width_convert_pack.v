@@ -25,7 +25,6 @@ module tb_stream_width_convert_pack();
     always @(posedge clk)   cke <= BUSY ? {$random} : 1'b1;
     
     
-    parameter NUM_GCD             = 1; // S_NUM と M_NUM の最大公約数(人力)
     parameter S_NUM               = 3;
     parameter M_NUM               = 4;
     parameter UNIT0_WIDTH         = 32;
@@ -58,32 +57,35 @@ module tb_stream_width_convert_pack();
     parameter M_DATA7_WIDTH       = M_NUM * UNIT7_WIDTH;
     parameter M_DATA8_WIDTH       = M_NUM * UNIT8_WIDTH;
     parameter M_DATA9_WIDTH       = M_NUM * UNIT9_WIDTH;
-    parameter ALLOW_UNALIGN_FIRST = 1;
-    parameter ALLOW_UNALIGN_LAST  = 1;
-    parameter FIRST_FORCE_LAST    = 1;  // firstで前方吐き出し時に残変換があれば強制的にlastを付与
+    parameter HAS_FIRST           = 0;                          // first を備える
+    parameter HAS_LAST            = 1;                          // last を備える
+    parameter AUTO_FIRST          = (HAS_LAST & !HAS_FIRST);    // last の次を自動的に first とする
+    parameter HAS_ALIGN_S         = 1;                          // slave 側のアライメントを指定する
+    parameter HAS_ALIGN_M         = 1;                          // master 側のアライメントを指定する
     parameter FIRST_OVERWRITE     = 0;  // first時前方に残変換があれば吐き出さずに上書き
-    parameter AUTO_FIRST          = 1;
-    parameter HAS_FIRST_SALIGN    = 1;
-    parameter HAS_FIRST_MALIGN    = 0;
-    parameter S_ALIGN_WIDTH       = S_NUM / NUM_GCD <=   2 ? 1 :
-                                    S_NUM / NUM_GCD <=   4 ? 2 :
-                                    S_NUM / NUM_GCD <=   8 ? 3 :
-                                    S_NUM / NUM_GCD <=  16 ? 4 :
-                                    S_NUM / NUM_GCD <=  32 ? 5 :
-                                    S_NUM / NUM_GCD <=  64 ? 6 :
-                                    S_NUM / NUM_GCD <= 128 ? 7 :
-                                    S_NUM / NUM_GCD <= 256 ? 8 :
-                                    S_NUM / NUM_GCD <= 512 ? 9 : 10;
-    parameter M_ALIGN_WIDTH       = M_NUM / NUM_GCD <=   2 ? 1 :
-                                    M_NUM / NUM_GCD <=   4 ? 2 :
-                                    M_NUM / NUM_GCD <=   8 ? 3 :
-                                    M_NUM / NUM_GCD <=  16 ? 4 :
-                                    M_NUM / NUM_GCD <=  32 ? 5 :
-                                    M_NUM / NUM_GCD <=  64 ? 6 :
-                                    M_NUM / NUM_GCD <= 128 ? 7 :
-                                    M_NUM / NUM_GCD <= 256 ? 8 :
-                                    M_NUM / NUM_GCD <= 512 ? 9 : 10;
-    parameter S_REGS              = 1;
+    parameter FIRST_FORCE_LAST    = 0;  // first時前方に残変換があれば強制的にlastを付与(残が無い場合はlastはつかない)
+    parameter ALIGN_S_WIDTH       = S_NUM <=   2 ? 1 :
+                                    S_NUM <=   4 ? 2 :
+                                    S_NUM <=   8 ? 3 :
+                                    S_NUM <=  16 ? 4 :
+                                    S_NUM <=  32 ? 5 :
+                                    S_NUM <=  64 ? 6 :
+                                    S_NUM <= 128 ? 7 :
+                                    S_NUM <= 256 ? 8 :
+                                    S_NUM <= 512 ? 9 : 10;
+    parameter ALIGN_M_WIDTH       = M_NUM <=   2 ? 1 :
+                                    M_NUM <=   4 ? 2 :
+                                    M_NUM <=   8 ? 3 :
+                                    M_NUM <=  16 ? 4 :
+                                    M_NUM <=  32 ? 5 :
+                                    M_NUM <=  64 ? 6 :
+                                    M_NUM <= 128 ? 7 :
+                                    M_NUM <= 256 ? 8 :
+                                    M_NUM <= 512 ? 9 : 10;
+    parameter USER_F_WIDTH        = 0;
+    parameter USER_L_WIDTH        = 0;
+    parameter S_REGS              = (S_NUM != M_NUM);
+    
     
     // local
     parameter UNIT0_BITS          = UNIT0_WIDTH   > 0 ? UNIT0_WIDTH   : 1;
@@ -118,7 +120,7 @@ module tb_stream_width_convert_pack();
     parameter M_DATA9_BITS        = M_DATA9_WIDTH > 0 ? M_DATA9_WIDTH : 1;
     
     
-    wire                        endian   = 1;
+    wire                        endian   = 0;
     wire    [UNIT0_BITS-1:0]    padding0 = 32'hffffffff;
     wire    [UNIT1_BITS-1:0]    padding1 = 16'haaaa;
     wire    [UNIT2_BITS-1:0]    padding2 = 8'hbb;
@@ -130,10 +132,10 @@ module tb_stream_width_convert_pack();
     wire    [UNIT8_BITS-1:0]    padding8;
     wire    [UNIT9_BITS-1:0]    padding9;
     
-    wire    [S_ALIGN_WIDTH-1:0] s_first_salign = 2;
-    wire    [M_ALIGN_WIDTH-1:0] s_first_malign = 0;
-    wire                        s_first = 0; //(count[0:0] == 1'b0);
-    wire                        s_last  = (count[1:0] == 2'b11);
+    wire    [ALIGN_S_WIDTH-1:0] s_align_s = 2;
+    wire    [ALIGN_M_WIDTH-1:0] s_align_m = 1;
+    wire                        s_first = HAS_FIRST ? (count[2:0] == 3'b000) : 1'b0;
+    wire                        s_last  = HAS_LAST  ? (count[2:0] == 3'b111) : 1'b0;
     reg     [S_DATA0_BITS-1:0]  s_data0;
     reg     [S_DATA1_BITS-1:0]  s_data1;
     reg     [S_DATA2_BITS-1:0]  s_data2;
@@ -165,7 +167,6 @@ module tb_stream_width_convert_pack();
     
     jelly_stream_width_convert_pack
             #(
-                .NUM_GCD            (NUM_GCD),
                 .S_NUM              (S_NUM),
                 .M_NUM              (M_NUM),
                 .UNIT0_WIDTH        (UNIT0_WIDTH),
@@ -198,15 +199,17 @@ module tb_stream_width_convert_pack();
                 .M_DATA7_WIDTH      (M_DATA7_WIDTH),
                 .M_DATA8_WIDTH      (M_DATA8_WIDTH),
                 .M_DATA9_WIDTH      (M_DATA9_WIDTH),
-                .ALLOW_UNALIGN_FIRST(ALLOW_UNALIGN_FIRST),
-                .ALLOW_UNALIGN_LAST (ALLOW_UNALIGN_LAST),
-                .FIRST_FORCE_LAST   (FIRST_FORCE_LAST),
-                .FIRST_OVERWRITE    (FIRST_OVERWRITE),
+                .HAS_FIRST          (HAS_FIRST),
+                .HAS_LAST           (HAS_LAST),
                 .AUTO_FIRST         (AUTO_FIRST),
-                .HAS_FIRST_SALIGN   (HAS_FIRST_SALIGN),
-                .HAS_FIRST_MALIGN   (HAS_FIRST_MALIGN),
-                .S_ALIGN_WIDTH      (S_ALIGN_WIDTH),
-                .M_ALIGN_WIDTH      (M_ALIGN_WIDTH),
+                .HAS_ALIGN_S        (HAS_ALIGN_S),
+                .HAS_ALIGN_M        (HAS_ALIGN_M),
+                .FIRST_OVERWRITE    (FIRST_OVERWRITE),
+                .FIRST_FORCE_LAST   (FIRST_FORCE_LAST),
+                .ALIGN_S_WIDTH      (ALIGN_S_WIDTH),
+                .ALIGN_M_WIDTH      (ALIGN_M_WIDTH),
+                .USER_F_WIDTH       (USER_F_WIDTH),
+                .USER_L_WIDTH       (USER_L_WIDTH),
                 .S_REGS             (S_REGS)
             )
         i_stream_width_convert_pack
@@ -225,8 +228,8 @@ module tb_stream_width_convert_pack();
                 .padding7           (padding7),
                 .padding8           (padding8),
                 .padding9           (padding9),
-                .s_first_salign     (s_first_salign),
-                .s_first_malign     (s_first_malign),
+                .s_align_s          (s_align_s),
+                .s_align_m          (s_align_m),
                 .s_first            (s_first),
                 .s_last             (s_last),
                 .s_data0            (s_data0),

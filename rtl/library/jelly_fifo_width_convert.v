@@ -21,20 +21,39 @@ module jelly_fifo_width_convert
             parameter FIFO_S_REGS         = 1,
             parameter FIFO_M_REGS         = 1,
             
-            parameter NUM_GCD             = 1, // S_NUM と M_NUM の最大公約数(人力)
-            parameter UNIT_WIDTH          = 32,
+            parameter UNIT_WIDTH          = 8,
             parameter S_NUM               = 1,
-            parameter M_NUM               = 1,
+            parameter M_NUM               = 2,
             parameter S_DATA_WIDTH        = S_NUM * UNIT_WIDTH,
             parameter M_DATA_WIDTH        = M_NUM * UNIT_WIDTH,
             parameter USER_F_WIDTH        = 0,
             parameter USER_L_WIDTH        = 0,
             parameter HAS_FIRST           = 0,
             parameter HAS_LAST            = 0,
-            parameter ALLOW_UNALIGN_FIRST = 1,
-            parameter ALLOW_UNALIGN_LAST  = 1,
-            parameter FIRST_FORCE_LAST    = 1,  // firstで前方吐き出し時に残変換があれば強制的にlastを付与
+            parameter AUTO_FIRST          = (HAS_LAST & !HAS_FIRST),    // last の次を自動的に first とする
+            parameter HAS_ALIGN_S         = 0,                          // slave 側のアライメントを指定する
+            parameter HAS_ALIGN_M         = 0,                          // master 側のアライメントを指定する
+            parameter FIRST_FORCE_LAST    = 0,  // firstで前方吐き出し時に残変換があれば強制的にlastを付与
             parameter FIRST_OVERWRITE     = 0,  // first時前方に残変換があれば吐き出さずに上書き
+            parameter ALIGN_S_WIDTH       = S_NUM <=   2 ? 1 :
+                                            S_NUM <=   4 ? 2 :
+                                            S_NUM <=   8 ? 3 :
+                                            S_NUM <=  16 ? 4 :
+                                            S_NUM <=  32 ? 5 :
+                                            S_NUM <=  64 ? 6 :
+                                            S_NUM <= 128 ? 7 :
+                                            S_NUM <= 256 ? 8 :
+                                            S_NUM <= 512 ? 9 : 10,
+            parameter ALIGN_M_WIDTH       = M_NUM <=   2 ? 1 :
+                                            M_NUM <=   4 ? 2 :
+                                            M_NUM <=   8 ? 3 :
+                                            M_NUM <=  16 ? 4 :
+                                            M_NUM <=  32 ? 5 :
+                                            M_NUM <=  64 ? 6 :
+                                            M_NUM <= 128 ? 7 :
+                                            M_NUM <= 256 ? 8 :
+                                            M_NUM <= 512 ? 9 : 10,
+            
             parameter CONVERT_S_REGS      = 1,
             
             parameter POST_CONVERT        = (M_NUM < S_NUM),
@@ -57,6 +76,8 @@ module jelly_fifo_width_convert
             
             input   wire                        s_reset,
             input   wire                        s_clk,
+            input   wire    [ALIGN_S_WIDTH-1:0] s_align_s,
+            input   wire    [ALIGN_M_WIDTH-1:0] s_align_m,
             input   wire                        s_first,
             input   wire                        s_last,
             input   wire    [S_DATA_BITS-1:0]   s_data,
@@ -89,7 +110,6 @@ module jelly_fifo_width_convert
                 .FIFO_DOUT_REGS         (FIFO_DOUT_REGS),
                 .FIFO_S_REGS            (FIFO_S_REGS),
                 .FIFO_M_REGS            (FIFO_M_REGS),
-                .NUM_GCD                (NUM_GCD),
                 .S_NUM                  (S_NUM),
                 .M_NUM                  (M_NUM),
                 .UNIT0_WIDTH            (UNIT_WIDTH),
@@ -99,10 +119,11 @@ module jelly_fifo_width_convert
                 .USER_L_WIDTH           (USER_L_WIDTH),
                 .HAS_FIRST              (HAS_FIRST),
                 .HAS_LAST               (HAS_LAST),
-                .ALLOW_UNALIGN_FIRST    (ALLOW_UNALIGN_FIRST),
-                .ALLOW_UNALIGN_LAST     (ALLOW_UNALIGN_LAST),
-                .FIRST_FORCE_LAST       (FIRST_FORCE_LAST),
+                .AUTO_FIRST             (AUTO_FIRST),
+                .HAS_ALIGN_S            (HAS_ALIGN_S),
+                .HAS_ALIGN_M            (HAS_ALIGN_M),
                 .FIRST_OVERWRITE        (FIRST_OVERWRITE),
+                .FIRST_FORCE_LAST       (FIRST_FORCE_LAST),
                 .CONVERT_S_REGS         (CONVERT_S_REGS),
                 .POST_CONVERT           (POST_CONVERT)
             )
@@ -113,6 +134,8 @@ module jelly_fifo_width_convert
                 
                 .s_reset                (s_reset),
                 .s_clk                  (s_clk),
+                .s_align_s              (s_align_s),
+                .s_align_m              (s_align_m),
                 .s_first                (s_first),
                 .s_last                 (s_last),
                 .s_data0                (s_data),
