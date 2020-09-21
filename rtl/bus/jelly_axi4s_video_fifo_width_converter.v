@@ -31,7 +31,7 @@ module jelly_axi4s_video_fifo_width_converter
             parameter FIFO_LOW_DEALY      = 0,
             parameter FIFO_DOUT_REGS      = 1,
             parameter FIFO_SLAVE_REGS     = 1,
-            parameter FIFO_MASTER_REGS    = 1
+            parameter FIFO_MASTER_REGS    = 1,
             
             parameter POST_CONVERT        = (M_TDATA_WIDTH < S_TDATA_WIDTH),
             
@@ -40,7 +40,7 @@ module jelly_axi4s_video_fifo_width_converter
             parameter S_TDATA_WIDTH       = S_NUM * DATA_UNIT,
             parameter M_TDATA_WIDTH       = M_NUM * DATA_UNIT,
             parameter S_TUSER_WIDTH       = S_NUM * USER_UNIT + 1,
-            parameter M_TUSER_WIDTH       = M_NUM * USER_UNIT + 1,
+            parameter M_TUSER_WIDTH       = M_NUM * USER_UNIT + 1
         )
         (
             input   wire                        endian,

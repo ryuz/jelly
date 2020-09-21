@@ -27,12 +27,12 @@ module jelly_fifo_pack
             parameter   DATA7_WIDTH = 0,
             parameter   DATA8_WIDTH = 0,
             parameter   DATA9_WIDTH = 0,
-            parameter   PTR_WIDTH   = 9,
+            parameter   PTR_WIDTH   = 4,
             parameter   DOUT_REGS   = 0,
-            parameter   RAM_TYPE    = "block",
+            parameter   RAM_TYPE    = "distributed",
             parameter   LOW_DEALY   = 0,
             parameter   S_REGS      = 0,
-            parameter   M_REGS      = 1,
+            parameter   M_REGS      = 0,
             
             // local
             parameter   DATA0_BITS  = DATA0_WIDTH > 0 ? DATA0_WIDTH : 1,

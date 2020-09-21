@@ -16,16 +16,17 @@
 // 幅変換時のアドレスサイズ変換
 module jelly_address_width_convert
         #(
-            parameter ADDR_WIDTH   = 32,    // アドレスのbit幅
-            parameter USER_WIDTH   = 0,     // ユーザーデータのbit幅
-            parameter S_UNIT       = 3,     // 入力データ幅のアドレス増加量
-            parameter M_UNIT_SIZE  = 6,     // 出力データ幅でのアドレス増加量のlog2 (0:1byte, 1:2byte, 2:4byte, ...)
-            parameter S_LEN_WIDTH  = 32,    // 入力側データ幅の点層サイズ
-            parameter M_LEN_WIDTH  = 32,    // 入力側データ幅の点層サイズ
-            parameter ALIGN_WIDTH  = M_UNIT_SIZE > 0 ? M_UNIT_SIZE : 1,
-            parameter S_LEN_OFFSET = 1'b1,
-            parameter M_LEN_OFFSET = 1'b1,
-            parameter S_REGS       = 0,
+            parameter ALLOW_UNALIGNED = 1,     // UNALIGNEDあり
+            parameter ADDR_WIDTH      = 32,    // アドレスのbit幅
+            parameter USER_WIDTH      = 0,     // ユーザーデータのbit幅
+            parameter S_UNIT          = 4,     // 入力データ幅のアドレス増加量
+            parameter M_UNIT_SIZE     = 8,     // 出力データ幅でのアドレス増加量のlog2 (0:1byte, 1:2byte, 2:4byte, ...)
+            parameter S_LEN_WIDTH     = 32,    // 入力側データ幅の点層サイズ
+            parameter M_LEN_WIDTH     = 32,    // 入力側データ幅の点層サイズ
+            parameter ALIGN_WIDTH     = M_UNIT_SIZE > 0 ? M_UNIT_SIZE : 1,
+            parameter S_LEN_OFFSET    = 1'b1,
+            parameter M_LEN_OFFSET    = 1'b1,
+            parameter S_REGS          = 0,
             
             // loacal
             parameter USER_BITS  = USER_WIDTH > 0 ? USER_WIDTH : 1
@@ -63,7 +64,7 @@ module jelly_address_width_convert
                 .S_REGS         (S_REGS),
                 .M_REGS         (0)
             )
-        i_data_ff_s_permit
+        i_data_ff_s
             (
                 .reset          (reset),
                 .clk            (clk),
@@ -85,7 +86,7 @@ module jelly_address_width_convert
     
     // core
     wire    [ADDR_WIDTH-1:0]    add_mask = ((1 << M_UNIT_SIZE) - 1);
-    wire    [ALIGN_WIDTH-1:0]   align    = (ff_s_addr & add_mask);
+    wire    [ALIGN_WIDTH-1:0]   align    = ALLOW_UNALIGNED ? (ff_s_addr & add_mask) : {ALIGN_WIDTH{1'b0}};
     
     reg     [ADDR_WIDTH-1:0]    reg_addr;
     reg     [ALIGN_WIDTH-1:0]   reg_align;

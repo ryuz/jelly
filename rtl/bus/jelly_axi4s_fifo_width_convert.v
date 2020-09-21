@@ -22,16 +22,16 @@ module jelly_axi4s_fifo_width_convert
             parameter FIFO_S_REGS      = 1,
             parameter FIFO_M_REGS      = 1,
             
-            parameter HAS_STRB         = 1,
-            parameter HAS_KEEP         = 1,
-            parameter HAS_FIRST        = 1,
-            parameter HAS_LAST         = 1,
+            parameter HAS_STRB         = 0,
+            parameter HAS_KEEP         = 0,
+            parameter HAS_FIRST        = 0,
+            parameter HAS_LAST         = 0,
             parameter HAS_ALIGN_S      = 0,  // slave 側のアライメントを指定する
             parameter HAS_ALIGN_M      = 0,  // master 側のアライメントを指定する
             
             parameter BYTE_WIDTH       = 8,
-            parameter S_TDATA_WIDTH    = 64,
-            parameter M_TDATA_WIDTH    = 32,
+            parameter S_TDATA_WIDTH    = 32,
+            parameter M_TDATA_WIDTH    = 64,
             parameter S_TUSER_WIDTH    = 0,
             
             parameter AUTO_FIRST       = (HAS_LAST & !HAS_FIRST),    // last の次を自動的に first とする

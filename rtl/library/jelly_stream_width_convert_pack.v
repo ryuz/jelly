@@ -244,42 +244,6 @@ module jelly_stream_width_convert_pack
             );
     
     
-    
-    // padding
-    /*
-    localparam  PADDING0_WIDTH = UNIT0_WIDTH;
-    localparam  PADDING1_WIDTH = UNIT1_WIDTH;
-    localparam  PADDING2_WIDTH = UNIT2_WIDTH;
-    localparam  PADDING3_WIDTH = UNIT3_WIDTH;
-    localparam  PADDING4_WIDTH = UNIT4_WIDTH;
-    localparam  PADDING5_WIDTH = UNIT5_WIDTH;
-    localparam  PADDING6_WIDTH = UNIT6_WIDTH;
-    localparam  PADDING7_WIDTH = UNIT7_WIDTH;
-    localparam  PADDING8_WIDTH = UNIT8_WIDTH;
-    localparam  PADDING9_WIDTH = UNIT9_WIDTH;
-    localparam  PADDING0_BITS  = PADDING0_WIDTH > 0 ? PADDING0_WIDTH : 1;
-    localparam  PADDING1_BITS  = PADDING1_WIDTH > 0 ? PADDING1_WIDTH : 1;
-    localparam  PADDING2_BITS  = PADDING2_WIDTH > 0 ? PADDING2_WIDTH : 1;
-    localparam  PADDING3_BITS  = PADDING3_WIDTH > 0 ? PADDING3_WIDTH : 1;
-    localparam  PADDING4_BITS  = PADDING4_WIDTH > 0 ? PADDING4_WIDTH : 1;
-    localparam  PADDING5_BITS  = PADDING5_WIDTH > 0 ? PADDING5_WIDTH : 1;
-    localparam  PADDING6_BITS  = PADDING6_WIDTH > 0 ? PADDING6_WIDTH : 1;
-    localparam  PADDING7_BITS  = PADDING7_WIDTH > 0 ? PADDING7_WIDTH : 1;
-    localparam  PADDING8_BITS  = PADDING8_WIDTH > 0 ? PADDING8_WIDTH : 1;
-    localparam  PADDING9_BITS  = PADDING9_WIDTH > 0 ? PADDING9_WIDTH : 1;
-    
-    wire    [PADDING0_BITS-1:0]     padding_data0 = {NUM_GCD{padding0}};
-    wire    [PADDING1_BITS-1:0]     padding_data1 = {NUM_GCD{padding1}};
-    wire    [PADDING2_BITS-1:0]     padding_data2 = {NUM_GCD{padding2}};
-    wire    [PADDING3_BITS-1:0]     padding_data3 = {NUM_GCD{padding3}};
-    wire    [PADDING4_BITS-1:0]     padding_data4 = {NUM_GCD{padding4}};
-    wire    [PADDING5_BITS-1:0]     padding_data5 = {NUM_GCD{padding5}};
-    wire    [PADDING6_BITS-1:0]     padding_data6 = {NUM_GCD{padding6}};
-    wire    [PADDING7_BITS-1:0]     padding_data7 = {NUM_GCD{padding7}};
-    wire    [PADDING8_BITS-1:0]     padding_data8 = {NUM_GCD{padding8}};
-    wire    [PADDING9_BITS-1:0]     padding_data9 = {NUM_GCD{padding9}};
-    */
-    
     localparam  PADDING_WIDTH  = PACK_UNIT;
     localparam  PADDING_BITS   = PADDING_WIDTH  > 0 ? PADDING_WIDTH  : 1;
     

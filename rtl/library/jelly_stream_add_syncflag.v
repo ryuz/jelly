@@ -31,6 +31,9 @@ module jelly_stream_add_syncflag
             parameter FIFO_S_REGS      = 0,
             parameter FIFO_M_REGS      = 0,
             
+            parameter S_REGS           = 0,
+            parameter M_REGS           = 0,
+            
             // loacal
             parameter FIRST_BITS       = FIRST_WIDTH > 0 ? FIRST_WIDTH : 1,
             parameter LAST_BITS        = LAST_WIDTH  > 0 ? LAST_WIDTH  : 1,
@@ -102,13 +105,13 @@ module jelly_stream_add_syncflag
     
     
     // insert FF
-    wire                        m_first;
-    wire                        m_last;
-    wire    [FIRST_BITS-1:0]    m_added_first;
-    wire    [LAST_BITS-1:0]     m_added_last;
-    wire    [USER_BITS-1:0]     m_user;
-    wire                        m_valid;
-    wire                        m_ready;
+    wire                        ff_m_first;
+    wire                        ff_m_last;
+    wire    [FIRST_BITS-1:0]    ff_m_added_first;
+    wire    [LAST_BITS-1:0]     ff_m_added_last;
+    wire    [USER_BITS-1:0]     ff_m_user;
+    wire                        ff_m_valid;
+    wire                        ff_m_ready;
     jelly_data_ff_pack
             #(
                 .DATA0_WIDTH    (HAS_FIRST ? 1 : 0),

@@ -15,13 +15,13 @@
 module jelly_axi4s_fifo
         #(
             parameter   ASYNC       = 1,
-            parameter   HAS_FIRST   = 1,
+            parameter   HAS_FIRST   = 0,
             parameter   HAS_LAST    = 1,
-            parameter   HAS_STRB    = 1,
-            parameter   HAS_KEEP    = 1,
+            parameter   HAS_STRB    = 0,
+            parameter   HAS_KEEP    = 0,
             
             parameter   BYTE_WIDTH  = 8,
-            parameter   TDATA_WIDTH = 32,
+            parameter   TDATA_WIDTH = 64,
             parameter   TSTRB_WIDTH = HAS_STRB ? (TDATA_WIDTH / BYTE_WIDTH) : 0,
             parameter   TKEEP_WIDTH = HAS_KEEP ? (TDATA_WIDTH / BYTE_WIDTH) : 0,
             parameter   TUSER_WIDTH = 0,

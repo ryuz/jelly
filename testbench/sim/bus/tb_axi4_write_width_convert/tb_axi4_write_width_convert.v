@@ -56,9 +56,12 @@ module tb_axi4_write_width_convert();
     parameter   AW_W_ASYNC        = (AWASYNC || WASYNC);
     parameter   BYTE_WIDTH        = 8;
     
-    parameter   HAS_WSTRB         = 1;
-    parameter   HAS_WFIRST        = 0;
-    parameter   HAS_WLAST         = 0;
+    parameter   HAS_S_WSTRB       = 1;
+    parameter   HAS_S_WFIRST      = 0;
+    parameter   HAS_S_WLAST       = 0;
+    parameter   HAS_M_WSTRB       = 1;
+    parameter   HAS_M_WFIRST      = 1;
+    parameter   HAS_M_WLAST       = 1;
     
     parameter   AWADDR_WIDTH      = 49;
     parameter   AWUSER_WIDTH      = 0;
@@ -117,6 +120,11 @@ module tb_axi4_write_width_convert();
     reg     [S_WUSER_BITS-1:0]      s_wuser;
     reg                             s_wvalid;
     wire                            s_wready;
+    reg                             s_wparam_detect_first = 0;
+    reg                             s_wparam_detect_last  = 0;
+    reg                             s_wparam_padding_en   = 0;
+    reg     [S_WDATA_WIDTH-1:0]     s_wparam_padding_data = 0;
+    reg     [S_WSTRB_WIDTH-1:0]     s_wparam_padding_strb = 0;
     wire    [WFIFO_PTR_WIDTH:0]     s_wfifo_free_count;
     wire                            s_wfifo_wr_signal;
     
@@ -138,95 +146,103 @@ module tb_axi4_write_width_convert();
     
     jelly_axi4_write_width_convert
             #(
-                .AWASYNC            (AWASYNC),
-                .WASYNC             (WASYNC),
-                .AW_W_ASYNC         (AW_W_ASYNC),
-                .BYTE_WIDTH         (BYTE_WIDTH),
+                .AWASYNC                (AWASYNC),
+                .WASYNC                 (WASYNC),
+                .AW_W_ASYNC             (AW_W_ASYNC),
+                .BYTE_WIDTH             (BYTE_WIDTH),
                 
-                .HAS_WSTRB          (HAS_WSTRB),
-                .HAS_WFIRST         (HAS_WFIRST),
-                .HAS_WLAST          (HAS_WLAST),
+                .HAS_S_WSTRB            (HAS_S_WSTRB),
+                .HAS_S_WFIRST           (HAS_S_WFIRST),
+                .HAS_S_WLAST            (HAS_S_WLAST),
+                .HAS_M_WSTRB            (HAS_M_WSTRB),
+                .HAS_M_WFIRST           (HAS_M_WFIRST),
+                .HAS_M_WLAST            (HAS_M_WLAST),
                 
-                .AWADDR_WIDTH       (AWADDR_WIDTH),
-                .AWUSER_WIDTH       (AWUSER_WIDTH),
+                .AWADDR_WIDTH           (AWADDR_WIDTH),
+                .AWUSER_WIDTH           (AWUSER_WIDTH),
                 
-                .S_WDATA_WIDTH      (S_WDATA_WIDTH),
-                .S_WSTRB_WIDTH      (S_WSTRB_WIDTH),
-                .S_WUSER_WIDTH      (S_WUSER_WIDTH),
-                .S_AWLEN_WIDTH      (S_AWLEN_WIDTH),
-                .S_AWLEN_OFFSET     (S_AWLEN_OFFSET),
-                .S_AWUSER_WIDTH     (S_AWUSER_WIDTH),
+                .S_WDATA_WIDTH          (S_WDATA_WIDTH),
+                .S_WSTRB_WIDTH          (S_WSTRB_WIDTH),
+                .S_WUSER_WIDTH          (S_WUSER_WIDTH),
+                .S_AWLEN_WIDTH          (S_AWLEN_WIDTH),
+                .S_AWLEN_OFFSET         (S_AWLEN_OFFSET),
+                .S_AWUSER_WIDTH         (S_AWUSER_WIDTH),
                 
-                .M_WDATA_SIZE       (M_WDATA_SIZE),
-                .M_WDATA_WIDTH      (M_WDATA_WIDTH),
-                .M_WSTRB_WIDTH      (M_WSTRB_WIDTH),
-                .M_WUSER_WIDTH      (M_WUSER_WIDTH),
-                .M_AWLEN_WIDTH      (M_AWLEN_WIDTH),
-                .M_AWLEN_OFFSET     (M_AWLEN_OFFSET),
-                .M_AWUSER_WIDTH     (M_AWUSER_WIDTH),
+                .M_WDATA_SIZE           (M_WDATA_SIZE),
+                .M_WDATA_WIDTH          (M_WDATA_WIDTH),
+                .M_WSTRB_WIDTH          (M_WSTRB_WIDTH),
+                .M_WUSER_WIDTH          (M_WUSER_WIDTH),
+                .M_AWLEN_WIDTH          (M_AWLEN_WIDTH),
+                .M_AWLEN_OFFSET         (M_AWLEN_OFFSET),
+                .M_AWUSER_WIDTH         (M_AWUSER_WIDTH),
                 
-                .WFIFO_PTR_WIDTH    (WFIFO_PTR_WIDTH),
-                .WFIFO_RAM_TYPE     (WFIFO_RAM_TYPE),
-                .WFIFO_LOW_DEALY    (WFIFO_LOW_DEALY),
-                .WFIFO_DOUT_REGS    (WFIFO_DOUT_REGS),
-                .WFIFO_S_REGS       (WFIFO_S_REGS),
-                .WFIFO_M_REGS       (WFIFO_M_REGS),
+                .WFIFO_PTR_WIDTH        (WFIFO_PTR_WIDTH),
+                .WFIFO_RAM_TYPE         (WFIFO_RAM_TYPE),
+                .WFIFO_LOW_DEALY        (WFIFO_LOW_DEALY),
+                .WFIFO_DOUT_REGS        (WFIFO_DOUT_REGS),
+                .WFIFO_S_REGS           (WFIFO_S_REGS),
+                .WFIFO_M_REGS           (WFIFO_M_REGS),
                 
-                .AWFIFO_PTR_WIDTH   (AWFIFO_PTR_WIDTH),
-                .AWFIFO_RAM_TYPE    (AWFIFO_RAM_TYPE),
-                .AWFIFO_LOW_DEALY   (AWFIFO_LOW_DEALY),
-                .AWFIFO_DOUT_REGS   (AWFIFO_DOUT_REGS),
-                .AWFIFO_S_REGS      (AWFIFO_S_REGS),
-                .AWFIFO_M_REGS      (AWFIFO_M_REGS),
+                .AWFIFO_PTR_WIDTH       (AWFIFO_PTR_WIDTH),
+                .AWFIFO_RAM_TYPE        (AWFIFO_RAM_TYPE),
+                .AWFIFO_LOW_DEALY       (AWFIFO_LOW_DEALY),
+                .AWFIFO_DOUT_REGS       (AWFIFO_DOUT_REGS),
+                .AWFIFO_S_REGS          (AWFIFO_S_REGS),
+                .AWFIFO_M_REGS          (AWFIFO_M_REGS),
                 
-                .DATFIFO_PTR_WIDTH  (DATFIFO_PTR_WIDTH),
-                .DATFIFO_RAM_TYPE   (DATFIFO_RAM_TYPE),
-                .DATFIFO_LOW_DEALY  (DATFIFO_LOW_DEALY),
-                .DATFIFO_DOUT_REGS  (DATFIFO_DOUT_REGS),
-                .DATFIFO_S_REGS     (DATFIFO_S_REGS),
-                .DATFIFO_M_REGS     (DATFIFO_M_REGS)
+                .DATFIFO_PTR_WIDTH      (DATFIFO_PTR_WIDTH),
+                .DATFIFO_RAM_TYPE       (DATFIFO_RAM_TYPE),
+                .DATFIFO_LOW_DEALY      (DATFIFO_LOW_DEALY),
+                .DATFIFO_DOUT_REGS      (DATFIFO_DOUT_REGS),
+                .DATFIFO_S_REGS         (DATFIFO_S_REGS),
+                .DATFIFO_M_REGS         (DATFIFO_M_REGS)
             )
         i_axi4_write_width_convert
             (
-                .endian             (endian),
+                .endian                 (endian),
                 
-                .s_awresetn         (s_awresetn),
-                .s_awclk            (s_awclk),
-                .s_awaddr           (s_awaddr),
-                .s_awlen            (s_awlen),
-                .s_awuser           (s_awuser),
-                .s_awvalid          (s_awvalid),
-                .s_awready          (s_awready),
+                .s_awresetn             (s_awresetn),
+                .s_awclk                (s_awclk),
+                .s_awaddr               (s_awaddr),
+                .s_awlen                (s_awlen),
+                .s_awuser               (s_awuser),
+                .s_awvalid              (s_awvalid),
+                .s_awready              (s_awready),
                 
-                .s_wresetn          (s_wresetn),
-                .s_wclk             (s_wclk),
-                .s_wdata            (s_wdata),
-                .s_wstrb            (s_wstrb),
-                .s_wuser            (s_wuser),
-                .s_wvalid           (s_wvalid),
-                .s_wready           (s_wready),
-                .s_wfifo_free_count (s_wfifo_free_count),
-                .s_wfifo_wr_signal  (s_wfifo_wr_signal),
+                .s_wresetn              (s_wresetn),
+                .s_wclk                 (s_wclk),
+                .s_wdata                (s_wdata),
+                .s_wstrb                (s_wstrb),
+                .s_wuser                (s_wuser),
+                .s_wvalid               (s_wvalid),
+                .s_wready               (s_wready),
+                .s_wparam_detect_first  (s_wparam_detect_first),
+                .s_wparam_detect_last   (s_wparam_detect_last),
+                .s_wparam_padding_en    (s_wparam_padding_en),
+                .s_wparam_padding_data  (s_wparam_padding_data),
+                .s_wparam_padding_strb  (s_wparam_padding_strb),
+                .s_wfifo_free_count     (s_wfifo_free_count),
+                .s_wfifo_wr_signal      (s_wfifo_wr_signal),
                 
-                .m_awresetn         (m_awresetn),
-                .m_awclk            (m_awclk),
-                .m_awaddr           (m_awaddr),
-                .m_awlen            (m_awlen),
-                .m_awuser           (m_awuser),
-                .m_awvalid          (m_awvalid),
-                .m_awready          (m_awready),
+                .m_awresetn             (m_awresetn),
+                .m_awclk                (m_awclk),
+                .m_awaddr               (m_awaddr),
+                .m_awlen                (m_awlen),
+                .m_awuser               (m_awuser),
+                .m_awvalid              (m_awvalid),
+                .m_awready              (m_awready),
                 
-                .m_wresetn          (m_wresetn),
-                .m_wclk             (m_wclk),
-                .m_wdata            (m_wdata),
-                .m_wstrb            (m_wstrb),
-                .m_wfirst           (m_wfirst),
-                .m_wlast            (m_wlast),
-                .m_wuser            (m_wuser),
-                .m_wvalid           (m_wvalid),
-                .m_wready           (m_wready),
-                .m_wfifo_data_count (m_wfifo_data_count),
-                .m_wfifo_rd_signal  (m_wfifo_rd_signal)
+                .m_wresetn              (m_wresetn),
+                .m_wclk                 (m_wclk),
+                .m_wdata                (m_wdata),
+                .m_wstrb                (m_wstrb),
+                .m_wfirst               (m_wfirst),
+                .m_wlast                (m_wlast),
+                .m_wuser                (m_wuser),
+                .m_wvalid               (m_wvalid),
+                .m_wready               (m_wready),
+                .m_wfifo_data_count     (m_wfifo_data_count),
+                .m_wfifo_rd_signal      (m_wfifo_rd_signal)
             );
     
     always @(posedge s_wclk) begin

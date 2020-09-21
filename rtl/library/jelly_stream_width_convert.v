@@ -14,14 +14,14 @@
 
 module jelly_stream_width_convert
         #(
-            parameter UNIT_WIDTH          = 8,
-            parameter S_NUM               = 3,
-            parameter M_NUM               = 4,
+            parameter UNIT_WIDTH          = 32,
+            parameter S_NUM               = 1,
+            parameter M_NUM               = 2,
             parameter HAS_FIRST           = 0,                          // first を備える
             parameter HAS_LAST            = 0,                          // last を備える
             parameter AUTO_FIRST          = (HAS_LAST & !HAS_FIRST),    // last の次を自動的に first とする
-            parameter HAS_ALIGN_S         = 1,                          // slave 側のアライメントを指定する
-            parameter HAS_ALIGN_M         = 1,                          // master 側のアライメントを指定する
+            parameter HAS_ALIGN_S         = 0,                          // slave 側のアライメントを指定する
+            parameter HAS_ALIGN_M         = 0,                          // master 側のアライメントを指定する
             parameter FIRST_OVERWRITE     = 0,  // first時前方に残変換があれば吐き出さずに上書き
             parameter FIRST_FORCE_LAST    = 0,  // first時前方に残変換があれば強制的にlastを付与(残が無い場合はlastはつかない)
             parameter ALIGN_S_WIDTH       = S_NUM <=   2 ? 1 :
@@ -44,7 +44,7 @@ module jelly_stream_width_convert
                                             M_NUM <= 512 ? 9 : 10,
             parameter USER_F_WIDTH        = 0,
             parameter USER_L_WIDTH        = 0,
-            parameter S_REGS              = (S_NUM != M_NUM),
+            parameter S_REGS              = 0, // (S_NUM != M_NUM),
             
             // local
             parameter S_DATA_WIDTH        = S_NUM*UNIT_WIDTH,
@@ -171,8 +171,8 @@ module jelly_stream_width_convert
                 .clk            (clk),
                 .cke            (cke),
                 
-                .s_data0        (s_last),
-                .s_data1        (s_first | auto_first),
+                .s_data0        ((HAS_LAST  ? s_last  : 1'b0)),
+                .s_data1        ((HAS_FIRST ? s_first : 1'b0) | auto_first),
                 .s_data2        (s_data_align),
                 .s_data3        (s_user_f),
                 .s_data4        (s_user_l),
@@ -198,8 +198,7 @@ module jelly_stream_width_convert
     // -----------------------------------------
     
     generate
-    if ( S_DATA_WIDTH != M_DATA_WIDTH ) begin : blk_packing
-        
+    if ( S_DATA_WIDTH != M_DATA_WIDTH || HAS_ALIGN_S || HAS_ALIGN_M ) begin : blk_packing
         integer                     i;
         
         wire    [M_DATA_WIDTH-1:0]  padding_data = {M_NUM{padding}};
@@ -364,7 +363,7 @@ module jelly_stream_width_convert
     end
     else begin : blk_bypass
         assign ff_s_ready = m_ready;
-        assign m_first    = ff_s_first;
+        assign m_first    = ff_s_first || auto_first;
         assign m_last     = ff_s_last;
         assign m_data     = ff_s_data;
         assign m_user_f   = ff_s_user_f;
