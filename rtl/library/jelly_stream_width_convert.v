@@ -293,7 +293,9 @@ module jelly_stream_width_convert
                 // last なしで first が来た時は残があれば吐き出し待ち
                 if ( HAS_FIRST && ff_s_valid && ff_s_first && next_count > 0 ) begin
                     next_final = 1'b1;
-                    next_lflag = FIRST_FORCE_LAST;
+                    if ( FIRST_FORCE_LAST ) begin
+                        next_lflag = 1'b1;
+                    end
                 end
                 sig_ready = (!next_final && (BUF_NUM - next_count >= S_NUM));
             end
