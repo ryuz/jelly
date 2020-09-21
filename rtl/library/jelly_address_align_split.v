@@ -20,9 +20,9 @@ module jelly_address_align_split
             parameter   ADDR_WIDTH    = 32,
             parameter   UNIT_SIZE     = 3,      // log2 (0:1byte, 1:2byte, 2:4byte, 3:8byte, ...)
             parameter   LEN_WIDTH     = 8,
+            parameter   LEN_OFFSET    = 1'b1,
             parameter   ALIGN         = 12,     // 2^n
             parameter   S_REGS        = 1,
-            parameter   M_REGS        = 1,
             
             // local
             parameter   USER_BITS     = USER_WIDTH > 0 ? USER_WIDTH : 1
@@ -76,14 +76,6 @@ module jelly_address_align_split
         wire                        ff_s_valid;
         wire                        ff_s_ready;
         
-        wire    [ADDR_WIDTH-1:0]    ff_m_addr;
-        wire    [LEN_WIDTH-1:0]     ff_m_len;
-        wire                        ff_m_first;
-        wire                        ff_m_last;
-        wire    [USER_BITS-1:0]     ff_m_user;
-        wire                        ff_m_valid;
-        wire                        ff_m_ready;
-        
         jelly_data_ff_pack
                 #(
                     .DATA0_WIDTH        (ADDR_WIDTH),
@@ -117,48 +109,14 @@ module jelly_address_align_split
                     .m_ready            (ff_s_ready)
                 );
         
-        jelly_data_ff_pack
-                #(
-                    .DATA0_WIDTH        (ADDR_WIDTH),
-                    .DATA1_WIDTH        (LEN_WIDTH),
-                    .DATA2_WIDTH        (1),
-                    .DATA3_WIDTH        (1),
-                    .DATA4_WIDTH        (USER_WIDTH),
-                    .S_REGS             (S_REGS),
-                    .M_REGS             (0)
-                )
-            i_data_ff_pack_m
-                (
-                    .reset              (reset),
-                    .clk                (clk),
-                    .cke                (cke),
-                    
-                    .s_data0            (ff_m_addr),
-                    .s_data1            (ff_m_len),
-                    .s_data2            (ff_m_first),
-                    .s_data3            (ff_m_last),
-                    .s_data4            (ff_m_user),
-                    .s_valid            (ff_m_valid),
-                    .s_ready            (ff_m_ready),
-                    
-                    .m_data0            (m_addr),
-                    .m_data1            (m_len),
-                    .m_data2            (m_first),
-                    .m_data3            (m_last),
-                    .m_data4            (m_user),
-                    .m_valid            (m_valid),
-                    .m_ready            (m_ready)
-                );
-        
-        
         
         // ---------------------------------
         //  Core
         // ---------------------------------
         
         wire    [UNIT_ALIGN:0]      align_addr = (1 << UNIT_ALIGN);
-        wire    [UNIT_ALIGN:0]      unit_addr  = ff_s_addr[ALIGN-1:DATA_SIZE];
-        wire    [UNIT_ALIGN:0]      end_addr   = {1'b0, unit_addr} + ff_s_len;
+        wire    [UNIT_ALIGN:0]      unit_addr  = ff_s_addr[ALIGN-1:UNIT_SIZE];
+        wire    [UNIT_ALIGN:0]      end_addr   = {1'b0, unit_addr} + ff_s_len + (LEN_OFFSET - 1'b1);
         wire                        align_over = ff_s_valid && end_addr[UNIT_ALIGN];
         
         reg                         reg_split;
@@ -171,8 +129,8 @@ module jelly_address_align_split
         reg     [LEN_WIDTH-1:0]     reg_len_base;
         reg                         reg_valid;
         
-        always @(posedge aclk) begin
-            if ( ~aresetn ) begin
+        always @(posedge clk) begin
+            if ( reset ) begin
                 reg_split    <= 1'b0;
                 reg_first    <= 1'bx;
                 reg_last     <= 1'bx;
@@ -183,7 +141,7 @@ module jelly_address_align_split
                 reg_len_base <= {LEN_WIDTH{1'bx}};
                 reg_valid    <= 1'b0;
             end
-            else if ( cke && ff_ready ) begin
+            else if ( cke && (!m_valid || m_ready) ) begin
                 reg_valid <= 1'b0;
                 if ( !reg_split ) begin
                     reg_first    <= ff_s_first;
@@ -197,28 +155,28 @@ module jelly_address_align_split
                     if ( align_over ) begin
                         reg_split <= 1'b1;
                         reg_last  <= 1'b0;
-                        reg_len   <= align_addr - unit_addr - 1'b1;
+                        reg_len   <= align_addr - unit_addr - LEN_OFFSET;
                     end
                 end
                 else begin
                     reg_first <= 1'b0;
                     reg_last  <= reg_lflasg;
                     reg_split <= 1'b0;
-                    reg_addr  <= reg_addr + ((reg_len + 1'b1) << DATA_SIZE);
-                    reg_len   <= reg_len_base - reg_len - 1'b1;
+                    reg_addr  <= reg_addr + ((reg_len + 1'b1) << UNIT_SIZE);
+                    reg_len   <= reg_len_base - reg_len - LEN_OFFSET;
                     reg_valid <= 1'b1;
                 end
             end
         end
         
-        assign ff_m_first = reg_first;
-        assign ff_m_last  = reg_last & ;
-        assign ff_m_user  = reg_user;
-        assign ff_m_addr  = reg_addr;
-        assign ff_m_len   = reg_len;
-        assign ff_m_valid = reg_valid;
+        assign m_first = reg_first;
+        assign m_last  = reg_last;
+        assign m_user  = reg_user;
+        assign m_addr  = reg_addr;
+        assign m_len   = reg_len;
+        assign m_valid = reg_valid;
         
-        assign ff_s_ready = (!ff_m_valid || ff_m_ready) && ~reg_split;
+        assign ff_s_ready = (!m_valid || m_ready) && ~reg_split;
     end
     endgenerate
     

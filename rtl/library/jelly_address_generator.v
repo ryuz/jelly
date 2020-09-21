@@ -1,8 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- The FPGA processing system
 //
-//                                 Copyright (C) 2008-2017 by Ryuji Fuchikami
-//                                 http://ryuz.my.coocan.jp/
+//                                 Copyright (C) 2008-2020 by Ryuji Fuchikami
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
@@ -17,6 +16,7 @@
 module jelly_address_generator
         #(
             parameter   ADDR_WIDTH  = 32,
+            parameter   ADDR_UNIT   = 1,
             parameter   SIZE_WIDTH  = 32,
             parameter   LEN_WIDTH   = 8,
             parameter   SIZE_OFFSET = 1'b0,
@@ -103,7 +103,7 @@ module jelly_address_generator
                     st0_valid     <= ff_s_valid;
                 end
                 else begin
-                    st0_addr      <= st0_addr + st0_max_len + LEN_OFFSET;
+                    st0_addr      <= st0_addr + (st0_max_len + LEN_OFFSET) * ADDR_UNIT;
                     st0_size      <= st0_size - st0_max_len - LEN_OFFSET;
                     st0_valid     <= !st0_last;
                 end
