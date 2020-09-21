@@ -18,7 +18,8 @@ module jelly_func_shift
             parameter   OUT_WIDTH   = 32,
             parameter   SHIFT_LEFT  = 0,    // 負の値もOK
             parameter   SHIFT_RIGHT = 0,    // 負の値もOK
-            parameter   ARITHMETIC  = 0
+            parameter   ARITHMETIC  = 0,
+            parameter   ROUNDUP     = 0
         )
         (
             input   wire    [IN_WIDTH-1:0]  in,
@@ -28,23 +29,26 @@ module jelly_func_shift
     localparam  VAL = SHIFT_RIGHT - SHIFT_LEFT;
     
     generate
-    if ( ARITHMETIC ) begin
-        if ( VAL >= 0 ) begin : blk_sar
-            assign out = (in >>> VAL);
-        end
-        else begin : blk_sal
-            assign out = (in <<< (-VAL));
-        end
+    if ( ARITHMETIC && VAL >= 0 && ROUNDUP ) begin : blk_sar_roundup
+        assign out = ((in + ((1 << VAL) - 1)) >>> VAL);
     end
-    else begin
-        if ( VAL >= 0 ) begin : blk_slr
-            assign out = (in >> VAL);
-        end
-        else begin : blk_sll
-            assign out = (in << (-VAL));
-        end
+    else if ( ARITHMETIC && VAL >= 0 && !ROUNDUP ) begin : blk_sar
+        assign out = (in >>> VAL);
+    end
+    else if ( ARITHMETIC && VAL < 0 ) begin : blk_sal
+        assign out = (in <<< (-VAL));
+    end
+    else if ( !ARITHMETIC && VAL >= 0 && ROUNDUP ) begin : blk_slr_roundup
+        assign out = ((in + ((1 << VAL) - 1)) >> VAL);
+    end
+    else if ( !ARITHMETIC && VAL >= 0 && !ROUNDUP ) begin : blk_slr
+        assign out = (in >> VAL);
+    end
+    else if ( !ARITHMETIC && VAL < 0 ) begin : blk_sll
+        assign out = (in << (-VAL));
     end
     endgenerate
+    
     
 endmodule
 
