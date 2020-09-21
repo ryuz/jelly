@@ -189,6 +189,10 @@ module jelly_axi4_write_width_convert
             )
         i_data_split_pack2_aw
             (
+                .reset              (~s_awresetn),
+                .clk                (s_awclk),
+                .cke                (1'b1),
+                
                 .s_data0_0          (adrcnv_awaddr),
                 .s_data0_1          (adrcnv_awlen_m),
                 .s_data0_2          (adrcnv_awuser),
@@ -283,6 +287,8 @@ module jelly_axi4_write_width_convert
                 .s_valid            (dat_awvalid),
                 .s_ready            (dat_awready),
                 
+                .m_reset            (~s_wresetn),
+                .m_clk              (s_wclk),
                 .m_data0            (datfifo_awlen),
                 .m_data1            (datfifo_align),
                 .m_valid            (datfifo_awvalid),
