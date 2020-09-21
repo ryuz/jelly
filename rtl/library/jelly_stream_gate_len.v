@@ -18,10 +18,14 @@ module jelly_stream_gate_len
             parameter   DATA_WIDTH    = 32,
             parameter   LEN_WIDTH     = 32,
             parameter   LEN_OFFSET    = 1'b1,
+            parameter   USER_WIDTH    = 0,
             
             parameter   S_PERMIT_REGS = 1,
             parameter   S_REGS        = 1,
-            parameter   M_REGS        = 1
+            parameter   M_REGS        = 1,
+            
+            // local
+            parameter   USER_BITS     = USER_WIDTH > 0 ? USER_WIDTH : 1
         )
         (
             input   wire                        reset,
@@ -31,6 +35,7 @@ module jelly_stream_gate_len
             input   wire    [LEN_WIDTH-1:0]     s_permit_len,
             input   wire                        s_permit_first,
             input   wire                        s_permit_last,
+            input   wire    [USER_BITS-1:0]     s_permit_user,
             input   wire                        s_permit_valid,
             output  wire                        s_permit_ready,
             
@@ -41,6 +46,7 @@ module jelly_stream_gate_len
             output  wire                        m_first,
             output  wire                        m_last,
             output  wire    [DATA_WIDTH-1:0]    m_data,
+            output  wire    [USER_BITS-1:0]     m_user,
             output  wire                        m_valid,
             input   wire                        m_ready
         );
@@ -49,6 +55,7 @@ module jelly_stream_gate_len
     wire    [LEN_WIDTH-1:0]     ff_s_permit_len;
     wire                        ff_s_permit_first;
     wire                        ff_s_permit_last;
+    wire    [USER_BITS-1:0]     ff_s_permit_user;
     wire                        ff_s_permit_valid;
     wire                        ff_s_permit_ready;
     
@@ -59,12 +66,16 @@ module jelly_stream_gate_len
     wire                        ff_m_first;
     wire                        ff_m_last;
     wire    [DATA_WIDTH-1:0]    ff_m_data;
+    wire    [USER_BITS-1:0]     ff_m_user;
     wire                        ff_m_valid;
     wire                        ff_m_ready;
     
-    jelly_data_ff
+    jelly_data_ff_pack
             #(
-                .DATA_WIDTH     (LEN_WIDTH + 2),
+                .DATA0_WIDTH    (LEN_WIDTH),
+                .DATA1_WIDTH    (1),
+                .DATA2_WIDTH    (1),
+                .DATA3_WIDTH    (USER_WIDTH),
                 .S_REGS         (S_PERMIT_REGS),
                 .M_REGS         (0)
             )
@@ -74,11 +85,17 @@ module jelly_stream_gate_len
                 .clk            (clk),
                 .cke            (cke),
                 
-                .s_data         ({s_permit_len, s_permit_first, s_permit_last}),
+                .s_data0        (s_permit_len),
+                .s_data1        (s_permit_first),
+                .s_data2        (s_permit_last),
+                .s_data3        (s_permit_user),
                 .s_valid        (s_permit_valid),
                 .s_ready        (s_permit_ready),
                 
-                .m_data         ({ff_s_permit_len, ff_s_permit_first, ff_s_permit_last}),
+                .m_data0        (ff_s_permit_len),
+                .m_data1        (ff_s_permit_first),
+                .m_data2        (ff_s_permit_last),
+                .m_data3        (ff_s_permit_user),
                 .m_valid        (ff_s_permit_valid),
                 .m_ready        (ff_s_permit_ready)
             );
@@ -105,11 +122,14 @@ module jelly_stream_gate_len
             );
     
     
-    jelly_pipeline_insert_ff
+    jelly_data_ff_pack
             #(
-                .DATA_WIDTH     (2+DATA_WIDTH),
-                .SLAVE_REGS     (0),
-                .MASTER_REGS    (M_REGS)
+                .DATA0_WIDTH    (1),
+                .DATA1_WIDTH    (1),
+                .DATA2_WIDTH    (DATA_WIDTH),
+                .DATA3_WIDTH    (USER_WIDTH),
+                .S_REGS         (0),
+                .M_REGS         (M_REGS)
             )
         i_data_ff_m
             (
@@ -117,11 +137,17 @@ module jelly_stream_gate_len
                 .clk            (clk),
                 .cke            (cke),
                 
-                .s_data         ({ff_m_first, ff_m_last, ff_m_data}),
+                .s_data0        (ff_m_first),
+                .s_data1        (ff_m_last),
+                .s_data2        (ff_m_data),
+                .s_data3        (ff_m_user),
                 .s_valid        (ff_m_valid),
                 .s_ready        (ff_m_ready),
                 
-                .m_data         ({m_first, m_last, m_data}),
+                .m_data0        (m_first),
+                .m_data1        (m_last),
+                .m_data2        (m_data),
+                .m_data3        (m_user),
                 .m_valid        (m_valid),
                 .m_ready        (m_ready)
             );
@@ -134,6 +160,7 @@ module jelly_stream_gate_len
     reg                             reg_end;
     reg                             reg_first;
     reg                             reg_last;
+    reg     [USER_BITS-1:0]         reg_user;
     
     always @(posedge clk) begin
         if ( reset ) begin
@@ -142,6 +169,7 @@ module jelly_stream_gate_len
             reg_end   <= 1'bx;
             reg_first <= 1'bx;
             reg_last  <= 1'bx;
+            reg_user  <= {USER_BITS{1'bx}};
         end
         else if ( cke ) begin
             if ( ff_s_permit_valid & ff_s_permit_ready ) begin
@@ -150,6 +178,7 @@ module jelly_stream_gate_len
                 reg_end   <= (ff_s_permit_len == (1'b1 - LEN_OFFSET));
                 reg_first <= ff_s_permit_first;
                 reg_last  <= ff_s_permit_last;
+                reg_user  <= ff_s_permit_user;
             end
             else begin
                 if ( ff_m_ready && ff_m_valid ) begin
@@ -177,6 +206,7 @@ module jelly_stream_gate_len
     assign ff_m_first  = reg_first;
     assign ff_m_last   = reg_last & reg_end;
     assign ff_m_data   = ff_s_data;
+    assign ff_m_user   = reg_user;
     assign ff_m_valid  = ff_s_valid & reg_busy;
     
     
