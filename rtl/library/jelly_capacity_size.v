@@ -54,11 +54,12 @@ module jelly_capacity_size
     wire    [CMD_SIZE_WIDTH-1:0]    ff_s_size;
     wire                            ff_s_valid;
     wire                            ff_s_ready;
-    jelly_pipeline_insert_ff
+    jelly_data_ff_pack
             #(
-                .DATA_WIDTH         (CMD_USER_BITS + CMD_SIZE_WIDTH ),
-                .SLAVE_REGS         (S_REGS),
-                .MASTER_REGS        (S_REGS)
+                .DATA0_WIDTH        (CMD_USER_WIDTH),
+                .DATA1_WIDTH        (CMD_SIZE_WIDTH),
+                .S_REGS             (S_REGS),
+                .M_REGS             (S_REGS)
             )
         i_pipeline_insert_ff_s
             (
@@ -66,16 +67,15 @@ module jelly_capacity_size
                 .clk                (clk),
                 .cke                (cke),
                 
-                .s_data             ({s_cmd_user, s_cmd_size}),
+                .s_data0            (s_cmd_user),
+                .s_data1            (s_cmd_size),
                 .s_valid            (s_cmd_valid),
                 .s_ready            (s_cmd_ready),
                 
-                .m_data             ({ff_s_user, ff_s_size}),
+                .m_data0            (ff_s_user),
+                .m_data1            (ff_s_size),
                 .m_valid            (ff_s_valid),
-                .m_ready            (ff_s_ready),
-                
-                .buffered           (),
-                .s_ready_next       ()
+                .m_ready            (ff_s_ready)
             );
     
     // recieve request
@@ -107,14 +107,14 @@ module jelly_capacity_size
         assign ff_s_ready = (!rx_valid || rx_ready);
         assign rx_user    = reg_rx_user;
         assign rx_size    = reg_rx_size;
-        assign rx_issue   = rx_ready ? reg_rx_issue : 0;
+        assign rx_issue   = reg_rx_issue;
         assign rx_valid   = reg_rx_valid;
     end
     else begin : rx_bypass
         assign ff_s_ready = rx_ready;
         assign rx_user    = ff_s_user;
         assign rx_size    = ff_s_size;
-        assign rx_issue   = (ff_s_valid & ff_s_ready) ? ({1'b0, ff_s_size} + CMD_SIZE_OFFSET) : 0;
+        assign rx_issue   = ff_s_valid ? ({1'b0, ff_s_size} + CMD_SIZE_OFFSET) : 0;
         assign rx_valid   = ff_s_valid;
     end
     endgenerate
@@ -122,8 +122,6 @@ module jelly_capacity_size
     
     // capacity control
     reg     [CAPACITY_WIDTH-1:0]    reg_charge;
-    wire    [CAPACITY_WIDTH-1:0]    issue_size;
-    wire                            issue_valid;
     
     reg     [CAPACITY_WIDTH-1:0]    reg_capacity;
     reg     [CAPACITY_WIDTH-1:0]    reg_capacity_sub;
@@ -141,13 +139,14 @@ module jelly_capacity_size
             reg_charge       <= s_charge_valid ? ({1'b0, s_charge_size} + CHARGE_SIZE_OFFSET) : 0;
             
             reg_capacity     <= current_capacity + reg_charge;
-            reg_capacity_sub <= current_capacity + reg_charge - issue_size;
-            reg_select_sub   <= issue_valid;
+            reg_capacity_sub <= current_capacity + reg_charge - rx_issue;
+            reg_select_sub   <= (current_capacity >= rx_issue) && rx_ready;
         end
     end
     
     assign current_capacity = reg_select_sub ? reg_capacity_sub : reg_capacity;
-    assign issue_valid      = (current_capacity >= issue_size);
+    
+//  assign issue_valid      = (current_capacity >= rx_issue);
     
     
     // transmit command
@@ -156,35 +155,34 @@ module jelly_capacity_size
     wire                            tx_valid;
     wire                            tx_ready;
     
-    assign issue_size  = rx_issue;
-    assign rx_ready    = tx_ready && issue_valid;
+    assign rx_ready    = tx_ready && (current_capacity >= rx_issue);
     
     assign tx_user     = rx_user;
     assign tx_size     = rx_size;
-    assign tx_valid    = rx_valid;
+    assign tx_valid    = rx_valid && (current_capacity >= rx_issue);
     
-    jelly_pipeline_insert_ff
+    jelly_data_ff_pack
             #(
-                .DATA_WIDTH         (CMD_USER_BITS + CMD_SIZE_WIDTH),
-                .SLAVE_REGS         (M_REGS),
-                .MASTER_REGS        (M_REGS)
+                .DATA0_WIDTH        (CMD_USER_WIDTH),
+                .DATA1_WIDTH        (CMD_SIZE_WIDTH),
+                .S_REGS             (M_REGS),
+                .M_REGS             (M_REGS)
             )
-        i_pipeline_insert_ff_m
+        i_data_ff_pack_m
             (
                 .reset              (reset),
                 .clk                (clk),
                 .cke                (cke),
                 
-                .s_data             ({tx_user, tx_size}),
+                .s_data0            (tx_user),
+                .s_data1            (tx_size),
                 .s_valid            (tx_valid),
                 .s_ready            (tx_ready),
                 
-                .m_data             ({m_cmd_user, m_cmd_size}),
+                .m_data0            (m_cmd_user),
+                .m_data1            (m_cmd_size),
                 .m_valid            (m_cmd_valid),
-                .m_ready            (m_cmd_ready),
-                
-                .buffered           (),
-                .s_ready_next       ()
+                .m_ready            (m_cmd_ready)
             );
     
     
