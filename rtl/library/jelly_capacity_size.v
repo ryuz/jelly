@@ -127,6 +127,9 @@ module jelly_capacity_size
     reg     [CAPACITY_WIDTH-1:0]    reg_capacity_sub;
     reg                             reg_select_sub;
     
+    wire                            issue_enable;
+    assign issue_enable = (current_capacity >= rx_issue);
+    
     always @(posedge clk) begin
         if ( reset ) begin
             reg_charge       <= initial_capacity;
@@ -135,18 +138,17 @@ module jelly_capacity_size
             reg_capacity_sub <= {CAPACITY_WIDTH{1'bx}};
             reg_select_sub   <= 1'b0;
         end
-        else begin
+        else if ( cke ) begin
             reg_charge       <= s_charge_valid ? ({1'b0, s_charge_size} + CHARGE_SIZE_OFFSET) : 0;
             
             reg_capacity     <= current_capacity + reg_charge;
             reg_capacity_sub <= current_capacity + reg_charge - rx_issue;
-            reg_select_sub   <= (current_capacity >= rx_issue) && rx_ready;
+            reg_select_sub   <= issue_enable && rx_ready;
         end
     end
     
     assign current_capacity = reg_select_sub ? reg_capacity_sub : reg_capacity;
     
-//  assign issue_valid      = (current_capacity >= rx_issue);
     
     
     // transmit command
@@ -155,11 +157,12 @@ module jelly_capacity_size
     wire                            tx_valid;
     wire                            tx_ready;
     
-    assign rx_ready    = tx_ready && (current_capacity >= rx_issue);
     
-    assign tx_user     = rx_user;
-    assign tx_size     = rx_size;
-    assign tx_valid    = rx_valid && (current_capacity >= rx_issue);
+    assign rx_ready     = tx_ready && issue_enable;
+    
+    assign tx_user      = rx_user;
+    assign tx_size      = rx_size;
+    assign tx_valid     = rx_valid && issue_enable;
     
     jelly_data_ff_pack
             #(

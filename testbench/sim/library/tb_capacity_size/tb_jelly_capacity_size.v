@@ -22,8 +22,8 @@ module tb_jelly_capacity_size();
 //    parameter   CMD_TIMES    = 16;
     
     parameter   CHARGE_SIZE  = 10;
-    parameter   CHARGE_TIMES = 16;
-    parameter   CMD_SIZE     = 16;
+    parameter   CHARGE_TIMES = 160;
+    parameter   CMD_SIZE     = 160;
     parameter   CMD_TIMES    = 10;
     
     
@@ -41,7 +41,7 @@ module tb_jelly_capacity_size();
     parameter   CAPACITY_WIDTH     = 32;
     parameter   CMD_USER_WIDTH     = 0;
     parameter   CMD_SIZE_WIDTH     = 8;
-    parameter   CMD_SIZE_OFFSET    = 1'b1;
+    parameter   CMD_SIZE_OFFSET    = 1'b0;
     parameter   CHARGE_WIDTH       = CAPACITY_WIDTH;
     parameter   CHARGE_SIZE_OFFSET = 1'b0;
     parameter   S_REGS             = 1;
