@@ -470,6 +470,7 @@ module jelly_data_combine_pack2
     
     jelly_func_pack
             #(
+                .W0             (DATA0_0_WIDTH),
                 .W1             (DATA0_1_WIDTH),
                 .W2             (DATA0_2_WIDTH),
                 .W3             (DATA0_3_WIDTH),
@@ -497,6 +498,7 @@ module jelly_data_combine_pack2
     
     jelly_func_unpack
             #(
+                .W0             (DATA0_0_WIDTH),
                 .W1             (DATA0_1_WIDTH),
                 .W2             (DATA0_2_WIDTH),
                 .W3             (DATA0_3_WIDTH),
@@ -535,6 +537,7 @@ module jelly_data_combine_pack2
     
     jelly_func_pack
             #(
+                .W0             (DATA1_0_WIDTH),
                 .W1             (DATA1_1_WIDTH),
                 .W2             (DATA1_2_WIDTH),
                 .W3             (DATA1_3_WIDTH),
@@ -562,6 +565,7 @@ module jelly_data_combine_pack2
     
     jelly_func_unpack
             #(
+                .W0             (DATA1_0_WIDTH),
                 .W1             (DATA1_1_WIDTH),
                 .W2             (DATA1_2_WIDTH),
                 .W3             (DATA1_3_WIDTH),
@@ -600,6 +604,7 @@ module jelly_data_combine_pack2
     
     jelly_func_pack
             #(
+                .W0             (DATA2_0_WIDTH),
                 .W1             (DATA2_1_WIDTH),
                 .W2             (DATA2_2_WIDTH),
                 .W3             (DATA2_3_WIDTH),
@@ -627,6 +632,7 @@ module jelly_data_combine_pack2
     
     jelly_func_unpack
             #(
+                .W0             (DATA2_0_WIDTH),
                 .W1             (DATA2_1_WIDTH),
                 .W2             (DATA2_2_WIDTH),
                 .W3             (DATA2_3_WIDTH),
@@ -665,6 +671,7 @@ module jelly_data_combine_pack2
     
     jelly_func_pack
             #(
+                .W0             (DATA3_0_WIDTH),
                 .W1             (DATA3_1_WIDTH),
                 .W2             (DATA3_2_WIDTH),
                 .W3             (DATA3_3_WIDTH),
@@ -692,6 +699,7 @@ module jelly_data_combine_pack2
     
     jelly_func_unpack
             #(
+                .W0             (DATA3_0_WIDTH),
                 .W1             (DATA3_1_WIDTH),
                 .W2             (DATA3_2_WIDTH),
                 .W3             (DATA3_3_WIDTH),
@@ -730,6 +738,7 @@ module jelly_data_combine_pack2
     
     jelly_func_pack
             #(
+                .W0             (DATA4_0_WIDTH),
                 .W1             (DATA4_1_WIDTH),
                 .W2             (DATA4_2_WIDTH),
                 .W3             (DATA4_3_WIDTH),
@@ -757,6 +766,7 @@ module jelly_data_combine_pack2
     
     jelly_func_unpack
             #(
+                .W0             (DATA4_0_WIDTH),
                 .W1             (DATA4_1_WIDTH),
                 .W2             (DATA4_2_WIDTH),
                 .W3             (DATA4_3_WIDTH),
@@ -795,6 +805,7 @@ module jelly_data_combine_pack2
     
     jelly_func_pack
             #(
+                .W0             (DATA5_0_WIDTH),
                 .W1             (DATA5_1_WIDTH),
                 .W2             (DATA5_2_WIDTH),
                 .W3             (DATA5_3_WIDTH),
@@ -822,6 +833,7 @@ module jelly_data_combine_pack2
     
     jelly_func_unpack
             #(
+                .W0             (DATA5_0_WIDTH),
                 .W1             (DATA5_1_WIDTH),
                 .W2             (DATA5_2_WIDTH),
                 .W3             (DATA5_3_WIDTH),
@@ -860,6 +872,7 @@ module jelly_data_combine_pack2
     
     jelly_func_pack
             #(
+                .W0             (DATA6_0_WIDTH),
                 .W1             (DATA6_1_WIDTH),
                 .W2             (DATA6_2_WIDTH),
                 .W3             (DATA6_3_WIDTH),
@@ -887,6 +900,7 @@ module jelly_data_combine_pack2
     
     jelly_func_unpack
             #(
+                .W0             (DATA6_0_WIDTH),
                 .W1             (DATA6_1_WIDTH),
                 .W2             (DATA6_2_WIDTH),
                 .W3             (DATA6_3_WIDTH),
@@ -925,6 +939,7 @@ module jelly_data_combine_pack2
     
     jelly_func_pack
             #(
+                .W0             (DATA7_0_WIDTH),
                 .W1             (DATA7_1_WIDTH),
                 .W2             (DATA7_2_WIDTH),
                 .W3             (DATA7_3_WIDTH),
@@ -952,6 +967,7 @@ module jelly_data_combine_pack2
     
     jelly_func_unpack
             #(
+                .W0             (DATA7_0_WIDTH),
                 .W1             (DATA7_1_WIDTH),
                 .W2             (DATA7_2_WIDTH),
                 .W3             (DATA7_3_WIDTH),
@@ -990,6 +1006,7 @@ module jelly_data_combine_pack2
     
     jelly_func_pack
             #(
+                .W0             (DATA8_0_WIDTH),
                 .W1             (DATA8_1_WIDTH),
                 .W2             (DATA8_2_WIDTH),
                 .W3             (DATA8_3_WIDTH),
@@ -1017,6 +1034,7 @@ module jelly_data_combine_pack2
     
     jelly_func_unpack
             #(
+                .W0             (DATA8_0_WIDTH),
                 .W1             (DATA8_1_WIDTH),
                 .W2             (DATA8_2_WIDTH),
                 .W3             (DATA8_3_WIDTH),
@@ -1055,6 +1073,7 @@ module jelly_data_combine_pack2
     
     jelly_func_pack
             #(
+                .W0             (DATA9_0_WIDTH),
                 .W1             (DATA9_1_WIDTH),
                 .W2             (DATA9_2_WIDTH),
                 .W3             (DATA9_3_WIDTH),
@@ -1082,6 +1101,7 @@ module jelly_data_combine_pack2
     
     jelly_func_unpack
             #(
+                .W0             (DATA9_0_WIDTH),
                 .W1             (DATA9_1_WIDTH),
                 .W2             (DATA9_2_WIDTH),
                 .W3             (DATA9_3_WIDTH),

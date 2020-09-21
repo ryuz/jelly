@@ -89,7 +89,7 @@ def main():
             f.write('    \n')
             f.write('    jelly_func_pack\n')
             f.write('            #(\n')
-            for j in range(1, num1):
+            for j in range(num1):
                 f.write('                .W%d             (DATA%d_%d_WIDTH)' % (j ,i, j))
                 if j == num2-1:
                     f.write('\n')
@@ -107,7 +107,7 @@ def main():
             f.write('    \n')
             f.write('    jelly_func_unpack\n')
             f.write('            #(\n')
-            for j in range(1, num1):
+            for j in range(num1):
                 f.write('                .W%d             (DATA%d_%d_WIDTH)' % (j ,i, j))
                 if j == num2-1:
                     f.write('\n')
