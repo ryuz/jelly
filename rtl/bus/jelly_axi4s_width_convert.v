@@ -15,47 +15,68 @@
 
 module jelly_axi4s_width_convert
         #(
-            parameter   HAS_STRB            = 1,
-            parameter   HAS_KEEP            = 1,
-            parameter   HAS_FIRST           = 1,
-            parameter   HAS_LAST            = 1,
+            parameter HAS_STRB         = 1,
+            parameter HAS_KEEP         = 0,
+            parameter HAS_FIRST        = 0,
+            parameter HAS_LAST         = 1,
+            parameter HAS_ALIGN_S      = 0,  // slave 側のアライメントを指定する
+            parameter HAS_ALIGN_M      = 0,  // master 側のアライメントを指定する
             
-            parameter   BYTE_WIDTH          = 8,
-            parameter   S_TDATA_WIDTH       = 8,
-            parameter   M_TDATA_WIDTH       = 32,
-            parameter   DATA_WIDTH_GCD      = BYTE_WIDTH,
+            parameter BYTE_WIDTH       = 8,
+            parameter S_TDATA_WIDTH    = 8,
+            parameter M_TDATA_WIDTH    = 32,
+            parameter S_TUSER_WIDTH    = 0,
             
-            parameter   S_TUSER_WIDTH       = 0,
+            parameter AUTO_FIRST       = (HAS_LAST & !HAS_FIRST),    // last の次を自動的に first とする
+            parameter FIRST_OVERWRITE  = 0,  // first時前方に残変換があれば吐き出さずに上書き
+            parameter FIRST_FORCE_LAST = 0,  // first時前方に残変換があれば強制的にlastを付与(残が無い場合はlastはつかない)
+            parameter ALIGN_S_WIDTH    = S_TDATA_WIDTH / BYTE_WIDTH <=   2 ? 1 :
+                                         S_TDATA_WIDTH / BYTE_WIDTH <=   4 ? 2 :
+                                         S_TDATA_WIDTH / BYTE_WIDTH <=   8 ? 3 :
+                                         S_TDATA_WIDTH / BYTE_WIDTH <=  16 ? 4 :
+                                         S_TDATA_WIDTH / BYTE_WIDTH <=  32 ? 5 :
+                                         S_TDATA_WIDTH / BYTE_WIDTH <=  64 ? 6 :
+                                         S_TDATA_WIDTH / BYTE_WIDTH <= 128 ? 7 :
+                                         S_TDATA_WIDTH / BYTE_WIDTH <= 256 ? 8 :
+                                         S_TDATA_WIDTH / BYTE_WIDTH <= 512 ? 9 : 10,
+            parameter ALIGN_M_WIDTH    = M_TDATA_WIDTH / BYTE_WIDTH <=   2 ? 1 :
+                                         M_TDATA_WIDTH / BYTE_WIDTH <=   4 ? 2 :
+                                         M_TDATA_WIDTH / BYTE_WIDTH <=   8 ? 3 :
+                                         M_TDATA_WIDTH / BYTE_WIDTH <=  16 ? 4 :
+                                         M_TDATA_WIDTH / BYTE_WIDTH <=  32 ? 5 :
+                                         M_TDATA_WIDTH / BYTE_WIDTH <=  64 ? 6 :
+                                         M_TDATA_WIDTH / BYTE_WIDTH <= 128 ? 7 :
+                                         M_TDATA_WIDTH / BYTE_WIDTH <= 256 ? 8 :
+                                         M_TDATA_WIDTH / BYTE_WIDTH <= 512 ? 9 : 10,
             
-            parameter   ALLOW_UNALIGN_FIRST = 1,
-            parameter   ALLOW_UNALIGN_LAST  = 1,
-            parameter   FIRST_FORCE_LAST    = 1,
-            parameter   FIRST_OVERWRITE     = 0,
+            parameter S_REGS           = 1,
             
-            parameter   S_REGS              = 1,
             
             // local
-            parameter   S_TSTRB_WIDTH       = S_TDATA_WIDTH / BYTE_WIDTH,
-            parameter   S_TKEEP_WIDTH       = S_TDATA_WIDTH / BYTE_WIDTH,
-            parameter   M_TSTRB_WIDTH       = M_TDATA_WIDTH / BYTE_WIDTH,
-            parameter   M_TKEEP_WIDTH       = M_TDATA_WIDTH / BYTE_WIDTH,
-            parameter   M_TUSER_WIDTH       = S_TUSER_WIDTH * M_TDATA_WIDTH / S_TDATA_WIDTH,
+            parameter S_TSTRB_WIDTH    = S_TDATA_WIDTH / BYTE_WIDTH,
+            parameter S_TKEEP_WIDTH    = S_TDATA_WIDTH / BYTE_WIDTH,
+            parameter M_TSTRB_WIDTH    = M_TDATA_WIDTH / BYTE_WIDTH,
+            parameter M_TKEEP_WIDTH    = M_TDATA_WIDTH / BYTE_WIDTH,
+            parameter M_TUSER_WIDTH    = S_TUSER_WIDTH * M_TDATA_WIDTH / S_TDATA_WIDTH,
             
-            parameter   S_TDATA_BITS        = S_TDATA_WIDTH > 0 ? S_TDATA_WIDTH : 1,
-            parameter   S_TSTRB_BITS        = S_TSTRB_WIDTH > 0 ? S_TSTRB_WIDTH : 1,
-            parameter   S_TKEEP_BITS        = S_TKEEP_WIDTH > 0 ? S_TKEEP_WIDTH : 1,
-            parameter   S_TUSER_BITS        = S_TUSER_WIDTH > 0 ? S_TUSER_WIDTH : 1,
-            parameter   M_TDATA_BITS        = M_TDATA_WIDTH > 0 ? M_TDATA_WIDTH : 1,
-            parameter   M_TSTRB_BITS        = M_TSTRB_WIDTH > 0 ? M_TSTRB_WIDTH : 1,
-            parameter   M_TKEEP_BITS        = M_TKEEP_WIDTH > 0 ? M_TKEEP_WIDTH : 1,
-            parameter   M_TUSER_BITS        = M_TUSER_WIDTH > 0 ? M_TUSER_WIDTH : 1
+            parameter S_TDATA_BITS     = S_TDATA_WIDTH > 0 ? S_TDATA_WIDTH : 1,
+            parameter S_TSTRB_BITS     = S_TSTRB_WIDTH > 0 ? S_TSTRB_WIDTH : 1,
+            parameter S_TKEEP_BITS     = S_TKEEP_WIDTH > 0 ? S_TKEEP_WIDTH : 1,
+            parameter S_TUSER_BITS     = S_TUSER_WIDTH > 0 ? S_TUSER_WIDTH : 1,
+            parameter M_TDATA_BITS     = M_TDATA_WIDTH > 0 ? M_TDATA_WIDTH : 1,
+            parameter M_TSTRB_BITS     = M_TSTRB_WIDTH > 0 ? M_TSTRB_WIDTH : 1,
+            parameter M_TKEEP_BITS     = M_TKEEP_WIDTH > 0 ? M_TKEEP_WIDTH : 1,
+            parameter M_TUSER_BITS     = M_TUSER_WIDTH > 0 ? M_TUSER_WIDTH : 1
         )
         (
             input   wire                        aresetn,
             input   wire                        aclk,
             input   wire                        aclken,
+            
             input   wire                        endian,
             
+            input   wire    [ALIGN_S_WIDTH-1:0] s_align_s,
+            input   wire    [ALIGN_M_WIDTH-1:0] s_align_m,
             input   wire    [S_TDATA_BITS-1:0]  s_axi4s_tdata,
             input   wire    [S_TSTRB_BITS-1:0]  s_axi4s_tstrb,
             input   wire    [S_TKEEP_BITS-1:0]  s_axi4s_tkeep,
@@ -76,9 +97,8 @@ module jelly_axi4s_width_convert
         );
     
     
-    localparam  NUM_GCD    = DATA_WIDTH_GCD / BYTE_WIDTH;
-    localparam  S_NUM      = S_TDATA_WIDTH / BYTE_WIDTH;
-    localparam  M_NUM      = M_TDATA_WIDTH / BYTE_WIDTH;
+    localparam  S_NUM       = S_TDATA_WIDTH / BYTE_WIDTH;
+    localparam  M_NUM       = M_TDATA_WIDTH / BYTE_WIDTH;
     
     localparam  DATA_WIDTH  = S_TDATA_WIDTH / S_NUM;
     localparam  STRB_WIDTH  = HAS_STRB ? (S_TSTRB_WIDTH / S_NUM) : 0;
@@ -122,19 +142,24 @@ module jelly_axi4s_width_convert
     
     jelly_stream_width_convert_pack
             #(
-                .NUM_GCD            (NUM_GCD),
                 .S_NUM              (S_NUM),
                 .M_NUM              (M_NUM),
                 .UNIT0_WIDTH        (DATA_WIDTH),
                 .UNIT1_WIDTH        (STRB_WIDTH),
                 .UNIT2_WIDTH        (KEEP_WIDTH),
                 .UNIT3_WIDTH        (USER_WIDTH),
+                
+                .HAS_FIRST          (HAS_FIRST),
+                .HAS_LAST           (HAS_LAST),
+                .AUTO_FIRST         (AUTO_FIRST),
+                .HAS_ALIGN_S        (HAS_ALIGN_S),
+                .HAS_ALIGN_M        (HAS_ALIGN_M),
+                .FIRST_OVERWRITE    (FIRST_OVERWRITE),
+                .FIRST_FORCE_LAST   (FIRST_FORCE_LAST),
+                .ALIGN_S_WIDTH      (ALIGN_S_WIDTH),
+                .ALIGN_M_WIDTH      (ALIGN_M_WIDTH),
                 .USER_F_WIDTH       (0),
                 .USER_L_WIDTH       (0),
-                .ALLOW_UNALIGN_FIRST(ALLOW_UNALIGN_FIRST),
-                .ALLOW_UNALIGN_LAST (ALLOW_UNALIGN_LAST),
-                .FIRST_FORCE_LAST   (FIRST_FORCE_LAST),
-                .FIRST_OVERWRITE    (FIRST_OVERWRITE),
                 .S_REGS             (S_REGS)
             )
         i_stream_width_convert_pack
@@ -150,6 +175,8 @@ module jelly_axi4s_width_convert
                 .padding2           ({KEEP_BITS{1'b0}}),
                 .padding3           ({USER_BITS{1'bx}}),
                 
+                .s_align_s          (s_align_s),
+                .s_align_m          (s_align_m),
                 .s_first            (s_conv_tfirst),
                 .s_last             (s_conv_tlast),
                 .s_data0            (s_conv_tdata),
