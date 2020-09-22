@@ -3,15 +3,15 @@
 `default_nettype none
 
 
-module tb_axi4_dma_read();
+module tb_axi4_read();
     localparam AR_RATE   = 1000.0 / 123.0;
     localparam R_RATE    = 1000.0 / 133.0;
     localparam AXI4_RATE = 1000.0 / 200.0;
     
     
     initial begin
-        $dumpfile("tb_axi4_dma_read.vcd");
-        $dumpvars(0, tb_axi4_dma_read);
+        $dumpfile("tb_axi4_read.vcd");
+        $dumpvars(0, tb_axi4_read);
         
         #100000;
             $finish;
@@ -29,7 +29,6 @@ module tb_axi4_dma_read();
     
     reg     s_rclk = 1'b1;
     always #(R_RATE/2.0)        s_rclk = ~s_rclk;
-    
     
     reg     m_aresetn = 1'b0;
     initial #(AXI4_RATE*100)    m_aresetn = 1'b1;
@@ -49,10 +48,20 @@ module tb_axi4_dma_read();
     
     parameter   ARASYNC              = 1;
     parameter   RASYNC               = 1;
+    
     parameter   BYTE_WIDTH           = 8;
+    parameter   BYPASS_GATE          = 1;
+    parameter   BYPASS_ALIGN         = 0;
+    parameter   AXI4_ALIGN           = 12;  // 2^12 = 4k が境界
+    parameter   ALLOW_UNALIGNED      = 1;
+    
+    parameter   HAS_S_RFIRST         = 0;
+    parameter   HAS_S_RLAST          = 0;
+    parameter   HAS_M_RFIRST         = 0;
+    parameter   HAS_M_RLAST          = 1;
     
     parameter   AXI4_ID_WIDTH        = 6;
-    parameter   AXI4_ADDR_WIDTH      = 49;
+    parameter   AXI4_ADDR_WIDTH      = 32;
     parameter   AXI4_DATA_SIZE       = 4;    // 0:8bit; 1:16bit; 2:32bit ...
     parameter   AXI4_DATA_WIDTH      = (BYTE_WIDTH << AXI4_DATA_SIZE);
     parameter   AXI4_LEN_WIDTH       = 8;
@@ -66,45 +75,53 @@ module tb_axi4_dma_read();
     parameter   AXI4_ARQOS           = 0;
     parameter   AXI4_ARREGION        = 4'b0000;
     
-    parameter   BYPASS_ALIGN         = 0;
-    parameter   AXI4_ALIGN           = 12;
-    
-    parameter   S_ARADDR_WIDTH       = AXI4_ADDR_WIDTH;
-    parameter   S_RDATA_SIZE         = 2;    // 0:8bit; 1:16bit; 2:32bit ...
-    parameter   S_RDATA_WIDTH        = (BYTE_WIDTH << S_RDATA_SIZE);
-    parameter   S_ARLEN_WIDTH        = 32;
-    parameter   S_ARLEN_SIZE         = S_RDATA_SIZE;
+    parameter   S_RDATA_WIDTH        = 24;
+    parameter   S_ARLEN_WIDTH        = 10;
     parameter   S_ARLEN_OFFSET       = 1'b1;
     
-    parameter   ARFIFO_PTR_WIDTH     = 4;
-    parameter   ARFIFO_RAM_TYPE      = "distributed";
-    parameter   ARFIFO_LOW_DEALY     = 1;
-    parameter   ARFIFO_DOUT_REGS     = 0;
-    parameter   ARFIFO_S_REGS        = 1;
-    parameter   ARFIFO_M_REGS        = 1;
+    parameter   ARLEN_WIDTH          = S_ARLEN_WIDTH;   // 内部キューイング用
+    parameter   ARLEN_OFFSET         = S_ARLEN_OFFSET;
+    
+    parameter   CONVERT_S_REGS       = 0;
     
     parameter   RFIFO_PTR_WIDTH      = 9;
     parameter   RFIFO_RAM_TYPE       = "block";
     parameter   RFIFO_LOW_DEALY      = 0;
     parameter   RFIFO_DOUT_REGS      = 1;
-    parameter   RFIFO_S_REGS         = 1;
+    parameter   RFIFO_S_REGS         = 0;
     parameter   RFIFO_M_REGS         = 1;
     
-    parameter   RCMD_FIFO_PTR_WIDTH  = 4;
-    parameter   RCMD_FIFO_RAM_TYPE   = "distributed";
-    parameter   RCMD_FIFO_LOW_DEALY  = 1;
-    parameter   RCMD_FIFO_DOUT_REGS  = 0;
-    parameter   RCMD_FIFO_S_REGS     = 0;
-    parameter   RCMD_FIFO_M_REGS     = 1;
+    parameter   ARFIFO_PTR_WIDTH     = 4;
+    parameter   ARFIFO_RAM_TYPE      = "distributed";
+    parameter   ARFIFO_LOW_DEALY     = 1;
+    parameter   ARFIFO_DOUT_REGS     = 0;
+    parameter   ARFIFO_S_REGS        = 0;
+    parameter   ARFIFO_M_REGS        = 0;
+    
+    parameter   SRFIFO_PTR_WIDTH     = 4;
+    parameter   SRFIFO_RAM_TYPE      = "distributed";
+    parameter   SRFIFO_LOW_DEALY     = 0;
+    parameter   SRFIFO_DOUT_REGS     = 0;
+    parameter   SRFIFO_S_REGS        = 0;
+    parameter   SRFIFO_M_REGS        = 0;
+    
+    parameter   MRFIFO_PTR_WIDTH     = 4;
+    parameter   MRFIFO_RAM_TYPE      = "distributed";
+    parameter   MRFIFO_LOW_DEALY     = 1;
+    parameter   MRFIFO_DOUT_REGS     = 0;
+    parameter   MRFIFO_S_REGS        = 0;
+    parameter   MRFIFO_M_REGS        = 0;
+    
     
     reg                                 endian = 0;
     
-    reg     [S_ARADDR_WIDTH-1:0]        s_araddr;
+    reg     [AXI4_ADDR_WIDTH-1:0]       s_araddr;
     reg     [S_ARLEN_WIDTH-1:0]         s_arlen;
     reg     [AXI4_LEN_WIDTH-1:0]        s_arlen_max;
     reg                                 s_arvalid;
     wire                                s_arready;
     
+    wire                                s_rfirst;
     wire                                s_rlast;
     wire    [S_RDATA_WIDTH-1:0]         s_rdata;
     wire                                s_rvalid;
@@ -130,53 +147,65 @@ module tb_axi4_dma_read();
     wire                                m_axi4_rready;
     
     
-    jelly_axi4_dma_read
+    jelly_axi4_read
             #(
-                .ARASYNC                (ARASYNC),
-                .RASYNC                 (RASYNC),
-                .BYTE_WIDTH             (BYTE_WIDTH),
-                .AXI4_ID_WIDTH          (AXI4_ID_WIDTH),
-                .AXI4_ADDR_WIDTH        (AXI4_ADDR_WIDTH),
-                .AXI4_DATA_SIZE         (AXI4_DATA_SIZE),
-                .AXI4_DATA_WIDTH        (AXI4_DATA_WIDTH),
-                .AXI4_LEN_WIDTH         (AXI4_LEN_WIDTH),
-                .AXI4_QOS_WIDTH         (AXI4_QOS_WIDTH),
-                .AXI4_ARID              (AXI4_ARID),
-                .AXI4_ARSIZE            (AXI4_ARSIZE),
-                .AXI4_ARBURST           (AXI4_ARBURST),
-                .AXI4_ARLOCK            (AXI4_ARLOCK),
-                .AXI4_ARCACHE           (AXI4_ARCACHE),
-                .AXI4_ARPROT            (AXI4_ARPROT),
-                .AXI4_ARQOS             (AXI4_ARQOS),
-                .AXI4_ARREGION          (AXI4_ARREGION),
-                .BYPASS_ALIGN           (BYPASS_ALIGN),
-                .AXI4_ALIGN             (AXI4_ALIGN),
-                .S_RDATA_SIZE           (S_RDATA_SIZE),
-                .S_RDATA_WIDTH          (S_RDATA_WIDTH),
-                .S_ARADDR_WIDTH         (S_ARADDR_WIDTH),
-                .S_ARLEN_WIDTH          (S_ARLEN_WIDTH),
-                .S_ARLEN_SIZE           (S_ARLEN_SIZE),
-                .S_ARLEN_OFFSET         (S_ARLEN_OFFSET),
-                .ARFIFO_PTR_WIDTH       (ARFIFO_PTR_WIDTH),
-                .ARFIFO_RAM_TYPE        (ARFIFO_RAM_TYPE),
-                .ARFIFO_LOW_DEALY       (ARFIFO_LOW_DEALY),
-                .ARFIFO_DOUT_REGS       (ARFIFO_DOUT_REGS),
-                .ARFIFO_S_REGS          (ARFIFO_S_REGS),
-                .ARFIFO_M_REGS          (ARFIFO_M_REGS),
-                .RFIFO_PTR_WIDTH        (RFIFO_PTR_WIDTH),
-                .RFIFO_RAM_TYPE         (RFIFO_RAM_TYPE),
-                .RFIFO_LOW_DEALY        (RFIFO_LOW_DEALY),
-                .RFIFO_DOUT_REGS        (RFIFO_DOUT_REGS),
-                .RFIFO_S_REGS           (RFIFO_S_REGS),
-                .RFIFO_M_REGS           (RFIFO_M_REGS),
-                .RCMD_FIFO_PTR_WIDTH    (RCMD_FIFO_PTR_WIDTH),
-                .RCMD_FIFO_RAM_TYPE     (RCMD_FIFO_RAM_TYPE),
-                .RCMD_FIFO_LOW_DEALY    (RCMD_FIFO_LOW_DEALY),
-                .RCMD_FIFO_DOUT_REGS    (RCMD_FIFO_DOUT_REGS),
-                .RCMD_FIFO_S_REGS       (RCMD_FIFO_S_REGS),
-                .RCMD_FIFO_M_REGS       (RCMD_FIFO_M_REGS)
+                .ARASYNC              (ARASYNC),
+                .RASYNC               (RASYNC),
+                .BYTE_WIDTH           (BYTE_WIDTH),
+                .BYPASS_GATE          (BYPASS_GATE),
+                .BYPASS_ALIGN         (BYPASS_ALIGN),
+                .AXI4_ALIGN           (AXI4_ALIGN),
+                .ALLOW_UNALIGNED      (ALLOW_UNALIGNED),
+                .HAS_S_RFIRST         (HAS_S_RFIRST),
+                .HAS_S_RLAST          (HAS_S_RLAST),
+                .HAS_M_RFIRST         (HAS_M_RFIRST),
+                .HAS_M_RLAST          (HAS_M_RLAST),
+                .AXI4_ID_WIDTH        (AXI4_ID_WIDTH),
+                .AXI4_ADDR_WIDTH      (AXI4_ADDR_WIDTH),
+                .AXI4_DATA_SIZE       (AXI4_DATA_SIZE),
+                .AXI4_DATA_WIDTH      (AXI4_DATA_WIDTH),
+                .AXI4_LEN_WIDTH       (AXI4_LEN_WIDTH),
+                .AXI4_QOS_WIDTH       (AXI4_QOS_WIDTH),
+                .AXI4_ARID            (AXI4_ARID),
+                .AXI4_ARSIZE          (AXI4_ARSIZE),
+                .AXI4_ARBURST         (AXI4_ARBURST),
+                .AXI4_ARLOCK          (AXI4_ARLOCK),
+                .AXI4_ARCACHE         (AXI4_ARCACHE),
+                .AXI4_ARPROT          (AXI4_ARPROT),
+                .AXI4_ARQOS           (AXI4_ARQOS),
+                .AXI4_ARREGION        (AXI4_ARREGION),
+                .S_RDATA_WIDTH        (S_RDATA_WIDTH),
+                .S_ARLEN_WIDTH        (S_ARLEN_WIDTH),
+                .S_ARLEN_OFFSET       (S_ARLEN_OFFSET),
+                .ARLEN_WIDTH          (ARLEN_WIDTH),
+                .ARLEN_OFFSET         (ARLEN_OFFSET),
+                .CONVERT_S_REGS       (CONVERT_S_REGS),
+                .RFIFO_PTR_WIDTH      (RFIFO_PTR_WIDTH),
+                .RFIFO_RAM_TYPE       (RFIFO_RAM_TYPE),
+                .RFIFO_LOW_DEALY      (RFIFO_LOW_DEALY),
+                .RFIFO_DOUT_REGS      (RFIFO_DOUT_REGS),
+                .RFIFO_S_REGS         (RFIFO_S_REGS),
+                .RFIFO_M_REGS         (RFIFO_M_REGS),
+                .ARFIFO_PTR_WIDTH     (ARFIFO_PTR_WIDTH),
+                .ARFIFO_RAM_TYPE      (ARFIFO_RAM_TYPE),
+                .ARFIFO_LOW_DEALY     (ARFIFO_LOW_DEALY),
+                .ARFIFO_DOUT_REGS     (ARFIFO_DOUT_REGS),
+                .ARFIFO_S_REGS        (ARFIFO_S_REGS),
+                .ARFIFO_M_REGS        (ARFIFO_M_REGS),
+                .SRFIFO_PTR_WIDTH     (SRFIFO_PTR_WIDTH),
+                .SRFIFO_RAM_TYPE      (SRFIFO_RAM_TYPE),
+                .SRFIFO_LOW_DEALY     (SRFIFO_LOW_DEALY),
+                .SRFIFO_DOUT_REGS     (SRFIFO_DOUT_REGS),
+                .SRFIFO_S_REGS        (SRFIFO_S_REGS),
+                .SRFIFO_M_REGS        (SRFIFO_M_REGS),
+                .MRFIFO_PTR_WIDTH     (MRFIFO_PTR_WIDTH),
+                .MRFIFO_RAM_TYPE      (MRFIFO_RAM_TYPE),
+                .MRFIFO_LOW_DEALY     (MRFIFO_LOW_DEALY),
+                .MRFIFO_DOUT_REGS     (MRFIFO_DOUT_REGS),
+                .MRFIFO_S_REGS        (MRFIFO_S_REGS),
+                .MRFIFO_M_REGS        (MRFIFO_M_REGS)
             )
-        i_axi4_dma_read
+        i_axi4_read
             (
                 .endian                 (endian),
                 
@@ -190,6 +219,7 @@ module tb_axi4_dma_read();
                 
                 .s_rresetn              (s_rresetn),
                 .s_rclk                 (s_rclk),
+                .s_rfirst               (s_rfirst),
                 .s_rlast                (s_rlast),
                 .s_rdata                (s_rdata),
                 .s_rvalid               (s_rvalid),
@@ -217,26 +247,13 @@ module tb_axi4_dma_read();
                 .m_axi4_rready          (m_axi4_rready)
             );
     
-    always @(posedge s_arclk) begin
-        if ( ~s_arresetn ) begin
-            s_araddr    <= 0;
-            s_arlen     <= 1024-1;
-            s_arlen_max <= 15;
-            s_arvalid   <= 1'b1;
-        end
-        else begin
-            if ( s_arvalid && s_arready ) begin
-                s_arvalid <= 0;
-            end
-        end
-    end
     
     always @(posedge s_rclk) begin
         if ( ~s_rresetn ) begin
             s_rready <= 0;
         end
         else begin
-            s_rready <= 1;
+            s_rready <= (RAND_BUSY ? {$random()} : 1'b1);
         end
     end
     
@@ -251,7 +268,7 @@ module tb_axi4_dma_read();
         end
         else begin
             if ( s_rvalid && s_rready ) begin
-                $fdisplay(fp, "%h %b", s_rdata, s_rlast);
+                $fdisplay(fp, "%h %b %b", s_rdata, s_rfirst, s_rlast);
             end
         end
     end
@@ -337,6 +354,51 @@ module tb_axi4_dma_read();
                 .s_axi4_rready          (m_axi4_rready)
             );
     
+    
+    
+    
+    integer     i;
+    initial begin
+        #0;
+            s_araddr    <= 0;
+            s_arlen     <= 0;
+            s_arlen_max <= 15;
+            s_arvalid   <= 0;
+        #10000;
+        
+        @(posedge s_arclk)
+            s_araddr  <= 32'h1001;
+            s_arlen   <= 17  - S_ARLEN_OFFSET;
+            s_arvalid <= 1;
+            while ( !(s_arvalid && s_arready) )
+                @(posedge s_arclk);
+                s_arvalid <= 0;
+        #10000;
+
+        @(posedge s_arclk)
+            s_araddr  <= 32'h1001;
+            s_arlen   <= 17  - S_ARLEN_OFFSET;
+            s_arvalid <= 1;
+            while ( !(s_arvalid && s_arready) )
+                @(posedge s_arclk);
+                s_arvalid <= 0;
+        #10000;
+        
+        /*
+        @(posedge s_arclk)
+            s_araddr  <= 32'h10000 - 3;
+            s_arlen   <= 17  - S_ARLEN_OFFSET;
+            s_arvalid <= 1;
+            while ( !(s_arvalid && s_arready) )
+                @(posedge s_arclk);
+                s_arvalid <= 0;
+        #10000;
+        */
+        
+        
+        #10000;
+            $finish();
+    end
     
     
 endmodule
