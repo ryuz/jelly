@@ -431,7 +431,7 @@ module jelly_axi4_write
                 .s_len                  (capsize_awlen),
                 .s_first                (1'b0),
                 .s_last                 (capsize_awlast),
-                .s_user                 (capsize_awlast),
+                .s_user                 (1'b0),
                 .s_valid                (capsize_awvalid),
                 .s_ready                (capsize_awready),
                 
