@@ -122,6 +122,8 @@ module jelly_fifo_width_convert
                 .AUTO_FIRST             (AUTO_FIRST),
                 .HAS_ALIGN_S            (HAS_ALIGN_S),
                 .HAS_ALIGN_M            (HAS_ALIGN_M),
+                .ALIGN_S_WIDTH          (ALIGN_S_WIDTH),
+                .ALIGN_M_WIDTH          (ALIGN_M_WIDTH),
                 .FIRST_OVERWRITE        (FIRST_OVERWRITE),
                 .FIRST_FORCE_LAST       (FIRST_FORCE_LAST),
                 .CONVERT_S_REGS         (CONVERT_S_REGS),

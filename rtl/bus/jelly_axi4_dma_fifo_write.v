@@ -372,39 +372,37 @@ module jelly_axi4_dma_fifo_write
     wire                            adroff_valid;
     wire                            adroff_ready;
     
-    jelly_axi_addr_offset
+    jelly_address_offset
             #(
                 .BYPASS                 (BYPASS_ADDR_OFFSET),
-                .USER_WIDTH             (AXI4_LEN_WIDTH),
-                .OFFSET_SIZE            (0),
                 .OFFSET_WIDTH           (PARAM_ADDR_WIDTH),
-                .S_UNIT_SIZE            (AXI4_DATA_SIZE),
                 .S_ADDR_WIDTH           (ADDR_WIDTH),
-                .M_UNIT_SIZE            (0),
                 .M_ADDR_WIDTH           (AXI4_ADDR_WIDTH),
-                .S_REGS                 (1),
+                .USER_WIDTH             (AXI4_LEN_WIDTH),
+                .S_ADDR_UNIT            (1 << AXI4_DATA_SIZE),
+                .OFFSET_UNIT            (1),
+                .M_UNIT_SIZE            (0),
+                .S_REGS                 (0),
                 .M_REGS                 (1)
             )
-        jelly_axi_addr_offset
+        i_address_offset
             (
-                .aresetn                (aresetn),
-                .aclk                   (aclk),
-                .aclken                 (1'b1),
+                .reset                  (~aresetn),
+                .clk                    (aclk),
+                .cke                    (1'b1),
                 
-                .busy                   (),
-                
-                .param_offset           (param_addr),
-                
-                .s_user                 (adrgen_len),
                 .s_addr                 (adrgen_addr),
+                .s_offset               (param_addr),
+                .s_user                 (adrgen_len),
                 .s_valid                (adrgen_valid),
                 .s_ready                (adrgen_ready),
                 
-                .m_user                 (adroff_awlen),
                 .m_addr                 (adroff_awaddr),
+                .m_user                 (adroff_awlen),
                 .m_valid                (adroff_valid),
                 .m_ready                (adroff_ready)
             );
+    
     
     // 4kアライメント処理
     wire    [AXI4_ADDR_WIDTH-1:0]   align_awaddr;
@@ -412,40 +410,39 @@ module jelly_axi4_dma_fifo_write
     wire                            align_awvalid;
     wire                            align_awready;
     
-    jelly_axi_addr_align
+    jelly_address_align_split
             #(
                 .BYPASS                 (BYPASS_ALIGN),
                 .USER_WIDTH             (0),
                 .ADDR_WIDTH             (AXI4_ADDR_WIDTH),
-                .DATA_SIZE              (AXI4_DATA_SIZE),
+                .UNIT_SIZE              (AXI4_DATA_SIZE),
                 .LEN_WIDTH              (AXI4_LEN_WIDTH),
+                .LEN_OFFSET             (1'b1),
                 .ALIGN                  (AXI4_ALIGN),
-                .S_SLAVE_REGS           (0),
-                .S_MASTER_REGS          (0),
-                .M_SLAVE_REGS           (0),
-                .M_MASTER_REGS          (1)
+                .S_REGS                 (0)
             )
-        i_axi_addr_align
+        i_address_align_split
             (
-                .aresetn                (aresetn),
-                .aclk                   (aclk),
-                .aclken                 (1'b1),
+                .reset                  (~aresetn),
+                .clk                    (aclk),
+                .cke                    (1'b1),
                 
-                .busy                   (),
-                
-                .s_user                 (1'b0),
+                .s_first                (1'b0),
+                .s_last                 (1'b0),
                 .s_addr                 (adroff_awaddr),
                 .s_len                  (adroff_awlen),
+                .s_user                 (1'b0),
                 .s_valid                (adroff_valid),
                 .s_ready                (adroff_ready),
                 
-                .m_user                 (),
+                .m_first                (),
+                .m_last                 (),
                 .m_addr                 (align_awaddr),
                 .m_len                  (align_awlen),
+                .m_user                 (),
                 .m_valid                (align_awvalid),
                 .m_ready                (align_awready)
             );
-    
     
     
     // ---------------------------------
@@ -458,36 +455,47 @@ module jelly_axi4_dma_fifo_write
     wire                            cmd0_awvalid;
     wire                            cmd0_awready;
     
-    wire    [AXI4_ADDR_WIDTH-1:0]   cmd1_awaddr;
     wire    [AXI4_LEN_WIDTH-1:0]    cmd1_awlen;
     wire                            cmd1_awvalid;
     wire                            cmd1_awready;
-
-    wire    [AXI4_ADDR_WIDTH-1:0]   cmd2_awaddr;
+    
     wire    [AXI4_LEN_WIDTH-1:0]    cmd2_awlen;
     wire                            cmd2_awvalid;
     wire                            cmd2_awready;
     
-    jelly_data_spliter
+    jelly_data_split_pack
             #(
                 .NUM                    (3),
-                .DATA_WIDTH             (AXI4_ADDR_WIDTH+AXI4_LEN_WIDTH),
+                .DATA0_WIDTH            (AXI4_LEN_WIDTH + AXI4_ADDR_WIDTH),
+                .DATA1_WIDTH            (AXI4_LEN_WIDTH),
+                .DATA2_WIDTH            (AXI4_LEN_WIDTH),
+                
                 .S_REGS                 (0),
                 .M_REGS                 (0)
             )
-        i_data_spliter
+        i_data_split_pack
             (
                 .reset                  (aresetn),
                 .clk                    (aclk),
                 .cke                    (1'b1),
                 
-                .s_data                 ({3{align_awaddr, align_awlen}}),
+                .s_data0                ({align_awlen, align_awaddr}),
+                .s_data1                (align_awlen),
+                .s_data2                (align_awlen),
                 .s_valid                (align_awvalid),
                 .s_ready                (align_awready),
                 
-                .m_data                 ({{cmd2_awaddr, cmd2_awlen}, {cmd1_awaddr, cmd1_awlen}, {cmd0_awaddr, cmd0_awlen}}),
-                .m_valid                ({cmd2_awvalid,              cmd1_awvalid,              cmd0_awvalid}),
-                .m_ready                ({cmd2_awready,              cmd1_awready,              cmd0_awready})
+                .m0_data                ({cmd0_awlen, cmd0_awaddr}),
+                .m0_valid               (cmd0_awvalid),
+                .m0_ready               (cmd0_awready),
+                
+                .m1_data                (cmd1_awlen),
+                .m1_valid               (cmd1_awvalid),
+                .m1_ready               (cmd1_awready),
+                
+                .m2_data                (cmd2_awlen),
+                .m2_valid               (cmd2_awvalid),
+                .m2_ready               (cmd2_awready)
             );
     
     // aw
@@ -510,45 +518,50 @@ module jelly_axi4_dma_fifo_write
     // ---------------------------------
     
     // wlast付与
-    jelly_axi_data_last
+    jelly_stream_gate
             #(
-                .BYPASS                 (0),
-                .USER_WIDTH             (0),
                 .DATA_WIDTH             (AXI4_DATA_WIDTH),
                 .LEN_WIDTH              (AXI4_LEN_WIDTH),
-                .FIFO_ASYNC             (0),
-                .FIFO_PTR_WIDTH         (AWLEN_FIFO_PTR_WIDTH),
-                .FIFO_RAM_TYPE          (AWLEN_FIFO_RAM_TYPE),
-                .S_SLAVE_REGS           (0),
-                .S_MASTER_REGS          (0),
-                .M_SLAVE_REGS           (0),
-                .M_MASTER_REGS          (1)
+                .LEN_OFFSET             (1'b1),
+                .USER_WIDTH             (0),
+                .S_PERMIT_REGS          (0),
+                .S_REGS                 (0),
+                .M_REGS                 (1)
             )
-        i_axi_data_last
+        i_stream_gate
             (
-                .aresetn                (aresetn),
-                .aclk                   (aclk),
-                .aclken                 (1'b1),
+                .reset                  (~aresetn),
+                .clk                    (aclk),
+                .cke                    (1'b1),
                 
-                .s_cmd_aresetn          (aresetn),
-                .s_cmd_aclk             (aclk),
-                .s_cmd_aclken           (1'b1),
-                .s_cmd_len              (cmd1_awlen),
-                .s_cmd_valid            (cmd1_awvalid),
-                .s_cmd_ready            (cmd1_awready),
+                .skip                   (1'b0),
+                .detect_first           (1'b0),
+                .detect_last            (1'b0),
+                .padding_en             (1'b0),
+                .padding_data           (1'b0),
+                .padding_skip           (1'b0),
                 
-                .s_user                 (1'b0),
-                .s_last                 (1'b1),
+                .s_permit_first         (1'b1),
+                .s_permit_last          (1'b1),
+                .s_permit_len           (cmd1_awlen),
+                .s_permit_user          (1'b0),
+                .s_permit_valid         (cmd1_awvalid),
+                .s_permit_ready         (cmd1_awready),
+                
+                .s_first                (1'b0),
+                .s_last                 (1'b0),
                 .s_data                 (fifo_data),
                 .s_valid                (fifo_valid),
                 .s_ready                (fifo_ready),
                 
-                .m_user                 (),
+                .m_first                (),
                 .m_last                 (m_axi4_wlast),
                 .m_data                 (m_axi4_wdata),
+                .m_user                 (),
                 .m_valid                (m_axi4_wvalid),
                 .m_ready                (m_axi4_wready)
             );
+    
     
     assign m_axi4_wstrb  = param_wstrb;
     

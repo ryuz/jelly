@@ -17,8 +17,11 @@ module jelly_axi4_write_width_convert
             parameter   WASYNC            = 1,
             parameter   AW_W_ASYNC        = (AWASYNC || WASYNC),
             parameter   BYTE_WIDTH        = 8,
+            parameter   BYPASS_GATE       = 0,
             
             parameter   ALLOW_UNALIGNED   = 0,
+            parameter   WDETECTOR_ENABLE  = 0,
+            
             parameter   HAS_S_WSTRB       = 0,
             parameter   HAS_S_WFIRST      = 0,
             parameter   HAS_S_WLAST       = 0,
@@ -93,13 +96,13 @@ module jelly_axi4_write_width_convert
             input   wire    [S_WUSER_BITS-1:0]      s_wuser,
             input   wire                            s_wvalid,
             output  wire                            s_wready,
-            input   wire                            s_wparam_detect_first,
-            input   wire                            s_wparam_detect_last,
-            input   wire                            s_wparam_padding_en,
-            input   wire    [S_WDATA_WIDTH-1:0]     s_wparam_padding_data,
-            input   wire    [S_WSTRB_WIDTH-1:0]     s_wparam_padding_strb,
-            output  wire    [WFIFO_PTR_WIDTH:0]     s_wfifo_free_count,
-            output  wire                            s_wfifo_wr_signal,
+            input   wire                            wdetect_first,
+            input   wire                            wdetect_last,
+            input   wire                            wpadding_en,
+            input   wire    [S_WDATA_WIDTH-1:0]     wpadding_data,
+            input   wire    [S_WSTRB_WIDTH-1:0]     wpadding_strb,
+            output  wire    [WFIFO_PTR_WIDTH:0]     wfifo_free_count,
+            output  wire                            wfifo_wr_signal,
             
             input   wire                            m_awresetn,
             input   wire                            m_awclk,
@@ -118,8 +121,8 @@ module jelly_axi4_write_width_convert
             output  wire    [M_WUSER_BITS-1:0]      m_wuser,
             output  wire                            m_wvalid,
             input   wire                            m_wready,
-            output  wire    [WFIFO_PTR_WIDTH:0]     m_wfifo_data_count,
-            output  wire                            m_wfifo_rd_signal
+            output  wire    [WFIFO_PTR_WIDTH:0]     wfifo_data_count,
+            output  wire                            wfifo_rd_signal
         );
     
     
@@ -324,6 +327,8 @@ module jelly_axi4_write_width_convert
     
     jelly_stream_gate
             #(
+                .BYPASS             (!ALLOW_UNALIGNED && BYPASS_GATE),
+                .DETECTOR_ENABLE    (WDETECTOR_ENABLE),
                 .DATA_WIDTH         (S_WUSER_BITS + S_WSTRB_WIDTH + S_WDATA_WIDTH),
                 .LEN_WIDTH          (S_AWLEN_WIDTH),
                 .LEN_OFFSET         (S_AWLEN_OFFSET),
@@ -339,10 +344,10 @@ module jelly_axi4_write_width_convert
                 .cke                (1'b1),
                 
                 .skip               (1'b0),
-                .detect_first       (HAS_S_WFIRST && s_wparam_detect_first),
-                .detect_last        (HAS_S_WLAST  && s_wparam_detect_last),
-                .padding_en         ((HAS_S_WFIRST || HAS_S_WLAST) && s_wparam_padding_en),
-                .padding_data       ({{S_WUSER_BITS{1'bx}}, s_wparam_padding_strb, s_wparam_padding_data}),
+                .detect_first       (wdetect_first && HAS_S_WFIRST),
+                .detect_last        (wdetect_last  && HAS_S_WLAST),
+                .padding_en         (wpadding_en   && (HAS_S_WFIRST || HAS_S_WLAST)),
+                .padding_data       ({{S_WUSER_BITS{1'bx}}, wpadding_strb, wpadding_data}),
                 .padding_skip       (1'b0),
                 
                 .s_permit_first     (1'b1),
@@ -419,8 +424,8 @@ module jelly_axi4_write_width_convert
                 .s_axi4s_tuser      (gate_wuser),
                 .s_axi4s_tvalid     (gate_wvalid),
                 .s_axi4s_tready     (gate_wready),
-                .s_fifo_free_count  (s_wfifo_free_count),
-                .s_fifo_wr_signal   (s_wfifo_wr_signal),
+                .fifo_free_count    (wfifo_free_count),
+                .fifo_wr_signal     (wfifo_wr_signal),
                 
                 .m_aresetn          (m_wresetn),
                 .m_aclk             (m_wclk),
@@ -432,8 +437,8 @@ module jelly_axi4_write_width_convert
                 .m_axi4s_tuser      (conv_wuser),
                 .m_axi4s_tvalid     (conv_wvalid),
                 .m_axi4s_tready     (conv_wready),
-                .m_fifo_data_count  (m_wfifo_data_count),
-                .m_fifo_rd_signal   (m_wfifo_rd_signal)
+                .fifo_data_count    (wfifo_data_count),
+                .fifo_rd_signal     (wfifo_rd_signal)
             );
     
     assign m_wdata     = conv_wdata;

@@ -22,9 +22,11 @@ module jelly_axi4_write
             parameter   BASYNC               = 1,
             
             parameter   BYTE_WIDTH           = 8,
+            parameter   BYPASS_GATE          = 1,
             parameter   BYPASS_ALIGN         = 0,
             parameter   AXI4_ALIGN           = 12,  // 2^12 = 4k が境界
             parameter   ALLOW_UNALIGNED      = 0,
+            parameter   WDETECTOR_ENABLE     = 0,
             
             parameter   HAS_S_WSTRB          = 0,
             parameter   HAS_S_WFIRST         = 0,
@@ -51,19 +53,19 @@ module jelly_axi4_write
             
             parameter   S_WDATA_WIDTH        = 32,
             parameter   S_WSTRB_WIDTH        = S_WDATA_WIDTH / BYTE_WIDTH,
-            parameter   S_AWLEN_WIDTH        = 32,
+            parameter   S_AWLEN_WIDTH        = 10,
             parameter   S_AWLEN_OFFSET       = 1'b1,
             
             parameter   AWLEN_WIDTH          = S_AWLEN_WIDTH,   // 内部キューイング用
             parameter   AWLEN_OFFSET         = S_AWLEN_OFFSET,
             
-            parameter   CONVERT_S_REGS       = 1,
+            parameter   CONVERT_S_REGS       = 0,
             
             parameter   WFIFO_PTR_WIDTH      = 9,
             parameter   WFIFO_RAM_TYPE       = "block",
             parameter   WFIFO_LOW_DEALY      = 0,
             parameter   WFIFO_DOUT_REGS      = 1,
-            parameter   WFIFO_S_REGS         = 1,
+            parameter   WFIFO_S_REGS         = 0,
             parameter   WFIFO_M_REGS         = 1,
             
             parameter   AWFIFO_PTR_WIDTH     = 4,
@@ -71,28 +73,28 @@ module jelly_axi4_write
             parameter   AWFIFO_LOW_DEALY     = 1,
             parameter   AWFIFO_DOUT_REGS     = 0,
             parameter   AWFIFO_S_REGS        = 0,
-            parameter   AWFIFO_M_REGS        = 1,
+            parameter   AWFIFO_M_REGS        = 0,
             
-            parameter   BFIFO_PTR_WIDTH      = 5,
+            parameter   BFIFO_PTR_WIDTH      = 4,
             parameter   BFIFO_RAM_TYPE       = "distributed",
             parameter   BFIFO_LOW_DEALY      = 0,
             parameter   BFIFO_DOUT_REGS      = 0,
             parameter   BFIFO_S_REGS         = 0,
-            parameter   BFIFO_M_REGS         = 1,
+            parameter   BFIFO_M_REGS         = 0,
             
-            parameter   DATFIFO_PTR_WIDTH     = 4,
-            parameter   DATFIFO_RAM_TYPE      = "distributed",
-            parameter   DATFIFO_LOW_DEALY     = 1,
-            parameter   DATFIFO_DOUT_REGS     = 0,
-            parameter   DATFIFO_S_REGS        = 0,
-            parameter   DATFIFO_M_REGS        = 1,
+            parameter   DATFIFO_PTR_WIDTH    = 4,
+            parameter   DATFIFO_RAM_TYPE     = "distributed",
+            parameter   DATFIFO_LOW_DEALY    = 1,
+            parameter   DATFIFO_DOUT_REGS    = 0,
+            parameter   DATFIFO_S_REGS       = 0,
+            parameter   DATFIFO_M_REGS       = 0,
             
-            parameter   ACKFIFO_PTR_WIDTH     = 4,
-            parameter   ACKFIFO_RAM_TYPE      = "distributed",
-            parameter   ACKFIFO_LOW_DEALY     = 1,
-            parameter   ACKFIFO_DOUT_REGS     = 0,
-            parameter   ACKFIFO_S_REGS        = 0,
-            parameter   ACKFIFO_M_REGS        = 1
+            parameter   ACKFIFO_PTR_WIDTH    = 4,
+            parameter   ACKFIFO_RAM_TYPE     = "distributed",
+            parameter   ACKFIFO_LOW_DEALY    = 1,
+            parameter   ACKFIFO_DOUT_REGS    = 0,
+            parameter   ACKFIFO_S_REGS       = 0,
+            parameter   ACKFIFO_M_REGS       = 0
         )
         (
             input   wire                            endian,
@@ -113,11 +115,11 @@ module jelly_axi4_write
             input   wire                            s_wlast,
             input   wire                            s_wvalid,
             output  wire                            s_wready,
-            input   wire                            s_wparam_detect_first,
-            input   wire                            s_wparam_detect_last,
-            input   wire                            s_wparam_padding_en,
-            input   wire    [S_WDATA_WIDTH-1:0]     s_wparam_padding_data,
-            input   wire    [S_WSTRB_WIDTH-1:0]     s_wparam_padding_strb,
+            input   wire                            wdetect_first,
+            input   wire                            wdetect_last,
+            input   wire                            wpadding_en,
+            input   wire    [S_WDATA_WIDTH-1:0]     wpadding_data,
+            input   wire    [S_WSTRB_WIDTH-1:0]     wpadding_strb,
             
             input   wire                            s_bresetn,
             input   wire                            s_bclk,
@@ -182,8 +184,10 @@ module jelly_axi4_write
                 .AWASYNC                (AWASYNC),
                 .WASYNC                 (WASYNC),
                 .BYTE_WIDTH             (BYTE_WIDTH),
-                
+                .BYPASS_GATE            (BYPASS_GATE),
                 .ALLOW_UNALIGNED        (ALLOW_UNALIGNED),
+                .WDETECTOR_ENABLE       (WDETECTOR_ENABLE),
+                
                 .HAS_S_WSTRB            (HAS_S_WSTRB),
                 .HAS_S_WFIRST           (HAS_S_WFIRST),
                 .HAS_S_WLAST            (HAS_S_WLAST),
@@ -253,13 +257,13 @@ module jelly_axi4_write
                 .s_wuser                (1'b0),
                 .s_wvalid               (s_wvalid),
                 .s_wready               (s_wready),
-                .s_wparam_detect_first  (s_wparam_detect_first),
-                .s_wparam_detect_last   (s_wparam_detect_last),
-                .s_wparam_padding_en    (s_wparam_padding_en),
-                .s_wparam_padding_data  (s_wparam_padding_data),
-               . s_wparam_padding_strb  (s_wparam_padding_strb),
-                .s_wfifo_free_count     (),
-                .s_wfifo_wr_signal      (s_wfifo_wr_signal),
+                .wdetect_first          (wdetect_first),
+                .wdetect_last           (wdetect_last),
+                .wpadding_en            (wpadding_en),
+                .wpadding_data          (wpadding_data),
+                .wpadding_strb          (wpadding_strb),
+                .wfifo_free_count       (),
+                .wfifo_wr_signal        (s_wfifo_wr_signal),
                 
                 .m_awresetn             (m_aresetn),
                 .m_awclk                (m_aclk),
@@ -278,8 +282,8 @@ module jelly_axi4_write
                 .m_wuser                (),
                 .m_wvalid               (conv_wvalid),
                 .m_wready               (conv_wready),
-                .m_wfifo_data_count     (),
-                .m_wfifo_rd_signal      ()
+                .wfifo_data_count       (),
+                .wfifo_rd_signal        ()
             );
     
     

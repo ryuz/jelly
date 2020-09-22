@@ -92,8 +92,8 @@ module jelly_axi4s_fifo_width_convert
             input   wire    [S_TUSER_BITS-1:0]  s_axi4s_tuser,
             input   wire                        s_axi4s_tvalid,
             output  wire                        s_axi4s_tready,
-            output  wire    [FIFO_PTR_WIDTH:0]  s_fifo_free_count,
-            output  wire                        s_fifo_wr_signal,
+            output  wire    [FIFO_PTR_WIDTH:0]  fifo_free_count,
+            output  wire                        fifo_wr_signal,
             
             
             input   wire                        m_aresetn,
@@ -106,8 +106,8 @@ module jelly_axi4s_fifo_width_convert
             output  wire    [M_TUSER_BITS-1:0]  m_axi4s_tuser,
             output  wire                        m_axi4s_tvalid,
             input   wire                        m_axi4s_tready,
-            output  wire    [FIFO_PTR_WIDTH:0]  m_fifo_data_count,
-            output  wire                        m_fifo_rd_signal
+            output  wire    [FIFO_PTR_WIDTH:0]  fifo_data_count,
+            output  wire                        fifo_rd_signal
         );
     
     localparam ALIGN_S_BITS = HAS_ALIGN_S ? ALIGN_S_WIDTH : 1;
@@ -201,7 +201,7 @@ module jelly_axi4s_fifo_width_convert
                     .s_axi4s_tdata      (s_axi4s_tdata),
                     .s_axi4s_tvalid     (s_axi4s_tvalid),
                     .s_axi4s_tready     (s_axi4s_tready),
-                    .s_free_count       (s_fifo_free_count),
+                    .s_free_count       (fifo_free_count),
                     
                     .m_aresetn          (m_aresetn),
                     .m_aclk             (m_aclk),
@@ -213,7 +213,7 @@ module jelly_axi4s_fifo_width_convert
                     .m_axi4s_tdata      (fifo_tdata),
                     .m_axi4s_tvalid     (fifo_tvalid),
                     .m_axi4s_tready     (fifo_tready),
-                    .m_data_count       (m_fifo_data_count)
+                    .m_data_count       (fifo_data_count)
                 );
         
         // width convert
@@ -269,8 +269,8 @@ module jelly_axi4s_fifo_width_convert
                     .m_axi4s_tready     (m_axi4s_tready)
                 );
         
-        assign s_fifo_wr_signal = (s_axi4s_tvalid & s_axi4s_tready);
-        assign m_fifo_rd_signal = (fifo_tvalid & fifo_tready);
+        assign fifo_wr_signal = (s_axi4s_tvalid & s_axi4s_tready);
+        assign fifo_rd_signal = (fifo_tvalid & fifo_tready);
     end
     else begin : blk_pre_cnv
         
@@ -370,7 +370,7 @@ module jelly_axi4s_fifo_width_convert
                     .s_axi4s_tdata      (conv_tdata),
                     .s_axi4s_tvalid     (conv_tvalid),
                     .s_axi4s_tready     (conv_tready),
-                    .s_free_count       (s_fifo_free_count),
+                    .s_free_count       (fifo_free_count),
                     
                     .m_aresetn          (m_aresetn),
                     .m_aclk             (m_aclk),
@@ -382,11 +382,11 @@ module jelly_axi4s_fifo_width_convert
                     .m_axi4s_tdata      (m_axi4s_tdata),
                     .m_axi4s_tvalid     (m_axi4s_tvalid),
                     .m_axi4s_tready     (m_axi4s_tready),
-                    .m_data_count       (m_fifo_data_count)
+                    .m_data_count       (fifo_data_count)
                 );
         
-        assign s_fifo_wr_signal = (conv_tvalid & conv_tready);
-        assign m_fifo_rd_signal = (m_axi4s_tvalid & m_axi4s_tready);
+        assign fifo_wr_signal = (conv_tvalid & conv_tready);
+        assign fifo_rd_signal = (m_axi4s_tvalid & m_axi4s_tready);
     end
     endgenerate
     

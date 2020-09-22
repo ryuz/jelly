@@ -306,7 +306,7 @@ module tb_top();
         wb_write(32'h40340010,            3, 4'b1111);      // update & enable
         
         $display("vout vsync generator");
-        wb_write(32'h4036010,            1, 4'b1111);      // enable
+        wb_write(32'h40360010,             1, 4'b1111);      // enable
 
         while(1) begin
             #10000;

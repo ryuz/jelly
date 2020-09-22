@@ -1,8 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- The FPGA processing system
 //
-//                                 Copyright (C) 2008-2017 by Ryuji Fuchikami
-//                                 http://ryuz.my.coocan.jp/
+//                                 Copyright (C) 2008-2020 by Ryuji Fuchikami
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
@@ -355,39 +354,37 @@ module jelly_axi4_dma_fifo_read
     wire                            adroff_valid;
     wire                            adroff_ready;
     
-    jelly_axi_addr_offset
+    jelly_address_offset
             #(
                 .BYPASS                 (BYPASS_ADDR_OFFSET),
-                .USER_WIDTH             (AXI4_LEN_WIDTH),
-                .OFFSET_SIZE            (0),
                 .OFFSET_WIDTH           (PARAM_ADDR_WIDTH),
-                .S_UNIT_SIZE            (AXI4_DATA_SIZE),
                 .S_ADDR_WIDTH           (ADDR_WIDTH),
-                .M_UNIT_SIZE            (0),
                 .M_ADDR_WIDTH           (AXI4_ADDR_WIDTH),
-                .S_REGS                 (1),
+                .USER_WIDTH             (AXI4_LEN_WIDTH),
+                .S_ADDR_UNIT            (1 << AXI4_DATA_SIZE),
+                .OFFSET_UNIT            (1),
+                .M_UNIT_SIZE            (0),
+                .S_REGS                 (0),
                 .M_REGS                 (1)
             )
-        jelly_axi_addr_offset
+        i_address_offset
             (
-                .aresetn                (aresetn),
-                .aclk                   (aclk),
-                .aclken                 (1'b1),
+                .reset                  (~aresetn),
+                .clk                    (aclk),
+                .cke                    (1'b1),
                 
-                .busy                   (),
-                
-                .param_offset           (param_addr),
-                
-                .s_user                 (adrgen_len),
                 .s_addr                 (adrgen_addr),
+                .s_offset               (param_addr),
+                .s_user                 (adrgen_len),
                 .s_valid                (adrgen_valid),
                 .s_ready                (adrgen_ready),
                 
-                .m_user                 (adroff_arlen),
                 .m_addr                 (adroff_araddr),
+                .m_user                 (adroff_arlen),
                 .m_valid                (adroff_valid),
                 .m_ready                (adroff_ready)
             );
+    
     
     // 4kアライメント処理
     wire    [AXI4_ADDR_WIDTH-1:0]   align_araddr;
@@ -395,39 +392,40 @@ module jelly_axi4_dma_fifo_read
     wire                            align_arvalid;
     wire                            align_arready;
     
-    jelly_axi_addr_align
+    jelly_address_align_split
             #(
                 .BYPASS                 (BYPASS_ALIGN),
                 .USER_WIDTH             (0),
                 .ADDR_WIDTH             (AXI4_ADDR_WIDTH),
-                .DATA_SIZE              (AXI4_DATA_SIZE),
+                .UNIT_SIZE              (AXI4_DATA_SIZE),
                 .LEN_WIDTH              (AXI4_LEN_WIDTH),
+                .LEN_OFFSET             (1'b1),
                 .ALIGN                  (AXI4_ALIGN),
-                .S_SLAVE_REGS           (0),
-                .S_MASTER_REGS          (0),
-                .M_SLAVE_REGS           (0),
-                .M_MASTER_REGS          (1)
+                .S_REGS                 (0)
             )
-        i_axi_addr_align
+        i_address_align_split
             (
-                .aresetn                (aresetn),
-                .aclk                   (aclk),
-                .aclken                 (1'b1),
+                .reset                  (~aresetn),
+                .clk                    (aclk),
+                .cke                    (1'b1),
                 
-                .busy                   (),
-                
-                .s_user                 (1'b0),
+                .s_first                (1'b0),
+                .s_last                 (1'b0),
                 .s_addr                 (adroff_araddr),
                 .s_len                  (adroff_arlen),
+                .s_user                 (1'b0),
                 .s_valid                (adroff_valid),
                 .s_ready                (adroff_ready),
                 
-                .m_user                 (),
+                .m_first                (),
+                .m_last                 (),
                 .m_addr                 (align_araddr),
                 .m_len                  (align_arlen),
+                .m_user                 (),
                 .m_valid                (align_arvalid),
                 .m_ready                (align_arready)
             );
+    
     
     // aw
     assign m_axi4_arid     = AXI4_ARID;

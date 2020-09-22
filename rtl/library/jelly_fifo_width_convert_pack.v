@@ -178,9 +178,6 @@ module jelly_fifo_width_convert_pack
             output  wire                        m_fifo_rd_signal
         );
     
-    localparam ALIGN_S_BITS = HAS_ALIGN_S ? ALIGN_S_WIDTH : 1;
-    localparam ALIGN_M_BITS = HAS_ALIGN_M ? ALIGN_M_WIDTH : 1;
-    
     localparam S_PACK_WIDTH = S_DATA0_WIDTH
                             + S_DATA1_WIDTH
                             + S_DATA2_WIDTH
@@ -193,8 +190,8 @@ module jelly_fifo_width_convert_pack
                             + S_DATA9_WIDTH;
     localparam S_PACK_BITS  = S_PACK_WIDTH > 0 ? S_PACK_WIDTH : 1;
     
-    localparam S_CTLS_WIDTH = (HAS_ALIGN_S ? ALIGN_S_WIDTH : 0)
-                            + (HAS_ALIGN_M ? ALIGN_M_WIDTH : 0)
+    localparam S_CTLS_WIDTH = ALIGN_S_WIDTH
+                            + ALIGN_M_WIDTH
                             + (HAS_FIRST   ? 1 : 0)
                             + (HAS_LAST    ? 1 : 0)
                             + USER_F_WIDTH
@@ -257,8 +254,8 @@ module jelly_fifo_width_convert_pack
         
         jelly_func_pack
                 #(
-                    .W0                 (HAS_ALIGN_S ? ALIGN_S_WIDTH : 0),
-                    .W1                 (HAS_ALIGN_M ? ALIGN_M_WIDTH : 0),
+                    .W0                 (ALIGN_S_WIDTH),
+                    .W1                 (ALIGN_M_WIDTH),
                     .W2                 (HAS_FIRST   ? 1 : 0),
                     .W3                 (HAS_LAST    ? 1 : 0),
                     .W4                 (USER_F_WIDTH),
@@ -321,8 +318,8 @@ module jelly_fifo_width_convert_pack
         wire    [S_DATA8_BITS-1:0]  fifo_data8;
         wire    [S_DATA9_BITS-1:0]  fifo_data9;
         
-        wire    [ALIGN_S_BITS-1:0]  fifo_align_s;
-        wire    [ALIGN_M_BITS-1:0]  fifo_align_m;
+        wire    [ALIGN_S_WIDTH-1:0] fifo_align_s;
+        wire    [ALIGN_M_WIDTH-1:0] fifo_align_m;
         wire                        fifo_first;
         wire                        fifo_last;
         wire    [USER_F_BITS-1:0]   fifo_user_f;
@@ -358,8 +355,8 @@ module jelly_fifo_width_convert_pack
         
         jelly_func_unpack
                 #(
-                    .W0                 (HAS_ALIGN_S ? ALIGN_S_WIDTH : 0),
-                    .W1                 (HAS_ALIGN_M ? ALIGN_M_WIDTH : 0),
+                    .W0                 (ALIGN_S_WIDTH),
+                    .W1                 (ALIGN_M_WIDTH),
                     .W2                 (HAS_FIRST   ? 1 : 0),
                     .W3                 (HAS_LAST    ? 1 : 0),
                     .W4                 (USER_F_WIDTH),
@@ -419,8 +416,8 @@ module jelly_fifo_width_convert_pack
                     .HAS_ALIGN_M        (HAS_ALIGN_M),
                     .FIRST_OVERWRITE    (FIRST_OVERWRITE),
                     .FIRST_FORCE_LAST   (FIRST_FORCE_LAST),
-                    .ALIGN_S_WIDTH      (ALIGN_S_BITS),
-                    .ALIGN_M_WIDTH      (ALIGN_M_BITS),
+                    .ALIGN_S_WIDTH      (ALIGN_S_WIDTH),
+                    .ALIGN_M_WIDTH      (ALIGN_M_WIDTH),
                     .USER_F_WIDTH       (USER_F_WIDTH),
                     .USER_L_WIDTH       (USER_L_WIDTH),
                     .S_REGS             (CONVERT_S_REGS)
@@ -696,8 +693,8 @@ module jelly_fifo_width_convert_pack
         wire    [M_DATA8_BITS-1:0]  fifo_data8;
         wire    [M_DATA9_BITS-1:0]  fifo_data9;
         
-        wire    [ALIGN_S_BITS-1:0]  fifo_align_s;
-        wire    [ALIGN_M_BITS-1:0]  fifo_align_m;
+        wire    [ALIGN_S_WIDTH-1:0] fifo_align_s;
+        wire    [ALIGN_M_WIDTH-1:0] fifo_align_m;
         wire                        fifo_first;
         wire                        fifo_last;
         wire    [USER_F_BITS-1:0]   fifo_user_f;
