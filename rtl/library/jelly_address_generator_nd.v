@@ -12,7 +12,7 @@
 
 
 
-module jelly_address_generator_ndarray
+module jelly_address_generator_nd
         #(
             parameter N          = 3,
             parameter ADDR_WIDTH = 32,
