@@ -3,12 +3,12 @@
 `default_nettype none
 
 
-module tb_data_gate_sync();
+module tb_stream_gate();
     localparam RATE = 1000.0/20.0;
     
     initial begin
-        $dumpfile("tb_data_gate_sync.vcd");
-        $dumpvars(0, tb_data_gate_sync);
+        $dumpfile("tb_stream_gate.vcd");
+        $dumpvars(0, tb_stream_gate);
         
         #1000000;
             $finish;
@@ -61,7 +61,7 @@ module tb_data_gate_sync();
     
     
     
-    jelly_data_gate_sync
+    jelly_stream_gate
             #(
                 .DATA_WIDTH     (DATA_WIDTH),
                 .LEN_WIDTH      (LEN_WIDTH),
@@ -70,7 +70,7 @@ module tb_data_gate_sync();
                 .S_REGS         (S_REGS),
                 .M_REGS         (M_REGS)
             )
-        i_data_gate_sync
+        i_stream_gate
             (
                 .reset          (reset),
                 .clk            (clk),

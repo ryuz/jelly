@@ -3,12 +3,12 @@
 `default_nettype none
 
 
-module tb_data_width_convert();
+module tb_stream_width_convert();
     localparam RATE    = 10.0;
     
     initial begin
-        $dumpfile("tb_data_width_convert.vcd");
-        $dumpvars(0, tb_data_width_convert);
+        $dumpfile("tb_stream_width_convert.vcd");
+        $dumpvars(0, tb_stream_width_convert);
         #100000
         $finish();
     end
@@ -92,7 +92,7 @@ module tb_data_width_convert();
     end
     
     
-    jelly_data_width_convert
+    jelly_stream_width_convert
             #(
                 .UNIT_WIDTH         (UNIT_WIDTH),
                 .S_NUM              (S_NUM),
@@ -104,7 +104,7 @@ module tb_data_width_convert();
                 .FIRST_FORCE_LAST   (FIRST_FORCE_LAST),
                 .FIRST_OVERWRITE    (FIRST_OVERWRITE)
             )
-        i_data_width_convert
+        i_stream_width_convert
             (
                 .reset              (reset),
                 .clk                (clk),
