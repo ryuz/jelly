@@ -19,6 +19,7 @@ module jelly_axi4_read
         #(
             parameter   ARASYNC              = 1,
             parameter   RASYNC               = 1,
+            parameter   RBASYNC              = 1,
             
             parameter   BYTE_WIDTH           = 8,
             parameter   BYPASS_GATE          = 1,
@@ -102,6 +103,11 @@ module jelly_axi4_read
             output  wire                            s_rvalid,
             input   wire                            s_rready,
             
+            input   wire                            s_rbresetn,
+            input   wire                            s_rbclk,
+            output  wire                            s_rbvalid,
+            input   wire                            s_rbready,
+            
             input   wire                            m_aresetn,
             input   wire                            m_aclk,
             output  wire    [AXI4_ID_WIDTH-1:0]     m_axi4_arid,
@@ -156,6 +162,7 @@ module jelly_axi4_read
             #(
                 .ARASYNC                (ARASYNC),
                 .RASYNC                 (RASYNC),
+                .RBASYNC                (RBASYNC),
                 .BYTE_WIDTH             (BYTE_WIDTH),
                 .BYPASS_GATE            (BYPASS_GATE),
                 .ALLOW_UNALIGNED        (ALLOW_UNALIGNED),
@@ -211,7 +218,7 @@ module jelly_axi4_read
                 .CONVERT_S_REGS         (CONVERT_S_REGS),
                 .POST_CONVERT           (0)
             )
-        i_axi4_write_width_convert
+        i_axi4_read_width_convert
             (
                 .endian                 (endian),
                 
@@ -233,6 +240,11 @@ module jelly_axi4_read
                 .s_rready               (s_rready),
                 .rfifo_data_count       (),
                 .rfifo_rd_signal        (s_rfifo_rd_signal),
+                
+                .s_rbresetn             (s_rbresetn),
+                .s_rbclk                (s_rbclk),
+                .s_rbvalid              (s_rbvalid),
+                .s_rbready              (s_rbready),
                 
                 .m_arresetn             (m_aresetn),
                 .m_arclk                (m_aclk),

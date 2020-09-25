@@ -15,6 +15,7 @@ module jelly_axi4_read_width_convert
         #(
             parameter   ARASYNC           = 1,
             parameter   RASYNC            = 1,
+            parameter   RBASYNC           = 1,
             parameter   BYTE_WIDTH        = 8,
             parameter   BYPASS_GATE       = 0,
             
@@ -98,6 +99,11 @@ module jelly_axi4_read_width_convert
             input   wire                            s_rready,
             output  wire    [RFIFO_PTR_WIDTH:0]     rfifo_data_count,
             output  wire                            rfifo_rd_signal,
+            
+            input   wire                            s_rbresetn,
+            input   wire                            s_rbclk,
+            output  wire                            s_rbvalid,
+            input   wire                            s_rbready,
             
             input   wire                            m_arresetn,
             input   wire                            m_arclk,
@@ -374,6 +380,25 @@ module jelly_axi4_read_width_convert
                 .m_user             (gate_align),
                 .m_valid            (gate_rvalid),
                 .m_ready            (gate_rready)
+            );
+    
+    
+    // read response channel
+    jelly_signal_transfer
+            #(
+                .ASYNC              (RBASYNC),
+                .CAPACITY_WIDTH     (RFIFO_PTR_WIDTH)
+            )
+        i_signal_transfer
+            (
+                .s_reset            (~m_rresetn),
+                .s_clk              (m_rclk),
+                .s_valid            (gate_rvalid & gate_rready),
+                
+                .m_reset            (~s_rbresetn),
+                .m_clk              (s_rbclk),
+                .m_valid            (s_rbvalid),
+                .m_ready            (s_rbready)
             );
     
     

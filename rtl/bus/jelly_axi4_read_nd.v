@@ -21,6 +21,7 @@ module jelly_axi4_read_2d
             
             parameter   ARASYNC              = 1,
             parameter   RASYNC               = 1,
+            parameter   RBASYNC              = 1,
             
             parameter   BYTE_WIDTH           = 8,
             parameter   BYPASS_GATE          = 1,
@@ -86,14 +87,23 @@ module jelly_axi4_read_2d
             parameter   MRFIFO_S_REGS        = 0,
             parameter   MRFIFO_M_REGS        = 0,
             
-            parameter   RFLAGFIFO_PTR_WIDTH  = 4,
-            parameter   RFLAGFIFO_DOUT_REGS  = 0,
-            parameter   RFLAGFIFO_RAM_TYPE   = "distributed",
-            parameter   RFLAGFIFO_LOW_DEALY  = 1,
-            parameter   RFLAGFIFO_S_REGS     = 0,
-            parameter   RFLAGFIFO_M_REGS     = 0,
-            parameter   SYNCFLAG_S_REGS      = 0,
-            parameter   SYNCFLAG_M_REGS      = 1
+            parameter   RACKFIFO_PTR_WIDTH  = 4,
+            parameter   RACKFIFO_DOUT_REGS  = 0,
+            parameter   RACKFIFO_RAM_TYPE   = "distributed",
+            parameter   RACKFIFO_LOW_DEALY  = 1,
+            parameter   RACKFIFO_S_REGS     = 0,
+            parameter   RACKFIFO_M_REGS     = 0,
+            parameter   RACK_S_REGS         = 0,
+            parameter   RACK_M_REGS         = 1,
+            
+            parameter   RBACKFIFO_PTR_WIDTH = 4,
+            parameter   RBACKFIFO_DOUT_REGS = 0,
+            parameter   RBACKFIFO_RAM_TYPE  = "distributed",
+            parameter   RBACKFIFO_LOW_DEALY = 1,
+            parameter   RBACKFIFO_S_REGS    = 0,
+            parameter   RBACKFIFO_M_REGS    = 0,
+            parameter   RBACK_S_REGS        = 0,
+            parameter   RBACK_M_REGS        = 1
         )
         (
             input   wire                            endian,
@@ -114,6 +124,13 @@ module jelly_axi4_read_2d
             output  wire    [N-1:0]                 s_rlast,
             output  wire                            s_rvalid,
             input   wire                            s_rready,
+            
+            input   wire                            s_rbresetn,
+            input   wire                            s_rbclk,
+            output  wire    [N-1:0]                 s_rbfirst,
+            output  wire    [N-1:0]                 s_rblast,
+            output  wire                            s_rbvalid,
+            input   wire                            s_rbready,
             
             input   wire                            m_aresetn,
             input   wire                            m_aclk,
@@ -137,21 +154,44 @@ module jelly_axi4_read_2d
             output  wire                            m_axi4_rready
         );
     
+    // command
+    wire    [AXI4_ADDR_WIDTH-1:0]   cmd_araddr;
+    wire    [ARLEN_WIDTH-1:0]       cmd_arlen;
+    wire    [AXI4_LEN_WIDTH-1:0]    cmd_arlen_max;
+    wire                            cmd_arvalid;
+    wire                            cmd_arready;
     
-    wire    [AXI4_ADDR_WIDTH-1:0]   adrgen_araddr;
-    wire    [ARLEN_WIDTH-1:0]       adrgen_arlen;
-    wire    [AXI4_LEN_WIDTH-1:0]    adrgen_arlen_max;
-    wire    [N-1:0]                 adrgen_arfirst;
-    wire    [N-1:0]                 adrgen_arlast;
-    wire                            adrgen_arvalid;
-    wire                            adrgen_arready;
+    // read
+    wire    [S_RDATA_WIDTH-1:0]     read_rdata;
+    wire                            read_rfirst;
+    wire                            read_rlast;
+    wire                            read_rvalid;
+    wire                            read_rready;
+    
+    wire                            read_rbvalid;
+    wire                            read_rbready;
     
     generate
     if ( N >= 2 ) begin : blk_adrgen_nd
         // 2D以上のアドレッシング
         
-        wire    [(N-1)*ARSTEP_WIDTH-1:0]    tmp_arstep;
-        wire    [(N-1)*ARLEN_WIDTH-1:0]     tmp_arlen;
+        wire    [AXI4_ADDR_WIDTH-1:0]   adrgen_araddr;
+        wire    [ARLEN_WIDTH-1:0]       adrgen_arlen;
+        wire    [AXI4_LEN_WIDTH-1:0]    adrgen_arlen_max;
+        wire    [N-1:0]                 adrgen_arfirst;
+        wire    [N-1:0]                 adrgen_arlast;
+        wire                            adrgen_arvalid;
+        wire                            adrgen_arready;
+        
+        wire    [N-1:0]                 ack0_arfirst;
+        wire    [N-1:0]                 ack0_arlast;
+        wire                            ack0_arvalid;
+        wire                            ack0_arready;
+        
+        wire    [N-1:0]                 ack1_arfirst;
+        wire    [N-1:0]                 ack1_arlast;
+        wire                            ack1_arvalid;
+        wire                            ack1_arready;
         
         jelly_address_generator_nd
                 #(
@@ -160,7 +200,7 @@ module jelly_axi4_read_2d
                     .STEP_WIDTH             (S_ARSTEP_WIDTH),
                     .LEN_WIDTH              (S_ARLEN_WIDTH),
                     .LEN_OFFSET             (S_ARLEN_OFFSET),
-                    .USER_WIDTH             (S_ARLEN0_WIDTH + AXI4_LEN_WIDTH)
+                    .USER_WIDTH             (S_ARLEN_WIDTH + AXI4_LEN_WIDTH)
                 )
             i_address_generator_nd
                 (
@@ -175,36 +215,173 @@ module jelly_axi4_read_2d
                     .s_valid                (s_arvalid),
                     .s_ready                (s_arready),
                     
-                    .m_addr                 (adrgen_addr),
+                    .m_addr                 (adrgen_araddr),
                     .m_first                (adrgen_arfirst[N-1:1]),
                     .m_last                 (adrgen_arlast[N-1:1]),
                     .m_user                 ({adrgen_arlen, adrgen_arlen_max}),
-                    .m_valid                (adrgen_valid),
-                    .m_ready                (adrgen_ready)
+                    .m_valid                (adrgen_arvalid),
+                    .m_ready                (adrgen_arready)
                 );
-            assign adrgen_arfirst[0] = 1'b1;
-            assign adrgen_arlast[0]  = 1'b1;
+        assign adrgen_arfirst[0] = 1'b1;
+        assign adrgen_arlast[0]  = 1'b1;
+        
+        // コマンド分割
+        jelly_data_split_pack2
+                #(
+                    .NUM                    (3),
+                    .DATA0_0_WIDTH          (AXI4_ADDR_WIDTH),
+                    .DATA0_1_WIDTH          (ARLEN_WIDTH),
+                    .DATA0_2_WIDTH          (AXI4_LEN_WIDTH),
+                    .DATA1_0_WIDTH          (N),
+                    .DATA1_1_WIDTH          (N),
+                    .DATA2_0_WIDTH          (N),
+                    .DATA2_1_WIDTH          (N)
+                )
+            i_data_split_pack2
+                (
+                    .reset                  (~s_arresetn),
+                    .clk                    (s_arclk),
+                    .cke                    (1'b1),
+                    
+                    .s_data0_0              (adrgen_araddr),
+                    .s_data0_1              (adrgen_arlen),
+                    .s_data0_2              (adrgen_arlen_max),
+                    .s_data1_0              (adrgen_arfirst),
+                    .s_data1_1              (adrgen_arlast),
+                    .s_data2_0              (adrgen_arfirst),
+                    .s_data2_1              (adrgen_arlast),
+                    .s_valid                (adrgen_arvalid),
+                    .s_ready                (adrgen_arready),
+                    
+                    .m0_data0               (cmd_araddr),
+                    .m0_data1               (cmd_arlen),
+                    .m0_data2               (cmd_arlen_max),
+                    .m0_valid               (cmd_arvalid),
+                    .m0_ready               (cmd_arready),
+                    
+                    .m1_data0               (ack0_arfirst),
+                    .m1_data1               (ack0_arlast),
+                    .m1_valid               (ack0_arvalid),
+                    .m1_ready               (ack0_arready),
+                    
+                    .m2_data0               (ack1_arfirst),
+                    .m2_data1               (ack1_arlast),
+                    .m2_valid               (ack1_arvalid),
+                    .m2_ready               (ack1_arready)
+                );
+        
+        // r ポートにフラグ付与
+        jelly_stream_add_syncflag
+                #(
+                    .FIRST_WIDTH            (N),
+                    .LAST_WIDTH             (N),
+                    .USER_WIDTH             (S_RDATA_WIDTH),
+                    .HAS_FIRST              (1),
+                    .HAS_LAST               (1),
+                    .ASYNC                  (ARASYNC || RASYNC),
+                    .FIFO_PTR_WIDTH         (RACKFIFO_PTR_WIDTH),
+                    .FIFO_DOUT_REGS         (RACKFIFO_DOUT_REGS),
+                    .FIFO_RAM_TYPE          (RACKFIFO_RAM_TYPE),
+                    .FIFO_LOW_DEALY         (RACKFIFO_LOW_DEALY),
+                    .FIFO_S_REGS            (RACKFIFO_S_REGS),
+                    .FIFO_M_REGS            (RACKFIFO_M_REGS),
+                    
+                    .S_REGS                 (RACK_S_REGS),
+                    .M_REGS                 (RACK_M_REGS)
+                )
+            i_stream_add_syncflag_r
+                (
+                    .reset                  (~s_rresetn),
+                    .clk                    (s_rclk),
+                    .cke                    (1'b1),
+                    
+                    .s_first                (read_rfirst),
+                    .s_last                 (read_rlast),
+                    .s_user                 (read_rdata),
+                    .s_valid                (read_rvalid),
+                    .s_ready                (read_rready),
+                    
+                    .m_first                (),
+                    .m_last                 (),
+                    .m_added_first          (s_rfirst),
+                    .m_added_last           (s_rlast),
+                    .m_user                 (s_rdata),
+                    .m_valid                (s_rvalid),
+                    .m_ready                (s_rready),
+                    
+                    .s_add_reset            (~s_arresetn),
+                    .s_add_clk              (s_arclk),
+                    .s_add_first            (ack0_arfirst),
+                    .s_add_last             (ack0_arlast),
+                    .s_add_valid            (ack0_arvalid),
+                    .s_add_ready            (ack0_arready)
+                );
+        
+        // rb ポートにフラグ付与
+        jelly_stream_add_syncflag
+                #(
+                    .FIRST_WIDTH            (N),
+                    .LAST_WIDTH             (N),
+                    .USER_WIDTH             (0),
+                    .HAS_FIRST              (1),
+                    .HAS_LAST               (1),
+                    .ASYNC                  (ARASYNC || RASYNC),
+                    .FIFO_PTR_WIDTH         (RBACKFIFO_PTR_WIDTH),
+                    .FIFO_DOUT_REGS         (RBACKFIFO_DOUT_REGS),
+                    .FIFO_RAM_TYPE          (RBACKFIFO_RAM_TYPE),
+                    .FIFO_LOW_DEALY         (RBACKFIFO_LOW_DEALY),
+                    .FIFO_S_REGS            (RBACKFIFO_S_REGS),
+                    .FIFO_M_REGS            (RBACKFIFO_M_REGS),
+                    .S_REGS                 (RBACK_S_REGS),
+                    .M_REGS                 (RBACK_M_REGS)
+                )
+            i_stream_add_syncflag_rb
+                (
+                    .reset                  (~s_rbresetn),
+                    .clk                    (s_rbclk),
+                    .cke                    (1'b1),
+                    
+                    .s_first                (1'b1),
+                    .s_last                 (1'b1),
+                    .s_user                 (1'b0),
+                    .s_valid                (read_rbvalid),
+                    .s_ready                (read_rbready),
+                    
+                    .m_first                (),
+                    .m_last                 (),
+                    .m_added_first          (s_rbfirst),
+                    .m_added_last           (s_rblast),
+                    .m_user                 (),
+                    .m_valid                (s_rbvalid),
+                    .m_ready                (s_rbready),
+                    
+                    .s_add_reset            (~s_arresetn),
+                    .s_add_clk              (s_arclk),
+                    .s_add_first            (ack1_arfirst),
+                    .s_add_last             (ack1_arlast),
+                    .s_add_valid            (ack1_arvalid),
+                    .s_add_ready            (ack1_arready)
+                );
+        
     end
     else begin : blk_adrgen_1d
         // 1D
-        assign adrgen_araddr    = s_araddr;
-        assign adrgen_arlen     = s_arlen[ARLEN_WIDTH-1:0];
-        assign adrgen_arlen_max = s_arlen_max;
-        assign adrgen_arfirst   = 1'b1;
-        assign adrgen_arlast    = 1'b1;
-        assign adrgen_arvalid   = adrgen_valid;
-        assign s_arready        = adrgen_arready;
+        assign cmd_araddr    = s_araddr;
+        assign cmd_arlen     = s_arlen[ARLEN_WIDTH-1:0];
+        assign cmd_arlen_max = s_arlen_max;
+        assign cmd_arvalid   = s_arvalid;
+        assign s_arready     = cmd_arready;
+        
+        assign s_rfirst      = read_rfirst;
+        assign s_rlast       = read_rlast;
+        assign s_rdata       = read_rdata;
+        assign s_rvalid      = read_rvalid;
+        assign read_rready   = s_rready;
     end
     endgenerate
     
     
     // read
-    wire    [S_RDATA_WIDTH-1:0]     read_rdata;
-    wire                            read_rfirst;
-    wire                            read_rlast;
-    wire                            read_rvalid;
-    wire                            read_rready;
-    
     jelly_axi4_read
             #(
                 .ARASYNC                (ARASYNC),
@@ -233,7 +410,7 @@ module jelly_axi4_read_2d
                 .AXI4_ARQOS             (AXI4_ARQOS),
                 .AXI4_ARREGION          (AXI4_ARREGION),
                 .S_RDATA_WIDTH          (S_RDATA_WIDTH),
-                .S_ARLEN_WIDTH          (S_ARLEN_MAX),
+                .S_ARLEN_WIDTH          (AXI4_ADDR_WIDTH),
                 .S_ARLEN_OFFSET         (S_ARLEN_OFFSET),
                 .ARLEN_WIDTH            (ARLEN_WIDTH),
                 .ARLEN_OFFSET           (ARLEN_OFFSET),
@@ -261,7 +438,7 @@ module jelly_axi4_read_2d
                 .MRFIFO_LOW_DEALY       (MRFIFO_LOW_DEALY),
                 .MRFIFO_DOUT_REGS       (MRFIFO_DOUT_REGS),
                 .MRFIFO_S_REGS          (MRFIFO_S_REGS),
-                .MRFIFO_M_REGS          (MRFIFO_M_REGS),
+                .MRFIFO_M_REGS          (MRFIFO_M_REGS)
             )
         i_axi4_read
             (
@@ -269,11 +446,11 @@ module jelly_axi4_read_2d
                 
                 .s_arresetn             (s_arresetn),
                 .s_arclk                (s_arclk),
-                .s_araddr               (adrgen_araddr),
-                .s_arlen                (adrgen_arlen),
-                .s_arlen_max            (adrgen_arlen_max),
-                .s_arvalid              (adrgen_arvalid),
-                .s_arready              (adrgen_arready),
+                .s_araddr               (cmd_araddr),
+                .s_arlen                (cmd_arlen),
+                .s_arlen_max            (cmd_arlen_max),
+                .s_arvalid              (cmd_arvalid),
+                .s_arready              (cmd_arready),
                 
                 .s_rresetn              (s_rresetn),
                 .s_rclk                 (s_rclk),
@@ -282,6 +459,11 @@ module jelly_axi4_read_2d
                 .s_rlast                (read_rlast),
                 .s_rvalid               (read_rvalid),
                 .s_rready               (read_rready),
+                
+                .s_rbresetn             (s_rbresetn),
+                .s_rbclk                (s_rbclk),
+                .s_rbvalid              (read_rbvalid),
+                .s_rbready              (read_rbready),
                 
                 .m_aresetn              (m_aresetn),
                 .m_aclk                 (m_aclk),
@@ -304,68 +486,6 @@ module jelly_axi4_read_2d
                 .m_axi4_rvalid          (m_axi4_rvalid),
                 .m_axi4_rready          (m_axi4_rready)
             );
-    
-    
-    // フラグ付与
-    generate
-    if ( N >= 2 ) begin : blk_read_nd
-        jelly_stream_add_syncflag
-                #(
-                    .FIRST_WIDTH        (N),
-                    .LAST_WIDTH         (N),
-                    .USER_WIDTH         (S_RDATA_WIDTH),
-                    
-                    .HAS_FIRST          (1),
-                    .HAS_LAST           (1),
-                    
-                    .ASYNC              (ARASYNC || RASYNC),
-                    .FIFO_PTR_WIDTH     (RFLAGFIFO_PTR_WIDTH),
-                    .FIFO_DOUT_REGS     (RFLAGFIFO_DOUT_REGS),
-                    .FIFO_RAM_TYPE      (RFLAGFIFO_RAM_TYPE),
-                    .FIFO_LOW_DEALY     (RFLAGFIFO_LOW_DEALY),
-                    .FIFO_S_REGS        (RFLAGFIFO_S_REGS),
-                    .FIFO_M_REGS        (RFLAGFIFO_M_REGS),
-                    
-                    .S_REGS             (SYNCFLAG_S_REGS),
-                    .M_REGS             (SYNCFLAG_M_REGS)
-                )
-            i_stream_add_syncflag
-                (
-                    .reset                  (~s_arresetn),
-                    .clk                    (s_arclk),
-                    .cke                    (1'b1),
-                    
-                    .s_first                (read_first),
-                    .s_last                 (read_last),
-                    .s_user                 (read_user),
-                    .s_valid                (read_valid),
-                    .s_ready                (read_ready),
-                    
-                    .m_first                (),
-                    .m_last                 (),
-                    .m_added_first          (s_rfirst),
-                    .m_added_last           (s_rlast),
-                    .m_user                 (s_rdata),
-                    .m_valid                (s_rvalid),
-                    .m_ready                (s_rready),
-                    
-                    .s_add_reset            (~s_arresetn),
-                    .s_add_clk              (s_arclk),
-                    .s_add_first            (cmd1_first),
-                    .s_add_last             (cmd1_last),
-                    .s_add_valid            (cmd1_valid),
-                    .s_add_ready            (cmd1_ready)
-                );
-    end
-    else begin  : blk_read_1d
-        assign s_rfirst   = read_first;
-        assign s_rlast    = read_last;
-        assign s_rdata    = read_user;
-        assign s_rvalid   = read_valid;
-        assign read_ready = s_rready;
-        assign cmd1_ready = 1'b1;
-    end
-    
     
     
 endmodule

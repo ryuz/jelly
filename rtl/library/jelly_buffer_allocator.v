@@ -47,6 +47,48 @@ module jelly_buffer_allocator
         );
     
     
+    // status
+    integer     k;
+    reg                         reg_writer_busy;
+    reg     [READER_NUM-1:0]    reg_reader_busy;
+        always @(posedge clk) begin
+        if ( reset ) begin
+            reg_writer_busy <= 0;
+            reg_reader_busy  <= 0;
+        end
+        else if ( cke ) begin
+            if ( writer_request ) begin
+                reg_writer_busy <= 1'b1;
+                if ( reg_writer_busy ) begin
+                    $display("ERROR(buffer_allocator): illegal writer_request");
+                end
+            end
+            if ( writer_release ) begin
+                reg_writer_busy <= 1'b0;
+    //          if ( !reg_writer_busy ) begin
+    //              $display("ERROR(buffer_allocator): illegal writer_release");
+    //          end
+            end
+            
+            for ( k = 0; k < READER_NUM; k = k+1 ) begin
+                if ( reader_request[k] ) begin
+                    reg_reader_busy[k] <= 1'b1;
+                    if ( reg_reader_busy[k] ) begin
+                        $display("ERROR(buffer_allocator): illegal reader_request(%d)", k);
+                    end
+                end
+                if ( reader_release[k] ) begin
+                    reg_reader_busy[k] <= 1'b0;
+    //              if ( !reg_reader_busy[k] ) begin
+    //                  $display("ERROR(buffer_allocator): illegal reader_release(%d)", k);
+    //              end
+                end
+            end
+        end
+    end
+    
+    
+    // control
     reg     [INDEX_WIDTH-1:0]               reg_newest,  next_newest;
     reg     [BUFFER_NUM*REFCNT_WIDTH-1:0]   reg_refcnt,  next_refcnt;
     reg     [BUFFER_NUM-1:0]                reg_bufbusy, next_bufbusy;
@@ -80,7 +122,7 @@ module jelly_buffer_allocator
         next_writing = reg_writing;
         next_reading = reg_reading;
         
-        if ( writer_release ) begin
+        if ( reg_writer_busy && writer_release ) begin
             // 書き終わったら最新にマーク
             next_newest = next_writing;
             
@@ -98,7 +140,7 @@ module jelly_buffer_allocator
         
         // reader release
         for ( i = 0; i < READER_NUM; i = i+1 ) begin
-            if ( reader_release[i] ) begin
+            if ( reg_reader_busy[i] && reader_release[i] ) begin
                 tmp = next_reading[i*INDEX_WIDTH +: INDEX_WIDTH];
                 next_refcnt[tmp*REFCNT_WIDTH +: REFCNT_WIDTH] = next_refcnt[tmp*REFCNT_WIDTH +: REFCNT_WIDTH] - 1'b1;
             end
@@ -106,7 +148,7 @@ module jelly_buffer_allocator
         
         // reader request
         for ( i = 0; i < READER_NUM; i = i+1 ) begin
-            if ( reader_request[i] ) begin
+            if ( !reg_reader_busy[i] && reader_request[i] ) begin
                 tmp = next_newest;
                 next_reading[i*INDEX_WIDTH +: INDEX_WIDTH] = tmp;
                 next_refcnt[tmp*REFCNT_WIDTH +: REFCNT_WIDTH] = next_refcnt[tmp*REFCNT_WIDTH +: REFCNT_WIDTH] + 1'b1;
@@ -135,46 +177,7 @@ module jelly_buffer_allocator
     assign status_refcnt = reg_refcnt;
     
     
-    // status
-    integer     k;
-    reg                         reg_writer_busy;
-    reg     [READER_NUM-1:0]    reg_reader_busy;
-        always @(posedge clk) begin
-        if ( reset ) begin
-            reg_writer_busy <= 0;
-            reg_reader_busy  <= 0;
-        end
-        else if ( cke ) begin
-            if ( writer_request ) begin
-                reg_writer_busy <= 1'b1;
-                if ( reg_writer_busy ) begin
-                    $display("ERROR(buffer_allocator): illegal writer_request");
-                end
-            end
-            if ( writer_release ) begin
-                reg_writer_busy <= 1'b0;
-                if ( !reg_writer_busy ) begin
-                    $display("ERROR(buffer_allocator): illegal writer_release");
-                end
-            end
-            
-            for ( k = 0; k < READER_NUM; k = k+1 ) begin
-                if ( reader_request[k] ) begin
-                    reg_reader_busy[k] <= 1'b1;
-                    if ( reg_reader_busy[k] ) begin
-                        $display("ERROR(buffer_allocator): illegal reader_request(%d)", k);
-                    end
-                end
-                if ( reader_release[k] ) begin
-                    reg_reader_busy[k] <= 1'b0;
-                    if ( !reg_reader_busy[k] ) begin
-                        $display("ERROR(buffer_allocator): illegal reader_release(%d)", k);
-                    end
-                end
-            end
-        end
-    end
-    
+
     
 endmodule
 
