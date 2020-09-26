@@ -204,13 +204,13 @@ module jelly_img_previous_frame_core
     wire                                m_valid;
     wire                                m_ready;
     
-    jelly_axi4_dma_fifo_core
+    jelly_dma_fifo_core
             #(
                 .S_ASYNC                (ASYNC),
                 .M_ASYNC                (ASYNC),
                 .UNIT_WIDTH             (8),
-                .S_DATA_SIZE            (DATA_SIZE),
-                .M_DATA_SIZE            (DATA_SIZE),
+                .S_DATA_WIDTH           (DATA_WIDTH),
+                .M_DATA_WIDTH           (DATA_WIDTH),
                 
                 .AXI4_ID_WIDTH          (AXI4_ID_WIDTH),
                 .AXI4_ADDR_WIDTH        (AXI4_ADDR_WIDTH),

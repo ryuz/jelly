@@ -15,7 +15,7 @@ module tb_stream_gate();
     end
     
     
-    parameter   RAND_BUSY = 1;
+    parameter   RAND_BUSY = 0;
     
     
     reg     clk = 1'b1;
@@ -28,6 +28,7 @@ module tb_stream_gate();
     always @(posedge clk) cke <= 1; // RAND_BUSY ? {$random()} : 1'b1;
     
     
+    parameter N               = 2;
     parameter BYPASS          = 0;
     parameter DETECTOR_ENABLE = 1;
     
@@ -43,27 +44,33 @@ module tb_stream_gate();
     parameter USER_BITS       = USER_WIDTH > 0 ? USER_WIDTH : 1;
     
     reg                         skip = 0;           // 非busy時に読み飛ばす
-    reg                         detect_first = 0;
-    reg                         detect_last  = 0;
-    reg                         padding_en   = 0;
+    reg     [N-1:0]             detect_first = 1;
+    reg     [N-1:0]             detect_last  = 1;
+    reg                         padding_en   = 1;
     reg     [DATA_WIDTH-1:0]    padding_data = 32'haa55aa55;
     reg                         padding_skip = 0;
     
-    wire                        s_permit_first = 1;
-    wire                        s_permit_last  = 1;
+    reg     [N-1:0]             s_permit_first = 1;
+    reg     [N-1:0]             s_permit_last  = 1;
     reg     [LEN_WIDTH-1:0]     s_permit_len;
     reg     [USER_BITS-1:0]     s_permit_user = 0;
     reg                         s_permit_valid;
     wire                        s_permit_ready;
     
-    wire                        s_first = (s_data[2:0] == 3'b000);
-    wire                        s_last  = (s_data[2:0] == 3'b111);
+    wire    [N-1:0]             s_first; //= (s_data[2:0] == 3'b000);
+    wire    [N-1:0]             s_last;  //= (s_data[2:0] == 3'b111);
     reg     [DATA_WIDTH-1:0]    s_data;
     reg                         s_valid;
     wire                        s_ready;
     
-    wire                        m_first;
-    wire                        m_last;
+    assign s_first[0] = (s_data[2:0] == 3'b000);
+    assign s_last[0]  = (s_data[2:0] == 3'b111);
+    assign s_first[1] = (s_data[5:0] == 5'b00000);
+    assign s_last[1]  = (s_data[5:0] == 5'b11111);
+    
+    
+    wire    [N-1:0]             m_first;
+    wire    [N-1:0]             m_last;
     wire    [DATA_WIDTH-1:0]    m_data;
     wire    [USER_BITS-1:0]     m_user;
     wire                        m_valid;
@@ -73,6 +80,7 @@ module tb_stream_gate();
     
     jelly_stream_gate
             #(
+                .N                  (N),
                 .BYPASS             (BYPASS),
                 .DETECTOR_ENABLE    (DETECTOR_ENABLE),
                 .DATA_WIDTH         (DATA_WIDTH),
@@ -98,6 +106,7 @@ module tb_stream_gate();
                 .s_permit_first     (s_permit_first),
                 .s_permit_last      (s_permit_last),
                 .s_permit_len       (s_permit_len),
+                .s_permit_user      (s_permit_user),
                 .s_permit_valid     (s_permit_valid),
                 .s_permit_ready     (s_permit_ready),
                 
@@ -120,17 +129,34 @@ module tb_stream_gate();
     #10000;
         @(posedge clk)
             skip           <= 0;
-            detect_first   <= 0;
-            detect_last    <= 1;
+            detect_first   <= 2'b11;
+            detect_last    <= 2'b11;
             padding_en     <= 0;
             padding_data   <= 32'haa55aa55;
-            s_permit_len   <= 0;
+            s_permit_first <= 2'b11;
+            s_permit_last  <= 2'b01;
+            s_permit_len   <= 1 - LEN_OFFSET;
             s_permit_valid <= 1;
         while ( !(s_permit_valid && s_permit_ready) )
             @(posedge clk);
             s_permit_valid <= 0;
         #10000;
         
+            @(posedge clk)
+                skip           <= 0;
+                detect_first   <= 2'b11;
+                detect_last    <= 2'b11;
+                padding_en     <= 1;
+                padding_data   <= 32'haa55aa55;
+                s_permit_first <= 2'b01;
+                s_permit_last  <= 2'b01;
+                s_permit_len   <= 13 - LEN_OFFSET;
+                s_permit_valid <= 1;
+            while ( !(s_permit_valid && s_permit_ready) )
+                @(posedge clk);
+                s_permit_valid <= 0;
+            #10000;
+
         
         @(posedge clk)
             skip           <= 0;

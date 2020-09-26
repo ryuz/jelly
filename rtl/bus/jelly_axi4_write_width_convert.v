@@ -17,10 +17,9 @@ module jelly_axi4_write_width_convert
             parameter   WASYNC            = 1,
             parameter   AW_W_ASYNC        = (AWASYNC || WASYNC),
             parameter   BYTE_WIDTH        = 8,
-            parameter   BYPASS_GATE       = 0,
+            parameter   BYPASS_GATE       = 1,
             
             parameter   ALLOW_UNALIGNED   = 0,
-            parameter   WDETECTOR_ENABLE  = 0,
             
             parameter   HAS_S_WSTRB       = 0,
             parameter   HAS_S_WFIRST      = 0,
@@ -61,12 +60,12 @@ module jelly_axi4_write_width_convert
             parameter   AWFIFO_S_REGS     = 0,
             parameter   AWFIFO_M_REGS     = 0,
             
-            parameter   DATFIFO_PTR_WIDTH = 4,
-            parameter   DATFIFO_RAM_TYPE  = "distributed",
-            parameter   DATFIFO_LOW_DEALY = 1,
-            parameter   DATFIFO_DOUT_REGS = 0,
-            parameter   DATFIFO_S_REGS    = 0,
-            parameter   DATFIFO_M_REGS    = 0,
+            parameter   SWFIFOPTR_WIDTH   = 4,
+            parameter   SWFIFORAM_TYPE    = "distributed",
+            parameter   SWFIFOLOW_DEALY   = 1,
+            parameter   SWFIFODOUT_REGS   = 0,
+            parameter   SWFIFOS_REGS      = 0,
+            parameter   SWFIFOM_REGS      = 0,
             
             parameter   CONVERT_S_REGS    = 0,
             parameter   POST_CONVERT      = (M_WDATA_WIDTH < S_WDATA_WIDTH),
@@ -96,11 +95,6 @@ module jelly_axi4_write_width_convert
             input   wire    [S_WUSER_BITS-1:0]      s_wuser,
             input   wire                            s_wvalid,
             output  wire                            s_wready,
-            input   wire                            wdetect_first,
-            input   wire                            wdetect_last,
-            input   wire                            wpadding_en,
-            input   wire    [S_WDATA_WIDTH-1:0]     wpadding_data,
-            input   wire    [S_WSTRB_WIDTH-1:0]     wpadding_strb,
             output  wire    [WFIFO_PTR_WIDTH:0]     wfifo_free_count,
             output  wire                            wfifo_wr_signal,
             
@@ -139,6 +133,45 @@ module jelly_axi4_write_width_convert
     //  s_aw
     // ---------------------------------
     
+    // master 側にクロック載せ替え
+    wire    [AWADDR_WIDTH-1:0]      awfifo_awaddr;
+    wire    [S_AWLEN_WIDTH-1:0]     awfifo_awlen;
+    wire    [AWUSER_BITS-1:0]       awfifo_awuser;
+    wire                            awfifo_awvalid;
+    wire                            awfifo_awready;
+    jelly_fifo_pack
+            #(
+                .ASYNC              (AWASYNC),
+                .DATA0_WIDTH        (AWADDR_WIDTH),
+                .DATA1_WIDTH        (S_AWLEN_WIDTH),
+                .DATA2_WIDTH        (AWUSER_WIDTH),
+                
+                .PTR_WIDTH          (AWFIFO_PTR_WIDTH),
+                .DOUT_REGS          (AWFIFO_DOUT_REGS),
+                .RAM_TYPE           (AWFIFO_RAM_TYPE),
+                .LOW_DEALY          (AWFIFO_LOW_DEALY),
+                .S_REGS             (AWFIFO_S_REGS),
+                .M_REGS             (AWFIFO_M_REGS)
+            )
+        i_fifo_pack_cmd_aw
+            (
+                .s_reset            (~s_awresetn),
+                .s_clk              (s_awclk),
+                .s_data0            (s_awaddr),
+                .s_data1            (s_awlen),
+                .s_data2            (s_awuser),
+                .s_valid            (s_awvalid),
+                .s_ready            (s_awready),
+                
+                .m_reset            (~m_awresetn),
+                .m_clk              (m_awclk),
+                .m_data0            (awfifo_awaddr),
+                .m_data1            (awfifo_awlen),
+                .m_data2            (awfifo_awuser),
+                .m_valid            (awfifo_awvalid),
+                .m_ready            (awfifo_awready)
+            );
+    
     // address convert
     wire    [AWADDR_WIDTH-1:0]      adrcnv_awaddr;
     wire    [ALIGN_BITS-1:0]        adrcnv_align;
@@ -162,15 +195,15 @@ module jelly_axi4_write_width_convert
             )
         i_address_width_convert
             (
-                .reset              (~s_awresetn),
-                .clk                (s_awclk),
+                .reset              (~m_awresetn),
+                .clk                (m_awclk),
                 .cke                (1'b1),
                 
-                .s_addr             (s_awaddr),
-                .s_len              (s_awlen),
-                .s_user             ({s_awuser, s_awlen}),
-                .s_valid            (s_awvalid),
-                .s_ready            (s_awready),
+                .s_addr             (awfifo_awaddr),
+                .s_len              (awfifo_awlen),
+                .s_user             ({awfifo_awuser, awfifo_awlen}),
+                .s_valid            (awfifo_awvalid),
+                .s_ready            (awfifo_awready),
                 
                 .m_addr             (adrcnv_awaddr),
                 .m_align            (adrcnv_align),
@@ -208,8 +241,8 @@ module jelly_axi4_write_width_convert
             )
         i_data_split_pack2_aw
             (
-                .reset              (~s_awresetn),
-                .clk                (s_awclk),
+                .reset              (~m_awresetn),
+                .clk                (m_awclk),
                 .cke                (1'b1),
                 
                 .s_data0_0          (adrcnv_awaddr),
@@ -232,45 +265,11 @@ module jelly_axi4_write_width_convert
                 .m1_ready           (dat_awready)
             );
     
-    
-    
-    // ---------------------------------
-    //  address command
-    // ---------------------------------
-    
-    // master 側にクロック載せ替え
-    jelly_fifo_pack
-            #(
-                .ASYNC              (AWASYNC),
-                .DATA0_WIDTH        (AWADDR_WIDTH),
-                .DATA1_WIDTH        (M_AWLEN_WIDTH),
-                .DATA2_WIDTH        (AWUSER_WIDTH),
-                
-                .PTR_WIDTH          (AWFIFO_PTR_WIDTH),
-                .DOUT_REGS          (AWFIFO_DOUT_REGS),
-                .RAM_TYPE           (AWFIFO_RAM_TYPE),
-                .LOW_DEALY          (AWFIFO_LOW_DEALY),
-                .S_REGS             (AWFIFO_S_REGS),
-                .M_REGS             (AWFIFO_M_REGS)
-            )
-        i_fifo_pack_cmd_aw
-            (
-                .s_reset            (~s_awresetn),
-                .s_clk              (s_awclk),
-                .s_data0            (cmd_awaddr),
-                .s_data1            (cmd_awlen),
-                .s_data2            (cmd_awuser),
-                .s_valid            (cmd_awvalid),
-                .s_ready            (cmd_awready),
-                
-                .m_reset            (~m_awresetn),
-                .m_clk              (m_awclk),
-                .m_data0            (m_awaddr),
-                .m_data1            (m_awlen),
-                .m_data2            (m_awuser),
-                .m_valid            (m_awvalid),
-                .m_ready            (m_awready)
-            );
+    assign m_awaddr    = cmd_awaddr;
+    assign m_awlen     = cmd_awlen;
+    assign m_awuser    = cmd_awuser;
+    assign m_awvalid   = cmd_awvalid;
+    assign cmd_awready = m_awready;
     
     
     
@@ -286,21 +285,21 @@ module jelly_axi4_write_width_convert
     
     jelly_fifo_pack
             #(
-                .ASYNC              (AWASYNC | WASYNC),
+                .ASYNC              (WASYNC),
                 .DATA0_WIDTH        (S_AWLEN_WIDTH),
                 .DATA1_WIDTH        (ALIGN_WIDTH),
                 
-                .PTR_WIDTH          (DATFIFO_PTR_WIDTH),
-                .DOUT_REGS          (DATFIFO_DOUT_REGS),
-                .RAM_TYPE           (DATFIFO_RAM_TYPE),
-                .LOW_DEALY          (DATFIFO_LOW_DEALY),
-                .S_REGS             (DATFIFO_S_REGS),
-                .M_REGS             (DATFIFO_M_REGS)
+                .PTR_WIDTH          (SWFIFOPTR_WIDTH),
+                .DOUT_REGS          (SWFIFODOUT_REGS),
+                .RAM_TYPE           (SWFIFORAM_TYPE),
+                .LOW_DEALY          (SWFIFOLOW_DEALY),
+                .S_REGS             (SWFIFOS_REGS),
+                .M_REGS             (SWFIFOM_REGS)
             )
         i_fifo_pack_dat
             (
-                .s_reset            (~s_awresetn),
-                .s_clk              (s_awclk),
+                .s_reset            (~m_awresetn),
+                .s_clk              (m_awclk),
                 .s_data0            (dat_awlen),
                 .s_data1            (dat_align),
                 .s_valid            (dat_awvalid),
@@ -327,8 +326,8 @@ module jelly_axi4_write_width_convert
     
     jelly_stream_gate
             #(
-                .BYPASS             (!ALLOW_UNALIGNED && BYPASS_GATE),
-                .DETECTOR_ENABLE    (WDETECTOR_ENABLE),
+                .BYPASS             (BYPASS_GATE && !HAS_S_WLAST),
+                .DETECTOR_ENABLE    (0),
                 .DATA_WIDTH         (S_WUSER_BITS + S_WSTRB_WIDTH + S_WDATA_WIDTH),
                 .LEN_WIDTH          (S_AWLEN_WIDTH),
                 .LEN_OFFSET         (S_AWLEN_OFFSET),
@@ -344,11 +343,10 @@ module jelly_axi4_write_width_convert
                 .cke                (1'b1),
                 
                 .skip               (1'b0),
-                .detect_first       (wdetect_first && HAS_S_WFIRST),
-                .detect_last        (wdetect_last  && HAS_S_WLAST),
-                .padding_en         (wpadding_en   && (HAS_S_WFIRST || HAS_S_WLAST)),
-                .padding_data       ({{S_WUSER_BITS{1'bx}}, wpadding_strb, wpadding_data}),
-                .padding_skip       (1'b0),
+                .detect_first       (1'b0),
+                .detect_last        (1'b0),
+                .padding_en         (1'b0),
+                .padding_data       ({{S_WUSER_BITS{1'bx}}, {S_WSTRB_WIDTH{1'b0}}, {S_WDATA_WIDTH{1'b0}}}),
                 
                 .s_permit_first     (1'b1),
                 .s_permit_last      (1'b1),

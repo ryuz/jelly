@@ -27,7 +27,7 @@ module tb_address_generator_ndarray();
     reg     cke = 1'b1;
     always @(posedge clk) cke <= RAND_BUSY ? {$random()} : 1'b1;
     
-    parameter   N          = 2;
+    parameter   N          = 1;
     parameter   ADDR_WIDTH = 32;
     parameter   STEP_WIDTH = 32;
     parameter   LEN_WIDTH  = 32;
@@ -49,7 +49,7 @@ module tb_address_generator_ndarray();
     wire                        m_valid;
     reg                         m_ready = 1;
     
-    jelly_address_generator_ndarray
+    jelly_address_generator_nd
             #(
                 .N              (N),
                 .ADDR_WIDTH     (ADDR_WIDTH),
@@ -58,7 +58,7 @@ module tb_address_generator_ndarray();
                 .LEN_OFFSET     (LEN_OFFSET),
                 .USER_WIDTH     (USER_WIDTH)
             )
-        i_address_generator_ndarray
+        i_address_generator_nd
             (
                 .reset          (reset),
                 .clk            (clk),
@@ -105,11 +105,11 @@ module tb_address_generator_ndarray();
         #0
             s_addr  = 32'h0100_0000;
             s_step[0*STEP_WIDTH +: STEP_WIDTH] = 32'h00000100;
-            s_step[1*STEP_WIDTH +: STEP_WIDTH] = 32'h00001000;
+//            s_step[1*STEP_WIDTH +: STEP_WIDTH] = 32'h00001000;
 //            s_step[2*STEP_WIDTH +: STEP_WIDTH] = 32'h00010000;
 //            s_step[3*STEP_WIDTH +: STEP_WIDTH] = 32'h00100000;
             s_len [0*LEN_WIDTH  +: LEN_WIDTH ] = 5;
-            s_len [1*LEN_WIDTH  +: LEN_WIDTH ] = 4;
+//            s_len [1*LEN_WIDTH  +: LEN_WIDTH ] = 4;
 //            s_len [2*LEN_WIDTH  +: LEN_WIDTH ] = 3;
 //            s_len [3*LEN_WIDTH  +: LEN_WIDTH ] = 2;
             s_user  = 0;
