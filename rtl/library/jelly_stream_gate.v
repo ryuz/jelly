@@ -66,12 +66,13 @@ module jelly_stream_gate
     
     generate
     if ( BYPASS ) begin : blk_bypass
-        assign m_first = s_first;
-        assign m_last  = s_last;
-        assign m_data  = s_data;
-        assign m_user  = {USER_BITS{1'b0}};
-        assign m_valid = s_valid;
-        assign s_ready = m_ready;
+        assign m_first        = s_first;
+        assign m_last         = s_last;
+        assign m_data         = s_data;
+        assign m_user         = {USER_BITS{1'b0}};
+        assign m_valid        = s_valid;
+        assign s_ready        = m_ready;
+        assign s_permit_ready = 1'b1;
     end
     else begin : blk_gate
         // parameter
