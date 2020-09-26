@@ -11,13 +11,13 @@
 
 
 // 外部メモリをFIFO的に使う為のDMAコア
-module jelly_axi4_dma_fifo_core
+module jelly_dma_fifo_core
         #(
             parameter   S_ASYNC              = 1,
             parameter   M_ASYNC              = 1,
             parameter   UNIT_WIDTH           = 8,
-            parameter   S_DATA_SIZE          = 2,    // 0:8bit, 1:16bit, 2:32bit ...
-            parameter   M_DATA_SIZE          = 2,    // 0:8bit, 1:16bit, 2:32bit ...
+            parameter   S_DATA_WIDTH         = 2,    // 0:8bit, 1:16bit, 2:32bit ...
+            parameter   M_DATA_WIDTH         = 2,    // 0:8bit, 1:16bit, 2:32bit ...
             
             parameter   AXI4_ID_WIDTH        = 6,
             parameter   AXI4_ADDR_WIDTH      = 49,
@@ -82,11 +82,7 @@ module jelly_axi4_dma_fifo_core
             parameter   RDATA_FIFO_LOW_DEALY = 0,
             parameter   RDATA_FIFO_DOUT_REGS = 1,
             parameter   RDATA_FIFO_S_REGS    = 1,
-            parameter   RDATA_FIFO_M_REGS    = 1,
-            
-            // local
-            parameter   S_DATA_WIDTH         = (UNIT_WIDTH << S_DATA_SIZE),
-            parameter   M_DATA_WIDTH         = (UNIT_WIDTH << M_DATA_SIZE)
+            parameter   RDATA_FIFO_M_REGS    = 1
         )
         (
             // reset & clock
@@ -175,11 +171,11 @@ module jelly_axi4_dma_fifo_core
     
     
     // write
-    jelly_axi4_dma_fifo_write
+    jelly_dma_fifo_write
             #(
                 .ASYNC                  (S_ASYNC),
                 .UNIT_WIDTH             (UNIT_WIDTH),
-                .S_DATA_SIZE            (S_DATA_SIZE),
+                .S_DATA_WIDTH           (S_DATA_WIDTH),
                 
                 .AXI4_ID_WIDTH          (AXI4_ID_WIDTH),
                 .AXI4_ADDR_WIDTH        (AXI4_ADDR_WIDTH),
@@ -232,7 +228,7 @@ module jelly_axi4_dma_fifo_core
                 .BLEN_FIFO_S_REGS       (BLEN_FIFO_S_REGS),
                 .BLEN_FIFO_M_REGS       (BLEN_FIFO_M_REGS)
             )
-        i_axi4_dma_fifo_write
+        i_dma_fifo_write
             (
                 .aresetn                (aresetn),
                 .aclk                   (aclk),
@@ -283,11 +279,11 @@ module jelly_axi4_dma_fifo_core
             );
     
     // read
-    jelly_axi4_dma_fifo_read
+    jelly_dma_fifo_read
             #(
                 .ASYNC                  (M_ASYNC),
                 .UNIT_WIDTH             (UNIT_WIDTH),
-                .M_DATA_SIZE            (M_DATA_SIZE),
+                .M_DATA_WIDTH           (M_DATA_WIDTH),
                 
                 .AXI4_ID_WIDTH          (AXI4_ID_WIDTH),
                 .AXI4_ADDR_WIDTH        (AXI4_ADDR_WIDTH),
@@ -325,7 +321,7 @@ module jelly_axi4_dma_fifo_core
                 .RDATA_FIFO_S_REGS      (RDATA_FIFO_S_REGS),
                 .RDATA_FIFO_M_REGS      (RDATA_FIFO_M_REGS)
             )
-        i_axi4_dma_fifo_read
+        i_axi4_fifo_read
             (
                 .aresetn                (aresetn),
                 .aclk                   (aclk),

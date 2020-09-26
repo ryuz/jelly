@@ -1,8 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- The FPGA processing system
 //
-//                                 Copyright (C) 2008-2017 by Ryuji Fuchikami
-//                                 http://ryuz.my.coocan.jp/
+//                                 Copyright (C) 2008-2020 by Ryuji Fuchikami
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
@@ -12,11 +11,11 @@
 
 
 // AXI4 DMA FIFO用 データ書き込みコア
-module jelly_axi4_dma_fifo_write
+module jelly_dma_fifo_write
         #(
             parameter   ASYNC                = 1,
             parameter   UNIT_WIDTH           = 8,
-            parameter   S_DATA_SIZE          = 2,    // 0:8bit, 1:16bit, 2:32bit ...
+            parameter   S_DATA_WIDTH         = 32,
             
             parameter   AXI4_ID_WIDTH        = 6,
             parameter   AXI4_ADDR_WIDTH      = 49,
@@ -67,10 +66,7 @@ module jelly_axi4_dma_fifo_write
             parameter   BLEN_FIFO_LOW_DEALY  = 0,
             parameter   BLEN_FIFO_DOUT_REGS  = 1,
             parameter   BLEN_FIFO_S_REGS     = 0,
-            parameter   BLEN_FIFO_M_REGS     = 1,
-            
-            // local
-            parameter   S_DATA_WIDTH         = (UNIT_WIDTH << S_DATA_SIZE)
+            parameter   BLEN_FIFO_M_REGS     = 1
         )
         (
             input   wire                                aresetn,
@@ -127,12 +123,9 @@ module jelly_axi4_dma_fifo_write
     //  localparam
     // ---------------------------------
     
-    
-    localparam  WDATA_FIFO_SIZE = S_DATA_SIZE > AXI4_DATA_SIZE ? S_DATA_SIZE - AXI4_DATA_SIZE : 0;
-    
-    localparam  CAPACITY_WIDTH  = PARAM_SIZE_WIDTH - AXI4_DATA_SIZE;
-    localparam  ADDR_WIDTH      = PARAM_SIZE_WIDTH - AXI4_DATA_SIZE;
-    localparam  LEN_WIDTH       = PARAM_AWLEN_WIDTH;
+    localparam  CAPACITY_WIDTH   = PARAM_SIZE_WIDTH - AXI4_DATA_SIZE;
+    localparam  ADDR_WIDTH       = PARAM_SIZE_WIDTH - AXI4_DATA_SIZE;
+    localparam  LEN_WIDTH        = PARAM_AWLEN_WIDTH;
     
     
     
@@ -144,22 +137,24 @@ module jelly_axi4_dma_fifo_write
     wire                            fifo_valid;
     wire                            fifo_ready;
     
-    wire    [CAPACITY_WIDTH-1:0]    s_wr_size = (1 << WDATA_FIFO_SIZE);
+    wire    [CAPACITY_WIDTH-1:0]    s_wr_size = 1;
     wire                            s_wr_valid;
     
     jelly_fifo_width_convert
             #(
                 .ASYNC                  (ASYNC),
                 .UNIT_WIDTH             (UNIT_WIDTH),
-                .S_NUM                  (1<<S_DATA_SIZE),
-                .M_NUM                  (1<<AXI4_DATA_SIZE),
+                .S_NUM                  (S_DATA_WIDTH    / UNIT_WIDTH),
+                .M_NUM                  (AXI4_DATA_WIDTH / UNIT_WIDTH),
                 
                 .FIFO_PTR_WIDTH         (WDATA_FIFO_PTR_WIDTH),
                 .FIFO_RAM_TYPE          (WDATA_FIFO_RAM_TYPE),
                 .FIFO_LOW_DEALY         (WDATA_FIFO_LOW_DEALY),
                 .FIFO_DOUT_REGS         (WDATA_FIFO_DOUT_REGS),
                 .FIFO_S_REGS            (WDATA_FIFO_S_REGS),
-                .FIFO_M_REGS            (WDATA_FIFO_M_REGS)
+                .FIFO_M_REGS            (WDATA_FIFO_M_REGS),
+                
+                .POST_CONVERT           (0)
             )
         i_fifo_width_convert_wdata
             (
