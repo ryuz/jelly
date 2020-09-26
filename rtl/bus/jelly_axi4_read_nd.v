@@ -15,7 +15,7 @@
 
 
 // AXI4 データ読出しコア
-module jelly_axi4_read_2d
+module jelly_axi4_read_nd
         #(
             parameter   N                    = 1,
             
@@ -387,14 +387,14 @@ module jelly_axi4_read_2d
                 .ARASYNC                (ARASYNC),
                 .RASYNC                 (RASYNC),
                 .BYTE_WIDTH             (BYTE_WIDTH),
-                .BYPASS_GATE            (BYPASS_GATE),
+                .BYPASS_GATE            (BYPASS_GATE && N==1),
                 .BYPASS_ALIGN           (BYPASS_ALIGN),
                 .AXI4_ALIGN             (AXI4_ALIGN),
                 .ALLOW_UNALIGNED        (ALLOW_UNALIGNED),
-                .HAS_S_RFIRST           (HAS_S_RFIRST),
-                .HAS_S_RLAST            (HAS_S_RLAST),
-                .HAS_M_RFIRST           (HAS_M_RFIRST),
-                .HAS_M_RLAST            (HAS_M_RLAST),
+                .HAS_S_RFIRST           (1),//HAS_S_RFIRST),
+                .HAS_S_RLAST            (1),
+                .HAS_M_RFIRST           (1),//(HAS_M_RFIRST),
+                .HAS_M_RLAST            (1),//(HAS_M_RLAST),
                 .AXI4_ID_WIDTH          (AXI4_ID_WIDTH),
                 .AXI4_ADDR_WIDTH        (AXI4_ADDR_WIDTH),
                 .AXI4_DATA_SIZE         (AXI4_DATA_SIZE),

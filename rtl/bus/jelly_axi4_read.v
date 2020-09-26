@@ -151,10 +151,10 @@ module jelly_axi4_read
     wire                            conv_arvalid;
     wire                            conv_arready;
     
-    wire    [AXI4_DATA_WIDTH-1:0]   conv_rdata;
-    wire                            conv_rlast;
-    wire                            conv_rvalid;
-    wire                            conv_rready;
+//    wire    [AXI4_DATA_WIDTH-1:0]   conv_rdata;
+//    wire                            conv_rlast;
+//    wire                            conv_rvalid;
+//    wire                            conv_rready;
     
     wire                            s_rfifo_rd_signal;
     
@@ -167,10 +167,10 @@ module jelly_axi4_read
                 .BYPASS_GATE            (BYPASS_GATE),
                 .ALLOW_UNALIGNED        (ALLOW_UNALIGNED),
                 
-                .HAS_S_WFIRST           (HAS_S_RFIRST),
-                .HAS_S_WLAST            (HAS_S_RLAST),
-                .HAS_M_WFIRST           (0),
-                .HAS_M_WLAST            (1),
+                .HAS_S_RFIRST           (HAS_S_RFIRST),
+                .HAS_S_RLAST            (HAS_S_RLAST),
+                .HAS_M_RFIRST           (0),
+                .HAS_M_RLAST            (1),
                 
                 .ARADDR_WIDTH           (AXI4_ADDR_WIDTH),
                 .ARUSER_WIDTH           (AXI4_LEN_WIDTH),

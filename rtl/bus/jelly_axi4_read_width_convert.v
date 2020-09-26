@@ -21,10 +21,10 @@ module jelly_axi4_read_width_convert
             
             parameter   ALLOW_UNALIGNED   = 0,
             
-            parameter   HAS_S_WFIRST      = 0,
-            parameter   HAS_S_WLAST       = 0,
-            parameter   HAS_M_WFIRST      = 0,
-            parameter   HAS_M_WLAST       = 0,
+            parameter   HAS_S_RFIRST      = 0,
+            parameter   HAS_S_RLAST       = 0,
+            parameter   HAS_M_RFIRST      = 0,
+            parameter   HAS_M_RLAST       = 0,
             
             parameter   ARADDR_WIDTH      = 32,
             parameter   ARUSER_WIDTH      = 0,
@@ -393,7 +393,7 @@ module jelly_axi4_read_width_convert
             (
                 .s_reset            (~m_rresetn),
                 .s_clk              (m_rclk),
-                .s_valid            (gate_rvalid & gate_rready),
+                .s_valid            (gate_rvalid & gate_rready & gate_rlast),
                 
                 .m_reset            (~s_rbresetn),
                 .m_clk              (s_rbclk),

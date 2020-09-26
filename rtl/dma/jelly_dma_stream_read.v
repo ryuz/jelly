@@ -53,8 +53,8 @@ module jelly_dma_stream_read
             parameter ARLEN_WIDTH          = AXI4_ADDR_WIDTH,   // 内部キューイング用
             
             parameter ARLEN_OFFSET         = 1'b1,
-            parameter ARLEN0_WIDTH         = AXI4_ADDR_WIDTH,
-            parameter ARLEN1_WIDTH         = AXI4_ADDR_WIDTH,
+            parameter ARLEN0_WIDTH         = 11,
+            parameter ARLEN1_WIDTH         = 11,
             parameter ARLEN2_WIDTH         = AXI4_ADDR_WIDTH,
             parameter ARLEN3_WIDTH         = AXI4_ADDR_WIDTH,
             parameter ARLEN4_WIDTH         = AXI4_ADDR_WIDTH,
@@ -152,55 +152,55 @@ module jelly_dma_stream_read
             parameter INIT_PARAM_ARSTEP9   = 0
         )
         (
-            input   wire                                endian,
+            input   wire                            endian,
             
             // WISHBONE (register access)
-            input   wire                                s_wb_rst_i,
-            input   wire                                s_wb_clk_i,
-            input   wire    [WB_ADR_WIDTH-1:0]          s_wb_adr_i,
-            input   wire    [WB_DAT_WIDTH-1:0]          s_wb_dat_i,
-            output  wire    [WB_DAT_WIDTH-1:0]          s_wb_dat_o,
-            input   wire                                s_wb_we_i,
-            input   wire    [WB_SEL_WIDTH-1:0]          s_wb_sel_i,
-            input   wire                                s_wb_stb_i,
-            output  wire                                s_wb_ack_o,
-            output  wire    [0:0]                       out_irq,
+            input   wire                            s_wb_rst_i,
+            input   wire                            s_wb_clk_i,
+            input   wire    [WB_ADR_WIDTH-1:0]      s_wb_adr_i,
+            input   wire    [WB_DAT_WIDTH-1:0]      s_wb_dat_i,
+            output  wire    [WB_DAT_WIDTH-1:0]      s_wb_dat_o,
+            input   wire                            s_wb_we_i,
+            input   wire    [WB_SEL_WIDTH-1:0]      s_wb_sel_i,
+            input   wire                            s_wb_stb_i,
+            output  wire                            s_wb_ack_o,
+            output  wire    [0:0]                   out_irq,
             
-            output  wire                                buffer_request,
-            output  wire                                buffer_release,
-            input   wire    [AXI4_ADDR_WIDTH-1:0]       buffer_addr,
+            output  wire                            buffer_request,
+            output  wire                            buffer_release,
+            input   wire    [AXI4_ADDR_WIDTH-1:0]   buffer_addr,
             
             
             // read stream
-            input   wire                                s_rresetn,
-            input   wire                                s_rclk,
-            output  wire    [S_RDATA_WIDTH-1:0]         s_rdata,
-            output  wire    [N-1:0]                     s_rfirst,
-            output  wire    [N-1:0]                     s_rlast,
-            output  wire                                s_rvalid,
-            input   wire                                s_rready,
+            input   wire                            s_rresetn,
+            input   wire                            s_rclk,
+            output  wire    [S_RDATA_WIDTH-1:0]     s_rdata,
+            output  wire    [N-1:0]                 s_rfirst,
+            output  wire    [N-1:0]                 s_rlast,
+            output  wire                            s_rvalid,
+            input   wire                            s_rready,
             
             // AXI4
-            input   wire                                m_axi4_aresetn,
-            input   wire                                m_axi4_aclk,
-            output  wire    [AXI4_ID_WIDTH-1:0]         m_axi4_arid,
-            output  wire    [AXI4_ADDR_WIDTH-1:0]       m_axi4_araddr,
-            output  wire    [AXI4_LEN_WIDTH-1:0]        m_axi4_arlen,
-            output  wire    [2:0]                       m_axi4_arsize,
-            output  wire    [1:0]                       m_axi4_arburst,
-            output  wire    [0:0]                       m_axi4_arlock,
-            output  wire    [3:0]                       m_axi4_arcache,
-            output  wire    [2:0]                       m_axi4_arprot,
-            output  wire    [AXI4_QOS_WIDTH-1:0]        m_axi4_arqos,
-            output  wire    [3:0]                       m_axi4_arregion,
-            output  wire                                m_axi4_arvalid,
-            input   wire                                m_axi4_arready,
-            input   wire    [AXI4_ID_WIDTH-1:0]         m_axi4_rid,
-            input   wire    [AXI4_DATA_WIDTH-1:0]       m_axi4_rdata,
-            input   wire    [1:0]                       m_axi4_rresp,
-            input   wire                                m_axi4_rlast,
-            input   wire                                m_axi4_rvalid,
-            output  wire                                m_axi4_rready
+            input   wire                            m_aresetn,
+            input   wire                            m_aclk,
+            output  wire    [AXI4_ID_WIDTH-1:0]     m_axi4_arid,
+            output  wire    [AXI4_ADDR_WIDTH-1:0]   m_axi4_araddr,
+            output  wire    [AXI4_LEN_WIDTH-1:0]    m_axi4_arlen,
+            output  wire    [2:0]                   m_axi4_arsize,
+            output  wire    [1:0]                   m_axi4_arburst,
+            output  wire    [0:0]                   m_axi4_arlock,
+            output  wire    [3:0]                   m_axi4_arcache,
+            output  wire    [2:0]                   m_axi4_arprot,
+            output  wire    [AXI4_QOS_WIDTH-1:0]    m_axi4_arqos,
+            output  wire    [3:0]                   m_axi4_arregion,
+            output  wire                            m_axi4_arvalid,
+            input   wire                            m_axi4_arready,
+            input   wire    [AXI4_ID_WIDTH-1:0]     m_axi4_rid,
+            input   wire    [AXI4_DATA_WIDTH-1:0]   m_axi4_rdata,
+            input   wire    [1:0]                   m_axi4_rresp,
+            input   wire                            m_axi4_rlast,
+            input   wire                            m_axi4_rvalid,
+            output  wire                            m_axi4_rready
         );
     
     
@@ -216,16 +216,13 @@ module jelly_dma_stream_read
     localparam  ADR_CORE_ID          = 8'h00;
     localparam  ADR_CORE_VERSION     = 8'h01;
     localparam  ADR_CORE_CONFIG      = 8'h03;
-    
     localparam  ADR_CTL_CONTROL      = 8'h04;
     localparam  ADR_CTL_STATUS       = 8'h05;
     localparam  ADR_CTL_INDEX        = 8'h07;
-    
     localparam  ADR_IRQ_ENABLE       = 8'h08;
     localparam  ADR_IRQ_STATUS       = 8'h09;
     localparam  ADR_IRQ_CLR          = 8'h0a;
     localparam  ADR_IRQ_SET          = 8'h0b;
-    
     localparam  ADR_PARAM_ARADDR     = 8'h10;
     localparam  ADR_PARAM_ARLEN_MAX  = 8'h11;
     localparam  ADR_PARAM_ARLEN0     = 8'h20;
@@ -248,7 +245,6 @@ module jelly_dma_stream_read
     localparam  ADR_PARAM_ARSTEP8    = 8'h31;
     localparam  ADR_PARAM_ARLEN9     = 8'h44;
     localparam  ADR_PARAM_ARSTEP9    = 8'h45;
-    
     localparam  ADR_SHADOW_ARADDR    = 8'h90;
     localparam  ADR_SHADOW_ARLEN_MAX = 8'h91;
     localparam  ADR_SHADOW_ARLEN0    = 8'ha0;
@@ -360,46 +356,46 @@ module jelly_dma_stream_read
             reg_param_arlen_max  <= INIT_PARAM_ARLEN_MAX;
             reg_param_arlen0     <= INIT_PARAM_ARLEN0;
 //          reg_param_arstep0    <= INIT_PARAM_ARSTEP0;
-            reg_param_arlen1     <= INIT_PARAM_ARLEN1;
-            reg_param_arstep1    <= INIT_PARAM_ARSTEP1;
-            reg_param_arlen2     <= INIT_PARAM_ARLEN2;
-            reg_param_arstep2    <= INIT_PARAM_ARSTEP2;
-            reg_param_arlen3     <= INIT_PARAM_ARLEN3;
-            reg_param_arstep3    <= INIT_PARAM_ARSTEP3;
-            reg_param_arlen4     <= INIT_PARAM_ARLEN4;
-            reg_param_arstep4    <= INIT_PARAM_ARSTEP4;
-            reg_param_arlen5     <= INIT_PARAM_ARLEN5;
-            reg_param_arstep5    <= INIT_PARAM_ARSTEP5;
-            reg_param_arlen6     <= INIT_PARAM_ARLEN6;
-            reg_param_arstep6    <= INIT_PARAM_ARSTEP6;
-            reg_param_arlen7     <= INIT_PARAM_ARLEN7;
-            reg_param_arstep7    <= INIT_PARAM_ARSTEP7;
-            reg_param_arlen8     <= INIT_PARAM_ARLEN8;
-            reg_param_arstep8    <= INIT_PARAM_ARSTEP8;
-            reg_param_arlen9     <= INIT_PARAM_ARLEN9;
-            reg_param_arstep9    <= INIT_PARAM_ARSTEP9;
+            reg_param_arlen1     <= (N > 1) ? INIT_PARAM_ARLEN1  : 0;
+            reg_param_arstep1    <= (N > 1) ? INIT_PARAM_ARSTEP1 : 0;
+            reg_param_arlen2     <= (N > 2) ? INIT_PARAM_ARLEN2  : 0;
+            reg_param_arstep2    <= (N > 2) ? INIT_PARAM_ARSTEP2 : 0;
+            reg_param_arlen3     <= (N > 3) ? INIT_PARAM_ARLEN3  : 0;
+            reg_param_arstep3    <= (N > 3) ? INIT_PARAM_ARSTEP3 : 0;
+            reg_param_arlen4     <= (N > 4) ? INIT_PARAM_ARLEN4  : 0;
+            reg_param_arstep4    <= (N > 4) ? INIT_PARAM_ARSTEP4 : 0;
+            reg_param_arlen5     <= (N > 5) ? INIT_PARAM_ARLEN5  : 0;
+            reg_param_arstep5    <= (N > 5) ? INIT_PARAM_ARSTEP5 : 0;
+            reg_param_arlen6     <= (N > 6) ? INIT_PARAM_ARLEN6  : 0;
+            reg_param_arstep6    <= (N > 6) ? INIT_PARAM_ARSTEP6 : 0;
+            reg_param_arlen7     <= (N > 7) ? INIT_PARAM_ARLEN7  : 0;
+            reg_param_arstep7    <= (N > 7) ? INIT_PARAM_ARSTEP7 : 0;
+            reg_param_arlen8     <= (N > 8) ? INIT_PARAM_ARLEN8  : 0;
+            reg_param_arstep8    <= (N > 8) ? INIT_PARAM_ARSTEP8 : 0;
+            reg_param_arlen9     <= (N > 9) ? INIT_PARAM_ARLEN9  : 0;
+            reg_param_arstep9    <= (N > 9) ? INIT_PARAM_ARSTEP9 : 0;
             reg_shadow_araddr    <= INIT_PARAM_ARADDR;
             reg_shadow_arlen_max <= INIT_PARAM_ARLEN_MAX;
             reg_shadow_arlen0    <= INIT_PARAM_ARLEN0;
 //          reg_shadow_arstep0   <= INIT_PARAM_ARSTEP0;
-            reg_shadow_arlen1    <= INIT_PARAM_ARLEN1;
-            reg_shadow_arstep1   <= INIT_PARAM_ARSTEP1;
-            reg_shadow_arlen2    <= INIT_PARAM_ARLEN2;
-            reg_shadow_arstep2   <= INIT_PARAM_ARSTEP2;
-            reg_shadow_arlen3    <= INIT_PARAM_ARLEN3;
-            reg_shadow_arstep3   <= INIT_PARAM_ARSTEP3;
-            reg_shadow_arlen4    <= INIT_PARAM_ARLEN4;
-            reg_shadow_arstep4   <= INIT_PARAM_ARSTEP4;
-            reg_shadow_arlen5    <= INIT_PARAM_ARLEN5;
-            reg_shadow_arstep5   <= INIT_PARAM_ARSTEP5;
-            reg_shadow_arlen6    <= INIT_PARAM_ARLEN6;
-            reg_shadow_arstep6   <= INIT_PARAM_ARSTEP6;
-            reg_shadow_arlen7    <= INIT_PARAM_ARLEN7;
-            reg_shadow_arstep7   <= INIT_PARAM_ARSTEP7;
-            reg_shadow_arlen8    <= INIT_PARAM_ARLEN8;
-            reg_shadow_arstep8   <= INIT_PARAM_ARSTEP8;
-            reg_shadow_arlen9    <= INIT_PARAM_ARLEN9;
-            reg_shadow_arstep9   <= INIT_PARAM_ARSTEP9;
+            reg_shadow_arlen1    <= (N > 1) ? INIT_PARAM_ARLEN1  : 0;
+            reg_shadow_arstep1   <= (N > 1) ? INIT_PARAM_ARSTEP1 : 0;
+            reg_shadow_arlen2    <= (N > 2) ? INIT_PARAM_ARLEN2  : 0;
+            reg_shadow_arstep2   <= (N > 2) ? INIT_PARAM_ARSTEP2 : 0;
+            reg_shadow_arlen3    <= (N > 3) ? INIT_PARAM_ARLEN3  : 0;
+            reg_shadow_arstep3   <= (N > 3) ? INIT_PARAM_ARSTEP3 : 0;
+            reg_shadow_arlen4    <= (N > 4) ? INIT_PARAM_ARLEN4  : 0;
+            reg_shadow_arstep4   <= (N > 4) ? INIT_PARAM_ARSTEP4 : 0;
+            reg_shadow_arlen5    <= (N > 5) ? INIT_PARAM_ARLEN5  : 0;
+            reg_shadow_arstep5   <= (N > 5) ? INIT_PARAM_ARSTEP5 : 0;
+            reg_shadow_arlen6    <= (N > 6) ? INIT_PARAM_ARLEN6  : 0;
+            reg_shadow_arstep6   <= (N > 6) ? INIT_PARAM_ARSTEP6 : 0;
+            reg_shadow_arlen7    <= (N > 7) ? INIT_PARAM_ARLEN7  : 0;
+            reg_shadow_arstep7   <= (N > 7) ? INIT_PARAM_ARSTEP7 : 0;
+            reg_shadow_arlen8    <= (N > 8) ? INIT_PARAM_ARLEN8  : 0;
+            reg_shadow_arstep8   <= (N > 8) ? INIT_PARAM_ARSTEP8 : 0;
+            reg_shadow_arlen9    <= (N > 9) ? INIT_PARAM_ARLEN9  : 0;
+            reg_shadow_arstep9   <= (N > 9) ? INIT_PARAM_ARSTEP9 : 0;
             
             reg_arvalid          <= 1'b0;
         end
@@ -415,24 +411,24 @@ module jelly_dma_stream_read
                 ADR_PARAM_ARLEN_MAX:    reg_param_arlen_max  <= write_mask(reg_param_arlen_max, s_wb_dat_i, s_wb_sel_i);
                 ADR_PARAM_ARLEN0:       reg_param_arlen0     <= write_mask(reg_param_arlen0,    s_wb_dat_i, s_wb_sel_i);
 //              ADR_PARAM_ARSTEP0:      reg_param_arstep0    <= write_mask(reg_param_arstep0,   s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_ARLEN1:       reg_param_arlen1     <= write_mask(reg_param_arlen1,    s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_ARSTEP1:      reg_param_arstep1    <= write_mask(reg_param_arstep1,   s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_ARLEN2:       reg_param_arlen2     <= write_mask(reg_param_arlen2,    s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_ARSTEP2:      reg_param_arstep2    <= write_mask(reg_param_arstep2,   s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_ARLEN3:       reg_param_arlen3     <= write_mask(reg_param_arlen3,    s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_ARSTEP3:      reg_param_arstep3    <= write_mask(reg_param_arstep3,   s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_ARLEN4:       reg_param_arlen4     <= write_mask(reg_param_arlen4,    s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_ARSTEP4:      reg_param_arstep4    <= write_mask(reg_param_arstep4,   s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_ARLEN5:       reg_param_arlen5     <= write_mask(reg_param_arlen5,    s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_ARSTEP5:      reg_param_arstep5    <= write_mask(reg_param_arstep5,   s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_ARLEN6:       reg_param_arlen6     <= write_mask(reg_param_arlen6,    s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_ARSTEP6:      reg_param_arstep6    <= write_mask(reg_param_arstep6,   s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_ARLEN7:       reg_param_arlen7     <= write_mask(reg_param_arlen7,    s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_ARSTEP7:      reg_param_arstep7    <= write_mask(reg_param_arstep7,   s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_ARLEN8:       reg_param_arlen8     <= write_mask(reg_param_arlen8,    s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_ARSTEP8:      reg_param_arstep8    <= write_mask(reg_param_arstep8,   s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_ARLEN9:       reg_param_arlen9     <= write_mask(reg_param_arlen9,    s_wb_dat_i, s_wb_sel_i);
-                ADR_PARAM_ARSTEP9:      reg_param_arstep9    <= write_mask(reg_param_arstep9,   s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_ARLEN1:       reg_param_arlen1     <= (N > 1) ? write_mask(reg_param_arlen1,    s_wb_dat_i, s_wb_sel_i) : 0;
+                ADR_PARAM_ARSTEP1:      reg_param_arstep1    <= (N > 1) ? write_mask(reg_param_arstep1,   s_wb_dat_i, s_wb_sel_i) : 0;
+                ADR_PARAM_ARLEN2:       reg_param_arlen2     <= (N > 2) ? write_mask(reg_param_arlen2,    s_wb_dat_i, s_wb_sel_i) : 0;
+                ADR_PARAM_ARSTEP2:      reg_param_arstep2    <= (N > 2) ? write_mask(reg_param_arstep2,   s_wb_dat_i, s_wb_sel_i) : 0;
+                ADR_PARAM_ARLEN3:       reg_param_arlen3     <= (N > 3) ? write_mask(reg_param_arlen3,    s_wb_dat_i, s_wb_sel_i) : 0;
+                ADR_PARAM_ARSTEP3:      reg_param_arstep3    <= (N > 3) ? write_mask(reg_param_arstep3,   s_wb_dat_i, s_wb_sel_i) : 0;
+                ADR_PARAM_ARLEN4:       reg_param_arlen4     <= (N > 4) ? write_mask(reg_param_arlen4,    s_wb_dat_i, s_wb_sel_i) : 0;
+                ADR_PARAM_ARSTEP4:      reg_param_arstep4    <= (N > 4) ? write_mask(reg_param_arstep4,   s_wb_dat_i, s_wb_sel_i) : 0;
+                ADR_PARAM_ARLEN5:       reg_param_arlen5     <= (N > 5) ? write_mask(reg_param_arlen5,    s_wb_dat_i, s_wb_sel_i) : 0;
+                ADR_PARAM_ARSTEP5:      reg_param_arstep5    <= (N > 5) ? write_mask(reg_param_arstep5,   s_wb_dat_i, s_wb_sel_i) : 0;
+                ADR_PARAM_ARLEN6:       reg_param_arlen6     <= (N > 6) ? write_mask(reg_param_arlen6,    s_wb_dat_i, s_wb_sel_i) : 0;
+                ADR_PARAM_ARSTEP6:      reg_param_arstep6    <= (N > 6) ? write_mask(reg_param_arstep6,   s_wb_dat_i, s_wb_sel_i) : 0;
+                ADR_PARAM_ARLEN7:       reg_param_arlen7     <= (N > 7) ? write_mask(reg_param_arlen7,    s_wb_dat_i, s_wb_sel_i) : 0;
+                ADR_PARAM_ARSTEP7:      reg_param_arstep7    <= (N > 7) ? write_mask(reg_param_arstep7,   s_wb_dat_i, s_wb_sel_i) : 0;
+                ADR_PARAM_ARLEN8:       reg_param_arlen8     <= (N > 8) ? write_mask(reg_param_arlen8,    s_wb_dat_i, s_wb_sel_i) : 0;
+                ADR_PARAM_ARSTEP8:      reg_param_arstep8    <= (N > 8) ? write_mask(reg_param_arstep8,   s_wb_dat_i, s_wb_sel_i) : 0;
+                ADR_PARAM_ARLEN9:       reg_param_arlen9     <= (N > 9) ? write_mask(reg_param_arlen9,    s_wb_dat_i, s_wb_sel_i) : 0;
+                ADR_PARAM_ARSTEP9:      reg_param_arstep9    <= (N > 9) ? write_mask(reg_param_arstep9,   s_wb_dat_i, s_wb_sel_i) : 0;
                 endcase
             end
             
@@ -582,7 +578,7 @@ module jelly_dma_stream_read
     wire                            s_rbvalid;
     wire                            s_rbready;
     
-    jelly_axi4_read_2d
+    jelly_axi4_read_nd
             #(
                 .N                      (N),
                 .ARASYNC                (WB_ASYNC),
@@ -658,7 +654,7 @@ module jelly_dma_stream_read
                 .RBACK_S_REGS           (RBACK_S_REGS),
                 .RBACK_M_REGS           (RBACK_M_REGS)
             )
-        i_axi4_read_2d
+        i_axi4_read_nd
             (
                 .endian                 (endian),
                 
@@ -686,8 +682,8 @@ module jelly_dma_stream_read
                 .s_rbvalid              (s_rbvalid),
                 .s_rbready              (s_rbready),
                 
-                .m_aresetn              (m_axi4_aresetn),
-                .m_aclk                 (m_axi4_aclk),
+                .m_aresetn              (m_aresetn),
+                .m_aclk                 (m_aclk),
                 .m_axi4_arid            (m_axi4_arid),
                 .m_axi4_araddr          (m_axi4_araddr),
                 .m_axi4_arlen           (m_axi4_arlen),
