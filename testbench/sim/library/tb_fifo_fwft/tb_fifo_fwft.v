@@ -40,6 +40,7 @@ module tb_fifo_fwft();
                 .PTR_WIDTH      (PTR_WIDTH),
                 .DOUT_REGS      (0),
                 .RAM_TYPE       ("distributed"),
+                .LOW_DEALY      (1),
                 .MASTER_REGS    (0)
             )
         i_fifo_fwtf

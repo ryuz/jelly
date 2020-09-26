@@ -45,7 +45,7 @@ module jelly_fifo_generic_fwtf
     
     
     generate
-    if ( ASYNC ) begin
+    if ( ASYNC ) begin : blk_async
         jelly_fifo_async_fwtf
                 #(
                     .DATA_WIDTH     (DATA_WIDTH),
@@ -72,7 +72,7 @@ module jelly_fifo_generic_fwtf
                     .m_data_count   (m_data_count)
                 );
     end
-    else begin
+    else begin : blk_sync
         jelly_fifo_fwtf
                 #(
                     .DATA_WIDTH     (DATA_WIDTH),

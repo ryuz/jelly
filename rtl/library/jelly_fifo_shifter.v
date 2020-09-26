@@ -44,13 +44,14 @@ module jelly_fifo_shifter
     // shifter
     wire    [PTR_WIDTH-1:0]     shifter_sel;
     wire    [DATA_WIDTH-1:0]    shifter_data;
-    jelly_data_shifter
+//  jelly_data_shifter
+    jelly_data_shift_register_lut
             #(
                 .SEL_WIDTH      (PTR_WIDTH),
                 .NUM            (FIFO_SIZE),
                 .DATA_WIDTH     (DATA_WIDTH)
             )
-        i_data_shifter
+        i_data_shift_register_lut
             (
                 .clk            (clk),
                 .cke            (write_en),
