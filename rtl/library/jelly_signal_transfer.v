@@ -15,6 +15,63 @@
 // データではなくシグナルの回数だけを伝えるための
 
 
+module jelly_signal_transfer
+        #(
+            parameter ASYNC          = 1,
+            parameter PTR_WIDTH      = 6,
+            parameter CAPACITY_WIDTH = 8
+        )
+        (
+            input   wire    s_reset,
+            input   wire    s_clk,
+            input   wire    s_valid,
+            
+            input   wire    m_reset,
+            input   wire    m_clk,
+            output  wire    m_valid,
+            input   wire    m_ready
+        );
+    
+    
+    generate
+    if ( ASYNC ) begin : blk_async
+        jelly_signal_transfer_async
+                #(
+                    .PTR_WIDTH      (PTR_WIDTH),
+                    .CAPACITY_WIDTH (CAPACITY_WIDTH)
+                )
+            i_signal_transfer_async
+                (
+                    .s_reset        (s_reset),
+                    .s_clk          (s_clk),
+                    .s_valid        (s_valid),
+                    
+                    .m_reset        (m_reset),
+                    .m_clk          (m_clk),
+                    .m_valid        (m_valid),
+                    .m_ready        (m_ready)
+                );
+    end
+    else begin : blk_sync
+        jelly_signal_transfer_sync
+                #(
+                    .CAPACITY_WIDTH (CAPACITY_WIDTH)
+                )
+            i_signal_transfer_sync
+                (
+                    .reset          (s_reset),
+                    .clk            (s_clk),
+                    .s_valid        (s_valid),
+                    
+                    .m_valid        (m_valid),
+                    .m_ready        (m_ready)
+                );
+    end
+    endgenerate
+endmodule
+
+
+/*
 // signal fifo
 module jelly_signal_transfer
         #(
@@ -89,6 +146,7 @@ module jelly_signal_transfer
     
     
 endmodule
+*/
 
 
 `default_nettype wire
