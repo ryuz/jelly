@@ -23,8 +23,6 @@ module jelly_axi4_read_width_convert
             
             parameter   HAS_S_RFIRST      = 0,
             parameter   HAS_S_RLAST       = 0,
-            parameter   HAS_M_RFIRST      = 0,
-            parameter   HAS_M_RLAST       = 0,
             
             parameter   ARADDR_WIDTH      = 32,
             parameter   ARUSER_WIDTH      = 0,
@@ -527,7 +525,7 @@ module jelly_axi4_read_width_convert
                 
                 .skip               (1'b0),
                 .detect_first       (1'b0),
-                .detect_last        (1'b1),
+                .detect_last        (ALLOW_UNALIGNED),
                 .padding_en         (1'b0),
                 .padding_data       (1'b0),
                 .padding_skip       (1'b0),

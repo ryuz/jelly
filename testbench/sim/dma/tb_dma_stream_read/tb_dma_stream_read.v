@@ -55,10 +55,10 @@ module tb_dma_stream_read();
     parameter RASYNC               = 1;
     
     parameter BYTE_WIDTH           = 8;
-    parameter BYPASS_GATE          = 1;
+    parameter BYPASS_GATE          = 0;
     parameter BYPASS_ALIGN         = 0;
     parameter AXI4_ALIGN           = 12;  // 2^12 = 4k が境界
-    parameter ALLOW_UNALIGNED      = 0;
+    parameter ALLOW_UNALIGNED      = 1;
     
     parameter HAS_S_RFIRST         = 0;
     parameter HAS_S_RLAST          = 0;
@@ -67,7 +67,7 @@ module tb_dma_stream_read();
     
     parameter AXI4_ID_WIDTH        = 6;
     parameter AXI4_ADDR_WIDTH      = 32;
-    parameter AXI4_DATA_SIZE       = 2;    // 0:8bit; 1:16bit; 2:32bit ...
+    parameter AXI4_DATA_SIZE       = 3;    // 0:8bit; 1:16bit; 2:32bit ...
     parameter AXI4_DATA_WIDTH      = (BYTE_WIDTH << AXI4_DATA_SIZE);
     parameter AXI4_LEN_WIDTH       = 8;
     parameter AXI4_QOS_WIDTH       = 4;
@@ -80,7 +80,7 @@ module tb_dma_stream_read();
     parameter AXI4_ARQOS           = 0;
     parameter AXI4_ARREGION        = 4'b0000;
     
-    parameter S_RDATA_WIDTH        = 32;
+    parameter S_RDATA_WIDTH        = 24; // 32;
     parameter ARLEN_WIDTH          = AXI4_ADDR_WIDTH;   // 内部キューイング用
     
     parameter ARLEN_OFFSET         = 1'b1;
@@ -502,6 +502,85 @@ module tb_dma_stream_read();
             );
     
     
+    // ----------------------------------
+    //  buffer allocator
+    // ----------------------------------
+    
+    parameter   BUFFER_NUM   = 3;
+    parameter   READER_NUM   = 1;
+    parameter   ADDR_WIDTH   = AXI4_ADDR_WIDTH;
+    parameter   REFCNT_WIDTH = 2;
+    
+    reg     [ADDR_WIDTH-1:0]    param_buf_addr0 = 32'h1000_0000;
+    reg     [ADDR_WIDTH-1:0]    param_buf_addr1 = 32'h2000_0000;
+    reg     [ADDR_WIDTH-1:0]    param_buf_addr2 = 32'h3000_0000;
+    
+    reg                         writer_request = 0;
+    reg                         writer_release = 0;
+    wire    [ADDR_WIDTH-1:0]    writer_addr;
+    wire    [1:0]               writer_index;
+    
+    wire    [ADDR_WIDTH-1:0]    newest_addr;
+    wire    [1:0]               newest_index;
+    wire    [REFCNT_WIDTH-1:0]  status_refcnt0;
+    wire    [REFCNT_WIDTH-1:0]  status_refcnt1;
+    wire    [REFCNT_WIDTH-1:0]  status_refcnt2;
+    
+    
+    jelly_buffer_allocator
+            #(
+                .BUFFER_NUM     (BUFFER_NUM),
+                .READER_NUM     (READER_NUM),
+                .ADDR_WIDTH     (ADDR_WIDTH),
+                .REFCNT_WIDTH   (REFCNT_WIDTH),
+                .INDEX_WIDTH    (2)
+            )
+        i_buffer_allocator
+            (
+                .reset          (s_wb_rst_i),
+                .clk            (s_wb_clk_i),
+                .cke            (1'b1),
+                
+                .param_buf_addr ({param_buf_addr2, param_buf_addr1, param_buf_addr0}),
+                
+                .writer_request (writer_request),
+                .writer_release (writer_release),
+                .writer_addr    (writer_addr),
+                .writer_index   (writer_index),
+                
+                .reader_request (buffer_request),
+                .reader_release (buffer_release),
+                .reader_addr    (buffer_addr),
+                .reader_index   (),
+                
+                .newest_addr    (newest_addr),
+                .newest_index   (newest_index),
+                .status_refcnt  ({status_refcnt2, status_refcnt1, status_refcnt0})
+            );
+    
+    // dummy writer
+    initial begin
+    #10000;
+        while ( 1 ) begin
+            while ( {$random()} % 10 != 0 )
+                @(posedge s_wb_clk_i);
+            writer_request <= 1'b1;
+            @(posedge s_wb_clk_i);
+            writer_request <= 1'b0;
+            @(posedge s_wb_clk_i);
+            
+            @(posedge s_wb_clk_i);
+            while ( {$random()} % 100 != 0 )
+                @(posedge s_wb_clk_i);
+            
+            writer_release <= 1'b1;
+            @(posedge s_wb_clk_i);
+            writer_release <= 1'b0;
+            @(posedge s_wb_clk_i);
+        end
+    end
+    
+    
     
     // ----------------------------------
     //  WISHBONE master
@@ -655,9 +734,13 @@ module tb_dma_stream_read();
         wb_write(ADR_PARAM_ARLEN2,                1, 8'hff);
         wb_write(ADR_PARAM_ARSTEP2,   32'h0001_1000, 8'hff);
         
-        wb_write(ADR_CTL_CONTROL,     32'h0000_0003, 8'hff);
+        wb_write(ADR_CTL_CONTROL,     32'h0000_000b, 8'hff);
         
-        #100000;
+        #40000;
+        
+        wb_write(ADR_CTL_CONTROL,     32'h0000_0000, 8'hff);
+        
+        #20000;
             $finish();
     end
     

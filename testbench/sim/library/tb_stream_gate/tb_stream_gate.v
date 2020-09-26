@@ -28,13 +28,19 @@ module tb_stream_gate();
     always @(posedge clk) cke <= 1; // RAND_BUSY ? {$random()} : 1'b1;
     
     
-    parameter   DATA_WIDTH    = 32;
-    parameter   LEN_WIDTH     = 32;
-    parameter   LEN_OFFSET    = 1'b1;
+    parameter BYPASS          = 0;
+    parameter DETECTOR_ENABLE = 1;
     
-    parameter   S_PERMIT_REGS = 1;
-    parameter   S_REGS        = 1;
-    parameter   M_REGS        = 1;
+    parameter DATA_WIDTH      = 32;
+    parameter LEN_WIDTH       = 32;
+    parameter LEN_OFFSET      = 1'b1;
+    parameter USER_WIDTH      = 0;
+    
+    parameter S_PERMIT_REGS   = 1;
+    parameter S_REGS          = 1;
+    parameter M_REGS          = 1;
+    
+    parameter USER_BITS       = USER_WIDTH > 0 ? USER_WIDTH : 1;
     
     reg                         skip = 0;           // 非busy時に読み飛ばす
     reg                         detect_first = 0;
@@ -43,7 +49,10 @@ module tb_stream_gate();
     reg     [DATA_WIDTH-1:0]    padding_data = 32'haa55aa55;
     reg                         padding_skip = 0;
     
+    wire                        s_permit_first = 1;
+    wire                        s_permit_last  = 1;
     reg     [LEN_WIDTH-1:0]     s_permit_len;
+    reg     [USER_BITS-1:0]     s_permit_user = 0;
     reg                         s_permit_valid;
     wire                        s_permit_ready;
     
@@ -56,6 +65,7 @@ module tb_stream_gate();
     wire                        m_first;
     wire                        m_last;
     wire    [DATA_WIDTH-1:0]    m_data;
+    wire    [USER_BITS-1:0]     m_user;
     wire                        m_valid;
     reg                         m_ready;
     
@@ -63,41 +73,46 @@ module tb_stream_gate();
     
     jelly_stream_gate
             #(
-                .DATA_WIDTH     (DATA_WIDTH),
-                .LEN_WIDTH      (LEN_WIDTH),
-                .LEN_OFFSET     (LEN_OFFSET),
-                .S_PERMIT_REGS  (S_PERMIT_REGS),
-                .S_REGS         (S_REGS),
-                .M_REGS         (M_REGS)
+                .BYPASS             (BYPASS),
+                .DETECTOR_ENABLE    (DETECTOR_ENABLE),
+                .DATA_WIDTH         (DATA_WIDTH),
+                .LEN_WIDTH          (LEN_WIDTH),
+                .LEN_OFFSET         (LEN_OFFSET),
+                .S_PERMIT_REGS      (S_PERMIT_REGS),
+                .S_REGS             (S_REGS),
+                .M_REGS             (M_REGS)
             )
         i_stream_gate
             (
-                .reset          (reset),
-                .clk            (clk),
-                .cke            (cke),
+                .reset              (reset),
+                .clk                (clk),
+                .cke                (cke),
                 
-                .skip           (skip),
-                .detect_first   (detect_first),
-                .detect_last    (detect_last),
-                .padding_en     (padding_en),
-                .padding_data   (padding_data),
-                .padding_skip   (padding_skip),
+                .skip               (skip),
+                .detect_first       (detect_first),
+                .detect_last        (detect_last),
+                .padding_en         (padding_en),
+                .padding_data       (padding_data),
+                .padding_skip       (padding_skip),
                 
-                .s_permit_len   (s_permit_len),
-                .s_permit_valid (s_permit_valid),
-                .s_permit_ready (s_permit_ready),
+                .s_permit_first     (s_permit_first),
+                .s_permit_last      (s_permit_last),
+                .s_permit_len       (s_permit_len),
+                .s_permit_valid     (s_permit_valid),
+                .s_permit_ready     (s_permit_ready),
                 
-                .s_first        (s_first),
-                .s_last         (s_last),
-                .s_data         (s_data),
-                .s_valid        (s_valid),
-                .s_ready        (s_ready),
+                .s_first            (s_first),
+                .s_last             (s_last),
+                .s_data             (s_data),
+                .s_valid            (s_valid),
+                .s_ready            (s_ready),
                 
-                .m_first        (m_first),
-                .m_last         (m_last),
-                .m_data         (m_data),
-                .m_valid        (m_valid),
-                .m_ready        (m_ready)
+                .m_first            (m_first),
+                .m_last             (m_last),
+                .m_data             (m_data),
+                .m_user             (m_user),
+                .m_valid            (m_valid),
+                .m_ready            (m_ready)
             );
     
     initial begin
@@ -236,6 +251,32 @@ module tb_stream_gate();
             padding_en     <= 0;
             padding_data   <= 32'haa55aa55;
             s_permit_len   <= 3;
+            s_permit_valid <= 1;
+        while ( !(s_permit_valid && s_permit_ready) )
+            @(posedge clk);
+            s_permit_valid <= 0;
+        #10000;
+        
+        @(posedge clk)
+            skip           <= 0;
+            detect_first   <= 0;
+            detect_last    <= 0;
+            padding_en     <= 0;
+            padding_data   <= 32'haa55aa55;
+            s_permit_len   <= 2;
+            s_permit_valid <= 1;
+        while ( !(s_permit_valid && s_permit_ready) )
+            @(posedge clk);
+            s_permit_valid <= 0;
+        #10000;
+        
+        @(posedge clk)
+            skip           <= 0;
+            detect_first   <= 0;
+            detect_last    <= 0;
+            padding_en     <= 0;
+            padding_data   <= 32'haa55aa55;
+            s_permit_len   <= 2;
             s_permit_valid <= 1;
         while ( !(s_permit_valid && s_permit_ready) )
             @(posedge clk);

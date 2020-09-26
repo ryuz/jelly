@@ -15,20 +15,20 @@
 // 境界や個数でストリーム通過を制御
 module jelly_stream_gate
         #(
-            parameter   BYPASS          = 0,
-            parameter   DETECTOR_ENABLE = 0,
+            parameter BYPASS          = 0,
+            parameter DETECTOR_ENABLE = 0,
             
-            parameter   DATA_WIDTH      = 32,
-            parameter   LEN_WIDTH       = 32,
-            parameter   LEN_OFFSET      = 1'b1,
-            parameter   USER_WIDTH      = 32,
+            parameter DATA_WIDTH      = 32,
+            parameter LEN_WIDTH       = 32,
+            parameter LEN_OFFSET      = 1'b1,
+            parameter USER_WIDTH      = 0,
             
-            parameter   S_PERMIT_REGS   = 1,
-            parameter   S_REGS          = 1,
-            parameter   M_REGS          = 1,
+            parameter S_PERMIT_REGS   = 1,
+            parameter S_REGS          = 1,
+            parameter M_REGS          = 1,
             
             // local
-            parameter   USER_BITS       = USER_WIDTH > 0 ? USER_WIDTH : 1
+            parameter USER_BITS       = USER_WIDTH > 0 ? USER_WIDTH : 1
         )
         (
             input   wire                        reset,
@@ -261,7 +261,7 @@ module jelly_stream_gate
         
         assign ff_s_permit_ready = !reg_busy || (ff_m_valid & ff_m_ready & reg_end);
         
-        assign ff_s_ready        = (reg_busy && (reg_start || (ff_m_ready && !sig_padding) || (param_padding_skip && sig_padding)))
+        assign ff_s_ready        = (reg_busy && (ff_m_ready && (reg_start || !sig_padding) || (param_padding_skip && sig_padding)))
                                 || (!reg_busy && (param_skip || !sig_first));
         
         assign ff_m_first        = reg_start & reg_flag_f;

@@ -329,7 +329,7 @@ module jelly_dma_stream_read
     assign out_irq        = out_irq & reg_irq_enable;
     
     assign buffer_request = (sig_start && reg_ctl_control[3]);
-    assign buffer_release = (sig_end || !reg_ctl_status);
+    assign buffer_release = (sig_end || (!sig_start && !reg_ctl_status));
     
     
     function [WB_DAT_WIDTH-1:0] write_mask(

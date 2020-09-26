@@ -29,8 +29,6 @@ module jelly_axi4_read
             
             parameter   HAS_S_RFIRST         = 0,
             parameter   HAS_S_RLAST          = 0,
-            parameter   HAS_M_RFIRST         = 0,
-            parameter   HAS_M_RLAST          = 1,
             
             parameter   AXI4_ID_WIDTH        = 6,
             parameter   AXI4_ADDR_WIDTH      = 32,
@@ -135,9 +133,10 @@ module jelly_axi4_read
     //  local parameter
     // ---------------------------------
     
+    localparam UNALIGNED      = ((S_RDATA_WIDTH & (S_RDATA_WIDTH - 1)) != 0) || ALLOW_UNALIGNED;
     localparam CAPACITY_WIDTH = ARLEN_WIDTH;
     
-    wire    [AXI4_ADDR_WIDTH-1:0]   addr_mask = ALLOW_UNALIGNED ? 0 : (1 << AXI4_DATA_SIZE) - 1;
+    wire    [AXI4_ADDR_WIDTH-1:0]   addr_mask = UNALIGNED ? 0 : (1 << AXI4_DATA_SIZE) - 1;
     
     
     
@@ -165,12 +164,10 @@ module jelly_axi4_read
                 .RBASYNC                (RBASYNC),
                 .BYTE_WIDTH             (BYTE_WIDTH),
                 .BYPASS_GATE            (BYPASS_GATE),
-                .ALLOW_UNALIGNED        (ALLOW_UNALIGNED),
+                .ALLOW_UNALIGNED        (UNALIGNED),
                 
                 .HAS_S_RFIRST           (HAS_S_RFIRST),
                 .HAS_S_RLAST            (HAS_S_RLAST),
-                .HAS_M_RFIRST           (0),
-                .HAS_M_RLAST            (1),
                 
                 .ARADDR_WIDTH           (AXI4_ADDR_WIDTH),
                 .ARUSER_WIDTH           (AXI4_LEN_WIDTH),

@@ -42,7 +42,9 @@ module jelly_buffer_allocator
             output  reg     [READER_NUM*ADDR_WIDTH-1:0]     reader_addr,
             output  reg     [READER_NUM*INDEX_WIDTH-1:0]    reader_index,
             
-            output  wire    [INDEX_WIDTH-1:0]               status_newest,
+            output  wire    [ADDR_WIDTH-1:0]                newest_addr,
+            output  wire    [INDEX_WIDTH-1:0]               newest_index,
+            
             output  wire    [BUFFER_NUM*REFCNT_WIDTH-1:0]   status_refcnt
         );
     
@@ -173,7 +175,9 @@ module jelly_buffer_allocator
         end
     end
     
-    assign status_newest = reg_newest;
+    assign newest_addr  = param_buf_addr >> (reg_newest*ADDR_WIDTH);
+    assign newest_index = reg_newest;
+    
     assign status_refcnt = reg_refcnt;
     
     
