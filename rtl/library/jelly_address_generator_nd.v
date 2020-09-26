@@ -64,7 +64,7 @@ module jelly_address_generator_nd
             reg_valid <= 1'b0;
         end
         else if ( cke ) begin
-            if ( s_valid && s_ready ) begin
+            if ( !reg_valid && s_valid ) begin
                 // start
                 tmp_last = 1'b1;
                 for ( i = 0; i < N; i = i+1 ) begin
@@ -120,7 +120,7 @@ module jelly_address_generator_nd
     end
     
     
-    assign s_ready  = ~reg_valid;
+    assign s_ready  = reg_valid && &reg_last;
     
     assign m_addr   = reg_addr;
     assign m_first  = reg_first;
