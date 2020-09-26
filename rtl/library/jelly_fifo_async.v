@@ -129,21 +129,21 @@ module jelly_fifo_async
     
     
     // write pointer
-    jelly_binary_to_graycode
+    jelly_func_binary_to_graycode
             #(
                 .WIDTH      (PTR_WIDTH+1)
             )
-        i_binary_to_graycode_wr
+        i_func_binary_to_graycode_wr
             (
                 .binary     (wr_wptr),
                 .graycode   (wr_wptr_gray)
             );
     
-    jelly_graycode_to_binary
+    jelly_func_graycode_to_binary
             #(
                 .WIDTH      (PTR_WIDTH+1)
             )
-        i_graycode_to_binary_wr
+        i_func_graycode_to_binary_wr
             (
                 .graycode   (wr_rptr_gray_in),
                 .binary     (wr_rptr_in)
@@ -198,21 +198,21 @@ module jelly_fifo_async
     
     
     // read pointer
-    jelly_binary_to_graycode
+    jelly_func_binary_to_graycode
             #(
                 .WIDTH      (PTR_WIDTH+1)
             )
-        i_binary_to_graycode_rd
+        i_func_binary_to_graycode_rd
             (
                 .binary     (rd_rptr),
                 .graycode   (rd_rptr_gray)
             );
     
-    jelly_graycode_to_binary
+    jelly_func_graycode_to_binary
             #(
                 .WIDTH      (PTR_WIDTH+1)
             )
-        i_graycode_to_binary_rd
+        i_func_graycode_to_binary_rd
             (
                 .graycode   (rd_wptr_gray_in),
                 .binary     (rd_wptr_in)
