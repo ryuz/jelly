@@ -71,6 +71,11 @@ module jelly_dma_stream_read
             parameter ARSTEP8_WIDTH        = AXI4_ADDR_WIDTH,
             parameter ARSTEP9_WIDTH        = AXI4_ADDR_WIDTH,
             
+            parameter WB_ADR_WIDTH         = 8,
+            parameter WB_DAT_WIDTH         = 32,
+            parameter WB_SEL_WIDTH         = (WB_DAT_WIDTH / 8),
+            parameter INDEX_WIDTH          = 1,
+            
             parameter CONVERT_S_REGS       = 0,
             
             parameter RFIFO_PTR_WIDTH      = 9,
@@ -118,11 +123,6 @@ module jelly_dma_stream_read
             parameter CACKFIFO_M_REGS      = 0,
             parameter CACK_S_REGS          = 0,
             parameter CACK_M_REGS          = 1,
-            
-            parameter WB_ADR_WIDTH         = 8,
-            parameter WB_DAT_WIDTH         = 32,
-            parameter WB_SEL_WIDTH         = (WB_DAT_WIDTH / 8),
-            parameter INDEX_WIDTH          = 1,
             
             parameter INIT_CTL_CONTROL     = 4'b0000,
             parameter INIT_IRQ_ENABLE      = 1'b0,
