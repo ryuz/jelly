@@ -60,12 +60,12 @@ module tb_dma_stream_read();
     parameter AXI4_ALIGN           = 12;  // 2^12 = 4k が境界
     parameter ALLOW_UNALIGNED      = 1;
     
-    parameter HAS_RFIRST           = 0;
-    parameter HAS_RLAST            = 0;
+    parameter HAS_RFIRST           = 1;
+    parameter HAS_RLAST            = 1;
     
     parameter AXI4_ID_WIDTH        = 6;
     parameter AXI4_ADDR_WIDTH      = 32;
-    parameter AXI4_DATA_SIZE       = 3;    // 0:8bit; 1:16bit; 2:32bit ...
+    parameter AXI4_DATA_SIZE       = 2;    // 0:8bit; 1:16bit; 2:32bit ...
     parameter AXI4_DATA_WIDTH      = (BYTE_WIDTH << AXI4_DATA_SIZE);
     parameter AXI4_LEN_WIDTH       = 8;
     parameter AXI4_QOS_WIDTH       = 4;
@@ -78,20 +78,20 @@ module tb_dma_stream_read();
     parameter AXI4_ARQOS           = 0;
     parameter AXI4_ARREGION        = 4'b0000;
     
-    parameter S_RDATA_WIDTH        = 24; // 32;
-    parameter ARLEN_WIDTH          = AXI4_ADDR_WIDTH;   // 内部キューイング用
+    parameter S_RDATA_WIDTH        = 32;
+    parameter CAPACITY_WIDTH       = 12;   // 内部キューイング用
     
     parameter ARLEN_OFFSET         = 1'b1;
-    parameter ARLEN0_WIDTH         = AXI4_ADDR_WIDTH;
-    parameter ARLEN1_WIDTH         = AXI4_ADDR_WIDTH;
-    parameter ARLEN2_WIDTH         = AXI4_ADDR_WIDTH;
-    parameter ARLEN3_WIDTH         = AXI4_ADDR_WIDTH;
-    parameter ARLEN4_WIDTH         = AXI4_ADDR_WIDTH;
-    parameter ARLEN5_WIDTH         = AXI4_ADDR_WIDTH;
-    parameter ARLEN6_WIDTH         = AXI4_ADDR_WIDTH;
-    parameter ARLEN7_WIDTH         = AXI4_ADDR_WIDTH;
-    parameter ARLEN8_WIDTH         = AXI4_ADDR_WIDTH;
-    parameter ARLEN9_WIDTH         = AXI4_ADDR_WIDTH;
+    parameter ARLEN0_WIDTH         = CAPACITY_WIDTH;
+    parameter ARLEN1_WIDTH         = CAPACITY_WIDTH;
+    parameter ARLEN2_WIDTH         = CAPACITY_WIDTH;
+    parameter ARLEN3_WIDTH         = CAPACITY_WIDTH;
+    parameter ARLEN4_WIDTH         = CAPACITY_WIDTH;
+    parameter ARLEN5_WIDTH         = CAPACITY_WIDTH;
+    parameter ARLEN6_WIDTH         = CAPACITY_WIDTH;
+    parameter ARLEN7_WIDTH         = CAPACITY_WIDTH;
+    parameter ARLEN8_WIDTH         = CAPACITY_WIDTH;
+    parameter ARLEN9_WIDTH         = CAPACITY_WIDTH;
     parameter ARSTEP1_WIDTH        = AXI4_ADDR_WIDTH;
     parameter ARSTEP2_WIDTH        = AXI4_ADDR_WIDTH;
     parameter ARSTEP3_WIDTH        = AXI4_ADDR_WIDTH;
@@ -160,7 +160,7 @@ module tb_dma_stream_read();
     parameter INIT_PARAM_ARADDR    = 0;
     parameter INIT_PARAM_ARLEN_MAX = 0;
     parameter INIT_PARAM_ARLEN0    = 0;
-//  parameter INIT_PARAM_ARSTEP0   = 0;
+//  parameter INIT_PARAM_ARSTEP0   = 1;
     parameter INIT_PARAM_ARLEN1    = 0;
     parameter INIT_PARAM_ARSTEP1   = 0;
     parameter INIT_PARAM_ARLEN2    = 0;
@@ -250,8 +250,7 @@ module tb_dma_stream_read();
                 .AXI4_ARQOS             (AXI4_ARQOS),
                 .AXI4_ARREGION          (AXI4_ARREGION),
                 .S_RDATA_WIDTH          (S_RDATA_WIDTH),
-                .ARLEN_WIDTH            (ARLEN_WIDTH),
-                .ARLEN_OFFSET           (ARLEN_OFFSET),
+                .CAPACITY_WIDTH         (CAPACITY_WIDTH),
                 .ARLEN0_WIDTH           (ARLEN0_WIDTH),
                 .ARLEN1_WIDTH           (ARLEN1_WIDTH),
                 .ARLEN2_WIDTH           (ARLEN2_WIDTH),
@@ -722,15 +721,16 @@ module tb_dma_stream_read();
         wb_read(ADR_CORE_VERSION);
         wb_read(ADR_CORE_CONFIG);
         
-        wb_write(ADR_PARAM_ARADDR,    32'h0001_0000, 8'hff);
-        wb_write(ADR_PARAM_ARLEN_MAX, 32'h0000_000f, 8'hff);
-        wb_write(ADR_PARAM_ARLEN0,               31, 8'hff);
-        wb_write(ADR_PARAM_ARLEN1,                2, 8'hff);
-        wb_write(ADR_PARAM_ARSTEP1,   32'h0001_0100, 8'hff);
-        wb_write(ADR_PARAM_ARLEN2,                1, 8'hff);
-        wb_write(ADR_PARAM_ARSTEP2,   32'h0001_1000, 8'hff);
+        wb_write(ADR_PARAM_ARADDR,    32'h1000_0000, 8'hff);
+        wb_write(ADR_PARAM_ARLEN_MAX, 32'h0000_0003, 8'hff);
+        wb_write(ADR_PARAM_ARLEN0,             17-1, 8'hff);
+        wb_write(ADR_PARAM_ARLEN1,              3-1, 8'hff);
+        wb_write(ADR_PARAM_ARLEN2,              2-1, 8'hff);
+        wb_write(ADR_PARAM_ARSTEP1,   32'h0000_0200, 8'hff);
+        wb_write(ADR_PARAM_ARSTEP2,   32'h0001_0000, 8'hff);
         
-        wb_write(ADR_CTL_CONTROL,     32'h0000_000b, 8'hff);
+//      wb_write(ADR_CTL_CONTROL,     32'h0000_000b, 8'hff);
+        wb_write(ADR_CTL_CONTROL,     32'h0000_0007, 8'hff);    // 1-shot
         
         #40000;
         

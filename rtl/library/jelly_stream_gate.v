@@ -29,12 +29,10 @@ module jelly_stream_gate
             parameter LEN_WIDTH       = 32,
             parameter LEN_OFFSET      = 1'b1,
             parameter USER_WIDTH      = 0,
-            
-            parameter S_PERMIT_REGS   = 0,          // FIFO通すので基本不要
             parameter S_REGS          = 1,
             parameter M_REGS          = 1,
             
-            parameter S_PERMIT_ASYNC  = 0,
+            parameter ASYNC           = 0,
             parameter FIFO_PTR_WIDTH  = 4,
             parameter FIFO_DOUT_REGS  = 0,
             parameter FIFO_RAM_TYPE   = "distributed",
@@ -91,10 +89,10 @@ module jelly_stream_gate
     wire                        fifo_s_permit_ready;
     
     generate
-    if ( !BYPASS || (BYPASS_COMBINE && S_PERMIT_ASYNC) ) begin
+    if ( !BYPASS || (BYPASS_COMBINE && ASYNC) ) begin
         jelly_fifo_pack
                 #(
-                    .ASYNC              (S_PERMIT_ASYNC),
+                    .ASYNC              (ASYNC),
                     .DATA0_WIDTH        (N),
                     .DATA1_WIDTH        (N),
                     .DATA2_WIDTH        (LEN_WIDTH),
@@ -139,6 +137,7 @@ module jelly_stream_gate
     endgenerate
     
     
+    
     generate
     if ( BYPASS ) begin : blk_bypass
         assign m_first             = s_first;
@@ -157,13 +156,6 @@ module jelly_stream_gate
         wire                        param_padding_en   = DETECTOR_ENABLE ? padding_en   : 1'b0;
         
         // insert FF
-        wire    [N-1:0]             ff_s_permit_first;
-        wire    [N-1:0]             ff_s_permit_last;
-        wire    [LEN_WIDTH-1:0]     ff_s_permit_len;
-        wire    [USER_BITS-1:0]     ff_s_permit_user;
-        wire                        ff_s_permit_valid;
-        wire                        ff_s_permit_ready;
-        
         wire    [N-1:0]             ff_s_first;
         wire    [N-1:0]             ff_s_last;
         wire    [DATA_WIDTH-1:0]    ff_s_data;
@@ -176,36 +168,6 @@ module jelly_stream_gate
         wire    [USER_BITS-1:0]     ff_m_user;
         wire                        ff_m_valid;
         wire                        ff_m_ready;
-        
-        jelly_data_ff_pack
-                #(
-                    .DATA0_WIDTH    (N),
-                    .DATA1_WIDTH    (N),
-                    .DATA2_WIDTH    (LEN_WIDTH),
-                    .DATA3_WIDTH    (USER_WIDTH),
-                    .S_REGS         (S_PERMIT_REGS),
-                    .M_REGS         (0)
-                )
-            i_data_ff_pack_s_permit
-                (
-                    .reset          (reset),
-                    .clk            (clk),
-                    .cke            (cke),
-                    
-                    .s_data0        (fifo_s_permit_first),
-                    .s_data1        (fifo_s_permit_last),
-                    .s_data2        (fifo_s_permit_len),
-                    .s_data3        (fifo_s_permit_user),
-                    .s_valid        (fifo_s_permit_valid),
-                    .s_ready        (fifo_s_permit_ready),
-                    
-                    .m_data0        (ff_s_permit_first),
-                    .m_data1        (ff_s_permit_last),
-                    .m_data2        (ff_s_permit_len),
-                    .m_data3        (ff_s_permit_user),
-                    .m_valid        (ff_s_permit_valid),
-                    .m_ready        (ff_s_permit_ready)
-                );
         
         jelly_data_ff_pack
                 #(
@@ -296,11 +258,11 @@ module jelly_stream_gate
             end
             else if ( cke ) begin
                 if ( ff_m_valid && ff_m_ready ) begin
-                    if ( !reg_busy && (ff_s_permit_len != (1'b1 - LEN_OFFSET)) ) begin
+                    if ( !reg_busy && (fifo_s_permit_len != (1'b1 - LEN_OFFSET)) ) begin
                         // 2個以上の転送ならカウント
                         reg_busy <= 1'b1;
-                        reg_len  <= ff_s_permit_len;
-                        reg_end  <= (ff_s_permit_len == (2'd2 - LEN_OFFSET));
+                        reg_len  <= fifo_s_permit_len;
+                        reg_end  <= (fifo_s_permit_len == (2'd2 - LEN_OFFSET));
                     end
                     else begin
                         reg_len  <= reg_len - 1'b1;
@@ -316,10 +278,10 @@ module jelly_stream_gate
         end
         
         wire    sig_start = !reg_busy;
-        wire    sig_end   = (!reg_busy && (ff_s_permit_len == (1'b1 - LEN_OFFSET))) || (reg_busy && reg_end);
+        wire    sig_end   = (!reg_busy && (fifo_s_permit_len == (1'b1 - LEN_OFFSET))) || (reg_busy && reg_end);
         
-        wire    sig_start_overflow  = sig_start && (param_detect_first & ff_s_permit_first & ~sig_s_first); // 期待するfirstが来ていない(データ余り)
-        wire    sig_start_underflow = sig_start && (param_detect_first & ~ff_s_permit_first & sig_s_first); // 期待するより先のfirstが来ている(データ不足)
+        wire    sig_start_overflow  = sig_start && (param_detect_first & fifo_s_permit_first & ~sig_s_first); // 期待するfirstが来ていない(データ余り)
+        wire    sig_start_underflow = sig_start && (param_detect_first & ~fifo_s_permit_first & sig_s_first); // 期待するより先のfirstが来ている(データ不足)
         
         reg                     reg_underflow;
         always @(posedge clk) begin
@@ -345,15 +307,15 @@ module jelly_stream_gate
         wire    sig_padding = padding_en && (sig_start_underflow || reg_underflow);
         
         
-        assign ff_s_permit_ready = (ff_m_valid && ff_m_ready && sig_end);
+        assign fifo_s_permit_ready = (ff_m_valid && ff_m_ready && sig_end);
         
-        assign ff_s_ready = (ff_s_permit_valid && ((ff_m_ready && !sig_padding) || sig_skip)) || (!ff_s_permit_valid && skip);
+        assign ff_s_ready = (fifo_s_permit_valid && ((ff_m_ready && !sig_padding) || sig_skip)) || (!fifo_s_permit_valid && skip);
         
-        assign ff_m_first = sig_start   ? ff_s_permit_first : {N{1'b0}};
-        assign ff_m_last  = sig_end     ? ff_s_permit_last  : {N{1'b0}};
+        assign ff_m_first = sig_start   ? fifo_s_permit_first : {N{1'b0}};
+        assign ff_m_last  = sig_end     ? fifo_s_permit_last  : {N{1'b0}};
         assign ff_m_data  = sig_padding ? padding_data      : ff_s_data;
-        assign ff_m_user  = ff_s_permit_user;
-        assign ff_m_valid = ff_s_permit_valid && ((ff_s_valid && !sig_skip) || sig_padding);
+        assign ff_m_user  = fifo_s_permit_user;
+        assign ff_m_valid = fifo_s_permit_valid && ((ff_s_valid && !sig_skip) || sig_padding);
     end
     endgenerate
     

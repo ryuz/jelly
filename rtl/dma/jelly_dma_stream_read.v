@@ -15,7 +15,7 @@
 
 module jelly_dma_stream_read
         #(
-            parameter N                    = 1,
+            parameter N                    = 2,
             
             parameter CORE_ID              = 32'habcd_0000,
             parameter CORE_VERSION         = 32'h0000_0000,
@@ -29,7 +29,7 @@ module jelly_dma_stream_read
             parameter ALLOW_UNALIGNED      = 0,
             
             parameter HAS_RFIRST           = 0,
-            parameter HAS_RLAST            = 0,
+            parameter HAS_RLAST            = 1,
             
             parameter AXI4_ID_WIDTH        = 6,
             parameter AXI4_ADDR_WIDTH      = 32,
@@ -48,19 +48,19 @@ module jelly_dma_stream_read
             parameter AXI4_ALIGN           = 12,  // 2^12 = 4k が境界
             
             parameter S_RDATA_WIDTH        = 32,
-            parameter ARLEN_WIDTH          = AXI4_ADDR_WIDTH,   // 内部キューイング用
+            parameter CAPACITY_WIDTH       = 12,   // 内部キューイング用
             
             parameter ARLEN_OFFSET         = 1'b1,
-            parameter ARLEN0_WIDTH         = 11,
-            parameter ARLEN1_WIDTH         = 11,
-            parameter ARLEN2_WIDTH         = AXI4_ADDR_WIDTH,
-            parameter ARLEN3_WIDTH         = AXI4_ADDR_WIDTH,
-            parameter ARLEN4_WIDTH         = AXI4_ADDR_WIDTH,
-            parameter ARLEN5_WIDTH         = AXI4_ADDR_WIDTH,
-            parameter ARLEN6_WIDTH         = AXI4_ADDR_WIDTH,
-            parameter ARLEN7_WIDTH         = AXI4_ADDR_WIDTH,
-            parameter ARLEN8_WIDTH         = AXI4_ADDR_WIDTH,
-            parameter ARLEN9_WIDTH         = AXI4_ADDR_WIDTH,
+            parameter ARLEN0_WIDTH         = CAPACITY_WIDTH,
+            parameter ARLEN1_WIDTH         = CAPACITY_WIDTH,
+            parameter ARLEN2_WIDTH         = CAPACITY_WIDTH,
+            parameter ARLEN3_WIDTH         = CAPACITY_WIDTH,
+            parameter ARLEN4_WIDTH         = CAPACITY_WIDTH,
+            parameter ARLEN5_WIDTH         = CAPACITY_WIDTH,
+            parameter ARLEN6_WIDTH         = CAPACITY_WIDTH,
+            parameter ARLEN7_WIDTH         = CAPACITY_WIDTH,
+            parameter ARLEN8_WIDTH         = CAPACITY_WIDTH,
+            parameter ARLEN9_WIDTH         = CAPACITY_WIDTH,
             parameter ARSTEP1_WIDTH        = AXI4_ADDR_WIDTH,
             parameter ARSTEP2_WIDTH        = AXI4_ADDR_WIDTH,
             parameter ARSTEP3_WIDTH        = AXI4_ADDR_WIDTH,
@@ -606,8 +606,7 @@ module jelly_dma_stream_read
                 .S_ARSTEP_WIDTH         (STEP_MAX),
                 .S_ARLEN_WIDTH          (LEN_MAX),
                 .S_ARLEN_OFFSET         (ARLEN_OFFSET),
-                .ARLEN_WIDTH            (ARLEN_WIDTH),
-                .ARLEN_OFFSET           (ARLEN_OFFSET),
+                .CAPACITY_WIDTH         (CAPACITY_WIDTH),
                 .CONVERT_S_REGS         (CONVERT_S_REGS),
                 .RFIFO_PTR_WIDTH        (RFIFO_PTR_WIDTH),
                 .RFIFO_RAM_TYPE         (RFIFO_RAM_TYPE),

@@ -46,11 +46,10 @@ module jelly_axi4_read
             parameter   AXI4_ARREGION    = 4'b0000,
             
             parameter   S_RDATA_WIDTH    = 32,
-            parameter   S_ARLEN_WIDTH    = 10,
+            parameter   S_ARLEN_WIDTH    = 12,
             parameter   S_ARLEN_OFFSET   = 1'b1,
             
-            parameter   ARLEN_WIDTH      = S_ARLEN_WIDTH,   // 内部キューイング用
-            parameter   ARLEN_OFFSET     = S_ARLEN_OFFSET,
+            parameter   CAPACITY_WIDTH   = S_ARLEN_WIDTH,
             
             parameter   CONVERT_S_REGS   = 0,
             
@@ -59,7 +58,7 @@ module jelly_axi4_read
             parameter   RFIFO_LOW_DEALY  = 0,
             parameter   RFIFO_DOUT_REGS  = 1,
             parameter   RFIFO_S_REGS     = 0,
-            parameter   RFIFO_M_REGS     = 1,
+            parameter   RFIFO_M_REGS     = 0,
             
             parameter   ARFIFO_PTR_WIDTH = 4,
             parameter   ARFIFO_RAM_TYPE  = "distributed",
@@ -134,7 +133,6 @@ module jelly_axi4_read
     // ---------------------------------
     
     localparam UNALIGNED      = ((S_RDATA_WIDTH & (S_RDATA_WIDTH - 1)) != 0) || ALLOW_UNALIGNED;
-    localparam CAPACITY_WIDTH = ARLEN_WIDTH;
     
     wire    [AXI4_ADDR_WIDTH-1:0]   addr_mask = UNALIGNED ? 0 : (1 << AXI4_DATA_SIZE) - 1;
     
@@ -145,7 +143,7 @@ module jelly_axi4_read
     // ---------------------------------
     
     wire    [AXI4_ADDR_WIDTH-1:0]   conv_araddr;
-    wire    [ARLEN_WIDTH-1:0]       conv_arlen;
+    wire    [CAPACITY_WIDTH-1:0]    conv_arlen;
     wire    [AXI4_LEN_WIDTH-1:0]    conv_arlen_max;
     wire                            conv_arvalid;
     wire                            conv_arready;
@@ -178,7 +176,7 @@ module jelly_axi4_read
                 
                 .M_RDATA_SIZE           (AXI4_DATA_SIZE),
                 .M_RUSER_WIDTH          (0),
-                .M_ARLEN_WIDTH          (ARLEN_WIDTH),
+                .M_ARLEN_WIDTH          (CAPACITY_WIDTH),
                 .M_ARLEN_OFFSET         (1'b1),
                 .M_ARUSER_WIDTH         (0),
                 
@@ -270,9 +268,9 @@ module jelly_axi4_read
     jelly_capacity_async
             #(
                 .ASYNC                  (RASYNC),
-                .CAPACITY_WIDTH         (ARLEN_WIDTH),
+                .CAPACITY_WIDTH         (CAPACITY_WIDTH),
                 .REQUEST_WIDTH          (1),
-                .ISSUE_WIDTH            (ARLEN_WIDTH),
+                .ISSUE_WIDTH            (CAPACITY_WIDTH),
                 .REQUEST_SIZE_OFFSET    (1'b1),
                 .ISSUE_SIZE_OFFSET      (1'b0)
             )
@@ -308,8 +306,8 @@ module jelly_axi4_read
             #(
                 .ADDR_WIDTH             (AXI4_ADDR_WIDTH),
                 .ADDR_UNIT              (1 << AXI4_DATA_SIZE),
-                .SIZE_WIDTH             (ARLEN_WIDTH),
-                .SIZE_OFFSET            (ARLEN_OFFSET),
+                .SIZE_WIDTH             (CAPACITY_WIDTH),
+                .SIZE_OFFSET            (1'b1),
                 .LEN_WIDTH              (AXI4_LEN_WIDTH),
                 .LEN_OFFSET             (1'b1),
                 .S_REGS                 (0)

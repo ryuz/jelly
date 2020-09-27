@@ -47,9 +47,9 @@ module jelly_vdma_axi4_to_axi4s
             parameter   AXI4S_REGS          = 1,
             
             parameter   INDEX_WIDTH         = 8,
-            parameter   STRIDE_WIDTH        = 14,
-            parameter   H_WIDTH             = 10,
-            parameter   V_WIDTH             = 10,
+            parameter   STRIDE_WIDTH        = 16,
+            parameter   H_WIDTH             = 12,
+            parameter   V_WIDTH             = 12,
             parameter   SIZE_WIDTH          = H_WIDTH + V_WIDTH,
             
             parameter   LIMITTER_ENABLE     = (FIFO_PTR_WIDTH > AXI4_LEN_WIDTH),

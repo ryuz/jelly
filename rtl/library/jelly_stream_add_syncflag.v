@@ -23,6 +23,9 @@ module jelly_stream_add_syncflag
             parameter HAS_FIRST        = 1,
             parameter HAS_LAST         = 1,
             
+            parameter S_REGS           = 0,
+            parameter M_REGS           = 0,
+            
             parameter ASYNC            = 0,
             parameter FIFO_PTR_WIDTH   = 4,
             parameter FIFO_DOUT_REGS   = 0,
@@ -31,8 +34,6 @@ module jelly_stream_add_syncflag
             parameter FIFO_S_REGS      = 0,
             parameter FIFO_M_REGS      = 0,
             
-            parameter S_REGS           = 0,
-            parameter M_REGS           = 0,
             
             // loacal
             parameter FIRST_BITS       = FIRST_WIDTH > 0 ? FIRST_WIDTH : 1,

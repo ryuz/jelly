@@ -15,7 +15,7 @@
 // AXI4 N次元データ読出しコア
 module jelly_axi4_read_nd
         #(
-            parameter N                   = 1,
+            parameter N                   = 2,
             
             parameter ARASYNC             = 1,
             parameter RASYNC              = 1,
@@ -47,11 +47,10 @@ module jelly_axi4_read_nd
             
             parameter S_RDATA_WIDTH       = 32,
             parameter S_ARSTEP_WIDTH      = AXI4_ADDR_WIDTH,
-            parameter S_ARLEN_WIDTH       = AXI4_ADDR_WIDTH,
+            parameter S_ARLEN_WIDTH       = 12,
             parameter S_ARLEN_OFFSET      = 1'b1,
             
-            parameter ARLEN_WIDTH         = AXI4_ADDR_WIDTH,   // 内部キューイング用
-            parameter ARLEN_OFFSET        = S_ARLEN_OFFSET,
+            parameter CAPACITY_WIDTH      = S_RDATA_WIDTH,   // 内部キューイング用
             
             parameter CONVERT_S_REGS      = 0,
             
@@ -99,7 +98,7 @@ module jelly_axi4_read_nd
             parameter CACKFIFO_S_REGS     = 0,
             parameter CACKFIFO_M_REGS     = 0,
             parameter CACK_S_REGS         = 0,
-            parameter CACK_M_REGS         = 1
+            parameter CACK_M_REGS         = 0
         )
         (
             input   wire                            endian,
@@ -156,7 +155,7 @@ module jelly_axi4_read_nd
     
     // address generate
     wire    [AXI4_ADDR_WIDTH-1:0]   adrgen_araddr;
-    wire    [ARLEN_WIDTH-1:0]       adrgen_arlen;
+    wire    [S_ARLEN_WIDTH-1:0]     adrgen_arlen;
     wire    [AXI4_LEN_WIDTH-1:0]    adrgen_arlen_max;
     wire    [N-1:0]                 adrgen_arfirst;
     wire    [N-1:0]                 adrgen_arlast;
@@ -184,7 +183,7 @@ module jelly_axi4_read_nd
                     .s_addr                 (s_araddr),
                     .s_step                 (s_arstep[N*S_ARSTEP_WIDTH-1:S_ARSTEP_WIDTH]),
                     .s_len                  (s_arlen [N*S_ARLEN_WIDTH-1:S_ARLEN_WIDTH]),
-                    .s_user                 ({s_arlen[ARLEN_WIDTH-1:0], s_arlen_max}),
+                    .s_user                 ({s_arlen[S_ARLEN_WIDTH-1:0], s_arlen_max}),
                     .s_valid                (s_arvalid),
                     .s_ready                (s_arready),
                     
@@ -213,14 +212,14 @@ module jelly_axi4_read_nd
     
     // コマンド分岐
     wire    [AXI4_ADDR_WIDTH-1:0]   cmd_araddr;
-    wire    [ARLEN_WIDTH-1:0]       cmd_arlen;
+    wire    [S_ARLEN_WIDTH-1:0]     cmd_arlen;
     wire    [AXI4_LEN_WIDTH-1:0]    cmd_arlen_max;
     wire                            cmd_arvalid;
     wire                            cmd_arready;
     
     wire    [N-1:0]                 dat_arfirst;
     wire    [N-1:0]                 dat_arlast;
-    wire    [ARLEN_WIDTH-1:0]       dat_arlen;
+    wire    [S_ARLEN_WIDTH-1:0]     dat_arlen;
     wire                            dat_arvalid;
     wire                            dat_arready;
     
@@ -233,13 +232,15 @@ module jelly_axi4_read_nd
             #(
                 .NUM                    (3),
                 .DATA0_0_WIDTH          (AXI4_ADDR_WIDTH),
-                .DATA0_1_WIDTH          (ARLEN_WIDTH),
+                .DATA0_1_WIDTH          (S_ARLEN_WIDTH),
                 .DATA0_2_WIDTH          (AXI4_LEN_WIDTH),
                 .DATA1_0_WIDTH          (N),
                 .DATA1_1_WIDTH          (N),
-                .DATA1_2_WIDTH          (ARLEN_WIDTH),
+                .DATA1_2_WIDTH          (S_ARLEN_WIDTH),
                 .DATA2_0_WIDTH          (N),
-                .DATA2_1_WIDTH          (N)
+                .DATA2_1_WIDTH          (N),
+                .S_REGS                 (0),
+                .M_REGS                 (0)
             )
         i_data_split_pack2
             (
@@ -318,8 +319,7 @@ module jelly_axi4_read_nd
                 .S_RDATA_WIDTH          (S_RDATA_WIDTH),
                 .S_ARLEN_WIDTH          (AXI4_ADDR_WIDTH),
                 .S_ARLEN_OFFSET         (S_ARLEN_OFFSET),
-                .ARLEN_WIDTH            (ARLEN_WIDTH),
-                .ARLEN_OFFSET           (ARLEN_OFFSET),
+                .CAPACITY_WIDTH         (CAPACITY_WIDTH),
                 .CONVERT_S_REGS         (CONVERT_S_REGS),
                 .RFIFO_PTR_WIDTH        (RFIFO_PTR_WIDTH),
                 .RFIFO_RAM_TYPE         (RFIFO_RAM_TYPE),
@@ -415,14 +415,14 @@ module jelly_axi4_read_nd
                 .DETECTOR_ENABLE        (ALLOW_UNALIGNED),
                 
                 .DATA_WIDTH             (S_RDATA_WIDTH),
-                .LEN_WIDTH              (ARLEN_WIDTH),
-                .LEN_OFFSET             (ARLEN_OFFSET),
+                .LEN_WIDTH              (S_ARLEN_WIDTH),
+                .LEN_OFFSET             (S_ARLEN_OFFSET),
                 .USER_WIDTH             (N + N),
                 
                 .S_REGS                 (0),
                 .M_REGS                 (0),
                 
-                .S_PERMIT_ASYNC         (ARASYNC || RASYNC),
+                .ASYNC                  (ARASYNC || RASYNC),
                 .FIFO_PTR_WIDTH         (CACKFIFO_PTR_WIDTH),
                 .FIFO_DOUT_REGS         (CACKFIFO_DOUT_REGS),
                 .FIFO_RAM_TYPE          (CACKFIFO_RAM_TYPE),
