@@ -16,8 +16,7 @@ module jelly_data_split
         #(
             parameter   NUM        = 16,
             parameter   DATA_WIDTH = 8,
-            parameter   S_REGS     = 1,
-            parameter   M_REGS     = 1
+            parameter   S_REGS     = 0
         )
         (
             input   wire                            reset,
@@ -33,6 +32,7 @@ module jelly_data_split
             input   wire    [NUM-1:0]               m_ready
         );
     
+    parameter   M_REGS = 0;
     
     genvar      i;
     
@@ -102,6 +102,28 @@ module jelly_data_split
     //  split
     // -----------------------------------------
     
+    reg     [NUM-1:0]               reg_valid;
+    always @(posedge clk) begin
+        if ( reset ) begin
+            reg_valid <= {NUM{1'b0}};
+        end
+        else if ( cke ) begin
+            if ( ff_s_valid & ff_s_ready ) begin
+                reg_valid <= {NUM{1'b1}};
+            end
+            else begin
+                reg_valid <= reg_valid & ~ff_m_ready;
+            end
+        end
+    end
+    
+    assign ff_s_ready = (reg_valid & ~ff_m_ready) == 0;
+    
+    assign ff_m_data  = ff_s_data;
+    assign ff_m_valid = reg_valid;
+    
+    
+    /*
     reg     [NUM-1:0]               sig_s_ready;
     
     reg     [DATA_WIDTH-1:0]        sig_m_data;
@@ -115,7 +137,7 @@ module jelly_data_split
     
     assign ff_m_data  = ff_s_data;
     assign ff_s_ready = &ff_m_ready;
-    
+    */
     
 endmodule
 

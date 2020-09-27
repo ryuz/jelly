@@ -99,8 +99,8 @@ module jelly_data_split_pack
         );
     
     
-    // 原理的に M側 は必須
-    localparam M_REGS      = 1;
+    // M側 は不要
+    localparam M_REGS = 0;
     
     
     // -----------------------------------------
@@ -430,13 +430,22 @@ module jelly_data_split_pack
     //  split
     // -----------------------------------------
     
-    genvar      i;
-    
-    generate
-    for ( i = 0; i < NUM; i = i+1 ) begin : loop_m_valid
-        assign ff_m_valid[i] = (ff_s_valid && ff_s_ready);
+    reg     [NUM-1:0]               reg_valid;
+    always @(posedge clk) begin
+        if ( reset ) begin
+            reg_valid <= {NUM{1'b0}};
+        end
+        else if ( cke ) begin
+            if ( ff_s_valid & ff_s_ready ) begin
+                reg_valid <= {NUM{1'b1}};
+            end
+            else begin
+                reg_valid <= (reg_valid & ~ff_m_ready);
+            end
+        end
     end
-    endgenerate
+    
+    assign ff_s_ready = (reg_valid & ~ff_m_ready) == 0;
     
     assign ff_m0_data = ff_s_data0;
     assign ff_m1_data = ff_s_data1;
@@ -448,8 +457,32 @@ module jelly_data_split_pack
     assign ff_m7_data = ff_s_data7;
     assign ff_m8_data = ff_s_data8;
     assign ff_m9_data = ff_s_data9;
+    assign ff_m_valid = reg_valid;
+    
+    
+    /*
+    
+    genvar      i;
+    generate
+    for ( i = 0; i < NUM; i = i+1 ) begin : loop_m_valid
+        assign ff_m_valid[i] = (ff_s_valid && ff_s_ready);
+    end
+    endgenerate
+    
     assign ff_s_ready = &ff_m_ready;
     
+    assign ff_m0_data = ff_s_data0;
+    assign ff_m1_data = ff_s_data1;
+    assign ff_m2_data = ff_s_data2;
+    assign ff_m3_data = ff_s_data3;
+    assign ff_m4_data = ff_s_data4;
+    assign ff_m5_data = ff_s_data5;
+    assign ff_m6_data = ff_s_data6;
+    assign ff_m7_data = ff_s_data7;
+    assign ff_m8_data = ff_s_data8;
+    assign ff_m9_data = ff_s_data9;
+    
+    */
     
 endmodule
 

@@ -23,7 +23,7 @@ module tb_data_split_pack();
     always #(RATE/2.0)      clk = ~clk;
     
     reg     cke = 1'b1;
-    always @(posedge clk)   cke <= RAND_BUSY ? {$random} : 1'b1;
+    always @(posedge clk)   cke <= 1; // RAND_BUSY ? {$random} : 1'b1;
     
     
     
@@ -31,7 +31,7 @@ module tb_data_split_pack();
     parameter DATA0_WIDTH = 8;
     parameter DATA1_WIDTH = 16;
     parameter DATA2_WIDTH = 24;
-    parameter S_REGS      = 1;
+    parameter S_REGS      = 0;
     
     reg     [DATA0_WIDTH-1:0]   s_data0;
     reg     [DATA1_WIDTH-1:0]   s_data1;
