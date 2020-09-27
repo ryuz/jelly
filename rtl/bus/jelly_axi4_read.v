@@ -17,70 +17,70 @@
 // AXI4 データ読出しコア
 module jelly_axi4_read
         #(
-            parameter   ARASYNC              = 1,
-            parameter   RASYNC               = 1,
-            parameter   RBASYNC              = 1,
+            parameter   ARASYNC          = 1,
+            parameter   RASYNC           = 1,
+            parameter   CASYNC           = 1,
             
-            parameter   BYTE_WIDTH           = 8,
-            parameter   BYPASS_GATE          = 1,
-            parameter   BYPASS_ALIGN         = 0,
-            parameter   AXI4_ALIGN           = 12,  // 2^12 = 4k が境界
-            parameter   ALLOW_UNALIGNED      = 0,
+            parameter   BYTE_WIDTH       = 8,
+            parameter   BYPASS_GATE      = 0,
+            parameter   BYPASS_ALIGN     = 0,
+            parameter   AXI4_ALIGN       = 12,  // 2^12 = 4k が境界
+            parameter   ALLOW_UNALIGNED  = 0,
             
-            parameter   HAS_S_RFIRST         = 0,
-            parameter   HAS_S_RLAST          = 0,
+            parameter   HAS_RFIRST       = 0,
+            parameter   HAS_RLAST        = 0,
             
-            parameter   AXI4_ID_WIDTH        = 6,
-            parameter   AXI4_ADDR_WIDTH      = 32,
-            parameter   AXI4_DATA_SIZE       = 2,    // 0:8bit, 1:16bit, 2:32bit ...
-            parameter   AXI4_DATA_WIDTH      = (BYTE_WIDTH << AXI4_DATA_SIZE),
-            parameter   AXI4_LEN_WIDTH       = 8,
-            parameter   AXI4_QOS_WIDTH       = 4,
-            parameter   AXI4_ARID            = {AXI4_ID_WIDTH{1'b0}},
-            parameter   AXI4_ARSIZE          = AXI4_DATA_SIZE,
-            parameter   AXI4_ARBURST         = 2'b01,
-            parameter   AXI4_ARLOCK          = 1'b0,
-            parameter   AXI4_ARCACHE         = 4'b0001,
-            parameter   AXI4_ARPROT          = 3'b000,
-            parameter   AXI4_ARQOS           = 0,
-            parameter   AXI4_ARREGION        = 4'b0000,
+            parameter   AXI4_ID_WIDTH    = 6,
+            parameter   AXI4_ADDR_WIDTH  = 32,
+            parameter   AXI4_DATA_SIZE   = 2,    // 0:8bit, 1:16bit, 2:32bit ...
+            parameter   AXI4_DATA_WIDTH  = (BYTE_WIDTH << AXI4_DATA_SIZE),
+            parameter   AXI4_LEN_WIDTH   = 8,
+            parameter   AXI4_QOS_WIDTH   = 4,
+            parameter   AXI4_ARID        = {AXI4_ID_WIDTH{1'b0}},
+            parameter   AXI4_ARSIZE      = AXI4_DATA_SIZE,
+            parameter   AXI4_ARBURST     = 2'b01,
+            parameter   AXI4_ARLOCK      = 1'b0,
+            parameter   AXI4_ARCACHE     = 4'b0001,
+            parameter   AXI4_ARPROT      = 3'b000,
+            parameter   AXI4_ARQOS       = 0,
+            parameter   AXI4_ARREGION    = 4'b0000,
             
-            parameter   S_RDATA_WIDTH        = 32,
-            parameter   S_ARLEN_WIDTH        = 10,
-            parameter   S_ARLEN_OFFSET       = 1'b1,
+            parameter   S_RDATA_WIDTH    = 32,
+            parameter   S_ARLEN_WIDTH    = 10,
+            parameter   S_ARLEN_OFFSET   = 1'b1,
             
-            parameter   ARLEN_WIDTH          = S_ARLEN_WIDTH,   // 内部キューイング用
-            parameter   ARLEN_OFFSET         = S_ARLEN_OFFSET,
+            parameter   ARLEN_WIDTH      = S_ARLEN_WIDTH,   // 内部キューイング用
+            parameter   ARLEN_OFFSET     = S_ARLEN_OFFSET,
             
-            parameter   CONVERT_S_REGS       = 0,
+            parameter   CONVERT_S_REGS   = 0,
             
-            parameter   RFIFO_PTR_WIDTH      = 9,
-            parameter   RFIFO_RAM_TYPE       = "block",
-            parameter   RFIFO_LOW_DEALY      = 0,
-            parameter   RFIFO_DOUT_REGS      = 1,
-            parameter   RFIFO_S_REGS         = 0,
-            parameter   RFIFO_M_REGS         = 1,
+            parameter   RFIFO_PTR_WIDTH  = 9,
+            parameter   RFIFO_RAM_TYPE   = "block",
+            parameter   RFIFO_LOW_DEALY  = 0,
+            parameter   RFIFO_DOUT_REGS  = 1,
+            parameter   RFIFO_S_REGS     = 0,
+            parameter   RFIFO_M_REGS     = 1,
             
-            parameter   ARFIFO_PTR_WIDTH     = 4,
-            parameter   ARFIFO_RAM_TYPE      = "distributed",
-            parameter   ARFIFO_LOW_DEALY     = 1,
-            parameter   ARFIFO_DOUT_REGS     = 0,
-            parameter   ARFIFO_S_REGS        = 0,
-            parameter   ARFIFO_M_REGS        = 0,
+            parameter   ARFIFO_PTR_WIDTH = 4,
+            parameter   ARFIFO_RAM_TYPE  = "distributed",
+            parameter   ARFIFO_LOW_DEALY = 1,
+            parameter   ARFIFO_DOUT_REGS = 0,
+            parameter   ARFIFO_S_REGS    = 0,
+            parameter   ARFIFO_M_REGS    = 0,
             
-            parameter   SRFIFO_PTR_WIDTH     = 4,
-            parameter   SRFIFO_RAM_TYPE      = "distributed",
-            parameter   SRFIFO_LOW_DEALY     = 0,
-            parameter   SRFIFO_DOUT_REGS     = 0,
-            parameter   SRFIFO_S_REGS        = 0,
-            parameter   SRFIFO_M_REGS        = 0,
+            parameter   SRFIFO_PTR_WIDTH = 4,
+            parameter   SRFIFO_RAM_TYPE  = "distributed",
+            parameter   SRFIFO_LOW_DEALY = 0,
+            parameter   SRFIFO_DOUT_REGS = 0,
+            parameter   SRFIFO_S_REGS    = 0,
+            parameter   SRFIFO_M_REGS    = 0,
             
-            parameter   MRFIFO_PTR_WIDTH     = 4,
-            parameter   MRFIFO_RAM_TYPE      = "distributed",
-            parameter   MRFIFO_LOW_DEALY     = 1,
-            parameter   MRFIFO_DOUT_REGS     = 0,
-            parameter   MRFIFO_S_REGS        = 0,
-            parameter   MRFIFO_M_REGS        = 0
+            parameter   MRFIFO_PTR_WIDTH = 4,
+            parameter   MRFIFO_RAM_TYPE  = "distributed",
+            parameter   MRFIFO_LOW_DEALY = 1,
+            parameter   MRFIFO_DOUT_REGS = 0,
+            parameter   MRFIFO_S_REGS    = 0,
+            parameter   MRFIFO_M_REGS    = 0
         )
         (
             input   wire                            endian,
@@ -101,10 +101,10 @@ module jelly_axi4_read
             output  wire                            s_rvalid,
             input   wire                            s_rready,
             
-            input   wire                            s_rbresetn,
-            input   wire                            s_rbclk,
-            output  wire                            s_rbvalid,
-            input   wire                            s_rbready,
+            input   wire                            s_cresetn,
+            input   wire                            s_cclk,
+            output  wire                            s_cvalid,
+            input   wire                            s_cready,
             
             input   wire                            m_aresetn,
             input   wire                            m_aclk,
@@ -149,25 +149,23 @@ module jelly_axi4_read
     wire    [AXI4_LEN_WIDTH-1:0]    conv_arlen_max;
     wire                            conv_arvalid;
     wire                            conv_arready;
-    
-//    wire    [AXI4_DATA_WIDTH-1:0]   conv_rdata;
-//    wire                            conv_rlast;
-//    wire                            conv_rvalid;
-//    wire                            conv_rready;
-    
     wire                            s_rfifo_rd_signal;
     
     jelly_axi4_read_width_convert
             #(
-                .ARASYNC                (ARASYNC),
+                .S_ARASYNC              (ARASYNC),
+                .S_RASYNC               (RASYNC),
+                .S_CASYNC               (CASYNC),
+                .M_RASYNC               (0),
                 .RASYNC                 (RASYNC),
-                .RBASYNC                (RBASYNC),
                 .BYTE_WIDTH             (BYTE_WIDTH),
-                .BYPASS_GATE            (BYPASS_GATE),
                 .ALLOW_UNALIGNED        (UNALIGNED),
+                .BYPASS_GATE            (BYPASS_GATE),
                 
-                .HAS_S_RFIRST           (HAS_S_RFIRST),
-                .HAS_S_RLAST            (HAS_S_RLAST),
+                .HAS_S_RFIRST           (HAS_RFIRST),
+                .HAS_S_RLAST            (HAS_RLAST),
+                .HAS_M_RFIRST           (0),
+                .HAS_M_RLAST            (0),    // コマンド分割するので利用できない
                 
                 .ARADDR_WIDTH           (AXI4_ADDR_WIDTH),
                 .ARUSER_WIDTH           (AXI4_LEN_WIDTH),
@@ -238,10 +236,10 @@ module jelly_axi4_read
                 .rfifo_data_count       (),
                 .rfifo_rd_signal        (s_rfifo_rd_signal),
                 
-                .s_rbresetn             (s_rbresetn),
-                .s_rbclk                (s_rbclk),
-                .s_rbvalid              (s_rbvalid),
-                .s_rbready              (s_rbready),
+                .s_cresetn              (s_cresetn),
+                .s_cclk                 (s_cclk),
+                .s_cvalid               (s_cvalid),
+                .s_cready               (s_cready),
                 
                 .m_arresetn             (m_aresetn),
                 .m_arclk                (m_aclk),

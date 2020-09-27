@@ -518,6 +518,8 @@ module jelly_axi4_write_nd
                 .padding_en             (wpadding_en),
                 .padding_data           ({wpadding_strb, wpadding_data}),
                 
+                .s_permit_reset         (~s_wresetn),
+                .s_permit_clk           (s_wclk),
                 .s_permit_first         (datfifo_awfirst),
                 .s_permit_last          (datfifo_awlast),
                 .s_permit_len           (datfifo_awlen),

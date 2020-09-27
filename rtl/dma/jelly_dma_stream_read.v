@@ -15,7 +15,7 @@
 
 module jelly_dma_stream_read
         #(
-            parameter N                    = 3,
+            parameter N                    = 1,
             
             parameter CORE_ID              = 32'habcd_0000,
             parameter CORE_VERSION         = 32'h0000_0000,
@@ -24,15 +24,12 @@ module jelly_dma_stream_read
             parameter RASYNC               = 1,
             
             parameter BYTE_WIDTH           = 8,
-            parameter BYPASS_GATE          = 1,
+            parameter BYPASS_GATE          = 0,
             parameter BYPASS_ALIGN         = 0,
-            parameter AXI4_ALIGN           = 12,  // 2^12 = 4k が境界
             parameter ALLOW_UNALIGNED      = 0,
             
-            parameter HAS_S_RFIRST         = 0,
-            parameter HAS_S_RLAST          = 0,
-            parameter HAS_M_RFIRST         = 0,
-            parameter HAS_M_RLAST          = 1,
+            parameter HAS_RFIRST           = 0,
+            parameter HAS_RLAST            = 0,
             
             parameter AXI4_ID_WIDTH        = 6,
             parameter AXI4_ADDR_WIDTH      = 32,
@@ -48,6 +45,7 @@ module jelly_dma_stream_read
             parameter AXI4_ARPROT          = 3'b000,
             parameter AXI4_ARQOS           = 0,
             parameter AXI4_ARREGION        = 4'b0000,
+            parameter AXI4_ALIGN           = 12,  // 2^12 = 4k が境界
             
             parameter S_RDATA_WIDTH        = 32,
             parameter ARLEN_WIDTH          = AXI4_ADDR_WIDTH,   // 内部キューイング用
@@ -112,14 +110,14 @@ module jelly_dma_stream_read
             parameter RACK_S_REGS          = 0,
             parameter RACK_M_REGS          = 1,
             
-            parameter RBACKFIFO_PTR_WIDTH  = 4,
-            parameter RBACKFIFO_DOUT_REGS  = 0,
-            parameter RBACKFIFO_RAM_TYPE   = "distributed",
-            parameter RBACKFIFO_LOW_DEALY  = 1,
-            parameter RBACKFIFO_S_REGS     = 0,
-            parameter RBACKFIFO_M_REGS     = 0,
-            parameter RBACK_S_REGS         = 0,
-            parameter RBACK_M_REGS         = 1,
+            parameter CACKFIFO_PTR_WIDTH   = 4,
+            parameter CACKFIFO_DOUT_REGS   = 0,
+            parameter CACKFIFO_RAM_TYPE    = "distributed",
+            parameter CACKFIFO_LOW_DEALY   = 1,
+            parameter CACKFIFO_S_REGS      = 0,
+            parameter CACKFIFO_M_REGS      = 0,
+            parameter CACK_S_REGS          = 0,
+            parameter CACK_M_REGS          = 1,
             
             parameter WB_ADR_WIDTH         = 8,
             parameter WB_DAT_WIDTH         = 32,
@@ -573,10 +571,10 @@ module jelly_dma_stream_read
     assign s_arstep[9*STEP_MAX +: STEP_MAX] = reg_shadow_arstep9;
     
     
-    wire    [N-1:0]                 s_rbfirst;
-    wire    [N-1:0]                 s_rblast;
-    wire                            s_rbvalid;
-    wire                            s_rbready;
+    wire    [N-1:0]                 s_cfirst;
+    wire    [N-1:0]                 s_clast;
+    wire                            s_cvalid;
+    wire                            s_cready;
     
     jelly_axi4_read_nd
             #(
@@ -588,10 +586,8 @@ module jelly_dma_stream_read
                 .BYPASS_ALIGN           (BYPASS_ALIGN),
                 .AXI4_ALIGN             (AXI4_ALIGN),
                 .ALLOW_UNALIGNED        (ALLOW_UNALIGNED),
-                .HAS_S_RFIRST           (HAS_S_RFIRST),
-                .HAS_S_RLAST            (HAS_S_RLAST),
-                .HAS_M_RFIRST           (HAS_M_RFIRST),
-                .HAS_M_RLAST            (HAS_M_RLAST),
+                .HAS_RFIRST             (HAS_RFIRST),
+                .HAS_RLAST              (HAS_RLAST),
                 .AXI4_ID_WIDTH          (AXI4_ID_WIDTH),
                 .AXI4_ADDR_WIDTH        (AXI4_ADDR_WIDTH),
                 .AXI4_DATA_SIZE         (AXI4_DATA_SIZE),
@@ -645,14 +641,14 @@ module jelly_dma_stream_read
                 .RACKFIFO_M_REGS        (RACKFIFO_M_REGS),
                 .RACK_S_REGS            (RACK_S_REGS),
                 .RACK_M_REGS            (RACK_M_REGS),
-                .RBACKFIFO_PTR_WIDTH    (RBACKFIFO_PTR_WIDTH),
-                .RBACKFIFO_DOUT_REGS    (RBACKFIFO_DOUT_REGS),
-                .RBACKFIFO_RAM_TYPE     (RBACKFIFO_RAM_TYPE),
-                .RBACKFIFO_LOW_DEALY    (RBACKFIFO_LOW_DEALY),
-                .RBACKFIFO_S_REGS       (RBACKFIFO_S_REGS),
-                .RBACKFIFO_M_REGS       (RBACKFIFO_M_REGS),
-                .RBACK_S_REGS           (RBACK_S_REGS),
-                .RBACK_M_REGS           (RBACK_M_REGS)
+                .CACKFIFO_PTR_WIDTH     (CACKFIFO_PTR_WIDTH),
+                .CACKFIFO_DOUT_REGS     (CACKFIFO_DOUT_REGS),
+                .CACKFIFO_RAM_TYPE      (CACKFIFO_RAM_TYPE),
+                .CACKFIFO_LOW_DEALY     (CACKFIFO_LOW_DEALY),
+                .CACKFIFO_S_REGS        (CACKFIFO_S_REGS),
+                .CACKFIFO_M_REGS        (CACKFIFO_M_REGS),
+                .CACK_S_REGS            (CACK_S_REGS),
+                .CACK_M_REGS            (CACK_M_REGS)
             )
         i_axi4_read_nd
             (
@@ -675,12 +671,12 @@ module jelly_dma_stream_read
                 .s_rvalid               (s_rvalid),
                 .s_rready               (s_rready),
                 
-                .s_rbresetn             (~s_wb_rst_i),
-                .s_rbclk                (s_wb_clk_i),
-                .s_rbfirst              (s_rbfirst),
-                .s_rblast               (s_rblast),
-                .s_rbvalid              (s_rbvalid),
-                .s_rbready              (s_rbready),
+                .s_cresetn              (~s_wb_rst_i),
+                .s_cclk                 (s_wb_clk_i),
+                .s_cfirst               (s_cfirst),
+                .s_clast                (s_clast),
+                .s_cvalid               (s_cvalid),
+                .s_cready               (s_cready),
                 
                 .m_aresetn              (m_aresetn),
                 .m_aclk                 (m_aclk),
@@ -704,9 +700,9 @@ module jelly_dma_stream_read
                 .m_axi4_rready          (m_axi4_rready)
             );
     
-    assign s_rbready = 1'b1;
-    
-    assign sig_end   = s_rbvalid & s_rbready & s_rblast[N-1];
+    // 終了検出
+    assign s_cready = 1'b1;
+    assign sig_end  = s_cvalid & s_cready & s_clast[N-1];
     
     
 endmodule

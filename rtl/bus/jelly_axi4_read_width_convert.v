@@ -10,75 +10,82 @@
 `default_nettype none
 
 
+
 // AXI4 メモリ読み出しコア データ幅変換部
 module jelly_axi4_read_width_convert
         #(
-            parameter   ARASYNC           = 1,
-            parameter   RASYNC            = 1,
-            parameter   RBASYNC           = 1,
-            parameter   BYTE_WIDTH        = 8,
-            parameter   BYPASS_GATE       = 0,
+            parameter S_ARASYNC         = 1,  // s_ar <-> m_ar は非同期か
+            parameter S_RASYNC          = 1,  // s_r  <-> m_ar は非同期か
+            parameter S_CASYNC          = 1,  // s_c  <-> m_ar は非同期か
+            parameter M_RASYNC          = 0,  // m_r  <-> m_ar は非同期か
+            parameter RASYNC            = 1,  // m_r  <-> s_r  は非同期か
+            parameter BYTE_WIDTH        = 8,
             
-            parameter   ALLOW_UNALIGNED   = 0,
+            parameter ALLOW_UNALIGNED   = 0,  // 非アライメント転送を許すか
+            parameter BYPASS_GATE       = 0,  // 強制的にGATEをバイパスさせる(上で責任をもって整形)
             
-            parameter   HAS_S_RFIRST      = 0,
-            parameter   HAS_S_RLAST       = 0,
+            parameter HAS_S_RFIRST      = 0,  // s_rfirst は必要か
+            parameter HAS_S_RLAST       = 1,  // s_rlast は必要か
+            parameter HAS_M_RFIRST      = 0,  // コマンドと対応する m_rfirst がある(今のところ無意味)
+            parameter HAS_M_RLAST       = 0,  // コマンドと対応する m_rlast がある
             
-            parameter   ARADDR_WIDTH      = 32,
-            parameter   ARUSER_WIDTH      = 0,
+            parameter ARADDR_WIDTH      = 32,
+            parameter ARUSER_WIDTH      = 0,
             
-            parameter   S_RDATA_WIDTH     = 32,  // 8の倍数であること
-            parameter   S_RUSER_WIDTH     = 0,
-            parameter   S_ARLEN_WIDTH     = 32,
-            parameter   S_ARLEN_OFFSET    = 1'b1,
-            parameter   S_ARUSER_WIDTH    = 0,
+            parameter S_RDATA_WIDTH     = 32,  // BYTE_WIDTH の倍数であること
+            parameter S_RUSER_WIDTH     = 0,
+            parameter S_ARLEN_WIDTH     = 32,
+            parameter S_ARLEN_OFFSET    = 1'b1,
+            parameter S_ARUSER_WIDTH    = 0,
             
-            parameter   M_RDATA_SIZE      = 3,   // log2 (0:8bit, 1:16bit, 2:32bit ...)
-            parameter   M_RDATA_WIDTH     = (BYTE_WIDTH << M_RDATA_SIZE),
-            parameter   M_RUSER_WIDTH     = S_RUSER_WIDTH * M_RDATA_WIDTH / S_RDATA_WIDTH,
-            parameter   M_ARLEN_WIDTH     = 32,
-            parameter   M_ARLEN_OFFSET    = 1'b1,
-            parameter   M_ARUSER_WIDTH    = 0,
+            parameter M_RDATA_SIZE      = 3,   // log2 (0:8bit, 1:16bit, 2:32bit ...)
+            parameter M_RDATA_WIDTH     = (BYTE_WIDTH << M_RDATA_SIZE),
+            parameter M_RUSER_WIDTH     = S_RUSER_WIDTH * M_RDATA_WIDTH / S_RDATA_WIDTH,
+            parameter M_ARLEN_WIDTH     = 32,
+            parameter M_ARLEN_OFFSET    = 1'b1,
+            parameter M_ARUSER_WIDTH    = 0,
             
-            parameter   RFIFO_PTR_WIDTH   = 9,
-            parameter   RFIFO_RAM_TYPE    = "block",
-            parameter   RFIFO_LOW_DEALY   = 0,
-            parameter   RFIFO_DOUT_REGS   = 1,
-            parameter   RFIFO_S_REGS      = 0,
-            parameter   RFIFO_M_REGS      = 1,
+            parameter POST_CONVERT      = (M_RDATA_WIDTH >= S_RDATA_WIDTH),
+            parameter CONVERT_S_REGS    = 0,
             
-            parameter   ARFIFO_PTR_WIDTH  = 4,
-            parameter   ARFIFO_RAM_TYPE   = "distributed",
-            parameter   ARFIFO_LOW_DEALY  = 1,
-            parameter   ARFIFO_DOUT_REGS  = 0,
-            parameter   ARFIFO_S_REGS     = 0,
-            parameter   ARFIFO_M_REGS     = 0,
+            parameter RFIFO_PTR_WIDTH   = 9,
+            parameter RFIFO_RAM_TYPE    = "block",
+            parameter RFIFO_LOW_DEALY   = 0,
+            parameter RFIFO_DOUT_REGS   = 1,
+            parameter RFIFO_S_REGS      = 0,
+            parameter RFIFO_M_REGS      = 1,
             
-            parameter   SRFIFO_PTR_WIDTH = 4,
-            parameter   SRFIFO_RAM_TYPE  = "distributed",
-            parameter   SRFIFO_LOW_DEALY = 1,
-            parameter   SRFIFO_DOUT_REGS = 0,
-            parameter   SRFIFO_S_REGS    = 0,
-            parameter   SRFIFO_M_REGS    = 0,
+            parameter ARFIFO_PTR_WIDTH  = S_ARASYNC ? 4 : 0,
+            parameter ARFIFO_RAM_TYPE   = "distributed",
+            parameter ARFIFO_LOW_DEALY  = 1,
+            parameter ARFIFO_DOUT_REGS  = 0,
+            parameter ARFIFO_S_REGS     = 0,
+            parameter ARFIFO_M_REGS     = 0,
             
-            parameter   MRFIFO_PTR_WIDTH = 4,
-            parameter   MRFIFO_RAM_TYPE  = "distributed",
-            parameter   MRFIFO_LOW_DEALY = 1,
-            parameter   MRFIFO_DOUT_REGS = 0,
-            parameter   MRFIFO_S_REGS    = 0,
-            parameter   MRFIFO_M_REGS    = 0,
+            parameter SRFIFO_PTR_WIDTH  = 4,
+            parameter SRFIFO_RAM_TYPE   = "distributed",
+            parameter SRFIFO_LOW_DEALY  = 1,
+            parameter SRFIFO_DOUT_REGS  = 0,
+            parameter SRFIFO_S_REGS     = 0,
+            parameter SRFIFO_M_REGS     = 0,
             
-            parameter   CONVERT_S_REGS    = 0,
-            parameter   POST_CONVERT      = (M_RDATA_WIDTH >= S_RDATA_WIDTH),
+            parameter MRFIFO_PTR_WIDTH  = 4,
+            parameter MRFIFO_RAM_TYPE   = "distributed",
+            parameter MRFIFO_LOW_DEALY  = 1,
+            parameter MRFIFO_DOUT_REGS  = 0,
+            parameter MRFIFO_S_REGS     = 0,
+            parameter MRFIFO_M_REGS     = 0,
+            
             
             // local
-            parameter   ARUSER_BITS       = ARUSER_WIDTH  > 0 ? ARUSER_WIDTH  : 1,
-            parameter   S_RUSER_BITS      = S_RUSER_WIDTH > 0 ? S_RUSER_WIDTH : 1,
-            parameter   M_RUSER_BITS      = M_RUSER_WIDTH > 0 ? M_RUSER_WIDTH : 1
+            parameter ARUSER_BITS      = ARUSER_WIDTH  > 0 ? ARUSER_WIDTH  : 1,
+            parameter S_RUSER_BITS     = S_RUSER_WIDTH > 0 ? S_RUSER_WIDTH : 1,
+            parameter M_RUSER_BITS     = M_RUSER_WIDTH > 0 ? M_RUSER_WIDTH : 1
         )
         (
             input   wire                            endian,
             
+            // address command
             input   wire                            s_arresetn,
             input   wire                            s_arclk,
             input   wire    [ARADDR_WIDTH-1:0]      s_araddr,
@@ -87,6 +94,7 @@ module jelly_axi4_read_width_convert
             input   wire                            s_arvalid,
             output  wire                            s_arready,
             
+            // read data (after FIFO convert)
             input   wire                            s_rresetn,
             input   wire                            s_rclk,
             output  wire                            s_rfirst,
@@ -98,11 +106,13 @@ module jelly_axi4_read_width_convert
             output  wire    [RFIFO_PTR_WIDTH:0]     rfifo_data_count,
             output  wire                            rfifo_rd_signal,
             
-            input   wire                            s_rbresetn,
-            input   wire                            s_rbclk,
-            output  wire                            s_rbvalid,
-            input   wire                            s_rbready,
+            // acknowledge (before FIFO convert)
+            input   wire                            s_cresetn,
+            input   wire                            s_cclk,
+            output  wire                            s_cvalid,
+            input   wire                            s_cready,
             
+            // address command
             input   wire                            m_arresetn,
             input   wire                            m_arclk,
             output  wire    [ARADDR_WIDTH-1:0]      m_araddr,
@@ -111,6 +121,7 @@ module jelly_axi4_read_width_convert
             output  wire                            m_arvalid,
             input   wire                            m_arready,
             
+            // read data
             input   wire                            m_rresetn,
             input   wire                            m_rclk,
             input   wire    [M_RDATA_WIDTH-1:0]     m_rdata,
@@ -137,6 +148,46 @@ module jelly_axi4_read_width_convert
     //  s_ar
     // ---------------------------------
     
+    // m_ar 側にクロック載せ替え
+    wire    [ARADDR_WIDTH-1:0]      arfifo_araddr;
+    wire    [S_ARLEN_WIDTH-1:0]     arfifo_arlen;
+    wire    [ARUSER_BITS-1:0]       arfifo_aruser;
+    wire                            arfifo_arvalid;
+    wire                            arfifo_arready;
+    
+    jelly_fifo_pack
+            #(
+                .ASYNC              (S_ARASYNC),
+                .DATA0_WIDTH        (ARADDR_WIDTH),
+                .DATA1_WIDTH        (S_ARLEN_WIDTH),
+                .DATA2_WIDTH        (ARUSER_WIDTH),
+                
+                .PTR_WIDTH          (ARFIFO_PTR_WIDTH),
+                .DOUT_REGS          (ARFIFO_DOUT_REGS),
+                .RAM_TYPE           (ARFIFO_RAM_TYPE),
+                .LOW_DEALY          (ARFIFO_LOW_DEALY),
+                .S_REGS             (ARFIFO_S_REGS),
+                .M_REGS             (ARFIFO_M_REGS)
+            )
+        i_fifo_pack_cmd_ar
+            (
+                .s_reset            (~s_arresetn),
+                .s_clk              (s_arclk),
+                .s_data0            (s_araddr),
+                .s_data1            (s_arlen),
+                .s_data2            (s_aruser),
+                .s_valid            (s_arvalid),
+                .s_ready            (s_arready),
+                
+                .m_reset            (~m_arresetn),
+                .m_clk              (m_arclk),
+                .m_data0            (arfifo_araddr),
+                .m_data1            (arfifo_arlen),
+                .m_data2            (arfifo_aruser),
+                .m_valid            (arfifo_arvalid),
+                .m_ready            (arfifo_arready)
+            );
+    
     // address convert
     wire    [ARADDR_WIDTH-1:0]      adrcnv_araddr;
     wire    [ALIGN_BITS-1:0]        adrcnv_align;
@@ -160,15 +211,15 @@ module jelly_axi4_read_width_convert
             )
         i_address_width_conver
             (
-                .reset              (~s_arresetn),
-                .clk                (s_arclk),
+                .reset              (~m_arresetn),
+                .clk                (m_arclk),
                 .cke                (1'b1),
                 
-                .s_addr             (s_araddr),
-                .s_len              (s_arlen),
-                .s_user             ({s_aruser, s_arlen}),
-                .s_valid            (s_arvalid),
-                .s_ready            (s_arready),
+                .s_addr             (arfifo_araddr),
+                .s_len              (arfifo_arlen),
+                .s_user             ({arfifo_aruser, arfifo_arlen}),
+                .s_valid            (arfifo_arvalid),
+                .s_ready            (arfifo_arready),
                 
                 .m_addr             (adrcnv_araddr),
                 .m_align            (adrcnv_align),
@@ -214,8 +265,8 @@ module jelly_axi4_read_width_convert
             )
         i_data_split_pack2_ar
             (
-                .reset              (~s_arresetn),
-                .clk                (s_arclk),
+                .reset              (~m_arresetn),
+                .clk                (m_arclk),
                 .cke                (1'b1),
                 
                 .s_data0_0          (adrcnv_araddr),
@@ -243,88 +294,18 @@ module jelly_axi4_read_width_convert
                 .m2_ready           (sr_arready)
             );
     
-    
-    
-    // ---------------------------------
-    //  address command
-    // ---------------------------------
-    
-    // master 側にクロック載せ替え
-    jelly_fifo_pack
-            #(
-                .ASYNC              (ARASYNC),
-                .DATA0_WIDTH        (ARADDR_WIDTH),
-                .DATA1_WIDTH        (M_ARLEN_WIDTH),
-                .DATA2_WIDTH        (ARUSER_WIDTH),
-                
-                .PTR_WIDTH          (ARFIFO_PTR_WIDTH),
-                .DOUT_REGS          (ARFIFO_DOUT_REGS),
-                .RAM_TYPE           (ARFIFO_RAM_TYPE),
-                .LOW_DEALY          (ARFIFO_LOW_DEALY),
-                .S_REGS             (ARFIFO_S_REGS),
-                .M_REGS             (ARFIFO_M_REGS)
-            )
-        i_fifo_pack_cmd_ar
-            (
-                .s_reset            (~s_arresetn),
-                .s_clk              (s_arclk),
-                .s_data0            (ar_araddr),
-                .s_data1            (ar_arlen),
-                .s_data2            (ar_aruser),
-                .s_valid            (ar_arvalid),
-                .s_ready            (ar_arready),
-                
-                .m_reset            (~m_arresetn),
-                .m_clk              (m_arclk),
-                .m_data0            (m_araddr),
-                .m_data1            (m_arlen),
-                .m_data2            (m_aruser),
-                .m_valid            (m_arvalid),
-                .m_ready            (m_arready)
-            );
+    // command
+    assign  m_araddr   = ar_araddr;
+    assign  m_arlen    = ar_arlen;
+    assign  m_aruser   = ar_aruser;
+    assign  m_arvalid  = ar_arvalid;
+    assign  ar_arready = m_arready;
     
     
     
     // ---------------------------------
     //  rdata
     // ---------------------------------
-    
-    // m_r 側のクロックに載せ替え
-    wire    [M_ARLEN_WIDTH-1:0]     mrfifo_arlen;
-    wire    [ALIGN_BITS-1:0]        mrfifo_align;
-    wire                            mrfifo_arvalid;
-    wire                            mrfifo_arready;
-    
-    jelly_fifo_pack
-            #(
-                .ASYNC              (ARASYNC | RASYNC),
-                .DATA0_WIDTH        (S_ARLEN_WIDTH),
-                .DATA1_WIDTH        (ALIGN_WIDTH),
-                
-                .PTR_WIDTH          (MRFIFO_PTR_WIDTH),
-                .DOUT_REGS          (MRFIFO_DOUT_REGS),
-                .RAM_TYPE           (MRFIFO_RAM_TYPE),
-                .LOW_DEALY          (MRFIFO_LOW_DEALY),
-                .S_REGS             (MRFIFO_S_REGS),
-                .M_REGS             (MRFIFO_M_REGS)
-            )
-        i_fifo_pack_dat
-            (
-                .s_reset            (~s_arresetn),
-                .s_clk              (s_arclk),
-                .s_data0            (mr_arlen),
-                .s_data1            (mr_align),
-                .s_valid            (mr_arvalid),
-                .s_ready            (mr_arready),
-                
-                .m_reset            (~m_rresetn),
-                .m_clk              (m_rclk),
-                .m_data0            (mrfifo_arlen),
-                .m_data1            (mrfifo_align),
-                .m_valid            (mrfifo_arvalid),
-                .m_ready            (mrfifo_arready)
-            );
-    
     
     // gate (アライン補正の為、上位のアクセス単位で last をつけ直してalignをつける)
     wire    [ALIGN_BITS-1:0]        gate_align;
@@ -336,7 +317,8 @@ module jelly_axi4_read_width_convert
     
     jelly_stream_gate
             #(
-                .BYPASS             (!ALLOW_UNALIGNED && BYPASS_GATE),
+                .BYPASS             (!(ALLOW_UNALIGNED && !HAS_M_RLAST)),   // 基本アライメントしなければバイパスする
+                .BYPASS_COMBINE     (ALLOW_UNALIGNED),                      // 下位からフラグが来る場合もalignはつける
                 .DETECTOR_ENABLE    (0),
                 .DATA_WIDTH         (M_RUSER_BITS + M_RDATA_WIDTH),
                 .LEN_WIDTH          (S_ARLEN_WIDTH),
@@ -344,7 +326,14 @@ module jelly_axi4_read_width_convert
                 .USER_WIDTH         (ALIGN_WIDTH),
                 .S_PERMIT_REGS      (0),
                 .S_REGS             (0),
-                .M_REGS             (1)
+                .M_REGS             (1),
+                .S_PERMIT_ASYNC     (M_RASYNC),
+                .FIFO_PTR_WIDTH     (MRFIFO_PTR_WIDTH),
+                .FIFO_DOUT_REGS     (MRFIFO_DOUT_REGS),
+                .FIFO_RAM_TYPE      (MRFIFO_RAM_TYPE),
+                .FIFO_LOW_DEALY     (MRFIFO_LOW_DEALY),
+                .FIFO_S_REGS        (MRFIFO_S_REGS),
+                .FIFO_M_REGS        (MRFIFO_M_REGS)
             )
         i_stream_gate_m
             (
@@ -357,14 +346,15 @@ module jelly_axi4_read_width_convert
                 .detect_last        (1'b0),
                 .padding_en         (1'b0),
                 .padding_data       (1'b0),
-                .padding_skip       (1'b0),
                 
+                .s_permit_reset     (~m_arresetn),
+                .s_permit_clk       (m_arclk),
                 .s_permit_first     (1'b1),
                 .s_permit_last      (1'b1),
-                .s_permit_len       (mrfifo_arlen),
-                .s_permit_user      (mrfifo_align),
-                .s_permit_valid     (mrfifo_arvalid),
-                .s_permit_ready     (mrfifo_arready),
+                .s_permit_len       (mr_arlen),
+                .s_permit_user      (mr_align),
+                .s_permit_valid     (mr_arvalid),
+                .s_permit_ready     (mr_arready),
                 
                 .s_first            (1'b0),
                 .s_last             (m_rlast),
@@ -384,19 +374,19 @@ module jelly_axi4_read_width_convert
     // read response channel
     jelly_signal_transfer
             #(
-                .ASYNC              (RBASYNC),
+                .ASYNC              (S_CASYNC),
                 .CAPACITY_WIDTH     (RFIFO_PTR_WIDTH)
             )
         i_signal_transfer
             (
-                .s_reset            (~m_rresetn),
-                .s_clk              (m_rclk),
+                .s_reset            (~m_arresetn),
+                .s_clk              (m_arclk),
                 .s_valid            (gate_rvalid & gate_rready & gate_rlast),
                 
-                .m_reset            (~s_rbresetn),
-                .m_clk              (s_rbclk),
-                .m_valid            (s_rbvalid),
-                .m_ready            (s_rbready)
+                .m_reset            (~s_cresetn),
+                .m_clk              (s_cclk),
+                .m_valid            (s_cvalid),
+                .m_ready            (s_cready)
             );
     
     
@@ -469,53 +459,25 @@ module jelly_axi4_read_width_convert
             );
     
     
-    
-    
-    // s_r 側のクロックに載せ替え
-    wire    [S_ARLEN_WIDTH-1:0]     srfifo_arlen;
-    wire    [ALIGN_BITS-1:0]        srfifo_align;
-    wire                            srfifo_arvalid;
-    wire                            srfifo_arready;
-    
-    jelly_fifo_pack
-            #(
-                .ASYNC              (ARASYNC | RASYNC),
-                .DATA0_WIDTH        (S_ARLEN_WIDTH),
-                
-                .PTR_WIDTH          (SRFIFO_PTR_WIDTH),
-                .DOUT_REGS          (SRFIFO_DOUT_REGS),
-                .RAM_TYPE           (SRFIFO_RAM_TYPE),
-                .LOW_DEALY          (SRFIFO_LOW_DEALY),
-                .S_REGS             (SRFIFO_S_REGS),
-                .M_REGS             (SRFIFO_M_REGS)
-            )
-        i_fifo_pack_sr
-            (
-                .s_reset            (~s_arresetn),
-                .s_clk              (s_arclk),
-                .s_data0            (sr_arlen),
-                .s_valid            (sr_arvalid),
-                .s_ready            (sr_arready),
-                
-                .m_reset            (~s_rresetn),
-                .m_clk              (s_rclk),
-                .m_data0            (srfifo_arlen),
-                .m_valid            (srfifo_arvalid),
-                .m_ready            (srfifo_arready)
-            );
-    
-    // gate (アライン補正の余分をカット)
+    // gate (アライン補正の余分をカット。上位側で整形する場合はBYPASS_GATEで強制バイパス可)
     jelly_stream_gate
             #(
-                .BYPASS             (!ALLOW_UNALIGNED && BYPASS_GATE),
-                .DETECTOR_ENABLE    (1),
+                .BYPASS             (!ALLOW_UNALIGNED || BYPASS_GATE),
+                .DETECTOR_ENABLE    (!BYPASS_GATE),
                 .DATA_WIDTH         (S_RUSER_BITS + S_RDATA_WIDTH),
                 .LEN_WIDTH          (S_ARLEN_WIDTH),
                 .LEN_OFFSET         (S_ARLEN_OFFSET),
                 .USER_WIDTH         (ALIGN_WIDTH),
                 .S_PERMIT_REGS      (0),
                 .S_REGS             (0),
-                .M_REGS             (1)
+                .M_REGS             (0),
+                .S_PERMIT_ASYNC     (S_RASYNC),
+                .FIFO_PTR_WIDTH     (SRFIFO_PTR_WIDTH),
+                .FIFO_DOUT_REGS     (SRFIFO_DOUT_REGS),
+                .FIFO_RAM_TYPE      (SRFIFO_RAM_TYPE),
+                .FIFO_LOW_DEALY     (SRFIFO_LOW_DEALY),
+                .FIFO_S_REGS        (SRFIFO_S_REGS),
+                .FIFO_M_REGS        (SRFIFO_M_REGS)
             )
         i_stream_gate_s
             (
@@ -528,14 +490,6 @@ module jelly_axi4_read_width_convert
                 .detect_last        (ALLOW_UNALIGNED),
                 .padding_en         (1'b0),
                 .padding_data       (1'b0),
-                .padding_skip       (1'b0),
-                
-                .s_permit_first     (1'b1),
-                .s_permit_last      (1'b1),
-                .s_permit_len       (srfifo_arlen),
-                .s_permit_user      (1'b0),
-                .s_permit_valid     (srfifo_arvalid),
-                .s_permit_ready     (srfifo_arready),
                 
                 .s_first            (conv_rfirst),
                 .s_last             (conv_rlast),
@@ -548,9 +502,17 @@ module jelly_axi4_read_width_convert
                 .m_data             ({s_ruser, s_rdata}),
                 .m_user             (),
                 .m_valid            (s_rvalid),
-                .m_ready            (s_rready)
+                .m_ready            (s_rready),
+                
+                .s_permit_reset     (~m_arresetn),
+                .s_permit_clk       (m_arclk),
+                .s_permit_first     (1'b1),
+                .s_permit_last      (1'b1),
+                .s_permit_len       (sr_arlen),
+                .s_permit_user      (1'b0),
+                .s_permit_valid     (sr_arvalid),
+                .s_permit_ready     (sr_arready)
             );
-    
     
 endmodule
 

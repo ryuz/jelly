@@ -348,6 +348,8 @@ module jelly_axi4_write_width_convert
                 .padding_en         (1'b0),
                 .padding_data       ({{S_WUSER_BITS{1'bx}}, {S_WSTRB_WIDTH{1'b0}}, {S_WDATA_WIDTH{1'b0}}}),
                 
+                .s_permit_reset     (~s_wresetn),
+                .s_permit_clk       (s_wclk),
                 .s_permit_first     (1'b1),
                 .s_permit_last      (1'b1),
                 .s_permit_len       (datfifo_awlen),

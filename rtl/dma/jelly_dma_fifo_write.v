@@ -536,6 +536,8 @@ module jelly_dma_fifo_write
                 .padding_data           (1'b0),
                 .padding_skip           (1'b0),
                 
+                .s_permit_reset         (~aresetn),
+                .s_permit_clk           (aclk),
                 .s_permit_first         (1'b1),
                 .s_permit_last          (1'b1),
                 .s_permit_len           (cmd1_awlen),

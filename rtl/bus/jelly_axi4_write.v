@@ -538,6 +538,8 @@ module jelly_axi4_write
                 .padding_en             (1'b0),
                 .padding_data           ({{AXI4_STRB_WIDTH{1'b0}}, {AXI4_DATA_WIDTH{1'bx}}}),
                 
+                .s_permit_reset         (~m_aresetn),
+                .s_permit_clk           (m_aclk),
                 .s_permit_first         (1'b1),
                 .s_permit_last          (1'b1),
                 .s_permit_len           (cmd1_awlen),

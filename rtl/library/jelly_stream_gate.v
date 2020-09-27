@@ -11,6 +11,7 @@
 `default_nettype none
 
 
+// 許可した分だけデータを通すゲート
 // first や last は 上位次元でbitが立っているとき下位次元は必ず立っているとみなす
 
 
@@ -18,19 +19,29 @@
 // 境界や個数でストリーム通過を制御
 module jelly_stream_gate
         #(
-            parameter N               = 1,
-            parameter BYPASS          = 0,
-            parameter DETECTOR_ENABLE = 0,
-            parameter AUTO_FIRST      = {N{1'b1}},
+            parameter N               = 1,          // 次元数(dimension)
+            parameter BYPASS          = 1,          // バイパス
+            parameter BYPASS_COMBINE  = 1,          // バイパス時にpermitもcombineするか
+            parameter DETECTOR_ENABLE = 0,          // フラグ検出器(読み飛ばし/パディング)を使うか
+            parameter AUTO_FIRST      = {N{1'b1}},  // lastの後を自動的にfirst扱いにする(first利用時にあえて無視したい場合に倒す)
             
             parameter DATA_WIDTH      = 32,
             parameter LEN_WIDTH       = 32,
             parameter LEN_OFFSET      = 1'b1,
             parameter USER_WIDTH      = 0,
             
-            parameter S_PERMIT_REGS   = 1,
+            parameter S_PERMIT_REGS   = 0,          // FIFO通すので基本不要
             parameter S_REGS          = 1,
             parameter M_REGS          = 1,
+            
+            parameter S_PERMIT_ASYNC  = 0,
+            parameter FIFO_PTR_WIDTH  = 4,
+            parameter FIFO_DOUT_REGS  = 0,
+            parameter FIFO_RAM_TYPE   = "distributed",
+            parameter FIFO_LOW_DEALY  = 1,
+            parameter FIFO_S_REGS     = 0,
+            parameter FIFO_M_REGS     = 0,
+            
             
             // local
             parameter USER_BITS       = USER_WIDTH > 0 ? USER_WIDTH : 1
@@ -46,13 +57,6 @@ module jelly_stream_gate
             input   wire                        padding_en,
             input   wire    [DATA_WIDTH-1:0]    padding_data,
             
-            input   wire    [N-1:0]             s_permit_first,
-            input   wire    [N-1:0]             s_permit_last,
-            input   wire    [LEN_WIDTH-1:0]     s_permit_len,
-            input   wire    [USER_BITS-1:0]     s_permit_user,
-            input   wire                        s_permit_valid,
-            output  wire                        s_permit_ready,
-            
             input   wire    [N-1:0]             s_first,
             input   wire    [N-1:0]             s_last,
             input   wire    [DATA_WIDTH-1:0]    s_data,
@@ -64,23 +68,90 @@ module jelly_stream_gate
             output  wire    [DATA_WIDTH-1:0]    m_data,
             output  wire    [USER_BITS-1:0]     m_user,
             output  wire                        m_valid,
-            input   wire                        m_ready
+            input   wire                        m_ready,
+            
+            
+            input   wire                        s_permit_reset,
+            input   wire                        s_permit_clk,
+            input   wire    [N-1:0]             s_permit_first,
+            input   wire    [N-1:0]             s_permit_last,
+            input   wire    [LEN_WIDTH-1:0]     s_permit_len,
+            input   wire    [USER_BITS-1:0]     s_permit_user,
+            input   wire                        s_permit_valid,
+            output  wire                        s_permit_ready
         );
+    
+    
+    // clock convert
+    wire    [N-1:0]             fifo_s_permit_first;
+    wire    [N-1:0]             fifo_s_permit_last;
+    wire    [LEN_WIDTH-1:0]     fifo_s_permit_len;
+    wire    [USER_BITS-1:0]     fifo_s_permit_user;
+    wire                        fifo_s_permit_valid;
+    wire                        fifo_s_permit_ready;
+    
+    generate
+    if ( !BYPASS || (BYPASS_COMBINE && S_PERMIT_ASYNC) ) begin
+        jelly_fifo_pack
+                #(
+                    .ASYNC              (S_PERMIT_ASYNC),
+                    .DATA0_WIDTH        (N),
+                    .DATA1_WIDTH        (N),
+                    .DATA2_WIDTH        (LEN_WIDTH),
+                    .DATA3_WIDTH        (USER_WIDTH),
+                    
+                    .PTR_WIDTH          (FIFO_PTR_WIDTH),
+                    .DOUT_REGS          (FIFO_DOUT_REGS),
+                    .RAM_TYPE           (FIFO_RAM_TYPE),
+                    .LOW_DEALY          (FIFO_LOW_DEALY),
+                    .S_REGS             (FIFO_S_REGS),
+                    .M_REGS             (FIFO_M_REGS)
+                )
+            i_fifo_pack_sr
+                (
+                    .s_reset            (s_permit_reset),
+                    .s_clk              (s_permit_clk),
+                    .s_data0            (s_permit_first),
+                    .s_data1            (s_permit_last),
+                    .s_data2            (s_permit_len),
+                    .s_data3            (s_permit_user),
+                    .s_valid            (s_permit_valid),
+                    .s_ready            (s_permit_ready),
+                    
+                    .m_reset            (reset),
+                    .m_clk              (clk),
+                    .m_data0            (fifo_s_permit_first),
+                    .m_data1            (fifo_s_permit_last),
+                    .m_data2            (fifo_s_permit_len),
+                    .m_data3            (fifo_s_permit_user),
+                    .m_valid            (fifo_s_permit_valid),
+                    .m_ready            (fifo_s_permit_ready & cke)
+                );
+    end
+    else begin
+        assign fifo_s_permit_first = s_permit_first;
+        assign fifo_s_permit_last  = s_permit_last;
+        assign fifo_s_permit_len   = s_permit_len;
+        assign fifo_s_permit_user  = s_permit_user;
+        assign fifo_s_permit_valid = s_permit_valid;
+        assign s_permit_ready      = fifo_s_permit_ready;
+    end
+    endgenerate
     
     
     generate
     if ( BYPASS ) begin : blk_bypass
-        assign m_first        = s_first;
-        assign m_last         = s_last;
-        assign m_data         = s_data;
-        assign m_user         = s_permit_user;
-        assign m_valid        = s_valid & s_permit_valid;
-        assign s_ready        = m_ready & s_permit_valid;
-        assign s_permit_ready = m_ready & s_valid & s_last;
+        assign m_first             = s_first;
+        assign m_last              = s_last;
+        assign m_data              = s_data;
+        assign m_user              = BYPASS_COMBINE ? (fifo_s_permit_user)              : {USER_BITS{1'bx}};
+        assign m_valid             = BYPASS_COMBINE ? (s_valid & fifo_s_permit_valid)   : s_valid;
+        assign s_ready             = BYPASS_COMBINE ? (m_ready & fifo_s_permit_valid)   : m_ready;
+        assign fifo_s_permit_ready = BYPASS_COMBINE ? (m_ready & s_valid & s_last)      : 1'b1;
     end
     else begin : blk_gate
         // parameter
-        wire                        param_skip         = DETECTOR_ENABLE ? skip         : 1'b0;
+        wire                        param_skip         = skip;
         wire    [N-1:0]             param_detect_first = DETECTOR_ENABLE ? detect_first : {N{1'b0}};
         wire    [N-1:0]             param_detect_last  = DETECTOR_ENABLE ? detect_last  : {N{1'b0}};
         wire                        param_padding_en   = DETECTOR_ENABLE ? padding_en   : 1'b0;
@@ -121,12 +192,12 @@ module jelly_stream_gate
                     .clk            (clk),
                     .cke            (cke),
                     
-                    .s_data0        (s_permit_first),
-                    .s_data1        (s_permit_last),
-                    .s_data2        (s_permit_len),
-                    .s_data3        (s_permit_user),
-                    .s_valid        (s_permit_valid),
-                    .s_ready        (s_permit_ready),
+                    .s_data0        (fifo_s_permit_first),
+                    .s_data1        (fifo_s_permit_last),
+                    .s_data2        (fifo_s_permit_len),
+                    .s_data3        (fifo_s_permit_user),
+                    .s_valid        (fifo_s_permit_valid),
+                    .s_ready        (fifo_s_permit_ready),
                     
                     .m_data0        (ff_s_permit_first),
                     .m_data1        (ff_s_permit_last),

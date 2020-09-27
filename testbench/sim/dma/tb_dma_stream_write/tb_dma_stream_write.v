@@ -555,7 +555,7 @@ module tb_dma_stream_write();
         
         wb_write(ADR_CTL_CONTROL,     32'h0000_0000, 8'hff);
         
-        #20000;
+        #40000;
             $finish();
     end
     

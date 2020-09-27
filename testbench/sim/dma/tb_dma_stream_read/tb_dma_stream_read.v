@@ -60,10 +60,8 @@ module tb_dma_stream_read();
     parameter AXI4_ALIGN           = 12;  // 2^12 = 4k が境界
     parameter ALLOW_UNALIGNED      = 1;
     
-    parameter HAS_S_RFIRST         = 0;
-    parameter HAS_S_RLAST          = 0;
-    parameter HAS_M_RFIRST         = 0;
-    parameter HAS_M_RLAST          = 1;
+    parameter HAS_RFIRST           = 0;
+    parameter HAS_RLAST            = 0;
     
     parameter AXI4_ID_WIDTH        = 6;
     parameter AXI4_ADDR_WIDTH      = 32;
@@ -143,14 +141,14 @@ module tb_dma_stream_read();
     parameter RACK_S_REGS          = 0;
     parameter RACK_M_REGS          = 1;
     
-    parameter RBACKFIFO_PTR_WIDTH  = 4;
-    parameter RBACKFIFO_DOUT_REGS  = 0;
-    parameter RBACKFIFO_RAM_TYPE   = "distributed";
-    parameter RBACKFIFO_LOW_DEALY  = 1;
-    parameter RBACKFIFO_S_REGS     = 0;
-    parameter RBACKFIFO_M_REGS     = 0;
-    parameter RBACK_S_REGS         = 0;
-    parameter RBACK_M_REGS         = 1;
+    parameter CACKFIFO_PTR_WIDTH   = 4;
+    parameter CACKFIFO_DOUT_REGS   = 0;
+    parameter CACKFIFO_RAM_TYPE    = "distributed";
+    parameter CACKFIFO_LOW_DEALY   = 1;
+    parameter CACKFIFO_S_REGS      = 0;
+    parameter CACKFIFO_M_REGS      = 0;
+    parameter CACK_S_REGS          = 0;
+    parameter CACK_M_REGS          = 1;
     
     parameter WB_ADR_WIDTH         = 8;
     parameter WB_DAT_WIDTH         = 64;
@@ -235,10 +233,8 @@ module tb_dma_stream_read();
                 .BYPASS_ALIGN           (BYPASS_ALIGN),
                 .AXI4_ALIGN             (AXI4_ALIGN),
                 .ALLOW_UNALIGNED        (ALLOW_UNALIGNED),
-                .HAS_S_RFIRST           (HAS_S_RFIRST),
-                .HAS_S_RLAST            (HAS_S_RLAST),
-                .HAS_M_RFIRST           (HAS_M_RFIRST),
-                .HAS_M_RLAST            (HAS_M_RLAST),
+                .HAS_RFIRST             (HAS_RFIRST),
+                .HAS_RLAST              (HAS_RLAST),
                 .AXI4_ID_WIDTH          (AXI4_ID_WIDTH),
                 .AXI4_ADDR_WIDTH        (AXI4_ADDR_WIDTH),
                 .AXI4_DATA_SIZE         (AXI4_DATA_SIZE),
@@ -308,14 +304,14 @@ module tb_dma_stream_read();
                 .RACKFIFO_M_REGS        (RACKFIFO_M_REGS),
                 .RACK_S_REGS            (RACK_S_REGS),
                 .RACK_M_REGS            (RACK_M_REGS),
-                .RBACKFIFO_PTR_WIDTH    (RBACKFIFO_PTR_WIDTH),
-                .RBACKFIFO_DOUT_REGS    (RBACKFIFO_DOUT_REGS),
-                .RBACKFIFO_RAM_TYPE     (RBACKFIFO_RAM_TYPE),
-                .RBACKFIFO_LOW_DEALY    (RBACKFIFO_LOW_DEALY),
-                .RBACKFIFO_S_REGS       (RBACKFIFO_S_REGS),
-                .RBACKFIFO_M_REGS       (RBACKFIFO_M_REGS),
-                .RBACK_S_REGS           (RBACK_S_REGS),
-                .RBACK_M_REGS           (RBACK_M_REGS),
+                .CACKFIFO_PTR_WIDTH     (CACKFIFO_PTR_WIDTH),
+                .CACKFIFO_DOUT_REGS     (CACKFIFO_DOUT_REGS),
+                .CACKFIFO_RAM_TYPE      (CACKFIFO_RAM_TYPE),
+                .CACKFIFO_LOW_DEALY     (CACKFIFO_LOW_DEALY),
+                .CACKFIFO_S_REGS        (CACKFIFO_S_REGS),
+                .CACKFIFO_M_REGS        (CACKFIFO_M_REGS),
+                .CACK_S_REGS            (CACK_S_REGS),
+                .CACK_M_REGS            (CACK_M_REGS),
                 .WB_ADR_WIDTH           (WB_ADR_WIDTH),
                 .WB_DAT_WIDTH           (WB_DAT_WIDTH),
                 .WB_SEL_WIDTH           (WB_SEL_WIDTH),
