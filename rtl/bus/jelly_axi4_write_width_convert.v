@@ -236,8 +236,7 @@ module jelly_axi4_write_width_convert
                 
                 .DATA1_0_WIDTH      (S_AWLEN_WIDTH),
                 .DATA1_1_WIDTH      (ALIGN_WIDTH),
-                .S_REGS             (0),
-                .M_REGS             (0)
+                .S_REGS             (0)
             )
         i_data_split_pack2_aw
             (
@@ -332,7 +331,6 @@ module jelly_axi4_write_width_convert
                 .LEN_WIDTH          (S_AWLEN_WIDTH),
                 .LEN_OFFSET         (S_AWLEN_OFFSET),
                 .USER_WIDTH         (ALIGN_WIDTH),
-                .S_PERMIT_REGS      (0),
                 .S_REGS             (0),
                 .M_REGS             (1)
             )

@@ -113,8 +113,7 @@ module jelly_data_split_pack2
             parameter DATA9_7_WIDTH = 0,
             parameter DATA9_8_WIDTH = 0,
             parameter DATA9_9_WIDTH = 0,
-            parameter S_REGS        = 0,
-            parameter M_REGS        = 0,
+            parameter S_REGS        = 1,
             
             // local
             parameter DATA0_0_BITS  = DATA0_0_WIDTH > 0 ? DATA0_0_WIDTH : 1,
@@ -1140,8 +1139,7 @@ module jelly_data_split_pack2
                 .DATA7_WIDTH    (DATA7_WIDTH),
                 .DATA8_WIDTH    (DATA8_WIDTH),
                 .DATA9_WIDTH    (DATA9_WIDTH),
-                .S_REGS         (S_REGS),
-                .M_REGS         (M_REGS)
+                .S_REGS         (S_REGS)
             )
          i_data_split_pack
             (

@@ -464,13 +464,11 @@ module jelly_dma_fifo_write
                 .DATA0_WIDTH            (AXI4_LEN_WIDTH + AXI4_ADDR_WIDTH),
                 .DATA1_WIDTH            (AXI4_LEN_WIDTH),
                 .DATA2_WIDTH            (AXI4_LEN_WIDTH),
-                
-                .S_REGS                 (0),
-                .M_REGS                 (0)
+                .S_REGS                 (0)
             )
         i_data_split_pack
             (
-                .reset                  (aresetn),
+                .reset                  (~aresetn),
                 .clk                    (aclk),
                 .cke                    (1'b1),
                 
@@ -519,7 +517,6 @@ module jelly_dma_fifo_write
                 .LEN_WIDTH              (AXI4_LEN_WIDTH),
                 .LEN_OFFSET             (1'b1),
                 .USER_WIDTH             (0),
-                .S_PERMIT_REGS          (0),
                 .S_REGS                 (0),
                 .M_REGS                 (1)
             )
@@ -534,16 +531,6 @@ module jelly_dma_fifo_write
                 .detect_last            (1'b0),
                 .padding_en             (1'b0),
                 .padding_data           (1'b0),
-                .padding_skip           (1'b0),
-                
-                .s_permit_reset         (~aresetn),
-                .s_permit_clk           (aclk),
-                .s_permit_first         (1'b1),
-                .s_permit_last          (1'b1),
-                .s_permit_len           (cmd1_awlen),
-                .s_permit_user          (1'b0),
-                .s_permit_valid         (cmd1_awvalid),
-                .s_permit_ready         (cmd1_awready),
                 
                 .s_first                (1'b0),
                 .s_last                 (1'b0),
@@ -556,7 +543,16 @@ module jelly_dma_fifo_write
                 .m_data                 (m_axi4_wdata),
                 .m_user                 (),
                 .m_valid                (m_axi4_wvalid),
-                .m_ready                (m_axi4_wready)
+                .m_ready                (m_axi4_wready),
+                
+                .s_permit_reset         (~aresetn),
+                .s_permit_clk           (aclk),
+                .s_permit_first         (1'b1),
+                .s_permit_last          (1'b1),
+                .s_permit_len           (cmd1_awlen),
+                .s_permit_user          (1'b0),
+                .s_permit_valid         (cmd1_awvalid),
+                .s_permit_ready         (cmd1_awready)
             );
     
     

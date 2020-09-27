@@ -502,7 +502,6 @@ module jelly_axi4_write_nd
                 .DATA_WIDTH             (S_WSTRB_WIDTH + S_WDATA_WIDTH),
                 .LEN_WIDTH              (S_AWLEN_WIDTH),
                 .LEN_OFFSET             (S_AWLEN_OFFSET),
-                .S_PERMIT_REGS          (0),
                 .S_REGS                 (WDAT_S_REGS),
                 .M_REGS                 (WDAT_M_REGS)
             )

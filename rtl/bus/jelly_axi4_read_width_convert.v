@@ -260,8 +260,7 @@ module jelly_axi4_read_width_convert
                 
                 .DATA2_0_WIDTH      (S_ARLEN_WIDTH),
                 
-                .S_REGS             (0),
-                .M_REGS             (0)
+                .S_REGS             (0)
             )
         i_data_split_pack2_ar
             (

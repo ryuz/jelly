@@ -20,7 +20,7 @@
 module jelly_stream_gate
         #(
             parameter N               = 1,          // 次元数(dimension)
-            parameter BYPASS          = 1,          // バイパス
+            parameter BYPASS          = 0,          // バイパス
             parameter BYPASS_COMBINE  = 1,          // バイパス時にpermitもcombineするか
             parameter DETECTOR_ENABLE = 0,          // フラグ検出器(読み飛ばし/パディング)を使うか
             parameter AUTO_FIRST      = {N{1'b1}},  // lastの後を自動的にfirst扱いにする(first利用時にあえて無視したい場合に倒す)
@@ -33,7 +33,7 @@ module jelly_stream_gate
             parameter M_REGS          = 1,
             
             parameter ASYNC           = 0,
-            parameter FIFO_PTR_WIDTH  = 4,
+            parameter FIFO_PTR_WIDTH  = ASYNC ? 4 : 0,
             parameter FIFO_DOUT_REGS  = 0,
             parameter FIFO_RAM_TYPE   = "distributed",
             parameter FIFO_LOW_DEALY  = 1,

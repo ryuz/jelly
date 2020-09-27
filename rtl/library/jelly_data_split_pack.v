@@ -26,7 +26,6 @@ module jelly_data_split_pack
             parameter DATA8_WIDTH = 0,
             parameter DATA9_WIDTH = 0,
             parameter S_REGS      = 0,
-            parameter M_REGS      = 0,
             
             // local
             parameter DATA0_BITS  = DATA0_WIDTH > 0 ? DATA0_WIDTH : 1,
@@ -98,6 +97,10 @@ module jelly_data_split_pack
             output  wire                        m9_valid,
             input   wire                        m9_ready
         );
+    
+    
+    // 原理的に M側 は必須
+    localparam M_REGS      = 1;
     
     
     // -----------------------------------------

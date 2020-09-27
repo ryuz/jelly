@@ -462,8 +462,7 @@ module jelly_axi4_write
                 .DATA0_2_WIDTH          (AXI4_LEN_WIDTH),
                 .DATA1_0_WIDTH          (AXI4_LEN_WIDTH),
                 .DATA2_0_WIDTH          (1),
-                .S_REGS                 (0),
-                .M_REGS                 (0)
+                .S_REGS                 (0)
             )
         i_data_spliter
             (
@@ -522,7 +521,6 @@ module jelly_axi4_write
                 .LEN_WIDTH              (AXI4_LEN_WIDTH),
                 .LEN_OFFSET             (1'b1),
                 .USER_WIDTH             (0),
-                .S_PERMIT_REGS          (1),
                 .S_REGS                 (1),
                 .M_REGS                 (1)
             )
