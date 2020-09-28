@@ -26,6 +26,7 @@ module jelly_data_split_pack
             parameter DATA8_WIDTH = 0,
             parameter DATA9_WIDTH = 0,
             parameter S_REGS      = 0,
+            parameter M_REGS      = 0,
             
             // local
             parameter DATA0_BITS  = DATA0_WIDTH > 0 ? DATA0_WIDTH : 1,
@@ -97,10 +98,6 @@ module jelly_data_split_pack
             output  wire                        m9_valid,
             input   wire                        m9_ready
         );
-    
-    
-    // M側 は不要
-    localparam M_REGS = 0;
     
     
     // -----------------------------------------
@@ -430,22 +427,22 @@ module jelly_data_split_pack
     //  split
     // -----------------------------------------
     
-    reg     [NUM-1:0]               reg_valid;
+    reg     [NUM-1:0]           reg_complete;
     always @(posedge clk) begin
         if ( reset ) begin
-            reg_valid <= {NUM{1'b0}};
+            reg_complete <= {NUM{1'b0}};
         end
         else if ( cke ) begin
             if ( ff_s_valid & ff_s_ready ) begin
-                reg_valid <= {NUM{1'b1}};
+                reg_complete <= {NUM{1'b0}};
             end
-            else begin
-                reg_valid <= (reg_valid & ~ff_m_ready);
+            else if ( |ff_m_valid ) begin
+                reg_complete <= (reg_complete | ff_m_ready);
             end
         end
     end
     
-    assign ff_s_ready = (reg_valid & ~ff_m_ready) == 0;
+    assign ff_s_ready = |ff_m_valid && ((ff_m_ready | reg_complete)) == {NUM{1'b1}};
     
     assign ff_m0_data = ff_s_data0;
     assign ff_m1_data = ff_s_data1;
@@ -457,32 +454,8 @@ module jelly_data_split_pack
     assign ff_m7_data = ff_s_data7;
     assign ff_m8_data = ff_s_data8;
     assign ff_m9_data = ff_s_data9;
-    assign ff_m_valid = reg_valid;
+    assign ff_m_valid = {NUM{ff_s_valid}} & ~reg_complete;
     
-    
-    /*
-    
-    genvar      i;
-    generate
-    for ( i = 0; i < NUM; i = i+1 ) begin : loop_m_valid
-        assign ff_m_valid[i] = (ff_s_valid && ff_s_ready);
-    end
-    endgenerate
-    
-    assign ff_s_ready = &ff_m_ready;
-    
-    assign ff_m0_data = ff_s_data0;
-    assign ff_m1_data = ff_s_data1;
-    assign ff_m2_data = ff_s_data2;
-    assign ff_m3_data = ff_s_data3;
-    assign ff_m4_data = ff_s_data4;
-    assign ff_m5_data = ff_s_data5;
-    assign ff_m6_data = ff_s_data6;
-    assign ff_m7_data = ff_s_data7;
-    assign ff_m8_data = ff_s_data8;
-    assign ff_m9_data = ff_s_data9;
-    
-    */
     
 endmodule
 

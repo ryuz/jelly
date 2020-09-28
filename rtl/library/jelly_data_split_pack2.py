@@ -37,7 +37,7 @@ def main():
             for j in range(num2):
                 f.write('            parameter DATA%d_%d_WIDTH = 0,\n' % (i ,j))
         f.write('            parameter S_REGS        = 1,\n')
-#       f.write('            parameter M_REGS        = 1,\n')
+        f.write('            parameter M_REGS        = 1,\n')
         f.write('            \n')
         f.write('            // local\n')
         for i in range(num1):
@@ -129,8 +129,8 @@ def main():
         f.write('                .NUM            (NUM),\n')
         for i in range(num1):
             f.write('                .DATA%d_WIDTH    (DATA%d_WIDTH),\n' % (i, i))
-        f.write('                .S_REGS         (S_REGS)\n'),
-#       f.write('                .M_REGS         (M_REGS)\n'),
+        f.write('                .S_REGS         (S_REGS),\n'),
+        f.write('                .M_REGS         (M_REGS)\n'),
         f.write('            )\n'),
         f.write('         i_data_split_pack\n'),
         f.write('            (\n'),
