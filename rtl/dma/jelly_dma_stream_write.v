@@ -14,24 +14,25 @@
 
 module jelly_dma_stream_write
         #(
+            // 基本設定
             parameter N                    = 2,
-            
-            parameter CORE_ID              = 32'habcd_0000,
-            parameter CORE_VERSION         = 32'h0000_0000,
-            
-            parameter WB_ASYNC             = 1,
-            parameter WASYNC               = 1,
-            
             parameter BYTE_WIDTH           = 8,
-            parameter BYPASS_GATE          = 0,
-            parameter BYPASS_ALIGN         = 0,
-            parameter WDETECTOR_ENABLE     = 1,
-            parameter ALLOW_UNALIGNED      = 0,
             
+            // WISHBONE
+            parameter WB_ASYNC             = 1,
+            parameter WB_ADR_WIDTH         = 8,
+            parameter WB_DAT_WIDTH         = 32,
+            parameter WB_SEL_WIDTH         = (WB_DAT_WIDTH / 8),
+            
+            // write port
+            parameter WASYNC               = 1,
+            parameter WDATA_WIDTH          = 32,
+            parameter WSTRB_WIDTH          = WDATA_WIDTH / BYTE_WIDTH,
             parameter HAS_WSTRB            = 0,
             parameter HAS_WFIRST           = 0,
             parameter HAS_WLAST            = 0,
             
+            // AXI4
             parameter AXI4_ID_WIDTH        = 6,
             parameter AXI4_ADDR_WIDTH      = 32,
             parameter AXI4_DATA_SIZE       = 2,    // 0:8bit, 1:16bit, 2:32bit ...
@@ -49,22 +50,19 @@ module jelly_dma_stream_write
             parameter AXI4_AWREGION        = 4'b0000,
             parameter AXI4_ALIGN           = 12,  // 2^12 = 4k が境界
             
-            parameter S_WDATA_WIDTH        = 32,
-            parameter S_WSTRB_WIDTH        = S_WDATA_WIDTH / BYTE_WIDTH,
-            
-            parameter CAPACITY_WIDTH       = 12,
-            
+            // レジスタ構成など
+            parameter INDEX_WIDTH          = 1,
             parameter AWLEN_OFFSET         = 1'b1,
-            parameter AWLEN0_WIDTH         = CAPACITY_WIDTH,
-            parameter AWLEN1_WIDTH         = CAPACITY_WIDTH,
-            parameter AWLEN2_WIDTH         = CAPACITY_WIDTH,
-            parameter AWLEN3_WIDTH         = CAPACITY_WIDTH,
-            parameter AWLEN4_WIDTH         = CAPACITY_WIDTH,
-            parameter AWLEN5_WIDTH         = CAPACITY_WIDTH,
-            parameter AWLEN6_WIDTH         = CAPACITY_WIDTH,
-            parameter AWLEN7_WIDTH         = CAPACITY_WIDTH,
-            parameter AWLEN8_WIDTH         = CAPACITY_WIDTH,
-            parameter AWLEN9_WIDTH         = CAPACITY_WIDTH,
+            parameter AWLEN0_WIDTH         = 32,
+            parameter AWLEN1_WIDTH         = 32,
+            parameter AWLEN2_WIDTH         = 32,
+            parameter AWLEN3_WIDTH         = 32,
+            parameter AWLEN4_WIDTH         = 32,
+            parameter AWLEN5_WIDTH         = 32,
+            parameter AWLEN6_WIDTH         = 32,
+            parameter AWLEN7_WIDTH         = 32,
+            parameter AWLEN8_WIDTH         = 32,
+            parameter AWLEN9_WIDTH         = 32,
             parameter AWSTEP1_WIDTH        = AXI4_ADDR_WIDTH,
             parameter AWSTEP2_WIDTH        = AXI4_ADDR_WIDTH,
             parameter AWSTEP3_WIDTH        = AXI4_ADDR_WIDTH,
@@ -75,66 +73,7 @@ module jelly_dma_stream_write
             parameter AWSTEP8_WIDTH        = AXI4_ADDR_WIDTH,
             parameter AWSTEP9_WIDTH        = AXI4_ADDR_WIDTH,
             
-            parameter WB_ADR_WIDTH         = 8,
-            parameter WB_DAT_WIDTH         = 32,
-            parameter WB_SEL_WIDTH         = (WB_DAT_WIDTH / 8),
-            parameter INDEX_WIDTH          = 1,
-            
-            parameter CONVERT_S_REGS       = 0,
-            
-            parameter WFIFO_PTR_WIDTH      = 9,
-            parameter WFIFO_RAM_TYPE       = "block",
-            parameter WFIFO_LOW_DEALY      = 0,
-            parameter WFIFO_DOUT_REGS      = 1,
-            parameter WFIFO_S_REGS         = 0,
-            parameter WFIFO_M_REGS         = 1,
-            
-            parameter AWFIFO_PTR_WIDTH     = 4,
-            parameter AWFIFO_RAM_TYPE      = "distributed",
-            parameter AWFIFO_LOW_DEALY     = 1,
-            parameter AWFIFO_DOUT_REGS     = 0,
-            parameter AWFIFO_S_REGS        = 0,
-            parameter AWFIFO_M_REGS        = 0,
-            
-            parameter BFIFO_PTR_WIDTH      = 4,
-            parameter BFIFO_RAM_TYPE       = "distributed",
-            parameter BFIFO_LOW_DEALY      = 0,
-            parameter BFIFO_DOUT_REGS      = 0,
-            parameter BFIFO_S_REGS         = 0,
-            parameter BFIFO_M_REGS         = 0,
-            
-            parameter SWFIFOPTR_WIDTH      = 4,
-            parameter SWFIFORAM_TYPE       = "distributed",
-            parameter SWFIFOLOW_DEALY      = 1,
-            parameter SWFIFODOUT_REGS      = 0,
-            parameter SWFIFOS_REGS         = 0,
-            parameter SWFIFOM_REGS         = 0,
-            
-            parameter MBFIFO_PTR_WIDTH     = 4,
-            parameter MBFIFO_RAM_TYPE      = "distributed",
-            parameter MBFIFO_LOW_DEALY     = 1,
-            parameter MBFIFO_DOUT_REGS     = 0,
-            parameter MBFIFO_S_REGS        = 0,
-            parameter MBFIFO_M_REGS        = 0,
-            
-            parameter WDATFIFO_PTR_WIDTH   = 4,
-            parameter WDATFIFO_DOUT_REGS   = 0,
-            parameter WDATFIFO_RAM_TYPE    = "distributed",
-            parameter WDATFIFO_LOW_DEALY   = 1,
-            parameter WDATFIFO_S_REGS      = 0,
-            parameter WDATFIFO_M_REGS      = 0,
-            parameter WDAT_S_REGS          = 0,
-            parameter WDAT_M_REGS          = 1,
-            
-            parameter BACKFIFO_PTR_WIDTH   = 4,
-            parameter BACKFIFO_DOUT_REGS   = 0,
-            parameter BACKFIFO_RAM_TYPE    = "distributed",
-            parameter BACKFIFO_LOW_DEALY   = 1,
-            parameter BACKFIFO_S_REGS      = 0,
-            parameter BACKFIFO_M_REGS      = 0,
-            parameter BACK_S_REGS          = 0,
-            parameter BACK_M_REGS          = 1,
-            
+            // レジスタ初期値
             parameter INIT_CTL_CONTROL     = 4'b0000,
             parameter INIT_IRQ_ENABLE      = 1'b0,
             parameter INIT_PARAM_AWADDR    = 0,
@@ -163,8 +102,64 @@ module jelly_dma_stream_write
             parameter INIT_WDETECT_FIRST   = {N{1'b0}},
             parameter INIT_WDETECT_LAST    = {N{1'b0}},
             parameter INIT_WPADDING_EN     = 1'b1,
-            parameter INIT_WPADDING_DATA   = {S_WDATA_WIDTH{1'b0}},
-            parameter INIT_WPADDING_STRB   = {S_WSTRB_WIDTH{1'b0}}
+            parameter INIT_WPADDING_DATA   = {WDATA_WIDTH{1'b0}},
+            parameter INIT_WPADDING_STRB   = {WSTRB_WIDTH{1'b0}},
+            
+            // 構成情報
+            parameter CORE_ID              = 32'habcd_0000,
+            parameter CORE_VERSION         = 32'h0000_0000,
+            parameter BYPASS_GATE          = 0,
+            parameter BYPASS_ALIGN         = 0,
+            parameter WDETECTOR_ENABLE     = 1,
+            parameter ALLOW_UNALIGNED      = 1,
+            parameter CAPACITY_WIDTH       = 32,
+            parameter WFIFO_PTR_WIDTH      = 9,
+            parameter WFIFO_RAM_TYPE       = "block",
+            parameter WFIFO_LOW_DEALY      = 0,
+            parameter WFIFO_DOUT_REGS      = 1,
+            parameter WFIFO_S_REGS         = 0,
+            parameter WFIFO_M_REGS         = 1,
+            parameter AWFIFO_PTR_WIDTH     = 4,
+            parameter AWFIFO_RAM_TYPE      = "distributed",
+            parameter AWFIFO_LOW_DEALY     = 1,
+            parameter AWFIFO_DOUT_REGS     = 0,
+            parameter AWFIFO_S_REGS        = 0,
+            parameter AWFIFO_M_REGS        = 0,
+            parameter BFIFO_PTR_WIDTH      = 4,
+            parameter BFIFO_RAM_TYPE       = "distributed",
+            parameter BFIFO_LOW_DEALY      = 0,
+            parameter BFIFO_DOUT_REGS      = 0,
+            parameter BFIFO_S_REGS         = 0,
+            parameter BFIFO_M_REGS         = 0,
+            parameter SWFIFOPTR_WIDTH      = 4,
+            parameter SWFIFORAM_TYPE       = "distributed",
+            parameter SWFIFOLOW_DEALY      = 1,
+            parameter SWFIFODOUT_REGS      = 0,
+            parameter SWFIFOS_REGS         = 0,
+            parameter SWFIFOM_REGS         = 0,
+            parameter MBFIFO_PTR_WIDTH     = 4,
+            parameter MBFIFO_RAM_TYPE      = "distributed",
+            parameter MBFIFO_LOW_DEALY     = 1,
+            parameter MBFIFO_DOUT_REGS     = 0,
+            parameter MBFIFO_S_REGS        = 0,
+            parameter MBFIFO_M_REGS        = 0,
+            parameter WDATFIFO_PTR_WIDTH   = 4,
+            parameter WDATFIFO_DOUT_REGS   = 0,
+            parameter WDATFIFO_RAM_TYPE    = "distributed",
+            parameter WDATFIFO_LOW_DEALY   = 1,
+            parameter WDATFIFO_S_REGS      = 0,
+            parameter WDATFIFO_M_REGS      = 0,
+            parameter WDAT_S_REGS          = 0,
+            parameter WDAT_M_REGS          = 1,
+            parameter BACKFIFO_PTR_WIDTH   = 4,
+            parameter BACKFIFO_DOUT_REGS   = 0,
+            parameter BACKFIFO_RAM_TYPE    = "distributed",
+            parameter BACKFIFO_LOW_DEALY   = 1,
+            parameter BACKFIFO_S_REGS      = 0,
+            parameter BACKFIFO_M_REGS      = 0,
+            parameter BACK_S_REGS          = 0,
+            parameter BACK_M_REGS          = 1,
+            parameter CONVERT_S_REGS       = 0
         )
         (
             input   wire                            endian,
@@ -188,8 +183,8 @@ module jelly_dma_stream_write
             // write stream
             input   wire                            s_wresetn,
             input   wire                            s_wclk,
-            input   wire    [S_WDATA_WIDTH-1:0]     s_wdata,
-            input   wire    [S_WSTRB_WIDTH-1:0]     s_wstrb,
+            input   wire    [WDATA_WIDTH-1:0]       s_wdata,
+            input   wire    [WSTRB_WIDTH-1:0]       s_wstrb,
             input   wire    [N-1:0]                 s_wfirst,
             input   wire    [N-1:0]                 s_wlast,
             input   wire                            s_wvalid,
@@ -325,8 +320,8 @@ module jelly_dma_stream_write
     reg     [N-1:0]                 reg_wdetect_first;
     reg     [N-1:0]                 reg_wdetect_last;
     reg                             reg_wpadding_en;
-    reg     [S_WDATA_WIDTH-1:0]     reg_wpadding_data;
-    reg     [S_WSTRB_WIDTH-1:0]     reg_wpadding_strb;
+    reg     [WDATA_WIDTH-1:0]       reg_wpadding_data;
+    reg     [WSTRB_WIDTH-1:0]       reg_wpadding_strb;
     reg     [AXI4_ADDR_WIDTH-1:0]   reg_shadow_awaddr;
     reg     [AXI4_LEN_WIDTH-1:0]    reg_shadow_awlen_max;
     reg     [AWLEN0_WIDTH-1:0]      reg_shadow_awlen0;
@@ -679,8 +674,8 @@ module jelly_dma_stream_write
                 .AXI4_AWPROT            (AXI4_AWPROT),
                 .AXI4_AWQOS             (AXI4_AWQOS),
                 .AXI4_AWREGION          (AXI4_AWREGION),
-                .S_WDATA_WIDTH          (S_WDATA_WIDTH),
-                .S_WSTRB_WIDTH          (S_WSTRB_WIDTH),
+                .S_WDATA_WIDTH          (WDATA_WIDTH),
+                .S_WSTRB_WIDTH          (WSTRB_WIDTH),
                 .S_AWSTEP_WIDTH         (STEP_MAX),
                 .S_AWLEN_WIDTH          (LEN_MAX),
                 .S_AWLEN_OFFSET         (AWLEN_OFFSET),

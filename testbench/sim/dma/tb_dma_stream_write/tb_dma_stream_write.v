@@ -80,8 +80,8 @@ module tb_dma_stream_write();
     parameter AXI4_ARQOS           = 0;
     parameter AXI4_ARREGION        = 4'b0000;
     
-    parameter S_WDATA_WIDTH        = 24; // 32;
-    parameter S_WSTRB_WIDTH        = S_WDATA_WIDTH / BYTE_WIDTH;
+    parameter WDATA_WIDTH          = 24; // 32;
+    parameter WSTRB_WIDTH          = WDATA_WIDTH / BYTE_WIDTH;
     parameter AWLEN_WIDTH          = AXI4_ADDR_WIDTH;   // 内部キューイング用
     
     parameter WB_ADR_WIDTH         = 8;
@@ -106,8 +106,8 @@ module tb_dma_stream_write();
     wire                            buffer_release;
     wire    [AXI4_ADDR_WIDTH-1:0]   buffer_addr;
     
-    reg     [S_WDATA_WIDTH-1:0]     s_wdata;
-    reg     [S_WSTRB_WIDTH-1:0]     s_wstrb  = {S_WSTRB_WIDTH{1'b1}};
+    reg     [WDATA_WIDTH-1:0]       s_wdata;
+    reg     [WSTRB_WIDTH-1:0]       s_wstrb  = {WSTRB_WIDTH{1'b1}};
     reg     [N-1:0]                 s_wfirst = 0;
     reg     [N-1:0]                 s_wlast  = 0;
     reg                             s_wvalid;
@@ -154,7 +154,7 @@ module tb_dma_stream_write();
                 .AXI4_DATA_WIDTH        (AXI4_DATA_WIDTH),
                 .AXI4_LEN_WIDTH         (AXI4_LEN_WIDTH),
                 .AXI4_QOS_WIDTH         (AXI4_QOS_WIDTH),
-                .S_WDATA_WIDTH          (S_WDATA_WIDTH),
+                .WDATA_WIDTH            (WDATA_WIDTH),
                 .WB_ADR_WIDTH           (WB_ADR_WIDTH),
                 .WB_DAT_WIDTH           (WB_DAT_WIDTH),
                 .WB_SEL_WIDTH           (WB_SEL_WIDTH),

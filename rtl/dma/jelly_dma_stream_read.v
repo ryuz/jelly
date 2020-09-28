@@ -14,22 +14,24 @@
 
 module jelly_dma_stream_read
         #(
+            // 基本設定
             parameter N                    = 2,
-            
-            parameter CORE_ID              = 32'habcd_0000,
-            parameter CORE_VERSION         = 32'h0000_0000,
-            
-            parameter WB_ASYNC             = 1,
-            parameter RASYNC               = 1,
-            
             parameter BYTE_WIDTH           = 8,
-            parameter BYPASS_GATE          = 0,
-            parameter BYPASS_ALIGN         = 0,
-            parameter ALLOW_UNALIGNED      = 0,
             
+            // WISHBONE
+            parameter WB_ASYNC             = 1,
+            parameter WB_ADR_WIDTH         = 8,
+            parameter WB_DAT_WIDTH         = 32,
+            parameter WB_SEL_WIDTH         = (WB_DAT_WIDTH / 8),
+            parameter INDEX_WIDTH          = 1,
+            
+            // read port
+            parameter RASYNC               = 1,
+            parameter RDATA_WIDTH          = 32,
             parameter HAS_RFIRST           = 0,
             parameter HAS_RLAST            = 1,
             
+            // AXI4
             parameter AXI4_ID_WIDTH        = 6,
             parameter AXI4_ADDR_WIDTH      = 32,
             parameter AXI4_DATA_SIZE       = 2,    // 0:8bit, 1:16bit, 2:32bit ...
@@ -46,20 +48,18 @@ module jelly_dma_stream_read
             parameter AXI4_ARREGION        = 4'b0000,
             parameter AXI4_ALIGN           = 12,  // 2^12 = 4k が境界
             
-            parameter S_RDATA_WIDTH        = 32,
-            parameter CAPACITY_WIDTH       = 12,
-            
+            // レジスタ構成など
             parameter ARLEN_OFFSET         = 1'b1,
-            parameter ARLEN0_WIDTH         = CAPACITY_WIDTH,
-            parameter ARLEN1_WIDTH         = CAPACITY_WIDTH,
-            parameter ARLEN2_WIDTH         = CAPACITY_WIDTH,
-            parameter ARLEN3_WIDTH         = CAPACITY_WIDTH,
-            parameter ARLEN4_WIDTH         = CAPACITY_WIDTH,
-            parameter ARLEN5_WIDTH         = CAPACITY_WIDTH,
-            parameter ARLEN6_WIDTH         = CAPACITY_WIDTH,
-            parameter ARLEN7_WIDTH         = CAPACITY_WIDTH,
-            parameter ARLEN8_WIDTH         = CAPACITY_WIDTH,
-            parameter ARLEN9_WIDTH         = CAPACITY_WIDTH,
+            parameter ARLEN0_WIDTH         = 32,
+            parameter ARLEN1_WIDTH         = 32,
+            parameter ARLEN2_WIDTH         = 32,
+            parameter ARLEN3_WIDTH         = 32,
+            parameter ARLEN4_WIDTH         = 32,
+            parameter ARLEN5_WIDTH         = 32,
+            parameter ARLEN6_WIDTH         = 32,
+            parameter ARLEN7_WIDTH         = 32,
+            parameter ARLEN8_WIDTH         = 32,
+            parameter ARLEN9_WIDTH         = 32,
             parameter ARSTEP1_WIDTH        = AXI4_ADDR_WIDTH,
             parameter ARSTEP2_WIDTH        = AXI4_ADDR_WIDTH,
             parameter ARSTEP3_WIDTH        = AXI4_ADDR_WIDTH,
@@ -70,59 +70,7 @@ module jelly_dma_stream_read
             parameter ARSTEP8_WIDTH        = AXI4_ADDR_WIDTH,
             parameter ARSTEP9_WIDTH        = AXI4_ADDR_WIDTH,
             
-            parameter WB_ADR_WIDTH         = 8,
-            parameter WB_DAT_WIDTH         = 32,
-            parameter WB_SEL_WIDTH         = (WB_DAT_WIDTH / 8),
-            parameter INDEX_WIDTH          = 1,
-            
-            parameter CONVERT_S_REGS       = 0,
-            
-            parameter RFIFO_PTR_WIDTH      = 9,
-            parameter RFIFO_RAM_TYPE       = "block",
-            parameter RFIFO_LOW_DEALY      = 0,
-            parameter RFIFO_DOUT_REGS      = 1,
-            parameter RFIFO_S_REGS         = 0,
-            parameter RFIFO_M_REGS         = 1,
-            
-            parameter ARFIFO_PTR_WIDTH     = 4,
-            parameter ARFIFO_RAM_TYPE      = "distributed",
-            parameter ARFIFO_LOW_DEALY     = 1,
-            parameter ARFIFO_DOUT_REGS     = 0,
-            parameter ARFIFO_S_REGS        = 0,
-            parameter ARFIFO_M_REGS        = 0,
-            
-            parameter SRFIFO_PTR_WIDTH     = 4,
-            parameter SRFIFO_RAM_TYPE      = "distributed",
-            parameter SRFIFO_LOW_DEALY     = 0,
-            parameter SRFIFO_DOUT_REGS     = 0,
-            parameter SRFIFO_S_REGS        = 0,
-            parameter SRFIFO_M_REGS        = 0,
-            
-            parameter MRFIFO_PTR_WIDTH     = 4,
-            parameter MRFIFO_RAM_TYPE      = "distributed",
-            parameter MRFIFO_LOW_DEALY     = 1,
-            parameter MRFIFO_DOUT_REGS     = 0,
-            parameter MRFIFO_S_REGS        = 0,
-            parameter MRFIFO_M_REGS        = 0,
-            
-            parameter RACKFIFO_PTR_WIDTH   = 4,
-            parameter RACKFIFO_DOUT_REGS   = 0,
-            parameter RACKFIFO_RAM_TYPE    = "distributed",
-            parameter RACKFIFO_LOW_DEALY   = 1,
-            parameter RACKFIFO_S_REGS      = 0,
-            parameter RACKFIFO_M_REGS      = 0,
-            parameter RACK_S_REGS          = 0,
-            parameter RACK_M_REGS          = 1,
-            
-            parameter CACKFIFO_PTR_WIDTH   = 4,
-            parameter CACKFIFO_DOUT_REGS   = 0,
-            parameter CACKFIFO_RAM_TYPE    = "distributed",
-            parameter CACKFIFO_LOW_DEALY   = 1,
-            parameter CACKFIFO_S_REGS      = 0,
-            parameter CACKFIFO_M_REGS      = 0,
-            parameter CACK_S_REGS          = 0,
-            parameter CACK_M_REGS          = 1,
-            
+            // レジスタ初期値
             parameter INIT_CTL_CONTROL     = 4'b0000,
             parameter INIT_IRQ_ENABLE      = 1'b0,
             parameter INIT_PARAM_ARADDR    = 0,
@@ -146,7 +94,56 @@ module jelly_dma_stream_read
             parameter INIT_PARAM_ARLEN8    = 0,
             parameter INIT_PARAM_ARSTEP8   = 0,
             parameter INIT_PARAM_ARLEN9    = 0,
-            parameter INIT_PARAM_ARSTEP9   = 0
+            parameter INIT_PARAM_ARSTEP9   = 0,
+            
+            // 構成情報
+            parameter CORE_ID              = 32'habcd_0000,
+            parameter CORE_VERSION         = 32'h0000_0000,
+            parameter BYPASS_GATE          = 0,
+            parameter BYPASS_ALIGN         = 0,
+            parameter ALLOW_UNALIGNED      = 1,
+            parameter CAPACITY_WIDTH       = 32,
+            parameter RFIFO_PTR_WIDTH      = 9,
+            parameter RFIFO_RAM_TYPE       = "block",
+            parameter RFIFO_LOW_DEALY      = 0,
+            parameter RFIFO_DOUT_REGS      = 1,
+            parameter RFIFO_S_REGS         = 0,
+            parameter RFIFO_M_REGS         = 1,
+            parameter ARFIFO_PTR_WIDTH     = 4,
+            parameter ARFIFO_RAM_TYPE      = "distributed",
+            parameter ARFIFO_LOW_DEALY     = 1,
+            parameter ARFIFO_DOUT_REGS     = 0,
+            parameter ARFIFO_S_REGS        = 0,
+            parameter ARFIFO_M_REGS        = 0,
+            parameter SRFIFO_PTR_WIDTH     = 4,
+            parameter SRFIFO_RAM_TYPE      = "distributed",
+            parameter SRFIFO_LOW_DEALY     = 0,
+            parameter SRFIFO_DOUT_REGS     = 0,
+            parameter SRFIFO_S_REGS        = 0,
+            parameter SRFIFO_M_REGS        = 0,
+            parameter MRFIFO_PTR_WIDTH     = 4,
+            parameter MRFIFO_RAM_TYPE      = "distributed",
+            parameter MRFIFO_LOW_DEALY     = 1,
+            parameter MRFIFO_DOUT_REGS     = 0,
+            parameter MRFIFO_S_REGS        = 0,
+            parameter MRFIFO_M_REGS        = 0,
+            parameter RACKFIFO_PTR_WIDTH   = 4,
+            parameter RACKFIFO_DOUT_REGS   = 0,
+            parameter RACKFIFO_RAM_TYPE    = "distributed",
+            parameter RACKFIFO_LOW_DEALY   = 1,
+            parameter RACKFIFO_S_REGS      = 0,
+            parameter RACKFIFO_M_REGS      = 0,
+            parameter RACK_S_REGS          = 0,
+            parameter RACK_M_REGS          = 1,
+            parameter CACKFIFO_PTR_WIDTH   = 4,
+            parameter CACKFIFO_DOUT_REGS   = 0,
+            parameter CACKFIFO_RAM_TYPE    = "distributed",
+            parameter CACKFIFO_LOW_DEALY   = 1,
+            parameter CACKFIFO_S_REGS      = 0,
+            parameter CACKFIFO_M_REGS      = 0,
+            parameter CACK_S_REGS          = 0,
+            parameter CACK_M_REGS          = 1,
+            parameter CONVERT_S_REGS       = 0
         )
         (
             input   wire                            endian,
@@ -171,7 +168,7 @@ module jelly_dma_stream_read
             // read stream
             input   wire                            s_rresetn,
             input   wire                            s_rclk,
-            output  wire    [S_RDATA_WIDTH-1:0]     s_rdata,
+            output  wire    [RDATA_WIDTH-1:0]       s_rdata,
             output  wire    [N-1:0]                 s_rfirst,
             output  wire    [N-1:0]                 s_rlast,
             output  wire                            s_rvalid,
@@ -602,7 +599,7 @@ module jelly_dma_stream_read
                 .AXI4_ARPROT            (AXI4_ARPROT),
                 .AXI4_ARQOS             (AXI4_ARQOS),
                 .AXI4_ARREGION          (AXI4_ARREGION),
-                .S_RDATA_WIDTH          (S_RDATA_WIDTH),
+                .S_RDATA_WIDTH          (RDATA_WIDTH),
                 .S_ARSTEP_WIDTH         (STEP_MAX),
                 .S_ARLEN_WIDTH          (LEN_MAX),
                 .S_ARLEN_OFFSET         (ARLEN_OFFSET),
