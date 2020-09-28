@@ -149,9 +149,56 @@ module jelly_axi4_read_nd
             output  wire                            m_axi4_rready
         );
     
+    
+    
     // ---------------------------------------------
     //  N-Dimension addressing
     // ---------------------------------------------
+    
+    // m_ar 側にクロック載せ替え
+    wire    [AXI4_ADDR_WIDTH-1:0]   arfifo_araddr;
+    wire    [AXI4_LEN_WIDTH-1:0]    arfifo_arlen_max;
+    wire    [N*S_ARSTEP_WIDTH-1:0]  arfifo_arstep;
+    wire    [N*S_ARLEN_WIDTH-1:0]   arfifo_arlen;
+    wire                            arfifo_arvalid;
+    wire                            arfifo_arready;
+    
+    jelly_fifo_pack
+            #(
+                .ASYNC              (ARASYNC),
+                .DATA0_WIDTH        (AXI4_ADDR_WIDTH),
+                .DATA1_WIDTH        (AXI4_LEN_WIDTH),
+                .DATA2_WIDTH        (N*S_ARSTEP_WIDTH),
+                .DATA3_WIDTH        (N*S_ARLEN_WIDTH),
+                
+                .PTR_WIDTH          (ARFIFO_PTR_WIDTH),
+                .DOUT_REGS          (ARFIFO_DOUT_REGS),
+                .RAM_TYPE           (ARFIFO_RAM_TYPE),
+                .LOW_DEALY          (ARFIFO_LOW_DEALY),
+                .S_REGS             (ARFIFO_S_REGS),
+                .M_REGS             (ARFIFO_M_REGS)
+            )
+        i_fifo_pack_cmd_ar
+            (
+                .s_reset            (~s_arresetn),
+                .s_clk              (s_arclk),
+                .s_data0            (s_araddr),
+                .s_data1            (s_arlen_max),
+                .s_data2            (s_arstep),
+                .s_data3            (s_arlen),
+                .s_valid            (s_arvalid),
+                .s_ready            (s_arready),
+                
+                .m_reset            (~m_aresetn),
+                .m_clk              (m_aclk),
+                .m_data0            (arfifo_araddr),
+                .m_data1            (arfifo_arlen_max),
+                .m_data2            (arfifo_arstep),
+                .m_data3            (arfifo_arlen),
+                .m_valid            (arfifo_arvalid),
+                .m_ready            (arfifo_arready)
+            );
+    
     
     // address generate
     wire    [AXI4_ADDR_WIDTH-1:0]   adrgen_araddr;
@@ -176,16 +223,16 @@ module jelly_axi4_read_nd
                 )
             i_address_generator_nd
                 (
-                    .reset                  (~s_arresetn),
-                    .clk                    (s_arclk),
+                    .reset                  (~m_aresetn),
+                    .clk                    (m_aclk),
                     .cke                    (1'b1),
                     
-                    .s_addr                 (s_araddr),
-                    .s_step                 (s_arstep[N*S_ARSTEP_WIDTH-1:S_ARSTEP_WIDTH]),
-                    .s_len                  (s_arlen [N*S_ARLEN_WIDTH-1:S_ARLEN_WIDTH]),
-                    .s_user                 ({s_arlen[S_ARLEN_WIDTH-1:0], s_arlen_max}),
-                    .s_valid                (s_arvalid),
-                    .s_ready                (s_arready),
+                    .s_addr                 (arfifo_araddr),
+                    .s_step                 (arfifo_arstep[N*S_ARSTEP_WIDTH-1:S_ARSTEP_WIDTH]),
+                    .s_len                  (arfifo_arlen [N*S_ARLEN_WIDTH-1:S_ARLEN_WIDTH]),
+                    .s_user                 ({arfifo_arlen[S_ARLEN_WIDTH-1:0], arfifo_arlen_max}),
+                    .s_valid                (arfifo_arvalid),
+                    .s_ready                (arfifo_arready),
                     
                     .m_addr                 (adrgen_araddr),
                     .m_first                (adrgen_arfirst[N-1:1]),
@@ -198,13 +245,13 @@ module jelly_axi4_read_nd
         assign adrgen_arlast[0]  = 1'b1;
     end
     else begin : blk_1d
-        assign adrgen_araddr    = s_araddr;
-        assign adrgen_arlen     = s_arlen;
-        assign adrgen_arlen_max = s_arlen_max;
+        assign adrgen_araddr    = arfifo_araddr;
+        assign adrgen_arlen     = arfifo_arlen;
+        assign adrgen_arlen_max = arfifo_arlen_max;
         assign adrgen_arfirst   = 1'b1;
         assign adrgen_arlast    = 1'b1;
-        assign adrgen_arvalid   = s_arvalid;
-        assign s_arready        = adrgen_arready;
+        assign adrgen_arvalid   = arfifo_arvalid;
+        assign arfifo_arready   = adrgen_arready;
     end
     endgenerate
     
@@ -243,8 +290,8 @@ module jelly_axi4_read_nd
             )
         i_data_split_pack2
             (
-                .reset                  (~s_arresetn),
-                .clk                    (s_arclk),
+                .reset                  (~m_aresetn),
+                .clk                    (m_aclk),
                 .cke                    (1'b1),
                 
                 .s_data0_0              (adrgen_araddr),
@@ -292,7 +339,7 @@ module jelly_axi4_read_nd
     
     jelly_axi4_read
             #(
-                .ARASYNC                (ARASYNC),
+                .ARASYNC                (0),
                 .RASYNC                 (RASYNC),
                 .BYTE_WIDTH             (BYTE_WIDTH),
                 .BYPASS_GATE            (0),
@@ -326,7 +373,7 @@ module jelly_axi4_read_nd
                 .RFIFO_DOUT_REGS        (RFIFO_DOUT_REGS),
                 .RFIFO_S_REGS           (RFIFO_S_REGS),
                 .RFIFO_M_REGS           (RFIFO_M_REGS),
-                .ARFIFO_PTR_WIDTH       (ARFIFO_PTR_WIDTH),
+                .ARFIFO_PTR_WIDTH       (0),
                 .ARFIFO_RAM_TYPE        (ARFIFO_RAM_TYPE),
                 .ARFIFO_LOW_DEALY       (ARFIFO_LOW_DEALY),
                 .ARFIFO_DOUT_REGS       (ARFIFO_DOUT_REGS),
@@ -349,8 +396,8 @@ module jelly_axi4_read_nd
             (
                 .endian                 (endian),
                 
-                .s_arresetn             (s_arresetn),
-                .s_arclk                (s_arclk),
+                .s_arresetn             (m_aresetn),
+                .s_arclk                (m_aclk),
                 .s_araddr               (cmd_araddr),
                 .s_arlen                (cmd_arlen),
                 .s_arlen_max            (cmd_arlen_max),
@@ -454,8 +501,8 @@ module jelly_axi4_read_nd
                 .m_valid                (gate_rvalid),
                 .m_ready                (gate_rready),
                 
-                .s_permit_reset         (~s_arresetn),
-                .s_permit_clk           (s_arclk),
+                .s_permit_reset         (~m_aresetn),
+                .s_permit_clk           (m_aclk),
                 .s_permit_first         (1'b1),
                 .s_permit_last          (1'b1),
                 .s_permit_len           (dat_arlen),
@@ -562,8 +609,8 @@ module jelly_axi4_read_nd
                 .m_ready                (s_cready),
                 
                 
-                .s_add_reset            (~s_arresetn),
-                .s_add_clk              (s_arclk),
+                .s_add_reset            (~m_aresetn),
+                .s_add_clk              (m_aclk),
                 .s_add_first            (ack_arfirst),
                 .s_add_last             (ack_arlast),
                 .s_add_valid            (ack_arvalid),

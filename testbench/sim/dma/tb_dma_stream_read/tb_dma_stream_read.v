@@ -729,8 +729,8 @@ module tb_dma_stream_read();
         wb_write(ADR_PARAM_ARSTEP1,   32'h0000_0200, 8'hff);
         wb_write(ADR_PARAM_ARSTEP2,   32'h0001_0000, 8'hff);
         
-//      wb_write(ADR_CTL_CONTROL,     32'h0000_000b, 8'hff);
-        wb_write(ADR_CTL_CONTROL,     32'h0000_0007, 8'hff);    // 1-shot
+        wb_write(ADR_CTL_CONTROL,     32'h0000_000b, 8'hff);
+//      wb_write(ADR_CTL_CONTROL,     32'h0000_0007, 8'hff);    // 1-shot
         
         #40000;
         

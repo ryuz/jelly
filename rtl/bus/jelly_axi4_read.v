@@ -24,7 +24,6 @@ module jelly_axi4_read
             parameter   BYTE_WIDTH       = 8,
             parameter   BYPASS_GATE      = 0,
             parameter   BYPASS_ALIGN     = 0,
-            parameter   AXI4_ALIGN       = 12,  // 2^12 = 4k が境界
             parameter   ALLOW_UNALIGNED  = 0,
             
             parameter   HAS_RFIRST       = 0,
@@ -44,6 +43,7 @@ module jelly_axi4_read
             parameter   AXI4_ARPROT      = 3'b000,
             parameter   AXI4_ARQOS       = 0,
             parameter   AXI4_ARREGION    = 4'b0000,
+            parameter   AXI4_ALIGN       = 12,  // 2^12 = 4k が境界
             
             parameter   S_RDATA_WIDTH    = 32,
             parameter   S_ARLEN_WIDTH    = 12,

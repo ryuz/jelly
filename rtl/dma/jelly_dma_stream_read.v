@@ -1,8 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- The FPGA processing system
 //
-//                                 Copyright (C) 2008-2017 by Ryuji Fuchikami
-//                                 http://ryuz.my.coocan.jp/
+//                                 Copyright (C) 2008-2020 by Ryuji Fuchikami
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
@@ -48,7 +47,7 @@ module jelly_dma_stream_read
             parameter AXI4_ALIGN           = 12,  // 2^12 = 4k が境界
             
             parameter S_RDATA_WIDTH        = 32,
-            parameter CAPACITY_WIDTH       = 12,   // 内部キューイング用
+            parameter CAPACITY_WIDTH       = 12,
             
             parameter ARLEN_OFFSET         = 1'b1,
             parameter ARLEN0_WIDTH         = CAPACITY_WIDTH,
@@ -581,6 +580,7 @@ module jelly_dma_stream_read
                 .N                      (N),
                 .ARASYNC                (WB_ASYNC),
                 .RASYNC                 (RASYNC),
+                .CASYNC                 (WB_ASYNC),
                 .BYTE_WIDTH             (BYTE_WIDTH),
                 .BYPASS_GATE            (BYPASS_GATE),
                 .BYPASS_ALIGN           (BYPASS_ALIGN),

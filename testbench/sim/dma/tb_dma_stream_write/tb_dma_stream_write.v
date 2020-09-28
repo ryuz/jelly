@@ -60,9 +60,9 @@ module tb_dma_stream_write();
     parameter AXI4_ALIGN           = 12;  // 2^12 = 4k が境界
     parameter ALLOW_UNALIGNED      = 1;
     
-    parameter HAS_S_WSTRB          = 0;
-    parameter HAS_S_WFIRST         = 0;
-    parameter HAS_S_WLAST          = 0;
+    parameter HAS_WSTRB            = 0;
+    parameter HAS_WFIRST           = 0;
+    parameter HAS_WLAST            = 0;
     
     parameter AXI4_ID_WIDTH        = 6;
     parameter AXI4_ADDR_WIDTH      = 32;
@@ -145,8 +145,9 @@ module tb_dma_stream_write();
                 .BYPASS_ALIGN           (BYPASS_ALIGN),
                 .AXI4_ALIGN             (AXI4_ALIGN),
                 .ALLOW_UNALIGNED        (ALLOW_UNALIGNED),
-                .HAS_S_WFIRST           (HAS_S_WFIRST),
-                .HAS_S_WLAST            (HAS_S_WLAST),
+                .HAS_WSTRB              (HAS_WSTRB),
+                .HAS_WFIRST             (HAS_WFIRST),
+                .HAS_WLAST              (HAS_WLAST),
                 .AXI4_ID_WIDTH          (AXI4_ID_WIDTH),
                 .AXI4_ADDR_WIDTH        (AXI4_ADDR_WIDTH),
                 .AXI4_DATA_SIZE         (AXI4_DATA_SIZE),

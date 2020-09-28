@@ -24,16 +24,11 @@ module jelly_axi4_write
             parameter   BYTE_WIDTH       = 8,
             parameter   BYPASS_GATE      = 1,
             parameter   BYPASS_ALIGN     = 0,
-            parameter   AXI4_ALIGN       = 12,  // 2^12 = 4k が境界
             parameter   ALLOW_UNALIGNED  = 0,
-            parameter   WDETECTOR_ENABLE = 0,
             
-            parameter   HAS_S_WSTRB      = 0,
-            parameter   HAS_S_WFIRST     = 0,
-            parameter   HAS_S_WLAST      = 0,
-            parameter   HAS_M_WSTRB      = 1,
-            parameter   HAS_M_WFIRST     = 0,
-            parameter   HAS_M_WLAST      = 1,
+            parameter   HAS_WSTRB        = 0,
+            parameter   HAS_WFIRST       = 0,
+            parameter   HAS_WLAST        = 0,
             
             parameter   AXI4_ID_WIDTH    = 6,
             parameter   AXI4_ADDR_WIDTH  = 32,
@@ -50,14 +45,14 @@ module jelly_axi4_write
             parameter   AXI4_AWPROT      = 3'b000,
             parameter   AXI4_AWQOS       = 0,
             parameter   AXI4_AWREGION    = 4'b0000,
+            parameter   AXI4_ALIGN       = 12,  // 2^12 = 4k が境界
             
             parameter   S_WDATA_WIDTH    = 32,
             parameter   S_WSTRB_WIDTH    = S_WDATA_WIDTH / BYTE_WIDTH,
             parameter   S_AWLEN_WIDTH    = 10,
             parameter   S_AWLEN_OFFSET   = 1'b1,
             
-            parameter   AWLEN_WIDTH      = S_AWLEN_WIDTH,   // 内部キューイング用
-            parameter   AWLEN_OFFSET     = S_AWLEN_OFFSET,
+            parameter   CAPACITY_WIDTH   = S_AWLEN_WIDTH,   // 内部キューイング用
             
             parameter   CONVERT_S_REGS   = 0,
             
@@ -156,8 +151,6 @@ module jelly_axi4_write
     //  local parameter
     // ---------------------------------
     
-    localparam CAPACITY_WIDTH = AWLEN_WIDTH;
-    
     wire    [AXI4_ADDR_WIDTH-1:0]   addr_mask = ALLOW_UNALIGNED ? 0 : (1 << AXI4_DATA_SIZE) - 1;
     
     
@@ -166,7 +159,7 @@ module jelly_axi4_write
     // ---------------------------------
     
     wire    [AXI4_ADDR_WIDTH-1:0]   conv_awaddr;
-    wire    [AWLEN_WIDTH-1:0]       conv_awlen;
+    wire    [CAPACITY_WIDTH-1:0]    conv_awlen;
     wire    [AXI4_LEN_WIDTH-1:0]    conv_awlen_max;
     wire                            conv_awvalid;
     wire                            conv_awready;
@@ -186,14 +179,13 @@ module jelly_axi4_write
                 .BYTE_WIDTH             (BYTE_WIDTH),
                 .BYPASS_GATE            (BYPASS_GATE),
                 .ALLOW_UNALIGNED        (ALLOW_UNALIGNED),
-//                .WDETECTOR_ENABLE       (WDETECTOR_ENABLE),
                 
-                .HAS_S_WSTRB            (HAS_S_WSTRB),
-                .HAS_S_WFIRST           (HAS_S_WFIRST),
-                .HAS_S_WLAST            (HAS_S_WLAST),
-                .HAS_M_WSTRB            (HAS_M_WSTRB),
+                .HAS_S_WSTRB            (HAS_WSTRB),
+                .HAS_S_WFIRST           (HAS_WFIRST),
+                .HAS_S_WLAST            (HAS_WLAST),
+                .HAS_M_WSTRB            (1),
                 .HAS_M_WFIRST           (0),
-                .HAS_M_WLAST            (0),
+                .HAS_M_WLAST            (1),
                 
                 .AWADDR_WIDTH           (AXI4_ADDR_WIDTH),
                 .AWUSER_WIDTH           (AXI4_LEN_WIDTH),
@@ -208,7 +200,7 @@ module jelly_axi4_write
                 .M_WDATA_SIZE           (AXI4_DATA_SIZE),
                 .M_WSTRB_WIDTH          (AXI4_STRB_WIDTH),
                 .M_WUSER_WIDTH          (0),
-                .M_AWLEN_WIDTH          (AWLEN_WIDTH),
+                .M_AWLEN_WIDTH          (CAPACITY_WIDTH),
                 .M_AWLEN_OFFSET         (1'b1),
                 .M_AWUSER_WIDTH         (0),
                 
@@ -290,9 +282,9 @@ module jelly_axi4_write
     jelly_capacity_async
             #(
                 .ASYNC                  (WASYNC),
-                .CAPACITY_WIDTH         (AWLEN_WIDTH),
+                .CAPACITY_WIDTH         (CAPACITY_WIDTH),
                 .REQUEST_WIDTH          (1),
-                .ISSUE_WIDTH            (AWLEN_WIDTH),
+                .ISSUE_WIDTH            (CAPACITY_WIDTH),
                 .REQUEST_SIZE_OFFSET    (1'b1),
                 .ISSUE_SIZE_OFFSET      (1'b0)
             )
@@ -328,8 +320,8 @@ module jelly_axi4_write
             #(
                 .ADDR_WIDTH             (AXI4_ADDR_WIDTH),
                 .ADDR_UNIT              (1 << AXI4_DATA_SIZE),
-                .SIZE_WIDTH             (AWLEN_WIDTH),
-                .SIZE_OFFSET            (AWLEN_OFFSET),
+                .SIZE_WIDTH             (CAPACITY_WIDTH),
+                .SIZE_OFFSET            (1'b1),
                 .LEN_WIDTH              (AXI4_LEN_WIDTH),
                 .LEN_OFFSET             (1'b1),
                 .S_REGS                 (0)

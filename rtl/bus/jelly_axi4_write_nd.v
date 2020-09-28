@@ -23,15 +23,12 @@ module jelly_axi4_write_nd
             parameter BYTE_WIDTH          = 8,
             parameter BYPASS_GATE         = 0,
             parameter BYPASS_ALIGN        = 0,
-            parameter AXI4_ALIGN          = 12,  // 2^12 = 4k が境界
+            parameter WDETECTOR_ENABLE    = 1,
             parameter ALLOW_UNALIGNED     = 0,
-            parameter WDETECTOR_ENABLE    = 0,
             
-            parameter HAS_S_WSTRB         = 0,
-            parameter HAS_S_WFIRST        = 0,
-            parameter HAS_S_WLAST         = 0,
-            parameter HAS_M_WSTRB         = 1,
-            parameter HAS_M_WLAST         = 1,
+            parameter HAS_WSTRB           = 0,
+            parameter HAS_WFIRST          = 0,
+            parameter HAS_WLAST           = 0,
             
             parameter AXI4_ID_WIDTH       = 6,
             parameter AXI4_ADDR_WIDTH     = 32,
@@ -48,6 +45,7 @@ module jelly_axi4_write_nd
             parameter AXI4_AWPROT         = 3'b000,
             parameter AXI4_AWQOS          = 0,
             parameter AXI4_AWREGION       = 4'b0000,
+            parameter AXI4_ALIGN          = 12,  // 2^12 = 4k が境界
             
             parameter S_WDATA_WIDTH       = 32,
             parameter S_WSTRB_WIDTH       = S_WDATA_WIDTH / BYTE_WIDTH,
@@ -55,8 +53,7 @@ module jelly_axi4_write_nd
             parameter S_AWLEN_WIDTH       = AXI4_ADDR_WIDTH,
             parameter S_AWLEN_OFFSET      = 1'b1,
             
-            parameter AWLEN_WIDTH         = AXI4_ADDR_WIDTH,   // 内部キューイング用
-            parameter AWLEN_OFFSET        = S_AWLEN_OFFSET,
+            parameter CAPACITY_WIDTH      = AXI4_ADDR_WIDTH,   // 内部キューイング用
             
             parameter CONVERT_S_REGS      = 0,
             
@@ -178,9 +175,54 @@ module jelly_axi4_write_nd
     //  N-Dimension addressing
     // ---------------------------------------------
     
+    // m_aw 側にクロック載せ替え
+    wire    [AXI4_ADDR_WIDTH-1:0]   awfifo_awaddr;
+    wire    [AXI4_LEN_WIDTH-1:0]    awfifo_awlen_max;
+    wire    [N*S_AWSTEP_WIDTH-1:0]  awfifo_awstep;
+    wire    [N*S_AWLEN_WIDTH-1:0]   awfifo_awlen;
+    wire                            awfifo_awvalid;
+    wire                            awfifo_awready;
+    
+    jelly_fifo_pack
+            #(
+                .ASYNC              (AWASYNC),
+                .DATA0_WIDTH        (AXI4_ADDR_WIDTH),
+                .DATA1_WIDTH        (AXI4_LEN_WIDTH),
+                .DATA2_WIDTH        (N*S_AWSTEP_WIDTH),
+                .DATA3_WIDTH        (N*S_AWLEN_WIDTH),
+                
+                .PTR_WIDTH          (AWFIFO_PTR_WIDTH),
+                .DOUT_REGS          (AWFIFO_DOUT_REGS),
+                .RAM_TYPE           (AWFIFO_RAM_TYPE),
+                .LOW_DEALY          (AWFIFO_LOW_DEALY),
+                .S_REGS             (AWFIFO_S_REGS),
+                .M_REGS             (AWFIFO_M_REGS)
+            )
+        i_fifo_pack_cmd_ar
+            (
+                .s_reset            (~s_awresetn),
+                .s_clk              (s_awclk),
+                .s_data0            (s_awaddr),
+                .s_data1            (s_awlen_max),
+                .s_data2            (s_awstep),
+                .s_data3            (s_awlen),
+                .s_valid            (s_awvalid),
+                .s_ready            (s_awready),
+                
+                .m_reset            (~m_aresetn),
+                .m_clk              (m_aclk),
+                .m_data0            (awfifo_awaddr),
+                .m_data1            (awfifo_awlen_max),
+                .m_data2            (awfifo_awstep),
+                .m_data3            (awfifo_awlen),
+                .m_valid            (awfifo_awvalid),
+                .m_ready            (awfifo_awready)
+            );
+    
+    
     // address generate
     wire    [AXI4_ADDR_WIDTH-1:0]   adrgen_awaddr;
-    wire    [AWLEN_WIDTH-1:0]       adrgen_awlen;
+    wire    [S_AWLEN_WIDTH-1:0]     adrgen_awlen;
     wire    [AXI4_LEN_WIDTH-1:0]    adrgen_awlen_max;
     wire    [N-1:0]                 adrgen_awfirst;
     wire    [N-1:0]                 adrgen_awlast;
@@ -201,16 +243,16 @@ module jelly_axi4_write_nd
                 )
             i_address_generator_nd
                 (
-                    .reset                  (~s_awresetn),
-                    .clk                    (s_awclk),
+                    .reset                  (~m_aresetn),
+                    .clk                    (m_aclk),
                     .cke                    (1'b1),
                     
-                    .s_addr                 (s_awaddr),
-                    .s_step                 (s_awstep[N*S_AWSTEP_WIDTH-1:S_AWSTEP_WIDTH]),
-                    .s_len                  (s_awlen [N*S_AWLEN_WIDTH-1:S_AWLEN_WIDTH]),
-                    .s_user                 ({s_awlen[AWLEN_WIDTH-1:0], s_awlen_max}),
-                    .s_valid                (s_awvalid),
-                    .s_ready                (s_awready),
+                    .s_addr                 (awfifo_awaddr),
+                    .s_step                 (awfifo_awstep[N*S_AWSTEP_WIDTH-1:S_AWSTEP_WIDTH]),
+                    .s_len                  (awfifo_awlen [N*S_AWLEN_WIDTH-1:S_AWLEN_WIDTH]),
+                    .s_user                 ({awfifo_awlen[S_AWLEN_WIDTH-1:0], awfifo_awlen_max}),
+                    .s_valid                (awfifo_awvalid),
+                    .s_ready                (awfifo_awready),
                     
                     .m_addr                 (adrgen_awaddr),
                     .m_first                (adrgen_awfirst[N-1:1]),
@@ -223,27 +265,27 @@ module jelly_axi4_write_nd
         assign adrgen_awlast[0]  = 1'b1;
     end
     else begin : blk_1d
-        assign adrgen_awaddr    = s_awaddr;
-        assign adrgen_awlen     = s_awlen;
-        assign adrgen_awlen_max = s_awlen_max;
-        assign adrgen_awfirst   = 1'b1;
-        assign adrgen_awlast    = 1'b1;
-        assign adrgen_awvalid   = s_awvalid;
-        assign s_awready        = adrgen_awready;
+        assign adrgen_awaddr     = awfifo_awaddr;
+        assign adrgen_awlen      = awfifo_awlen;
+        assign adrgen_awlen_max  = awfifo_awlen_max;
+        assign adrgen_awfirst    = 1'b1;
+        assign adrgen_awlast     = 1'b1;
+        assign adrgen_awvalid    = awfifo_awvalid;
+        assign awfifo_awready    = adrgen_awready;
     end
     endgenerate
     
     
     // コマンド分岐
     wire    [AXI4_ADDR_WIDTH-1:0]   cmd_awaddr;
-    wire    [AWLEN_WIDTH-1:0]       cmd_awlen;
+    wire    [S_AWLEN_WIDTH-1:0]     cmd_awlen;
     wire    [AXI4_LEN_WIDTH-1:0]    cmd_awlen_max;
     wire                            cmd_awvalid;
     wire                            cmd_awready;
     
     wire    [N-1:0]                 dat_awfirst;
     wire    [N-1:0]                 dat_awlast;
-    wire    [AWLEN_WIDTH-1:0]       dat_awlen;
+    wire    [S_AWLEN_WIDTH-1:0]     dat_awlen;
     wire                            dat_awvalid;
     wire                            dat_awready;
     
@@ -256,9 +298,9 @@ module jelly_axi4_write_nd
             #(
                 .NUM                    (3),
                 .DATA0_0_WIDTH          (AXI4_ADDR_WIDTH),
-                .DATA0_1_WIDTH          (AWLEN_WIDTH),
+                .DATA0_1_WIDTH          (S_AWLEN_WIDTH),
                 .DATA0_2_WIDTH          (AXI4_LEN_WIDTH),
-                .DATA1_0_WIDTH          (AWLEN_WIDTH),
+                .DATA1_0_WIDTH          (S_AWLEN_WIDTH),
                 .DATA1_1_WIDTH          (N),
                 .DATA1_2_WIDTH          (N),
                 .DATA2_0_WIDTH          (N),
@@ -266,8 +308,8 @@ module jelly_axi4_write_nd
             )
         i_data_split_pack2
             (
-                .reset                  (~s_awresetn),
-                .clk                    (s_awclk),
+                .reset                  (~m_aresetn),
+                .clk                    (m_aclk),
                 .cke                    (1'b1),
                 
                 .s_data0_0              (adrgen_awaddr),
@@ -319,7 +361,7 @@ module jelly_axi4_write_nd
     
     jelly_axi4_write
         #(
-            .AWASYNC                (AWASYNC),
+            .AWASYNC                (0),
             .WASYNC                 (WASYNC),
             .BASYNC                 (BASYNC),
             
@@ -328,12 +370,10 @@ module jelly_axi4_write_nd
             .BYPASS_ALIGN           (BYPASS_ALIGN),
             .AXI4_ALIGN             (AXI4_ALIGN),
             .ALLOW_UNALIGNED        (ALLOW_UNALIGNED),
-            .WDETECTOR_ENABLE       (WDETECTOR_ENABLE),
             
-            .HAS_S_WSTRB            (HAS_S_WSTRB),
-            .HAS_S_WFIRST           (HAS_S_WFIRST),
-            .HAS_S_WLAST            (HAS_S_WLAST),
-            .HAS_M_WSTRB            (HAS_M_WSTRB),
+            .HAS_WSTRB              (HAS_WSTRB),
+            .HAS_WFIRST             (HAS_WFIRST),
+            .HAS_WLAST              (HAS_WLAST),
             
             .AXI4_ID_WIDTH          (AXI4_ID_WIDTH),
             .AXI4_ADDR_WIDTH        (AXI4_ADDR_WIDTH),
@@ -356,8 +396,7 @@ module jelly_axi4_write_nd
             .S_AWLEN_WIDTH          (S_AWLEN_WIDTH),
             .S_AWLEN_OFFSET         (S_AWLEN_OFFSET),
             
-            .AWLEN_WIDTH            (AWLEN_WIDTH),
-            .AWLEN_OFFSET           (AWLEN_OFFSET),
+            .CAPACITY_WIDTH         (CAPACITY_WIDTH),
             
             .CONVERT_S_REGS         (CONVERT_S_REGS),
             
@@ -368,7 +407,7 @@ module jelly_axi4_write_nd
             .WFIFO_S_REGS           (WFIFO_S_REGS),
             .WFIFO_M_REGS           (WFIFO_M_REGS),
             
-            .AWFIFO_PTR_WIDTH       (AWFIFO_PTR_WIDTH),
+            .AWFIFO_PTR_WIDTH       (0),
             .AWFIFO_RAM_TYPE        (AWFIFO_RAM_TYPE),
             .AWFIFO_LOW_DEALY       (AWFIFO_LOW_DEALY),
             .AWFIFO_DOUT_REGS       (AWFIFO_DOUT_REGS),
@@ -400,8 +439,8 @@ module jelly_axi4_write_nd
         (
             .endian                 (endian),
             
-            .s_awresetn             (s_awresetn),
-            .s_awclk                (s_awclk),
+            .s_awresetn             (m_aresetn),
+            .s_awclk                (m_aclk),
             .s_awaddr               (cmd_awaddr),
             .s_awlen                (cmd_awlen),
             .s_awlen_max            (cmd_awlen_max),
@@ -453,46 +492,6 @@ module jelly_axi4_write_nd
     //  write data
     // ---------------------------------------------
     
-    // クロック載せ替え
-    wire    [N-1:0]                 datfifo_awfirst;
-    wire    [N-1:0]                 datfifo_awlast;
-    wire    [AWLEN_WIDTH-1:0]       datfifo_awlen;
-    wire                            datfifo_awvalid;
-    wire                            datfifo_awready;
-    jelly_fifo_pack
-            #(
-                .ASYNC                  (AWASYNC || WASYNC),
-                .DATA0_WIDTH            (AWLEN_WIDTH),
-                .DATA1_WIDTH            (N),
-                .DATA2_WIDTH            (N),
-                .PTR_WIDTH              (WDATFIFO_PTR_WIDTH),
-                .DOUT_REGS              (WDATFIFO_DOUT_REGS),
-                .RAM_TYPE               (WDATFIFO_RAM_TYPE),
-                .LOW_DEALY              (WDATFIFO_LOW_DEALY),
-                .S_REGS                 (WDATFIFO_S_REGS),
-                .M_REGS                 (WDATFIFO_M_REGS)
-            )
-        i_fifo_pack
-            (
-                .s_reset                (~s_awresetn),
-                .s_clk                  (s_awclk),
-                .s_data0                (dat_awlen),
-                .s_data1                (dat_awfirst),
-                .s_data2                (dat_awlast),
-                .s_valid                (dat_awvalid),
-                .s_ready                (dat_awready),
-                .s_free_count           (),
-                
-                .m_reset                (~s_wresetn),
-                .m_clk                  (s_wclk),
-                .m_data0                (datfifo_awlen),
-                .m_data1                (datfifo_awfirst),
-                .m_data2                (datfifo_awlast),
-                .m_valid                (datfifo_awvalid),
-                .m_ready                (datfifo_awready),
-                .m_data_count           ()
-            );
-    
     // サイズに合わせてデータ補正
     jelly_stream_gate
             #(
@@ -503,7 +502,15 @@ module jelly_axi4_write_nd
                 .LEN_WIDTH              (S_AWLEN_WIDTH),
                 .LEN_OFFSET             (S_AWLEN_OFFSET),
                 .S_REGS                 (WDAT_S_REGS),
-                .M_REGS                 (WDAT_M_REGS)
+                .M_REGS                 (WDAT_M_REGS),
+                
+                .ASYNC                  (WASYNC),
+                .FIFO_PTR_WIDTH         (WDATFIFO_PTR_WIDTH),
+                .FIFO_DOUT_REGS         (WDATFIFO_DOUT_REGS),
+                .FIFO_RAM_TYPE          (WDATFIFO_RAM_TYPE),
+                .FIFO_LOW_DEALY         (WDATFIFO_LOW_DEALY),
+                .FIFO_S_REGS            (WDATFIFO_S_REGS),
+                .FIFO_M_REGS            (WDATFIFO_M_REGS)
             )
         i_stream_gate
             (
@@ -517,15 +524,6 @@ module jelly_axi4_write_nd
                 .padding_en             (wpadding_en),
                 .padding_data           ({wpadding_strb, wpadding_data}),
                 
-                .s_permit_reset         (~s_wresetn),
-                .s_permit_clk           (s_wclk),
-                .s_permit_first         (datfifo_awfirst),
-                .s_permit_last          (datfifo_awlast),
-                .s_permit_len           (datfifo_awlen),
-                .s_permit_user          (1'b0),
-                .s_permit_valid         (datfifo_awvalid),
-                .s_permit_ready         (datfifo_awready),
-                
                 .s_first                (s_wfirst),
                 .s_last                 (s_wlast),
                 .s_data                 ({s_wstrb, s_wdata}),
@@ -537,7 +535,16 @@ module jelly_axi4_write_nd
                 .m_data                 ({write_wstrb, write_wdata}),
                 .m_user                 (),
                 .m_valid                (write_wvalid),
-                .m_ready                (write_wready)
+                .m_ready                (write_wready),
+                
+                .s_permit_reset         (~m_aresetn),
+                .s_permit_clk           (m_aclk),
+                .s_permit_first         (dat_awfirst),
+                .s_permit_last          (dat_awlast),
+                .s_permit_len           (dat_awlen),
+                .s_permit_user          (1'b0),
+                .s_permit_valid         (dat_awvalid),
+                .s_permit_ready         (dat_awready)
             );
     
     
@@ -554,7 +561,7 @@ module jelly_axi4_write_nd
                 .USER_WIDTH             (0),
                 .HAS_FIRST              (1),
                 .HAS_LAST               (1),
-                .ASYNC                  (AWASYNC || WASYNC),
+                .ASYNC                  (WASYNC),
                 .FIFO_PTR_WIDTH         (BACKFIFO_PTR_WIDTH),
                 .FIFO_DOUT_REGS         (BACKFIFO_DOUT_REGS),
                 .FIFO_RAM_TYPE          (BACKFIFO_RAM_TYPE),
@@ -584,8 +591,8 @@ module jelly_axi4_write_nd
                 .m_valid                (s_bvalid),
                 .m_ready                (s_bready),
                 
-                .s_add_reset            (~s_awresetn),
-                .s_add_clk              (s_awclk),
+                .s_add_reset            (~m_aresetn),
+                .s_add_clk              (m_aclk),
                 .s_add_first            (ack_awfirst),
                 .s_add_last             (ack_awlast),
                 .s_add_valid            (ack_awvalid),

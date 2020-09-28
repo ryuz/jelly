@@ -32,6 +32,7 @@ module tb_data_split_pack();
     parameter DATA1_WIDTH = 16;
     parameter DATA2_WIDTH = 24;
     parameter S_REGS      = 0;
+    parameter M_REGS      = 0;
     
     reg     [DATA0_WIDTH-1:0]   s_data0;
     reg     [DATA1_WIDTH-1:0]   s_data1;
@@ -98,7 +99,8 @@ module tb_data_split_pack();
                 .DATA0_WIDTH    (DATA0_WIDTH),
                 .DATA1_WIDTH    (DATA1_WIDTH),
                 .DATA2_WIDTH    (DATA2_WIDTH),
-                .S_REGS         (S_REGS)
+                .S_REGS         (S_REGS),
+                .M_REGS         (M_REGS)
             )
         i_data_split_pack
             (

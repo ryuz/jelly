@@ -123,6 +123,8 @@ module jelly_dma_fifo_write
     //  localparam
     // ---------------------------------
     
+    localparam  POST_CONVERT     = ((S_DATA_WIDTH > AXI4_DATA_WIDTH) && (S_DATA_WIDTH % AXI4_DATA_WIDTH == 0));
+    
     localparam  CAPACITY_WIDTH   = PARAM_SIZE_WIDTH - AXI4_DATA_SIZE;
     localparam  ADDR_WIDTH       = PARAM_SIZE_WIDTH - AXI4_DATA_SIZE;
     localparam  LEN_WIDTH        = PARAM_AWLEN_WIDTH;
@@ -137,7 +139,7 @@ module jelly_dma_fifo_write
     wire                            fifo_valid;
     wire                            fifo_ready;
     
-    wire    [CAPACITY_WIDTH-1:0]    s_wr_size = 1;
+    wire    [CAPACITY_WIDTH-1:0]    s_wr_size = POST_CONVERT ? (S_DATA_WIDTH / AXI4_DATA_WIDTH) : 1;
     wire                            s_wr_valid;
     
     jelly_fifo_width_convert
@@ -154,7 +156,7 @@ module jelly_dma_fifo_write
                 .FIFO_S_REGS            (WDATA_FIFO_S_REGS),
                 .FIFO_M_REGS            (WDATA_FIFO_M_REGS),
                 
-                .POST_CONVERT           (0)
+                .POST_CONVERT           (POST_CONVERT)
             )
         i_fifo_width_convert_wdata
             (
