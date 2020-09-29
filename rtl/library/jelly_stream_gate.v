@@ -89,7 +89,7 @@ module jelly_stream_gate
     wire                        fifo_s_permit_ready;
     
     generate
-    if ( !BYPASS || (BYPASS_COMBINE && ASYNC) ) begin
+    if ( !BYPASS || (BYPASS_COMBINE && ASYNC) ) begin : blk_async_fifo
         jelly_fifo_pack
                 #(
                     .ASYNC              (ASYNC),
@@ -126,7 +126,7 @@ module jelly_stream_gate
                     .m_ready            (fifo_s_permit_ready & cke)
                 );
     end
-    else begin
+    else begin : blk_sync
         assign fifo_s_permit_first = s_permit_first;
         assign fifo_s_permit_last  = s_permit_last;
         assign fifo_s_permit_len   = s_permit_len;
@@ -242,8 +242,8 @@ module jelly_stream_gate
         end
         
         // flag detect
-        wire    [N-1:0]     sig_s_first = (ff_s_first & param_detect_first) | reg_auto_first;
-        wire    [N-1:0]     sig_s_last  = (ff_s_last  & param_detect_last);
+        wire    [N-1:0]     sig_s_first = (ff_s_valid & ff_s_first & param_detect_first) | reg_auto_first;
+        wire    [N-1:0]     sig_s_last  = (ff_s_valid & ff_s_last  & param_detect_last);
         
         
         // len count
