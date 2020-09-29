@@ -23,7 +23,6 @@ module jelly_dma_stream_read
             parameter WB_ADR_WIDTH         = 8,
             parameter WB_DAT_WIDTH         = 32,
             parameter WB_SEL_WIDTH         = (WB_DAT_WIDTH / 8),
-            parameter INDEX_WIDTH          = 1,
             
             // read port
             parameter RASYNC               = 1,
@@ -49,6 +48,7 @@ module jelly_dma_stream_read
             parameter AXI4_ALIGN           = 12,  // 2^12 = 4k が境界
             
             // レジスタ構成など
+            parameter INDEX_WIDTH          = 1,
             parameter ARLEN_OFFSET         = 1'b1,
             parameter ARLEN0_WIDTH         = 32,
             parameter ARLEN1_WIDTH         = 32,
@@ -97,7 +97,7 @@ module jelly_dma_stream_read
             parameter INIT_PARAM_ARSTEP9   = 0,
             
             // 構成情報
-            parameter CORE_ID              = 32'habcd_0000,
+            parameter CORE_ID              = 32'h527a_ffff,
             parameter CORE_VERSION         = 32'h0000_0000,
             parameter BYPASS_GATE          = 0,
             parameter BYPASS_ALIGN         = 0,

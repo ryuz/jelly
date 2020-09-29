@@ -72,7 +72,7 @@ module jelly_dma_video_write
             parameter INIT_PADDING_DATA     = {AXI4S_DATA_WIDTH{1'b0}},
             
             // 構成情報
-            parameter CORE_ID               = 32'habcd_0000,
+            parameter CORE_ID               = 32'h527a_ffff,
             parameter CORE_VERSION          = 32'h0000_0000,
             parameter BYPASS_GATE           = 0,
             parameter BYPASS_ALIGN          = 0,
@@ -196,7 +196,7 @@ module jelly_dma_video_write
                 
                 .WASYNC                 (AXI4S_ASYNC),
                 .WDATA_WIDTH            (AXI4S_DATA_WIDTH),
-                .WSTRB_WIDTH            (0),
+                .WSTRB_WIDTH            (AXI4S_DATA_WIDTH / BYTE_WIDTH),
                 .HAS_WSTRB              (0),
                 .HAS_WFIRST             (1),
                 .HAS_WLAST              (1),
@@ -319,7 +319,7 @@ module jelly_dma_video_write
                 .s_wresetn              (s_axi4s_aresetn),
                 .s_wclk                 (s_axi4s_aclk),
                 .s_wdata                (s_axi4s_tdata),
-                .s_wstrb                ({AXI4S_DATA_WIDTH{1'b1}}),
+                .s_wstrb                ({(AXI4S_DATA_WIDTH/BYTE_WIDTH){1'b1}}),
                 .s_wfirst               ({1'b0, s_axi4s_tuser[0], 1'b0}),
                 .s_wlast                ({2'b00, s_axi4s_tlast}),
                 .s_wvalid               (s_axi4s_tvalid),
