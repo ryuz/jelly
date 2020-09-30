@@ -11,11 +11,8 @@
 `default_nettype none
 
 
-// N次元アドレッシング(軸毎にアドレスbit数を変えられるように設計)
-
-
-// AXI4 データ読出しコア
-module jelly_buffer_allocator
+// バッファ割り当て調停
+module jelly_buffer_arbiter
         #(
             parameter   BUFFER_NUM   = 3,
             parameter   READER_NUM   = 1,
