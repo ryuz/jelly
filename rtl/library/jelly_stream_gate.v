@@ -242,8 +242,8 @@ module jelly_stream_gate
         end
         
         // flag detect
-        wire    [N-1:0]     sig_s_first = (ff_s_valid & ff_s_first & param_detect_first) | reg_auto_first;
-        wire    [N-1:0]     sig_s_last  = (ff_s_valid & ff_s_last  & param_detect_last);
+        wire    [N-1:0]     sig_s_first = ({N{ff_s_valid}} & ff_s_first & param_detect_first) | reg_auto_first;
+        wire    [N-1:0]     sig_s_last  = ({N{ff_s_valid}} & ff_s_last  & param_detect_last);
         
         
         // len count
