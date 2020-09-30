@@ -289,7 +289,7 @@ module jelly_dma_stream_write
     
     
     // registers
-    reg     [4:0]                   reg_ctl_control;    // bit[0]:enable, bit[1]:update, bit[2]:oneshot, bit[3]:auto_addr
+    reg     [3:0]                   reg_ctl_control;    // bit[0]:enable, bit[1]:update, bit[2]:oneshot, bit[3]:auto_addr
     reg     [0:0]                   reg_ctl_status;
     reg     [INDEX_WIDTH-1:0]       reg_ctl_index;
     reg     [0:0]                   reg_irq_enable;

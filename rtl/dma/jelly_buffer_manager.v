@@ -22,7 +22,6 @@ module jelly_buffer_manager
                                      BUFFER_NUM < 4 ? 2 :
                                      BUFFER_NUM < 8 ? 3 : 4,
             
-            parameter WB_ASYNC     = 0,
             parameter WB_ADR_WIDTH = 8,
             parameter WB_DAT_WIDTH = 32,
             parameter WB_SEL_WIDTH = (WB_DAT_WIDTH / 8),
@@ -42,9 +41,15 @@ module jelly_buffer_manager
             parameter INIT_ADDR9   = 0
         )
         (
-            input   wire                                    reset,
-            input   wire                                    clk,
-            input   wire                                    cke,
+            input   wire                                    s_wb_rst_i,
+            input   wire                                    s_wb_clk_i,
+            input   wire    [WB_ADR_WIDTH-1:0]              s_wb_adr_i,
+            input   wire    [WB_DAT_WIDTH-1:0]              s_wb_dat_i,
+            output  wire    [WB_DAT_WIDTH-1:0]              s_wb_dat_o,
+            input   wire                                    s_wb_we_i,
+            input   wire    [WB_SEL_WIDTH-1:0]              s_wb_sel_i,
+            input   wire                                    s_wb_stb_i,
+            output  wire                                    s_wb_ack_o,
             
             input   wire                                    writer_request,
             input   wire                                    writer_release,
@@ -59,18 +64,7 @@ module jelly_buffer_manager
             output  wire    [ADDR_WIDTH-1:0]                newest_addr,
             output  wire    [INDEX_WIDTH-1:0]               newest_index,
             
-            output  wire    [BUFFER_NUM*REFCNT_WIDTH-1:0]   status_refcnt,
-            
-            
-            input   wire                                    s_wb_rst_i,
-            input   wire                                    s_wb_clk_i,
-            input   wire    [WB_ADR_WIDTH-1:0]              s_wb_adr_i,
-            input   wire    [WB_DAT_WIDTH-1:0]              s_wb_dat_i,
-            output  wire    [WB_DAT_WIDTH-1:0]              s_wb_dat_o,
-            input   wire                                    s_wb_we_i,
-            input   wire    [WB_SEL_WIDTH-1:0]              s_wb_sel_i,
-            input   wire                                    s_wb_stb_i,
-            output  wire                                    s_wb_ack_o
+            output  wire    [BUFFER_NUM*REFCNT_WIDTH-1:0]   status_refcnt
         );
     
     
@@ -168,9 +162,9 @@ module jelly_buffer_manager
             )
         i_buffer_arbiter
             (
-                .reset          (reset),
-                .clk            (clk),
-                .cke            (cke),
+                .reset          (s_wb_rst_i),
+                .clk            (s_wb_clk_i),
+                .cke            (1'b1),
                 
                 .param_buf_addr (reg_addr),
                 

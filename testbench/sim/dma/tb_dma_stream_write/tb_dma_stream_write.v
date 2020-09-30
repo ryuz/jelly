@@ -338,7 +338,7 @@ module tb_dma_stream_write();
     wire    [REFCNT_WIDTH-1:0]  status_refcnt2;
     
     
-    jelly_buffer_allocator
+    jelly_buffer_arbiter
             #(
                 .BUFFER_NUM     (BUFFER_NUM),
                 .READER_NUM     (READER_NUM),
@@ -346,7 +346,7 @@ module tb_dma_stream_write();
                 .REFCNT_WIDTH   (REFCNT_WIDTH),
                 .INDEX_WIDTH    (2)
             )
-        i_buffer_allocator
+        i_buffer_arbiter
             (
                 .reset          (s_wb_rst_i),
                 .clk            (s_wb_clk_i),

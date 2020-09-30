@@ -354,8 +354,6 @@ module jelly_axi4_write_nd
     wire                            write_wvalid;
     wire                            write_wready;
     
-    wire    [N-1:0]                 write_bfirst;
-    wire    [N-1:0]                 write_blast;
     wire                            write_bvalid;
     wire                            write_bready;
     
@@ -495,56 +493,56 @@ module jelly_axi4_write_nd
     // サイズに合わせてデータ補正
     jelly_stream_gate
             #(
-                .N                      (N),
-                .BYPASS                 (BYPASS_GATE),
-                .DETECTOR_ENABLE        (WDETECTOR_ENABLE),
-                .DATA_WIDTH             (S_WSTRB_WIDTH + S_WDATA_WIDTH),
-                .LEN_WIDTH              (S_AWLEN_WIDTH),
-                .LEN_OFFSET             (S_AWLEN_OFFSET),
-                .S_REGS                 (WDAT_S_REGS),
-                .M_REGS                 (WDAT_M_REGS),
+                .N                  (N),
+                .BYPASS             (BYPASS_GATE),
+                .DETECTOR_ENABLE    (WDETECTOR_ENABLE),
+                .DATA_WIDTH         (S_WSTRB_WIDTH + S_WDATA_WIDTH),
+                .LEN_WIDTH          (S_AWLEN_WIDTH),
+                .LEN_OFFSET         (S_AWLEN_OFFSET),
+                .S_REGS             (WDAT_S_REGS),
+                .M_REGS             (WDAT_M_REGS),
                 
-                .ASYNC                  (WASYNC),
-                .FIFO_PTR_WIDTH         (WDATFIFO_PTR_WIDTH),
-                .FIFO_DOUT_REGS         (WDATFIFO_DOUT_REGS),
-                .FIFO_RAM_TYPE          (WDATFIFO_RAM_TYPE),
-                .FIFO_LOW_DEALY         (WDATFIFO_LOW_DEALY),
-                .FIFO_S_REGS            (WDATFIFO_S_REGS),
-                .FIFO_M_REGS            (WDATFIFO_M_REGS)
+                .ASYNC              (WASYNC),
+                .FIFO_PTR_WIDTH     (WDATFIFO_PTR_WIDTH),
+                .FIFO_DOUT_REGS     (WDATFIFO_DOUT_REGS),
+                .FIFO_RAM_TYPE      (WDATFIFO_RAM_TYPE),
+                .FIFO_LOW_DEALY     (WDATFIFO_LOW_DEALY),
+                .FIFO_S_REGS        (WDATFIFO_S_REGS),
+                .FIFO_M_REGS        (WDATFIFO_M_REGS)
             )
         i_stream_gate
             (
-                .reset                  (~s_wresetn),
-                .clk                    (s_wclk),
-                .cke                    (1'b1),
+                .reset              (~s_wresetn),
+                .clk                (s_wclk),
+                .cke                (1'b1),
                 
-                .skip                   (wskip),
-                .detect_first           (wdetect_first),
-                .detect_last            (wdetect_last),
-                .padding_en             (wpadding_en),
-                .padding_data           ({wpadding_strb, wpadding_data}),
+                .skip               (wskip),
+                .detect_first       (wdetect_first),
+                .detect_last        (wdetect_last),
+                .padding_en         (wpadding_en),
+                .padding_data       ({wpadding_strb, wpadding_data}),
                 
-                .s_first                (s_wfirst),
-                .s_last                 (s_wlast),
-                .s_data                 ({s_wstrb, s_wdata}),
-                .s_valid                (s_wvalid),
-                .s_ready                (s_wready),
+                .s_first            (s_wfirst),
+                .s_last             (s_wlast),
+                .s_data             ({s_wstrb, s_wdata}),
+                .s_valid            (s_wvalid),
+                .s_ready            (s_wready),
                 
-                .m_first                (write_wfirst),
-                .m_last                 (write_wlast),
-                .m_data                 ({write_wstrb, write_wdata}),
-                .m_user                 (),
-                .m_valid                (write_wvalid),
-                .m_ready                (write_wready),
+                .m_first            (write_wfirst),
+                .m_last             (write_wlast),
+                .m_data             ({write_wstrb, write_wdata}),
+                .m_user             (),
+                .m_valid            (write_wvalid),
+                .m_ready            (write_wready),
                 
-                .s_permit_reset         (~m_aresetn),
-                .s_permit_clk           (m_aclk),
-                .s_permit_first         (dat_awfirst),
-                .s_permit_last          (dat_awlast),
-                .s_permit_len           (dat_awlen),
-                .s_permit_user          (1'b0),
-                .s_permit_valid         (dat_awvalid),
-                .s_permit_ready         (dat_awready)
+                .s_permit_reset     (~m_aresetn),
+                .s_permit_clk       (m_aclk),
+                .s_permit_first     (dat_awfirst),
+                .s_permit_last      (dat_awlast),
+                .s_permit_len       (dat_awlen),
+                .s_permit_user      (1'b0),
+                .s_permit_valid     (dat_awvalid),
+                .s_permit_ready     (dat_awready)
             );
     
     
@@ -556,47 +554,47 @@ module jelly_axi4_write_nd
     // b-ack ポートにフラグ付与
     jelly_stream_add_syncflag
             #(
-                .FIRST_WIDTH            (N),
-                .LAST_WIDTH             (N),
-                .USER_WIDTH             (0),
-                .HAS_FIRST              (1),
-                .HAS_LAST               (1),
-                .ASYNC                  (WASYNC),
-                .FIFO_PTR_WIDTH         (BACKFIFO_PTR_WIDTH),
-                .FIFO_DOUT_REGS         (BACKFIFO_DOUT_REGS),
-                .FIFO_RAM_TYPE          (BACKFIFO_RAM_TYPE),
-                .FIFO_LOW_DEALY         (BACKFIFO_LOW_DEALY),
-                .FIFO_S_REGS            (BACKFIFO_S_REGS),
-                .FIFO_M_REGS            (BACKFIFO_M_REGS),
-                .S_REGS                 (BACK_S_REGS),
-                .M_REGS                 (BACK_M_REGS)
+                .FIRST_WIDTH        (N),
+                .LAST_WIDTH         (N),
+                .USER_WIDTH         (0),
+                .HAS_FIRST          (1),
+                .HAS_LAST           (1),
+                .ASYNC              (WASYNC),
+                .FIFO_PTR_WIDTH     (BACKFIFO_PTR_WIDTH),
+                .FIFO_DOUT_REGS     (BACKFIFO_DOUT_REGS),
+                .FIFO_RAM_TYPE      (BACKFIFO_RAM_TYPE),
+                .FIFO_LOW_DEALY     (BACKFIFO_LOW_DEALY),
+                .FIFO_S_REGS        (BACKFIFO_S_REGS),
+                .FIFO_M_REGS        (BACKFIFO_M_REGS),
+                .S_REGS             (BACK_S_REGS),
+                .M_REGS             (BACK_M_REGS)
             )
         i_stream_add_syncflag_b
             (
-                .reset                  (~s_bresetn),
-                .clk                    (s_bclk),
-                .cke                    (1'b1),
+                .reset              (~s_bresetn),
+                .clk                (s_bclk),
+                .cke                (1'b1),
                 
-                .s_first                (1'b1),
-                .s_last                 (1'b1),
-                .s_user                 (1'b0),
-                .s_valid                (write_bvalid),
-                .s_ready                (write_bready),
+                .s_first            (1'b1),
+                .s_last             (1'b1),
+                .s_user             (1'b0),
+                .s_valid            (write_bvalid),
+                .s_ready            (write_bready),
                 
-                .m_first                (),
-                .m_last                 (),
-                .m_added_first          (s_bfirst),
-                .m_added_last           (s_blast),
-                .m_user                 (),
-                .m_valid                (s_bvalid),
-                .m_ready                (s_bready),
+                .m_first            (),
+                .m_last             (),
+                .m_added_first      (s_bfirst),
+                .m_added_last       (s_blast),
+                .m_user             (),
+                .m_valid            (s_bvalid),
+                .m_ready            (s_bready),
                 
-                .s_add_reset            (~m_aresetn),
-                .s_add_clk              (m_aclk),
-                .s_add_first            (ack_awfirst),
-                .s_add_last             (ack_awlast),
-                .s_add_valid            (ack_awvalid),
-                .s_add_ready            (ack_awready)
+                .s_add_reset        (~m_aresetn),
+                .s_add_clk          (m_aclk),
+                .s_add_first        (ack_awfirst),
+                .s_add_last         (ack_awlast),
+                .s_add_valid        (ack_awvalid),
+                .s_add_ready        (ack_awready)
             );
     
 endmodule

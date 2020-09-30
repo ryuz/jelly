@@ -3,19 +3,19 @@
 `default_nettype none
 
 
-module tb_address_generator_ndarray();
+module tb_address_generator_nd();
     localparam RATE = 1000.0/20.0;
     
     initial begin
-        $dumpfile("tb_address_generator_ndarray.vcd");
-        $dumpvars(0, tb_address_generator_ndarray);
+        $dumpfile("tb_address_generator_nd.vcd");
+        $dumpvars(0, tb_address_generator_nd);
         
         #1000000;
             $finish;
     end
     
     
-    parameter   RAND_BUSY = 1;
+    parameter   RAND_BUSY = 0;
     
     
     reg     clk = 1'b1;
@@ -27,7 +27,7 @@ module tb_address_generator_ndarray();
     reg     cke = 1'b1;
     always @(posedge clk) cke <= RAND_BUSY ? {$random()} : 1'b1;
     
-    parameter   N          = 1;
+    parameter   N          = 4;
     parameter   ADDR_WIDTH = 32;
     parameter   STEP_WIDTH = 32;
     parameter   LEN_WIDTH  = 32;
@@ -105,13 +105,13 @@ module tb_address_generator_ndarray();
         #0
             s_addr  = 32'h0100_0000;
             s_step[0*STEP_WIDTH +: STEP_WIDTH] = 32'h00000100;
-//            s_step[1*STEP_WIDTH +: STEP_WIDTH] = 32'h00001000;
-//            s_step[2*STEP_WIDTH +: STEP_WIDTH] = 32'h00010000;
-//            s_step[3*STEP_WIDTH +: STEP_WIDTH] = 32'h00100000;
-            s_len [0*LEN_WIDTH  +: LEN_WIDTH ] = 5;
-//            s_len [1*LEN_WIDTH  +: LEN_WIDTH ] = 4;
-//            s_len [2*LEN_WIDTH  +: LEN_WIDTH ] = 3;
-//            s_len [3*LEN_WIDTH  +: LEN_WIDTH ] = 2;
+            s_step[1*STEP_WIDTH +: STEP_WIDTH] = 32'h00001000;
+            s_step[2*STEP_WIDTH +: STEP_WIDTH] = 32'h00010000;
+            s_step[3*STEP_WIDTH +: STEP_WIDTH] = 32'h00100000;
+            s_len [0*LEN_WIDTH  +: LEN_WIDTH ] = 1;
+            s_len [1*LEN_WIDTH  +: LEN_WIDTH ] = 0;
+            s_len [2*LEN_WIDTH  +: LEN_WIDTH ] = 3;
+            s_len [3*LEN_WIDTH  +: LEN_WIDTH ] = 2;
             s_user  = 0;
             s_valid = 0;
         

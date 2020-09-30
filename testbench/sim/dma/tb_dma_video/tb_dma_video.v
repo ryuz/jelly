@@ -11,8 +11,9 @@ module tb_dma_video();
     
     
     initial begin
-        $dumpfile("tb_dma_video.vcd");
+        $dumpfile("tb_dma_video.vcd"); 
         $dumpvars(0, tb_dma_video);
+//      $dumpvars(3, tb_dma_video);
         
         #1000000;
             $finish;
@@ -68,10 +69,10 @@ module tb_dma_video();
     parameter WB_SEL_WIDTH          = (WB_DAT_WIDTH / 8);
     
     // AXI4-Stream Video
-    parameter AXI4S_SRC_DATA_WIDTH  = 32;
+    parameter AXI4S_SRC_DATA_WIDTH  = 24;
     parameter AXI4S_SRC_USER_WIDTH  = 1;
     
-    parameter AXI4S_DST_DATA_WIDTH  = 32;
+    parameter AXI4S_DST_DATA_WIDTH  = 24;
     parameter AXI4S_DST_USER_WIDTH  = 1;
     
     // AXI4 Memory
@@ -102,7 +103,7 @@ module tb_dma_video();
     wire   [WB_DAT_WIDTH-1:0]           wb_dat_i;
     reg                                 wb_we_o;
     reg    [WB_SEL_WIDTH-1:0]           wb_sel_o;
-    reg                                 wb_stb_o;
+    reg                                 wb_stb_o = 1'b0;
     wire                                wb_ack_i;
     
     // source stream
@@ -162,8 +163,119 @@ module tb_dma_video();
     
     
     
+    
+    // ----------------------------------
+    //  buffer manager
+    // ----------------------------------
+    
+    localparam BUFFER_NUM   = 4;
+    localparam READER_NUM   = 1;
+    
+    wire                                host_buffer_request;
+    wire                                host_buffer_release;
+    wire    [AXI4_ADDR_WIDTH-1:0]       host_buffer_addr;
+    wire    [3:0]                       host_buffer_index;
+    
+    wire                                dmaw_buffer_request;
+    wire                                dmaw_buffer_release;
+    wire    [AXI4_ADDR_WIDTH-1:0]       dmaw_buffer_addr;
+    wire    [3:0]                       dmaw_buffer_index;
+    
+    wire                                dmar_buffer_request;
+    wire                                dmar_buffer_release;
+    wire    [AXI4_ADDR_WIDTH-1:0]       dmar_buffer_addr;
+    wire    [3:0]                       dmar_buffer_index;
+    
+    wire    [WB_DAT_WIDTH-1:0]          wb_bufm_dat_i;
+    wire                                wb_bufm_stb_o;
+    wire                                wb_bufm_ack_i;
+    
+    jelly_buffer_manager
+            #(
+                .BUFFER_NUM             (BUFFER_NUM),
+                .READER_NUM             (2),
+                .ADDR_WIDTH             (AXI4_ADDR_WIDTH),
+                .REFCNT_WIDTH           (4),
+                .INDEX_WIDTH            (4),
+                
+                .WB_ADR_WIDTH           (8),
+                .WB_DAT_WIDTH           (WB_DAT_WIDTH),
+                
+                .INIT_ADDR0             (32'h0000_0000),
+                .INIT_ADDR1             (32'h0010_0000),
+                .INIT_ADDR2             (32'h0020_0000),
+                .INIT_ADDR3             (32'h0030_0000),
+                .INIT_ADDR4             (32'h0040_0000)
+            )
+        i_buffer_manager
+            (
+                .s_wb_rst_i             (wb_rst_i),
+                .s_wb_clk_i             (wb_clk_i),
+                .s_wb_adr_i             (wb_adr_o[7:0]),
+                .s_wb_dat_i             (wb_dat_o),
+                .s_wb_dat_o             (wb_bufm_dat_i),
+                .s_wb_we_i              (wb_we_o),
+                .s_wb_sel_i             (wb_sel_o),
+                .s_wb_stb_i             (wb_bufm_stb_o),
+                .s_wb_ack_o             (wb_bufm_ack_i),
+                
+                .writer_request         (dmaw_buffer_request),
+                .writer_release         (dmaw_buffer_release),
+                .writer_addr            (dmaw_buffer_addr),
+                .writer_index           (dmaw_buffer_index),
+                
+                .reader_request         ({host_buffer_request, dmar_buffer_request}),
+                .reader_release         ({host_buffer_release, dmar_buffer_release}),
+                .reader_addr            ({host_buffer_addr,    dmar_buffer_addr}),
+                .reader_index           ({host_buffer_index,   dmar_buffer_index}),
+                
+                .newest_addr            (),
+                .newest_index           (),
+                
+                .status_refcnt          ()
+            );
+    
+    
+    // ----------------------------------
+    //  buffer allocator
+    // ----------------------------------
+    
+    // バッファ割り当て
+    wire    [WB_DAT_WIDTH-1:0]          wb_bufa_dat_i;
+    wire                                wb_bufa_stb_o;
+    wire                                wb_bufa_ack_i;
+    
+    jelly_buffer_allocator
+            #(
+                .ADDR_WIDTH             (AXI4_ADDR_WIDTH),
+                .INDEX_WIDTH            (4),
+                
+                .WB_ADR_WIDTH           (8),
+                .WB_DAT_WIDTH           (WB_DAT_WIDTH)
+            )
+        i_buffer_allocator
+            (
+                .s_wb_rst_i             (wb_rst_i),
+                .s_wb_clk_i             (wb_clk_i),
+                .s_wb_adr_i             (wb_adr_o[7:0]),
+                .s_wb_dat_i             (wb_dat_o),
+                .s_wb_dat_o             (wb_bufa_dat_i),
+                .s_wb_we_i              (wb_we_o),
+                .s_wb_sel_i             (wb_sel_o),
+                .s_wb_stb_i             (wb_bufa_stb_o),
+                .s_wb_ack_o             (wb_bufa_ack_i),
+                
+                .buffer_request         (host_buffer_request),
+                .buffer_release         (host_buffer_release),
+                .buffer_addr            (host_buffer_addr),
+                .buffer_index           (host_buffer_index)
+            );
+    
+    
+    
+    
     // -----------------------------------------
-    //  Source
+    //  video source
     // -----------------------------------------
     
     jelly_axi4s_master_model
@@ -192,13 +304,11 @@ module tb_dma_video();
     //  Write
     // -----------------------------------------
     
-    wire    [WB_DAT_WIDTH-1:0]          wb_wr_dat_i;
-    wire                                wb_wr_stb_o;
-    wire                                wb_wr_ack_i;
+    wire    [WB_DAT_WIDTH-1:0]          wb_dmaw_dat_i;
+    wire                                wb_dmaw_stb_o;
+    wire                                wb_dmaw_ack_i;
     
-    wire                                write_buffer_request;
-    wire                                write_buffer_release;
-    wire    [AXI4_ADDR_WIDTH-1:0]       write_buffer_addr;
+
     
     jelly_dma_video_write
             #(
@@ -237,10 +347,10 @@ module tb_dma_video();
                 .LINE_STEP_WIDTH        (AXI4_ADDR_WIDTH),
                 .FRAME_STEP_WIDTH       (AXI4_ADDR_WIDTH),
                 
-                .INIT_CTL_CONTROL       (4'b0001),
+                .INIT_CTL_CONTROL       (4'b0000),
                 .INIT_IRQ_ENABLE        (1'b0),
                 .INIT_PARAM_ADDR        (0),
-                .INIT_PARAM_AWLEN_MAX   (7),
+                .INIT_PARAM_AWLEN_MAX   (255),
                 .INIT_PARAM_H_SIZE      (X_NUM-1),
                 .INIT_PARAM_V_SIZE      (Y_NUM-1),
                 .INIT_PARAM_LINE_STEP   (X_NUM*4),
@@ -315,16 +425,16 @@ module tb_dma_video();
                 .s_wb_clk_i             (wb_clk_i),
                 .s_wb_adr_i             (wb_adr_o[7:0]),
                 .s_wb_dat_i             (wb_dat_o),
-                .s_wb_dat_o             (wb_wr_dat_i),
+                .s_wb_dat_o             (wb_dmaw_dat_i),
                 .s_wb_we_i              (wb_we_o),
                 .s_wb_sel_i             (wb_sel_o),
-                .s_wb_stb_i             (wb_wr_stb_o),
-                .s_wb_ack_o             (wb_wr_ack_i),
+                .s_wb_stb_i             (wb_dmaw_stb_o),
+                .s_wb_ack_o             (wb_dmaw_ack_i),
                 .out_irq                (),
                 
-                .buffer_request         (write_buffer_request),
-                .buffer_release         (write_buffer_release),
-                .buffer_addr            (write_buffer_addr),
+                .buffer_request         (dmaw_buffer_request),
+                .buffer_release         (dmaw_buffer_release),
+                .buffer_addr            (dmaw_buffer_addr),
                 
                 .s_axi4s_aresetn        (src_aresetn),
                 .s_axi4s_aclk           (src_aclk),
@@ -365,13 +475,9 @@ module tb_dma_video();
     //  Read
     // -----------------------------------------
     
-    wire    [WB_DAT_WIDTH-1:0]          wb_rd_dat_i;
-    wire                                wb_rd_stb_o;
-    wire                                wb_rd_ack_i;
-    
-    wire                                read_buffer_request;
-    wire                                read_buffer_release;
-    wire    [AXI4_ADDR_WIDTH-1:0]       read_buffer_addr;
+    wire    [WB_DAT_WIDTH-1:0]          wb_dmar_dat_i;
+    wire                                wb_dmar_stb_o;
+    wire                                wb_dmar_ack_i;
     
     jelly_dma_video_read
             #(
@@ -409,7 +515,7 @@ module tb_dma_video();
                 .LINE_STEP_WIDTH        (AXI4_ADDR_WIDTH),
                 .FRAME_STEP_WIDTH       (AXI4_ADDR_WIDTH),
                 
-                .INIT_CTL_CONTROL       (4'b0001),
+                .INIT_CTL_CONTROL       (4'b0000),
                 .INIT_IRQ_ENABLE        (1'b0),
                 .INIT_PARAM_ADDR        (0),
                 .INIT_PARAM_AWLEN_MAX   (3),
@@ -475,16 +581,16 @@ module tb_dma_video();
                 .s_wb_clk_i             (wb_clk_i),
                 .s_wb_adr_i             (wb_adr_o[7:0]),
                 .s_wb_dat_i             (wb_dat_o),
-                .s_wb_dat_o             (wb_rd_dat_i),
+                .s_wb_dat_o             (wb_dmar_dat_i),
                 .s_wb_we_i              (wb_we_o),
                 .s_wb_sel_i             (wb_sel_o),
-                .s_wb_stb_i             (wb_rd_stb_o),
-                .s_wb_ack_o             (wb_rd_ack_i),
+                .s_wb_stb_i             (wb_dmar_stb_o),
+                .s_wb_ack_o             (wb_dmar_ack_i),
                 .out_irq                (),
                 
-                .buffer_request         (read_buffer_request),
-                .buffer_release         (read_buffer_release),
-                .buffer_addr            (read_buffer_addr),
+                .buffer_request         (dmar_buffer_request),
+                .buffer_release         (dmar_buffer_release),
+                .buffer_addr            (dmar_buffer_addr),
                 
                 .m_axi4s_aresetn        (dst_aresetn),
                 .m_axi4s_aclk           (dst_aclk),
@@ -517,82 +623,6 @@ module tb_dma_video();
             );
     
     
-    // ----------------------------------
-    //  buffer allocator
-    // ----------------------------------
-    
-    parameter   BUFFER_NUM   = 3;
-    parameter   READER_NUM   = 1;
-    parameter   ADDR_WIDTH   = AXI4_ADDR_WIDTH;
-    parameter   REFCNT_WIDTH = 2;
-    
-    reg     [ADDR_WIDTH-1:0]        param_buf_addr0 = 32'h1000_0000;
-    reg     [ADDR_WIDTH-1:0]        param_buf_addr1 = 32'h2000_0000;
-    reg     [ADDR_WIDTH-1:0]        param_buf_addr2 = 32'h3000_0000;
-    
-    wire    [ADDR_WIDTH-1:0]        newest_addr;
-    wire    [1:0]                   newest_index;
-    wire    [REFCNT_WIDTH-1:0]      status_refcnt0;
-    wire    [REFCNT_WIDTH-1:0]      status_refcnt1;
-    wire    [REFCNT_WIDTH-1:0]      status_refcnt2;
-    
-    
-    jelly_buffer_allocator
-            #(
-                .BUFFER_NUM             (BUFFER_NUM),
-                .READER_NUM             (READER_NUM),
-                .ADDR_WIDTH             (ADDR_WIDTH),
-                .REFCNT_WIDTH           (REFCNT_WIDTH),
-                .INDEX_WIDTH            (2)
-            )
-        i_buffer_allocator
-            (
-                .reset                  (wb_rst_i),
-                .clk                    (wb_clk_i),
-                .cke                    (1'b1),
-                
-                .param_buf_addr         ({param_buf_addr2, param_buf_addr1, param_buf_addr0}),
-                
-                .writer_request         (write_buffer_request),
-                .writer_release         (write_buffer_release),
-                .writer_addr            (write_buffer_addr),
-                .writer_index           (),
-                
-                .reader_request         (read_buffer_request),
-                .reader_release         (read_buffer_release),
-                .reader_addr            (read_buffer_addr),
-                .reader_index           (),
-                
-                .newest_addr            (newest_addr),
-                .newest_index           (newest_index),
-                .status_refcnt          ({status_refcnt2, status_refcnt1, status_refcnt0})
-            );
-    
-    /*
-    // dummy writer
-    initial begin
-    #10000;
-        while ( 1 ) begin
-            while ( {$random()} % 10 != 0 )
-                @(posedge wb_clk_i);
-            read_request <= 1'b1;
-            @(posedge wb_clk_i);
-            read_request <= 1'b0;
-            @(posedge wb_clk_i);
-            
-            @(posedge wb_clk_i);
-            while ( {$random()} % 100 != 0 )
-                @(posedge wb_clk_i);
-            
-            read_release <= 1'b1;
-            @(posedge wb_clk_i);
-            read_release <= 1'b0;
-            @(posedge wb_clk_i);
-        end
-    end
-    */
-    
-    
     
     // -----------------------------------------
     //  save image
@@ -604,7 +634,7 @@ module tb_dma_video();
                 .DATA_WIDTH             (8),
                 .INIT_FRAME_NUM         (0),
                 .FILE_NAME              ("dst_%04d.ppm"),
-                .BUSY_RATE              (RAND_BUSY ? 50 : 0),
+                .BUSY_RATE              (RAND_BUSY ? 20 : 0),
                 .RANDOM_SEED            (82147)
             )
         i_axi4s_slave_model
@@ -654,10 +684,10 @@ module tb_dma_video();
                 .R_FIFO_PTR_WIDTH       (0),
                 
                 .AW_BUSY_RATE           (RAND_BUSY ? 80 : 0),
-                .W_BUSY_RATE            (RAND_BUSY ? 80 : 0),
-                .B_BUSY_RATE            (RAND_BUSY ? 80 : 0),
-                .AR_BUSY_RATE           (0),
-                .R_BUSY_RATE            (0)
+                .W_BUSY_RATE            (RAND_BUSY ? 20 : 0),
+                .B_BUSY_RATE            (RAND_BUSY ? 20 : 0),
+                .AR_BUSY_RATE           (RAND_BUSY ? 80 : 0),
+                .R_BUSY_RATE            (RAND_BUSY ? 20 : 0)
             )
         i_axi4_slave_model
             (
@@ -709,15 +739,21 @@ module tb_dma_video();
     //  WISHBONE address decoder
     // -----------------------------------------
     
-    assign wb_wr_stb_o = wb_stb_o & (wb_adr_o[9:8] == 2'b00);
-    assign wb_rd_stb_o = wb_stb_o & (wb_adr_o[9:8] == 2'b01);
+    assign wb_bufm_stb_o = wb_stb_o & (wb_adr_o[9:8] == 2'b00);
+    assign wb_bufa_stb_o = wb_stb_o & (wb_adr_o[9:8] == 2'b01);
+    assign wb_dmaw_stb_o = wb_stb_o & (wb_adr_o[9:8] == 2'b10);
+    assign wb_dmar_stb_o = wb_stb_o & (wb_adr_o[9:8] == 2'b11);
     
-    assign wb_dat_i    = wb_wr_stb_o ? wb_wr_dat_i :
-                         wb_rd_stb_o ? wb_rd_dat_i :
+    assign wb_dat_i    = wb_bufm_stb_o ? wb_bufm_dat_i :
+                         wb_bufa_stb_o ? wb_bufa_dat_i :
+                         wb_dmaw_stb_o ? wb_dmaw_dat_i :
+                         wb_dmar_stb_o ? wb_dmar_dat_i :
                          {WB_DAT_WIDTH{1'b0}};
     
-    assign wb_ack_i    = wb_wr_stb_o ? wb_wr_ack_i :
-                         wb_rd_stb_o ? wb_rd_ack_i :
+    assign wb_ack_i    = wb_bufm_stb_o ? wb_bufm_ack_i :
+                         wb_bufa_stb_o ? wb_bufa_ack_i :
+                         wb_dmaw_stb_o ? wb_dmaw_ack_i :
+                         wb_dmar_stb_o ? wb_dmar_ack_i :
                          wb_stb_o;
     
     
@@ -785,11 +821,78 @@ module tb_dma_video();
     endtask
     
     
+    
+    
+    // register address offset
+    localparam  ADR_CORE_ID             = 8'h00;
+    localparam  ADR_CORE_VERSION        = 8'h01;
+    localparam  ADR_CORE_CONFIG         = 8'h03;
+    localparam  ADR_CTL_CONTROL         = 8'h04;
+    localparam  ADR_CTL_STATUS          = 8'h05;
+    localparam  ADR_CTL_INDEX           = 8'h07;
+    localparam  ADR_IRQ_ENABLE          = 8'h08;
+    localparam  ADR_IRQ_STATUS          = 8'h09;
+    localparam  ADR_IRQ_CLR             = 8'h0a;
+    localparam  ADR_IRQ_SET             = 8'h0b;
+    localparam  ADR_PARAM_ADDR          = 8'h10;
+    localparam  ADR_PARAM_AWLEN_MAX     = 8'h11;
+    localparam  ADR_PARAM_H_SIZE        = 8'h20;
+    localparam  ADR_PARAM_V_SIZE        = 8'h24;
+    localparam  ADR_PARAM_LINE_STEP     = 8'h25;
+    localparam  ADR_PARAM_F_SIZE        = 8'h28;
+    localparam  ADR_PARAM_FRAME_STEP    = 8'h29;
+    localparam  ADR_SKIP_EN             = 8'h70;
+    localparam  ADR_DETECT_FIRST        = 8'h72;
+    localparam  ADR_DETECT_LAST         = 8'h73;
+    localparam  ADR_PADDING_EN          = 8'h74;
+    localparam  ADR_PADDING_DATA        = 8'h75;
+    localparam  ADR_PADDING_STRB        = 8'h76;
+    
+    localparam  ADR_BUFFER0_REQUEST     = 8'h20;
+    localparam  ADR_BUFFER0_RELEASE     = 8'h21;
+    localparam  ADR_BUFFER0_ADDR        = 8'h22;
+    localparam  ADR_BUFFER0_INDEX       = 8'h23;
+    
     initial begin
         #(WB_RATE*200);
+        wb_write(32'h0000 + 8'h40, 32'h0004_0000, 8'hff);
+        wb_write(32'h0000 + 8'h41, 32'h0003_0000, 8'hff);
+        wb_write(32'h0000 + 8'h42, 32'h0004_0000, 8'hff);
+        wb_write(32'h0000 + 8'h43, 32'h0001_0000, 8'hff);
         
         
-        $display("start");
+        $display("write start");
+        wb_write(32'h0200 + ADR_CTL_CONTROL,     32'h0000_0009, 8'hff);   // write CTL_CONTROL
+        #10000;
+        
+        $display("read start");
+        wb_write(32'h0300 + ADR_CTL_CONTROL,     32'h0000_0009, 8'hff);   // read CTL_CONTROL
+        #10000;
+        
+        
+        $display("buffer resuest & release");
+        wb_write(32'h0100 + ADR_BUFFER0_REQUEST, 32'h0000_0001, 8'hff);
+        wb_read (32'h0100 + ADR_BUFFER0_ADDR);
+        wb_write(32'h0100 + ADR_BUFFER0_RELEASE, 32'h0000_0001, 8'hff);
+        #10000;
+        
+        #100000;
+        $display("buffer resuest & release");
+        wb_write(32'h0100 + ADR_BUFFER0_REQUEST, 32'h0000_0001, 8'hff);
+        wb_read (32'h0100 + ADR_BUFFER0_ADDR);
+        wb_write(32'h0100 + ADR_BUFFER0_RELEASE, 32'h0000_0001, 8'hff);
+        #100000;
+        $display("buffer resuest & release");
+        wb_write(32'h0100 + ADR_BUFFER0_REQUEST, 32'h0000_0001, 8'hff);
+        wb_read (32'h0100 + ADR_BUFFER0_ADDR);
+        wb_write(32'h0100 + ADR_BUFFER0_RELEASE, 32'h0000_0001, 8'hff);
+        #100000;
+        $display("buffer resuest & release");
+        wb_write(32'h0100 + ADR_BUFFER0_REQUEST, 32'h0000_0001, 8'hff);
+        wb_read (32'h0100 + ADR_BUFFER0_ADDR);
+        wb_write(32'h0100 + ADR_BUFFER0_RELEASE, 32'h0000_0001, 8'hff);
+
+        #10000;
         
         /*
         wb_read(ADR_CORE_ID);

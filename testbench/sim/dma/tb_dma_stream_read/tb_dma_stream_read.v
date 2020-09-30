@@ -78,7 +78,7 @@ module tb_dma_stream_read();
     parameter AXI4_ARQOS           = 0;
     parameter AXI4_ARREGION        = 4'b0000;
     
-    parameter S_RDATA_WIDTH        = 32;
+    parameter RDATA_WIDTH          = 32;
     parameter CAPACITY_WIDTH       = 12;   // 内部キューイング用
     
     parameter ARLEN_OFFSET         = 1'b1;
@@ -196,7 +196,7 @@ module tb_dma_stream_read();
     wire                            buffer_release;
     wire    [AXI4_ADDR_WIDTH-1:0]   buffer_addr;
     
-    wire    [S_RDATA_WIDTH-1:0]     s_rdata;
+    wire    [RDATA_WIDTH-1:0]       s_rdata;
     wire    [N-1:0]                 s_rfirst;
     wire    [N-1:0]                 s_rlast;
     wire                            s_rvalid;
@@ -249,7 +249,7 @@ module tb_dma_stream_read();
                 .AXI4_ARPROT            (AXI4_ARPROT),
                 .AXI4_ARQOS             (AXI4_ARQOS),
                 .AXI4_ARREGION          (AXI4_ARREGION),
-                .S_RDATA_WIDTH          (S_RDATA_WIDTH),
+                .RDATA_WIDTH            (RDATA_WIDTH),
                 .CAPACITY_WIDTH         (CAPACITY_WIDTH),
                 .ARLEN0_WIDTH           (ARLEN0_WIDTH),
                 .ARLEN1_WIDTH           (ARLEN1_WIDTH),
@@ -522,7 +522,7 @@ module tb_dma_stream_read();
     wire    [REFCNT_WIDTH-1:0]  status_refcnt2;
     
     
-    jelly_buffer_allocator
+    jelly_buffer_arbiter
             #(
                 .BUFFER_NUM     (BUFFER_NUM),
                 .READER_NUM     (READER_NUM),
@@ -530,7 +530,7 @@ module tb_dma_stream_read();
                 .REFCNT_WIDTH   (REFCNT_WIDTH),
                 .INDEX_WIDTH    (2)
             )
-        i_buffer_allocator
+        i_buffer_arbiter
             (
                 .reset          (s_wb_rst_i),
                 .clk            (s_wb_clk_i),
