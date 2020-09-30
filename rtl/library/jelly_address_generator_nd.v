@@ -113,7 +113,7 @@ module jelly_address_generator_nd
                     reg_addr [i*ADDR_WIDTH +: ADDR_WIDTH] <= ff_s_addr;
                     reg_len  [i*LEN_WIDTH  +: LEN_WIDTH ] <= ff_s_len [i*LEN_WIDTH  +: LEN_WIDTH] - (1'b1 - LEN_OFFSET);
                     reg_first[i] <= 1'b1;
-                    tmp_last      = tmp_last && ((ff_s_len [i*LEN_WIDTH  +: LEN_WIDTH] - (1'b1 - LEN_OFFSET)) == 0);
+                    tmp_last      = /*tmp_last &&*/ ((ff_s_len [i*LEN_WIDTH  +: LEN_WIDTH] - (1'b1 - LEN_OFFSET)) == 0);
                     reg_last [i] <= tmp_last;
                 end
                 reg_user  <= ff_s_user;
