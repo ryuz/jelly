@@ -11,16 +11,13 @@ Welcome to Jelly's documentation!
    :caption: Contents:
 
    overview
-   jelly_library
-   vdma_axi4s_to_axi4
-   vdma_axi4_to_axi4s
-   video_format_regularizer
-   video_parameter_update
+   dma_modules
+   video_modules
+   image_modules
+   library_modules
 
    cpu_core
    cpu_system
-
-   dma_stream_read
 
 Indices and tables
 ==================
