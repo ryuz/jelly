@@ -103,25 +103,70 @@ module tb_address_generator_nd();
     
     initial begin
         #0
-            s_addr  = 32'h0100_0000;
-            s_step[0*STEP_WIDTH +: STEP_WIDTH] = 32'h00000100;
-            s_step[1*STEP_WIDTH +: STEP_WIDTH] = 32'h00001000;
-            s_step[2*STEP_WIDTH +: STEP_WIDTH] = 32'h00010000;
-            s_step[3*STEP_WIDTH +: STEP_WIDTH] = 32'h00100000;
-            s_len [0*LEN_WIDTH  +: LEN_WIDTH ] = 1;
-            s_len [1*LEN_WIDTH  +: LEN_WIDTH ] = 0;
-            s_len [2*LEN_WIDTH  +: LEN_WIDTH ] = 3;
-            s_len [3*LEN_WIDTH  +: LEN_WIDTH ] = 2;
-            s_user  = 0;
-            s_valid = 0;
-        
         #5000;
+
         @(posedge clk);
+            s_addr  = 32'h0100_0000;
+            s_step[0*STEP_WIDTH +: STEP_WIDTH] <= 32'h00000100;
+            s_step[1*STEP_WIDTH +: STEP_WIDTH] <= 32'h00001000;
+            s_step[2*STEP_WIDTH +: STEP_WIDTH] <= 32'h00010000;
+            s_step[3*STEP_WIDTH +: STEP_WIDTH] <= 32'h00100000;
+            s_len [0*LEN_WIDTH  +: LEN_WIDTH ] <= 4;
+            s_len [1*LEN_WIDTH  +: LEN_WIDTH ] <= 3;
+            s_len [2*LEN_WIDTH  +: LEN_WIDTH ] <= 2;
+            s_len [3*LEN_WIDTH  +: LEN_WIDTH ] <= 1;
+            s_user  <= 0;
+            s_valid <= 0;
+            s_valid <= 1;
+            while ( !(cke && s_valid & s_ready) )
+                @(posedge clk);
+            @(posedge clk);
+            
+            
+            s_addr  = 32'h0100_0000;
+            s_step[0*STEP_WIDTH +: STEP_WIDTH] <= 32'h00000100;
+            s_step[1*STEP_WIDTH +: STEP_WIDTH] <= 32'h00001000;
+            s_step[2*STEP_WIDTH +: STEP_WIDTH] <= 32'h00010000;
+            s_step[3*STEP_WIDTH +: STEP_WIDTH] <= 32'h00100000;
+            s_len [0*LEN_WIDTH  +: LEN_WIDTH ] <= 1;
+            s_len [1*LEN_WIDTH  +: LEN_WIDTH ] <= 0;
+            s_len [2*LEN_WIDTH  +: LEN_WIDTH ] <= 2;
+            s_len [3*LEN_WIDTH  +: LEN_WIDTH ] <= 0;
+            s_user  <= 0;
+            s_valid <= 1;
+            while ( !(cke && s_valid & s_ready) )
+                @(posedge clk);
+            s_valid <= 0;
+            
+            s_addr  = 32'h0100_0000;
+            s_step[0*STEP_WIDTH +: STEP_WIDTH] <= 32'h00000100;
+            s_step[1*STEP_WIDTH +: STEP_WIDTH] <= 32'h00001000;
+            s_step[2*STEP_WIDTH +: STEP_WIDTH] <= 32'h00010000;
+            s_step[3*STEP_WIDTH +: STEP_WIDTH] <= 32'h00100000;
+            s_len [0*LEN_WIDTH  +: LEN_WIDTH ] <= 0;
+            s_len [1*LEN_WIDTH  +: LEN_WIDTH ] <= 0;
+            s_len [2*LEN_WIDTH  +: LEN_WIDTH ] <= 0;
+            s_len [3*LEN_WIDTH  +: LEN_WIDTH ] <= 0;
+            s_user  <= 0;
             s_valid <= 1;
             while ( !(cke && s_valid & s_ready) )
                 @(posedge clk);
             s_valid <= 0;
         
+            s_addr  = 32'h0100_0000;
+            s_step[0*STEP_WIDTH +: STEP_WIDTH] <= 32'h00000100;
+            s_step[1*STEP_WIDTH +: STEP_WIDTH] <= 32'h00001000;
+            s_step[2*STEP_WIDTH +: STEP_WIDTH] <= 32'h00010000;
+            s_step[3*STEP_WIDTH +: STEP_WIDTH] <= 32'h00100000;
+            s_len [0*LEN_WIDTH  +: LEN_WIDTH ] <= 1;
+            s_len [1*LEN_WIDTH  +: LEN_WIDTH ] <= 0;
+            s_len [2*LEN_WIDTH  +: LEN_WIDTH ] <= 0;
+            s_len [3*LEN_WIDTH  +: LEN_WIDTH ] <= 1;
+            s_user  <= 0;
+            s_valid <= 1;
+            while ( !(cke && s_valid & s_ready) )
+                @(posedge clk);
+            s_valid <= 0;
         
         #100000;
             $finish;
