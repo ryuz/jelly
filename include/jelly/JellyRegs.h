@@ -4,6 +4,223 @@
 
 
 /* ---------------------------------- */
+/*  DMA                               */
+/* ---------------------------------- */
+
+/* buffer manager */
+#define REG_BUF_MANAGER_CORE_ID                 0x00
+#define REG_BUF_MANAGER_CORE_VERSION            0x01
+#define REG_BUF_MANAGER_CORE_CONFIG             0x03
+#define REG_BUF_MANAGER_NEWEST_INDEX            0x20
+#define REG_BUF_MANAGER_WRITER_INDEX            0x21
+#define REG_BUF_MANAGER_BUFFER0_ADDR            0x40
+#define REG_BUF_MANAGER_BUFFER1_ADDR            0x41
+#define REG_BUF_MANAGER_BUFFER2_ADDR            0x42
+#define REG_BUF_MANAGER_BUFFER3_ADDR            0x43
+#define REG_BUF_MANAGER_BUFFER4_ADDR            0x44
+#define REG_BUF_MANAGER_BUFFER5_ADDR            0x45
+#define REG_BUF_MANAGER_BUFFER6_ADDR            0x46
+#define REG_BUF_MANAGER_BUFFER7_ADDR            0x47
+#define REG_BUF_MANAGER_BUFFER8_ADDR            0x48
+#define REG_BUF_MANAGER_BUFFER9_ADDR            0x49
+#define REG_BUF_MANAGER_BUFFER0_REFCNT          0x80
+#define REG_BUF_MANAGER_BUFFER1_REFCNT          0x81
+#define REG_BUF_MANAGER_BUFFER2_REFCNT          0x82
+#define REG_BUF_MANAGER_BUFFER3_REFCNT          0x83
+#define REG_BUF_MANAGER_BUFFER4_REFCNT          0x84
+#define REG_BUF_MANAGER_BUFFER5_REFCNT          0x85
+#define REG_BUF_MANAGER_BUFFER6_REFCNT          0x86
+#define REG_BUF_MANAGER_BUFFER7_REFCNT          0x87
+#define REG_BUF_MANAGER_BUFFER8_REFCNT          0x88
+#define REG_BUF_MANAGER_BUFFER9_REFCNT          0x89
+#define REG_BUF_MANAGER_BUFFER_ADDR(x)          (0x40 + x)
+#define REG_BUF_MANAGER_BUFFER_REFCNT(x)        (0x80 + x)
+
+/* buffer allocator */
+#define REG_BUF_ALLOC_CORE_ID                   0x00
+#define REG_BUF_ALLOC_CORE_VERSION              0x01
+#define REG_BUF_ALLOC_CORE_CONFIG               0x03
+#define REG_BUF_ALLOC_BUFFER0_REQUEST           0x20
+#define REG_BUF_ALLOC_BUFFER0_RELEASE           0x21
+#define REG_BUF_ALLOC_BUFFER0_ADDR              0x22
+#define REG_BUF_ALLOC_BUFFER0_INDEX             0x23
+
+/* DMA Stream write */
+#define REG_DMA_WRITE_CORE_ID                   0x00
+#define REG_DMA_WRITE_CORE_VERSION              0x01
+#define REG_DMA_WRITE_CORE_CONFIG               0x03
+#define REG_DMA_WRITE_CTL_CONTROL               0x04
+#define REG_DMA_WRITE_CTL_STATUS                0x05
+#define REG_DMA_WRITE_CTL_INDEX                 0x07
+#define REG_DMA_WRITE_IRQ_ENABLE                0x08
+#define REG_DMA_WRITE_IRQ_STATUS                0x09
+#define REG_DMA_WRITE_IRQ_CLR                   0x0a
+#define REG_DMA_WRITE_IRQ_SET                   0x0b
+#define REG_DMA_WRITE_PARAM_AWADDR              0x10
+#define REG_DMA_WRITE_PARAM_AWLEN_MAX           0x11
+#define REG_DMA_WRITE_PARAM_AWLEN0              0x20
+#define REG_DMA_WRITE_PARAM_AWLEN1              0x24
+#define REG_DMA_WRITE_PARAM_AWSTEP1             0x25
+#define REG_DMA_WRITE_PARAM_AWLEN2              0x28
+#define REG_DMA_WRITE_PARAM_AWSTEP2             0x29
+#define REG_DMA_WRITE_PARAM_AWLEN3              0x2c
+#define REG_DMA_WRITE_PARAM_AWSTEP3             0x2d
+#define REG_DMA_WRITE_PARAM_AWLEN4              0x30
+#define REG_DMA_WRITE_PARAM_AWSTEP4             0x31
+#define REG_DMA_WRITE_PARAM_AWLEN5              0x34
+#define REG_DMA_WRITE_PARAM_AWSTEP5             0x35
+#define REG_DMA_WRITE_PARAM_AWLEN6              0x38
+#define REG_DMA_WRITE_PARAM_AWSTEP6             0x39
+#define REG_DMA_WRITE_PARAM_AWLEN7              0x3c
+#define REG_DMA_WRITE_PARAM_AWSTEP7             0x3d
+#define REG_DMA_WRITE_PARAM_AWLEN8              0x30
+#define REG_DMA_WRITE_PARAM_AWSTEP8             0x31
+#define REG_DMA_WRITE_PARAM_AWLEN9              0x44
+#define REG_DMA_WRITE_PARAM_AWSTEP9             0x45
+#define REG_DMA_WRITE_WSKIP_EN                  0x70
+#define REG_DMA_WRITE_WDETECT_FIRST             0x72
+#define REG_DMA_WRITE_WDETECT_LAST              0x73
+#define REG_DMA_WRITE_WPADDING_EN               0x74
+#define REG_DMA_WRITE_WPADDING_DATA             0x75
+#define REG_DMA_WRITE_WPADDING_STRB             0x76
+#define REG_DMA_WRITE_SHADOW_AWADDR             0x90
+#define REG_DMA_WRITE_SHADOW_AWLEN_MAX          0x91
+#define REG_DMA_WRITE_SHADOW_AWLEN0             0xa0
+#define REG_DMA_WRITE_SHADOW_AWLEN1             0xa4
+#define REG_DMA_WRITE_SHADOW_AWSTEP1            0xa5
+#define REG_DMA_WRITE_SHADOW_AWLEN2             0xa8
+#define REG_DMA_WRITE_SHADOW_AWSTEP2            0xa9
+#define REG_DMA_WRITE_SHADOW_AWLEN3             0xac
+#define REG_DMA_WRITE_SHADOW_AWSTEP3            0xad
+#define REG_DMA_WRITE_SHADOW_AWLEN4             0xb0
+#define REG_DMA_WRITE_SHADOW_AWSTEP4            0xb1
+#define REG_DMA_WRITE_SHADOW_AWLEN5             0xb4
+#define REG_DMA_WRITE_SHADOW_AWSTEP5            0xb5
+#define REG_DMA_WRITE_SHADOW_AWLEN6             0xb8
+#define REG_DMA_WRITE_SHADOW_AWSTEP6            0xb9
+#define REG_DMA_WRITE_SHADOW_AWLEN7             0xbc
+#define REG_DMA_WRITE_SHADOW_AWSTEP7            0xbd
+#define REG_DMA_WRITE_SHADOW_AWLEN8             0xb0
+#define REG_DMA_WRITE_SHADOW_AWSTEP8            0xb1
+#define REG_DMA_WRITE_SHADOW_AWLEN9             0xc4
+#define REG_DMA_WRITE_SHADOW_AWSTEP9            0xc5
+
+/* DMA Stream read */
+#define REG_DMA_READ_CORE_ID                    0x00
+#define REG_DMA_READ_CORE_VERSION               0x01
+#define REG_DMA_READ_CORE_CONFIG                0x03
+#define REG_DMA_READ_CTL_CONTROL                0x04
+#define REG_DMA_READ_CTL_STATUS                 0x05
+#define REG_DMA_READ_CTL_INDEX                  0x07
+#define REG_DMA_READ_IRQ_ENABLE                 0x08
+#define REG_DMA_READ_IRQ_STATUS                 0x09
+#define REG_DMA_READ_IRQ_CLR                    0x0a
+#define REG_DMA_READ_IRQ_SET                    0x0b
+#define REG_DMA_READ_PARAM_ARADDR               0x10
+#define REG_DMA_READ_PARAM_ARLEN_MAX            0x11
+#define REG_DMA_READ_PARAM_ARLEN0               0x20
+#define REG_DMA_READ_PARAM_ARLEN1               0x24
+#define REG_DMA_READ_PARAM_ARSTEP1              0x25
+#define REG_DMA_READ_PARAM_ARLEN2               0x28
+#define REG_DMA_READ_PARAM_ARSTEP2              0x29
+#define REG_DMA_READ_PARAM_ARLEN3               0x2c
+#define REG_DMA_READ_PARAM_ARSTEP3              0x2d
+#define REG_DMA_READ_PARAM_ARLEN4               0x30
+#define REG_DMA_READ_PARAM_ARSTEP4              0x31
+#define REG_DMA_READ_PARAM_ARLEN5               0x34
+#define REG_DMA_READ_PARAM_ARSTEP5              0x35
+#define REG_DMA_READ_PARAM_ARLEN6               0x38
+#define REG_DMA_READ_PARAM_ARSTEP6              0x39
+#define REG_DMA_READ_PARAM_ARLEN7               0x3c
+#define REG_DMA_READ_PARAM_ARSTEP7              0x3d
+#define REG_DMA_READ_PARAM_ARLEN8               0x30
+#define REG_DMA_READ_PARAM_ARSTEP8              0x31
+#define REG_DMA_READ_PARAM_ARLEN9               0x44
+#define REG_DMA_READ_PARAM_ARSTEP9              0x45
+#define REG_DMA_READ_SHADOW_ARADDR              0x90
+#define REG_DMA_READ_SHADOW_ARLEN_MAX           0x91
+#define REG_DMA_READ_SHADOW_ARLEN0              0xa0
+#define REG_DMA_READ_SHADOW_ARLEN1              0xa4
+#define REG_DMA_READ_SHADOW_ARSTEP1             0xa5
+#define REG_DMA_READ_SHADOW_ARLEN2              0xa8
+#define REG_DMA_READ_SHADOW_ARSTEP2             0xa9
+#define REG_DMA_READ_SHADOW_ARLEN3              0xac
+#define REG_DMA_READ_SHADOW_ARSTEP3             0xad
+#define REG_DMA_READ_SHADOW_ARLEN4              0xb0
+#define REG_DMA_READ_SHADOW_ARSTEP4             0xb1
+#define REG_DMA_READ_SHADOW_ARLEN5              0xb4
+#define REG_DMA_READ_SHADOW_ARSTEP5             0xb5
+#define REG_DMA_READ_SHADOW_ARLEN6              0xb8
+#define REG_DMA_READ_SHADOW_ARSTEP6             0xb9
+#define REG_DMA_READ_SHADOW_ARLEN7              0xbc
+#define REG_DMA_READ_SHADOW_ARSTEP7             0xbd
+#define REG_DMA_READ_SHADOW_ARLEN8              0xb0
+#define REG_DMA_READ_SHADOW_ARSTEP8             0xb1
+#define REG_DMA_READ_SHADOW_ARLEN9              0xc4
+#define REG_DMA_READ_SHADOW_ARSTEP9             0xc5
+
+
+/* DMA Video write */
+#define REG_VDMA_WRITE_CORE_ID                  REG_DMA_WRITE_CORE_ID
+#define REG_VDMA_WRITE_CORE_VERSION             REG_DMA_WRITE_CORE_VERSION
+#define REG_VDMA_WRITE_CORE_CONFIG              REG_DMA_WRITE_CORE_CONFIG
+#define REG_VDMA_WRITE_CTL_CONTROL              REG_DMA_WRITE_CTL_CONTROL
+#define REG_VDMA_WRITE_CTL_STATUS               REG_DMA_WRITE_CTL_STATUS
+#define REG_VDMA_WRITE_CTL_INDEX                REG_DMA_WRITE_CTL_INDEX
+#define REG_VDMA_WRITE_IRQ_ENABLE               REG_DMA_WRITE_IRQ_ENABLE
+#define REG_VDMA_WRITE_IRQ_STATUS               REG_DMA_WRITE_IRQ_STATUS
+#define REG_VDMA_WRITE_IRQ_CLR                  REG_DMA_WRITE_IRQ_CLR
+#define REG_VDMA_WRITE_IRQ_SET                  REG_DMA_WRITE_IRQ_SET
+#define REG_VDMA_WRITE_PARAM_ADDR               REG_DMA_WRITE_PARAM_AWADDR
+#define REG_VDMA_WRITE_PARAM_AWLEN_MAX          REG_DMA_WRITE_PARAM_AWLEN_MAX
+#define REG_VDMA_WRITE_PARAM_H_SIZE             REG_DMA_WRITE_PARAM_AWLEN0
+#define REG_VDMA_WRITE_PARAM_V_SIZE             REG_DMA_WRITE_PARAM_AWLEN1
+#define REG_VDMA_WRITE_PARAM_LINE_STEP          REG_DMA_WRITE_PARAM_AWSTEP1
+#define REG_VDMA_WRITE_PARAM_F_SIZE             REG_DMA_WRITE_PARAM_AWLEN2
+#define REG_VDMA_WRITE_PARAM_FRAME_STEP         REG_DMA_WRITE_PARAM_AWSTEP2
+#define REG_VDMA_WRITE_SKIP_EN                  REG_DMA_WRITE_WSKIP_EN
+#define REG_VDMA_WRITE_DETECT_FIRST             REG_DMA_WRITE_WDETECT_FIRST
+#define REG_VDMA_WRITE_DETECT_LAST              REG_DMA_WRITE_WDETECT_LAST
+#define REG_VDMA_WRITE_PADDING_EN               REG_DMA_WRITE_WPADDING_EN
+#define REG_VDMA_WRITE_PADDING_DATA             REG_DMA_WRITE_WPADDING_DATA
+#define REG_VDMA_WRITE_PADDING_STRB             REG_DMA_WRITE_WPADDING_STRB
+#define REG_VDMA_WRITE_SHADOW_ADDR              REG_DMA_WRITE_SHADOW_AWADDR
+#define REG_VDMA_WRITE_SHADOW_AWLEN_MAX         REG_DMA_WRITE_SHADOW_AWLEN_MAX
+#define REG_VDMA_WRITE_SHADOW_H_SIZE            REG_DMA_WRITE_SHADOW_AWLEN0
+#define REG_VDMA_WRITE_SHADOW_V_SIZE            REG_DMA_WRITE_SHADOW_AWLEN1
+#define REG_VDMA_WRITE_SHADOW_LINE_STEP         REG_DMA_WRITE_SHADOW_AWSTEP1
+#define REG_VDMA_WRITE_SHADOW_F_SIZE            REG_DMA_WRITE_SHADOW_AWLEN2
+#define REG_VDMA_WRITE_SHADOW_FRAME_STEP        REG_DMA_WRITE_SHADOW_AWSTEP2
+
+/* DMA Video read */
+#define REG_VDMA_READ_CORE_ID                   REG_DMA_READ_CORE_ID
+#define REG_VDMA_READ_CORE_VERSION              REG_DMA_READ_CORE_VERSION
+#define REG_VDMA_READ_CORE_CONFIG               REG_DMA_READ_CORE_CONFIG
+#define REG_VDMA_READ_CTL_CONTROL               REG_DMA_READ_CTL_CONTROL
+#define REG_VDMA_READ_CTL_STATUS                REG_DMA_READ_CTL_STATUS
+#define REG_VDMA_READ_CTL_INDEX                 REG_DMA_READ_CTL_INDEX
+#define REG_VDMA_READ_IRQ_ENABLE                REG_DMA_READ_IRQ_ENABLE
+#define REG_VDMA_READ_IRQ_STATUS                REG_DMA_READ_IRQ_STATUS
+#define REG_VDMA_READ_IRQ_CLR                   REG_DMA_READ_IRQ_CLR
+#define REG_VDMA_READ_IRQ_SET                   REG_DMA_READ_IRQ_SET
+#define REG_VDMA_READ_PARAM_ADDR                REG_DMA_READ_PARAM_ARADDR
+#define REG_VDMA_READ_PARAM_ARLEN_MAX           REG_DMA_READ_PARAM_ARLEN_MAX
+#define REG_VDMA_READ_PARAM_H_SIZE              REG_DMA_READ_PARAM_ARLEN0
+#define REG_VDMA_READ_PARAM_V_SIZE              REG_DMA_READ_PARAM_ARLEN1
+#define REG_VDMA_READ_PARAM_LINE_STEP           REG_DMA_READ_PARAM_ARSTEP1
+#define REG_VDMA_READ_PARAM_F_SIZE              REG_DMA_READ_PARAM_ARLEN2
+#define REG_VDMA_READ_PARAM_FRAME_STEP          REG_DMA_READ_PARAM_ARSTEP2
+#define REG_VDMA_READ_SHADOW_ADDR               REG_DMA_READ_SHADOW_ARADDR
+#define REG_VDMA_READ_SHADOW_ARLEN_MAX          REG_DMA_READ_SHADOW_ARLEN_MAX
+#define REG_VDMA_READ_SHADOW_H_SIZE             REG_DMA_READ_SHADOW_ARLEN0
+#define REG_VDMA_READ_SHADOW_V_SIZE             REG_DMA_READ_SHADOW_ARLEN1
+#define REG_VDMA_READ_SHADOW_LINE_STEP          REG_DMA_READ_SHADOW_ARSTEP1
+#define REG_VDMA_READ_SHADOW_F_SIZE             REG_DMA_READ_SHADOW_ARLEN2
+#define REG_VDMA_READ_SHADOW_FRAME_STEP         REG_DMA_READ_SHADOW_ARSTEP2
+
+
+
+/* ---------------------------------- */
 /*  Video                             */
 /* ---------------------------------- */
 
