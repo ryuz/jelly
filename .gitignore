@@ -9,13 +9,17 @@
 *.vcd
 *.elf
 
+*.bmp
 *.png
 *.jpg
 *.pgm
 *.ppm
 *.hex
 *.csv
-*_.*
+*.mp4
+*.avi
+*.*_
+
 
 *.ncb
 *.opt
@@ -69,12 +73,26 @@
 *.ncd
 *.ngm
 *.psr
+veritak_src_files.txt
+veritak_command.txt
+p_temp*.txt
+out*.txt
+exp*.txt
+axi4_read*.txt
+axi4_write*.txt
 
+Debug/
+Release/
+xst/
+.vs/
+iseconfig/
+_xmsgs/
 *.Xil/
 *.cache/
 *.hw/
 *.runs/
 *.sdk/
+*.sim/
 *.srcs/
 *.gise
 *.ip_user_files/
