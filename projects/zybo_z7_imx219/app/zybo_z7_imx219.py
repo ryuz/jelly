@@ -7,7 +7,6 @@ import numpy as np
 from pathlib import Path
 
 sys.path.append(os.path.join(Path().resolve(), '../../../python'))
-#from jellypy import jellypy
 import jellypy
 
 
@@ -169,17 +168,22 @@ imx219.set_flip(flip_h, flip_v)
 #reg_demos.write_reg(REG_IMG_DEMOSAIC_PARAM_PHASE, bayer_phase)
 #reg_demos.write_reg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3)  #update & enable
 
-# cpture
-capture_still_image(reg_wdma, reg_fmtr, dmabuf_mem_addr, width, height, 1)
-#cv::Mat img(height*frame_num, width, CV_8UC4)
-#udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4 * frame_num)
-img = udmabuf.get_array_uint8((height, width, 4), 0)
-
-#img_rgb = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
-#plt.figure(figsize=(12, 8))
-#plt.imshow(img_rgb[:,:,::-1])
+#capture_still_image(reg_wdma, reg_fmtr, dmabuf_mem_addr, width, height, 1)
+#img = udmabuf.get_array_uint8((height, width, 4), 0)
+#plt.imshow(img[:,:,::-1])
 #plt.show()
 
-cv2.imshow('"img', img)
-cv2.waitKey()
+while cv2.waitKey(10) != 0x1b:
+    # cpture
+    capture_still_image(reg_wdma, reg_fmtr, dmabuf_mem_addr, width, height, 1)
+    #cv::Mat img(height*frame_num, width, CV_8UC4)
+    #udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4 * frame_num)
+    img = udmabuf.get_array_uint8((height, width, 4), 0)
+
+    #img_rgb = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
+    #plt.figure(figsize=(12, 8))
+    #plt.imshow(img_rgb[:,:,::-1])
+    #plt.show()
+
+    cv2.imshow('"img', img)
 
