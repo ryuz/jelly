@@ -16,7 +16,7 @@ module tb_top();
         $dumpfile("tb_top.vcd");
         $dumpvars(1, tb_top);
         $dumpvars(2, tb_top.i_top);
-        $dumpvars(3, tb_top.i_top.i_dma_video_read);
+//      $dumpvars(3, tb_top.i_top.i_dma_video_read);
 //      $dumpvars(1, tb_top.i_top.i_image_processing);
 //      $dumpvars(0, tb_top.i_top.i_image_processing.i_img_previous_frame);
 //      $dumpvars(0, tb_top.i_top.blk_read_vdma.i_vdma_axi4_to_axi4s);
@@ -385,10 +385,10 @@ module tb_top();
         */
         
         $display("buf manager");
-        wb_write(32'h40300000 + (REG_BUF_MANAGER_BUFFER0_ADDR << 2), 32'h00100000, 4'b1111);
-        wb_write(32'h40300000 + (REG_BUF_MANAGER_BUFFER1_ADDR << 2), 32'h00200000, 4'b1111);
-        wb_write(32'h40300000 + (REG_BUF_MANAGER_BUFFER2_ADDR << 2), 32'h00300000, 4'b1111);
-        wb_write(32'h40300000 + (REG_BUF_MANAGER_BUFFER3_ADDR << 2), 32'h00400000, 4'b1111);
+        wb_write(32'h40300000 + (REG_BUF_MANAGER_BUFFER0_ADDR << 2), 32'h00010000, 4'b1111);
+        wb_write(32'h40300000 + (REG_BUF_MANAGER_BUFFER1_ADDR << 2), 32'h00020000, 4'b1111);
+        wb_write(32'h40300000 + (REG_BUF_MANAGER_BUFFER2_ADDR << 2), 32'h00030000, 4'b1111);
+        wb_write(32'h40300000 + (REG_BUF_MANAGER_BUFFER3_ADDR << 2), 32'h00040000, 4'b1111);
         
         
         $display("vin write DMA");

@@ -322,9 +322,9 @@ module design_1
     jelly_axi4_slave_model
             #(
                 .AXI_ID_WIDTH           (6),
-                .AXI_ADDR_WIDTH         (24),
+                .AXI_ADDR_WIDTH         (28),
                 .AXI_DATA_SIZE          (3),
-                .MEM_WIDTH              (17),
+                .MEM_WIDTH              (20),
                 
                 .WRITE_LOG_FILE         ("axi4_0_write.txt"),
                 .READ_LOG_FILE          ("axi4_0_read.txt"),
@@ -350,7 +350,7 @@ module design_1
                 .aclk                   (s_axi4_mem_aclk),
                 
                 .s_axi4_awid            (s_axi4_mem0_awid),
-                .s_axi4_awaddr          (s_axi4_mem0_awaddr[23:0]),
+                .s_axi4_awaddr          (s_axi4_mem0_awaddr[27:0]),
                 .s_axi4_awlen           (s_axi4_mem0_awlen),
                 .s_axi4_awsize          (s_axi4_mem0_awsize),
                 .s_axi4_awburst         (s_axi4_mem0_awburst),
@@ -370,7 +370,7 @@ module design_1
                 .s_axi4_bvalid          (s_axi4_mem0_bvalid),
                 .s_axi4_bready          (s_axi4_mem0_bready),
                 .s_axi4_arid            (s_axi4_mem0_arid),
-                .s_axi4_araddr          (s_axi4_mem0_araddr[23:0]),
+                .s_axi4_araddr          (s_axi4_mem0_araddr[27:0]),
                 .s_axi4_arlen           (s_axi4_mem0_arlen),
                 .s_axi4_arsize          (s_axi4_mem0_arsize),
                 .s_axi4_arburst         (s_axi4_mem0_arburst),

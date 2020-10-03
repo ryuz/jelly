@@ -990,7 +990,7 @@ module zybo_z7_imx219_hdmi
                 .WB_DAT_WIDTH           (WB_DAT_WIDTH),
                 
                 .AXI4S_ASYNC            (1),
-                .AXI4S_DATA_WIDTH       (32),
+                .AXI4S_DATA_WIDTH       (24), // (32),
                 .AXI4S_USER_WIDTH       (1),
                 
                 .AXI4_ID_WIDTH          (AXI4_MEM0_ID_WIDTH),
@@ -1025,7 +1025,7 @@ module zybo_z7_imx219_hdmi
                 .BYPASS_GATE            (0),
                 .BYPASS_ALIGN           (0),
                 .DETECTOR_ENABLE        (1),
-                .ALLOW_UNALIGNED        (0),
+                .ALLOW_UNALIGNED        (1), // (0),
                 .CAPACITY_WIDTH         (32),
                 
                 .WFIFO_PTR_WIDTH        (9),
@@ -1054,7 +1054,7 @@ module zybo_z7_imx219_hdmi
                 .s_axi4s_aclk           (axi4s_cam_aclk),
                 .s_axi4s_tuser          (axi4s_rgb_tuser),
                 .s_axi4s_tlast          (axi4s_rgb_tlast),
-                .s_axi4s_tdata          (axi4s_rgb_tdata),
+                .s_axi4s_tdata          (axi4s_rgb_tdata[23:0]),
                 .s_axi4s_tvalid         (axi4s_rgb_tvalid),
                 .s_axi4s_tready         (axi4s_rgb_tready),
                 
@@ -1094,7 +1094,7 @@ module zybo_z7_imx219_hdmi
     localparam  VOUT_Y_NUM = 720;
     
     
-    wire    [31:0]                      axi4s_vout_tdata;
+    wire    [23:0]                      axi4s_vout_tdata;
     wire                                axi4s_vout_tlast;
     wire    [0:0]                       axi4s_vout_tuser;
     wire                                axi4s_vout_tvalid;
@@ -1112,7 +1112,7 @@ module zybo_z7_imx219_hdmi
                 .WB_DAT_WIDTH           (WB_DAT_WIDTH),
                 
                 .AXI4S_ASYNC            (1),
-                .AXI4S_DATA_WIDTH       (32),
+                .AXI4S_DATA_WIDTH       (24), // (32),
                 .AXI4S_USER_WIDTH       (1),
                 
                 .AXI4_ID_WIDTH          (AXI4_MEM0_ID_WIDTH),
@@ -1140,7 +1140,7 @@ module zybo_z7_imx219_hdmi
                 .INIT_PARAM_FRAME_STEP  (Y_NUM*8192),
                 
                 .BYPASS_GATE            (0),
-                .BYPASS_ALIGN           (0),
+                .BYPASS_ALIGN           (1), // (0),
                 .ALLOW_UNALIGNED        (0),
                 .CAPACITY_WIDTH         (32),
                 .RFIFO_PTR_WIDTH        (9),
