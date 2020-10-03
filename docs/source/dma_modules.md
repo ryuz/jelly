@@ -16,8 +16,6 @@ jelly_buffer_manager からソフトウェアがバッファ割り当てを受�
 
 ### 概要
 
-(まだデバッグ中)
-
 N次元構造の Stream から AXI4 メモリバスへとして書き込みを行う。
 書き込み先のバッファ制御と、データの書き込み側とを独立性高く扱いつつ、メモリアクセス効率を保つことを目的に設計を行っている。
 
@@ -383,14 +381,94 @@ endian は 動的に変更することは想定していないので注意。バ
 外部メモリを利用した大サイズのFIFOを構成する
 
 
+### レジスタ仕様
+
+アドレスはWISHBONEのワードアドレス。
+レジスタ幅や初期値は parameter 指定で変更可能。
+
+| register name   |addr|R/W|size|description                   |
+|:--------------- |:--:|:-:|:--:|:-----------------------------|
+| CORE_ID         |0x00|RO | 32 | core ID     |
+| CORE_VERSION    |0x01|RO | 32 | core verion |
+| CTL_CONTROL     |0x04|RW |  2 | bit[0]:有効化<br>bit[1]:パラメータ更新予約(自動クリア) |
+| CTL_STATUS      |0x05|RO |  1 | 動作中に1 |
+| CTL_INDEX       |0x06|RO |INDEX_WIDTH         |新規パラメータ反映毎にインクリメント|
+| PARAM_ADDR      |0x08|RW |PARAM_ADDR_WIDTH    |割り当てメモリの先頭アドレス |
+| PARAM_SIZE      |0x09|RW |PARAM_SIZE_WIDTH    |割り当てメモリのサイズ |
+| PARAM_AWLEN     |0x10|RW |PARAM_AWLEN_WIDTH   |書き込み側の最大awlen | 
+| PARAM_WSTRB     |0x11|RW |PARAM_WSTRB_WIDTH   |書き込み側のストローブ |
+| PARAM_WTIMEOUT  |0x13|RW |PARAM_WTIMEOUT_WIDTH|書き込み側のタイムアウト時間 |
+| PARAM_ARLEN     |0x14|RW |PARAM_ARLEN_WIDTH   |書き込み側の最大arlen |
+| PARAM_RTIMEOUT  |0x17|RW |PARAM_RTIMEOUT_WIDTH|読み込み側のタイムアウト時間 |
+
+基本的にメモリを割り当ててしまえば、ストリームデータに対して巨大なFIFOとしてふるまうモジュールである。
+ただし、メモリバス幅がストリームバス幅より大きい場合、バス幅分のデータにならないと反対側のポートに転送されないので注意が必要である。
+
+メモリ読み書きの両端でコア内にも小さなFIFOを持っており、データの揃った分しか書き込みコマンドを出さないし、FIFOの空き分しか読出しコマンドを出さないので、ストリーム側は特にメモリの事を気にせずにBRAMで構成したFIFOと似たように利用可能である。
+
+レジスタにはタイムアウトレジスタを用意しており、データや空きが awlen/wrlen のサイズ揃わなくてもタイムアウトすれば転送を行う。タイムアウトしない範囲でなるべくデータを溜めてからバースト転送を行う事でメモリアクセス効率が向上する。
+
 
 
 ## jelly_dma_video_write
 
 AXI4 Stream Video 書き込み用のDMA
+jelly_dma_stream_write の N=3 のラッパーとして実装されている
+
+
+### レジスタ仕様
+
+アドレスはWISHBONEのワードアドレス。
+レジスタ幅や初期値は parameter 指定で変更可能。
+
+| register name  |addr|R/W|size|description                   |
+|:-------------  |:--:|:-:|:--:|:-----------------------------|
+|CORE_ID         |0x00|RO | 32 | core ID     |
+|CORE_VERSION    |0x01|RO | 32 | core verion |
+|CORE_CONFIG     |0x03|RO | 32 | サポート次元数(Nの値) |
+|CTL_CONTROL     |0x04|RW |  4 | bit[0]:有効化<br>bit[1]:パラメータ更新予約(自動クリア)<br>bit[2]:ワンショット転送<br>bit[3] 自動アドレス取得有効 |
+|CTL_STATUS      |0x05|RO |  1 | 動作中に1となる |
+|CTL_INDEX       |0x07|RO |INDEX_WIDTH| 新規パラメータ反映毎にインクリメント
+|IRQ_ENABLE      |0x08|RW |  1 | 1でIQR有効 |
+|IRQ_STATUS      |0x09|RO |  1 | 現在のIQR保留状態 |
+|IRQ_CLR         |0x0a|WO |  1 | 1を書き込むと保留IRQクリア |
+|IRQ_SET         |0x0b|WO |  1 | 1を書き込むと保留IRQセット |
+|PARAM_ADDR      |0x10|RW |AXI4_ADDR_WIDTH| 転送アドレス(非自動割り当て時)
+|PARAM_AWLEN_MAX |0x11|RW |AXI4_LEN_WIDTH| AXI4バスでの1回の最大転送サイズから1を引いたもの)
+|PARAM_H_SIZE    |0x20|RW |H_SIZE_WIDTH |水平サイズからSIZE_OFFSETを引いた値|
+|PARAM_V_SIZE    |0x24|RW |V_SIZE_WIDTH |垂直サイズからSIZE_OFFSETを引いた値|
+|PARAM_LINE_STEP |0x25|RW |AXI4_ADDR_WIDTH|ライン単位の転送ステップ(バイト単位)|
+|PARAM_F_SIZE    |0x28|RW |F_SIZE_WIDTH |複数フレーム記録する倍のフレーム数からSIZE_OFFSETを引いた値|
+|PARAM_FRAME_STEP|0x29|RW |AXI4_ADDR_WIDTH|フレーム単位の転送ステップ(バイト単位)|
+|SKIP_EN         |0x70|RW |1            |DMA停止時にStreamをスキップする|
+|DETECT_FIRST    |0x72|RW |3            |転送開始にtuserの検出する場合はbit[1]を1にする|
+|DETECT_LAST     |0x73|RW |3            |パディングの為にtlastの検出する場合はbit[0]を1にする|
+|PADDING_EN      |0x74|RW |1            |データ不足時にパディングを行う|
+|PADDING_DATA    |0x75|RW |WDATA_WIDTH  |パディング時のデータ|
+|PADDING_STRB    |0x76|RW |WSTRB_WIDTH  |パディング時のストローブ|
+
 
 ## jelly_dma_video_read
 
 AXI4 Stream Video  読み出し用のDMA
 
+| register name  |addr|R/W|size|description                   |
+|:-------------  |:--:|:-:|:--:|:-----------------------------|
+|CORE_ID         |0x00|RO | 32 | core ID     |
+|CORE_VERSION    |0x01|RO | 32 | core verion |
+|CORE_CONFIG     |0x03|RO | 32 | サポート次元数(Nの値) |
+|CTL_CONTROL     |0x04|RW |  4 | bit[0]:有効化<br>bit[1]:パラメータ更新予約(自動クリア)<br>bit[2]:ワンショット転送<br>bit[3] 自動アドレス取得有効 |
+|CTL_STATUS      |0x05|RO |  1 | 動作中に1となる |
+|CTL_INDEX       |0x07|RO |INDEX_WIDTH| 新規パラメータ反映毎にインクリメント
+|IRQ_ENABLE      |0x08|RW |  1 | 1でIQR有効 |
+|IRQ_STATUS      |0x09|RO |  1 | 現在のIQR保留状態 |
+|IRQ_CLR         |0x0a|WO |  1 | 1を書き込むと保留IRQクリア |
+|IRQ_SET         |0x0b|WO |  1 | 1を書き込むと保留IRQセット |
+|PARAM_ADDR      |0x10|RW |AXI4_ADDR_WIDTH| 転送アドレス(非自動割り当て時)
+|PARAM_ARLEN_MAX |0x11|RW |AXI4_LEN_WIDTH| AXI4バスでの1回の最大転送サイズから1を引いたもの)
+|PARAM_H_SIZE    |0x20|RW |H_SIZE_WIDTH |水平サイズからSIZE_OFFSETを引いた値|
+|PARAM_V_SIZE    |0x24|RW |V_SIZE_WIDTH |垂直サイズからSIZE_OFFSETを引いた値|
+|PARAM_LINE_STEP |0x25|RW |AXI4_ADDR_WIDTH|ライン単位の転送ステップ(バイト単位)|
+|PARAM_F_SIZE    |0x28|RW |F_SIZE_WIDTH |複数フレーム記録する倍のフレーム数からSIZE_OFFSETを引いた値|
+|PARAM_FRAME_STEP|0x29|RW |AXI4_ADDR_WIDTH|フレーム単位の転送ステップ(バイト単位)|
 
