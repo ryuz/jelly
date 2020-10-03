@@ -37,14 +37,14 @@ int main(int argc, char *argv[])
     bool    flip_v      = false;
     int     frame_rate  = 60;
     int     exposure    = 20;
-    int     a_gain      = 12;
-    int     d_gain      = 0;
+    int     a_gain      = 20;
+    int     d_gain      = 1;
     int     bayer_phase = 1;
     int     view_scale  = 1;
     int     view_x      = -1;
     int     view_y      = -1;
     bool    colmat_en   = false;
-    int     gamma       = 16;
+    int     gamma       = 22;
     int     gauss_level = 0;
     int     canny_th    = 127;
     int     diff_th     = 15;
@@ -305,16 +305,6 @@ int main(int argc, char *argv[])
     while ( (key = (cv::waitKeyEx(10) & 0xff)) != 0x1b ) {
         auto img = ReadImage(udmabuf_acc, reg_bufalc, width, height);
         cv::imshow("img", img);
-
-        /*
-        printf("\n");
-        printf("REG_VDMA_READ_CTL_CONTROL:%08x\n", reg_vdmar.ReadReg(REG_VDMA_READ_CTL_CONTROL));
-        printf("REG_VDMA_READ_CTL_STATUS:%08x\n", reg_vdmar.ReadReg(REG_VDMA_READ_CTL_STATUS));
-        printf("REG_VDMA_READ_PARAM_ADDR:%08x\n", reg_vdmar.ReadReg(REG_VDMA_READ_PARAM_ADDR));
-        printf("REG_VDMA_READ_SHADOW_ADDR:%08x\n", reg_vdmar.ReadReg(REG_VDMA_READ_SHADOW_ADDR));
-        printf("REG_VDMA_READ_PARAM_H_SIZE:%08x\n", reg_vdmar.ReadReg(REG_VDMA_READ_PARAM_H_SIZE));
-        printf("REG_VDMA_READ_SHADOW_H_SIZE:%08x\n", reg_vdmar.ReadReg(REG_VDMA_READ_SHADOW_H_SIZE));
-        */
         
         // カメラ設定
         imx219.SetFrameRate(frame_rate);
@@ -366,9 +356,6 @@ int main(int argc, char *argv[])
             int gamma_tbl_addr  = (int)reg_gamma.ReadReg(REG_IMG_GAMMA_CFG_TBL_ADDR);
             int gamma_tbl_size  = (int)reg_gamma.ReadReg(REG_IMG_GAMMA_CFG_TBL_SIZE);
             int gamma_tbl_width = (int)reg_gamma.ReadReg(REG_IMG_GAMMA_CFG_TBL_WIDTH);
-//          std::cout << "gamma_tbl_addr  : 0x" << std::hex << gamma_tbl_addr << std::endl;
-//          std::cout << "gamma_tbl_size  : 0x" << std::hex << gamma_tbl_size << std::endl;
-//          std::cout << "gamma_tbl_width : "               << gamma_tbl_width << std::endl;
             for ( int i = 0; i < gamma_tbl_size; ++i) {
                 int v = (int)(std::pow((float)i / (float)(gamma_tbl_size-1), 1.0f/g)*((1<<gamma_tbl_width)-1));
                 for ( int c = 0; c < 3; ++c) {
@@ -433,9 +420,6 @@ int main(int argc, char *argv[])
         case 'c':   colmat_en = !colmat_en; break;
 
         case 'd':   // image dump
-//            capture_stop(reg_vdmar, reg_fmtr);
-//            auto img = ReadImage(udmabuf_acc, reg_bufalc, width, height);
-//            capture_start(reg_vdmaw, reg_fmtr, dmabuf_phys_adr, width, height, view_x, view_y);
             cv::Mat imgRgb;
             cv::cvtColor(img, imgRgb, CV_BGRA2BGR);
             cv::imwrite("img_dump.png", imgRgb);
@@ -471,28 +455,27 @@ cv::Mat ReadImage(jelly::UdmabufAccessor& udmabuf_acc, jelly::MemAccessor& reg_b
     auto buf_addr = reg_bufalc.ReadReg(REG_BUF_ALLOC_BUFFER0_ADDR);
     buf_addr -= udmabuf_acc.GetPhysAddr();
 
+#if 0
+    // 32bitデータ
     cv::Mat img(height, width, CV_8UC4);
     for ( int i = 0; i < img.rows; i++ )
     {
         udmabuf_acc.MemCopyTo(img.data + i*img.step, buf_addr + i*stride, img.cols*4);
     }
+#else
+    // 24bitデータ
+    cv::Mat img(height, width, CV_8UC3);
+    for ( int i = 0; i < img.rows; i++ )
+    {
+        udmabuf_acc.MemCopyTo(img.data + i*img.step, buf_addr + i*stride, img.cols*3);
+    }
+#endif
 
     reg_bufalc.WriteReg(REG_BUF_ALLOC_BUFFER0_RELEASE, 1);
 
     return img;
 }
 
-/*
-cv::Mat ReadImage(jelly::MemAccessor& mem_acc, int width, int height)
-{
-    cv::Mat img(height, width, CV_8UC4);
-    for ( int i = 0; i < img.rows; i++ )
-    {
-        mem_acc.MemCopyTo(img.data + i*img.step, i*stride, img.cols*4);
-    }
-    return img;
-}
-*/
 
 void capture_start(jelly::MemAccessor& reg_vdmaw, jelly::MemAccessor& reg_fmtr, std::uintptr_t bufaddr, int width, int height, int x, int y)
 {

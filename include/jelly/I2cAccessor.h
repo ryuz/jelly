@@ -8,7 +8,7 @@
 #ifndef __RYUZ__JELLY__I2C_ACCESSOR__H__
 #define __RYUZ__JELLY__I2C_ACCESSOR__H__
 
-
+#include <fcntl.h>
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
 
