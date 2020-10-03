@@ -33,8 +33,8 @@
 #define REG_BUF_MANAGER_BUFFER7_REFCNT          0x87
 #define REG_BUF_MANAGER_BUFFER8_REFCNT          0x88
 #define REG_BUF_MANAGER_BUFFER9_REFCNT          0x89
-#define REG_BUF_MANAGER_BUFFER_ADDR(x)          (0x40 + x)
-#define REG_BUF_MANAGER_BUFFER_REFCNT(x)        (0x80 + x)
+#define REG_BUF_MANAGER_BUFFER_ADDR(x)          (0x40 + (x))
+#define REG_BUF_MANAGER_BUFFER_REFCNT(x)        (0x80 + (x))
 
 /* buffer allocator */
 #define REG_BUF_ALLOC_CORE_ID                   0x00
@@ -44,6 +44,10 @@
 #define REG_BUF_ALLOC_BUFFER0_RELEASE           0x21
 #define REG_BUF_ALLOC_BUFFER0_ADDR              0x22
 #define REG_BUF_ALLOC_BUFFER0_INDEX             0x23
+#define REG_BUF_ALLOC_BUFFER_REQUEST(x)         (0x20 + 4*(x))
+#define REG_BUF_ALLOC_BUFFER_RELEASE(x)         (0x21 + 4*(x))
+#define REG_BUF_ALLOC_BUFFER_ADDR(x)            (0x22 + 4*(x))
+#define REG_BUF_ALLOC_BUFFER_INDEX(x)           (0x23 + 4*(x))
 
 /* DMA Stream write */
 #define REG_DMA_WRITE_CORE_ID                   0x00
