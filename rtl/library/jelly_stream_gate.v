@@ -21,7 +21,7 @@ module jelly_stream_gate
         #(
             parameter N               = 1,          // 次元数(dimension)
             parameter BYPASS          = 0,          // バイパス
-            parameter BYPASS_COMBINE  = 1,          // バイパス時にpermitもcombineするか
+            parameter BYPASS_COMBINE  = 0,          // バイパス時にpermitもcombineするか
             parameter DETECTOR_ENABLE = 0,          // フラグ検出器(読み飛ばし/パディング)を使うか
             parameter AUTO_FIRST      = {N{1'b1}},  // lastの後を自動的にfirst扱いにする(first利用時にあえて無視したい場合に倒す)
             
@@ -318,6 +318,34 @@ module jelly_stream_gate
         assign ff_m_valid = fifo_s_permit_valid && ((ff_s_valid && !sig_skip) || sig_padding);
     end
     endgenerate
+    
+    
+    
+    // for simulation
+    integer count_permit_len;
+    always @(posedge s_permit_clk) begin
+        if ( s_permit_reset ) begin
+            count_permit_len <= 0;
+        end
+        else begin
+            if ( s_permit_valid & s_permit_ready ) begin
+                count_permit_len <= count_permit_len + s_permit_len + LEN_OFFSET;
+            end
+        end
+    end
+    
+    integer count_s;
+    integer count_m;
+    always @(posedge clk) begin
+        if ( reset ) begin
+            count_s <= 0;
+            count_m <= 0;
+        end
+        else if ( cke ) begin
+            count_s <= count_s + (s_valid & s_ready);
+            count_m <= count_m + (m_valid & m_ready);
+        end
+    end
     
     
 endmodule

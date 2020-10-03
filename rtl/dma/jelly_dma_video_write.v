@@ -70,9 +70,10 @@ module jelly_dma_video_write
             parameter INIT_DETECT_LAST      = 3'b001,
             parameter INIT_PADDING_EN       = 1'b1,
             parameter INIT_PADDING_DATA     = {AXI4S_DATA_WIDTH{1'b0}},
+            parameter INIT_PADDING_STRB     = {(AXI4S_DATA_WIDTH/BYTE_WIDTH){1'b0}},
             
             // 構成情報
-            parameter CORE_ID               = 32'h527a_ffff,
+            parameter CORE_ID               = 32'h527a_0110,
             parameter CORE_VERSION          = 32'h0000_0000,
             parameter BYPASS_GATE           = 0,
             parameter BYPASS_ALIGN          = 0,
@@ -241,6 +242,7 @@ module jelly_dma_video_write
                 .INIT_WDETECT_LAST      (INIT_DETECT_LAST),
                 .INIT_WPADDING_EN       (INIT_PADDING_EN),
                 .INIT_WPADDING_DATA     (INIT_PADDING_DATA),
+                .INIT_WPADDING_STRB     (INIT_PADDING_STRB),
                 
                 .CORE_ID                (CORE_ID),
                 .CORE_VERSION           (CORE_VERSION),

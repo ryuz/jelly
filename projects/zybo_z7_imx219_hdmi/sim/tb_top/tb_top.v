@@ -15,9 +15,10 @@ module tb_top();
     initial begin
         $dumpfile("tb_top.vcd");
         $dumpvars(1, tb_top);
-        $dumpvars(1, tb_top.i_top);
-        $dumpvars(1, tb_top.i_top.i_image_processing);
-        $dumpvars(0, tb_top.i_top.i_image_processing.i_img_previous_frame);
+        $dumpvars(2, tb_top.i_top);
+        $dumpvars(3, tb_top.i_top.i_dma_video_read);
+//      $dumpvars(1, tb_top.i_top.i_image_processing);
+//      $dumpvars(0, tb_top.i_top.i_image_processing.i_img_previous_frame);
 //      $dumpvars(0, tb_top.i_top.blk_read_vdma.i_vdma_axi4_to_axi4s);
 //      $dumpvars(0, tb_top.i_top.i_vsync_generator);
         
@@ -234,8 +235,95 @@ module tb_top();
             $display("WISHBONE_READ(adr:%h dat:%h)", adr, reg_wb_dat);
     end
     endtask
+
+
+    localparam REG_BUF_MANAGER_CORE_ID      = 8'h00;
+    localparam REG_BUF_MANAGER_CORE_VERSION = 8'h01;
+    localparam REG_BUF_MANAGER_CORE_CONFIG  = 8'h03;
+    localparam REG_BUF_MANAGER_NEWEST_INDEX = 8'h20;
+    localparam REG_BUF_MANAGER_WRITER_INDEX = 8'h21;
+    localparam REG_BUF_MANAGER_BUFFER0_ADDR = 8'h40;
+    localparam REG_BUF_MANAGER_BUFFER1_ADDR = 8'h41;
+    localparam REG_BUF_MANAGER_BUFFER2_ADDR = 8'h42;
+    localparam REG_BUF_MANAGER_BUFFER3_ADDR = 8'h43;
+    localparam REG_BUF_MANAGER_BUFFER4_ADDR = 8'h44;
+    localparam REG_BUF_MANAGER_BUFFER5_ADDR = 8'h45;
+    localparam REG_BUF_MANAGER_BUFFER6_ADDR = 8'h46;
+    localparam REG_BUF_MANAGER_BUFFER7_ADDR = 8'h47;
+    localparam REG_BUF_MANAGER_BUFFER8_ADDR = 8'h48;
+    localparam REG_BUF_MANAGER_BUFFER9_ADDR = 8'h49;
     
+    localparam  ADR_CORE_ID          = 8'h00;
+    localparam  ADR_CORE_VERSION     = 8'h01;
+    localparam  ADR_CORE_CONFIG      = 8'h03;
+    localparam  ADR_CTL_CONTROL      = 8'h04;
+    localparam  ADR_CTL_STATUS       = 8'h05;
+    localparam  ADR_CTL_INDEX        = 8'h07;
+    localparam  ADR_IRQ_ENABLE       = 8'h08;
+    localparam  ADR_IRQ_STATUS       = 8'h09;
+    localparam  ADR_IRQ_CLR          = 8'h0a;
+    localparam  ADR_IRQ_SET          = 8'h0b;
+    localparam  ADR_PARAM_ARADDR     = 8'h10;
+    localparam  ADR_PARAM_ARLEN_MAX  = 8'h11;
+    localparam  ADR_PARAM_ARLEN0     = 8'h20;
+//  localparam  ADR_PARAM_ARSTEP0    = 8'h21;
+    localparam  ADR_PARAM_ARLEN1     = 8'h24;
+    localparam  ADR_PARAM_ARSTEP1    = 8'h25;
+    localparam  ADR_PARAM_ARLEN2     = 8'h28;
+    localparam  ADR_PARAM_ARSTEP2    = 8'h29;
+    localparam  ADR_PARAM_ARLEN3     = 8'h2c;
+    localparam  ADR_PARAM_ARSTEP3    = 8'h2d;
+    localparam  ADR_PARAM_ARLEN4     = 8'h30;
+    localparam  ADR_PARAM_ARSTEP4    = 8'h31;
+    localparam  ADR_PARAM_ARLEN5     = 8'h34;
+    localparam  ADR_PARAM_ARSTEP5    = 8'h35;
+    localparam  ADR_PARAM_ARLEN6     = 8'h38;
+    localparam  ADR_PARAM_ARSTEP6    = 8'h39;
+    localparam  ADR_PARAM_ARLEN7     = 8'h3c;
+    localparam  ADR_PARAM_ARSTEP7    = 8'h3d;
+    localparam  ADR_PARAM_ARLEN8     = 8'h30;
+    localparam  ADR_PARAM_ARSTEP8    = 8'h31;
+    localparam  ADR_PARAM_ARLEN9     = 8'h44;
+    localparam  ADR_PARAM_ARSTEP9    = 8'h45;
+    localparam  ADR_SHADOW_ARADDR    = 8'h90;
+    localparam  ADR_SHADOW_ARLEN_MAX = 8'h91;
+    localparam  ADR_SHADOW_ARLEN0    = 8'ha0;
+//  localparam  ADR_SHADOW_ARSTEP0   = 8'ha1;
+    localparam  ADR_SHADOW_ARLEN1    = 8'ha4;
+    localparam  ADR_SHADOW_ARSTEP1   = 8'ha5;
+    localparam  ADR_SHADOW_ARLEN2    = 8'ha8;
+    localparam  ADR_SHADOW_ARSTEP2   = 8'ha9;
+    localparam  ADR_SHADOW_ARLEN3    = 8'hac;
+    localparam  ADR_SHADOW_ARSTEP3   = 8'had;
+    localparam  ADR_SHADOW_ARLEN4    = 8'hb0;
+    localparam  ADR_SHADOW_ARSTEP4   = 8'hb1;
+    localparam  ADR_SHADOW_ARLEN5    = 8'hb4;
+    localparam  ADR_SHADOW_ARSTEP5   = 8'hb5;
+    localparam  ADR_SHADOW_ARLEN6    = 8'hb8;
+    localparam  ADR_SHADOW_ARSTEP6   = 8'hb9;
+    localparam  ADR_SHADOW_ARLEN7    = 8'hbc;
+    localparam  ADR_SHADOW_ARSTEP7   = 8'hbd;
+    localparam  ADR_SHADOW_ARLEN8    = 8'hb0;
+    localparam  ADR_SHADOW_ARSTEP8   = 8'hb1;
+    localparam  ADR_SHADOW_ARLEN9    = 8'hc4;
+    localparam  ADR_SHADOW_ARSTEP9   = 8'hc5;
     
+    localparam  VSYNC_CORE_ID           = 8'h00;
+    localparam  VSYNC_CORE_VERSION      = 8'h01;
+    localparam  VSYNC_CTL_CONTROL       = 8'h04;
+    localparam  VSYNC_CTL_STATUS        = 8'h05;
+    localparam  VSYNC_PARAM_HTOTAL      = 8'h08;
+    localparam  VSYNC_PARAM_HSYNC_POL   = 8'h0B;
+    localparam  VSYNC_PARAM_HDISP_START = 8'h0C;
+    localparam  VSYNC_PARAM_HDISP_END   = 8'h0D;
+    localparam  VSYNC_PARAM_HSYNC_START = 8'h0E;
+    localparam  VSYNC_PARAM_HSYNC_END   = 8'h0F;
+    localparam  VSYNC_PARAM_VTOTAL      = 8'h10;
+    localparam  VSYNC_PARAM_VSYNC_POL   = 8'h13;
+    localparam  VSYNC_PARAM_VDISP_START = 8'h14;
+    localparam  VSYNC_PARAM_VDISP_END   = 8'h15;
+    localparam  VSYNC_PARAM_VSYNC_START = 8'h16;
+    localparam  VSYNC_PARAM_VSYNC_END   = 8'h17;
     
     parameter   STRIDE = 4*4096;
     
@@ -282,7 +370,7 @@ module tb_top();
         wb_write(32'h40240020,            7, 4'b1111);     // PARAM_ENABLE
         wb_write(32'h40240010,            3, 4'b1111);     // CTL_CONTROL
         
-        
+        /*
     #10000;
         $display("vin write DMA");
         wb_read (32'h40310000);                             // CORE ID
@@ -294,20 +382,57 @@ module tb_top();
         wb_write(32'h4031003c,           31, 4'b1111);      // awlen
         wb_write(32'h40310010,            3, 4'b1111);      // update & enable
         axi4s_model_aresetn = 1'b1;
+        */
         
-    #100000;
+        $display("buf manager");
+        wb_write(32'h40300000 + (REG_BUF_MANAGER_BUFFER0_ADDR << 2), 32'h00100000, 4'b1111);
+        wb_write(32'h40300000 + (REG_BUF_MANAGER_BUFFER1_ADDR << 2), 32'h00200000, 4'b1111);
+        wb_write(32'h40300000 + (REG_BUF_MANAGER_BUFFER2_ADDR << 2), 32'h00300000, 4'b1111);
+        wb_write(32'h40300000 + (REG_BUF_MANAGER_BUFFER3_ADDR << 2), 32'h00400000, 4'b1111);
+        
+        
+        $display("vin write DMA");
+        wb_write(32'h40320000 + (ADR_PARAM_ARADDR  << 2), 32'h00010000, 4'b1111);      // address
+        wb_write(32'h40320000 + (ADR_PARAM_ARLEN0  << 2),      X_NUM-1, 4'b1111);
+        wb_write(32'h40320000 + (ADR_PARAM_ARLEN1  << 2),      Y_NUM-1, 4'b1111);
+        wb_write(32'h40320000 + (ADR_PARAM_ARLEN2  << 2),            0, 4'b1111);
+        wb_write(32'h40320000 + (ADR_PARAM_ARSTEP1 << 2),       STRIDE, 4'b1111);
+        wb_write(32'h40320000 + (ADR_PARAM_ARSTEP2 << 2), Y_NUM*STRIDE, 4'b1111);
+        wb_write(32'h40320000 + (ADR_CTL_CONTROL   << 2),         8'hb, 4'b1111);
+        axi4s_model_aresetn = 1'b1;
+     #1000;
+        $display("vsync start");
+        wb_write(32'h40360000 + (VSYNC_PARAM_HTOTAL      << 2),  32 + X_NUM, 4'b1111);
+        wb_write(32'h40360000 + (VSYNC_PARAM_HSYNC_POL   << 2),           0, 4'b1111);
+        wb_write(32'h40360000 + (VSYNC_PARAM_HDISP_START << 2),           0, 4'b1111);
+        wb_write(32'h40360000 + (VSYNC_PARAM_HDISP_END   << 2),       X_NUM, 4'b1111);
+        wb_write(32'h40360000 + (VSYNC_PARAM_HSYNC_START << 2),   4 + X_NUM, 4'b1111);
+        wb_write(32'h40360000 + (VSYNC_PARAM_HSYNC_END   << 2),   8 + X_NUM, 4'b1111);
+        wb_write(32'h40360000 + (VSYNC_PARAM_VTOTAL      << 2),   4 + Y_NUM, 4'b1111);
+        wb_write(32'h40360000 + (VSYNC_PARAM_VSYNC_POL   << 2),           0, 4'b1111);
+        wb_write(32'h40360000 + (VSYNC_PARAM_VDISP_START << 2),           0, 4'b1111);
+        wb_write(32'h40360000 + (VSYNC_PARAM_VDISP_END   << 2),       Y_NUM, 4'b1111);
+        wb_write(32'h40360000 + (VSYNC_PARAM_VSYNC_START << 2),   1 + Y_NUM, 4'b1111);
+        wb_write(32'h40360000 + (VSYNC_PARAM_VSYNC_END   << 2),   2 + Y_NUM, 4'b1111);
+        wb_write(32'h40360000 + (VSYNC_CTL_CONTROL << 2),            1, 4'b1111);
+        
+        
+     #1000;
         $display("vout read DMA");
-        wb_write(32'h40340020, 32'h30000000, 4'b1111);      // address
-        wb_write(32'h40340024,       STRIDE, 4'b1111);      // stride
-        wb_write(32'h40340028,         1280, 4'b1111);      // width
-        wb_write(32'h4034002c,          720, 4'b1111);      // height
-        wb_write(32'h40340030,     1280*720, 4'b1111);      // size
-        wb_write(32'h4034003c,           31, 4'b1111);      // awlen
-        wb_write(32'h40340010,            3, 4'b1111);      // update & enable
+        wb_write(32'h40340000 + (ADR_PARAM_ARADDR  << 2), 32'h00010000, 4'b1111);      // address
+        wb_write(32'h40340000 + (ADR_PARAM_ARLEN0  << 2),      X_NUM-1, 4'b1111);
+        wb_write(32'h40340000 + (ADR_PARAM_ARLEN1  << 2),      Y_NUM-1, 4'b1111);
+        wb_write(32'h40340000 + (ADR_PARAM_ARLEN2  << 2),            0, 4'b1111);
+        wb_write(32'h40340000 + (ADR_PARAM_ARSTEP1 << 2),       STRIDE, 4'b1111);
+        wb_write(32'h40340000 + (ADR_PARAM_ARSTEP2 << 2), Y_NUM*STRIDE, 4'b1111);
+        wb_write(32'h40340000 + (ADR_CTL_CONTROL   << 2),         8'hb, 4'b1111);
         
-        $display("vout vsync generator");
-        wb_write(32'h40360010,             1, 4'b1111);      // enable
-
+     #400000;
+        wb_write(32'h40320000 + (ADR_CTL_CONTROL   << 2),            0, 4'b1111);
+        wb_write(32'h40340000 + (ADR_CTL_CONTROL   << 2),            0, 4'b1111);
+     #100000;
+        $finish();
+        
         while(1) begin
             #10000;
             wb_read(32'h40260014);

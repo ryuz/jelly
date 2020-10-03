@@ -106,7 +106,7 @@ module jelly_dma_stream_write
             parameter INIT_WPADDING_STRB   = {WSTRB_WIDTH{1'b0}},
             
             // 構成情報
-            parameter CORE_ID              = 32'h527a_ffff,
+            parameter CORE_ID              = 32'h527a_0110,
             parameter CORE_VERSION         = 32'h0000_0000,
             parameter BYPASS_GATE          = 0,
             parameter BYPASS_ALIGN         = 0,

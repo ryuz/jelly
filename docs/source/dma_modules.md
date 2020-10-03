@@ -1,5 +1,17 @@
 # DMA
 
+
+## jelly_buffer_manager
+
+DMAなどに自動で割り当てるバッファを管理するコア
+
+
+## jelly_buffer_allocator
+
+jelly_buffer_manager からソフトウェアがバッファ割り当てを受ける場合のインターフェースモジュール
+
+
+
 ## jelly_dma_stream_write
 
 ### 概要
@@ -364,5 +376,21 @@ CTL_CONTROL の bit1 を立てると 1の時は繰り返しのタイミングで
 
 endian は 動的に変更することは想定していないので注意。バス幅変換が作用した場合に動作が変わる。
 
+
+
+## jelly_dma_fifo
+
+外部メモリを利用した大サイズのFIFOを構成する
+
+
+
+
+## jelly_dma_video_write
+
+AXI4 Stream Video 書き込み用のDMA
+
+## jelly_dma_video_read
+
+AXI4 Stream Video  読み出し用のDMA
 
 

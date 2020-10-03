@@ -862,7 +862,8 @@ module tb_dma_video();
         
         
         $display("write start");
-        wb_write(32'h0200 + ADR_CTL_CONTROL,     32'h0000_0009, 8'hff);   // write CTL_CONTROL
+        wb_write(32'h0200 + ADR_PARAM_ADDR,      32'h1000_0000, 8'hff);
+        wb_write(32'h0200 + ADR_CTL_CONTROL,     32'h0000_0003, 8'hff);
         #10000;
         
         $display("read start");

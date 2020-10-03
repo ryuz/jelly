@@ -243,7 +243,6 @@ module jelly_axi4_read_width_convert
     wire                            mr_arready;
     
     wire    [S_ARLEN_WIDTH-1:0]     sr_arlen;
-    wire    [ALIGN_BITS-1:0]        sr_align;
     wire                            sr_arvalid;
     wire                            sr_arready;
     

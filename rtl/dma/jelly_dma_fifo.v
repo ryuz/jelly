@@ -13,13 +13,12 @@
 // 外部メモリをFIFO的に使う為のDMAコア
 module jelly_dma_fifo
         #(
-            parameter   CORE_ID              = 32'h527a_0140,
-            parameter   CORE_VERSION         = 32'h0000_0000,
+            parameter   UNIT_WIDTH           = 8,
             
             parameter   S_ASYNC              = 1,
-            parameter   M_ASYNC              = 1,
-            parameter   UNIT_WIDTH           = 8,
             parameter   S_DATA_WIDTH         = 32,
+            
+            parameter   M_ASYNC              = 1,
             parameter   M_DATA_WIDTH         = 32,
             
             parameter   WB_ADR_WIDTH         = 8,
@@ -50,13 +49,9 @@ module jelly_dma_fifo
             parameter   AXI4_ARPROT          = 3'b000,
             parameter   AXI4_ARQOS           = 0,
             parameter   AXI4_ARREGION        = 4'b0000,
-            
-            parameter   BYPASS_ADDR_OFFSET   = 0,   // 0番地からしか使わない場合バイパス可
-            parameter   BYPASS_ALIGN         = 0,   // アライメント跨ぎを処理不要の場合バイパス可
             parameter   AXI4_ALIGN           = 12,
             
             parameter   INDEX_WIDTH          = 1,
-            
             parameter   PARAM_ADDR_WIDTH     = AXI4_ADDR_WIDTH,
             parameter   PARAM_SIZE_WIDTH     = 32,
             parameter   PARAM_SIZE_OFFSET    = 1'b0,
@@ -74,6 +69,12 @@ module jelly_dma_fifo
             parameter   INIT_PARAM_WTIMEOUT  = 16,
             parameter   INIT_PARAM_ARLEN     = 8'h0f,
             parameter   INIT_PARAM_RTIMEOUT  = 16,
+            
+            
+            parameter   CORE_ID              = 32'h527a_0140,
+            parameter   CORE_VERSION         = 32'h0000_0000,
+            parameter   BYPASS_ADDR_OFFSET   = 0,   // 0番地からしか使わない場合バイパス可
+            parameter   BYPASS_ALIGN         = 0,   // アライメント跨ぎを処理不要の場合バイパス可
             
             parameter   WDATA_FIFO_PTR_WIDTH = 9,
             parameter   WDATA_FIFO_RAM_TYPE  = "block",
