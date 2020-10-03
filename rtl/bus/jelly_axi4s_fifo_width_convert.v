@@ -391,6 +391,32 @@ module jelly_axi4s_fifo_width_convert
     endgenerate
     
     
+    // for simulation
+    integer count_s;
+    always @(posedge s_aclk) begin
+        if ( ~s_aresetn ) begin
+            count_s <= 0;
+        end
+        else begin
+            if ( s_axi4s_tvalid & s_axi4s_tready ) begin
+                count_s <= count_s + 1;
+            end
+        end
+    end
+    
+    integer count_m;
+    always @(posedge m_aclk) begin
+        if ( ~m_aresetn ) begin
+            count_m <= 0;
+        end
+        else begin
+            if ( m_axi4s_tvalid & m_axi4s_tready ) begin
+                count_m <= count_m + 1;
+            end
+        end
+    end
+    
+    
 endmodule
 
 

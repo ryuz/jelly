@@ -165,10 +165,10 @@ module jelly_buffer_arbiter
    integer      j;
    always @* begin
         writer_index = reg_writing;
-        writer_addr  = (param_buf_addr >> (reg_writing*ADDR_WIDTH));
+        writer_addr  = (param_buf_addr >> (next_writing*ADDR_WIDTH));
         reader_index = reg_reading;
         for ( j = 0; j < READER_NUM; j = j+1 ) begin
-            reader_addr[j*ADDR_WIDTH +: ADDR_WIDTH] = (param_buf_addr >> reg_reading[j*INDEX_WIDTH +: INDEX_WIDTH]*ADDR_WIDTH);
+            reader_addr[j*ADDR_WIDTH +: ADDR_WIDTH] = (param_buf_addr >> next_reading[j*INDEX_WIDTH +: INDEX_WIDTH]*ADDR_WIDTH);
         end
     end
     

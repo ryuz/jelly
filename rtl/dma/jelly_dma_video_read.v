@@ -66,7 +66,7 @@ module jelly_dma_video_read
             parameter INIT_PARAM_FRAME_STEP = 0,
             
             // 構成情報
-            parameter CORE_ID               = 32'h527a_ffff,
+            parameter CORE_ID               = 32'h527a_0120,
             parameter CORE_VERSION          = 32'h0000_0000,
             parameter BYPASS_GATE           = 0,
             parameter BYPASS_ALIGN          = 0,
