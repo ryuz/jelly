@@ -15,6 +15,7 @@
 *.ppm
 *.hex
 *.csv
+*_.*
 
 *.ncb
 *.opt

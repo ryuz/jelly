@@ -22,7 +22,7 @@ void    capture_stop(jelly::MemAccessor& reg_wdma, jelly::MemAccessor& reg_fmtr)
 void    vout_start(jelly::MemAccessor& reg_rdma, jelly::MemAccessor& reg_vsgen, std::uintptr_t bufaddr);
 void    vout_stop(jelly::MemAccessor& reg_rdma, jelly::MemAccessor& reg_vsgen);
 void    WriteImage(jelly::MemAccessor& mem_acc, const cv::Mat& img);
-cv::Mat ReadImage(jelly::MemAccessor& mem_acc, int width, int height);
+cv::Mat ReadImage(jelly::UdmabufAccessor& udmabuf_acc, jelly::MemAccessor& reg_bufalc, int width, int height);
 
 
 int main(int argc, char *argv[])
@@ -180,25 +180,29 @@ int main(int argc, char *argv[])
     auto reg_imgdma  = uio_acc.GetAccessor(0x00260000);  // FIFO dma
     auto reg_bindiff = uio_acc.GetAccessor(0x00270000);  // 前画像との差分バイナライズ
     auto reg_sel     = uio_acc.GetAccessor(0x002f0000);  // 出力切り替え
-    auto reg_wdma    = uio_acc.GetAccessor(0x00310000);  // Write-DMA
-    auto reg_rdma    = uio_acc.GetAccessor(0x00340000);  // Read-DMA
+    auto reg_bufmng  = uio_acc.GetAccessor(0x00300000);  // Buffer manager
+    auto reg_bufalc  = uio_acc.GetAccessor(0x00310000);  // Buffer allocator
+    auto reg_vdmaw   = uio_acc.GetAccessor(0x00320000);  // Write-DMA
+    auto reg_vdmar   = uio_acc.GetAccessor(0x00340000);  // Read-DMA
     auto reg_vsgen   = uio_acc.GetAccessor(0x00360000);  // Video out sync generator
     
 #if 1
     // ID確認
     std::cout << "CORE ID" << std::endl;
-    std::cout << std::hex << reg_fmtr.ReadReg(0) << std::endl;
-    std::cout << std::hex << reg_demos.ReadReg(0) << std::endl;
-    std::cout << std::hex << reg_colmat.ReadReg(0) << std::endl;
-    std::cout << std::hex << reg_gamma.ReadReg(0) << std::endl;
-    std::cout << std::hex << reg_gauss.ReadReg(0) << std::endl;
-    std::cout << std::hex << reg_canny.ReadReg(0) << std::endl;
-    std::cout << std::hex << reg_imgdma.ReadReg(0) << std::endl;
-    std::cout << std::hex << reg_bindiff.ReadReg(0) << std::endl;
-    std::cout << std::hex << reg_sel.ReadReg(0) << std::endl;
-    std::cout << std::hex << reg_wdma.ReadReg(0) << std::endl;
-    std::cout << std::hex << reg_rdma.ReadReg(0) << std::endl;
-    std::cout << std::hex << reg_vsgen.ReadReg(0) << std::endl;
+    std::cout << "fmtr    : " << std::hex << reg_fmtr.ReadReg(0) << std::endl;
+    std::cout << "demos   : " << std::hex << reg_demos.ReadReg(0) << std::endl;
+    std::cout << "colmat  : " << std::hex << reg_colmat.ReadReg(0) << std::endl;
+    std::cout << "gamma   : " << std::hex << reg_gamma.ReadReg(0) << std::endl;
+    std::cout << "gauss   : " << std::hex << reg_gauss.ReadReg(0) << std::endl;
+    std::cout << "canny   : " << std::hex << reg_canny.ReadReg(0) << std::endl;
+    std::cout << "imgdma  : " << std::hex << reg_imgdma.ReadReg(0) << std::endl;
+    std::cout << "bindiff : " << std::hex << reg_bindiff.ReadReg(0) << std::endl;
+    std::cout << "sel     : " << std::hex << reg_sel.ReadReg(0) << std::endl;
+    std::cout << "bufmng  : " << std::hex << reg_bufmng.ReadReg(0) << std::endl;
+    std::cout << "bufalc  : " << std::hex << reg_bufalc.ReadReg(0) << std::endl;
+    std::cout << "vdmaw   : " << std::hex << reg_vdmaw.ReadReg(0) << std::endl;
+    std::cout << "vdmar   : " << std::hex << reg_vdmar.ReadReg(0) << std::endl;
+    std::cout << "vsgen   : " << std::hex << reg_vsgen.ReadReg(0) << std::endl;
 #endif
 
     // mmap udmabuf
@@ -210,20 +214,35 @@ int main(int argc, char *argv[])
 
     auto dmabuf_phys_adr = udmabuf_acc.GetPhysAddr();
     auto dmabuf_mem_size = udmabuf_acc.GetSize();
-//  std::cout << "udmabuf0 phys addr : 0x" << std::hex << dmabuf_phys_adr << std::endl;
-//  std::cout << "udmabuf0 size      : " << std::dec << dmabuf_mem_size << std::endl;
+    std::cout << "udmabuf0 phys addr : 0x" << std::hex << dmabuf_phys_adr << std::endl;
+    std::cout << "udmabuf0 size      : " << std::dec << dmabuf_mem_size << std::endl;
 
     if ( (size_t)dmabuf_mem_size < (size_t)(stride * height * 4) ) {
         printf("udmabuf size error\n");
         return 0;
     }
 
+    // バッファ4面確保
+    for ( int i = 0; i < 4; ++i ) {
+        reg_bufmng.WriteReg(REG_BUF_MANAGER_BUFFER_ADDR(i), dmabuf_phys_adr + i * stride * height);
+    }
+    for ( int i = 0; i < 4; ++i ) {
+        std::cout << std::hex << reg_bufmng.ReadReg(REG_BUF_MANAGER_BUFFER_ADDR(i)) << std::endl;
+    }
 
     // memmeap iamge fifo
     jelly::UdmabufAccessor udmabuf1_acc("udmabuf1");
     if ( !udmabuf1_acc.IsMapped() ) {
         std::cout << "udmabuf1 : open error or mmap error" << std::endl;
         return 1;
+    }
+
+    for ( int i = 0; i < 1024*512; ++i ) {
+        udmabuf_acc.WriteReg(i , 0xffffffff);
+    }
+
+    for ( int i = 0; i < 1024*512; ++i ) {
+        udmabuf1_acc.WriteReg(i , 0x77777777);
     }
 
     reg_imgdma.WriteReg(REG_DAM_FIFO_CTL_CONTROL, 0x0);
@@ -264,8 +283,8 @@ int main(int argc, char *argv[])
     imx219.Start();
 
     // start
-    capture_start(reg_wdma, reg_fmtr, dmabuf_phys_adr, width, height, view_x, view_y);    
-    vout_start(reg_rdma, reg_vsgen, dmabuf_phys_adr);    
+    capture_start(reg_vdmaw, reg_fmtr, dmabuf_phys_adr, width, height, view_x, view_y);    
+    vout_start(reg_vdmar, reg_vsgen, dmabuf_phys_adr);    
 
     // 操作
     cv::namedWindow("control");
@@ -284,6 +303,19 @@ int main(int argc, char *argv[])
     int gamma_prev = 0;
     int     key;
     while ( (key = (cv::waitKeyEx(10) & 0xff)) != 0x1b ) {
+        auto img = ReadImage(udmabuf_acc, reg_bufalc, width, height);
+        cv::imshow("img", img);
+
+        /*
+        printf("\n");
+        printf("REG_VDMA_READ_CTL_CONTROL:%08x\n", reg_vdmar.ReadReg(REG_VDMA_READ_CTL_CONTROL));
+        printf("REG_VDMA_READ_CTL_STATUS:%08x\n", reg_vdmar.ReadReg(REG_VDMA_READ_CTL_STATUS));
+        printf("REG_VDMA_READ_PARAM_ADDR:%08x\n", reg_vdmar.ReadReg(REG_VDMA_READ_PARAM_ADDR));
+        printf("REG_VDMA_READ_SHADOW_ADDR:%08x\n", reg_vdmar.ReadReg(REG_VDMA_READ_SHADOW_ADDR));
+        printf("REG_VDMA_READ_PARAM_H_SIZE:%08x\n", reg_vdmar.ReadReg(REG_VDMA_READ_PARAM_H_SIZE));
+        printf("REG_VDMA_READ_SHADOW_H_SIZE:%08x\n", reg_vdmar.ReadReg(REG_VDMA_READ_SHADOW_H_SIZE));
+        */
+        
         // カメラ設定
         imx219.SetFrameRate(frame_rate);
         imx219.SetExposureTime(exposure / 1000.0);
@@ -401,19 +433,19 @@ int main(int argc, char *argv[])
         case 'c':   colmat_en = !colmat_en; break;
 
         case 'd':   // image dump
-            capture_stop(reg_wdma, reg_fmtr);
-            auto img = ReadImage(udmabuf_acc, width, height);
-            capture_start(reg_wdma, reg_fmtr, dmabuf_phys_adr, width, height, view_x, view_y);
+//            capture_stop(reg_vdmar, reg_fmtr);
+//            auto img = ReadImage(udmabuf_acc, reg_bufalc, width, height);
+//            capture_start(reg_vdmaw, reg_fmtr, dmabuf_phys_adr, width, height, view_x, view_y);
             cv::Mat imgRgb;
             cv::cvtColor(img, imgRgb, CV_BGRA2BGR);
             cv::imwrite("img_dump.png", imgRgb);
             break;
         }
     }
-
+    
     // close
-    capture_stop(reg_wdma, reg_fmtr);
-    vout_stop(reg_rdma, reg_vsgen);
+    capture_stop(reg_vdmaw, reg_fmtr);
+    vout_stop(reg_vdmar, reg_vsgen);
 
     imx219.Stop();
     imx219.Close();
@@ -433,6 +465,24 @@ void WriteImage(jelly::MemAccessor& mem_acc, const cv::Mat& img)
     }
 }
 
+cv::Mat ReadImage(jelly::UdmabufAccessor& udmabuf_acc, jelly::MemAccessor& reg_bufalc, int width, int height)
+{
+    reg_bufalc.WriteReg(REG_BUF_ALLOC_BUFFER0_REQUEST, 1);
+    auto buf_addr = reg_bufalc.ReadReg(REG_BUF_ALLOC_BUFFER0_ADDR);
+    buf_addr -= udmabuf_acc.GetPhysAddr();
+
+    cv::Mat img(height, width, CV_8UC4);
+    for ( int i = 0; i < img.rows; i++ )
+    {
+        udmabuf_acc.MemCopyTo(img.data + i*img.step, buf_addr + i*stride, img.cols*4);
+    }
+
+    reg_bufalc.WriteReg(REG_BUF_ALLOC_BUFFER0_RELEASE, 1);
+
+    return img;
+}
+
+/*
 cv::Mat ReadImage(jelly::MemAccessor& mem_acc, int width, int height)
 {
     cv::Mat img(height, width, CV_8UC4);
@@ -442,32 +492,34 @@ cv::Mat ReadImage(jelly::MemAccessor& mem_acc, int width, int height)
     }
     return img;
 }
+*/
 
-void capture_start(jelly::MemAccessor& reg_wdma, jelly::MemAccessor& reg_fmtr, std::uintptr_t bufaddr, int width, int height, int x, int y)
+void capture_start(jelly::MemAccessor& reg_vdmaw, jelly::MemAccessor& reg_fmtr, std::uintptr_t bufaddr, int width, int height, int x, int y)
 {
     // DMA start
-    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_ADDR, bufaddr + stride*y + 4*x);
-    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_STRIDE, stride);
-    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_WIDTH, width);
-    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_HEIGHT, height);
-    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_SIZE, width*height);
-    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_AWLEN, 31);
-    reg_wdma.WriteReg(REG_VIDEO_WDMA_CTL_CONTROL, 0x03);
+    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_ADDR,       bufaddr + stride*y + 4*x);
+    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_LINE_STEP,  stride);
+    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_H_SIZE,     width-1);
+    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_V_SIZE,     height-1);
+    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_F_SIZE,     1-1);
+    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_FRAME_STEP, width*stride);
+    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_AWLEN_MAX,  31);
+    reg_vdmaw.WriteReg(REG_VDMA_WRITE_CTL_CONTROL,      0x03 | 0x08);
 
     // normalizer start
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN, 1);
-    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT, 100000000);
-    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_WIDTH, width);
-    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_HEIGHT, height);
-    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_FILL, 0x0ff);
-    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_TIMEOUT, 0x100000);
-    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL, 0x03);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT,  100000000);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_WIDTH,      width);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_HEIGHT,     height);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_FILL,       0x0ff);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_TIMEOUT,    0x100000);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL,      0x03);
 }
 
-void capture_stop(jelly::MemAccessor& reg_wdma, jelly::MemAccessor& reg_fmtr)
+void capture_stop(jelly::MemAccessor& reg_vdmaw, jelly::MemAccessor& reg_fmtr)
 {
-    reg_wdma.WriteReg(REG_VIDEO_WDMA_CTL_CONTROL, 0x00);
-    while ( reg_wdma.ReadReg(REG_VIDEO_WDMA_CTL_STATUS) != 0 ) {
+    reg_vdmaw.WriteReg(REG_VDMA_WRITE_CTL_CONTROL, 0x00);
+    while ( reg_vdmaw.ReadReg(REG_VIDEO_WDMA_CTL_STATUS) != 0 ) {
         usleep(100);
     }
 
@@ -475,7 +527,7 @@ void capture_stop(jelly::MemAccessor& reg_wdma, jelly::MemAccessor& reg_fmtr)
 }
 
 
-void vout_start(jelly::MemAccessor& reg_rdma, jelly::MemAccessor& reg_vsgen, std::uintptr_t bufaddr)
+void vout_start(jelly::MemAccessor& reg_vdmar, jelly::MemAccessor& reg_vsgen, std::uintptr_t bufaddr)
 {
     // VSync Start
     reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_HTOTAL,      1650);
@@ -493,20 +545,21 @@ void vout_start(jelly::MemAccessor& reg_rdma, jelly::MemAccessor& reg_vsgen, std
     reg_vsgen.WriteReg(REG_VIDEO_VSGEN_CTL_CONTROL,          1);
 
     // DMA start
-    reg_rdma.WriteReg(REG_VIDEO_RDMA_PARAM_ADDR, bufaddr);
-    reg_rdma.WriteReg(REG_VIDEO_RDMA_PARAM_STRIDE, stride);   // stride
-    reg_rdma.WriteReg(REG_VIDEO_RDMA_PARAM_WIDTH, 1280);      // width
-    reg_rdma.WriteReg(REG_VIDEO_RDMA_PARAM_HEIGHT, 720);      // height
-    reg_rdma.WriteReg(REG_VIDEO_RDMA_PARAM_SIZE, 1280*720);   // size
-    reg_rdma.WriteReg(REG_VIDEO_RDMA_PARAM_ARLEN, 31);        // awlen
-    reg_rdma.WriteReg(REG_VIDEO_RDMA_CTL_CONTROL, 0x03);
+    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_ADDR,       bufaddr);
+    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_LINE_STEP,  stride);
+    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_H_SIZE,     1280-1);
+    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_V_SIZE,     720-1);
+    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_FRAME_STEP, stride*720);
+    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_F_SIZE,     1-1);
+    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_ARLEN_MAX,  31);
+    reg_vdmar.WriteReg(REG_VDMA_READ_CTL_CONTROL,      0x03 | 0x08);
 }
 
 
-void vout_stop(jelly::MemAccessor& reg_rdma, jelly::MemAccessor& reg_vsgen)
+void vout_stop(jelly::MemAccessor& reg_vdmar, jelly::MemAccessor& reg_vsgen)
 {
-    reg_rdma.WriteReg(REG_VIDEO_RDMA_CTL_CONTROL, 0x00);
-    while ( reg_rdma.ReadReg(REG_VIDEO_RDMA_CTL_STATUS) != 0 ) {
+    reg_vdmar.WriteReg(REG_VDMA_READ_CTL_CONTROL, 0x00);
+    while ( reg_vdmar.ReadReg(REG_VDMA_READ_CTL_STATUS) != 0 ) {
         usleep(100);
     }
 
