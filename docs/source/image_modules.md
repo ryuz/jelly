@@ -15,7 +15,7 @@ ACPI法によるデモザイク
 3x3 限定のガウシアンフィルタ
 
 
-# jelly_img_sobel_core
+## jelly_img_sobel_core
 
 Sobel フィルタコア
 
