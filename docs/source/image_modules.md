@@ -34,3 +34,8 @@ Sobel フィルタコア
 
 1つ前のフレームを外部メモリに保存して利用するためのDMAモジュール
 
+
+## jelly_img_dnn_maxpol
+
+DNN用の MaxPooling 層
+
