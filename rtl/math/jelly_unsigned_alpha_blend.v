@@ -101,7 +101,7 @@ module jelly_unsigned_alpha_blend
         // stage 0
         if ( stage_cke[0] ) begin
             for ( i = 0; i < ALPHA_WIDTH+DATA_WIDTH; i = i+1 ) begin
-                tmp_alpha0[i] = src_alpha[(i - DATA_WIDTH) % ALPHA_WIDTH];
+                tmp_alpha0[i] = src_alpha[(256*ALPHA_WIDTH + i - DATA_WIDTH) % ALPHA_WIDTH];
             end
             tmp_alpha1 = ~tmp_alpha0;
             
