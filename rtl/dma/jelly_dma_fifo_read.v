@@ -15,13 +15,14 @@ module jelly_dma_fifo_read
         #(
             parameter   ASYNC                = 1,
             parameter   UNIT_WIDTH           = 8,
+            parameter   BYTE_WIDTH           = 8,
             parameter   M_DATA_WIDTH         = 32,
             
             parameter   AXI4_ID_WIDTH        = 6,
             parameter   AXI4_ADDR_WIDTH      = 49,
             parameter   AXI4_DATA_SIZE       = 2,    // 0:8bit, 1:16bit, 2:32bit ...
-            parameter   AXI4_DATA_WIDTH      = (UNIT_WIDTH << AXI4_DATA_SIZE),
-            parameter   AXI4_STRB_WIDTH      = AXI4_DATA_WIDTH / UNIT_WIDTH,
+            parameter   AXI4_DATA_WIDTH      = (BYTE_WIDTH << AXI4_DATA_SIZE),
+            parameter   AXI4_STRB_WIDTH      = AXI4_DATA_WIDTH / BYTE_WIDTH,
             parameter   AXI4_LEN_WIDTH       = 8,
             parameter   AXI4_QOS_WIDTH       = 4,
             
