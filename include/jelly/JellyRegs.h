@@ -442,6 +442,15 @@
 #define REG_IMG_BINARIZER_CURRENT_VAL0          0x1a
 #define REG_IMG_BINARIZER_CURRENT_VAL1          0x1b
 
+/* alpha blend */
+#define REG_IMG_ALPHABLEND_CORE_ID              0x00
+#define REG_IMG_ALPHABLEND_CORE_VERSION         0x01
+#define REG_IMG_ALPHABLEND_CTL_CONTROL          0x04
+#define REG_IMG_ALPHABLEND_CTL_STATUS           0x05
+#define REG_IMG_ALPHABLEND_CTL_INDEX            0x07
+#define REG_IMG_ALPHABLEND_PARAM_ALPHA          0x08
+#define REG_IMG_ALPHABLEND_CURRENT_ALPHA        0x18
+
 /* area mask */
 #define REG_IMG_AREAMASK_CORE_ID                0x00
 #define REG_IMG_AREAMASK_CORE_VERSION           0x01
