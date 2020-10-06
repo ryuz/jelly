@@ -14,18 +14,18 @@
 
 module jelly_stream_width_convert
         #(
-            parameter UNIT_WIDTH          = 32,
-            parameter S_NUM               = 1,
-            parameter M_NUM               = 2,
-            parameter HAS_FIRST           = 0,                          // first を備える
-            parameter HAS_LAST            = 0,                          // last を備える
+            parameter UNIT_WIDTH          = 10,
+            parameter S_NUM               = 4,
+            parameter M_NUM               = 1,
+            parameter HAS_FIRST           = 1,                          // first を備える
+            parameter HAS_LAST            = 1,                          // last を備える
             parameter HAS_STRB            = 0,                          // strb を備える
             parameter HAS_KEEP            = 0,                          // keep を備える
             parameter AUTO_FIRST          = !HAS_FIRST,                 // last の次を自動的に first とする
             parameter HAS_ALIGN_S         = 0,                          // slave 側のアライメントを指定する
             parameter HAS_ALIGN_M         = 0,                          // master 側のアライメントを指定する
-            parameter FIRST_OVERWRITE     = 0,  // first時前方に残変換があれば吐き出さずに上書き
-            parameter FIRST_FORCE_LAST    = 0,  // first時前方に残変換があれば強制的にlastを付与(残が無い場合はlastはつかない)
+            parameter FIRST_OVERWRITE     = 1,  // first時前方に残変換があれば吐き出さずに上書き
+            parameter FIRST_FORCE_LAST    = 1,  // first時前方に残変換があれば強制的にlastを付与(残が無い場合はlastはつかない)
             parameter ALIGN_S_WIDTH       = S_NUM <=   2 ? 1 :
                                             S_NUM <=   4 ? 2 :
                                             S_NUM <=   8 ? 3 :
@@ -346,7 +346,7 @@ module jelly_stream_width_convert
                 .DATA7_WIDTH    (ALIGN_S_WIDTH),
                 .DATA8_WIDTH    (ALIGN_M_WIDTH),
                 .S_REGS         (S_REGS),
-                .M_REGS         (0)
+                .M_REGS         (1)
             )
         i_data_ff_pack_s
             (
@@ -689,7 +689,7 @@ module jelly_stream_width_convert
                 .DATA4_WIDTH    (USER_L_WIDTH),
                 .DATA5_WIDTH    (1),
                 .DATA6_WIDTH    (1),
-                .S_REGS         (S_REGS),
+                .S_REGS         (1),
                 .M_REGS         (M_REGS)
             )
         i_data_ff_pack_m
