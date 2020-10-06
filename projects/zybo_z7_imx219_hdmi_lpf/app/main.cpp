@@ -43,11 +43,10 @@ int main(int argc, char *argv[])
     int     view_scale  = 1;
     int     view_x      = -1;
     int     view_y      = -1;
-    bool    colmat_en   = false;
     int     gamma       = 22;
     int     gauss_level = 0;
-    int     canny_th    = 127;
-    int     diff_th     = 15;
+    bool    colmat_en   = false;
+    int     blend       = 1024;
     cv::Mat imgBack;
     
     for ( int i = 1; i < argc; ++i ) {
@@ -176,10 +175,8 @@ int main(int argc, char *argv[])
     auto reg_colmat  = uio_acc.GetAccessor(0x00210000);  // カラーマトリックス
     auto reg_gamma   = uio_acc.GetAccessor(0x00220000);  // ガンマ補正
     auto reg_gauss   = uio_acc.GetAccessor(0x00240000);  // ガウシアンフィルタ
-    auto reg_canny   = uio_acc.GetAccessor(0x00250000);  // Cannyフィルタ
+    auto reg_blend   = uio_acc.GetAccessor(0x00250000);  // alpha blend
     auto reg_imgdma  = uio_acc.GetAccessor(0x00260000);  // FIFO dma
-    auto reg_bindiff = uio_acc.GetAccessor(0x00270000);  // 前画像との差分バイナライズ
-    auto reg_sel     = uio_acc.GetAccessor(0x002f0000);  // 出力切り替え
     auto reg_bufmng  = uio_acc.GetAccessor(0x00300000);  // Buffer manager
     auto reg_bufalc  = uio_acc.GetAccessor(0x00310000);  // Buffer allocator
     auto reg_vdmaw   = uio_acc.GetAccessor(0x00320000);  // Write-DMA
@@ -194,10 +191,8 @@ int main(int argc, char *argv[])
     std::cout << "colmat  : " << std::hex << reg_colmat.ReadReg(0) << std::endl;
     std::cout << "gamma   : " << std::hex << reg_gamma.ReadReg(0) << std::endl;
     std::cout << "gauss   : " << std::hex << reg_gauss.ReadReg(0) << std::endl;
-    std::cout << "canny   : " << std::hex << reg_canny.ReadReg(0) << std::endl;
+    std::cout << "blend   : " << std::hex << reg_blend.ReadReg(0) << std::endl;
     std::cout << "imgdma  : " << std::hex << reg_imgdma.ReadReg(0) << std::endl;
-    std::cout << "bindiff : " << std::hex << reg_bindiff.ReadReg(0) << std::endl;
-    std::cout << "sel     : " << std::hex << reg_sel.ReadReg(0) << std::endl;
     std::cout << "bufmng  : " << std::hex << reg_bufmng.ReadReg(0) << std::endl;
     std::cout << "bufalc  : " << std::hex << reg_bufalc.ReadReg(0) << std::endl;
     std::cout << "vdmaw   : " << std::hex << reg_vdmaw.ReadReg(0) << std::endl;
@@ -297,8 +292,7 @@ int main(int argc, char *argv[])
     cv::createTrackbar("bayer" ,    "control", &bayer_phase, 3);
     cv::createTrackbar("gamm" ,     "control", &gamma, 30);
     cv::createTrackbar("gauss" ,    "control", &gauss_level, 3);
-    cv::createTrackbar("canny_th" , "control", &canny_th, 255);
-    cv::createTrackbar("diff_th" ,  "control", &diff_th, 255);
+    cv::createTrackbar("blend",     "control", &blend, 1023);
 
     int gamma_prev = 0;
     int     key;
@@ -312,6 +306,10 @@ int main(int argc, char *argv[])
         imx219.SetGain(a_gain);
         imx219.SetDigitalGain(d_gain);
         imx219.SetFlip(flip_h, flip_v);
+
+        // blend
+        reg_blend.WriteReg(REG_IMG_ALPHABLEND_PARAM_ALPHA, blend);
+        reg_blend.WriteReg(REG_IMG_ALPHABLEND_CTL_CONTROL, 0x3);
 
         // demosaic
         reg_demos.WriteReg(REG_IMG_DEMOSAIC_PARAM_PHASE, bayer_phase);
@@ -372,27 +370,8 @@ int main(int argc, char *argv[])
         reg_gauss.WriteReg(REG_IMG_GAUSS3X3_PARAM_ENABLE, (1 << gauss_level)-1);
         reg_gauss.WriteReg(REG_IMG_GAUSS3X3_CTL_CONTROL, 0x3);
 
-        // canny
-        reg_canny.WriteReg(REG_IMG_CANNY_PARAM_TH, canny_th*canny_th);
-        reg_canny.WriteReg(REG_IMG_CANNY_CTL_CONTROL, 0x3);
-
-        // diff binarize
-        reg_bindiff.WriteReg(REG_IMG_BINARIZER_PARAM_TH, diff_th);
-        reg_bindiff.WriteReg(REG_IMG_BINARIZER_CTL_CONTROL, 0x3);
-
         // ユーザー操作
         switch ( key ) {
-        case '0':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 0); break;
-        case '1':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 1); break;
-        case '2':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 2); break;
-        case '3':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 3); break;
-        case '4':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 4); break;
-        case '5':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 5); break;
-        case '6':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 6); break;
-        case '7':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 7); break;
-        case '8':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 8); break;
-        case '9':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 9); break;
-    
         case 'p':
             std::cout << "pixel clock   : " << imx219.GetPixelClock()   << " [Hz]"  << std::endl;
             std::cout << "frame rate    : " << imx219.GetFrameRate()    << " [fps]" << std::endl;

@@ -7,7 +7,7 @@
             #address-cells = <1>;
             #size-cells = <1>;
 
-            firmware-name = "zybo_z7_imx219_hdmi.bit.bin";
+            firmware-name = "zybo_z7_imx219_hdmi_lpf.bit.bin";
         };
     };
 
@@ -69,7 +69,7 @@
             udmabuf1 {
                 compatible = "ikwzm,udmabuf-0.10.a";
                 minor-number = <1>;
-                size = <0x007b5200>;
+                size = <0x01000000>;
             };
         };
     };
