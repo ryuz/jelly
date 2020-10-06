@@ -17,7 +17,7 @@ module tb_top();
         $dumpvars(1, tb_top);
         $dumpvars(2, tb_top.i_top);
 //      $dumpvars(3, tb_top.i_top.i_dma_video_read);
-//      $dumpvars(1, tb_top.i_top.i_image_processing);
+        $dumpvars(2, tb_top.i_top.i_image_processing);
 //      $dumpvars(0, tb_top.i_top.i_image_processing.i_img_previous_frame);
 //      $dumpvars(0, tb_top.i_top.blk_read_vdma.i_vdma_axi4_to_axi4s);
 //      $dumpvars(0, tb_top.i_top.i_vsync_generator);

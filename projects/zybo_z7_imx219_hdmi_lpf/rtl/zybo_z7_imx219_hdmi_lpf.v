@@ -1248,11 +1248,11 @@ module zybo_z7_imx219_hdmi_lpf
     
     
     
-    (* MARK_DEBUG="true" *) wire            vout_vsync;
-    (* MARK_DEBUG="true" *) wire            vout_hsync;
-    (* MARK_DEBUG="true" *) wire            vout_de;
-    (* MARK_DEBUG="true" *) wire    [23:0]  vout_data;
-    (* MARK_DEBUG="true" *) wire    [3:0]   vout_ctl;
+    wire            vout_vsync;
+    wire            vout_hsync;
+    wire            vout_de;
+    wire    [23:0]  vout_data;
+    wire    [3:0]   vout_ctl;
     
     jelly_vout_axi4s
             #(
@@ -1378,6 +1378,7 @@ module zybo_z7_imx219_hdmi_lpf
     assign pmod_a[7:6] = 0;
     
     
+    /*
     (* MARK_DEBUG = "true" *) reg   dbg_clk200;
     (* MARK_DEBUG = "true" *) reg   dbg_clk100;
     (* MARK_DEBUG = "true" *) reg   dbg_rxbyteclkhs;
@@ -1386,7 +1387,7 @@ module zybo_z7_imx219_hdmi_lpf
         dbg_clk100       <= reg_counter_clk100[5];
         dbg_rxbyteclkhs  <= reg_counter_rxbyteclkhs[5];
     end
-    
+    */
     
 endmodule
 

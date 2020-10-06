@@ -15,8 +15,10 @@ module jelly_img_previous_frame
             parameter   CORE_ID              = 32'h527a_ffff,
             parameter   CORE_VERSION         = 32'h0000_0000,
             
+            parameter   UNIT_WIDTH           = 8,
+            parameter   BYTE_WIDTH           = 8,
+            parameter   DATA_WIDTH           = 32,
             parameter   USER_WIDTH           = 0,
-            parameter   DATA_SIZE            = 2,     // 0:8bit, 1:16bit, 2:32bit ...
             
             parameter   WB_ADR_WIDTH         = 8,
             parameter   WB_DAT_SIZE          = 3,     // 0:8bit, 1:16bit, 2:32bit ...
@@ -103,7 +105,6 @@ module jelly_img_previous_frame
             
             
             // local
-            parameter   DATA_WIDTH           = (8 << DATA_SIZE),
             parameter   USER_BITS            = USER_WIDTH > 1 ? USER_WIDTH : 1
         )
         (
@@ -406,8 +407,10 @@ module jelly_img_previous_frame
     
     jelly_img_previous_frame_core
             #(
+                .UNIT_WIDTH                 (UNIT_WIDTH),
+                .BYTE_WIDTH                 (BYTE_WIDTH),
+                .DATA_WIDTH                 (DATA_WIDTH),
                 .USER_WIDTH                 (USER_WIDTH),
-                .DATA_SIZE                  (DATA_SIZE),
                 
                 .ASYNC                      (ASYNC),
                 .AXI4_ID_WIDTH              (AXI4_ID_WIDTH),

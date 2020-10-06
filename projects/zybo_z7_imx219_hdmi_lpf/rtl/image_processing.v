@@ -77,13 +77,13 @@ module image_processing
             output  wire    [2:0]                       m_axi4_awprot,
             output  wire    [AXI4_QOS_WIDTH-1:0]        m_axi4_awqos,
             output  wire    [3:0]                       m_axi4_awregion,
-            output  wire                                m_axi4_awvalid,
-            input   wire                                m_axi4_awready,
+            (* mark_debug="true" *)output  wire                                m_axi4_awvalid,
+            (* mark_debug="true" *)input   wire                                m_axi4_awready,
             output  wire    [AXI4_DATA_WIDTH-1:0]       m_axi4_wdata,
             output  wire    [AXI4_STRB_WIDTH-1:0]       m_axi4_wstrb,
             output  wire                                m_axi4_wlast,
-            output  wire                                m_axi4_wvalid,
-            input   wire                                m_axi4_wready,
+            (* mark_debug="true" *)output  wire                                m_axi4_wvalid,
+            (* mark_debug="true" *)input   wire                                m_axi4_wready,
             input   wire    [AXI4_ID_WIDTH-1:0]         m_axi4_bid,
             input   wire    [1:0]                       m_axi4_bresp,
             input   wire                                m_axi4_bvalid,
@@ -98,14 +98,14 @@ module image_processing
             output  wire    [2:0]                       m_axi4_arprot,
             output  wire    [AXI4_QOS_WIDTH-1:0]        m_axi4_arqos,
             output  wire    [3:0]                       m_axi4_arregion,
-            output  wire                                m_axi4_arvalid,
-            input   wire                                m_axi4_arready,
+            (* mark_debug="true" *)output  wire                                m_axi4_arvalid,
+            (* mark_debug="true" *)input   wire                                m_axi4_arready,
             input   wire    [AXI4_ID_WIDTH-1:0]         m_axi4_rid,
             input   wire    [AXI4_DATA_WIDTH-1:0]       m_axi4_rdata,
             input   wire    [1:0]                       m_axi4_rresp,
             input   wire                                m_axi4_rlast,
-            input   wire                                m_axi4_rvalid,
-            output  wire                                m_axi4_rready
+            (* mark_debug="true" *)input   wire                                m_axi4_rvalid,
+            (* mark_debug="true" *)output  wire                                m_axi4_rready
         );
     
     localparam  USE_VALID  = 0;
@@ -188,23 +188,23 @@ module image_processing
     
     
     // frame buffer
-    wire                                img_prvfrm_line_first;
-    wire                                img_prvfrm_line_last;
-    wire                                img_prvfrm_pixel_first;
-    wire                                img_prvfrm_pixel_last;
-    wire                                img_prvfrm_de;
-    wire    [USER_BITS-1:0]             img_prvfrm_user;
-    wire    [S_DATA_WIDTH-1:0]          img_prvfrm_data0;
-    wire    [S_DATA_WIDTH-1:0]          img_prvfrm_data1;
-    wire                                img_prvfrm_valid;
+    (* mark_debug="true" *)wire                                img_prvfrm_line_first;
+    (* mark_debug="true" *)wire                                img_prvfrm_line_last;
+    (* mark_debug="true" *)wire                                img_prvfrm_pixel_first;
+    (* mark_debug="true" *)wire                                img_prvfrm_pixel_last;
+    (* mark_debug="true" *)wire                                img_prvfrm_de;
+    (* mark_debug="true" *)wire    [USER_BITS-1:0]             img_prvfrm_user;
+    (* mark_debug="true" *)wire    [S_DATA_WIDTH-1:0]          img_prvfrm_data0;
+    (* mark_debug="true" *)wire    [S_DATA_WIDTH-1:0]          img_prvfrm_data1;
+    (* mark_debug="true" *)wire                                img_prvfrm_valid;
     
-    wire                                img_store_line_first;
-    wire                                img_store_line_last;
-    wire                                img_store_pixel_first;
-    wire                                img_store_pixel_last;
-    wire                                img_store_de;
-    wire    [S_DATA_WIDTH-1:0]          img_store_data;
-    wire                                img_store_valid;
+    (* mark_debug="true" *)wire                                img_store_line_first;
+    (* mark_debug="true" *)wire                                img_store_line_last;
+    (* mark_debug="true" *)wire                                img_store_pixel_first;
+    (* mark_debug="true" *)wire                                img_store_pixel_last;
+    (* mark_debug="true" *)wire                                img_store_de;
+    (* mark_debug="true" *)wire    [S_DATA_WIDTH-1:0]          img_store_data;
+    (* mark_debug="true" *)wire                                img_store_valid;
     
     wire    [WB_DAT_WIDTH-1:0]          wb_prvfrm_dat_o;
     wire                                wb_prvfrm_stb_i;
@@ -228,7 +228,7 @@ module image_processing
                 .AXI4_QOS_WIDTH         (AXI4_QOS_WIDTH),
                 
                 .PARAM_ADDR_WIDTH       (AXI4_ADDR_WIDTH),
-                .PARAM_SIZE_WIDTH       (24),
+                .PARAM_SIZE_WIDTH       (32),
                 .PARAM_AWLEN_WIDTH      (8),
                 .PARAM_WTIMEOUT_WIDTH   (8),
                 .PARAM_ARLEN_WIDTH      (8),
