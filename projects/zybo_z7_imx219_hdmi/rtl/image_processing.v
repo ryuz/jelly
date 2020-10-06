@@ -667,8 +667,9 @@ module image_processing
     
     jelly_img_previous_frame
             #(
+                .UNIT_WIDTH             (8),
+                .DATA_WIDTH             (8),
                 .USER_WIDTH             (USER_BITS + 3*M_DATA_WIDTH),
-                .DATA_SIZE              (0),     // 0:8bit, 1:16bit, 2:32bit ...
                 
                 .WB_ADR_WIDTH           (8),
                 .WB_DAT_WIDTH           (WB_DAT_WIDTH),
