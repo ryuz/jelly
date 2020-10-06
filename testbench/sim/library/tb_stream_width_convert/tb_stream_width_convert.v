@@ -67,13 +67,13 @@ module tb_stream_width_convert();
     parameter USER_L_BITS         = USER_L_WIDTH > 0 ? USER_L_WIDTH : 1;
     
     
-    reg                             endian  = 1;
+    reg                             endian  = 0;
     reg     [UNIT_WIDTH-1:0]        padding = 32'hxxxx_xxxx; // 32'h55aa5a5a;
     
     reg     [31:0]                  count;
     
-    wire    [ALIGN_S_WIDTH-1:0]     s_align_s = 0;
-    wire    [ALIGN_M_WIDTH-1:0]     s_align_m = 2;
+    wire    [ALIGN_S_WIDTH-1:0]     s_align_s = 1;
+    wire    [ALIGN_M_WIDTH-1:0]     s_align_m = 1;
     wire                            s_first = (count[2:0] == 3'b000);
     wire                            s_last  = (count[2:0] == 3'b111);
     reg     [S_DATA_WIDTH-1:0]      s_data;

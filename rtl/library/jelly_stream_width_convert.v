@@ -14,11 +14,11 @@
 
 module jelly_stream_width_convert
         #(
-            parameter UNIT_WIDTH          = 10,
-            parameter S_NUM               = 4,
+            parameter UNIT_WIDTH          = 8,
+            parameter S_NUM               = 1,
             parameter M_NUM               = 1,
-            parameter HAS_FIRST           = 1,                          // first を備える
-            parameter HAS_LAST            = 1,                          // last を備える
+            parameter HAS_FIRST           = 0,                          // first を備える
+            parameter HAS_LAST            = 0,                          // last を備える
             parameter HAS_STRB            = 0,                          // strb を備える
             parameter HAS_KEEP            = 0,                          // keep を備える
             parameter AUTO_FIRST          = !HAS_FIRST,                 // last の次を自動的に first とする
@@ -26,6 +26,7 @@ module jelly_stream_width_convert
             parameter HAS_ALIGN_M         = 0,                          // master 側のアライメントを指定する
             parameter FIRST_OVERWRITE     = 1,  // first時前方に残変換があれば吐き出さずに上書き
             parameter FIRST_FORCE_LAST    = 1,  // first時前方に残変換があれば強制的にlastを付与(残が無い場合はlastはつかない)
+            parameter REDUCE_KEEP         = 0,
             parameter ALIGN_S_WIDTH       = S_NUM <=   2 ? 1 :
                                             S_NUM <=   4 ? 2 :
                                             S_NUM <=   8 ? 3 :
@@ -131,15 +132,20 @@ module jelly_stream_width_convert
     // set data
     function [BUF_WIDTH-1:0] set_data(
                                         input                       endian,
+                                        input [BUF_WIDTH-1:0]       orgn,
                                         input [S_DATA_WIDTH-1:0]    data,
                                         input [COUNT_WIDTH-1:0]     position
                                     );
+    integer     i;
     begin
-        if ( endian ) begin
-            set_data = (data << (BUF_WIDTH - S_DATA_WIDTH - position * UNIT_WIDTH));
-        end
-        else begin
-            set_data = (data << (position * UNIT_WIDTH));
+        set_data = orgn;
+        for ( i = 0; i < S_DATA_WIDTH; i = i+1 ) begin
+            if ( endian ) begin
+                set_data[(BUF_WIDTH-1) - (position * UNIT_WIDTH + i)] = data[S_DATA_WIDTH-1 - i];
+            end
+            else begin
+                set_data[position* UNIT_WIDTH + i] = data[i];
+            end
         end
     end
     endfunction
@@ -147,15 +153,20 @@ module jelly_stream_width_convert
     // set strb
     function [BUF_NUM-1:0]  set_strb(
                                         input                       endian,
+                                        input [BUF_NUM-1:0]         orgn,
                                         input [S_NUM-1:0]           strb,
                                         input [COUNT_WIDTH-1:0]     position
                                     );
+    integer     i;
     begin
-        if ( endian ) begin
-            set_strb = (strb << (BUF_NUM - S_NUM - position));
-        end
-        else begin
-            set_strb = (strb << position);
+        set_strb = orgn;
+        for ( i = 0; i < S_NUM; i = i+1 ) begin
+            if ( endian ) begin
+                set_strb[(BUF_NUM-1) - (position + i)] = strb[S_NUM-1 - i];
+            end
+            else begin
+                set_strb[position + i] = strb[i];
+            end
         end
     end
     endfunction
@@ -164,14 +175,21 @@ module jelly_stream_width_convert
     // get data
     function [M_DATA_WIDTH-1:0] get_data(
                                         input                       endian,
-                                        input [BUF_WIDTH-1:0]       data
+                                        input [BUF_WIDTH-1:0]       data,
+                                        input [COUNT_WIDTH-1:0]     position
                                     );
+    integer i;
     begin
-        if ( endian ) begin
-            get_data = data[BUF_WIDTH-1 -: M_DATA_WIDTH];
-        end
-        else begin
-            get_data = data[0 +: M_DATA_WIDTH];
+        get_data = {M_DATA_WIDTH{1'b0}};
+        for ( i = 0; i < M_DATA_WIDTH; i = i+1 ) begin
+            if ( position*UNIT_WIDTH + i < BUF_WIDTH ) begin
+                if ( endian ) begin
+                    get_data[M_DATA_WIDTH-1 - i] = data[BUF_WIDTH-1 - (position*UNIT_WIDTH + i)];
+                end
+                else begin
+                    get_data[i] = data[position*UNIT_WIDTH + i];
+                end
+            end
         end
     end
     endfunction
@@ -179,14 +197,21 @@ module jelly_stream_width_convert
     // get strb
     function [M_NUM-1:0]  get_strb(
                                         input                       endian,
-                                        input [BUF_NUM-1:0]         strb
+                                        input [BUF_NUM-1:0]         strb,
+                                        input [COUNT_WIDTH-1:0]     position
                                     );
+    integer i;
     begin
-        if ( endian ) begin
-            get_strb = strb[BUF_NUM-1 -: M_NUM];
-        end
-        else begin
-            get_strb = strb[0 +: M_NUM];
+        get_strb = {M_NUM{1'b0}};
+        for ( i = 0; i < M_NUM; i = i+1 ) begin
+            if ( position + i < BUF_NUM ) begin
+                if ( endian ) begin
+                    get_strb[M_NUM-1 - i] = strb[BUF_NUM-1 - (position + i)];
+                end
+                else begin
+                    get_strb[i] = strb[position + i];
+                end
+            end
         end
     end
     endfunction
@@ -194,9 +219,9 @@ module jelly_stream_width_convert
     
     // shift strb
     function [BUF_NUM-1:0]  shift_strb(
-                                        input                   endian,
-                                        input [BUF_NUM-1:0]     strb,
-                                        input [COUNT_WIDTH-1:0] count
+                                        input                       endian,
+                                        input [BUF_NUM-1:0]         strb,
+                                        input [COUNT_WIDTH-1:0]     count
                                     );
     begin
         if ( endian ) begin
@@ -210,9 +235,9 @@ module jelly_stream_width_convert
     
     // shift data
     function [BUF_WIDTH-1:0]  shift_data(
-                                        input                   endian,
-                                        input [BUF_WIDTH-1:0]   data,
-                                        input [COUNT_WIDTH-1:0] count
+                                        input                       endian,
+                                        input [BUF_WIDTH-1:0]       data,
+                                        input [COUNT_WIDTH-1:0]     count
                                     );
     begin
         if ( endian ) begin
@@ -225,77 +250,16 @@ module jelly_stream_width_convert
     endfunction
     
     
-    // rewind strb
-    function [BUF_NUM-1:0]  rewind_strb(
-                                        input                   endian,
-                                        input [BUF_NUM-1:0]     strb,
-                                        input [COUNT_WIDTH-1:0] count
-                                    );
-    begin
-        if ( endian ) begin
-            rewind_strb = (strb >> count);
-        end
-        else begin
-            rewind_strb = (strb << count);
-        end
-    end
-    endfunction
-    
-    // rewind data
-    function [BUF_WIDTH-1:0]  rewind_data(
-                                        input                   endian,
-                                        input [BUF_WIDTH-1:0]   data,
-                                        input [COUNT_WIDTH-1:0] count
-                                    );
-    begin
-        if ( endian ) begin
-            rewind_data = (data >> (count * UNIT_WIDTH));
-        end
-        else begin
-            rewind_data = (data << (count * UNIT_WIDTH));
-        end
-    end
-    endfunction
-    
-    
-    // data mask
-    function [BUF_WIDTH-1:0] mask_data(
-                                        input [BUF_WIDTH-1:0]   orgn,
-                                        input [BUF_WIDTH-1:0]   data,
-                                        input [BUF_WIDTH-1:0]   mask
-                                    );
-    integer i;
-    begin
-        for ( i = 0; i < BUF_WIDTH; i = i+1 ) begin
-            mask_data[i] = mask[i] ? data[i] : orgn[i];
-        end
-    end
-    endfunction
-    
-    // strb mask
-    function [BUF_NUM-1:0]  mask_strb(
-                                        input [BUF_NUM-1:0]     orgn,
-                                        input [BUF_NUM-1:0]     strb,
-                                        input [BUF_NUM-1:0]     mask
-                                    );
-    integer i;
-    begin
-        for ( i = 0; i < BUF_NUM; i = i+1 ) begin
-            mask_strb[i] = mask[i] ? strb[i] : orgn[i];
-        end
-    end
-    endfunction
-    
     
     // data strb
-    function [BUF_WIDTH-1:0]  strb_data(
-                                        input [BUF_WIDTH-1:0]   orgn,
-                                        input [BUF_WIDTH-1:0]   data,
-                                        input [BUF_NUM-1:0]     strb
+    function [M_DATA_WIDTH-1:0]  strb_data(
+                                        input [M_DATA_WIDTH-1:0]    orgn,
+                                        input [M_DATA_WIDTH-1:0]    data,
+                                        input [M_NUM-1:0]           strb
                                     );
     integer i;
     begin
-        for ( i = 0; i < BUF_WIDTH; i = i+1 ) begin
+        for ( i = 0; i < M_DATA_WIDTH; i = i+1 ) begin
             strb_data[i] = strb[i/UNIT_WIDTH] ? data[i] : orgn[i];
         end
     end
@@ -386,12 +350,9 @@ module jelly_stream_width_convert
     // -----------------------------------------
     
     // alignment
-    wire    [BUF_WIDTH-1:0]         st0_data;
-    wire    [BUF_NUM-1:0]           st0_strb;
-    wire    [BUF_NUM-1:0]           st0_keep;
-    wire    [BUF_WIDTH-1:0]         st0_data_f;
-    wire    [BUF_NUM-1:0]           st0_strb_f;
-    wire    [BUF_NUM-1:0]           st0_keep_f;
+    wire    [S_DATA_WIDTH-1:0]      st0_data;
+    wire    [S_NUM-1:0]             st0_strb;
+    wire    [S_NUM-1:0]             st0_keep;
     wire    [USER_F_BITS-1:0]       st0_user_f;
     wire    [USER_L_BITS-1:0]       st0_user_l;
     wire                            st0_first;
@@ -409,9 +370,6 @@ module jelly_stream_width_convert
         reg     [S_DATA_WIDTH-1:0]      reg_data;
         reg     [S_NUM-1:0]             reg_strb;
         reg     [S_NUM-1:0]             reg_keep;
-        reg     [BUF_WIDTH-1:0]         reg_data_f;
-        reg     [BUF_NUM-1:0]           reg_strb_f;
-        reg     [BUF_NUM-1:0]           reg_keep_f;
         reg     [USER_F_BITS-1:0]       reg_user_f;
         reg     [USER_L_BITS-1:0]       reg_user_l;
         reg                             reg_first;
@@ -422,14 +380,14 @@ module jelly_stream_width_convert
             if ( cke && ff_s_ready ) begin
                 if ( ff_s_first ) begin
                     if ( endian ) begin
-                        tmp_data = (ff_s_data << (ff_s_align_s * UNIT_WIDTH));
-                        tmp_strb = (ff_s_strb << ff_s_align_s);
-                        tmp_keep = (ff_s_keep << ff_s_align_s);
-                    end
-                    else begin
                         tmp_data = (ff_s_data >> (ff_s_align_s * UNIT_WIDTH));
                         tmp_strb = (ff_s_strb >> ff_s_align_s);
                         tmp_keep = (ff_s_keep >> ff_s_align_s);
+                    end
+                    else begin
+                        tmp_data = (ff_s_data << (ff_s_align_s * UNIT_WIDTH));
+                        tmp_strb = (ff_s_strb << ff_s_align_s);
+                        tmp_keep = (ff_s_keep << ff_s_align_s);
                     end
                 end
                 else begin
@@ -441,9 +399,6 @@ module jelly_stream_width_convert
                 reg_data   <= tmp_data;
                 reg_strb   <= tmp_strb;
                 reg_keep   <= tmp_keep;
-                reg_data_f <= set_data(endian, tmp_data, ff_s_align_m);
-                reg_strb_f <= set_strb(endian, tmp_strb, ff_s_align_m);
-                reg_keep_f <= set_strb(endian, tmp_keep, ff_s_align_m);
                 reg_user_f <= ff_s_user_f;
                 reg_user_l <= ff_s_user_l;
                 reg_first  <= ff_s_first;
@@ -463,12 +418,9 @@ module jelly_stream_width_convert
         
         assign ff_s_ready  = !st0_valid || st0_ready;
         
-        assign st0_data    = set_data(endian, reg_data, 0);
-        assign st0_strb    = set_strb(endian, reg_strb, 0);
-        assign st0_keep    = set_strb(endian, reg_keep, 0);
-        assign st0_data_f  = reg_data_f;
-        assign st0_strb_f  = reg_strb_f;
-        assign st0_keep_f  = reg_keep_f;
+        assign st0_data    = reg_data;
+        assign st0_strb    = reg_strb;
+        assign st0_keep    = reg_keep;
         assign st0_user_f  = reg_user_f;
         assign st0_user_l  = reg_user_l;
         assign st0_first   = reg_first;
@@ -479,12 +431,9 @@ module jelly_stream_width_convert
     else begin : st0_bypass
         assign ff_s_ready  = st0_ready;
         
-        assign st0_data    = set_data(endian, ff_s_data, 0);
-        assign st0_strb    = set_strb(endian, ff_s_strb, 0);
-        assign st0_keep    = set_strb(endian, ff_s_keep, 0);
-        assign st0_data_f  = st0_data;
-        assign st0_strb_f  = st0_strb;
-        assign st0_keep_f  = st0_keep;
+        assign st0_data    = ff_s_data;
+        assign st0_strb    = ff_s_strb;
+        assign st0_keep    = ff_s_keep;
         assign st0_user_f  = ff_s_user_f;
         assign st0_user_l  = ff_s_user_l;
         assign st0_first   = ff_s_first;
@@ -497,25 +446,22 @@ module jelly_stream_width_convert
     
     
     // -----------------------------------------
-    //  stage1  bus width convert
+    //  stage1 data buffer
     // -----------------------------------------
     
-    wire    [M_DATA_WIDTH-1:0]      st1_data;
-    wire    [M_NUM-1:0]             st1_strb;
-    wire    [M_NUM-1:0]             st1_keep;
+    wire    [COUNT_WIDTH-1:0]       st1_count;
+    wire    [BUF_WIDTH-1:0]         st1_data;
+    wire    [BUF_NUM-1:0]           st1_strb;
+    wire    [BUF_NUM-1:0]           st1_keep;
     wire    [USER_F_BITS-1:0]       st1_user_f;
     wire    [USER_L_BITS-1:0]       st1_user_l;
     wire                            st1_first;
     wire                            st1_last;
-    wire                            st1_none;
     wire                            st1_valid;
     wire                            st1_ready;
     
-    wire    [BUF_WIDTH-1:0]         padding_pattern = {BUF_NUM{padding}};
-    
     generate
-    if ( S_NUM != M_NUM ) begin : st1_width_conv
-        
+    if ( S_NUM != M_NUM ) begin : st1_buffer
         reg     [COUNT_WIDTH-1:0]   reg_count,  next_count;
         reg     [BUF_WIDTH-1:0]     reg_data,   next_data;
         reg     [BUF_NUM-1:0]       reg_strb,   next_strb;
@@ -525,11 +471,10 @@ module jelly_stream_width_convert
         reg                         reg_first,  next_first;
         reg                         reg_last,   next_last;
         reg                         reg_flag_l, next_flag_l;    // フラグ予約
-        reg                         reg_flush,    next_flush;       // 最終データがバッファに入ったフラグ
+        reg                         reg_flush,  next_flush;     // 最終データがバッファに入ったフラグ
         reg                         reg_empty,  next_empty;     // 完全に空
         reg                         reg_free,   next_free;      // 即時受け入れ可
         reg                         reg_ready,  next_ready;     // 今のデータが吐き出せれば受け入れ可
-        reg                         reg_none,   next_none;      // keepがすべて倒れる
         reg                         reg_valid,  next_valid;
         
         always @(posedge clk) begin
@@ -546,7 +491,6 @@ module jelly_stream_width_convert
                 reg_flush  <= 1'b0;
                 reg_empty  <= 1'b1;
                 reg_free   <= 1'b1;
-                reg_none   <= 1'b0;
                 reg_valid  <= 1'b0;
             end
             else if ( cke ) begin
@@ -562,7 +506,6 @@ module jelly_stream_width_convert
                 reg_flush  <= next_flush;
                 reg_empty  <= next_empty;
                 reg_free   <= next_free;
-                reg_none   <= next_none;
                 reg_ready  <= next_ready;
                 reg_valid  <= next_valid;
             end
@@ -585,12 +528,9 @@ module jelly_stream_width_convert
             next_valid  = reg_valid;
             
             
-            // 出力があればその分減らす
+            // 出力があればサイズを減らしてフラグクリア
             if ( st1_valid & st1_ready ) begin
                 next_count  = (next_count > M_NUM) ? (next_count - M_NUM) : 0;
-                next_data   = shift_data(endian, next_data, M_NUM);
-                next_strb   = shift_strb(endian, next_strb, M_NUM);
-                next_keep   = shift_strb(endian, next_keep, M_NUM);
                 next_first  = 1'b0;
                 if ( reg_last ) begin
                     next_last  = 1'b0;
@@ -607,22 +547,25 @@ module jelly_stream_width_convert
             
             if ( st0_ready & st0_valid ) begin
                 if ( st0_first ) begin
-                    // 先頭なら事前にセットしたものそのまま
-                    next_count  = st0_count;
-                    next_strb   = st0_strb_f;
-                    next_keep   = st0_keep_f;
-                    next_data   = st0_data_f;
-                    next_user_f = st0_user_f;
-                    next_first  = 1'b1;
+                    // 先頭ならリフレッシュ
+                    next_data  = {BUF_WIDTH{1'bx}};
+                    next_strb  = {BUF_NUM{1'b0}};
+                    next_keep  = {BUF_NUM{1'b0}};
+                    next_count = st0_count;
                 end
                 else begin
-                    // バッファ末尾に追加
-                    next_data = mask_data(next_data, rewind_data(endian, st0_data, next_count), set_data(endian, {S_DATA_WIDTH{1'b1}}, next_count));
-                    next_strb = mask_strb(next_strb, rewind_strb(endian, st0_strb, next_count), set_strb(endian, {S_NUM{1'b1}},        next_count));
-                    next_keep = mask_strb(next_keep, rewind_strb(endian, st0_keep, next_count), set_strb(endian, {S_NUM{1'b1}},        next_count));
+                    // 継続ならシフト
+                    next_data  = shift_data(endian, next_data, S_NUM);
+                    next_strb  = shift_strb(endian, next_strb, S_NUM);
+                    next_keep  = shift_strb(endian, next_keep, S_NUM);
                     next_count = next_count + st0_count;
                 end
                 
+                next_data = set_data(endian, next_data, st0_data, BUF_NUM-S_NUM);
+                next_strb = set_strb(endian, next_strb, st0_strb, BUF_NUM-S_NUM);
+                next_keep = set_strb(endian, next_keep, st0_keep, BUF_NUM-S_NUM);
+                
+                // last ならフラグを立てる
                 if ( st0_last ) begin
                     next_user_l = st0_user_l;
                     next_flush  = 1'b1;
@@ -633,23 +576,19 @@ module jelly_stream_width_convert
             next_empty = (next_count == 0);
             next_free  = (BUF_NUM - next_count >= S_NUM) && !next_flush;
             next_last  = (next_flush && next_count <= M_NUM);
-            next_none  = HAS_KEEP && (get_strb(endian, next_keep) == 0);
             
             next_valid = (next_count >= M_NUM) || next_flush;
             next_ready = ((BUF_NUM - next_count + M_NUM >= S_NUM) && next_valid && !next_flush) || (next_valid && next_last && next_count <= M_NUM);
         end
         
-        wire    [BUF_WIDTH-1:0] padding_data = strb_data(padding_pattern, reg_data, reg_strb);
-        
-        
         assign st0_ready  = (reg_ready && st1_ready)    // 次で空く
                          || reg_free                    // flush中ではなく空いている
                          || (FIRST_OVERWRITE && HAS_FIRST && st0_valid && st0_first);   // 上書きモード
         
-        assign st1_data   = get_data(endian, padding_data);
-        assign st1_strb   = get_strb(endian, reg_strb);
-        assign st1_keep   = get_strb(endian, reg_keep);
-        assign st1_none   = reg_none;
+        assign st1_count  = reg_count;
+        assign st1_data   = reg_data;
+        assign st1_strb   = reg_strb;
+        assign st1_keep   = reg_keep;
         assign st1_user_f = reg_first ? reg_user_f : {USER_F_BITS{1'b0}};
         assign st1_user_l = reg_last  ? reg_user_l : {USER_L_BITS{1'b0}};
         assign st1_first  = reg_first;
@@ -659,10 +598,10 @@ module jelly_stream_width_convert
     else begin : st1_bypass
         assign st0_ready  = st1_ready;
         
-        assign st1_data   = strb_data(padding_pattern, st0_data, st0_strb);
+        assign st1_count  = S_NUM;
+        assign st1_data   = st0_data;
         assign st1_strb   = st0_strb;
         assign st1_keep   = st0_keep;
-        assign st1_none   = (st0_keep == 0);
         assign st1_user_f = st0_user_f;
         assign st1_user_l = st0_user_l;
         assign st1_first  = st0_first;
@@ -673,12 +612,124 @@ module jelly_stream_width_convert
     
     
     
+    
+    // -----------------------------------------
+    //  stage2 multiplexer
+    // -----------------------------------------
+    
+    wire    [M_DATA_WIDTH-1:0]      st2_data;
+    wire    [M_NUM-1:0]             st2_strb;
+    wire    [M_NUM-1:0]             st2_keep;
+    wire    [USER_F_BITS-1:0]       st2_user_f;
+    wire    [USER_L_BITS-1:0]       st2_user_l;
+    wire                            st2_first;
+    wire                            st2_last;
+    wire                            st2_none;
+    wire                            st2_valid;
+    wire                            st2_ready;
+    
+    generate
+    if ( S_NUM != M_NUM ) begin : st2_multiplexer
+        reg     [M_DATA_WIDTH-1:0]  reg_data,   next_data;
+        reg     [M_NUM-1:0]         reg_strb,   next_strb;
+        reg     [M_NUM-1:0]         reg_keep,   next_keep;
+        reg     [USER_F_BITS-1:0]   reg_user_f, next_user_f;
+        reg     [USER_L_BITS-1:0]   reg_user_l, next_user_l;
+        reg                         reg_first,  next_first;
+        reg                         reg_last,   next_last;
+        reg                         reg_none,   next_none;
+        reg                         reg_valid,  next_valid;
+        
+        always @(posedge clk) begin
+            if ( reset ) begin
+                reg_data   <= {M_DATA_WIDTH{1'bx}};
+                reg_strb   <= {M_NUM{1'b0}};
+                reg_keep   <= {M_NUM{1'b0}};
+                reg_user_f <= {USER_F_BITS{1'b0}};
+                reg_user_l <= {USER_L_BITS{1'b0}};
+                reg_first  <= 1'b0;
+                reg_last   <= 1'b0;
+                reg_none   <= 1'b0;
+                reg_valid  <= 1'b0;
+            end
+            else if ( cke ) begin
+                reg_data   <= next_data;
+                reg_strb   <= next_strb;
+                reg_keep   <= next_keep;
+                reg_user_f <= next_user_f;
+                reg_user_l <= next_user_l;
+                reg_first  <= next_first;
+                reg_last   <= next_last;
+                reg_none   <= next_none;
+                reg_valid  <= next_valid;
+            end
+        end
+        
+        always @* begin
+            next_data   = reg_data;
+            next_strb   = reg_strb;
+            next_keep   = reg_keep;
+            next_user_f = reg_user_f;
+            next_user_l = reg_user_l;
+            next_first  = reg_first;
+            next_last   = reg_last;
+            next_none   = reg_none;
+            next_valid  = reg_valid;
+            
+            if ( st2_ready ) begin
+                next_valid = 1'b0;
+            end
+            
+            if ( st1_ready & st1_valid ) begin
+                next_data = get_data(endian, st1_data, BUF_NUM - st1_count);
+                next_strb = get_strb(endian, st1_strb, BUF_NUM - st1_count);
+                next_keep = get_strb(endian, st1_keep, BUF_NUM - st1_count);
+                
+                next_user_f = st1_user_f;
+                next_user_l = st1_user_l;
+                next_first  = st1_first;
+                next_last   = st1_last;
+                next_valid  = st1_valid;
+            end
+            
+            next_none = ((next_keep == 0) && REDUCE_KEEP);
+        end
+        
+        assign st1_ready  = (!st2_valid || st2_ready);
+        
+        assign st2_data   = reg_data;
+        assign st2_strb   = reg_strb;
+        assign st2_keep   = reg_keep;
+        assign st2_user_f = reg_user_f;
+        assign st2_user_l = reg_user_l;
+        assign st2_first  = reg_first;
+        assign st2_last   = reg_last;
+        assign st2_none   = reg_none;
+        assign st2_valid  = reg_valid;
+    end
+    else begin : st2_bypass
+        assign st1_ready  = st2_ready;
+        
+        assign st2_data   = st1_data;
+        assign st2_strb   = st1_strb;
+        assign st2_keep   = st1_keep;
+        assign st2_user_f = st1_user_f;
+        assign st2_user_l = st1_user_l;
+        assign st2_first  = st1_first;
+        assign st2_last   = st1_last;
+        assign st2_none   = ((st1_keep == 0) && REDUCE_KEEP);
+        assign st2_valid  = st1_valid;
+    end
+    endgenerate
+    
+    
+    
     // -----------------------------------------
     //  insert FF
     // -----------------------------------------
     
     wire    ff_m_ready;
-    assign st1_ready = (ff_m_ready | st1_none);
+    assign st2_ready = (ff_m_ready | st2_none);
     
     jelly_data_ff_pack
             #(
@@ -698,14 +749,14 @@ module jelly_stream_width_convert
                 .clk            (clk),
                 .cke            (cke),
                 
-                .s_data0        (st1_data),
-                .s_data1        (st1_strb),
-                .s_data2        (HAS_KEEP ? st1_keep : {M_NUM{1'b1}}),
-                .s_data3        (st1_user_f),
-                .s_data4        (st1_user_l),
-                .s_data5        (st1_last),
-                .s_data6        (st1_first),
-                .s_valid        (st1_valid & ~st1_none),
+                .s_data0        (strb_data({M_NUM{padding}}, st2_data, st2_strb)),
+                .s_data1        (st2_strb),
+                .s_data2        (HAS_KEEP ? st2_keep : {M_NUM{1'b1}}),
+                .s_data3        (st2_user_f),
+                .s_data4        (st2_user_l),
+                .s_data5        (st2_last),
+                .s_data6        (st2_first),
+                .s_valid        (st2_valid & ~st2_none),
                 .s_ready        (ff_m_ready),
                 
                 .m_data0        (m_data),
