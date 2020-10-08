@@ -145,7 +145,7 @@ module image_processing
                 .BLANK_Y_WIDTH          (8),
                 .IMG_CKE_BUFG           (0)
             )
-        jelly_axi4s_img
+        i_axi4s_img
             (
                 .reset                  (reset),
                 .clk                    (clk),
@@ -518,7 +518,7 @@ module image_processing
                 .WB_ADR_WIDTH           (6),
                 .WB_DAT_WIDTH           (WB_DAT_WIDTH),
                 
-                .INIT_PARAM_MATRIX00    (2 << 16),
+                .INIT_PARAM_MATRIX00    (1 << 16),
                 .INIT_PARAM_MATRIX01    (0),
                 .INIT_PARAM_MATRIX02    (0),
                 .INIT_PARAM_MATRIX03    (0),
@@ -528,7 +528,7 @@ module image_processing
                 .INIT_PARAM_MATRIX13    (0),
                 .INIT_PARAM_MATRIX20    (0),
                 .INIT_PARAM_MATRIX21    (0),
-                .INIT_PARAM_MATRIX22    (2 << 16),
+                .INIT_PARAM_MATRIX22    (1 << 16),
                 .INIT_PARAM_MATRIX23    (0),
                 .INIT_PARAM_CLIP_MIN0   ({S_DATA_WIDTH{1'b0}}),
                 .INIT_PARAM_CLIP_MAX0   ({S_DATA_WIDTH{1'b1}}),
@@ -720,7 +720,7 @@ module image_processing
     assign img_sink_pixel_last  = img_gauss_pixel_last;
     assign img_sink_de          = img_gauss_de;
     assign img_sink_user        = img_gauss_user;
-    assign img_sink_data        = {img_gamma_raw[S_DATA_WIDTH-1 -: M_DATA_WIDTH], img_gamma_data};
+    assign img_sink_data        = {img_gauss_raw[S_DATA_WIDTH-1 -: M_DATA_WIDTH], img_gauss_data};
     assign img_sink_valid       = img_gauss_valid;
     
     

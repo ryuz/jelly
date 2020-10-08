@@ -17,7 +17,9 @@ module tb_top();
         $dumpvars(1, tb_top);
         $dumpvars(2, tb_top.i_top);
 //      $dumpvars(3, tb_top.i_top.i_dma_video_read);
+        $dumpvars(0, tb_top.i_top.i_dma_video_write);
         $dumpvars(2, tb_top.i_top.i_image_processing);
+        $dumpvars(0, tb_top.i_top.i_image_processing.i_axi4s_img);
 //      $dumpvars(0, tb_top.i_top.i_image_processing.i_img_previous_frame);
 //      $dumpvars(0, tb_top.i_top.blk_read_vdma.i_vdma_axi4_to_axi4s);
 //      $dumpvars(0, tb_top.i_top.i_vsync_generator);
@@ -50,6 +52,49 @@ module tb_top();
                 .pmod_a         ()
             );
     
+    
+    /*
+    wire    img_reset = i_top.i_image_processing.reset;
+    wire    img_clk   = i_top.i_image_processing.clk;
+    wire    img_cke   = i_top.i_image_processing.cke;
+    wire    img_de    = i_top.i_image_processing.img_demos_de;
+    
+    integer             pix;
+    reg     [31:0]      reg_count;
+    always @(posedge img_clk) begin
+        if ( img_reset ) begin
+            pix       <= 0;
+            reg_count <= 32'h00020100;
+        end
+        else if ( img_cke ) begin
+            if ( img_de ) begin
+                pix <= pix + 1;
+                reg_count[0*8 +: 8] <= reg_count[0*8 +: 8] + 3;
+                reg_count[1*8 +: 8] <= reg_count[1*8 +: 8] + 3;
+                reg_count[2*8 +: 8] <= reg_count[2*8 +: 8] + 3;
+                reg_count[3*8 +: 8] <= reg_count[3*8 +: 8] + 0;
+                
+                if ( pix == X_NUM*Y_NUM-1 ) begin
+                    pix       <= 0;
+                    reg_count <= 32'h03020100;
+                end
+                  
+//                reg_count[0*8 +: 8] <= reg_count[0*8 +: 8] + 1;
+//                reg_count[1*8 +: 8] <= reg_count[1*8 +: 8] + 4;
+//                reg_count[2*8 +: 8] <= reg_count[2*8 +: 8] + 4;
+//                reg_count[3*8 +: 8] <= reg_count[3*8 +: 8] + 4;
+            end
+        end
+    end
+    
+    initial begin
+//        force i_top.i_image_processing.img_src_data = pix; // reg_count;
+        force i_top.i_image_processing.img_demos_r   = pix[0*8 +: 8];
+        force i_top.i_image_processing.img_demos_g   = pix[0*8 +: 8];
+        force i_top.i_image_processing.img_demos_b   = pix[0*8 +: 8];
+        force i_top.i_image_processing.img_demos_raw = pix[0*8 +: 8];
+    end
+    */
     
     
     
@@ -119,8 +164,8 @@ module tb_top();
                 .aclk               (i_top.vout_clk),
                 .aclken             (1),
                 
-                .param_width        (1280),
-                .param_height       (720),
+                .param_width        (X_NUM), //(1280),
+                .param_height       (Y_NUM), //(720),
                 
                 .s_axi4s_tuser      (i_top.axi4s_vout_tuser),
                 .s_axi4s_tlast      (i_top.axi4s_vout_tlast),
@@ -141,7 +186,8 @@ module tb_top();
     initial begin
         fp_vout = $fopen("vout.ppm", "w");
         $fdisplay(fp_vout, "P3");
-        $fdisplay(fp_vout, "1280 720");
+//      $fdisplay(fp_vout, "1280 720");
+        $fdisplay(fp_vout, "%d %d", X_NUM, Y_NUM*3);
         $fdisplay(fp_vout, "255");
     end
     always @(posedge vout_clk) begin
@@ -393,14 +439,18 @@ module tb_top();
         
         $display("vin write DMA");
         wb_write(32'h40320000 + (ADR_PARAM_ARADDR  << 2), 32'h00010000, 4'b1111);      // address
+//      wb_write(32'h40320000 + (ADR_PARAM_ARADDR  << 2), 32'h385983c0, 4'b1111);
         wb_write(32'h40320000 + (ADR_PARAM_ARLEN0  << 2),      X_NUM-1, 4'b1111);
         wb_write(32'h40320000 + (ADR_PARAM_ARLEN1  << 2),      Y_NUM-1, 4'b1111);
         wb_write(32'h40320000 + (ADR_PARAM_ARLEN2  << 2),            0, 4'b1111);
         wb_write(32'h40320000 + (ADR_PARAM_ARSTEP1 << 2),       STRIDE, 4'b1111);
         wb_write(32'h40320000 + (ADR_PARAM_ARSTEP2 << 2), Y_NUM*STRIDE, 4'b1111);
-        wb_write(32'h40320000 + (ADR_CTL_CONTROL   << 2),         8'hb, 4'b1111);
+//      wb_write(32'h40320000 + (ADR_CTL_CONTROL   << 2),         8'hb, 4'b1111);
+        wb_write(32'h40320000 + (ADR_CTL_CONTROL   << 2),         8'h3, 4'b1111);
         axi4s_model_aresetn = 1'b1;
-     #1000;
+        
+        
+     #10000;
         $display("vsync start");
         wb_write(32'h40360000 + (VSYNC_PARAM_HTOTAL      << 2),  32 + X_NUM, 4'b1111);
         wb_write(32'h40360000 + (VSYNC_PARAM_HSYNC_POL   << 2),           0, 4'b1111);
@@ -425,7 +475,9 @@ module tb_top();
         wb_write(32'h40340000 + (ADR_PARAM_ARLEN2  << 2),            0, 4'b1111);
         wb_write(32'h40340000 + (ADR_PARAM_ARSTEP1 << 2),       STRIDE, 4'b1111);
         wb_write(32'h40340000 + (ADR_PARAM_ARSTEP2 << 2), Y_NUM*STRIDE, 4'b1111);
-        wb_write(32'h40340000 + (ADR_CTL_CONTROL   << 2),         8'hb, 4'b1111);
+//      wb_write(32'h40340000 + (ADR_CTL_CONTROL   << 2),         8'hb, 4'b1111);
+        wb_write(32'h40340000 + (ADR_CTL_CONTROL   << 2),         8'h3, 4'b1111);
+        
         
      #400000;
         wb_write(32'h40320000 + (ADR_CTL_CONTROL   << 2),            0, 4'b1111);
