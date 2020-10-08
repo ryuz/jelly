@@ -24,7 +24,7 @@ module jelly_stream_width_convert
             parameter AUTO_FIRST          = !HAS_FIRST,                 // last の次を自動的に first とする
             parameter HAS_ALIGN_S         = 0,                          // slave 側のアライメントを指定する
             parameter HAS_ALIGN_M         = 0,                          // master 側のアライメントを指定する
-            parameter FIRST_OVERWRITE     = 1,  // first時前方に残変換があれば吐き出さずに上書き
+            parameter FIRST_OVERWRITE     = 0,  // first時前方に残変換があれば吐き出さずに上書き
             parameter FIRST_FORCE_LAST    = 1,  // first時前方に残変換があれば強制的にlastを付与(残が無い場合はlastはつかない)
             parameter REDUCE_KEEP         = 0,
             parameter ALIGN_S_WIDTH       = S_NUM <=   2 ? 1 :
@@ -539,7 +539,7 @@ module jelly_stream_width_convert
             end
             
             // 上書きモード以外でバッファ残があるときにfirstが来たら強制的にflush開始
-            if ( !reg_flush && !reg_empty && st0_valid && st0_first ) begin
+            if ( !reg_flush && next_count > 0 && st0_valid && st0_first ) begin
                 next_flush  = 1'b1;
                 next_flag_l = FIRST_FORCE_LAST;
                 next_user_l = {USER_L_BITS{1'b0}};
@@ -552,6 +552,8 @@ module jelly_stream_width_convert
                     next_strb  = {BUF_NUM{1'b0}};
                     next_keep  = {BUF_NUM{1'b0}};
                     next_count = st0_count;
+                    next_flush = 1'b0;
+                    next_first = 1'b1;
                 end
                 else begin
                     // 継続ならシフト
@@ -561,9 +563,9 @@ module jelly_stream_width_convert
                     next_count = next_count + st0_count;
                 end
                 
-                next_data = set_data(endian, next_data, st0_data, BUF_NUM-S_NUM);
-                next_strb = set_strb(endian, next_strb, st0_strb, BUF_NUM-S_NUM);
-                next_keep = set_strb(endian, next_keep, st0_keep, BUF_NUM-S_NUM);
+                next_data  = set_data(endian, next_data, st0_data, BUF_NUM-S_NUM);
+                next_strb  = set_strb(endian, next_strb, st0_strb, BUF_NUM-S_NUM);
+                next_keep  = set_strb(endian, next_keep, st0_keep, BUF_NUM-S_NUM);
                 
                 // last ならフラグを立てる
                 if ( st0_last ) begin
@@ -581,9 +583,11 @@ module jelly_stream_width_convert
             next_ready = ((BUF_NUM - next_count + M_NUM >= S_NUM) && next_valid && !next_flush) || (next_valid && next_last && next_count <= M_NUM);
         end
         
-        assign st0_ready  = (reg_ready && st1_ready)    // 次で空く
-                         || reg_free                    // flush中ではなく空いている
-                         || (FIRST_OVERWRITE && HAS_FIRST && st0_valid && st0_first);   // 上書きモード
+//      assign st0_ready  = (reg_ready && st1_ready)    // 次で空く
+//                       || reg_free                    // flush中ではなく空いている
+//                       || (FIRST_OVERWRITE && HAS_FIRST && st0_valid && st0_first);   // 上書きモード
+
+        assign st0_ready  = ((reg_ready && st1_ready) || reg_free) && (FIRST_OVERWRITE || !HAS_FIRST || !(!reg_empty && st0_valid && st0_first));
         
         assign st1_count  = reg_count;
         assign st1_data   = reg_data;
