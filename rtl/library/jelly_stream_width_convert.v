@@ -548,24 +548,25 @@ module jelly_stream_width_convert
             if ( st0_ready & st0_valid ) begin
                 if ( st0_first ) begin
                     // 先頭ならリフレッシュ
-                    next_data  = {BUF_WIDTH{1'bx}};
-                    next_strb  = {BUF_NUM{1'b0}};
-                    next_keep  = {BUF_NUM{1'b0}};
-                    next_count = st0_count;
-                    next_flush = 1'b0;
-                    next_first = 1'b1;
+                    next_data   = {BUF_WIDTH{1'bx}};
+                    next_strb   = {BUF_NUM{1'b0}};
+                    next_keep   = {BUF_NUM{1'b0}};
+                    next_count  = st0_count;
+                    next_user_f = st0_user_f;
+                    next_flush  = 1'b0;
+                    next_first  = 1'b1;
                 end
                 else begin
                     // 継続ならシフト
-                    next_data  = shift_data(endian, next_data, S_NUM);
-                    next_strb  = shift_strb(endian, next_strb, S_NUM);
-                    next_keep  = shift_strb(endian, next_keep, S_NUM);
-                    next_count = next_count + st0_count;
+                    next_data   = shift_data(endian, next_data, S_NUM);
+                    next_strb   = shift_strb(endian, next_strb, S_NUM);
+                    next_keep   = shift_strb(endian, next_keep, S_NUM);
+                    next_count  = next_count + st0_count;
                 end
                 
-                next_data  = set_data(endian, next_data, st0_data, BUF_NUM-S_NUM);
-                next_strb  = set_strb(endian, next_strb, st0_strb, BUF_NUM-S_NUM);
-                next_keep  = set_strb(endian, next_keep, st0_keep, BUF_NUM-S_NUM);
+                next_data = set_data(endian, next_data, st0_data, BUF_NUM-S_NUM);
+                next_strb = set_strb(endian, next_strb, st0_strb, BUF_NUM-S_NUM);
+                next_keep = set_strb(endian, next_keep, st0_keep, BUF_NUM-S_NUM);
                 
                 // last ならフラグを立てる
                 if ( st0_last ) begin
