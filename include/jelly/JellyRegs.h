@@ -61,7 +61,8 @@
 #define REG_DMA_WRITE_IRQ_CLR                   0x0a
 #define REG_DMA_WRITE_IRQ_SET                   0x0b
 #define REG_DMA_WRITE_PARAM_AWADDR              0x10
-#define REG_DMA_WRITE_PARAM_AWLEN_MAX           0x11
+#define REG_DMA_WRITE_PARAM_AWOFFSET            0x18
+#define REG_DMA_WRITE_PARAM_AWLEN_MAX           0x1c
 #define REG_DMA_WRITE_PARAM_AWLEN0              0x20
 #define REG_DMA_WRITE_PARAM_AWLEN1              0x24
 #define REG_DMA_WRITE_PARAM_AWSTEP1             0x25
@@ -121,7 +122,8 @@
 #define REG_DMA_READ_IRQ_CLR                    0x0a
 #define REG_DMA_READ_IRQ_SET                    0x0b
 #define REG_DMA_READ_PARAM_ARADDR               0x10
-#define REG_DMA_READ_PARAM_ARLEN_MAX            0x11
+#define REG_DMA_READ_PARAM_AROFFSET             0x18
+#define REG_DMA_READ_PARAM_ARLEN_MAX            0x1c
 #define REG_DMA_READ_PARAM_ARLEN0               0x20
 #define REG_DMA_READ_PARAM_ARLEN1               0x24
 #define REG_DMA_READ_PARAM_ARSTEP1              0x25
@@ -176,6 +178,7 @@
 #define REG_VDMA_WRITE_IRQ_CLR                  REG_DMA_WRITE_IRQ_CLR
 #define REG_VDMA_WRITE_IRQ_SET                  REG_DMA_WRITE_IRQ_SET
 #define REG_VDMA_WRITE_PARAM_ADDR               REG_DMA_WRITE_PARAM_AWADDR
+#define REG_VDMA_WRITE_PARAM_OFFSET             REG_DMA_WRITE_PARAM_AWOFFSET
 #define REG_VDMA_WRITE_PARAM_AWLEN_MAX          REG_DMA_WRITE_PARAM_AWLEN_MAX
 #define REG_VDMA_WRITE_PARAM_H_SIZE             REG_DMA_WRITE_PARAM_AWLEN0
 #define REG_VDMA_WRITE_PARAM_V_SIZE             REG_DMA_WRITE_PARAM_AWLEN1
@@ -208,6 +211,7 @@
 #define REG_VDMA_READ_IRQ_CLR                   REG_DMA_READ_IRQ_CLR
 #define REG_VDMA_READ_IRQ_SET                   REG_DMA_READ_IRQ_SET
 #define REG_VDMA_READ_PARAM_ADDR                REG_DMA_READ_PARAM_ARADDR
+#define REG_VDMA_READ_PARAM_OFFSET              REG_DMA_READ_PARAM_AROFFSET
 #define REG_VDMA_READ_PARAM_ARLEN_MAX           REG_DMA_READ_PARAM_ARLEN_MAX
 #define REG_VDMA_READ_PARAM_H_SIZE              REG_DMA_READ_PARAM_ARLEN0
 #define REG_VDMA_READ_PARAM_V_SIZE              REG_DMA_READ_PARAM_ARLEN1
