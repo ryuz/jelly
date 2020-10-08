@@ -14,15 +14,17 @@
 #include "jelly/Imx219Control.h"
 
 
-const int stride = 4096*4;
+#define BUF_FORMAT_SIZE     3
+#define BUF_FORMAT_TYPE     (BUF_FORMAT_SIZE == 3 ? CV_8UC3 : CV_8UC4)
+#define BUF_STRIDE_SIZE     (4096*4)
 
 
 void    capture_start(jelly::MemAccessor& reg_wdma, jelly::MemAccessor& reg_fmtr, std::uintptr_t bufaddr, int width, int height, int x, int y);
 void    capture_stop(jelly::MemAccessor& reg_wdma, jelly::MemAccessor& reg_fmtr);
 void    vout_start(jelly::MemAccessor& reg_rdma, jelly::MemAccessor& reg_vsgen, std::uintptr_t bufaddr);
 void    vout_stop(jelly::MemAccessor& reg_rdma, jelly::MemAccessor& reg_vsgen);
-void    WriteImage(jelly::MemAccessor& mem_acc, const cv::Mat& img);
-cv::Mat ReadImage(jelly::UdmabufAccessor& udmabuf_acc, jelly::MemAccessor& reg_bufalc, int width, int height);
+void    WriteImage(jelly::MemAccessor& mem_acc, const cv::Mat& img, int offset=0);
+cv::Mat ReadImage(jelly::UdmabufAccessor& udmabuf_acc, jelly::MemAccessor& reg_bufalc, int width, int height, int x, int y);
 
 
 int main(int argc, char *argv[])
@@ -46,7 +48,7 @@ int main(int argc, char *argv[])
     int     gamma       = 22;
     int     gauss_level = 0;
     bool    colmat_en   = false;
-    int     blend       = 1024;
+    int     blend       = 1023;
     cv::Mat imgBack;
     
     for ( int i = 1; i < argc; ++i ) {
@@ -212,14 +214,14 @@ int main(int argc, char *argv[])
     std::cout << "udmabuf0 phys addr : 0x" << std::hex << dmabuf_phys_adr << std::endl;
     std::cout << "udmabuf0 size      : " << std::dec << dmabuf_mem_size << std::endl;
 
-    if ( (size_t)dmabuf_mem_size < (size_t)(stride * height * 4) ) {
+    if ( (size_t)dmabuf_mem_size < (size_t)(BUF_STRIDE_SIZE * height * BUF_FORMAT_SIZE) ) {
         printf("udmabuf size error\n");
         return 0;
     }
 
     // バッファ4面確保
     for ( int i = 0; i < 4; ++i ) {
-        reg_bufmng.WriteReg(REG_BUF_MANAGER_BUFFER_ADDR(i), dmabuf_phys_adr + i * stride * height);
+        reg_bufmng.WriteReg(REG_BUF_MANAGER_BUFFER_ADDR(i), dmabuf_phys_adr + i * BUF_STRIDE_SIZE * 720);
     }
     for ( int i = 0; i < 4; ++i ) {
         std::cout << std::hex << reg_bufmng.ReadReg(REG_BUF_MANAGER_BUFFER_ADDR(i)) << std::endl;
@@ -249,9 +251,9 @@ int main(int argc, char *argv[])
     std::cout << "udmabuf1 size      : " << std::dec << fifobuf_mem_size << std::endl;
     reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_ADDR, fifobuf_phys_adr);
     reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_SIZE, fifobuf_mem_size);
-    reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_AWLEN, 0x0f);
+    reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_AWLEN, 0xff);
     reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_WTIMEOUT, 0xff);
-    reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_ARLEN, 0x0f);
+    reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_ARLEN, 0xff);
     reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_RTIMEOUT, 0xff);
     reg_imgdma.WriteReg(REG_DAM_FIFO_CTL_CONTROL, 0x3);
 
@@ -269,9 +271,11 @@ int main(int argc, char *argv[])
         cv::putText(imgBack, "Jelly ZYBO Z7 IMX219 sample   Copyright by Ryuji Fuchikami",
             cv::Point(10, 710), cv::FONT_HERSHEY_PLAIN, 2, cv::Scalar(255, 255, 255));
     }
-    cv::cvtColor(imgBack, imgBack, CV_BGR2BGRA);
-    WriteImage(udmabuf_acc, imgBack);
-    
+//  cv::cvtColor(imgBack, imgBack, CV_BGR2BGRA);
+    for ( int i = 0; i < 4; ++i ) {
+        WriteImage(udmabuf_acc, imgBack, i * BUF_STRIDE_SIZE * 720);
+    }
+
     // camera setup
     imx219.SetPixelClock(pixel_clock);
     imx219.SetAoi(width, height, aoi_x, aoi_y, binning, binning);
@@ -297,7 +301,7 @@ int main(int argc, char *argv[])
     int gamma_prev = 0;
     int     key;
     while ( (key = (cv::waitKeyEx(10) & 0xff)) != 0x1b ) {
-        auto img = ReadImage(udmabuf_acc, reg_bufalc, width, height);
+        auto img = ReadImage(udmabuf_acc, reg_bufalc, width, height, view_x, view_y);
         cv::imshow("img", img);
         
         // カメラ設定
@@ -420,35 +424,25 @@ int main(int argc, char *argv[])
 }
 
 
-void WriteImage(jelly::MemAccessor& mem_acc, const cv::Mat& img)
+void WriteImage(jelly::MemAccessor& mem_acc, const cv::Mat& img, int offset)
 {
     for ( int i = 0; i < img.rows; i++ )
     {
-        mem_acc.MemCopyFrom(i*stride, img.data + img.step*i, img.cols*4);
+        mem_acc.MemCopyFrom(i*BUF_STRIDE_SIZE+offset, img.data + img.step*i, img.cols*BUF_FORMAT_SIZE);
     }
 }
 
-cv::Mat ReadImage(jelly::UdmabufAccessor& udmabuf_acc, jelly::MemAccessor& reg_bufalc, int width, int height)
+cv::Mat ReadImage(jelly::UdmabufAccessor& udmabuf_acc, jelly::MemAccessor& reg_bufalc, int width, int height, int x, int y)
 {
     reg_bufalc.WriteReg(REG_BUF_ALLOC_BUFFER0_REQUEST, 1);
     auto buf_addr = reg_bufalc.ReadReg(REG_BUF_ALLOC_BUFFER0_ADDR);
     buf_addr -= udmabuf_acc.GetPhysAddr();
 
-#if 0
-    // 32bitデータ
-    cv::Mat img(height, width, CV_8UC4);
+    cv::Mat img(height, width, BUF_FORMAT_TYPE);
     for ( int i = 0; i < img.rows; i++ )
     {
-        udmabuf_acc.MemCopyTo(img.data + i*img.step, buf_addr + i*stride, img.cols*4);
+        udmabuf_acc.MemCopyTo(img.data + i*img.step, buf_addr + (i+y)*BUF_STRIDE_SIZE + x*BUF_FORMAT_SIZE, img.cols*BUF_FORMAT_SIZE);
     }
-#else
-    // 24bitデータ
-    cv::Mat img(height, width, CV_8UC3);
-    for ( int i = 0; i < img.rows; i++ )
-    {
-        udmabuf_acc.MemCopyTo(img.data + i*img.step, buf_addr + i*stride, img.cols*3);
-    }
-#endif
 
     reg_bufalc.WriteReg(REG_BUF_ALLOC_BUFFER0_RELEASE, 1);
 
@@ -459,14 +453,16 @@ cv::Mat ReadImage(jelly::UdmabufAccessor& udmabuf_acc, jelly::MemAccessor& reg_b
 void capture_start(jelly::MemAccessor& reg_vdmaw, jelly::MemAccessor& reg_fmtr, std::uintptr_t bufaddr, int width, int height, int x, int y)
 {
     // DMA start
-    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_ADDR,       bufaddr + stride*y + 4*x);
-    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_LINE_STEP,  stride);
+    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_ADDR,       bufaddr);
+    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_OFFSET,     BUF_STRIDE_SIZE*y + BUF_FORMAT_SIZE*x);
+    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_LINE_STEP,  BUF_STRIDE_SIZE);
     reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_H_SIZE,     width-1);
     reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_V_SIZE,     height-1);
     reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_F_SIZE,     1-1);
-    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_FRAME_STEP, width*stride);
-    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_AWLEN_MAX,  31);
+    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_FRAME_STEP, height*BUF_STRIDE_SIZE);
+    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_AWLEN_MAX,  255);
     reg_vdmaw.WriteReg(REG_VDMA_WRITE_CTL_CONTROL,      0x03 | 0x08);
+//  reg_vdmaw.WriteReg(REG_VDMA_WRITE_CTL_CONTROL,      0x03);
 
     // normalizer start
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN, 1);
@@ -508,12 +504,13 @@ void vout_start(jelly::MemAccessor& reg_vdmar, jelly::MemAccessor& reg_vsgen, st
 
     // DMA start
     reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_ADDR,       bufaddr);
-    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_LINE_STEP,  stride);
+    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_LINE_STEP,  BUF_STRIDE_SIZE);
     reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_H_SIZE,     1280-1);
     reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_V_SIZE,     720-1);
-    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_FRAME_STEP, stride*720);
+    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_FRAME_STEP, BUF_STRIDE_SIZE*720);
     reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_F_SIZE,     1-1);
-    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_ARLEN_MAX,  31);
+    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_ARLEN_MAX,  255);
+//  reg_vdmar.WriteReg(REG_VDMA_READ_CTL_CONTROL,      0x03);
     reg_vdmar.WriteReg(REG_VDMA_READ_CTL_CONTROL,      0x03 | 0x08);
 }
 
