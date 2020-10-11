@@ -226,7 +226,7 @@ int main(int argc, char *argv[])
 
     // バッファ4面確保
     for ( int i = 0; i < 4; ++i ) {
-        reg_bufmng.WriteReg(REG_BUF_MANAGER_BUFFER_ADDR(i), dmabuf_phys_adr + i * BUF_STRIDE_SIZE * height);
+        reg_bufmng.WriteReg(REG_BUF_MANAGER_BUFFER_ADDR(i), dmabuf_phys_adr + i * BUF_STRIDE_SIZE * 720);
     }
     
     // memmeap iamge fifo
