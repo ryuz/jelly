@@ -223,10 +223,7 @@ int main(int argc, char *argv[])
     for ( int i = 0; i < 4; ++i ) {
         reg_bufmng.WriteReg(REG_BUF_MANAGER_BUFFER_ADDR(i), dmabuf_phys_adr + i * BUF_STRIDE_SIZE * 720);
     }
-    for ( int i = 0; i < 4; ++i ) {
-        std::cout << std::hex << reg_bufmng.ReadReg(REG_BUF_MANAGER_BUFFER_ADDR(i)) << std::endl;
-    }
-
+    
     // memmeap iamge fifo
     jelly::UdmabufAccessor udmabuf1_acc("udmabuf1");
     if ( !udmabuf1_acc.IsMapped() ) {
@@ -251,9 +248,9 @@ int main(int argc, char *argv[])
     std::cout << "udmabuf1 size      : " << std::dec << fifobuf_mem_size << std::endl;
     reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_ADDR, fifobuf_phys_adr);
     reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_SIZE, fifobuf_mem_size);
-    reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_AWLEN, 0xff);
+    reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_AWLEN, 0x1f);
     reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_WTIMEOUT, 0xff);
-    reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_ARLEN, 0xff);
+    reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_ARLEN, 0x1f);
     reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_RTIMEOUT, 0xff);
     reg_imgdma.WriteReg(REG_DAM_FIFO_CTL_CONTROL, 0x3);
 
@@ -271,7 +268,9 @@ int main(int argc, char *argv[])
         cv::putText(imgBack, "Jelly ZYBO Z7 IMX219 sample   Copyright by Ryuji Fuchikami",
             cv::Point(10, 710), cv::FONT_HERSHEY_PLAIN, 2, cv::Scalar(255, 255, 255));
     }
-//  cv::cvtColor(imgBack, imgBack, CV_BGR2BGRA);
+    if ( BUF_FORMAT_TYPE == CV_8UC4 ) {
+        cv::cvtColor(imgBack, imgBack, CV_BGR2BGRA);
+    }
     for ( int i = 0; i < 4; ++i ) {
         WriteImage(udmabuf_acc, imgBack, i * BUF_STRIDE_SIZE * 720);
     }
@@ -285,25 +284,27 @@ int main(int argc, char *argv[])
     capture_start(reg_vdmaw, reg_fmtr, dmabuf_phys_adr, width, height, view_x, view_y);    
     vout_start(reg_vdmar, reg_vsgen, dmabuf_phys_adr);    
 
-    // 操作
-    cv::namedWindow("control");
-    cv::resizeWindow("control", 640, 480);
-    cv::createTrackbar("scale",     "control", &view_scale, 4);
-    cv::createTrackbar("fps",       "control", &frame_rate, 1000);
-    cv::createTrackbar("exposure",  "control", &exposure, 1000);
-    cv::createTrackbar("a_gain",    "control", &a_gain, 20);
-    cv::createTrackbar("d_gain",    "control", &d_gain, 24);
-    cv::createTrackbar("bayer" ,    "control", &bayer_phase, 3);
-    cv::createTrackbar("gamm" ,     "control", &gamma, 30);
-    cv::createTrackbar("gauss" ,    "control", &gauss_level, 3);
-    cv::createTrackbar("blend",     "control", &blend, 1023);
+
 
     int gamma_prev = 0;
     int     key;
     while ( (key = (cv::waitKeyEx(10) & 0xff)) != 0x1b ) {
         auto img = ReadImage(udmabuf_acc, reg_bufalc, width, height, view_x, view_y);
         cv::imshow("img", img);
-        
+
+        // 操作
+        cv::namedWindow("control");
+        cv::resizeWindow("control", 640, 480);
+        cv::createTrackbar("scale",     "control", &view_scale, 4);
+        cv::createTrackbar("fps",       "control", &frame_rate, 1000);
+        cv::createTrackbar("exposure",  "control", &exposure, 1000);
+        cv::createTrackbar("a_gain",    "control", &a_gain, 20);
+        cv::createTrackbar("d_gain",    "control", &d_gain, 24);
+        cv::createTrackbar("bayer" ,    "control", &bayer_phase, 3);
+        cv::createTrackbar("gamm" ,     "control", &gamma, 30);
+        cv::createTrackbar("gauss" ,    "control", &gauss_level, 3);
+        cv::createTrackbar("blend",     "control", &blend, 1023);
+
         // カメラ設定
         imx219.SetFrameRate(frame_rate);
         imx219.SetExposureTime(exposure / 1000.0);
@@ -460,9 +461,8 @@ void capture_start(jelly::MemAccessor& reg_vdmaw, jelly::MemAccessor& reg_fmtr, 
     reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_V_SIZE,     height-1);
     reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_F_SIZE,     1-1);
     reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_FRAME_STEP, height*BUF_STRIDE_SIZE);
-    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_AWLEN_MAX,  255);
+    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_AWLEN_MAX,  31);
     reg_vdmaw.WriteReg(REG_VDMA_WRITE_CTL_CONTROL,      0x03 | 0x08);
-//  reg_vdmaw.WriteReg(REG_VDMA_WRITE_CTL_CONTROL,      0x03);
 
     // normalizer start
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN, 1);
@@ -509,8 +509,7 @@ void vout_start(jelly::MemAccessor& reg_vdmar, jelly::MemAccessor& reg_vsgen, st
     reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_V_SIZE,     720-1);
     reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_FRAME_STEP, BUF_STRIDE_SIZE*720);
     reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_F_SIZE,     1-1);
-    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_ARLEN_MAX,  255);
-//  reg_vdmar.WriteReg(REG_VDMA_READ_CTL_CONTROL,      0x03);
+    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_ARLEN_MAX,  31);
     reg_vdmar.WriteReg(REG_VDMA_READ_CTL_CONTROL,      0x03 | 0x08);
 }
 

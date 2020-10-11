@@ -69,7 +69,7 @@
             udmabuf1 {
                 compatible = "ikwzm,udmabuf-0.10.a";
                 minor-number = <1>;
-                size = <0x01000000>;
+                size = <0x02000000>;
             };
         };
     };
