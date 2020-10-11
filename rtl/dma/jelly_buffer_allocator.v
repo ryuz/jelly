@@ -22,7 +22,7 @@ module jelly_buffer_allocator
             parameter WB_DAT_WIDTH = 32,
             parameter WB_SEL_WIDTH = (WB_DAT_WIDTH / 8),
             
-            parameter CORE_ID      = 32'h527a_ffff,
+            parameter CORE_ID      = 32'h527a_0008,
             parameter CORE_VERSION = 32'h0000_0000
         )
         (

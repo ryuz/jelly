@@ -15,7 +15,7 @@
 
 module jelly_vdma_axi4_to_axi4s
         #(
-            parameter   CORE_ID             = 32'h527a_1040,
+            parameter   CORE_ID             = 32'h527a_1020,
             parameter   CORE_VERSION        = 32'h0000_0000,
             
             parameter   ASYNC               = 0,
