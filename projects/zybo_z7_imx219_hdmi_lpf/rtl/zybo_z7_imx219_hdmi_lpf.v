@@ -1027,7 +1027,8 @@ module zybo_z7_imx219_hdmi_lpf
                 .CAPACITY_WIDTH         (32),
                 
                 .WFIFO_PTR_WIDTH        (9),
-                .WFIFO_RAM_TYPE         ("block")
+                .WFIFO_RAM_TYPE         ("block"),
+                .WDATFIFO_S_REGS        (1)
             )
         i_dma_video_write
             (

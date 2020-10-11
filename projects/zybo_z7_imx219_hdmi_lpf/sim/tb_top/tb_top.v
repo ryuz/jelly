@@ -14,7 +14,7 @@ module tb_top();
     
     initial begin
         $dumpfile("tb_top.vcd");
-        $dumpvars(1, tb_top);
+        $dumpvars(0, tb_top);
         $dumpvars(2, tb_top.i_top);
 //      $dumpvars(3, tb_top.i_top.i_dma_video_read);
         $dumpvars(0, tb_top.i_top.i_dma_video_write);
