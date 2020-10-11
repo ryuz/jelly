@@ -74,6 +74,7 @@ module jelly_dma_stream_read
             parameter INIT_CTL_CONTROL     = 4'b0000,
             parameter INIT_IRQ_ENABLE      = 1'b0,
             parameter INIT_PARAM_ARADDR    = 0,
+            parameter INIT_PARAM_AROFFSET  = 0,
             parameter INIT_PARAM_ARLEN_MAX = 0,
             parameter INIT_PARAM_ARLEN0    = 0,
 //          parameter INIT_PARAM_ARSTEP0   = 0,
@@ -218,7 +219,8 @@ module jelly_dma_stream_read
     localparam  ADR_IRQ_CLR          = 8'h0a;
     localparam  ADR_IRQ_SET          = 8'h0b;
     localparam  ADR_PARAM_ARADDR     = 8'h10;
-    localparam  ADR_PARAM_ARLEN_MAX  = 8'h11;
+    localparam  ADR_PARAM_AROFFSET   = 8'h18;
+    localparam  ADR_PARAM_ARLEN_MAX  = 8'h1c;
     localparam  ADR_PARAM_ARLEN0     = 8'h20;
 //  localparam  ADR_PARAM_ARSTEP0    = 8'h21;
     localparam  ADR_PARAM_ARLEN1     = 8'h24;
@@ -240,7 +242,8 @@ module jelly_dma_stream_read
     localparam  ADR_PARAM_ARLEN9     = 8'h44;
     localparam  ADR_PARAM_ARSTEP9    = 8'h45;
     localparam  ADR_SHADOW_ARADDR    = 8'h90;
-    localparam  ADR_SHADOW_ARLEN_MAX = 8'h91;
+    localparam  ADR_SHADOW_AROFFSET  = 8'h98;
+    localparam  ADR_SHADOW_ARLEN_MAX = 8'h9c;
     localparam  ADR_SHADOW_ARLEN0    = 8'ha0;
 //  localparam  ADR_SHADOW_ARSTEP0   = 8'ha1;
     localparam  ADR_SHADOW_ARLEN1    = 8'ha4;
@@ -270,6 +273,7 @@ module jelly_dma_stream_read
     reg     [0:0]                   reg_irq_enable;
     reg     [0:0]                   reg_irq_status;
     reg     [AXI4_ADDR_WIDTH-1:0]   reg_param_araddr;
+    reg     [AXI4_ADDR_WIDTH-1:0]   reg_param_aroffset;
     reg     [AXI4_LEN_WIDTH-1:0]    reg_param_arlen_max;
     reg     [ARLEN0_WIDTH-1:0]      reg_param_arlen0;
 //  reg     [ARSTEP0_WIDTH-1:0]     reg_param_arstep0;
@@ -292,6 +296,7 @@ module jelly_dma_stream_read
     reg     [ARLEN9_WIDTH-1:0]      reg_param_arlen9;
     reg     [ARSTEP9_WIDTH-1:0]     reg_param_arstep9;
     reg     [AXI4_ADDR_WIDTH-1:0]   reg_shadow_araddr;
+    reg     [AXI4_ADDR_WIDTH-1:0]   reg_shadow_aroffset;
     reg     [AXI4_LEN_WIDTH-1:0]    reg_shadow_arlen_max;
     reg     [ARLEN0_WIDTH-1:0]      reg_shadow_arlen0;
 //  reg     [ARSTEP0_WIDTH-1:0]     reg_shadow_arstep0;
@@ -317,6 +322,7 @@ module jelly_dma_stream_read
     wire                            sig_start = !reg_ctl_status && reg_ctl_control[0];
     wire                            sig_end;
     
+    reg     [AXI4_ADDR_WIDTH-1:0]   reg_araddr;
     reg                             reg_arvalid;
     wire                            s_arready;
     
@@ -347,6 +353,7 @@ module jelly_dma_stream_read
             reg_irq_enable       <= INIT_IRQ_ENABLE;
             reg_irq_status       <= 0;
             reg_param_araddr     <= INIT_PARAM_ARADDR;
+            reg_param_aroffset   <= INIT_PARAM_AROFFSET;
             reg_param_arlen_max  <= INIT_PARAM_ARLEN_MAX;
             reg_param_arlen0     <= INIT_PARAM_ARLEN0;
 //          reg_param_arstep0    <= INIT_PARAM_ARSTEP0;
@@ -369,6 +376,7 @@ module jelly_dma_stream_read
             reg_param_arlen9     <= (N > 9) ? INIT_PARAM_ARLEN9  : 0;
             reg_param_arstep9    <= (N > 9) ? INIT_PARAM_ARSTEP9 : 0;
             reg_shadow_araddr    <= INIT_PARAM_ARADDR;
+            reg_shadow_aroffset  <= INIT_PARAM_AROFFSET;
             reg_shadow_arlen_max <= INIT_PARAM_ARLEN_MAX;
             reg_shadow_arlen0    <= INIT_PARAM_ARLEN0;
 //          reg_shadow_arstep0   <= INIT_PARAM_ARSTEP0;
@@ -391,6 +399,7 @@ module jelly_dma_stream_read
             reg_shadow_arlen9    <= (N > 9) ? INIT_PARAM_ARLEN9  : 0;
             reg_shadow_arstep9   <= (N > 9) ? INIT_PARAM_ARSTEP9 : 0;
             
+            reg_araddr           <= INIT_PARAM_ARADDR + INIT_PARAM_AROFFSET;
             reg_arvalid          <= 1'b0;
         end
         else begin
@@ -402,6 +411,7 @@ module jelly_dma_stream_read
                 ADR_IRQ_CLR:            reg_irq_status       <= reg_irq_status & ~write_mask(0, s_wb_dat_i, s_wb_sel_i);
                 ADR_IRQ_SET:            reg_irq_status       <= reg_irq_status |  write_mask(0, s_wb_dat_i, s_wb_sel_i);
                 ADR_PARAM_ARADDR:       reg_param_araddr     <= write_mask(reg_param_araddr,    s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_AROFFSET:     reg_param_aroffset   <= write_mask(reg_param_aroffset,  s_wb_dat_i, s_wb_sel_i);
                 ADR_PARAM_ARLEN_MAX:    reg_param_arlen_max  <= write_mask(reg_param_arlen_max, s_wb_dat_i, s_wb_sel_i);
                 ADR_PARAM_ARLEN0:       reg_param_arlen0     <= write_mask(reg_param_arlen0,    s_wb_dat_i, s_wb_sel_i);
 //              ADR_PARAM_ARSTEP0:      reg_param_arstep0    <= write_mask(reg_param_arstep0,   s_wb_dat_i, s_wb_sel_i);
@@ -439,7 +449,10 @@ module jelly_dma_stream_read
                     reg_ctl_control[1]   <= 1'b0;
                     reg_ctl_index        <= reg_ctl_index + 1'b1;
                     
+                    reg_araddr           <= reg_param_araddr + reg_param_aroffset;
+                    
                     reg_shadow_araddr    <= reg_param_araddr;
+                    reg_shadow_aroffset  <= reg_param_aroffset;
                     reg_shadow_arlen_max <= reg_param_arlen_max;
                     reg_shadow_arlen0    <= reg_param_arlen0;
 //                  reg_shadow_arstep0   <= reg_param_arstep0;
@@ -464,7 +477,8 @@ module jelly_dma_stream_read
                 end
                 
                 if ( buffer_request ) begin
-                    reg_shadow_araddr <= buffer_addr;
+                    reg_araddr           <= buffer_addr + reg_shadow_aroffset;
+                    reg_shadow_araddr    <= buffer_addr;
                 end
                 
             end
@@ -488,6 +502,7 @@ module jelly_dma_stream_read
                         (s_wb_adr_i == ADR_IRQ_ENABLE)       ? reg_irq_enable       :
                         (s_wb_adr_i == ADR_IRQ_STATUS)       ? reg_irq_status       :
                         (s_wb_adr_i == ADR_PARAM_ARADDR)     ? reg_param_araddr     :
+                        (s_wb_adr_i == ADR_PARAM_AROFFSET)   ? reg_param_aroffset   :
                         (s_wb_adr_i == ADR_PARAM_ARLEN_MAX)  ? reg_param_arlen_max  :
                         (s_wb_adr_i == ADR_PARAM_ARLEN0)     ? reg_param_arlen0     :
 //                      (s_wb_adr_i == ADR_PARAM_ARSTEP0)    ? reg_param_arstep0    :
@@ -510,6 +525,7 @@ module jelly_dma_stream_read
                         (s_wb_adr_i == ADR_PARAM_ARLEN9)     ? reg_param_arlen9     :
                         (s_wb_adr_i == ADR_PARAM_ARSTEP9)    ? reg_param_arstep9    :
                         (s_wb_adr_i == ADR_SHADOW_ARADDR)    ? reg_shadow_araddr    :
+                        (s_wb_adr_i == ADR_SHADOW_AROFFSET)  ? reg_shadow_aroffset  :
                         (s_wb_adr_i == ADR_SHADOW_ARLEN_MAX) ? reg_shadow_arlen_max :
                         (s_wb_adr_i == ADR_SHADOW_ARLEN0)    ? reg_shadow_arlen0    :
 //                      (s_wb_adr_i == ADR_SHADOW_ARSTEP0)   ? reg_shadow_arstep0   :
@@ -652,7 +668,7 @@ module jelly_dma_stream_read
                 
                 .s_arresetn             (~s_wb_rst_i),
                 .s_arclk                (s_wb_clk_i),
-                .s_araddr               (reg_shadow_araddr),
+                .s_araddr               (reg_araddr),
                 .s_arlen_max            (reg_shadow_arlen_max),
                 .s_arstep               (s_arstep[N*STEP_MAX-1:0]),
                 .s_arlen                (s_arlen[N*LEN_MAX-1:0]),

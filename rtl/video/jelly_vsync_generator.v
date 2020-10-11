@@ -16,7 +16,7 @@
 //  video sync generator
 module jelly_vsync_generator
         #(
-            parameter   CORE_ID          = 32'habcd_0000,
+            parameter   CORE_ID          = 32'h527a_1150,
             parameter   CORE_VERSION     = 32'h0000_0000,
             
             parameter   V_COUNTER_WIDTH  = 12,

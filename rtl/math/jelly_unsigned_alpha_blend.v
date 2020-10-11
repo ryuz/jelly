@@ -41,7 +41,7 @@ module jelly_unsigned_alpha_blend
         );
     
     
-    localparam  PIPELINE_STAGES = 2;
+    localparam  PIPELINE_STAGES = 3;
     
     wire    [PIPELINE_STAGES-1:0]   stage_cke;
     wire    [PIPELINE_STAGES-1:0]   stage_valid;
@@ -88,37 +88,47 @@ module jelly_unsigned_alpha_blend
     
     
     integer                                 i;
-    reg     [ALPHA_WIDTH+DATA_WIDTH-1:0]    tmp_alpha0;
-    reg     [ALPHA_WIDTH+DATA_WIDTH-1:0]    tmp_alpha1;
-    reg     [DATA_WIDTH*2+ALPHA_WIDTH-1:0]  st0_data1;
-    reg     [DATA_WIDTH*2+ALPHA_WIDTH-1:0]  st0_data0;
+    reg     [DATA_WIDTH-1:0]                st0_data1;
+    reg     [DATA_WIDTH-1:0]                st0_data0;
+    reg     [ALPHA_WIDTH+DATA_WIDTH-1:0]    st0_alpha0;
+    reg     [ALPHA_WIDTH+DATA_WIDTH-1:0]    st0_alpha1;
     reg     [USER_BITS-1:0]                 st0_user;
     
-    reg     [DATA_WIDTH-1:0]                st1_data;
+    reg     [DATA_WIDTH*2+ALPHA_WIDTH-1:0]  st1_data1;
+    reg     [DATA_WIDTH*2+ALPHA_WIDTH-1:0]  st1_data0;
     reg     [USER_BITS-1:0]                 st1_user;
+    
+    reg     [DATA_WIDTH-1:0]                st2_data;
+    reg     [USER_BITS-1:0]                 st2_user;
     
     always @(posedge clk) begin
         // stage 0
         if ( stage_cke[0] ) begin
             for ( i = 0; i < ALPHA_WIDTH+DATA_WIDTH; i = i+1 ) begin
-                tmp_alpha0[i] = src_alpha[(256*ALPHA_WIDTH + i - DATA_WIDTH) % ALPHA_WIDTH];
+                st0_alpha0[i] <=  src_alpha[(256*ALPHA_WIDTH + i - DATA_WIDTH) % ALPHA_WIDTH];
+                st0_alpha1[i] <= ~src_alpha[(256*ALPHA_WIDTH + i - DATA_WIDTH) % ALPHA_WIDTH];
             end
-            tmp_alpha1 = ~tmp_alpha0;
-            
-            st0_data0 <= src_data0 * tmp_alpha0;
-            st0_data1 <= src_data1 * tmp_alpha1;
+            st0_data0 <= src_data0;
+            st0_data1 <= src_data1;
             st0_user  <= src_user;
         end
         
         // stage 1
         if ( stage_cke[1] ) begin
-            st1_data <= (st0_data0 + st0_data1 + (1 << (DATA_WIDTH+ALPHA_WIDTH-1))) >> (DATA_WIDTH+ALPHA_WIDTH);
-            st1_user <= st0_user;
+            st1_data0 <= st0_data0 * st0_alpha0;
+            st1_data1 <= st0_data1 * st0_alpha1;
+            st1_user  <= st0_user;
+        end
+        
+        // stage 2
+        if ( stage_cke[2] ) begin
+            st2_data <= (st1_data0 + st1_data1 + (1 << (DATA_WIDTH+ALPHA_WIDTH-1))) >> (DATA_WIDTH+ALPHA_WIDTH);
+            st2_user <= st1_user;
         end
     end
     
-    assign sink_data = st1_data;
-    assign sink_user = st1_user;
+    assign sink_data = st2_data;
+    assign sink_user = st2_user;
     
     
 endmodule

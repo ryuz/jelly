@@ -43,8 +43,9 @@ N次元構造を各次元の first と last で表す。特に last を利用し
 |IRQ_STATUS     |0x09|RO |  1 | 現在のIQR保留状態 |
 |IRQ_CLR        |0x0a|WO |  1 | 1を書き込むと保留IRQクリア |
 |IRQ_SET        |0x0b|WO |  1 | 1を書き込むと保留IRQセット |
-|PARAM_AWADDR   |0x10|RW |AXI4_ADDR_WIDTH| 転送アドレス(非自動割り当て時)
-|PARAM_AWLEN_MAX|0x11|RW |AXI4_LEN_WIDTH| AXI4バスでの1回の最大転送サイズから1を引いたもの)
+|PARAM_AWADDR   |0x10|RW |AXI4_ADDR_WIDTH| 転送アドレス(非自動割り当て時)|
+|PARAM_AWOFFSET |0x18|RW |AXI4_ADDR_WIDTH| 転送アドレスオフセット|
+|PARAM_AWLEN_MAX|0x1c|RW |AXI4_LEN_WIDTH| AXI4バスでの1回の最大転送サイズから1を引いたもの)
 |PARAM_AWLEN0   |0x20|RW |AWLEN0_WIDTH |0次元目の転送量からAWLEN_OFFSETを引いた値|
 |PARAM_AWLEN1   |0x24|RW |AWLEN1_WIDTH |1次元目の転送長らAWLEN_OFFSETを引いた値|
 |PARAM_AWSTEP1  |0x25|RW |AWSTEP1_WIDTH|1次元目の転送ステップ(バイト単位)|
@@ -232,8 +233,9 @@ CPUからのレジスタ状態変化や割り込みは、内部FIFOの残量に�
 |IRQ_STATUS     |0x09|RO |  1 | 現在のIQR保留状態 |
 |IRQ_CLR        |0x0a|WO |  1 | 1を書き込むと保留IRQクリア |
 |IRQ_SET        |0x0b|WO |  1 | 1を書き込むと保留IRQセット |
-|PARAM_ARADDR   |0x10|RW |AXI4_ADDR_WIDTH| 転送アドレス(非自動割り当て時)
-|PARAM_ARLEN_MAX|0x11|RW |AXI4_LEN_WIDTH| AXI4バスでの1回の最大転送サイズから1を引いたもの)
+|PARAM_ARADDR   |0x10|RW |AXI4_ADDR_WIDTH| 転送アドレス(非自動割り当て時)|
+|PARAM_AROFFSET |0x18|RW |AXI4_ADDR_WIDTH| 転送アドレスオフセット|
+|PARAM_ARLEN_MAX|0x1c|RW |AXI4_LEN_WIDTH| AXI4バスでの1回の最大転送サイズから1を引いたもの)
 |PARAM_ARLEN0   |0x20|RW |ARLEN0_WIDTH |0次元目の転送量からARLEN＿OFFSETを引いた値|
 |PARAM_ARLEN1   |0x24|RW |ARLEN1_WIDTH |1次元目の転送長らARLEN＿OFFSETを引いた値|
 |PARAM_ARSTEP1  |0x25|RW |ARSTEP1_WIDTH|1次元目の転送ステップ(バイト単位)|
@@ -434,7 +436,8 @@ jelly_dma_stream_write の N=3 のラッパーとして実装されている
 |IRQ_CLR         |0x0a|WO |  1 | 1を書き込むと保留IRQクリア |
 |IRQ_SET         |0x0b|WO |  1 | 1を書き込むと保留IRQセット |
 |PARAM_ADDR      |0x10|RW |AXI4_ADDR_WIDTH| 転送アドレス(非自動割り当て時)
-|PARAM_AWLEN_MAX |0x11|RW |AXI4_LEN_WIDTH| AXI4バスでの1回の最大転送サイズから1を引いたもの)
+|PARAM_OFFSET    |0x18|RW |AXI4_ADDR_WIDTH| 転送アドレスオフセット|
+|PARAM_AWLEN_MAX |0x1c|RW |AXI4_LEN_WIDTH| AXI4バスでの1回の最大転送サイズから1を引いたもの)
 |PARAM_H_SIZE    |0x20|RW |H_SIZE_WIDTH |水平サイズからSIZE_OFFSETを引いた値|
 |PARAM_V_SIZE    |0x24|RW |V_SIZE_WIDTH |垂直サイズからSIZE_OFFSETを引いた値|
 |PARAM_LINE_STEP |0x25|RW |AXI4_ADDR_WIDTH|ライン単位の転送ステップ(バイト単位)|
@@ -464,8 +467,9 @@ AXI4 Stream Video  読み出し用のDMA
 |IRQ_STATUS      |0x09|RO |  1 | 現在のIQR保留状態 |
 |IRQ_CLR         |0x0a|WO |  1 | 1を書き込むと保留IRQクリア |
 |IRQ_SET         |0x0b|WO |  1 | 1を書き込むと保留IRQセット |
-|PARAM_ADDR      |0x10|RW |AXI4_ADDR_WIDTH| 転送アドレス(非自動割り当て時)
-|PARAM_ARLEN_MAX |0x11|RW |AXI4_LEN_WIDTH| AXI4バスでの1回の最大転送サイズから1を引いたもの)
+|PARAM_ADDR      |0x10|RW |AXI4_ADDR_WIDTH| 転送アドレス(非自動割り当て時)|
+|PARAM_OFFSET    |0x18|RW |AXI4_ADDR_WIDTH| 転送アドレスオフセット|
+|PARAM_ARLEN_MAX |0x1c|RW |AXI4_LEN_WIDTH| AXI4バスでの1回の最大転送サイズから1を引いたもの)
 |PARAM_H_SIZE    |0x20|RW |H_SIZE_WIDTH |水平サイズからSIZE_OFFSETを引いた値|
 |PARAM_V_SIZE    |0x24|RW |V_SIZE_WIDTH |垂直サイズからSIZE_OFFSETを引いた値|
 |PARAM_LINE_STEP |0x25|RW |AXI4_ADDR_WIDTH|ライン単位の転送ステップ(バイト単位)|

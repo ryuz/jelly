@@ -12,7 +12,7 @@
 
 module jelly_img_previous_frame
         #(
-            parameter   CORE_ID              = 32'h527a_ffff,
+            parameter   CORE_ID              = 32'h527a_2010,
             parameter   CORE_VERSION         = 32'h0000_0000,
             
             parameter   UNIT_WIDTH           = 8,

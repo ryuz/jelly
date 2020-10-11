@@ -26,7 +26,7 @@ module jelly_buffer_manager
             parameter WB_DAT_WIDTH = 32,
             parameter WB_SEL_WIDTH = (WB_DAT_WIDTH / 8),
             
-            parameter CORE_ID      = 32'h527a_ffff,
+            parameter CORE_ID      = 32'h527a_0004,
             parameter CORE_VERSION = 32'h0000_0000,
             
             parameter INIT_ADDR0   = 0,

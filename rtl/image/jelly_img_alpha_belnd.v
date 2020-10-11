@@ -20,7 +20,7 @@ module jelly_img_alpha_belnd
             parameter USER_WIDTH       = 0,
             parameter USE_VALID        = 0,
             
-            parameter CORE_ID          = 32'h527a_23ff,
+            parameter CORE_ID          = 32'h527a_2340,
             parameter CORE_VERSION     = 32'h0001_0000,
             parameter INDEX_WIDTH      = 1,
             

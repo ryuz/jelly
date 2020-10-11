@@ -77,6 +77,7 @@ module jelly_dma_stream_write
             parameter INIT_CTL_CONTROL     = 4'b0000,
             parameter INIT_IRQ_ENABLE      = 1'b0,
             parameter INIT_PARAM_AWADDR    = 0,
+            parameter INIT_PARAM_AWOFFSET  = 0,
             parameter INIT_PARAM_AWLEN_MAX = 0,
             parameter INIT_PARAM_AWLEN0    = 0,
 //          parameter INIT_PARAM_AWSTEP0   = 0,
@@ -237,7 +238,8 @@ module jelly_dma_stream_write
     localparam  ADR_IRQ_CLR             = 8'h0a;
     localparam  ADR_IRQ_SET             = 8'h0b;
     localparam  ADR_PARAM_AWADDR        = 8'h10;
-    localparam  ADR_PARAM_AWLEN_MAX     = 8'h11;
+    localparam  ADR_PARAM_AWOFFSET      = 8'h18;
+    localparam  ADR_PARAM_AWLEN_MAX     = 8'h1c;
     localparam  ADR_PARAM_AWLEN0        = 8'h20;
 //  localparam  ADR_PARAM_AWSTEP0       = 8'h21;
     localparam  ADR_PARAM_AWLEN1        = 8'h24;
@@ -265,7 +267,8 @@ module jelly_dma_stream_write
     localparam  ADR_WPADDING_DATA       = 8'h75;
     localparam  ADR_WPADDING_STRB       = 8'h76;
     localparam  ADR_SHADOW_AWADDR       = 8'h90;
-    localparam  ADR_SHADOW_AWLEN_MAX    = 8'h91;
+    localparam  ADR_SHADOW_AWOFFSET     = 8'h98;
+    localparam  ADR_SHADOW_AWLEN_MAX    = 8'h9c;
     localparam  ADR_SHADOW_AWLEN0       = 8'ha0;
 //  localparam  ADR_SHADOW_AWSTEP0      = 8'ha1;
     localparam  ADR_SHADOW_AWLEN1       = 8'ha4;
@@ -295,6 +298,7 @@ module jelly_dma_stream_write
     reg     [0:0]                   reg_irq_enable;
     reg     [0:0]                   reg_irq_status;
     reg     [AXI4_ADDR_WIDTH-1:0]   reg_param_awaddr;
+    reg     [AXI4_ADDR_WIDTH-1:0]   reg_param_awoffset;
     reg     [AXI4_LEN_WIDTH-1:0]    reg_param_awlen_max;
     reg     [AWLEN0_WIDTH-1:0]      reg_param_awlen0;
 //  reg     [AWSTEP0_WIDTH-1:0]     reg_param_awstep0;
@@ -323,6 +327,7 @@ module jelly_dma_stream_write
     reg     [WDATA_WIDTH-1:0]       reg_wpadding_data;
     reg     [WSTRB_WIDTH-1:0]       reg_wpadding_strb;
     reg     [AXI4_ADDR_WIDTH-1:0]   reg_shadow_awaddr;
+    reg     [AXI4_ADDR_WIDTH-1:0]   reg_shadow_awoffset;
     reg     [AXI4_LEN_WIDTH-1:0]    reg_shadow_awlen_max;
     reg     [AWLEN0_WIDTH-1:0]      reg_shadow_awlen0;
 //  reg     [AWSTEP0_WIDTH-1:0]     reg_shadow_awstep0;
@@ -348,6 +353,7 @@ module jelly_dma_stream_write
     wire                            sig_start = !reg_ctl_status && reg_ctl_control[0];
     wire                            sig_end;
     
+    reg     [AXI4_ADDR_WIDTH-1:0]   reg_awaddr;
     reg                             reg_awvalid;
     wire                            s_awready;
     
@@ -380,6 +386,7 @@ module jelly_dma_stream_write
             reg_irq_enable       <= INIT_IRQ_ENABLE;
             reg_irq_status       <= 0;
             reg_param_awaddr     <= INIT_PARAM_AWADDR;
+            reg_param_awoffset   <= INIT_PARAM_AWOFFSET;
             reg_param_awlen_max  <= INIT_PARAM_AWLEN_MAX;
             reg_param_awlen0     <= INIT_PARAM_AWLEN0;
 //          reg_param_awstep0    <= INIT_PARAM_AWSTEP0;
@@ -408,6 +415,7 @@ module jelly_dma_stream_write
             reg_wpadding_data    <= INIT_WPADDING_DATA;
             reg_wpadding_strb    <= INIT_WPADDING_STRB;
             reg_shadow_awaddr    <= INIT_PARAM_AWADDR;
+            reg_shadow_awoffset  <= INIT_PARAM_AWOFFSET;
             reg_shadow_awlen_max <= INIT_PARAM_AWLEN_MAX;
             reg_shadow_awlen0    <= INIT_PARAM_AWLEN0;
 //          reg_shadow_awstep0   <= INIT_PARAM_AWSTEP0;
@@ -430,6 +438,7 @@ module jelly_dma_stream_write
             reg_shadow_awlen9    <= (N > 9) ? INIT_PARAM_AWLEN9  : 0;
             reg_shadow_awstep9   <= (N > 9) ? INIT_PARAM_AWSTEP9 : 0;
             
+            reg_awaddr           <= INIT_PARAM_AWADDR + INIT_PARAM_AWOFFSET;
             reg_awvalid          <= 1'b0;
             reg_wskip            <= 1'b0;
         end
@@ -442,6 +451,7 @@ module jelly_dma_stream_write
                 ADR_IRQ_CLR:            reg_irq_status       <= reg_irq_status & ~write_mask(0, s_wb_dat_i, s_wb_sel_i);
                 ADR_IRQ_SET:            reg_irq_status       <= reg_irq_status |  write_mask(0, s_wb_dat_i, s_wb_sel_i);
                 ADR_PARAM_AWADDR:       reg_param_awaddr     <= write_mask(reg_param_awaddr,    s_wb_dat_i, s_wb_sel_i);
+                ADR_PARAM_AWOFFSET:     reg_param_awoffset   <= write_mask(reg_param_awoffset,  s_wb_dat_i, s_wb_sel_i);
                 ADR_PARAM_AWLEN_MAX:    reg_param_awlen_max  <= write_mask(reg_param_awlen_max, s_wb_dat_i, s_wb_sel_i);
                 ADR_PARAM_AWLEN0:       reg_param_awlen0     <= write_mask(reg_param_awlen0,    s_wb_dat_i, s_wb_sel_i);
 //              ADR_PARAM_AWSTEP0:      reg_param_awstep0    <= write_mask(reg_param_awstep0,   s_wb_dat_i, s_wb_sel_i);
@@ -485,7 +495,10 @@ module jelly_dma_stream_write
                     reg_ctl_control[1]   <= 1'b0;
                     reg_ctl_index        <= reg_ctl_index + 1'b1;
                     
+                    reg_awaddr           <= reg_param_awaddr + reg_param_awoffset;
+                    
                     reg_shadow_awaddr    <= reg_param_awaddr;
+                    reg_shadow_awoffset  <= reg_param_awoffset;
                     reg_shadow_awlen_max <= reg_param_awlen_max;
                     reg_shadow_awlen0    <= reg_param_awlen0;
 //                  reg_shadow_awstep0   <= reg_param_awstep0;
@@ -510,6 +523,7 @@ module jelly_dma_stream_write
                 end
                 
                 if ( buffer_request ) begin
+                    reg_awaddr        <= buffer_addr + reg_shadow_awoffset;
                     reg_shadow_awaddr <= buffer_addr;
                 end
                 
@@ -537,6 +551,7 @@ module jelly_dma_stream_write
                         (s_wb_adr_i == ADR_IRQ_ENABLE)       ? reg_irq_enable       :
                         (s_wb_adr_i == ADR_IRQ_STATUS)       ? reg_irq_status       :
                         (s_wb_adr_i == ADR_PARAM_AWADDR)     ? reg_param_awaddr     :
+                        (s_wb_adr_i == ADR_PARAM_AWOFFSET)   ? reg_param_awoffset   :
                         (s_wb_adr_i == ADR_PARAM_AWLEN_MAX)  ? reg_param_awlen_max  :
                         (s_wb_adr_i == ADR_PARAM_AWLEN0)     ? reg_param_awlen0     :
 //                      (s_wb_adr_i == ADR_PARAM_AWSTEP0)    ? reg_param_awstep0    :
@@ -565,6 +580,7 @@ module jelly_dma_stream_write
                         (s_wb_adr_i == ADR_WPADDING_DATA)    ? reg_wpadding_data    :
                         (s_wb_adr_i == ADR_WPADDING_STRB)    ? reg_wpadding_strb    :
                         (s_wb_adr_i == ADR_SHADOW_AWADDR)    ? reg_shadow_awaddr    :
+                        (s_wb_adr_i == ADR_SHADOW_AWOFFSET)  ? reg_shadow_awoffset  :
                         (s_wb_adr_i == ADR_SHADOW_AWLEN_MAX) ? reg_shadow_awlen_max :
                         (s_wb_adr_i == ADR_SHADOW_AWLEN0)    ? reg_shadow_awlen0    :
 //                      (s_wb_adr_i == ADR_SHADOW_AWSTEP0)   ? reg_shadow_awstep0   :
@@ -736,7 +752,7 @@ module jelly_dma_stream_write
                 
                 .s_awresetn             (~s_wb_rst_i),
                 .s_awclk                (s_wb_clk_i),
-                .s_awaddr               (reg_shadow_awaddr),
+                .s_awaddr               (reg_awaddr),
                 .s_awlen_max            (reg_shadow_awlen_max),
                 .s_awstep               (s_awstep[N*STEP_MAX-1:0]),
                 .s_awlen                (s_awlen[N*LEN_MAX-1:0]),

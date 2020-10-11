@@ -19,7 +19,7 @@ module jelly_address_width_convert
             parameter ADDR_WIDTH      = 32,    // アドレスのbit幅
             parameter USER_WIDTH      = 0,     // ユーザーデータのbit幅
             parameter S_UNIT          = 4,     // 入力データ幅のアドレス増加量
-            parameter M_UNIT_SIZE     = 8,     // 出力データ幅でのアドレス増加量のlog2 (0:1byte, 1:2byte, 2:4byte, ...)
+            parameter M_UNIT_SIZE     = 2,     // 出力データ幅でのアドレス増加量のlog2 (0:1byte, 1:2byte, 2:4byte, ...)
             parameter S_LEN_WIDTH     = 32,    // 入力側データ幅の点層サイズ
             parameter M_LEN_WIDTH     = 32,    // 入力側データ幅の点層サイズ
             parameter ALIGN_WIDTH     = M_UNIT_SIZE > 0 ? M_UNIT_SIZE : 1,
@@ -61,7 +61,7 @@ module jelly_address_width_convert
                 .DATA1_WIDTH    (S_LEN_WIDTH),
                 .DATA2_WIDTH    (USER_WIDTH),
                 .S_REGS         (S_REGS),
-                .M_REGS         (0)
+                .M_REGS         ((S_UNIT & (S_UNIT-1)) != 0)    // 2のべき乗でなければFF挿入
             )
         i_data_ff_s
             (

@@ -58,7 +58,8 @@ module jelly_mipi_csi2_rx_raw10
                 .FIRST_FORCE_LAST   (0),
                 .ALIGN_S_WIDTH      (1),
                 .ALIGN_M_WIDTH      (1),
-                .S_REGS             (1)
+                .S_REGS             (1),
+                .M_REGS             (1)
             )
         i_data_stream_convert_s
             (
@@ -105,7 +106,8 @@ module jelly_mipi_csi2_rx_raw10
                 .FIRST_FORCE_LAST   (0),
                 .ALIGN_S_WIDTH      (1),
                 .ALIGN_M_WIDTH      (1),
-                .S_REGS             (1)
+                .S_REGS             (1),
+                .M_REGS             (1)
             )
         i_stream_width_convert_m
             (
