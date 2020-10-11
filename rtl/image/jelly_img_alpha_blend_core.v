@@ -96,7 +96,7 @@ module jelly_img_alpha_blend_core
     jelly_img_delay
             #(
                 .USER_WIDTH         (USER_WIDTH),
-                .LATENCY            (3),
+                .LATENCY            (1+3),
                 .USE_VALID          (USE_VALID)
             )
         i_img_delay
