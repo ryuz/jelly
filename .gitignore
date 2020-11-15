@@ -100,6 +100,12 @@ doc/build/
 
 **/ip/*
 
+# hos
+kernel_cfg.c
+kernel_id.h
+*.mot
+*.elf
+
 # ローカル便利ツール除外
 copy_bit.bat
 
@@ -113,6 +119,7 @@ Untitled.*
 a.out
 bitmap.h
 
+
 # exefile
 *.exe
 mnist_demo
@@ -120,7 +127,8 @@ gpu_gouraud
 imx219_test
 test_app
 udmabuf_sample
-
-
+memwrite
+memread
+memdump
 
 projects/arty_a7_35t_sample/

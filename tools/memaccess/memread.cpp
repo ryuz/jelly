@@ -61,6 +61,7 @@ int main(int argc, char *argv[])
         std::cerr << "    -h half-work(16bit)" << std::endl;
         std::cerr << "    -w word(32bit)" << std::endl;
         std::cerr << "    -d double-word(64bit)" << std::endl;
+        return 0;
     }
 
     // open

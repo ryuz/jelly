@@ -13,14 +13,24 @@
 
 
 template <typename T>
-void write_data(std::int8_t* mem_ptr, std::uintptr_t addr, T data)
+void mem_dump(std::int8_t* mem_ptr, std::uintptr_t addr, int size)
 {
     auto offset = (addr & PAGE_MASK);
-    *(reinterpret_cast<volatile T *>(&mem_ptr[offset])) = data;
- 
-    std::cout << "0x" << std::hex << std::setw(sizeof(void*)*2) << std::setfill('0') << addr << " : "
-              << "0x" << std::hex << std::setw(sizeof(data)*2) << std::setfill('0') << (std::int64_t)data
-              << " (" << std::dec << (std::int64_t)data << ")" << std::endl;
+    auto ptr    = reinterpret_cast<volatile T *>(&mem_ptr[offset]);
+
+    while ( 1 ) {
+        std::cout << "0x" << std::hex << std::setw(sizeof(void*)*2) << std::setfill('0') << addr << " :";
+        for ( int i = 0; i < 16/sizeof(T); ++i ) { 
+            std::cout  << " " << std::hex << std::setw(sizeof(T)*2) << std::setfill('0') << (std::uint64_t)*ptr;
+            ++ptr;
+            addr += sizeof(T);
+            if ( --size <= 0 ) {
+                std::cout << std::endl;
+                return;
+            }
+        }
+        std::cout << "\n";
+    }
 }
 
 
@@ -28,7 +38,7 @@ int main(int argc, char *argv[])
 {
     // command line
     std::uintptr_t addr = 0;
-    std::uintptr_t data = 0;
+    std::uintptr_t size = 1;
     int word_size = 4;
     int param = 0;
     for ( int i = 1; i < argc; ++i ) {
@@ -49,18 +59,19 @@ int main(int argc, char *argv[])
             param++;
         }
         else if ( param == 1 ) {
-            data = (std::uintptr_t)strtoull(argv[i], nullptr, 0);
+            size = (std::uintptr_t)strtoull(argv[i], nullptr, 0);
             param++;
         }
         else {
             std::cerr << "unknown option : " << argv[i] << std::endl;
             return 1;
         }
-    } 
-    if ( param != 2 ) {
-        std::cerr << "Memory Write command" << std::endl;
+    }
+
+    if ( param < 1 ) {
+        std::cerr << "Memory Read command" << std::endl;
         std::cerr << "[usage]" << std::endl;
-        std::cerr << argv[0] << "[option] <addr> <data>" << std::endl;
+        std::cerr << argv[0] << "[option] <addr> <size>" << std::endl;
         std::cerr << "  options:" << std::endl;
         std::cerr << "    -b byte(8bit)" << std::endl;
         std::cerr << "    -h half-work(16bit)" << std::endl;
@@ -79,6 +90,7 @@ int main(int argc, char *argv[])
     // mmap
     std::uintptr_t  addr_base   = (addr & ~PAGE_MASK);
     std::uintptr_t  addr_offset = (addr &  PAGE_MASK);
+    std::uintptr_t  block_size  = ((size*word_size + PAGE_SIZE - 1) & ~PAGE_MASK);
     auto mem_ptr = (std::int8_t*)mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, addr_base);
     if ( mem_ptr == MAP_FAILED ) {
         std::cerr << "mmap error" << std::endl;
@@ -87,13 +99,13 @@ int main(int argc, char *argv[])
     
     // access
     switch ( word_size ) {
-    case 1: write_data<std::uint8_t >(mem_ptr, addr, data); break;
-    case 2: write_data<std::uint16_t>(mem_ptr, addr, data); break;
-    case 4: write_data<std::uint32_t>(mem_ptr, addr, data); break;
-    case 8: write_data<std::uint64_t>(mem_ptr, addr, data); break;
+    case 1: mem_dump<std::uint8_t >(mem_ptr, addr, size); break;
+    case 2: mem_dump<std::uint16_t>(mem_ptr, addr, size); break;
+    case 4: mem_dump<std::uint32_t>(mem_ptr, addr, size); break;
+    case 8: mem_dump<std::uint64_t>(mem_ptr, addr, size); break;
     }
-    
-    munmap(mem_ptr, PAGE_SIZE);
+
+    munmap(mem_ptr, block_size);
     close(fd);
     
     return 0;
