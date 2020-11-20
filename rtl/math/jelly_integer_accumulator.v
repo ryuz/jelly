@@ -19,26 +19,27 @@ module jelly_integer_accumulator
             parameter                           ACCUMULATOR_WIDTH = 64,
             parameter                           DATA_WIDTH        = ACCUMULATOR_WIDTH,
             parameter                           UNIT_WIDTH        = 32,
-            parameter   [ACCUMULATOR_WIDTH-1:0] INIT_VALUE        = 0
+            parameter   [ACCUMULATOR_WIDTH-1:0] INIT_VALUE        = {ACCUMULATOR_WIDTH{1'bx}}
         )
         (
             input   wire                                reset,
             input   wire                                clk,
             input   wire                                cke,
             
-            input   wire                                clear,
+            input   wire                                set,
+            input   wire                                add,
             output  wire                                busy,
             
-            input   wire                                add_en,
-            input   wire    [DATA_WIDTH-1:0]            add_data,
+            input   wire    [DATA_WIDTH-1:0]            data,
             
             output  wire    [ACCUMULATOR_WIDTH-1:0]     accumulator
         );
     
     localparam  UNIT_NUM  = (ACCUMULATOR_WIDTH + UNIT_WIDTH - 1) / UNIT_WIDTH;
     
-    wire    [UNIT_NUM*UNIT_WIDTH-1:0]   u_data  = SIGEND ? $signed(add_data) : $unsigned(add_data);
-    wire    [UNIT_NUM*UNIT_WIDTH-1:0]   in_data = add_en ? u_data : {ACCUMULATOR_WIDTH{1'b0}};
+    wire    signed  [UNIT_NUM*UNIT_WIDTH-1:0]   s_data  = $signed(data);
+    wire            [UNIT_NUM*UNIT_WIDTH-1:0]   u_data  = SIGEND ? s_data : data;
+    wire            [UNIT_NUM*UNIT_WIDTH-1:0]   in_data = (set || add) ? u_data : {ACCUMULATOR_WIDTH{1'b0}};
     
     integer                             i;
     reg     [UNIT_NUM-1:0]              reg_carry;
@@ -52,9 +53,11 @@ module jelly_integer_accumulator
             end
         end
         else if ( cke ) begin
-            if ( clear ) begin
-                reg_carry      [i]                          <= 1'b0;
-                reg_accumulator[i*UNIT_WIDTH +: UNIT_WIDTH] <= (INIT_VALUE >> (i*UNIT_WIDTH));
+            if ( set ) begin
+                for ( i = 0; i < UNIT_NUM; i = i+1 ) begin
+                    reg_carry      [i]                          <= 1'b0;
+                    reg_accumulator[i*UNIT_WIDTH +: UNIT_WIDTH] <= in_data[i*UNIT_WIDTH +: UNIT_WIDTH];
+                end
             end
             else begin
                 {reg_carry[0], reg_accumulator[0*UNIT_WIDTH +: UNIT_WIDTH]} <= reg_accumulator[0*UNIT_WIDTH +: UNIT_WIDTH] + in_data[0*UNIT_WIDTH +: UNIT_WIDTH];

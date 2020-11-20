@@ -24,21 +24,25 @@ module tb_integer_accumulator();
     always @(posedge clk)   cke <= {$random()};
     
     
-    parameter                           SIGEND            = 0;
+    parameter                           SIGEND            = 1;
     parameter                           ACCUMULATOR_WIDTH = 64;
     parameter                           DATA_WIDTH        = 32;
     parameter                           UNIT_WIDTH        = 16;
     parameter   [ACCUMULATOR_WIDTH-1:0] INIT_VALUE        = 0;
     
-    reg                                 clear = 0;
+    reg                                 set = 0;
+    reg                                 add = 0;
     wire                                busy;
     
-    reg                                 add_en = 0;
-    reg     [DATA_WIDTH-1:0]            add_data;
+    reg     [DATA_WIDTH-1:0]            data;
     
     wire    [ACCUMULATOR_WIDTH-1:0]     accumulator;
     
     reg     [ACCUMULATOR_WIDTH-1:0]     exp_acc;
+    
+    wire    signed  [DATA_WIDTH-1:0]        s_data = data;
+    reg     signed  [ACCUMULATOR_WIDTH-1:0] s_exp_acc;
+    
     
     // アキュムレータ
     jelly_integer_accumulator
@@ -46,8 +50,7 @@ module tb_integer_accumulator();
                 .SIGEND             (SIGEND),
                 .ACCUMULATOR_WIDTH  (ACCUMULATOR_WIDTH),
                 .DATA_WIDTH         (DATA_WIDTH),
-                .UNIT_WIDTH         (UNIT_WIDTH),
-                .INIT_VALUE         (INIT_VALUE)
+                .UNIT_WIDTH         (UNIT_WIDTH)
             )
         i_integer_accumulator
             (
@@ -55,34 +58,43 @@ module tb_integer_accumulator();
                 .clk                (clk),
                 .cke                (cke),
                 
-                .clear              (clear),
+                .set                (set),
+                .add                (add),
                 .busy               (busy),
                 
-                .add_en             (add_en),
-                .add_data           (add_data),
+                .data               (data),
                 
                 .accumulator        (accumulator)
             );
     
     always @(posedge clk) begin
         if ( reset ) begin
-            add_en   <= 0;
-            add_data <= 0;
+            set      <= 1;
+            add      <= 0;
+            data     <= 0;
             exp_acc  <= 0;
         end
         else if ( cke ) begin
-            add_en   <= {$random};
-            add_data <= {$random};
+            set  <= 0;
+            add  <= {$random};
+            data <= {$random};
             
-            if ( add_en ) begin
-                exp_acc <= exp_acc + add_data;
+            if ( set ) begin
+                exp_acc   <= data;
+                s_exp_acc <= s_data;
+            end
+            else if ( add ) begin
+                exp_acc   <= exp_acc + data;
+                s_exp_acc <= s_exp_acc + s_data;
             end
         end
     end
     
-    wire match = (accumulator == exp_acc);
+    wire match   = (accumulator == exp_acc);
+    wire s_match = (accumulator == s_exp_acc);
     
     wire ok    = match ^ busy;
+    wire s_ok  = s_match ^ busy;
     
     
 endmodule
