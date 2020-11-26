@@ -1,0 +1,66 @@
+/dts-v1/; /plugin/;
+
+/ {
+    fragment@0 {
+        target = <&fpga_full>;
+        __overlay__ {
+            #address-cells = <2>;
+            #size-cells = <2>;
+            firmware-name = "ultra96v2_display_port.bit.bin";
+        };
+    };
+    
+    fragment@1 {
+        target-path = "/amba_pl@0";
+        
+        #address-cells = <2>;
+        #size-cells = <2>;
+        __overlay__ {
+            #address-cells = <2>;
+            #size-cells = <2>;
+            afi0 {
+                compatible    = "xlnx,afi-fpga";
+                config-afi    = <0 0>,      /* S_AXI_HPC0_FPD(read)  : 0:128bit, 1:64bit, 2:32bit */
+                                <1 0>,      /* S_AXI_HPC0_FPD(write) : 0:128bit, 1:64bit, 2:32bit */
+                                <2 0>,      /* S_AXI_HPC1_FPD(read)  : 0:128bit, 1:64bit, 2:32bit */
+                                <3 0>,      /* S_AXI_HPC1_FPD(write) : 0:128bit, 1:64bit, 2:32bit */
+                                <14 0x0500>;/* M_AXI_HPM0_FPD[9:8], M_AXI_HPM0_FPD[11:10] : 0:32bit, 1:64bit, 2:128bit */
+            };
+            clocking0: clocking0 {
+                #clock-cells = <0>;
+                assigned-clock-rates = <100000000>;
+                assigned-clocks = <&zynqmp_clk 71>;
+                clock-output-names = "fabric_clk";
+                clocks = <&zynqmp_clk 71>;
+                compatible = "xlnx,fclk";
+            };
+            clocking1: clocking1 {
+                #clock-cells = <0>;
+                assigned-clock-rates = <150000000>;
+                assigned-clocks = <&zynqmp_clk 72>;
+                clock-output-names = "fabric_clk";
+                clocks = <&zynqmp_clk 72>;
+                compatible = "xlnx,fclk";
+            };
+        };
+    } ;
+    
+    fragment@2 {
+        target-path = "/amba";
+        __overlay__ {
+            #address-cells = <0x1>;
+            #size-cells = <0x1>;
+            
+            uio_pl_peri {
+                compatible = "generic-uio";
+                reg = <0xa0000000 0x08000000>;
+            };
+
+            udmabuf4 {
+                compatible = "ikwzm,udmabuf-0.10.a";
+                minor-number = <4>;
+                size = <0x01000000>;
+            };
+        };
+    };
+};
