@@ -36,12 +36,13 @@ int main()
 
     auto img = cv::imread("Penguins.jpg");
     cv::resize(img, img, cv::Size(1920, 1080));
-    cv::Mat img32;
-//  cv::cvtColor(img, img32, cv::COLOR_BGR2BGRA);
-    udmabuf_acc.MemCopyFrom(0, img.data, 1920*1080*3);
-
-    for ( int i = 0; i < 1920*128; ++i ) {
-        udmabuf_acc.WriteMem8(i, 0xff);
+    cv::Mat imgView;
+    cv::cvtColor(img, imgView, cv::COLOR_BGR2RGB);
+//  udmabuf_acc.MemCopyFrom(0, img.data, 1920*1080*3);
+    for ( int i = 0; i < 1920*1080; ++i ) {
+        udmabuf_acc.WriteMem8(3*i+2, img.data[3*i+0]);
+        udmabuf_acc.WriteMem8(3*i+0, img.data[3*i+1]);
+        udmabuf_acc.WriteMem8(3*i+1, img.data[3*i+2]);
     }
 
     // mmap uio
@@ -62,6 +63,9 @@ int main()
     std::cout << "vdmar_acc : " << std::hex << reg_vdmar.ReadReg(0) << std::endl;
     std::cout << "vsgen_acc : " << std::hex << reg_vsgen.ReadReg(0) << std::endl;
     
+    reg_vsgen.WriteReg(REG_VIDEO_VSGEN_CTL_CONTROL, 0);
+    usleep(1000000);
+
     // VSync Start
     /*
     reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_HTOTAL,      1650);
@@ -77,17 +81,20 @@ int main()
     reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_VSYNC_END,    730);
     reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_VSYNC_POL,      1);
     */
-    reg_vsgen.WriteReg(REG_VIDEO_VSGEN_CTL_CONTROL,          1);
 
     // DMA start
     reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_ADDR,       dmabuf_addr);
+    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_OFFSET,     0);
     reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_LINE_STEP,  1920*3);
     reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_H_SIZE,     1920-1);
     reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_V_SIZE,     1080-1);
     reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_FRAME_STEP, 1920*3*1080);
     reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_F_SIZE,     1-1);
-    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_ARLEN_MAX,  255);
+    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_ARLEN_MAX,  64-1);
     reg_vdmar.WriteReg(REG_VDMA_READ_CTL_CONTROL,      0x03);
+
+    usleep(100000);
+    reg_vsgen.WriteReg(REG_VIDEO_VSGEN_CTL_CONTROL, 1);
 
     cv::imshow("img", img);
     cv::waitKey();
