@@ -113,6 +113,8 @@ module design_1
                 .WRITE_LOG_FILE         ("axi4_mem0_write.txt"),
                 .READ_LOG_FILE          ("axi4_mem0_read.txt"),
                 
+                .READ_DATA_ADDR         (1),
+                
                 .AW_DELAY               (20),
                 .AR_DELAY               (20),
                 

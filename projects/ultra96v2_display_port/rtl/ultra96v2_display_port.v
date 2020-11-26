@@ -302,7 +302,7 @@ module ultra96v2_display_port
                 .BYPASS_ALIGN           (0),
                 .ALLOW_UNALIGNED        (0),
                 .CAPACITY_WIDTH         (32),
-                .RFIFO_PTR_WIDTH        (9),
+                .RFIFO_PTR_WIDTH        (10),
                 .RFIFO_RAM_TYPE         ("block")
             )
         i_dma_video_read
@@ -375,7 +375,7 @@ module ultra96v2_display_port
             #(
                 .WB_ADR_WIDTH           (8),
                 .WB_DAT_WIDTH           (WB_DAT_WIDTH),
-                .INIT_CTL_CONTROL       (1'b1),
+                .INIT_CTL_CONTROL       (1'b0),
                 
                 .INIT_HTOTAL            (2200),
                 .INIT_HDISP_START       (0),
@@ -448,10 +448,56 @@ module ultra96v2_display_port
     assign dp_live_video_in_vsync         = vout_vsync;
     assign dp_live_video_in_hsync         = vout_hsync;
     assign dp_live_video_in_de            = vout_de;
+    
+    
     assign dp_live_video_in_pixel1[11:0]  = {vout_data[7:0], vout_data[7:4]};
     assign dp_live_video_in_pixel1[23:12] = {vout_data[15:8], vout_data[15:12]};
     assign dp_live_video_in_pixel1[35:24] = {vout_data[23:16], vout_data[23:20]};
     
+    
+    /*
+    // test
+    (* mark_debug="true" *) reg                 reg_d = 0;
+    (* mark_debug="true" *) reg                 reg_h = 0;
+    (* mark_debug="true" *) reg     [13:0]      reg_x = 0;
+    (* mark_debug="true" *) reg     [13:0]      reg_y = 0;
+    
+    always @(posedge vout_clk) begin
+        reg_h <= dp_live_video_in_vsync;
+        
+        if ( dp_live_video_in_hsync ) begin
+            reg_d <= 0;
+            reg_x <= 0;
+        end
+        else if ( dp_live_video_in_de ) begin
+            reg_d <= 1;
+            reg_x <= reg_x + 1;
+        end
+        
+        if ( dp_live_video_in_vsync ) begin
+            reg_y <= 0;
+        end
+        else if ( reg_d && {reg_h, dp_live_video_in_hsync} == 2'b01 ) begin
+            reg_y <= reg_y + 1;
+        end
+    end
+    
+    reg     [35:0]  tmp_pixel;
+    always @* begin
+        if ( reg_x == reg_y ) begin
+            tmp_pixel = {12'hfff, 12'hfff, 12'hfff};
+        end
+        else begin
+            tmp_pixel[0*12 +: 12] = (reg_x >  512 && reg_x < 1920) ? 12'hfff : 0;
+            tmp_pixel[1*12 +: 12] = (reg_x > 1024 && reg_x < 1920) ? 12'h7ff : 0;
+            tmp_pixel[2*12 +: 12] = (reg_y >  512 && reg_y < 1080) ? 12'hfff : 0;
+        end
+    end
+    assign dp_live_video_in_pixel1 = tmp_pixel;
+    
+//    assign dp_live_gfx_alpha_in_0  = 8'h80;
+//    assign dp_live_gfx_pixel1_in_0 = ~tmp_pixel;
+    */
     
     
     

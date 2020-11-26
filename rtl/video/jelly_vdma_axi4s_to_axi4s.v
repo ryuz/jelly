@@ -2,7 +2,6 @@
 //  Jelly  -- The FPGA processing system
 //
 //                                 Copyright (C) 2008-2017 by Ryuji Fuchikami
-//                                 http://ryuz.my.coocan.jp/
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
@@ -15,7 +14,7 @@
 
 module jelly_vdma_axi4s_to_axi4s
         #(
-            parameter   CORE_ID              = 32'h527a_1040
+            parameter   CORE_ID              = 32'h527a_1040,
             parameter   CORE_VERSION         = 32'h0000_0000,
             
             parameter   WASYNC               = 0,
