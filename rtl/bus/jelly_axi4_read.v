@@ -209,7 +209,7 @@ module jelly_axi4_read
                 .MRFIFO_M_REGS          (MRFIFO_M_REGS),
                 
                 .CONVERT_S_REGS         (CONVERT_S_REGS),
-                .POST_CONVERT           (0)
+                .POST_CONVERT           (1)
             )
         i_axi4_read_width_convert
             (
