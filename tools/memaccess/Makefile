@@ -1,6 +1,8 @@
 
+TARGET = memwrite memread memdump
+INSTALL_PATH=~/.local/bin
 
-all: memwrite memread memdump
+all: $(TARGET)
 
 memwrite: memwrite.cpp
 	g++ -O2 memwrite.cpp -o memwrite
@@ -10,3 +12,7 @@ memread: memread.cpp
 
 memdump: memdump.cpp
 	g++ -O2 memdump.cpp  -o memdump
+
+
+install: all
+	cp $(TARGET) $(INSTALL_PATH)

@@ -19,7 +19,7 @@ using namespace jelly;
 
 int main()
 {
-    std::cout << "--- udmabuf test ---" << std::endl;
+    std::cout << "--- Display Port ---" << std::endl;
 
     // mmap udmabuf
     std::cout << "\nudmabuf4 open" << std::endl;
@@ -37,14 +37,14 @@ int main()
     auto img = cv::imread("Penguins.jpg");
     cv::resize(img, img, cv::Size(1920, 1080));
     cv::Mat imgView;
-    cv::cvtColor(img, imgView, cv::COLOR_BGR2RGB);
+//  cv::cvtColor(img, imgView, cv::COLOR_BGR2RGB);
 //  udmabuf_acc.MemCopyFrom(0, img.data, 1920*1080*3);
     for ( int i = 0; i < 1920*1080; ++i ) {
         udmabuf_acc.WriteMem8(3*i+2, img.data[3*i+0]);
         udmabuf_acc.WriteMem8(3*i+0, img.data[3*i+1]);
         udmabuf_acc.WriteMem8(3*i+1, img.data[3*i+2]);
     }
-
+    
     // mmap uio
     std::cout << "\nuio open" << std::endl;
     UioAccessor uio_acc("uio_pl_peri", 0x08000000);
@@ -62,25 +62,10 @@ int main()
     std::cout << "\n<test RegRead>" << std::endl;
     std::cout << "vdmar_acc : " << std::hex << reg_vdmar.ReadReg(0) << std::endl;
     std::cout << "vsgen_acc : " << std::hex << reg_vsgen.ReadReg(0) << std::endl;
-    
+
     reg_vsgen.WriteReg(REG_VIDEO_VSGEN_CTL_CONTROL, 0);
     usleep(1000000);
 
-    // VSync Start
-    /*
-    reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_HTOTAL,      1650);
-    reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_HDISP_START,    0);
-    reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_HDISP_END,   1280);
-    reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_HSYNC_START, 1390);
-    reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_HSYNC_END,   1430);
-    reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_HSYNC_POL,      1);
-    reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_VTOTAL,       750);
-    reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_VDISP_START,    0);
-    reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_VDISP_END,    720);
-    reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_VSYNC_START,  725);
-    reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_VSYNC_END,    730);
-    reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_VSYNC_POL,      1);
-    */
 
     // DMA start
     reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_ADDR,       dmabuf_addr);
@@ -92,9 +77,22 @@ int main()
     reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_F_SIZE,     1-1);
     reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_ARLEN_MAX,  64-1);
     reg_vdmar.WriteReg(REG_VDMA_READ_CTL_CONTROL,      0x03);
-
+    
+    // VSync Start
     usleep(100000);
-    reg_vsgen.WriteReg(REG_VIDEO_VSGEN_CTL_CONTROL, 1);
+    reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_HTOTAL,      2200);
+    reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_HDISP_START,    0);
+    reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_HDISP_END,   1920);
+    reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_HSYNC_START, 2008);
+    reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_HSYNC_END,   2052);
+    reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_HSYNC_POL,      1);
+    reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_VTOTAL,      1125);
+    reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_VDISP_START,   0);
+    reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_VDISP_END,   1080);
+    reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_VSYNC_START, 1084);
+    reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_VSYNC_END,   1089);
+    reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_VSYNC_POL,      1);
+    reg_vsgen.WriteReg(REG_VIDEO_VSGEN_CTL_CONTROL,          1);
 
     cv::imshow("img", img);
     cv::waitKey();
