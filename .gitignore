@@ -118,7 +118,7 @@ Untitled.*
 
 a.out
 bitmap.h
-
+*.ipynb
 
 # exefile
 *.exe
