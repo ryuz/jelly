@@ -56,6 +56,11 @@
                 reg = <0xa0000000 0x08000000>;
             };
 
+            uio_dp {
+                compatible = "generic-uio";
+                reg = <0xfd4a0000 0x00010000>;
+            };
+            
             udmabuf4 {
                 compatible = "ikwzm,udmabuf-0.10.a";
                 minor-number = <4>;
