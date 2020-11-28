@@ -32,7 +32,7 @@ protected:
 	int		m_fd   = 0;
 
 	AccessorMmapManager() {}
-	AccessorMmapManager(int fd, size_t size) { Mmap(fd, size); }
+	AccessorMmapManager(int fd, size_t size, off_t offset=0) { Mmap(fd, size, offset); }
 
 public:
 	~AccessorMmapManager() { Munmap(); }
@@ -46,9 +46,9 @@ public:
 	int GetFd(void)		{ return m_fd; }
 
 protected:
-	bool Mmap(int fd, size_t size)
+	bool Mmap(int fd, size_t size, off_t offset=0)
 	{
-		void* ptr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+		void* ptr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, offset);
 		if ( ptr == MAP_FAILED ) {
 			return false;
 		}
