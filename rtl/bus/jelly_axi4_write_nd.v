@@ -68,8 +68,8 @@ module jelly_axi4_write_nd
             parameter AWFIFO_RAM_TYPE     = "distributed",
             parameter AWFIFO_LOW_DEALY    = 1,
             parameter AWFIFO_DOUT_REGS    = 0,
-            parameter AWFIFO_S_REGS       = 0,
-            parameter AWFIFO_M_REGS       = 0,
+            parameter AWFIFO_S_REGS       = 1,
+            parameter AWFIFO_M_REGS       = 1,
             
             parameter BFIFO_PTR_WIDTH     = 4,
             parameter BFIFO_RAM_TYPE      = "distributed",
@@ -198,7 +198,7 @@ module jelly_axi4_write_nd
                 .S_REGS             (AWFIFO_S_REGS),
                 .M_REGS             (AWFIFO_M_REGS)
             )
-        i_fifo_pack_cmd_ar
+        i_fifo_pack_cmd_aw
             (
                 .s_reset            (~s_awresetn),
                 .s_clk              (s_awclk),
