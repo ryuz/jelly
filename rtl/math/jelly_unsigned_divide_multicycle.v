@@ -13,7 +13,7 @@
 
 
 
-// 符号なし整数マルチサイクル除算器
+// 隨ｦ蜿ｷ縺ｪ縺玲紛謨ｰ繝槭Ν繝√し繧､繧ｯ繝ｫ髯､邂怜勣
 module jelly_unsigned_divide_multicycle
         #(
             parameter   DATA_WIDTH = 32

@@ -53,7 +53,7 @@ module jelly_img_area_mask_core
             input   wire                            circle_inv,
             input   wire     [X_WIDTH-1:0]          circle_x,
             input   wire     [Y_WIDTH-1:0]          circle_y,
-            input   wire     [RADIUS_WIDTH-1:0]     circle_radius2,   // îºåaÇÃ2èÊ
+            input   wire     [RADIUS_WIDTH-1:0]     circle_radius2,   // ÂçäÂæÑ„ÅÆ2‰πó
             
             input   wire                            s_img_line_first,
             input   wire                            s_img_line_last,

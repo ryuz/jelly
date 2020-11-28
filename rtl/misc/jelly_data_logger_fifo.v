@@ -191,7 +191,7 @@ module jelly_data_logger_fifo
     
     assign s_wb_ack_o = s_wb_stb_i;
     
-    // CTL_CONTROL[0] ‚Ö‚Ì 1 ‘‚«‚İ or READ_DATA ‚Å“Ç‚İi‚Ş
+    // CTL_CONTROL[0] ã¸ã® 1 æ›¸ãè¾¼ã¿ or READ_DATA ã§èª­ã¿é€²ã‚€
     assign fifo_m_ready = (s_wb_stb_i && (s_wb_adr_i == ADR_CTL_CONTROL) && s_wb_we_i && s_wb_sel_i[0] && s_wb_dat_i[0])
                         | (s_wb_stb_i && (s_wb_adr_i == ADR_READ_DATA) && ~s_wb_we_i)
                         | reg_force_read;

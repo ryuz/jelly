@@ -65,14 +65,14 @@ module jelly_fixed_atan2
     localparam  [34:0]   ANGLE_360 = SCALED_RADIAN ? 32'h00000000 : 35'h6487ed511;
     
     
-    // Q32‚Å€”õ‚µ‚½ƒe[ƒuƒ‹‚ğlÌŒÜ“ü‚µ‚Ä•K—v¸“x‚Åæ‚èo‚µ
+    // Q32ã§æº–å‚™ã—ãŸãƒ†ãƒ¼ãƒ–ãƒ«ã‚’å››æ¨äº”å…¥ã—ã¦å¿…è¦ç²¾åº¦ã§å–ã‚Šå‡ºã—
     function signed [ANGLE_WIDTH-1:0] q32_to_angle(input [34:0] q32);
     begin
         q32_to_angle = (q32 + (32'h80000000 >> Q_WIDTH)) >> (32 - Q_WIDTH);
     end
     endfunction
     
-    // Q32‚Ìƒ‰ƒWƒAƒ“‚ğlÌŒÜ“ü‚µ‚ÄScaled‚ÈQ32‚É•ÏŠ·
+    // Q32ã®ãƒ©ã‚¸ã‚¢ãƒ³ã‚’å››æ¨äº”å…¥ã—ã¦ScaledãªQ32ã«å¤‰æ›
     function signed [31:0] q32rad_to_scaled(input [31:0] rad);
     begin
         q32rad_to_scaled = ((rad * 64'h00000000_28be60dc) + 64'h00000000_80000000) >> 32;
@@ -223,13 +223,13 @@ module jelly_fixed_atan2
                         reg_user[i*USER_BITS +: USER_BITS] <= src_user;
                         
                         if ( src_y >= 0 ) begin
-                            // XY“ü‚ê‘Ö‚¦‚Ä 90“x‹N“_‚ÅŒvZ
+                            // XYå…¥ã‚Œæ›¿ãˆã¦ 90åº¦èµ·ç‚¹ã§è¨ˆç®—
                             next_x     = +(src_y <<< Q_WIDTH);
                             next_y     = -(src_x <<< Q_WIDTH);
                             next_angle = q32_to_angle(ANGLE_90);
                         end
                         else begin
-                            // XY“ü‚ê‘Ö‚¦‚Ä270“x‹N“_‚ÅŒvZ
+                            // XYå…¥ã‚Œæ›¿ãˆã¦270åº¦èµ·ç‚¹ã§è¨ˆç®—
                             next_x     = -(src_y <<< Q_WIDTH);
                             next_y     = +(src_x <<< Q_WIDTH);
                             next_angle = q32_to_angle(ANGLE_270);

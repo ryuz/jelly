@@ -30,7 +30,7 @@ module jelly_img_canny_core
             input   wire                                cke,
             
             input   wire                                enable,
-            input   wire            [TH_WIDTH-1:0]      param_th,   // è‡’l(2æ‚µ‚½’l‚ğİ’è)
+            input   wire            [TH_WIDTH-1:0]      param_th,   // é–¾å€¤(2ä¹—ã—ãŸå€¤ã‚’è¨­å®š)
             
             input   wire                                s_img_line_first,
             input   wire                                s_img_line_last,

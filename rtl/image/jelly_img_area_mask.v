@@ -140,7 +140,7 @@ module jelly_img_area_mask
     reg     [1:0]                   reg_param_circle_flag;
     reg     [X_WIDTH-1:0]           reg_param_circle_x;
     reg     [Y_WIDTH-1:0]           reg_param_circle_y;
-    reg     [RADIUS_WIDTH-1:0]      reg_param_circle_radius2;   // ”¼Œa‚Ì2æ
+    reg     [RADIUS_WIDTH-1:0]      reg_param_circle_radius2;   // åŠå¾„ã®2ä¹—
     reg     [1:0]                   reg_param_thresh_flag;
     reg     [DATA_WIDTH-1:0]        reg_param_thresh_value;
     

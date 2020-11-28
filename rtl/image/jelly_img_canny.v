@@ -95,7 +95,7 @@ module jelly_img_canny
     
     // registers
     reg     [2:0]               reg_ctl_control;
-    reg     [TH_WIDTH-1:0]      reg_param_th;   // è‡’l(2æ‚µ‚½’l‚ğİ’è)
+    reg     [TH_WIDTH-1:0]      reg_param_th;   // é–¾å€¤(2ä¹—ã—ãŸå€¤ã‚’è¨­å®š)
     
     // shadow registers(core domain)
     reg     [0:0]               reg_current_control;

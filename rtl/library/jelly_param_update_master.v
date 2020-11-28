@@ -11,7 +11,7 @@
 `default_nettype none
 
 
-// ”ñ“¯ŠúƒNƒƒbƒNŠÔ‚Å‚Ìƒpƒ‰ƒ[ƒ^ƒAƒbƒvƒf[ƒg(‘—‚è‘¤)
+// éåŒæœŸã‚¯ãƒ­ãƒƒã‚¯é–“ã§ã®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚¢ãƒƒãƒ—ãƒ‡ãƒ¼ãƒˆ(é€ã‚Šå´)
 module jelly_param_update_master
         #(
             parameter   INDEX_WIDTH = 1
