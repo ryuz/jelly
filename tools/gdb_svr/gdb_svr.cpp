@@ -25,8 +25,8 @@ int main()
 			"======================================================\n"
 			" Jelly GDB server ver. 0.01\n"
 			"\n"
-			"               Copy right (C) 2009 by Ryuji Fuchikami \n"
-			"               http://homepage3.nifty.com/ryuz/\n"
+			"               Copy right (C) 2009 by Ryuz \n"
+			"               https://github.com/ryuz/\n"
 			"======================================================\n\n"
 		);
 	

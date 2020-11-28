@@ -3,7 +3,7 @@
 //
 //  Ultra96V2 udmabuf test
 //
-//                                 Copyright (C) 2008-2020 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2020 by Ryuz
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
@@ -224,7 +224,7 @@ module zybo_z7_stepper_motor
                 .WB_ADR_WIDTH       (8),
                 .WB_DAT_SIZE        (WB_DAT_SIZE),
                 
-                .Q_WIDTH            (24),       // 小数点サイズ
+                .Q_WIDTH            (24),       // 蟆乗焚轤ｹ繧ｵ繧､繧ｺ
                 .MICROSTEP_WIDTH    (12),
                 .X_WIDTH            (48),
                 .V_WIDTH            (24),

@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- The platform for real-time computing
 //
-//                                 Copyright (C) 2008-2020 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2020 by Ryuz
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
@@ -11,7 +11,7 @@
 `default_nettype none
 
 
-// ‰æ‘œˆ—
+// ç”»åƒå‡¦ç†
 module image_processing
         #(
             parameter WB_ADR_WIDTH    = 8,

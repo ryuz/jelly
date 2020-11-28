@@ -18,8 +18,8 @@
 # -- Project information -----------------------------------------------------
 
 project = 'Jelly'
-copyright = '2020, Ryuji Fuchikami'
-author = 'Ryuji Fuchikami'
+copyright = '2020, Ryuz'
+author = 'Ryuz(https://github.com/ryuz/)'
 
 
 # -- General configuration ---------------------------------------------------

@@ -2,8 +2,8 @@
 //  Jelly  -- the system on fpga system
 //   GPU用ラスタライザ部分
 //
-//                                 Copyright (C) 2015 by Ryuji Fuchikami
-//                                 http://ryuz.my.coocan.jp/
+//                                 Copyright (C) 2015 by Ryuz
+//                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
 

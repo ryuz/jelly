@@ -2,8 +2,8 @@
 //  Jelly  -- the soft-core processor system
 //    MIPS like CPU core
 //
-//                                  Copyright (C) 2008-2009 by Ryuji Fuchikami
-//                                  http://ryuz.my.coocan.jp/
+//                                  Copyright (C) 2008-2009 by Ryuz
+//                                  https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
 

@@ -2,7 +2,7 @@
 //  Jelly  -- The FPGA processing system
 //
 //
-//                                 Copyright (C) 2008-2020 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2020 by Ryuz
 //                                 https://github.com/ryuz/
 // ---------------------------------------------------------------------------
 
@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-// ‰æ‘œˆ—
+// ç”»åƒå‡¦ç†
 module image_processing
         #(
             parameter   WB_ADR_WIDTH    = 8,

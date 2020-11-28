@@ -2,7 +2,7 @@
 //  Jelly Debugger
 //    Command line loader
 //
-//                                      Copyright (C) 2008 by Ryuji Fuchikami
+//                                      Copyright (C) 2008 by Ryuz
 // ---------------------------------------------------------------------------
 
 
@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 	int				i;
 	
 	
-	printf("Jelly Loader Ver 0.02  Copyright (C) 2008-2014 by Ryuji Fuchikami\n");
+	printf("Jelly Loader Ver 0.02  Copyright (C) 2008-2014 by Ryuz\n");
 	
 	// command line
 	for ( i = 1; i < argc; i++ )

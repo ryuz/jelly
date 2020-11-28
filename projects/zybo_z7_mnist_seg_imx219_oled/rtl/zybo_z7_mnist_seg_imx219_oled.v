@@ -734,7 +734,7 @@ module zybo_z7_mnist_seg_imx219_oled
             );
     
     
-    // Œ»‘œ
+    // ç¾åƒ
     wire    [0:0]               axi4s_rgb_tuser;
     wire                        axi4s_rgb_tlast;
     wire    [39:0]              axi4s_rgb_tdata;
@@ -790,7 +790,7 @@ module zybo_z7_mnist_seg_imx219_oled
     
     
     
-    // ƒ‚ƒmƒNƒ‰»
+    // ãƒ¢ãƒã‚¯ãƒ­åŒ–
     wire    [9:0]       axi4s_gray_traw;
     wire    [0:0]       axi4s_gray_tuser;
     wire                axi4s_gray_tlast;
@@ -934,7 +934,7 @@ module zybo_z7_mnist_seg_imx219_oled
             );
     
     
-    // Œ‹‰Ê‚Å’…F
+    // çµæœã§ç€è‰²
     wire    [0:0]               axi4s_mcol_tuser;
     wire                        axi4s_mcol_tlast;
     wire    [31:0]              axi4s_mcol_tdata;
@@ -1144,7 +1144,7 @@ module zybo_z7_mnist_seg_imx219_oled
                     .WB_ADR_WIDTH       (8),
                     .WB_DAT_WIDTH       (32),
                     
-                    .TRIG_ASYNC         (1),    // WISHBONE‚Æ”ñ“¯Šú‚Ìê‡
+                    .TRIG_ASYNC         (1),    // WISHBONEã¨éåŒæœŸã®å ´åˆ
                     .TRIG_START_ENABLE  (0),
                     
                     .INIT_CTL_CONTROL   (4'b0000),
@@ -1300,7 +1300,7 @@ module zybo_z7_mnist_seg_imx219_oled
                 );
     end
     else begin
-        // HDMI–¢g—p
+        // HDMIæœªä½¿ç”¨
         OBUFDS  i_obufds_hdmi_tx_clk  (.I(1'b0), .O(hdmi_tx_clk_p),     .OB(hdmi_tx_clk_n));
         OBUFDS  i_obufds_hdmi_tx_data0(.I(1'b0), .O(hdmi_tx_data_p[0]), .OB(hdmi_tx_data_n[0]));
         OBUFDS  i_obufds_hdmi_tx_data1(.I(1'b0), .O(hdmi_tx_data_p[1]), .OB(hdmi_tx_data_n[1]));

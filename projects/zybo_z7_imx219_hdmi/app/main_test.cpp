@@ -252,7 +252,7 @@ int main(int argc, char *argv[])
     // back ground
     if ( imgBack.empty() ) {
         imgBack = cv::Mat::zeros(720, 1280, CV_8UC3);
-        cv::putText(imgBack, "Jelly ZYBO Z7 IMX219 sample   Copyright by Ryuji Fuchikami",
+        cv::putText(imgBack, "Jelly ZYBO Z7 IMX219 sample   Copyright by Ryuz",
             cv::Point(10, 710), cv::FONT_HERSHEY_PLAIN, 2, cv::Scalar(255, 255, 255));
     }
     cv::cvtColor(imgBack, imgBack, CV_BGR2BGRA);

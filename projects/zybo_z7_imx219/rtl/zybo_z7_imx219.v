@@ -3,7 +3,7 @@
 //
 //  IMX219 capture sample
 //
-//                                 Copyright (C) 2008-2020 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2020 by Ryuz
 //                                 https://github.com/ryuz/
 // ---------------------------------------------------------------------------
 
@@ -606,7 +606,7 @@ module zybo_z7_imx219
             );
     
     
-    // parameter update(フレー�?単位で�?括パラメータ更新できるように)
+    // parameter update(繝輔Ξ繝ｼ繝?蜊倅ｽ阪〒荳?諡ｬ繝代Λ繝｡繝ｼ繧ｿ譖ｴ譁ｰ縺ｧ縺阪ｋ繧医≧縺ｫ)
     wire                            parameter_update_req;
     
     wire    [WB_DAT_WIDTH-1:0]      wb_prmup_dat_o;
@@ -663,7 +663,7 @@ module zybo_z7_imx219
     
     
     
-    // 現�?
+    // 迴ｾ蜒?
     wire    [0:0]               axi4s_rgb_tuser;
     wire                        axi4s_rgb_tlast;
     wire    [39:0]              axi4s_rgb_tdata;
@@ -800,7 +800,7 @@ module zybo_z7_imx219
             );
     
     
-    // read は未使用
+    // read 縺ｯ譛ｪ菴ｿ逕ｨ
     assign axi4_mem0_arid     = 0;
     assign axi4_mem0_araddr   = 0;
     assign axi4_mem0_arburst  = 0;

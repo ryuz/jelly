@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
-//  Jelly  -- the system on fpga system
+//  Jelly  -- The platform for real-time computing
 //
-//                                 Copyright (C) 2008-2020 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2020 by Ryuz
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 

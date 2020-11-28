@@ -3,7 +3,7 @@
 //
 //  stepping motor control
 //
-//                                 Copyright (C) 2008-2020 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2020 by Ryuz
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
@@ -104,10 +104,10 @@ module stepper_motor_control_calc
         end
     end
     
-    wire                            d_sign = st1_sign;       // •„†(•ûŒü)
-    wire                            d_near = st2_near;       // –Ú•W‹ß–T
-    wire    signed  [X_WIDTH:0]     d_dir  = st1_d;          // –Ú•W•ûŒü‚Ì‹——£(â‘Î’l)
-    wire    signed  [V_WIDTH:0]     v_dir  = st1_v;          // –Ú•W•ûŒü‚Ì‘¬“x
+    wire                            d_sign = st1_sign;       // ç¬¦å·(æ–¹å‘)
+    wire                            d_near = st2_near;       // ç›®æ¨™è¿‘å‚
+    wire    signed  [X_WIDTH:0]     d_dir  = st1_d;          // ç›®æ¨™æ–¹å‘ã®è·é›¢(çµ¶å¯¾å€¤)
+    wire    signed  [V_WIDTH:0]     v_dir  = st1_v;          // ç›®æ¨™æ–¹å‘ã®é€Ÿåº¦
     
     
     // stage 4

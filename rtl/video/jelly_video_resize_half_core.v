@@ -1,9 +1,9 @@
 // ---------------------------------------------------------------------------
-//  Jelly  -- the soft-core processor system
+//  Jelly  -- The platform for real-time computing
 //
 //
-//                                 Copyright (C) 2008-2018 by Ryuji Fuchikami
-//                                 http://ryuz.my.coocan.jp/
+//                                 Copyright (C) 2008-2018 by Ryuz
+//                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
 
