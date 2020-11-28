@@ -38,7 +38,7 @@ int main()
     std::cout << "udmabuf4 phys addr : 0x" << std::hex << dmabuf_addr << std::endl;
     std::cout << "udmabuf4 size      : 0x" << std::hex << dmabuf_size << std::endl;
 
-    auto img = cv::imread("Penguins.jpg");
+    auto img = cv::imread("test.jpg");
     cv::Mat imgView;
     cv::resize(img, imgView, cv::Size(1920, 1080));
 //  cv::cvtColor(img, imgView, cv::COLOR_BGR2RGB);
