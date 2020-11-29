@@ -5,6 +5,10 @@ module design_1
         (
             output  wire    [0:0]   dp_video_ref_reset,
             output  wire            dp_video_ref_clk,
+            output  wire            dp_video_out_vsync,
+            output  wire            dp_video_out_hsync,
+            output  wire            dp_live_video_de_out,
+            
             input   wire            dp_live_video_in_de,
             input   wire            dp_live_video_in_hsync,
             input   wire    [35:0]  dp_live_video_in_pixel1,
@@ -101,6 +105,47 @@ module design_1
     
     assign mem_aresetn        = ~reset;
     assign mem_aclk           = clk150;
+    
+    
+    jelly_vsync_generator_core
+            #(
+                .V_COUNTER_WIDTH    (16),
+                .H_COUNTER_WIDTH    (16)
+            )
+        i_vsync_generator_core
+            (
+                .reset              (reset),
+                .clk                (dp_video_ref_clk),
+                
+                .ctl_enable         (1'b1),
+                .ctl_busy           (),
+                
+                .param_htotal       (2200),
+                .param_hdisp_start  (0),
+                .param_hdisp_end    (1920),
+                .param_hsync_start  (2008),
+                .param_hsync_end    (2052),
+                .param_hsync_pol    (1),
+                /*
+                .param_vtotal       (1125),
+                .param_vdisp_start  (0),
+                .param_vdisp_end    (1080),
+                .param_vsync_start  (1084),
+                .param_vsync_end    (1089),
+                .param_vsync_pol    (1),
+                */
+                .param_vtotal       (32),
+                .param_vdisp_start  (0),
+                .param_vdisp_end    (16),
+                .param_vsync_start  (16+4),
+                .param_vsync_end    (16+8),
+                .param_vsync_pol    (1),
+                
+                .out_vsync          (dp_video_out_vsync),
+                .out_hsync          (dp_video_out_hsync),
+                .out_de             (dp_live_video_de_out)
+            );
+    
     
     
     jelly_axi4_slave_model

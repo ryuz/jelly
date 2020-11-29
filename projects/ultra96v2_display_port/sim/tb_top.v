@@ -16,7 +16,7 @@ module tb_top();
         $dumpfile("tb_top.vcd");
         $dumpvars(0, tb_top);
         
-    #100000000
+    #200000000
         $finish;
     end
     
@@ -227,7 +227,23 @@ module tb_top();
 `define REG_VIDEO_VSGEN_PARAM_VDISP_END         8'h15
 `define REG_VIDEO_VSGEN_PARAM_VSYNC_START       8'h16
 `define REG_VIDEO_VSGEN_PARAM_VSYNC_END         8'h17
-    
+
+localparam REG_VIDEO_ADJDE_CORE_ID            = 8'h00;
+localparam REG_VIDEO_ADJDE_CORE_VERSION       = 8'h01;
+localparam REG_VIDEO_ADJDE_CTL_CONTROL        = 8'h04;
+localparam REG_VIDEO_ADJDE_CTL_STATUS         = 8'h05;
+localparam REG_VIDEO_ADJDE_CTL_INDEX          = 8'h07;
+localparam REG_VIDEO_ADJDE_PARAM_HSIZE        = 8'h08;
+localparam REG_VIDEO_ADJDE_PARAM_VSIZE        = 8'h09;
+localparam REG_VIDEO_ADJDE_PARAM_HSTART       = 8'h0a;
+localparam REG_VIDEO_ADJDE_PARAM_VSTART       = 8'h0b;
+localparam REG_VIDEO_ADJDE_PARAM_HPOL         = 8'h0c;
+localparam REG_VIDEO_ADJDE_PARAM_VPOL         = 8'h0d;
+localparam REG_VIDEO_ADJDE_CURRENT_HSIZE      = 8'h18;
+localparam REG_VIDEO_ADJDE_CURRENT_VSIZE      = 8'h19;
+localparam REG_VIDEO_ADJDE_CURRENT_HSTART     = 8'h1a;
+localparam REG_VIDEO_ADJDE_CURRENT_VSTART     = 8'h1b;
+
     
     initial begin
     @(negedge wb_rst_i);
@@ -249,9 +265,12 @@ module tb_top();
         
     #1000;
         $display(" --- vsgen --- ");
-        wb_write(32'h00002000 + `REG_VIDEO_VSGEN_CTL_CONTROL,               1, 8'hff);
+        wb_write(32'h00002000 + REG_VIDEO_ADJDE_PARAM_VSIZE,  10, 8'hff);
+        wb_write(32'h00002000 + REG_VIDEO_ADJDE_PARAM_HSTART, 20, 8'hff);
+        wb_write(32'h00002000 + REG_VIDEO_ADJDE_PARAM_VSTART,  3, 8'hff);
+        wb_write(32'h00002000 + REG_VIDEO_ADJDE_CTL_CONTROL,   3, 8'hff);
         
-    #1000000;
+    #2000000;
         
         $finish();
     end
