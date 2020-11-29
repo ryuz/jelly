@@ -336,6 +336,23 @@
 #define REG_VIDEO_VSGEN_PARAM_VSYNC_START       0x16
 #define REG_VIDEO_VSGEN_PARAM_VSYNC_END         0x17
 
+// Video sync de adjuster
+#define REG_VIDEO_ADJDE_CORE_ID                 0x00
+#define REG_VIDEO_ADJDE_CORE_VERSION            0x01
+#define REG_VIDEO_ADJDE_CTL_CONTROL             0x04
+#define REG_VIDEO_ADJDE_CTL_STATUS              0x05
+#define REG_VIDEO_ADJDE_CTL_INDEX               0x07
+#define REG_VIDEO_ADJDE_PARAM_HSIZE             0x08
+#define REG_VIDEO_ADJDE_PARAM_VSIZE             0x09
+#define REG_VIDEO_ADJDE_PARAM_HSTART            0x0a
+#define REG_VIDEO_ADJDE_PARAM_VSTART            0x0b
+#define REG_VIDEO_ADJDE_PARAM_HPOL              0x0c
+#define REG_VIDEO_ADJDE_PARAM_VPOL              0x0d
+#define REG_VIDEO_ADJDE_CURRENT_HSIZE           0x18
+#define REG_VIDEO_ADJDE_CURRENT_VSIZE           0x19
+#define REG_VIDEO_ADJDE_CURRENT_HSTART          0x1a
+#define REG_VIDEO_ADJDE_CURRENT_VSTART          0x1b
+
 
 /* ---------------------------------- */
 /*  Image processing                  */
