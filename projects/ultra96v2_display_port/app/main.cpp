@@ -72,12 +72,12 @@ int main()
     std::cout << "AV_BUF_OUTPUT_AUDIO_VIDEO_SELECT : 0x" << std::hex << reg_dp.ReadMem32(AV_BUF_OUTPUT_AUDIO_VIDEO_SELECT) << std::endl;
     std::cout << "V_BLEND_SET_GLOBAL_ALPHA_REG     : 0x" << std::hex << reg_dp.ReadMem32(V_BLEND_SET_GLOBAL_ALPHA_REG) << std::endl;
     std::cout << "AV_BUF_AUD_VID_CLK_SOURCE        : 0x" << std::hex << reg_dp.ReadMem32(AV_BUF_AUD_VID_CLK_SOURCE) << std::endl;
+//  auto old_dp_avclk = reg_dp.ReadMem32(AV_BUF_AUD_VID_CLK_SOURCE);
     auto old_dp_avsel = reg_dp.ReadMem32(AV_BUF_OUTPUT_AUDIO_VIDEO_SELECT);
-    auto old_dp_avclk = reg_dp.ReadMem32(AV_BUF_AUD_VID_CLK_SOURCE);
     auto old_dp_alpha = reg_dp.ReadMem32(V_BLEND_SET_GLOBAL_ALPHA_REG);
-//   reg_dp.WriteMem32(AV_BUF_OUTPUT_AUDIO_VIDEO_SELECT, 0x3c);
 //   reg_dp.WriteMem32(AV_BUF_AUD_VID_CLK_SOURCE,        0x00);
-//   reg_dp.WriteMem32(V_BLEND_SET_GLOBAL_ALPHA_REG,     0xff);
+    reg_dp.WriteMem32(AV_BUF_OUTPUT_AUDIO_VIDEO_SELECT, 0x54);
+    reg_dp.WriteMem32(V_BLEND_SET_GLOBAL_ALPHA_REG,     0xff);
 
 
     // レジスタ番号でアクセス
@@ -101,6 +101,7 @@ int main()
     reg_vdmar.WriteReg(REG_VDMA_READ_CTL_CONTROL,      0x03);
     
     // VSync Start
+    /*
     usleep(100000);
     reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_HTOTAL,      2200);
     reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_HDISP_START,    0);
@@ -115,9 +116,18 @@ int main()
     reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_VSYNC_END,   1089);
     reg_vsgen.WriteReg(REG_VIDEO_VSGEN_PARAM_VSYNC_POL,      1);
     reg_vsgen.WriteReg(REG_VIDEO_VSGEN_CTL_CONTROL,          1);
+    */
 
+    int h_start = 131;
+    int v_start = 35;
     cv::imshow("img", img);
-    cv::waitKey();
+    while ( cv::waitKey(10) != 0x1b ) {
+        cv::createTrackbar("h", "img", &h_start, 200);
+        cv::createTrackbar("v", "img", &v_start, 100);
+        reg_vsgen.WriteReg(REG_VIDEO_ADJDE_PARAM_HSTART, h_start);
+        reg_vsgen.WriteReg(REG_VIDEO_ADJDE_PARAM_VSTART, v_start);
+        reg_vsgen.WriteReg(REG_VIDEO_ADJDE_CTL_CONTROL, 3);
+    }
     
     reg_vdmar.WriteReg(REG_VDMA_READ_CTL_CONTROL, 0x00);
     while ( reg_vdmar.ReadReg(REG_VDMA_READ_CTL_STATUS) != 0 ) {
@@ -125,9 +135,9 @@ int main()
     }    
 
     // 元に戻す
-//    reg_dp.WriteMem32(AV_BUF_OUTPUT_AUDIO_VIDEO_SELECT, old_dp_avsel);
 //    reg_dp.WriteMem32(AV_BUF_AUD_VID_CLK_SOURCE,        old_dp_avclk);
-//    reg_dp.WriteMem32(V_BLEND_SET_GLOBAL_ALPHA_REG,     old_dp_alpha);
+    reg_dp.WriteMem32(AV_BUF_OUTPUT_AUDIO_VIDEO_SELECT, old_dp_avsel);
+    reg_dp.WriteMem32(V_BLEND_SET_GLOBAL_ALPHA_REG,     old_dp_alpha);
 
     return 0;
 }

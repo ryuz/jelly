@@ -77,7 +77,8 @@ load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
 	sudo chmod 666 /dev/udmabuf*
 #	sudo memwrite 0xfd4aa00c 0xff
 #	sudo memwrite 0xfd4ab120 0x00
-#	sudo memwrite 0xfd4ab070 0x3c
+#	sudo memwrite 0xfd4ab070 0x54
+##	sudo memwrite 0xfd4ab070 0x3c
 
 .PHONY: unload
 unload:

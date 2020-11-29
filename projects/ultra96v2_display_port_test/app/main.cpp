@@ -164,8 +164,8 @@ RegsInfo DpRegs[] = {
     {"AV_BUF_STC_CUSTOM_EVENT_TS_REG1",      0x0000B050},
     {"AV_BUF_STC_CUSTOM_EVENT2_TS_REG0",     0x0000B054},
     {"AV_BUF_STC_CUSTOM_EVENT2_TS_REG1",     0x0000B058},
-//  {"AV_BUF_STC_SNAPSHOT0",                 0x0000B060},
-//  {"AV_BUF_STC_SNAPSHOT1",                 0x0000B064},
+//  {"AV_BUF_STC_SNAPSHOT0",                 0x0000B060},   // ← 触ると固まる模様？
+//  {"AV_BUF_STC_SNAPSHOT1",                 0x0000B064},   // ← 触ると固まる模様？
     {"AV_BUF_OUTPUT_AUDIO_VIDEO_SELECT",     0x0000B070},
     {"AV_BUF_HCOUNT_VCOUNT_INT0",            0x0000B074},
     {"AV_BUF_HCOUNT_VCOUNT_INT1",            0x0000B078},
@@ -229,7 +229,7 @@ void PrintDpRegs(jelly::MemAccessor acc, std::ostream& of)
     for ( std::size_t i = 0; i < DpRegsSize; ++i ) {
         auto val = acc.ReadMem32(DpRegs[i].addr);
         char buf[128];
-        sprintf(buf, "%-40s : 0x%08x (%u)\n", DpRegs[i].name, val, val);
+        sprintf(buf, "0x%08x %-40s : 0x%08x (%u)\n", DpRegs[i].addr+0xfd4a0000, DpRegs[i].name, val, val);
         of << buf;
     }
 }
@@ -238,6 +238,7 @@ int main()
 {
     std::cout << "--- DP regs ---" << std::endl;
 
+#if 0
     // mmap uio
     std::cout << "\nuio open" << std::endl;
     jelly::UioAccessor uio_acc("uio_pl_peri", 0x08000000);
@@ -245,10 +246,11 @@ int main()
         std::cout << "uio_pl_peri mmap error" << std::endl;
         return 1;
     }
+#endif
 
     std::cout << "\nDP open" << std::endl;
-    jelly::UioAccessor    dp_acc("uio_dp", 0x00010000);
-//  jelly::DevMemAccessor dp_acc(0xfd4a0000, 0x00010000);
+//  jelly::UioAccessor    dp_acc("uio_dp", 0x00010000);
+    jelly::DevMemAccessor dp_acc(0xfd4a0000, 0x00010000);
     if ( !dp_acc.IsMapped() ) {
         std::cout << "uio_acc mmap error" << std::endl;
         return 1;
