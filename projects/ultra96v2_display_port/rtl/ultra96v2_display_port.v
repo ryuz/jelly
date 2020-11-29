@@ -377,98 +377,100 @@ module ultra96v2_display_port
     wire                        wb_vsgen_stb_i;
     wire                        wb_vsgen_ack_o;
     
-    /*
-    jelly_vsync_generator
-            #(
-                .WB_ADR_WIDTH           (8),
-                .WB_DAT_WIDTH           (WB_DAT_WIDTH),
-                .INIT_CTL_CONTROL       (1'b0),
-                
-                .INIT_HTOTAL            (2200),
-                .INIT_HDISP_START       (0),
-                .INIT_HDISP_END         (1920),
-                .INIT_HSYNC_START       (2008),
-                .INIT_HSYNC_END         (2052),
-                .INIT_HSYNC_POL         (1),
-                .INIT_VTOTAL            (1125),
-                .INIT_VDISP_START       (0),
-                .INIT_VDISP_END         (1080),
-                .INIT_VSYNC_START       (1084),
-                .INIT_VSYNC_END         (1089),
-                .INIT_VSYNC_POL         (1)
-            )
-        i_vsync_generator
-            (
-                .reset                  (vout_reset),
-                .clk                    (vout_clk),
-                
-                .out_vsync              (vout_vsgen_vsync),
-                .out_hsync              (vout_vsgen_hsync),
-                .out_de                 (vout_vsgen_de),
-                
-                .s_wb_rst_i             (wb_peri_rst_i),
-                .s_wb_clk_i             (wb_peri_clk_i),
-                .s_wb_adr_i             (wb_peri_adr_i[7:0]),
-                .s_wb_dat_o             (wb_vsgen_dat_o),
-                .s_wb_dat_i             (wb_peri_dat_i),
-                .s_wb_we_i              (wb_peri_we_i),
-                .s_wb_sel_i             (wb_peri_sel_i),
-                .s_wb_stb_i             (wb_vsgen_stb_i),
-                .s_wb_ack_o             (wb_vsgen_ack_o)
-            );
-    */
+    generate
+    if ( 0 ) begin
+        jelly_vsync_generator
+                #(
+                    .WB_ADR_WIDTH           (8),
+                    .WB_DAT_WIDTH           (WB_DAT_WIDTH),
+                    .INIT_CTL_CONTROL       (1'b0),
+                    
+                    .INIT_HTOTAL            (2200),
+                    .INIT_HDISP_START       (0),
+                    .INIT_HDISP_END         (1920),
+                    .INIT_HSYNC_START       (2008),
+                    .INIT_HSYNC_END         (2052),
+                    .INIT_HSYNC_POL         (1),
+                    .INIT_VTOTAL            (1125),
+                    .INIT_VDISP_START       (0),
+                    .INIT_VDISP_END         (1080),
+                    .INIT_VSYNC_START       (1084),
+                    .INIT_VSYNC_END         (1089),
+                    .INIT_VSYNC_POL         (1)
+                )
+            i_vsync_generator
+                (
+                    .reset                  (vout_reset),
+                    .clk                    (vout_clk),
+                    
+                    .out_vsync              (vout_vsgen_vsync),
+                    .out_hsync              (vout_vsgen_hsync),
+                    .out_de                 (vout_vsgen_de),
+                    
+                    .s_wb_rst_i             (wb_peri_rst_i),
+                    .s_wb_clk_i             (wb_peri_clk_i),
+                    .s_wb_adr_i             (wb_peri_adr_i[7:0]),
+                    .s_wb_dat_o             (wb_vsgen_dat_o),
+                    .s_wb_dat_i             (wb_peri_dat_i),
+                    .s_wb_we_i              (wb_peri_we_i),
+                    .s_wb_sel_i             (wb_peri_sel_i),
+                    .s_wb_stb_i             (wb_vsgen_stb_i),
+                    .s_wb_ack_o             (wb_vsgen_ack_o)
+                );
+    end
+    else begin
+        jelly_vsync_adjust_de
+                #(
+                   .USER_WIDTH              (0),
+                   .H_COUNT_WIDTH           (14),
+                   .V_COUNT_WIDTH           (14),
+                   
+                   .WB_ADR_WIDTH            (8),
+                   .WB_DAT_WIDTH            (WB_DAT_WIDTH),
+                   
+                   .INIT_CTL_CONTROL        (2'b00),
+                   .INIT_PARAM_HSIZE        (1920-1),
+                   .INIT_PARAM_VSIZE        (1080-1),
+                   .INIT_PARAM_HSTART       (131),
+                   .INIT_PARAM_VSTART       (35),
+                   .INIT_PARAM_HPOL         (1),
+                   .INIT_PARAM_VPOL         (1)
+                )
+            i_vsync_adjust_de
+                (
+                    .reset                  (vout_reset),
+                    .clk                    (vout_clk),
+                    
+                    .in_update_req          (1'b1),
+                    
+                    .s_wb_rst_i             (wb_peri_rst_i),
+                    .s_wb_clk_i             (wb_peri_clk_i),
+                    .s_wb_adr_i             (wb_peri_adr_i[7:0]),
+                    .s_wb_dat_o             (wb_vsgen_dat_o),
+                    .s_wb_dat_i             (wb_peri_dat_i),
+                    .s_wb_we_i              (wb_peri_we_i),
+                    .s_wb_sel_i             (wb_peri_sel_i),
+                    .s_wb_stb_i             (wb_vsgen_stb_i),
+                    .s_wb_ack_o             (wb_vsgen_ack_o),
+                    
+                    .in_vsync               (dp_video_out_vsync),
+                    .in_hsync               (dp_video_out_hsync),
+                    .in_user                (1'b0),
+                    
+                    .out_vsync              (vout_vsgen_vsync),
+                    .out_hsync              (vout_vsgen_hsync),
+                    .out_de                 (vout_vsgen_de),
+                    .out_user               ()
+                );
+    end
+    endgenerate
     
-    jelly_vsync_adjust_de
-            #(
-               .USER_WIDTH              (0),
-               .H_COUNT_WIDTH           (14),
-               .V_COUNT_WIDTH           (14),
-               
-               .WB_ADR_WIDTH            (8),
-               .WB_DAT_WIDTH            (WB_DAT_WIDTH),
-               
-               .INIT_CTL_CONTROL        (2'b11),
-               .INIT_PARAM_HSIZE        (1920-1),
-               .INIT_PARAM_VSIZE        (1080-1),
-               .INIT_PARAM_HSTART       (16),
-               .INIT_PARAM_VSTART       (4),
-               .INIT_PARAM_HPOL         (1),
-               .INIT_PARAM_VPOL         (1)
-            )
-        i_vsync_adjust_de
-            (
-                .reset                  (vout_reset),
-                .clk                    (vout_clk),
-                
-                .in_update_req          (1'b1),
-                
-                .s_wb_rst_i             (wb_peri_rst_i),
-                .s_wb_clk_i             (wb_peri_clk_i),
-                .s_wb_adr_i             (wb_peri_adr_i[7:0]),
-                .s_wb_dat_o             (wb_vsgen_dat_o),
-                .s_wb_dat_i             (wb_peri_dat_i),
-                .s_wb_we_i              (wb_peri_we_i),
-                .s_wb_sel_i             (wb_peri_sel_i),
-                .s_wb_stb_i             (wb_vsgen_stb_i),
-                .s_wb_ack_o             (wb_vsgen_ack_o),
-                
-                .in_vsync               (dp_video_out_vsync),
-                .in_hsync               (dp_video_out_hsync),
-                .in_user                (1'b0),
-                
-                .out_vsync              (vout_vsgen_vsync),
-                .out_hsync              (vout_vsgen_hsync),
-                .out_de                 (vout_vsgen_de),
-                .out_user               ()
-            );
     
-    
-    
-    (* MARK_DEBUG="true" *) wire            vout_vsync;
-    (* MARK_DEBUG="true" *) wire            vout_hsync;
-    (* MARK_DEBUG="true" *) wire            vout_de;
-    (* MARK_DEBUG="true" *) wire    [23:0]  vout_data;
-    (* MARK_DEBUG="true" *) wire    [3:0]   vout_ctl;
+    wire                vout_vsync;
+    wire                vout_hsync;
+    wire                vout_de;
+    wire    [23:0]      vout_data;
+    wire    [3:0]       vout_ctl;
     
     jelly_vout_axi4s
             #(
@@ -501,55 +503,17 @@ module ultra96v2_display_port
     assign dp_live_video_in_hsync         = vout_hsync;
     assign dp_live_video_in_de            = vout_de;
     
+    assign dp_live_video_in_pixel1[11:0]  = {vout_data[15:8], vout_data[15:12]};
+    assign dp_live_video_in_pixel1[23:12] = {vout_data[23:16], vout_data[23:20]};
+    assign dp_live_video_in_pixel1[35:24] = {vout_data[7:0], vout_data[7:4]};
     
-    assign dp_live_video_in_pixel1[11:0]  = {vout_data[7:0], vout_data[7:4]};
-    assign dp_live_video_in_pixel1[23:12] = {vout_data[15:8], vout_data[15:12]};
-    assign dp_live_video_in_pixel1[35:24] = {vout_data[23:16], vout_data[23:20]};
+//  assign dp_live_video_in_pixel1[11:0]  = {vout_data[15:8], vout_data[15:12]};
+//  assign dp_live_video_in_pixel1[23:12] = {vout_data[7:0], vout_data[7:4]};
+//  assign dp_live_video_in_pixel1[35:24] = {vout_data[23:16], vout_data[23:20]};
     
-    
-    /*
-    // test
-    (* mark_debug="true" *) reg                 reg_d = 0;
-    (* mark_debug="true" *) reg                 reg_h = 0;
-    (* mark_debug="true" *) reg     [13:0]      reg_x = 0;
-    (* mark_debug="true" *) reg     [13:0]      reg_y = 0;
-    
-    always @(posedge vout_clk) begin
-        reg_h <= dp_live_video_in_vsync;
-        
-        if ( dp_live_video_in_hsync ) begin
-            reg_d <= 0;
-            reg_x <= 0;
-        end
-        else if ( dp_live_video_in_de ) begin
-            reg_d <= 1;
-            reg_x <= reg_x + 1;
-        end
-        
-        if ( dp_live_video_in_vsync ) begin
-            reg_y <= 0;
-        end
-        else if ( reg_d && {reg_h, dp_live_video_in_hsync} == 2'b01 ) begin
-            reg_y <= reg_y + 1;
-        end
-    end
-    
-    reg     [35:0]  tmp_pixel;
-    always @* begin
-        if ( reg_x == reg_y ) begin
-            tmp_pixel = {12'hfff, 12'hfff, 12'hfff};
-        end
-        else begin
-            tmp_pixel[0*12 +: 12] = (reg_x >  512 && reg_x < 1920) ? 12'hfff : 0;
-            tmp_pixel[1*12 +: 12] = (reg_x > 1024 && reg_x < 1920) ? 12'h7ff : 0;
-            tmp_pixel[2*12 +: 12] = (reg_y >  512 && reg_y < 1080) ? 12'hfff : 0;
-        end
-    end
-    assign dp_live_video_in_pixel1 = tmp_pixel;
-    
-//    assign dp_live_gfx_alpha_in_0  = 8'h80;
-//    assign dp_live_gfx_pixel1_in_0 = ~tmp_pixel;
-    */
+//  assign dp_live_video_in_pixel1[11:0]  = {vout_data[7:0], vout_data[7:4]};
+//  assign dp_live_video_in_pixel1[23:12] = {vout_data[15:8], vout_data[15:12]};
+//  assign dp_live_video_in_pixel1[35:24] = {vout_data[23:16], vout_data[23:20]};
     
     
     

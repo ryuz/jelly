@@ -232,10 +232,13 @@ module jelly_vsync_adjust_de
                 reg_update_req <= 1'b1;
             end
             
+            if ( update_trig ) begin
+                reg_current_control[0] <= reg_ctl_control[0];
+            end
+            
             if ( reg_update_req & update_trig & update_en ) begin
                 reg_update_req      <= 1'b0;
                 
-                reg_current_control <= reg_ctl_control[0];
                 reg_current_hsize   <= reg_param_hsize;
                 reg_current_vsize   <= reg_param_vsize;
                 reg_current_hstart  <= reg_param_hstart;
