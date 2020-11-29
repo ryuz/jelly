@@ -51,14 +51,16 @@ int main()
     auto img = cv::imread("test.jpg");
     cv::Mat imgView;
     cv::resize(img, imgView, cv::Size(1920, 1080));
-//  cv::cvtColor(img, imgView, cv::COLOR_BGR2RGB);
-//  udmabuf_acc.MemCopyFrom(0, img.data, 1920*1080*3);
+//  cv::cvtColor(imgView, imgView, cv::COLOR_BGR2RGB);
+    udmabuf_acc.MemCopyFrom(0, imgView.data, 1920*1080*3);
+/*    
     for ( int i = 0; i < 1920*1080; ++i ) {
         udmabuf_acc.WriteMem8(3*i+2, imgView.data[3*i+0]);
         udmabuf_acc.WriteMem8(3*i+0, imgView.data[3*i+1]);
         udmabuf_acc.WriteMem8(3*i+1, imgView.data[3*i+2]);
     }
-    
+*/
+
     // mmap uio
     std::cout << "\nuio open" << std::endl;
     jelly::UioAccessor uio_acc("uio_pl_peri", 0x08000000);
