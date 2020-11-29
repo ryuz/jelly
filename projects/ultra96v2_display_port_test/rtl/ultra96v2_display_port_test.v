@@ -103,6 +103,7 @@ module ultra96v2_display_port_test
     (* mark_debug="true" *) reg     [13:0]      reg_x = 0;
     (* mark_debug="true" *) reg     [13:0]      reg_y = 0;
     
+    /*
     always @(posedge pl_clk0_0) begin
         reg_h <= dp_live_video_in_vsync_0;
         
@@ -123,9 +124,9 @@ module ultra96v2_display_port_test
         end
     end
     assign dp_video_in_clk_0 = pl_clk0_0;
+    */
     
     
-    /*
     always @(posedge dp_video_ref_clk_0) begin
         reg_h <= dp_video_out_hsync_0;
         
@@ -133,7 +134,7 @@ module ultra96v2_display_port_test
             reg_d <= 0;
             reg_x <= 0;
         end
-        else if ( dp_live_video_de_out_0 ) begin
+        else if ( dp_live_video_de_out_0 || 1 ) begin
             reg_d <= 1;
             reg_x <= reg_x + 1;
         end
@@ -146,7 +147,7 @@ module ultra96v2_display_port_test
         end
     end
     assign dp_video_in_clk_0         = dp_video_ref_clk_0; //pl_clk0_0;
-    */
+    
     
     
     reg     [35:0]  tmp_pixel;
@@ -176,16 +177,17 @@ module ultra96v2_display_port_test
                 tmp_pixel[2*12 +: 12] = 12'hfff;
             end
             
-//            tmp_pixel[0*12 +: 12] = (reg_x >  512 && reg_x < 1920) ? 12'hfff : 0;
-//            tmp_pixel[1*12 +: 12] = (reg_x > 1024 && reg_x < 1920) ? 12'h7ff : 0;
-//            tmp_pixel[2*12 +: 12] = (reg_y >  512 && reg_y < 1080) ? 12'hfff : 0;
+            if ( reg_y >= 512 ) begin
+                tmp_pixel = ~tmp_pixel;
+            end
         end
     end
     assign dp_live_video_in_pixel1_0 = tmp_pixel;
     
     
-    assign dp_live_gfx_alpha_in_0  = 8'h80;
+    assign dp_live_gfx_alpha_in_0  = 8'h7f;
     assign dp_live_gfx_pixel1_in_0 = ~tmp_pixel;
+    
     
     
 //  assign dp_live_video_in_pixel1_0 = {12'hfff, 12'h000, 12'h000};

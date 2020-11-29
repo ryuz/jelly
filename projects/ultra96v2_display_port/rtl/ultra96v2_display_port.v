@@ -24,6 +24,9 @@ module ultra96v2_display_port
     
     wire                                dp_video_ref_reset;
     wire                                dp_video_ref_clk;
+    wire                                dp_video_out_vsync;
+    wire                                dp_video_out_hsync;
+    wire                                dp_live_video_de_out;
     wire                                dp_live_video_in_vsync;
     wire                                dp_live_video_in_hsync;
     wire                                dp_live_video_in_de;
@@ -114,6 +117,9 @@ module ultra96v2_display_port
             (
                 .dp_video_ref_reset         (dp_video_ref_reset),
                 .dp_video_ref_clk           (dp_video_ref_clk),
+                .dp_video_out_vsync         (dp_video_out_vsync),
+                .dp_video_out_hsync         (dp_video_out_hsync),
+                .dp_live_video_de_out       (dp_live_video_de_out),
                 .dp_live_video_in_vsync     (dp_live_video_in_vsync),
                 .dp_live_video_in_hsync     (dp_live_video_in_hsync),
                 .dp_live_video_in_de        (dp_live_video_in_de),
@@ -371,6 +377,7 @@ module ultra96v2_display_port
     wire                        wb_vsgen_stb_i;
     wire                        wb_vsgen_ack_o;
     
+    /*
     jelly_vsync_generator
             #(
                 .WB_ADR_WIDTH           (8),
@@ -408,6 +415,51 @@ module ultra96v2_display_port
                 .s_wb_sel_i             (wb_peri_sel_i),
                 .s_wb_stb_i             (wb_vsgen_stb_i),
                 .s_wb_ack_o             (wb_vsgen_ack_o)
+            );
+    */
+    
+    jelly_vsync_adjust_de
+            #(
+               .USER_WIDTH              (0),
+               .H_COUNT_WIDTH           (14),
+               .V_COUNT_WIDTH           (14),
+               
+               .WB_ADR_WIDTH            (8),
+               .WB_DAT_WIDTH            (WB_DAT_WIDTH),
+               
+               .INIT_CTL_CONTROL        (2'b11),
+               .INIT_PARAM_HSIZE        (1920-1),
+               .INIT_PARAM_VSIZE        (1080-1),
+               .INIT_PARAM_HSTART       (16),
+               .INIT_PARAM_VSTART       (4),
+               .INIT_PARAM_HPOL         (1),
+               .INIT_PARAM_VPOL         (1)
+            )
+        i_vsync_adjust_de
+            (
+                .reset                  (vout_reset),
+                .clk                    (vout_clk),
+                
+                .in_update_req          (1'b1),
+                
+                .s_wb_rst_i             (wb_peri_rst_i),
+                .s_wb_clk_i             (wb_peri_clk_i),
+                .s_wb_adr_i             (wb_peri_adr_i[7:0]),
+                .s_wb_dat_o             (wb_vsgen_dat_o),
+                .s_wb_dat_i             (wb_peri_dat_i),
+                .s_wb_we_i              (wb_peri_we_i),
+                .s_wb_sel_i             (wb_peri_sel_i),
+                .s_wb_stb_i             (wb_vsgen_stb_i),
+                .s_wb_ack_o             (wb_vsgen_ack_o),
+                
+                .in_vsync               (dp_video_out_vsync),
+                .in_hsync               (dp_video_out_hsync),
+                .in_user                (1'b0),
+                
+                .out_vsync              (vout_vsgen_vsync),
+                .out_hsync              (vout_vsgen_hsync),
+                .out_de                 (vout_vsgen_de),
+                .out_user               ()
             );
     
     
