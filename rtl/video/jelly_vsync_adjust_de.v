@@ -56,10 +56,10 @@ module jelly_vsync_adjust_de
             input   wire                                in_vsync,
             input   wire    [USER_BITS-1:0]             in_user,
             
-            input   wire                                out_hsync,
-            input   wire                                out_vsync,
-            input   wire                                out_de,
-            input   wire    [USER_BITS-1:0]             out_user
+            output  wire                                out_hsync,
+            output  wire                                out_vsync,
+            output  wire                                out_de,
+            output  wire    [USER_BITS-1:0]             out_user
         );
     
     
