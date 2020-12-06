@@ -1,6 +1,41 @@
 
+
 #ifndef	__RYUZ__JELLY__REGS__H__
 #define	__RYUZ__JELLY__REGS__H__
+
+
+/* ---------------------------------- */
+/*  ID                                */
+/* ---------------------------------- */
+
+#define CORE_ID_BUFFER_MANAGER                  0x527A0004
+#define CORE_ID_BUFFER_ALLOCATOR                0x527A0008
+#define CORE_ID_DMA_STREAM_WRITE                0x527A0110
+#define CORE_ID_DMA_STREAM_READ                 0x527A0120
+#define CORE_ID_DMA_FIFO                        0x527A0140
+#define CORE_ID_VDMA_AXI4S_TO_AXI4              0x527A1010
+#define CORE_ID_VDMA_AXI4_TO_AXI4S              0x527A1020
+#define CORE_ID_VDMA_AXI4S_TO_AXI4S             0x527A1040
+#define CORE_ID_VIDEO_VIN                       0x527A1110
+#define CORE_ID_VIDEO_VOUT                      0x527A1140
+#define CORE_ID_VSYNC_GENERATOR                 0x527A1150
+#define CORE_ID_VSYNC_ADJUST_DE                 0x527A1152
+#define CORE_ID_VIDEO_NORMALIZER                0x527A1220
+#define CORE_ID_VIDEO_PARAMETER_UPDATE          0x527A1F10
+#define CORE_ID_IMG_PREVIOUS_FRAME              0x527A2010
+#define CORE_ID_IMG_DEMOSAIC_ACPI               0x527A2110
+#define CORE_ID_IMG_GAMMA_CORRECTION            0x527A2120
+#define CORE_ID_IMG_COLOR_MATRIX                0x527A2130
+#define CORE_ID_IMG_RGB_TO_GRAY                 0x527A2150
+#define CORE_ID_IMG_BINARIZER                   0x527A2210
+#define CORE_ID_IMG_GAUSSIAN_3X3                0x527A2310
+#define CORE_ID_IMG_SOBEL_CORE                  0x527A2320
+#define CORE_ID_IMG_SOBEL_CANNY                 0x527A2330
+#define CORE_ID_IMG_ALPHA_BELND                 0x527A2340
+#define CORE_ID_IMG_AREA_MASK                   0x527A2820
+#define CORE_ID_IMG_MASS_CENTER                 0x527A2820
+#define CORE_ID_IMG_SELECTOR                    0x527A2F10
+
 
 
 /* ---------------------------------- */

@@ -29,25 +29,25 @@ class AccessorUioManager : public AccessorMmapManager
 	using _super = AccessorMmapManager;
 
 protected:
-	AccessorUioManager(const char* fname, std::size_t size, off_t offset=0) { Mmap(fname, size, offset); }
+	AccessorUioManager(const char* fname, std::size_t size, off_t offset, int flags) { Mmap(fname, size, offset, flags); }
 
 public:
 	~AccessorUioManager() { Munmap(); }
 	
-	static std::shared_ptr<AccessorUioManager> Create(const char* fname, size_t size, off_t offset=0)
+	static std::shared_ptr<AccessorUioManager> Create(const char* fname, size_t size, off_t offset=0, int flags=(O_RDWR | O_SYNC))
     {
-        return std::shared_ptr<AccessorUioManager>(new AccessorUioManager(fname, size, offset));
+        return std::shared_ptr<AccessorUioManager>(new AccessorUioManager(fname, size, offset, flags));
     }
 
 protected:
-	bool Mmap(const char* fname, std::size_t size, off_t offset=0)
+	bool Mmap(const char* fname, std::size_t size, off_t offset, int flags)
 	{
 		// open
 		int	fd;
-		if ( (fd = open(fname, O_RDWR | O_SYNC)) < 0 ) {
+		if ( (fd = open(fname, flags)) < 0 ) {
 			return false;
 		}
-
+        
 		// mmap
 		if ( !_super::Mmap(fd, size, offset) ) {
 			close(fd);

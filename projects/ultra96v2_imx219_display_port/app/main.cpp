@@ -13,6 +13,9 @@
 #include "jelly/JellyRegs.h"
 #include "jelly/UioAccessor.h"
 #include "jelly/UdmabufAccessor.h"
+#include "jelly/GpioAccessor.h"
+#include "jelly/Imx219Control.h"
+#include "jelly/VideoDmaControl.h"
 
 
 #define DP_MAIN_STREAM_HTOTAL               0x00000180
@@ -31,8 +34,113 @@
 
 
 
-int main()
+int main(int argc, char *argv[])
 {
+    double  pixel_clock = 91000000.0;
+    bool    binning     = true;
+    int     width       = 1280;
+    int     height      = 720;
+    int     aoi_x       = -1;
+    int     aoi_y       = -1;
+    bool    flip_h      = false;
+    bool    flip_v      = false;
+    int     frame_rate  = 1000;
+    int     exposure    = 10;
+    int     a_gain      = 20;
+    int     d_gain      = 10;
+    int     bayer_phase = 1;
+    int     view_scale  = 1;
+
+    for ( int i = 1; i < argc; ++i ) {
+        if ( strcmp(argv[i], "full") == 0 ) {
+            pixel_clock = 91000000;
+            binning    = false;
+            width      = 3280;
+            height     = 2464;
+            aoi_x      = 0;
+            aoi_y      = 0;
+            frame_rate = 20;
+            exposure   = 33;
+            a_gain     = 20;
+            d_gain     = 0;
+            view_scale = 4;
+        }
+        else if ( strcmp(argv[i], "1000fps") == 0 ) {
+            pixel_clock = 139200000.0;
+            binning     = true;
+            width       = 640;
+            height      = 132;
+            aoi_x       = -1;
+            aoi_y       = -1;
+            flip_h      = false;
+            flip_v      = false;
+            frame_rate  = 1000;
+            exposure    = 10;
+            a_gain      = 20;
+            d_gain      = 10;
+            bayer_phase = 1;
+            view_scale  = 1;
+        }
+        else if ( strcmp(argv[i], "-pixel_clock") == 0 && i+1 < argc) {
+            ++i;
+            pixel_clock = strtof(argv[i], nullptr);
+        }
+        else if ( strcmp(argv[i], "-binning") == 0 && i+1 < argc) {
+            ++i;
+            binning = (strtol(argv[i], nullptr, 0) != 0);
+        }
+        else if ( strcmp(argv[i], "-width") == 0 && i+1 < argc) {
+            ++i;
+            width = strtol(argv[i], nullptr, 0);
+        }
+        else if ( strcmp(argv[i], "-height") == 0 && i+1 < argc) {
+            ++i;
+            height = strtol(argv[i], nullptr, 0);
+        }
+        else if ( strcmp(argv[i], "-aoi_x") == 0 && i+1 < argc) {
+            ++i;
+            aoi_x = strtol(argv[i], nullptr, 0);
+        }
+        else if ( strcmp(argv[i], "-aoi_y") == 0 && i+1 < argc) {
+            ++i;
+            aoi_y = strtol(argv[i], nullptr, 0);
+        }
+        else if ( strcmp(argv[i], "-frame_rate") == 0 && i+1 < argc) {
+            ++i;
+            frame_rate = (int)strtof(argv[i], nullptr);
+        }
+        else if ( strcmp(argv[i], "-exposure") == 0 && i+1 < argc) {
+            ++i;
+            exposure = (int)strtof(argv[i], nullptr);
+        }
+        else if ( strcmp(argv[i], "-a_gain") == 0 && i+1 < argc) {
+            ++i;
+            a_gain = (int)strtof(argv[i], nullptr);
+        }
+        else if ( strcmp(argv[i], "-d_gain") == 0 && i+1 < argc) {
+            ++i;
+            d_gain = (int)strtof(argv[i], nullptr);
+        }
+        else if ( strcmp(argv[i], "-bayer_phase") == 0 && i+1 < argc) {
+            ++i;
+            bayer_phase = strtol(argv[i], nullptr, 0);
+        }
+        else if ( strcmp(argv[i], "-view_scale") == 0 && i+1 < argc) {
+            ++i;
+            view_scale = strtol(argv[i], nullptr, 0);
+        }
+        else {
+            std::cout << "unknown option : " << argv[i] << std::endl;
+            return 1;
+        }
+    }
+    
+    width &= ~0xf;
+    width  = std::max(width, 16);
+    height = std::max(height, 2);
+
+
+
     std::cout << "--- Display Port ---" << std::endl;
 
     // mmap udmabuf
@@ -51,15 +159,16 @@ int main()
     auto img = cv::imread("test.jpg");
     cv::Mat imgView;
     cv::resize(img, imgView, cv::Size(1920, 1080));
-//  cv::cvtColor(imgView, imgView, cv::COLOR_BGR2RGB);
+//    cv::cvtColor(imgView, imgView, cv::COLOR_BGR2RGB);
     udmabuf_acc.MemCopyFrom(0, imgView.data, 1920*1080*3);
-/*    
+    
+    /*
     for ( int i = 0; i < 1920*1080; ++i ) {
         udmabuf_acc.WriteMem8(3*i+2, imgView.data[3*i+0]);
         udmabuf_acc.WriteMem8(3*i+0, imgView.data[3*i+1]);
         udmabuf_acc.WriteMem8(3*i+1, imgView.data[3*i+2]);
     }
-*/
+    */
 
     // mmap uio
     std::cout << "\nuio open" << std::endl;
@@ -138,6 +247,59 @@ int main()
     int v_start = dp_vstart-dp_vswidth-1;
 
 
+
+    // カメラ電源ON
+    jelly::GpioAccessor gpio(36);
+    gpio.SetDirection(true);
+    gpio.SetValue(1);
+    usleep(200);
+
+    // IMX219 I2C control
+    jelly::Imx219ControlI2c imx219;
+    if ( !imx219.Open("/dev/i2c-4", 0x10) ) {
+        std::cout << "I2C open error" << std::endl;
+        return 1;
+    }
+    imx219.Reset();
+
+    std::cout << "Camera Model ID : " << std::hex << std::setfill('0') << std::setw(4) << imx219.GetModelId() << std::endl;
+
+    // camera 設定
+    imx219.SetPixelClock(pixel_clock);
+    imx219.SetAoi(width, height, aoi_x, aoi_y, binning, binning);
+    imx219.Start();
+
+    /*
+    int     rec_frame_num = std::min(100, (int)(dmabuf_mem_size / (width * height * 4)));
+    int     frame_num     = 1;
+
+    if ( rec_frame_num <= 0 ) {
+        std::cout << "udmabuf size error" << std::endl;
+    }
+    */
+
+    // DMA start (one shot)
+    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_ADDR,   dmabuf_addr);
+    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_OFFSET,     0);
+    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_LINE_STEP,  1920*3);
+    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_H_SIZE,     width-1);
+    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_V_SIZE,     height-1);
+    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_FRAME_STEP, width*3*height);
+    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_F_SIZE,     1-1);
+    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_AWLEN_MAX,  64-1);
+    reg_vdmaw.WriteReg(REG_VDMA_WRITE_CTL_CONTROL,      0x03);
+    
+    // video format regularizer
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN,  1);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT,   10000000);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_WIDTH,       width);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_HEIGHT,      height);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_FILL,        0x100);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_TIMEOUT,     100000);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL,       0x03);
+    usleep(100000);
+
+
     // DMA start
     reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_ADDR,       dmabuf_addr);
     reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_OFFSET,     0);
@@ -180,9 +342,26 @@ int main()
     while ( cv::waitKey(10) != 0x1b ) {
         cv::createTrackbar("h", "img", &h_start, 200);
         cv::createTrackbar("v", "img", &v_start, 100);
+
+        cv::createTrackbar("fps",      "img", &frame_rate, 1000);
+        cv::createTrackbar("phase",    "img", &bayer_phase, 3);
+        cv::createTrackbar("exposure", "img", &exposure, 1000);
+        cv::createTrackbar("a_gain",   "img", &a_gain, 20);
+        cv::createTrackbar("d_gain",   "img", &d_gain, 24);
+
+        imx219.SetFrameRate(frame_rate);
+        imx219.SetExposureTime(exposure / 1000.0);
+        imx219.SetGain(a_gain);
+        imx219.SetDigitalGain(d_gain);
+        imx219.SetFlip(flip_h, flip_v);
+
+
         reg_vsgen.WriteReg(REG_VIDEO_ADJDE_PARAM_HSTART, h_start);
         reg_vsgen.WriteReg(REG_VIDEO_ADJDE_PARAM_VSTART, v_start);
         reg_vsgen.WriteReg(REG_VIDEO_ADJDE_CTL_CONTROL, 3);
+
+        reg_demos.WriteReg(REG_IMG_DEMOSAIC_PARAM_PHASE, bayer_phase);
+        reg_demos.WriteReg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3);
     }
     
     reg_vdmar.WriteReg(REG_VDMA_READ_CTL_CONTROL, 0x00);
@@ -191,6 +370,9 @@ int main()
     }    
 
     reg_vsgen.WriteReg(REG_VIDEO_ADJDE_CTL_CONTROL, 2);
+
+    reg_vdmaw.WriteReg(REG_VDMA_WRITE_CTL_CONTROL, 0x00);
+    usleep(1000);
 
 
     // 元に戻す

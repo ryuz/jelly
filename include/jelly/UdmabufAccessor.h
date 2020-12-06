@@ -34,11 +34,12 @@ class UdmabufAccessor_ : public UioAccessor_<DataType, MemAddrType, RegAddrType>
 protected:
 	std::intptr_t	m_phys_addr = 0;
 
-	bool Open(const char* name, std::size_t size, std::size_t offset)
+	bool Open(const char* name, std::size_t size, std::size_t offset, bool cache_enable=false)
 	{
 		std::string fname = "/dev/";
 		fname += name;
-		auto udmabuf_manager = AccessorUdmabufManager::Create(fname.c_str(), size);
+		int flags = cache_enable ? O_RDWR : (O_RDWR | O_SYNC);
+		auto udmabuf_manager = AccessorUdmabufManager::Create(fname.c_str(), size, 0, flags);
 		if ( udmabuf_manager->IsMapped() ) {
 			this->SetMemManager(udmabuf_manager, offset);
 			return true;
