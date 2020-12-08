@@ -146,8 +146,10 @@ int main(int argc, char *argv[])
     // カメラ電源ON
     jelly::GpioAccessor gpio(36);
     gpio.SetDirection(true);
+    gpio.SetValue(0);
+    usleep(500000);
     gpio.SetValue(1);
-    usleep(200);
+    usleep(500000);
 
     // IMX219 I2C control
     jelly::Imx219ControlI2c imx219;

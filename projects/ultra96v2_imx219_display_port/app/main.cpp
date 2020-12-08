@@ -159,16 +159,9 @@ int main(int argc, char *argv[])
     auto img = cv::imread("test.jpg");
     cv::Mat imgView;
     cv::resize(img, imgView, cv::Size(1920, 1080));
-//    cv::cvtColor(imgView, imgView, cv::COLOR_BGR2RGB);
-    udmabuf_acc.MemCopyFrom(0, imgView.data, 1920*1080*3);
+//  udmabuf_acc.MemCopyFrom(0, imgView.data, 1920*1080*3);
+    udmabuf_acc.WriteImage2d<3>(imgView.data, 0, 1920, 1080);
     
-    /*
-    for ( int i = 0; i < 1920*1080; ++i ) {
-        udmabuf_acc.WriteMem8(3*i+2, imgView.data[3*i+0]);
-        udmabuf_acc.WriteMem8(3*i+0, imgView.data[3*i+1]);
-        udmabuf_acc.WriteMem8(3*i+1, imgView.data[3*i+2]);
-    }
-    */
 
     // mmap uio
     std::cout << "\nuio open" << std::endl;
@@ -190,13 +183,10 @@ int main(int argc, char *argv[])
     auto reg_sel     = uio_acc.GetAccessor(0x002f0000);  // 出力切り替え
     auto reg_bufmng  = uio_acc.GetAccessor(0x00300000);  // Buffer manager
     auto reg_bufalc  = uio_acc.GetAccessor(0x00310000);  // Buffer allocator
-    auto reg_vdmaw   = uio_acc.GetAccessor(0x00320000);  // Write-DMA
-    auto reg_vdmar   = uio_acc.GetAccessor(0x00340000);  // Read-DMA
+    auto reg_vdmaw_  = uio_acc.GetAccessor(0x00320000);  // Write-DMA
+    auto reg_vdmar_  = uio_acc.GetAccessor(0x00340000);  // Read-DMA
     auto reg_vsgen   = uio_acc.GetAccessor(0x00360000);  // Video out sync generator
 
-//    auto reg_vdmar = uio_acc.GetAccessor(0x00008000);
-//    auto reg_vsgen = uio_acc.GetAccessor(0x00010000);
-    
 #if 1
     // ID確認
     std::cout << "CORE ID" << std::endl;
@@ -211,10 +201,13 @@ int main(int argc, char *argv[])
     std::cout << "sel     : " << std::hex << reg_sel.ReadReg(0) << std::endl;
     std::cout << "bufmng  : " << std::hex << reg_bufmng.ReadReg(0) << std::endl;
     std::cout << "bufalc  : " << std::hex << reg_bufalc.ReadReg(0) << std::endl;
-    std::cout << "vdmaw   : " << std::hex << reg_vdmaw.ReadReg(0) << std::endl;
-    std::cout << "vdmar   : " << std::hex << reg_vdmar.ReadReg(0) << std::endl;
+    std::cout << "vdmaw   : " << std::hex << reg_vdmaw_.ReadReg(0) << std::endl;
+    std::cout << "vdmar   : " << std::hex << reg_vdmar_.ReadReg(0) << std::endl;
     std::cout << "vsgen   : " << std::hex << reg_vsgen.ReadReg(0) << std::endl;
 #endif
+
+    jelly::VideoDmaControl  vdmaw(reg_vdmaw_, 3, 3, true);
+    jelly::VideoDmaControl  vdmar(reg_vdmar_, 3, 3, true);
 
 
     // DisplayPort 設定
@@ -251,8 +244,10 @@ int main(int argc, char *argv[])
     // カメラ電源ON
     jelly::GpioAccessor gpio(36);
     gpio.SetDirection(true);
+    gpio.SetValue(0);
+    usleep(500000);
     gpio.SetValue(1);
-    usleep(200);
+    usleep(500000);
 
     // IMX219 I2C control
     jelly::Imx219ControlI2c imx219;
@@ -278,7 +273,13 @@ int main(int argc, char *argv[])
     }
     */
 
-    // DMA start (one shot)
+    // DMA start
+#if 1
+    vdmaw.SetBufferAddr(dmabuf_addr);
+    vdmaw.SetImageSize(width, height);
+    vdmaw.SetImageStep(1920*3);
+    vdmaw.Start();
+#else
     reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_ADDR,   dmabuf_addr);
     reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_OFFSET,     0);
     reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_LINE_STEP,  1920*3);
@@ -288,7 +289,8 @@ int main(int argc, char *argv[])
     reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_F_SIZE,     1-1);
     reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_AWLEN_MAX,  64-1);
     reg_vdmaw.WriteReg(REG_VDMA_WRITE_CTL_CONTROL,      0x03);
-    
+#endif
+
     // video format regularizer
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN,  1);
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT,   10000000);
@@ -301,6 +303,11 @@ int main(int argc, char *argv[])
 
 
     // DMA start
+#if 1
+    vdmar.SetBufferAddr(dmabuf_addr);
+    vdmar.SetImageSize(1920, 1080);
+    vdmar.Start();
+#else
     reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_ADDR,       dmabuf_addr);
     reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_OFFSET,     0);
     reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_LINE_STEP,  1920*3);
@@ -310,6 +317,7 @@ int main(int argc, char *argv[])
     reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_F_SIZE,     1-1);
     reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_ARLEN_MAX,  64-1);
     reg_vdmar.WriteReg(REG_VDMA_READ_CTL_CONTROL,      0x03);
+#endif
 
 #if 1
     // VSync adjust de
@@ -349,6 +357,10 @@ int main(int argc, char *argv[])
         cv::createTrackbar("a_gain",   "img", &a_gain, 20);
         cv::createTrackbar("d_gain",   "img", &d_gain, 24);
 
+        cv::Mat cam_img(height, width, CV_8UC3);
+        udmabuf_acc.ReadImage2d<3>(cam_img.data, 0, width, height, 0, 1920*3);
+        cv::imshow("cam_img", cam_img);
+
         imx219.SetFrameRate(frame_rate);
         imx219.SetExposureTime(exposure / 1000.0);
         imx219.SetGain(a_gain);
@@ -364,16 +376,19 @@ int main(int argc, char *argv[])
         reg_demos.WriteReg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3);
     }
     
-    reg_vdmar.WriteReg(REG_VDMA_READ_CTL_CONTROL, 0x00);
-    while ( reg_vdmar.ReadReg(REG_VDMA_READ_CTL_STATUS) != 0 ) {
-        usleep(100);
-    }    
+//    reg_vdmar.WriteReg(REG_VDMA_READ_CTL_CONTROL, 0x00);
+//    while ( reg_vdmar.ReadReg(REG_VDMA_READ_CTL_STATUS) != 0 ) {
+//        usleep(100);
+//    }    
 
+
+//    reg_vdmaw.WriteReg(REG_VDMA_WRITE_CTL_CONTROL, 0x00);
+//    usleep(1000);
+
+    vdmaw.Stop();
+    vdmar.Stop();
+    
     reg_vsgen.WriteReg(REG_VIDEO_ADJDE_CTL_CONTROL, 2);
-
-    reg_vdmaw.WriteReg(REG_VDMA_WRITE_CTL_CONTROL, 0x00);
-    usleep(1000);
-
 
     // 元に戻す
 //    reg_dp.WriteMem32(AV_BUF_AUD_VID_CLK_SOURCE,        old_dp_avclk);

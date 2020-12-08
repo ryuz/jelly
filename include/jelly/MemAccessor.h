@@ -211,6 +211,39 @@ public:
         memcpy(dst_ptr, GetPtr(src_addr), size);
     }
 
+
+    template <int pixel_size=1>
+    void ReadImage2d(void* dst_ptr, MemAddrType mem_addr, std::size_t width, std::size_t height, std::size_t dst_step=0, std::size_t mem_step=0, std::size_t mem_offset_x=0, std::size_t mem_offset_y=0)
+    {
+        if ( dst_step <= 0 ) { dst_step = width*pixel_size; }
+        if ( mem_step <= 0 ) { mem_step = width*pixel_size; }
+
+        char*           d_ptr  = (char *)dst_ptr;
+        MemAddrType     m_addr = mem_addr + mem_offset_y * mem_step + mem_offset_x * pixel_size;
+        
+        for ( std::size_t y = 0; y < height; ++y ) {
+            MemCopyTo(d_ptr, m_addr, width*pixel_size);
+            d_ptr  += dst_step;
+            m_addr += mem_step;
+        }
+    }
+
+    template <int pixel_size=1>
+    void WriteImage2d(const void* src_ptr, MemAddrType mem_addr, std::size_t width, std::size_t height, std::size_t src_step=0, std::size_t mem_step=0, std::size_t mem_offset_x=0, std::size_t mem_offset_y=0)
+    {
+        if ( src_step <= 0 ) { src_step = width*pixel_size; }
+        if ( mem_step <= 0 ) { mem_step = width*pixel_size; }
+
+        const char*     s_ptr  = (const char *)src_ptr;
+        MemAddrType     m_addr = mem_addr + mem_offset_y * mem_step + mem_offset_x * pixel_size;
+        
+        for ( std::size_t y = 0; y < height; ++y ) {
+            MemCopyFrom(m_addr, s_ptr, width*pixel_size);
+            s_ptr  += src_step;
+            m_addr += mem_step;
+        }
+    }
+
     void WriteMem   (MemAddrType addr, DataType      data) { WriteMem_<DataType>     (addr, data); }
     void WriteMem64 (MemAddrType addr, std::uint64_t data) { WriteMem_<std::uint64_t>(addr, data); }
     void WriteMem32 (MemAddrType addr, std::uint32_t data) { WriteMem_<std::uint32_t>(addr, data); }

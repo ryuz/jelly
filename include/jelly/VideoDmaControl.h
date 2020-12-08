@@ -185,6 +185,7 @@ protected:
             break;
 
         default:
+            std::cerr << "Unknown DMA core id : " << m_core_id << std::endl;
             return false;
         }
 
