@@ -141,9 +141,8 @@ int main(int argc, char *argv[])
 
 
 
-    std::cout << "--- Display Port ---" << std::endl;
 
-    // mmap udmabuf
+    // udmabuf
     std::cout << "\nudmabuf4 open" << std::endl;
     jelly::UdmabufAccessor udmabuf_acc("udmabuf4");
     if ( !udmabuf_acc.IsMapped() ) {
@@ -157,13 +156,14 @@ int main(int argc, char *argv[])
     std::cout << "udmabuf4 size      : 0x" << std::hex << dmabuf_size << std::endl;
 
     auto img = cv::imread("test.jpg");
-    cv::Mat imgView;
-    cv::resize(img, imgView, cv::Size(1920, 1080));
-//  udmabuf_acc.MemCopyFrom(0, imgView.data, 1920*1080*3);
-    udmabuf_acc.WriteImage2d<3>(imgView.data, 0, 1920, 1080);
+    if ( !img.empty() ) {
+        cv::Mat imgView;
+        cv::resize(img, imgView, cv::Size(1920, 1080));
+        udmabuf_acc.WriteImage2d(3, 1920, 1080, imgView.data, 0);
+    }
     
 
-    // mmap uio
+    // PL peripheral bus
     std::cout << "\nuio open" << std::endl;
     jelly::UioAccessor uio_acc("uio_pl_peri", 0x08000000);
     if ( !uio_acc.IsMapped() ) {
@@ -175,16 +175,16 @@ int main(int argc, char *argv[])
     auto reg_fmtr    = uio_acc.GetAccessor(0x00100000);  // ビデオサイズ正規化
     auto reg_demos   = uio_acc.GetAccessor(0x00200000);  // デモザイク
     auto reg_colmat  = uio_acc.GetAccessor(0x00210000);  // カラーマトリックス
-    auto reg_gamma   = uio_acc.GetAccessor(0x00220000);  // ガンマ補正
-    auto reg_gauss   = uio_acc.GetAccessor(0x00240000);  // ガウシアンフィルタ
-    auto reg_canny   = uio_acc.GetAccessor(0x00250000);  // Cannyフィルタ
-    auto reg_imgdma  = uio_acc.GetAccessor(0x00260000);  // FIFO dma
-    auto reg_bindiff = uio_acc.GetAccessor(0x00270000);  // 前画像との差分バイナライズ
+//    auto reg_gamma   = uio_acc.GetAccessor(0x00220000);  // ガンマ補正
+//    auto reg_gauss   = uio_acc.GetAccessor(0x00240000);  // ガウシアンフィルタ
+//    auto reg_canny   = uio_acc.GetAccessor(0x00250000);  // Cannyフィルタ
+//    auto reg_imgdma  = uio_acc.GetAccessor(0x00260000);  // FIFO dma
+//    auto reg_bindiff = uio_acc.GetAccessor(0x00270000);  // 前画像との差分バイナライズ
     auto reg_sel     = uio_acc.GetAccessor(0x002f0000);  // 出力切り替え
     auto reg_bufmng  = uio_acc.GetAccessor(0x00300000);  // Buffer manager
     auto reg_bufalc  = uio_acc.GetAccessor(0x00310000);  // Buffer allocator
-    auto reg_vdmaw_  = uio_acc.GetAccessor(0x00320000);  // Write-DMA
-    auto reg_vdmar_  = uio_acc.GetAccessor(0x00340000);  // Read-DMA
+    auto reg_vdmaw   = uio_acc.GetAccessor(0x00320000);  // Write-DMA
+    auto reg_vdmar   = uio_acc.GetAccessor(0x00340000);  // Read-DMA
     auto reg_vsgen   = uio_acc.GetAccessor(0x00360000);  // Video out sync generator
 
 #if 1
@@ -193,21 +193,22 @@ int main(int argc, char *argv[])
     std::cout << "fmtr    : " << std::hex << reg_fmtr.ReadReg(0) << std::endl;
     std::cout << "demos   : " << std::hex << reg_demos.ReadReg(0) << std::endl;
     std::cout << "colmat  : " << std::hex << reg_colmat.ReadReg(0) << std::endl;
-    std::cout << "gamma   : " << std::hex << reg_gamma.ReadReg(0) << std::endl;
-    std::cout << "gauss   : " << std::hex << reg_gauss.ReadReg(0) << std::endl;
-    std::cout << "canny   : " << std::hex << reg_canny.ReadReg(0) << std::endl;
-    std::cout << "imgdma  : " << std::hex << reg_imgdma.ReadReg(0) << std::endl;
-    std::cout << "bindiff : " << std::hex << reg_bindiff.ReadReg(0) << std::endl;
+ //   std::cout << "gamma   : " << std::hex << reg_gamma.ReadReg(0) << std::endl;
+ //   std::cout << "gauss   : " << std::hex << reg_gauss.ReadReg(0) << std::endl;
+ //   std::cout << "canny   : " << std::hex << reg_canny.ReadReg(0) << std::endl;
+ //   std::cout << "imgdma  : " << std::hex << reg_imgdma.ReadReg(0) << std::endl;
+ //   std::cout << "bindiff : " << std::hex << reg_bindiff.ReadReg(0) << std::endl;
     std::cout << "sel     : " << std::hex << reg_sel.ReadReg(0) << std::endl;
     std::cout << "bufmng  : " << std::hex << reg_bufmng.ReadReg(0) << std::endl;
     std::cout << "bufalc  : " << std::hex << reg_bufalc.ReadReg(0) << std::endl;
-    std::cout << "vdmaw   : " << std::hex << reg_vdmaw_.ReadReg(0) << std::endl;
-    std::cout << "vdmar   : " << std::hex << reg_vdmar_.ReadReg(0) << std::endl;
+    std::cout << "vdmaw   : " << std::hex << reg_vdmaw.ReadReg(0) << std::endl;
+    std::cout << "vdmar   : " << std::hex << reg_vdmar.ReadReg(0) << std::endl;
     std::cout << "vsgen   : " << std::hex << reg_vsgen.ReadReg(0) << std::endl;
 #endif
 
-    jelly::VideoDmaControl  vdmaw(reg_vdmaw_, 3, 3, true);
-    jelly::VideoDmaControl  vdmar(reg_vdmar_, 3, 3, true);
+    // DMA
+    jelly::VideoDmaControl  vdmaw(reg_vdmaw, 3, 3, true);
+    jelly::VideoDmaControl  vdmar(reg_vdmar, 3, 3, true);
 
 
     // DisplayPort 設定
@@ -217,16 +218,10 @@ int main(int argc, char *argv[])
         std::cout << "uio_dp mmap error" << std::endl;
         return 1;
     }
-//  auto old_dp_avclk = reg_dp.ReadMem32(AV_BUF_AUD_VID_CLK_SOURCE);
     auto old_dp_avsel = reg_dp.ReadMem32(AV_BUF_OUTPUT_AUDIO_VIDEO_SELECT);
     auto old_dp_alpha = reg_dp.ReadMem32(V_BLEND_SET_GLOBAL_ALPHA_REG);
-//   reg_dp.WriteMem32(AV_BUF_AUD_VID_CLK_SOURCE,        0x00);
     reg_dp.WriteMem32(AV_BUF_OUTPUT_AUDIO_VIDEO_SELECT, 0x54);
     reg_dp.WriteMem32(V_BLEND_SET_GLOBAL_ALPHA_REG,     0x101);
-
-//   std::cout << "AV_BUF_OUTPUT_AUDIO_VIDEO_SELECT : 0x" << std::hex << reg_dp.ReadMem32(AV_BUF_OUTPUT_AUDIO_VIDEO_SELECT) << std::endl;
-//   std::cout << "V_BLEND_SET_GLOBAL_ALPHA_REG     : 0x" << std::hex << reg_dp.ReadMem32(V_BLEND_SET_GLOBAL_ALPHA_REG) << std::endl;
-//   std::cout << "AV_BUF_AUD_VID_CLK_SOURCE        : 0x" << std::hex << reg_dp.ReadMem32(AV_BUF_AUD_VID_CLK_SOURCE) << std::endl;
 
     int dp_polarity = (int)reg_dp.ReadMem32(DP_MAIN_STREAM_POLARITY);
     int dp_hswidth  = (int)reg_dp.ReadMem32(DP_MAIN_STREAM_HSWIDTH);
@@ -264,34 +259,14 @@ int main(int argc, char *argv[])
     imx219.SetAoi(width, height, aoi_x, aoi_y, binning, binning);
     imx219.Start();
 
-    /*
-    int     rec_frame_num = std::min(100, (int)(dmabuf_mem_size / (width * height * 4)));
-    int     frame_num     = 1;
 
-    if ( rec_frame_num <= 0 ) {
-        std::cout << "udmabuf size error" << std::endl;
-    }
-    */
-
-    // DMA start
-#if 1
+    // Camera DMA write start
     vdmaw.SetBufferAddr(dmabuf_addr);
     vdmaw.SetImageSize(width, height);
     vdmaw.SetImageStep(1920*3);
     vdmaw.Start();
-#else
-    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_ADDR,   dmabuf_addr);
-    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_OFFSET,     0);
-    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_LINE_STEP,  1920*3);
-    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_H_SIZE,     width-1);
-    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_V_SIZE,     height-1);
-    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_FRAME_STEP, width*3*height);
-    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_F_SIZE,     1-1);
-    reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_AWLEN_MAX,  64-1);
-    reg_vdmaw.WriteReg(REG_VDMA_WRITE_CTL_CONTROL,      0x03);
-#endif
 
-    // video format regularizer
+    // camera video format regularizer
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN,  1);
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT,   10000000);
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_WIDTH,       width);
@@ -302,22 +277,11 @@ int main(int argc, char *argv[])
     usleep(100000);
 
 
-    // DMA start
-#if 1
+    // DisplayPort DMA read start
     vdmar.SetBufferAddr(dmabuf_addr);
     vdmar.SetImageSize(1920, 1080);
     vdmar.Start();
-#else
-    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_ADDR,       dmabuf_addr);
-    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_OFFSET,     0);
-    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_LINE_STEP,  1920*3);
-    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_H_SIZE,     1920-1);
-    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_V_SIZE,     1080-1);
-    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_FRAME_STEP, 1920*3*1080);
-    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_F_SIZE,     1-1);
-    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_ARLEN_MAX,  64-1);
-    reg_vdmar.WriteReg(REG_VDMA_READ_CTL_CONTROL,      0x03);
-#endif
+
 
 #if 1
     // VSync adjust de
@@ -345,11 +309,14 @@ int main(int argc, char *argv[])
     reg_vsgen.WriteReg(REG_VIDEO_VSGEN_CTL_CONTROL,          1);
 #endif
 
+    int key;
+    while ( (key = cv::waitKey(10)) != 0x1b ) {
+        cv::Mat img(height, width, CV_8UC3);
+        udmabuf_acc.ReadImage2d(3, width, height, img.data, 0, 0, 0, 0, 1920*3);
+        cv::imshow("img", img);
 
-    cv::imshow("img", img);
-    while ( cv::waitKey(10) != 0x1b ) {
-        cv::createTrackbar("h", "img", &h_start, 200);
-        cv::createTrackbar("v", "img", &v_start, 100);
+//      cv::createTrackbar("h", "img", &h_start, 200);
+//      cv::createTrackbar("v", "img", &v_start, 100);
 
         cv::createTrackbar("fps",      "img", &frame_rate, 1000);
         cv::createTrackbar("phase",    "img", &bayer_phase, 3);
@@ -357,9 +324,6 @@ int main(int argc, char *argv[])
         cv::createTrackbar("a_gain",   "img", &a_gain, 20);
         cv::createTrackbar("d_gain",   "img", &d_gain, 24);
 
-        cv::Mat cam_img(height, width, CV_8UC3);
-        udmabuf_acc.ReadImage2d<3>(cam_img.data, 0, width, height, 0, 1920*3);
-        cv::imshow("cam_img", cam_img);
 
         imx219.SetFrameRate(frame_rate);
         imx219.SetExposureTime(exposure / 1000.0);
@@ -367,31 +331,28 @@ int main(int argc, char *argv[])
         imx219.SetDigitalGain(d_gain);
         imx219.SetFlip(flip_h, flip_v);
 
-
         reg_vsgen.WriteReg(REG_VIDEO_ADJDE_PARAM_HSTART, h_start);
         reg_vsgen.WriteReg(REG_VIDEO_ADJDE_PARAM_VSTART, v_start);
         reg_vsgen.WriteReg(REG_VIDEO_ADJDE_CTL_CONTROL, 3);
 
         reg_demos.WriteReg(REG_IMG_DEMOSAIC_PARAM_PHASE, bayer_phase);
         reg_demos.WriteReg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3);
+
+        switch ( key ) {
+        case 'h':   flip_h = !flip_h; bayer_phase ^= 1; break;
+        case 'v':   flip_v = !flip_v; bayer_phase ^= 2; break;
+        }
     }
     
-//    reg_vdmar.WriteReg(REG_VDMA_READ_CTL_CONTROL, 0x00);
-//    while ( reg_vdmar.ReadReg(REG_VDMA_READ_CTL_STATUS) != 0 ) {
-//        usleep(100);
-//    }    
 
-
-//    reg_vdmaw.WriteReg(REG_VDMA_WRITE_CTL_CONTROL, 0x00);
-//    usleep(1000);
-
+    // DMA 停止
     vdmaw.Stop();
     vdmar.Stop();
     
-    reg_vsgen.WriteReg(REG_VIDEO_ADJDE_CTL_CONTROL, 2);
+    // DisplayPort Sync 停止
+    reg_vsgen.WriteReg(REG_VIDEO_ADJDE_CTL_CONTROL, 0);
 
-    // 元に戻す
-//    reg_dp.WriteMem32(AV_BUF_AUD_VID_CLK_SOURCE,        old_dp_avclk);
+    // DisplayPort 状態復帰
     reg_dp.WriteMem32(AV_BUF_OUTPUT_AUDIO_VIDEO_SELECT, old_dp_avsel);
     reg_dp.WriteMem32(V_BLEND_SET_GLOBAL_ALPHA_REG,     old_dp_alpha);
 

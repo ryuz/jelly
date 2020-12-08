@@ -212,14 +212,15 @@ public:
     }
 
 
-    template <int pixel_size=1>
-    void ReadImage2d(void* dst_ptr, MemAddrType mem_addr, std::size_t width, std::size_t height, std::size_t dst_step=0, std::size_t mem_step=0, std::size_t mem_offset_x=0, std::size_t mem_offset_y=0)
+    void ReadImage2d(int pixel_size, std::size_t width, std::size_t height,
+                    void*       dst_ptr,    std::size_t dst_step=0, std::size_t dst_offset_x=0, std::size_t dst_offset_y=0,
+                    MemAddrType mem_addr=0, std::size_t mem_step=0, std::size_t mem_offset_x=0, std::size_t mem_offset_y=0)
     {
         if ( dst_step <= 0 ) { dst_step = width*pixel_size; }
         if ( mem_step <= 0 ) { mem_step = width*pixel_size; }
 
-        char*           d_ptr  = (char *)dst_ptr;
-        MemAddrType     m_addr = mem_addr + mem_offset_y * mem_step + mem_offset_x * pixel_size;
+        char*           d_ptr  = (char *)dst_ptr + dst_offset_y * dst_step + dst_offset_x * pixel_size;
+        MemAddrType     m_addr = mem_addr        + mem_offset_y * mem_step + mem_offset_x * pixel_size;
         
         for ( std::size_t y = 0; y < height; ++y ) {
             MemCopyTo(d_ptr, m_addr, width*pixel_size);
@@ -228,14 +229,15 @@ public:
         }
     }
 
-    template <int pixel_size=1>
-    void WriteImage2d(const void* src_ptr, MemAddrType mem_addr, std::size_t width, std::size_t height, std::size_t src_step=0, std::size_t mem_step=0, std::size_t mem_offset_x=0, std::size_t mem_offset_y=0)
+    void WriteImage2d(int pixel_size, std::size_t width, std::size_t height,
+                    const void* src_ptr,    std::size_t src_step=0, std::size_t src_offset_x=0, std::size_t src_offset_y=0,
+                    MemAddrType mem_addr=0, std::size_t mem_step=0, std::size_t mem_offset_x=0, std::size_t mem_offset_y=0)
     {
         if ( src_step <= 0 ) { src_step = width*pixel_size; }
         if ( mem_step <= 0 ) { mem_step = width*pixel_size; }
 
-        const char*     s_ptr  = (const char *)src_ptr;
-        MemAddrType     m_addr = mem_addr + mem_offset_y * mem_step + mem_offset_x * pixel_size;
+        const char*     s_ptr  = (const char *)src_ptr + src_offset_y * src_step + src_offset_x * pixel_size;
+        MemAddrType     m_addr = mem_addr              + mem_offset_y * mem_step + mem_offset_x * pixel_size;
         
         for ( std::size_t y = 0; y < height; ++y ) {
             MemCopyFrom(m_addr, s_ptr, width*pixel_size);
