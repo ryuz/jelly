@@ -278,10 +278,10 @@ module ultra96v2_imx219
     wire                cl_rxulpsclknot;
     wire                cl_ulpsactivenot;
     
-    wire    [7:0]       dl0_rxdatahs;
-    wire                dl0_rxvalidhs;
-    wire                dl0_rxactivehs;
-    wire                dl0_rxsynchs;
+    (* mark_debug="true" *) wire    [7:0]       dl0_rxdatahs;
+    (* mark_debug="true" *) wire                dl0_rxvalidhs;
+    (* mark_debug="true" *) wire                dl0_rxactivehs;
+    (* mark_debug="true" *) wire                dl0_rxsynchs;
     
     wire                dl0_forcerxmode   = 0;
     wire                dl0_stopstate;
@@ -301,10 +301,10 @@ module ultra96v2_imx219
     wire                dl0_errsyncesc;
     wire                dl0_errcontrol;
     
-    wire    [7:0]       dl1_rxdatahs;
-    wire                dl1_rxvalidhs;
-    wire                dl1_rxactivehs;
-    wire                dl1_rxsynchs;
+    (* mark_debug="true" *) wire    [7:0]       dl1_rxdatahs;
+    (* mark_debug="true" *) wire                dl1_rxvalidhs;
+    (* mark_debug="true" *) wire                dl1_rxactivehs;
+    (* mark_debug="true" *) wire                dl1_rxsynchs;
     
     wire                dl1_forcerxmode   = 0;
     wire                dl1_stopstate;

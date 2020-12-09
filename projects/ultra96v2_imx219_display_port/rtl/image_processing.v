@@ -683,7 +683,7 @@ module image_processing
                 .AXI4_QOS_WIDTH         (AXI4_QOS_WIDTH),
                 
                 .PARAM_ADDR_WIDTH       (AXI4_ADDR_WIDTH),
-                .PARAM_SIZE_WIDTH       (24),
+                .PARAM_SIZE_WIDTH       (28),
                 .PARAM_AWLEN_WIDTH      (8),
                 .PARAM_WTIMEOUT_WIDTH   (8),
                 .PARAM_ARLEN_WIDTH      (8),

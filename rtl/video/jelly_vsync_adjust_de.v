@@ -18,7 +18,7 @@ module jelly_vsync_adjust_de
             parameter   H_COUNT_WIDTH     = 14,
             parameter   V_COUNT_WIDTH     = 14,
             
-            parameter   CORE_ID           = 32'h527a_ffff,
+            parameter   CORE_ID           = 32'h527a_1152,
             parameter   CORE_VERSION      = 32'h0001_0000,
             parameter   INDEX_WIDTH       = 1,
             
