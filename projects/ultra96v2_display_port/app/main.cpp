@@ -13,6 +13,7 @@
 #include "jelly/JellyRegs.h"
 #include "jelly/UioAccessor.h"
 #include "jelly/UdmabufAccessor.h"
+#include "jelly/VideoDmaControl.h"
 
 
 #define DP_MAIN_STREAM_HTOTAL               0x00000180
@@ -31,7 +32,7 @@
 
 
 
-int main()
+int main(int argc, char *argv[])
 {
     std::cout << "--- Display Port ---" << std::endl;
 
@@ -48,19 +49,18 @@ int main()
     std::cout << "udmabuf4 phys addr : 0x" << std::hex << dmabuf_addr << std::endl;
     std::cout << "udmabuf4 size      : 0x" << std::hex << dmabuf_size << std::endl;
 
-    auto img = cv::imread("test.jpg");
-    cv::Mat imgView;
-    cv::resize(img, imgView, cv::Size(1920, 1080));
-//  cv::cvtColor(imgView, imgView, cv::COLOR_BGR2RGB);
-    udmabuf_acc.MemCopyFrom(0, imgView.data, 1920*1080*3);
-/*    
-    for ( int i = 0; i < 1920*1080; ++i ) {
-        udmabuf_acc.WriteMem8(3*i+2, imgView.data[3*i+0]);
-        udmabuf_acc.WriteMem8(3*i+0, imgView.data[3*i+1]);
-        udmabuf_acc.WriteMem8(3*i+1, imgView.data[3*i+2]);
+    cv::Mat img;
+    if ( argc >= 2 ) {
+        img = cv::imread(argv[1]);
     }
-*/
 
+    if ( img.empty() ) {
+        img = cv::Mat::zeros(360, 640, CV_8UC3);
+        cv::rectangle(img, cv::Rect(0, 0, 640, 360), cv::Scalar(255, 255, 255), -1);
+        cv::circle(img, cv::Point(320, 180), 80, cv::Scalar(0, 0, 255), -1);
+        cv::putText(img, "Copyright (C) 2020 by Ryuz", cv::Point(0, 320), cv::FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 1, cv::LINE_AA);
+    }
+    
     // mmap uio
     std::cout << "\nuio open" << std::endl;
     jelly::UioAccessor uio_acc("uio_pl_peri", 0x08000000);
@@ -73,6 +73,8 @@ int main()
     auto reg_vdmar = uio_acc.GetAccessor(0x00008000);
     auto reg_vsgen = uio_acc.GetAccessor(0x00010000);
 
+    // DMA設定
+    jelly::VideoDmaControl  vdmar(reg_vdmar, 3, 3, true);
 
     // DisplayPort 設定
     std::cout << "\nuio DP open" << std::endl;
@@ -81,16 +83,10 @@ int main()
         std::cout << "uio_dp mmap error" << std::endl;
         return 1;
     }
-//  auto old_dp_avclk = reg_dp.ReadMem32(AV_BUF_AUD_VID_CLK_SOURCE);
     auto old_dp_avsel = reg_dp.ReadMem32(AV_BUF_OUTPUT_AUDIO_VIDEO_SELECT);
     auto old_dp_alpha = reg_dp.ReadMem32(V_BLEND_SET_GLOBAL_ALPHA_REG);
-//   reg_dp.WriteMem32(AV_BUF_AUD_VID_CLK_SOURCE,        0x00);
     reg_dp.WriteMem32(AV_BUF_OUTPUT_AUDIO_VIDEO_SELECT, 0x54);
     reg_dp.WriteMem32(V_BLEND_SET_GLOBAL_ALPHA_REG,     0x101);
-
-//   std::cout << "AV_BUF_OUTPUT_AUDIO_VIDEO_SELECT : 0x" << std::hex << reg_dp.ReadMem32(AV_BUF_OUTPUT_AUDIO_VIDEO_SELECT) << std::endl;
-//   std::cout << "V_BLEND_SET_GLOBAL_ALPHA_REG     : 0x" << std::hex << reg_dp.ReadMem32(V_BLEND_SET_GLOBAL_ALPHA_REG) << std::endl;
-//   std::cout << "AV_BUF_AUD_VID_CLK_SOURCE        : 0x" << std::hex << reg_dp.ReadMem32(AV_BUF_AUD_VID_CLK_SOURCE) << std::endl;
 
     int dp_polarity = (int)reg_dp.ReadMem32(DP_MAIN_STREAM_POLARITY);
     int dp_hswidth  = (int)reg_dp.ReadMem32(DP_MAIN_STREAM_HSWIDTH);
@@ -103,22 +99,21 @@ int main()
     int h_start = dp_hstart-dp_hswidth-17;
     int v_start = dp_vstart-dp_vswidth-1;
 
+    // 画像書き込み
+    cv::Mat imgView;
+    cv::resize(img, imgView, cv::Size(dp_hres, dp_vres));
+    udmabuf_acc.MemCopyFrom(0, imgView.data, dp_hres*dp_vres*3);
+
 
     // DMA start
-    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_ADDR,       dmabuf_addr);
-    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_OFFSET,     0);
-    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_LINE_STEP,  1920*3);
-    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_H_SIZE,     1920-1);
-    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_V_SIZE,     1080-1);
-    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_FRAME_STEP, 1920*3*1080);
-    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_F_SIZE,     1-1);
-    reg_vdmar.WriteReg(REG_VDMA_READ_PARAM_ARLEN_MAX,  64-1);
-    reg_vdmar.WriteReg(REG_VDMA_READ_CTL_CONTROL,      0x03);
+    vdmar.SetBufferAddr(dmabuf_addr);
+    vdmar.SetImageSize(dp_hres, dp_vres);
+    vdmar.Start();
 
 #if 1
     // VSync adjust de
-    reg_vsgen.WriteReg(REG_VIDEO_ADJDE_PARAM_HSIZE, dp_hres-1);
-    reg_vsgen.WriteReg(REG_VIDEO_ADJDE_PARAM_VSIZE, dp_vres-1);
+    reg_vsgen.WriteReg(REG_VIDEO_ADJDE_PARAM_HSIZE,  dp_hres-1);
+    reg_vsgen.WriteReg(REG_VIDEO_ADJDE_PARAM_VSIZE,  dp_vres-1);
     reg_vsgen.WriteReg(REG_VIDEO_ADJDE_PARAM_HSTART, v_start);
     reg_vsgen.WriteReg(REG_VIDEO_ADJDE_PARAM_VSTART, dp_vstart-1);
     reg_vsgen.WriteReg(REG_VIDEO_ADJDE_PARAM_HPOL,   (dp_polarity & 1) ? 1 : 0);
@@ -150,21 +145,17 @@ int main()
         reg_vsgen.WriteReg(REG_VIDEO_ADJDE_PARAM_VSTART, v_start);
         reg_vsgen.WriteReg(REG_VIDEO_ADJDE_CTL_CONTROL, 3);
     }
-    
-    reg_vdmar.WriteReg(REG_VDMA_READ_CTL_CONTROL, 0x00);
-    while ( reg_vdmar.ReadReg(REG_VDMA_READ_CTL_STATUS) != 0 ) {
-        usleep(100);
-    }    
 
+    vdmar.Stop();
+    
     reg_vsgen.WriteReg(REG_VIDEO_ADJDE_CTL_CONTROL, 2);
 
-
-    // 元に戻す
-//    reg_dp.WriteMem32(AV_BUF_AUD_VID_CLK_SOURCE,        old_dp_avclk);
+    // DisplayPortを元に戻す
     reg_dp.WriteMem32(AV_BUF_OUTPUT_AUDIO_VIDEO_SELECT, old_dp_avsel);
     reg_dp.WriteMem32(V_BLEND_SET_GLOBAL_ALPHA_REG,     old_dp_alpha);
 
     return 0;
 }
+
 
 // end of file
