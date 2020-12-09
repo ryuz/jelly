@@ -26,10 +26,6 @@ module ultra96v2_display_port
     wire                                dp_video_ref_clk;
     wire                                dp_video_out_vsync;
     wire                                dp_video_out_hsync;
-    wire                                dp_live_video_de_out;
-    wire                                dp_live_video_in_vsync;
-    wire                                dp_live_video_in_hsync;
-    wire                                dp_live_video_in_de;
     wire    [35:0]                      dp_live_video_in_pixel1;
     
     
@@ -119,10 +115,6 @@ module ultra96v2_display_port
                 .dp_video_ref_clk           (dp_video_ref_clk),
                 .dp_video_out_vsync         (dp_video_out_vsync),
                 .dp_video_out_hsync         (dp_video_out_hsync),
-                .dp_live_video_de_out       (dp_live_video_de_out),
-                .dp_live_video_in_vsync     (dp_live_video_in_vsync),
-                .dp_live_video_in_hsync     (dp_live_video_in_hsync),
-                .dp_live_video_in_de        (dp_live_video_in_de),
                 .dp_live_video_in_pixel1    (dp_live_video_in_pixel1),
                 
                 .peri_aresetn               (peri_aresetn),
@@ -499,21 +491,9 @@ module ultra96v2_display_port
                 .out_ctl                (vout_ctl)
             );
     
-    assign dp_live_video_in_vsync         = vout_vsync;
-    assign dp_live_video_in_hsync         = vout_hsync;
-    assign dp_live_video_in_de            = vout_de;
-    
-    assign dp_live_video_in_pixel1[11:0]  = {vout_data[15:8], vout_data[15:12]};
+    assign dp_live_video_in_pixel1[11:0]  = {vout_data[15: 8], vout_data[15:12]};
     assign dp_live_video_in_pixel1[23:12] = {vout_data[23:16], vout_data[23:20]};
-    assign dp_live_video_in_pixel1[35:24] = {vout_data[7:0], vout_data[7:4]};
-    
-//  assign dp_live_video_in_pixel1[11:0]  = {vout_data[15:8], vout_data[15:12]};
-//  assign dp_live_video_in_pixel1[23:12] = {vout_data[7:0], vout_data[7:4]};
-//  assign dp_live_video_in_pixel1[35:24] = {vout_data[23:16], vout_data[23:20]};
-    
-//  assign dp_live_video_in_pixel1[11:0]  = {vout_data[7:0], vout_data[7:4]};
-//  assign dp_live_video_in_pixel1[23:12] = {vout_data[15:8], vout_data[15:12]};
-//  assign dp_live_video_in_pixel1[35:24] = {vout_data[23:16], vout_data[23:20]};
+    assign dp_live_video_in_pixel1[35:24] = {vout_data[ 7: 0], vout_data[ 7: 4]};
     
     
     
@@ -531,6 +511,13 @@ module ultra96v2_display_port
     assign wb_peri_ack_o  = wb_vdmar_stb_i ? wb_vdmar_ack_o :
                             wb_vsgen_stb_i ? wb_vsgen_ack_o :
                             wb_peri_stb_i;
+    
+    
+    // -----------------------------
+    //  Debug
+    // -----------------------------
+    
+    assign led = 0;
     
     
 endmodule
