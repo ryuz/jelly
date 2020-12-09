@@ -17,6 +17,8 @@ module jelly_axi4s_master_model
             parameter AXI4S_DATA_WIDTH = 32,
             parameter X_NUM            = 640,
             parameter Y_NUM            = 480,
+            parameter X_BLANK          = 0,
+            parameter Y_BLANK          = 0,
             parameter PGM_FILE         = "",
             parameter PPM_FILE         = "",
             parameter BUSY_RATE        = 0,
@@ -37,6 +39,9 @@ module jelly_axi4s_master_model
             output  wire                            m_axi4s_tvalid,
             input   wire                            m_axi4s_tready
         );
+    
+    localparam TOTAL_X_NUM = X_NUM + X_BLANK;
+    localparam TOTAL_Y_NUM = Y_NUM + Y_BLANK;
     
     reg     reg_aresetn = 1'b0;
     always @( posedge aclk ) begin
@@ -155,10 +160,10 @@ module jelly_axi4s_master_model
             end
             
             x <= x + 1;
-            if ( x == (X_NUM-1) ) begin
+            if ( x == (TOTAL_X_NUM-1) ) begin
                 x <= 0;
                 y <= y + 1;
-                if ( y == (Y_NUM-1) ) begin
+                if ( y == (TOTAL_Y_NUM-1) ) begin
                     y <= 0;
                     frame <= frame + 1;
                     read_image(frame + 1);
@@ -176,7 +181,7 @@ module jelly_axi4s_master_model
                 interval_count <= interval_count - 1;
             end
             else begin
-                if ( x == (X_NUM-1) && y == (Y_NUM-1) && m_axi4s_tvalid && m_axi4s_tready ) begin
+                if ( x == (TOTAL_X_NUM-1) && y == (TOTAL_Y_NUM-1) && m_axi4s_tvalid && m_axi4s_tready ) begin
                     interval_count <= INTERVAL;
                 end
             end
@@ -187,7 +192,7 @@ module jelly_axi4s_master_model
     assign m_axi4s_tuser  = m_axi4s_tvalid ? (x == 0) && (y == 0) : 1'bx;
     assign m_axi4s_tlast  = m_axi4s_tvalid ? (x == X_NUM-1)       : 1'bx;
     assign m_axi4s_tdata  = m_axi4s_tvalid ? mem[y*X_NUM + x]     : {AXI4S_DATA_WIDTH{1'bx}};
-    assign m_axi4s_tvalid = reg_aresetn & !busy;
+    assign m_axi4s_tvalid = reg_aresetn & !busy & (x < X_NUM && y < Y_NUM);
 
 //  assign m_axi4s_tdata[AXI4S_DATA_WIDTH/2-1:0] = x;
 //  assign m_axi4s_tdata[AXI4S_DATA_WIDTH-1:AXI4S_DATA_WIDTH/2] = y;

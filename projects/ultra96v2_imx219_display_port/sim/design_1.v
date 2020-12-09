@@ -335,106 +335,177 @@ module design_1
   wire [0:0]s_axi4_mem_aresetn;
   
   
-	localparam RATE100 = 1000.0/100.00;
-	localparam RATE200 = 1000.0/200.00;
-	localparam RATE250 = 1000.0/250.00;
-	localparam RATE133 = 1000.0/133.33;
-	
-	reg			reset = 1;
-	initial #100 reset = 0;
-	
-	reg			clk100 = 1'b1;
-	always #(RATE100/2.0) clk100 <= ~clk100;
-	
-	reg			clk200 = 1'b1;
-	always #(RATE200/2.0) clk200 <= ~clk200;
-	
-	reg			clk250 = 1'b1;
-	always #(RATE250/2.0) clk250 <= ~clk250;
-	
-	reg			clk133 = 1'b1;
-	always #(RATE133/2.0) clk133 <= ~clk133;
-	
-	
-	assign out_reset             = reset;
-	assign out_clk100            = clk100;
-	assign out_clk200            = clk200;
-	assign out_clk250            = clk250;
-	assign m_axi4l_peri_aresetn  = ~reset;
-	assign m_axi4l_peri_aclk     = clk100;
-	assign s_axi4_mem_aresetn    = ~reset;
-	assign s_axi4_mem_aclk       = clk133;
-	
-	
-	
-	jelly_axi4_slave_model
-			#(
-				.AXI_ID_WIDTH			(6),
-				.AXI_ADDR_WIDTH			(49),
-				.AXI_DATA_SIZE			(4),
-				.MEM_WIDTH				(17),
-				
-				.WRITE_LOG_FILE			("axi4_write.txt"),
-				.READ_LOG_FILE			(""),
-				
-				.AW_DELAY				(20),
-				.AR_DELAY				(20),
-				
-				.AW_FIFO_PTR_WIDTH		(4),
-				.W_FIFO_PTR_WIDTH		(4),
-				.B_FIFO_PTR_WIDTH		(4),
-				.AR_FIFO_PTR_WIDTH		(4),
-				.R_FIFO_PTR_WIDTH		(4),
-				
-				.AW_BUSY_RATE			(0),
-				.W_BUSY_RATE			(0),
-				.B_BUSY_RATE			(0),
-				.AR_BUSY_RATE			(0),
-				.R_BUSY_RATE			(0)
-			)
-		i_axi4_slave_model
-			(
-				.aresetn				(s_axi4_mem_aresetn),
-				.aclk					(s_axi4_mem_aclk),
-				
-				.s_axi4_awid			(s_axi4_mem0_awid),
-				.s_axi4_awaddr			(s_axi4_mem0_awaddr),
-				.s_axi4_awlen			(s_axi4_mem0_awlen),
-				.s_axi4_awsize			(s_axi4_mem0_awsize),
-				.s_axi4_awburst			(s_axi4_mem0_awburst),
-				.s_axi4_awlock			(s_axi4_mem0_awlock),
-				.s_axi4_awcache			(s_axi4_mem0_awcache),
-				.s_axi4_awprot			(s_axi4_mem0_awprot),
-				.s_axi4_awqos			(s_axi4_mem0_awqos),
-				.s_axi4_awvalid			(s_axi4_mem0_awvalid),
-				.s_axi4_awready			(s_axi4_mem0_awready),
-				.s_axi4_wdata			(s_axi4_mem0_wdata),
-				.s_axi4_wstrb			(s_axi4_mem0_wstrb),
-				.s_axi4_wlast			(s_axi4_mem0_wlast),
-				.s_axi4_wvalid			(s_axi4_mem0_wvalid),
-				.s_axi4_wready			(s_axi4_mem0_wready),
-				.s_axi4_bid				(s_axi4_mem0_bid),
-				.s_axi4_bresp			(s_axi4_mem0_bresp),
-				.s_axi4_bvalid			(s_axi4_mem0_bvalid),
-				.s_axi4_bready			(s_axi4_mem0_bready),
-				.s_axi4_arid			(s_axi4_mem0_arid),
-				.s_axi4_araddr			(s_axi4_mem0_araddr),
-				.s_axi4_arlen			(s_axi4_mem0_arlen),
-				.s_axi4_arsize			(s_axi4_mem0_arsize),
-				.s_axi4_arburst			(s_axi4_mem0_arburst),
-				.s_axi4_arlock			(s_axi4_mem0_arlock),
-				.s_axi4_arcache			(s_axi4_mem0_arcache),
-				.s_axi4_arprot			(s_axi4_mem0_arprot),
-				.s_axi4_arqos			(s_axi4_mem0_arqos),
-				.s_axi4_arvalid			(s_axi4_mem0_arvalid),
-				.s_axi4_arready			(s_axi4_mem0_arready),
-				.s_axi4_rid				(s_axi4_mem0_rid),
-				.s_axi4_rdata			(s_axi4_mem0_rdata),
-				.s_axi4_rresp			(s_axi4_mem0_rresp),
-				.s_axi4_rlast			(s_axi4_mem0_rlast),
-				.s_axi4_rvalid			(s_axi4_mem0_rvalid),
-				.s_axi4_rready			(s_axi4_mem0_rready)
-			);
-	
-	
+    localparam RATE100 = 1000.0/100.00;
+    localparam RATE200 = 1000.0/200.00;
+    localparam RATE250 = 1000.0/250.00;
+    localparam RATE133 = 1000.0/133.33;
+    
+    reg         reset = 1;
+    initial #100 reset = 0;
+    
+    reg         clk100 = 1'b1;
+    always #(RATE100/2.0) clk100 <= ~clk100;
+    
+    reg         clk200 = 1'b1;
+    always #(RATE200/2.0) clk200 <= ~clk200;
+    
+    reg         clk250 = 1'b1;
+    always #(RATE250/2.0) clk250 <= ~clk250;
+    
+    reg         clk133 = 1'b1;
+    always #(RATE133/2.0) clk133 <= ~clk133;
+    
+    
+    assign out_reset             = reset;
+    assign out_clk100            = clk100;
+    assign out_clk200            = clk200;
+    assign out_clk250            = clk250;
+    assign m_axi4l_peri_aresetn  = ~reset;
+    assign m_axi4l_peri_aclk     = clk100;
+    assign s_axi4_mem_aresetn    = ~reset;
+    assign s_axi4_mem_aclk       = clk133;
+    
+    
+    
+    jelly_axi4_slave_model
+            #(
+                .AXI_ID_WIDTH           (6),
+                .AXI_ADDR_WIDTH         (49),
+                .AXI_DATA_SIZE          (4),
+                .MEM_WIDTH              (17),
+                
+                .WRITE_LOG_FILE         ("axi4_mem0_write.txt"),
+                .READ_LOG_FILE          ("axi4_mem0_read.txt"),
+                
+                .AW_DELAY               (20),
+                .AR_DELAY               (20),
+                
+                .AW_FIFO_PTR_WIDTH      (4),
+                .W_FIFO_PTR_WIDTH       (4),
+                .B_FIFO_PTR_WIDTH       (4),
+                .AR_FIFO_PTR_WIDTH      (4),
+                .R_FIFO_PTR_WIDTH       (4),
+                
+                .AW_BUSY_RATE           (0),
+                .W_BUSY_RATE            (0),
+                .B_BUSY_RATE            (0),
+                .AR_BUSY_RATE           (0),
+                .R_BUSY_RATE            (0)
+            )
+        i_axi4_slave_model_o
+            (
+                .aresetn                (s_axi4_mem_aresetn),
+                .aclk                   (s_axi4_mem_aclk),
+                
+                .s_axi4_awid            (s_axi4_mem0_awid),
+                .s_axi4_awaddr          (s_axi4_mem0_awaddr),
+                .s_axi4_awlen           (s_axi4_mem0_awlen),
+                .s_axi4_awsize          (s_axi4_mem0_awsize),
+                .s_axi4_awburst         (s_axi4_mem0_awburst),
+                .s_axi4_awlock          (s_axi4_mem0_awlock),
+                .s_axi4_awcache         (s_axi4_mem0_awcache),
+                .s_axi4_awprot          (s_axi4_mem0_awprot),
+                .s_axi4_awqos           (s_axi4_mem0_awqos),
+                .s_axi4_awvalid         (s_axi4_mem0_awvalid),
+                .s_axi4_awready         (s_axi4_mem0_awready),
+                .s_axi4_wdata           (s_axi4_mem0_wdata),
+                .s_axi4_wstrb           (s_axi4_mem0_wstrb),
+                .s_axi4_wlast           (s_axi4_mem0_wlast),
+                .s_axi4_wvalid          (s_axi4_mem0_wvalid),
+                .s_axi4_wready          (s_axi4_mem0_wready),
+                .s_axi4_bid             (s_axi4_mem0_bid),
+                .s_axi4_bresp           (s_axi4_mem0_bresp),
+                .s_axi4_bvalid          (s_axi4_mem0_bvalid),
+                .s_axi4_bready          (s_axi4_mem0_bready),
+                .s_axi4_arid            (s_axi4_mem0_arid),
+                .s_axi4_araddr          (s_axi4_mem0_araddr),
+                .s_axi4_arlen           (s_axi4_mem0_arlen),
+                .s_axi4_arsize          (s_axi4_mem0_arsize),
+                .s_axi4_arburst         (s_axi4_mem0_arburst),
+                .s_axi4_arlock          (s_axi4_mem0_arlock),
+                .s_axi4_arcache         (s_axi4_mem0_arcache),
+                .s_axi4_arprot          (s_axi4_mem0_arprot),
+                .s_axi4_arqos           (s_axi4_mem0_arqos),
+                .s_axi4_arvalid         (s_axi4_mem0_arvalid),
+                .s_axi4_arready         (s_axi4_mem0_arready),
+                .s_axi4_rid             (s_axi4_mem0_rid),
+                .s_axi4_rdata           (s_axi4_mem0_rdata),
+                .s_axi4_rresp           (s_axi4_mem0_rresp),
+                .s_axi4_rlast           (s_axi4_mem0_rlast),
+                .s_axi4_rvalid          (s_axi4_mem0_rvalid),
+                .s_axi4_rready          (s_axi4_mem0_rready)
+            );
+    
+    
+    
+    jelly_axi4_slave_model
+            #(
+                .AXI_ID_WIDTH           (6),
+                .AXI_ADDR_WIDTH         (49),
+                .AXI_DATA_SIZE          (4),
+                .MEM_WIDTH              (17),
+                
+                .WRITE_LOG_FILE         ("axi4_mem1_write.txt"),
+                .READ_LOG_FILE          ("axi4_mem1_read.txt"),
+                
+                .AW_DELAY               (20),
+                .AR_DELAY               (20),
+                
+                .AW_FIFO_PTR_WIDTH      (4),
+                .W_FIFO_PTR_WIDTH       (4),
+                .B_FIFO_PTR_WIDTH       (4),
+                .AR_FIFO_PTR_WIDTH      (4),
+                .R_FIFO_PTR_WIDTH       (4),
+                
+                .AW_BUSY_RATE           (0),
+                .W_BUSY_RATE            (0),
+                .B_BUSY_RATE            (0),
+                .AR_BUSY_RATE           (0),
+                .R_BUSY_RATE            (0)
+            )
+        i_axi4_slave_model
+            (
+                .aresetn                (s_axi4_mem_aresetn),
+                .aclk                   (s_axi4_mem_aclk),
+                
+                .s_axi4_awid            (s_axi4_mem1_awid),
+                .s_axi4_awaddr          (s_axi4_mem1_awaddr),
+                .s_axi4_awlen           (s_axi4_mem1_awlen),
+                .s_axi4_awsize          (s_axi4_mem1_awsize),
+                .s_axi4_awburst         (s_axi4_mem1_awburst),
+                .s_axi4_awlock          (s_axi4_mem1_awlock),
+                .s_axi4_awcache         (s_axi4_mem1_awcache),
+                .s_axi4_awprot          (s_axi4_mem1_awprot),
+                .s_axi4_awqos           (s_axi4_mem1_awqos),
+                .s_axi4_awvalid         (s_axi4_mem1_awvalid),
+                .s_axi4_awready         (s_axi4_mem1_awready),
+                .s_axi4_wdata           (s_axi4_mem1_wdata),
+                .s_axi4_wstrb           (s_axi4_mem1_wstrb),
+                .s_axi4_wlast           (s_axi4_mem1_wlast),
+                .s_axi4_wvalid          (s_axi4_mem1_wvalid),
+                .s_axi4_wready          (s_axi4_mem1_wready),
+                .s_axi4_bid             (s_axi4_mem1_bid),
+                .s_axi4_bresp           (s_axi4_mem1_bresp),
+                .s_axi4_bvalid          (s_axi4_mem1_bvalid),
+                .s_axi4_bready          (s_axi4_mem1_bready),
+                .s_axi4_arid            (s_axi4_mem1_arid),
+                .s_axi4_araddr          (s_axi4_mem1_araddr),
+                .s_axi4_arlen           (s_axi4_mem1_arlen),
+                .s_axi4_arsize          (s_axi4_mem1_arsize),
+                .s_axi4_arburst         (s_axi4_mem1_arburst),
+                .s_axi4_arlock          (s_axi4_mem1_arlock),
+                .s_axi4_arcache         (s_axi4_mem1_arcache),
+                .s_axi4_arprot          (s_axi4_mem1_arprot),
+                .s_axi4_arqos           (s_axi4_mem1_arqos),
+                .s_axi4_arvalid         (s_axi4_mem1_arvalid),
+                .s_axi4_arready         (s_axi4_mem1_arready),
+                .s_axi4_rid             (s_axi4_mem1_rid),
+                .s_axi4_rdata           (s_axi4_mem1_rdata),
+                .s_axi4_rresp           (s_axi4_mem1_rresp),
+                .s_axi4_rlast           (s_axi4_mem1_rlast),
+                .s_axi4_rvalid          (s_axi4_mem1_rvalid),
+                .s_axi4_rready          (s_axi4_mem1_rready)
+            );
+    
+    
 endmodule

@@ -3,7 +3,7 @@
 <!--                                                         -->
 <!-- Copyright 1986-2019 Xilinx, Inc. All Rights Reserved.   -->
 
-<Project Version="7" Minor="44" Path="D:/home/ryuji/git_work/github/jelly_develop/projects/ultra96v2_imx219_display_port/syn/vivado2019.2/ultra96v2_imx219_display_port.xpr">
+<Project Version="7" Minor="44" Path="I:/jelly_develop/projects/ultra96v2_imx219_display_port/syn/vivado2019.2/ultra96v2_imx219_display_port.xpr">
   <DefaultLaunch Dir="$PRUNDIR"/>
   <Configuration>
     <Option Name="Id" Val="04d0077474f14c6f802c05dae35ffa6c"/>
@@ -65,11 +65,11 @@
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
-        <CompFileExtendedInfo CompFileName="design_1.bd" FileRelPathName="ip/design_1_proc_sys_reset_1_1/design_1_proc_sys_reset_1_1.xci">
-          <Proxy FileSetName="design_1_proc_sys_reset_1_1"/>
-        </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="design_1.bd" FileRelPathName="ip/design_1_zynq_ultra_ps_e_0_0_1/design_1_zynq_ultra_ps_e_0_0.xci">
           <Proxy FileSetName="design_1_zynq_ultra_ps_e_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="design_1.bd" FileRelPathName="ip/design_1_proc_sys_reset_1_1/design_1_proc_sys_reset_1_1.xci">
+          <Proxy FileSetName="design_1_proc_sys_reset_1_1"/>
         </CompFileExtendedInfo>
       </File>
       <File Path="$PPRDIR/../../rtl/image_processing.v">

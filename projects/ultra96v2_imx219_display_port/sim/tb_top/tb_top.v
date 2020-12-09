@@ -24,7 +24,7 @@ module tb_top();
     always #(RATE125/2.0)   clk125 = ~clk125;
     
     
-    parameter   X_NUM = 2048; // 3280 / 2;
+    parameter   X_NUM = 1280; //2048; // 3280 / 2;
     parameter   Y_NUM = 16; // 2464 / 2;
     
     ultra96v2_imx219_display_port
@@ -59,6 +59,8 @@ module tb_top();
                 .AXI4S_DATA_WIDTH   (8),
                 .X_NUM              (X_NUM), // (128),
                 .Y_NUM              (Y_NUM),   // (128),
+                .X_BLANK            (16),
+                .Y_BLANK            (4),
 //              .PGM_FILE           ("lena_128x128.pgm"),
                 .BUSY_RATE          (0), // (50),
                 .RANDOM_SEED        (0)
@@ -280,7 +282,13 @@ module tb_top();
         wb_read ((32'h80120000>>3));     // demosaic
         wb_read ((32'h80120200>>3));     // col mat
         wb_read ((32'h80210000>>3));     // wdma
-
+        
+        $display("set DMA FIFO");
+        wb_read ((32'h80260000>>3)+8'h00);                       // CORE ID
+        wb_write((32'h80260000>>3)+8'h08, 32'h0000_0000, 8'hff); // PARAM_ADDR
+        wb_write((32'h80260000>>3)+8'h09, 32'h0010_0000, 8'hff); // PARAM_SZIE
+        wb_write((32'h80260000>>3)+8'h04, 32'h0000_0003, 8'hff); // CTL_CONTROL
+        
     #10000;
         $display("set format regularizer");
         wb_read ((32'h80100000>>3));                       // CORE ID
