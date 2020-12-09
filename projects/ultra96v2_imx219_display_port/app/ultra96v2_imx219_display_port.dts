@@ -20,10 +20,20 @@
             #size-cells = <2>;
             afi0 {
                 compatible    = "xlnx,afi-fpga";
-                config-afi    = <0 0>,      /* S_AXI_HPC0_FPD(read)  : 0:128bit, 1:64bit, 2:32bit */
-                                <1 0>,      /* S_AXI_HPC0_FPD(write) : 0:128bit, 1:64bit, 2:32bit */
-                                <2 0>,      /* S_AXI_HPC1_FPD(read)  : 0:128bit, 1:64bit, 2:32bit */
-                                <3 0>,      /* S_AXI_HPC1_FPD(write) : 0:128bit, 1:64bit, 2:32bit */
+                config-afi    = <0  0>,     /* S_AXI_HPC0_FPD(read)  : 0:128bit, 1:64bit, 2:32bit */
+                                <1  0>,     /* S_AXI_HPC0_FPD(write) : 0:128bit, 1:64bit, 2:32bit */
+                                <2  0>,     /* S_AXI_HPC1_FPD(read)  : 0:128bit, 1:64bit, 2:32bit */
+                                <3  0>,     /* S_AXI_HPC1_FPD(write) : 0:128bit, 1:64bit, 2:32bit */
+                                <4  0>,     /* S_AXI_HP0_FPD(read)  : 0:128bit, 1:64bit, 2:32bit */
+                                <5  0>,     /* S_AXI_HP0_FPD(write) : 0:128bit, 1:64bit, 2:32bit */
+                                <6  0>,     /* S_AXI_HP1_FPD(read)  : 0:128bit, 1:64bit, 2:32bit */
+                                <7  0>,     /* S_AXI_HP1_FPD(write) : 0:128bit, 1:64bit, 2:32bit */
+                                <8  0>,     /* S_AXI_HP2_FPD(read)  : 0:128bit, 1:64bit, 2:32bit */
+                                <9  0>,     /* S_AXI_HP2_FPD(write) : 0:128bit, 1:64bit, 2:32bit */
+                                <10 0>,     /* S_AXI_HP3_FPD(read)  : 0:128bit, 1:64bit, 2:32bit */
+                                <11 0>,     /* S_AXI_HP3_FPD(write) : 0:128bit, 1:64bit, 2:32bit */
+                                <12 0>,     /* S_AXI_LPD(read)      : 0:128bit, 1:64bit, 2:32bit */
+                                <13 0>,     /* S_AXI_LPD(write)     : 0:128bit, 1:64bit, 2:32bit */
                                 <14 0x0500>,/* M_AXI_HPM0_FPD[9:8], M_AXI_HPM0_FPD[11:10] : 0:32bit, 1:64bit, 2:128bit */
                                 <15 0x100>; /* M_AXI_HPM0_LPD        : 0x000:32bit, 0x100:64bit, 0x200:128bit */
             };
@@ -67,6 +77,12 @@
                 minor-number = <4>;
                 size = <0x01000000>;
             };
+            udmabuf5 {
+                compatible = "ikwzm,udmabuf-0.10.a";
+                minor-number = <5>;
+                size = <0x01000000>;
+            };
         };
     };
 };
+
