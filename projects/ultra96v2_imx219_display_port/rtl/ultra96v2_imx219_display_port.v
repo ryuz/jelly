@@ -35,10 +35,6 @@ module ultra96v2_imx219_display_port
     wire                                dp_video_ref_clk;
     wire                                dp_video_out_vsync;
     wire                                dp_video_out_hsync;
-//    wire                                dp_live_video_de_out;
-//    wire                                dp_live_video_in_vsync;
-//    wire                                dp_live_video_in_hsync;
-//    wire                                dp_live_video_in_de;
     wire    [35:0]                      dp_live_video_in_pixel1;
     
     
@@ -71,17 +67,17 @@ module ultra96v2_imx219_display_port
     
     
     
-    localparam  AXI4_MEM0_ID_WIDTH   = 6;
-    localparam  AXI4_MEM0_ADDR_WIDTH = 49;
-    localparam  AXI4_MEM0_DATA_SIZE  = 4;   // 2:32bit, 3:64bit, 4:128bit
-    localparam  AXI4_MEM0_DATA_WIDTH = (8 << AXI4_MEM0_DATA_SIZE);
-    localparam  AXI4_MEM0_STRB_WIDTH = AXI4_MEM0_DATA_WIDTH / 8;
+    localparam  AXI4_MEM_ID_WIDTH   = 6;
+    localparam  AXI4_MEM_ADDR_WIDTH = 49;
+    localparam  AXI4_MEM_DATA_SIZE  = 4;   // 2:32bit, 3:64bit, 4:128bit
+    localparam  AXI4_MEM_DATA_WIDTH = (8 << AXI4_MEM_DATA_SIZE);
+    localparam  AXI4_MEM_STRB_WIDTH = AXI4_MEM_DATA_WIDTH / 8;
     
     wire                                 axi4_mem_aresetn;
     wire                                 axi4_mem_aclk;
     
-    wire    [AXI4_MEM0_ID_WIDTH-1:0]     axi4_mem0_awid;
-    wire    [AXI4_MEM0_ADDR_WIDTH-1:0]   axi4_mem0_awaddr;
+    wire    [AXI4_MEM_ID_WIDTH-1:0]      axi4_mem0_awid;
+    wire    [AXI4_MEM_ADDR_WIDTH-1:0]    axi4_mem0_awaddr;
     wire    [1:0]                        axi4_mem0_awburst;
     wire    [3:0]                        axi4_mem0_awcache;
     wire    [7:0]                        axi4_mem0_awlen;
@@ -92,17 +88,17 @@ module ultra96v2_imx219_display_port
     wire    [2:0]                        axi4_mem0_awsize;
     wire                                 axi4_mem0_awvalid;
     wire                                 axi4_mem0_awready;
-    wire    [AXI4_MEM0_STRB_WIDTH-1:0]   axi4_mem0_wstrb;
-    wire    [AXI4_MEM0_DATA_WIDTH-1:0]   axi4_mem0_wdata;
+    wire    [AXI4_MEM_STRB_WIDTH-1:0]    axi4_mem0_wstrb;
+    wire    [AXI4_MEM_DATA_WIDTH-1:0]    axi4_mem0_wdata;
     wire                                 axi4_mem0_wlast;
     wire                                 axi4_mem0_wvalid;
     wire                                 axi4_mem0_wready;
-    wire    [AXI4_MEM0_ID_WIDTH-1:0]     axi4_mem0_bid;
+    wire    [AXI4_MEM_ID_WIDTH-1:0]      axi4_mem0_bid;
     wire    [1:0]                        axi4_mem0_bresp;
     wire                                 axi4_mem0_bvalid;
     wire                                 axi4_mem0_bready;
-    wire    [AXI4_MEM0_ID_WIDTH-1:0]     axi4_mem0_arid;
-    wire    [AXI4_MEM0_ADDR_WIDTH-1:0]   axi4_mem0_araddr;
+    wire    [AXI4_MEM_ID_WIDTH-1:0]      axi4_mem0_arid;
+    wire    [AXI4_MEM_ADDR_WIDTH-1:0]    axi4_mem0_araddr;
     wire    [1:0]                        axi4_mem0_arburst;
     wire    [3:0]                        axi4_mem0_arcache;
     wire    [7:0]                        axi4_mem0_arlen;
@@ -113,12 +109,52 @@ module ultra96v2_imx219_display_port
     wire    [2:0]                        axi4_mem0_arsize;
     wire                                 axi4_mem0_arvalid;
     wire                                 axi4_mem0_arready;
-    wire    [AXI4_MEM0_ID_WIDTH-1:0]     axi4_mem0_rid;
+    wire    [AXI4_MEM_ID_WIDTH-1:0]      axi4_mem0_rid;
     wire    [1:0]                        axi4_mem0_rresp;
-    wire    [AXI4_MEM0_DATA_WIDTH-1:0]   axi4_mem0_rdata;
+    wire    [AXI4_MEM_DATA_WIDTH-1:0]    axi4_mem0_rdata;
     wire                                 axi4_mem0_rlast;
     wire                                 axi4_mem0_rvalid;
     wire                                 axi4_mem0_rready;
+    
+    wire    [AXI4_MEM_ID_WIDTH-1:0]      axi4_mem1_awid;
+    wire    [AXI4_MEM_ADDR_WIDTH-1:0]    axi4_mem1_awaddr;
+    wire    [1:0]                        axi4_mem1_awburst;
+    wire    [3:0]                        axi4_mem1_awcache;
+    wire    [7:0]                        axi4_mem1_awlen;
+    wire    [0:0]                        axi4_mem1_awlock;
+    wire    [2:0]                        axi4_mem1_awprot;
+    wire    [3:0]                        axi4_mem1_awqos;
+    wire    [3:0]                        axi4_mem1_awregion;
+    wire    [2:0]                        axi4_mem1_awsize;
+    wire                                 axi4_mem1_awvalid;
+    wire                                 axi4_mem1_awready;
+    wire    [AXI4_MEM_STRB_WIDTH-1:0]    axi4_mem1_wstrb;
+    wire    [AXI4_MEM_DATA_WIDTH-1:0]    axi4_mem1_wdata;
+    wire                                 axi4_mem1_wlast;
+    wire                                 axi4_mem1_wvalid;
+    wire                                 axi4_mem1_wready;
+    wire    [AXI4_MEM_ID_WIDTH-1:0]      axi4_mem1_bid;
+    wire    [1:0]                        axi4_mem1_bresp;
+    wire                                 axi4_mem1_bvalid;
+    wire                                 axi4_mem1_bready;
+    wire    [AXI4_MEM_ID_WIDTH-1:0]      axi4_mem1_arid;
+    wire    [AXI4_MEM_ADDR_WIDTH-1:0]    axi4_mem1_araddr;
+    wire    [1:0]                        axi4_mem1_arburst;
+    wire    [3:0]                        axi4_mem1_arcache;
+    wire    [7:0]                        axi4_mem1_arlen;
+    wire    [0:0]                        axi4_mem1_arlock;
+    wire    [2:0]                        axi4_mem1_arprot;
+    wire    [3:0]                        axi4_mem1_arqos;
+    wire    [3:0]                        axi4_mem1_arregion;
+    wire    [2:0]                        axi4_mem1_arsize;
+    wire                                 axi4_mem1_arvalid;
+    wire                                 axi4_mem1_arready;
+    wire    [AXI4_MEM_ID_WIDTH-1:0]      axi4_mem1_rid;
+    wire    [1:0]                        axi4_mem1_rresp;
+    wire    [AXI4_MEM_DATA_WIDTH-1:0]    axi4_mem1_rdata;
+    wire                                 axi4_mem1_rlast;
+    wire                                 axi4_mem1_rvalid;
+    wire                                 axi4_mem1_rready;
     
     design_1
         i_design_1
@@ -198,7 +234,47 @@ module ultra96v2_imx219_display_port
                 .s_axi4_mem0_rdata          (axi4_mem0_rdata),
                 .s_axi4_mem0_rlast          (axi4_mem0_rlast),
                 .s_axi4_mem0_rvalid         (axi4_mem0_rvalid),
-                .s_axi4_mem0_rready         (axi4_mem0_rready)
+                .s_axi4_mem0_rready         (axi4_mem0_rready),
+
+                .s_axi4_mem1_awid           (axi4_mem1_awid),
+                .s_axi4_mem1_awaddr         (axi4_mem1_awaddr),
+                .s_axi4_mem1_awburst        (axi4_mem1_awburst),
+                .s_axi4_mem1_awcache        (axi4_mem1_awcache),
+                .s_axi4_mem1_awlen          (axi4_mem1_awlen),
+                .s_axi4_mem1_awlock         (axi4_mem1_awlock),
+                .s_axi4_mem1_awprot         (axi4_mem1_awprot),
+                .s_axi4_mem1_awqos          (axi4_mem1_awqos),
+    //          .s_axi4_mem1_awregion       (axi4_mem1_awregion),
+                .s_axi4_mem1_awsize         (axi4_mem1_awsize),
+                .s_axi4_mem1_awvalid        (axi4_mem1_awvalid),
+                .s_axi4_mem1_awready        (axi4_mem1_awready),
+                .s_axi4_mem1_wstrb          (axi4_mem1_wstrb),
+                .s_axi4_mem1_wdata          (axi4_mem1_wdata),
+                .s_axi4_mem1_wlast          (axi4_mem1_wlast),
+                .s_axi4_mem1_wvalid         (axi4_mem1_wvalid),
+                .s_axi4_mem1_wready         (axi4_mem1_wready),
+                .s_axi4_mem1_bid            (axi4_mem1_bid),
+                .s_axi4_mem1_bresp          (axi4_mem1_bresp),
+                .s_axi4_mem1_bvalid         (axi4_mem1_bvalid),
+                .s_axi4_mem1_bready         (axi4_mem1_bready),
+                .s_axi4_mem1_araddr         (axi4_mem1_araddr),
+                .s_axi4_mem1_arburst        (axi4_mem1_arburst),
+                .s_axi4_mem1_arcache        (axi4_mem1_arcache),
+                .s_axi4_mem1_arid           (axi4_mem1_arid),
+                .s_axi4_mem1_arlen          (axi4_mem1_arlen),
+                .s_axi4_mem1_arlock         (axi4_mem1_arlock),
+                .s_axi4_mem1_arprot         (axi4_mem1_arprot),
+                .s_axi4_mem1_arqos          (axi4_mem1_arqos),
+    //          .s_axi4_mem1_arregion       (axi4_mem1_arregion),
+                .s_axi4_mem1_arsize         (axi4_mem1_arsize),
+                .s_axi4_mem1_arvalid        (axi4_mem1_arvalid),
+                .s_axi4_mem1_arready        (axi4_mem1_arready),
+                .s_axi4_mem1_rid            (axi4_mem1_rid),
+                .s_axi4_mem1_rresp          (axi4_mem1_rresp),
+                .s_axi4_mem1_rdata          (axi4_mem1_rdata),
+                .s_axi4_mem1_rlast          (axi4_mem1_rlast),
+                .s_axi4_mem1_rvalid         (axi4_mem1_rvalid),
+                .s_axi4_mem1_rready         (axi4_mem1_rready)
             );
     
     
@@ -548,7 +624,7 @@ module ultra96v2_imx219_display_port
     // 現像
     wire    [0:0]               axi4s_rgb_tuser;
     wire                        axi4s_rgb_tlast;
-    wire    [39:0]              axi4s_rgb_tdata;
+    wire    [8*4-1:0]           axi4s_rgb_tdata;
     wire                        axi4s_rgb_tvalid;
     wire                        axi4s_rgb_tready;
     
@@ -556,19 +632,26 @@ module ultra96v2_imx219_display_port
     wire                        wb_rgb_stb_i;
     wire                        wb_rgb_ack_o;
     
-    video_raw_to_rgb
+    image_processing
             #(
-                .WB_ADR_WIDTH               (10),
+                .WB_ADR_WIDTH               (17),
                 .WB_DAT_WIDTH               (WB_DAT_WIDTH),
                 
-                .DATA_WIDTH                 (10),
+                .AXI4_ID_WIDTH              (AXI4_MEM_ID_WIDTH),
+                .AXI4_ADDR_WIDTH            (AXI4_MEM_ADDR_WIDTH),
+                .AXI4_DATA_SIZE             (AXI4_MEM_DATA_SIZE),
+                .AXI4_DATA_WIDTH            (AXI4_MEM_DATA_WIDTH),
+                .AXI4_STRB_WIDTH            (AXI4_MEM_STRB_WIDTH),
                 
-                .IMG_Y_NUM                  (480),
+                .S_DATA_WIDTH               (10),
+                .M_DATA_WIDTH               (8),
+                
+                .IMG_Y_NUM                  (1080),
                 .IMG_Y_WIDTH                (12),
                 
                 .TUSER_WIDTH                (1)
             )
-        i_video_raw_to_rgb
+        i_image_processing
             (
                 .aresetn                    (axi4s_cam_aresetn),
                 .aclk                       (axi4s_cam_aclk),
@@ -577,7 +660,7 @@ module ultra96v2_imx219_display_port
                 
                 .s_wb_rst_i                 (wb_peri_rst_i),
                 .s_wb_clk_i                 (wb_peri_clk_i),
-                .s_wb_adr_i                 (wb_peri_adr_i[9:0]),
+                .s_wb_adr_i                 (wb_peri_adr_i[16:0]),
                 .s_wb_dat_o                 (wb_rgb_dat_o),
                 .s_wb_dat_i                 (wb_peri_dat_i),
                 .s_wb_we_i                  (wb_peri_we_i),
@@ -595,7 +678,49 @@ module ultra96v2_imx219_display_port
                 .m_axi4s_tlast              (axi4s_rgb_tlast),
                 .m_axi4s_tdata              (axi4s_rgb_tdata),
                 .m_axi4s_tvalid             (axi4s_rgb_tvalid),
-                .m_axi4s_tready             (axi4s_rgb_tready)
+                .m_axi4s_tready             (axi4s_rgb_tready),
+                
+                .m_axi4_aresetn             (axi4_mem_aresetn),
+                .m_axi4_aclk                (axi4_mem_aclk),
+                .m_axi4_awid                (axi4_mem1_awid),
+                .m_axi4_awaddr              (axi4_mem1_awaddr),
+                .m_axi4_awlen               (axi4_mem1_awlen),
+                .m_axi4_awsize              (axi4_mem1_awsize),
+                .m_axi4_awburst             (axi4_mem1_awburst),
+                .m_axi4_awlock              (axi4_mem1_awlock),
+                .m_axi4_awcache             (axi4_mem1_awcache),
+                .m_axi4_awprot              (axi4_mem1_awprot),
+                .m_axi4_awqos               (axi4_mem1_awqos),
+                .m_axi4_awregion            (axi4_mem1_awregion),
+                .m_axi4_awvalid             (axi4_mem1_awvalid),
+                .m_axi4_awready             (axi4_mem1_awready),
+                .m_axi4_wdata               (axi4_mem1_wdata),
+                .m_axi4_wstrb               (axi4_mem1_wstrb),
+                .m_axi4_wlast               (axi4_mem1_wlast),
+                .m_axi4_wvalid              (axi4_mem1_wvalid),
+                .m_axi4_wready              (axi4_mem1_wready),
+                .m_axi4_bid                 (axi4_mem1_bid),
+                .m_axi4_bresp               (axi4_mem1_bresp),
+                .m_axi4_bvalid              (axi4_mem1_bvalid),
+                .m_axi4_bready              (axi4_mem1_bready),
+                .m_axi4_arid                (axi4_mem1_arid),
+                .m_axi4_araddr              (axi4_mem1_araddr),
+                .m_axi4_arlen               (axi4_mem1_arlen),
+                .m_axi4_arsize              (axi4_mem1_arsize),
+                .m_axi4_arburst             (axi4_mem1_arburst),
+                .m_axi4_arlock              (axi4_mem1_arlock),
+                .m_axi4_arcache             (axi4_mem1_arcache),
+                .m_axi4_arprot              (axi4_mem1_arprot),
+                .m_axi4_arqos               (axi4_mem1_arqos),
+                .m_axi4_arregion            (axi4_mem1_arregion),
+                .m_axi4_arvalid             (axi4_mem1_arvalid),
+                .m_axi4_arready             (axi4_mem1_arready),
+                .m_axi4_rid                 (axi4_mem1_rid),
+                .m_axi4_rdata               (axi4_mem1_rdata),
+                .m_axi4_rresp               (axi4_mem1_rresp),
+                .m_axi4_rlast               (axi4_mem1_rlast),
+                .m_axi4_rvalid              (axi4_mem1_rvalid),
+                .m_axi4_rready              (axi4_mem1_rready)
             );
     
     
@@ -608,17 +733,17 @@ module ultra96v2_imx219_display_port
     
     wire                                vdmaw_buffer_request;
     wire                                vdmaw_buffer_release;
-    wire    [AXI4_MEM0_ADDR_WIDTH-1:0]  vdmaw_buffer_addr;
+    wire    [AXI4_MEM_ADDR_WIDTH-1:0]   vdmaw_buffer_addr;
     wire    [1:0]                       vdmaw_buffer_index;
     
     wire                                vdmar_buffer_request;
     wire                                vdmar_buffer_release;
-    wire    [AXI4_MEM0_ADDR_WIDTH-1:0]  vdmar_buffer_addr;
+    wire    [AXI4_MEM_ADDR_WIDTH-1:0]   vdmar_buffer_addr;
     wire    [1:0]                       vdmar_buffer_index;
 
     wire                                hostr_buffer_request;
     wire                                hostr_buffer_release;
-    wire    [AXI4_MEM0_ADDR_WIDTH-1:0]  hostr_buffer_addr;
+    wire    [AXI4_MEM_ADDR_WIDTH-1:0]   hostr_buffer_addr;
     wire    [1:0]                       hostr_buffer_index;
     
     
@@ -630,7 +755,7 @@ module ultra96v2_imx219_display_port
             #(
                 .BUFFER_NUM                 (4),
                 .READER_NUM                 (2),
-                .ADDR_WIDTH                 (AXI4_MEM0_ADDR_WIDTH),
+                .ADDR_WIDTH                 (AXI4_MEM_ADDR_WIDTH),
                 .REFCNT_WIDTH               (2),
                 .INDEX_WIDTH                (2),
                 
@@ -684,7 +809,7 @@ module ultra96v2_imx219_display_port
     
     jelly_buffer_allocator
             #(
-                .ADDR_WIDTH                 (AXI4_MEM0_ADDR_WIDTH),
+                .ADDR_WIDTH                 (AXI4_MEM_ADDR_WIDTH),
                 .INDEX_WIDTH                (2),
                 
                 .WB_ADR_WIDTH               (8),
@@ -728,9 +853,9 @@ module ultra96v2_imx219_display_port
                 .AXI4S_DATA_WIDTH           (24), // (32),
                 .AXI4S_USER_WIDTH           (1),
                 
-                .AXI4_ID_WIDTH              (AXI4_MEM0_ID_WIDTH),
-                .AXI4_ADDR_WIDTH            (AXI4_MEM0_ADDR_WIDTH),
-                .AXI4_DATA_SIZE             (AXI4_MEM0_DATA_SIZE),
+                .AXI4_ID_WIDTH              (AXI4_MEM_ID_WIDTH),
+                .AXI4_ADDR_WIDTH            (AXI4_MEM_ADDR_WIDTH),
+                .AXI4_DATA_SIZE             (AXI4_MEM_DATA_SIZE),
                 .AXI4_LEN_WIDTH             (8),
                 .AXI4_QOS_WIDTH             (4),
                 
@@ -739,8 +864,8 @@ module ultra96v2_imx219_display_port
                 .H_SIZE_WIDTH               (12),
                 .V_SIZE_WIDTH               (12),
                 .F_SIZE_WIDTH               (8),
-                .LINE_STEP_WIDTH            (AXI4_MEM0_ADDR_WIDTH),
-                .FRAME_STEP_WIDTH           (AXI4_MEM0_ADDR_WIDTH),
+                .LINE_STEP_WIDTH            (AXI4_MEM_ADDR_WIDTH),
+                .FRAME_STEP_WIDTH           (AXI4_MEM_ADDR_WIDTH),
                 
                 .INIT_CTL_CONTROL           (4'b0000),
                 .INIT_IRQ_ENABLE            (1'b0),
@@ -768,54 +893,59 @@ module ultra96v2_imx219_display_port
             )
         i_dma_video_write
             (
-                .endian                 (1'b0),
+                .endian                     (1'b0),
                 
-                .s_wb_rst_i             (wb_peri_rst_i),
-                .s_wb_clk_i             (wb_peri_clk_i),
-                .s_wb_adr_i             (wb_peri_adr_i[7:0]),
-                .s_wb_dat_i             (wb_peri_dat_i),
-                .s_wb_dat_o             (wb_vdmaw_dat_o),
-                .s_wb_we_i              (wb_peri_we_i),
-                .s_wb_sel_i             (wb_peri_sel_i),
-                .s_wb_stb_i             (wb_vdmaw_stb_i),
-                .s_wb_ack_o             (wb_vdmaw_ack_o),
-                .out_irq                (),
+                .s_wb_rst_i                 (wb_peri_rst_i),
+                .s_wb_clk_i                 (wb_peri_clk_i),
+                .s_wb_adr_i                 (wb_peri_adr_i[7:0]),
+                .s_wb_dat_i                 (wb_peri_dat_i),
+                .s_wb_dat_o                 (wb_vdmaw_dat_o),
+                .s_wb_we_i                  (wb_peri_we_i),
+                .s_wb_sel_i                 (wb_peri_sel_i),
+                .s_wb_stb_i                 (wb_vdmaw_stb_i),
+                .s_wb_ack_o                 (wb_vdmaw_ack_o),
+                .out_irq                    (),
                 
-                .buffer_request         (vdmaw_buffer_request),
-                .buffer_release         (vdmaw_buffer_release),
-                .buffer_addr            (vdmaw_buffer_addr),
+                .buffer_request             (vdmaw_buffer_request),
+                .buffer_release             (vdmaw_buffer_release),
+                .buffer_addr                (vdmaw_buffer_addr),
                 
-                .s_axi4s_aresetn        (axi4s_cam_aresetn),
-                .s_axi4s_aclk           (axi4s_cam_aclk),
-                .s_axi4s_tuser          (axi4s_rgb_tuser),
-                .s_axi4s_tlast          (axi4s_rgb_tlast),
-                .s_axi4s_tdata          (axi4s_rgb_tdata[23:0]),
-                .s_axi4s_tvalid         (axi4s_rgb_tvalid),
-                .s_axi4s_tready         (axi4s_rgb_tready),
+                .s_axi4s_aresetn            (axi4s_cam_aresetn),
+                .s_axi4s_aclk               (axi4s_cam_aclk),
+                .s_axi4s_tuser              (axi4s_rgb_tuser),
+                .s_axi4s_tlast              (axi4s_rgb_tlast),
+                .s_axi4s_tdata              (axi4s_rgb_tdata[23:0]),
+//                .s_axi4s_tdata              ({
+//                                                axi4s_rgb_tdata[29:22],
+//                                                axi4s_rgb_tdata[19:12],
+//                                                axi4s_rgb_tdata[ 9: 2]
+//                                            }),
+                .s_axi4s_tvalid             (axi4s_rgb_tvalid),
+                .s_axi4s_tready             (axi4s_rgb_tready),
                 
-                .m_aresetn              (axi4_mem_aresetn),
-                .m_aclk                 (axi4_mem_aclk),
-                .m_axi4_awid            (axi4_mem0_awid),
-                .m_axi4_awaddr          (axi4_mem0_awaddr),
-                .m_axi4_awburst         (axi4_mem0_awburst),
-                .m_axi4_awcache         (axi4_mem0_awcache),
-                .m_axi4_awlen           (axi4_mem0_awlen),
-                .m_axi4_awlock          (axi4_mem0_awlock),
-                .m_axi4_awprot          (axi4_mem0_awprot),
-                .m_axi4_awqos           (axi4_mem0_awqos),
-                .m_axi4_awregion        (),
-                .m_axi4_awsize          (axi4_mem0_awsize),
-                .m_axi4_awvalid         (axi4_mem0_awvalid),
-                .m_axi4_awready         (axi4_mem0_awready),
-                .m_axi4_wstrb           (axi4_mem0_wstrb),
-                .m_axi4_wdata           (axi4_mem0_wdata),
-                .m_axi4_wlast           (axi4_mem0_wlast),
-                .m_axi4_wvalid          (axi4_mem0_wvalid),
-                .m_axi4_wready          (axi4_mem0_wready),
-                .m_axi4_bid             (axi4_mem0_bid),
-                .m_axi4_bresp           (axi4_mem0_bresp),
-                .m_axi4_bvalid          (axi4_mem0_bvalid),
-                .m_axi4_bready          (axi4_mem0_bready)
+                .m_aresetn                  (axi4_mem_aresetn),
+                .m_aclk                     (axi4_mem_aclk),
+                .m_axi4_awid                (axi4_mem0_awid),
+                .m_axi4_awaddr              (axi4_mem0_awaddr),
+                .m_axi4_awburst             (axi4_mem0_awburst),
+                .m_axi4_awcache             (axi4_mem0_awcache),
+                .m_axi4_awlen               (axi4_mem0_awlen),
+                .m_axi4_awlock              (axi4_mem0_awlock),
+                .m_axi4_awprot              (axi4_mem0_awprot),
+                .m_axi4_awqos               (axi4_mem0_awqos),
+                .m_axi4_awregion            (),
+                .m_axi4_awsize              (axi4_mem0_awsize),
+                .m_axi4_awvalid             (axi4_mem0_awvalid),
+                .m_axi4_awready             (axi4_mem0_awready),
+                .m_axi4_wstrb               (axi4_mem0_wstrb),
+                .m_axi4_wdata               (axi4_mem0_wdata),
+                .m_axi4_wlast               (axi4_mem0_wlast),
+                .m_axi4_wvalid              (axi4_mem0_wvalid),
+                .m_axi4_wready              (axi4_mem0_wready),
+                .m_axi4_bid                 (axi4_mem0_bid),
+                .m_axi4_bresp               (axi4_mem0_bresp),
+                .m_axi4_bvalid              (axi4_mem0_bvalid),
+                .m_axi4_bready              (axi4_mem0_bready)
             );
     
     
@@ -843,92 +973,92 @@ module ultra96v2_imx219_display_port
     
     jelly_dma_video_read
             #(
-                .WB_ASYNC               (1),
-                .WB_ADR_WIDTH           (8),
-                .WB_DAT_WIDTH           (WB_DAT_WIDTH),
+                .WB_ASYNC                   (1),
+                .WB_ADR_WIDTH               (8),
+                .WB_DAT_WIDTH               (WB_DAT_WIDTH),
                 
-                .AXI4S_ASYNC            (1),
-                .AXI4S_DATA_WIDTH       (24), // (32),
-                .AXI4S_USER_WIDTH       (1),
+                .AXI4S_ASYNC                (1),
+                .AXI4S_DATA_WIDTH           (24), // (32),
+                .AXI4S_USER_WIDTH           (1),
                 
-                .AXI4_ID_WIDTH          (AXI4_MEM0_ID_WIDTH),
-                .AXI4_ADDR_WIDTH        (AXI4_MEM0_ADDR_WIDTH),
-                .AXI4_DATA_SIZE         (AXI4_MEM0_DATA_SIZE),
-                .AXI4_LEN_WIDTH         (8),
-                .AXI4_QOS_WIDTH         (4),
+                .AXI4_ID_WIDTH              (AXI4_MEM_ID_WIDTH),
+                .AXI4_ADDR_WIDTH            (AXI4_MEM_ADDR_WIDTH),
+                .AXI4_DATA_SIZE             (AXI4_MEM_DATA_SIZE),
+                .AXI4_LEN_WIDTH             (8),
+                .AXI4_QOS_WIDTH             (4),
                 
-                .INDEX_WIDTH            (1),
-                .SIZE_OFFSET            (1'b1),
-                .H_SIZE_WIDTH           (12),
-                .V_SIZE_WIDTH           (12),
-                .F_SIZE_WIDTH           (8),
-                .LINE_STEP_WIDTH        (AXI4_MEM0_ADDR_WIDTH),
-                .FRAME_STEP_WIDTH       (AXI4_MEM0_ADDR_WIDTH),
+                .INDEX_WIDTH                (1),
+                .SIZE_OFFSET                (1'b1),
+                .H_SIZE_WIDTH               (12),
+                .V_SIZE_WIDTH               (12),
+                .F_SIZE_WIDTH               (8),
+                .LINE_STEP_WIDTH            (AXI4_MEM_ADDR_WIDTH),
+                .FRAME_STEP_WIDTH           (AXI4_MEM_ADDR_WIDTH),
                 
-                .INIT_CTL_CONTROL       (4'b0000),
-                .INIT_IRQ_ENABLE        (1'b0),
-                .INIT_PARAM_ADDR        (0),
-                .INIT_PARAM_AWLEN_MAX   (255),
-                .INIT_PARAM_H_SIZE      (VOUT_X_NUM-1),
-                .INIT_PARAM_V_SIZE      (VOUT_Y_NUM-1),
-                .INIT_PARAM_LINE_STEP   (8192),
-                .INIT_PARAM_F_SIZE      (0),
-                .INIT_PARAM_FRAME_STEP  (Y_NUM*8192),
+                .INIT_CTL_CONTROL           (4'b0000),
+                .INIT_IRQ_ENABLE            (1'b0),
+                .INIT_PARAM_ADDR            (0),
+                .INIT_PARAM_AWLEN_MAX       (255),
+                .INIT_PARAM_H_SIZE          (VOUT_X_NUM-1),
+                .INIT_PARAM_V_SIZE          (VOUT_Y_NUM-1),
+                .INIT_PARAM_LINE_STEP       (8192),
+                .INIT_PARAM_F_SIZE          (0),
+                .INIT_PARAM_FRAME_STEP      (VOUT_Y_NUM*8192),
                 
-                .BYPASS_GATE            (0),
-                .BYPASS_ALIGN           (1), // (0),
-                .ALLOW_UNALIGNED        (0),
-                .CAPACITY_WIDTH         (32),
-                .RFIFO_PTR_WIDTH        (9),
-                .RFIFO_RAM_TYPE         ("block")
+                .BYPASS_GATE                (0),
+                .BYPASS_ALIGN               (0),
+                .ALLOW_UNALIGNED            (0),
+                .CAPACITY_WIDTH             (32),
+                .RFIFO_PTR_WIDTH            (10),
+                .RFIFO_RAM_TYPE             ("block")
             )
         i_dma_video_read
             (
-                .endian                 (1'b0),
+                .endian                     (1'b0),
                 
-                .s_wb_rst_i             (wb_peri_rst_i),
-                .s_wb_clk_i             (wb_peri_clk_i),
-                .s_wb_adr_i             (wb_peri_adr_i[7:0]),
-                .s_wb_dat_i             (wb_peri_dat_i),
-                .s_wb_dat_o             (wb_vdmar_dat_o),
-                .s_wb_we_i              (wb_peri_we_i),
-                .s_wb_sel_i             (wb_peri_sel_i),
-                .s_wb_stb_i             (wb_vdmar_stb_i),
-                .s_wb_ack_o             (wb_vdmar_ack_o),
-                .out_irq                (),
+                .s_wb_rst_i                 (wb_peri_rst_i),
+                .s_wb_clk_i                 (wb_peri_clk_i),
+                .s_wb_adr_i                 (wb_peri_adr_i[7:0]),
+                .s_wb_dat_i                 (wb_peri_dat_i),
+                .s_wb_dat_o                 (wb_vdmar_dat_o),
+                .s_wb_we_i                  (wb_peri_we_i),
+                .s_wb_sel_i                 (wb_peri_sel_i),
+                .s_wb_stb_i                 (wb_vdmar_stb_i),
+                .s_wb_ack_o                 (wb_vdmar_ack_o),
+                .out_irq                    (),
                 
-                .buffer_request         (vdmar_buffer_request),
-                .buffer_release         (vdmar_buffer_release),
-                .buffer_addr            (vdmar_buffer_addr),
+                .buffer_request             (vdmar_buffer_request),
+                .buffer_release             (vdmar_buffer_release),
+                .buffer_addr                (vdmar_buffer_addr),
                 
-                .m_axi4s_aresetn        (~vout_reset),
-                .m_axi4s_aclk           (vout_clk),
-                .m_axi4s_tdata          (axi4s_vout_tdata),
-                .m_axi4s_tlast          (axi4s_vout_tlast),
-                .m_axi4s_tuser          (axi4s_vout_tuser),
-                .m_axi4s_tvalid         (axi4s_vout_tvalid),
-                .m_axi4s_tready         (axi4s_vout_tready),
+                .m_axi4s_aresetn            (~vout_reset),
+                .m_axi4s_aclk               (vout_clk),
+                .m_axi4s_tdata              (axi4s_vout_tdata),
+                .m_axi4s_tlast              (axi4s_vout_tlast),
+                .m_axi4s_tuser              (axi4s_vout_tuser),
+                .m_axi4s_tvalid             (axi4s_vout_tvalid),
+                .m_axi4s_tready             (axi4s_vout_tready),
                 
-                .m_aresetn              (axi4_mem_aresetn),
-                .m_aclk                 (axi4_mem_aclk),
-                .m_axi4_arid            (axi4_mem0_arid),
-                .m_axi4_araddr          (axi4_mem0_araddr),
-                .m_axi4_arlen           (axi4_mem0_arlen),
-                .m_axi4_arsize          (axi4_mem0_arsize),
-                .m_axi4_arburst         (axi4_mem0_arburst),
-                .m_axi4_arlock          (axi4_mem0_arlock),
-                .m_axi4_arcache         (axi4_mem0_arcache),
-                .m_axi4_arprot          (axi4_mem0_arprot),
-                .m_axi4_arqos           (axi4_mem0_arqos),
-                .m_axi4_arregion        (axi4_mem0_arregion),
-                .m_axi4_arvalid         (axi4_mem0_arvalid),
-                .m_axi4_arready         (axi4_mem0_arready),
-                .m_axi4_rid             (axi4_mem0_rid),
-                .m_axi4_rdata           (axi4_mem0_rdata),
-                .m_axi4_rresp           (axi4_mem0_rresp),
-                .m_axi4_rlast           (axi4_mem0_rlast),
-                .m_axi4_rvalid          (axi4_mem0_rvalid),
-                .m_axi4_rready          (axi4_mem0_rready)
+                .m_aresetn                  (axi4_mem_aresetn),
+                .m_aclk                     (axi4_mem_aclk),
+                .m_axi4_arid                (axi4_mem0_arid),
+                .m_axi4_araddr              (axi4_mem0_araddr),
+                .m_axi4_arlen               (axi4_mem0_arlen),
+                .m_axi4_arsize              (axi4_mem0_arsize),
+                .m_axi4_arburst             (axi4_mem0_arburst),
+                .m_axi4_arlock              (axi4_mem0_arlock),
+                .m_axi4_arcache             (axi4_mem0_arcache),
+                .m_axi4_arprot              (axi4_mem0_arprot),
+                .m_axi4_arqos               (axi4_mem0_arqos),
+                .m_axi4_arregion            (axi4_mem0_arregion),
+                .m_axi4_arvalid             (axi4_mem0_arvalid),
+                .m_axi4_arready             (axi4_mem0_arready),
+                .m_axi4_rid                 (axi4_mem0_rid),
+                .m_axi4_rdata               (axi4_mem0_rdata),
+                .m_axi4_rresp               (axi4_mem0_rresp),
+                .m_axi4_rlast               (axi4_mem0_rlast),
+                .m_axi4_rvalid              (axi4_mem0_rvalid),
+                .m_axi4_rready              (axi4_mem0_rready)
             );
     
     
@@ -1045,29 +1175,29 @@ module ultra96v2_imx219_display_port
     
     jelly_vout_axi4s
             #(
-                .WIDTH                  (24)
+                .WIDTH                      (24)
             )
         i_vout_axi4s
             (
-                .reset                  (vout_reset),
-                .clk                    (vout_clk),
+                .reset                      (vout_reset),
+                .clk                        (vout_clk),
                 
-                .s_axi4s_tuser          (axi4s_vout_tuser),
-                .s_axi4s_tlast          (axi4s_vout_tlast),
-                .s_axi4s_tdata          (axi4s_vout_tdata[23:0]),
-                .s_axi4s_tvalid         (axi4s_vout_tvalid),
-                .s_axi4s_tready         (axi4s_vout_tready),
+                .s_axi4s_tuser              (axi4s_vout_tuser),
+                .s_axi4s_tlast              (axi4s_vout_tlast),
+                .s_axi4s_tdata              (axi4s_vout_tdata[23:0]),
+                .s_axi4s_tvalid             (axi4s_vout_tvalid),
+                .s_axi4s_tready             (axi4s_vout_tready),
                 
-                .in_vsync               (vout_vsgen_vsync),
-                .in_hsync               (vout_vsgen_hsync),
-                .in_de                  (vout_vsgen_de),
-                .in_ctl                 (4'd0),
+                .in_vsync                   (vout_vsgen_vsync),
+                .in_hsync                   (vout_vsgen_hsync),
+                .in_de                      (vout_vsgen_de),
+                .in_ctl                     (4'd0),
                 
-                .out_vsync              (vout_vsync),
-                .out_hsync              (vout_hsync),
-                .out_de                 (vout_de),
-                .out_data               (vout_data),
-                .out_ctl                (vout_ctl)
+                .out_vsync                  (vout_vsync),
+                .out_hsync                  (vout_hsync),
+                .out_de                     (vout_de),
+                .out_data                   (vout_data),
+                .out_ctl                    (vout_ctl)
             );
     
     assign dp_live_video_in_pixel1[11:0]  = {vout_data[15: 8], vout_data[15:12]};
@@ -1171,17 +1301,6 @@ module ultra96v2_imx219_display_port
     assign radio_led[1] = reg_clk200_led;
     assign radio_led[0] = reg_clk250_led;
     
-//    assign radio_led[1] = reg_counter_clk100[24];
-//    assign radio_led[0] = reg_counter_rxbyteclkhs[1];
-    
-    /*
-    assign hd_gpio[0] = sys_reset;
-    assign hd_gpio[1] = reg_counter_clk100[5]; 
-    assign hd_gpio[2] = reg_counter_clk200[5];
-    assign hd_gpio[3] = reg_counter_clk250[5];
-    assign hd_gpio[4] = reg_counter_rxbyteclkhs[5];
-    assign hd_gpio[15:5] = 0;
-    */
     
     /*
     assign pmod1[0]   = sys_reset;
@@ -1203,108 +1322,6 @@ module ultra96v2_imx219_display_port
     assign pmod1 = reg_frame_count;
     
     
-    
-    
-    // Debug
-    (* mark_debug = "true" *)   reg                 dbg_reset;
-    (* mark_debug = "true" *)   reg     [7:0]       dbg0_rxdatahs;
-    (* mark_debug = "true" *)   reg                 dbg0_rxvalidhs;
-    (* mark_debug = "true" *)   reg                 dbg0_rxactivehs;
-    (* mark_debug = "true" *)   reg                 dbg0_rxsynchs;
-    (* mark_debug = "true" *)   reg     [7:0]       dbg1_rxdatahs;
-    (* mark_debug = "true" *)   reg                 dbg1_rxvalidhs;
-    (* mark_debug = "true" *)   reg                 dbg1_rxactivehs;
-    (* mark_debug = "true" *)   reg                 dbg1_rxsynchs;
-    always @(posedge dphy_clk) begin
-        dbg_reset       <=  sys_reset | reg_sw_reset;
-        dbg0_rxdatahs   <= dl0_rxdatahs;
-        dbg0_rxvalidhs  <= dl0_rxvalidhs;
-        dbg0_rxactivehs <= dl0_rxactivehs;
-        dbg0_rxsynchs   <= dl0_rxsynchs;
-        dbg1_rxdatahs   <= dl1_rxdatahs;
-        dbg1_rxvalidhs  <= dl1_rxvalidhs;
-        dbg1_rxactivehs <= dl1_rxactivehs;
-        dbg1_rxsynchs   <= dl1_rxsynchs;
-    end
-    
-    
-    /*
-    jelly_fifo_generic_fwtf
-            #(
-                .ASYNC              (1),
-                .DATA_WIDTH         (2*(3+8)),
-                .PTR_WIDTH          (6),
-                .DOUT_REGS          (1),
-                .RAM_TYPE           ("distributed"),
-                .LOW_DEALY          (0),
-                .SLAVE_REGS         (0),
-                .MASTER_REGS        (1)
-            )
-        i_fifo_generic_fwtf
-            (
-                .s_reset            (system_rst_out),
-                .s_clk              (rxbyteclkhs),
-                .s_data             ({
-                                        dl0_rxdatahs,
-                                        dl0_rxvalidhs,
-                                        dl0_rxactivehs,
-                                        dl0_rxsynchs,
-                                        dl1_rxdatahs,
-                                        dl1_rxvalidhs,
-                                        dl1_rxactivehs,
-                                        dl1_rxsynchs
-                                    }),
-                .s_valid            (1'b1),
-                .s_ready            (),
-                .s_free_count       (),
-                
-                .m_reset            (sys_reset),
-                .m_clk              (sys_clk200),
-                .m_data             ({
-                                        dbg0_rxdatahs,
-                                        dbg0_rxvalidhs,
-                                        dbg0_rxactivehs,
-                                        dbg0_rxsynchs,
-                                        dbg1_rxdatahs,
-                                        dbg1_rxvalidhs,
-                                        dbg1_rxactivehs,
-                                        dbg1_rxsynchs
-                                    }),
-                .m_valid            (dbg1_valid),
-                .m_ready            (1'b1),
-                .m_data_count       ()
-            );
-    
-    
-    (* mark_debug = "true" *)  reg     [31:0]      reg_mipi_ecc_count;
-    (* mark_debug = "true" *)  reg     [31:0]      reg_mipi_ecc_error;
-    (* mark_debug = "true" *)  reg     [31:0]      reg_mipi_ecc_corrected;
-    (* mark_debug = "true" *)  reg     [31:0]      reg_mipi_crc_count;
-    (* mark_debug = "true" *)  reg     [31:0]      reg_mipi_crc_error;
-    (* mark_debug = "true" *)  reg     [31:0]      reg_mipi_packet_lost;
-    always @(posedge sys_clk250) begin
-        if ( sys_reset ) begin
-            reg_mipi_ecc_count     <= 0;
-            reg_mipi_ecc_error     <= 0;
-            reg_mipi_ecc_corrected <= 0;
-            reg_mipi_crc_count     <= 0;
-            reg_mipi_crc_error     <= 0;
-            reg_mipi_packet_lost   <= 0;
-        end
-        else begin
-            if ( mipi_ecc_valid ) begin
-                reg_mipi_ecc_count     <= reg_mipi_ecc_count + 1'b1;
-                reg_mipi_ecc_error     <= reg_mipi_ecc_error + mipi_ecc_error;
-                reg_mipi_ecc_corrected <= reg_mipi_ecc_corrected + mipi_ecc_corrected;
-            end
-            if ( mipi_crc_valid ) begin
-                reg_mipi_crc_count <= reg_mipi_crc_count + 1'b1;
-                reg_mipi_crc_error <= reg_mipi_crc_error + mipi_crc_error;
-            end
-            reg_mipi_packet_lost <= reg_mipi_packet_lost + mipi_packet_lost;
-        end
-    end
-    */
     
 endmodule
 

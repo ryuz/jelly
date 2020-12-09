@@ -71,6 +71,45 @@ module design_1
     s_axi4_mem0_wready,
     s_axi4_mem0_wstrb,
     s_axi4_mem0_wvalid,
+    s_axi4_mem1_araddr,
+    s_axi4_mem1_arburst,
+    s_axi4_mem1_arcache,
+    s_axi4_mem1_arid,
+    s_axi4_mem1_arlen,
+    s_axi4_mem1_arlock,
+    s_axi4_mem1_arprot,
+    s_axi4_mem1_arqos,
+    s_axi4_mem1_arready,
+    s_axi4_mem1_arsize,
+    s_axi4_mem1_aruser,
+    s_axi4_mem1_arvalid,
+    s_axi4_mem1_awaddr,
+    s_axi4_mem1_awburst,
+    s_axi4_mem1_awcache,
+    s_axi4_mem1_awid,
+    s_axi4_mem1_awlen,
+    s_axi4_mem1_awlock,
+    s_axi4_mem1_awprot,
+    s_axi4_mem1_awqos,
+    s_axi4_mem1_awready,
+    s_axi4_mem1_awsize,
+    s_axi4_mem1_awuser,
+    s_axi4_mem1_awvalid,
+    s_axi4_mem1_bid,
+    s_axi4_mem1_bready,
+    s_axi4_mem1_bresp,
+    s_axi4_mem1_bvalid,
+    s_axi4_mem1_rdata,
+    s_axi4_mem1_rid,
+    s_axi4_mem1_rlast,
+    s_axi4_mem1_rready,
+    s_axi4_mem1_rresp,
+    s_axi4_mem1_rvalid,
+    s_axi4_mem1_wdata,
+    s_axi4_mem1_wlast,
+    s_axi4_mem1_wready,
+    s_axi4_mem1_wstrb,
+    s_axi4_mem1_wvalid,
     s_axi4_mem_aclk,
     s_axi4_mem_aresetn);
   input [35:0]dp_live_video_in_pixel1;
@@ -142,6 +181,45 @@ module design_1
   output s_axi4_mem0_wready;
   input [15:0]s_axi4_mem0_wstrb;
   input s_axi4_mem0_wvalid;
+  input [48:0]s_axi4_mem1_araddr;
+  input [1:0]s_axi4_mem1_arburst;
+  input [3:0]s_axi4_mem1_arcache;
+  input [5:0]s_axi4_mem1_arid;
+  input [7:0]s_axi4_mem1_arlen;
+  input s_axi4_mem1_arlock;
+  input [2:0]s_axi4_mem1_arprot;
+  input [3:0]s_axi4_mem1_arqos;
+  output s_axi4_mem1_arready;
+  input [2:0]s_axi4_mem1_arsize;
+  input s_axi4_mem1_aruser;
+  input s_axi4_mem1_arvalid;
+  input [48:0]s_axi4_mem1_awaddr;
+  input [1:0]s_axi4_mem1_awburst;
+  input [3:0]s_axi4_mem1_awcache;
+  input [5:0]s_axi4_mem1_awid;
+  input [7:0]s_axi4_mem1_awlen;
+  input s_axi4_mem1_awlock;
+  input [2:0]s_axi4_mem1_awprot;
+  input [3:0]s_axi4_mem1_awqos;
+  output s_axi4_mem1_awready;
+  input [2:0]s_axi4_mem1_awsize;
+  input s_axi4_mem1_awuser;
+  input s_axi4_mem1_awvalid;
+  output [5:0]s_axi4_mem1_bid;
+  input s_axi4_mem1_bready;
+  output [1:0]s_axi4_mem1_bresp;
+  output s_axi4_mem1_bvalid;
+  output [127:0]s_axi4_mem1_rdata;
+  output [5:0]s_axi4_mem1_rid;
+  output s_axi4_mem1_rlast;
+  input s_axi4_mem1_rready;
+  output [1:0]s_axi4_mem1_rresp;
+  output s_axi4_mem1_rvalid;
+  input [127:0]s_axi4_mem1_wdata;
+  input s_axi4_mem1_wlast;
+  output s_axi4_mem1_wready;
+  input [15:0]s_axi4_mem1_wstrb;
+  input s_axi4_mem1_wvalid;
   output s_axi4_mem_aclk;
   output [0:0]s_axi4_mem_aresetn;
 
@@ -214,6 +292,45 @@ module design_1
   wire s_axi4_mem0_wready;
   wire [15:0]s_axi4_mem0_wstrb;
   wire s_axi4_mem0_wvalid;
+  wire [48:0]s_axi4_mem1_araddr;
+  wire [1:0]s_axi4_mem1_arburst;
+  wire [3:0]s_axi4_mem1_arcache;
+  wire [5:0]s_axi4_mem1_arid;
+  wire [7:0]s_axi4_mem1_arlen;
+  wire s_axi4_mem1_arlock;
+  wire [2:0]s_axi4_mem1_arprot;
+  wire [3:0]s_axi4_mem1_arqos;
+  wire s_axi4_mem1_arready;
+  wire [2:0]s_axi4_mem1_arsize;
+  wire s_axi4_mem1_aruser;
+  wire s_axi4_mem1_arvalid;
+  wire [48:0]s_axi4_mem1_awaddr;
+  wire [1:0]s_axi4_mem1_awburst;
+  wire [3:0]s_axi4_mem1_awcache;
+  wire [5:0]s_axi4_mem1_awid;
+  wire [7:0]s_axi4_mem1_awlen;
+  wire s_axi4_mem1_awlock;
+  wire [2:0]s_axi4_mem1_awprot;
+  wire [3:0]s_axi4_mem1_awqos;
+  wire s_axi4_mem1_awready;
+  wire [2:0]s_axi4_mem1_awsize;
+  wire s_axi4_mem1_awuser;
+  wire s_axi4_mem1_awvalid;
+  wire [5:0]s_axi4_mem1_bid;
+  wire s_axi4_mem1_bready;
+  wire [1:0]s_axi4_mem1_bresp;
+  wire s_axi4_mem1_bvalid;
+  wire [127:0]s_axi4_mem1_rdata;
+  wire [5:0]s_axi4_mem1_rid;
+  wire s_axi4_mem1_rlast;
+  wire s_axi4_mem1_rready;
+  wire [1:0]s_axi4_mem1_rresp;
+  wire s_axi4_mem1_rvalid;
+  wire [127:0]s_axi4_mem1_wdata;
+  wire s_axi4_mem1_wlast;
+  wire s_axi4_mem1_wready;
+  wire [15:0]s_axi4_mem1_wstrb;
+  wire s_axi4_mem1_wvalid;
   wire s_axi4_mem_aclk;
   wire [0:0]s_axi4_mem_aresetn;
   
