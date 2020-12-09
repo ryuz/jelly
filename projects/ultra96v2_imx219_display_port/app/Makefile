@@ -28,7 +28,7 @@ clean:
 
 .PHONY: run
 run: $(TARGET) load
-	./$(TARGET)
+	./$(TARGET) -back_image test.jpg
 
 .PHONY: run_server
 run_server: load

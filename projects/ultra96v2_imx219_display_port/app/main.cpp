@@ -361,14 +361,16 @@ int main(int argc, char *argv[])
     reg_vsgen.WriteReg(REG_VIDEO_VSGEN_CTL_CONTROL,          1);
 #endif
 
-    cv::imshow("DisplayPort", imgBack);
+//  cv::imshow("DisplayPort", imgBack);
     
     int key;
     int gamma_prev = 0;
     while ( (key = cv::waitKey(10)) != 0x1b ) {
         cv::Mat img(height, width, CV_8UC3);
-        udmabuf_acc.ReadImage2d(3, width, height, img.data, 0, 0, 0, 0, 1920*3);
-        cv::imshow("Camera", img);
+        udmabuf_acc.ReadImage2d(3, width, height, img.data, 0, 0, 0, 0, dp_hres*3);
+        cv::Mat imgView;
+        cv::resize(img, imgView, cv::Size(), 0.25, 0.25);
+        cv::imshow("Camera", imgView);
         cv::createTrackbar("fps",       "Camera", &frame_rate, 1000);
         cv::createTrackbar("exposure",  "Camera", &exposure, 1000);
         cv::createTrackbar("a_gain",    "Camera", &a_gain, 20);
@@ -419,8 +421,8 @@ int main(int argc, char *argv[])
         
 
         // display port
-        cv::createTrackbar("h", "DisplayPort", &h_start, 200);
-        cv::createTrackbar("v", "DisplayPort", &v_start, 100);
+//      cv::createTrackbar("h", "DisplayPort", &h_start, 200);
+//      cv::createTrackbar("v", "DisplayPort", &v_start, 100);
         reg_vsgen.WriteReg(REG_VIDEO_ADJDE_PARAM_HSTART, h_start);
         reg_vsgen.WriteReg(REG_VIDEO_ADJDE_PARAM_VSTART, v_start);
         reg_vsgen.WriteReg(REG_VIDEO_ADJDE_CTL_CONTROL, 3);
