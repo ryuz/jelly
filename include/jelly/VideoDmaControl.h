@@ -9,9 +9,11 @@
 #define __JELLY__VEDEO_DMA_CONTORL__H__
 
 
+#include <iostream>
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <unistd.h>
 
 #include "MemAccessor.h"
 #include "JellyRegs.h"
@@ -168,7 +170,7 @@ protected:
             WriteReg(REG_VIDEO_WDMA_PARAM_ADDR,   addr + offset);
             WriteReg(REG_VIDEO_WDMA_PARAM_STRIDE, line_step);
             WriteReg(REG_VIDEO_WDMA_PARAM_WIDTH,  width);
-            WriteReg(REG_VIDEO_WDMA_PARAM_WIDTH,  height);
+            WriteReg(REG_VIDEO_WDMA_PARAM_HEIGHT, height);
             WriteReg(REG_VIDEO_WDMA_PARAM_SIZE,   width*height*frames);
             WriteReg(REG_VIDEO_WDMA_PARAM_AWLEN,  m_len_max);
             WriteReg(REG_VIDEO_WDMA_CTL_CONTROL,  control);
@@ -178,7 +180,7 @@ protected:
             WriteReg(REG_VIDEO_RDMA_PARAM_ADDR,   addr + offset);
             WriteReg(REG_VIDEO_RDMA_PARAM_STRIDE, line_step);
             WriteReg(REG_VIDEO_RDMA_PARAM_WIDTH,  width);
-            WriteReg(REG_VIDEO_RDMA_PARAM_WIDTH,  height);
+            WriteReg(REG_VIDEO_RDMA_PARAM_HEIGHT, height);
             WriteReg(REG_VIDEO_RDMA_PARAM_SIZE,   width*height*frames);
             WriteReg(REG_VIDEO_RDMA_PARAM_ARLEN,  m_len_max);
             WriteReg(REG_VIDEO_RDMA_CTL_CONTROL,  control);
