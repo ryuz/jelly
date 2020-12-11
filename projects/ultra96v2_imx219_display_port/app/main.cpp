@@ -313,9 +313,12 @@ int main(int argc, char *argv[])
 
 
     // Camera DMA write start
+    int offset_x = (dp_hres - width) / 2;
+    int offset_y = (dp_vres - height) / 2;
     vdmaw.SetBufferAddr(dmabuf_addr);
     vdmaw.SetImageSize(width, height);
     vdmaw.SetImageStep(dp_hres*3);
+    vdmaw.SetOffset(offset_x, offset_y);
     vdmaw.Start();
 
     // camera video format regularizer
@@ -327,7 +330,6 @@ int main(int argc, char *argv[])
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_TIMEOUT,     100000);
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL,       0x03);
     usleep(100000);
-
 
     // DisplayPort DMA read start
     vdmar.SetBufferAddr(dmabuf_addr);
@@ -361,13 +363,15 @@ int main(int argc, char *argv[])
     reg_vsgen.WriteReg(REG_VIDEO_VSGEN_CTL_CONTROL,          1);
 #endif
 
-//  cv::imshow("DisplayPort", imgBack);
+    cv::imshow("DisplayPort", imgBack);
+    cv::createTrackbar("h", "DisplayPort", &h_start, 200);
+    cv::createTrackbar("v", "DisplayPort", &v_start, 100);
     
     int key;
     int gamma_prev = 0;
     while ( (key = cv::waitKey(10)) != 0x1b ) {
         cv::Mat img(height, width, CV_8UC3);
-        udmabuf_acc.ReadImage2d(3, width, height, img.data, 0, 0, 0, 0, dp_hres*3);
+        udmabuf_acc.ReadImage2d(3, width, height, img.data, 0, 0, 0, 0, dp_hres*3, offset_x, offset_y);
         cv::Mat imgView;
         cv::resize(img, imgView, cv::Size(), 0.25, 0.25);
         cv::imshow("Camera", imgView);
@@ -421,8 +425,6 @@ int main(int argc, char *argv[])
         
 
         // display port
-//      cv::createTrackbar("h", "DisplayPort", &h_start, 200);
-//      cv::createTrackbar("v", "DisplayPort", &v_start, 100);
         reg_vsgen.WriteReg(REG_VIDEO_ADJDE_PARAM_HSTART, h_start);
         reg_vsgen.WriteReg(REG_VIDEO_ADJDE_PARAM_VSTART, v_start);
         reg_vsgen.WriteReg(REG_VIDEO_ADJDE_CTL_CONTROL, 3);

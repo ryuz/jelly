@@ -87,6 +87,12 @@ public:
         m_frames = frames;
     }
 
+    void SetOffset(int x, int y)
+    {
+        m_offset_x = x;
+        m_offset_y = y;
+    }
+
     void SetImageStep(int line_step, int frame_step=0)
     {
         m_line_step  = line_step;
