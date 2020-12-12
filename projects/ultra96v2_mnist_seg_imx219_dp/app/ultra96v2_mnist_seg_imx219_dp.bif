@@ -1,0 +1,5 @@
+all:
+{
+    ultra96v2_mnist_seg_imx219_dp.bit
+}
+
