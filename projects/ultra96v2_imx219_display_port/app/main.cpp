@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
     int     a_gain      = 20;
     int     d_gain      = 1;
     int     bayer_phase = 1;
-    int     view_scale  = 1;
+    int     view_scale  = 2;
     int     view_x      = -1;
     int     view_y      = -1;
     bool    colmat_en   = false;
@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
             a_gain      = 20;
             d_gain      = 0;
             bayer_phase = 1;
-            view_scale  = 1;
+            view_scale  = 2;
         }
         else if ( strcmp(argv[i], "full") == 0 ) {
             pixel_clock = 91000000;
@@ -373,7 +373,7 @@ int main(int argc, char *argv[])
         cv::Mat img(height, width, CV_8UC3);
         udmabuf_acc.ReadImage2d(3, width, height, img.data, 0, 0, 0, 0, dp_hres*3, offset_x, offset_y);
         cv::Mat imgView;
-        cv::resize(img, imgView, cv::Size(), 0.25, 0.25);
+        cv::resize(img, imgView, cv::Size(), 1.0/view_scale, 1.0/view_scale);
         cv::imshow("Camera", imgView);
         cv::createTrackbar("fps",       "Camera", &frame_rate, 1000);
         cv::createTrackbar("exposure",  "Camera", &exposure, 1000);
@@ -445,6 +445,9 @@ int main(int argc, char *argv[])
         case '7':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 7); break;
         case '8':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 8); break;
         case '9':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 9); break;
+
+        case '+':   view_scale = std::max(view_scale/2, 1); break;
+        case '-':   view_scale = std::min(view_scale*2, 8); break;
         }
     }
     

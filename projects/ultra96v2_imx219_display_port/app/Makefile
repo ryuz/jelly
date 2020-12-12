@@ -3,6 +3,8 @@ TARGET    = ultra96v2_imx219_display_port.out
 DT_NAME   = ultra96v2_imx219_display_port
 BIT_NAME  = ultra96v2_imx219_display_port
 
+RUN_OPT  ?=
+
 DTS_FILE  = $(DT_NAME).dts
 DTBO_FILE = $(DT_NAME).dtbo
 
@@ -28,7 +30,7 @@ clean:
 
 .PHONY: run
 run: $(TARGET) load
-	./$(TARGET) -back_image test.jpg
+	./$(TARGET) $(RUN_OPT)
 
 .PHONY: run_server
 run_server: load
