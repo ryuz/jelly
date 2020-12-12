@@ -8,6 +8,7 @@
 *.obj
 *.vcd
 *.elf
+*.xsa
 
 *.bmp
 *.png
@@ -19,6 +20,8 @@
 *.mp4
 *.avi
 *.*_
+*_.*
+*_
 
 *.ncb
 *.opt
@@ -72,6 +75,10 @@
 *.ncd
 *.ngm
 *.psr
+*.xbcd
+*.lst
+*.lnk
+
 veritak_src_files.txt
 veritak_command.txt
 p_temp*.txt
@@ -79,6 +86,13 @@ out*.txt
 exp*.txt
 axi4_read*.txt
 axi4_write*.txt
+axi4_*_read.txt
+axi4_*_write.txt
+axi4_mem*_read*.txt
+axi4_mem*_write*.txt
+memo.txt
+
+*.txt
 
 Debug/
 Release/
@@ -97,6 +111,7 @@ _xmsgs/
 *.ip_user_files/
 .ipynb_checkpoints/
 doc/build/
+workspace/
 
 **/ip/*
 
