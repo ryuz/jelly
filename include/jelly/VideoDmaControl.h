@@ -105,13 +105,13 @@ public:
         return StartDma(m_buf_addr, m_width, m_height, m_frames, m_line_step, m_frame_step, m_offset_x, m_offset_y, false, m_auto_buf);
     }
 
-    bool Stop(void)
+    bool Stop(int timeout=1000)
     {
         StopDma();
-        return WaitDma();
+        return WaitForStop(timeout);
     }
 
-    bool Oneshot(std::uintptr_t addr, int width, int height, int frames=1, int line_step=0, int frame_step=0, int offset_x=0, int offset_y=0)
+    bool Oneshot(std::uintptr_t addr, int width, int height, int frames=1, int line_step=0, int frame_step=0, int offset_x=0, int offset_y=0, int timeout=0)
     {
         // 一度止める
         auto old_busy = m_busy;
@@ -119,7 +119,13 @@ public:
 
         // ワンショット転送
         StartDma(addr, width, height, frames, line_step, frame_step, offset_x, offset_y, true, false);
-        WaitDma();
+        
+        // 完了待ち
+        if ( timeout == 0 ) { timeout = 100*frames; } 
+        if ( !WaitForStop(timeout) ) {
+            std::cerr << "DMA stop timeout" << std::endl;
+            return false;
+        }
 
         // 動いていたなら再開
         if ( old_busy) {
@@ -129,6 +135,25 @@ public:
         return true;
     }
 
+    bool StartOneshot(std::uintptr_t addr, int width, int height, int frames=1, int line_step=0, int frame_step=0, int offset_x=0, int offset_y=0)
+    {
+        // ワンショット開始
+        Stop();
+        return StartDma(addr, width, height, frames, line_step, frame_step, offset_x, offset_y, true, false);
+    }
+
+    bool WaitForStop(int timeout=-1)
+    {
+        int i = 0;
+        while ( IsBusyDma() ) {
+            if ( timeout >= 0 && i >= timeout ) {
+                return false;   // timeout
+            }
+            usleep(1000);
+            i++;
+        }
+        return true;
+    }
 
 protected:
 
@@ -232,35 +257,27 @@ protected:
     {
         switch ( m_core_id ) {
         case CORE_ID_DMA_STREAM_WRITE:      // Write DMA
-            return (ReadReg(REG_VDMA_WRITE_CTL_STATUS) != 0);
+            m_busy = (ReadReg(REG_VDMA_WRITE_CTL_STATUS) != 0);
+            break;
 
         case CORE_ID_DMA_STREAM_READ:       // Read DMA
-            return (ReadReg(REG_VDMA_READ_CTL_STATUS) != 0);
-        
+            m_busy = (ReadReg(REG_VDMA_READ_CTL_STATUS) != 0);
+            break;
+
         case CORE_ID_VDMA_AXI4S_TO_AXI4:    // 旧Write DMA
-            return (ReadReg(REG_VIDEO_WDMA_CTL_STATUS) != 0);
+            m_busy = (ReadReg(REG_VIDEO_WDMA_CTL_STATUS) != 0);
+            break;
 
         case CORE_ID_VDMA_AXI4_TO_AXI4S:    // 旧Read DMA
-            return (ReadReg(REG_VIDEO_RDMA_CTL_STATUS) != 0);
+            m_busy = (ReadReg(REG_VIDEO_RDMA_CTL_STATUS) != 0);
+            break;
 
         default:
             return false;
         }
-    }
 
-    bool WaitDma(void)
-    {
-        for ( int i = 0; i < 5000; ++i ) {
-            if ( !IsBusyDma() ) {
-                m_busy = false;
-                return true;
-            }
-            usleep(1000);
-        }
-        std::cerr << "DMA stop timeout" << std::endl;
-        return false;
+        return m_busy;
     }
-
 };
 
 }

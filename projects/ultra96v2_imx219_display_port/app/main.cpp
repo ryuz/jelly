@@ -92,6 +92,22 @@ int main(int argc, char *argv[])
             bayer_phase = 1;
             view_scale  = 2;
         }
+        else if ( strcmp(argv[i], "1080p") == 0 ) {
+            pixel_clock = 91000000.0;
+            binning     = false;
+            width       = 1920;
+            height      = 1080;
+            aoi_x       = -1;
+            aoi_y       = -1;
+            flip_h      = false;
+            flip_v      = false;
+            frame_rate  = 60;
+            exposure    = 20;
+            a_gain      = 20;
+            d_gain      = 0;
+            bayer_phase = 1;
+            view_scale  = 2;
+        }
         else if ( strcmp(argv[i], "full") == 0 ) {
             pixel_clock = 91000000;
             binning    = false;
