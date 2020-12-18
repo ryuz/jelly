@@ -149,13 +149,25 @@ module jelly_address_generator_nd
                     if ( tmp_last ) begin
                         tmp_last = reg_last[i];
                         if ( tmp_last && i < N-1 ) begin
-                            next_len  [i*LEN_WIDTH +: LEN_WIDTH] = ff_s_len[i*LEN_WIDTH  +: LEN_WIDTH] - (1'b1 - LEN_OFFSET);
+//                          next_addr [0*LEN_WIDTH +: LEN_WIDTH] = reg_addr[i*LEN_WIDTH +: LEN_WIDTH];
+                            next_len  [i*LEN_WIDTH +: LEN_WIDTH] = ff_s_len[i*LEN_WIDTH +: LEN_WIDTH] - (1'b1 - LEN_OFFSET);
                             next_first[i]                        = 1'b1;
                         end
                         else begin
-                            next_addr[i*LEN_WIDTH +: LEN_WIDTH] = reg_addr[i*LEN_WIDTH +: LEN_WIDTH] + ff_s_step[i*STEP_WIDTH +: STEP_WIDTH];
+//                          next_addr[i*LEN_WIDTH +: LEN_WIDTH] = reg_addr[i*LEN_WIDTH +: LEN_WIDTH] + ff_s_step[i*STEP_WIDTH +: STEP_WIDTH];
                             next_len [i*LEN_WIDTH +: LEN_WIDTH] = reg_len[i*LEN_WIDTH +: LEN_WIDTH] - 1'b1;
                         end
+                    end
+                end
+                
+                for ( i = N-1; i >= 0; i = i-1 ) begin
+                    if ( i == 0 || reg_last[i-1] ) begin
+                        next_addr[i*LEN_WIDTH +: LEN_WIDTH] = reg_addr[i*LEN_WIDTH +: LEN_WIDTH] + ff_s_step[i*STEP_WIDTH +: STEP_WIDTH];
+                    end
+                end
+                for ( i = N-2; i >= 0; i = i-1 ) begin
+                    if ( reg_last[i] ) begin
+                        next_addr[i*LEN_WIDTH +: LEN_WIDTH] = next_addr[(i+1)*LEN_WIDTH +: LEN_WIDTH];
                     end
                 end
             end

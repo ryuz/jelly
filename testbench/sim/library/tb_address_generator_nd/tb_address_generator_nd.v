@@ -15,7 +15,7 @@ module tb_address_generator_nd();
     end
     
     
-    parameter   RAND_BUSY = 0;
+    parameter   RAND_BUSY = 1;
     
     
     reg     clk = 1'b1;
