@@ -336,6 +336,7 @@ module design_1
   
   
     localparam RATE100 = 1000.0/100.00;
+    localparam RATE150 = 1000.0/150.00;
     localparam RATE200 = 1000.0/200.00;
     localparam RATE250 = 1000.0/250.00;
     localparam RATE133 = 1000.0/133.33;
@@ -346,6 +347,9 @@ module design_1
     reg         clk100 = 1'b1;
     always #(RATE100/2.0) clk100 <= ~clk100;
     
+    reg         clk150 = 1'b1;
+    always #(RATE150/2.0) clk150 <= ~clk150;
+    
     reg         clk200 = 1'b1;
     always #(RATE200/2.0) clk200 <= ~clk200;
     
@@ -355,6 +359,11 @@ module design_1
     reg         clk133 = 1'b1;
     always #(RATE133/2.0) clk133 <= ~clk133;
     
+    
+    assign dp_video_ref_clk      = clk150;
+    assign dp_video_ref_reset    = reset;
+    assign dp_video_out_hsync    = 0;
+    assign dp_video_out_vsync    = 0;
     
     assign out_reset             = reset;
     assign out_clk100            = clk100;

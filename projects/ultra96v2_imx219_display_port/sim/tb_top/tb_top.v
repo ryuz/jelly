@@ -14,7 +14,9 @@ module tb_top();
     
     initial begin
         $dumpfile("tb_top.vcd");
-        $dumpvars(0, tb_top);
+        $dumpvars(1, tb_top);
+        $dumpvars(1, tb_top.i_top);
+        $dumpvars(0, tb_top.i_top.i_dma_video_read);
         
     #100000000
         $finish;
@@ -177,98 +179,70 @@ module tb_top();
     
     
     
-/* DMA Stream write */
-`define REG_DMA_WRITE_CORE_ID                   8'h00
-`define REG_DMA_WRITE_CORE_VERSION              8'h01
-`define REG_DMA_WRITE_CORE_CONFIG               8'h03
-`define REG_DMA_WRITE_CTL_CONTROL               8'h04
-`define REG_DMA_WRITE_CTL_STATUS                8'h05
-`define REG_DMA_WRITE_CTL_INDEX                 8'h07
-`define REG_DMA_WRITE_IRQ_ENABLE                8'h08
-`define REG_DMA_WRITE_IRQ_STATUS                8'h09
-`define REG_DMA_WRITE_IRQ_CLR                   8'h0a
-`define REG_DMA_WRITE_IRQ_SET                   8'h0b
-`define REG_DMA_WRITE_PARAM_AWADDR              8'h10
-`define REG_DMA_WRITE_PARAM_AWOFFSET            8'h18
-`define REG_DMA_WRITE_PARAM_AWLEN_MAX           8'h1c
-`define REG_DMA_WRITE_PARAM_AWLEN0              8'h20
-`define REG_DMA_WRITE_PARAM_AWLEN1              8'h24
-`define REG_DMA_WRITE_PARAM_AWSTEP1             8'h25
-`define REG_DMA_WRITE_PARAM_AWLEN2              8'h28
-`define REG_DMA_WRITE_PARAM_AWSTEP2             8'h29
-`define REG_DMA_WRITE_PARAM_AWLEN3              8'h2c
-`define REG_DMA_WRITE_PARAM_AWSTEP3             8'h2d
-`define REG_DMA_WRITE_PARAM_AWLEN4              8'h30
-`define REG_DMA_WRITE_PARAM_AWSTEP4             8'h31
-`define REG_DMA_WRITE_PARAM_AWLEN5              8'h34
-`define REG_DMA_WRITE_PARAM_AWSTEP5             8'h35
-`define REG_DMA_WRITE_PARAM_AWLEN6              8'h38
-`define REG_DMA_WRITE_PARAM_AWSTEP6             8'h39
-`define REG_DMA_WRITE_PARAM_AWLEN7              8'h3c
-`define REG_DMA_WRITE_PARAM_AWSTEP7             8'h3d
-`define REG_DMA_WRITE_PARAM_AWLEN8              8'h30
-`define REG_DMA_WRITE_PARAM_AWSTEP8             8'h31
-`define REG_DMA_WRITE_PARAM_AWLEN9              8'h44
-`define REG_DMA_WRITE_PARAM_AWSTEP9             8'h45
-`define REG_DMA_WRITE_WSKIP_EN                  8'h70
-`define REG_DMA_WRITE_WDETECT_FIRST             8'h72
-`define REG_DMA_WRITE_WDETECT_LAST              8'h73
-`define REG_DMA_WRITE_WPADDING_EN               8'h74
-`define REG_DMA_WRITE_WPADDING_DATA             8'h75
-`define REG_DMA_WRITE_WPADDING_STRB             8'h76
-`define REG_DMA_WRITE_SHADOW_AWADDR             8'h90
-`define REG_DMA_WRITE_SHADOW_AWLEN_MAX          8'h91
-`define REG_DMA_WRITE_SHADOW_AWLEN0             8'ha0
-`define REG_DMA_WRITE_SHADOW_AWLEN1             8'ha4
-`define REG_DMA_WRITE_SHADOW_AWSTEP1            8'ha5
-`define REG_DMA_WRITE_SHADOW_AWLEN2             8'ha8
-`define REG_DMA_WRITE_SHADOW_AWSTEP2            8'ha9
-`define REG_DMA_WRITE_SHADOW_AWLEN3             8'hac
-`define REG_DMA_WRITE_SHADOW_AWSTEP3            8'had
-`define REG_DMA_WRITE_SHADOW_AWLEN4             8'hb0
-`define REG_DMA_WRITE_SHADOW_AWSTEP4            8'hb1
-`define REG_DMA_WRITE_SHADOW_AWLEN5             8'hb4
-`define REG_DMA_WRITE_SHADOW_AWSTEP5            8'hb5
-`define REG_DMA_WRITE_SHADOW_AWLEN6             8'hb8
-`define REG_DMA_WRITE_SHADOW_AWSTEP6            8'hb9
-`define REG_DMA_WRITE_SHADOW_AWLEN7             8'hbc
-`define REG_DMA_WRITE_SHADOW_AWSTEP7            8'hbd
-`define REG_DMA_WRITE_SHADOW_AWLEN8             8'hb0
-`define REG_DMA_WRITE_SHADOW_AWSTEP8            8'hb1
-`define REG_DMA_WRITE_SHADOW_AWLEN9             8'hc4
-`define REG_DMA_WRITE_SHADOW_AWSTEP9            8'hc5
+    /* DMA Stream write */
+    localparam REG_DMA_WRITE_CORE_ID         = 8'h00;
+    localparam REG_DMA_WRITE_CORE_VERSION    = 8'h01;
+    localparam REG_DMA_WRITE_CORE_CONFIG     = 8'h03;
+    localparam REG_DMA_WRITE_CTL_CONTROL     = 8'h04;
+    localparam REG_DMA_WRITE_CTL_STATUS      = 8'h05;
+    localparam REG_DMA_WRITE_CTL_INDEX       = 8'h07;
+    localparam REG_DMA_WRITE_IRQ_ENABLE      = 8'h08;
+    localparam REG_DMA_WRITE_IRQ_STATUS      = 8'h09;
+    localparam REG_DMA_WRITE_IRQ_CLR         = 8'h0a;
+    localparam REG_DMA_WRITE_IRQ_SET         = 8'h0b;
+    localparam REG_DMA_WRITE_PARAM_AWADDR    = 8'h10;
+    localparam REG_DMA_WRITE_PARAM_AWOFFSET  = 8'h18;
+    localparam REG_DMA_WRITE_PARAM_AWLEN_MAX = 8'h1c;
+    localparam REG_DMA_WRITE_PARAM_AWLEN0    = 8'h20;
+    localparam REG_DMA_WRITE_PARAM_AWLEN1    = 8'h24;
+    localparam REG_DMA_WRITE_PARAM_AWSTEP1   = 8'h25;
+    localparam REG_DMA_WRITE_PARAM_AWLEN2    = 8'h28;
+    localparam REG_DMA_WRITE_PARAM_AWSTEP2   = 8'h29;
+    localparam REG_DMA_WRITE_PARAM_AWLEN3    = 8'h2c;
+    localparam REG_DMA_WRITE_PARAM_AWSTEP3   = 8'h2d;
+    localparam REG_DMA_WRITE_PARAM_AWLEN4    = 8'h30;
+    localparam REG_DMA_WRITE_PARAM_AWSTEP4   = 8'h31;
+    localparam REG_DMA_WRITE_PARAM_AWLEN5    = 8'h34;
+    localparam REG_DMA_WRITE_PARAM_AWSTEP5   = 8'h35;
+    localparam REG_DMA_WRITE_PARAM_AWLEN6    = 8'h38;
+    localparam REG_DMA_WRITE_PARAM_AWSTEP6   = 8'h39;
+    localparam REG_DMA_WRITE_PARAM_AWLEN7    = 8'h3c;
+    localparam REG_DMA_WRITE_PARAM_AWSTEP7   = 8'h3d;
+    localparam REG_DMA_WRITE_PARAM_AWLEN8    = 8'h30;
+    localparam REG_DMA_WRITE_PARAM_AWSTEP8   = 8'h31;
+    localparam REG_DMA_WRITE_PARAM_AWLEN9    = 8'h44;
+    localparam REG_DMA_WRITE_PARAM_AWSTEP9   = 8'h45;
+    localparam REG_DMA_WRITE_WSKIP_EN        = 8'h70;
+    localparam REG_DMA_WRITE_WDETECT_FIRST   = 8'h72;
+    localparam REG_DMA_WRITE_WDETECT_LAST    = 8'h73;
+    localparam REG_DMA_WRITE_WPADDING_EN     = 8'h74;
+    localparam REG_DMA_WRITE_WPADDING_DATA   = 8'h75;
+    localparam REG_DMA_WRITE_WPADDING_STRB   = 8'h76;
 
-`define REG_VDMA_WRITE_CORE_ID                  `REG_DMA_WRITE_CORE_ID
-`define REG_VDMA_WRITE_CORE_VERSION             `REG_DMA_WRITE_CORE_VERSION
-`define REG_VDMA_WRITE_CORE_CONFIG              `REG_DMA_WRITE_CORE_CONFIG
-`define REG_VDMA_WRITE_CTL_CONTROL              `REG_DMA_WRITE_CTL_CONTROL
-`define REG_VDMA_WRITE_CTL_STATUS               `REG_DMA_WRITE_CTL_STATUS
-`define REG_VDMA_WRITE_CTL_INDEX                `REG_DMA_WRITE_CTL_INDEX
-`define REG_VDMA_WRITE_IRQ_ENABLE               `REG_DMA_WRITE_IRQ_ENABLE
-`define REG_VDMA_WRITE_IRQ_STATUS               `REG_DMA_WRITE_IRQ_STATUS
-`define REG_VDMA_WRITE_IRQ_CLR                  `REG_DMA_WRITE_IRQ_CLR
-`define REG_VDMA_WRITE_IRQ_SET                  `REG_DMA_WRITE_IRQ_SET
-`define REG_VDMA_WRITE_PARAM_ADDR               `REG_DMA_WRITE_PARAM_AWADDR
-`define REG_VDMA_WRITE_PARAM_OFFSET             `REG_DMA_WRITE_PARAM_AWOFFSET
-`define REG_VDMA_WRITE_PARAM_AWLEN_MAX          `REG_DMA_WRITE_PARAM_AWLEN_MAX
-`define REG_VDMA_WRITE_PARAM_H_SIZE             `REG_DMA_WRITE_PARAM_AWLEN0
-`define REG_VDMA_WRITE_PARAM_V_SIZE             `REG_DMA_WRITE_PARAM_AWLEN1
-`define REG_VDMA_WRITE_PARAM_LINE_STEP          `REG_DMA_WRITE_PARAM_AWSTEP1
-`define REG_VDMA_WRITE_PARAM_F_SIZE             `REG_DMA_WRITE_PARAM_AWLEN2
-`define REG_VDMA_WRITE_PARAM_FRAME_STEP         `REG_DMA_WRITE_PARAM_AWSTEP2
-`define REG_VDMA_WRITE_SKIP_EN                  `REG_DMA_WRITE_WSKIP_EN
-`define REG_VDMA_WRITE_DETECT_FIRST             `REG_DMA_WRITE_WDETECT_FIRST
-`define REG_VDMA_WRITE_DETECT_LAST              `REG_DMA_WRITE_WDETECT_LAST
-`define REG_VDMA_WRITE_PADDING_EN               `REG_DMA_WRITE_WPADDING_EN
-`define REG_VDMA_WRITE_PADDING_DATA             `REG_DMA_WRITE_WPADDING_DATA
-`define REG_VDMA_WRITE_PADDING_STRB             `REG_DMA_WRITE_WPADDING_STRB
-`define REG_VDMA_WRITE_SHADOW_ADDR              `REG_DMA_WRITE_SHADOW_AWADDR
-`define REG_VDMA_WRITE_SHADOW_AWLEN_MAX         `REG_DMA_WRITE_SHADOW_AWLEN_MAX
-`define REG_VDMA_WRITE_SHADOW_H_SIZE            `REG_DMA_WRITE_SHADOW_AWLEN0
-`define REG_VDMA_WRITE_SHADOW_V_SIZE            `REG_DMA_WRITE_SHADOW_AWLEN1
-`define REG_VDMA_WRITE_SHADOW_LINE_STEP         `REG_DMA_WRITE_SHADOW_AWSTEP1
-`define REG_VDMA_WRITE_SHADOW_F_SIZE            `REG_DMA_WRITE_SHADOW_AWLEN2
-`define REG_VDMA_WRITE_SHADOW_FRAME_STEP        `REG_DMA_WRITE_SHADOW_AWSTEP2
+    localparam REG_VDMA_WRITE_CORE_ID          = REG_DMA_WRITE_CORE_ID;
+    localparam REG_VDMA_WRITE_CORE_VERSION     = REG_DMA_WRITE_CORE_VERSION;
+    localparam REG_VDMA_WRITE_CORE_CONFIG      = REG_DMA_WRITE_CORE_CONFIG;
+    localparam REG_VDMA_WRITE_CTL_CONTROL      = REG_DMA_WRITE_CTL_CONTROL;
+    localparam REG_VDMA_WRITE_CTL_STATUS       = REG_DMA_WRITE_CTL_STATUS;
+    localparam REG_VDMA_WRITE_CTL_INDEX        = REG_DMA_WRITE_CTL_INDEX;
+    localparam REG_VDMA_WRITE_IRQ_ENABLE       = REG_DMA_WRITE_IRQ_ENABLE;
+    localparam REG_VDMA_WRITE_IRQ_STATUS       = REG_DMA_WRITE_IRQ_STATUS;
+    localparam REG_VDMA_WRITE_IRQ_CLR          = REG_DMA_WRITE_IRQ_CLR;
+    localparam REG_VDMA_WRITE_IRQ_SET          = REG_DMA_WRITE_IRQ_SET;
+    localparam REG_VDMA_WRITE_PARAM_ADDR       = REG_DMA_WRITE_PARAM_AWADDR;
+    localparam REG_VDMA_WRITE_PARAM_OFFSET     = REG_DMA_WRITE_PARAM_AWOFFSET;
+    localparam REG_VDMA_WRITE_PARAM_AWLEN_MAX  = REG_DMA_WRITE_PARAM_AWLEN_MAX;
+    localparam REG_VDMA_WRITE_PARAM_H_SIZE     = REG_DMA_WRITE_PARAM_AWLEN0;
+    localparam REG_VDMA_WRITE_PARAM_V_SIZE     = REG_DMA_WRITE_PARAM_AWLEN1;
+    localparam REG_VDMA_WRITE_PARAM_LINE_STEP  = REG_DMA_WRITE_PARAM_AWSTEP1;
+    localparam REG_VDMA_WRITE_PARAM_F_SIZE     = REG_DMA_WRITE_PARAM_AWLEN2;
+    localparam REG_VDMA_WRITE_PARAM_FRAME_STEP = REG_DMA_WRITE_PARAM_AWSTEP2;
+    localparam REG_VDMA_WRITE_SKIP_EN          = REG_DMA_WRITE_WSKIP_EN;
+    localparam REG_VDMA_WRITE_DETECT_FIRST     = REG_DMA_WRITE_WDETECT_FIRST;
+    localparam REG_VDMA_WRITE_DETECT_LAST      = REG_DMA_WRITE_WDETECT_LAST;
+    localparam REG_VDMA_WRITE_PADDING_EN       = REG_DMA_WRITE_WPADDING_EN;
+    localparam REG_VDMA_WRITE_PADDING_DATA     = REG_DMA_WRITE_WPADDING_DATA;
+    localparam REG_VDMA_WRITE_PADDING_STRB     = REG_DMA_WRITE_WPADDING_STRB;
     
     
     initial begin
@@ -299,31 +273,48 @@ module tb_top();
         wb_write((32'h80100020>>3),            1, 8'hff);  // enable
     #100000;
         
-        $display("set write DMA");
-        wb_read ((32'h80320000>>3) + `REG_VDMA_WRITE_CORE_ID);
-        wb_write((32'h80320000>>3) + `REG_VDMA_WRITE_PARAM_ADDR,        32'h30000000, 8'hff);
-        wb_write((32'h80320000>>3) + `REG_VDMA_WRITE_PARAM_OFFSET,      32'h00000000, 8'hff);
-        wb_write((32'h80320000>>3) + `REG_VDMA_WRITE_PARAM_AWLEN_MAX,             31, 8'hff);
-        wb_write((32'h80320000>>3) + `REG_VDMA_WRITE_PARAM_H_SIZE,           X_NUM-1, 8'hff);
-        wb_write((32'h80320000>>3) + `REG_VDMA_WRITE_PARAM_V_SIZE,           Y_NUM-1, 8'hff);
-        wb_write((32'h80320000>>3) + `REG_VDMA_WRITE_PARAM_LINE_STEP,        3*X_NUM, 8'hff);
-        wb_write((32'h80320000>>3) + `REG_VDMA_WRITE_PARAM_F_SIZE,               1-1, 8'hff);
-        wb_write((32'h80320000>>3) + `REG_VDMA_WRITE_PARAM_FRAME_STEP, 3*X_NUM*Y_NUM, 8'hff);
-        wb_write((32'h80320000>>3) + `REG_VDMA_WRITE_CTL_CONTROL,                  3, 8'hff);
+        
+        $display("set read DMA");
+        force i_top.axi4s_vout_tready = 1;
+        wb_read ((32'h80340000>>3) + REG_VDMA_WRITE_CORE_ID);
+        wb_write((32'h80340000>>3) + REG_VDMA_WRITE_PARAM_ADDR,        32'h30000000, 8'hff);
+        wb_write((32'h80340000>>3) + REG_VDMA_WRITE_PARAM_OFFSET,      32'h00000000, 8'hff);
+        wb_write((32'h80340000>>3) + REG_VDMA_WRITE_PARAM_AWLEN_MAX,             31, 8'hff);
+        wb_write((32'h80340000>>3) + REG_VDMA_WRITE_PARAM_H_SIZE,           X_NUM-1, 8'hff);
+        wb_write((32'h80340000>>3) + REG_VDMA_WRITE_PARAM_V_SIZE,           Y_NUM-1, 8'hff);
+        wb_write((32'h80340000>>3) + REG_VDMA_WRITE_PARAM_LINE_STEP,        3*X_NUM, 8'hff);
+        wb_write((32'h80340000>>3) + REG_VDMA_WRITE_PARAM_F_SIZE,               1-1, 8'hff);
+        wb_write((32'h80340000>>3) + REG_VDMA_WRITE_PARAM_FRAME_STEP, 3*X_NUM*Y_NUM, 8'hff);
+        wb_write((32'h80340000>>3) + REG_VDMA_WRITE_CTL_CONTROL,                  3, 8'hff);
     #10000;
-        wb_read ((32'h80320000>>3) + `REG_VDMA_WRITE_CTL_STATUS);
-        wb_read ((32'h80320000>>3) + `REG_VDMA_WRITE_CTL_STATUS);
-        wb_read ((32'h80320000>>3) + `REG_VDMA_WRITE_CTL_STATUS);
-        wb_read ((32'h80320000>>3) + `REG_VDMA_WRITE_CTL_STATUS);
+        
+        
+        
+        $display("set write DMA");
+        wb_read ((32'h80320000>>3) + REG_VDMA_WRITE_CORE_ID);
+        wb_write((32'h80320000>>3) + REG_VDMA_WRITE_PARAM_ADDR,        32'h30000000, 8'hff);
+        wb_write((32'h80320000>>3) + REG_VDMA_WRITE_PARAM_OFFSET,      32'h00000000, 8'hff);
+        wb_write((32'h80320000>>3) + REG_VDMA_WRITE_PARAM_AWLEN_MAX,             31, 8'hff);
+        wb_write((32'h80320000>>3) + REG_VDMA_WRITE_PARAM_H_SIZE,           X_NUM-1, 8'hff);
+        wb_write((32'h80320000>>3) + REG_VDMA_WRITE_PARAM_V_SIZE,           Y_NUM-1, 8'hff);
+        wb_write((32'h80320000>>3) + REG_VDMA_WRITE_PARAM_LINE_STEP,        3*X_NUM, 8'hff);
+        wb_write((32'h80320000>>3) + REG_VDMA_WRITE_PARAM_F_SIZE,               1-1, 8'hff);
+        wb_write((32'h80320000>>3) + REG_VDMA_WRITE_PARAM_FRAME_STEP, 3*X_NUM*Y_NUM, 8'hff);
+        wb_write((32'h80320000>>3) + REG_VDMA_WRITE_CTL_CONTROL,                  3, 8'hff);
+    #10000;
+        wb_read ((32'h80320000>>3) + REG_VDMA_WRITE_CTL_STATUS);
+        wb_read ((32'h80320000>>3) + REG_VDMA_WRITE_CTL_STATUS);
+        wb_read ((32'h80320000>>3) + REG_VDMA_WRITE_CTL_STATUS);
+        wb_read ((32'h80320000>>3) + REG_VDMA_WRITE_CTL_STATUS);
         
     #100000;
-        wb_write((32'h80320000>>3) + `REG_VDMA_WRITE_CTL_CONTROL,                  0, 8'hff);   // stop
+        wb_write((32'h80320000>>3) + REG_VDMA_WRITE_CTL_CONTROL,                  0, 8'hff);   // stop
         
         // 取り込み完了を待つ
-        wb_read ((32'h80320000>>3) + `REG_VDMA_WRITE_CTL_STATUS);
+        wb_read ((32'h80320000>>3) + REG_VDMA_WRITE_CTL_STATUS);
         while ( reg_wb_dat != 0 ) begin
             #10000;
-            wb_read ((32'h80320000>>3) + `REG_VDMA_WRITE_CTL_STATUS);
+            wb_read ((32'h80320000>>3) + REG_VDMA_WRITE_CTL_STATUS);
         end
         #10000;
         
