@@ -1,7 +1,7 @@
 
-TARGET    = zybo_z7_imx219_hdmi.out
-DT_NAME   = zybo_z7_imx219_hdmi
-BIT_NAME  = zybo_z7_imx219_hdmi
+TARGET    = zybo_z7_mnist_cnn_imx219_hdmi.out
+DT_NAME   = zybo_z7_mnist_cnn_imx219_hdmi
+BIT_NAME  = zybo_z7_mnist_cnn_imx219_hdmi
 
 DTS_FILE  = $(DT_NAME).dts
 DTBO_FILE = $(DT_NAME).dtbo

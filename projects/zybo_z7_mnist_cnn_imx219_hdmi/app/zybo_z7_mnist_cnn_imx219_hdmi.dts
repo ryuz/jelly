@@ -7,7 +7,7 @@
             #address-cells = <1>;
             #size-cells = <1>;
 
-            firmware-name = "zybo_z7_imx219_hdmi.bit.bin";
+            firmware-name = "zybo_z7_mnist_cnn_imx219_hdmi.bit.bin";
         };
     };
 
