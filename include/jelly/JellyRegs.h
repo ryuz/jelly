@@ -20,8 +20,8 @@
 #define CORE_ID_VIDEO_VOUT                      0x527A1140
 #define CORE_ID_VSYNC_GENERATOR                 0x527A1150
 #define CORE_ID_VSYNC_ADJUST_DE                 0x527A1152
-#define CORE_ID_VIDEO_NORMALIZER                0x527A1220
 #define CORE_ID_VIDEO_PARAMETER_UPDATE          0x527A1F10
+#define CORE_ID_VIDEO_FMTREG                    0x527a1220
 #define CORE_ID_IMG_PREVIOUS_FRAME              0x527A2010
 #define CORE_ID_IMG_DEMOSAIC_ACPI               0x527A2110
 #define CORE_ID_IMG_GAMMA_CORRECTION            0x527A2120
@@ -267,12 +267,6 @@
 /*  Video                             */
 /* ---------------------------------- */
 
-#define CORE_ID_VIDEO_PRMUP                     0x527a1f10
-#define CORE_ID_VIDEO_WDMA                      0x527a1020
-#define CORE_ID_VIDEO_RDMA                      0x527a1040
-#define CORE_ID_VIDEO_FMTREG                    0x527a1220
-
-
 /* FIFO with DMA */
 #define REG_DAM_FIFO_CORE_ID                    0x00
 #define REG_DAM_FIFO_CORE_VERSION               0x01
@@ -387,6 +381,14 @@
 #define REG_VIDEO_ADJDE_CURRENT_VSIZE           0x19
 #define REG_VIDEO_ADJDE_CURRENT_HSTART          0x1a
 #define REG_VIDEO_ADJDE_CURRENT_VSTART          0x1b
+
+#define REG_VIDEO_BINARIZER_CORE_ID             0x00
+#define REG_VIDEO_BINARIZER_CORE_VERSION        0x01
+#define REG_VIDEO_BINARIZER_CTL_CONTROL         0x04
+#define REG_VIDEO_BINARIZER_CTL_STATUS          0x05
+#define REG_VIDEO_BINARIZER_CTL_INDEX           0x07
+#define REG_VIDEO_BINARIZER_PARAM_TH            0x10
+#define REG_VIDEO_BINARIZER_PARAM_INV           0x11
 
 
 /* ---------------------------------- */
