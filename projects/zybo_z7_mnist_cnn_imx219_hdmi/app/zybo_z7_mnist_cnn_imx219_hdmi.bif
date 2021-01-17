@@ -1,0 +1,5 @@
+all:
+{
+    zybo_z7_mnist_cnn_imx219_hdmi.bit
+}
+

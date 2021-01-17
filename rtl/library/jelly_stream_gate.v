@@ -245,6 +245,8 @@ module jelly_stream_gate
         wire    [N-1:0]     sig_s_first = ({N{ff_s_valid}} & ff_s_first & param_detect_first) | reg_auto_first;
         wire    [N-1:0]     sig_s_last  = ({N{ff_s_valid}} & ff_s_last  & param_detect_last);
         
+        wire    [N-1:0]     param_detect_first2 = (param_detect_first | (detect_last & AUTO_FIRST));
+        
         
         // len count
         reg                     reg_busy;
@@ -280,8 +282,8 @@ module jelly_stream_gate
         wire    sig_start = !reg_busy;
         wire    sig_end   = (!reg_busy && (fifo_s_permit_len == (1'b1 - LEN_OFFSET))) || (reg_busy && reg_end);
         
-        wire    sig_start_overflow  = sig_start && (param_detect_first & fifo_s_permit_first & ~sig_s_first); // 期待するfirstが来ていない(データ余り)
-        wire    sig_start_underflow = sig_start && (param_detect_first & ~fifo_s_permit_first & sig_s_first); // 期待するより先のfirstが来ている(データ不足)
+        wire    sig_start_overflow  = DETECTOR_ENABLE && sig_start && (param_detect_first2 & fifo_s_permit_first & ~sig_s_first); // 期待するfirstが来ていない(データ余り)
+        wire    sig_start_underflow = DETECTOR_ENABLE && sig_start && (param_detect_first2 & ~fifo_s_permit_first & sig_s_first); // 期待するより先のfirstが来ている(データ不足)
         
         reg                     reg_underflow;
         always @(posedge clk) begin
