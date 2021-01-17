@@ -39,6 +39,21 @@ public:
         return std::shared_ptr<AccessorUioManager>(new AccessorUioManager(fname, size, offset, flags));
     }
 
+    void SetIrqEnable(bool enable)
+    {
+        unsigned int  irq_en = enable ? 1 : 0;
+        auto fd = _super::GetFd();
+        write(fd, &irq_en, sizeof(irq_en));
+    }
+    
+    unsigned int WaitIrq(void)
+    {
+        unsigned int    count = 0;
+        auto fd = _super::GetFd();
+        read(fd, &count, sizeof(count));
+        return count;
+    }
+
 protected:
 	bool Mmap(const char* fname, std::size_t size, off_t offset, int flags)
 	{
@@ -140,6 +155,17 @@ public:
 		}
 		return -1;
 	}
+
+    void SetIrqEnable(bool enable)
+    {
+        GetUioManager()->SetIrqEnable(enable);
+    }
+
+    unsigned int WaitIrq(int uio_fd)
+    {
+        return GetUioManager()->WaitIrq();
+    }
+
 };
 
 
