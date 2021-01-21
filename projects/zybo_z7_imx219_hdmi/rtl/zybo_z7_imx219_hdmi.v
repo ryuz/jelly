@@ -699,7 +699,7 @@ module zybo_z7_imx219_hdmi
             );
     */
     
-    // normalize
+    // regularizer
     wire    [0:0]               axi4s_fmtr_tuser;
     wire                        axi4s_fmtr_tlast;
     wire    [9:0]               axi4s_fmtr_tdata;
@@ -1325,7 +1325,7 @@ module zybo_z7_imx219_hdmi
                             wb_vdmaw_stb_i ? wb_vdmaw_dat_o :
                             wb_vdmar_stb_i ? wb_vdmar_dat_o :
                             wb_vsgen_stb_i ? wb_vsgen_dat_o :
-                            32'h0000_0000;
+                            {WB_DAT_WIDTH{1'b0}};
     
     assign wb_peri_ack_o  = wb_gid_stb_i   ? wb_gid_ack_o   :
                             wb_vdmaw_stb_i ? wb_vdmaw_ack_o :

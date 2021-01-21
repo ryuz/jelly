@@ -111,6 +111,7 @@ module jelly_dma_stream_write
             parameter CORE_VERSION         = 32'h0000_0000,
             parameter BYPASS_GATE          = 0,
             parameter BYPASS_ALIGN         = 0,
+            parameter WDETECTOR_CHANGE     = 1,
             parameter WDETECTOR_ENABLE     = 1,
             parameter ALLOW_UNALIGNED      = 1,
             parameter CAPACITY_WIDTH       = 32,
@@ -473,6 +474,10 @@ module jelly_dma_stream_write
                 ADR_PARAM_AWSTEP8:      reg_param_awstep8    <= (N > 8) ? write_mask(reg_param_awstep8,   s_wb_dat_i, s_wb_sel_i) : 0;
                 ADR_PARAM_AWLEN9:       reg_param_awlen9     <= (N > 9) ? write_mask(reg_param_awlen9,    s_wb_dat_i, s_wb_sel_i) : 0;
                 ADR_PARAM_AWSTEP9:      reg_param_awstep9    <= (N > 9) ? write_mask(reg_param_awstep9,   s_wb_dat_i, s_wb_sel_i) : 0;
+                endcase
+                
+                if ( WDETECTOR_CHANGE ) begin
+                case ( s_wb_adr_i )
                 ADR_WSKIP_EN:           reg_wskip_en         <= write_mask(reg_wskip_en,        s_wb_dat_i, s_wb_sel_i);
                 ADR_WDETECT_FIRST:      reg_wdetect_first    <= write_mask(reg_wdetect_first,   s_wb_dat_i, s_wb_sel_i);
                 ADR_WDETECT_LAST:       reg_wdetect_last     <= write_mask(reg_wdetect_last,    s_wb_dat_i, s_wb_sel_i);
@@ -480,6 +485,7 @@ module jelly_dma_stream_write
                 ADR_WPADDING_DATA:      reg_wpadding_data    <= write_mask(reg_wpadding_data,   s_wb_dat_i, s_wb_sel_i);
                 ADR_WPADDING_STRB:      reg_wpadding_strb    <= write_mask(reg_wpadding_strb,   s_wb_dat_i, s_wb_sel_i);
                 endcase
+                end
             end
             
             if ( s_awready ) begin

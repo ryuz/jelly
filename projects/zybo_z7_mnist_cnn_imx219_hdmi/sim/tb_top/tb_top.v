@@ -15,8 +15,9 @@ module tb_top();
     initial begin
         $dumpfile("tb_top.vcd");
         $dumpvars(1, tb_top);
-        $dumpvars(2, tb_top.i_top);
+        $dumpvars(1, tb_top.i_top);
         $dumpvars(1, tb_top.i_top.i_video_mnist);
+        $dumpvars(4, tb_top.i_top.i_video_mnist.i_video_mnist_core);
         
         
     #100000000
@@ -27,9 +28,13 @@ module tb_top();
     always #(RATE125/2.0)   clk125 = ~clk125;
     
     
-    localparam  IMG_FILE = "mnist_test_160x120.ppm";
-    localparam  X_NUM    = 160;
-    localparam  Y_NUM    = 120;
+//    localparam  IMG_FILE = "mnist_test_160x120.ppm";
+//    localparam  X_NUM    = 160;
+//    localparam  Y_NUM    = 120;
+
+    localparam  IMG_FILE = "mnist_test_64x720.ppm";
+    localparam  X_NUM    = 64;
+    localparam  Y_NUM    = 720;
     
     
     
@@ -320,8 +325,8 @@ module tb_top();
     localparam BASE_ADDR_GID   = (32'h40000000 >> 2);
     localparam BASE_ADDR_FMTR  = (32'h40100000 >> 2);
     localparam BASE_ADDR_RGB   = (32'h40200000 >> 2);
-    localparam BASE_ADDR_MNIST = (32'h40200000 >> 2);
-    localparam BASE_ADDR_MCOL  = (32'h40210000 >> 2);
+    localparam BASE_ADDR_MNIST = (32'h40400000 >> 2);
+    localparam BASE_ADDR_MCOL  = (32'h40410000 >> 2);
     localparam BASE_ADDR_BUFM  = (32'h40300000 >> 2);
     localparam BASE_ADDR_BUFA  = (32'h40310000 >> 2);
     localparam BASE_ADDR_VDMAW = (32'h40320000 >> 2);
@@ -331,10 +336,18 @@ module tb_top();
     localparam STRIDE = 8192;
     
     initial begin
-    @(negedge wb_rst_i);
-    #10000;
+    #1000;
         $display("start");
-        wb_write(32'h00010010, 32'h00, 4'b1111);
+        wb_read(BASE_ADDR_GID);     // ビデオサイズ正規化
+        wb_read(BASE_ADDR_FMTR);    // デモザイク
+        wb_read(BASE_ADDR_RGB);     // カラーマトリックス
+        wb_read(BASE_ADDR_MNIST);   // 二値化
+        wb_read(BASE_ADDR_MCOL);    // 色付け
+        wb_read(BASE_ADDR_BUFM);    // Buffer manager
+        wb_read(BASE_ADDR_BUFA);    // Buffer allocator
+        wb_read(BASE_ADDR_VDMAW);   // Write-DMA
+        wb_read(BASE_ADDR_VDMAR);   // Read-DMA
+        wb_read(BASE_ADDR_VSGEN);   // Video out sync generator
     #10000;
         
         // Video format regularizer

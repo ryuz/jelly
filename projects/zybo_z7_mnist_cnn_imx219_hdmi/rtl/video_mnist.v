@@ -21,7 +21,7 @@ module video_mnist
             parameter   NUM_CALSS       = 10,
             parameter   CHANNEL_WIDTH   = 7,
             
-            parameter   IMG_Y_NUM       = 480,
+            parameter   IMG_Y_NUM       = 1024,
             parameter   IMG_Y_WIDTH     = 12,
             
             parameter   TUSER_WIDTH     = 1,
@@ -75,18 +75,29 @@ module video_mnist
     wire                        axi4s_bin_tvalid;
     wire                        axi4s_bin_tready;
     
-    jelly_video_binarizer_core
+    jelly_video_binarizer
             #(
                 .TUSER_WIDTH        (TUSER_WIDTH),
-                .TDATA_WIDTH        (S_TDATA_WIDTH)
+                .TDATA_WIDTH        (S_TDATA_WIDTH),
+                .WB_ADR_WIDTH       (WB_ADR_WIDTH),
+                .WB_DAT_WIDTH       (WB_DAT_WIDTH),
+                .INIT_PARAM_TH      (INIT_PARAM_TH),
+                .INIT_PARAM_INV     (INIT_PARAM_INV)
             )
-        i_video_binarizer_core
+        i_video_binarizer
             (
                 .aresetn            (aresetn),
                 .aclk               (aclk),
                 
-                .param_th           (127),
-                .param_inv          (1'b0),
+                .s_wb_rst_i         (s_wb_rst_i),
+                .s_wb_clk_i         (s_wb_clk_i),
+                .s_wb_adr_i         (s_wb_adr_i),
+                .s_wb_dat_i         (s_wb_dat_i),
+                .s_wb_dat_o         (s_wb_dat_o),
+                .s_wb_we_i          (s_wb_we_i),
+                .s_wb_sel_i         (s_wb_sel_i),
+                .s_wb_stb_i         (s_wb_stb_i),
+                .s_wb_ack_o         (s_wb_ack_o),
                 
                 .s_axi4s_tuser      (s_axi4s_tuser),
                 .s_axi4s_tlast      (s_axi4s_tlast),
@@ -102,7 +113,6 @@ module video_mnist
                 .m_axi4s_tready     (axi4s_bin_tready)
             );
     
-    assign s_wb_ack_o = s_wb_stb_i;
     
     
     

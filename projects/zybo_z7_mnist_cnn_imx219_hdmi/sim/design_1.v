@@ -54,6 +54,8 @@ module design_1
     out_clk200,
     out_clk250,
     out_reset,
+    core_clk,
+    core_reset,
     vout_clk,
     vout_clk_x5,
     vout_reset,
@@ -155,6 +157,8 @@ module design_1
    output out_clk200;
    output out_clk250;
    output [0:0]out_reset;
+   output core_clk;
+   output [0:0]core_reset;
    input [31:0]s_axi4_mem0_araddr;
    input [1:0]s_axi4_mem0_arburst;
    input [3:0]s_axi4_mem0_arcache;
@@ -233,6 +237,9 @@ module design_1
 	assign out_clk100            = clk100;
 	assign out_clk200            = clk200;
 	assign out_clk250            = clk250;
+	
+	assign core_reset            = reset;
+	assign core_clk              = clk200;
 	
 	assign vout_reset            = reset;
 	assign vout_clk              = video_clk;

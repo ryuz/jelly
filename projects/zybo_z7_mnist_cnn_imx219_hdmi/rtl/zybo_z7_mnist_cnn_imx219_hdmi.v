@@ -16,8 +16,8 @@
 // top net
 module zybo_z7_mnist_cnn_imx219_hdmi
         #(
-            parameter   X_NUM = 3280 / 2,
-            parameter   Y_NUM = 2464 / 2
+            parameter   X_NUM = 1280,
+            parameter   Y_NUM = 720
         )
         (
             input   wire            in_clk125,
@@ -94,14 +94,17 @@ module zybo_z7_mnist_cnn_imx219_hdmi
     //  block design (PS)
     // ----------------------------------------
     
-    wire                        sys_reset;
-    wire                        sys_clk100;
-    wire                        sys_clk200;
-    wire                        sys_clk250;
+    wire                                sys_reset;
+    wire                                sys_clk100;
+    wire                                sys_clk200;
+    wire                                sys_clk250;
     
-    wire                        vout_reset;
-    wire                        vout_clk;
-    wire                        vout_clk_x5;
+    wire                                core_reset;
+    wire                                core_clk;
+    
+    wire                                vout_reset;
+    wire                                vout_clk;
+    wire                                vout_clk_x5;
     
     localparam  AXI4L_PERI_ADDR_WIDTH = 32;
     localparam  AXI4L_PERI_DATA_SIZE  = 2;     // 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
@@ -196,6 +199,9 @@ module zybo_z7_mnist_cnn_imx219_hdmi
                 .out_clk100             (sys_clk100),
                 .out_clk200             (sys_clk200),
                 .out_clk250             (sys_clk250),
+                
+                .core_reset             (core_reset),
+                .core_clk               (core_clk),
                 
                 .vout_reset             (vout_reset),
                 .vout_clk               (vout_clk),
@@ -543,8 +549,8 @@ module zybo_z7_mnist_cnn_imx219_hdmi
     
     
     //  CSI-2
-    wire                            axi4s_cam_aresetn = ~sys_reset;
-    wire                            axi4s_cam_aclk    = sys_clk200;
+    wire                            axi4s_cam_aresetn = ~core_reset;
+    wire                            axi4s_cam_aclk    = core_clk;
     
     wire    [0:0]                   axi4s_csi2_tuser;
     wire                            axi4s_csi2_tlast;
@@ -684,7 +690,7 @@ module zybo_z7_mnist_cnn_imx219_hdmi
                 
                 .DATA_WIDTH             (10),
                 
-                .IMG_Y_NUM              (480),
+                .IMG_Y_NUM              (Y_NUM),
                 .IMG_Y_WIDTH            (12),
                 
                 .TUSER_WIDTH            (1)
@@ -830,10 +836,10 @@ module zybo_z7_mnist_cnn_imx219_hdmi
                 .DIV_X                  (2),
                 .DIV_Y                  (2),
                 
-                .X_WIDTH                (12),
-                .Y_WIDTH                (12),
-                .MAX_X_NUM              (2048),
-                .MAX_Y_NUM              (1024),
+                .X_WIDTH                (11),
+                .Y_WIDTH                (10),
+                .MAX_X_NUM              (4096),
+                .MAX_Y_NUM              (2048),
                 .RAM_TYPE               ("block")
             )
         i_video_dnn_fmem
@@ -1359,8 +1365,8 @@ module zybo_z7_mnist_cnn_imx219_hdmi
     assign wb_gid_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[25:14] == 12'h000);   // 0x40000000-0x4000ffff
     assign wb_fmtr_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[25:14] == 12'h010);   // 0x40100000-0x4010ffff
     assign wb_rgb_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[25:18] ==  8'h02);    // 0x40200000-0x402fffff
-    assign wb_mnist_stb_i = wb_peri_stb_i & (wb_peri_adr_i[25:14] == 12'h020);   // 0x40200000-0x4020ffff
-    assign wb_mcol_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[25:14] == 12'h021);   // 0x40210000-0x4021ffff
+    assign wb_mnist_stb_i = wb_peri_stb_i & (wb_peri_adr_i[25:14] == 12'h040);   // 0x40400000-0x4040ffff
+    assign wb_mcol_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[25:14] == 12'h041);   // 0x40410000-0x4041ffff
     assign wb_bufm_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[25:14] == 12'h030);   // 0x40300000-0x4030ffff
     assign wb_bufa_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[25:14] == 12'h031);   // 0x40310000-0x4031ffff
     assign wb_vdmaw_stb_i = wb_peri_stb_i & (wb_peri_adr_i[25:14] == 12'h032);   // 0x40320000-0x4032ffff
