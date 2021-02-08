@@ -84,6 +84,11 @@ public:
         SetMemManager(AccessorMemManager::Create(ptr, size), offset);
     }
 
+    std::size_t GetOffset(void)
+    {
+        return (std::size_t)(reinterpret_cast<std::int8_t*>(m_base_ptr) - reinterpret_cast<std::int8_t*>(m_mem_manager->GetPtr()));
+    }
+
     std::shared_ptr<AccessorMemManager> GetManager(void)
     {
         return m_mem_manager;
@@ -112,7 +117,7 @@ public:
     MemAccessor_<DT, MT, RT> GetAccessor_(MemAddrType addr, std::size_t reg_unit=0)
     {
         if ( reg_unit==0 ) { reg_unit = m_reg_unit; }
-        return MemAccessor_<DT, MT, RT>(m_mem_manager, addr, reg_unit);
+        return MemAccessor_<DT, MT, RT>(m_mem_manager, GetOffset() + addr, reg_unit);
     }
 
     MemAccessor_<DataType, MemAddrType, RegAddrType> GetAccessor(MemAddrType addr, std::size_t reg_unit=0)
@@ -144,9 +149,9 @@ public:
     template <typename DT=DataType, typename MT=MemAddrType, typename RT=RegAddrType>
     MemAccessor_<DT, MT, RT> GetAccessorReg_(RegAddrType reg, std::size_t reg_unit=0)
     {
-        return MemAccessor_<DT, MT, RT>(m_mem_manager, reg * sizeof(DataType), reg_unit);
+        return MemAccessor_<DT, MT, RT>(m_mem_manager, GetOffset() + reg * sizeof(DataType), reg_unit);
     }
-
+    
     MemAccessor_<DataType, MemAddrType, RegAddrType> GetAccessorReg(RegAddrType reg, std::size_t reg_unit=0)
     {
         return GetAccessorReg_<DataType, MemAddrType, RegAddrType>(reg, reg_unit);

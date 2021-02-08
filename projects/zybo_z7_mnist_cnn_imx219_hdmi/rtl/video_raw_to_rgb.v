@@ -31,6 +31,8 @@ module video_raw_to_rgb
             input   wire                        aresetn,
             input   wire                        aclk,
             
+            input   wire                        in_update_req,
+            
             input   wire                        s_wb_rst_i,
             input   wire                        s_wb_clk_i,
             input   wire    [WB_ADR_WIDTH-1:0]  s_wb_adr_i,
@@ -169,6 +171,8 @@ module video_raw_to_rgb
                 .clk                    (clk),
                 .cke                    (cke),
                 
+                .in_update_req          (in_update_req),
+                
                 .s_wb_rst_i             (s_wb_rst_i),
                 .s_wb_clk_i             (s_wb_clk_i),
                 .s_wb_adr_i             (s_wb_adr_i[5:0]),
@@ -246,6 +250,8 @@ module video_raw_to_rgb
                 .reset                  (reset),
                 .clk                    (clk),
                 .cke                    (cke),
+                
+                .in_update_req          (in_update_req),
                 
                 .s_wb_rst_i             (s_wb_rst_i),
                 .s_wb_clk_i             (s_wb_clk_i),

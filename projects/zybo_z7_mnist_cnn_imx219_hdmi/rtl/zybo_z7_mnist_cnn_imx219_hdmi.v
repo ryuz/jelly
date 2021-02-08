@@ -700,6 +700,8 @@ module zybo_z7_mnist_cnn_imx219_hdmi
                 .aresetn                (axi4s_cam_aresetn),
                 .aclk                   (axi4s_cam_aclk),
                 
+                .in_update_req          (1'b1),
+                
                 .s_wb_rst_i             (wb_peri_rst_i),
                 .s_wb_clk_i             (wb_peri_clk_i),
                 .s_wb_adr_i             (wb_peri_adr_i[9:0]),
@@ -1085,7 +1087,9 @@ module zybo_z7_mnist_cnn_imx219_hdmi
                 .CAPACITY_WIDTH         (32),
                 
                 .WFIFO_PTR_WIDTH        (9),
-                .WFIFO_RAM_TYPE         ("block")
+                .WFIFO_RAM_TYPE         ("block"),
+                .WDATFIFO_S_REGS        (1),
+                .WDATFIFO_M_REGS        (1)
             )
         i_dma_video_write
             (

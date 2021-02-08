@@ -17,7 +17,7 @@ module tb_top();
         $dumpvars(1, tb_top);
         $dumpvars(1, tb_top.i_top);
         $dumpvars(1, tb_top.i_top.i_video_mnist);
-        $dumpvars(4, tb_top.i_top.i_video_mnist.i_video_mnist_core);
+//      $dumpvars(4, tb_top.i_top.i_video_mnist.i_video_mnist_core);
         
         
     #100000000
@@ -32,10 +32,13 @@ module tb_top();
 //    localparam  X_NUM    = 160;
 //    localparam  Y_NUM    = 120;
 
-    localparam  IMG_FILE = "mnist_test_64x720.ppm";
-    localparam  X_NUM    = 64;
-    localparam  Y_NUM    = 720;
-    
+//    localparam  IMG_FILE = "mnist_test_64x720.ppm";
+//    localparam  X_NUM    = 64;
+//    localparam  Y_NUM    = 720;
+
+    localparam  IMG_FILE = "test_raw_640x480.ppm";
+    localparam  X_NUM    = 640;
+    localparam  Y_NUM    = 480;
     
     
     // ----------------------------------
@@ -349,6 +352,11 @@ module tb_top();
         wb_read(BASE_ADDR_VDMAR);   // Read-DMA
         wb_read(BASE_ADDR_VSGEN);   // Video out sync generator
     #10000;
+        
+        
+        $display("demosaic");
+        wb_write(BASE_ADDR_RGB + `REG_IMG_DEMOSAIC_PARAM_PHASE,                  1, 4'hf);
+        wb_write(BASE_ADDR_RGB + `REG_IMG_DEMOSAIC_CTL_CONTROL,                  3, 4'hf);
         
         // Video format regularizer
         $display("Video format regularizer");
