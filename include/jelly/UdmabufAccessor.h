@@ -47,6 +47,36 @@ protected:
 		return false;
 	}
 
+	// get phys_addr
+	static std::uintptr_t GetPhysAddr_(std::string fname, std::string name)
+	{
+		fname += name;
+		fname += "/phys_addr";
+		FILE *fp;
+		if ( (fp = fopen(fname.c_str(), "r")) == NULL ) {
+			return 0;
+		}
+		char buf[32];
+		fgets(buf, 32, fp);
+		fclose(fp);
+		return static_cast<std::intptr_t>(strtoull(buf, NULL, 16));
+	}
+
+    // get phys_size
+	static std::size_t GetPhysSize_(std::string fname, std::string name)
+	{
+		fname += name;
+		fname += "/size";
+		FILE *fp;
+		if ( (fp = fopen(fname.c_str(), "r")) == NULL ) {
+			return 0;
+		}
+		char buf[32];
+		fgets(buf, 32, fp);
+		fclose(fp);
+		return static_cast<std::size_t>(strtoull(buf, NULL, 0));
+	}
+
 public:
 	UdmabufAccessor_() {}
 
@@ -73,32 +103,18 @@ public:
 	// get phys_addr
 	static std::uintptr_t GetPhysAddr(const char* name)
 	{
-		std::string fname = "/sys/class/udmabuf/";
-		fname += name;
-		fname += "/phys_addr";
-		FILE *fp;
-		if ( (fp = fopen(fname.c_str(), "r")) == NULL ) {
-			return 0;
-		}
-		char buf[32];
-		fgets(buf, 32, fp);
-		fclose(fp);
-		return static_cast<std::intptr_t>(strtoull(buf, NULL, 16));
+        std::uintptr_t addr;
+        if ( (addr = GetPhysAddr_("/sys/class/u-dma-buf/", name)) > 0 ) { return addr; }
+        if ( (addr = GetPhysAddr_("/sys/class/udmabuf/", name)) > 0 ) { return addr; }
+        return 0;
 	}
 
 	static std::size_t GetPhysSize(const char* name)
 	{
-		std::string fname = "/sys/class/udmabuf/";
-		fname += name;
-		fname += "/size";
-		FILE *fp;
-		if ( (fp = fopen(fname.c_str(), "r")) == NULL ) {
-			return 0;
-		}
-		char buf[32];
-		fgets(buf, 32, fp);
-		fclose(fp);
-		return static_cast<std::size_t>(strtoull(buf, NULL, 0));
+        std::size_t size;
+        if ( (size = GetPhysSize_("/sys/class/u-dma-buf/", name)) > 0 ) { return size; }
+        if ( (size = GetPhysSize_("/sys/class/udmabuf/", name)) > 0 ) { return size; }
+        return 0;
 	}
 };
 
