@@ -1,0 +1,20 @@
+--trace-fst --trace-params --trace-structs --trace-underscore
+--public
+--build
+
+-Wno-WIDTH
+-Wno-UNOPT
+
+--cc
+tb_fixed_atan2.v
+
+--exe
+tb_fixed_atan2.cpp
+
+-y ..
+-y ../../../../rtl/library
+-y ../../../../rtl/bus
+-y ../../../../rtl/image
+-y ../../../../rtl/model
+-y ../../../../rtl/video
+-y ../../../../rtl/math

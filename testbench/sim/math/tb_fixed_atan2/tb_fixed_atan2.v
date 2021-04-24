@@ -6,6 +6,12 @@
 module tb_fixed_atan2();
     localparam RATE    = 1000.0/200.0;
     
+    reg     clk   = 1'b1;
+    reg     reset = 1'b1;
+    reg     cke   = 1'b1;
+    
+    
+`ifndef VERILATOR
     initial begin
         $dumpfile("tb_fixed_atan2.vcd");
         $dumpvars(0, tb_fixed_atan2);
@@ -14,17 +20,13 @@ module tb_fixed_atan2();
             $finish;
     end
     
-    reg     clk = 1'b1;
-    always #(RATE/2.0)  clk = ~clk;
-    
-    reg     reset = 1'b1;
     initial #(RATE*100.5)   reset = 1'b0;
+    always #(RATE/2.0)      clk = ~clk;
+    always @(posedge clk)   cke <= {$random()};
+`endif
+    
     
     parameter   DATA_WIDTH = 32;
-    
-    reg                      cke = 1'b1;
-    always @(posedge clk) cke <= {$random()};
-    
     
     
     parameter   SCALED_RADIAN = 1;
@@ -34,7 +36,7 @@ module tb_fixed_atan2();
     parameter   Q_WIDTH       = SCALED_RADIAN ? ANGLE_WIDTH : ANGLE_WIDTH - 4;
     
     
-    // ƒeƒXƒgƒe[ƒuƒ‹(–ñ10“x‚Ý‚Å—†ù‰ñ“])
+    // ãƒ†ã‚¹ãƒˆãƒ†ãƒ¼ãƒ–ãƒ«(ç´„10åº¦åˆ»ã¿ã§èžºæ—‹å›žè»¢)
     localparam  TBL_NUM = 72;
     reg     signed  [X_WIDTH-1:0]  x_tbl   [0:TBL_NUM-1];
     reg     signed  [Y_WIDTH-1:0]  y_tbl   [0:TBL_NUM-1];
@@ -115,7 +117,7 @@ module tb_fixed_atan2();
     
     
     
-    // ƒeƒXƒg
+    // ãƒ†ã‚¹ãƒˆ
     reg                                 s_valid = 1;
     wire                                s_ready;
     

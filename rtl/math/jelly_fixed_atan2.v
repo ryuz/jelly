@@ -58,17 +58,17 @@ module jelly_fixed_atan2
                              Q_WIDTH <= 8  ? 3 :
                              Q_WIDTH <= 16 ? 4 : 5;
     
-    localparam  [34:0]   ANGLE_0   = SCALED_RADIAN ? 32'h00000000 : 35'h000000000;
-    localparam  [34:0]   ANGLE_90  = SCALED_RADIAN ? 32'h40000000 : 35'h1921fb544;
-    localparam  [34:0]   ANGLE_180 = SCALED_RADIAN ? 32'h80000000 : 35'h3243f6a88;
-    localparam  [34:0]   ANGLE_270 = SCALED_RADIAN ? 32'hc0000000 : 35'h4b65f1fcc;
-    localparam  [34:0]   ANGLE_360 = SCALED_RADIAN ? 32'h00000000 : 35'h6487ed511;
+    localparam  [34:0]   ANGLE_0   = SCALED_RADIAN ? 35'h00000000 : 35'h000000000;
+    localparam  [34:0]   ANGLE_90  = SCALED_RADIAN ? 35'h40000000 : 35'h1921fb544;
+    localparam  [34:0]   ANGLE_180 = SCALED_RADIAN ? 35'h80000000 : 35'h3243f6a88;
+    localparam  [34:0]   ANGLE_270 = SCALED_RADIAN ? 35'hc0000000 : 35'h4b65f1fcc;
+    localparam  [34:0]   ANGLE_360 = SCALED_RADIAN ? 35'h00000000 : 35'h6487ed511;
     
     
     // Q32で準備したテーブルを四捨五入して必要精度で取り出し
     function signed [ANGLE_WIDTH-1:0] q32_to_angle(input [34:0] q32);
     begin
-        q32_to_angle = (q32 + (32'h80000000 >> Q_WIDTH)) >> (32 - Q_WIDTH);
+        q32_to_angle = (q32 + (35'h80000000 >> Q_WIDTH)) >> (32 - Q_WIDTH);
     end
     endfunction
     
