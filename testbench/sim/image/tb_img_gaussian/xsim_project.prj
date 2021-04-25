@@ -1,0 +1,26 @@
+verilog work tb_img_gaussian.v
+
+verilog work ../../../../rtl/model/jelly_axi4s_master_model.v
+verilog work ../../../../rtl/model/jelly_axi4s_slave_model.v
+verilog work ../../../../rtl/image/jelly_axi4s_img.v
+verilog work ../../../../rtl/image/jelly_axi4s_to_img.v
+verilog work ../../../../rtl/image/jelly_img_to_axi4s.v
+verilog work ../../../../rtl/image/jelly_axi4s_insert_blank.v
+verilog work ../../../../rtl/image/jelly_img_blk_buffer.v
+verilog work ../../../../rtl/image/jelly_img_line_buffer.v
+verilog work ../../../../rtl/image/jelly_img_pixel_buffer.v
+verilog work ../../../../rtl/image/jelly_img_gaussian_3x3.v
+verilog work ../../../../rtl/image/jelly_img_gaussian_3x3_core.v
+verilog work ../../../../rtl/image/jelly_img_gaussian_3x3_unit.v
+verilog work ../../../../rtl/image/jelly_img_delay.v
+verilog work ../../../../rtl/library/jelly_data_delay.v
+verilog work ../../../../rtl/library/jelly_fifo.v
+verilog work ../../../../rtl/library/jelly_fifo_fwtf.v
+verilog work ../../../../rtl/library/jelly_fifo_ram.v
+verilog work ../../../../rtl/library/jelly_fifo_read_fwtf.v
+verilog work ../../../../rtl/library/jelly_param_update_master.v
+verilog work ../../../../rtl/library/jelly_param_update_slave.v
+verilog work ../../../../rtl/library/jelly_pipeline_control.v
+verilog work ../../../../rtl/library/jelly_pipeline_insert_ff.v
+verilog work ../../../../rtl/library/jelly_ram_simple_dualport.v
+verilog work ../../../../rtl/library/jelly_ram_singleport.v

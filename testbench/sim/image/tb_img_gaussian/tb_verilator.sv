@@ -3,19 +3,10 @@
 `default_nettype none
 
 
-module tb_img_gaussian();
-    localparam RATE    = 10.0;
-    
-    initial begin
-        $dumpfile("tb_img_gaussian.vcd");
-        $dumpvars(0, tb_img_gaussian);
-    end
-    
-    reg     clk = 1'b1;
-    always #(RATE/2.0)  clk = ~clk;
-    
-    reg     reset = 1'b1;
-    always #(RATE*100)  reset = 1'b0;
+module tb_verilator(
+            input   logic   reset,
+            input   logic   clk
+        );
     
     parameter   USER_WIDTH = 1;
     parameter   DATA_WIDTH = 8;
@@ -60,14 +51,15 @@ module tb_img_gaussian();
                 .m_axi4s_tready     (axi4s_ptn_tready)
             );
     
-    jelly_axi4s_slave_model
+    jelly_axi4s_slave_dump
             #(
                 .COMPONENT_NUM      (1),
                 .DATA_WIDTH         (8),
-                .FILE_NAME          ("src_%04d.pgm"),
+                .FILE_NAME          ("src_"),
+                .FILE_EXT           (".pgm"),
                 .BUSY_RATE          (0)
             )
-        i_axi4s_slave_model_src
+        i_axi4s_slave_dump_src
             (
                 .aresetn            (~reset),
                 .aclk               (clk),
@@ -75,6 +67,7 @@ module tb_img_gaussian();
                 
                 .param_width        (X_NUM),
                 .param_height       (Y_NUM),
+                .frame_num          (),
                 
                 .s_axi4s_tuser      (axi4s_ptn_tuser),
                 .s_axi4s_tlast      (axi4s_ptn_tlast),
@@ -224,15 +217,16 @@ module tb_img_gaussian();
     assign img_sink_data        = img_gauss_data;
     assign img_sink_valid       = img_gauss_valid;
     
-    jelly_axi4s_slave_model
+    jelly_axi4s_slave_dump
             #(
                 .COMPONENT_NUM      (1),
                 .DATA_WIDTH         (8),
-                .FILE_NAME          ("img_%04d.pgm"),
+                .FILE_NAME          ("img_"),
+                .FILE_EXT           (".pgm"),
                 .BUSY_RATE          (0),
                 .RANDOM_SEED        (23456)
             )
-        i_axi4s_slave_model_data
+        i_axi4s_slave_dump_data
             (
                 .aresetn            (~reset),
                 .aclk               (clk),
