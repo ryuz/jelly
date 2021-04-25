@@ -13,12 +13,10 @@ int main(int argc, char** argv)
     Verilated::commandArgs(argc, argv);
     
     // Create
-//  Vsv_test *top = new Vsv_test();
     auto top = std::make_unique<Vtb_verilator>();
     
     // DUMP ON
     Verilated::traceEverOn(true);
-//  VerilatedFstC* tfp = new VerilatedFstC;
     auto tfp = std::make_unique<VerilatedFstC>();
     
     top->trace(tfp.get(), 100);
@@ -46,7 +44,6 @@ int main(int argc, char** argv)
         top->eval();
 
         tfp->dump(time_counter * time_rate);
-//        std::cout << "Hello" << (int)top->data[1][2] << std::endl;
 
         time_counter++;
     }

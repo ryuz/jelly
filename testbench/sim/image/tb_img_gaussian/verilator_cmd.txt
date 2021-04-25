@@ -5,9 +5,6 @@
 -Wno-WIDTH
 -Wno-UNSIGNED
 -Wno-PINMISSING
-#-Wno-UNOPT
-#-Wno-UNOPTFLAT
-
 
 --cc
 tb_verilator.sv

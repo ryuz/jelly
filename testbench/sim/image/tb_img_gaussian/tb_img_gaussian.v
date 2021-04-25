@@ -75,7 +75,8 @@ module tb_img_gaussian();
                 
                 .param_width        (X_NUM),
                 .param_height       (Y_NUM),
-                
+                .frame_num          (),
+
                 .s_axi4s_tuser      (axi4s_ptn_tuser),
                 .s_axi4s_tlast      (axi4s_ptn_tlast),
                 .s_axi4s_tdata      (axi4s_ptn_tdata),
@@ -224,6 +225,8 @@ module tb_img_gaussian();
     assign img_sink_data        = img_gauss_data;
     assign img_sink_valid       = img_gauss_valid;
     
+    wire    [31:0]          output_frame_num;
+
     jelly_axi4s_slave_model
             #(
                 .COMPONENT_NUM      (1),
@@ -240,6 +243,7 @@ module tb_img_gaussian();
                 
                 .param_width        (X_NUM),
                 .param_height       (Y_NUM),
+                .frame_num          (output_frame_num),
                 
                 .s_axi4s_tuser      (axi4s_out_tuser),
                 .s_axi4s_tlast      (axi4s_out_tlast),
@@ -248,6 +252,11 @@ module tb_img_gaussian();
                 .s_axi4s_tready     (axi4s_out_tready)
             );
     
+    always @(posedge clk) begin
+        if ( !reset && output_frame_num >=1 ) begin
+            $finish();
+        end
+    end
     
 endmodule
 
