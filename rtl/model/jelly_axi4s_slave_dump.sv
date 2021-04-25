@@ -8,8 +8,7 @@
 
 
 `timescale 1ns / 1ps
-`default_nettype none
-
+// `default_nettype none
 
 
 module jelly_axi4s_slave_dump
@@ -44,12 +43,11 @@ module jelly_axi4s_slave_dump
     
     integer                         i;
     integer                         fp = 0;
+    integer                         fnum = INIT_FRAME_NUM;
 
     string                          file_path;
     
-    initial begin
-        frame_num = INIT_FRAME_NUM;
-    end
+    assign frame_num = fnum;
 
     always_ff @(posedge aclk) begin
         if ( aresetn && aclken ) begin
@@ -58,10 +56,10 @@ module jelly_axi4s_slave_dump
                     // frame start
                     if ( fp != 0 ) begin
                         $fclose(fp);
-                        frame_num = frame_num + 1;
+                        fnum++;
                     end
 
-                    file_path = {FILE_NAME, $sformatf("%04d", frame_num), FILE_EXT};
+                    file_path = {FILE_NAME, $sformatf("%04d", fnum), FILE_EXT};
                     $display("write : %s", file_path);
                     fp = $fopen(file_path, "w");
                     if ( fp != 0 ) begin
@@ -114,7 +112,7 @@ module jelly_axi4s_slave_dump
 endmodule
 
 
-`default_nettype wire
+// `default_nettype wire
 
 
 // end of file

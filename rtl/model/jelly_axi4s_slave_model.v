@@ -33,7 +33,8 @@ module jelly_axi4s_slave_model
             
             input   wire    [X_WIDTH-1:0]           param_width,
             input   wire    [Y_WIDTH-1:0]           param_height,
-            
+            output  reg     [FRAME_WIDTH-1:0]       frame_num,
+
             input   wire    [0:0]                   s_axi4s_tuser,
             input   wire                            s_axi4s_tlast,
             input   wire    [AXI4S_DATA_WIDTH-1:0]  s_axi4s_tdata,
@@ -45,7 +46,10 @@ module jelly_axi4s_slave_model
     integer                         i;
     integer                         fp = 0;
     reg     [MAX_PATH*8-1:0]        file_path;
-    reg     [FRAME_WIDTH-1:0]       frame_num = INIT_FRAME_NUM;
+    
+    initial begin
+        frame_num = INIT_FRAME_NUM;
+    end
     
     always @(posedge aclk) begin
         if ( aresetn && aclken ) begin

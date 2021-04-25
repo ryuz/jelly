@@ -101,7 +101,11 @@ module jelly_axi4s_master_model
             fp = $fopen(fname, "r");
             if ( fp != 0 ) begin
                 $display("image read %s", fname);
-                tmp0 = $fscanf(fp, "P2", tmp1);
+`ifdef IVERILOG
+                tmp0 = $fscanf(fp, "P2", tmp1); // iverilogのバグ？
+`else
+                tmp0 = $fscanf(fp, "P2");
+`endif
                 tmp0 = $fscanf(fp, "%d%d", w, h);
                 tmp0 = $fscanf(fp, "%d", d);
                 
