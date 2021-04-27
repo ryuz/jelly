@@ -24,9 +24,9 @@ module tb_img_gaussian();
 //  parameter   Y_NUM      = 16;    //480;
 //  parameter   PGM_FILE   = "";
     
-    parameter   X_NUM      = 512;
-    parameter   Y_NUM      = 512;
-    parameter   PGM_FILE   = "lena.pgm";
+    parameter   X_NUM      = 256;
+    parameter   Y_NUM      = 256;
+    parameter   PGM_FILE   = "Mandrill.pgm";
     
     parameter   X_WIDTH    = 10;
     parameter   Y_WIDTH    = 9;

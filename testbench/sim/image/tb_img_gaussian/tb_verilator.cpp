@@ -1,55 +1,62 @@
-#include <iostream>
 #include <memory>
 #include <verilated.h>
-#include <verilated_fst_c.h> 
 #include "Vtb_verilator.h"
 
+#if VM_TRACE
+#include <verilated_fst_c.h> 
+#endif
 
-int time_counter = 0;
-int time_rate = 5;
 
 int main(int argc, char** argv)
 {
-    Verilated::commandArgs(argc, argv);
+    Verilated::mkdir("logs");
+    const std::unique_ptr<VerilatedContext> contextp{new VerilatedContext};
+    contextp->debug(0);
+    contextp->randReset(2);
+    contextp->commandArgs(argc, argv);
     
-    // Create
-    auto top = std::make_unique<Vtb_verilator>();
-    
-    // DUMP ON
-    Verilated::traceEverOn(true);
-    auto tfp = std::make_unique<VerilatedFstC>();
-    
+    const auto top = std::make_unique<Vtb_verilator>(contextp.get(), "top");
+
+#if VM_TRACE
+    contextp->traceEverOn(true);
+    const auto tfp = std::make_unique<VerilatedFstC>();
     top->trace(tfp.get(), 100);
     tfp->open("tb_verilator.fst");
-    
+#endif
+
     // 初期化
     top->reset = 1;
     top->clk   = 1;
     
-    // リセット
-    /*
-    while ( time_counter < 100 ) {
-        top->eval();
-        tfp->dump(time_counter * time_rate);
-        time_counter++;
-    }
-    top->reset = 0;
-    */
-    
-    while ( !Verilated::gotFinish() ) {
-//  while ( time_counter < 10000 ) {
-        top->reset = (time_counter < 100);
-
+    // 実行
+    while ( !contextp->gotFinish() ) {
+        contextp->timeInc(5);
         top->clk = !top->clk;
+
         top->eval();
-
-        tfp->dump(time_counter * time_rate);
-
-        time_counter++;
+        
+        if ( top->clk ) {
+            if ( contextp->time() > 1 && contextp->time() < 1000 ) {
+                top->reset = 1;
+            } else {
+                top->reset = 0;
+            }
+        }
+        
+        tfp->dump(contextp->time());
     }
     
     top->final();
+#if VM_TRACE
     tfp->close();
+#endif
+
+#if VM_COVERAGE
+    Verilated::mkdir("logs");
+    contextp->coveragep()->write("logs/coverage.dat");
+#endif
+    
+    return 0;
 }
 
 

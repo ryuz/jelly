@@ -783,7 +783,7 @@ module ultra96v2_mnist_seg_imx219_dp
     wire                        wb_mnist_stb_i;
     wire                        wb_mnist_ack_o;
     
-    video_mnist_seg
+    video_mnist_seg_cls
             #(
                 .IMG_Y_NUM                  (Y_NUM),
                 .IMG_Y_WIDTH                (12),
@@ -792,7 +792,7 @@ module ultra96v2_mnist_seg_imx219_dp
                 .WB_DAT_WIDTH               (WB_DAT_WIDTH),
                 .DEVICE                     ("ULTRASCALE_PLUS")
             )
-        i_video_mnist_seg
+        i_video_mnist_seg_cls
             (
                 .aresetn                    (axi4s_cam_aresetn),
                 .aclk                       (axi4s_cam_aclk),

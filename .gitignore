@@ -92,8 +92,9 @@ axi4_mem*_read*.txt
 axi4_mem*_write*.txt
 memo.txt
 
-*.txt
 
+
+obj_dir/
 Debug/
 Release/
 xst/

@@ -32,6 +32,7 @@ module jelly_data_shift_register_lut
     genvar      i;
     
     generate
+`ifndef VERILATOR
     if ( SEL_WIDTH <= 5
             && (DEVICE == "SPARTAN6"
              || DEVICE == "VIRTEX6"
@@ -58,6 +59,9 @@ module jelly_data_shift_register_lut
                     );
         end
     end
+`else
+    if (0) begin end 
+`endif
     else begin : blk_rtl
         // RTL
         reg     [NUM*DATA_WIDTH-1:0]    reg_data;

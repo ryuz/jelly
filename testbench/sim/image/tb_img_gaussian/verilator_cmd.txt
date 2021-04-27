@@ -1,6 +1,7 @@
 --trace-fst --trace-params --trace-structs --trace-underscore
 #--public
 --build
+--coverage
 
 -Wno-WIDTH
 -Wno-UNSIGNED

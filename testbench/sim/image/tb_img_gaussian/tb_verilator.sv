@@ -15,9 +15,9 @@ module tb_verilator(
 //  parameter   Y_NUM      = 16;    //480;
 //  parameter   PGM_FILE   = "";
     
-    parameter   X_NUM      = 512;
-    parameter   Y_NUM      = 512;
-    parameter   PGM_FILE   = "lena.pgm";
+    parameter   X_NUM      = 256;
+    parameter   Y_NUM      = 256;
+    parameter   PGM_FILE   = "Mandrill.pgm";
     
     parameter   X_WIDTH    = 10;
     parameter   Y_WIDTH    = 9;
@@ -217,6 +217,8 @@ module tb_verilator(
     assign img_sink_data        = img_gauss_data;
     assign img_sink_valid       = img_gauss_valid;
     
+    logic   [31:0]          output_frame_num;
+
     jelly_axi4s_slave_dump
             #(
                 .COMPONENT_NUM      (1),
@@ -234,7 +236,8 @@ module tb_verilator(
                 
                 .param_width        (X_NUM),
                 .param_height       (Y_NUM),
-                
+                .frame_num          (output_frame_num),
+
                 .s_axi4s_tuser      (axi4s_out_tuser),
                 .s_axi4s_tlast      (axi4s_out_tlast),
                 .s_axi4s_tdata      (axi4s_out_tdata[7:0]),
@@ -242,6 +245,11 @@ module tb_verilator(
                 .s_axi4s_tready     (axi4s_out_tready)
             );
     
+    always @(posedge clk) begin
+        if ( !reset && output_frame_num >=1 ) begin
+            $finish();
+        end
+    end
     
 endmodule
 

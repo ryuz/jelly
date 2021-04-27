@@ -4,6 +4,7 @@
 
 -Wno-WIDTH
 -Wno-UNOPT
+-Wno-UNOPTFLAT
 
 --cc
 tb_fixed_atan2.v

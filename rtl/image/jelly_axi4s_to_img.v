@@ -111,6 +111,7 @@ module jelly_axi4s_to_img
     end
     
     // 仕組み上 cke の fanout が大きくなるのでBUFGを使えるようにしておく
+`ifndef VERILATOR
     generate
     if ( IMG_CKE_BUFG ) begin
         BUFG
@@ -124,7 +125,10 @@ module jelly_axi4s_to_img
         assign m_img_cke = reg_cke;
     end
     endgenerate
-    
+`else
+    assign m_img_cke = reg_cke;
+`endif
+
     assign s_axi4s_tready    = cke;
     
     assign m_img_line_first  = reg_line_first;
