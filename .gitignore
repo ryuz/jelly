@@ -7,6 +7,7 @@
 *.dtbo
 *.obj
 *.vcd
+*.fst
 *.elf
 *.xsa
 
@@ -79,6 +80,7 @@
 *.lst
 *.lnk
 
+
 veritak_src_files.txt
 veritak_command.txt
 p_temp*.txt
@@ -90,11 +92,13 @@ axi4_*_read.txt
 axi4_*_write.txt
 axi4_mem*_read*.txt
 axi4_mem*_write*.txt
+coverage.dat
 memo.txt
 
 
 *_/
 obj_dir/
+logs/
 Debug/
 Release/
 xst/
