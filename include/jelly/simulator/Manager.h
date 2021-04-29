@@ -40,8 +40,6 @@ protected:
 
 class Manager
 {
-//    friend Node;
-
 protected:
 
     struct Event {
@@ -235,9 +233,6 @@ protected:
 
         return (sim_time_t)(m_cycle * manager->GetTimeUnit()) / 2;
     };
-
-    template<typename Tp>
-    friend std::shared_ptr< ClockNode<Tp> > ClockNode_Create(Tp* signal_clk, double cycle, bool first);
 };
 
 template<typename Tp>
@@ -282,9 +277,6 @@ protected:
         *m_signal_reset = m_active_high ? 0 : 1;
         return 0;
     };
-
-    template<typename Tp>
-    friend std::shared_ptr< ResetNode<Tp> > ResetNode_Create(Tp* signal_reset, double time, bool active_high);
 };
 
 template<typename Tp>

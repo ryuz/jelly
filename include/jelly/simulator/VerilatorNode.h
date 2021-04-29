@@ -64,9 +64,6 @@ protected:
         }
 #endif
     }
-
-    template<typename ModuleTp, typename TraceTp>
-    friend std::shared_ptr< VerilatorNode<ModuleTp, TraceTp> > VerilatorNode_Create(std::shared_ptr<ModuleTp> module, std::shared_ptr<TraceTp> tfp);
 };
 
 template<typename ModuleTp, typename TraceTp>
@@ -75,8 +72,8 @@ std::shared_ptr< VerilatorNode<ModuleTp, TraceTp> > VerilatorNode_Create(std::sh
     return VerilatorNode<ModuleTp, TraceTp>::Create(module, tfp);
 }
 
-}
-}
 
+}
+}
 
 // end of file
