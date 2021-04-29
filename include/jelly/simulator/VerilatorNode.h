@@ -43,13 +43,18 @@ public:
     }
 
 protected:
+    void FinalProc(Manager* manager) override
+    {
+        m_module->final();
+    }
+
     void Eval(Manager* manager) override
     {
         m_module->eval();
         if ( Verilated::gotFinish() ) {
             manager->Finish();
         }
-    };
+    }
 
     void Dump(Manager* manager) override
     {
@@ -58,8 +63,17 @@ protected:
             m_tfp->dump(manager->GetSimTime() / manager->GetTimeResolution());
         }
 #endif
-    };
+    }
+
+    template<typename ModuleTp, typename TraceTp>
+    friend std::shared_ptr< VerilatorNode<ModuleTp, TraceTp> > VerilatorNode_Create(std::shared_ptr<ModuleTp> module, std::shared_ptr<TraceTp> tfp);
 };
+
+template<typename ModuleTp, typename TraceTp>
+std::shared_ptr< VerilatorNode<ModuleTp, TraceTp> > VerilatorNode_Create(std::shared_ptr<ModuleTp> module, std::shared_ptr<TraceTp> tfp=nullptr)
+{
+    return VerilatorNode<ModuleTp, TraceTp>::Create(module, tfp);
+}
 
 }
 }

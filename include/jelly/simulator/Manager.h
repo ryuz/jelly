@@ -169,7 +169,7 @@ public:
         // 分解能未満は同時刻とみなす(これでいいのかは自信なし)
         auto limit_time = m_current_time + m_time_resolution;
         std::vector<node_ptr_t> events;
-        while ( m_que.top().time < limit_time ) {
+        while ( !m_que.empty() && m_que.top().time < limit_time ) {
             events.push_back(m_que.top().node);
             m_que.pop();
         }
@@ -207,7 +207,7 @@ public:
 };
 
 
-template<typename T=CData>
+template<typename T>
 class ClockNode : public Node
 {
 protected:
@@ -236,19 +236,19 @@ protected:
         return (sim_time_t)(m_cycle * manager->GetTimeUnit()) / 2;
     };
 
-    template<typename TT>
-    friend std::shared_ptr< ClockNode<TT> > ClockNode_Create(TT* signal_clk, double cycle, bool first);
+    template<typename Tp>
+    friend std::shared_ptr< ClockNode<Tp> > ClockNode_Create(Tp* signal_clk, double cycle, bool first);
 };
 
-template<typename T>
-std::shared_ptr< ClockNode<T> > ClockNode_Create(T* signal_clk, double cycle, bool first=true)
+template<typename Tp>
+std::shared_ptr< ClockNode<Tp> > ClockNode_Create(Tp* signal_clk, double cycle, bool first=true)
 {
-    return ClockNode<T>::Create(signal_clk, cycle, first);
+    return ClockNode<Tp>::Create(signal_clk, cycle, first);
 }
 
 
 
-template<typename T=CData>
+template<typename T>
 class ResetNode : public Node
 {
 protected:
@@ -282,8 +282,16 @@ protected:
         *m_signal_reset = m_active_high ? 0 : 1;
         return 0;
     };
+
+    template<typename Tp>
+    friend std::shared_ptr< ResetNode<Tp> > ResetNode_Create(Tp* signal_reset, double time, bool active_high);
 };
 
+template<typename Tp>
+std::shared_ptr< ResetNode<Tp> > ResetNode_Create(Tp* signal_reset, double time, bool active_high=true)
+{
+    return ResetNode<Tp>::Create(signal_reset, time, active_high);
+}
 
 
 }
