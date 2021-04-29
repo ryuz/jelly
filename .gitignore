@@ -93,7 +93,7 @@ axi4_mem*_write*.txt
 memo.txt
 
 
-
+*_/
 obj_dir/
 Debug/
 Release/
