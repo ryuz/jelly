@@ -99,6 +99,7 @@ memo.txt
 *_/
 obj_dir/
 logs/
+build/
 Debug/
 Release/
 xst/
