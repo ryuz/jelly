@@ -13,6 +13,7 @@ namespace jelly {
 namespace simulator {
 
 
+// 画像保存用ノード
 template<typename TAxi4sVideo>
 class Axi4sImageDumpNode : public Node
 {
@@ -24,8 +25,8 @@ protected:
     bool            m_img_enable = false;
     bool            m_img_flush = true;
     cv::Mat         m_img;
-    int             m_width  = 512;
-    int             m_height = 512;
+    int             m_width  = 256;
+    int             m_height = 256;
     int             m_x = 0;
     int             m_y = 0;
 
@@ -37,23 +38,30 @@ protected:
     bool            m_tvalid;
     bool            m_tready = true;
 
-    Axi4sImageDumpNode(TAxi4sVideo axi4s, std::string path, int init_num=0, bool grayscale=false)
+    Axi4sImageDumpNode(TAxi4sVideo axi4s, std::string path, bool grayscale=false, int width=256, int height=256, int init_num=0)
     {
         m_axi4s     = axi4s;
         m_path      = path;
         m_frame_num = init_num;
         m_grayscale = grayscale;
+        m_width     = width;
+        m_height    = height;
     }
 
 public:
-    static std::shared_ptr< Axi4sImageDumpNode > Create(TAxi4sVideo axi4s, std::string path, int init_num=0, bool grayscale=false)
+    static std::shared_ptr< Axi4sImageDumpNode > Create(TAxi4sVideo axi4s, std::string path, bool grayscale=false, int width=256, int height=256, int init_num=0)
     {
-        return std::shared_ptr< Axi4sImageDumpNode >(new Axi4sImageDumpNode(axi4s, path, init_num, grayscale));
+        return std::shared_ptr< Axi4sImageDumpNode >(new Axi4sImageDumpNode(axi4s, path, grayscale, width, height, init_num));
     }
 
     void SetGrayscale(bool grayscale)
     {
         m_grayscale = grayscale;
+    }
+
+    void SetImageFlush(bool img_flush)
+    {
+        m_img_flush = img_flush;
     }
 
     void SetImageSize(int width, int height)
@@ -122,6 +130,12 @@ protected:
         }
     }
 
+    void FinalProc(Manager* manager) override
+    {
+        // 書き残しがあればフラッシュする
+        WriteImage();
+    }
+
     void PreProc(Manager* manager) override
     {
         m_aresetn = (*m_axi4s.aresetn != 0);
@@ -160,9 +174,9 @@ protected:
 
 
 template<typename Tp>
-std::shared_ptr< Axi4sImageDumpNode<Tp> > Axi4sImageDumpNode_Create(Tp axi4s, std::string path, int init_num=0, bool grayscale=false)
+std::shared_ptr< Axi4sImageDumpNode<Tp> > Axi4sImageDumpNode_Create(Tp axi4s, std::string path, bool grayscale=false, int width=256, int height=256, int init_num=0)
 {
-    return Axi4sImageDumpNode<Tp>::Create(axi4s, path, init_num, grayscale);
+    return Axi4sImageDumpNode<Tp>::Create(axi4s, path, grayscale, width, height, init_num);
 }
 
 

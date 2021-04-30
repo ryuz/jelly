@@ -1,5 +1,5 @@
 
-all: build run
+all: build run coverage
 
 .PHONY : build
 build:
@@ -12,10 +12,10 @@ clean:
 
 .PHONY : mostlyclean
 mostlyclean: clean
-	rm -f src_*.pgm
-	rm -f img_*.pgm
-	rm -f ang_*.ppm
+	rm -f img_*.png angle_*.png
 	rm -f *.fst *.vcd
+	rm -f coverage.dat
+	rm -fr annotated
 
 
 .PHONY : run
@@ -24,5 +24,5 @@ run:
 
 .PHONY : coverage
 coverage:
-	verilator_coverage --annotate logs/annotated logs/coverage.dat
+	verilator_coverage --annotate annotated coverage.dat
 

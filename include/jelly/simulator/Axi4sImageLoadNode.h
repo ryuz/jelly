@@ -11,36 +11,6 @@
 namespace jelly {
 namespace simulator {
 
-/*
-template<typename Tareset, typename Taclk, typename Ttuser, typename Ttlast, typename Ttdata, typename Ttvalid, typename Ttready>
-struct Axi4sVideo {
-    Tareset *areset;
-    Taclk   *aclk;
-    Ttuser  *tuser;
-    Ttlast  *tlast;
-    Ttdata  *tdata;
-    Ttvalid *tvalid;
-    Ttready *tready;
-
-    Axi4sVideo(){}
-    Axi4sVideo(
-            Tareset *areset_,
-            Taclk   *aclk_,
-            Ttuser  *tuser_,
-            Ttlast  *tlast_,
-            Ttdata  *tdata_,
-            Ttvalid *tvalid_,
-            Ttready *tready_) {
-        areset = areset_;
-        aclk = aclk_;
-        tuser = tuser_;
-        tlast = tlast_;
-        tdata = tdata_;
-        tvalid = tvalid_;
-        tready = tready_;
-    }
-};
-*/
 
 template<typename TAxi4sVideo>
 class Axi4sImageLoadNode : public Node
@@ -56,10 +26,10 @@ protected:
     int             m_x = 0;
     int             m_y = 0;
 
-    bool            m_prev_clk = false;
+    bool            m_clk = false;
 
 
-    Axi4sImageLoadNode(TAxi4sVideo axi4s, std::string path, int init_num=0, bool grayscale=false)
+    Axi4sImageLoadNode(TAxi4sVideo axi4s, std::string path, bool grayscale=false, int init_num=0)
     {
         m_axi4s     = axi4s;
         m_path      = path;
@@ -68,9 +38,9 @@ protected:
     }
 
 public:
-    static std::shared_ptr< Axi4sImageLoadNode > Create(TAxi4sVideo axi4s, std::string path, int init_num=0, bool grayscale=false)
+    static std::shared_ptr< Axi4sImageLoadNode > Create(TAxi4sVideo axi4s, std::string path, bool grayscale=false, int init_num=0)
     {
-        return std::shared_ptr< Axi4sImageLoadNode >(new Axi4sImageLoadNode(axi4s, path, init_num, grayscale));
+        return std::shared_ptr< Axi4sImageLoadNode >(new Axi4sImageLoadNode(axi4s, path, grayscale, init_num));
     }
 
     void SetGrayscale(bool grayscale)
@@ -151,13 +121,13 @@ protected:
 
     void PreProc(Manager* manager) override
     {
-        m_prev_clk = (*m_axi4s.aclk != 0);
+        m_clk = (*m_axi4s.aclk != 0);
     }
 
     void PostProc(Manager* manager) override
     {
         // リセット解除で posedge clk の時だけ処理
-        if ( *m_axi4s.aresetn == 0 || !(!m_prev_clk && *m_axi4s.aclk != 0) ) {
+        if ( *m_axi4s.aresetn == 0 || !(!m_clk && *m_axi4s.aclk != 0) ) {
             return;
         }
 
@@ -165,7 +135,7 @@ protected:
         if ( *m_axi4s.tready == 0 ) {
             return;
         }
-
+        
         if ( true ) {
             *m_axi4s.tuser = (m_x == 0 && m_y == 0) ? 1 : 0;
             *m_axi4s.tlast = (m_x == m_width-1) ? 1 : 0;
@@ -180,9 +150,9 @@ protected:
 
 
 template<typename Tp>
-std::shared_ptr< Axi4sImageLoadNode<Tp> > Axi4sImageLoadNode_Create(Tp axi4s, std::string path, int init_num=0, bool grayscale=false)
+std::shared_ptr< Axi4sImageLoadNode<Tp> > Axi4sImageLoadNode_Create(Tp axi4s, std::string path, bool grayscale=false, int init_num=0)
 {
-    return Axi4sImageLoadNode<Tp>::Create(axi4s, path, init_num, grayscale);
+    return Axi4sImageLoadNode<Tp>::Create(axi4s, path, grayscale, init_num);
 }
 
 

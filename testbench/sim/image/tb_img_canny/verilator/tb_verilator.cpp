@@ -42,21 +42,9 @@ int main(int argc, char** argv)
 
     auto mng = jsim::Manager::Create();
 
-#if 0
-//  auto clk = jsim::ClockNode<CData>::Create(&top->clk, 5.0);
-//  auto reset  = jsim::ResetNode<CData>::Create(&top->reset, 100);
-//  auto module = jsim::VerilatorNode<Vtb_verilator>::Create(top, tfp);
-    auto clk   = jsim::ClockNode_Create(&top->clk, 5.0);
-    auto reset = jsim::ResetNode_Create(&top->reset, 100);
-    auto module = jsim::VerilatorNode_Create(top, tfp);
-    mng->AddNode(clk);
-    mng->AddNode(reset);
-    mng->AddNode(module);
-#else
     mng->AddNode(jsim::ClockNode_Create(&top->aclk, 5.0));
     mng->AddNode(jsim::ResetNode_Create(&top->aresetn, 100, false));
     mng->AddNode(jsim::VerilatorNode_Create(top, tfp));
-#endif
 
     jsim::Axi4sVideo axi4s_src =
             {
@@ -92,9 +80,9 @@ int main(int argc, char** argv)
             };
 
     std::string s;
-    auto image_src_load = jsim::Axi4sImageLoadNode_Create(axi4s_src, "../BOAT.pgm", 0, true);
-    auto image_dst_dump = jsim::Axi4sImageDumpNode_Create(axi4s_dst, "img_%04d.png", 0, true);
-    auto image_angle_dump = jsim::Axi4sImageDumpNode_Create(axi4s_angle, "angle_%04d.png", 0, false);
+    auto image_src_load = jsim::Axi4sImageLoadNode_Create(axi4s_src, "../BOAT.pgm", true);
+    auto image_dst_dump = jsim::Axi4sImageDumpNode_Create(axi4s_dst, "img_%04d.png", true, 256, 256);
+    auto image_angle_dump = jsim::Axi4sImageDumpNode_Create(axi4s_angle, "angle_%04d.png", false, 256, 256);
     mng->AddNode(image_src_load);
     mng->AddNode(image_dst_dump);
     mng->AddNode(image_angle_dump);
@@ -106,8 +94,7 @@ int main(int argc, char** argv)
 #endif
 
 #if VM_COVERAGE
-    Verilated::mkdir("logs");
-    contextp->coveragep()->write("logs/coverage.dat");
+    contextp->coveragep()->write("coverage.dat");
 #endif
 
     return 0;
