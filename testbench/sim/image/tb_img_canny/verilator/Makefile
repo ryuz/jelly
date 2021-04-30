@@ -15,6 +15,7 @@ mostlyclean: clean
 	rm -f src_*.pgm
 	rm -f img_*.pgm
 	rm -f ang_*.ppm
+	rm -f *.fst *.vcd
 
 
 .PHONY : run

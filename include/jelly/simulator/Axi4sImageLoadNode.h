@@ -6,12 +6,12 @@
 #include <stdlib.h>
 #include <opencv2/opencv.hpp>
 #include "jelly/simulator/Manager.h"
-
+#include "jelly/simulator/Axi4Stream.h"
 
 namespace jelly {
 namespace simulator {
 
-
+/*
 template<typename Tareset, typename Taclk, typename Ttuser, typename Ttlast, typename Ttdata, typename Ttvalid, typename Ttready>
 struct Axi4sVideo {
     Tareset *areset;
@@ -40,7 +40,7 @@ struct Axi4sVideo {
         tready = tready_;
     }
 };
-
+*/
 
 template<typename TAxi4sVideo>
 class Axi4sImageLoadNode : public Node
@@ -157,7 +157,7 @@ protected:
     void PostProc(Manager* manager) override
     {
         // リセット解除で posedge clk の時だけ処理
-        if ( *m_axi4s.areset == 0 || !(!m_prev_clk && *m_axi4s.aclk != 0) ) {
+        if ( *m_axi4s.aresetn == 0 || !(!m_prev_clk && *m_axi4s.aclk != 0) ) {
             return;
         }
 

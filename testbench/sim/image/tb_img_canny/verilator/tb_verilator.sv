@@ -6,83 +6,39 @@
 module tb_verilator
         #(
             parameter   USER_WIDTH = 1,
-            parameter   DATA_WIDTH = 8
+            parameter   DATA_WIDTH = 8,
+            parameter   X_NUM      = 256,
+            parameter   Y_NUM      = 256,
+            parameter   X_WIDTH    = 10,
+            parameter   Y_WIDTH    = 9
         )
         (
-            input   logic                       reset,
-            input   logic                       clk,
+            input   logic                       aresetn,
+            input   logic                       aclk,
             
-            output  logic                       s_axi4s_aresetn,
-            output  logic                       s_axi4s_aclk,
-            input   logic                       s_axi4s_tuser,
-            input   logic                       s_axi4s_tlast,
-            input   logic   [DATA_WIDTH-1:0]    s_axi4s_tdata,
-            input   logic                       s_axi4s_tvalid,
-            output  logic                       s_axi4s_tready
+            input   logic                       s_axi4s_src_tuser,
+            input   logic                       s_axi4s_src_tlast,
+            input   logic   [DATA_WIDTH-1:0]    s_axi4s_src_tdata,
+            input   logic                       s_axi4s_src_tvalid,
+            output  logic                       s_axi4s_src_tready,
+
+            output  logic                       m_axi4s_dst_tuser,
+            output  logic                       m_axi4s_dst_tlast,
+            output  logic   [DATA_WIDTH-1:0]    m_axi4s_dst_tdata,
+            output  logic                       m_axi4s_dst_tvalid,
+            input   logic                       m_axi4s_dst_tready,
+
+            output  logic                       m_axi4s_angle_tuser,
+            output  logic                       m_axi4s_angle_tlast,
+            output  logic   [3*DATA_WIDTH-1:0]  m_axi4s_angle_tdata,
+            output  logic                       m_axi4s_angle_tvalid
         );
     
-    
-    parameter   X_NUM      = 256;
-    parameter   Y_NUM      = 256;
-//  parameter   PGM_FILE   = "Mandrill.pgm";
-    
 
-    parameter   X_WIDTH    = 10;
-    parameter   Y_WIDTH    = 9;
-    
-    wire                        axi4s_ptn_tlast;
-    wire    [0:0]               axi4s_ptn_tuser;
-    wire    [DATA_WIDTH-1:0]    axi4s_ptn_tdata;
-    wire                        axi4s_ptn_tvalid;
-    wire                        axi4s_ptn_tready;
-    
-    assign s_axi4s_aresetn  = ~reset;
-    assign s_axi4s_aclk     = clk;
-    assign axi4s_ptn_tuser  = s_axi4s_tuser;
-    assign axi4s_ptn_tlast  = s_axi4s_tlast;
-    assign axi4s_ptn_tdata  = s_axi4s_tdata;
-    assign axi4s_ptn_tvalid = s_axi4s_tvalid;
-    assign s_axi4s_tready   = axi4s_ptn_tready;
-    
-    
-    
-    
-    jelly_axi4s_slave_dump
-            #(
-                .COMPONENT_NUM      (1),
-                .DATA_WIDTH         (8),
-                .FILE_NAME          ("src_"),
-                .FILE_EXT           (".pgm"),
-                .BUSY_RATE          (0)
-            )
-        i_axi4s_slave_dump_src
-            (
-                .aresetn            (~reset),
-                .aclk               (clk),
-                .aclken             (1'b1),
-                
-                .param_width        (X_NUM),
-                .param_height       (Y_NUM),
-                .frame_num          (),
-                
-                .s_axi4s_tuser      (axi4s_ptn_tuser),
-                .s_axi4s_tlast      (axi4s_ptn_tlast),
-                .s_axi4s_tdata      (axi4s_ptn_tdata),
-                .s_axi4s_tvalid     (axi4s_ptn_tvalid & axi4s_ptn_tready),
-                .s_axi4s_tready     ()
-            );
-    
-    
-    
-    
+    wire                                reset = ~aresetn;
+    wire                                clk   = aclk;
+
     // AXI4 to img
-    wire                                axi4s_out_tlast;
-    wire    [0:0]                       axi4s_out_tuser;
-    wire    [DATA_WIDTH*3-1:0]          axi4s_out_tdata;
-    wire                                axi4s_out_tvalid;
-    wire                                axi4s_out_tready;
-    
-    
     wire                                img_cke;
     
     wire                                img_src_line_first;
@@ -119,17 +75,17 @@ module tb_verilator
                 
                 .param_blank_num        (8'hff),
                 
-                .s_axi4s_tdata          (axi4s_ptn_tdata),
-                .s_axi4s_tlast          (axi4s_ptn_tlast),
-                .s_axi4s_tuser          (axi4s_ptn_tuser),
-                .s_axi4s_tvalid         (axi4s_ptn_tvalid),     //(axi4s_ptn_tvalid & !ptn_busy),
-                .s_axi4s_tready         (axi4s_ptn_tready),
+                .s_axi4s_tdata          (s_axi4s_src_tdata),
+                .s_axi4s_tlast          (s_axi4s_src_tlast),
+                .s_axi4s_tuser          (s_axi4s_src_tuser),
+                .s_axi4s_tvalid         (s_axi4s_src_tvalid),
+                .s_axi4s_tready         (s_axi4s_src_tready),
                 
-                .m_axi4s_tdata          (axi4s_out_tdata),
-                .m_axi4s_tlast          (axi4s_out_tlast),
-                .m_axi4s_tuser          (axi4s_out_tuser),
-                .m_axi4s_tvalid         (axi4s_out_tvalid),
-                .m_axi4s_tready         (axi4s_out_tready),
+                .m_axi4s_tdata          (m_axi4s_dst_tdata),
+                .m_axi4s_tlast          (m_axi4s_dst_tlast),
+                .m_axi4s_tuser          (m_axi4s_dst_tuser),
+                .m_axi4s_tvalid         (m_axi4s_dst_tvalid),
+                .m_axi4s_tready         (m_axi4s_dst_tready),
                 
                 
                 .img_cke                (img_cke),
@@ -215,41 +171,8 @@ module tb_verilator
     assign img_sink_data        = {8{img_canny_binary}};
     assign img_sink_valid       = img_canny_valid;
     
-    
-    logic   [31:0]          output_frame_num;
-    
-    jelly_axi4s_slave_dump
-            #(
-                .COMPONENT_NUM      (1),
-                .DATA_WIDTH         (8),
-                .FILE_NAME          ("img_"),
-                .FILE_EXT           (".pgm"),
-                .BUSY_RATE          (0),
-                .RANDOM_SEED        (23456)
-            )
-        i_axi4s_slave_dump_data
-            (
-                .aresetn            (~reset),
-                .aclk               (clk),
-                .aclken             (1'b1),
-                
-                .param_width        (X_NUM),
-                .param_height       (Y_NUM),
-                .frame_num          (output_frame_num),
 
-                .s_axi4s_tuser      (axi4s_out_tuser),
-                .s_axi4s_tlast      (axi4s_out_tlast),
-                .s_axi4s_tdata      (axi4s_out_tdata[7:0]),
-                .s_axi4s_tvalid     (axi4s_out_tvalid),
-                .s_axi4s_tready     (axi4s_out_tready)
-            );
-    
-    always @(posedge clk) begin
-        if ( !reset && output_frame_num >=1 ) begin
-            $finish();
-        end
-    end
-    
+    // color map
     wire    [24:0]      img_canny_color;
     jelly_colormap_table
             #(
@@ -261,30 +184,11 @@ module tb_verilator
                 .out_data           (img_canny_color)
             );
     
-    
-    jelly_axi4s_slave_dump
-            #(
-                .COMPONENT_NUM      (3),
-                .DATA_WIDTH         (8),
-                .FILE_NAME          ("ang_"),
-                .FILE_EXT           (".ppm")
-            )
-        i_axi4s_slave_dump_angle
-            (
-                .aresetn            (~reset),
-                .aclk               (clk),
-                .aclken             (img_cke),
-                
-                .param_width        (X_NUM),
-                .param_height       (Y_NUM),
-                
-                .s_axi4s_tuser      (img_canny_line_first & img_canny_pixel_first),
-                .s_axi4s_tlast      (img_canny_pixel_last),
-                .s_axi4s_tdata      (img_canny_color),
-                .s_axi4s_tvalid     (img_canny_de & img_canny_valid),
-                .s_axi4s_tready     ()
-            );
-   
+    assign m_axi4s_angle_tuser  = (img_canny_line_first & img_canny_pixel_first);
+    assign m_axi4s_angle_tlast  = img_canny_pixel_last;
+    assign m_axi4s_angle_tdata  = img_canny_color;
+    assign m_axi4s_angle_tvalid = img_canny_de & img_canny_valid;
+
 endmodule
 
 

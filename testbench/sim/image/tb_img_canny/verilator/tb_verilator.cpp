@@ -5,6 +5,7 @@
 #include "jelly/simulator/Manager.h"
 #include "jelly/simulator/VerilatorNode.h"
 #include "jelly/simulator/Axi4sImageLoadNode.h"
+#include "jelly/simulator/Axi4sImageDumpNode.h"
 
 
 namespace jsim = jelly::simulator;
@@ -18,9 +19,6 @@ namespace jsim = jelly::simulator;
 
 int main(int argc, char** argv)
 {
-    cv::Mat img;
-    cv::waitKey();
-
     auto contextp = std::make_shared<VerilatedContext>();
     contextp->debug(0);
     contextp->randReset(2);
@@ -55,25 +53,51 @@ int main(int argc, char** argv)
     mng->AddNode(reset);
     mng->AddNode(module);
 #else
-    mng->AddNode(jsim::ClockNode_Create(&top->clk, 5.0));
-    mng->AddNode(jsim::ResetNode_Create(&top->reset, 100));
+    mng->AddNode(jsim::ClockNode_Create(&top->aclk, 5.0));
+    mng->AddNode(jsim::ResetNode_Create(&top->aresetn, 100, false));
     mng->AddNode(jsim::VerilatorNode_Create(top, tfp));
 #endif
 
-    jsim::Axi4sVideo axi4s =
+    jsim::Axi4sVideo axi4s_src =
             {
-                &top->s_axi4s_aresetn,
-                &top->s_axi4s_aclk,
-                &top->s_axi4s_tuser,
-                &top->s_axi4s_tlast,
-                &top->s_axi4s_tdata,
-                &top->s_axi4s_tvalid,
-                &top->s_axi4s_tready
+                &top->aresetn,
+                &top->aclk,
+                &top->s_axi4s_src_tuser,
+                &top->s_axi4s_src_tlast,
+                &top->s_axi4s_src_tdata,
+                &top->s_axi4s_src_tvalid,
+                &top->s_axi4s_src_tready
+            };
+
+    jsim::Axi4sVideo axi4s_dst =
+            {
+                &top->aresetn,
+                &top->aclk,
+                &top->m_axi4s_dst_tuser,
+                &top->m_axi4s_dst_tlast,
+                &top->m_axi4s_dst_tdata,
+                &top->m_axi4s_dst_tvalid,
+                &top->m_axi4s_dst_tready
+            };
+
+    jsim::Axi4sVideo axi4s_angle =
+            {
+                &top->aresetn,
+                &top->aclk,
+                &top->m_axi4s_angle_tuser,
+                &top->m_axi4s_angle_tlast,
+                &top->m_axi4s_angle_tdata,
+                &top->m_axi4s_angle_tvalid,
+                (int*)nullptr
             };
 
     std::string s;
-    auto ax = jsim::Axi4sImageLoadNode_Create(axi4s, "../BOAT.pgm", 0, true);
-    mng->AddNode(ax);
+    auto image_src_load = jsim::Axi4sImageLoadNode_Create(axi4s_src, "../BOAT.pgm", 0, true);
+    auto image_dst_dump = jsim::Axi4sImageDumpNode_Create(axi4s_dst, "img_%04d.png", 0, true);
+    auto image_angle_dump = jsim::Axi4sImageDumpNode_Create(axi4s_angle, "angle_%04d.png", 0, false);
+    mng->AddNode(image_src_load);
+    mng->AddNode(image_dst_dump);
+    mng->AddNode(image_angle_dump);
 
     mng->Run(1000000);
 
