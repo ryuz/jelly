@@ -16,7 +16,7 @@ del xsim*.log
 
 :BUILD
 
-set TOP_MODULE=tb_img_gaussian
+set TOP_MODULE=tb_img_canny
 
 call xvlog -f xvlog_cmd.txt
 @if ERRORLEVEL 1 GOTO END
