@@ -187,7 +187,7 @@ module tb_verilator
     assign m_axi4s_angle_tuser  = (img_canny_line_first & img_canny_pixel_first);
     assign m_axi4s_angle_tlast  = img_canny_pixel_last;
     assign m_axi4s_angle_tdata  = img_canny_color;
-    assign m_axi4s_angle_tvalid = img_canny_de & img_canny_valid;
+    assign m_axi4s_angle_tvalid = img_cke & img_canny_de & img_canny_valid;
 
 endmodule
 

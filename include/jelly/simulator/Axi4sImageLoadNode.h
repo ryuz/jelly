@@ -34,9 +34,8 @@ protected:
     int             m_y = 0;
 
     cv::Mat         m_img;
-    bool            m_clk = false;
+    bool            m_aclk = false;
 
-    bool            m_random_wait = false;
     rand_type       m_rand;
     dist_type       m_dist;
 
@@ -154,13 +153,13 @@ protected:
 
     void PreProc(Manager* manager) override
     {
-        m_clk = (*m_axi4s.aclk != 0);
+        m_aclk = (*m_axi4s.aclk != 0);
     }
 
     void PostProc(Manager* manager) override
     {
         // リセット解除で posedge clk の時だけ処理
-        if ( *m_axi4s.aresetn == 0 || !(!m_clk && *m_axi4s.aclk != 0) ) {
+        if ( *m_axi4s.aresetn == 0 || !(!m_aclk && *m_axi4s.aclk != 0) ) {
             return;
         }
 

@@ -81,10 +81,11 @@ int main(int argc, char** argv)
 
     std::string s;
     auto image_src_load = jsim::Axi4sImageLoadNode_Create(axi4s_src, "../BOAT.pgm", jsim::fmt_gray);
-    auto image_dst_dump = jsim::Axi4sImageDumpNode_Create(axi4s_dst, "img_%04d.png", jsim::fmt_color, 256, 256);
+    auto image_dst_dump = jsim::Axi4sImageDumpNode_Create(axi4s_dst, "img_%04d.png", jsim::fmt_gray, 256, 256);
     auto image_angle_dump = jsim::Axi4sImageDumpNode_Create(axi4s_angle, "angle_%04d.png", jsim::fmt_color, 256, 256);
 
     image_src_load->SetRandomWait(0.5);
+    image_dst_dump->SetRandomWait(0.5);
 
     image_angle_dump->SetFrameLimit(2);
     image_dst_dump->SetFrameLimit(2, true); // 2フレーム処理したら終了するように設定

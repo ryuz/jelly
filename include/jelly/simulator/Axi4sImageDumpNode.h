@@ -17,6 +17,9 @@ namespace simulator {
 template<typename TAxi4sVideo>
 class Axi4sImageDumpNode : public Node
 {
+    using rand_type = std::default_random_engine;
+    using dist_type = std::bernoulli_distribution;
+
 protected:
     TAxi4sVideo     m_axi4s;
     std::string     m_path;
@@ -43,7 +46,10 @@ protected:
     bool            m_tvalid;
     bool            m_tready = true;
 
-    Axi4sImageDumpNode(TAxi4sVideo axi4s, std::string path, int format = fmt_8uc3, int width=256, int height=256)
+    rand_type       m_rand;
+    dist_type       m_dist;
+
+    Axi4sImageDumpNode(TAxi4sVideo axi4s, std::string path, int format = fmt_8uc3, int width=256, int height=256) : m_dist(0.0)
     {
         m_axi4s     = axi4s;
         m_path      = path;
@@ -87,6 +93,18 @@ public:
         m_limit_frame = limit_frame;
         m_limit_finish = finish;
     }
+
+    void SetRandomWait(double rate)
+    {
+        dist_type::param_type   param(rate);
+        m_dist.param(param);
+    }
+
+    void SetRandomSeed(std::uint32_t seed)
+    {
+        m_rand.seed(seed);
+    }
+
 
 protected:
 
@@ -146,7 +164,7 @@ protected:
     void FirstProc(Manager* manager) override
     {
         if ( m_axi4s.tready ) {
-            *m_axi4s.tready = 1;
+            *m_axi4s.tready = 0;
         }
     }
 
@@ -164,13 +182,26 @@ protected:
         m_tlast   = (*m_axi4s.tlast != 0);
         m_tdata   = (int)*m_axi4s.tdata;
         m_tvalid  = (*m_axi4s.tvalid != 0);
+        m_tready  = m_axi4s.tready ? (*m_axi4s.tready != 0) : true;
     }
 
     void PostProc(Manager* manager) override
     {
-        // リセット解除で posedge clk の時だけ処理
-        if ( !m_aresetn || !(!m_aclk && *m_axi4s.aclk != 0) ) {
+        // posedge clk の時だけ処理
+        if ( !(!m_aclk && *m_axi4s.aclk != 0) ) {
             return;
+        }
+
+        // リセット解除の時だけ処理
+        if ( !m_aresetn ) {
+            if ( m_axi4s.tready ) {
+                *m_axi4s.tready = 0;
+            }
+        }
+
+        // ready があれば設定
+        if ( m_axi4s.tready ) {
+            *m_axi4s.tready = m_dist(m_rand) ? 0 : 1;
         }
 
         if ( !(m_tvalid && m_tready) ) {
