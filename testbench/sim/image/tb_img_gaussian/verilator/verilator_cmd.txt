@@ -1,12 +1,18 @@
 --trace-fst --trace-params --trace-structs --trace-underscore
-#--public
-#--build
 --coverage
+#--public
+
+--build
+
+--exe
+tb_verilator.cpp
+
+--cc
+tb_verilator.sv
 
 -Wno-WIDTH
 -Wno-UNSIGNED
 -Wno-PINMISSING
--Wno-UNOPTFLAT
 
 -y ../../../../../rtl/model
 -y ../../../../../rtl/library

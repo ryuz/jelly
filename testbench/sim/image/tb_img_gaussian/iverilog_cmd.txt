@@ -1,4 +1,0 @@
-tb_img_gaussian.v
--y ../../../../rtl/library
--y ../../../../rtl/image
--y ../../../../rtl/model

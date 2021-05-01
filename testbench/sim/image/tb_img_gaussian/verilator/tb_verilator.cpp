@@ -9,7 +9,6 @@
 
 int main(int argc, char** argv)
 {
-    Verilated::mkdir("logs");
     const std::unique_ptr<VerilatedContext> contextp{new VerilatedContext};
     contextp->debug(0);
     contextp->randReset(2);
@@ -59,4 +58,4 @@ int main(int argc, char** argv)
     return 0;
 }
 
-
+// end of file

@@ -192,12 +192,12 @@ module tb_img_gaussian();
                 
                 .s_wb_rst_i             (reset),
                 .s_wb_clk_i             (clk),
-                .s_wb_adr_i             (0),
-                .s_wb_dat_i             (0),
+                .s_wb_adr_i             (8'd0),
+                .s_wb_dat_i             (32'd0),
                 .s_wb_dat_o             (),
-                .s_wb_we_i              (0),
-                .s_wb_sel_i             (0),
-                .s_wb_stb_i             (0),
+                .s_wb_we_i              (1'b0),
+                .s_wb_sel_i             (4'd0),
+                .s_wb_stb_i             (1'b0),
                 .s_wb_ack_o             (),
                 
                 .s_img_line_first       (img_src_line_first),

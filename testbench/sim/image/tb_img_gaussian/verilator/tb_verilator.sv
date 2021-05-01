@@ -17,7 +17,7 @@ module tb_verilator(
     
     parameter   X_NUM      = 256;
     parameter   Y_NUM      = 256;
-    parameter   PGM_FILE   = "Mandrill.pgm";
+    parameter   PGM_FILE   = "../Mandrill.pgm";
     
     parameter   X_WIDTH    = 10;
     parameter   Y_WIDTH    = 9;
@@ -246,7 +246,7 @@ module tb_verilator(
             );
     
     always @(posedge clk) begin
-        if ( !reset && output_frame_num >=1 ) begin
+        if ( !reset && output_frame_num >=2 ) begin
             $finish();
         end
     end
