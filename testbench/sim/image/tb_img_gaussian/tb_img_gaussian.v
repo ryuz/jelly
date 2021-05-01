@@ -26,7 +26,7 @@ module tb_img_gaussian();
     
     parameter   X_NUM      = 256;
     parameter   Y_NUM      = 256;
-    parameter   PGM_FILE   = "Mandrill.pgm";
+    parameter   PGM_FILE   = "../Mandrill.pgm";
     
     parameter   X_WIDTH    = 10;
     parameter   Y_WIDTH    = 9;
