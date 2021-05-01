@@ -33,6 +33,10 @@ protected:
     int             m_x = 0;
     int             m_y = 0;
 
+    int             m_x_blank = 0;
+    int             m_y_blank = 0;
+    int             m_blank_count = 0;
+
     cv::Mat         m_img;
     bool            m_aclk = false;
 
@@ -89,6 +93,11 @@ public:
         m_rand.seed(seed);
     }
 
+    void SetBlankX(int blank) { m_x_blank = blank; }
+    int  GetBlankX(void) const { return m_x_blank; }
+    void SetBlankY(int blank) { m_y_blank = blank; }
+    int  GetBlankY(void) const { return m_y_blank; }
+
 protected:
     int GetPixel(void)
     {
@@ -132,9 +141,11 @@ protected:
         
         m_x++;
         if ( m_x >= m_width ) {
+            m_blank_count = m_x_blank;
             m_x = 0;
             m_y++;
             if ( m_y >= m_height ) {
+                m_blank_count = m_x_blank + m_y_blank;
                 m_x = 0;
                 m_y = 0;
             }
@@ -176,6 +187,14 @@ protected:
             return;
         }
 
+        // ブランク挿入
+        if ( m_blank_count > 0 ) {
+            m_blank_count--;
+            *m_axi4s.tvalid = 0;
+            return;
+        }
+
+        // 画像データ
         if ( m_dist(m_rand) ) {
             *m_axi4s.tvalid = 0;    // wait
         }
