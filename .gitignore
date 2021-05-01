@@ -80,7 +80,7 @@
 *.lst
 *.lnk
 *.vvp
-
+*.wdb
 
 veritak_src_files.txt
 veritak_command.txt
@@ -104,6 +104,7 @@ annotated/
 build/
 Debug/
 Release/
+xsim.dir/
 xst/
 .vs/
 iseconfig/
