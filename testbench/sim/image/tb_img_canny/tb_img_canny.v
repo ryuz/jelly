@@ -25,7 +25,7 @@ module tb_img_canny();
     
     parameter   X_NUM      = 256;
     parameter   Y_NUM      = 256;
-    parameter   PGM_FILE   = "BOAT.pgm";
+    parameter   PGM_FILE   = "../BOAT.pgm";
     
     parameter   X_WIDTH    = 10;
     parameter   Y_WIDTH    = 9;
@@ -88,7 +88,7 @@ module tb_img_canny();
     // AXI4 to img
     wire                                axi4s_out_tlast;
     wire    [0:0]                       axi4s_out_tuser;
-    wire    [DATA_WIDTH*3-1:0]          axi4s_out_tdata;
+    wire    [DATA_WIDTH-1:0]            axi4s_out_tdata;
     wire                                axi4s_out_tvalid;
     wire                                axi4s_out_tready;
     
@@ -110,7 +110,7 @@ module tb_img_canny();
     wire                                img_sink_pixel_last;
     wire                                img_sink_de;
     wire    [USER_WIDTH-1:0]            img_sink_user;
-    wire    [DATA_WIDTH*3-1:0]          img_sink_data;
+    wire    [DATA_WIDTH-1:0]            img_sink_data;
     wire                                img_sink_valid;
     
     jelly_axi4s_img
@@ -190,12 +190,12 @@ module tb_img_canny();
                 
                 .s_wb_rst_i             (reset),
                 .s_wb_clk_i             (clk),
-                .s_wb_adr_i             (0),
-                .s_wb_dat_i             (0),
+                .s_wb_adr_i             (8'd0),
+                .s_wb_dat_i             (32'd0),
                 .s_wb_dat_o             (),
-                .s_wb_we_i              (0),
-                .s_wb_sel_i             (0),
-                .s_wb_stb_i             (0),
+                .s_wb_we_i              (1'b0),
+                .s_wb_sel_i             (4'b0),
+                .s_wb_stb_i             (1'b0),
                 .s_wb_ack_o             (),
                 
                 .s_img_line_first       (img_src_line_first),
@@ -251,7 +251,7 @@ module tb_img_canny();
             );
     
     
-    wire    [24:0]      img_canny_color;
+    wire    [23:0]      img_canny_color;
     jelly_colormap_table
             #(
                 .COLORMAP           ("HSV")

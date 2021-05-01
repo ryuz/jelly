@@ -79,6 +79,7 @@
 *.xbcd
 *.lst
 *.lnk
+*.vvp
 
 
 veritak_src_files.txt
