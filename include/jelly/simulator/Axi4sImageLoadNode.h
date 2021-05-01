@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <random>
 #include <stdlib.h>
 #include <opencv2/opencv.hpp>
 #include "jelly/simulator/Manager.h"
@@ -15,9 +16,16 @@ namespace simulator {
 template<typename TAxi4sVideo>
 class Axi4sImageLoadNode : public Node
 {
+    using rand_type = std::default_random_engine;
+    using dist_type = std::bernoulli_distribution;
+
 protected:
     TAxi4sVideo     m_axi4s;
     std::string     m_path;
+
+    int             m_limit_frame = 0;
+    bool            m_limit_finish = false;
+    
     int             m_frame_num = 0;
     int             m_format = CV_8UC3;
     int             m_width  = 0;
@@ -28,8 +36,11 @@ protected:
     cv::Mat         m_img;
     bool            m_clk = false;
 
+    bool            m_random_wait = false;
+    rand_type       m_rand;
+    dist_type       m_dist;
 
-    Axi4sImageLoadNode(TAxi4sVideo axi4s, std::string path, int format = fmt_8uc3)
+    Axi4sImageLoadNode(TAxi4sVideo axi4s, std::string path, int format = fmt_8uc3) : m_dist(0.0)
     {
         m_axi4s  = axi4s;
         m_path   = path;
@@ -52,7 +63,7 @@ public:
     void SetImageHeight(int height) { m_height = height; }
     int GetImageWidth(void) const { return m_width; }
     int GetImageHeight(void) const { return m_height; }
-    
+
     void SetImageSize(int width, int height) {
         m_width  = width;
         m_height = height;
@@ -60,6 +71,24 @@ public:
 
     void SetImage(cv::Mat img) { m_img  = img; }
     cv::Mat GetImage(cv::Mat img) const { return m_img; }
+
+    // フレーム制限
+    void SetFrameLimit(int limit_frame, bool finish=false)
+    {
+        m_limit_frame = limit_frame;
+        m_limit_finish = finish;
+    }
+
+    void SetRandomWait(double rate)
+    {
+        dist_type::param_type   param(rate);
+        m_dist.param(param);
+    }
+
+    void SetRandomSeed(std::uint32_t seed)
+    {
+        m_rand.seed(seed);
+    }
 
 protected:
     int GetPixel(void)
@@ -139,15 +168,23 @@ protected:
         if ( *m_axi4s.tready == 0 ) {
             return;
         }
-        
-        if ( true ) {
+
+        // フレーム数制限
+        if ( m_limit_frame > 0 && m_frame_num >= m_limit_frame ) {
+            if ( m_limit_finish ) {
+                manager->Finish();
+            }
+            return;
+        }
+
+        if ( m_dist(m_rand) ) {
+            *m_axi4s.tvalid = 0;    // wait
+        }
+        else {
             *m_axi4s.tuser = (m_x == 0 && m_y == 0) ? 1 : 0;
             *m_axi4s.tlast = (m_x == m_width-1) ? 1 : 0;
             *m_axi4s.tdata = GetPixel();
             *m_axi4s.tvalid = 1;
-        }
-        else {
-            *m_axi4s.tvalid = 0;
         }
     }
 };

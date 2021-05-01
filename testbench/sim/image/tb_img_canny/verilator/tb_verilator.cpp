@@ -84,14 +84,17 @@ int main(int argc, char** argv)
     auto image_dst_dump = jsim::Axi4sImageDumpNode_Create(axi4s_dst, "img_%04d.png", jsim::fmt_color, 256, 256);
     auto image_angle_dump = jsim::Axi4sImageDumpNode_Create(axi4s_angle, "angle_%04d.png", jsim::fmt_color, 256, 256);
 
+    image_src_load->SetRandomWait(0.5);
+
     image_angle_dump->SetFrameLimit(2);
     image_dst_dump->SetFrameLimit(2, true); // 2フレーム処理したら終了するように設定
     
+
     mng->AddNode(image_src_load);
     mng->AddNode(image_dst_dump);
     mng->AddNode(image_angle_dump);
 
-    mng->Run(2000000);
+    mng->Run(10000000);
 
 #if VM_TRACE
     tfp->close();
