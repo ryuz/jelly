@@ -20,15 +20,20 @@ class Axi4sImageDumpNode : public Node
 protected:
     TAxi4sVideo     m_axi4s;
     std::string     m_path;
-    int             m_frame_num;
-    bool            m_grayscale;
+    
+    int             m_limit_frame = 0;
+    bool            m_limit_finish = false;
+
+    int             m_frame_num = 0;
+    int             m_format = fmt_8uc3;
     bool            m_img_enable = false;
     bool            m_img_flush = true;
-    cv::Mat         m_img;
     int             m_width  = 256;
     int             m_height = 256;
     int             m_x = 0;
     int             m_y = 0;
+
+    cv::Mat         m_img;
 
     bool            m_aresetn;
     bool            m_aclk;
@@ -38,31 +43,31 @@ protected:
     bool            m_tvalid;
     bool            m_tready = true;
 
-    Axi4sImageDumpNode(TAxi4sVideo axi4s, std::string path, bool grayscale=false, int width=256, int height=256, int init_num=0)
+    Axi4sImageDumpNode(TAxi4sVideo axi4s, std::string path, int format = fmt_8uc3, int width=256, int height=256)
     {
         m_axi4s     = axi4s;
         m_path      = path;
-        m_frame_num = init_num;
-        m_grayscale = grayscale;
+        m_format    = format;
         m_width     = width;
         m_height    = height;
     }
 
 public:
-    static std::shared_ptr< Axi4sImageDumpNode > Create(TAxi4sVideo axi4s, std::string path, bool grayscale=false, int width=256, int height=256, int init_num=0)
+    static std::shared_ptr< Axi4sImageDumpNode > Create(TAxi4sVideo axi4s, std::string path, int format = fmt_8uc3, int width=256, int height=256)
     {
-        return std::shared_ptr< Axi4sImageDumpNode >(new Axi4sImageDumpNode(axi4s, path, grayscale, width, height, init_num));
+        return std::shared_ptr< Axi4sImageDumpNode >(new Axi4sImageDumpNode(axi4s, path, format, width, height));
     }
 
-    void SetGrayscale(bool grayscale)
-    {
-        m_grayscale = grayscale;
-    }
+    void SetFrameNum(int frame_num) { m_frame_num = frame_num; }
+    int  GetFrameNum(void) const    { return m_frame_num; }
 
-    void SetImageFlush(bool img_flush)
-    {
-        m_img_flush = img_flush;
-    }
+    void SetImageFormat(int format) { m_format = format; }
+    int  GetImageFormat(void) const    { return m_format; }
+
+    void SetImageWidth(int width) { m_width  = width; }
+    void SetImageHeight(int height) { m_height = height; }
+    int GetImageWidth(void) const { return m_width; }
+    int GetImageHeight(void) const { return m_height; }
 
     void SetImageSize(int width, int height)
     {
@@ -70,11 +75,18 @@ public:
         m_height = height;
     }
 
-    void SetImage(cv::Mat img)
-    {
-        m_img  = img;
-    }
+    void SetImage(cv::Mat img) { m_img  = img; }
+    cv::Mat GetImage(cv::Mat img) const { return m_img; }
 
+    void SetImageFlush(bool img_flush) { m_img_flush = img_flush; }
+    bool GetImageFlush(void) const { return m_img_flush; }
+
+    // 記録制限
+    void SetFrameLimit(int limit_frame, bool finish=false)
+    {
+        m_limit_frame = limit_frame;
+        m_limit_finish = finish;
+    }
 
 protected:
 
@@ -82,6 +94,11 @@ protected:
     void WriteImage(void)
     {
         if ( !m_img_enable ) {
+            return;
+        }
+
+        // 上限指定があればそれ以上記録しない
+        if ( m_limit_frame > 0 && m_frame_num >= m_limit_frame ) {
             return;
         }
 
@@ -107,18 +124,21 @@ protected:
         }
 
         if ( m_img.empty() ) {
-            m_img = cv::Mat::zeros(m_height, m_width, m_grayscale ? CV_8UC1 : CV_8UC3);
+            m_img = cv::Mat::zeros(m_height, m_width, m_format);
         }
         m_img_enable = true;
 
         if ( m_x < m_img.cols && m_y < m_img.rows ) {
-            if ( m_grayscale ) {
+            switch ( m_format ) {
+            case fmt_8uc1:
                 m_img.at<uchar>(m_y, m_x) = pixel;
-            }
-            else {
+                break;
+            
+            case fmt_8uc3:
                 m_img.at<cv::Vec3b>(m_y, m_x)[0] = ((pixel >> 0) & 0xff);
                 m_img.at<cv::Vec3b>(m_y, m_x)[1] = ((pixel >> 8) & 0xff);
                 m_img.at<cv::Vec3b>(m_y, m_x)[2] = ((pixel >> 16) & 0xff);
+                break;
             }
         }
     }
@@ -169,14 +189,19 @@ protected:
             m_x = 0;
             m_y++;
         }
+
+        // 指定枚数で終了させる場合
+        if ( m_limit_finish && m_limit_frame > 0 && m_frame_num >= m_limit_frame ) {
+            manager->Finish();
+        }
     }
 };
 
 
 template<typename Tp>
-std::shared_ptr< Axi4sImageDumpNode<Tp> > Axi4sImageDumpNode_Create(Tp axi4s, std::string path, bool grayscale=false, int width=256, int height=256, int init_num=0)
+std::shared_ptr< Axi4sImageDumpNode<Tp> > Axi4sImageDumpNode_Create(Tp axi4s, std::string path, int format=fmt_8uc3, int width=256, int height=256)
 {
-    return Axi4sImageDumpNode<Tp>::Create(axi4s, path, grayscale, width, height, init_num);
+    return Axi4sImageDumpNode<Tp>::Create(axi4s, path, format, width, height);
 }
 
 

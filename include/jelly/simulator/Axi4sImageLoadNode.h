@@ -18,47 +18,48 @@ class Axi4sImageLoadNode : public Node
 protected:
     TAxi4sVideo     m_axi4s;
     std::string     m_path;
-    int             m_frame_num;
-    bool            m_grayscale;
-    cv::Mat         m_img;
+    int             m_frame_num = 0;
+    int             m_format = CV_8UC3;
     int             m_width  = 0;
     int             m_height = 0;
     int             m_x = 0;
     int             m_y = 0;
 
+    cv::Mat         m_img;
     bool            m_clk = false;
 
 
-    Axi4sImageLoadNode(TAxi4sVideo axi4s, std::string path, bool grayscale=false, int init_num=0)
+    Axi4sImageLoadNode(TAxi4sVideo axi4s, std::string path, int format = fmt_8uc3)
     {
-        m_axi4s     = axi4s;
-        m_path      = path;
-        m_frame_num = init_num;
-        m_grayscale = grayscale;
+        m_axi4s  = axi4s;
+        m_path   = path;
+        m_format = format;
     }
 
 public:
-    static std::shared_ptr< Axi4sImageLoadNode > Create(TAxi4sVideo axi4s, std::string path, bool grayscale=false, int init_num=0)
+    static std::shared_ptr< Axi4sImageLoadNode > Create(TAxi4sVideo axi4s, std::string path, int format = fmt_8uc3)
     {
-        return std::shared_ptr< Axi4sImageLoadNode >(new Axi4sImageLoadNode(axi4s, path, grayscale, init_num));
+        return std::shared_ptr< Axi4sImageLoadNode >(new Axi4sImageLoadNode(axi4s, path, format));
     }
 
-    void SetGrayscale(bool grayscale)
-    {
-        m_grayscale = grayscale;
-    }
+    void SetFrameNum(int frame_num) { m_frame_num = frame_num; }
+    int  GetFrameNum(void) const    { return m_frame_num; }
 
-    void SetImageSize(int width, int height)
-    {
+    void SetImageFormat(int format) { m_format = format; }
+    int  GetImageFormat(void) const    { return m_format; }
+
+    void SetImageWidth(int width) { m_width  = width; }
+    void SetImageHeight(int height) { m_height = height; }
+    int GetImageWidth(void) const { return m_width; }
+    int GetImageHeight(void) const { return m_height; }
+    
+    void SetImageSize(int width, int height) {
         m_width  = width;
         m_height = height;
     }
 
-    void SetImage(cv::Mat img)
-    {
-        m_img  = img;
-    }
-
+    void SetImage(cv::Mat img) { m_img  = img; }
+    cv::Mat GetImage(cv::Mat img) const { return m_img; }
 
 protected:
     int GetPixel(void)
@@ -69,7 +70,7 @@ protected:
         if ( m_x == 0 && m_y == 0 && !m_path.empty() ) {
             char fname[512];
             sprintf(fname, m_path.c_str(), m_frame_num);
-            cv::Mat img = cv::imread(fname, m_grayscale ? 0 : 1);
+            cv::Mat img = cv::imread(fname, m_format == fmt_8uc1 ? 0 : 1);
             if ( !img.empty() ) {
                 std::cout << "image load : " << fname << std::endl;
                 m_img = img;
@@ -84,13 +85,16 @@ protected:
             if ( m_height <= 0 ) { m_height = m_img.rows; }
 
             if ( m_x < m_img.cols && m_y < m_img.rows ) {
-                if ( m_grayscale ) {
+                switch ( m_format ) {
+                case fmt_8uc1:
                     pixel = m_img.at<uchar>(m_y, m_x);
-                }
-                else {
+                    break;
+                
+                case fmt_8uc3:
                     pixel = (m_img.at<cv::Vec3b>(m_y, m_x)[0] << 0)
                           | (m_img.at<cv::Vec3b>(m_y, m_x)[1] << 8)
                           | (m_img.at<cv::Vec3b>(m_y, m_x)[2] << 16);
+                    break;
                 }
             }
         }
@@ -150,9 +154,9 @@ protected:
 
 
 template<typename Tp>
-std::shared_ptr< Axi4sImageLoadNode<Tp> > Axi4sImageLoadNode_Create(Tp axi4s, std::string path, bool grayscale=false, int init_num=0)
+std::shared_ptr< Axi4sImageLoadNode<Tp> > Axi4sImageLoadNode_Create(Tp axi4s, std::string path, bool grayscale=false)
 {
-    return Axi4sImageLoadNode<Tp>::Create(axi4s, path, grayscale, init_num);
+    return Axi4sImageLoadNode<Tp>::Create(axi4s, path, grayscale);
 }
 
 
