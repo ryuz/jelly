@@ -8,6 +8,13 @@
 #include <queue>
 #include <functional>
 #include <limits>
+#include <mutex>
+#include <atomic>
+#include <thread>
+
+#ifdef WITH_OPENCV2
+#include <opencv2/opencv.hpp>
+#endif
 
 
 namespace jelly {
@@ -27,19 +34,22 @@ class Node
     friend Manager;
 
 protected:
-    virtual sim_time_t  Initialize(Manager* manager) { return Event(manager); };
-    virtual sim_time_t  Event(Manager* manager) { return 0; };
-    virtual void        FirstProc(Manager* manager) {};
-    virtual void        FinalProc(Manager* manager) {};
-    virtual void        PreProc(Manager* manager) {};
-    virtual void        PostProc(Manager* manager) {};
-    virtual void        Eval(Manager* manager) {};
-    virtual void        Dump(Manager* manager) {};
+    virtual sim_time_t  Initialize(Manager* manager) { return Event(manager); };    // 登録時に一度呼ばれる
+    virtual sim_time_t  Event(Manager* manager) { return 0; };  // 自分の登録したイベント時刻に呼ばれる
+    virtual void        FirstProc(Manager* manager) {};     // シミュレーション開始時に一度呼ばれる
+    virtual void        FinalProc(Manager* manager) {};     // シミュレーション終了時に一度呼ばれる
+    virtual void        PreProc(Manager* manager) {};       // 何かのイベント(他人のイベント含む)前に呼ばれる
+    virtual void        PostProc(Manager* manager) {};      // 何かのイベント(他人のイベント含む)後に呼ばれる
+    virtual void        Eval(Manager* manager) {};          // 評価タイミングで呼ぶ(主に Verilator用)
+    virtual void        Dump(Manager* manager) {};          // 波形ダンプタイミングで呼ぶ(主に Verilator用)
+    virtual void        ThreadProc(Manager* manager) {};    // 別スレッドの処理
 };
 
 
 class Manager
 {
+    using mutex_t = std::recursive_mutex;
+
 protected:
 
     struct Event {
@@ -63,10 +73,27 @@ protected:
     std::vector<node_ptr_t> m_nodes;
     event_que_t             m_que{[](Event const &lhs, Event const &rhs) { return lhs.time > rhs.time; }};
 
+    mutex_t                 m_mtx;
+    std::atomic_bool        m_thread_enable = false;
+    std::thread*            m_thread = nullptr;
+    const int               m_thread_sleep = 10;
+
+#ifdef WITH_OPENCV2
+    int                     m_cv_key = -1;
+#endif
+
     Manager() {}
 
 public:
-    ~Manager() { Final(); }
+    ~Manager() {
+        Final();
+
+        if ( m_thread ) {
+            m_thread->join();
+            delete m_thread;
+            m_thread = nullptr;
+        }
+    }
 
     static manager_ptr_t Create(void)
     {
@@ -83,6 +110,8 @@ public:
 
     void AddNode(node_ptr_t node)
     {
+        std::lock_guard<mutex_t>    lock(m_mtx);
+
         if ( node ) {
             m_nodes.push_back(node);
             auto time = node->Initialize(this);
@@ -96,6 +125,8 @@ public:
 protected:
     void AddEvent(node_ptr_t node, sim_time_t time)
     {
+        std::lock_guard<mutex_t>    lock(m_mtx);
+
         if ( node ) {
             m_que.push({m_current_time + time, node});
         }
@@ -104,35 +135,78 @@ protected:
     void First(void)
     {
         if ( !m_first_done ) {
-            this->Eval();
-            for ( auto& node : m_nodes ) { node->FirstProc(this); }
-            m_first_done = true;
+            {
+                std::lock_guard<mutex_t>    lock(m_mtx);
+                this->Eval();
+                for ( auto& node : m_nodes ) { node->FirstProc(this); }
+                m_first_done = true;
+            }
+
+            this->ThreadStart();
         }
     }
 
     void Final(void)
     {
+        this->ThreadStop();
+
         if ( !m_final_done ) {
+            std::lock_guard<mutex_t>    lock(m_mtx);
             for ( auto& node : m_nodes ) { node->FinalProc(this); }
             m_final_done = true;
         }
     }
 
     void PreProc(void) { 
+        std::lock_guard<mutex_t>    lock(m_mtx);
         for ( auto& node : m_nodes ) { node->PreProc(this); }
     }
 
     void PostProc(void) { 
+        std::lock_guard<mutex_t>    lock(m_mtx);
         for ( auto& node : m_nodes ) { node->PostProc(this); }
     }
 
     void Eval(void) { 
+        std::lock_guard<mutex_t>    lock(m_mtx);
         for ( auto& node : m_nodes ) { node->Eval(this); }
     }
 
     void Dump(void)
     {
+        std::lock_guard<mutex_t>    lock(m_mtx);
         for ( auto& node : m_nodes ) { node->Dump(this); }
+    }
+
+    void ThreadProc(void)
+    {
+        while ( m_thread_enable ) {
+#ifdef WITH_OPENCV2
+            m_cv_key = cv::waitKey(m_thread_sleep);
+#else
+            std::this_thread::sleep_for(std::chrono::milliseconds(m_thread_sleep));
+#endif            
+            {
+                std::lock_guard<mutex_t>    lock(m_mtx);
+                for ( auto& node : m_nodes ) { node->ThreadProc(this); }
+            }
+
+        }
+    }
+
+    void ThreadStart(void)
+    {
+        if ( m_thread ) { return; } // 既に起動済み
+        if ( !m_thread_enable ) { return; }
+        if ( !m_first_done || m_final_done ) { return; }
+
+        // 開始
+        m_thread = new std::thread(&Manager::ThreadProc, this);
+    }
+
+    void ThreadStop(void)
+    {
+        m_thread_enable = false;
     }
 
 public:
@@ -201,6 +275,27 @@ public:
             Step();
             if ( m_current_time <= old_time ) { break; }
         }
+    }
+
+    void SetThreadEnable(bool enable)
+    {
+        if ( enable ) {
+            m_thread_enable = true;
+            this->ThreadStart();
+        }
+        else {
+            m_thread_enable = false;
+            this->ThreadStop();
+        }
+    }
+
+    int GetCvKey(void)
+    {
+#ifdef WITH_OPENCV2
+        return m_cv_key;
+#else
+        return -1;
+#endif
     }
 };
 

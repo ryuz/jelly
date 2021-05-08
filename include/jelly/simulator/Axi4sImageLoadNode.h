@@ -43,6 +43,9 @@ protected:
     rand_type       m_rand;
     dist_type       m_dist;
 
+    std::string     m_imshow_name;
+    cv::Mat         (*m_preproc)(cv::Mat, int frame_num) = nullptr;
+
     Axi4sImageLoadNode(TAxi4sVideo axi4s, std::string path, int format = fmt_8uc3) : m_dist(0.0)
     {
         m_axi4s  = axi4s;
@@ -98,6 +101,10 @@ public:
     void SetBlankY(int blank) { m_y_blank = blank; }
     int  GetBlankY(void) const { return m_y_blank; }
 
+    void SetImageShow(std::string name) { m_imshow_name = name; }
+    void SetImagePreProc(cv::Mat (*proc)(cv::Mat, int frame_num)) { m_preproc = proc; }
+
+
 protected:
     int GetPixel(void)
     {
@@ -108,6 +115,9 @@ protected:
             char fname[512];
             sprintf(fname, m_path.c_str(), m_frame_num);
             cv::Mat img = cv::imread(fname, m_format == fmt_8uc1 ? 0 : 1);
+            if ( m_preproc ) {
+                img = m_preproc(img, m_frame_num);
+            }
             if ( !img.empty() ) {
                 std::cout << "image load : " << fname << std::endl;
                 m_img = img;
@@ -115,6 +125,7 @@ protected:
             else {
                 std::cout << "load error : " << fname << std::endl;
             }
+            m_frame_num++;
         }
 
         if ( !m_img.empty() ) {
@@ -203,6 +214,13 @@ protected:
             *m_axi4s.tlast = (m_x == m_width-1) ? 1 : 0;
             *m_axi4s.tdata = GetPixel();
             *m_axi4s.tvalid = 1;
+        }
+    }
+
+    void ThreadProc(Manager* manager) override
+    {
+        if ( !m_img.empty() && !m_imshow_name.empty() ) {
+            cv::imshow(m_imshow_name, m_img);
         }
     }
 };

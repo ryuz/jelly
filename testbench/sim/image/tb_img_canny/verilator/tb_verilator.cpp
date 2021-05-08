@@ -17,6 +17,18 @@ namespace jsim = jelly::simulator;
 #endif
 
 
+cv::Mat PreProcImage(cv::Mat img, int frame_num)
+{
+    if ( img.empty() ) { return img; }
+
+    auto center = cv::Point(img.cols/2, img.rows/2);
+    auto trans  = cv::getRotationMatrix2D(center, frame_num*10, 1);
+    cv::Mat img2;
+    cv::warpAffine(img, img2, trans, img.size());
+    return img2;
+}
+
+
 int main(int argc, char** argv)
 {
     auto contextp = std::make_shared<VerilatedContext>();
@@ -90,14 +102,21 @@ int main(int argc, char** argv)
     image_dst_dump->SetRandomWait(0.0);
 
     image_angle_dump->SetFrameLimit(2);
-    image_dst_dump->SetFrameLimit(2, true); // 2フレーム処理したら終了するように設定
+    image_dst_dump->SetFrameLimit(2); //, true); // 2フレーム処理したら終了するように設定
     
 
     mng->AddNode(image_src_load);
     mng->AddNode(image_dst_dump);
     mng->AddNode(image_angle_dump);
 
-    mng->Run(10000000);
+    image_src_load->SetImagePreProc(PreProcImage);
+    image_src_load->SetImageShow("sorce image");
+    image_angle_dump->SetImageShow("canny angle");
+    image_dst_dump->SetImageShow("canny edge");
+    mng->SetThreadEnable(true);
+
+//  mng->Run(10000000);
+    mng->Run();
 
 #if VM_TRACE
     tfp->close();

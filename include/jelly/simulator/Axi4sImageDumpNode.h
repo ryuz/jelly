@@ -38,6 +38,8 @@ protected:
 
     cv::Mat         m_img;
 
+    std::string     m_imshow_name;
+
     bool            m_aresetn;
     bool            m_aclk;
     bool            m_tuser;
@@ -105,6 +107,7 @@ public:
         m_rand.seed(seed);
     }
 
+    void SetImageShow(std::string name) { m_imshow_name = name; }
 
 protected:
 
@@ -224,6 +227,13 @@ protected:
         // 指定枚数で終了させる場合
         if ( m_limit_finish && m_limit_frame > 0 && m_frame_num >= m_limit_frame ) {
             manager->Finish();
+        }
+    }
+
+    void ThreadProc(Manager* manager) override
+    {
+        if ( !m_imshow_name.empty() && !m_img.empty() ) {
+            cv::imshow(m_imshow_name, m_img);
         }
     }
 };

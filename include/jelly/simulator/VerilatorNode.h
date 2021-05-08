@@ -8,8 +8,8 @@
 #include <verilated.h>
 
 #if VM_TRACE
-#include <verilated_vcd_c.h> 
 #include <verilated_fst_c.h> 
+#include <verilated_vcd_c.h> 
 #endif
 
 
