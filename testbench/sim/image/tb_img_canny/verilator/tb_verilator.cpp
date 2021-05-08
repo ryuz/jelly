@@ -116,8 +116,10 @@ int main(int argc, char** argv)
     mng->SetThreadEnable(true);
 
 //  mng->Run(10000000);
-    mng->Run();
-
+    while ( mng->GetCvKey() != 0x1b ) {
+        mng->Step();
+    }
+    
 #if VM_TRACE
     tfp->close();
 #endif
