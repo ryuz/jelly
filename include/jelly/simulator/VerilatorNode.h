@@ -21,7 +21,11 @@ template<typename ModuleType, typename TraceType=VerilatedFstC>
 class VerilatorNode : public Node
 {
     using module_ptr_t = std::shared_ptr<ModuleType>;
+#if VM_TRACE
     using trace_ptr_t  = std::shared_ptr<TraceType>;
+#else
+    using trace_ptr_t  = void*;
+#endif
 
 protected:
     module_ptr_t     m_module;
@@ -33,7 +37,9 @@ protected:
     VerilatorNode(module_ptr_t module, trace_ptr_t tfp=nullptr)
     {
         m_module = module;
+#if VM_TRACE
         m_tfp    = tfp;
+#endif
     }
 
 public:
@@ -66,12 +72,19 @@ protected:
     }
 };
 
+#if VM_TRACE
 template<typename ModuleTp, typename TraceTp>
 std::shared_ptr< VerilatorNode<ModuleTp, TraceTp> > VerilatorNode_Create(std::shared_ptr<ModuleTp> module, std::shared_ptr<TraceTp> tfp=nullptr)
 {
     return VerilatorNode<ModuleTp, TraceTp>::Create(module, tfp);
 }
-
+#else
+template<typename ModuleTp>
+std::shared_ptr< VerilatorNode<ModuleTp, void> > VerilatorNode_Create(std::shared_ptr<ModuleTp> module, void* tfp=nullptr)
+{
+    return VerilatorNode<ModuleTp, void>::Create(module, tfp);
+}
+#endif
 
 }
 }

@@ -17,10 +17,12 @@ namespace jsim = jelly::simulator;
 #endif
 
 
+// 画像の前処理
 cv::Mat PreProcImage(cv::Mat img, int frame_num)
 {
     if ( img.empty() ) { return img; }
 
+    // 回転
     auto center = cv::Point(img.cols/2, img.rows/2);
     auto trans  = cv::getRotationMatrix2D(center, frame_num*10, 1);
     cv::Mat img2;
@@ -119,7 +121,7 @@ int main(int argc, char** argv)
     while ( mng->GetCvKey() != 0x1b ) {
         mng->Step();
     }
-    
+
 #if VM_TRACE
     tfp->close();
 #endif

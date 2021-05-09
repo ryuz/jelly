@@ -8,6 +8,7 @@
 *.obj
 *.vcd
 *.fst
+*.hier
 *.elf
 *.xsa
 
@@ -85,6 +86,7 @@
 veritak_src_files.txt
 veritak_command.txt
 p_temp*.txt
+*_log.txt
 out*.txt
 exp*.txt
 axi4_read*.txt
@@ -96,6 +98,7 @@ axi4_mem*_write*.txt
 coverage.dat
 memo.txt
 
+axi4_mem*.txt
 
 *_/
 obj_dir/

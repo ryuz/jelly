@@ -79,6 +79,7 @@ protected:
     const int               m_thread_sleep = 10;
 
 #ifdef WITH_OPENCV2
+    std::string             m_imshow_name;
     int                     m_cv_key = -1;
 #endif
 
@@ -183,6 +184,14 @@ protected:
         while ( m_thread_enable ) {
 #ifdef WITH_OPENCV2
             m_cv_key = cv::waitKey(m_thread_sleep);
+            if ( !m_imshow_name.empty() ) {
+                cv::Mat img = cv::Mat::zeros(64, 256, CV_8UC3);
+                cv::putText(img, "Test", cv::Point(8, 60),
+                            cv::FONT_HERSHEY_SIMPLEX,
+                            2,
+                            cv::Scalar(255, 255, 255), 1);
+                cv::imshow(m_imshow_name, img);
+            }
 #else
             std::this_thread::sleep_for(std::chrono::milliseconds(m_thread_sleep));
 #endif            
@@ -287,6 +296,13 @@ public:
             m_thread_enable = false;
             this->ThreadStop();
         }
+    }
+
+    void SetControlWindow(std::string name) 
+    {
+#ifdef WITH_OPENCV2
+        m_imshow_name = name;
+#endif
     }
 
     int GetCvKey(void)
