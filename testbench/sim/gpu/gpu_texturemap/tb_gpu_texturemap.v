@@ -144,9 +144,9 @@ module tb_gpu_texturemap();
     parameter   L1_USE_LOOK_AHEAD                 = 0;
     parameter   L1_BLK_X_SIZE                     = 2;  // 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
     parameter   L1_BLK_Y_SIZE                     = 2;  // 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
+    parameter   L1_WAY_NUM                        = 4;
     parameter   L1_TAG_ADDR_WIDTH                 = 6;
     parameter   L1_TAG_RAM_TYPE                   = "distributed";
-    parameter   L1_TAG_ASSOCIATIVE                = L1_TAG_ADDR_WIDTH < 3;
     parameter   L1_TAG_ALGORITHM                  = "TWIST";
     parameter   L1_TAG_M_SLAVE_REGS               = 0;
     parameter   L1_TAG_M_MASTER_REGS              = 0;
@@ -172,9 +172,9 @@ module tb_gpu_texturemap();
     parameter   L2_USE_LOOK_AHEAD                 = 0;
     parameter   L2_BLK_X_SIZE                     = 3;  // 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
     parameter   L2_BLK_Y_SIZE                     = 3;  // 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
+    parameter   L2_WAY_NUM                        = 4;
     parameter   L2_TAG_ADDR_WIDTH                 = 6;
     parameter   L2_TAG_RAM_TYPE                   = "distributed";
-    parameter   L2_TAG_ASSOCIATIVE                = L2_TAG_ADDR_WIDTH < 3;
     parameter   L2_TAG_ALGORITHM                  = L2_PARALLEL_SIZE > 0 ? "SUDOKU" : "TWIST";
     parameter   L2_TAG_M_SLAVE_REGS               = 0;
     parameter   L2_TAG_M_MASTER_REGS              = 0;
@@ -342,9 +342,9 @@ module tb_gpu_texturemap();
                 .L1_USE_LOOK_AHEAD                  (L1_USE_LOOK_AHEAD                 ),
                 .L1_BLK_X_SIZE                      (L1_BLK_X_SIZE                     ),
                 .L1_BLK_Y_SIZE                      (L1_BLK_Y_SIZE                     ),
+                .L1_WAY_NUM                         (L1_WAY_NUM                        ),
                 .L1_TAG_ADDR_WIDTH                  (L1_TAG_ADDR_WIDTH                 ),
                 .L1_TAG_RAM_TYPE                    (L1_TAG_RAM_TYPE                   ),
-                .L1_TAG_ASSOCIATIVE                 (L1_TAG_ASSOCIATIVE                ),
                 .L1_TAG_ALGORITHM                   (L1_TAG_ALGORITHM                  ),
                 .L1_TAG_M_SLAVE_REGS                (L1_TAG_M_SLAVE_REGS               ),
                 .L1_TAG_M_MASTER_REGS               (L1_TAG_M_MASTER_REGS              ),
@@ -367,11 +367,11 @@ module tb_gpu_texturemap();
                 .L1_LOG_ID                          (L1_LOG_ID                         ),
                 .L2_PARALLEL_SIZE                   (L2_PARALLEL_SIZE                  ),
                 .L2_USE_LOOK_AHEAD                  (L2_USE_LOOK_AHEAD                 ),
+                .L2_WAY_NUM                         (L2_WAY_NUM                        ),
                 .L2_BLK_X_SIZE                      (L2_BLK_X_SIZE                     ),
                 .L2_BLK_Y_SIZE                      (L2_BLK_Y_SIZE                     ),
                 .L2_TAG_ADDR_WIDTH                  (L2_TAG_ADDR_WIDTH                 ),
                 .L2_TAG_RAM_TYPE                    (L2_TAG_RAM_TYPE                   ),
-                .L2_TAG_ASSOCIATIVE                 (L2_TAG_ASSOCIATIVE                ),
                 .L2_TAG_ALGORITHM                   (L2_TAG_ALGORITHM                  ),
                 .L2_TAG_M_SLAVE_REGS                (L2_TAG_M_SLAVE_REGS               ),
                 .L2_TAG_M_MASTER_REGS               (L2_TAG_M_MASTER_REGS              ),

@@ -303,7 +303,7 @@ module jelly_gpu_texturemap
                 
                 .CFG_SHADER_TYPE                (CFG_SHADER_TYPE),
                 .CFG_VERSION                    (CFG_VERSION),
-                .CFG_SHADER_PARAM_Q             (SHADER_PARAM_Q),
+//              .CFG_SHADER_PARAM_Q             (SHADER_PARAM_Q),
                 
                 .INIT_CTL_ENABLE                (RASTERIZER_INIT_CTL_ENABLE),
                 .INIT_CTL_UPDATE                (RASTERIZER_INIT_CTL_UPDATE),
