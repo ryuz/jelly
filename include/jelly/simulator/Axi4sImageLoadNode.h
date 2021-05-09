@@ -193,7 +193,7 @@ protected:
         // フレーム数制限
         if ( m_limit_frame > 0 && m_frame_num >= m_limit_frame ) {
             if ( m_limit_finish ) {
-                manager->Finish();
+                manager->RequestFinish();
             }
             return;
         }

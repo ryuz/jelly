@@ -63,12 +63,13 @@ protected:
                                 std::function<bool(Event const &, Event const &)> >;
 
 protected:
-    sim_time_t              m_current_time    = 0;
+    std::atomic<sim_time_t> m_current_time    = 0;
     sim_time_t              m_time_unit       = 1000000;    // 1ns
     sim_time_t              m_time_resolution = 1000;       // 1ps
 
     bool                    m_first_done = false;
     bool                    m_final_done = false;
+    std::atomic_bool        m_request_finish = false;
 
     std::vector<node_ptr_t> m_nodes;
     event_que_t             m_que{[](Event const &lhs, Event const &rhs) { return lhs.time > rhs.time; }};
@@ -81,6 +82,7 @@ protected:
 #ifdef WITH_OPENCV2
     std::string             m_imshow_name;
     int                     m_cv_key = -1;
+    int                     m_cv_quit_key = -1;
 #endif
 
     Manager() {}
@@ -88,12 +90,6 @@ protected:
 public:
     ~Manager() {
         Final();
-
-        if ( m_thread ) {
-            m_thread->join();
-            delete m_thread;
-            m_thread = nullptr;
-        }
     }
 
     static manager_ptr_t Create(void)
@@ -179,17 +175,46 @@ protected:
         for ( auto& node : m_nodes ) { node->Dump(this); }
     }
 
+    std::string get_time_string(int w=0)
+    {
+        sim_time_t  n = m_current_time / m_time_resolution;
+        
+        if ( n == 0 ) { return "0"; }
+
+        std::string tmp;
+        int digit = 0;
+        while ( n > 0 ) {
+            tmp += '0' + n%10;
+            n /= 10;
+            if ( ++digit % 3 == 0 ) {
+                tmp += ',';
+            }
+        }
+        while ( ++digit < w ) {
+            tmp += ' ';
+        }
+
+        std::string rev;
+        rev.resize(tmp.size());
+        std::copy(tmp.rbegin(), tmp.rend(), rev.begin());
+        return rev;
+    }
+
     void ThreadProc(void)
     {
         while ( m_thread_enable ) {
 #ifdef WITH_OPENCV2
             m_cv_key = cv::waitKey(m_thread_sleep);
+            if ( m_cv_quit_key >= 0 && m_cv_key == m_cv_quit_key ) {
+                this->RequestFinish();
+            }
+
             if ( !m_imshow_name.empty() ) {
-                cv::Mat img = cv::Mat::zeros(64, 256, CV_8UC3);
-                cv::putText(img, "Test", cv::Point(8, 60),
-                            cv::FONT_HERSHEY_SIMPLEX,
-                            2,
-                            cv::Scalar(255, 255, 255), 1);
+                cv::Mat img = cv::Mat::zeros(64, 400, CV_8UC3);
+                auto time_str = get_time_string(14);
+
+                cv::putText(img, "time=" + time_str,
+                            cv::Point(8, 50), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255, 255, 255), 1);
                 cv::imshow(m_imshow_name, img);
             }
 #else
@@ -199,10 +224,13 @@ protected:
                 std::lock_guard<mutex_t>    lock(m_mtx);
                 for ( auto& node : m_nodes ) { node->ThreadProc(this); }
             }
-
         }
-    }
 
+#ifdef WITH_OPENCV2
+        cv::destroyAllWindows();
+#endif
+    }
+    
     void ThreadStart(void)
     {
         if ( m_thread ) { return; } // 既に起動済み
@@ -216,9 +244,19 @@ protected:
     void ThreadStop(void)
     {
         m_thread_enable = false;
+        if ( m_thread ) {
+            m_thread->join();
+            delete m_thread;
+            m_thread = nullptr;
+        }
     }
 
 public:
+    void RequestFinish(void)
+    {
+        m_request_finish = true;
+    }
+
     void Finish(void)
     {
         Final();
@@ -270,6 +308,12 @@ public:
 
         // ダンプ
         this->Dump();
+
+        if ( m_request_finish ) {
+            std::cout << "step finish" << std::endl;
+            this->Finish();
+            m_request_finish = false;
+        }
     }
 
     void Run(double time=-1)
@@ -280,7 +324,7 @@ public:
         }
 
         while ( !m_final_done && m_current_time < end_time ) {
-            auto old_time = m_current_time;
+            sim_time_t old_time = m_current_time;
             Step();
             if ( m_current_time <= old_time ) { break; }
         }
@@ -298,10 +342,11 @@ public:
         }
     }
 
-    void SetControlWindow(std::string name) 
+    void SetControlCvWindow(std::string name, int quit_key=-1) 
     {
 #ifdef WITH_OPENCV2
         m_imshow_name = name;
+        m_cv_quit_key = quit_key;
 #endif
     }
 

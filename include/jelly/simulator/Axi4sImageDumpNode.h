@@ -226,7 +226,7 @@ protected:
 
         // 指定枚数で終了させる場合
         if ( m_limit_finish && m_limit_frame > 0 && m_frame_num >= m_limit_frame ) {
-            manager->Finish();
+            manager->RequestFinish();
         }
     }
 

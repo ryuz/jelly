@@ -41,17 +41,13 @@ int main(int argc, char** argv)
     const auto top = std::make_shared<Vtb_verilator>(contextp.get(), "top");
 
 
+    jsim::trace_ptr_t tfp = nullptr;
 #if VM_TRACE
     contextp->traceEverOn(true);
-#if VM_TRACE_FST
-    auto tfp = std::make_shared<VerilatedFstC>();
+
+    tfp = std::make_shared<jsim::trace_t>();
     top->trace(tfp.get(), 100);
-    tfp->open("tb_verilator.fst");
-#else
-    auto tfp = std::make_shared<VerilatedVcdC>();
-    top->trace(tfp.get(), 100);
-    tfp->open("tb_verilator.vcd");
-#endif
+    tfp->open("tb_verilator" TRACE_EXT);
 #endif
 
     auto mng = jsim::Manager::Create();
@@ -104,7 +100,7 @@ int main(int argc, char** argv)
     image_dst_dump->SetRandomWait(0.0);
 
     image_angle_dump->SetFrameLimit(2);
-    image_dst_dump->SetFrameLimit(2); //, true); // 2フレーム処理したら終了するように設定
+    image_dst_dump->SetFrameLimit(2);//, true); // 2フレーム処理したら終了するように設定
     
 
     mng->AddNode(image_src_load);
@@ -117,10 +113,10 @@ int main(int argc, char** argv)
     image_dst_dump->SetImageShow("canny edge");
     mng->SetThreadEnable(true);
 
-//  mng->Run(10000000);
-    while ( mng->GetCvKey() != 0x1b ) {
-        mng->Step();
-    }
+    mng->SetControlCvWindow("Simulation", 0x1b);
+
+//    mng->Run(10000000);
+    mng->Run();
 
 #if VM_TRACE
     tfp->close();

@@ -16,30 +16,37 @@
 namespace jelly {
 namespace simulator {
 
+#if VM_TRACE
 
-template<typename ModuleType, typename TraceType=VerilatedFstC>
+#if VM_TRACE_FST
+#define TRACE_EXT   ".fst"
+using trace_t     = VerilatedFstC;
+#else
+#define TRACE_EXT   ".vcd"
+using trace_t     = VerilatedVcdC;
+#endif
+using trace_ptr_t = std::shared_ptr<trace_t>;
+
+#else
+
+using trace_ptr_t = void*;
+
+#endif
+
+
+template<typename ModuleType>
 class VerilatorNode : public Node
 {
     using module_ptr_t = std::shared_ptr<ModuleType>;
-#if VM_TRACE
-    using trace_ptr_t  = std::shared_ptr<TraceType>;
-#else
-    using trace_ptr_t  = void*;
-#endif
 
 protected:
     module_ptr_t     m_module;
-
-#if VM_TRACE
     trace_ptr_t      m_tfp;
-#endif
     
     VerilatorNode(module_ptr_t module, trace_ptr_t tfp=nullptr)
     {
         m_module = module;
-#if VM_TRACE
         m_tfp    = tfp;
-#endif
     }
 
 public:
@@ -72,19 +79,11 @@ protected:
     }
 };
 
-#if VM_TRACE
-template<typename ModuleTp, typename TraceTp>
-std::shared_ptr< VerilatorNode<ModuleTp, TraceTp> > VerilatorNode_Create(std::shared_ptr<ModuleTp> module, std::shared_ptr<TraceTp> tfp=nullptr)
-{
-    return VerilatorNode<ModuleTp, TraceTp>::Create(module, tfp);
-}
-#else
 template<typename ModuleTp>
-std::shared_ptr< VerilatorNode<ModuleTp, void> > VerilatorNode_Create(std::shared_ptr<ModuleTp> module, void* tfp=nullptr)
+std::shared_ptr< VerilatorNode<ModuleTp> > VerilatorNode_Create(std::shared_ptr<ModuleTp> module, trace_ptr_t tfp=nullptr)
 {
-    return VerilatorNode<ModuleTp, void>::Create(module, tfp);
+    return VerilatorNode<ModuleTp>::Create(module, tfp);
 }
-#endif
 
 }
 }
