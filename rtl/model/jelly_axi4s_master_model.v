@@ -125,7 +125,11 @@ module jelly_axi4s_master_model
             fname = make_fname(PPM_FILE, frame);
             fp = $fopen(fname, "r");
             if ( fp != 0 ) begin
+`ifdef IVERILOG
                 tmp0 = $fscanf(fp, "P3", tmp1);
+`else
+                tmp0 = $fscanf(fp, "P3");
+`endif
                 tmp0 = $fscanf(fp, "%d%d", w, h);
                 tmp0 = $fscanf(fp, "%d", d);
                 
