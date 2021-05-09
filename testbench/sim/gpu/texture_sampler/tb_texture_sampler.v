@@ -113,7 +113,7 @@ module tb_texture_sampler();
     
     
     initial begin
-        i_axi4_slave_model.read_memh(MONO ? "axi4_mem_mono.txt" : "axi4_mem.txt");
+        i_axi4_slave_model.read_memh(MONO ? "../axi4_mem_mono.txt" : "../axi4_mem.txt");
     end
     
     

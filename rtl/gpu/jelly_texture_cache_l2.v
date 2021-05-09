@@ -584,7 +584,7 @@ module jelly_texture_cache_l2
                 .clk                (clk),
                 .cke                (1'b1),
                 
-                .s_id_to            (1'b0),
+                .s_id_to            ({CACHE_NUM{1'b0}}),
                 .s_data             (cache_arpacket),
                 .s_valid            (cache_arvalid),
                 .s_ready            (cache_arready),
