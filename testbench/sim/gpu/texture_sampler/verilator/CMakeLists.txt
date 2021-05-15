@@ -29,7 +29,8 @@ add_compile_definitions(WITH_OPENCV2)
 target_link_libraries(tb_verilator PUBLIC "-pthread") 
 
 verilate(tb_verilator
-    COVERAGE TRACE-FST
+#   COVERAGE
+#   TRACE
     INCLUDE_DIRS "."
     VERILATOR_ARGS -f verilator_cmd.txt -Os
     SOURCES ./tb_verilator.sv)

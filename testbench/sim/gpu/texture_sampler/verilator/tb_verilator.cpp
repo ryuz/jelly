@@ -25,23 +25,18 @@ int main(int argc, char** argv)
     contextp->commandArgs(argc, argv);
     
     const auto top = std::make_shared<Vtb_verilator>(contextp.get(), "top");
-
-
+    
+    
+    jsim::trace_ptr_t tfp = nullptr;
 #if VM_TRACE
     contextp->traceEverOn(true);
-#if VM_TRACE_FST
-    auto tfp = std::make_shared<VerilatedFstC>();
-    top->trace(tfp.get(), 100);
-    tfp->open("tb_verilator.fst");
-#else
-    auto tfp = std::make_shared<VerilatedVcdC>();
-    top->trace(tfp.get(), 100);
-    tfp->open("tb_verilator.vcd");
+    tfp = std::make_shared<jsim::trace_t>();
+    top->trace(tfp.get(), 1);
+    tfp->open("tb_verilator" TRACE_EXT);
 #endif
-#endif
-
+    
     auto mng = jsim::Manager::Create();
-
+    
     mng->AddNode(jsim::ClockNode_Create(&top->clk, 0.5/2));
     mng->AddNode(jsim::ResetNode_Create(&top->reset, 100));
 #if VM_TRACE
@@ -49,11 +44,11 @@ int main(int argc, char** argv)
 #else
     mng->AddNode(jsim::VerilatorNode_Create(top, nullptr));
 #endif
-
-    mng->SetControlWindow("Simulation");
+    
+    mng->SetControlCvWindow("Simulation", 0x1b);
     mng->SetThreadEnable(true);
-
-    mng->Run(200000);
+    
+    mng->Run(400000);
     
 #if VM_TRACE
     tfp->close();

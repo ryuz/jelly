@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <random>
 #include <stdlib.h>
 #include <opencv2/opencv.hpp>
 #include "jelly/simulator/Manager.h"

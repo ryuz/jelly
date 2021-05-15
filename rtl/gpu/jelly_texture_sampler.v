@@ -67,13 +67,13 @@ module jelly_texture_sampler
             parameter   M_AXI4_REGS                   = 1,
             
             parameter   L1_CACHE_NUM                  = SAMPLER1D_NUM + SAMPLER2D_NUM + SAMPLER3D_NUM,
-            parameter   L1_USE_LOOK_AHEAD             = 1,
+            parameter   L1_USE_LOOK_AHEAD             = 0,
             parameter   L1_BLK_X_SIZE                 = 2,  // 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
             parameter   L1_BLK_Y_SIZE                 = 2,  // 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
-            parameter   L1_WAY_NUM                    = 1,
+            parameter   L1_WAY_NUM                    = 4,
             parameter   L1_TAG_ADDR_WIDTH             = 6,
             parameter   L1_TAG_RAM_TYPE               = "distributed",
-            parameter   L1_TAG_ALGORITHM              = "TWIST",
+            parameter   L1_TAG_ALGORITHM              = "NORMAL", // "TWIST",
             parameter   L1_TAG_M_SLAVE_REGS           = 0,
             parameter   L1_TAG_M_MASTER_REGS          = 0,
             parameter   L1_MEM_RAM_TYPE               = "block",
@@ -96,13 +96,13 @@ module jelly_texture_sampler
             
             parameter   L2_PARALLEL_SIZE              = 2,
             parameter   L2_CACHE_NUM                  = (1 << L2_PARALLEL_SIZE),
-            parameter   L2_USE_LOOK_AHEAD             = 1,
+            parameter   L2_USE_LOOK_AHEAD             = 0,
             parameter   L2_BLK_X_SIZE                 = 3,  // 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
             parameter   L2_BLK_Y_SIZE                 = 3,  // 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
-            parameter   L2_WAY_NUM                    = 1,
+            parameter   L2_WAY_NUM                    = 4,
             parameter   L2_TAG_ADDR_WIDTH             = 6,
             parameter   L2_TAG_RAM_TYPE               = "distributed",
-            parameter   L2_TAG_ALGORITHM              = L2_PARALLEL_SIZE > 0 ? "SUDOKU" : "TWIST",
+            parameter   L2_TAG_ALGORITHM              = "NORMAL", // L2_PARALLEL_SIZE > 0 ? "SUDOKU" : "TWIST",
             parameter   L2_TAG_M_SLAVE_REGS           = 0,
             parameter   L2_TAG_M_MASTER_REGS          = 0,
             parameter   L2_MEM_RAM_TYPE               = "block",
@@ -129,7 +129,7 @@ module jelly_texture_sampler
             parameter   DMA_S_AR_REGS                 = 1,
             parameter   DMA_S_R_REGS                  = 1,
             
-            parameter   DEVICE                        = "7SERIES"   // "RTL"
+            parameter   DEVICE                        = "RTL" // "7SERIES"
         )
         (
             // system
