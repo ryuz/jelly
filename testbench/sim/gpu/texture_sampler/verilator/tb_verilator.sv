@@ -66,7 +66,7 @@ module tb_verilator(
     parameter   SAMPLER3D_NUM                 = 0;
     
     parameter   L1_CACHE_NUM                  = SAMPLER1D_NUM + SAMPLER2D_NUM + SAMPLER3D_NUM;
-    parameter   L1_USE_LOOK_AHEAD             = 0;
+    parameter   L1_USE_LOOK_AHEAD             = 1;
     parameter   L1_QUE_FIFO_PTR_WIDTH         = 6;
     parameter   L1_AR_FIFO_PTR_WIDTH          = 0;
     parameter   L1_R_FIFO_PTR_WIDTH           = 6;
@@ -80,7 +80,7 @@ module tb_verilator(
     parameter   L1_DATA_SIZE                  = 2;
     
     parameter   L2_PARALLEL_SIZE              = 2;
-    parameter   L2_USE_LOOK_AHEAD             = 0;
+    parameter   L2_USE_LOOK_AHEAD             = 1;
     parameter   L2_QUE_FIFO_PTR_WIDTH         = 6;
     parameter   L2_AR_FIFO_PTR_WIDTH          = 0;
     parameter   L2_R_FIFO_PTR_WIDTH           = 6;

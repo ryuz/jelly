@@ -1,5 +1,5 @@
 #--trace-fst --trace-params --trace-structs --trace-underscore
-#--public
+--public
 #--build
 #--coverage
 
