@@ -1,7 +1,7 @@
 
-TARGET    = udmabuf_sample
-DT_NAME   = zybo_z7_udmabuf_sample
-BIT_NAME  = zybo_z7_udmabuf_sample
+#TARGET    = udmabuf_sample
+DT_NAME   = zybo_vga
+BIT_NAME  = zybo_vga
 
 DTS_FILE  = $(DT_NAME).dts
 DTBO_FILE = $(DT_NAME).dtbo
@@ -20,7 +20,8 @@ OBJS = main.o
 
 
 .PHONY: all
-all: $(TARGET) $(DTBO_FILE) $(BIN_FILE)
+#all: $(TARGET) $(DTBO_FILE) $(BIN_FILE)
+all: $(DTBO_FILE) $(BIN_FILE)
 
 .PHONY: clean
 clean:
@@ -66,8 +67,8 @@ load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
 	sudo sh -c "echo 1 > $(DEVTREE_PATH)/overlays/full/status"
 	sleep 1
 	sudo rm /lib/firmware/$(BIN_FILE)
-	sudo chmod 777 /dev/udmabuf4
-	sudo chmod 777 /dev/uio*
+#	sudo chmod 777 /dev/udmabuf4
+#	sudo chmod 777 /dev/uio*
 
 .PHONY: unload
 unload:
@@ -76,4 +77,3 @@ unload:
 		sudo sh -c "echo 0 > $(DEVTREE_PATH)/overlays/full/status" ; \
 		sudo rmdir $(DEVTREE_PATH)/overlays/full ; \
 	fi
-

@@ -7,10 +7,11 @@
             #address-cells = <1>;
             #size-cells = <1>;
 
-            firmware-name = "zybo_z7_udmabuf_sample.bit.bin";
+            firmware-name = "zybo_vga.bit.bin";
         };
     };
 
+    /*
     fragment@1 {
         target-path = "/amba";
         __overlay__ {
@@ -23,12 +24,12 @@
             };
 
             udmabuf4 {
-/*              compatible = "ikwzm,udmabuf-0.10.a"; */
                 compatible = "ikwzm,u-dma-buf";
                 minor-number = <4>;
                 size = <0x00400000>;
             };
         };
     };
+    */
 };
 
