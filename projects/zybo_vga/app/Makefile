@@ -1,7 +1,7 @@
 
 #TARGET    = udmabuf_sample
-DT_NAME   = zybo_vga
-BIT_NAME  = zybo_vga
+DT_NAME   = zybo_vga_zynq
+BIT_NAME  = zybo_vga_zynq
 
 DTS_FILE  = $(DT_NAME).dts
 DTBO_FILE = $(DT_NAME).dtbo
