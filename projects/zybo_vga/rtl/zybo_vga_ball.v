@@ -164,7 +164,7 @@ module zybo_vga_ball
             if ( tmp_ball_x >= HDISP ) begin tmp_dir_x = 0; end
             if ( tmp_ball_y <  0     ) begin tmp_dir_y = 1; end
             if ( tmp_ball_y >= VDISP ) begin tmp_dir_y = 0; end
-            if ( tmp_ball_x >= (st2_bar_x - BAR_W) && tmp_ball_x < (st2_bar_x - BAR_W)
+            if ( tmp_ball_x >= (st2_bar_x - BAR_W) && tmp_ball_x < (st2_bar_x + BAR_W)
                         && tmp_ball_y >= (BAR_Y - BAR_H) && tmp_ball_y < (BAR_Y + BAR_H) ) begin
                   tmp_dir_y  = ~tmp_dir_y;
                   st2_hit   <= 1;
