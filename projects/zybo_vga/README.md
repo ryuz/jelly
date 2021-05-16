@@ -44,12 +44,13 @@ projects/zybo_vga 以下にあります。
 
 ### ソースの説明
 
-- zybo_sw.v  スイッチでLEDの点灯を制御する(クロック未使用)
-- zybo_led.v クロックを使ってLEDを点滅させてみる
-- zybo_clk.v Clocking Wizard を使って MMCM を使ってみる
+- zybo_sw.v         スイッチでLEDの点灯を制御する(クロック未使用)
+- zybo_led.v        クロックを使ってLEDを点滅させてみる
+- zybo_clk.v        Clocking Wizard を使って MMCM を使ってみる
 - zybo_vga_simple.v 簡単なVGA種強く
-- zybo_vga.v VGA表示でボールを飛ばしてボタンで速度変更
-- zybo_vga_zynq.v PS(Linux)からの起動用
+- zybo_vga.v        VGA表示でボールを飛ばしてボタンで速度変更
+- zybo_vga_ball.v   簡単なテニス的なもの
+- zybo_vga_zynq.v   PS(Linux)からの起動用
 
 
 ### Vivadoで bit ファイルを作る
