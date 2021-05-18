@@ -3,6 +3,8 @@
 #include <opencv2/opencv.hpp>
 #include "Vtb_verilator.h"
 #include "jelly/simulator/Manager.h"
+#include "jelly/simulator/ResetNode.h"
+#include "jelly/simulator/ClockNode.h"
 #include "jelly/simulator/VerilatorNode.h"
 #include "jelly/simulator/Axi4sImageLoadNode.h"
 #include "jelly/simulator/Axi4sImageDumpNode.h"
