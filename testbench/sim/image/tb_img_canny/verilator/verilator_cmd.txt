@@ -6,7 +6,7 @@
 -Wno-UNSIGNED
 -Wno-PINMISSING
 -Wno-UNOPTFLAT
-#-Wno-UNOPTTHREADS
+-Wno-UNOPTTHREADS
 
 -y ../../../../../rtl/model
 -y ../../../../../rtl/library

@@ -34,15 +34,15 @@ class Node
     friend Manager;
 
 protected:
-    virtual sim_time_t  Initialize(Manager* manager) { return Event(manager); };    // 登録時に一度呼ばれる
-    virtual sim_time_t  Event(Manager* manager) { return 0; };  // 自分の登録したイベント時刻に呼ばれる
-    virtual void        FirstProc(Manager* manager) {};     // シミュレーション開始時に一度呼ばれる
-    virtual void        FinalProc(Manager* manager) {};     // シミュレーション終了時に一度呼ばれる
-    virtual void        PreProc(Manager* manager) {};       // 何かのイベント(他人のイベント含む)前に呼ばれる
-    virtual void        PostProc(Manager* manager) {};      // 何かのイベント(他人のイベント含む)後に呼ばれる
-    virtual void        Eval(Manager* manager) {};          // 評価タイミングで呼ぶ(主に Verilator用)
-    virtual void        Dump(Manager* manager) {};          // 波形ダンプタイミングで呼ぶ(主に Verilator用)
-    virtual void        ThreadProc(Manager* manager) {};    // 別スレッドの処理
+    bool    m_active = false;    // 処理フラグ
+
+    virtual sim_time_t  InitialProc(Manager* manager) { return 0; }     // シミュレーション開始時に一度呼ばれる
+    virtual void        FinalProc(Manager* manager) {}                  // シミュレーション終了時に一度呼ばれる
+    virtual sim_time_t  EventProc(Manager* manager) { return 0; }       // イベント処理に呼ばれる
+    virtual void        PrefetchProc(Manager* manager) {};              // 値フェッチの為に何かのイベント(他人のイベント含む)前に呼ばれる
+    virtual bool        CheckProc(Manager* manager) { return false; }   // 自分に関連する事象変化が起こっていないかのチェックに呼ばれる
+    virtual void        DumpProc(Manager* manager) {}                   // 波形ダンプタイミングで呼ぶ(主に Verilator用)
+    virtual void        ThreadProc(Manager* manager) {}                 // 別スレッドの処理
 };
 
 
@@ -89,7 +89,7 @@ protected:
 
 public:
     ~Manager() {
-        Final();
+        CallFinal();
     }
 
     static manager_ptr_t Create(void)
@@ -111,10 +111,6 @@ public:
 
         if ( node ) {
             m_nodes.push_back(node);
-            auto time = node->Initialize(this);
-            if ( time > 0 ) {
-                AddEvent(node, time);
-            }
         }
     }
 
@@ -129,13 +125,17 @@ protected:
         }
     }
 
-    void First(void)
+    void CallInitial(void)
     {
         if ( !m_first_done ) {
             {
                 std::lock_guard<mutex_t>    lock(m_mtx);
-                this->Eval();
-                for ( auto& node : m_nodes ) { node->FirstProc(this); }
+                for ( auto& node : m_nodes ) {
+                    auto time = node->InitialProc(this);
+                    if ( time > 0 ) {
+                        AddEvent(node, time);
+                    }
+                }
                 m_first_done = true;
             }
 
@@ -143,7 +143,7 @@ protected:
         }
     }
 
-    void Final(void)
+    void CallFinal(void)
     {
         this->ThreadStop();
 
@@ -154,28 +154,40 @@ protected:
         }
     }
 
-    void PreProc(void) { 
+    void CallPrefetch(void) { 
         std::lock_guard<mutex_t>    lock(m_mtx);
-        for ( auto& node : m_nodes ) { node->PreProc(this); }
+        for ( auto& node : m_nodes ) { node->PrefetchProc(this); }
     }
 
-    void PostProc(void) { 
+    void CallCheck(void) { 
         std::lock_guard<mutex_t>    lock(m_mtx);
-        for ( auto& node : m_nodes ) { node->PostProc(this); }
+        for ( auto& node : m_nodes ) {
+            node->m_active = node->CheckProc(this);
+        }
     }
 
-    void Eval(void) { 
+    bool CallEvent(void) { 
         std::lock_guard<mutex_t>    lock(m_mtx);
-        for ( auto& node : m_nodes ) { node->Eval(this); }
+        bool busy = false;
+        for ( auto& node : m_nodes ) {
+            if ( node->m_active ) {
+                auto time = node->EventProc(this);
+                if ( time > 0 ) {
+                    AddEvent(node, time);
+                }
+                busy = true;
+            }
+        }
+        return busy;
     }
 
-    void Dump(void)
+    void CallDump(void)
     {
         std::lock_guard<mutex_t>    lock(m_mtx);
-        for ( auto& node : m_nodes ) { node->Dump(this); }
+        for ( auto& node : m_nodes ) { node->DumpProc(this); }
     }
 
-    std::string get_time_string(int w=0)
+    std::string GetTimeString(int w=0)
     {
         sim_time_t  n = m_current_time / m_time_resolution;
         
@@ -186,7 +198,7 @@ protected:
         while ( n > 0 ) {
             tmp += '0' + n%10;
             n /= 10;
-            if ( ++digit % 3 == 0 ) {
+            if ( ++digit % 3 == 0 && n > 0 ) {
                 tmp += ',';
             }
         }
@@ -211,7 +223,7 @@ protected:
 
             if ( !m_imshow_name.empty() ) {
                 cv::Mat img = cv::Mat::zeros(64, 400, CV_8UC3);
-                auto time_str = get_time_string(14);
+                auto time_str = GetTimeString(14);
 
                 cv::putText(img, "time=" + time_str,
                             cv::Point(8, 50), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255, 255, 255), 1);
@@ -259,7 +271,7 @@ public:
 
     void Finish(void)
     {
-        Final();
+        CallFinal();
     }
 
     bool IsFinished(void)
@@ -274,7 +286,7 @@ public:
         }
 
         if ( !m_first_done ) {
-            this->First();
+            this->CallInitial();
         }
 
         if ( m_que.empty() ) { return; }
@@ -282,32 +294,30 @@ public:
         // キュー先頭の時刻まで進める
         m_current_time = m_que.top().time;
 
+        // フラグクリア
+        for ( auto& node : m_nodes ) {
+            node->m_active = false;
+        }
+
         // 前処理
-        this->PreProc();
+        this->CallPrefetch();
 
         // 分解能未満は同時刻とみなす(これでいいのかは自信なし)
         auto limit_time = m_current_time + m_time_resolution;
         std::vector<node_ptr_t> events;
         while ( !m_que.empty() && m_que.top().time < limit_time ) {
-            events.push_back(m_que.top().node);
+            m_que.top().node->m_active = true;
             m_que.pop();
         }
+        this->CallEvent();
 
-        for ( auto& node : events ) {
-            auto time = node->Event(this);
-            if ( time > 0 ) {
-                AddEvent(node, time);
-            }
-        }
-
-        // 実行
-        this->Eval();
-
-        // 後処理
-        this->PostProc();
+        // イベントが無くなるまで実行
+        do {
+            this->CallCheck();
+        } while ( this->CallEvent() );
 
         // ダンプ
-        this->Dump();
+        this->CallDump();
 
         if ( m_request_finish ) {
             std::cout << "step finish" << std::endl;
@@ -359,87 +369,6 @@ public:
 #endif
     }
 };
-
-
-template<typename T>
-class ClockNode : public Node
-{
-protected:
-    T*      m_signal_clk;
-    double  m_cycle;
-
-    ClockNode(T* signal_clk, double cycle, bool first=true)
-    {
-        m_signal_clk = signal_clk;
-        m_cycle      = cycle;
-
-        *m_signal_clk = first ? 0 : 1;
-    }
-
-public:
-    static std::shared_ptr<ClockNode> Create(T* signal_clk, double cycle, bool first=true)
-    {
-        return std::shared_ptr<ClockNode>(new ClockNode(signal_clk, cycle, first));
-    }
-
-protected:
-    sim_time_t Event(Manager* manager) override
-    {
-        *m_signal_clk = !*m_signal_clk;
-
-        return (sim_time_t)(m_cycle * manager->GetTimeUnit()) / 2;
-    };
-};
-
-template<typename Tp>
-std::shared_ptr< ClockNode<Tp> > ClockNode_Create(Tp* signal_clk, double cycle, bool first=true)
-{
-    return ClockNode<Tp>::Create(signal_clk, cycle, first);
-}
-
-
-
-template<typename T>
-class ResetNode : public Node
-{
-protected:
-    T*      m_signal_reset;
-    double  m_time;
-    bool    m_active_high;
-
-    ResetNode(T* signal_reset, double time, bool active_high=true)
-    {
-        m_signal_reset = signal_reset;
-        m_time         = time;
-        m_active_high  = active_high;
-
-        *m_signal_reset = active_high ? 1 : 0;
-    }
-
-public:
-    static std::shared_ptr<ResetNode> Create(T* signal_reset, double time, bool active_high=true)
-    {
-        return std::shared_ptr<ResetNode>(new ResetNode(signal_reset, time, active_high));
-    }
-
-protected:
-    sim_time_t Initialize(Manager* manager) override
-    {
-        return (sim_time_t)(m_time * manager->GetTimeUnit());
-    };
-
-    sim_time_t Event(Manager* manager) override
-    {
-        *m_signal_reset = m_active_high ? 0 : 1;
-        return 0;
-    };
-};
-
-template<typename Tp>
-std::shared_ptr< ResetNode<Tp> > ResetNode_Create(Tp* signal_reset, double time, bool active_high=true)
-{
-    return ResetNode<Tp>::Create(signal_reset, time, active_high);
-}
 
 
 }
