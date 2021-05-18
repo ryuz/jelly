@@ -165,29 +165,36 @@ protected:
         return pixel;
     }
 
-    void FirstProc(Manager* manager) override
+    sim_time_t InitialProc(Manager* manager) override
     {
         *m_axi4s.tuser  = 0;
         *m_axi4s.tlast  = 0;
         *m_axi4s.tdata  = 0;
         *m_axi4s.tvalid = 0;
+        return 0;
     }
 
-    void PreProc(Manager* manager) override
+    void PrefetchProc(Manager* manager) override
     {
         m_aclk = (*m_axi4s.aclk != 0);
     }
 
-    void PostProc(Manager* manager) override
+    bool CheckProc(Manager* manager) override
+    {
+        bool aclk = (*m_axi4s.aclk != 0);
+        return (aclk && (aclk != m_aclk));  // posedge aclk
+    }
+
+    sim_time_t EventProc(Manager* manager) override
     {
         // リセット解除で posedge clk の時だけ処理
-        if ( *m_axi4s.aresetn == 0 || !(!m_aclk && *m_axi4s.aclk != 0) ) {
-            return;
+        if ( *m_axi4s.aresetn == 0 ) {
+            return 0;
         }
 
         // tready == 1 の時だけ処理
         if ( *m_axi4s.tready == 0 ) {
-            return;
+            return 0;
         }
 
         // フレーム数制限
@@ -195,14 +202,14 @@ protected:
             if ( m_limit_finish ) {
                 manager->RequestFinish();
             }
-            return;
+            return 0;
         }
 
         // ブランク挿入
         if ( m_blank_count > 0 ) {
             m_blank_count--;
             *m_axi4s.tvalid = 0;
-            return;
+            return 0;
         }
 
         // 画像データ
@@ -215,6 +222,7 @@ protected:
             *m_axi4s.tdata = GetPixel();
             *m_axi4s.tvalid = 1;
         }
+        return 0;
     }
 
     void ThreadProc(Manager* manager) override

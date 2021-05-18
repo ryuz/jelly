@@ -61,15 +61,21 @@ protected:
         m_module->final();
     }
 
-    void Eval(Manager* manager) override
+    bool CheckProc(Manager* manager) override
+    {
+        return true;    // 常にイベント
+    }
+
+    sim_time_t EventProc(Manager* manager) override
     {
         m_module->eval();
         if ( Verilated::gotFinish() ) {
             manager->Finish();
         }
+        return 0;
     }
 
-    void Dump(Manager* manager) override
+    void DumpProc(Manager* manager) override
     {
 #if VM_TRACE
         if ( m_tfp ) {

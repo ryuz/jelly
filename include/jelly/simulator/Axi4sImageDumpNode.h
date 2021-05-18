@@ -165,11 +165,12 @@ protected:
         }
     }
     
-    void FirstProc(Manager* manager) override
+    sim_time_t InitialProc(Manager* manager) override
     {
         if ( m_axi4s.tready ) {
             *m_axi4s.tready = 0;
         }
+        return 0;
     }
 
     void FinalProc(Manager* manager) override
@@ -178,7 +179,7 @@ protected:
         WriteImage();
     }
 
-    void PreProc(Manager* manager) override
+    void PrefetchProc(Manager* manager) override
     {
         m_aresetn = (*m_axi4s.aresetn != 0);
         m_aclk    = (*m_axi4s.aclk != 0);
@@ -189,13 +190,14 @@ protected:
         m_tready  = m_axi4s.tready ? (*m_axi4s.tready != 0) : true;
     }
 
-    void PostProc(Manager* manager) override
+    bool CheckProc(Manager* manager) override
     {
-        // posedge clk の時だけ処理
-        if ( !(!m_aclk && *m_axi4s.aclk != 0) ) {
-            return;
-        }
+        bool aclk = (*m_axi4s.aclk != 0);
+        return (aclk && (aclk != m_aclk));  // posedge aclk
+    }
 
+    sim_time_t EventProc(Manager* manager) override
+    {
         // リセット解除の時だけ処理
         if ( !m_aresetn ) {
             if ( m_axi4s.tready ) {
@@ -209,7 +211,7 @@ protected:
         }
 
         if ( !(m_tvalid && m_tready) ) {
-            return;
+            return 0;
         }
 
         if ( m_tuser ) {
@@ -229,6 +231,8 @@ protected:
         if ( m_limit_finish && m_limit_frame > 0 && m_frame_num >= m_limit_frame ) {
             manager->RequestFinish();
         }
+
+        return 0;
     }
 
     void ThreadProc(Manager* manager) override
