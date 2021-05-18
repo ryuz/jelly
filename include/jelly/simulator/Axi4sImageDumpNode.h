@@ -192,8 +192,15 @@ protected:
 
     bool CheckProc(Manager* manager) override
     {
-        bool aclk = (*m_axi4s.aclk != 0);
-        return (aclk && (aclk != m_aclk));  // posedge aclk
+        // 監視信号に変化があるか？
+        if ( (*m_axi4s.aclk != 0) == m_aclk ) {
+            return false;
+        }
+
+        // 変化を取り込み
+        m_aclk = (*m_axi4s.aclk != 0);
+
+        return m_aclk;  // posedge aclk
     }
 
     sim_time_t EventProc(Manager* manager) override

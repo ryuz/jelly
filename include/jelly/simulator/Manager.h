@@ -35,9 +35,7 @@ class Node
 
 protected:
     bool    m_active = false;    // 処理フラグ
-    bool    m_done   = false;    // 完了フラグ
 
-//  virtual sim_time_t  Setup(Manager* manager) { return Event(manager); }    // 登録時に一度呼ばれる
     virtual sim_time_t  InitialProc(Manager* manager) { return 0; }     // シミュレーション開始時に一度呼ばれる
     virtual void        FinalProc(Manager* manager) {}                  // シミュレーション終了時に一度呼ばれる
     virtual sim_time_t  EventProc(Manager* manager) { return 0; }       // イベント処理に呼ばれる
@@ -113,10 +111,6 @@ public:
 
         if ( node ) {
             m_nodes.push_back(node);
-//            auto time = node->Setup(this);
-//            if ( time > 0 ) {
-//                AddEvent(node, time);
-//            }
         }
     }
 
@@ -168,9 +162,7 @@ protected:
     void CallCheck(void) { 
         std::lock_guard<mutex_t>    lock(m_mtx);
         for ( auto& node : m_nodes ) {
-            if ( node->CheckProc(this) ) {
-                node->m_active = true;
-            }
+            node->m_active = node->CheckProc(this);
         }
     }
 
@@ -178,12 +170,11 @@ protected:
         std::lock_guard<mutex_t>    lock(m_mtx);
         bool busy = false;
         for ( auto& node : m_nodes ) {
-            if ( node->m_active && !node->m_done ) {
+            if ( node->m_active ) {
                 auto time = node->EventProc(this);
                 if ( time > 0 ) {
                     AddEvent(node, time);
                 }
-                node->m_done = true;
                 busy = true;
             }
         }
@@ -305,7 +296,6 @@ public:
 
         // フラグクリア
         for ( auto& node : m_nodes ) {
-            node->m_done   = false;
             node->m_active = false;
         }
 
@@ -319,6 +309,7 @@ public:
             m_que.top().node->m_active = true;
             m_que.pop();
         }
+        this->CallEvent();
 
         // イベントが無くなるまで実行
         do {

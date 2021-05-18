@@ -42,6 +42,7 @@ class VerilatorNode : public Node
 protected:
     module_ptr_t     m_module;
     trace_ptr_t      m_tfp;
+    bool             m_busy;
     
     VerilatorNode(module_ptr_t module, trace_ptr_t tfp=nullptr)
     {
@@ -61,9 +62,19 @@ protected:
         m_module->final();
     }
 
+    void PrefetchProc(Manager* manager) override
+    {
+        m_busy = true;
+    }
+
     bool CheckProc(Manager* manager) override
     {
-        return true;    // 常にイベント
+        if ( !m_busy ) {
+            return false;
+        }
+
+        m_busy = false;
+        return true;    // 1回有効にする
     }
 
     sim_time_t EventProc(Manager* manager) override
