@@ -146,12 +146,13 @@ protected:
         // アクセス完了なら
         if ( m_ack_i && m_verbose ) {
             if ( m_we_o ) {
-                std::cout << "[WISHBONE] write(adr:" << m_adr_o << " dat:" << m_dat_o << ")"<< std::endl;
+                std::cout << std::hex << "[WISHBONE] write(adr: 0x" << m_adr_o << " dat: 0x" << m_dat_o << ")"<< std::endl;
             }
             else {
-                std::cout << "[WISHBONE] read(adr:" << m_adr_o << ") => " << m_dat_i << std::endl;
+                std::cout << std::hex << "[WISHBONE] read(adr: 0x" << m_adr_o << ") => 0x" << m_dat_i << std::endl;
             }
         }
+        *m_wishbone.stb_o = 0;
 
         // キューが空なら何もしない
         if ( m_acc_que.empty() ) {
@@ -167,7 +168,7 @@ protected:
         switch ( acc.acc_type ) {
         case AccWait:
             if ( m_verbose ) {
-                std::cout << "[WISHBONE] wait(" << acc.wait_cycle << ")" << std::endl;
+                std::cout << std::dec << "[WISHBONE] wait(" << acc.wait_cycle << ")" << std::endl;
             }
             break;
 

@@ -90,7 +90,7 @@ int main(int argc, char** argv)
 
     mng->AddNode(jsim::VerilatorNode_Create(top, tfp));
 
-    wb_master->Wait(10);
+    wb_master->Wait(1000);
     
     wb_master->Read(ADR_CORE_ID);
     wb_master->Read(ADR_CORE_VERSION);
@@ -106,6 +106,7 @@ int main(int argc, char** argv)
     
 //  $display("start");
     wb_master->Write(ADR_CTL_CONTROL,    0x00000003, 0xf);
+    wb_master->Wait(10);
 
 
 //    mng->SetThreadEnable(true);
