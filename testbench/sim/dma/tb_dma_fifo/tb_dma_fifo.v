@@ -3,7 +3,7 @@
 `default_nettype none
 
 
-module tb_axi4_dma_fifo();
+module tb_dma_fifo();
     localparam S_RATE    = 1000.0 / 80.3;
     localparam M_RATE    = 1000.0 / 95.7;
     localparam WB_RATE   = 1000.0 / 100.1;
@@ -11,8 +11,8 @@ module tb_axi4_dma_fifo();
     
     
     initial begin
-        $dumpfile("tb_axi4_dma_fifo.vcd");
-        $dumpvars(0, tb_axi4_dma_fifo);
+        $dumpfile("tb_dma_fifo.vcd");
+        $dumpvars(0, tb_dma_fifo);
         
         #1000000;
             $finish;
@@ -200,13 +200,13 @@ module tb_axi4_dma_fifo();
     wire                                    m_axi4_rvalid;
     wire                                    m_axi4_rready;
     
-    jelly_axi4_dma_fifo
+    jelly_dma_fifo
             #(
                 .S_ASYNC                (S_ASYNC),
                 .M_ASYNC                (M_ASYNC),
                 .UNIT_WIDTH             (UNIT_WIDTH),
-                .S_DATA_SIZE            (S_DATA_SIZE),
-                .M_DATA_SIZE            (M_DATA_SIZE),
+                .S_DATA_WIDTH           (S_DATA_WIDTH),
+                .M_DATA_WIDTH           (M_DATA_WIDTH),
                 
                 .AXI4_ID_WIDTH          (AXI4_ID_WIDTH),
                 .AXI4_ADDR_WIDTH        (AXI4_ADDR_WIDTH),
