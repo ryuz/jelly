@@ -42,7 +42,12 @@ module jelly_ram_accumulator
             input   wire                        mem_we,
             input   wire    [ADDR_WIDTH-1:0]    mem_addr,
             input   wire    [DATA_WIDTH-1:0]    mem_din,
-            output  wire    [DATA_WIDTH-1:0]    mem_dout
+            output  wire    [DATA_WIDTH-1:0]    mem_dout,
+            
+            // max
+            input   wire                        max_clear,
+            output  wire    [ADDR_WIDTH-1:0]    max_addr,
+            output  wire    [DATA_WIDTH-1:0]    max_data
         );
     
     reg                         st0_we;
@@ -165,6 +170,28 @@ module jelly_ram_accumulator
             );
     
     assign mem_dout = st1_dout;
+    
+    
+    // max
+    reg     [ADDR_WIDTH-1:0]    reg_max_addr;
+    reg     [DATA_WIDTH-1:0]    reg_max_data;
+    always @(posedge clk) begin
+        if ( reset || max_clear ) begin
+            reg_max_addr <= {ADDR_WIDTH{1'b0}};
+            reg_max_data <= {DATA_WIDTH{1'b0}};
+        end
+        else begin
+            if ( st2_we && (st2_data > reg_max_data) ) begin
+                reg_max_addr <= st2_addr;
+                reg_max_data <= st2_data;
+            end
+        end
+    end
+    
+    assign max_addr = reg_max_addr;
+    assign max_data = reg_max_data;
+    
+    
     
 endmodule
 
