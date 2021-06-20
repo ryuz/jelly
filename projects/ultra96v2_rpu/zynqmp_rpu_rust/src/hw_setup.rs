@@ -59,8 +59,6 @@ static MPU_SIZE_2G: u32 = (0x1e << 1) | 1;
 #[allow(dead_code)]
 static MPU_SIZE_4G: u32 = (0x1f << 1) | 1;
 #[allow(dead_code)]
-
-#[allow(dead_code)]
 static MPU_XN: u32 = 1 << 12;
 #[allow(dead_code)]
 static MPU_S: u32 = 1 << 2;
