@@ -63,7 +63,7 @@ _rst_handler:
                 ldr     sp, =___und_stack_end
                 msr     cpsr_c, #(Mode_SYS | F_Bit | I_Bit)
                 ldr     sp, =___usr_stack_end
-                
+
                 /* SCTLR.V クリア(例外ベクタを0番地に戻す) */
                 mrc     p15, 0, r0, c1, c0, 0
                 mvn     r1, #0x2000
@@ -117,18 +117,6 @@ _rst_handler:
 
                 /* H/W 初期化 */
                 bl      hw_setup
-
-                /* DATA領域のコピー */
-                /*
-                ldr     r0, =___data_rom
-                ldr     r1, =___data
-                ldr     r2, =___data_end
-data_loop:      
-                cmp     r1, r2
-                ldrcc   r3, [r0], #4
-                strcc   r3, [r1], #4
-                bcc     data_loop
-                */
                 
                 /* BSS領域の初期化 */
                 ldr     r0, =___bss

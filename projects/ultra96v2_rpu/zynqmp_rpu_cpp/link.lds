@@ -13,7 +13,7 @@ SECTIONS
     .vector :
     {
         ___vector = . ; 
-        */vectors.o(.text)
+        vectors.o(.text)
         FILL(0xff)
         ___vector_end = . ; 
     } > vector

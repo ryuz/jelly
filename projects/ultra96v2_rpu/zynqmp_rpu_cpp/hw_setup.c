@@ -18,6 +18,7 @@ void hw_setup(void)
     /* MPU設定 */
     n = vmpu_get_number_of_regions();
     for ( i = 0; i < n; ++i ) {
+        vmpu_set_region_number(i);
         vmpu_set_region_size(_ARMCPU_MPU_DISABLE);
     }
     region_num = 0;

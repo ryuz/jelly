@@ -18,7 +18,7 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
 // main
 #[no_mangle]
 pub unsafe extern "C" fn main() -> ! {
+    println!("Hello world");
     loop {
-        println!("Hello world\r\n");
     }
 }
