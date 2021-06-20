@@ -21,7 +21,7 @@ module tb_ram_accumulator();
     initial #(RATE*100.5)   reset = 1'b0;
     
     parameter   ADDR_WIDTH   = 3;
-    parameter   DATA_WIDTH   = 8;
+    parameter   DATA_WIDTH   = 32;
     parameter   MEM_SIZE     = (1 << ADDR_WIDTH);
     
     integer     i;
@@ -32,7 +32,7 @@ module tb_ram_accumulator();
         end
     end
     
-    
+    reg                         acc_enable = 1'b1;
     reg     [ADDR_WIDTH-1:0]    acc_addr;
     reg     [DATA_WIDTH-1:0]    acc_data;
     reg     [0:0]               acc_operation;
@@ -49,9 +49,9 @@ module tb_ram_accumulator();
         end
         else begin
             acc_addr      <= {$random};
-            acc_data      <= {$random};
-            acc_operation <= {$random};
-            acc_valid     <= {$random};
+            acc_data      <= {$random} & 32'hff;
+            acc_operation <= 1'b0; //{$random};
+            acc_valid     <= acc_enable ? {$random} : 1'b0;
             
             // exp
             exp_valid = acc_valid;
@@ -74,6 +74,10 @@ module tb_ram_accumulator();
     reg     [ADDR_WIDTH-1:0]    mem_addr = 0;
     reg     [DATA_WIDTH-1:0]    mem_din  = 0;
     wire    [DATA_WIDTH-1:0]    mem_dout;
+    
+    reg                         max_clear = 0;
+    wire    [ADDR_WIDTH-1:0]    max_addr;
+    wire    [DATA_WIDTH-1:0]    max_data;
     
     jelly_ram_accumulator
             #(
@@ -99,13 +103,19 @@ module tb_ram_accumulator();
                 .mem_we         (mem_we),
                 .mem_addr       (mem_addr),
                 .mem_din        (mem_din),
-                .mem_dout       (mem_dout)
+                .mem_dout       (mem_dout),
+                
+                .max_clear      (max_clear),
+                .max_addr       (max_addr),
+                .max_data       (max_data)
             );
     
     initial begin
-        #100000;
+        #1000;
         @(negedge clk)
             mem_en = 1'b1;
+        @(negedge clk)
+        acc_enable = 1'b0;
         @(negedge clk)
         @(negedge clk)
         
@@ -124,6 +134,10 @@ module tb_ram_accumulator();
             $display("mem:%h", mem_dout);
         @(negedge clk)
             $display("mem:%h", mem_dout);
+        
+        @(negedge clk)
+            $display("max_addr:%h", max_addr);
+            $display("max_data:%h", max_data);
         
         $finish;
     end

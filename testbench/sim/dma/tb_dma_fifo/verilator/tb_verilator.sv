@@ -3,16 +3,41 @@
 `default_nettype none
 
 
-module tb_axi4_dma_fifo();
+module tb_verilator
+        #(
+            parameter   WB_ADR_WIDTH = 8,
+            parameter   WB_DAT_SIZE  = 3,     // 0:8bit, 1:16bit, 2:32bit ...
+            parameter   WB_DAT_WIDTH = (8 << WB_DAT_SIZE),
+            parameter   WB_SEL_WIDTH = (WB_DAT_WIDTH / 8)
+        )
+        (
+            input   wire                        s_reset,
+            input   wire                        s_clk,
+            input   wire                        m_reset,
+            input   wire                        m_clk,
+            input   wire                        aresetn,
+            input   wire                        aclk,
+            input   wire                        wb_rst_i,
+            input   wire                        wb_clk_i,
+    
+            input   wire    [WB_ADR_WIDTH-1:0]  s_wb_adr_i,
+            input   wire    [WB_DAT_WIDTH-1:0]  s_wb_dat_i,
+            output  wire    [WB_DAT_WIDTH-1:0]  s_wb_dat_o,
+            input   wire                        s_wb_we_i,
+            input   wire    [WB_SEL_WIDTH-1:0]  s_wb_sel_i,
+            input   wire                        s_wb_stb_i,
+            output  wire                        s_wb_ack_o
+        );
+
+    /*
     localparam S_RATE    = 1000.0 / 80.3;
     localparam M_RATE    = 1000.0 / 95.7;
     localparam WB_RATE   = 1000.0 / 100.1;
     localparam AXI4_RATE = 1000.0 / 153.3;
     
-    
     initial begin
-        $dumpfile("tb_axi4_dma_fifo.vcd");
-        $dumpvars(0, tb_axi4_dma_fifo);
+        $dumpfile("tb_dma_fifo.vcd");
+        $dumpvars(0, tb_dma_fifo);
         
         #1000000;
             $finish;
@@ -44,7 +69,7 @@ module tb_axi4_dma_fifo();
     
     reg     aclk = 1'b1;
     always #(AXI4_RATE/2.0)     aclk = ~aclk;
-    
+    */
     
     
     localparam  RAND_BUSY = 1;
@@ -59,12 +84,7 @@ module tb_axi4_dma_fifo();
     parameter   M_ASYNC                  = 1;
     parameter   S_DATA_SIZE              = 2;    // 0:8bit, 1:16bit, 2:32bit ...
     parameter   M_DATA_SIZE              = 2;    // 0:8bit, 1:16bit, 2:32bit ...
-    
-    parameter   WB_ADR_WIDTH             = 8;
-    parameter   WB_DAT_SIZE              = 3;     // 0:8bit, 1:16bit, 2:32bit ...
-    parameter   WB_DAT_WIDTH             = (8 << WB_DAT_SIZE);
-    parameter   WB_SEL_WIDTH             = (WB_DAT_WIDTH / 8);
-    
+        
     parameter   AXI4_ID_WIDTH            = 6;
     parameter   AXI4_ADDR_WIDTH          = 32;
     parameter   AXI4_DATA_SIZE           = 2;   // 0:8bit, 1:16bit, 2:32bit ...
@@ -142,16 +162,7 @@ module tb_axi4_dma_fifo();
     
     parameter   S_DATA_WIDTH             = (UNIT_WIDTH << S_DATA_SIZE);
     parameter   M_DATA_WIDTH             = (UNIT_WIDTH << M_DATA_SIZE);
-    
-    
-    wire    [WB_ADR_WIDTH-1:0]              s_wb_adr_i;
-    wire    [WB_DAT_WIDTH-1:0]              s_wb_dat_i;
-    wire    [WB_DAT_WIDTH-1:0]              s_wb_dat_o;
-    wire                                    s_wb_we_i;
-    wire    [WB_SEL_WIDTH-1:0]              s_wb_sel_i;
-    wire                                    s_wb_stb_i;
-    wire                                    s_wb_ack_o;
-    
+
     reg     [S_DATA_WIDTH-1:0]              s_data;
     reg                                     s_valid;
     wire                                    s_ready;
@@ -200,13 +211,13 @@ module tb_axi4_dma_fifo();
     wire                                    m_axi4_rvalid;
     wire                                    m_axi4_rready;
     
-    jelly_axi4_dma_fifo
+    jelly_dma_fifo
             #(
                 .S_ASYNC                (S_ASYNC),
                 .M_ASYNC                (M_ASYNC),
                 .UNIT_WIDTH             (UNIT_WIDTH),
-                .S_DATA_SIZE            (S_DATA_SIZE),
-                .M_DATA_SIZE            (M_DATA_SIZE),
+                .S_DATA_WIDTH           (S_DATA_WIDTH),
+                .M_DATA_WIDTH           (M_DATA_WIDTH),
                 
                 .AXI4_ID_WIDTH          (AXI4_ID_WIDTH),
                 .AXI4_ADDR_WIDTH        (AXI4_ADDR_WIDTH),
@@ -474,10 +485,8 @@ module tb_axi4_dma_fifo();
     //  WISHBONE master
     // ----------------------------------
     
-//    parameter   WB_ADR_WIDTH        = 30;
-//    parameter   WB_DAT_WIDTH        = 32;
-//    parameter   WB_SEL_WIDTH        = (WB_DAT_WIDTH / 8);
-    
+    /*
+
     reg     [WB_ADR_WIDTH-1:0]      wb_adr_o;
     wire    [WB_DAT_WIDTH-1:0]      wb_dat_i = s_wb_dat_o;
     reg     [WB_DAT_WIDTH-1:0]      wb_dat_o;
@@ -486,14 +495,11 @@ module tb_axi4_dma_fifo();
     reg                             wb_stb_o = 0;
     wire                            wb_ack_i = s_wb_ack_o;
     
-    initial begin
-        force s_wb_adr_i = wb_adr_o;
-        force s_wb_dat_i = wb_dat_o;
-        force s_wb_we_i  = wb_we_o;
-        force s_wb_sel_i = wb_sel_o;
-        force s_wb_stb_i = wb_stb_o;
-    end
-    
+    assign s_wb_adr_i = wb_adr_o;
+    assign s_wb_dat_i = wb_dat_o;
+    assign s_wb_we_i  = wb_we_o;
+    assign s_wb_sel_i = wb_sel_o;
+    assign s_wb_stb_i = wb_stb_o;
     
     reg     [WB_DAT_WIDTH-1:0]      reg_wb_dat;
     reg                             reg_wb_ack;
@@ -624,15 +630,6 @@ module tb_axi4_dma_fifo();
         
     #10000;
         $display("change parameter");
-        /*
-        wb_write(ADR_PARAM_ADDR,     32'h0000_2340, {WB_SEL_WIDTH{1'b1}});
-        wb_write(ADR_PARAM_SIZE,     32'h0000_0380, {WB_SEL_WIDTH{1'b1}});
-        wb_write(ADR_PARAM_AWLEN,    32'h0000_0000, {WB_SEL_WIDTH{1'b1}});
-        wb_write(ADR_PARAM_WSTRB,    32'hffff_ffff, {WB_SEL_WIDTH{1'b1}});
-        wb_write(ADR_PARAM_WTIMEOUT, 32'h0000_0000, {WB_SEL_WIDTH{1'b1}});
-        wb_write(ADR_PARAM_ARLEN,    32'h0000_0000, {WB_SEL_WIDTH{1'b1}});
-        wb_write(ADR_PARAM_RTIMEOUT, 32'h0000_0000, {WB_SEL_WIDTH{1'b1}});
-        */
         
         $display("start");
         wb_write(ADR_CTL_CONTROL,    32'h0000_0003, {WB_SEL_WIDTH{1'b1}});
@@ -648,6 +645,7 @@ module tb_axi4_dma_fifo();
         $finish();
     end
     
+    */
     
 endmodule
 
