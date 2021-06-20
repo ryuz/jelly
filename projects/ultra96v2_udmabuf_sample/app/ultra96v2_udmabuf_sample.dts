@@ -40,19 +40,26 @@
     fragment@2 {
         target-path = "/amba";
         __overlay__ {
-            #address-cells = <0x1>;
-            #size-cells = <0x1>;
+            #address-cells = <0x2>;
+            #size-cells = <0x2>;
             
             uio_pl_peri {
                 compatible = "generic-uio";
-                reg = <0xa0000000 0x08000000>;
+                reg = <0x0 0xa0000000 0x0 0x08000000>;
             };
+        };
+    };
 
+    fragment@3 {
+        target-path = "/amba";
+        __overlay__ {
+            #address-cells = <0x2>;
+            #size-cells = <0x2>;
             udmabuf4 {
         /*      compatible = "ikwzm,udmabuf-0.10.a"; */
                 compatible = "ikwzm,u-dma-buf";
                 minor-number = <4>;
-                size = <0x00400000>;
+                size = <0x0 0x00400000>;
             };
         };
     };

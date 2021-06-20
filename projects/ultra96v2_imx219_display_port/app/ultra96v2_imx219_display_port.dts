@@ -9,7 +9,7 @@
             firmware-name = "ultra96v2_imx219_display_port.bit.bin";
         };
     };
-    
+
     fragment@1 {
         target-path = "/amba_pl@0";
         
@@ -59,28 +59,37 @@
     fragment@2 {
         target-path = "/amba";
         __overlay__ {
-            #address-cells = <0x1>;
-            #size-cells = <0x1>;
+            #address-cells = <0x2>;
+            #size-cells = <0x2>;
             
             uio_pl_peri {
                 compatible = "generic-uio";
-                reg = <0x80000000 0x08000000>;
+                reg = <0 0x80000000 0 0x08000000>;
             };
 
             uio_dp {
                 compatible = "generic-uio";
-                reg = <0xfd4a0000 0x00010000>;
+                reg = <0 0xfd4a0000 0 0x00010000>;
             };
-            
+        };
+    };
+
+    fragment@3 {
+        target-path = "/amba";
+        __overlay__ {
+            #address-cells = <0x2>;
+            #size-cells = <0x2>;
             udmabuf4 {
-                compatible = "ikwzm,udmabuf-0.10.a";
+             /* compatible = "ikwzm,udmabuf-0.10.a"; */
+                compatible = "ikwzm,u-dma-buf";
                 minor-number = <4>;
-                size = <0x01000000>;
+                size = <0 0x01000000>;
             };
             udmabuf5 {
-                compatible = "ikwzm,udmabuf-0.10.a";
+             /* compatible = "ikwzm,udmabuf-0.10.a"; */
+                compatible = "ikwzm,u-dma-buf";
                 minor-number = <5>;
-                size = <0x00800000>;
+                size = <0 0x00800000>;
             };
         };
     };
