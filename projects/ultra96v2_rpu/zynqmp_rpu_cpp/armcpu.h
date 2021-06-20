@@ -19,6 +19,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 void            _armcpu_enable_bpredict(void);  /*  分岐予測有効化 */
 void            _armcpu_disable_bpredict(void); /* 分岐予測無効化 */
 void            _armcpu_enable_icache(void);    /* Iキャッシュ有効化 */

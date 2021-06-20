@@ -12,7 +12,7 @@
                 .global     _abt_handler
                 .global     _irq_handler
                 .global     _fiq_handler
-                
+
                 .extern     ___bss
                 .extern     ___bss_end
                 .extern     ___usr_stack_end
@@ -24,7 +24,6 @@
 
                 .extern     hw_setup
                 .extern     main
-
 
 
                 .text
@@ -87,11 +86,11 @@ _rst_handler:
                 vmsr    FPEXC, r1
 
                 /* Disable MPU and caches */
-                mrc     p15, 0, r0, c1, c0, 0   /* Read CP15 Control Register*/
-                bic     r0, r0, #0x05           /* Disable MPU (M bit) and data cache (C bit) */
-                bic     r0, r0, #0x1000         /* Disable instruction cache (I bit) */
-                dsb                             /* Ensure all previous loads/stores have completed */
-                mcr     p15, 0, r0, c1, c0, 0   /* Write CP15 Control Register */
+                mrc     p15, 0, r0, c1, c0, 0       /* Read CP15 Control Register*/
+                bic     r0, r0, #0x05               /* Disable MPU (M bit) and data cache (C bit) */
+                bic     r0, r0, #0x1000             /* Disable instruction cache (I bit) */
+                dsb                                 /* Ensure all previous loads/stores have completed */
+                mcr     p15, 0, r0, c1, c0, 0       /* Write CP15 Control Register */
                 isb     
 
                 /* Disable Branch prediction, TCM ECC checks */
@@ -118,18 +117,6 @@ _rst_handler:
                 /* H/W 初期化 */
                 bl      hw_setup
 
-                /* DATA領域のコピー */
-                /*
-                ldr     r0, =___data_rom
-                ldr     r1, =___data
-                ldr     r2, =___data_end
-data_loop:      
-                cmp     r1, r2
-                ldrcc   r3, [r0], #4
-                strcc   r3, [r1], #4
-                bcc     data_loop
-                */
-                
                 /* BSS領域の初期化 */
                 ldr     r0, =___bss
                 ldr     r1, =___bss_end
@@ -145,13 +132,19 @@ bss_loop:
 end_loop:
                 b       end_loop
 
+__main:
+                bx      lr
 
 
-/* 例外ハンドラ */
+
+/************************************************
+  各種ハンドラ
+************************************************/
+
 _und_handler:   
                 b       _und_handler
 
-_swi_handler:
+_swi_handler:   
 
                 b       _swi_handler
 _pre_handler:   
