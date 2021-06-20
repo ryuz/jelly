@@ -93,7 +93,8 @@ static MPU_2_WRITE_THROUGH: u32 = (0x4 << 3) | 0x2;
 static MPU_2_WRITE_BACK: u32 = (0x4 << 3) | 0x3;
 
 extern "C" {
-    fn _armcpu_enable_bpredict(); //  分岐予測有効化
+    // キャッシュ制御等
+    fn _armcpu_enable_bpredict(); // 分岐予測有効化
     fn _armcpu_disable_bpredict(); // 分岐予測無効化
     fn _armcpu_enable_icache(); // Iキャッシュ有効化
     fn _armcpu_disable_icache(); // Iキャッシュ無効化
@@ -104,7 +105,7 @@ extern "C" {
     fn _armcpu_enable_ecc(); // ECC有効化 (必ずキャッシュOFF状態で呼ぶこと)
     fn _armcpu_disable_ecc(); // ECC無効化 (必ずキャッシュOFF状態で呼ぶこと)
 
-    /* Access to CP15 */
+    // Access to CP15
     fn _armcpu_read_cp15_c0_c0_4() -> u32; // read MPU Type Register
     fn _armcpu_write_cp15_c6_c1_0(v: u32); // write MPU Region Size and Enable Registers
     fn _armcpu_read_cp15_c6_c1_0() -> u32; // read MPU Region Size and Enable Registers
@@ -166,80 +167,82 @@ pub unsafe extern "C" fn hw_setup() {
     vmpu_set_region_size(MPU_SIZE_2G);
     vmpu_set_region_access_control(MPU_AP_FULL | MPU_WRITE_BACK_ALLOC);
 
-    /* PL(FPD0) */
+    // PL(FPD0)
     vmpu_set_region_number(region_num);
     region_num += 1;
     vmpu_set_region_base_address(0xa0000000);
     vmpu_set_region_size(MPU_SIZE_256M);
     vmpu_set_region_access_control(MPU_AP_FULL | MPU_NO_CACHEABLE);
 
-    /* PL(FPD1) */
+    // PL(FPD1)
     vmpu_set_region_number(region_num);
     region_num += 1;
     vmpu_set_region_base_address(0xb0000000);
     vmpu_set_region_size(MPU_SIZE_256M);
     vmpu_set_region_access_control(MPU_AP_FULL | MPU_NO_CACHEABLE);
 
-    /* PL(FPD0) */
+    // PL(FPD0)
     vmpu_set_region_number(region_num);
     region_num += 1;
     vmpu_set_region_base_address(0xc0000000);
     vmpu_set_region_size(MPU_SIZE_512M);
     vmpu_set_region_access_control(MPU_AP_FULL | MPU_NO_CACHEABLE);
 
-    /* 256M of device memory from 0xE0000000 to 0xEFFFFFFF for PCIe Low */
+    // 256M of device memory from 0xE0000000 to 0xEFFFFFFF for PCIe Low
     vmpu_set_region_number(region_num);
     region_num += 1;
     vmpu_set_region_base_address(0xe0000000);
     vmpu_set_region_size(MPU_SIZE_256M);
     vmpu_set_region_access_control(MPU_AP_FULL | MPU_NON_SHAREABLE_DEVICE);
 
-    /* 16M of device memory from 0xF8000000 to 0xF8FFFFFF for STM_CORESIGHT */
+    // 16M of device memory from 0xF8000000 to 0xF8FFFFFF for STM_CORESIGHT
     vmpu_set_region_number(region_num);
     region_num += 1;
     vmpu_set_region_base_address(0xf8000000);
     vmpu_set_region_size(MPU_SIZE_16M);
     vmpu_set_region_access_control(MPU_AP_FULL | MPU_NON_SHAREABLE_DEVICE);
 
-    /* 1M of device memory from 0xF9000000 to 0xF90FFFFF for RPU_A53_GIC */
+    // 1M of device memory from 0xF9000000 to 0xF90FFFFF for RPU_A53_GIC
     vmpu_set_region_number(region_num);
     region_num += 1;
     vmpu_set_region_base_address(0xf9000000);
     vmpu_set_region_size(MPU_SIZE_1M);
     vmpu_set_region_access_control(MPU_AP_FULL | MPU_NON_SHAREABLE_DEVICE);
 
-    /* 16M of device memory from 0xFD000000 to 0xFDFFFFFF for FPS slaves */
+    // 16M of device memory from 0xFD000000 to 0xFDFFFFFF for FPS slaves
     vmpu_set_region_number(region_num);
     region_num += 1;
     vmpu_set_region_base_address(0xfd000000);
     vmpu_set_region_size(MPU_SIZE_16M);
     vmpu_set_region_access_control(MPU_AP_FULL | MPU_NON_SHAREABLE_DEVICE);
 
-    /* 16M of device memory from 0xFE000000 to 0xFEFFFFFF for Upper LPS slaves */
+    // 16M of device memory from 0xFE000000 to 0xFEFFFFFF for Upper LPS slaves
     vmpu_set_region_number(region_num);
     region_num += 1;
     vmpu_set_region_base_address(0xfe000000);
     vmpu_set_region_size(MPU_SIZE_16M);
     vmpu_set_region_access_control(MPU_AP_FULL | MPU_NON_SHAREABLE_DEVICE);
 
-    /* 16M of device memory from 0xFF000000 to 0xFFFFFFFF for Lower LPS slaves, CSU, PMU, TCM, OCM */
+    // 16M of device memory from 0xFF000000 to 0xFFFFFFFF for Lower LPS slaves, CSU, PMU, TCM, OCM
     vmpu_set_region_number(region_num);
     region_num += 1;
     vmpu_set_region_base_address(0xff000000);
     vmpu_set_region_size(MPU_SIZE_16M);
     vmpu_set_region_access_control(MPU_AP_FULL | MPU_NON_SHAREABLE_DEVICE);
 
-    /* 256K of OCM RAM from 0xFFFC0000 to 0xFFFFFFFF marked as normal memory */
+    // 256K of OCM RAM from 0xFFFC0000 to 0xFFFFFFFF marked as normal memory
     vmpu_set_region_number(region_num); // region_num += 1;
     vmpu_set_region_base_address(0xfffc0000);
     vmpu_set_region_size(MPU_SIZE_256K);
     vmpu_set_region_access_control(MPU_AP_FULL | MPU_WRITE_BACK_ALLOC);
 
-    /* ---------------------------------- */
-    /*  キャッシュ設定                     */
-    /* -----------------------------------*/
+    // -----------------------------------
+    //  キャッシュ設定
+    // -----------------------------------
 
-    _armcpu_enable_ecc(); /* ECC有効化 */
-    _armcpu_enable_cache(); /* キャッシュ有効化 */
-    _armcpu_enable_bpredict(); /* 分岐予測有効化 */
+    _armcpu_enable_ecc(); // ECC有効化
+    _armcpu_enable_cache(); // キャッシュ有効化
+    _armcpu_enable_bpredict(); // 分岐予測有効化
 }
+
+// end of file
