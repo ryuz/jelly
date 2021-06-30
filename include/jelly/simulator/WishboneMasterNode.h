@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <random>
+#include <string>
 #include <queue>
 #include "jelly/simulator/Manager.h"
 #include "jelly/simulator/Wishbone.h"
@@ -20,6 +20,7 @@ protected:
         AccWait,
         AccWrite,
         AccRead,
+        AccDisplay,
     };    
     struct Access {
         AccType             acc_type;
@@ -27,6 +28,7 @@ protected:
         unsigned long long  adr;
         unsigned long long  dat;
         unsigned long long  sel;
+        std::string         message;
     };
 
     std::queue<Access>  m_acc_que;
@@ -85,6 +87,14 @@ public:
         m_acc_que.push(acc);
     }
 
+    void Display(std::string message)
+    {
+        Access acc;
+        acc.acc_type = AccDisplay;
+        acc.message = message;
+        m_acc_que.push(acc);
+    }
+
 protected:
     sim_time_t InitialProc(Manager* manager) override
     {
@@ -98,8 +108,6 @@ protected:
 
     void PrefetchProc(Manager* manager) override
     {
-//      std::cout << "p";//  << std::endl;
-
         m_rst_i = (*m_wishbone.rst_i != 0);
         m_clk_i = (*m_wishbone.clk_i != 0);
         m_adr_o = (unsigned long long)(*m_wishbone.adr_o);
@@ -122,8 +130,6 @@ protected:
         if ( (*m_wishbone.clk_i != 0) == m_clk_i ) {
             return false;
         }
-
-//        std::cout << "c";//  << std::endl;
 
         // 変化を取り込み
         m_clk_i = (*m_wishbone.clk_i != 0);
@@ -185,6 +191,9 @@ protected:
             *m_wishbone.we_o  = 0;
             *m_wishbone.stb_o = 1;
             break;
+
+        case AccDisplay:
+            std::cout << "[WISHBONE] " << acc.message << std::endl;
         }
         m_acc_que.pop();
 
