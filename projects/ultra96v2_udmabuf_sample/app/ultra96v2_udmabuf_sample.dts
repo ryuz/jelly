@@ -65,6 +65,7 @@
                 remove-rate   = "1000000";
                 remove-enable = <0>;
             };
+            /*
             fclk1 {
                 compatible    = "ikwzm,fclkcfg-0.10.a";
                 device-name   = "fpga-clk1";
@@ -74,6 +75,7 @@
                 remove-rate   = "1000000";
                 remove-enable = <0>;
             };
+            */
         };
     } ;
     
@@ -93,13 +95,13 @@
     fragment@3 {
         target-path = "/amba";
         __overlay__ {
-            #address-cells = <0x1>;
-            #size-cells = <0x1>;
+            #address-cells = <0x2>;
+            #size-cells = <0x2>;
             udmabuf4 {
-                compatible = "ikwzm,udmabuf-0.10.a";
-/*              compatible = "ikwzm,u-dma-buf"; */
+/*              compatible = "ikwzm,udmabuf-0.10.a"; */
+                compatible = "ikwzm,u-dma-buf";
                 minor-number = <4>;
-                size = <0x00400000>;
+                size = <0x0 0x00400000>;
             };
         };
     };
