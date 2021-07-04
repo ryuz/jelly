@@ -356,7 +356,14 @@ module tb_verilator
     //  dummy stream Write & Read
     // ---------------------------------
     
-    reg         s_enable = 0;
+    reg             s_enable = 1;
+    reg     [31:0]  s_count = 0;
+    always @(posedge s_clk) begin
+        s_count <= s_count + 1;
+
+        s_enable <= (s_count > 10000 && s_count < 20000)
+                 || (s_count > 30000 && s_count < 40000);
+    end
     
     // write
     always @(posedge s_clk) begin

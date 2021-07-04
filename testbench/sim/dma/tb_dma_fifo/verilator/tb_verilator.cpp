@@ -78,10 +78,10 @@ int main(int argc, char** argv)
                 &top->wb_rst_i,
                 &top->wb_clk_i,
                 &top->s_wb_adr_i,
-                &top->s_wb_dat_i,
                 &top->s_wb_dat_o,
-                &top->s_wb_we_i,
+                &top->s_wb_dat_i,
                 &top->s_wb_sel_i,
+                &top->s_wb_we_i,
                 &top->s_wb_stb_i,
                 &top->s_wb_ack_o
             };
@@ -90,12 +90,15 @@ int main(int argc, char** argv)
 
     mng->AddNode(jsim::VerilatorNode_Create(top, tfp));
 
+    // WISHBONE 
     wb_master->Wait(1000);
     
+    wb_master->Display("read id");
     wb_master->Read(ADR_CORE_ID);
     wb_master->Read(ADR_CORE_VERSION);
-        
-//        $display("set parameter");
+
+    wb_master->Display("set parameter");
+    wb_master->Wait(10);
     wb_master->Write(ADR_PARAM_ADDR,     0x00001000, 0xf);
     wb_master->Write(ADR_PARAM_SIZE,     0x00001000, 0xf);
     wb_master->Write(ADR_PARAM_AWLEN,    0x0000000f, 0xf);
@@ -104,14 +107,12 @@ int main(int argc, char** argv)
     wb_master->Write(ADR_PARAM_ARLEN,    0x0000000f, 0xf);
     wb_master->Write(ADR_PARAM_RTIMEOUT, 0x0000000f, 0xf);
     
-//  $display("start");
+    wb_master->Display("start");
+    wb_master->Wait(10);
     wb_master->Write(ADR_CTL_CONTROL,    0x00000003, 0xf);
     wb_master->Wait(10);
 
-
-//    mng->SetThreadEnable(true);
-//    mng->SetControlCvWindow("Simulation", 0x1b);
-
+    // run
     mng->Run(1000000);
 //    mng->Run();
 

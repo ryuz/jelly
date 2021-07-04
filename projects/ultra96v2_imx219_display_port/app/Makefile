@@ -15,7 +15,7 @@ BIN_FILE  = $(BIT_FILE).bin
 FIRMWARE_PATH = /lib/firmware
 DEVTREE_PATH  = /configfs/device-tree
 
-CFLAGS  += -g -O0 -I../../../include `pkg-config --cflags opencv` -I../../../include
+CFLAGS  += -g -O3 -I../../../include `pkg-config --cflags opencv` -I../../../include
 LDFLAGS += `pkg-config --libs opencv`
 
 OBJS = main.o

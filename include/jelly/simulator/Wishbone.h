@@ -12,10 +12,10 @@ struct WishboneMaster {
     Trst_i *rst_i;
     Tclk_i *clk_i;
     Tadr_o *adr_o;
-    Tdat_o *dat_o;
     Tdat_i *dat_i;
-    Twe_o  *we_o;
+    Tdat_o *dat_o;
     Tsel_o *sel_o;
+    Twe_o  *we_o;
     Tstb_o *stb_o;
     Tack_i *ack_i;
 
@@ -24,10 +24,10 @@ struct WishboneMaster {
             Trst_i *rst_i_,
             Tclk_i *clk_i_,
             Tadr_o *adr_o_,
-            Tdat_o *dat_o_,
             Tdat_i *dat_i_,
-            Twe_o  *we_o_,
+            Tdat_o *dat_o_,
             Tsel_o *sel_o_,
+            Twe_o  *we_o_,
             Tstb_o *stb_o_,
             Tack_i *ack_i_
         )
@@ -35,10 +35,10 @@ struct WishboneMaster {
         rst_i = rst_i_;
         clk_i = clk_i_;
         adr_o = adr_o_;
-        dat_o = dat_o_;
         dat_i = dat_i_;
-        we_o  = we_o_;
+        dat_o = dat_o_;
         sel_o = sel_o_;
+        we_o  = we_o_;
         stb_o = stb_o_;
         ack_i = ack_i_;
     }

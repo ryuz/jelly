@@ -451,6 +451,16 @@ int main(int argc, char *argv[])
 
         case 'd':   cv::imwrite("dump.png", img); break;
 
+        case 'r':
+            for ( int i = 0; i < 100; ++i ) {
+                cv::waitKey(10);
+                udmabuf_acc.ReadImage2d(3, width, height, img.data, 0, 0, 0, 0, dp_hres*3, offset_x, offset_y);
+                char buf[32];
+                sprintf(buf, "rec/img_%04d.png", i);
+                cv::imwrite(buf, img);
+            }
+            break;
+        
         case '0':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 0); break;
         case '1':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 1); break;
         case '2':   reg_sel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, 2); break;
