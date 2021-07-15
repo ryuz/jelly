@@ -13,9 +13,9 @@
 
 
 // WISHBONE => AXI4Lite converter
-module jelly_axi4l_to_wishbone
+module jelly_wishbone_to_axi4l
         #(
-            parameter   WB_ADR_WIDTH     = AXI4L_ADDR_WIDTH - AXI4L_DATA_SIZE,
+            parameter   WB_ADR_WIDTH     = 30,
             parameter   WB_DAT_SIZE      = 2,                       // 0:8bit, 1:16bit, 2:32bit ...
             parameter   WB_DAT_WIDTH     = (8 << WB_DAT_SIZE),
             parameter   WB_SEL_WIDTH     = WB_DAT_WIDTH / 8,
@@ -89,20 +89,20 @@ module jelly_axi4l_to_wishbone
     end
     
     assign s_wb_dat_o      = m_axi4l_rdata;
-    assign s_wb_ack_o      = (s_axi4l_bvalid || s_axi4l_rvalid);
+    assign s_wb_ack_o      = (m_axi4l_bvalid || m_axi4l_rvalid);
     
     assign m_axi4l_aresetn = ~s_wb_rst_i;
     assign m_axi4l_aclk    = s_wb_clk_i;
-    assign m_axi4l_awaddr  = s_wb_adr_i << AXI4L_DATA_SIZE;
+    assign m_axi4l_awaddr  = (s_wb_adr_i << WB_DAT_SIZE);
     assign m_axi4l_awprot  = 3'd0;
     assign m_axi4l_awvalid = reg_awvalid;
     assign m_axi4l_wstrb   = s_wb_sel_i;
     assign m_axi4l_wdata   = s_wb_dat_i;
-    assign m_axi4l_wvalid  = reg_wvalid
+    assign m_axi4l_wvalid  = reg_wvalid;
     assign m_axi4l_bready  = 1'b1;
-    assign m_axi4l_araddr  = s_wb_adr_i << AXI4L_DATA_SIZE;
+    assign m_axi4l_araddr  = (s_wb_adr_i << WB_DAT_SIZE);
     assign m_axi4l_arprot  = 3'd0;
-    assign m_axi4l_arvalid = reg_arvalid
+    assign m_axi4l_arvalid = reg_arvalid;
     assign m_axi4l_rready  = 1'b1;
     
     
