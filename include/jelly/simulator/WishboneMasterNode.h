@@ -92,6 +92,7 @@ public:
         Access acc;
         acc.acc_type = AccDisplay;
         acc.message = message;
+        acc.wait_cycle = 0;
         m_acc_que.push(acc);
     }
 
@@ -121,8 +122,8 @@ protected:
 
     bool CheckProc(Manager* manager) override
     {
-        // キューが空なら何もしない
-        if ( m_acc_que.empty() ) {
+        // 未動作でキューが空なら何もしない
+        if ( !m_stb_o && m_acc_que.empty() ) {
             return false;
         }
 
