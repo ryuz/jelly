@@ -22,6 +22,7 @@ class Axi4sImageLoadNode : public Node
 protected:
     TAxi4sVideo     m_axi4s;
     std::string     m_path;
+    bool            m_reset_pol = false;
 
     int             m_limit_frame = 0;
     bool            m_limit_finish = false;
@@ -46,17 +47,18 @@ protected:
     std::string     m_imshow_name;
     cv::Mat         (*m_preproc)(cv::Mat, int frame_num) = nullptr;
 
-    Axi4sImageLoadNode(TAxi4sVideo axi4s, std::string path, int format = fmt_8uc3) : m_dist(0.0)
+    Axi4sImageLoadNode(TAxi4sVideo axi4s, std::string path, int format = fmt_8uc3, bool reset_pol=false) : m_dist(0.0)
     {
-        m_axi4s  = axi4s;
-        m_path   = path;
-        m_format = format;
+        m_axi4s     = axi4s;
+        m_reset_pol = reset_pol;
+        m_path      = path;
+        m_format    = format;
     }
 
 public:
-    static std::shared_ptr< Axi4sImageLoadNode > Create(TAxi4sVideo axi4s, std::string path, int format = fmt_8uc3)
+    static std::shared_ptr< Axi4sImageLoadNode > Create(TAxi4sVideo axi4s, std::string path, int format = fmt_8uc3, bool reset_pol=false)
     {
-        return std::shared_ptr< Axi4sImageLoadNode >(new Axi4sImageLoadNode(axi4s, path, format));
+        return std::shared_ptr< Axi4sImageLoadNode >(new Axi4sImageLoadNode(axi4s, path, format, reset_pol));
     }
 
     void SetFrameNum(int frame_num) { m_frame_num = frame_num; }
@@ -195,7 +197,7 @@ protected:
     sim_time_t EventProc(Manager* manager) override
     {
         // リセット解除で posedge clk の時だけ処理
-        if ( *m_axi4s.aresetn == 0 ) {
+        if ( (!m_reset_pol && *m_axi4s.aresetn == 0) || (m_reset_pol && *m_axi4s.aresetn != 0) ) {
             return 0;
         }
 
@@ -242,9 +244,9 @@ protected:
 
 
 template<typename Tp>
-std::shared_ptr< Axi4sImageLoadNode<Tp> > Axi4sImageLoadNode_Create(Tp axi4s, std::string path, bool grayscale=false)
+std::shared_ptr< Axi4sImageLoadNode<Tp> > Axi4sImageLoadNode_Create(Tp axi4s, std::string path, int format = fmt_8uc3, bool reset_pol=false)
 {
-    return Axi4sImageLoadNode<Tp>::Create(axi4s, path, grayscale);
+    return Axi4sImageLoadNode<Tp>::Create(axi4s, path, format, reset_pol);
 }
 
 
