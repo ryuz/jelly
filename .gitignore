@@ -98,6 +98,7 @@ axi4_mem*_read*.txt
 axi4_mem*_write*.txt
 coverage.dat
 memo.txt
+mnist*.txt
 
 axi4_mem*.txt
 
@@ -125,6 +126,7 @@ _xmsgs/
 .ipynb_checkpoints/
 doc/build/
 workspace/
+backup/
 
 **/ip/*
 
