@@ -179,8 +179,6 @@ protected:
                 if ( time > 0 ) {
                     AddEvent(node, time);   // 次のイベントがあれば予約
                 }
-                this->CallEval();           // ノードのアクションごとに評価
-                this->CallCheck();          // このイベントに反応する他ノードが無いかチェック
                 node->m_active = false;
                 busy = true;
             }
@@ -324,8 +322,10 @@ public:
         }
 
         // イベントが無くなるまで実行
-        while ( this->CallEvent() )
-            ;
+        while ( this->CallEvent() ) {
+            this->CallEval();
+            this->CallCheck();
+        }
 
         // ダンプ
         this->CallDump();

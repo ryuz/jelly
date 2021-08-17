@@ -37,24 +37,28 @@ public:
     }
 
 protected:
-    sim_time_t Initialize(Manager* manager) override
+    sim_time_t InitialProc(Manager* manager) override
     {
         *m_signal_rand = m_dist(m_engine);
         return 0;
     };
 
-    void PreProc(Manager* manager) override
+    void PrefetchProc(Manager* manager) override
     {
         m_clk = (*m_signal_clk != 0);
     }
 
-    void PostProc(Manager* manager) override
+    bool CheckProc(Manager* manager) override
     {
-        // リセット解除で posedge clk の時だけ処理
-        if ( !(!m_clk && *m_signal_clk != 0) ) {
-            return;
-        }
+        bool event = (!m_clk && *m_signal_clk != 0);
+        m_clk = (*m_signal_clk != 0);
+        return event;
+    }
+
+    sim_time_t EventProc(Manager* manager) override
+    {
         *m_signal_rand = m_dist(m_engine);
+        return 0;
     }
 };
 
