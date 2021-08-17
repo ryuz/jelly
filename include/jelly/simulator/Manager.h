@@ -42,6 +42,7 @@ protected:
     virtual sim_time_t  EventProc(Manager* manager) { return 0; }       // イベント処理に呼ばれる
     virtual void        PrefetchProc(Manager* manager) {};              // 値フェッチの為に何かのイベント(他人のイベント含む)前に呼ばれる
     virtual bool        CheckProc(Manager* manager) { return false; }   // 自分に関連する事象変化が起こっていないかのチェックに呼ばれる
+    virtual void        EvalProc(Manager* manager) {}                   // 評価を実施(主に Verilator用)
     virtual void        DumpProc(Manager* manager) {}                   // 波形ダンプタイミングで呼ぶ(主に Verilator用)
     virtual void        ThreadProc(Manager* manager) {}                 // 別スレッドの処理
 };
@@ -163,7 +164,9 @@ protected:
     void CallCheck(void) { 
         std::lock_guard<mutex_t>    lock(m_mtx);
         for ( auto& node : m_nodes ) {
-            node->m_active = node->CheckProc(this);
+            if ( !node->m_active ) {
+                node->m_active = node->CheckProc(this);
+            }
         }
     }
 
@@ -174,12 +177,21 @@ protected:
             if ( node->m_active ) {
                 auto time = node->EventProc(this);
                 if ( time > 0 ) {
-                    AddEvent(node, time);
+                    AddEvent(node, time);   // 次のイベントがあれば予約
                 }
+                this->CallEval();           // ノードのアクションごとに評価
+                this->CallCheck();          // このイベントに反応する他ノードが無いかチェック
+                node->m_active = false;
                 busy = true;
             }
         }
         return busy;
+    }
+
+    void CallEval(void)
+    {
+        std::lock_guard<mutex_t>    lock(m_mtx);
+        for ( auto& node : m_nodes ) { node->EvalProc(this); }
     }
 
     void CallDump(void)
@@ -310,12 +322,10 @@ public:
             m_que.top().node->m_active = true;
             m_que.pop();
         }
-        this->CallEvent();
 
         // イベントが無くなるまで実行
-        do {
-            this->CallCheck();
-        } while ( this->CallEvent() );
+        while ( this->CallEvent() )
+            ;
 
         // ダンプ
         this->CallDump();
