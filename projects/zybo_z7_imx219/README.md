@@ -164,9 +164,10 @@ imgバスの基本は下記のとおりです。必要に応じて随時画像�
 ## 参考情報
 
 - 作者ブログ記事
+https://ryuz.hatenablog.com/entry/2021/04/03/193400
     - [Zybo Z7 への Raspberry Pi Camera V2 接続(MIPI CSI-2受信)](http://ryuz.txt-nifty.com/blog/2018/04/zybo-z7-raspber.html)
     - [Zybo Z7 への Raspberry Pi Camera V2 接続 (1000fps動作)](http://ryuz.txt-nifty.com/blog/2018/05/zybo-z7-raspber.html)
-    - [ZYBO-Z7 で Raspberry Pi Camera Module V2 (Sony IMX219) を 1000fpsで使うサンプル](https://ryuz.qrunch.io/entries/HHNg4YlfKOugd19G)
+    - [ZYBO-Z7 で Raspberry Pi Camera Module V2 (Sony IMX219) を 1000fpsで使うサンプル](https://ryuz.hatenablog.com/entry/2021/04/03/193400)
 
 - [https://github.com/lvsoft/Sony-IMX219-Raspberry-Pi-V2-CMOS](https://github.com/lvsoft/Sony-IMX219-Raspberry-Pi-V2-CMOS)
     - Raspberry Pi Camera Module V2 の各種情報（IMX219のデータシートあり)

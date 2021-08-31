@@ -22,49 +22,53 @@ class Axi4sImageDumpNode : public Node
     using dist_type = std::bernoulli_distribution;
 
 protected:
-    TAxi4sVideo     m_axi4s;
-    std::string     m_path;
-    
-    int             m_limit_frame = 0;
-    bool            m_limit_finish = false;
+    TAxi4sVideo             m_axi4s;
+    std::string             m_path;
+    bool                    m_reset_pol = false;
 
-    int             m_frame_num = 0;
-    int             m_format = fmt_8uc3;
-    bool            m_img_enable = false;
-    bool            m_img_flush = true;
-    int             m_width  = 256;
-    int             m_height = 256;
-    int             m_x = 0;
-    int             m_y = 0;
+    int                     m_limit_frame = 0;
+    bool                    m_limit_finish = false;
 
-    cv::Mat         m_img;
+    int                     m_frame_num = 0;
+    int                     m_format = fmt_8uc3;
+    bool                    m_img_enable = false;
+    bool                    m_img_flush = true;
+    int                     m_width  = 256;
+    int                     m_height = 256;
+    int                     m_x = 0;
+    int                     m_y = 0;
 
-    std::string     m_imshow_name;
+    cv::Mat                 m_img;
+    std::vector<cv::Mat>    m_img_strage;
 
-    bool            m_aresetn;
-    bool            m_aclk;
-    bool            m_tuser;
-    bool            m_tlast;
-    int             m_tdata;
-    bool            m_tvalid;
-    bool            m_tready = true;
+    std::string             m_imshow_name;
 
-    rand_type       m_rand;
-    dist_type       m_dist;
+    bool                    m_aresetn;
+    bool                    m_aclk;
+    bool                    m_tuser;
+    bool                    m_tlast;
+    int                     m_tdata;
+    bool                    m_tvalid;
+    bool                    m_tready = true;
 
-    Axi4sImageDumpNode(TAxi4sVideo axi4s, std::string path, int format = fmt_8uc3, int width=256, int height=256) : m_dist(0.0)
+    rand_type               m_rand;
+    dist_type               m_dist;
+
+    Axi4sImageDumpNode(TAxi4sVideo axi4s, std::string path, int format = fmt_8uc3, int width=256, int height=256, bool reset_pol = false) : m_dist(0.0)
     {
         m_axi4s     = axi4s;
         m_path      = path;
+        m_reset_pol = reset_pol;
+
         m_format    = format;
         m_width     = width;
         m_height    = height;
     }
 
 public:
-    static std::shared_ptr< Axi4sImageDumpNode > Create(TAxi4sVideo axi4s, std::string path, int format = fmt_8uc3, int width=256, int height=256)
+    static std::shared_ptr< Axi4sImageDumpNode > Create(TAxi4sVideo axi4s, std::string path, int format = fmt_8uc3, int width=256, int height=256, bool reset_pol = false)
     {
-        return std::shared_ptr< Axi4sImageDumpNode >(new Axi4sImageDumpNode(axi4s, path, format, width, height));
+        return std::shared_ptr< Axi4sImageDumpNode >(new Axi4sImageDumpNode(axi4s, path, format, width, height, reset_pol));
     }
 
     void SetFrameNum(int frame_num) { m_frame_num = frame_num; }
@@ -85,7 +89,10 @@ public:
     }
 
     void SetImage(cv::Mat img) { m_img  = img; }
-    cv::Mat GetImage(cv::Mat img) const { return m_img; }
+    cv::Mat GetImage(void) const { return m_img; }
+
+    int     GetStorageFrameNum(void) const { return (int)m_img_strage.size(); }
+    cv::Mat GetStorageImage(int index) const { return m_img_strage[index]; }
 
     void SetImageFlush(bool img_flush) { m_img_flush = img_flush; }
     bool GetImageFlush(void) const { return m_img_flush; }
@@ -124,11 +131,14 @@ protected:
             return;
         }
 
-        if ( !m_img.empty() && !m_path.empty() ) {
-            char fname[512];
-            sprintf(fname, m_path.c_str(), m_frame_num);
-            cv::imwrite(fname, m_img);
-            std::cout << "image dump : " << fname << std::endl;
+        if ( !m_img.empty() ) {
+            m_img_strage.push_back(m_img.clone());
+            if ( !m_path.empty() ) {
+                char fname[512];
+                sprintf(fname, m_path.c_str(), m_frame_num);
+                cv::imwrite(fname, m_img);
+                std::cout << "image dump : " << fname << std::endl;
+            }
         }
 
         m_frame_num++;
@@ -181,7 +191,7 @@ protected:
 
     void PrefetchProc(Manager* manager) override
     {
-        m_aresetn = (*m_axi4s.aresetn != 0);
+        m_aresetn = m_reset_pol ? (*m_axi4s.aresetn == 0) : (*m_axi4s.aresetn != 0);
         m_aclk    = (*m_axi4s.aclk != 0);
         m_tuser   = ((*m_axi4s.tuser & 1) != 0);
         m_tlast   = (*m_axi4s.tlast != 0);
@@ -252,9 +262,9 @@ protected:
 
 
 template<typename Tp>
-std::shared_ptr< Axi4sImageDumpNode<Tp> > Axi4sImageDumpNode_Create(Tp axi4s, std::string path, int format=fmt_8uc3, int width=256, int height=256)
+std::shared_ptr< Axi4sImageDumpNode<Tp> > Axi4sImageDumpNode_Create(Tp axi4s, std::string path, int format=fmt_8uc3, int width=256, int height=256, bool reset_pol = false)
 {
-    return Axi4sImageDumpNode<Tp>::Create(axi4s, path, format, width, height);
+    return Axi4sImageDumpNode<Tp>::Create(axi4s, path, format, width, height, reset_pol);
 }
 
 

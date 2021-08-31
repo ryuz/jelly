@@ -52,7 +52,7 @@ module jelly_cache_tag_directmap
     reg     [USER_BITS-1:0]         st0_user;
     reg     [INDEX_WIDTH-1:0]       st0_index;
     reg     [TAG_WIDTH-1:0]         st0_tag;
-    reg                             st0_we;
+    reg                             st0_we = 1'b0;
     reg                             st0_strb;
     reg                             st0_valid;
     

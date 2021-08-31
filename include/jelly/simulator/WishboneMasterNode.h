@@ -21,10 +21,12 @@ protected:
         AccWrite,
         AccRead,
         AccDisplay,
-    };    
+        VerboseOn,
+        VerboseOff,
+    };
     struct Access {
         AccType             acc_type;
-        int                 wait_cycle;
+        int                 wait_cycle=0;
         unsigned long long  adr;
         unsigned long long  dat;
         unsigned long long  sel;
@@ -57,6 +59,13 @@ public:
     static std::shared_ptr< WishboneMasterNode > Create(TWishbone wishbone, bool verbose=true)
     {
         return std::shared_ptr< WishboneMasterNode >(new WishboneMasterNode(wishbone, verbose));
+    }
+
+    void SetVerbose(bool verbose)
+    {
+        Access acc;
+        acc.acc_type = verbose ? VerboseOn : VerboseOff;
+        m_acc_que.push(acc);
     }
 
     void Wait(int cycle)
@@ -92,6 +101,7 @@ public:
         Access acc;
         acc.acc_type = AccDisplay;
         acc.message = message;
+        acc.wait_cycle = 0;
         m_acc_que.push(acc);
     }
 
@@ -121,8 +131,8 @@ protected:
 
     bool CheckProc(Manager* manager) override
     {
-        // キューが空なら何もしない
-        if ( m_acc_que.empty() ) {
+        // 未動作でキューが空なら何もしない
+        if ( !m_stb_o && m_acc_que.empty() ) {
             return false;
         }
 
@@ -194,6 +204,14 @@ protected:
 
         case AccDisplay:
             std::cout << "[WISHBONE] " << acc.message << std::endl;
+        
+        case VerboseOn:
+            m_verbose = true;
+            break;
+        
+        case VerboseOff:
+            m_verbose = false;
+            break;
         }
         m_acc_que.pop();
 

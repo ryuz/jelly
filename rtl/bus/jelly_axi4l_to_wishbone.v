@@ -18,7 +18,7 @@ module jelly_axi4l_to_wishbone
             parameter   AXI4L_ADDR_WIDTH = 32,
             parameter   AXI4L_DATA_SIZE  = 2,                       // 0:8bit, 1:16bit, 2:32bit ...
             parameter   AXI4L_DATA_WIDTH = (8 << AXI4L_DATA_SIZE),
-            parameter   AXI4L_STRB_WIDTH = (1 << AXI4L_DATA_SIZE),
+            parameter   AXI4L_STRB_WIDTH = AXI4L_DATA_WIDTH / 8,
             
             parameter   WB_ADR_WIDTH     = AXI4L_ADDR_WIDTH - AXI4L_DATA_SIZE,
             parameter   WB_DAT_WIDTH     = AXI4L_DATA_WIDTH,

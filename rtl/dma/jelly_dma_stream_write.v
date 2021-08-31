@@ -257,8 +257,8 @@ module jelly_dma_stream_write
     localparam  ADR_PARAM_AWSTEP6       = 8'h39;
     localparam  ADR_PARAM_AWLEN7        = 8'h3c;
     localparam  ADR_PARAM_AWSTEP7       = 8'h3d;
-    localparam  ADR_PARAM_AWLEN8        = 8'h30;
-    localparam  ADR_PARAM_AWSTEP8       = 8'h31;
+    localparam  ADR_PARAM_AWLEN8        = 8'h40;
+    localparam  ADR_PARAM_AWSTEP8       = 8'h41;
     localparam  ADR_PARAM_AWLEN9        = 8'h44;
     localparam  ADR_PARAM_AWSTEP9       = 8'h45;
     localparam  ADR_WSKIP_EN            = 8'h70;
@@ -286,8 +286,8 @@ module jelly_dma_stream_write
     localparam  ADR_SHADOW_AWSTEP6      = 8'hb9;
     localparam  ADR_SHADOW_AWLEN7       = 8'hbc;
     localparam  ADR_SHADOW_AWSTEP7      = 8'hbd;
-    localparam  ADR_SHADOW_AWLEN8       = 8'hb0;
-    localparam  ADR_SHADOW_AWSTEP8      = 8'hb1;
+    localparam  ADR_SHADOW_AWLEN8       = 8'hc0;
+    localparam  ADR_SHADOW_AWSTEP8      = 8'hc1;
     localparam  ADR_SHADOW_AWLEN9       = 8'hc4;
     localparam  ADR_SHADOW_AWSTEP9      = 8'hc5;
     

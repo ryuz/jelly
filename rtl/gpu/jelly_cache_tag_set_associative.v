@@ -93,7 +93,7 @@ module jelly_cache_tag_set_associative
     reg     [WAY_WIDTH-1:0]             st1_pos;
     
     reg     [USER_BITS-1:0]             st2_user;
-    reg                                 st2_we;
+    reg                                 st2_we = 1'b0;
     reg     [WAY_NUM-1:0]               st2_cache_valid;
     reg     [WAY_NUM*WAY_WIDTH-1:0]     st2_cache_way;
     reg     [WAY_NUM*INDEX_WIDTH-1:0]   st2_cache_index;

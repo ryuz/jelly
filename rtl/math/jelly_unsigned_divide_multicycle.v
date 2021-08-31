@@ -41,6 +41,7 @@ module jelly_unsigned_divide_multicycle
     reg                         reg_valid;
     
     reg     [DATA_WIDTH-1:0]    reg_counter;
+    wire    [DATA_WIDTH-1:0]    next_counter = {reg_counter, 1'b1};
     
     reg     [DATA_WIDTH-1:0]    reg_remainder;
     reg     [DATA_WIDTH-1:0]    reg_quotient;
@@ -49,6 +50,7 @@ module jelly_unsigned_divide_multicycle
     wire    [DATA_WIDTH-1:0]    remainder1;
     wire    [DATA_WIDTH-1:0]    quotient1;
     wire    [DATA_WIDTH:0]      quotient2;
+    
     
     assign {remainder1, quotient1} = {reg_remainder, reg_quotient, ~quotient2[DATA_WIDTH]};
     assign quotient2               = remainder1 - reg_divisor;
@@ -85,8 +87,8 @@ module jelly_unsigned_divide_multicycle
                 reg_remainder <= quotient2[DATA_WIDTH] ? remainder1 : quotient2[DATA_WIDTH-1:0];
                 reg_quotient  <= quotient1;
                 
-                reg_counter = {reg_counter, 1'b1};
-                if ( reg_counter[DATA_WIDTH-1] ) begin
+                reg_counter <= next_counter;
+                if ( next_counter[DATA_WIDTH-1] ) begin
                     reg_busy  <= 1'b0;
                     reg_valid <= 1'b1;
                 end
