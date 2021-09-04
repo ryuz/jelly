@@ -1,96 +1,55 @@
 // ハードウェア初期化
 
-#[allow(dead_code)]
+#![allow(dead_code)]
+
 static MPU_DISABLE: u32 = 0;
-#[allow(dead_code)]
 static MPU_SIZE_32: u32 = (0x04 << 1) | 1;
-#[allow(dead_code)]
 static MPU_SIZE_64: u32 = (0x05 << 1) | 1;
-#[allow(dead_code)]
 static MPU_SIZE_128: u32 = (0x06 << 1) | 1;
-#[allow(dead_code)]
 static MPU_SIZE_256: u32 = (0x07 << 1) | 1;
-#[allow(dead_code)]
 static MPU_SIZE_512: u32 = (0x08 << 1) | 1;
-#[allow(dead_code)]
 static MPU_SIZE_1K: u32 = (0x09 << 1) | 1;
-#[allow(dead_code)]
 static MPU_SIZE_2K: u32 = (0x0a << 1) | 1;
-#[allow(dead_code)]
 static MPU_SIZE_4K: u32 = (0x0b << 1) | 1;
-#[allow(dead_code)]
 static MPU_SIZE_8K: u32 = (0x0c << 1) | 1;
-#[allow(dead_code)]
 static MPU_SIZE_16K: u32 = (0x0d << 1) | 1;
-#[allow(dead_code)]
 static MPU_SIZE_32K: u32 = (0x0e << 1) | 1;
-#[allow(dead_code)]
 static MPU_SIZE_64K: u32 = (0x0f << 1) | 1;
-#[allow(dead_code)]
 static MPU_SIZE_128K: u32 = (0x10 << 1) | 1;
-#[allow(dead_code)]
 static MPU_SIZE_256K: u32 = (0x11 << 1) | 1;
-#[allow(dead_code)]
 static MPU_SIZE_512K: u32 = (0x12 << 1) | 1;
-#[allow(dead_code)]
 static MPU_SIZE_1M: u32 = (0x13 << 1) | 1;
-#[allow(dead_code)]
 static MPU_SIZE_2M: u32 = (0x14 << 1) | 1;
-#[allow(dead_code)]
 static MPU_SIZE_4M: u32 = (0x15 << 1) | 1;
-#[allow(dead_code)]
 static MPU_SIZE_8M: u32 = (0x16 << 1) | 1;
-#[allow(dead_code)]
 static MPU_SIZE_16M: u32 = (0x17 << 1) | 1;
-#[allow(dead_code)]
 static MPU_SIZE_32M: u32 = (0x18 << 1) | 1;
-#[allow(dead_code)]
 static MPU_SIZE_64M: u32 = (0x19 << 1) | 1;
-#[allow(dead_code)]
 static MPU_SIZE_128M: u32 = (0x1a << 1) | 1;
-#[allow(dead_code)]
 static MPU_SIZE_256M: u32 = (0x1b << 1) | 1;
-#[allow(dead_code)]
 static MPU_SIZE_512M: u32 = (0x1c << 1) | 1;
-#[allow(dead_code)]
 static MPU_SIZE_1G: u32 = (0x1d << 1) | 1;
-#[allow(dead_code)]
 static MPU_SIZE_2G: u32 = (0x1e << 1) | 1;
-#[allow(dead_code)]
 static MPU_SIZE_4G: u32 = (0x1f << 1) | 1;
-#[allow(dead_code)]
 static MPU_XN: u32 = 1 << 12;
-#[allow(dead_code)]
 static MPU_S: u32 = 1 << 2;
 
-#[allow(dead_code)]
 static MPU_AP_NO: u32 = 0x0 << 8;
-#[allow(dead_code)]
 static MPU_AP_FULL: u32 = 0x3 << 8;
 
-#[allow(dead_code)]
 static MPU_STRONGLY_ORDERED: u32 = (0x0 << 3) | 0x0;
-#[allow(dead_code)]
 static MPU_SHAREABLE_DEVICE: u32 = (0x0 << 3) | 0x1;
-#[allow(dead_code)]
 static MPU_WRITE_THROUGH: u32 = (0x0 << 3) | 0x2;
-#[allow(dead_code)]
 static MPU_WRITE_BACK: u32 = (0x0 << 3) | 0x3;
-#[allow(dead_code)]
 static MPU_NO_CACHEABLE: u32 = (0x1 << 3) | 0x0;
-#[allow(dead_code)]
 static MPU_WRITE_BACK_ALLOC: u32 = (0x1 << 3) | 0x3;
-#[allow(dead_code)]
 static MPU_NON_SHAREABLE_DEVICE: u32 = (0x2 << 3) | 0x0;
 
-#[allow(dead_code)]
 static MPU_2_NO_CACHEABLE: u32 = (0x4 << 3) | 0x0;
-#[allow(dead_code)]
 static MPU_2_WRITE_BACK_ALLOC: u32 = (0x4 << 3) | 0x1;
-#[allow(dead_code)]
 static MPU_2_WRITE_THROUGH: u32 = (0x4 << 3) | 0x2;
-#[allow(dead_code)]
 static MPU_2_WRITE_BACK: u32 = (0x4 << 3) | 0x3;
+
 
 extern "C" {
     // キャッシュ制御等

@@ -2,12 +2,11 @@ use cc::Build;
 use std::{env, error::Error, fs::File, io::Write, path::PathBuf};
 
 fn main() -> Result<(), Box<dyn Error>> {
-    // アセンブラとCをコンパイル
+    // Rust以外のソースコード
     let src_files = vec![
         ["src/vectors.S", "vectors"],
         ["src/crt0.S", "crt0"],
         ["src/armcpu.S", "armcpu"],
-        //        ["src/hw_setup.c", "hw_setup"],
     ];
 
     for name in src_files.into_iter() {
