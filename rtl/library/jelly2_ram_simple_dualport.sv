@@ -15,7 +15,7 @@ module jelly2_ram_simple_dualport
             parameter   int                         ADDR_WIDTH   = 6,
             parameter   int                         DATA_WIDTH   = 8,
             parameter   int                         MEM_SIZE     = (1 << ADDR_WIDTH),
-            parameter   string                      RAM_TYPE     = "distributed",
+            parameter                               RAM_TYPE     = "distributed",
             parameter   bit                         DOUT_REGS    = 0,
             
             parameter   bit                         FILLMEM      = 0,
@@ -39,8 +39,10 @@ module jelly2_ram_simple_dualport
             output      logic   [DATA_WIDTH-1:0]    rd_dout
         );
     
+    parameter string RAM_STYLE = "distributed";
+    
     // memory
-    (* ram_style = RAM_TYPE *)
+    (* ram_style = RAM_STYLE *)
     logic   [DATA_WIDTH-1:0]    mem [0:MEM_SIZE-1];
     
     integer iMEM_SIZE = MEM_SIZE;

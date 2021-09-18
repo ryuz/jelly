@@ -16,7 +16,7 @@ module jelly2_fifo
             parameter   int                         DATA_WIDTH = 8,
             parameter   int                         PTR_WIDTH  = 10,
             parameter   bit                         DOUT_REGS  = 0,
-            parameter   string                      RAM_TYPE   = "block",
+            parameter                               RAM_TYPE   = "block",
             parameter   bit                         LOW_DEALY  = 0
         )
         (
@@ -38,7 +38,7 @@ module jelly2_fifo
     
     
     generate
-    if ( LOW_DEALY && (RAM_TYPE == "distributed") && PTR_WIDTH < 8 ) begin : blk_shifter
+    if ( LOW_DEALY && (string'(RAM_TYPE) == "distributed") && PTR_WIDTH < 8 ) begin : blk_shifter
         jelly2_fifo_shifter
                 #(
                     .DATA_WIDTH     (DATA_WIDTH),
