@@ -180,47 +180,47 @@ module jelly2_img_line_buffer
                 st0_we            <= {MEM_NUM{1'b0}};
                 st0_we[MEM_NUM-1] <= 1'b1;
                 st0_addr          <= {MEM_ADDR_WIDTH{1'b0}};
-                st0_row_first    <= 1'b0;
-                st0_row_last     <= 1'b0;
-                st0_col_first   <= 1'b0;
-                st0_col_last    <= 1'b0;
+                st0_row_first     <= 1'b0;
+                st0_row_last      <= 1'b0;
+                st0_col_first     <= 1'b0;
+                st0_col_last      <= 1'b0;
                 st0_de            <= 1'b0;
                 st0_user          <= {USER_BITS{1'bx}};
                 st0_data          <= {DATA_WIDTH{1'bx}};
                 st0_valid         <= 1'b0;
                 
-                st1_row_first    <= 1'b0;
-                st1_row_last     <= 1'b0;
-                st1_col_first   <= 1'b0;
-                st1_col_last    <= 1'b0;
+                st1_row_first     <= 1'b0;
+                st1_row_last      <= 1'b0;
+                st1_col_first     <= 1'b0;
+                st1_col_last      <= 1'b0;
                 st1_de            <= 1'b0;
                 st1_user          <= {USER_BITS{1'bx}};
                 st1_data          <= {DATA_WIDTH{1'bx}};
                 st1_valid         <= 1'b0;
                 
                 st2_sel           <= {LINE_SEL_WIDTH{1'b0}};
-                st2_row_first    <= 1'b0;
-                st2_row_last     <= 1'b0;
-                st2_col_first   <= 1'b0;
-                st2_col_last    <= 1'b0;
+                st2_row_first     <= 1'b0;
+                st2_row_last      <= 1'b0;
+                st2_col_first     <= 1'b0;
+                st2_col_last      <= 1'b0;
                 st2_de            <= 1'b0;
                 st2_user          <= {USER_BITS{1'bx}};
                 st2_data          <= {DATA_WIDTH{1'bx}};
                 st2_valid         <= 1'b0;
                 
-                st3_row_first    <= {N{1'b0}};
-                st3_row_last     <= {N{1'b0}};
-                st3_col_first   <= 1'b0;
-                st3_col_last    <= 1'b0;
+                st3_row_first     <= {N{1'b0}};
+                st3_row_last      <= {N{1'b0}};
+                st3_col_first     <= 1'b0;
+                st3_col_last      <= 1'b0;
                 st3_de            <= {N{1'b0}};
                 st3_user          <= {(N*USER_BITS){1'bx}};
                 st3_data          <= {(N*DATA_WIDTH){1'bx}};
                 st3_valid         <= 1'b0;
                 
-                st4_row_first    <= 1'b0;
-                st4_row_last     <= 1'b0;
-                st4_col_first   <= 1'b0;
-                st4_col_last    <= 1'b0;
+                st4_row_first     <= 1'b0;
+                st4_row_last      <= 1'b0;
+                st4_col_first     <= 1'b0;
+                st4_col_last      <= 1'b0;
                 st4_de            <= 1'b0;
                 st4_user          <= {USER_BITS{1'bx}};
                 st4_data          <= {(N*DATA_WIDTH){1'bx}};
@@ -228,20 +228,20 @@ module jelly2_img_line_buffer
                 st4_pos_last      <= {POS_WIDTH{1'bx}};
                 st4_valid         <= 1'b0;
                 
-                st5_row_first    <= 1'b0;
-                st5_row_last     <= 1'b0;
-                st5_col_first   <= 1'b0;
-                st5_col_last    <= 1'b0;
+                st5_row_first     <= 1'b0;
+                st5_row_last      <= 1'b0;
+                st5_col_first     <= 1'b0;
+                st5_col_last      <= 1'b0;
                 st5_de            <= 1'b0;
                 st5_user          <= {USER_BITS{1'bx}};
                 st5_data          <= {(N*DATA_WIDTH){1'bx}};
                 st5_pos_data      <= {(N*POS_WIDTH){1'bx}};
                 st5_valid         <= 1'b0;
                 
-                st6_row_first    <= 1'b0;
-                st6_row_last     <= 1'b0;
-                st6_col_first   <= 1'b0;
-                st6_col_last    <= 1'b0;
+                st6_row_first     <= 1'b0;
+                st6_row_last      <= 1'b0;
+                st6_col_first     <= 1'b0;
+                st6_col_last      <= 1'b0;
                 st6_de            <= 1'b0;
                 st6_user          <= {USER_BITS{1'bx}};
                 st6_data          <= {(N*DATA_WIDTH){1'bx}};
@@ -294,6 +294,7 @@ module jelly2_img_line_buffer
                 st2_data      <= st1_data;
                 st2_valid     <= st1_valid;
                 
+
                 // stage3
                 st3_row_first[0] <= st2_row_first;
                 st3_row_last [0] <= st2_row_last;
@@ -304,29 +305,14 @@ module jelly2_img_line_buffer
                     st3_row_first[i] <= st3_row_first[i-1];
                     st3_row_last [i] <= st3_row_last [i-1];
                     st3_de       [i] <= st3_de       [i-1];
-                    st3_user     [i] <= mem_ruser[(i + int'(st2_sel)) % N];
-                    st3_data     [i] <= mem_rdata[(i + int'(st2_sel)) % N];
+                    st3_user     [i] <= mem_ruser[(i + int'(st2_sel)) % MEM_NUM];
+                    st3_data     [i] <= mem_rdata[(i + int'(st2_sel)) % MEM_NUM];
                 end
+                st3_col_first <= st2_col_first;
+                st3_col_last  <= st2_col_last;
+                st3_valid     <= st2_valid;
+                
 
-                /*
-                if ( st2_valid && st2_col_first ) begin
-                    st3_row_first[N-1:1] <= st3_row_first[N-2:0];
-                    st3_row_last[N-1:1]  <= st3_row_last[N-2:0];
-                    st3_de[N-1:1]        <= st3_de[N-2:0];
-                end
-                st3_row_first[0] <= st2_row_first;
-                st3_row_last[0]  <= st2_row_last;
-                st3_de[0]        <= st2_de;
-                
-                st3_col_first                            <= st2_col_first;
-                st3_col_last                             <= st2_col_last;
-                st3_user[N*USER_BITS-1:USER_BITS]       <= ({mem_ruser, mem_ruser} >> (st2_sel * USER_BITS));
-                st3_user[USER_BITS-1:0]                    <= st2_user;
-                st3_data[N*DATA_WIDTH-1:DATA_WIDTH]     <= ({mem_rdata, mem_rdata} >> (st2_sel * DATA_WIDTH));
-                st3_data[DATA_WIDTH-1:0]                   <= st2_data;
-                st3_valid                                  <= st2_valid;
-                */
-                
                 // stage4
                 st4_row_first  <= st3_row_first[C];
                 st4_row_last   <= st3_row_last[C];
@@ -388,6 +374,7 @@ module jelly2_img_line_buffer
                     end
                 end
                 
+
                 // stage6
                 st6_row_first <= st5_row_first;
                 st6_row_last  <= st5_row_last;
@@ -458,14 +445,14 @@ module jelly2_img_line_buffer
         assign m_img_valid       = out_valid;
     end
     else begin : blk_bypass
-        assign m_img_row_first  = s_img_row_first;
-        assign m_img_row_last   = s_img_row_last;
+        assign m_img_row_first = s_img_row_first;
+        assign m_img_row_last  = s_img_row_last;
         assign m_img_col_first = s_img_col_first;
         assign m_img_col_last  = s_img_col_last;
-        assign m_img_de          = s_img_de;
-        assign m_img_user        = s_img_user;
-        assign m_img_data        = s_img_data;
-        assign m_img_valid       = s_img_valid;
+        assign m_img_de        = s_img_de;
+        assign m_img_user      = s_img_user;
+        assign m_img_data      = s_img_data;
+        assign m_img_valid     = s_img_valid;
     end
     endgenerate
     
