@@ -112,7 +112,7 @@ module jelly2_img_pixel_buffer
 
                 st0_reflect <= (st0_reflect >> DATA_WIDTH);
                 if ( st0_col_last[0] ) begin
-                    st0_reflect <= st0_data;
+                    st0_reflect <= st0_data[REFLECT_NUM-1:0];
                 end
             end
         end

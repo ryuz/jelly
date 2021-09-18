@@ -302,11 +302,13 @@ module jelly2_img_line_buffer
                 st3_user     [0] <= st2_user;
                 st3_data     [0] <= st2_data;
                 for ( int i = 1; i < N; ++i ) begin
-                    st3_row_first[i] <= st3_row_first[i-1];
-                    st3_row_last [i] <= st3_row_last [i-1];
-                    st3_de       [i] <= st3_de       [i-1];
-                    st3_user     [i] <= mem_ruser[(i + int'(st2_sel)) % MEM_NUM];
-                    st3_data     [i] <= mem_rdata[(i + int'(st2_sel)) % MEM_NUM];
+                    if ( st2_valid && st2_col_first ) begin
+                        st3_row_first[i] <= st3_row_first[i-1];
+                        st3_row_last [i] <= st3_row_last [i-1];
+                        st3_de       [i] <= st3_de       [i-1];
+                    end
+                    st3_user[i] <= mem_ruser[(i-1 + int'(st2_sel)) % MEM_NUM];
+                    st3_data[i] <= mem_rdata[(i-1 + int'(st2_sel)) % MEM_NUM];
                 end
                 st3_col_first <= st2_col_first;
                 st3_col_last  <= st2_col_last;

@@ -94,6 +94,8 @@ module jelly2_img_slave_model
         frame_end();
     end
 
+    assign frame_num = f;
+
 endmodule
 
 

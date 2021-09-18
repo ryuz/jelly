@@ -58,7 +58,7 @@ module tb_verilator(
     parameter   int     DATA_WIDTH = 8;
     parameter   int     PTR_WIDTH  = 4;
     parameter   bit     DOUT_REGS  = 0;
-    parameter   string  RAM_TYPE   = "distributed"; //"block";
+    parameter           RAM_TYPE   = "distributed"; //"block";
     parameter   bit     LOW_DEALY  = 1;
 
     logic                        wr_en = 1;
@@ -87,9 +87,6 @@ module tb_verilator(
             );
     
 endmodule
-
-
-`default_nettype wire
 
 
 // end of file
