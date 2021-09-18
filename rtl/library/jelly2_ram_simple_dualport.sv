@@ -1,44 +1,42 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- The platform for real-time computing
 //
-//                                 Copyright (C) 2008-2020 by Ryuz
+//                                 Copyright (C) 2008-2021 by Ryuz
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
 
-
 `timescale 1ns / 1ps
-`default_nettype none
 
 
 // Simple Dualport-RAM
 module jelly2_ram_simple_dualport
         #(
-            parameter   int     ADDR_WIDTH   = 6,
-            parameter   int     DATA_WIDTH   = 8,
-            parameter   int     MEM_SIZE     = (1 << ADDR_WIDTH),
-            parameter   string  RAM_TYPE     = "distributed",
-            parameter   bit     DOUT_REGS    = 0,
+            parameter   int                         ADDR_WIDTH   = 6,
+            parameter   int                         DATA_WIDTH   = 8,
+            parameter   int                         MEM_SIZE     = (1 << ADDR_WIDTH),
+            parameter   string                      RAM_TYPE     = "distributed",
+            parameter   bit                         DOUT_REGS    = 0,
             
-            parameter   bit                 FILLMEM      = 0,
-            parameter   bit [DATA_WIDTH-1:0]    FILLMEM_DATA = 0,
-            parameter   bit READMEMB     = 0,
-            parameter   bit READMEMH     = 0,
-            parameter   string  READMEM_FIlE = ""
+            parameter   bit                         FILLMEM      = 0,
+            parameter   bit     [DATA_WIDTH-1:0]    FILLMEM_DATA = 0,
+            parameter   bit                         READMEMB     = 0,
+            parameter   bit                         READMEMH     = 0,
+            parameter   string                      READMEM_FIlE = ""
         )
         (
             // write port
-            input   logic                       wr_clk,
-            input   logic                       wr_en,
-            input   logic   [ADDR_WIDTH-1:0]    wr_addr,
-            input   logic   [DATA_WIDTH-1:0]    wr_din,
+            input       logic                       wr_clk,
+            input       logic                       wr_en,
+            input       logic   [ADDR_WIDTH-1:0]    wr_addr,
+            input       logic   [DATA_WIDTH-1:0]    wr_din,
             
             // read port
-            input   logic                       rd_clk,
-            input   logic                       rd_en,
-            input   logic                       rd_regcke,
-            input   logic   [ADDR_WIDTH-1:0]    rd_addr,
-            output  logic   [DATA_WIDTH-1:0]    rd_dout
+            input       logic                       rd_clk,
+            input       logic                       rd_en,
+            input       logic                       rd_regcke,
+            input       logic   [ADDR_WIDTH-1:0]    rd_addr,
+            output      logic   [DATA_WIDTH-1:0]    rd_dout
         );
     
     // memory
@@ -98,9 +96,6 @@ module jelly2_ram_simple_dualport
     end
         
 endmodule
-
-
-`default_nettype wire
 
 
 // End of file

@@ -13,27 +13,27 @@
 // FIFO
 module jelly2_fifo
         #(
-            parameter   int     DATA_WIDTH = 8,
-            parameter   int     PTR_WIDTH  = 10,
-            parameter   bit     DOUT_REGS  = 0,
-            parameter   string  RAM_TYPE   = "block",
-            parameter   bit     LOW_DEALY  = 0
+            parameter   int                         DATA_WIDTH = 8,
+            parameter   int                         PTR_WIDTH  = 10,
+            parameter   bit                         DOUT_REGS  = 0,
+            parameter   string                      RAM_TYPE   = "block",
+            parameter   bit                         LOW_DEALY  = 0
         )
         (
-            input   logic                       reset,
-            input   logic                       clk,
-            
-            input   logic                       wr_en,
-            input   logic   [DATA_WIDTH-1:0]    wr_data,
-            
-            input   logic                       rd_en,
-            input   logic                       rd_regcke,
-            output  logic   [DATA_WIDTH-1:0]    rd_data,
-            
-            output  logic                       full,
-            output  logic                       empty,
-            output  logic   [PTR_WIDTH:0]       free_count,
-            output  logic   [PTR_WIDTH:0]       data_count
+            input       logic                       reset,
+            input       logic                       clk,
+
+            input       logic                       wr_en,
+            input       logic   [DATA_WIDTH-1:0]    wr_data,
+
+            input       logic                       rd_en,
+            input       logic                       rd_regcke,
+            output      logic   [DATA_WIDTH-1:0]    rd_data,
+
+            output      logic                       full,
+            output      logic                       empty,
+            output      logic   [PTR_WIDTH:0]       free_count,
+            output      logic   [PTR_WIDTH:0]       data_count
         );
     
     
@@ -93,9 +93,6 @@ module jelly2_fifo
     endgenerate
         
 endmodule
-
-
-`default_nettype wire
 
 
 // end of file
