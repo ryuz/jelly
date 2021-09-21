@@ -151,17 +151,17 @@ module jelly2_img_master_model
         end
     end
     
-    assign m_img_row_first = !m_img_valid ? 'x : (y == 0);
-    assign m_img_row_last  = !m_img_valid ? 'x : (y == (Y_NUM-1));
-    assign m_img_col_first = !m_img_valid ? 'x : (x == 0);
-    assign m_img_col_last  = !m_img_valid ? 'x : (x == (X_NUM-1));
-    assign m_img_de        = !m_img_valid ? 'x : (x < X_NUM && y < Y_NUM);
+    assign m_img_row_first = !m_img_valid ? '0 : (y == 0);
+    assign m_img_row_last  = !m_img_valid ? '0 : (y == (Y_NUM-1));
+    assign m_img_col_first = !m_img_valid ? '0 : (x == 0);
+    assign m_img_col_last  = !m_img_valid ? '0 : (x == (X_NUM-1));
+    assign m_img_de        = !m_img_valid ? '0 : (x < X_NUM && y < Y_NUM);
     assign m_img_data      = !m_img_valid ? 'x : mem[y][x];
     assign m_img_x         = !m_img_valid ? 'x : X_WIDTH'(x);
     assign m_img_y         = !m_img_valid ? 'x : X_WIDTH'(y);
-    assign m_img_y         = !m_img_valid ? 'x : f;
+    assign m_img_f         = f;
     assign m_img_valid     = busy;
-
+    
 endmodule
 
 
