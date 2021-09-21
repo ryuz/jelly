@@ -22,7 +22,8 @@ module jelly2_img_slave_model
             parameter   string  FORMAT          = "P3",
             parameter   string  FILE_NAME       = "img_",
             parameter   string  FILE_EXT        = ".ppm",
-            parameter   bit     SEQUENTIAL_FILE = 1
+            parameter   bit     SEQUENTIAL_FILE = 1,
+            parameter   bit     ENDIAN          = 0
         )
         (
             input   wire                                        reset,
@@ -80,7 +81,12 @@ module jelly2_img_slave_model
                 end
                 if ( s_img_de && fp != 0) begin
                     for ( int i = 0; i < COMPONENTS; ++i ) begin
-                        $fdisplay(fp, "%d", s_img_data[i]);
+                        if ( ENDIAN ) begin
+                            $fdisplay(fp, "%d", s_img_data[COMPONENTS-1-i]);
+                        end
+                        else begin
+                            $fdisplay(fp, "%d", s_img_data[i]);
+                        end
                     end
                 end
                 if ( s_img_row_last && s_img_col_last ) begin

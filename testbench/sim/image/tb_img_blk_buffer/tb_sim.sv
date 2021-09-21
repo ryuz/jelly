@@ -81,11 +81,11 @@ module tb_sim(
     parameter   string  IMAGE_FILE  = "../Mandrill.ppm";
     parameter   int     IMAGE_WIDTH = 256;
     parameter   int     IMAGE_HEIGHT= 256;
-    /*
-    parameter   string  IMAGE_FILE  = "";
-    parameter   int     IMAGE_WIDTH = 8;
-    parameter   int     IMAGE_HEIGHT= 8;
-    */
+    
+//  parameter   string  IMAGE_FILE  = "";
+//  parameter   int     IMAGE_WIDTH = 8;
+//  parameter   int     IMAGE_HEIGHT= 8;
+
     jelly2_img_master_model
             #(
                 .COMPONENTS         (3),

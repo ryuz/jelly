@@ -8,7 +8,7 @@
 
 
 `timescale 1ns / 1ps
-
+`default_nettype none
 
 // FIFO
 module jelly2_fifo
@@ -20,20 +20,21 @@ module jelly2_fifo
             parameter   bit                         LOW_DEALY  = 0
         )
         (
-            input       logic                       reset,
-            input       logic                       clk,
+            input       wire                        reset,
+            input       wire                        clk,
+            input       wire                        cke,
 
-            input       logic                       wr_en,
-            input       logic   [DATA_WIDTH-1:0]    wr_data,
+            input       wire                        wr_en,
+            input       wire    [DATA_WIDTH-1:0]    wr_data,
 
-            input       logic                       rd_en,
-            input       logic                       rd_regcke,
-            output      logic   [DATA_WIDTH-1:0]    rd_data,
+            input       wire                        rd_en,
+            input       wire                        rd_regcke,
+            output      wire    [DATA_WIDTH-1:0]    rd_data,
 
-            output      logic                       full,
-            output      logic                       empty,
-            output      logic   [PTR_WIDTH:0]       free_count,
-            output      logic   [PTR_WIDTH:0]       data_count
+            output      wire                        full,
+            output      wire                        empty,
+            output      wire    [PTR_WIDTH:0]       free_count,
+            output      wire    [PTR_WIDTH:0]       data_count
         );
     
     
@@ -49,7 +50,8 @@ module jelly2_fifo
                 (
                     .reset          (reset),
                     .clk            (clk),
-                    
+                    .cke            (cke),
+
                     .wr_en          (wr_en),
                     .wr_data        (wr_data),
                     
@@ -76,6 +78,7 @@ module jelly2_fifo
                 (
                     .reset          (reset),
                     .clk            (clk),
+                    .cke            (cke),
                     
                     .wr_en          (wr_en),
                     .wr_data        (wr_data),
@@ -93,6 +96,8 @@ module jelly2_fifo
     endgenerate
         
 endmodule
+
+`default_nettype wire
 
 
 // end of file

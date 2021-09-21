@@ -8,7 +8,7 @@
 
 
 `timescale 1ns / 1ps
-
+`default_nettype none
 
 // FIFO
 module jelly2_fifo_ram
@@ -16,24 +16,25 @@ module jelly2_fifo_ram
             parameter   int     DATA_WIDTH = 8,
             parameter   int     PTR_WIDTH  = 10,
             parameter   bit     DOUT_REGS  = 0,
-            parameter   string  RAM_TYPE   = "block",
+            parameter           RAM_TYPE   = "block",
             parameter   bit     LOW_DEALY  = 0
         )
         (
-            input   logic                       reset,
-            input   logic                       clk,
+            input   wire                        reset,
+            input   wire                        clk,
+            input   wire                        cke,
             
-            input   logic                       wr_en,
-            input   logic   [DATA_WIDTH-1:0]    wr_data,
+            input   wire                        wr_en,
+            input   wire    [DATA_WIDTH-1:0]    wr_data,
             
-            input   logic                       rd_en,
-            input   logic                       rd_regcke,
-            output  logic   [DATA_WIDTH-1:0]    rd_data,
+            input   wire                        rd_en,
+            input   wire                        rd_regcke,
+            output  wire    [DATA_WIDTH-1:0]    rd_data,
             
-            output  logic                        full,
-            output  logic                        empty,
-            output  logic    [PTR_WIDTH:0]       free_count,
-            output  logic    [PTR_WIDTH:0]       data_count
+            output  reg                         full,
+            output  reg                         empty,
+            output  reg     [PTR_WIDTH:0]       free_count,
+            output  reg     [PTR_WIDTH:0]       data_count
         );
     
     
@@ -41,13 +42,13 @@ module jelly2_fifo_ram
     //  RAM
     // ---------------------------------
     
-    wire                        ram_wr_en;
-    wire    [PTR_WIDTH-1:0]     ram_wr_addr;
-    wire    [DATA_WIDTH-1:0]    ram_wr_data;
+    logic                       ram_wr_en;
+    logic   [PTR_WIDTH-1:0]     ram_wr_addr;
+    logic   [DATA_WIDTH-1:0]    ram_wr_data;
     
-    wire                        ram_rd_en;
-    wire    [PTR_WIDTH-1:0]     ram_rd_addr;
-    wire    [DATA_WIDTH-1:0]    ram_rd_data;
+    logic                       ram_rd_en;
+    logic   [PTR_WIDTH-1:0]     ram_rd_addr;
+    logic   [DATA_WIDTH-1:0]    ram_rd_data;
     
     // ram
     jelly2_ram_simple_dualport
@@ -60,13 +61,13 @@ module jelly2_fifo_ram
         i_ram_simple_dualport
             (
                 .wr_clk         (clk),
-                .wr_en          (ram_wr_en),
+                .wr_en          (cke & ram_wr_en),
                 .wr_addr        (ram_wr_addr),
                 .wr_din         (ram_wr_data),
                 
                 .rd_clk         (clk),
-                .rd_en          (ram_rd_en),
-                .rd_regcke      (rd_regcke),
+                .rd_en          (cke & ram_rd_en),
+                .rd_regcke      (cke & rd_regcke),
                 .rd_addr        (ram_rd_addr),
                 .rd_dout        (ram_rd_data)
             );
@@ -124,7 +125,7 @@ module jelly2_fifo_ram
             free_count <= '0;
             data_count <= '0;
         end
-        else begin
+        else if ( cke ) begin
             wptr       <= next_wptr;
             rptr       <= next_rptr;
             full       <= next_full;

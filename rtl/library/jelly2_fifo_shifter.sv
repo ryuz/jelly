@@ -8,6 +8,7 @@
 
 
 `timescale 1ns / 1ps
+`default_nettype none
 
 
 // FIFO
@@ -19,20 +20,21 @@ module jelly2_fifo_shifter
             parameter   bit     DOUT_REGS  = 0
         )
         (
-            input   logic                       reset,
-            input   logic                       clk,
+            input   wire                        reset,
+            input   wire                        clk,
+            input   wire                        cke,
             
-            input   logic                       wr_en,
-            input   logic   [DATA_WIDTH-1:0]    wr_data,
+            input   wire                        wr_en,
+            input   wire    [DATA_WIDTH-1:0]    wr_data,
             
-            input   logic                       rd_en,
-            input   logic                       rd_regcke,
-            output  logic   [DATA_WIDTH-1:0]    rd_data,
+            input   wire                        rd_en,
+            input   wire                        rd_regcke,
+            output  wire    [DATA_WIDTH-1:0]    rd_data,
             
-            output  logic                       full,
-            output  logic                       empty,
-            output  logic   [PTR_WIDTH:0]       free_count,
-            output  logic   [PTR_WIDTH:0]       data_count
+            output  wire                        full,
+            output  wire                        empty,
+            output  wire    [PTR_WIDTH:0]       free_count,
+            output  wire    [PTR_WIDTH:0]       data_count
         );
     
     wire                        write_en = (wr_en & ~full);
@@ -50,7 +52,7 @@ module jelly2_fifo_shifter
         i_data_shift_register_lut
             (
                 .clk            (clk),
-                .cke            (write_en),
+                .cke            (cke & write_en),
                 
                 .in_data        (wr_data),
                 
@@ -74,7 +76,7 @@ module jelly2_fifo_shifter
             reg_empty <= 1'b1;
             reg_full  <= 1'b0;
         end
-        else begin
+        else if ( cke ) begin
             if ( read_en ) begin
                 reg_dout <= shifter_data;
             end
@@ -105,9 +107,11 @@ module jelly2_fifo_shifter
     generate
     if ( DOUT_REGS ) begin : blk_dout_reg
         reg     [DATA_WIDTH-1:0]    reg_rd_data;
-        always @(posedge clk) begin
-            if ( rd_regcke ) begin
-                reg_rd_data <= reg_dout;
+        always_ff @(posedge clk) begin
+            if ( cke ) begin
+                if ( rd_regcke ) begin
+                    reg_rd_data <= reg_dout;
+                end
             end
         end
         assign rd_data = reg_rd_data;

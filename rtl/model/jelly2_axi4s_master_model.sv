@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- The platform for real-time computing
 //
-//                                 Copyright (C) 2008-2021 by Ryuz
+//                                 Copyright (C) 2008-2015 by Ryuz
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
@@ -12,40 +12,42 @@
 
 
 
-module jelly2_img_master_model
+module jelly2_axi4s_master_model
         #(
             parameter   int     COMPONENTS       = 3,
-            parameter   int     DATA_WIDTH       = 8,
+            parameter   int     DATA_WIDTH       = 8,            
             parameter   int     X_NUM            = 640,
             parameter   int     Y_NUM            = 480,
-            parameter   int     X_BLANK          = 0,     // 基本ゼロ
-            parameter   int     Y_BLANK          = 0,     // 末尾にde落ちラインを追加
+            parameter   int     X_BLANK          = 0,
+            parameter   int     Y_BLANK          = 0,
             parameter   int     X_WIDTH          = 32,
             parameter   int     Y_WIDTH          = 32,
             parameter   int     F_WIDTH          = 32,
             parameter   string  FILE_NAME        = "",
             parameter   string  FILE_EXT         = "",
             parameter   bit     SEQUENTIAL_FILE  = 0,
-            parameter   bit     ENDIAN           = 0
+            parameter   bit     BUSY_RATE        = 0,
+            parameter   int     RANDOM_SEED      = 0,
+            parameter   bit     ENDIAN           = 0,
+
+            localparam  int     AXI4S_DATA_WIDTH = COMPONENTS * DATA_WIDTH
         )
         (
-            input   wire                                        reset,
-            input   wire                                        clk,
-            input   wire                                        cke,
+            input   wire                            aresetn,
+            input   wire                            aclk,
+            input   wire                            aclken,
             
-            input   wire                                        enable,
-            output  reg                                         busy,
+            input   wire                            enable,
+            output  reg                             busy,
 
-            output  wire                                        m_img_row_first,
-            output  wire                                        m_img_row_last,
-            output  wire                                        m_img_col_first,
-            output  wire                                        m_img_col_last,
-            output  wire                                        m_img_de,
-            output  wire    [COMPONENTS-1:0][DATA_WIDTH-1:0]    m_img_data,
-            output  wire    [X_WIDTH-1:0]                       m_img_x,
-            output  wire    [Y_WIDTH-1:0]                       m_img_y,
-            output  wire    [F_WIDTH-1:0]                       m_img_f,
-            output  wire                                        m_img_valid
+            output  wire    [0:0]                   m_axi4s_tuser,
+            output  wire                            m_axi4s_tlast,
+            output  wire    [AXI4S_DATA_WIDTH-1:0]  m_axi4s_tdata,
+            output  wire    [X_WIDTH-1:0]           m_axi4s_tx,
+            output  wire    [Y_WIDTH-1:0]           m_axi4s_ty,
+            output  wire    [F_WIDTH-1:0]           m_axi4s_tf,
+            output  wire                            m_axi4s_tvalid,
+            input   wire                            m_axi4s_tready
         );
     
 
@@ -117,32 +119,37 @@ module jelly2_img_master_model
     end
 
 
+
     // -----------------------------
     //  main
     // -----------------------------
-    
+
     localparam TOTAL_X = X_NUM + X_BLANK;
     localparam TOTAL_Y = Y_NUM + Y_BLANK;
-        
-    always @(posedge clk) begin
-        if ( reset ) begin
-            busy <= 1'b0;
-            f    <= '0;
-            x    <= '0;
-            y    <= '0;
+    
+    reg     [31:0]  rand_seed = RANDOM_SEED;
+
+    logic           valid;
+
+    always @(posedge aclk) begin
+        if ( !aresetn ) begin
+            busy  <= 1'b0;
+            x     <= 0;
+            y     <= 0;
+            valid <= 1'b0;
         end
-        else if ( cke ) begin
+        else if ( aclken ) begin
             if ( !busy ) begin
                 if ( enable ) begin
                     if ( FILE_NAME != "" ) begin
                         image_read();
                     end
-                    busy <= 1'b1;
-                    x    <= '0;
-                    y    <= '0;
+                    busy  <= 1'b1;
+                    x     <= 0;
+                    y     <= 0;
                 end
             end
-            else begin
+            else if ( m_axi4s_tvalid && m_axi4s_tready ) begin
                 x <= x + 1;
                 if ( x >= (TOTAL_X-1) ) begin
                     x <= 0;
@@ -154,20 +161,21 @@ module jelly2_img_master_model
                     end
                 end
             end
+            
+            if ( !m_axi4s_tvalid || m_axi4s_tready ) begin
+                valid <= (int'($urandom(rand_seed) % 100) >= BUSY_RATE);
+            end
         end
     end
     
-    assign m_img_row_first = !m_img_valid ? '0 : (y == 0);
-    assign m_img_row_last  = !m_img_valid ? '0 : (y == (Y_NUM-1));
-    assign m_img_col_first = !m_img_valid ? '0 : (x == 0);
-    assign m_img_col_last  = !m_img_valid ? '0 : (x == (X_NUM-1));
-    assign m_img_de        = !m_img_valid ? '0 : (x < X_NUM && y < Y_NUM);
-    assign m_img_data      = !m_img_valid ? 'x : mem[y][x];
-    assign m_img_x         = !m_img_valid ? 'x : X_WIDTH'(x);
-    assign m_img_y         = !m_img_valid ? 'x : Y_WIDTH'(y);
-    assign m_img_f         = !m_img_valid ? 'x : F_WIDTH'(f);
-    assign m_img_valid     = busy;
-    
+    assign m_axi4s_tuser  = !m_axi4s_tvalid ? 'x : (x == 0) && (y == 0);
+    assign m_axi4s_tlast  = !m_axi4s_tvalid ? 'x : (x == X_NUM-1);
+    assign m_axi4s_tdata  = !m_axi4s_tvalid ? 'x : mem[y*X_NUM + x];
+    assign m_axi4s_tx     = !m_axi4s_tvalid ? 'x : X_WIDTH'(x);
+    assign m_axi4s_ty     = !m_axi4s_tvalid ? 'x : Y_WIDTH'(y);
+    assign m_axi4s_tf     = !m_axi4s_tvalid ? 'x : f;
+    assign m_axi4s_tvalid = busy && valid && (x < X_NUM && y < Y_NUM);
+
 endmodule
 
 
