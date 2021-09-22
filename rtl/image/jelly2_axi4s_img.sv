@@ -25,8 +25,8 @@ module jelly2_axi4s_img
             parameter   int                         IMG_X_WIDTH    = 10,
             parameter   int                         IMG_Y_WIDTH    = 9,
             parameter   int                         IMG_Y_NUM      = 480,
-            parameter   bit                         USE_DE         = 1,
-            parameter   bit                         USE_VALID      = 1,
+            parameter   bit                         WITH_DE         = 1,
+            parameter   bit                         WITH_VALID      = 1,
             parameter   int                         BLANK_Y_WIDTH  = 8,
             parameter   bit     [IMG_Y_WIDTH-1:0]   INIT_Y_NUM     = IMG_Y_WIDTH'(IMG_Y_NUM),
             parameter   int                         FIFO_PTR_WIDTH = 9,
@@ -162,20 +162,20 @@ module jelly2_axi4s_img
                 .IMG_Y_WIDTH        (IMG_Y_WIDTH),
                 .IMG_Y_NUM          (IMG_Y_NUM),
                 .IMG_CKE_BUFG       (IMG_CKE_BUFG),
-                .USE_VALID          (USE_VALID)
+                .WITH_VALID         (WITH_VALID)
             )
         i_axi4s_to_img
             (
-                .aresetn            (aresetn),
-                .aclk               (aclk),
-                .aclken             (aclken),
+                .reset              (~aresetn),
+                .clk                (aclk),
+                .cke                (cke),
                 
                 .param_y_num        (param_y_num),
                 
                 .s_axi4s_tdata      (axi4s_blank_tdata),
                 .s_axi4s_tlast      (axi4s_blank_tlast),
                 .s_axi4s_tuser      (axi4s_blank_tuser),
-                .s_axi4s_tvalid     (axi4s_blank_tvalid),
+                .s_axi4s_tvalid     (axi4s_blank_tvalid & aclken),
                 .s_axi4s_tready     (axi4s_blank_tready),
                 
                 .m_img_cke          (img_cke),
@@ -199,13 +199,13 @@ module jelly2_axi4s_img
             #(
                 .TUSER_WIDTH        (TUSER_WIDTH),
                 .TDATA_WIDTH        (M_TDATA_WIDTH),
-                .USE_DE             (USE_DE),
-                .USE_VALID          (USE_VALID)
+                .WITH_DE             (WITH_DE),
+                .WITH_VALID          (WITH_VALID)
             )
         i_img_to_axi4s
             (
                 .reset              (~aresetn),
-                .clk                (aclken),
+                .clk                (aclk),
                 .cke                (img_cke),
                 
                 .s_img_row_first    (s_img_sink_row_first),

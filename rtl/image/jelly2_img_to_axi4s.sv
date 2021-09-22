@@ -20,8 +20,8 @@ module jelly2_img_to_axi4s
         #(
             parameter   int     TUSER_WIDTH = 8,
             parameter   int     TDATA_WIDTH = 8,
-            parameter   bit     USE_DE      = 1,        // s_img_de を利用する
-            parameter   bit     USE_VALID   = 1,        // s_img_valid を利用する
+            parameter   bit     WITH_DE     = 1,        // s_img_de を利用する
+            parameter   bit     WITH_VALID  = 1,        // s_img_valid を利用する
             
             localparam  int     USER_WIDTH  = TUSER_WIDTH > 1 ? TUSER_WIDTH - 1 : 1
         )
@@ -45,14 +45,14 @@ module jelly2_img_to_axi4s
             output  wire                        m_axi4s_tvalid
         );
     
-    logic                       s_valid     = USE_VALID ? s_img_valid : 1'b1;
-    logic                       s_row_first = (s_valid & s_img_row_first);
-    logic                       s_row_last  = (s_valid & s_img_row_last);
-    logic                       s_col_first = (s_valid & s_img_col_first);
-    logic                       s_col_last  = (s_valid & s_img_col_last);
-    logic                       s_de        = (s_valid & s_img_de);
-    logic   [USER_WIDTH-1:0]    s_user      = s_img_user;
-    logic   [TDATA_WIDTH-1:0]   s_data      = s_img_data;
+    wire                        input_valid     = WITH_VALID ? s_img_valid : 1'b1;
+    wire                        input_row_first = (input_valid & s_img_row_first);
+    wire                        input_row_last  = (input_valid & s_img_row_last);
+    wire                        input_col_first = (input_valid & s_img_col_first);
+    wire                        input_col_last  = (input_valid & s_img_col_last);
+    wire                        input_de        = (input_valid & s_img_de);
+    wire    [USER_WIDTH-1:0]    input_user      = s_img_user;
+    wire    [TDATA_WIDTH-1:0]   input_data      = s_img_data;
     
     logic                       reg_de;
     logic   [TUSER_WIDTH-1:0]   reg_tuser;
@@ -69,26 +69,26 @@ module jelly2_img_to_axi4s
             reg_tvalid <= 1'b0;
         end
         else if ( cke ) begin
-            reg_tuser <= TUSER_WIDTH'({s_user, reg_tuser[0]});
+            reg_tuser <= TUSER_WIDTH'({input_user, reg_tuser[0]});
             if ( reg_tvalid ) begin
                 reg_tuser[0] <= 1'b0;
             end
-            if ( s_valid && s_row_first && s_col_first ) begin
+            if ( input_valid && input_row_first && input_col_first ) begin
                 reg_tuser[0] <= 1'b1;
             end
             
-            reg_tlast    <= s_col_last;
-            reg_tdata    <= s_data;
+            reg_tlast    <= input_col_last;
+            reg_tdata    <= input_data;
             
-            if ( USE_DE ) begin
-                reg_tvalid <= s_de;
+            if ( WITH_DE ) begin
+                reg_tvalid <= input_de;
             end
             else begin
                 // auto create de
-                if ( s_row_first ) begin
+                if ( input_row_first ) begin
                     reg_de <= 1'b1;
                 end
-                else if ( s_row_last ) begin
+                else if ( input_row_last ) begin
                     reg_de <= 1'b0;
                 end
                 reg_tvalid <= reg_de;

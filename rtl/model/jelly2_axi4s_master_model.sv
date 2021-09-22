@@ -26,7 +26,7 @@ module jelly2_axi4s_master_model
             parameter   string  FILE_NAME        = "",
             parameter   string  FILE_EXT         = "",
             parameter   bit     SEQUENTIAL_FILE  = 0,
-            parameter   bit     BUSY_RATE        = 0,
+            parameter   int     BUSY_RATE        = 0,
             parameter   int     RANDOM_SEED      = 0,
             parameter   bit     ENDIAN           = 0,
 
@@ -71,7 +71,7 @@ module jelly2_axi4s_master_model
         for ( int i = 0; i < Y_NUM; ++i ) begin
             for ( int j = 0; j < X_NUM; ++j ) begin
                 for ( int k = 0; k < COMPONENTS; ++k ) begin
-                    int data = 0;
+                    automatic int data = 0;
                     if ( k == 0 ) data = j;
                     if ( k == 1 ) data = i;
                     if ( k == 2 ) data = f;
@@ -84,8 +84,10 @@ module jelly2_axi4s_master_model
 
     task    image_read();
     begin
-        string filename = SEQUENTIAL_FILE ? {FILE_NAME, $sformatf("%04d", f), FILE_EXT} : {FILE_NAME, FILE_EXT};
+        string filename;
         int fp;
+        int n;
+        filename = SEQUENTIAL_FILE ? {FILE_NAME, $sformatf("%04d", f), FILE_EXT} : {FILE_NAME, FILE_EXT};
         fp = $fopen(filename, "r");
         if ( fp == 0 ) begin
             $display("file open error : %s", filename);
@@ -93,13 +95,13 @@ module jelly2_axi4s_master_model
         else begin
             string format;
             int    width, height, maxval;
-            $fscanf(fp, "%s %d %d %d", format, width, height, maxval);
+            n = $fscanf(fp, "%s %d %d %d", format, width, height, maxval);
             $display("[read] %s: format=%s width=%0d height=%0d maxval=%0d", filename, format, width, height, maxval);
             for ( int i = 0; i < Y_NUM; ++i ) begin
                 for ( int j = 0; j < X_NUM; ++j ) begin
                     for ( int k = 0; k < COMPONENTS; ++k ) begin
                         int data;
-                        $fscanf(fp, "%d", data);
+                        n = $fscanf(fp, "%d", data);
                         if ( ENDIAN ) begin
                             mem[i][j][COMPONENTS-1-k] = DATA_WIDTH'(data);                            
                         end
@@ -163,14 +165,17 @@ module jelly2_axi4s_master_model
             end
             
             if ( !m_axi4s_tvalid || m_axi4s_tready ) begin
-                valid <= (int'($urandom(rand_seed) % 100) >= BUSY_RATE);
+                int rand_val;
+                rand_val = int'({$random(rand_seed)} % 100); 
+                valid <= (rand_val >= BUSY_RATE);
             end
         end
     end
     
+
     assign m_axi4s_tuser  = !m_axi4s_tvalid ? 'x : (x == 0) && (y == 0);
     assign m_axi4s_tlast  = !m_axi4s_tvalid ? 'x : (x == X_NUM-1);
-    assign m_axi4s_tdata  = !m_axi4s_tvalid ? 'x : mem[y*X_NUM + x];
+    assign m_axi4s_tdata  = !m_axi4s_tvalid ? 'x : mem[y][x];
     assign m_axi4s_tx     = !m_axi4s_tvalid ? 'x : X_WIDTH'(x);
     assign m_axi4s_ty     = !m_axi4s_tvalid ? 'x : Y_WIDTH'(y);
     assign m_axi4s_tf     = !m_axi4s_tvalid ? 'x : f;

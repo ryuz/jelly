@@ -22,14 +22,14 @@ module jelly2_axi4s_to_img
             parameter   int     IMG_Y_WIDTH  = 9,
             parameter   int     IMG_Y_NUM    = 480,
             parameter   bit     IMG_CKE_BUFG = 0,
-            parameter   bit     USE_VALID    = 1,
+            parameter   bit     WITH_VALID   = 1,
             
             localparam  int     USER_WIDTH   = (TUSER_WIDTH > 1) ? (TUSER_WIDTH - 1) : 1
         )
         (
-            input   wire                                aresetn,
-            input   wire                                aclk,
-            input   wire                                aclken,
+            input   wire                                reset,
+            input   wire                                clk,
+            input   wire                                cke,
             
             input   wire    [IMG_Y_WIDTH-1:0]           param_y_num,
             
@@ -62,8 +62,8 @@ module jelly2_axi4s_to_img
     logic                       reg_valid;
     logic   [IMG_Y_WIDTH-1:0]   reg_y_count;
     
-    always_ff @(posedge aclk) begin
-        if ( ~aresetn ) begin
+    always_ff @(posedge clk) begin
+        if ( reset ) begin
             reg_cke       <= 1'b0;
             reg_row_first <= 1'b0;
             reg_row_last  <= 1'b0;
@@ -76,9 +76,9 @@ module jelly2_axi4s_to_img
             reg_y_count   <= {IMG_Y_WIDTH{1'bx}};
         end
         else begin
-            reg_cke <= (aclken && (s_axi4s_tvalid && s_axi4s_tready));
+            reg_cke <= (cke && (s_axi4s_tvalid && s_axi4s_tready));
             
-            if ( aclken && s_axi4s_tvalid && s_axi4s_tready ) begin
+            if ( s_axi4s_tvalid && s_axi4s_tready ) begin
                 reg_col_first <= 1'b0;
                 if ( reg_col_last ) begin
                     reg_row_first  <= 1'b0;
@@ -106,7 +106,7 @@ module jelly2_axi4s_to_img
                 reg_data       <= s_axi4s_tdata;
             end
             
-            if ( aclken ) begin
+            if ( cke ) begin
                 reg_valid <= 1'b1;
             end
         end
@@ -131,16 +131,16 @@ module jelly2_axi4s_to_img
     assign m_img_cke = reg_cke;
 `endif
 
-    assign s_axi4s_tready    = 1'b1;
+    assign s_axi4s_tready  = cke;
     
-    assign m_img_row_first  = reg_row_first;
-    assign m_img_row_last   = reg_row_last;
+    assign m_img_row_first = reg_row_first;
+    assign m_img_row_last  = reg_row_last;
     assign m_img_col_first = reg_col_first;
     assign m_img_col_last  = reg_col_last;
-    assign m_img_de          = reg_de;
-    assign m_img_user        = reg_user;
-    assign m_img_data        = reg_data;
-    assign m_img_valid       = reg_valid;
+    assign m_img_de        = reg_de;
+    assign m_img_user      = reg_user;
+    assign m_img_data      = reg_data;
+    assign m_img_valid     = reg_valid;
     
 endmodule
 

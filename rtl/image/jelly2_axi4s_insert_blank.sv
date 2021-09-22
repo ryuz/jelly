@@ -64,8 +64,8 @@ module jelly2_axi4s_insert_blank
     logic                       reg_tlast;
     logic   [TUSER_WIDTH-1:0]   reg_tuser;
     logic                       reg_tvalid;
-    
-    always @(posedge aclken) begin
+
+    always @(posedge aclk) begin
         if ( ~aresetn ) begin
             reg_x_counter  <= {IMG_X_WIDTH{1'b0}};
             reg_x_num      <= {IMG_X_WIDTH{1'b0}};
@@ -104,7 +104,7 @@ module jelly2_axi4s_insert_blank
                 reg_frame_last <= 1'b0;
                 if ( reg_frame_last ) begin
                     if ( s_axi4s_tvalid || (reg_y_blank == param_blank_num) ) begin
-                        reg_blank <= 1'b0;
+                        reg_blank      <= 1'b0;
                         
                         reg_tdata      <= s_axi4s_tdata;
                         reg_tlast      <= s_axi4s_tlast;
