@@ -60,43 +60,45 @@ module jelly2_ram_with_autoclear
 
     generate
     for ( genvar i = 0; i < N; ++i ) begin : loop_ram
-        jelly_ram_dualport
-            #(
-                .ADDR_WIDTH     (UNIT_ADDR_WIDTH),
-                .DATA_WIDTH     (DATA_WIDTH),
-                .MEM_SIZE       (UNIT_MEM_SIZE),
-                .RAM_TYPE       (RAM_TYPE),
-                .DOUT_REGS0     (DOUT_REGS0),
-                .DOUT_REGS1     (DOUT_REGS1),
-                .MODE0          (MODE0),
-                .MODE1          (MODE1),
-                .FILLMEM        (FILLMEM),
-                .FILLMEM_DATA   (FILLMEM_DATA),
-                .READMEMB       (READMEMB),
-                .READMEMH       (READMEMH),
-                .READMEM_FIlE   (READMEM_FIlE)
-            )
-        i_ram_dualport
-            (
-                .clk0           (clk[0]),
-                .en0            (unit_en[0]),
-                .regcke0        (regcke[0]),
-                .we0            (unit_we[0][i]),
-                .addr0          (unit_addr[0]),
-                .din0           (unit_din[0]),
-                .dout0          (unit_dout[0][i]),
+        jelly2_ram_dualport
+                #(
+                    .ADDR_WIDTH     (UNIT_ADDR_WIDTH),
+                    .DATA_WIDTH     (DATA_WIDTH),
+                    .MEM_SIZE       (UNIT_MEM_SIZE),
+                    .RAM_TYPE       (RAM_TYPE),
+                    .DOUT_REGS0     (DOUT_REGS0),
+                    .DOUT_REGS1     (DOUT_REGS1),
+                    .MODE0          (MODE0),
+                    .MODE1          (MODE1),
+                    .FILLMEM        (FILLMEM),
+                    .FILLMEM_DATA   (FILLMEM_DATA),
+                    .READMEMB       (READMEMB),
+                    .READMEMH       (READMEMH),
+                    .READMEM_FIlE   (READMEM_FIlE)
+                )
+            i_ram_dualport
+                (
+                    .clk0           (clk[0]),
+                    .en0            (unit_en[0]),
+                    .regcke0        (regcke[0]),
+                    .we0            (unit_we[0][i]),
+                    .addr0          (unit_addr[0]),
+                    .din0           (unit_din[0]),
+                    .dout0          (unit_dout[0][i]),
 
-                .clk1           (clk[1]),
-                .en1            (unit_en[1]),
-                .regcke1        (regcke[1]),
-                .we1            (unit_we[1][i]),
-                .addr1          (unit_addr[1]),
-                .din1           (unit_din[1]),
-                .dout1          (unit_dout[1])
-            );
+                    .clk1           (clk[1]),
+                    .en1            (unit_en[1]),
+                    .regcke1        (regcke[1]),
+                    .we1            (unit_we[1][i]),
+                    .addr1          (unit_addr[1]),
+                    .din1           (unit_din[1]),
+                    .dout1          (unit_dout[1][i])
+                );
     end
     endgenerate
 
+    // verilator lint_off MULTIDRIVEN
+    
     generate
     for ( genvar i = 0; i < 2; ++i ) begin : loop_control
         // clear
@@ -109,7 +111,7 @@ module jelly2_ram_with_autoclear
             else begin
                 if ( clear_busy[i] ) begin
                     clear_addr <= clear_addr + 1'b1;
-                    if ( clear_addr == (UNIT_MEM_SIZE - 1'b1) ) begin
+                    if ( clear_addr == UNIT_ADDR_WIDTH'(UNIT_MEM_SIZE - 1) ) begin
                         clear_busy[i] <= 1'b0;
                     end
                 end
@@ -126,7 +128,7 @@ module jelly2_ram_with_autoclear
             unit_din[i]  = clear_busy[i] ? clear_din[i] : din[i];
             unit_addr[i] = clear_busy[i] ? clear_addr   : addr[i][UNIT_ADDR_WIDTH-1:0];
             for ( int j = 0; j < N; ++j ) begin
-                unit_we[i][j] = clear_busy[i] ? 1'b1 : (we[i] && (st0_sel == j));
+                unit_we[i][j] = clear_busy[i] ? 1'b1 : (we[i] && (int'(st0_sel) == j));
             end
         end
 
@@ -146,7 +148,9 @@ module jelly2_ram_with_autoclear
         assign dout[i] = unit_dout[i][sel];
     end
     endgenerate
-    
+ 
+    // verilator lint_on MULTIDRIVEN
+
 endmodule
 
 
