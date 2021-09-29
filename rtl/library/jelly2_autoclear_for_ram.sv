@@ -65,33 +65,46 @@ module jelly2_autoclear_for_ram
             end
         end
     end
-
+    
     wire    [BANK_WIDTH-1:0]     st0_bank = BANK_WIDTH'(addr >> ADDR_WIDTH);
-    logic   [BANK_WIDTH-1:0]     st1_bank;
-    logic   [BANK_WIDTH-1:0]     st2_bank;
-
     always_comb begin : blk_ram
         for ( int i = 0; i < BANK_NUM; ++i ) begin
-            ram_en  [i] = clear_busy ? 1'b1       : en;
-            ram_din [i] = clear_busy ? clear_din  : din;
-            ram_addr[i] = clear_busy ? clear_addr : addr[ADDR_WIDTH-1:0];
-            ram_we  [i] = clear_busy ? 1'b1       : (we && (int'(st0_bank) == i));
+            ram_en    [i] = clear_busy ? 1'b1       : en;
+            ram_regcke[i] = regcke;
+            ram_we    [i] = clear_busy ? 1'b1       : (we && (int'(st0_bank) == i));
+            ram_addr  [i] = clear_busy ? clear_addr : addr[ADDR_WIDTH-1:0];
+            ram_din   [i] = clear_busy ? clear_din  : din;
         end
     end
-
+    
+    logic   [BANK_WIDTH-1:0]    bank;
+    
+    logic   [BANK_WIDTH-1:0]    st1_bank;
     always_ff @(posedge clk) begin
         if ( en ) begin
             st1_bank <= st0_bank;
         end
-        if ( regcke ) begin
-            st2_bank <= st1_bank;
-        end
     end
-    wire    [BANK_WIDTH-1:0]    bank = DOUT_REGS ? st2_bank : st1_bank;
-
+    
+    generate
+    if ( DOUT_REGS ) begin : blk_regs
+        logic   [BANK_WIDTH-1:0]    st2_bank;
+        always_ff @(posedge clk) begin
+            if ( regcke ) begin
+                st2_bank <= st1_bank;
+            end
+        end
+        assign bank = st2_bank;
+    end
+    else begin : blk_dout
+        assign bank = st1_bank;
+    end
+    endgenerate
+    
+    
     assign dout = ram_dout[bank];
     
-
+    
 endmodule
 
 
