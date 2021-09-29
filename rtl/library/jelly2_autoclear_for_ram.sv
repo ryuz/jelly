@@ -36,11 +36,11 @@ module jelly2_autoclear_for_ram
             input   wire    [DATA_WIDTH-1:0]                    din,
             output  wire    [DATA_WIDTH-1:0]                    dout,
 
-            output  wire    [BANK_NUM-1:0]                      ram_en,
-            output  wire    [BANK_NUM-1:0]                      ram_regcke,
-            output  wire    [BANK_NUM-1:0]                      ram_we,
-            output  wire    [BANK_NUM-1:0][ADDR_WIDTH-1:0]      ram_addr,
-            output  wire    [BANK_NUM-1:0][DATA_WIDTH-1:0]      ram_din,
+            output  reg     [BANK_NUM-1:0]                      ram_en,
+            output  reg     [BANK_NUM-1:0]                      ram_regcke,
+            output  reg     [BANK_NUM-1:0]                      ram_we,
+            output  reg     [BANK_NUM-1:0][ADDR_WIDTH-1:0]      ram_addr,
+            output  reg     [BANK_NUM-1:0][DATA_WIDTH-1:0]      ram_din,
             input   wire    [BANK_NUM-1:0][DATA_WIDTH-1:0]      ram_dout
         );
     
