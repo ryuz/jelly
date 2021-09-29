@@ -27,7 +27,7 @@ module jelly2_autoclear_for_ram
 
             input   wire    [DATA_WIDTH-1:0]                    clear_din,
             input   wire                                        clear_start,
-            output  reg                                         clear_busy
+            output  reg                                         clear_busy,
 
             input   wire                                        en,
             input   wire                                        regcke,
@@ -36,12 +36,12 @@ module jelly2_autoclear_for_ram
             input   wire    [DATA_WIDTH-1:0]                    din,
             output  wire    [DATA_WIDTH-1:0]                    dout,
 
-            output  wire    [BANK_WIDTH-1:0]                    ram_en,
-            output  wire    [BANK_WIDTH-1:0]                    ram_regcke,
-            output  wire    [BANK_WIDTH-1:0]                    ram_we,
-            output  wire    [BANK_WIDTH-1:0][ADDR_WIDTH-1:0]    ram_addr,
-            output  wire    [BANK_WIDTH-1:0][DATA_WIDTH-1:0]    ram_din,
-            input   wire    [BANK_WIDTH-1:0][DATA_WIDTH-1:0]    ram_dout
+            output  wire    [BANK_NUM-1:0]                      ram_en,
+            output  wire    [BANK_NUM-1:0]                      ram_regcke,
+            output  wire    [BANK_NUM-1:0]                      ram_we,
+            output  wire    [BANK_NUM-1:0][ADDR_WIDTH-1:0]      ram_addr,
+            output  wire    [BANK_NUM-1:0][DATA_WIDTH-1:0]      ram_din,
+            input   wire    [BANK_NUM-1:0][DATA_WIDTH-1:0]      ram_dout
         );
     
 
@@ -55,7 +55,7 @@ module jelly2_autoclear_for_ram
         else begin
             if ( clear_busy ) begin
                 clear_addr <= clear_addr + 1'b1;
-                if ( clear_addr == UNIT_ADDR_WIDTH'(MEM_SIZE - 1) ) begin
+                if ( clear_addr == ADDR_WIDTH'(MEM_SIZE - 1) ) begin
                     clear_busy <= 1'b0;
                 end
             end
@@ -74,8 +74,8 @@ module jelly2_autoclear_for_ram
         for ( int i = 0; i < BANK_NUM; ++i ) begin
             ram_en  [i] = clear_busy ? 1'b1       : en;
             ram_din [i] = clear_busy ? clear_din  : din;
-            ram_addr[i] = clear_busy ? clear_addr : addr[UNIT_ADDR_WIDTH-1:0];
-            ram_we  [i] = clear_busy ? 1'b1       : (we && (int'(st0_sel) == i));
+            ram_addr[i] = clear_busy ? clear_addr : addr[ADDR_WIDTH-1:0];
+            ram_we  [i] = clear_busy ? 1'b1       : (we && (int'(st0_bank) == i));
         end
     end
 
@@ -87,7 +87,7 @@ module jelly2_autoclear_for_ram
             st2_bank <= st1_bank;
         end
     end
-    wire    [BANK_WIDTH-1:0]    bank = dout_regs ? st2_bank : st1_bank;
+    wire    [BANK_WIDTH-1:0]    bank = DOUT_REGS ? st2_bank : st1_bank;
 
     assign dout = ram_dout[bank];
     

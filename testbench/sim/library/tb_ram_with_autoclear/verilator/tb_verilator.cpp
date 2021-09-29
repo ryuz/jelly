@@ -54,9 +54,9 @@ int main(int argc, char** argv)
 
     auto mng = jsim::Manager::Create();
 
-    mng->AddNode(jsim::ClockNode_Create(&top->clk0, 5.0));
+    mng->AddNode(jsim::ClockNode_Create(&top->clk0, 3.0));
     mng->AddNode(jsim::ResetNode_Create(&top->reset0, 100));
-    mng->AddNode(jsim::ClockNode_Create(&top->clk1, 3.0));
+    mng->AddNode(jsim::ClockNode_Create(&top->clk1, 5.0));
     mng->AddNode(jsim::ResetNode_Create(&top->reset1, 100));
     mng->AddNode(jsim::VerilatorNode_Create(top, tfp));
 
