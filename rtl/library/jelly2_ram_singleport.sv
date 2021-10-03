@@ -25,7 +25,7 @@ module jelly2_ram_singleport
             parameter   logic   [DATA_WIDTH-1:0]    FILLMEM_DATA = 0,
             parameter   bit                         READMEMB     = 0,
             parameter   bit                         READMEMH     = 0,
-            parameter   string                      READMEM_FILE = ""
+            parameter                               READMEM_FILE = ""
         )
         (
             input   wire                        clk,
@@ -44,7 +44,7 @@ module jelly2_ram_singleport
     logic   [DATA_WIDTH-1:0]    tmp_dout;
     
     generate
-    if ( string'(MODE) == "WRITE_FIRST" ) begin : blk_write_first
+    if ( MODE == "WRITE_FIRST" ) begin : blk_write_first
         // write first
         always_ff @ ( posedge clk ) begin
             if ( en ) begin

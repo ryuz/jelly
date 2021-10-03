@@ -22,7 +22,7 @@ module jelly2_ram_simple_dualport
             parameter   bit     [DATA_WIDTH-1:0]    FILLMEM_DATA = 0,
             parameter   bit                         READMEMB     = 0,
             parameter   bit                         READMEMH     = 0,
-            parameter   string                      READMEM_FIlE = ""
+            parameter                               READMEM_FIlE = ""
         )
         (
             // write port
@@ -39,10 +39,8 @@ module jelly2_ram_simple_dualport
             output      logic   [DATA_WIDTH-1:0]    rd_dout
         );
     
-    parameter string RAM_STYLE = "distributed";
-    
     // memory
-    (* ram_style = RAM_STYLE *)
+    (* ram_style = RAM_TYPE *)
     logic   [DATA_WIDTH-1:0]    mem [0:MEM_SIZE-1];
     
     integer iMEM_SIZE = MEM_SIZE;

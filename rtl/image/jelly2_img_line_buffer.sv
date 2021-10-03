@@ -24,7 +24,7 @@ module jelly2_img_line_buffer
             parameter   int                         N            = 3,
             parameter   int                         CENTER       = (N-1) / 2,
             parameter   int                         MAX_COLS     = 1024,
-            parameter   string                      BORDER_MODE  = "REPLICATE",         // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
+            parameter                               BORDER_MODE  = "REPLICATE",         // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
             parameter   logic   [DATA_WIDTH-1:0]    BORDER_VALUE = {DATA_WIDTH{1'b0}},  // BORDER_MODE == "CONSTANT"
             parameter                               RAM_TYPE     = "block",
             parameter   bit                         ENDIAN       = 0,                   // 0: little, 1:big

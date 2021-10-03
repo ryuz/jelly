@@ -14,7 +14,7 @@
 // accumulator memory
 module jelly2_ram_accumulator
         #(
-            parameter   int                         ADDR_WIDTH   = 10,
+            parameter   int                         ADDR_WIDTH   = 11,
             parameter   int                         DATA_WIDTH   = 18,
             parameter   int                         MEM_SIZE     = (1 << ADDR_WIDTH),
             parameter                               RAM_TYPE     = "block",

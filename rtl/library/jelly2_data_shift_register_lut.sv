@@ -16,7 +16,7 @@ module jelly2_data_shift_register_lut
             parameter   int     SEL_WIDTH  = 5,
             parameter   int     NUM        = (1 << SEL_WIDTH),
             parameter   int     DATA_WIDTH = 8,
-            parameter   string  DEVICE     = "RTL"
+            parameter           DEVICE     = "RTL"
         )
         (
             input   logic                       clk,

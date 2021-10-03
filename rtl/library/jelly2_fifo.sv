@@ -39,7 +39,7 @@ module jelly2_fifo
     
     
     generate
-    if ( LOW_DEALY && (string'(RAM_TYPE) == "distributed") && PTR_WIDTH < 8 ) begin : blk_shifter
+    if ( LOW_DEALY && (RAM_TYPE == "distributed") && PTR_WIDTH < 8 ) begin : blk_shifter
         jelly2_fifo_shifter
                 #(
                     .DATA_WIDTH     (DATA_WIDTH),

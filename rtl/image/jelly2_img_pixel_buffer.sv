@@ -18,7 +18,7 @@ module jelly2_img_pixel_buffer
             parameter   int                         USER_WIDTH   = 0,
             parameter   int                         DATA_WIDTH   = 3*8,
             parameter   int                         CENTER       = (M-1) / 2,
-            parameter   string                      BORDER_MODE  = "REPLICATE",         // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
+            parameter                               BORDER_MODE  = "REPLICATE",         // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
             parameter   logic   [DATA_WIDTH-1:0]    BORDER_VALUE = {DATA_WIDTH{1'b0}},  // BORDER_MODE == "CONSTANT"
             parameter   bit                         ENDIAN       = 0,                   // 0: little, 1:big
             
