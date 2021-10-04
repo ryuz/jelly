@@ -6,6 +6,8 @@ module design_1
             output  wire            out_resetn,
             output  wire            out_clk,
             
+            input   wire            in_irq0,
+            
             output  wire    [39:0]  m_axi4l_peri_awaddr,
             output  wire    [2:0]   m_axi4l_peri_awprot,
             output  wire            m_axi4l_peri_awvalid,

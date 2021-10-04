@@ -25,6 +25,8 @@ module ultra96v2_udmabuf_sample
     wire            resetn;
     wire            clk;
     
+    wire    [0:0]   irq0;
+    
     wire    [39:0]  axi4l_peri_awaddr;
     wire    [2:0]   axi4l_peri_awprot;
     wire            axi4l_peri_awvalid;
@@ -130,6 +132,8 @@ module ultra96v2_udmabuf_sample
             (
                 .out_resetn             (resetn),
                 .out_clk                (clk),
+                
+                .in_irq0                (irq0),
                 
                 .m_axi4l_peri_awaddr    (axi4l_peri_awaddr),
                 .m_axi4l_peri_awprot    (axi4l_peri_awprot),
@@ -484,21 +488,55 @@ module ultra96v2_udmabuf_sample
     
     
     // -----------------------------
+    //  Test Timer
+    // -----------------------------
+    
+    wire    [WB_DAT_WIDTH-1:0]      wb_tim_dat_o;
+    wire                            wb_tim_stb_i;
+    wire                            wb_tim_ack_o;
+    
+    jelly_interval_timer
+            #(
+                .WB_ADR_WIDTH       (2),
+                .WB_DAT_WIDTH       (WB_DAT_WIDTH),
+                .IRQ_LEVEL          (1)
+            )
+        i_interval_timer
+            (
+                .reset              (~resetn),
+                .clk                (clk),
+                
+                .interrupt_req      (irq0),
+                
+                .s_wb_adr_i         (wb_peri_adr_i[1:0]),
+                .s_wb_dat_o         (wb_tim_dat_o),
+                .s_wb_dat_i         (wb_peri_dat_i),
+                .s_wb_we_i          (wb_peri_we_i),
+                .s_wb_sel_i         (wb_peri_sel_i),
+                .s_wb_stb_i         (wb_tim_stb_i),
+                .s_wb_ack_o         (wb_tim_ack_o)
+            );
+    
+    
+    // -----------------------------
     //  WISHBONE address decode
     // -----------------------------
     
     assign wb_dma0_stb_i = wb_peri_stb_i & (wb_peri_adr_i[15:8] == 16'h0000);
     assign wb_dma1_stb_i = wb_peri_stb_i & (wb_peri_adr_i[15:8] == 16'h0001);
     assign wb_led_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[15:8] == 16'h0010);
+    assign wb_tim_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[15:8] == 16'h0020);
     
     assign wb_peri_dat_o  = wb_dma0_stb_i ? wb_dma0_dat_o :
                             wb_dma1_stb_i ? wb_dma1_dat_o :
                             wb_led_stb_i  ? wb_led_dat_o  :
+                            wb_tim_stb_i  ? wb_tim_dat_o  :
                             {WB_DAT_WIDTH{1'b0}};
     
     assign wb_peri_ack_o  = wb_dma0_stb_i ? wb_dma0_ack_o :
                             wb_dma1_stb_i ? wb_dma1_ack_o :
                             wb_led_stb_i  ? wb_led_ack_o  :
+                            wb_tim_stb_i  ? wb_tim_ack_o  :
                             wb_peri_stb_i;
     
     

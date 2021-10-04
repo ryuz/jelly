@@ -16,7 +16,8 @@ module jelly_interval_timer
         #(
             parameter WB_ADR_WIDTH  = 2,
             parameter WB_DAT_WIDTH  = 32,
-            parameter WB_SEL_WIDTH  = (WB_DAT_WIDTH / 8)
+            parameter WB_SEL_WIDTH  = (WB_DAT_WIDTH / 8),
+            parameter IRQ_LEVEL     = 0
         )
         (
             // system
@@ -87,20 +88,25 @@ module jelly_interval_timer
                 interrupt_req <= reg_enable;
             end
             else begin
-                interrupt_req <= 1'b0;
+                if ( IRQ_LEVEL && &s_wb_stb_i && (s_wb_adr_i == INTERVAL_TIMER_ADR_CONTROL) ) begin
+                    interrupt_req <= 1'b0;
+                end
+                else if ( !IRQ_LEVEL ) begin
+                    interrupt_req <= 1'b0;
+                end
             end
         end
     end
     
     always @* begin
         case ( s_wb_adr_i )
-        INTERVAL_TIMER_ADR_CONTROL: begin   s_wb_dat_o <= {reg_clear, reg_enable};  end
-        INTERVAL_TIMER_ADR_COMPARE: begin   s_wb_dat_o <= reg_compare;              end
-        INTERVAL_TIMER_ADR_COUNTER: begin   s_wb_dat_o <= reg_counter;              end
-        default:                    begin   s_wb_dat_o <= {WB_DAT_WIDTH{1'b0}};     end
+        INTERVAL_TIMER_ADR_CONTROL: begin   s_wb_dat_o <= {interrupt_req, reg_clear, reg_enable};  end
+        INTERVAL_TIMER_ADR_COMPARE: begin   s_wb_dat_o <= reg_compare;                             end
+        INTERVAL_TIMER_ADR_COUNTER: begin   s_wb_dat_o <= reg_counter;                             end
+        default:                    begin   s_wb_dat_o <= {WB_DAT_WIDTH{1'b0}};                    end
         endcase
     end
-        
+    
     assign s_wb_ack_o = s_wb_stb_i;
     
 endmodule
