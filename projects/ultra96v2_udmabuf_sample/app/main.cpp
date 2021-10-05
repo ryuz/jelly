@@ -23,6 +23,9 @@ using namespace jelly;
 #define REG_DMA_RDATA1  7
 #define REG_DMA_CORE_ID 8
 
+#define REG_TIM_CONTROL 0
+#define REG_TIM_COMPARE 1
+#define REG_TIM_COUNTER 3
 
 int main()
 {
@@ -47,10 +50,10 @@ int main()
     }
 
     // UIOの中をさらにコアごとに割り当て
-    auto dma0_acc = uio_acc.GetAccessor(0x0000);
-    auto dma1_acc = uio_acc.GetAccessor(0x0800);
-    auto led_acc  = uio_acc.GetAccessor(0x8000);
-
+    auto dma0_acc = uio_acc.GetAccessor(0x00000);
+    auto dma1_acc = uio_acc.GetAccessor(0x00800);
+    auto led_acc  = uio_acc.GetAccessor(0x08000);
+    auto tim_acc  = uio_acc.GetAccessor(0x10000);
 
     // メモリアドレスでアクセス
     std::cout << "\n<test MemRead>" << std::endl;
@@ -137,18 +140,30 @@ int main()
     std::cout << "REG_DMA0_RDATA0 : " << std::hex << dma0_acc.ReadReg(REG_DMA_RDATA0) << std::endl;
     std::cout << "REG_DMA0_RDATA1 : " << std::hex << dma0_acc.ReadReg(REG_DMA_RDATA1) << std::endl;
 
-    // LED点滅
+    // タイマ割り込みでLED点滅
     std::cout << "\n<LED test>" << std::endl;
-    for ( int i = 0; i < 3; i++) {
+    tim_acc.WriteReg(REG_TIM_COMPARE, 100000000-1);
+    tim_acc.WriteReg(REG_TIM_CONTROL, 1);
+    for ( int i = 0; i < 5; i++) {
+        // LED ON
         std::cout << "LED : ON" << std::endl;
         led_acc.WriteReg(0, 1);
-        sleep(1);
 
+        // 割り込み待ち
+        uio_acc.SetIrqEnable(true);
+        uio_acc.WaitIrq();
+        tim_acc.ReadReg(REG_TIM_CONTROL);   // clear interrupt
+
+        // LED OFF
         std::cout << "LED : OFF" << std::endl;
         led_acc.WriteReg(0, 0);
-        sleep(1);
-    }
 
+        // 割り込み待ち
+        uio_acc.SetIrqEnable(true);
+        uio_acc.WaitIrq();
+        tim_acc.ReadReg(REG_TIM_CONTROL);   // clear interrupt
+    }
+    
     return 0;
 }
 

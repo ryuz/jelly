@@ -161,7 +161,7 @@ public:
         GetUioManager()->SetIrqEnable(enable);
     }
 
-    unsigned int WaitIrq(int uio_fd)
+    unsigned int WaitIrq()
     {
         return GetUioManager()->WaitIrq();
     }
