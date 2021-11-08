@@ -3,12 +3,12 @@
 `default_nettype none
 
 
-module tb_unsigned_divide_multicycle();
+module tb_signed_divide_multicycle();
     localparam RATE    = 1000.0/200.0;
     
     initial begin
-        $dumpfile("tb_unsigned_divide_multicycle.vcd");
-        $dumpvars(0, tb_unsigned_divide_multicycle);
+        $dumpfile("tb_signed_divide_multicycle.vcd");
+        $dumpvars(0, tb_signed_divide_multicycle);
         
         #100000;
             $finish;
@@ -22,20 +22,20 @@ module tb_unsigned_divide_multicycle();
     
     parameter   DATA_WIDTH = 32;
     
-    reg                          cke = 1'b1;
+    reg                                 cke = 1'b1;
     
-    reg     [DATA_WIDTH-1:0]    s_data0 = 7;
-    reg     [DATA_WIDTH-1:0]    s_data1 = 2;
-    reg                         s_valid = 1;
-    wire                        s_ready;
+    reg     signed  [DATA_WIDTH-1:0]    s_data0 = 7;
+    reg     signed  [DATA_WIDTH-1:0]    s_data1 = 2;
+    reg                                 s_valid = 1;
+    wire                                s_ready;
     
-    wire    [DATA_WIDTH-1:0]    m_quotient;
-    wire    [DATA_WIDTH-1:0]    m_remainder;
-    wire                        m_valid;
-    wire                        m_ready = 1'b1;
+    wire    signed  [DATA_WIDTH-1:0]    m_quotient;
+    wire    signed  [DATA_WIDTH-1:0]    m_remainder;
+    wire                                m_valid;
+    wire                                m_ready = 1'b1;
     
-    wire    [DATA_WIDTH-1:0]    exp_quotient;
-    wire    [DATA_WIDTH-1:0]    exp_remainder;
+    wire    signed  [DATA_WIDTH-1:0]    exp_quotient;
+    wire    signed  [DATA_WIDTH-1:0]    exp_remainder;
     
     always @(posedge clk) begin
         if ( s_valid & s_ready ) begin
@@ -44,16 +44,16 @@ module tb_unsigned_divide_multicycle();
         end
         
         if ( m_valid & m_ready ) begin
-//            $display("%d %d", exp_quotient, exp_remainder);
-//            $display("%d %d", m_quotient, m_remainder);
+            $display("%d %d", exp_quotient, exp_remainder);
+            $display("%d %d", m_quotient, m_remainder);
         end
     end
     
-    jelly_unsigned_divide_multicycle
+    jelly_signed_divide_multicycle
             #(
                 .DATA_WIDTH     (DATA_WIDTH)
             )
-        i_unsigned_divide_multicycle
+        i_signed_divide_multicycle
             (
                 .reset          (reset),
                 .clk            (clk),
@@ -81,7 +81,7 @@ module tb_unsigned_divide_multicycle();
                 .clk                (clk),
                 
                 .op_div             (s_valid & s_ready),
-                .op_signed          (1'b0),
+                .op_signed          (1'b1),
                 .op_set_remainder   (1'b0),
                 .op_set_quotient    (1'b0),
                 

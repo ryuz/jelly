@@ -75,7 +75,7 @@ module jelly_unsigned_divide_multicycle
                 reg_ready <= 1'b1;
             end
             
-            if ( s_valid & s_ready & !m_valid ) begin
+            if ( s_valid & s_ready ) begin
                 reg_remainder <= {DATA_WIDTH{1'b0}};
                 reg_quotient  <= s_data0;
                 reg_divisor   <= s_data1;
