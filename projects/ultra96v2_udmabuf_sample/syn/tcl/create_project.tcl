@@ -46,12 +46,7 @@ create_project -force $project_name $project_directory
 
 #set board_part "avnet.com:ultra96v2:part0:1.1"
 set board_part [get_board_parts -quiet -latest_file_version "avnet.com:ultra96v2*"]
-set device_part "xczu3eg-sbva484-1-e"
-puts $board_part
-
-#set     design_bd_tcl_file  [file join ".." $vivado_version "design_1.tcl"  ]
-#set     design_pin_xdc_file [file join $project_directory "../../constrain/xdc/ultra96v2_udmabuf_sample.xdc" ]
-#puts $design_pin_xdc_file
+set device_part "xczu3eg-sbva484-1-i"
 
 set_property "part"           $device_part     [current_project]
 set_property "board_part"     $board_part      [current_project]
@@ -102,11 +97,6 @@ if {[string equal [get_runs -quiet impl_1] ""]} {
 }
 current_run -implementation [get_runs impl_1]
 
-# Set IP Repository
-#if {[info exists ip_repo_path_list] && [llength $ip_repo_path_list] > 0 } {
-#    set_property ip_repo_paths $ip_repo_path_list [current_fileset]
-#    update_ip_catalog
-#}
 
 
 # create block design
@@ -115,12 +105,8 @@ regenerate_bd_layout
 save_bd_design
     
 
-# Import timing files
-#if {[info exists design_timing_xdc_file]} {
-#    add_files    -fileset constrs_1 -norecurse $design_timing_xdc_file
-#}
 
-
+# add source file
 proc add_verilog_file {fileset_name library_name file_name} {
     set file    [file normalize $file_name]
     set fileset [get_filesets   $fileset_name] 
@@ -130,7 +116,6 @@ proc add_verilog_file {fileset_name library_name file_name} {
     set_property "library"   $library_name $file_obj
 }
 
-# add source file
 add_verilog_file sources_1 WORK ../../rtl/ultra96v2_udmabuf_sample.v
 add_verilog_file sources_1 WORK ../../rtl/test_dma.v
 add_verilog_file sources_1 WORK ../../rtl/test_dma_core.v
