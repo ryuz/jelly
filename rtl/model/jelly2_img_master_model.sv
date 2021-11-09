@@ -35,7 +35,7 @@ module jelly2_img_master_model
             
             input   wire                                        enable,
             output  reg                                         busy,
-
+            
             output  wire                                        m_img_row_first,
             output  wire                                        m_img_row_last,
             output  wire                                        m_img_col_first,
@@ -48,22 +48,22 @@ module jelly2_img_master_model
             output  wire                                        m_img_valid
         );
     
-
+    
     // -----------------------------
     //  read image file
     // -----------------------------
-
+    
     logic   [COMPONENTS-1:0][DATA_WIDTH-1:0]    mem     [Y_NUM][X_NUM];
-
+    
     int                                         x = 0;
     int                                         y = 0;
     bit     [F_WIDTH-1:0]                       f = 0;
-
-
+    
+    
     // -----------------------------
     //  read image file
     // -----------------------------
-
+    
     task    image_clear();
     begin
         for ( int i = 0; i < Y_NUM; ++i ) begin
@@ -79,7 +79,7 @@ module jelly2_img_master_model
         end
     end
     endtask
-
+    
     task    image_read();
     begin
         string filename = SEQUENTIAL_FILE ? {FILE_NAME, $sformatf("%04d", f), FILE_EXT} : {FILE_NAME, FILE_EXT};
@@ -111,20 +111,20 @@ module jelly2_img_master_model
         end
     end
     endtask
-
+    
     initial begin
         image_clear();
     end
-
-
+    
+    
     // -----------------------------
     //  main
     // -----------------------------
     
     localparam TOTAL_X = X_NUM + X_BLANK;
     localparam TOTAL_Y = Y_NUM + Y_BLANK;
-        
-    always @(posedge clk) begin
+    
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             busy <= 1'b0;
             f    <= '0;

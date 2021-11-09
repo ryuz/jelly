@@ -151,7 +151,7 @@ module jelly2_axi4s_master_model
                     y     <= 0;
                 end
             end
-            else if ( m_axi4s_tvalid && m_axi4s_tready ) begin
+            else if ( valid && (!m_axi4s_tvalid || m_axi4s_tready) ) begin
                 x <= x + 1;
                 if ( x >= (TOTAL_X-1) ) begin
                     x <= 0;

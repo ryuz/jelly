@@ -108,6 +108,7 @@ module jelly_img_selector
             if ( s_wb_stb_i && s_wb_we_i ) begin
                 case ( s_wb_adr_i )
                 ADR_CTL_SELECT:    reg_ctl_select <= write_mask(reg_ctl_select, s_wb_dat_i, s_wb_sel_i);
+                default: ;
                 endcase
             end
         end
