@@ -8,7 +8,10 @@ PRJ_NAME = ultra96v2_udmabuf_sample
 
 
 .PHONY : all
-all: $(PRJ_NAME).xpr build
+all: create build
+
+.PHONY : create
+create: $(PRJ_NAME).xpr
 
 $(PRJ_NAME).xpr:
 	vivado -m64 -mode batch -source create_project.tcl
@@ -26,4 +29,8 @@ clean:
 	rm -fr $(PRJ_NAME).sim
 	rm -fr $(PRJ_NAME).srcs
 	rm -fr $(PRJ_NAME).xpr *.jou  *.log
+
+.PHONY : test
+test:
+	vivado -m64 -mode batch -source test.tcl
 
