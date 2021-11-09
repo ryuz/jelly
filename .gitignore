@@ -121,6 +121,7 @@ _xmsgs/
 *.sdk/
 *.sim/
 *.srcs/
+*.gen/
 *.gise
 *.ip_user_files/
 .ipynb_checkpoints/

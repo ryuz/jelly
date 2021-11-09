@@ -8,12 +8,10 @@ cd $project_directory
 
 
 # add borad repository path
-set boardRepoPathsLin [concat [file join $::env(HOME) {.Xilinx/Vivado/} [version -short] {xhub/board_store}] [get_param board.repoPaths]]
-set boardRepoPathsWin [concat [file join $::env(APPDATA) {Xilinx/Vivado/} [version -short] {xhub/board_store}] [get_param board.repoPaths]]
-if { [ file exists $boardRepoPathsLin ] == 1 } then {
-    set_param board.repoPaths $boardRepoPathsLin
-} elseif { [ file exists $boardRepoPathsWin ] == 1 } then {
-    set_param board.repoPaths $boardRepoPathsWin
+if       { [string first "Linux"   $::tcl_platform(os)] != -1 } {
+    set_param board.repoPaths [concat [file join $::env(HOME) {.Xilinx/Vivado/} [version -short] {xhub/board_store}] [get_param board.repoPaths]]
+} elseif { [string first "Windows" $::tcl_platform(os)] != -1 } {
+    set_param board.repoPaths [concat [file join $::env(APPDATA) {Xilinx/Vivado/} [version -short] {xhub/board_store}] [get_param board.repoPaths]]
 }
 
 

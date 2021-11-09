@@ -28,7 +28,7 @@ clean:
 	rm -fr $(PRJ_NAME).runs
 	rm -fr $(PRJ_NAME).sim
 	rm -fr $(PRJ_NAME).srcs
-	rm -fr $(PRJ_NAME).xpr *.jou  *.log
+	rm -fr $(PRJ_NAME).xpr vivado*.jou  vivado*.log vivado_pid*.str 
 
 .PHONY : test
 test:
