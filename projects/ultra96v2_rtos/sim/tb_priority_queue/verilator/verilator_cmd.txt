@@ -8,7 +8,7 @@
 #-Wno-UNOPTFLAT
 #-Wno-UNOPTTHREADS
 
--y ../../rtl
+-y ../../../rtl
 -y ../../../../../rtl/model
 -y ../../../../../rtl/library
 -y ../../../../../rtl/bus

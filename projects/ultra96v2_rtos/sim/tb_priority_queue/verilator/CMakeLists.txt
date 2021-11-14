@@ -17,7 +17,7 @@ endif()
 
 add_executable(tb_verilator ./tb_verilator.cpp)
 
-target_include_directories(tb_verilator PUBLIC "../../../../include")
+target_include_directories(tb_verilator PUBLIC "../../../../../include")
 
 target_include_directories(tb_verilator PUBLIC ${OpenCV_INCLUDE_DIRS})
 target_link_libraries(tb_verilator PUBLIC ${OpenCV_LIBS})
