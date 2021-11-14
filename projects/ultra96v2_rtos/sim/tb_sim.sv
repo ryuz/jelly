@@ -21,7 +21,7 @@ module tb_sim();
     end
     
     logic     reset = 1'b1;
-    initial #(RATE*10.5) reset <= 1'b0;
+    initial #(RATE*10) reset <= 1'b0;
 
     logic     clk = 1'b1;
     always  #(RATE/2.0) clk  = ~clk;
