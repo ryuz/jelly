@@ -4,7 +4,7 @@ TOP_MODULE=tb_sim
 
 
 .PHONY : all
-all: build run
+all: clean build run
 
 .PHONY : build
 build:
