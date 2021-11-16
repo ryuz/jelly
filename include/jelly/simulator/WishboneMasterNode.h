@@ -204,6 +204,7 @@ protected:
 
         case AccDisplay:
             std::cout << "[WISHBONE] " << acc.message << std::endl;
+            break;
         
         case VerboseOn:
             m_verbose = true;

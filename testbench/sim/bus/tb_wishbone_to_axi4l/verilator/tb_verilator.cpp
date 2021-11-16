@@ -124,9 +124,14 @@ int main(int argc, char** argv)
         wb->Write(0x22222222, 0xaaaa5555, 0xa);
         wb->Write(0x12345678, 0x5555aaaa, 0xf);
 
+        // スレッドだと読んだ値を加工して操作できる
+        wb->Display(" --- modify test --- ");
         auto v0 = wb->Read (0x00000100);
+        std::cout << "v0 : " << v0 << std::endl;
         auto v1 = wb->Read (v0 + 1);
+        std::cout << "v1 : " << v1 << std::endl;
         auto v2 = wb->Read (v1 + 1);
+        std::cout << "v2 : " << v2 << std::endl;
     });
     
     // Run

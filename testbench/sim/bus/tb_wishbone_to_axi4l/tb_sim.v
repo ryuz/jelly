@@ -160,13 +160,13 @@ module tb_sim();
         wb_read (30'h12345678);
         
         $display(" --- write test --- ");
-        wb_write(30'h00000001, 32'h00000001, 8'hff);
-        wb_write(30'h00000002, 32'haaaaaaaa, 8'hf0);
-        wb_write(30'h00000003, 32'h55555555, 8'h0f);
-        wb_write(30'h00000004, 32'h12345678, 8'h12);
-        wb_write(30'h11111111, 32'h87654321, 8'ha5);
-        wb_write(30'h22222222, 32'haaaa5555, 8'h5a);
-        wb_write(30'h12345678, 32'h5555aaaa, 8'hff);
+        wb_write(30'h00000001, 32'h00000001, 4'hf);
+        wb_write(30'h00000002, 32'haaaaaaaa, 4'h8);
+        wb_write(30'h00000003, 32'h55555555, 4'hf);
+        wb_write(30'h00000004, 32'h12345678, 4'h2);
+        wb_write(30'h11111111, 32'h87654321, 4'h5);
+        wb_write(30'h22222222, 32'haaaa5555, 4'ha);
+        wb_write(30'h12345678, 32'h5555aaaa, 4'hf);
         
     #2000;
         

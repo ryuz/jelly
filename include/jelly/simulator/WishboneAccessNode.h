@@ -179,15 +179,25 @@ protected:
         }
 
         // アクセス完了なら
-        if ( m_ack_i && !m_we_o ) {
-            m_read_dat = m_dat_i;
-        }
-        if ( m_ack_i && m_verbose ) {
+        if ( m_ack_i ) {
             if ( m_we_o ) {
-                std::cout << std::hex << "[WISHBONE] write(adr: 0x" << m_adr_o << " dat: 0x" << m_dat_o << ")"<< std::endl;
+                if ( m_verbose ) {
+                    std::cout << std::hex << "[WISHBONE] write(adr: 0x" << m_adr_o << " dat: 0x" << m_dat_o << ")"<< std::endl;
+                }
+                if ( m_req_acc.acc_type == AccWrite ) {
+                    m_req_acc.acc_type = None;
+                    m_cv.notify_all();
+                }
             }
             else {
-                std::cout << std::hex << "[WISHBONE] read(adr: 0x" << m_adr_o << ") => 0x" << m_dat_i << std::endl;
+                if ( m_verbose ) {
+                    std::cout << std::hex << "[WISHBONE] read(adr: 0x" << m_adr_o << ") => 0x" << m_dat_i << std::endl;
+                }
+                if ( m_req_acc.acc_type == AccRead ) {
+                    m_read_dat = m_dat_i;
+                    m_req_acc.acc_type = None;
+                    m_cv.notify_all();
+                }
             }
         }
         *m_wishbone.stb_o = 0;
@@ -208,6 +218,8 @@ protected:
             if ( m_verbose ) {
                 std::cout << std::dec << "[WISHBONE] wait(" << acc.wait_cycle << ")" << std::endl;
             }
+            m_req_acc.acc_type = None;
+            m_cv.notify_all();
             break;
 
         case AccWrite:
@@ -226,20 +238,25 @@ protected:
 
         case AccDisplay:
             std::cout << "[WISHBONE] " << acc.message << std::endl;
+            m_req_acc.acc_type = None;
+            m_cv.notify_all();
+            break;
         
         case VerboseOn:
             m_verbose = true;
+            m_req_acc.acc_type = None;
+            m_cv.notify_all();
             break;
         
         case VerboseOff:
             m_verbose = false;
+            m_req_acc.acc_type = None;
+            m_cv.notify_all();
             break;
         
         default:
             break;
         }
-        m_req_acc.acc_type = None;
-        m_cv.notify_all();
 
         return 0;
     }
