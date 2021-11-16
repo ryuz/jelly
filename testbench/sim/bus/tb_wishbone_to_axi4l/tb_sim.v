@@ -36,7 +36,7 @@ module tb_sim();
     parameter WB_SEL_WIDTH = WB_DAT_WIDTH / 8;
 
     wire                        s_wb_rst_i = reset;
-    wire                        s_wb_clk_i;
+    wire                        s_wb_clk_i = clk;
     wire    [WB_ADR_WIDTH-1:0]  s_wb_adr_i;
     wire    [WB_DAT_WIDTH-1:0]  s_wb_dat_o;
     wire    [WB_DAT_WIDTH-1:0]  s_wb_dat_i;
@@ -74,7 +74,7 @@ module tb_sim();
     wire                            wb_rst_i = s_wb_rst_i;
     wire                            wb_clk_i = s_wb_clk_i;
     reg     [WB_ADR_WIDTH-1:0]      wb_adr_o;
-    wire    [WB_DAT_WIDTH-1:0]      wb_dat_i = s_wb_dat_i;
+    wire    [WB_DAT_WIDTH-1:0]      wb_dat_i = s_wb_dat_o;
     reg     [WB_DAT_WIDTH-1:0]      wb_dat_o;
     reg                             wb_we_o;
     reg     [WB_SEL_WIDTH-1:0]      wb_sel_o;

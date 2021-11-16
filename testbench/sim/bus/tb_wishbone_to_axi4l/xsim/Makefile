@@ -2,6 +2,8 @@
 
 TOP_MODULE = tb_sim
 
+.PHONY: all
+all: clean build run
 
 .PHONY: build
 build:
@@ -26,6 +28,17 @@ clean:
 	-rm -f xsim*.log
 
 .PHONY: mostlyclean
-mostlyclean:
-	-rm -f tb_sim.vcd
+mostlyclean: clean
+	-rm -f $(TOP_MODULE).wdb $(TOP_MODULE).vcd $(TOP_MODULE).fst
 
+.PHONY: vcd2fst
+vcd2fst: $(TOP_MODULE).fst
+
+$(TOP_MODULE).vcd: build run
+
+$(TOP_MODULE).fst: $(TOP_MODULE).vcd
+	vcd2fst -v $(TOP_MODULE).vcd -f $(TOP_MODULE).fst
+
+.PHONY: gtkwave
+gtkwave: $(TOP_MODULE).fst
+	gtkwave $(TOP_MODULE).fst

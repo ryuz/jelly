@@ -152,7 +152,7 @@ module tb_sim_main
             );
     
     assign m_wb_ack_i = m_wb_stb_o;
-    assign m_wb_dat_i = m_wb_adr_o;
+    assign m_wb_dat_i = m_wb_adr_o + 1;
 
 endmodule
 
