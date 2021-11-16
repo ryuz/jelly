@@ -7,6 +7,7 @@
 #include "jelly/simulator/ClockNode.h"
 #include "jelly/simulator/VerilatorNode.h"
 #include "jelly/simulator/WishboneMasterNode.h"
+#include "jelly/simulator/WishboneAccessNode.h"
 
 namespace jsim = jelly::simulator;
 
@@ -68,9 +69,10 @@ int main(int argc, char** argv)
                     &top->s_wb_stb_i,
                     &top->s_wb_ack_o
                 };
+
+#if 0
     auto wb = jsim::WishboneMasterNode_Create(wishbone);
     mng->AddNode(wb);
-
 
     // WISHBONE 
     wb->Wait(100);
@@ -93,9 +95,46 @@ int main(int argc, char** argv)
     wb->Write(0x22222222, 0xaaaa5555, 0xa);
     wb->Write(0x12345678, 0x5555aaaa, 0xf);
 
-
     // Run
     mng->Run(10000);
+
+#else
+    // WISHBONE 
+    auto wb = jsim::WishboneAccessNode_Create(wishbone);
+    mng->AddNode(wb);
+
+    std::thread th([wb]{
+        wb->Wait(100);
+
+        wb->Display(" --- read test --- ");
+        wb->Read (0x00000001);
+        wb->Read (0x00000002);
+        wb->Read (0x00000003);
+        wb->Read (0x00000004);
+        wb->Read (0x11111111);
+        wb->Read (0x22222222);
+        wb->Read (0x12345678);
+            
+        wb->Display(" --- write test --- ");
+        wb->Write(0x00000001, 0x00000001, 0xf);
+        wb->Write(0x00000002, 0xaaaaaaaa, 0x8);
+        wb->Write(0x00000003, 0x55555555, 0xf);
+        wb->Write(0x00000004, 0x12345678, 0x2);
+        wb->Write(0x11111111, 0x87654321, 0x5);
+        wb->Write(0x22222222, 0xaaaa5555, 0xa);
+        wb->Write(0x12345678, 0x5555aaaa, 0xf);
+
+        auto v0 = wb->Read (0x00000100);
+        auto v1 = wb->Read (v0 + 1);
+        auto v2 = wb->Read (v1 + 1);
+    });
+    
+    // Run
+    mng->Run(10000);
+
+    th.join();
+#endif
+
 
 #if VM_TRACE
     tfp->close();
