@@ -32,6 +32,7 @@ protected:
         AccDisplay,
         VerboseOn,
         VerboseOff,
+        AccFinish,
     };
 
     struct Access {
@@ -42,6 +43,8 @@ protected:
         unsigned long long  sel;
         std::string         message;
     };    
+
+    bool                    m_finished = false;
 
     Access                  m_req_acc;
     unsigned long long      m_read_dat;
@@ -73,9 +76,19 @@ public:
         return std::shared_ptr< WishboneAccessNode >(new WishboneAccessNode(wishbone, verbose));
     }
 
+    void Finish(void)
+    {
+        std::unique_lock<std::mutex> lock(m_mtx);
+        if ( m_finished ) { return; }
+        m_req_acc.acc_type   = AccFinish;
+        m_req_acc.wait_cycle = 0;
+        m_cv.wait(lock);
+    }
+
     void SetVerbose(bool verbose)
     {
         std::unique_lock<std::mutex> lock(m_mtx);
+        if ( m_finished ) { return; }
         m_req_acc.acc_type   = verbose ? VerboseOn : VerboseOff;
         m_req_acc.wait_cycle = 0;
         m_cv.wait(lock);
@@ -84,6 +97,7 @@ public:
     void Wait(int cycle)
     {
         std::unique_lock<std::mutex> lock(m_mtx);
+        if ( m_finished ) { return; }
         m_req_acc.acc_type = AccWait;
         m_req_acc.wait_cycle = cycle;
         m_cv.wait(lock);
@@ -92,6 +106,7 @@ public:
     void Write(unsigned long long adr, unsigned long long dat, unsigned long long  sel, int cycle=0)
     {
         std::unique_lock<std::mutex> lock(m_mtx);
+        if ( m_finished ) { return; }
         m_req_acc.acc_type = AccWrite;
         m_req_acc.wait_cycle = cycle;
         m_req_acc.adr = adr;
@@ -103,6 +118,7 @@ public:
     unsigned long long Read(unsigned long long adr, int cycle=0)
     {
         std::unique_lock<std::mutex> lock(m_mtx);
+        if ( m_finished ) { return 0; }
         m_req_acc.acc_type = AccRead;
         m_req_acc.wait_cycle = cycle;
         m_req_acc.adr = adr;
@@ -113,6 +129,7 @@ public:
     void Display(std::string message)
     {
         std::unique_lock<std::mutex> lock(m_mtx);
+        if ( m_finished ) { return; }
         m_req_acc.acc_type = AccDisplay;
         m_req_acc.wait_cycle = 0;
         m_req_acc.message = message;
@@ -129,6 +146,15 @@ protected:
         *m_wishbone.sel_o = 0;
         *m_wishbone.stb_o = 0;
         return 0;
+    }
+    
+    void FinalProc(Manager* manager) override
+    {
+        std::unique_lock<std::mutex> lock(m_mtx);
+        m_finished = true;
+        if ( m_req_acc.acc_type != None ) {
+            m_cv.notify_all();
+        }
     }
 
     void PrefetchProc(Manager* manager) override
@@ -214,6 +240,14 @@ protected:
         m_wait_count = 0;
 
         switch ( acc.acc_type ) {
+        case AccFinish:
+            lock.unlock();
+            manager->Finish();
+            lock.lock();
+            m_req_acc.acc_type = None;
+            m_cv.notify_all();
+            break;
+        
         case AccWait:
             if ( m_verbose ) {
                 std::cout << std::dec << "[WISHBONE] wait(" << acc.wait_cycle << ")" << std::endl;

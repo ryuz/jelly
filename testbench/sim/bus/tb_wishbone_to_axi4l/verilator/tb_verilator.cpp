@@ -132,10 +132,12 @@ int main(int argc, char** argv)
         std::cout << "v1 : " << v1 << std::endl;
         auto v2 = wb->Read (v1 + 1);
         std::cout << "v2 : " << v2 << std::endl;
+        wb->Wait(100);
+        wb->Finish();
     });
     
     // Run
-    mng->Run(10000);
+    mng->Run();
 
     th.join();
 #endif
