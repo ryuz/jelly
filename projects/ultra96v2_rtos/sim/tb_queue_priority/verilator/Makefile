@@ -38,8 +38,8 @@ build:
 clean:
 	rm -rf build
 
-.PHONY : mostlyclean
-mostlyclean: clean
+.PHONY : distclean
+distclean: clean
 	rm -f img_*.png angle_*.png
 	rm -f *.fst *.vcd
 	rm -f coverage.dat

@@ -27,8 +27,8 @@ clean:
 	-rm -f xsim*.jou
 	-rm -f xsim*.log
 
-.PHONY: mostlyclean
-mostlyclean: clean
+.PHONY: distclean
+distclean: clean
 	-rm -f $(TOP_MODULE).wdb $(TOP_MODULE).vcd $(TOP_MODULE).fst
 
 .PHONY: vcd2fst

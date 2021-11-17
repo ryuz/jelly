@@ -71,6 +71,7 @@ int main(int argc, char** argv)
                 };
 
 #if 0
+
     auto wb = jsim::WishboneMasterNode_Create(wishbone);
     mng->AddNode(wb);
 
@@ -99,6 +100,7 @@ int main(int argc, char** argv)
     mng->Run(10000);
 
 #else
+
     // WISHBONE 
     auto wb = jsim::WishboneAccessNode_Create(wishbone);
     mng->AddNode(wb);
@@ -140,6 +142,7 @@ int main(int argc, char** argv)
     mng->Run();
 
     th.join();
+
 #endif
 
 
