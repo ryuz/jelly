@@ -14,9 +14,9 @@
 module jelly_rtos_task
         #(
             parameter   int                 TSKID_WIDTH  = 4,
-            parameter   int                 SEMID_WIDTH  = 4,
-            parameter   int                 FLGID_WIDTH  = 4,
             parameter   int                 TSKPRI_WIDTH = 4,
+            parameter   int                 SEMID_WIDTH  = 4,
+            parameter   int                 EVENT_WIDTH  = 4,
             parameter   bit [ID_WIDTH-1:0]  TSKID        = 0
         )
         (
@@ -27,61 +27,72 @@ module jelly_rtos_task
             input   wire                        activate,
             input   wire                        sleep,
             
-            output  wire                        tsk_pri,
-            output  wire                        req_ready,
+            output  wire                        tskpri,
+            output  reg                         req_rdq,
+
+            input   wire    [EVENT_WIDTH-1:0]   event_flag,
+
+            input   wire    [0:0]               wait_event_mode,
+            input   wire    [EVENT_WIDTH-1:0]   wait_event_flag,
+            input   wire                        wait_event_valid,
 
             // monitoring
-            input   wire    [0:0]               rdq_ctl_op,  // 0: add, 1: del
-            input   wire    [TSKID_WIDTH-1:0]   rdq_ctl_tskid,
-            input   wire                        rdq_ctl_valid
+            input   wire    [TSKID_WIDTH-1:0]   rdq_add_tskid,
+            input   wire                        rdq_add_valid,
 
-            input   wire    [0:0]               sem_ctl_op,
-            input   wire    [SEMID_WIDTH-1:0]   sem_ctl_semid,
-            input   wire    [TSKID_WIDTH-1:0]   sem_ctl_tskid,
-            input   wire                        sem_ctl_valid,
-            input   wire    [TSKID_WIDTH-1:0]   sem_wakeup_tskid,
-            input   wire                        sem_wakeup_valid,
+            input   wire    [TSKID_WIDTH-1:0]   remove_tskid,
+            input   wire                        remove_valid,
 
-            input   wire    [0:0]               sem_ctl_op,
-            input   wire    [SEMID_WIDTH-1:0]   sem_ctl_semid,
-            input   wire    [TSKID_WIDTH-1:0]   sem_ctl_tskid,
-            input   wire                        sem_ctl_valid,
-            input   wire    [TSKID_WIDTH-1:0]   sem_wakeup_tskid,
-            input   wire                        sem_wakeup_valid,
+            input   wire    [TSKID_WIDTH-1:0]   wakeup_tskid,
+            input   wire                        wakeup_valid
 
+            input   wire    [SEMID_WIDTH-1:0]   sem_wait_semid,
+            input   wire    [TSKID_WIDTH-1:0]   sem_wait_tskid,
+            input   wire                        sem_wait_valid,
         );
 
-    enum {
-        TS_IDLE,
-        TS_BUSY,
-        TS_READY,
-        TS_WAISEM,
-        TS_WAIFLG
-    }
 
-    wire    rdq_push   = rdq_valid && rdq_op == 1'b0 && (rdq_tskid == TSKID);
-    wire    rdq_pop    = rdq_valid && rdq_op == 1'b1 && (rdq_tskid == TSKID);
-    wire    sem_wait   = flg_wait_valid   && (sem_wait_tskid   == TSKID);
-    wire    sem_wakeup = flg_wakeup_valid && (sem_wakeup_tskid == TSKID);
-    wire    flg_wait   = flg_wait_valid   && (flg_wait_tskid   == TSKID);
-    wire    flg_wakeup = flg_wakeup_valid && (flg_wait_tskid   == TSKID);
+    typedef enum {
+        TS_IDLE   = 0,
+        TS_BUSY   = 4,
+        TS_READY  = 1,
+        TS_WAISEM = 2,
+        TS_WAIFLG = 3
+    } task_status_t;
+
+
+    wire    task_remove = (remove_valid     && (remove_tskid  == ID));
+    wire    task_ready  = (rdq_add_valid    && (rdq_add_tskid == ID));
+    wire    task_waisem = (sem_wait_valid   && (rdq_add_tskid == ID));
+    wire    task_wakeup = (sem_wakeup_valid && (sem_wakeup_tskid == ID));
+    wire    task_act    = (activate         && (status == TS_IDLE));
+    wire    task_nop    = (!task_remove && !task_ready && !task_waisem && !task_wakeup && !task_act);
+
+
+    task_status_t   status, next_status;
+
+    always_comb begin : blk_status
+        next_status = status;
+
+        unique case ( 1'b1 )
+        task_remove:    begin   next_status <= TS_IDLE;     end
+        task_ready:     begin   next_status <= TS_READY;    end
+        task_waisem:    begin   next_status <= TS_WAISEM;   end
+        task_wakeup:    begin   next_status <= TS_BUSY;     end
+        task_act:       begin   next_status <= TS_BUSY;     end
+        task_nop:       begin   end
+        endcase
+    end
+
 
     always_ff @(posedge clk) begin
         if ( reset ) begin
-            status <= TS_IDLE;
+            status    <= TS_IDLE;
+            req_ready <= 1'b0;
         end
         else if ( cke ) begin
-            if ( rdq_valid && rdq_id == id ) begin
-                if ( rdq_op == 1'b0 ) begin
-                    status <= TS_READY;
-                end
-                if ( rdq_op == 1'b1 ) begin
-                    status <= TS_WAIT;
-                end
-            end
-
-
-
+            status    <= next_status;
+            req_ready <= (next_status == TS_BUSY);
         end
     end
 

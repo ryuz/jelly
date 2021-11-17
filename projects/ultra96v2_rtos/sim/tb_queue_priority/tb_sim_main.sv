@@ -65,6 +65,7 @@ module tb_sim_main
         test_table[idx] = '{op: 1'b0, id: 32'h103, pri: 4'h3, valid: 1'b1, exp_count:2,  exp_top_id: 32'h101, exp_top_pri: 4'h1};    idx++;
         test_table[idx] = '{op: 1'b1, id: 32'h103, pri: 'x,   valid: 1'b1, exp_count:3,  exp_top_id: 32'h101, exp_top_pri: 4'h1};    idx++;
         test_table[idx] = '{op: 1'b1, id: 32'h102, pri: 'x,   valid: 1'b1, exp_count:2,  exp_top_id: 32'h101, exp_top_pri: 4'h1};    idx++;
+        test_table[idx] = '{op: 1'b1, id: 32'h333, pri: 'x,   valid: 1'b1, exp_count:1,  exp_top_id: 32'h101, exp_top_pri: 4'h1};    idx++;
         test_table[idx] = '{op: 1'b1, id: 32'h101, pri: 'x,   valid: 1'b1, exp_count:1,  exp_top_id: 32'h101, exp_top_pri: 4'h1};    idx++;
         test_table[idx] = '{op: 1'bx, id:'x,       pri: 'x,   valid: 1'b0, exp_count:0,  exp_top_id: 'x,      exp_top_pri: 'x  };    idx++;
 

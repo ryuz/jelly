@@ -101,9 +101,8 @@ module jelly_rtos_queue_priority
             end
             
             reg_obj <= add_obj;
-            /* verilator lint_off CASEINCOMPLETE */
-            unique case ({remove_valid, add_valid})
-            2'b01:  // add
+            casez ({remove_valid, add_valid})
+            2'b?1:  // add
                 begin
                     count <= count + 1'b1;
                     
@@ -132,7 +131,6 @@ module jelly_rtos_queue_priority
                 begin
                     automatic bit   remove_flag;
 
-                    count <= count - 1'b1;
                     remove_flag = 1'b0;
                     for ( int i = 0; i < QUE_SIZE; ++i ) begin
                         if ( array[i].id == remove_id ) begin
@@ -145,8 +143,13 @@ module jelly_rtos_queue_priority
                     end
 
                     if ( array[0].id == remove_id ) begin
+                        remove_flag = 1'b1;
                         reg_array[0] <= array[1];
                         reg_flag[0]  <= stay;
+                    end
+
+                    if ( remove_flag ) begin
+                        count <= count - 1'b1;
                     end
                 end
 
@@ -154,7 +157,6 @@ module jelly_rtos_queue_priority
                 ;
 
             endcase
-            /* verilator lint_on CASEINCOMPLETE */
         end
     end
     
