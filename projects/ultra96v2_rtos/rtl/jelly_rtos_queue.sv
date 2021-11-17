@@ -50,7 +50,7 @@ module jelly_rtos_queue
                 (
                     .*,
                     .top_pri        ()
-                )
+                );
     end
     else begin : blk_fifo
         jelly_rtos_queue_fifo
@@ -62,7 +62,7 @@ module jelly_rtos_queue
             i_rtos_queue_fifo
                 (
                     .*
-                )
+                );
     end
     endgenerate
 
