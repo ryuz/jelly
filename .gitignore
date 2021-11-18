@@ -83,6 +83,8 @@
 *.lnk
 *.vvp
 *.wdb
+*.vcd
+*.fst
 
 veritak_src_files.txt
 veritak_command.txt

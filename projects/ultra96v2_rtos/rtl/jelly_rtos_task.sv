@@ -13,27 +13,27 @@
 
 module jelly_rtos_task
         #(
-            parameter   int                 TSKID_WIDTH  = 4,
-            parameter   int                 TSKPRI_WIDTH = 4,
-            parameter   int                 SEMID_WIDTH  = 4,
-            parameter   int                 EVENT_WIDTH  = 4,
-            parameter   bit [ID_WIDTH-1:0]  TSKID        = 0
+            parameter   int                         TSKID_WIDTH  = 4,
+            parameter   int                         TSKPRI_WIDTH = 4,
+            parameter   int                         SEMID_WIDTH  = 4,
+            parameter   int                         EVTFLG_WIDTH = 4,
+            parameter   bit     [TSKID_WIDTH-1:0]   TSKID        = 0
         )
         (
             input   wire                        reset,
             input   wire                        clk,
             input   wire                        cke,
 
-            input   wire                        activate,
-            input   wire                        sleep,
+            input   wire                        wup_tsk,
+            input   wire                        slp_tsk,
             
-            output  wire                        tskpri,
+            output  wire    [TSKPRI_WIDTH-1:0]  tskpri,
             output  reg                         req_rdq,
 
-            input   wire    [EVENT_WIDTH-1:0]   event_flag,
+            input   wire    [EVTFLG_WIDTH-1:0]  event_flag,
 
             input   wire    [0:0]               wait_event_mode,
-            input   wire    [EVENT_WIDTH-1:0]   wait_event_flag,
+            input   wire    [EVTFLG_WIDTH-1:0]  wait_event_flag,
             input   wire                        wait_event_valid,
 
             // monitoring
@@ -44,11 +44,11 @@ module jelly_rtos_task
             input   wire                        remove_valid,
 
             input   wire    [TSKID_WIDTH-1:0]   wakeup_tskid,
-            input   wire                        wakeup_valid
+            input   wire                        wakeup_valid,
 
             input   wire    [SEMID_WIDTH-1:0]   sem_wait_semid,
             input   wire    [TSKID_WIDTH-1:0]   sem_wait_tskid,
-            input   wire                        sem_wait_valid,
+            input   wire                        sem_wait_valid
         );
 
 
@@ -61,12 +61,11 @@ module jelly_rtos_task
     } task_status_t;
 
 
-    wire    task_remove = (remove_valid     && (remove_tskid  == ID));
-    wire    task_ready  = (rdq_add_valid    && (rdq_add_tskid == ID));
-    wire    task_waisem = (sem_wait_valid   && (rdq_add_tskid == ID));
-    wire    task_wakeup = (sem_wakeup_valid && (sem_wakeup_tskid == ID));
-    wire    task_act    = (activate         && (status == TS_IDLE));
-    wire    task_nop    = (!task_remove && !task_ready && !task_waisem && !task_wakeup && !task_act);
+    wire    task_remove = (remove_valid     && (remove_tskid  == TSKID));
+    wire    task_ready  = (rdq_add_valid    && (rdq_add_tskid == TSKID));
+    wire    task_waisem = (sem_wait_valid   && (rdq_add_tskid == TSKID));
+    wire    task_wakeup = (wakeup_valid     && (wakeup_tskid == TSKID));
+    wire    task_nop    = (!task_remove && !task_ready && !task_waisem && !task_wakeup);
 
 
     task_status_t   status, next_status;
@@ -75,11 +74,10 @@ module jelly_rtos_task
         next_status = status;
 
         unique case ( 1'b1 )
-        task_remove:    begin   next_status <= TS_IDLE;     end
-        task_ready:     begin   next_status <= TS_READY;    end
-        task_waisem:    begin   next_status <= TS_WAISEM;   end
-        task_wakeup:    begin   next_status <= TS_BUSY;     end
-        task_act:       begin   next_status <= TS_BUSY;     end
+        task_remove:    begin   next_status = TS_IDLE;     end
+        task_ready:     begin   next_status = TS_READY;    end
+        task_waisem:    begin   next_status = TS_WAISEM;   end
+        task_wakeup:    begin   next_status = TS_BUSY;     end
         task_nop:       begin   end
         endcase
     end
@@ -87,12 +85,12 @@ module jelly_rtos_task
 
     always_ff @(posedge clk) begin
         if ( reset ) begin
-            status    <= TS_IDLE;
-            req_ready <= 1'b0;
+            status  <= TS_IDLE;
+            req_rdq <= 1'b0;
         end
         else if ( cke ) begin
-            status    <= next_status;
-            req_ready <= (next_status == TS_BUSY);
+            status  <= next_status;
+            req_rdq <= (next_status == TS_BUSY);
         end
     end
 

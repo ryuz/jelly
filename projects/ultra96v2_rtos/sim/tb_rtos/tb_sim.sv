@@ -32,6 +32,18 @@ module tb_sim();
     //  main
     // ----------------------------------
     
+    parameter int   WB_ADR_WIDTH = 16;
+    parameter int   WB_DAT_WIDTH = 32;
+    parameter int   WB_SEL_WIDTH = WB_DAT_WIDTH/8;
+
+    logic   [WB_ADR_WIDTH-1:0]  s_wb_adr_i;
+    logic   [WB_DAT_WIDTH-1:0]  s_wb_dat_i;
+    logic   [WB_DAT_WIDTH-1:0]  s_wb_dat_o;
+    logic                       s_wb_we_i;
+    logic   [WB_SEL_WIDTH-1:0]  s_wb_sel_i;
+    logic                       s_wb_stb_i;
+    logic                       s_wb_ack_o;
+
     tb_sim_main
         i_sim_main
             (
@@ -45,28 +57,23 @@ module tb_sim();
     //  WISHBONE master
     // ----------------------------------
     
-    localparam  WB_DAT_SIZE  = 3;
-    localparam  WB_ADR_WIDTH = 40 - WB_DAT_SIZE;
-    localparam  WB_DAT_WIDTH = (8 << WB_DAT_SIZE);
-    localparam  WB_SEL_WIDTH = (1 << WB_DAT_SIZE);
-    
     // force connect to top-net
-    wire                            wb_rst_i = i_top.wb_peri_rst_i;
-    wire                            wb_clk_i = i_top.wb_peri_clk_i;
+    wire                            wb_rst_i = reset;
+    wire                            wb_clk_i = clk;
     reg     [WB_ADR_WIDTH-1:0]      wb_adr_o;
-    wire    [WB_DAT_WIDTH-1:0]      wb_dat_i = i_top.wb_peri_dat_o;
+    wire    [WB_DAT_WIDTH-1:0]      wb_dat_i = s_wb_dat_o;
     reg     [WB_DAT_WIDTH-1:0]      wb_dat_o;
     reg                             wb_we_o;
     reg     [WB_SEL_WIDTH-1:0]      wb_sel_o;
     reg                             wb_stb_o = 0;
-    wire                            wb_ack_i = i_top.wb_peri_ack_o;
+    wire                            wb_ack_i = s_wb_ack_o;
     
     initial begin
-        force i_top.wb_peri_adr_i = wb_adr_o;
-        force i_top.wb_peri_dat_i = wb_dat_o;
-        force i_top.wb_peri_we_i  = wb_we_o;
-        force i_top.wb_peri_sel_i = wb_sel_o;
-        force i_top.wb_peri_stb_i = wb_stb_o;
+        force s_wb_adr_i = wb_adr_o;
+        force s_wb_dat_i = wb_dat_o;
+        force s_wb_we_i  = wb_we_o;
+        force s_wb_sel_i = wb_sel_o;
+        force s_wb_stb_i = wb_stb_o;
     end
     
     
@@ -133,17 +140,15 @@ module tb_sim();
     // ----------------------------------
     //  Simulation
     // ----------------------------------
-     
     
     initial begin
     @(negedge wb_rst_i);
     
     #10000;
-        $display(" --- test --- ");
-        wb_read (0); // CORE_ID
-        wb_write(0, 64'h0123456789abcdef, 8'h0f);
-    #10000;
-    
+        $display(" --- start --- ");
+        wb_read (0);
+        wb_write(0, 1, 8'hff);
+        
     #10000;
         $finish();
         
