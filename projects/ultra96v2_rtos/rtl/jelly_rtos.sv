@@ -134,6 +134,7 @@ module jelly_rtos
     localparam  int                         DECODE_ID_POS     = DECODE_OPCODE_POS + ID_WIDTH;
 
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_INF     = OPCODE_WIDTH'(8'h00);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CPU_STS     = OPCODE_WIDTH'(8'h01);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WUP_TSK     = OPCODE_WIDTH'(8'h10);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SLP_TSK     = OPCODE_WIDTH'(8'h11);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SET_FLG     = OPCODE_WIDTH'(8'h31);
@@ -145,11 +146,16 @@ module jelly_rtos
     localparam  bit     [ID_WIDTH-1:0]      REF_INF_VERSION = 'h01;
     localparam  bit     [ID_WIDTH-1:0]      REF_INF_DATE    = 'h04;
 
+    localparam  bit     [ID_WIDTH-1:0]      CPU_STS_TASKID  = 'h00;
+    localparam  bit     [ID_WIDTH-1:0]      CPU_STS_VALID   = 'h01;
+
     logic   [OPCODE_WIDTH-1:0]      dec_opcode;
     logic   [ID_WIDTH-1:0]          dec_id;
     assign  dec_opcode = s_wb_adr_i[DECODE_OPCODE_POS +: OPCODE_WIDTH];
     assign  dec_id     = s_wb_adr_i[DECODE_ID_POS     +: ID_WIDTH];
 
+    logic   [TSKID_WIDTH-1:0]       cpu_tskid;
+    logic                           cpu_valid;
 
     always_comb begin : blk_wb
         s_wb_dat_o = '0;
@@ -207,6 +213,27 @@ module jelly_rtos
         endcase
     end
 
+    always_ff @(posedge clk) begin
+        if ( reset ) begin
+            cpu_tskid <= '0;
+            cpu_valid <= '0;
+        end
+        else if ( cke ) begin
+            if ( s_wb_stb_i && s_wb_we_i ) begin
+                case ( dec_opcode )
+                OPCODE_CPU_STS:
+                    case ( dec_id )
+                    CPU_STS_TASKID: begin cpu_tskid <= TSKID_WIDTH'(s_wb_dat_i); cpu_valid <= 1'b1; end
+                    CPU_STS_VALID:  begin cpu_valid <= s_wb_dat_i[0]; end
+                    default: ;
+                    endcase
+                default: ;
+                endcase
+            end
+        end
+    end
+
+    assign irq = (cpu_valid && rdq_top_valid && (rdq_top_tskid != cpu_tskid));
 
 endmodule
 

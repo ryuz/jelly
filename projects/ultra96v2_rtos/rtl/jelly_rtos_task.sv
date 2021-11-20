@@ -25,14 +25,19 @@ module jelly_rtos_task
             input   wire                        clk,
             input   wire                        cke,
 
+            output  reg     [TSKPRI_WIDTH-1:0]  tskpri,
+            output  reg     [3:0]               tskstat,
+
+            output  reg                         req_rdq,
+
+            input   wire                        rel_tsk,
+
             input   wire                        rdy_tsk,
             input   wire                        wup_tsk,
             input   wire                        slp_tsk,
             input   wire                        rel_wai,
-            
-            output  reg     [TSKPRI_WIDTH-1:0]  tskpri,
-            output  reg     [3:0]               tskstat,
-            output  reg                         req_rdq,
+
+            input   wire                        wai_sem,
 
             input   wire    [FLGPTN_WIDTH-1:0]  evtflg_flgptn,
             input   wire    [0:0]               wai_flg_wfmode,
@@ -67,10 +72,11 @@ module jelly_rtos_task
         nop_tsk = !rdy_tsk && !wup_tsk && !slp_tsk && !rel_wai && !wai_flg;
         unique case ( 1'b1 )
         rdy_tsk:    begin   next_tskstat = TS_READY;    end
+        rel_tsk:    begin   next_tskstat = TS_REQRDY;   end
         wup_tsk:    begin   next_tskstat = TS_REQRDY;   end
         slp_tsk:    begin   next_tskstat = TS_SLEEP;    end
         rel_wai:    begin   next_tskstat = TS_REQRDY;   end
-//      wai_sem:    begin   next_tskstat = TS_WAISEM;   end
+        wai_sem:    begin   next_tskstat = TS_WAISEM;   end
         wai_flg:    begin   next_tskstat = TS_WAIFLG;   end
         nop_tsk: ;
         endcase

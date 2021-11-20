@@ -114,6 +114,8 @@ module jelly_rtos_core
 
     logic   [TASKS-1:0]                     task_req_rdy;
 
+    logic   [TASKS-1:0]                     task_rel_tsk;
+
     logic   [TASKS-1:0]                     task_rdy_tsk;
     logic   [TASKS-1:0]                     task_wup_tsk;
     logic   [TASKS-1:0]                     task_slp_tsk;
@@ -137,14 +139,15 @@ module jelly_rtos_core
                     .clk                (clk),
                     .cke                (cke),
 
+                    .tskpri             (task_tskpri[i]),
+                    
+                    .req_rdq            (task_req_rdy[i]),
+
                     .rdy_tsk            (task_rdy_tsk[i]),
                     .wup_tsk            (task_wup_tsk[i]),
                     .slp_tsk            (task_slp_tsk[i]),
                     .rel_wai            (task_rel_wai[i]),
 
-                    .tskpri             (task_tskpri[i]),
-                    
-                    .req_rdq            (task_req_rdy[i]),
 
                     .evtflg_flgptn      (evtflg_flgptn),
                     .wai_flg_wfmode     (wai_flg_wfmode),
@@ -295,6 +298,7 @@ module jelly_rtos_core
             rdq_rmv_valid = 1'b1;
         end
 
+
         // Ready
         if ( rdq_add_valid ) begin
             task_rdy_tsk[rdq_add_tskid] = 1'b1;
@@ -306,6 +310,27 @@ module jelly_rtos_core
         end
     end
 
+    always_ff @(posedge clk) begin
+        if ( reset ) begin
+            task_rel_tsk <= '0;
+        end
+        else if ( cke ) begin
+            automatic logic [TSKID_WIDTH-1:0]   wakeup_tskid;
+            automatic logic                     wakeup_valid;
+
+            task_rel_tsk <= '0;
+
+            wakeup_tskid = '0;
+            wakeup_valid = '0;
+            for ( int semid = 0; semid < SEMAPHORES; ++semid ) begin
+                wakeup_tskid |= semaphore_wakeup_tskid[semid];
+                wakeup_valid |= semaphore_wakeup_valid[semid];
+            end
+            if ( wakeup_valid ) begin
+                task_rel_tsk[wakeup_tskid] <= 1'b1;
+            end
+        end
+    end
 
 endmodule
 
