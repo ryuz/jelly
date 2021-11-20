@@ -55,9 +55,8 @@ module ultra96v2_rtos
     design_1
         i_design_1
             (
-                .axi4l_aresetn      (axi4l_aresetn),
-                .axi4l_aclk         (axi4l_aclk),
-                
+                .m_axi4l_aresetn    (axi4l_aresetn),
+                .m_axi4l_aclk       (axi4l_aclk),
                 .m_axi4l_awaddr     (axi4l_awaddr),
                 .m_axi4l_awprot     (axi4l_awprot),
                 .m_axi4l_awvalid    (axi4l_awvalid),
@@ -78,7 +77,7 @@ module ultra96v2_rtos
                 .m_axi4l_rvalid     (axi4l_rvalid),
                 .m_axi4l_rready     (axi4l_rready),
                 
-                .in_irq0            (irq0),
+                .in_irq0            (irq0)
             );
     
     
@@ -209,7 +208,7 @@ module ultra96v2_rtos
     
     reg     [25:0]  reg_clk_count;
     always_ff @(posedge clk) begin
-        if ( ~resetn ) begin
+        if ( reset ) begin
             reg_clk_count <= 0;
         end
         else begin
@@ -239,7 +238,7 @@ module ultra96v2_rtos
             )
         i_interval_timer
             (
-                .reset              (~resetn),
+                .reset              (reset),
                 .clk                (clk),
                 
                 .interrupt_req      (),
@@ -259,9 +258,9 @@ module ultra96v2_rtos
     //  WISHBONE address decode
     // -----------------------------
     
-    assign wb_rtos_stb_i = wb_stb_i & (wb_adr_i[28:16] == 12'h000);
-    assign wb_led_stb_i  = wb_stb_i & (wb_adr_i[28:16] == 12'h001);
-    assign wb_tim_stb_i  = wb_stb_i & (wb_adr_i[28:16] == 12'h002);
+    assign wb_rtos_stb_i = wb_stb_i & (wb_adr_i[23:16] == 8'h00);
+    assign wb_led_stb_i  = wb_stb_i & (wb_adr_i[23:16] == 8'h01);
+    assign wb_tim_stb_i  = wb_stb_i & (wb_adr_i[23:16] == 8'h02);
     
     assign wb_dat_o      = wb_rtos_stb_i ? wb_rtos_dat_o :
                            wb_led_stb_i  ? wb_led_dat_o  :
