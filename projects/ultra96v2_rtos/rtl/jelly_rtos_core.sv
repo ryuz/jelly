@@ -46,6 +46,11 @@ module jelly_rtos_core
             input   wire    [TSKID_WIDTH-1:0]   rel_wai_tskid,
             input   wire                        rel_wai_valid,
 
+            input   wire    [TSKID_WIDTH-1:0]   dly_tsk_tskid,
+            input   wire    [RELTIM_WIDTH-1:0]  dly_tsk_dlytim,
+            input   wire                        dly_tsk_valid,
+
+
             // semaphore
             input   wire    [SEMID_WIDTH-1:0]   wai_sem_semid,
             input   wire                        wai_sem_valid,
@@ -121,6 +126,10 @@ module jelly_rtos_core
     logic   [TASKS-1:0]                     task_wup_tsk;
     logic   [TASKS-1:0]                     task_slp_tsk;
     logic   [TASKS-1:0]                     task_rel_wai;
+
+    logic   [TASKS-1:0]                     task_dly_tsk;
+    logic   [RELTIM_WIDTH-1:0]              task_dly_tsk_dlytim;
+
     logic   [TASKS-1:0]                     task_wai_sem;
     logic   [TASKS-1:0]                     task_wai_flg;
 
@@ -151,6 +160,9 @@ module jelly_rtos_core
                     .wup_tsk            (task_wup_tsk[i]),
                     .slp_tsk            (task_slp_tsk[i]),
                     .rel_wai            (task_rel_wai[i]),
+
+                    .dly_tsk            (task_dly_tsk[i]),
+                    .dly_tsk_dlytim     (task_dly_tsk_dlytim),
 
                     .wai_sem            (task_wai_sem[i]),
 
@@ -254,6 +266,9 @@ module jelly_rtos_core
         task_wai_sem = '0;
         task_wai_flg = '0;
 
+        task_dly_tsk        = '0;
+        task_dly_tsk_dlytim = 'x;
+
         semaphore_sig_sem_valid  = '0;
         semaphore_wai_sem_tskid  = 'x;
         semaphore_wai_sem_tskpri = 'x;
@@ -269,18 +284,23 @@ module jelly_rtos_core
             end
         end
 
-        // Wake-up Task
+        // wup_tsk
         if ( wup_tsk_valid ) begin
             task_wup_tsk[wup_tsk_tskid] = 1'b1;
         end
 
-        // Task Sleep
+        // slp_tsk
         if ( slp_tsk_valid ) begin
             task_slp_tsk[slp_tsk_tskid] = 1'b1;
             rdq_rmv_tskid = slp_tsk_tskid;
             rdq_rmv_valid = 1'b1;
         end
 
+        // dly_tsk
+        if ( dly_tsk_valid ) begin
+            task_dly_tsk[dly_tsk_tskid] = 1'b1;
+            task_dly_tsk_dlytim         = dly_tsk_dlytim;
+        end
 
         // sig_sem
         if ( sig_sem_valid ) begin

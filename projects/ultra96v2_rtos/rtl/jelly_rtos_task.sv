@@ -17,6 +17,7 @@ module jelly_rtos_task
             parameter   int                         TSKPRI_WIDTH = 4,
             parameter   int                         SEMID_WIDTH  = 4,
             parameter   int                         FLGPTN_WIDTH = 4,
+            parameter   int                         RELTIM_WIDTH = 32,
             parameter   bit     [TSKID_WIDTH-1:0]   TSKID        = 0,
             parameter   bit     [TSKPRI_WIDTH-1:0]  INIT_TSKPRI  = TSKPRI_WIDTH'(TSKID)
         )
@@ -37,6 +38,9 @@ module jelly_rtos_task
             input   wire                        slp_tsk,
             input   wire                        rel_wai,
 
+            input   wire                        dly_tsk,
+            input   wire    [RELTIM_WIDTH-1:0]  dly_tsk_dlytim,
+
             input   wire                        wai_sem,
 
             input   wire    [FLGPTN_WIDTH-1:0]  evtflg_flgptn,
@@ -49,8 +53,9 @@ module jelly_rtos_task
         TS_SLEEP  = 4'h0,
         TS_REQRDY = 4'h1,
         TS_READY  = 4'h2,
-        TS_WAISEM = 4'h3,
-        TS_WAIFLG = 4'h4
+        TS_DELAY  = 4'h3,
+        TS_WAISEM = 4'h4,
+        TS_WAIFLG = 4'h5
     } tskstat_t;
 
     tskstat_t                   reg_tskstat, next_tskstat;
@@ -58,6 +63,8 @@ module jelly_rtos_task
 
     logic   [0:0]               flg_wfmode;
     logic   [FLGPTN_WIDTH-1:0]  flg_flgptn;
+
+    logic   [RELTIM_WIDTH-1:0]  dlytim;
 
     always_comb begin : blk_status
         next_tskstat = reg_tskstat;
@@ -68,6 +75,12 @@ module jelly_rtos_task
                     next_tskstat = TS_REQRDY;
             end
         end
+
+        if ( reg_tskstat == TS_DELAY ) begin
+            if ( dlytim == '0 ) begin
+                next_tskstat = TS_REQRDY;
+            end
+        end
         
         nop_tsk = !rdy_tsk && !wup_tsk && !slp_tsk && !rel_wai && !wai_flg;
         unique case ( 1'b1 )
@@ -76,6 +89,7 @@ module jelly_rtos_task
         wup_tsk:    begin   next_tskstat = TS_REQRDY;   end
         slp_tsk:    begin   next_tskstat = TS_SLEEP;    end
         rel_wai:    begin   next_tskstat = TS_REQRDY;   end
+        dly_tsk:    begin   next_tskstat = TS_DELAY;    end
         wai_sem:    begin   next_tskstat = TS_WAISEM;   end
         wai_flg:    begin   next_tskstat = TS_WAIFLG;   end
         nop_tsk: ;
@@ -99,6 +113,13 @@ module jelly_rtos_task
             if ( wai_flg ) begin
                 flg_wfmode <= wai_flg_wfmode;
                 flg_flgptn <= wai_flg_flgptn;
+            end
+
+            if ( dlytim > '0 ) begin
+                dlytim <= dlytim - 1'b1;
+            end
+            if ( dly_tsk ) begin
+                dlytim <= dly_tsk_dlytim;
             end
         end
     end

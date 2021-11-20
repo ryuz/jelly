@@ -18,7 +18,7 @@ module jelly_rtos
             parameter   int                         WB_SEL_WIDTH = WB_DAT_WIDTH/8,
 
             parameter   int                         TASKS        = 16,
-            parameter   int                         SEMAPHORES   = 4,
+            parameter   int                         SEMAPHORES   = 8,
             parameter   int                         TSKPRI_WIDTH = 4,
             parameter   int                         SEMCNT_WIDTH = 4,
             parameter   int                         FLGPTN_WIDTH = 32,
@@ -65,7 +65,12 @@ module jelly_rtos
 
     logic   [TSKID_WIDTH-1:0]   rel_wai_tskid;
     logic                       rel_wai_valid;
-    
+
+    logic   [TSKID_WIDTH-1:0]   dly_tsk_tskid;
+    logic   [RELTIM_WIDTH-1:0]  dly_tsk_dlytim;
+    logic                       dly_tsk_valid;
+
+    // semaphore
     logic   [SEMID_WIDTH-1:0]   sig_sem_semid;
     logic                       sig_sem_valid;
 
@@ -110,6 +115,10 @@ module jelly_rtos
                 .rel_wai_tskid,
                 .rel_wai_valid,
 
+                .dly_tsk_tskid,
+                .dly_tsk_dlytim,
+                .dly_tsk_valid,
+
                 .sig_sem_semid,
                 .sig_sem_valid,
                 .wai_sem_semid,
@@ -139,6 +148,7 @@ module jelly_rtos
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CPU_STS     = OPCODE_WIDTH'(8'h01);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WUP_TSK     = OPCODE_WIDTH'(8'h10);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SLP_TSK     = OPCODE_WIDTH'(8'h11);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_DLY_TSK     = OPCODE_WIDTH'(8'h18);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SIG_SEM     = OPCODE_WIDTH'(8'h21);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_SEM     = OPCODE_WIDTH'(8'h22);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SET_FLG     = OPCODE_WIDTH'(8'h31);
@@ -189,6 +199,13 @@ module jelly_rtos
             OPCODE_SLP_TSK:     begin slp_tsk_tskid = TSKID_WIDTH'(dec_id); slp_tsk_valid = (int'(dec_id) < TASKS); end
             OPCODE_SET_FLG:     begin set_flg = FLGPTN_WIDTH'(s_wb_dat_i); end
             OPCODE_CLR_FLG:     begin clr_flg = FLGPTN_WIDTH'(s_wb_dat_i); end
+
+            OPCODE_DLY_TSK:
+                begin
+                    dly_tsk_tskid  = TSKID_WIDTH'(dec_id);
+                    dly_tsk_dlytim = RELTIM_WIDTH'(s_wb_dat_i);
+                    dly_tsk_valid  = (int'(dec_id) < TASKS);
+                end
 
             OPCODE_SIG_SEM:     begin sig_sem_semid = SEMID_WIDTH'(dec_id); sig_sem_valid = (int'(dec_id) < SEMAPHORES); end
             OPCODE_WAI_SEM:     begin wai_sem_semid = SEMID_WIDTH'(dec_id); wai_sem_valid = (int'(dec_id) < SEMAPHORES); end

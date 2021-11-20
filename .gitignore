@@ -86,6 +86,8 @@
 *.vcd
 *.fst
 
+*_tcl.xpr
+
 veritak_src_files.txt
 veritak_command.txt
 p_temp*.txt
