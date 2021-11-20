@@ -180,7 +180,19 @@ module tb_sim();
         wb_read (0);
         wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
         wb_write(make_addr(OPCODE_WUP_TSK, 0), 0, 4'hf);
+    #20;
+        wb_write(make_addr(OPCODE_WAI_FLG_AND, 0), 5, 4'hf);
     #10;
+        wb_write(make_addr(OPCODE_SET_FLG, 0), 1, 4'hf);
+    #10;
+        wb_write(make_addr(OPCODE_SET_FLG, 0), 4, 4'hf);
+    #20;
+        wb_write(make_addr(OPCODE_CLR_FLG, 0), ~1, 4'hf);
+    #10;
+        wb_write(make_addr(OPCODE_CLR_FLG, 0), ~4, 4'hf);
+
+
+    #20;
         wb_write(make_addr(OPCODE_SLP_TSK, 0), 0, 4'hf);
         wb_write(make_addr(OPCODE_SLP_TSK, 1), 0, 4'hf);
         

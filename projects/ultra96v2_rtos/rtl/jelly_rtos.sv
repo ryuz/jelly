@@ -13,17 +13,19 @@
 
 module jelly_rtos
         #(
-            parameter int   TASKS        = 16,
-            parameter int   SEMAPHORES   = 4,
-            parameter int   TSKPRI_WIDTH = 4,
-            parameter int   SEMCNT_WIDTH = 4,
-            parameter int   FLGPTN_WIDTH = 32,
-            parameter int   SYSTIM_WIDTH = 64,
-            parameter int   RELTIM_WIDTH = 32,
+            parameter   int                         WB_ADR_WIDTH = 16,
+            parameter   int                         WB_DAT_WIDTH = 32,
+            parameter   int                         WB_SEL_WIDTH = WB_DAT_WIDTH/8,
 
-            parameter int   WB_ADR_WIDTH = 16,
-            parameter int   WB_DAT_WIDTH = 32,
-            parameter int   WB_SEL_WIDTH = WB_DAT_WIDTH/8
+            parameter   int                         TASKS        = 16,
+            parameter   int                         SEMAPHORES   = 4,
+            parameter   int                         TSKPRI_WIDTH = 4,
+            parameter   int                         SEMCNT_WIDTH = 4,
+            parameter   int                         FLGPTN_WIDTH = 32,
+            parameter   int                         SYSTIM_WIDTH = 64,
+            parameter   int                         RELTIM_WIDTH = 32,
+
+            parameter   bit     [FLGPTN_WIDTH-1:0]  INIT_FLGPTN  = '0
         )
         (
             input   wire                        reset,
@@ -64,11 +66,15 @@ module jelly_rtos
     logic   [TSKID_WIDTH-1:0]   rel_wai_tskid;
     logic                       rel_wai_valid;
     
+    logic   [SEMID_WIDTH-1:0]   wai_sem_semid;
+    logic                       wai_sem_valid;
+
+    logic   [SEMID_WIDTH-1:0]   sig_sem_semid;
+    logic                       sig_sem_valid;
 
     // event flag
     logic   [FLGPTN_WIDTH-1:0]  set_flg;
     logic   [FLGPTN_WIDTH-1:0]  clr_flg;
-    logic   [TSKID_WIDTH-1:0]   wai_flg_tskid;
     logic   [0:0]               wai_flg_wfmode;
     logic   [FLGPTN_WIDTH-1:0]  wai_flg_flgptn;
     logic                       wai_flg_valid;
@@ -76,7 +82,15 @@ module jelly_rtos
     jelly_rtos_core
             #(
                 .TASKS          (TASKS),
-                .SEMAPHORES     (SEMAPHORES)
+                .SEMAPHORES     (SEMAPHORES),
+                .TSKPRI_WIDTH   (TSKPRI_WIDTH),
+                .SEMCNT_WIDTH   (SEMCNT_WIDTH),
+                .FLGPTN_WIDTH   (FLGPTN_WIDTH),
+                .SYSTIM_WIDTH   (SYSTIM_WIDTH),
+                .RELTIM_WIDTH   (RELTIM_WIDTH),
+                .TSKID_WIDTH    (TSKID_WIDTH),
+                .SEMID_WIDTH    (SEMID_WIDTH),
+                .INIT_FLGPTN    (INIT_FLGPTN)
             )
         i_rtos_core
             (
@@ -90,16 +104,18 @@ module jelly_rtos
 
                 .wup_tsk_tskid,
                 .wup_tsk_valid,
-
                 .slp_tsk_tskid,
                 .slp_tsk_valid,
-
                 .rel_wai_tskid,
                 .rel_wai_valid,
 
+                .wai_sem_semid,
+                .wai_sem_valid,
+                .sig_sem_semid,
+                .sig_sem_valid,
+      
                 .set_flg,
                 .clr_flg,
-                .wai_flg_tskid,
                 .wai_flg_wfmode,
                 .wai_flg_flgptn,
                 .wai_flg_valid
@@ -146,27 +162,33 @@ module jelly_rtos
         rel_wai_tskid = 'x;
         rel_wai_valid = '0;
 
-        set_flg = '0;
-        clr_flg = '1;
+        wai_sem_semid = 'x;
+        wai_sem_valid = '0;
+        sig_sem_semid = 'x;
+        sig_sem_valid = '0;
+
+        set_flg        = '0;
+        clr_flg        = '1;
+        wai_flg_wfmode = 'x;
+        wai_flg_flgptn = 'x;
+        wai_flg_valid  = '0;
 
         if ( s_wb_stb_i && s_wb_we_i ) begin
             case ( dec_opcode )
-            OPCODE_WUP_TSK:     begin wup_tsk_tskid = TSKID_WIDTH'(dec_id); wup_tsk_valid = 1'b1; end
-            OPCODE_SLP_TSK:     begin slp_tsk_tskid = TSKID_WIDTH'(dec_id); slp_tsk_valid = 1'b1; end
+            OPCODE_WUP_TSK:     begin wup_tsk_tskid = TSKID_WIDTH'(dec_id); wup_tsk_valid = (int'(dec_id) < TASKS); end
+            OPCODE_SLP_TSK:     begin slp_tsk_tskid = TSKID_WIDTH'(dec_id); slp_tsk_valid = (int'(dec_id) < TASKS); end
             OPCODE_SET_FLG:     begin set_flg = FLGPTN_WIDTH'(s_wb_dat_i); end
             OPCODE_CLR_FLG:     begin clr_flg = FLGPTN_WIDTH'(s_wb_dat_i); end
             OPCODE_WAI_FLG_AND:
                 begin
                     wai_flg_flgptn = FLGPTN_WIDTH'(s_wb_dat_i);
                     wai_flg_wfmode = 1'b0;
-                    wai_flg_tskid  = TSKID_WIDTH'(dec_id);
                     wai_flg_valid  = 1'b1;
                 end
             OPCODE_WAI_FLG_OR:
                 begin
                     wai_flg_flgptn = FLGPTN_WIDTH'(s_wb_dat_i);
                     wai_flg_wfmode = 1'b1;
-                    wai_flg_tskid  = TSKID_WIDTH'(dec_id);
                     wai_flg_valid  = 1'b1;
                 end
             default: ;

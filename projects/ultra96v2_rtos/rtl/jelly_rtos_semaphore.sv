@@ -14,40 +14,41 @@
 module jelly_rtos_semaphore
         #(
             parameter int                           QUE_SIZE        = 16,
-            parameter int                           QUE_COUNT_WIDTH = $clog2(QUE_SIZE+1),
+            parameter int                           QUECNT_WIDTH    = $clog2(QUE_SIZE+1),
             parameter int                           TSKID_WIDTH     = 4,
             parameter int                           TSKPRI_WIDTH    = 4,
-            parameter int                           SEM_COUNT_WIDTH = 4,
+            parameter int                           SEMCNT_WIDTH    = 4,
             parameter bit                           PRIORITY_ORDER  = 1'b0,
-            parameter bit   [SEM_COUNT_WIDTH-1:0]   INIT_SEM_COUNT  = 0
+            parameter bit   [SEMCNT_WIDTH-1:0]      INIT_SEMCNT     = '0
         )
         (
             input   wire                            reset,
             input   wire                            clk,
             input   wire                            cke,
 
-            input   wire                            signal,
+            input   wire                            sig_sem,
 
-            input   wire    [TSKID_WIDTH-1:0]       wait_tskid,
-            input   wire    [TSKPRI_WIDTH-1:0]      wait_tskpri,
-            input   wire                            wait_valid,
+            input   wire    [TSKID_WIDTH-1:0]       wai_sem_tskid,
+            input   wire    [TSKPRI_WIDTH-1:0]      wai_sem_tskpri,
+            input   wire                            wai_sem_valid,
 
-            input   wire    [TSKID_WIDTH-1:0]       remove_tskid,
-            input   wire                            remove_valid,
+            input   wire    [TSKID_WIDTH-1:0]       rel_wai_tskid,
+            input   wire                            rel_wai_valid,
 
             output  reg     [TSKID_WIDTH-1:0]       wakeup_tskid,
             output  reg                             wakeup_valid,
 
-            output  reg     [SEM_COUNT_WIDTH-1:0]   sem_count,
-            output  wire    [QUE_COUNT_WIDTH-1:0]   que_count
+            output  reg     [SEMCNT_WIDTH-1:0]      semcnt,
+            output  wire    [QUECNT_WIDTH-1:0]      quecnt
         );
 
+    // wait queue
     logic   [TSKID_WIDTH-1:0]   que_add_tskid;
     logic   [TSKPRI_WIDTH-1:0]  que_add_tskpri;
     logic                       que_add_valid;
 
-    logic   [TSKID_WIDTH-1:0]   que_remove_tskid;
-    logic                       que_remove_valid;
+    logic   [TSKID_WIDTH-1:0]   que_rmv_tskid;
+    logic                       que_rmv_valid;
 
     logic   [TSKID_WIDTH-1:0]   que_top_tskid;
     logic                       que_top_valid;
@@ -58,7 +59,7 @@ module jelly_rtos_semaphore
                 .QUE_SIZE       (QUE_SIZE),
                 .ID_WIDTH       (TSKID_WIDTH),
                 .PRI_WIDTH      (TSKPRI_WIDTH),
-                .COUNT_WIDTH    (QUE_COUNT_WIDTH)
+                .COUNT_WIDTH    (QUECNT_WIDTH)
             )
         i_rtos_queue
             (
@@ -66,82 +67,85 @@ module jelly_rtos_semaphore
                 .clk            (clk),
                 .cke            (cke),
 
-                .add_id         (wait_tskid),
-                .add_pri        (wait_tskpri),
-                .add_valid      (wait_valid),
+                .add_id         (wai_sem_tskid),
+                .add_pri        (wai_sem_tskpri),
+                .add_valid      (wai_sem_valid),
 
-                .remove_id      (que_remove_tskid),
-                .remove_valid   (que_remove_valid),
+                .remove_id      (que_rmv_tskid),
+                .remove_valid   (que_rmv_valid),
 
                 .top_id         (que_top_tskid),
                 .top_valid      (que_top_valid),
 
-                .count          (que_count)
+                .count          (quecnt)
             );
     
 
     
-    logic   [SEM_COUNT_WIDTH-1:0]   next_counter;
-    logic                           sem_empty;
+    logic   [SEMCNT_WIDTH-1:0]  next_semcnt;
+    logic                       sem_empty;
+    logic                       sem_nop;
 
     always_comb begin : blk_sem
-        next_counter     = sem_count;
-        que_add_tskid    = 'x;
-        que_add_tskpri   = 'x;
-        que_add_valid    = 1'b0;
-        que_remove_tskid = 'x;
-        que_remove_valid = 1'b0;
-        wakeup_tskid     = '0;
-        wakeup_valid     = 1'b0;
+        next_semcnt    = semcnt;
+        que_add_tskid  = 'x;
+        que_add_tskpri = 'x;
+        que_add_valid  = 1'b0;
+        que_rmv_tskid  = 'x;
+        que_rmv_valid  = 1'b0;
+        wakeup_tskid   = '0;
+        wakeup_valid   = 1'b0;
 
         // sig_sem と wai_sem は同時に来ない前提
-        /* verilator lint_off CASEINCOMPLETE */
-        unique case ({signal, wait_valid})
-        2'b01:
+        sem_nop = !wai_sem_valid && !sig_sem && !rel_wai_valid;
+        unique case ( 1'b1 )
+        wai_sem_valid:
             begin
                 if ( sem_empty ) begin
-                    que_add_tskid  = wait_tskid;
-                    que_add_tskpri = wait_tskpri;
+                    que_add_tskid  = wai_sem_tskid;
+                    que_add_tskpri = wai_sem_tskpri;
                     que_add_valid  = 1'b1;
                 end
                 else begin
-                    next_counter--;
-                    wakeup_tskid = wait_tskid;
+                    next_semcnt--;
+                    wakeup_tskid = wai_sem_tskid;
                     wakeup_valid = 1'b1;
                 end
             end
         
-        2'b10:
+        sig_sem:
             begin
                 if ( que_top_valid ) begin
                     // キューにあれば取り出す
-                    que_remove_tskid = que_top_tskid;
-                    que_remove_valid = 1'b1;
+                    que_rmv_tskid = que_top_tskid;
+                    que_rmv_valid = 1'b1;
 
                     wakeup_tskid = que_top_tskid;
                     wakeup_valid = 1'b1;
                 end
                 else begin
-                    next_counter++;
+                    next_semcnt++;
                 end
             end
-        endcase
-        /* verilator lint_on CASEINCOMPLETE */
+        
+        rel_wai_valid:
+            begin
+                que_rmv_tskid = rel_wai_tskid;
+                que_rmv_valid = 1'b1;
+            end
 
-        if ( remove_valid ) begin
-            que_remove_tskid = remove_tskid;
-            que_remove_valid = 1'b1;
-        end
+        sem_nop: ;
+        endcase
     end
 
     always_ff @(posedge clk) begin
         if ( reset ) begin
-            sem_count <= INIT_SEM_COUNT;
-            sem_empty <= (INIT_SEM_COUNT == '0);
+            semcnt    <= INIT_SEMCNT;
+            sem_empty <= (INIT_SEMCNT == '0);
         end
         else if ( cke ) begin
-            sem_count <= next_counter;
-            sem_empty <= (next_counter == '0);
+            semcnt    <= next_semcnt;
+            sem_empty <= (next_semcnt == '0);
         end
     end
 

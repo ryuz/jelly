@@ -17,7 +17,8 @@ module jelly_rtos_task
             parameter   int                         TSKPRI_WIDTH = 4,
             parameter   int                         SEMID_WIDTH  = 4,
             parameter   int                         FLGPTN_WIDTH = 4,
-            parameter   bit     [TSKID_WIDTH-1:0]   TSKID        = 0
+            parameter   bit     [TSKID_WIDTH-1:0]   TSKID        = 0,
+            parameter   bit     [TSKPRI_WIDTH-1:0]  INIT_TSKPRI  = TSKPRI_WIDTH'(TSKID)
         )
         (
             input   wire                        reset,
@@ -29,75 +30,74 @@ module jelly_rtos_task
             input   wire                        slp_tsk,
             input   wire                        rel_wai,
             
-            output  wire    [TSKPRI_WIDTH-1:0]  tskpri,
+            output  reg     [TSKPRI_WIDTH-1:0]  tskpri,
+            output  reg     [3:0]               tskstat,
             output  reg                         req_rdq,
 
             input   wire    [FLGPTN_WIDTH-1:0]  evtflg_flgptn,
             input   wire    [0:0]               wai_flg_wfmode,
             input   wire    [FLGPTN_WIDTH-1:0]  wai_flg_flgptn,
             input   wire                        wai_flg
-            
-            // monitoring
-            /*
-            input   wire    [TSKID_WIDTH-1:0]   rdq_add_tskid,
-            input   wire                        rdq_add_valid,
-
-            input   wire    [TSKID_WIDTH-1:0]   rdq_rmv_tskid,
-            input   wire                        rdq_rmv_valid,
-
-            input   wire    [TSKID_WIDTH-1:0]   relwai_tskid,
-            input   wire                        relwai_valid,
-
-            input   wire    [SEMID_WIDTH-1:0]   sem_wait_semid,
-            input   wire    [TSKID_WIDTH-1:0]   sem_wait_tskid,
-            input   wire                        sem_wait_valid
-            */
         );
 
+    typedef enum bit [3:0] {
+        TS_SLEEP  = 4'h0,
+        TS_REQRDY = 4'h1,
+        TS_READY  = 4'h2,
+        TS_WAISEM = 4'h3,
+        TS_WAIFLG = 4'h4
+    } tskstat_t;
 
-    typedef enum {
-        TS_SLEEP  = 0,
-        TS_REQRDY = 1,
-        TS_READY  = 2,
-        TS_WAISEM = 3,
-        TS_WAIFLG = 4
-    } task_status_t;
+    tskstat_t                   reg_tskstat, next_tskstat;
+    logic                       nop_tsk;
 
-    /*
-    wire    task_remove = (rdq_rmv_valid  && (rdq_rmv_tskid == TSKID));
-    wire    task_ready  = (rdq_add_valid  && (rdq_add_tskid == TSKID));
-    wire    task_waisem = 1'b0;//(sem_wait_valid && (rdq_add_tskid == TSKID));
-    wire    task_relwai = rel_wai; //(rel_wai_valid   && (rel_wai_tskid == TSKID));
-    wire    task_wakeup = wup_tsk;
-    wire    task_nop    = (!task_remove && !task_ready && !task_waisem && task_relwai && !task_wakeup);
-    */
-
-    task_status_t   status, next_status;
+    logic   [0:0]               flg_wfmode;
+    logic   [FLGPTN_WIDTH-1:0]  flg_flgptn;
 
     always_comb begin : blk_status
-        next_status = status;
+        next_tskstat = reg_tskstat;
 
-        unique0 case ( 1'b1 )
-        rdy_tsk:        begin   next_status = TS_READY;    end
-        wup_tsk:        begin   next_status = TS_REQRDY;   end
-        slp_tsk:        begin   next_status = TS_SLEEP;    end
-        rel_wai:        begin   next_status = TS_REQRDY;   end
-//      wai_sem:        begin   next_status = TS_WAISEM;   end
+        if ( reg_tskstat == TS_WAIFLG ) begin
+            if ( (flg_wfmode == 1'b0 && ((evtflg_flgptn | ~flg_flgptn) == '1))
+              || (flg_wfmode == 1'b1 && ((evtflg_flgptn &  flg_flgptn) != '0)) ) begin
+                    next_tskstat = TS_REQRDY;
+            end
+        end
+        
+        nop_tsk = !rdy_tsk && !wup_tsk && !slp_tsk && !rel_wai && !wai_flg;
+        unique case ( 1'b1 )
+        rdy_tsk:    begin   next_tskstat = TS_READY;    end
+        wup_tsk:    begin   next_tskstat = TS_REQRDY;   end
+        slp_tsk:    begin   next_tskstat = TS_SLEEP;    end
+        rel_wai:    begin   next_tskstat = TS_REQRDY;   end
+//      wai_sem:    begin   next_tskstat = TS_WAISEM;   end
+        wai_flg:    begin   next_tskstat = TS_WAIFLG;   end
+        nop_tsk: ;
         endcase
     end
 
-    assign tskpri = TSKID;
-
     always_ff @(posedge clk) begin
         if ( reset ) begin
-            status  <= TS_SLEEP;
-            req_rdq <= 1'b0;
+            reg_tskstat <= TS_SLEEP;
+            req_rdq     <= 1'b0;
+            
+            tskpri      <=INIT_TSKPRI;
+
+            flg_wfmode  <= 'x;
+            flg_flgptn  <= 'x;
         end
         else if ( cke ) begin
-            status  <= next_status;
-            req_rdq <= (next_status == TS_REQRDY);
+            reg_tskstat <= next_tskstat;
+            req_rdq     <= (next_tskstat == TS_REQRDY);
+
+            if ( wai_flg ) begin
+                flg_wfmode <= wai_flg_wfmode;
+                flg_flgptn <= wai_flg_flgptn;
+            end
         end
     end
+
+    assign tskstat = reg_tskstat;
 
 endmodule
 
