@@ -146,7 +146,7 @@ module tb_sim();
     localparam  int                         OPCODE_WIDTH      = 8;
     localparam  int                         ID_WIDTH          = 8;
     localparam  int                         DECODE_OPCODE_POS = 0;
-    localparam  int                         DECODE_ID_POS     = DECODE_OPCODE_POS + ID_WIDTH;
+    localparam  int                         DECODE_ID_POS     = DECODE_OPCODE_POS + OPCODE_WIDTH;
 
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_INF     = OPCODE_WIDTH'(8'h00);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CPU_STS     = OPCODE_WIDTH'(8'h01);

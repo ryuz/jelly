@@ -110,6 +110,7 @@ module jelly_rtos_core
     //  tasks
     // -----------------------------------------
     
+    logic   [TASKS-1:0][3:0]                task_tskstat;
     logic   [TASKS-1:0][TSKPRI_WIDTH-1:0]   task_tskpri;
 
     logic   [TASKS-1:0]                     task_req_rdy;
@@ -139,6 +140,7 @@ module jelly_rtos_core
                     .clk                (clk),
                     .cke                (cke),
 
+                    .tskstat            (task_tskstat[i]),
                     .tskpri             (task_tskpri[i]),
                     
                     .req_rdq            (task_req_rdy[i]),
