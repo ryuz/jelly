@@ -2,7 +2,7 @@
 puts [file dirname [info script]]
 
 set project_directory   [file dirname [info script]]
-set project_name        "ultra96v2_udmabuf_sample"
+set project_name        "ultra96v2_udmabuf_sample_tcl"
 
 cd $project_directory
 

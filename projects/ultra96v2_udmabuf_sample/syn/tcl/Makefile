@@ -1,10 +1,6 @@
 
 
-PRJ_NAME = ultra96v2_udmabuf_sample
-
-#.PHONY : all
-#all:
-#	vivado -m64 -mode batch -source create_project.tcl
+PRJ_NAME = ultra96v2_udmabuf_sample_tcl
 
 
 .PHONY : all
@@ -22,6 +18,7 @@ build:
 
 .PHONY : clean
 clean:
+	rm -fr .Xil
 	rm -fr $(PRJ_NAME).cache
 	rm -fr $(PRJ_NAME).hw
 	rm -fr $(PRJ_NAME).ip_user_files
@@ -30,8 +27,4 @@ clean:
 	rm -fr $(PRJ_NAME).srcs
 	rm -fr $(PRJ_NAME).gen
 	rm -fr $(PRJ_NAME).xpr vivado*.jou  vivado*.log vivado_pid*.str 
-
-.PHONY : test
-test:
-	vivado -m64 -mode batch -source test.tcl
 
