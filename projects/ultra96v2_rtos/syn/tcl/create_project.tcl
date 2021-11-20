@@ -110,15 +110,24 @@ proc add_verilog_file {fileset_name library_name file_name} {
     set_property "library"   $library_name $file_obj
 }
 
-add_verilog_file sources_1 WORK ../../rtl/ultra96v2_rtos.sv
-add_verilog_file sources_1 WORK ../../rtl/jelly_rtos.sv
-add_verilog_file sources_1 WORK ../../rtl/jelly_rtos_core.sv
-add_verilog_file sources_1 WORK ../../rtl/jelly_rtos_queue.sv
-add_verilog_file sources_1 WORK ../../rtl/jelly_rtos_queue_priority.sv
-add_verilog_file sources_1 WORK ../../rtl/jelly_rtos_queue_fifo.sv
-add_verilog_file sources_1 WORK ../../rtl/jelly_rtos_task.sv
-add_verilog_file sources_1 WORK ../../rtl/jelly_rtos_eventflag.sv
-add_verilog_file sources_1 WORK ../../rtl/jelly_rtos_semaphore.sv
+proc add_sv_file {fileset_name library_name file_name} {
+    set file    [file normalize $file_name]
+    set fileset [get_filesets   $fileset_name] 
+    add_files -norecurse -fileset $fileset $file
+    set file_obj [get_files -of_objects $fileset $file]
+    set_property "file_type" "SystemVerilog" $file_obj
+    set_property "library"   $library_name $file_obj
+}
+
+add_sv_file sources_1 WORK ../../rtl/ultra96v2_rtos.sv
+add_sv_file sources_1 WORK ../../rtl/jelly_rtos.sv
+add_sv_file sources_1 WORK ../../rtl/jelly_rtos_core.sv
+add_sv_file sources_1 WORK ../../rtl/jelly_rtos_queue.sv
+add_sv_file sources_1 WORK ../../rtl/jelly_rtos_queue_priority.sv
+add_sv_file sources_1 WORK ../../rtl/jelly_rtos_queue_fifo.sv
+add_sv_file sources_1 WORK ../../rtl/jelly_rtos_task.sv
+add_sv_file sources_1 WORK ../../rtl/jelly_rtos_eventflag.sv
+add_sv_file sources_1 WORK ../../rtl/jelly_rtos_semaphore.sv
 add_verilog_file sources_1 WORK ../../../../rtl/bus/jelly_axi4l_to_wishbone.v
 add_verilog_file sources_1 WORK ../../../../rtl/peripheral/jelly_interval_timer.v
 
