@@ -66,11 +66,11 @@ module jelly_rtos
     logic   [TSKID_WIDTH-1:0]   rel_wai_tskid;
     logic                       rel_wai_valid;
     
-    logic   [SEMID_WIDTH-1:0]   wai_sem_semid;
-    logic                       wai_sem_valid;
-
     logic   [SEMID_WIDTH-1:0]   sig_sem_semid;
     logic                       sig_sem_valid;
+
+    logic   [SEMID_WIDTH-1:0]   wai_sem_semid;
+    logic                       wai_sem_valid;
 
     // event flag
     logic   [FLGPTN_WIDTH-1:0]  set_flg;
@@ -109,10 +109,10 @@ module jelly_rtos
                 .rel_wai_tskid,
                 .rel_wai_valid,
 
-                .wai_sem_semid,
-                .wai_sem_valid,
                 .sig_sem_semid,
                 .sig_sem_valid,
+                .wai_sem_semid,
+                .wai_sem_valid,
       
                 .set_flg,
                 .clr_flg,
@@ -137,6 +137,8 @@ module jelly_rtos
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CPU_STS     = OPCODE_WIDTH'(8'h01);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WUP_TSK     = OPCODE_WIDTH'(8'h10);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SLP_TSK     = OPCODE_WIDTH'(8'h11);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SIG_SEM     = OPCODE_WIDTH'(8'h21);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_SEM     = OPCODE_WIDTH'(8'h22);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SET_FLG     = OPCODE_WIDTH'(8'h31);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CLR_FLG     = OPCODE_WIDTH'(8'h32);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_FLG_AND = OPCODE_WIDTH'(8'h33);
@@ -168,10 +170,10 @@ module jelly_rtos
         rel_wai_tskid = 'x;
         rel_wai_valid = '0;
 
-        wai_sem_semid = 'x;
-        wai_sem_valid = '0;
         sig_sem_semid = 'x;
         sig_sem_valid = '0;
+        wai_sem_semid = 'x;
+        wai_sem_valid = '0;
 
         set_flg        = '0;
         clr_flg        = '1;
@@ -179,24 +181,30 @@ module jelly_rtos
         wai_flg_flgptn = 'x;
         wai_flg_valid  = '0;
 
-        if ( s_wb_stb_i && s_wb_we_i ) begin
+        if ( s_wb_stb_i && s_wb_we_i && &s_wb_sel_i ) begin
             case ( dec_opcode )
             OPCODE_WUP_TSK:     begin wup_tsk_tskid = TSKID_WIDTH'(dec_id); wup_tsk_valid = (int'(dec_id) < TASKS); end
             OPCODE_SLP_TSK:     begin slp_tsk_tskid = TSKID_WIDTH'(dec_id); slp_tsk_valid = (int'(dec_id) < TASKS); end
             OPCODE_SET_FLG:     begin set_flg = FLGPTN_WIDTH'(s_wb_dat_i); end
             OPCODE_CLR_FLG:     begin clr_flg = FLGPTN_WIDTH'(s_wb_dat_i); end
+
+            OPCODE_SIG_SEM:     begin sig_sem_semid = SEMID_WIDTH'(dec_id); sig_sem_valid = (int'(dec_id) < SEMAPHORES); end
+            OPCODE_WAI_SEM:     begin wai_sem_semid = SEMID_WIDTH'(dec_id); wai_sem_valid = (int'(dec_id) < SEMAPHORES); end
+
             OPCODE_WAI_FLG_AND:
                 begin
                     wai_flg_flgptn = FLGPTN_WIDTH'(s_wb_dat_i);
                     wai_flg_wfmode = 1'b0;
                     wai_flg_valid  = 1'b1;
                 end
+            
             OPCODE_WAI_FLG_OR:
                 begin
                     wai_flg_flgptn = FLGPTN_WIDTH'(s_wb_dat_i);
                     wai_flg_wfmode = 1'b1;
                     wai_flg_valid  = 1'b1;
                 end
+            
             default: ;
             endcase
         end

@@ -143,11 +143,14 @@ module jelly_rtos_core
                     
                     .req_rdq            (task_req_rdy[i]),
 
+                    .rel_tsk            (task_rel_tsk[i]),
+
                     .rdy_tsk            (task_rdy_tsk[i]),
                     .wup_tsk            (task_wup_tsk[i]),
                     .slp_tsk            (task_slp_tsk[i]),
                     .rel_wai            (task_rel_wai[i]),
 
+                    .wai_sem            (task_wai_sem[i]),
 
                     .evtflg_flgptn      (evtflg_flgptn),
                     .wai_flg_wfmode     (wai_flg_wfmode),
@@ -285,6 +288,8 @@ module jelly_rtos_core
         // wait for semsphore
         if ( wai_sem_valid ) begin
             task_wai_sem[rdq_top_tskid] = 1'b1;
+            semaphore_wai_sem_tskid  = rdq_top_tskid;
+            semaphore_wai_sem_tskpri = rdq_top_tskpri;
             semaphore_wai_sem_valid[wai_sem_semid] = 1'b1;
             rdq_rmv_tskid = rdq_top_tskid;
             rdq_rmv_valid = 1'b1;

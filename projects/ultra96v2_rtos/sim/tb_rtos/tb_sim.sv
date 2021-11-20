@@ -152,6 +152,8 @@ module tb_sim();
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CPU_STS     = OPCODE_WIDTH'(8'h01);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WUP_TSK     = OPCODE_WIDTH'(8'h10);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SLP_TSK     = OPCODE_WIDTH'(8'h11);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SIG_SEM     = OPCODE_WIDTH'(8'h21);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_SEM     = OPCODE_WIDTH'(8'h22);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SET_FLG     = OPCODE_WIDTH'(8'h31);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CLR_FLG     = OPCODE_WIDTH'(8'h32);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_FLG_AND = OPCODE_WIDTH'(8'h33);
@@ -199,6 +201,9 @@ module tb_sim();
     #10;
         wb_write(make_addr(OPCODE_CLR_FLG, 0), ~4, 4'hf);
 
+        wb_write(make_addr(OPCODE_WAI_SEM, 1), 0, 4'hf);
+    #20;
+        wb_write(make_addr(OPCODE_SIG_SEM, 1), 0, 4'hf);
 
     #20;
         wb_write(make_addr(OPCODE_SLP_TSK, 0), 0, 4'hf);
