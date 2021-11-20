@@ -24,6 +24,7 @@ module jelly_rtos_task
             input   wire                        clk,
             input   wire                        cke,
 
+            input   wire                        rdy_tsk,
             input   wire                        wup_tsk,
             input   wire                        slp_tsk,
             input   wire                        rel_wai,
@@ -31,13 +32,13 @@ module jelly_rtos_task
             output  wire    [TSKPRI_WIDTH-1:0]  tskpri,
             output  reg                         req_rdq,
 
-            input   wire    [FLGPTN_WIDTH-1:0]  event_flag,
-
-            input   wire    [0:0]               wait_event_mode,
-            input   wire    [FLGPTN_WIDTH-1:0]  wait_event_flag,
-            input   wire                        wait_event_valid,
-
+            input   wire    [FLGPTN_WIDTH-1:0]  evtflg_flgptn,
+            input   wire    [0:0]               wai_flg_wfmode,
+            input   wire    [FLGPTN_WIDTH-1:0]  wai_flg_flgptn,
+            input   wire                        wai_flg
+            
             // monitoring
+            /*
             input   wire    [TSKID_WIDTH-1:0]   rdq_add_tskid,
             input   wire                        rdq_add_valid,
 
@@ -50,38 +51,38 @@ module jelly_rtos_task
             input   wire    [SEMID_WIDTH-1:0]   sem_wait_semid,
             input   wire    [TSKID_WIDTH-1:0]   sem_wait_tskid,
             input   wire                        sem_wait_valid
+            */
         );
 
 
     typedef enum {
-        TS_IDLE   = 0,
-        TS_BUSY   = 4,
-        TS_READY  = 1,
-        TS_WAISEM = 2,
-        TS_WAIFLG = 3
+        TS_SLEEP  = 0,
+        TS_REQRDY = 1,
+        TS_READY  = 2,
+        TS_WAISEM = 3,
+        TS_WAIFLG = 4
     } task_status_t;
 
-
+    /*
     wire    task_remove = (rdq_rmv_valid  && (rdq_rmv_tskid == TSKID));
     wire    task_ready  = (rdq_add_valid  && (rdq_add_tskid == TSKID));
     wire    task_waisem = 1'b0;//(sem_wait_valid && (rdq_add_tskid == TSKID));
     wire    task_relwai = rel_wai; //(rel_wai_valid   && (rel_wai_tskid == TSKID));
     wire    task_wakeup = wup_tsk;
     wire    task_nop    = (!task_remove && !task_ready && !task_waisem && task_relwai && !task_wakeup);
-
+    */
 
     task_status_t   status, next_status;
 
     always_comb begin : blk_status
         next_status = status;
 
-        unique case ( 1'b1 )
-        task_remove:    begin   next_status = TS_IDLE;     end
-        task_ready:     begin   next_status = TS_READY;    end
-        task_waisem:    begin   next_status = TS_WAISEM;   end
-        task_relwai:    begin   next_status = TS_BUSY;     end
-        task_wakeup:    begin   next_status = TS_BUSY;     end
-        task_nop:       begin   end
+        unique0 case ( 1'b1 )
+        rdy_tsk:        begin   next_status = TS_READY;    end
+        wup_tsk:        begin   next_status = TS_REQRDY;   end
+        slp_tsk:        begin   next_status = TS_SLEEP;    end
+        rel_wai:        begin   next_status = TS_REQRDY;   end
+//      wai_sem:        begin   next_status = TS_WAISEM;   end
         endcase
     end
 
@@ -89,12 +90,12 @@ module jelly_rtos_task
 
     always_ff @(posedge clk) begin
         if ( reset ) begin
-            status  <= TS_IDLE;
+            status  <= TS_SLEEP;
             req_rdq <= 1'b0;
         end
         else if ( cke ) begin
             status  <= next_status;
-            req_rdq <= (next_status == TS_BUSY);
+            req_rdq <= (next_status == TS_REQRDY);
         end
     end
 

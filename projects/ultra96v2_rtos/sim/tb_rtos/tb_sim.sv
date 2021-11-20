@@ -148,9 +148,13 @@ module tb_sim();
     localparam  int                         DECODE_OPCODE_POS = 0;
     localparam  int                         DECODE_ID_POS     = DECODE_OPCODE_POS + ID_WIDTH;
 
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_INF  = 'h00;
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WUP_TSK  = 'h00;
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SLP_TSK  = 'h01;
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_INF     = OPCODE_WIDTH'(8'h00);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WUP_TSK     = OPCODE_WIDTH'(8'h10);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SLP_TSK     = OPCODE_WIDTH'(8'h11);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SET_FLG     = OPCODE_WIDTH'(8'h31);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CLR_FLG     = OPCODE_WIDTH'(8'h32);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_FLG_AND = OPCODE_WIDTH'(8'h33);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_FLG_OR  = OPCODE_WIDTH'(8'h34);
 
     localparam  bit     [ID_WIDTH-1:0]      REF_INF_CORE_ID = 'h00;
     localparam  bit     [ID_WIDTH-1:0]      REF_INF_VERSION = 'h01;

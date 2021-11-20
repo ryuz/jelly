@@ -14,16 +14,18 @@
 
 module jelly_rtos_core
         #(
-            parameter int   TASKS        = 16,
-            parameter int   SEMAPHORES   = 4,
-            parameter int   TSKPRI_WIDTH = 4,
-            parameter int   SEMCNT_WIDTH = 4,
-            parameter int   FLGPTN_WIDTH = 4,
-//            parameter int   SYSTIM_WIDTH = 64,
-//            parameter int   RELTIM_WIDTH = 32,
+            parameter   int                         TASKS        = 16,
+            parameter   int                         SEMAPHORES   = 4,
+            parameter   int                         TSKPRI_WIDTH = 4,
+            parameter   int                         SEMCNT_WIDTH = 4,
+            parameter   int                         FLGPTN_WIDTH = 4,
+//            parameter int                         SYSTIM_WIDTH = 64,
+//            parameter int                         RELTIM_WIDTH = 32,
 
-            parameter int   TSKID_WIDTH  = $clog2(TASKS),
-            parameter int   SEMID_WIDTH  = $clog2(SEMAPHORES)
+            parameter   bit     [FLGPTN_WIDTH-1:0]  INIT_FLGPTN  = '0,
+
+            parameter   int                         TSKID_WIDTH  = $clog2(TASKS),
+            parameter   int                         SEMID_WIDTH  = $clog2(SEMAPHORES)
         )
         (
             input   wire                        reset,
@@ -46,13 +48,15 @@ module jelly_rtos_core
             input   wire                        rel_wai_valid,
 
             // event flag
+            input   wire    [FLGPTN_WIDTH-1:0]  set_flg,
+            
+            input   wire    [FLGPTN_WIDTH-1:0]  clr_flg,
+
             input   wire    [TSKID_WIDTH-1:0]   wai_flg_tskid,
             input   wire    [0:0]               wai_flg_wfmode,
             input   wire    [FLGPTN_WIDTH-1:0]  wai_flg_flgptn,
             input   wire                        wai_flg_valid,
-
-            input   wire    [FLGPTN_WIDTH-1:0]  set_flg,
-            input   wire    [FLGPTN_WIDTH-1:0]  clr_flg,
+            output  wire    [FLGPTN_WIDTH-1:0]  evtflg_flgptn,
             
             // semaphore
             input   wire    [SEMAPHORES-1:0]    wai_sem,
@@ -107,14 +111,12 @@ module jelly_rtos_core
     logic   [TASKS-1:0][TSKPRI_WIDTH-1:0]   tsk_tskpri;
     logic   [TASKS-1:0]                     tsk_reqrdy;
 
+    logic   [TASKS-1:0]                     rdy_tsk;
     logic   [TASKS-1:0]                     wup_tsk;
     logic   [TASKS-1:0]                     slp_tsk;
     logic   [TASKS-1:0]                     rel_wai;
 
-    logic   [TSKID_WIDTH-1:0]               relwai_tskid;
-    logic                                   relwai_valid;
-
-    logic   [FLGPTN_WIDTH-1:0]              event_flag;
+    logic   [TASKS-1:0]                     wai_flg;
 
     generate
     for ( genvar i = 0; i < TASKS; ++i ) begin : loop_tsk
@@ -132,24 +134,25 @@ module jelly_rtos_core
                     .clk                (clk),
                     .cke                (cke),
 
+                    .rdy_tsk            (rdy_tsk[i]),
                     .wup_tsk            (wup_tsk[i]),
                     .slp_tsk            (slp_tsk[i]),
+                    .rel_wai            (rel_wai[i]),
 
                     .tskpri             (tsk_tskpri[i]),
                     .req_rdq            (tsk_reqrdy[i]),
 
-                    .event_flag         (event_flag),
-
-                    .wait_event_mode    (),
-                    .wait_event_flag    (),
-                    .wait_event_valid   (1'b0),
+                    .evtflg_flgptn      (evtflg_flgptn),
+                    .wai_flg_wfmode     (wai_flg_wfmode),
+                    .wai_flg_flgptn     (wai_flg_flgptn),
+                    .wai_flg            (wai_flg[i])
 
                     // monitor
-                    .rdq_add_tskid      (rdq_add_tskid),
-                    .rdq_add_valid      (rdq_add_valid),
+//                    .rdq_add_tskid      (rdq_add_tskid),
+//                    .rdq_add_valid      (rdq_add_valid),
 
-                    .rdq_rmv_tskid      (rdq_rmv_tskid),
-                    .rdq_rmv_valid      (rdq_rmv_valid)
+//                    .rdq_rmv_tskid      (rdq_rmv_tskid),
+//                    .rdq_rmv_valid      (rdq_rmv_valid)
                     
 //                  .relwai_tskid       (relwai_tskid),
 //                  .relwai_valid       (relwai_valid),
@@ -211,18 +214,46 @@ module jelly_rtos_core
     endgenerate
     */
 
+
+    // -----------------------------------------
+    //  Eventflag
+    // -----------------------------------------
+
+    jelly_rtos_eventflag
+            #(
+                .FLGPTN_WIDTH       (FLGPTN_WIDTH),
+                .INIT_FLGPTN        (INIT_FLGPTN)
+            )
+        i_rtos_eventflag
+            (
+                .reset              (reset),
+                .clk                (clk),
+                .cke                (cke),
+
+                .flgptn             (evtflg_flgptn),
+
+                .set_flg            (set_flg),
+                .clr_flg            (clr_flg)
+            );
+
     
     // -----------------------------------------
     //  control
     // -----------------------------------------
 
     always_comb begin : blk_core
-        rdq_rmv_tskid = 'x;
-        rdq_rmv_valid = 1'b0;
-        
         rdq_add_tskid  = 'x;
         rdq_add_tskpri = 'x;
         rdq_add_valid  = 1'b0;
+
+        rdq_rmv_tskid = 'x;
+        rdq_rmv_valid = 1'b0;
+
+        rdy_tsk = '0;
+        wup_tsk = '0;
+        slp_tsk = '0;
+
+        // レディーキュー登録要求処理
         for ( int tskid = 0; tskid < TASKS; ++tskid ) begin
             if ( tsk_reqrdy[tskid] ) begin
                 rdq_add_tskid  = TSKID_WIDTH'(tskid);
@@ -256,13 +287,11 @@ module jelly_rtos_core
         */
 
         // Wake-up Task
-        wup_tsk = '0;
         if ( wup_tsk_valid ) begin
             wup_tsk[wup_tsk_tskid] = 1'b1;
         end
 
         // Task Sleep
-        slp_tsk = '0;
         if ( slp_tsk_valid ) begin
             slp_tsk[slp_tsk_tskid] = 1'b1;
 
@@ -270,7 +299,16 @@ module jelly_rtos_core
             rdq_rmv_tskid = slp_tsk_tskid;
             rdq_rmv_valid = 1'b1;
         end
+
+        if ( rdq_add_valid ) begin
+            rdy_tsk[rdq_add_tskid] = 1'b1;
+        end
+
+        if ( rel_wai_valid ) begin
+            rel_wai[rel_wai_tskid] = 1'b1;
+        end
     end
+
 
 endmodule
 

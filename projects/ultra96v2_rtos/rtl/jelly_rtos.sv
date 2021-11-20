@@ -17,7 +17,7 @@ module jelly_rtos
             parameter int   SEMAPHORES   = 4,
             parameter int   TSKPRI_WIDTH = 4,
             parameter int   SEMCNT_WIDTH = 4,
-            parameter int   EVTFLG_WIDTH = 16,
+            parameter int   FLGPTN_WIDTH = 32,
             parameter int   SYSTIM_WIDTH = 64,
             parameter int   RELTIM_WIDTH = 32,
 
@@ -65,15 +65,13 @@ module jelly_rtos
     logic                       rel_wai_valid;
     
 
-//    logic    [TASKS-1:0]         wai_flg;
-//    logic    [0:0]               wai_flgmode;
-//    logic    [EVTFLG_WIDTH-1:0]  wai_flgptn;
-
-//    logic    [EVTFLG_WIDTH-1:0]  set_flg;
-//    logic    [EVTFLG_WIDTH-1:0]  clr_flg;
-
-    logic    [TSKID_WIDTH-1:0]   runtsk_tskid;
-    logic                        runtsk_valid;
+    // event flag
+    logic   [FLGPTN_WIDTH-1:0]  set_flg;
+    logic   [FLGPTN_WIDTH-1:0]  clr_flg;
+    logic   [TSKID_WIDTH-1:0]   wai_flg_tskid;
+    logic   [0:0]               wai_flg_wfmode;
+    logic   [FLGPTN_WIDTH-1:0]  wai_flg_flgptn;
+    logic                       wai_flg_valid;
 
     jelly_rtos_core
             #(
@@ -97,7 +95,14 @@ module jelly_rtos
                 .slp_tsk_valid,
 
                 .rel_wai_tskid,
-                .rel_wai_valid
+                .rel_wai_valid,
+
+                .set_flg,
+                .clr_flg,
+                .wai_flg_tskid,
+                .wai_flg_wfmode,
+                .wai_flg_flgptn,
+                .wai_flg_valid
             );
 
 
@@ -112,9 +117,13 @@ module jelly_rtos
     localparam  int                         DECODE_OPCODE_POS = 0;
     localparam  int                         DECODE_ID_POS     = DECODE_OPCODE_POS + ID_WIDTH;
 
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_INF  = 'h00;
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WUP_TSK  = 'h00;
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SLP_TSK  = 'h01;
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_INF     = OPCODE_WIDTH'(8'h00);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WUP_TSK     = OPCODE_WIDTH'(8'h10);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SLP_TSK     = OPCODE_WIDTH'(8'h11);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SET_FLG     = OPCODE_WIDTH'(8'h31);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CLR_FLG     = OPCODE_WIDTH'(8'h32);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_FLG_AND = OPCODE_WIDTH'(8'h33);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_FLG_OR  = OPCODE_WIDTH'(8'h34);
 
     localparam  bit     [ID_WIDTH-1:0]      REF_INF_CORE_ID = 'h00;
     localparam  bit     [ID_WIDTH-1:0]      REF_INF_VERSION = 'h01;
@@ -130,17 +139,36 @@ module jelly_rtos
         s_wb_dat_o = '0;
         s_wb_ack_o = s_wb_stb_i;
         
-
         wup_tsk_tskid = 'x;
         wup_tsk_valid = '0;
         slp_tsk_tskid = 'x;
         slp_tsk_valid = '0;
         rel_wai_tskid = 'x;
         rel_wai_valid = '0;
+
+        set_flg = '0;
+        clr_flg = '1;
+
         if ( s_wb_stb_i && s_wb_we_i ) begin
             case ( dec_opcode )
-            OPCODE_WUP_TSK: begin wup_tsk_valid = 1'b1; wup_tsk_tskid = TSKID_WIDTH'(dec_id); end
-            OPCODE_SLP_TSK: begin slp_tsk_valid = 1'b1; slp_tsk_tskid = TSKID_WIDTH'(dec_id); end
+            OPCODE_WUP_TSK:     begin wup_tsk_tskid = TSKID_WIDTH'(dec_id); wup_tsk_valid = 1'b1; end
+            OPCODE_SLP_TSK:     begin slp_tsk_tskid = TSKID_WIDTH'(dec_id); slp_tsk_valid = 1'b1; end
+            OPCODE_SET_FLG:     begin set_flg = FLGPTN_WIDTH'(s_wb_dat_i); end
+            OPCODE_CLR_FLG:     begin clr_flg = FLGPTN_WIDTH'(s_wb_dat_i); end
+            OPCODE_WAI_FLG_AND:
+                begin
+                    wai_flg_flgptn = FLGPTN_WIDTH'(s_wb_dat_i);
+                    wai_flg_wfmode = 1'b0;
+                    wai_flg_tskid  = TSKID_WIDTH'(dec_id);
+                    wai_flg_valid  = 1'b1;
+                end
+            OPCODE_WAI_FLG_OR:
+                begin
+                    wai_flg_flgptn = FLGPTN_WIDTH'(s_wb_dat_i);
+                    wai_flg_wfmode = 1'b1;
+                    wai_flg_tskid  = TSKID_WIDTH'(dec_id);
+                    wai_flg_valid  = 1'b1;
+                end
             default: ;
             endcase
         end
