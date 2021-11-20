@@ -58,24 +58,26 @@ module tb_sim();
     // ----------------------------------
     
     // force connect to top-net
-    wire                            wb_rst_i = reset;
-    wire                            wb_clk_i = clk;
-    reg     [WB_ADR_WIDTH-1:0]      wb_adr_o;
-    wire    [WB_DAT_WIDTH-1:0]      wb_dat_i = s_wb_dat_o;
-    reg     [WB_DAT_WIDTH-1:0]      wb_dat_o;
-    reg                             wb_we_o;
-    reg     [WB_SEL_WIDTH-1:0]      wb_sel_o;
-    reg                             wb_stb_o = 0;
-    wire                            wb_ack_i = s_wb_ack_o;
+    logic                       wb_rst_i;
+    logic                       wb_clk_i;
+    logic   [WB_ADR_WIDTH-1:0]  wb_adr_o;
+    logic   [WB_DAT_WIDTH-1:0]  wb_dat_i;
+    logic   [WB_DAT_WIDTH-1:0]  wb_dat_o;
+    logic                       wb_we_o;
+    logic   [WB_SEL_WIDTH-1:0]  wb_sel_o;
+    logic                       wb_stb_o = 0;
+    logic                       wb_ack_i;
     
-    initial begin
-        force s_wb_adr_i = wb_adr_o;
-        force s_wb_dat_i = wb_dat_o;
-        force s_wb_we_i  = wb_we_o;
-        force s_wb_sel_i = wb_sel_o;
-        force s_wb_stb_i = wb_stb_o;
-    end
-    
+    assign wb_rst_i = reset;
+    assign wb_clk_i = clk;
+    assign wb_dat_i = s_wb_dat_o;
+    assign wb_ack_i = s_wb_ack_o;
+
+    assign s_wb_adr_i = wb_adr_o;
+    assign s_wb_dat_i = wb_dat_o;
+    assign s_wb_we_i  = wb_we_o;
+    assign s_wb_sel_i = wb_sel_o;
+    assign s_wb_stb_i = wb_stb_o;
     
     
     reg     [WB_DAT_WIDTH-1:0]      reg_wb_dat;
@@ -140,16 +142,45 @@ module tb_sim();
     // ----------------------------------
     //  Simulation
     // ----------------------------------
-    
+
+    localparam  int                         OPCODE_WIDTH      = 8;
+    localparam  int                         ID_WIDTH          = 8;
+    localparam  int                         DECODE_OPCODE_POS = 0;
+    localparam  int                         DECODE_ID_POS     = DECODE_OPCODE_POS + ID_WIDTH;
+
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_INF  = 'h00;
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WUP_TSK  = 'h00;
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SLP_TSK  = 'h01;
+
+    localparam  bit     [ID_WIDTH-1:0]      REF_INF_CORE_ID = 'h00;
+    localparam  bit     [ID_WIDTH-1:0]      REF_INF_VERSION = 'h01;
+    localparam  bit     [ID_WIDTH-1:0]      REF_INF_DATE    = 'h04;
+
+
+    function [WB_ADR_WIDTH-1:0] make_addr(bit [OPCODE_WIDTH-1:0] opcode, int id);
+    begin
+        make_addr = '0;
+        make_addr[DECODE_OPCODE_POS +: OPCODE_WIDTH] = OPCODE_WIDTH'(opcode);
+        make_addr[DECODE_ID_POS     +: ID_WIDTH]     = ID_WIDTH'(id);
+    end
+    endfunction
+
+    localparam REG_CORE_ID = 'h0000;
+    localparam REG_WUP_TSK = 'h0100;
+
     initial begin
     @(negedge wb_rst_i);
     
-    #10000;
+    #100;
         $display(" --- start --- ");
         wb_read (0);
-        wb_write(0, 1, 8'hff);
+        wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
+        wb_write(make_addr(OPCODE_WUP_TSK, 0), 0, 4'hf);
+    #10;
+        wb_write(make_addr(OPCODE_SLP_TSK, 0), 0, 4'hf);
+        wb_write(make_addr(OPCODE_SLP_TSK, 1), 0, 4'hf);
         
-    #10000;
+    #100;
         $finish();
         
     end

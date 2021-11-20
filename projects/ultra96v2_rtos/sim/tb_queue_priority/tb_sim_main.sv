@@ -60,6 +60,13 @@ module tb_sim_main
     int                         idx;
     initial begin
         idx = 0;
+        test_table[idx] = '{op: 1'b0, id: 32'h001, pri: 4'h1, valid: 1'b1, exp_count:0,  exp_top_id: 'x,      exp_top_pri: 'x  };    idx++;
+        test_table[idx] = '{op: 1'b0, id: 32'h000, pri: 4'h0, valid: 1'b1, exp_count:1,  exp_top_id: 32'h001, exp_top_pri: 4'h1};    idx++;
+        test_table[idx] = '{op: 1'b1, id: 32'h000, pri: 4'hx, valid: 1'b1, exp_count:2,  exp_top_id: 32'h000, exp_top_pri: 4'h0};    idx++;
+        test_table[idx] = '{op: 1'b1, id: 32'h001, pri: 4'hx, valid: 1'b1, exp_count:1,  exp_top_id: 32'h001, exp_top_pri: 4'h1};    idx++;
+        test_table[idx] = '{op: 1'bx, id: 'x,      pri: 'x,   valid: 1'b0, exp_count:0,  exp_top_id: 'x,      exp_top_pri: 'x  };    idx++;
+        test_table[idx] = '{op: 1'bx, id: 'x,      pri: 'x,   valid: 1'b0, exp_count:0,  exp_top_id: 'x,      exp_top_pri: 'x  };    idx++;
+
         test_table[idx] = '{op: 1'b0, id: 32'h101, pri: 4'h1, valid: 1'b1, exp_count:0,  exp_top_id: 'x,      exp_top_pri: 'x  };    idx++;
         test_table[idx] = '{op: 1'b0, id: 32'h102, pri: 4'h2, valid: 1'b1, exp_count:1,  exp_top_id: 32'h101, exp_top_pri: 4'h1};    idx++;
         test_table[idx] = '{op: 1'b0, id: 32'h103, pri: 4'h3, valid: 1'b1, exp_count:2,  exp_top_id: 32'h101, exp_top_pri: 4'h1};    idx++;

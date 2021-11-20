@@ -24,8 +24,8 @@ module tb_sim_main
         );
 
     logic       cke = 1'b1;
-
-    /*
+    logic       irq;
+    
     jelly_rtos
             #(
                 .WB_ADR_WIDTH   (WB_ADR_WIDTH),
@@ -35,7 +35,6 @@ module tb_sim_main
             (
                 .*
             );
-    */
 
 endmodule
 

@@ -16,7 +16,7 @@ module jelly_rtos_task
             parameter   int                         TSKID_WIDTH  = 4,
             parameter   int                         TSKPRI_WIDTH = 4,
             parameter   int                         SEMID_WIDTH  = 4,
-            parameter   int                         EVTFLG_WIDTH = 4,
+            parameter   int                         FLGPTN_WIDTH = 4,
             parameter   bit     [TSKID_WIDTH-1:0]   TSKID        = 0
         )
         (
@@ -26,25 +26,26 @@ module jelly_rtos_task
 
             input   wire                        wup_tsk,
             input   wire                        slp_tsk,
+            input   wire                        rel_wai,
             
             output  wire    [TSKPRI_WIDTH-1:0]  tskpri,
             output  reg                         req_rdq,
 
-            input   wire    [EVTFLG_WIDTH-1:0]  event_flag,
+            input   wire    [FLGPTN_WIDTH-1:0]  event_flag,
 
             input   wire    [0:0]               wait_event_mode,
-            input   wire    [EVTFLG_WIDTH-1:0]  wait_event_flag,
+            input   wire    [FLGPTN_WIDTH-1:0]  wait_event_flag,
             input   wire                        wait_event_valid,
 
             // monitoring
             input   wire    [TSKID_WIDTH-1:0]   rdq_add_tskid,
             input   wire                        rdq_add_valid,
 
-            input   wire    [TSKID_WIDTH-1:0]   remove_tskid,
-            input   wire                        remove_valid,
+            input   wire    [TSKID_WIDTH-1:0]   rdq_rmv_tskid,
+            input   wire                        rdq_rmv_valid,
 
-            input   wire    [TSKID_WIDTH-1:0]   wakeup_tskid,
-            input   wire                        wakeup_valid,
+            input   wire    [TSKID_WIDTH-1:0]   relwai_tskid,
+            input   wire                        relwai_valid,
 
             input   wire    [SEMID_WIDTH-1:0]   sem_wait_semid,
             input   wire    [TSKID_WIDTH-1:0]   sem_wait_tskid,
@@ -61,11 +62,12 @@ module jelly_rtos_task
     } task_status_t;
 
 
-    wire    task_remove = (remove_valid     && (remove_tskid  == TSKID));
-    wire    task_ready  = (rdq_add_valid    && (rdq_add_tskid == TSKID));
-    wire    task_waisem = (sem_wait_valid   && (rdq_add_tskid == TSKID));
-    wire    task_wakeup = (wakeup_valid     && (wakeup_tskid == TSKID));
-    wire    task_nop    = (!task_remove && !task_ready && !task_waisem && !task_wakeup);
+    wire    task_remove = (rdq_rmv_valid  && (rdq_rmv_tskid == TSKID));
+    wire    task_ready  = (rdq_add_valid  && (rdq_add_tskid == TSKID));
+    wire    task_waisem = 1'b0;//(sem_wait_valid && (rdq_add_tskid == TSKID));
+    wire    task_relwai = rel_wai; //(rel_wai_valid   && (rel_wai_tskid == TSKID));
+    wire    task_wakeup = wup_tsk;
+    wire    task_nop    = (!task_remove && !task_ready && !task_waisem && task_relwai && !task_wakeup);
 
 
     task_status_t   status, next_status;
@@ -77,11 +79,13 @@ module jelly_rtos_task
         task_remove:    begin   next_status = TS_IDLE;     end
         task_ready:     begin   next_status = TS_READY;    end
         task_waisem:    begin   next_status = TS_WAISEM;   end
+        task_relwai:    begin   next_status = TS_BUSY;     end
         task_wakeup:    begin   next_status = TS_BUSY;     end
         task_nop:       begin   end
         endcase
     end
 
+    assign tskpri = TSKID;
 
     always_ff @(posedge clk) begin
         if ( reset ) begin

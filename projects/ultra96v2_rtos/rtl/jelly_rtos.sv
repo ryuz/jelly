@@ -14,17 +14,12 @@
 module jelly_rtos
         #(
             parameter int   TASKS        = 16,
-            parameter int   SEMAPHORES   = 16,
-            parameter int   EVENTFLAGS   = 16,
+            parameter int   SEMAPHORES   = 4,
             parameter int   TSKPRI_WIDTH = 4,
             parameter int   SEMCNT_WIDTH = 4,
-            parameter int   EVTFLG_WIDTH = 4,
+            parameter int   EVTFLG_WIDTH = 16,
             parameter int   SYSTIM_WIDTH = 64,
             parameter int   RELTIM_WIDTH = 32,
-
-            parameter int   TSKID_WIDTH  = $clog2(TASKS),
-            parameter int   SEMID_WIDTH  = $clog2(SEMAPHORES),
-            parameter int   FLGID_WIDTH  = $clog2(EVENTFLAGS),
 
             parameter int   WB_ADR_WIDTH = 16,
             parameter int   WB_DAT_WIDTH = 32,
@@ -37,110 +32,130 @@ module jelly_rtos
 
             input   wire    [WB_ADR_WIDTH-1:0]  s_wb_adr_i,
             input   wire    [WB_DAT_WIDTH-1:0]  s_wb_dat_i,
-            output  wire    [WB_DAT_WIDTH-1:0]  s_wb_dat_o,
+            output  reg     [WB_DAT_WIDTH-1:0]  s_wb_dat_o,
             input   wire                        s_wb_we_i,
             input   wire    [WB_SEL_WIDTH-1:0]  s_wb_sel_i,
             input   wire                        s_wb_stb_i,
-            output  wire                        s_wb_ack_o,
+            output  reg                         s_wb_ack_o,
 
             output  wire                        irq
         );
 
 
     // -----------------------------------------
-    //  ready queue
+    //  Core
     // -----------------------------------------
 
-    logic   [0:0]               rdq_op;  // 0: add, 1: del
-    logic   [TSKID_WIDTH-1:0]   rdq_tskid;
-    logic   [TSKPRI_WIDTH-1:0]  rdq_tskpri;
-    logic                       rdq_valid;
+    localparam  int     TSKID_WIDTH  = $clog2(TASKS);
+    localparam  int     SEMID_WIDTH  = $clog2(SEMAPHORES);
 
-    logic   [TSKID_WIDTH-1:0]   top_id;
-    logic   [TSKPRI_WIDTH-1:0]  top_pri;
-    logic                       top_valid;
+    // ready queue
+    logic   [TSKID_WIDTH-1:0]   rdq_top_tskid;
+    logic   [TSKPRI_WIDTH-1:0]  rdq_top_tskpri;
+    logic                       rdq_top_valid;
 
-    jelly_priority_queue
+    // task
+    logic   [TSKID_WIDTH-1:0]   wup_tsk_tskid;
+    logic                       wup_tsk_valid;
+
+    logic   [TSKID_WIDTH-1:0]   slp_tsk_tskid;
+    logic                       slp_tsk_valid;
+
+    logic   [TSKID_WIDTH-1:0]   rel_wai_tskid;
+    logic                       rel_wai_valid;
+    
+
+//    logic    [TASKS-1:0]         wai_flg;
+//    logic    [0:0]               wai_flgmode;
+//    logic    [EVTFLG_WIDTH-1:0]  wai_flgptn;
+
+//    logic    [EVTFLG_WIDTH-1:0]  set_flg;
+//    logic    [EVTFLG_WIDTH-1:0]  clr_flg;
+
+    logic    [TSKID_WIDTH-1:0]   runtsk_tskid;
+    logic                        runtsk_valid;
+
+    jelly_rtos_core
             #(
-                .N              (TASKS),
-                .ID_WIDTH       (TSKID_WIDTH),
-                .PRI_WIDTH      (TSKPRI_WIDTH),
-                .N_WIDTH        (TSKID_WIDTH)
-            )   
-        i_ready_queue   
-            (   
-                .reset          (reset),
-                .clk            (clk),
-                .cke            (cke),
+                .TASKS          (TASKS),
+                .SEMAPHORES     (SEMAPHORES)
+            )
+        i_rtos_core
+            (
+                .reset,
+                .clk,
+                .cke,
 
-                .in_op          (rdq_op),    // 0: add, 1: del
-                .in_id          (rdq_tskid),
-                .in_pri         (rdq_tskpri),
-                .in_valid       (in_valid),
+                .rdq_top_tskid,
+                .rdq_top_tskpri,
+                .rdq_top_valid,
 
-                .top_id         (top_id),
-                .top_pri        (top_pri),
-                .top_valid      (top_valid),
+                .wup_tsk_tskid,
+                .wup_tsk_valid,
 
-                .size           ()
+                .slp_tsk_tskid,
+                .slp_tsk_valid,
+
+                .rel_wai_tskid,
+                .rel_wai_valid
             );
 
 
-    // -----------------------------------------
-    //  semaphores
-    // -----------------------------------------
-
-    logic   [SEMAPHORES-1:0][ID_WIDTH-1:0]      sem_wait_id;
-    logic   [SEMAPHORES-1:0][PRI_WIDTH-1:0]     sem_wait_pri;
-    logic                                       sem_wait_valid;
-
-    logic   [SEMAPHORES-1:0][ID_WIDTH-1:0]      sem_wakeup_id;
-    logic                                       sem_wakeup_valid;
-
-    logic   [SEMAPHORES-1:0][COUNTER_WIDTH-1:0] sem_counter;
-    logic   [SEMAPHORES-1:0][N_WIDTH-1:0]       sem_que_siz;
-
-    logic   [SEMAPHORES-1:0][WB_DAT_WIDTH-1:0]  wb_sem_dat_o;
-    logic   [SEMAPHORES-1:0]                    wb_sem_stb_i;
-    logic   [SEMAPHORES-1:0]                    wb_sem_ack_o;
-
-    generate
-    for ( genvar i = 0; i < SEMAPHORES; ++i ) begin : loop_sem
-        jelly_semaphore
-                #(
-                    .N              (TASKS),
-                    .N_WIDTH        (TSKID_WIDTH),
-                    .ID_WIDTH       (TSKID_WIDTH),
-                    .PRI_WIDTH      (TSKPRI_WIDTH),
-                    .COUNTER_WIDTH  (SEMCNT_WIDTH),
-                    .INIT_COUNTER   (0)
-                )
-            i_semaphore
-                (
-                    .reset          (reset),
-                    .clk            (clk),
-                    .cke            (cke),
-
-                    .signal         (sem_signal      [i]),
-
-                    .wait_id        (sem_wait_id     [i]),
-                    .wait_pri       (sem_wait_pri    [i]),
-                    .wait_valid     (sem_wait_valid  [i]),
-
-                    .wakeup_id      (sem_wakeup_id   [i]),
-                    .wakeup_valid   (sem_wakeup_valid[i]),
-
-                    .counter        (sem_counter     [i]),
-                    .que_size       (sem_que_size    [i])
-                );
-    end
-    endgenerate
 
     
     // -----------------------------------------
     //  Wishbone
     // -----------------------------------------
 
+    localparam  int                         OPCODE_WIDTH      = 8;
+    localparam  int                         ID_WIDTH          = 8;
+    localparam  int                         DECODE_OPCODE_POS = 0;
+    localparam  int                         DECODE_ID_POS     = DECODE_OPCODE_POS + ID_WIDTH;
+
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_INF  = 'h00;
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WUP_TSK  = 'h00;
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SLP_TSK  = 'h01;
+
+    localparam  bit     [ID_WIDTH-1:0]      REF_INF_CORE_ID = 'h00;
+    localparam  bit     [ID_WIDTH-1:0]      REF_INF_VERSION = 'h01;
+    localparam  bit     [ID_WIDTH-1:0]      REF_INF_DATE    = 'h04;
+
+    logic   [OPCODE_WIDTH-1:0]      dec_opcode;
+    logic   [ID_WIDTH-1:0]          dec_id;
+    assign  dec_opcode = s_wb_adr_i[DECODE_OPCODE_POS +: OPCODE_WIDTH];
+    assign  dec_id     = s_wb_adr_i[DECODE_ID_POS     +: ID_WIDTH];
+
+
+    always_comb begin : blk_wb
+        s_wb_dat_o = '0;
+        s_wb_ack_o = s_wb_stb_i;
+        
+
+        wup_tsk_tskid = 'x;
+        wup_tsk_valid = '0;
+        slp_tsk_tskid = 'x;
+        slp_tsk_valid = '0;
+        rel_wai_tskid = 'x;
+        rel_wai_valid = '0;
+        if ( s_wb_stb_i && s_wb_we_i ) begin
+            case ( dec_opcode )
+            OPCODE_WUP_TSK: begin wup_tsk_valid = 1'b1; wup_tsk_tskid = TSKID_WIDTH'(dec_id); end
+            OPCODE_SLP_TSK: begin slp_tsk_valid = 1'b1; slp_tsk_tskid = TSKID_WIDTH'(dec_id); end
+            default: ;
+            endcase
+        end
+
+        case ( dec_opcode )
+        OPCODE_REF_INF:
+            case ( dec_id )
+            REF_INF_CORE_ID:    s_wb_dat_o = WB_DAT_WIDTH'(32'h834f5452);
+            REF_INF_VERSION:    s_wb_dat_o = WB_DAT_WIDTH'(32'h00000000);
+            REF_INF_DATE:       s_wb_dat_o = WB_DAT_WIDTH'(32'h20211120);
+            default: ;
+            endcase
+        default:;
+        endcase
+    end
 
 
 endmodule
