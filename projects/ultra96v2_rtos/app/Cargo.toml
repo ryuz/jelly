@@ -1,0 +1,12 @@
+[package]
+name = "ultra96v2_rtos"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+pudding-pac = { git="https://github.com/ryuz/rust_rtos.git", rev = "e2c998dd88b395d2d3da6ee50a19b0023c6f3a1b" } 
+
+[build-dependencies]
+cc = "1.0.36"
