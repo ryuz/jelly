@@ -82,9 +82,8 @@ module jelly_rtos_task
             end
         end
         
-        nop_tsk = !rdy_tsk && !wup_tsk && !slp_tsk && !rel_wai && !wai_flg;
+        nop_tsk = !rel_tsk && !wup_tsk && !slp_tsk && !rel_wai && !dly_tsk && !wai_sem && !wai_flg;
         unique case ( 1'b1 )
-        rdy_tsk:    begin   next_tskstat = TS_READY;    end
         rel_tsk:    begin   next_tskstat = TS_REQRDY;   end
         wup_tsk:    begin   next_tskstat = TS_REQRDY;   end
         slp_tsk:    begin   next_tskstat = TS_SLEEP;    end
@@ -94,6 +93,8 @@ module jelly_rtos_task
         wai_flg:    begin   next_tskstat = TS_WAIFLG;   end
         nop_tsk: ;
         endcase
+
+        if ( rdy_tsk ) begin  next_tskstat = TS_READY;  end
     end
 
     always_ff @(posedge clk) begin

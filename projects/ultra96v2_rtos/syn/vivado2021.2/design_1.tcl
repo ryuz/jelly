@@ -204,16 +204,16 @@ proc create_root_design { parentCell } {
 
 
   # Create ports
-  set in_irq0 [ create_bd_port -dir I -from 0 -to 0 -type intr in_irq0 ]
-  set_property -dict [ list \
-   CONFIG.PortWidth {1} \
- ] $in_irq0
   set m_axi4l_aclk [ create_bd_port -dir O -type clk m_axi4l_aclk ]
   set_property -dict [ list \
    CONFIG.ASSOCIATED_BUSIF {m_axi4l:s_axi4_mem0:s_axi4_mem1} \
    CONFIG.ASSOCIATED_RESET {m_axi4l_aresetn} \
  ] $m_axi4l_aclk
   set m_axi4l_aresetn [ create_bd_port -dir O -from 0 -to 0 -type rst m_axi4l_aresetn ]
+  set nfiq0_lpd_rpu [ create_bd_port -dir I nfiq0_lpd_rpu ]
+  set nfiq1_lpd_rpu [ create_bd_port -dir I nfiq1_lpd_rpu ]
+  set nirq0_lpd_rpu [ create_bd_port -dir I nirq0_lpd_rpu ]
+  set nirq1_lpd_rpu [ create_bd_port -dir I nirq1_lpd_rpu ]
 
   # Create instance: axi_protocol_convert_0, and set properties
   set axi_protocol_convert_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_protocol_converter:2.1 axi_protocol_convert_0 ]
@@ -1347,28 +1347,43 @@ txd#rxd#rxd#txd#scl_out#sda_out#sclk_out#gpio0[7]#gpio0[8]#n_ss_out[0]#miso#mosi
    CONFIG.PSU__IRQ_P2F_APU_PMU__INT {0} \
    CONFIG.PSU__IRQ_P2F_APU_REGS__INT {0} \
    CONFIG.PSU__IRQ_P2F_ATB_LPD__INT {0} \
+   CONFIG.PSU__IRQ_P2F_CAN0__INT {0} \
+   CONFIG.PSU__IRQ_P2F_CAN1__INT {0} \
    CONFIG.PSU__IRQ_P2F_CLKMON__INT {0} \
    CONFIG.PSU__IRQ_P2F_CSUPMU_WDT__INT {0} \
+   CONFIG.PSU__IRQ_P2F_CSU_DMA__INT {0} \
+   CONFIG.PSU__IRQ_P2F_CSU__INT {0} \
    CONFIG.PSU__IRQ_P2F_DDR_SS__INT {0} \
    CONFIG.PSU__IRQ_P2F_DPDMA__INT {0} \
    CONFIG.PSU__IRQ_P2F_DPORT__INT {0} \
    CONFIG.PSU__IRQ_P2F_EFUSE__INT {0} \
+   CONFIG.PSU__IRQ_P2F_ENT0_WAKEUP__INT {0} \
+   CONFIG.PSU__IRQ_P2F_ENT0__INT {0} \
+   CONFIG.PSU__IRQ_P2F_ENT1_WAKEUP__INT {0} \
+   CONFIG.PSU__IRQ_P2F_ENT1__INT {0} \
+   CONFIG.PSU__IRQ_P2F_ENT2_WAKEUP__INT {0} \
+   CONFIG.PSU__IRQ_P2F_ENT2__INT {0} \
+   CONFIG.PSU__IRQ_P2F_ENT3_WAKEUP__INT {0} \
+   CONFIG.PSU__IRQ_P2F_ENT3__INT {0} \
    CONFIG.PSU__IRQ_P2F_FPD_APB__INT {0} \
    CONFIG.PSU__IRQ_P2F_FPD_ATB_ERR__INT {0} \
    CONFIG.PSU__IRQ_P2F_FP_WDT__INT {0} \
    CONFIG.PSU__IRQ_P2F_GDMA_CHAN__INT {0} \
    CONFIG.PSU__IRQ_P2F_GPIO__INT {0} \
    CONFIG.PSU__IRQ_P2F_GPU__INT {0} \
+   CONFIG.PSU__IRQ_P2F_I2C0__INT {0} \
    CONFIG.PSU__IRQ_P2F_I2C1__INT {0} \
    CONFIG.PSU__IRQ_P2F_LPD_APB__INT {0} \
    CONFIG.PSU__IRQ_P2F_LPD_APM__INT {0} \
    CONFIG.PSU__IRQ_P2F_LP_WDT__INT {0} \
+   CONFIG.PSU__IRQ_P2F_NAND__INT {0} \
    CONFIG.PSU__IRQ_P2F_OCM_ERR__INT {0} \
    CONFIG.PSU__IRQ_P2F_PCIE_DMA__INT {0} \
    CONFIG.PSU__IRQ_P2F_PCIE_LEGACY__INT {0} \
    CONFIG.PSU__IRQ_P2F_PCIE_MSC__INT {0} \
    CONFIG.PSU__IRQ_P2F_PCIE_MSI__INT {0} \
    CONFIG.PSU__IRQ_P2F_PL_IPI__INT {0} \
+   CONFIG.PSU__IRQ_P2F_QSPI__INT {0} \
    CONFIG.PSU__IRQ_P2F_R5_CORE0_ECC_ERR__INT {0} \
    CONFIG.PSU__IRQ_P2F_R5_CORE1_ECC_ERR__INT {0} \
    CONFIG.PSU__IRQ_P2F_RPU_IPI__INT {0} \
@@ -1602,6 +1617,11 @@ Port;FD4A0000;FD4AFFFF;1|FPD;DPDMA;FD4C0000;FD4CFFFF;1|FPD;DDR_XMPU5_CFG;FD05000
    CONFIG.PSU__SATA__PERIPHERAL__ENABLE {0} \
    CONFIG.PSU__SAXIGP0__DATA_WIDTH {128} \
    CONFIG.PSU__SAXIGP1__DATA_WIDTH {128} \
+   CONFIG.PSU__SAXIGP2__DATA_WIDTH {128} \
+   CONFIG.PSU__SAXIGP3__DATA_WIDTH {128} \
+   CONFIG.PSU__SAXIGP4__DATA_WIDTH {128} \
+   CONFIG.PSU__SAXIGP5__DATA_WIDTH {128} \
+   CONFIG.PSU__SAXIGP6__DATA_WIDTH {128} \
    CONFIG.PSU__SD0_COHERENCY {0} \
    CONFIG.PSU__SD0_ROUTE_THROUGH_FPD {0} \
    CONFIG.PSU__SD0__DATA_TRANSFER_MODE {4Bit} \
@@ -1649,6 +1669,7 @@ Port;FD4A0000;FD4AFFFF;1|FPD;DPDMA;FD4C0000;FD4CFFFF;1|FPD;DDR_XMPU5_CFG;FD05000
    CONFIG.PSU__TCM1A__POWER__ON {1} \
    CONFIG.PSU__TCM1B__POWER__ON {1} \
    CONFIG.PSU__TESTSCAN__PERIPHERAL__ENABLE {0} \
+   CONFIG.PSU__TRACE_PIPELINE_WIDTH {8} \
    CONFIG.PSU__TRACE__INTERNAL_WIDTH {32} \
    CONFIG.PSU__TRACE__PERIPHERAL__ENABLE {0} \
    CONFIG.PSU__TRISTATE__INVERTED {1} \
@@ -1700,6 +1721,13 @@ Port;FD4A0000;FD4AFFFF;1|FPD;DPDMA;FD4C0000;FD4CFFFF;1|FPD;DDR_XMPU5_CFG;FD05000
    CONFIG.PSU__USB3_1__PERIPHERAL__IO {GT Lane3} \
    CONFIG.PSU__USB__RESET__MODE {Boot Pin} \
    CONFIG.PSU__USB__RESET__POLARITY {Active Low} \
+   CONFIG.PSU__USE_DIFF_RW_CLK_GP0 {0} \
+   CONFIG.PSU__USE_DIFF_RW_CLK_GP1 {0} \
+   CONFIG.PSU__USE_DIFF_RW_CLK_GP2 {0} \
+   CONFIG.PSU__USE_DIFF_RW_CLK_GP3 {0} \
+   CONFIG.PSU__USE_DIFF_RW_CLK_GP4 {0} \
+   CONFIG.PSU__USE_DIFF_RW_CLK_GP5 {0} \
+   CONFIG.PSU__USE_DIFF_RW_CLK_GP6 {0} \
    CONFIG.PSU__USE__ADMA {0} \
    CONFIG.PSU__USE__APU_LEGACY_INTERRUPT {0} \
    CONFIG.PSU__USE__AUDIO {0} \
@@ -1716,13 +1744,13 @@ Port;FD4A0000;FD4AFFFF;1|FPD;DPDMA;FD4C0000;FD4CFFFF;1|FPD;DDR_XMPU5_CFG;FD05000
    CONFIG.PSU__USE__FTM {0} \
    CONFIG.PSU__USE__GDMA {0} \
    CONFIG.PSU__USE__IRQ {0} \
-   CONFIG.PSU__USE__IRQ0 {1} \
+   CONFIG.PSU__USE__IRQ0 {0} \
    CONFIG.PSU__USE__IRQ1 {0} \
    CONFIG.PSU__USE__M_AXI_GP0 {0} \
    CONFIG.PSU__USE__M_AXI_GP1 {0} \
    CONFIG.PSU__USE__M_AXI_GP2 {1} \
    CONFIG.PSU__USE__PROC_EVENT_BUS {0} \
-   CONFIG.PSU__USE__RPU_LEGACY_INTERRUPT {0} \
+   CONFIG.PSU__USE__RPU_LEGACY_INTERRUPT {1} \
    CONFIG.PSU__USE__RST0 {0} \
    CONFIG.PSU__USE__RST1 {0} \
    CONFIG.PSU__USE__RST2 {0} \
@@ -1762,6 +1790,7 @@ Port;FD4A0000;FD4AFFFF;1|FPD;DPDMA;FD4C0000;FD4CFFFF;1|FPD;DDR_XMPU5_CFG;FD05000
    CONFIG.UART1_BOARD_INTERFACE {custom} \
    CONFIG.USB0_BOARD_INTERFACE {custom} \
    CONFIG.USB1_BOARD_INTERFACE {custom} \
+   CONFIG.preset {None} \
  ] $zynq_ultra_ps_e_0
 
   # Create interface connections
@@ -1769,7 +1798,10 @@ Port;FD4A0000;FD4AFFFF;1|FPD;DPDMA;FD4C0000;FD4CFFFF;1|FPD;DDR_XMPU5_CFG;FD05000
   connect_bd_intf_net -intf_net zynq_ultra_ps_e_0_M_AXI_HPM0_LPD [get_bd_intf_pins axi_protocol_convert_0/S_AXI] [get_bd_intf_pins zynq_ultra_ps_e_0/M_AXI_HPM0_LPD]
 
   # Create port connections
-  connect_bd_net -net pl_ps_irq0_0_1 [get_bd_ports in_irq0] [get_bd_pins zynq_ultra_ps_e_0/pl_ps_irq0]
+  connect_bd_net -net nfiq0_lpd_rpu_0_1 [get_bd_ports nfiq0_lpd_rpu] [get_bd_pins zynq_ultra_ps_e_0/nfiq0_lpd_rpu]
+  connect_bd_net -net nfiq1_lpd_rpu_0_1 [get_bd_ports nfiq1_lpd_rpu] [get_bd_pins zynq_ultra_ps_e_0/nfiq1_lpd_rpu]
+  connect_bd_net -net nirq0_lpd_rpu_0_1 [get_bd_ports nirq0_lpd_rpu] [get_bd_pins zynq_ultra_ps_e_0/nirq0_lpd_rpu]
+  connect_bd_net -net nirq1_lpd_rpu_0_1 [get_bd_ports nirq1_lpd_rpu] [get_bd_pins zynq_ultra_ps_e_0/nirq1_lpd_rpu]
   connect_bd_net -net proc_sys_reset_0_interconnect_aresetn [get_bd_pins axi_protocol_convert_0/aresetn] [get_bd_pins proc_sys_reset_0/interconnect_aresetn]
   connect_bd_net -net proc_sys_reset_0_peripheral_aresetn [get_bd_ports m_axi4l_aresetn] [get_bd_pins proc_sys_reset_0/peripheral_aresetn]
   connect_bd_net -net zynq_ultra_ps_e_0_pl_clk0 [get_bd_ports m_axi4l_aclk] [get_bd_pins axi_protocol_convert_0/aclk] [get_bd_pins proc_sys_reset_0/slowest_sync_clk] [get_bd_pins zynq_ultra_ps_e_0/maxihpm0_lpd_aclk] [get_bd_pins zynq_ultra_ps_e_0/pl_clk0]

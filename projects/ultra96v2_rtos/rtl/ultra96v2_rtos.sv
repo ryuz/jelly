@@ -34,23 +34,23 @@ module ultra96v2_rtos
     logic   [2:0]                   axi4l_awprot;
     logic                           axi4l_awvalid;
     logic                           axi4l_awready;
-    logic   [AXI4L_DATA_SIZE-1:0]   axi4l_wdata;
+    logic   [AXI4L_DATA_WIDTH-1:0]  axi4l_wdata;
     logic   [AXI4L_STRB_WIDTH-1:0]  axi4l_wstrb;
     logic                           axi4l_wvalid;
     logic                           axi4l_wready;
     logic   [1:0]                   axi4l_bresp;
     logic                           axi4l_bvalid;
     logic                           axi4l_bready;
-    logic  [AXI4L_ADDR_WIDTH-1:0]   axi4l_araddr;
+    logic   [AXI4L_ADDR_WIDTH-1:0]  axi4l_araddr;
     logic   [2:0]                   axi4l_arprot;
     logic                           axi4l_arvalid;
     logic                           axi4l_arready;
-    logic   [AXI4L_DATA_SIZE-1:0]   axi4l_rdata;
+    logic   [AXI4L_DATA_WIDTH-1:0]  axi4l_rdata;
     logic   [1:0]                   axi4l_rresp;
     logic                           axi4l_rvalid;
     logic                           axi4l_rready;
     
-    logic   [0:0]                   irq0;
+    logic   [0:0]                   irq_rtos;
     
     design_1
         i_design_1
@@ -77,7 +77,10 @@ module ultra96v2_rtos
                 .m_axi4l_rvalid     (axi4l_rvalid),
                 .m_axi4l_rready     (axi4l_rready),
                 
-                .in_irq0            (irq0)
+                .nfiq0_lpd_rpu      (1'b1),
+                .nirq0_lpd_rpu      (~irq_rtos),
+                .nfiq1_lpd_rpu      (1'b1),
+                .nirq1_lpd_rpu      (1'b1)
             );
     
     
@@ -177,7 +180,7 @@ module ultra96v2_rtos
                 .s_wb_stb_i         (wb_rtos_stb_i),
                 .s_wb_ack_o         (wb_rtos_ack_o),
                 
-                .irq                (irq0)
+                .irq                (irq_rtos)
             );
     
     

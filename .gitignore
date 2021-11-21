@@ -142,7 +142,8 @@ kernel_id.h
 *.elf
 
 # ローカル便利ツール除外
-copy_bit.bat
+copy_bit.*
+bit_copy.*
 
 *.bak
 *_
