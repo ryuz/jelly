@@ -145,7 +145,8 @@ module jelly_rtos
     localparam  int                         DECODE_ID_POS     = DECODE_OPCODE_POS + OPCODE_WIDTH;
 
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_INF     = OPCODE_WIDTH'(8'h00);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CPU_STS     = OPCODE_WIDTH'(8'h01);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CFG_CTL     = OPCODE_WIDTH'(8'h01);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CPU_STS     = OPCODE_WIDTH'(8'h02);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WUP_TSK     = OPCODE_WIDTH'(8'h10);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SLP_TSK     = OPCODE_WIDTH'(8'h11);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_DLY_TSK     = OPCODE_WIDTH'(8'h18);
@@ -160,6 +161,9 @@ module jelly_rtos
     localparam  bit     [ID_WIDTH-1:0]      REF_INF_VERSION = 'h01;
     localparam  bit     [ID_WIDTH-1:0]      REF_INF_DATE    = 'h04;
 
+    localparam  bit     [ID_WIDTH-1:0]      CFG_CTL_IRQ_EN  = 'h00;
+    localparam  bit     [ID_WIDTH-1:0]      CFG_CTL_IRQ_STS = 'h01;
+
     localparam  bit     [ID_WIDTH-1:0]      CPU_STS_TASKID  = 'h00;
     localparam  bit     [ID_WIDTH-1:0]      CPU_STS_VALID   = 'h01;
 
@@ -167,6 +171,8 @@ module jelly_rtos
     logic   [ID_WIDTH-1:0]          dec_id;
     assign  dec_opcode = s_wb_adr_i[DECODE_OPCODE_POS +: OPCODE_WIDTH];
     assign  dec_id     = s_wb_adr_i[DECODE_ID_POS     +: ID_WIDTH];
+
+    logic   [0:0]                   irq_enable;
 
     logic   [TSKID_WIDTH-1:0]       cpu_tskid;
     logic                           cpu_valid;
@@ -229,6 +235,13 @@ module jelly_rtos
         end
 
         case ( dec_opcode )
+        OPCODE_CFG_CTL:
+            case ( dec_id )
+            CFG_CTL_IRQ_EN:     s_wb_dat_o = WB_DAT_WIDTH'(irq_enable);
+            CFG_CTL_IRQ_STS:    s_wb_dat_o = WB_DAT_WIDTH'(irq);
+            default: ;
+            endcase
+        
         OPCODE_REF_INF:
             case ( dec_id )
             REF_INF_CORE_ID:    s_wb_dat_o = WB_DAT_WIDTH'(32'h834f5452);
@@ -242,12 +255,19 @@ module jelly_rtos
 
     always_ff @(posedge clk) begin
         if ( reset ) begin
-            cpu_tskid <= '0;
-            cpu_valid <= '0;
+            irq_enable <= '0;
+            cpu_tskid  <= '0;
+            cpu_valid  <= '0;
         end
         else if ( cke ) begin
-            if ( s_wb_stb_i && s_wb_we_i ) begin
+            if ( s_wb_stb_i && s_wb_we_i && &s_wb_sel_i ) begin
                 case ( dec_opcode )
+                OPCODE_CFG_CTL:
+                    case ( dec_id )
+                    CFG_CTL_IRQ_EN: begin irq_enable <= 1'(s_wb_dat_i); end
+                    default: ;
+                    endcase
+ 
                 OPCODE_CPU_STS:
                     case ( dec_id )
                     CPU_STS_TASKID: begin cpu_tskid <= TSKID_WIDTH'(s_wb_dat_i); cpu_valid <= 1'b1; end
