@@ -25,7 +25,16 @@ pub unsafe extern "C" fn bootstrap() {
         MpuAc::AP_FULL | MpuAc::WRITE_BACK_ALLOC,
     );
 
-    // PL(FPD0)
+    // PL(HPM0_LPD)
+    region_num += 1;
+    set_mpu_data_region(
+        region_num,
+        0x80000000,
+        MpuSize::SIZE_2G,
+        MpuAc::AP_FULL | MpuAc::NO_CACHEABLE,
+    );
+    
+    // PL(HPM1_FPD)
     region_num += 1;
     set_mpu_data_region(
         region_num,
@@ -34,7 +43,7 @@ pub unsafe extern "C" fn bootstrap() {
         MpuAc::AP_FULL | MpuAc::NO_CACHEABLE,
     );
 
-    // PL(FPD1)
+    // PL(HPM1_FPD)
     region_num += 1;
     set_mpu_data_region(
         region_num,
@@ -43,7 +52,6 @@ pub unsafe extern "C" fn bootstrap() {
         MpuAc::AP_FULL | MpuAc::NO_CACHEABLE,
     );
 
-    // PL(FPD0)
     region_num += 1;
     set_mpu_data_region(
         region_num,

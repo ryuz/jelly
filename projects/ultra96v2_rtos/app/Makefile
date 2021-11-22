@@ -29,7 +29,10 @@ clean:
 	rm -rf $(DTBO_FILE) $(BIN_FILE)
 
 .PHONY: run
-run: stop build load
+run: build load run_rpu
+
+.PHONY: run_rpu
+run_rpu: stop
 	@sudo cp $(EXE_FILE) /lib/firmware
 	@sudo sh -c "echo $(PRJ_NAME) > /sys/class/remoteproc/$(RUN_PROC)/firmware"
 	@sudo sh -c "echo start > /sys/class/remoteproc/$(RUN_PROC)/state"
