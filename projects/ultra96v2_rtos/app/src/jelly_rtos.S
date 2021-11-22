@@ -19,8 +19,8 @@
 #define F_Bit           0x40
 #define T_Bit           0x20
 
-#define TOP_TSKID       0x00100
-#define RUN_TSKID       0x00104
+#define TOP_TSKID       (0x00100*4)
+#define RUN_TSKID       (0x00104*4)
 
 
                 .extern     JELLY_RTOS_CORE_BASE
@@ -46,7 +46,7 @@ jelly_create_context:
                 str		r1, [r0, #(12*4)]   /* lr 部分にentryを設定 */
                 bx		lr                  /* リターン */
 
-
+                .extern my_putc
 
 /************************************************
   IRQハンドラ
@@ -55,13 +55,23 @@ jelly_create_context:
                 .global     jelly_irq_handler
                 .align  4
                 .code   32
-irq_handlerX:   
+jelly_irq_handler:   
                 /* コンテキスト退避 */
                 mov     r13, r0
                 msr     cpsr_c, #(Mode_SYS | F_Bit | I_Bit)
                 mov     r0, r13
                 msr     cpsr_c, #(Mode_IRQ | F_Bit | I_Bit)
                 stmfd	r0!, {r1-r14}
+                
+                ldr     r1, =0xff010030
+                ldr     r2, ='%'
+                str     r2, [r1]
+//dbg_loop:
+//                b       dbg_loop
+
+//                ldr     r1, =0x80000440
+//               ldr     r2, =0 
+//                str     r2, [r1]
 
                 /* 実行中タスクID取得 */
                 ldr     r1, =JELLY_RTOS_RUN_TSKID
