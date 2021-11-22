@@ -120,18 +120,18 @@ module jelly_rtos_core
 
     (* mark_debug="true" *) logic   [TASKS-1:0]                     task_req_rdy;
 
-    (* mark_debug="true" *) logic   [TASKS-1:0]                     task_rel_tsk;
+    (* mark_debug="true" *) logic   [TASKS-1:0]                     task_rel_tsk = '0;
 
-    (* mark_debug="true" *) logic   [TASKS-1:0]                     task_rdy_tsk;
-    (* mark_debug="true" *) logic   [TASKS-1:0]                     task_wup_tsk;
-    (* mark_debug="true" *) logic   [TASKS-1:0]                     task_slp_tsk;
-    (* mark_debug="true" *) logic   [TASKS-1:0]                     task_rel_wai;
+    (* mark_debug="true" *) logic   [TASKS-1:0]                     task_rdy_tsk = '0;
+    (* mark_debug="true" *) logic   [TASKS-1:0]                     task_wup_tsk = '0;
+    (* mark_debug="true" *) logic   [TASKS-1:0]                     task_slp_tsk = '0;
+    (* mark_debug="true" *) logic   [TASKS-1:0]                     task_rel_wai = '0;
 
-    (* mark_debug="true" *) logic   [TASKS-1:0]                     task_dly_tsk;
+    (* mark_debug="true" *) logic   [TASKS-1:0]                     task_dly_tsk = '0;
                             logic   [RELTIM_WIDTH-1:0]              task_dly_tsk_dlytim;
 
-    (* mark_debug="true" *) logic   [TASKS-1:0]                     task_wai_sem;
-    (* mark_debug="true" *) logic   [TASKS-1:0]                     task_wai_flg;
+    (* mark_debug="true" *) logic   [TASKS-1:0]                     task_wai_sem = '0;
+    (* mark_debug="true" *) logic   [TASKS-1:0]                     task_wai_flg = '0;
 
     generate
     for ( genvar i = 0; i < TASKS; ++i ) begin : loop_tsk
@@ -179,11 +179,11 @@ module jelly_rtos_core
     //  semaphores
     // -----------------------------------------
 
-    logic   [SEMAPHORES-1:0]                        semaphore_sig_sem_valid;
+    logic   [SEMAPHORES-1:0]                        semaphore_sig_sem_valid = '0;
 
     logic   [TSKID_WIDTH-1:0]                       semaphore_wai_sem_tskid;
     logic   [TSKPRI_WIDTH-1:0]                      semaphore_wai_sem_tskpri;
-    logic   [SEMAPHORES-1:0]                        semaphore_wai_sem_valid;
+    logic   [SEMAPHORES-1:0]                        semaphore_wai_sem_valid = '0;
 
     logic   [SEMAPHORES-1:0][TSKID_WIDTH-1:0]       semaphore_wakeup_tskid;
     logic   [SEMAPHORES-1:0]                        semaphore_wakeup_valid;
@@ -300,6 +300,8 @@ module jelly_rtos_core
         if ( dly_tsk_valid ) begin
             task_dly_tsk[dly_tsk_tskid] = 1'b1;
             task_dly_tsk_dlytim         = dly_tsk_dlytim;
+            rdq_rmv_tskid = dly_tsk_tskid;
+            rdq_rmv_valid = 1'b1;
         end
 
         // sig_sem

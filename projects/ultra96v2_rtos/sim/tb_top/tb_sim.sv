@@ -169,12 +169,12 @@ module tb_sim();
     localparam  bit     [ID_WIDTH-1:0]      REF_CFG_VERSION = 'h01;
     localparam  bit     [ID_WIDTH-1:0]      REF_CFG_DATE    = 'h04;
 
-    localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_TOP_TSKID  = 'h00;
-    localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_TOP_VALID  = 'h01;
-    localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_RUN_TSKID  = 'h04;
-    localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_RUN_VALID  = 'h05;
-    localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_IRQ_EN     = 'h10;
-    localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_IRQ_STS    = 'h11;
+    localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_TOP_TSKID = 'h00;
+    localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_TOP_VALID = 'h01;
+    localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_RUN_TSKID = 'h04;
+    localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_RUN_VALID = 'h05;
+    localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_IRQ_EN    = 'h10;
+    localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_IRQ_STS   = 'h11;
 
 
     function [WB_ADR_WIDTH-1:0] make_addr(bit [OPCODE_WIDTH-1:0] opcode, int id);
@@ -188,69 +188,89 @@ module tb_sim();
     localparam REG_CORE_ID = 'h0000;
     localparam REG_WUP_TSK = 'h0100;
 
+    task read_status();
+    begin
+        $display("=========================");
+        $display("[status]");
+        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_TOP_TSKID)));
+        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_TOP_VALID)));
+        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_RUN_TSKID)));
+        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_RUN_VALID)));
+        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_IRQ_EN)));
+        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_IRQ_STS)));
+        $display("=========================");
+    end
+    endtask
+
+    task swtich_task();
+    begin
+        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_TOP_TSKID)));
+        wb_write(make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_RUN_TSKID)), reg_wb_dat, 4'hf);
+    end
+    endtask
+
+    int test_no = 0;
+
     initial begin
     @(negedge wb_rst_i);
     
     #100;
-        $display(" --- start --- ");
+        test_no = 1;
+        read_status();
+        $display(" --- initialize --- ");
         wb_read (0);
-        $display("set run tskid");
-        wb_write(make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_RUN_TSKID)), 0, 4'hf);
-
-        $display("irq status");
-        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_IRQ_EN)));
-        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_IRQ_STS)));
-        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_TOP_TSKID)));
-        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_TOP_VALID)));
-    #100;
+        wb_write(make_addr(OPCODE_WUP_TSK, 15), 0, 4'hf);
+        wb_write(make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_RUN_TSKID)), 15, 4'hf);
         $display("irq en");
         wb_write(make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_IRQ_EN)), 1, 4'hf);
+        read_status();
 
-        $display("irq status");
-        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_IRQ_EN)));
-        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_IRQ_STS)));
-        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_TOP_TSKID)));
-        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_TOP_VALID)));
-
+    #100;
+        test_no = 2;
+        $display(" --- wake up task --- ");
         $display("wup_tsk 1");
         wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
-    #100;
-        $display("irq status");
-        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_IRQ_EN)));
-        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_IRQ_STS)));
-        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_TOP_TSKID)));
-        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_TOP_VALID)));
-
-        $display("irq dis");
-        wb_write(make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_IRQ_EN)), 0, 4'hf);
-    #100;
-    #10;
-        $display("wup_tsk 0");
-        wb_write(make_addr(OPCODE_WUP_TSK, 0), 0, 4'hf);
-        $display("slp_tsk 0");
-        wb_write(make_addr(OPCODE_SLP_TSK, 0), 0, 4'hf);
-        $display("slp_tsk 1");
-        wb_write(make_addr(OPCODE_SLP_TSK, 1), 0, 4'hf);
+        swtich_task();
+        read_status();
 
         $display("wup_tsk 0");
         wb_write(make_addr(OPCODE_WUP_TSK, 0), 0, 4'hf);
-        $display("wup_tsk 1");
-        wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
-        $display("dly_tsk 1 10");
-        wb_write(make_addr(OPCODE_DLY_TSK, 1), 10, 4'hf);
-    #500;
+        swtich_task();
+
         $display("slp_tsk 0");
         wb_write(make_addr(OPCODE_SLP_TSK, 0), 0, 4'hf);
+        swtich_task();
+
         $display("slp_tsk 1");
         wb_write(make_addr(OPCODE_SLP_TSK, 1), 0, 4'hf);
+        swtich_task();
+
+    #100;
+        test_no = 3;
+        $display(" --- delay task --- ");
+
+        $display("wup_tsk 1");
+        wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
+        swtich_task();
+
+        $display("dly_tsk 10");
+        wb_write(make_addr(OPCODE_DLY_TSK, 1), 30, 4'hf);
+        swtich_task();
+    #300;
+        swtich_task();
+    #300;
+
+        $display("slp_tsk 1");
+        wb_write(make_addr(OPCODE_SLP_TSK, 1), 0, 4'hf);
+        swtich_task();
 
     #200;
+        test_no = 4;
+        $display(" --- delay task --- ");
         $display("wup_tsk 1");
         wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
         $display("wup_tsk 0");
         wb_write(make_addr(OPCODE_WUP_TSK, 0), 0, 4'hf);
-        $display("wup_tsk 3");
-        wb_write(make_addr(OPCODE_WUP_TSK, 3), 0, 4'hf);
     #20;
         wb_write(make_addr(OPCODE_WAI_FLG_AND, 0), 5, 4'hf);
     #10;
