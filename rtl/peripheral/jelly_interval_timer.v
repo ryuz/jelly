@@ -79,8 +79,8 @@ module jelly_interval_timer
             if ( compare_match | reg_clear ) begin
                 reg_counter <= 0;
             end
-            else begin
-                reg_counter <= reg_counter + reg_enable;
+            else if ( reg_enable ) begin
+                reg_counter <= reg_counter + 1'b1;
             end
             
             // interrupt
@@ -100,10 +100,10 @@ module jelly_interval_timer
     
     always @* begin
         case ( s_wb_adr_i )
-        INTERVAL_TIMER_ADR_CONTROL: begin   s_wb_dat_o <= {interrupt_req, reg_clear, reg_enable};  end
-        INTERVAL_TIMER_ADR_COMPARE: begin   s_wb_dat_o <= reg_compare;                             end
-        INTERVAL_TIMER_ADR_COUNTER: begin   s_wb_dat_o <= reg_counter;                             end
-        default:                    begin   s_wb_dat_o <= {WB_DAT_WIDTH{1'b0}};                    end
+        INTERVAL_TIMER_ADR_CONTROL: begin   s_wb_dat_o = {29'd0, interrupt_req, reg_clear, reg_enable};  end
+        INTERVAL_TIMER_ADR_COMPARE: begin   s_wb_dat_o = reg_compare;                             end
+        INTERVAL_TIMER_ADR_COUNTER: begin   s_wb_dat_o = reg_counter;                             end
+        default:                    begin   s_wb_dat_o = {WB_DAT_WIDTH{1'b0}};                    end
         endcase
     end
     
