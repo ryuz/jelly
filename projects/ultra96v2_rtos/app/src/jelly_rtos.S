@@ -42,8 +42,9 @@
                 .thumb_func
                 .type	jelly_create_context, %function
 jelly_create_context:
-                sub		r0, #(13*4)         /* スタックを確保 */
-                str		r1, [r0, #(12*4)]   /* lr 部分にentryを設定 */
+                sub		r0, #(14*4)         /* スタックを確保 */
+                add     r1, #4              /* IRQ用に補正 */
+                str		r1, [r0, #(13*4)]   /* lr 部分にentryを設定 */
                 bx		lr                  /* リターン */
 
                 .extern my_putc
@@ -58,20 +59,10 @@ jelly_create_context:
 jelly_irq_handler:   
                 /* コンテキスト退避 */
                 mov     r13, r0
-                msr     cpsr_c, #(Mode_SYS | F_Bit | I_Bit)
+                msr     cpsr_c, #(Mode_SYS | I_Bit)
                 mov     r0, r13
-                msr     cpsr_c, #(Mode_IRQ | F_Bit | I_Bit)
+                msr     cpsr_c, #(Mode_IRQ | I_Bit)
                 stmfd	r0!, {r1-r14}
-                
-                ldr     r1, =0xff010030
-                ldr     r2, ='%'
-                str     r2, [r1]
-//dbg_loop:
-//                b       dbg_loop
-
-//                ldr     r1, =0x80000440
-//               ldr     r2, =0 
-//                str     r2, [r1]
 
                 /* 実行中タスクID取得 */
                 ldr     r1, =JELLY_RTOS_RUN_TSKID
@@ -97,6 +88,7 @@ jelly_irq_handler:
                 mov     r13, r0
                 msr     cpsr_c, #(Mode_IRQ | F_Bit | I_Bit)
                 mov     r0, r13
+                
                 subs	pc, lr, #4 
 
                 .end

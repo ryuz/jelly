@@ -13,6 +13,7 @@
                 .global _abt_handler
                 .global _irq_handler
                 .global _fiq_handler
+                .extern jelly_irq_handler
 
                 .text
                 .align  2
@@ -38,7 +39,7 @@ adr_pre_hdr:
 adr_abt_hdr:
                 .long   _abt_handler
 adr_irq_hdr:
-                .long   _irq_handler
+                .long   jelly_irq_handler  // _irq_handler
 adr_fiq_hdr:
                 .long   _fiq_handler
 

@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 pub fn memdump(addr: usize, len: usize) {
+    return;
     unsafe {
         for offset in 0..len {
             if offset % 4 == 0 {

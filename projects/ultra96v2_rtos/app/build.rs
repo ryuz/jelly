@@ -3,7 +3,11 @@ use std::{env, error::Error, fs::File, io::Write, path::PathBuf};
 
 fn main() -> Result<(), Box<dyn Error>> {
     // ソースファイル
-    let src_files = vec![["src/vectors.S", "vectors"], ["src/startup.S", "startup"], ["src/jelly_rtos.S", "jelly_rtos"]];
+    let src_files = vec![
+        ["src/vectors.S", "vectors"],
+        ["src/startup.S", "startup"],
+        ["src/jelly_rtos.S", "jelly_rtos"],
+    ];
 
     for name in src_files.into_iter() {
         Build::new()

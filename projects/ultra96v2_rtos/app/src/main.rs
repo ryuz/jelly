@@ -2,20 +2,19 @@
 #![no_main]
 #![feature(asm)]
 
-use core::ptr;
 use core::panic::PanicInfo;
+use core::ptr;
 
 use pudding_pac::arm::cpu;
 mod bootstrap;
 mod rtos;
 
 #[macro_use]
-mod uart;
+pub mod uart;
 use uart::*;
 
 mod memdump;
 mod timer;
-
 
 #[panic_handler]
 fn panic(_panic: &PanicInfo<'_>) -> ! {
@@ -23,28 +22,28 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
     loop {}
 }
 
-
 static mut STACK0: [u8; 4096] = [0; 4096];
 static mut STACK1: [u8; 4096] = [0; 4096];
 
-
 fn write_reg(reg: usize, data: u32) {
-    let addr : usize = 0x80000000 + reg * 4;
-    unsafe { ptr::write_volatile(addr as *mut u32, data); }
+    let addr: usize = 0x80000000 + reg * 4;
+    unsafe {
+        ptr::write_volatile(addr as *mut u32, data);
+    }
 }
 
-extern "C" fn task0() -> !
-{
+extern "C" fn task0() -> ! {
     println!("Task0");
+    println!("slp_tsk(0)");
     rtos::slp_tsk(-1);
-    loop{}
+    loop {}
 }
 
-extern "C" fn task1() -> !
-{
+extern "C" fn task1() -> ! {
     println!("Task1");
+    println!("slp_tsk(1)");
     rtos::slp_tsk(-1);
-    loop{}
+    loop {}
 }
 
 // main
@@ -54,47 +53,70 @@ pub unsafe extern "C" fn main() -> ! {
     println!("Hello world!");
     wait(10000);
 
+    memdump::memdump(0x80000000 + (0x0100 << 2), 4);
+    memdump::memdump(0x80000000 + (0x0104 << 2), 4);
+    memdump::memdump(0x80000000 + (0x0110 << 2), 4);
+
     rtos::initialize();
+
+    memdump::memdump(0x80000000 + (0x0100 << 2), 4);
+    memdump::memdump(0x80000000 + (0x0104 << 2), 4);
+    memdump::memdump(0x80000000 + (0x0110 << 2), 4);
+
+    cpu::irq_enable();
+//    cpu::irq_disable();
 
     rtos::cre_tsk(0, &mut STACK0, task0);
     rtos::cre_tsk(1, &mut STACK1, task1);
 
+    memdump::memdump(0x80000000 + (0x0100 << 2), 4);
+    memdump::memdump(0x80000000 + (0x0104 << 2), 4);
+    memdump::memdump(0x80000000 + (0x0110 << 2), 4);
+
+    println!("wup_tsk(1)");
     rtos::wup_tsk(1);
+
+    memdump::memdump(0x80000000 + (0x0100 << 2), 4);
+    memdump::memdump(0x80000000 + (0x0104 << 2), 4);
+    memdump::memdump(0x80000000 + (0x0110 << 2), 4);
+
+    println!("wup_tsk(0)");
     rtos::wup_tsk(0);
 
+    memdump::memdump(0x80000000 + (0x0100 << 2), 4);
+    memdump::memdump(0x80000000 + (0x0104 << 2), 4);
+    memdump::memdump(0x80000000 + (0x0110 << 2), 4);
 
     memdump::memdump(0x80000000, 4);
-//  memdump::memdump(0x80000400, 4);
+    //  memdump::memdump(0x80000400, 4);
 
-    cpu::irq_enable();
-    
     /*
-    write_reg(0x0104, 0);
-    memdump::memdump(0x80000000 + (0x110 << 2), 4);
-    memdump::memdump(0x80000000 + (0x100 << 2), 4);
+        write_reg(0x0104, 0);
+        memdump::memdump(0x80000000 + (0x110 << 2), 4);
+        memdump::memdump(0x80000000 + (0x100 << 2), 4);
 
-    write_reg(0x0110, 1); // en
-    memdump::memdump(0x80000000 + (0x110 << 2), 4);
-    memdump::memdump(0x80000000 + (0x100 << 2), 4);
+        write_reg(0x0110, 1); // en
+        memdump::memdump(0x80000000 + (0x110 << 2), 4);
+        memdump::memdump(0x80000000 + (0x100 << 2), 4);
 
-    println!("wup_tsk_start");
-    write_reg(0x1001, 0);
-    println!("wup_tsk_end");
-//  wait(1000000);
-    memdump::memdump(0x80000000 + (0x110 << 2), 4);
-    memdump::memdump(0x80000000 + (0x100 << 2), 4);
+        println!("wup_tsk_start");
+        write_reg(0x1001, 0);
+        println!("wup_tsk_end");
+    //  wait(1000000);
+        memdump::memdump(0x80000000 + (0x110 << 2), 4);
+        memdump::memdump(0x80000000 + (0x100 << 2), 4);
 
-//  write_reg(0x1000, 0);
-//  write_reg(0x1100, 0);
-    write_reg(0x1101, 0);
-    memdump::memdump(0x80000000 + (0x110 << 2), 4);
-    memdump::memdump(0x80000000 + (0x100 << 2), 4);
-    write_reg(0x0110, 0); // irq dis
-    memdump::memdump(0x80000000 + (0x110 << 2), 4);
-    memdump::memdump(0x80000000 + (0x100 << 2), 4);
-    */
+    //  write_reg(0x1000, 0);
+    //  write_reg(0x1100, 0);
+        write_reg(0x1101, 0);
+        memdump::memdump(0x80000000 + (0x110 << 2), 4);
+        memdump::memdump(0x80000000 + (0x100 << 2), 4);
+        write_reg(0x0110, 0); // irq dis
+        memdump::memdump(0x80000000 + (0x110 << 2), 4);
+        memdump::memdump(0x80000000 + (0x100 << 2), 4);
+        */
 
-    println!("\n\nend");
+    println!("\nend");
     loop {
         wait(1000000);
     }
@@ -123,4 +145,3 @@ pub unsafe extern "C" fn irq_handler() {
         }
     }
 }
-

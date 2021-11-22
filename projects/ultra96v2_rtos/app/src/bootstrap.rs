@@ -33,7 +33,7 @@ pub unsafe extern "C" fn bootstrap() {
         MpuSize::SIZE_2G,
         MpuAc::AP_FULL | MpuAc::NO_CACHEABLE,
     );
-    
+
     // PL(HPM1_FPD)
     region_num += 1;
     set_mpu_data_region(
