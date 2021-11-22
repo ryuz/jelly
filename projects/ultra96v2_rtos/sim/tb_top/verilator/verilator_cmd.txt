@@ -8,6 +8,7 @@
 #-Wno-UNOPTFLAT
 #-Wno-UNOPTTHREADS
 
+-y ../../stub
 -y ../../../rtl
 -y ../../../../../rtl/model
 -y ../../../../../rtl/library
@@ -16,3 +17,4 @@
 -y ../../../../../rtl/model
 -y ../../../../../rtl/video
 -y ../../../../../rtl/math
+-y ../../../../../rtl/peripheral

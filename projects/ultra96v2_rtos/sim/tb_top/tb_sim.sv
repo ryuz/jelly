@@ -148,15 +148,16 @@ module tb_sim();
     //  Simulation
     // ----------------------------------
 
-    localparam  int                         OPCODE_WIDTH      = 8;
     localparam  int                         ID_WIDTH          = 8;
-    localparam  int                         DECODE_OPCODE_POS = 0;
-    localparam  int                         DECODE_ID_POS     = DECODE_OPCODE_POS + OPCODE_WIDTH;
+    localparam  int                         OPCODE_WIDTH      = 8;
+    localparam  int                         DECODE_ID_POS     = 0;
+    localparam  int                         DECODE_OPCODE_POS = DECODE_ID_POS + ID_WIDTH;
 
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_INF     = OPCODE_WIDTH'(8'h00);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CPU_STS     = OPCODE_WIDTH'(8'h01);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_CFG     = OPCODE_WIDTH'(8'h00);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CPU_CTL     = OPCODE_WIDTH'(8'h01);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WUP_TSK     = OPCODE_WIDTH'(8'h10);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SLP_TSK     = OPCODE_WIDTH'(8'h11);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_DLY_TSK     = OPCODE_WIDTH'(8'h18);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SIG_SEM     = OPCODE_WIDTH'(8'h21);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_SEM     = OPCODE_WIDTH'(8'h22);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SET_FLG     = OPCODE_WIDTH'(8'h31);
@@ -164,12 +165,16 @@ module tb_sim();
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_FLG_AND = OPCODE_WIDTH'(8'h33);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_FLG_OR  = OPCODE_WIDTH'(8'h34);
 
-    localparam  bit     [ID_WIDTH-1:0]      REF_INF_CORE_ID = 'h00;
-    localparam  bit     [ID_WIDTH-1:0]      REF_INF_VERSION = 'h01;
-    localparam  bit     [ID_WIDTH-1:0]      REF_INF_DATE    = 'h04;
+    localparam  bit     [ID_WIDTH-1:0]      REF_CFG_CORE_ID = 'h00;
+    localparam  bit     [ID_WIDTH-1:0]      REF_CFG_VERSION = 'h01;
+    localparam  bit     [ID_WIDTH-1:0]      REF_CFG_DATE    = 'h04;
 
-    localparam  bit     [ID_WIDTH-1:0]      CPU_STS_TASKID  = 'h00;
-    localparam  bit     [ID_WIDTH-1:0]      CPU_STS_VALID   = 'h01;
+    localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_TOP_TSKID  = 'h00;
+    localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_TOP_VALID  = 'h01;
+    localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_RUN_TSKID  = 'h04;
+    localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_RUN_VALID  = 'h05;
+    localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_IRQ_EN     = 'h10;
+    localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_IRQ_STS    = 'h11;
 
 
     function [WB_ADR_WIDTH-1:0] make_addr(bit [OPCODE_WIDTH-1:0] opcode, int id);
@@ -189,14 +194,62 @@ module tb_sim();
     #100;
         $display(" --- start --- ");
         wb_read (0);
-        wb_write(make_addr(OPCODE_CPU_STS, int'(CPU_STS_TASKID)), 1, 4'hf);
-    #100;
+        $display("set run tskid");
+        wb_write(make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_RUN_TSKID)), 0, 4'hf);
 
-        $display("wup_tsk(1)");
+        $display("irq status");
+        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_IRQ_EN)));
+        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_IRQ_STS)));
+        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_TOP_TSKID)));
+        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_TOP_VALID)));
+    #100;
+        $display("irq en");
+        wb_write(make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_IRQ_EN)), 1, 4'hf);
+
+        $display("irq status");
+        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_IRQ_EN)));
+        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_IRQ_STS)));
+        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_TOP_TSKID)));
+        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_TOP_VALID)));
+
+        $display("wup_tsk 1");
         wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
-        $display("wup_tsk(0)");
+    #100;
+        $display("irq status");
+        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_IRQ_EN)));
+        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_IRQ_STS)));
+        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_TOP_TSKID)));
+        wb_read (make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_TOP_VALID)));
+
+        $display("irq dis");
+        wb_write(make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_IRQ_EN)), 0, 4'hf);
+    #100;
+    #10;
+        $display("wup_tsk 0");
         wb_write(make_addr(OPCODE_WUP_TSK, 0), 0, 4'hf);
-        $display("wup_tsk(3)");
+        $display("slp_tsk 0");
+        wb_write(make_addr(OPCODE_SLP_TSK, 0), 0, 4'hf);
+        $display("slp_tsk 1");
+        wb_write(make_addr(OPCODE_SLP_TSK, 1), 0, 4'hf);
+
+        $display("wup_tsk 0");
+        wb_write(make_addr(OPCODE_WUP_TSK, 0), 0, 4'hf);
+        $display("wup_tsk 1");
+        wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
+        $display("dly_tsk 1 10");
+        wb_write(make_addr(OPCODE_DLY_TSK, 1), 10, 4'hf);
+    #500;
+        $display("slp_tsk 0");
+        wb_write(make_addr(OPCODE_SLP_TSK, 0), 0, 4'hf);
+        $display("slp_tsk 1");
+        wb_write(make_addr(OPCODE_SLP_TSK, 1), 0, 4'hf);
+
+    #200;
+        $display("wup_tsk 1");
+        wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
+        $display("wup_tsk 0");
+        wb_write(make_addr(OPCODE_WUP_TSK, 0), 0, 4'hf);
+        $display("wup_tsk 3");
         wb_write(make_addr(OPCODE_WUP_TSK, 3), 0, 4'hf);
     #20;
         wb_write(make_addr(OPCODE_WAI_FLG_AND, 0), 5, 4'hf);

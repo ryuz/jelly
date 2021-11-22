@@ -68,9 +68,16 @@ module jelly_rtos_queue_priority
         // array
         automatic object_t  [QUE_SIZE:0] tmp_array;
         tmp_array[QUE_SIZE-1:0]   = reg_array;
-        tmp_array[QUE_SIZE]       = 'x;
+        tmp_array[QUE_SIZE].id    = 'x;
+        tmp_array[QUE_SIZE].pri   = 'x;
         tmp_array[QUE_SIZE].valid = '0;
-        for ( int i = 0; i < QUE_SIZE; ++i ) begin
+        
+        case ( reg_flag[0] )
+        stay:       array[0] = tmp_array[0];
+        forward:    array[0] = tmp_array[1];
+        insert:     array[0] = reg_obj;
+        endcase
+        for ( int i = 1; i < QUE_SIZE; ++i ) begin
             case ( reg_flag[i] )
             stay:       array[i] = tmp_array[i];
             forward:    array[i] = tmp_array[i+1];
