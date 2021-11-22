@@ -84,9 +84,9 @@ jelly_irq_handler:
 
                 /* コンテキスト復帰 */
                 ldmfd	r0!, {r1-r14}
-                msr     cpsr_c, #(Mode_SYS | F_Bit | I_Bit)
+                msr     cpsr_c, #(Mode_SYS | I_Bit)
                 mov     r13, r0
-                msr     cpsr_c, #(Mode_IRQ | F_Bit | I_Bit)
+                msr     cpsr_c, #(Mode_IRQ | I_Bit)
                 mov     r0, r13
                 
                 subs	pc, lr, #4 
