@@ -1,0 +1,105 @@
+/* ------------------------------------------------------------------------ */
+/*  IRQ handler                                                             */
+/*                                                                          */
+/*                                          Copyright (C) 1998-2021 by Ryuz */
+/* ------------------------------------------------------------------------ */
+
+
+#define Mode_USR        0x10
+#define Mode_FIQ        0x11
+#define Mode_IRQ        0x12
+#define Mode_SVC        0x13
+#define Mode_MON        0x16
+#define Mode_ABT        0x17
+#define Mode_HYP        0x1a
+#define Mode_UND        0x1b
+#define Mode_SYS        0x1f
+
+#define I_Bit           0x80
+#define F_Bit           0x40
+#define T_Bit           0x20
+
+#define TOP_TSKID       (0x00100*4)
+#define RUN_TSKID       (0x00104*4)
+
+
+                .extern     JELLY_RTOS_CORE_BASE
+                .extern     JELLY_RTOS_RUN_TSKID
+                .extern     JELLY_RTOS_SP_TABLE
+
+                .text
+
+
+/************************************************
+  コンテキストの作成
+  jelly_create_context(
+            isp:usize	r0 スタックポインタ
+            entry:fn 	r1 実行アドレス
+        ) -> usize      r0 新しいスタックポインタ
+ ************************************************/
+                .global	jelly_create_context
+                .code	16
+                .thumb_func
+                .type	jelly_create_context, %function
+jelly_create_context:
+                sub		r0, #(13*4)         /* スタックを確保 */
+                str		r1, [r0, #(12*4)]   /* lr 部分にentryを設定 */
+                bx		lr                  /* リターン */
+
+                .extern my_putc
+
+/************************************************
+  IRQハンドラ
+  タスクスイッチを行う(r13_irq を作業用に使う)
+************************************************/
+                .global     jelly_irq_handler
+                .align  4
+                .code   32
+jelly_irq_handler:   
+                /* コンテキスト退避 */
+                mov     r13, r0
+                msr     cpsr_c, #(Mode_SYS | F_Bit | I_Bit)
+                mov     r0, r13
+                msr     cpsr_c, #(Mode_IRQ | F_Bit | I_Bit)
+                stmfd	r0!, {r1-r14}
+                
+                ldr     r1, =0xff010030
+                ldr     r2, ='%'
+                str     r2, [r1]
+//dbg_loop:
+//                b       dbg_loop
+
+//                ldr     r1, =0x80000440
+//               ldr     r2, =0 
+//                str     r2, [r1]
+
+                /* 実行中タスクID取得 */
+                ldr     r1, =JELLY_RTOS_RUN_TSKID
+                ldr     r4, [r1]
+
+                /* スタック退避 */
+                ldr     r2, =JELLY_RTOS_SP_TABLE
+                str     r0, [r2, r4, lsl #2]
+                
+                /* キューの先頭タスク取得 */
+                ldr     r3, =JELLY_RTOS_CORE_BASE
+                ldr     r3, [r3]
+                ldr     r4, [r3, #TOP_TSKID]
+                str     r4, [r3, #RUN_TSKID]
+                str     r4, [r1]
+
+                /* スタック復帰 */
+                ldr     r0, [r2, r4, lsl #2]
+
+                /* コンテキスト復帰 */
+                ldmfd	r0!, {r1-r14}
+                msr     cpsr_c, #(Mode_SYS | F_Bit | I_Bit)
+                mov     r13, r0
+                msr     cpsr_c, #(Mode_IRQ | F_Bit | I_Bit)
+                mov     r0, r13
+                subs	pc, lr, #4 
+
+                .end
+
+
+/* end of file */
