@@ -28,27 +28,27 @@ module ultra96v2_rtos
     localparam  AXI4L_DATA_WIDTH = (8 << AXI4L_DATA_SIZE);
     localparam  AXI4L_STRB_WIDTH = AXI4L_DATA_WIDTH / 8;
     
-    logic                           axi4l_aresetn;
-    logic                           axi4l_aclk;
-    logic   [AXI4L_ADDR_WIDTH-1:0]  axi4l_awaddr;
-    logic   [2:0]                   axi4l_awprot;
-    logic                           axi4l_awvalid;
-    logic                           axi4l_awready;
-    logic   [AXI4L_DATA_WIDTH-1:0]  axi4l_wdata;
-    logic   [AXI4L_STRB_WIDTH-1:0]  axi4l_wstrb;
-    logic                           axi4l_wvalid;
-    logic                           axi4l_wready;
-    logic   [1:0]                   axi4l_bresp;
-    logic                           axi4l_bvalid;
-    logic                           axi4l_bready;
-    logic   [AXI4L_ADDR_WIDTH-1:0]  axi4l_araddr;
-    logic   [2:0]                   axi4l_arprot;
-    logic                           axi4l_arvalid;
-    logic                           axi4l_arready;
-    logic   [AXI4L_DATA_WIDTH-1:0]  axi4l_rdata;
-    logic   [1:0]                   axi4l_rresp;
-    logic                           axi4l_rvalid;
-    logic                           axi4l_rready;
+                            logic                           axi4l_aresetn;
+                            logic                           axi4l_aclk;
+    (* mark_debug="true" *) logic   [AXI4L_ADDR_WIDTH-1:0]  axi4l_awaddr;
+    (* mark_debug="true" *) logic   [2:0]                   axi4l_awprot;
+    (* mark_debug="true" *) logic                           axi4l_awvalid;
+    (* mark_debug="true" *) logic                           axi4l_awready;
+    (* mark_debug="true" *) logic   [AXI4L_DATA_WIDTH-1:0]  axi4l_wdata;
+    (* mark_debug="true" *) logic   [AXI4L_STRB_WIDTH-1:0]  axi4l_wstrb;
+    (* mark_debug="true" *) logic                           axi4l_wvalid;
+    (* mark_debug="true" *) logic                           axi4l_wready;
+    (* mark_debug="true" *) logic   [1:0]                   axi4l_bresp;
+    (* mark_debug="true" *) logic                           axi4l_bvalid;
+    (* mark_debug="true" *) logic                           axi4l_bready;
+    (* mark_debug="true" *) logic   [AXI4L_ADDR_WIDTH-1:0]  axi4l_araddr;
+    (* mark_debug="true" *) logic   [2:0]                   axi4l_arprot;
+    (* mark_debug="true" *) logic                           axi4l_arvalid;
+    (* mark_debug="true" *) logic                           axi4l_arready;
+    (* mark_debug="true" *) logic   [AXI4L_DATA_WIDTH-1:0]  axi4l_rdata;
+    (* mark_debug="true" *) logic   [1:0]                   axi4l_rresp;
+    (* mark_debug="true" *) logic                           axi4l_rvalid;
+    (* mark_debug="true" *) logic                           axi4l_rready;
     
     logic   [0:0]                   irq_rtos;
     
@@ -96,13 +96,13 @@ module ultra96v2_rtos
     logic                           reset;
     logic                           clk;
     
-    logic   [WB_ADR_WIDTH-1:0]      wb_adr_i;
-    logic   [WB_DAT_WIDTH-1:0]      wb_dat_i;
-    logic   [WB_DAT_WIDTH-1:0]      wb_dat_o;
-    logic                           wb_we_i;
-    logic   [WB_SEL_WIDTH-1:0]      wb_sel_i;
-    logic                           wb_stb_i;
-    logic                           wb_ack_o;
+    (* mark_debug="true" *) logic   [WB_ADR_WIDTH-1:0]      wb_adr_i;
+    (* mark_debug="true" *) logic   [WB_DAT_WIDTH-1:0]      wb_dat_i;
+    (* mark_debug="true" *) logic   [WB_DAT_WIDTH-1:0]      wb_dat_o;
+    (* mark_debug="true" *) logic                           wb_we_i;
+    (* mark_debug="true" *) logic   [WB_SEL_WIDTH-1:0]      wb_sel_i;
+    (* mark_debug="true" *) logic                           wb_stb_i;
+    (* mark_debug="true" *) logic                           wb_ack_o;
     
     jelly_axi4l_to_wishbone
             #(
@@ -205,7 +205,7 @@ module ultra96v2_rtos
         end
     end
     
-    assign wb_led_dat_o = reg_led;
+    assign wb_led_dat_o = {31'd0, reg_led};
     assign wb_led_ack_o = wb_led_stb_i;
     
     

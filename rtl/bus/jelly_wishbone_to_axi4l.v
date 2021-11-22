@@ -93,14 +93,14 @@ module jelly_wishbone_to_axi4l
     
     assign m_axi4l_aresetn = ~s_wb_rst_i;
     assign m_axi4l_aclk    = s_wb_clk_i;
-    assign m_axi4l_awaddr  = (s_wb_adr_i << WB_DAT_SIZE);
+    assign m_axi4l_awaddr  = {s_wb_adr_i, {WB_DAT_SIZE{1'b0}}};
     assign m_axi4l_awprot  = 3'd0;
     assign m_axi4l_awvalid = reg_awvalid;
     assign m_axi4l_wstrb   = s_wb_sel_i;
     assign m_axi4l_wdata   = s_wb_dat_i;
     assign m_axi4l_wvalid  = reg_wvalid;
     assign m_axi4l_bready  = 1'b1;
-    assign m_axi4l_araddr  = (s_wb_adr_i << WB_DAT_SIZE);
+    assign m_axi4l_araddr  = {s_wb_adr_i, {WB_DAT_SIZE{1'b0}}};
     assign m_axi4l_arprot  = 3'd0;
     assign m_axi4l_arvalid = reg_arvalid;
     assign m_axi4l_rready  = 1'b1;

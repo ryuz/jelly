@@ -58,24 +58,24 @@ module jelly_rtos
 
     // task
     logic   [TSKID_WIDTH-1:0]   wup_tsk_tskid;
-    logic                       wup_tsk_valid;
+    logic                       wup_tsk_valid = '0;
 
     logic   [TSKID_WIDTH-1:0]   slp_tsk_tskid;
-    logic                       slp_tsk_valid;
+    logic                       slp_tsk_valid = '0;
 
     logic   [TSKID_WIDTH-1:0]   rel_wai_tskid;
-    logic                       rel_wai_valid;
+    logic                       rel_wai_valid = '0;
 
     logic   [TSKID_WIDTH-1:0]   dly_tsk_tskid;
     logic   [RELTIM_WIDTH-1:0]  dly_tsk_dlytim;
-    logic                       dly_tsk_valid;
+    logic                       dly_tsk_valid = '0;
 
     // semaphore
     logic   [SEMID_WIDTH-1:0]   sig_sem_semid;
-    logic                       sig_sem_valid;
+    logic                       sig_sem_valid = '0;
 
     logic   [SEMID_WIDTH-1:0]   wai_sem_semid;
-    logic                       wai_sem_valid;
+    logic                       wai_sem_valid = '0;
 
     // event flag
     logic   [FLGPTN_WIDTH-1:0]  evtflg_flgptn;
@@ -132,21 +132,18 @@ module jelly_rtos
                 .wai_flg_valid
             );
 
-
-
     
     // -----------------------------------------
     //  Wishbone
     // -----------------------------------------
 
-    localparam  int                         OPCODE_WIDTH      = 8;
     localparam  int                         ID_WIDTH          = 8;
-    localparam  int                         DECODE_OPCODE_POS = 0;
-    localparam  int                         DECODE_ID_POS     = DECODE_OPCODE_POS + OPCODE_WIDTH;
+    localparam  int                         OPCODE_WIDTH      = 8;
+    localparam  int                         DECODE_ID_POS     = 0;
+    localparam  int                         DECODE_OPCODE_POS = DECODE_ID_POS + ID_WIDTH;
 
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_INF     = OPCODE_WIDTH'(8'h00);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CFG_CTL     = OPCODE_WIDTH'(8'h01);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CPU_STS     = OPCODE_WIDTH'(8'h02);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_CFG     = OPCODE_WIDTH'(8'h00);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CPU_CTL     = OPCODE_WIDTH'(8'h01);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WUP_TSK     = OPCODE_WIDTH'(8'h10);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SLP_TSK     = OPCODE_WIDTH'(8'h11);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_DLY_TSK     = OPCODE_WIDTH'(8'h18);
@@ -157,15 +154,17 @@ module jelly_rtos
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_FLG_AND = OPCODE_WIDTH'(8'h33);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_FLG_OR  = OPCODE_WIDTH'(8'h34);
 
-    localparam  bit     [ID_WIDTH-1:0]      REF_INF_CORE_ID = 'h00;
-    localparam  bit     [ID_WIDTH-1:0]      REF_INF_VERSION = 'h01;
-    localparam  bit     [ID_WIDTH-1:0]      REF_INF_DATE    = 'h04;
+    localparam  bit     [ID_WIDTH-1:0]      REF_CFG_CORE_ID = 'h00;
+    localparam  bit     [ID_WIDTH-1:0]      REF_CFG_VERSION = 'h01;
+    localparam  bit     [ID_WIDTH-1:0]      REF_CFG_DATE    = 'h04;
 
-    localparam  bit     [ID_WIDTH-1:0]      CFG_CTL_IRQ_EN  = 'h00;
-    localparam  bit     [ID_WIDTH-1:0]      CFG_CTL_IRQ_STS = 'h01;
-
-    localparam  bit     [ID_WIDTH-1:0]      CPU_STS_TASKID  = 'h00;
-    localparam  bit     [ID_WIDTH-1:0]      CPU_STS_VALID   = 'h01;
+    localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_TOP_TSKID   = 'h00;
+    localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_TOP_VALID   = 'h01;
+    localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_RUN_TSKID   = 'h04;
+    localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_RUN_VALID   = 'h05;
+    localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_IRQ_EN      = 'h10;
+    localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_IRQ_STS     = 'h11;
+    localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_IRQ_FORCE   = 'h1f;
 
     logic   [OPCODE_WIDTH-1:0]      dec_opcode;
     logic   [ID_WIDTH-1:0]          dec_id;
@@ -173,9 +172,34 @@ module jelly_rtos
     assign  dec_id     = s_wb_adr_i[DECODE_ID_POS     +: ID_WIDTH];
 
     logic   [0:0]                   irq_enable;
+    logic   [0:0]                   irq_force;
 
     logic   [TSKID_WIDTH-1:0]       cpu_tskid;
     logic                           cpu_valid;
+    
+    always_ff @(posedge clk) begin
+        if ( reset ) begin
+            irq_enable <= '0;
+            irq_force  <= '0;
+            cpu_tskid  <= '0;
+            cpu_valid  <= '0;
+        end
+        else if ( cke ) begin
+            if ( s_wb_stb_i && s_wb_we_i && &s_wb_sel_i ) begin
+                case ( dec_opcode )
+                OPCODE_CPU_CTL:
+                    case ( dec_id )
+                    CPU_CTL_IRQ_EN:     begin irq_enable <= 1'(s_wb_dat_i); end
+                    CPU_CTL_IRQ_FORCE:  begin irq_force  <= 1'(s_wb_dat_i); end
+                    CPU_CTL_RUN_TSKID:  begin cpu_tskid <= TSKID_WIDTH'(s_wb_dat_i); cpu_valid <= 1'b1; end
+                    CPU_CTL_RUN_VALID:  begin cpu_valid <= s_wb_dat_i[0]; end
+                    default: ;
+                    endcase
+                default: ;
+                endcase
+            end
+        end
+    end
 
     always_comb begin : blk_wb
         s_wb_dat_o = '0;
@@ -187,6 +211,10 @@ module jelly_rtos
         slp_tsk_valid = '0;
         rel_wai_tskid = 'x;
         rel_wai_valid = '0;
+
+        dly_tsk_tskid  = 'x;
+        dly_tsk_dlytim = 'x;
+        dly_tsk_valid  = '0;
 
         sig_sem_semid = 'x;
         sig_sem_valid = '0;
@@ -235,52 +263,27 @@ module jelly_rtos
         end
 
         case ( dec_opcode )
-        OPCODE_CFG_CTL:
+        OPCODE_CPU_CTL:
             case ( dec_id )
-            CFG_CTL_IRQ_EN:     s_wb_dat_o = WB_DAT_WIDTH'(irq_enable);
-            CFG_CTL_IRQ_STS:    s_wb_dat_o = WB_DAT_WIDTH'(irq);
+            CPU_CTL_IRQ_EN:     s_wb_dat_o = WB_DAT_WIDTH'(irq_enable);
+            CPU_CTL_IRQ_STS:    s_wb_dat_o = WB_DAT_WIDTH'(irq);
+            CPU_CTL_TOP_TSKID:  s_wb_dat_o = WB_DAT_WIDTH'(rdq_top_tskid);
+            CPU_CTL_TOP_VALID:  s_wb_dat_o = WB_DAT_WIDTH'(rdq_top_valid);
             default: ;
             endcase
         
-        OPCODE_REF_INF:
+        OPCODE_REF_CFG:
             case ( dec_id )
-            REF_INF_CORE_ID:    s_wb_dat_o = WB_DAT_WIDTH'(32'h834f5452);
-            REF_INF_VERSION:    s_wb_dat_o = WB_DAT_WIDTH'(32'h00000000);
-            REF_INF_DATE:       s_wb_dat_o = WB_DAT_WIDTH'(32'h20211120);
+            REF_CFG_CORE_ID:    s_wb_dat_o = WB_DAT_WIDTH'(32'h834f5452);
+            REF_CFG_VERSION:    s_wb_dat_o = WB_DAT_WIDTH'(32'h00000000);
+            REF_CFG_DATE:       s_wb_dat_o = WB_DAT_WIDTH'(32'h20211120);
             default: ;
             endcase
         default:;
         endcase
     end
 
-    always_ff @(posedge clk) begin
-        if ( reset ) begin
-            irq_enable <= '0;
-            cpu_tskid  <= '0;
-            cpu_valid  <= '0;
-        end
-        else if ( cke ) begin
-            if ( s_wb_stb_i && s_wb_we_i && &s_wb_sel_i ) begin
-                case ( dec_opcode )
-                OPCODE_CFG_CTL:
-                    case ( dec_id )
-                    CFG_CTL_IRQ_EN: begin irq_enable <= 1'(s_wb_dat_i); end
-                    default: ;
-                    endcase
- 
-                OPCODE_CPU_STS:
-                    case ( dec_id )
-                    CPU_STS_TASKID: begin cpu_tskid <= TSKID_WIDTH'(s_wb_dat_i); cpu_valid <= 1'b1; end
-                    CPU_STS_VALID:  begin cpu_valid <= s_wb_dat_i[0]; end
-                    default: ;
-                    endcase
-                default: ;
-                endcase
-            end
-        end
-    end
-
-    assign irq = (cpu_valid && rdq_top_valid && (rdq_top_tskid != cpu_tskid));
+    assign irq = (irq_enable && cpu_valid && rdq_top_valid && (rdq_top_tskid != cpu_tskid)) | irq_force;
 
 endmodule
 

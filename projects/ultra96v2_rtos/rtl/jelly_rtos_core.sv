@@ -77,10 +77,10 @@ module jelly_rtos_core
 
     logic   [TSKID_WIDTH-1:0]   rdq_add_tskid;
     logic   [TSKPRI_WIDTH-1:0]  rdq_add_tskpri;
-    logic                       rdq_add_valid;
+    logic                       rdq_add_valid = '0;
 
     logic   [TSKID_WIDTH-1:0]   rdq_rmv_tskid;
-    logic                       rdq_rmv_valid;
+    logic                       rdq_rmv_valid = '0;
 
     jelly_rtos_queue_priority
             #(
@@ -115,23 +115,23 @@ module jelly_rtos_core
     //  tasks
     // -----------------------------------------
     
-    logic   [TASKS-1:0][3:0]                task_tskstat;
-    logic   [TASKS-1:0][TSKPRI_WIDTH-1:0]   task_tskpri;
+    (* mark_debug="true" *) logic   [TASKS-1:0][2:0]                task_tskstat;
+    (* mark_debug="true" *) logic   [TASKS-1:0][TSKPRI_WIDTH-1:0]   task_tskpri;
 
-    logic   [TASKS-1:0]                     task_req_rdy;
+    (* mark_debug="true" *) logic   [TASKS-1:0]                     task_req_rdy;
 
-    logic   [TASKS-1:0]                     task_rel_tsk;
+    (* mark_debug="true" *) logic   [TASKS-1:0]                     task_rel_tsk;
 
-    logic   [TASKS-1:0]                     task_rdy_tsk;
-    logic   [TASKS-1:0]                     task_wup_tsk;
-    logic   [TASKS-1:0]                     task_slp_tsk;
-    logic   [TASKS-1:0]                     task_rel_wai;
+    (* mark_debug="true" *) logic   [TASKS-1:0]                     task_rdy_tsk;
+    (* mark_debug="true" *) logic   [TASKS-1:0]                     task_wup_tsk;
+    (* mark_debug="true" *) logic   [TASKS-1:0]                     task_slp_tsk;
+    (* mark_debug="true" *) logic   [TASKS-1:0]                     task_rel_wai;
 
-    logic   [TASKS-1:0]                     task_dly_tsk;
-    logic   [RELTIM_WIDTH-1:0]              task_dly_tsk_dlytim;
+    (* mark_debug="true" *) logic   [TASKS-1:0]                     task_dly_tsk;
+                            logic   [RELTIM_WIDTH-1:0]              task_dly_tsk_dlytim;
 
-    logic   [TASKS-1:0]                     task_wai_sem;
-    logic   [TASKS-1:0]                     task_wai_flg;
+    (* mark_debug="true" *) logic   [TASKS-1:0]                     task_wai_sem;
+    (* mark_debug="true" *) logic   [TASKS-1:0]                     task_wai_flg;
 
     generate
     for ( genvar i = 0; i < TASKS; ++i ) begin : loop_tsk

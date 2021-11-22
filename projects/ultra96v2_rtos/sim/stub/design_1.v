@@ -28,12 +28,12 @@ module design_1
     nirq0_lpd_rpu,
     nirq1_lpd_rpu);
   output m_axi4l_aclk;
-  output [39:0]m_axi4l_araddr;
+  output [28:0]m_axi4l_araddr;
   output [0:0]m_axi4l_aresetn;
   output [2:0]m_axi4l_arprot;
   input m_axi4l_arready;
   output m_axi4l_arvalid;
-  output [39:0]m_axi4l_awaddr;
+  output [28:0]m_axi4l_awaddr;
   output [2:0]m_axi4l_awprot;
   input m_axi4l_awready;
   output m_axi4l_awvalid;
@@ -54,12 +54,12 @@ module design_1
   input nirq1_lpd_rpu;
 
   wire m_axi4l_aclk;
-  wire [39:0]m_axi4l_araddr;
+  wire [28:0]m_axi4l_araddr;
   wire [0:0]m_axi4l_aresetn;
   wire [2:0]m_axi4l_arprot;
   wire m_axi4l_arready;
   wire m_axi4l_arvalid;
-  wire [39:0]m_axi4l_awaddr;
+  wire [28:0]m_axi4l_awaddr;
   wire [2:0]m_axi4l_awprot;
   wire m_axi4l_awready;
   wire m_axi4l_awvalid;

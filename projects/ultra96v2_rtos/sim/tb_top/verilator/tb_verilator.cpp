@@ -19,33 +19,34 @@ namespace jsim = jelly::simulator;
 #endif
 
 
-const unsigned int  OPCODE_WIDTH       = 8;
-const unsigned int  ID_WIDTH           = 8;
-const unsigned int  DECODE_OPCODE_POS  = 0;
-const unsigned int  DECODE_ID_POS      = DECODE_OPCODE_POS + OPCODE_WIDTH;
+#define RTOS_ID_WIDTH                   8
+#define RTOS_OPCODE_WIDTH               8
+#define RTOS_DECODE_ID_POS              0
+#define RTOS_DECODE_OPCODE_POS          (DECODE_ID_POS + ID_WIDTH)
 
-const unsigned int  OPCODE_REF_INF     = 0x00;
-const unsigned int  OPCODE_CPU_STS     = 0x01;
-const unsigned int  OPCODE_WUP_TSK     = 0x10;
-const unsigned int  OPCODE_SLP_TSK     = 0x11;
-const unsigned int  OPCODE_SIG_SEM     = 0x21;
-const unsigned int  OPCODE_WAI_SEM     = 0x22;
-const unsigned int  OPCODE_SET_FLG     = 0x31;
-const unsigned int  OPCODE_CLR_FLG     = 0x32;
-const unsigned int  OPCODE_WAI_FLG_AND = 0x33;
-const unsigned int  OPCODE_WAI_FLG_OR  = 0x34;
+#define RTOS_OPCODE_REF_CFG             0x00
+#define RTOS_OPCODE_CPU_CTL             0x01
+#define RTOS_OPCODE_WUP_TSK             0x10
+#define RTOS_OPCODE_SLP_TSK             0x11
+#define RTOS_OPCODE_DLY_TSK             0x18
+#define RTOS_OPCODE_SIG_SEM             0x21
+#define RTOS_OPCODE_WAI_SEM             0x22
+#define RTOS_OPCODE_SET_FLG             0x31
+#define RTOS_OPCODE_CLR_FLG             0x32
+#define RTOS_OPCODE_WAI_FLG_AND         0x33
+#define RTOS_OPCODE_WAI_FLG_OR          0x34
+#define RTOS_REF_CFG_CORE_ID            0x00
+#define RTOS_REF_CFG_VERSION            0x01
+#define RTOS_REF_CFG_DATE               0x04
+#define RTOS_CPU_CTL_TOP_TSKID          0x00
+#define RTOS_CPU_CTL_TOP_VALID          0x01
+#define RTOS_CPU_CTL_RUN_TSKID          0x04
+#define RTOS_CPU_CTL_RUN_VALID          0x05
+#define RTOS_CPU_CTL_IRQ_EN             0x10
+#define RTOS_CPU_CTL_IRQ_STS            0x11
 
-const unsigned int  REF_INF_CORE_ID    = 0x0;
-const unsigned int  REF_INF_VERSION    = 0x1;
-const unsigned int  REF_INF_DATE       = 0x4;
+#define RTOS_MAKE_ADDR(opcode, id)      (((opcode) << RTOS_DECODE_OPCODE_POS) | ((id) << RTOS_DECODE_ID_POS))
 
-const unsigned int  CPU_STS_TASKID     = 0x00;
-const unsigned int  CPU_STS_VALID      = 0x01;
-
-
-int make_addr(int opcode, int id) {
-    return (opcode << DECODE_OPCODE_POS) | (id << DECODE_ID_POS); 
-}
 
 int main(int argc, char** argv)
 {
@@ -68,9 +69,10 @@ int main(int argc, char** argv)
 
     auto mng = jsim::Manager::Create();
 
+    mng->AddNode(jsim::VerilatorNode_Create(top, tfp));
+    
     mng->AddNode(jsim::ClockNode_Create(&top->clk, 5.0));
     mng->AddNode(jsim::ResetNode_Create(&top->reset, 100));
-    mng->AddNode(jsim::VerilatorNode_Create(top, tfp));
 
     jsim::WishboneMaster wishbone =
                 {
@@ -87,24 +89,7 @@ int main(int argc, char** argv)
     // ----------------------------------
     //  Simulation
     // ----------------------------------
-
-
-#if 0
-
-    auto wb = jsim::WishboneMasterNode_Create(wishbone);
-    mng->AddNode(wb);
-
-    // WISHBONE 
-    wb->Wait(100);
-
-    wb->Display(" --- read test --- ");
-    wb->Read (0x00000001);
-
-    // Run
-    mng->Run(10000);
-
-#else
-
+    /*
     // WISHBONE 
     auto wb = jsim::WishboneAccessNode_Create(wishbone);
     mng->AddNode(wb);
@@ -141,13 +126,12 @@ int main(int argc, char** argv)
         wb->Wait(100);
         wb->Finish();
     });
-    
+    */
+
     // Run
     mng->Run();
 
-    th.join();
-
-#endif
+//    th.join();
 
 
 #if VM_TRACE
