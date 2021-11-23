@@ -57,7 +57,7 @@ SECTIONS
         ___fiq_stack_end = . ;
 
         ___irq_stack = . ; 
-        . += 1024;
+        . += 32;
         ___irq_stack_end = . ;
 
         ___svc_stack = . ; 

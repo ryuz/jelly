@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use super::*;
+//use super::*;
 use core::ptr;
 use pudding_pac::arm::cpu;
 
@@ -16,6 +16,7 @@ const OPCODE_SLP_TSK: usize = 0x11;
 const OPCODE_DLY_TSK: usize = 0x18;
 const OPCODE_SIG_SEM: usize = 0x21;
 const OPCODE_WAI_SEM: usize = 0x22;
+const OPCODE_POL_SEM: usize = 0x23;
 const OPCODE_SET_FLG: usize = 0x31;
 const OPCODE_CLR_FLG: usize = 0x32;
 const OPCODE_WAI_FLG_AND: usize = 0x33;
@@ -37,6 +38,8 @@ const CPU_CTL_TOP_TSKID: usize = 0x00;
 const CPU_CTL_TOP_VALID: usize = 0x01;
 const CPU_CTL_RUN_TSKID: usize = 0x04;
 const CPU_CTL_RUN_VALID: usize = 0x05;
+const CPU_CTL_IDLE_TSKID: usize = 0x7;
+const CPU_CTL_COPY_TSKID: usize = 0x8;
 const CPU_CTL_IRQ_EN: usize = 0x10;
 const CPU_CTL_IRQ_STS: usize = 0x11;
 const CPU_CTL_IRQ_FORCE: usize = 0x1f;
@@ -101,6 +104,8 @@ pub fn initialize() {
         // ソフトリセット
         write_reg(OPCODE_SYS_CFG, SYS_CFG_SOFT_RESET, 1);
         
+//        println!("TASKS : {}", read_reg(OPCODE_SYS_CFG, SYS_CFG_TASKS));
+
         // カレントタスク設定
         write_reg(OPCODE_CPU_CTL, CPU_CTL_RUN_TSKID, 15);
         write_reg(OPCODE_WUP_TSK, 15, 15);
@@ -146,6 +151,56 @@ pub fn slp_tsk(tskid: i32) {
         write_reg(OPCODE_SLP_TSK, tskid, 0);
     }
 }
+
+pub fn dly_tsk(tskid: i32, dlytim: u32) {
+    unsafe {
+        let tskid: usize = if tskid < 0 {
+            JELLY_RTOS_RUN_TSKID
+        } else {
+            tskid as usize
+        };
+        
+        let _sc = SystemCall::new();
+        write_reg(OPCODE_DLY_TSK, tskid, dlytim);
+    }
+}
+
+
+pub fn sig_sem(semid: i32) {
+    unsafe {
+        let _sc = SystemCall::new();
+        write_reg(OPCODE_SIG_SEM, semid as usize, 0);
+    }
+}
+
+pub fn wai_sem(semid: i32) {
+    unsafe {
+        let _sc = SystemCall::new();
+        write_reg(OPCODE_WAI_SEM, semid as usize, 0);
+    }
+}
+
+pub fn pol_sem(semid: i32) -> bool {
+    unsafe {
+        read_reg(OPCODE_POL_SEM, semid as usize) != 0
+    }
+}
+
+
+
+pub fn loc_cpu() {
+    unsafe {
+        cpu::irq_disable();
+    }
+}
+
+pub fn unl_cpu() {
+    unsafe {
+        let _sc = SystemCall::new();
+        cpu::irq_disable();
+    }
+}
+
 
 pub fn sns_dpn() -> bool
 {

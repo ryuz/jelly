@@ -3,18 +3,13 @@
 #![feature(asm)]
 
 use core::panic::PanicInfo;
-use core::ptr;
-
-use pudding_pac::arm::cpu;
 mod bootstrap;
 mod rtos;
 
 #[macro_use]
 pub mod uart;
 use uart::*;
-
-//mod memdump;
-mod timer;
+//mod timer;
 
 #[panic_handler]
 fn panic(_panic: &PanicInfo<'_>) -> ! {
@@ -22,19 +17,114 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
     loop {}
 }
 
+
 static mut STACK0: [u8; 4096] = [0; 4096];
 static mut STACK1: [u8; 4096] = [0; 4096];
+static mut STACK2: [u8; 4096] = [0; 4096];
+static mut STACK3: [u8; 4096] = [0; 4096];
+static mut STACK4: [u8; 4096] = [0; 4096];
 
-fn write_reg(reg: usize, data: u32) {
-    let addr: usize = 0x80000000 + reg * 4;
-    unsafe {
-        ptr::write_volatile(addr as *mut u32, data);
+// main
+#[no_mangle]
+pub unsafe extern "C" fn main() -> ! {
+    wait(10000);
+    println!("\nJelly-RTOS start");
+    wait(10000);
+
+    rtos::initialize();
+
+    // フォークを５本置く
+    rtos::sig_sem(0);
+    rtos::sig_sem(1);
+    rtos::sig_sem(2);
+    rtos::sig_sem(3);
+    rtos::sig_sem(4);
+
+    // 哲学者を5人用意
+    rtos::cre_tsk(0, &mut STACK0, task0);
+    rtos::cre_tsk(1, &mut STACK1, task1);
+    rtos::cre_tsk(2, &mut STACK2, task2);
+    rtos::cre_tsk(3, &mut STACK3, task3);
+    rtos::cre_tsk(4, &mut STACK4, task4);
+    rtos::wup_tsk(0);
+    rtos::wup_tsk(1);
+    rtos::wup_tsk(2);
+    rtos::wup_tsk(3);
+    rtos::wup_tsk(4);
+
+    loop {
+        wait(100000);
     }
 }
 
+
+
+extern "C" fn task0() -> ! { dining_philosopher(0); }
+extern "C" fn task1() -> ! { dining_philosopher(1); }
+extern "C" fn task2() -> ! { dining_philosopher(2); }
+extern "C" fn task3() -> ! { dining_philosopher(3); }
+extern "C" fn task4() -> ! { dining_philosopher(4); }
+
+
+fn dining_philosopher(id: i32) -> ! {
+    let left  = (id + 1) % 5;
+    let right = (id + 4) % 5;
+    println!("[philosopher{}] dining start", id);
+    loop {
+        println!("[philosopher{}] thinking", id);
+        rtos::dly_tsk(-1, rand_time());
+
+        'dining: loop {
+            if rtos::pol_sem(left) {
+                if rtos::pol_sem(right) {
+                    println!("[philosopher{}] eating", id);
+                    rtos::dly_tsk(-1, rand_time());
+                    rtos::sig_sem(left);
+                    rtos::sig_sem(right);
+                    break 'dining;
+                }
+                else {
+                    rtos::sig_sem(left);
+                }
+            }
+            println!("[philosopher{}] hungry", id);
+            rtos::dly_tsk(-1, rand_time());
+        }
+    }
+}
+
+
+
+// 乱数
+const RAND_MAX: u32 = 0xffff_ffff;
+static mut RAND_SEED: u32 = 0x1234;
+fn rand() -> u32 {
+    unsafe {
+        rtos::loc_cpu();
+        let x = RAND_SEED as u64;
+        let x = ((69069 * x + 1) & RAND_MAX as u64) as u32;
+        RAND_SEED = x;
+        rtos::unl_cpu();
+        x
+    }
+}
+
+fn rand_time() -> u32 {
+    100000000 + (rand() % 1000) * 100000
+}
+
+
+// ループによるウェイト
+fn wait(n: i32) {
+    let mut v: i32 = 0;
+    for i in 1..n {
+        unsafe { core::ptr::write_volatile(&mut v, i) };
+    }
+}
+
+
+#[allow(dead_code)]
 pub fn memdump(addr: usize, len: usize) {
-    return;
-    wait(10000);
     unsafe {
         for offset in 0..len {
             if offset % 4 == 0 {
@@ -47,107 +137,6 @@ pub fn memdump(addr: usize, len: usize) {
             if offset % 4 == 3 || offset + 1 == len {
                 println!("");
             }
-        }
-    }
-}
-
-
-extern "C" fn task0() -> ! {
-    println!("Task0");
-    println!("slp_tsk(0)");
-    rtos::slp_tsk(-1);
-    println!("Task0");
-    rtos::slp_tsk(-1);
-    loop {}
-}
-
-extern "C" fn task1() -> ! {
-    println!("Task1");
-    println!("slp_tsk(0)");
-    rtos::wup_tsk(0);
-    println!("slp_tsk(1)");
-    rtos::slp_tsk(-1);
-    loop {}
-}
-
-// main
-#[no_mangle]
-pub unsafe extern "C" fn main() -> ! {
-    wait(10000);
-    println!("\nJelly-RTOS start");
-    wait(10000);
-
-    memdump(0x80000000 + (0x0100 << 2), 4);
-    memdump(0x80000000 + (0x0104 << 2), 4);
-    memdump(0x80000000 + (0x0110 << 2), 4);
-
-    rtos::initialize();
-
-    memdump(0x80000000 + (0x0100 << 2), 4);
-    memdump(0x80000000 + (0x0104 << 2), 4);
-    memdump(0x80000000 + (0x0110 << 2), 4);
-
-    rtos::cre_tsk(0, &mut STACK0, task0);
-    rtos::cre_tsk(1, &mut STACK1, task1);
-
-//    rtos::test();
-    wait(10000);
-
-//  cpu::irq_enable();
-
-//    println!("\nend\n");
-//    loop{}
-
-    //    cpu::irq_disable();
-    
-    memdump(0x80000000 + (0x0100 << 2), 4);
-    memdump(0x80000000 + (0x0104 << 2), 4);
-    memdump(0x80000000 + (0x0110 << 2), 4);
-
-    println!("wup_tsk(0)");
-    rtos::wup_tsk(0);
-    cpu::svc0();
-
-    println!("wup_tsk(1)");
-    rtos::wup_tsk(1);
-
-    memdump(0x80000000 + (0x0100 << 2), 4);
-    memdump(0x80000000 + (0x0104 << 2), 4);
-    memdump(0x80000000 + (0x0110 << 2), 4);
-
-//    println!("wup_tsk(0)");
-//    rtos::wup_tsk(0);
-
-    memdump(0x80000000 + (0x0100 << 2), 4);
-    memdump(0x80000000 + (0x0104 << 2), 4);
-    memdump(0x80000000 + (0x0110 << 2), 4);
-
-    println!("\nend");
-    loop {
-        wait(1000000);
-    }
-}
-
-// ループによるウェイト
-fn wait(n: i32) {
-    let mut v: i32 = 0;
-    for i in 1..n {
-        unsafe { core::ptr::write_volatile(&mut v, i) };
-    }
-}
-
-static mut IRQ_COUNT: i32 = 0;
-
-// 割り込みハンドラ
-#[no_mangle]
-pub unsafe extern "C" fn irq_handler() {
-    write_reg(0x0110, 0); // irq dis
-    print!("@");
-    wait(10000);
-    IRQ_COUNT += 1;
-    if IRQ_COUNT > 5 {
-        loop {
-            wait(100000);
         }
     }
 }
