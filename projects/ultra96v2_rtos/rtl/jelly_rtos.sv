@@ -13,45 +13,54 @@
 
 module jelly_rtos
         #(
-            parameter   int                             WB_ADR_WIDTH = 16,
-            parameter   int                             WB_DAT_WIDTH = 32,
-            parameter   int                             WB_SEL_WIDTH = WB_DAT_WIDTH/8,
+            parameter   int                             WB_ADR_WIDTH     = 16,
+            parameter   int                             WB_DAT_WIDTH     = 32,
+            parameter   int                             WB_SEL_WIDTH     = WB_DAT_WIDTH/8,
+    
+            parameter   int                             TASKS            = 15,
+            parameter   int                             SEMAPHORES       = 8,
+            parameter   int                             TSKPRI_WIDTH     = 4,
+            parameter   int                             SEMCNT_WIDTH     = 4,
+            parameter   int                             FLGPTN_WIDTH     = 32,
+            parameter   int                             SYSTIM_WIDTH     = 64,
+            parameter   int                             RELTIM_WIDTH     = 32,
 
-            parameter   int                             TASKS        = 15,
-            parameter   int                             SEMAPHORES   = 8,
-            parameter   int                             TSKPRI_WIDTH = 4,
-            parameter   int                             SEMCNT_WIDTH = 4,
-            parameter   int                             FLGPTN_WIDTH = 32,
-            parameter   int                             SYSTIM_WIDTH = 64,
-            parameter   int                             RELTIM_WIDTH = 32,
-
+            parameter   int                             QUECNT_WIDTH     = $clog2(TASKS+1),
             parameter   int                             IDLE_TSKID_WIDTH = $clog2(TASKS+1),
             parameter   int                             TSKID_WIDTH      = $clog2(TASKS),
             parameter   int                             SEMID_WIDTH      = $clog2(SEMAPHORES),
 
-            parameter   bit     [IDLE_TSKID_WIDTH-1:0]  INIT_IDLE_TSKID = TASKS,
-            parameter   bit     [TSKID_WIDTH-1:0]       INIT_RUN_TSKID  = '0,
-            parameter   bit     [FLGPTN_WIDTH-1:0]      INIT_FLGPTN     = '0
+            parameter   bit     [IDLE_TSKID_WIDTH-1:0]  INIT_IDLE_TSKID  = TASKS,
+            parameter   bit     [TSKID_WIDTH-1:0]       INIT_RUN_TSKID   = '0,
+            parameter   bit     [FLGPTN_WIDTH-1:0]      INIT_FLGPTN      = '0
         )
         (
-            input   wire                            reset,
-            input   wire                            clk,
-            input   wire                            cke,
+            input   wire                                        reset,
+            input   wire                                        clk,
+            input   wire                                        cke,
 
-            input   wire    [WB_ADR_WIDTH-1:0]      s_wb_adr_i,
-            input   wire    [WB_DAT_WIDTH-1:0]      s_wb_dat_i,
-            output  reg     [WB_DAT_WIDTH-1:0]      s_wb_dat_o,
-            input   wire                            s_wb_we_i,
-            input   wire    [WB_SEL_WIDTH-1:0]      s_wb_sel_i,
-            input   wire                            s_wb_stb_i,
-            output  reg                             s_wb_ack_o,
+            input   wire    [WB_ADR_WIDTH-1:0]                  s_wb_adr_i,
+            input   wire    [WB_DAT_WIDTH-1:0]                  s_wb_dat_i,
+            output  reg     [WB_DAT_WIDTH-1:0]                  s_wb_dat_o,
+            input   wire                                        s_wb_we_i,
+            input   wire    [WB_SEL_WIDTH-1:0]                  s_wb_sel_i,
+            input   wire                                        s_wb_stb_i,
+            output  reg                                         s_wb_ack_o,
 
-            output  wire                            irq,
+            output  wire                                        irq,
 
-            output  wire    [IDLE_TSKID_WIDTH-1:0]  run_tskid,
-            output  wire                            run_valid,
-            output  wire    [IDLE_TSKID_WIDTH-1:0]  top_tskid,
-            output  wire                            top_valid
+            output  wire    [IDLE_TSKID_WIDTH-1:0]              monitor_run_tskid,
+            output  wire                                        monitor_run_valid,
+            output  wire    [IDLE_TSKID_WIDTH-1:0]              monitor_top_tskid,
+            output  wire                                        monitor_top_valid,
+            output  wire    [SEMAPHORES-1:0][QUECNT_WIDTH-1:0]  monitor_sem_quecnt,
+            output  wire    [SEMAPHORES-1:0][SEMCNT_WIDTH-1:0]  monitor_sem_semcnt,
+            output  wire    [FLGPTN_WIDTH-1:0]                  monitor_flg_flgptn,
+            output  wire    [WB_DAT_WIDTH-1:0]                  monitor_scratch0,
+            output  wire    [WB_DAT_WIDTH-1:0]                  monitor_scratch1,
+            output  wire    [WB_DAT_WIDTH-1:0]                  monitor_scratch2,
+            output  wire    [WB_DAT_WIDTH-1:0]                  monitor_scratch3
+
         );
 
 
@@ -60,42 +69,49 @@ module jelly_rtos
     // -----------------------------------------
 
     // system
-    logic                       core_reset;
-    logic                       core_busy;
+    logic                                       core_reset;
+    logic                                       core_busy;
 
     // ready queue
-    (* mark_debug="true" *) logic   [TSKID_WIDTH-1:0]   rdq_top_tskid;
-    (* mark_debug="true" *) logic   [TSKPRI_WIDTH-1:0]  rdq_top_tskpri;
-    (* mark_debug="true" *) logic                       rdq_top_valid;
+    logic   [TSKID_WIDTH-1:0]                   rdq_top_tskid;
+    logic   [TSKPRI_WIDTH-1:0]                  rdq_top_tskpri;
+    logic                                       rdq_top_valid;
     
     // task
-    logic   [TSKID_WIDTH-1:0]   wup_tsk_tskid;
-    logic                       wup_tsk_valid = '0;
+    logic   [TSKID_WIDTH-1:0]                   wup_tsk_tskid;
+    logic                                       wup_tsk_valid = '0;
 
-    logic   [TSKID_WIDTH-1:0]   slp_tsk_tskid;
-    logic                       slp_tsk_valid = '0;
+    logic   [TSKID_WIDTH-1:0]                   slp_tsk_tskid;
+    logic                                       slp_tsk_valid = '0;
 
-    logic   [TSKID_WIDTH-1:0]   rel_wai_tskid;
-    logic                       rel_wai_valid = '0;
+    logic   [TSKID_WIDTH-1:0]                   rel_wai_tskid;
+    logic                                       rel_wai_valid = '0;
 
-    logic   [TSKID_WIDTH-1:0]   dly_tsk_tskid;
-    logic   [RELTIM_WIDTH-1:0]  dly_tsk_dlytim;
-    logic                       dly_tsk_valid = '0;
+    logic   [TSKID_WIDTH-1:0]                   dly_tsk_tskid;
+    logic   [RELTIM_WIDTH-1:0]                  dly_tsk_dlytim;
+    logic                                       dly_tsk_valid = '0;
 
-    // semaphore
-    logic   [SEMID_WIDTH-1:0]   sig_sem_semid;
-    logic                       sig_sem_valid = '0;
+    // semaphore                
+    logic   [SEMID_WIDTH-1:0]                   sig_sem_semid;
+    logic                                       sig_sem_valid = '0;
 
-    logic   [SEMID_WIDTH-1:0]   wai_sem_semid;
-    logic                       wai_sem_valid = '0;
+    logic   [SEMID_WIDTH-1:0]                   wai_sem_semid;
+    logic                                       wai_sem_valid = '0;
 
+    logic   [SEMID_WIDTH-1:0]                   pol_sem_semid;
+    logic                                       pol_sem_valid = '0;
+    logic                                       pol_sem_ack;
+
+    logic   [SEMAPHORES-1:0][QUECNT_WIDTH-1:0]  sem_quecnt;
+    logic   [SEMAPHORES-1:0][SEMCNT_WIDTH-1:0]  sem_semcnt;
+    
     // event flag
-    logic   [FLGPTN_WIDTH-1:0]  evtflg_flgptn;
-    logic   [FLGPTN_WIDTH-1:0]  set_flg;
-    logic   [FLGPTN_WIDTH-1:0]  clr_flg;
-    logic   [0:0]               wai_flg_wfmode;
-    logic   [FLGPTN_WIDTH-1:0]  wai_flg_flgptn;
-    logic                       wai_flg_valid;
+    logic   [FLGPTN_WIDTH-1:0]                  set_flg;
+    logic   [FLGPTN_WIDTH-1:0]                  clr_flg;
+    logic   [0:0]                               wai_flg_wfmode;
+    logic   [FLGPTN_WIDTH-1:0]                  wai_flg_flgptn;
+    logic                                       wai_flg_valid;
+    logic   [FLGPTN_WIDTH-1:0]                  flg_flgptn;
 
     jelly_rtos_core
             #(
@@ -137,13 +153,18 @@ module jelly_rtos
                 .sig_sem_valid,
                 .wai_sem_semid,
                 .wai_sem_valid,
+                .pol_sem_semid,
+                .pol_sem_valid,
+                .pol_sem_ack,
+                .sem_quecnt,
+                .sem_semcnt,
 
-                .evtflg_flgptn,
                 .set_flg,
                 .clr_flg,
                 .wai_flg_wfmode,
                 .wai_flg_flgptn,
-                .wai_flg_valid
+                .wai_flg_valid,
+                .flg_flgptn
             );
 
     
@@ -163,6 +184,7 @@ module jelly_rtos
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_DLY_TSK     = OPCODE_WIDTH'(8'h18);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SIG_SEM     = OPCODE_WIDTH'(8'h21);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_SEM     = OPCODE_WIDTH'(8'h22);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_POL_SEM     = OPCODE_WIDTH'(8'h23);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SET_FLG     = OPCODE_WIDTH'(8'h31);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CLR_FLG     = OPCODE_WIDTH'(8'h32);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_FLG_AND = OPCODE_WIDTH'(8'h33);
@@ -194,25 +216,35 @@ module jelly_rtos
     localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_SCRATCH2   = 'he2;
     localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_SCRATCH3   = 'he3;
 
+
     logic   [OPCODE_WIDTH-1:0]      dec_opcode;
     logic   [ID_WIDTH-1:0]          dec_id;
     assign  dec_opcode = s_wb_adr_i[DECODE_OPCODE_POS +: OPCODE_WIDTH];
     assign  dec_id     = s_wb_adr_i[DECODE_ID_POS     +: ID_WIDTH];
                             
-    (* mark_debug="true" *) logic   [TSKID_WIDTH-1:0]       cpu_run_tskid;
-    (* mark_debug="true" *) logic                           cpu_run_valid;
-                            logic   [IDLE_TSKID_WIDTH-1:0]  cpu_idle_tskid;
+    logic   [TSKID_WIDTH-1:0]           cpu_run_tskid;
+    logic                               cpu_run_valid;
+    logic   [IDLE_TSKID_WIDTH-1:0]      cpu_idle_tskid;
 
-    (* mark_debug="true" *) logic   [0:0]                   irq_enable;
-    (* mark_debug="true" *) logic   [0:0]                   irq_force;
-    (* mark_debug="true" *) logic   [0:0]                   reg_switch;
-    (* mark_debug="true" *) logic   [0:0]                   reg_irq;
-    
-    (* mark_debug="true" *) logic   [WB_DAT_WIDTH-1:0]      scratch0;
-    (* mark_debug="true" *) logic   [WB_DAT_WIDTH-1:0]      scratch1;
-    (* mark_debug="true" *) logic   [WB_DAT_WIDTH-1:0]      scratch2;
-    (* mark_debug="true" *) logic   [WB_DAT_WIDTH-1:0]      scratch3;
-    
+    logic   [0:0]                       irq_enable;
+    logic   [0:0]                       irq_force;
+    logic   [0:0]                       reg_switch;
+    logic   [0:0]                       reg_irq;
+
+    logic   [WB_DAT_WIDTH-1:0]          scratch0;
+    logic   [WB_DAT_WIDTH-1:0]          scratch1;
+    logic   [WB_DAT_WIDTH-1:0]          scratch2;
+    logic   [WB_DAT_WIDTH-1:0]          scratch3;
+
+    logic    [IDLE_TSKID_WIDTH-1:0]     cur_run_tskid;
+    logic                               cur_run_valid;
+    logic    [IDLE_TSKID_WIDTH-1:0]     cur_top_tskid;
+    logic                               cur_top_valid;
+    assign cur_top_tskid = rdq_top_valid ? IDLE_TSKID_WIDTH'(rdq_top_tskid) : cpu_idle_tskid;
+    assign cur_top_valid = rdq_top_valid;
+    assign cur_run_tskid = cpu_run_valid ? IDLE_TSKID_WIDTH'(cpu_run_tskid) : cpu_idle_tskid;
+    assign cur_run_valid = cpu_run_valid;
+
     always_ff @(posedge clk) begin
         if ( reset || core_reset ) begin
             core_reset     <= reset;
@@ -264,8 +296,8 @@ module jelly_rtos
             end
 
             if ( !core_busy ) begin
-                reg_switch <= (top_tskid != run_tskid);
-                reg_irq    <= (top_tskid != run_tskid) && reg_switch;
+                reg_switch <= (cur_top_tskid != cur_run_tskid);
+                reg_irq    <= (cur_top_tskid != cur_run_tskid) && reg_switch;
             end
         end
     end
@@ -292,6 +324,8 @@ module jelly_rtos
         sig_sem_valid = '0;
         wai_sem_semid = 'x;
         wai_sem_valid = '0;
+        pol_sem_semid = 'x;
+        pol_sem_valid = '0;
 
         set_flg        = '0;
         clr_flg        = '1;
@@ -299,6 +333,7 @@ module jelly_rtos
         wai_flg_flgptn = 'x;
         wai_flg_valid  = '0;
 
+        // write
         if ( s_wb_ack_o && s_wb_we_i && &s_wb_sel_i ) begin
             case ( dec_opcode )
             OPCODE_WUP_TSK:     begin wup_tsk_tskid = TSKID_WIDTH'(dec_id); wup_tsk_valid = (int'(dec_id) < TASKS); end
@@ -334,6 +369,14 @@ module jelly_rtos
             endcase
         end
 
+        // read
+        if ( s_wb_ack_o && !s_wb_we_i && &s_wb_sel_i ) begin
+            case ( dec_opcode )
+            OPCODE_POL_SEM:     begin pol_sem_semid = SEMID_WIDTH'(dec_id); pol_sem_valid = (int'(dec_id) < SEMAPHORES); end
+            default: ;
+            endcase
+        end
+
         case ( dec_opcode )
         OPCODE_SYS_CFG:
             case ( dec_id )
@@ -349,17 +392,15 @@ module jelly_rtos
             SYS_CFG_RELTIM_WIDTH:   s_wb_dat_o = WB_DAT_WIDTH'(RELTIM_WIDTH);
             default: ;
             endcase
-        default:;
-        endcase
 
         OPCODE_CPU_CTL:
             case ( dec_id )
-            CPU_CTL_TOP_TSKID:  s_wb_dat_o = WB_DAT_WIDTH'(top_tskid);
-            CPU_CTL_TOP_VALID:  s_wb_dat_o = WB_DAT_WIDTH'(top_valid);
-            CPU_CTL_RUN_TSKID:  s_wb_dat_o = WB_DAT_WIDTH'(run_tskid);
-            CPU_CTL_RUN_VALID:  s_wb_dat_o = WB_DAT_WIDTH'(run_valid);
+            CPU_CTL_TOP_TSKID:  s_wb_dat_o = WB_DAT_WIDTH'(cur_top_tskid);
+            CPU_CTL_TOP_VALID:  s_wb_dat_o = WB_DAT_WIDTH'(cur_top_valid);
+            CPU_CTL_RUN_TSKID:  s_wb_dat_o = WB_DAT_WIDTH'(cur_run_tskid);
+            CPU_CTL_RUN_VALID:  s_wb_dat_o = WB_DAT_WIDTH'(cur_run_valid);
             CPU_CTL_IDLE_TSKID: s_wb_dat_o = WB_DAT_WIDTH'(cpu_idle_tskid);
-            CPU_CTL_COPY_TSKID: s_wb_dat_o = WB_DAT_WIDTH'(run_tskid);
+            CPU_CTL_COPY_TSKID: s_wb_dat_o = WB_DAT_WIDTH'(cur_run_tskid);
             CPU_CTL_IRQ_EN:     s_wb_dat_o = WB_DAT_WIDTH'(irq_enable);
             CPU_CTL_IRQ_STS:    s_wb_dat_o = WB_DAT_WIDTH'(irq);
             CPU_CTL_SCRATCH0:   s_wb_dat_o = WB_DAT_WIDTH'(scratch0);
@@ -368,13 +409,25 @@ module jelly_rtos
             CPU_CTL_SCRATCH3:   s_wb_dat_o = WB_DAT_WIDTH'(scratch3);
             default: ;
             endcase
+        
+        OPCODE_POL_SEM: s_wb_dat_o = WB_DAT_WIDTH'(pol_sem_ack);
+        
+        default: ;
+        endcase
     end
 
-    assign top_tskid = rdq_top_valid ? IDLE_TSKID_WIDTH'(rdq_top_tskid) : cpu_idle_tskid;
-    assign top_valid = rdq_top_valid;
-    assign run_tskid = cpu_run_valid ? IDLE_TSKID_WIDTH'(cpu_run_tskid) : cpu_idle_tskid;
-    assign run_valid = cpu_run_valid;
-
+    assign monitor_top_tskid  = cur_top_tskid;
+    assign monitor_top_valid  = cur_top_valid;
+    assign monitor_run_tskid  = cur_run_tskid;
+    assign monitor_run_valid  = cur_run_valid;
+    assign monitor_sem_quecnt = sem_quecnt;
+    assign monitor_sem_semcnt = sem_semcnt;
+    assign monitor_flg_flgptn = flg_flgptn;
+    assign monitor_scratch0   = scratch0;
+    assign monitor_scratch1   = scratch1;
+    assign monitor_scratch2   = scratch2;
+    assign monitor_scratch3   = scratch3;
+    
 endmodule
 
 

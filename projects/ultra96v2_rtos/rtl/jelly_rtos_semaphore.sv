@@ -28,6 +28,9 @@ module jelly_rtos_semaphore
 
             input   wire                            sig_sem,
 
+            input   wire                            pol_sem,
+            output  reg                             pol_sem_ack,
+
             input   wire    [TSKID_WIDTH-1:0]       wai_sem_tskid,
             input   wire    [TSKPRI_WIDTH-1:0]      wai_sem_tskpri,
             input   wire                            wai_sem_valid,
@@ -67,9 +70,9 @@ module jelly_rtos_semaphore
                 .clk            (clk),
                 .cke            (cke),
 
-                .add_id         (wai_sem_tskid),
-                .add_pri        (wai_sem_tskpri),
-                .add_valid      (wai_sem_valid),
+                .add_id         (que_add_tskid),
+                .add_pri        (que_add_tskpri),
+                .add_valid      (que_add_valid),
 
                 .remove_id      (que_rmv_tskid),
                 .remove_valid   (que_rmv_valid),
@@ -87,6 +90,7 @@ module jelly_rtos_semaphore
     logic                       sem_nop;
 
     always_comb begin : blk_sem
+        pol_sem_ack    = '0;
         next_semcnt    = semcnt;
         que_add_tskid  = 'x;
         que_add_tskpri = 'x;
@@ -98,21 +102,7 @@ module jelly_rtos_semaphore
 
         // sig_sem と wai_sem は同時に来ない前提
         sem_nop = !wai_sem_valid && !sig_sem && !rel_wai_valid;
-        unique case ( 1'b1 )
-        wai_sem_valid:
-            begin
-                if ( sem_empty ) begin
-                    que_add_tskid  = wai_sem_tskid;
-                    que_add_tskpri = wai_sem_tskpri;
-                    que_add_valid  = 1'b1;
-                end
-                else begin
-                    next_semcnt--;
-                    wakeup_tskid = wai_sem_tskid;
-                    wakeup_valid = 1'b1;
-                end
-            end
-        
+        case ( 1'b1 )
         sig_sem:
             begin
                 if ( que_top_valid ) begin
@@ -125,6 +115,28 @@ module jelly_rtos_semaphore
                 end
                 else begin
                     next_semcnt++;
+                end
+            end
+
+        pol_sem:
+            begin
+                if ( !sem_empty ) begin
+                    pol_sem_ack = 1'b1;
+                    next_semcnt--;
+                end
+            end
+
+        wai_sem_valid:
+            begin
+                if ( sem_empty ) begin
+                    que_add_tskid  = wai_sem_tskid;
+                    que_add_tskpri = wai_sem_tskpri;
+                    que_add_valid  = 1'b1;
+                end
+                else begin
+                    next_semcnt--;
+                    wakeup_tskid = wai_sem_tskid;
+                    wakeup_valid = 1'b1;
                 end
             end
         
