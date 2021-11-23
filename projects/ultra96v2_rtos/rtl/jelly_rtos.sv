@@ -263,7 +263,7 @@ module jelly_rtos
                 cpu_run_valid <= rdq_top_valid;
             end
 
-            if ( !core_busy) begin
+            if ( !core_busy ) begin
                 reg_switch <= (top_tskid != run_tskid);
                 reg_irq    <= (top_tskid != run_tskid) && reg_switch;
             end

@@ -318,6 +318,7 @@ module tb_sim();
 
         $display("dly_tsk 10");
         wb_write(make_addr(OPCODE_DLY_TSK, 1), 30, 4'hf);
+    #5
         check_irq(1'b1);
         swtich_task();
         check_irq(1'b0);
