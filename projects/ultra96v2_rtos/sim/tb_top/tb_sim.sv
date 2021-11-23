@@ -151,6 +151,7 @@ module tb_sim();
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_DLY_TSK     = OPCODE_WIDTH'(8'h18);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SIG_SEM     = OPCODE_WIDTH'(8'h21);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_SEM     = OPCODE_WIDTH'(8'h22);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_POL_SEM     = OPCODE_WIDTH'(8'h23);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SET_FLG     = OPCODE_WIDTH'(8'h31);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CLR_FLG     = OPCODE_WIDTH'(8'h32);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_FLG_AND = OPCODE_WIDTH'(8'h33);
@@ -218,11 +219,11 @@ module tb_sim();
 
     task check_top_taskid(int exp_tskid);
     begin
-        if ( i_sim_main.i_top.i_rtos.top_tskid == exp_tskid ) begin
+        if ( i_sim_main.i_top.i_rtos.cur_top_tskid == exp_tskid ) begin
             $display("[OK] top_tskid = %d", exp_tskid);
         end
         else begin
-            $display("[!!!ERROR!!!] top_tskid = %d (exp:%d)", i_sim_main.i_top.i_rtos.top_tskid, exp_tskid);
+            $display("[!!!ERROR!!!] top_tskid = %d (exp:%d)", i_sim_main.i_top.i_rtos.cur_top_tskid, exp_tskid);
             $error();
         end
     end
@@ -230,11 +231,11 @@ module tb_sim();
 
     task check_run_taskid(int exp_tskid);
     begin
-        if ( i_sim_main.i_top.i_rtos.run_tskid == exp_tskid ) begin
+        if ( i_sim_main.i_top.i_rtos.cur_run_tskid == exp_tskid ) begin
             $display("[OK] run_tskid = %d", exp_tskid);
         end
         else begin
-            $display("[!!!ERROR!!!] run_tskid = %d (exp:%d)", i_sim_main.i_top.i_rtos.run_tskid, exp_tskid);
+            $display("[!!!ERROR!!!] run_tskid = %d (exp:%d)", i_sim_main.i_top.i_rtos.cur_run_tskid, exp_tskid);
             $error();
         end
     end
@@ -365,6 +366,7 @@ module tb_sim();
         wb_write(make_addr(OPCODE_SLP_TSK, 1), 0, 4'hf);
 
     #100
+        test_no = 5;
         $display(" --- wai_sem --- ");
         wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
         swtich_task();
@@ -391,7 +393,58 @@ module tb_sim();
         wb_write(make_addr(OPCODE_SLP_TSK, 1), 0, 4'hf);
         swtich_task();
         check_top_taskid(15);
-        
+
+    #100
+        test_no = 6;
+        $display(" --- wai_sem2 --- ");
+        wb_write(make_addr(OPCODE_WUP_TSK, 0), 0, 4'hf);
+        wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
+        wb_write(make_addr(OPCODE_WAI_SEM, 3), 0, 4'hf);
+        wb_write(make_addr(OPCODE_WAI_SEM, 3), 0, 4'hf);
+        swtich_task();
+        check_top_taskid(15);
+
+        wb_write(make_addr(OPCODE_SIG_SEM, 3), 0, 4'hf);
+        wb_write(make_addr(OPCODE_SIG_SEM, 3), 0, 4'hf);
+        swtich_task();
+        check_top_taskid(0);
+        wb_write(make_addr(OPCODE_SLP_TSK, 0), 0, 4'hf);
+        swtich_task();
+        check_top_taskid(1);
+        wb_write(make_addr(OPCODE_SLP_TSK, 1), 0, 4'hf);
+        swtich_task();
+        check_top_taskid(15);
+
+    #100
+        test_no = 7;
+        $display(" --- wai_sem3 --- ");
+        wb_write(make_addr(OPCODE_SIG_SEM, 0), 0, 4'hf);
+        wb_write(make_addr(OPCODE_WUP_TSK, 0), 0, 4'hf);
+        swtich_task();
+        check_top_taskid(0);
+        wb_write(make_addr(OPCODE_WAI_SEM, 0), 0, 4'hf);
+        swtich_task();
+        check_top_taskid(0);
+        wb_write(make_addr(OPCODE_SIG_SEM, 0), 0, 4'hf);
+        wb_write(make_addr(OPCODE_WAI_SEM, 0), 0, 4'hf);
+        swtich_task();
+        check_top_taskid(0);
+        wb_write(make_addr(OPCODE_SIG_SEM, 0), 0, 4'hf);
+        wb_write(make_addr(OPCODE_SLP_TSK, 0), 0, 4'hf);
+        swtich_task();
+        check_top_taskid(15);
+
+
+    #100
+        test_no = 8;
+        $display(" --- pol_sem --- ");
+        wb_write(make_addr(OPCODE_SIG_SEM, 1), 0, 4'hf);
+        wb_write(make_addr(OPCODE_SIG_SEM, 1), 0, 4'hf);
+        wb_read (make_addr(OPCODE_POL_SEM, 1));
+        wb_read (make_addr(OPCODE_POL_SEM, 0));
+        wb_read (make_addr(OPCODE_POL_SEM, 1));
+        wb_read (make_addr(OPCODE_POL_SEM, 1));
+
     #100;
         test_no = 999;
         $display(" --- soft reset --- ");

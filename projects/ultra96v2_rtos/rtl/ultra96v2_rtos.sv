@@ -50,6 +50,7 @@ module ultra96v2_rtos
     logic                           axi4l_rvalid;
     logic                           axi4l_rready;
     
+    (* mark_debug="true" *)
     logic   [0:0]                   irq_rtos;
     
     design_1
@@ -148,23 +149,50 @@ module ultra96v2_rtos
     // -----------------------------
     //  RTOS
     // -----------------------------
-    
+
+    localparam  int                             TASKS            = 15;
+    localparam  int                             SEMAPHORES       = 8;
+    localparam  int                             TSKPRI_WIDTH     = 4;
+    localparam  int                             SEMCNT_WIDTH     = 4;
+    localparam  int                             FLGPTN_WIDTH     = 32;
+    localparam  int                             SYSTIM_WIDTH     = 64;
+    localparam  int                             RELTIM_WIDTH     = 32;
+    localparam  int                             QUECNT_WIDTH     = $clog2(TASKS+1);
+    localparam  int                             IDLE_TSKID_WIDTH = $clog2(TASKS+1);
+    localparam  int                             TSKID_WIDTH      = $clog2(TASKS);
+    localparam  int                             SEMID_WIDTH      = $clog2(SEMAPHORES);
+
+    (* mark_debug = "true" *)   logic   [IDLE_TSKID_WIDTH-1:0]              monitor_run_tskid;
+    (* mark_debug = "true" *)   logic                                       monitor_run_valid;
+    (* mark_debug = "true" *)   logic   [IDLE_TSKID_WIDTH-1:0]              monitor_top_tskid;
+    (* mark_debug = "true" *)   logic                                       monitor_top_valid;
+    (* mark_debug = "true" *)   logic   [SEMAPHORES-1:0][QUECNT_WIDTH-1:0]  monitor_sem_quecnt;
+    (* mark_debug = "true" *)   logic   [SEMAPHORES-1:0][SEMCNT_WIDTH-1:0]  monitor_sem_semcnt;
+    (* mark_debug = "true" *)   logic   [FLGPTN_WIDTH-1:0]                  monitor_flg_flgptn;
+    (* mark_debug = "true" *)   logic   [WB_DAT_WIDTH-1:0]                  monitor_scratch0;
+    (* mark_debug = "true" *)   logic   [WB_DAT_WIDTH-1:0]                  monitor_scratch1;
+    (* mark_debug = "true" *)   logic   [WB_DAT_WIDTH-1:0]                  monitor_scratch2;
+    (* mark_debug = "true" *)   logic   [WB_DAT_WIDTH-1:0]                  monitor_scratch3;
+
     wire    [WB_DAT_WIDTH-1:0]      wb_rtos_dat_o;
     wire                            wb_rtos_stb_i;
     wire                            wb_rtos_ack_o;
-    
+
     jelly_rtos
             #(
                 .WB_ADR_WIDTH       (WB_ADR_WIDTH),
                 .WB_DAT_WIDTH       (WB_DAT_WIDTH),
-                .TASKS              (15),
-                .SEMAPHORES         (8),
-                .TSKPRI_WIDTH       (4),
-                .SEMCNT_WIDTH       (4),
-                .FLGPTN_WIDTH       (32),
-                .SYSTIM_WIDTH       (64),
-                .RELTIM_WIDTH       (32),
-                .INIT_FLGPTN        ('0)
+                .TASKS              (TASKS),
+                .SEMAPHORES         (SEMAPHORES),
+                .TSKPRI_WIDTH       (TSKPRI_WIDTH),
+                .SEMCNT_WIDTH       (SEMCNT_WIDTH),
+                .FLGPTN_WIDTH       (FLGPTN_WIDTH),
+                .SYSTIM_WIDTH       (SYSTIM_WIDTH),
+                .RELTIM_WIDTH       (RELTIM_WIDTH),
+                .QUECNT_WIDTH       (QUECNT_WIDTH),
+                .IDLE_TSKID_WIDTH   (IDLE_TSKID_WIDTH),
+                .TSKID_WIDTH        (TSKID_WIDTH),
+                .SEMID_WIDTH        (SEMID_WIDTH)
             )
         i_rtos
             (
@@ -180,7 +208,19 @@ module ultra96v2_rtos
                 .s_wb_stb_i         (wb_rtos_stb_i),
                 .s_wb_ack_o         (wb_rtos_ack_o),
                 
-                .irq                (irq_rtos)
+                .irq                (irq_rtos),
+
+                .monitor_run_tskid  (monitor_run_tskid), 
+                .monitor_run_valid  (monitor_run_valid), 
+                .monitor_top_tskid  (monitor_top_tskid), 
+                .monitor_top_valid  (monitor_top_valid), 
+                .monitor_sem_quecnt (monitor_sem_quecnt),
+                .monitor_sem_semcnt (monitor_sem_semcnt),
+                .monitor_flg_flgptn (monitor_flg_flgptn),
+                .monitor_scratch0   (monitor_scratch0),
+                .monitor_scratch1   (monitor_scratch1),
+                .monitor_scratch2   (monitor_scratch2),
+                .monitor_scratch3   (monitor_scratch3)
             );
     
     
