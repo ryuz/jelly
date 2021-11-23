@@ -13,7 +13,7 @@ mod rtos;
 pub mod uart;
 use uart::*;
 
-mod memdump;
+//mod memdump;
 mod timer;
 
 #[panic_handler]
@@ -32,15 +32,39 @@ fn write_reg(reg: usize, data: u32) {
     }
 }
 
+pub fn memdump(addr: usize, len: usize) {
+    return;
+    wait(10000);
+    unsafe {
+        for offset in 0..len {
+            if offset % 4 == 0 {
+                print!("{:08X}:", addr + offset * 4);
+            }
+            print!(
+                " {:08X}",
+                core::ptr::read_volatile((addr + offset * 4) as *mut u32)
+            );
+            if offset % 4 == 3 || offset + 1 == len {
+                println!("");
+            }
+        }
+    }
+}
+
+
 extern "C" fn task0() -> ! {
     println!("Task0");
     println!("slp_tsk(0)");
+    rtos::slp_tsk(-1);
+    println!("Task0");
     rtos::slp_tsk(-1);
     loop {}
 }
 
 extern "C" fn task1() -> ! {
     println!("Task1");
+    println!("slp_tsk(0)");
+    rtos::wup_tsk(0);
     println!("slp_tsk(1)");
     rtos::slp_tsk(-1);
     loop {}
@@ -50,71 +74,52 @@ extern "C" fn task1() -> ! {
 #[no_mangle]
 pub unsafe extern "C" fn main() -> ! {
     wait(10000);
-    println!("Hello world!");
+    println!("\nJelly-RTOS start");
     wait(10000);
 
-    memdump::memdump(0x80000000 + (0x0100 << 2), 4);
-    memdump::memdump(0x80000000 + (0x0104 << 2), 4);
-    memdump::memdump(0x80000000 + (0x0110 << 2), 4);
+    memdump(0x80000000 + (0x0100 << 2), 4);
+    memdump(0x80000000 + (0x0104 << 2), 4);
+    memdump(0x80000000 + (0x0110 << 2), 4);
 
     rtos::initialize();
 
-    memdump::memdump(0x80000000 + (0x0100 << 2), 4);
-    memdump::memdump(0x80000000 + (0x0104 << 2), 4);
-    memdump::memdump(0x80000000 + (0x0110 << 2), 4);
-
-    cpu::irq_enable();
-//    cpu::irq_disable();
+    memdump(0x80000000 + (0x0100 << 2), 4);
+    memdump(0x80000000 + (0x0104 << 2), 4);
+    memdump(0x80000000 + (0x0110 << 2), 4);
 
     rtos::cre_tsk(0, &mut STACK0, task0);
     rtos::cre_tsk(1, &mut STACK1, task1);
 
-    memdump::memdump(0x80000000 + (0x0100 << 2), 4);
-    memdump::memdump(0x80000000 + (0x0104 << 2), 4);
-    memdump::memdump(0x80000000 + (0x0110 << 2), 4);
+//    rtos::test();
+    wait(10000);
 
-    println!("wup_tsk(1)");
-    rtos::wup_tsk(1);
+    cpu::irq_enable();
 
-    memdump::memdump(0x80000000 + (0x0100 << 2), 4);
-    memdump::memdump(0x80000000 + (0x0104 << 2), 4);
-    memdump::memdump(0x80000000 + (0x0110 << 2), 4);
+//    println!("\nend\n");
+//    loop{}
+
+    //    cpu::irq_disable();
+    
+    memdump(0x80000000 + (0x0100 << 2), 4);
+    memdump(0x80000000 + (0x0104 << 2), 4);
+    memdump(0x80000000 + (0x0110 << 2), 4);
 
     println!("wup_tsk(0)");
     rtos::wup_tsk(0);
 
-    memdump::memdump(0x80000000 + (0x0100 << 2), 4);
-    memdump::memdump(0x80000000 + (0x0104 << 2), 4);
-    memdump::memdump(0x80000000 + (0x0110 << 2), 4);
+    println!("wup_tsk(1)");
+    rtos::wup_tsk(1);
 
-    memdump::memdump(0x80000000, 4);
-    //  memdump::memdump(0x80000400, 4);
+    memdump(0x80000000 + (0x0100 << 2), 4);
+    memdump(0x80000000 + (0x0104 << 2), 4);
+    memdump(0x80000000 + (0x0110 << 2), 4);
 
-    /*
-        write_reg(0x0104, 0);
-        memdump::memdump(0x80000000 + (0x110 << 2), 4);
-        memdump::memdump(0x80000000 + (0x100 << 2), 4);
+//    println!("wup_tsk(0)");
+//    rtos::wup_tsk(0);
 
-        write_reg(0x0110, 1); // en
-        memdump::memdump(0x80000000 + (0x110 << 2), 4);
-        memdump::memdump(0x80000000 + (0x100 << 2), 4);
-
-        println!("wup_tsk_start");
-        write_reg(0x1001, 0);
-        println!("wup_tsk_end");
-    //  wait(1000000);
-        memdump::memdump(0x80000000 + (0x110 << 2), 4);
-        memdump::memdump(0x80000000 + (0x100 << 2), 4);
-
-    //  write_reg(0x1000, 0);
-    //  write_reg(0x1100, 0);
-        write_reg(0x1101, 0);
-        memdump::memdump(0x80000000 + (0x110 << 2), 4);
-        memdump::memdump(0x80000000 + (0x100 << 2), 4);
-        write_reg(0x0110, 0); // irq dis
-        memdump::memdump(0x80000000 + (0x110 << 2), 4);
-        memdump::memdump(0x80000000 + (0x100 << 2), 4);
-        */
+    memdump(0x80000000 + (0x0100 << 2), 4);
+    memdump(0x80000000 + (0x0104 << 2), 4);
+    memdump(0x80000000 + (0x0110 << 2), 4);
 
     println!("\nend");
     loop {
