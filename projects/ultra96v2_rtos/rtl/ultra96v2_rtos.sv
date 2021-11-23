@@ -28,27 +28,27 @@ module ultra96v2_rtos
     localparam  AXI4L_DATA_WIDTH = (8 << AXI4L_DATA_SIZE);
     localparam  AXI4L_STRB_WIDTH = AXI4L_DATA_WIDTH / 8;
     
-                            logic                           axi4l_aresetn;
-                            logic                           axi4l_aclk;
-    (* mark_debug="true" *) logic   [AXI4L_ADDR_WIDTH-1:0]  axi4l_awaddr;
-    (* mark_debug="true" *) logic   [2:0]                   axi4l_awprot;
-    (* mark_debug="true" *) logic                           axi4l_awvalid;
-    (* mark_debug="true" *) logic                           axi4l_awready;
-    (* mark_debug="true" *) logic   [AXI4L_DATA_WIDTH-1:0]  axi4l_wdata;
-    (* mark_debug="true" *) logic   [AXI4L_STRB_WIDTH-1:0]  axi4l_wstrb;
-    (* mark_debug="true" *) logic                           axi4l_wvalid;
-    (* mark_debug="true" *) logic                           axi4l_wready;
-    (* mark_debug="true" *) logic   [1:0]                   axi4l_bresp;
-    (* mark_debug="true" *) logic                           axi4l_bvalid;
-    (* mark_debug="true" *) logic                           axi4l_bready;
-    (* mark_debug="true" *) logic   [AXI4L_ADDR_WIDTH-1:0]  axi4l_araddr;
-    (* mark_debug="true" *) logic   [2:0]                   axi4l_arprot;
-    (* mark_debug="true" *) logic                           axi4l_arvalid;
-    (* mark_debug="true" *) logic                           axi4l_arready;
-    (* mark_debug="true" *) logic   [AXI4L_DATA_WIDTH-1:0]  axi4l_rdata;
-    (* mark_debug="true" *) logic   [1:0]                   axi4l_rresp;
-    (* mark_debug="true" *) logic                           axi4l_rvalid;
-    (* mark_debug="true" *) logic                           axi4l_rready;
+    logic                           axi4l_aresetn;
+    logic                           axi4l_aclk;
+    logic   [AXI4L_ADDR_WIDTH-1:0]  axi4l_awaddr;
+    logic   [2:0]                   axi4l_awprot;
+    logic                           axi4l_awvalid;
+    logic                           axi4l_awready;
+    logic   [AXI4L_DATA_WIDTH-1:0]  axi4l_wdata;
+    logic   [AXI4L_STRB_WIDTH-1:0]  axi4l_wstrb;
+    logic                           axi4l_wvalid;
+    logic                           axi4l_wready;
+    logic   [1:0]                   axi4l_bresp;
+    logic                           axi4l_bvalid;
+    logic                           axi4l_bready;
+    logic   [AXI4L_ADDR_WIDTH-1:0]  axi4l_araddr;
+    logic   [2:0]                   axi4l_arprot;
+    logic                           axi4l_arvalid;
+    logic                           axi4l_arready;
+    logic   [AXI4L_DATA_WIDTH-1:0]  axi4l_rdata;
+    logic   [1:0]                   axi4l_rresp;
+    logic                           axi4l_rvalid;
+    logic                           axi4l_rready;
     
     logic   [0:0]                   irq_rtos;
     
@@ -157,7 +157,7 @@ module ultra96v2_rtos
             #(
                 .WB_ADR_WIDTH       (WB_ADR_WIDTH),
                 .WB_DAT_WIDTH       (WB_DAT_WIDTH),
-                .TASKS              (16),
+                .TASKS              (15),
                 .SEMAPHORES         (8),
                 .TSKPRI_WIDTH       (4),
                 .SEMCNT_WIDTH       (4),

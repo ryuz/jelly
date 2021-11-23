@@ -31,6 +31,8 @@ module jelly_rtos_core
             input   wire                        clk,
             input   wire                        cke,
 
+            output  reg                         busy,
+
             // ready queue
             output  wire    [TSKID_WIDTH-1:0]   rdq_top_tskid,
             output  wire    [TSKPRI_WIDTH-1:0]  rdq_top_tskpri,
@@ -115,6 +117,8 @@ module jelly_rtos_core
     //  tasks
     // -----------------------------------------
     
+                            logic   [TASKS-1:0]                     task_busy;
+
     (* mark_debug="true" *) logic   [TASKS-1:0][2:0]                task_tskstat;
     (* mark_debug="true" *) logic   [TASKS-1:0][TSKPRI_WIDTH-1:0]   task_tskpri;
 
@@ -148,6 +152,8 @@ module jelly_rtos_core
                     .reset              (reset),
                     .clk                (clk),
                     .cke                (cke),
+                    
+                    .busy               (task_busy[i]),
 
                     .tskstat            (task_tskstat[i]),
                     .tskpri             (task_tskpri[i]),
@@ -341,12 +347,14 @@ module jelly_rtos_core
 
     always_ff @(posedge clk) begin
         if ( reset ) begin
+            busy         <= '0;
             task_rel_tsk <= '0;
         end
         else if ( cke ) begin
             automatic logic [TSKID_WIDTH-1:0]   wakeup_tskid;
             automatic logic                     wakeup_valid;
 
+            busy         <= |task_busy;
             task_rel_tsk <= '0;
 
             wakeup_tskid = '0;
