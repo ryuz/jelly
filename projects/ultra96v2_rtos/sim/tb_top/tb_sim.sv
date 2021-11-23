@@ -48,7 +48,7 @@ module tb_sim();
     //  WISHBONE master
     // ----------------------------------
 
-    parameter int   WB_ADR_WIDTH = 16;
+    parameter int   WB_ADR_WIDTH = 29;
     parameter int   WB_DAT_WIDTH = 32;
     parameter int   WB_SEL_WIDTH = WB_DAT_WIDTH/8;
     
@@ -156,6 +156,7 @@ module tb_sim();
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CLR_FLG     = OPCODE_WIDTH'(8'h32);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_FLG_AND = OPCODE_WIDTH'(8'h33);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_FLG_OR  = OPCODE_WIDTH'(8'h34);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_ENA_FLG_EXT = OPCODE_WIDTH'(8'h3a);
 
     localparam  bit     [ID_WIDTH-1:0]      SYS_CFG_CORE_ID      = 'h00;
     localparam  bit     [ID_WIDTH-1:0]      SYS_CFG_VERSION      = 'h01;
@@ -257,7 +258,11 @@ module tb_sim();
 
     initial begin
     @(negedge wb_rst_i);
-    
+    #100;
+        $display(" --- timer start --- ");
+        wb_write(29'h002_0001, 200, 4'hf);
+        wb_write(29'h002_0000,   1, 4'hf);
+
     #100;
         test_no = 1;
         read_status();
@@ -444,6 +449,25 @@ module tb_sim();
         wb_read (make_addr(OPCODE_POL_SEM, 0));
         wb_read (make_addr(OPCODE_POL_SEM, 1));
         wb_read (make_addr(OPCODE_POL_SEM, 1));
+
+    #100
+        test_no = 20;
+        $display(" --- ext flg --- ");
+        wb_write(make_addr(OPCODE_CLR_FLG, 0), 0, 4'hf);
+        wb_write(make_addr(OPCODE_ENA_FLG_EXT, 0), 1, 4'hf);
+        wb_write(make_addr(OPCODE_WUP_TSK, 0), 0, 4'hf);
+        swtich_task();
+        check_top_taskid(0);
+        wb_write(make_addr(OPCODE_WAI_FLG_OR, 0), 1, 4'hf);
+        swtich_task();
+        check_top_taskid(15);
+    #1000
+        swtich_task();
+        check_top_taskid(0);
+        wb_write(make_addr(OPCODE_CLR_FLG, 0), 0, 4'hf);
+        wb_write(make_addr(OPCODE_SLP_TSK, 0), 0, 4'hf);
+        swtich_task();
+        check_top_taskid(15);
 
     #100;
         test_no = 999;

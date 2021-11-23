@@ -13,26 +13,27 @@
 
 module jelly_rtos
         #(
-            parameter   int                             WB_ADR_WIDTH     = 16,
-            parameter   int                             WB_DAT_WIDTH     = 32,
-            parameter   int                             WB_SEL_WIDTH     = WB_DAT_WIDTH/8,
-    
-            parameter   int                             TASKS            = 15,
-            parameter   int                             SEMAPHORES       = 8,
-            parameter   int                             TSKPRI_WIDTH     = 4,
-            parameter   int                             SEMCNT_WIDTH     = 4,
-            parameter   int                             FLGPTN_WIDTH     = 32,
-            parameter   int                             SYSTIM_WIDTH     = 64,
-            parameter   int                             RELTIM_WIDTH     = 32,
-
-            parameter   int                             QUECNT_WIDTH     = $clog2(TASKS+1),
-            parameter   int                             IDLE_TSKID_WIDTH = $clog2(TASKS+1),
-            parameter   int                             TSKID_WIDTH      = $clog2(TASKS),
-            parameter   int                             SEMID_WIDTH      = $clog2(SEMAPHORES),
-
-            parameter   bit     [IDLE_TSKID_WIDTH-1:0]  INIT_IDLE_TSKID  = IDLE_TSKID_WIDTH'(TASKS),
-            parameter   bit     [TSKID_WIDTH-1:0]       INIT_RUN_TSKID   = '0,
-            parameter   bit     [FLGPTN_WIDTH-1:0]      INIT_FLGPTN      = '0
+            parameter   int                             WB_ADR_WIDTH        = 16,
+            parameter   int                             WB_DAT_WIDTH        = 32,
+            parameter   int                             WB_SEL_WIDTH        = WB_DAT_WIDTH/8,
+       
+            parameter   int                             TASKS               = 15,
+            parameter   int                             SEMAPHORES          = 8,
+            parameter   int                             TSKPRI_WIDTH        = 4,
+            parameter   int                             SEMCNT_WIDTH        = 4,
+            parameter   int                             FLGPTN_WIDTH        = 32,
+            parameter   int                             SYSTIM_WIDTH        = 64,
+            parameter   int                             RELTIM_WIDTH        = 32,
+   
+            parameter   int                             QUECNT_WIDTH        = $clog2(TASKS+1),
+            parameter   int                             IDLE_TSKID_WIDTH    = $clog2(TASKS+1),
+            parameter   int                             TSKID_WIDTH         = $clog2(TASKS),
+            parameter   int                             SEMID_WIDTH         = $clog2(SEMAPHORES),
+   
+            parameter   bit     [IDLE_TSKID_WIDTH-1:0]  INIT_IDLE_TSKID     = IDLE_TSKID_WIDTH'(TASKS),
+            parameter   bit     [TSKID_WIDTH-1:0]       INIT_RUN_TSKID      = '0,
+            parameter   bit     [FLGPTN_WIDTH-1:0]      INIT_FLGPTN         = '0,
+            parameter   bit     [FLGPTN_WIDTH-1:0]      INIT_EXT_FLG_ENABLE = '0
         )
         (
             input   wire                                        reset,
@@ -48,6 +49,8 @@ module jelly_rtos
             output  reg                                         s_wb_ack_o,
 
             output  wire                                        irq,
+
+            input   wire    [FLGPTN_WIDTH-1:0]                  ext_flg_flgptn,
 
             output  wire    [IDLE_TSKID_WIDTH-1:0]              monitor_run_tskid,
             output  wire                                        monitor_run_valid,
@@ -191,6 +194,7 @@ module jelly_rtos
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CLR_FLG     = OPCODE_WIDTH'(8'h32);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_FLG_AND = OPCODE_WIDTH'(8'h33);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_FLG_OR  = OPCODE_WIDTH'(8'h34);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_ENA_FLG_EXT = OPCODE_WIDTH'(8'h3a);
 
     localparam  bit     [ID_WIDTH-1:0]      SYS_CFG_CORE_ID      = 'h00;
     localparam  bit     [ID_WIDTH-1:0]      SYS_CFG_VERSION      = 'h01;
@@ -233,6 +237,8 @@ module jelly_rtos
     logic   [0:0]                       reg_switch;
     logic   [0:0]                       reg_irq;
 
+    logic   [FLGPTN_WIDTH-1:0]          ext_flg_enable;
+
     logic   [WB_DAT_WIDTH-1:0]          scratch0;
     logic   [WB_DAT_WIDTH-1:0]          scratch1;
     logic   [WB_DAT_WIDTH-1:0]          scratch2;
@@ -257,6 +263,7 @@ module jelly_rtos
             irq_force      <= '0;
             reg_switch     <= '0;
             reg_irq        <= '0;
+            ext_flg_enable <= INIT_EXT_FLG_ENABLE;
             scratch0       <= '0;
             scratch1       <= '0;
             scratch2       <= '0;
@@ -287,8 +294,12 @@ module jelly_rtos
                     CPU_CTL_SCRATCH3:   begin scratch3       <= s_wb_dat_i; end
                     default: ;
                     endcase
+
+                OPCODE_ENA_FLG_EXT: begin ext_flg_enable <= FLGPTN_WIDTH'(s_wb_dat_i); end
+
                 default: ;
                 endcase
+
             end
 
             // 読み出しでコピー実施
@@ -416,6 +427,9 @@ module jelly_rtos
         
         default: ;
         endcase
+
+        // external flag
+        set_flg |= (ext_flg_enable & ext_flg_flgptn);
     end
 
     assign monitor_top_tskid  = cur_top_tskid;

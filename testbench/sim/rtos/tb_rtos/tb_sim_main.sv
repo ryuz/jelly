@@ -43,6 +43,8 @@ module tb_sim_main
     logic                                       cke = 1'b1;
     logic                                       irq;
 
+    logic   [FLGPTN_WIDTH-1:0]                  ext_flg_flgptn;
+
     logic   [IDLE_TSKID_WIDTH-1:0]              monitor_run_tskid;
     logic                                       monitor_run_valid;
     logic   [IDLE_TSKID_WIDTH-1:0]              monitor_top_tskid;
