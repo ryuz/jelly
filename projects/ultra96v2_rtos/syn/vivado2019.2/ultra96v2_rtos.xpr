@@ -89,56 +89,56 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../rtl/jelly_rtos.sv">
+      <File Path="$PPRDIR/../../../../rtl/rtos/jelly_rtos.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../rtl/jelly_rtos_core.sv">
+      <File Path="$PPRDIR/../../../../rtl/rtos/jelly_rtos_core.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../rtl/jelly_rtos_eventflag.sv">
+      <File Path="$PPRDIR/../../../../rtl/rtos/jelly_rtos_eventflag.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../rtl/jelly_rtos_queue.sv">
+      <File Path="$PPRDIR/../../../../rtl/rtos/jelly_rtos_queue.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../rtl/jelly_rtos_queue_fifo.sv">
+      <File Path="$PPRDIR/../../../../rtl/rtos/jelly_rtos_queue_fifo.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../rtl/jelly_rtos_queue_priority.sv">
+      <File Path="$PPRDIR/../../../../rtl/rtos/jelly_rtos_queue_priority.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../rtl/jelly_rtos_semaphore.sv">
+      <File Path="$PPRDIR/../../../../rtl/rtos/jelly_rtos_semaphore.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../rtl/jelly_rtos_task.sv">
+      <File Path="$PPRDIR/../../../../rtl/rtos/jelly_rtos_task.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
