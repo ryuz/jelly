@@ -2,6 +2,7 @@
 #include <verilated.h>
 #include <opencv2/opencv.hpp>
 #include "Vtb_sim_main.h"
+#include "Vtb_sim_main__Syms.h"
 #include "jelly/simulator/Manager.h"
 #include "jelly/simulator/ResetNode.h"
 #include "jelly/simulator/ClockNode.h"
@@ -71,25 +72,27 @@ int main(int argc, char** argv)
 
     mng->AddNode(jsim::VerilatorNode_Create(top, tfp));
     
-    mng->AddNode(jsim::ClockNode_Create(&top->clk, 5.0));
-    mng->AddNode(jsim::ResetNode_Create(&top->reset, 100));
+    mng->AddNode(jsim::ClockNode_Create(&top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__clk, 5.0));
+    mng->AddNode(jsim::ResetNode_Create(&top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__reset, 100));
 
     jsim::WishboneMaster wishbone =
                 {
-                    &top->reset,
-                    &top->clk,
-                    &top->s_wb_adr_i,
-                    &top->s_wb_dat_o,
-                    &top->s_wb_dat_i,
-                    &top->s_wb_sel_i,
-                    &top->s_wb_we_i,
-                    &top->s_wb_stb_i,
-                    &top->s_wb_ack_o
+                    &top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__reset,
+                    &top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__clk,
+                    &top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__wb_adr_i,
+                    &top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__wb_dat_o,
+                    &top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__wb_dat_i,
+                    &top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__wb_sel_i,
+                    &top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__wb_we_i,
+                    &top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__wb_stb_i,
+                    &top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__wb_ack_o
                 };
+
+    
     // ----------------------------------
     //  Simulation
     // ----------------------------------
-    /*
+    
     // WISHBONE 
     auto wb = jsim::WishboneAccessNode_Create(wishbone);
     mng->AddNode(wb);
@@ -99,6 +102,7 @@ int main(int argc, char** argv)
 
         wb->Display(" --- start --- ");
         wb->Read (0);
+        /*
         wb->Write(make_addr(OPCODE_CPU_STS, CPU_STS_TASKID), 1, 0xf);
         wb->Wait(10);
         wb->Write(make_addr(OPCODE_WUP_TSK, 1), 0, 0xf);
@@ -122,11 +126,12 @@ int main(int argc, char** argv)
         wb->Wait(10);
         wb->Write(make_addr(OPCODE_SLP_TSK, 0), 0, 0xf);
         wb->Write(make_addr(OPCODE_SLP_TSK, 1), 0, 0xf);
-        
+        */
+       
         wb->Wait(100);
         wb->Finish();
     });
-    */
+    
 
     // Run
     mng->Run();
