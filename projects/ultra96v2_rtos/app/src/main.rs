@@ -93,7 +93,7 @@ pub unsafe extern "C" fn main() -> ! {
 //    rtos::test();
     wait(10000);
 
-    cpu::irq_enable();
+//  cpu::irq_enable();
 
 //    println!("\nend\n");
 //    loop{}
@@ -106,6 +106,7 @@ pub unsafe extern "C" fn main() -> ! {
 
     println!("wup_tsk(0)");
     rtos::wup_tsk(0);
+    cpu::svc0();
 
     println!("wup_tsk(1)");
     rtos::wup_tsk(1);

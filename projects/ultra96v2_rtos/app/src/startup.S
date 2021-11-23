@@ -7,7 +7,7 @@
 
                 .global     _rst_handler
                 .global     _und_handler
-                .global     _swi_handler
+                .global     _svc_handler
                 .global     _pre_handler
                 .global     _abt_handler
                 .global     _irq_handler
@@ -143,7 +143,7 @@ end_loop:
 _und_handler:   
                 b       _und_handler
 
-_swi_handler:   
+_swi_handler:   // 利用しない
                 b       _swi_handler
 
 _pre_handler:   
@@ -152,17 +152,13 @@ _pre_handler:
 _abt_handler:   
                 b       _abt_handler
 
-_irq_handler:   
-                push    {r0-r3, r12, lr} 
-                bl      irq_handler
-                pop     {r0-r3, r12, lr}
-                subs    pc, lr, #4
+_irq_handler:   // 利用しない
+                b       _irq_handler    
 
 _fiq_handler:   
                 b       _fiq_handler
 
 
                 .end
-
 
 /* end of file */

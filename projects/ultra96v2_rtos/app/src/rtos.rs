@@ -2,6 +2,7 @@
 
 use super::*;
 use core::ptr;
+use pudding_pac::arm::cpu;
 
 const ID_WIDTH: usize = 8;
 const OPCODE_WIDTH: usize = 8;
@@ -58,8 +59,8 @@ fn make_addr(opcode: usize, id: usize) -> usize {
 
 unsafe fn write_reg(opcode: usize, id: usize, val: u32) {
     let addr = make_addr(opcode, id);
-//  println!("[write] 0x{:08x} <= 0x{:08x}", addr, val);
-//  wait(10000);
+//    println!("[write] 0x{:08x} <= 0x{:08x}", addr, val);
+//    wait(10000);
     ptr::write_volatile(addr as *mut u32, val);
 }
 
@@ -72,6 +73,29 @@ extern "C" {
     fn jelly_create_context(isp: usize, entry: extern "C" fn() -> !) -> usize;
 }
 
+
+pub(crate) struct SystemCall {}
+
+impl SystemCall {
+    pub(crate) fn new() -> Self {
+        unsafe {
+            cpu::irq_disable();
+            Self {}
+        }
+    }
+}
+
+impl Drop for SystemCall {
+    fn drop(&mut self) {
+        unsafe {
+            if sns_dpn() { cpu::svc0(); }
+            cpu::irq_enable();
+        }
+    }
+}
+
+
+// 初期化
 pub fn initialize() {
     unsafe {
         // ソフトリセット
@@ -81,18 +105,16 @@ pub fn initialize() {
         write_reg(OPCODE_CPU_CTL, CPU_CTL_RUN_TSKID, 15);
         write_reg(OPCODE_WUP_TSK, 15, 15);
         write_reg(OPCODE_CPU_CTL, CPU_CTL_IRQ_EN, 1);
-
-        write_reg(OPCODE_CPU_CTL, CPU_CTL_SCRATCH0, 0xaa550000);
-        write_reg(OPCODE_CPU_CTL, CPU_CTL_SCRATCH1, 0xaa551111);
-        write_reg(OPCODE_CPU_CTL, CPU_CTL_SCRATCH2, 0xaa552222);
-        write_reg(OPCODE_CPU_CTL, CPU_CTL_SCRATCH3, 0xaa553333);
     }
 }
 
+
+
 pub fn cre_tsk(tskid: usize, stack: &mut [u8], entry: extern "C" fn() -> !) {
     let mut isp = (&mut stack[0] as *mut u8 as usize) + stack.len();
-    isp &= !0x0f_usize;
+    isp &= !0x0f_usize; // align
     unsafe {
+//        println!("[entry] task{} : 0x{:08x}", tskid, entry as usize);
 //        println!("[isp] task{} : 0x{:08x}", tskid, isp);
         JELLY_RTOS_SP_TABLE[tskid] = jelly_create_context(isp as usize, entry);
 //        println!("[sp] task{} : 0x{:08x}", tskid, JELLY_RTOS_SP_TABLE[tskid]);
@@ -106,6 +128,8 @@ pub fn wup_tsk(tskid: i32) {
         } else {
             tskid as usize
         };
+        
+        let _sc = SystemCall::new();
         write_reg(OPCODE_WUP_TSK, tskid, 0);
     }
 }
@@ -117,6 +141,17 @@ pub fn slp_tsk(tskid: i32) {
         } else {
             tskid as usize
         };
+
+        let _sc = SystemCall::new();
         write_reg(OPCODE_SLP_TSK, tskid, 0);
     }
 }
+
+pub fn sns_dpn() -> bool
+{
+    unsafe {
+        read_reg(OPCODE_CPU_CTL, CPU_CTL_IRQ_STS) != 0
+    }
+}
+
+
