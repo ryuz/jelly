@@ -45,6 +45,8 @@ jelly_create_context:
                 sub		r0, #(16*4)         // スタックを確保
                 add     r1, #4              // IRQ用に補正
                 str		r1, [r0, #(15*4)]   // lr 部分にentryを設定
+                add     r1, #(Mode_SYS)     // spsr
+                str		r1, [r0, #(1*4)]    // spsr 部分を設定
                 bx		lr                  // リターン
 
 
