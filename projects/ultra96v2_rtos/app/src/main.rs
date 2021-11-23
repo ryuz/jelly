@@ -75,7 +75,8 @@ fn dining_philosopher(id: i32) -> ! {
         rtos::dly_tsk(-1, rand_time());
 
         'dining: loop {
-            if rtos::pol_sem(left) {
+            rtos::wai_sem(left);
+            {
                 if rtos::pol_sem(right) {
                     println!("[philosopher{}] eating", id);
                     rtos::dly_tsk(-1, rand_time());
@@ -92,7 +93,6 @@ fn dining_philosopher(id: i32) -> ! {
         }
     }
 }
-
 
 
 // 乱数
