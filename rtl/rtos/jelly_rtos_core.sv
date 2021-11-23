@@ -38,7 +38,7 @@ module jelly_rtos_core
             output  wire    [TSKID_WIDTH-1:0]                   rdq_top_tskid,
             output  wire    [TSKPRI_WIDTH-1:0]                  rdq_top_tskpri,
             output  wire                                        rdq_top_valid,
-            output  wire    [QUECNT_WIDTH-1:0]                  rdq_quenct,
+            output  wire    [QUECNT_WIDTH-1:0]                  rdq_quecnt,
             
             // task             
             input   wire    [TSKID_WIDTH-1:0]                   wup_tsk_tskid,
@@ -115,7 +115,7 @@ module jelly_rtos_core
                 .top_pri        (rdq_top_tskpri),
                 .top_valid      (rdq_top_valid),
 
-                .count          (rdq_quenct)
+                .count          (rdq_quecnt)
             );
 
 

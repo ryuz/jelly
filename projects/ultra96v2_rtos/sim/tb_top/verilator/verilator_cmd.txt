@@ -5,12 +5,12 @@
 #-Wno-WIDTH
 #-Wno-UNSIGNED
 #-Wno-PINMISSING
-#-Wno-UNOPTFLAT
+-Wno-UNOPTFLAT
 #-Wno-UNOPTTHREADS
 
 -y ../../stub
 -y ../../../rtl
--y ../../../../../rtl/model
+-y ../../../../../rtl/rtos
 -y ../../../../../rtl/library
 -y ../../../../../rtl/bus
 -y ../../../../../rtl/image
@@ -18,3 +18,4 @@
 -y ../../../../../rtl/video
 -y ../../../../../rtl/math
 -y ../../../../../rtl/peripheral
+-y ../../../../../rtl/model

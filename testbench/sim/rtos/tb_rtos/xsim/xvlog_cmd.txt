@@ -1,7 +1,5 @@
 -sv
 --sourcelibdir ..
---sourcelibdir ../../stub
---sourcelibdir ../../../rtl
 --sourcelibdir ../../../../../rtl/rtos
 --sourcelibdir ../../../../../rtl/library
 --sourcelibdir ../../../../../rtl/bus

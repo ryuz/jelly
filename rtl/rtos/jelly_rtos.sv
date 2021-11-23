@@ -30,7 +30,7 @@ module jelly_rtos
             parameter   int                             TSKID_WIDTH      = $clog2(TASKS),
             parameter   int                             SEMID_WIDTH      = $clog2(SEMAPHORES),
 
-            parameter   bit     [IDLE_TSKID_WIDTH-1:0]  INIT_IDLE_TSKID  = TASKS,
+            parameter   bit     [IDLE_TSKID_WIDTH-1:0]  INIT_IDLE_TSKID  = IDLE_TSKID_WIDTH'(TASKS),
             parameter   bit     [TSKID_WIDTH-1:0]       INIT_RUN_TSKID   = '0,
             parameter   bit     [FLGPTN_WIDTH-1:0]      INIT_FLGPTN      = '0
         )
@@ -76,7 +76,8 @@ module jelly_rtos
     logic   [TSKID_WIDTH-1:0]                   rdq_top_tskid;
     logic   [TSKPRI_WIDTH-1:0]                  rdq_top_tskpri;
     logic                                       rdq_top_valid;
-    
+    logic   [QUECNT_WIDTH-1:0]                  rdq_quecnt;
+
     // task
     logic   [TSKID_WIDTH-1:0]                   wup_tsk_tskid;
     logic                                       wup_tsk_valid = '0;
@@ -137,6 +138,7 @@ module jelly_rtos
                 .rdq_top_tskid,
                 .rdq_top_tskpri,
                 .rdq_top_valid,
+                .rdq_quecnt,
 
                 .wup_tsk_tskid,
                 .wup_tsk_valid,
