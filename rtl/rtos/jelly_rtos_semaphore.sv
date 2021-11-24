@@ -26,9 +26,9 @@ module jelly_rtos_semaphore
             input   wire                            clk,
             input   wire                            cke,
 
-            input   wire                            sig_sem,
+            input   wire                            sig_sem_valid,
 
-            input   wire                            pol_sem,
+            input   wire                            pol_sem_valid,
             output  reg                             pol_sem_ack,
 
             input   wire    [TSKID_WIDTH-1:0]       wai_sem_tskid,
@@ -90,7 +90,6 @@ module jelly_rtos_semaphore
     logic                       sem_nop;
 
     always_comb begin : blk_sem
-        pol_sem_ack    = '0;
         next_semcnt    = semcnt;
         que_add_tskid  = 'x;
         que_add_tskpri = 'x;
@@ -101,9 +100,9 @@ module jelly_rtos_semaphore
         wakeup_valid   = 1'b0;
 
         // sig_sem と wai_sem は同時に来ない前提
-        sem_nop = !wai_sem_valid && !sig_sem && !rel_wai_valid;
+        sem_nop = !wai_sem_valid && !sig_sem_valid && !rel_wai_valid;
         case ( 1'b1 )
-        sig_sem:
+        sig_sem_valid:
             begin
                 if ( que_top_valid ) begin
                     // キューにあれば取り出す
@@ -118,10 +117,9 @@ module jelly_rtos_semaphore
                 end
             end
 
-        pol_sem:
+        pol_sem_valid:
             begin
                 if ( !sem_empty ) begin
-                    pol_sem_ack = 1'b1;
                     next_semcnt--;
                 end
             end
@@ -149,6 +147,9 @@ module jelly_rtos_semaphore
         sem_nop: ;
         endcase
     end
+
+    assign pol_sem_ack = pol_sem_valid && !sem_empty;
+
 
     always_ff @(posedge clk) begin
         if ( reset ) begin

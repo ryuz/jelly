@@ -171,7 +171,6 @@ module jelly_rtos
                 .wai_flg_valid,
                 .flg_flgptn
             );
-
     
     // -----------------------------------------
     //  Wishbone
@@ -190,6 +189,7 @@ module jelly_rtos
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SIG_SEM     = OPCODE_WIDTH'(8'h21);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_SEM     = OPCODE_WIDTH'(8'h22);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_POL_SEM     = OPCODE_WIDTH'(8'h23);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_SEMCNT  = OPCODE_WIDTH'(8'h28);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SET_FLG     = OPCODE_WIDTH'(8'h31);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CLR_FLG     = OPCODE_WIDTH'(8'h32);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_FLG_AND = OPCODE_WIDTH'(8'h33);
@@ -317,8 +317,127 @@ module jelly_rtos
     
     assign irq = (reg_irq & irq_enable) | irq_force;
 
+    always_comb begin : blk_wb_cmd
+        wup_tsk_tskid = 'x;
+        wup_tsk_valid = '0;
+        slp_tsk_tskid = 'x;
+        slp_tsk_valid = '0;
+        rel_wai_tskid = 'x;
+        rel_wai_valid = '0;
 
-    always_comb begin : blk_wb
+        dly_tsk_tskid  = 'x;
+        dly_tsk_dlytim = 'x;
+        dly_tsk_valid  = '0;
+
+        sig_sem_semid = 'x;
+        sig_sem_valid = '0;
+        wai_sem_semid = 'x;
+        wai_sem_valid = '0;
+        pol_sem_semid = 'x;
+        pol_sem_valid = '0;
+
+        set_flg        = '0;
+        clr_flg        = '1;
+        wai_flg_wfmode = 'x;
+        wai_flg_flgptn = 'x;
+        wai_flg_valid  = '0;
+
+        // write
+        if ( s_wb_ack_o && s_wb_we_i && &s_wb_sel_i ) begin
+            case ( dec_opcode )
+            OPCODE_WUP_TSK:     begin wup_tsk_tskid = TSKID_WIDTH'(dec_id); wup_tsk_valid = (int'(dec_id) < TASKS); end
+            OPCODE_SLP_TSK:     begin slp_tsk_tskid = TSKID_WIDTH'(dec_id); slp_tsk_valid = (int'(dec_id) < TASKS); end
+            OPCODE_SET_FLG:     begin set_flg = FLGPTN_WIDTH'(s_wb_dat_i); end
+            OPCODE_CLR_FLG:     begin clr_flg = FLGPTN_WIDTH'(s_wb_dat_i); end
+
+            OPCODE_DLY_TSK:
+                begin
+                    dly_tsk_tskid  = TSKID_WIDTH'(dec_id);
+                    dly_tsk_dlytim = RELTIM_WIDTH'(s_wb_dat_i);
+                    dly_tsk_valid  = (int'(dec_id) < TASKS);
+                end
+
+            OPCODE_SIG_SEM:     begin sig_sem_semid = SEMID_WIDTH'(dec_id); sig_sem_valid = (int'(dec_id) < SEMAPHORES); end
+            OPCODE_WAI_SEM:     begin wai_sem_semid = SEMID_WIDTH'(dec_id); wai_sem_valid = (int'(dec_id) < SEMAPHORES); end
+
+            OPCODE_WAI_FLG_AND:
+                begin
+                    wai_flg_flgptn = FLGPTN_WIDTH'(s_wb_dat_i);
+                    wai_flg_wfmode = 1'b0;
+                    wai_flg_valid  = 1'b1;
+                end
+            
+            OPCODE_WAI_FLG_OR:
+                begin
+                    wai_flg_flgptn = FLGPTN_WIDTH'(s_wb_dat_i);
+                    wai_flg_wfmode = 1'b1;
+                    wai_flg_valid  = 1'b1;
+                end
+            
+            default: ;
+            endcase
+        end
+
+        // read
+        if ( s_wb_ack_o && !s_wb_we_i && &s_wb_sel_i ) begin
+            case ( dec_opcode )
+            OPCODE_POL_SEM:     begin pol_sem_semid = SEMID_WIDTH'(dec_id); pol_sem_valid = (int'(dec_id) < SEMAPHORES); end
+            default: ;
+            endcase
+        end
+
+        // external flag
+        set_flg = set_flg | (ext_flg_enable & ext_flg_flgptn);
+    end
+
+    // wishbone read
+    always_comb begin : blk_wb_dat_o
+        s_wb_dat_o = '0;
+
+        case ( dec_opcode )
+        OPCODE_SYS_CFG:
+            case ( dec_id )
+            SYS_CFG_CORE_ID:        s_wb_dat_o = WB_DAT_WIDTH'(32'h834f5452);
+            SYS_CFG_VERSION:        s_wb_dat_o = WB_DAT_WIDTH'(32'h00000000);
+            SYS_CFG_DATE:           s_wb_dat_o = WB_DAT_WIDTH'(32'h20211120);
+            SYS_CFG_TASKS:          s_wb_dat_o = WB_DAT_WIDTH'(TASKS);
+            SYS_CFG_SEMAPHORES:     s_wb_dat_o = WB_DAT_WIDTH'(SEMAPHORES);
+            SYS_CFG_TSKPRI_WIDTH:   s_wb_dat_o = WB_DAT_WIDTH'(TSKPRI_WIDTH);
+            SYS_CFG_SEMCNT_WIDTH:   s_wb_dat_o = WB_DAT_WIDTH'(SEMCNT_WIDTH);
+            SYS_CFG_FLGPTN_WIDTH:   s_wb_dat_o = WB_DAT_WIDTH'(FLGPTN_WIDTH);
+            SYS_CFG_SYSTIM_WIDTH:   s_wb_dat_o = WB_DAT_WIDTH'(SYSTIM_WIDTH);
+            SYS_CFG_RELTIM_WIDTH:   s_wb_dat_o = WB_DAT_WIDTH'(RELTIM_WIDTH);
+            default: ;
+            endcase
+
+        OPCODE_CPU_CTL:
+            case ( dec_id )
+            CPU_CTL_TOP_TSKID:  s_wb_dat_o = WB_DAT_WIDTH'(cur_top_tskid);
+            CPU_CTL_TOP_VALID:  s_wb_dat_o = WB_DAT_WIDTH'(cur_top_valid);
+            CPU_CTL_RUN_TSKID:  s_wb_dat_o = WB_DAT_WIDTH'(cur_run_tskid);
+            CPU_CTL_RUN_VALID:  s_wb_dat_o = WB_DAT_WIDTH'(cur_run_valid);
+            CPU_CTL_IDLE_TSKID: s_wb_dat_o = WB_DAT_WIDTH'(cpu_idle_tskid);
+            CPU_CTL_COPY_TSKID: s_wb_dat_o = WB_DAT_WIDTH'(cur_run_tskid);
+            CPU_CTL_IRQ_EN:     s_wb_dat_o = WB_DAT_WIDTH'(irq_enable);
+            CPU_CTL_IRQ_STS:    s_wb_dat_o = WB_DAT_WIDTH'(irq);
+            CPU_CTL_SCRATCH0:   s_wb_dat_o = WB_DAT_WIDTH'(scratch0);
+            CPU_CTL_SCRATCH1:   s_wb_dat_o = WB_DAT_WIDTH'(scratch1);
+            CPU_CTL_SCRATCH2:   s_wb_dat_o = WB_DAT_WIDTH'(scratch2);
+            CPU_CTL_SCRATCH3:   s_wb_dat_o = WB_DAT_WIDTH'(scratch3);
+            default: ;
+            endcase
+        
+        OPCODE_POL_SEM:     s_wb_dat_o = WB_DAT_WIDTH'(pol_sem_ack);
+        OPCODE_REF_SEMCNT:  s_wb_dat_o = WB_DAT_WIDTH'(sem_semcnt);
+        default: ;
+        endcase
+    end
+
+    assign  s_wb_ack_o = s_wb_stb_i && !core_busy;
+
+
+    /*
+    always_comb begin : blk_wb_cmd
         s_wb_dat_o = '0;
         s_wb_ack_o = s_wb_stb_i && !core_busy;
         
@@ -423,14 +542,15 @@ module jelly_rtos
             default: ;
             endcase
         
-        OPCODE_POL_SEM: s_wb_dat_o = WB_DAT_WIDTH'(pol_sem_ack);
-        
+//      OPCODE_POL_SEM:     s_wb_dat_o = WB_DAT_WIDTH'(pol_sem_ack);
+        OPCODE_REF_SEMCNT:  s_wb_dat_o = WB_DAT_WIDTH'(sem_semcnt);
         default: ;
         endcase
 
         // external flag
         set_flg |= (ext_flg_enable & ext_flg_flgptn);
     end
+    */
 
     assign monitor_top_tskid  = cur_top_tskid;
     assign monitor_top_valid  = cur_top_valid;

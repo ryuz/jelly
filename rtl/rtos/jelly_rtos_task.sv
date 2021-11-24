@@ -68,7 +68,7 @@ module jelly_rtos_task
 
     logic   [RELTIM_WIDTH-1:0]  dlytim;
 
-    always_comb begin : blk_nest_stat
+    always_comb begin : blk_next_stat
         automatic   bit         nop_tsk;
 
         next_tskstat = reg_tskstat;
