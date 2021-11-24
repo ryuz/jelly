@@ -81,34 +81,27 @@ module jelly_rtos
     logic                                       rdq_top_valid;
     logic   [QUECNT_WIDTH-1:0]                  rdq_quecnt;
 
+    // operation id
+    logic   [TSKID_WIDTH-1:0]                   op_tskid;
+    logic   [SEMID_WIDTH-1:0]                   op_semid;
+
     // task
-    logic   [TSKID_WIDTH-1:0]                   wup_tsk_tskid;
     logic                                       wup_tsk_valid = '0;
-
-    logic   [TSKID_WIDTH-1:0]                   slp_tsk_tskid;
     logic                                       slp_tsk_valid = '0;
-
-    logic   [TSKID_WIDTH-1:0]                   rel_wai_tskid;
     logic                                       rel_wai_valid = '0;
-
-    logic   [TSKID_WIDTH-1:0]                   dly_tsk_tskid;
     logic   [RELTIM_WIDTH-1:0]                  dly_tsk_dlytim;
     logic                                       dly_tsk_valid = '0;
+    logic   [TASKS-1:0][TSKPRI_WIDTH-1:0]       task_tskpri;
+    logic   [TASKS-1:0][2:0]                    task_tskstat;
 
     // semaphore                
-    logic   [SEMID_WIDTH-1:0]                   sig_sem_semid;
     logic                                       sig_sem_valid = '0;
-
-    logic   [SEMID_WIDTH-1:0]                   wai_sem_semid;
     logic                                       wai_sem_valid = '0;
-
-    logic   [SEMID_WIDTH-1:0]                   pol_sem_semid;
     logic                                       pol_sem_valid = '0;
     logic                                       pol_sem_ack;
+    logic   [SEMAPHORES-1:0][SEMCNT_WIDTH-1:0]  semaphore_semcnt;
+    logic   [SEMAPHORES-1:0][QUECNT_WIDTH-1:0]  semaphore_quecnt;
 
-    logic   [SEMAPHORES-1:0][QUECNT_WIDTH-1:0]  sem_quecnt;
-    logic   [SEMAPHORES-1:0][SEMCNT_WIDTH-1:0]  sem_semcnt;
-    
     // event flag
     logic   [FLGPTN_WIDTH-1:0]                  set_flg;
     logic   [FLGPTN_WIDTH-1:0]                  clr_flg;
@@ -143,26 +136,23 @@ module jelly_rtos
                 .rdq_top_valid,
                 .rdq_quecnt,
 
-                .wup_tsk_tskid,
-                .wup_tsk_valid,
-                .slp_tsk_tskid,
-                .slp_tsk_valid,
-                .rel_wai_tskid,
-                .rel_wai_valid,
+                .op_tskid,
+                .op_semid,
 
-                .dly_tsk_tskid,
+                .wup_tsk_valid,
+                .slp_tsk_valid,
+                .rel_wai_valid,
                 .dly_tsk_dlytim,
                 .dly_tsk_valid,
+                .task_tskpri,
+                .task_tskstat,
 
-                .sig_sem_semid,
                 .sig_sem_valid,
-                .wai_sem_semid,
                 .wai_sem_valid,
-                .pol_sem_semid,
                 .pol_sem_valid,
                 .pol_sem_ack,
-                .sem_quecnt,
-                .sem_semcnt,
+                .semaphore_quecnt,
+                .semaphore_semcnt,
 
                 .set_flg,
                 .clr_flg,
@@ -318,22 +308,17 @@ module jelly_rtos
     assign irq = (reg_irq & irq_enable) | irq_force;
 
     always_comb begin : blk_wb_cmd
-        wup_tsk_tskid = 'x;
-        wup_tsk_valid = '0;
-        slp_tsk_tskid = 'x;
-        slp_tsk_valid = '0;
-        rel_wai_tskid = 'x;
-        rel_wai_valid = '0;
+        op_tskid = 'x;
+        op_semid = 'x;
 
-        dly_tsk_tskid  = 'x;
+        wup_tsk_valid = '0;
+        slp_tsk_valid = '0;
+        rel_wai_valid = '0;
         dly_tsk_dlytim = 'x;
         dly_tsk_valid  = '0;
 
-        sig_sem_semid = 'x;
         sig_sem_valid = '0;
-        wai_sem_semid = 'x;
         wai_sem_valid = '0;
-        pol_sem_semid = 'x;
         pol_sem_valid = '0;
 
         set_flg        = '0;
@@ -345,33 +330,33 @@ module jelly_rtos
         // write
         if ( s_wb_ack_o && s_wb_we_i && &s_wb_sel_i ) begin
             case ( dec_opcode )
-            OPCODE_WUP_TSK:     begin wup_tsk_tskid = TSKID_WIDTH'(dec_id); wup_tsk_valid = (int'(dec_id) < TASKS); end
-            OPCODE_SLP_TSK:     begin slp_tsk_tskid = TSKID_WIDTH'(dec_id); slp_tsk_valid = (int'(dec_id) < TASKS); end
+            OPCODE_WUP_TSK:     begin wup_tsk_valid = 1'b1; op_tskid = TSKID_WIDTH'(dec_id); end
+            OPCODE_SLP_TSK:     begin slp_tsk_valid = 1'b1; op_tskid = TSKID_WIDTH'(dec_id); end
             OPCODE_SET_FLG:     begin set_flg = FLGPTN_WIDTH'(s_wb_dat_i); end
             OPCODE_CLR_FLG:     begin clr_flg = FLGPTN_WIDTH'(s_wb_dat_i); end
 
             OPCODE_DLY_TSK:
                 begin
-                    dly_tsk_tskid  = TSKID_WIDTH'(dec_id);
+                    dly_tsk_valid  = 1'b1;
+                    op_tskid       = TSKID_WIDTH'(dec_id);
                     dly_tsk_dlytim = RELTIM_WIDTH'(s_wb_dat_i);
-                    dly_tsk_valid  = (int'(dec_id) < TASKS);
                 end
 
-            OPCODE_SIG_SEM:     begin sig_sem_semid = SEMID_WIDTH'(dec_id); sig_sem_valid = (int'(dec_id) < SEMAPHORES); end
-            OPCODE_WAI_SEM:     begin wai_sem_semid = SEMID_WIDTH'(dec_id); wai_sem_valid = (int'(dec_id) < SEMAPHORES); end
+            OPCODE_SIG_SEM:     begin sig_sem_valid = 1'b1; op_semid = SEMID_WIDTH'(dec_id);  end
+            OPCODE_WAI_SEM:     begin wai_sem_valid = 1'b1; op_semid = SEMID_WIDTH'(dec_id); op_tskid = rdq_top_tskid; end
 
             OPCODE_WAI_FLG_AND:
                 begin
+                    wai_flg_valid  = 1'b1;
                     wai_flg_flgptn = FLGPTN_WIDTH'(s_wb_dat_i);
                     wai_flg_wfmode = 1'b0;
-                    wai_flg_valid  = 1'b1;
                 end
             
             OPCODE_WAI_FLG_OR:
                 begin
+                    wai_flg_valid  = 1'b1;
                     wai_flg_flgptn = FLGPTN_WIDTH'(s_wb_dat_i);
                     wai_flg_wfmode = 1'b1;
-                    wai_flg_valid  = 1'b1;
                 end
             
             default: ;
@@ -381,7 +366,7 @@ module jelly_rtos
         // read
         if ( s_wb_ack_o && !s_wb_we_i && &s_wb_sel_i ) begin
             case ( dec_opcode )
-            OPCODE_POL_SEM:     begin pol_sem_semid = SEMID_WIDTH'(dec_id); pol_sem_valid = (int'(dec_id) < SEMAPHORES); end
+            OPCODE_POL_SEM:     begin pol_sem_valid = 1'b1; op_semid = SEMID_WIDTH'(dec_id);  end
             default: ;
             endcase
         end
@@ -428,7 +413,7 @@ module jelly_rtos
             endcase
         
         OPCODE_POL_SEM:     s_wb_dat_o = WB_DAT_WIDTH'(pol_sem_ack);
-        OPCODE_REF_SEMCNT:  s_wb_dat_o = WB_DAT_WIDTH'(sem_semcnt);
+        OPCODE_REF_SEMCNT:  s_wb_dat_o = WB_DAT_WIDTH'(semaphore_semcnt);
         default: ;
         endcase
     end
@@ -556,8 +541,8 @@ module jelly_rtos
     assign monitor_top_valid  = cur_top_valid;
     assign monitor_run_tskid  = cur_run_tskid;
     assign monitor_run_valid  = cur_run_valid;
-    assign monitor_sem_quecnt = sem_quecnt;
-    assign monitor_sem_semcnt = sem_semcnt;
+    assign monitor_sem_quecnt = semaphore_quecnt;
+    assign monitor_sem_semcnt = semaphore_semcnt;
     assign monitor_flg_flgptn = flg_flgptn;
     assign monitor_scratch0   = scratch0;
     assign monitor_scratch1   = scratch1;

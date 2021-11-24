@@ -32,23 +32,20 @@ module jelly_rtos_task
             output  wire    [2:0]               tskstat,
 
             output  reg                         req_rdq,
-
-            input   wire                        rel_tsk,
-
             input   wire                        rdy_tsk,
-            input   wire                        wup_tsk,
-            input   wire                        slp_tsk,
-            input   wire                        rel_wai,
-
-            input   wire                        dly_tsk,
+            input   wire                        rel_tsk,
+            input   wire    [FLGPTN_WIDTH-1:0]  flgptn,
+            
+            input   wire    [TSKID_WIDTH-1:0]   op_tskid,
+            input   wire                        wup_tsk_valid,
+            input   wire                        slp_tsk_valid,
             input   wire    [RELTIM_WIDTH-1:0]  dly_tsk_dlytim,
-
-            input   wire                        wai_sem,
-
-            input   wire    [FLGPTN_WIDTH-1:0]  evtflg_flgptn,
+            input   wire                        dly_tsk_valid,
+            input   wire                        rel_wai_valid,
+            input   wire                        wai_sem_valid,
             input   wire    [0:0]               wai_flg_wfmode,
             input   wire    [FLGPTN_WIDTH-1:0]  wai_flg_flgptn,
-            input   wire                        wai_flg
+            input   wire                        wai_flg_valid
         );
 
     typedef enum bit [2:0] {
@@ -60,7 +57,7 @@ module jelly_rtos_task
         TS_WAIFLG = 3'h5
     } tskstat_t;
 
-    tskstat_t                   reg_tskstat  = TS_SLEEP;
+    tskstat_t                   cur_tskstat  = TS_SLEEP;
     tskstat_t                   next_tskstat = TS_SLEEP;
 
     logic   [0:0]               flg_wfmode;
@@ -69,40 +66,45 @@ module jelly_rtos_task
     logic   [RELTIM_WIDTH-1:0]  dlytim;
 
     always_comb begin : blk_next_stat
-        automatic   bit         nop_tsk;
+        next_tskstat = cur_tskstat;
 
-        next_tskstat = reg_tskstat;
-
-        if ( reg_tskstat == TS_WAIFLG ) begin
-            if ( (flg_wfmode == 1'b0 && ((evtflg_flgptn | ~flg_flgptn) == '1))
-                || (flg_wfmode == 1'b1 && ((evtflg_flgptn &  flg_flgptn) != '0)) ) begin
+        if ( cur_tskstat == TS_WAIFLG ) begin
+            if ( (flg_wfmode == 1'b0 && ((flgptn | ~flg_flgptn) == '1))
+              || (flg_wfmode == 1'b1 && ((flgptn &  flg_flgptn) != '0)) ) begin
                 next_tskstat = TS_REQRDY;
             end
         end
 
-        if ( reg_tskstat == TS_DELAY ) begin
+        if ( cur_tskstat == TS_DELAY ) begin
             if ( dlytim == '0 ) begin
                 next_tskstat = TS_REQRDY;
             end
         end
         
-        nop_tsk = !rel_tsk && !wup_tsk && !slp_tsk && !rel_wai && !dly_tsk && !wai_sem && !wai_flg;
-        unique case ( 1'b1 )
-        rel_tsk:    begin   next_tskstat = TS_REQRDY;   end
-        wup_tsk:    begin   next_tskstat = TS_REQRDY;   end
-        slp_tsk:    begin   next_tskstat = TS_SLEEP;    end
-        rel_wai:    begin   next_tskstat = TS_REQRDY;   end
-        dly_tsk:    begin   next_tskstat = TS_DELAY;    end
-        wai_sem:    begin   next_tskstat = TS_WAISEM;   end
-        wai_flg:    begin   next_tskstat = TS_WAIFLG;   end
-        nop_tsk: ;
-        endcase
-        if ( rdy_tsk ) begin  next_tskstat = TS_READY;  end
+        if ( op_tskid == TSKID ) begin
+            case ( 1'b1 )
+            wup_tsk_valid:    begin   next_tskstat = TS_REQRDY;   end
+            slp_tsk_valid:    begin   next_tskstat = TS_SLEEP;    end
+            dly_tsk_valid:    begin   next_tskstat = TS_DELAY;    end
+            rel_wai_valid:    begin   next_tskstat = TS_REQRDY;   end
+            wai_sem_valid:    begin   next_tskstat = TS_WAISEM;   end
+            wai_flg_valid:    begin   next_tskstat = TS_WAIFLG;   end
+            endcase
+        end
+
+        if ( rel_tsk ) begin
+            next_tskstat = TS_REQRDY;
+        end
+
+        if ( rdy_tsk ) begin
+            next_tskstat = TS_READY;
+        end
     end
+
 
     always_ff @(posedge clk) begin
         if ( reset ) begin
-            reg_tskstat <= TS_SLEEP;
+            cur_tskstat <= TS_SLEEP;
             req_rdq     <= 1'b0;
             
             tskpri      <=INIT_TSKPRI;
@@ -111,10 +113,10 @@ module jelly_rtos_task
             flg_flgptn  <= 'x;
         end
         else if ( cke ) begin
-            reg_tskstat <= next_tskstat;
+            cur_tskstat <= next_tskstat;
             req_rdq     <= (next_tskstat == TS_REQRDY);
 
-            if ( wai_flg ) begin
+            if ( wai_flg_valid ) begin
                 flg_wfmode <= wai_flg_wfmode;
                 flg_flgptn <= wai_flg_flgptn;
             end
@@ -122,15 +124,14 @@ module jelly_rtos_task
             if ( dlytim > '0 ) begin
                 dlytim <= dlytim - 1'b1;
             end
-            if ( dly_tsk ) begin
+            if ( dly_tsk_valid ) begin
                 dlytim <= dly_tsk_dlytim;
             end
         end
     end
 
     assign busy    = (next_tskstat == TS_REQRDY);
-    assign tskstat = reg_tskstat;
-
+    assign tskstat = cur_tskstat;
 
 endmodule
 

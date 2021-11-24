@@ -254,19 +254,19 @@ module tb_sim();
     end
     endtask
 
-    int test_no = 0;
+    int test_num;
 
     initial begin
+        test_num =0;
     @(negedge wb_rst_i);
     #100;
-        $display(" --- timer start --- ");
+        $display("[%d] --- timer start --- ", test_num++);
         wb_write(29'h002_0001, 200, 4'hf);
         wb_write(29'h002_0000,   1, 4'hf);
 
     #100;
-        test_no = 1;
         read_status();
-        $display(" --- initialize --- ");
+        $display("[%d] --- initialize --- ", test_num++);
         wb_read (0);
         wb_write(make_addr(OPCODE_SYS_CFG, SYS_CFG_SOFT_RESET), 1, 4'hf);
         
@@ -278,8 +278,7 @@ module tb_sim();
         check_top_taskid(15);
 
     #100;
-        test_no = 2;
-        $display(" --- wake up task --- ");
+        $display("[%d] --- wake up task --- ", test_num++);
         $display("wup_tsk 1");
         check_irq(1'b0);
         wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
@@ -306,16 +305,14 @@ module tb_sim();
         check_top_taskid(15);
 
     #100;
-        test_no = 22;
-        $display(" --- busy test --- ");
+        $display("[%d] --- busy test --- ", test_num++);
         wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
         wb_write(make_addr(OPCODE_WUP_TSK, 0), 0, 4'hf);
         wb_write(make_addr(OPCODE_SLP_TSK, 0), 0, 4'hf);
         wb_write(make_addr(OPCODE_SLP_TSK, 1), 0, 4'hf);
 
     #100;
-        test_no = 3;
-        $display(" --- delay task --- ");
+        $display("[%d] --- delay task --- ", test_num++);
 
         $display("wup_tsk 1");
         wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
@@ -342,8 +339,8 @@ module tb_sim();
         check_top_taskid(15);
 
     #200;
-        test_no = 4;
-        $display(" --- wai_flg --- ");
+        test_num++;
+        $display("[%d] --- wai_flg --- ", test_num);
         $display("wup_tsk 1");
         wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
         swtich_task();
@@ -371,7 +368,7 @@ module tb_sim();
         wb_write(make_addr(OPCODE_SLP_TSK, 1), 0, 4'hf);
 
     #100
-        test_no = 5;
+        test_num++;
         $display(" --- wai_sem --- ");
         wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
         swtich_task();
@@ -400,7 +397,7 @@ module tb_sim();
         check_top_taskid(15);
 
     #100
-        test_no = 6;
+        test_num++;
         $display(" --- wai_sem2 --- ");
         wb_write(make_addr(OPCODE_WUP_TSK, 0), 0, 4'hf);
         wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
@@ -421,7 +418,7 @@ module tb_sim();
         check_top_taskid(15);
 
     #100
-        test_no = 7;
+        test_num++;
         $display(" --- wai_sem3 --- ");
         wb_write(make_addr(OPCODE_SIG_SEM, 0), 0, 4'hf);
         wb_write(make_addr(OPCODE_WUP_TSK, 0), 0, 4'hf);
@@ -441,7 +438,7 @@ module tb_sim();
 
 
     #100
-        test_no = 8;
+        test_num++;
         $display(" --- pol_sem --- ");
         wb_write(make_addr(OPCODE_SIG_SEM, 1), 0, 4'hf);
         wb_write(make_addr(OPCODE_SIG_SEM, 1), 0, 4'hf);
@@ -451,7 +448,7 @@ module tb_sim();
         wb_read (make_addr(OPCODE_POL_SEM, 1));
 
     #100
-        test_no = 20;
+        test_num++;
         $display(" --- ext flg --- ");
         wb_write(make_addr(OPCODE_CLR_FLG, 0), 0, 4'hf);
         wb_write(make_addr(OPCODE_ENA_FLG_EXT, 0), 1, 4'hf);
@@ -470,7 +467,7 @@ module tb_sim();
         check_top_taskid(15);
 
     #100;
-        test_no = 999;
+        test_num++;
         $display(" --- soft reset --- ");
         wb_write(make_addr(OPCODE_SYS_CFG, SYS_CFG_SOFT_RESET), 1, 4'hf);
     #100;
