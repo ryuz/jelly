@@ -31,9 +31,8 @@ module jelly_rtos_task
             output  reg     [TSKPRI_WIDTH-1:0]  tskpri,
             output  wire    [2:0]               tskstat,
 
-            output  reg                         rdq_add_req,
-            output  reg     [TSKID_WIDTH-1:0]   rdq_rmv_tskid,
-            output  reg                         rdq_rmv_valid,
+            output  reg                         rdq_add,
+            output  reg                         rdq_rmv,
 
             input   wire                        rdy_tsk,
             input   wire                        rel_tsk,
@@ -117,14 +116,12 @@ module jelly_rtos_task
     end
 
     always_comb begin : blk_rdq_rmv
-        rdq_rmv_tskid  = '0;
-        rdq_rmv_valid  = 1'b0;
-
+        rdq_rmv  = 1'b0;
         case ( 1'b1 )
-        slp_tsk_valid:  begin   rdq_rmv_valid = op_valid;   end
-        dly_tsk_valid:  begin   rdq_rmv_valid = op_valid;   end
-        wai_sem_valid:  begin   rdq_rmv_valid = run_valid;  end
-        wai_flg_valid:  begin   rdq_rmv_valid = run_valid;  end
+        slp_tsk_valid:  begin   rdq_rmv = op_valid;   end
+        dly_tsk_valid:  begin   rdq_rmv = op_valid;   end
+        wai_sem_valid:  begin   rdq_rmv = run_valid;  end
+        wai_flg_valid:  begin   rdq_rmv = run_valid;  end
         endcase
     end
 
@@ -132,7 +129,7 @@ module jelly_rtos_task
     always_ff @(posedge clk) begin
         if ( reset ) begin
             cur_tskstat <= TS_SLEEP;
-            rdq_add_req <= 1'b0;
+            rdq_add     <= 1'b0;
             
             tskpri      <= INIT_TSKPRI;
 
@@ -141,7 +138,7 @@ module jelly_rtos_task
         end
         else if ( cke ) begin
             cur_tskstat <= next_tskstat;
-            rdq_add_req <= (next_tskstat == TS_REQRDY);
+            rdq_add     <= (next_tskstat == TS_REQRDY);
 
             if ( wai_flg_valid ) begin
                 flg_wfmode <= wai_flg_wfmode;

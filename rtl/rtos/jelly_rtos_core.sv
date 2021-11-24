@@ -70,7 +70,7 @@ module jelly_rtos_core
             input   wire                                        wai_flg_valid,
             output  wire    [FLGPTN_WIDTH-1:0]                  flg_flgptn
         );
-    
+
 
     // -----------------------------------------
     //  ready queue
@@ -115,14 +115,13 @@ module jelly_rtos_core
     //  tasks
     // -----------------------------------------
     
-    logic   [TASKS-1:0]                     task_busy;
+    logic   [TASKS-1:0]              task_busy;
 
-    logic   [TASKS-1:0]                     task_rdq_add_req;
-    logic   [TASKS-1:0][TSKID_WIDTH-1:0]    task_rdq_rmv_tskid;
-    logic   [TASKS-1:0]                     task_rdq_rmv_valid;
+    logic   [TASKS-1:0]              task_rdq_add;
+    logic   [TASKS-1:0]              task_rdq_rmv;
 
-    logic   [TASKS-1:0]                     task_rdy_tsk = '0;
-    logic   [TASKS-1:0]                     task_rel_tsk = '0;
+    logic   [TASKS-1:0]              task_rdy_tsk = '0;
+    logic   [TASKS-1:0]              task_rel_tsk = '0;
 
     generate
     for ( genvar i = 0; i < TASKS; ++i ) begin : loop_tsk
@@ -145,9 +144,8 @@ module jelly_rtos_core
                     .tskstat            (task_tskstat[i]),
                     .tskpri             (task_tskpri[i]),
 
-                    .rdq_add_req        (task_rdq_add_req[i]),
-                    .rdq_rmv_tskid      (task_rdq_rmv_tskid[i]),
-                    .rdq_rmv_valid      (task_rdq_rmv_valid[i]),
+                    .rdq_add            (task_rdq_add[i]),
+                    .rdq_rmv            (task_rdq_rmv[i]),
 
                     .rdy_tsk            (task_rdy_tsk[i]),
                     .rel_tsk            (task_rel_tsk[i]),
@@ -248,7 +246,7 @@ module jelly_rtos_core
         rdq_add_tskpri = 'x;
         rdq_add_valid  = 1'b0;
         for ( int tskid = 0; tskid < TASKS; ++tskid ) begin
-            if ( task_rdq_add_req[tskid] ) begin
+            if ( task_rdq_add[tskid] ) begin
                 rdq_add_tskid  = TSKID_WIDTH'(tskid);
                 rdq_add_tskpri = task_tskpri[tskid];
                 rdq_add_valid  = 1'b1;
@@ -262,7 +260,7 @@ module jelly_rtos_core
         rdq_rmv_tskid  = '0;
         rdq_rmv_valid  = 1'b0;
         for ( int tskid = 0; tskid < TASKS; ++tskid ) begin
-            if ( task_rdq_rmv_valid[tskid] ) begin
+            if ( task_rdq_rmv[tskid] ) begin
                 rdq_rmv_tskid = TSKID_WIDTH'(tskid);
                 rdq_rmv_valid = 1'b1;
             end
