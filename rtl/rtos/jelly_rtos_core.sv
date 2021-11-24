@@ -70,16 +70,7 @@ module jelly_rtos_core
             input   wire                                        wai_flg_valid,
             output  wire    [FLGPTN_WIDTH-1:0]                  flg_flgptn
         );
-
-
-    // -----------------------------------------
-    //  operation task priority
-    // -----------------------------------------
     
-    logic   [TSKID_WIDTH-1:0]       operation_tskid;
-    logic   [TSKPRI_WIDTH-1:0]      operation_tskpri;
-    logic   [SEMID_WIDTH-1:0]       operation_semid;
-
 
     // -----------------------------------------
     //  ready queue
@@ -124,10 +115,14 @@ module jelly_rtos_core
     //  tasks
     // -----------------------------------------
     
-    logic   [TASKS-1:0]                 task_busy;
-    logic   [TASKS-1:0]                 task_req_rdy;
-    logic   [TASKS-1:0]                 task_rdy_tsk = '0;
-    logic   [TASKS-1:0]                 task_rel_tsk = '0;
+    logic   [TASKS-1:0]                     task_busy;
+
+    logic   [TASKS-1:0]                     task_rdq_add_req;
+    logic   [TASKS-1:0][TSKID_WIDTH-1:0]    task_rdq_rmv_tskid;
+    logic   [TASKS-1:0]                     task_rdq_rmv_valid;
+
+    logic   [TASKS-1:0]                     task_rdy_tsk = '0;
+    logic   [TASKS-1:0]                     task_rel_tsk = '0;
 
     generate
     for ( genvar i = 0; i < TASKS; ++i ) begin : loop_tsk
@@ -150,12 +145,16 @@ module jelly_rtos_core
                     .tskstat            (task_tskstat[i]),
                     .tskpri             (task_tskpri[i]),
 
-                    .req_rdq            (task_req_rdy[i]),
+                    .rdq_add_req        (task_rdq_add_req[i]),
+                    .rdq_rmv_tskid      (task_rdq_rmv_tskid[i]),
+                    .rdq_rmv_valid      (task_rdq_rmv_valid[i]),
+
                     .rdy_tsk            (task_rdy_tsk[i]),
                     .rel_tsk            (task_rel_tsk[i]),
                     .flgptn             (flg_flgptn),
 
-                    .op_tskid           (operation_tskid),
+                    .run_tskid          (rdq_top_tskid),
+                    .op_tskid           (op_tskid),
                     .wup_tsk_valid      (wup_tsk_valid),
                     .slp_tsk_valid      (slp_tsk_valid),
                     .dly_tsk_dlytim     (dly_tsk_dlytim),
@@ -197,7 +196,7 @@ module jelly_rtos_core
                     .clk                (clk),
                     .cke                (cke),
 
-                    .op_semid           (operation_semid),
+                    .op_semid           (op_semid),
                     .op_tskid           (rdq_top_tskid),
                     .op_tskpri          (rdq_top_tskpri),
 
@@ -243,44 +242,13 @@ module jelly_rtos_core
     //  control
     // -----------------------------------------
 
-    // tskid
-    always_comb begin : blk_op_tskid
-        operation_tskid = 'x;
-        case ( 1'b1 )
-        wup_tsk_valid:  operation_tskid = op_tskid;
-        slp_tsk_valid:  operation_tskid = op_tskid;
-        rel_wai_valid:  operation_tskid = op_tskid;
-        dly_tsk_valid:  operation_tskid = op_tskid;
-        sig_sem_valid:  operation_tskid = 'x;
-        pol_sem_valid:  operation_tskid = 'x;
-        wai_sem_valid:  operation_tskid = rdq_top_tskid;
-        wai_flg_valid:  operation_tskid = rdq_top_tskid;
-        endcase
-    end
-
-    // tskpri
-    always_comb begin : blk_op_tskpri
-        operation_tskpri = 'x;
-        if ( int'(operation_tskid) < TASKS ) begin
-            operation_tskpri = task_tskpri[operation_tskid];
-        end
-    end
-
-    // semid
-    always_comb begin : blk_op_semid
-        operation_semid = op_semid;
-    end
-
-
     // add to ready queue
     always_comb begin : blk_rdq_add
         rdq_add_tskid  = 'x;
         rdq_add_tskpri = 'x;
         rdq_add_valid  = 1'b0;
-
-        // レディーキュー登録要求処理
         for ( int tskid = 0; tskid < TASKS; ++tskid ) begin
-            if ( task_req_rdy[tskid] ) begin
+            if ( task_rdq_add_req[tskid] ) begin
                 rdq_add_tskid  = TSKID_WIDTH'(tskid);
                 rdq_add_tskpri = task_tskpri[tskid];
                 rdq_add_valid  = 1'b1;
@@ -291,12 +259,13 @@ module jelly_rtos_core
 
     // remove from ready queue
     always_comb begin : blk_rdq_rmv
-        rdq_rmv_tskid  = 'x;
+        rdq_rmv_tskid  = '0;
         rdq_rmv_valid  = 1'b0;
-
-        if ( slp_tsk_valid || dly_tsk_valid || wai_sem_valid || wai_flg_valid ) begin
-            rdq_rmv_tskid = operation_tskid;
-            rdq_rmv_valid = 1'b1;            
+        for ( int tskid = 0; tskid < TASKS; ++tskid ) begin
+            if ( task_rdq_rmv_valid[tskid] ) begin
+                rdq_rmv_tskid = TSKID_WIDTH'(tskid);
+                rdq_rmv_valid = 1'b1;
+            end
         end
     end
 

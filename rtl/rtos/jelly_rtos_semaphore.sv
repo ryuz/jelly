@@ -83,8 +83,8 @@ module jelly_rtos_semaphore
                 .count          (quecnt)
             );
 
-    logic                       id_valid;
-    assign id_valid = (op_semid == SEMID);
+    logic                       op_valid;
+    assign op_valid = (op_semid == SEMID);
     
     logic   [SEMCNT_WIDTH-1:0]  next_semcnt;
     logic                       sem_empty;
@@ -99,7 +99,7 @@ module jelly_rtos_semaphore
         wakeup_tskid   = '0;
         wakeup_valid   = 1'b0;
 
-        if ( id_valid ) begin
+        if ( op_valid ) begin
             case ( 1'b1 )
             sig_sem_valid:
                 begin
@@ -148,7 +148,7 @@ module jelly_rtos_semaphore
         end
     end
 
-    assign pol_sem_ack = id_valid && pol_sem_valid && !sem_empty;
+    assign pol_sem_ack = op_valid && pol_sem_valid && !sem_empty;
 
 
     always_ff @(posedge clk) begin
