@@ -162,6 +162,8 @@ module ultra96v2_rtos
     localparam  int                             TSKID_WIDTH      = $clog2(TASKS);
     localparam  int                             SEMID_WIDTH      = $clog2(SEMAPHORES);
 
+                                logic   [FLGPTN_WIDTH-1:0]                  rtos_flg_flgptn;
+
     (* mark_debug = "true" *)   logic   [IDLE_TSKID_WIDTH-1:0]              monitor_run_tskid;
     (* mark_debug = "true" *)   logic                                       monitor_run_valid;
     (* mark_debug = "true" *)   logic   [IDLE_TSKID_WIDTH-1:0]              monitor_top_tskid;
@@ -174,9 +176,9 @@ module ultra96v2_rtos
     (* mark_debug = "true" *)   logic   [WB_DAT_WIDTH-1:0]                  monitor_scratch2;
     (* mark_debug = "true" *)   logic   [WB_DAT_WIDTH-1:0]                  monitor_scratch3;
 
-    wire    [WB_DAT_WIDTH-1:0]      wb_rtos_dat_o;
-    wire                            wb_rtos_stb_i;
-    wire                            wb_rtos_ack_o;
+    logic   [WB_DAT_WIDTH-1:0]      wb_rtos_dat_o;
+    logic                           wb_rtos_stb_i;
+    logic                           wb_rtos_ack_o;
 
     jelly_rtos
             #(
@@ -210,6 +212,8 @@ module ultra96v2_rtos
                 
                 .irq                (irq_rtos),
 
+                .ext_flg_flgptn     (rtos_flg_flgptn),
+
                 .monitor_run_tskid  (monitor_run_tskid), 
                 .monitor_run_valid  (monitor_run_valid), 
                 .monitor_top_tskid  (monitor_top_tskid), 
@@ -229,11 +233,11 @@ module ultra96v2_rtos
     //  Test LED
     // -----------------------------
     
-    wire    [WB_DAT_WIDTH-1:0]      wb_led_dat_o;
-    wire                            wb_led_stb_i;
-    wire                            wb_led_ack_o;
+    logic   [WB_DAT_WIDTH-1:0]      wb_led_dat_o;
+    logic                           wb_led_stb_i;
+    logic                           wb_led_ack_o;
     
-    reg     [0:0]                   reg_led;
+    logic   [0:0]                   reg_led;
     always_ff @(posedge clk) begin
         if ( reset ) begin
             reg_led <= 0;
@@ -249,7 +253,7 @@ module ultra96v2_rtos
     assign wb_led_ack_o = wb_led_stb_i;
     
     
-    reg     [25:0]  reg_clk_count;
+    logic   [25:0]  reg_clk_count;
     always_ff @(posedge clk) begin
         if ( reset ) begin
             reg_clk_count <= 0;
@@ -269,22 +273,24 @@ module ultra96v2_rtos
     //  Test Timer
     // -----------------------------
     
-    wire    [WB_DAT_WIDTH-1:0]      wb_tim_dat_o;
-    wire                            wb_tim_stb_i;
-    wire                            wb_tim_ack_o;
+    logic                           tim_irq;
+
+    logic   [WB_DAT_WIDTH-1:0]      wb_tim_dat_o;
+    logic                           wb_tim_stb_i;
+    logic                           wb_tim_ack_o;
     
     jelly_interval_timer
             #(
                 .WB_ADR_WIDTH       (2),
                 .WB_DAT_WIDTH       (WB_DAT_WIDTH),
-                .IRQ_LEVEL          (1)
+                .IRQ_LEVEL          (0)
             )
         i_interval_timer
             (
                 .reset              (reset),
                 .clk                (clk),
                 
-                .interrupt_req      (),
+                .interrupt_req      (tim_irq),
                 
                 .s_wb_adr_i         (wb_adr_i[1:0]),
                 .s_wb_dat_o         (wb_tim_dat_o),
@@ -295,7 +301,9 @@ module ultra96v2_rtos
                 .s_wb_ack_o         (wb_tim_ack_o)
             );
     
-    
+    assign rtos_flg_flgptn[0]    = tim_irq;
+    assign rtos_flg_flgptn[31:1] = '0;
+
     
     // -----------------------------
     //  WISHBONE address decode

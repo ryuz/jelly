@@ -8,11 +8,13 @@
 #-Wno-UNOPTFLAT
 #-Wno-UNOPTTHREADS
 
--y ../../../rtl
--y ../../../../../rtl/model
+--report-unoptflat 
+
+-y ../../../../../rtl/rtos
 -y ../../../../../rtl/library
 -y ../../../../../rtl/bus
 -y ../../../../../rtl/image
 -y ../../../../../rtl/model
 -y ../../../../../rtl/video
 -y ../../../../../rtl/math
+-y ../../../../../rtl/model

@@ -2,6 +2,7 @@
 #include <verilated.h>
 #include <opencv2/opencv.hpp>
 #include "Vtb_sim_main.h"
+#include "Vtb_sim_main__Syms.h"
 #include "jelly/simulator/Manager.h"
 #include "jelly/simulator/ResetNode.h"
 #include "jelly/simulator/ClockNode.h"
@@ -19,33 +20,33 @@ namespace jsim = jelly::simulator;
 #endif
 
 
-#define RTOS_ID_WIDTH                   8
-#define RTOS_OPCODE_WIDTH               8
-#define RTOS_DECODE_ID_POS              0
-#define RTOS_DECODE_OPCODE_POS          (DECODE_ID_POS + ID_WIDTH)
+#define ID_WIDTH                   8
+#define OPCODE_WIDTH               8
+#define DECODE_ID_POS              0
+#define DECODE_OPCODE_POS          (DECODE_ID_POS + ID_WIDTH)
+#define OPCODE_SYS_CFG             0x00
+#define OPCODE_CPU_CTL             0x01
+#define OPCODE_WUP_TSK             0x10
+#define OPCODE_SLP_TSK             0x11
+#define OPCODE_DLY_TSK             0x18
+#define OPCODE_SIG_SEM             0x21
+#define OPCODE_WAI_SEM             0x22
+#define OPCODE_SET_FLG             0x31
+#define OPCODE_CLR_FLG             0x32
+#define OPCODE_WAI_FLG_AND         0x33
+#define OPCODE_WAI_FLG_OR          0x34
 
-#define RTOS_OPCODE_REF_CFG             0x00
-#define RTOS_OPCODE_CPU_CTL             0x01
-#define RTOS_OPCODE_WUP_TSK             0x10
-#define RTOS_OPCODE_SLP_TSK             0x11
-#define RTOS_OPCODE_DLY_TSK             0x18
-#define RTOS_OPCODE_SIG_SEM             0x21
-#define RTOS_OPCODE_WAI_SEM             0x22
-#define RTOS_OPCODE_SET_FLG             0x31
-#define RTOS_OPCODE_CLR_FLG             0x32
-#define RTOS_OPCODE_WAI_FLG_AND         0x33
-#define RTOS_OPCODE_WAI_FLG_OR          0x34
-#define RTOS_REF_CFG_CORE_ID            0x00
-#define RTOS_REF_CFG_VERSION            0x01
-#define RTOS_REF_CFG_DATE               0x04
-#define RTOS_CPU_CTL_TOP_TSKID          0x00
-#define RTOS_CPU_CTL_TOP_VALID          0x01
-#define RTOS_CPU_CTL_RUN_TSKID          0x04
-#define RTOS_CPU_CTL_RUN_VALID          0x05
-#define RTOS_CPU_CTL_IRQ_EN             0x10
-#define RTOS_CPU_CTL_IRQ_STS            0x11
+#define SYS_CFG_CORE_ID            0x00
+#define SYS_CFG_VERSION            0x01
+#define SYS_CFG_DATE               0x04
+#define CPU_CTL_TOP_TSKID          0x00
+#define CPU_CTL_TOP_VALID          0x01
+#define CPU_CTL_RUN_TSKID          0x04
+#define CPU_CTL_RUN_VALID          0x05
+#define CPU_CTL_IRQ_EN             0x10
+#define CPU_CTL_IRQ_STS            0x11
 
-#define RTOS_MAKE_ADDR(opcode, id)      (((opcode) << RTOS_DECODE_OPCODE_POS) | ((id) << RTOS_DECODE_ID_POS))
+#define MAKE_ADDR(opcode, id)      (((opcode) << DECODE_OPCODE_POS) | ((id) << DECODE_ID_POS))
 
 
 int main(int argc, char** argv)
@@ -71,25 +72,27 @@ int main(int argc, char** argv)
 
     mng->AddNode(jsim::VerilatorNode_Create(top, tfp));
     
-    mng->AddNode(jsim::ClockNode_Create(&top->clk, 5.0));
-    mng->AddNode(jsim::ResetNode_Create(&top->reset, 100));
+    mng->AddNode(jsim::ClockNode_Create(&top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__clk, 5.0));
+    mng->AddNode(jsim::ResetNode_Create(&top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__reset, 100));
 
     jsim::WishboneMaster wishbone =
                 {
-                    &top->reset,
-                    &top->clk,
-                    &top->s_wb_adr_i,
-                    &top->s_wb_dat_o,
-                    &top->s_wb_dat_i,
-                    &top->s_wb_sel_i,
-                    &top->s_wb_we_i,
-                    &top->s_wb_stb_i,
-                    &top->s_wb_ack_o
+                    &top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__reset,
+                    &top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__clk,
+                    &top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__wb_adr_i,
+                    &top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__wb_dat_o,
+                    &top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__wb_dat_i,
+                    &top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__wb_sel_i,
+                    &top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__wb_we_i,
+                    &top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__wb_stb_i,
+                    &top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__wb_ack_o
                 };
+
+    
     // ----------------------------------
     //  Simulation
     // ----------------------------------
-    /*
+    
     // WISHBONE 
     auto wb = jsim::WishboneAccessNode_Create(wishbone);
     mng->AddNode(wb);
@@ -99,39 +102,38 @@ int main(int argc, char** argv)
 
         wb->Display(" --- start --- ");
         wb->Read (0);
-        wb->Write(make_addr(OPCODE_CPU_STS, CPU_STS_TASKID), 1, 0xf);
+        
         wb->Wait(10);
-        wb->Write(make_addr(OPCODE_WUP_TSK, 1), 0, 0xf);
-        wb->Write(make_addr(OPCODE_WUP_TSK, 0), 0, 0xf);
-        wb->Write(make_addr(OPCODE_WUP_TSK, 3), 0, 0xf);
+        wb->Write(MAKE_ADDR(OPCODE_WUP_TSK, 1), 0, 0xf);
+        wb->Write(MAKE_ADDR(OPCODE_WUP_TSK, 0), 0, 0xf);
+        wb->Write(MAKE_ADDR(OPCODE_WUP_TSK, 3), 0, 0xf);
         wb->Wait(10);
-        wb->Write(make_addr(OPCODE_WAI_FLG_AND, 0), 5, 0xf);
+        wb->Write(MAKE_ADDR(OPCODE_WAI_FLG_AND, 0), 5, 0xf);
         wb->Wait(10);
-        wb->Write(make_addr(OPCODE_SET_FLG, 0), 1, 0xf);
+        wb->Write(MAKE_ADDR(OPCODE_SET_FLG, 0), 1, 0xf);
         wb->Wait(10);
-        wb->Write(make_addr(OPCODE_SET_FLG, 0), 4, 0xf);
+        wb->Write(MAKE_ADDR(OPCODE_SET_FLG, 0), 4, 0xf);
         wb->Wait(10);
-        wb->Write(make_addr(OPCODE_CLR_FLG, 0), ~1, 0xf);
+        wb->Write(MAKE_ADDR(OPCODE_CLR_FLG, 0), ~1, 0xf);
         wb->Wait(10);
-        wb->Write(make_addr(OPCODE_CLR_FLG, 0), ~4, 0xf);
+        wb->Write(MAKE_ADDR(OPCODE_CLR_FLG, 0), ~4, 0xf);
 
-        wb->Write(make_addr(OPCODE_WAI_SEM, 1), 0, 0xf);
+        wb->Write(MAKE_ADDR(OPCODE_WAI_SEM, 1), 0, 0xf);
         wb->Wait(10);
-        wb->Write(make_addr(OPCODE_SIG_SEM, 1), 0, 0xf);
+        wb->Write(MAKE_ADDR(OPCODE_SIG_SEM, 1), 0, 0xf);
 
         wb->Wait(10);
-        wb->Write(make_addr(OPCODE_SLP_TSK, 0), 0, 0xf);
-        wb->Write(make_addr(OPCODE_SLP_TSK, 1), 0, 0xf);
+        wb->Write(MAKE_ADDR(OPCODE_SLP_TSK, 0), 0, 0xf);
+        wb->Write(MAKE_ADDR(OPCODE_SLP_TSK, 1), 0, 0xf);
         
         wb->Wait(100);
         wb->Finish();
     });
-    */
-
+    
     // Run
     mng->Run();
 
-//    th.join();
+    th.join();
 
 
 #if VM_TRACE

@@ -32,25 +32,30 @@ module tb_sim();
     //  main
     // ----------------------------------
     
+    parameter int   WB_ADR_WIDTH = 16;
+    parameter int   WB_DAT_WIDTH = 32;
+    parameter int   WB_SEL_WIDTH = WB_DAT_WIDTH/8;
+
+    logic   [WB_ADR_WIDTH-1:0]  s_wb_adr_i;
+    logic   [WB_DAT_WIDTH-1:0]  s_wb_dat_i;
+    logic   [WB_DAT_WIDTH-1:0]  s_wb_dat_o;
+    logic                       s_wb_we_i;
+    logic   [WB_SEL_WIDTH-1:0]  s_wb_sel_i;
+    logic                       s_wb_stb_i;
+    logic                       s_wb_ack_o;
+
     tb_sim_main
         i_sim_main
             (
+                .*
             );
     
-    initial begin
-        force i_sim_main.i_top.i_design_1.reset = reset;
-        force i_sim_main.i_top.i_design_1.clk   = clk;
-    end
     
 
 
     // ----------------------------------
     //  WISHBONE master
     // ----------------------------------
-
-    parameter int   WB_ADR_WIDTH = 29;
-    parameter int   WB_DAT_WIDTH = 32;
-    parameter int   WB_SEL_WIDTH = WB_DAT_WIDTH/8;
     
     // force connect to top-net
     logic                       wb_rst_i;
@@ -65,16 +70,15 @@ module tb_sim();
     
     assign wb_rst_i = reset;
     assign wb_clk_i = clk;
-    assign wb_dat_i = i_sim_main.i_top.i_design_1.wb_dat_o;
-    assign wb_ack_i = i_sim_main.i_top.i_design_1.wb_ack_o;
+    assign wb_dat_i = s_wb_dat_o;
+    assign wb_ack_i = s_wb_ack_o;
 
-    initial begin
-        force i_sim_main.i_top.i_design_1.wb_adr_i = wb_adr_o;
-        force i_sim_main.i_top.i_design_1.wb_dat_i = wb_dat_o;
-        force i_sim_main.i_top.i_design_1.wb_we_i  = wb_we_o;
-        force i_sim_main.i_top.i_design_1.wb_sel_i = wb_sel_o;
-        force i_sim_main.i_top.i_design_1.wb_stb_i = wb_stb_o;
-    end
+    assign s_wb_adr_i = wb_adr_o;
+    assign s_wb_dat_i = wb_dat_o;
+    assign s_wb_we_i  = wb_we_o;
+    assign s_wb_sel_i = wb_sel_o;
+    assign s_wb_stb_i = wb_stb_o;
+    
     
     reg     [WB_DAT_WIDTH-1:0]      reg_wb_dat;
     reg                             reg_wb_ack;
@@ -93,7 +97,7 @@ module tb_sim();
             );
     begin
         $display("WISHBONE_WRITE(adr:%h dat:%h sel:%b)", adr, dat, sel);
-       @(negedge wb_clk_i);
+        @(negedge wb_clk_i);
             wb_adr_o = adr;
             wb_dat_o = dat;
             wb_sel_o = sel;
@@ -156,7 +160,6 @@ module tb_sim();
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CLR_FLG     = OPCODE_WIDTH'(8'h32);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_FLG_AND = OPCODE_WIDTH'(8'h33);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_FLG_OR  = OPCODE_WIDTH'(8'h34);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_ENA_FLG_EXT = OPCODE_WIDTH'(8'h3a);
 
     localparam  bit     [ID_WIDTH-1:0]      SYS_CFG_CORE_ID      = 'h00;
     localparam  bit     [ID_WIDTH-1:0]      SYS_CFG_VERSION      = 'h01;
@@ -220,11 +223,11 @@ module tb_sim();
 
     task check_top_taskid(int exp_tskid);
     begin
-        if ( i_sim_main.i_top.i_rtos.cur_top_tskid == exp_tskid ) begin
+        if ( i_sim_main.i_rtos.cur_top_tskid == exp_tskid ) begin
             $display("[OK] top_tskid = %d", exp_tskid);
         end
         else begin
-            $display("[!!!ERROR!!!] top_tskid = %d (exp:%d)", i_sim_main.i_top.i_rtos.cur_top_tskid, exp_tskid);
+            $display("[!!!ERROR!!!] top_tskid = %d (exp:%d)", i_sim_main.i_rtos.cur_top_tskid, exp_tskid);
             $error();
         end
     end
@@ -232,11 +235,11 @@ module tb_sim();
 
     task check_run_taskid(int exp_tskid);
     begin
-        if ( i_sim_main.i_top.i_rtos.cur_run_tskid == exp_tskid ) begin
+        if ( i_sim_main.i_rtos.cur_run_tskid == exp_tskid ) begin
             $display("[OK] run_tskid = %d", exp_tskid);
         end
         else begin
-            $display("[!!!ERROR!!!] run_tskid = %d (exp:%d)", i_sim_main.i_top.i_rtos.cur_run_tskid, exp_tskid);
+            $display("[!!!ERROR!!!] run_tskid = %d (exp:%d)", i_sim_main.i_rtos.cur_run_tskid, exp_tskid);
             $error();
         end
     end
@@ -244,29 +247,25 @@ module tb_sim();
 
     task check_irq(bit exp_irq);
     begin
-        if ( i_sim_main.i_top.i_rtos.irq == exp_irq ) begin
+        if ( i_sim_main.i_rtos.irq == exp_irq ) begin
             $display("[OK] irq = %d", exp_irq);
         end
         else begin
-            $display("[!!!ERROR!!!] irq = %d (exp:%d)", i_sim_main.i_top.i_rtos.irq, exp_irq);
+            $display("[!!!ERROR!!!] irq = %d (exp:%d)", i_sim_main.i_rtos.irq, exp_irq);
             $error();
         end
     end
     endtask
 
-    int test_num;
+    int test_no = 0;
 
     initial begin
-        test_num =0;
     @(negedge wb_rst_i);
+    
     #100;
-        $display("[%d] --- timer start --- ", test_num++);
-        wb_write(29'h002_0001, 200, 4'hf);
-        wb_write(29'h002_0000,   1, 4'hf);
-
-    #100;
+        test_no = 1;
         read_status();
-        $display("[%d] --- initialize --- ", test_num++);
+        $display(" --- initialize --- ");
         wb_read (0);
         wb_write(make_addr(OPCODE_SYS_CFG, SYS_CFG_SOFT_RESET), 1, 4'hf);
         
@@ -278,7 +277,8 @@ module tb_sim();
         check_top_taskid(15);
 
     #100;
-        $display("[%d] --- wake up task --- ", test_num++);
+        test_no = 2;
+        $display(" --- wake up task --- ");
         $display("wup_tsk 1");
         check_irq(1'b0);
         wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
@@ -305,14 +305,16 @@ module tb_sim();
         check_top_taskid(15);
 
     #100;
-        $display("[%d] --- busy test --- ", test_num++);
+        test_no = 22;
+        $display(" --- busy test --- ");
         wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
         wb_write(make_addr(OPCODE_WUP_TSK, 0), 0, 4'hf);
         wb_write(make_addr(OPCODE_SLP_TSK, 0), 0, 4'hf);
         wb_write(make_addr(OPCODE_SLP_TSK, 1), 0, 4'hf);
 
     #100;
-        $display("[%d] --- delay task --- ", test_num++);
+        test_no = 3;
+        $display(" --- delay task --- ");
 
         $display("wup_tsk 1");
         wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
@@ -339,8 +341,8 @@ module tb_sim();
         check_top_taskid(15);
 
     #200;
-        test_num++;
-        $display("[%d] --- wai_flg --- ", test_num);
+        test_no = 4;
+        $display(" --- wai_flg --- ");
         $display("wup_tsk 1");
         wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
         swtich_task();
@@ -368,7 +370,7 @@ module tb_sim();
         wb_write(make_addr(OPCODE_SLP_TSK, 1), 0, 4'hf);
 
     #100
-        test_num++;
+        test_no = 5;
         $display(" --- wai_sem --- ");
         wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
         swtich_task();
@@ -397,7 +399,7 @@ module tb_sim();
         check_top_taskid(15);
 
     #100
-        test_num++;
+        test_no = 6;
         $display(" --- wai_sem2 --- ");
         wb_write(make_addr(OPCODE_WUP_TSK, 0), 0, 4'hf);
         wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
@@ -418,7 +420,7 @@ module tb_sim();
         check_top_taskid(15);
 
     #100
-        test_num++;
+        test_no = 7;
         $display(" --- wai_sem3 --- ");
         wb_write(make_addr(OPCODE_SIG_SEM, 0), 0, 4'hf);
         wb_write(make_addr(OPCODE_WUP_TSK, 0), 0, 4'hf);
@@ -438,7 +440,7 @@ module tb_sim();
 
 
     #100
-        test_num++;
+        test_no = 8;
         $display(" --- pol_sem --- ");
         wb_write(make_addr(OPCODE_SIG_SEM, 1), 0, 4'hf);
         wb_write(make_addr(OPCODE_SIG_SEM, 1), 0, 4'hf);
@@ -447,27 +449,8 @@ module tb_sim();
         wb_read (make_addr(OPCODE_POL_SEM, 1));
         wb_read (make_addr(OPCODE_POL_SEM, 1));
 
-    #100
-        test_num++;
-        $display(" --- ext flg --- ");
-        wb_write(make_addr(OPCODE_CLR_FLG, 0), 0, 4'hf);
-        wb_write(make_addr(OPCODE_ENA_FLG_EXT, 0), 1, 4'hf);
-        wb_write(make_addr(OPCODE_WUP_TSK, 0), 0, 4'hf);
-        swtich_task();
-        check_top_taskid(0);
-        wb_write(make_addr(OPCODE_WAI_FLG_OR, 0), 1, 4'hf);
-        swtich_task();
-        check_top_taskid(15);
-    #1000
-        swtich_task();
-        check_top_taskid(0);
-        wb_write(make_addr(OPCODE_CLR_FLG, 0), 0, 4'hf);
-        wb_write(make_addr(OPCODE_SLP_TSK, 0), 0, 4'hf);
-        swtich_task();
-        check_top_taskid(15);
-
     #100;
-        test_num++;
+        test_no = 999;
         $display(" --- soft reset --- ");
         wb_write(make_addr(OPCODE_SYS_CFG, SYS_CFG_SOFT_RESET), 1, 4'hf);
     #100;

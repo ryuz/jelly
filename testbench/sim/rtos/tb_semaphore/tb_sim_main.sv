@@ -10,41 +10,38 @@ module tb_sim_main
             input   logic                       clk
         );
 
-
     parameter int                           QUE_SIZE        = 16;
-    parameter int                           QUE_COUNT_WIDTH = $clog2(QUE_SIZE+1);
+    parameter int                           QUECNT_WIDTH    = $clog2(QUE_SIZE+1);
     parameter int                           TSKID_WIDTH     = 4;
     parameter int                           TSKPRI_WIDTH    = 4;
-    parameter int                           SEM_COUNT_WIDTH = 4;
+    parameter int                           SEMCNT_WIDTH    = 4;
     parameter bit                           PRIORITY_ORDER  = 1'b0;
-    parameter bit   [SEM_COUNT_WIDTH-1:0]   INIT_SEM_COUNT  = 0;
+    parameter bit   [SEMCNT_WIDTH-1:0]      INIT_SEMCNT     = '0;
 
     logic                           cke = 1'b1;
 
-    logic                           signal;
-
-    logic   [TSKID_WIDTH-1:0]       wait_tskid;
-    logic   [TSKPRI_WIDTH-1:0]      wait_tskpri;
-    logic                           wait_valid;
-
-    logic   [TSKID_WIDTH-1:0]       remove_tskid;
-    logic                           remove_valid;
-
+    logic                           sig_sem;
+    logic                           pol_sem;
+    logic                           pol_sem_ack;
+    logic   [TSKID_WIDTH-1:0]       wai_sem_tskid;
+    logic   [TSKPRI_WIDTH-1:0]      wai_sem_tskpri;
+    logic                           wai_sem_valid;
+    logic   [TSKID_WIDTH-1:0]       rel_wai_tskid;
+    logic                           rel_wai_valid;
     logic   [TSKID_WIDTH-1:0]       wakeup_tskid;
     logic                           wakeup_valid;
-
-    logic   [SEM_COUNT_WIDTH-1:0]   sem_count;
-    logic   [QUE_COUNT_WIDTH-1:0]   que_count;
+    logic   [SEMCNT_WIDTH-1:0]      semcnt;
+    logic   [QUECNT_WIDTH-1:0]      quecnt;
 
     jelly_rtos_semaphore
             #(
                 .QUE_SIZE           (QUE_SIZE),
-                .QUE_COUNT_WIDTH    (QUE_COUNT_WIDTH),
+                .QUECNT_WIDTH       (QUECNT_WIDTH),
                 .TSKID_WIDTH        (TSKID_WIDTH),
                 .TSKPRI_WIDTH       (TSKPRI_WIDTH),
-                .SEM_COUNT_WIDTH    (SEM_COUNT_WIDTH),
+                .SEMCNT_WIDTH       (SEMCNT_WIDTH),
                 .PRIORITY_ORDER     (PRIORITY_ORDER),
-                .INIT_SEM_COUNT     (INIT_SEM_COUNT)
+                .INIT_SEMCNT        (INIT_SEMCNT)
             )
         i_rtos_semaphore
             (

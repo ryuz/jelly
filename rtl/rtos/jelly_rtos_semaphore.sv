@@ -17,8 +17,10 @@ module jelly_rtos_semaphore
             parameter int                           QUECNT_WIDTH    = $clog2(QUE_SIZE+1),
             parameter int                           TSKID_WIDTH     = 4,
             parameter int                           TSKPRI_WIDTH    = 4,
+            parameter int                           SEMID_WIDTH     = 4,
             parameter int                           SEMCNT_WIDTH    = 4,
             parameter bit                           PRIORITY_ORDER  = 1'b0,
+            parameter bit   [SEMID_WIDTH-1:0]       SEMID           = '0,
             parameter bit   [SEMCNT_WIDTH-1:0]      INIT_SEMCNT     = '0
         )
         (
@@ -26,16 +28,14 @@ module jelly_rtos_semaphore
             input   wire                            clk,
             input   wire                            cke,
 
-            input   wire                            sig_sem,
+            input   wire    [SEMID_WIDTH-1:0]       op_semid,
+            input   wire    [TSKID_WIDTH-1:0]       op_tskid,
+            input   wire    [TSKPRI_WIDTH-1:0]      op_tskpri,
 
-            input   wire                            pol_sem,
+            input   wire                            sig_sem_valid,
+            input   wire                            pol_sem_valid,
             output  reg                             pol_sem_ack,
-
-            input   wire    [TSKID_WIDTH-1:0]       wai_sem_tskid,
-            input   wire    [TSKPRI_WIDTH-1:0]      wai_sem_tskpri,
             input   wire                            wai_sem_valid,
-
-            input   wire    [TSKID_WIDTH-1:0]       rel_wai_tskid,
             input   wire                            rel_wai_valid,
 
             output  reg     [TSKID_WIDTH-1:0]       wakeup_tskid,
@@ -82,15 +82,14 @@ module jelly_rtos_semaphore
 
                 .count          (quecnt)
             );
-    
 
+    logic                       op_valid;
+    assign op_valid = (op_semid == SEMID);
     
     logic   [SEMCNT_WIDTH-1:0]  next_semcnt;
     logic                       sem_empty;
-    logic                       sem_nop;
 
     always_comb begin : blk_sem
-        pol_sem_ack    = '0;
         next_semcnt    = semcnt;
         que_add_tskid  = 'x;
         que_add_tskpri = 'x;
@@ -100,55 +99,57 @@ module jelly_rtos_semaphore
         wakeup_tskid   = '0;
         wakeup_valid   = 1'b0;
 
-        // sig_sem と wai_sem は同時に来ない前提
-        sem_nop = !wai_sem_valid && !sig_sem && !rel_wai_valid;
-        case ( 1'b1 )
-        sig_sem:
-            begin
-                if ( que_top_valid ) begin
-                    // キューにあれば取り出す
-                    que_rmv_tskid = que_top_tskid;
+        if ( op_valid ) begin
+            case ( 1'b1 )
+            sig_sem_valid:
+                begin
+                    if ( que_top_valid ) begin
+                        // キューにあれば取り出す
+                        que_rmv_tskid = que_top_tskid;
+                        que_rmv_valid = 1'b1;
+
+                        wakeup_tskid = que_top_tskid;
+                        wakeup_valid = 1'b1;
+                    end
+                    else begin
+                        next_semcnt++;
+                    end
+                end
+
+            pol_sem_valid:
+                begin
+                    if ( !sem_empty ) begin
+                        next_semcnt--;
+                    end
+                end
+
+            wai_sem_valid:
+                begin
+                    if ( sem_empty ) begin
+                        que_add_tskid  = op_tskid;
+                        que_add_tskpri = op_tskpri;
+                        que_add_valid  = 1'b1;
+                    end
+                    else begin
+                        next_semcnt--;
+                        wakeup_tskid = op_tskid;
+                        wakeup_valid = 1'b1;
+                    end
+                end
+            
+            rel_wai_valid:
+                begin
+                    que_rmv_tskid = op_tskid;
                     que_rmv_valid = 1'b1;
-
-                    wakeup_tskid = que_top_tskid;
-                    wakeup_valid = 1'b1;
                 end
-                else begin
-                    next_semcnt++;
-                end
-            end
-
-        pol_sem:
-            begin
-                if ( !sem_empty ) begin
-                    pol_sem_ack = 1'b1;
-                    next_semcnt--;
-                end
-            end
-
-        wai_sem_valid:
-            begin
-                if ( sem_empty ) begin
-                    que_add_tskid  = wai_sem_tskid;
-                    que_add_tskpri = wai_sem_tskpri;
-                    que_add_valid  = 1'b1;
-                end
-                else begin
-                    next_semcnt--;
-                    wakeup_tskid = wai_sem_tskid;
-                    wakeup_valid = 1'b1;
-                end
-            end
-        
-        rel_wai_valid:
-            begin
-                que_rmv_tskid = rel_wai_tskid;
-                que_rmv_valid = 1'b1;
-            end
-
-        sem_nop: ;
-        endcase
+            
+            default: ;
+            endcase
+        end
     end
+
+    assign pol_sem_ack = op_valid && pol_sem_valid && !sem_empty;
+
 
     always_ff @(posedge clk) begin
         if ( reset ) begin
