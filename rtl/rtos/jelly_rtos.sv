@@ -13,26 +13,27 @@
 
 module jelly_rtos
         #(
-            parameter   int                             WB_ADR_WIDTH     = 16,
-            parameter   int                             WB_DAT_WIDTH     = 32,
-            parameter   int                             WB_SEL_WIDTH     = WB_DAT_WIDTH/8,
-    
-            parameter   int                             TASKS            = 15,
-            parameter   int                             SEMAPHORES       = 8,
-            parameter   int                             TSKPRI_WIDTH     = 4,
-            parameter   int                             SEMCNT_WIDTH     = 4,
-            parameter   int                             FLGPTN_WIDTH     = 32,
-            parameter   int                             SYSTIM_WIDTH     = 64,
-            parameter   int                             RELTIM_WIDTH     = 32,
-
-            parameter   int                             QUECNT_WIDTH     = $clog2(TASKS+1),
-            parameter   int                             IDLE_TSKID_WIDTH = $clog2(TASKS+1),
-            parameter   int                             TSKID_WIDTH      = $clog2(TASKS),
-            parameter   int                             SEMID_WIDTH      = $clog2(SEMAPHORES),
-
-            parameter   bit     [IDLE_TSKID_WIDTH-1:0]  INIT_IDLE_TSKID  = IDLE_TSKID_WIDTH'(TASKS),
-            parameter   bit     [TSKID_WIDTH-1:0]       INIT_RUN_TSKID   = '0,
-            parameter   bit     [FLGPTN_WIDTH-1:0]      INIT_FLGPTN      = '0
+            parameter   int                             WB_ADR_WIDTH        = 16,
+            parameter   int                             WB_DAT_WIDTH        = 32,
+            parameter   int                             WB_SEL_WIDTH        = WB_DAT_WIDTH/8,
+       
+            parameter   int                             TASKS               = 15,
+            parameter   int                             SEMAPHORES          = 8,
+            parameter   int                             TSKPRI_WIDTH        = 4,
+            parameter   int                             SEMCNT_WIDTH        = 4,
+            parameter   int                             FLGPTN_WIDTH        = 32,
+            parameter   int                             SYSTIM_WIDTH        = 64,
+            parameter   int                             RELTIM_WIDTH        = 32,
+   
+            parameter   int                             QUECNT_WIDTH        = $clog2(TASKS+1),
+            parameter   int                             IDLE_TSKID_WIDTH    = $clog2(TASKS+1),
+            parameter   int                             TSKID_WIDTH         = $clog2(TASKS),
+            parameter   int                             SEMID_WIDTH         = $clog2(SEMAPHORES),
+   
+            parameter   bit     [IDLE_TSKID_WIDTH-1:0]  INIT_IDLE_TSKID     = IDLE_TSKID_WIDTH'(TASKS),
+            parameter   bit     [TSKID_WIDTH-1:0]       INIT_RUN_TSKID      = '0,
+            parameter   bit     [FLGPTN_WIDTH-1:0]      INIT_FLGPTN         = '0,
+            parameter   bit     [FLGPTN_WIDTH-1:0]      INIT_EXT_FLG_ENABLE = '0
         )
         (
             input   wire                                        reset,
@@ -48,6 +49,8 @@ module jelly_rtos
             output  reg                                         s_wb_ack_o,
 
             output  wire                                        irq,
+
+            input   wire    [FLGPTN_WIDTH-1:0]                  ext_flg_flgptn,
 
             output  wire    [IDLE_TSKID_WIDTH-1:0]              monitor_run_tskid,
             output  wire                                        monitor_run_valid,
@@ -78,34 +81,27 @@ module jelly_rtos
     logic                                       rdq_top_valid;
     logic   [QUECNT_WIDTH-1:0]                  rdq_quecnt;
 
+    // operation id
+    logic   [TSKID_WIDTH-1:0]                   op_tskid;
+    logic   [SEMID_WIDTH-1:0]                   op_semid;
+
     // task
-    logic   [TSKID_WIDTH-1:0]                   wup_tsk_tskid;
     logic                                       wup_tsk_valid = '0;
-
-    logic   [TSKID_WIDTH-1:0]                   slp_tsk_tskid;
     logic                                       slp_tsk_valid = '0;
-
-    logic   [TSKID_WIDTH-1:0]                   rel_wai_tskid;
     logic                                       rel_wai_valid = '0;
-
-    logic   [TSKID_WIDTH-1:0]                   dly_tsk_tskid;
     logic   [RELTIM_WIDTH-1:0]                  dly_tsk_dlytim;
     logic                                       dly_tsk_valid = '0;
+    logic   [TASKS-1:0][TSKPRI_WIDTH-1:0]       task_tskpri;
+    logic   [TASKS-1:0][2:0]                    task_tskstat;
 
     // semaphore                
-    logic   [SEMID_WIDTH-1:0]                   sig_sem_semid;
     logic                                       sig_sem_valid = '0;
-
-    logic   [SEMID_WIDTH-1:0]                   wai_sem_semid;
     logic                                       wai_sem_valid = '0;
-
-    logic   [SEMID_WIDTH-1:0]                   pol_sem_semid;
     logic                                       pol_sem_valid = '0;
     logic                                       pol_sem_ack;
+    logic   [SEMAPHORES-1:0][SEMCNT_WIDTH-1:0]  semaphore_semcnt;
+    logic   [SEMAPHORES-1:0][QUECNT_WIDTH-1:0]  semaphore_quecnt;
 
-    logic   [SEMAPHORES-1:0][QUECNT_WIDTH-1:0]  sem_quecnt;
-    logic   [SEMAPHORES-1:0][SEMCNT_WIDTH-1:0]  sem_semcnt;
-    
     // event flag
     logic   [FLGPTN_WIDTH-1:0]                  set_flg;
     logic   [FLGPTN_WIDTH-1:0]                  clr_flg;
@@ -140,26 +136,23 @@ module jelly_rtos
                 .rdq_top_valid,
                 .rdq_quecnt,
 
-                .wup_tsk_tskid,
-                .wup_tsk_valid,
-                .slp_tsk_tskid,
-                .slp_tsk_valid,
-                .rel_wai_tskid,
-                .rel_wai_valid,
+                .op_tskid,
+                .op_semid,
 
-                .dly_tsk_tskid,
+                .wup_tsk_valid,
+                .slp_tsk_valid,
+                .rel_wai_valid,
                 .dly_tsk_dlytim,
                 .dly_tsk_valid,
+                .task_tskpri,
+                .task_tskstat,
 
-                .sig_sem_semid,
                 .sig_sem_valid,
-                .wai_sem_semid,
                 .wai_sem_valid,
-                .pol_sem_semid,
                 .pol_sem_valid,
                 .pol_sem_ack,
-                .sem_quecnt,
-                .sem_semcnt,
+                .semaphore_quecnt,
+                .semaphore_semcnt,
 
                 .set_flg,
                 .clr_flg,
@@ -168,7 +161,6 @@ module jelly_rtos
                 .wai_flg_valid,
                 .flg_flgptn
             );
-
     
     // -----------------------------------------
     //  Wishbone
@@ -187,10 +179,12 @@ module jelly_rtos
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SIG_SEM     = OPCODE_WIDTH'(8'h21);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_SEM     = OPCODE_WIDTH'(8'h22);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_POL_SEM     = OPCODE_WIDTH'(8'h23);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_SEMCNT  = OPCODE_WIDTH'(8'h28);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SET_FLG     = OPCODE_WIDTH'(8'h31);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CLR_FLG     = OPCODE_WIDTH'(8'h32);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_FLG_AND = OPCODE_WIDTH'(8'h33);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_FLG_OR  = OPCODE_WIDTH'(8'h34);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_ENA_FLG_EXT = OPCODE_WIDTH'(8'h3a);
 
     localparam  bit     [ID_WIDTH-1:0]      SYS_CFG_CORE_ID      = 'h00;
     localparam  bit     [ID_WIDTH-1:0]      SYS_CFG_VERSION      = 'h01;
@@ -233,6 +227,8 @@ module jelly_rtos
     logic   [0:0]                       reg_switch;
     logic   [0:0]                       reg_irq;
 
+    logic   [FLGPTN_WIDTH-1:0]          ext_flg_enable;
+
     logic   [WB_DAT_WIDTH-1:0]          scratch0;
     logic   [WB_DAT_WIDTH-1:0]          scratch1;
     logic   [WB_DAT_WIDTH-1:0]          scratch2;
@@ -257,6 +253,7 @@ module jelly_rtos
             irq_force      <= '0;
             reg_switch     <= '0;
             reg_irq        <= '0;
+            ext_flg_enable <= INIT_EXT_FLG_ENABLE;
             scratch0       <= '0;
             scratch1       <= '0;
             scratch2       <= '0;
@@ -287,8 +284,12 @@ module jelly_rtos
                     CPU_CTL_SCRATCH3:   begin scratch3       <= s_wb_dat_i; end
                     default: ;
                     endcase
+
+                OPCODE_ENA_FLG_EXT: begin ext_flg_enable <= FLGPTN_WIDTH'(s_wb_dat_i); end
+
                 default: ;
                 endcase
+
             end
 
             // 読み出しでコピー実施
@@ -306,8 +307,122 @@ module jelly_rtos
     
     assign irq = (reg_irq & irq_enable) | irq_force;
 
+    always_comb begin : blk_wb_cmd
+        op_tskid = 'x;
+        op_semid = 'x;
 
-    always_comb begin : blk_wb
+        wup_tsk_valid = '0;
+        slp_tsk_valid = '0;
+        rel_wai_valid = '0;
+        dly_tsk_dlytim = 'x;
+        dly_tsk_valid  = '0;
+
+        sig_sem_valid = '0;
+        wai_sem_valid = '0;
+        pol_sem_valid = '0;
+
+        set_flg        = '0;
+        clr_flg        = '1;
+        wai_flg_wfmode = 'x;
+        wai_flg_flgptn = 'x;
+        wai_flg_valid  = '0;
+
+        // write
+        if ( s_wb_ack_o && s_wb_we_i && &s_wb_sel_i ) begin
+            case ( dec_opcode )
+            OPCODE_WUP_TSK:     begin wup_tsk_valid = 1'b1; op_tskid = TSKID_WIDTH'(dec_id); end
+            OPCODE_SLP_TSK:     begin slp_tsk_valid = 1'b1; op_tskid = TSKID_WIDTH'(dec_id); end
+            OPCODE_SET_FLG:     begin set_flg = FLGPTN_WIDTH'(s_wb_dat_i); end
+            OPCODE_CLR_FLG:     begin clr_flg = FLGPTN_WIDTH'(s_wb_dat_i); end
+
+            OPCODE_DLY_TSK:
+                begin
+                    dly_tsk_valid  = 1'b1;
+                    op_tskid       = TSKID_WIDTH'(dec_id);
+                    dly_tsk_dlytim = RELTIM_WIDTH'(s_wb_dat_i);
+                end
+
+            OPCODE_SIG_SEM:     begin sig_sem_valid = 1'b1; op_semid = SEMID_WIDTH'(dec_id);  end
+            OPCODE_WAI_SEM:     begin wai_sem_valid = 1'b1; op_semid = SEMID_WIDTH'(dec_id); op_tskid = rdq_top_tskid; end
+
+            OPCODE_WAI_FLG_AND:
+                begin
+                    wai_flg_valid  = 1'b1;
+                    wai_flg_flgptn = FLGPTN_WIDTH'(s_wb_dat_i);
+                    wai_flg_wfmode = 1'b0;
+                end
+            
+            OPCODE_WAI_FLG_OR:
+                begin
+                    wai_flg_valid  = 1'b1;
+                    wai_flg_flgptn = FLGPTN_WIDTH'(s_wb_dat_i);
+                    wai_flg_wfmode = 1'b1;
+                end
+            
+            default: ;
+            endcase
+        end
+
+        // read
+        if ( s_wb_ack_o && !s_wb_we_i && &s_wb_sel_i ) begin
+            case ( dec_opcode )
+            OPCODE_POL_SEM:     begin pol_sem_valid = 1'b1; op_semid = SEMID_WIDTH'(dec_id);  end
+            default: ;
+            endcase
+        end
+
+        // external flag
+        set_flg = set_flg | (ext_flg_enable & ext_flg_flgptn);
+    end
+
+    // wishbone read
+    always_comb begin : blk_wb_dat_o
+        s_wb_dat_o = '0;
+
+        case ( dec_opcode )
+        OPCODE_SYS_CFG:
+            case ( dec_id )
+            SYS_CFG_CORE_ID:        s_wb_dat_o = WB_DAT_WIDTH'(32'h834f5452);
+            SYS_CFG_VERSION:        s_wb_dat_o = WB_DAT_WIDTH'(32'h00000000);
+            SYS_CFG_DATE:           s_wb_dat_o = WB_DAT_WIDTH'(32'h20211120);
+            SYS_CFG_TASKS:          s_wb_dat_o = WB_DAT_WIDTH'(TASKS);
+            SYS_CFG_SEMAPHORES:     s_wb_dat_o = WB_DAT_WIDTH'(SEMAPHORES);
+            SYS_CFG_TSKPRI_WIDTH:   s_wb_dat_o = WB_DAT_WIDTH'(TSKPRI_WIDTH);
+            SYS_CFG_SEMCNT_WIDTH:   s_wb_dat_o = WB_DAT_WIDTH'(SEMCNT_WIDTH);
+            SYS_CFG_FLGPTN_WIDTH:   s_wb_dat_o = WB_DAT_WIDTH'(FLGPTN_WIDTH);
+            SYS_CFG_SYSTIM_WIDTH:   s_wb_dat_o = WB_DAT_WIDTH'(SYSTIM_WIDTH);
+            SYS_CFG_RELTIM_WIDTH:   s_wb_dat_o = WB_DAT_WIDTH'(RELTIM_WIDTH);
+            default: ;
+            endcase
+
+        OPCODE_CPU_CTL:
+            case ( dec_id )
+            CPU_CTL_TOP_TSKID:  s_wb_dat_o = WB_DAT_WIDTH'(cur_top_tskid);
+            CPU_CTL_TOP_VALID:  s_wb_dat_o = WB_DAT_WIDTH'(cur_top_valid);
+            CPU_CTL_RUN_TSKID:  s_wb_dat_o = WB_DAT_WIDTH'(cur_run_tskid);
+            CPU_CTL_RUN_VALID:  s_wb_dat_o = WB_DAT_WIDTH'(cur_run_valid);
+            CPU_CTL_IDLE_TSKID: s_wb_dat_o = WB_DAT_WIDTH'(cpu_idle_tskid);
+            CPU_CTL_COPY_TSKID: s_wb_dat_o = WB_DAT_WIDTH'(cur_top_tskid);
+            CPU_CTL_IRQ_EN:     s_wb_dat_o = WB_DAT_WIDTH'(irq_enable);
+            CPU_CTL_IRQ_STS:    s_wb_dat_o = WB_DAT_WIDTH'(irq);
+            CPU_CTL_SCRATCH0:   s_wb_dat_o = WB_DAT_WIDTH'(scratch0);
+            CPU_CTL_SCRATCH1:   s_wb_dat_o = WB_DAT_WIDTH'(scratch1);
+            CPU_CTL_SCRATCH2:   s_wb_dat_o = WB_DAT_WIDTH'(scratch2);
+            CPU_CTL_SCRATCH3:   s_wb_dat_o = WB_DAT_WIDTH'(scratch3);
+            default: ;
+            endcase
+        
+        OPCODE_POL_SEM:     s_wb_dat_o = WB_DAT_WIDTH'(pol_sem_ack);
+        OPCODE_REF_SEMCNT:  s_wb_dat_o = WB_DAT_WIDTH'(semaphore_semcnt);
+        default: ;
+        endcase
+    end
+
+    assign  s_wb_ack_o = s_wb_stb_i && !core_busy;
+
+
+    /*
+    always_comb begin : blk_wb_cmd
         s_wb_dat_o = '0;
         s_wb_ack_o = s_wb_stb_i && !core_busy;
         
@@ -412,18 +527,22 @@ module jelly_rtos
             default: ;
             endcase
         
-        OPCODE_POL_SEM: s_wb_dat_o = WB_DAT_WIDTH'(pol_sem_ack);
-        
+//      OPCODE_POL_SEM:     s_wb_dat_o = WB_DAT_WIDTH'(pol_sem_ack);
+        OPCODE_REF_SEMCNT:  s_wb_dat_o = WB_DAT_WIDTH'(sem_semcnt);
         default: ;
         endcase
+
+        // external flag
+        set_flg |= (ext_flg_enable & ext_flg_flgptn);
     end
+    */
 
     assign monitor_top_tskid  = cur_top_tskid;
     assign monitor_top_valid  = cur_top_valid;
     assign monitor_run_tskid  = cur_run_tskid;
     assign monitor_run_valid  = cur_run_valid;
-    assign monitor_sem_quecnt = sem_quecnt;
-    assign monitor_sem_semcnt = sem_semcnt;
+    assign monitor_sem_quecnt = semaphore_quecnt;
+    assign monitor_sem_semcnt = semaphore_semcnt;
     assign monitor_flg_flgptn = flg_flgptn;
     assign monitor_scratch0   = scratch0;
     assign monitor_scratch1   = scratch1;

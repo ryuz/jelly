@@ -5,8 +5,10 @@
 #-Wno-WIDTH
 #-Wno-UNSIGNED
 #-Wno-PINMISSING
--Wno-UNOPTFLAT
+#-Wno-UNOPTFLAT
 #-Wno-UNOPTTHREADS
+
+--report-unoptflat 
 
 -y ../../../../../rtl/rtos
 -y ../../../../../rtl/library

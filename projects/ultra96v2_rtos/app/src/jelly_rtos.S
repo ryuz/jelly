@@ -21,6 +21,7 @@
 
 #define TOP_TSKID       (0x00100*4)
 #define RUN_TSKID       (0x00104*4)
+#define COPY_TSKID      (0x00108*4)
 
 
                 .extern JELLY_RTOS_CORE_BASE
@@ -49,6 +50,59 @@ jelly_create_context:
                 bx		lr                  // リターン
 
 
+// =================================================
+//  SVCハンドラ
+//  タスクスイッチを行う(r13_svc を作業用に使う)
+// =================================================
+                .global jelly_svc_handler
+                .align  4
+                .code   32
+jelly_svc_handler:
+                // コンテキスト退避
+                mov     r13, r0
+                msr     cpsr_c, #(Mode_SYS | I_Bit)
+                mov     r0, r13
+                msr     cpsr_c, #(Mode_SVC | I_Bit)
+                stmfd	r0!, {r1-r14}
+                msr     cpsr_c, #(Mode_SYS | I_Bit)
+                mov     r1, r14
+                msr     cpsr_c, #(Mode_SVC | I_Bit)
+
+context_switch: mrs     r2, spsr
+                stmfd   r0!, {r1, r2}
+
+                // 実行中タスクID取得
+                ldr     r1, =JELLY_RTOS_RUN_TSKID
+                ldr     r4, [r1]
+
+                // スタック退避
+                ldr     r2, =JELLY_RTOS_SP_TABLE
+                str     r0, [r2, r4, lsl #2]
+                
+                // キューの先頭タスク取得
+                ldr     r3, =JELLY_RTOS_CORE_BASE
+                ldr     r3, [r3]
+                ldr     r4, [r3, #COPY_TSKID]
+//                ldr     r4, [r3, #TOP_TSKID]
+//                str     r4, [r3, #RUN_TSKID]
+                str     r4, [r1]
+
+                // スタック復帰
+                ldr     r0, [r2, r4, lsl #2]
+
+                // コンテキスト復帰
+                ldmfd	r0!, {r1-r2}
+                msr     spsr, r2
+                msr     cpsr_c, #(Mode_SYS | I_Bit)
+                mov     r14, r1
+                msr     cpsr_c, #(Mode_SVC | I_Bit)
+                ldmfd	r0!, {r1-r14}
+                msr     cpsr_c, #(Mode_SYS | I_Bit)
+                mov     r13, r0
+                msr     cpsr_c, #(Mode_SVC | I_Bit)
+                mov     r0, r13
+                movs	pc, lr
+
 
 // =================================================
 //  IRQハンドラ
@@ -70,59 +124,8 @@ jelly_irq_handler:
                 msr     cpsr_c, #(Mode_SYS | I_Bit)
                 mov     r1, r14
                 msr     cpsr_c, #(Mode_IRQ | I_Bit)
-context_switch: mrs     r2, spsr
-                stmfd   r0!, {r1, r2}
-
-                // 実行中タスクID取得
-                ldr     r1, =JELLY_RTOS_RUN_TSKID
-                ldr     r4, [r1]
-
-                // スタック退避
-                ldr     r2, =JELLY_RTOS_SP_TABLE
-                str     r0, [r2, r4, lsl #2]
-                
-                // キューの先頭タスク取得
-                ldr     r3, =JELLY_RTOS_CORE_BASE
-                ldr     r3, [r3]
-                ldr     r4, [r3, #TOP_TSKID]
-                str     r4, [r3, #RUN_TSKID]
-                str     r4, [r1]
-
-                // スタック復帰
-                ldr     r0, [r2, r4, lsl #2]
-
-                // コンテキスト復帰
-                ldmfd	r0!, {r1-r2}
-                msr     spsr, r2
-                msr     cpsr_c, #(Mode_SYS | I_Bit)
-                mov     r14, r1
-                msr     cpsr_c, #(Mode_IRQ | I_Bit)
-                ldmfd	r0!, {r1-r14}
-                msr     cpsr_c, #(Mode_SYS | I_Bit)
-                mov     r13, r0
-                msr     cpsr_c, #(Mode_IRQ | I_Bit)
-                mov     r0, r13
-                movs	pc, lr
-
-
-// =================================================
-//  SVCハンドラ
-//  タスクスイッチを行う(r13_svc を作業用に使う)
-// =================================================
-                .global jelly_svc_handler
-                .align  4
-                .code   32
-jelly_svc_handler:
-                // コンテキスト退避
-                mov     r13, r0
-                msr     cpsr_c, #(Mode_SYS | I_Bit)
-                mov     r0, r13
-                msr     cpsr_c, #(Mode_SVC | I_Bit)
-                stmfd	r0!, {r1-r14}
-                msr     cpsr_c, #(Mode_SYS | I_Bit)
-                mov     r1, r14
-                msr     cpsr_c, #(Mode_SVC | I_Bit)
                 b       context_switch
+
 
                 .end
 

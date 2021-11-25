@@ -39,43 +39,35 @@ module jelly_rtos_core
             output  wire    [TSKPRI_WIDTH-1:0]                  rdq_top_tskpri,
             output  wire                                        rdq_top_valid,
             output  wire    [QUECNT_WIDTH-1:0]                  rdq_quecnt,
-            
+
+            // operation id
+            input   wire    [TSKID_WIDTH-1:0]                   op_tskid,
+            input   wire    [SEMID_WIDTH-1:0]                   op_semid,
+
             // task             
-            input   wire    [TSKID_WIDTH-1:0]                   wup_tsk_tskid,
             input   wire                                        wup_tsk_valid,
-
-            input   wire    [TSKID_WIDTH-1:0]                   slp_tsk_tskid,
             input   wire                                        slp_tsk_valid,
-
-            input   wire    [TSKID_WIDTH-1:0]                   rel_wai_tskid,
             input   wire                                        rel_wai_valid,
-
-            input   wire    [TSKID_WIDTH-1:0]                   dly_tsk_tskid,
             input   wire    [RELTIM_WIDTH-1:0]                  dly_tsk_dlytim,
             input   wire                                        dly_tsk_valid,
-
+            output  wire    [TASKS-1:0][TSKPRI_WIDTH-1:0]       task_tskpri,
+            output  wire    [TASKS-1:0][2:0]                    task_tskstat,
 
             // semaphore                
-            input   wire    [SEMID_WIDTH-1:0]                   sig_sem_semid,
             input   wire                                        sig_sem_valid,
-            input   wire    [SEMID_WIDTH-1:0]                   wai_sem_semid,
-            input   wire                                        wai_sem_valid,
-            input   wire    [SEMID_WIDTH-1:0]                   pol_sem_semid,
             input   wire                                        pol_sem_valid,
             output  reg                                         pol_sem_ack,
-            output  wire    [SEMAPHORES-1:0][QUECNT_WIDTH-1:0]  sem_quecnt,
-            output  wire    [SEMAPHORES-1:0][SEMCNT_WIDTH-1:0]  sem_semcnt,
+            input   wire                                        wai_sem_valid,
+            output  wire    [SEMAPHORES-1:0][SEMCNT_WIDTH-1:0]  semaphore_semcnt,
+            output  wire    [SEMAPHORES-1:0][QUECNT_WIDTH-1:0]  semaphore_quecnt,
             
 
             // event flag
             input   wire    [FLGPTN_WIDTH-1:0]                  set_flg,
-
             input   wire    [FLGPTN_WIDTH-1:0]                  clr_flg,
-
             input   wire    [0:0]                               wai_flg_wfmode,
             input   wire    [FLGPTN_WIDTH-1:0]                  wai_flg_flgptn,
             input   wire                                        wai_flg_valid,
-
             output  wire    [FLGPTN_WIDTH-1:0]                  flg_flgptn
         );
 
@@ -93,29 +85,29 @@ module jelly_rtos_core
 
     jelly_rtos_queue_priority
             #(
-                .QUE_SIZE       (TASKS),
-                .ID_WIDTH       (TSKID_WIDTH),
-                .PRI_WIDTH      (TSKPRI_WIDTH),
-                .COUNT_WIDTH    (QUECNT_WIDTH)
-            )   
-        i_ready_queue   
-            (   
-                .reset          (reset),
-                .clk            (clk),
-                .cke            (cke),
+                .QUE_SIZE           (TASKS),
+                .ID_WIDTH           (TSKID_WIDTH),
+                .PRI_WIDTH          (TSKPRI_WIDTH),
+                .COUNT_WIDTH        (QUECNT_WIDTH)
+            )       
+        i_ready_queue
+            (       
+                .reset              (reset),
+                .clk                (clk),
+                .cke                (cke),
 
-                .add_id         (rdq_add_tskid),
-                .add_pri        (rdq_add_tskpri),
-                .add_valid      (rdq_add_valid),
+                .add_id             (rdq_add_tskid),
+                .add_pri            (rdq_add_tskpri),
+                .add_valid          (rdq_add_valid),
 
-                .remove_id      (rdq_rmv_tskid),
-                .remove_valid   (rdq_rmv_valid),
-                
-                .top_id         (rdq_top_tskid),
-                .top_pri        (rdq_top_tskpri),
-                .top_valid      (rdq_top_valid),
+                .remove_id          (rdq_rmv_tskid),
+                .remove_valid       (rdq_rmv_valid),
 
-                .count          (rdq_quecnt)
+                .top_id             (rdq_top_tskid),
+                .top_pri            (rdq_top_tskpri),
+                .top_valid          (rdq_top_valid),
+
+                .count              (rdq_quecnt)
             );
 
 
@@ -123,25 +115,13 @@ module jelly_rtos_core
     //  tasks
     // -----------------------------------------
     
-    logic   [TASKS-1:0]                     task_busy;
+    logic   [TASKS-1:0]              task_busy;
 
-    logic   [TASKS-1:0][2:0]                task_tskstat;
-    logic   [TASKS-1:0][TSKPRI_WIDTH-1:0]   task_tskpri;
+    logic   [TASKS-1:0]              task_rdq_add;
+    logic   [TASKS-1:0]              task_rdq_rmv;
 
-    logic   [TASKS-1:0]                     task_req_rdy;
-
-    logic   [TASKS-1:0]                     task_rel_tsk = '0;
-
-    logic   [TASKS-1:0]                     task_rdy_tsk = '0;
-    logic   [TASKS-1:0]                     task_wup_tsk = '0;
-    logic   [TASKS-1:0]                     task_slp_tsk = '0;
-    logic   [TASKS-1:0]                     task_rel_wai = '0;
-
-    logic   [TASKS-1:0]                     task_dly_tsk = '0;
-    logic   [RELTIM_WIDTH-1:0]              task_dly_tsk_dlytim;
-
-    logic   [TASKS-1:0]                     task_wai_sem = '0;
-    logic   [TASKS-1:0]                     task_wai_flg = '0;
+    logic   [TASKS-1:0]              task_rdy_tsk = '0;
+    logic   [TASKS-1:0]              task_rel_tsk = '0;
 
     generate
     for ( genvar i = 0; i < TASKS; ++i ) begin : loop_tsk
@@ -158,30 +138,30 @@ module jelly_rtos_core
                     .reset              (reset),
                     .clk                (clk),
                     .cke                (cke),
-                    
+
                     .busy               (task_busy[i]),
 
                     .tskstat            (task_tskstat[i]),
                     .tskpri             (task_tskpri[i]),
-                    
-                    .req_rdq            (task_req_rdy[i]),
 
-                    .rel_tsk            (task_rel_tsk[i]),
+                    .rdq_add            (task_rdq_add[i]),
+                    .rdq_rmv            (task_rdq_rmv[i]),
 
                     .rdy_tsk            (task_rdy_tsk[i]),
-                    .wup_tsk            (task_wup_tsk[i]),
-                    .slp_tsk            (task_slp_tsk[i]),
-                    .rel_wai            (task_rel_wai[i]),
+                    .rel_tsk            (task_rel_tsk[i]),
+                    .flgptn             (flg_flgptn),
 
-                    .dly_tsk            (task_dly_tsk[i]),
-                    .dly_tsk_dlytim     (task_dly_tsk_dlytim),
-
-                    .wai_sem            (task_wai_sem[i]),
-
+                    .run_tskid          (rdq_top_tskid),
+                    .op_tskid           (op_tskid),
+                    .wup_tsk_valid      (wup_tsk_valid),
+                    .slp_tsk_valid      (slp_tsk_valid),
+                    .dly_tsk_dlytim     (dly_tsk_dlytim),
+                    .dly_tsk_valid      (dly_tsk_valid),
+                    .rel_wai_valid      (rel_wai_valid),
+                    .wai_sem_valid      (wai_sem_valid),
                     .wai_flg_wfmode     (wai_flg_wfmode),
                     .wai_flg_flgptn     (wai_flg_flgptn),
-                    .wai_flg            (task_wai_flg[i]),
-                    .evtflg_flgptn      (flg_flgptn)
+                    .wai_flg_valid      (wai_flg_valid)
                 );
     end
     endgenerate
@@ -191,15 +171,8 @@ module jelly_rtos_core
     //  semaphores
     // -----------------------------------------
 
-    logic   [SEMAPHORES-1:0]                        semaphore_sig_sem_valid = '0;
 
-    logic   [TSKID_WIDTH-1:0]                       semaphore_wai_sem_tskid;
-    logic   [TSKPRI_WIDTH-1:0]                      semaphore_wai_sem_tskpri;
-    logic   [SEMAPHORES-1:0]                        semaphore_wai_sem_valid = '0;
-
-    logic   [SEMAPHORES-1:0]                        semaphore_pol_sem = '0;
     logic   [SEMAPHORES-1:0]                        semaphore_pol_sem_ack;
-
     logic   [SEMAPHORES-1:0][TSKID_WIDTH-1:0]       semaphore_wakeup_tskid;
     logic   [SEMAPHORES-1:0]                        semaphore_wakeup_valid;
 
@@ -210,7 +183,9 @@ module jelly_rtos_core
                     .QUE_SIZE           (TASKS),
                     .TSKID_WIDTH        (TSKID_WIDTH),
                     .TSKPRI_WIDTH       (TSKPRI_WIDTH),
+                    .SEMID_WIDTH        (SEMID_WIDTH),
                     .SEMCNT_WIDTH       (SEMCNT_WIDTH),
+                    .SEMID              (SEMID_WIDTH'(i)),
                     .INIT_SEMCNT        (0)
                 )
             i_rtos_semaphore
@@ -219,23 +194,21 @@ module jelly_rtos_core
                     .clk                (clk),
                     .cke                (cke),
 
-                    .sig_sem            (semaphore_sig_sem_valid[i]),
+                    .op_semid           (op_semid),
+                    .op_tskid           (rdq_top_tskid),
+                    .op_tskpri          (rdq_top_tskpri),
 
-                    .wai_sem_tskid      (semaphore_wai_sem_tskid),
-                    .wai_sem_tskpri     (semaphore_wai_sem_tskpri),
-                    .wai_sem_valid      (semaphore_wai_sem_valid[i]),
-
-                    .pol_sem            (semaphore_pol_sem[i]),
+                    .sig_sem_valid      (sig_sem_valid),
+                    .pol_sem_valid      (pol_sem_valid),
                     .pol_sem_ack        (semaphore_pol_sem_ack[i]),
-
-                    .rel_wai_tskid      (rel_wai_tskid),
+                    .wai_sem_valid      (wai_sem_valid),
                     .rel_wai_valid      (rel_wai_valid),
 
                     .wakeup_tskid       (semaphore_wakeup_tskid[i]),
                     .wakeup_valid       (semaphore_wakeup_valid[i]),
 
-                    .semcnt             (sem_semcnt[i]),
-                    .quecnt             (sem_quecnt[i])
+                    .semcnt             (semaphore_semcnt[i]),
+                    .quecnt             (semaphore_quecnt[i])
                 );
     end
     endgenerate
@@ -267,123 +240,72 @@ module jelly_rtos_core
     //  control
     // -----------------------------------------
 
-    always_comb begin : blk_core
+    // add to ready queue
+    always_comb begin : blk_rdq_add
         rdq_add_tskid  = 'x;
         rdq_add_tskpri = 'x;
         rdq_add_valid  = 1'b0;
-
-        rdq_rmv_tskid = 'x;
-        rdq_rmv_valid = 1'b0;
-
-        task_rdy_tsk = '0;
-        task_wup_tsk = '0;
-        task_slp_tsk = '0;
-        task_rel_wai = '0;
-        task_wai_sem = '0;
-        task_wai_flg = '0;
-
-        task_dly_tsk        = '0;
-        task_dly_tsk_dlytim = 'x;
-
-        semaphore_sig_sem_valid  = '0;
-        semaphore_wai_sem_tskid  = 'x;
-        semaphore_wai_sem_tskpri = 'x;
-        semaphore_wai_sem_valid  = '0;
-        semaphore_pol_sem        = '0;
-        pol_sem_ack              = 'x;
-
-        // レディーキュー登録要求処理
         for ( int tskid = 0; tskid < TASKS; ++tskid ) begin
-            if ( task_req_rdy[tskid] ) begin
+            if ( task_rdq_add[tskid] ) begin
                 rdq_add_tskid  = TSKID_WIDTH'(tskid);
                 rdq_add_tskpri = task_tskpri[tskid];
                 rdq_add_valid  = 1'b1;
                 break;
             end
         end
+    end
 
-        // wup_tsk
-        if ( wup_tsk_valid ) begin
-            task_wup_tsk[wup_tsk_tskid] = 1'b1;
+    // remove from ready queue
+    always_comb begin : blk_rdq_rmv
+        rdq_rmv_tskid  = '0;
+        rdq_rmv_valid  = 1'b0;
+        for ( int tskid = 0; tskid < TASKS; ++tskid ) begin
+            if ( task_rdq_rmv[tskid] ) begin
+                rdq_rmv_tskid = TSKID_WIDTH'(tskid);
+                rdq_rmv_valid = 1'b1;
+            end
         end
+    end
 
-        // slp_tsk
-        if ( slp_tsk_valid ) begin
-            task_slp_tsk[slp_tsk_tskid] = 1'b1;
-            rdq_rmv_tskid = slp_tsk_tskid;
-            rdq_rmv_valid = 1'b1;
-        end
-
-        // dly_tsk
-        if ( dly_tsk_valid ) begin
-            task_dly_tsk[dly_tsk_tskid] = 1'b1;
-            task_dly_tsk_dlytim         = dly_tsk_dlytim;
-            rdq_rmv_tskid = dly_tsk_tskid;
-            rdq_rmv_valid = 1'b1;
-        end
-
-        // sig_sem
-        if ( sig_sem_valid ) begin
-            semaphore_sig_sem_valid[sig_sem_semid] = 1'b1;
-        end
-
-        // pol_sem
-        if ( pol_sem_valid ) begin
-            semaphore_pol_sem[pol_sem_semid] = 1'b1;
-            pol_sem_ack = semaphore_pol_sem_ack[pol_sem_semid];
-        end
-        
-        // wai_sem
-        if ( wai_sem_valid ) begin
-            task_wai_sem[rdq_top_tskid] = 1'b1;
-            semaphore_wai_sem_tskid  = rdq_top_tskid;
-            semaphore_wai_sem_tskpri = rdq_top_tskpri;
-            semaphore_wai_sem_valid[wai_sem_semid] = 1'b1;
-            rdq_rmv_tskid = rdq_top_tskid;
-            rdq_rmv_valid = 1'b1;
-        end
-
-
-        // wait for event-flag
-        if ( wai_flg_valid ) begin
-            task_wai_flg[rdq_top_tskid] = 1'b1;
-            rdq_rmv_tskid = rdq_top_tskid;
-            rdq_rmv_valid = 1'b1;
-        end
-
+    // task ready
+    always_comb begin : blk_task
+        task_rdy_tsk = '0;
 
         // Ready
         if ( rdq_add_valid ) begin
             task_rdy_tsk[rdq_add_tskid] = 1'b1;
         end
+    end
 
-        // Release Wait
-        if ( rel_wai_valid ) begin
-            task_rel_wai[rel_wai_tskid] = 1'b1;
+    // wake-up from object
+    always_comb begin
+        automatic logic [TSKID_WIDTH-1:0]   wakeup_tskid;
+        automatic logic                     wakeup_valid;
+        wakeup_tskid = '0;
+        wakeup_valid = '0;
+
+        task_rel_tsk = '0;
+
+        for ( int semid = 0; semid < SEMAPHORES; ++semid ) begin
+            wakeup_tskid |= semaphore_wakeup_tskid[semid];
+            wakeup_valid |= semaphore_wakeup_valid[semid];
+        end
+        if ( wakeup_valid ) begin
+            task_rel_tsk[wakeup_tskid] = 1'b1;
         end
     end
 
+    // pol_sem
+    assign pol_sem_ack = |semaphore_pol_sem_ack;
+
+
+    // busy
     always_ff @(posedge clk) begin
         if ( reset ) begin
-            busy         <= '0;
-            task_rel_tsk <= '0;
+            busy <= '0;
         end
         else if ( cke ) begin
-            automatic logic [TSKID_WIDTH-1:0]   wakeup_tskid;
-            automatic logic                     wakeup_valid;
-
-            busy         <= |task_busy;
-            task_rel_tsk <= '0;
-
-            wakeup_tskid = '0;
-            wakeup_valid = '0;
-            for ( int semid = 0; semid < SEMAPHORES; ++semid ) begin
-                wakeup_tskid |= semaphore_wakeup_tskid[semid];
-                wakeup_valid |= semaphore_wakeup_valid[semid];
-            end
-            if ( wakeup_valid ) begin
-                task_rel_tsk[wakeup_tskid] <= 1'b1;
-            end
+            busy <= |task_busy;
         end
     end
 
