@@ -2,6 +2,7 @@
 #![no_main]
 #![feature(asm)]
 
+use pudding_pac::arm::cpu;
 use core::panic::PanicInfo;
 mod bootstrap;
 mod rtos;
@@ -52,8 +53,9 @@ pub unsafe extern "C" fn main() -> ! {
     rtos::wup_tsk(3);
     rtos::wup_tsk(4);
 
+    // アイドルループ
     loop {
-        wait(100000);
+        cpu::wfi();
     }
 }
 
@@ -67,8 +69,8 @@ extern "C" fn task4() -> ! { dining_philosopher(4); }
 
 
 fn dining_philosopher(id: i32) -> ! {
-    let left  = (id + 1) % 5;
-    let right = (id + 4) % 5;
+    let left  = id;
+    let right = (id + 1) % 5;
     println!("[philosopher{}] dining start", id);
     loop {
         println!("[philosopher{}] thinking", id);
