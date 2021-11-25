@@ -295,6 +295,10 @@ module jelly_rtos_core
         end
     end
 
+    // pol_sem
+    assign pol_sem_ack = |semaphore_pol_sem_ack;
+
+
     // busy
     always_ff @(posedge clk) begin
         if ( reset ) begin
@@ -304,7 +308,6 @@ module jelly_rtos_core
             busy <= |task_busy;
         end
     end
-
 
 endmodule
 
