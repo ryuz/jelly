@@ -32,7 +32,7 @@ module jelly_rtos_core
             input   wire                                        clk,
             input   wire                                        cke,
 
-            output  reg                                         busy,
+            output  wire                                        busy,
 
             // ready queue              
             output  wire    [TSKID_WIDTH-1:0]                   rdq_top_tskid,
@@ -83,6 +83,9 @@ module jelly_rtos_core
     logic   [TSKID_WIDTH-1:0]   rdq_rmv_tskid;
     logic                       rdq_rmv_valid = '0;
 
+    logic   [TSKID_WIDTH-1:0]   run_tskid;
+    assign run_tskid = rdq_top_valid ? rdq_top_tskid : '0;
+
     jelly_rtos_queue_priority
             #(
                 .QUE_SIZE           (TASKS),
@@ -124,7 +127,7 @@ module jelly_rtos_core
     logic   [TASKS-1:0]              task_rel_tsk = '0;
 
     generate
-    for ( genvar i = 0; i < TASKS; ++i ) begin : loop_tsk
+    for ( genvar i = 1; i < TASKS; ++i ) begin : loop_tsk
         jelly_rtos_task
                 #(
                     .TSKID_WIDTH        (TSKID_WIDTH),
@@ -151,10 +154,12 @@ module jelly_rtos_core
                     .rel_tsk            (task_rel_tsk[i]),
                     .flgptn             (flg_flgptn),
 
-                    .run_tskid          (rdq_top_tskid),
+                    .run_tskid          (run_tskid),
                     .op_tskid           (op_tskid),
                     .wup_tsk_valid      (wup_tsk_valid),
                     .slp_tsk_valid      (slp_tsk_valid),
+                    .sus_tsk_valid      ('0),
+                    .rsm_tsk_valid      ('0),
                     .dly_tsk_dlytim     (dly_tsk_dlytim),
                     .dly_tsk_valid      (dly_tsk_valid),
                     .rel_wai_valid      (rel_wai_valid),
@@ -300,6 +305,9 @@ module jelly_rtos_core
 
 
     // busy
+    assign busy = |task_busy;
+
+    /*
     always_ff @(posedge clk) begin
         if ( reset ) begin
             busy <= '0;
@@ -308,6 +316,7 @@ module jelly_rtos_core
             busy <= |task_busy;
         end
     end
+    */
 
 endmodule
 
