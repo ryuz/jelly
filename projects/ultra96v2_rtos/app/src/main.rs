@@ -28,7 +28,7 @@ static mut STACK4: [u8; 4096] = [0; 4096];
 // main
 #[no_mangle]
 pub unsafe extern "C" fn main() -> ! {
-    wait(10000);
+    wait(100000);
     println!("\nJelly-RTOS start");
     wait(10000);
 

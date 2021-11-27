@@ -82,7 +82,6 @@ pub(crate) struct SystemCall {}
 impl SystemCall {
     pub(crate) fn new() -> Self {
         unsafe {
-//            println!("irq_disable");
             cpu::irq_disable();
             Self {}
         }
@@ -93,7 +92,6 @@ impl Drop for SystemCall {
     fn drop(&mut self) {
         unsafe {
             if sns_dpn() { cpu::svc0(); }
-//            println!("irq_enable");
             cpu::irq_enable();
         }
     }
@@ -156,8 +154,8 @@ pub fn slp_tsk(tskid: i32) {
     }
 }
 
+
 pub fn dly_tsk(tskid: i32, dlytim: u32) {
-//  println!("dly_tsk");
     unsafe {
         let tskid: usize = if tskid < 0 {
             JELLY_RTOS_RUN_TSKID
