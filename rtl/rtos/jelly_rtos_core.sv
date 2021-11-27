@@ -31,7 +31,9 @@ module jelly_rtos_core
             parameter   bit                         USE_SUS_TSK  = 1,
             parameter   bit                         USE_DLY_TSK  = 1,
             parameter   bit                         USE_REL_WAI  = 1,
+            parameter   bit                         USE_SIG_SEM  = 1,
             parameter   bit                         USE_WAI_SEM  = 1,
+            parameter   bit                         USE_POL_SEM  = 1,
             parameter   bit                         USE_WAI_FLG  = 1,
             parameter   int                         TSKID_WIDTH  = $clog2(TMAX_TSKID+1),
             parameter   int                         SEMID_WIDTH  = $clog2(TMAX_SEMID+1),
@@ -223,6 +225,10 @@ module jelly_rtos_core
                     .TSKPRI_WIDTH       (TSKPRI_WIDTH),
                     .SEMID_WIDTH        (SEMID_WIDTH),
                     .SEMCNT_WIDTH       (SEMCNT_WIDTH),
+                    .USE_SIG_SEM        (USE_SIG_SEM),
+                    .USE_WAI_SEM        (USE_WAI_SEM),
+                    .USE_POL_SEM        (USE_POL_SEM),
+                    .USE_REL_WAI        (USE_REL_WAI),
                     .SEMID              (SEMID_WIDTH'(i)),
                     .INIT_SEMCNT        (0)
                 )
@@ -339,17 +345,6 @@ module jelly_rtos_core
 
     // busy
     assign busy = |task_busy;
-
-    /*
-    always_ff @(posedge clk) begin
-        if ( reset ) begin
-            busy <= '0;
-        end
-        else if ( cke ) begin
-            busy <= |task_busy;
-        end
-    end
-    */
 
 endmodule
 

@@ -16,7 +16,7 @@ module jelly_rtos
             parameter   int                             WB_ADR_WIDTH       = 16,
             parameter   int                             WB_DAT_WIDTH       = 32,
             parameter   int                             WB_SEL_WIDTH       = WB_DAT_WIDTH/8,
-       
+
             parameter   int                             TMAX_TSKID         = 15,
             parameter   int                             TMAX_SEMID         = 7,
             parameter   int                             TSKPRI_WIDTH       = 4,
@@ -31,9 +31,38 @@ module jelly_rtos
             parameter   int                             QUECNT_WIDTH       = $clog2(TMAX_TSKID),
             parameter   int                             TSKID_WIDTH        = $clog2(TMAX_TSKID+1),
             parameter   int                             SEMID_WIDTH        = $clog2(TMAX_SEMID+1),
-   
+            parameter   int                             SCRATCH0_WIDTH     = WB_DAT_WIDTH,
+            parameter   int                             SCRATCH1_WIDTH     = WB_DAT_WIDTH,
+            parameter   int                             SCRATCH2_WIDTH     = WB_DAT_WIDTH,
+            parameter   int                             SCRATCH3_WIDTH     = WB_DAT_WIDTH,
+
+            parameter   bit                             USE_SLP_TSK        = 1,
+            parameter   bit                             USE_SUS_TSK        = 1,
+            parameter   bit                             USE_DLY_TSK        = 1,
+            parameter   bit                             USE_REL_WAI        = 1,
+            parameter   bit                             USE_SIG_SEM        = 1,
+            parameter   bit                             USE_WAI_SEM        = 1,
+            parameter   bit                             USE_POL_SEM        = 1,
+            parameter   bit                             USE_WAI_FLG        = 1,
+            parameter   bit                             USE_EXT_FLG        = 1,
+            parameter   bit                             USE_REF_TSKSTAT    = 1,
+            parameter   bit                             USE_REF_TSKWAIT    = 1,
+            parameter   bit                             USE_REF_WUPCNT     = 1,
+            parameter   bit                             USE_REF_SUSCNT     = 1,
+            parameter   bit                             USE_REF_SEMCNT     = 1,
+            parameter   bit                             USE_REF_SEMQUE     = 1,
+            parameter   bit                             USE_REF_FLGPTN     = 1,
+            parameter   bit                             USE_SCRATCH0       = 1,
+            parameter   bit                             USE_SCRATCH1       = 1,
+            parameter   bit                             USE_SCRATCH2       = 1,
+            parameter   bit                             USE_SCRATCH3       = 1,
+
             parameter   bit     [FLGPTN_WIDTH-1:0]      INIT_FLGPTN        = '0,
-            parameter   bit     [FLGPTN_WIDTH-1:0]      INIT_EXTFLG_ENABLE = '0
+            parameter   bit     [FLGPTN_WIDTH-1:0]      INIT_EXTFLG_ENABLE = '0,
+            parameter   bit     [SCRATCH0_WIDTH-1:0]    INIT_SCRATCH0      = '0,
+            parameter   bit     [SCRATCH1_WIDTH-1:0]    INIT_SCRATCH1      = '0,
+            parameter   bit     [SCRATCH2_WIDTH-1:0]    INIT_SCRATCH2      = '0,
+            parameter   bit     [SCRATCH3_WIDTH-1:0]    INIT_SCRATCH3      = '0
         )
         (
             input   wire                                        reset,
@@ -61,10 +90,10 @@ module jelly_rtos
             output  wire    [TMAX_SEMID:1][QUECNT_WIDTH-1:0]    monitor_sem_quecnt,
             output  wire    [TMAX_SEMID:1][SEMCNT_WIDTH-1:0]    monitor_sem_semcnt,
             output  wire    [FLGPTN_WIDTH-1:0]                  monitor_flg_flgptn,
-            output  wire    [WB_DAT_WIDTH-1:0]                  monitor_scratch0,
-            output  wire    [WB_DAT_WIDTH-1:0]                  monitor_scratch1,
-            output  wire    [WB_DAT_WIDTH-1:0]                  monitor_scratch2,
-            output  wire    [WB_DAT_WIDTH-1:0]                  monitor_scratch3
+            output  wire    [SCRATCH0_WIDTH-1:0]                monitor_scratch0,
+            output  wire    [SCRATCH1_WIDTH-1:0]                monitor_scratch1,
+            output  wire    [SCRATCH2_WIDTH-1:0]                monitor_scratch2,
+            output  wire    [SCRATCH3_WIDTH-1:0]                monitor_scratch3
         );
 
 
@@ -188,15 +217,21 @@ module jelly_rtos
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_RSM_TSK     = OPCODE_WIDTH'(8'h14);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SUS_TSK     = OPCODE_WIDTH'(8'h15);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_DLY_TSK     = OPCODE_WIDTH'(8'h18);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_TSKSTAT = OPCODE_WIDTH'(8'h90);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_TSKWAIT = OPCODE_WIDTH'(8'h91);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_WUPCNT  = OPCODE_WIDTH'(8'h92);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_SUSCNT  = OPCODE_WIDTH'(8'h93);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SIG_SEM     = OPCODE_WIDTH'(8'h21);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_SEM     = OPCODE_WIDTH'(8'h22);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_POL_SEM     = OPCODE_WIDTH'(8'h23);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_SEMCNT  = OPCODE_WIDTH'(8'h28);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_SEMCNT  = OPCODE_WIDTH'(8'ha0);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_SEMQUE  = OPCODE_WIDTH'(8'ha1);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SET_FLG     = OPCODE_WIDTH'(8'h31);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CLR_FLG     = OPCODE_WIDTH'(8'h32);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_FLG_AND = OPCODE_WIDTH'(8'h33);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_FLG_OR  = OPCODE_WIDTH'(8'h34);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_ENA_FLG_EXT = OPCODE_WIDTH'(8'h3a);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_FLGPTN  = OPCODE_WIDTH'(8'hb0);
 
     localparam  bit     [ID_WIDTH-1:0]      SYS_CFG_CORE_ID      = 'h00;
     localparam  bit     [ID_WIDTH-1:0]      SYS_CFG_VERSION      = 'h01;
@@ -237,10 +272,10 @@ module jelly_rtos
 
     logic   [FLGPTN_WIDTH-1:0]          extflg_enable;
 
-    logic   [WB_DAT_WIDTH-1:0]          scratch0;
-    logic   [WB_DAT_WIDTH-1:0]          scratch1;
-    logic   [WB_DAT_WIDTH-1:0]          scratch2;
-    logic   [WB_DAT_WIDTH-1:0]          scratch3;
+    logic   [SCRATCH0_WIDTH-1:0]        scratch0;
+    logic   [SCRATCH1_WIDTH-1:0]        scratch1;
+    logic   [SCRATCH2_WIDTH-1:0]        scratch2;
+    logic   [SCRATCH3_WIDTH-1:0]        scratch3;
 
     always_ff @(posedge clk) begin
         if ( reset || core_reset ) begin
@@ -251,10 +286,10 @@ module jelly_rtos
             reg_switch     <= '0;
             reg_irq        <= '0;
             extflg_enable  <= INIT_EXTFLG_ENABLE;
-            scratch0       <= '0;
-            scratch1       <= '0;
-            scratch2       <= '0;
-            scratch3       <= '0;
+            scratch0       <= INIT_SCRATCH0;
+            scratch1       <= INIT_SCRATCH1;
+            scratch2       <= INIT_SCRATCH2;
+            scratch3       <= INIT_SCRATCH3;
         end
         else if ( cke ) begin
             core_reset <= 1'b0;
@@ -273,25 +308,26 @@ module jelly_rtos
                     CPU_CTL_COPY_TSKID: begin cpu_run_tskid  <= TSKID_WIDTH'(s_wb_dat_i); end
                     CPU_CTL_IRQ_EN:     begin irq_enable     <= 1'(s_wb_dat_i); end
                     CPU_CTL_IRQ_FORCE:  begin irq_force      <= 1'(s_wb_dat_i); end
-                    CPU_CTL_SCRATCH0:   begin scratch0       <= s_wb_dat_i; end
-                    CPU_CTL_SCRATCH1:   begin scratch1       <= s_wb_dat_i; end
-                    CPU_CTL_SCRATCH2:   begin scratch2       <= s_wb_dat_i; end
-                    CPU_CTL_SCRATCH3:   begin scratch3       <= s_wb_dat_i; end
+                    CPU_CTL_SCRATCH0:   if ( USE_SCRATCH0 ) begin scratch0 <= SCRATCH0_WIDTH'(s_wb_dat_i); end
+                    CPU_CTL_SCRATCH1:   if ( USE_SCRATCH1 ) begin scratch1 <= SCRATCH1_WIDTH'(s_wb_dat_i); end
+                    CPU_CTL_SCRATCH2:   if ( USE_SCRATCH2 ) begin scratch2 <= SCRATCH2_WIDTH'(s_wb_dat_i); end
+                    CPU_CTL_SCRATCH3:   if ( USE_SCRATCH3 ) begin scratch3 <= SCRATCH3_WIDTH'(s_wb_dat_i); end
                     default: ;
                     endcase
 
-                OPCODE_ENA_FLG_EXT: begin extflg_enable <= FLGPTN_WIDTH'(s_wb_dat_i); end
+                OPCODE_ENA_FLG_EXT: if ( USE_EXT_FLG ) begin extflg_enable <= FLGPTN_WIDTH'(s_wb_dat_i); end
 
                 default: ;
                 endcase
 
             end
 
-            // 読み出しでコピー実施
+            // 読み出しと同時にコピーも実施
             if ( s_wb_ack_o && !s_wb_we_i && dec_opcode == OPCODE_CPU_CTL && dec_id == CPU_CTL_COPY_TSKID ) begin
                 cpu_run_tskid <= rdq_top_tskid;
             end
 
+            // 2サイクル不一致が続けば割り込み実施
             if ( !core_busy ) begin
                 reg_switch <= (rdq_top_tskid != cpu_run_tskid);
                 reg_irq    <= (rdq_top_tskid != cpu_run_tskid) && reg_switch;
@@ -381,8 +417,8 @@ module jelly_rtos
         OPCODE_SYS_CFG:
             case ( dec_id )
             SYS_CFG_CORE_ID:        s_wb_dat_o = WB_DAT_WIDTH'(32'h834f5452);
-            SYS_CFG_VERSION:        s_wb_dat_o = WB_DAT_WIDTH'(32'h00000000);
-            SYS_CFG_DATE:           s_wb_dat_o = WB_DAT_WIDTH'(32'h20211120);
+            SYS_CFG_VERSION:        s_wb_dat_o = WB_DAT_WIDTH'(32'h0001_0000);
+            SYS_CFG_DATE:           s_wb_dat_o = WB_DAT_WIDTH'(32'h2021_11_27);
             SYS_CFG_TMAX_TSKID:     s_wb_dat_o = WB_DAT_WIDTH'(TMAX_TSKID);
             SYS_CFG_TMAX_SEMID:     s_wb_dat_o = WB_DAT_WIDTH'(TMAX_SEMID);
             SYS_CFG_TSKPRI_WIDTH:   s_wb_dat_o = WB_DAT_WIDTH'(TSKPRI_WIDTH);
@@ -407,8 +443,15 @@ module jelly_rtos
             default: ;
             endcase
         
-        OPCODE_POL_SEM:     s_wb_dat_o = WB_DAT_WIDTH'(pol_sem_ack);
-        OPCODE_REF_SEMCNT:  s_wb_dat_o = WB_DAT_WIDTH'(semaphore_semcnt);
+        OPCODE_POL_SEM:     s_wb_dat_o = USE_POL_SEM     ? WB_DAT_WIDTH'(pol_sem_ack)      : '0;
+        OPCODE_REF_TSKSTAT: s_wb_dat_o = USE_REF_TSKSTAT ? WB_DAT_WIDTH'(task_tskstat)     : '0;
+        OPCODE_REF_TSKWAIT: s_wb_dat_o = USE_REF_TSKWAIT ? WB_DAT_WIDTH'(task_tskwait)     : '0;
+        OPCODE_REF_WUPCNT : s_wb_dat_o = USE_REF_WUPCNT  ? WB_DAT_WIDTH'(task_wupcnt)      : '0;
+        OPCODE_REF_SUSCNT : s_wb_dat_o = USE_REF_SUSCNT  ? WB_DAT_WIDTH'(task_suscnt)      : '0;
+        OPCODE_REF_SEMCNT : s_wb_dat_o = USE_REF_SEMCNT  ? WB_DAT_WIDTH'(semaphore_semcnt) : '0;
+        OPCODE_REF_SEMQUE : s_wb_dat_o = USE_REF_SEMQUE  ? WB_DAT_WIDTH'(semaphore_quecnt) : '0;
+        OPCODE_REF_FLGPTN : s_wb_dat_o = USE_REF_FLGPTN  ? WB_DAT_WIDTH'(flg_flgptn)       : '0;
+
         default: ;
         endcase
     end
