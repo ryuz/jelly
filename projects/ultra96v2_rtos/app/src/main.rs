@@ -19,11 +19,11 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
 }
 
 
-static mut STACK0: [u8; 4096] = [0; 4096];
 static mut STACK1: [u8; 4096] = [0; 4096];
 static mut STACK2: [u8; 4096] = [0; 4096];
 static mut STACK3: [u8; 4096] = [0; 4096];
 static mut STACK4: [u8; 4096] = [0; 4096];
+static mut STACK5: [u8; 4096] = [0; 4096];
 
 // main
 #[no_mangle]
@@ -35,23 +35,23 @@ pub unsafe extern "C" fn main() -> ! {
     rtos::initialize();
 
     // フォークを５本置く
-    rtos::sig_sem(0);
     rtos::sig_sem(1);
     rtos::sig_sem(2);
     rtos::sig_sem(3);
     rtos::sig_sem(4);
+    rtos::sig_sem(5);
 
     // 哲学者を5人用意
-    rtos::cre_tsk(0, &mut STACK0, task0);
     rtos::cre_tsk(1, &mut STACK1, task1);
     rtos::cre_tsk(2, &mut STACK2, task2);
     rtos::cre_tsk(3, &mut STACK3, task3);
     rtos::cre_tsk(4, &mut STACK4, task4);
-    rtos::wup_tsk(0);
+    rtos::cre_tsk(5, &mut STACK5, task5);
     rtos::wup_tsk(1);
     rtos::wup_tsk(2);
     rtos::wup_tsk(3);
     rtos::wup_tsk(4);
+    rtos::wup_tsk(5);
 
     // アイドルループ
     loop {
@@ -61,16 +61,16 @@ pub unsafe extern "C" fn main() -> ! {
 
 
 
-extern "C" fn task0() -> ! { dining_philosopher(0); }
 extern "C" fn task1() -> ! { dining_philosopher(1); }
 extern "C" fn task2() -> ! { dining_philosopher(2); }
 extern "C" fn task3() -> ! { dining_philosopher(3); }
 extern "C" fn task4() -> ! { dining_philosopher(4); }
+extern "C" fn task5() -> ! { dining_philosopher(5); }
 
 
 fn dining_philosopher(id: i32) -> ! {
     let left  = id;
-    let right = (id + 1) % 5;
+    let right = id % 5 + 1;
     println!("[philosopher{}] dining start", id);
     loop {
         println!("[philosopher{}] thinking", id);
