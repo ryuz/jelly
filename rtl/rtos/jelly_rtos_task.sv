@@ -40,9 +40,11 @@ module jelly_rtos_task
 
             output  wire                        busy,
 
-            output  reg     [TSKPRI_WIDTH-1:0]  tskpri,
             output  reg     [TTS_WIDTH-1:0]     tskstat,
             output  reg     [TTW_WIDTH-1:0]     tskwait,
+            output  reg     [WUPCNT_WIDTH-1:0]  wupcnt,
+            output  reg     [SUSCNT_WIDTH-1:0]  suscnt,
+            output  reg     [TSKPRI_WIDTH-1:0]  tskpri,
 
             output  reg                         rdq_add,
             output  reg                         rdq_rmv,
@@ -117,10 +119,7 @@ module jelly_rtos_task
     logic                       tskwait_dly;
     logic                       tskwait_sem;
     logic                       tskwait_flg;
-
-    logic   [WUPCNT_WIDTH-1:0]  wupcnt;
-    logic   [SUSCNT_WIDTH-1:0]  suscnt;
-
+    
     logic   [RELTIM_WIDTH-1:0]  timcnt;
 
     logic   [0:0]               flg_wfmode;
@@ -133,6 +132,7 @@ module jelly_rtos_task
             rdq_add     <= 1'b0;
             tskstat_wai <= 1'b1;
             tskstat_sus <= 1'b0;
+            tskwait_slp <= 1'b1;
             tskwait_dly <= 1'b0;
             tskwait_sem <= 1'b0;
             tskwait_flg <= 1'b0;
@@ -143,25 +143,31 @@ module jelly_rtos_task
         else if ( cke ) begin
             // wup_tsk
             if ( wup_tsk ) begin
-                if ( wupcnt != TMAX_WUPCNT ) begin
-                    // nest
-                    wupcnt <= wupcnt + 1'b1;
-                end
-                if ( wupcnt == '0 ) begin
+                if ( tskwait_slp ) begin
                     // wake-up
                     tskstat_wai <= 1'b0;
+                    tskwait_slp <= 1'b0;
                     rdq_add     <= !tskstat_sus;
+                end
+                else begin
+                    // nest
+                    if ( wupcnt != TMAX_WUPCNT ) begin
+                        wupcnt <= wupcnt + 1'b1;
+                    end
                 end
             end
 
             // slp_tsk
             if ( slp_tsk ) begin
-                if ( wupcnt != '0 ) begin
-                    wupcnt <= wupcnt - 1'b1;
-                end
-                if ( wupcnt == WUPCNT_WIDTH'(1) ) begin
-                    // sleep
-                    tskstat_wai <= 1'b1;
+                if ( !tskwait_slp ) begin
+                    if ( wupcnt != '0 ) begin
+                        wupcnt <= wupcnt - 1'b1;
+                    end
+                    else begin
+                        // sleep
+                        tskstat_wai <= 1'b1;
+                        tskwait_slp <= 1'b1;
+                    end
                 end
             end
 
@@ -232,9 +238,9 @@ module jelly_rtos_task
             if ( tskwait_flg ) begin
                 if ( (flg_wfmode == 1'b0 && ((flgptn | ~flg_flgptn) == '1))
                      || (flg_wfmode == 1'b1 && ((flgptn &  flg_flgptn) != '0)) ) begin
-                    tskwait_flg = 1'b0;
-                    tskstat_wai = 1'b0;
-                    rdq_add     = !tskstat_sus;
+                    tskwait_flg <= 1'b0;
+                    tskstat_wai <= 1'b0;
+                    rdq_add     <= !tskstat_sus;
                 end
             end
 
@@ -255,7 +261,7 @@ module jelly_rtos_task
 
             // add_rdq complete
             if ( rdy_tsk ) begin
-                rdq_add = 1'b0;
+                rdq_add <= 1'b0;
             end
         end
     end
@@ -263,7 +269,8 @@ module jelly_rtos_task
     always_comb begin : blk_rdq_rmv
         rdq_rmv  = 1'b0;
         case ( 1'b1 )
-        slp_tsk:  begin   rdq_rmv = 1'b1;   end
+        slp_tsk:  begin   rdq_rmv = (wupcnt == '0);   end
+        sus_tsk:  begin   rdq_rmv = 1'b1;   end
         dly_tsk:  begin   rdq_rmv = 1'b1;   end
         wai_sem:  begin   rdq_rmv = 1'b1;   end
         wai_flg:  begin   rdq_rmv = 1'b1;   end
@@ -293,157 +300,6 @@ module jelly_rtos_task
     end
 
     assign busy    = rdq_add;
-
-
-    /*
-    always_ff @(posedge clk) begin
-        if ( reset ) begin
-            cur_tskstat <= TS_SLEEP;
-            rdq_add     <= 1'b0;
-            
-            tskpri      <= INIT_TSKPRI;
-
-            flg_wfmode  <= 'x;
-            flg_flgptn  <= 'x;
-        end
-        else if ( cke ) begin
-            cur_tskstat <= next_tskstat;
-            rdq_add     <= (next_tskstat == TS_REQRDY);
-
-            if ( wai_flg ) begin
-                flg_wfmode <= wai_flg_wfmode;
-                flg_flgptn <= wai_flg_flgptn;
-            end
-
-            if ( dlytim > '0 ) begin
-                dlytim <= dlytim - 1'b1;
-            end
-            if ( dly_tsk ) begin
-                dlytim <= dly_tsk_dlytim;
-            end
-        end
-    end
-    assign busy    = rdq_add;
-    assign tskstat = cur_tskstat;
-    */
-
-    /*
-    always_comb begin : blk_next_stat
-        next_rdq_add     = rdq_add;
-        next_tskstat_wai = tskstat_wai;
-        next_tskstat_sus = tskstat_sus;
-        next_tskwait_slp = tskwait_slp;
-        next_tskwait_dly = tskwait_dly;
-        next_tskwait_sem = tskwait_sem;
-        next_tskwait_flg = tskwait_flg;
-
-        if ( tskwait_slp ) begin
-            if ( wup_tsk ) begin
-                next_tskwait_slp = 1'b0;
-                next_tskstat_wai = 1'b0;
-                next_rdq_add     = !tskstat_sus;
-            end
-        end
-        
-        if ( wup_tsk ) begin
-            next_wup = TS_REQRDY;   end
-
-        if ( tskwait_dly ) begin
-            if ( dlytim == '0 ) begin
-                next_tskwait_dly = 1'b0;
-                next_tskstat_wai = 1'b0;
-                next_rdq_add     = !tskstat_sus;
-            end
-        end
-
-        if ( tskwait_flg ) begin
-            if ( (flg_wfmode == 1'b0 && ((flgptn | ~flg_flgptn) == '1))
-              || (flg_wfmode == 1'b1 && ((flgptn &  flg_flgptn) != '0)) ) begin
-                next_tskwait_flg = 1'b0;
-                next_tskstat_wai = 1'b0;
-                next_rdq_add     = !tskstat_sus;
-            end
-        end
-
-        if ( tskwait_sem ) begin
-            if ( (flg_wfmode == 1'b0 && ((flgptn | ~flg_flgptn) == '1))
-              || (flg_wfmode == 1'b1 && ((flgptn &  flg_flgptn) != '0)) ) begin
-                next_tskwait_flg = 1'b0;
-                next_tskstat_wai = 1'b0;
-                next_rdq_add     = !tskstat_sus;
-            end
-        end
-
-        if ( rel_wai ) begin
-            next_tskwait_slp = 1'b0;
-            next_tskwait_dly = 1'b0;
-            next_tskwait_flg = 1'b0;
-            next_tskstat_wai = 1'b0;
-            next_rdq_add     = !tskstat_sus;            
-        end
-
-        if ( rel_tsk ) begin
-            next_tskwait_flg = 1'b0;
-            next_tskstat_wai = 1'b0;
-            next_rdq_add     = !tskstat_sus;
-        end
-
-        case ( 1'b1 )
-        wup_tsk:    begin   next_tskstat = TS_REQRDY;   end
-        slp_tsk:    begin   next_tskstat = TS_SLEEP;    end
-        dly_tsk:    begin   next_tskstat = TS_DELAY;    end
-        rel_wai:    begin   next_tskstat = TS_REQRDY;   end
-        wai_sem:    begin   next_tskstat = TS_WAISEM;   end
-        wai_flg:    begin   next_tskstat = TS_WAIFLG;   end
-        endcase
-
-        if ( rdy_tsk ) begin
-            next_rdq_add = 1'b0;
-        end
-    end
-
-    always_comb begin : blk_rdq_rmv
-        rdq_rmv  = 1'b0;
-        case ( 1'b1 )
-        slp_tsk:  begin   rdq_rmv = 1'b1;   end
-        dly_tsk:  begin   rdq_rmv = 1'b1;   end
-        wai_sem:  begin   rdq_rmv = 1'b1;   end
-        wai_flg:  begin   rdq_rmv = 1'b1;   end
-        endcase
-    end
-
-
-    always_ff @(posedge clk) begin
-        if ( reset ) begin
-            cur_tskstat <= TS_SLEEP;
-            rdq_add     <= 1'b0;
-            
-            tskpri      <= INIT_TSKPRI;
-
-            flg_wfmode  <= 'x;
-            flg_flgptn  <= 'x;
-        end
-        else if ( cke ) begin
-            cur_tskstat <= next_tskstat;
-            rdq_add     <= (next_tskstat == TS_REQRDY);
-
-            if ( wai_flg ) begin
-                flg_wfmode <= wai_flg_wfmode;
-                flg_flgptn <= wai_flg_flgptn;
-            end
-
-            if ( dlytim > '0 ) begin
-                dlytim <= dlytim - 1'b1;
-            end
-            if ( dly_tsk ) begin
-                dlytim <= dly_tsk_dlytim;
-            end
-        end
-    end
-
-    assign busy    = (next_tskstat == TS_REQRDY);
-    assign tskstat = cur_tskstat;
-    */
 
 endmodule
 
