@@ -14,17 +14,30 @@
 
 module jelly_rtos_core
         #(
-            parameter   int                         TASKS        = 15,
-            parameter   int                         SEMAPHORES   = 4,
+            parameter   int                         TMAX_TSKID   = 15,
+            parameter   int                         TMAX_SEMID   = 7,
             parameter   int                         TSKPRI_WIDTH = 4,
             parameter   int                         SEMCNT_WIDTH = 4,
             parameter   int                         FLGPTN_WIDTH = 4,
             parameter   int                         SYSTIM_WIDTH = 64,
             parameter   int                         RELTIM_WIDTH = 32,
-            parameter   int                         TSKID_WIDTH  = $clog2(TASKS),
-            parameter   int                         SEMID_WIDTH  = $clog2(SEMAPHORES),
-            parameter   int                         QUECNT_WIDTH = $clog2(TASKS+1),
-
+            parameter   int                         WUPCNT_WIDTH = 1,
+            parameter   int                         SUSCNT_WIDTH = 1,
+            parameter   int                         TTS_WIDTH    = 4,
+            parameter   int                         TTW_WIDTH    = 4,
+            parameter   bit     [WUPCNT_WIDTH-1:0]  TMAX_WUPCNT  = '1,
+            parameter   bit     [SUSCNT_WIDTH-1:0]  TMAX_SUSCNT  = '1,
+            parameter   bit                         USE_SLP_TSK  = 1,
+            parameter   bit                         USE_SUS_TSK  = 1,
+            parameter   bit                         USE_DLY_TSK  = 1,
+            parameter   bit                         USE_REL_WAI  = 1,
+            parameter   bit                         USE_SIG_SEM  = 1,
+            parameter   bit                         USE_WAI_SEM  = 1,
+            parameter   bit                         USE_POL_SEM  = 1,
+            parameter   bit                         USE_WAI_FLG  = 1,
+            parameter   int                         TSKID_WIDTH  = $clog2(TMAX_TSKID+1),
+            parameter   int                         SEMID_WIDTH  = $clog2(TMAX_SEMID+1),
+            parameter   int                         QUECNT_WIDTH = $clog2(TMAX_TSKID),
             parameter   bit     [FLGPTN_WIDTH-1:0]  INIT_FLGPTN  = '0
         )
         (
@@ -32,12 +45,11 @@ module jelly_rtos_core
             input   wire                                        clk,
             input   wire                                        cke,
 
-            output  reg                                         busy,
+            output  wire                                        busy,
 
             // ready queue              
             output  wire    [TSKID_WIDTH-1:0]                   rdq_top_tskid,
             output  wire    [TSKPRI_WIDTH-1:0]                  rdq_top_tskpri,
-            output  wire                                        rdq_top_valid,
             output  wire    [QUECNT_WIDTH-1:0]                  rdq_quecnt,
 
             // operation id
@@ -47,19 +59,24 @@ module jelly_rtos_core
             // task             
             input   wire                                        wup_tsk_valid,
             input   wire                                        slp_tsk_valid,
+            input   wire                                        rsm_tsk_valid,
+            input   wire                                        sus_tsk_valid,
             input   wire                                        rel_wai_valid,
             input   wire    [RELTIM_WIDTH-1:0]                  dly_tsk_dlytim,
             input   wire                                        dly_tsk_valid,
-            output  wire    [TASKS-1:0][TSKPRI_WIDTH-1:0]       task_tskpri,
-            output  wire    [TASKS-1:0][2:0]                    task_tskstat,
+            output  wire    [TMAX_TSKID:1][TTS_WIDTH-1:0]       task_tskstat,
+            output  wire    [TMAX_TSKID:1][TTW_WIDTH-1:0]       task_tskwait,
+            output  wire    [TMAX_TSKID:1][WUPCNT_WIDTH-1:0]    task_wupcnt,
+            output  wire    [TMAX_TSKID:1][SUSCNT_WIDTH-1:0]    task_suscnt,
+            output  wire    [TMAX_TSKID:1][TSKPRI_WIDTH-1:0]    task_tskpri,
 
             // semaphore                
             input   wire                                        sig_sem_valid,
             input   wire                                        pol_sem_valid,
             output  reg                                         pol_sem_ack,
             input   wire                                        wai_sem_valid,
-            output  wire    [SEMAPHORES-1:0][SEMCNT_WIDTH-1:0]  semaphore_semcnt,
-            output  wire    [SEMAPHORES-1:0][QUECNT_WIDTH-1:0]  semaphore_quecnt,
+            output  wire    [TMAX_SEMID:1][SEMCNT_WIDTH-1:0]    semaphore_semcnt,
+            output  wire    [TMAX_SEMID:1][QUECNT_WIDTH-1:0]    semaphore_quecnt,
             
 
             // event flag
@@ -83,9 +100,13 @@ module jelly_rtos_core
     logic   [TSKID_WIDTH-1:0]   rdq_rmv_tskid;
     logic                       rdq_rmv_valid = '0;
 
+    logic   [TSKID_WIDTH-1:0]   rdq_top_tskid_tmp;
+    logic                       rdq_top_valid;
+    assign rdq_top_tskid = rdq_top_valid ? rdq_top_tskid_tmp : '0;
+
     jelly_rtos_queue_priority
             #(
-                .QUE_SIZE           (TASKS),
+                .QUE_SIZE           (TMAX_TSKID),
                 .ID_WIDTH           (TSKID_WIDTH),
                 .PRI_WIDTH          (TSKPRI_WIDTH),
                 .COUNT_WIDTH        (QUECNT_WIDTH)
@@ -103,7 +124,7 @@ module jelly_rtos_core
                 .remove_id          (rdq_rmv_tskid),
                 .remove_valid       (rdq_rmv_valid),
 
-                .top_id             (rdq_top_tskid),
+                .top_id             (rdq_top_tskid_tmp),
                 .top_pri            (rdq_top_tskpri),
                 .top_valid          (rdq_top_valid),
 
@@ -115,23 +136,37 @@ module jelly_rtos_core
     //  tasks
     // -----------------------------------------
     
-    logic   [TASKS-1:0]              task_busy;
+    logic   [TMAX_TSKID:1]              task_busy;
 
-    logic   [TASKS-1:0]              task_rdq_add;
-    logic   [TASKS-1:0]              task_rdq_rmv;
+    logic   [TMAX_TSKID:1]              task_rdq_add;
+    logic   [TMAX_TSKID:1]              task_rdq_rmv;
 
-    logic   [TASKS-1:0]              task_rdy_tsk = '0;
-    logic   [TASKS-1:0]              task_rel_tsk = '0;
+    logic   [TMAX_TSKID:1]              task_rdy_tsk = '0;
+    logic   [TMAX_TSKID:1]              task_rel_tsk = '0;
 
     generate
-    for ( genvar i = 0; i < TASKS; ++i ) begin : loop_tsk
+    for ( genvar i = 1; i <= TMAX_TSKID; ++i ) begin : loop_tsk
         jelly_rtos_task
                 #(
                     .TSKID_WIDTH        (TSKID_WIDTH),
                     .TSKPRI_WIDTH       (TSKPRI_WIDTH),
                     .SEMID_WIDTH        (SEMID_WIDTH),
                     .FLGPTN_WIDTH       (FLGPTN_WIDTH),
-                    .TSKID              (TSKID_WIDTH'(i))
+                    .RELTIM_WIDTH       (RELTIM_WIDTH),
+                    .WUPCNT_WIDTH       (WUPCNT_WIDTH),
+                    .SUSCNT_WIDTH       (SUSCNT_WIDTH),
+                    .TTS_WIDTH          (TTS_WIDTH),
+                    .TTW_WIDTH          (TTW_WIDTH),
+                    .TMAX_WUPCNT        (TMAX_WUPCNT),
+                    .TMAX_SUSCNT        (TMAX_SUSCNT),
+                    .USE_SLP_TSK        (USE_SLP_TSK),
+                    .USE_SUS_TSK        (USE_SUS_TSK),
+                    .USE_DLY_TSK        (USE_DLY_TSK),
+                    .USE_REL_WAI        (USE_REL_WAI),
+                    .USE_WAI_SEM        (USE_WAI_SEM),
+                    .USE_WAI_FLG        (USE_WAI_FLG),
+                    .TSKID              (TSKID_WIDTH'(i)),
+                    .INIT_TSKPRI        (TSKPRI_WIDTH'(i))
                 )
             i_rtos_task
                 (
@@ -142,6 +177,9 @@ module jelly_rtos_core
                     .busy               (task_busy[i]),
 
                     .tskstat            (task_tskstat[i]),
+                    .tskwait            (task_tskwait[i]),
+                    .wupcnt             (task_wupcnt[i]),
+                    .suscnt             (task_suscnt[i]),
                     .tskpri             (task_tskpri[i]),
 
                     .rdq_add            (task_rdq_add[i]),
@@ -155,6 +193,8 @@ module jelly_rtos_core
                     .op_tskid           (op_tskid),
                     .wup_tsk_valid      (wup_tsk_valid),
                     .slp_tsk_valid      (slp_tsk_valid),
+                    .sus_tsk_valid      (sus_tsk_valid),
+                    .rsm_tsk_valid      (rsm_tsk_valid),
                     .dly_tsk_dlytim     (dly_tsk_dlytim),
                     .dly_tsk_valid      (dly_tsk_valid),
                     .rel_wai_valid      (rel_wai_valid),
@@ -172,19 +212,23 @@ module jelly_rtos_core
     // -----------------------------------------
 
 
-    logic   [SEMAPHORES-1:0]                        semaphore_pol_sem_ack;
-    logic   [SEMAPHORES-1:0][TSKID_WIDTH-1:0]       semaphore_wakeup_tskid;
-    logic   [SEMAPHORES-1:0]                        semaphore_wakeup_valid;
+    logic   [TMAX_SEMID:1]                      semaphore_pol_sem_ack;
+    logic   [TMAX_SEMID:1][TSKID_WIDTH-1:0]     semaphore_wakeup_tskid;
+    logic   [TMAX_SEMID:1]                      semaphore_wakeup_valid;
 
     generate
-    for ( genvar i = 0; i < SEMAPHORES; ++i ) begin : loop_sem
+    for ( genvar i = 1; i <= TMAX_SEMID; ++i ) begin : loop_sem
         jelly_rtos_semaphore
                 #(
-                    .QUE_SIZE           (TASKS),
+                    .QUE_SIZE           (TMAX_TSKID),
                     .TSKID_WIDTH        (TSKID_WIDTH),
                     .TSKPRI_WIDTH       (TSKPRI_WIDTH),
                     .SEMID_WIDTH        (SEMID_WIDTH),
                     .SEMCNT_WIDTH       (SEMCNT_WIDTH),
+                    .USE_SIG_SEM        (USE_SIG_SEM),
+                    .USE_WAI_SEM        (USE_WAI_SEM),
+                    .USE_POL_SEM        (USE_POL_SEM),
+                    .USE_REL_WAI        (USE_REL_WAI),
                     .SEMID              (SEMID_WIDTH'(i)),
                     .INIT_SEMCNT        (0)
                 )
@@ -245,7 +289,7 @@ module jelly_rtos_core
         rdq_add_tskid  = 'x;
         rdq_add_tskpri = 'x;
         rdq_add_valid  = 1'b0;
-        for ( int tskid = 0; tskid < TASKS; ++tskid ) begin
+        for ( int tskid = 1; tskid <= TMAX_TSKID; ++tskid ) begin
             if ( task_rdq_add[tskid] ) begin
                 rdq_add_tskid  = TSKID_WIDTH'(tskid);
                 rdq_add_tskpri = task_tskpri[tskid];
@@ -259,7 +303,7 @@ module jelly_rtos_core
     always_comb begin : blk_rdq_rmv
         rdq_rmv_tskid  = '0;
         rdq_rmv_valid  = 1'b0;
-        for ( int tskid = 0; tskid < TASKS; ++tskid ) begin
+        for ( int tskid = 1; tskid < TMAX_TSKID; ++tskid ) begin
             if ( task_rdq_rmv[tskid] ) begin
                 rdq_rmv_tskid = TSKID_WIDTH'(tskid);
                 rdq_rmv_valid = 1'b1;
@@ -286,7 +330,7 @@ module jelly_rtos_core
 
         task_rel_tsk = '0;
 
-        for ( int semid = 0; semid < SEMAPHORES; ++semid ) begin
+        for ( int semid = 1; semid < TMAX_SEMID; ++semid ) begin
             wakeup_tskid |= semaphore_wakeup_tskid[semid];
             wakeup_valid |= semaphore_wakeup_valid[semid];
         end
@@ -300,14 +344,7 @@ module jelly_rtos_core
 
 
     // busy
-    always_ff @(posedge clk) begin
-        if ( reset ) begin
-            busy <= '0;
-        end
-        else if ( cke ) begin
-            busy <= |task_busy;
-        end
-    end
+    assign busy = |task_busy;
 
 endmodule
 

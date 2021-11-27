@@ -13,15 +13,19 @@
 
 module jelly_rtos_semaphore
         #(
-            parameter int                           QUE_SIZE        = 16,
-            parameter int                           QUECNT_WIDTH    = $clog2(QUE_SIZE+1),
-            parameter int                           TSKID_WIDTH     = 4,
-            parameter int                           TSKPRI_WIDTH    = 4,
-            parameter int                           SEMID_WIDTH     = 4,
-            parameter int                           SEMCNT_WIDTH    = 4,
-            parameter bit                           PRIORITY_ORDER  = 1'b0,
-            parameter bit   [SEMID_WIDTH-1:0]       SEMID           = '0,
-            parameter bit   [SEMCNT_WIDTH-1:0]      INIT_SEMCNT     = '0
+            parameter   int                         QUE_SIZE       = 16,
+            parameter   int                         QUECNT_WIDTH   = $clog2(QUE_SIZE+1),
+            parameter   int                         TSKID_WIDTH    = 4,
+            parameter   int                         TSKPRI_WIDTH   = 4,
+            parameter   int                         SEMID_WIDTH    = 4,
+            parameter   int                         SEMCNT_WIDTH   = 4,
+            parameter   bit                         PRIORITY_ORDER = 1'b0,
+            parameter   bit                         USE_SIG_SEM    = 1,
+            parameter   bit                         USE_WAI_SEM    = 1,
+            parameter   bit                         USE_POL_SEM    = 1,
+            parameter   bit                         USE_REL_WAI    = 1,
+            parameter   bit     [SEMID_WIDTH-1:0]   SEMID          = '0,
+            parameter   bit     [SEMCNT_WIDTH-1:0]  INIT_SEMCNT    = '0
         )
         (
             input   wire                            reset,
@@ -90,10 +94,10 @@ module jelly_rtos_semaphore
     logic                       rel_wai;
 
     assign op_valid = (op_semid == SEMID);
-    assign sig_sem = sig_sem_valid & op_valid;
-    assign pol_sem = pol_sem_valid & op_valid;
-    assign wai_sem = wai_sem_valid & op_valid;
-    assign rel_wai = rel_wai_valid & op_valid;
+    assign sig_sem = sig_sem_valid & op_valid & USE_SIG_SEM;
+    assign pol_sem = pol_sem_valid & op_valid & USE_POL_SEM;
+    assign wai_sem = wai_sem_valid & op_valid & USE_WAI_SEM;
+    assign rel_wai = rel_wai_valid & op_valid & USE_REL_WAI;
     
 
     logic   [SEMCNT_WIDTH-1:0]  next_semcnt;

@@ -150,26 +150,31 @@ module ultra96v2_rtos
     //  RTOS
     // -----------------------------
 
-    localparam  int                             TASKS            = 15;
-    localparam  int                             SEMAPHORES       = 8;
-    localparam  int                             TSKPRI_WIDTH     = 4;
-    localparam  int                             SEMCNT_WIDTH     = 4;
-    localparam  int                             FLGPTN_WIDTH     = 32;
-    localparam  int                             SYSTIM_WIDTH     = 64;
-    localparam  int                             RELTIM_WIDTH     = 32;
-    localparam  int                             QUECNT_WIDTH     = $clog2(TASKS+1);
-    localparam  int                             IDLE_TSKID_WIDTH = $clog2(TASKS+1);
-    localparam  int                             TSKID_WIDTH      = $clog2(TASKS);
-    localparam  int                             SEMID_WIDTH      = $clog2(SEMAPHORES);
+    localparam  int                     TMAX_TSKID         = 15;
+    localparam  int                     TMAX_SEMID         = 7;
+    localparam  int                     TSKPRI_WIDTH       = 4;
+    localparam  int                     WUPCNT_WIDTH       = 1;
+    localparam  int                     SUSCNT_WIDTH       = 1;
+    localparam  int                     SEMCNT_WIDTH       = 4;
+    localparam  int                     FLGPTN_WIDTH       = 32;
+    localparam  int                     SYSTIM_WIDTH       = 64;
+    localparam  int                     RELTIM_WIDTH       = 32;
+    localparam  int                     TTS_WIDTH          = 4;
+    localparam  int                     TTW_WIDTH          = 4;
+    localparam  int                     QUECNT_WIDTH       = $clog2(TMAX_TSKID);
+    localparam  int                     TSKID_WIDTH        = $clog2(TMAX_TSKID+1);
+    localparam  int                     SEMID_WIDTH        = $clog2(TMAX_SEMID+1);
 
                                 logic   [FLGPTN_WIDTH-1:0]                  rtos_flg_flgptn;
 
-    (* mark_debug = "true" *)   logic   [IDLE_TSKID_WIDTH-1:0]              monitor_run_tskid;
-    (* mark_debug = "true" *)   logic                                       monitor_run_valid;
-    (* mark_debug = "true" *)   logic   [IDLE_TSKID_WIDTH-1:0]              monitor_top_tskid;
-    (* mark_debug = "true" *)   logic                                       monitor_top_valid;
-    (* mark_debug = "true" *)   logic   [SEMAPHORES-1:0][QUECNT_WIDTH-1:0]  monitor_sem_quecnt;
-    (* mark_debug = "true" *)   logic   [SEMAPHORES-1:0][SEMCNT_WIDTH-1:0]  monitor_sem_semcnt;
+    (* mark_debug = "true" *)   logic   [TSKID_WIDTH-1:0]                   monitor_run_tskid;
+    (* mark_debug = "true" *)   logic   [TSKID_WIDTH-1:0]                   monitor_top_tskid;
+    (* mark_debug = "true" *)   logic   [TMAX_TSKID:1][TTS_WIDTH-1:0]       monitor_tsk_tskstat;
+    (* mark_debug = "true" *)   logic   [TMAX_TSKID:1][TTW_WIDTH-1:0]       monitor_tsk_tskwait;
+    (* mark_debug = "true" *)   logic   [TMAX_TSKID:1][WUPCNT_WIDTH-1:0]    monitor_tsk_wupcnt;
+    (* mark_debug = "true" *)   logic   [TMAX_TSKID:1][SUSCNT_WIDTH-1:0]    monitor_tsk_suscnt;
+    (* mark_debug = "true" *)   logic   [TMAX_SEMID:1][QUECNT_WIDTH-1:0]    monitor_sem_quecnt;
+    (* mark_debug = "true" *)   logic   [TMAX_SEMID:1][SEMCNT_WIDTH-1:0]    monitor_sem_semcnt;
     (* mark_debug = "true" *)   logic   [FLGPTN_WIDTH-1:0]                  monitor_flg_flgptn;
     (* mark_debug = "true" *)   logic   [WB_DAT_WIDTH-1:0]                  monitor_scratch0;
     (* mark_debug = "true" *)   logic   [WB_DAT_WIDTH-1:0]                  monitor_scratch1;
@@ -182,49 +187,55 @@ module ultra96v2_rtos
 
     jelly_rtos
             #(
-                .WB_ADR_WIDTH       (WB_ADR_WIDTH),
-                .WB_DAT_WIDTH       (WB_DAT_WIDTH),
-                .TASKS              (TASKS),
-                .SEMAPHORES         (SEMAPHORES),
-                .TSKPRI_WIDTH       (TSKPRI_WIDTH),
-                .SEMCNT_WIDTH       (SEMCNT_WIDTH),
-                .FLGPTN_WIDTH       (FLGPTN_WIDTH),
-                .SYSTIM_WIDTH       (SYSTIM_WIDTH),
-                .RELTIM_WIDTH       (RELTIM_WIDTH),
-                .QUECNT_WIDTH       (QUECNT_WIDTH),
-                .IDLE_TSKID_WIDTH   (IDLE_TSKID_WIDTH),
-                .TSKID_WIDTH        (TSKID_WIDTH),
-                .SEMID_WIDTH        (SEMID_WIDTH)
-            )
+                .WB_ADR_WIDTH           (WB_ADR_WIDTH),
+                .WB_DAT_WIDTH           (WB_DAT_WIDTH),
+                .TMAX_TSKID             (TMAX_TSKID),
+                .TMAX_SEMID             (TMAX_SEMID),
+                .TSKPRI_WIDTH           (TSKPRI_WIDTH),
+                .WUPCNT_WIDTH           (WUPCNT_WIDTH),
+                .SUSCNT_WIDTH           (SUSCNT_WIDTH),
+                .SEMCNT_WIDTH           (SEMCNT_WIDTH),
+                .FLGPTN_WIDTH           (FLGPTN_WIDTH),
+                .SYSTIM_WIDTH           (SYSTIM_WIDTH),
+                .RELTIM_WIDTH           (RELTIM_WIDTH),
+                .TTS_WIDTH              (TTS_WIDTH),
+                .TTW_WIDTH              (TTW_WIDTH),
+                .QUECNT_WIDTH           (QUECNT_WIDTH),
+                .TSKID_WIDTH            (TSKID_WIDTH),
+                .SEMID_WIDTH            (SEMID_WIDTH)
+            )   
         i_rtos
-            (
-                .reset              (reset),
-                .clk                (clk),
-                .cke                (1'b1),
-                
-                .s_wb_adr_i         (wb_adr_i),
-                .s_wb_dat_i         (wb_dat_i),
-                .s_wb_dat_o         (wb_rtos_dat_o),
-                .s_wb_we_i          (wb_we_i ),
-                .s_wb_sel_i         (wb_sel_i),
-                .s_wb_stb_i         (wb_rtos_stb_i),
-                .s_wb_ack_o         (wb_rtos_ack_o),
-                
-                .irq                (irq_rtos),
+            (   
+                .reset                  (reset),
+                .clk                    (clk),
+                .cke                    (1'b1),
 
-                .ext_flg_flgptn     (rtos_flg_flgptn),
+                .s_wb_adr_i             (wb_adr_i),
+                .s_wb_dat_i             (wb_dat_i),
+                .s_wb_dat_o             (wb_rtos_dat_o),
+                .s_wb_we_i              (wb_we_i ),
+                .s_wb_sel_i             (wb_sel_i),
+                .s_wb_stb_i             (wb_rtos_stb_i),
+                .s_wb_ack_o             (wb_rtos_ack_o),
 
-                .monitor_run_tskid  (monitor_run_tskid), 
-                .monitor_run_valid  (monitor_run_valid), 
-                .monitor_top_tskid  (monitor_top_tskid), 
-                .monitor_top_valid  (monitor_top_valid), 
-                .monitor_sem_quecnt (monitor_sem_quecnt),
-                .monitor_sem_semcnt (monitor_sem_semcnt),
-                .monitor_flg_flgptn (monitor_flg_flgptn),
-                .monitor_scratch0   (monitor_scratch0),
-                .monitor_scratch1   (monitor_scratch1),
-                .monitor_scratch2   (monitor_scratch2),
-                .monitor_scratch3   (monitor_scratch3)
+                .irq                    (irq_rtos),
+
+                .extflg_flgptn          (rtos_flg_flgptn),
+
+                .monitor_run_tskid      (monitor_run_tskid), 
+                .monitor_top_tskid      (monitor_top_tskid), 
+                .monitor_tsk_tskstat    (monitor_tsk_tskstat),
+                .monitor_tsk_tskwait    (monitor_tsk_tskwait),
+                .monitor_tsk_wupcnt     (monitor_tsk_wupcnt),
+                .monitor_tsk_suscnt     (monitor_tsk_suscnt),
+
+                .monitor_sem_quecnt     (monitor_sem_quecnt),
+                .monitor_sem_semcnt     (monitor_sem_semcnt),
+                .monitor_flg_flgptn     (monitor_flg_flgptn),
+                .monitor_scratch0       (monitor_scratch0),
+                .monitor_scratch1       (monitor_scratch1),
+                .monitor_scratch2       (monitor_scratch2),
+                .monitor_scratch3       (monitor_scratch3)
             );
     
     

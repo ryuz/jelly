@@ -148,6 +148,8 @@ module tb_sim();
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CPU_CTL     = OPCODE_WIDTH'(8'h01);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WUP_TSK     = OPCODE_WIDTH'(8'h10);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SLP_TSK     = OPCODE_WIDTH'(8'h11);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_RSM_TSK     = OPCODE_WIDTH'(8'h14);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SUS_TSK     = OPCODE_WIDTH'(8'h15);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_DLY_TSK     = OPCODE_WIDTH'(8'h18);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SIG_SEM     = OPCODE_WIDTH'(8'h21);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_SEM     = OPCODE_WIDTH'(8'h22);
@@ -220,11 +222,11 @@ module tb_sim();
 
     task check_top_taskid(int exp_tskid);
     begin
-        if ( i_sim_main.i_top.i_rtos.cur_top_tskid == exp_tskid ) begin
+        if ( i_sim_main.i_top.i_rtos.rdq_top_tskid == exp_tskid ) begin
             $display("[OK] top_tskid = %d", exp_tskid);
         end
         else begin
-            $display("[!!!ERROR!!!] top_tskid = %d (exp:%d)", i_sim_main.i_top.i_rtos.cur_top_tskid, exp_tskid);
+            $display("[!!!ERROR!!!] top_tskid = %d (exp:%d)", i_sim_main.i_top.i_rtos.rdq_top_tskid, exp_tskid);
             $error();
         end
     end
@@ -232,11 +234,11 @@ module tb_sim();
 
     task check_run_taskid(int exp_tskid);
     begin
-        if ( i_sim_main.i_top.i_rtos.cur_run_tskid == exp_tskid ) begin
+        if ( i_sim_main.i_top.i_rtos.cpu_run_tskid == exp_tskid ) begin
             $display("[OK] run_tskid = %d", exp_tskid);
         end
         else begin
-            $display("[!!!ERROR!!!] run_tskid = %d (exp:%d)", i_sim_main.i_top.i_rtos.cur_run_tskid, exp_tskid);
+            $display("[!!!ERROR!!!] run_tskid = %d (exp:%d)", i_sim_main.i_top.i_rtos.cpu_run_tskid, exp_tskid);
             $error();
         end
     end
@@ -270,39 +272,60 @@ module tb_sim();
         wb_read (0);
         wb_write(make_addr(OPCODE_SYS_CFG, SYS_CFG_SOFT_RESET), 1, 4'hf);
         
-        wb_write(make_addr(OPCODE_CPU_CTL, CPU_CTL_IDLE_TSKID), 15, 4'hf);
-        wb_write(make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_RUN_TSKID)), 15, 4'hf);
+        wb_write(make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_RUN_TSKID)), 0, 4'hf);
         $display("irq en");
         wb_write(make_addr(OPCODE_CPU_CTL, int'(CPU_CTL_IRQ_EN)), 1, 4'hf);
         read_status();
-        check_top_taskid(15);
+        check_top_taskid(0);
 
     #100;
-        $display("[%d] --- wake up task --- ", ++test_num);
-        $display("wup_tsk 1");
+        $display("[%d] --- wup_tsk --- ", ++test_num);
+        $display("wup_tsk 2");
         check_irq(1'b0);
-        wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
+        wb_write(make_addr(OPCODE_WUP_TSK, 2), 0, 4'hf);
     #10
         check_irq(1'b1);
         swtich_task();
         check_irq(1'b0);
         read_status();
-        check_top_taskid(1);
+        check_top_taskid(2);
 
-        $display("wup_tsk 0");
-        wb_write(make_addr(OPCODE_WUP_TSK, 0), 0, 4'hf);
-        swtich_task();
-        check_top_taskid(0);
-
-        $display("slp_tsk 0");
-        wb_write(make_addr(OPCODE_SLP_TSK, 0), 0, 4'hf);
+        $display("wup_tsk 1");
+        wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
         swtich_task();
         check_top_taskid(1);
 
         $display("slp_tsk 1");
         wb_write(make_addr(OPCODE_SLP_TSK, 1), 0, 4'hf);
         swtich_task();
-        check_top_taskid(15);
+        check_top_taskid(2);
+
+        $display("slp_tsk 2");
+        wb_write(make_addr(OPCODE_SLP_TSK, 2), 0, 4'hf);
+        swtich_task();
+        check_top_taskid(0);
+
+    #100;
+        $display("[%d] --- sus_tsk --- ", ++test_num);
+        $display("wup_tsk 1");
+        wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
+        swtich_task();
+        check_top_taskid(1);
+
+        $display("sus_tsk 1");
+        wb_write(make_addr(OPCODE_SUS_TSK, 1), 0, 4'hf);
+        swtich_task();
+        check_top_taskid(0);
+
+        $display("rsm_tsk 1");
+        wb_write(make_addr(OPCODE_RSM_TSK, 1), 0, 4'hf);
+        swtich_task();
+        check_top_taskid(1);
+
+        $display("slp_tsk 1");
+        wb_write(make_addr(OPCODE_SLP_TSK, 1), 0, 4'hf);
+        swtich_task();
+        check_top_taskid(0);
 
     #100;
         $display("[%d] --- busy test --- ", ++test_num);
@@ -325,7 +348,7 @@ module tb_sim();
         check_irq(1'b1);
         swtich_task();
         check_irq(1'b0);
-        check_top_taskid(15);
+        check_top_taskid(0);
     #300;
         check_irq(1'b1);
         swtich_task();
@@ -336,62 +359,62 @@ module tb_sim();
         $display("slp_tsk 1");
         wb_write(make_addr(OPCODE_SLP_TSK, 1), 0, 4'hf);
         swtich_task();
-        check_top_taskid(15);
+        check_top_taskid(0);
 
     #500;
         $display("[%d] --- dly_tsk2 --- ", ++test_num);
-        check_top_taskid(15);
+        check_top_taskid(0);
+        wb_write(make_addr(OPCODE_WUP_TSK, 2), 0, 4'hf);
+        swtich_task();
+        check_top_taskid(2);
         wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
         swtich_task();
         check_top_taskid(1);
-        wb_write(make_addr(OPCODE_WUP_TSK, 0), 0, 4'hf);
+        wb_write(make_addr(OPCODE_DLY_TSK, 1), 100, 4'hf);
+        swtich_task();
+        check_top_taskid(2);
+        wb_write(make_addr(OPCODE_DLY_TSK, 2), 30, 4'hf);
         swtich_task();
         check_top_taskid(0);
-        wb_write(make_addr(OPCODE_DLY_TSK, 0), 100, 4'hf);
+    #300;
         swtich_task();
-        check_top_taskid(1);
-        wb_write(make_addr(OPCODE_DLY_TSK, 1), 30, 4'hf);
-        swtich_task();
-        check_top_taskid(15);
+        check_top_taskid(2);
     #300;
         swtich_task();
         check_top_taskid(1);
-    #300;
-        swtich_task();
-        check_top_taskid(0);
-        wb_write(make_addr(OPCODE_SLP_TSK, 0), 0, 4'hf);
         wb_write(make_addr(OPCODE_SLP_TSK, 1), 0, 4'hf);
+        wb_write(make_addr(OPCODE_SLP_TSK, 2), 0, 4'hf);
         swtich_task();
-        check_top_taskid(15);
+        check_top_taskid(0);
 
     #200;
         ++test_num;
         $display("[%d] --- wai_flg --- ", test_num);
+        $display("wup_tsk 2");
+        wb_write(make_addr(OPCODE_WUP_TSK, 2), 0, 4'hf);
+        swtich_task();
+        check_top_taskid(2);
         $display("wup_tsk 1");
         wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
         swtich_task();
         check_top_taskid(1);
-        $display("wup_tsk 0");
-        wb_write(make_addr(OPCODE_WUP_TSK, 0), 0, 4'hf);
-        swtich_task();
-        check_top_taskid(0);
     #20;
         wb_write(make_addr(OPCODE_WAI_FLG_AND, 0), 5, 4'hf);
         swtich_task();
-        check_top_taskid(1);
+        check_top_taskid(2);
     #10;
         wb_write(make_addr(OPCODE_SET_FLG, 0), 1, 4'hf);
         swtich_task();
-        check_top_taskid(1);
+        check_top_taskid(2);
     #10;
         wb_write(make_addr(OPCODE_SET_FLG, 0), 4, 4'hf);
         swtich_task();
-        check_top_taskid(0);
+        check_top_taskid(1);
     #20;
         wb_write(make_addr(OPCODE_CLR_FLG, 0), ~1, 4'hf);
         wb_write(make_addr(OPCODE_CLR_FLG, 0), ~4, 4'hf);
-        wb_write(make_addr(OPCODE_SLP_TSK, 0), 0, 4'hf);
         wb_write(make_addr(OPCODE_SLP_TSK, 1), 0, 4'hf);
+        wb_write(make_addr(OPCODE_SLP_TSK, 2), 0, 4'hf);
 
     #100
         ++test_num;
@@ -401,7 +424,7 @@ module tb_sim();
         check_top_taskid(1);
         wb_write(make_addr(OPCODE_WAI_SEM, 2), 0, 4'hf);
         swtich_task();
-        check_top_taskid(15);
+        check_top_taskid(0);
     #20;
         wb_write(make_addr(OPCODE_SIG_SEM, 2), 0, 4'hf);
         swtich_task();
@@ -420,56 +443,54 @@ module tb_sim();
     #20;
         wb_write(make_addr(OPCODE_SLP_TSK, 1), 0, 4'hf);
         swtich_task();
-        check_top_taskid(15);
+        check_top_taskid(0);
 
     #100
         ++test_num;
         $display(" --- wai_sem2 --- ");
-        wb_write(make_addr(OPCODE_WUP_TSK, 0), 0, 4'hf);
         wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
+        wb_write(make_addr(OPCODE_WUP_TSK, 2), 0, 4'hf);
         wb_write(make_addr(OPCODE_WAI_SEM, 3), 0, 4'hf);
         wb_write(make_addr(OPCODE_WAI_SEM, 3), 0, 4'hf);
         swtich_task();
-        check_top_taskid(15);
+        check_top_taskid(0);
 
         wb_write(make_addr(OPCODE_SIG_SEM, 3), 0, 4'hf);
         wb_write(make_addr(OPCODE_SIG_SEM, 3), 0, 4'hf);
-        swtich_task();
-        check_top_taskid(0);
-        wb_write(make_addr(OPCODE_SLP_TSK, 0), 0, 4'hf);
         swtich_task();
         check_top_taskid(1);
         wb_write(make_addr(OPCODE_SLP_TSK, 1), 0, 4'hf);
         swtich_task();
-        check_top_taskid(15);
+        check_top_taskid(2);
+        wb_write(make_addr(OPCODE_SLP_TSK, 2), 0, 4'hf);
+        swtich_task();
+        check_top_taskid(0);
 
     #100
         ++test_num;
         $display(" --- wai_sem3 --- ");
-        wb_write(make_addr(OPCODE_SIG_SEM, 0), 0, 4'hf);
-        wb_write(make_addr(OPCODE_WUP_TSK, 0), 0, 4'hf);
+        wb_write(make_addr(OPCODE_SIG_SEM, 1), 0, 4'hf);
+        wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
+        swtich_task();
+        check_top_taskid(1);
+        wb_write(make_addr(OPCODE_WAI_SEM, 1), 0, 4'hf);
+        swtich_task();
+        check_top_taskid(1);
+        wb_write(make_addr(OPCODE_SIG_SEM, 1), 0, 4'hf);
+        wb_write(make_addr(OPCODE_WAI_SEM, 1), 0, 4'hf);
+        swtich_task();
+        check_top_taskid(1);
+        wb_write(make_addr(OPCODE_SLP_TSK, 1), 0, 4'hf);
         swtich_task();
         check_top_taskid(0);
-        wb_write(make_addr(OPCODE_WAI_SEM, 0), 0, 4'hf);
-        swtich_task();
-        check_top_taskid(0);
-        wb_write(make_addr(OPCODE_SIG_SEM, 0), 0, 4'hf);
-        wb_write(make_addr(OPCODE_WAI_SEM, 0), 0, 4'hf);
-        swtich_task();
-        check_top_taskid(0);
-        wb_write(make_addr(OPCODE_SIG_SEM, 0), 0, 4'hf);
-        wb_write(make_addr(OPCODE_SLP_TSK, 0), 0, 4'hf);
-        swtich_task();
-        check_top_taskid(15);
 
 
     #100
-        ++test_num;
-        $display(" --- pol_sem --- ");
+        $display("[%d] --- pol_sem --- ", ++test_num);
         wb_write(make_addr(OPCODE_SIG_SEM, 1), 0, 4'hf);
         wb_write(make_addr(OPCODE_SIG_SEM, 1), 0, 4'hf);
         wb_read (make_addr(OPCODE_POL_SEM, 1));
-        wb_read (make_addr(OPCODE_POL_SEM, 0));
+        wb_read (make_addr(OPCODE_POL_SEM, 2));
         wb_read (make_addr(OPCODE_POL_SEM, 1));
         wb_read (make_addr(OPCODE_POL_SEM, 1));
 
@@ -478,19 +499,19 @@ module tb_sim();
         $display(" --- ext flg --- ");
         wb_write(make_addr(OPCODE_CLR_FLG, 0), 0, 4'hf);
         wb_write(make_addr(OPCODE_ENA_FLG_EXT, 0), 1, 4'hf);
-        wb_write(make_addr(OPCODE_WUP_TSK, 0), 0, 4'hf);
+        wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
         swtich_task();
-        check_top_taskid(0);
+        check_top_taskid(1);
         wb_write(make_addr(OPCODE_WAI_FLG_OR, 0), 1, 4'hf);
         swtich_task();
-        check_top_taskid(15);
+        check_top_taskid(0);
     #1000
         swtich_task();
-        check_top_taskid(0);
+        check_top_taskid(1);
         wb_write(make_addr(OPCODE_CLR_FLG, 0), 0, 4'hf);
-        wb_write(make_addr(OPCODE_SLP_TSK, 0), 0, 4'hf);
+        wb_write(make_addr(OPCODE_SLP_TSK, 1), 0, 4'hf);
         swtich_task();
-        check_top_taskid(15);
+        check_top_taskid(0);
 
     #100;
         ++test_num;
