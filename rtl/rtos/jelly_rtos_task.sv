@@ -66,8 +66,24 @@ module jelly_rtos_task
 
     logic                       op_valid;
     logic                       run_valid;
+
+    logic                       wup_tsk;
+    logic                       slp_tsk;
+    logic                       dly_tsk;
+    logic                       rel_wai;
+    logic                       wai_sem;
+    logic                       wai_flg;
+
     assign op_valid  = (op_tskid  == TSKID);
     assign run_valid = (run_tskid == TSKID);
+
+    assign wup_tsk = wup_tsk_valid & op_valid;
+    assign slp_tsk = slp_tsk_valid & op_valid;
+    assign dly_tsk = dly_tsk_valid & op_valid;
+    assign rel_wai = rel_wai_valid & op_valid;
+    assign wai_sem = wai_sem_valid & run_valid; 
+    assign wai_flg = wai_flg_valid & run_valid; 
+
 
     logic   [0:0]               flg_wfmode;
     logic   [FLGPTN_WIDTH-1:0]  flg_flgptn;
@@ -90,21 +106,14 @@ module jelly_rtos_task
             end
         end
         
-        if ( op_valid ) begin
-            case ( 1'b1 )
-            wup_tsk_valid:    begin   next_tskstat = TS_REQRDY;   end
-            slp_tsk_valid:    begin   next_tskstat = TS_SLEEP;    end
-            dly_tsk_valid:    begin   next_tskstat = TS_DELAY;    end
-            rel_wai_valid:    begin   next_tskstat = TS_REQRDY;   end
-            endcase
-        end
-
-        if ( run_valid ) begin
-            case ( 1'b1 )
-            wai_sem_valid:    begin   next_tskstat = TS_WAISEM;   end
-            wai_flg_valid:    begin   next_tskstat = TS_WAIFLG;   end
-            endcase
-        end
+        case ( 1'b1 )
+        wup_tsk:    begin   next_tskstat = TS_REQRDY;   end
+        slp_tsk:    begin   next_tskstat = TS_SLEEP;    end
+        dly_tsk:    begin   next_tskstat = TS_DELAY;    end
+        rel_wai:    begin   next_tskstat = TS_REQRDY;   end
+        wai_sem:    begin   next_tskstat = TS_WAISEM;   end
+        wai_flg:    begin   next_tskstat = TS_WAIFLG;   end
+        endcase
 
         if ( rel_tsk ) begin
             next_tskstat = TS_REQRDY;
@@ -118,10 +127,10 @@ module jelly_rtos_task
     always_comb begin : blk_rdq_rmv
         rdq_rmv  = 1'b0;
         case ( 1'b1 )
-        slp_tsk_valid:  begin   rdq_rmv = op_valid;   end
-        dly_tsk_valid:  begin   rdq_rmv = op_valid;   end
-        wai_sem_valid:  begin   rdq_rmv = run_valid;  end
-        wai_flg_valid:  begin   rdq_rmv = run_valid;  end
+        slp_tsk:  begin   rdq_rmv = 1'b1;   end
+        dly_tsk:  begin   rdq_rmv = 1'b1;   end
+        wai_sem:  begin   rdq_rmv = 1'b1;   end
+        wai_flg:  begin   rdq_rmv = 1'b1;   end
         endcase
     end
 
@@ -140,7 +149,7 @@ module jelly_rtos_task
             cur_tskstat <= next_tskstat;
             rdq_add     <= (next_tskstat == TS_REQRDY);
 
-            if ( wai_flg_valid ) begin
+            if ( wai_flg ) begin
                 flg_wfmode <= wai_flg_wfmode;
                 flg_flgptn <= wai_flg_flgptn;
             end
@@ -148,7 +157,7 @@ module jelly_rtos_task
             if ( dlytim > '0 ) begin
                 dlytim <= dlytim - 1'b1;
             end
-            if ( dly_tsk_valid ) begin
+            if ( dly_tsk ) begin
                 dlytim <= dly_tsk_dlytim;
             end
         end

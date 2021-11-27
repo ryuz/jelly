@@ -84,8 +84,18 @@ module jelly_rtos_semaphore
             );
 
     logic                       op_valid;
+    logic                       sig_sem;
+    logic                       pol_sem;
+    logic                       wai_sem;
+    logic                       rel_wai;
+
     assign op_valid = (op_semid == SEMID);
+    assign sig_sem = sig_sem_valid & op_valid;
+    assign pol_sem = pol_sem_valid & op_valid;
+    assign wai_sem = wai_sem_valid & op_valid;
+    assign rel_wai = rel_wai_valid & op_valid;
     
+
     logic   [SEMCNT_WIDTH-1:0]  next_semcnt;
     logic                       sem_empty;
 
@@ -99,56 +109,54 @@ module jelly_rtos_semaphore
         wakeup_tskid   = '0;
         wakeup_valid   = 1'b0;
 
-        if ( op_valid ) begin
-            case ( 1'b1 )
-            sig_sem_valid:
-                begin
-                    if ( que_top_valid ) begin
-                        // キューにあれば取り出す
-                        que_rmv_tskid = que_top_tskid;
-                        que_rmv_valid = 1'b1;
-
-                        wakeup_tskid = que_top_tskid;
-                        wakeup_valid = 1'b1;
-                    end
-                    else begin
-                        next_semcnt++;
-                    end
-                end
-
-            pol_sem_valid:
-                begin
-                    if ( !sem_empty ) begin
-                        next_semcnt--;
-                    end
-                end
-
-            wai_sem_valid:
-                begin
-                    if ( sem_empty ) begin
-                        que_add_tskid  = op_tskid;
-                        que_add_tskpri = op_tskpri;
-                        que_add_valid  = 1'b1;
-                    end
-                    else begin
-                        next_semcnt--;
-                        wakeup_tskid = op_tskid;
-                        wakeup_valid = 1'b1;
-                    end
-                end
-            
-            rel_wai_valid:
-                begin
-                    que_rmv_tskid = op_tskid;
+        case ( 1'b1 )
+        sig_sem:
+            begin
+                if ( que_top_valid ) begin
+                    // キューにあれば取り出す
+                    que_rmv_tskid = que_top_tskid;
                     que_rmv_valid = 1'b1;
+
+                    wakeup_tskid = que_top_tskid;
+                    wakeup_valid = 1'b1;
                 end
-            
-            default: ;
-            endcase
-        end
+                else begin
+                    next_semcnt++;
+                end
+            end
+
+        pol_sem:
+            begin
+                if ( !sem_empty ) begin
+                    next_semcnt--;
+                end
+            end
+
+        wai_sem:
+            begin
+                if ( sem_empty ) begin
+                    que_add_tskid  = op_tskid;
+                    que_add_tskpri = op_tskpri;
+                    que_add_valid  = 1'b1;
+                end
+                else begin
+                    next_semcnt--;
+                    wakeup_tskid = op_tskid;
+                    wakeup_valid = 1'b1;
+                end
+            end
+        
+        rel_wai:
+            begin
+                que_rmv_tskid = op_tskid;
+                que_rmv_valid = 1'b1;
+            end
+        
+        default: ;
+        endcase
     end
 
-    assign pol_sem_ack = op_valid && pol_sem_valid && !sem_empty;
+    assign pol_sem_ack = pol_sem && !sem_empty;
 
 
     always_ff @(posedge clk) begin
