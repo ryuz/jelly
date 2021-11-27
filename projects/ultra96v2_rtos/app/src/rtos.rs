@@ -38,7 +38,7 @@ const CPU_CTL_TOP_TSKID: usize = 0x00;
 const CPU_CTL_TOP_VALID: usize = 0x01;
 const CPU_CTL_RUN_TSKID: usize = 0x04;
 const CPU_CTL_RUN_VALID: usize = 0x05;
-const CPU_CTL_IDLE_TSKID: usize = 0x7;
+//const CPU_CTL_IDLE_TSKID: usize = 0x7;
 const CPU_CTL_COPY_TSKID: usize = 0x8;
 const CPU_CTL_IRQ_EN: usize = 0x10;
 const CPU_CTL_IRQ_STS: usize = 0x11;
@@ -82,7 +82,6 @@ pub(crate) struct SystemCall {}
 impl SystemCall {
     pub(crate) fn new() -> Self {
         unsafe {
-//            println!("irq_disable");
             cpu::irq_disable();
             Self {}
         }
@@ -93,7 +92,6 @@ impl Drop for SystemCall {
     fn drop(&mut self) {
         unsafe {
             if sns_dpn() { cpu::svc0(); }
-//            println!("irq_enable");
             cpu::irq_enable();
         }
     }
@@ -109,8 +107,8 @@ pub fn initialize() {
 //        println!("TASKS : {}", read_reg(OPCODE_SYS_CFG, SYS_CFG_TASKS));
 
         // カレントタスク設定
-        write_reg(OPCODE_CPU_CTL, CPU_CTL_RUN_TSKID, 15);
-        write_reg(OPCODE_WUP_TSK, 15, 15);
+//      write_reg(OPCODE_CPU_CTL, CPU_CTL_RUN_TSKID, 15);
+//      write_reg(OPCODE_WUP_TSK, 15, 15);
         write_reg(OPCODE_CPU_CTL, CPU_CTL_IRQ_EN, 1);
 
         cpu::irq_enable();
@@ -156,8 +154,8 @@ pub fn slp_tsk(tskid: i32) {
     }
 }
 
+
 pub fn dly_tsk(tskid: i32, dlytim: u32) {
-//  println!("dly_tsk");
     unsafe {
         let tskid: usize = if tskid < 0 {
             JELLY_RTOS_RUN_TSKID
