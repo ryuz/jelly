@@ -11,7 +11,7 @@
 `default_nettype none
 
 
-module jelly_rtos
+module jelly2_rtos
         #(
             parameter   int                             WB_ADR_WIDTH       = 16,
             parameter   int                             WB_DAT_WIDTH       = 32,
@@ -174,7 +174,7 @@ module jelly_rtos
     logic   [SYSTIM_WIDTH-1:0]                  systim;
     logic   [SYSTIM_WIDTH-1:0]                  reg_systim;
 
-    jelly_rtos_core
+    jelly2_rtos_core
             #(
                 .TMAX_TSKID         (TMAX_TSKID),
                 .TMAX_SEMID         (TMAX_SEMID),

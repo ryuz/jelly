@@ -11,7 +11,7 @@
 `default_nettype none
 
 
-module jelly_rtos_task
+module jelly2_rtos_task
         #(
             parameter   int                         TSKID_WIDTH  = 4,
             parameter   int                         TSKPRI_WIDTH = 4,

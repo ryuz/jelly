@@ -185,7 +185,7 @@ module ultra96v2_rtos
     logic                           wb_rtos_stb_i;
     logic                           wb_rtos_ack_o;
 
-    jelly_rtos
+    jelly2_rtos
             #(
                 .WB_ADR_WIDTH           (WB_ADR_WIDTH),
                 .WB_DAT_WIDTH           (WB_DAT_WIDTH),

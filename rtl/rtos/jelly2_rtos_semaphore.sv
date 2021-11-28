@@ -11,7 +11,7 @@
 `default_nettype none
 
 
-module jelly_rtos_semaphore
+module jelly2_rtos_semaphore
         #(
             parameter   int                         QUE_SIZE       = 16,
             parameter   int                         QUECNT_WIDTH   = $clog2(QUE_SIZE+1),
@@ -64,7 +64,7 @@ module jelly_rtos_semaphore
     logic   [TSKID_WIDTH-1:0]   que_top_tskid;
     logic                       que_top_valid;
 
-    jelly_rtos_queue
+    jelly2_rtos_queue
             #(
                 .PRIORITY_ORDER (PRIORITY_ORDER),
                 .QUE_SIZE       (QUE_SIZE),

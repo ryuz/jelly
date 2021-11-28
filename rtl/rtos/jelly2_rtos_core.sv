@@ -12,7 +12,7 @@
 
 
 
-module jelly_rtos_core
+module jelly2_rtos_core
         #(
             parameter   int                         TMAX_TSKID   = 15,
             parameter   int                         TMAX_SEMID   = 7,
@@ -116,7 +116,7 @@ module jelly_rtos_core
     //  timeer
     // -----------------------------------------
 
-    jelly_rtos_timer
+    jelly2_rtos_timer
             #(
                 .SYSTIM_WIDTH       (SYSTIM_WIDTH),
                 .PRESCL_WIDTH       (PRESCL_WIDTH),
@@ -161,7 +161,7 @@ module jelly_rtos_core
     logic                       rdq_top_valid;
     assign rdq_top_tskid = rdq_top_valid ? rdq_top_tskid_tmp : '0;
 
-    jelly_rtos_queue_priority
+    jelly2_rtos_queue_priority
             #(
                 .QUE_SIZE           (TMAX_TSKID),
                 .ID_WIDTH           (TSKID_WIDTH),
@@ -206,7 +206,7 @@ module jelly_rtos_core
 
     generate
     for ( genvar i = 1; i <= TMAX_TSKID; ++i ) begin : loop_tsk
-        jelly_rtos_task
+        jelly2_rtos_task
                 #(
                     .TSKID_WIDTH        (TSKID_WIDTH),
                     .TSKPRI_WIDTH       (TSKPRI_WIDTH),
@@ -291,7 +291,7 @@ module jelly_rtos_core
 
     generate
     for ( genvar i = 1; i <= TMAX_SEMID; ++i ) begin : loop_sem
-        jelly_rtos_semaphore
+        jelly2_rtos_semaphore
                 #(
                     .QUE_SIZE           (TMAX_TSKID),
                     .TSKID_WIDTH        (TSKID_WIDTH),
@@ -339,7 +339,7 @@ module jelly_rtos_core
     //  Eventflag
     // -----------------------------------------
 
-    jelly_rtos_eventflag
+    jelly2_rtos_eventflag
             #(
                 .FLGPTN_WIDTH       (FLGPTN_WIDTH),
                 .INIT_FLGPTN        (INIT_FLGPTN)

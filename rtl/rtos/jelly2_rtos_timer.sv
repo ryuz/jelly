@@ -11,7 +11,7 @@
 `default_nettype none
 
 
-module jelly_rtos_timer
+module jelly2_rtos_timer
         #(
             parameter   int                         SYSTIM_WIDTH = 64,
             parameter   int                         PRESCL_WIDTH = 32,
