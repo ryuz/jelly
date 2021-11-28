@@ -19,9 +19,9 @@
 #define F_Bit           0x40
 #define T_Bit           0x20
 
-#define TOP_TSKID       (0x00100*4)
-#define RUN_TSKID       (0x00104*4)
-#define COPY_TSKID      (0x00108*4)
+#define TOP_TSKID       (0x00100 * (_RTOS_REG_SIZE))
+#define RUN_TSKID       (0x00104 * (_RTOS_REG_SIZE))
+#define COPY_TSKID      (0x00108 * (_RTOS_REG_SIZE))
 
 
                 .extern JELLY_RTOS_CORE_BASE

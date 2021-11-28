@@ -4,7 +4,6 @@
 
 pub mod rtos;
 
-
 #[cfg(test)]
 mod tests {
     #[test]
