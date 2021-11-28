@@ -19,14 +19,19 @@ module jelly_rtos_core
             parameter   int                         TSKPRI_WIDTH = 4,
             parameter   int                         SEMCNT_WIDTH = 4,
             parameter   int                         FLGPTN_WIDTH = 4,
+            parameter   int                         PRESCL_WIDTH = 32,
             parameter   int                         SYSTIM_WIDTH = 64,
             parameter   int                         RELTIM_WIDTH = 32,
             parameter   int                         WUPCNT_WIDTH = 1,
             parameter   int                         SUSCNT_WIDTH = 1,
+            parameter   int                         ER_WIDTH     = 8,
             parameter   int                         TTS_WIDTH    = 4,
             parameter   int                         TTW_WIDTH    = 4,
             parameter   bit     [WUPCNT_WIDTH-1:0]  TMAX_WUPCNT  = '1,
             parameter   bit     [SUSCNT_WIDTH-1:0]  TMAX_SUSCNT  = '1,
+            parameter   bit                         USE_ER       = 1,
+            parameter   bit                         USE_SET_TMO  = 1,
+            parameter   bit                         USE_CHG_PRI  = 1,
             parameter   bit                         USE_SLP_TSK  = 1,
             parameter   bit                         USE_SUS_TSK  = 1,
             parameter   bit                         USE_DLY_TSK  = 1,
@@ -35,10 +40,14 @@ module jelly_rtos_core
             parameter   bit                         USE_WAI_SEM  = 1,
             parameter   bit                         USE_POL_SEM  = 1,
             parameter   bit                         USE_WAI_FLG  = 1,
+            parameter   bit                         USE_SET_PSCL = 1,
+            parameter   bit                         USE_SET_TIM  = 1,
             parameter   int                         TSKID_WIDTH  = $clog2(TMAX_TSKID+1),
             parameter   int                         SEMID_WIDTH  = $clog2(TMAX_SEMID+1),
             parameter   int                         QUECNT_WIDTH = $clog2(TMAX_TSKID),
-            parameter   bit     [FLGPTN_WIDTH-1:0]  INIT_FLGPTN  = '0
+            parameter   bit     [FLGPTN_WIDTH-1:0]  INIT_FLGPTN  = '0,
+            parameter   bit     [PRESCL_WIDTH-1:0]  INIT_PRESCL  = '0,
+            parameter   bit     [SYSTIM_WIDTH-1:0]  INIT_SYSTIM  = '0
         )
         (
             input   wire                                        reset,
@@ -56,7 +65,9 @@ module jelly_rtos_core
             input   wire    [TSKID_WIDTH-1:0]                   op_tskid,
             input   wire    [SEMID_WIDTH-1:0]                   op_semid,
 
-            // task             
+            // task
+            input   wire    [TSKPRI_WIDTH-1:0]                  chg_pri_tskpri,
+            input   wire                                        chg_pri_valid,
             input   wire                                        wup_tsk_valid,
             input   wire                                        slp_tsk_valid,
             input   wire                                        rsm_tsk_valid,
@@ -64,11 +75,15 @@ module jelly_rtos_core
             input   wire                                        rel_wai_valid,
             input   wire    [RELTIM_WIDTH-1:0]                  dly_tsk_dlytim,
             input   wire                                        dly_tsk_valid,
+            input   wire    [RELTIM_WIDTH-1:0]                  set_tmo_tmotim,
+            input   wire                                        set_tmo_valid,
             output  wire    [TMAX_TSKID:1][TTS_WIDTH-1:0]       task_tskstat,
             output  wire    [TMAX_TSKID:1][TTW_WIDTH-1:0]       task_tskwait,
+            output  wire    [TMAX_TSKID:1][TSKPRI_WIDTH-1:0]    task_tskpri,
             output  wire    [TMAX_TSKID:1][WUPCNT_WIDTH-1:0]    task_wupcnt,
             output  wire    [TMAX_TSKID:1][SUSCNT_WIDTH-1:0]    task_suscnt,
-            output  wire    [TMAX_TSKID:1][TSKPRI_WIDTH-1:0]    task_tskpri,
+            output  wire    [TMAX_TSKID:1][RELTIM_WIDTH-1:0]    task_timcnt,
+            output  wire    [TMAX_TSKID:1][ER_WIDTH-1:0]        task_er,
 
             // semaphore                
             input   wire                                        sig_sem_valid,
@@ -85,8 +100,50 @@ module jelly_rtos_core
             input   wire    [0:0]                               wai_flg_wfmode,
             input   wire    [FLGPTN_WIDTH-1:0]                  wai_flg_flgptn,
             input   wire                                        wai_flg_valid,
-            output  wire    [FLGPTN_WIDTH-1:0]                  flg_flgptn
+            output  wire    [FLGPTN_WIDTH-1:0]                  flg_flgptn,
+
+            // timer
+            input   wire    [PRESCL_WIDTH-1:0]                  set_pscl_scale,
+            input   wire                                        set_pscl_valid,
+            input   wire    [SYSTIM_WIDTH-1:0]                  set_tim_systim,
+            input   wire                                        set_tim_valid,
+            output  wire                                        time_tick,
+            output  wire    [SYSTIM_WIDTH-1:0]                  systim
         );
+
+
+    // -----------------------------------------
+    //  timeer
+    // -----------------------------------------
+
+    jelly_rtos_timer
+            #(
+                .SYSTIM_WIDTH       (SYSTIM_WIDTH),
+                .PRESCL_WIDTH       (PRESCL_WIDTH),
+                .USE_SET_PSCL       (USE_SET_PSCL),
+                .USE_SET_TIM        (USE_SET_TIM),
+                .INIT_SYSTIM        (INIT_SYSTIM), 
+                .INIT_PRESCL        (INIT_PRESCL)
+            )
+        i_rtos_timer
+            (
+                .reset              (reset),
+                .clk                (clk),
+                .cke                (cke),
+
+                .time_tick          (time_tick),
+                .systim             (systim),
+
+                .set_pscl_scale     (set_pscl_scale),
+                .set_pscl_valid     (set_pscl_valid),
+
+                .set_tim_systim     (set_tim_systim),
+                .set_tim_valid      (set_tim_valid)
+            );
+
+    logic   [TSKID_WIDTH-1:0]   timeout_tskid;
+    logic                       timeout_valid;
+
 
 
     // -----------------------------------------
@@ -138,8 +195,11 @@ module jelly_rtos_core
     
     logic   [TMAX_TSKID:1]              task_busy;
 
-    logic   [TMAX_TSKID:1]              task_rdq_add;
+    logic   [TMAX_TSKID:1]              task_rdq_add_req;
+    logic   [TMAX_TSKID:1]              task_rdq_add_ack;
     logic   [TMAX_TSKID:1]              task_rdq_rmv;
+    logic   [TMAX_TSKID:1]              task_timeout_req;
+    logic   [TMAX_TSKID:1]              task_timeout_ack;
 
     logic   [TMAX_TSKID:1]              task_rdy_tsk = '0;
     logic   [TMAX_TSKID:1]              task_rel_tsk = '0;
@@ -159,10 +219,13 @@ module jelly_rtos_core
                     .TTW_WIDTH          (TTW_WIDTH),
                     .TMAX_WUPCNT        (TMAX_WUPCNT),
                     .TMAX_SUSCNT        (TMAX_SUSCNT),
+                    .USE_ER             (USE_ER),
+                    .USE_CHG_PRI        (USE_CHG_PRI),
                     .USE_SLP_TSK        (USE_SLP_TSK),
                     .USE_SUS_TSK        (USE_SUS_TSK),
                     .USE_DLY_TSK        (USE_DLY_TSK),
                     .USE_REL_WAI        (USE_REL_WAI),
+                    .USE_SET_TMO        (USE_SET_TMO),
                     .USE_WAI_SEM        (USE_WAI_SEM),
                     .USE_WAI_FLG        (USE_WAI_FLG),
                     .TSKID              (TSKID_WIDTH'(i)),
@@ -174,29 +237,39 @@ module jelly_rtos_core
                     .clk                (clk),
                     .cke                (cke),
 
+                    .time_tick          (time_tick),
+
                     .busy               (task_busy[i]),
 
                     .tskstat            (task_tskstat[i]),
                     .tskwait            (task_tskwait[i]),
+                    .tskpri             (task_tskpri[i]),
                     .wupcnt             (task_wupcnt[i]),
                     .suscnt             (task_suscnt[i]),
-                    .tskpri             (task_tskpri[i]),
+                    .timcnt             (task_timcnt[i]),
+                    .er                 (task_er[i]),
 
-                    .rdq_add            (task_rdq_add[i]),
+                    .rdq_add_req        (task_rdq_add_req[i]),
+                    .rdq_add_ack        (task_rdq_add_ack[i]),
                     .rdq_rmv            (task_rdq_rmv[i]),
-
-                    .rdy_tsk            (task_rdy_tsk[i]),
+                    .timeout_req        (task_timeout_req[i]),
+                    .timeout_ack        (task_timeout_ack[i]),
                     .rel_tsk            (task_rel_tsk[i]),
+
                     .flgptn             (flg_flgptn),
 
                     .run_tskid          (rdq_top_tskid),
                     .op_tskid           (op_tskid),
+                    .chg_pri_tskpri     (chg_pri_tskpri),
+                    .chg_pri_valid      (chg_pri_valid),
                     .wup_tsk_valid      (wup_tsk_valid),
                     .slp_tsk_valid      (slp_tsk_valid),
                     .sus_tsk_valid      (sus_tsk_valid),
                     .rsm_tsk_valid      (rsm_tsk_valid),
                     .dly_tsk_dlytim     (dly_tsk_dlytim),
                     .dly_tsk_valid      (dly_tsk_valid),
+                    .set_tmo_tmotim     (set_tmo_tmotim),
+                    .set_tmo_valid      (set_tmo_valid),
                     .rel_wai_valid      (rel_wai_valid),
                     .wai_sem_valid      (wai_sem_valid),
                     .wai_flg_wfmode     (wai_flg_wfmode),
@@ -225,6 +298,7 @@ module jelly_rtos_core
                     .TSKPRI_WIDTH       (TSKPRI_WIDTH),
                     .SEMID_WIDTH        (SEMID_WIDTH),
                     .SEMCNT_WIDTH       (SEMCNT_WIDTH),
+                    .USE_TIMEOUT        (USE_SET_TMO),
                     .USE_SIG_SEM        (USE_SIG_SEM),
                     .USE_WAI_SEM        (USE_WAI_SEM),
                     .USE_POL_SEM        (USE_POL_SEM),
@@ -250,6 +324,9 @@ module jelly_rtos_core
 
                     .wakeup_tskid       (semaphore_wakeup_tskid[i]),
                     .wakeup_valid       (semaphore_wakeup_valid[i]),
+
+                    .timeout_tskid      (timeout_tskid),
+                    .timeout_valid      (timeout_valid),
 
                     .semcnt             (semaphore_semcnt[i]),
                     .quecnt             (semaphore_quecnt[i])
@@ -289,11 +366,13 @@ module jelly_rtos_core
         rdq_add_tskid  = 'x;
         rdq_add_tskpri = 'x;
         rdq_add_valid  = 1'b0;
+        task_rdq_add_ack = '0;
         for ( int tskid = 1; tskid <= TMAX_TSKID; ++tskid ) begin
-            if ( task_rdq_add[tskid] ) begin
+            if ( task_rdq_add_req[tskid] ) begin
                 rdq_add_tskid  = TSKID_WIDTH'(tskid);
                 rdq_add_tskpri = task_tskpri[tskid];
                 rdq_add_valid  = 1'b1;
+                task_rdq_add_ack[tskid] = 1'b1;
                 break;
             end
         end
@@ -311,15 +390,21 @@ module jelly_rtos_core
         end
     end
 
-    // task ready
-    always_comb begin : blk_task
-        task_rdy_tsk = '0;
-
-        // Ready
-        if ( rdq_add_valid ) begin
-            task_rdy_tsk[rdq_add_tskid] = 1'b1;
+    // timeout
+    always_comb begin : blk_timeout
+        timeout_tskid  = 'x;
+        timeout_valid  = 1'b0;
+        task_timeout_ack = '0;
+        for ( int tskid = 1; tskid <= TMAX_TSKID; ++tskid ) begin
+            if ( task_timeout_req[tskid] ) begin
+                timeout_tskid  = TSKID_WIDTH'(tskid);
+                timeout_valid  = 1'b1;
+                task_timeout_ack[tskid] = 1'b1;
+                break;
+            end
         end
     end
+
 
     // wake-up from object
     always_comb begin

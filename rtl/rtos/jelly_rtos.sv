@@ -24,8 +24,10 @@ module jelly_rtos
             parameter   int                             SUSCNT_WIDTH       = 1,
             parameter   int                             SEMCNT_WIDTH       = 4,
             parameter   int                             FLGPTN_WIDTH       = 32,
+            parameter   int                             PRESCL_WIDTH       = 32,
             parameter   int                             SYSTIM_WIDTH       = 64,
             parameter   int                             RELTIM_WIDTH       = 32,
+            parameter   int                             ER_WIDTH           = 8,
             parameter   int                             TTS_WIDTH          = 4,
             parameter   int                             TTW_WIDTH          = 4,
             parameter   int                             QUECNT_WIDTH       = $clog2(TMAX_TSKID),
@@ -36,19 +38,29 @@ module jelly_rtos
             parameter   int                             SCRATCH2_WIDTH     = WB_DAT_WIDTH,
             parameter   int                             SCRATCH3_WIDTH     = WB_DAT_WIDTH,
 
+            parameter   bit                             USE_CHG_PRI        = 1,
             parameter   bit                             USE_SLP_TSK        = 1,
             parameter   bit                             USE_SUS_TSK        = 1,
             parameter   bit                             USE_DLY_TSK        = 1,
             parameter   bit                             USE_REL_WAI        = 1,
+            parameter   bit                             USE_SET_TMO        = 1,
             parameter   bit                             USE_SIG_SEM        = 1,
             parameter   bit                             USE_WAI_SEM        = 1,
             parameter   bit                             USE_POL_SEM        = 1,
+            parameter   bit                             USE_SET_FLG        = 1,
+            parameter   bit                             USE_CLR_FLG        = 1,
             parameter   bit                             USE_WAI_FLG        = 1,
             parameter   bit                             USE_EXT_FLG        = 1,
+            parameter   bit                             USE_GET_PRI        = 1,
+            parameter   bit                             USE_SET_PSCL       = 1,
+            parameter   bit                             USE_SET_TIM        = 1,
+            parameter   bit                             USE_GET_TIM        = 1,
             parameter   bit                             USE_REF_TSKSTAT    = 1,
             parameter   bit                             USE_REF_TSKWAIT    = 1,
             parameter   bit                             USE_REF_WUPCNT     = 1,
             parameter   bit                             USE_REF_SUSCNT     = 1,
+            parameter   bit                             USE_REF_TIMCNT     = 1,
+            parameter   bit                             USE_REF_ERR        = 1,
             parameter   bit                             USE_REF_SEMCNT     = 1,
             parameter   bit                             USE_REF_SEMQUE     = 1,
             parameter   bit                             USE_REF_FLGPTN     = 1,
@@ -59,6 +71,8 @@ module jelly_rtos
 
             parameter   bit     [FLGPTN_WIDTH-1:0]      INIT_FLGPTN        = '0,
             parameter   bit     [FLGPTN_WIDTH-1:0]      INIT_EXTFLG_ENABLE = '0,
+            parameter   bit     [PRESCL_WIDTH-1:0]      INIT_PRESCL        = '0,
+            parameter   bit     [SYSTIM_WIDTH-1:0]      INIT_SYSTIM        = '0,
             parameter   bit     [SCRATCH0_WIDTH-1:0]    INIT_SCRATCH0      = '0,
             parameter   bit     [SCRATCH1_WIDTH-1:0]    INIT_SCRATCH1      = '0,
             parameter   bit     [SCRATCH2_WIDTH-1:0]    INIT_SCRATCH2      = '0,
@@ -115,6 +129,8 @@ module jelly_rtos
     logic   [SEMID_WIDTH-1:0]                   op_semid;
 
     // task
+    logic   [TSKPRI_WIDTH-1:0]                  chg_pri_tskpri;
+    logic                                       chg_pri_valid = '0;
     logic                                       wup_tsk_valid = '0;
     logic                                       slp_tsk_valid = '0;
     logic                                       rsm_tsk_valid = '0;
@@ -122,11 +138,15 @@ module jelly_rtos
     logic                                       rel_wai_valid = '0;
     logic   [RELTIM_WIDTH-1:0]                  dly_tsk_dlytim;
     logic                                       dly_tsk_valid = '0;
+    logic   [RELTIM_WIDTH-1:0]                  set_tmo_tmotim;
+    logic                                       set_tmo_valid = '0;
     logic   [TMAX_TSKID:1][TTS_WIDTH-1:0]       task_tskstat;
     logic   [TMAX_TSKID:1][TTW_WIDTH-1:0]       task_tskwait;
     logic   [TMAX_TSKID:1][WUPCNT_WIDTH-1:0]    task_wupcnt;
     logic   [TMAX_TSKID:1][SUSCNT_WIDTH-1:0]    task_suscnt;
+    logic   [TMAX_TSKID:1][RELTIM_WIDTH-1:0]    task_timcnt;
     logic   [TMAX_TSKID:1][TSKPRI_WIDTH-1:0]    task_tskpri;
+    logic   [TMAX_TSKID:1][ER_WIDTH-1:0]        task_er;
 
     // semaphore                
     logic                                       sig_sem_valid = '0;
@@ -143,6 +163,15 @@ module jelly_rtos
     logic   [FLGPTN_WIDTH-1:0]                  wai_flg_flgptn;
     logic                                       wai_flg_valid;
     logic   [FLGPTN_WIDTH-1:0]                  flg_flgptn;
+
+    // timer
+    logic   [PRESCL_WIDTH-1:0]                  set_pscl_scale;
+    logic                                       set_pscl_valid = 1'b0;
+    logic   [SYSTIM_WIDTH-1:0]                  set_tim_systim;
+    logic                                       set_tim_valid = 1'b0;
+    logic                                       time_tick;
+    logic   [SYSTIM_WIDTH-1:0]                  systim;
+    logic   [SYSTIM_WIDTH-1:0]                  reg_systim;
 
     jelly_rtos_core
             #(
@@ -172,6 +201,8 @@ module jelly_rtos
                 .op_tskid,
                 .op_semid,
 
+                .chg_pri_tskpri,
+                .chg_pri_valid,
                 .wup_tsk_valid,
                 .slp_tsk_valid,
                 .rsm_tsk_valid,
@@ -179,11 +210,15 @@ module jelly_rtos
                 .rel_wai_valid,
                 .dly_tsk_dlytim,
                 .dly_tsk_valid,
+                .set_tmo_tmotim,
+                .set_tmo_valid,
                 .task_tskstat,
                 .task_tskwait,
                 .task_wupcnt,
                 .task_suscnt,
+                .task_timcnt,
                 .task_tskpri,
+                .task_er,
 
                 .sig_sem_valid,
                 .wai_sem_valid,
@@ -197,7 +232,14 @@ module jelly_rtos
                 .wai_flg_wfmode,
                 .wai_flg_flgptn,
                 .wai_flg_valid,
-                .flg_flgptn
+                .flg_flgptn,
+
+                .set_pscl_scale,
+                .set_pscl_valid,
+                .set_tim_systim,
+                .set_tim_valid,
+                .time_tick,
+                .systim
             );
     
 
@@ -217,10 +259,15 @@ module jelly_rtos
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_RSM_TSK     = OPCODE_WIDTH'(8'h14);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SUS_TSK     = OPCODE_WIDTH'(8'h15);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_DLY_TSK     = OPCODE_WIDTH'(8'h18);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CHG_PRI     = OPCODE_WIDTH'(8'h1c);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SET_TMO     = OPCODE_WIDTH'(8'h1f);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_TSKSTAT = OPCODE_WIDTH'(8'h90);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_TSKWAIT = OPCODE_WIDTH'(8'h91);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_WUPCNT  = OPCODE_WIDTH'(8'h92);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_SUSCNT  = OPCODE_WIDTH'(8'h93);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_TIMCNT  = OPCODE_WIDTH'(8'h94);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_ERR     = OPCODE_WIDTH'(8'h98);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_GET_PRI     = OPCODE_WIDTH'(8'h9c);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SIG_SEM     = OPCODE_WIDTH'(8'h21);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_SEM     = OPCODE_WIDTH'(8'h22);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_POL_SEM     = OPCODE_WIDTH'(8'h23);
@@ -232,6 +279,11 @@ module jelly_rtos
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_FLG_OR  = OPCODE_WIDTH'(8'h34);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_ENA_FLG_EXT = OPCODE_WIDTH'(8'h3a);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_FLGPTN  = OPCODE_WIDTH'(8'hb0);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SET_TIM     = OPCODE_WIDTH'(8'h70);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SET_PSCL    = OPCODE_WIDTH'(8'h72);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_GET_TIM     = OPCODE_WIDTH'(8'hf0);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SYSTIM_LO   = OPCODE_WIDTH'(8'hf2);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SYSTIM_HI   = OPCODE_WIDTH'(8'hf3);
 
     localparam  bit     [ID_WIDTH-1:0]      SYS_CFG_CORE_ID      = 'h00;
     localparam  bit     [ID_WIDTH-1:0]      SYS_CFG_VERSION      = 'h01;
@@ -256,6 +308,8 @@ module jelly_rtos
     localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_SCRATCH2   = 'he2;
     localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_SCRATCH3   = 'he3;
 
+    localparam  bit     [SYSTIM_WIDTH-1:0]  SYSLIM_LO_MASK = SYSTIM_WIDTH'({WB_DAT_WIDTH{1'b1}});
+    localparam  bit     [SYSTIM_WIDTH-1:0]  SYSLIM_HI_MASK = ~SYSLIM_LO_MASK;
 
     logic   [OPCODE_WIDTH-1:0]      dec_opcode;
     logic   [ID_WIDTH-1:0]          dec_id;
@@ -286,6 +340,7 @@ module jelly_rtos
             reg_switch     <= '0;
             reg_irq        <= '0;
             extflg_enable  <= INIT_EXTFLG_ENABLE;
+            reg_systim     <= INIT_SYSTIM;
             scratch0       <= INIT_SCRATCH0;
             scratch1       <= INIT_SCRATCH1;
             scratch2       <= INIT_SCRATCH2;
@@ -294,6 +349,7 @@ module jelly_rtos
         else if ( cke ) begin
             core_reset <= 1'b0;
 
+            // write
             if ( s_wb_ack_o && s_wb_we_i && &s_wb_sel_i ) begin
                 case ( dec_opcode )
                 OPCODE_SYS_CFG:
@@ -316,6 +372,10 @@ module jelly_rtos
                     endcase
 
                 OPCODE_ENA_FLG_EXT: if ( USE_EXT_FLG ) begin extflg_enable <= FLGPTN_WIDTH'(s_wb_dat_i); end
+
+                OPCODE_GET_TIM:     if ( USE_GET_TIM ) begin reg_systim <= systim; end
+                OPCODE_SYSTIM_LO:   if ( USE_SET_TIM ) begin reg_systim <= ((reg_systim & SYSLIM_HI_MASK) | SYSTIM_WIDTH'(s_wb_dat_i)); end
+                OPCODE_SYSTIM_HI:   if ( USE_SET_TIM ) begin reg_systim <= ((reg_systim & SYSLIM_LO_MASK) | (SYSTIM_WIDTH'(s_wb_dat_i) << WB_DAT_WIDTH)); end
 
                 default: ;
                 endcase
@@ -359,15 +419,22 @@ module jelly_rtos
         wai_flg_flgptn = 'x;
         wai_flg_valid  = '0;
 
+        set_pscl_scale = 'x;
+        set_pscl_valid = 1'b0;
+        set_tim_systim = 'x;
+        set_tim_valid  = 1'b0;
+
         // write
         if ( s_wb_ack_o && s_wb_we_i && &s_wb_sel_i ) begin
             case ( dec_opcode )
-            OPCODE_WUP_TSK:     begin wup_tsk_valid = 1'b1; op_tskid = TSKID_WIDTH'(dec_id); end
-            OPCODE_SLP_TSK:     begin slp_tsk_valid = 1'b1; op_tskid = TSKID_WIDTH'(dec_id); end
-            OPCODE_RSM_TSK:     begin rsm_tsk_valid = 1'b1; op_tskid = TSKID_WIDTH'(dec_id); end
-            OPCODE_SUS_TSK:     begin sus_tsk_valid = 1'b1; op_tskid = TSKID_WIDTH'(dec_id); end
-            OPCODE_SET_FLG:     begin set_flg = FLGPTN_WIDTH'(s_wb_dat_i); end
-            OPCODE_CLR_FLG:     begin clr_flg = FLGPTN_WIDTH'(s_wb_dat_i); end
+            OPCODE_CHG_PRI: if ( USE_CHG_PRI ) begin chg_pri_valid = 1'b1; op_tskid = TSKID_WIDTH'(dec_id); end
+            OPCODE_WUP_TSK: if ( USE_SLP_TSK ) begin wup_tsk_valid = 1'b1; op_tskid = TSKID_WIDTH'(dec_id); end
+            OPCODE_SLP_TSK: if ( USE_SLP_TSK ) begin slp_tsk_valid = 1'b1; op_tskid = TSKID_WIDTH'(dec_id); end
+            OPCODE_RSM_TSK: if ( USE_SUS_TSK ) begin rsm_tsk_valid = 1'b1; op_tskid = TSKID_WIDTH'(dec_id); end
+            OPCODE_SUS_TSK: if ( USE_SUS_TSK ) begin sus_tsk_valid = 1'b1; op_tskid = TSKID_WIDTH'(dec_id); end
+            OPCODE_SET_TMO: if ( USE_SET_TMO ) begin set_tmo_valid = 1'b1; op_tskid = TSKID_WIDTH'(dec_id); set_tmo_tmotim = FLGPTN_WIDTH'(s_wb_dat_i); end
+            OPCODE_SET_FLG: if ( USE_SET_FLG ) begin set_flg = FLGPTN_WIDTH'(s_wb_dat_i); end
+            OPCODE_CLR_FLG: if ( USE_CLR_FLG ) begin clr_flg = FLGPTN_WIDTH'(s_wb_dat_i); end
 
             OPCODE_DLY_TSK:
                 begin
@@ -391,6 +458,18 @@ module jelly_rtos
                     wai_flg_valid  = 1'b1;
                     wai_flg_flgptn = FLGPTN_WIDTH'(s_wb_dat_i);
                     wai_flg_wfmode = 1'b1;
+                end
+            
+            OPCODE_SET_PSCL:
+                begin
+                    set_pscl_scale = PRESCL_WIDTH'(s_wb_dat_i);
+                    set_pscl_valid = 1'b1;
+                end
+
+            OPCODE_SET_TIM:
+                begin
+                    set_tim_systim = reg_systim;
+                    set_tim_valid  = 1'b0;
                 end
             
             default: ;
@@ -444,13 +523,19 @@ module jelly_rtos
             endcase
         
         OPCODE_POL_SEM:     s_wb_dat_o = USE_POL_SEM     ? WB_DAT_WIDTH'(pol_sem_ack)      : '0;
+        OPCODE_GET_PRI:     s_wb_dat_o = USE_GET_PRI     ? WB_DAT_WIDTH'(task_tskpri)      : '0;
         OPCODE_REF_TSKSTAT: s_wb_dat_o = USE_REF_TSKSTAT ? WB_DAT_WIDTH'(task_tskstat)     : '0;
         OPCODE_REF_TSKWAIT: s_wb_dat_o = USE_REF_TSKWAIT ? WB_DAT_WIDTH'(task_tskwait)     : '0;
-        OPCODE_REF_WUPCNT : s_wb_dat_o = USE_REF_WUPCNT  ? WB_DAT_WIDTH'(task_wupcnt)      : '0;
-        OPCODE_REF_SUSCNT : s_wb_dat_o = USE_REF_SUSCNT  ? WB_DAT_WIDTH'(task_suscnt)      : '0;
-        OPCODE_REF_SEMCNT : s_wb_dat_o = USE_REF_SEMCNT  ? WB_DAT_WIDTH'(semaphore_semcnt) : '0;
-        OPCODE_REF_SEMQUE : s_wb_dat_o = USE_REF_SEMQUE  ? WB_DAT_WIDTH'(semaphore_quecnt) : '0;
-        OPCODE_REF_FLGPTN : s_wb_dat_o = USE_REF_FLGPTN  ? WB_DAT_WIDTH'(flg_flgptn)       : '0;
+        OPCODE_REF_WUPCNT:  s_wb_dat_o = USE_REF_WUPCNT  ? WB_DAT_WIDTH'(task_wupcnt)      : '0;
+        OPCODE_REF_SUSCNT:  s_wb_dat_o = USE_REF_SUSCNT  ? WB_DAT_WIDTH'(task_suscnt)      : '0;
+        OPCODE_REF_TIMCNT:  s_wb_dat_o = USE_REF_TIMCNT  ? WB_DAT_WIDTH'(task_timcnt)      : '0;
+        OPCODE_REF_ERR:     s_wb_dat_o = USE_REF_ERR     ? WB_DAT_WIDTH'(task_er)          : '0;
+        OPCODE_REF_SEMCNT:  s_wb_dat_o = USE_REF_SEMCNT  ? WB_DAT_WIDTH'(semaphore_semcnt) : '0;
+        OPCODE_REF_SEMQUE:  s_wb_dat_o = USE_REF_SEMQUE  ? WB_DAT_WIDTH'(semaphore_quecnt) : '0;
+        OPCODE_REF_FLGPTN:  s_wb_dat_o = USE_REF_FLGPTN  ? WB_DAT_WIDTH'(flg_flgptn)       : '0;
+
+        OPCODE_SYSTIM_LO:   s_wb_dat_o = USE_GET_TIM     ? WB_DAT_WIDTH'(reg_systim)                 : '0;
+        OPCODE_SYSTIM_HI:   s_wb_dat_o = USE_GET_TIM     ? WB_DAT_WIDTH'(reg_systim >> WB_DAT_WIDTH) : '0;
 
         default: ;
         endcase

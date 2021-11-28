@@ -20,6 +20,7 @@ module jelly_rtos_semaphore
             parameter   int                         SEMID_WIDTH    = 4,
             parameter   int                         SEMCNT_WIDTH   = 4,
             parameter   bit                         PRIORITY_ORDER = 1'b0,
+            parameter   bit                         USE_TIMEOUT    = 1,
             parameter   bit                         USE_SIG_SEM    = 1,
             parameter   bit                         USE_WAI_SEM    = 1,
             parameter   bit                         USE_POL_SEM    = 1,
@@ -41,6 +42,9 @@ module jelly_rtos_semaphore
             output  reg                             pol_sem_ack,
             input   wire                            wai_sem_valid,
             input   wire                            rel_wai_valid,
+
+            input   wire    [TSKID_WIDTH-1:0]       timeout_tskid,
+            input   wire                            timeout_valid,
 
             output  reg     [TSKID_WIDTH-1:0]       wakeup_tskid,
             output  reg                             wakeup_valid,
@@ -158,6 +162,11 @@ module jelly_rtos_semaphore
         
         default: ;
         endcase
+
+        if ( timeout_valid && USE_TIMEOUT ) begin
+            que_rmv_tskid = timeout_tskid;
+            que_rmv_valid = 1'b1;
+        end
     end
 
     assign pol_sem_ack = pol_sem && !sem_empty;

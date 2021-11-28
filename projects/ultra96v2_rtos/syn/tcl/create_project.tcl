@@ -128,6 +128,7 @@ add_sv_file      sources_1 WORK ../../../../rtl/rtos/jelly_rtos_queue_fifo.sv
 add_sv_file      sources_1 WORK ../../../../rtl/rtos/jelly_rtos_task.sv
 add_sv_file      sources_1 WORK ../../../../rtl/rtos/jelly_rtos_eventflag.sv
 add_sv_file      sources_1 WORK ../../../../rtl/rtos/jelly_rtos_semaphore.sv
+add_sv_file      sources_1 WORK ../../../../rtl/rtos/jelly_rtos_timer.sv
 add_verilog_file sources_1 WORK ../../../../rtl/bus/jelly_axi4l_to_wishbone.v
 add_verilog_file sources_1 WORK ../../../../rtl/peripheral/jelly_interval_timer.v
 
