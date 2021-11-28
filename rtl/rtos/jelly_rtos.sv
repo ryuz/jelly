@@ -33,6 +33,7 @@ module jelly_rtos
             parameter   int                             QUECNT_WIDTH       = $clog2(TMAX_TSKID),
             parameter   int                             TSKID_WIDTH        = $clog2(TMAX_TSKID+1),
             parameter   int                             SEMID_WIDTH        = $clog2(TMAX_SEMID+1),
+            parameter   int                             CLOCK_RATE         = 100000000,
             parameter   int                             SCRATCH0_WIDTH     = WB_DAT_WIDTH,
             parameter   int                             SCRATCH1_WIDTH     = WB_DAT_WIDTH,
             parameter   int                             SCRATCH2_WIDTH     = WB_DAT_WIDTH,
@@ -288,6 +289,7 @@ module jelly_rtos
     localparam  bit     [ID_WIDTH-1:0]      SYS_CFG_CORE_ID      = 'h00;
     localparam  bit     [ID_WIDTH-1:0]      SYS_CFG_VERSION      = 'h01;
     localparam  bit     [ID_WIDTH-1:0]      SYS_CFG_DATE         = 'h04;
+    localparam  bit     [ID_WIDTH-1:0]      SYS_CFG_CLOCK_RATE   = 'h07;
     localparam  bit     [ID_WIDTH-1:0]      SYS_CFG_TMAX_TSKID   = 'h20;
     localparam  bit     [ID_WIDTH-1:0]      SYS_CFG_TMAX_SEMID   = 'h21;
     localparam  bit     [ID_WIDTH-1:0]      SYS_CFG_TSKPRI_WIDTH = 'h30;
@@ -497,7 +499,8 @@ module jelly_rtos
             case ( dec_id )
             SYS_CFG_CORE_ID:        s_wb_dat_o = WB_DAT_WIDTH'(32'h834f5452);
             SYS_CFG_VERSION:        s_wb_dat_o = WB_DAT_WIDTH'(32'h0001_0000);
-            SYS_CFG_DATE:           s_wb_dat_o = WB_DAT_WIDTH'(32'h2021_11_27);
+            SYS_CFG_DATE:           s_wb_dat_o = WB_DAT_WIDTH'(32'h2021_11_28);
+            SYS_CFG_CLOCK_RATE:     s_wb_dat_o = WB_DAT_WIDTH'(CLOCK_RATE);
             SYS_CFG_TMAX_TSKID:     s_wb_dat_o = WB_DAT_WIDTH'(TMAX_TSKID);
             SYS_CFG_TMAX_SEMID:     s_wb_dat_o = WB_DAT_WIDTH'(TMAX_SEMID);
             SYS_CFG_TSKPRI_WIDTH:   s_wb_dat_o = WB_DAT_WIDTH'(TSKPRI_WIDTH);

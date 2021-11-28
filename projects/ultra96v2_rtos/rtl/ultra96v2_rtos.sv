@@ -202,7 +202,8 @@ module ultra96v2_rtos
                 .TTW_WIDTH              (TTW_WIDTH),
                 .QUECNT_WIDTH           (QUECNT_WIDTH),
                 .TSKID_WIDTH            (TSKID_WIDTH),
-                .SEMID_WIDTH            (SEMID_WIDTH)
+                .SEMID_WIDTH            (SEMID_WIDTH),
+                .CLOCK_RATE             (250_000_000)   // 250MHz
             )   
         i_rtos
             (   

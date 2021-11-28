@@ -137,7 +137,8 @@ set_property top ultra96v2_rtos [current_fileset]
 
 # add constrain file
 add_files    -fileset constrs_1 -norecurse "../../constrain/xdc/top.xdc"
-add_files    -fileset constrs_1 -norecurse "../../constrain/xdc/debug.xdc"
-set_property target_constrs_file "../../constrain/xdc/debug.xdc" [current_fileset -constrset]
+
+#add_files    -fileset constrs_1 -norecurse "../../constrain/xdc/debug.xdc"
+#set_property target_constrs_file "../../constrain/xdc/debug.xdc" [current_fileset -constrset]
 
 
