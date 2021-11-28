@@ -9,20 +9,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
-name = "cc"
-version = "1.0.68"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4a72c244c1ff497a746a7e1fb3d14bd08420ecda70c8f25c7112f2781652d787"
-
-[[package]]
-name = "jelly-rtos"
-version = "0.1.0"
-dependencies = [
- "cc",
- "pudding-pac",
-]
-
-[[package]]
 name = "pudding-pac"
 version = "0.1.0"
 source = "git+https://github.com/ryuz/rust_rtos.git?rev=c13dd9014f86e0e230f167007e8effd9d805ef3f#c13dd9014f86e0e230f167007e8effd9d805ef3f"
@@ -31,10 +17,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "ultra96v2_rtos"
+name = "rtos"
 version = "0.1.0"
 dependencies = [
- "cc",
- "jelly-rtos",
  "pudding-pac",
 ]

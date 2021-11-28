@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use super::*;
+
 use core::ptr;
 use pudding_pac::arm::cpu;
 
@@ -38,7 +38,6 @@ const CPU_CTL_TOP_TSKID: usize = 0x00;
 const CPU_CTL_TOP_VALID: usize = 0x01;
 const CPU_CTL_RUN_TSKID: usize = 0x04;
 const CPU_CTL_RUN_VALID: usize = 0x05;
-//const CPU_CTL_IDLE_TSKID: usize = 0x7;
 const CPU_CTL_COPY_TSKID: usize = 0x8;
 const CPU_CTL_IRQ_EN: usize = 0x10;
 const CPU_CTL_IRQ_STS: usize = 0x11;
@@ -104,13 +103,8 @@ pub fn initialize() {
         // ソフトリセット
         write_reg(OPCODE_SYS_CFG, SYS_CFG_SOFT_RESET, 1);
         
-//        println!("TASKS : {}", read_reg(OPCODE_SYS_CFG, SYS_CFG_TASKS));
-
-        // カレントタスク設定
-//      write_reg(OPCODE_CPU_CTL, CPU_CTL_RUN_TSKID, 15);
-//      write_reg(OPCODE_WUP_TSK, 15, 15);
+        // 割り込み許可
         write_reg(OPCODE_CPU_CTL, CPU_CTL_IRQ_EN, 1);
-
         cpu::irq_enable();
     }
 }
@@ -121,10 +115,7 @@ pub fn cre_tsk(tskid: usize, stack: &mut [u8], entry: extern "C" fn() -> !) {
     let mut isp = (&mut stack[0] as *mut u8 as usize) + stack.len();
     isp &= !0x0f_usize; // align
     unsafe {
-//        println!("[entry] task{} : 0x{:08x}", tskid, entry as usize);
-//        println!("[isp] task{} : 0x{:08x}", tskid, isp);
         JELLY_RTOS_SP_TABLE[tskid] = jelly_create_context(isp as usize, entry);
-//        println!("[sp] task{} : 0x{:08x}", tskid, JELLY_RTOS_SP_TABLE[tskid]);
     }
 }
 

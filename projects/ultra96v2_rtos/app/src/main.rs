@@ -5,7 +5,11 @@
 use pudding_pac::arm::cpu;
 use core::panic::PanicInfo;
 mod bootstrap;
-mod rtos;
+
+//mod rtos;
+
+use jelly_rtos::rtos;
+
 
 #[macro_use]
 pub mod uart;

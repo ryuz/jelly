@@ -132,6 +132,7 @@ _xmsgs/
 doc/build/
 workspace/
 backup/
+target/
 
 **/ip/*
 
