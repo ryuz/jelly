@@ -11,7 +11,7 @@
 `default_nettype none
 
 
-module jelly_rtos_eventflag
+module jelly2_rtos_eventflag
         #(
             parameter   int                         FLGPTN_WIDTH = 32,
             parameter   bit     [FLGPTN_WIDTH-1:0]  INIT_FLGPTN  = '0

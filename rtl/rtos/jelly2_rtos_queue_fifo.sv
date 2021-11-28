@@ -11,7 +11,7 @@
 `default_nettype none
 
 
-module jelly_rtos_queue_fifo
+module jelly2_rtos_queue_fifo
         #(
             parameter int   QUE_SIZE    = 16,
             parameter int   ID_WIDTH    = 4,

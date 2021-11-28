@@ -11,7 +11,7 @@
 `default_nettype none
 
 
-module jelly_rtos_queue
+module jelly2_rtos_queue
         #(
             parameter bit   PRIORITY_ORDER = 1'b1,
             parameter int   QUE_SIZE       = 16,
@@ -39,7 +39,7 @@ module jelly_rtos_queue
 
     generate
     if ( PRIORITY_ORDER ) begin : blk_priority
-        jelly_rtos_queue_priority
+        jelly2_rtos_queue_priority
                 #(
                     .QUE_SIZE       (QUE_SIZE),
                     .ID_WIDTH       (ID_WIDTH),
@@ -53,7 +53,7 @@ module jelly_rtos_queue
                 );
     end
     else begin : blk_fifo
-        jelly_rtos_queue_fifo
+        jelly2_rtos_queue_fifo
                 #(
                     .QUE_SIZE       (QUE_SIZE),
                     .ID_WIDTH       (ID_WIDTH),
