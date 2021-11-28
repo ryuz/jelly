@@ -96,7 +96,7 @@ module jelly2_rtos
 
             output  wire                                        irq,
 
-            input   wire    [FLGPTN_WIDTH-1:0]                  extflg_flgptn,
+            input   wire    [FLGPTN_WIDTH-1:0]                  ext_set_flg,
 
             output  wire    [TSKID_WIDTH-1:0]                   monitor_run_tskid,
             output  wire    [TSKID_WIDTH-1:0]                   monitor_top_tskid,
@@ -513,7 +513,7 @@ module jelly2_rtos
         end
 
         // external flag
-        set_flg = set_flg | (extflg_enable & extflg_flgptn);
+        set_flg = set_flg | (extflg_enable & ext_set_flg);
     end
 
     // wishbone read

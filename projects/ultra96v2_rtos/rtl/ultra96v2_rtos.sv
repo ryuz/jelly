@@ -165,7 +165,7 @@ module ultra96v2_rtos
     localparam  int                     TSKID_WIDTH        = $clog2(TMAX_TSKID+1);
     localparam  int                     SEMID_WIDTH        = $clog2(TMAX_SEMID+1);
 
-                                logic   [FLGPTN_WIDTH-1:0]                  rtos_flg_flgptn;
+                                logic   [FLGPTN_WIDTH-1:0]                  rtos_set_flg;
 
     (* mark_debug = "true" *)   logic   [TSKID_WIDTH-1:0]                   monitor_run_tskid;
     (* mark_debug = "true" *)   logic   [TSKID_WIDTH-1:0]                   monitor_top_tskid;
@@ -221,7 +221,7 @@ module ultra96v2_rtos
 
                 .irq                    (irq_rtos),
 
-                .extflg_flgptn          (rtos_flg_flgptn),
+                .ext_set_flg            (rtos_set_flg),
 
                 .monitor_run_tskid      (monitor_run_tskid), 
                 .monitor_top_tskid      (monitor_top_tskid), 
@@ -313,8 +313,8 @@ module ultra96v2_rtos
                 .s_wb_ack_o         (wb_tim_ack_o)
             );
     
-    assign rtos_flg_flgptn[0]    = tim_irq;
-    assign rtos_flg_flgptn[31:1] = '0;
+    assign rtos_set_flg[0]    = tim_irq;
+    assign rtos_set_flg[31:1] = '0;
 
     
     // -----------------------------
