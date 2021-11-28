@@ -8,8 +8,7 @@ edition = "2018"
 [dependencies]
 #rand = { version = "0.8.4", default_features = false, features = ["small_rng"] }
 pudding-pac = { git="https://github.com/ryuz/rust_rtos.git", rev = "c13dd9014f86e0e230f167007e8effd9d805ef3f" } 
-jelly-rtos = { path = "../../../rust/rtos", default-features=false}
-
+jelly-rtos = { path = "../../../rust/rtos", default-features=false, features=[] }
 
 [build-dependencies]
 cc = "1.0.36"

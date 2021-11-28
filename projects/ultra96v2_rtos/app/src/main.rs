@@ -36,7 +36,7 @@ pub unsafe extern "C" fn main() -> ! {
     println!("\nJelly-RTOS start");
     wait(10000);
 
-    rtos::initialize();
+    rtos::initialize(0x80000000);
 
     // フォークを５本置く
     rtos::sig_sem(1);
