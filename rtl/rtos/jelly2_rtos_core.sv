@@ -113,7 +113,21 @@ module jelly2_rtos_core
 
 
     // -----------------------------------------
-    //  timeer
+    //  task priority
+    // -----------------------------------------
+
+    logic   [TSKPRI_WIDTH-1:0]      op_tskpri;
+    always_comb begin
+        op_tskpri = 'x;
+        if ( op_tskid > 0 && op_tskid <= TSKID_WIDTH'(TMAX_TSKID) ) begin
+            op_tskpri = task_tskpri[op_tskid];
+        end
+    end
+
+
+
+    // -----------------------------------------
+    //  timer
     // -----------------------------------------
 
     jelly2_rtos_timer
@@ -313,8 +327,8 @@ module jelly2_rtos_core
                     .cke                (cke),
 
                     .op_semid           (op_semid),
-                    .op_tskid           (rdq_top_tskid),
-                    .op_tskpri          (rdq_top_tskpri),
+                    .op_tskid           (op_tskid),
+                    .op_tskpri          (op_tskpri),
 
                     .sig_sem_valid      (sig_sem_valid),
                     .pol_sem_valid      (pol_sem_valid),

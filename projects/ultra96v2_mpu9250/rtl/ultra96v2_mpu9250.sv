@@ -150,13 +150,13 @@ module ultra96v2_mpu9250
     //  RTOS
     // -----------------------------
     
-    localparam  int                     TMAX_TSKID         = 7;
-    localparam  int                     TMAX_SEMID         = 4;
+    localparam  int                     TMAX_TSKID         = 3;
+    localparam  int                     TMAX_SEMID         = 3;
     localparam  int                     TSKPRI_WIDTH       = 4;
     localparam  int                     WUPCNT_WIDTH       = 1;
     localparam  int                     SUSCNT_WIDTH       = 1;
     localparam  int                     SEMCNT_WIDTH       = 4;
-    localparam  int                     FLGPTN_WIDTH       = 32;
+    localparam  int                     FLGPTN_WIDTH       = 8;
     localparam  int                     SYSTIM_WIDTH       = 64;
     localparam  int                     RELTIM_WIDTH       = 32;
     localparam  int                     TTS_WIDTH          = 4;
@@ -167,24 +167,24 @@ module ultra96v2_mpu9250
     
     logic   [FLGPTN_WIDTH-1:0]                  rtos_set_flg;
     
-    logic   [TSKID_WIDTH-1:0]                   monitor_run_tskid;
-    logic   [TSKID_WIDTH-1:0]                   monitor_top_tskid;
-    logic   [TMAX_TSKID:1][TTS_WIDTH-1:0]       monitor_tsk_tskstat;
-    logic   [TMAX_TSKID:1][TTW_WIDTH-1:0]       monitor_tsk_tskwait;
-    logic   [TMAX_TSKID:1][WUPCNT_WIDTH-1:0]    monitor_tsk_wupcnt;
-    logic   [TMAX_TSKID:1][SUSCNT_WIDTH-1:0]    monitor_tsk_suscnt;
-    logic   [TMAX_SEMID:1][QUECNT_WIDTH-1:0]    monitor_sem_quecnt;
-    logic   [TMAX_SEMID:1][SEMCNT_WIDTH-1:0]    monitor_sem_semcnt;
-    logic   [FLGPTN_WIDTH-1:0]                  monitor_flg_flgptn;
-    logic   [WB_DAT_WIDTH-1:0]                  monitor_scratch0;
-    logic   [WB_DAT_WIDTH-1:0]                  monitor_scratch1;
-    logic   [WB_DAT_WIDTH-1:0]                  monitor_scratch2;
-    logic   [WB_DAT_WIDTH-1:0]                  monitor_scratch3;
-    
-    logic   [31:0]                              wb_rtos_dat_o_tmp;
-    logic   [WB_DAT_WIDTH-1:0]                  wb_rtos_dat_o;
-    logic                                       wb_rtos_stb_i;
-    logic                                       wb_rtos_ack_o;
+    (* mark_debug = "true" *)   logic   [TSKID_WIDTH-1:0]                   monitor_run_tskid;
+    (* mark_debug = "true" *)   logic   [TSKID_WIDTH-1:0]                   monitor_top_tskid;
+                                logic   [TMAX_TSKID:1][TTS_WIDTH-1:0]       monitor_tsk_tskstat;
+                                logic   [TMAX_TSKID:1][TTW_WIDTH-1:0]       monitor_tsk_tskwait;
+                                logic   [TMAX_TSKID:1][WUPCNT_WIDTH-1:0]    monitor_tsk_wupcnt;
+                                logic   [TMAX_TSKID:1][SUSCNT_WIDTH-1:0]    monitor_tsk_suscnt;
+                                logic   [TMAX_SEMID:1][QUECNT_WIDTH-1:0]    monitor_sem_quecnt;
+                                logic   [TMAX_SEMID:1][SEMCNT_WIDTH-1:0]    monitor_sem_semcnt;
+    (* mark_debug = "true" *)   logic   [FLGPTN_WIDTH-1:0]                  monitor_flg_flgptn;
+    (* mark_debug = "true" *)   logic   [WB_DAT_WIDTH-1:0]                  monitor_scratch0;
+                                logic   [WB_DAT_WIDTH-1:0]                  monitor_scratch1;
+                                logic   [WB_DAT_WIDTH-1:0]                  monitor_scratch2;
+                                logic   [WB_DAT_WIDTH-1:0]                  monitor_scratch3;
+                                
+                                logic   [31:0]                              wb_rtos_dat_o_tmp;
+                                logic   [WB_DAT_WIDTH-1:0]                  wb_rtos_dat_o;
+    (* mark_debug = "true" *)   logic                                       wb_rtos_stb_i;
+    (* mark_debug = "true" *)   logic                                       wb_rtos_ack_o;
     
     jelly2_rtos
             #(

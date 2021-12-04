@@ -466,26 +466,38 @@ module jelly2_rtos
 
             OPCODE_DLY_TSK:
                 begin
-                    dly_tsk_valid  = 1'b1;
                     op_tskid       = TSKID_WIDTH'(dec_id);
                     dly_tsk_dlytim = RELTIM_WIDTH'(s_wb_dat_i);
+                    dly_tsk_valid  = 1'b1;
                 end
 
-            OPCODE_SIG_SEM:     begin sig_sem_valid = 1'b1; op_semid = SEMID_WIDTH'(dec_id);  end
-            OPCODE_WAI_SEM:     begin wai_sem_valid = 1'b1; op_semid = SEMID_WIDTH'(dec_id); op_tskid = rdq_top_tskid; end
+            OPCODE_SIG_SEM:
+                begin
+                    op_semid = SEMID_WIDTH'(dec_id);
+                    sig_sem_valid = 1'b1;
+                end
+
+            OPCODE_WAI_SEM:
+                begin
+                    op_tskid = cpu_run_tskid;
+                    op_semid = SEMID_WIDTH'(dec_id);
+                    wai_sem_valid = 1'b1;
+                end
 
             OPCODE_WAI_FLG_AND:
                 begin
-                    wai_flg_valid  = 1'b1;
+                    op_tskid       = cpu_run_tskid;
                     wai_flg_flgptn = FLGPTN_WIDTH'(s_wb_dat_i);
                     wai_flg_wfmode = 1'b0;
+                    wai_flg_valid  = 1'b1;
                 end
             
             OPCODE_WAI_FLG_OR:
                 begin
-                    wai_flg_valid  = 1'b1;
+                    op_tskid       = cpu_run_tskid;
                     wai_flg_flgptn = FLGPTN_WIDTH'(s_wb_dat_i);
                     wai_flg_wfmode = 1'b1;
+                    wai_flg_valid  = 1'b1;
                 end
             
             OPCODE_SET_PSCL:
