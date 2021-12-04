@@ -70,7 +70,7 @@ const JELLY_RTOS_REG_SIZE: usize = if cfg!(feature = "reg64bit") { 8 } else { 4 
 #[no_mangle]
 pub static mut JELLY_RTOS_CORE_BASE: usize = 0x80000000;
 #[no_mangle]
-pub static mut JELLY_RTOS_RUN_TSKID: usize = 15;
+pub static mut JELLY_RTOS_RUN_TSKID: usize = 0;
 #[no_mangle]
 pub static mut JELLY_RTOS_SP_TABLE: [usize; 16] = [0; 16];
 
@@ -125,10 +125,9 @@ pub fn initialize(core_base: usize) {
         // アドレス設定
         JELLY_RTOS_CORE_BASE = core_base;
         
-        // IP確認
+        // ID確認
         assert!(read_reg(OPCODE_SYS_CFG, SYS_CFG_CORE_ID) == 0x834f5452);
-//      assert!(read_reg(OPCODE_SYS_CFG, SYS_CFG_VERSION) == 0x00010000);
-
+        
         // ソフトリセット
         write_reg(OPCODE_SYS_CFG, SYS_CFG_SOFT_RESET, 1);
 
@@ -203,17 +202,25 @@ pub fn pol_sem(semid: i32) -> bool {
     unsafe { read_reg(OPCODE_POL_SEM, semid as usize) != 0 }
 }
 
-pub fn set_flg(flgid: i32, flgptn: u32) {
+
+pub fn ena_extflg(flgptn: u32) {
     unsafe {
         let _sc = SystemCall::new();
-        write_reg(OPCODE_SET_FLG, flgid as usize, flgptn);
+        write_reg(OPCODE_ENA_FLG_EXT, 0, flgptn);
     }
 }
 
-pub fn clr_flg(flgid: i32, flgptn: u32) {
+pub fn set_flg(flgptn: u32) {
     unsafe {
         let _sc = SystemCall::new();
-        write_reg(OPCODE_CLR_FLG, flgid as usize, flgptn);
+        write_reg(OPCODE_SET_FLG, 0, flgptn);
+    }
+}
+
+pub fn clr_flg(flgptn: u32) {
+    unsafe {
+        let _sc = SystemCall::new();
+        write_reg(OPCODE_CLR_FLG, 0, flgptn);
     }
 }
 
@@ -222,12 +229,14 @@ pub enum WfMode {
     OrWait = 1,
 }
 
-pub fn wai_flg(flgid: i32, waiptn: u32, wfmode: WfMode) {
+pub fn wai_flg(waiptn: u32, wfmode: WfMode) {
     unsafe {
+        let tskid: usize = JELLY_RTOS_RUN_TSKID;
+
         let _sc = SystemCall::new();
         match wfmode {
-            WfMode::AndWait => write_reg(OPCODE_WAI_FLG_AND, flgid as usize, waiptn),
-            WfMode::OrWait => write_reg(OPCODE_WAI_FLG_OR, flgid as usize, waiptn),
+            WfMode::AndWait => write_reg(OPCODE_WAI_FLG_AND, tskid as usize, waiptn),
+            WfMode::OrWait => write_reg(OPCODE_WAI_FLG_OR, tskid as usize, waiptn),
         }
     }
 }
@@ -249,3 +258,16 @@ pub fn sns_dpn() -> bool {
     unsafe { read_reg(OPCODE_CPU_CTL, CPU_CTL_IRQ_STS) != 0 }
 }
 
+
+
+pub fn set_scratch(id : usize, data: u32) {
+    unsafe {
+        match(id) {
+        0 => write_reg(OPCODE_CPU_CTL, CPU_CTL_SCRATCH0, data),
+        1 => write_reg(OPCODE_CPU_CTL, CPU_CTL_SCRATCH1, data),
+        2 => write_reg(OPCODE_CPU_CTL, CPU_CTL_SCRATCH2, data),
+        3 => write_reg(OPCODE_CPU_CTL, CPU_CTL_SCRATCH3, data),
+        _ => {},
+        }
+    }
+}
