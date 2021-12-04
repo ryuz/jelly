@@ -1,7 +1,7 @@
 
-TARGET    = ultra96v2_mpu9250.out
-DT_NAME   = ultra96v2_mpu9250
-BIT_NAME  = ultra96v2_mpu9250
+PRJ_NAME  = ultra96v2_mpu9250
+DT_NAME   = $(PRJ_NAME)
+BIT_NAME  = $(PRJ_NAME)
 
 DTS_FILE  = $(DT_NAME).dts
 DTBO_FILE = $(DT_NAME).dtbo
@@ -13,32 +13,34 @@ BIN_FILE  = $(BIT_FILE).bin
 FIRMWARE_PATH = /lib/firmware
 DEVTREE_PATH  = /configfs/device-tree
 
-CFLAGS  += -g -O0 -I../../../include
-LDFLAGS += 
-
-OBJS = main.o
-
 
 .PHONY: all
-all: $(TARGET) $(DTBO_FILE) $(BIN_FILE)
+all: $(DTBO_FILE) $(BIN_FILE) build_apu
 
 .PHONY: clean
 clean:
-	rm -rf $(TARGET) $(OBJS) $(DTBO_FILE) $(BIN_FILE)
+	rm -rf $(OBJS) $(DTBO_FILE) $(BIN_FILE)
+	make -C apu clean
 
-.PHONY: run
-run: $(TARGET) load
-	sudo ./$(TARGET)
+.PHONY: run_apu
+run_apu: load exe_apu
 
-.PHONY: run_server
-run_server: load
-	python3 flask_sample.py
+.PHONY: exe_apu
+exe_apu:
+	make -C apu run
 
-$(TARGET): $(OBJS)
-	g++ $(LDFLAGS) -o $(TARGET) $(OBJS)
 
-%.o : %.cpp
-	g++ $(CFLAGS) -c $< -o $@
+.PHONY: run_rpu
+run_rpu: load exe_rpu
+
+.PHONY: exe_rpu
+exe_rpu:
+	make -C rpu run
+
+.PHONY: stop_rpu
+stop_rpu:
+	make -C rpu stop
+
 
 $(DTBO_FILE): $(DTS_FILE)
 	dtc -I dts -O dtb -o $(DTBO_FILE) $(DTS_FILE)
@@ -92,4 +94,3 @@ load2: $(DTBO_FILE) $(BIN_FILE)
 .PHONY: unload2
 unload2:
 	sudo fpgautil -R
-

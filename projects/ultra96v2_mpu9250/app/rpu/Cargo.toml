@@ -1,0 +1,13 @@
+[package]
+name = "ultra96v2_mpu9250"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+pudding-pac = { git="https://github.com/ryuz/rust_rtos.git", rev = "c13dd9014f86e0e230f167007e8effd9d805ef3f" } 
+jelly-rtos = { path = "../../../../rust/rtos", default-features=false, features=["reg64bit"] }
+
+[build-dependencies]
+cc = "1.0.36"
