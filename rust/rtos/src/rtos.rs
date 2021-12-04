@@ -74,6 +74,7 @@ pub static mut JELLY_RTOS_RUN_TSKID: usize = 15;
 #[no_mangle]
 pub static mut JELLY_RTOS_SP_TABLE: [usize; 16] = [0; 16];
 
+
 fn make_addr(opcode: usize, id: usize) -> usize {
     unsafe {
         JELLY_RTOS_CORE_BASE
@@ -90,6 +91,7 @@ unsafe fn read_reg(opcode: usize, id: usize) -> u32 {
     let addr = make_addr(opcode, id);
     ptr::read_volatile(addr as *mut u32)
 }
+
 
 extern "C" {
     fn jelly_create_context(isp: usize, entry: extern "C" fn() -> !) -> usize;
@@ -122,6 +124,10 @@ pub fn initialize(core_base: usize) {
     unsafe {
         // アドレス設定
         JELLY_RTOS_CORE_BASE = core_base;
+        
+        // IP確認
+        assert!(read_reg(OPCODE_SYS_CFG, SYS_CFG_CORE_ID) == 0x834f5452);
+//      assert!(read_reg(OPCODE_SYS_CFG, SYS_CFG_VERSION) == 0x00010000);
 
         // ソフトリセット
         write_reg(OPCODE_SYS_CFG, SYS_CFG_SOFT_RESET, 1);
@@ -242,3 +248,4 @@ pub fn unl_cpu() {
 pub fn sns_dpn() -> bool {
     unsafe { read_reg(OPCODE_CPU_CTL, CPU_CTL_IRQ_STS) != 0 }
 }
+
