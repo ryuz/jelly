@@ -262,7 +262,7 @@ pub fn sns_dpn() -> bool {
 
 pub fn set_scratch(id : usize, data: u32) {
     unsafe {
-        match(id) {
+        match id {
         0 => write_reg(OPCODE_CPU_CTL, CPU_CTL_SCRATCH0, data),
         1 => write_reg(OPCODE_CPU_CTL, CPU_CTL_SCRATCH1, data),
         2 => write_reg(OPCODE_CPU_CTL, CPU_CTL_SCRATCH2, data),

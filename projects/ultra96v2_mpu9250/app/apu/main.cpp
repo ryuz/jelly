@@ -39,7 +39,7 @@ int main()
     // I2C
 //    i2c_acc.WriteReg(REG_I2C_DIVIDER, 100);
 
-    JellyI2c i2c(i2c_acc, uio_acc);
+    JellyI2c i2c(i2c_acc, UioAccessor());
     i2c.SetDivider(20);
     i2c.Write(MPU9250_ADDRESS, {0x75});
     auto who_am_i = i2c.Read(MPU9250_ADDRESS, 1);

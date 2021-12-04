@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use core::ptr;
+use super::*;
 
 const REG_I2C_STATUS    : usize = 0x00;
 const REG_I2C_CONTROL   : usize = 0x01;
@@ -43,9 +44,12 @@ impl JellyI2c {
     }
 
     fn wait(&self) {
-        unsafe {
-            while ( self.read_reg(REG_I2C_STATUS) & 1) != 0 {}
-        }
+        rtos::ena_extflg(0x01);
+        rtos::clr_flg(!0x01);
+        rtos::wai_flg(0x01, rtos::WfMode::AndWait);
+//        unsafe {
+//            while ( self.read_reg(REG_I2C_STATUS) & 1) != 0 {}
+//        }
     }
 
     pub fn set_divider(&self, div: u16)
@@ -55,9 +59,9 @@ impl JellyI2c {
         }
     }
 
-    pub fn write(&self, dev_adr:u8, data: &[u8]) -> bool
+    pub fn write(&self, dev_adr:u8, data: &[u8]) -> usize
     {
-        let mut nak: bool = false;
+        let mut len:usize = 0;
 
         unsafe {
             // start
@@ -68,25 +72,111 @@ impl JellyI2c {
             self.write_reg(REG_I2C_SEND, dev_adr<<1);
             self.wait();
 
-            for c in data.iter() {
+            for p in data.iter() {
                 // ack check
                 if (self.read_reg(REG_I2C_STATUS) & 0xf) != 0 {
-                    nak = true;
                     break;
                 }
 
                 // send
-                self.write_reg(REG_I2C_SEND, *c);
+                self.write_reg(REG_I2C_SEND, *p);
                 self.wait();
+
+                len += 1;
             }
 
             // stop
             self.write_reg(REG_I2C_CONTROL, I2C_CONTROL_STOP);
             self.wait();
         }
-
-        !nak
+        len
     }
 
+    pub fn read(&self, dev_adr:u8, buf: &mut [u8]) -> usize
+    {
+        let mut len:usize = 0;
+
+        unsafe {
+            // start
+            self.write_reg(REG_I2C_CONTROL, I2C_CONTROL_START);
+            self.wait();
+        
+            // send
+            self.write_reg(REG_I2C_SEND, dev_adr<<1|1);
+            self.wait();
+
+            for c in buf.iter_mut() {
+                if (self.read_reg(REG_I2C_STATUS) & 0xf) != 0 {
+                    break;
+                }
+                
+                // read
+                self.write_reg(REG_I2C_CONTROL, I2C_CONTROL_RECV);
+                self.wait();
+                *c = self.read_reg(REG_I2C_RECV);
+                
+                self.write_reg(REG_I2C_CONTROL, I2C_CONTROL_NAK);
+                self.wait();
+
+                len += 1;
+            }
+        }
+        len
+    }
+
+
+    pub fn write1(&self, dev_adr:u8, data: u8) -> bool
+    {
+        unsafe {
+            // start
+            self.write_reg(REG_I2C_CONTROL, I2C_CONTROL_START);
+            self.wait();
+            
+            // send
+            self.write_reg(REG_I2C_SEND, dev_adr<<1);
+            self.wait();
+
+            // ack check
+            if (self.read_reg(REG_I2C_STATUS) & 0xf) != 0 {
+                return false;
+            }
+
+            // send
+            self.write_reg(REG_I2C_SEND, data);
+            self.wait();
+
+            // stop
+            self.write_reg(REG_I2C_CONTROL, I2C_CONTROL_STOP);
+            self.wait();
+        }
+        true
+    }
+
+    pub fn read1(&self, dev_adr:u8) -> u8
+    {
+        unsafe {
+            // start
+            self.write_reg(REG_I2C_CONTROL, I2C_CONTROL_START);
+            self.wait();
+        
+            // send
+            self.write_reg(REG_I2C_SEND, dev_adr<<1|1);
+            self.wait();
+
+            if (self.read_reg(REG_I2C_STATUS) & 0xf) != 0 {
+                return 0;
+            }
+
+            // read
+            self.write_reg(REG_I2C_CONTROL, I2C_CONTROL_RECV);
+            self.wait();
+            let data = self.read_reg(REG_I2C_RECV);
+            
+            self.write_reg(REG_I2C_CONTROL, I2C_CONTROL_NAK);
+            self.wait();
+
+            data
+        }
+    }
 }
 

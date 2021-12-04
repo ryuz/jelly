@@ -26,7 +26,7 @@ protected:
     MemAccessor m_acc;
 
     void Wait(void) {
-        if ( 0 && m_uio.IsMapped() ) {
+        if ( m_uio.IsMapped() ) {
             m_uio.SetIrqEnable(true);
             m_uio.WaitIrq();
         }

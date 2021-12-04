@@ -1,7 +1,7 @@
 
 TARGET   = ultra96v2_mpu9250.out
 
-CFLAGS  += -g -O0 -I../../../../include
+CFLAGS  += -g -O3 -I../../../../include
 LDFLAGS += 
 
 OBJS = main.o
