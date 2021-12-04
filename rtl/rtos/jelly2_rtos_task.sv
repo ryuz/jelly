@@ -69,7 +69,6 @@ module jelly2_rtos_task
             
             input   wire    [TSKID_WIDTH-1:0]   run_tskid,
             input   wire    [TSKID_WIDTH-1:0]   op_tskid,
-
             input   wire    [TSKPRI_WIDTH-1:0]  chg_pri_tskpri,
             input   wire                        chg_pri_valid,
             input   wire                        wup_tsk_valid,
@@ -103,18 +102,17 @@ module jelly2_rtos_task
     logic                       set_tmo;
 
     assign op_valid  = (op_tskid  == TSKID);
-    assign run_valid = (run_tskid == TSKID);
-
-    assign chg_pri = chg_pri_valid & op_valid  & USE_CHG_PRI;
-    assign wup_tsk = wup_tsk_valid & op_valid  & USE_SLP_TSK;
-    assign slp_tsk = slp_tsk_valid & op_valid  & USE_SLP_TSK;
-    assign sus_tsk = sus_tsk_valid & op_valid  & USE_SUS_TSK;
-    assign rsm_tsk = rsm_tsk_valid & op_valid  & USE_SUS_TSK;
-    assign dly_tsk = dly_tsk_valid & op_valid  & USE_DLY_TSK;
-    assign rel_wai = rel_wai_valid & op_valid  & USE_REL_WAI;
-    assign wai_sem = wai_sem_valid & run_valid & USE_WAI_SEM; 
-    assign wai_flg = wai_flg_valid & run_valid & USE_WAI_FLG; 
-    assign set_tmo = set_tmo_valid & op_valid  & USE_SET_TMO;
+    
+    assign chg_pri = chg_pri_valid & op_valid & USE_CHG_PRI;
+    assign wup_tsk = wup_tsk_valid & op_valid & USE_SLP_TSK;
+    assign slp_tsk = slp_tsk_valid & op_valid & USE_SLP_TSK;
+    assign sus_tsk = sus_tsk_valid & op_valid & USE_SUS_TSK;
+    assign rsm_tsk = rsm_tsk_valid & op_valid & USE_SUS_TSK;
+    assign dly_tsk = dly_tsk_valid & op_valid & USE_DLY_TSK;
+    assign rel_wai = rel_wai_valid & op_valid & USE_REL_WAI;
+    assign wai_sem = wai_sem_valid & op_valid & USE_WAI_SEM; 
+    assign wai_flg = wai_flg_valid & op_valid & USE_WAI_FLG; 
+    assign set_tmo = set_tmo_valid & op_valid & USE_SET_TMO;
 
     typedef enum bit signed [ER_WIDTH-1:0] {
         E_OK    = 0,
