@@ -6,6 +6,7 @@ use pudding_pac::arm::cpu;
 type ID = i32;
 type PRI = i32;
 type ER = i32;
+type TMO = i32;
 
 pub const TSK_SELF: ID = 0;
 
@@ -191,6 +192,10 @@ pub fn sig_sem(semid: ID) {
     }
 }
 
+pub fn pol_sem(semid: ID) -> bool {
+    unsafe { read_reg(OPCODE_POL_SEM, semid as usize) != 0 }
+}
+
 pub fn wai_sem(semid: ID) {
     unsafe {
         let _sc = SystemCall::new();
@@ -198,9 +203,16 @@ pub fn wai_sem(semid: ID) {
     }
 }
 
-pub fn pol_sem(semid: ID) -> bool {
-    unsafe { read_reg(OPCODE_POL_SEM, semid as usize) != 0 }
+pub fn twai_sem(semid: ID, tmout: TMO) -> ER {
+    unsafe {
+        let _sc = SystemCall::new();
+        let tskid: usize = JELLY_RTOS_RUN_TSKID;
+        write_reg(OPCODE_WAI_SEM, semid as usize, 0);
+        write_reg(OPCODE_SET_TMO, tskid, tmout as u32);
+        read_reg(OPCODE_REF_ERR, tskid) as ER
+    }
 }
+
 
 
 pub fn ena_extflg(flgid: ID, flgptn: u32) {

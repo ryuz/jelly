@@ -203,6 +203,11 @@ module tb_sim();
     localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_SCRATCH2   = 'he2;
     localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_SCRATCH3   = 'he3;
 
+    localparam E_OK    = 0;
+    localparam E_OBJ   = -41;
+    localparam E_QOVR  = -43;
+    localparam E_RLWAI = -49;
+    localparam E_TMOUT = -50;
 
     function [WB_ADR_WIDTH-1:0] make_addr(bit [OPCODE_WIDTH-1:0] opcode, int id);
     begin
@@ -249,6 +254,20 @@ module tb_sim();
         end
     end
     endtask
+
+    task check_er_code(int taskid, int exp_er);
+    begin
+        wb_read(make_addr(OPCODE_REF_ERR, taskid));
+        if ( int'($signed(reg_wb_dat)) == exp_er ) begin
+            $display("[OK] tskid:%d er_code:%d (exp:%d)", taskid, int'($signed(reg_wb_dat)), exp_er);
+        end
+        else begin
+            $error("[!!!ERROR!!!] tskid:%d er_code:%d (exp:%d)", taskid, int'($signed(reg_wb_dat)), exp_er);
+            $stop();
+        end
+    end
+    endtask
+
 
     task check_top_taskid(int exp_tskid);
     begin
@@ -611,9 +630,9 @@ module tb_sim();
         swtich_and_check(1);
 
         $display("ER : task(1)");
-        wb_read(make_addr(OPCODE_REF_ERR, 1));
+        check_er_code(1, E_OK);
         $display("ER : task(2)");
-        wb_read(make_addr(OPCODE_REF_ERR, 2));
+        check_er_code(2, E_TMOUT);
 
         $display("slp_tsk(1)");
         wb_write(make_addr(OPCODE_SLP_TSK, 1), 0, 4'hf);

@@ -646,7 +646,7 @@ module jelly2_rtos
         OPCODE_REF_ERR:
             begin
                 if ( USE_REF_ERR && int'(dec_id) >= 1 && int'(dec_id) <= TMAX_TSKID ) begin
-                    s_wb_dat_o = WB_DAT_WIDTH'(task_er[dec_id]);
+                    s_wb_dat_o = WB_DAT_WIDTH'($signed(task_er[dec_id]));
                 end
             end
 
