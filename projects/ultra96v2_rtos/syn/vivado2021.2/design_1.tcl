@@ -192,7 +192,7 @@ proc create_root_design { parentCell } {
   # Create interface ports
   set m_axi4l [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:aximm_rtl:1.0 m_axi4l ]
   set_property -dict [ list \
-   CONFIG.ADDR_WIDTH {29} \
+   CONFIG.ADDR_WIDTH {32} \
    CONFIG.DATA_WIDTH {32} \
    CONFIG.HAS_BURST {0} \
    CONFIG.HAS_CACHE {0} \
@@ -204,16 +204,16 @@ proc create_root_design { parentCell } {
 
 
   # Create ports
+  set in_irq0 [ create_bd_port -dir I -from 0 -to 0 -type intr in_irq0 ]
+  set_property -dict [ list \
+   CONFIG.PortWidth {1} \
+ ] $in_irq0
   set m_axi4l_aclk [ create_bd_port -dir O -type clk m_axi4l_aclk ]
   set_property -dict [ list \
    CONFIG.ASSOCIATED_BUSIF {m_axi4l:s_axi4_mem0:s_axi4_mem1} \
    CONFIG.ASSOCIATED_RESET {m_axi4l_aresetn} \
  ] $m_axi4l_aclk
   set m_axi4l_aresetn [ create_bd_port -dir O -from 0 -to 0 -type rst m_axi4l_aresetn ]
-  set nfiq0_lpd_rpu [ create_bd_port -dir I nfiq0_lpd_rpu ]
-  set nfiq1_lpd_rpu [ create_bd_port -dir I nfiq1_lpd_rpu ]
-  set nirq0_lpd_rpu [ create_bd_port -dir I nirq0_lpd_rpu ]
-  set nirq1_lpd_rpu [ create_bd_port -dir I nirq1_lpd_rpu ]
 
   # Create instance: axi_protocol_convert_0, and set properties
   set axi_protocol_convert_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_protocol_converter:2.1 axi_protocol_convert_0 ]
@@ -988,10 +988,10 @@ txd#rxd#rxd#txd#scl_out#sda_out#sclk_out#gpio0[7]#gpio0[8]#n_ss_out[0]#miso#mosi
    CONFIG.PSU__CRL_APB__PCAP_CTRL__DIVISOR0 {8} \
    CONFIG.PSU__CRL_APB__PCAP_CTRL__FREQMHZ {200} \
    CONFIG.PSU__CRL_APB__PCAP_CTRL__SRCSEL {IOPLL} \
-   CONFIG.PSU__CRL_APB__PL0_REF_CTRL__ACT_FREQMHZ {250.000000} \
-   CONFIG.PSU__CRL_APB__PL0_REF_CTRL__DIVISOR0 {6} \
+   CONFIG.PSU__CRL_APB__PL0_REF_CTRL__ACT_FREQMHZ {300.000000} \
+   CONFIG.PSU__CRL_APB__PL0_REF_CTRL__DIVISOR0 {5} \
    CONFIG.PSU__CRL_APB__PL0_REF_CTRL__DIVISOR1 {1} \
-   CONFIG.PSU__CRL_APB__PL0_REF_CTRL__FREQMHZ {250} \
+   CONFIG.PSU__CRL_APB__PL0_REF_CTRL__FREQMHZ {300} \
    CONFIG.PSU__CRL_APB__PL0_REF_CTRL__SRCSEL {IOPLL} \
    CONFIG.PSU__CRL_APB__PL1_REF_CTRL__ACT_FREQMHZ {24.999975} \
    CONFIG.PSU__CRL_APB__PL1_REF_CTRL__DIVISOR0 {4} \
@@ -1744,13 +1744,13 @@ Port;FD4A0000;FD4AFFFF;1|FPD;DPDMA;FD4C0000;FD4CFFFF;1|FPD;DDR_XMPU5_CFG;FD05000
    CONFIG.PSU__USE__FTM {0} \
    CONFIG.PSU__USE__GDMA {0} \
    CONFIG.PSU__USE__IRQ {0} \
-   CONFIG.PSU__USE__IRQ0 {0} \
+   CONFIG.PSU__USE__IRQ0 {1} \
    CONFIG.PSU__USE__IRQ1 {0} \
    CONFIG.PSU__USE__M_AXI_GP0 {0} \
    CONFIG.PSU__USE__M_AXI_GP1 {0} \
    CONFIG.PSU__USE__M_AXI_GP2 {1} \
    CONFIG.PSU__USE__PROC_EVENT_BUS {0} \
-   CONFIG.PSU__USE__RPU_LEGACY_INTERRUPT {1} \
+   CONFIG.PSU__USE__RPU_LEGACY_INTERRUPT {0} \
    CONFIG.PSU__USE__RST0 {0} \
    CONFIG.PSU__USE__RST1 {0} \
    CONFIG.PSU__USE__RST2 {0} \
@@ -1798,10 +1798,7 @@ Port;FD4A0000;FD4AFFFF;1|FPD;DPDMA;FD4C0000;FD4CFFFF;1|FPD;DDR_XMPU5_CFG;FD05000
   connect_bd_intf_net -intf_net zynq_ultra_ps_e_0_M_AXI_HPM0_LPD [get_bd_intf_pins axi_protocol_convert_0/S_AXI] [get_bd_intf_pins zynq_ultra_ps_e_0/M_AXI_HPM0_LPD]
 
   # Create port connections
-  connect_bd_net -net nfiq0_lpd_rpu_0_1 [get_bd_ports nfiq0_lpd_rpu] [get_bd_pins zynq_ultra_ps_e_0/nfiq0_lpd_rpu]
-  connect_bd_net -net nfiq1_lpd_rpu_0_1 [get_bd_ports nfiq1_lpd_rpu] [get_bd_pins zynq_ultra_ps_e_0/nfiq1_lpd_rpu]
-  connect_bd_net -net nirq0_lpd_rpu_0_1 [get_bd_ports nirq0_lpd_rpu] [get_bd_pins zynq_ultra_ps_e_0/nirq0_lpd_rpu]
-  connect_bd_net -net nirq1_lpd_rpu_0_1 [get_bd_ports nirq1_lpd_rpu] [get_bd_pins zynq_ultra_ps_e_0/nirq1_lpd_rpu]
+  connect_bd_net -net pl_ps_irq0_0_1 [get_bd_ports in_irq0] [get_bd_pins zynq_ultra_ps_e_0/pl_ps_irq0]
   connect_bd_net -net proc_sys_reset_0_interconnect_aresetn [get_bd_pins axi_protocol_convert_0/aresetn] [get_bd_pins proc_sys_reset_0/interconnect_aresetn]
   connect_bd_net -net proc_sys_reset_0_peripheral_aresetn [get_bd_ports m_axi4l_aresetn] [get_bd_pins proc_sys_reset_0/peripheral_aresetn]
   connect_bd_net -net zynq_ultra_ps_e_0_pl_clk0 [get_bd_ports m_axi4l_aclk] [get_bd_pins axi_protocol_convert_0/aclk] [get_bd_pins proc_sys_reset_0/slowest_sync_clk] [get_bd_pins zynq_ultra_ps_e_0/maxihpm0_lpd_aclk] [get_bd_pins zynq_ultra_ps_e_0/pl_clk0]
