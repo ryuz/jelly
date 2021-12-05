@@ -104,7 +104,8 @@ impl JellyI2c {
             // send
             self.write_reg(REG_I2C_SEND, dev_adr<<1|1);
             self.wait();
-
+            
+            let last = buf.len() - 1;
             for c in buf.iter_mut() {
                 if (self.read_reg(REG_I2C_STATUS) & 0xf) != 0 {
                     break;
@@ -115,7 +116,7 @@ impl JellyI2c {
                 self.wait();
                 *c = self.read_reg(REG_I2C_RECV);
                 
-                self.write_reg(REG_I2C_CONTROL, I2C_CONTROL_NAK);
+                self.write_reg(REG_I2C_CONTROL, if len == last {I2C_CONTROL_NAK} else {I2C_CONTROL_ACK});
                 self.wait();
 
                 len += 1;
