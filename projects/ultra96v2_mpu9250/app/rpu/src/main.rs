@@ -34,12 +34,26 @@ static mut STACK5: [u8; 4096] = [0; 4096];
 #[no_mangle]
 pub unsafe extern "C" fn main() -> ! {
     wait(10000000);
-    println!("\nJelly-RTOS start");
+    println!("\nJelly-RTOS start\n");
     wait(10000);
 
-    memdump(0x80000000, 16);
+//  memdump(0x80000000, 16);
 
     rtos::initialize(0x80000000);
+
+    println!("core_id      : {:08x}", rtos::core_id     ());
+    println!("core_version : {:08x}", rtos::core_version());
+    println!("core_date    : {:08x}", rtos::core_date   ());
+    println!("clock_rate   : {}", rtos::clock_rate  ());
+    println!("max_tskid    : {}", rtos::max_tskid   ());
+    println!("max_semid    : {}", rtos::max_semid   ());
+    println!("max_flgid    : {}", rtos::max_flgid   ());
+    println!("tskpri_width : {}", rtos::tskpri_width());
+    println!("semcnt_width : {}", rtos::semcnt_width());
+    println!("flgptn_width : {}", rtos::flgptn_width());
+    println!("systim_width : {}", rtos::systim_width());
+    println!("reltim_width : {}", rtos::reltim_width());
+    
 
     // タスクスタート
     rtos::cre_tsk(1, &mut STACK1, task1);

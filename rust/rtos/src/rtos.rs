@@ -47,6 +47,7 @@ const SYS_CFG_DATE: usize = 0x04;
 const SYS_CFG_CLOCK_RATE: usize = 0x07;
 const SYS_CFG_TMAX_TSKID: usize = 0x20;
 const SYS_CFG_TMAX_SEMID: usize = 0x21;
+const SYS_CFG_TMAX_FLGID: usize = 0x22;
 const SYS_CFG_TSKPRI_WIDTH: usize = 0x30;
 const SYS_CFG_SEMCNT_WIDTH: usize = 0x31;
 const SYS_CFG_FLGPTN_WIDTH: usize = 0x32;
@@ -268,5 +269,54 @@ pub fn set_scratch(id : usize, data: u32) {
         _ => {},
         }
     }
+}
+
+
+pub fn core_id() -> u32 {
+    unsafe { read_reg(OPCODE_SYS_CFG, SYS_CFG_CORE_ID) as u32 }
+}
+
+pub fn core_version() -> u32 {
+    unsafe { read_reg(OPCODE_SYS_CFG, SYS_CFG_VERSION) as u32 }
+}
+
+pub fn core_date() -> u32 {
+    unsafe { read_reg(OPCODE_SYS_CFG, SYS_CFG_DATE) as u32 }
+}
+
+pub fn clock_rate() -> u32 {
+    unsafe { read_reg(OPCODE_SYS_CFG, SYS_CFG_CLOCK_RATE) as u32 }
+}
+
+pub fn max_tskid() -> u32 {
+    unsafe { read_reg(OPCODE_SYS_CFG, SYS_CFG_TMAX_TSKID) as u32 }
+}
+
+pub fn max_semid() -> u32 {
+    unsafe { read_reg(OPCODE_SYS_CFG, SYS_CFG_TMAX_SEMID) as u32 }
+}
+
+pub fn max_flgid() -> u32 {
+    unsafe { read_reg(OPCODE_SYS_CFG, SYS_CFG_TMAX_FLGID) as u32 }
+}
+
+pub fn tskpri_width() -> u32 {
+    unsafe { read_reg(OPCODE_SYS_CFG, SYS_CFG_TSKPRI_WIDTH) as u32 }
+}
+
+pub fn semcnt_width() -> u32 {
+    unsafe { read_reg(OPCODE_SYS_CFG, SYS_CFG_SEMCNT_WIDTH) as u32 }
+}
+
+pub fn flgptn_width() -> u32 {
+    unsafe { read_reg(OPCODE_SYS_CFG, SYS_CFG_FLGPTN_WIDTH) as u32 }
+}
+
+pub fn systim_width() -> u32 {
+    unsafe { read_reg(OPCODE_SYS_CFG, SYS_CFG_SYSTIM_WIDTH) as u32 }
+}
+
+pub fn reltim_width() -> u32 {
+    unsafe { read_reg(OPCODE_SYS_CFG, SYS_CFG_RELTIM_WIDTH) as u32 }
 }
 
