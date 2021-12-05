@@ -554,6 +554,33 @@ module tb_sim();
         swtich_task();
         check_top_taskid(0);
 
+    #200;
+        $display("[%d] --- MAX_ID --- ", ++test_num);
+
+        for ( int i = 5; i >= 1; --i) begin
+            $display("wup_tsk(%d)", i);
+            wb_write(make_addr(OPCODE_WUP_TSK, i), 0, 4'hf);
+            swtich_and_check(i);
+        end
+
+        for ( int i = 1; i <= 5; ++i) begin
+            $display("wai_sem(%d)", i);
+            wb_write(make_addr(OPCODE_WAI_SEM, i), 0, 4'hf);
+            swtich_and_check(i <= 4 ? i+1 : 0);
+        end
+
+        for ( int i = 5; i >= 1; --i) begin
+            $display("sig_sem(%d)", i);
+            wb_write(make_addr(OPCODE_SIG_SEM, i), 0, 4'hf);
+            swtich_and_check(i);
+        end
+
+        for ( int i = 1; i <= 5; ++i) begin
+            $display("slp_tsk(%d)", i);
+            wb_write(make_addr(OPCODE_SLP_TSK, i), 0, 4'hf);
+            swtich_and_check(i <= 4 ? i+1 : 0);
+        end
+
     #100;
         ++test_num;
         $display(" --- soft reset --- ");
