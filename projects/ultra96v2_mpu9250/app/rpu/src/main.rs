@@ -106,8 +106,8 @@ extern "C" fn task1() -> ! {
         println!("gyro0       : {}", gyro0      );
         println!("gyro1       : {}", gyro1      );
         println!("gyro2       : {}", gyro2      );
-        println!("temperature : {}", temperature);
-        
+        println!("temperature : {}\n", temperature);
+
         rtos::dly_tsk(1000000);
     }
 

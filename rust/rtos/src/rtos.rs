@@ -198,8 +198,8 @@ pub fn wai_sem(semid: ID) {
     }
 }
 
-pub fn pol_sem(semid: ID) -> bool {
-    unsafe { read_reg(OPCODE_POL_SEM, semid as usize) != 0 }
+pub fn pol_sem(semid: ID) -> ER {
+    unsafe { if read_reg(OPCODE_POL_SEM, semid as usize) != 0 { E_OK } else { E_TMOUT }  }
 }
 
 
