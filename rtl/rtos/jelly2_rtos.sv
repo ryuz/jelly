@@ -328,6 +328,7 @@ module jelly2_rtos
     localparam  bit     [ID_WIDTH-1:0]      SYS_CFG_CLOCK_RATE   = 'h07;
     localparam  bit     [ID_WIDTH-1:0]      SYS_CFG_TMAX_TSKID   = 'h20;
     localparam  bit     [ID_WIDTH-1:0]      SYS_CFG_TMAX_SEMID   = 'h21;
+    localparam  bit     [ID_WIDTH-1:0]      SYS_CFG_TMAX_FLGID   = 'h22;
     localparam  bit     [ID_WIDTH-1:0]      SYS_CFG_TSKPRI_WIDTH = 'h30;
     localparam  bit     [ID_WIDTH-1:0]      SYS_CFG_SEMCNT_WIDTH = 'h31;
     localparam  bit     [ID_WIDTH-1:0]      SYS_CFG_FLGPTN_WIDTH = 'h32;
@@ -580,6 +581,7 @@ module jelly2_rtos
             SYS_CFG_CLOCK_RATE:     s_wb_dat_o = WB_DAT_WIDTH'(CLOCK_RATE);
             SYS_CFG_TMAX_TSKID:     s_wb_dat_o = WB_DAT_WIDTH'(TMAX_TSKID);
             SYS_CFG_TMAX_SEMID:     s_wb_dat_o = WB_DAT_WIDTH'(TMAX_SEMID);
+            SYS_CFG_TMAX_FLGID:     s_wb_dat_o = WB_DAT_WIDTH'(TMAX_FLGID);
             SYS_CFG_TSKPRI_WIDTH:   s_wb_dat_o = WB_DAT_WIDTH'(TSKPRI_WIDTH);
             SYS_CFG_SEMCNT_WIDTH:   s_wb_dat_o = WB_DAT_WIDTH'(SEMCNT_WIDTH);
             SYS_CFG_FLGPTN_WIDTH:   s_wb_dat_o = WB_DAT_WIDTH'(FLGPTN_WIDTH);
