@@ -88,8 +88,8 @@ module jelly2_rtos_task
         );
 
 
-    logic                       op_valid;
     logic                       run_valid;
+    logic                       op_valid;
 
     logic                       chg_pri;
     logic                       wup_tsk;
@@ -102,6 +102,7 @@ module jelly2_rtos_task
     logic                       wai_flg;
     logic                       set_tmo;
 
+    assign run_valid = (run_tskid  == TSKID);
     assign op_valid  = (op_tskid  == TSKID);
 
     assign chg_pri = chg_pri_valid & op_valid & USE_CHG_PRI;
