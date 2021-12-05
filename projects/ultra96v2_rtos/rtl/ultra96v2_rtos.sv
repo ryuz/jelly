@@ -150,9 +150,9 @@ module ultra96v2_rtos
     //  RTOS
     // -----------------------------
 
-    localparam  int                     TMAX_TSKID         = 15;
-    localparam  int                     TMAX_SEMID         = 7;
-    localparam  int                     TMAX_FLGID         = 2;
+    localparam  int                     TMAX_TSKID         = 5;
+    localparam  int                     TMAX_SEMID         = 5;
+    localparam  int                     TMAX_FLGID         = 1;
     localparam  int                     TSKPRI_WIDTH       = 4;
     localparam  int                     WUPCNT_WIDTH       = 1;
     localparam  int                     SUSCNT_WIDTH       = 1;

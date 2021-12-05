@@ -389,7 +389,7 @@ module jelly2_rtos_core
     always_comb begin : blk_rdq_rmv
         rdq_rmv_tskid  = '0;
         rdq_rmv_valid  = 1'b0;
-        for ( int tskid = 1; tskid < TMAX_TSKID; ++tskid ) begin
+        for ( int tskid = 1; tskid <= TMAX_TSKID; ++tskid ) begin
             if ( task_rdq_rmv[tskid] ) begin
                 rdq_rmv_tskid = TSKID_WIDTH'(tskid);
                 rdq_rmv_valid = 1'b1;
@@ -422,7 +422,7 @@ module jelly2_rtos_core
 
         task_rel_tsk = '0;
 
-        for ( int semid = 1; semid < TMAX_SEMID; ++semid ) begin
+        for ( int semid = 1; semid <= TMAX_SEMID; ++semid ) begin
             wakeup_tskid |= semaphore_wakeup_tskid[semid];
             wakeup_valid |= semaphore_wakeup_valid[semid];
         end
