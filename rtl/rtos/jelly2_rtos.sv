@@ -607,18 +607,72 @@ module jelly2_rtos
         
         OPCODE_POL_SEM:     s_wb_dat_o = USE_POL_SEM     ? WB_DAT_WIDTH'(pol_sem_ack)      : '0;
         OPCODE_GET_PRI:     s_wb_dat_o = USE_GET_PRI     ? WB_DAT_WIDTH'(task_tskpri)      : '0;
-        OPCODE_REF_TSKSTAT: s_wb_dat_o = USE_REF_TSKSTAT ? WB_DAT_WIDTH'(task_tskstat)     : '0;
-        OPCODE_REF_TSKWAIT: s_wb_dat_o = USE_REF_TSKWAIT ? WB_DAT_WIDTH'(task_tskwait)     : '0;
-        OPCODE_REF_WUPCNT:  s_wb_dat_o = USE_REF_WUPCNT  ? WB_DAT_WIDTH'(task_wupcnt)      : '0;
-        OPCODE_REF_SUSCNT:  s_wb_dat_o = USE_REF_SUSCNT  ? WB_DAT_WIDTH'(task_suscnt)      : '0;
-        OPCODE_REF_TIMCNT:  s_wb_dat_o = USE_REF_TIMCNT  ? WB_DAT_WIDTH'(task_timcnt)      : '0;
-        OPCODE_REF_ERR:     s_wb_dat_o = USE_REF_ERR     ? WB_DAT_WIDTH'(task_er)          : '0;
-        OPCODE_REF_SEMCNT:  s_wb_dat_o = USE_REF_SEMCNT  ? WB_DAT_WIDTH'(semaphore_semcnt) : '0;
-        OPCODE_REF_SEMQUE:  s_wb_dat_o = USE_REF_SEMQUE  ? WB_DAT_WIDTH'(semaphore_quecnt) : '0;
-        OPCODE_REF_FLGPTN:  s_wb_dat_o = USE_REF_FLGPTN  ? WB_DAT_WIDTH'(flg_flgptn)       : '0;
 
-        OPCODE_SYSTIM_LO:   s_wb_dat_o = USE_GET_TIM     ? WB_DAT_WIDTH'(reg_systim)                 : '0;
-        OPCODE_SYSTIM_HI:   s_wb_dat_o = USE_GET_TIM     ? WB_DAT_WIDTH'(reg_systim >> WB_DAT_WIDTH) : '0;
+        OPCODE_REF_TSKSTAT:
+            begin
+                if ( USE_REF_TSKSTAT && int'(dec_id) >= 1 && int'(dec_id) <= TMAX_TSKID ) begin
+                    s_wb_dat_o = WB_DAT_WIDTH'(task_tskstat[dec_id]);
+                end
+            end
+        
+        OPCODE_REF_TSKWAIT:
+            begin
+                if ( USE_REF_TSKWAIT && int'(dec_id) >= 1 && int'(dec_id) <= TMAX_TSKID ) begin
+                    s_wb_dat_o = WB_DAT_WIDTH'(task_tskwait[dec_id]);
+                end
+            end
+
+        OPCODE_REF_WUPCNT:
+            begin
+                if ( USE_REF_WUPCNT && int'(dec_id) >= 1 && int'(dec_id) <= TMAX_TSKID ) begin
+                    s_wb_dat_o = WB_DAT_WIDTH'(task_wupcnt[dec_id]);
+                end
+            end
+
+        OPCODE_REF_SUSCNT:
+            begin
+                if ( USE_REF_SUSCNT && int'(dec_id) >= 1 && int'(dec_id) <= TMAX_TSKID ) begin
+                    s_wb_dat_o = WB_DAT_WIDTH'(task_suscnt[dec_id]);
+                end
+            end
+
+        OPCODE_REF_TIMCNT:
+            begin
+                if ( USE_REF_TIMCNT && int'(dec_id) >= 1 && int'(dec_id) <= TMAX_TSKID ) begin
+                    s_wb_dat_o = WB_DAT_WIDTH'(task_timcnt[dec_id]);
+                end
+            end
+
+        OPCODE_REF_ERR:
+            begin
+                if ( USE_REF_ERR && int'(dec_id) >= 1 && int'(dec_id) <= TMAX_TSKID ) begin
+                    s_wb_dat_o = WB_DAT_WIDTH'(task_er[dec_id]);
+                end
+            end
+
+        OPCODE_REF_SEMCNT:
+            begin
+                if ( USE_REF_SEMCNT && int'(dec_id) >= 1 && int'(dec_id) <= TMAX_SEMID ) begin
+                    s_wb_dat_o = WB_DAT_WIDTH'(semaphore_semcnt[dec_id]);
+                end
+            end
+
+        OPCODE_REF_SEMQUE:
+            begin
+                if ( USE_REF_SEMQUE && int'(dec_id) >= 1 && int'(dec_id) <= TMAX_SEMID ) begin
+                    s_wb_dat_o = WB_DAT_WIDTH'(semaphore_quecnt[dec_id]);
+                end
+            end
+
+        OPCODE_REF_FLGPTN:
+            begin
+                if ( USE_REF_FLGPTN && int'(dec_id) >= 1 && int'(dec_id) <= TMAX_FLGID ) begin
+                    s_wb_dat_o = WB_DAT_WIDTH'(flg_flgptn[dec_id]);
+                end
+            end
+
+        OPCODE_SYSTIM_LO:   s_wb_dat_o = USE_GET_TIM ? WB_DAT_WIDTH'(reg_systim)                 : '0;
+        OPCODE_SYSTIM_HI:   s_wb_dat_o = USE_GET_TIM ? WB_DAT_WIDTH'(reg_systim >> WB_DAT_WIDTH) : '0;
 
         default: ;
         endcase
