@@ -14,98 +14,99 @@
 
 module jelly_rtos_axi4l
         #(
-            parameter                           AXI4L_ADDR_WIDTH   = 29,
-            parameter                           AXI4L_DATA_WIDTH   = 32,
-            parameter                           AXI4L_STRB_WIDTH   = AXI4L_DATA_WIDTH / 8,
-            parameter                           TMAX_TSKID         = 15,
-            parameter                           TMAX_SEMID         = 7,
-            parameter                           TSKPRI_WIDTH       = 4,
-            parameter                           WUPCNT_WIDTH       = 1,
-            parameter                           SUSCNT_WIDTH       = 1,
-            parameter                           SEMCNT_WIDTH       = 4,
-            parameter                           FLGPTN_WIDTH       = 32,
-            parameter                           PRESCL_WIDTH       = 32,
-            parameter                           SYSTIM_WIDTH       = 64,
-            parameter                           RELTIM_WIDTH       = 32,
-            parameter                           ER_WIDTH           = 8,
-            parameter                           TTS_WIDTH          = 4,
-            parameter                           TTW_WIDTH          = 4,
-            parameter   [WUPCNT_WIDTH-1:0]      TMAX_WUPCNT        = {WUPCNT_WIDTH{1'b1}},
-            parameter   [SUSCNT_WIDTH-1:0]      TMAX_SUSCNT        = {SUSCNT_WIDTH{1'b1}},
-            parameter                           QUECNT_WIDTH       = $clog2(TMAX_TSKID),
-            parameter                           TSKID_WIDTH        = $clog2(TMAX_TSKID+1),
-            parameter                           SEMID_WIDTH        = $clog2(TMAX_SEMID+1),
-            parameter                           CLOCK_RATE         = 100000000,
-            parameter                           SCRATCH0_WIDTH     = AXI4L_DATA_WIDTH,
-            parameter                           SCRATCH1_WIDTH     = AXI4L_DATA_WIDTH,
-            parameter                           SCRATCH2_WIDTH     = AXI4L_DATA_WIDTH,
-            parameter                           SCRATCH3_WIDTH     = AXI4L_DATA_WIDTH,
-            parameter                           USE_CHG_PRI        = 1,
-            parameter                           USE_SLP_TSK        = 1,
-            parameter                           USE_SUS_TSK        = 1,
-            parameter                           USE_DLY_TSK        = 1,
-            parameter                           USE_REL_WAI        = 1,
-            parameter                           USE_SET_TMO        = 1,
-            parameter                           USE_SIG_SEM        = 1,
-            parameter                           USE_WAI_SEM        = 1,
-            parameter                           USE_POL_SEM        = 1,
-            parameter                           USE_SET_FLG        = 1,
-            parameter                           USE_CLR_FLG        = 1,
-            parameter                           USE_WAI_FLG        = 1,
-            parameter                           USE_EXT_FLG        = 1,
-            parameter                           USE_GET_PRI        = 1,
-            parameter                           USE_SET_PSCL       = 1,
-            parameter                           USE_SET_TIM        = 1,
-            parameter                           USE_GET_TIM        = 1,
-            parameter                           USE_REF_TSKSTAT    = 1,
-            parameter                           USE_REF_TSKWAIT    = 1,
-            parameter                           USE_REF_WUPCNT     = 1,
-            parameter                           USE_REF_SUSCNT     = 1,
-            parameter                           USE_REF_TIMCNT     = 1,
-            parameter                           USE_REF_ERR        = 1,
-            parameter                           USE_REF_SEMCNT     = 1,
-            parameter                           USE_REF_SEMQUE     = 1,
-            parameter                           USE_REF_FLGPTN     = 1,
-            parameter                           USE_SCRATCH0       = 1,
-            parameter                           USE_SCRATCH1       = 1,
-            parameter                           USE_SCRATCH2       = 1,
-            parameter                           USE_SCRATCH3       = 1,
-            parameter   [FLGPTN_WIDTH-1:0]      INIT_FLGPTN        = 0,
-            parameter   [FLGPTN_WIDTH-1:0]      INIT_EXTFLG_ENABLE = 0,
-            parameter   [PRESCL_WIDTH-1:0]      INIT_PRESCL        = 0,
-            parameter   [SYSTIM_WIDTH-1:0]      INIT_SYSTIM        = 0,
-            parameter   [SCRATCH0_WIDTH-1:0]    INIT_SCRATCH0      = 0,
-            parameter   [SCRATCH1_WIDTH-1:0]    INIT_SCRATCH1      = 0,
-            parameter   [SCRATCH2_WIDTH-1:0]    INIT_SCRATCH2      = 0,
-            parameter   [SCRATCH3_WIDTH-1:0]    INIT_SCRATCH3      = 0
+            parameter                                   AXI4L_ADDR_WIDTH   = 29,
+            parameter                                   AXI4L_DATA_WIDTH   = 32,
+            parameter                                   AXI4L_STRB_WIDTH   = AXI4L_DATA_WIDTH / 8,
+            parameter                                   TMAX_TSKID         = 15,
+            parameter                                   TMAX_SEMID         = 7,
+            parameter                                   TMAX_FLGID         = 1,
+            parameter                                   TSKPRI_WIDTH       = 4,
+            parameter                                   WUPCNT_WIDTH       = 1,
+            parameter                                   SUSCNT_WIDTH       = 1,
+            parameter                                   SEMCNT_WIDTH       = 4,
+            parameter                                   FLGPTN_WIDTH       = 32,
+            parameter                                   PRESCL_WIDTH       = 32,
+            parameter                                   SYSTIM_WIDTH       = 64,
+            parameter                                   RELTIM_WIDTH       = 32,
+            parameter                                   ER_WIDTH           = 8,
+            parameter                                   TTS_WIDTH          = 4,
+            parameter                                   TTW_WIDTH          = 4,
+            parameter   [WUPCNT_WIDTH-1:0]              TMAX_WUPCNT        = {WUPCNT_WIDTH{1'b1}},
+            parameter   [SUSCNT_WIDTH-1:0]              TMAX_SUSCNT        = {SUSCNT_WIDTH{1'b1}},
+            parameter                                   QUECNT_WIDTH       = $clog2(TMAX_TSKID),
+            parameter                                   TSKID_WIDTH        = $clog2(TMAX_TSKID+1),
+            parameter                                   SEMID_WIDTH        = $clog2(TMAX_SEMID+1),
+            parameter                                   CLOCK_RATE         = 100000000,
+            parameter                                   SCRATCH0_WIDTH     = AXI4L_DATA_WIDTH,
+            parameter                                   SCRATCH1_WIDTH     = AXI4L_DATA_WIDTH,
+            parameter                                   SCRATCH2_WIDTH     = AXI4L_DATA_WIDTH,
+            parameter                                   SCRATCH3_WIDTH     = AXI4L_DATA_WIDTH,
+            parameter                                   USE_CHG_PRI        = 1,
+            parameter                                   USE_SLP_TSK        = 1,
+            parameter                                   USE_SUS_TSK        = 1,
+            parameter                                   USE_DLY_TSK        = 1,
+            parameter                                   USE_REL_WAI        = 1,
+            parameter                                   USE_SET_TMO        = 1,
+            parameter                                   USE_SIG_SEM        = 1,
+            parameter                                   USE_WAI_SEM        = 1,
+            parameter                                   USE_POL_SEM        = 1,
+            parameter                                   USE_SET_FLG        = 1,
+            parameter                                   USE_CLR_FLG        = 1,
+            parameter                                   USE_WAI_FLG        = 1,
+            parameter                                   USE_EXT_FLG        = 1,
+            parameter                                   USE_GET_PRI        = 1,
+            parameter                                   USE_SET_PSCL       = 1,
+            parameter                                   USE_SET_TIM        = 1,
+            parameter                                   USE_GET_TIM        = 1,
+            parameter                                   USE_REF_TSKSTAT    = 1,
+            parameter                                   USE_REF_TSKWAIT    = 1,
+            parameter                                   USE_REF_WUPCNT     = 1,
+            parameter                                   USE_REF_SUSCNT     = 1,
+            parameter                                   USE_REF_TIMCNT     = 1,
+            parameter                                   USE_REF_ERR        = 1,
+            parameter                                   USE_REF_SEMCNT     = 1,
+            parameter                                   USE_REF_SEMQUE     = 1,
+            parameter                                   USE_REF_FLGPTN     = 1,
+            parameter                                   USE_SCRATCH0       = 1,
+            parameter                                   USE_SCRATCH1       = 1,
+            parameter                                   USE_SCRATCH2       = 1,
+            parameter                                   USE_SCRATCH3       = 1,
+            parameter   [TMAX_FLGID*FLGPTN_WIDTH-1:0]   INIT_FLGPTN        = 0,
+            parameter   [TMAX_FLGID*FLGPTN_WIDTH-1:0]   INIT_EXTFLG_ENABLE = 0,
+            parameter   [PRESCL_WIDTH-1:0]              INIT_PRESCL        = 0,
+            parameter   [SYSTIM_WIDTH-1:0]              INIT_SYSTIM        = 0,
+            parameter   [SCRATCH0_WIDTH-1:0]            INIT_SCRATCH0      = 0,
+            parameter   [SCRATCH1_WIDTH-1:0]            INIT_SCRATCH1      = 0,
+            parameter   [SCRATCH2_WIDTH-1:0]            INIT_SCRATCH2      = 0,
+            parameter   [SCRATCH3_WIDTH-1:0]            INIT_SCRATCH3      = 0
         )
         (
-            input   wire                            aresetn,
-            input   wire                            aclk,
+            input   wire                                    aresetn,
+            input   wire                                    aclk,
 
-            input   wire    [AXI4L_ADDR_WIDTH-1:0]  s_axi4l_awaddr,
-            input   wire    [2:0]                   s_axi4l_awprot,
-            input   wire                            s_axi4l_awvalid,
-            output  wire                            s_axi4l_awready,
-            input   wire    [AXI4L_DATA_WIDTH-1:0]  s_axi4l_wdata,
-            input   wire    [AXI4L_STRB_WIDTH-1:0]  s_axi4l_wstrb,
-            input   wire                            s_axi4l_wvalid,
-            output  wire                            s_axi4l_wready,
-            output  wire    [1:0]                   s_axi4l_bresp,
-            output  wire                            s_axi4l_bvalid,
-            input   wire                            s_axi4l_bready,
-            input   wire    [AXI4L_ADDR_WIDTH-1:0]  s_axi4l_araddr,
-            input   wire    [2:0]                   s_axi4l_arprot,
-            input   wire                            s_axi4l_arvalid,
-            output  wire                            s_axi4l_arready,
-            output  wire    [AXI4L_DATA_WIDTH-1:0]  s_axi4l_rdata,
-            output  wire    [1:0]                   s_axi4l_rresp,
-            output  wire                            s_axi4l_rvalid,
-            input   wire                            s_axi4l_rready,
+            input   wire    [AXI4L_ADDR_WIDTH-1:0]          s_axi4l_awaddr,
+            input   wire    [2:0]                           s_axi4l_awprot,
+            input   wire                                    s_axi4l_awvalid,
+            output  wire                                    s_axi4l_awready,
+            input   wire    [AXI4L_DATA_WIDTH-1:0]          s_axi4l_wdata,
+            input   wire    [AXI4L_STRB_WIDTH-1:0]          s_axi4l_wstrb,
+            input   wire                                    s_axi4l_wvalid,
+            output  wire                                    s_axi4l_wready,
+            output  wire    [1:0]                           s_axi4l_bresp,
+            output  wire                                    s_axi4l_bvalid,
+            input   wire                                    s_axi4l_bready,
+            input   wire    [AXI4L_ADDR_WIDTH-1:0]          s_axi4l_araddr,
+            input   wire    [2:0]                           s_axi4l_arprot,
+            input   wire                                    s_axi4l_arvalid,
+            output  wire                                    s_axi4l_arready,
+            output  wire    [AXI4L_DATA_WIDTH-1:0]          s_axi4l_rdata,
+            output  wire    [1:0]                           s_axi4l_rresp,
+            output  wire                                    s_axi4l_rvalid,
+            input   wire                                    s_axi4l_rready,
             
-            output  wire    [0:0]                   irq,
+            output  wire    [0:0]                           irq,
 
-            input   wire    [FLGPTN_WIDTH-1:0]      set_flg
+            input   wire    [TMAX_FLGID*FLGPTN_WIDTH-1:0]   set_flg
         );
     
     
@@ -113,7 +114,7 @@ module jelly_rtos_axi4l
     //  WISHBONE
     // -----------------------------
     
-    localparam  AXI4L_DATA_SIZE = $clog2(AXI4L_DATA_WIDTH);
+    localparam  AXI4L_DATA_SIZE = $clog2(AXI4L_DATA_WIDTH / 8);
 
     localparam  WB_DAT_SIZE  = AXI4L_DATA_SIZE;
     localparam  WB_ADR_WIDTH = AXI4L_ADDR_WIDTH - WB_DAT_SIZE;
@@ -176,15 +177,16 @@ module jelly_rtos_axi4l
     //  RTOS
     // -----------------------------
     
-    wire    [TSKID_WIDTH-1:0]                   monitor_run_tskid;
     wire    [TSKID_WIDTH-1:0]                   monitor_top_tskid;
+    wire    [TSKID_WIDTH-1:0]                   monitor_run_tskid;
+    wire    [TSKPRI_WIDTH-1:0]                  monitor_run_tskpri;
     wire    [TMAX_TSKID*TTS_WIDTH-1:0]          monitor_tsk_tskstat;
     wire    [TMAX_TSKID*TTW_WIDTH-1:0]          monitor_tsk_tskwait;
     wire    [TMAX_TSKID*WUPCNT_WIDTH-1:0]       monitor_tsk_wupcnt;
     wire    [TMAX_TSKID*SUSCNT_WIDTH-1:0]       monitor_tsk_suscnt;
     wire    [TMAX_SEMID*QUECNT_WIDTH-1:0]       monitor_sem_quecnt;
     wire    [TMAX_SEMID*SEMCNT_WIDTH-1:0]       monitor_sem_semcnt;
-    wire    [FLGPTN_WIDTH-1:0]                  monitor_flg_flgptn;
+    wire    [TMAX_FLGID*FLGPTN_WIDTH-1:0]       monitor_flg_flgptn;
     wire    [WB_DAT_WIDTH-1:0]                  monitor_scratch0;
     wire    [WB_DAT_WIDTH-1:0]                  monitor_scratch1;
     wire    [WB_DAT_WIDTH-1:0]                  monitor_scratch2;
@@ -192,8 +194,11 @@ module jelly_rtos_axi4l
 
     jelly2_rtos
             #(
+                .WB_ADR_WIDTH           (WB_ADR_WIDTH),
+                .WB_DAT_WIDTH           (WB_DAT_WIDTH),
                 .TMAX_TSKID             (TMAX_TSKID),
                 .TMAX_SEMID             (TMAX_SEMID),
+                .TMAX_FLGID             (TMAX_FLGID),
                 .TSKPRI_WIDTH           (TSKPRI_WIDTH),
                 .WUPCNT_WIDTH           (WUPCNT_WIDTH),
                 .SUSCNT_WIDTH           (SUSCNT_WIDTH),
@@ -269,8 +274,9 @@ module jelly_rtos_axi4l
 
                 .ext_set_flg            (set_flg),
                 
-                .monitor_run_tskid      (monitor_run_tskid), 
                 .monitor_top_tskid      (monitor_top_tskid), 
+                .monitor_run_tskid      (monitor_run_tskid),
+                .monitor_run_tskpri     (monitor_run_tskpri),
                 .monitor_tsk_tskstat    (monitor_tsk_tskstat),
                 .monitor_tsk_tskwait    (monitor_tsk_tskwait),
                 .monitor_tsk_wupcnt     (monitor_tsk_wupcnt),

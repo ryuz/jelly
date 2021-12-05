@@ -13,73 +13,74 @@
 
 module jelly2_rtos
         #(
-            parameter   int                             WB_ADR_WIDTH       = 16,
-            parameter   int                             WB_DAT_WIDTH       = 32,
-            parameter   int                             WB_SEL_WIDTH       = WB_DAT_WIDTH/8,
+            parameter   int                                         WB_ADR_WIDTH       = 16,
+            parameter   int                                         WB_DAT_WIDTH       = 32,
+            parameter   int                                         WB_SEL_WIDTH       = WB_DAT_WIDTH/8,
 
-            parameter   int                             TMAX_TSKID         = 15,
-            parameter   int                             TMAX_SEMID         = 7,
-            parameter   int                             TSKPRI_WIDTH       = 4,
-            parameter   int                             WUPCNT_WIDTH       = 1,
-            parameter   int                             SUSCNT_WIDTH       = 1,
-            parameter   int                             SEMCNT_WIDTH       = 4,
-            parameter   int                             FLGPTN_WIDTH       = 32,
-            parameter   int                             PRESCL_WIDTH       = 32,
-            parameter   int                             SYSTIM_WIDTH       = 64,
-            parameter   int                             RELTIM_WIDTH       = 32,
-            parameter   int                             ER_WIDTH           = 8,
-            parameter   int                             TTS_WIDTH          = 4,
-            parameter   int                             TTW_WIDTH          = 4,
-            parameter   bit     [WUPCNT_WIDTH-1:0]      TMAX_WUPCNT        = '1,
-            parameter   bit     [SUSCNT_WIDTH-1:0]      TMAX_SUSCNT        = '1,
-            parameter   int                             QUECNT_WIDTH       = $clog2(TMAX_TSKID),
-            parameter   int                             TSKID_WIDTH        = $clog2(TMAX_TSKID+1),
-            parameter   int                             SEMID_WIDTH        = $clog2(TMAX_SEMID+1),
-            parameter   int                             CLOCK_RATE         = 100000000,
-            parameter   int                             SCRATCH0_WIDTH     = WB_DAT_WIDTH,
-            parameter   int                             SCRATCH1_WIDTH     = WB_DAT_WIDTH,
-            parameter   int                             SCRATCH2_WIDTH     = WB_DAT_WIDTH,
-            parameter   int                             SCRATCH3_WIDTH     = WB_DAT_WIDTH,
+            parameter   int                                         TMAX_TSKID         = 15,
+            parameter   int                                         TMAX_SEMID         = 7,
+            parameter   int                                         TMAX_FLGID         = 2,
+            parameter   int                                         TSKPRI_WIDTH       = 4,
+            parameter   int                                         WUPCNT_WIDTH       = 1,
+            parameter   int                                         SUSCNT_WIDTH       = 1,
+            parameter   int                                         SEMCNT_WIDTH       = 4,
+            parameter   int                                         FLGPTN_WIDTH       = 32,
+            parameter   int                                         PRESCL_WIDTH       = 32,
+            parameter   int                                         SYSTIM_WIDTH       = 64,
+            parameter   int                                         RELTIM_WIDTH       = 32,
+            parameter   int                                         ER_WIDTH           = 8,
+            parameter   int                                         TTS_WIDTH          = 4,
+            parameter   int                                         TTW_WIDTH          = 4,
+            parameter   bit     [WUPCNT_WIDTH-1:0]                  TMAX_WUPCNT        = '1,
+            parameter   bit     [SUSCNT_WIDTH-1:0]                  TMAX_SUSCNT        = '1,
+            parameter   int                                         QUECNT_WIDTH       = $clog2(TMAX_TSKID),
+            parameter   int                                         TSKID_WIDTH        = $clog2(TMAX_TSKID+1),
+            parameter   int                                         SEMID_WIDTH        = $clog2(TMAX_SEMID+1),
+            parameter   int                                         CLOCK_RATE         = 100000000,
+            parameter   int                                         SCRATCH0_WIDTH     = WB_DAT_WIDTH,
+            parameter   int                                         SCRATCH1_WIDTH     = WB_DAT_WIDTH,
+            parameter   int                                         SCRATCH2_WIDTH     = WB_DAT_WIDTH,
+            parameter   int                                         SCRATCH3_WIDTH     = WB_DAT_WIDTH,
 
-            parameter   bit                             USE_CHG_PRI        = 1,
-            parameter   bit                             USE_SLP_TSK        = 1,
-            parameter   bit                             USE_SUS_TSK        = 1,
-            parameter   bit                             USE_DLY_TSK        = 1,
-            parameter   bit                             USE_REL_WAI        = 1,
-            parameter   bit                             USE_SET_TMO        = 1,
-            parameter   bit                             USE_SIG_SEM        = 1,
-            parameter   bit                             USE_WAI_SEM        = 1,
-            parameter   bit                             USE_POL_SEM        = 1,
-            parameter   bit                             USE_SET_FLG        = 1,
-            parameter   bit                             USE_CLR_FLG        = 1,
-            parameter   bit                             USE_WAI_FLG        = 1,
-            parameter   bit                             USE_EXT_FLG        = 1,
-            parameter   bit                             USE_GET_PRI        = 1,
-            parameter   bit                             USE_SET_PSCL       = 1,
-            parameter   bit                             USE_SET_TIM        = 1,
-            parameter   bit                             USE_GET_TIM        = 1,
-            parameter   bit                             USE_REF_TSKSTAT    = 1,
-            parameter   bit                             USE_REF_TSKWAIT    = 1,
-            parameter   bit                             USE_REF_WUPCNT     = 1,
-            parameter   bit                             USE_REF_SUSCNT     = 1,
-            parameter   bit                             USE_REF_TIMCNT     = 1,
-            parameter   bit                             USE_REF_ERR        = 1,
-            parameter   bit                             USE_REF_SEMCNT     = 1,
-            parameter   bit                             USE_REF_SEMQUE     = 1,
-            parameter   bit                             USE_REF_FLGPTN     = 1,
-            parameter   bit                             USE_SCRATCH0       = 1,
-            parameter   bit                             USE_SCRATCH1       = 1,
-            parameter   bit                             USE_SCRATCH2       = 1,
-            parameter   bit                             USE_SCRATCH3       = 1,
+            parameter   bit                                         USE_CHG_PRI        = 1,
+            parameter   bit                                         USE_SLP_TSK        = 1,
+            parameter   bit                                         USE_SUS_TSK        = 1,
+            parameter   bit                                         USE_DLY_TSK        = 1,
+            parameter   bit                                         USE_REL_WAI        = 1,
+            parameter   bit                                         USE_SET_TMO        = 1,
+            parameter   bit                                         USE_SIG_SEM        = 1,
+            parameter   bit                                         USE_WAI_SEM        = 1,
+            parameter   bit                                         USE_POL_SEM        = 1,
+            parameter   bit                                         USE_SET_FLG        = 1,
+            parameter   bit                                         USE_CLR_FLG        = 1,
+            parameter   bit                                         USE_WAI_FLG        = 1,
+            parameter   bit                                         USE_EXT_FLG        = 1,
+            parameter   bit                                         USE_GET_PRI        = 1,
+            parameter   bit                                         USE_SET_PSCL       = 1,
+            parameter   bit                                         USE_SET_TIM        = 1,
+            parameter   bit                                         USE_GET_TIM        = 1,
+            parameter   bit                                         USE_REF_TSKSTAT    = 1,
+            parameter   bit                                         USE_REF_TSKWAIT    = 1,
+            parameter   bit                                         USE_REF_WUPCNT     = 1,
+            parameter   bit                                         USE_REF_SUSCNT     = 1,
+            parameter   bit                                         USE_REF_TIMCNT     = 1,
+            parameter   bit                                         USE_REF_ERR        = 1,
+            parameter   bit                                         USE_REF_SEMCNT     = 1,
+            parameter   bit                                         USE_REF_SEMQUE     = 1,
+            parameter   bit                                         USE_REF_FLGPTN     = 1,
+            parameter   bit                                         USE_SCRATCH0       = 1,
+            parameter   bit                                         USE_SCRATCH1       = 1,
+            parameter   bit                                         USE_SCRATCH2       = 1,
+            parameter   bit                                         USE_SCRATCH3       = 1,
 
-            parameter   bit     [FLGPTN_WIDTH-1:0]      INIT_FLGPTN        = '0,
-            parameter   bit     [FLGPTN_WIDTH-1:0]      INIT_EXTFLG_ENABLE = '0,
-            parameter   bit     [PRESCL_WIDTH-1:0]      INIT_PRESCL        = '0,
-            parameter   bit     [SYSTIM_WIDTH-1:0]      INIT_SYSTIM        = '0,
-            parameter   bit     [SCRATCH0_WIDTH-1:0]    INIT_SCRATCH0      = '0,
-            parameter   bit     [SCRATCH1_WIDTH-1:0]    INIT_SCRATCH1      = '0,
-            parameter   bit     [SCRATCH2_WIDTH-1:0]    INIT_SCRATCH2      = '0,
-            parameter   bit     [SCRATCH3_WIDTH-1:0]    INIT_SCRATCH3      = '0
+            parameter   bit     [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    INIT_FLGPTN        = '0,
+            parameter   bit     [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    INIT_EXTFLG_ENABLE = '0,
+            parameter   bit     [PRESCL_WIDTH-1:0]                  INIT_PRESCL        = '0,
+            parameter   bit     [SYSTIM_WIDTH-1:0]                  INIT_SYSTIM        = '0,
+            parameter   bit     [SCRATCH0_WIDTH-1:0]                INIT_SCRATCH0      = '0,
+            parameter   bit     [SCRATCH1_WIDTH-1:0]                INIT_SCRATCH1      = '0,
+            parameter   bit     [SCRATCH2_WIDTH-1:0]                INIT_SCRATCH2      = '0,
+            parameter   bit     [SCRATCH3_WIDTH-1:0]                INIT_SCRATCH3      = '0
         )
         (
             input   wire                                        reset,
@@ -96,17 +97,18 @@ module jelly2_rtos
 
             output  wire                                        irq,
 
-            input   wire    [FLGPTN_WIDTH-1:0]                  ext_set_flg,
+            input   wire    [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    ext_set_flg,
 
-            output  wire    [TSKID_WIDTH-1:0]                   monitor_run_tskid,
             output  wire    [TSKID_WIDTH-1:0]                   monitor_top_tskid,
+            output  wire    [TSKID_WIDTH-1:0]                   monitor_run_tskid,
+            output  wire    [TSKPRI_WIDTH-1:0]                  monitor_run_tskpri,
             output  wire    [TMAX_TSKID:1][TTS_WIDTH-1:0]       monitor_tsk_tskstat,
             output  wire    [TMAX_TSKID:1][TTW_WIDTH-1:0]       monitor_tsk_tskwait,
             output  wire    [TMAX_TSKID:1][WUPCNT_WIDTH-1:0]    monitor_tsk_wupcnt,
             output  wire    [TMAX_TSKID:1][SUSCNT_WIDTH-1:0]    monitor_tsk_suscnt,
             output  wire    [TMAX_SEMID:1][QUECNT_WIDTH-1:0]    monitor_sem_quecnt,
             output  wire    [TMAX_SEMID:1][SEMCNT_WIDTH-1:0]    monitor_sem_semcnt,
-            output  wire    [FLGPTN_WIDTH-1:0]                  monitor_flg_flgptn,
+            output  wire    [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    monitor_flg_flgptn,
             output  wire    [SCRATCH0_WIDTH-1:0]                monitor_scratch0,
             output  wire    [SCRATCH1_WIDTH-1:0]                monitor_scratch1,
             output  wire    [SCRATCH2_WIDTH-1:0]                monitor_scratch2,
@@ -126,6 +128,10 @@ module jelly2_rtos
     logic   [TSKID_WIDTH-1:0]                   rdq_top_tskid;
     logic   [TSKPRI_WIDTH-1:0]                  rdq_top_tskpri;
     logic   [QUECNT_WIDTH-1:0]                  rdq_quecnt;
+
+    // run task
+    logic   [TSKID_WIDTH-1:0]                   run_tskid;
+    logic   [TSKPRI_WIDTH-1:0]                  run_tskpri;
 
     // operation id
     logic   [TSKID_WIDTH-1:0]                   op_tskid;
@@ -160,12 +166,12 @@ module jelly2_rtos
     logic   [TMAX_SEMID:1][QUECNT_WIDTH-1:0]    semaphore_quecnt;
 
     // event flag
-    logic   [FLGPTN_WIDTH-1:0]                  set_flg;
-    logic   [FLGPTN_WIDTH-1:0]                  clr_flg;
+    logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    set_flg;
+    logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    clr_flg;
     logic   [0:0]                               wai_flg_wfmode;
-    logic   [FLGPTN_WIDTH-1:0]                  wai_flg_flgptn;
+    logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    wai_flg_flgptn;
     logic                                       wai_flg_valid;
-    logic   [FLGPTN_WIDTH-1:0]                  flg_flgptn;
+    logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    flg_flgptn;
 
     // timer
     logic   [PRESCL_WIDTH-1:0]                  set_pscl_scale;
@@ -180,6 +186,7 @@ module jelly2_rtos
             #(
                 .TMAX_TSKID         (TMAX_TSKID),
                 .TMAX_SEMID         (TMAX_SEMID),
+                .TMAX_FLGID         (TMAX_FLGID),
                 .TSKPRI_WIDTH       (TSKPRI_WIDTH),
                 .SEMCNT_WIDTH       (SEMCNT_WIDTH),
                 .FLGPTN_WIDTH       (FLGPTN_WIDTH),
@@ -224,6 +231,9 @@ module jelly2_rtos
                 .rdq_top_tskid,
                 .rdq_top_tskpri,
                 .rdq_quecnt,
+
+                .run_tskid,
+                .run_tskpri,
 
                 .op_tskid,
                 .op_semid,
@@ -327,6 +337,7 @@ module jelly2_rtos
 
     localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_TOP_TSKID  = 'h00;
     localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_RUN_TSKID  = 'h04;
+    localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_RUN_TSKPRI = 'h05;
     localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_COPY_TSKID = 'h08;
     localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_IRQ_EN     = 'h10;
     localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_IRQ_STS    = 'h11;
@@ -343,26 +354,24 @@ module jelly2_rtos
     logic   [ID_WIDTH-1:0]          dec_id;
     assign  dec_opcode = s_wb_adr_i[DECODE_OPCODE_POS +: OPCODE_WIDTH];
     assign  dec_id     = s_wb_adr_i[DECODE_ID_POS     +: ID_WIDTH];
-                            
-    logic   [TSKID_WIDTH-1:0]           cpu_run_tskid;
-    logic                               cpu_run_valid;
 
-    logic   [0:0]                       irq_enable;
-    logic   [0:0]                       irq_force;
-    logic   [0:0]                       reg_switch;
-    logic   [0:0]                       reg_irq;
+    logic   [0:0]                               irq_enable;
+    logic   [0:0]                               irq_force;
+    logic   [0:0]                               reg_switch;
+    logic   [0:0]                               reg_irq;
 
-    logic   [FLGPTN_WIDTH-1:0]          extflg_enable;
+    logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    extflg_enable;
 
-    logic   [SCRATCH0_WIDTH-1:0]        scratch0;
-    logic   [SCRATCH1_WIDTH-1:0]        scratch1;
-    logic   [SCRATCH2_WIDTH-1:0]        scratch2;
-    logic   [SCRATCH3_WIDTH-1:0]        scratch3;
+    logic   [SCRATCH0_WIDTH-1:0]                scratch0;
+    logic   [SCRATCH1_WIDTH-1:0]                scratch1;
+    logic   [SCRATCH2_WIDTH-1:0]                scratch2;
+    logic   [SCRATCH3_WIDTH-1:0]                scratch3;
 
     always_ff @(posedge clk) begin
         if ( reset || core_reset ) begin
             core_reset     <= reset;
-            cpu_run_tskid  <= '0;
+            run_tskid      <= '0;
+            run_tskpri     <= '1;
             irq_enable     <= '0;
             irq_force      <= '0;
             reg_switch     <= '0;
@@ -388,8 +397,8 @@ module jelly2_rtos
 
                 OPCODE_CPU_CTL:
                     case ( dec_id )
-                    CPU_CTL_RUN_TSKID:  begin cpu_run_tskid  <= TSKID_WIDTH'(s_wb_dat_i); end
-                    CPU_CTL_COPY_TSKID: begin cpu_run_tskid  <= TSKID_WIDTH'(s_wb_dat_i); end
+                    CPU_CTL_RUN_TSKID:  begin run_tskid  <= TSKID_WIDTH'(s_wb_dat_i);  end
+                    CPU_CTL_RUN_TSKPRI: begin run_tskpri <= TSKPRI_WIDTH'(s_wb_dat_i); end
                     CPU_CTL_IRQ_EN:     begin irq_enable     <= 1'(s_wb_dat_i); end
                     CPU_CTL_IRQ_FORCE:  begin irq_force      <= 1'(s_wb_dat_i); end
                     CPU_CTL_SCRATCH0:   if ( USE_SCRATCH0 ) begin scratch0 <= SCRATCH0_WIDTH'(s_wb_dat_i); end
@@ -399,7 +408,12 @@ module jelly2_rtos
                     default: ;
                     endcase
 
-                OPCODE_ENA_FLG_EXT: if ( USE_EXT_FLG ) begin extflg_enable <= FLGPTN_WIDTH'(s_wb_dat_i); end
+                OPCODE_ENA_FLG_EXT:
+                    begin
+                        if ( USE_EXT_FLG && int'(dec_id) >= 1 && int'(dec_id) <= TMAX_FLGID ) begin
+                            extflg_enable[dec_id] <= FLGPTN_WIDTH'(s_wb_dat_i);
+                        end
+                    end
 
                 OPCODE_GET_TIM:     if ( USE_GET_TIM ) begin reg_systim <= systim; end
                 OPCODE_SYSTIM_LO:   if ( USE_SET_TIM ) begin reg_systim <= ((reg_systim & SYSLIM_HI_MASK) | SYSTIM_WIDTH'(s_wb_dat_i)); end
@@ -412,13 +426,14 @@ module jelly2_rtos
 
             // 読み出しと同時にコピーも実施
             if ( s_wb_ack_o && !s_wb_we_i && dec_opcode == OPCODE_CPU_CTL && dec_id == CPU_CTL_COPY_TSKID ) begin
-                cpu_run_tskid <= rdq_top_tskid;
+                run_tskid  <= rdq_top_tskid;
+                run_tskpri <= rdq_top_tskpri;
             end
 
             // 2サイクル不一致が続けば割り込み実施
             if ( !core_busy ) begin
-                reg_switch <= (rdq_top_tskid != cpu_run_tskid);
-                reg_irq    <= (rdq_top_tskid != cpu_run_tskid) && reg_switch;
+                reg_switch <= (rdq_top_tskid != run_tskid);
+                reg_irq    <= (rdq_top_tskid != run_tskid) && reg_switch;
             end
         end
     end
@@ -461,43 +476,67 @@ module jelly2_rtos
             OPCODE_RSM_TSK: if ( USE_SUS_TSK ) begin rsm_tsk_valid = 1'b1; op_tskid = TSKID_WIDTH'(dec_id); end
             OPCODE_SUS_TSK: if ( USE_SUS_TSK ) begin sus_tsk_valid = 1'b1; op_tskid = TSKID_WIDTH'(dec_id); end
             OPCODE_SET_TMO: if ( USE_SET_TMO ) begin set_tmo_valid = 1'b1; op_tskid = TSKID_WIDTH'(dec_id); set_tmo_tmotim = FLGPTN_WIDTH'(s_wb_dat_i); end
-            OPCODE_SET_FLG: if ( USE_SET_FLG ) begin set_flg = FLGPTN_WIDTH'(s_wb_dat_i); end
-            OPCODE_CLR_FLG: if ( USE_CLR_FLG ) begin clr_flg = FLGPTN_WIDTH'(s_wb_dat_i); end
+            
+            OPCODE_SET_FLG:
+                begin
+                    if ( USE_SET_FLG && int'(dec_id) >= 1 && int'(dec_id) <= TMAX_FLGID ) begin
+                        set_flg[dec_id] = FLGPTN_WIDTH'(s_wb_dat_i);
+                    end
+                end
+
+            OPCODE_CLR_FLG:
+                begin
+                    if ( USE_CLR_FLG && int'(dec_id) >= 1 && int'(dec_id) <= TMAX_FLGID ) begin
+                        clr_flg[dec_id] = FLGPTN_WIDTH'(s_wb_dat_i);
+                    end
+                end
 
             OPCODE_DLY_TSK:
                 begin
-                    op_tskid       = TSKID_WIDTH'(dec_id);
-                    dly_tsk_dlytim = RELTIM_WIDTH'(s_wb_dat_i);
-                    dly_tsk_valid  = 1'b1;
+                    if ( USE_DLY_TSK ) begin
+                        op_tskid       = TSKID_WIDTH'(dec_id);
+                        dly_tsk_dlytim = RELTIM_WIDTH'(s_wb_dat_i);
+                        dly_tsk_valid  = 1'b1;
+                    end
                 end
 
             OPCODE_SIG_SEM:
                 begin
-                    op_semid = SEMID_WIDTH'(dec_id);
-                    sig_sem_valid = 1'b1;
+                    if ( USE_SIG_SEM ) begin
+                        op_semid = SEMID_WIDTH'(dec_id);
+                        sig_sem_valid = 1'b1;
+                    end
                 end
 
             OPCODE_WAI_SEM:
                 begin
-                    op_tskid = cpu_run_tskid;
-                    op_semid = SEMID_WIDTH'(dec_id);
-                    wai_sem_valid = 1'b1;
+                    if ( USE_WAI_SEM ) begin
+                        op_tskid = run_tskid;
+                        op_semid = SEMID_WIDTH'(dec_id);
+                        wai_sem_valid = 1'b1;
+                    end
                 end
 
             OPCODE_WAI_FLG_AND:
                 begin
-                    op_tskid       = cpu_run_tskid;
-                    wai_flg_flgptn = FLGPTN_WIDTH'(s_wb_dat_i);
-                    wai_flg_wfmode = 1'b0;
-                    wai_flg_valid  = 1'b1;
+                    if ( USE_WAI_FLG && int'(dec_id) >= 1 && int'(dec_id) <= TMAX_FLGID ) begin
+                        op_tskid               = run_tskid;
+                        wai_flg_flgptn         = '0;
+                        wai_flg_flgptn[dec_id] = FLGPTN_WIDTH'(s_wb_dat_i);
+                        wai_flg_wfmode         = 1'b0;
+                        wai_flg_valid          = 1'b1;
+                    end
                 end
             
             OPCODE_WAI_FLG_OR:
                 begin
-                    op_tskid       = cpu_run_tskid;
-                    wai_flg_flgptn = FLGPTN_WIDTH'(s_wb_dat_i);
-                    wai_flg_wfmode = 1'b1;
-                    wai_flg_valid  = 1'b1;
+                    if ( USE_WAI_FLG && int'(dec_id) >= 1 && int'(dec_id) <= TMAX_FLGID ) begin
+                        op_tskid               = run_tskid;
+                        wai_flg_flgptn         = '0;
+                        wai_flg_flgptn[dec_id] = FLGPTN_WIDTH'(s_wb_dat_i);
+                        wai_flg_wfmode         = 1'b1;
+                        wai_flg_valid          = 1'b1;
+                    end
                 end
             
             OPCODE_SET_PSCL:
@@ -552,7 +591,8 @@ module jelly2_rtos
         OPCODE_CPU_CTL:
             case ( dec_id )
             CPU_CTL_TOP_TSKID:  s_wb_dat_o = WB_DAT_WIDTH'(rdq_top_tskid);
-            CPU_CTL_RUN_TSKID:  s_wb_dat_o = WB_DAT_WIDTH'(cpu_run_tskid);
+            CPU_CTL_RUN_TSKID:  s_wb_dat_o = WB_DAT_WIDTH'(run_tskid);
+            CPU_CTL_RUN_TSKPRI: s_wb_dat_o = WB_DAT_WIDTH'(run_tskpri);
             CPU_CTL_COPY_TSKID: s_wb_dat_o = WB_DAT_WIDTH'(rdq_top_tskid);
             CPU_CTL_IRQ_EN:     s_wb_dat_o = WB_DAT_WIDTH'(irq_enable);
             CPU_CTL_IRQ_STS:    s_wb_dat_o = WB_DAT_WIDTH'(irq);
@@ -585,7 +625,8 @@ module jelly2_rtos
     assign  s_wb_ack_o = s_wb_stb_i && !core_busy;
 
     assign monitor_top_tskid   = rdq_top_tskid;
-    assign monitor_run_tskid   = cpu_run_tskid;
+    assign monitor_run_tskid   = run_tskid;
+    assign monitor_run_tskpri  = run_tskpri;
     assign monitor_tsk_tskstat = task_tskstat;
     assign monitor_tsk_tskwait = task_tskwait;
     assign monitor_tsk_wupcnt  = task_wupcnt;
