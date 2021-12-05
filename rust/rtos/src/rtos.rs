@@ -203,24 +203,24 @@ pub fn pol_sem(semid: i32) -> bool {
 }
 
 
-pub fn ena_extflg(flgptn: u32) {
+pub fn ena_extflg(flgid: i32, flgptn: u32) {
     unsafe {
         let _sc = SystemCall::new();
-        write_reg(OPCODE_ENA_FLG_EXT, 0, flgptn);
+        write_reg(OPCODE_ENA_FLG_EXT, flgid as usize, flgptn);
     }
 }
 
-pub fn set_flg(flgptn: u32) {
+pub fn set_flg(flgid: i32, flgptn: u32) {
     unsafe {
         let _sc = SystemCall::new();
-        write_reg(OPCODE_SET_FLG, 0, flgptn);
+        write_reg(OPCODE_SET_FLG, flgid as usize, flgptn);
     }
 }
 
-pub fn clr_flg(flgptn: u32) {
+pub fn clr_flg(flgid: i32, flgptn: u32) {
     unsafe {
         let _sc = SystemCall::new();
-        write_reg(OPCODE_CLR_FLG, 0, flgptn);
+        write_reg(OPCODE_CLR_FLG, flgid as usize, flgptn);
     }
 }
 
@@ -229,14 +229,12 @@ pub enum WfMode {
     OrWait = 1,
 }
 
-pub fn wai_flg(waiptn: u32, wfmode: WfMode) {
+pub fn wai_flg(flgid: i32, waiptn: u32, wfmode: WfMode) {
     unsafe {
-        let tskid: usize = JELLY_RTOS_RUN_TSKID;
-
         let _sc = SystemCall::new();
         match wfmode {
-            WfMode::AndWait => write_reg(OPCODE_WAI_FLG_AND, tskid as usize, waiptn),
-            WfMode::OrWait => write_reg(OPCODE_WAI_FLG_OR, tskid as usize, waiptn),
+            WfMode::AndWait => write_reg(OPCODE_WAI_FLG_AND, flgid as usize, waiptn),
+            WfMode::OrWait => write_reg(OPCODE_WAI_FLG_OR, flgid as usize, waiptn),
         }
     }
 }
@@ -271,3 +269,4 @@ pub fn set_scratch(id : usize, data: u32) {
         }
     }
 }
+
