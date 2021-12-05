@@ -27,7 +27,7 @@ module jelly2_rtos_task
             parameter   bit     [TSKID_WIDTH-1:0]   TSKID        = 0,
             parameter   bit     [WUPCNT_WIDTH-1:0]  TMAX_WUPCNT  = '1,
             parameter   bit     [SUSCNT_WIDTH-1:0]  TMAX_SUSCNT  = '1,
-            parameter   bit                         USE_ER       = 1,
+            parameter   bit                         USE_ERCD     = 1,
             parameter   bit                         USE_CHG_PRI  = 1,
             parameter   bit                         USE_SLP_TSK  = 1,
             parameter   bit                         USE_SUS_TSK  = 1,
@@ -64,7 +64,7 @@ module jelly2_rtos_task
             output  reg     [SUSCNT_WIDTH-1:0]                  suscnt,
             output  reg     [TSKPRI_WIDTH-1:0]                  tskpri,
             output  reg     [RELTIM_WIDTH-1:0]                  timcnt,
-            output  wire    [ER_WIDTH-1:0]                      er,
+            output  wire    [ER_WIDTH-1:0]                      ercd,
 
             input   wire    [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    flgptn,
             
@@ -364,7 +364,7 @@ module jelly2_rtos_task
                 rdq_add_req <= 1'b0;
             end
 
-            if ( !USE_ER ) begin
+            if ( !USE_ERCD ) begin
                 er_code <= E_OK;
             end
         end
@@ -399,8 +399,8 @@ module jelly2_rtos_task
                         tskwait_dly});
     end
 
-    assign er      = er_code;
-    assign busy    = rdq_add_req || timeout_req;
+    assign ercd = er_code;
+    assign busy = rdq_add_req || timeout_req;
 
 endmodule
 

@@ -29,7 +29,7 @@ const OPCODE_REF_TSKWAIT: usize = 0x91;
 const OPCODE_REF_WUPCNT: usize = 0x92;
 const OPCODE_REF_SUSCNT: usize = 0x93;
 const OPCODE_REF_TIMCNT: usize = 0x94;
-const OPCODE_REF_ERR: usize = 0x98;
+const OPCODE_REF_ERCD: usize = 0x98;
 const OPCODE_GET_PRI: usize = 0x9c;
 const OPCODE_SIG_SEM: usize = 0x21;
 const OPCODE_WAI_SEM: usize = 0x22;
@@ -209,7 +209,7 @@ pub fn twai_sem(semid: ID, tmout: TMO) -> ER {
         let tskid: usize = JELLY_RTOS_RUN_TSKID;
         write_reg(OPCODE_WAI_SEM, semid as usize, 0);
         write_reg(OPCODE_SET_TMO, tskid, tmout as u32);
-        read_reg(OPCODE_REF_ERR, tskid) as ER
+        read_reg(OPCODE_REF_ERCD, tskid) as ER
     }
 }
 
