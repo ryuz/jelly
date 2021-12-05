@@ -44,9 +44,9 @@ impl JellyI2c {
     }
 
     fn wait(&self) {
-        rtos::ena_extflg(0x01);
-        rtos::clr_flg(!0x01);
-        rtos::wai_flg(0x01, rtos::WfMode::AndWait);
+        rtos::ena_extflg(1, 0x01);
+        rtos::clr_flg(1, !0x01);
+        rtos::wai_flg(1, 0x01, rtos::WfMode::AndWait);
 //        unsafe {
 //            while ( self.read_reg(REG_I2C_STATUS) & 1) != 0 {}
 //        }

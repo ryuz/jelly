@@ -37,9 +37,9 @@ pub unsafe extern "C" fn main() -> ! {
     println!("\nJelly-RTOS start");
     wait(10000);
 
-    memdump(0xa0000000, 16);
+    memdump(0x80000000, 16);
 
-    rtos::initialize(0xa0000000);
+    rtos::initialize(0x80000000);
 
     // タスクスタート
     rtos::cre_tsk(1, &mut STACK1, task1);
@@ -71,8 +71,8 @@ const MPU9250_ADDRESS: u8 =     0x68;    // 7bit address
 
 extern "C" fn task1() -> ! {
     println!("task1 start");
-    let i2c = i2c::JellyI2c::new(0xa0080000);
-    i2c.set_divider(20);
+    let i2c = i2c::JellyI2c::new(0x80080000);
+    i2c.set_divider(20*2);
 
     
 //    i2c.write1(MPU9250_ADDRESS, 0x77);
