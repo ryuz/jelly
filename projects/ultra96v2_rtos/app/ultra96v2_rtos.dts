@@ -41,7 +41,7 @@
             /*
             clocking0: clocking0 {
                 #clock-cells = <0>;
-                assigned-clock-rates = <250000000>;
+                assigned-clock-rates = <100000000>;
                 assigned-clocks = <&zynqmp_clk 71>;
                 clock-output-names = "fabric_clk";
                 clocks = <&zynqmp_clk 71>;
@@ -52,7 +52,7 @@
             fclk0  {
                 compatible    = "ikwzm,fclkcfg-0.10.a";
                 clocks        = <&zynqmp_clk 72 &zynqmp_clk 0>;
-                insert-rate   = "250000000";
+                insert-rate   = "100000000";
                 insert-enable = <1>;
                 remove-rate   = "1000000";
                 remove-enable = <0>;

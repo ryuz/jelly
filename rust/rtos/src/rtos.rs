@@ -3,6 +3,12 @@
 use core::ptr;
 use pudding_pac::arm::cpu;
 
+type ID = i32;
+type PRI = i32;
+type ER = i32;
+
+pub const TSK_SELF: ID = 0;
+
 const ID_WIDTH: usize = 8;
 const OPCODE_WIDTH: usize = 8;
 const DECODE_ID_POS: usize = 0;
@@ -138,17 +144,19 @@ pub fn initialize(core_base: usize) {
     }
 }
 
-pub fn cre_tsk(tskid: usize, stack: &mut [u8], entry: extern "C" fn() -> !) {
+
+
+pub fn cre_tsk(tskid: ID, stack: &mut [u8], entry: extern "C" fn() -> !) {
     let mut isp = (&mut stack[0] as *mut u8 as usize) + stack.len();
     isp &= !0x0f_usize; // align
     unsafe {
-        JELLY_RTOS_SP_TABLE[tskid] = jelly_create_context(isp as usize, entry);
+        JELLY_RTOS_SP_TABLE[tskid as usize] = jelly_create_context(isp as usize, entry);
     }
 }
 
-pub fn wup_tsk(tskid: i32) {
+pub fn wup_tsk(tskid: ID) {
     unsafe {
-        let tskid: usize = if tskid < 0 {
+        let tskid: usize = if tskid <= 0 {
             JELLY_RTOS_RUN_TSKID
         } else {
             tskid as usize
@@ -159,9 +167,9 @@ pub fn wup_tsk(tskid: i32) {
     }
 }
 
-pub fn slp_tsk(tskid: i32) {
+pub fn slp_tsk(tskid: ID) {
     unsafe {
-        let tskid: usize = if tskid < 0 {
+        let tskid: usize = if tskid <= 0 {
             JELLY_RTOS_RUN_TSKID
         } else {
             tskid as usize
@@ -172,53 +180,49 @@ pub fn slp_tsk(tskid: i32) {
     }
 }
 
-pub fn dly_tsk(tskid: i32, dlytim: u32) {
+pub fn dly_tsk(dlytim: u32) {
     unsafe {
-        let tskid: usize = if tskid < 0 {
-            JELLY_RTOS_RUN_TSKID
-        } else {
-            tskid as usize
-        };
-
+        let tskid: usize = JELLY_RTOS_RUN_TSKID;
+        
         let _sc = SystemCall::new();
         write_reg(OPCODE_DLY_TSK, tskid, dlytim);
     }
 }
 
-pub fn sig_sem(semid: i32) {
+pub fn sig_sem(semid: ID) {
     unsafe {
         let _sc = SystemCall::new();
         write_reg(OPCODE_SIG_SEM, semid as usize, 0);
     }
 }
 
-pub fn wai_sem(semid: i32) {
+pub fn wai_sem(semid: ID) {
     unsafe {
         let _sc = SystemCall::new();
         write_reg(OPCODE_WAI_SEM, semid as usize, 0);
     }
 }
 
-pub fn pol_sem(semid: i32) -> bool {
+pub fn pol_sem(semid: ID) -> bool {
     unsafe { read_reg(OPCODE_POL_SEM, semid as usize) != 0 }
 }
 
 
-pub fn ena_extflg(flgid: i32, flgptn: u32) {
+pub fn ena_extflg(flgid: ID, flgptn: u32) {
     unsafe {
         let _sc = SystemCall::new();
         write_reg(OPCODE_ENA_FLG_EXT, flgid as usize, flgptn);
     }
 }
 
-pub fn set_flg(flgid: i32, flgptn: u32) {
+pub fn set_flg(flgid: ID, flgptn: u32) {
     unsafe {
         let _sc = SystemCall::new();
         write_reg(OPCODE_SET_FLG, flgid as usize, flgptn);
     }
 }
 
-pub fn clr_flg(flgid: i32, flgptn: u32) {
+pub fn clr_flg(flgid: ID, flgptn: u32) {
     unsafe {
         let _sc = SystemCall::new();
         write_reg(OPCODE_CLR_FLG, flgid as usize, flgptn);
@@ -230,7 +234,7 @@ pub enum WfMode {
     OrWait = 1,
 }
 
-pub fn wai_flg(flgid: i32, waiptn: u32, wfmode: WfMode) {
+pub fn wai_flg(flgid: ID, waiptn: u32, wfmode: WfMode) {
     unsafe {
         let _sc = SystemCall::new();
         match wfmode {
@@ -257,7 +261,13 @@ pub fn sns_dpn() -> bool {
     unsafe { read_reg(OPCODE_CPU_CTL, CPU_CTL_IRQ_STS) != 0 }
 }
 
-
+// set pre-scaler
+pub fn set_pscl(prescale: u32) {
+    unsafe {
+        let _sc = SystemCall::new();
+        write_reg(OPCODE_SET_PSCL, 0, prescale);
+    }
+}
 
 pub fn set_scratch(id : usize, data: u32) {
     unsafe {

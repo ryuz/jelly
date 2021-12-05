@@ -51,6 +51,11 @@ pub unsafe extern "C" fn main() -> ! {
     println!("reltim_width : {}", rtos::reltim_width());
     println!("");
 
+    // 時間単位を us 単位にする
+    let pscl:u32 = rtos::clock_rate() / 1000000 - 1;
+    println!("set_pscl({})\n", pscl);
+    rtos::set_pscl(pscl);
+
     // フォークを５本置く
     rtos::sig_sem(1);
     rtos::sig_sem(2);
@@ -98,14 +103,14 @@ fn dining_philosopher(id: i32) -> ! {
     println!("[philosopher{}] dining start", id);
     loop {
         println!("[philosopher{}] thinking", id);
-        rtos::dly_tsk(-1, rand_time());
+        rtos::dly_tsk(rand_time());
 
         'dining: loop {
             rtos::wai_sem(left);
             {
                 if rtos::pol_sem(right) {
                     println!("[philosopher{}] eating", id);
-                    rtos::dly_tsk(-1, rand_time());
+                    rtos::dly_tsk(rand_time());
                     rtos::sig_sem(left);
                     rtos::sig_sem(right);
                     break 'dining;
@@ -114,7 +119,7 @@ fn dining_philosopher(id: i32) -> ! {
                 }
             }
             println!("[philosopher{}] hungry", id);
-            rtos::dly_tsk(-1, rand_time());
+            rtos::dly_tsk(rand_time());
         }
     }
 }
@@ -134,7 +139,7 @@ fn rand() -> u32 {
 }
 
 fn rand_time() -> u32 {
-    100000000 + (rand() % 1000) * 100000
+    500000 + (rand() % 1000) * 1000
 }
 
 // ループによるウェイト
