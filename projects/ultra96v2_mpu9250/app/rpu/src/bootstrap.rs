@@ -3,6 +3,8 @@
 use core::ptr;
 use pudding_pac::arm::cpu::*;
 use pudding_pac::arm::mpu::*;
+use pudding_pac::arm::vfp::*;
+
 
 #[no_mangle]
 pub unsafe extern "C" fn bootstrap() {
@@ -141,4 +143,11 @@ pub unsafe extern "C" fn bootstrap() {
 
     //    let count = &_edata as *const u8 as usize - &_sdata as *const u8 as usize;
     //    ptr::copy_nonoverlapping(&_sidata as *const u8, &mut _sdata as *mut u8, count);
+
+
+    // -----------------------------------
+    //  VFP設定
+    // -----------------------------------
+
+    enable_vfp();
 }
