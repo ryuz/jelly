@@ -71,6 +71,15 @@ jelly_svc_handler:
 context_switch: mrs     r2, spsr
                 stmfd   r0!, {r1, r2}
 
+#ifdef _WITH_VFP    // VFP利用時
+                vpush   {d0-d7}     // VFP用レジスタ退避
+                vmrs    r1, fpscr   // fpscr 取り出し
+                push    {r1}        // fpscr 退避
+                vmrs    r1, fpexc   // fpexc 取り出し
+                push    {r1}        // fpexc 退避
+#endif
+
+
                 // 実行中タスクID取得
                 ldr     r1, =JELLY_RTOS_RUN_TSKID
                 ldr     r4, [r1]
@@ -91,6 +100,13 @@ context_switch: mrs     r2, spsr
                 ldr     r0, [r2, r4, lsl #2]
 
                 // コンテキスト復帰
+#ifdef _WITH_VFP    // VFP利用時
+                pop 	{r1}        // fpexc 復帰
+                vmsr    fpexc, r1   // fpexc 設定
+                pop 	{r1}        // fpscr 復帰
+                vmsr    fpscr, r1   // fpscr 設定
+                vpop    {d0-d7}     // VFP用レジスタ復帰
+#endif
                 ldmfd	r0!, {r1-r2}
                 msr     spsr, r2
                 msr     cpsr_c, #(Mode_SYS | I_Bit)
