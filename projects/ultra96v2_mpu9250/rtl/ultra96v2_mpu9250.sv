@@ -152,6 +152,7 @@ module ultra96v2_mpu9250
     
     localparam  int                     TMAX_TSKID         = 3;
     localparam  int                     TMAX_SEMID         = 3;
+    localparam  int                     TMAX_FLGID         = 1;
     localparam  int                     TSKPRI_WIDTH       = 4;
     localparam  int                     WUPCNT_WIDTH       = 1;
     localparam  int                     SUSCNT_WIDTH       = 1;
@@ -165,7 +166,8 @@ module ultra96v2_mpu9250
     localparam  int                     TSKID_WIDTH        = $clog2(TMAX_TSKID+1);
     localparam  int                     SEMID_WIDTH        = $clog2(TMAX_SEMID+1);
     
-    logic   [FLGPTN_WIDTH-1:0]                  rtos_set_flg;
+    
+                                logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    rtos_set_flg;
     
     (* mark_debug = "true" *)   logic   [TSKID_WIDTH-1:0]                   monitor_run_tskid;
     (* mark_debug = "true" *)   logic   [TSKID_WIDTH-1:0]                   monitor_top_tskid;
@@ -175,11 +177,11 @@ module ultra96v2_mpu9250
                                 logic   [TMAX_TSKID:1][SUSCNT_WIDTH-1:0]    monitor_tsk_suscnt;
                                 logic   [TMAX_SEMID:1][QUECNT_WIDTH-1:0]    monitor_sem_quecnt;
                                 logic   [TMAX_SEMID:1][SEMCNT_WIDTH-1:0]    monitor_sem_semcnt;
-    (* mark_debug = "true" *)   logic   [FLGPTN_WIDTH-1:0]                  monitor_flg_flgptn;
-    (* mark_debug = "true" *)   logic   [WB_DAT_WIDTH-1:0]                  monitor_scratch0;
-                                logic   [WB_DAT_WIDTH-1:0]                  monitor_scratch1;
-                                logic   [WB_DAT_WIDTH-1:0]                  monitor_scratch2;
-                                logic   [WB_DAT_WIDTH-1:0]                  monitor_scratch3;
+    (* mark_debug = "true" *)   logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    monitor_flg_flgptn;
+    (* mark_debug = "true" *)   logic   [31:0]                              monitor_scratch0;
+                                logic   [31:0]                              monitor_scratch1;
+                                logic   [31:0]                              monitor_scratch2;
+                                logic   [31:0]                              monitor_scratch3;
                                 
                                 logic   [31:0]                              wb_rtos_dat_o_tmp;
                                 logic   [WB_DAT_WIDTH-1:0]                  wb_rtos_dat_o;
@@ -244,8 +246,10 @@ module ultra96v2_mpu9250
     
     
     // I2Cの完了をイベントフラグで受ける
-    assign rtos_set_flg[0]                = irq_i2c;
-    assign rtos_set_flg[FLGPTN_WIDTH-1:1] = '0;
+    always_comb begin
+        rtos_set_flg       = '0;
+        rtos_set_flg[1][0] = irq_i2c;
+    end
     
     
     
