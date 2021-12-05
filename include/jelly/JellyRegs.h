@@ -347,7 +347,7 @@
 #define REG_VIDEO_FMTREG_PARAM_FILL             0x12
 #define REG_VIDEO_FMTREG_PARAM_TIMEOUT          0x13
 
-// Video sync generator
+/* Video sync generator */
 #define REG_VIDEO_VSGEN_CORE_ID                 0x00
 #define REG_VIDEO_VSGEN_CORE_VERSION            0x01
 #define REG_VIDEO_VSGEN_CTL_CONTROL             0x04
@@ -365,7 +365,7 @@
 #define REG_VIDEO_VSGEN_PARAM_VSYNC_START       0x16
 #define REG_VIDEO_VSGEN_PARAM_VSYNC_END         0x17
 
-// Video sync de adjuster
+/* Video sync de adjuster */
 #define REG_VIDEO_ADJDE_CORE_ID                 0x00
 #define REG_VIDEO_ADJDE_CORE_VERSION            0x01
 #define REG_VIDEO_ADJDE_CTL_CONTROL             0x04
@@ -574,7 +574,26 @@
 #define REG_IMG_SELECTOR_CONFIG_NUM             0x10
 
 
+/* ---------------------------------- */
+/*  Peripherals                       */
+/* ---------------------------------- */
+
+/* I2C */
+#define REG_PERIPHERAL_I2C_STATUS               0x00
+#define REG_PERIPHERAL_I2C_CONTROL              0x01
+#define REG_PERIPHERAL_I2C_SEND                 0x02
+#define REG_PERIPHERAL_I2C_RECV                 0x03
+#define REG_PERIPHERAL_I2C_DIVIDER              0x04
+
+#define PERIPHERAL_I2C_CONTROL_START            0x01
+#define PERIPHERAL_I2C_CONTROL_STOP             0x02
+#define PERIPHERAL_I2C_CONTROL_ACK              0x04
+#define PERIPHERAL_I2C_CONTROL_NAK              0x08
+#define PERIPHERAL_I2C_CONTROL_RECV             0x10
+
+
+
 #endif	/* __RYUZ__JELLY__REGS__H__ */
 
 
-// end of file
+/* end of file */

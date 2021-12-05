@@ -14,40 +14,41 @@
 
 module jelly2_rtos_core
         #(
-            parameter   int                         TMAX_TSKID   = 15,
-            parameter   int                         TMAX_SEMID   = 7,
-            parameter   int                         TSKPRI_WIDTH = 4,
-            parameter   int                         SEMCNT_WIDTH = 4,
-            parameter   int                         FLGPTN_WIDTH = 4,
-            parameter   int                         PRESCL_WIDTH = 32,
-            parameter   int                         SYSTIM_WIDTH = 64,
-            parameter   int                         RELTIM_WIDTH = 32,
-            parameter   int                         WUPCNT_WIDTH = 1,
-            parameter   int                         SUSCNT_WIDTH = 1,
-            parameter   int                         ER_WIDTH     = 8,
-            parameter   int                         TTS_WIDTH    = 4,
-            parameter   int                         TTW_WIDTH    = 4,
-            parameter   bit     [WUPCNT_WIDTH-1:0]  TMAX_WUPCNT  = '1,
-            parameter   bit     [SUSCNT_WIDTH-1:0]  TMAX_SUSCNT  = '1,
-            parameter   bit                         USE_ER       = 1,
-            parameter   bit                         USE_SET_TMO  = 1,
-            parameter   bit                         USE_CHG_PRI  = 1,
-            parameter   bit                         USE_SLP_TSK  = 1,
-            parameter   bit                         USE_SUS_TSK  = 1,
-            parameter   bit                         USE_DLY_TSK  = 1,
-            parameter   bit                         USE_REL_WAI  = 1,
-            parameter   bit                         USE_SIG_SEM  = 1,
-            parameter   bit                         USE_WAI_SEM  = 1,
-            parameter   bit                         USE_POL_SEM  = 1,
-            parameter   bit                         USE_WAI_FLG  = 1,
-            parameter   bit                         USE_SET_PSCL = 1,
-            parameter   bit                         USE_SET_TIM  = 1,
-            parameter   int                         TSKID_WIDTH  = $clog2(TMAX_TSKID+1),
-            parameter   int                         SEMID_WIDTH  = $clog2(TMAX_SEMID+1),
-            parameter   int                         QUECNT_WIDTH = $clog2(TMAX_TSKID),
-            parameter   bit     [FLGPTN_WIDTH-1:0]  INIT_FLGPTN  = '0,
-            parameter   bit     [PRESCL_WIDTH-1:0]  INIT_PRESCL  = '0,
-            parameter   bit     [SYSTIM_WIDTH-1:0]  INIT_SYSTIM  = '0
+            parameter   int                                         TMAX_TSKID   = 15,
+            parameter   int                                         TMAX_SEMID   = 7,
+            parameter   int                                         TMAX_FLGID   = 7,
+            parameter   int                                         TSKPRI_WIDTH = 4,
+            parameter   int                                         SEMCNT_WIDTH = 4,
+            parameter   int                                         FLGPTN_WIDTH = 4,
+            parameter   int                                         PRESCL_WIDTH = 32,
+            parameter   int                                         SYSTIM_WIDTH = 64,
+            parameter   int                                         RELTIM_WIDTH = 32,
+            parameter   int                                         WUPCNT_WIDTH = 1,
+            parameter   int                                         SUSCNT_WIDTH = 1,
+            parameter   int                                         ER_WIDTH     = 8,
+            parameter   int                                         TTS_WIDTH    = 4,
+            parameter   int                                         TTW_WIDTH    = 4,
+            parameter   bit     [WUPCNT_WIDTH-1:0]                  TMAX_WUPCNT  = '1,
+            parameter   bit     [SUSCNT_WIDTH-1:0]                  TMAX_SUSCNT  = '1,
+            parameter   bit                                         USE_ER       = 1,
+            parameter   bit                                         USE_SET_TMO  = 1,
+            parameter   bit                                         USE_CHG_PRI  = 1,
+            parameter   bit                                         USE_SLP_TSK  = 1,
+            parameter   bit                                         USE_SUS_TSK  = 1,
+            parameter   bit                                         USE_DLY_TSK  = 1,
+            parameter   bit                                         USE_REL_WAI  = 1,
+            parameter   bit                                         USE_SIG_SEM  = 1,
+            parameter   bit                                         USE_WAI_SEM  = 1,
+            parameter   bit                                         USE_POL_SEM  = 1,
+            parameter   bit                                         USE_WAI_FLG  = 1,
+            parameter   bit                                         USE_SET_PSCL = 1,
+            parameter   bit                                         USE_SET_TIM  = 1,
+            parameter   int                                         TSKID_WIDTH  = $clog2(TMAX_TSKID+1),
+            parameter   int                                         SEMID_WIDTH  = $clog2(TMAX_SEMID+1),
+            parameter   int                                         QUECNT_WIDTH = $clog2(TMAX_TSKID),
+            parameter   bit     [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    INIT_FLGPTN  = '0,
+            parameter   bit     [PRESCL_WIDTH-1:0]                  INIT_PRESCL  = '0,
+            parameter   bit     [SYSTIM_WIDTH-1:0]                  INIT_SYSTIM  = '0
         )
         (
             input   wire                                        reset,
@@ -60,6 +61,10 @@ module jelly2_rtos_core
             output  wire    [TSKID_WIDTH-1:0]                   rdq_top_tskid,
             output  wire    [TSKPRI_WIDTH-1:0]                  rdq_top_tskpri,
             output  wire    [QUECNT_WIDTH-1:0]                  rdq_quecnt,
+
+            // run task
+            input   wire    [TSKID_WIDTH-1:0]                   run_tskid,
+            input   wire    [TSKPRI_WIDTH-1:0]                  run_tskpri,
 
             // operation id
             input   wire    [TSKID_WIDTH-1:0]                   op_tskid,
@@ -95,12 +100,12 @@ module jelly2_rtos_core
             
 
             // event flag
-            input   wire    [FLGPTN_WIDTH-1:0]                  set_flg,
-            input   wire    [FLGPTN_WIDTH-1:0]                  clr_flg,
+            input   wire    [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    set_flg,
+            input   wire    [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    clr_flg,
             input   wire    [0:0]                               wai_flg_wfmode,
-            input   wire    [FLGPTN_WIDTH-1:0]                  wai_flg_flgptn,
+            input   wire    [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    wai_flg_flgptn,
             input   wire                                        wai_flg_valid,
-            output  wire    [FLGPTN_WIDTH-1:0]                  flg_flgptn,
+            output  wire    [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    flg_flgptn,
 
             // timer
             input   wire    [PRESCL_WIDTH-1:0]                  set_pscl_scale,
@@ -113,7 +118,7 @@ module jelly2_rtos_core
 
 
     // -----------------------------------------
-    //  timeer
+    //  timer
     // -----------------------------------------
 
     jelly2_rtos_timer
@@ -211,6 +216,7 @@ module jelly2_rtos_core
                     .TSKID_WIDTH        (TSKID_WIDTH),
                     .TSKPRI_WIDTH       (TSKPRI_WIDTH),
                     .SEMID_WIDTH        (SEMID_WIDTH),
+                    .TMAX_FLGID         (TMAX_FLGID),
                     .FLGPTN_WIDTH       (FLGPTN_WIDTH),
                     .RELTIM_WIDTH       (RELTIM_WIDTH),
                     .WUPCNT_WIDTH       (WUPCNT_WIDTH),
@@ -313,8 +319,8 @@ module jelly2_rtos_core
                     .cke                (cke),
 
                     .op_semid           (op_semid),
-                    .op_tskid           (rdq_top_tskid),
-                    .op_tskpri          (rdq_top_tskpri),
+                    .op_tskid           (run_tskid),
+                    .op_tskpri          (run_tskpri),
 
                     .sig_sem_valid      (sig_sem_valid),
                     .pol_sem_valid      (pol_sem_valid),
@@ -341,6 +347,7 @@ module jelly2_rtos_core
 
     jelly2_rtos_eventflag
             #(
+                .TMAX_FLGID         (TMAX_FLGID),
                 .FLGPTN_WIDTH       (FLGPTN_WIDTH),
                 .INIT_FLGPTN        (INIT_FLGPTN)
             )

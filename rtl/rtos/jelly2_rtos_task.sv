@@ -16,6 +16,7 @@ module jelly2_rtos_task
             parameter   int                         TSKID_WIDTH  = 4,
             parameter   int                         TSKPRI_WIDTH = 4,
             parameter   int                         SEMID_WIDTH  = 4,
+            parameter   int                         TMAX_FLGID   = 1,
             parameter   int                         FLGPTN_WIDTH = 4,
             parameter   int                         RELTIM_WIDTH = 32,
             parameter   int                         WUPCNT_WIDTH = 1,
@@ -38,53 +39,52 @@ module jelly2_rtos_task
             parameter   bit     [TSKPRI_WIDTH-1:0]  INIT_TSKPRI  = TSKPRI_WIDTH'(TSKID)
         )
         (
-            input   wire                        reset,
-            input   wire                        clk,
-            input   wire                        cke,
+            input   wire                                        reset,
+            input   wire                                        clk,
+            input   wire                                        cke,
 
-            input   wire                        time_tick,
+            input   wire                                        time_tick,
 
-            output  wire                        busy,
+            output  wire                                        busy,
 
 
-            output  reg                         rdq_add_req,
-            input   wire                        rdq_add_ack,
+            output  reg                                         rdq_add_req,
+            input   wire                                        rdq_add_ack,
 
-            output  reg                         rdq_rmv,
+            output  reg                                         rdq_rmv,
 
-            output  reg                         timeout_req,
-            input   wire                        timeout_ack,
+            output  reg                                         timeout_req,
+            input   wire                                        timeout_ack,
 
-            input   wire                        rel_tsk,
+            input   wire                                        rel_tsk,
 
-            output  reg     [TTS_WIDTH-1:0]     tskstat,
-            output  reg     [TTW_WIDTH-1:0]     tskwait,
-            output  reg     [WUPCNT_WIDTH-1:0]  wupcnt,
-            output  reg     [SUSCNT_WIDTH-1:0]  suscnt,
-            output  reg     [TSKPRI_WIDTH-1:0]  tskpri,
-            output  reg     [RELTIM_WIDTH-1:0]  timcnt,
-            output  wire    [ER_WIDTH-1:0]      er,
+            output  reg     [TTS_WIDTH-1:0]                     tskstat,
+            output  reg     [TTW_WIDTH-1:0]                     tskwait,
+            output  reg     [WUPCNT_WIDTH-1:0]                  wupcnt,
+            output  reg     [SUSCNT_WIDTH-1:0]                  suscnt,
+            output  reg     [TSKPRI_WIDTH-1:0]                  tskpri,
+            output  reg     [RELTIM_WIDTH-1:0]                  timcnt,
+            output  wire    [ER_WIDTH-1:0]                      er,
 
-            input   wire    [FLGPTN_WIDTH-1:0]  flgptn,
+            input   wire    [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    flgptn,
             
-            input   wire    [TSKID_WIDTH-1:0]   run_tskid,
-            input   wire    [TSKID_WIDTH-1:0]   op_tskid,
-
-            input   wire    [TSKPRI_WIDTH-1:0]  chg_pri_tskpri,
-            input   wire                        chg_pri_valid,
-            input   wire                        wup_tsk_valid,
-            input   wire                        slp_tsk_valid,
-            input   wire                        sus_tsk_valid,
-            input   wire                        rsm_tsk_valid,
-            input   wire    [RELTIM_WIDTH-1:0]  dly_tsk_dlytim,
-            input   wire                        dly_tsk_valid,
-            input   wire                        rel_wai_valid,
-            input   wire                        wai_sem_valid,
-            input   wire    [0:0]               wai_flg_wfmode,
-            input   wire    [FLGPTN_WIDTH-1:0]  wai_flg_flgptn,
-            input   wire                        wai_flg_valid,
-            input   wire    [RELTIM_WIDTH-1:0]  set_tmo_tmotim,
-            input   wire                        set_tmo_valid
+            input   wire    [TSKID_WIDTH-1:0]                   run_tskid,
+            input   wire    [TSKID_WIDTH-1:0]                   op_tskid,
+            input   wire    [TSKPRI_WIDTH-1:0]                  chg_pri_tskpri,
+            input   wire                                        chg_pri_valid,
+            input   wire                                        wup_tsk_valid,
+            input   wire                                        slp_tsk_valid,
+            input   wire                                        sus_tsk_valid,
+            input   wire                                        rsm_tsk_valid,
+            input   wire    [RELTIM_WIDTH-1:0]                  dly_tsk_dlytim,
+            input   wire                                        dly_tsk_valid,
+            input   wire                                        rel_wai_valid,
+            input   wire                                        wai_sem_valid,
+            input   wire    [0:0]                               wai_flg_wfmode,
+            input   wire    [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    wai_flg_flgptn,
+            input   wire                                        wai_flg_valid,
+            input   wire    [RELTIM_WIDTH-1:0]                  set_tmo_tmotim,
+            input   wire                                        set_tmo_valid
         );
 
 
@@ -103,18 +103,17 @@ module jelly2_rtos_task
     logic                       set_tmo;
 
     assign op_valid  = (op_tskid  == TSKID);
-    assign run_valid = (run_tskid == TSKID);
 
-    assign chg_pri = chg_pri_valid & op_valid  & USE_CHG_PRI;
-    assign wup_tsk = wup_tsk_valid & op_valid  & USE_SLP_TSK;
-    assign slp_tsk = slp_tsk_valid & op_valid  & USE_SLP_TSK;
-    assign sus_tsk = sus_tsk_valid & op_valid  & USE_SUS_TSK;
-    assign rsm_tsk = rsm_tsk_valid & op_valid  & USE_SUS_TSK;
-    assign dly_tsk = dly_tsk_valid & op_valid  & USE_DLY_TSK;
-    assign rel_wai = rel_wai_valid & op_valid  & USE_REL_WAI;
-    assign wai_sem = wai_sem_valid & run_valid & USE_WAI_SEM; 
-    assign wai_flg = wai_flg_valid & run_valid & USE_WAI_FLG; 
-    assign set_tmo = set_tmo_valid & op_valid  & USE_SET_TMO;
+    assign chg_pri = chg_pri_valid & op_valid & USE_CHG_PRI;
+    assign wup_tsk = wup_tsk_valid & op_valid & USE_SLP_TSK;
+    assign slp_tsk = slp_tsk_valid & op_valid & USE_SLP_TSK;
+    assign sus_tsk = sus_tsk_valid & op_valid & USE_SUS_TSK;
+    assign rsm_tsk = rsm_tsk_valid & op_valid & USE_SUS_TSK;
+    assign dly_tsk = dly_tsk_valid & op_valid & USE_DLY_TSK;
+    assign rel_wai = rel_wai_valid & op_valid & USE_REL_WAI;
+    assign wai_sem = wai_sem_valid & op_valid & USE_WAI_SEM; 
+    assign wai_flg = wai_flg_valid & op_valid & USE_WAI_FLG; 
+    assign set_tmo = set_tmo_valid & op_valid & USE_SET_TMO;
 
     typedef enum bit signed [ER_WIDTH-1:0] {
         E_OK    = 0,
@@ -139,22 +138,22 @@ module jelly2_rtos_task
         TTS_FLG = 'h8
     } tskwait_t;
 
-    logic                       tskstat_run;
-    logic                       tskstat_rdy;
-    logic                       tskstat_wai;
-    logic                       tskstat_sus;
-    logic                       tskwait_slp;
-    logic                       tskwait_dly;
-    logic                       tskwait_sem;
-    logic                       tskwait_flg;
+    logic                                       tskstat_run;
+    logic                                       tskstat_rdy;
+    logic                                       tskstat_wai;
+    logic                                       tskstat_sus;
+    logic                                       tskwait_slp;
+    logic                                       tskwait_dly;
+    logic                                       tskwait_sem;
+    logic                                       tskwait_flg;
 
-    logic   [0:0]               flg_wfmode;
-    logic   [FLGPTN_WIDTH-1:0]  flg_flgptn;
+    logic   [0:0]                               flg_wfmode;
+    logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    flg_flgptn;
 
-    logic                       timcnt_en;
-    logic                       timeout;
-
-    er_t                        er_code;
+    logic                                       timcnt_en;
+    logic                                       timeout;
+        
+    er_t                                        er_code;
 
     always_ff @(posedge clk) begin
         if ( reset ) begin

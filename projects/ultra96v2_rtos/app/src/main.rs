@@ -2,14 +2,13 @@
 #![no_main]
 #![feature(asm)]
 
-use pudding_pac::arm::cpu;
 use core::panic::PanicInfo;
+use pudding_pac::arm::cpu;
 mod bootstrap;
 
 //mod rtos;
 
 use jelly_rtos::rtos;
-
 
 #[macro_use]
 pub mod uart;
@@ -22,7 +21,6 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
     loop {}
 }
 
-
 static mut STACK1: [u8; 4096] = [0; 4096];
 static mut STACK2: [u8; 4096] = [0; 4096];
 static mut STACK3: [u8; 4096] = [0; 4096];
@@ -32,11 +30,26 @@ static mut STACK5: [u8; 4096] = [0; 4096];
 // main
 #[no_mangle]
 pub unsafe extern "C" fn main() -> ! {
-    wait(100000);
-    println!("\nJelly-RTOS start");
-    wait(10000);
+    // start
+    wait(1000000);
+    println!("\nJelly-RTOS start\n");
 
+    // start
     rtos::initialize(0x80000000);
+
+    println!("core_id      : {:08x}", rtos::core_id());
+    println!("core_version : {:08x}", rtos::core_version());
+    println!("core_date    : {:08x}", rtos::core_date());
+    println!("clock_rate   : {}", rtos::clock_rate());
+    println!("max_tskid    : {}", rtos::max_tskid());
+    println!("max_semid    : {}", rtos::max_semid());
+    println!("max_flgid    : {}", rtos::max_flgid());
+    println!("tskpri_width : {}", rtos::tskpri_width());
+    println!("semcnt_width : {}", rtos::semcnt_width());
+    println!("flgptn_width : {}", rtos::flgptn_width());
+    println!("systim_width : {}", rtos::systim_width());
+    println!("reltim_width : {}", rtos::reltim_width());
+    println!("");
 
     // フォークを５本置く
     rtos::sig_sem(1);
@@ -63,17 +76,24 @@ pub unsafe extern "C" fn main() -> ! {
     }
 }
 
-
-
-extern "C" fn task1() -> ! { dining_philosopher(1); }
-extern "C" fn task2() -> ! { dining_philosopher(2); }
-extern "C" fn task3() -> ! { dining_philosopher(3); }
-extern "C" fn task4() -> ! { dining_philosopher(4); }
-extern "C" fn task5() -> ! { dining_philosopher(5); }
-
+extern "C" fn task1() -> ! {
+    dining_philosopher(1);
+}
+extern "C" fn task2() -> ! {
+    dining_philosopher(2);
+}
+extern "C" fn task3() -> ! {
+    dining_philosopher(3);
+}
+extern "C" fn task4() -> ! {
+    dining_philosopher(4);
+}
+extern "C" fn task5() -> ! {
+    dining_philosopher(5);
+}
 
 fn dining_philosopher(id: i32) -> ! {
-    let left  = id;
+    let left = id;
     let right = id % 5 + 1;
     println!("[philosopher{}] dining start", id);
     loop {
@@ -89,8 +109,7 @@ fn dining_philosopher(id: i32) -> ! {
                     rtos::sig_sem(left);
                     rtos::sig_sem(right);
                     break 'dining;
-                }
-                else {
+                } else {
                     rtos::sig_sem(left);
                 }
             }
@@ -99,7 +118,6 @@ fn dining_philosopher(id: i32) -> ! {
         }
     }
 }
-
 
 // 乱数
 const RAND_MAX: u32 = 0xffff_ffff;
@@ -119,7 +137,6 @@ fn rand_time() -> u32 {
     100000000 + (rand() % 1000) * 100000
 }
 
-
 // ループによるウェイト
 fn wait(n: i32) {
     let mut v: i32 = 0;
@@ -127,7 +144,6 @@ fn wait(n: i32) {
         unsafe { core::ptr::write_volatile(&mut v, i) };
     }
 }
-
 
 #[allow(dead_code)]
 pub fn memdump(addr: usize, len: usize) {
@@ -146,3 +162,4 @@ pub fn memdump(addr: usize, len: usize) {
         }
     }
 }
+

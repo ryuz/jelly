@@ -152,6 +152,7 @@ module ultra96v2_rtos
 
     localparam  int                     TMAX_TSKID         = 15;
     localparam  int                     TMAX_SEMID         = 7;
+    localparam  int                     TMAX_FLGID         = 2;
     localparam  int                     TSKPRI_WIDTH       = 4;
     localparam  int                     WUPCNT_WIDTH       = 1;
     localparam  int                     SUSCNT_WIDTH       = 1;
@@ -165,17 +166,18 @@ module ultra96v2_rtos
     localparam  int                     TSKID_WIDTH        = $clog2(TMAX_TSKID+1);
     localparam  int                     SEMID_WIDTH        = $clog2(TMAX_SEMID+1);
 
-                                logic   [FLGPTN_WIDTH-1:0]                  rtos_set_flg;
+                                logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    rtos_set_flg;
 
-    (* mark_debug = "true" *)   logic   [TSKID_WIDTH-1:0]                   monitor_run_tskid;
     (* mark_debug = "true" *)   logic   [TSKID_WIDTH-1:0]                   monitor_top_tskid;
+    (* mark_debug = "true" *)   logic   [TSKID_WIDTH-1:0]                   monitor_run_tskid;
+    (* mark_debug = "true" *)   logic   [TSKPRI_WIDTH-1:0]                  monitor_run_tskpri;
     (* mark_debug = "true" *)   logic   [TMAX_TSKID:1][TTS_WIDTH-1:0]       monitor_tsk_tskstat;
     (* mark_debug = "true" *)   logic   [TMAX_TSKID:1][TTW_WIDTH-1:0]       monitor_tsk_tskwait;
     (* mark_debug = "true" *)   logic   [TMAX_TSKID:1][WUPCNT_WIDTH-1:0]    monitor_tsk_wupcnt;
     (* mark_debug = "true" *)   logic   [TMAX_TSKID:1][SUSCNT_WIDTH-1:0]    monitor_tsk_suscnt;
     (* mark_debug = "true" *)   logic   [TMAX_SEMID:1][QUECNT_WIDTH-1:0]    monitor_sem_quecnt;
     (* mark_debug = "true" *)   logic   [TMAX_SEMID:1][SEMCNT_WIDTH-1:0]    monitor_sem_semcnt;
-    (* mark_debug = "true" *)   logic   [FLGPTN_WIDTH-1:0]                  monitor_flg_flgptn;
+    (* mark_debug = "true" *)   logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    monitor_flg_flgptn;
     (* mark_debug = "true" *)   logic   [WB_DAT_WIDTH-1:0]                  monitor_scratch0;
     (* mark_debug = "true" *)   logic   [WB_DAT_WIDTH-1:0]                  monitor_scratch1;
     (* mark_debug = "true" *)   logic   [WB_DAT_WIDTH-1:0]                  monitor_scratch2;
@@ -191,6 +193,7 @@ module ultra96v2_rtos
                 .WB_DAT_WIDTH           (WB_DAT_WIDTH),
                 .TMAX_TSKID             (TMAX_TSKID),
                 .TMAX_SEMID             (TMAX_SEMID),
+                .TMAX_FLGID             (TMAX_FLGID),
                 .TSKPRI_WIDTH           (TSKPRI_WIDTH),
                 .WUPCNT_WIDTH           (WUPCNT_WIDTH),
                 .SUSCNT_WIDTH           (SUSCNT_WIDTH),
@@ -223,8 +226,9 @@ module ultra96v2_rtos
 
                 .ext_set_flg            (rtos_set_flg),
 
-                .monitor_run_tskid      (monitor_run_tskid), 
                 .monitor_top_tskid      (monitor_top_tskid), 
+                .monitor_run_tskid      (monitor_run_tskid), 
+                .monitor_run_tskpri     (monitor_run_tskpri), 
                 .monitor_tsk_tskstat    (monitor_tsk_tskstat),
                 .monitor_tsk_tskwait    (monitor_tsk_tskwait),
                 .monitor_tsk_wupcnt     (monitor_tsk_wupcnt),
@@ -313,8 +317,10 @@ module ultra96v2_rtos
                 .s_wb_ack_o         (wb_tim_ack_o)
             );
     
-    assign rtos_set_flg[0]    = tim_irq;
-    assign rtos_set_flg[31:1] = '0;
+    always_comb begin
+        rtos_set_flg       = '0;
+        rtos_set_flg[1][0] = tim_irq;
+    end
 
     
     // -----------------------------

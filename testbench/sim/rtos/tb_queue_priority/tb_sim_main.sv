@@ -31,7 +31,7 @@ module tb_sim_main
 
     logic   [COUNT_WIDTH-1:0]       count;
 
-    jelly_rtos_queue_priority
+    jelly2_rtos_queue_priority
             #(
                 .QUE_SIZE       (QUE_SIZE),
                 .ID_WIDTH       (ID_WIDTH),

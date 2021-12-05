@@ -3,6 +3,7 @@
 #![feature(asm)]
 
 pub mod rtos;
+pub use rtos::*;
 
 #[cfg(test)]
 mod tests {

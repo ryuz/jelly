@@ -6,7 +6,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let src_files = vec![
         ["src/vectors.S", "vectors"],
         ["src/startup.S", "startup"],
-        //        ["src/jelly_rtos.S", "jelly_rtos"],
+//        ["src/jelly_rtos.S", "jelly_rtos"],
     ];
 
     for name in src_files.into_iter() {

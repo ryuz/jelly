@@ -47,6 +47,7 @@ const SYS_CFG_DATE: usize = 0x04;
 const SYS_CFG_CLOCK_RATE: usize = 0x07;
 const SYS_CFG_TMAX_TSKID: usize = 0x20;
 const SYS_CFG_TMAX_SEMID: usize = 0x21;
+const SYS_CFG_TMAX_FLGID: usize = 0x22;
 const SYS_CFG_TSKPRI_WIDTH: usize = 0x30;
 const SYS_CFG_SEMCNT_WIDTH: usize = 0x31;
 const SYS_CFG_FLGPTN_WIDTH: usize = 0x32;
@@ -70,9 +71,10 @@ const JELLY_RTOS_REG_SIZE: usize = if cfg!(feature = "reg64bit") { 8 } else { 4 
 #[no_mangle]
 pub static mut JELLY_RTOS_CORE_BASE: usize = 0x80000000;
 #[no_mangle]
-pub static mut JELLY_RTOS_RUN_TSKID: usize = 15;
+pub static mut JELLY_RTOS_RUN_TSKID: usize = 0;
 #[no_mangle]
 pub static mut JELLY_RTOS_SP_TABLE: [usize; 16] = [0; 16];
+
 
 fn make_addr(opcode: usize, id: usize) -> usize {
     unsafe {
@@ -90,6 +92,7 @@ unsafe fn read_reg(opcode: usize, id: usize) -> u32 {
     let addr = make_addr(opcode, id);
     ptr::read_volatile(addr as *mut u32)
 }
+
 
 extern "C" {
     fn jelly_create_context(isp: usize, entry: extern "C" fn() -> !) -> usize;
@@ -122,7 +125,10 @@ pub fn initialize(core_base: usize) {
     unsafe {
         // アドレス設定
         JELLY_RTOS_CORE_BASE = core_base;
-
+        
+        // ID確認
+        assert!(read_reg(OPCODE_SYS_CFG, SYS_CFG_CORE_ID) == 0x834f5452);
+        
         // ソフトリセット
         write_reg(OPCODE_SYS_CFG, SYS_CFG_SOFT_RESET, 1);
 
@@ -197,6 +203,14 @@ pub fn pol_sem(semid: i32) -> bool {
     unsafe { read_reg(OPCODE_POL_SEM, semid as usize) != 0 }
 }
 
+
+pub fn ena_extflg(flgid: i32, flgptn: u32) {
+    unsafe {
+        let _sc = SystemCall::new();
+        write_reg(OPCODE_ENA_FLG_EXT, flgid as usize, flgptn);
+    }
+}
+
 pub fn set_flg(flgid: i32, flgptn: u32) {
     unsafe {
         let _sc = SystemCall::new();
@@ -242,3 +256,67 @@ pub fn unl_cpu() {
 pub fn sns_dpn() -> bool {
     unsafe { read_reg(OPCODE_CPU_CTL, CPU_CTL_IRQ_STS) != 0 }
 }
+
+
+
+pub fn set_scratch(id : usize, data: u32) {
+    unsafe {
+        match id {
+        0 => write_reg(OPCODE_CPU_CTL, CPU_CTL_SCRATCH0, data),
+        1 => write_reg(OPCODE_CPU_CTL, CPU_CTL_SCRATCH1, data),
+        2 => write_reg(OPCODE_CPU_CTL, CPU_CTL_SCRATCH2, data),
+        3 => write_reg(OPCODE_CPU_CTL, CPU_CTL_SCRATCH3, data),
+        _ => {},
+        }
+    }
+}
+
+
+pub fn core_id() -> u32 {
+    unsafe { read_reg(OPCODE_SYS_CFG, SYS_CFG_CORE_ID) as u32 }
+}
+
+pub fn core_version() -> u32 {
+    unsafe { read_reg(OPCODE_SYS_CFG, SYS_CFG_VERSION) as u32 }
+}
+
+pub fn core_date() -> u32 {
+    unsafe { read_reg(OPCODE_SYS_CFG, SYS_CFG_DATE) as u32 }
+}
+
+pub fn clock_rate() -> u32 {
+    unsafe { read_reg(OPCODE_SYS_CFG, SYS_CFG_CLOCK_RATE) as u32 }
+}
+
+pub fn max_tskid() -> u32 {
+    unsafe { read_reg(OPCODE_SYS_CFG, SYS_CFG_TMAX_TSKID) as u32 }
+}
+
+pub fn max_semid() -> u32 {
+    unsafe { read_reg(OPCODE_SYS_CFG, SYS_CFG_TMAX_SEMID) as u32 }
+}
+
+pub fn max_flgid() -> u32 {
+    unsafe { read_reg(OPCODE_SYS_CFG, SYS_CFG_TMAX_FLGID) as u32 }
+}
+
+pub fn tskpri_width() -> u32 {
+    unsafe { read_reg(OPCODE_SYS_CFG, SYS_CFG_TSKPRI_WIDTH) as u32 }
+}
+
+pub fn semcnt_width() -> u32 {
+    unsafe { read_reg(OPCODE_SYS_CFG, SYS_CFG_SEMCNT_WIDTH) as u32 }
+}
+
+pub fn flgptn_width() -> u32 {
+    unsafe { read_reg(OPCODE_SYS_CFG, SYS_CFG_FLGPTN_WIDTH) as u32 }
+}
+
+pub fn systim_width() -> u32 {
+    unsafe { read_reg(OPCODE_SYS_CFG, SYS_CFG_SYSTIM_WIDTH) as u32 }
+}
+
+pub fn reltim_width() -> u32 {
+    unsafe { read_reg(OPCODE_SYS_CFG, SYS_CFG_RELTIM_WIDTH) as u32 }
+}
+

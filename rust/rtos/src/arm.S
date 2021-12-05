@@ -39,14 +39,19 @@
 //        ) -> usize        r0 新しいスタックポインタ
 // =================================================
                 .global	jelly_create_context
-                .code	16
-                .thumb_func
+                .code	32
+                .func
                 .type	jelly_create_context, %function
 jelly_create_context:
                 sub		r0, #(16*4)         // スタックを確保
                 str		r1, [r0, #(15*4)]   // lr 部分にentryを設定
                 mov     r1, #(Mode_SYS)     // spsr
                 str		r1, [r0, #(1*4)]    // spsr 部分を設定
+#ifdef _WITH_VFP    // VFP利用時
+                sub		r0, #(2*4 + 8*8)
+                mov     r1, #0x40000000     // fpexc の EN ビットセット
+                str		r1, [r0, #(0*4)]    // spsr 部分を設定
+#endif
                 bx		lr                  // リターン
 
 
@@ -71,6 +76,17 @@ jelly_svc_handler:
 context_switch: mrs     r2, spsr
                 stmfd   r0!, {r1, r2}
 
+#ifdef _WITH_VFP    // VFP利用時
+                mov     sp, r0
+                vpush   {d0-d7}     // VFP用レジスタ退避
+                vmrs    r1, fpscr   // fpscr 取り出し
+                push    {r1}        // fpscr 退避
+                vmrs    r1, fpexc   // fpexc 取り出し
+                push    {r1}        // fpexc 退避
+                mov     r0, sp
+#endif
+
+
                 // 実行中タスクID取得
                 ldr     r1, =JELLY_RTOS_RUN_TSKID
                 ldr     r4, [r1]
@@ -83,14 +99,21 @@ context_switch: mrs     r2, spsr
                 ldr     r3, =JELLY_RTOS_CORE_BASE
                 ldr     r3, [r3]
                 ldr     r4, [r3, #COPY_TSKID]
-//                ldr     r4, [r3, #TOP_TSKID]
-//                str     r4, [r3, #RUN_TSKID]
                 str     r4, [r1]
 
                 // スタック復帰
                 ldr     r0, [r2, r4, lsl #2]
 
                 // コンテキスト復帰
+#ifdef _WITH_VFP    // VFP利用時
+                mov     sp, r0
+                pop 	{r1}        // fpexc 復帰
+                vmsr    fpexc, r1   // fpexc 設定
+                pop 	{r1}        // fpscr 復帰
+                vmsr    fpscr, r1   // fpscr 設定
+                vpop    {d0-d7}     // VFP用レジスタ復帰
+                mov     r0, sp
+#endif
                 ldmfd	r0!, {r1-r2}
                 msr     spsr, r2
                 msr     cpsr_c, #(Mode_SYS | I_Bit)
