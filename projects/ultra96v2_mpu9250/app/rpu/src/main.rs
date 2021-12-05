@@ -54,60 +54,64 @@ pub unsafe extern "C" fn main() -> ! {
     println!("systim_width : {}", rtos::systim_width());
     println!("reltim_width : {}", rtos::reltim_width());
     
+    // 時間単位を us 単位にする
+    let pscl:u32 = rtos::clock_rate() / 1000000 - 1;
+    println!("set_pscl({})\n", pscl);
+    rtos::set_pscl(pscl);
 
     // タスクスタート
     rtos::cre_tsk(1, &mut STACK1, task1);
     rtos::wup_tsk(1);
-    
-
-    /*
-    rtos::cre_tsk(2, &mut STACK2, task2);
-    rtos::cre_tsk(3, &mut STACK3, task3);
-    rtos::cre_tsk(4, &mut STACK4, task4);
-    rtos::cre_tsk(5, &mut STACK5, task5);
-    rtos::wup_tsk(1);
-    rtos::wup_tsk(2);
-    rtos::wup_tsk(3);
-    rtos::wup_tsk(4);
-    rtos::wup_tsk(5);
-    */
 
     // アイドルループ
     loop {
-//        print!(".");
-//        wait(10000000);
         cpu::wfi();
     }
 }
+
 
 const MPU9250_ADDRESS: u8 =     0x68;    // 7bit address
 //const AK8963_ADDRESS: u8 =      0x0C;    // Address of magnetometer
 
 extern "C" fn task1() -> ! {
-    println!("task1 start");
+    println!("Task Start");
+    
     let i2c = i2c::JellyI2c::new(0x80080000);
-    i2c.set_divider(20*2);
-
+    i2c.set_divider(20*2 - 1);
     
-//    i2c.write1(MPU9250_ADDRESS, 0x77);
-//    let hoge = i2c.read1(MPU9250_ADDRESS);
-//    println!("hoge:0x{:02x}", hoge);
-    
-    rtos::set_scratch(0, 1);
-    i2c.write1(MPU9250_ADDRESS, 0x75);
-    let who_am_i = i2c.read1(MPU9250_ADDRESS);
-    rtos::set_scratch(0, 0);
-    println!("?WHO_AM_I(exp:0x71):0x{:02x}", who_am_i);
+    i2c.write(MPU9250_ADDRESS, &[0x75]);
+    let mut who_am_i: [u8; 1] = [0u8; 1];
+    i2c.read(MPU9250_ADDRESS, &mut who_am_i);
+    println!("WHO_AM_I(exp:0x71):0x{:02x}", who_am_i[0]);
 
-    i2c.write1(MPU9250_ADDRESS, 0x77);
-    let hoge = i2c.read1(MPU9250_ADDRESS);
-    println!("hoge:0x{:02x}", hoge);
+    // 起動
+    i2c.write(MPU9250_ADDRESS, &[0x6b, 0x00]);
+    i2c.write(MPU9250_ADDRESS, &[0x37, 0x02]);
 
-    let array: [u8; 3] = [1, 2, 3]; 
-    i2c.write(MPU9250_ADDRESS, &array);
-    i2c.write(MPU9250_ADDRESS, &[1, 2, 3]);
+    loop {
+        let mut buf = [0u8; 14];
+        i2c.write(MPU9250_ADDRESS, &[0x3b]);
+        i2c.read(MPU9250_ADDRESS, &mut buf);
+        
+        let accel0       = ((buf[ 0] as i16) << 8) | (buf[ 1] as i16);
+        let accel1       = ((buf[ 2] as i16) << 8) | (buf[ 3] as i16);
+        let accel2       = ((buf[ 4] as i16) << 8) | (buf[ 5] as i16);
+        let temperature  = ((buf[ 6] as i16) << 8) | (buf[ 7] as i16);
+        let gyro0        = ((buf[ 8] as i16) << 8) | (buf[ 9] as i16);
+        let gyro1        = ((buf[10] as i16) << 8) | (buf[11] as i16);
+        let gyro2        = ((buf[12] as i16) << 8) | (buf[13] as i16);
+        println!("accel0      : {}", accel0     );
+        println!("accel1      : {}", accel1     );
+        println!("accel2      : {}", accel2     );
+        println!("gyro0       : {}", gyro0      );
+        println!("gyro1       : {}", gyro1      );
+        println!("gyro2       : {}", gyro2      );
+        println!("temperature : {}", temperature);
+        
+        rtos::dly_tsk(1000000);
+    }
 
-    rtos::slp_tsk(-1);
+    rtos::slp_tsk();
 
     loop {
         wait(100000);

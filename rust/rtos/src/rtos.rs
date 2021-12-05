@@ -167,14 +167,9 @@ pub fn wup_tsk(tskid: ID) {
     }
 }
 
-pub fn slp_tsk(tskid: ID) {
+pub fn slp_tsk() {
     unsafe {
-        let tskid: usize = if tskid <= 0 {
-            JELLY_RTOS_RUN_TSKID
-        } else {
-            tskid as usize
-        };
-
+        let tskid = JELLY_RTOS_RUN_TSKID;
         let _sc = SystemCall::new();
         write_reg(OPCODE_SLP_TSK, tskid, 0);
     }
