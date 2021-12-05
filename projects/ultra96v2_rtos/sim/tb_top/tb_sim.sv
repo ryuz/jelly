@@ -158,7 +158,7 @@ module tb_sim();
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_WUPCNT  = OPCODE_WIDTH'(8'h92);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_SUSCNT  = OPCODE_WIDTH'(8'h93);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_TIMCNT  = OPCODE_WIDTH'(8'h94);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_ERR     = OPCODE_WIDTH'(8'h98);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_ERCD    = OPCODE_WIDTH'(8'h98);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_GET_PRI     = OPCODE_WIDTH'(8'h9c);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SIG_SEM     = OPCODE_WIDTH'(8'h21);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_SEM     = OPCODE_WIDTH'(8'h22);
@@ -203,6 +203,11 @@ module tb_sim();
     localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_SCRATCH2   = 'he2;
     localparam  bit     [ID_WIDTH-1:0]      CPU_CTL_SCRATCH3   = 'he3;
 
+    localparam E_OK    = 0;
+    localparam E_OBJ   = -41;
+    localparam E_QOVR  = -43;
+    localparam E_RLWAI = -49;
+    localparam E_TMOUT = -50;
 
     function [WB_ADR_WIDTH-1:0] make_addr(bit [OPCODE_WIDTH-1:0] opcode, int id);
     begin
@@ -249,6 +254,20 @@ module tb_sim();
         end
     end
     endtask
+
+    task check_er_code(int taskid, int exp_er);
+    begin
+        wb_read(make_addr(OPCODE_REF_ERCD, taskid));
+        if ( int'($signed(reg_wb_dat)) == exp_er ) begin
+            $display("[OK] tskid:%d er_code:%d (exp:%d)", taskid, int'($signed(reg_wb_dat)), exp_er);
+        end
+        else begin
+            $error("[!!!ERROR!!!] tskid:%d er_code:%d (exp:%d)", taskid, int'($signed(reg_wb_dat)), exp_er);
+            $stop();
+        end
+    end
+    endtask
+
 
     task check_top_taskid(int exp_tskid);
     begin
@@ -581,7 +600,49 @@ module tb_sim();
             swtich_and_check(i <= 4 ? i+1 : 0);
         end
 
-    #100;
+    #200;
+        $display("[%d] --- twai_sem --- ", ++test_num);
+
+        $display("wup_tsk(2)");
+        wb_write(make_addr(OPCODE_WUP_TSK, 2), 0, 4'hf);
+        swtich_and_check(2);
+
+        $display("wup_tsk(1)");
+        wb_write(make_addr(OPCODE_WUP_TSK, 1), 0, 4'hf);
+        swtich_and_check(1);
+
+        $display("wai_sem(1)");
+        wb_write(make_addr(OPCODE_WAI_SEM, 1),   0, 4'hf);
+        wb_write(make_addr(OPCODE_SET_TMO, 1), 200, 4'hf);
+        swtich_and_check(2);
+
+        $display("wai_sem(2)");
+        wb_write(make_addr(OPCODE_WAI_SEM, 2),   0, 4'hf);
+        wb_write(make_addr(OPCODE_SET_TMO, 2),  30, 4'hf);
+        swtich_and_check(0);
+
+    #300
+        swtich_and_check(2);
+        $display("sig_sem(1)");
+        wb_write(make_addr(OPCODE_SIG_SEM, 1),  0, 4'hf);
+        $display("sig_sem(2)");
+        wb_write(make_addr(OPCODE_SIG_SEM, 2),  0, 4'hf);
+        swtich_and_check(1);
+
+        $display("ER : task(1)");
+        check_er_code(1, E_OK);
+        $display("ER : task(2)");
+        check_er_code(2, E_TMOUT);
+
+        $display("slp_tsk(1)");
+        wb_write(make_addr(OPCODE_SLP_TSK, 1), 0, 4'hf);
+        swtich_and_check(2);
+
+        $display("slp_tsk(2)");
+        wb_write(make_addr(OPCODE_SLP_TSK, 2), 0, 4'hf);
+        swtich_and_check(0);
+
+    #1000;
         ++test_num;
         $display(" --- soft reset --- ");
         wb_write(make_addr(OPCODE_SYS_CFG, SYS_CFG_SOFT_RESET), 1, 4'hf);

@@ -30,7 +30,7 @@ module jelly2_rtos_core
             parameter   int                                         TTW_WIDTH    = 4,
             parameter   bit     [WUPCNT_WIDTH-1:0]                  TMAX_WUPCNT  = '1,
             parameter   bit     [SUSCNT_WIDTH-1:0]                  TMAX_SUSCNT  = '1,
-            parameter   bit                                         USE_ER       = 1,
+            parameter   bit                                         USE_ERCD     = 1,
             parameter   bit                                         USE_SET_TMO  = 1,
             parameter   bit                                         USE_CHG_PRI  = 1,
             parameter   bit                                         USE_SLP_TSK  = 1,
@@ -88,7 +88,7 @@ module jelly2_rtos_core
             output  wire    [TMAX_TSKID:1][WUPCNT_WIDTH-1:0]    task_wupcnt,
             output  wire    [TMAX_TSKID:1][SUSCNT_WIDTH-1:0]    task_suscnt,
             output  wire    [TMAX_TSKID:1][RELTIM_WIDTH-1:0]    task_timcnt,
-            output  wire    [TMAX_TSKID:1][ER_WIDTH-1:0]        task_er,
+            output  wire    [TMAX_TSKID:1][ER_WIDTH-1:0]        task_ercd,
 
             // semaphore                
             input   wire                                        sig_sem_valid,
@@ -225,7 +225,7 @@ module jelly2_rtos_core
                     .TTW_WIDTH          (TTW_WIDTH),
                     .TMAX_WUPCNT        (TMAX_WUPCNT),
                     .TMAX_SUSCNT        (TMAX_SUSCNT),
-                    .USE_ER             (USE_ER),
+                    .USE_ERCD           (USE_ERCD),
                     .USE_CHG_PRI        (USE_CHG_PRI),
                     .USE_SLP_TSK        (USE_SLP_TSK),
                     .USE_SUS_TSK        (USE_SUS_TSK),
@@ -253,7 +253,7 @@ module jelly2_rtos_core
                     .wupcnt             (task_wupcnt[i]),
                     .suscnt             (task_suscnt[i]),
                     .timcnt             (task_timcnt[i]),
-                    .er                 (task_er[i]),
+                    .ercd               (task_ercd[i]),
 
                     .rdq_add_req        (task_rdq_add_req[i]),
                     .rdq_add_ack        (task_rdq_add_ack[i]),

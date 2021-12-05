@@ -6,8 +6,17 @@ use pudding_pac::arm::cpu;
 type ID = i32;
 type PRI = i32;
 type ER = i32;
+type TMO = i32;
+type FLGPTN = u32;
 
 pub const TSK_SELF: ID = 0;
+
+pub const E_OK: ER    = 0;
+pub const E_OBJ: ER   = -41;
+pub const E_QOVR: ER  = -43;
+pub const E_RLWAI: ER = -49;
+pub const E_TMOUT: ER = -50;
+
 
 const ID_WIDTH: usize = 8;
 const OPCODE_WIDTH: usize = 8;
@@ -28,7 +37,7 @@ const OPCODE_REF_TSKWAIT: usize = 0x91;
 const OPCODE_REF_WUPCNT: usize = 0x92;
 const OPCODE_REF_SUSCNT: usize = 0x93;
 const OPCODE_REF_TIMCNT: usize = 0x94;
-const OPCODE_REF_ERR: usize = 0x98;
+const OPCODE_REF_ERCD: usize = 0x98;
 const OPCODE_GET_PRI: usize = 0x9c;
 const OPCODE_SIG_SEM: usize = 0x21;
 const OPCODE_WAI_SEM: usize = 0x22;
@@ -145,16 +154,22 @@ pub fn initialize(core_base: usize) {
 }
 
 
+fn get_ercd(tskid: usize) -> ER
+{
+    if cfg!(feature = "ercd") { unsafe {read_reg(OPCODE_REF_ERCD, tskid) as ER} } else { E_OK }
+}
 
-pub fn cre_tsk(tskid: ID, stack: &mut [u8], entry: extern "C" fn() -> !) {
+
+pub fn cre_tsk(tskid: ID, stack: &mut [u8], entry: extern "C" fn() -> !) -> ER {
     let mut isp = (&mut stack[0] as *mut u8 as usize) + stack.len();
     isp &= !0x0f_usize; // align
     unsafe {
         JELLY_RTOS_SP_TABLE[tskid as usize] = jelly_create_context(isp as usize, entry);
     }
+    E_OK
 }
 
-pub fn wup_tsk(tskid: ID) {
+pub fn wup_tsk(tskid: ID) -> ER {
     unsafe {
         let tskid: usize = if tskid <= 0 {
             JELLY_RTOS_RUN_TSKID
@@ -165,63 +180,82 @@ pub fn wup_tsk(tskid: ID) {
         let _sc = SystemCall::new();
         write_reg(OPCODE_WUP_TSK, tskid, 0);
     }
+    E_OK
 }
 
-pub fn slp_tsk() {
+pub fn slp_tsk() -> ER {
     unsafe {
         let tskid = JELLY_RTOS_RUN_TSKID;
         let _sc = SystemCall::new();
         write_reg(OPCODE_SLP_TSK, tskid, 0);
+        get_ercd(tskid)
     }
 }
 
-pub fn dly_tsk(dlytim: u32) {
+pub fn dly_tsk(dlytim: u32) -> ER {
     unsafe {
         let tskid: usize = JELLY_RTOS_RUN_TSKID;
-        
         let _sc = SystemCall::new();
         write_reg(OPCODE_DLY_TSK, tskid, dlytim);
+        get_ercd(tskid)
     }
 }
 
-pub fn sig_sem(semid: ID) {
+pub fn sig_sem(semid: ID) -> ER {
     unsafe {
         let _sc = SystemCall::new();
         write_reg(OPCODE_SIG_SEM, semid as usize, 0);
     }
+    E_OK
 }
 
-pub fn wai_sem(semid: ID) {
-    unsafe {
-        let _sc = SystemCall::new();
-        write_reg(OPCODE_WAI_SEM, semid as usize, 0);
-    }
-}
 
 pub fn pol_sem(semid: ID) -> ER {
     unsafe { if read_reg(OPCODE_POL_SEM, semid as usize) != 0 { E_OK } else { E_TMOUT }  }
 }
 
-
-pub fn ena_extflg(flgid: ID, flgptn: u32) {
+pub fn wai_sem(semid: ID) -> ER
+{
     unsafe {
         let _sc = SystemCall::new();
-        write_reg(OPCODE_ENA_FLG_EXT, flgid as usize, flgptn);
+        write_reg(OPCODE_WAI_SEM, semid as usize, 0);
+        get_ercd(JELLY_RTOS_RUN_TSKID)
     }
 }
 
-pub fn set_flg(flgid: ID, flgptn: u32) {
+pub fn twai_sem(semid: ID, tmout: TMO) -> ER {
     unsafe {
+        let tskid: usize = JELLY_RTOS_RUN_TSKID;
         let _sc = SystemCall::new();
-        write_reg(OPCODE_SET_FLG, flgid as usize, flgptn);
+        write_reg(OPCODE_WAI_SEM, semid as usize, 0);
+        write_reg(OPCODE_SET_TMO, tskid, tmout as u32);
+        get_ercd(tskid)
     }
 }
 
-pub fn clr_flg(flgid: ID, flgptn: u32) {
+
+pub fn ena_extflg(flgid: ID, flgptn: FLGPTN) -> ER {
     unsafe {
         let _sc = SystemCall::new();
-        write_reg(OPCODE_CLR_FLG, flgid as usize, flgptn);
+        write_reg(OPCODE_ENA_FLG_EXT, flgid as usize, flgptn as u32);
     }
+    E_OK
+}
+
+pub fn set_flg(flgid: ID, flgptn: FLGPTN) -> ER {
+    unsafe {
+        let _sc = SystemCall::new();
+        write_reg(OPCODE_SET_FLG, flgid as usize, flgptn as u32);
+    }
+    E_OK
+}
+
+pub fn clr_flg(flgid: ID, flgptn: FLGPTN) -> ER {
+    unsafe {
+        let _sc = SystemCall::new();
+        write_reg(OPCODE_CLR_FLG, flgid as usize, flgptn as u32);
+    }
+    E_OK
 }
 
 pub enum WfMode {
@@ -229,27 +263,55 @@ pub enum WfMode {
     OrWait = 1,
 }
 
-pub fn wai_flg(flgid: ID, waiptn: u32, wfmode: WfMode) {
+pub fn pol_flg(flgid: ID, waiptn: FLGPTN, wfmode: WfMode) -> ER {
     unsafe {
+        let flgptn = read_reg(OPCODE_REF_FLGPTN, flgid as usize) as FLGPTN;
+        match wfmode {
+            WfMode::AndWait => if flgptn & waiptn == waiptn { E_OK } else { E_TMOUT }
+            WfMode::OrWait =>  if flgptn & waiptn != 0 { E_OK } else { E_TMOUT }
+        }
+    }
+}
+
+pub fn wai_flg(flgid: ID, waiptn: u32, wfmode: WfMode) -> ER {
+    unsafe {
+        let tskid: usize = JELLY_RTOS_RUN_TSKID;
         let _sc = SystemCall::new();
         match wfmode {
             WfMode::AndWait => write_reg(OPCODE_WAI_FLG_AND, flgid as usize, waiptn),
             WfMode::OrWait => write_reg(OPCODE_WAI_FLG_OR, flgid as usize, waiptn),
         }
+        get_ercd(tskid)
     }
 }
 
-pub fn loc_cpu() {
+pub fn twai_flg(flgid: ID, waiptn: u32, wfmode: WfMode, tmout: TMO) -> ER {
+    unsafe {
+        let tskid: usize = JELLY_RTOS_RUN_TSKID;
+        let _sc = SystemCall::new();
+        match wfmode {
+            WfMode::AndWait => write_reg(OPCODE_WAI_FLG_AND, flgid as usize, waiptn),
+            WfMode::OrWait => write_reg(OPCODE_WAI_FLG_OR, flgid as usize, waiptn),
+        }
+        write_reg(OPCODE_SET_TMO, tskid, tmout as u32);
+        get_ercd(tskid)
+    }
+}
+
+
+pub fn loc_cpu() -> ER {
     unsafe {
         cpu::irq_disable();
     }
+    E_OK
 }
 
-pub fn unl_cpu() {
+pub fn unl_cpu() -> ER {
     unsafe {
         let _sc = SystemCall::new();
         cpu::irq_disable();
     }
+    E_OK
 }
 
 pub fn sns_dpn() -> bool {
@@ -257,14 +319,15 @@ pub fn sns_dpn() -> bool {
 }
 
 // set pre-scaler
-pub fn set_pscl(prescale: u32) {
+pub fn set_pscl(prescale: u32) -> ER {
     unsafe {
         let _sc = SystemCall::new();
         write_reg(OPCODE_SET_PSCL, 0, prescale);
     }
+    E_OK
 }
 
-pub fn set_scratch(id : usize, data: u32) {
+pub fn set_scratch(id : usize, data: u32) -> ER {
     unsafe {
         match id {
         0 => write_reg(OPCODE_CPU_CTL, CPU_CTL_SCRATCH0, data),
@@ -274,8 +337,16 @@ pub fn set_scratch(id : usize, data: u32) {
         _ => {},
         }
     }
+    E_OK
 }
 
+pub fn ref_ercd(tskid: ID) -> ER
+{
+    unsafe { 
+        let tskid: usize = if tskid > 0 { tskid as usize } else { JELLY_RTOS_RUN_TSKID };
+        get_ercd(tskid)
+    }
+}
 
 pub fn core_id() -> u32 {
     unsafe { read_reg(OPCODE_SYS_CFG, SYS_CFG_CORE_ID) as u32 }
