@@ -3,6 +3,11 @@
 use core::ptr;
 use pudding_pac::arm::cpu;
 
+
+// API仕様説明するのが面倒なのでなるべく ITRON4.0仕様に合わせるものとする
+// https://www.tron.org/ja/specifications/
+
+
 type ID = i32;
 type PRI = i32;
 type ER = i32;
@@ -16,7 +21,6 @@ pub const E_OBJ: ER   = -41;
 pub const E_QOVR: ER  = -43;
 pub const E_RLWAI: ER = -49;
 pub const E_TMOUT: ER = -50;
-
 
 const ID_WIDTH: usize = 8;
 const OPCODE_WIDTH: usize = 8;
@@ -347,6 +351,7 @@ pub fn ref_ercd(tskid: ID) -> ER
         get_ercd(tskid)
     }
 }
+
 
 pub fn core_id() -> u32 {
     unsafe { read_reg(OPCODE_SYS_CFG, SYS_CFG_CORE_ID) as u32 }
