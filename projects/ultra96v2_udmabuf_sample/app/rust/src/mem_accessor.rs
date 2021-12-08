@@ -6,13 +6,13 @@ use core::marker::PhantomData;
 use delegate::delegate;
 
 
-pub trait Region {
+pub trait MemRegion {
     fn clone(&self, offset: usize, size: usize) -> Self;
     fn addr(&self) -> usize;
     fn size(&self) -> usize;
 }
 
-pub trait Access {
+pub trait MemAccess {
     unsafe fn write_mem(&self, offset: usize, data: usize);
     unsafe fn write_mem8(&self, offset: usize, data: u8);
     unsafe fn write_mem16(&self, offset: usize, data: u16);
@@ -36,23 +36,44 @@ pub trait Access {
     unsafe fn read_reg64(&self, reg: usize) -> u64;
 }
 
-pub struct Accesor<T: Region, BaseType> {
+pub struct MemAccesor<T: MemRegion, BaseType> {
     region: T,
     phantom: PhantomData<BaseType>,
 }
 
-impl<T: Region, BaseType> Accesor<T, BaseType> {
+impl<T: MemRegion, BaseType> MemAccesor<T, BaseType> {
     pub fn new(region: T) -> Self
     {
-        Accesor::<T, BaseType> { region: region, phantom: PhantomData }
+        MemAccesor::<T, BaseType> { region: region, phantom: PhantomData }
     }
-
+    
     fn reg_size() -> usize {
         core::mem::size_of::<BaseType>()
     }
+
+    pub fn clone(&self, offset: usize, size: usize) -> MemAccesor<T, BaseType> {
+        MemAccesor::<T, BaseType>::new(self.region.clone(offset, size))
+    }
+
+    pub fn clone8(&self, offset: usize, size: usize) -> MemAccesor<T, u8> {
+        MemAccesor::<T, u8>::new(self.region.clone(offset, size))
+    }
+
+    pub fn clone16(&self, offset: usize, size: usize) -> MemAccesor<T, u16> {
+        MemAccesor::<T, u16>::new(self.region.clone(offset, size))
+    }
+
+    pub fn clone32(&self, offset: usize, size: usize) -> MemAccesor<T, u32> {
+        MemAccesor::<T, u32>::new(self.region.clone(offset, size))
+    }
+
+    pub fn clone64(&self, offset: usize, size: usize) -> MemAccesor<T, u64> {
+        MemAccesor::<T, u64>::new(self.region.clone(offset, size))
+    }
 }
 
-impl <T: Region, BaseType> Access for Accesor<T, BaseType> {
+
+impl <T: MemRegion, BaseType> MemAccess for MemAccesor<T, BaseType> {
     unsafe fn write_mem(&self, offset: usize, data: usize)
     {
         debug_assert!(offset + core::mem::size_of::<usize>() <= self.region.size());
@@ -166,25 +187,25 @@ impl <T: Region, BaseType> Access for Accesor<T, BaseType> {
 }
 
 
-pub struct MemRegion {
+pub struct MmioRegion {
     addr: usize,
     size: usize,
 }
 
-impl MemRegion {
+impl MmioRegion {
     pub const fn new(addr: usize, size: usize) -> Self {
-        MemRegion { addr:addr, size:size }
+        MmioRegion { addr:addr, size:size }
     }
 }
 
-impl Region for MemRegion {
+impl MemRegion for MmioRegion {
     fn clone(&self, offset: usize, size: usize) -> Self {
         debug_assert!(offset < self.size);
         let new_addr = self.addr + offset;
         let new_size = self.size - offset;
         debug_assert!(size <= new_size);
         let new_size = if size == 0 { new_size } else { size };
-        MemRegion { addr:new_addr, size:new_size }
+        MmioRegion { addr:new_addr, size:new_size }
     }
 
     fn addr(&self) -> usize {
@@ -196,20 +217,20 @@ impl Region for MemRegion {
     }
 }
 
-pub struct MemAccesor_<BaseType> {
-    accessor: Accesor<MemRegion, BaseType>,
+pub struct MmioAccesor_<BaseType> {
+    accessor: MemAccesor<MmioRegion, BaseType>,
 }
 
 
-impl<BaseType> MemAccesor_<BaseType> {
+impl<BaseType> MmioAccesor_<BaseType> {
     pub fn new(addr: usize, size: usize) -> Self
     {
-        Self { accessor: Accesor::<MemRegion, BaseType>::new(MemRegion::new(addr, size)) }
+        Self { accessor: MemAccesor::<MmioRegion, BaseType>::new(MmioRegion::new(addr, size)) }
     }
 }
 
 
-impl<BaseType> Access for MemAccesor_<BaseType> {
+impl<BaseType> MemAccess for MmioAccesor_<BaseType> {
     delegate! {
         to self.accessor {
             unsafe fn write_mem(&self, offset: usize, data: usize);
@@ -237,9 +258,9 @@ impl<BaseType> Access for MemAccesor_<BaseType> {
 }
 
 
-pub type MemAccesor8 = MemAccesor_<u8>;
-pub type MemAccesor16 = MemAccesor_<u16>;
-pub type MemAccesor32 = MemAccesor_<u32>;
-pub type MemAccesor64 = MemAccesor_<u64>;
-pub type MemAccesor = MemAccesor_<usize>;
+pub type MmioAccesor8 = MmioAccesor_<u8>;
+pub type MmioAccesor16 = MmioAccesor_<u16>;
+pub type MmioAccesor32 = MmioAccesor_<u32>;
+pub type MmioAccesor64 = MmioAccesor_<u64>;
+pub type MmioAccesor = MmioAccesor_<usize>;
 

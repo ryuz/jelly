@@ -3,7 +3,7 @@ use uio::UioDevice;
 
 mod mem_accessor;
 
-use mem_accessor::{MemAccesor, Access};
+use mem_accessor::*;
 
 
 fn open_uio(name: &str) -> Result<UioDevice, uio::UioError>
@@ -33,7 +33,7 @@ fn main() {
     unsafe { println!("{:x}", std::ptr::read_volatile((addr + 0x040) as *mut u32)); }
     unsafe { println!("{:x}", std::ptr::read_volatile((addr + 0x840) as *mut u32)); }
 
-    let acc = MemAccesor::new(addr, dev.map_size(0).unwrap());
+    let acc = MmioAccesor::new(addr, dev.map_size(0).unwrap());
     unsafe { println!("{:x}", acc.read_mem(0x040)); }
     unsafe { println!("{:x}", acc.read_mem(0x840)); }
 }
