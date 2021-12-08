@@ -13,8 +13,6 @@ pub trait Region {
 }
 
 pub trait Access {
-    fn reg_size() -> usize;
-
     unsafe fn write_mem(&self, offset: usize, data: usize);
     unsafe fn write_mem8(&self, offset: usize, data: u8);
     unsafe fn write_mem16(&self, offset: usize, data: u16);
@@ -36,7 +34,6 @@ pub trait Access {
     unsafe fn read_reg16(&self, reg: usize) -> u16;
     unsafe fn read_reg32(&self, reg: usize) -> u32;
     unsafe fn read_reg64(&self, reg: usize) -> u64;
-
 }
 
 pub struct Accesor<T: Region, BaseType> {
@@ -49,13 +46,13 @@ impl<T: Region, BaseType> Accesor<T, BaseType> {
     {
         Accesor::<T, BaseType> { region: region, phantom: PhantomData }
     }
-}
 
-impl <T: Region, BaseType> Access for Accesor<T, BaseType> {
     fn reg_size() -> usize {
         core::mem::size_of::<BaseType>()
     }
+}
 
+impl <T: Region, BaseType> Access for Accesor<T, BaseType> {
     unsafe fn write_mem(&self, offset: usize, data: usize)
     {
         debug_assert!(offset + core::mem::size_of::<usize>() <= self.region.size());
@@ -209,29 +206,32 @@ impl<BaseType> MemAccesor_<BaseType> {
     {
         Self { accessor: Accesor::<MemRegion, BaseType>::new(MemRegion::new(addr, size)) }
     }
-    
+}
+
+
+impl<BaseType> Access for MemAccesor_<BaseType> {
     delegate! {
         to self.accessor {
-            pub unsafe fn write_mem(&self, offset: usize, data: usize);
-            pub unsafe fn write_mem8(&self, offset: usize, data: u8);
-            pub unsafe fn write_mem16(&self, offset: usize, data: u16);
-            pub unsafe fn write_mem32(&self, offset: usize, data: u32);
-            pub unsafe fn write_mem64(&self, offset: usize, data: u64);
-            pub unsafe fn read_mem(&self, offset: usize) -> usize;
-            pub unsafe fn read_mem8(&self, offset: usize) -> u8;
-            pub unsafe fn read_mem16(&self, offset: usize) -> u16;
-            pub unsafe fn read_mem32(&self, offset: usize) -> u32;
-            pub unsafe fn read_mem64(&self, offset: usize) -> u64;
-            pub unsafe fn write_reg(&self, reg: usize, data: usize);
-            pub unsafe fn write_reg8(&self, reg: usize, data: u8);
-            pub unsafe fn write_reg16(&self, reg: usize, data: u16);
-            pub unsafe fn write_reg32(&self, reg: usize, data: u32);
-            pub unsafe fn write_reg64(&self, reg: usize, data: u64);
-            pub unsafe fn read_reg(&self, reg: usize) -> usize;
-            pub unsafe fn read_reg8(&self, reg: usize) -> u8;
-            pub unsafe fn read_reg16(&self, reg: usize) -> u16;
-            pub unsafe fn read_reg32(&self, reg: usize) -> u32;
-            pub unsafe fn read_reg64(&self, reg: usize) -> u64;
+            unsafe fn write_mem(&self, offset: usize, data: usize);
+            unsafe fn write_mem8(&self, offset: usize, data: u8);
+            unsafe fn write_mem16(&self, offset: usize, data: u16);
+            unsafe fn write_mem32(&self, offset: usize, data: u32);
+            unsafe fn write_mem64(&self, offset: usize, data: u64);
+            unsafe fn read_mem(&self, offset: usize) -> usize;
+            unsafe fn read_mem8(&self, offset: usize) -> u8;
+            unsafe fn read_mem16(&self, offset: usize) -> u16;
+            unsafe fn read_mem32(&self, offset: usize) -> u32;
+            unsafe fn read_mem64(&self, offset: usize) -> u64;
+            unsafe fn write_reg(&self, reg: usize, data: usize);
+            unsafe fn write_reg8(&self, reg: usize, data: u8);
+            unsafe fn write_reg16(&self, reg: usize, data: u16);
+            unsafe fn write_reg32(&self, reg: usize, data: u32);
+            unsafe fn write_reg64(&self, reg: usize, data: u64);
+            unsafe fn read_reg(&self, reg: usize) -> usize;
+            unsafe fn read_reg8(&self, reg: usize) -> u8;
+            unsafe fn read_reg16(&self, reg: usize) -> u16;
+            unsafe fn read_reg32(&self, reg: usize) -> u32;
+            unsafe fn read_reg64(&self, reg: usize) -> u64;
         }
     }
 }
