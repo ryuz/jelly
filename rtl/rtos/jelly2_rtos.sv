@@ -613,7 +613,12 @@ module jelly2_rtos
         OPCODE_REF_WUPCNT:  s_wb_dat_o = USE_REF_WUPCNT  ? WB_DAT_WIDTH'(task_wupcnt)      : '0;
         OPCODE_REF_SUSCNT:  s_wb_dat_o = USE_REF_SUSCNT  ? WB_DAT_WIDTH'(task_suscnt)      : '0;
         OPCODE_REF_TIMCNT:  s_wb_dat_o = USE_REF_TIMCNT  ? WB_DAT_WIDTH'(task_timcnt)      : '0;
-        OPCODE_REF_ERR:     s_wb_dat_o = USE_REF_ERR     ? WB_DAT_WIDTH'(task_er)          : '0;
+        OPCODE_REF_ERCD:
+            begin
+                if ( USE_REF_ERCD && int'(dec_id) >= 1 && int'(dec_id) <= TMAX_TSKID ) begin
+                    s_wb_dat_o = WB_DAT_WIDTH'($signed(task_ercd[dec_id]));
+                end
+            end
         
         OPCODE_REF_SEMCNT:  s_wb_dat_o = USE_REF_SEMCNT  ? WB_DAT_WIDTH'(semaphore_semcnt) : '0;
         OPCODE_REF_SEMQUE:  s_wb_dat_o = USE_REF_SEMQUE  ? WB_DAT_WIDTH'(semaphore_quecnt) : '0;

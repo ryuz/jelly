@@ -233,7 +233,6 @@ module ultra96v2_rtos
                 .monitor_tsk_tskwait    (monitor_tsk_tskwait),
                 .monitor_tsk_wupcnt     (monitor_tsk_wupcnt),
                 .monitor_tsk_suscnt     (monitor_tsk_suscnt),
-
                 .monitor_sem_quecnt     (monitor_sem_quecnt),
                 .monitor_sem_semcnt     (monitor_sem_semcnt),
                 .monitor_flg_flgptn     (monitor_flg_flgptn),
