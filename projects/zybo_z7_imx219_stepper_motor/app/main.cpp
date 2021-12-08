@@ -40,31 +40,6 @@
 #define REG_STMC_IN_X_DIFF              0x21
 
 
-#define REG_LOG_CORE_ID                 0x00
-#define REG_LOG_CORE_VERSION            0x01
-#define REG_LOG_CTL_CONTROL             0x04
-#define REG_LOG_CTL_STATUS              0x05
-#define REG_LOG_CTL_COUNT               0x07
-#define REG_LOG_POL_TIMER0              0x08
-#define REG_LOG_POL_TIMER1              0x09
-#define REG_LOG_POL_DATA0               0x10
-#define REG_LOG_POL_DATA1               0x11
-#define REG_LOG_POL_DATA2               0x12
-#define REG_LOG_POL_DATA3               0x13
-#define REG_LOG_POL_DATA4               0x14
-#define REG_LOG_POL_DATA5               0x15
-#define REG_LOG_POL_DATA6               0x16
-#define REG_LOG_POL_DATA7               0x17
-#define REG_LOG_POL_DATA8               0x18
-#define REG_LOG_POL_DATA9               0x19
-#define REG_LOG_POL_DATA10              0x1a
-#define REG_LOG_POL_DATA11              0x1b
-#define REG_LOG_POL_DATA12              0x1c
-#define REG_LOG_POL_DATA13              0x1d
-#define REG_LOG_POL_DATA14              0x1e
-#define REG_LOG_POL_DATA15              0x1f
-#define REG_LOG_READ_DATA               0x20
-
 
 void capture_still_image(jelly::MemAccessor& reg_wdma, jelly::MemAccessor& reg_norm, std::uintptr_t bufaddr, int width, int height, int frame_num);
 void write_log(jelly::MemAccessor& reg_log0, jelly::MemAccessor& reg_log1, int num0, int num1);
@@ -327,12 +302,12 @@ int main(int argc, char *argv[])
     int     key;
     while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
         /*
-        std::cout << reg_log0.ReadReg(REG_LOG_CTL_STATUS) << std::endl;
-        std::cout << reg_log0.ReadReg(REG_LOG_CTL_COUNT) << std::endl;
-        if ( reg_log0.ReadReg(REG_LOG_CTL_COUNT) > 600 ) {
-            reg_log0.WriteReg(REG_LOG_CTL_CONTROL, 3);
+        std::cout << reg_log0.ReadReg(REG_LOGGER_CTL_STATUS) << std::endl;
+        std::cout << reg_log0.ReadReg(REG_LOGGER_CTL_COUNT) << std::endl;
+        if ( reg_log0.ReadReg(REG_LOGGER_CTL_COUNT) > 600 ) {
+            reg_log0.WriteReg(REG_LOGGER_CTL_CONTROL, 3);
             sleep(0.1);
-            reg_log0.WriteReg(REG_LOG_CTL_CONTROL, 0);
+            reg_log0.WriteReg(REG_LOGGER_CTL_CONTROL, 0);
         }
         */
 
@@ -543,18 +518,18 @@ void write_log(jelly::MemAccessor& reg_log0, jelly::MemAccessor& reg_log1, int n
     vec_img.reserve(num0);
     vec_mot.reserve(num1);
 
-    std::cout << reg_log0.ReadReg(REG_LOG_CTL_STATUS) << std::endl;
-    std::cout << reg_log0.ReadReg(REG_LOG_CTL_COUNT) << std::endl;
+    std::cout << reg_log0.ReadReg(REG_LOGGER_CTL_STATUS) << std::endl;
+    std::cout << reg_log0.ReadReg(REG_LOGGER_CTL_COUNT) << std::endl;
 
     // 一旦クリア
-    reg_log0.WriteReg(REG_LOG_CTL_CONTROL, 3);
-    reg_log1.WriteReg(REG_LOG_CTL_CONTROL, 3);
+    reg_log0.WriteReg(REG_LOGGER_CTL_CONTROL, 3);
+    reg_log1.WriteReg(REG_LOGGER_CTL_CONTROL, 3);
     sleep(1);
-    reg_log0.WriteReg(REG_LOG_CTL_CONTROL, 0);
-    reg_log1.WriteReg(REG_LOG_CTL_CONTROL, 0);
+    reg_log0.WriteReg(REG_LOGGER_CTL_CONTROL, 0);
+    reg_log1.WriteReg(REG_LOGGER_CTL_CONTROL, 0);
 
-//    std::cout << reg_log0.ReadReg(REG_LOG_CTL_STATUS) << std::endl;
-//    std::cout << reg_log0.ReadReg(REG_LOG_CTL_COUNT) << std::endl;
+//    std::cout << reg_log0.ReadReg(REG_LOGGER_CTL_STATUS) << std::endl;
+//    std::cout << reg_log0.ReadReg(REG_LOGGER_CTL_COUNT) << std::endl;
 
     int max_img = 0;
     int max_mot = 0;
@@ -562,31 +537,31 @@ void write_log(jelly::MemAccessor& reg_log0, jelly::MemAccessor& reg_log1, int n
     // ロギング
     std::cout << "start" << std::endl;
     while ( (int)vec_img.size() < num0 && (int)vec_mot.size() < num1 ) {
-        max_img = std::max(max_img, (int)reg_log0.ReadReg(REG_LOG_CTL_COUNT));
-        max_mot = std::max(max_mot, (int)reg_log1.ReadReg(REG_LOG_CTL_COUNT));
+        max_img = std::max(max_img, (int)reg_log0.ReadReg(REG_LOGGER_CTL_COUNT));
+        max_mot = std::max(max_mot, (int)reg_log1.ReadReg(REG_LOGGER_CTL_COUNT));
 
-        if ( reg_log0.ReadReg(REG_LOG_CTL_STATUS) ) {
+        if ( reg_log0.ReadReg(REG_LOGGER_CTL_STATUS) ) {
             logger_image li;
-            li.time  = ((std::uint64_t)reg_log0.ReadReg(REG_LOG_POL_TIMER0) << 0)
-                     + ((std::uint64_t)reg_log0.ReadReg(REG_LOG_POL_TIMER1) << 32);
-            li.angle = (std::uint32_t)reg_log0.ReadReg(REG_LOG_POL_DATA0);
-            reg_log0.WriteReg(REG_LOG_CTL_CONTROL, 1);
+            li.time  = ((std::uint64_t)reg_log0.ReadReg(REG_LOGGER_POL_TIMER0) << 0)
+                     + ((std::uint64_t)reg_log0.ReadReg(REG_LOGGER_POL_TIMER1) << 32);
+            li.angle = (std::uint32_t)reg_log0.ReadReg(REG_LOGGER_POL_DATA(0));
+            reg_log0.WriteReg(REG_LOGGER_CTL_CONTROL, 1);
             vec_img.push_back(li);
         }
 
-        if ( reg_log1.ReadReg(REG_LOG_CTL_STATUS) ) {
+        if ( reg_log1.ReadReg(REG_LOGGER_CTL_STATUS) ) {
             logger_motor lm;
-            lm.time     = ((std::uint64_t)reg_log1.ReadReg(REG_LOG_POL_TIMER0) << 0)
-                        + ((std::uint64_t)reg_log1.ReadReg(REG_LOG_POL_TIMER1) << 32);
-            lm.cur_x    = ((std::uint64_t)reg_log1.ReadReg(REG_LOG_POL_DATA0) << 0)
-                        + ((std::uint64_t)reg_log1.ReadReg(REG_LOG_POL_DATA1) << 32);
-            lm.cur_v    = ((std::uint32_t)reg_log1.ReadReg(REG_LOG_POL_DATA2) << 0);
-            lm.cur_a    = ((std::uint32_t)reg_log1.ReadReg(REG_LOG_POL_DATA3) << 0);
-            lm.target_x = ((std::uint64_t)reg_log1.ReadReg(REG_LOG_POL_DATA4) << 0)
-                        + ((std::uint64_t)reg_log1.ReadReg(REG_LOG_POL_DATA5) << 32);
-            lm.target_v = ((std::uint32_t)reg_log1.ReadReg(REG_LOG_POL_DATA6) << 0);
-            lm.target_a = ((std::uint32_t)reg_log1.ReadReg(REG_LOG_POL_DATA7) << 0);
-            reg_log1.WriteReg(REG_LOG_CTL_CONTROL, 1);
+            lm.time     = ((std::uint64_t)reg_log1.ReadReg(REG_LOGGER_POL_TIMER0) << 0)
+                        + ((std::uint64_t)reg_log1.ReadReg(REG_LOGGER_POL_TIMER1) << 32);
+            lm.cur_x    = ((std::uint64_t)reg_log1.ReadReg(REG_LOGGER_POL_DATA(0)) << 0)
+                        + ((std::uint64_t)reg_log1.ReadReg(REG_LOGGER_POL_DATA(1)) << 32);
+            lm.cur_v    = ((std::uint32_t)reg_log1.ReadReg(REG_LOGGER_POL_DATA(2)) << 0);
+            lm.cur_a    = ((std::uint32_t)reg_log1.ReadReg(REG_LOGGER_POL_DATA(3)) << 0);
+            lm.target_x = ((std::uint64_t)reg_log1.ReadReg(REG_LOGGER_POL_DATA(4)) << 0)
+                        + ((std::uint64_t)reg_log1.ReadReg(REG_LOGGER_POL_DATA(5)) << 32);
+            lm.target_v = ((std::uint32_t)reg_log1.ReadReg(REG_LOGGER_POL_DATA(6)) << 0);
+            lm.target_a = ((std::uint32_t)reg_log1.ReadReg(REG_LOGGER_POL_DATA(7)) << 0);
+            reg_log1.WriteReg(REG_LOGGER_CTL_CONTROL, 1);
             vec_mot.push_back(lm);
         }
     }
