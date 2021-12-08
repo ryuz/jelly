@@ -6,6 +6,8 @@ pub use mem_accessor::*;
 pub mod mmio_accessor;
 pub use mmio_accessor::*;
 
+pub mod uio_accessor;
+pub use uio_accessor::*;
 
 
 #[cfg(test)]

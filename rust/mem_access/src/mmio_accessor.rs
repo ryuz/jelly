@@ -2,7 +2,7 @@
 #![allow(dead_code)]
 
 use super::*;
-use delegate::delegate;
+//use delegate::delegate;
 
 
 pub struct MmioRegion {
@@ -15,6 +15,8 @@ impl MmioRegion {
         MmioRegion { addr:addr, size:size }
     }
 }
+
+
 
 impl MemRegion for MmioRegion {
     fn clone(&self, offset: usize, size: usize) -> Self {
@@ -36,19 +38,27 @@ impl MemRegion for MmioRegion {
 }
 
 
+pub fn mmio_accesor_new<BaseType>(addr: usize, size: usize) -> MemAccesor::<MmioRegion, BaseType>
+{
+    MemAccesor::<MmioRegion, BaseType>::new(MmioRegion::new(addr, size))
+}
+
+
+/*
 pub struct MmioAccesor_<BaseType> {
     accessor: MemAccesor<MmioRegion, BaseType>,
 }
 
 
 impl<BaseType> MmioAccesor_<BaseType> {
-    pub fn new(addr: usize, size: usize) -> Self
+    pub fn new(addr: usize, size: usize) -> MemAccesor::<MmioRegion, BaseType>
     {
-        Self { accessor: MemAccesor::<MmioRegion, BaseType>::new(MmioRegion::new(addr, size)) }
+        MemAccesor::<MmioRegion, BaseType>::new(MmioRegion::new(addr, size))
     }
 }
+*/
 
-
+/*
 impl<BaseType> MemAccess for MmioAccesor_<BaseType> {
     delegate! {
         to self.accessor {
@@ -83,3 +93,4 @@ pub type MmioAccesor32 = MmioAccesor_<u32>;
 pub type MmioAccesor64 = MmioAccesor_<u64>;
 pub type MmioAccesor = MmioAccesor_<usize>;
 
+*/
