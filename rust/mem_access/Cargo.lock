@@ -42,18 +42,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "jelly_mem_access"
+name = "libc"
+version = "0.2.109"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f98a04dce437184842841303488f70d0188c5f51437d2a834dc097eafa909a01"
+
+[[package]]
+name = "mem_access"
 version = "0.1.0"
 dependencies = [
  "delegate",
  "uio",
 ]
-
-[[package]]
-name = "libc"
-version = "0.2.109"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f98a04dce437184842841303488f70d0188c5f51437d2a834dc097eafa909a01"
 
 [[package]]
 name = "nix"
@@ -106,15 +106,6 @@ dependencies = [
  "fs2",
  "libc",
  "nix",
-]
-
-[[package]]
-name = "ultra96v2_udmabuf_sample"
-version = "0.1.0"
-dependencies = [
- "delegate",
- "jelly_mem_access",
- "uio",
 ]
 
 [[package]]

@@ -1,5 +1,5 @@
 [package]
-name = "ultra96v2_udmabuf_sample"
+name = "jelly_mem_access"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,4 +8,3 @@ edition = "2021"
 [dependencies]
 uio = "0.2.0"
 delegate = "0.6.1"
-jelly_mem_access = {path = "../../../../rust/mem_access" }

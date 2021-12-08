@@ -1,9 +1,9 @@
 
 use uio::UioDevice;
 
-mod mem_accessor;
+//mod mem_accessor;
 
-use mem_accessor::*;
+use jelly_mem_access::*;
 
 
 fn open_uio(name: &str) -> Result<UioDevice, uio::UioError>
