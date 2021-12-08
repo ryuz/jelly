@@ -34,6 +34,15 @@ run: $(TARGET) load
 run_server: load
 	python3 flask_sample.py
 
+.PHONY: run_rust
+run_rust: load
+	cd rust; cargo run
+
+.PHONY: build_rust
+build_rust:
+	cd rust; cargo build
+
+
 $(TARGET): $(OBJS)
 	g++ $(LDFLAGS) -o $(TARGET) $(OBJS)
 
