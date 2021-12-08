@@ -65,7 +65,7 @@ module jelly2_rtos
             parameter   bit                                         USE_REF_WUPCNT     = 1,
             parameter   bit                                         USE_REF_SUSCNT     = 1,
             parameter   bit                                         USE_REF_TIMCNT     = 1,
-            parameter   bit                                         USE_REF_ERR        = 1,
+            parameter   bit                                         USE_REF_ERCD       = 1,
             parameter   bit                                         USE_REF_SEMCNT     = 1,
             parameter   bit                                         USE_REF_SEMQUE     = 1,
             parameter   bit                                         USE_REF_FLGPTN     = 1,
@@ -156,7 +156,7 @@ module jelly2_rtos
     logic   [TMAX_TSKID:1][SUSCNT_WIDTH-1:0]    task_suscnt;
     logic   [TMAX_TSKID:1][RELTIM_WIDTH-1:0]    task_timcnt;
     logic   [TMAX_TSKID:1][TSKPRI_WIDTH-1:0]    task_tskpri;
-    logic   [TMAX_TSKID:1][ER_WIDTH-1:0]        task_er;
+    logic   [TMAX_TSKID:1][ER_WIDTH-1:0]        task_ercd;
 
     // semaphore                
     logic                                       sig_sem_valid = '0;
@@ -201,7 +201,7 @@ module jelly2_rtos
                 .TTW_WIDTH          (TTW_WIDTH),
                 .TMAX_WUPCNT        (TMAX_WUPCNT),
                 .TMAX_SUSCNT        (TMAX_SUSCNT),
-                .USE_ER             (USE_REF_ERR),
+                .USE_ERCD           (USE_REF_ERCD),
                 .USE_SET_TMO        (USE_SET_TMO),
                 .USE_CHG_PRI        (USE_CHG_PRI),
                 .USE_SLP_TSK        (USE_SLP_TSK),
@@ -256,7 +256,7 @@ module jelly2_rtos
                 .task_suscnt,
                 .task_timcnt,
                 .task_tskpri,
-                .task_er,
+                .task_ercd,
 
                 .sig_sem_valid,
                 .wai_sem_valid,
@@ -304,7 +304,7 @@ module jelly2_rtos
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_WUPCNT  = OPCODE_WIDTH'(8'h92);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_SUSCNT  = OPCODE_WIDTH'(8'h93);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_TIMCNT  = OPCODE_WIDTH'(8'h94);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_ERR     = OPCODE_WIDTH'(8'h98);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_ERCD    = OPCODE_WIDTH'(8'h98);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_GET_PRI     = OPCODE_WIDTH'(8'h9c);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SIG_SEM     = OPCODE_WIDTH'(8'h21);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_SEM     = OPCODE_WIDTH'(8'h22);

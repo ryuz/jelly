@@ -108,7 +108,7 @@ fn dining_philosopher(id: i32) -> ! {
         'dining: loop {
             rtos::wai_sem(left);
             {
-                if rtos::pol_sem(right) {
+                if rtos::pol_sem(right) == rtos::E_OK {
                     println!("[philosopher{}] eating", id);
                     rtos::dly_tsk(rand_time());
                     rtos::sig_sem(left);
