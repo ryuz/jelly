@@ -14,20 +14,18 @@ module jelly2_communication_pipe
         #(
             parameter                   CORE_ID            = 32'h527a_f101,
             parameter                   CORE_VERSION       = 32'h0001_0000,
+            parameter                   CORE_DATE          = 32'h2021_1210,
+            parameter                   CORE_SERIAL        = 0,
             parameter   int             DATA_WIDTH         = 8,
             parameter   int             FIFO_PTR_WIDTH     = 10,
             parameter                   FIFO_RAM_TYPE      = "block",
-            parameter   int             WB_ADR_WIDTH       = 8,
+            parameter   int             WB_ADR_WIDTH       = 5,
             parameter   int             WB_DAT_WIDTH       = 32,
             parameter   int             WB_SEL_WIDTH       = (WB_DAT_WIDTH / 8),
             parameter   bit     [0:0]   INIT_TX_IRQ_ENABLE = 1'b0,
             parameter   bit     [0:0]   INIT_RX_IRQ_ENABLE = 1'b0
         )
         (
-            input   wire                                reset,
-            input   wire                                clk,
-            input   wire                                cke,
-            
             input   wire                                s_wb_rst_i,
             input   wire                                s_wb_clk_i,
             input   wire    [WB_ADR_WIDTH-1:0]          s_wb_adr_i,
@@ -69,9 +67,9 @@ module jelly2_communication_pipe
             )
         i_fifo_fwtf
             (
-                .reset          (reset),
-                .clk            (clk),
-                .cke            (cke),
+                .reset          (s_wb_rst_i),
+                .clk            (s_wb_clk_i),
+                .cke            (1'b1),
                 
                 .s_data         (fifo_s_data),
                 .s_valid        (fifo_s_valid),
@@ -92,6 +90,8 @@ module jelly2_communication_pipe
     // register address offset
     localparam  int  ADR_CORE_ID        = 'h00;
     localparam  int  ADR_CORE_VERSION   = 'h01;
+    localparam  int  ADR_CORE_DATE      = 'h02;
+    localparam  int  ADR_CORE_SERIAL    = 'h03;
     localparam  int  ADR_TX_DATA        = 'h10;
     localparam  int  ADR_TX_STATUS      = 'h11;
     localparam  int  ADR_TX_FREE_COUNT  = 'h12;
@@ -147,6 +147,8 @@ module jelly2_communication_pipe
         case ( int'(s_wb_adr_i) )
         ADR_CORE_ID:        s_wb_dat_o = WB_DAT_WIDTH'(CORE_ID);
         ADR_CORE_VERSION:   s_wb_dat_o = WB_DAT_WIDTH'(CORE_VERSION);
+        ADR_CORE_DATE:      s_wb_dat_o = WB_DAT_WIDTH'(CORE_DATE);
+        ADR_CORE_SERIAL:    s_wb_dat_o = WB_DAT_WIDTH'(CORE_SERIAL);
         ADR_TX_DATA:        s_wb_dat_o = '0;
         ADR_TX_STATUS:      s_wb_dat_o = WB_DAT_WIDTH'(fifo_s_ready);
         ADR_TX_FREE_COUNT:  s_wb_dat_o = WB_DAT_WIDTH'(fifo_s_free_count);
