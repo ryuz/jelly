@@ -23,7 +23,8 @@ module jelly2_data_logger_fifo
             parameter   WB_ADR_WIDTH     = 8,
             parameter   WB_DAT_WIDTH     = 32,
             parameter   WB_SEL_WIDTH     = (WB_DAT_WIDTH / 8),
-            parameter   INIT_CTL_CONTROL = 2'b00
+            parameter   INIT_CTL_CONTROL = 2'b00,
+            parameter   INIT_LIMIT_SIZE  = 0
         )
         (
             input   wire                                reset,
@@ -125,6 +126,7 @@ module jelly2_data_logger_fifo
     localparam  int  ADR_CTL_CONTROL    = 'h04;
     localparam  int  ADR_CTL_STATUS     = 'h05;
     localparam  int  ADR_CTL_COUNT      = 'h07;
+    localparam  int  ADR_LIMIT_SIZE     = 'h08;
     localparam  int  ADR_READ_DATA      = 'h10;
     localparam  int  ADR_POL_TIMER0     = 'h18;
     localparam  int  ADR_POL_TIMER1     = 'h19;
@@ -132,16 +134,34 @@ module jelly2_data_logger_fifo
     
     // registers
     reg                             reg_force_read;
-    
+    reg     [FIFO_PTR_WIDTH:0]      reg_limit_size;
+
+    function [WB_DAT_WIDTH-1:0] reg_mask(
+                                        input [WB_DAT_WIDTH-1:0] org,
+                                        input [WB_DAT_WIDTH-1:0] wdat,
+                                        input [WB_SEL_WIDTH-1:0] msk
+                                    );
+    integer i;
+    begin
+        for ( i = 0; i < WB_DAT_WIDTH; i = i+1 ) begin
+            reg_mask[i] = msk[i/8] ? wdat[i] : org[i];
+        end
+    end
+    endfunction
+
     always_ff @(posedge s_wb_clk_i ) begin
         if ( s_wb_rst_i ) begin
             reg_force_read <= INIT_CTL_CONTROL[1];
+            reg_limit_size <= INIT_LIMIT_SIZE;
         end
         else begin
             // register write
             if ( s_wb_stb_i && s_wb_we_i ) begin
                 if ( (s_wb_adr_i == ADR_CTL_CONTROL) && s_wb_sel_i[0] ) begin
                     reg_force_read <= s_wb_dat_i[1];
+                end
+                if ( s_wb_adr_i == ADR_LIMIT_SIZE ) begin
+                    reg_limit_size <= reg_mask(reg_limit_size, s_wb_dat_i, s_wb_sel_i);
                 end
             end
         end
@@ -175,6 +195,7 @@ module jelly2_data_logger_fifo
     // CTL_CONTROL[0] への 1 書き込み or READ_DATA で読み進む
     assign fifo_m_ready = (s_wb_stb_i && (s_wb_adr_i == ADR_CTL_CONTROL) && s_wb_we_i && s_wb_sel_i[0] && s_wb_dat_i[0])
                         | (s_wb_stb_i && (s_wb_adr_i == ADR_READ_DATA) && ~s_wb_we_i)
+                        | (reg_limit_size != 0 && fifo_m_data_count > reg_limit_size)
                         | reg_force_read;
     
     

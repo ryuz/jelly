@@ -603,11 +603,11 @@
  #define REG_LOGGER_CTL_CONTROL                 0x04
  #define REG_LOGGER_CTL_STATUS                  0x05
  #define REG_LOGGER_CTL_COUNT                   0x07
+ #define REG_LOGGER_LIMIT_SIZE                  0x08
  #define REG_LOGGER_READ_DATA                   0x10
  #define REG_LOGGER_POL_TIMER0                  0x18
  #define REG_LOGGER_POL_TIMER1                  0x19
  #define REG_LOGGER_POL_DATA(x)                 (0x20+(x))
-
 
 
 
