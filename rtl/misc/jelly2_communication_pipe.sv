@@ -102,7 +102,11 @@ module jelly2_communication_pipe
     localparam  int  ADR_RX_FREE_COUNT  = 'h1a;
     localparam  int  ADR_RX_IRQ_STATUS  = 'h1c;
     localparam  int  ADR_RX_IRQ_ENABLE  = 'h1d;
-    
+
+    // signals
+    logic   [0:0]       tx_irq_status;
+    logic   [0:0]       rx_irq_status;
+
     // registers
     logic   [0:0]       reg_tx_irq_enable;
     logic   [0:0]       reg_rx_irq_enable;
@@ -146,12 +150,12 @@ module jelly2_communication_pipe
         ADR_TX_DATA:        s_wb_dat_o = '0;
         ADR_TX_STATUS:      s_wb_dat_o = WB_DAT_WIDTH'(fifo_s_ready);
         ADR_TX_FREE_COUNT:  s_wb_dat_o = WB_DAT_WIDTH'(fifo_s_free_count);
-        ADR_TX_IRQ_STATUS:  s_wb_dat_o = WB_DAT_WIDTH'(fifo_s_ready);
+        ADR_TX_IRQ_STATUS:  s_wb_dat_o = WB_DAT_WIDTH'(tx_irq_status);
         ADR_TX_IRQ_ENABLE:  s_wb_dat_o = WB_DAT_WIDTH'(reg_tx_irq_enable);
         ADR_RX_DATA:        s_wb_dat_o = WB_DAT_WIDTH'(fifo_m_data);
         ADR_RX_STATUS:      s_wb_dat_o = WB_DAT_WIDTH'(fifo_m_valid);
         ADR_RX_FREE_COUNT:  s_wb_dat_o = WB_DAT_WIDTH'(fifo_m_data_count);
-        ADR_RX_IRQ_STATUS:  s_wb_dat_o = WB_DAT_WIDTH'(fifo_m_valid);
+        ADR_RX_IRQ_STATUS:  s_wb_dat_o = WB_DAT_WIDTH'(rx_irq_status);
         ADR_RX_IRQ_ENABLE:  s_wb_dat_o = WB_DAT_WIDTH'(reg_rx_irq_enable);
         default: ;
         endcase
@@ -161,11 +165,12 @@ module jelly2_communication_pipe
     
     assign fifo_s_data  = DATA_WIDTH'(s_wb_dat_i);
     assign fifo_s_valid = (s_wb_stb_i &&  s_wb_we_i && (int'(s_wb_adr_i) == ADR_TX_DATA));
+    assign tx_irq_status = fifo_s_ready;
+    assign irq_tx = |(tx_irq_status & reg_tx_irq_enable);
 
     assign fifo_m_ready = (s_wb_stb_i && ~s_wb_we_i && (int'(s_wb_adr_i) == ADR_RX_DATA));
-    
-    assign irq_tx = |(fifo_s_ready & reg_tx_irq_enable);
-    assign irq_rx = |(fifo_m_valid & reg_rx_irq_enable);
+    assign rx_irq_status = fifo_m_valid;
+    assign irq_rx = |(rx_irq_status & reg_rx_irq_enable);
     
     
 endmodule
