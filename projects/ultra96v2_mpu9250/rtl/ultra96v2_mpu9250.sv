@@ -48,8 +48,9 @@ module ultra96v2_mpu9250
     logic   [1:0]   axi4l_peri_rresp;
     logic           axi4l_peri_rvalid;
     logic           axi4l_peri_rready;
-    logic           irq_i2c;
-    logic           irq_rtos;
+
+    logic           nirq0_lpd_rpu;
+    logic   [7:0]   irq0;
     
     design_1
         i_design_1
@@ -76,14 +77,13 @@ module ultra96v2_mpu9250
                 .m_axi4l_peri_rvalid    (axi4l_peri_rvalid),
                 .m_axi4l_peri_rready    (axi4l_peri_rready),
                 
-                .nirq0_lpd_rpu          (~irq_rtos),
+                .nirq0_lpd_rpu          (nirq0_lpd_rpu),
                 .nfiq0_lpd_rpu          (1'b1),
                 .nirq1_lpd_rpu          (1'b1),
                 .nfiq1_lpd_rpu          (1'b1),
                 
-                .in_irq0                (irq_i2c)
+                .in_irq0                (irq0)
             );
-    
     
     
     // -----------------------------
@@ -166,7 +166,9 @@ module ultra96v2_mpu9250
     localparam  int                     TSKID_WIDTH        = $clog2(TMAX_TSKID+1);
     localparam  int                     SEMID_WIDTH        = $clog2(TMAX_SEMID+1);
     
-    
+
+    (* mark_debug = "true" *)   logic                                       rtos_irq;
+
                                 logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    rtos_set_flg;
     
     (* mark_debug = "true" *)   logic   [TSKID_WIDTH-1:0]                   monitor_run_tskid;
@@ -222,7 +224,7 @@ module ultra96v2_mpu9250
                 .s_wb_stb_i             (wb_rtos_stb_i),
                 .s_wb_ack_o             (wb_rtos_ack_o),
                 
-                .irq                    (irq_rtos),
+                .irq                    (rtos_irq),
                 
                 .ext_set_flg            (rtos_set_flg),
                 
@@ -245,12 +247,45 @@ module ultra96v2_mpu9250
     assign wb_rtos_dat_o = WB_DAT_WIDTH'(wb_rtos_dat_o_tmp);
     
     
-    // I2Cの完了をイベントフラグで受ける
-    always_comb begin
-        rtos_set_flg       = '0;
-        rtos_set_flg[1][0] = irq_i2c;
-    end
+    // -----------------------------
+    //  communication
+    // -----------------------------
     
+    localparam COM_NUM = 2;
+
+    logic   [WB_DAT_WIDTH-1:0]      wb_com_dat_o;
+    logic                           wb_com_stb_i;
+    logic                           wb_com_ack_o;
+
+    logic   [COM_NUM-1:0]           com_irq_tx;
+    logic   [COM_NUM-1:0]           com_irq_rx;
+
+    jelly2_communication_pipes
+            #(
+                .NUM                (COM_NUM),
+                .FIFO_PTR_WIDTH     (9),
+                .FIFO_RAM_TYPE      ("block"),
+                .SUB_ADR_WIDTH      (5),
+                .WB_ADR_WIDTH       (8),
+                .WB_DAT_WIDTH       (WB_DAT_WIDTH),
+                .INIT_TX_IRQ_ENABLE (2'b00),
+                .INIT_RX_IRQ_ENABLE (2'b00)
+            )
+        i_communication_pipes
+            (
+                .s_wb_rst_i             (wb_peri_rst_i),
+                .s_wb_clk_i             (wb_peri_clk_i),
+                .s_wb_adr_i             (wb_peri_adr_i[7:0]),
+                .s_wb_dat_o             (wb_i2c_dat_o),
+                .s_wb_dat_i             (wb_peri_dat_i),
+                .s_wb_we_i              (wb_peri_we_i ),
+                .s_wb_sel_i             (wb_peri_sel_i),
+                .s_wb_stb_i             (wb_com_stb_i),
+                .s_wb_ack_o             (wb_com_ack_o),
+
+                .irq_tx                 (com_irq_tx),
+                .irq_rx                 (com_irq_rx)
+            );
     
     
     // -----------------------------
@@ -266,6 +301,8 @@ module ultra96v2_mpu9250
     logic                           wb_i2c_stb_i;
     logic                           wb_i2c_ack_o;
     
+    logic                           i2c_irq;
+
     jelly_i2c
             #(
                 .DIVIDER_WIDTH          (16),
@@ -291,7 +328,7 @@ module ultra96v2_mpu9250
                 .s_wb_stb_i             (wb_i2c_stb_i),
                 .s_wb_ack_o             (wb_i2c_ack_o),
                 
-                .irq                    (irq_i2c)
+                .irq                    (i2c_irq)
             );
     
     IOBUF i_iobuf_scl   (.IO(imu_sck), .I(1'b0), .O(i2c_scl_i), .T(i2c_scl_t));
@@ -337,14 +374,41 @@ module ultra96v2_mpu9250
     assign led[1] = reg_clk_count[25];
     
     
-    
+
+    // -----------------------------
+    //  IRQ
+    // -----------------------------
+
+    assign nirq0_lpd_rpu = ~rtos_irq;
+
+    always_comb begin
+        irq0 = '0;
+        irq0[0] = com_irq_rx[0];
+        irq0[1] = com_irq_tx[1];
+//      irq0[2] = com_irq_tx[0];
+//      irq0[3] = com_irq_rx[1];
+        irq0[4] = irq_i2c;
+    end
+
+    // イベントフラグで受ける
+    always_comb begin
+        rtos_set_flg = '0;
+        rtos_set_flg[1][0] = com_irq_tx[0];
+        rtos_set_flg[1][1] = com_irq_rx[1];
+//      rtos_set_flg[1][2] = com_irq_rx[0];
+//      rtos_set_flg[1][3] = com_irq_tx[0];
+        rtos_set_flg[1][4] = irq_i2c;
+    end
+
+
     // -----------------------------
     //  WISHBONE address decode
     // -----------------------------
     
-    assign wb_rtos_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[24:16] == 8'h00);
-    assign wb_i2c_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[24:16] == 8'h01);
-    assign wb_led_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[24:16] == 8'h02);
+    assign wb_rtos_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[23:16] == 8'h00);
+    assign wb_com_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[23:16] == 8'h01);
+    assign wb_i2c_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[23:16] == 8'h10);
+    assign wb_led_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[23:16] == 8'h11);
     
     assign wb_peri_dat_o  = wb_rtos_stb_i ? wb_rtos_dat_o :
                             wb_i2c_stb_i  ? wb_i2c_dat_o :
@@ -370,8 +434,8 @@ module ultra96v2_mpu9250
     (* mark_debug="true" *) reg     dbg_sda_i;
     
     always @(posedge wb_peri_clk_i) begin
-        dbg_irq_rtos <= irq_rtos;
-        dbg_irq_i2c  <= irq_i2c;
+        dbg_irq_rtos <= rtos_irq;
+        dbg_irq_i2c  <= i2c_irq;
         dbg_scl_t    <= i2c_scl_t;
         dbg_scl_i    <= i2c_scl_i;
         dbg_sda_t    <= i2c_sda_t;
