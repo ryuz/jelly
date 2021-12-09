@@ -12,10 +12,10 @@ pub struct UioRegion {
 }
 
 impl UioRegion {
-    pub fn new(dev: UioDevice) -> Self {
+    pub fn new(dev: Rc<UioDevice>) -> Self {
         let addr = dev.map_mapping(0).unwrap() as usize;
         let size = dev.map_size(0).unwrap();
-        UioRegion { dev: Rc::new(dev), addr:addr, size:size }
+        UioRegion { dev: dev, addr:addr, size:size }
     }
 }
 
@@ -39,27 +39,32 @@ impl MemRegion for UioRegion {
 }
 
 
-pub fn uio_accesor_new<BaseType>(dev: UioDevice) -> MemAccesor::<UioRegion, BaseType>
+pub fn uio_accesor_new<BaseType>(dev: Rc<UioDevice>) -> MemAccesor::<UioRegion, BaseType>
 {
     MemAccesor::<UioRegion, BaseType>::new(UioRegion::new(dev))
 }
 
-pub fn uio_accesor_new_from_number<BaseType>(num: usize) -> Result<MemAccesor::<UioRegion, BaseType>, uio::UioError> 
+pub fn uio_accesor_from_dev<BaseType>(dev: UioDevice) -> MemAccesor::<UioRegion, BaseType>
 {
-    let dev = uio::UioDevice::new(num)?;
-    Ok(MemAccesor::<UioRegion, BaseType>::new(UioRegion::new(dev)))
+    uio_accesor_new::<BaseType>(Rc::new(dev))
 }
 
-pub fn uio_accesor_new_from_name<BaseType>(name: &str) -> Result<MemAccesor::<UioRegion, BaseType>, uio::UioError> 
+pub fn uio_accesor_from_number<BaseType>(num: usize) -> Result<MemAccesor::<UioRegion, BaseType>, uio::UioError> 
+{
+    let dev = uio::UioDevice::new(num)?;
+    Ok(uio_accesor_from_dev::<BaseType>(dev))
+}
+
+pub fn uio_accesor_from_name<BaseType>(name: &str) -> Result<MemAccesor::<UioRegion, BaseType>, uio::UioError> 
 {
     for i in 0..99 {
         let dev = uio::UioDevice::new(i)?;
         let dev_name = dev.get_name()?;
         if dev_name == name {
-            return Ok(MemAccesor::<UioRegion, BaseType>::new(UioRegion::new(dev)))
+            return Ok(uio_accesor_from_dev(dev));
         }
     }
     Err(uio::UioError::Parse)
-}  
-    
+}
+
 
