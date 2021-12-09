@@ -32,6 +32,7 @@ fn test<T: MemRegion>(acc: MemAccesor<T, usize>) {
 fn main() {
     println!("Hello, world!");
 
+    /*
     let dev = open_uio("uio_pl_peri").unwrap();
 
     println!("uio_name : {}", dev.get_name().unwrap());
@@ -43,9 +44,16 @@ fn main() {
     unsafe { println!("{:x}", std::ptr::read_volatile((addr + 0x040) as *mut u32)); }
     unsafe { println!("{:x}", std::ptr::read_volatile((addr + 0x840) as *mut u32)); }
 
+    println!("<mmio>");
     let acc = mmio_accesor_new::<usize>(addr, dev.map_size(0).unwrap());
     unsafe { println!("{:x}", acc.read_mem(0x040)); }
     unsafe { println!("{:x}", acc.read_mem(0x840)); }
 
     test::<MmioRegion>(acc);
+    */
+
+    println!("<uio>");
+    let acc = uio_accesor_from_name::<usize>("uio_pl_peri").unwrap();
+    unsafe { println!("{:x}", acc.read_mem(0x040)); }
+    unsafe { println!("{:x}", acc.read_mem(0x840)); }
 }

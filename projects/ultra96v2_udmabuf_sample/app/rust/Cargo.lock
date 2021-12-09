@@ -45,7 +45,6 @@ dependencies = [
 name = "jelly_mem_access"
 version = "0.1.0"
 dependencies = [
- "delegate",
  "uio",
 ]
 
