@@ -55,8 +55,8 @@ module ultra96v2_mpu9250
     design_1
         i_design_1
             (
-                .m_axi4l_aresetn        (aresetn),
-                .m_axi4l_aclk           (aclk),
+                .m_axi4l_peri_aresetn   (aresetn),
+                .m_axi4l_peri_aclk      (aclk),
                 .m_axi4l_peri_awaddr    (axi4l_peri_awaddr),
                 .m_axi4l_peri_awprot    (axi4l_peri_awprot),
                 .m_axi4l_peri_awvalid   (axi4l_peri_awvalid),
@@ -172,6 +172,7 @@ module ultra96v2_mpu9250
                                 logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    rtos_set_flg;
     
     (* mark_debug = "true" *)   logic   [TSKID_WIDTH-1:0]                   monitor_run_tskid;
+                                logic   [TSKPRI_WIDTH-1:0]                  monitor_run_tskpri;
     (* mark_debug = "true" *)   logic   [TSKID_WIDTH-1:0]                   monitor_top_tskid;
                                 logic   [TMAX_TSKID:1][TTS_WIDTH-1:0]       monitor_tsk_tskstat;
                                 logic   [TMAX_TSKID:1][TTW_WIDTH-1:0]       monitor_tsk_tskwait;
@@ -228,13 +229,13 @@ module ultra96v2_mpu9250
                 
                 .ext_set_flg            (rtos_set_flg),
                 
-                .monitor_run_tskid      (monitor_run_tskid), 
                 .monitor_top_tskid      (monitor_top_tskid), 
+                .monitor_run_tskid      (monitor_run_tskid), 
+                .monitor_run_tskpri     (monitor_run_tskpri), 
                 .monitor_tsk_tskstat    (monitor_tsk_tskstat),
                 .monitor_tsk_tskwait    (monitor_tsk_tskwait),
                 .monitor_tsk_wupcnt     (monitor_tsk_wupcnt),
                 .monitor_tsk_suscnt     (monitor_tsk_suscnt),
-                
                 .monitor_sem_quecnt     (monitor_sem_quecnt),
                 .monitor_sem_semcnt     (monitor_sem_semcnt),
                 .monitor_flg_flgptn     (monitor_flg_flgptn),
@@ -276,7 +277,7 @@ module ultra96v2_mpu9250
                 .s_wb_rst_i             (wb_peri_rst_i),
                 .s_wb_clk_i             (wb_peri_clk_i),
                 .s_wb_adr_i             (wb_peri_adr_i[7:0]),
-                .s_wb_dat_o             (wb_i2c_dat_o),
+                .s_wb_dat_o             (wb_com_dat_o),
                 .s_wb_dat_i             (wb_peri_dat_i),
                 .s_wb_we_i              (wb_peri_we_i ),
                 .s_wb_sel_i             (wb_peri_sel_i),
@@ -344,7 +345,7 @@ module ultra96v2_mpu9250
     logic                           wb_led_stb_i;
     logic                           wb_led_ack_o;
     
-    reg     [0:0]                   reg_led;
+    logic   [0:0]                   reg_led;
     always @(posedge wb_peri_clk_i) begin
         if ( wb_peri_rst_i ) begin
             reg_led <= 0;
@@ -356,7 +357,7 @@ module ultra96v2_mpu9250
         end
     end
     
-    assign wb_led_dat_o = reg_led;
+    assign wb_led_dat_o = WB_DAT_WIDTH'(reg_led);
     assign wb_led_ack_o = wb_led_stb_i;
     
     
@@ -387,7 +388,7 @@ module ultra96v2_mpu9250
         irq0[1] = com_irq_tx[1];
 //      irq0[2] = com_irq_tx[0];
 //      irq0[3] = com_irq_rx[1];
-        irq0[4] = irq_i2c;
+        irq0[4] = i2c_irq;
     end
 
     // イベントフラグで受ける
@@ -397,7 +398,7 @@ module ultra96v2_mpu9250
         rtos_set_flg[1][1] = com_irq_rx[1];
 //      rtos_set_flg[1][2] = com_irq_rx[0];
 //      rtos_set_flg[1][3] = com_irq_tx[0];
-        rtos_set_flg[1][4] = irq_i2c;
+        rtos_set_flg[1][4] = i2c_irq;
     end
 
 
