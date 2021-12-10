@@ -48,8 +48,8 @@ module tb_sim();
     //  WISHBONE master
     // ----------------------------------
 
-    parameter int   WB_ADR_WIDTH = 29;
-    parameter int   WB_DAT_WIDTH = 32;
+    parameter int   WB_ADR_WIDTH = 37;
+    parameter int   WB_DAT_WIDTH = 64;
     parameter int   WB_SEL_WIDTH = WB_DAT_WIDTH/8;
     
     // force connect to top-net
@@ -268,9 +268,25 @@ module tb_sim();
 
 
     localparam ADR_RTOS = 32'h0000_0000;
-    localparam ADR_COM  = 32'h0008_0000;
-    localparam ADR_I2C  = 32'h0080_0000;
-    localparam ADR_LED  = 32'h0088_0000;
+    localparam ADR_COM  = 32'h0001_0000;
+    localparam ADR_I2C  = 32'h0010_0000;
+    localparam ADR_LED  = 32'h0011_0000;
+
+
+    localparam  int  REG_COM_CORE_ID        = 'h00;
+    localparam  int  REG_COM_CORE_VERSION   = 'h01;
+    localparam  int  REG_COM_CORE_DATE      = 'h02;
+    localparam  int  REG_COM_CORE_SERIAL    = 'h03;
+    localparam  int  REG_COM_TX_DATA        = 'h10;
+    localparam  int  REG_COM_TX_STATUS      = 'h11;
+    localparam  int  REG_COM_TX_FREE_COUNT  = 'h12;
+    localparam  int  REG_COM_TX_IRQ_STATUS  = 'h14;
+    localparam  int  REG_COM_TX_IRQ_ENABLE  = 'h15;
+    localparam  int  REG_COM_RX_DATA        = 'h18;
+    localparam  int  REG_COM_RX_STATUS      = 'h19;
+    localparam  int  REG_COM_RX_FREE_COUNT  = 'h1a;
+    localparam  int  REG_COM_RX_IRQ_STATUS  = 'h1c;
+    localparam  int  REG_COM_RX_IRQ_ENABLE  = 'h1d;
 
     initial begin
     @(negedge wb_rst_i);
@@ -279,8 +295,19 @@ module tb_sim();
         wb_write(ADR_LED, 0, 8'hff);
         wb_write(ADR_LED, 1, 8'hff);
 
+        wb_read (ADR_COM + REG_COM_CORE_ID);
+        wb_write(ADR_COM + REG_COM_TX_DATA, 8'h21, 8'hff);
+        wb_write(ADR_COM + REG_COM_TX_DATA, 8'h22, 8'hff);
+        wb_write(ADR_COM + REG_COM_TX_DATA, 8'h23, 8'hff);
+        wb_read (ADR_COM + REG_COM_RX_STATUS);
+        wb_read (ADR_COM + REG_COM_RX_DATA);
+        wb_read (ADR_COM + REG_COM_RX_STATUS);
+        wb_read (ADR_COM + REG_COM_RX_DATA);
+        wb_read (ADR_COM + REG_COM_RX_STATUS);
+        wb_read (ADR_COM + REG_COM_RX_DATA);
+        wb_read (ADR_COM + REG_COM_RX_STATUS);
+
         $finish();
-        
     end
     
 endmodule

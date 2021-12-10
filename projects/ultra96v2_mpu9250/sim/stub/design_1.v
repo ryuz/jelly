@@ -2,7 +2,8 @@
 `timescale 1 ps / 1 ps
 
 module design_1
-   (m_axi4l_peri_aclk,
+   (in_irq0,
+    m_axi4l_peri_aclk,
     m_axi4l_peri_araddr,
     m_axi4l_peri_aresetn,
     m_axi4l_peri_arprot,
@@ -23,60 +24,59 @@ module design_1
     m_axi4l_peri_wready,
     m_axi4l_peri_wstrb,
     m_axi4l_peri_wvalid,
-    in_irq0,
     nfiq0_lpd_rpu,
     nfiq1_lpd_rpu,
     nirq0_lpd_rpu,
     nirq1_lpd_rpu);
+  input [7:0]in_irq0;
   output m_axi4l_peri_aclk;
-  output [28:0]m_axi4l_peri_araddr;
+  output [39:0]m_axi4l_peri_araddr;
   output [0:0]m_axi4l_peri_aresetn;
   output [2:0]m_axi4l_peri_arprot;
   input m_axi4l_peri_arready;
   output m_axi4l_peri_arvalid;
-  output [28:0]m_axi4l_peri_awaddr;
+  output [39:0]m_axi4l_peri_awaddr;
   output [2:0]m_axi4l_peri_awprot;
   input m_axi4l_peri_awready;
   output m_axi4l_peri_awvalid;
   output m_axi4l_peri_bready;
   input [1:0]m_axi4l_peri_bresp;
   input m_axi4l_peri_bvalid;
-  input [31:0]m_axi4l_peri_rdata;
+  input [63:0]m_axi4l_peri_rdata;
   output m_axi4l_peri_rready;
   input [1:0]m_axi4l_peri_rresp;
   input m_axi4l_peri_rvalid;
-  output [31:0]m_axi4l_peri_wdata;
+  output [63:0]m_axi4l_peri_wdata;
   input m_axi4l_peri_wready;
-  output [3:0]m_axi4l_peri_wstrb;
+  output [7:0]m_axi4l_peri_wstrb;
   output m_axi4l_peri_wvalid;
-  input [7:0]in_irq0;
   input nfiq0_lpd_rpu;
   input nfiq1_lpd_rpu;
   input nirq0_lpd_rpu;
   input nirq1_lpd_rpu;
 
+  wire [7:0]in_irq0;
   wire m_axi4l_peri_aclk;
-  wire [28:0]m_axi4l_peri_araddr;
+  wire [39:0]m_axi4l_peri_araddr;
   wire [0:0]m_axi4l_peri_aresetn;
   wire [2:0]m_axi4l_peri_arprot;
   wire m_axi4l_peri_arready;
   wire m_axi4l_peri_arvalid;
-  wire [28:0]m_axi4l_peri_awaddr;
+  wire [39:0]m_axi4l_peri_awaddr;
   wire [2:0]m_axi4l_peri_awprot;
   wire m_axi4l_peri_awready;
   wire m_axi4l_peri_awvalid;
   wire m_axi4l_peri_bready;
   wire [1:0]m_axi4l_peri_bresp;
   wire m_axi4l_peri_bvalid;
-  wire [31:0]m_axi4l_peri_rdata;
+  wire [63:0]m_axi4l_peri_rdata;
   wire m_axi4l_peri_rready;
   wire [1:0]m_axi4l_peri_rresp;
   wire m_axi4l_peri_rvalid;
-  wire [31:0]m_axi4l_peri_wdata;
+  wire [63:0]m_axi4l_peri_wdata;
   wire m_axi4l_peri_wready;
-  wire [3:0]m_axi4l_peri_wstrb;
+  wire [7:0]m_axi4l_peri_wstrb;
   wire m_axi4l_peri_wvalid;
-  wire [7:0]in_irq0;
   wire nfiq0_lpd_rpu;
   wire nfiq1_lpd_rpu;
   wire nirq0_lpd_rpu;
@@ -89,8 +89,8 @@ module design_1
     reg     clk     /*verilator public_flat*/ ;
     
     // WISHBONE
-    localparam  WB_ADR_WIDTH     = 27;
-    localparam  WB_DAT_SIZE      = 2;   // 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
+    localparam  WB_ADR_WIDTH     = 37;
+    localparam  WB_DAT_SIZE      = 3;   // 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
     localparam  WB_DAT_WIDTH     = (8 << WB_DAT_SIZE);
     localparam  WB_SEL_WIDTH     = WB_DAT_WIDTH / 8;
 

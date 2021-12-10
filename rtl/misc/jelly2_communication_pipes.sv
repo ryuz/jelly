@@ -84,9 +84,11 @@ module jelly2_communication_pipes
         s_wb_dat_o = '0;
         s_wb_ack_o = '0;
         for ( int i = 0; i < NUM; ++i ) begin
-            wb_stb_i[i] = (int'(s_wb_adr_i[WB_ADR_WIDTH-1:SUB_ADR_WIDTH]) == i);
-            s_wb_dat_o = wb_dat_o[i];
-            s_wb_ack_o = wb_ack_o[i];
+            if ( s_wb_stb_i && int'(s_wb_adr_i[WB_ADR_WIDTH-1:SUB_ADR_WIDTH]) == i ) begin
+                wb_stb_i[i] = 1'b1;
+                s_wb_dat_o = wb_dat_o[i];
+                s_wb_ack_o = wb_ack_o[i];
+            end
         end
     end
     
