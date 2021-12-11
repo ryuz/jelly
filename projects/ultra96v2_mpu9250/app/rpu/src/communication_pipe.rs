@@ -19,26 +19,60 @@ const REG_RX_IRQ_ENABLE:usize = 0x1d;
 
 
 pub struct JellyCommunicationPipe<T: MemRegion, BaseType> {
-    reg_acc: MemAccesor<T, BaseType>
+    reg_acc: MemAccesor<T, BaseType>,
+    wait_tx: Option<fn(&mut Self)>,
+    wait_rx: Option<fn(&mut Self)>,
 }
 
 impl <T: MemRegion, BaseType> JellyCommunicationPipe<T, BaseType>
 {
     pub const fn new( reg_acc: MemAccesor<T, BaseType> ) -> Self
     {
-        Self { reg_acc: reg_acc }
+        Self { reg_acc: reg_acc, wait_tx:None, wait_rx:None }
     }
 
-    pub fn putc(&self, c: u8) {
+    pub fn set_wait_tx(&mut self, wait_tx: Option<fn(&mut Self)>) {
+        self.wait_tx = wait_tx;
+    }
+
+    pub fn set_wait_rx(&mut self, wait_rx: Option<fn(&mut Self)>) {
+        self.wait_rx = wait_rx;
+    }
+
+    pub fn set_irq_tx_enable(&mut self, enable: bool) {
         unsafe {
-            while self.reg_acc.read_reg8(REG_TX_STATUS) == 0 {}
+            self.reg_acc.write_reg(REG_TX_IRQ_ENABLE, if enable {0x01} else {0x00} );
+        }
+    }
+
+    pub fn set_irq_rx_enable(&mut self, enable: bool) {
+        unsafe {
+            self.reg_acc.write_reg(REG_RX_IRQ_ENABLE, if enable {0x01} else {0x00} );
+        }
+    }
+
+    pub fn putc(&mut self, c: u8) {
+        unsafe {
+            while self.reg_acc.read_reg8(REG_TX_STATUS) == 0 {
+                match self.wait_tx {
+                    Some(f) => f(self),
+                    None => (),
+                }
+            }
+
             self.reg_acc.write_reg8(REG_TX_DATA, c);
         }
     }
 
-    pub fn getc(&self) -> u8 {
+    pub fn getc(&mut self) -> u8 {
         unsafe {
-            while self.reg_acc.read_reg8(REG_RX_STATUS) == 0 {}
+            while self.reg_acc.read_reg8(REG_RX_STATUS) == 0 {
+                match self.wait_rx {
+                    Some(f) => f(self),
+                    None => (),
+                }
+            }
+            
             self.reg_acc.read_reg8(REG_RX_DATA)
         }
     }
