@@ -598,17 +598,31 @@
 /*  Miscellaneous                     */
 /* ---------------------------------- */
 
- #define REG_LOGGER_CORE_ID                     0x00
- #define REG_LOGGER_CORE_VERSION                0x01
- #define REG_LOGGER_CTL_CONTROL                 0x04
- #define REG_LOGGER_CTL_STATUS                  0x05
- #define REG_LOGGER_CTL_COUNT                   0x07
- #define REG_LOGGER_LIMIT_SIZE                  0x08
- #define REG_LOGGER_READ_DATA                   0x10
- #define REG_LOGGER_POL_TIMER0                  0x18
- #define REG_LOGGER_POL_TIMER1                  0x19
- #define REG_LOGGER_POL_DATA(x)                 (0x20+(x))
+#define REG_LOGGER_CORE_ID                      0x00
+#define REG_LOGGER_CORE_VERSION                 0x01
+#define REG_LOGGER_CTL_CONTROL                  0x04
+#define REG_LOGGER_CTL_STATUS                   0x05
+#define REG_LOGGER_CTL_COUNT                    0x07
+#define REG_LOGGER_LIMIT_SIZE                   0x08
+#define REG_LOGGER_READ_DATA                    0x10
+#define REG_LOGGER_POL_TIMER0                   0x18
+#define REG_LOGGER_POL_TIMER1                   0x19
+#define REG_LOGGER_POL_DATA(x)                  (0x20+(x))
 
+#define REG_COMMUNICATION_PIPE_CORE_ID          0x00
+#define REG_COMMUNICATION_PIPE_CORE_VERSION     0x01
+#define REG_COMMUNICATION_PIPE_CORE_DATE        0x02
+#define REG_COMMUNICATION_PIPE_CORE_SERIAL      0x03
+#define REG_COMMUNICATION_PIPE_TX_DATA          0x10
+#define REG_COMMUNICATION_PIPE_TX_STATUS        0x11
+#define REG_COMMUNICATION_PIPE_TX_FREE_COUNT    0x12
+#define REG_COMMUNICATION_PIPE_TX_IRQ_STATUS    0x14
+#define REG_COMMUNICATION_PIPE_TX_IRQ_ENABLE    0x15
+#define REG_COMMUNICATION_PIPE_RX_DATA          0x18
+#define REG_COMMUNICATION_PIPE_RX_STATUS        0x19
+#define REG_COMMUNICATION_PIPE_RX_FREE_COUNT    0x1a
+#define REG_COMMUNICATION_PIPE_RX_IRQ_STATUS    0x1c
+#define REG_COMMUNICATION_PIPE_RX_IRQ_ENABLE    0x1d
 
 
 #endif	/* __RYUZ__JELLY__REGS__H__ */

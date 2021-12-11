@@ -15,6 +15,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4a72c244c1ff497a746a7e1fb3d14bd08420ecda70c8f25c7112f2781652d787"
 
 [[package]]
+name = "jelly-mem_access"
+version = "0.1.0"
+
+[[package]]
 name = "jelly-rtos"
 version = "0.1.0"
 dependencies = [
@@ -35,6 +39,7 @@ name = "ultra96v2_mpu9250"
 version = "0.1.0"
 dependencies = [
  "cc",
+ "jelly-mem_access",
  "jelly-rtos",
  "pudding-pac",
 ]

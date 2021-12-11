@@ -13,6 +13,8 @@ const REG_DMA_RDATA0 : usize = 6;
 const REG_DMA_RDATA1 : usize = 7;
 const REG_DMA_CORE_ID: usize = 8;
 
+const REG_LED_OUTPUT: usize = 0;
+
 const REG_TIM_CONTROL: usize = 0;
 const REG_TIM_COMPARE: usize = 1;
 const REG_TIM_COUNTER: usize = 3;
@@ -41,12 +43,12 @@ fn main() {
     for _ in 0..5 {
         // LED ON
         println!("LED : ON");
-        unsafe { led_acc.write_reg(0, 1); }
+        unsafe { led_acc.write_reg(REG_LED_OUTPUT, 1); }
         thread::sleep(time::Duration::from_millis(500));
 
         // LED OFF
         println!("LED : OFF");
-        unsafe { led_acc.write_reg(0, 0); }
+        unsafe { led_acc.write_reg(REG_LED_OUTPUT, 0); }
         thread::sleep(time::Duration::from_millis(500));
     }
 }

@@ -1,4 +1,5 @@
 #![no_std]
+#![feature(const_fn_trait_bound)]
 
 #[cfg(feature = "std")]
 extern crate std;

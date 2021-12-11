@@ -1,18 +1,24 @@
 #![no_std]
 #![no_main]
 #![feature(asm)]
+#![feature(const_fn_trait_bound)]
 
+use core::fmt::{self, Write};
 use pudding_pac::arm::cpu;
 use core::panic::PanicInfo;
 mod bootstrap;
 mod i2c;
+mod communication_pipe;
 
 use jelly_rtos::rtos;
+use jelly_mem_access::*;
+use communication_pipe::*;
 
 
-#[macro_use]
-pub mod uart;
-use uart::*;
+//#[macro_use]
+//pub mod uart;
+//use uart::*;
+
 //mod timer;
 
 #[panic_handler]
@@ -30,6 +36,38 @@ static mut STACK4: [u8; 4096] = [0; 4096];
 static mut STACK5: [u8; 4096] = [0; 4096];
 */
 
+static mut COM0:JellyCommunicationPipe::<MmioRegion, u64> = JellyCommunicationPipe::<MmioRegion, u64>::new(mmio_accesor_new::<u64>(0x8008_0000, 0x800));
+
+
+#[macro_export]
+macro_rules! print {
+    ($($arg:tt)*) => ($crate::_print(format_args!($($arg)*)));
+}
+
+#[macro_export]
+macro_rules! println {
+    ($fmt:expr) => (print!(concat!($fmt, "\n")));
+    ($fmt:expr, $($arg:tt)*) => (print!(concat!($fmt, "\n"), $($arg)*));
+}
+
+pub fn _print(args: fmt::Arguments) {
+    let mut writer = ComWriter {};
+    writer.write_fmt(args).unwrap();
+}
+
+struct ComWriter;
+
+impl Write for ComWriter {
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        for c in s.bytes() {
+            unsafe{COM0.putc(c as u8)};
+        }
+        Ok(())
+    }
+}
+
+
+
 // main
 #[no_mangle]
 pub unsafe extern "C" fn main() -> ! {
@@ -39,11 +77,25 @@ pub unsafe extern "C" fn main() -> ! {
 
 //  memdump(0x80000000, 16);
 
+    let acc_peri = mmio_accesor_new::<usize>(0x80000000, 0x10000000);
+    let acc_com = acc_peri.clone64(0x08_0000, 0x1000);
+    let acc_i2c = acc_peri.clone64(0x80_0000, 0x1000);
+    let acc_led = acc_peri.clone64(0x88_0000, 0x1000);
+    println!("rtos core_id      : 0x{:08x}", acc_peri.read_reg(0));
+    println!("com  core_id      : 0x{:08x}", acc_com.read_reg(0));
+
+    let com = JellyCommunicationPipe::<MmioRegion, u64>::new(acc_com);
+    com.putc('a' as u8);
+    com.putc('b' as u8);
+    com.putc('c' as u8);
+    println!("putc abc");
+    loop{}
+
     rtos::initialize(0x80000000);
 
-    println!("core_id      : {:08x}", rtos::core_id     ());
-    println!("core_version : {:08x}", rtos::core_version());
-    println!("core_date    : {:08x}", rtos::core_date   ());
+    println!("core_id      : 0x{:08x}", rtos::core_id     ());
+    println!("core_version : 0x{:08x}", rtos::core_version());
+    println!("core_date    : 0x{:08x}", rtos::core_date   ());
     println!("clock_rate   : {}", rtos::clock_rate  ());
     println!("max_tskid    : {}", rtos::max_tskid   ());
     println!("max_semid    : {}", rtos::max_semid   ());
@@ -53,7 +105,7 @@ pub unsafe extern "C" fn main() -> ! {
     println!("flgptn_width : {}", rtos::flgptn_width());
     println!("systim_width : {}", rtos::systim_width());
     println!("reltim_width : {}", rtos::reltim_width());
-    
+
     // 時間単位を us 単位にする
     let pscl:u32 = rtos::clock_rate() / 1000000 - 1;
     println!("set_pscl({})\n", pscl);
@@ -76,8 +128,8 @@ const MPU9250_ADDRESS: u8 =     0x68;    // 7bit address
 extern "C" fn task1() -> ! {
     println!("Task Start");
     
-    let i2c = i2c::JellyI2c::new(0x80080000);
-    i2c.set_divider(20*2 - 1);
+    let i2c = i2c::JellyI2c::new(0x80800000);
+    i2c.set_divider(50 - 1);
     
     i2c.write(MPU9250_ADDRESS, &[0x75]);
     let mut who_am_i: [u8; 1] = [0u8; 1];

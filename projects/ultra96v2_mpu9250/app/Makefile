@@ -17,6 +17,9 @@ DEVTREE_PATH  = /configfs/device-tree
 .PHONY: all
 all: $(DTBO_FILE) $(BIN_FILE) build_apu
 
+.PHONY: run
+run: load exe_rpu exe_apu stop_rpu
+
 .PHONY: clean
 clean:
 	rm -rf $(OBJS) $(DTBO_FILE) $(BIN_FILE)
@@ -29,6 +32,10 @@ run_apu: load exe_apu
 exe_apu:
 	make -C apu run
 
+
+.PHONY: build_rpu
+build_rpu:
+	make -C rpu
 
 .PHONY: run_rpu
 run_rpu: load exe_rpu

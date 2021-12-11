@@ -1,5 +1,5 @@
 [package]
-name = "jelly_mem_access"
+name = "jelly-mem_access"
 version = "0.1.0"
 edition = "2021"
 

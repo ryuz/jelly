@@ -8,4 +8,4 @@ edition = "2021"
 [dependencies]
 uio = "0.2.0"
 delegate = "0.6.1"
-jelly_mem_access = {path = "../../../../rust/mem_access" }
+jelly-mem_access = {path = "../../../../rust/mem_access" }
