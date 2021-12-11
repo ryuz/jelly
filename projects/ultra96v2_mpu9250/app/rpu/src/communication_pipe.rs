@@ -1,9 +1,6 @@
 #![allow(dead_code)]
 
-use core::ptr;
-use super::*;
 use jelly_mem_access::*;
-
 
 const REG_CORE_ID      :usize = 0x00;
 const REG_CORE_VERSION :usize = 0x01;
@@ -33,7 +30,17 @@ impl <T: MemRegion, BaseType> JellyCommunicationPipe<T, BaseType>
     }
 
     pub fn putc(&self, c: u8) {
-        unsafe { self.reg_acc.write_reg8(REG_TX_DATA, c); }
+        unsafe {
+            while self.reg_acc.read_reg8(REG_TX_STATUS) == 0 {}
+            self.reg_acc.write_reg8(REG_TX_DATA, c);
+        }
+    }
+
+    pub fn getc(&self) -> u8 {
+        unsafe {
+            while self.reg_acc.read_reg8(REG_RX_STATUS) == 0 {}
+            self.reg_acc.read_reg8(REG_RX_DATA)
+        }
     }
 }
 

@@ -17,8 +17,14 @@ DEVTREE_PATH  = /configfs/device-tree
 .PHONY: all
 all: $(DTBO_FILE) $(BIN_FILE) build_apu
 
+.PHONY: build
+build: build_rpu
+
 .PHONY: run
-run: load exe_rpu exe_apu stop_rpu
+run: run_rpu
+
+.PHONY: stop
+stop: stop_rpu
 
 .PHONY: clean
 clean:

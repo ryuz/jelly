@@ -19,7 +19,6 @@ use communication_pipe::*;
 //pub mod uart;
 //use uart::*;
 
-//mod timer;
 
 #[panic_handler]
 fn panic(_panic: &PanicInfo<'_>) -> ! {
@@ -27,14 +26,6 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
     loop {}
 }
 
-
-static mut STACK1: [u8; 4096] = [0; 4096];
-/*
-static mut STACK2: [u8; 4096] = [0; 4096];
-static mut STACK3: [u8; 4096] = [0; 4096];
-static mut STACK4: [u8; 4096] = [0; 4096];
-static mut STACK5: [u8; 4096] = [0; 4096];
-*/
 
 static mut COM0:JellyCommunicationPipe::<MmioRegion, u64> = JellyCommunicationPipe::<MmioRegion, u64>::new(mmio_accesor_new::<u64>(0x8008_0000, 0x800));
 
@@ -77,19 +68,12 @@ pub unsafe extern "C" fn main() -> ! {
 
 //  memdump(0x80000000, 16);
 
-    let acc_peri = mmio_accesor_new::<usize>(0x80000000, 0x10000000);
-    let acc_com = acc_peri.clone64(0x08_0000, 0x1000);
-    let acc_i2c = acc_peri.clone64(0x80_0000, 0x1000);
-    let acc_led = acc_peri.clone64(0x88_0000, 0x1000);
-    println!("rtos core_id      : 0x{:08x}", acc_peri.read_reg(0));
-    println!("com  core_id      : 0x{:08x}", acc_com.read_reg(0));
-
-    let com = JellyCommunicationPipe::<MmioRegion, u64>::new(acc_com);
-    com.putc('a' as u8);
-    com.putc('b' as u8);
-    com.putc('c' as u8);
-    println!("putc abc");
-    loop{}
+//  let acc_peri = mmio_accesor_new::<usize>(0x80000000, 0x10000000);
+//  let acc_com = acc_peri.clone64(0x08_0000, 0x1000);
+//  let acc_i2c = acc_peri.clone64(0x80_0000, 0x1000);
+//  let acc_led = acc_peri.clone64(0x88_0000, 0x1000);
+//  println!("rtos core_id      : 0x{:08x}", acc_peri.read_reg(0));
+//  println!("com  core_id      : 0x{:08x}", acc_com.read_reg(0));
 
     rtos::initialize(0x80000000);
 
@@ -112,6 +96,7 @@ pub unsafe extern "C" fn main() -> ! {
     rtos::set_pscl(pscl);
 
     // タスクスタート
+    static mut STACK1: [u8; 4096] = [0; 4096];
     rtos::cre_tsk(1, &mut STACK1, task1);
     rtos::wup_tsk(1);
 
@@ -161,12 +146,6 @@ extern "C" fn task1() -> ! {
         println!("temperature : {}\n", temperature);
 
         rtos::dly_tsk(1000000);
-    }
-
-    rtos::slp_tsk();
-
-    loop {
-        wait(100000);
     }
 }
 
