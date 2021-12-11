@@ -2,6 +2,10 @@
 #![no_main]
 #![feature(asm)]
 #![feature(const_fn_trait_bound)]
+#![feature(const_fn_fn_ptr_basics)]
+#![feature(const_mut_refs)]
+//#![feature(min_const_generics)]
+
 
 use core::fmt::{self, Write};
 use pudding_pac::arm::cpu;
@@ -58,6 +62,14 @@ impl Write for ComWriter {
 }
 
 
+fn com0_wait_tx(com: &mut JellyCommunicationPipe::<MmioRegion, u64>)
+{
+    rtos::clr_flg(1, !0x01);
+    com.set_irq_tx_enable(true);
+    rtos::wai_flg(1, 0x01, rtos::WfMode::AndWait);
+    com.set_irq_tx_enable(false);
+}
+
 
 // main
 #[no_mangle]
@@ -65,6 +77,8 @@ pub unsafe extern "C" fn main() -> ! {
     wait(10000000);
     println!("\nJelly-RTOS start\n");
     wait(10000);
+
+    COM0.set_wait_tx(Some(com0_wait_tx));
 
 //  memdump(0x80000000, 16);
 
@@ -76,6 +90,8 @@ pub unsafe extern "C" fn main() -> ! {
 //  println!("com  core_id      : 0x{:08x}", acc_com.read_reg(0));
 
     rtos::initialize(0x80000000);
+
+    rtos::ena_extflg(1, 0x1f);
 
     println!("core_id      : 0x{:08x}", rtos::core_id     ());
     println!("core_version : 0x{:08x}", rtos::core_version());
@@ -113,7 +129,8 @@ const MPU9250_ADDRESS: u8 =     0x68;    // 7bit address
 extern "C" fn task1() -> ! {
     println!("Task Start");
     
-    let i2c = i2c::JellyI2c::new(0x80800000);
+    let i2c_acc = mmio_accessor::mmio_accesor_new::<u64>(0x80800000, 0x100);
+    let i2c = i2c::JellyI2c::<MmioRegion, u64, 1, 0x10>::new(i2c_acc);
     i2c.set_divider(50 - 1);
     
     i2c.write(MPU9250_ADDRESS, &[0x75]);

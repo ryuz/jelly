@@ -8,11 +8,11 @@ use pudding_pac::arm::cpu;
 // https://www.tron.org/ja/specifications/
 
 
-type ID = i32;
-type PRI = i32;
-type ER = i32;
-type TMO = i32;
-type FLGPTN = u32;
+pub type ID = i32;
+pub type PRI = i32;
+pub type ER = i32;
+pub type TMO = i32;
+pub type FLGPTN = u32;
 
 pub const TSK_SELF: ID = 0;
 
@@ -53,6 +53,7 @@ const OPCODE_CLR_FLG: usize = 0x32;
 const OPCODE_WAI_FLG_AND: usize = 0x33;
 const OPCODE_WAI_FLG_OR: usize = 0x34;
 const OPCODE_ENA_FLG_EXT: usize = 0x3a;
+const OPCODE_DIS_FLG_EXT: usize = 0x3b;
 const OPCODE_REF_FLGPTN: usize = 0xb0;
 const OPCODE_SET_TIM: usize = 0x70;
 const OPCODE_SET_PSCL: usize = 0x72;
@@ -242,6 +243,14 @@ pub fn ena_extflg(flgid: ID, flgptn: FLGPTN) -> ER {
     unsafe {
         let _sc = SystemCall::new();
         write_reg(OPCODE_ENA_FLG_EXT, flgid as usize, flgptn as u32);
+    }
+    E_OK
+}
+
+pub fn dis_extflg(flgid: ID, flgptn: FLGPTN) -> ER {
+    unsafe {
+        let _sc = SystemCall::new();
+        write_reg(OPCODE_DIS_FLG_EXT, flgid as usize, flgptn as u32);
     }
     E_OK
 }

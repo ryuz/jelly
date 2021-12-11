@@ -2,17 +2,17 @@
 #![allow(dead_code)]
 
 use super::*;
-use std::rc::Rc;
+use std::sync::Arc;
 use uio::UioDevice;
 
 pub struct UioRegion {
-    dev: Rc<UioDevice>,
+    dev: Arc<UioDevice>,
     addr: usize,
     size: usize,
 }
 
 impl UioRegion {
-    pub fn new(dev: Rc<UioDevice>) -> Self {
+    pub fn new(dev: Arc<UioDevice>) -> Self {
         let addr = dev.map_mapping(0).unwrap() as usize;
         let size = dev.map_size(0).unwrap();
         UioRegion { dev: dev, addr:addr, size:size }
@@ -39,14 +39,14 @@ impl MemRegion for UioRegion {
 }
 
 
-pub fn uio_accesor_new<BaseType>(dev: Rc<UioDevice>) -> MemAccesor::<UioRegion, BaseType>
+pub fn uio_accesor_new<BaseType>(dev: Arc<UioDevice>) -> MemAccesor::<UioRegion, BaseType>
 {
     MemAccesor::<UioRegion, BaseType>::new(UioRegion::new(dev))
 }
 
 pub fn uio_accesor_from_dev<BaseType>(dev: UioDevice) -> MemAccesor::<UioRegion, BaseType>
 {
-    uio_accesor_new::<BaseType>(Rc::new(dev))
+    uio_accesor_new::<BaseType>(Arc::new(dev))
 }
 
 pub fn uio_accesor_from_number<BaseType>(num: usize) -> Result<MemAccesor::<UioRegion, BaseType>, uio::UioError> 
