@@ -36,9 +36,9 @@ impl MemRegion for MmioRegion {
 }
 
 
-pub const fn mmio_accesor_new<BaseType>(addr: usize, size: usize) -> MemAccesor::<MmioRegion, BaseType>
+pub const fn mmio_accesor_new<U>(addr: usize, size: usize) -> MemAccesor::<MmioRegion, U>
 {
-    MemAccesor::<MmioRegion, BaseType>::new(MmioRegion::new(addr, size))
+    MemAccesor::<MmioRegion, U>::new(MmioRegion::new(addr, size))
 }
 
 
