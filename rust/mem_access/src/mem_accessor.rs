@@ -35,23 +35,23 @@ pub trait MemAccess {
     unsafe fn read_reg64(&self, reg: usize) -> u64;
 }
 
-pub struct MemAccesor<T: MemRegion, BaseType> {
+pub struct MemAccesor<T: MemRegion, U> {
     region: T,
-    phantom: PhantomData<BaseType>,
+    phantom: PhantomData<U>,
 }
 
-impl<T: MemRegion + Sized, BaseType> MemAccesor<T, BaseType> {
+impl<T: MemRegion + Sized, U> MemAccesor<T, U> {
     pub const fn new(region: T) -> Self
     {
-        MemAccesor::<T, BaseType> { region: region, phantom: PhantomData }
+        MemAccesor::<T, U> { region: region, phantom: PhantomData }
     }
     
     fn reg_size() -> usize {
-        core::mem::size_of::<BaseType>()
+        core::mem::size_of::<U>()
     }
 
-    pub fn clone(&self, offset: usize, size: usize) -> MemAccesor<T, BaseType> {
-        MemAccesor::<T, BaseType>::new(self.region.clone(offset, size))
+    pub fn clone(&self, offset: usize, size: usize) -> MemAccesor<T, U> {
+        MemAccesor::<T, U>::new(self.region.clone(offset, size))
     }
 
     pub fn clone8(&self, offset: usize, size: usize) -> MemAccesor<T, u8> {
@@ -72,7 +72,7 @@ impl<T: MemRegion + Sized, BaseType> MemAccesor<T, BaseType> {
 }
 
 
-impl <T: MemRegion, BaseType> MemAccess for MemAccesor<T, BaseType> {
+impl <T: MemRegion, U> MemAccess for MemAccesor<T, U> {
     unsafe fn write_mem(&self, offset: usize, data: usize)
     {
         debug_assert!(offset + core::mem::size_of::<usize>() <= self.region.size());

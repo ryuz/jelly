@@ -30,8 +30,13 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
     loop {}
 }
 
+//type ComPipe = JellyCommunicationPipe::<MmioRegion, u64, 1, 0x1>;
+//static mut COM0:ComPipe = ComPipe::new(mmio_accesor_new::<u64>(0x8008_0000, 0x800));
 
-static mut COM0:JellyCommunicationPipe::<MmioRegion, u64> = JellyCommunicationPipe::<MmioRegion, u64>::new(mmio_accesor_new::<u64>(0x8008_0000, 0x800));
+type ComRegion = PhysRegion<0x8008_0000, 0x800>;
+type ComPipe = JellyCommunicationPipe::<ComRegion, u64, 1, 0x1>;
+
+static mut COM0:ComPipe = ComPipe::new(MemAccesor::<ComRegion, u64>::new(ComRegion::new()));
 
 
 #[macro_export]
@@ -61,7 +66,7 @@ impl Write for ComWriter {
     }
 }
 
-
+/*
 fn com0_wait_tx(com: &mut JellyCommunicationPipe::<MmioRegion, u64>)
 {
     rtos::clr_flg(1, !0x01);
@@ -69,7 +74,7 @@ fn com0_wait_tx(com: &mut JellyCommunicationPipe::<MmioRegion, u64>)
     rtos::wai_flg(1, 0x01, rtos::WfMode::AndWait);
     com.set_irq_tx_enable(false);
 }
-
+*/
 
 // main
 #[no_mangle]
@@ -78,7 +83,7 @@ pub unsafe extern "C" fn main() -> ! {
     println!("\nJelly-RTOS start\n");
     wait(10000);
 
-    COM0.set_wait_tx(Some(com0_wait_tx));
+//    COM0.set_wait_tx(Some(com0_wait_tx));
 
 //  memdump(0x80000000, 16);
 

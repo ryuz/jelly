@@ -7,6 +7,9 @@ extern crate std;
 pub mod mem_accessor;
 pub use mem_accessor::*;
 
+pub mod phys_accessor;
+pub use phys_accessor::*;
+
 pub mod mmio_accessor;
 pub use mmio_accessor::*;
 
