@@ -19,13 +19,13 @@ const REG_RX_IRQ_STATUS:usize = 0x1c;
 const REG_RX_IRQ_ENABLE:usize = 0x1d;
 
 
-pub struct JellyCommunicationPipe<T: MemRegion, U, const FI: ID, const FP: FLGPTN> {
-    reg_acc: MemAccesor<T, U>,
+pub struct JellyCommunicationPipe<T: MemAccess, const FI: ID, const FP: FLGPTN> {
+    reg_acc: T,
 }
 
-impl <T: MemRegion, U, const FI: ID, const FP: FLGPTN> JellyCommunicationPipe<T, U, FI, FP>
+impl <T: MemAccess, const FI: ID, const FP: FLGPTN> JellyCommunicationPipe<T, FI, FP>
 {
-    pub const fn new( reg_acc: MemAccesor<T, U> ) -> Self
+    pub const fn new( reg_acc: T ) -> Self
     {
         Self { reg_acc: reg_acc }
     }

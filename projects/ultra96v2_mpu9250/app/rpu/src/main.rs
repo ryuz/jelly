@@ -30,13 +30,11 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
     loop {}
 }
 
-//type ComPipe = JellyCommunicationPipe::<MmioRegion, u64, 1, 0x1>;
-//static mut COM0:ComPipe = ComPipe::new(mmio_accesor_new::<u64>(0x8008_0000, 0x800));
 
-type ComRegion = PhysRegion<0x8008_0000, 0x800>;
-type ComPipe = JellyCommunicationPipe::<ComRegion, u64, 1, 0x1>;
-
-static mut COM0:ComPipe = ComPipe::new(MemAccesor::<ComRegion, u64>::new(ComRegion::new()));
+type ComRegion0  = PhysRegion<0x8008_0000, 0x800>;
+type ComAccesor0 = MemAccesor<ComRegion0, u64>;
+type ComPipe0    = JellyCommunicationPipe::<ComAccesor0, 1, 0x01>;
+static mut COM0: ComPipe0 = ComPipe0::new(ComAccesor0::new(ComRegion0::new()));
 
 
 #[macro_export]
@@ -66,15 +64,6 @@ impl Write for ComWriter {
     }
 }
 
-/*
-fn com0_wait_tx(com: &mut JellyCommunicationPipe::<MmioRegion, u64>)
-{
-    rtos::clr_flg(1, !0x01);
-    com.set_irq_tx_enable(true);
-    rtos::wai_flg(1, 0x01, rtos::WfMode::AndWait);
-    com.set_irq_tx_enable(false);
-}
-*/
 
 // main
 #[no_mangle]
@@ -83,16 +72,8 @@ pub unsafe extern "C" fn main() -> ! {
     println!("\nJelly-RTOS start\n");
     wait(10000);
 
-//    COM0.set_wait_tx(Some(com0_wait_tx));
 
 //  memdump(0x80000000, 16);
-
-//  let acc_peri = mmio_accesor_new::<usize>(0x80000000, 0x10000000);
-//  let acc_com = acc_peri.clone64(0x08_0000, 0x1000);
-//  let acc_i2c = acc_peri.clone64(0x80_0000, 0x1000);
-//  let acc_led = acc_peri.clone64(0x88_0000, 0x1000);
-//  println!("rtos core_id      : 0x{:08x}", acc_peri.read_reg(0));
-//  println!("com  core_id      : 0x{:08x}", acc_com.read_reg(0));
 
     rtos::initialize(0x80000000);
 
@@ -135,7 +116,7 @@ extern "C" fn task1() -> ! {
     println!("Task Start");
     
     let i2c_acc = mmio_accessor::mmio_accesor_new::<u64>(0x80800000, 0x100);
-    let i2c = i2c::JellyI2c::<MmioRegion, u64, 1, 0x10>::new(i2c_acc);
+    let i2c = i2c::JellyI2c::<MemAccesor<MmioRegion, u64>, 1, 0x10>::new(i2c_acc);
     i2c.set_divider(50 - 1);
     
     i2c.write(MPU9250_ADDRESS, &[0x75]);

@@ -39,23 +39,23 @@ impl MemRegion for UioRegion {
 }
 
 
-pub fn uio_accesor_new<BaseType>(dev: Arc<UioDevice>) -> MemAccesor::<UioRegion, BaseType>
+pub fn uio_accesor_new<U>(dev: Arc<UioDevice>) -> MemAccesor::<UioRegion, U>
 {
-    MemAccesor::<UioRegion, BaseType>::new(UioRegion::new(dev))
+    MemAccesor::<UioRegion, U>::new(UioRegion::new(dev))
 }
 
-pub fn uio_accesor_from_dev<BaseType>(dev: UioDevice) -> MemAccesor::<UioRegion, BaseType>
+pub fn uio_accesor_from_dev<U>(dev: UioDevice) -> MemAccesor::<UioRegion, U>
 {
-    uio_accesor_new::<BaseType>(Arc::new(dev))
+    uio_accesor_new::<U>(Arc::new(dev))
 }
 
-pub fn uio_accesor_from_number<BaseType>(num: usize) -> Result<MemAccesor::<UioRegion, BaseType>, uio::UioError> 
+pub fn uio_accesor_from_number<U>(num: usize) -> Result<MemAccesor::<UioRegion, U>, uio::UioError> 
 {
     let dev = uio::UioDevice::new(num)?;
-    Ok(uio_accesor_from_dev::<BaseType>(dev))
+    Ok(uio_accesor_from_dev::<U>(dev))
 }
 
-pub fn uio_accesor_from_name<BaseType>(name: &str) -> Result<MemAccesor::<UioRegion, BaseType>, uio::UioError> 
+pub fn uio_accesor_from_name<U>(name: &str) -> Result<MemAccesor::<UioRegion, U>, uio::UioError> 
 {
     for i in 0..99 {
         let dev = uio::UioDevice::new(i)?;

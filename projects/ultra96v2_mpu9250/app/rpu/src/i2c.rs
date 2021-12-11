@@ -17,14 +17,14 @@ const I2C_CONTROL_NAK   : u8 = 0x08;
 const I2C_CONTROL_RECV  : u8 = 0x10;
 
 
-pub struct JellyI2c<T : MemRegion, U, const FI: rtos::ID, const FP: rtos::FLGPTN>
+pub struct JellyI2c<T: MemAccess, const FI: rtos::ID, const FP: rtos::FLGPTN>
 {
-    reg_acc: MemAccesor<T, U>,
+    reg_acc: T,
 }
 
 
-impl<T: MemRegion, U, const FI: rtos::ID, const FP: rtos::FLGPTN> JellyI2c<T, U, FI, FP> {
-    pub const fn new(reg_acc: MemAccesor<T, U>) -> Self
+impl<T: MemAccess, const FI: rtos::ID, const FP: rtos::FLGPTN> JellyI2c<T, FI, FP> {
+    pub const fn new(reg_acc: T) -> Self
     {
         Self {reg_acc: reg_acc}
     }

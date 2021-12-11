@@ -40,7 +40,7 @@ pub struct MemAccesor<T: MemRegion, U> {
     phantom: PhantomData<U>,
 }
 
-impl<T: MemRegion + Sized, U> MemAccesor<T, U> {
+impl<T: MemRegion, U> MemAccesor<T, U> {
     pub const fn new(region: T) -> Self
     {
         MemAccesor::<T, U> { region: region, phantom: PhantomData }
@@ -48,6 +48,10 @@ impl<T: MemRegion + Sized, U> MemAccesor<T, U> {
     
     fn reg_size() -> usize {
         core::mem::size_of::<U>()
+    }
+
+    pub fn clonex<NewU>(&self, offset: usize, size: usize) -> MemAccesor<T, NewU> {
+        MemAccesor::<T, NewU>::new(self.region.clone(offset, size))
     }
 
     pub fn clone(&self, offset: usize, size: usize) -> MemAccesor<T, U> {
