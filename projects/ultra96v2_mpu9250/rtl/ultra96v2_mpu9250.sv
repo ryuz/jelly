@@ -266,26 +266,26 @@ module ultra96v2_mpu9250
                 .NUM                (COM_NUM),
                 .FIFO_PTR_WIDTH     (9),
                 .FIFO_RAM_TYPE      ("block"),
-                .SUB_ADR_WIDTH      (5),
-                .WB_ADR_WIDTH       (8),
+                .SUB_ADR_WIDTH      (8),
+                .WB_ADR_WIDTH       (16),
                 .WB_DAT_WIDTH       (WB_DAT_WIDTH),
                 .INIT_TX_IRQ_ENABLE (2'b00),
                 .INIT_RX_IRQ_ENABLE (2'b00)
             )
         i_communication_pipes
             (
-                .s_wb_rst_i             (wb_peri_rst_i),
-                .s_wb_clk_i             (wb_peri_clk_i),
-                .s_wb_adr_i             (wb_peri_adr_i[7:0]),
-                .s_wb_dat_o             (wb_com_dat_o),
-                .s_wb_dat_i             (wb_peri_dat_i),
-                .s_wb_we_i              (wb_peri_we_i ),
-                .s_wb_sel_i             (wb_peri_sel_i),
-                .s_wb_stb_i             (wb_com_stb_i),
-                .s_wb_ack_o             (wb_com_ack_o),
+                .s_wb_rst_i         (wb_peri_rst_i),
+                .s_wb_clk_i         (wb_peri_clk_i),
+                .s_wb_adr_i         (wb_peri_adr_i[15:0]),
+                .s_wb_dat_o         (wb_com_dat_o),
+                .s_wb_dat_i         (wb_peri_dat_i),
+                .s_wb_we_i          (wb_peri_we_i ),
+                .s_wb_sel_i         (wb_peri_sel_i),
+                .s_wb_stb_i         (wb_com_stb_i),
+                .s_wb_ack_o         (wb_com_ack_o),
 
-                .irq_tx                 (com_irq_tx),
-                .irq_rx                 (com_irq_rx)
+                .irq_tx             (com_irq_tx),
+                .irq_rx             (com_irq_rx)
             );
     
     

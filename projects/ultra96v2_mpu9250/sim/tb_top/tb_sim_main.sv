@@ -21,7 +21,7 @@ module tb_sim_main();
 endmodule
 
 
-//`default_nettype wire
+`default_nettype wire
 
 
 // end of file

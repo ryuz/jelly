@@ -316,6 +316,7 @@ module jelly2_rtos
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_FLG_AND = OPCODE_WIDTH'(8'h33);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_FLG_OR  = OPCODE_WIDTH'(8'h34);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_ENA_FLG_EXT = OPCODE_WIDTH'(8'h3a);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_DIS_FLG_EXT = OPCODE_WIDTH'(8'h3b);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_FLGPTN  = OPCODE_WIDTH'(8'hb0);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SET_TIM     = OPCODE_WIDTH'(8'h70);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SET_PSCL    = OPCODE_WIDTH'(8'h72);
@@ -413,7 +414,14 @@ module jelly2_rtos
                 OPCODE_ENA_FLG_EXT:
                     begin
                         if ( USE_EXT_FLG && int'(dec_id) >= 1 && int'(dec_id) <= TMAX_FLGID ) begin
-                            extflg_enable[dec_id] <= FLGPTN_WIDTH'(s_wb_dat_i);
+                            extflg_enable[dec_id] <= extflg_enable[dec_id] | FLGPTN_WIDTH'(s_wb_dat_i);
+                        end
+                    end
+
+                OPCODE_DIS_FLG_EXT:
+                    begin
+                        if ( USE_EXT_FLG && int'(dec_id) >= 1 && int'(dec_id) <= TMAX_FLGID ) begin
+                            extflg_enable[dec_id] <= extflg_enable[dec_id] & FLGPTN_WIDTH'(s_wb_dat_i);
                         end
                     end
 

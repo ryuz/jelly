@@ -296,9 +296,13 @@ module tb_sim();
         wb_write(ADR_LED, 1, 8'hff);
 
         wb_read (ADR_COM + REG_COM_CORE_ID);
+        wb_write(ADR_COM + REG_COM_TX_IRQ_ENABLE, 8'h01, 8'hff);
+        wb_write(ADR_COM + REG_COM_RX_IRQ_ENABLE, 8'h01, 8'hff);
+
         wb_write(ADR_COM + REG_COM_TX_DATA, 8'h21, 8'hff);
         wb_write(ADR_COM + REG_COM_TX_DATA, 8'h22, 8'hff);
         wb_write(ADR_COM + REG_COM_TX_DATA, 8'h23, 8'hff);
+        
         wb_read (ADR_COM + REG_COM_RX_STATUS);
         wb_read (ADR_COM + REG_COM_RX_DATA);
         wb_read (ADR_COM + REG_COM_RX_STATUS);
