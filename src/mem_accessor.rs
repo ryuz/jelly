@@ -40,8 +40,8 @@ pub struct MemAccesor<T: MemRegion, BaseType> {
     phantom: PhantomData<BaseType>,
 }
 
-impl<T: MemRegion, BaseType> MemAccesor<T, BaseType> {
-    pub fn new(region: T) -> Self
+impl<T: MemRegion + Sized, BaseType> MemAccesor<T, BaseType> {
+    pub const fn new(region: T) -> Self
     {
         MemAccesor::<T, BaseType> { region: region, phantom: PhantomData }
     }
