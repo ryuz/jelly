@@ -1,18 +1,15 @@
-
 #![allow(dead_code)]
 
 use super::*;
 
 // Memory mapped IO for Physical Address
-pub struct PhysRegion<const ADDR: usize, const SIZE: usize> {
-}
+pub struct PhysRegion<const ADDR: usize, const SIZE: usize> {}
 
 impl<const ADDR: usize, const SIZE: usize> PhysRegion<ADDR, SIZE> {
     pub const fn new() -> Self {
         PhysRegion::<ADDR, SIZE> {}
     }
 }
-
 
 impl<const ADDR: usize, const SIZE: usize> MemRegion for PhysRegion<ADDR, SIZE> {
     fn clone(&self, offset: usize, size: usize) -> Self {
@@ -30,9 +27,7 @@ impl<const ADDR: usize, const SIZE: usize> MemRegion for PhysRegion<ADDR, SIZE> 
     }
 }
 
-
-pub const fn phys_accesor_new<BaseType, const ADDR: usize, const SIZE: usize>() -> MemAccesor::<PhysRegion<ADDR, SIZE>, BaseType>
-{
+pub const fn phys_accesor_new<BaseType, const ADDR: usize, const SIZE: usize>(
+) -> MemAccesor<PhysRegion<ADDR, SIZE>, BaseType> {
     MemAccesor::<PhysRegion<ADDR, SIZE>, BaseType>::new(PhysRegion::<ADDR, SIZE>::new())
 }
-
