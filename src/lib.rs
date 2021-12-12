@@ -15,6 +15,11 @@ pub mod mmio_accessor;
 pub use mmio_accessor::*;
 
 #[cfg(feature = "std")]
+pub mod mmap_accessor;
+#[cfg(feature = "std")]
+pub use mmap_accessor::*;
+
+#[cfg(feature = "std")]
 pub mod uio_accessor;
 #[cfg(feature = "std")]
 pub use uio_accessor::*;

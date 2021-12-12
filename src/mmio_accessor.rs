@@ -1,8 +1,7 @@
 #![allow(dead_code)]
 
-use delegate::delegate;
 use super::*;
-
+use delegate::delegate;
 
 // for Memory mapped IO
 pub struct MmioRegion {
@@ -41,12 +40,11 @@ impl MemRegion for MmioRegion {
     }
 }
 
-
 pub struct MmioAccesor<U> {
     accesor: MemAccesor<MmioRegion, U>,
 }
 
-impl<U> From< MmioAccesor<U> > for MemAccesor<MmioRegion, U> {
+impl<U> From<MmioAccesor<U>> for MemAccesor<MmioRegion, U> {
     fn from(from: MmioAccesor<U>) -> MemAccesor<MmioRegion, U> {
         from.accesor
     }
@@ -86,7 +84,6 @@ impl<U> MmioAccesor<U> {
     }
 }
 
-
 impl<U> MemAccess for MmioAccesor<U> {
     fn reg_size() -> usize {
         core::mem::size_of::<U>()
@@ -98,7 +95,7 @@ impl<U> MemAccess for MmioAccesor<U> {
             unsafe fn read_mem_<V>(&self, offset: usize) -> V;
             unsafe fn write_reg_<V>(&self, reg: usize, data: V);
             unsafe fn read_reg_<V>(&self, reg: usize) -> V;
-        
+
             unsafe fn write_mem(&self, offset: usize, data: usize);
             unsafe fn write_mem8(&self, offset: usize, data: u8);
             unsafe fn write_mem16(&self, offset: usize, data: u16);
@@ -109,7 +106,7 @@ impl<U> MemAccess for MmioAccesor<U> {
             unsafe fn read_mem16(&self, offset: usize) -> u16;
             unsafe fn read_mem32(&self, offset: usize) -> u32;
             unsafe fn read_mem64(&self, offset: usize) -> u64;
-        
+
             unsafe fn write_reg(&self, reg: usize, data: usize);
             unsafe fn write_reg8(&self, reg: usize, data: u8);
             unsafe fn write_reg16(&self, reg: usize, data: u16);
