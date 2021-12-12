@@ -107,7 +107,6 @@ impl<T: MemRegion, U> MemAccess for MemAccesor<T, U> {
         self.read_mem_::<V>(reg * Self::reg_size())
     }
 
-
     unsafe fn write_mem(&self, offset: usize, data: usize) {
         self.write_mem_::<usize>(offset, data)
     }

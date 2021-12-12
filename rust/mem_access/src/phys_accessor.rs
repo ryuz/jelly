@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
-use delegate::delegate;
 use super::*;
+use delegate::delegate;
 
 // Memory mapped IO for Physical Address
 pub struct PhysRegion<const ADDR: usize, const SIZE: usize> {}
@@ -28,13 +28,13 @@ impl<const ADDR: usize, const SIZE: usize> MemRegion for PhysRegion<ADDR, SIZE> 
     }
 }
 
-
-
 pub struct PhysAccesor<U, const ADDR: usize, const SIZE: usize> {
     accesor: MemAccesor<PhysRegion<ADDR, SIZE>, U>,
 }
 
-impl<U, const ADDR: usize, const SIZE: usize> From< PhysAccesor<U, ADDR, SIZE> > for MemAccesor<PhysRegion<ADDR, SIZE>, U> {
+impl<U, const ADDR: usize, const SIZE: usize> From<PhysAccesor<U, ADDR, SIZE>>
+    for MemAccesor<PhysRegion<ADDR, SIZE>, U>
+{
     fn from(from: PhysAccesor<U, ADDR, SIZE>) -> MemAccesor<PhysRegion<ADDR, SIZE>, U> {
         from.accesor
     }
@@ -49,7 +49,9 @@ impl<U, const ADDR: usize, const SIZE: usize> PhysAccesor<U, ADDR, SIZE> {
 
     pub fn clone_<NewU>(&self, offset: usize, size: usize) -> PhysAccesor<NewU, ADDR, SIZE> {
         PhysAccesor::<NewU, ADDR, SIZE> {
-            accesor: MemAccesor::<PhysRegion<ADDR, SIZE>, NewU>::new(self.accesor.region().clone(offset, size)),
+            accesor: MemAccesor::<PhysRegion<ADDR, SIZE>, NewU>::new(
+                self.accesor.region().clone(offset, size),
+            ),
         }
     }
 
@@ -74,7 +76,6 @@ impl<U, const ADDR: usize, const SIZE: usize> PhysAccesor<U, ADDR, SIZE> {
     }
 }
 
-
 impl<U, const ADDR: usize, const SIZE: usize> MemAccess for PhysAccesor<U, ADDR, SIZE> {
     fn reg_size() -> usize {
         core::mem::size_of::<U>()
@@ -86,7 +87,7 @@ impl<U, const ADDR: usize, const SIZE: usize> MemAccess for PhysAccesor<U, ADDR,
             unsafe fn read_mem_<V>(&self, offset: usize) -> V;
             unsafe fn write_reg_<V>(&self, reg: usize, data: V);
             unsafe fn read_reg_<V>(&self, reg: usize) -> V;
-        
+
             unsafe fn write_mem(&self, offset: usize, data: usize);
             unsafe fn write_mem8(&self, offset: usize, data: u8);
             unsafe fn write_mem16(&self, offset: usize, data: u16);
@@ -97,7 +98,7 @@ impl<U, const ADDR: usize, const SIZE: usize> MemAccess for PhysAccesor<U, ADDR,
             unsafe fn read_mem16(&self, offset: usize) -> u16;
             unsafe fn read_mem32(&self, offset: usize) -> u32;
             unsafe fn read_mem64(&self, offset: usize) -> u64;
-        
+
             unsafe fn write_reg(&self, reg: usize, data: usize);
             unsafe fn write_reg8(&self, reg: usize, data: u8);
             unsafe fn write_reg16(&self, reg: usize, data: u16);
@@ -111,4 +112,3 @@ impl<U, const ADDR: usize, const SIZE: usize> MemAccess for PhysAccesor<U, ADDR,
         }
     }
 }
-
