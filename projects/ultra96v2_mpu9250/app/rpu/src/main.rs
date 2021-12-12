@@ -31,9 +31,9 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
 
 
 type ComRegion0  = PhysRegion<0x8008_0000, 0x800>;
-type ComAccesxor0 = MemAccesxor<ComRegion0, u64>;
-type ComPipe0    = JellyCommunicationPipe::<ComAccesxor0, 1, 0x01>;
-static mut COM0: ComPipe0 = ComPipe0::new(ComAccesxor0::new(ComRegion0::new()));
+type ComAccessor0 = MemAccessor<ComRegion0, u64>;
+type ComPipe0    = JellyCommunicationPipe::<ComAccessor0, 1, 0x01>;
+static mut COM0: ComPipe0 = ComPipe0::new(ComAccessor0::new(ComRegion0::new()));
 
 
 #[macro_export]
