@@ -1,5 +1,6 @@
 #![no_std]
 #![feature(const_fn_trait_bound)]
+// #![feature(proc_macro_is_available)]
 
 #[cfg(feature = "std")]
 extern crate std;
