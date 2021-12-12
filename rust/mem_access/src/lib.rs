@@ -18,7 +18,6 @@ pub mod uio_accessor;
 #[cfg(feature = "std")]
 pub use uio_accessor::*;
 
-
 #[cfg(test)]
 mod tests {
     #[test]

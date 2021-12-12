@@ -26,19 +26,7 @@ int main()
         std::cout << "uio_pl_com0 open error" << std::endl;
         return 1;
     }
-//  std::cout << "COM0 ID     : 0x" << std::hex << com_rx_acc.ReadReg(REG_COMMUNICATION_PIPE_CORE_ID) << std::endl;
-//  std::cout << "COM0 SERIAL : 0x" << std::hex << com_rx_acc.ReadReg(REG_COMMUNICATION_PIPE_CORE_SERIAL) << std::endl;
-
-    /*
-    jelly::UioAccessor com_tx_acc("uio_pl_com1", 0x100);
-    if ( !com_rx_acc.IsMapped() || !com_tx_acc.IsMapped() ) {
-        std::cout << "uio_pl_com1 open error" << std::endl;
-        return 1;
-    }
-    std::cout << "COM1 ID     : 0x" << std::hex << com_tx_acc.ReadReg(REG_COMMUNICATION_PIPE_CORE_ID) << std::endl;
-    std::cout << "COM1 SERIAL : 0x" << std::hex << com_tx_acc.ReadReg(REG_COMMUNICATION_PIPE_CORE_SERIAL) << std::endl;
-    */
-
+    
     end_flag = false;
     if ( signal(SIGINT, signal_handler) == SIG_ERR ) {
         return 1;
