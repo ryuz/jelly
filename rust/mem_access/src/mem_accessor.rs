@@ -62,23 +62,23 @@ impl<T: MemRegion, U> MemAccesor<T, U> {
     }
 
     pub fn clone(&self, offset: usize, size: usize) -> MemAccesor<T, U> {
-        MemAccesor::<T, U>::new(self.region.clone(offset, size))
+        self.clone_::<U>(offset, size)
     }
 
     pub fn clone8(&self, offset: usize, size: usize) -> MemAccesor<T, u8> {
-        MemAccesor::<T, u8>::new(self.region.clone(offset, size))
+        self.clone_::<u8>(offset, size)
     }
 
     pub fn clone16(&self, offset: usize, size: usize) -> MemAccesor<T, u16> {
-        MemAccesor::<T, u16>::new(self.region.clone(offset, size))
+        self.clone_::<u16>(offset, size)
     }
 
     pub fn clone32(&self, offset: usize, size: usize) -> MemAccesor<T, u32> {
-        MemAccesor::<T, u32>::new(self.region.clone(offset, size))
+        self.clone_::<u32>(offset, size)
     }
 
     pub fn clone64(&self, offset: usize, size: usize) -> MemAccesor<T, u64> {
-        MemAccesor::<T, u64>::new(self.region.clone(offset, size))
+        self.clone_::<u64>(offset, size)
     }
 }
 

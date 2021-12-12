@@ -4,7 +4,6 @@
 #![feature(const_fn_trait_bound)]
 #![feature(const_fn_fn_ptr_basics)]
 #![feature(const_mut_refs)]
-//#![feature(min_const_generics)]
 
 
 use core::fmt::{self, Write};
@@ -115,8 +114,9 @@ const MPU9250_ADDRESS: u8 =     0x68;    // 7bit address
 extern "C" fn task1() -> ! {
     println!("Task Start");
     
-    let i2c_acc = mmio_accessor::mmio_accesor_new::<u64>(0x80800000, 0x100);
-    let i2c = i2c::JellyI2c::<MemAccesor<MmioRegion, u64>, 1, 0x10>::new(i2c_acc);
+    let i2c_acc = MmioAccesor::<u64>::new(0x80800000, 0x100);
+    let i2c = i2c::JellyI2c::<MemAccesor<MmioRegion, u64>, 1, 0x10>::new(i2c_acc.into());
+//  let i2c = i2c::JellyI2c::<MmioAccesor<u64>, 1, 0x10>::new(i2c_acc);
     i2c.set_divider(50 - 1);
     
     i2c.write(MPU9250_ADDRESS, &[0x75]);

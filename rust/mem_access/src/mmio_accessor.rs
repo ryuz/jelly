@@ -1,6 +1,8 @@
 #![allow(dead_code)]
 
+use delegate::delegate;
 use super::*;
+
 
 // for Memory mapped IO
 pub struct MmioRegion {
@@ -39,12 +41,15 @@ impl MemRegion for MmioRegion {
     }
 }
 
-pub const fn mmio_accesor_new<U>(addr: usize, size: usize) -> MemAccesor<MmioRegion, U> {
-    MemAccesor::<MmioRegion, U>::new(MmioRegion::new(addr, size))
+
+pub struct MmioAccesor<U> {
+    accesor: MemAccesor<MmioRegion, U>,
 }
 
-struct MmioAccesor<U> {
-    accesor: MemAccesor<MmioRegion, U>,
+impl<U> From< MmioAccesor<U> > for MemAccesor<MmioRegion, U> {
+    fn from(from: MmioAccesor<U>) -> MemAccesor<MmioRegion, U> {
+        from.accesor
+    }
 }
 
 impl<U> MmioAccesor<U> {
@@ -52,10 +57,6 @@ impl<U> MmioAccesor<U> {
         Self {
             accesor: MemAccesor::<MmioRegion, U>::new(MmioRegion::new(addr, size)),
         }
-    }
-
-    fn reg_size() -> usize {
-        core::mem::size_of::<U>()
     }
 
     pub fn clone_<NewU>(&self, offset: usize, size: usize) -> MmioAccesor<NewU> {
@@ -82,5 +83,43 @@ impl<U> MmioAccesor<U> {
 
     pub fn clone64(&self, offset: usize, size: usize) -> MmioAccesor<u64> {
         self.clone_::<u64>(offset, size)
+    }
+}
+
+
+impl<U> MemAccess for MmioAccesor<U> {
+    fn reg_size() -> usize {
+        core::mem::size_of::<U>()
+    }
+
+    delegate! {
+        to self.accesor {
+            unsafe fn write_mem_<V>(&self, offset: usize, data: V);
+            unsafe fn read_mem_<V>(&self, offset: usize) -> V;
+            unsafe fn write_reg_<V>(&self, reg: usize, data: V);
+            unsafe fn read_reg_<V>(&self, reg: usize) -> V;
+        
+            unsafe fn write_mem(&self, offset: usize, data: usize);
+            unsafe fn write_mem8(&self, offset: usize, data: u8);
+            unsafe fn write_mem16(&self, offset: usize, data: u16);
+            unsafe fn write_mem32(&self, offset: usize, data: u32);
+            unsafe fn write_mem64(&self, offset: usize, data: u64);
+            unsafe fn read_mem(&self, offset: usize) -> usize;
+            unsafe fn read_mem8(&self, offset: usize) -> u8;
+            unsafe fn read_mem16(&self, offset: usize) -> u16;
+            unsafe fn read_mem32(&self, offset: usize) -> u32;
+            unsafe fn read_mem64(&self, offset: usize) -> u64;
+        
+            unsafe fn write_reg(&self, reg: usize, data: usize);
+            unsafe fn write_reg8(&self, reg: usize, data: u8);
+            unsafe fn write_reg16(&self, reg: usize, data: u16);
+            unsafe fn write_reg32(&self, reg: usize, data: u32);
+            unsafe fn write_reg64(&self, reg: usize, data: u64);
+            unsafe fn read_reg(&self, reg: usize) -> usize;
+            unsafe fn read_reg8(&self, reg: usize) -> u8;
+            unsafe fn read_reg16(&self, reg: usize) -> u16;
+            unsafe fn read_reg32(&self, reg: usize) -> u32;
+            unsafe fn read_reg64(&self, reg: usize) -> u64;
+        }
     }
 }

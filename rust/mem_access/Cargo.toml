@@ -10,5 +10,5 @@ default = ["std"]
 std=["uio"]
 
 [dependencies]
+delegate = "0.6.1"
 uio = { version = "0.2.0",  optional = true }
-
