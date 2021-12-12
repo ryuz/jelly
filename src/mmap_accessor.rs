@@ -8,9 +8,10 @@ use nix::sys::mman::{MapFlags, ProtFlags};
 use std::boxed::Box;
 use std::error::Error;
 use std::fs::{File, OpenOptions};
+use std::io::prelude::*;
 use std::os::unix::prelude::AsRawFd;
 use std::string::String;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 
 struct MmapFile {
     file: File,
@@ -46,6 +47,20 @@ impl MmapFile {
     pub fn size(&self) -> usize {
         self.size
     }
+
+    pub fn file(&mut self) -> &File {
+        &mut self.file
+    }
+
+    pub fn write(&mut self, data: &[u8]) -> Result<usize, Box<dyn Error>> {
+        let size = self.file.write(data)?;
+        Ok(size)
+    }
+
+    pub fn read(&mut self, buf: &mut [u8]) -> Result<usize, Box<dyn Error>> {
+        let size = self.file.read(buf)?;
+        Ok(size)
+    }
 }
 
 impl Drop for MmapFile {
@@ -57,7 +72,7 @@ impl Drop for MmapFile {
 }
 
 pub struct MmapRegion {
-    mfile: Arc<MmapFile>,
+    mfile: Arc<RwLock<MmapFile>>,
     addr: usize,
     size: usize,
 }
@@ -68,10 +83,24 @@ impl MmapRegion {
         let addr = mfile.addr();
         let size = mfile.size();
         Ok(Self {
-            mfile: Arc::new(mfile),
+            mfile: Arc::new(RwLock::new(mfile)),
             addr: addr,
             size: size,
         })
+    }
+
+    /*
+    pub fn file(&mut self) -> &mut File {
+        self.mfile.write().unwrap()
+    }
+    */
+
+    pub fn write(&mut self, data: &[u8]) -> Result<usize, Box<dyn Error>> {
+        self.mfile.write().unwrap().write(data)
+    }
+
+    pub fn read(&mut self, buf: &mut [u8]) -> Result<usize, Box<dyn Error>> {
+        self.mfile.write().unwrap().read(buf)
     }
 }
 

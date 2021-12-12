@@ -7,7 +7,7 @@ edition = "2021"
 
 [features]
 default = ["std"]
-std=["uio", "fs2", "nix", "libc"]
+std=["uio", "fs2", "nix", "libc", "thiserror"]
 
 [dependencies]
 delegate = "0.6.1"
@@ -15,3 +15,4 @@ uio = { version = "0.2.0", optional = true }
 fs2 = { version ="0.4.3", optional = true }
 nix = { version ="0.23.0", optional = true }
 libc = { version ="0.2.109", optional = true }
+thiserror = { version = "1.0.30", optional = true }
