@@ -28,61 +28,61 @@ impl<const ADDR: usize, const SIZE: usize> MemRegion for PhysRegion<ADDR, SIZE> 
     }
 }
 
-pub struct PhysAccesor<U, const ADDR: usize, const SIZE: usize> {
-    accesor: MemAccesor<PhysRegion<ADDR, SIZE>, U>,
+pub struct PhysAccessor<U, const ADDR: usize, const SIZE: usize> {
+    accessor: MemAccessor<PhysRegion<ADDR, SIZE>, U>,
 }
 
-impl<U, const ADDR: usize, const SIZE: usize> From<PhysAccesor<U, ADDR, SIZE>>
-    for MemAccesor<PhysRegion<ADDR, SIZE>, U>
+impl<U, const ADDR: usize, const SIZE: usize> From<PhysAccessor<U, ADDR, SIZE>>
+    for MemAccessor<PhysRegion<ADDR, SIZE>, U>
 {
-    fn from(from: PhysAccesor<U, ADDR, SIZE>) -> MemAccesor<PhysRegion<ADDR, SIZE>, U> {
-        from.accesor
+    fn from(from: PhysAccessor<U, ADDR, SIZE>) -> MemAccessor<PhysRegion<ADDR, SIZE>, U> {
+        from.accessor
     }
 }
 
-impl<U, const ADDR: usize, const SIZE: usize> PhysAccesor<U, ADDR, SIZE> {
+impl<U, const ADDR: usize, const SIZE: usize> PhysAccessor<U, ADDR, SIZE> {
     pub const fn new() -> Self {
         Self {
-            accesor: MemAccesor::<PhysRegion<ADDR, SIZE>, U>::new(PhysRegion::<ADDR, SIZE>::new()),
+            accessor: MemAccessor::<PhysRegion<ADDR, SIZE>, U>::new(PhysRegion::<ADDR, SIZE>::new()),
         }
     }
 
-    pub fn clone_<NewU>(&self, offset: usize, size: usize) -> PhysAccesor<NewU, ADDR, SIZE> {
-        PhysAccesor::<NewU, ADDR, SIZE> {
-            accesor: MemAccesor::<PhysRegion<ADDR, SIZE>, NewU>::new(
-                self.accesor.region().clone(offset, size),
+    pub fn clone_<NewU>(&self, offset: usize, size: usize) -> PhysAccessor<NewU, ADDR, SIZE> {
+        PhysAccessor::<NewU, ADDR, SIZE> {
+            accessor: MemAccessor::<PhysRegion<ADDR, SIZE>, NewU>::new(
+                self.accessor.region().clone(offset, size),
             ),
         }
     }
 
-    pub fn clone(&self, offset: usize, size: usize) -> PhysAccesor<U, ADDR, SIZE> {
+    pub fn clone(&self, offset: usize, size: usize) -> PhysAccessor<U, ADDR, SIZE> {
         self.clone_::<U>(offset, size)
     }
 
-    pub fn clone8(&self, offset: usize, size: usize) -> PhysAccesor<u8, ADDR, SIZE> {
+    pub fn clone8(&self, offset: usize, size: usize) -> PhysAccessor<u8, ADDR, SIZE> {
         self.clone_::<u8>(offset, size)
     }
 
-    pub fn clone16(&self, offset: usize, size: usize) -> PhysAccesor<u16, ADDR, SIZE> {
+    pub fn clone16(&self, offset: usize, size: usize) -> PhysAccessor<u16, ADDR, SIZE> {
         self.clone_::<u16>(offset, size)
     }
 
-    pub fn clone32(&self, offset: usize, size: usize) -> PhysAccesor<u32, ADDR, SIZE> {
+    pub fn clone32(&self, offset: usize, size: usize) -> PhysAccessor<u32, ADDR, SIZE> {
         self.clone_::<u32>(offset, size)
     }
 
-    pub fn clone64(&self, offset: usize, size: usize) -> PhysAccesor<u64, ADDR, SIZE> {
+    pub fn clone64(&self, offset: usize, size: usize) -> PhysAccessor<u64, ADDR, SIZE> {
         self.clone_::<u64>(offset, size)
     }
 }
 
-impl<U, const ADDR: usize, const SIZE: usize> MemAccess for PhysAccesor<U, ADDR, SIZE> {
+impl<U, const ADDR: usize, const SIZE: usize> MemAccess for PhysAccessor<U, ADDR, SIZE> {
     fn reg_size() -> usize {
         core::mem::size_of::<U>()
     }
 
     delegate! {
-        to self.accesor {
+        to self.accessor {
             unsafe fn write_mem_<V>(&self, offset: usize, data: V);
             unsafe fn read_mem_<V>(&self, offset: usize) -> V;
             unsafe fn write_reg_<V>(&self, reg: usize, data: V);

@@ -40,14 +40,14 @@ pub trait MemAccess {
     unsafe fn read_reg64(&self, reg: usize) -> u64;
 }
 
-pub struct MemAccesor<T: MemRegion, U> {
+pub struct MemAccessor<T: MemRegion, U> {
     region: T,
     phantom: PhantomData<U>,
 }
 
-impl<T: MemRegion, U> MemAccesor<T, U> {
+impl<T: MemRegion, U> MemAccessor<T, U> {
     pub const fn new(region: T) -> Self {
-        MemAccesor::<T, U> {
+        MemAccessor::<T, U> {
             region: region,
             phantom: PhantomData,
         }
@@ -57,32 +57,32 @@ impl<T: MemRegion, U> MemAccesor<T, U> {
         &self.region
     }
 
-    pub fn clone_<NewU>(&self, offset: usize, size: usize) -> MemAccesor<T, NewU> {
-        MemAccesor::<T, NewU>::new(self.region.clone(offset, size))
+    pub fn clone_<NewU>(&self, offset: usize, size: usize) -> MemAccessor<T, NewU> {
+        MemAccessor::<T, NewU>::new(self.region.clone(offset, size))
     }
 
-    pub fn clone(&self, offset: usize, size: usize) -> MemAccesor<T, U> {
+    pub fn clone(&self, offset: usize, size: usize) -> MemAccessor<T, U> {
         self.clone_::<U>(offset, size)
     }
 
-    pub fn clone8(&self, offset: usize, size: usize) -> MemAccesor<T, u8> {
+    pub fn clone8(&self, offset: usize, size: usize) -> MemAccessor<T, u8> {
         self.clone_::<u8>(offset, size)
     }
 
-    pub fn clone16(&self, offset: usize, size: usize) -> MemAccesor<T, u16> {
+    pub fn clone16(&self, offset: usize, size: usize) -> MemAccessor<T, u16> {
         self.clone_::<u16>(offset, size)
     }
 
-    pub fn clone32(&self, offset: usize, size: usize) -> MemAccesor<T, u32> {
+    pub fn clone32(&self, offset: usize, size: usize) -> MemAccessor<T, u32> {
         self.clone_::<u32>(offset, size)
     }
 
-    pub fn clone64(&self, offset: usize, size: usize) -> MemAccesor<T, u64> {
+    pub fn clone64(&self, offset: usize, size: usize) -> MemAccessor<T, u64> {
         self.clone_::<u64>(offset, size)
     }
 }
 
-impl<T: MemRegion, U> MemAccess for MemAccesor<T, U> {
+impl<T: MemRegion, U> MemAccess for MemAccessor<T, U> {
     fn reg_size() -> usize {
         core::mem::size_of::<U>()
     }
