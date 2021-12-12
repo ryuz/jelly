@@ -63,7 +63,7 @@ pub struct MmapRegion {
 }
 
 impl MmapRegion {
-    fn new(path: String, size: usize) -> Result<Self, Box<dyn Error>> {
+    pub fn new(path: String, size: usize) -> Result<Self, Box<dyn Error>> {
         let mfile = MmapFile::new(path, size)?;
         let addr = mfile.addr();
         let size = mfile.size();
@@ -98,57 +98,57 @@ impl MemRegion for MmapRegion {
     }
 }
 
-pub struct MmapAccesor<U> {
-    accesor: MemAccesor<MmapRegion, U>,
+pub struct MmapAccessor<U> {
+    accessor: MemAccessor<MmapRegion, U>,
 }
 
-impl<U> From<MmapAccesor<U>> for MemAccesor<MmapRegion, U> {
-    fn from(from: MmapAccesor<U>) -> MemAccesor<MmapRegion, U> {
-        from.accesor
+impl<U> From<MmapAccessor<U>> for MemAccessor<MmapRegion, U> {
+    fn from(from: MmapAccessor<U>) -> MemAccessor<MmapRegion, U> {
+        from.accessor
     }
 }
 
-impl<U> MmapAccesor<U> {
+impl<U> MmapAccessor<U> {
     pub fn new(path: String, size: usize) -> Result<Self, Box<dyn Error>> {
         Ok(Self {
-            accesor: MemAccesor::<MmapRegion, U>::new(MmapRegion::new(path, size)?),
+            accessor: MemAccessor::<MmapRegion, U>::new(MmapRegion::new(path, size)?),
         })
     }
 
-    pub fn clone_<NewU>(&self, offset: usize, size: usize) -> MmapAccesor<NewU> {
-        MmapAccesor::<NewU> {
-            accesor: MemAccesor::<MmapRegion, NewU>::new(self.accesor.region().clone(offset, size)),
+    pub fn clone_<NewU>(&self, offset: usize, size: usize) -> MmapAccessor<NewU> {
+        MmapAccessor::<NewU> {
+            accessor: MemAccessor::<MmapRegion, NewU>::new(self.accessor.region().clone(offset, size)),
         }
     }
 
-    pub fn clone(&self, offset: usize, size: usize) -> MmapAccesor<U> {
+    pub fn clone(&self, offset: usize, size: usize) -> MmapAccessor<U> {
         self.clone_::<U>(offset, size)
     }
 
-    pub fn clone8(&self, offset: usize, size: usize) -> MmapAccesor<u8> {
+    pub fn clone8(&self, offset: usize, size: usize) -> MmapAccessor<u8> {
         self.clone_::<u8>(offset, size)
     }
 
-    pub fn clone16(&self, offset: usize, size: usize) -> MmapAccesor<u16> {
+    pub fn clone16(&self, offset: usize, size: usize) -> MmapAccessor<u16> {
         self.clone_::<u16>(offset, size)
     }
 
-    pub fn clone32(&self, offset: usize, size: usize) -> MmapAccesor<u32> {
+    pub fn clone32(&self, offset: usize, size: usize) -> MmapAccessor<u32> {
         self.clone_::<u32>(offset, size)
     }
 
-    pub fn clone64(&self, offset: usize, size: usize) -> MmapAccesor<u64> {
+    pub fn clone64(&self, offset: usize, size: usize) -> MmapAccessor<u64> {
         self.clone_::<u64>(offset, size)
     }
 }
 
-impl<U> MemAccess for MmapAccesor<U> {
+impl<U> MemAccess for MmapAccessor<U> {
     fn reg_size() -> usize {
         core::mem::size_of::<U>()
     }
 
     delegate! {
-        to self.accesor {
+        to self.accessor {
             unsafe fn write_mem_<V>(&self, offset: usize, data: V);
             unsafe fn read_mem_<V>(&self, offset: usize) -> V;
             unsafe fn write_reg_<V>(&self, reg: usize, data: V);

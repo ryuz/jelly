@@ -6,6 +6,4 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-uio = "0.2.0"
-delegate = "0.6.1"
 jelly-mem_access = {path = "../../../../rust/mem_access" }

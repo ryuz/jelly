@@ -31,9 +31,9 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
 
 
 type ComRegion0  = PhysRegion<0x8008_0000, 0x800>;
-type ComAccesor0 = MemAccesor<ComRegion0, u64>;
-type ComPipe0    = JellyCommunicationPipe::<ComAccesor0, 1, 0x01>;
-static mut COM0: ComPipe0 = ComPipe0::new(ComAccesor0::new(ComRegion0::new()));
+type ComAccesxor0 = MemAccesxor<ComRegion0, u64>;
+type ComPipe0    = JellyCommunicationPipe::<ComAccesxor0, 1, 0x01>;
+static mut COM0: ComPipe0 = ComPipe0::new(ComAccesxor0::new(ComRegion0::new()));
 
 
 #[macro_export]
@@ -114,9 +114,9 @@ const MPU9250_ADDRESS: u8 =     0x68;    // 7bit address
 extern "C" fn task1() -> ! {
     println!("Task Start");
     
-    let i2c_acc = MmioAccesor::<u64>::new(0x80800000, 0x100);
-    let i2c = i2c::JellyI2c::<MemAccesor<MmioRegion, u64>, 1, 0x10>::new(i2c_acc.into());
-//  let i2c = i2c::JellyI2c::<MmioAccesor<u64>, 1, 0x10>::new(i2c_acc);
+    let i2c_acc = MmioAccessor::<u64>::new(0x80800000, 0x100);
+    let i2c = i2c::JellyI2c::<MemAccessor<MmioRegion, u64>, 1, 0x10>::new(i2c_acc.into());
+//  let i2c = i2c::JellyI2c::<MmioAccessor<u64>, 1, 0x10>::new(i2c_acc);
     i2c.set_divider(50 - 1);
     
     i2c.write(MPU9250_ADDRESS, &[0x75]);

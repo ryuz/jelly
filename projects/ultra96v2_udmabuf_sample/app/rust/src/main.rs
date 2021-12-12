@@ -19,12 +19,53 @@ const REG_TIM_CONTROL: usize = 0;
 const REG_TIM_COMPARE: usize = 1;
 const REG_TIM_COUNTER: usize = 3;
 
+/*
+use std::fs::{File, OpenOptions};
+use std::io;
+use std::io::Read;
+use std::path::Path;
+use std::error::Error;
+
+
+struct Udmabuf {}
+
+fn read_file_to_string(path: String) -> Result<String, Box<dyn Error>> {
+    let mut file = File::open(path)?;
+    let mut buf = String::new();
+    file.read_to_string(&mut buf)?;
+    Ok(buf)
+}
+
+impl Udmabuf {
+    pub fn read_size(udmabuf_num: usize) -> Result<usize, Box<dyn Error>> {
+        let fname = format!("/sys/class/u-dma-buf/udmabuf{}/size", udmabuf_num);
+        Ok(read_file_to_string(fname)?.trim().parse()?)
+    }
+
+    pub fn read_phys_addr(udmabuf_num: usize) -> Result<usize, Box<dyn Error>> {
+        let fname = format!("/sys/class/u-dma-buf/udmabuf{}/phys_addr", udmabuf_num);
+        Ok(usize::from_str_radix(&read_file_to_string(fname)?.trim()[2..], 16)?)
+    }
+}
+*/
 
 fn main() {
+
+    /*
+    let uio_num = 4;
+    let fname = format!("/sys/class/uio/uio{}/name", uio_num);
+    println!("{}", read_file_to_string(fname).unwrap().trim());
+    println!("{}", Udmabuf::read_size(4).unwrap());
+    return;
+    */
+
+
     println!("Memory access test");
     
     // UIO を開く
-    let uio_acc = uio_accesor_from_name::<usize>("uio_pl_peri").unwrap();
+//  let uio_acc = uio_accessor_from_name::<usize>("uio_pl_peri").unwrap();
+//  let uio_acc = UioAccessor::<usize>::new(4).unwrap();
+    let uio_acc = UioAccessor::<usize>::new_from_name("uio_pl_peri").unwrap();
 
     // メモリアドレスでアクセス
     unsafe { println!("{:x}", uio_acc.read_mem(0x040)); }
