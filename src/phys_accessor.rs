@@ -29,28 +29,28 @@ impl<const ADDR: usize, const SIZE: usize> MemRegion for PhysRegion<ADDR, SIZE> 
 }
 
 pub struct PhysAccessor<U, const ADDR: usize, const SIZE: usize> {
-    accessor: MemAccessor<PhysRegion<ADDR, SIZE>, U>,
+    mem_accessor: MemAccessor<PhysRegion<ADDR, SIZE>, U>,
 }
 
 impl<U, const ADDR: usize, const SIZE: usize> From<PhysAccessor<U, ADDR, SIZE>>
     for MemAccessor<PhysRegion<ADDR, SIZE>, U>
 {
     fn from(from: PhysAccessor<U, ADDR, SIZE>) -> MemAccessor<PhysRegion<ADDR, SIZE>, U> {
-        from.accessor
+        from.mem_accessor
     }
 }
 
 impl<U, const ADDR: usize, const SIZE: usize> PhysAccessor<U, ADDR, SIZE> {
     pub const fn new() -> Self {
         Self {
-            accessor: MemAccessor::<PhysRegion<ADDR, SIZE>, U>::new(PhysRegion::<ADDR, SIZE>::new()),
+            mem_accessor: MemAccessor::<PhysRegion<ADDR, SIZE>, U>::new(PhysRegion::<ADDR, SIZE>::new()),
         }
     }
 
     pub fn clone_<NewU>(&self, offset: usize, size: usize) -> PhysAccessor<NewU, ADDR, SIZE> {
         PhysAccessor::<NewU, ADDR, SIZE> {
-            accessor: MemAccessor::<PhysRegion<ADDR, SIZE>, NewU>::new(
-                self.accessor.region().clone(offset, size),
+            mem_accessor: MemAccessor::<PhysRegion<ADDR, SIZE>, NewU>::new(
+                self.mem_accessor.region().clone(offset, size),
             ),
         }
     }
@@ -74,7 +74,15 @@ impl<U, const ADDR: usize, const SIZE: usize> PhysAccessor<U, ADDR, SIZE> {
     pub fn clone64(&self, offset: usize, size: usize) -> PhysAccessor<u64, ADDR, SIZE> {
         self.clone_::<u64>(offset, size)
     }
+
+    delegate! {
+        to self.mem_accessor.region() {
+            pub fn addr(&self) -> usize;
+            pub fn size(&self) -> usize;
+        }
+    }
 }
+
 
 impl<U, const ADDR: usize, const SIZE: usize> MemAccess for PhysAccessor<U, ADDR, SIZE> {
     fn reg_size() -> usize {
@@ -82,7 +90,7 @@ impl<U, const ADDR: usize, const SIZE: usize> MemAccess for PhysAccessor<U, ADDR
     }
 
     delegate! {
-        to self.accessor {
+        to self.mem_accessor {
             unsafe fn write_mem_<V>(&self, offset: usize, data: V);
             unsafe fn read_mem_<V>(&self, offset: usize) -> V;
             unsafe fn write_reg_<V>(&self, reg: usize, data: V);

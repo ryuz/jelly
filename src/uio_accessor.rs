@@ -43,6 +43,22 @@ impl UioRegion {
         })
     }
 
+    pub fn phys_addr(&self) -> usize {
+        self.phys_addr
+    }
+
+    pub fn set_irq_enable(&mut self, enable: bool) -> Result<(), Box<dyn Error>> {
+        let data: [u8; 4] = unsafe { std::mem::transmute(if enable {1u32} else {0u32}) };
+        self.mmap_region.write(&data)?;
+        Ok(())
+    }
+    
+    pub fn wait_irq(&mut self) -> Result<(), Box<dyn Error>> {
+        let mut buf: [u8; 4] = [0; 4];
+        self.mmap_region.read(&mut buf)?;
+        Ok(())
+    }
+
     pub fn read_name(uio_num: usize) -> Result<String, Box<dyn Error>> {
         let fname = format!("/sys/class/uio/uio{}/name", uio_num);
         Ok(read_file_to_string(fname)?.trim().to_string())
@@ -56,19 +72,6 @@ impl UioRegion {
     pub fn read_phys_addr(uio_num: usize) -> Result<usize, Box<dyn Error>> {
         let fname = format!("/sys/class/uio/uio{}/maps/map0/addr", uio_num);
         Ok(usize::from_str_radix(&read_file_to_string(fname)?.trim()[2..], 16)?)
-    }
-
-
-    pub fn set_irq_enable(&mut self, enable: bool) -> Result<(), Box<dyn Error>> {
-        let data: [u8; 4] = unsafe { std::mem::transmute(if enable {1u32} else {0u32}) };
-        self.mmap_region.write(&data)?;
-        Ok(())
-    }
-    
-    pub fn wait_irq(&mut self) -> Result<(), Box<dyn Error>> {
-        let mut buf: [u8; 4] = [0; 4];
-        self.mmap_region.read(&mut buf)?;
-        Ok(())
     }
 }
 
@@ -92,19 +95,19 @@ impl MemRegion for UioRegion {
 
 
 pub struct UioAccessor<U> {
-    accessor: MemAccessor<UioRegion, U>,
+    mem_accessor: MemAccessor<UioRegion, U>,
 }
 
 impl<U> From<UioAccessor<U>> for MemAccessor<UioRegion, U> {
     fn from(from: UioAccessor<U>) -> MemAccessor<UioRegion, U> {
-        from.accessor
+        from.mem_accessor
     }
 }
 
 impl<U> UioAccessor<U> {
     pub fn new(uio_num: usize) -> Result<Self, Box<dyn Error>> {
         Ok(Self {
-            accessor: MemAccessor::<UioRegion, U>::new(UioRegion::new(uio_num)?),
+            mem_accessor: MemAccessor::<UioRegion, U>::new(UioRegion::new(uio_num)?),
         })
     }
 
@@ -121,7 +124,7 @@ impl<U> UioAccessor<U> {
 
     pub fn clone_<NewU>(&self, offset: usize, size: usize) -> UioAccessor<NewU> {
         UioAccessor::<NewU> {
-            accessor: MemAccessor::<UioRegion, NewU>::new(self.accessor.region().clone(offset, size)),
+            mem_accessor: MemAccessor::<UioRegion, NewU>::new(self.mem_accessor.region().clone(offset, size)),
         }
     }
 
@@ -144,7 +147,20 @@ impl<U> UioAccessor<U> {
     pub fn clone64(&self, offset: usize, size: usize) -> UioAccessor<u64> {
         self.clone_::<u64>(offset, size)
     }
+
+    delegate! {
+        to self.mem_accessor.region() {
+            pub fn addr(&self) -> usize;
+            pub fn size(&self) -> usize;
+            pub fn phys_addr(&self) -> usize;
+        }
+        to self.mem_accessor.region_mut() {
+            pub fn set_irq_enable(&mut self, enable: bool) -> Result<(), Box<dyn Error>>;
+            pub fn wait_irq(&mut self) -> Result<(), Box<dyn Error>>;
+        }
+    }
 }
+
 
 impl<U> MemAccess for UioAccessor<U> {
     fn reg_size() -> usize {
@@ -152,7 +168,7 @@ impl<U> MemAccess for UioAccessor<U> {
     }
 
     delegate! {
-        to self.accessor {
+        to self.mem_accessor {
             unsafe fn write_mem_<V>(&self, offset: usize, data: V);
             unsafe fn read_mem_<V>(&self, offset: usize) -> V;
             unsafe fn write_reg_<V>(&self, reg: usize, data: V);

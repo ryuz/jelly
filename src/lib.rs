@@ -24,6 +24,13 @@ pub mod uio_accessor;
 #[cfg(feature = "std")]
 pub use uio_accessor::*;
 
+#[cfg(feature = "std")]
+pub mod udmabuf_accessor;
+#[cfg(feature = "std")]
+pub use udmabuf_accessor::*;
+
+
+
 #[cfg(test)]
 mod tests {
     #[test]
