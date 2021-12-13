@@ -1,16 +1,15 @@
 #![allow(dead_code)]
 
-use std::format;
+use super::*;
+use delegate::delegate;
 use std::boxed::Box;
-use std::string::String;
-use std::string::ToString;
 use std::error::Error;
+use std::format;
 use std::fs::File;
 use std::io::Read;
+use std::string::String;
+use std::string::ToString;
 use thiserror::Error;
-use delegate::delegate;
-use super::*;
-
 
 #[derive(Debug, Error)]
 enum UioAccessorError {
@@ -18,14 +17,12 @@ enum UioAccessorError {
     UioError(String),
 }
 
-
 fn read_file_to_string(path: String) -> Result<String, Box<dyn Error>> {
     let mut file = File::open(path)?;
     let mut buf = String::new();
     file.read_to_string(&mut buf)?;
     Ok(buf)
 }
-
 
 pub struct UioRegion {
     mmap_region: MmapRegion,
@@ -48,11 +45,11 @@ impl UioRegion {
     }
 
     pub fn set_irq_enable(&mut self, enable: bool) -> Result<(), Box<dyn Error>> {
-        let data: [u8; 4] = unsafe { std::mem::transmute(if enable {1u32} else {0u32}) };
+        let data: [u8; 4] = unsafe { std::mem::transmute(if enable { 1u32 } else { 0u32 }) };
         self.mmap_region.write(&data)?;
         Ok(())
     }
-    
+
     pub fn wait_irq(&mut self) -> Result<(), Box<dyn Error>> {
         let mut buf: [u8; 4] = [0; 4];
         self.mmap_region.read(&mut buf)?;
@@ -66,15 +63,20 @@ impl UioRegion {
 
     pub fn read_size(uio_num: usize) -> Result<usize, Box<dyn Error>> {
         let fname = format!("/sys/class/uio/uio{}/maps/map0/size", uio_num);
-        Ok(usize::from_str_radix(&read_file_to_string(fname)?.trim()[2..], 16)?)
+        Ok(usize::from_str_radix(
+            &read_file_to_string(fname)?.trim()[2..],
+            16,
+        )?)
     }
 
     pub fn read_phys_addr(uio_num: usize) -> Result<usize, Box<dyn Error>> {
         let fname = format!("/sys/class/uio/uio{}/maps/map0/addr", uio_num);
-        Ok(usize::from_str_radix(&read_file_to_string(fname)?.trim()[2..], 16)?)
+        Ok(usize::from_str_radix(
+            &read_file_to_string(fname)?.trim()[2..],
+            16,
+        )?)
     }
 }
-
 
 impl MemRegion for UioRegion {
     fn clone(&self, offset: usize, size: usize) -> Self {
@@ -91,8 +93,6 @@ impl MemRegion for UioRegion {
         }
     }
 }
-
-
 
 pub struct UioAccessor<U> {
     mem_accessor: MemAccessor<UioRegion, U>,
@@ -113,18 +113,29 @@ impl<U> UioAccessor<U> {
 
     pub fn new_from_name(name: &str) -> Result<Self, Box<dyn Error>> {
         for path in std::fs::read_dir("/sys/class/uio/")? {
-            let uio_num: usize = path.unwrap().path().display().to_string().replacen("/sys/class/uio/uio", "", 1).parse().unwrap();
+            let uio_num: usize = path
+                .unwrap()
+                .path()
+                .display()
+                .to_string()
+                .replacen("/sys/class/uio/uio", "", 1)
+                .parse()
+                .unwrap();
             let dev_name = UioRegion::read_name(uio_num)?;
             if dev_name == name {
                 return Self::new(uio_num);
             }
         }
-        Err(Box::new(UioAccessorError::UioError("device not found".to_string())))
+        Err(Box::new(UioAccessorError::UioError(
+            "device not found".to_string(),
+        )))
     }
 
     pub fn clone_<NewU>(&self, offset: usize, size: usize) -> UioAccessor<NewU> {
         UioAccessor::<NewU> {
-            mem_accessor: MemAccessor::<UioRegion, NewU>::new(self.mem_accessor.region().clone(offset, size)),
+            mem_accessor: MemAccessor::<UioRegion, NewU>::new(
+                self.mem_accessor.region().clone(offset, size),
+            ),
         }
     }
 
@@ -160,7 +171,6 @@ impl<U> UioAccessor<U> {
         }
     }
 }
-
 
 impl<U> MemAccess for UioAccessor<U> {
     fn reg_size() -> usize {

@@ -9,10 +9,10 @@ use std::boxed::Box;
 use std::error::Error;
 use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
+use std::os::unix::fs::OpenOptionsExt;
 use std::os::unix::prelude::AsRawFd;
 use std::string::String;
 use std::sync::{Arc, RwLock};
-use std::os::unix::fs::OpenOptionsExt;
 
 struct MmapFile {
     file: File,
@@ -26,7 +26,11 @@ impl MmapFile {
     }
 
     pub fn new_with_flag(path: String, size: usize, flag: i32) -> Result<Self, Box<dyn Error>> {
-        let file = OpenOptions::new().read(true).write(true).custom_flags(flag).open(path)?;
+        let file = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .custom_flags(flag)
+            .open(path)?;
         unsafe {
             let addr = nix::sys::mman::mmap(
                 0 as *mut libc::c_void,
@@ -86,7 +90,7 @@ impl MmapRegion {
     pub fn new(path: String, size: usize) -> Result<Self, Box<dyn Error>> {
         Self::new_with_flag(path, size, 0)
     }
-    
+
     pub fn new_with_flag(path: String, size: usize, flag: i32) -> Result<Self, Box<dyn Error>> {
         let mfile = MmapFile::new_with_flag(path, size, flag)?;
         let addr = mfile.addr();
@@ -149,7 +153,9 @@ impl<U> MmapAccessor<U> {
 
     pub fn clone_<NewU>(&self, offset: usize, size: usize) -> MmapAccessor<NewU> {
         MmapAccessor::<NewU> {
-            accessor: MemAccessor::<MmapRegion, NewU>::new(self.accessor.region().clone(offset, size)),
+            accessor: MemAccessor::<MmapRegion, NewU>::new(
+                self.accessor.region().clone(offset, size),
+            ),
         }
     }
 

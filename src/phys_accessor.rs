@@ -43,7 +43,9 @@ impl<U, const ADDR: usize, const SIZE: usize> From<PhysAccessor<U, ADDR, SIZE>>
 impl<U, const ADDR: usize, const SIZE: usize> PhysAccessor<U, ADDR, SIZE> {
     pub const fn new() -> Self {
         Self {
-            mem_accessor: MemAccessor::<PhysRegion<ADDR, SIZE>, U>::new(PhysRegion::<ADDR, SIZE>::new()),
+            mem_accessor: MemAccessor::<PhysRegion<ADDR, SIZE>, U>::new(
+                PhysRegion::<ADDR, SIZE>::new(),
+            ),
         }
     }
 
@@ -82,7 +84,6 @@ impl<U, const ADDR: usize, const SIZE: usize> PhysAccessor<U, ADDR, SIZE> {
         }
     }
 }
-
 
 impl<U, const ADDR: usize, const SIZE: usize> MemAccess for PhysAccessor<U, ADDR, SIZE> {
     fn reg_size() -> usize {
