@@ -1,6 +1,5 @@
 #![allow(dead_code)]
 
-use std::{thread, time};
 use jelly_mem_access::*;
 
 const REG_DMA_STATUS : usize = 0;
@@ -32,7 +31,7 @@ fn main() {
 
     // mmap uio
     println!("\nuio open");
-    let uio_acc = UioAccessor::<usize>::new_from_name("uio_pl_peri").unwrap();
+    let mut uio_acc = UioAccessor::<usize>::new_from_name("uio_pl_peri").unwrap();
     println!("uio_pl_peri phys addr : 0x{:x}", uio_acc.phys_addr());
     println!("uio_pl_peri size      : 0x{:x}", uio_acc.size());
 
@@ -98,5 +97,30 @@ fn main() {
         dma1_acc.write_reg(REG_DMA_WDATA1, 0x0123456789abcdefusize);
         dma1_acc.write_reg(REG_DMA_WSTART, 1);
         while dma1_acc.read_reg(REG_DMA_STATUS) != 0 {}
+    
+
+        // タイマ割り込みでLED点滅
+        println!("\n<LED test>");
+        tim_acc.write_reg(REG_TIM_COMPARE, 100000000-1);
+        tim_acc.write_reg(REG_TIM_CONTROL, 1);
+        for _ in 0..5 {
+            // LED ON
+            println!("LED : ON");
+            led_acc.write_reg(REG_LED_OUTPUT, 1);
+            
+            // 割り込み待ち
+            uio_acc.set_irq_enable(true);
+            uio_acc.wait_irq();
+            tim_acc.read_reg(REG_TIM_CONTROL);   // clear interrupt
+
+            // LED OFF
+            println!("LED : OFF");
+            led_acc.write_reg(REG_LED_OUTPUT, 0);
+
+            // 割り込み待ち
+            uio_acc.set_irq_enable(true);
+            uio_acc.wait_irq();
+            tim_acc.read_reg(REG_TIM_CONTROL);   // clear interrupt
+        }
     }
 }
