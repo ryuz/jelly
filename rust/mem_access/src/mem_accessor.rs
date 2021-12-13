@@ -57,6 +57,10 @@ impl<T: MemRegion, U> MemAccessor<T, U> {
         &self.region
     }
 
+    pub fn region_mut(&mut self) -> &mut T {
+        &mut self.region
+    }
+
     pub fn clone_<NewU>(&self, offset: usize, size: usize) -> MemAccessor<T, NewU> {
         MemAccessor::<T, NewU>::new(self.region.clone(offset, size))
     }

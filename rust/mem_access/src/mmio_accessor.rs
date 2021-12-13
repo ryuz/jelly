@@ -41,25 +41,25 @@ impl MemRegion for MmioRegion {
 }
 
 pub struct MmioAccessor<U> {
-    accessor: MemAccessor<MmioRegion, U>,
+    mem_accessor: MemAccessor<MmioRegion, U>,
 }
 
 impl<U> From<MmioAccessor<U>> for MemAccessor<MmioRegion, U> {
     fn from(from: MmioAccessor<U>) -> MemAccessor<MmioRegion, U> {
-        from.accessor
+        from.mem_accessor
     }
 }
 
 impl<U> MmioAccessor<U> {
     pub const fn new(addr: usize, size: usize) -> Self {
         Self {
-            accessor: MemAccessor::<MmioRegion, U>::new(MmioRegion::new(addr, size)),
+            mem_accessor: MemAccessor::<MmioRegion, U>::new(MmioRegion::new(addr, size)),
         }
     }
 
     pub fn clone_<NewU>(&self, offset: usize, size: usize) -> MmioAccessor<NewU> {
         MmioAccessor::<NewU> {
-            accessor: MemAccessor::<MmioRegion, NewU>::new(self.accessor.region().clone(offset, size)),
+            mem_accessor: MemAccessor::<MmioRegion, NewU>::new(self.mem_accessor.region().clone(offset, size)),
         }
     }
 
@@ -82,6 +82,13 @@ impl<U> MmioAccessor<U> {
     pub fn clone64(&self, offset: usize, size: usize) -> MmioAccessor<u64> {
         self.clone_::<u64>(offset, size)
     }
+
+    delegate! {
+        to self.mem_accessor.region() {
+            pub fn addr(&self) -> usize;
+            pub fn size(&self) -> usize;
+        }
+    }
 }
 
 impl<U> MemAccess for MmioAccessor<U> {
@@ -90,7 +97,7 @@ impl<U> MemAccess for MmioAccessor<U> {
     }
 
     delegate! {
-        to self.accessor {
+        to self.mem_accessor {
             unsafe fn write_mem_<V>(&self, offset: usize, data: V);
             unsafe fn read_mem_<V>(&self, offset: usize) -> V;
             unsafe fn write_reg_<V>(&self, reg: usize, data: V);
