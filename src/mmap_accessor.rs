@@ -12,6 +12,7 @@ use std::io::prelude::*;
 use std::os::unix::prelude::AsRawFd;
 use std::string::String;
 use std::sync::{Arc, RwLock};
+use std::os::unix::fs::OpenOptionsExt;
 
 struct MmapFile {
     file: File,
@@ -21,7 +22,11 @@ struct MmapFile {
 
 impl MmapFile {
     pub fn new(path: String, size: usize) -> Result<Self, Box<dyn Error>> {
-        let file = OpenOptions::new().read(true).write(true).open(path)?;
+        Self::new_with_flag(path, size, 0)
+    }
+
+    pub fn new_with_flag(path: String, size: usize, flag: i32) -> Result<Self, Box<dyn Error>> {
+        let file = OpenOptions::new().read(true).write(true).custom_flags(flag).open(path)?;
         unsafe {
             let addr = nix::sys::mman::mmap(
                 0 as *mut libc::c_void,
@@ -79,7 +84,11 @@ pub struct MmapRegion {
 
 impl MmapRegion {
     pub fn new(path: String, size: usize) -> Result<Self, Box<dyn Error>> {
-        let mfile = MmapFile::new(path, size)?;
+        Self::new_with_flag(path, size, 0)
+    }
+    
+    pub fn new_with_flag(path: String, size: usize, flag: i32) -> Result<Self, Box<dyn Error>> {
+        let mfile = MmapFile::new_with_flag(path, size, flag)?;
         let addr = mfile.addr();
         let size = mfile.size();
         Ok(Self {
@@ -88,12 +97,6 @@ impl MmapRegion {
             size: size,
         })
     }
-
-    /*
-    pub fn file(&mut self) -> &mut File {
-        self.mfile.write().unwrap()
-    }
-    */
 
     pub fn write(&mut self, data: &[u8]) -> Result<usize, Box<dyn Error>> {
         self.mfile.write().unwrap().write(data)

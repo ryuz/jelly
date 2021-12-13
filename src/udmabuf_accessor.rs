@@ -3,16 +3,14 @@
 use std::format;
 use std::boxed::Box;
 use std::fs::File;
-//use std::io;
 use std::io::Read;
-//use std::path::Path;
 use std::string::String;
-//use std::string::ToString;
 use std::error::Error;
-//use thiserror::Error;
 use delegate::delegate;
 use super::*;
 
+
+const O_SYNC: i32 = 0x101000;
 
 
 fn read_file_to_string(path: String) -> Result<String, Box<dyn Error>> {
@@ -29,12 +27,12 @@ struct UdmabufRegion {
 
 
 impl UdmabufRegion {
-    pub fn new(udmabuf_num: usize) -> Result<Self, Box<dyn Error>> {
+    pub fn new(udmabuf_num: usize, cache_enable: bool) -> Result<Self, Box<dyn Error>> {
         let phys_addr = Self::read_phys_addr(udmabuf_num)?;
         let size      = Self::read_size(udmabuf_num)?;
 
         let fname = format!("/dev/udmabuf{}", udmabuf_num);
-        let mmap_region = MmapRegion::new(fname, size)?;
+        let mmap_region = MmapRegion::new_with_flag(fname, size, if cache_enable {0} else {O_SYNC})?;
         
         Ok(Self{mmap_region:mmap_region, phys_addr:phys_addr})
     }
@@ -84,9 +82,9 @@ impl<U> From<UdmabufAccessor<U>> for MemAccessor<UdmabufRegion, U> {
 }
 
 impl<U> UdmabufAccessor<U> {
-    pub fn new(udmabuf_num: usize) -> Result<Self, Box<dyn Error>> {
+    pub fn new(udmabuf_num: usize, cache_enable: bool) -> Result<Self, Box<dyn Error>> {
         Ok(Self {
-            mem_accessor: MemAccessor::<UdmabufRegion, U>::new(UdmabufRegion::new(udmabuf_num)?),
+            mem_accessor: MemAccessor::<UdmabufRegion, U>::new(UdmabufRegion::new(udmabuf_num, cache_enable)?),
         })
     }
 
