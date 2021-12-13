@@ -59,7 +59,9 @@ impl<U> MmioAccessor<U> {
 
     pub fn clone_<NewU>(&self, offset: usize, size: usize) -> MmioAccessor<NewU> {
         MmioAccessor::<NewU> {
-            mem_accessor: MemAccessor::<MmioRegion, NewU>::new(self.mem_accessor.region().clone(offset, size)),
+            mem_accessor: MemAccessor::<MmioRegion, NewU>::new(
+                self.mem_accessor.region().clone(offset, size),
+            ),
         }
     }
 

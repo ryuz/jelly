@@ -1,17 +1,15 @@
 #![allow(dead_code)]
 
-use std::format;
+use super::*;
+use delegate::delegate;
 use std::boxed::Box;
+use std::error::Error;
+use std::format;
 use std::fs::File;
 use std::io::Read;
 use std::string::String;
-use std::error::Error;
-use delegate::delegate;
-use super::*;
-
 
 const O_SYNC: i32 = 0x101000;
-
 
 fn read_file_to_string(path: String) -> Result<String, Box<dyn Error>> {
     let mut file = File::open(path)?;
@@ -25,16 +23,19 @@ struct UdmabufRegion {
     phys_addr: usize,
 }
 
-
 impl UdmabufRegion {
     pub fn new(udmabuf_num: usize, cache_enable: bool) -> Result<Self, Box<dyn Error>> {
         let phys_addr = Self::read_phys_addr(udmabuf_num)?;
-        let size      = Self::read_size(udmabuf_num)?;
+        let size = Self::read_size(udmabuf_num)?;
 
         let fname = format!("/dev/udmabuf{}", udmabuf_num);
-        let mmap_region = MmapRegion::new_with_flag(fname, size, if cache_enable {0} else {O_SYNC})?;
-        
-        Ok(Self{mmap_region:mmap_region, phys_addr:phys_addr})
+        let mmap_region =
+            MmapRegion::new_with_flag(fname, size, if cache_enable { 0 } else { O_SYNC })?;
+
+        Ok(Self {
+            mmap_region: mmap_region,
+            phys_addr: phys_addr,
+        })
     }
 
     pub fn phys_addr(&self) -> usize {
@@ -43,7 +44,10 @@ impl UdmabufRegion {
 
     pub fn read_phys_addr(udmabuf_num: usize) -> Result<usize, Box<dyn Error>> {
         let fname = format!("/sys/class/u-dma-buf/udmabuf{}/phys_addr", udmabuf_num);
-        Ok(usize::from_str_radix(&read_file_to_string(fname)?.trim()[2..], 16)?)
+        Ok(usize::from_str_radix(
+            &read_file_to_string(fname)?.trim()[2..],
+            16,
+        )?)
     }
 
     pub fn read_size(udmabuf_num: usize) -> Result<usize, Box<dyn Error>> {
@@ -51,7 +55,6 @@ impl UdmabufRegion {
         Ok(read_file_to_string(fname)?.trim().parse()?)
     }
 }
-
 
 impl MemRegion for UdmabufRegion {
     fn clone(&self, offset: usize, size: usize) -> Self {
@@ -69,8 +72,6 @@ impl MemRegion for UdmabufRegion {
     }
 }
 
-
-
 pub struct UdmabufAccessor<U> {
     mem_accessor: MemAccessor<UdmabufRegion, U>,
 }
@@ -84,13 +85,18 @@ impl<U> From<UdmabufAccessor<U>> for MemAccessor<UdmabufRegion, U> {
 impl<U> UdmabufAccessor<U> {
     pub fn new(udmabuf_num: usize, cache_enable: bool) -> Result<Self, Box<dyn Error>> {
         Ok(Self {
-            mem_accessor: MemAccessor::<UdmabufRegion, U>::new(UdmabufRegion::new(udmabuf_num, cache_enable)?),
+            mem_accessor: MemAccessor::<UdmabufRegion, U>::new(UdmabufRegion::new(
+                udmabuf_num,
+                cache_enable,
+            )?),
         })
     }
 
     pub fn clone_<NewU>(&self, offset: usize, size: usize) -> UdmabufAccessor<NewU> {
         UdmabufAccessor::<NewU> {
-            mem_accessor: MemAccessor::<UdmabufRegion, NewU>::new(self.mem_accessor.region().clone(offset, size)),
+            mem_accessor: MemAccessor::<UdmabufRegion, NewU>::new(
+                self.mem_accessor.region().clone(offset, size),
+            ),
         }
     }
 
@@ -114,7 +120,6 @@ impl<U> UdmabufAccessor<U> {
         self.clone_::<u64>(offset, size)
     }
 
-
     delegate! {
         to self.mem_accessor.region() {
             pub fn addr(&self) -> usize;
@@ -128,7 +133,7 @@ impl<U> MemAccess for UdmabufAccessor<U> {
     fn reg_size() -> usize {
         core::mem::size_of::<U>()
     }
-    
+
     delegate! {
         to self.mem_accessor {
             unsafe fn write_mem_<V>(&self, offset: usize, data: V);

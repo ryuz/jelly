@@ -29,8 +29,6 @@ pub mod udmabuf_accessor;
 #[cfg(feature = "std")]
 pub use udmabuf_accessor::*;
 
-
-
 #[cfg(test)]
 mod tests {
     #[test]
