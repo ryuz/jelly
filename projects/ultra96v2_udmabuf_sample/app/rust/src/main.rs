@@ -109,8 +109,8 @@ fn main() {
             led_acc.write_reg(REG_LED_OUTPUT, 1);
             
             // 割り込み待ち
-            uio_acc.set_irq_enable(true);
-            uio_acc.wait_irq();
+            uio_acc.set_irq_enable(true).unwrap();
+            uio_acc.wait_irq().unwrap();
             tim_acc.read_reg(REG_TIM_CONTROL);   // clear interrupt
 
             // LED OFF
@@ -118,8 +118,8 @@ fn main() {
             led_acc.write_reg(REG_LED_OUTPUT, 0);
 
             // 割り込み待ち
-            uio_acc.set_irq_enable(true);
-            uio_acc.wait_irq();
+            uio_acc.set_irq_enable(true).unwrap();
+            uio_acc.wait_irq().unwrap();
             tim_acc.read_reg(REG_TIM_CONTROL);   // clear interrupt
         }
     }
