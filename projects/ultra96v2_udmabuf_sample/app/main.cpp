@@ -29,6 +29,9 @@ using namespace jelly;
 
 int main()
 {
+    std::cout << std::hex << O_SYNC << std::endl;
+    return 0;
+
     std::cout << "--- udmabuf test ---" << std::endl;
 
     // mmap udmabuf

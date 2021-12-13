@@ -19,79 +19,84 @@ const REG_TIM_CONTROL: usize = 0;
 const REG_TIM_COMPARE: usize = 1;
 const REG_TIM_COUNTER: usize = 3;
 
-/*
-use std::fs::{File, OpenOptions};
-use std::io;
-use std::io::Read;
-use std::path::Path;
-use std::error::Error;
 
-
-struct Udmabuf {}
-
-fn read_file_to_string(path: String) -> Result<String, Box<dyn Error>> {
-    let mut file = File::open(path)?;
-    let mut buf = String::new();
-    file.read_to_string(&mut buf)?;
-    Ok(buf)
-}
-
-impl Udmabuf {
-    pub fn read_size(udmabuf_num: usize) -> Result<usize, Box<dyn Error>> {
-        let fname = format!("/sys/class/u-dma-buf/udmabuf{}/size", udmabuf_num);
-        Ok(read_file_to_string(fname)?.trim().parse()?)
-    }
-
-    pub fn read_phys_addr(udmabuf_num: usize) -> Result<usize, Box<dyn Error>> {
-        let fname = format!("/sys/class/u-dma-buf/udmabuf{}/phys_addr", udmabuf_num);
-        Ok(usize::from_str_radix(&read_file_to_string(fname)?.trim()[2..], 16)?)
-    }
-}
-*/
-
-use std::fs;
 
 fn main() {
+    println!("--- udmabuf test ---");
 
-    /*
-    let uio_num = 4;
-    let fname = format!("/sys/class/uio/uio{}/name", uio_num);
-    println!("{}", read_file_to_string(fname).unwrap().trim());
-    println!("{}", Udmabuf::read_size(4).unwrap());
-    return;
-    */
+    // mmap udmabuf
+    println!("\nudmabuf4 open");
+    let udmabuf_acc = UdmabufAccessor::<usize>::new(4, false).unwrap();
+    println!("udmabuf4 phys addr : 0x{:x}", udmabuf_acc.phys_addr());
+    println!("udmabuf4 size      : 0x{:x}", udmabuf_acc.size());
 
-
-    println!("Memory access test");
-    
-    // UIO を開く
-//  let uio_acc = uio_accessor_from_name::<usize>("uio_pl_peri").unwrap();
-//  let uio_acc = UioAccessor::<usize>::new(4).unwrap();
+    // mmap uio
+    println!("\nuio open");
     let uio_acc = UioAccessor::<usize>::new_from_name("uio_pl_peri").unwrap();
-
-    // メモリアドレスでアクセス
-    unsafe { println!("{:x}", uio_acc.read_mem(0x040)); }
-    unsafe { println!("{:x}", uio_acc.read_mem(0x840)); }
+    println!("uio_pl_peri phys addr : 0x{:x}", uio_acc.phys_addr());
+    println!("uio_pl_peri size      : 0x{:x}", uio_acc.size());
 
     // UIOの中をさらにコアごとに割り当て
-    let dma0_acc = uio_acc.clone(0x00000, 0);
-    let dma1_acc = uio_acc.clone(0x00800, 0);
-    let led_acc  = uio_acc.clone(0x08000, 0);
-    let _tim_acc  = uio_acc.clone(0x10000, 0);
+    let dma0_acc = uio_acc.clone(0x00000, 0x800);
+    let dma1_acc = uio_acc.clone(0x00800, 0x800);
+    let led_acc  = uio_acc.clone(0x08000, 0x800);
+    let tim_acc  = uio_acc.clone(0x10000, 0x800);
 
-    // レジスタのワードアドレスでアクセス
-    println!("DAM0 ID : 0x{:x}", unsafe{dma0_acc.read_reg(REG_DMA_CORE_ID)});
-    println!("DAM1 ID : 0x{:x}", unsafe{dma1_acc.read_reg(REG_DMA_CORE_ID)});
+    unsafe {
+        // メモリアドレスでアクセス
+        println!("\n<test MemRead>");
+        println!("DMA0_CORE_ID : 0x{:x}", uio_acc.read_mem(0x0040));
+        println!("DMA1_CORE_ID : 0x{:x}", uio_acc.read_mem(0x0840));
+    
+        // レジスタ番号でアクセス
+        println!("\n<test RegRead>");
+        println!("DMA0_CORE_ID : 0x{:x}", dma0_acc.read_reg(REG_DMA_CORE_ID));
+        println!("DMA1_CORE_ID : 0x{:x}", dma1_acc.read_reg(REG_DMA_CORE_ID));
+        println!("\n<test DMA0 RegRead>");
+        println!("DMA0_STATUS  : 0x{:x}", dma0_acc.read_reg(REG_DMA_STATUS) );
+        println!("DMA0_WSTART  : 0x{:x}", dma0_acc.read_reg(REG_DMA_WSTART) );
+        println!("DMA0_RSTART  : 0x{:x}", dma0_acc.read_reg(REG_DMA_RSTART) );
+        println!("DMA0_ADDR    : 0x{:x}", dma0_acc.read_reg(REG_DMA_ADDR)   );
+        println!("DMA0_WDATA0  : 0x{:x}", dma0_acc.read_reg(REG_DMA_WDATA0) );
+        println!("DMA0_WDATA1  : 0x{:x}", dma0_acc.read_reg(REG_DMA_WDATA1) );
+        println!("DMA0_RDATA0  : 0x{:x}", dma0_acc.read_reg(REG_DMA_RDATA0) );
+        println!("DMA0_RDATA1  : 0x{:x}", dma0_acc.read_reg(REG_DMA_RDATA1) );
+        println!("DMA0_CORE_ID : 0x{:x}", dma0_acc.read_reg(REG_DMA_CORE_ID));
 
-    for _ in 0..5 {
-        // LED ON
-        println!("LED : ON");
-        unsafe { led_acc.write_reg(REG_LED_OUTPUT, 1); }
-        thread::sleep(time::Duration::from_millis(500));
+        // udma領域アクセス
+        println!("\n<test udmabuf access>");
+        udmabuf_acc.write_mem32(0x00, 0x10101010);
+        udmabuf_acc.write_mem32(0x04, 0x20202020);
+        udmabuf_acc.write_mem32(0x08, 0x30303030);
+        udmabuf_acc.write_mem32(0x0c, 0x40404040);
+        println!("ptr[0] : 0x{:x}", udmabuf_acc.read_mem32(0x00));
+        println!("ptr[1] : 0x{:x}", udmabuf_acc.read_mem32(0x04));
+        println!("ptr[2] : 0x{:x}", udmabuf_acc.read_mem32(0x08));
+        println!("ptr[3] : 0x{:x}", udmabuf_acc.read_mem32(0x0c));
 
-        // LED OFF
-        println!("LED : OFF");
-        unsafe { led_acc.write_reg(REG_LED_OUTPUT, 0); }
-        thread::sleep(time::Duration::from_millis(500));
+
+        // DMA0でread
+        println!("\n<DMA0 read test>");
+        dma0_acc.write_reg(REG_DMA_ADDR, udmabuf_acc.phys_addr());
+        dma0_acc.write_reg(REG_DMA_RSTART, 1);
+        while dma0_acc.read_reg(REG_DMA_STATUS) != 0 {}
+        println!("REG_DMA0_RDATA0 : 0x{:x}", dma0_acc.read_reg(REG_DMA_RDATA0));
+        println!("REG_DMA0_RDATA1 : 0x{:x}", dma0_acc.read_reg(REG_DMA_RDATA1));
+
+        // DMA1でread
+        println!("\n<DMA1 read test>");
+        dma1_acc.write_reg(REG_DMA_ADDR, udmabuf_acc.phys_addr());
+        dma1_acc.write_reg(REG_DMA_RSTART, 1);
+        while dma1_acc.read_reg(REG_DMA_STATUS) != 0 {}
+        println!("REG_DMA1_RDATA0 : 0x{:x}", dma1_acc.read_reg(REG_DMA_RDATA0));
+        println!("REG_DMA1_RDATA1 : 0x{:x}", dma1_acc.read_reg(REG_DMA_RDATA1));
+
+        // DMA1でwrite
+        println!("\n<DMA1 write test>");
+        dma1_acc.write_reg(REG_DMA_ADDR, udmabuf_acc.phys_addr());
+        dma1_acc.write_reg(REG_DMA_WDATA0, 0xfedcba9876543210usize);
+        dma1_acc.write_reg(REG_DMA_WDATA1, 0x0123456789abcdefusize);
+        dma1_acc.write_reg(REG_DMA_WSTART, 1);
+        while dma1_acc.read_reg(REG_DMA_STATUS) != 0 {}
     }
 }
