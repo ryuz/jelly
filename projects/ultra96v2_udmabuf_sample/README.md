@@ -12,6 +12,7 @@ Zynqを活用するうえで非常に有用なソフトウェアですので同�
 ## 事前準備
 
 ### 環境
+
 環境は下記の通りです。
 
 - [Ultra96V2](https://www.avnet.com/wps/portal/japan/products/product-highlights/ultra96/)
@@ -39,6 +40,7 @@ sudo cp bootgen /usr/local/bin/
 ```
 git clone https://github.com/ryuz/jelly
 ```
+
 で取得できます。
 
 /projects/ultra96v2_udmabuf_sample/
@@ -77,8 +79,9 @@ ultra96v2_udmabuf_sample.bit が出来上がります。
 というメモリマップになるようにサンプル回路を作っております。
 
 
-## ソフト側の作成と実行
-  Ultra96V2側のソフトの開発です。
+## PSソフト側の作成と実行
+
+  Ultra96V2側でのPSソフトのビルドです。
   projects/ultra96v2_udmabuf_sample/app を Ultra96 のどこか適当な箇所にコピーします。
   Ultra96V2側の作業は Debian のブートイメージで起動したあと、常に起動したまま行うことが可能で、運用したままPLとソフトをアップデートすることも可能なのがこのブートイメージの素晴らしいところです。
 
@@ -88,9 +91,11 @@ ultra96v2_udmabuf_sample.bit が出来上がります。
 ### 動かしてみる
 
 sudoできるユーザーで app ディレクトリに移動してください。
+
 ```
 make run
 ```
+
 とすればひとまず動くように作っております。
 途中、sudo コマンドを使っているのでパスワードを聞かれると思いますが入力ください。
 DeviceTree overlay や uio へのアクセスの為にルート権限が必要なためです。
@@ -127,6 +132,7 @@ ultra96v2_udmabuf_sample.dts が Device Tree overlay のソースファイルと
         };
     };
 ```
+
 上のように指定します。この時、ultra96v2_udmabuf_sample.bit.bin は bitstream から bootgen で生成されたファイルであり、/lib/firmware に置かれている必要があります。
 
 bootgen の使い方としては、下記のような ultra96v2_udmabuf_sample.bif に対して
@@ -218,22 +224,28 @@ bootgen -image ultra96v2_udmabuf_sample.bif -arch zynqmp -process_bitstream bin
 また udmabuf4 という名前で、0x00400000 バイトの CMA(Continuous Memory Allocator) を確保してもらうように指定しています。udmabuf を用いることで、連続した物理メモリアドレスを割り当ててもらうことが可能になります。
 
 ### dtcでのコンパイル
+
 ```
 dtc -I dts -O dtb -o ultra96v2_udmabuf_sample.dtbo ultra96v2_udmabuf_sample.dts
 ```
+
 とすることで ultra96v2_udmabuf_sample.dtbo を得ることができます。
 
 ## Overlay
+
 いよいよ overlay です
 
 ### configfs の mount
 
 初めに configfs をマウントします。
+
 ```
 sudo mkdir -p /configfs
 sudo mount -t configfs configfs /configfs
 ```
+
 詳しくは[こちら](https://qiita.com/ikwzm/items/ec514e955c16076327ce)や[こちら](https://dora.bk.tsukuba.ac.jp/~takeuchi/?%E9%9B%BB%E6%B0%97%E5%9B%9E%E8%B7%AF%2Fzynq%2FDevice%20Tree%20Overlay)を参考にさせて頂いております。
+
 
 ### ファームウェアのコピー
 
@@ -293,3 +305,35 @@ sudo rmdir /configfs/device-tree/overlays/full
 ```
 
 と削除すると、解除できるようです。
+
+
+# その他
+
+## Rust 版デモ
+
+Rust がインストールされた環境にて
+
+```
+make run_rust
+```
+
+と実行すると Rust 版のデモが動きます。
+
+
+## Python版デモ (flask を使ったWebサーバー)
+
+python3 が動く環境にて
+
+```
+pip3 install flask
+```
+
+しておけば
+
+```
+make run_server
+```
+
+でサーバーが起動し、PCなどから Webブラウザで接続することで、LEDを ON/OFF できます。
+
+
