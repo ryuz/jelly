@@ -1,9 +1,9 @@
-# Ultra96V2 で udmabuf を試すサンプル
+# Ultra96V2 で u-dma-buf を試すサンプル
 
 
 ## 概要
 
-iwkzm氏の[udmabuf](https://github.com/ikwzm/udmabuf)を試してみた際のプロジェクト一式です。
+iwkzm氏の[u-dma-buf](https://github.com/ikwzm/udmabuf)を試してみた際のプロジェクト一式です。
 Zynqを活用するうえで非常に有用なソフトウェアですので同じことを試そうという方のご参考になれば幸いです。
 
 なお、現在は udmabuf は u-dma-buf と名称変更中のようですが、少し古い情報で作ってしまったため、u-dma-buf の方を使う方は読み替えて頂ければと思います。
@@ -156,7 +156,7 @@ bootgen -image ultra96v2_udmabuf_sample.bif -arch zynqmp -process_bitstream bin
 ### クロックと AXIのバス幅
 
 ```
- fragment@1 {
+    fragment@1 {
         target-path = "/amba_pl@0";
         
         #address-cells = <2>;
@@ -166,25 +166,31 @@ bootgen -image ultra96v2_udmabuf_sample.bif -arch zynqmp -process_bitstream bin
             #size-cells = <2>;
             afi0 {
                 compatible    = "xlnx,afi-fpga";
-                config-afi    = <0 0>, 
-                                <1 0>,
-                                <2 0>, 
-                                <3 0>,
-                                <14 0x0500>;
-               /* 0: S_AXI_HPC0_FPD(read)  : 0:128bit, 1:64bit, 2:32bit */
-               /* 1: S_AXI_HPC0_FPD(write) : 0:128bit, 1:64bit, 2:32bit */
-               /* 2: S_AXI_HPC1_FPD(read)  : 0:128bit, 1:64bit, 2:32bit */
-               /* 3: S_AXI_HPC1_FPD(write) : 0:128bit, 1:64bit, 2:32bit */
-               /* 14: M_AXI_HPM0_FPD[9:8], M_AXI_HPM0_FPD[11:10] 
-                                           : 0:32bit, 1:64bit, 2:128bit */
+                config-afi    = <0  0>,     /* S_AXI_HPC0_FPD(read)  : 0:128bit, 1:64bit, 2:32bit */
+                                <1  0>,     /* S_AXI_HPC0_FPD(write) : 0:128bit, 1:64bit, 2:32bit */
+                                <2  0>,     /* S_AXI_HPC1_FPD(read)  : 0:128bit, 1:64bit, 2:32bit */
+                                <3  0>,     /* S_AXI_HPC1_FPD(write) : 0:128bit, 1:64bit, 2:32bit */
+                                <4  0>,     /* S_AXI_HP0_FPD(read)   : 0:128bit, 1:64bit, 2:32bit */
+                                <5  0>,     /* S_AXI_HP0_FPD(write)  : 0:128bit, 1:64bit, 2:32bit */
+                                <6  0>,     /* S_AXI_HP1_FPD(read)   : 0:128bit, 1:64bit, 2:32bit */
+                                <7  0>,     /* S_AXI_HP1_FPD(write)  : 0:128bit, 1:64bit, 2:32bit */
+                                <8  0>,     /* S_AXI_HP2_FPD(read)   : 0:128bit, 1:64bit, 2:32bit */
+                                <9  0>,     /* S_AXI_HP2_FPD(write)  : 0:128bit, 1:64bit, 2:32bit */
+                                <10 0>,     /* S_AXI_HP3_FPD(read)   : 0:128bit, 1:64bit, 2:32bit */
+                                <11 0>,     /* S_AXI_HP3_FPD(write)  : 0:128bit, 1:64bit, 2:32bit */
+                                <12 0>,     /* S_AXI_LPD(read)       : 0:128bit, 1:64bit, 2:32bit */
+                                <13 0>,     /* S_AXI_LPD(write)      : 0:128bit, 1:64bit, 2:32bit */
+                                <14 0x0500>,/* M_AXI_HPM0_FPD[9:8], M_AXI_HPM0_FPD[11:10] : 0:32bit, 1:64bit, 2:128bit */
+                                <15 0x100>; /* M_AXI_HPM0_LPD        : 0x000:32bit, 0x100:64bit, 0x200:128bit */
             };
-            clocking0: clocking0 {
-                #clock-cells = <0>;
-                assigned-clock-rates = <100000000>;
-                assigned-clocks = <&zynqmp_clk 71>;
-                clock-output-names = "fabric_clk";
-                clocks = <&zynqmp_clk 71>;
-                compatible = "xlnx,fclk";
+            
+            fclk0  {
+                compatible    = "ikwzm,fclkcfg-0.10.a";
+                clocks        = <&zynqmp_clk 72 &zynqmp_clk 0>;
+                insert-rate   = "100000000";
+                insert-enable = <1>;
+                remove-rate   = "1000000";
+                remove-enable = <0>;
             };
         };
 ```
@@ -195,33 +201,43 @@ bootgen -image ultra96v2_udmabuf_sample.bif -arch zynqmp -process_bitstream bin
 また、clocking0 の部分がクロックで、pclk0 を 100MHz に設定しています。
 これは[こちらの記事]([https://qiita.com/ikwzm/items/74f7c5b8474198c8af3e)を参考にさせて頂きました。
 
-### uioとudmabuf
+### uioとu-dma-buf
 
-続いて uio と udmabuf です。
+続いて uio と u-dma-buf です。
 ``` 
     fragment@2 {
         target-path = "/amba";
         __overlay__ {
-            #address-cells = <0x1>;
-            #size-cells = <0x1>;
+            #address-cells = <0x2>;
+            #size-cells = <0x2>;
             
             uio_pl_peri {
                 compatible = "generic-uio";
-                reg = <0xa0000000 0x08000000>;
+                reg = <0x0 0xa0000000 0x0 0x08000000>;
+                interrupt-parent = <&gic>;
+                interrupts = <0 89 4>;
             };
+        };
+    };
 
+    fragment@3 {
+        target-path = "/amba";
+        __overlay__ {
+            #address-cells = <0x2>;
+            #size-cells = <0x2>;
             udmabuf4 {
-                compatible = "ikwzm,udmabuf-0.10.a";
+                compatible = "ikwzm,u-dma-buf";
                 minor-number = <4>;
-                size = <0x00400000>;
+                size = <0x0 0x00400000>;
             };
         };
     };
 ``` 
+
 今回はペリフェラル領域をまとめて一個の uio に割り当てています。
 開始アドレス 0xa0000000番地から サイズ 0x08000000 バイトの領域が uio_pl_peri  という名前の uio として生成されます。
 
-また udmabuf4 という名前で、0x00400000 バイトの CMA(Continuous Memory Allocator) を確保してもらうように指定しています。udmabuf を用いることで、連続した物理メモリアドレスを割り当ててもらうことが可能になります。
+また udmabuf4 という名前で、0x00400000 バイトの CMA(Continuous Memory Allocator) を確保してもらうように指定しています。u-dma-buf を用いることで、連続した物理メモリアドレスを割り当ててもらうことが可能になります。
 
 ### dtcでのコンパイル
 
