@@ -2,8 +2,8 @@
 
 ## 概要
 
-MIPS互換のCPUコアを書き始めたのがきっかけですが、現状ではFPGAでSoCを実現する為のプラットフォームになりつつあります。
-主に Xilinx のFPGAをターゲットにした、様々なコードを蓄積しており、主に Verilog 2001 で開発しております。
+もともとMIPS互換のCPUコアを書き始めたのがきっかけですが、現状ではFPGAでSoCを実現する為のプラットフォームになりつつあります。
+主に Xilinx のFPGAをターゲットにした、様々なコードを蓄積しており、主に Verilog 2001 と SystemVerilog で開発しております。
 
 最近は、作者の発案したFPGA用のバイナリニューラルネットである LUT-Network の実行にも一部コードを流用しており、作者の中でも重要性が高まっております。
 
@@ -20,6 +20,18 @@ MIPS互換のCPUコアを書き始めたのがきっかけですが、現状で�
 Verilogの勉強を始めた頃に Spartan-3 向けに試しに書いてみたプロセッサです。
 
 ブロック図などは[Webサイト](http://ryuz.my.coocan.jp/jelly/index.html)の方にあります。
+
+
+## FPGA化リアルタイムOS
+
+/rtl/rtos
+以下にあります。
+
+FPGAで作成したRealTime-OSアクセラレータです。
+
+今のところ ZynqMP の RPU(Cortex-R5) のアクセラレートのみですが、ITRON風味のRTOSスケジューリング補助回路となっています。
+
+現状 Rust での開発を想定して[サンプル](projects/projects/ultra96v2_rtos/README.md)を準備しております。
 
 
 ## リアルタイムGPU
