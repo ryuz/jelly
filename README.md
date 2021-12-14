@@ -31,7 +31,7 @@ FPGAで作成したRealTime-OSアクセラレータです。
 
 今のところ ZynqMP の RPU(Cortex-R5) のアクセラレートのみですが、ITRON風味のRTOSスケジューリング補助回路となっています。
 
-現状 Rust での開発を想定して[サンプル](projects/projects/ultra96v2_rtos/README.md)を準備しております。
+現状 Rust での開発を想定して[サンプル](projects/ultra96v2_rtos/README.md)を準備しております。
 
 
 ## リアルタイムGPU
