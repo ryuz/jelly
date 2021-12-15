@@ -9,13 +9,19 @@
 use core::fmt::{self, Write};
 use pudding_pac::arm::cpu;
 use core::panic::PanicInfo;
-mod bootstrap;
-mod i2c;
-mod communication_pipe;
 
 use jelly_rtos::rtos;
 use jelly_mem_access::*;
 use communication_pipe::*;
+
+mod bootstrap;
+mod communication_pipe;
+
+mod i2c;
+use i2c::*;
+
+mod mpu9250;
+use mpu9250::*;
 
 
 //#[macro_use]
@@ -30,10 +36,23 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
 }
 
 
+/*
 type ComRegion0  = PhysRegion<0x8008_0000, 0x800>;
 type ComAccessor0 = MemAccessor<ComRegion0, u64>;
 type ComPipe0    = JellyCommunicationPipe::<ComAccessor0, 1, 0x01>;
 static mut COM0: ComPipe0 = ComPipe0::new(ComAccessor0::new(ComRegion0::new()));
+
+type ComRegion1  = PhysRegion<0x8008_1000, 0x800>;
+type ComAccessor1 = MemAccessor<ComRegion0, u64>;
+type ComPipe1    = JellyCommunicationPipe::<ComAccessor1, 1, 0x04>;
+static mut COM2: ComPipe1 = ComPipe1::new(ComAccessor1::new(ComRegion1::new()));
+*/
+
+type ComAccessor = MmioAccessor::<u64>;
+type ComPipe = JellyCommunicationPipe::<ComAccessor>;
+static mut COM0: ComPipe = ComPipe::new(ComAccessor::new(0x8008_0000, 0x800), 1, 0x01);
+static mut COM2: ComPipe = ComPipe::new(ComAccessor::new(0x8008_1000, 0x800), 1, 0x04);
+
 
 
 #[macro_export]
@@ -71,7 +90,6 @@ pub unsafe extern "C" fn main() -> ! {
     println!("\nJelly-RTOS start\n");
     wait(10000);
 
-
 //  memdump(0x80000000, 16);
 
     rtos::initialize(0x80000000);
@@ -108,45 +126,32 @@ pub unsafe extern "C" fn main() -> ! {
 }
 
 
-const MPU9250_ADDRESS: u8 =     0x68;    // 7bit address
-//const AK8963_ADDRESS: u8 =      0x0C;    // Address of magnetometer
-
 extern "C" fn task1() -> ! {
     println!("Task Start");
     
-    let i2c_acc = MmioAccessor::<u64>::new(0x80800000, 0x100);
-    let i2c = i2c::JellyI2c::<MemAccessor<MmioRegion, u64>, 1, 0x10>::new(i2c_acc.into());
+    // PhysAccessor を使う場合
+    type I2cAccessor = PhysAccessor<u64, 0x8080_0000, 0x100>;
+    let  i2c = i2c::JellyI2c::<I2cAccessor, 1, 0x10>::new(I2cAccessor::new().into());
+    
+    // MmioAccessor を使う場合
+//  let i2c_acc = MmioAccessor::<u64>::new(0x8080_0000, 0x100);
 //  let i2c = i2c::JellyI2c::<MmioAccessor<u64>, 1, 0x10>::new(i2c_acc);
+
     i2c.set_divider(50 - 1);
     
-    i2c.write(MPU9250_ADDRESS, &[0x75]);
-    let mut who_am_i: [u8; 1] = [0u8; 1];
-    i2c.read(MPU9250_ADDRESS, &mut who_am_i);
-    println!("WHO_AM_I(exp:0x71):0x{:02x}", who_am_i[0]);
+    let imu = Mpu9250::new(i2c);
 
-    // 起動
-    i2c.write(MPU9250_ADDRESS, &[0x6b, 0x00]);
-    i2c.write(MPU9250_ADDRESS, &[0x37, 0x02]);
+    println!("WHO_AM_I(exp:0x71):0x{:02x}", imu.read_who_am_i());
 
     loop {
-        let mut buf = [0u8; 14];
-        i2c.write(MPU9250_ADDRESS, &[0x3b]);
-        i2c.read(MPU9250_ADDRESS, &mut buf);
-        
-        let accel0       = ((buf[ 0] as i16) << 8) | (buf[ 1] as i16);
-        let accel1       = ((buf[ 2] as i16) << 8) | (buf[ 3] as i16);
-        let accel2       = ((buf[ 4] as i16) << 8) | (buf[ 5] as i16);
-        let temperature  = ((buf[ 6] as i16) << 8) | (buf[ 7] as i16);
-        let gyro0        = ((buf[ 8] as i16) << 8) | (buf[ 9] as i16);
-        let gyro1        = ((buf[10] as i16) << 8) | (buf[11] as i16);
-        let gyro2        = ((buf[12] as i16) << 8) | (buf[13] as i16);
-        println!("accel0      : {}", accel0     );
-        println!("accel1      : {}", accel1     );
-        println!("accel2      : {}", accel2     );
-        println!("gyro0       : {}", gyro0      );
-        println!("gyro1       : {}", gyro1      );
-        println!("gyro2       : {}", gyro2      );
-        println!("temperature : {}\n", temperature);
+        let data = imu.read_sensor_data();
+        println!("accel0      : {}", data.accel[0]     );
+        println!("accel1      : {}", data.accel[1]     );
+        println!("accel2      : {}", data.accel[2]     );
+        println!("gyro0       : {}", data.gyro[0]      );
+        println!("gyro1       : {}", data.gyro[1]      );
+        println!("gyro2       : {}", data.gyro[2]      );
+        println!("temperature : {}\n", data.temperature);
 
         rtos::dly_tsk(1000000);
     }

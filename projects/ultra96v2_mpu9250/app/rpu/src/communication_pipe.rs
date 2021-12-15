@@ -19,31 +19,33 @@ const REG_RX_IRQ_STATUS:usize = 0x1c;
 const REG_RX_IRQ_ENABLE:usize = 0x1d;
 
 
-pub struct JellyCommunicationPipe<T: MemAccess, const FI: ID, const FP: FLGPTN> {
+pub struct JellyCommunicationPipe<T: MemAccess> {
     reg_acc: T,
+    flgid: rtos::ID,
+    flgptn: rtos::FLGPTN,
 }
 
-impl <T: MemAccess, const FI: ID, const FP: FLGPTN> JellyCommunicationPipe<T, FI, FP>
+impl <T: MemAccess> JellyCommunicationPipe<T>
 {
-    pub const fn new( reg_acc: T ) -> Self
+    pub const fn new( reg_acc: T, flgid: rtos::ID, flgptn: rtos::FLGPTN ) -> Self
     {
-        Self { reg_acc: reg_acc }
+        Self { reg_acc: reg_acc, flgid:flgid, flgptn:flgptn }
     }
 
     fn wait_tx(&self) {
         unsafe {
-            clr_flg(FI, !FP);
+            clr_flg(self.flgid, !self.flgptn);
             self.reg_acc.write_reg(REG_TX_IRQ_ENABLE, 1);
-            wai_flg(FI, FP, WfMode::AndWait);
+            wai_flg(self.flgid, self.flgptn, WfMode::AndWait);
             self.reg_acc.write_reg(REG_TX_IRQ_ENABLE, 0);
         }
     }
 
     fn wait_rx(&self) {
         unsafe {
-            clr_flg(FI, !FP);
+            clr_flg(self.flgid, !self.flgptn);
             self.reg_acc.write_reg(REG_RX_IRQ_ENABLE, 1);
-            wai_flg(FI, FP, WfMode::AndWait);
+            wai_flg(self.flgid, self.flgptn, WfMode::AndWait);
             self.reg_acc.write_reg(REG_RX_IRQ_ENABLE, 0);
         }
     }
