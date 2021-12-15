@@ -14,20 +14,21 @@ pub use phys_accessor::*;
 pub mod mmio_accessor;
 pub use mmio_accessor::*;
 
-#[cfg(feature = "std")]
+#[cfg(all(feature = "std", unix))]
 pub mod mmap_accessor;
-#[cfg(feature = "std")]
+#[cfg(all(feature = "std", unix))]
 pub use mmap_accessor::*;
 
-#[cfg(feature = "std")]
+#[cfg(all(feature = "std", unix))]
 pub mod uio_accessor;
-#[cfg(feature = "std")]
+#[cfg(all(feature = "std", unix))]
 pub use uio_accessor::*;
 
-#[cfg(feature = "std")]
+#[cfg(all(feature = "std", unix))]
 pub mod udmabuf_accessor;
-#[cfg(feature = "std")]
+#[cfg(all(feature = "std", unix))]
 pub use udmabuf_accessor::*;
+
 
 #[cfg(test)]
 mod tests {
