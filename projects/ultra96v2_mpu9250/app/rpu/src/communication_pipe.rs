@@ -50,7 +50,7 @@ impl <T: MemAccess> JellyCommunicationPipe<T>
         }
     }
 
-    pub fn putc(&mut self, c: u8) {
+    pub fn putc(&self, c: u8) {
         unsafe {
             while self.reg_acc.read_reg8(REG_TX_STATUS) == 0 {
                 self.wait_tx();
@@ -60,7 +60,7 @@ impl <T: MemAccess> JellyCommunicationPipe<T>
         }
     }
 
-    pub fn getc(&mut self) -> u8 {
+    pub fn getc(&self) -> u8 {
         unsafe {
             while self.reg_acc.read_reg8(REG_RX_STATUS) == 0 {
                 self.wait_rx();
@@ -69,5 +69,16 @@ impl <T: MemAccess> JellyCommunicationPipe<T>
             self.reg_acc.read_reg8(REG_RX_DATA)
         }
     }
-}
 
+    pub fn write(&self, data: &[u8]) {
+        for c in data.iter() {
+            self.putc(*c);
+        }
+    }
+
+    pub fn read(&self, buf: &mut [u8]) {
+        for c in buf.iter_mut() {
+            *c = self.getc();
+        }
+    }
+}

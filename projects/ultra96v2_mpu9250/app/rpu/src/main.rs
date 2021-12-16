@@ -36,25 +36,14 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
 }
 
 
-/*
-type ComRegion0  = PhysRegion<0x8008_0000, 0x800>;
-type ComAccessor0 = MemAccessor<ComRegion0, u64>;
-type ComPipe0    = JellyCommunicationPipe::<ComAccessor0, 1, 0x01>;
-static mut COM0: ComPipe0 = ComPipe0::new(ComAccessor0::new(ComRegion0::new()));
-
-type ComRegion1  = PhysRegion<0x8008_1000, 0x800>;
-type ComAccessor1 = MemAccessor<ComRegion0, u64>;
-type ComPipe1    = JellyCommunicationPipe::<ComAccessor1, 1, 0x04>;
-static mut COM2: ComPipe1 = ComPipe1::new(ComAccessor1::new(ComRegion1::new()));
-*/
-
+// APUとの通信用 COMパイプ定義
 type ComAccessor = MmioAccessor::<u64>;
 type ComPipe = JellyCommunicationPipe::<ComAccessor>;
-static mut COM0: ComPipe = ComPipe::new(ComAccessor::new(0x8008_0000, 0x800), 1, 0x01);
-static mut COM2: ComPipe = ComPipe::new(ComAccessor::new(0x8008_1000, 0x800), 1, 0x04);
+static COM0: ComPipe = ComPipe::new(ComAccessor::new(0x8008_0000, 0x800), 1, 0x01);
+static COM2: ComPipe = ComPipe::new(ComAccessor::new(0x8008_1000, 0x800), 1, 0x04);
 
 
-
+// COM0 に print! を割り当て
 #[macro_export]
 macro_rules! print {
     ($($arg:tt)*) => ($crate::_print(format_args!($($arg)*)));
@@ -76,7 +65,7 @@ struct ComWriter;
 impl Write for ComWriter {
     fn write_str(&mut self, s: &str) -> fmt::Result {
         for c in s.bytes() {
-            unsafe{COM0.putc(c as u8)};
+            COM0.putc(c as u8);
         }
         Ok(())
     }
@@ -145,6 +134,7 @@ extern "C" fn task1() -> ! {
 
     loop {
         let data = imu.read_sensor_data();
+
         println!("accel0      : {}", data.accel[0]     );
         println!("accel1      : {}", data.accel[1]     );
         println!("accel2      : {}", data.accel[2]     );
@@ -152,6 +142,9 @@ extern "C" fn task1() -> ! {
         println!("gyro1       : {}", data.gyro[1]      );
         println!("gyro2       : {}", data.gyro[2]      );
         println!("temperature : {}\n", data.temperature);
+
+        let data: [u8; 14] = unsafe { core::mem::transmute(data) };
+        COM2.write(&data);
 
         rtos::dly_tsk(1000000);
     }

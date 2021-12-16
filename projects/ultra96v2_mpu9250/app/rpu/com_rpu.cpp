@@ -21,12 +21,12 @@ void signal_handler(int sig)
 int main()
 {
     // mmap uio
-    jelly::UioAccessor com_rx_acc("uio_pl_com0", 0x100);
-    if ( !com_rx_acc.IsMapped() ) {
+    jelly::UioAccessor com0_rx_acc("uio_pl_com0", 0x10000);
+    if ( !com0_rx_acc.IsMapped() ) {
         std::cout << "uio_pl_com0 open error" << std::endl;
         return 1;
     }
-    
+        
     end_flag = false;
     if ( signal(SIGINT, signal_handler) == SIG_ERR ) {
         return 1;
@@ -35,8 +35,8 @@ int main()
     // Ctrl + C されるまでモニタする
     while ( !end_flag ) {
         // RX
-        if ( com_rx_acc.ReadReg(REG_COMMUNICATION_PIPE_RX_STATUS) != 0 ) {
-            char c = (char)com_rx_acc.ReadReg(REG_COMMUNICATION_PIPE_RX_DATA);
+        if ( com0_rx_acc.ReadReg(REG_COMMUNICATION_PIPE_RX_STATUS) != 0 ) {
+            char c = (char)com0_rx_acc.ReadReg(REG_COMMUNICATION_PIPE_RX_DATA);
             std::cout << c << std::flush;
         }
 

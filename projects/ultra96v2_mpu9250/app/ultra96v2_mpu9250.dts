@@ -67,14 +67,14 @@
 
             uio_pl_com0 {
                 compatible = "generic-uio";
-                reg = <0x0 0x80080000 0x0 0x00001000>;
+                reg = <0x0 0x80080000 0x0 0x00010000>;
                 interrupt-parent = <&gic>;
                 interrupts = <0 89 4>;
             };
             
             uio_pl_com1 {
                 compatible = "generic-uio";
-                reg = <0x0 0x80080000 0x0 0x00001000>;
+                reg = <0x0 0x80080000 0x0 0x00010000>;
                 interrupt-parent = <&gic>;
                 interrupts = <0 91 4>;
             };
