@@ -1,5 +1,5 @@
 [package]
-name = "ultra96v2_mpu9250"
+name = "ultra96v2_mpu9250_rpu"
 version = "0.1.0"
 edition = "2018"
 
@@ -7,8 +7,8 @@ edition = "2018"
 
 [dependencies]
 pudding-pac = { git="https://github.com/ryuz/rust_rtos.git", rev = "c13dd9014f86e0e230f167007e8effd9d805ef3f" } 
-jelly-rtos       = { path = "../../../../rust/rtos",        default-features=false, features=["reg64bit"] }
-jelly-mem_access = { path = "../../../../rust/mem_access/", default-features=false}
+jelly-rtos       = { path = "../../../../../rust/rtos",        default-features=false, features=["reg64bit"] }
+jelly-mem_access = { path = "../../../../../rust/mem_access/", default-features=false}
 
 [build-dependencies]
 cc = "1.0.36"

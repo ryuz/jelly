@@ -18,43 +18,55 @@ DEVTREE_PATH  = /configfs/device-tree
 all: $(DTBO_FILE) $(BIN_FILE) build
 
 .PHONY: build
-build: build_rpu
+build: build_rust
 
 .PHONY: run
-run: run_rpu
+run: run_rust
 
 .PHONY: stop
-stop: stop_rpu
+stop: stop_rust
 
 .PHONY: clean
-clean:
-	rm -rf $(OBJS) $(DTBO_FILE) $(BIN_FILE)
-	make -C apu clean
-
-.PHONY: run_apu
-run_apu: load exe_apu
-
-.PHONY: exe_apu
-exe_apu:
-	make -C apu run
+clean: clean_rust
 
 
-.PHONY: build_rpu
-build_rpu:
-	make -C rpu
+# Rust
+.PHONY: build_rust
+build_rust:
+	make -C rust build
 
-.PHONY: run_rpu
-run_rpu: load exe_rpu
+.PHONY: clean_rust
+clean_rust:
+	make -C rust clean
 
-.PHONY: exe_rpu
-exe_rpu:
-	make -C rpu run
+.PHONY: run_rust
+run_rust: load
+	make -C rust run
 
-.PHONY: stop_rpu
-stop_rpu:
-	make -C rpu stop
+.PHONY: stop_rust
+stop_rust:
+	make -C rust stop
 
 
+# C++
+.PHONY: build_cpp
+build_cpp:
+	make -C cpp build
+
+.PHONY: clean_cpp
+clean_cpp:
+	make -C cpp clean
+
+.PHONY: run_cpp
+run_cpp: load
+	make -C cpp run
+
+.PHONY: stop_cpp
+stop_cpp:
+	make -C cpp stop
+
+
+# device tree
 $(DTBO_FILE): $(DTS_FILE)
 	dtc -I dts -O dtb -o $(DTBO_FILE) $(DTS_FILE)
 

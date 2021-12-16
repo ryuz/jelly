@@ -78,7 +78,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "ultra96v2_mpu9250"
+name = "ultra96v2_mpu9250_rpu"
 version = "0.1.0"
 dependencies = [
  "cc",

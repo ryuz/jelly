@@ -40,7 +40,7 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
 type ComAccessor = MmioAccessor::<u64>;
 type ComPipe = JellyCommunicationPipe::<ComAccessor>;
 static COM0: ComPipe = ComPipe::new(ComAccessor::new(0x8008_0000, 0x800), 1, 0x01);
-static COM2: ComPipe = ComPipe::new(ComAccessor::new(0x8008_1000, 0x800), 1, 0x04);
+//static COM2: ComPipe = ComPipe::new(ComAccessor::new(0x8008_1000, 0x800), 1, 0x04);
 
 
 // COM0 に print! を割り当て
@@ -143,8 +143,8 @@ extern "C" fn task1() -> ! {
         println!("gyro2       : {}", data.gyro[2]      );
         println!("temperature : {}\n", data.temperature);
 
-        let data: [u8; 14] = unsafe { core::mem::transmute(data) };
-        COM2.write(&data);
+//      let data: [u8; 14] = unsafe { core::mem::transmute(data) };
+//      COM2.write(&data);
 
         rtos::dly_tsk(1000000);
     }
