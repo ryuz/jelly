@@ -19,25 +19,28 @@ const REG_RX_IRQ_STATUS:usize = 0x1c;
 const REG_RX_IRQ_ENABLE:usize = 0x1d;
 
 
-pub struct JellyCommunicationPipe<T: MemAccess> {
+pub trait PipeSend {
+    fn polling_tx(&self) -> bool;
+    fn putc(&self, c: u8);
+    fn write(&self, data: &[u8]);
+}
+
+pub trait PipeRecv {
+    fn polling_rx(&self) -> bool;
+    fn getc(&self) -> u8;
+    fn read(&self, buf: &mut [u8]);
+}
+
+pub struct CommunicationPipe<T: MemAccess> {
     reg_acc: T,
     wait_irq: Option<fn()>,
 }
 
-impl <T: MemAccess> JellyCommunicationPipe<T>
+impl <T: MemAccess> CommunicationPipe<T>
 {
     pub const fn new( reg_acc: T, wait_irq: Option<fn()>) -> Self
     {
         Self { reg_acc: reg_acc, wait_irq: wait_irq }
-    }
-
-    
-    pub fn polling_tx(&self) -> bool{
-        unsafe { self.reg_acc.read_reg8(REG_TX_STATUS) != 0 }
-    }
-
-    pub fn polling_rx(&self) -> bool{
-        unsafe { self.reg_acc.read_reg8(REG_RX_STATUS) != 0 }
     }
 
     unsafe fn set_tx_irq_enable(&self, enable : bool) {
@@ -69,26 +72,78 @@ impl <T: MemAccess> JellyCommunicationPipe<T>
             unsafe{ self.set_rx_irq_enable(false); }
         }
     }
+}
 
-    pub fn putc(&self, c: u8) {
+
+impl<T: MemAccess> PipeSend for CommunicationPipe<T>
+{
+    fn polling_tx(&self) -> bool{
+        unsafe { self.reg_acc.read_reg8(REG_TX_STATUS) != 0 }
+    }
+
+    fn putc(&self, c: u8) {
         self.wait_tx();
         unsafe { self.reg_acc.write_reg8(REG_TX_DATA, c); }
     }
 
-    pub fn getc(&self) -> u8 {
-        self.wait_rx();
-        unsafe { self.reg_acc.read_reg8(REG_RX_DATA) }
-    }
-
-    pub fn write(&self, data: &[u8]) {
+    fn write(&self, data: &[u8]) {
         for c in data.iter() {
             self.putc(*c);
         }
     }
+}
 
-    pub fn read(&self, buf: &mut [u8]) {
+impl<T: MemAccess> PipeRecv for CommunicationPipe<T>
+{
+
+    fn polling_rx(&self) -> bool{
+        unsafe { self.reg_acc.read_reg8(REG_RX_STATUS) != 0 }
+    }
+
+    fn getc(&self) -> u8 {
+        self.wait_rx();
+        unsafe { self.reg_acc.read_reg8(REG_RX_DATA) }
+    }
+
+    fn read(&self, buf: &mut [u8]) {
         for c in buf.iter_mut() {
             *c = self.getc();
         }
     }
 }
+
+
+
+use delegate::delegate;
+
+pub struct CommunicationPort<TX: PipeSend, RX: PipeRecv> {
+    pipe_tx: TX,
+    pipe_rx: RX,
+}
+
+impl<TX: PipeSend, RX: PipeRecv> CommunicationPort<TX, RX> {
+    pub const fn new(pipe_tx: TX, pipe_rx: RX) -> Self {
+        Self { pipe_tx: pipe_tx, pipe_rx: pipe_rx }
+    }
+}
+
+impl<TX: PipeSend, RX: PipeRecv> PipeSend for CommunicationPort<TX, RX> {
+    delegate! {
+        to self.pipe_tx {
+            fn polling_tx(&self) -> bool;
+            fn putc(&self, c: u8);
+            fn write(&self, data: &[u8]);
+        }
+    }
+}
+
+impl<TX: PipeSend, RX: PipeRecv> PipeRecv for CommunicationPort<TX, RX> {
+    delegate! {
+        to self.pipe_rx {
+            fn polling_rx(&self) -> bool;
+            fn getc(&self) -> u8;
+            fn read(&self, buf: &mut [u8]);
+        }
+    }
+}
+

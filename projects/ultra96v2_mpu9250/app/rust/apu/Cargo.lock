@@ -66,6 +66,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "jelly-pac"
+version = "0.1.0"
+dependencies = [
+ "delegate",
+ "jelly-mem_access",
+]
+
+[[package]]
 name = "libc"
 version = "0.2.112"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -171,6 +179,7 @@ name = "ultra96v2_mpu9250_apu"
 version = "0.1.0"
 dependencies = [
  "jelly-mem_access",
+ "jelly-pac",
  "nix 0.23.0",
 ]
 

@@ -33,6 +33,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "jelly-pac"
+version = "0.1.0"
+dependencies = [
+ "delegate",
+ "jelly-mem_access",
+]
+
+[[package]]
 name = "jelly-rtos"
 version = "0.1.0"
 dependencies = [
@@ -83,6 +91,7 @@ version = "0.1.0"
 dependencies = [
  "cc",
  "jelly-mem_access",
+ "jelly-pac",
  "jelly-rtos",
  "pudding-pac",
 ]

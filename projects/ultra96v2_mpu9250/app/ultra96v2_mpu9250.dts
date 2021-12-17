@@ -64,23 +64,33 @@
                 interrupts = <0 93 4>;
             };
             
-
-            uio_pl_com0 {
+            uio_pl_pipe0 {
                 compatible = "generic-uio";
                 reg = <0x0 0x80080000 0x0 0x00010000>;
                 interrupt-parent = <&gic>;
                 interrupts = <0 89 4>;
             };
             
-            uio_pl_com1 {
+            uio_pl_pipe1 {
+                compatible = "generic-uio";
+                reg = <0x0 0x80080000 0x0 0x00010000>;
+                interrupt-parent = <&gic>;
+                interrupts = <0 90 4>;
+            };
+
+            uio_pl_pipe2 {
                 compatible = "generic-uio";
                 reg = <0x0 0x80080000 0x0 0x00010000>;
                 interrupt-parent = <&gic>;
                 interrupts = <0 91 4>;
             };
+
+            uio_pl_pipe3 {
+                compatible = "generic-uio";
+                reg = <0x0 0x80080000 0x0 0x00010000>;
+                interrupt-parent = <&gic>;
+                interrupts = <0 92 4>;
+            };
         };
     };
-
-
-
 };

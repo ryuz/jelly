@@ -4,6 +4,7 @@ use std::{thread, time};
 use nix::sys::signal;
 use nix::sys::signal::*;
 use jelly_mem_access::*;
+use jelly_pac::communication_pipe::*;
 
 
 const REG_COMMUNICATION_PIPE_CORE_ID      : usize = 0x00;
@@ -35,15 +36,34 @@ fn main() {
     let sa = SigAction::new(SigHandler::Handler(handle_signal), SaFlags::SA_RESETHAND, SigSet::empty());
     unsafe { sigaction(signal::SIGINT, &sa) }.unwrap();
 
-    let com0_rx_acc = UioAccessor::<u64>::new_from_name("uio_pl_com0").unwrap();
+    let pipe0_rx_acc = UioAccessor::<u64>::new_from_name("uio_pl_pipe0").unwrap().clone(0x0000, 0);
+    let pipe1_tx_acc = UioAccessor::<u64>::new_from_name("uio_pl_pipe1").unwrap().clone(0x0800, 0);
+    let pipe2_rx_acc = UioAccessor::<u64>::new_from_name("uio_pl_pipe2").unwrap().clone(0x1000, 0);
+    let pipe3_tx_acc = UioAccessor::<u64>::new_from_name("uio_pl_pipe3").unwrap().clone(0x1800, 0);
+    let pipe0_rx = CommunicationPipe::new(pipe0_rx_acc, None);
+    let pipe1_tx = CommunicationPipe::new(pipe1_tx_acc, None);
+    let pipe2_rx = CommunicationPipe::new(pipe2_rx_acc, None);
+    let pipe3_tx = CommunicationPipe::new(pipe3_tx_acc, None);
+    let com0 = CommunicationPort::new(pipe1_tx, pipe0_rx);
+    let com1 = CommunicationPort::new(pipe3_tx, pipe2_rx);
 
+    println!("start\n");
     while unsafe{!std::ptr::read_volatile(&END_FLAG)} {
-        // RX
-        if unsafe{com0_rx_acc.read_reg(REG_COMMUNICATION_PIPE_RX_STATUS)} != 0 {
-            let c: char = unsafe{com0_rx_acc.read_reg8(REG_COMMUNICATION_PIPE_RX_DATA)} as char;
-            print!("{}", c);
+        // COM0 recv
+        if com0.polling_rx() {
+            print!("{}", com0.getc() as char);
         }
 
+        // COM1 recv
+        while com1.polling_rx() {
+            let mut buf: [u8; 14] = [0; 14];
+            com1.read(&mut buf);
+        }
+        
         thread::sleep(time::Duration::from_millis(1));
     }
+
+    com0.putc('q' as u8);
+    println!("end\n");
+    thread::sleep(time::Duration::from_millis(1000));
 }

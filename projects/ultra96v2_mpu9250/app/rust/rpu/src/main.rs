@@ -12,10 +12,10 @@ use core::panic::PanicInfo;
 
 use jelly_rtos::rtos;
 use jelly_mem_access::*;
-use communication_pipe::*;
+use jelly_pac::communication_pipe::*;
 
 mod bootstrap;
-mod communication_pipe;
+//mod communication_pipe;
 
 mod i2c;
 use i2c::*;
@@ -25,7 +25,8 @@ use mpu9250::*;
 
 
 //#[macro_use]
-//pub mod uart;
+
+pub mod uart;
 //use uart::*;
 
 
@@ -36,12 +37,26 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
 }
 
 
+fn wait_irq<const FLGID: rtos::ID, const WAIPTN: rtos::FLGPTN>() {
+    rtos::clr_flg(FLGID, !WAIPTN);
+    rtos::wai_flg(FLGID, WAIPTN, rtos::WfMode::AndWait);
+}
+
 // APUとの通信用 COMパイプ定義
 type ComAccessor = MmioAccessor::<u64>;
-type ComPipe = JellyCommunicationPipe::<ComAccessor>;
-static COM0: ComPipe = ComPipe::new(ComAccessor::new(0x8008_0000, 0x800), 1, 0x01);
-//static COM2: ComPipe = ComPipe::new(ComAccessor::new(0x8008_1000, 0x800), 1, 0x04);
+type ComPipe = CommunicationPipe::<ComAccessor>;
+type ComPort = CommunicationPort::<ComPipe, ComPipe>;
 
+//static COM0: ComPipe = ComPipe::new(ComAccessor::new(0x8008_0000, 0x800), Some(wait_irq::<1, 0x01>));
+//static COM2: ComPipe = ComPipe::new(ComAccessor::new(0x8008_1000, 0x800), Some(wait_irq::<1, 0x04>));
+
+static COM0: ComPort = ComPort::new(
+                            ComPipe::new(ComAccessor::new(0x8008_0000, 0x800), Some(wait_irq::<1, 0x01>)),
+                            ComPipe::new(ComAccessor::new(0x8008_0800, 0x800), Some(wait_irq::<1, 0x02>)));
+static COM1: ComPort = ComPort::new(
+                            ComPipe::new(ComAccessor::new(0x8008_1000, 0x800), Some(wait_irq::<1, 0x02>)),
+                            ComPipe::new(ComAccessor::new(0x8008_1800, 0x800), Some(wait_irq::<1, 0x04>)));
+    
 
 // COM0 に print! を割り当て
 #[macro_export]
@@ -78,6 +93,7 @@ pub unsafe extern "C" fn main() -> ! {
     wait(10000000);
     println!("\nJelly-RTOS start\n");
     wait(10000);
+    uart::uart_puts("run mpu9250 sample\r\n");
 
 //  memdump(0x80000000, 16);
 
@@ -132,7 +148,7 @@ extern "C" fn task1() -> ! {
 
     println!("WHO_AM_I(exp:0x71):0x{:02x}", imu.read_who_am_i());
 
-    loop {
+    while !COM0.polling_rx() {
         let data = imu.read_sensor_data();
 
         println!("accel0      : {}", data.accel[0]     );
@@ -143,11 +159,14 @@ extern "C" fn task1() -> ! {
         println!("gyro2       : {}", data.gyro[2]      );
         println!("temperature : {}\n", data.temperature);
 
-//      let data: [u8; 14] = unsafe { core::mem::transmute(data) };
-//      COM2.write(&data);
-
+        let data: [u8; 14] = unsafe { core::mem::transmute(data) };
+        COM1.write(&data);
+        
         rtos::dly_tsk(1000000);
     }
+
+    uart::uart_puts("[END] mpu9250 sample\r\n");
+    loop{}
 }
 
 

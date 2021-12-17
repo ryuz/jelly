@@ -1,7 +1,5 @@
 // UART
 
-use core::fmt::{self, Write};
-
 // const UART_BASE_ADDR   : usize = 0xff000000;    // UART0
 const UART_BASE_ADDR: usize = 0xff010000; // UART1
 const UART_CHANNEL_STS: usize = UART_BASE_ADDR + 0x0000002C;
@@ -45,6 +43,16 @@ pub fn uart_write(c: i32) {
     wrtie_reg(UART_TX_RX_FIFO, c as u32)
 }
 
+pub fn uart_puts(string: &str) {
+    for c in string.chars() {
+        uart_write(c as i32);
+    }
+}
+
+
+/*
+use core::fmt::{self, Write};
+
 #[macro_export]
 macro_rules! print {
     ($($arg:tt)*) => ($crate::_print(format_args!($($arg)*)));
@@ -71,5 +79,6 @@ impl Write for UartWriter {
         Ok(())
     }
 }
+*/
 
 // end of file

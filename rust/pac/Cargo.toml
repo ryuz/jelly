@@ -10,6 +10,5 @@ default = ["std"]
 std=[]
 
 [dependencies]
-#pudding-pac = { git="https://github.com/ryuz/rust_rtos.git", rev = "c13dd9014f86e0e230f167007e8effd9d805ef3f" } 
-#jelly-rtos       = { path = "../rtos" }
 jelly-mem_access = { path = "../mem_access/", default-features=false }
+delegate = "0.6.1"
