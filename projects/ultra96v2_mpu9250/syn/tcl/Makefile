@@ -1,6 +1,6 @@
 
 
-PRJ_NAME = ultra96v2_udmabuf_sample_tcl
+PRJ_NAME = ultra96v2_mpu9250_tcl
 
 
 .PHONY : all

@@ -252,7 +252,7 @@ module ultra96v2_mpu9250
     //  communication
     // -----------------------------
     
-    localparam COM_NUM = 2;
+    localparam COM_NUM = 4;
 
     logic   [WB_DAT_WIDTH-1:0]      wb_com_dat_o;
     logic                           wb_com_stb_i;
@@ -384,20 +384,20 @@ module ultra96v2_mpu9250
 
     always_comb begin
         irq0 = '0;
-        irq0[0] = com_irq_rx[0];
-        irq0[1] = com_irq_tx[1];
-//      irq0[2] = com_irq_tx[0];
-//      irq0[3] = com_irq_rx[1];
+        irq0[0] = com_irq_rx[0];    // RPU->APU
+        irq0[1] = com_irq_tx[1];    // APU->RPU
+        irq0[2] = com_irq_rx[2];    // RPU->APU
+        irq0[3] = com_irq_tx[3];    // APU->RPU
         irq0[4] = i2c_irq;
     end
 
     // イベントフラグで受ける
     always_comb begin
         rtos_set_flg = '0;
-        rtos_set_flg[1][0] = com_irq_tx[0];
-        rtos_set_flg[1][1] = com_irq_rx[1];
-//      rtos_set_flg[1][2] = com_irq_rx[0];
-//      rtos_set_flg[1][3] = com_irq_tx[0];
+        rtos_set_flg[1][0] = com_irq_tx[0]; // RPU->APU
+        rtos_set_flg[1][1] = com_irq_rx[1]; // APU->RPU
+        rtos_set_flg[1][2] = com_irq_tx[2]; // RPU->APU
+        rtos_set_flg[1][3] = com_irq_rx[3]; // APU->RPU
         rtos_set_flg[1][4] = i2c_irq;
     end
 
