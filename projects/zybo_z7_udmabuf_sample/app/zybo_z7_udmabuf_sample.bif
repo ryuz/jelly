@@ -1,5 +1,0 @@
-all:
-{
-    zybo_z7_udmabuf_sample.bit
-}
-

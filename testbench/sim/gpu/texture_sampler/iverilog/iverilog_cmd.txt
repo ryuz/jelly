@@ -1,7 +1,0 @@
-../tb_texture_sampler.v
--y ../../../../../rtl/library
--y ../../../../../rtl/bus
--y ../../../../../rtl/gpu
--y ../../../../../rtl/math
--y ../../../../../rtl/primitive
--y ../../../../../rtl/model

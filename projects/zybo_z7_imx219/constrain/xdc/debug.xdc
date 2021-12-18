@@ -1,8 +1,0 @@
-set_property PULLUP true [get_ports {pmod_a[7]}]
-set_property PULLUP true [get_ports {pmod_a[6]}]
-set_property PULLUP true [get_ports {pmod_a[5]}]
-set_property PULLUP true [get_ports {pmod_a[4]}]
-set_property PULLUP true [get_ports {pmod_a[3]}]
-set_property PULLUP true [get_ports {pmod_a[2]}]
-set_property PULLUP true [get_ports {pmod_a[1]}]
-set_property PULLUP true [get_ports {pmod_a[0]}]

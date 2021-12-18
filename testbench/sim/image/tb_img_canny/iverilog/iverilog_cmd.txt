@@ -1,5 +1,0 @@
-../tb_img_canny.v
--y ../../../../../rtl/library
--y ../../../../../rtl/image
--y ../../../../../rtl/math
--y ../../../../../rtl/model
