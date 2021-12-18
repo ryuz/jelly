@@ -99,7 +99,7 @@ pub unsafe extern "C" fn main() -> ! {
 
     rtos::initialize(0x80000000);
 
-    rtos::ena_extflg(1, 0x1f);
+    rtos::ena_extflg(1, 0x3f);
 
     println!("core_id      : 0x{:08x}", rtos::core_id     ());
     println!("core_version : 0x{:08x}", rtos::core_version());
@@ -136,11 +136,11 @@ extern "C" fn task1() -> ! {
     
     // PhysAccessor を使う場合
     type I2cAccessor = PhysAccessor<u64, 0x8080_0000, 0x100>;
-    let  i2c = i2c::JellyI2c::<I2cAccessor, 1, 0x10>::new(I2cAccessor::new().into());
+    let  i2c = i2c::JellyI2c::<I2cAccessor, 1, 0x20>::new(I2cAccessor::new().into());
     
     // MmioAccessor を使う場合
 //  let i2c_acc = MmioAccessor::<u64>::new(0x8080_0000, 0x100);
-//  let i2c = i2c::JellyI2c::<MmioAccessor<u64>, 1, 0x10>::new(i2c_acc);
+//  let i2c = i2c::JellyI2c::<MmioAccessor<u64>, 1, 0x20>::new(i2c_acc);
 
     i2c.set_divider(50 - 1);
     
