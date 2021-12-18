@@ -1,6 +1,5 @@
 #![no_std]
 #![feature(const_fn_trait_bound)]
-// #![feature(proc_macro_is_available)]
 
 #[cfg(feature = "std")]
 extern crate std;
@@ -28,13 +27,3 @@ pub use uio_accessor::*;
 pub mod udmabuf_accessor;
 #[cfg(all(feature = "std", unix))]
 pub use udmabuf_accessor::*;
-
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
-    }
-}
