@@ -283,10 +283,45 @@ module ultra96v2_mpu9250
                 .s_wb_sel_i         (wb_peri_sel_i),
                 .s_wb_stb_i         (wb_com_stb_i),
                 .s_wb_ack_o         (wb_com_ack_o),
-
+                
                 .irq_tx             (com_irq_tx),
                 .irq_rx             (com_irq_rx)
             );
+    
+    
+    // -----------------------------
+    //  Test Timer
+    // -----------------------------
+    
+    logic                           tim_irq;
+    
+    logic   [WB_DAT_WIDTH-1:0]      wb_tim_dat_o;
+    logic                           wb_tim_stb_i;
+    logic                           wb_tim_ack_o;
+    
+    jelly_interval_timer
+            #(
+                .WB_ADR_WIDTH       (8),
+                .WB_DAT_WIDTH       (WB_DAT_WIDTH),
+                .IRQ_LEVEL          (1)
+            )
+        i_interval_timer
+            (
+                .reset              (wb_peri_rst_i),
+                .clk                (wb_peri_clk_i),
+                
+                .interrupt_req      (tim_irq),
+                
+                .s_wb_adr_i         (wb_peri_adr_i[7:0]),
+                .s_wb_dat_o         (wb_tim_dat_o),
+                .s_wb_dat_i         (wb_peri_dat_i),
+                .s_wb_we_i          (wb_peri_we_i),
+                .s_wb_sel_i         (wb_peri_sel_i),
+                .s_wb_stb_i         (wb_tim_stb_i),
+                .s_wb_ack_o         (wb_tim_ack_o)
+            );
+    
+    
     
     
     // -----------------------------
@@ -303,33 +338,33 @@ module ultra96v2_mpu9250
     logic                           wb_i2c_ack_o;
     
     logic                           i2c_irq;
-
+    
     jelly_i2c
             #(
-                .DIVIDER_WIDTH          (16),
-                .DIVIDER_INIT           (2000),
-                .WB_ADR_WIDTH           (8),
-                .WB_DAT_WIDTH           (WB_DAT_WIDTH)
+                .DIVIDER_WIDTH      (16),
+                .DIVIDER_INIT       (2000),
+                .WB_ADR_WIDTH       (8),
+                .WB_DAT_WIDTH       (WB_DAT_WIDTH)
             )
         i_i2c
             (
-                .reset                  (wb_peri_rst_i),
-                .clk                    (wb_peri_clk_i),
+                .reset              (wb_peri_rst_i),
+                .clk                (wb_peri_clk_i),
                 
-                .i2c_scl_t              (i2c_scl_t),
-                .i2c_scl_i              (i2c_scl_i),
-                .i2c_sda_t              (i2c_sda_t),
-                .i2c_sda_i              (i2c_sda_i),
+                .i2c_scl_t          (i2c_scl_t),
+                .i2c_scl_i          (i2c_scl_i),
+                .i2c_sda_t          (i2c_sda_t),
+                .i2c_sda_i          (i2c_sda_i),
                 
-                .s_wb_adr_i             (wb_peri_adr_i[7:0]),
-                .s_wb_dat_o             (wb_i2c_dat_o),
-                .s_wb_dat_i             (wb_peri_dat_i),
-                .s_wb_we_i              (wb_peri_we_i ),
-                .s_wb_sel_i             (wb_peri_sel_i),
-                .s_wb_stb_i             (wb_i2c_stb_i),
-                .s_wb_ack_o             (wb_i2c_ack_o),
+                .s_wb_adr_i         (wb_peri_adr_i[7:0]),
+                .s_wb_dat_o         (wb_i2c_dat_o),
+                .s_wb_dat_i         (wb_peri_dat_i),
+                .s_wb_we_i          (wb_peri_we_i ),
+                .s_wb_sel_i         (wb_peri_sel_i),
+                .s_wb_stb_i         (wb_i2c_stb_i),
+                .s_wb_ack_o         (wb_i2c_ack_o),
                 
-                .irq                    (i2c_irq)
+                .irq                (i2c_irq)
             );
     
     IOBUF i_iobuf_scl   (.IO(imu_sck), .I(1'b0), .O(i2c_scl_i), .T(i2c_scl_t));
@@ -375,13 +410,13 @@ module ultra96v2_mpu9250
     assign led[1] = reg_clk_count[25];
     
     
-
+    
     // -----------------------------
     //  IRQ
     // -----------------------------
-
+    
     assign nirq0_lpd_rpu = ~rtos_irq;
-
+    
     always_comb begin
         irq0 = '0;
         irq0[0] = com_irq_rx[0];    // RPU->APU
@@ -390,7 +425,7 @@ module ultra96v2_mpu9250
         irq0[3] = com_irq_tx[3];    // APU->RPU
         irq0[4] = i2c_irq;
     end
-
+    
     // イベントフラグで受ける
     always_comb begin
         rtos_set_flg = '0;
@@ -398,27 +433,31 @@ module ultra96v2_mpu9250
         rtos_set_flg[1][1] = com_irq_rx[1]; // APU->RPU
         rtos_set_flg[1][2] = com_irq_tx[2]; // RPU->APU
         rtos_set_flg[1][3] = com_irq_rx[3]; // APU->RPU
-        rtos_set_flg[1][4] = i2c_irq;
+        rtos_set_flg[1][4] = tim_irq;
+        rtos_set_flg[1][5] = i2c_irq;
     end
-
-
+    
+    
     // -----------------------------
     //  WISHBONE address decode
     // -----------------------------
     
     assign wb_rtos_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[23:16] == 8'h00);
     assign wb_com_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[23:16] == 8'h01);
+    assign wb_tim_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[23:16] == 8'h08);
     assign wb_i2c_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[23:16] == 8'h10);
     assign wb_led_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[23:16] == 8'h11);
     
     assign wb_peri_dat_o  = wb_rtos_stb_i ? wb_rtos_dat_o :
                             wb_com_stb_i  ? wb_com_dat_o  :
+                            wb_tim_stb_i  ? wb_i2c_dat_o  :
                             wb_i2c_stb_i  ? wb_i2c_dat_o  :
                             wb_led_stb_i  ? wb_led_dat_o  :
                             {WB_DAT_WIDTH{1'b0}};
     
     assign wb_peri_ack_o  = wb_rtos_stb_i ? wb_rtos_ack_o :
                             wb_com_stb_i  ? wb_com_ack_o  :
+                            wb_tim_stb_i  ? wb_tim_ack_o  :
                             wb_i2c_stb_i  ? wb_i2c_ack_o  :
                             wb_led_stb_i  ? wb_led_ack_o  :
                             wb_peri_stb_i;
