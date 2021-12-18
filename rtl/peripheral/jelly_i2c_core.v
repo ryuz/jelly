@@ -224,6 +224,12 @@ module jelly_i2c_core
                     2'b10:   begin reg_scl_t <= 1'b1; reg_sda_t <= 1'b1; end
                     2'b11:   begin reg_scl_t <= 1'b0; reg_sda_t <= 1'b1; end
                     endcase
+                
+                default:
+                    begin
+                        reg_scl_t     <= 1'b1;
+                        reg_sda_t     <= 1'b1;                      
+                    end
                 endcase
             end
         end
