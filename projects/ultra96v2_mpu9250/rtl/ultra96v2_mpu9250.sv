@@ -209,6 +209,7 @@ module ultra96v2_mpu9250
                 .QUECNT_WIDTH           (QUECNT_WIDTH),
                 .TSKID_WIDTH            (TSKID_WIDTH),
                 .SEMID_WIDTH            (SEMID_WIDTH),
+                .INIT_EXTFLG_LEVEL      (8'h10),
                 .CLOCK_RATE             (250_000_000)   // 100MHz
             )   
         i_rtos
@@ -423,7 +424,8 @@ module ultra96v2_mpu9250
         irq0[1] = com_irq_tx[1];    // APU->RPU
         irq0[2] = com_irq_rx[2];    // RPU->APU
         irq0[3] = com_irq_tx[3];    // APU->RPU
-        irq0[4] = i2c_irq;
+        irq0[4] = tim_irq;
+        irq0[5] = i2c_irq;
     end
     
     // イベントフラグで受ける

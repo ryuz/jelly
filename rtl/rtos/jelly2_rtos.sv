@@ -56,6 +56,8 @@ module jelly2_rtos
             parameter   bit                                         USE_POL_FLG        = 1,
             parameter   bit                                         USE_WAI_FLG        = 1,
             parameter   bit                                         USE_EXT_FLG        = 1,
+            parameter   bit                                         USE_ENA_FLG_EXT    = 1,
+            parameter   bit                                         USE_LVL_FLG_EXT    = 1,
             parameter   bit                                         USE_GET_PRI        = 1,
             parameter   bit                                         USE_SET_PSCL       = 1,
             parameter   bit                                         USE_SET_TIM        = 1,
@@ -76,6 +78,7 @@ module jelly2_rtos
 
             parameter   bit     [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    INIT_FLGPTN        = '0,
             parameter   bit     [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    INIT_EXTFLG_ENABLE = '0,
+            parameter   bit     [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    INIT_EXTFLG_LEVEL  = '0,
             parameter   bit     [PRESCL_WIDTH-1:0]                  INIT_PRESCL        = '0,
             parameter   bit     [SYSTIM_WIDTH-1:0]                  INIT_SYSTIM        = '0,
             parameter   bit     [SCRATCH0_WIDTH-1:0]                INIT_SCRATCH0      = '0,
@@ -290,39 +293,42 @@ module jelly2_rtos
     localparam  int                         DECODE_ID_POS     = 0;
     localparam  int                         DECODE_OPCODE_POS = DECODE_ID_POS + ID_WIDTH;
 
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SYS_CFG     = OPCODE_WIDTH'(8'h00);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CPU_CTL     = OPCODE_WIDTH'(8'h01);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WUP_TSK     = OPCODE_WIDTH'(8'h10);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SLP_TSK     = OPCODE_WIDTH'(8'h11);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_RSM_TSK     = OPCODE_WIDTH'(8'h14);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SUS_TSK     = OPCODE_WIDTH'(8'h15);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_DLY_TSK     = OPCODE_WIDTH'(8'h18);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CHG_PRI     = OPCODE_WIDTH'(8'h1c);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SET_TMO     = OPCODE_WIDTH'(8'h1f);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_TSKSTAT = OPCODE_WIDTH'(8'h90);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_TSKWAIT = OPCODE_WIDTH'(8'h91);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_WUPCNT  = OPCODE_WIDTH'(8'h92);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_SUSCNT  = OPCODE_WIDTH'(8'h93);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_TIMCNT  = OPCODE_WIDTH'(8'h94);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_ERCD    = OPCODE_WIDTH'(8'h98);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_GET_PRI     = OPCODE_WIDTH'(8'h9c);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SIG_SEM     = OPCODE_WIDTH'(8'h21);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_SEM     = OPCODE_WIDTH'(8'h22);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_POL_SEM     = OPCODE_WIDTH'(8'h23);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_SEMCNT  = OPCODE_WIDTH'(8'ha0);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_SEMQUE  = OPCODE_WIDTH'(8'ha1);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SET_FLG     = OPCODE_WIDTH'(8'h31);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CLR_FLG     = OPCODE_WIDTH'(8'h32);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_FLG_AND = OPCODE_WIDTH'(8'h33);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_FLG_OR  = OPCODE_WIDTH'(8'h34);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_ENA_FLG_EXT = OPCODE_WIDTH'(8'h3a);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_DIS_FLG_EXT = OPCODE_WIDTH'(8'h3b);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_FLGPTN  = OPCODE_WIDTH'(8'hb0);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SET_TIM     = OPCODE_WIDTH'(8'h70);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SET_PSCL    = OPCODE_WIDTH'(8'h72);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_GET_TIM     = OPCODE_WIDTH'(8'hf0);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SYSTIM_LO   = OPCODE_WIDTH'(8'hf2);
-    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SYSTIM_HI   = OPCODE_WIDTH'(8'hf3);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SYS_CFG       = OPCODE_WIDTH'(8'h00);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CPU_CTL       = OPCODE_WIDTH'(8'h01);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WUP_TSK       = OPCODE_WIDTH'(8'h10);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SLP_TSK       = OPCODE_WIDTH'(8'h11);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_RSM_TSK       = OPCODE_WIDTH'(8'h14);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SUS_TSK       = OPCODE_WIDTH'(8'h15);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_DLY_TSK       = OPCODE_WIDTH'(8'h18);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CHG_PRI       = OPCODE_WIDTH'(8'h1c);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SET_TMO       = OPCODE_WIDTH'(8'h1f);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_TSKSTAT   = OPCODE_WIDTH'(8'h90);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_TSKWAIT   = OPCODE_WIDTH'(8'h91);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_WUPCNT    = OPCODE_WIDTH'(8'h92);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_SUSCNT    = OPCODE_WIDTH'(8'h93);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_TIMCNT    = OPCODE_WIDTH'(8'h94);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_ERCD      = OPCODE_WIDTH'(8'h98);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_GET_PRI       = OPCODE_WIDTH'(8'h9c);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SIG_SEM       = OPCODE_WIDTH'(8'h21);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_SEM       = OPCODE_WIDTH'(8'h22);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_POL_SEM       = OPCODE_WIDTH'(8'h23);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_SEMCNT    = OPCODE_WIDTH'(8'ha0);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_SEMQUE    = OPCODE_WIDTH'(8'ha1);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SET_FLG       = OPCODE_WIDTH'(8'h31);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CLR_FLG       = OPCODE_WIDTH'(8'h32);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_FLG_AND   = OPCODE_WIDTH'(8'h33);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_WAI_FLG_OR    = OPCODE_WIDTH'(8'h34);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_ENA_FLG_EXT   = OPCODE_WIDTH'(8'h3a);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_DIS_FLG_EXT   = OPCODE_WIDTH'(8'h3b);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_LVL_FLG_EXT   = OPCODE_WIDTH'(8'h3c);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_FLGPTN    = OPCODE_WIDTH'(8'hb0);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_EXTFLGENA = OPCODE_WIDTH'(8'hb1);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REF_EXTFLGLVL = OPCODE_WIDTH'(8'hb2);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SET_TIM       = OPCODE_WIDTH'(8'h70);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SET_PSCL      = OPCODE_WIDTH'(8'h72);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_GET_TIM       = OPCODE_WIDTH'(8'hf0);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SYSTIM_LO     = OPCODE_WIDTH'(8'hf2);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SYSTIM_HI     = OPCODE_WIDTH'(8'hf3);
 
     localparam  bit     [ID_WIDTH-1:0]      SYS_CFG_CORE_ID      = 'h00;
     localparam  bit     [ID_WIDTH-1:0]      SYS_CFG_VERSION      = 'h01;
@@ -364,6 +370,7 @@ module jelly2_rtos
     logic   [0:0]                               reg_irq;
 
     logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    extflg_enable;
+    logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    extflg_level;
 
     logic   [SCRATCH0_WIDTH-1:0]                scratch0;
     logic   [SCRATCH1_WIDTH-1:0]                scratch1;
@@ -380,6 +387,7 @@ module jelly2_rtos
             reg_switch     <= '0;
             reg_irq        <= '0;
             extflg_enable  <= INIT_EXTFLG_ENABLE;
+            extflg_level   <= INIT_EXTFLG_LEVEL;
             reg_systim     <= INIT_SYSTIM;
             scratch0       <= INIT_SCRATCH0;
             scratch1       <= INIT_SCRATCH1;
@@ -413,7 +421,14 @@ module jelly2_rtos
 
                 OPCODE_ENA_FLG_EXT:
                     begin
-                        if ( USE_EXT_FLG && int'(dec_id) >= 1 && int'(dec_id) <= TMAX_FLGID ) begin
+                        if ( USE_EXT_FLG && USE_ENA_FLG_EXT && int'(dec_id) >= 1 && int'(dec_id) <= TMAX_FLGID ) begin
+                            extflg_enable[dec_id] <= extflg_enable[dec_id] | FLGPTN_WIDTH'(s_wb_dat_i);
+                        end
+                    end
+
+                OPCODE_LVL_FLG_EXT:
+                    begin
+                        if ( USE_EXT_FLG && USE_LVL_FLG_EXT && int'(dec_id) >= 1 && int'(dec_id) <= TMAX_FLGID ) begin
                             extflg_enable[dec_id] <= extflg_enable[dec_id] | FLGPTN_WIDTH'(s_wb_dat_i);
                         end
                     end
@@ -574,9 +589,12 @@ module jelly2_rtos
         end
 
         // external flag
-        set_flg = set_flg | (extflg_enable & ext_set_flg);
+        if ( USE_EXT_FLG ) begin
+            set_flg = set_flg | (extflg_enable & ext_set_flg);
+            set_flg = set_flg & (~extflg_level | ext_set_flg);
+        end
     end
-
+    
     // wishbone read
     always_comb begin : blk_wb_dat_o
         s_wb_dat_o = '0;
@@ -632,6 +650,9 @@ module jelly2_rtos
         OPCODE_REF_SEMQUE:  s_wb_dat_o = USE_REF_SEMQUE  ? WB_DAT_WIDTH'(semaphore_quecnt) : '0;
         
         OPCODE_REF_FLGPTN:  s_wb_dat_o = (USE_POL_FLG || USE_REF_FLGPTN) ? WB_DAT_WIDTH'(flg_flgptn) : '0;
+
+        OPCODE_REF_EXTFLGENA:  s_wb_dat_o = USE_EXT_FLG ? WB_DAT_WIDTH'(extflg_enable) : '0;
+        OPCODE_REF_EXTFLGLVL:  s_wb_dat_o = USE_EXT_FLG ? WB_DAT_WIDTH'(extflg_level)  : '0;
         
         OPCODE_SYSTIM_LO:   s_wb_dat_o = USE_GET_TIM     ? WB_DAT_WIDTH'(reg_systim)                 : '0;
         OPCODE_SYSTIM_HI:   s_wb_dat_o = USE_GET_TIM     ? WB_DAT_WIDTH'(reg_systim >> WB_DAT_WIDTH) : '0;

@@ -127,6 +127,7 @@ proc add_sv_file {fileset_name library_name file_name} {
 
 add_sv_file      sources_1 WORK ../../rtl/ultra96v2_mpu9250.sv
 add_verilog_file sources_1 WORK ../../../../rtl/bus/jelly_axi4l_to_wishbone.v
+add_verilog_file sources_1 WORK ../../../../rtl/peripheral/jelly_interval_timer.v
 add_verilog_file sources_1 WORK ../../../../rtl/peripheral/jelly_i2c.v
 add_verilog_file sources_1 WORK ../../../../rtl/peripheral/jelly_i2c_core.v
 add_verilog_file sources_1 WORK ../../../../rtl/library/jelly_pipeline_control.v

@@ -79,13 +79,20 @@ module jelly2_communication_pipes
     end
     endgenerate
 
-    always_comb begin : blk_wb
+    always_comb begin : blk_wb_stb
         wb_stb_i = '0;
-        s_wb_dat_o = '0;
-        s_wb_ack_o = '0;
         for ( int i = 0; i < NUM; ++i ) begin
             if ( s_wb_stb_i && int'(s_wb_adr_i[WB_ADR_WIDTH-1:SUB_ADR_WIDTH]) == i ) begin
                 wb_stb_i[i] = 1'b1;
+            end
+        end
+    end
+
+    always_comb begin : blk_wb
+        s_wb_dat_o = '0;
+        s_wb_ack_o = '0;
+        for ( int i = 0; i < NUM; ++i ) begin
+            if ( wb_stb_i[i] ) begin
                 s_wb_dat_o = wb_dat_o[i];
                 s_wb_ack_o = wb_ack_o[i];
             end
