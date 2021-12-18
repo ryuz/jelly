@@ -54,8 +54,8 @@ static COM0: ComPort = ComPort::new(
                             ComPipe::new(ComAccessor::new(0x8008_0000, 0x800), Some(wait_irq::<1, 0x01>)),
                             ComPipe::new(ComAccessor::new(0x8008_0800, 0x800), Some(wait_irq::<1, 0x02>)));
 static COM1: ComPort = ComPort::new(
-                            ComPipe::new(ComAccessor::new(0x8008_1000, 0x800), Some(wait_irq::<1, 0x02>)),
-                            ComPipe::new(ComAccessor::new(0x8008_1800, 0x800), Some(wait_irq::<1, 0x04>)));
+                            ComPipe::new(ComAccessor::new(0x8008_1000, 0x800), Some(wait_irq::<1, 0x04>)),
+                            ComPipe::new(ComAccessor::new(0x8008_1800, 0x800), Some(wait_irq::<1, 0x08>)));
     
 
 // COM0 に print! を割り当て
@@ -148,21 +148,26 @@ extern "C" fn task1() -> ! {
 
     println!("WHO_AM_I(exp:0x71):0x{:02x}", imu.read_who_am_i());
 
+    let mut times: i32 = 0;
     while !COM0.polling_rx() {
         let data = imu.read_sensor_data();
-
-        println!("accel0      : {}", data.accel[0]     );
-        println!("accel1      : {}", data.accel[1]     );
-        println!("accel2      : {}", data.accel[2]     );
-        println!("gyro0       : {}", data.gyro[0]      );
-        println!("gyro1       : {}", data.gyro[1]      );
-        println!("gyro2       : {}", data.gyro[2]      );
-        println!("temperature : {}\n", data.temperature);
+        
+        if times % 100 == 0 {
+            println!("accel0      : {}", data.accel[0]     );
+            println!("accel1      : {}", data.accel[1]     );
+            println!("accel2      : {}", data.accel[2]     );
+            println!("gyro0       : {}", data.gyro[0]      );
+            println!("gyro1       : {}", data.gyro[1]      );
+            println!("gyro2       : {}", data.gyro[2]      );
+            println!("temperature : {}\n", data.temperature);
+        }
 
         let data: [u8; 14] = unsafe { core::mem::transmute(data) };
         COM1.write(&data);
         
-        rtos::dly_tsk(1000000);
+        rtos::dly_tsk(1000000 / 100);
+
+        times += 1;
     }
 
     uart::uart_puts("[END] mpu9250 sample\r\n");

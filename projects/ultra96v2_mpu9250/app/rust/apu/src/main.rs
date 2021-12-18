@@ -1,6 +1,8 @@
 #![allow(dead_code)]
 
 use std::{thread, time};
+use std::fs::File;
+use std::io::{self, BufRead, Write, BufReader};
 use nix::sys::signal;
 use nix::sys::signal::*;
 use jelly_mem_access::*;
@@ -48,6 +50,9 @@ fn main() {
     let com1 = CommunicationPort::new(pipe3_tx, pipe2_rx);
 
     println!("start\n");
+    
+    let mut file = File::create("output.txt").unwrap();
+
     while unsafe{!std::ptr::read_volatile(&END_FLAG)} {
         // COM0 recv
         if com0.polling_rx() {
@@ -55,11 +60,20 @@ fn main() {
         }
 
         // COM1 recv
-        while com1.polling_rx() {
+        if com1.polling_rx() {
             let mut buf: [u8; 14] = [0; 14];
             com1.read(&mut buf);
+
+            struct Mpu9250SensorData {
+                pub accel: [i16; 3],
+                pub gyro: [i16; 3],
+                pub temperature: i16,
+            }
+
+            let data: Mpu9250SensorData = unsafe{std::mem::transmute(buf)};
+            write!(file, "{}\n", data.accel[0]);
         }
-        
+
         thread::sleep(time::Duration::from_millis(1));
     }
 
