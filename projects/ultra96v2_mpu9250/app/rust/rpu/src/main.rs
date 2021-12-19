@@ -13,6 +13,7 @@ use core::panic::PanicInfo;
 use jelly_rtos::rtos;
 use jelly_mem_access::*;
 use jelly_pac::communication_pipe::*;
+use jelly_pac::interval_timer::*;
 
 mod bootstrap;
 //mod communication_pipe;
@@ -44,7 +45,7 @@ fn wait_irq<const FLGID: rtos::ID, const WAIPTN: rtos::FLGPTN>() {
 
 // APUとの通信用 COMパイプ定義
 type ComAccessor = MmioAccessor::<u64>;
-type ComPipe = CommunicationPipe::<ComAccessor>;
+type ComPipe = JellyCommunicationPipe::<ComAccessor>;
 type ComPort = CommunicationPort::<ComPipe, ComPipe>;
 
 //static COM0: ComPipe = ComPipe::new(ComAccessor::new(0x8008_0000, 0x800), Some(wait_irq::<1, 0x01>));
@@ -133,7 +134,13 @@ pub unsafe extern "C" fn main() -> ! {
 
 extern "C" fn task1() -> ! {
     println!("Task Start");
-    
+
+    // timer
+    type TimAccessor = PhysAccessor<u64, 0x8040_0000, 0x100>;
+    let  tim = JellyIntervalTimer::<TimAccessor>::new(TimAccessor::new(), Some(wait_irq::<0, 0x10>));
+    tim.set_compare_counter(2500000-1);
+    tim.set_enable(true);
+
     // PhysAccessor を使う場合
     type I2cAccessor = PhysAccessor<u64, 0x8080_0000, 0x100>;
     let  i2c = i2c::JellyI2c::<I2cAccessor, 1, 0x20>::new(I2cAccessor::new().into());
@@ -160,12 +167,15 @@ extern "C" fn task1() -> ! {
             println!("gyro1       : {}", data.gyro[1]      );
             println!("gyro2       : {}", data.gyro[2]      );
             println!("temperature : {}\n", data.temperature);
+            
+            println!("{}", tim.counter());
         }
 
         let data: [u8; 14] = unsafe { core::mem::transmute(data) };
         COM1.write(&data);
         
-        rtos::dly_tsk(1000000 / 100);
+//      rtos::dly_tsk(1000000 / 100);
+        tim.wait_timer();
 
         times += 1;
     }
