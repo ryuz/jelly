@@ -2,9 +2,12 @@
 puts [file dirname [info script]]
 
 set project_directory   [file dirname [info script]]
-set project_name        "ultra96v2_udmabuf_sample_tcl"
-
 cd $project_directory
+
+# set project_name        "ultra96v2_udmabuf_sample_tcl"
+set project_name $env(PRJ_NAME)
+set board_part   $env(BOARD_PART)
+set device_part  $env(DEVICE_PART)
 
 
 # add borad repository path
@@ -14,47 +17,30 @@ if       { [string first "Linux"   $::tcl_platform(os)] != -1 } {
     set_param board.repoPaths [concat [file join $::env(APPDATA) {Xilinx/Vivado/} [version -short] {xhub/board_store}] [get_param board.repoPaths]]
 }
 
-
-# version
+# get vivado version
 set current_vivado_version [version -short]
-if       { [string first "2019.2" $current_vivado_version] != -1 } {
-    set vivado_version   "vivado2019.2"
-    set synth_1_flow     "Vivado Synthesis 2019"
-    set synth_1_strategy "Vivado Synthesis Defaults"
-    set impl_1_flow      "Vivado Implementation 2019"
-    set impl_1_strategy  "Vivado Implementation Defaults"
-} elseif { [string first "2020.1" $current_vivado_version] != -1 } {
-    set vivado_version   "vivado2020.1"
-    set synth_1_flow     "Vivado Synthesis 2020"
-    set synth_1_strategy "Vivado Synthesis Defaults"
-    set impl_1_flow      "Vivado Implementation 2020"
-    set impl_1_strategy  "Vivado Implementation Defaults"
-} elseif { [string first "2021.2" $current_vivado_version] != -1 } {
-    set vivado_version   "vivado2021.2"
-    set synth_1_flow     "Vivado Synthesis 2021"
-    set synth_1_strategy "Vivado Synthesis Defaults"
-    set impl_1_flow      "Vivado Implementation 2021"
-    set impl_1_strategy  "Vivado Implementation Defaults"
-} else {
-    puts "ERROR: mismatch vivado version."
-    return 1
-}
+set current_vivado_version_major [string range $current_vivado_version 0 5]
+set current_vivado_version_year [string range $current_vivado_version 0 3]
+
+# set synth setting
+append vivado_version   "vivado" $current_vivado_version_major
+append synth_1_flow     "Vivado Synthesis " $current_vivado_version_year
+append synth_1_strategy "Vivado Synthesis Defaults"
+append impl_1_flow      "Vivado Implementation " $current_vivado_version_year
+append impl_1_strategy  "Vivado Implementation Defaults"
 
 
 # create project
 create_project -force $project_name $project_directory
 
-#set board_part "avnet.com:ultra96v2:part0:1.1"
-set board_part [get_board_parts -quiet -latest_file_version "avnet.com:ultra96v2*"]
-set device_part "xczu3eg-sbva484-1-i"
+# get latest board part
+set latest_board_part [get_board_parts -quiet -latest_file_version $board_part]
 
-set_property "part"           $device_part     [current_project]
-set_property "board_part"     $board_part      [current_project]
-
-if       {[info exists board_part ] && [string equal $board_part  "" ] == 0} {
-    set_property "board_part"     $board_part      [current_project]
+# set board_part or device_part
+if       {[info exists board_part ] && [string equal $latest_board_part  "" ] == 0} {
+    set_property "board_part"     $latest_board_part [current_project]
 } elseif {[info exists device_part] && [string equal $device_part "" ] == 0} {
-    set_property "part"           $device_part     [current_project]
+    set_property "part"           $device_part       [current_project]
 } else {
     puts "ERROR: Please set board_part or device_part."
     return 1
@@ -129,5 +115,4 @@ set_property top ultra96v2_udmabuf_sample [current_fileset]
 add_files    -fileset constrs_1 -norecurse "../../constrain/xdc/ultra96v2_udmabuf_sample.xdc"
 add_files    -fileset constrs_1 -norecurse "../../constrain/xdc/debug.xdc"
 set_property target_constrs_file "../../constrain/xdc/debug.xdc" [current_fileset -constrset]
-
 

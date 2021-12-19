@@ -1,10 +1,11 @@
 
 
-PRJ_NAME = ultra96v2_udmabuf_sample_tcl
-
+export PRJ_NAME    = ultra96v2_udmabuf_sample_tcl
+export BOARD_PART  = avnet.com:ultra96v2*
+export DEVICE_PART = xczu3eg-sbva484-1-i
 
 .PHONY : all
-all: create build
+all: clean create build
 
 .PHONY : create
 create: $(PRJ_NAME).xpr
@@ -27,4 +28,3 @@ clean:
 	rm -fr $(PRJ_NAME).srcs
 	rm -fr $(PRJ_NAME).gen
 	rm -fr $(PRJ_NAME).xpr vivado*.jou  vivado*.log vivado_pid*.str 
-
