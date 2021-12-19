@@ -79,9 +79,9 @@ impl UioRegion {
 }
 
 impl MemRegion for UioRegion {
-    fn subclone(&self, offset: usize, size: usize) -> Self {
+    fn clone(&self, offset: usize, size: usize) -> Self {
         UioRegion {
-            mmap_region: self.mmap_region.subclone(offset, size),
+            mmap_region: self.mmap_region.clone(offset, size),
             phys_addr: self.phys_addr + offset,
         }
     }
@@ -131,32 +131,32 @@ impl<U> UioAccessor<U> {
         )))
     }
 
-    pub fn subclone_<NewU>(&self, offset: usize, size: usize) -> UioAccessor<NewU> {
+    pub fn clone_<NewU>(&self, offset: usize, size: usize) -> UioAccessor<NewU> {
         UioAccessor::<NewU> {
             mem_accessor: MemAccessor::<UioRegion, NewU>::new(
-                self.mem_accessor.region().subclone(offset, size),
+                self.mem_accessor.region().clone(offset, size),
             ),
         }
     }
 
-    pub fn subclone(&self, offset: usize, size: usize) -> UioAccessor<U> {
-        self.subclone_::<U>(offset, size)
+    pub fn clone(&self, offset: usize, size: usize) -> UioAccessor<U> {
+        self.clone_::<U>(offset, size)
     }
 
-    pub fn subclone8(&self, offset: usize, size: usize) -> UioAccessor<u8> {
-        self.subclone_::<u8>(offset, size)
+    pub fn clone8(&self, offset: usize, size: usize) -> UioAccessor<u8> {
+        self.clone_::<u8>(offset, size)
     }
 
-    pub fn subclone16(&self, offset: usize, size: usize) -> UioAccessor<u16> {
-        self.subclone_::<u16>(offset, size)
+    pub fn clone16(&self, offset: usize, size: usize) -> UioAccessor<u16> {
+        self.clone_::<u16>(offset, size)
     }
 
-    pub fn subclone32(&self, offset: usize, size: usize) -> UioAccessor<u32> {
-        self.subclone_::<u32>(offset, size)
+    pub fn clone32(&self, offset: usize, size: usize) -> UioAccessor<u32> {
+        self.clone_::<u32>(offset, size)
     }
 
-    pub fn subclone64(&self, offset: usize, size: usize) -> UioAccessor<u64> {
-        self.subclone_::<u64>(offset, size)
+    pub fn clone64(&self, offset: usize, size: usize) -> UioAccessor<u64> {
+        self.clone_::<u64>(offset, size)
     }
 
     delegate! {

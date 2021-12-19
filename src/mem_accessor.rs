@@ -4,7 +4,7 @@ use core::marker::PhantomData;
 use core::ptr;
 
 pub trait MemRegion {
-    fn subclone(&self, offset: usize, size: usize) -> Self;
+    fn clone(&self, offset: usize, size: usize) -> Self;
     fn addr(&self) -> usize;
     fn size(&self) -> usize;
 }
@@ -45,7 +45,6 @@ pub struct MemAccessor<T: MemRegion, U> {
     phantom: PhantomData<U>,
 }
 
-
 impl<T: MemRegion, U> MemAccessor<T, U> {
     pub const fn new(region: T) -> Self {
         MemAccessor::<T, U> {
@@ -62,37 +61,30 @@ impl<T: MemRegion, U> MemAccessor<T, U> {
         &mut self.region
     }
 
-    pub fn subclone_<NewU>(&self, offset: usize, size: usize) -> MemAccessor<T, NewU> {
-        MemAccessor::<T, NewU>::new(self.region.subclone(offset, size))
+    pub fn clone_<NewU>(&self, offset: usize, size: usize) -> MemAccessor<T, NewU> {
+        MemAccessor::<T, NewU>::new(self.region.clone(offset, size))
     }
 
-    pub fn subclone(&self, offset: usize, size: usize) -> MemAccessor<T, U> {
-        self.subclone_::<U>(offset, size)
+    pub fn clone(&self, offset: usize, size: usize) -> MemAccessor<T, U> {
+        self.clone_::<U>(offset, size)
     }
 
-    pub fn subclone8(&self, offset: usize, size: usize) -> MemAccessor<T, u8> {
-        self.subclone_::<u8>(offset, size)
+    pub fn clone8(&self, offset: usize, size: usize) -> MemAccessor<T, u8> {
+        self.clone_::<u8>(offset, size)
     }
 
-    pub fn subclone16(&self, offset: usize, size: usize) -> MemAccessor<T, u16> {
-        self.subclone_::<u16>(offset, size)
+    pub fn clone16(&self, offset: usize, size: usize) -> MemAccessor<T, u16> {
+        self.clone_::<u16>(offset, size)
     }
 
-    pub fn subclone32(&self, offset: usize, size: usize) -> MemAccessor<T, u32> {
-        self.subclone_::<u32>(offset, size)
+    pub fn clone32(&self, offset: usize, size: usize) -> MemAccessor<T, u32> {
+        self.clone_::<u32>(offset, size)
     }
 
-    pub fn subclone64(&self, offset: usize, size: usize) -> MemAccessor<T, u64> {
-        self.subclone_::<u64>(offset, size)
-    }
-}
-
-impl<T: MemRegion, U> Clone for MemAccessor<T, U> {
-    fn clone(&self) -> Self {
-        self.subclone(0, 0)
+    pub fn clone64(&self, offset: usize, size: usize) -> MemAccessor<T, u64> {
+        self.clone_::<u64>(offset, size)
     }
 }
-
 
 impl<T: MemRegion, U> MemAccess for MemAccessor<T, U> {
     fn reg_size() -> usize {
