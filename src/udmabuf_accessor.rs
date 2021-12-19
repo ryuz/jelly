@@ -57,9 +57,9 @@ impl UdmabufRegion {
 }
 
 impl MemRegion for UdmabufRegion {
-    fn subclone(&self, offset: usize, size: usize) -> Self {
+    fn clone(&self, offset: usize, size: usize) -> Self {
         UdmabufRegion {
-            mmap_region: self.mmap_region.subclone(offset, size),
+            mmap_region: self.mmap_region.clone(offset, size),
             phys_addr: self.phys_addr + offset,
         }
     }
@@ -72,13 +72,6 @@ impl MemRegion for UdmabufRegion {
     }
 }
 
-impl Clone for UdmabufRegion {
-    fn clone(&self) -> Self {
-        self.subclone(0, 0)
-    }
-}
-
-
 pub struct UdmabufAccessor<U> {
     mem_accessor: MemAccessor<UdmabufRegion, U>,
 }
@@ -88,7 +81,6 @@ impl<U> From<UdmabufAccessor<U>> for MemAccessor<UdmabufRegion, U> {
         from.mem_accessor
     }
 }
-
 
 impl<U> UdmabufAccessor<U> {
     pub fn new(udmabuf_num: usize, cache_enable: bool) -> Result<Self, Box<dyn Error>> {
@@ -100,32 +92,32 @@ impl<U> UdmabufAccessor<U> {
         })
     }
 
-    pub fn subclone_<NewU>(&self, offset: usize, size: usize) -> UdmabufAccessor<NewU> {
+    pub fn clone_<NewU>(&self, offset: usize, size: usize) -> UdmabufAccessor<NewU> {
         UdmabufAccessor::<NewU> {
             mem_accessor: MemAccessor::<UdmabufRegion, NewU>::new(
-                self.mem_accessor.region().subclone(offset, size),
+                self.mem_accessor.region().clone(offset, size),
             ),
         }
     }
 
-    pub fn subclone(&self, offset: usize, size: usize) -> UdmabufAccessor<U> {
-        self.subclone_::<U>(offset, size)
+    pub fn clone(&self, offset: usize, size: usize) -> UdmabufAccessor<U> {
+        self.clone_::<U>(offset, size)
     }
 
-    pub fn subclone8(&self, offset: usize, size: usize) -> UdmabufAccessor<u8> {
-        self.subclone_::<u8>(offset, size)
+    pub fn clone8(&self, offset: usize, size: usize) -> UdmabufAccessor<u8> {
+        self.clone_::<u8>(offset, size)
     }
 
-    pub fn subclone16(&self, offset: usize, size: usize) -> UdmabufAccessor<u16> {
-        self.subclone_::<u16>(offset, size)
+    pub fn clone16(&self, offset: usize, size: usize) -> UdmabufAccessor<u16> {
+        self.clone_::<u16>(offset, size)
     }
 
-    pub fn subclone32(&self, offset: usize, size: usize) -> UdmabufAccessor<u32> {
-        self.subclone_::<u32>(offset, size)
+    pub fn clone32(&self, offset: usize, size: usize) -> UdmabufAccessor<u32> {
+        self.clone_::<u32>(offset, size)
     }
 
-    pub fn subclone64(&self, offset: usize, size: usize) -> UdmabufAccessor<u64> {
-        self.subclone_::<u64>(offset, size)
+    pub fn clone64(&self, offset: usize, size: usize) -> UdmabufAccessor<u64> {
+        self.clone_::<u64>(offset, size)
     }
 
     delegate! {
@@ -134,12 +126,6 @@ impl<U> UdmabufAccessor<U> {
             pub fn size(&self) -> usize;
             pub fn phys_addr(&self) -> usize;
         }
-    }
-}
-
-impl<U> Clone for UdmabufAccessor<U> {
-    fn clone(&self) -> Self {
-        self.subclone(0, 0)
     }
 }
 
