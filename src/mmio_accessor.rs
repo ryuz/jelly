@@ -19,7 +19,7 @@ impl MmioRegion {
 }
 
 impl MemRegion for MmioRegion {
-    fn clone(&self, offset: usize, size: usize) -> Self {
+    fn subclone(&self, offset: usize, size: usize) -> Self {
         debug_assert!(offset < self.size);
         let new_addr = self.addr + offset;
         let new_size = self.size - offset;
@@ -40,6 +40,13 @@ impl MemRegion for MmioRegion {
     }
 }
 
+impl Clone for MmioRegion {
+    fn clone(&self) -> Self {
+        self.subclone(0, 0)
+    }
+}
+
+
 pub struct MmioAccessor<U> {
     mem_accessor: MemAccessor<MmioRegion, U>,
 }
@@ -50,6 +57,7 @@ impl<U> From<MmioAccessor<U>> for MemAccessor<MmioRegion, U> {
     }
 }
 
+
 impl<U> MmioAccessor<U> {
     pub const fn new(addr: usize, size: usize) -> Self {
         Self {
@@ -57,32 +65,32 @@ impl<U> MmioAccessor<U> {
         }
     }
 
-    pub fn clone_<NewU>(&self, offset: usize, size: usize) -> MmioAccessor<NewU> {
+    pub fn subclone_<NewU>(&self, offset: usize, size: usize) -> MmioAccessor<NewU> {
         MmioAccessor::<NewU> {
             mem_accessor: MemAccessor::<MmioRegion, NewU>::new(
-                self.mem_accessor.region().clone(offset, size),
+                self.mem_accessor.region().subclone(offset, size),
             ),
         }
     }
 
-    pub fn clone(&self, offset: usize, size: usize) -> MmioAccessor<U> {
-        self.clone_::<U>(offset, size)
+    pub fn subclone(&self, offset: usize, size: usize) -> MmioAccessor<U> {
+        self.subclone_::<U>(offset, size)
     }
 
-    pub fn clone8(&self, offset: usize, size: usize) -> MmioAccessor<u8> {
-        self.clone_::<u8>(offset, size)
+    pub fn subclone8(&self, offset: usize, size: usize) -> MmioAccessor<u8> {
+        self.subclone_::<u8>(offset, size)
     }
 
-    pub fn clone16(&self, offset: usize, size: usize) -> MmioAccessor<u16> {
-        self.clone_::<u16>(offset, size)
+    pub fn subclone16(&self, offset: usize, size: usize) -> MmioAccessor<u16> {
+        self.subclone_::<u16>(offset, size)
     }
 
-    pub fn clone32(&self, offset: usize, size: usize) -> MmioAccessor<u32> {
-        self.clone_::<u32>(offset, size)
+    pub fn subclone32(&self, offset: usize, size: usize) -> MmioAccessor<u32> {
+        self.subclone_::<u32>(offset, size)
     }
 
-    pub fn clone64(&self, offset: usize, size: usize) -> MmioAccessor<u64> {
-        self.clone_::<u64>(offset, size)
+    pub fn subclone64(&self, offset: usize, size: usize) -> MmioAccessor<u64> {
+        self.subclone_::<u64>(offset, size)
     }
 
     delegate! {
@@ -92,6 +100,13 @@ impl<U> MmioAccessor<U> {
         }
     }
 }
+
+impl<U> Clone for MmioAccessor<U> {
+    fn clone(&self) -> Self {
+        self.subclone(0, 0)
+    }
+}
+
 
 impl<U> MemAccess for MmioAccessor<U> {
     fn reg_size() -> usize {
