@@ -452,7 +452,7 @@ module ultra96v2_mpu9250
     
     assign wb_peri_dat_o  = wb_rtos_stb_i ? wb_rtos_dat_o :
                             wb_com_stb_i  ? wb_com_dat_o  :
-                            wb_tim_stb_i  ? wb_i2c_dat_o  :
+                            wb_tim_stb_i  ? wb_tim_dat_o  :
                             wb_i2c_stb_i  ? wb_i2c_dat_o  :
                             wb_led_stb_i  ? wb_led_dat_o  :
                             {WB_DAT_WIDTH{1'b0}};

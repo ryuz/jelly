@@ -125,6 +125,22 @@ int main(int argc, char** argv)
         wb->Wait(10);
         wb->Write(MAKE_ADDR(OPCODE_SLP_TSK, 0), 0, 0xf);
         wb->Write(MAKE_ADDR(OPCODE_SLP_TSK, 1), 0, 0xf);
+
+        const int REG_CONTROL = 0x00;
+        const int REG_COMPARE = 0x01;
+        const int REG_COUNTER = 0x03;
+        wb->Write((0x80400000>>3)+REG_COMPARE, 100, 0xf);
+        wb->Write((0x80400000>>3)+REG_CONTROL,   1, 0xf);
+        wb->Read((0x80400000>>3)+REG_COUNTER);
+        wb->Read((0x80400000>>3)+REG_COUNTER);
+        wb->Read((0x80400000>>3)+REG_COUNTER);
+        wb->Read((0x80400000>>3)+REG_CONTROL);
+        wb->Wait(100);
+        wb->Read((0x80400000>>3)+REG_CONTROL);
+        wb->Read((0x80400000>>3)+REG_CONTROL);
+        wb->Wait(100);
+        wb->Read((0x80400000>>3)+REG_CONTROL);
+        wb->Read((0x80400000>>3)+REG_CONTROL);
         
         wb->Wait(100);
         wb->Finish();

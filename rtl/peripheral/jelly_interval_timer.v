@@ -99,6 +99,7 @@ module jelly_interval_timer
     end
     
     always @* begin
+        s_wb_dat_o = {WB_DAT_WIDTH{1'b0}};
         case ( s_wb_adr_i )
         INTERVAL_TIMER_ADR_CONTROL: begin   s_wb_dat_o = {29'd0, interrupt_req, reg_clear, reg_enable};  end
         INTERVAL_TIMER_ADR_COMPARE: begin   s_wb_dat_o = reg_compare;                             end
