@@ -55,12 +55,12 @@ fn main() {
 
     while unsafe{!std::ptr::read_volatile(&END_FLAG)} {
         // COM0 recv
-        if com0.polling_rx() {
+        while com0.polling_rx() {
             print!("{}", com0.getc() as char);
         }
 
         // COM1 recv
-        if com1.polling_rx() {
+        while com1.polling_rx() {
             let mut buf: [u8; 14] = [0; 14];
             com1.read(&mut buf);
 
@@ -71,7 +71,13 @@ fn main() {
             }
 
             let data: Mpu9250SensorData = unsafe{std::mem::transmute(buf)};
-            write!(file, "{}\n", data.accel[0]).unwrap();
+            write!(file, "{}\t", data.gyro[0]).unwrap();
+            write!(file, "{}\t", data.gyro[1]).unwrap();
+            write!(file, "{}\t", data.gyro[2]).unwrap();
+            write!(file, "{}\t", data.accel[0]).unwrap();
+            write!(file, "{}\t", data.accel[1]).unwrap();
+            write!(file, "{}\t", data.accel[2]).unwrap();
+            write!(file, "{}\n", data.temperature).unwrap();
         }
 
         thread::sleep(time::Duration::from_millis(1));

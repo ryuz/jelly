@@ -11,7 +11,7 @@ build:
 .PHONY: run
 run:
 #	cargo run
-	-xterm -e "cargo run"
+	-xterm -e "cargo run --release"
 
 .PHONY: stop
 stop:
