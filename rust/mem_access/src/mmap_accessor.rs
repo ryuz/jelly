@@ -119,7 +119,7 @@ impl MemRegion for MmapRegion {
         debug_assert!(size <= new_size);
         let new_size = if size == 0 { new_size } else { size };
         MmapRegion {
-            mfile: self.mfile.subclone(),
+            mfile: self.mfile.clone(),
             addr: new_addr,
             size: new_size,
         }
@@ -134,6 +134,13 @@ impl MemRegion for MmapRegion {
     }
 }
 
+impl Clone for MmapRegion {
+    fn clone(&self) -> Self {
+        self.subclone(0, 0)
+    }
+}
+
+
 pub struct MmapAccessor<U> {
     accessor: MemAccessor<MmapRegion, U>,
 }
@@ -143,6 +150,7 @@ impl<U> From<MmapAccessor<U>> for MemAccessor<MmapRegion, U> {
         from.accessor
     }
 }
+
 
 impl<U> MmapAccessor<U> {
     pub fn new(path: String, size: usize) -> Result<Self, Box<dyn Error>> {
@@ -179,6 +187,13 @@ impl<U> MmapAccessor<U> {
         self.subclone_::<u64>(offset, size)
     }
 }
+
+impl<U> Clone for MmapAccessor<U> {
+    fn clone(&self) -> Self {
+        self.subclone(0, 0)
+    }
+}
+
 
 impl<U> MemAccess for MmapAccessor<U> {
     fn reg_size() -> usize {
