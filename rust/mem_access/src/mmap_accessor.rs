@@ -112,14 +112,14 @@ impl MmapRegion {
 }
 
 impl MemRegion for MmapRegion {
-    fn clone(&self, offset: usize, size: usize) -> Self {
+    fn subclone(&self, offset: usize, size: usize) -> Self {
         debug_assert!(offset < self.size);
         let new_addr = self.addr + offset;
         let new_size = self.size - offset;
         debug_assert!(size <= new_size);
         let new_size = if size == 0 { new_size } else { size };
         MmapRegion {
-            mfile: self.mfile.clone(),
+            mfile: self.mfile.subclone(),
             addr: new_addr,
             size: new_size,
         }
@@ -151,32 +151,32 @@ impl<U> MmapAccessor<U> {
         })
     }
 
-    pub fn clone_<NewU>(&self, offset: usize, size: usize) -> MmapAccessor<NewU> {
+    pub fn subclone_<NewU>(&self, offset: usize, size: usize) -> MmapAccessor<NewU> {
         MmapAccessor::<NewU> {
             accessor: MemAccessor::<MmapRegion, NewU>::new(
-                self.accessor.region().clone(offset, size),
+                self.accessor.region().subclone(offset, size),
             ),
         }
     }
 
-    pub fn clone(&self, offset: usize, size: usize) -> MmapAccessor<U> {
-        self.clone_::<U>(offset, size)
+    pub fn subclone(&self, offset: usize, size: usize) -> MmapAccessor<U> {
+        self.subclone_::<U>(offset, size)
     }
 
-    pub fn clone8(&self, offset: usize, size: usize) -> MmapAccessor<u8> {
-        self.clone_::<u8>(offset, size)
+    pub fn subclone8(&self, offset: usize, size: usize) -> MmapAccessor<u8> {
+        self.subclone_::<u8>(offset, size)
     }
 
-    pub fn clone16(&self, offset: usize, size: usize) -> MmapAccessor<u16> {
-        self.clone_::<u16>(offset, size)
+    pub fn subclone16(&self, offset: usize, size: usize) -> MmapAccessor<u16> {
+        self.subclone_::<u16>(offset, size)
     }
 
-    pub fn clone32(&self, offset: usize, size: usize) -> MmapAccessor<u32> {
-        self.clone_::<u32>(offset, size)
+    pub fn subclone32(&self, offset: usize, size: usize) -> MmapAccessor<u32> {
+        self.subclone_::<u32>(offset, size)
     }
 
-    pub fn clone64(&self, offset: usize, size: usize) -> MmapAccessor<u64> {
-        self.clone_::<u64>(offset, size)
+    pub fn subclone64(&self, offset: usize, size: usize) -> MmapAccessor<u64> {
+        self.subclone_::<u64>(offset, size)
     }
 }
 
