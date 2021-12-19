@@ -31,12 +31,12 @@ pub trait PipeRecv {
     fn read(&self, buf: &mut [u8]);
 }
 
-pub struct CommunicationPipe<T: MemAccess> {
+pub struct JellyCommunicationPipe<T: MemAccess> {
     reg_acc: T,
     wait_irq: Option<fn()>,
 }
 
-impl <T: MemAccess> CommunicationPipe<T>
+impl <T: MemAccess> JellyCommunicationPipe<T>
 {
     pub const fn new( reg_acc: T, wait_irq: Option<fn()>) -> Self
     {
@@ -75,7 +75,7 @@ impl <T: MemAccess> CommunicationPipe<T>
 }
 
 
-impl<T: MemAccess> PipeSend for CommunicationPipe<T>
+impl<T: MemAccess> PipeSend for JellyCommunicationPipe<T>
 {
     fn polling_tx(&self) -> bool{
         unsafe { self.reg_acc.read_reg8(REG_TX_STATUS) != 0 }
@@ -93,7 +93,7 @@ impl<T: MemAccess> PipeSend for CommunicationPipe<T>
     }
 }
 
-impl<T: MemAccess> PipeRecv for CommunicationPipe<T>
+impl<T: MemAccess> PipeRecv for JellyCommunicationPipe<T>
 {
 
     fn polling_rx(&self) -> bool{
