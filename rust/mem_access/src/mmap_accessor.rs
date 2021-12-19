@@ -119,7 +119,7 @@ impl MemRegion for MmapRegion {
         debug_assert!(size <= new_size);
         let new_size = if size == 0 { new_size } else { size };
         MmapRegion {
-            mfile: self.mfile.subclone(),
+            mfile: self.mfile.clone(),
             addr: new_addr,
             size: new_size,
         }

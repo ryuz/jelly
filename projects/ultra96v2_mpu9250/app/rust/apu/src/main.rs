@@ -38,10 +38,10 @@ fn main() {
     let sa = SigAction::new(SigHandler::Handler(handle_signal), SaFlags::SA_RESETHAND, SigSet::empty());
     unsafe { sigaction(signal::SIGINT, &sa) }.unwrap();
 
-    let pipe0_rx_acc = UioAccessor::<u64>::new_from_name("uio_pl_pipe0").unwrap().clone(0x0000, 0);
-    let pipe1_tx_acc = UioAccessor::<u64>::new_from_name("uio_pl_pipe1").unwrap().clone(0x0800, 0);
-    let pipe2_rx_acc = UioAccessor::<u64>::new_from_name("uio_pl_pipe2").unwrap().clone(0x1000, 0);
-    let pipe3_tx_acc = UioAccessor::<u64>::new_from_name("uio_pl_pipe3").unwrap().clone(0x1800, 0);
+    let pipe0_rx_acc = UioAccessor::<u64>::new_from_name("uio_pl_pipe0").unwrap().subclone(0x0000, 0);
+    let pipe1_tx_acc = UioAccessor::<u64>::new_from_name("uio_pl_pipe1").unwrap().subclone(0x0800, 0);
+    let pipe2_rx_acc = UioAccessor::<u64>::new_from_name("uio_pl_pipe2").unwrap().subclone(0x1000, 0);
+    let pipe3_tx_acc = UioAccessor::<u64>::new_from_name("uio_pl_pipe3").unwrap().subclone(0x1800, 0);
     let pipe0_rx = CommunicationPipe::new(pipe0_rx_acc, None);
     let pipe1_tx = CommunicationPipe::new(pipe1_tx_acc, None);
     let pipe2_rx = CommunicationPipe::new(pipe2_rx_acc, None);
