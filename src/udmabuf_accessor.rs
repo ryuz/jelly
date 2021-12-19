@@ -72,6 +72,13 @@ impl MemRegion for UdmabufRegion {
     }
 }
 
+impl Clone for UdmabufRegion {
+    fn clone(&self) -> Self {
+        self.subclone(0, 0)
+    }
+}
+
+
 pub struct UdmabufAccessor<U> {
     mem_accessor: MemAccessor<UdmabufRegion, U>,
 }
@@ -81,6 +88,7 @@ impl<U> From<UdmabufAccessor<U>> for MemAccessor<UdmabufRegion, U> {
         from.mem_accessor
     }
 }
+
 
 impl<U> UdmabufAccessor<U> {
     pub fn new(udmabuf_num: usize, cache_enable: bool) -> Result<Self, Box<dyn Error>> {
@@ -126,6 +134,12 @@ impl<U> UdmabufAccessor<U> {
             pub fn size(&self) -> usize;
             pub fn phys_addr(&self) -> usize;
         }
+    }
+}
+
+impl<U> Clone for UdmabufAccessor<U> {
+    fn clone(&self) -> Self {
+        self.subclone(0, 0)
     }
 }
 

@@ -28,6 +28,13 @@ impl<const ADDR: usize, const SIZE: usize> MemRegion for PhysRegion<ADDR, SIZE> 
     }
 }
 
+impl<const ADDR: usize, const SIZE: usize> Clone for PhysRegion<ADDR, SIZE> {
+    fn clone(&self) -> Self {
+        self.subclone(0, 0)
+    }
+}
+
+
 pub struct PhysAccessor<U, const ADDR: usize, const SIZE: usize> {
     mem_accessor: MemAccessor<PhysRegion<ADDR, SIZE>, U>,
 }
@@ -84,6 +91,13 @@ impl<U, const ADDR: usize, const SIZE: usize> PhysAccessor<U, ADDR, SIZE> {
         }
     }
 }
+
+impl<U, const ADDR: usize, const SIZE: usize> Clone for PhysAccessor<U, ADDR, SIZE> {
+    fn clone(&self) -> Self {
+        self.subclone(0, 0)
+    }
+}
+
 
 impl<U, const ADDR: usize, const SIZE: usize> MemAccess for PhysAccessor<U, ADDR, SIZE> {
     fn reg_size() -> usize {

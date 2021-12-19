@@ -40,6 +40,13 @@ impl MemRegion for MmioRegion {
     }
 }
 
+impl Clone for MmioRegion {
+    fn clone(&self) -> Self {
+        self.subclone(0, 0)
+    }
+}
+
+
 pub struct MmioAccessor<U> {
     mem_accessor: MemAccessor<MmioRegion, U>,
 }
@@ -49,6 +56,7 @@ impl<U> From<MmioAccessor<U>> for MemAccessor<MmioRegion, U> {
         from.mem_accessor
     }
 }
+
 
 impl<U> MmioAccessor<U> {
     pub const fn new(addr: usize, size: usize) -> Self {
@@ -92,6 +100,13 @@ impl<U> MmioAccessor<U> {
         }
     }
 }
+
+impl<U> Clone for MmioAccessor<U> {
+    fn clone(&self) -> Self {
+        self.subclone(0, 0)
+    }
+}
+
 
 impl<U> MemAccess for MmioAccessor<U> {
     fn reg_size() -> usize {

@@ -45,6 +45,7 @@ pub struct MemAccessor<T: MemRegion, U> {
     phantom: PhantomData<U>,
 }
 
+
 impl<T: MemRegion, U> MemAccessor<T, U> {
     pub const fn new(region: T) -> Self {
         MemAccessor::<T, U> {
@@ -85,6 +86,13 @@ impl<T: MemRegion, U> MemAccessor<T, U> {
         self.subclone_::<u64>(offset, size)
     }
 }
+
+impl<T: MemRegion, U> Clone for MemAccessor<T, U> {
+    fn clone(&self) -> Self {
+        self.subclone(0, 0)
+    }
+}
+
 
 impl<T: MemRegion, U> MemAccess for MemAccessor<T, U> {
     fn reg_size() -> usize {
