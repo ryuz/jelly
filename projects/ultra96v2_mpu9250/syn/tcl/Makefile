@@ -4,7 +4,7 @@ PRJ_NAME = ultra96v2_mpu9250_tcl
 
 
 .PHONY : all
-all: create build
+all: clean create build
 
 .PHONY : create
 create: $(PRJ_NAME).xpr
