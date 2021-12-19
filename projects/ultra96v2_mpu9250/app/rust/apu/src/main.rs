@@ -2,7 +2,7 @@
 
 use std::{thread, time};
 use std::fs::File;
-use std::io::{self, BufRead, Write, BufReader};
+use std::io::Write;
 use nix::sys::signal;
 use nix::sys::signal::*;
 use jelly_mem_access::*;
@@ -71,7 +71,7 @@ fn main() {
             }
 
             let data: Mpu9250SensorData = unsafe{std::mem::transmute(buf)};
-            write!(file, "{}\n", data.accel[0]);
+            write!(file, "{}\n", data.accel[0]).unwrap();
         }
 
         thread::sleep(time::Duration::from_millis(1));
