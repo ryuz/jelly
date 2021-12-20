@@ -10,7 +10,6 @@ int main()
     divider(a, b, &c);
     
     if ( a/b != c ) {
-        printf("error!!\n");
         return 1;
     }
     
