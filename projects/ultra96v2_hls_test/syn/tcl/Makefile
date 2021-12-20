@@ -6,7 +6,7 @@ PRJ_NAME = ultra96v2_hls_test_tcl
 .PHONY : all
 all: clean create build
 
-.PHONY : create
+.PHONY : build_hls create
 create: $(PRJ_NAME).xpr
 
 $(PRJ_NAME).xpr:
@@ -18,13 +18,27 @@ build:
 
 .PHONY : clean
 clean:
-	rm -fr .Xil
-	rm -fr $(PRJ_NAME).cache
-	rm -fr $(PRJ_NAME).hw
-	rm -fr $(PRJ_NAME).ip_user_files
-	rm -fr $(PRJ_NAME).runs
-	rm -fr $(PRJ_NAME).sim
-	rm -fr $(PRJ_NAME).srcs
-	rm -fr $(PRJ_NAME).gen
-	rm -fr $(PRJ_NAME).xpr vivado*.jou  vivado*.log vivado_pid*.str 
+	-rm -fr .Xil
+	-rm -fr $(PRJ_NAME).cache
+	-rm -fr $(PRJ_NAME).hw
+	-rm -fr $(PRJ_NAME).ip_user_files
+	-rm -fr $(PRJ_NAME).runs
+	-rm -fr $(PRJ_NAME).sim
+	-rm -fr $(PRJ_NAME).srcs
+	-rm -fr $(PRJ_NAME).gen
+	-rm -fr $(PRJ_NAME).xpr
+	-rm -f vivado*.jou  vivado*.log vivado_pid*.str
+
+.PHONY : build_hls
+build_hls:
+	make -C ../../hls
+
+.PHONY : clean_hls
+clean_hls:
+	make -C ../../hls clean
+
+.PHONY : distclean
+distclean: clean_hls clean
+
+
 
