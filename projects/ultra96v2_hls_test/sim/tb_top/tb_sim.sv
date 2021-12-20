@@ -142,13 +142,32 @@ module tb_sim();
     localparam ADR_HLS = 32'h0000_0000;
     localparam ADR_LED = 32'h0011_0000;
 
+    localparam  REG_HLS_CORE_ID = 0;
+    localparam  REG_HLS_CONTROL = 4;
+    localparam  REG_HLS_STATUS  = 5;
+    localparam  REG_HLS_A       = 8;
+    localparam  REG_HLS_B       = 9;
+    localparam  REG_HLS_C       = 10;
+
     initial begin
     @(negedge wb_rst_i);
+    #100;
+        wb_read(ADR_HLS+REG_HLS_CORE_ID);
+        wb_write(ADR_HLS+REG_HLS_A, 7777, 8'hff);
+        wb_write(ADR_HLS+REG_HLS_B, 1111, 8'hff);
+        wb_write(ADR_HLS+REG_HLS_CONTROL, 1, 8'hff);
+    #400;        
+        wb_read(ADR_HLS+REG_HLS_A);
+        wb_read(ADR_HLS+REG_HLS_B);
+        wb_read(ADR_HLS+REG_HLS_C);
+
+    #1000;
         wb_write(ADR_LED, 0, 8'hff);
         wb_write(ADR_LED, 1, 8'hff);
         wb_write(ADR_LED, 0, 8'hff);
         wb_write(ADR_LED, 1, 8'hff);
 
+    #100;
         $finish();
     end
     
