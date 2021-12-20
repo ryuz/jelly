@@ -1,6 +1,8 @@
 
 
-PRJ_NAME = ultra96v2_hls_test_tcl
+export PRJ_NAME    = ultra96v2_hls_test_tcl
+export BOARD_PART  = avnet.com:ultra96v2*
+export DEVICE_PART = xczu3eg-sbva484-1-i
 
 
 .PHONY : all
