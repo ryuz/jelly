@@ -206,7 +206,7 @@ proc create_root_design { parentCell } {
   # Create ports
   set out_clk [ create_bd_port -dir O -type clk out_clk ]
   set_property -dict [ list \
-   CONFIG.ASSOCIATED_BUSIF {m_axi4l_peri:s_axi4_mem0:s_axi4_mem1} \
+   CONFIG.ASSOCIATED_BUSIF {m_axi4l_peri} \
  ] $out_clk
   set out_resetn [ create_bd_port -dir O -from 0 -to 0 -type rst out_resetn ]
 
