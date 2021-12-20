@@ -6,8 +6,8 @@ PRJ_NAME = ultra96v2_hls_test_tcl
 .PHONY : all
 all: clean create build
 
-.PHONY : build_hls create
-create: $(PRJ_NAME).xpr
+.PHONY : create
+create: build_hls $(PRJ_NAME).xpr
 
 $(PRJ_NAME).xpr:
 	vivado -m64 -mode batch -source create_project.tcl
