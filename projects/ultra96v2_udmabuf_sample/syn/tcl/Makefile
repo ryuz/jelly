@@ -19,12 +19,12 @@ build:
 
 .PHONY : clean
 clean:
-	rm -fr .Xil
-	rm -fr $(PRJ_NAME).cache
-	rm -fr $(PRJ_NAME).hw
-	rm -fr $(PRJ_NAME).ip_user_files
-	rm -fr $(PRJ_NAME).runs
-	rm -fr $(PRJ_NAME).sim
-	rm -fr $(PRJ_NAME).srcs
-	rm -fr $(PRJ_NAME).gen
-	rm -fr $(PRJ_NAME).xpr vivado*.jou  vivado*.log vivado_pid*.str 
+	-rm -fr .Xil
+	-rm -fr $(PRJ_NAME).cache
+	-rm -fr $(PRJ_NAME).hw
+	-rm -fr $(PRJ_NAME).ip_user_files
+	-rm -fr $(PRJ_NAME).runs
+	-rm -fr $(PRJ_NAME).sim
+	-rm -fr $(PRJ_NAME).srcs
+	-rm -fr $(PRJ_NAME).gen
+	-rm -fr $(PRJ_NAME).xpr vivado*.jou  vivado*.log vivado_pid*.str 
