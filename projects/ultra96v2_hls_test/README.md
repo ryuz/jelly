@@ -74,3 +74,13 @@ make
 make
 ```
 
+
+## 参考にさせて頂いた情報
+
+こちらをかなり参考にさせて頂きました。
+素晴らしい情報を公開いただいて感謝申し上げます。
+
+- https://qiita.com/ikwzm/items/a0120079d2f7f86a5904
+- https://kenta11.github.io/2019/02/12/make-for-Vivado-HLS/
+
+
