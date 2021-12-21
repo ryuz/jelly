@@ -43,9 +43,9 @@ int main()
     // HSL
     std::cout << "\n<test HLS>" << std::endl;
     std::cout << "HLS_CORE_ID : " << std::hex << hls_acc.ReadReg(REG_HLS_CORE_ID) << std::endl;
-    led_acc.WriteReg(REG_HLS_A, 77777);
-    led_acc.WriteReg(REG_HLS_B, 11111);
-    led_acc.WriteReg(REG_HLS_CONTROL, 1);
+    hls_acc.WriteReg(REG_HLS_A, 77777);
+    hls_acc.WriteReg(REG_HLS_B, 11111);
+    hls_acc.WriteReg(REG_HLS_CONTROL, 1);
     usleep(1);
     std::cout << "REG_HLS_A : " << std::hex << hls_acc.ReadReg(REG_HLS_A) << std::endl;
     std::cout << "REG_HLS_B : " << std::hex << hls_acc.ReadReg(REG_HLS_B) << std::endl;
