@@ -91,12 +91,14 @@ current_run -implementation [get_runs impl_1]
 source [file join ".." $vivado_version "design_1.tcl"  ]
 regenerate_bd_layout
 save_bd_design
-    
+
+
 # HLS
 set_property  ip_repo_paths ../../hls [current_project]
 update_ip_catalog
 
 create_ip -name divider -vendor xilinx.com -library hls -version 1.0 -module_name divider_0
+generate_target all [get_files ultra96v2_hls_test_tcl.srcs/sources_1/ip/divider_0/divider_0.xci]
 
 
 # add source file

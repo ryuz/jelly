@@ -6,10 +6,10 @@ export DEVICE_PART = xczu3eg-sbva484-1-i
 
 
 .PHONY : all
-all: clean create build
+all: clean build_hls create build
 
 .PHONY : create
-create: build_hls $(PRJ_NAME).xpr
+create: $(PRJ_NAME).xpr
 
 $(PRJ_NAME).xpr:
 	vivado -m64 -mode batch -source create_project.tcl
@@ -29,7 +29,8 @@ clean:
 	-rm -fr $(PRJ_NAME).srcs
 	-rm -fr $(PRJ_NAME).gen
 	-rm -fr $(PRJ_NAME).xpr
-	-rm -f vivado*.jou  vivado*.log vivado_pid*.str
+	-rm -f vivado*.jou
+	-rm -f vivado*.log
 
 
 .PHONY : build_hls
