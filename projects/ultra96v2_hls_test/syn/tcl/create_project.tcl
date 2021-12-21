@@ -50,7 +50,6 @@ set_property "default_lib"        "xil_defaultlib" [current_project]
 set_property "simulator_language" "Mixed"          [current_project]
 set_property "target_language"    "verilog"        [current_project]
 
-set_property sim.ip.auto_export_scripts true [current_project]
 
 # Create fileset "sources_1"
 if {[string equal [get_filesets -quiet sources_1] ""]} {
