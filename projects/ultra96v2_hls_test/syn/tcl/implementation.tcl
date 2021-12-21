@@ -1,10 +1,9 @@
 
 puts [file dirname [info script]]
-
 set project_directory   [file dirname [info script]]
-set project_name        "ultra96v2_hls_test_tcl"
-
 cd $project_directory
+
+set project_name $env(PRJ_NAME)
 
 open_project [file join $project_directory $project_name]
 
