@@ -66,3 +66,11 @@ projects/ultra96v2_hls_test/sim/tb_top/verilator に移動したのちに
 make
 ```
 
+## 実機動作
+
+実機に app ディレクトリと bit ファイルをコピーし、コピー先で
+
+```
+make
+```
+
