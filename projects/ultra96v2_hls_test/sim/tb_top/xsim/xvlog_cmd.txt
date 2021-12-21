@@ -2,7 +2,9 @@
 --sourcelibdir ..
 --sourcelibdir ../../stub
 --sourcelibdir ../../../rtl
---sourcelibdir ../../../syn/tcl/ultra96v2_hls_test_tcl.srcs/sources_1/ip/divider_0/synth
+--sourcelibdir ../../../syn/tcl/ultra96v2_hls_test_tcl.gen/sources_1/ip/divider_0/sim
+--sourcelibdir ../../../syn/tcl/ultra96v2_hls_test_tcl.gen/sources_1/ip/divider_0/hdl/verilog
+--sourcelibdir ../../../syn/tcl/ultra96v2_hls_test_tcl.srcs/sources_1/ip/divider_0/sim
 --sourcelibdir ../../../syn/tcl/ultra96v2_hls_test_tcl.srcs/sources_1/ip/divider_0/hdl/verilog
 --sourcelibdir ../../../../../rtl/rtos
 --sourcelibdir ../../../../../rtl/library
