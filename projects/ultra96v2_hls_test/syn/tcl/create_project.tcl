@@ -100,18 +100,18 @@ create_ip -name divider -vendor xilinx.com -library hls -version 1.0 -module_nam
 
 
 # add source file
-proc add_verilog_file {fileset_name library_name file_name} {
+proc add_src_file {fileset_name library_name file_type file_name} {
     set file    [file normalize $file_name]
     set fileset [get_filesets   $fileset_name] 
     add_files -norecurse -fileset $fileset $file
     set file_obj [get_files -of_objects $fileset $file]
-    set_property "file_type" "verilog" $file_obj
+    set_property "file_type" $file_type $file_obj
     set_property "library"   $library_name $file_obj
 }
 
-add_verilog_file sources_1 WORK ../../rtl/ultra96v2_hls_test.v
-add_verilog_file sources_1 WORK ../../rtl/test_hls.v
-add_verilog_file sources_1 WORK ../../../../rtl/bus/jelly_axi4l_to_wishbone.v
+add_src_file sources_1 WORK "SystemVerilog" ../../rtl/ultra96v2_hls_test.sv
+add_src_file sources_1 WORK "SystemVerilog" ../../rtl/test_hls.sv
+add_src_file sources_1 WORK "verilog"       ../../../../rtl/bus/jelly_axi4l_to_wishbone.v
 
 set_property top ultra96v2_hls_test [current_fileset]
 

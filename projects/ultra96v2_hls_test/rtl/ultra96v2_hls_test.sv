@@ -184,7 +184,7 @@ module ultra96v2_hls_test
         end
     end
     
-    assign wb_led_dat_o = reg_led;
+    assign wb_led_dat_o = WB_DAT_WIDTH'(reg_led);
     assign wb_led_ack_o = wb_led_stb_i;
     
     

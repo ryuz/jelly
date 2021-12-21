@@ -1,17 +1,11 @@
 --trace-fst --trace-params --trace-structs --trace-underscore
 #--public
 #--threads 2
+--report-unoptflat 
 
--Wno-WIDTH
-#-Wno-UNSIGNED
-#-Wno-PINMISSING
-#-Wno-UNOPTFLAT
-#-Wno-UNOPTTHREADS
-#-Wno-CASEINCOMPLETE
 -Wno-TIMESCALEMOD
 -Wno-STMTDLY
-
---report-unoptflat 
+-Wno-WIDTH
 
 -y ../../stub
 -y ../../../rtl

@@ -32,14 +32,14 @@ module test_hls
         );
     
     
-    wire                c_ap_vld;
-    wire                ap_start;
-    wire                ap_done;
-    wire                ap_idle;
-    wire                ap_ready;
-    wire    [31:0]      a;
-    wire    [31:0]      b;
-    wire    [31:0]      c;
+    logic               c_ap_vld;
+    logic               ap_start;
+    logic               ap_done;
+    logic               ap_idle;
+    logic               ap_ready;
+    logic   [31:0]      a;
+    logic   [31:0]      b;
+    logic   [31:0]      c;
     
     
     localparam  ADR_CORE_ID = 0;
@@ -49,9 +49,9 @@ module test_hls
     localparam  ADR_B       = 9;
     localparam  ADR_C       = 10;
     
-    reg     [0:0]       reg_control;
-    reg     [31:0]      reg_a;
-    reg     [31:0]      reg_b;
+    logic   [0:0]       reg_control;
+    logic   [31:0]      reg_a;
+    logic   [31:0]      reg_b;
     
     function [WB_DAT_WIDTH-1:0] reg_mask(
                                         input [WB_DAT_WIDTH-1:0] org,
@@ -67,7 +67,7 @@ module test_hls
     endfunction
     
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             reg_control <= 0;
             reg_a       <= 0;

@@ -24,7 +24,7 @@ create:
 
 .PHONY: clean
 clean:
-	-rm -rf $(TARGET_DIR)
+	-rm -rf $(HLS_TARGET)
 	-rm *.log
 
 .PHONY: csim
