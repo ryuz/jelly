@@ -207,8 +207,8 @@ module ultra96v2_hls_test
     //  WISHBONE address decode
     // -----------------------------
     
-    assign wb_hls_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[15:8] == 16'h0000);
-    assign wb_led_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[15:8] == 16'h0010);
+    assign wb_hls_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[15:8] == 8'h00);
+    assign wb_led_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[15:8] == 8'h10);
     
     assign wb_peri_dat_o = wb_hls_stb_i ? wb_hls_dat_o :
                            wb_led_stb_i ? wb_led_dat_o :

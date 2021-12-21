@@ -31,6 +31,10 @@ clean:
 	-rm -fr $(PRJ_NAME).xpr
 	-rm -f vivado*.jou  vivado*.log vivado_pid*.str
 
+.PHONY : export_sim
+export_sim:
+	vivado -m64 -mode batch -source export_sim.tcl
+
 .PHONY : build_hls
 build_hls:
 	make -C ../../hls

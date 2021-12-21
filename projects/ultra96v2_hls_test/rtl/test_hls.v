@@ -77,20 +77,20 @@ module test_hls
             reg_control <= 1'b0;
             if ( s_wb_stb_i && s_wb_we_i ) begin
                 case ( s_wb_adr_i )
-                ADR_CONTROL:    reg_control <= reg_mask(reg_control, s_wb_dat_i, s_wb_sel_i);
-                ADR_A:          reg_a       <= reg_mask(reg_a,       s_wb_dat_i, s_wb_sel_i);
-                ADR_B:          reg_b       <= reg_mask(reg_b,       s_wb_dat_i, s_wb_sel_i);
+                ADR_CONTROL:    reg_control <=  1'(reg_mask(WB_DAT_WIDTH'(reg_control), s_wb_dat_i, s_wb_sel_i));
+                ADR_A:          reg_a       <= 32'(reg_mask(WB_DAT_WIDTH'(reg_a),       s_wb_dat_i, s_wb_sel_i));
+                ADR_B:          reg_b       <= 32'(reg_mask(WB_DAT_WIDTH'(reg_b),       s_wb_dat_i, s_wb_sel_i));
                 endcase
             end
         end
     end
     
-    assign s_wb_dat_o = (s_wb_adr_i == ADR_CORE_ID) ? 32'haa551234 :
-                        (s_wb_adr_i == ADR_CONTROL) ? reg_control  :
-                        (s_wb_adr_i == ADR_STATUS ) ? ap_done      :
-                        (s_wb_adr_i == ADR_A      ) ? reg_a        :
-                        (s_wb_adr_i == ADR_B      ) ? reg_b        :
-                        (s_wb_adr_i == ADR_C      ) ? c            :
+    assign s_wb_dat_o = (s_wb_adr_i == ADR_CORE_ID) ? WB_DAT_WIDTH'(32'haa551234) :
+                        (s_wb_adr_i == ADR_CONTROL) ? WB_DAT_WIDTH'(reg_control)  :
+                        (s_wb_adr_i == ADR_STATUS ) ? WB_DAT_WIDTH'(ap_done)      :
+                        (s_wb_adr_i == ADR_A      ) ? WB_DAT_WIDTH'(reg_a)        :
+                        (s_wb_adr_i == ADR_B      ) ? WB_DAT_WIDTH'(reg_b)        :
+                        (s_wb_adr_i == ADR_C      ) ? WB_DAT_WIDTH'(c)            :
                         0;
     assign s_wb_ack_o = s_wb_stb_i;
     

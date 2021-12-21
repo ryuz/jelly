@@ -139,8 +139,8 @@ module tb_sim();
     //  Simulation
     // ----------------------------------
 
-    localparam ADR_HLS = 32'h0000_0000;
-    localparam ADR_LED = 32'h0011_0000;
+    localparam  ADR_HLS = 32'h0000_0000;
+    localparam  ADR_LED = 32'h0011_0000;
 
     localparam  REG_HLS_CORE_ID = 0;
     localparam  REG_HLS_CONTROL = 4;
