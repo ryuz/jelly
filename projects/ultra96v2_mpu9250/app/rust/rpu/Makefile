@@ -1,8 +1,6 @@
 
 
 PRJ_NAME  = ultra96v2_mpu9250_rpu
-DT_NAME   = $(PRJ_NAME)
-BIT_NAME  = $(PRJ_NAME)
 
 RUN_PROC     ?= remoteproc0
 BUILD_TARGET ?= release
