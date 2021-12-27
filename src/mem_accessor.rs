@@ -12,6 +12,12 @@ pub trait MemRegion {
 pub trait MemAccess {
     fn reg_size() -> usize;
 
+    fn addr(&self) -> usize;
+    fn size(&self) -> usize;
+
+    unsafe fn copy_to<V>(&self, src_adr: usize, dst_ptr: *mut V, count: usize);
+    unsafe fn copy_from<V>(&self, src_ptr: *const V, dst_adr: usize, count: usize);
+
     unsafe fn write_mem_<V>(&self, offset: usize, data: V);
     unsafe fn read_mem_<V>(&self, offset: usize) -> V;
     unsafe fn write_reg_<V>(&self, reg: usize, data: V);
@@ -97,6 +103,26 @@ impl<T: MemRegion, U> Clone for MemAccessor<T, U> {
 impl<T: MemRegion, U> MemAccess for MemAccessor<T, U> {
     fn reg_size() -> usize {
         core::mem::size_of::<U>()
+    }
+
+    fn addr(&self) -> usize {
+        self.region.addr()
+    }
+
+    fn size(&self) -> usize {
+        self.region.size()
+    }
+
+    unsafe fn copy_to<V>(&self, src_adr: usize, dst_ptr: *mut V, count: usize) {
+        assert!(src_adr + count * core::mem::size_of::<V>() <= self.size());
+        let src_ptr: *const V = (self.addr() + src_adr) as *const V;
+        core::ptr::copy_nonoverlapping(src_ptr, dst_ptr, count);
+    }
+
+    unsafe fn copy_from<V>(&self, src_ptr: *const V, dst_adr: usize, count: usize) {
+        assert!(dst_adr + count * core::mem::size_of::<V>() <= self.size());
+        let dst_ptr: *mut V = (self.addr() + dst_adr) as *mut V;
+        core::ptr::copy_nonoverlapping(src_ptr, dst_ptr, count);
     }
 
     unsafe fn write_mem_<V>(&self, offset: usize, data: V) {
