@@ -20,27 +20,15 @@ git remote add pac https://github.com/ryuz/jelly-pac.git --no-tags
 ```
 
 
-
-## subtree 用メモ(旧)
-
-リモートリポジトリ登録
+## crates.io 登録用メモ
 
 ```
-git remote add mem_access https://github.com/ryuz/jelly-mem_access.git
-git subtree add --prefix=rust/mem_access --squash mem_access develop
+cargo login XXXXXX
+
+cargo test
+
+cargo package
+
+cargo publish
 ```
 
-リモートリポジトリ操作
-
-```
-git subtree add  --prefix=<prefix> --squash <repository> <refspec>
-git subtree push --prefix=<prefix> --squash <repository> <refspec>
-git subtree pull --prefix=<prefix> --squash <repository> <refspec>
-```
-
-
-```
-subadd = "!f () { git subtree add --prefix=${1}  --squash ${2}  ${3} ;};f"
-subpush = "!f () { git subtree push --prefix=${1}  --squash ${2}  ${3} ;};f"
-subpull = "!f () { git subtree pull --prefix=${1}  --squash ${2}  ${3} ;};f"
-```

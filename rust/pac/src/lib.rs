@@ -6,7 +6,7 @@
 extern crate std;
 
 pub mod communication_pipe;
-//pub mod i2c;
+pub mod i2c;
 pub mod interval_timer;
 
 

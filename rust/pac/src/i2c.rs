@@ -1,8 +1,6 @@
 #![allow(dead_code)]
 
 use jelly_mem_access::*;
-use jelly_rtos as rtos;
-
 
 const REG_I2C_STATUS    : usize = 0x00;
 const REG_I2C_CONTROL   : usize = 0x01;
@@ -23,34 +21,25 @@ pub trait I2cAccess {
 }
 
 
-pub struct JellyI2c<T: MemAccess, const FI: rtos::ID, const FP: rtos::FLGPTN>
+pub struct JellyI2c<T: MemAccess>
 {
     reg_acc: T,
+    wait_irq: Option<fn()>,
 }
 
 
-impl<T: MemAccess, const FI: rtos::ID, const FP: rtos::FLGPTN> JellyI2c<T, FI, FP> {
-    pub const fn new(reg_acc: T) -> Self
+impl<T: MemAccess> JellyI2c<T> {
+    pub const fn new(reg_acc: T, wait_irq: Option<fn()>) -> Self
     {
-        Self {reg_acc: reg_acc}
+        Self {reg_acc: reg_acc, wait_irq:wait_irq}
     }
 
     fn wait(&self) {
-        if FI == 0 {
-            while ( unsafe{self.reg_acc.read_reg(REG_I2C_STATUS)} & 1) != 0 {}
+        while (unsafe{self.reg_acc.read_reg(REG_I2C_STATUS)} & 1) != 0 {
+            if let Some(wait_fn) = self.wait_irq {
+                wait_fn();
+            }
         }
-        else {
-            rtos::clr_flg(FI, !FP);
-            rtos::wai_flg(FI, FP, rtos::WfMode::AndWait);
-        }
-    }
-
-    pub fn open(&self) {
-        rtos::ena_extflg(FI, FP);
-    }
-
-    pub fn close(&self) {
-        rtos::dis_extflg(FI, !FP);
     }
 
     pub fn set_divider(&self, div: u16)
@@ -117,7 +106,7 @@ impl<T: MemAccess, const FI: rtos::ID, const FP: rtos::FLGPTN> JellyI2c<T, FI, F
 }
 
 
-impl<T: MemAccess, const FI: rtos::ID, const FP: rtos::FLGPTN> I2cAccess for JellyI2c<T, FI, FP> {
+impl<T: MemAccess> I2cAccess for JellyI2c<T> {
     fn write(&self, dev_adr:u8, data: &[u8]) -> usize
     {
         let mut len:usize = 0;
@@ -183,5 +172,4 @@ impl<T: MemAccess, const FI: rtos::ID, const FP: rtos::FLGPTN> I2cAccess for Jel
         }
         len
     }
-
 }

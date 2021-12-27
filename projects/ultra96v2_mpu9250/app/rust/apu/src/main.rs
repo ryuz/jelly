@@ -71,6 +71,12 @@ fn main() {
             }
 
             let data: Mpu9250SensorData = unsafe{std::mem::transmute(buf)};
+            write!(file, "{}\t{}\t{}\t{}\t{}\t{}\t{}\n", 
+                    data.gyro[0],  data.gyro[1],  data.gyro[2],
+                    data.accel[0], data.accel[1], data.accel[2],
+                    data.temperature).unwrap();
+
+            /*
             write!(file, "{}\t", data.gyro[0]).unwrap();
             write!(file, "{}\t", data.gyro[1]).unwrap();
             write!(file, "{}\t", data.gyro[2]).unwrap();
@@ -78,6 +84,7 @@ fn main() {
             write!(file, "{}\t", data.accel[1]).unwrap();
             write!(file, "{}\t", data.accel[2]).unwrap();
             write!(file, "{}\n", data.temperature).unwrap();
+            */
         }
 
         thread::sleep(time::Duration::from_millis(1));

@@ -14,12 +14,13 @@ use jelly_rtos::rtos;
 use jelly_mem_access::*;
 use jelly_pac::communication_pipe::*;
 use jelly_pac::interval_timer::*;
+use jelly_pac::i2c::*;
 
 mod bootstrap;
 //mod communication_pipe;
 
-mod i2c;
-use i2c::*;
+//mod i2c;
+//use i2c::*;
 
 mod mpu9250;
 use mpu9250::*;
@@ -143,7 +144,8 @@ extern "C" fn task1() -> ! {
 
     // PhysAccessor を使う場合
     type I2cAccessor = PhysAccessor<u64, 0x8080_0000, 0x100>;
-    let  i2c = i2c::JellyI2c::<I2cAccessor, 1, 0x20>::new(I2cAccessor::new().into());
+//  let  i2c = i2c::JellyI2c::<I2cAccessor, 1, 0x20>::new(I2cAccessor::new().into());
+    let  i2c = JellyI2c::<I2cAccessor>::new(I2cAccessor::new().into(), Some(wait_irq::<1, 0x20>));
     
     // MmioAccessor を使う場合
 //  let i2c_acc = MmioAccessor::<u64>::new(0x8080_0000, 0x100);
