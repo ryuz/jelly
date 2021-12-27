@@ -1,9 +1,9 @@
 [package]
 name = "jelly-mem_access"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Ryuz <ryufuchi@gmail.com>"]
 edition = "2021"
-repository = "https://github.com/ryuz/jelly/tree/master/rust/mem_access"
+repository = "https://github.com/ryuz/jelly-mem_access"
 keywords = ["mmio", "uio", "udmabuf", "u-dma-buf"]
 license = "MIT"
 
