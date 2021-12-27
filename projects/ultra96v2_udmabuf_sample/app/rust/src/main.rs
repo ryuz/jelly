@@ -34,10 +34,10 @@ fn main() {
     println!("uio_pl_peri size      : 0x{:x}", uio_acc.size());
 
     // UIOの中をさらにコアごとに割り当て
-    let dma0_acc = uio_acc.clone(0x00000, 0x800);
-    let dma1_acc = uio_acc.clone(0x00800, 0x800);
-    let led_acc = uio_acc.clone(0x08000, 0x800);
-    let tim_acc = uio_acc.clone(0x10000, 0x800);
+    let dma0_acc = uio_acc.subclone(0x00000, 0x800);
+    let dma1_acc = uio_acc.subclone(0x00800, 0x800);
+    let led_acc = uio_acc.subclone(0x08000, 0x800);
+    let tim_acc = uio_acc.subclone(0x10000, 0x800);
 
     unsafe {
         // メモリアドレスでアクセス
@@ -62,14 +62,12 @@ fn main() {
 
         // udma領域アクセス
         println!("\n<test udmabuf access>");
-        udmabuf_acc.write_mem32(0x00, 0x10101010);
-        udmabuf_acc.write_mem32(0x04, 0x20202020);
-        udmabuf_acc.write_mem32(0x08, 0x30303030);
-        udmabuf_acc.write_mem32(0x0c, 0x40404040);
-        println!("ptr[0] : 0x{:x}", udmabuf_acc.read_mem32(0x00));
-        println!("ptr[1] : 0x{:x}", udmabuf_acc.read_mem32(0x04));
-        println!("ptr[2] : 0x{:x}", udmabuf_acc.read_mem32(0x08));
-        println!("ptr[3] : 0x{:x}", udmabuf_acc.read_mem32(0x0c));
+        let buf: [u32; 4] = [0x10101010, 0x20202020, 0x30303030, 0x40404040];
+        udmabuf_acc.copy_from(&buf, 0, 1);
+        println!("udmabuf[0] : 0x{:x}", udmabuf_acc.read_mem32(0x00));
+        println!("udmabuf[1] : 0x{:x}", udmabuf_acc.read_mem32(0x04));
+        println!("udmabuf[2] : 0x{:x}", udmabuf_acc.read_mem32(0x08));
+        println!("udmabuf[3] : 0x{:x}", udmabuf_acc.read_mem32(0x0c));
 
         // DMA0でread
         println!("\n<DMA0 read test>");

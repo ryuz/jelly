@@ -87,7 +87,7 @@ current_run -implementation [get_runs impl_1]
 
 
 # create block design
-source [file join ".." $vivado_version "design_1.tcl"  ]
+source [file join ".." $vivado_version "design_1.tcl"]
 regenerate_bd_layout
 save_bd_design
 

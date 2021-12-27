@@ -23,6 +23,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "libm"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c7d73b3f436185384286bd8098d17ec07c9a7d2388a6599f824d8502b529702a"
+
+[[package]]
 name = "pudding-pac"
 version = "0.1.0"
 source = "git+https://github.com/ryuz/rust_rtos.git?rev=c13dd9014f86e0e230f167007e8effd9d805ef3f#c13dd9014f86e0e230f167007e8effd9d805ef3f"
@@ -36,5 +42,6 @@ version = "0.1.0"
 dependencies = [
  "cc",
  "jelly-rtos",
+ "libm",
  "pudding-pac",
 ]
