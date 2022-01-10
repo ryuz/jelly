@@ -71,7 +71,8 @@
             #size-cells = <0x2>;
             udmabuf4 {
                 compatible = "ikwzm,u-dma-buf";
-                minor-number = <4>;
+                device-name = "udmabuf-jelly-sample";
+//              minor-number = <4>;
                 size = <0x0 0x00400000>;
             };
         };

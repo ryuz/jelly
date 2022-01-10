@@ -32,14 +32,14 @@ int main()
     std::cout << "--- udmabuf test ---" << std::endl;
 
     // mmap udmabuf
-    std::cout << "\nudmabuf4 open" << std::endl;
-    UdmabufAccessor udmabuf_acc("udmabuf4");
+    std::cout << "\nudmabuf open" << std::endl;
+    UdmabufAccessor udmabuf_acc("udmabuf-jelly-sample");
     if ( !udmabuf_acc.IsMapped() ) {
-        std::cout << "udmabuf4 mmap error" << std::endl;
+        std::cout << "udmabuf mmap error" << std::endl;
         return 1;
     }
-    std::cout << "udmabuf4 phys addr : " << std::hex << udmabuf_acc.GetPhysAddr() << std::endl;
-    std::cout << "udmabuf4 size      : " << std::hex << udmabuf_acc.GetSize()     << std::endl;
+    std::cout << "udmabuf phys addr : " << std::hex << udmabuf_acc.GetPhysAddr() << std::endl;
+    std::cout << "udmabuf size      : " << std::hex << udmabuf_acc.GetSize()     << std::endl;
 
     // mmap uio
     std::cout << "\nuio open" << std::endl;
