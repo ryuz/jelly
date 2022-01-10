@@ -24,11 +24,11 @@ struct UdmabufRegion {
 }
 
 impl UdmabufRegion {
-    pub fn new(udmabuf_num: usize, cache_enable: bool) -> Result<Self, Box<dyn Error>> {
-        let phys_addr = Self::read_phys_addr(udmabuf_num)?;
-        let size = Self::read_size(udmabuf_num)?;
+    pub fn new(device_name: &str, cache_enable: bool) -> Result<Self, Box<dyn Error>> {
+        let phys_addr = Self::read_phys_addr(device_name)?;
+        let size = Self::read_size(device_name)?;
 
-        let fname = format!("/dev/udmabuf{}", udmabuf_num);
+        let fname = format!("/dev/{}", device_name);
         let mmap_region =
             MmapRegion::new_with_flag(fname, size, if cache_enable { 0 } else { O_SYNC })?;
 
@@ -38,20 +38,25 @@ impl UdmabufRegion {
         })
     }
 
+    pub fn new_with_number(udmabuf_num: usize, cache_enable: bool) -> Result<Self, Box<dyn Error>> {
+        let device_name = format!("udmabuf{}", udmabuf_num);
+        Self::new(&device_name, cache_enable)
+    }
+
     pub fn phys_addr(&self) -> usize {
         self.phys_addr
     }
 
-    pub fn read_phys_addr(udmabuf_num: usize) -> Result<usize, Box<dyn Error>> {
-        let fname = format!("/sys/class/u-dma-buf/udmabuf{}/phys_addr", udmabuf_num);
+    pub fn read_phys_addr(device_name: &str) -> Result<usize, Box<dyn Error>> {
+        let fname = format!("/sys/class/u-dma-buf/{}/phys_addr", device_name);
         Ok(usize::from_str_radix(
             &read_file_to_string(fname)?.trim()[2..],
             16,
         )?)
     }
 
-    pub fn read_size(udmabuf_num: usize) -> Result<usize, Box<dyn Error>> {
-        let fname = format!("/sys/class/u-dma-buf/udmabuf{}/size", udmabuf_num);
+    pub fn read_size(device_name: &str) -> Result<usize, Box<dyn Error>> {
+        let fname = format!("/sys/class/u-dma-buf/{}/size", device_name);
         Ok(read_file_to_string(fname)?.trim().parse()?)
     }
 }
@@ -91,10 +96,10 @@ impl<U> From<UdmabufAccessor<U>> for MemAccessor<UdmabufRegion, U> {
 
 
 impl<U> UdmabufAccessor<U> {
-    pub fn new(udmabuf_num: usize, cache_enable: bool) -> Result<Self, Box<dyn Error>> {
+    pub fn new(device_name: &str, cache_enable: bool) -> Result<Self, Box<dyn Error>> {
         Ok(Self {
             mem_accessor: MemAccessor::<UdmabufRegion, U>::new(UdmabufRegion::new(
-                udmabuf_num,
+                device_name,
                 cache_enable,
             )?),
         })
