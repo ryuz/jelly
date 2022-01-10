@@ -111,7 +111,7 @@ impl<U> UioAccessor<U> {
         })
     }
 
-    pub fn new_from_name(name: &str) -> Result<Self, Box<dyn Error>> {
+    pub fn new_with_name(name: &str) -> Result<Self, Box<dyn Error>> {
         for path in std::fs::read_dir("/sys/class/uio/")? {
             let uio_num: usize = path
                 .unwrap()
