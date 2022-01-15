@@ -139,12 +139,11 @@ extern "C" fn task1() -> ! {
     // timer
     type TimAccessor = PhysAccessor<u64, 0x8040_0000, 0x100>;
     let  tim = JellyIntervalTimer::<TimAccessor>::new(TimAccessor::new(), Some(wait_irq::<1, 0x10>));
-    tim.set_compare_counter(250000-1);  // 1kHz
+    tim.set_compare_counter(2500000-1);  // 100Hz
     tim.set_enable(true);
 
     // PhysAccessor を使う場合
     type I2cAccessor = PhysAccessor<u64, 0x8080_0000, 0x100>;
-//  let  i2c = i2c::JellyI2c::<I2cAccessor, 1, 0x20>::new(I2cAccessor::new().into());
     let  i2c = JellyI2c::<I2cAccessor>::new(I2cAccessor::new().into(), Some(wait_irq::<1, 0x20>));
     
     // MmioAccessor を使う場合
@@ -162,7 +161,7 @@ extern "C" fn task1() -> ! {
         tim.wait_timer();
         let data = imu.read_sensor_data();
         
-        if times % 1000 == 0 {
+        if times % 100 == 0 {
             println!("accel0      : {}", data.accel[0]     );
             println!("accel1      : {}", data.accel[1]     );
             println!("accel2      : {}", data.accel[2]     );

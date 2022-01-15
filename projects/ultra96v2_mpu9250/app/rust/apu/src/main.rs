@@ -5,6 +5,8 @@ use std::fs::File;
 use std::io::Write;
 use nix::sys::signal;
 use nix::sys::signal::*;
+use std::time::Duration;
+use std::net::UdpSocket;
 use jelly_mem_access::*;
 use jelly_pac::communication_pipe::*;
 
@@ -38,16 +40,19 @@ fn main() {
     let sa = SigAction::new(SigHandler::Handler(handle_signal), SaFlags::SA_RESETHAND, SigSet::empty());
     unsafe { sigaction(signal::SIGINT, &sa) }.unwrap();
 
-    let pipe0_rx_acc = UioAccessor::<u64>::new_from_name("uio_pl_pipe0").unwrap().subclone(0x0000, 0);
-    let pipe1_tx_acc = UioAccessor::<u64>::new_from_name("uio_pl_pipe1").unwrap().subclone(0x0800, 0);
-    let pipe2_rx_acc = UioAccessor::<u64>::new_from_name("uio_pl_pipe2").unwrap().subclone(0x1000, 0);
-    let pipe3_tx_acc = UioAccessor::<u64>::new_from_name("uio_pl_pipe3").unwrap().subclone(0x1800, 0);
+    let pipe0_rx_acc = UioAccessor::<u64>::new_with_name("uio_pl_pipe0").unwrap().subclone(0x0000, 0);
+    let pipe1_tx_acc = UioAccessor::<u64>::new_with_name("uio_pl_pipe1").unwrap().subclone(0x0800, 0);
+    let pipe2_rx_acc = UioAccessor::<u64>::new_with_name("uio_pl_pipe2").unwrap().subclone(0x1000, 0);
+    let pipe3_tx_acc = UioAccessor::<u64>::new_with_name("uio_pl_pipe3").unwrap().subclone(0x1800, 0);
     let pipe0_rx = JellyCommunicationPipe::new(pipe0_rx_acc, None);
     let pipe1_tx = JellyCommunicationPipe::new(pipe1_tx_acc, None);
     let pipe2_rx = JellyCommunicationPipe::new(pipe2_rx_acc, None);
     let pipe3_tx = JellyCommunicationPipe::new(pipe3_tx_acc, None);
     let com0 = CommunicationPort::new(pipe1_tx, pipe0_rx);
     let com1 = CommunicationPort::new(pipe3_tx, pipe2_rx);
+
+    let socket = UdpSocket::bind("0.0.0.0:9998").expect("failed to bind socket");
+    socket.set_write_timeout(Some(Duration::from_secs(2))).unwrap();
 
     println!("start\n");
     
@@ -64,6 +69,8 @@ fn main() {
             let mut buf: [u8; 14] = [0; 14];
             com1.read(&mut buf);
 
+            socket.send_to(&buf, "127.0.0.1:9998").expect("failed to send data");
+
             struct Mpu9250SensorData {
                 pub accel: [i16; 3],
                 pub gyro: [i16; 3],
@@ -75,18 +82,8 @@ fn main() {
                     data.gyro[0],  data.gyro[1],  data.gyro[2],
                     data.accel[0], data.accel[1], data.accel[2],
                     data.temperature).unwrap();
-
-            /*
-            write!(file, "{}\t", data.gyro[0]).unwrap();
-            write!(file, "{}\t", data.gyro[1]).unwrap();
-            write!(file, "{}\t", data.gyro[2]).unwrap();
-            write!(file, "{}\t", data.accel[0]).unwrap();
-            write!(file, "{}\t", data.accel[1]).unwrap();
-            write!(file, "{}\t", data.accel[2]).unwrap();
-            write!(file, "{}\n", data.temperature).unwrap();
-            */
         }
-
+        
         thread::sleep(time::Duration::from_millis(1));
     }
 
