@@ -1,6 +1,6 @@
 
 
-TOP_MODULE=tb_top
+TOP_MODULE=tb_sim
 
 .PHONY: all
 all: clean build run

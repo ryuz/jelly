@@ -25,7 +25,9 @@ module video_raw_to_rgb
             
             parameter   TUSER_WIDTH   = 1,
             parameter   S_TDATA_WIDTH = DATA_WIDTH,
-            parameter   M_TDATA_WIDTH = 4*DATA_WIDTH
+            parameter   M_TDATA_WIDTH = 4*DATA_WIDTH,
+            
+            parameter   DEVICE        = "RTL"
         )
         (
             input   wire                        aresetn,
@@ -221,7 +223,7 @@ module video_raw_to_rgb
                 .COEFF3_INT_WIDTH       (9),
                 .COEFF3_FRAC_WIDTH      (16),
                 .STATIC_COEFF           (1),
-                .DEVICE                 ("7SERIES"),
+                .DEVICE                 (DEVICE),
                 
                 .WB_ADR_WIDTH           (6),
                 .WB_DAT_WIDTH           (WB_DAT_WIDTH),

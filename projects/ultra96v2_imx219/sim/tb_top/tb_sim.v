@@ -9,47 +9,73 @@
 `default_nettype none
 
 
-module tb_top();
-    localparam RATE125 = 1000.0/125.0;
+module tb_sim();
     
     initial begin
-        $dumpfile("tb_top.vcd");
-        $dumpvars(0, tb_top);
+        $dumpfile("tb_sim.vcd");
+        $dumpvars(0, tb_sim);
         
     #100000000
         $finish;
     end
     
-    reg     clk125 = 1'b1;
-    always #(RATE125/2.0)   clk125 = ~clk125;
-    
-    
+
     parameter   X_NUM = 2048; // 3280 / 2;
     parameter   Y_NUM = 16; // 2464 / 2;
+
+
+    // ---------------------------------
+    //  clock & reset
+    // ---------------------------------
+
+    localparam RATE100 = 1000.0/100.00;
+    localparam RATE200 = 1000.0/200.00;
+    localparam RATE250 = 1000.0/250.00;
+    localparam RATE133 = 1000.0/133.33;
+
+    reg			reset = 1;
+    initial #100 reset = 0;
+
+    reg			clk100 = 1'b1;
+    always #(RATE100/2.0) clk100 <= ~clk100;
+
+    reg			clk200 = 1'b1;
+    always #(RATE200/2.0) clk200 <= ~clk200;
+
+    reg			clk250 = 1'b1;
+    always #(RATE250/2.0) clk250 <= ~clk250;
+
+    initial begin
+      force i_tb_sim_main.i_top.i_design_1.reset = reset;
+      force i_tb_sim_main.i_top.i_design_1.clk100 = clk100;
+      force i_tb_sim_main.i_top.i_design_1.clk200 = clk200;
+      force i_tb_sim_main.i_top.i_design_1.clk250 = clk250;
+    end
+
     
-    ultra96v2_imx219
-        i_top
+    // ---------------------------------
+    //  main
+    // ---------------------------------
+    
+    tb_sim_main
+        i_tb_sim_main
             (
-                .cam_clk_p      (),
-                .cam_clk_n      (),
-                .cam_data_p     (),
-                .cam_data_n     ()
+                .reset  (reset),
+                .clk    (clk100)
             );
     
     
-    
-    
     // ----------------------------------
-    //  summy video
+    //  dummy video
     // ----------------------------------
     
-    wire            axi4s_model_aresetn = i_top.axi4s_cam_aresetn;
-    wire            axi4s_model_aclk    = i_top.axi4s_cam_aclk;
+    wire            axi4s_model_aresetn = i_tb_sim_main.i_top.axi4s_cam_aresetn;
+    wire            axi4s_model_aclk    = i_tb_sim_main.i_top.axi4s_cam_aclk;
     wire    [0:0]   axi4s_model_tuser;
     wire            axi4s_model_tlast;
     wire    [7:0]   axi4s_model_tdata;
     wire            axi4s_model_tvalid;
-    wire            axi4s_model_tready = i_top.axi4s_csi2_tready;
+    wire            axi4s_model_tready = i_tb_sim_main.i_top.axi4s_csi2_tready;
     
     jelly_axi4s_master_model
             #(
@@ -73,10 +99,10 @@ module tb_top();
             );
     
     initial begin
-        force i_top.axi4s_csi2_tuser  = axi4s_model_tuser;
-        force i_top.axi4s_csi2_tlast  = axi4s_model_tlast;
-        force i_top.axi4s_csi2_tdata  = {axi4s_model_tdata, 2'd0};
-        force i_top.axi4s_csi2_tvalid = axi4s_model_tvalid;
+        force i_tb_sim_main.i_top.axi4s_csi2_tuser  = axi4s_model_tuser;
+        force i_tb_sim_main.i_top.axi4s_csi2_tlast  = axi4s_model_tlast;
+        force i_tb_sim_main.i_top.axi4s_csi2_tdata  = {axi4s_model_tdata, 2'd0};
+        force i_tb_sim_main.i_top.axi4s_csi2_tvalid = axi4s_model_tvalid;
     end
     
     
@@ -89,22 +115,22 @@ module tb_top();
     parameter   WB_DAT_WIDTH        = 64;
     parameter   WB_SEL_WIDTH        = (WB_DAT_WIDTH / 8);
     
-    wire                            wb_rst_i = i_top.wb_peri_rst_i;
-    wire                            wb_clk_i = i_top.wb_peri_clk_i;
+    wire                            wb_rst_i = i_tb_sim_main.i_top.wb_peri_rst_i;
+    wire                            wb_clk_i = i_tb_sim_main.i_top.wb_peri_clk_i;
     reg     [WB_ADR_WIDTH-1:0]      wb_adr_o;
-    wire    [WB_DAT_WIDTH-1:0]      wb_dat_i = i_top.wb_peri_dat_o;
+    wire    [WB_DAT_WIDTH-1:0]      wb_dat_i = i_tb_sim_main.i_top.wb_peri_dat_o;
     reg     [WB_DAT_WIDTH-1:0]      wb_dat_o;
     reg                             wb_we_o;
     reg     [WB_SEL_WIDTH-1:0]      wb_sel_o;
     reg                             wb_stb_o = 0;
-    wire                            wb_ack_i = i_top.wb_peri_ack_o;
+    wire                            wb_ack_i = i_tb_sim_main.i_top.wb_peri_ack_o;
     
     initial begin
-        force i_top.wb_peri_adr_i = wb_adr_o;
-        force i_top.wb_peri_dat_i = wb_dat_o;
-        force i_top.wb_peri_we_i  = wb_we_o;
-        force i_top.wb_peri_sel_i = wb_sel_o;
-        force i_top.wb_peri_stb_i = wb_stb_o;
+        force i_tb_sim_main.i_top.wb_peri_adr_i = wb_adr_o;
+        force i_tb_sim_main.i_top.wb_peri_dat_i = wb_dat_o;
+        force i_tb_sim_main.i_top.wb_peri_we_i  = wb_we_o;
+        force i_tb_sim_main.i_top.wb_peri_sel_i = wb_sel_o;
+        force i_tb_sim_main.i_top.wb_peri_stb_i = wb_stb_o;
     end
     
     
