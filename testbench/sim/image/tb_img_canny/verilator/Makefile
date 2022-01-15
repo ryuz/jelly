@@ -27,7 +27,7 @@ CMAKE_FLAGS += -GNinja
 endif
 
 
-all: build run coverage
+all: build run
 
 .PHONY : build
 build:

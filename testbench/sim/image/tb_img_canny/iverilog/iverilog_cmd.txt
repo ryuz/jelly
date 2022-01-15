@@ -1,4 +1,5 @@
-../tb_img_canny.v
+../tb_sim.v
+../tb_sim_main.v
 -y ../../../../../rtl/library
 -y ../../../../../rtl/image
 -y ../../../../../rtl/math

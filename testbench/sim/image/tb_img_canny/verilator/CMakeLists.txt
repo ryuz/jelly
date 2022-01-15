@@ -30,4 +30,4 @@ verilate(tb_verilator
 #    COVERAGE TRACE
     INCLUDE_DIRS "."
     VERILATOR_ARGS -f verilator_cmd.txt -Os
-    SOURCES ./tb_verilator.sv)
+    SOURCES ../tb_sim_main.v)

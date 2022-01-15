@@ -6,5 +6,6 @@
 --sourcelibext .v
 --sourcelibext .sv
 
-../tb_img_canny.v
+../tb_sim.v
+../tb_sim_main.v
 

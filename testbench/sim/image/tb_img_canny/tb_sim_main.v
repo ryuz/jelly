@@ -1,9 +1,9 @@
 
 `timescale 1ns / 1ps
-//`default_nettype none
+`default_nettype none
 
 
-module tb_verilator
+module tb_sim_main
         #(
             parameter   USER_WIDTH = 1,
             parameter   DATA_WIDTH = 8,
@@ -13,25 +13,25 @@ module tb_verilator
             parameter   Y_WIDTH    = 9
         )
         (
-            input   logic                       aresetn,
-            input   logic                       aclk,
+            input   wire                        aresetn,
+            input   wire                        aclk,
             
-            input   logic                       s_axi4s_src_tuser,
-            input   logic                       s_axi4s_src_tlast,
-            input   logic   [DATA_WIDTH-1:0]    s_axi4s_src_tdata,
-            input   logic                       s_axi4s_src_tvalid,
-            output  logic                       s_axi4s_src_tready,
+            input   wire                        s_axi4s_src_tuser,
+            input   wire                        s_axi4s_src_tlast,
+            input   wire    [DATA_WIDTH-1:0]    s_axi4s_src_tdata,
+            input   wire                        s_axi4s_src_tvalid,
+            output  wire                        s_axi4s_src_tready,
 
-            output  logic                       m_axi4s_dst_tuser,
-            output  logic                       m_axi4s_dst_tlast,
-            output  logic   [DATA_WIDTH-1:0]    m_axi4s_dst_tdata,
-            output  logic                       m_axi4s_dst_tvalid,
-            input   logic                       m_axi4s_dst_tready,
+            output  wire                        m_axi4s_dst_tuser,
+            output  wire                        m_axi4s_dst_tlast,
+            output  wire    [DATA_WIDTH-1:0]    m_axi4s_dst_tdata,
+            output  wire                        m_axi4s_dst_tvalid,
+            input   wire                        m_axi4s_dst_tready,
 
-            output  logic                       m_axi4s_angle_tuser,
-            output  logic                       m_axi4s_angle_tlast,
-            output  logic   [3*DATA_WIDTH-1:0]  m_axi4s_angle_tdata,
-            output  logic                       m_axi4s_angle_tvalid
+            output  wire                        m_axi4s_angle_tuser,
+            output  wire                        m_axi4s_angle_tlast,
+            output  wire    [3*DATA_WIDTH-1:0]  m_axi4s_angle_tdata,
+            output  wire                        m_axi4s_angle_tvalid
         );
     
 
@@ -56,13 +56,13 @@ module tb_verilator
     wire                                img_sink_pixel_last;
     wire                                img_sink_de;
     wire    [USER_WIDTH-1:0]            img_sink_user;
-    wire    [DATA_WIDTH*3-1:0]          img_sink_data;
+    wire    [DATA_WIDTH-1:0]            img_sink_data;
     wire                                img_sink_valid;
     
     jelly_axi4s_img
             #(
                 .S_TDATA_WIDTH          (DATA_WIDTH),
-                .M_TDATA_WIDTH          (DATA_WIDTH*3),
+                .M_TDATA_WIDTH          (DATA_WIDTH),
                 .IMG_Y_NUM              (Y_NUM),
                 .IMG_Y_WIDTH            (Y_WIDTH),
                 .BLANK_Y_WIDTH          (8),
@@ -136,12 +136,12 @@ module tb_verilator
                 
                 .s_wb_rst_i             (reset),
                 .s_wb_clk_i             (clk),
-                .s_wb_adr_i             (0),
-                .s_wb_dat_i             (0),
+                .s_wb_adr_i             (8'd0),
+                .s_wb_dat_i             (32'd0),
                 .s_wb_dat_o             (),
-                .s_wb_we_i              (0),
-                .s_wb_sel_i             (0),
-                .s_wb_stb_i             (0),
+                .s_wb_we_i              (1'd0),
+                .s_wb_sel_i             (4'd0),
+                .s_wb_stb_i             (1'd0),
                 .s_wb_ack_o             (),
                 
                 .s_img_line_first       (img_src_line_first),
@@ -192,7 +192,7 @@ module tb_verilator
 endmodule
 
 
-//`default_nettype wire
+`default_nettype wire
 
 
 // end of file
