@@ -157,6 +157,7 @@ module jelly_video_format_regularizer
                 ADR_PARAM_HEIGHT:       reg_param_height     <= reg_mask(reg_param_height,     s_wb_dat_i, s_wb_sel_i);
                 ADR_PARAM_FILL:         reg_param_fill       <= reg_mask(reg_param_fill,       s_wb_dat_i, s_wb_sel_i);
                 ADR_PARAM_TIMEOUT:      reg_param_timeout    <= reg_mask(reg_param_timeout,    s_wb_dat_i, s_wb_sel_i);
+                default: ;
                 endcase
             end
         end
