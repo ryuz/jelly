@@ -132,7 +132,10 @@ module tb_sim_main
                 .s_wb_sel_i         (s_wb_sel_i),
                 .s_wb_stb_i         (s_wb_stb_i),
                 .s_wb_ack_o         (s_wb_ack_o),
-                
+
+                .out_param_width    (),
+                .out_param_height   (),
+
                 .s_axi4s_tuser      (s_axi4s_tuser),
                 .s_axi4s_tlast      (s_axi4s_tlast),
                 .s_axi4s_tdata      (s_axi4s_tdata),

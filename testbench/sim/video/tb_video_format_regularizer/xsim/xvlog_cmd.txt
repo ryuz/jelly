@@ -1,0 +1,12 @@
+-sv
+--sourcelibdir ../../../../../rtl/library
+--sourcelibdir ../../../../../rtl/math
+--sourcelibdir ../../../../../rtl/image
+--sourcelibdir ../../../../../rtl/video
+--sourcelibdir ../../../../../rtl/model
+--sourcelibext .v
+--sourcelibext .sv
+
+../tb_sim.v
+../tb_sim_main.v
+
