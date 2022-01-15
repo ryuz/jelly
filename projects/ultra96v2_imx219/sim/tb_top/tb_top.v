@@ -33,10 +33,7 @@ module tb_top();
                 .cam_clk_p      (),
                 .cam_clk_n      (),
                 .cam_data_p     (),
-                .cam_data_n     (),
-                
-                .radio_led      (),
-                .hd_gpio        ()
+                .cam_data_n     ()
             );
     
     
