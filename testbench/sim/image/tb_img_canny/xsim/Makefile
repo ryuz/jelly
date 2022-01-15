@@ -34,4 +34,4 @@ distclean: clean
 	-rm -f *.pgm
 	-rm -f *.ppm
 	-rm -f $(TOP_MODULE).vcd
-	-rm -f $(TOP_MODULE).vcd
+	-rm -f $(TOP_MODULE).wdb
