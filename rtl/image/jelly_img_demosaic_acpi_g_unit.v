@@ -29,47 +29,49 @@ module jelly_img_demosaic_acpi_g_unit
     
     
     // 計算用に余裕を持った幅を定義
-    localparam      CALC_WIDTH = DATA_WIDTH + 5;
+    localparam      CALC_WIDTH = DATA_WIDTH + 6;
     
+    wire    signed  [CALC_WIDTH-1:0]    max_value = {6'd0, {DATA_WIDTH{1'b1}}};
+    wire    signed  [CALC_WIDTH-1:0]    min_value = {6'd0, {DATA_WIDTH{1'b0}}};
     
-    function signed [CALC_WIDTH+1:0]    abs(input signed [CALC_WIDTH-1:0] a);
+    function signed [CALC_WIDTH-1:0]    abs(input signed [CALC_WIDTH-1:0] a);
     begin
         abs = a >= 0 ? a : -a;
     end
     endfunction
     
-    function signed [CALC_WIDTH+1:0]    absdiff(input signed [CALC_WIDTH-1:0] a, input signed [CALC_WIDTH-1:0] b);
+    function signed [CALC_WIDTH-1:0]    absdiff(input signed [CALC_WIDTH-1:0] a, input signed [CALC_WIDTH-1:0] b);
     begin
         absdiff = a > b ? a - b : b - a;
     end
     endfunction
     
     
-    wire    signed  [CALC_WIDTH-1:0]    in_raw11 = in_raw[(0*5+0)*DATA_WIDTH +: DATA_WIDTH];
-    wire    signed  [CALC_WIDTH-1:0]    in_raw12 = in_raw[(0*5+1)*DATA_WIDTH +: DATA_WIDTH];
-    wire    signed  [CALC_WIDTH-1:0]    in_raw13 = in_raw[(0*5+2)*DATA_WIDTH +: DATA_WIDTH];
-    wire    signed  [CALC_WIDTH-1:0]    in_raw14 = in_raw[(0*5+3)*DATA_WIDTH +: DATA_WIDTH];
-    wire    signed  [CALC_WIDTH-1:0]    in_raw15 = in_raw[(0*5+4)*DATA_WIDTH +: DATA_WIDTH];
-    wire    signed  [CALC_WIDTH-1:0]    in_raw21 = in_raw[(1*5+0)*DATA_WIDTH +: DATA_WIDTH];
-    wire    signed  [CALC_WIDTH-1:0]    in_raw22 = in_raw[(1*5+1)*DATA_WIDTH +: DATA_WIDTH];
-    wire    signed  [CALC_WIDTH-1:0]    in_raw23 = in_raw[(1*5+2)*DATA_WIDTH +: DATA_WIDTH];
-    wire    signed  [CALC_WIDTH-1:0]    in_raw24 = in_raw[(1*5+3)*DATA_WIDTH +: DATA_WIDTH];
-    wire    signed  [CALC_WIDTH-1:0]    in_raw25 = in_raw[(1*5+4)*DATA_WIDTH +: DATA_WIDTH];
-    wire    signed  [CALC_WIDTH-1:0]    in_raw31 = in_raw[(2*5+0)*DATA_WIDTH +: DATA_WIDTH];
-    wire    signed  [CALC_WIDTH-1:0]    in_raw32 = in_raw[(2*5+1)*DATA_WIDTH +: DATA_WIDTH];
-    wire    signed  [CALC_WIDTH-1:0]    in_raw33 = in_raw[(2*5+2)*DATA_WIDTH +: DATA_WIDTH];
-    wire    signed  [CALC_WIDTH-1:0]    in_raw34 = in_raw[(2*5+3)*DATA_WIDTH +: DATA_WIDTH];
-    wire    signed  [CALC_WIDTH-1:0]    in_raw35 = in_raw[(2*5+4)*DATA_WIDTH +: DATA_WIDTH];
-    wire    signed  [CALC_WIDTH-1:0]    in_raw41 = in_raw[(3*5+0)*DATA_WIDTH +: DATA_WIDTH];
-    wire    signed  [CALC_WIDTH-1:0]    in_raw42 = in_raw[(3*5+1)*DATA_WIDTH +: DATA_WIDTH];
-    wire    signed  [CALC_WIDTH-1:0]    in_raw43 = in_raw[(3*5+2)*DATA_WIDTH +: DATA_WIDTH];
-    wire    signed  [CALC_WIDTH-1:0]    in_raw44 = in_raw[(3*5+3)*DATA_WIDTH +: DATA_WIDTH];
-    wire    signed  [CALC_WIDTH-1:0]    in_raw45 = in_raw[(3*5+4)*DATA_WIDTH +: DATA_WIDTH];
-    wire    signed  [CALC_WIDTH-1:0]    in_raw51 = in_raw[(4*5+0)*DATA_WIDTH +: DATA_WIDTH];
-    wire    signed  [CALC_WIDTH-1:0]    in_raw52 = in_raw[(4*5+1)*DATA_WIDTH +: DATA_WIDTH];
-    wire    signed  [CALC_WIDTH-1:0]    in_raw53 = in_raw[(4*5+2)*DATA_WIDTH +: DATA_WIDTH];
-    wire    signed  [CALC_WIDTH-1:0]    in_raw54 = in_raw[(4*5+3)*DATA_WIDTH +: DATA_WIDTH];
-    wire    signed  [CALC_WIDTH-1:0]    in_raw55 = in_raw[(4*5+4)*DATA_WIDTH +: DATA_WIDTH];
+    wire    signed  [CALC_WIDTH-1:0]    in_raw11 = {6'd0, in_raw[(0*5+0)*DATA_WIDTH +: DATA_WIDTH]};
+    wire    signed  [CALC_WIDTH-1:0]    in_raw12 = {6'd0, in_raw[(0*5+1)*DATA_WIDTH +: DATA_WIDTH]};
+    wire    signed  [CALC_WIDTH-1:0]    in_raw13 = {6'd0, in_raw[(0*5+2)*DATA_WIDTH +: DATA_WIDTH]};
+    wire    signed  [CALC_WIDTH-1:0]    in_raw14 = {6'd0, in_raw[(0*5+3)*DATA_WIDTH +: DATA_WIDTH]};
+    wire    signed  [CALC_WIDTH-1:0]    in_raw15 = {6'd0, in_raw[(0*5+4)*DATA_WIDTH +: DATA_WIDTH]};
+    wire    signed  [CALC_WIDTH-1:0]    in_raw21 = {6'd0, in_raw[(1*5+0)*DATA_WIDTH +: DATA_WIDTH]};
+    wire    signed  [CALC_WIDTH-1:0]    in_raw22 = {6'd0, in_raw[(1*5+1)*DATA_WIDTH +: DATA_WIDTH]};
+    wire    signed  [CALC_WIDTH-1:0]    in_raw23 = {6'd0, in_raw[(1*5+2)*DATA_WIDTH +: DATA_WIDTH]};
+    wire    signed  [CALC_WIDTH-1:0]    in_raw24 = {6'd0, in_raw[(1*5+3)*DATA_WIDTH +: DATA_WIDTH]};
+    wire    signed  [CALC_WIDTH-1:0]    in_raw25 = {6'd0, in_raw[(1*5+4)*DATA_WIDTH +: DATA_WIDTH]};
+    wire    signed  [CALC_WIDTH-1:0]    in_raw31 = {6'd0, in_raw[(2*5+0)*DATA_WIDTH +: DATA_WIDTH]};
+    wire    signed  [CALC_WIDTH-1:0]    in_raw32 = {6'd0, in_raw[(2*5+1)*DATA_WIDTH +: DATA_WIDTH]};
+    wire    signed  [CALC_WIDTH-1:0]    in_raw33 = {6'd0, in_raw[(2*5+2)*DATA_WIDTH +: DATA_WIDTH]};
+    wire    signed  [CALC_WIDTH-1:0]    in_raw34 = {6'd0, in_raw[(2*5+3)*DATA_WIDTH +: DATA_WIDTH]};
+    wire    signed  [CALC_WIDTH-1:0]    in_raw35 = {6'd0, in_raw[(2*5+4)*DATA_WIDTH +: DATA_WIDTH]};
+    wire    signed  [CALC_WIDTH-1:0]    in_raw41 = {6'd0, in_raw[(3*5+0)*DATA_WIDTH +: DATA_WIDTH]};
+    wire    signed  [CALC_WIDTH-1:0]    in_raw42 = {6'd0, in_raw[(3*5+1)*DATA_WIDTH +: DATA_WIDTH]};
+    wire    signed  [CALC_WIDTH-1:0]    in_raw43 = {6'd0, in_raw[(3*5+2)*DATA_WIDTH +: DATA_WIDTH]};
+    wire    signed  [CALC_WIDTH-1:0]    in_raw44 = {6'd0, in_raw[(3*5+3)*DATA_WIDTH +: DATA_WIDTH]};
+    wire    signed  [CALC_WIDTH-1:0]    in_raw45 = {6'd0, in_raw[(3*5+4)*DATA_WIDTH +: DATA_WIDTH]};
+    wire    signed  [CALC_WIDTH-1:0]    in_raw51 = {6'd0, in_raw[(4*5+0)*DATA_WIDTH +: DATA_WIDTH]};
+    wire    signed  [CALC_WIDTH-1:0]    in_raw52 = {6'd0, in_raw[(4*5+1)*DATA_WIDTH +: DATA_WIDTH]};
+    wire    signed  [CALC_WIDTH-1:0]    in_raw53 = {6'd0, in_raw[(4*5+2)*DATA_WIDTH +: DATA_WIDTH]};
+    wire    signed  [CALC_WIDTH-1:0]    in_raw54 = {6'd0, in_raw[(4*5+3)*DATA_WIDTH +: DATA_WIDTH]};
+    wire    signed  [CALC_WIDTH-1:0]    in_raw55 = {6'd0, in_raw[(4*5+4)*DATA_WIDTH +: DATA_WIDTH]};
     
     reg     signed  [CALC_WIDTH-1:0]    st0_raw;
     reg     signed  [CALC_WIDTH-1:0]    st0_a0;
@@ -135,13 +137,14 @@ module jelly_img_demosaic_acpi_g_unit
             st4_g   <= (st3_g0 + st3_g1) >>> 3;
             
             st5_raw <= st4_raw;
-            st5_g   <= st4_g < {DATA_WIDTH{1'b0}} ? {DATA_WIDTH{1'b0}} : st4_g;
-            st5_g   <= st4_g > {DATA_WIDTH{1'b1}} ? {DATA_WIDTH{1'b1}} : st4_g;
+            st5_g   <= st4_g;
+            if ( st4_g < min_value ) begin st5_g <= min_value; end
+            if ( st4_g > max_value ) begin st5_g <= max_value; end
         end
     end
     
-    assign  out_raw  = st5_raw;
-    assign  out_g    = st5_g;
+    assign  out_raw  = st5_raw[DATA_WIDTH-1:0];
+    assign  out_g    = st5_g  [DATA_WIDTH-1:0];
     
 endmodule
 
