@@ -77,20 +77,23 @@ module mipi_dphy_cam
        //IO I/F signals for SLAVE(RX)
        input                clk_rxp,
        input                clk_rxn,
-       input    [2 -1:0] data_rxp,
-       input    [2 -1:0] data_rxn
-   );
-   
-   
-    parameter  RATE_HS = 8.768;
+       input    [2 -1:0]    data_rxp,
+       input    [2 -1:0]    data_rxn
+    );
     
+    // テストベンチから force する前提
+    reg     reset   /*verilator public_flat*/;
+    reg     busy    /*verilator public_flat*/;
+    reg     hs_clk  /*verilator public_flat*/;
+
+    /*   
+    parameter  RATE_HS = 8.768;
     
     reg     reset = 1;
     initial #100 reset = 0;
     
-    reg     busy = 1;
+    reg     busy = 0;
     initial #1000 busy = 1;
-    
     
     reg     hs_clk = 1;
     always #(RATE_HS/2.0) begin
@@ -98,7 +101,8 @@ module mipi_dphy_cam
             hs_clk = ~hs_clk;
         end
     end
-    
+    */
+
     reg     [15:0]  reg_data0 = 0;
     reg     [15:0]  reg_data1 = 0;
     always @(posedge hs_clk) begin

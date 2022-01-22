@@ -204,22 +204,68 @@ module design_1
   
   
     // テストベンチから force する前提
-    reg   reset         /*verilator public_flat*/;
-    reg   clk100        /*verilator public_flat*/;
-    reg   clk200        /*verilator public_flat*/;
-    reg   clk250        /*verilator public_flat*/;
+    reg             reset       /*verilator public_flat*/;
+    reg             clk100      /*verilator public_flat*/;
+    reg             clk200      /*verilator public_flat*/;
+    reg             clk250      /*verilator public_flat*/;
+	
+    reg     [36:0]  wb_adr_i    /*verilator public_flat*/;
+    reg     [63:0]  wb_dat_o    /*verilator public_flat*/;
+    reg     [63:0]  wb_dat_i    /*verilator public_flat*/;
+    reg     [7:0]   wb_sel_i    /*verilator public_flat*/;
+    reg             wb_we_i     /*verilator public_flat*/;
+    reg             wb_stb_i    /*verilator public_flat*/;
+    reg             wb_ack_o    /*verilator public_flat*/;
 
-	
-	assign out_reset             = reset;
-	assign out_clk100            = clk100;
-	assign out_clk200            = clk200;
-	assign out_clk250            = clk250;
-	assign m_axi4l_peri_aresetn  = ~reset;
-	assign m_axi4l_peri_aclk     = clk100;
-	assign s_axi4_mem_aresetn    = ~reset;
-	assign s_axi4_mem_aclk       = clk250;
-	
-	
+
+    assign out_reset             = reset;
+    assign out_clk100            = clk100;
+    assign out_clk200            = clk200;
+    assign out_clk250            = clk250;
+    assign s_axi4_mem_aresetn    = ~reset;
+    assign s_axi4_mem_aclk       = clk250;
+    
+    jelly_wishbone_to_axi4l
+            #(
+                .WB_ADR_WIDTH           (37),
+                .WB_DAT_SIZE            (3)     // 0:8bit, 1:16bit, 2:32bit ...
+            )
+        i_wishbone_to_axi4l
+            (
+                .s_wb_rst_i             (reset),
+                .s_wb_clk_i             (clk100),
+                .s_wb_adr_i             (wb_adr_i),
+                .s_wb_dat_o             (wb_dat_o),
+                .s_wb_dat_i             (wb_dat_i),
+                .s_wb_sel_i             (wb_sel_i),
+                .s_wb_we_i              (wb_we_i ),
+                .s_wb_stb_i             (wb_stb_i),
+                .s_wb_ack_o             (wb_ack_o),
+
+                .m_axi4l_aresetn        (m_axi4l_peri_aresetn),
+                .m_axi4l_aclk           (m_axi4l_peri_aclk),
+                .m_axi4l_awaddr         (m_axi4l_peri_awaddr),
+                .m_axi4l_awprot         (m_axi4l_peri_awprot),
+                .m_axi4l_awvalid        (m_axi4l_peri_awvalid),
+                .m_axi4l_awready        (m_axi4l_peri_awready),
+                .m_axi4l_wstrb          (m_axi4l_peri_wstrb),
+                .m_axi4l_wdata          (m_axi4l_peri_wdata),
+                .m_axi4l_wvalid         (m_axi4l_peri_wvalid),
+                .m_axi4l_wready         (m_axi4l_peri_wready),
+                .m_axi4l_bresp          (m_axi4l_peri_bresp),
+                .m_axi4l_bvalid         (m_axi4l_peri_bvalid),
+                .m_axi4l_bready         (m_axi4l_peri_bready),
+                .m_axi4l_araddr         (m_axi4l_peri_araddr),
+                .m_axi4l_arprot         (m_axi4l_peri_arprot),
+                .m_axi4l_arvalid        (m_axi4l_peri_arvalid),
+                .m_axi4l_arready        (m_axi4l_peri_arready),
+                .m_axi4l_rdata          (m_axi4l_peri_rdata),
+                .m_axi4l_rresp          (m_axi4l_peri_rresp),
+                .m_axi4l_rvalid         (m_axi4l_peri_rvalid),
+                .m_axi4l_rready         (m_axi4l_peri_rready)
+            );
+
+
 	jelly_axi4_slave_model
 			#(
 				.AXI_ID_WIDTH			(6),

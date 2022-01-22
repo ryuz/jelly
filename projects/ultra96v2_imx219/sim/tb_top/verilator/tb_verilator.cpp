@@ -8,6 +8,7 @@
 #include "jelly/simulator/ResetNode.h"
 #include "jelly/simulator/ClockNode.h"
 #include "jelly/simulator/VerilatorNode.h"
+#include "jelly/simulator/WishboneMasterNode.h"
 #include "jelly/simulator/Axi4sImageLoadNode.h"
 #include "jelly/simulator/Axi4sImageDumpNode.h"
 
@@ -60,24 +61,59 @@ int main(int argc, char** argv)
     mng->AddNode(jsim::ResetNode_Create(&top->reset, 100));
     mng->AddNode(jsim::ClockNode_Create(&top->clk, 1000.0/100.0));
 
-//    mng->AddNode(jsim::ResetNode_Create(&top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__reset, 100));
-//    mng->AddNode(jsim::ClockNode_Create(&top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__clk100, 1000.0/100.0));
-//    mng->AddNode(jsim::ClockNode_Create(&top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__clk200, 1000.0/200.0));
-//    mng->AddNode(jsim::ClockNode_Create(&top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__clk250, 1000.0/250.0));
+    mng->AddNode(jsim::ResetNode_Create(&top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__reset, 100));
+    mng->AddNode(jsim::ClockNode_Create(&top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__clk100, 1000.0/100.0));
+    mng->AddNode(jsim::ClockNode_Create(&top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__clk200, 1000.0/200.0));
+    mng->AddNode(jsim::ClockNode_Create(&top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__clk250, 1000.0/250.0));
+
+    mng->AddNode(jsim::ResetNode_Create(&top->rootp->tb_sim_main__DOT__i_top__DOT__i_mipi_dphy_cam__DOT__reset,  100));
+    mng->AddNode(jsim::ResetNode_Create(&top->rootp->tb_sim_main__DOT__i_top__DOT__i_mipi_dphy_cam__DOT__busy,  1000, false));
+    mng->AddNode(jsim::ClockNode_Create(&top->rootp->tb_sim_main__DOT__i_top__DOT__i_mipi_dphy_cam__DOT__hs_clk, 8.768));
+
+    jsim::Axi4sVideo axi4s_src =
+            {
+                &top->rootp->tb_sim_main__DOT__i_top__DOT__axi4s_cam_aresetn,
+                &top->rootp->tb_sim_main__DOT__i_top__DOT__axi4s_cam_aclk,
+                &top->rootp->tb_sim_main__DOT__i_top__DOT__axi4s2_csi2_tuser,
+                &top->rootp->tb_sim_main__DOT__i_top__DOT__axi4s2_csi2_tlast,
+                &top->rootp->tb_sim_main__DOT__i_top__DOT__axi4s2_csi2_tdata,
+                &top->rootp->tb_sim_main__DOT__i_top__DOT__axi4s2_csi2_tvalid,
+                &top->rootp->tb_sim_main__DOT__i_top__DOT__axi4s2_csi2_tready
+            };
+    auto image_src_load = jsim::Axi4sImageLoadNode_Create(axi4s_src, "../BOAT.bmp", jsim::fmt_gray);
+    mng->AddNode(image_src_load);
+    image_src_load->SetBlankX(64);
+    image_src_load->SetBlankY((256 + 64) * 8);
+    image_src_load->SetRandomWait(0.0);
+
+
+    mng->AddNode(image_src_load);
+
+
+    jsim::WishboneMaster wishbone_signals =
+            {
+                &top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__reset,
+                &top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__clk100,
+                &top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__wb_adr_i,
+                &top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__wb_dat_o,
+                &top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__wb_dat_i,
+                &top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__wb_sel_i,
+                &top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__wb_we_i,
+                &top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__wb_stb_i,
+                &top->rootp->tb_sim_main__DOT__i_top__DOT__i_design_1__DOT__wb_ack_o
+            };
+    auto wb = jsim::WishboneMasterNode_Create(wishbone_signals);
+    mng->AddNode(wb);
+    
+    // WISHBONE 
+    wb->Wait(1000);
+    
+    wb->Display("read id");
+    wb->Read(0);
+    wb->Read(0);
 
 
     /*
-    jsim::Axi4sVideo axi4s_src =
-            {
-                &top->aresetn,
-                &top->aclk,
-                &top->s_axi4s_src_tuser,
-                &top->s_axi4s_src_tlast,
-                &top->s_axi4s_src_tdata,
-                &top->s_axi4s_src_tvalid,
-                &top->s_axi4s_src_tready
-            };
-
     jsim::Axi4sVideo axi4s_dst =
             {
                 &top->aresetn,
@@ -127,7 +163,7 @@ int main(int argc, char** argv)
     mng->SetControlCvWindow("Simulation", 0x1b);
     */
 
-    mng->Run(100000);
+    mng->Run(1000000);
 //    mng->Run();
 
 #if VM_TRACE

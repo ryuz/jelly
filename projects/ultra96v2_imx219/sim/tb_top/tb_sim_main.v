@@ -17,8 +17,8 @@ module tb_sim_main(
     ultra96v2_imx219
         i_top
             (
-                .cam_clk_p      (),
-                .cam_clk_n      (),
+                .cam_clk_p      (clk),
+                .cam_clk_n      (~clk),
                 .cam_data_p     (),
                 .cam_data_n     ()
             );

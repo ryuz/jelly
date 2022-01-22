@@ -236,7 +236,6 @@ module ultra96v2_imx219
                 .m_wb_ack_i         (wb_peri_ack_o)
             );
     
-    
     // ----------------------------------------
     //  Global ID
     // ----------------------------------------
@@ -260,7 +259,7 @@ module ultra96v2_imx219
         end
     end
     
-    
+
     // ----------------------------------------
     //  MIPI D-PHY RX
     // ----------------------------------------
@@ -397,22 +396,29 @@ module ultra96v2_imx219
     wire        dphy_clk   = rxbyteclkhs;
     wire        dphy_reset = system_rst_out;
     
-    
+
     
     // ----------------------------------------
     //  CSI-2
     // ----------------------------------------
     
-    
-    wire            axi4s_cam_aresetn = ~sys_reset;
-    wire            axi4s_cam_aclk    = sys_clk200;
-    
-    (* mark_debug="true" *) wire    [0:0]   axi4s_csi2_tuser;
-    (* mark_debug="true" *) wire            axi4s_csi2_tlast;
-    (* mark_debug="true" *) wire    [9:0]   axi4s_csi2_tdata;
-    (* mark_debug="true" *) wire            axi4s_csi2_tvalid;
-    (* mark_debug="true" *) wire            axi4s_csi2_tready;
-    
+                            wire            axi4s_cam_aresetn   /*verilator public_flat*/;
+                            wire            axi4s_cam_aclk      /*verilator public_flat*/;
+    (* mark_debug="true" *) wire    [0:0]   axi4s_csi2_tuser    /*verilator public_flat*/;
+    (* mark_debug="true" *) wire            axi4s_csi2_tlast    /*verilator public_flat*/;
+    (* mark_debug="true" *) wire    [9:0]   axi4s_csi2_tdata    /*verilator public_flat*/;
+    (* mark_debug="true" *) wire            axi4s_csi2_tvalid   /*verilator public_flat*/;
+    (* mark_debug="true" *) wire            axi4s_csi2_tready   /*verilator public_flat*/;
+
+    wire    [0:0]   axi4s2_csi2_tuser    /*verilator public_flat*/;
+    wire            axi4s2_csi2_tlast    /*verilator public_flat*/;
+    wire    [9:0]   axi4s2_csi2_tdata    /*verilator public_flat*/;
+    wire            axi4s2_csi2_tvalid   /*verilator public_flat*/;
+    wire            axi4s2_csi2_tready   /*verilator public_flat*/;
+
+    assign axi4s_cam_aresetn = ~sys_reset;
+    assign axi4s_cam_aclk    = sys_clk200;
+
     wire            mipi_ecc_corrected;
     wire            mipi_ecc_error;
     wire            mipi_ecc_valid;
@@ -656,191 +662,7 @@ module ultra96v2_imx219
                 .s_wb_stb_i         (wb_vdmaw_stb_i),
                 .s_wb_ack_o         (wb_vdmaw_ack_o)
             );
-    
-    
-    
-    
-    // ----------------------------------------
-    //  単純ダンプ
-    // ----------------------------------------
-    /*
-    // FIFO
-    (* MARK_DEBUG = "true" *)   wire    [7:0]       fifo_dl0_rxdatahs;
-    (* MARK_DEBUG = "true" *)   wire                fifo_dl0_rxvalidhs;
-    (* MARK_DEBUG = "true" *)   wire                fifo_dl0_rxactivehs;
-    (* MARK_DEBUG = "true" *)   wire                fifo_dl0_rxsynchs;
-    (* MARK_DEBUG = "true" *)   wire                fifo_dl0_errsoths;
-    (* MARK_DEBUG = "true" *)   wire                fifo_dl0_errsotsynchs;
-    (* MARK_DEBUG = "true" *)   wire    [7:0]       fifo_dl1_rxdatahs;
-    (* MARK_DEBUG = "true" *)   wire                fifo_dl1_rxvalidhs;
-    (* MARK_DEBUG = "true" *)   wire                fifo_dl1_rxactivehs;
-    (* MARK_DEBUG = "true" *)   wire                fifo_dl1_rxsynchs;
-    (* MARK_DEBUG = "true" *)   wire                fifo_dl1_errsoths;
-    (* MARK_DEBUG = "true" *)   wire                fifo_dl1_errsotsynchs;
-    (* MARK_DEBUG = "true" *)   wire                fifo_valid;
-    
-    jelly_fifo_async_fwtf
-            #(
-                .DATA_WIDTH         ((5+8)*2),
-                .PTR_WIDTH          (6),
-                .DOUT_REGS          (0),
-                .RAM_TYPE           ("distributed"),
-                .SLAVE_REGS         (0),
-                .MASTER_REGS        (1)
-            )
-        i_fifo_async_fwtf
-            (
-                .s_reset            (dphy_reset),
-                .s_clk              (dphy_clk),
-                .s_data             ({
-                                        dl0_rxdatahs,
-                                        dl0_rxvalidhs,
-                                        dl0_rxactivehs,
-                                        dl0_rxsynchs,
-                                        dl0_errsoths,
-                                        dl0_errsotsynchs,
-                                        dl1_rxdatahs,
-                                        dl1_rxvalidhs,
-                                        dl1_rxactivehs,
-                                        dl1_rxsynchs,
-                                        dl1_errsoths,
-                                        dl1_errsotsynchs
-                                    }),
-                .s_valid            (1'b1),
-                .s_ready            (),
-                .s_free_count       (),
-                
-                .m_reset            (~axi4_mem_aresetn),
-                .m_clk              (axi4_mem_aclk),
-                .m_data             ({
-                                        fifo_dl0_rxdatahs,
-                                        fifo_dl0_rxvalidhs,
-                                        fifo_dl0_rxactivehs,
-                                        fifo_dl0_rxsynchs,
-                                        fifo_dl0_errsoths,
-                                        fifo_dl0_errsotsynchs,
-                                        fifo_dl1_rxdatahs,
-                                        fifo_dl1_rxvalidhs,
-                                        fifo_dl1_rxactivehs,
-                                        fifo_dl1_rxsynchs,
-                                        fifo_dl1_errsoths,
-                                        fifo_dl1_errsotsynchs
-                                    }),
-                .m_valid            (fifo_valid),
-                .m_ready            (1'b1),
-                .m_data_count       ()
-            );
-    
-    
-    (* MARK_DEBUG = "true" *)   wire    [0:0]           axi4s_memw_tuser;
-    (* MARK_DEBUG = "true" *)   wire                    axi4s_memw_tlast;
-    (* MARK_DEBUG = "true" *)   wire    [31:0]          axi4s_memw_tdata;
-    (* MARK_DEBUG = "true" *)   wire                    axi4s_memw_tvalid;
-    (* MARK_DEBUG = "true" *)   wire                    axi4s_memw_tready;
-    
-    assign axi4s_memw_tuser       = fifo_dl0_rxsynchs;
-    assign axi4s_memw_tlast       = 1'b0;
-    assign axi4s_memw_tdata[15:0] = {
-                                        fifo_dl0_errsotsynchs,
-                                        fifo_dl0_errsoths,
-                                        fifo_dl0_rxsynchs,
-                                        fifo_dl0_rxactivehs,
-                                        fifo_dl0_rxvalidhs,
-                                        fifo_dl0_rxdatahs
-                                    };
-    assign axi4s_memw_tdata[31:16] = {
-                                        fifo_dl1_errsotsynchs,
-                                        fifo_dl1_errsoths,
-                                        fifo_dl1_rxsynchs,
-                                        fifo_dl1_rxactivehs,
-                                        fifo_dl1_rxvalidhs,
-                                        fifo_dl1_rxdatahs
-                                    };
-    
-    assign axi4s_memw_tvalid       = fifo_valid;
-    
-    
-    
-    (* MARK_DEBUG = "true" *)   wire    [31:0]          wb_vdmaw_dat_o;
-    (* MARK_DEBUG = "true" *)   wire                    wb_vdmaw_stb_i;
-    (* MARK_DEBUG = "true" *)   wire                    wb_vdmaw_ack_o;
-    
-    reg             vdmaw_enable;
-    wire            vdmaw_busy;
-    
-    always @(posedge wb_peri_clk_i ) begin
-        if ( wb_peri_rst_i ) begin
-            vdmaw_enable <= 0;
-        end
-        else begin
-            vdmaw_enable <= 0;
-            if ( wb_vdmaw_stb_i && wb_peri_we_i ) begin
-                vdmaw_enable <= wb_peri_dat_i;
-            end
-        end
-    end
-    
-    assign wb_vdmaw_dat_o = vdmaw_busy;
-    assign wb_vdmaw_ack_o = wb_vdmaw_stb_i;
-    
-    reg             vdmaw_enable_ff0, vdmaw_enable_ff1;
-    always @(posedge axi4_mem_aclk) begin
-        vdmaw_enable_ff0 <= vdmaw_enable;
-        vdmaw_enable_ff1 <= vdmaw_enable_ff0;
-    end
-    
-    
-    jelly_axi4_dma_writer
-            #(
-                .AXI4_ID_WIDTH      (6),
-                .AXI4_ADDR_WIDTH    (32),
-                .AXI4_DATA_SIZE     (3)     // 0:8bit, 1:16bit, 2:32bit ...
-            )
-        i_axi4_dma_writer
-            (
-                .aresetn            (axi4_mem_aresetn),
-                .aclk               (axi4_mem_aclk),
-                
-                .enable             (vdmaw_enable_ff1),
-                .busy               (vdmaw_busy),
-                
-                .queue_counter      (0),
-                
-                .param_addr         (32'h1000_0000),
-                .param_count        (64*1024*1024),
-                .param_maxlen       (7),
-                .param_wstrb        (8'hff),
-                
-                .m_axi4_awid        (axi4_mem0_awid),
-                .m_axi4_awaddr      (axi4_mem0_awaddr),
-                .m_axi4_awburst     (axi4_mem0_awburst),
-                .m_axi4_awcache     (axi4_mem0_awcache),
-                .m_axi4_awlen       (axi4_mem0_awlen),
-                .m_axi4_awlock      (axi4_mem0_awlock),
-                .m_axi4_awprot      (axi4_mem0_awprot),
-                .m_axi4_awqos       (axi4_mem0_awqos),
-                .m_axi4_awregion    (),
-                .m_axi4_awsize      (axi4_mem0_awsize),
-                .m_axi4_awvalid     (axi4_mem0_awvalid),
-                .m_axi4_awready     (axi4_mem0_awready),
-                .m_axi4_wstrb       (axi4_mem0_wstrb),
-                .m_axi4_wdata       (axi4_mem0_wdata),
-                .m_axi4_wlast       (axi4_mem0_wlast),
-                .m_axi4_wvalid      (axi4_mem0_wvalid),
-                .m_axi4_wready      (axi4_mem0_wready),
-                .m_axi4_bid         (axi4_mem0_bid),
-                .m_axi4_bresp       (axi4_mem0_bresp),
-                .m_axi4_bvalid      (axi4_mem0_bvalid),
-                .m_axi4_bready      (axi4_mem0_bready),
-                
-                .s_axi4s_tdata      ({32'd0, axi4s_memw_tdata}),
-                .s_axi4s_tvalid     (axi4s_memw_tvalid),
-                .s_axi4s_tready     (axi4s_memw_tready)
-            );
-    */
-    
-    
-    
+        
     
     // read は未使用
     assign axi4_mem0_arid     = 0;
@@ -944,23 +766,6 @@ module ultra96v2_imx219
 //    assign radio_led[1] = reg_counter_clk100[24];
 //    assign radio_led[0] = reg_counter_rxbyteclkhs[1];
     
-    /*
-    assign hd_gpio[0] = sys_reset;
-    assign hd_gpio[1] = reg_counter_clk100[5]; 
-    assign hd_gpio[2] = reg_counter_clk200[5];
-    assign hd_gpio[3] = reg_counter_clk250[5];
-    assign hd_gpio[4] = reg_counter_rxbyteclkhs[5];
-    assign hd_gpio[15:5] = 0;
-    */
-    
-    /*
-    assign pmod1[0]   = sys_reset;
-    assign pmod1[1]   = reg_counter_clk100[10]; 
-    assign pmod1[2]   = reg_counter_clk200[10];
-    assign pmod1[3]   = reg_counter_clk250[10];
-    assign pmod1[4]   = reg_counter_rxbyteclkhs[10];
-    assign pmod1[7:5] = 0;
-    */
     assign pmod0 = reg_counter_clk100[15:8];
     
     reg     [7:0]   reg_frame_count;
@@ -971,8 +776,6 @@ module ultra96v2_imx219
     end
     
     assign pmod1 = reg_frame_count;
-    
-    
     
     
     // Debug
@@ -996,86 +799,7 @@ module ultra96v2_imx219
         dbg1_rxactivehs <= dl1_rxactivehs;
         dbg1_rxsynchs   <= dl1_rxsynchs;
     end
-    
-    
-    /*
-    jelly_fifo_generic_fwtf
-            #(
-                .ASYNC              (1),
-                .DATA_WIDTH         (2*(3+8)),
-                .PTR_WIDTH          (6),
-                .DOUT_REGS          (1),
-                .RAM_TYPE           ("distributed"),
-                .LOW_DEALY          (0),
-                .SLAVE_REGS         (0),
-                .MASTER_REGS        (1)
-            )
-        i_fifo_generic_fwtf
-            (
-                .s_reset            (system_rst_out),
-                .s_clk              (rxbyteclkhs),
-                .s_data             ({
-                                        dl0_rxdatahs,
-                                        dl0_rxvalidhs,
-                                        dl0_rxactivehs,
-                                        dl0_rxsynchs,
-                                        dl1_rxdatahs,
-                                        dl1_rxvalidhs,
-                                        dl1_rxactivehs,
-                                        dl1_rxsynchs
-                                    }),
-                .s_valid            (1'b1),
-                .s_ready            (),
-                .s_free_count       (),
-                
-                .m_reset            (sys_reset),
-                .m_clk              (sys_clk200),
-                .m_data             ({
-                                        dbg0_rxdatahs,
-                                        dbg0_rxvalidhs,
-                                        dbg0_rxactivehs,
-                                        dbg0_rxsynchs,
-                                        dbg1_rxdatahs,
-                                        dbg1_rxvalidhs,
-                                        dbg1_rxactivehs,
-                                        dbg1_rxsynchs
-                                    }),
-                .m_valid            (dbg1_valid),
-                .m_ready            (1'b1),
-                .m_data_count       ()
-            );
-    
-    
-    (* mark_debug = "true" *)  reg     [31:0]      reg_mipi_ecc_count;
-    (* mark_debug = "true" *)  reg     [31:0]      reg_mipi_ecc_error;
-    (* mark_debug = "true" *)  reg     [31:0]      reg_mipi_ecc_corrected;
-    (* mark_debug = "true" *)  reg     [31:0]      reg_mipi_crc_count;
-    (* mark_debug = "true" *)  reg     [31:0]      reg_mipi_crc_error;
-    (* mark_debug = "true" *)  reg     [31:0]      reg_mipi_packet_lost;
-    always @(posedge sys_clk250) begin
-        if ( sys_reset ) begin
-            reg_mipi_ecc_count     <= 0;
-            reg_mipi_ecc_error     <= 0;
-            reg_mipi_ecc_corrected <= 0;
-            reg_mipi_crc_count     <= 0;
-            reg_mipi_crc_error     <= 0;
-            reg_mipi_packet_lost   <= 0;
-        end
-        else begin
-            if ( mipi_ecc_valid ) begin
-                reg_mipi_ecc_count     <= reg_mipi_ecc_count + 1'b1;
-                reg_mipi_ecc_error     <= reg_mipi_ecc_error + mipi_ecc_error;
-                reg_mipi_ecc_corrected <= reg_mipi_ecc_corrected + mipi_ecc_corrected;
-            end
-            if ( mipi_crc_valid ) begin
-                reg_mipi_crc_count <= reg_mipi_crc_count + 1'b1;
-                reg_mipi_crc_error <= reg_mipi_crc_error + mipi_crc_error;
-            end
-            reg_mipi_packet_lost <= reg_mipi_packet_lost + mipi_packet_lost;
-        end
-    end
-    */
-    
+        
 endmodule
 
 
