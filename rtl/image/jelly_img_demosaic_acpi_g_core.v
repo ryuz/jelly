@@ -26,7 +26,9 @@ module jelly_img_demosaic_acpi_g_core
             input   wire                            reset,
             input   wire                            clk,
             input   wire                            cke,
-            
+
+            input   wire    [1:0]                   param_phase,
+           
             input   wire                            s_img_line_first,
             input   wire                            s_img_line_last,
             input   wire                            s_img_pixel_first,
@@ -101,7 +103,11 @@ module jelly_img_demosaic_acpi_g_core
                 .reset              (reset),
                 .clk                (clk),
                 .cke                (cke),
+
+                .param_phase        (param_phase),
                 
+                .in_line_first      (img_blk_line_first  & img_blk_valid),
+                .in_pixel_first     (img_blk_pixel_first & img_blk_valid),
                 .in_raw             (img_blk_raw),
                 
                 .out_raw            (m_img_raw),
@@ -111,7 +117,7 @@ module jelly_img_demosaic_acpi_g_core
     jelly_img_delay
             #(
                 .USER_WIDTH         (USER_WIDTH),
-                .LATENCY            (6),
+                .LATENCY            (7),
                 .USE_VALID          (USE_VALID)
             )
         i_img_delay

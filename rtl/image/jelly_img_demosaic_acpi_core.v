@@ -78,7 +78,9 @@ module jelly_img_demosaic_acpi_core
                 .reset              (reset),
                 .clk                (clk),
                 .cke                (cke),
-                
+
+                .param_phase        (param_phase),
+
                 .s_img_line_first   (s_img_line_first),
                 .s_img_line_last    (s_img_line_last),
                 .s_img_pixel_first  (s_img_pixel_first),

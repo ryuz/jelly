@@ -239,11 +239,12 @@ module jelly_img_demosaic_acpi_rb_unit
             
             // stage 6
             st6_raw <= st5_raw;
-            case ( st4_phase )
-            2'b00:  begin st6_r <= st5_raw; st6_g <= st5_g;   st6_b <= st5_x;   end
-            2'b01:  begin st6_r <= st5_h;   st6_g <= st5_raw; st6_b <= st5_v;   end
-            2'b10:  begin st6_r <= st5_v;   st6_g <= st5_raw; st6_b <= st5_h;   end
-            2'b11:  begin st6_r <= st5_x;   st6_g <= st5_g;   st6_b <= st5_raw; end
+            st6_g   <= st5_g;
+            case ( st5_phase )
+            2'b00:  begin st6_r <= st5_raw; st6_b <= st5_x;   end
+            2'b01:  begin st6_r <= st5_h;   st6_b <= st5_v;   end
+            2'b10:  begin st6_r <= st5_v;   st6_b <= st5_h;   end
+            2'b11:  begin st6_r <= st5_x;   st6_b <= st5_raw; end
             endcase
         end
     end
