@@ -15,7 +15,7 @@
 module jelly2_axi4s_master_model
         #(
             parameter   int     COMPONENTS       = 3,
-            parameter   int     DATA_WIDTH       = 8,            
+            parameter   int     DATA_WIDTH       = 8,
             parameter   int     X_NUM            = 640,
             parameter   int     Y_NUM            = 480,
             parameter   int     X_BLANK          = 0,
@@ -25,6 +25,8 @@ module jelly2_axi4s_master_model
             parameter   int     F_WIDTH          = 32,
             parameter   string  FILE_NAME        = "",
             parameter   string  FILE_EXT         = "",
+            parameter   int     FILE_X_NUM       = X_NUM,
+            parameter   int     FILE_Y_NUM       = Y_NUM,
             parameter   bit     SEQUENTIAL_FILE  = 0,
             parameter   int     BUSY_RATE        = 0,
             parameter   int     RANDOM_SEED      = 0,
@@ -55,7 +57,11 @@ module jelly2_axi4s_master_model
     //  read image file
     // -----------------------------
 
-    logic   [COMPONENTS-1:0][DATA_WIDTH-1:0]    mem     [Y_NUM][X_NUM];
+    localparam  int     MEM_X_NUM = X_NUM > FILE_X_NUM ? X_NUM : FILE_X_NUM;
+    localparam  int     MEM_Y_NUM = Y_NUM > FILE_Y_NUM ? Y_NUM : FILE_Y_NUM;
+
+
+    logic   [COMPONENTS-1:0][DATA_WIDTH-1:0]    mem     [MEM_Y_NUM][MEM_X_NUM];
 
     int                                         x = 0;
     int                                         y = 0;
@@ -71,7 +77,8 @@ module jelly2_axi4s_master_model
         for ( int i = 0; i < Y_NUM; ++i ) begin
             for ( int j = 0; j < X_NUM; ++j ) begin
                 for ( int k = 0; k < COMPONENTS; ++k ) begin
-                    automatic int data = 0;
+                    automatic int data;
+                    data = 0;
                     if ( k == 0 ) data = j;
                     if ( k == 1 ) data = i;
                     if ( k == 2 ) data = f;
@@ -84,21 +91,21 @@ module jelly2_axi4s_master_model
 
     task    image_read();
     begin
-        string filename;
-        int fp;
-        int n;
+        automatic string filename;
+        automatic int fp;
+        automatic int n;
         filename = SEQUENTIAL_FILE ? {FILE_NAME, $sformatf("%04d", f), FILE_EXT} : {FILE_NAME, FILE_EXT};
         fp = $fopen(filename, "r");
         if ( fp == 0 ) begin
             $display("file open error : %s", filename);
         end
         else begin
-            string format;
-            int    width, height, maxval;
+            automatic string format;
+            automatic int    width, height, maxval;
             n = $fscanf(fp, "%s %d %d %d", format, width, height, maxval);
             $display("[read] %s: format=%s width=%0d height=%0d maxval=%0d", filename, format, width, height, maxval);
-            for ( int i = 0; i < Y_NUM; ++i ) begin
-                for ( int j = 0; j < X_NUM; ++j ) begin
+            for ( int i = 0; i < FILE_Y_NUM; ++i ) begin
+                for ( int j = 0; j < FILE_X_NUM; ++j ) begin
                     for ( int k = 0; k < COMPONENTS; ++k ) begin
                         int data;
                         n = $fscanf(fp, "%d", data);

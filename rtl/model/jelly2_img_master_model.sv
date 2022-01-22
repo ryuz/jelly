@@ -69,7 +69,8 @@ module jelly2_img_master_model
         for ( int i = 0; i < Y_NUM; ++i ) begin
             for ( int j = 0; j < X_NUM; ++j ) begin
                 for ( int k = 0; k < COMPONENTS; ++k ) begin
-                    int data = 0;
+                    automatic int data;
+                    data = 0;
                     if ( k == 0 ) data = j;
                     if ( k == 1 ) data = i;
                     if ( k == 2 ) data = f;
@@ -83,7 +84,7 @@ module jelly2_img_master_model
     task    image_read();
     begin
         string filename = SEQUENTIAL_FILE ? {FILE_NAME, $sformatf("%04d", f), FILE_EXT} : {FILE_NAME, FILE_EXT};
-        int fp;
+        automatic int fp;
         fp = $fopen(filename, "r");
         if ( fp == 0 ) begin
             $display("file open error : %s", filename);
