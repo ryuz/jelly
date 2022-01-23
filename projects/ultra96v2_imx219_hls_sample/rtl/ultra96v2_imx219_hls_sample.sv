@@ -729,7 +729,62 @@ module ultra96v2_imx219_hls_sample
                 .m_axi4_rready              (axi4_mem1_rready)
             );
     
+
+    // ----------------------------------
+    //  video processing (HLS)
+    // ----------------------------------
     
+    wire    [0:0]               axi4s_hls_tuser;
+    wire                        axi4s_hls_tlast;
+    wire    [8*3-1:0]           axi4s_hls_tdata;
+    wire                        axi4s_hls_tvalid;
+    wire                        axi4s_hls_tready;
+
+    wire    [WB_DAT_WIDTH-1:0]  wb_hls_dat_o;
+    wire                        wb_hls_stb_i;
+    wire                        wb_hls_ack_o;
+
+    video_filter_hls
+        #(
+                .WB_ADR_WIDTH               (8),
+                .WB_DAT_WIDTH               (WB_DAT_WIDTH),
+                .X_WIDTH                    (16),
+                .Y_WIDTH                    (16),
+                .DATA_WIDTH                 (24),
+                .INIT_PARAM_INVERSE         (1'b0)
+            )
+        i_video_filter_hls
+            (
+                .aresetn                    (axi4s_cam_aresetn),
+                .aclk                       (axi4s_cam_aclk),
+                
+                .s_axi4s_tuser              (axi4s_rgb_tuser),
+                .s_axi4s_tlast              (axi4s_rgb_tlast),
+                .s_axi4s_tdata              (axi4s_rgb_tdata),
+                .s_axi4s_tvalid             (axi4s_rgb_tvalid),
+                .s_axi4s_tready             (axi4s_rgb_tready),
+
+                .m_axi4s_tuser              (axi4s_hls_tuser),
+                .m_axi4s_tlast              (axi4s_hls_tlast),
+                .m_axi4s_tdata              (axi4s_hls_tdata),
+                .m_axi4s_tvalid             (axi4s_hls_tvalid),
+                .m_axi4s_tready             (axi4s_hls_tready),
+
+                .param_width                (image_width),
+                .param_height               (image_height),
+
+                .s_wb_rst_i                 (wb_peri_rst_i),
+                .s_wb_clk_i                 (wb_peri_clk_i),
+                .s_wb_adr_i                 (wb_peri_adr_i[7:0]),
+                .s_wb_dat_i                 (wb_peri_dat_i),
+                .s_wb_dat_o                 (wb_hls_dat_o),
+                .s_wb_we_i                  (wb_peri_we_i),
+                .s_wb_sel_i                 (wb_peri_sel_i),
+                .s_wb_stb_i                 (wb_hls_stb_i),
+                .s_wb_ack_o                 (wb_hls_ack_o)
+            );
+    
+
     // ----------------------------------
     //  buffer manager
     // ----------------------------------
@@ -918,16 +973,16 @@ module ultra96v2_imx219_hls_sample
                 
                 .s_axi4s_aresetn            (axi4s_cam_aresetn),
                 .s_axi4s_aclk               (axi4s_cam_aclk),
-                .s_axi4s_tuser              (axi4s_rgb_tuser),
-                .s_axi4s_tlast              (axi4s_rgb_tlast),
-                .s_axi4s_tdata              (axi4s_rgb_tdata[23:0]),
+                .s_axi4s_tuser              (axi4s_hls_tuser),
+                .s_axi4s_tlast              (axi4s_hls_tlast),
+                .s_axi4s_tdata              (axi4s_hls_tdata[23:0]),
 //                .s_axi4s_tdata              ({
 //                                                axi4s_rgb_tdata[29:22],
 //                                                axi4s_rgb_tdata[19:12],
 //                                                axi4s_rgb_tdata[ 9: 2]
 //                                            }),
-                .s_axi4s_tvalid             (axi4s_rgb_tvalid),
-                .s_axi4s_tready             (axi4s_rgb_tready),
+                .s_axi4s_tvalid             (axi4s_hls_tvalid),
+                .s_axi4s_tready             (axi4s_hls_tready),
                 
                 .m_aresetn                  (axi4_mem_aresetn),
                 .m_aclk                     (axi4_mem_aclk),
@@ -1224,6 +1279,7 @@ module ultra96v2_imx219_hls_sample
     assign wb_vdmaw_stb_i = wb_peri_stb_i & (wb_peri_adr_i[25:13] == 12'h032);   // 0x80320000-0x8032ffff
     assign wb_vdmar_stb_i = wb_peri_stb_i & (wb_peri_adr_i[25:13] == 12'h034);   // 0x80340000-0x8034ffff
     assign wb_vsgen_stb_i = wb_peri_stb_i & (wb_peri_adr_i[25:13] == 12'h036);   // 0x80360000-0x8036ffff
+    assign wb_hls_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[25:13] == 12'h040);   // 0x80400000-0x8040ffff
     
     assign wb_peri_dat_o  = wb_gid_stb_i   ? wb_gid_dat_o   :
                             wb_fmtr_stb_i  ? wb_fmtr_dat_o  :
@@ -1233,7 +1289,8 @@ module ultra96v2_imx219_hls_sample
                             wb_vdmaw_stb_i ? wb_vdmaw_dat_o :
                             wb_vdmar_stb_i ? wb_vdmar_dat_o :
                             wb_vsgen_stb_i ? wb_vsgen_dat_o :
-                            32'h0000_0000;
+                            wb_hls_stb_i   ? wb_hls_dat_o   :
+                            {WB_DAT_WIDTH{1'b0}};
     
     assign wb_peri_ack_o  = wb_gid_stb_i   ? wb_gid_ack_o   :
                             wb_vdmaw_stb_i ? wb_vdmaw_ack_o :
@@ -1243,6 +1300,7 @@ module ultra96v2_imx219_hls_sample
                             wb_bufa_stb_i  ? wb_bufa_ack_o  :
                             wb_vdmar_stb_i ? wb_vdmar_ack_o :
                             wb_vsgen_stb_i ? wb_vsgen_ack_o :
+                            wb_hls_stb_i   ? wb_hls_ack_o   :
                             wb_peri_stb_i;
     
     

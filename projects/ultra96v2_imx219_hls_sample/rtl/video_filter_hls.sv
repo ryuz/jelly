@@ -5,8 +5,7 @@
 `default_nettype none
 
 
-// 画像処理
-module image_processing
+module video_filter_hls
         #(
             parameter   WB_ADR_WIDTH       = 17,
             parameter   WB_DAT_WIDTH       = 32,
@@ -83,8 +82,8 @@ module image_processing
         end
         else begin
             if ( s_wb_stb_i && s_wb_we_i ) begin
-                case ( int(s_wb_adr_i) )
-                ADR_PARAM_INVERSE: reg_param_inverse <= 1'(write_mask(reg_param_inverse, s_wb_dat_i, s_wb_sel_i));
+                case ( s_wb_adr_i )
+                ADR_PARAM_INVERSE: reg_param_inverse <= 1'(write_mask(WB_DAT_WIDTH'(reg_param_inverse), s_wb_dat_i, s_wb_sel_i));
                 endcase
             end
         end
@@ -98,8 +97,8 @@ module image_processing
     assign s_wb_ack_o = s_wb_stb_i;
     
     
-    video_filter_video_filter
-        i_video_filter_video_filter
+    video_filter_0
+        i_video_filter_0
             (
                 .ap_clk             (aclk),
                 .ap_rst_n           (aresetn),
@@ -119,9 +118,9 @@ module image_processing
                 .s_axi4s_TID        (),
                 .s_axi4s_TDEST      (),
 
-                .m_axi4s_TDATA      (m_axi4s_TDATA),
-                .m_axi4s_TVALID     (m_axi4s_TVALID),
-                .m_axi4s_TREADY     (m_axi4s_TREADY),
+                .m_axi4s_TDATA      (m_axi4s_tdata),
+                .m_axi4s_TVALID     (m_axi4s_tvalid),
+                .m_axi4s_TREADY     (m_axi4s_tready),
                 .m_axi4s_TKEEP      (),
                 .m_axi4s_TSTRB      (),
                 .m_axi4s_TUSER      (m_axi4s_tuser),

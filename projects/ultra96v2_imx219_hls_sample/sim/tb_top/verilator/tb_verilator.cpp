@@ -120,6 +120,7 @@ int main(int argc, char** argv)
     const unsigned int ADR_VDMAW   = (0x00320000 >> 3);  // Write-DMA
     const unsigned int ADR_VDMAR   = (0x00340000 >> 3);  // Read-DMA
     const unsigned int ADR_VSGEN   = (0x00360000 >> 3);  // Video out sync generator
+    const unsigned int ADR_HLS     = (0x00400000 >> 3);
     
     const unsigned int IMG_X_NUM = 1024;
     const unsigned int IMG_Y_NUM = 64;
@@ -150,57 +151,12 @@ int main(int argc, char** argv)
     wb->Write(ADR_VDMAW + REG_VDMA_WRITE_PARAM_F_SIZE,                        1-1, 0xff);
     wb->Write(ADR_VDMAW + REG_VDMA_WRITE_CTL_CONTROL,                           3, 0xff);  // update & enable
 
-    /*
-    jsim::Axi4sVideo axi4s_dst =
-            {
-                &top->aresetn,
-                &top->aclk,
-                &top->m_axi4s_dst_tuser,
-                &top->m_axi4s_dst_tlast,
-                &top->m_axi4s_dst_tdata,
-                &top->m_axi4s_dst_tvalid,
-                &top->m_axi4s_dst_tready
-            };
+    wb->Wait(100000);
+    wb->Display("set HLS");
+    wb->Write(ADR_HLS + 0x08, 1, 0xff);
+    wb->Wait(100000);
 
-    jsim::Axi4sVideo axi4s_angle =
-            {
-                &top->aresetn,
-                &top->aclk,
-                &top->m_axi4s_angle_tuser,
-                &top->m_axi4s_angle_tlast,
-                &top->m_axi4s_angle_tdata,
-                &top->m_axi4s_angle_tvalid,
-                (int*)nullptr
-            };
-
-    std::string s;
-    auto image_src_load = jsim::Axi4sImageLoadNode_Create(axi4s_src, "../BOAT.bmp", jsim::fmt_gray);
-    auto image_dst_dump = jsim::Axi4sImageDumpNode_Create(axi4s_dst, "img_%04d.png", jsim::fmt_gray, 256, 256);
-    auto image_angle_dump = jsim::Axi4sImageDumpNode_Create(axi4s_angle, "angle_%04d.png", jsim::fmt_color, 256, 256);
-
-    image_src_load->SetBlankX(64);
-    image_src_load->SetBlankY((256 + 64) * 8);
-    image_src_load->SetRandomWait(0.0);
-    image_dst_dump->SetRandomWait(0.0);
-
-    image_angle_dump->SetFrameLimit(2);
-    image_dst_dump->SetFrameLimit(2);//, true); // 2フレーム処理したら終了するように設定
-    
-
-    mng->AddNode(image_src_load);
-    mng->AddNode(image_dst_dump);
-    mng->AddNode(image_angle_dump);
-
-    image_src_load->SetImagePreProc(PreProcImage);
-    image_src_load->SetImageShow("sorce image");
-    image_angle_dump->SetImageShow("canny angle");
-    image_dst_dump->SetImageShow("canny edge");
-    mng->SetThreadEnable(true);
-
-    mng->SetControlCvWindow("Simulation", 0x1b);
-    */
-
-    mng->Run(1000000);
+    mng->Run(4000000);
 //    mng->Run();
 
 #if VM_TRACE

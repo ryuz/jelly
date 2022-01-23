@@ -58,11 +58,18 @@ module tb_sim();
     // ---------------------------------
     
     tb_sim_main
-        i_tb_sim_main
+            #(
+                .X_NUM  (X_NUM),
+                .Y_NUM  (Y_NUM)
+            )
+        i_sim_main
             (
+                .reset  (reset),
+                .clk    (clk100)
             );
     
     
+    /*
     // ----------------------------------
     //  dummy video
     // ----------------------------------
@@ -102,7 +109,7 @@ module tb_sim();
         force i_tb_sim_main.i_top.axi4s_csi2_tdata  = {axi4s_model_tdata, 2'd0};
         force i_tb_sim_main.i_top.axi4s_csi2_tvalid = axi4s_model_tvalid;
     end
-    
+    */
     
     
     // ----------------------------------

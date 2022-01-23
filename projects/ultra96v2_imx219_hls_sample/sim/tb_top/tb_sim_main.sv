@@ -45,16 +45,17 @@ module tb_sim_main
             );
 
 
-    logic           axi4s_src_aresetn;
-    logic           axi4s_src_aclk;
+    logic           axi4s_cam_aresetn;
+    logic           axi4s_cam_aclk;
+
     logic   [0:0]   axi4s_src_tuser;
     logic           axi4s_src_tlast;
     logic   [9:0]   axi4s_src_tdata;
     logic           axi4s_src_tvalid;
     logic           axi4s_src_tready;
 
-    assign axi4s_src_aresetn = i_top.axi4s_cam_aresetn;
-    assign axi4s_src_aclk    = i_top.axi4s_cam_aclk;
+    assign axi4s_cam_aresetn = i_top.axi4s_cam_aresetn;
+    assign axi4s_cam_aclk    = i_top.axi4s_cam_aclk;
     assign axi4s_src_tready  = i_top.axi4s_csi2_tready;
 
     // force を verilator の為に毎回実行する
@@ -87,8 +88,8 @@ module tb_sim_main
             )
         i_axi4s_master_model
             (
-                .aresetn            (axi4s_src_aresetn),
-                .aclk               (axi4s_src_aclk),
+                .aresetn            (axi4s_cam_aresetn),
+                .aclk               (axi4s_cam_aclk),
                 .aclken             (1'b1),
                 
                 .enable             (sym_cycle > 4000),
@@ -189,6 +190,51 @@ module tb_sim_main
                 .s_img_de           (img_demos_de),
                 .s_img_data         ({img_demos_b, img_demos_g, img_demos_r}),
                 .s_img_valid        (img_demos_valid)
+            );
+
+
+
+    wire    [0:0]               axi4s_hls_tuser  = i_top.axi4s_hls_tuser ;
+    wire                        axi4s_hls_tlast  = i_top.axi4s_hls_tlast ;
+    wire    [8*3-1:0]           axi4s_hls_tdata  = i_top.axi4s_hls_tdata ;
+    wire                        axi4s_hls_tvalid = i_top.axi4s_hls_tvalid;
+    wire                        axi4s_hls_tready = i_top.axi4s_hls_tready;
+
+    jelly2_axi4s_slave_model
+            #(
+                .COMPONENTS         (3),
+                .DATA_WIDTH         (8),
+                .INIT_FRAME_NUM     (0),
+                .X_WIDTH            (32),
+                .Y_WIDTH            (32),
+                .F_WIDTH            (32),
+                .FORMAT             ("P3"),
+                .FILE_NAME          ("hls_"),
+                .FILE_EXT           (".ppm"),
+                .SEQUENTIAL_FILE    (1),
+                .ENDIAN             (0),
+                .BUSY_RATE          (0),
+                .RANDOM_SEED        (0)
+            )
+        i_axi4s_slave_model
+            (
+                .aresetn            (axi4s_cam_aresetn),
+                .aclk               (axi4s_cam_aclk),
+                .aclken             (1'b1),
+
+                .param_width        (X_NUM),
+                .param_height       (Y_NUM),
+                .frame_num          (),
+                
+                .s_axi4s_tuser      (axi4s_hls_tuser),
+                .s_axi4s_tlast      (axi4s_hls_tlast),
+                .s_axi4s_tdata      ({
+                                        axi4s_hls_tdata[8*0 +: 8],
+                                        axi4s_hls_tdata[8*1 +: 8],
+                                        axi4s_hls_tdata[8*2 +: 8]
+                                    }),
+                .s_axi4s_tvalid     (axi4s_hls_tvalid & axi4s_hls_tready),
+                .s_axi4s_tready     ()
             );
 
 endmodule
