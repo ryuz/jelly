@@ -80,16 +80,12 @@
             #address-cells = <0x2>;
             #size-cells = <0x2>;
             udmabuf4 {
-             /* compatible = "ikwzm,udmabuf-0.10.a"; */
+             //   compatible = "ikwzm,udmabuf-0.10.a";
+             //   minor-number = <4>;
+
                 compatible = "ikwzm,u-dma-buf";
-                minor-number = <4>;
+                device-name = "udmabuf-jelly-vram0";
                 size = <0 0x01000000>;
-            };
-            udmabuf5 {
-             /* compatible = "ikwzm,udmabuf-0.10.a"; */
-                compatible = "ikwzm,u-dma-buf";
-                minor-number = <5>;
-                size = <0 0x00800000>;
             };
         };
     };
