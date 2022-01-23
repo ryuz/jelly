@@ -564,7 +564,10 @@ module ultra96v2_imx219_hls_sample
     wire    [9:0]               axi4s_fmtr_tdata;
     wire                        axi4s_fmtr_tvalid;
     wire                        axi4s_fmtr_tready;
-    
+
+    wire    [15:0]              image_width;
+    wire    [15:0]              image_height;
+
     wire    [WB_DAT_WIDTH-1:0]  wb_fmtr_dat_o;
     wire                        wb_fmtr_stb_i;
     wire                        wb_fmtr_ack_o;
@@ -606,7 +609,10 @@ module ultra96v2_imx219_hls_sample
                 .s_wb_sel_i                 (wb_peri_sel_i),
                 .s_wb_stb_i                 (wb_fmtr_stb_i),
                 .s_wb_ack_o                 (wb_fmtr_ack_o),
-                
+
+                .out_param_width            (image_width),
+                .out_param_height           (image_height),
+
                 .s_axi4s_tuser              (axi4s_csi2_tuser),
                 .s_axi4s_tlast              (axi4s_csi2_tlast),
                 .s_axi4s_tdata              (axi4s_csi2_tdata),
