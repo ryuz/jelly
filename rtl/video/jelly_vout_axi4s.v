@@ -96,7 +96,7 @@ module jelly_vout_axi4s
     reg         reg_busy;
     always @(posedge clk) begin
         if ( reset ) begin
-            reg_busy = 1'b0;
+            reg_busy <= 1'b0;
         end
         else begin
             if ( !reg_busy ) begin

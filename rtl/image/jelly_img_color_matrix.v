@@ -28,7 +28,7 @@ module jelly_img_color_matrix
             parameter   COEFF3_INT_WIDTH     = COEFF_INT_WIDTH,
             parameter   COEFF3_FRAC_WIDTH    = COEFF_FRAC_WIDTH,
             parameter   STATIC_COEFF         = 1,
-            parameter   DEVICE               = "7SERIES", // "RTL" or "7SERIES"
+            parameter   DEVICE               = "RTL", // "RTL" or "7SERIES"
             
             parameter   WB_ADR_WIDTH         = 8,
             parameter   WB_DAT_WIDTH         = 32,

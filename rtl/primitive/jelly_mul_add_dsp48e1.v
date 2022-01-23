@@ -32,7 +32,7 @@ module jelly_mul_add_dsp48e1
             parameter   USE_PCIN   = 0,
             parameter   USE_PCOUT  = 0,
             
-            parameter   DEVICE     = "7SERIES" // "RTL" // "7SERIES"
+            parameter   DEVICE     = "RTL" // "7SERIES"
         )
         (
             input   wire                            reset,

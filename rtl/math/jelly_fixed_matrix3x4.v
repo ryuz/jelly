@@ -39,7 +39,7 @@ module jelly_fixed_matrix3x4
             parameter   MASTER_IN_REGS     = 1,
             parameter   MASTER_OUT_REGS    = 1,
                         
-            parameter   DEVICE             = "7SERIES" // "RTL" or "7SERIES"
+            parameter   DEVICE             = "RTL" // "RTL" or "7SERIES"
         )
         (
             input   wire                                        reset,
