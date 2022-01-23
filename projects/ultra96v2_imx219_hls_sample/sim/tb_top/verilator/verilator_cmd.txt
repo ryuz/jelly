@@ -1,0 +1,26 @@
+--trace-fst --trace-params --trace-structs --trace-underscore
+#--public
+#--threads 2
+
+-Wno-WIDTH
+-Wno-UNSIGNED
+-Wno-PINMISSING
+-Wno-UNOPTFLAT
+-Wno-UNOPTTHREADS
+-Wno-LITENDIAN
+-Wno-STMTDLY
+-Wno-CASEINCOMPLETE
+-Wno-LATCH
+-Wno-COMBDLY
+-Wno-SELRANGE
+
+-y ../../stub
+-y ../../../rtl
+-y ../../../../../rtl/library
+-y ../../../../../rtl/bus
+-y ../../../../../rtl/dma
+-y ../../../../../rtl/math
+-y ../../../../../rtl/primitive
+-y ../../../../../rtl/image
+-y ../../../../../rtl/video
+-y ../../../../../rtl/model
