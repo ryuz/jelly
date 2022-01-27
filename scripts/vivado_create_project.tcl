@@ -12,6 +12,7 @@ set device_part  $env(DEVICE_PART)
 set sources      [split $env(SOURCES) " "]
 set ip_cores     [split $env(IP_CORES) " "]
 set bd_scripts   [split $env(BD_SCRIPTS) " "]
+set hls_ip       [split $env(HLS_IP) " "]
 set constrains   [split $env(CONSTRAINS) " "]
 
 
@@ -89,6 +90,21 @@ if {[string equal [get_runs -quiet impl_1] ""]} {
 }
 current_run -implementation [get_runs impl_1]
 
+
+# HLS
+if {[llength $hls_ip] > 0} {
+    set_property  ip_repo_paths ../../hls [current_project]
+    update_ip_catalog
+
+    foreach ipnames $hls_ip {
+        set names [split $ipnames ","]
+        set ip_name [lindex $names 0]
+        set inst_name [lindex $names 1]
+        append xci_path $project_name ".srcs/sources_1/ip/" $inst_name "/" $inst_name
+        create_ip -name $ip_name -vendor xilinx.com -library hls -version 1.0 -module_name $inst_name
+        generate_target all [get_files $xci_path]
+    }
+}
 
 # create block design
 foreach fname $bd_scripts {
