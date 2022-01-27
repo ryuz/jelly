@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     int     exposure    = 20;
     int     a_gain      = 20;
     int     d_gain      = 1;
-    int     bayer_phase = 1;
+    int     bayer_phase = 0;
     int     view_scale  = 2;
     int     view_x      = -1;
     int     view_y      = -1;
@@ -188,17 +188,17 @@ int main(int argc, char *argv[])
 
 
     // udmabuf
-    std::cout << "\nudmabuf4 open" << std::endl;
-    jelly::UdmabufAccessor udmabuf_acc("udmabuf4");
+    std::cout << "\nudmabuf open" << std::endl;
+    jelly::UdmabufAccessor udmabuf_acc("udmabuf-jelly-vram0");
     if ( !udmabuf_acc.IsMapped() ) {
-        std::cout << "udmabuf4 mmap error" << std::endl;
+        std::cout << "udmabuf oepn error" << std::endl;
         return 1;
     }
     auto dmabuf_addr = udmabuf_acc.GetPhysAddr();
     auto dmabuf_size = udmabuf_acc.GetSize();
 
-    std::cout << "udmabuf4 phys addr : 0x" << std::hex << dmabuf_addr << std::endl;
-    std::cout << "udmabuf4 size      : 0x" << std::hex << dmabuf_size << std::endl;
+    std::cout << "udmabuf phys addr : 0x" << std::hex << dmabuf_addr << std::endl;
+    std::cout << "udmabuf size      : 0x" << std::hex << dmabuf_size << std::endl;
 
     // PL peripheral bus
     std::cout << "\nuio open" << std::endl;
@@ -249,9 +249,9 @@ int main(int argc, char *argv[])
 
 
     // memmeap iamge fifo
-    jelly::UdmabufAccessor udmabuf5_acc("udmabuf5");
+    jelly::UdmabufAccessor udmabuf5_acc("udmabuf-jelly-vram1");
     if ( !udmabuf5_acc.IsMapped() ) {
-        std::cout << "udmabuf5 : open error or mmap error" << std::endl;
+        std::cout << "udmabuf : open error or mmap error" << std::endl;
         return 1;
     }
 
