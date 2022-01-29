@@ -1,10 +1,49 @@
 
+# get vivado version
+empty:=
+space:= $(empty) $(empty)
+VIVADO_VERSIONS := $(subst .,$(space),$(subst v,,$(word 2,$(shell vivado -version))))
+VIVADO_VERSION  := $(word 1,$(VIVADO_VERSIONS)).$(word 2,$(VIVADO_VERSIONS))
 
+# settings
 export PRJ_NAME    = ultra96v2_hls_test_tcl
+export TOP_MODULE  = ultra96v2_hls_test
 export BOARD_PART  = avnet.com:ultra96v2*
 export DEVICE_PART = xczu3eg-sbva484-1-i
 
 
+# directories
+TOP_DIR = ../../../..
+PRJ_DIR = ../..
+HLS_DIR = $(PRJ_DIR)/hls
+
+# HLS
+HLS_EXPORT_FILE = $(HLS_DIR)/divider/solution_1/impl/export.zip
+
+# sources
+SOURCES  = $(PRJ_DIR)/rtl/ultra96v2_hls_test.v
+SOURCES  = $(PRJ_DIR)/rtl/test_hls.sv
+SOURCES += $(TOP_DIR)/rtl/bus/jelly_axi4l_to_wishbone.v
+export SOURCES
+
+# IP cores
+IP_CORES  = 
+export IP_CORES
+
+# block design
+BD_SCRIPTS = ../vivado$(VIVADO_VERSION)/design_1.tcl
+export BD_SCRIPTS
+
+# constrains
+CONSTRAINS  = $(PRJ_DIR)/constrain/xdc/top.xdc
+CONSTRAINS += $(PRJ_DIR)/constrain/xdc/debug.xdc
+export CONSTRAINS
+
+# HLS IP
+HLS_IP = divider,divider_0
+export HLS_IP
+
+# rules
 .PHONY : all
 all: clean build_hls create build
 
@@ -12,11 +51,11 @@ all: clean build_hls create build
 create: $(PRJ_NAME).xpr
 
 $(PRJ_NAME).xpr:
-	vivado -m64 -mode batch -source create_project.tcl
+	vivado -m64 -mode batch -source $(TOP_DIR)/scripts/vivado_create_project.tcl
 
 .PHONY : build
 build:
-	vivado -m64 -mode batch -source implementation.tcl
+	vivado -m64 -mode batch -source $(TOP_DIR)/scripts/vivado_implementation.tcl
 
 .PHONY : clean
 clean:
@@ -35,14 +74,11 @@ clean:
 
 .PHONY : build_hls
 build_hls:
-	make -C ../../hls
+	make -C $(PRJ_DIR)/hls
 
 .PHONY : clean_hls
 clean_hls:
-	make -C ../../hls clean
+	make -C $(PRJ_DIR)/hls clean
 
 .PHONY : distclean
 distclean: clean_hls clean
-
-
-
