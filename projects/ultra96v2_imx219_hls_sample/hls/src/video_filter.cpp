@@ -13,28 +13,31 @@ void video_filter(
 #pragma HLS INTERFACE axis port=s_axi4s
 #pragma HLS INTERFACE axis port=m_axi4s
 
-    bool wait_frame_start = true;
-    height_t y = 0;
-    width_t  x = 0;
     axi4s_t axi4s;
-    do { 
-        #pragma HLS PIPELINE
+
+    // wait for frame start
+    do {
         s_axi4s >> axi4s;
-        if ( wait_frame_start && axi4s.user == 0 ) {
-            continue;
-        }
-        wait_frame_start = false;
+    } while ( axi4s.user == 0 );
 
-        if ( inverse ) {
-            axi4s.data = ~axi4s.data;
-        }
-        m_axi4s << axi4s;
+    // filter
+    for ( height_t y = 0; y < height; ++y ) {
+        for ( width_t x = 0; x < width; ++x ) {
+            #pragma HLS pipeline II=1
 
-        x++;
-        if ( axi4s.last ) {
-            x = 0;
-            y++;
+            if ( inverse ) {
+                axi4s.data = ~axi4s.data;
+            }
+            m_axi4s << axi4s;
+
+//            x++;
+//            if ( axi4s.last ) {
+//                x = 0;
+ //               y++;
+ //           }
+
+            s_axi4s >> axi4s;
         }
-    } while ( y < height );
+    }
 }
 

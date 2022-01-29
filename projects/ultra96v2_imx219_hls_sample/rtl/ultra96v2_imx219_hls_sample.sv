@@ -760,7 +760,7 @@ module ultra96v2_imx219_hls_sample
                 
                 .s_axi4s_tuser              (axi4s_rgb_tuser),
                 .s_axi4s_tlast              (axi4s_rgb_tlast),
-                .s_axi4s_tdata              (axi4s_rgb_tdata),
+                .s_axi4s_tdata              (axi4s_rgb_tdata[23:0]),
                 .s_axi4s_tvalid             (axi4s_rgb_tvalid),
                 .s_axi4s_tready             (axi4s_rgb_tready),
 

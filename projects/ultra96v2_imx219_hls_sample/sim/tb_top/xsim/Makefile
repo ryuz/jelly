@@ -8,8 +8,9 @@ all: clean build run
 
 .PHONY: build
 build:
+	make -C ../../../syn/tcl create
 	xvlog -f xvlog_cmd.txt
-	xelab -debug wave $(TOP_MODULE) glbl -s $(TOP_MODULE) -L unisims_ver -L unimacro_ver -L secureip
+	xelab -debug wave $(TOP_MODULE) glbl -s $(TOP_MODULE) -L unisims_ver -L unimacro_ver -L secureip -mt off -v 1
 
 .PHONY: run
 run:
@@ -31,7 +32,9 @@ clean:
 
 .PHONY: distclean
 distclean: clean
+	make -C ../../../syn/tcl distclean
+	-rm -f *.vcd
+	-rm -f *.wdb
 	-rm -f *.pgm
 	-rm -f *.ppm
-	-rm -f $(TOP_MODULE).vcd
-	-rm -f $(TOP_MODULE).wdb
+	-rm -f axi4_*.txt

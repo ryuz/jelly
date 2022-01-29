@@ -15,7 +15,7 @@ module tb_sim();
         $dumpfile("tb_sim.vcd");
         $dumpvars(0, tb_sim);
         
-    #100000000
+    #1000000
         $finish;
     end
     
@@ -62,7 +62,7 @@ module tb_sim();
                 .X_NUM  (X_NUM),
                 .Y_NUM  (Y_NUM)
             )
-        i_sim_main
+        i_tb_sim_main
             (
                 .reset  (reset),
                 .clk    (clk100)
@@ -235,7 +235,7 @@ module tb_sim();
         wb_read (32'h80210028);  // read status
         wb_read (32'h80210028);  // read status
         wb_read (32'h80210028);  // read status
-        
+
     #10000;
         wb_write(32'h80210020, 0, 4'b1111); // stop
         
