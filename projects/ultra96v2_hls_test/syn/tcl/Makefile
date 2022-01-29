@@ -11,7 +11,6 @@ export TOP_MODULE  = ultra96v2_hls_test
 export BOARD_PART  = avnet.com:ultra96v2*
 export DEVICE_PART = xczu3eg-sbva484-1-i
 
-
 # directories
 TOP_DIR = ../../../..
 PRJ_DIR = ../..
@@ -19,6 +18,10 @@ HLS_DIR = $(PRJ_DIR)/hls
 
 # HLS
 HLS_EXPORT_FILE = $(HLS_DIR)/divider/solution_1/impl/export.zip
+
+# HLS IP
+HLS_IP = divider,divider_0
+export HLS_IP
 
 # sources
 SOURCES  = $(PRJ_DIR)/rtl/ultra96v2_hls_test.v
@@ -38,10 +41,6 @@ export BD_SCRIPTS
 CONSTRAINS  = $(PRJ_DIR)/constrain/xdc/top.xdc
 CONSTRAINS += $(PRJ_DIR)/constrain/xdc/debug.xdc
 export CONSTRAINS
-
-# HLS IP
-HLS_IP = divider,divider_0
-export HLS_IP
 
 # rules
 .PHONY : all

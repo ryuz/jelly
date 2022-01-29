@@ -137,7 +137,7 @@ module ultra96v2_hls_test
     
     
     // -----------------------------
-    //  Test DMA0
+    //  Test HLS
     // -----------------------------
     
     wire    [WB_DAT_WIDTH-1:0]      wb_hls_dat_o;
