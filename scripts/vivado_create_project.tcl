@@ -100,7 +100,8 @@ if {[llength $hls_ip] > 0} {
         set names [split $ipnames ","]
         set ip_name [lindex $names 0]
         set inst_name [lindex $names 1]
-        append xci_path $project_name ".srcs/sources_1/ip/" $inst_name "/" $inst_name
+        append xci_name $inst_name ".xci"
+        append xci_path $project_name ".srcs/sources_1/ip/" $inst_name "/" $xci_name
         create_ip -name $ip_name -vendor xilinx.com -library hls -version 1.0 -module_name $inst_name
         generate_target all [get_files $xci_path]
     }
