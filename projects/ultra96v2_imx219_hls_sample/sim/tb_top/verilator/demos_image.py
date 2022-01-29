@@ -18,7 +18,7 @@ def main():
     print(img_src.dtype)
     print(img_src[0])
     img_src *= (2**6)
-    cv2.imwrite("hoge.png", img_src)
+    cv2.imwrite("bayer.png", img_src)
     img_demos = cv2.cvtColor(img_src, cv2.COLOR_BAYER_BG2BGR)
     cv2.imwrite("demos.png", img_demos)
     

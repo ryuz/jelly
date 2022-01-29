@@ -12,7 +12,7 @@
 module tb_sim_main
         #(
             parameter   X_NUM = 1024, // 3280 / 2,
-            parameter   Y_NUM = 64    //2464 / 2
+            parameter   Y_NUM = 64   // 2464 / 2
         )
         (
             input   wire    reset,
@@ -59,7 +59,11 @@ module tb_sim_main
     assign axi4s_src_tready  = i_top.axi4s_csi2_tready;
 
     // force を verilator の為に毎回実行する
-    always @(axi4s_src_tuser or axi4s_src_tlast or axi4s_src_tdata or axi4s_src_tvalid) begin
+`ifdef __VERILATOR__
+    always_comb begin
+`else
+    initial begin
+`endif
         force i_top.axi4s_csi2_tuser  = axi4s_src_tuser;
         force i_top.axi4s_csi2_tlast  = axi4s_src_tlast;
         force i_top.axi4s_csi2_tdata  = axi4s_src_tdata;

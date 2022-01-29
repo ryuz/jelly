@@ -20,8 +20,8 @@ module tb_sim();
     end
     
     
-    parameter   X_NUM = 2048; // 3280 / 2;
-    parameter   Y_NUM = 16; // 2464 / 2;
+    parameter   X_NUM = 1024;   // 3280 / 2;
+    parameter   Y_NUM = 64;     // 2464 / 2;
 
 
     // ---------------------------------
@@ -69,48 +69,7 @@ module tb_sim();
             );
     
     
-    /*
-    // ----------------------------------
-    //  dummy video
-    // ----------------------------------
-    
-    wire            axi4s_model_aresetn = i_tb_sim_main.i_top.axi4s_cam_aresetn;
-    wire            axi4s_model_aclk    = i_tb_sim_main.i_top.axi4s_cam_aclk;
-    wire    [0:0]   axi4s_model_tuser;
-    wire            axi4s_model_tlast;
-    wire    [7:0]   axi4s_model_tdata;
-    wire            axi4s_model_tvalid;
-    wire            axi4s_model_tready = i_tb_sim_main.i_top.axi4s_csi2_tready;
-    
-    jelly_axi4s_master_model
-            #(
-                .AXI4S_DATA_WIDTH   (8),
-                .X_NUM              (X_NUM), // (128),
-                .Y_NUM              (Y_NUM),   // (128),
-//              .PGM_FILE           ("lena_128x128.pgm"),
-                .BUSY_RATE          (0), // (50),
-                .RANDOM_SEED        (0)
-            )
-        i_axi4s_master_model
-            (
-                .aresetn            (axi4s_model_aresetn),
-                .aclk               (axi4s_model_aclk),
-                
-                .m_axi4s_tuser      (axi4s_model_tuser),
-                .m_axi4s_tlast      (axi4s_model_tlast),
-                .m_axi4s_tdata      (axi4s_model_tdata),
-                .m_axi4s_tvalid     (axi4s_model_tvalid),
-                .m_axi4s_tready     (axi4s_model_tready)
-            );
-    
-    initial begin
-        force i_tb_sim_main.i_top.axi4s_csi2_tuser  = axi4s_model_tuser;
-        force i_tb_sim_main.i_top.axi4s_csi2_tlast  = axi4s_model_tlast;
-        force i_tb_sim_main.i_top.axi4s_csi2_tdata  = {axi4s_model_tdata, 2'd0};
-        force i_tb_sim_main.i_top.axi4s_csi2_tvalid = axi4s_model_tvalid;
-    end
-    */
-    
+   
     
     // ----------------------------------
     //  WISHBONE master
@@ -150,14 +109,14 @@ module tb_sim();
     
     
     task wb_write(
-                input [31:0]    adr,
-                input [31:0]    dat,
-                input [3:0]     sel
+                input [WB_ADR_WIDTH-1:0]    adr,
+                input [WB_DAT_WIDTH-1:0]    dat,
+                input [WB_SEL_WIDTH:0]      sel
             );
     begin
         $display("WISHBONE_WRITE(adr:%h dat:%h sel:%b)", adr, dat, sel);
         @(negedge wb_clk_i);
-            wb_adr_o = (adr >> 3);
+            wb_adr_o = adr;
             wb_dat_o = dat;
             wb_sel_o = sel;
             wb_we_o  = 1'b1;
@@ -175,11 +134,11 @@ module tb_sim();
     endtask
     
     task wb_read(
-                input [31:0]    adr
+                input [WB_ADR_WIDTH-1:0]    adr
             );
     begin
         @(negedge wb_clk_i);
-            wb_adr_o = (adr >> 3);
+            wb_adr_o = adr;
             wb_dat_o = {WB_DAT_WIDTH{1'bx}};
             wb_sel_o = {WB_SEL_WIDTH{1'b1}};
             wb_we_o  = 1'b0;
@@ -198,73 +157,55 @@ module tb_sim();
     endtask
     
     
+
+    localparam ADR_FMTR    = (32'h00100000 >> 3);  // ビデオサイズ正規化
+    localparam ADR_DEMOS   = (32'h00200000 >> 3);  // デモザイク
+    localparam ADR_COLMAT  = (32'h00210000 >> 3);  // カラーマトリックス
+    localparam ADR_GAMMA   = (32'h00220000 >> 3);  // ガンマ補正
+    localparam ADR_GAUSS   = (32'h00240000 >> 3);  // ガウシアンフィルタ
+    localparam ADR_CANNY   = (32'h00250000 >> 3);  // Cannyフィルタ
+    localparam ADR_IMGDMA  = (32'h00260000 >> 3);  // FIFO dma
+    localparam ADR_BINDIFF = (32'h00270000 >> 3);  // 前画像との差分バイナライズ
+    localparam ADR_SEL     = (32'h002f0000 >> 3);  // 出力切り替え
+    localparam ADR_BUFMNG  = (32'h00300000 >> 3);  // Buffer manager
+    localparam ADR_BUFALC  = (32'h00310000 >> 3);  // Buffer allocator
+    localparam ADR_VDMAW   = (32'h00320000 >> 3);  // Write-DMA
+    localparam ADR_VDMAR   = (32'h00340000 >> 3);  // Read-DMA
+    localparam ADR_VSGEN   = (32'h00360000 >> 3);  // Video out sync generator
+    localparam ADR_HLS     = (32'h00400000 >> 3);
+
+`include "jelly/JellyRegs.vh"
     
     initial begin
     #1000;
         $display("start");
-    
-    #1000;
-        $display("read core ID");
-        wb_read (32'h80000000);     // gid
-        wb_read (32'h80100000);     // fmtr
-        wb_read (32'h80120000);     // demosaic
-        wb_read (32'h80120200);     // col mat
-        wb_read (32'h80210000);     // wdma
 
-    #10000;
-        $display("set format regularizer");
-        wb_read (32'h80100000);                         // CORE ID
-        wb_write(32'h80100080,        X_NUM, 4'b1111);  // width
-        wb_write(32'h80100088,        Y_NUM, 4'b1111);  // height
-        wb_write(32'h80100090,            0, 4'b1111);  // fill
-        wb_write(32'h80100098,         1024, 4'b1111);  // timeout
-        wb_write(32'h80100020,            1, 4'b1111);  // enable
-    #100000;
-        
+        $display("set FMTR");
+        wb_read (ADR_FMTR + `REG_VIDEO_FMTREG_CORE_ID);
+        wb_write(ADR_FMTR + `REG_VIDEO_FMTREG_PARAM_WIDTH,  X_NUM, 8'hff);
+        wb_write(ADR_FMTR + `REG_VIDEO_FMTREG_PARAM_HEIGHT, Y_NUM, 8'hff);
+        wb_write(ADR_FMTR + `REG_VIDEO_FMTREG_CTL_CONTROL,      32'h3, 8'hff);
+
+        $display("set DEMOSIC");
+        wb_read (ADR_DEMOS + `REG_IMG_DEMOSAIC_CORE_ID);
+        wb_write(ADR_DEMOS + `REG_IMG_DEMOSAIC_PARAM_PHASE,     0, 8'hff);
+        wb_write(ADR_DEMOS + `REG_IMG_DEMOSAIC_CTL_CONTROL, 32'h3, 8'hff);
+
         $display("set write DMA");
-        wb_read (32'h80210000);                         // CORE ID
-        wb_write(32'h80210040, 32'h30000000, 4'b1111);  // address
-        wb_write(32'h80210048,      4*X_NUM, 4'b1111);  // stride
-        wb_write(32'h80210050,        X_NUM, 4'b1111);   // width
-        wb_write(32'h80210058,        Y_NUM, 4'b1111);  // height
-        wb_write(32'h80210060,  X_NUM*Y_NUM, 4'b1111);  // size
-        wb_write(32'h80210068,           31, 4'b1111);  // awlen
-        wb_write(32'h80210020,            3, 4'b1111);  // update & enable
-    #10000;
-        wb_read (32'h80210028);  // read status
-        wb_read (32'h80210028);  // read status
-        wb_read (32'h80210028);  // read status
-        wb_read (32'h80210028);  // read status
+        wb_read (ADR_VDMAW + `REG_VDMA_WRITE_CORE_ID);
+        wb_write(ADR_VDMAW + `REG_VDMA_WRITE_PARAM_ADDR,              32'h0000000, 8'hff);
+        wb_write(ADR_VDMAW + `REG_VDMA_WRITE_PARAM_LINE_STEP,             X_NUM*3, 8'hff);
+        wb_write(ADR_VDMAW + `REG_VDMA_WRITE_PARAM_H_SIZE,                X_NUM-1, 8'hff);
+        wb_write(ADR_VDMAW + `REG_VDMA_WRITE_PARAM_V_SIZE,                Y_NUM-1, 8'hff);
+        wb_write(ADR_VDMAW + `REG_VDMA_WRITE_PARAM_FRAME_STEP,      Y_NUM*X_NUM*3, 8'hff);
+        wb_write(ADR_VDMAW + `REG_VDMA_WRITE_PARAM_F_SIZE,                    1-1, 8'hff);
+        wb_write(ADR_VDMAW + `REG_VDMA_WRITE_CTL_CONTROL,                       3, 8'hff);  // update & enable
 
-    #10000;
-        wb_write(32'h80210020, 0, 4'b1111); // stop
-        
-        // 取り込み完了を待つ
-        wb_read(32'h80210028);
-        while ( reg_wb_dat != 0 ) begin
-            #10000;
-            wb_read(32'h80210028);
-        end
-        #10000;
-        
-        
-        // サイズを不整合で書いてみる(デッドロックしない確認)
-        wb_write(32'h80210040, 32'h30000000, 4'b1111);  // address
-        wb_write(32'h80210048,        4*128, 4'b1111);  // stride
-        wb_write(32'h80210050,       256+64, 4'b1111);  // width
-        wb_write(32'h80210058,           64, 4'b1111);  // height
-        wb_write(32'h80210060,       256*64, 4'b1111);  // size
-        wb_write(32'h80210068,           31, 4'b1111);  // awlen
-        wb_write(32'h80210020,            7, 4'b1111);  // update & enable (one shot)
-    #10000;
-        
-        // 取り込み完了を待つ
-        wb_read(32'h80210028);
-        while ( reg_wb_dat != 0 ) begin
-            #10000;
-            wb_read(32'h80210028);
-        end
-    #10000;
+    #200000;
+        $display("set HLS");
+        wb_write(ADR_HLS + 32'h08, 1, 8'hff);
+
+    #1000000;
         $finish();
     end
     
