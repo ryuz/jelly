@@ -36,6 +36,7 @@
 
 int main(int argc, char *argv[])
 {
+    bool    use_dp      = false;
     double  pixel_clock = 91000000.0;
     bool    binning     = true;
     int     width       = 1280;
@@ -172,18 +173,14 @@ int main(int argc, char *argv[])
             imgBack = cv::imread(argv[i]);
             cv::resize(imgBack, imgBack, cv::Size(1280, 720));
         }
+        else if ( strcmp(argv[i], "-dp") == 0 ) {
+            use_dp = true;
+        }
         else {
             std::cout << "unknown option : " << argv[i] << std::endl;
             return 1;
         }
     }
-
-    width &= ~0xf;
-    width  = std::max(width, 16);
-    height = std::max(height, 2);
-
-
-
 
     // udmabuf
     std::cout << "\nudmabuf-jelly-vram0 open" << std::endl;
@@ -218,6 +215,7 @@ int main(int argc, char *argv[])
     auto reg_vdmaw   = uio_acc.GetAccessor(0x00320000);  // Write-DMA
     auto reg_vdmar   = uio_acc.GetAccessor(0x00340000);  // Read-DMA
     auto reg_vsgen   = uio_acc.GetAccessor(0x00360000);  // Video out sync generator
+    auto reg_hls     = uio_acc.GetAccessor(0x00400000);
 
 #if 1
     // ID確認
@@ -233,6 +231,7 @@ int main(int argc, char *argv[])
     std::cout << "vdmaw   : " << std::hex << reg_vdmaw.ReadReg(0) << std::endl;
     std::cout << "vdmar   : " << std::hex << reg_vdmar.ReadReg(0) << std::endl;
     std::cout << "vsgen   : " << std::hex << reg_vsgen.ReadReg(0) << std::endl;
+    std::cout << "hls     : " << std::hex << reg_hls.ReadReg(0) << std::endl;
 #endif
 
     // DMA
@@ -248,6 +247,7 @@ int main(int argc, char *argv[])
     }
     auto old_dp_avsel = reg_dp.ReadMem32(AV_BUF_OUTPUT_AUDIO_VIDEO_SELECT);
     auto old_dp_alpha = reg_dp.ReadMem32(V_BLEND_SET_GLOBAL_ALPHA_REG);
+
     reg_dp.WriteMem32(AV_BUF_OUTPUT_AUDIO_VIDEO_SELECT, 0x54);
     reg_dp.WriteMem32(V_BLEND_SET_GLOBAL_ALPHA_REG,     0x101);
 
@@ -262,6 +262,18 @@ int main(int argc, char *argv[])
     int h_start = dp_hstart-dp_hswidth-17;
     int v_start = dp_vstart-dp_vswidth-1;
 
+    // DP未接続時対策
+    if ( dp_hres == 0 || dp_vres == 0 ) {
+        std::cout << "Display port is not active." << std::endl;
+        dp_hres = width;
+        dp_vres = height;
+    }
+
+    width  = std::max(width, 16);
+    height = std::max(height, 2);
+    width  = std::min(dp_hres, width);   
+    height = std::min(dp_vres, height);
+    width &= ~0xf;
 
     // 背景書き込み
     if ( imgBack.empty() ) {
@@ -407,6 +419,9 @@ int main(int argc, char *argv[])
         case 'v':   flip_v = !flip_v; bayer_phase ^= 2; break;
 
         case 'd':   cv::imwrite("dump.png", img); break;
+
+        case 'x':   reg_hls.WriteReg(0x08, 1); break;
+        case 'y':   reg_hls.WriteReg(0x08, 0); break;
 
         case 'r':
             for ( int i = 0; i < 100; ++i ) {
