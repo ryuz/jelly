@@ -1,14 +1,24 @@
+# get vivado version
+empty:=
+space:= $(empty) $(empty)
+VIVADO_VERSIONS := $(subst .,$(space),$(subst v,,$(word 2,$(shell vivado -version))))
+VIVADO_VERSION  := $(word 1,$(VIVADO_VERSIONS)).$(word 2,$(VIVADO_VERSIONS))
 
 
-TOP_MODULE=tb_sim
+# setting
+TOP_MODULE = tb_sim
 
+
+# rules
 .PHONY: all
 all: clean build run
-
 
 .PHONY: build
 build:
 	make -C ../../../syn/tcl create
+ifeq ($(VIVADO_VERSION),2019.2)
+	xvlog ../../../syn/tcl/ultra96v2_imx219_hls_sample_tcl.srcs/sources_1/ip/video_filter_0/hdl/verilog/regslice_core.v
+endif
 	xvlog -f xvlog_cmd.txt -i ../../../../../include
 	xelab -debug wave $(TOP_MODULE) glbl -s $(TOP_MODULE) -L unisims_ver -L unimacro_ver -L secureip -mt off -v 1
 
