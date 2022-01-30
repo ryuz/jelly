@@ -1,6 +1,6 @@
 #include <memory>
 #include <verilated.h>
-#include <opencv2/opencv.hpp>
+//#include <opencv2/opencv.hpp>
 #include "Vtb_sim_main.h"
 #include "Vtb_sim_main__Syms.h"
 #include "Vtb_sim_main___024root.h"
@@ -9,8 +9,8 @@
 #include "jelly/simulator/ClockNode.h"
 #include "jelly/simulator/VerilatorNode.h"
 #include "jelly/simulator/WishboneMasterNode.h"
-#include "jelly/simulator/Axi4sImageLoadNode.h"
-#include "jelly/simulator/Axi4sImageDumpNode.h"
+//#include "jelly/simulator/Axi4sImageLoadNode.h"
+//#include "jelly/simulator/Axi4sImageDumpNode.h"
 #include "jelly/JellyRegs.h"
 
 
@@ -21,20 +21,6 @@ namespace jsim = jelly::simulator;
 #include <verilated_fst_c.h> 
 #include <verilated_vcd_c.h> 
 #endif
-
-
-// 画像の前処理
-cv::Mat PreProcImage(cv::Mat img, int frame_num)
-{
-    if ( img.empty() ) { return img; }
-
-    // 回転
-    auto center = cv::Point(img.cols/2, img.rows/2);
-    auto trans  = cv::getRotationMatrix2D(center, frame_num*10, 1);
-    cv::Mat img2;
-    cv::warpAffine(img, img2, trans, img.size());
-    return img2;
-}
 
 
 int main(int argc, char** argv)

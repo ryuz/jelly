@@ -31,6 +31,7 @@ all: build run
 
 .PHONY : build
 build:
+	make -C ../../../syn/tcl create
 	mkdir -p build && cd build && cmake $(CMAKE_FLAGS) ..
 	cmake --build build -j
 
@@ -38,13 +39,17 @@ build:
 clean:
 	rm -rf build
 
-.PHONY : distclean
-distclean: clean
+.PHONY : outputclean
+outputclean: clean
 	rm -f *.fst *.vcd
 	rm -f *.ppm *.pgm
 	rm -f axi*.txt
 	rm -f coverage.dat
 	rm -fr annotated
+
+.PHONY: distclean
+distclean: clean outputclean
+	make -C ../../../syn/tcl distclean
 
 
 .PHONY : run
@@ -54,4 +59,5 @@ run:
 .PHONY : coverage
 coverage:
 	verilator_coverage --annotate annotated coverage.dat
+
 
