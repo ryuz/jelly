@@ -25,18 +25,15 @@ void video_filter(
         for ( width_t x = 0; x < width; ++x ) {
             #pragma HLS pipeline II=1
 
+            if ( !(x == 0 && y == 0) ) {
+                s_axi4s >> axi4s;
+            }
+            
             if ( inverse ) {
                 axi4s.data = ~axi4s.data;
             }
+            
             m_axi4s << axi4s;
-
-//            x++;
-//            if ( axi4s.last ) {
-//                x = 0;
- //               y++;
- //           }
-
-            s_axi4s >> axi4s;
         }
     }
 }
