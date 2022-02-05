@@ -1,11 +1,18 @@
 
 
+
 #include <ap_int.h>
 #include <hls_stream.h>
 #include <ap_axi_sdata.h>
+//#include "common/xf_common.h"
+//#include "common/xf_video_mem.h"
 
-using axi4s_t = ap_axis<24, 1, 1, 1>;
-using width_t = ap_uint<16>;
+
+#define PIXEL_BITS      24
+
+
+using axi4s_t  = ap_axis<PIXEL_BITS, 1, 1, 1>;
+using width_t  = ap_uint<16>;
 using height_t = ap_uint<16>;
 
 void video_filter(

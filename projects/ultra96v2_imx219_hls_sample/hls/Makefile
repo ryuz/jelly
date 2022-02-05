@@ -3,7 +3,7 @@
 export HLS_TARGET   = video_filter
 export HLS_SOLUTION = solution_1
 export DEVICE_PART  = xczu3eg-sbva484-1-i
-export CLOCK_PERIOD = 4
+export CLOCK_PERIOD = 4.0
 
 export CSIM_OPTIONS  ?= 
 export COSIM_OPTIONS ?= -trace_level all -wave_debug
@@ -23,10 +23,11 @@ SYN_DIR       = $(TARGET_DIR)/syn
 COSIM_DIR     = $(TARGET_DIR)/sim
 IMPL_DIR      = $(TARGET_DIR)/impl
 EXPORT_ZIP    = $(IMPL_DIR)/export.zip
+XF_DIR        = ../../../../xfopencv
 
 # flags
-export SOURCE_FLAGS    = -I$(SOURCE_DIR)
-export TESTBENCH_FLAGS = -I$(SOURCE_DIR) -I$(TESTBENCH_DIR)
+export SOURCE_FLAGS    = -I$(XF_DIR)/include -I$(TOP_DIR)/include -I$(SOURCE_DIR)
+export TESTBENCH_FLAGS = -I$(XF_DIR)/include -I$(TOP_DIR)/include -I$(SOURCE_DIR) -I$(TESTBENCH_DIR)
 
 # source
 SOURCES = $(SOURCE_DIR)/video_filter.cpp
@@ -40,7 +41,7 @@ export TESTBENCHS
 .PHONY: all
 all: $(EXPORT_ZIP)
 
-$(TARGET_DIR):
+$(TARGET_DIR): Makefile
 	-rm -rf $(HLS_TARGET)
 	vitis_hls $(TOP_DIR)/scripts/hls_create_project.tcl
 

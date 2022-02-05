@@ -751,7 +751,7 @@ module ultra96v2_imx219_hls_sample
                 .X_WIDTH                    (16),
                 .Y_WIDTH                    (16),
                 .DATA_WIDTH                 (24),
-                .INIT_PARAM_INVERSE         (1'b0)
+                .INIT_PARAM_ENABLE          (1'b0)
             )
         i_video_filter_hls
             (
