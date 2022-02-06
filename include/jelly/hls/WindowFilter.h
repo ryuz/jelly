@@ -13,6 +13,7 @@
 
 #include "jelly/hls/Matrix.h"
 #include "jelly/hls/ColumnBuffer.h"
+#include "jelly/hls/Border.h"
 
 #include "common/xf_common.h"
 #include "common/xf_video_mem.h"
@@ -21,7 +22,7 @@ namespace jelly {
 
 
 // ウィンドウィング
-template<typename T, int WINDOW_ROWS, int WINDOW_COLS, int CENTER_ROW, int CENTER_COL, int MAX_ROWS=2048, int MAX_COLS=4096>
+template<typename T, int WINDOW_ROWS, int WINDOW_COLS, int CENTER_ROW, int CENTER_COL, int MAX_ROWS=2048, int MAX_COLS=4096, bool BORDER=false>
 class WindowFilter {
 
 protected:
@@ -38,24 +39,29 @@ public:
             hls::stream<T>&         in_stream,
             hls::stream<Window>&    out_stream,
             int                     rows,
-            int                     cols)
+            int                     cols,
+            BordeType               border_type=BORDER_REFLECT_101,
+            T                       border_value={0}
+        )
     {
         hls::stream<WindowRow>   stream_buf("stream_buf");
 
         #pragma HLS dataflow
-        BufferingCol(in_stream, stream_buf, rows, cols);
-        BufferingRow(stream_buf, out_stream, rows, cols);
+        BufferingCol(in_stream, stream_buf, rows, cols, border_type, border_value);
+        BufferingRow(stream_buf, out_stream, rows, cols, border_type, border_value);
     }
 
 protected:
-
 #if 0
     // 垂直バッファリング
     static void BufferingCol(
-            hls::stream<T>&             stream_in,
-            hls::stream<WindowRow>&     stream_out,
-            int                         rows,
-            int                         cols)
+            hls::stream<T>&         stream_in,
+            hls::stream<WindowRow>& stream_out,
+            int                     rows,
+            int                     cols,
+            BordeType               border_type=BORDER_REFLECT_101,
+            T                       border_value={0}
+        )
     {
         ColBuf  buf;
 
@@ -72,24 +78,43 @@ protected:
         for ( int i = 0; i < rows; ++i ) {
             for ( int j = 0; j < cols; ++j ) {
                 #pragma HLS pipeline II=1
-                T val = 0;
+                T val;
                 if ( i < (rows - DELAY_V) ) {
                     val = stream_in.read();
                 }
                 auto window = buf.ShiftUp(j, val);
+
+#if 0
+                // ボーダー処理
+                if ( BORDER ) {
+                    for ( int k = 0; k < WINDOW_ROWS; ++k ) {
+                        #pragma HLS unroll
+                        if ( Border::IsConstant(k, CENTER_ROW, i, rows, border_type) ) {
+                            window.at(k, 0) = border_value;
+                        }
+                        else {
+                            int p = Border::CalcOffset(k, CENTER_ROW, i, rows, border_type);
+                            window.at(k, 0) = window.at(p, 0);
+                           }
+                    }
+                }
+#endif
+
                 stream_out.write(window);
             }
         }
     }
-
 #else
 
     // 垂直バッファリング
     static void BufferingCol(
-            hls::stream<T>&             stream_in,
-            hls::stream<WindowRow>&     stream_out,
-            int                         rows,
-            int                         cols)
+            hls::stream<T>&         stream_in,
+            hls::stream<WindowRow>& stream_out,
+            int                     rows,
+            int                     cols,
+            BordeType               border_type=BORDER_REFLECT_101,
+            T                       border_value={0}
+        )
     {
         xf::LineBuffer<WINDOW_ROWS-1, MAX_COLS, T> linebuf;
 
@@ -115,9 +140,9 @@ protected:
                 WindowRow window;
                 for ( int i = 0; i < WINDOW_ROWS-1; ++i ) {
                     #pragma HLS unroll
-                    window.val[i][0] = linebuf.getval(i, x);
+                    window.at(i, 0) = linebuf.getval(i, x);
                 }
-                window.val[WINDOW_ROWS-1][0] = val;
+                window.at(WINDOW_ROWS-1, 0) = val;
 
                 linebuf.shift_pixels_up(x);
                 linebuf.insert_bottom_row(val, x);
@@ -127,12 +152,16 @@ protected:
     }
 #endif
 
+
     // 水平バッファリング
     static void BufferingRow(
-            hls::stream<WindowRow>&     stream_in,
-            hls::stream<Window>&        stream_out,
-            int                         rows,
-            int                         cols)
+            hls::stream<WindowRow>& stream_in,
+            hls::stream<Window>&    stream_out,
+            int                     rows,
+            int                     cols,
+            BordeType               border_type=BORDER_REFLECT_101,
+            T                       border_value={0}
+        )
     {
 
         // 全体処理
@@ -152,7 +181,30 @@ protected:
                     new_row = stream_in.read();
                 }
                 window.ShiftLeft(new_row);
-                stream_out.write(window);
+
+#if 0
+                // ボーダー処理
+                if ( BORDER ) {
+                    for ( int l = 0; l < WINDOW_COLS; ++l ) {
+                        #pragma HLS unroll
+                        if ( Border::IsConstant(l, CENTER_COL, j, cols, border_type) ) {
+                            for ( int k = 0; k < WINDOW_ROWS; ++k ) {
+                                #pragma HLS unroll
+                                window.at(k, l) = border_value;
+                            }
+                        }
+                        else {
+                            int p = Border::CalcOffset(l, CENTER_COL, j, cols, border_type);
+                            for ( int k = 0; k < WINDOW_ROWS; ++k ) {
+                                #pragma HLS unroll
+                                window.at(k, l) = window.at(k, p);
+                            }
+                        }
+                    }
+                }
+#endif
+
+                 stream_out.write(window);
             }
         }
     }

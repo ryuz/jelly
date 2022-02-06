@@ -13,6 +13,7 @@ using window_t    = VideoFilter::Window;
 
 rgb_t pixel_to_rgb(pixel_t pix)
 {
+    #pragma HLS inline
     rgb_t rgb;
     rgb.val[0] = pix.range(7, 0);
     rgb.val[1] = pix.range(15, 8);
@@ -22,6 +23,7 @@ rgb_t pixel_to_rgb(pixel_t pix)
 
 pixel_t rgb_to_pixel(rgb_t rgb)
 {
+    #pragma HLS inline
     pixel_t pix;
     pix.range( 7,  0) = rgb.val[0];
     pix.range(15,  8) = rgb.val[1];
@@ -68,23 +70,27 @@ void video_filter_out(
 
             window_t window;
             s_stream >> window;
+
             rgb_t rgb;
+#if 0
             if ( enable ) {
                 for ( int c = 0; c < 3; ++c ) {
                     #pragma HLS unroll
-                    rgb.val[c] = ((window.val[0][0].val[c]
-                                    + window.val[0][1].val[c]
-                                    + window.val[0][2].val[c]
-                                    + window.val[1][0].val[c]
-                                    + window.val[1][2].val[c]
-                                    + window.val[2][0].val[c]
-                                    + window.val[2][1].val[c]
-                                    + window.val[2][2].val[c]) >> 3);
+                    rgb.val[c] = ((window.at(0, 0).val[c]
+                                 + window.at(0, 1).val[c]
+                                 + window.at(0, 2).val[c]
+                                 + window.at(1, 0).val[c]
+                                 + window.at(1, 2).val[c]
+                                 + window.at(2, 0).val[c]
+                                 + window.at(2, 1).val[c]
+                                 + window.at(2, 2).val[c]) >> 3);
                 }
             }
             else {
-                rgb = window.val[1][1];
+                rgb = window.at(1, 1);
             }
+#endif
+            rgb = window.at(1, 1);
 
             axi4s_t axi4s;
             axi4s.data = rgb_to_pixel(rgb);
@@ -114,7 +120,7 @@ void video_filter(
     int tmp_width = width;
     int tmp_height = height;
     video_filter_in(s_axi4s, stream_in, width, height);
-    VideoFilter::Streaming(stream_in, stream_out, tmp_height, tmp_width);
+    VideoFilter::Streaming(stream_in, stream_out, tmp_height, tmp_width); //, BORDER_REFLECT_101, rgb_t());
     video_filter_out(stream_out, m_axi4s, width, height, enable);
 }
 

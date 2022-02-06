@@ -10,6 +10,8 @@
 #define __JELLY__HLS__MATRIX__H__
 
 
+#include <assert.h>
+
 namespace jelly {
 
 
@@ -17,7 +19,7 @@ template<typename T, int ROWS, int COLS>
 class Matrix {
 public:
     Matrix() {
-        #pragma HLS array_partition variable=val complete dim=0
+        #pragma HLS array_partition variable=m_val complete dim=0
     }
 
     void ShiftLeft(Matrix<T, ROWS, 1> new_row)
@@ -27,32 +29,33 @@ public:
             #pragma HLS unroll
             for ( int i = 0; i < ROWS; ++i ) {
                 #pragma HLS unroll
-                val[i][j] = val[i][j+1];
+                m_val[i][j] = m_val[i][j+1];
             }
         }
         for ( int i = 0; i < ROWS; ++i ) {
             #pragma HLS unroll
-            val[i][COLS-1] = new_row.val[i][0];
+            m_val[i][COLS-1] = new_row.at(i, 0);
         }
     }
 
     T& at(int i, int j)
     {
         #pragma HLS inline
-//        assert(i >= 0 && i < ROWS);
-//        assert(j >= 0 && j < COLS);
-        return val[i][j];
+        assert(i >= 0 && i < ROWS);
+        assert(j >= 0 && j < COLS);
+        return m_val[i][j];
     }
 
     const T& at(int i, int j) const
     {
         #pragma HLS inline
-//        assert(i >= 0 && i < ROWS);
-//        assert(j >= 0 && j < COLS);
-        return val[i][j];
+        assert(i >= 0 && i < ROWS);
+        assert(j >= 0 && j < COLS);
+        return m_val[i][j];
     }
     
-    T  val[ROWS][COLS];
+private:
+    T  m_val[ROWS][COLS];
 };
 
 

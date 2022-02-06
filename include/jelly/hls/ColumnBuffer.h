@@ -34,9 +34,9 @@ public:
         Window window;
         for ( int i = 0; i < ROWS-1; ++i ) {
             #pragma HLS unroll
-            window.val[i][0] = m_buffer[i][col];
+            window.at(i, 0) = m_buffer[i][col];
         }
-        window.val[ROWS-1][0] = new_val;
+        window.at(ROWS-1, 0) = new_val;
 
         for ( int i = 0; i < ROWS-2; ++i ) {
             #pragma HLS unroll
