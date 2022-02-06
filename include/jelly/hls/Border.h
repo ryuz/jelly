@@ -1,4 +1,9 @@
-
+// ---------------------------------------------------------------------------
+//  Jelly  -- the signal processor system
+//
+//                                 Copyright (C) 2008-2022 by Ryuz
+//                                 https://github.com/ryuz/
+// ---------------------------------------------------------------------------
 
 
 #ifndef __JELLY__HLS__BORDER__H__
@@ -55,3 +60,6 @@ public:
 }
 
 #endif // __JELLY__HLS__BORDER__H__
+
+
+// end of file

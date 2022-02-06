@@ -15,8 +15,6 @@
 #include "jelly/hls/ColumnBuffer.h"
 #include "jelly/hls/Border.h"
 
-//#include "common/xf_common.h"
-//#include "common/xf_video_mem.h"
 
 namespace jelly {
 
@@ -52,7 +50,6 @@ public:
     }
 
 protected:
-#if 1
     // 垂直バッファリング
     static void BufferingCol(
             hls::stream<T>&         stream_in,
@@ -102,55 +99,6 @@ protected:
             }
         }
     }
-
-#else
-
-    // 垂直バッファリング
-    static void BufferingCol(
-            hls::stream<T>&         stream_in,
-            hls::stream<WindowRow>& stream_out,
-            int                     rows,
-            int                     cols,
-            BordeType               border_type=BORDER_REFLECT_101,
-            T                       border_value=0
-        )
-    {
-        xf::LineBuffer<WINDOW_ROWS-1, MAX_COLS, T> linebuf;
-
-        // 先に先行ライン分貯める
-        for ( int i = 0; i < DELAY_V; ++i ) {
-            for ( int x = 0; x < cols; ++x ) {
-                #pragma HLS pipeline II=1
-                T val = stream_in.read();
-                linebuf.shift_pixels_up(x);
-                linebuf.insert_bottom_row(val, x);
-            }
-        }
-
-        // ライン処理
-        for ( int y = 0; y < rows; ++y ) {
-            for ( int x = 0; x < cols; ++x ) {
-                #pragma HLS pipeline II=1
-                T val;
-                if ( y < (rows - DELAY_V) ) {
-                    val = stream_in.read();
-                }
-
-                WindowRow window;
-                for ( int i = 0; i < WINDOW_ROWS-1; ++i ) {
-                    #pragma HLS unroll
-                    window.val[i][0] = linebuf.getval(i, x);
-                }
-                window.val[WINDOW_ROWS-1][0] = val;
-
-                linebuf.shift_pixels_up(x);
-                linebuf.insert_bottom_row(val, x);
-                stream_out << window;
-            }
-        }
-    }
-#endif
-
 
     // 水平バッファリング
     static void BufferingRow(
