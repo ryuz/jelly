@@ -12,6 +12,9 @@ export COSIM_OPTIONS ?= -trace_level all -wave_debug
 # Ubuntu の場合下記が必要？
 # export LIBRARY_PATH=/usr/lib/x86_64-linux-gnu
 
+# tools
+#HLS_TOOL = vitis_hls
+HLS_TOOL = vivado_hls
 
 # directories
 TOP_DIR       = ../../..
@@ -28,8 +31,8 @@ XF_DIR        = ../../../../xfopencv
 # flags
 #export SOURCE_FLAGS    = -std=c++11 -I$(XF_DIR)/include -I$(TOP_DIR)/include -I$(SOURCE_DIR)
 #export TESTBENCH_FLAGS = -std=c++11 -I$(XF_DIR)/include -I$(TOP_DIR)/include -I$(SOURCE_DIR) -I$(TESTBENCH_DIR)
-export SOURCE_FLAGS    = -I$(TOP_DIR)/include -I$(SOURCE_DIR)
-export TESTBENCH_FLAGS = -I$(TOP_DIR)/include -I$(SOURCE_DIR) -I$(TESTBENCH_DIR)
+export SOURCE_FLAGS    = -std=c++11 -I$(TOP_DIR)/include -I$(SOURCE_DIR)
+export TESTBENCH_FLAGS = -std=c++11 -I$(TOP_DIR)/include -I$(SOURCE_DIR) -I$(TESTBENCH_DIR)
 
 # source
 SOURCES = $(SOURCE_DIR)/video_filter.cpp
@@ -45,10 +48,10 @@ all: $(EXPORT_ZIP)
 
 $(TARGET_DIR): Makefile
 	-rm -rf $(HLS_TARGET)
-	vitis_hls $(TOP_DIR)/scripts/hls_create_project.tcl
+	$(HLS_TOOL) $(TOP_DIR)/scripts/hls_create_project.tcl
 
 $(EXPORT_ZIP): $(TARGET_DIR) $(SOURCES)
-	vitis_hls $(TOP_DIR)/scripts/hls_csynth.tcl
+	$(HLS_TOOL) $(TOP_DIR)/scripts/hls_csynth.tcl
 
 .PHONY: clean
 clean:
@@ -64,8 +67,8 @@ csynth: $(EXPORT_ZIP)
 
 .PHONY: csim
 csim: $(TARGET_DIR)
-	vitis_hls $(TOP_DIR)/scripts/hls_csim.tcl
+	$(HLS_TOOL) $(TOP_DIR)/scripts/hls_csim.tcl
 
 .PHONY: cosim
 cosim: $(TARGET_DIR) $(EXPORT_ZIP)
-	vitis_hls $(TOP_DIR)/scripts/hls_cosim.tcl
+	$(HLS_TOOL) $(TOP_DIR)/scripts/hls_cosim.tcl

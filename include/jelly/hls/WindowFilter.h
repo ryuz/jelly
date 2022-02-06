@@ -174,7 +174,7 @@ protected:
             for ( int j = 0; j < DELAY_H; ++j ) {
                 #pragma HLS pipeline II=1
                 new_row = stream_in.read();
-//              window.ShiftLeft(new_row);
+                window.ShiftLeft(new_row);
             }
 
             for ( int j = 0; j < cols; ++j ) {
@@ -182,8 +182,8 @@ protected:
                 if ( j < (cols - DELAY_H) ) {
                     new_row = stream_in.read();
                 }
-//              window.ShiftLeft(new_row);
-                window.val[CENTER_ROW][CENTER_COL] = new_row.val[CENTER_ROW][0];
+                window.ShiftLeft(new_row);
+//              window.val[CENTER_ROW][CENTER_COL] = new_row.val[CENTER_ROW][0];
 
 #if 0
                 // ボーダー処理

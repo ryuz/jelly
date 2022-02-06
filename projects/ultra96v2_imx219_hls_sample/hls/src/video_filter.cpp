@@ -4,16 +4,14 @@
 #include "video_filter.h"
 
 
-//struct rgb_t {
-//    ap_uint<8>  val[3];
-//};
-
-//using rgb_t = ap_uint<24>;
-
 using VideoFilter = jelly::WindowFilter<pixel_t, 3, 3, 1, 1, 2048, 4096>;
 using window_t    = VideoFilter::Window;
 
-/*
+
+struct rgb_t {
+    ap_uint<8>  val[3];
+};
+
 rgb_t pixel_to_rgb(pixel_t pix)
 {
     #pragma HLS inline
@@ -33,7 +31,7 @@ pixel_t rgb_to_pixel(rgb_t rgb)
     pix.range(23, 16) = rgb.val[2];
     return pix;
 }
-*/
+
 
 void video_filter_in(
         hls::stream<axi4s_t>&   s_axi4s,
@@ -54,7 +52,7 @@ void video_filter_in(
             if ( !(x == 0 && y == 0) ) {
                 s_axi4s >> axi4s;
             }
-            m_stream << axi4s.data; // pixel_to_rgb(axi4s.data);
+            m_stream << axi4s.data;
         }
     }
 }
@@ -74,29 +72,26 @@ void video_filter_out(
             window_t window;
             s_stream >> window;
 
-//            rgb_t rgb;
-#if 0
+            pixel_t pix;
             if ( enable ) {
                 for ( int c = 0; c < 3; ++c ) {
                     #pragma HLS unroll
-                    rgb.val[c] = ((window.at(0, 0).val[c]
-                                 + window.at(0, 1).val[c]
-                                 + window.at(0, 2).val[c]
-                                 + window.at(1, 0).val[c]
-                                 + window.at(1, 2).val[c]
-                                 + window.at(2, 0).val[c]
-                                 + window.at(2, 1).val[c]
-                                 + window.at(2, 2).val[c]) >> 3);
+                    pix.range(8*c+7, 8*c) = (((int)window.val[0][0].range(8*c+7, 8*c)
+                                            + (int)window.val[0][1].range(8*c+7, 8*c)
+                                            + (int)window.val[0][2].range(8*c+7, 8*c)
+                                            + (int)window.val[1][0].range(8*c+7, 8*c)
+                                            + (int)window.val[1][2].range(8*c+7, 8*c)
+                                            + (int)window.val[2][0].range(8*c+7, 8*c)
+                                            + (int)window.val[2][1].range(8*c+7, 8*c)
+                                            + (int)window.val[2][2].range(8*c+7, 8*c)) >> 3);
                 }
             }
             else {
-                rgb = window.at(1, 1);
+                pix = window.val[1][1];
             }
-#endif
-            pixel_t pix = window.val[1][1];
 
             axi4s_t axi4s;
-            axi4s.data = pix; // rgb_to_pixel(rgb);
+            axi4s.data = pix;
             axi4s.user = (x == 0 && y == 0);
             axi4s.last = (x == (width-1));
             m_axi4s << axi4s;
