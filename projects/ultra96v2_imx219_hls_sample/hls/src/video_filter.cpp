@@ -76,20 +76,26 @@ void video_filter_out(
             if ( enable ) {
                 for ( int c = 0; c < 3; ++c ) {
                     #pragma HLS unroll
-                    pix.range(8*c+7, 8*c) = (((int)window.val[0][0].range(8*c+7, 8*c)
-                                            + (int)window.val[0][1].range(8*c+7, 8*c)
-                                            + (int)window.val[0][2].range(8*c+7, 8*c)
-                                            + (int)window.val[1][0].range(8*c+7, 8*c)
-                                            + (int)window.val[1][2].range(8*c+7, 8*c)
-                                            + (int)window.val[2][0].range(8*c+7, 8*c)
-                                            + (int)window.val[2][1].range(8*c+7, 8*c)
-                                            + (int)window.val[2][2].range(8*c+7, 8*c)) >> 3);
+                    // Laplacian Filter
+                    int val =   (int)window.val[0][0].range(8*c+7, 8*c)
+                              + (int)window.val[0][1].range(8*c+7, 8*c)
+                              + (int)window.val[0][2].range(8*c+7, 8*c)
+                              + (int)window.val[1][0].range(8*c+7, 8*c)
+                              + (int)window.val[1][2].range(8*c+7, 8*c)
+                              + (int)window.val[2][0].range(8*c+7, 8*c)
+                              + (int)window.val[2][1].range(8*c+7, 8*c)
+                              + (int)window.val[2][2].range(8*c+7, 8*c)
+                              - ((int)window.val[1][1].range(8*c+7, 8*c) << 3);
+                    if ( val <   0 ) { val = 0; }
+                    if ( val > 255 ) { val = 255; }
+                    pix.range(8*c+7, 8*c) = val;
                 }
             }
             else {
+                // bypass
                 pix = window.val[1][1];
             }
-
+            
             axi4s_t axi4s;
             axi4s.data = pix;
             axi4s.user = (x == 0 && y == 0);

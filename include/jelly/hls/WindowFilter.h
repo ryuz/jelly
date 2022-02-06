@@ -22,7 +22,7 @@ namespace jelly {
 
 
 // ウィンドウィング
-template<typename T, int WINDOW_ROWS, int WINDOW_COLS, int CENTER_ROW, int CENTER_COL, int MAX_ROWS=2048, int MAX_COLS=4096, bool BORDER=false>
+template<typename T, int WINDOW_ROWS, int WINDOW_COLS, int CENTER_ROW, int CENTER_COL, int MAX_ROWS=2048, int MAX_COLS=4096, bool BORDER=true>
 class WindowFilter {
 
 protected:
@@ -84,21 +84,19 @@ protected:
                 }
                 auto window = buf.ShiftUp(j, val);
 
-#if 0
                 // ボーダー処理
                 if ( BORDER ) {
                     for ( int k = 0; k < WINDOW_ROWS; ++k ) {
                         #pragma HLS unroll
                         if ( Border::IsConstant(k, CENTER_ROW, i, rows, border_type) ) {
-                            window.at(k, 0) = border_value;
+                            window.val[k][0] = border_value;
                         }
                         else {
                             int p = Border::CalcOffset(k, CENTER_ROW, i, rows, border_type);
-                            window.at(k, 0) = window.at(p, 0);
+                            window.val[k][0] = window.val[p][0];
                            }
                     }
                 }
-#endif
 
                 stream_out.write(window);
             }
@@ -179,13 +177,12 @@ protected:
 
             for ( int j = 0; j < cols; ++j ) {
                 #pragma HLS pipeline II=1
+                
                 if ( j < (cols - DELAY_H) ) {
                     new_row = stream_in.read();
                 }
                 window.ShiftLeft(new_row);
-//              window.val[CENTER_ROW][CENTER_COL] = new_row.val[CENTER_ROW][0];
 
-#if 0
                 // ボーダー処理
                 if ( BORDER ) {
                     for ( int l = 0; l < WINDOW_COLS; ++l ) {
@@ -193,21 +190,20 @@ protected:
                         if ( Border::IsConstant(l, CENTER_COL, j, cols, border_type) ) {
                             for ( int k = 0; k < WINDOW_ROWS; ++k ) {
                                 #pragma HLS unroll
-                                window.at(k, l) = border_value;
+                                window.val[k][l] = border_value;
                             }
                         }
                         else {
                             int p = Border::CalcOffset(l, CENTER_COL, j, cols, border_type);
                             for ( int k = 0; k < WINDOW_ROWS; ++k ) {
                                 #pragma HLS unroll
-                                window.at(k, l) = window.at(k, p);
+                                window.val[k][l] = window.val[k][p];
                             }
                         }
                     }
                 }
-#endif
 
-                 stream_out.write(window);
+                stream_out.write(window);
             }
         }
     }

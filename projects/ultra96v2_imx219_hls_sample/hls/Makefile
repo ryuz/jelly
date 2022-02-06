@@ -13,8 +13,8 @@ export COSIM_OPTIONS ?= -trace_level all -wave_debug
 # export LIBRARY_PATH=/usr/lib/x86_64-linux-gnu
 
 # tools
-#HLS_TOOL = vitis_hls
-HLS_TOOL = vivado_hls
+HLS_TOOL = vitis_hls
+#HLS_TOOL = vivado_hls
 
 # directories
 TOP_DIR       = ../../..
@@ -31,8 +31,8 @@ XF_DIR        = ../../../../xfopencv
 # flags
 #export SOURCE_FLAGS    = -std=c++11 -I$(XF_DIR)/include -I$(TOP_DIR)/include -I$(SOURCE_DIR)
 #export TESTBENCH_FLAGS = -std=c++11 -I$(XF_DIR)/include -I$(TOP_DIR)/include -I$(SOURCE_DIR) -I$(TESTBENCH_DIR)
-export SOURCE_FLAGS    = -std=c++11 -I$(TOP_DIR)/include -I$(SOURCE_DIR)
-export TESTBENCH_FLAGS = -std=c++11 -I$(TOP_DIR)/include -I$(SOURCE_DIR) -I$(TESTBENCH_DIR)
+export SOURCE_FLAGS    = -std=c++14 -I$(TOP_DIR)/include -I$(SOURCE_DIR)
+export TESTBENCH_FLAGS = -std=c++14 -I$(TOP_DIR)/include -I$(SOURCE_DIR) -I$(TESTBENCH_DIR)
 
 # source
 SOURCES = $(SOURCE_DIR)/video_filter.cpp
@@ -56,7 +56,7 @@ $(EXPORT_ZIP): $(TARGET_DIR) $(SOURCES)
 .PHONY: clean
 clean:
 	-rm -rf $(HLS_TARGET)
-	-rm *.log
+	-rm -f *.log
 
 
 .PHONY: create

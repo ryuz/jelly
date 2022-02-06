@@ -128,8 +128,8 @@ module video_filter_hls
                 .m_axi4s_TID        (),
                 .m_axi4s_TDEST      (),
                 
-                .width_V            (param_width),
-                .height_V           (param_height),
+                .width              (param_width),
+                .height             (param_height),
                 .enable             (reg_param_enable)
             );
 

@@ -10,7 +10,7 @@
 
 #define PIXEL_BITS      24
 
-using pixel_t  = ap_uint<PIXEL_BITS>;
+using pixel_t  = ap_int<PIXEL_BITS>;
 using axi4s_t  = ap_axis<PIXEL_BITS, 1, 1, 1>;
 using width_t  = ap_uint<16>;
 using height_t = ap_uint<16>;
