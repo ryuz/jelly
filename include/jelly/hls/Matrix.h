@@ -20,7 +20,9 @@ public:
         #pragma HLS array_partition variable=val complete dim=0
     }
 
-    void ShiftLeft(Matrix<T, ROWS, 1> new_row) {
+    void ShiftLeft(Matrix<T, ROWS, 1> new_row)
+    {
+        #pragma HLS inline
         for ( int j = 0; j < COLS-1; ++j ) {
             #pragma HLS unroll
             for ( int i = 0; i < ROWS; ++i ) {
@@ -34,8 +36,21 @@ public:
         }
     }
 
-    T& at(int i, int j) { return val[i][j]; }
-    const T& at(int i, int j) const { return val[i][j]; }
+    T& at(int i, int j)
+    {
+        #pragma HLS inline
+//        assert(i >= 0 && i < ROWS);
+//        assert(j >= 0 && j < COLS);
+        return val[i][j];
+    }
+
+    const T& at(int i, int j) const
+    {
+        #pragma HLS inline
+//        assert(i >= 0 && i < ROWS);
+//        assert(j >= 0 && j < COLS);
+        return val[i][j];
+    }
     
     T  val[ROWS][COLS];
 };
