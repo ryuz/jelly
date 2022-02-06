@@ -292,7 +292,7 @@ module image_processing
                 .WB_ADR_WIDTH           (6),
                 .WB_DAT_WIDTH           (WB_DAT_WIDTH),
                 
-                .INIT_PARAM_MATRIX00    (2 << 16),
+                .INIT_PARAM_MATRIX00    (1 << 16),
                 .INIT_PARAM_MATRIX01    (0),
                 .INIT_PARAM_MATRIX02    (0),
                 .INIT_PARAM_MATRIX03    (0),
@@ -302,7 +302,7 @@ module image_processing
                 .INIT_PARAM_MATRIX13    (0),
                 .INIT_PARAM_MATRIX20    (0),
                 .INIT_PARAM_MATRIX21    (0),
-                .INIT_PARAM_MATRIX22    (2 << 16),
+                .INIT_PARAM_MATRIX22    (1 << 16),
                 .INIT_PARAM_MATRIX23    (0),
                 .INIT_PARAM_CLIP_MIN0   ({S_DATA_WIDTH{1'b0}}),
                 .INIT_PARAM_CLIP_MAX0   ({S_DATA_WIDTH{1'b1}}),

@@ -26,8 +26,8 @@ EXPORT_ZIP    = $(IMPL_DIR)/export.zip
 XF_DIR        = ../../../../xfopencv
 
 # flags
-export SOURCE_FLAGS    = -I$(XF_DIR)/include -I$(TOP_DIR)/include -I$(SOURCE_DIR)
-export TESTBENCH_FLAGS = -I$(XF_DIR)/include -I$(TOP_DIR)/include -I$(SOURCE_DIR) -I$(TESTBENCH_DIR)
+export SOURCE_FLAGS    = -std=c++11 -I$(XF_DIR)/include -I$(TOP_DIR)/include -I$(SOURCE_DIR)
+export TESTBENCH_FLAGS = -std=c++11 -I$(XF_DIR)/include -I$(TOP_DIR)/include -I$(SOURCE_DIR) -I$(TESTBENCH_DIR)
 
 # source
 SOURCES = $(SOURCE_DIR)/video_filter.cpp
