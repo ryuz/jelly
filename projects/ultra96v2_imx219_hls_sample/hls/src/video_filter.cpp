@@ -4,13 +4,16 @@
 #include "video_filter.h"
 
 
-struct rgb_t {
-    ap_uint<8>  val[3];
-};
+//struct rgb_t {
+//    ap_uint<8>  val[3];
+//};
 
-using VideoFilter = jelly::WindowFilter<rgb_t, 3, 3, 1, 1, 2048, 4096>;
+//using rgb_t = ap_uint<24>;
+
+using VideoFilter = jelly::WindowFilter<pixel_t, 3, 3, 1, 1, 2048, 4096>;
 using window_t    = VideoFilter::Window;
 
+/*
 rgb_t pixel_to_rgb(pixel_t pix)
 {
     #pragma HLS inline
@@ -30,11 +33,11 @@ pixel_t rgb_to_pixel(rgb_t rgb)
     pix.range(23, 16) = rgb.val[2];
     return pix;
 }
-
+*/
 
 void video_filter_in(
         hls::stream<axi4s_t>&   s_axi4s,
-        hls::stream<rgb_t>&     m_stream,
+        hls::stream<pixel_t>&   m_stream,
         width_t                 width,
         height_t                height)
 {
@@ -51,7 +54,7 @@ void video_filter_in(
             if ( !(x == 0 && y == 0) ) {
                 s_axi4s >> axi4s;
             }
-            m_stream << pixel_to_rgb(axi4s.data);
+            m_stream << axi4s.data; // pixel_to_rgb(axi4s.data);
         }
     }
 }
@@ -71,7 +74,7 @@ void video_filter_out(
             window_t window;
             s_stream >> window;
 
-            rgb_t rgb;
+//            rgb_t rgb;
 #if 0
             if ( enable ) {
                 for ( int c = 0; c < 3; ++c ) {
@@ -90,10 +93,10 @@ void video_filter_out(
                 rgb = window.at(1, 1);
             }
 #endif
-            rgb = window.at(1, 1);
+            pixel_t pix = window.val[1][1];
 
             axi4s_t axi4s;
-            axi4s.data = rgb_to_pixel(rgb);
+            axi4s.data = pix; // rgb_to_pixel(rgb);
             axi4s.user = (x == 0 && y == 0);
             axi4s.last = (x == (width-1));
             m_axi4s << axi4s;
@@ -113,8 +116,8 @@ void video_filter(
     #pragma HLS INTERFACE axis port=s_axi4s
     #pragma HLS INTERFACE axis port=m_axi4s
 
-    static hls::stream< rgb_t >     stream_in("stream_in");
-    static hls::stream< window_t >  stream_out("stream_out");
+    static hls::stream<pixel_t>     stream_in("stream_in");
+    static hls::stream<window_t>    stream_out("stream_out");
 
     #pragma HLS dataflow
     int tmp_width = width;

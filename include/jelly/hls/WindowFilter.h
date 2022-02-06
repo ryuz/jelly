@@ -15,8 +15,8 @@
 #include "jelly/hls/ColumnBuffer.h"
 #include "jelly/hls/Border.h"
 
-#include "common/xf_common.h"
-#include "common/xf_video_mem.h"
+//#include "common/xf_common.h"
+//#include "common/xf_video_mem.h"
 
 namespace jelly {
 
@@ -41,7 +41,7 @@ public:
             int                     rows,
             int                     cols,
             BordeType               border_type=BORDER_REFLECT_101,
-            T                       border_value={0}
+            T                       border_value=0
         )
     {
         hls::stream<WindowRow>   stream_buf("stream_buf");
@@ -52,7 +52,7 @@ public:
     }
 
 protected:
-#if 0
+#if 1
     // 垂直バッファリング
     static void BufferingCol(
             hls::stream<T>&         stream_in,
@@ -60,7 +60,7 @@ protected:
             int                     rows,
             int                     cols,
             BordeType               border_type=BORDER_REFLECT_101,
-            T                       border_value={0}
+            T                       border_value=0
         )
     {
         ColBuf  buf;
@@ -104,6 +104,7 @@ protected:
             }
         }
     }
+
 #else
 
     // 垂直バッファリング
@@ -113,7 +114,7 @@ protected:
             int                     rows,
             int                     cols,
             BordeType               border_type=BORDER_REFLECT_101,
-            T                       border_value={0}
+            T                       border_value=0
         )
     {
         xf::LineBuffer<WINDOW_ROWS-1, MAX_COLS, T> linebuf;
@@ -140,9 +141,9 @@ protected:
                 WindowRow window;
                 for ( int i = 0; i < WINDOW_ROWS-1; ++i ) {
                     #pragma HLS unroll
-                    window.at(i, 0) = linebuf.getval(i, x);
+                    window.val[i][0] = linebuf.getval(i, x);
                 }
-                window.at(WINDOW_ROWS-1, 0) = val;
+                window.val[WINDOW_ROWS-1][0] = val;
 
                 linebuf.shift_pixels_up(x);
                 linebuf.insert_bottom_row(val, x);
@@ -160,27 +161,29 @@ protected:
             int                     rows,
             int                     cols,
             BordeType               border_type=BORDER_REFLECT_101,
-            T                       border_value={0}
+            T                       border_value=0
         )
     {
 
         // 全体処理
         for ( int i = 0; i < rows; ++i ) {
-            Window  window;
+            Window      window;
+            WindowRow   new_row;
 
             // 先に先行する列の分貯める
             for ( int j = 0; j < DELAY_H; ++j ) {
                 #pragma HLS pipeline II=1
-                window.ShiftLeft(stream_in.read());
+                new_row = stream_in.read();
+//              window.ShiftLeft(new_row);
             }
 
             for ( int j = 0; j < cols; ++j ) {
                 #pragma HLS pipeline II=1
-                WindowRow new_row;
                 if ( j < (cols - DELAY_H) ) {
                     new_row = stream_in.read();
                 }
-                window.ShiftLeft(new_row);
+//              window.ShiftLeft(new_row);
+                window.val[CENTER_ROW][CENTER_COL] = new_row.val[CENTER_ROW][0];
 
 #if 0
                 // ボーダー処理
