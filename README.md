@@ -71,7 +71,16 @@ FPGAで作成したRealTime-OSアクセラレータです。
     - [Ultra96V2 で DisplayPortを試すサンプル](projects/ultra96v2_display_port/README.md)
 - projects/ultra96v2_imx219_display_port
     - [Ultra96V2 で カメラ画像(IMX219) をDisplayPortから表示](projects/ultra96v2_imx219_display_port/README.md)
-
+- projects/ultra96v2_imx219_display_port
+    - [Ultra96V2 で カメラ画像(IMX219) をDisplayPortから表示](projects/ultra96v2_imx219_display_port/README.md)
+- projects/projects/ultra96v2_rpu/zynqmp_rpu_rust
+    - [Ultra96V2 で ZynqMP の rpu を Rust で試すサンプル](projects/ultra96v2_rpu/zynqmp_rpu_rust/README.md)
+- projects/ultra96v2_rtos
+    - [Ultra96V2 で FPGA化した リアルタイムOS を試すサンプル](projects/ultra96v2_rtos/README.md)
+- projects/ultra96v2_hls_test
+    - [コマンドラインだけでHLSで書いたIPをVivadoに取り込んで合成するサンプル](projects/ultra96v2_hls_test/README.md)
+- projects/ultra96v2_imx219_hls_sample
+    - [HLSでカメラ画像を処理してみるサンプル](projects/ultra96v2_imx219_hls_sample/README.md)
 
 ## ライセンス
 

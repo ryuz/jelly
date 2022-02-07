@@ -15,7 +15,7 @@ module video_filter_hls
             parameter   Y_WIDTH            = 16,
             parameter   DATA_WIDTH         = 24,
 
-            parameter   INIT_PARAM_INVERSE = 0
+            parameter   INIT_PARAM_ENABLE  = 0
         )
         (
             input   wire                            aresetn,
@@ -54,12 +54,12 @@ module video_filter_hls
     // -------------------------------------
     
     // register address offset
-    localparam  ADR_CORE_ID       = 8'h00;
-    localparam  ADR_CORE_VERSION  = 8'h01;
-    localparam  ADR_PARAM_INVERSE = 8'h08;
+    localparam  ADR_CORE_ID       = 'h00;
+    localparam  ADR_CORE_VERSION  = 'h01;
+    localparam  ADR_PARAM_ENABLE  = 'h08;
     
     // registers
-    reg     [0:0]                   reg_param_inverse;
+    reg     [0:0]                   reg_param_enable;
     
     // write mask
     function [WB_DAT_WIDTH-1:0] write_mask(
@@ -78,21 +78,21 @@ module video_filter_hls
     // registers control
     always @(posedge s_wb_clk_i) begin
         if ( s_wb_rst_i ) begin
-            reg_param_inverse <= INIT_PARAM_INVERSE;
+            reg_param_enable <= INIT_PARAM_ENABLE;
         end
         else begin
             if ( s_wb_stb_i && s_wb_we_i ) begin
                 case ( s_wb_adr_i )
-                ADR_PARAM_INVERSE: reg_param_inverse <= 1'(write_mask(WB_DAT_WIDTH'(reg_param_inverse), s_wb_dat_i, s_wb_sel_i));
+                ADR_PARAM_ENABLE: reg_param_enable <= 1'(write_mask(WB_DAT_WIDTH'(reg_param_enable), s_wb_dat_i, s_wb_sel_i));
                 endcase
             end
         end
     end
     
     // read
-    assign s_wb_dat_o = (s_wb_adr_i == ADR_CORE_ID)        ? WB_DAT_WIDTH'(32'hffff_fff1    ) :
-                        (s_wb_adr_i == ADR_CORE_VERSION)   ? WB_DAT_WIDTH'(32'h0001_0000    ) :
-                        (s_wb_adr_i == ADR_PARAM_INVERSE)  ? WB_DAT_WIDTH'(reg_param_inverse) :
+    assign s_wb_dat_o = (int'(s_wb_adr_i) == ADR_CORE_ID)      ? WB_DAT_WIDTH'(32'hffff_fff1   ) :
+                        (int'(s_wb_adr_i) == ADR_CORE_VERSION) ? WB_DAT_WIDTH'(32'h0001_0000   ) :
+                        (int'(s_wb_adr_i) == ADR_PARAM_ENABLE) ? WB_DAT_WIDTH'(reg_param_enable) :
                         {WB_DAT_WIDTH{1'b0}};
     assign s_wb_ack_o = s_wb_stb_i;
     
@@ -130,7 +130,7 @@ module video_filter_hls
                 
                 .width              (param_width),
                 .height             (param_height),
-                .inverse            (reg_param_inverse)
+                .enable             (reg_param_enable)
             );
 
 endmodule

@@ -16,11 +16,15 @@ all: clean build run
 .PHONY: build
 build:
 	make -C ../../../syn/tcl create
+	xvlog -f xvlog_cmd.txt -i ../../../../../include
 ifeq ($(VIVADO_VERSION),2019.2)
 	xvlog ../../../syn/tcl/ultra96v2_imx219_hls_sample_tcl.srcs/sources_1/ip/video_filter_0/hdl/verilog/regslice_core.v
 endif
-	xvlog -f xvlog_cmd.txt -i ../../../../../include
-	xelab -debug wave $(TOP_MODULE) glbl -s $(TOP_MODULE) -L unisims_ver -L unimacro_ver -L secureip -mt off -v 1
+ifeq ($(VIVADO_VERSION),2021.2)
+	xvlog ../../../syn/tcl/ultra96v2_imx219_hls_sample_tcl.gen/sources_1/ip/video_filter_0/hdl/verilog/video_filter_hls_deadlock_detection_unit.v
+endif
+	xelab -debug wave $(TOP_MODULE) glbl -s $(TOP_MODULE) -L unisims_ver -L unimacro_ver -L secureip
+#	xelab -debug wave $(TOP_MODULE) glbl -s $(TOP_MODULE) -L unisims_ver -L unimacro_ver -L secureip -mt off -v 1
 
 .PHONY: run
 run:

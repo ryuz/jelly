@@ -23,7 +23,11 @@ module jelly2_ram_accumulator
             parameter   logic   [DATA_WIDTH-1:0]    FILLMEM_DATA = 0,
             parameter   bit                         READMEMB     = 0,
             parameter   bit                         READMEMH     = 0,
-            parameter                               READMEM_FIlE = ""
+            parameter                               READMEM_FIlE = "",
+
+            parameter   int                         RAM_ADDR_WIDTH  = RAM_TYPE == "ultra" ? (ADDR_WIDTH > 12 ? 12 : ADDR_WIDTH)
+                                                                                          : (ADDR_WIDTH > 9 ? 9 : ADDR_WIDTH), 
+            parameter   int                         RAM_MEM_SIZE    = (1 << RAM_ADDR_WIDTH)
         )
         (
             // system
@@ -146,31 +150,33 @@ module jelly2_ram_accumulator
 
     jelly2_ram_with_autoclear
             #(
-                    .ADDR_WIDTH         (ADDR_WIDTH),
-                    .DATA_WIDTH         (DATA_WIDTH),
-                    .MEM_SIZE           (MEM_SIZE),
-                    .RAM_TYPE           (RAM_TYPE),
-                    .DOUT_REGS0         (0),
-                    .DOUT_REGS1         (0),
-                    .FILLMEM            (FILLMEM),
-                    .FILLMEM_DATA       (FILLMEM_DATA),
-                    .READMEMB           (READMEMB),
-                    .READMEMH           (READMEMH),
-                    .READMEM_FIlE       (READMEM_FIlE)
+                .ADDR_WIDTH         (ADDR_WIDTH),
+                .DATA_WIDTH         (DATA_WIDTH),
+                .MEM_SIZE           (MEM_SIZE),
+                .RAM_TYPE           (RAM_TYPE),
+                .DOUT_REGS0         (0),
+                .DOUT_REGS1         (0),
+                .FILLMEM            (FILLMEM),
+                .FILLMEM_DATA       (FILLMEM_DATA),
+                .READMEMB           (READMEMB),
+                .READMEMH           (READMEMH),
+                .READMEM_FIlE       (READMEM_FIlE),
+                .RAM_ADDR_WIDTH     (RAM_ADDR_WIDTH),
+                .RAM_MEM_SIZE       (RAM_MEM_SIZE)
             )
         i_ram_with_autoclear
             (
-                    .reset              (ram_reset),
-                    .clk                (ram_clk),
-                    .clear_din          (ram_clear_din),
-                    .clear_start        (ram_clear_start),
-                    .clear_busy         (ram_clear_busy),
-                    .en                 (ram_en),
-                    .regcke             (ram_regcke),
-                    .we                 (ram_we),
-                    .addr               (ram_addr),
-                    .din                (ram_din),
-                    .dout               (ram_dout)
+                .reset              (ram_reset),
+                .clk                (ram_clk),
+                .clear_din          (ram_clear_din),
+                .clear_start        (ram_clear_start),
+                .clear_busy         (ram_clear_busy),
+                .en                 (ram_en),
+                .regcke             (ram_regcke),
+                .we                 (ram_we),
+                .addr               (ram_addr),
+                .din                (ram_din),
+                .dout               (ram_dout)
             );
 
     assign ram_reset       [0] = reset;
