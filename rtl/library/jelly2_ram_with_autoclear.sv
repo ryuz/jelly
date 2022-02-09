@@ -30,7 +30,7 @@ module jelly2_ram_with_autoclear
             parameter   int                         RAM_ADDR_WIDTH  = RAM_TYPE == "ultra" ? (ADDR_WIDTH > 12 ? 12 : ADDR_WIDTH)
                                                                                           : (ADDR_WIDTH > 9 ? 9 : ADDR_WIDTH), 
             parameter   int                         RAM_MEM_SIZE    = (1 << RAM_ADDR_WIDTH),
-            parameter   int                         RAM_BANK_WIDTH  = ADDR_WIDTH - RAM_ADDR_WIDTH,
+            parameter   int                         RAM_BANK_WIDTH  = ADDR_WIDTH > RAM_ADDR_WIDTH ? ADDR_WIDTH - RAM_ADDR_WIDTH : 1,
             parameter   int                         RAM_BANK_NUM    = (MEM_SIZE + RAM_MEM_SIZE - 1) / RAM_MEM_SIZE
         )
         (
