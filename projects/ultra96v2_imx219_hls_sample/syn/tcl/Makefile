@@ -22,6 +22,7 @@ HLS_EXPORT_FILE = $(HLS_DIR)/video_filter/solution_1/impl/export.zip
 # HLS IP
 HLS_IP = video_filter,video_filter_0
 export HLS_IP
+export HLS_DIR
 
 # sources
 SOURCES   = $(PRJ_DIR)/rtl/ultra96v2_imx219_hls_sample.sv
