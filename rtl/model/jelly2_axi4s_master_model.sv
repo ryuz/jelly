@@ -183,9 +183,9 @@ module jelly2_axi4s_master_model
     assign m_axi4s_tuser  = !m_axi4s_tvalid ? 'x : (x == 0) && (y == 0);
     assign m_axi4s_tlast  = !m_axi4s_tvalid ? 'x : (x == X_NUM-1);
     assign m_axi4s_tdata  = !m_axi4s_tvalid ? 'x : mem[y][x];
-    assign m_axi4s_tx     = !m_axi4s_tvalid ? 'x : X_WIDTH'(x);
-    assign m_axi4s_ty     = !m_axi4s_tvalid ? 'x : Y_WIDTH'(y);
-    assign m_axi4s_tf     = !m_axi4s_tvalid ? 'x : f;
+    assign m_axi4s_tx     = X_WIDTH'(x);
+    assign m_axi4s_ty     = Y_WIDTH'(y);
+    assign m_axi4s_tf     = f;
     assign m_axi4s_tvalid = busy && valid && (x < X_NUM && y < Y_NUM);
 
 endmodule
