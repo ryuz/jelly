@@ -501,7 +501,7 @@ module top
 endmodule
 
 
-`default_nettype	wire
+`default_nettype wire
 
 
 // end of file

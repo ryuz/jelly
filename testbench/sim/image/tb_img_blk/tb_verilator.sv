@@ -1,9 +1,11 @@
 
 `timescale 1ns/1ps
+`default_nettype none
+
 
 module tb_verilator(
-            input   logic   reset,
-            input   logic   clk
+            input   wire    reset,
+            input   wire    clk
         );
 
     parameter   USER_WIDTH = 1;
