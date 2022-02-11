@@ -119,29 +119,28 @@ module jelly_axi4s_video_fifo_width_converter
                 .padding0           ({DATA_UNIT{1'bx}}),
                 .padding1           ({USER_UNIT{1'bx}}),
                 
-                s_reset             (~s_axi4s_aresetn),
-                s_clk               (s_axi4s_aclk),
-                s_first             (s_first),
-                s_last              (s_axi4s_tlast),
-                s_data0             (s_axi4s_tdata),
-                s_data1             (s_user),
-                s_valid             (s_axi4s_tvalid),
-                s_ready             (s_axi4s_tready),
-                s_fifo_free_count   (s_fifo_free_count),
-                s_fifo_wr_signal    (s_fifo_wr_signal),
+                .s_reset            (~s_axi4s_aresetn),
+                .s_clk              (s_axi4s_aclk),
+                .s_first            (s_first),
+                .s_last             (s_axi4s_tlast),
+                .s_data0            (s_axi4s_tdata),
+                .s_data1            (s_user),
+                .s_valid            (s_axi4s_tvalid),
+                .s_ready            (s_axi4s_tready),
+                .s_fifo_free_count  (s_fifo_free_count),
+                .s_fifo_wr_signal   (s_fifo_wr_signal),
                 
-                m_reset             (~m_axi4s_aresetn),
-                m_clk               (m_axi4s_aclk),
-                m_first             (m_first),
-                m_last              (m_axi4s_tlast),
-                m_data0             (m_axi4s_tdata),
-                m_data1             (m_user),
-                m_valid             (m_axi4s_tvalid),
-                m_ready             (m_axi4s_tready),
-                m_fifo_data_count   (m_fifo_data_count),
-                m_fifo_rd_signal    (m_fifo_rd_signal)
+                .m_reset            (~m_axi4s_aresetn),
+                .m_clk              (m_axi4s_aclk),
+                .m_first            (m_first),
+                .m_last             (m_axi4s_tlast),
+                .m_data0            (m_axi4s_tdata),
+                .m_data1            (m_user),
+                .m_valid            (m_axi4s_tvalid),
+                .m_ready            (m_axi4s_tready),
+                .m_fifo_data_count  (m_fifo_data_count),
+                .m_fifo_rd_signal   (m_fifo_rd_signal)
             );
-    
     
 endmodule
 
