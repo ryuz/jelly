@@ -22,6 +22,7 @@ HLS_EXPORT_FILE = $(HLS_DIR)/divider/solution_1/impl/export.zip
 # HLS IP
 HLS_IP = divider,divider_0
 export HLS_IP
+export HLS_DIR
 
 # sources
 SOURCES  = $(PRJ_DIR)/rtl/ultra96v2_hls_test.v

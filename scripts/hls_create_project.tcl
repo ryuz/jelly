@@ -11,6 +11,8 @@ set testbenches [split $env(TESTBENCHS) " "]
 
 # create project
 open_project $hls_target
+
+# open solution
 open_solution $hls_solution
 
 set_top $hls_target
@@ -27,9 +29,6 @@ foreach fname $sources {
 foreach fname $testbenches {
     add_files -tb $fname -cflags $testbench_flags
 }
-
-# open solution
-open_solution $hls_solution
 
 # close
 close_solution

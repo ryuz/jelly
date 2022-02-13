@@ -164,9 +164,9 @@ module jelly2_img_master_model
     assign m_img_col_last  = !m_img_valid ? '0 : (x == (X_NUM-1));
     assign m_img_de        = !m_img_valid ? '0 : (x < X_NUM && y < Y_NUM);
     assign m_img_data      = !m_img_valid ? 'x : mem[y][x];
-    assign m_img_x         = !m_img_valid ? 'x : X_WIDTH'(x);
-    assign m_img_y         = !m_img_valid ? 'x : Y_WIDTH'(y);
-    assign m_img_f         = !m_img_valid ? 'x : F_WIDTH'(f);
+    assign m_img_x         = X_WIDTH'(x);
+    assign m_img_y         = Y_WIDTH'(y);
+    assign m_img_f         = F_WIDTH'(f);
     assign m_img_valid     = busy;
     
 endmodule

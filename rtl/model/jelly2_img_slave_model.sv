@@ -105,7 +105,7 @@ module jelly2_img_slave_model
 endmodule
 
 
-// `default_nettype wire
+`default_nettype wire
 
 
 // end of file

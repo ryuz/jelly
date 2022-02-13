@@ -93,7 +93,8 @@ current_run -implementation [get_runs impl_1]
 
 # HLS
 if {[llength $hls_ip] > 0} {
-    set_property  ip_repo_paths ../../hls [current_project]
+    set hls_dir   $env(HLS_DIR)
+    set_property  ip_repo_paths $hls_dir [current_project]
     update_ip_catalog
 
     foreach ipnames $hls_ip {

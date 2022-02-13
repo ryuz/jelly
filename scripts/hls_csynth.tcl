@@ -5,6 +5,7 @@ set hls_solution $env(HLS_SOLUTION)
 open_project $hls_target
 open_solution $hls_solution
 
+source "directives.tcl"
 csynth_design
 export_design -format ip_catalog
 
