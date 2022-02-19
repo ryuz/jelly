@@ -97,7 +97,12 @@ int main(int argc, char** argv)
     wb->Write(reg_fmtr + REG_VIDEO_FMTREG_PARAM_TIMEOUT,     1024, 0xf);    // timeout
     wb->Write(reg_fmtr + REG_VIDEO_FMTREG_CTL_CONTROL,          1, 0xf);    // enable
     wb->Wait(1000);
-        
+
+    wb->Display("set DEMOSIC");
+    wb->Read (reg_demos + REG_IMG_DEMOSAIC_CORE_ID);
+    wb->Write(reg_demos + REG_IMG_DEMOSAIC_PARAM_PHASE,    0x3, 0xf);
+    wb->Write(reg_demos + REG_IMG_DEMOSAIC_CTL_CONTROL,    0x3, 0xf);
+
     wb->Display("set write DMA");
     wb->Read (reg_wdma + REG_VDMA_WRITE_CORE_ID);                         // CORE ID
     wb->Write(reg_wdma + REG_VDMA_WRITE_PARAM_ADDR,          0x30000000, 0xf);  // address

@@ -192,7 +192,7 @@ module tb_sim();
 
         $display("set DEMOSIC");
         wb_read (ADR_DEMOS + `REG_IMG_DEMOSAIC_CORE_ID);
-        wb_write(ADR_DEMOS + `REG_IMG_DEMOSAIC_PARAM_PHASE,     0, 8'hff);
+        wb_write(ADR_DEMOS + `REG_IMG_DEMOSAIC_PARAM_PHASE,     3, 8'hff);
         wb_write(ADR_DEMOS + `REG_IMG_DEMOSAIC_CTL_CONTROL, 32'h3, 8'hff);
 
         $display("set write DMA");

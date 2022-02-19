@@ -23,6 +23,10 @@ run:
 	xsim $(TOP_MODULE) -t xsim_run_all.tcl
 
 
+.PHONY: vcd2fst
+vcd2fst:
+	vcd2fst tb_sim.vcd tb_sim.fst
+
 .PHONY: clean
 clean:
 	-rm -fr xsim.dir
