@@ -57,7 +57,7 @@ You can also open it by specifying a name obtained from /sys/class/uio
 
 ```rust
     let udmabuf_num = 4;  // ex.) /dev/udmabuf4
-    let udmabuf_acc = UdmabufAccessor::<usize>::new("udmabuf4" false).unwrap();
+    let udmabuf_acc = UdmabufAccessor::<usize>::new("udmabuf4", false).unwrap();
     println!("udmabuf4 phys addr : 0x{:x}", udmabuf_acc.phys_addr());
     println!("udmabuf4 size      : 0x{:x}", udmabuf_acc.size());
     udmabuf_acc.write_mem32(0x00, 0x1234);
