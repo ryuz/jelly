@@ -16,6 +16,8 @@ DEVTREE_PATH  = /configfs/device-tree
 CFLAGS  += -Wall -g -O0 `pkg-config --cflags opencv` -I../../../include
 LDFLAGS += -g  `pkg-config --libs opencv`
 
+RUN_OPT ?=
+
 OBJS = main.o
 
 
@@ -28,7 +30,7 @@ clean:
 
 .PHONY: run
 run: $(TARGET) load
-	./$(TARGET)
+	./$(TARGET) $(RUN_OPT)
 
 $(TARGET): $(OBJS)
 	g++ $(LDFLAGS) -o $(TARGET) $(OBJS)

@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     int     exposure    = 10;
     int     a_gain      = 20;
     int     d_gain      = 10;
-    int     bayer_phase = 1;
+    int     bayer_phase = 0;
     int     view_scale  = 1;
 
     for ( int i = 1; i < argc; ++i ) {
@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
 
 
     // mmap uio
-    jelly::UioAccessor uio_acc("uio_pl_peri", 0x10000000);
+    jelly::UioAccessor uio_acc("uio_pl_peri", 0x08000000);
     if ( !uio_acc.IsMapped() ) {
         std::cout << "uio_pl_peri mmap error" << std::endl;
         return 1;
@@ -132,9 +132,9 @@ int main(int argc, char *argv[])
 #endif
     
     // mmap udmabuf
-    jelly::UdmabufAccessor udmabuf_acc("udmabuf0");
+    jelly::UdmabufAccessor udmabuf_acc("udmabuf-jelly-vram0");
     if ( !udmabuf_acc.IsMapped() ) {
-        std::cout << "udmabuf0 mmap error" << std::endl;
+        std::cout << "udmabuf mmap error" << std::endl;
         return 1;
     }
 
