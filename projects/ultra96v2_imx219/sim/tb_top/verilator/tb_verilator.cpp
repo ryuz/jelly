@@ -112,62 +112,8 @@ int main(int argc, char** argv)
     wb->Read (reg_wdma + REG_VDMA_WRITE_CTL_STATUS);  // read status
     wb->Read (reg_wdma + REG_VDMA_WRITE_CTL_STATUS);  // read status
     wb->Read (reg_wdma + REG_VDMA_WRITE_CTL_STATUS);  // read status
-        
-        
-
-    /*
-    const unsigned int ADR_FMTR    = (0x00100000 >> 3);  // ビデオサイズ正規化
-    const unsigned int ADR_DEMOS   = (0x00200000 >> 3);  // デモザイク
-    const unsigned int ADR_COLMAT  = (0x00210000 >> 3);  // カラーマトリックス
-    const unsigned int ADR_GAMMA   = (0x00220000 >> 3);  // ガンマ補正
-    const unsigned int ADR_GAUSS   = (0x00240000 >> 3);  // ガウシアンフィルタ
-    const unsigned int ADR_CANNY   = (0x00250000 >> 3);  // Cannyフィルタ
-    const unsigned int ADR_IMGDMA  = (0x00260000 >> 3);  // FIFO dma
-    const unsigned int ADR_BINDIFF = (0x00270000 >> 3);  // 前画像との差分バイナライズ
-    const unsigned int ADR_SEL     = (0x002f0000 >> 3);  // 出力切り替え
-    const unsigned int ADR_BUFMNG  = (0x00300000 >> 3);  // Buffer manager
-    const unsigned int ADR_BUFALC  = (0x00310000 >> 3);  // Buffer allocator
-    const unsigned int ADR_VDMAW   = (0x00320000 >> 3);  // Write-DMA
-    const unsigned int ADR_VDMAR   = (0x00340000 >> 3);  // Read-DMA
-    const unsigned int ADR_VSGEN   = (0x00360000 >> 3);  // Video out sync generator
-    const unsigned int ADR_HLS     = (0x00400000 >> 3);
     
-    const unsigned int IMG_X_NUM = 1024;
-    const unsigned int IMG_Y_NUM = 64;
-
-    // WISHBONE 
-    wb->Wait(200);    
-    wb->Display("read id");
-    wb->Read(0);
-
-    wb->Display("set FMTR");
-    wb->Read (ADR_FMTR + REG_VIDEO_FMTREG_CORE_ID);
-    wb->Write(ADR_FMTR + REG_VIDEO_FMTREG_PARAM_WIDTH,  IMG_X_NUM, 0xff);
-    wb->Write(ADR_FMTR + REG_VIDEO_FMTREG_PARAM_HEIGHT, IMG_Y_NUM, 0xff);
-    wb->Write(ADR_FMTR + REG_VIDEO_FMTREG_CTL_CONTROL,        0x3, 0xff);
-
-    wb->Display("set DEMOSIC");
-    wb->Read (ADR_DEMOS + REG_IMG_DEMOSAIC_CORE_ID);
-    wb->Write(ADR_DEMOS + REG_IMG_DEMOSAIC_PARAM_PHASE,    0, 0xff);
-    wb->Write(ADR_DEMOS + REG_IMG_DEMOSAIC_CTL_CONTROL,  0x3, 0xff);
-
-    wb->Display("set write DMA");
-    wb->Read (ADR_VDMAW + REG_VDMA_WRITE_CORE_ID);
-    wb->Write(ADR_VDMAW + REG_VDMA_WRITE_PARAM_ADDR,                    0x0000000, 0xff);
-    wb->Write(ADR_VDMAW + REG_VDMA_WRITE_PARAM_LINE_STEP,             IMG_X_NUM*3, 0xff);
-    wb->Write(ADR_VDMAW + REG_VDMA_WRITE_PARAM_H_SIZE,                IMG_X_NUM-1, 0xff);
-    wb->Write(ADR_VDMAW + REG_VDMA_WRITE_PARAM_V_SIZE,                IMG_Y_NUM-1, 0xff);
-    wb->Write(ADR_VDMAW + REG_VDMA_WRITE_PARAM_FRAME_STEP,  IMG_Y_NUM*IMG_X_NUM*3, 0xff);
-    wb->Write(ADR_VDMAW + REG_VDMA_WRITE_PARAM_F_SIZE,                        1-1, 0xff);
-    wb->Write(ADR_VDMAW + REG_VDMA_WRITE_CTL_CONTROL,                           3, 0xff);  // update & enable
-
-    wb->Wait(100000);
-    wb->Display("set HLS");
-    wb->Write(ADR_HLS + 0x08, 1, 0xff);
-    wb->Wait(100000);
-    */
-
-    mng->Run(4000000);
+    mng->Run(2000000);
 //    mng->Run();
 
 #if VM_TRACE

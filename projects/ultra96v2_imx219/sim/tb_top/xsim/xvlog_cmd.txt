@@ -1,5 +1,5 @@
 -sv
---sourcelibdir ../../stub
+
 --sourcelibdir ../../../rtl
 --sourcelibdir ../../../../../rtl/library
 --sourcelibdir ../../../../../rtl/bus
@@ -12,6 +12,9 @@
 --sourcelibext .v
 --sourcelibext .sv
 
-../tb_sim.v
-../tb_sim_main.v
+../tb_sim.sv
+../tb_sim_main.sv
+../../stub/design_1.v
+../../stub/mipi_dphy_cam.v
+
 $XILINX_VIVADO/data/verilog/src/glbl.v

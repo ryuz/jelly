@@ -1,14 +1,21 @@
+# get vivado version
+empty:=
+space:= $(empty) $(empty)
+VIVADO_VERSIONS := $(subst .,$(space),$(subst v,,$(word 2,$(shell vivado -version))))
+VIVADO_VERSION  := $(word 1,$(VIVADO_VERSIONS)).$(word 2,$(VIVADO_VERSIONS))
 
 
-TOP_MODULE=tb_sim
+# setting
+TOP_MODULE = tb_sim
 
+
+# rules
 .PHONY: all
 all: clean build run
 
-
 .PHONY: build
 build:
-	xvlog -f xvlog_cmd.txt
+	xvlog -f xvlog_cmd.txt -i ../../../../../include
 	xelab -debug wave $(TOP_MODULE) glbl -s $(TOP_MODULE) -L unisims_ver -L unimacro_ver -L secureip
 
 .PHONY: run
@@ -30,8 +37,9 @@ clean:
 	-rm -f xsim*.log
 
 .PHONY: distclean
-distclean: clean
+distclean:
+	-rm -f *.vcd
+	-rm -f *.wdb
 	-rm -f *.pgm
 	-rm -f *.ppm
-	-rm -f $(TOP_MODULE).vcd
-	-rm -f $(TOP_MODULE).wdb
+	-rm -f axi4_*.txt

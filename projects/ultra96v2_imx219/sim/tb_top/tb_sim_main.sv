@@ -39,6 +39,8 @@ module tb_sim_main
     localparam FILE_X_NUM = 1024;
     localparam FILE_Y_NUM = 768;
 
+    wire    clk = clk100;
+
     int     sym_cycle = 0;
     always_ff @(posedge clk) begin
         sym_cycle <= sym_cycle + 1;
@@ -62,8 +64,6 @@ module tb_sim_main
                 .cam_data_n     ()
             );
 
-
-    wire    clk = clk100;
 
     always_comb force i_top.i_design_1.reset  = reset;
     always_comb force i_top.i_design_1.clk100 = clk100;
