@@ -14,85 +14,92 @@
 // Dualport-RAM
 module jelly2_ram_dualport
         #(
-            parameter   int                         ADDR_WIDTH   = 8,
-            parameter   int                         DATA_WIDTH   = 8,
-            parameter   int                         MEM_SIZE     = (1 << ADDR_WIDTH),
-            parameter                               RAM_TYPE     = "block",
-            parameter   bit                         DOUT_REGS0   = 0,
-            parameter   bit                         DOUT_REGS1   = 0,
-            parameter                               MODE0        = "WRITE_FIRST",
-            parameter                               MODE1        = "WRITE_FIRST",
+            parameter   int                                     ADDR_WIDTH   = 8,
+            parameter   int                                     DATA_WIDTH   = 8,
+            parameter   int                                     WE_WIDTH     = 1,
+            parameter   int                                     WORD_WIDTH   = DATA_WIDTH/WE_WIDTH,
+            parameter   int                                     MEM_SIZE     = (1 << ADDR_WIDTH),
+            parameter                                           RAM_TYPE     = "block",
+            parameter   bit                                     DOUT_REGS0   = 0,
+            parameter   bit                                     DOUT_REGS1   = 0,
+            parameter                                           MODE0        = "WRITE_FIRST",
+            parameter                                           MODE1        = "WRITE_FIRST",
 
-            parameter   bit                         FILLMEM      = 0,
-            parameter   logic   [DATA_WIDTH-1:0]    FILLMEM_DATA = 0,
-            parameter   bit                         READMEMB     = 0,
-            parameter   bit                         READMEMH     = 0,
-            parameter                               READMEM_FIlE = ""
+            parameter   bit                                     FILLMEM      = 0,
+            parameter   logic   [WE_WIDTH*WORD_WIDTH-1:0]       FILLMEM_DATA = 0,
+            parameter   bit                                     READMEMB     = 0,
+            parameter   bit                                     READMEMH     = 0,
+            parameter                                           READMEM_FIlE = ""
         )
         (
             // port0
-            input   wire                        port0_clk,
-            input   wire                        port0_en,
-            input   wire                        port0_regcke,
-            input   wire                        port0_we,
-            input   wire    [ADDR_WIDTH-1:0]    port0_addr,
-            input   wire    [DATA_WIDTH-1:0]    port0_din,
-            output  wire    [DATA_WIDTH-1:0]    port0_dout,
+            input   wire                                    port0_clk,
+            input   wire                                    port0_en,
+            input   wire                                    port0_regcke,
+            input   wire    [WE_WIDTH-1:0]                  port0_we,
+            input   wire    [ADDR_WIDTH-1:0]                port0_addr,
+            input   wire    [WE_WIDTH*WORD_WIDTH-1:0]       port0_din,
+            output  wire    [WE_WIDTH*WORD_WIDTH-1:0]       port0_dout,
             
             // port1
-            input   wire                        port1_clk,
-            input   wire                        port1_en,
-            input   wire                        port1_regcke,
-            input   wire                        port1_we,
-            input   wire    [ADDR_WIDTH-1:0]    port1_addr,
-            input   wire    [DATA_WIDTH-1:0]    port1_din,
-            output  wire    [DATA_WIDTH-1:0]    port1_dout
+            input   wire                                    port1_clk,
+            input   wire                                    port1_en,
+            input   wire                                    port1_regcke,
+            input   wire    [WE_WIDTH-1:0]                  port1_we,
+            input   wire    [ADDR_WIDTH-1:0]                port1_addr,
+            input   wire    [WE_WIDTH-1:0][WORD_WIDTH-1:0]  port1_din,
+            output  wire    [WE_WIDTH-1:0][WORD_WIDTH-1:0]  port1_dout
         );
     
     // verilator lint_off MULTIDRIVEN
 
+
     // memory
     (* ram_style = RAM_TYPE *)
-    reg     [DATA_WIDTH-1:0]    mem [0:MEM_SIZE-1];
+    reg     [WE_WIDTH*WORD_WIDTH-1:0]         mem [0:MEM_SIZE-1];
     
     // dout
-    reg     [DATA_WIDTH-1:0]    tmp_port0_dout;
-    reg     [DATA_WIDTH-1:0]    tmp_port1_dout;
+    logic   [WE_WIDTH-1:0][WORD_WIDTH-1:0]    tmp_port0_dout;
+    logic   [WE_WIDTH-1:0][WORD_WIDTH-1:0]    tmp_port1_dout;
     
     // port0
     generate
     if ( 128'(MODE0) == 128'("WRITE_FIRST") ) begin
         // write first
-        always_ff @ ( posedge port0_clk ) begin
-            if ( port0_en ) begin
-                if ( port0_we ) begin
-                    mem[port0_addr] <= port0_din;
-                end
+        for ( genvar i = 0; i < WE_WIDTH; ++i ) begin : blk_wf0
+            always_ff @ ( posedge port0_clk ) begin
+                if ( port0_en ) begin
+                    if ( port0_we[i] ) begin
+                        mem[port0_addr][i*WORD_WIDTH +: WORD_WIDTH] <= port0_din[i];
+                    end
                 
-                if ( port0_we ) begin
-                    tmp_port0_dout <= port0_din;
-                end
-                else begin
-                    tmp_port0_dout <= mem[port0_addr];
+                    if ( port0_we[i] ) begin
+                        tmp_port0_dout[i] <= port0_din[i];
+                    end
+                    else begin
+                        tmp_port0_dout[i] <= mem[port0_addr][i*WORD_WIDTH +: WORD_WIDTH];
+                    end
                 end
             end
         end
     end
     else begin
         // read first
-        always_ff @ ( posedge port0_clk ) begin
-            if ( port0_en ) begin
-                if ( port0_we ) begin
-                    mem[port0_addr] <= port0_din;
+        for ( genvar i = 0; i < WE_WIDTH; ++i ) begin : blk_rf0
+            always_ff @ ( posedge port0_clk ) begin
+                if ( port0_en ) begin
+                    if ( port0_we[i] ) begin
+                        mem[port0_addr][i] <= port0_din[i];
+                    end
+                    tmp_port0_dout[i] <= mem[port0_addr][i];
                 end
-                tmp_port0_dout <= mem[port0_addr];
             end
         end
     end
     
     // DOUT FF insert
     if ( DOUT_REGS0 ) begin
-        reg     [DATA_WIDTH-1:0]    reg_port0_dout;
+        logic   [WE_WIDTH-1:0][WORD_WIDTH-1:0]  reg_port0_dout;
         always_ff @(posedge port0_clk) begin
             if ( port0_regcke ) begin
                 reg_port0_dout <= tmp_port0_dout;
@@ -112,36 +119,40 @@ module jelly2_ram_dualport
     generate
     if ( 128'(MODE1) == 128'("WRITE_FIRST") ) begin
         // write first
-        always_ff @ ( posedge port1_clk ) begin
-            if ( port1_en ) begin
-                if ( port1_we ) begin
-                    mem[port1_addr] <= port1_din;
-                end
-                
-                if ( port1_we ) begin
-                    tmp_port1_dout <= port1_din;
-                end
-                else begin
-                    tmp_port1_dout <= mem[port1_addr];
+        for ( genvar i = 0; i < WE_WIDTH; ++i ) begin : blk_wf1
+            always_ff @ ( posedge port1_clk ) begin
+                if ( port1_en ) begin
+                    if ( port1_we ) begin
+                        mem[port1_addr][i*WORD_WIDTH +: WORD_WIDTH] <= port1_din[i];
+                    end
+                    
+                    if ( port1_we ) begin
+                        tmp_port1_dout[i] <= port1_din[i];
+                    end
+                    else begin
+                        tmp_port1_dout[i] <= mem[port1_addr][i*WORD_WIDTH +: WORD_WIDTH];
+                    end
                 end
             end
         end
     end
     else begin
         // read first
-        always_ff @ ( posedge port1_clk ) begin
-            if ( port1_en ) begin
-                if ( port1_we ) begin
-                    mem[port1_addr] <= port1_din;
+        for ( genvar i = 0; i < WE_WIDTH; ++i ) begin : blk_rf2
+            always_ff @ ( posedge port1_clk ) begin
+                if ( port1_en ) begin
+                    if ( port1_we ) begin
+                        mem[port1_addr][i*WORD_WIDTH +: WORD_WIDTH] <= port1_din[i];
+                    end
+                    tmp_port1_dout[i] <= mem[port1_addr][i*WORD_WIDTH +: WORD_WIDTH];
                 end
-                tmp_port1_dout <= mem[port1_addr];
             end
         end
     end
     
     // DOUT FF insert
     if ( DOUT_REGS1 ) begin
-        reg     [DATA_WIDTH-1:0]    reg_port1_dout;
+        logic   [WE_WIDTH-1:0][WORD_WIDTH-1:0]  reg_port1_dout;
         always_ff @(posedge port1_clk) begin
             if ( port1_regcke ) begin
                 reg_port1_dout <= tmp_port1_dout;
