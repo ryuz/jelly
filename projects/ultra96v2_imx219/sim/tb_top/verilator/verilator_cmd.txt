@@ -2,6 +2,8 @@
 #--public
 #--threads 2
 
+-D__VERILATOR__
+
 -Wno-WIDTH
 -Wno-UNSIGNED
 -Wno-PINMISSING
@@ -12,8 +14,10 @@
 -Wno-CASEINCOMPLETE
 -Wno-LATCH
 -Wno-COMBDLY
+-Wno-SELRANGE
+-Wno-WIDTHCONCAT
+-Wno-MULTITOP
 
--y ../../stub
 -y ../../../rtl
 -y ../../../../../rtl/library
 -y ../../../../../rtl/bus

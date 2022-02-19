@@ -40,8 +40,9 @@ clean:
 
 .PHONY : distclean
 distclean: clean
-	rm -f img_*.png angle_*.png
 	rm -f *.fst *.vcd
+	rm -f *.ppm *.pgm
+	rm -f axi*.txt
 	rm -f coverage.dat
 	rm -fr annotated
 
@@ -53,4 +54,5 @@ run:
 .PHONY : coverage
 coverage:
 	verilator_coverage --annotate annotated coverage.dat
+
 
