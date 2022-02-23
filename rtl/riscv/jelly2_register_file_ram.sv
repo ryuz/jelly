@@ -14,7 +14,7 @@
 
 
 // RAM実装のレジスタファイル(書き込みポートは1個のみ)
-module jelly_register_file_ram
+module jelly2_register_file_ram
         #(
             parameter   int     READ_PORTS = 2,
             parameter   int     ADDR_WIDTH = 5,

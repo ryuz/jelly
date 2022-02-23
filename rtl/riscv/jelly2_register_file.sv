@@ -12,7 +12,7 @@
 
 
 // レジスタファイル
-module jelly_register_file
+module jelly2_register_file
         #(
             parameter   int     WRITE_PORTS = 1,
             parameter   int     READ_PORTS  = 2,
