@@ -15,7 +15,7 @@ module jelly2_riscv_simple_core
         #(
             parameter int                   IBUS_ADDR_WIDTH = 14,
             parameter int                   DBUS_ADDR_WIDTH = 14,
-            parameter int                   PC_WIDTH        = IBUS_ADDR_WIDTH,
+            parameter int                   PC_WIDTH        = IBUS_ADDR_WIDTH + 2,
             parameter bit   [PC_WIDTH-1:0]  RESET_PC_ADDR   = '0
         )
         (
@@ -81,9 +81,8 @@ module jelly2_riscv_simple_core
 
 
     // Instruction Fetch
-    assign ibus_addr  = pc_pc;
-    assign if_instr = ibus_rdata;
-
+    assign ibus_addr = IBUS_ADDR_WIDTH'(pc_pc >> 2);
+    assign if_instr  = ibus_rdata;
 
     // decocde
     logic           [6:0]   if_opcode;
@@ -112,47 +111,47 @@ module jelly2_riscv_simple_core
     assign if_u_imm  = {if_instr[31:12], 12'd0};
     assign if_j_imm  = {if_instr[31], if_instr[19:12], if_instr[20], if_instr[30:21], 1'b0};
     
-
-    wire    if_lui    = (if_opcode == 7'b0110111);
-    wire    if_auipc  = (if_opcode == 7'b0010111);
-    wire    if_jal    = (if_opcode == 7'b1101111);
-    wire    if_jalr   = (if_opcode == 7'b1100111 && if_funct3 == 3'b000);
-    wire    if_beq    = (if_opcode == 7'b1100011 && if_funct3 == 3'b000);
-    wire    if_bne    = (if_opcode == 7'b1100011 && if_funct3 == 3'b001);
-    wire    if_blt    = (if_opcode == 7'b1100011 && if_funct3 == 3'b100);
-    wire    if_bge    = (if_opcode == 7'b1100011 && if_funct3 == 3'b101);
-    wire    if_bltu   = (if_opcode == 7'b1100011 && if_funct3 == 3'b110);
-    wire    if_bgeu   = (if_opcode == 7'b1100011 && if_funct3 == 3'b111);
-    wire    if_lb     = (if_opcode == 7'b0000011 && if_funct3 == 3'b000);
-    wire    if_lh     = (if_opcode == 7'b0000011 && if_funct3 == 3'b001);
-    wire    if_lw     = (if_opcode == 7'b0000011 && if_funct3 == 3'b010);
-    wire    if_lbu    = (if_opcode == 7'b0000011 && if_funct3 == 3'b100);
-    wire    if_lhu    = (if_opcode == 7'b0000011 && if_funct3 == 3'b101);
-    wire    if_sb     = (if_opcode == 7'b0100011 && if_funct3 == 3'b000);
-    wire    if_sh     = (if_opcode == 7'b0100011 && if_funct3 == 3'b001);
-    wire    if_sw     = (if_opcode == 7'b0100011 && if_funct3 == 3'b010);
-    wire    if_addi   = (if_opcode == 7'b0010011 && if_funct3 == 3'b000);
-    wire    if_slti   = (if_opcode == 7'b0010011 && if_funct3 == 3'b010);
-    wire    if_sltiu  = (if_opcode == 7'b0010011 && if_funct3 == 3'b011);
-    wire    if_xori   = (if_opcode == 7'b0010011 && if_funct3 == 3'b100);
-    wire    if_ori    = (if_opcode == 7'b0010011 && if_funct3 == 3'b110);
-    wire    if_andi   = (if_opcode == 7'b0010011 && if_funct3 == 3'b111);
-    wire    if_slli   = (if_opcode == 7'b0010011 && if_funct3 == 3'b001 && if_funct7 == 7'b0000000);
-    wire    if_srli   = (if_opcode == 7'b0010011 && if_funct3 == 3'b101 && if_funct7 == 7'b0000000);
-    wire    if_srai   = (if_opcode == 7'b0010011 && if_funct3 == 3'b101 && if_funct7 == 7'b0100000);
-    wire    if_add    = (if_opcode == 7'b0110011 && if_funct3 == 3'b000 && if_funct7 == 7'b0000000);
-    wire    if_sub    = (if_opcode == 7'b0110011 && if_funct3 == 3'b000 && if_funct7 == 7'b0100000);
-    wire    if_sll    = (if_opcode == 7'b0110011 && if_funct3 == 3'b001 && if_funct7 == 7'b0000000);
-    wire    if_slt    = (if_opcode == 7'b0110011 && if_funct3 == 3'b010 && if_funct7 == 7'b0000000);
-    wire    if_sltu   = (if_opcode == 7'b0110011 && if_funct3 == 3'b011 && if_funct7 == 7'b0000000);
-    wire    if_xor    = (if_opcode == 7'b0110011 && if_funct3 == 3'b100 && if_funct7 == 7'b0000000);
-    wire    if_srl    = (if_opcode == 7'b0110011 && if_funct3 == 3'b101 && if_funct7 == 7'b0000000);
-    wire    if_sra    = (if_opcode == 7'b0110011 && if_funct3 == 3'b101 && if_funct7 == 7'b0100000);
-    wire    if_or     = (if_opcode == 7'b0110011 && if_funct3 == 3'b110 && if_funct7 == 7'b0000000);
-    wire    if_and    = (if_opcode == 7'b0110011 && if_funct3 == 3'b111 && if_funct7 == 7'b0000000);
-    wire    if_fence  = (if_opcode == 7'b0001111);
-    wire    if_ecall  = (if_instr == 32'h00000073);
-    wire    if_ebreak = (if_instr == 32'h00100073);
+    // decode
+    wire    if_dec_lui    = (if_opcode == 7'b0110111);
+    wire    if_dec_auipc  = (if_opcode == 7'b0010111);
+    wire    if_dec_jal    = (if_opcode == 7'b1101111);
+    wire    if_dec_jalr   = (if_opcode == 7'b1100111 && if_funct3 == 3'b000);
+    wire    if_dec_beq    = (if_opcode == 7'b1100011 && if_funct3 == 3'b000);
+    wire    if_dec_bne    = (if_opcode == 7'b1100011 && if_funct3 == 3'b001);
+    wire    if_dec_blt    = (if_opcode == 7'b1100011 && if_funct3 == 3'b100);
+    wire    if_dec_bge    = (if_opcode == 7'b1100011 && if_funct3 == 3'b101);
+    wire    if_dec_bltu   = (if_opcode == 7'b1100011 && if_funct3 == 3'b110);
+    wire    if_dec_bgeu   = (if_opcode == 7'b1100011 && if_funct3 == 3'b111);
+    wire    if_dec_lb     = (if_opcode == 7'b0000011 && if_funct3 == 3'b000);
+    wire    if_dec_lh     = (if_opcode == 7'b0000011 && if_funct3 == 3'b001);
+    wire    if_dec_lw     = (if_opcode == 7'b0000011 && if_funct3 == 3'b010);
+    wire    if_dec_lbu    = (if_opcode == 7'b0000011 && if_funct3 == 3'b100);
+    wire    if_dec_lhu    = (if_opcode == 7'b0000011 && if_funct3 == 3'b101);
+    wire    if_dec_sb     = (if_opcode == 7'b0100011 && if_funct3 == 3'b000);
+    wire    if_dec_sh     = (if_opcode == 7'b0100011 && if_funct3 == 3'b001);
+    wire    if_dec_sw     = (if_opcode == 7'b0100011 && if_funct3 == 3'b010);
+    wire    if_dec_addi   = (if_opcode == 7'b0010011 && if_funct3 == 3'b000);
+    wire    if_dec_slti   = (if_opcode == 7'b0010011 && if_funct3 == 3'b010);
+    wire    if_dec_sltiu  = (if_opcode == 7'b0010011 && if_funct3 == 3'b011);
+    wire    if_dec_xori   = (if_opcode == 7'b0010011 && if_funct3 == 3'b100);
+    wire    if_dec_ori    = (if_opcode == 7'b0010011 && if_funct3 == 3'b110);
+    wire    if_dec_andi   = (if_opcode == 7'b0010011 && if_funct3 == 3'b111);
+    wire    if_dec_slli   = (if_opcode == 7'b0010011 && if_funct3 == 3'b001 && if_funct7 == 7'b0000000);
+    wire    if_dec_srli   = (if_opcode == 7'b0010011 && if_funct3 == 3'b101 && if_funct7 == 7'b0000000);
+    wire    if_dec_srai   = (if_opcode == 7'b0010011 && if_funct3 == 3'b101 && if_funct7 == 7'b0100000);
+    wire    if_dec_add    = (if_opcode == 7'b0110011 && if_funct3 == 3'b000 && if_funct7 == 7'b0000000);
+    wire    if_dec_sub    = (if_opcode == 7'b0110011 && if_funct3 == 3'b000 && if_funct7 == 7'b0100000);
+    wire    if_dec_sll    = (if_opcode == 7'b0110011 && if_funct3 == 3'b001 && if_funct7 == 7'b0000000);
+    wire    if_dec_slt    = (if_opcode == 7'b0110011 && if_funct3 == 3'b010 && if_funct7 == 7'b0000000);
+    wire    if_dec_sltu   = (if_opcode == 7'b0110011 && if_funct3 == 3'b011 && if_funct7 == 7'b0000000);
+    wire    if_dec_xor    = (if_opcode == 7'b0110011 && if_funct3 == 3'b100 && if_funct7 == 7'b0000000);
+    wire    if_dec_srl    = (if_opcode == 7'b0110011 && if_funct3 == 3'b101 && if_funct7 == 7'b0000000);
+    wire    if_dec_sra    = (if_opcode == 7'b0110011 && if_funct3 == 3'b101 && if_funct7 == 7'b0100000);
+    wire    if_dec_or     = (if_opcode == 7'b0110011 && if_funct3 == 3'b110 && if_funct7 == 7'b0000000);
+    wire    if_dec_and    = (if_opcode == 7'b0110011 && if_funct3 == 3'b111 && if_funct7 == 7'b0000000);
+    wire    if_dec_fence  = (if_opcode == 7'b0001111);
+    wire    if_dec_ecall  = (if_instr == 32'h00000073);
+    wire    if_dec_ebreak = (if_instr == 32'h00100073);
     
     
 
@@ -160,14 +159,14 @@ module jelly2_riscv_simple_core
     //  Instruction Decode
     // -----------------------------------------
 
-    logic   [PC_WIDTH-1:0]      ex_expect_pc_next;
+    logic   [PC_WIDTH-1:0]      ex_pc_next;
 
     logic   [PC_WIDTH-1:0]      id_pc;
     logic   [31:0]              id_instr;
     logic                       id_valid, id_valid_next;
 
     // 将来分岐キャッシュとかやる用に当たり判定してみる
-    assign id_valid_next = if_valid && (if_pc == ex_expect_pc_next);
+    assign id_valid_next = if_valid && (if_pc == ex_pc_next);
 
     always_ff @(posedge clk) begin
         if ( reset ) begin            
@@ -258,131 +257,131 @@ module jelly2_riscv_simple_core
 
 
     // instruction decode
-    logic    id_lui   ;
-    logic    id_auipc ;
-    logic    id_jal   ;
-    logic    id_jalr  ;
-    logic    id_beq   ;
-    logic    id_bne   ;
-    logic    id_blt   ;
-    logic    id_bge   ;
-    logic    id_bltu  ;
-    logic    id_bgeu  ;
-    logic    id_lb    ;
-    logic    id_lh    ;
-    logic    id_lw    ;
-    logic    id_lbu   ;
-    logic    id_lhu   ;
-    logic    id_sb    ;
-    logic    id_sh    ;
-    logic    id_sw    ;
-    logic    id_addi  ;
-    logic    id_slti  ;
-    logic    id_sltiu ;
-    logic    id_xori  ;
-    logic    id_ori   ;
-    logic    id_andi  ;
-    logic    id_slli  ;
-    logic    id_srli  ;
-    logic    id_srai  ;
-    logic    id_add   ;
-    logic    id_sub   ;
-    logic    id_sll   ;
-    logic    id_slt   ;
-    logic    id_sltu  ;
-    logic    id_xor   ;
-    logic    id_srl   ;
-    logic    id_sra   ;
-    logic    id_or    ;
-    logic    id_and   ;
-    logic    id_fence ;
-    logic    id_ecall ;
-    logic    id_ebreak;
+    logic    id_dec_lui   ;
+    logic    id_dec_auipc ;
+    logic    id_dec_jal   ;
+    logic    id_dec_jalr  ;
+    logic    id_dec_beq   ;
+    logic    id_dec_bne   ;
+    logic    id_dec_blt   ;
+    logic    id_dec_bge   ;
+    logic    id_dec_bltu  ;
+    logic    id_dec_bgeu  ;
+    logic    id_dec_lb    ;
+    logic    id_dec_lh    ;
+    logic    id_dec_lw    ;
+    logic    id_dec_lbu   ;
+    logic    id_dec_lhu   ;
+    logic    id_dec_sb    ;
+    logic    id_dec_sh    ;
+    logic    id_dec_sw    ;
+    logic    id_dec_addi  ;
+    logic    id_dec_slti  ;
+    logic    id_dec_sltiu ;
+    logic    id_dec_xori  ;
+    logic    id_dec_ori   ;
+    logic    id_dec_andi  ;
+    logic    id_dec_slli  ;
+    logic    id_dec_srli  ;
+    logic    id_dec_srai  ;
+    logic    id_dec_add   ;
+    logic    id_dec_sub   ;
+    logic    id_dec_sll   ;
+    logic    id_dec_slt   ;
+    logic    id_dec_sltu  ;
+    logic    id_dec_xor   ;
+    logic    id_dec_srl   ;
+    logic    id_dec_sra   ;
+    logic    id_dec_or    ;
+    logic    id_dec_and   ;
+    logic    id_dec_fence ;
+    logic    id_dec_ecall ;
+    logic    id_dec_ebreak;
 
     always_ff @(posedge clk) begin
         if ( reset ) begin
-            id_lui    <= 1'b0;
-            id_auipc  <= 1'b0;
-            id_jal    <= 1'b0;
-            id_jalr   <= 1'b0;
-            id_beq    <= 1'b0;
-            id_bne    <= 1'b0;
-            id_blt    <= 1'b0;
-            id_bge    <= 1'b0;
-            id_bltu   <= 1'b0;
-            id_bgeu   <= 1'b0;
-            id_lb     <= 1'b0;
-            id_lh     <= 1'b0;
-            id_lw     <= 1'b0;
-            id_lbu    <= 1'b0;
-            id_lhu    <= 1'b0;
-            id_sb     <= 1'b0;
-            id_sh     <= 1'b0;
-            id_sw     <= 1'b0;
-            id_addi   <= 1'b0;
-            id_slti   <= 1'b0;
-            id_sltiu  <= 1'b0;
-            id_xori   <= 1'b0;
-            id_ori    <= 1'b0;
-            id_andi   <= 1'b0;
-            id_slli   <= 1'b0;
-            id_srli   <= 1'b0;
-            id_srai   <= 1'b0;
-            id_add    <= 1'b0;
-            id_sub    <= 1'b0;
-            id_sll    <= 1'b0;
-            id_slt    <= 1'b0;
-            id_sltu   <= 1'b0;
-            id_xor    <= 1'b0;
-            id_srl    <= 1'b0;
-            id_sra    <= 1'b0;
-            id_or     <= 1'b0;
-            id_and    <= 1'b0;
-            id_fence  <= 1'b0;
-            id_ecall  <= 1'b0;
-            id_ebreak <= 1'b0;
+            id_dec_lui    <= 1'b0;
+            id_dec_auipc  <= 1'b0;
+            id_dec_jal    <= 1'b0;
+            id_dec_jalr   <= 1'b0;
+            id_dec_beq    <= 1'b0;
+            id_dec_bne    <= 1'b0;
+            id_dec_blt    <= 1'b0;
+            id_dec_bge    <= 1'b0;
+            id_dec_bltu   <= 1'b0;
+            id_dec_bgeu   <= 1'b0;
+            id_dec_lb     <= 1'b0;
+            id_dec_lh     <= 1'b0;
+            id_dec_lw     <= 1'b0;
+            id_dec_lbu    <= 1'b0;
+            id_dec_lhu    <= 1'b0;
+            id_dec_sb     <= 1'b0;
+            id_dec_sh     <= 1'b0;
+            id_dec_sw     <= 1'b0;
+            id_dec_addi   <= 1'b0;
+            id_dec_slti   <= 1'b0;
+            id_dec_sltiu  <= 1'b0;
+            id_dec_xori   <= 1'b0;
+            id_dec_ori    <= 1'b0;
+            id_dec_andi   <= 1'b0;
+            id_dec_slli   <= 1'b0;
+            id_dec_srli   <= 1'b0;
+            id_dec_srai   <= 1'b0;
+            id_dec_add    <= 1'b0;
+            id_dec_sub    <= 1'b0;
+            id_dec_sll    <= 1'b0;
+            id_dec_slt    <= 1'b0;
+            id_dec_sltu   <= 1'b0;
+            id_dec_xor    <= 1'b0;
+            id_dec_srl    <= 1'b0;
+            id_dec_sra    <= 1'b0;
+            id_dec_or     <= 1'b0;
+            id_dec_and    <= 1'b0;
+            id_dec_fence  <= 1'b0;
+            id_dec_ecall  <= 1'b0;
+            id_dec_ebreak <= 1'b0;
         end
         else if ( cke ) begin
-            id_lui    <= if_lui    & if_valid;
-            id_auipc  <= if_auipc  & if_valid;
-            id_jal    <= if_jal    & if_valid;
-            id_jalr   <= if_jalr   & if_valid;
-            id_beq    <= if_beq    & if_valid;
-            id_bne    <= if_bne    & if_valid;
-            id_blt    <= if_blt    & if_valid;
-            id_bge    <= if_bge    & if_valid;
-            id_bltu   <= if_bltu   & if_valid;
-            id_bgeu   <= if_bgeu   & if_valid;
-            id_lb     <= if_lb     & if_valid;
-            id_lh     <= if_lh     & if_valid;
-            id_lw     <= if_lw     & if_valid;
-            id_lbu    <= if_lbu    & if_valid;
-            id_lhu    <= if_lhu    & if_valid;
-            id_sb     <= if_sb     & if_valid;
-            id_sh     <= if_sh     & if_valid;
-            id_sw     <= if_sw     & if_valid;
-            id_addi   <= if_addi   & if_valid;
-            id_slti   <= if_slti   & if_valid;
-            id_sltiu  <= if_sltiu  & if_valid;
-            id_xori   <= if_xori   & if_valid;
-            id_ori    <= if_ori    & if_valid;
-            id_andi   <= if_andi   & if_valid;
-            id_slli   <= if_slli   & if_valid;
-            id_srli   <= if_srli   & if_valid;
-            id_srai   <= if_srai   & if_valid;
-            id_add    <= if_add    & if_valid;
-            id_sub    <= if_sub    & if_valid;
-            id_sll    <= if_sll    & if_valid;
-            id_slt    <= if_slt    & if_valid;
-            id_sltu   <= if_sltu   & if_valid;
-            id_xor    <= if_xor    & if_valid;
-            id_srl    <= if_srl    & if_valid;
-            id_sra    <= if_sra    & if_valid;
-            id_or     <= if_or     & if_valid;
-            id_and    <= if_and    & if_valid;
-            id_fence  <= if_fence  & if_valid;
-            id_ecall  <= if_ecall  & if_valid;
-            id_ebreak <= if_ebreak & if_valid;
+            id_dec_lui    <= if_dec_lui    & if_valid;
+            id_dec_auipc  <= if_dec_auipc  & if_valid;
+            id_dec_jal    <= if_dec_jal    & if_valid;
+            id_dec_jalr   <= if_dec_jalr   & if_valid;
+            id_dec_beq    <= if_dec_beq    & if_valid;
+            id_dec_bne    <= if_dec_bne    & if_valid;
+            id_dec_blt    <= if_dec_blt    & if_valid;
+            id_dec_bge    <= if_dec_bge    & if_valid;
+            id_dec_bltu   <= if_dec_bltu   & if_valid;
+            id_dec_bgeu   <= if_dec_bgeu   & if_valid;
+            id_dec_lb     <= if_dec_lb     & if_valid;
+            id_dec_lh     <= if_dec_lh     & if_valid;
+            id_dec_lw     <= if_dec_lw     & if_valid;
+            id_dec_lbu    <= if_dec_lbu    & if_valid;
+            id_dec_lhu    <= if_dec_lhu    & if_valid;
+            id_dec_sb     <= if_dec_sb     & if_valid;
+            id_dec_sh     <= if_dec_sh     & if_valid;
+            id_dec_sw     <= if_dec_sw     & if_valid;
+            id_dec_addi   <= if_dec_addi   & if_valid;
+            id_dec_slti   <= if_dec_slti   & if_valid;
+            id_dec_sltiu  <= if_dec_sltiu  & if_valid;
+            id_dec_xori   <= if_dec_xori   & if_valid;
+            id_dec_ori    <= if_dec_ori    & if_valid;
+            id_dec_andi   <= if_dec_andi   & if_valid;
+            id_dec_slli   <= if_dec_slli   & if_valid;
+            id_dec_srli   <= if_dec_srli   & if_valid;
+            id_dec_srai   <= if_dec_srai   & if_valid;
+            id_dec_add    <= if_dec_add    & if_valid;
+            id_dec_sub    <= if_dec_sub    & if_valid;
+            id_dec_sll    <= if_dec_sll    & if_valid;
+            id_dec_slt    <= if_dec_slt    & if_valid;
+            id_dec_sltu   <= if_dec_sltu   & if_valid;
+            id_dec_xor    <= if_dec_xor    & if_valid;
+            id_dec_srl    <= if_dec_srl    & if_valid;
+            id_dec_sra    <= if_dec_sra    & if_valid;
+            id_dec_or     <= if_dec_or     & if_valid;
+            id_dec_and    <= if_dec_and    & if_valid;
+            id_dec_fence  <= if_dec_fence  & if_valid;
+            id_dec_ecall  <= if_dec_ecall  & if_valid;
+            id_dec_ebreak <= if_dec_ebreak & if_valid;
         end
     end
 
@@ -393,6 +392,11 @@ module jelly2_riscv_simple_core
     logic                                   id_mem_unsigned;
     always_ff @(posedge clk) begin
         if ( reset ) begin
+            id_mem_offset   <= 'x;
+            id_mem_rd       <= 1'b0;
+            id_mem_we       <= '0;
+            id_mem_sel      <= 'x;
+            id_mem_unsigned <= 1'bx;
         end
         else if ( cke ) begin
             id_mem_offset   <= 'x;
@@ -402,15 +406,56 @@ module jelly2_riscv_simple_core
             id_mem_unsigned <= 1'bx;
             if ( id_valid_next ) begin
                 id_mem_sel    <= if_funct3[1:0];
-                if ( if_lb || if_lh || if_lw || if_lbu || if_lhu ) begin
+                if ( if_dec_lb || if_dec_lh || if_dec_lw || if_dec_lbu || if_dec_lhu ) begin
                     id_mem_rd       <= 1'b1;
                     id_mem_offset   <= 32'(if_i_imm);
-                    id_mem_unsigned <= (if_lbu || if_lhu);
+                    id_mem_unsigned <= (if_dec_lbu || if_dec_lhu);
                 end
-                if ( if_sb || if_sh ||  if_sw ) begin
+                if ( if_dec_sb || if_dec_sh ||  if_dec_sw ) begin
                     id_mem_we     <= 1'b1;
                     id_mem_offset <= 32'(if_s_imm);
                 end
+            end
+        end
+    end
+
+    logic                                   id_rd_en;
+    always_ff @(posedge clk) begin
+        if ( reset ) begin
+            id_rd_en  <= '0;
+        end
+        else if ( cke ) begin
+            id_rd_en <= '0;
+            if ( id_valid_next ) begin
+                id_rd_en <= if_dec_lui   |
+                            if_dec_auipc |
+                            if_dec_jal   |
+                            if_dec_jalr  |
+                            if_dec_lb    |
+                            if_dec_lh    |
+                            if_dec_lw    |
+                            if_dec_lbu   |
+                            if_dec_lhu   |
+                            if_dec_addi  |
+                            if_dec_slti  |
+                            if_dec_sltiu |
+                            if_dec_xori  |
+                            if_dec_ori   |
+                            if_dec_andi  |
+                            if_dec_slli  |
+                            if_dec_srli  |
+                            if_dec_srai  |
+                            if_dec_add   |
+                            if_dec_sub   |
+                            if_dec_sll   |
+                            if_dec_slt   |
+                            if_dec_sltu  |
+                            if_dec_xor   |
+                            if_dec_srl   |
+                            if_dec_sra   |
+                            if_dec_or    |
+                            if_dec_and   |
+                            if_dec_fence;
             end
         end
     end
@@ -420,37 +465,22 @@ module jelly2_riscv_simple_core
     //  Execution
     // -----------------------------------------
 
-    logic   [PC_WIDTH-1:0]      ex_pc_next;
-
     logic   [PC_WIDTH-1:0]      ex_pc;
     logic   [31:0]              ex_instr;
     logic                       ex_valid;
 
-    always_ff @(posedge clk) begin
-        if ( reset ) begin            
-            ex_pc    <= RESET_PC_ADDR;
-            ex_instr <= '0;
-            ex_valid <= 1'b0;
-        end
-        else if ( cke ) begin
-            ex_pc    <= id_pc;
-            ex_instr <= id_instr;
-            ex_valid <= id_valid;
-        end
-    end
-
     // branch
     always_comb begin
-        ex_pc_next = ex_pc + 4;
+        ex_pc_next     = ex_pc + 4;
         unique case (1'b1)
-        id_jal : ex_expect_pc_next = id_pc                   + PC_WIDTH'(id_j_imm);
-        id_jalr: ex_expect_pc_next = PC_WIDTH'(id_rs1_rdata) + PC_WIDTH'(id_i_imm);
-        id_beq : if ( id_rs1_rdata == id_rs2_rdata ) ex_expect_pc_next = id_pc + PC_WIDTH'(id_b_imm);
-        id_bne : if ( id_rs1_rdata != id_rs2_rdata ) ex_expect_pc_next = id_pc + PC_WIDTH'(id_b_imm);
-        id_blt : if ( $signed(id_rs1_rdata)  < $signed(id_rs2_rdata) ) ex_expect_pc_next = id_pc + PC_WIDTH'(id_b_imm);
-        id_bge : if ( $signed(id_rs1_rdata) >= $signed(id_rs2_rdata) ) ex_expect_pc_next = id_pc + PC_WIDTH'(id_b_imm);
-        id_bltu: if ( $unsigned(id_rs1_rdata)  < $unsigned(id_rs2_rdata) ) ex_expect_pc_next = id_pc + PC_WIDTH'(id_b_imm);
-        id_bgeu: if ( $unsigned(id_rs1_rdata) >= $unsigned(id_rs2_rdata) ) ex_expect_pc_next = id_pc + PC_WIDTH'(id_b_imm);
+        id_dec_jal : ex_pc_next = id_pc                   + PC_WIDTH'(id_j_imm);
+        id_dec_jalr: ex_pc_next = PC_WIDTH'(id_rs1_rdata) + PC_WIDTH'(id_i_imm);
+        id_dec_beq : if ( id_rs1_rdata == id_rs2_rdata ) ex_pc_next = id_pc + PC_WIDTH'(id_b_imm);
+        id_dec_bne : if ( id_rs1_rdata != id_rs2_rdata ) ex_pc_next = id_pc + PC_WIDTH'(id_b_imm);
+        id_dec_blt : if ( $signed(id_rs1_rdata)  < $signed(id_rs2_rdata) ) ex_pc_next = id_pc + PC_WIDTH'(id_b_imm);
+        id_dec_bge : if ( $signed(id_rs1_rdata) >= $signed(id_rs2_rdata) ) ex_pc_next = id_pc + PC_WIDTH'(id_b_imm);
+        id_dec_bltu: if ( $unsigned(id_rs1_rdata)  < $unsigned(id_rs2_rdata) ) ex_pc_next = id_pc + PC_WIDTH'(id_b_imm);
+        id_dec_bgeu: if ( $unsigned(id_rs1_rdata) >= $unsigned(id_rs2_rdata) ) ex_pc_next = id_pc + PC_WIDTH'(id_b_imm);
         default: ;
         endcase
 
@@ -461,29 +491,31 @@ module jelly2_riscv_simple_core
 
 
     // alu
-    logic   signed  [31:0]  id_rd_wdata_alu;
-    always_comb begin
-        id_rd_wdata_alu = '0;
+    logic   signed  [31:0]  ex_rd_wdata_alu;
+    always_ff @(posedge clk) begin
+        ex_rd_wdata_alu <= 'x;
         unique case (1'b1)
-        id_addi : id_rd_wdata_alu = id_rs1_rdata    + 32'(id_i_imm);
-        id_slti : id_rd_wdata_alu = (id_rs1_rdata   < 32'(id_i_imm)  ) ? 32'd1 : 32'd0;
-        id_sltiu: id_rd_wdata_alu = (id_rs1_rdata_u < 32'(id_i_imm_u)) ? 32'd1 : 32'd0;
-        id_xori : id_rd_wdata_alu = id_rs1_rdata    ^ 32'(id_i_imm);
-        id_ori  : id_rd_wdata_alu = id_rs1_rdata    | 32'(id_i_imm);
-        id_andi : id_rd_wdata_alu = id_rs1_rdata    & 32'(id_i_imm);
-        id_slli : id_rd_wdata_alu = id_rs1_rdata   << id_i_imm_u[4:0];
-        id_srli : id_rd_wdata_alu = id_rs1_rdata_u >> id_i_imm_u[4:0];
-        id_srai : id_rd_wdata_alu = id_rs1_rdata  >>> id_i_imm_u[4:0];
-        id_add  : id_rd_wdata_alu = id_rs1_rdata    + id_rs2_rdata;
-        id_sub  : id_rd_wdata_alu = id_rs1_rdata    - id_rs2_rdata;
-        id_sll  : id_rd_wdata_alu = id_rs1_rdata   << id_rs2_rdata_u[4:0];
-        id_slt  : id_rd_wdata_alu = (id_rs1_rdata   < id_rs2_rdata  ) ? 32'd1 : 32'd0;
-        id_sltu : id_rd_wdata_alu = (id_rs1_rdata_u < id_rs2_rdata_u) ? 32'd1 : 32'd0;
-        id_xor  : id_rd_wdata_alu = id_rs1_rdata    ^ id_rs2_rdata;
-        id_srl  : id_rd_wdata_alu = id_rs1_rdata_u >> id_rs2_rdata_u[4:0];
-        id_sra  : id_rd_wdata_alu = id_rs1_rdata  >>> id_rs2_rdata_u[4:0];
-        id_or   : id_rd_wdata_alu = id_rs1_rdata    | id_rs2_rdata;
-        id_and  : id_rd_wdata_alu = id_rs1_rdata    & id_rs2_rdata;
+        id_dec_jal  : ex_rd_wdata_alu <= 32'(ex_pc + 4);
+        id_dec_jalr : ex_rd_wdata_alu <= 32'(ex_pc + 4);
+        id_dec_addi : ex_rd_wdata_alu <= id_rs1_rdata    + 32'(id_i_imm);
+        id_dec_slti : ex_rd_wdata_alu <= (id_rs1_rdata   < 32'(id_i_imm)  ) ? 32'd1 : 32'd0;
+        id_dec_sltiu: ex_rd_wdata_alu <= (id_rs1_rdata_u < 32'(id_i_imm_u)) ? 32'd1 : 32'd0;
+        id_dec_xori : ex_rd_wdata_alu <= id_rs1_rdata    ^ 32'(id_i_imm);
+        id_dec_ori  : ex_rd_wdata_alu <= id_rs1_rdata    | 32'(id_i_imm);
+        id_dec_andi : ex_rd_wdata_alu <= id_rs1_rdata    & 32'(id_i_imm);
+        id_dec_slli : ex_rd_wdata_alu <= id_rs1_rdata   << id_i_imm_u[4:0];
+        id_dec_srli : ex_rd_wdata_alu <= id_rs1_rdata_u >> id_i_imm_u[4:0];
+        id_dec_srai : ex_rd_wdata_alu <= id_rs1_rdata  >>> id_i_imm_u[4:0];
+        id_dec_add  : ex_rd_wdata_alu <= id_rs1_rdata    + id_rs2_rdata;
+        id_dec_sub  : ex_rd_wdata_alu <= id_rs1_rdata    - id_rs2_rdata;
+        id_dec_sll  : ex_rd_wdata_alu <= id_rs1_rdata   << id_rs2_rdata_u[4:0];
+        id_dec_slt  : ex_rd_wdata_alu <= (id_rs1_rdata   < id_rs2_rdata  ) ? 32'd1 : 32'd0;
+        id_dec_sltu : ex_rd_wdata_alu <= (id_rs1_rdata_u < id_rs2_rdata_u) ? 32'd1 : 32'd0;
+        id_dec_xor  : ex_rd_wdata_alu <= id_rs1_rdata    ^ id_rs2_rdata;
+        id_dec_srl  : ex_rd_wdata_alu <= id_rs1_rdata_u >> id_rs2_rdata_u[4:0];
+        id_dec_sra  : ex_rd_wdata_alu <= id_rs1_rdata  >>> id_rs2_rdata_u[4:0];
+        id_dec_or   : ex_rd_wdata_alu <= id_rs1_rdata    | id_rs2_rdata;
+        id_dec_and  : ex_rd_wdata_alu <= id_rs1_rdata    & id_rs2_rdata;
         default: ;
         endcase
     end
@@ -544,42 +576,42 @@ module jelly2_riscv_simple_core
         end
     end
 
-    logic   signed  [31:0]  id_rd_wdata_mem;
+    logic   signed  [31:0]  ex_rd_wdata_mem;
     always_comb begin
-        id_rd_wdata_mem = 'x;
+        ex_rd_wdata_mem = 'x;
         if ( ex_mem_sel[1] ) begin
-            id_rd_wdata_mem = dbus_rdata;
+            ex_rd_wdata_mem = dbus_rdata;
         end
         else begin
             if ( ex_mem_unsigned ) begin
                 if ( id_mem_sel[0] ) begin
                     case ( ex_mem_addr[1] )
-                    1'b0:   id_rd_wdata_mem = 32'($unsigned(dbus_rdata[15:0]));
-                    1'b1:   id_rd_wdata_mem = 32'($unsigned(dbus_rdata[31:16]));
+                    1'b0:   ex_rd_wdata_mem = 32'($unsigned(dbus_rdata[15:0]));
+                    1'b1:   ex_rd_wdata_mem = 32'($unsigned(dbus_rdata[31:16]));
                     endcase
                 end
                 else begin
                     case ( ex_mem_addr[1:0] )
-                    2'b00:   id_rd_wdata_mem = 32'($unsigned(dbus_rdata[7:0]));
-                    2'b01:   id_rd_wdata_mem = 32'($unsigned(dbus_rdata[15:8]));
-                    2'b10:   id_rd_wdata_mem = 32'($unsigned(dbus_rdata[23:16]));
-                    2'b11:   id_rd_wdata_mem = 32'($unsigned(dbus_rdata[31:24]));
+                    2'b00:  ex_rd_wdata_mem = 32'($unsigned(dbus_rdata[7:0]));
+                    2'b01:  ex_rd_wdata_mem = 32'($unsigned(dbus_rdata[15:8]));
+                    2'b10:  ex_rd_wdata_mem = 32'($unsigned(dbus_rdata[23:16]));
+                    2'b11:  ex_rd_wdata_mem = 32'($unsigned(dbus_rdata[31:24]));
                     endcase
                 end
             end
             else begin
                 if ( id_mem_sel[0] ) begin
                     case ( ex_mem_addr[1] )
-                    1'b0:   id_rd_wdata_mem = 32'($signed(dbus_rdata[15:0]));
-                    1'b1:   id_rd_wdata_mem = 32'($signed(dbus_rdata[31:16]));
+                    1'b0:   ex_rd_wdata_mem = 32'($signed(dbus_rdata[15:0]));
+                    1'b1:   ex_rd_wdata_mem = 32'($signed(dbus_rdata[31:16]));
                     endcase
                 end
                 else begin
                     case ( ex_mem_addr[1:0] )
-                    2'b00:   id_rd_wdata_mem = 32'($signed(dbus_rdata[7:0]));
-                    2'b01:   id_rd_wdata_mem = 32'($signed(dbus_rdata[15:8]));
-                    2'b10:   id_rd_wdata_mem = 32'($signed(dbus_rdata[23:16]));
-                    2'b11:   id_rd_wdata_mem = 32'($signed(dbus_rdata[31:24]));
+                    2'b00:  ex_rd_wdata_mem = 32'($signed(dbus_rdata[7:0]));
+                    2'b01:  ex_rd_wdata_mem = 32'($signed(dbus_rdata[15:8]));
+                    2'b10:  ex_rd_wdata_mem = 32'($signed(dbus_rdata[23:16]));
+                    2'b11:  ex_rd_wdata_mem = 32'($signed(dbus_rdata[31:24]));
                     endcase
                 end
             end
@@ -588,23 +620,26 @@ module jelly2_riscv_simple_core
 
     logic   signed  [31:0]  id_rd_wdata;
     always_comb begin
-        id_rd_wdata = ex_mem_rd ? id_rd_wdata_mem : id_rd_wdata_alu;
+        id_rd_wdata = ex_mem_rd ? ex_rd_wdata_mem : ex_rd_wdata_alu;
     end
-
 
     always_ff @(posedge clk) begin
-        if ( reset ) begin
-
+        if ( reset ) begin            
+            ex_rd_en <= 1'b0;
+            ex_rd    <= 'x;
+            ex_pc    <= 'x;
+            ex_instr <= 'x;
+            ex_valid <= 1'b0;
         end
         else if ( cke ) begin
-            
+            ex_rd_en <= id_rd_en;
+            ex_rd    <= id_rd;
+            ex_pc    <= ex_pc_next;
+            ex_instr <= id_instr;
+            ex_valid <= id_valid;
         end
     end
-
-    // if, id, ex, wb
-
-
-
+    
 endmodule
 
 

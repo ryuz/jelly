@@ -65,8 +65,8 @@ module tb_sim_main
                 .FILLMEM        (0),
                 .FILLMEM_DATA   (0),
                 .READMEMB       (0),
-                .READMEMH       (0),
-                .READMEM_FIlE   ("")
+                .READMEMH       (1),
+                .READMEM_FIlE   ("../mem.hex")
             )
         i_ram_dualport
             (

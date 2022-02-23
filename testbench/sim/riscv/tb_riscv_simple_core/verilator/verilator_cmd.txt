@@ -1,4 +1,4 @@
-#--trace-fst --trace-params --trace-structs --trace-underscore
+--trace-fst --trace-params --trace-structs --trace-underscore
 #--public
 #--threads 2
 
