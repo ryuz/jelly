@@ -181,6 +181,22 @@ module jelly2_riscv_simple_core
         end
     end
 
+    logic       branch_miss;
+    always_ff @(posedge clk) begin
+        if ( reset ) begin
+            branch_miss <= 1'b0;
+        end
+        else begin
+            if ( if_valid ) begin
+                branch_miss <= (if_pc != ex_pc_next);
+            end
+        end
+    end
+
+    assign branch_valid = !branch_miss && if_valid && (if_pc != ex_pc_next);
+    assign branch_pc    = ex_pc_next;
+    
+
     logic           [6:0]   id_opcode;
     logic           [4:0]   id_rd;
     logic           [4:0]   id_rs1;
@@ -506,6 +522,8 @@ module jelly2_riscv_simple_core
     always_ff @(posedge clk) begin
         ex_rd_wdata_alu <= 'x;
         unique case (1'b1)
+        id_dec_lui  : ex_rd_wdata_alu <= id_imm_u;
+        id_dec_auipc: ex_rd_wdata_alu <= id_imm_u + 32'(id_pc);
         id_dec_jal  : ex_rd_wdata_alu <= 32'(ex_pc) + 32'd4;
         id_dec_jalr : ex_rd_wdata_alu <= 32'(ex_pc) + 32'd4;
         id_dec_addi : ex_rd_wdata_alu <= id_rs1_rdata    + 32'(id_imm_i);
