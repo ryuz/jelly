@@ -92,11 +92,11 @@ module jelly2_riscv_simple_core
     logic           [2:0]   if_funct3;
     logic           [6:0]   if_funct7;
 
-    logic   signed  [11:0]  if_i_imm;
-    logic   signed  [11:0]  if_s_imm;
-    logic   signed  [12:0]  if_b_imm;
-    logic   signed  [31:0]  if_u_imm;
-    logic   signed  [20:0]  if_j_imm;
+    logic   signed  [11:0]  if_imm_i;
+    logic   signed  [11:0]  if_imm_s;
+    logic   signed  [12:0]  if_imm_b;
+    logic   signed  [31:0]  if_imm_u;
+    logic   signed  [20:0]  if_imm_j;
 
     assign if_opcode = if_instr[6:0];
     assign if_rd     = if_instr[11:7];
@@ -105,11 +105,11 @@ module jelly2_riscv_simple_core
     assign if_funct3 = if_instr[14:12];
     assign if_funct7 = if_instr[31:25];
 
-    assign if_i_imm  = if_instr[31:20];
-    assign if_s_imm  = {if_instr[31:25], if_instr[11:7]};
-    assign if_b_imm  = {if_instr[31], if_instr[7], if_instr[30:25], if_instr[11:8], 1'b0};
-    assign if_u_imm  = {if_instr[31:12], 12'd0};
-    assign if_j_imm  = {if_instr[31], if_instr[19:12], if_instr[20], if_instr[30:21], 1'b0};
+    assign if_imm_i  = if_instr[31:20];
+    assign if_imm_s  = {if_instr[31:25], if_instr[11:7]};
+    assign if_imm_b  = {if_instr[31], if_instr[7], if_instr[30:25], if_instr[11:8], 1'b0};
+    assign if_imm_u  = {if_instr[31:12], 12'd0};
+    assign if_imm_j  = {if_instr[31], if_instr[19:12], if_instr[20], if_instr[30:21], 1'b0};
     
     // decode
     wire    if_dec_lui    = (if_opcode == 7'b0110111);
@@ -188,11 +188,11 @@ module jelly2_riscv_simple_core
     logic           [2:0]   id_funct3;
     logic           [6:0]   id_funct7;
 
-    logic   signed  [11:0]  id_i_imm;
-    logic   signed  [11:0]  id_s_imm;
-    logic   signed  [12:0]  id_b_imm;
-    logic   signed  [31:0]  id_u_imm;
-    logic   signed  [20:0]  id_j_imm;
+    logic   signed  [11:0]  id_imm_i;
+    logic   signed  [11:0]  id_imm_s;
+    logic   signed  [12:0]  id_imm_b;
+    logic   signed  [31:0]  id_imm_u;
+    logic   signed  [20:0]  id_imm_j;
 
     assign id_opcode = id_instr[6:0];
     assign id_rd     = id_instr[11:7];
@@ -200,31 +200,30 @@ module jelly2_riscv_simple_core
     assign id_rs2    = id_instr[24:20];
     assign id_funct3 = id_instr[14:12];
     assign id_funct7 = id_instr[31:25];
-    assign id_i_imm  = id_instr[31:20];
-    assign id_s_imm  = {id_instr[31:25], id_instr[11:7]};
-    assign id_b_imm  = {id_instr[31], id_instr[7], id_instr[30:25], id_instr[11:8], 1'b0};
-    assign id_u_imm  = {id_instr[31:12], 12'd0};
-    assign id_j_imm  = {id_instr[31], id_instr[19:12], id_instr[20], id_instr[30:21], 1'b0};
+    assign id_imm_i  = id_instr[31:20];
+    assign id_imm_s  = {id_instr[31:25], id_instr[11:7]};
+    assign id_imm_b  = {id_instr[31], id_instr[7], id_instr[30:25], id_instr[11:8], 1'b0};
+    assign id_imm_u  = {id_instr[31:12], 12'd0};
+    assign id_imm_j  = {id_instr[31], id_instr[19:12], id_instr[20], id_instr[30:21], 1'b0};
 
-    logic           [11:0]  id_i_imm_u;
-    logic           [11:0]  id_s_imm_u;
-    logic           [12:0]  id_b_imm_u;
-    logic           [31:0]  id_u_imm_u;
-    logic           [20:0]  id_j_imm_u;
-    assign id_i_imm_u = id_i_imm;
-    assign id_s_imm_u = id_s_imm;
-    assign id_b_imm_u = id_b_imm;
-    assign id_u_imm_u = id_u_imm;
-    assign id_j_imm_u = id_j_imm;
-
+    logic           [11:0]  id_imm_i_u;
+    logic           [11:0]  id_imm_s_u;
+    logic           [12:0]  id_imm_b_u;
+    logic           [31:0]  id_imm_u_u;
+    logic           [20:0]  id_imm_j_u;
+    assign id_imm_i_u = id_imm_i;
+    assign id_imm_s_u = id_imm_s;
+    assign id_imm_b_u = id_imm_b;
+    assign id_imm_u_u = id_imm_u;
+    assign id_imm_j_u = id_imm_j;
 
     // register file
     logic                       ex_rd_en;
     logic           [4:0]       ex_rd;
     logic           [31:0]      ex_rd_wdata;
 
-    logic   signed  [31:0]      id_rs1_rdata;
-    logic   signed  [31:0]      id_rs2_rdata;
+    logic   signed  [31:0]      id_rs1_rdata_raw;
+    logic   signed  [31:0]      id_rs2_rdata_raw;
 
     jelly2_register_file
             #(
@@ -246,14 +245,26 @@ module jelly2_riscv_simple_core
 
                 .rd_en          (2'b11),
                 .rd_addr        ({if_rs2, if_rs1}),
-                .rd_dout        ({id_rs2_rdata, id_rs1_rdata})
+                .rd_dout        ({id_rs2_rdata_raw, id_rs1_rdata_raw})
             );
+
+    // forwarding
+    logic   id_rs1_forward;
+    logic   id_rs2_forward;
+    always_ff @(posedge clk) begin
+        id_rs1_forward <= id_rd_en && (id_rd == if_rs1);
+        id_rs2_forward <= id_rd_en && (id_rd == if_rs2);
+    end
+
+    logic   signed  [31:0]      id_rs1_rdata;
+    logic   signed  [31:0]      id_rs2_rdata;
+    assign id_rs1_rdata = id_rs1_forward ? ex_rd_wdata : id_rs1_rdata_raw;
+    assign id_rs2_rdata = id_rs2_forward ? ex_rd_wdata : id_rs2_rdata_raw;
 
     logic           [31:0]      id_rs1_rdata_u;
     logic           [31:0]      id_rs2_rdata_u;
     assign id_rs1_rdata_u = id_rs1_rdata;
     assign id_rs2_rdata_u = id_rs2_rdata;
-
 
 
     // instruction decode
@@ -408,12 +419,12 @@ module jelly2_riscv_simple_core
                 id_mem_sel    <= if_funct3[1:0];
                 if ( if_dec_lb || if_dec_lh || if_dec_lw || if_dec_lbu || if_dec_lhu ) begin
                     id_mem_rd       <= 1'b1;
-                    id_mem_offset   <= 32'(if_i_imm);
+                    id_mem_offset   <= 32'(if_imm_i);
                     id_mem_unsigned <= (if_dec_lbu || if_dec_lhu);
                 end
                 if ( if_dec_sb || if_dec_sh ||  if_dec_sw ) begin
                     id_mem_we     <= 1'b1;
-                    id_mem_offset <= 32'(if_s_imm);
+                    id_mem_offset <= 32'(if_imm_s);
                 end
             end
         end
@@ -473,14 +484,14 @@ module jelly2_riscv_simple_core
     always_comb begin
         ex_pc_next     = ex_pc + 4;
         unique case (1'b1)
-        id_dec_jal : ex_pc_next = id_pc                   + PC_WIDTH'(id_j_imm);
-        id_dec_jalr: ex_pc_next = PC_WIDTH'(id_rs1_rdata) + PC_WIDTH'(id_i_imm);
-        id_dec_beq : if ( id_rs1_rdata == id_rs2_rdata ) ex_pc_next = id_pc + PC_WIDTH'(id_b_imm);
-        id_dec_bne : if ( id_rs1_rdata != id_rs2_rdata ) ex_pc_next = id_pc + PC_WIDTH'(id_b_imm);
-        id_dec_blt : if ( $signed(id_rs1_rdata)  < $signed(id_rs2_rdata) ) ex_pc_next = id_pc + PC_WIDTH'(id_b_imm);
-        id_dec_bge : if ( $signed(id_rs1_rdata) >= $signed(id_rs2_rdata) ) ex_pc_next = id_pc + PC_WIDTH'(id_b_imm);
-        id_dec_bltu: if ( $unsigned(id_rs1_rdata)  < $unsigned(id_rs2_rdata) ) ex_pc_next = id_pc + PC_WIDTH'(id_b_imm);
-        id_dec_bgeu: if ( $unsigned(id_rs1_rdata) >= $unsigned(id_rs2_rdata) ) ex_pc_next = id_pc + PC_WIDTH'(id_b_imm);
+        id_dec_jal : ex_pc_next = id_pc                   + PC_WIDTH'(id_imm_j);
+        id_dec_jalr: ex_pc_next = PC_WIDTH'(id_rs1_rdata) + PC_WIDTH'(id_imm_i);
+        id_dec_beq : if ( id_rs1_rdata == id_rs2_rdata ) ex_pc_next = id_pc + PC_WIDTH'(id_imm_b);
+        id_dec_bne : if ( id_rs1_rdata != id_rs2_rdata ) ex_pc_next = id_pc + PC_WIDTH'(id_imm_b);
+        id_dec_blt : if ( $signed(id_rs1_rdata)  < $signed(id_rs2_rdata) ) ex_pc_next = id_pc + PC_WIDTH'(id_imm_b);
+        id_dec_bge : if ( $signed(id_rs1_rdata) >= $signed(id_rs2_rdata) ) ex_pc_next = id_pc + PC_WIDTH'(id_imm_b);
+        id_dec_bltu: if ( $unsigned(id_rs1_rdata)  < $unsigned(id_rs2_rdata) ) ex_pc_next = id_pc + PC_WIDTH'(id_imm_b);
+        id_dec_bgeu: if ( $unsigned(id_rs1_rdata) >= $unsigned(id_rs2_rdata) ) ex_pc_next = id_pc + PC_WIDTH'(id_imm_b);
         default: ;
         endcase
 
@@ -495,17 +506,17 @@ module jelly2_riscv_simple_core
     always_ff @(posedge clk) begin
         ex_rd_wdata_alu <= 'x;
         unique case (1'b1)
-        id_dec_jal  : ex_rd_wdata_alu <= 32'(ex_pc + 4);
-        id_dec_jalr : ex_rd_wdata_alu <= 32'(ex_pc + 4);
-        id_dec_addi : ex_rd_wdata_alu <= id_rs1_rdata    + 32'(id_i_imm);
-        id_dec_slti : ex_rd_wdata_alu <= (id_rs1_rdata   < 32'(id_i_imm)  ) ? 32'd1 : 32'd0;
-        id_dec_sltiu: ex_rd_wdata_alu <= (id_rs1_rdata_u < 32'(id_i_imm_u)) ? 32'd1 : 32'd0;
-        id_dec_xori : ex_rd_wdata_alu <= id_rs1_rdata    ^ 32'(id_i_imm);
-        id_dec_ori  : ex_rd_wdata_alu <= id_rs1_rdata    | 32'(id_i_imm);
-        id_dec_andi : ex_rd_wdata_alu <= id_rs1_rdata    & 32'(id_i_imm);
-        id_dec_slli : ex_rd_wdata_alu <= id_rs1_rdata   << id_i_imm_u[4:0];
-        id_dec_srli : ex_rd_wdata_alu <= id_rs1_rdata_u >> id_i_imm_u[4:0];
-        id_dec_srai : ex_rd_wdata_alu <= id_rs1_rdata  >>> id_i_imm_u[4:0];
+        id_dec_jal  : ex_rd_wdata_alu <= 32'(ex_pc) + 32'd4;
+        id_dec_jalr : ex_rd_wdata_alu <= 32'(ex_pc) + 32'd4;
+        id_dec_addi : ex_rd_wdata_alu <= id_rs1_rdata    + 32'(id_imm_i);
+        id_dec_slti : ex_rd_wdata_alu <= (id_rs1_rdata   < 32'(id_imm_i)  ) ? 32'd1 : 32'd0;
+        id_dec_sltiu: ex_rd_wdata_alu <= (id_rs1_rdata_u < 32'(id_imm_i_u)) ? 32'd1 : 32'd0;
+        id_dec_xori : ex_rd_wdata_alu <= id_rs1_rdata    ^ 32'(id_imm_i);
+        id_dec_ori  : ex_rd_wdata_alu <= id_rs1_rdata    | 32'(id_imm_i);
+        id_dec_andi : ex_rd_wdata_alu <= id_rs1_rdata    & 32'(id_imm_i);
+        id_dec_slli : ex_rd_wdata_alu <= id_rs1_rdata   << id_imm_i_u[4:0];
+        id_dec_srli : ex_rd_wdata_alu <= id_rs1_rdata_u >> id_imm_i_u[4:0];
+        id_dec_srai : ex_rd_wdata_alu <= id_rs1_rdata  >>> id_imm_i_u[4:0];
         id_dec_add  : ex_rd_wdata_alu <= id_rs1_rdata    + id_rs2_rdata;
         id_dec_sub  : ex_rd_wdata_alu <= id_rs1_rdata    - id_rs2_rdata;
         id_dec_sll  : ex_rd_wdata_alu <= id_rs1_rdata   << id_rs2_rdata_u[4:0];
@@ -618,9 +629,8 @@ module jelly2_riscv_simple_core
         end
     end
 
-    logic   signed  [31:0]  id_rd_wdata;
     always_comb begin
-        id_rd_wdata = ex_mem_rd ? ex_rd_wdata_mem : ex_rd_wdata_alu;
+        ex_rd_wdata = ex_mem_rd ? ex_rd_wdata_mem : ex_rd_wdata_alu;
     end
 
     always_ff @(posedge clk) begin
