@@ -79,7 +79,7 @@ module jelly2_ram_singleport
     
     // DOUT FF insert
     if ( DOUT_REGS ) begin : blk_dout_regs
-        reg     [WE_WIDTH*WORD_WIDTH-1:0]    reg_dout;
+        logic   [WE_WIDTH*WORD_WIDTH-1:0]    reg_dout;
         always_ff @(posedge clk) begin
             if ( regcke ) begin
                 reg_dout <= tmp_dout;
