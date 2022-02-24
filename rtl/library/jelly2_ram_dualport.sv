@@ -14,52 +14,52 @@
 // Dualport-RAM
 module jelly2_ram_dualport
         #(
-            parameter   int                                     ADDR_WIDTH   = 10,
-            parameter   int                                     DATA_WIDTH   = 32,
-            parameter   int                                     WE_WIDTH     = 1,
-            parameter   int                                     WORD_WIDTH   = DATA_WIDTH/WE_WIDTH,
-            parameter   int                                     MEM_SIZE     = (1 << ADDR_WIDTH),
-            parameter                                           RAM_TYPE     = "block",
-            parameter   bit                                     DOUT_REGS0   = 0,
-            parameter   bit                                     DOUT_REGS1   = 0,
-            parameter                                           MODE0        = "WRITE_FIRST",
-            parameter                                           MODE1        = "WRITE_FIRST",
+            parameter   int                                 ADDR_WIDTH   = 10,
+            parameter   int                                 DATA_WIDTH   = 32,
+            parameter   int                                 WE_WIDTH     = 1,
+            parameter   int                                 WORD_WIDTH   = DATA_WIDTH/WE_WIDTH,
+            parameter   int                                 MEM_SIZE     = (1 << ADDR_WIDTH),
+            parameter                                       RAM_TYPE     = "block",
+            parameter   bit                                 DOUT_REGS0   = 0,
+            parameter   bit                                 DOUT_REGS1   = 0,
+            parameter                                       MODE0        = "WRITE_FIRST",
+            parameter                                       MODE1        = "WRITE_FIRST",
 
-            parameter   bit                                     FILLMEM      = 0,
-            parameter   logic   [WE_WIDTH*WORD_WIDTH-1:0]       FILLMEM_DATA = 0,
-            parameter   bit                                     READMEMB     = 0,
-            parameter   bit                                     READMEMH     = 0,
-            parameter                                           READMEM_FIlE = ""
+            parameter   bit                                 FILLMEM      = 0,
+            parameter   logic   [WE_WIDTH*WORD_WIDTH-1:0]   FILLMEM_DATA = 0,
+            parameter   bit                                 READMEMB     = 0,
+            parameter   bit                                 READMEMH     = 0,
+            parameter                                       READMEM_FIlE = ""
         )
         (
             // port0
-            input   wire                                    port0_clk,
-            input   wire                                    port0_en,
-            input   wire                                    port0_regcke,
-            input   wire    [WE_WIDTH-1:0]                  port0_we,
-            input   wire    [ADDR_WIDTH-1:0]                port0_addr,
-            input   wire    [WE_WIDTH*WORD_WIDTH-1:0]       port0_din,
-            output  wire    [WE_WIDTH*WORD_WIDTH-1:0]       port0_dout,
+            input   wire                                port0_clk,
+            input   wire                                port0_en,
+            input   wire                                port0_regcke,
+            input   wire    [WE_WIDTH-1:0]              port0_we,
+            input   wire    [ADDR_WIDTH-1:0]            port0_addr,
+            input   wire    [WE_WIDTH*WORD_WIDTH-1:0]   port0_din,
+            output  wire    [WE_WIDTH*WORD_WIDTH-1:0]   port0_dout,
             
             // port1
-            input   wire                                    port1_clk,
-            input   wire                                    port1_en,
-            input   wire                                    port1_regcke,
-            input   wire    [WE_WIDTH-1:0]                  port1_we,
-            input   wire    [ADDR_WIDTH-1:0]                port1_addr,
-            input   wire    [WE_WIDTH-1:0][WORD_WIDTH-1:0]  port1_din,
-            output  wire    [WE_WIDTH-1:0][WORD_WIDTH-1:0]  port1_dout
+            input   wire                                port1_clk,
+            input   wire                                port1_en,
+            input   wire                                port1_regcke,
+            input   wire    [WE_WIDTH-1:0]              port1_we,
+            input   wire    [ADDR_WIDTH-1:0]            port1_addr,
+            input   wire    [WE_WIDTH*WORD_WIDTH-1:0]   port1_din,
+            output  wire    [WE_WIDTH*WORD_WIDTH-1:0]   port1_dout
         );
     
     // verilator lint_off MULTIDRIVEN
     
     // memory
     (* ram_style = RAM_TYPE *)
-    reg     [WE_WIDTH*WORD_WIDTH-1:0]         mem [0:MEM_SIZE-1];
+    reg     [WE_WIDTH*WORD_WIDTH-1:0]   mem [0:MEM_SIZE-1];
     
     // dout
-    logic   [WE_WIDTH-1:0][WORD_WIDTH-1:0]    tmp_port0_dout;
-    logic   [WE_WIDTH-1:0][WORD_WIDTH-1:0]    tmp_port1_dout;
+    logic   [WE_WIDTH*WORD_WIDTH-1:0]   tmp_port0_dout;
+    logic   [WE_WIDTH*WORD_WIDTH-1:0]   tmp_port1_dout;
     
     
     // port0
