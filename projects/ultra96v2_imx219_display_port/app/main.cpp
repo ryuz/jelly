@@ -260,8 +260,8 @@ int main(int argc, char *argv[])
 
     auto fifobuf_phys_adr = udmabuf5_acc.GetPhysAddr();
     auto fifobuf_mem_size = udmabuf5_acc.GetSize();
-    std::cout << "udmabuf5 phys addr : 0x" << std::hex << fifobuf_phys_adr << std::endl;
-    std::cout << "udmabuf5 size      : " << std::dec << fifobuf_mem_size << std::endl;
+    std::cout << "udmabuf phys addr : 0x" << std::hex << fifobuf_phys_adr << std::endl;
+    std::cout << "udmabuf size      : " << std::dec << fifobuf_mem_size << std::endl;
     reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_ADDR,     fifobuf_phys_adr);
     reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_SIZE,     fifobuf_mem_size);
     reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_AWLEN,    0x0f);

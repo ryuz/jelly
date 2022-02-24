@@ -27,9 +27,9 @@ dependencies = [
 
 [[package]]
 name = "jelly-mem_access"
-version = "0.1.4"
+version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c5a8ebb655300eb8575c3ac2e087c1c51d6c4e81c2ee382ce2baf53a37a03a4d"
+checksum = "3ee5b7027608240d75a9cea498e033d7833f1dda31bf847c19bc8b5dd098d417"
 dependencies = [
  "delegate",
 ]

@@ -8,7 +8,7 @@ edition = "2018"
 [dependencies]
 pudding-pac      = { git="https://github.com/ryuz/rust_rtos.git", rev = "c13dd9014f86e0e230f167007e8effd9d805ef3f" } 
 jelly-rtos       = { path = "../../../../../rust/rtos",       default-features=false, features=["reg64bit"] }
-jelly-mem_access = { version="0.1.4", default-features=false}
+jelly-mem_access = { version="0.1.5", default-features=false}
 #jelly-mem_access = { path = "../../../../../rust/mem_access", default-features=false}
 jelly-pac        = { path = "../../../../../rust/pac",        default-features=false}
 

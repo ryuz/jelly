@@ -19,23 +19,71 @@ void capture_still_image(jelly::MemAccessor& reg_wdma, jelly::MemAccessor& reg_f
 
 int main(int argc, char *argv[])
 {
-    double  pixel_clock = 139200000.0;
-    bool    binning     = true;
-    int     width       = 640;
-    int     height      = 132;
-    int     aoi_x       = -1;
-    int     aoi_y       = -1;
+    double  pixel_clock = 91000000.0;
+    bool    binning     = false;
+    int     width       = 3280;
+    int     height      = 2464;
+    int     aoi_x       = 0;
+    int     aoi_y       = 0;
     bool    flip_h      = false;
     bool    flip_v      = false;
-    int     frame_rate  = 1000;
-    int     exposure    = 10;
+    int     frame_rate  = 20;
+    int     exposure    = 33;
     int     a_gain      = 20;
-    int     d_gain      = 10;
-    int     bayer_phase = 1;
-    int     view_scale  = 1;
-
+    int     d_gain      = 0;
+    int     bayer_phase = 0;
+    int     view_scale  = 4;
+    
     for ( int i = 1; i < argc; ++i ) {
-        if ( strcmp(argv[i], "full") == 0 ) {
+        if ( strcmp(argv[i], "1000fps") == 0 ) {
+            pixel_clock = 139200000.0;
+            binning     = true;
+            width       = 640;
+            height      = 132;
+            aoi_x       = -1;
+            aoi_y       = -1;
+            flip_h      = false;
+            flip_v      = false;
+            frame_rate  = 1000;
+            exposure    = 1;
+            a_gain      = 20;
+            d_gain      = 10;
+            bayer_phase = 1;
+            view_scale  = 1;
+        }
+        else if ( strcmp(argv[i], "720p") == 0 ) {
+            pixel_clock = 91000000.0;
+            binning     = true;
+            width       = 1280;
+            height      = 720;
+            aoi_x       = -1;
+            aoi_y       = -1;
+            flip_h      = false;
+            flip_v      = false;
+            frame_rate  = 60;
+            exposure    = 20;
+            a_gain      = 20;
+            d_gain      = 0;
+            bayer_phase = 1;
+            view_scale  = 2;
+        }
+        else if ( strcmp(argv[i], "1080p") == 0 ) {
+            pixel_clock = 91000000.0;
+            binning     = false;
+            width       = 1920;
+            height      = 1080;
+            aoi_x       = -1;
+            aoi_y       = -1;
+            flip_h      = false;
+            flip_v      = false;
+            frame_rate  = 60;
+            exposure    = 20;
+            a_gain      = 20;
+            d_gain      = 0;
+            bayer_phase = 1;
+            view_scale  = 2;
+        }
+        else if ( strcmp(argv[i], "full") == 0 ) {
             pixel_clock = 91000000;
             binning    = false;
             width      = 3280;
@@ -108,7 +156,7 @@ int main(int argc, char *argv[])
 
 
     // mmap uio
-    jelly::UioAccessor uio_acc("uio_pl_peri", 0x10000000);
+    jelly::UioAccessor uio_acc("uio_pl_peri", 0x08000000);
     if ( !uio_acc.IsMapped() ) {
         std::cout << "uio_pl_peri mmap error" << std::endl;
         return 1;
@@ -132,9 +180,9 @@ int main(int argc, char *argv[])
 #endif
     
     // mmap udmabuf
-    jelly::UdmabufAccessor udmabuf_acc("udmabuf0");
+    jelly::UdmabufAccessor udmabuf_acc("udmabuf-jelly-vram0");
     if ( !udmabuf_acc.IsMapped() ) {
-        std::cout << "udmabuf0 mmap error" << std::endl;
+        std::cout << "udmabuf mmap error" << std::endl;
         return 1;
     }
 
