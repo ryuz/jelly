@@ -238,13 +238,13 @@ module jelly2_riscv_simple_core
     logic   signed  [31:0]      id_rs1_rdata_raw;
     logic   signed  [31:0]      id_rs2_rdata_raw;
 
-    jelly2_register_file
+ // jelly2_register_file
+    jelly2_register_file_ram
             #(
-                .WRITE_PORTS    (1),
+//              .WRITE_PORTS    (1),
                 .READ_PORTS     (2),
                 .ADDR_WIDTH     (5),
-                .DATA_WIDTH     (32),
-                .ZERO_REG       (0)
+                .DATA_WIDTH     (32)
             )
         i_register_file
             (
