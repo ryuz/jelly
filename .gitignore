@@ -85,6 +85,7 @@
 *.wdb
 *.vcd
 *.fst
+*.das
 
 *_tcl.xpr
 

@@ -16,6 +16,11 @@ pub unsafe extern "C" fn main() -> ! {
     for c in b"Hello world".iter() {
         *ptr = *c as i8;
     }
-    loop {}
+
+    let mut i: i32 = 0;
+    loop {
+        *ptr = i as i8;
+        i = i+1;
+    }
 }
 

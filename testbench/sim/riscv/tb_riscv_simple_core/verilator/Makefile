@@ -31,6 +31,7 @@ all: build run
 
 .PHONY : build
 build:
+	make -C ../rust_app
 	mkdir -p build && cd build && cmake $(CMAKE_FLAGS) ..
 	cmake --build build -j
 

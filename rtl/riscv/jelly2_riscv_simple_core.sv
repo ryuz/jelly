@@ -16,7 +16,9 @@ module jelly2_riscv_simple_core
             parameter int                   IBUS_ADDR_WIDTH = 14,
             parameter int                   DBUS_ADDR_WIDTH = 14,
             parameter int                   PC_WIDTH        = IBUS_ADDR_WIDTH + 2,
-            parameter bit   [PC_WIDTH-1:0]  RESET_PC_ADDR   = '0
+            parameter bit   [PC_WIDTH-1:0]  RESET_PC_ADDR   = PC_WIDTH'(32'h80000000),
+            parameter bit   [31:0]          MMIO_ADDR_MASK  = 32'hff000000,
+            parameter bit   [31:0]          MMIO_ADDR       = 32'hff000000
         )
         (
             input   wire                            reset,
@@ -30,7 +32,13 @@ module jelly2_riscv_simple_core
             output  reg                             dbus_rd,
             output  reg     [3:0]                   dbus_we,
             output  reg     [31:0]                  dbus_wdata,
-            input   wire    [31:0]                  dbus_rdata
+            input   wire    [31:0]                  dbus_rdata,
+
+            output  reg                             mmio_rd,
+            output  reg     [3:0]                   mmio_we,
+            output  reg     [31:0]                  mmio_addr,
+            output  reg     [31:0]                  mmio_wdata,
+            input   wire    [31:0]                  mmio_rdata
         );
 
 
@@ -168,19 +176,7 @@ module jelly2_riscv_simple_core
     // 将来分岐キャッシュとかやる用に当たり判定してみる
     assign id_valid_next = if_valid && (if_pc == ex_pc_next);
 
-    always_ff @(posedge clk) begin
-        if ( reset ) begin            
-            id_pc    <= '0;
-            id_instr <= '0;
-            id_valid <= 1'b0;
-        end
-        else if ( cke ) begin
-            id_pc    <= if_pc;
-            id_instr <= if_instr;
-            id_valid <= id_valid_next;
-        end
-    end
-
+    // 分岐予測ミスしたら分岐
     logic       branch_miss;
     always_ff @(posedge clk) begin
         if ( reset ) begin
@@ -195,8 +191,9 @@ module jelly2_riscv_simple_core
 
     assign branch_valid = !branch_miss && if_valid && (if_pc != ex_pc_next);
     assign branch_pc    = ex_pc_next;
-    
 
+
+    // 命令デコード
     logic           [6:0]   id_opcode;
     logic           [4:0]   id_rd;
     logic           [4:0]   id_rs1;
@@ -223,15 +220,15 @@ module jelly2_riscv_simple_core
     assign id_imm_j  = {id_instr[31], id_instr[19:12], id_instr[20], id_instr[30:21], 1'b0};
 
     logic           [11:0]  id_imm_i_u;
-    logic           [11:0]  id_imm_s_u;
-    logic           [12:0]  id_imm_b_u;
-    logic           [31:0]  id_imm_u_u;
-    logic           [20:0]  id_imm_j_u;
+//    logic           [11:0]  id_imm_s_u;
+//    logic           [12:0]  id_imm_b_u;
+//    logic           [31:0]  id_imm_u_u;
+//    logic           [20:0]  id_imm_j_u;
     assign id_imm_i_u = id_imm_i;
-    assign id_imm_s_u = id_imm_s;
-    assign id_imm_b_u = id_imm_b;
-    assign id_imm_u_u = id_imm_u;
-    assign id_imm_j_u = id_imm_j;
+//    assign id_imm_s_u = id_imm_s;
+//    assign id_imm_b_u = id_imm_b;
+//    assign id_imm_u_u = id_imm_u;
+//    assign id_imm_j_u = id_imm_j;
 
     // register file
     logic                       ex_rd_en;
@@ -486,6 +483,20 @@ module jelly2_riscv_simple_core
             end
         end
     end
+
+    always_ff @(posedge clk) begin
+        if ( reset ) begin            
+            id_pc    <= '0;
+            id_instr <= '0;
+            id_valid <= 1'b0;
+        end
+        else if ( cke ) begin
+            id_pc    <= if_pc;
+            id_instr <= if_instr;
+            id_valid <= id_valid_next;
+        end
+    end
+
 
 
     // -----------------------------------------
