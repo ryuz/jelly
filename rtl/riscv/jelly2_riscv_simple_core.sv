@@ -83,7 +83,7 @@ module jelly2_riscv_simple_core
         end
         else if ( cke ) begin
             if_pc    <= pc_pc;
-            if_valid <= 1'b1;
+            if_valid <= 1'b1 & ~branch_valid;
         end
     end
 
@@ -167,14 +167,14 @@ module jelly2_riscv_simple_core
     //  Instruction Decode
     // -----------------------------------------
 
-    logic   [PC_WIDTH-1:0]      ex_pc_next;
+    logic   [PC_WIDTH-1:0]      ex_expect_pc_next;
 
     logic   [PC_WIDTH-1:0]      id_pc;
     logic   [31:0]              id_instr;
     logic                       id_valid, id_valid_next;
 
     // 将来分岐キャッシュとかやる用に当たり判定してみる
-    assign id_valid_next = if_valid && (if_pc == ex_pc_next);
+    assign id_valid_next = if_valid && (if_pc == ex_expect_pc_next);
 
     // 分岐予測ミスしたら分岐
     logic       branch_miss;
@@ -184,13 +184,13 @@ module jelly2_riscv_simple_core
         end
         else begin
             if ( if_valid ) begin
-                branch_miss <= (if_pc != ex_pc_next);
+                branch_miss <= 1'b0;//(if_pc != ex_expect_pc_next);
             end
         end
     end
 
-    assign branch_valid = !branch_miss && if_valid && (if_pc != ex_pc_next);
-    assign branch_pc    = ex_pc_next;
+    assign branch_valid = !branch_miss && if_valid && (if_pc != ex_expect_pc_next);
+    assign branch_pc    = ex_expect_pc_next;
 
 
     // 命令デコード
@@ -451,35 +451,36 @@ module jelly2_riscv_simple_core
         else if ( cke ) begin
             id_rd_en <= '0;
             if ( id_valid_next ) begin
-                id_rd_en <= if_dec_lui   |
-                            if_dec_auipc |
-                            if_dec_jal   |
-                            if_dec_jalr  |
-                            if_dec_lb    |
-                            if_dec_lh    |
-                            if_dec_lw    |
-                            if_dec_lbu   |
-                            if_dec_lhu   |
-                            if_dec_addi  |
-                            if_dec_slti  |
-                            if_dec_sltiu |
-                            if_dec_xori  |
-                            if_dec_ori   |
-                            if_dec_andi  |
-                            if_dec_slli  |
-                            if_dec_srli  |
-                            if_dec_srai  |
-                            if_dec_add   |
-                            if_dec_sub   |
-                            if_dec_sll   |
-                            if_dec_slt   |
-                            if_dec_sltu  |
-                            if_dec_xor   |
-                            if_dec_srl   |
-                            if_dec_sra   |
-                            if_dec_or    |
-                            if_dec_and   |
-                            if_dec_fence;
+                id_rd_en <= (if_rd != 0) & (
+                                if_dec_lui   |
+                                if_dec_auipc |
+                                if_dec_jal   |
+                                if_dec_jalr  |
+                                if_dec_lb    |
+                                if_dec_lh    |
+                                if_dec_lw    |
+                                if_dec_lbu   |
+                                if_dec_lhu   |
+                                if_dec_addi  |
+                                if_dec_slti  |
+                                if_dec_sltiu |
+                                if_dec_xori  |
+                                if_dec_ori   |
+                                if_dec_andi  |
+                                if_dec_slli  |
+                                if_dec_srli  |
+                                if_dec_srai  |
+                                if_dec_add   |
+                                if_dec_sub   |
+                                if_dec_sll   |
+                                if_dec_slt   |
+                                if_dec_sltu  |
+                                if_dec_xor   |
+                                if_dec_srl   |
+                                if_dec_sra   |
+                                if_dec_or    |
+                                if_dec_and   |
+                                if_dec_fence);
             end
         end
     end
@@ -503,27 +504,28 @@ module jelly2_riscv_simple_core
     //  Execution
     // -----------------------------------------
 
+    logic   [PC_WIDTH-1:0]      ex_expect_pc;
     logic   [PC_WIDTH-1:0]      ex_pc;
     logic   [31:0]              ex_instr;
     logic                       ex_valid;
 
     // branch
     always_comb begin
-        ex_pc_next     = ex_pc + 4;
+        ex_expect_pc_next     = ex_expect_pc + 4;
         unique case (1'b1)
-        id_dec_jal : ex_pc_next = id_pc                   + PC_WIDTH'(id_imm_j);
-        id_dec_jalr: ex_pc_next = PC_WIDTH'(id_rs1_rdata) + PC_WIDTH'(id_imm_i);
-        id_dec_beq : if ( id_rs1_rdata == id_rs2_rdata ) ex_pc_next = id_pc + PC_WIDTH'(id_imm_b);
-        id_dec_bne : if ( id_rs1_rdata != id_rs2_rdata ) ex_pc_next = id_pc + PC_WIDTH'(id_imm_b);
-        id_dec_blt : if ( $signed(id_rs1_rdata)  < $signed(id_rs2_rdata) ) ex_pc_next = id_pc + PC_WIDTH'(id_imm_b);
-        id_dec_bge : if ( $signed(id_rs1_rdata) >= $signed(id_rs2_rdata) ) ex_pc_next = id_pc + PC_WIDTH'(id_imm_b);
-        id_dec_bltu: if ( $unsigned(id_rs1_rdata)  < $unsigned(id_rs2_rdata) ) ex_pc_next = id_pc + PC_WIDTH'(id_imm_b);
-        id_dec_bgeu: if ( $unsigned(id_rs1_rdata) >= $unsigned(id_rs2_rdata) ) ex_pc_next = id_pc + PC_WIDTH'(id_imm_b);
+        id_dec_jal : ex_expect_pc_next = id_pc                   + PC_WIDTH'(id_imm_j);
+        id_dec_jalr: ex_expect_pc_next = PC_WIDTH'(id_rs1_rdata) + PC_WIDTH'(id_imm_i);
+        id_dec_beq : if ( id_rs1_rdata == id_rs2_rdata ) ex_expect_pc_next = id_pc + PC_WIDTH'(id_imm_b);
+        id_dec_bne : if ( id_rs1_rdata != id_rs2_rdata ) ex_expect_pc_next = id_pc + PC_WIDTH'(id_imm_b);
+        id_dec_blt : if ( $signed(id_rs1_rdata)  < $signed(id_rs2_rdata) ) ex_expect_pc_next = id_pc + PC_WIDTH'(id_imm_b);
+        id_dec_bge : if ( $signed(id_rs1_rdata) >= $signed(id_rs2_rdata) ) ex_expect_pc_next = id_pc + PC_WIDTH'(id_imm_b);
+        id_dec_bltu: if ( $unsigned(id_rs1_rdata)  < $unsigned(id_rs2_rdata) ) ex_expect_pc_next = id_pc + PC_WIDTH'(id_imm_b);
+        id_dec_bgeu: if ( $unsigned(id_rs1_rdata) >= $unsigned(id_rs2_rdata) ) ex_expect_pc_next = id_pc + PC_WIDTH'(id_imm_b);
         default: ;
         endcase
 
         if ( !id_valid ) begin
-            ex_pc_next = ex_pc;
+            ex_expect_pc_next = ex_expect_pc;
         end
     end
 
@@ -535,8 +537,8 @@ module jelly2_riscv_simple_core
         unique case (1'b1)
         id_dec_lui  : ex_rd_wdata_alu <= id_imm_u;
         id_dec_auipc: ex_rd_wdata_alu <= id_imm_u + 32'(id_pc);
-        id_dec_jal  : ex_rd_wdata_alu <= 32'(ex_pc) + 32'd4;
-        id_dec_jalr : ex_rd_wdata_alu <= 32'(ex_pc) + 32'd4;
+        id_dec_jal  : ex_rd_wdata_alu <= 32'(ex_expect_pc) + 32'd4;
+        id_dec_jalr : ex_rd_wdata_alu <= 32'(ex_expect_pc) + 32'd4;
         id_dec_addi : ex_rd_wdata_alu <= id_rs1_rdata    + 32'(id_imm_i);
         id_dec_slti : ex_rd_wdata_alu <= (id_rs1_rdata   < 32'(id_imm_i)  ) ? 32'd1 : 32'd0;
         id_dec_sltiu: ex_rd_wdata_alu <= (id_rs1_rdata_u < 32'(id_imm_i_u)) ? 32'd1 : 32'd0;
@@ -664,18 +666,20 @@ module jelly2_riscv_simple_core
 
     always_ff @(posedge clk) begin
         if ( reset ) begin            
-            ex_rd_en <= 1'b0;
-            ex_rd    <= 'x;
-            ex_pc    <= 'x;
-            ex_instr <= 'x;
-            ex_valid <= 1'b0;
+            ex_rd_en     <= 1'b0;
+            ex_rd        <= 'x;
+            ex_expect_pc <= PC_WIDTH'(RESET_PC_ADDR);
+            ex_pc        <= 'x;
+            ex_instr     <= 'x;
+            ex_valid     <= 1'b0;
         end
         else if ( cke ) begin
-            ex_rd_en <= id_rd_en;
-            ex_rd    <= id_rd;
-            ex_pc    <= ex_pc_next;
-            ex_instr <= id_instr;
-            ex_valid <= id_valid;
+            ex_rd_en     <= id_rd_en;
+            ex_rd        <= id_rd;
+            ex_expect_pc <= ex_expect_pc_next;
+            ex_pc        <= id_pc;
+            ex_instr     <= id_instr;
+            ex_valid     <= id_valid;
         end
     end
     

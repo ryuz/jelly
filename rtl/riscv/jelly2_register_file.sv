@@ -37,8 +37,8 @@ module jelly2_register_file
             output  reg     [READ_PORTS-1:0][DATA_WIDTH-1:0]    rd_dout
         );
 
-    logic   [REGISTERS-1:0][DATA_WIDTH-1:0]  reg_files;
-
+    logic   [REGISTERS-1:0][DATA_WIDTH-1:0]  reg_files = '0;
+    
     always_ff @(posedge clk) begin
         if ( reset ) begin
             reg_files <= '0;
