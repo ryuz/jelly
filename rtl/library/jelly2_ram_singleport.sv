@@ -15,8 +15,8 @@
 // Singleport-RAM
 module jelly2_ram_singleport
         #(
-            parameter   int                                 ADDR_WIDTH   = 8,
-            parameter   int                                 DATA_WIDTH   = 8,
+            parameter   int                                 ADDR_WIDTH   = 10,
+            parameter   int                                 DATA_WIDTH   = 32,
             parameter   int                                 WE_WIDTH     = 1,
             parameter   int                                 WORD_WIDTH   = DATA_WIDTH/WE_WIDTH,
             parameter   int                                 MEM_SIZE     = (1 << ADDR_WIDTH),
@@ -64,7 +64,7 @@ module jelly2_ram_singleport
         end
         else begin : blk_read_first
             // read first
-            always_ff @ ( posedge clk ) begin
+            always_ff @( posedge clk ) begin
                 if ( en ) begin
                     if ( we[i] ) begin
                         mem[addr][i*WORD_WIDTH +: WORD_WIDTH] <= din[i*WORD_WIDTH +: WORD_WIDTH];
