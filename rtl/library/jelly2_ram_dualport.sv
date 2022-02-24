@@ -55,7 +55,7 @@ module jelly2_ram_dualport
     
     // memory
     (* ram_style = RAM_TYPE *)
-    reg     [WE_WIDTH*WORD_WIDTH-1:0]   mem [0:MEM_SIZE-1];
+    logic   [WE_WIDTH*WORD_WIDTH-1:0]   mem [0:MEM_SIZE-1];
     
     // dout
     logic   [WE_WIDTH*WORD_WIDTH-1:0]   tmp_port0_dout;
@@ -70,16 +70,16 @@ module jelly2_ram_dualport
             always_ff @ ( posedge port0_clk ) begin
                 if ( port0_en ) begin
                     if ( port0_we[i] ) begin
-                        mem[port0_addr][i*WORD_WIDTH +: WORD_WIDTH] <= port0_din[i];
-                        tmp_port0_dout[i] <= port0_din[i];
+                        mem[port0_addr][i*WORD_WIDTH +: WORD_WIDTH] <= port0_din[i*WORD_WIDTH +: WORD_WIDTH] ;
+                        tmp_port0_dout[i*WORD_WIDTH +: WORD_WIDTH]  <= port0_din[i*WORD_WIDTH +: WORD_WIDTH] ;
                     end
                     else begin
-                        tmp_port0_dout[i] <= mem[port0_addr][i*WORD_WIDTH +: WORD_WIDTH];
+                        tmp_port0_dout[i*WORD_WIDTH +: WORD_WIDTH]  <= mem[port0_addr][i*WORD_WIDTH +: WORD_WIDTH];
                     end
                 end
             end
         end
-        else begin
+        else begin : blk_rf0
             // read first
             always_ff @ ( posedge port0_clk ) begin
                 if ( port0_en ) begin
@@ -125,7 +125,7 @@ module jelly2_ram_dualport
                 end
             end
         end
-        else begin
+        else begin : blk_rf1
             // read first
             always_ff @ ( posedge port1_clk ) begin
                 if ( port1_en ) begin
