@@ -160,30 +160,11 @@ module jelly2_riscv_simple_core
     //  Instruction Decode
     // -----------------------------------------
 
-    logic   [PC_WIDTH-1:0]      ex_expect_pc_next;
-
     logic   [PC_WIDTH-1:0]      id_pc;
     logic   [31:0]              id_instr;
     logic                       id_valid, id_valid_next;
 
-    // 将来分岐キャッシュとかやる用に当たり判定してみる
-    assign id_valid_next = if_valid && (if_pc == ex_expect_pc_next);
-
-    // 分岐予測ミスしたら分岐
-    logic       branch_miss;
-    always_ff @(posedge clk) begin
-        if ( reset ) begin
-            branch_miss <= 1'b0;
-        end
-        else begin
-            if ( if_valid ) begin
-                branch_miss <= 1'b0;//(if_pc != ex_expect_pc_next);
-            end
-        end
-    end
-
-    assign branch_valid = !branch_miss && if_valid && (if_pc != ex_expect_pc_next);
-    assign branch_pc    = ex_expect_pc_next;
+    assign id_valid_next = if_valid && !branch_valid;
 
 
     // 命令デコード
@@ -263,133 +244,90 @@ module jelly2_riscv_simple_core
     assign id_rs1_rdata_u = id_rs1_rdata;
     assign id_rs2_rdata_u = id_rs2_rdata;
 
-
     // instruction decode
-    logic    id_dec_lui   ;
-    logic    id_dec_auipc ;
-    logic    id_dec_jal   ;
-    logic    id_dec_jalr  ;
-    logic    id_dec_beq   ;
-    logic    id_dec_bne   ;
-    logic    id_dec_blt   ;
-    logic    id_dec_bge   ;
-    logic    id_dec_bltu  ;
-    logic    id_dec_bgeu  ;
-    logic    id_dec_lb    ;
-    logic    id_dec_lh    ;
-    logic    id_dec_lw    ;
-    logic    id_dec_lbu   ;
-    logic    id_dec_lhu   ;
-    logic    id_dec_sb    ;
-    logic    id_dec_sh    ;
-    logic    id_dec_sw    ;
-    logic    id_dec_addi  ;
-    logic    id_dec_slti  ;
-    logic    id_dec_sltiu ;
-    logic    id_dec_xori  ;
-    logic    id_dec_ori   ;
-    logic    id_dec_andi  ;
-    logic    id_dec_slli  ;
-    logic    id_dec_srli  ;
-    logic    id_dec_srai  ;
-    logic    id_dec_add   ;
-    logic    id_dec_sub   ;
-    logic    id_dec_sll   ;
-    logic    id_dec_slt   ;
-    logic    id_dec_sltu  ;
-    logic    id_dec_xor   ;
-    logic    id_dec_srl   ;
-    logic    id_dec_sra   ;
-    logic    id_dec_or    ;
-    logic    id_dec_and   ;
-    logic    id_dec_fence ;
-    logic    id_dec_ecall ;
+    logic    id_dec_lui;
+    logic    id_dec_auipc;
+    logic    id_dec_jal;
+    logic    id_dec_jalr;
+    logic    id_dec_beq;
+    logic    id_dec_bne;
+    logic    id_dec_blt;
+    logic    id_dec_bge;
+    logic    id_dec_bltu;
+    logic    id_dec_bgeu;
+    logic    id_dec_lb;
+    logic    id_dec_lh;
+    logic    id_dec_lw;
+    logic    id_dec_lbu;
+    logic    id_dec_lhu;
+    logic    id_dec_sb;
+    logic    id_dec_sh;
+    logic    id_dec_sw;
+    logic    id_dec_addi;
+    logic    id_dec_slti;
+    logic    id_dec_sltiu;
+    logic    id_dec_xori;
+    logic    id_dec_ori;
+    logic    id_dec_andi;
+    logic    id_dec_slli;
+    logic    id_dec_srli;
+    logic    id_dec_srai;
+    logic    id_dec_add;
+    logic    id_dec_sub;
+    logic    id_dec_sll;
+    logic    id_dec_slt;
+    logic    id_dec_sltu;
+    logic    id_dec_xor;
+    logic    id_dec_srl;
+    logic    id_dec_sra;
+    logic    id_dec_or;
+    logic    id_dec_and;
+    logic    id_dec_fence;
+    logic    id_dec_ecall;
     logic    id_dec_ebreak;
 
     always_ff @(posedge clk) begin
-        if ( reset ) begin
-            id_dec_lui    <= 1'b0;
-            id_dec_auipc  <= 1'b0;
-            id_dec_jal    <= 1'b0;
-            id_dec_jalr   <= 1'b0;
-            id_dec_beq    <= 1'b0;
-            id_dec_bne    <= 1'b0;
-            id_dec_blt    <= 1'b0;
-            id_dec_bge    <= 1'b0;
-            id_dec_bltu   <= 1'b0;
-            id_dec_bgeu   <= 1'b0;
-            id_dec_lb     <= 1'b0;
-            id_dec_lh     <= 1'b0;
-            id_dec_lw     <= 1'b0;
-            id_dec_lbu    <= 1'b0;
-            id_dec_lhu    <= 1'b0;
-            id_dec_sb     <= 1'b0;
-            id_dec_sh     <= 1'b0;
-            id_dec_sw     <= 1'b0;
-            id_dec_addi   <= 1'b0;
-            id_dec_slti   <= 1'b0;
-            id_dec_sltiu  <= 1'b0;
-            id_dec_xori   <= 1'b0;
-            id_dec_ori    <= 1'b0;
-            id_dec_andi   <= 1'b0;
-            id_dec_slli   <= 1'b0;
-            id_dec_srli   <= 1'b0;
-            id_dec_srai   <= 1'b0;
-            id_dec_add    <= 1'b0;
-            id_dec_sub    <= 1'b0;
-            id_dec_sll    <= 1'b0;
-            id_dec_slt    <= 1'b0;
-            id_dec_sltu   <= 1'b0;
-            id_dec_xor    <= 1'b0;
-            id_dec_srl    <= 1'b0;
-            id_dec_sra    <= 1'b0;
-            id_dec_or     <= 1'b0;
-            id_dec_and    <= 1'b0;
-            id_dec_fence  <= 1'b0;
-            id_dec_ecall  <= 1'b0;
-            id_dec_ebreak <= 1'b0;
-        end
-        else if ( cke ) begin
-            id_dec_lui    <= if_dec_lui    & if_valid;
-            id_dec_auipc  <= if_dec_auipc  & if_valid;
-            id_dec_jal    <= if_dec_jal    & if_valid;
-            id_dec_jalr   <= if_dec_jalr   & if_valid;
-            id_dec_beq    <= if_dec_beq    & if_valid;
-            id_dec_bne    <= if_dec_bne    & if_valid;
-            id_dec_blt    <= if_dec_blt    & if_valid;
-            id_dec_bge    <= if_dec_bge    & if_valid;
-            id_dec_bltu   <= if_dec_bltu   & if_valid;
-            id_dec_bgeu   <= if_dec_bgeu   & if_valid;
-            id_dec_lb     <= if_dec_lb     & if_valid;
-            id_dec_lh     <= if_dec_lh     & if_valid;
-            id_dec_lw     <= if_dec_lw     & if_valid;
-            id_dec_lbu    <= if_dec_lbu    & if_valid;
-            id_dec_lhu    <= if_dec_lhu    & if_valid;
-            id_dec_sb     <= if_dec_sb     & if_valid;
-            id_dec_sh     <= if_dec_sh     & if_valid;
-            id_dec_sw     <= if_dec_sw     & if_valid;
-            id_dec_addi   <= if_dec_addi   & if_valid;
-            id_dec_slti   <= if_dec_slti   & if_valid;
-            id_dec_sltiu  <= if_dec_sltiu  & if_valid;
-            id_dec_xori   <= if_dec_xori   & if_valid;
-            id_dec_ori    <= if_dec_ori    & if_valid;
-            id_dec_andi   <= if_dec_andi   & if_valid;
-            id_dec_slli   <= if_dec_slli   & if_valid;
-            id_dec_srli   <= if_dec_srli   & if_valid;
-            id_dec_srai   <= if_dec_srai   & if_valid;
-            id_dec_add    <= if_dec_add    & if_valid;
-            id_dec_sub    <= if_dec_sub    & if_valid;
-            id_dec_sll    <= if_dec_sll    & if_valid;
-            id_dec_slt    <= if_dec_slt    & if_valid;
-            id_dec_sltu   <= if_dec_sltu   & if_valid;
-            id_dec_xor    <= if_dec_xor    & if_valid;
-            id_dec_srl    <= if_dec_srl    & if_valid;
-            id_dec_sra    <= if_dec_sra    & if_valid;
-            id_dec_or     <= if_dec_or     & if_valid;
-            id_dec_and    <= if_dec_and    & if_valid;
-            id_dec_fence  <= if_dec_fence  & if_valid;
-            id_dec_ecall  <= if_dec_ecall  & if_valid;
-            id_dec_ebreak <= if_dec_ebreak & if_valid;
+        if ( cke ) begin
+            id_dec_lui    <= if_dec_lui;
+            id_dec_auipc  <= if_dec_auipc;
+            id_dec_jal    <= if_dec_jal;
+            id_dec_jalr   <= if_dec_jalr;
+            id_dec_beq    <= if_dec_beq;
+            id_dec_bne    <= if_dec_bne;
+            id_dec_blt    <= if_dec_blt;
+            id_dec_bge    <= if_dec_bge;
+            id_dec_bltu   <= if_dec_bltu;
+            id_dec_bgeu   <= if_dec_bgeu;
+            id_dec_lb     <= if_dec_lb;
+            id_dec_lh     <= if_dec_lh;
+            id_dec_lw     <= if_dec_lw;
+            id_dec_lbu    <= if_dec_lbu;
+            id_dec_lhu    <= if_dec_lhu;
+            id_dec_sb     <= if_dec_sb;
+            id_dec_sh     <= if_dec_sh;
+            id_dec_sw     <= if_dec_sw;
+            id_dec_addi   <= if_dec_addi;
+            id_dec_slti   <= if_dec_slti;
+            id_dec_sltiu  <= if_dec_sltiu;
+            id_dec_xori   <= if_dec_xori;
+            id_dec_ori    <= if_dec_ori;
+            id_dec_andi   <= if_dec_andi;
+            id_dec_slli   <= if_dec_slli;
+            id_dec_srli   <= if_dec_srli;
+            id_dec_srai   <= if_dec_srai;
+            id_dec_add    <= if_dec_add;
+            id_dec_sub    <= if_dec_sub;
+            id_dec_sll    <= if_dec_sll;
+            id_dec_slt    <= if_dec_slt;
+            id_dec_sltu   <= if_dec_sltu;
+            id_dec_xor    <= if_dec_xor;
+            id_dec_srl    <= if_dec_srl;
+            id_dec_sra    <= if_dec_sra;
+            id_dec_or     <= if_dec_or;
+            id_dec_and    <= if_dec_and;
+            id_dec_fence  <= if_dec_fence;
+            id_dec_ecall  <= if_dec_ecall;
+            id_dec_ebreak <= if_dec_ebreak;
         end
     end
 
@@ -417,7 +355,6 @@ module jelly2_riscv_simple_core
             id_mem_size     <= 'x;
             id_mem_unsigned <= 1'bx;
             if ( id_valid_next ) begin
-
                 if ( if_dec_lb || if_dec_lh || if_dec_lw || if_dec_lbu || if_dec_lhu ) begin
                     id_mem_rd       <= 1'b1;
                     id_mem_offset   <= 32'(if_imm_i);
@@ -501,28 +438,28 @@ module jelly2_riscv_simple_core
     //  Execution
     // -----------------------------------------
 
-    logic   [PC_WIDTH-1:0]      ex_expect_pc;
     logic   [PC_WIDTH-1:0]      ex_pc;
     logic   [31:0]              ex_instr;
     logic                       ex_valid;
 
     // branch
     always_comb begin
-        ex_expect_pc_next     = ex_expect_pc + 4;
+        branch_valid = 1'b0;
+        branch_pc    = 'x;
         unique case (1'b1)
-        id_dec_jal : ex_expect_pc_next = id_pc                   + PC_WIDTH'(id_imm_j);
-        id_dec_jalr: ex_expect_pc_next = PC_WIDTH'(id_rs1_rdata) + PC_WIDTH'(id_imm_i);
-        id_dec_beq : if ( id_rs1_rdata == id_rs2_rdata ) ex_expect_pc_next = id_pc + PC_WIDTH'(id_imm_b);
-        id_dec_bne : if ( id_rs1_rdata != id_rs2_rdata ) ex_expect_pc_next = id_pc + PC_WIDTH'(id_imm_b);
-        id_dec_blt : if ( $signed(id_rs1_rdata)  < $signed(id_rs2_rdata) ) ex_expect_pc_next = id_pc + PC_WIDTH'(id_imm_b);
-        id_dec_bge : if ( $signed(id_rs1_rdata) >= $signed(id_rs2_rdata) ) ex_expect_pc_next = id_pc + PC_WIDTH'(id_imm_b);
-        id_dec_bltu: if ( $unsigned(id_rs1_rdata)  < $unsigned(id_rs2_rdata) ) ex_expect_pc_next = id_pc + PC_WIDTH'(id_imm_b);
-        id_dec_bgeu: if ( $unsigned(id_rs1_rdata) >= $unsigned(id_rs2_rdata) ) ex_expect_pc_next = id_pc + PC_WIDTH'(id_imm_b);
+        id_dec_jal : begin branch_pc = id_pc                   + PC_WIDTH'(id_imm_j); branch_valid = 1'b1; end
+        id_dec_jalr: begin branch_pc = PC_WIDTH'(id_rs1_rdata) + PC_WIDTH'(id_imm_i); branch_valid = 1'b1; end
+        id_dec_beq : if ( id_rs1_rdata   == id_rs2_rdata   ) begin branch_pc = id_pc + PC_WIDTH'(id_imm_b); branch_valid = 1'b1; end
+        id_dec_bne : if ( id_rs1_rdata   != id_rs2_rdata   ) begin branch_pc = id_pc + PC_WIDTH'(id_imm_b); branch_valid = 1'b1; end
+        id_dec_blt : if ( id_rs1_rdata    < id_rs2_rdata   ) begin branch_pc = id_pc + PC_WIDTH'(id_imm_b); branch_valid = 1'b1; end
+        id_dec_bge : if ( id_rs1_rdata   >= id_rs2_rdata   ) begin branch_pc = id_pc + PC_WIDTH'(id_imm_b); branch_valid = 1'b1; end
+        id_dec_bltu: if ( id_rs1_rdata_u  < id_rs2_rdata_u ) begin branch_pc = id_pc + PC_WIDTH'(id_imm_b); branch_valid = 1'b1; end
+        id_dec_bgeu: if ( id_rs1_rdata_u >= id_rs2_rdata_u ) begin branch_pc = id_pc + PC_WIDTH'(id_imm_b); branch_valid = 1'b1; end
         default: ;
         endcase
 
         if ( !id_valid ) begin
-            ex_expect_pc_next = ex_expect_pc;
+            branch_valid = 1'b0;
         end
     end
 
@@ -534,8 +471,8 @@ module jelly2_riscv_simple_core
         unique case (1'b1)
         id_dec_lui  : ex_rd_wdata_alu <= id_imm_u;
         id_dec_auipc: ex_rd_wdata_alu <= id_imm_u + 32'(id_pc);
-        id_dec_jal  : ex_rd_wdata_alu <= 32'(ex_expect_pc) + 32'd4;
-        id_dec_jalr : ex_rd_wdata_alu <= 32'(ex_expect_pc) + 32'd4;
+        id_dec_jal  : ex_rd_wdata_alu <= 32'(id_pc) + 32'd4;
+        id_dec_jalr : ex_rd_wdata_alu <= 32'(id_pc) + 32'd4;
         id_dec_addi : ex_rd_wdata_alu <= id_rs1_rdata    + 32'(id_imm_i);
         id_dec_slti : ex_rd_wdata_alu <= (id_rs1_rdata   < 32'(id_imm_i)  ) ? 32'd1 : 32'd0;
         id_dec_sltiu: ex_rd_wdata_alu <= (id_rs1_rdata_u < 32'(id_imm_i_u)) ? 32'd1 : 32'd0;
@@ -567,47 +504,9 @@ module jelly2_riscv_simple_core
     assign dbus_sel   = id_mem_sel;
     assign dbus_wdata = id_rs2_rdata;
 
-
-    /*
-    logic                       dbus_alignment_error;
-    logic   [1:0]               dbus_addr_lo;
-    always_comb begin
-        automatic   logic   [31:0]  addr;
-        dbus_addr  = id_rs1_rdata + id_mem_offset;
-        dbus_rd    = id_mem_rd;
-        dbus_wr    = '0;
-        dbus_wdata = 'x;
-        dbus_alignment_error = 1'b0;
-        if ( id_mem_we ) begin
-            if ( id_mem_sel[1] ) begin
-                dbus_we = 4'b1111;
-                dbus_wdata = id_rs2_rdata;
-                dbus_alignment_error = (addr[1:0] != 2'b00);
-            end
-            else if ( id_mem_sel[0] ) begin
-                dbus_we[0] = (addr[1] == 1'b0);
-                dbus_we[1] = (addr[1] == 1'b0);
-                dbus_we[2] = (addr[1] == 1'b1);
-                dbus_we[3] = (addr[1] == 1'b1);
-                dbus_wdata = {2{id_rs2_rdata[15:0]}};
-                dbus_alignment_error = (addr[0] != 1'b0);
-            end
-            else begin
-                dbus_we[0] = (addr[1:0] == 2'b00);
-                dbus_we[1] = (addr[1:0] == 2'b01);
-                dbus_we[2] = (addr[1:0] == 2'b10);
-                dbus_we[3] = (addr[1:0] == 2'b11);
-                dbus_wdata = {4{id_rs2_rdata[7:0]}};
-            end
-        end
-        dbus_addr_lo = addr[1:0];
-        dbus_addr    = DBUS_ADDR_WIDTH'(addr[31:2]);
-    end
-    */
-
-    logic                                   ex_mem_rd;
-    logic           [1:0]                   ex_mem_size;
-    logic                                   ex_mem_unsigned;
+    logic               ex_mem_rd;
+    logic   [1:0]       ex_mem_size;
+    logic               ex_mem_unsigned;
     always_ff @(posedge clk) begin
         if ( reset ) begin
             ex_mem_rd       <= 1'b0;
@@ -651,7 +550,6 @@ module jelly2_riscv_simple_core
         if ( reset ) begin            
             ex_rd_en     <= 1'b0;
             ex_rd        <= 'x;
-            ex_expect_pc <= PC_WIDTH'(RESET_PC_ADDR);
             ex_pc        <= 'x;
             ex_instr     <= 'x;
             ex_valid     <= 1'b0;
@@ -659,7 +557,6 @@ module jelly2_riscv_simple_core
         else if ( cke ) begin
             ex_rd_en     <= id_rd_en;
             ex_rd        <= id_rd;
-            ex_expect_pc <= ex_expect_pc_next;
             ex_pc        <= id_pc;
             ex_instr     <= id_instr;
             ex_valid     <= id_valid;
