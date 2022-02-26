@@ -38,6 +38,13 @@ module jelly2_register_file_ram
             output  wire    [READ_PORTS-1:0][DATA_WIDTH-1:0]    rd_dout
         );
 
+    logic   [DATA_WIDTH-1:0]    wr_data;
+    always_ff @(posedge clk) begin
+        if ( cke ) begin
+            wr_data <= wr_din;
+        end
+    end
+
     generate
     for ( genvar i = 0; i < READ_PORTS; ++i ) begin : loop_ram
         logic   [DATA_WIDTH-1:0]    rd_data;
@@ -73,10 +80,16 @@ module jelly2_register_file_ram
                     .port1_dout         (rd_data)
                 );
 
-        assign rd_dout[i] = (wr_en && (wr_addr == rd_addr[i])) ? wr_din : rd_data;
+        logic   forwarding;
+        always_ff @(posedge clk) begin
+            if ( cke ) begin
+                forwarding <= wr_en && (wr_addr == rd_addr[i]);
+            end
+        end
+        
+        assign rd_dout[i] = forwarding ? wr_data : rd_data;
     end
     endgenerate
-    
     
 endmodule
 
