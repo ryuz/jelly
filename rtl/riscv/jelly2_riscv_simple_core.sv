@@ -14,11 +14,9 @@
 module jelly2_riscv_simple_core
         #(
             parameter int                   IBUS_ADDR_WIDTH = 14,
-            parameter int                   DBUS_ADDR_WIDTH = 14,
-            parameter int                   PC_WIDTH        = IBUS_ADDR_WIDTH + 2,
-            parameter bit   [PC_WIDTH-1:0]  RESET_PC_ADDR   = PC_WIDTH'(32'h80000000),
-            parameter bit   [31:0]          MMIO_ADDR_MASK  = 32'hff000000,
-            parameter bit   [31:0]          MMIO_ADDR       = 32'hff000000
+            parameter int                   DBUS_ADDR_WIDTH = 32,
+            parameter int                   PC_WIDTH        = IBUS_ADDR_WIDTH,
+            parameter bit   [PC_WIDTH-1:0]  RESET_PC_ADDR   = PC_WIDTH'(32'h80000000)
         )
         (
             input   wire                            reset,
@@ -28,17 +26,12 @@ module jelly2_riscv_simple_core
             output  wire    [IBUS_ADDR_WIDTH-1:0]   ibus_addr,
             input   wire    [31:0]                  ibus_rdata,
 
-            output  reg     [DBUS_ADDR_WIDTH-1:0]   dbus_addr,
-            output  reg                             dbus_rd,
-            output  reg     [3:0]                   dbus_we,
-            output  reg     [31:0]                  dbus_wdata,
-            input   wire    [31:0]                  dbus_rdata,
-
-            output  reg                             mmio_rd,
-            output  reg     [3:0]                   mmio_we,
-            output  reg     [31:0]                  mmio_addr,
-            output  reg     [31:0]                  mmio_wdata,
-            input   wire    [31:0]                  mmio_rdata
+            output  wire    [DBUS_ADDR_WIDTH-1:0]   dbus_addr,
+            output  wire                            dbus_rd,
+            output  wire                            dbus_wr,
+            output  wire    [3:0]                   dbus_sel,
+            output  wire    [31:0]                  dbus_wdata,
+            input   wire    [31:0]                  dbus_rdata
         );
 
 
@@ -71,7 +64,7 @@ module jelly2_riscv_simple_core
     //  Instruction Fetch
     // -----------------------------------------
 
-    // 
+    // PC & Instruction
     logic   [PC_WIDTH-1:0]      if_pc;
     logic   [31:0]              if_instr;
     logic                       if_valid;
@@ -89,7 +82,7 @@ module jelly2_riscv_simple_core
 
 
     // Instruction Fetch
-    assign ibus_addr = IBUS_ADDR_WIDTH'(pc_pc >> 2);
+    assign ibus_addr = IBUS_ADDR_WIDTH'(pc_pc);
     assign if_instr  = ibus_rdata;
 
     // decocde
@@ -220,15 +213,8 @@ module jelly2_riscv_simple_core
     assign id_imm_j  = {id_instr[31], id_instr[19:12], id_instr[20], id_instr[30:21], 1'b0};
 
     logic           [11:0]  id_imm_i_u;
-//    logic           [11:0]  id_imm_s_u;
-//    logic           [12:0]  id_imm_b_u;
-//    logic           [31:0]  id_imm_u_u;
-//    logic           [20:0]  id_imm_j_u;
     assign id_imm_i_u = id_imm_i;
-//    assign id_imm_s_u = id_imm_s;
-//    assign id_imm_b_u = id_imm_b;
-//    assign id_imm_u_u = id_imm_u;
-//    assign id_imm_j_u = id_imm_j;
+    
 
     // register file
     logic                       ex_rd_en;
@@ -238,10 +224,8 @@ module jelly2_riscv_simple_core
     logic   signed  [31:0]      id_rs1_rdata_raw;
     logic   signed  [31:0]      id_rs2_rdata_raw;
 
- // jelly2_register_file
     jelly2_register_file_ram
             #(
-//              .WRITE_PORTS    (1),
                 .READ_PORTS     (2),
                 .ADDR_WIDTH     (5),
                 .DATA_WIDTH     (32)
@@ -409,40 +393,52 @@ module jelly2_riscv_simple_core
         end
     end
 
+    // memory access
     logic   signed  [31:0]                  id_mem_offset;
     logic                                   id_mem_rd;
-    logic                                   id_mem_we;
-    logic           [1:0]                   id_mem_sel;
+    logic                                   id_mem_wr;
+    logic           [3:0]                   id_mem_sel;
+    logic           [1:0]                   id_mem_size;
     logic                                   id_mem_unsigned;
     always_ff @(posedge clk) begin
         if ( reset ) begin
             id_mem_offset   <= 'x;
             id_mem_rd       <= 1'b0;
-            id_mem_we       <= '0;
+            id_mem_wr       <= 1'b0;
             id_mem_sel      <= 'x;
+            id_mem_size     <= 'x;
             id_mem_unsigned <= 1'bx;
         end
         else if ( cke ) begin
             id_mem_offset   <= 'x;
             id_mem_rd       <= 1'b0;
-            id_mem_we       <= '0;
+            id_mem_wr       <= 1'b0;
             id_mem_sel      <= 'x;
+            id_mem_size     <= 'x;
             id_mem_unsigned <= 1'bx;
             if ( id_valid_next ) begin
-                id_mem_sel    <= if_funct3[1:0];
+
                 if ( if_dec_lb || if_dec_lh || if_dec_lw || if_dec_lbu || if_dec_lhu ) begin
                     id_mem_rd       <= 1'b1;
                     id_mem_offset   <= 32'(if_imm_i);
                     id_mem_unsigned <= (if_dec_lbu || if_dec_lhu);
                 end
                 if ( if_dec_sb || if_dec_sh ||  if_dec_sw ) begin
-                    id_mem_we     <= 1'b1;
+                    id_mem_wr     <= 1'b1;
                     id_mem_offset <= 32'(if_imm_s);
                 end
+
+                id_mem_sel[0] <= 1'b1;
+                id_mem_sel[1] <= (if_funct3[1:0] >= 2'd1);
+                id_mem_sel[2] <= (if_funct3[1:0] >= 2'd2);
+                id_mem_sel[3] <= (if_funct3[1:0] >= 2'd2);
+                
+                id_mem_size   <= if_funct3[1:0];
             end
         end
     end
 
+    // register destination
     logic                                   id_rd_en;
     always_ff @(posedge clk) begin
         if ( reset ) begin
@@ -485,6 +481,7 @@ module jelly2_riscv_simple_core
         end
     end
 
+    // control
     always_ff @(posedge clk) begin
         if ( reset ) begin            
             id_pc    <= '0;
@@ -564,13 +561,21 @@ module jelly2_riscv_simple_core
 
 
     // dbus access
+    assign dbus_addr  = id_rs1_rdata + id_mem_offset;
+    assign dbus_rd    = id_mem_rd;
+    assign dbus_wr    = id_mem_wr;
+    assign dbus_sel   = id_mem_sel;
+    assign dbus_wdata = id_rs2_rdata;
+
+
+    /*
     logic                       dbus_alignment_error;
     logic   [1:0]               dbus_addr_lo;
     always_comb begin
         automatic   logic   [31:0]  addr;
-        addr       = id_rs1_rdata + id_mem_offset;
+        dbus_addr  = id_rs1_rdata + id_mem_offset;
         dbus_rd    = id_mem_rd;
-        dbus_we    = '0;
+        dbus_wr    = '0;
         dbus_wdata = 'x;
         dbus_alignment_error = 1'b0;
         if ( id_mem_we ) begin
@@ -598,22 +603,20 @@ module jelly2_riscv_simple_core
         dbus_addr_lo = addr[1:0];
         dbus_addr    = DBUS_ADDR_WIDTH'(addr[31:2]);
     end
+    */
 
     logic                                   ex_mem_rd;
-    logic           [1:0]                   ex_mem_addr;
-    logic           [1:0]                   ex_mem_sel;
+    logic           [1:0]                   ex_mem_size;
     logic                                   ex_mem_unsigned;
     always_ff @(posedge clk) begin
         if ( reset ) begin
             ex_mem_rd       <= 1'b0;
-            ex_mem_addr     <= 'x;
-            ex_mem_sel      <= 'x;
+            ex_mem_size     <= 'x;
             ex_mem_unsigned <= 1'bx;
         end
         else if ( cke ) begin
             ex_mem_rd       <= id_mem_rd;
-            ex_mem_addr     <= dbus_addr_lo;
-            ex_mem_sel      <= id_mem_sel;
+            ex_mem_size     <= id_mem_size;
             ex_mem_unsigned <= id_mem_unsigned;
         end
     end
@@ -621,41 +624,21 @@ module jelly2_riscv_simple_core
     logic   signed  [31:0]  ex_rd_wdata_mem;
     always_comb begin
         ex_rd_wdata_mem = 'x;
-        if ( ex_mem_sel[1] ) begin
+        if ( ex_mem_rd ) begin
             ex_rd_wdata_mem = dbus_rdata;
-        end
-        else begin
             if ( ex_mem_unsigned ) begin
-                if ( id_mem_sel[0] ) begin
-                    case ( ex_mem_addr[1] )
-                    1'b0:   ex_rd_wdata_mem = 32'($unsigned(dbus_rdata[15:0]));
-                    1'b1:   ex_rd_wdata_mem = 32'($unsigned(dbus_rdata[31:16]));
-                    endcase
-                end
-                else begin
-                    case ( ex_mem_addr[1:0] )
-                    2'b00:  ex_rd_wdata_mem = 32'($unsigned(dbus_rdata[7:0]));
-                    2'b01:  ex_rd_wdata_mem = 32'($unsigned(dbus_rdata[15:8]));
-                    2'b10:  ex_rd_wdata_mem = 32'($unsigned(dbus_rdata[23:16]));
-                    2'b11:  ex_rd_wdata_mem = 32'($unsigned(dbus_rdata[31:24]));
-                    endcase
-                end
+                case ( ex_mem_size )
+                2'b00:      ex_rd_wdata_mem = 32'($unsigned(dbus_rdata[7:0]));
+                2'b01:      ex_rd_wdata_mem = 32'($unsigned(dbus_rdata[15:0]));
+                default:    ex_rd_wdata_mem = 32'($unsigned(dbus_rdata[31:0]));
+                endcase
             end
             else begin
-                if ( id_mem_sel[0] ) begin
-                    case ( ex_mem_addr[1] )
-                    1'b0:   ex_rd_wdata_mem = 32'($signed(dbus_rdata[15:0]));
-                    1'b1:   ex_rd_wdata_mem = 32'($signed(dbus_rdata[31:16]));
-                    endcase
-                end
-                else begin
-                    case ( ex_mem_addr[1:0] )
-                    2'b00:  ex_rd_wdata_mem = 32'($signed(dbus_rdata[7:0]));
-                    2'b01:  ex_rd_wdata_mem = 32'($signed(dbus_rdata[15:8]));
-                    2'b10:  ex_rd_wdata_mem = 32'($signed(dbus_rdata[23:16]));
-                    2'b11:  ex_rd_wdata_mem = 32'($signed(dbus_rdata[31:24]));
-                    endcase
-                end
+                case ( ex_mem_size )
+                2'b00:      ex_rd_wdata_mem = 32'($signed(dbus_rdata[7:0]));
+                2'b01:      ex_rd_wdata_mem = 32'($signed(dbus_rdata[15:0]));
+                default:    ex_rd_wdata_mem = 32'($signed(dbus_rdata[31:0]));
+                endcase
             end
         end
     end

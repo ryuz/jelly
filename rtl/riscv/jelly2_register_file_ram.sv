@@ -40,6 +40,7 @@ module jelly2_register_file_ram
 
     generate
     for ( genvar i = 0; i < READ_PORTS; ++i ) begin : loop_ram
+        logic   [DATA_WIDTH-1:0]    rd_data;
         jelly2_ram_dualport
                 #(
                     .ADDR_WIDTH         (ADDR_WIDTH),
@@ -50,7 +51,7 @@ module jelly2_register_file_ram
                     .DOUT_REGS1         (0),
                     .MODE0              ("WRITE_FIRST"),
                     .MODE1              ("WRITE_FIRST"),
-                    .FILLMEM            (0),
+                    .FILLMEM            (1),
                     .FILLMEM_DATA       (0)
                 )
             i_ram_dualport
@@ -69,8 +70,10 @@ module jelly2_register_file_ram
                     .port1_we           (1'b0),
                     .port1_addr         (rd_addr[i]),
                     .port1_din          ('0),
-                    .port1_dout         (rd_dout[i])
+                    .port1_dout         (rd_data)
                 );
+
+        assign rd_dout[i] = (wr_en && (wr_addr == rd_addr[i])) ? wr_din : rd_data;
     end
     endgenerate
     

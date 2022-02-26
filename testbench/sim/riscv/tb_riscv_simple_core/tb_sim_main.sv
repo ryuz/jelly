@@ -10,21 +10,22 @@ module tb_sim_main
         );
     
 
-    localparam int                   IBUS_ADDR_WIDTH = 14;
-    localparam int                   DBUS_ADDR_WIDTH = 14;
-    localparam int                   PC_WIDTH        = IBUS_ADDR_WIDTH;
-    localparam bit   [PC_WIDTH-1:0]  RESET_PC_ADDR   = '0;
+    localparam int                  IBUS_ADDR_WIDTH = 16;
+    localparam int                  DBUS_ADDR_WIDTH = 32;
+    localparam int                  PC_WIDTH        = IBUS_ADDR_WIDTH;
+    localparam bit  [PC_WIDTH-1:0]  RESET_PC_ADDR   = '0;
 
-    logic                          cke = 1'b1;
+    logic                           cke = 1'b1;
 
-    logic  [IBUS_ADDR_WIDTH-1:0]   ibus_addr;
-    logic  [31:0]                  ibus_rdata;
+    logic   [IBUS_ADDR_WIDTH-1:0]   ibus_addr;
+    logic   [31:0]                  ibus_rdata;
 
-    logic  [DBUS_ADDR_WIDTH-1:0]   dbus_addr;
-    logic                          dbus_rd;
-    logic  [3:0]                   dbus_we;
-    logic  [31:0]                  dbus_wdata;
-    logic  [31:0]                  dbus_rdata;
+    logic   [DBUS_ADDR_WIDTH-1:0]   dbus_addr;
+    logic                           dbus_rd;
+    logic                           dbus_wr;
+    logic   [3:0]                   dbus_sel;
+    logic   [31:0]                  dbus_wdata;
+    logic   [31:0]                  dbus_rdata;
 
     jelly2_riscv_simple_core
             #(
@@ -44,15 +45,27 @@ module tb_sim_main
 
                 .dbus_addr,
                 .dbus_rd,
-                .dbus_we,
+                .dbus_wr,
+                .dbus_sel,
                 .dbus_wdata,
                 .dbus_rdata
             );
 
+    localparam MEM_ADDR_WIDTH = 14;
+
+    logic   [MEM_ADDR_WIDTH-1:0]    mem_addr;
+    logic                           mem_en;
+    logic   [3:0]                   mem_we;
+    logic   [31:0]                  mem_wdata;
+    logic   [31:0]                  mem_rdata;
+
+    assign mem_addr  = MEM_ADDR_WIDTH'(dbus_addr >> 2);
+    assign mem_we    = dbus_wr ? 4'(dbus_sel << dbus_addr[1:0]) : 4'd0;
+    assign mem_wdata = 32'(mem_wdata << (dbus_addr[1:0] * 8));
 
     jelly2_ram_dualport
             #(
-                .ADDR_WIDTH     (14),
+                .ADDR_WIDTH     (MEM_ADDR_WIDTH),
                 .DATA_WIDTH     (32),
                 .WE_WIDTH       (4),
                 .WORD_WIDTH     (8),
@@ -74,19 +87,35 @@ module tb_sim_main
                 .port0_en       (cke),
                 .port0_regcke   (cke),
                 .port0_we       (4'd0),
-                .port0_addr     (ibus_addr),
+                .port0_addr     (ibus_addr[15:2]),
                 .port0_din      (32'd0),
                 .port0_dout     (ibus_rdata),
 
                 .port1_clk      (clk),
                 .port1_en       (cke),
                 .port1_regcke   (cke),
-                .port1_we       (dbus_we),
-                .port1_addr     (dbus_addr),
-                .port1_din      (dbus_wdata),
-                .port1_dout     (dbus_rdata)
+                .port1_we       (mem_we),
+                .port1_addr     (mem_addr),
+                .port1_din      (mem_wdata),
+                .port1_dout     (mem_wdata)
             );
     
+    logic   [1:0]   mem_shift;
+    always_ff @(posedge clk) begin
+        mem_shift <= dbus_addr[1:0];
+    end
+    assign dbus_rdata = 32'(mem_rdata >> (mem_shift * 8));
+
+
+    // IO
+    wire mmio_valid = dbus_wr && (dbus_addr[31:24] == 8'hf0);
+
+    always @(posedge clk) begin
+        if ( !reset && mmio_valid ) begin
+            $display("write: %h %10d %b", dbus_addr, $signed(dbus_wdata), dbus_sel);
+        end
+    end
+
 endmodule
 
 
