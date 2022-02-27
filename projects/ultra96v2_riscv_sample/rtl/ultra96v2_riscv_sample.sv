@@ -202,6 +202,8 @@ module ultra96v2_riscv_sample
                 .mmio_rdata         (mmio_rdata)
             );
 
+    // WISHBONEは使わない
+    assign wb_mc_dat_i = '0;
     assign wb_mc_ack_i = wb_mc_stb_o;
     
 
@@ -221,9 +223,10 @@ module ultra96v2_riscv_sample
         end
         else begin
             if ( mmio_wr && mmio_sel[0] ) begin
-                case (mmio_addr[2])
-                1'b0: reg_led[0] <= mmio_wdata[0];
-                1'b1: reg_led[1] <= mmio_wdata[0];
+                case ( int'(mmio_addr) )
+                0: reg_led[0] <= mmio_wdata[0];
+                1: reg_led[1] <= mmio_wdata[0];
+                default: ;
                 endcase
             end
         end

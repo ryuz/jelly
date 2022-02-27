@@ -35,7 +35,7 @@ module jelly2_riscv_simple_controller
             input   wire    [S_WB_ADR_WIDTH-1:0]    s_wb_adr_i,
             output  wire    [S_WB_DAT_WIDTH-1:0]    s_wb_dat_o,
             input   wire    [S_WB_DAT_WIDTH-1:0]    s_wb_dat_i,
-            input   wire    [3:0]                   s_wb_sel_i,
+            input   wire    [S_WB_SEL_WIDTH-1:0]    s_wb_sel_i,
             input   wire                            s_wb_we_i,
             input   wire                            s_wb_stb_i,
             output  wire                            s_wb_ack_o,
@@ -61,7 +61,7 @@ module jelly2_riscv_simple_controller
     // ---------------------------------------------
 
     localparam int      RAM_SIZE       = (MEM_SIZE + 3) / 4;
-    localparam int      RAM_ADDR_WIDTH = $clog2(MEM_SIZE);
+    localparam int      RAM_ADDR_WIDTH = $clog2(RAM_SIZE);
 
     localparam int      IBUS_ADDR_WIDTH = RAM_ADDR_WIDTH + 2;
     localparam int      DBUS_ADDR_WIDTH = 32;

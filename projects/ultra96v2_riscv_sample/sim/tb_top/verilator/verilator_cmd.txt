@@ -2,11 +2,11 @@
 #--public
 #--threads 2
 
--Wno-WIDTH
--Wno-UNSIGNED
--Wno-PINMISSING
--Wno-UNOPTFLAT
--Wno-UNOPTTHREADS
+#-Wno-WIDTH
+#-Wno-UNSIGNED
+#-Wno-PINMISSING
+#-Wno-UNOPTFLAT
+#-Wno-UNOPTTHREADS
 
 -y ../../stub
 -y ../../../rtl
