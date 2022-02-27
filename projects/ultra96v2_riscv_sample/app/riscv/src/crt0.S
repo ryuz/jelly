@@ -19,7 +19,7 @@
 ************************************************/
 _rst_handler:   
                 lui     sp, %hi(___stack_end)
-                ori     sp, sp, %lo(___stack_end)
+                addi    sp, sp, %lo(___stack_end)
 
                 /* main関数の呼び出し */
                 jal     main

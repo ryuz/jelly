@@ -52,6 +52,34 @@ module tb_sim_main
     assign s_wb_ack_o = i_top.i_design_1.wb_ack_o;
 
 
+
+    // -----------------------------
+    //  debug
+    // -----------------------------
+
+    logic                           mmio_wr;
+    logic                           mmio_rd;
+    logic   [15:0]                  mmio_addr;
+    logic   [3:0]                   mmio_sel;
+    logic   [31:0]                  mmio_wdata;
+    logic   [31:0]                  mmio_rdata;
+
+    assign mmio_wr     = i_top.mmio_wr;
+    assign mmio_rd     = i_top.mmio_rd;
+    assign mmio_addr   = i_top.mmio_addr;
+    assign mmio_sel    = i_top.mmio_sel;
+    assign mmio_wdata  = i_top.mmio_wdata;
+    assign mmio_rdata  = i_top.mmio_rdata;
+
+    always @(posedge clk) begin
+        if ( !reset ) begin
+            if ( mmio_wr && mmio_addr == 16'h0100 ) begin
+                $write("%c", mmio_wdata[7:0]);
+            end
+        end
+    end
+
+
 endmodule
 
 
