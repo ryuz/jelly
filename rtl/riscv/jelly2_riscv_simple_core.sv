@@ -202,6 +202,7 @@ module jelly2_riscv_simple_core
     logic           [4:0]       ex_rd;
     logic           [31:0]      ex_rd_wdata;
 
+    logic                       id_rd_en;
     logic   signed  [31:0]      id_rs1_rdata_raw;
     logic   signed  [31:0]      id_rs2_rdata_raw;
 
@@ -376,7 +377,6 @@ module jelly2_riscv_simple_core
     end
 
     // register destination
-    logic                                   id_rd_en;
     always_ff @(posedge clk) begin
         if ( reset ) begin
             id_rd_en  <= '0;

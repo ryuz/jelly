@@ -11,6 +11,8 @@ module jelly2_riscv_simple_controller
             parameter   int                     M_WB_ADR_WIDTH   = 24,
             parameter   int                     MMIO_ADR_WIDTH   = 16,
 
+            parameter   int                     MEM_ADDR_OFFSET  = 1 << (S_WB_ADR_WIDTH - 1),
+
             parameter   bit     [31:0]          MEM_DECODE_MASK  = 32'hff00_0000,
             parameter   bit     [31:0]          MEM_DECODE_ADDR  = 32'h8000_0000,
             parameter   bit     [31:0]          WB_DECODE_MASK   = 32'hff00_0000,
@@ -23,7 +25,7 @@ module jelly2_riscv_simple_controller
             parameter                           MEM_READMEM_FIlE = "",
 
             parameter   bit     [31:0]          RESET_PC_ADDR    = 32'h8000_0000,
-            parameter   bit                     INIT_CTL_RESET   = 1'b0
+            parameter   bit                     INIT_CTL_RESET   = 1'b1
         )
         (
             input   wire                            reset,
@@ -65,6 +67,8 @@ module jelly2_riscv_simple_controller
     localparam int      DBUS_ADDR_WIDTH = 32;
     localparam int      PC_WIDTH        = 32;
 
+    logic   wb_mem;
+    assign wb_mem = (s_wb_adr_i >= S_WB_ADR_WIDTH'(MEM_ADDR_OFFSET));
 
 
     // ---------------------------------------------
@@ -74,6 +78,8 @@ module jelly2_riscv_simple_controller
     localparam   ADR_CORE_ID      = 'h0;
     localparam   ADR_CORE_VERSION = 'h1;
     localparam   ADR_CORE_DATE    = 'h2;
+    localparam   ADR_MEM_OFFSET   = 'h4;
+    localparam   ADR_MEM_SIZE     = 'h5;
     localparam   ADR_CTL_RESET    = 'h8;
 
     logic       reg_reset;
@@ -82,7 +88,7 @@ module jelly2_riscv_simple_controller
             reg_reset  <= INIT_CTL_RESET;
         end
         else begin
-            if ( s_wb_adr_i[S_WB_ADR_WIDTH-1] == 1'b0 && s_wb_stb_i && s_wb_we_i ) begin
+            if ( !wb_mem && s_wb_stb_i && s_wb_we_i ) begin
                 if (  s_wb_adr_i == S_WB_ADR_WIDTH'(ADR_CTL_RESET) && s_wb_sel_i[0] ) begin
                     reg_reset <= s_wb_dat_i[0];
                 end
@@ -90,10 +96,12 @@ module jelly2_riscv_simple_controller
         end
     end
 
-    assign s_wb_dat_o = (s_wb_adr_i == S_WB_ADR_WIDTH'(ADR_CORE_ID))      ? S_WB_DAT_WIDTH'(32'hffff_8723) :
-                        (s_wb_adr_i == S_WB_ADR_WIDTH'(ADR_CORE_VERSION)) ? S_WB_DAT_WIDTH'(32'h0001_0000) :
-                        (s_wb_adr_i == S_WB_ADR_WIDTH'(ADR_CORE_DATE))    ? S_WB_DAT_WIDTH'(32'h2022_0226) :
-                        (s_wb_adr_i == S_WB_ADR_WIDTH'(ADR_CTL_RESET))    ? S_WB_DAT_WIDTH'(reg_reset)     :
+    assign s_wb_dat_o = (s_wb_adr_i == S_WB_ADR_WIDTH'(ADR_CORE_ID))      ? S_WB_DAT_WIDTH'(32'hffff_8723)   :
+                        (s_wb_adr_i == S_WB_ADR_WIDTH'(ADR_CORE_VERSION)) ? S_WB_DAT_WIDTH'(32'h0001_0000)   :
+                        (s_wb_adr_i == S_WB_ADR_WIDTH'(ADR_CORE_DATE))    ? S_WB_DAT_WIDTH'(32'h2022_0226)   :
+                        (s_wb_adr_i == S_WB_ADR_WIDTH'(ADR_MEM_OFFSET))   ? S_WB_DAT_WIDTH'(MEM_ADDR_OFFSET) :
+                        (s_wb_adr_i == S_WB_ADR_WIDTH'(ADR_MEM_SIZE))     ? S_WB_DAT_WIDTH'(MEM_SIZE)        :
+                        (s_wb_adr_i == S_WB_ADR_WIDTH'(ADR_CTL_RESET))    ? S_WB_DAT_WIDTH'(reg_reset)       :
                         '0;
 
     assign s_wb_ack_o = s_wb_stb_i;
@@ -136,8 +144,8 @@ module jelly2_riscv_simple_controller
             )
         i_riscv_simple_core
             (
-                .reset,
-                .clk,
+                .reset              (core_reset),
+                .clk                (clk),
                 .cke                (core_cke),
 
                 .ibus_addr,
@@ -192,7 +200,7 @@ module jelly2_riscv_simple_controller
                 .port0_clk          (clk),
                 .port0_en           (cke),
                 .port0_regcke       (cke),
-                .port0_we           (mem_ibus_wb),
+                .port0_we           (mem_ibus_we),
                 .port0_addr         (mem_ibus_addr),
                 .port0_din          (mem_ibus_wdata),
                 .port0_dout         (mem_ibus_rdata),
@@ -207,7 +215,7 @@ module jelly2_riscv_simple_controller
             );
 
     // ibus
-    assign mem_ibus_wb    = s_wb_adr_i[S_WB_ADR_WIDTH-1] && s_wb_stb_i && s_wb_we_i;
+    assign mem_ibus_wb    = wb_mem && s_wb_stb_i && s_wb_we_i;
     assign mem_ibus_addr  = mem_ibus_wb ? s_wb_adr_i[RAM_ADDR_WIDTH-1:0] : RAM_ADDR_WIDTH'(ibus_addr >> 2);
     assign mem_ibus_we    = mem_ibus_wb ? s_wb_sel_i[3:0]              : 4'b0000;
     assign mem_ibus_wdata = s_wb_dat_i[31:0];

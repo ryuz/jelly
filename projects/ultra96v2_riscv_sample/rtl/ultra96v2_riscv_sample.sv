@@ -11,7 +11,7 @@
 `timescale 1ns / 1ps
 `default_nettype none
 
-module ultra96v2_riscv
+module ultra96v2_riscv_sample
             (
                 output  wire    [1:0]   led
             );
@@ -170,7 +170,7 @@ module ultra96v2_riscv
                 .MEM_READMEMH       (1'b0),
                 .MEM_READMEM_FIlE   (""),
                 .RESET_PC_ADDR      (32'h8000_0000),
-                .INIT_CTL_RESET     (1'b0)
+                .INIT_CTL_RESET     (1'b1)
             )
         i_riscv_simple_controller
             (
@@ -179,11 +179,11 @@ module ultra96v2_riscv
                 .cke                (1'b1),
 
                 .s_wb_adr_i         (wb_peri_adr_i[15:0]),
-                .s_wb_dat_o         (wb_peri_dat_i),
-                .s_wb_dat_i         (wb_peri_dat_o),
+                .s_wb_dat_o         (wb_peri_dat_o),
+                .s_wb_dat_i         (wb_peri_dat_i),
                 .s_wb_sel_i         (wb_peri_sel_i),
                 .s_wb_we_i          (wb_peri_we_i),
-                .s_wb_stb_i         (wb_peri_sel_i),
+                .s_wb_stb_i         (wb_peri_stb_i),
                 .s_wb_ack_o         (wb_peri_ack_o),
 
                 .m_wb_adr_o         (wb_mc_adr_o),

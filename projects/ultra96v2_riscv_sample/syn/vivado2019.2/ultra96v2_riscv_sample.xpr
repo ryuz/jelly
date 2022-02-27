@@ -3,7 +3,7 @@
 <!--                                                         -->
 <!-- Copyright 1986-2019 Xilinx, Inc. All Rights Reserved.   -->
 
-<Project Version="7" Minor="44" Path="/home/ryuji/git-work/jelly_develop/projects/ultra96v2_riscv_/syn/vivado2019.2/ultra96v2_riscv.xpr">
+<Project Version="7" Minor="44" Path="/home/ryuji/git-work/jelly_develop/projects/ultra96v2_riscv_sample/syn/vivado2019.2/ultra96v2_riscv_sample.xpr">
   <DefaultLaunch Dir="$PRUNDIR"/>
   <Configuration>
     <Option Name="Id" Val="ef9b100bcadb44999ebc470eca7fc372"/>
@@ -65,11 +65,11 @@
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
-        <CompFileExtendedInfo CompFileName="design_1.bd" FileRelPathName="ip/design_1_clk_wiz_0_0/design_1_clk_wiz_0_0.xci">
-          <Proxy FileSetName="design_1_clk_wiz_0_0"/>
-        </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="design_1.bd" FileRelPathName="ip/design_1_proc_sys_reset_0_0/design_1_proc_sys_reset_0_0.xci">
           <Proxy FileSetName="design_1_proc_sys_reset_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="design_1.bd" FileRelPathName="ip/design_1_clk_wiz_0_0/design_1_clk_wiz_0_0.xci">
+          <Proxy FileSetName="design_1_clk_wiz_0_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="design_1.bd" FileRelPathName="ip/design_1_axi_protocol_convert_0_0/design_1_axi_protocol_convert_0_0.xci">
           <Proxy FileSetName="design_1_axi_protocol_convert_0_0"/>
@@ -113,7 +113,7 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../rtl/ultra96v2_riscv.sv">
+      <File Path="$PPRDIR/../../rtl/ultra96v2_riscv_sample.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -122,7 +122,7 @@
       </File>
       <Config>
         <Option Name="DesignMode" Val="RTL"/>
-        <Option Name="TopModule" Val="ultra96v2_riscv"/>
+        <Option Name="TopModule" Val="ultra96v2_riscv_sample"/>
       </Config>
     </FileSet>
     <FileSet Name="constrs_1" Type="Constrs" RelSrcDir="$PSRCDIR/constrs_1">
@@ -148,7 +148,7 @@
       <Filter Type="Srcs"/>
       <Config>
         <Option Name="DesignMode" Val="RTL"/>
-        <Option Name="TopModule" Val="ultra96v2_riscv"/>
+        <Option Name="TopModule" Val="ultra96v2_riscv_sample"/>
         <Option Name="TopLib" Val="xil_defaultlib"/>
         <Option Name="TopAutoSet" Val="TRUE"/>
         <Option Name="TransportPathDelay" Val="0"/>
@@ -225,9 +225,7 @@
     </Run>
     <Run Id="design_1_clk_wiz_0_0_synth_1" Type="Ft3:Synth" SrcSet="design_1_clk_wiz_0_0" Part="xczu3eg-sbva484-1-i" ConstrsSet="design_1_clk_wiz_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/design_1_clk_wiz_0_0_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -237,9 +235,7 @@
     </Run>
     <Run Id="design_1_proc_sys_reset_0_0_synth_1" Type="Ft3:Synth" SrcSet="design_1_proc_sys_reset_0_0" Part="xczu3eg-sbva484-1-i" ConstrsSet="design_1_proc_sys_reset_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/design_1_proc_sys_reset_0_0_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -249,9 +245,7 @@
     </Run>
     <Run Id="design_1_axi_protocol_convert_0_0_synth_1" Type="Ft3:Synth" SrcSet="design_1_axi_protocol_convert_0_0" Part="xczu3eg-sbva484-1-i" ConstrsSet="design_1_axi_protocol_convert_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/design_1_axi_protocol_convert_0_0_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -261,9 +255,7 @@
     </Run>
     <Run Id="design_1_zynq_ultra_ps_e_0_0_synth_1" Type="Ft3:Synth" SrcSet="design_1_zynq_ultra_ps_e_0_0" Part="xczu3eg-sbva484-1-i" ConstrsSet="design_1_zynq_ultra_ps_e_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/design_1_zynq_ultra_ps_e_0_0_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -291,9 +283,7 @@
     </Run>
     <Run Id="design_1_clk_wiz_0_0_impl_1" Type="Ft2:EntireDesign" Part="xczu3eg-sbva484-1-i" ConstrsSet="design_1_clk_wiz_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="design_1_clk_wiz_0_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
@@ -310,9 +300,7 @@
     </Run>
     <Run Id="design_1_proc_sys_reset_0_0_impl_1" Type="Ft2:EntireDesign" Part="xczu3eg-sbva484-1-i" ConstrsSet="design_1_proc_sys_reset_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="design_1_proc_sys_reset_0_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
@@ -329,9 +317,7 @@
     </Run>
     <Run Id="design_1_axi_protocol_convert_0_0_impl_1" Type="Ft2:EntireDesign" Part="xczu3eg-sbva484-1-i" ConstrsSet="design_1_axi_protocol_convert_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="design_1_axi_protocol_convert_0_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
@@ -348,9 +334,7 @@
     </Run>
     <Run Id="design_1_zynq_ultra_ps_e_0_0_impl_1" Type="Ft2:EntireDesign" Part="xczu3eg-sbva484-1-i" ConstrsSet="design_1_zynq_ultra_ps_e_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="design_1_zynq_ultra_ps_e_0_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>

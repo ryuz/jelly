@@ -11,6 +11,9 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
 }
 
 
+static mut DATA : i32 = 0;
+
+
 #[no_mangle]
 pub unsafe extern "C" fn main() -> ! {
     let pi8_0  = 0xff000000  as *mut i8;
@@ -48,6 +51,11 @@ pub unsafe extern "C" fn main() -> ! {
 
     core::ptr::write_volatile(pi64, -2222);
     core::ptr::write_volatile(pu64,  2222);
+
+    core::ptr::write_volatile(pi32, 999);
+    core::ptr::write_volatile(&mut DATA, 33);
+    core::ptr::write_volatile(&mut DATA, core::ptr::read_volatile(&mut DATA) + 1);
+    core::ptr::write_volatile(pi32, core::ptr::read_volatile(&mut DATA));
 
 //    let ptr = 0xff000000  as *mut i32;
 //    let mut i: i32 = 0;
