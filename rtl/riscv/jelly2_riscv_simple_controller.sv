@@ -203,7 +203,7 @@ module jelly2_riscv_simple_controller
                 .port1_we           (mem_dbus_we),
                 .port1_addr         (mem_dbus_addr),
                 .port1_din          (mem_dbus_wdata),
-                .port1_dout         (mem_dbus_wdata)
+                .port1_dout         (mem_dbus_rdata)
             );
 
     // ibus
@@ -234,6 +234,10 @@ module jelly2_riscv_simple_controller
     assign m_wb_we_o  = mmio_wr;
     assign m_wb_stb_o = mmio_wr | mmio_rd;
 
+    logic   [31:0]  wb_rdata;
+    always_ff @(posedge clk) begin
+        wb_rdata <= m_wb_dat_i;
+    end
 
 
     // ---------------------------------------------
@@ -270,8 +274,8 @@ module jelly2_riscv_simple_controller
     end
 
     assign dbus_rdata = rd_mem_valid  ? 32'(mem_dbus_rdata >> (dbus_shift * 8)) :
-                        rd_wb_valid   ? 32'(m_wb_dat_i     >> (dbus_shift * 8)) :
-                        rd_mmio_valid ? mmio_rdata                             :
+                        rd_wb_valid   ? 32'(wb_rdata       >> (dbus_shift * 8)) :
+                        rd_mmio_valid ? mmio_rdata                              :
                         'x;
 
 endmodule
