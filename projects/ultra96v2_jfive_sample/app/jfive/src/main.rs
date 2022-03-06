@@ -13,6 +13,7 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
 
 #[no_mangle]
 pub unsafe extern "C" fn main() -> ! {
+    // シミュレーション用にアクセスパターンテスト
     let mut val_u32: u32 = 0;
     core::ptr::write_volatile(&mut val_u32, 0x44434241);
 
@@ -31,10 +32,12 @@ pub unsafe extern "C" fn main() -> ! {
     write_byte(core::ptr::read_volatile(&buf_u8[2]));
     write_byte(core::ptr::read_volatile(&buf_u8[3]));
 
+    // シミュレーション用にprintlnテスト
     println!("\nHello!");
     println!("val : 0x{:x}", val_u32);
 
 
+    // LEDチカ 開始(実機用)
     let mmio_led0 = 0xff000000  as *mut i32;
     let mmio_led1 = 0xff000004  as *mut i32;
 
@@ -97,3 +100,4 @@ impl Write for DebugWriter {
         Ok(())
     }
 }
+
