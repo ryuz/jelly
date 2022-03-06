@@ -1,6 +1,6 @@
 
-DT_NAME   = ultra96v2_riscv_sample
-BIT_NAME  = ultra96v2_riscv_sample
+DT_NAME   = ultra96v2_jfive_sample
+BIT_NAME  = ultra96v2_jfive_sample
 
 DTS_FILE  = $(DT_NAME).dts
 DTBO_FILE = $(DT_NAME).dtbo
@@ -19,13 +19,13 @@ all: build
 .PHONY: build
 build: $(DTBO_FILE) $(BIN_FILE)
 	make -C apu   build
-	make -C riscv build
+	make -C jfive build
 
 .PHONY: clean
 clean:
 	rm -rf $(DTBO_FILE) $(BIN_FILE)
 	make -C apu   clean
-	make -C riscv clean
+	make -C jfive clean
 
 .PHONY: run
 run: build load

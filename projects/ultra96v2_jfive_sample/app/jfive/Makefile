@@ -1,6 +1,6 @@
 
 
-TARGET = riscv_sample
+TARGET = jfive_sample
 
 .PHONY: all
 all: build

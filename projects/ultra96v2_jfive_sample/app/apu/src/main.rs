@@ -29,8 +29,8 @@ fn main() {
         println!("REG_RISCV_MEM_SIZE     : 0x{:x}", uio_acc.read_reg(REG_RISCV_MEM_SIZE));
     }
 
-
-    let mut reader = BufReader::new(File::open("../riscv/riscv_sample.bin").unwrap());
+    // program download
+    let mut reader = BufReader::new(File::open("../jfive/jfive_sample.bin").unwrap());
     let mut buf: [u8; 4] = [0; 4];
     let mut adr: usize = 0;
     loop {
@@ -44,7 +44,8 @@ fn main() {
             }
         }
     }
+
+    // release reset
     unsafe { uio_acc.write_reg(REG_RISCV_CTL_RESET, 0); }
-    
 }
 
