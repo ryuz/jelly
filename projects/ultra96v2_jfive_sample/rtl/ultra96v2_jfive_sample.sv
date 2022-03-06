@@ -11,7 +11,7 @@
 `timescale 1ns / 1ps
 `default_nettype none
 
-module ultra96v2_riscv_sample
+module ultra96v2_jfive_sample
             (
                 output  wire    [1:0]   led
             );
@@ -154,7 +154,7 @@ module ultra96v2_riscv_sample
     logic   [31:0]                  mmio_wdata;
     logic   [31:0]                  mmio_rdata;
     
-    jelly2_riscv_simple_controller
+    jelly2_jfive_simple_controller
             #(
                 .S_WB_ADR_WIDTH     (16),
                 .S_WB_DAT_WIDTH     (WB_DAT_WIDTH),
@@ -172,7 +172,7 @@ module ultra96v2_riscv_sample
                 .RESET_PC_ADDR      (32'h8000_0000),
                 .INIT_CTL_RESET     (1'b1)
             )
-        i_riscv_simple_controller
+        i_jfive_simple_controller
             (
                 .reset              (reset),
                 .clk                (clk),

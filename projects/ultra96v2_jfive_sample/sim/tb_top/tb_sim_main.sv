@@ -29,7 +29,7 @@ module tb_sim_main
 
     wire    [1:0]   led;
 
-    ultra96v2_riscv_sample
+    ultra96v2_jfive_sample
         i_top
             (
                 .led        (led)

@@ -11,7 +11,7 @@
 `default_nettype none
 
 
-module jelly2_riscv_simple_core
+module jelly2_jfive_simple_core
         #(
             parameter int                   IBUS_ADDR_WIDTH = 14,
             parameter int                   DBUS_ADDR_WIDTH = 32,

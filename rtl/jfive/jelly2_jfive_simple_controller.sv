@@ -3,7 +3,7 @@
 `default_nettype none
 
 
-module jelly2_riscv_simple_controller
+module jelly2_jfive_simple_controller
         #(
             parameter   int                     S_WB_ADR_WIDTH   = 16,
             parameter   int                     S_WB_DAT_WIDTH   = 32,
@@ -135,14 +135,14 @@ module jelly2_riscv_simple_controller
     logic   [31:0]                  dbus_wdata;
     logic   [31:0]                  dbus_rdata;
 
-    jelly2_riscv_simple_core
+    jelly2_jfive_simple_core
             #(
                 .IBUS_ADDR_WIDTH    (IBUS_ADDR_WIDTH),
                 .DBUS_ADDR_WIDTH    (DBUS_ADDR_WIDTH),
                 .PC_WIDTH           (PC_WIDTH),
                 .RESET_PC_ADDR      (RESET_PC_ADDR)
             )
-        i_riscv_simple_core
+        i_jfive_simple_core
             (
                 .reset              (core_reset),
                 .clk                (clk),
