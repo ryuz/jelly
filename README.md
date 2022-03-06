@@ -79,7 +79,6 @@ FPGAで作成したRealTime-OSアクセラレータです。
     - [Ultra96V2 で FPGA化した リアルタイムOS を試すサンプル](projects/ultra96v2_rtos/README.md)
 - projects/ultra96v2_jfive_sample
     - [Ultra96V2 で 最小セットの RISC-V 互換コアを作ってみたサンプル](projects/ultra96v2_jfive_sample/README.md)
-
 - projects/ultra96v2_hls_test
     - [コマンドラインだけでHLSで書いたIPをVivadoに取り込んで合成するサンプル](projects/ultra96v2_hls_test/README.md)
 - projects/ultra96v2_imx219_hls_sample
