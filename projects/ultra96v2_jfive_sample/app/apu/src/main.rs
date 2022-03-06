@@ -5,12 +5,12 @@ use std::io::{Read, BufReader};
 use jelly_mem_access::*;
 
 
-const REG_RISCV_CORE_ID      : usize = 0x0;
-const REG_RISCV_CORE_VERSION : usize = 0x1;
-const REG_RISCV_CORE_DATE    : usize = 0x2;
-const REG_RISCV_MEM_OFFSET   : usize = 0x4;
-const REG_RISCV_MEM_SIZE     : usize = 0x5;
-const REG_RISCV_CTL_RESET    : usize = 0x8;
+const REG_JFIVE_CORE_ID      : usize = 0x0;
+const REG_JFIVE_CORE_VERSION : usize = 0x1;
+const REG_JFIVE_CORE_DATE    : usize = 0x2;
+const REG_JFIVE_MEM_OFFSET   : usize = 0x4;
+const REG_JFIVE_MEM_SIZE     : usize = 0x5;
+const REG_JFIVE_CTL_RESET    : usize = 0x8;
 
 
 fn main() {
@@ -22,11 +22,11 @@ fn main() {
 
     unsafe {
         // メモリアドレスでアクセス
-        println!("REG_RISCV_CORE_ID      : 0x{:x}", uio_acc.read_reg(REG_RISCV_CORE_ID));
-        println!("REG_RISCV_CORE_VERSION : 0x{:x}", uio_acc.read_reg(REG_RISCV_CORE_VERSION));
-        println!("REG_RISCV_CORE_DATE    : 0x{:x}", uio_acc.read_reg(REG_RISCV_CORE_DATE));
-        println!("REG_RISCV_MEM_OFFSET   : 0x{:x}", uio_acc.read_reg(REG_RISCV_MEM_OFFSET));
-        println!("REG_RISCV_MEM_SIZE     : 0x{:x}", uio_acc.read_reg(REG_RISCV_MEM_SIZE));
+        println!("REG_JFIVE_CORE_ID      : 0x{:x}", uio_acc.read_reg(REG_JFIVE_CORE_ID));
+        println!("REG_JFIVE_CORE_VERSION : 0x{:x}", uio_acc.read_reg(REG_JFIVE_CORE_VERSION));
+        println!("REG_JFIVE_CORE_DATE    : 0x{:x}", uio_acc.read_reg(REG_JFIVE_CORE_DATE));
+        println!("REG_JFIVE_MEM_OFFSET   : 0x{:x}", uio_acc.read_reg(REG_JFIVE_MEM_OFFSET));
+        println!("REG_JFIVE_MEM_SIZE     : 0x{:x}", uio_acc.read_reg(REG_JFIVE_MEM_SIZE));
     }
 
     // program download
@@ -46,6 +46,6 @@ fn main() {
     }
 
     // release reset
-    unsafe { uio_acc.write_reg(REG_RISCV_CTL_RESET, 0); }
+    unsafe { uio_acc.write_reg(REG_JFIVE_CTL_RESET, 0); }
 }
 
