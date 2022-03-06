@@ -146,6 +146,7 @@ kernel_id.h
 # ローカル便利ツール除外
 copy_bit.*
 bit_copy.*
+bin_copy.*
 
 *.bak
 *_

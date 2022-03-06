@@ -90,7 +90,7 @@ int main(int argc, char** argv)
     wb->Write(0x00000000 + 8, 0, 0xf);
     
 
-    mng->Run(20000);
+    mng->Run(100000);
 //    mng->Run();
 
 #if VM_TRACE
