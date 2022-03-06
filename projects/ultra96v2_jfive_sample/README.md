@@ -31,7 +31,6 @@ RISC-Vのカスタム命令に割り当てるとかがあるかと思います�
 Debianイメージは一度起動SDを作ってしまえば Vivado だけでもいろいろできるのが素敵です。
 
 
-
 ## RISC-V クロスコンパイル環境
 
 クロスコンパイル環境は、PC や Ultra96V2 上の Linux で構成することができます。
@@ -57,4 +56,46 @@ Rust はインストール済みなのを前提に、RISC-V用の設定として
 rustup update
 rustup target add riscv32i-unknown-none-elf
 ```
+
+
+## PL用bitstreamの作成
+
+PS用のbitstreamは PC(WindowsやLinuxなど)で Vivado を使って行います。
+
+Vivado のプロジェクトは
+
+/projects/ultra96v2_jfive_sample/syn/vivado2019.2/ultra96v2_jfive_sample.xpr
+
+にありますので Vivado で開いてください。
+
+最初に BlockDesign を tcl から再構成する必要がります。
+
+Vivado メニューの「Tools」→「Run Tcl Script」で、プロジェクトと同じディレクトリにある update_design.tcl を実行すると再構築を行うようにしています。
+
+うまくいかない場合は、既に登録されている i_design_1 を手動で削除してから、design_1.tcl を実行しても同じことができるはずです。
+
+design_1 が生成されたら「Flow」→「Run Implementation」で合成を行います。正常に合成できれば
+ultra96v2_jfive_sample.bit が出来上がります。
+
+このファイルを projects/ultra96v2_jfive_sample/app にコピーしておいてください。
+
+
+
+## PSソフト側の作成と実行
+
+  Ultra96V2側でのPSソフトのビルドです。
+  projects/ultra96v2_jfive_sample/app を Ultra96 のどこか適当な箇所にコピーします。
+
+### 動かしてみる
+
+sudoできるユーザーで app ディレクトリに移動してください。
+
+```
+make run
+```
+
+Ultra96上で RISC-Vのクロスコンパイル環境やRustの設定ができていれば、これでひとまず動くように作っております。
+
+途中、sudo コマンドを使っているのでパスワードを聞かれると思いますが入力ください。
+DeviceTree overlay や uio へのアクセスの為にルート権限が必要なためです。
 
