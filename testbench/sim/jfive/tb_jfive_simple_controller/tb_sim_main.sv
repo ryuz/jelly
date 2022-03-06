@@ -55,7 +55,7 @@ module tb_sim_main
     logic   [31:0]                  mmio_wdata;
     logic   [31:0]                  mmio_rdata;
     
-    jelly2_riscv_simple_controller
+    jelly2_jfive_simple_controller
             #(
                 .S_WB_ADR_WIDTH     (S_WB_ADR_WIDTH  ),
                 .S_WB_DAT_WIDTH     (S_WB_DAT_WIDTH  ),
@@ -74,7 +74,7 @@ module tb_sim_main
                 .RESET_PC_ADDR      (RESET_PC_ADDR   ),
                 .INIT_CTL_RESET     (INIT_CTL_RESET  )
             )
-        i_riscv_simple_controller
+        i_jfive_simple_controller
             (
                 .reset,
                 .clk,

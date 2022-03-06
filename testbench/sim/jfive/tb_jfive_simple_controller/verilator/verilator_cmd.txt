@@ -9,7 +9,7 @@
 -Wno-UNOPTTHREADS
 
 -y ../../../../../rtl/model
--y ../../../../../rtl/riscv
+-y ../../../../../rtl/jfive
 -y ../../../../../rtl/library
 -y ../../../../../rtl/bus
 -y ../../../../../rtl/image

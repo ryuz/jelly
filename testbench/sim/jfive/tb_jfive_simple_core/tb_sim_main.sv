@@ -27,14 +27,14 @@ module tb_sim_main
     logic   [31:0]                  dbus_wdata;
     logic   [31:0]                  dbus_rdata;
 
-    jelly2_riscv_simple_core
+    jelly2_jfive_simple_core
             #(
                 .IBUS_ADDR_WIDTH    (IBUS_ADDR_WIDTH),
                 .DBUS_ADDR_WIDTH    (DBUS_ADDR_WIDTH),
                 .PC_WIDTH           (PC_WIDTH),
                 .RESET_PC_ADDR      (RESET_PC_ADDR)
             )
-        i_riscv_simple_core
+        i_jfive_simple_core
             (
                 .reset,
                 .clk,
@@ -97,7 +97,7 @@ module tb_sim_main
                 .port1_we       (mem_we),
                 .port1_addr     (mem_addr),
                 .port1_din      (mem_wdata),
-                .port1_dout     (mem_wdata)
+                .port1_dout     (mem_rdata)
             );
     
     logic   [1:0]   mem_shift;
