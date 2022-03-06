@@ -2,9 +2,17 @@
 
 TARGET = riscv_sample
 
-all:
+.PHONY: all
+all: build
+
+.PHONY: build
+build:
 	cargo build --release
-	riscv32-unknown-elf-objdump -D target/riscv32i-unknown-none-elf/release/$(TARGET) > $(TARGET).das
-	riscv32-unknown-elf-objcopy -O binary target/riscv32i-unknown-none-elf/release/$(TARGET) $(TARGET).bin
+	riscv64-unknown-elf-objdump -D target/riscv32i-unknown-none-elf/release/$(TARGET) > $(TARGET).das
+	riscv64-unknown-elf-objcopy -O binary target/riscv32i-unknown-none-elf/release/$(TARGET) $(TARGET).bin
 	python3 bin2hex.py
+
+.PHONY: clean
+clean:
+	cargo clean
 

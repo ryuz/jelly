@@ -22,13 +22,13 @@ pub unsafe extern "C" fn main() -> ! {
     let mut counter1 = 0;
     loop {
         counter0 += 1;
-        if counter0 > 1000000 {
+        if counter0 > 10000000 {
             counter0 = 0;
             led0 = led0 ^ 1;
         }
 
         counter1 += 1;
-        if counter1 > 3000000 {
+        if counter1 > 30000000 {
             counter1 = 0;
             led1 = led1 ^ 1;
         }
