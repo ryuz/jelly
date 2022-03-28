@@ -1,0 +1,21 @@
+version: "3"
+
+services:
+  ultra96_develop:
+    build: .
+    image: ultra96_develop
+    container_name: ultra96_develop
+    ports:
+      - 20022:20022
+    privileged: true
+    volumes:
+      - /home/${LOCAL_USER}:/home/${LOCAL_USER}
+      - /dev:/dev2
+      - /lib/firmware:/lib/firmware
+      - /configfs:/configfs
+      - /dev:/dev
+#     - /sys/class:/sys/class
+    environment:
+      LOCAL_USER: ${LOCAL_USER}
+      LOCAL_UID: ${LOCAL_UID}
+      LOCAL_GID: ${LOCAL_GID}
