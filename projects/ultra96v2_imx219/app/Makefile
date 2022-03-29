@@ -33,7 +33,7 @@ run: $(TARGET) load
 	./$(TARGET) $(RUN_OPT)
 
 $(TARGET): $(OBJS)
-	g++ $(LDFLAGS) -o $(TARGET) $(OBJS)
+	g++ -o $(TARGET) $(OBJS) $(LDFLAGS)
 
 %.o : %.cpp
 	g++ $(CFLAGS) -c $< -o $@
