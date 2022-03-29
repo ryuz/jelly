@@ -1,20 +1,18 @@
 version: "3"
 
 services:
-  ultra96_develop:
+  zynqmp_opencv:
     build: .
-    image: ultra96_develop
-    container_name: ultra96_develop
+    image: ryuz88/zynqmp_opencv
+    container_name: zynqmp_opencv
     ports:
       - 20022:20022
     privileged: true
     volumes:
       - /home/${LOCAL_USER}:/home/${LOCAL_USER}
-      - /dev:/dev2
       - /lib/firmware:/lib/firmware
       - /configfs:/configfs
       - /dev:/dev
-#     - /sys/class:/sys/class
     environment:
       LOCAL_USER: ${LOCAL_USER}
       LOCAL_UID: ${LOCAL_UID}

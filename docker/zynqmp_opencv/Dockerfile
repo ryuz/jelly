@@ -1,6 +1,6 @@
 FROM ubuntu:20.04
 
-LABEL maintainter="Ryuz88"
+LABEL maintainter="ryuz88"
 
 # update
 RUN apt-get update
@@ -10,7 +10,8 @@ RUN apt-get install -y openssh-server
 RUN mkdir /var/run/sshd
 RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config
 RUN sed -i 's/#Port 22/Port 20022/' /etc/ssh/sshd_config
-COPY ./config_files/id_rsa.pub /root/.ssh/authorized_keys
+RUN sed -i 's/#X11DisplayOffset 10/X11DisplayOffset 10/' /etc/ssh/sshd_config
+RUN sed -i 's/#X11UseLocalhost yes/X11UseLocalhost no/' /etc/ssh/sshd_config
 EXPOSE 20022
 
 # sudo
@@ -27,7 +28,20 @@ RUN apt-get install -y xauth
 RUN apt-get install -y libssl-dev
 RUN git clone https://github.com/Xilinx/bootgen;cd bootgen;make;cp bootgen /usr/local/bin;cd ..;rm -fr bootgen
 
+# opencv
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get install -y cmake libeigen3-dev
+RUN apt-get install -y libgtk-3-dev qt5-default freeglut3-dev libvtk6-qt-dev
+RUN apt-get install -y libtbb-dev
+RUN apt-get install -y libjpeg-dev libpng++-dev libtiff-dev libopenexr-dev libwebp-dev
+RUN apt-get install -y libhdf5-dev
+RUN apt-get install -y wget unzip
+
+RUN mkdir /opencv
+COPY ./files/build_opencv3.sh /opencv
+RUN cd opencv;bash build_opencv3.sh;cd ..;rm -fr opencv
+
 # entrypoint
-COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY ./files/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
