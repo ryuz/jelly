@@ -26,6 +26,12 @@
 *_
 *_/
 
+*.zip
+*.tar
+*.gz
+*.tgz
+*.7z
+
 *.ncb
 *.opt
 *.plg
@@ -43,7 +49,6 @@
 *.pb
 *.vtakdisk
 *.vtakwave
-*.zip
 *.sdf
 *.suo
 *.xml

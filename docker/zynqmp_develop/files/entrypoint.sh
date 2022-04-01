@@ -6,7 +6,7 @@ GROUP_ID=${LOCAL_GID:-9001}
 
 echo "Starting with UID : $USER_ID, GID: $GROUP_ID"
 useradd -u $USER_ID -o -m $USER_NAME --shell /usr/bin/bash
-groupmod -g $USER_NAME $GROUP_ID
+groupmod -g $GROUP_ID $USER_NAME
 echo "$USER_NAME:fpga" | chpasswd
 
 gpasswd -a $USER_NAME sudo
