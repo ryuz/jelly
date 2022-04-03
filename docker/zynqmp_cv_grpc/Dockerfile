@@ -1,4 +1,4 @@
-FROM ryuz88/zynqmp_opencv
+FROM ryuz88/zynqmp_opencv:latest
 
 LABEL maintainter="ryuz88"
 

@@ -4,11 +4,11 @@
 OPENCV_VERSION=3.4.12
 
 apt-get install -y cmake libeigen3-dev
-apt-get libgtk-3-dev qt5-default freeglut3-dev libvtk6-qt-dev
-apt-get libtbb-dev
-apt-get libjpeg-dev libpng++-dev libtiff-dev libopenexr-dev libwebp-dev
-apt-get libhdf5-dev
-apt-get wget unzip
+apt-get install -y libgtk-3-dev qt5-default freeglut3-dev libvtk6-qt-dev
+apt-get install -y libtbb-dev
+apt-get install -y libjpeg-dev libpng++-dev libtiff-dev libopenexr-dev libwebp-dev
+apt-get install -y libhdf5-dev
+apt-get install -y wget unzip
 
 # download
 if [ ! -f ${OPENCV_VERSION}.zip ]; then
