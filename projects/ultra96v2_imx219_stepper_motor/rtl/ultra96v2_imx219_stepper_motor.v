@@ -1350,11 +1350,19 @@ module ultra96v2_imx219_stepper_motor
                 .monitor_target_a           (stmc_target_a)
             );
     
-    assign pmod0[0]   = stmc_out_a;
-    assign pmod0[1]   = stmc_out_b;
-    assign pmod0[2]   = stmc_out_en;
-    assign pmod0[7:3] = 0;
+//    assign pmod0[0]   = stmc_out_a;
+//    assign pmod0[1]   = stmc_out_b;
+//    assign pmod0[2]   = stmc_out_en;
+//    assign pmod0[7:3] = 0;
     
+    assign pmod0[0]   = stmc_out_a;
+    assign pmod0[1]   = ~stmc_out_a;
+    assign pmod0[2]   = 1'b1;
+    assign pmod0[3]   = 1'b0;
+    assign pmod0[4]   = stmc_out_b;
+    assign pmod0[5]   = ~stmc_out_b;
+    assign pmod0[6]   = 1'b1;
+    assign pmod0[7]   = 1'b0;
     
     
     // ----------------------------------------
