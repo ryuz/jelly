@@ -259,7 +259,7 @@ module tb_main(
     
     parameter   SAMPLER1D_NUM                 = 0;
     
-    parameter   SAMPLER2D_NUM                 = 12;
+    parameter   SAMPLER2D_NUM                 = 16;
     parameter   SAMPLER2D_USER_WIDTH          = 0;
     parameter   SAMPLER2D_X_INT_WIDTH         = ADDR_X_WIDTH+2;
     parameter   SAMPLER2D_X_FRAC_WIDTH        = 4;
@@ -381,12 +381,12 @@ module tb_main(
         m11 = $rtoi(16 * 0.707);
         m12 = $rtoi(16 * -155.97);
         
-//      m00 = $rtoi(16 * 1.0);
-//      m01 = $rtoi(16 * 0.0);
-//      m02 = $rtoi(16 * 0.0);
-//      m10 = $rtoi(16 * 0.0);
-//      m11 = $rtoi(16 * 1.0);
-//      m12 = $rtoi(16 * 0.0);
+//        m00 = $rtoi(16 * 1.0);
+//        m01 = $rtoi(16 * 0.0);
+//        m02 = $rtoi(16 * 0.0);
+//        m10 = $rtoi(16 * 0.0);
+//        m11 = $rtoi(16 * 1.0);
+//        m12 = $rtoi(16 * 0.0);
     end
     
     wire        [SAMPLER2D_X_WIDTH-1:0]             txtadr_x_tmp = SAMPLER2D_X_WIDTH'(m00 * txtadr_x + m01 * txtadr_y + m02);
@@ -608,14 +608,15 @@ module tb_main(
                 .endian                         (1'b0),
                 
                 .param_addr                     (32'h0000_0000),
-                .param_width                    (X_NUM),
-                .param_height                   (Y_NUM),
+                .param_width                    (X_NUM-1),
+                .param_height                   (Y_NUM-1),
                 .param_stride_c                 ((1 << BLK_X_SIZE) * (1 << BLK_Y_SIZE)),
                 .param_stride_x                 ((1 << BLK_X_SIZE) * (1 << BLK_Y_SIZE) * COMPONENTS),
                 .param_stride_y                 (X_NUM             * (1 << BLK_Y_SIZE) * COMPONENTS),
                 .param_border_value             (24'h000000),
-                .param_x_op                     (3'b000),
-                .param_y_op                     (3'b000),
+                .param_blank_value              ('0),
+                .param_x_op                     (3'b110),
+                .param_y_op                     (3'b110),
                 .param_nearestneighbor          (0),
                 .clear_start                    (0),
                 .clear_busy                     (),
@@ -643,6 +644,7 @@ module tb_main(
                 .m_sampler2d_user               (m_sampler2d_user),
                 .m_sampler2d_border             (m_sampler2d_border),
                 .m_sampler2d_data               (m_sampler2d_data),
+                .m_sampler2d_strb               (),
                 .m_sampler2d_valid              (m_sampler2d_valid),
                 .m_sampler2d_ready              (m_sampler2d_ready),
                 
