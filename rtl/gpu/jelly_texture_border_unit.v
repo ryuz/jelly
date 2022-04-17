@@ -200,16 +200,16 @@ module jelly_texture_border_unit
         src_xx      = src_x0 + src_x1;
         src_x_over  = src_xx[X_WIDTH-1];
         
-        casex ( {param_x_op[1:0], src_x_under, src_x_over} )
+        casez ( {param_x_op[1:0], src_x_under, src_x_over} )
         4'b00_01:   begin   src_x_op = 3'b110;  end     // BORDER_REPLICATE(overflow)
-        4'b00_1x:   begin   src_x_op = 3'b101;  end     // BORDER_REPLICATE(underflow)
+        4'b00_1?:   begin   src_x_op = 3'b101;  end     // BORDER_REPLICATE(underflow)
         4'b01_01:   begin   src_x_op = 3'b010;  end     // BORDER_REFLECT(overflow)
-        4'b01_1x:   begin   src_x_op = 3'b100;  end     // BORDER_REFLECT(underflow)
+        4'b01_1?:   begin   src_x_op = 3'b100;  end     // BORDER_REFLECT(underflow)
         4'b10_01:   begin   src_x_op = 3'b011;  end     // BORDER_REFLECT101(overflow)
-        4'b10_1x:   begin   src_x_op = 3'b101;  end     // BORDER_REFLECT101(underflow)
+        4'b10_1?:   begin   src_x_op = 3'b101;  end     // BORDER_REFLECT101(underflow)
         4'b11_01:   begin   src_x_op = 3'b100;  end     // BORDER_WRAP(overflow)
-        4'b11_1x:   begin   src_x_op = 3'b010;  end     // BORDER_WRAP(underflow)
-        4'bxx_00:   begin   src_x_op = 3'b000;  end
+        4'b11_1?:   begin   src_x_op = 3'b010;  end     // BORDER_WRAP(underflow)
+        4'b??_00:   begin   src_x_op = 3'b000;  end
         endcase
         
         
@@ -237,16 +237,16 @@ module jelly_texture_border_unit
         src_yy      = src_y0 + src_y1;
         src_y_over  = src_yy[Y_WIDTH-1];
         
-        casex ( {param_y_op[1:0], src_y_under, src_y_over} )
+        casez ( {param_y_op[1:0], src_y_under, src_y_over} )
         4'b00_01:   begin   src_y_op = 3'b110;  end     // BORDER_REPLICATE(overflow)
-        4'b00_1x:   begin   src_y_op = 3'b101;  end     // BORDER_REPLICATE(underflow)
+        4'b00_1?:   begin   src_y_op = 3'b101;  end     // BORDER_REPLICATE(underflow)
         4'b01_01:   begin   src_y_op = 3'b010;  end     // BORDER_REFLECT(overflow)
-        4'b01_1x:   begin   src_y_op = 3'b100;  end     // BORDER_REFLECT(underflow)
+        4'b01_1?:   begin   src_y_op = 3'b100;  end     // BORDER_REFLECT(underflow)
         4'b10_01:   begin   src_y_op = 3'b011;  end     // BORDER_REFLECT101(overflow)
-        4'b10_1x:   begin   src_y_op = 3'b101;  end     // BORDER_REFLECT101(underflow)
+        4'b10_1?:   begin   src_y_op = 3'b101;  end     // BORDER_REFLECT101(underflow)
         4'b11_01:   begin   src_y_op = 3'b100;  end     // BORDER_WRAP(overflow)
-        4'b11_1x:   begin   src_y_op = 3'b010;  end     // BORDER_WRAP(underflow)
-        4'bxx_00:   begin   src_y_op = 3'b000;  end
+        4'b11_1?:   begin   src_y_op = 3'b010;  end     // BORDER_WRAP(underflow)
+        4'b??_00:   begin   src_y_op = 3'b000;  end
         endcase
     end
     
@@ -297,6 +297,7 @@ module jelly_texture_border_unit
         3'b100: begin   st0_x0 = {X_WIDTH{1'b0}}; st0_x1 = ~st0_x;          st0_x_carry = 1'b0; end
         3'b101: begin   st0_x0 = {X_WIDTH{1'b0}}; st0_x1 = ~st0_x;          st0_x_carry = 1'b1; end
         3'b110: begin   st0_x0 = image_width;     st0_x1 = {X_WIDTH{1'b1}}; st0_x_carry = 1'b0; end
+        default: ;
         endcase
         
         // Y
@@ -310,6 +311,7 @@ module jelly_texture_border_unit
         3'b100: begin   st0_y0 = {X_WIDTH{1'b0}}; st0_y1 = ~st0_y;          st0_y_carry = 1'b0; end
         3'b101: begin   st0_y0 = {X_WIDTH{1'b0}}; st0_y1 = ~st0_y;          st0_y_carry = 1'b1; end
         3'b110: begin   st0_y0 = image_height;    st0_y1 = {Y_WIDTH{1'b1}}; st0_y_carry = 1'b0; end
+        default: ;
         endcase
     end
     

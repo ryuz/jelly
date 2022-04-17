@@ -1,5 +1,5 @@
 
-all: build run coverage
+all: build run
 
 .PHONY : build
 build:

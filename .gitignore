@@ -110,6 +110,8 @@ axi4_mem*_write*.txt
 coverage.dat
 memo.txt
 mnist*.txt
+buf_rd*.txt
+buf_wr*.txt
 
 axi4_mem*.txt
 

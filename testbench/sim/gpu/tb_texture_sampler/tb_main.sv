@@ -18,13 +18,13 @@ module tb_main(
     localparam  int     X_NUM            = 640;
     localparam  int     Y_NUM            = 480;
 
-    localparam  int     BLK_X_SIZE       = 3;  // 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
-    localparam  int     BLK_Y_SIZE       = 3;  // 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
+    localparam  int     BLK_X_SIZE       = 4;  // 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
+    localparam  int     BLK_Y_SIZE       = 4;  // 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
     localparam  int     STEP_Y_SIZE      = 2;
 
     localparam  int     AXI4_ID_WIDTH    = 6;
     localparam  int     AXI4_ADDR_WIDTH  = 32;
-    localparam  int     AXI4_DATA_SIZE   = 3; // 0:8bit, 1:16bit, 2:32bit, 3:64bit, ... ...
+    localparam  int     AXI4_DATA_SIZE   = 4; // 0:8bit, 1:16bit, 2:32bit, 3:64bit, ... ...
     localparam  int     AXI4_DATA_WIDTH  = (8 << AXI4_DATA_SIZE);
     localparam  int     AXI4_STRB_WIDTH  = (1 << AXI4_DATA_SIZE);
     localparam  int     AXI4_LEN_WIDTH   = 8;
@@ -138,9 +138,25 @@ module tb_main(
     // ---------------------------------------------
     //  textrute writer
     // ---------------------------------------------
-    
+
+    localparam X_WIDTH                = 10;
+    localparam Y_WIDTH                = 9;
+    localparam STRIDE_C_WIDTH         = 14;
+    localparam STRIDE_X_WIDTH         = 14;
+    localparam STRIDE_Y_WIDTH         = 15;
+
     logic                               writer_enable;
     logic                               writer_busy;
+
+    logic   [STRIDE_C_WIDTH-1:0]        param_stride_c = (1 << BLK_X_SIZE) * (1 << BLK_Y_SIZE);
+    logic   [STRIDE_X_WIDTH-1:0]        param_stride_x = (1 << BLK_X_SIZE) * (1 << BLK_Y_SIZE) * COMPONENTS;
+    logic   [STRIDE_Y_WIDTH-1:0]        param_stride_y = X_NUM             * (1 << BLK_Y_SIZE) * COMPONENTS;
+
+    initial begin
+        $display("param_stride_c : %d", param_stride_c);
+        $display("param_stride_x : %d", param_stride_x);
+        $display("param_stride_y : %d", param_stride_y);
+    end
 
     always_ff @(posedge clk) begin
         if ( reset ) begin
@@ -168,11 +184,11 @@ module tb_main(
                 .BLK_Y_SIZE             (BLK_Y_SIZE),   // 2^n (0:1, 1:2, 2:4, 3:8, ... )
                 .STEP_Y_SIZE            (STEP_Y_SIZE),  // 2^n (0:1, 1:2, 2:4, 3:8, ... )
                 
-                .X_WIDTH                (10),
-                .Y_WIDTH                (9),
-                .STRIDE_C_WIDTH         (14),
-                .STRIDE_X_WIDTH         (14),
-                .STRIDE_Y_WIDTH         (14),
+                .X_WIDTH                (X_WIDTH),
+                .Y_WIDTH                (Y_WIDTH),
+                .STRIDE_C_WIDTH         (STRIDE_C_WIDTH),
+                .STRIDE_X_WIDTH         (STRIDE_X_WIDTH),
+                .STRIDE_Y_WIDTH         (STRIDE_Y_WIDTH),
                 
                 .BUF_ADDR_WIDTH         (12+1),
                 .BUF_RAM_TYPE           ("block")
@@ -191,9 +207,9 @@ module tb_main(
                 .param_awlen            (32'h03),
                 .param_width            (X_NUM),
                 .param_height           (Y_NUM),
-                .param_stride_c         ((1 << BLK_X_SIZE) * (1 << BLK_Y_SIZE)),
-                .param_stride_x         ((1 << BLK_X_SIZE) * (1 << BLK_Y_SIZE) * COMPONENTS),
-                .param_stride_y         (X_NUM             * (1 << BLK_Y_SIZE) * COMPONENTS),
+                .param_stride_c         (param_stride_c),
+                .param_stride_x         (param_stride_x),
+                .param_stride_y         (param_stride_y),
                 
                 .s_axi4s_tuser          (axi4s_src_tuser),
                 .s_axi4s_tlast          (axi4s_src_tlast),
@@ -234,9 +250,9 @@ module tb_main(
     parameter   ADDR_WIDTH                    = 24;
     parameter   ADDR_X_WIDTH                  = 12;
     parameter   ADDR_Y_WIDTH                  = 12;
-    parameter   STRIDE_C_WIDTH                = 12;
-    parameter   STRIDE_X_WIDTH                = 13;
-    parameter   STRIDE_Y_WIDTH                = 14;
+//    parameter   STRIDE_C_WIDTH                = 12;
+//    parameter   STRIDE_X_WIDTH                = 13;
+//    parameter   STRIDE_Y_WIDTH                = 14;
     
     parameter   USE_BILINEAR                  = 1;
     parameter   USE_BORDER                    = 1;
@@ -398,6 +414,7 @@ module tb_main(
                             txtadr_y <= 0;
                             txtadr_valid <= 0;
                             txtadr_enbale <= 0;
+                            $writememh("axi4_mem.txt", i_axi4_slave_model.mem);
                         end
                     end
                 end
@@ -591,12 +608,11 @@ module tb_main(
                 .endian                         (1'b0),
                 
                 .param_addr                     (32'h0000_0000),
-                .param_width                    (640),
-                .param_height                   (480),
-                .param_stride_c                 ((1 << L2_BLK_X_SIZE)*(1 << L2_BLK_Y_SIZE)),
-                .param_stride_x                 ((1 << L2_BLK_X_SIZE)*(1 << L2_BLK_Y_SIZE)*COMPONENTS),
-                .param_stride_y                 (640*(1 << L2_BLK_Y_SIZE)*COMPONENTS),
-                
+                .param_width                    (X_NUM),
+                .param_height                   (Y_NUM),
+                .param_stride_c                 ((1 << BLK_X_SIZE) * (1 << BLK_Y_SIZE)),
+                .param_stride_x                 ((1 << BLK_X_SIZE) * (1 << BLK_Y_SIZE) * COMPONENTS),
+                .param_stride_y                 (X_NUM             * (1 << BLK_Y_SIZE) * COMPONENTS),
                 .param_border_value             (24'h000000),
                 .param_x_op                     (3'b000),
                 .param_y_op                     (3'b000),

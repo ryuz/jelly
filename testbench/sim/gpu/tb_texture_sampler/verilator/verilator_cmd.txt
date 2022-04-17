@@ -7,8 +7,8 @@
 -Wno-UNSIGNED
 -Wno-PINMISSING
 -Wno-UNOPTFLAT
--Wno-CASEX
--Wno-CASEINCOMPLETE
+#-Wno-CASEX
+#-Wno-CASEINCOMPLETE
 
 -y ../../../../../rtl/model
 -y ../../../../../rtl/library
