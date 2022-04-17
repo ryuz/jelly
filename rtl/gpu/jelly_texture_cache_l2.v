@@ -242,7 +242,8 @@ module jelly_texture_cache_l2
                     .addry              (s_blk_addry),
                     
                     .unit_id            (s_arid[i*CACHE_ID_WIDTH +: CACHE_ID_WIDTH]),
-                    .tag_addr           ()
+                    .tag_addr           (),
+                    .index              ()
                 );
         
         // packet

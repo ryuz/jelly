@@ -162,6 +162,7 @@ module jelly_texture_cache_lookahead
                 .clear_busy             (),
                 
                 .s_user                 (s_aruser),
+                .s_last                 (1'b0),
                 .s_addrx                (s_araddrx),
                 .s_addry                (s_araddry),
                 .s_strb                 (s_arstrb),
@@ -169,6 +170,7 @@ module jelly_texture_cache_lookahead
                 .s_ready                (s_arready),
                 
                 .m_user                 (tag_user),
+                .m_last                 (),
                 .m_tbl_addr             (),
                 .m_pix_addrx            (tag_pix_addrx),
                 .m_pix_addry            (tag_pix_addry),

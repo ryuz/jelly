@@ -413,6 +413,7 @@ module jelly_texture_sampler
                         .s_arvalid          (bilinear_arvalid),
                         .s_arready          (bilinear_arready),
                         .s_ruser            (bilinear_ruser),
+                        .s_rborder          (),
                         .s_rdata            (bilinear_rdata),
                         .s_rstrb            (bilinear_rstrb),
                         .s_rvalid           (bilinear_rvalid),

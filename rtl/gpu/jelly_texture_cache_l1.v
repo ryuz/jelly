@@ -209,6 +209,7 @@ module jelly_texture_cache_l1
                     .s_ruser                (s_ruser   [i*S_USER_WIDTH +: S_USER_WIDTH]),
                     .s_rdata                (s_rdata   [i*S_DATA_WIDTH +: S_DATA_WIDTH]),
                     .s_rstrb                (s_rstrb   [i]),
+                    .s_rlast                (),
                     .s_rvalid               (s_rvalid  [i]),
                     .s_rready               (s_rready  [i]),
                     

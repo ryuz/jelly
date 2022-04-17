@@ -74,7 +74,7 @@ module jelly_texture_border_unit
     // ISEだと最適化してくれないが、Vivadoだとコンパクトに収まる模様
     //
     //
-    // op:3'b000 BORDER_TRANSPARENT borderフラグを立ててスルー(後段でケア)
+    // op:3'b000 BORDER_TRANSPARENT     borderフラグを立ててスルー(後段でケア)
     // op:3'b000 BORDER_CONSTANT        borderフラグを立ててスルー(後段でケア)
     // op:3'b100 BORDER_REPLICATE
     //      overflow  : param_width - 1                             : w - ((w-x-1) + 1)  n  :  w-0 n  (st1_op:3'b110)
