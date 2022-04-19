@@ -37,17 +37,11 @@ module jelly2_register_file_ram
             input   wire    [READ_PORTS-1:0][ADDR_WIDTH-1:0]    rd_addr,
             output  wire    [READ_PORTS-1:0][DATA_WIDTH-1:0]    rd_dout
         );
-
-    logic   [DATA_WIDTH-1:0]    wr_data;
-    always_ff @(posedge clk) begin
-        if ( cke ) begin
-            wr_data <= wr_din;
-        end
-    end
-
+    
     generate
     for ( genvar i = 0; i < READ_PORTS; ++i ) begin : loop_ram
-        logic   [DATA_WIDTH-1:0]    rd_data;
+        logic       overwrite;
+        assign overwrite = (rd_addr[i] == wr_addr);
         jelly2_ram_dualport
                 #(
                     .ADDR_WIDTH         (ADDR_WIDTH),
@@ -66,7 +60,7 @@ module jelly2_register_file_ram
                     .port0_clk          (clk),
                     .port0_en           (cke),
                     .port0_regcke       (cke),
-                    .port0_we           (wr_en),
+                    .port0_we           (wr_en && !overwrite),
                     .port0_addr         (wr_addr),
                     .port0_din          (wr_din),
                     .port0_dout         (),
@@ -74,23 +68,14 @@ module jelly2_register_file_ram
                     .port1_clk          (clk),
                     .port1_en           (cke & rd_en[i]),
                     .port1_regcke       (cke),
-                    .port1_we           (1'b0),
+                    .port1_we           (wr_en && overwrite),
                     .port1_addr         (rd_addr[i]),
-                    .port1_din          ('0),
-                    .port1_dout         (rd_data)
+                    .port1_din          (wr_din),
+                    .port1_dout         (rd_dout[i])
                 );
-
-        logic   forwarding;
-        always_ff @(posedge clk) begin
-            if ( cke ) begin
-                forwarding <= wr_en && (wr_addr == rd_addr[i]);
-            end
-        end
-        
-        assign rd_dout[i] = forwarding ? wr_data : rd_data;
     end
     endgenerate
-    
+
 endmodule
 
 
