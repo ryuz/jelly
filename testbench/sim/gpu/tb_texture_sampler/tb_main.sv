@@ -205,8 +205,8 @@ module tb_main(
                 
                 .param_addr             (32'h0000_0000),
                 .param_awlen            (32'h03),
-                .param_width            (X_NUM),
-                .param_height           (Y_NUM),
+                .param_width            (X_NUM-1),
+                .param_height           (Y_NUM-1),
                 .param_stride_c         (param_stride_c),
                 .param_stride_x         (param_stride_x),
                 .param_stride_y         (param_stride_y),

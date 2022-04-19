@@ -283,8 +283,8 @@ module tb_texture_writer();
                 
                 .param_addr             (32'h0000_0000),
                 .param_awlen            (32'h03),
-                .param_width            (X_NUM),
-                .param_height           (Y_NUM),
+                .param_width            (X_NUM-1),
+                .param_height           (Y_NUM-1),
                 .param_stride_c         ((1 << BLK_X_SIZE) * (1 << BLK_Y_SIZE)),
                 .param_stride_x         ((1 << BLK_X_SIZE) * (1 << BLK_Y_SIZE) * COMPONENT_NUM),
                 .param_stride_y         (X_NUM             * (1 << BLK_Y_SIZE) * COMPONENT_NUM),
