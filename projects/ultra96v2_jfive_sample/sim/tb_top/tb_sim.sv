@@ -152,7 +152,7 @@ module tb_sim();
     logic   [31:0]  mem     [0:1024];
 
     initial begin
-        $readmemh("../../../app/riscv/mem.hex", mem);
+        $readmemh("../../../app/jfive/mem.hex", mem);
 
     #100;
         $display(" --- start --- ");

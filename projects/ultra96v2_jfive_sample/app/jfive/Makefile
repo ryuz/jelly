@@ -15,4 +15,7 @@ build:
 .PHONY: clean
 clean:
 	cargo clean
+	rm -f $(TARGET).das
+	rm -f $(TARGET).bin
+	rm -f mem.hex
 

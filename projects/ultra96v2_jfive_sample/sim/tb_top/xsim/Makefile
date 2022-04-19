@@ -13,7 +13,7 @@ build:
 
 .PHONY: run
 run:
-	make -C ../../../app/riscv
+	make -C ../../../app/jfive
 	xsim $(TOP_MODULE) -t xsim_run_all.tcl
 
 

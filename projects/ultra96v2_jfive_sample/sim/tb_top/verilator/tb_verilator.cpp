@@ -76,13 +76,16 @@ int main(int argc, char** argv)
     wb->Read (0x00000000 + 5);
     wb->Write(0x00000000 + 8, 1, 0xf);
 
-    FILE* fp = fopen("../../../app/riscv/riscv_sample.bin", "rb");
+    FILE* fp = fopen("../../../app/jfive/jfive_sample.bin", "rb");
     std::uint32_t instr;
+
+    wb->SetVerbose(false);
     int i = 0;
     while ( fread(&instr, sizeof(instr), 1, fp) == 1 ) {
         wb->Write(0x00000000 + 0x8000 + i, instr, 0xf);
         i++;
     }
+    wb->SetVerbose(true);
     fclose(fp);
     
 

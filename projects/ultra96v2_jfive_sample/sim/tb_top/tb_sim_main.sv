@@ -79,6 +79,9 @@ module tb_sim_main
         end
     end
 
+    final begin
+        $write("\n");
+    end
 
 endmodule
 

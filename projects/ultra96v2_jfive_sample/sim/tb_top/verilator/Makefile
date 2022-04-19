@@ -36,7 +36,7 @@ build:
 
 .PHONY : run
 run:
-	make -C ../../../app/riscv
+	make -C ../../../app/jfive
 	build/tb_verilator
 
 .PHONY : coverage
