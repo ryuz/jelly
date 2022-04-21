@@ -7,7 +7,6 @@ module tb_main(
             input   wire    reset,
             input   wire    clk
         );
-    
 
     // setting
     localparam          FILE_NAME        = "../../../../data/Penguins_640x480.ppm";
