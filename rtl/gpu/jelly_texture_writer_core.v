@@ -47,7 +47,14 @@ module jelly_texture_writer_core
             parameter   Y_WIDTH              = 10,
             
             parameter   STRIDE_C_WIDTH       = BLK_X_SIZE + BLK_Y_SIZE,
-            parameter   STRIDE_X_WIDTH       = BLK_X_SIZE + BLK_Y_SIZE + $clog2(COMPONENT_NUM),
+            parameter   STRIDE_X_WIDTH       = BLK_X_SIZE + BLK_Y_SIZE
+                                             + (COMPONENT_NUM <=  1 ? 0 :
+                                                COMPONENT_NUM <=  2 ? 1 :
+                                                COMPONENT_NUM <=  4 ? 2 :
+                                                COMPONENT_NUM <=  8 ? 3 :
+                                                COMPONENT_NUM <= 16 ? 4 :
+                                                COMPONENT_NUM <= 32 ? 5 :
+                                                COMPONENT_NUM <= 64 ? 6 : 7),
             parameter   STRIDE_Y_WIDTH       = X_WIDTH + BLK_Y_SIZE,
             
             parameter   BUF_ADDR_WIDTH       = 1 + X_WIDTH + STEP_Y_SIZE,
