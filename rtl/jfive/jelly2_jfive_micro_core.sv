@@ -244,20 +244,6 @@ module jelly2_jfive_micro_core
     //  Instruction Fetch
     // -----------------------------------------
 
-    /*
-    // PC & Instruction
-    always_ff @(posedge clk) begin
-        if ( reset ) begin            
-            if_pc    <= 'x;
-            if_valid <= 1'b0;
-        end
-        else if ( if_cke ) begin
-            if_pc    <= pc_pc;
-            if_valid <= 1'b1;
-        end
-    end
-    */
-
     logic                               if_stall_en;
 
     logic           [PC_WIDTH-1:0]      if0_pc;
@@ -399,124 +385,29 @@ module jelly2_jfive_micro_core
     wire    if_dec_ebreak = (if_instr == 32'h00100073);
 
 
+
     // -----------------------------------------
     //  Instruction Decode
     // -----------------------------------------
 
-    /*
-   logic                       next_valid;
-   logic   [6:0]               next_opcode;
-   logic   [RIDX_WIDTH-1:0]    next_rs1_idx;
-   logic   [RIDX_WIDTH-1:0]    next_rs2_idx;
-   logic                       next_rs1_en;
-   logic                       next_rs2_en;
-
-    // stall
+    // control
     always_ff @(posedge clk) begin
-        if ( reset ) begin
-            id_stall  <= 1'b0;
-        end
-        else if ( cke ) begin
-//           automatic   logic                       next_valid;
-//           automatic   logic   [6:0]               next_opcode;
-//           automatic   logic   [RIDX_WIDTH-1:0]    next_rs1_idx;
-//           automatic   logic   [RIDX_WIDTH-1:0]    next_rs2_idx;
-//           automatic   logic                       next_rs1_en;
-//           automatic   logic                       next_rs2_en;
-
-            // next instruction
-            next_valid   = id_stall ? id_valid   : if_valid;
-            next_opcode  = id_stall ? id_opcode  : if_opcode;
-            next_rs1_idx = id_stall ? id_rs1_idx : if_rs1_idx;
-            next_rs2_idx = id_stall ? id_rs2_idx : if_rs2_idx;
-
-            next_rs1_en = 1'b0;
-            next_rs2_en = 1'b0;
-            if ( next_opcode == 7'b1100111 ) begin next_rs1_en = 1'b1; end
-            if ( next_opcode == 7'b1100011 ) begin next_rs1_en = 1'b1; next_rs2_en = 1'b1; end
-            if ( next_opcode == 7'b0000011 ) begin next_rs1_en = 1'b1; end
-            if ( next_opcode == 7'b0100011 ) begin next_rs1_en = 1'b1; next_rs2_en = 1'b1; end
-            if ( next_opcode == 7'b0010011 ) begin next_rs1_en = 1'b1; end
-            if ( next_opcode == 7'b0010011 ) begin next_rs1_en = 1'b1; end
-            if ( next_opcode == 7'b0110011 ) begin next_rs1_en = 1'b1; next_rs2_en = 1'b1; end
-            if ( next_opcode == 7'b0001111 ) begin next_rs1_en = 1'b1; end
-
-            id_stall <= 1'b0;
-            if ( next_rs1_en && next_rs1_idx == id_rd_idx && id_mem_re && !id_stall ) begin id_stall <= 1'b1; end
-            if ( next_rs2_en && next_rs2_idx == id_rd_idx && id_mem_re && !id_stall ) begin id_stall <= 1'b1; end
-            if ( next_rs1_en && next_rs1_idx == ex_rd_idx && ex_mem_re ) begin id_stall <= 1'b1; end
-            if ( next_rs2_en && next_rs2_idx == ex_rd_idx && ex_mem_re ) begin id_stall <= 1'b1; end
-        end
-    end
-    */
-
-    /*
-    always_ff @(posedge clk) begin
-        if ( reset ) begin
-            id_stall  <= 1'b0;
-            id_stall2 <= 1'b0;
-        end
-        else if ( cke ) begin
-            if ( id_stall ) begin
-                id_stall  <= id_stall2;
-                id_stall2 <= 1'b0;
-            end
-            else begin
-                if ( (if_opcode == 7'b1100111 && (if_rs1_idx == id_rd_idx))
-                        || (if_opcode == 7'b1100011 && ((if_rs1_idx == id_rd_idx) || (if_rs2_idx == id_rd_idx)))
-                        || (if_opcode == 7'b0000011 && (if_rs1_idx == id_rd_idx))
-                        || (if_opcode == 7'b0100011 && ((if_rs1_idx == id_rd_idx) || (if_rs2_idx == id_rd_idx)))
-                        || (if_opcode == 7'b0010011 && (if_rs1_idx == id_rd_idx))
-                        || (if_opcode == 7'b0010011 && (if_rs1_idx == id_rd_idx))
-                        || (if_opcode == 7'b0110011 && ((if_rs1_idx == id_rd_idx) || (if_rs2_idx == id_rd_idx)))
-                        || (if_opcode == 7'b0001111 && (if_rs1_idx == id_rd_idx)) ) begin
-                    if ( id_mem_re ) begin
-                        id_stall  <= 1'b1;
-                        id_stall2 <= 1'b1;
-                    end
-                    if ( ex_mem_re ) begin
-                        id_stall  <= 1'b1;
-                    end
-                end
-            end
-        end
-    end
-    */
-
-    /*
-    logic   id_rs1_en;
-    logic   id_rs2_en;
-    always_ff @(posedge clk) begin
-        if ( reset ) begin
-            id_rs1_en <= 1'b0;
-            id_rs2_en <= 1'b0;
+        if ( reset ) begin            
+            id_pc    <= '0;
+            id_instr <= '0;
+            id_valid <= 1'b0;
         end
         else if ( id_cke ) begin
-            id_rs1_en <= 1'b0;
-            id_rs2_en <= 1'b0;
-            if ( if_opcode == 7'b1100111 ) begin id_rs1_en <= 1'b1; end
-            if ( if_opcode == 7'b1100011 ) begin id_rs1_en <= 1'b1; id_rs2_en <= 1'b1; end
-            if ( if_opcode == 7'b0000011 ) begin id_rs1_en <= 1'b1; end
-            if ( if_opcode == 7'b0100011 ) begin id_rs1_en <= 1'b1; id_rs2_en <= 1'b1; end
-            if ( if_opcode == 7'b0010011 ) begin id_rs1_en <= 1'b1; end
-            if ( if_opcode == 7'b0010011 ) begin id_rs1_en <= 1'b1; end
-            if ( if_opcode == 7'b0110011 ) begin id_rs1_en <= 1'b1; id_rs2_en <= 1'b1; end
-            if ( if_opcode == 7'b0001111 ) begin id_rs1_en <= 1'b1; end
+            id_pc    <= if_pc;
+            id_instr <= if_instr;
+            id_valid <= if_valid;
         end
     end
 
-    always_comb begin
-        id_stall = 1'b0;
-        if ( ex_mem_re ) begin
-            if ( id_rs1_en && id_rs1_idx == ex_rd_idx) begin id_stall = 1'b1; end
-            if ( id_rs2_en && id_rs2_idx == ex_rd_idx) begin id_stall = 1'b1; end
-        end
-        if ( ma_mem_re ) begin
-            if ( id_rs1_en && id_rs1_idx == ma_rd_idx) begin id_stall = 1'b1; end
-            if ( id_rs2_en && id_rs2_idx == ma_rd_idx) begin id_stall = 1'b1; end
-        end
+    always_ff @(posedge clk) begin
+        id_rs1_en <= if_rs1_en;
+        id_rs2_en <= if_rs2_en;
     end
-    */
 
     assign id_opcode  = id_instr[6:0];
     assign id_rd_idx  = id_instr[11:7];
@@ -731,25 +622,8 @@ module jelly2_jfive_micro_core
         default:     id_branch_pc <= 'x;
         endcase
     end
-    
-    // control
-    always_ff @(posedge clk) begin
-        if ( reset ) begin            
-            id_pc    <= '0;
-            id_instr <= '0;
-            id_valid <= 1'b0;
-        end
-        else if ( id_cke ) begin
-            id_pc    <= if_pc;
-            id_instr <= if_instr;
-            id_valid <= if_valid;
-        end
-    end
 
-    always_ff @(posedge clk) begin
-        id_rs1_en <= if_rs1_en;
-        id_rs2_en <= if_rs2_en;
-    end
+
 
     // -----------------------------------------
     //  Execution
@@ -832,13 +706,8 @@ module jelly2_jfive_micro_core
     end
 
     // branch
-    
     always_comb begin
         ex_branch_pc = ex_expect_pc + PC_WIDTH'(4);
-
-//        if ( ex_valid ) begin
-//            ex_branch_pc += PC_WIDTH'(4);
-//        end
 
         if ( id_valid ) begin
             unique case (1'b1)
@@ -854,60 +723,35 @@ module jelly2_jfive_micro_core
             endcase
         end
     end
-    
-    /*
-    always_ff @(posedge clk) begin
-        if ( reset ) begin
-            ex_expect_pc <= RESET_PC_ADDR;
-        end
-        else begin
-            if ( id_valid && id_pc == ex_expect_pc ) begin
-                ex_expect_pc <= ex_expect_pc + PC_WIDTH'(4);
-                
-                unique case (1'b1)
-                id_dec_jal:  begin ex_expect_pc <= id_branch_pc; end
-                id_dec_jalr: begin ex_expect_pc <= PC_WIDTH'(ex_fwd_rs1_val) + PC_WIDTH'(id_imm_i); end
-                id_dec_beq:  if ( ex_fwd_rs1_val   == ex_fwd_rs2_val   ) begin ex_expect_pc <= id_branch_pc; end
-                id_dec_bne:  if ( ex_fwd_rs1_val   != ex_fwd_rs2_val   ) begin ex_expect_pc <= id_branch_pc; end
-                id_dec_blt:  if ( ex_fwd_rs1_val    < ex_fwd_rs2_val   ) begin ex_expect_pc <= id_branch_pc; end
-                id_dec_bge:  if ( ex_fwd_rs1_val   >= ex_fwd_rs2_val   ) begin ex_expect_pc <= id_branch_pc; end
-                id_dec_bltu: if ( ex_fwd_rs1_val_u  < ex_fwd_rs2_val_u ) begin ex_expect_pc <= id_branch_pc; end
-                id_dec_bgeu: if ( ex_fwd_rs1_val_u >= ex_fwd_rs2_val_u ) begin ex_expect_pc <= id_branch_pc; end
-                default: ;
-                endcase
-            end
-        end
-    end
-    */
 
     // alu
     logic   signed  [31:0]  ex_rd_wdata_alu;
     always_ff @(posedge clk) begin
-        ex_rd_wdata_alu <= 'x;
+        ex_rd_val <= 'x;
         unique case (1'b1)
-        id_dec_lui  : ex_rd_wdata_alu <= id_imm_u;
-        id_dec_auipc: ex_rd_wdata_alu <= id_imm_u + 32'(id_pc);
-        id_dec_jal  : ex_rd_wdata_alu <= 32'(id_pc) + 32'd4;
-        id_dec_jalr : ex_rd_wdata_alu <= 32'(id_pc) + 32'd4;
-        id_dec_addi : ex_rd_wdata_alu <= ex_fwd_rs1_val    + 32'(id_imm_i);
-        id_dec_slti : ex_rd_wdata_alu <= (ex_fwd_rs1_val   < 32'(id_imm_i)  ) ? 32'd1 : 32'd0;
-        id_dec_sltiu: ex_rd_wdata_alu <= (ex_fwd_rs1_val_u < 32'(id_imm_i_u)) ? 32'd1 : 32'd0;
-        id_dec_xori : ex_rd_wdata_alu <= ex_fwd_rs1_val    ^ 32'(id_imm_i);
-        id_dec_ori  : ex_rd_wdata_alu <= ex_fwd_rs1_val    | 32'(id_imm_i);
-        id_dec_andi : ex_rd_wdata_alu <= ex_fwd_rs1_val    & 32'(id_imm_i);
-        id_dec_slli : ex_rd_wdata_alu <= ex_fwd_rs1_val   << id_imm_i_u[4:0];
-        id_dec_srli : ex_rd_wdata_alu <= ex_fwd_rs1_val_u >> id_imm_i_u[4:0];
-        id_dec_srai : ex_rd_wdata_alu <= ex_fwd_rs1_val  >>> id_imm_i_u[4:0];
-        id_dec_add  : ex_rd_wdata_alu <= ex_fwd_rs1_val    + ex_fwd_rs2_val;
-        id_dec_sub  : ex_rd_wdata_alu <= ex_fwd_rs1_val    - ex_fwd_rs2_val;
-        id_dec_sll  : ex_rd_wdata_alu <= ex_fwd_rs1_val   << ex_fwd_rs2_val_u[4:0];
-        id_dec_slt  : ex_rd_wdata_alu <= (ex_fwd_rs1_val   < ex_fwd_rs2_val  ) ? 32'd1 : 32'd0;
-        id_dec_sltu : ex_rd_wdata_alu <= (ex_fwd_rs1_val_u < ex_fwd_rs2_val_u) ? 32'd1 : 32'd0;
-        id_dec_xor  : ex_rd_wdata_alu <= ex_fwd_rs1_val    ^ ex_fwd_rs2_val;
-        id_dec_srl  : ex_rd_wdata_alu <= ex_fwd_rs1_val_u >> ex_fwd_rs2_val_u[4:0];
-        id_dec_sra  : ex_rd_wdata_alu <= ex_fwd_rs1_val  >>> ex_fwd_rs2_val_u[4:0];
-        id_dec_or   : ex_rd_wdata_alu <= ex_fwd_rs1_val    | ex_fwd_rs2_val;
-        id_dec_and  : ex_rd_wdata_alu <= ex_fwd_rs1_val    & ex_fwd_rs2_val;
+        id_dec_lui  : ex_rd_val <= id_imm_u;
+        id_dec_auipc: ex_rd_val <= id_imm_u + 32'(id_pc);
+        id_dec_jal  : ex_rd_val <= 32'(id_pc) + 32'd4;
+        id_dec_jalr : ex_rd_val <= 32'(id_pc) + 32'd4;
+        id_dec_addi : ex_rd_val <= ex_fwd_rs1_val    + 32'(id_imm_i);
+        id_dec_slti : ex_rd_val <= (ex_fwd_rs1_val   < 32'(id_imm_i)  ) ? 32'd1 : 32'd0;
+        id_dec_sltiu: ex_rd_val <= (ex_fwd_rs1_val_u < 32'(id_imm_i_u)) ? 32'd1 : 32'd0;
+        id_dec_xori : ex_rd_val <= ex_fwd_rs1_val    ^ 32'(id_imm_i);
+        id_dec_ori  : ex_rd_val <= ex_fwd_rs1_val    | 32'(id_imm_i);
+        id_dec_andi : ex_rd_val <= ex_fwd_rs1_val    & 32'(id_imm_i);
+        id_dec_slli : ex_rd_val <= ex_fwd_rs1_val   << id_imm_i_u[4:0];
+        id_dec_srli : ex_rd_val <= ex_fwd_rs1_val_u >> id_imm_i_u[4:0];
+        id_dec_srai : ex_rd_val <= ex_fwd_rs1_val  >>> id_imm_i_u[4:0];
+        id_dec_add  : ex_rd_val <= ex_fwd_rs1_val    + ex_fwd_rs2_val;
+        id_dec_sub  : ex_rd_val <= ex_fwd_rs1_val    - ex_fwd_rs2_val;
+        id_dec_sll  : ex_rd_val <= ex_fwd_rs1_val   << ex_fwd_rs2_val_u[4:0];
+        id_dec_slt  : ex_rd_val <= (ex_fwd_rs1_val   < ex_fwd_rs2_val  ) ? 32'd1 : 32'd0;
+        id_dec_sltu : ex_rd_val <= (ex_fwd_rs1_val_u < ex_fwd_rs2_val_u) ? 32'd1 : 32'd0;
+        id_dec_xor  : ex_rd_val <= ex_fwd_rs1_val    ^ ex_fwd_rs2_val;
+        id_dec_srl  : ex_rd_val <= ex_fwd_rs1_val_u >> ex_fwd_rs2_val_u[4:0];
+        id_dec_sra  : ex_rd_val <= ex_fwd_rs1_val  >>> ex_fwd_rs2_val_u[4:0];
+        id_dec_or   : ex_rd_val <= ex_fwd_rs1_val    | ex_fwd_rs2_val;
+        id_dec_and  : ex_rd_val <= ex_fwd_rs1_val    & ex_fwd_rs2_val;
         default: ;
         endcase
     end
@@ -922,7 +766,6 @@ module jelly2_jfive_micro_core
             ex_rd_idx    <= id_rd_idx;
         end
     end
-    assign ex_rd_val = ex_rd_wdata_alu;
 
 
     function    [SEL_WIDTH-1:0]  sel_mask(input [SIZE_WIDTH-1:0] size);
@@ -1126,7 +969,10 @@ module jelly2_jfive_micro_core
     end
 
 
-    // simulation only
+    // -----------------------------------------
+    //  Trace (simulation only)
+    // -----------------------------------------
+    
     generate
     if ( SIMULATION ) begin
         if ( TRACE_EXEC_ENABLE ) begin

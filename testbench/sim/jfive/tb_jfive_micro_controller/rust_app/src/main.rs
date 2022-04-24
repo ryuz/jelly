@@ -19,32 +19,7 @@ extern{
 
 #[no_mangle]
 pub unsafe extern "C" fn main() -> ! {
-
-//    let c = 'a' as i32;
-//    for i in 0..4 {
-//        write_byte((c + i) as u8);
-//    }
-
-    //  foo();
     println!("Start!");
-
-    write_byte('S' as u8);
-    write_byte('t' as u8);
-    write_byte('a' as u8);
-    write_byte('r' as u8);
-    write_byte('t' as u8);
-    write_byte('\n' as u8);
-
-    /*
-    let mmio_putc = 0xf0000100  as *mut u8;
-    core::ptr::write_volatile(mmio_putc, 'H' as u8);
-    core::ptr::write_volatile(mmio_putc, 'e' as u8);
-    core::ptr::write_volatile(mmio_putc, 'l' as u8);
-    core::ptr::write_volatile(mmio_putc, 'l' as u8);
-    core::ptr::write_volatile(mmio_putc, 'o' as u8);
-    core::ptr::write_volatile(mmio_putc, '\n' as u8);
-    */
-
     
     let pi8_0  = 0xff000000  as *mut i8;
     let pu8_0  = 0xff000000  as *mut u8;
@@ -115,10 +90,7 @@ pub unsafe extern "C" fn main() -> ! {
 
     println!("Hello world!");
 
-    loop {
-//        core::ptr::write_volatile(ptr, i);
-//        i = i+1;
-    }
+    loop {}
 }
 
 
