@@ -9,31 +9,30 @@ module tb_main
             input   wire                        clk
         );
 
-    parameter   int                     S_WB_ADR_WIDTH   = 16;
-    parameter   int                     S_WB_DAT_WIDTH   = 32;
-    parameter   int                     S_WB_SEL_WIDTH   = S_WB_DAT_WIDTH/8;
-    parameter   int                     M_WB_ADR_WIDTH   = 24;
-    parameter   int                     MMIO_ADR_WIDTH   = 16;
+    localparam  int             S_WB_ADR_WIDTH   = 16;
+    localparam  int             S_WB_DAT_WIDTH   = 32;
+    localparam  int             S_WB_SEL_WIDTH   = S_WB_DAT_WIDTH/8;
 
-    parameter   bit     [31:0]          MEM_DECODE_MASK  = 32'hff00_0000;
-    parameter   bit     [31:0]          MEM_DECODE_ADDR  = 32'h8000_0000;
-    parameter   bit     [31:0]          WB_DECODE_MASK   = 32'hff00_0000;
-    parameter   bit     [31:0]          WB_DECODE_ADDR   = 32'hf000_0000;
-    parameter   bit     [31:0]          MMIO_DECODE_MASK = 32'hff00_0000;
-    parameter   bit     [31:0]          MMIO_DECODE_ADDR = 32'hff00_0000;
+    localparam  bit     [31:0]  M_WB_DECODE_MASK = 32'hff00_0000;
+    localparam  bit     [31:0]  M_WB_DECODE_ADDR = 32'hf000_0000;
+    localparam  int             M_WB_ADR_WIDTH   = 24;
 
-    parameter   int                     MEM_SIZE         = 32'h0001_0000;
-    parameter   bit                     MEM_READMEMH     = 1'b1;
-    parameter                           MEM_READMEM_FIlE = "../mem.hex";
+    localparam  bit     [31:0]  TCM_DECODE_MASK  = 32'hff00_0000;
+    localparam  bit     [31:0]  TCM_DECODE_ADDR  = 32'h8000_0000;
+    localparam  int             TCM_ADDR_OFFSET  = 1 << (S_WB_ADR_WIDTH - 1);
+    localparam  int             TCM_SIZE         = 16384;
+    localparam  bit             TCM_READMEMH     = 1'b1;
+    localparam                  TCM_READMEM_FIlE = "../mem.hex";
 
-    parameter   bit     [31:0]          RESET_PC_ADDR    = 32'h8000_0000;
-    parameter   bit                     INIT_CTL_RESET   = 1'b0;
+    localparam  int             PC_WIDTH         = 32;
+    localparam  bit     [31:0]  INIT_PC_ADDR     = 32'h8000_0000;
+    localparam  bit             INIT_CTL_RESET   = 1'b1;
 
-    parameter   bit                     SIMULATION        = 1'b1;
-    parameter   bit                     TRACE_EXEC_ENABLE = 1'b1;
-    parameter   string                  TRACE_EXEC_FILE   = "jfive_trace_exec.txt";
-    parameter   bit                     TRACE_DBUS_ENABLE = 1'b1;
-    parameter   string                  TRACE_DBUS_FILE   = "jfive_trace_dbus.txt";
+    localparam  bit             SIMULATION       = 1'b1;
+    localparam  bit             LOG_EXE_ENABLE   = 1'b1;
+    localparam  string          LOG_EXE_FILE     = "jfive_exe_log.txt";
+    localparam  bit             LOG_MEM_ENABLE   = 1'b1;
+    localparam  string          LOG_MEM_FILE     = "jfive_mem_log.txt";
 
     logic                           cke = 1'b1;
 
@@ -52,37 +51,29 @@ module tb_main
     logic                           m_wb_we_o;
     logic                           m_wb_stb_o;
     logic                           m_wb_ack_i;
-
-    logic                           mmio_wr;
-    logic                           mmio_rd;
-    logic   [MMIO_ADR_WIDTH-1:0]    mmio_addr;
-    logic   [3:0]                   mmio_sel;
-    logic   [31:0]                  mmio_wdata;
-    logic   [31:0]                  mmio_rdata;
     
     jelly2_jfive_micro_controller
             #(
                 .S_WB_ADR_WIDTH     (S_WB_ADR_WIDTH),
                 .S_WB_DAT_WIDTH     (S_WB_DAT_WIDTH),
                 .S_WB_SEL_WIDTH     (S_WB_SEL_WIDTH),
+                .M_WB_DECODE_MASK   (M_WB_DECODE_MASK),
+                .M_WB_DECODE_ADDR   (M_WB_DECODE_ADDR),
                 .M_WB_ADR_WIDTH     (M_WB_ADR_WIDTH),
-                .MMIO_ADR_WIDTH     (MMIO_ADR_WIDTH),
-                .MEM_DECODE_MASK    (MEM_DECODE_MASK),
-                .MEM_DECODE_ADDR    (MEM_DECODE_ADDR),
-                .WB_DECODE_MASK     (WB_DECODE_MASK),
-                .WB_DECODE_ADDR     (WB_DECODE_ADDR),
-                .MMIO_DECODE_MASK   (MMIO_DECODE_MASK),
-                .MMIO_DECODE_ADDR   (MMIO_DECODE_ADDR),
-                .MEM_SIZE           (MEM_SIZE),
-                .MEM_READMEMH       (MEM_READMEMH),
-                .MEM_READMEM_FIlE   (MEM_READMEM_FIlE),
-                .RESET_PC_ADDR      (RESET_PC_ADDR),
+                .TCM_DECODE_MASK    (TCM_DECODE_MASK),
+                .TCM_DECODE_ADDR    (TCM_DECODE_ADDR),
+                .TCM_ADDR_OFFSET    (TCM_ADDR_OFFSET),
+                .TCM_SIZE           (TCM_SIZE),
+                .TCM_READMEMH       (TCM_READMEMH    ),
+                .TCM_READMEM_FIlE   (TCM_READMEM_FIlE),
+                .PC_WIDTH           (PC_WIDTH),
+                .INIT_PC_ADDR       (INIT_PC_ADDR),
                 .INIT_CTL_RESET     (INIT_CTL_RESET),
                 .SIMULATION         (SIMULATION),
-                .TRACE_EXEC_ENABLE  (TRACE_EXEC_ENABLE),
-                .TRACE_EXEC_FILE    (TRACE_EXEC_FILE),
-                .TRACE_DBUS_ENABLE  (TRACE_DBUS_ENABLE),
-                .TRACE_DBUS_FILE    (TRACE_DBUS_FILE)
+                .LOG_EXE_ENABLE     (LOG_EXE_ENABLE),
+                .LOG_EXE_FILE       (LOG_EXE_FILE),
+                .LOG_MEM_ENABLE     (LOG_MEM_ENABLE),
+                .LOG_MEM_FILE       (LOG_MEM_FILE)
             )
         i_jfive_micro_controller
             (
@@ -104,14 +95,7 @@ module tb_main
                 .m_wb_sel_o,
                 .m_wb_we_o,
                 .m_wb_stb_o,
-                .m_wb_ack_i,
-
-                .mmio_wr,
-                .mmio_rd,
-                .mmio_addr,
-                .mmio_sel,
-                .mmio_wdata,
-                .mmio_rdata
+                .m_wb_ack_i
             );
     
     wire [31:0] x0  = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[0 ];
@@ -180,20 +164,16 @@ module tb_main
     wire [31:0] t5 = x30;
     wire [31:0] t6 = x31;
 
-    assign mmio_rdata = 32'h81828384;
-
-    
-    always @(posedge clk) begin
-        if ( !reset && mmio_wr ) begin
-//          $display("write: %h %10d %b", mmio_addr, $signed(mmio_wdata), mmio_sel);
-            $display("write: %h %08x %b", mmio_addr, $signed(mmio_wdata), mmio_sel);
-        end
-    end
 
     always @(posedge clk) begin
         if ( !reset ) begin
-            if ( m_wb_stb_o && m_wb_we_o && m_wb_sel_o[0] && {m_wb_adr_o, 2'b00} == 26'h0000100 ) begin
-                $write("%c", m_wb_dat_o[7:0]);
+            if ( m_wb_stb_o && m_wb_we_o ) begin
+                if ( {m_wb_adr_o, 2'b00} == 26'h0000100 ) begin
+                    $write("%c", m_wb_dat_o[7:0]);
+                end
+                else begin
+                    $display("write: %h %08x %b", m_wb_adr_o, m_wb_dat_o, m_wb_sel_o);
+                end
             end
         end
     end

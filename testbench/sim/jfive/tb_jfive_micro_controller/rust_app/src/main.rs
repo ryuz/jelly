@@ -19,24 +19,24 @@ extern{
 
 #[no_mangle]
 pub unsafe extern "C" fn main() -> ! {
-    println!("Start!");
+//  println!("Start!");
     
-    let pi8_0  = 0xff000000  as *mut i8;
-    let pu8_0  = 0xff000000  as *mut u8;
-    let pi8_1  = 0xff000001  as *mut i8;
-    let pu8_1  = 0xff000001  as *mut u8;
-    let pi8_2  = 0xff000002  as *mut i8;
-    let pu8_2  = 0xff000002  as *mut u8;
-    let pi8_3  = 0xff000003  as *mut i8;
-    let pu8_3  = 0xff000003  as *mut u8;
-    let pi16_0 = 0xff000000  as *mut i16;
-    let pu16_0 = 0xff000000  as *mut u16;
-    let pi16_1 = 0xff000002  as *mut i16;
-    let pu16_1 = 0xff000002  as *mut u16;
-    let pi32   = 0xff000000  as *mut i32;
-    let pu32   = 0xff000000  as *mut u32;
-    let pi64   = 0xff000000  as *mut i64;
-    let pu64   = 0xff000000  as *mut u64;
+    let pi8_0  = 0xf0000000  as *mut i8;
+    let pu8_0  = 0xf0000000  as *mut u8;
+    let pi8_1  = 0xf0000001  as *mut i8;
+    let pu8_1  = 0xf0000001  as *mut u8;
+    let pi8_2  = 0xf0000002  as *mut i8;
+    let pu8_2  = 0xf0000002  as *mut u8;
+    let pi8_3  = 0xf0000003  as *mut i8;
+    let pu8_3  = 0xf0000003  as *mut u8;
+    let pi16_0 = 0xf0000000  as *mut i16;
+    let pu16_0 = 0xf0000000  as *mut u16;
+    let pi16_1 = 0xf0000002  as *mut i16;
+    let pu16_1 = 0xf0000002  as *mut u16;
+    let pi32   = 0xf0000000  as *mut i32;
+    let pu32   = 0xf0000000  as *mut u32;
+    let pi64   = 0xf0000000  as *mut i64;
+    let pu64   = 0xf0000000  as *mut u64;
 
     core::ptr::write_volatile(pi8_0, core::ptr::read_volatile(pi8_0));
     core::ptr::write_volatile(pi8_1, core::ptr::read_volatile(pi8_1));

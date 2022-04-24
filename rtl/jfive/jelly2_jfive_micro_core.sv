@@ -6,44 +6,65 @@
 // ---------------------------------------------------------------------------
 
 
-
 `timescale 1ns / 1ps
 `default_nettype none
 
 
 module jelly2_jfive_micro_core
         #(
-            parameter int                       IBUS_ADDR_WIDTH   = 14,
-            parameter int                       DBUS_ADDR_WIDTH   = 32,
-            parameter int                       PC_WIDTH          = IBUS_ADDR_WIDTH,
-            parameter bit       [PC_WIDTH-1:0]  RESET_PC_ADDR     = PC_WIDTH'(32'h80000000),
-            parameter bit                       SIMULATION        = 1'b0,
-            parameter bit                       TRACE_EXEC_ENABLE = 1'b0,
-            parameter string                    TRACE_EXEC_FILE   = "jfive_trace_exec.txt",
-            parameter bit                       TRACE_DBUS_ENABLE = 1'b0,
-            parameter string                    TRACE_DBUS_FILE   = "jfive_trace_dbus.txt"
+            parameter   int                     PC_WIDTH         = 32,
+            parameter   bit     [PC_WIDTH-1:0]  INIT_PC_ADDR     = PC_WIDTH'(32'h80000000),
+
+            parameter   int                     TCM_ADDR_WIDTH   = 14,
+            parameter   bit     [31:0]          TCM_DECODE_MASK  = 32'hff00_0000,
+            parameter   bit     [31:0]          TCM_DECODE_ADDR  = 32'h8000_0000,
+
+            parameter   int                     MMIO_ADDR_WIDTH  = 32,
+            parameter   bit     [31:0]          MMIO_DECODE_MASK = 32'hff00_0000,
+            parameter   bit     [31:0]          MMIO_DECODE_ADDR = 32'hff00_0000,
+
+            parameter   bit                     SIMULATION       = 1'b0,
+            parameter   bit                     LOG_EXE_ENABLE   = 1'b0,
+            parameter   string                  LOG_EXE_FILE     = "jfive_exe_log.txt",
+            parameter   bit                     LOG_MEM_ENABLE   = 1'b0,
+            parameter   string                  LOG_MEM_FILE     = "jfive_mem_log.txt"
         )
         (
             input   wire                            reset,
             input   wire                            clk,
             input   wire                            cke,
 
-            output  wire                            ibus_en,
-            output  wire    [IBUS_ADDR_WIDTH-1:0]   ibus_addr,
-            input   wire    [31:0]                  ibus_rdata,
+            // Tightly Coupled Memory (Instruction)
+            output  wire                            itcm_en,        // enable
+            output  wire    [TCM_ADDR_WIDTH-1:0]    itcm_addr,      // address
+            input   wire    [31:0]                  itcm_rdata,     // read data
 
-            output  wire                            dbus_en,        // read or write
-            output  wire                            dbus_re,        // read enable
-            output  wire                            dbus_we,        // write enable
-            output  wire    [1:0]                   dbus_size,      // address
-            output  wire    [DBUS_ADDR_WIDTH-1:0]   dbus_addr,      // size
-            output  wire    [3:0]                   dbus_sel,       // byte lane select
-            output  wire    [3:0]                   dbus_rsel,      // byte lane select(read only)
-            output  wire    [3:0]                   dbus_wsel,      // byte lane select(write only)
-            output  wire    [31:0]                  dbus_wdata,     // write data
-            input   wire    [31:0]                  dbus_rdata      // read data
+            // Tightly Coupled Memory (Data)
+            output  wire                            dtcm_en,        // enable
+            output  wire    [TCM_ADDR_WIDTH-1:0]    dtcm_addr,      // size
+            output  wire    [3:0]                   dtcm_wsel,      // byte lane select(write only)
+            output  wire    [31:0]                  dtcm_wdata,     // write data
+            input   wire    [31:0]                  dtcm_rdata,     // read data
+            
+            // Memory mapped I/O
+            output  wire                            mmio_en,        // read or write
+            output  wire                            mmio_re,        // read enable
+            output  wire                            mmio_we,        // write enable
+            output  wire    [1:0]                   mmio_size,      // address
+            output  wire    [MMIO_ADDR_WIDTH-1:0]   mmio_addr,      // size
+            output  wire    [3:0]                   mmio_sel,       // byte lane select
+            output  wire    [3:0]                   mmio_rsel,      // byte lane select(read only)
+            output  wire    [3:0]                   mmio_wsel,      // byte lane select(write only)
+            output  wire    [31:0]                  mmio_wdata,     // write data
+            input   wire    [31:0]                  mmio_rdata      // read data
         );
 
+
+    // -----------------------------------------
+    //  Signals
+    // -----------------------------------------
+
+    // parameters
     localparam XLEN        = 32;
     localparam SEL_WIDTH   = XLEN / 8;
     localparam SIZE_WIDTH  = 2;
@@ -51,159 +72,174 @@ module jelly2_jfive_micro_core
     localparam RIDX_WIDTH  = 5;
 
 
-    // -----------------------------------------
-    //  Signals
-    // -----------------------------------------
-
     // Program counter
-    logic                               pc_cke;
-    logic           [PC_WIDTH-1:0]      pc_pc;
+    logic                                   pc_cke;
+    logic           [PC_WIDTH-1:0]          pc_pc;
 
     // Instruction Fetch
-    logic                               if_stall;
-    logic                               if_cke;
-    logic           [PC_WIDTH-1:0]      if_pc;
-    logic           [INSTR_WIDTH-1:0]   if_instr;
-    logic                               if_valid;
+    logic                                   if_stall;
+    logic                                   if_cke;
+    logic           [PC_WIDTH-1:0]          if_pc;
+    logic           [INSTR_WIDTH-1:0]       if_instr;
+    logic                                   if_valid;
 
-    logic           [6:0]               if_opcode;
-    logic                               if_rd_en;
-    logic           [RIDX_WIDTH-1:0]    if_rd_idx;
-    logic                               if_rs1_en;
-    logic           [RIDX_WIDTH-1:0]    if_rs1_idx;
-    logic                               if_rs2_en;
-    logic           [RIDX_WIDTH-1:0]    if_rs2_idx;
-    logic           [2:0]               if_funct3;
-    logic           [6:0]               if_funct7;
+    logic           [6:0]                   if_opcode;
+    logic                                   if_rd_en;
+    logic           [RIDX_WIDTH-1:0]        if_rd_idx;
+    logic                                   if_rs1_en;
+    logic           [RIDX_WIDTH-1:0]        if_rs1_idx;
+    logic                                   if_rs2_en;
+    logic           [RIDX_WIDTH-1:0]        if_rs2_idx;
+    logic           [2:0]                   if_funct3;
+    logic           [6:0]                   if_funct7;
 
-    logic   signed  [11:0]              if_imm_i;
-    logic   signed  [11:0]              if_imm_s;
-    logic   signed  [12:0]              if_imm_b;
-    logic   signed  [31:0]              if_imm_u;
-    logic   signed  [20:0]              if_imm_j;
-    
+    logic   signed  [11:0]                  if_imm_i;
+    logic   signed  [11:0]                  if_imm_s;
+    logic   signed  [12:0]                  if_imm_b;
+    logic   signed  [31:0]                  if_imm_u;
+    logic   signed  [20:0]                  if_imm_j;
+
     // Instruction Decode
-    logic                               id_cke;
+    logic                                   id_cke;
 
-    logic           [PC_WIDTH-1:0]      id_pc;
-    logic           [INSTR_WIDTH-1:0]   id_instr;
-    logic                               id_valid;
+    logic           [PC_WIDTH-1:0]          id_pc;
+    logic           [INSTR_WIDTH-1:0]       id_instr;
+    logic                                   id_valid;
 
-    logic           [6:0]               id_opcode;
-    logic           [RIDX_WIDTH-1:0]    id_rd_idx;
-    logic           [RIDX_WIDTH-1:0]    id_rs1_idx;
-    logic           [RIDX_WIDTH-1:0]    id_rs2_idx;
-    logic           [2:0]               id_funct3;
-    logic           [6:0]               id_funct7;
+    logic           [6:0]                   id_opcode;
+    logic           [RIDX_WIDTH-1:0]        id_rd_idx;
+    logic           [RIDX_WIDTH-1:0]        id_rs1_idx;
+    logic           [RIDX_WIDTH-1:0]        id_rs2_idx;
+    logic           [2:0]                   id_funct3;
+    logic           [6:0]                   id_funct7;
 
-    logic   signed  [11:0]              id_imm_i;
-    logic   signed  [11:0]              id_imm_s;
-    logic   signed  [12:0]              id_imm_b;
-    logic   signed  [31:0]              id_imm_u;
-    logic   signed  [20:0]              id_imm_j;
+    logic   signed  [11:0]                  id_imm_i;
+    logic   signed  [11:0]                  id_imm_s;
+    logic   signed  [12:0]                  id_imm_b;
+    logic   signed  [31:0]                  id_imm_u;
+    logic   signed  [20:0]                  id_imm_j;
 
-    logic                               id_rs1_en;
-    logic                               id_rs2_en;
-    logic                               id_rd_en;
-    logic   signed  [XLEN-1:0]          id_rs1_val;
-    logic   signed  [XLEN-1:0]          id_rs2_val;
+    logic                                   id_rs1_en;
+    logic                                   id_rs2_en;
+    logic                                   id_rd_en;
+    logic   signed  [XLEN-1:0]              id_rs1_val;
+    logic   signed  [XLEN-1:0]              id_rs2_val;
 
-    logic                               id_branch_valid;
-    logic           [PC_WIDTH-1:0]      id_branch_pc;
+    logic                                   id_branch_valid;
+    logic           [PC_WIDTH-1:0]          id_branch_pc;
 
-    logic   signed  [XLEN-1:0]          id_mem_offset;
-    logic                               id_mem_re;
-    logic                               id_mem_we;
-    logic           [1:0]               id_mem_size;
-    logic                               id_mem_unsigned;
+    logic   signed  [XLEN-1:0]              id_mem_offset;
+    logic                                   id_mem_re;
+    logic                                   id_mem_we;
+    logic           [1:0]                   id_mem_size;
+    logic                                   id_mem_unsigned;
 
 
     //  Execution
-    logic                               ex_cke;
-    logic                               ex_valid;
-    logic           [PC_WIDTH-1:0]      ex_pc;
-    logic           [31:0]              ex_instr;
-    logic           [PC_WIDTH-1:0]      ex_expect_pc;
+    logic                                   ex_cke;
+    logic                                   ex_valid;
+    logic           [PC_WIDTH-1:0]          ex_pc;
+    logic           [31:0]                  ex_instr;
+    logic           [PC_WIDTH-1:0]          ex_expect_pc;
 
-    logic           [1:0]               ex_fwd_rs1_stage;
-    logic           [1:0]               ex_fwd_rs2_stage;
-    logic   signed  [XLEN-1:0]          ex_fwd_rs1_val;
-    logic   signed  [XLEN-1:0]          ex_fwd_rs2_val;
-    logic           [XLEN-1:0]          ex_fwd_rs1_val_u;
-    logic           [XLEN-1:0]          ex_fwd_rs2_val_u;
+    logic           [1:0]                   ex_fwd_rs1_stage;
+    logic           [1:0]                   ex_fwd_rs2_stage;
+    logic   signed  [XLEN-1:0]              ex_fwd_rs1_val;
+    logic   signed  [XLEN-1:0]              ex_fwd_rs2_val;
+    logic           [XLEN-1:0]              ex_fwd_rs1_val_u;
+    logic           [XLEN-1:0]              ex_fwd_rs2_val_u;
 
-    logic           [PC_WIDTH-1:0]      ex_branch_pc;
+    logic           [PC_WIDTH-1:0]          ex_branch_pc;
 
-    logic                               ex_rs1_en;
-    logic           [RIDX_WIDTH-1:0]    ex_rs1_idx;
-    logic           [XLEN-1:0]          ex_rs1_val;
-    logic                               ex_rs2_en;
-    logic           [RIDX_WIDTH-1:0]    ex_rs2_idx;
-    logic           [XLEN-1:0]          ex_rs2_val;
+    logic                                   ex_rs1_en;
+    logic           [RIDX_WIDTH-1:0]        ex_rs1_idx;
+    logic           [XLEN-1:0]              ex_rs1_val;
+    logic                                   ex_rs2_en;
+    logic           [RIDX_WIDTH-1:0]        ex_rs2_idx;
+    logic           [XLEN-1:0]              ex_rs2_val;
 
-    logic                               ex_rd_en;
-    logic           [RIDX_WIDTH-1:0]    ex_rd_idx;
-    logic   signed  [XLEN-1:0]          ex_rd_val;
+    logic                                   ex_rd_en;
+    logic           [RIDX_WIDTH-1:0]        ex_rd_idx;
+    logic   signed  [XLEN-1:0]              ex_rd_val;
 
-    logic                               ex_mem_en;
-    logic                               ex_mem_re;
-    logic                               ex_mem_we;
-    logic           [XLEN-1:0]          ex_mem_addr;
-    logic           [SIZE_WIDTH-1:0]    ex_mem_size;
-    logic           [SEL_WIDTH-1:0]     ex_mem_sel;
-    logic           [SEL_WIDTH-1:0]     ex_mem_rsel;
-    logic           [SEL_WIDTH-1:0]     ex_mem_wsel;
-    logic           [XLEN-1:0]          ex_mem_wdata;
-    logic                               ex_mem_unsigned;
+    logic                                   ex_mem_en;
+    logic                                   ex_mem_re;
+    logic                                   ex_mem_we;
+    logic           [XLEN-1:0]              ex_mem_addr;
+    logic           [SIZE_WIDTH-1:0]        ex_mem_size;
+    logic           [SEL_WIDTH-1:0]         ex_mem_sel;
+    logic           [SEL_WIDTH-1:0]         ex_mem_rsel;
+    logic           [SEL_WIDTH-1:0]         ex_mem_wsel;
+    logic           [XLEN-1:0]              ex_mem_wdata;
+    logic                                   ex_mem_unsigned;
 
+    logic                                   ex_dtcm_en;
+    logic                                   ex_dtcm_re;
+    logic           [3:0]                   ex_dtcm_wsel;
+    logic           [TCM_ADDR_WIDTH-1:0]    ex_dtcm_addr;
+    logic           [31:0]                  ex_dtcm_wdata;
+
+    logic                                   ex_mmio_en;
+    logic                                   ex_mmio_re;
+    logic                                   ex_mmio_we;
+    logic           [XLEN-1:0]              ex_mmio_addr;
+    logic           [SIZE_WIDTH-1:0]        ex_mmio_size;
+    logic           [SEL_WIDTH-1:0]         ex_mmio_sel;
+    logic           [SEL_WIDTH-1:0]         ex_mmio_rsel;
+    logic           [SEL_WIDTH-1:0]         ex_mmio_wsel;
+    logic           [XLEN-1:0]              ex_mmio_wdata;
+
+    
     // Memory Access
-    logic                               ma_cke;
-    logic                               ma_valid;
-    logic           [PC_WIDTH-1:0]      ma_pc;
-    logic           [31:0]              ma_instr;
+    logic                                   ma_cke;
+    logic                                   ma_valid;
+    logic           [PC_WIDTH-1:0]          ma_pc;
+    logic           [31:0]                  ma_instr;
 
-    logic                               ma_rs1_en;
-    logic           [RIDX_WIDTH-1:0]    ma_rs1_idx;
-    logic           [XLEN-1:0]          ma_rs1_val;
-    logic                               ma_rs2_en;
-    logic           [RIDX_WIDTH-1:0]    ma_rs2_idx;
-    logic           [XLEN-1:0]          ma_rs2_val;
-    logic                               ma_rd_en;
-    logic           [RIDX_WIDTH-1:0]    ma_rd_idx;
-    logic           [XLEN-1:0]          ma_rd_val;
+    logic                                   ma_rs1_en;
+    logic           [RIDX_WIDTH-1:0]        ma_rs1_idx;
+    logic           [XLEN-1:0]              ma_rs1_val;
+    logic                                   ma_rs2_en;
+    logic           [RIDX_WIDTH-1:0]        ma_rs2_idx;
+    logic           [XLEN-1:0]              ma_rs2_val;
+    logic                                   ma_rd_en;
+    logic           [RIDX_WIDTH-1:0]        ma_rd_idx;
+    logic           [XLEN-1:0]              ma_rd_val;
 
-    logic                               ma_mem_we;
-    logic                               ma_mem_re;
-    logic           [XLEN-1:0]          ma_mem_addr;
-    logic           [SIZE_WIDTH-1:0]    ma_mem_size;
-    logic           [SEL_WIDTH-1:0]     ma_mem_sel;
-    logic                               ma_mem_unsigned;
-    logic           [XLEN-1:0]          ma_mem_wdata;
-    logic           [XLEN-1:0]          ma_mem_rdata;
+    logic                                   ma_mem_we;
+    logic                                   ma_mem_re;
+    logic           [XLEN-1:0]              ma_mem_addr;
+    logic           [SIZE_WIDTH-1:0]        ma_mem_size;
+    logic           [SEL_WIDTH-1:0]         ma_mem_sel;
+    logic                                   ma_mem_unsigned;
+    logic           [XLEN-1:0]              ma_mem_wdata;
+    logic           [XLEN-1:0]              ma_mem_rdata;
+    logic                                   ma_dtcm_re;
+    logic                                   ma_mmio_re;
 
     // Write back
-    logic                               wb_cke;
-    logic                               wb_valid;
-    logic           [PC_WIDTH-1:0]      wb_pc;
-    logic           [INSTR_WIDTH-1:0]   wb_instr;
+    logic                                   wb_cke;
+    logic                                   wb_valid;
+    logic           [PC_WIDTH-1:0]          wb_pc;
+    logic           [INSTR_WIDTH-1:0]       wb_instr;
 
-    logic                               wb_rs1_en;
-    logic           [RIDX_WIDTH-1:0]    wb_rs1_idx;
-    logic           [XLEN-1:0]          wb_rs1_val;
-    logic                               wb_rs2_en;
-    logic           [RIDX_WIDTH-1:0]    wb_rs2_idx;
-    logic           [XLEN-1:0]          wb_rs2_val;
+    logic                                   wb_rs1_en;
+    logic           [RIDX_WIDTH-1:0]        wb_rs1_idx;
+    logic           [XLEN-1:0]              wb_rs1_val;
+    logic                                   wb_rs2_en;
+    logic           [RIDX_WIDTH-1:0]        wb_rs2_idx;
+    logic           [XLEN-1:0]              wb_rs2_val;
 
-    logic                               wb_mem_we;
-    logic                               wb_mem_re;
-    logic           [XLEN-1:0]          wb_mem_addr;
-    logic           [SEL_WIDTH-1:0]     wb_mem_sel;
-    logic           [XLEN-1:0]          wb_mem_wdata;
-    logic           [XLEN-1:0]          wb_mem_rdata;
+    logic                                   wb_mem_we;
+    logic                                   wb_mem_re;
+    logic           [XLEN-1:0]              wb_mem_addr;
+    logic           [SEL_WIDTH-1:0]         wb_mem_sel;
+    logic           [XLEN-1:0]              wb_mem_wdata;
+    logic           [XLEN-1:0]              wb_mem_rdata;
 
-    logic                               wb_rd_en;
-    logic           [RIDX_WIDTH-1:0]    wb_rd_idx;
-    logic           [XLEN-1:0]          wb_rd_val;
+    logic                                   wb_rd_en;
+    logic           [RIDX_WIDTH-1:0]        wb_rd_idx;
+    logic           [XLEN-1:0]              wb_rd_val;
 
 
     // -----------------------------------------
@@ -225,7 +261,7 @@ module jelly2_jfive_micro_core
 
     always_ff @(posedge clk) begin
         if ( reset ) begin
-            pc_pc <= RESET_PC_ADDR;
+            pc_pc <= INIT_PC_ADDR;
         end
         else if ( pc_cke ) begin
             pc_pc <= pc_pc + PC_WIDTH'(4);
@@ -255,9 +291,9 @@ module jelly2_jfive_micro_core
     logic                               if1_valid;
 
     // Instruction Fetch
-    assign ibus_en   = if_cke;
-    assign ibus_addr = IBUS_ADDR_WIDTH'(pc_pc);
-    assign if0_instr = ibus_rdata;
+    assign itcm_en   = if_cke;
+    assign itcm_addr = TCM_ADDR_WIDTH'(pc_pc >> 2);
+    assign if0_instr = itcm_rdata;
 
     always_ff @(posedge clk) begin
         if ( reset ) begin
@@ -337,8 +373,8 @@ module jelly2_jfive_micro_core
         if_stall_en = 1'b0;
         if ( if_rs1_en && if_rs1_idx == id_rd_idx && id_mem_re ) begin if_stall_en = 1'b1; end
         if ( if_rs2_en && if_rs2_idx == id_rd_idx && id_mem_re ) begin if_stall_en = 1'b1; end
-        if ( if_rs1_en && if_rs1_idx == ex_rd_idx && ex_mem_re ) begin if_stall_en = 1'b1; end
-        if ( if_rs2_en && if_rs2_idx == ex_rd_idx && ex_mem_re ) begin if_stall_en = 1'b1; end
+        if ( if_rs1_en && if_rs1_idx == ex_rd_idx && ex_mmio_re ) begin if_stall_en = 1'b1; end
+        if ( if_rs2_en && if_rs2_idx == ex_rd_idx && ex_mmio_re ) begin if_stall_en = 1'b1; end
     end
 
 
@@ -635,8 +671,8 @@ module jelly2_jfive_micro_core
     // control
     always_ff @(posedge clk) begin
         if ( reset ) begin
-            ex_pc        <= RESET_PC_ADDR;
-            ex_expect_pc <= RESET_PC_ADDR;
+            ex_pc        <= INIT_PC_ADDR;
+            ex_expect_pc <= INIT_PC_ADDR;
             ex_instr     <= 'x;
             ex_valid     <= 1'b0;
         end
@@ -782,28 +818,58 @@ module jelly2_jfive_micro_core
     // memory access
     always_ff @(posedge clk) begin
         if ( reset ) begin
-            ex_mem_en       <= 1'b0;
-            ex_mem_re       <= 1'b0;
-            ex_mem_we       <= 1'b0;
-            ex_mem_addr     <= 'x;
-            ex_mem_size     <= 'x;
-            ex_mem_sel      <= '0;
-            ex_mem_rsel     <= '0;
-            ex_mem_wsel     <= '0;
-            ex_mem_wdata    <= 'x;
-            ex_mem_unsigned <= 1'bx;
+            ex_mem_en        <= 1'b0;
+            ex_mem_re        <= 1'b0;
+            ex_mem_we        <= 1'b0;
+            ex_mem_addr      <= 'x;
+            ex_mem_size      <= 'x;
+            ex_mem_sel       <= '0;
+            ex_mem_rsel      <= '0;
+            ex_mem_wsel      <= '0;
+            ex_mem_wdata     <= 'x;
+            ex_mem_unsigned  <= 1'bx;
+
+            ex_dtcm_en       <= 1'b0;
+            ex_dtcm_wsel     <= '0;
+            ex_dtcm_addr     <= 'x;
+            ex_dtcm_wdata    <= 'x;
+
+            ex_mmio_en       <= 1'b0;
+            ex_mmio_re       <= 1'b0;
+            ex_mmio_we       <= 1'b0;
+            ex_mmio_addr     <= 'x;
+            ex_mmio_size     <= 'x;
+            ex_mmio_sel      <= '0;
+            ex_mmio_rsel     <= '0;
+            ex_mmio_wsel     <= '0;
+            ex_mmio_wdata    <= 'x;
         end
         else if ( ex_cke ) begin
-            ex_mem_en       <= 1'b0;
-            ex_mem_re       <= 1'b0;
-            ex_mem_we       <= 1'b0;
-            ex_mem_addr     <= 'x;
-            ex_mem_size     <= 'x;
-            ex_mem_sel      <= '0;
-            ex_mem_rsel     <= '0;
-            ex_mem_wsel     <= '0;
-            ex_mem_wdata    <= 'x;
-            ex_mem_unsigned <= 1'bx;
+            ex_mem_en        <= 1'b0;
+            ex_mem_re        <= 1'b0;
+            ex_mem_we        <= 1'b0;
+            ex_mem_addr      <= 'x;
+            ex_mem_size      <= 'x;
+            ex_mem_sel       <= '0;
+            ex_mem_rsel      <= '0;
+            ex_mem_wsel      <= '0;
+            ex_mem_wdata     <= 'x;
+            ex_mem_unsigned  <= 1'bx;
+
+            ex_dtcm_en       <= 1'b0;
+            ex_dtcm_wsel     <= '0;
+            ex_dtcm_addr     <= 'x;
+            ex_dtcm_wdata    <= 'x;
+            
+            ex_mmio_en       <= 1'b0;
+            ex_mmio_re       <= 1'b0;
+            ex_mmio_we       <= 1'b0;
+            ex_mmio_addr     <= 'x;
+            ex_mmio_size     <= 'x;
+            ex_mmio_sel      <= '0;
+            ex_mmio_rsel     <= '0;
+            ex_mmio_wsel     <= '0;
+            ex_mmio_wdata    <= 'x;
             
             if ( ex_expect_valid ) begin
                 automatic   logic   [XLEN-1:0]      mem_addr;
@@ -834,6 +900,26 @@ module jelly2_jfive_micro_core
                 ex_mem_wsel     <= id_mem_we ? mem_sel : '0;
                 ex_mem_wdata    <= mem_wdata;
                 ex_mem_unsigned <= id_mem_unsigned;
+
+                if ( (mem_addr & TCM_DECODE_MASK) == TCM_DECODE_ADDR ) begin
+                    ex_dtcm_en    <= id_mem_re || id_mem_we;
+                    ex_dtcm_re    <= id_mem_re;
+                    ex_dtcm_addr  <= TCM_ADDR_WIDTH'(mem_addr >> 2);
+                    ex_dtcm_wsel  <= id_mem_we ? mem_sel : '0;
+                    ex_dtcm_wdata <= mem_wdata;
+                end
+
+                if ( (mem_addr & MMIO_DECODE_MASK) == MMIO_DECODE_ADDR ) begin
+                    ex_mmio_en    <= id_mem_re || id_mem_we;
+                    ex_mmio_re    <= id_mem_re;
+                    ex_mmio_we    <= id_mem_we;
+                    ex_mmio_addr  <= mem_addr;
+                    ex_mmio_size  <= id_mem_size;
+                    ex_mmio_sel   <= mem_sel;
+                    ex_mmio_rsel  <= id_mem_re ? mem_sel : '0;
+                    ex_mmio_wsel  <= id_mem_we ? mem_sel : '0;
+                    ex_mmio_wdata <= mem_wdata;
+                end
             end
         end
     end
@@ -857,6 +943,8 @@ module jelly2_jfive_micro_core
            ma_mem_addr     <= 'x;
            ma_mem_size     <= 'x;
            ma_mem_unsigned <= 'x;
+           ma_dtcm_re      <= 'x;
+           ma_mmio_re      <= 'x;
         end
         else if ( ma_cke ) begin
            ma_valid        <= ex_valid;
@@ -871,6 +959,8 @@ module jelly2_jfive_micro_core
            ma_mem_addr     <= ex_mem_addr;
            ma_mem_size     <= ex_mem_size;
            ma_mem_unsigned <= ex_mem_unsigned;
+           ma_dtcm_re      <= ex_dtcm_re;
+           ma_mmio_re      <= ex_mmio_re;
         end
     end
 
@@ -888,17 +978,23 @@ module jelly2_jfive_micro_core
 
 
     // data-bus access
-    assign dbus_en      = ex_mem_en;
-    assign dbus_re      = ex_mem_re;
-    assign dbus_we      = ex_mem_we;
-    assign dbus_size    = ex_mem_size;
-    assign dbus_addr    = ex_mem_addr;
-    assign dbus_sel     = ex_mem_sel;
-    assign dbus_rsel    = ex_mem_rsel;
-    assign dbus_wsel    = ex_mem_wsel;
-    assign dbus_wdata   = ex_mem_wdata;
+    assign dtcm_en      = ex_dtcm_en & ex_cke;
+    assign dtcm_addr    = ex_dtcm_addr;
+    assign dtcm_wsel    = ex_dtcm_wsel;
+    assign dtcm_wdata   = ex_dtcm_wdata;
 
-    assign ma_mem_rdata = dbus_rdata;
+    assign mmio_en      = ex_mmio_en & ex_cke;
+    assign mmio_re      = ex_mmio_re & ex_cke;
+    assign mmio_we      = ex_mmio_we & ex_cke;
+    assign mmio_size    = ex_mmio_size;
+    assign mmio_addr    = ex_mmio_addr;
+    assign mmio_sel     = ex_mmio_sel;
+    assign mmio_rsel    = ex_mmio_rsel;
+    assign mmio_wsel    = ex_mmio_wsel;
+    assign mmio_wdata   = ex_mmio_wdata;
+
+    assign ma_mem_rdata = ma_dtcm_re ? dtcm_rdata : 
+                          ma_mmio_re ? mmio_rdata : 'x;
 
 
     // -----------------------------------------
@@ -972,13 +1068,13 @@ module jelly2_jfive_micro_core
     // -----------------------------------------
     //  Trace (simulation only)
     // -----------------------------------------
-    
+
     generate
     if ( SIMULATION ) begin
-        if ( TRACE_EXEC_ENABLE ) begin
+        if ( LOG_EXE_ENABLE ) begin
             int     fp_trace;
             initial begin
-                fp_trace = $fopen(TRACE_EXEC_FILE, "w");
+                fp_trace = $fopen(LOG_EXE_FILE, "w");
             end
             always @(posedge clk) begin
                 if ( !reset ) begin
@@ -1002,20 +1098,20 @@ module jelly2_jfive_micro_core
             end
         end
 
-        if ( TRACE_DBUS_ENABLE ) begin
+        if ( LOG_MEM_ENABLE ) begin
             int     fp_dbus;
             initial begin
-                fp_dbus = $fopen(TRACE_DBUS_FILE, "w");
+                fp_dbus = $fopen(LOG_MEM_FILE, "w");
             end
             always @(posedge clk) begin
                 if ( !reset ) begin
-                    if ( dbus_we ) begin
-                        $fdisplay(fp_dbus, "write addr:%08x wdata:%08x sel:%b  (pc:%08x instr:%08x)",
-                                dbus_addr, dbus_wdata, dbus_sel, ex_pc, ex_instr);
-                    end
                     if ( ma_mem_re ) begin
-                        $fdisplay(fp_dbus, "read  addr:%08x rdata:%08x sel:%b  (pc:%08x instr:%08x)",
-                                ma_mem_addr, dbus_rdata, ma_mem_sel, ma_pc, ma_instr);
+                        $fdisplay(fp_dbus, "%t read  addr:%08x rdata:%08x sel:%b  (pc:%08x instr:%08x)",
+                                $time, ma_mem_addr, dtcm_rdata, ma_mem_sel, ma_pc, ma_instr);
+                    end
+                    if ( ex_mem_we ) begin
+                        $fdisplay(fp_dbus, "%t write addr:%08x wdata:%08x sel:%b  (pc:%08x instr:%08x)",
+                                $time, ex_mem_addr, ex_mem_wdata, ex_mem_sel, ex_pc, ex_instr);
                     end
                 end
             end
