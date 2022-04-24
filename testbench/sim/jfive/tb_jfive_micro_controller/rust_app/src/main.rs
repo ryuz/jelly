@@ -34,8 +34,13 @@ pub unsafe extern "C" fn main() -> ! {
     let pu32 = 0xff000000  as *mut u32;
     let pi64 = 0xff000000  as *mut i64;
     let pu64 = 0xff000000  as *mut u64;
-    
-    /*
+
+    core::ptr::write_volatile(pi8_0, core::ptr::read_volatile(pi8_0));
+    core::ptr::write_volatile(pi8_1, core::ptr::read_volatile(pi8_1));
+    core::ptr::write_volatile(pi8_2, core::ptr::read_volatile(pi8_2));
+    core::ptr::write_volatile(pi8_3, core::ptr::read_volatile(pi8_3));
+
+
     core::ptr::write_volatile(pi8_0, -1);
     core::ptr::write_volatile(pu8_0,  1);
     core::ptr::write_volatile(pi8_1, -2);
@@ -55,12 +60,13 @@ pub unsafe extern "C" fn main() -> ! {
 
     core::ptr::write_volatile(pi64, -2222);
     core::ptr::write_volatile(pu64,  2222);
-    */
 
-//  core::ptr::write_volatile(pi32, 0x1234);
+    core::ptr::write_volatile(pi32, 0x1234);
     core::ptr::write_volatile(&mut DATA, 0x7654320);
     core::ptr::write_volatile(&mut DATA, core::ptr::read_volatile(&mut DATA) + 1);
     core::ptr::write_volatile(pi32, core::ptr::read_volatile(&mut DATA));
+
+    println!("Hello!");
 
 //    let ptr = 0xff000000  as *mut i32;
 //    let mut i: i32 = 0;

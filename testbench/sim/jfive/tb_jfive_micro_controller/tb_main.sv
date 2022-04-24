@@ -110,7 +110,7 @@ module tb_main
                 .mmio_rdata
             );
 
-
+    assign mmio_rdata = 32'h12345678;
 
     
     always @(posedge clk) begin

@@ -57,16 +57,19 @@ module jelly2_jfive_micro_core
     logic                               pc_cke;
     logic           [PC_WIDTH-1:0]      pc_pc;
 
-
     // Instruction Fetch
+    logic                               if_stall;
     logic                               if_cke;
     logic           [PC_WIDTH-1:0]      if_pc;
     logic           [INSTR_WIDTH-1:0]   if_instr;
     logic                               if_valid;
 
     logic           [6:0]               if_opcode;
+    logic                               if_rd_en;
     logic           [RIDX_WIDTH-1:0]    if_rd_idx;
+    logic                               if_rs1_en;
     logic           [RIDX_WIDTH-1:0]    if_rs1_idx;
+    logic                               if_rs2_en;
     logic           [RIDX_WIDTH-1:0]    if_rs2_idx;
     logic           [2:0]               if_funct3;
     logic           [6:0]               if_funct7;
@@ -79,8 +82,6 @@ module jelly2_jfive_micro_core
     
     // Instruction Decode
     logic                               id_cke;
-
-    logic                               id_stall;
 
     logic           [PC_WIDTH-1:0]      id_pc;
     logic           [INSTR_WIDTH-1:0]   id_instr;
@@ -176,9 +177,9 @@ module jelly2_jfive_micro_core
     // -----------------------------------------
 
     // ストール時にデコードまでのパイプラインを止める
-    assign pc_cke = cke & !id_stall;
-    assign if_cke = cke & !id_stall;
-    assign id_cke = cke & !id_stall;
+    assign pc_cke = cke & !if_stall;
+    assign if_cke = cke & !if_stall;
+    assign id_cke = cke;
     assign ex_cke = cke;
     assign ma_cke = cke;
     assign wb_cke = cke;
@@ -209,6 +210,7 @@ module jelly2_jfive_micro_core
     //  Instruction Fetch
     // -----------------------------------------
 
+    /*
     // PC & Instruction
     always_ff @(posedge clk) begin
         if ( reset ) begin            
@@ -220,14 +222,48 @@ module jelly2_jfive_micro_core
             if_valid <= 1'b1;
         end
     end
+    */
 
+    logic                               if_stall_en;
+
+    logic           [PC_WIDTH-1:0]      if0_pc;
+    logic           [INSTR_WIDTH-1:0]   if0_instr;
+    logic                               if0_valid;
+
+    logic           [PC_WIDTH-1:0]      if1_pc;
+    logic           [INSTR_WIDTH-1:0]   if1_instr;
+    logic                               if1_valid;
 
     // Instruction Fetch
     assign ibus_en   = if_cke;
     assign ibus_addr = IBUS_ADDR_WIDTH'(pc_pc);
-    assign if_instr  = ibus_rdata;
+    assign if0_instr = ibus_rdata;
 
-    // decocde
+    always_ff @(posedge clk) begin
+        if ( reset ) begin
+            if0_pc    <= 'x;
+            if0_valid <= 1'b0;
+        end
+        else if ( if_cke ) begin
+            if0_pc    <= pc_pc;
+            if0_valid <= 1'b1;
+        end
+    end
+
+    always_ff @(posedge clk) begin
+        if ( if_cke ) begin
+            if1_pc    <= if0_pc;
+            if1_instr <= if0_instr;
+            if1_valid <= if0_valid;
+        end
+    end
+
+    assign if_pc    = if_stall ? if1_pc    : if0_pc;
+    assign if_instr = if_stall ? if1_instr : if0_instr;
+    assign if_valid = (if_stall ? if1_valid : if0_valid) & !if_stall_en;
+
+
+    // instruction decocde
     assign if_opcode  = if_instr[6:0];
     assign if_rd_idx  = if_instr[11:7];
     assign if_rs1_idx = if_instr[19:15];
@@ -240,7 +276,52 @@ module jelly2_jfive_micro_core
     assign if_imm_b  = {if_instr[31], if_instr[7], if_instr[30:25], if_instr[11:8], 1'b0};
     assign if_imm_u  = {if_instr[31:12], 12'd0};
     assign if_imm_j  = {if_instr[31], if_instr[19:12], if_instr[20], if_instr[30:21], 1'b0};
+
+    always_comb begin
+        if_rd_en = 1'b0;
+        if ( if_opcode == 7'b0110111 ) begin if_rd_en = 1'b1; end
+        if ( if_opcode == 7'b0010111 ) begin if_rd_en = 1'b1; end
+        if ( if_opcode == 7'b1101111 ) begin if_rd_en = 1'b1; end
+        if ( if_opcode == 7'b1100111 ) begin if_rd_en = 1'b1; end
+        if ( if_opcode == 7'b0000011 ) begin if_rd_en = 1'b1; end
+        if ( if_opcode == 7'b0010011 ) begin if_rd_en = 1'b1; end
+        if ( if_opcode == 7'b0110011 ) begin if_rd_en = 1'b1; end
+        if ( if_opcode == 7'b0001111 ) begin if_rd_en = 1'b1; end
+    end
+
+    always_comb begin
+        if_rs1_en = 1'b0;
+        if_rs2_en = 1'b0;
+        if ( if_opcode == 7'b1100111 ) begin if_rs1_en = 1'b1; end
+        if ( if_opcode == 7'b1100011 ) begin if_rs1_en = 1'b1; if_rs2_en = 1'b1; end
+        if ( if_opcode == 7'b0000011 ) begin if_rs1_en = 1'b1; end
+        if ( if_opcode == 7'b0100011 ) begin if_rs1_en = 1'b1; if_rs2_en = 1'b1; end
+        if ( if_opcode == 7'b0010011 ) begin if_rs1_en = 1'b1; end
+        if ( if_opcode == 7'b0010011 ) begin if_rs1_en = 1'b1; end
+        if ( if_opcode == 7'b0110011 ) begin if_rs1_en = 1'b1; if_rs2_en = 1'b1; end
+        if ( if_opcode == 7'b0001111 ) begin if_rs1_en = 1'b1; end
+    end
     
+
+    // stall
+    always_ff @(posedge clk) begin
+        if ( reset ) begin
+            if_stall <= 1'b0;
+        end
+        else begin
+            if_stall <= if_stall_en;
+        end
+    end
+
+    always_comb begin
+        if_stall_en = 1'b0;
+        if ( if_rs1_en && if_rs1_idx == id_rd_idx && id_mem_re ) begin if_stall_en = 1'b1; end
+        if ( if_rs2_en && if_rs2_idx == id_rd_idx && id_mem_re ) begin if_stall_en = 1'b1; end
+        if ( if_rs1_en && if_rs1_idx == ex_rd_idx && ex_mem_re ) begin if_stall_en = 1'b1; end
+        if ( if_rs2_en && if_rs2_idx == ex_rd_idx && ex_mem_re ) begin if_stall_en = 1'b1; end
+    end
+
+
     // decode
     wire    if_dec_lui    = (if_opcode == 7'b0110111);
     wire    if_dec_auipc  = (if_opcode == 7'b0010111);
@@ -282,13 +363,13 @@ module jelly2_jfive_micro_core
     wire    if_dec_fence  = (if_opcode == 7'b0001111);
     wire    if_dec_ecall  = (if_instr == 32'h00000073);
     wire    if_dec_ebreak = (if_instr == 32'h00100073);
-    
 
 
     // -----------------------------------------
     //  Instruction Decode
     // -----------------------------------------
 
+    /*
    logic                       next_valid;
    logic   [6:0]               next_opcode;
    logic   [RIDX_WIDTH-1:0]    next_rs1_idx;
@@ -333,6 +414,7 @@ module jelly2_jfive_micro_core
             if ( next_rs2_en && next_rs2_idx == ex_rd_idx && ex_mem_re ) begin id_stall <= 1'b1; end
         end
     end
+    */
 
     /*
     always_ff @(posedge clk) begin
@@ -600,7 +682,7 @@ module jelly2_jfive_micro_core
             end
         end
     end 
-    assign id_rd_en = id_rd_en_tmp & !id_stall;
+    assign id_rd_en = id_rd_en_tmp;// & !id_stall;
 
     always_ff @(posedge clk) begin
         id_branch_pc <= 'x;
@@ -644,7 +726,7 @@ module jelly2_jfive_micro_core
             ex_valid     <= 1'b0;
         end
         else if ( ex_cke ) begin
-            if ( ex_expect_pc == id_pc && id_valid && !id_stall ) begin
+            if ( ex_expect_pc == id_pc && id_valid ) begin
                 ex_pc        <= ex_expect_pc;
                 ex_expect_pc <= ex_branch_pc; 
                 ex_instr     <= id_instr;
@@ -663,18 +745,18 @@ module jelly2_jfive_micro_core
         if ( ex_cke ) begin
             automatic logic  [RIDX_WIDTH-1:0]   rs1_idx;
             automatic logic  [RIDX_WIDTH-1:0]   rs2_idx;
-            rs1_idx = id_stall ? id_rs1_idx : if_rs1_idx;
-            rs2_idx = id_stall ? id_rs2_idx : if_rs2_idx;
+            rs1_idx = if_rs1_idx;
+            rs2_idx = if_rs2_idx;
 
             ex_fwd_rs1_stage <= 2'd0;
-            if ( ma_rd_idx == rs1_idx && ma_rd_en )              begin ex_fwd_rs1_stage <= 2'd3; end
-            if ( ex_rd_idx == rs1_idx && ex_rd_en )              begin ex_fwd_rs1_stage <= 2'd2; end
-            if ( id_rd_idx == rs1_idx && id_rd_en && !id_stall ) begin ex_fwd_rs1_stage <= 2'd1; end
+            if ( ma_rd_idx == rs1_idx && ma_rd_en ) begin ex_fwd_rs1_stage <= 2'd3; end
+            if ( ex_rd_idx == rs1_idx && ex_rd_en ) begin ex_fwd_rs1_stage <= 2'd2; end
+            if ( id_rd_idx == rs1_idx && id_rd_en ) begin ex_fwd_rs1_stage <= 2'd1; end
 
             ex_fwd_rs2_stage <= 2'd0;
-            if ( ma_rd_idx == rs2_idx && ma_rd_en )               begin ex_fwd_rs2_stage <= 2'd3; end
-            if ( ex_rd_idx == rs2_idx && ex_rd_en )               begin ex_fwd_rs2_stage <= 2'd2; end
-            if ( id_rd_idx == rs2_idx && id_rd_en && !id_stall  ) begin ex_fwd_rs2_stage <= 2'd1; end
+            if ( ma_rd_idx == rs2_idx && ma_rd_en ) begin ex_fwd_rs2_stage <= 2'd3; end
+            if ( ex_rd_idx == rs2_idx && ex_rd_en ) begin ex_fwd_rs2_stage <= 2'd2; end
+            if ( id_rd_idx == rs2_idx && id_rd_en ) begin ex_fwd_rs2_stage <= 2'd1; end
         end
     end
 
@@ -708,7 +790,7 @@ module jelly2_jfive_micro_core
 //            ex_branch_pc += PC_WIDTH'(4);
 //        end
 
-        if ( id_valid && !id_stall ) begin
+        if ( id_valid ) begin
             unique case (1'b1)
             id_dec_jal:  begin ex_branch_pc = id_branch_pc; end
             id_dec_jalr: begin ex_branch_pc = PC_WIDTH'(ex_fwd_rs1_val) + PC_WIDTH'(id_imm_i); end
@@ -786,7 +868,7 @@ module jelly2_jfive_micro_core
             ex_rd_idx    <= 'x;
         end
         else if ( ex_cke ) begin
-            ex_rd_en     <= id_rd_en & id_valid && !id_stall;
+            ex_rd_en     <= id_rd_en & id_valid;
             ex_rd_idx    <= id_rd_idx;
         end
     end
@@ -830,7 +912,7 @@ module jelly2_jfive_micro_core
             ex_mem_wdata    <= 'x;
             ex_mem_unsigned <= 1'bx;
             
-            if ( id_valid && !id_stall ) begin
+            if ( id_valid ) begin
                 automatic   logic   [XLEN-1:0]      mem_addr;
                 automatic   logic   [XLEN-1:0]      mem_wdata;
                 automatic   logic   [SEL_WIDTH-1:0] mem_sel;
