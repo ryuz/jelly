@@ -92,6 +92,8 @@
 *.vcd
 *.fst
 *.das
+*.gtkw
+*.gtkwave
 
 *_tcl.xpr
 
@@ -114,6 +116,7 @@ buf_rd*.txt
 buf_wr*.txt
 
 axi4_mem*.txt
+*_trace*.txt
 
 *_/
 obj_dir/

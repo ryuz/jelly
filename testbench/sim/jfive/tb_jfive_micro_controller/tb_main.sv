@@ -29,6 +29,9 @@ module tb_main
     parameter   bit     [31:0]          RESET_PC_ADDR    = 32'h8000_0000;
     parameter   bit                     INIT_CTL_RESET   = 1'b0;
 
+    parameter   bit                     SIMULATION      = 1'b1;
+    parameter   bit                     TRACE_FILE_EN   = 1'b1;
+    parameter   string                  TRACE_FILE      = "jfive_trace.txt";
 
     logic                           cke = 1'b1;
 
@@ -37,7 +40,7 @@ module tb_main
     logic   [S_WB_DAT_WIDTH-1:0]    s_wb_dat_i;
     logic   [3:0]                   s_wb_sel_i;
     logic                           s_wb_we_i;
-    logic                           s_wb_stb_i;
+    logic                           s_wb_stb_i = 1'b0;
     logic                           s_wb_ack_o;
 
     logic   [M_WB_ADR_WIDTH-1:0]    m_wb_adr_o;
@@ -55,7 +58,7 @@ module tb_main
     logic   [31:0]                  mmio_wdata;
     logic   [31:0]                  mmio_rdata;
     
-    jelly2_jfive_simple_controller
+    jelly2_jfive_micro_controller
             #(
                 .S_WB_ADR_WIDTH     (S_WB_ADR_WIDTH),
                 .S_WB_DAT_WIDTH     (S_WB_DAT_WIDTH),
@@ -72,9 +75,12 @@ module tb_main
                 .MEM_READMEMH       (MEM_READMEMH),
                 .MEM_READMEM_FIlE   (MEM_READMEM_FIlE),
                 .RESET_PC_ADDR      (RESET_PC_ADDR),
-                .INIT_CTL_RESET     (INIT_CTL_RESET)
+                .INIT_CTL_RESET     (INIT_CTL_RESET),
+                .SIMULATION         (SIMULATION),
+                .TRACE_FILE_EN      (TRACE_FILE_EN),
+                .TRACE_FILE         (TRACE_FILE)
             )
-        i_jfive_simple_controller
+        i_jfive_micro_controller
             (
                 .reset,
                 .clk,
@@ -109,7 +115,8 @@ module tb_main
     
     always @(posedge clk) begin
         if ( !reset && mmio_wr ) begin
-            $display("write: %h %10d %b", mmio_addr, $signed(mmio_wdata), mmio_sel);
+//          $display("write: %h %10d %b", mmio_addr, $signed(mmio_wdata), mmio_sel);
+            $display("write: %h %08x %b", mmio_addr, $signed(mmio_wdata), mmio_sel);
         end
     end
 

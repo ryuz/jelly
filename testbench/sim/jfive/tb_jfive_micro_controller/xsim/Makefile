@@ -8,6 +8,7 @@ all: clean build run
 
 .PHONY: build
 build:
+	make -C ../rust_app
 	xvlog -f xvlog_cmd.txt
 	xelab -debug wave $(TOP_MODULE) -s $(TOP_MODULE)
 

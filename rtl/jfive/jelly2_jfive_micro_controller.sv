@@ -25,7 +25,11 @@ module jelly2_jfive_micro_controller
             parameter                           MEM_READMEM_FIlE = "",
 
             parameter   bit     [31:0]          RESET_PC_ADDR    = 32'h8000_0000,
-            parameter   bit                     INIT_CTL_RESET   = 1'b1
+            parameter   bit                     INIT_CTL_RESET   = 1'b1,
+
+            parameter   bit                     SIMULATION      = 1'b0,
+            parameter   bit                     TRACE_FILE_EN   = 1'b0,
+            parameter   string                  TRACE_FILE      = "jfive_trace.txt"
         )
         (
             input   wire                            reset,
@@ -122,9 +126,9 @@ module jelly2_jfive_micro_controller
         end
     end
 
-    wire    core_cke = cke && !(m_wb_stb_o && !m_wb_ack_i);
+    wire    core_cke = cke; //  && !(m_wb_stb_o && !m_wb_ack_i);
 
-
+    logic                           ibus_en;
     logic   [IBUS_ADDR_WIDTH-1:0]   ibus_addr;
     logic   [31:0]                  ibus_rdata;
 
@@ -144,14 +148,18 @@ module jelly2_jfive_micro_controller
                 .IBUS_ADDR_WIDTH    (IBUS_ADDR_WIDTH),
                 .DBUS_ADDR_WIDTH    (DBUS_ADDR_WIDTH),
                 .PC_WIDTH           (PC_WIDTH),
-                .RESET_PC_ADDR      (RESET_PC_ADDR)
+                .RESET_PC_ADDR      (RESET_PC_ADDR),
+                .SIMULATION         (SIMULATION),
+                .TRACE_FILE_EN      (TRACE_FILE_EN),
+                .TRACE_FILE         (TRACE_FILE)
             )
         i_jfive_micro_core
             (
                 .reset,
                 .clk,
-                .cke,
+                .cke                (core_cke),
 
+                .ibus_en,
                 .ibus_addr,
                 .ibus_rdata,
 
@@ -172,6 +180,7 @@ module jelly2_jfive_micro_controller
     //  Memory
     // ---------------------------------------------
 
+    logic                           mem_ibus_en;
     logic                           mem_ibus_wb;
     logic   [RAM_ADDR_WIDTH-1:0]    mem_ibus_addr;
     logic   [3:0]                   mem_ibus_we;
@@ -206,8 +215,8 @@ module jelly2_jfive_micro_controller
         i_ram_dualport
             (
                 .port0_clk          (clk),
-                .port0_en           (cke),
-                .port0_regcke       (cke),
+                .port0_en           (ibus_en),
+                .port0_regcke       (1'b0),
                 .port0_we           (mem_ibus_we),
                 .port0_addr         (mem_ibus_addr),
                 .port0_din          (mem_ibus_wdata),
@@ -215,7 +224,7 @@ module jelly2_jfive_micro_controller
 
                 .port1_clk          (clk),
                 .port1_en           (cke),
-                .port1_regcke       (cke),
+                .port1_regcke       (1'b0),
                 .port1_we           (mem_dbus_we),
                 .port1_addr         (mem_dbus_addr),
                 .port1_din          (mem_dbus_wdata),
@@ -223,6 +232,7 @@ module jelly2_jfive_micro_controller
             );
 
     // ibus
+    assign mem_ibus_en    = ibus_en;
     assign mem_ibus_wb    = wb_mem && s_wb_stb_i && s_wb_we_i;
     assign mem_ibus_addr  = mem_ibus_wb ? s_wb_adr_i[RAM_ADDR_WIDTH-1:0] : RAM_ADDR_WIDTH'(ibus_addr >> 2);
     assign mem_ibus_we    = mem_ibus_wb ? s_wb_sel_i[3:0]                : 4'b0000;
@@ -288,7 +298,7 @@ module jelly2_jfive_micro_controller
                         rd_wb_valid   ? wb_rdata       :
                         rd_mmio_valid ? mmio_rdata     :
                         'x;
-    
+
 endmodule
 
 
