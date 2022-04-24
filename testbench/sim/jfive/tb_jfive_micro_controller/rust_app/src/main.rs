@@ -24,17 +24,16 @@ pub unsafe extern "C" fn main() -> ! {
 //    for i in 0..4 {
 //        write_byte((c + i) as u8);
 //    }
-    
+
     //  foo();
     println!("Start!");
-    loop{}
+
     write_byte('S' as u8);
     write_byte('t' as u8);
     write_byte('a' as u8);
     write_byte('r' as u8);
     write_byte('t' as u8);
     write_byte('\n' as u8);
-//    loop{}
 
     /*
     let mmio_putc = 0xf0000100  as *mut u8;
@@ -114,10 +113,8 @@ pub unsafe extern "C" fn main() -> ! {
     core::ptr::write_volatile(&mut DATA, core::ptr::read_volatile(&mut DATA) + 1);
     core::ptr::write_volatile(pi32, core::ptr::read_volatile(&mut DATA));
 
-//  println!("Hello!");
+    println!("Hello world!");
 
-//    let ptr = 0xff000000  as *mut i32;
-//    let mut i: i32 = 0;
     loop {
 //        core::ptr::write_volatile(ptr, i);
 //        i = i+1;

@@ -13,13 +13,15 @@
 
 module jelly2_jfive_micro_core
         #(
-            parameter int                   IBUS_ADDR_WIDTH = 14,
-            parameter int                   DBUS_ADDR_WIDTH = 32,
-            parameter int                   PC_WIDTH        = IBUS_ADDR_WIDTH,
-            parameter bit   [PC_WIDTH-1:0]  RESET_PC_ADDR   = PC_WIDTH'(32'h80000000),
-            parameter bit                   SIMULATION      = 1'b0,
-            parameter bit                   TRACE_FILE_EN   = 1'b0,
-            parameter string                TRACE_FILE      = "jfive_trace.txt"
+            parameter int                       IBUS_ADDR_WIDTH   = 14,
+            parameter int                       DBUS_ADDR_WIDTH   = 32,
+            parameter int                       PC_WIDTH          = IBUS_ADDR_WIDTH,
+            parameter bit       [PC_WIDTH-1:0]  RESET_PC_ADDR     = PC_WIDTH'(32'h80000000),
+            parameter bit                       SIMULATION        = 1'b0,
+            parameter bit                       TRACE_EXEC_ENABLE = 1'b0,
+            parameter string                    TRACE_EXEC_FILE   = "jfive_trace_exec.txt",
+            parameter bit                       TRACE_DBUS_ENABLE = 1'b0,
+            parameter string                    TRACE_DBUS_FILE   = "jfive_trace_dbus.txt"
         )
         (
             input   wire                            reset,
@@ -100,6 +102,8 @@ module jelly2_jfive_micro_core
     logic   signed  [31:0]              id_imm_u;
     logic   signed  [20:0]              id_imm_j;
 
+    logic                               id_rs1_en;
+    logic                               id_rs2_en;
     logic                               id_rd_en;
     logic   signed  [XLEN-1:0]          id_rs1_val;
     logic   signed  [XLEN-1:0]          id_rs2_val;
@@ -130,6 +134,13 @@ module jelly2_jfive_micro_core
 
     logic           [PC_WIDTH-1:0]      ex_branch_pc;
 
+    logic                               ex_rs1_en;
+    logic           [RIDX_WIDTH-1:0]    ex_rs1_idx;
+    logic           [XLEN-1:0]          ex_rs1_val;
+    logic                               ex_rs2_en;
+    logic           [RIDX_WIDTH-1:0]    ex_rs2_idx;
+    logic           [XLEN-1:0]          ex_rs2_val;
+
     logic                               ex_rd_en;
     logic           [RIDX_WIDTH-1:0]    ex_rd_idx;
     logic   signed  [XLEN-1:0]          ex_rd_val;
@@ -151,14 +162,23 @@ module jelly2_jfive_micro_core
     logic           [PC_WIDTH-1:0]      ma_pc;
     logic           [31:0]              ma_instr;
 
+    logic                               ma_rs1_en;
+    logic           [RIDX_WIDTH-1:0]    ma_rs1_idx;
+    logic           [XLEN-1:0]          ma_rs1_val;
+    logic                               ma_rs2_en;
+    logic           [RIDX_WIDTH-1:0]    ma_rs2_idx;
+    logic           [XLEN-1:0]          ma_rs2_val;
     logic                               ma_rd_en;
     logic           [RIDX_WIDTH-1:0]    ma_rd_idx;
     logic           [XLEN-1:0]          ma_rd_val;
 
+    logic                               ma_mem_we;
     logic                               ma_mem_re;
     logic           [XLEN-1:0]          ma_mem_addr;
     logic           [SIZE_WIDTH-1:0]    ma_mem_size;
+    logic           [SEL_WIDTH-1:0]     ma_mem_sel;
     logic                               ma_mem_unsigned;
+    logic           [XLEN-1:0]          ma_mem_wdata;
     logic           [XLEN-1:0]          ma_mem_rdata;
 
     // Write back
@@ -166,6 +186,20 @@ module jelly2_jfive_micro_core
     logic                               wb_valid;
     logic           [PC_WIDTH-1:0]      wb_pc;
     logic           [INSTR_WIDTH-1:0]   wb_instr;
+
+    logic                               wb_rs1_en;
+    logic           [RIDX_WIDTH-1:0]    wb_rs1_idx;
+    logic           [XLEN-1:0]          wb_rs1_val;
+    logic                               wb_rs2_en;
+    logic           [RIDX_WIDTH-1:0]    wb_rs2_idx;
+    logic           [XLEN-1:0]          wb_rs2_val;
+
+    logic                               wb_mem_we;
+    logic                               wb_mem_re;
+    logic           [XLEN-1:0]          wb_mem_addr;
+    logic           [SEL_WIDTH-1:0]     wb_mem_sel;
+    logic           [XLEN-1:0]          wb_mem_wdata;
+    logic           [XLEN-1:0]          wb_mem_rdata;
 
     logic                               wb_rd_en;
     logic           [RIDX_WIDTH-1:0]    wb_rd_idx;
@@ -712,6 +746,10 @@ module jelly2_jfive_micro_core
         end
     end
 
+    always_ff @(posedge clk) begin
+        id_rs1_en <= if_rs1_en;
+        id_rs2_en <= if_rs2_en;
+    end
 
     // -----------------------------------------
     //  Execution
@@ -741,6 +779,15 @@ module jelly2_jfive_micro_core
                 ex_valid <= 1'b0;
             end
         end
+    end
+
+    always @(posedge clk) begin
+        ex_rs1_en  <= id_rs1_en;
+        ex_rs1_idx <= id_rs1_idx;
+        ex_rs1_val <= ex_fwd_rs1_val;
+        ex_rs2_en  <= id_rs2_en;
+        ex_rs2_idx <= id_rs2_idx;
+        ex_rs2_val <= ex_fwd_rs2_val;
     end
 
     // forwarding
@@ -984,6 +1031,19 @@ module jelly2_jfive_micro_core
         end
     end
 
+    always @(posedge clk) begin
+        ma_rs1_en    <= ex_rs1_en;
+        ma_rs1_idx   <= ex_rs1_idx;
+        ma_rs1_val   <= ex_rs1_val;
+        ma_rs2_en    <= ex_rs2_en;
+        ma_rs2_idx   <= ex_rs2_idx;
+        ma_rs2_val   <= ex_rs2_val;
+        ma_mem_sel   <= ex_mem_sel;
+        ma_mem_we    <= ex_mem_we;
+        ma_mem_wdata <= ex_mem_wdata;
+    end
+
+
     // data-bus access
     assign dbus_en      = ex_mem_en;
     assign dbus_re      = ex_mem_re;
@@ -996,7 +1056,6 @@ module jelly2_jfive_micro_core
     assign dbus_wdata   = ex_mem_wdata;
 
     assign ma_mem_rdata = dbus_rdata;
-
 
 
     // -----------------------------------------
@@ -1050,19 +1109,67 @@ module jelly2_jfive_micro_core
         end
     end
 
+    always @(posedge clk) begin
+        wb_rs1_en  <= ma_rs1_en;
+        wb_rs1_idx <= ma_rs1_en ? ma_rs1_idx : '0;
+        wb_rs1_val <= ma_rs1_en ? ma_rs1_val : '0;
+        wb_rs2_en  <= ma_rs2_en;
+        wb_rs2_idx <= ma_rs2_en ? ma_rs2_idx : '0;
+        wb_rs2_val <= ma_rs2_en ? ma_rs2_val : '0;
+
+        wb_mem_we    <= ma_mem_we;
+        wb_mem_re    <= ma_mem_re;
+        wb_mem_addr  <= ma_mem_addr;
+        wb_mem_sel   <= ma_mem_sel;
+        wb_mem_wdata <= ma_mem_wdata;
+        wb_mem_rdata <= ma_mem_rdata;
+    end
+
 
     // simulation only
     generate
     if ( SIMULATION ) begin
-        if ( TRACE_FILE_EN ) begin
+        if ( TRACE_EXEC_ENABLE ) begin
             int     fp_trace;
             initial begin
-                fp_trace = $fopen(TRACE_FILE, "w");
+                fp_trace = $fopen(TRACE_EXEC_FILE, "w");
             end
             always @(posedge clk) begin
                 if ( !reset ) begin
-                    if ( ex_valid ) begin
-                        $fdisplay(fp_trace, "%08x %08x", ex_pc, ex_instr);
+                    if ( wb_cke && wb_valid ) begin
+                        automatic logic [RIDX_WIDTH-1:0]    rd_idx;
+                        automatic logic [XLEN-1:0]          rd_val;
+                        rd_idx = wb_rd_en ? wb_rd_idx : '0;
+                        rd_val = wb_rd_en ? wb_rd_val : '0;
+
+                        $fdisplay(fp_trace, "%d pc:%08x instr:%08x rd(%2d):%08x rs1(%2d):%08x rs2(%2d):%08x",
+                                $time, wb_pc, wb_instr, rd_idx, rd_val, wb_rs1_idx, wb_rs1_val, wb_rs2_idx, wb_rs2_val);
+                        
+                        if ( wb_mem_we ) begin 
+                            $fdisplay(fp_trace, "  write  addr:%08x wdata:%08x sel:%b", wb_mem_addr, wb_mem_wdata, wb_mem_sel);
+                        end
+                        if ( wb_mem_re ) begin 
+                            $fdisplay(fp_trace, "  read   addr:%08x rdata:%08x sel:%b", wb_mem_addr, wb_mem_rdata, wb_mem_sel);
+                        end
+                    end
+                end
+            end
+        end
+
+        if ( TRACE_DBUS_ENABLE ) begin
+            int     fp_dbus;
+            initial begin
+                fp_dbus = $fopen(TRACE_DBUS_FILE, "w");
+            end
+            always @(posedge clk) begin
+                if ( !reset ) begin
+                    if ( dbus_we ) begin
+                        $fdisplay(fp_dbus, "write addr:%08x wdata:%08x sel:%b  (pc:%08x instr:%08x)",
+                                dbus_addr, dbus_wdata, dbus_sel, ex_pc, ex_instr);
+                    end
+                    if ( ma_mem_re ) begin
+                        $fdisplay(fp_dbus, "read  addr:%08x rdata:%08x sel:%b  (pc:%08x instr:%08x)",
+                                ma_mem_addr, dbus_rdata, ma_mem_sel, ma_pc, ma_instr);
                     end
                 end
             end

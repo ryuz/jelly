@@ -22,10 +22,10 @@
 //                .align      4
 _rst_handler:   
                 lui     a1, %hi(0x12345678)
-                ori     a1, a1, %lo(0x12345678)
+                addi    a1, a1, %lo(0x12345678)
 
                 lui     sp, %hi(___stack_end)
-                ori     sp, sp, %lo(___stack_end)
+                addi    sp, sp, %lo(___stack_end)
 
                 /* main関数の呼び出し */
                 jal     main

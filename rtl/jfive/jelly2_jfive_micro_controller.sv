@@ -27,9 +27,11 @@ module jelly2_jfive_micro_controller
             parameter   bit     [31:0]          RESET_PC_ADDR    = 32'h8000_0000,
             parameter   bit                     INIT_CTL_RESET   = 1'b1,
 
-            parameter   bit                     SIMULATION      = 1'b0,
-            parameter   bit                     TRACE_FILE_EN   = 1'b0,
-            parameter   string                  TRACE_FILE      = "jfive_trace.txt"
+            parameter   bit                     SIMULATION        = 1'b0,
+            parameter   bit                     TRACE_EXEC_ENABLE = 1'b0,
+            parameter   string                  TRACE_EXEC_FILE   = "jfive_trace_exec.txt",
+            parameter   bit                     TRACE_DBUS_ENABLE = 1'b0,
+            parameter   string                  TRACE_DBUS_FILE   = "jfive_trace_dbus.txt"
         )
         (
             input   wire                            reset,
@@ -136,7 +138,7 @@ module jelly2_jfive_micro_controller
     logic                           dbus_re;
     logic                           dbus_we;
     logic   [1:0]                   dbus_size;
-    logic   [DBUS_ADDR_WIDTH-1:0]   dbus_addr;
+    logic   [31:0]                  dbus_addr;
     logic   [3:0]                   dbus_sel;
     logic   [3:0]                   dbus_rsel;
     logic   [3:0]                   dbus_wsel;
@@ -146,12 +148,14 @@ module jelly2_jfive_micro_controller
     jelly2_jfive_micro_core
             #(
                 .IBUS_ADDR_WIDTH    (IBUS_ADDR_WIDTH),
-                .DBUS_ADDR_WIDTH    (DBUS_ADDR_WIDTH),
+                .DBUS_ADDR_WIDTH    (32),
                 .PC_WIDTH           (PC_WIDTH),
                 .RESET_PC_ADDR      (RESET_PC_ADDR),
                 .SIMULATION         (SIMULATION),
-                .TRACE_FILE_EN      (TRACE_FILE_EN),
-                .TRACE_FILE         (TRACE_FILE)
+                .TRACE_EXEC_ENABLE  (TRACE_EXEC_ENABLE),
+                .TRACE_EXEC_FILE    (TRACE_EXEC_FILE),
+                .TRACE_DBUS_ENABLE  (TRACE_DBUS_ENABLE),
+                .TRACE_DBUS_FILE    (TRACE_DBUS_FILE)
             )
         i_jfive_micro_core
             (
@@ -163,16 +167,16 @@ module jelly2_jfive_micro_controller
                 .ibus_addr,
                 .ibus_rdata,
 
-                .dbus_en,     
-                .dbus_re,     
-                .dbus_we,     
-                .dbus_size,   
-                .dbus_addr,   
-                .dbus_sel,    
+                .dbus_en,
+                .dbus_re,
+                .dbus_we,
+                .dbus_size,
+                .dbus_addr,
+                .dbus_sel,
                 .dbus_rsel,
                 .dbus_wsel,
-                .dbus_wdata,  
-                .dbus_rdata   
+                .dbus_wdata,
+                .dbus_rdata
             );
 
 
@@ -240,9 +244,9 @@ module jelly2_jfive_micro_controller
     assign ibus_rdata     = mem_ibus_rdata;
 
     // dbus
-    assign mem_dbus_valid = (dbus_addr & MEM_DECODE_MASK) == MEM_DECODE_ADDR;
+    assign mem_dbus_valid = dbus_en && (dbus_addr & MEM_DECODE_MASK) == MEM_DECODE_ADDR;
     assign mem_dbus_addr  = RAM_ADDR_WIDTH'(dbus_addr >> 2);
-    assign mem_dbus_we    = dbus_wsel;
+    assign mem_dbus_we    = mem_dbus_valid ? dbus_wsel : '0;
     assign mem_dbus_wdata = dbus_wdata;
 
 
@@ -252,7 +256,7 @@ module jelly2_jfive_micro_controller
     // ---------------------------------------------
 
     logic   wb_valid;
-    assign wb_valid   = (dbus_addr & WB_DECODE_MASK) == WB_DECODE_ADDR;
+    assign wb_valid   = dbus_en && (dbus_addr & WB_DECODE_MASK) == WB_DECODE_ADDR;
 
     assign m_wb_adr_o = M_WB_ADR_WIDTH'(dbus_addr >> 2);
     assign m_wb_dat_o = dbus_wdata;
@@ -271,7 +275,7 @@ module jelly2_jfive_micro_controller
     // ---------------------------------------------
 
     logic   mmio_valid;
-    assign mmio_valid = (dbus_addr & MMIO_DECODE_MASK) == MMIO_DECODE_ADDR;
+    assign mmio_valid = dbus_en && (dbus_addr & MMIO_DECODE_MASK) == MMIO_DECODE_ADDR;
 
     assign mmio_wr    = dbus_we & mmio_valid;
     assign mmio_rd    = dbus_re & mmio_valid;

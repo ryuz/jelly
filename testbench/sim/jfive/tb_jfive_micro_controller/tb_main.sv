@@ -29,9 +29,11 @@ module tb_main
     parameter   bit     [31:0]          RESET_PC_ADDR    = 32'h8000_0000;
     parameter   bit                     INIT_CTL_RESET   = 1'b0;
 
-    parameter   bit                     SIMULATION      = 1'b1;
-    parameter   bit                     TRACE_FILE_EN   = 1'b1;
-    parameter   string                  TRACE_FILE      = "jfive_trace.txt";
+    parameter   bit                     SIMULATION        = 1'b1;
+    parameter   bit                     TRACE_EXEC_ENABLE = 1'b1;
+    parameter   string                  TRACE_EXEC_FILE   = "jfive_trace_exec.txt";
+    parameter   bit                     TRACE_DBUS_ENABLE = 1'b1;
+    parameter   string                  TRACE_DBUS_FILE   = "jfive_trace_dbus.txt";
 
     logic                           cke = 1'b1;
 
@@ -77,8 +79,10 @@ module tb_main
                 .RESET_PC_ADDR      (RESET_PC_ADDR),
                 .INIT_CTL_RESET     (INIT_CTL_RESET),
                 .SIMULATION         (SIMULATION),
-                .TRACE_FILE_EN      (TRACE_FILE_EN),
-                .TRACE_FILE         (TRACE_FILE)
+                .TRACE_EXEC_ENABLE  (TRACE_EXEC_ENABLE),
+                .TRACE_EXEC_FILE    (TRACE_EXEC_FILE),
+                .TRACE_DBUS_ENABLE  (TRACE_DBUS_ENABLE),
+                .TRACE_DBUS_FILE    (TRACE_DBUS_FILE)
             )
         i_jfive_micro_controller
             (
