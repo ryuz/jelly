@@ -26,17 +26,16 @@ module jelly2_jfive_micro_core
             output  wire    [IBUS_ADDR_WIDTH-1:0]   ibus_addr,
             input   wire    [31:0]                  ibus_rdata,
 
-            output  wire                            dbus_en,
-            output  wire                            dbus_re,
-            output  wire                            dbus_we,
-            output  wire    [1:0]                   dbus_size,
-            output  wire    [DBUS_ADDR_WIDTH-1:0]   dbus_addr,
-            output  wire    [3:0]                   dbus_sel,
-            output  wire    [3:0]                   dbus_rsel,
-            output  wire    [3:0]                   dbus_wsel,
-            output  wire    [31:0]                  dbus_wdata,
-            input   wire    [31:0]                  dbus_rdata,
-            input   wire                            dbus_wait
+            output  wire                            dbus_en,        // read or write
+            output  wire                            dbus_re,        // read enable
+            output  wire                            dbus_we,        // write enable
+            output  wire    [1:0]                   dbus_size,      // address
+            output  wire    [DBUS_ADDR_WIDTH-1:0]   dbus_addr,      // size
+            output  wire    [3:0]                   dbus_sel,       // byte lane select
+            output  wire    [3:0]                   dbus_rsel,      // byte lane select(read only)
+            output  wire    [3:0]                   dbus_wsel,      // byte lane select(write only)
+            output  wire    [31:0]                  dbus_wdata,     // write data
+            input   wire    [31:0]                  dbus_rdata      // read data
         );
 
     localparam XLEN        = 32;
@@ -51,26 +50,44 @@ module jelly2_jfive_micro_core
     // -----------------------------------------
 
     // 
-    logic           [PC_WIDTH-1:0]      branch_pc;
-    logic                               branch_valid;
+//    logic           [PC_WIDTH-1:0]      branch_pc;
+//    logic                               branch_valid;
 
     // Program counter
+    logic                               pc_cke;
     logic           [PC_WIDTH-1:0]      pc_pc;
 
+
     // Instruction Fetch
+    logic                               if_cke;
     logic           [PC_WIDTH-1:0]      if_pc;
     logic           [INSTR_WIDTH-1:0]   if_instr;
     logic                               if_valid;
 
+    logic           [6:0]               if_opcode;
+    logic           [RIDX_WIDTH-1:0]    if_rd_idx;
+    logic           [RIDX_WIDTH-1:0]    if_rs1_idx;
+    logic           [RIDX_WIDTH-1:0]    if_rs2_idx;
+    logic           [2:0]               if_funct3;
+    logic           [6:0]               if_funct7;
+
+    logic   signed  [11:0]              if_imm_i;
+    logic   signed  [11:0]              if_imm_s;
+    logic   signed  [12:0]              if_imm_b;
+    logic   signed  [31:0]              if_imm_u;
+    logic   signed  [20:0]              if_imm_j;
+
+
     // Instruction Decode
+    logic                               id_cke;
     logic           [PC_WIDTH-1:0]      id_pc;
     logic           [INSTR_WIDTH-1:0]   id_instr;
-    logic                               id_valid, id_valid_next;
+    logic                               id_valid;
 
     logic           [6:0]               id_opcode;
-    logic           [4:0]               id_rd;
-    logic           [4:0]               id_rs1;
-    logic           [4:0]               id_rs2;
+    logic           [RIDX_WIDTH-1:0]    id_rd_idx;
+    logic           [RIDX_WIDTH-1:0]    id_rs1_idx;
+    logic           [RIDX_WIDTH-1:0]    id_rs2_idx;
     logic           [2:0]               id_funct3;
     logic           [6:0]               id_funct7;
 
@@ -81,14 +98,14 @@ module jelly2_jfive_micro_core
     logic   signed  [20:0]              id_imm_j;
 
     logic                               id_rd_en;
-//    logic   signed  [XLEN-1:0]          id_rs1_rdata_raw;
-//    logic   signed  [XLEN-1:0]          id_rs2_rdata_raw;
-    logic   signed  [XLEN-1:0]          id_rs1_rdata;
-    logic   signed  [XLEN-1:0]          id_rs2_rdata;
+    logic   signed  [XLEN-1:0]          id_rs1_val;
+    logic   signed  [XLEN-1:0]          id_rs2_val;
 
     logic           [1:0]               id_rs1_fwd;
     logic           [1:0]               id_rs2_fwd;
 
+    logic                               id_branch_valid;
+    logic           [PC_WIDTH-1:0]      id_branch_pc;
 
     logic                               id_mem_re;
     logic                               id_mem_we;
@@ -100,24 +117,27 @@ module jelly2_jfive_micro_core
     logic                               ex_valid;
     logic           [PC_WIDTH-1:0]      ex_pc;
     logic           [31:0]              ex_instr;
+    logic           [PC_WIDTH-1:0]      ex_expect_pc;
 
-    logic   signed  [XLEN-1:0]          ex_fwd_rs1;
-    logic   signed  [XLEN-1:0]          ex_fwd_rs2;
+    logic   signed  [XLEN-1:0]          ex_fwd_rs1_val;
+    logic   signed  [XLEN-1:0]          ex_fwd_rs2_val;
+    logic           [XLEN-1:0]          ex_fwd_rs1_val_u;
+    logic           [XLEN-1:0]          ex_fwd_rs2_val_u;
 
     logic                               ex_rd_en;
     logic           [RIDX_WIDTH-1:0]    ex_rd_idx;
     logic   signed  [XLEN-1:0]          ex_rd_val;
 
+    logic                               ex_mem_en;
+    logic                               ex_mem_re;
+    logic                               ex_mem_we;
+    logic           [XLEN-1:0]          ex_mem_addr;
+    logic           [SIZE_WIDTH-1:0]    ex_mem_size;
+    logic           [SEL_WIDTH-1:0]     ex_mem_sel;
+    logic           [SEL_WIDTH-1:0]     ex_mem_rsel;
+    logic           [SEL_WIDTH-1:0]     ex_mem_wsel;
+    logic           [XLEN-1:0]          ex_mem_wdata;
     logic                               ex_mem_unsigned;
-    logic                               ex_mem_en;      // read or write
-    logic                               ex_mem_re;      // read enable
-    logic                               ex_mem_we;      // write enable
-    logic           [XLEN-1:0]          ex_mem_addr;    // address
-    logic           [SIZE_WIDTH-1:0]    ex_mem_size;    // size
-    logic           [SEL_WIDTH-1:0]     ex_mem_sel;     // byte lane select
-    logic           [SEL_WIDTH-1:0]     ex_mem_rsel;    // byte lane select(read only)
-    logic           [SEL_WIDTH-1:0]     ex_mem_wsel;    // byte lane select(write only)
-    logic           [XLEN-1:0]          ex_mem_wdata;   // write data
 
     // Memory Access
     logic                               ma_cke;
@@ -129,11 +149,11 @@ module jelly2_jfive_micro_core
     logic           [RIDX_WIDTH-1:0]    ma_rd_idx;
     logic           [XLEN-1:0]          ma_rd_val;
 
-    logic                               ma_unsigned;
-    logic           [XLEN-1:0]          ma_addr;
-    logic           [SIZE_WIDTH-1:0]    ma_size;
-    logic           [XLEN-1:0]          ma_rdata;
-    logic                               ma_rvalid;
+    logic                               ma_mem_re;
+    logic           [XLEN-1:0]          ma_mem_addr;
+    logic           [SIZE_WIDTH-1:0]    ma_mem_size;
+    logic                               ma_mem_unsigned;
+    logic           [XLEN-1:0]          ma_mem_rdata;
 
     // Write back
     logic                               wb_cke;
@@ -146,6 +166,18 @@ module jelly2_jfive_micro_core
     logic           [XLEN-1:0]          wb_rd_val;
 
 
+    // -----------------------------------------
+    //  Interlock
+    // -----------------------------------------
+
+    // ストール時にデコードまでのパイプラインを止める
+    assign pc_cke = cke & id_stall;
+    assign if_cke = cke & id_stall;
+    assign id_cke = cke & id_stall;
+    assign ex_cke = cke;
+    assign ma_cke = cke;
+    assign wb_cke = cke;
+
 
     // -----------------------------------------
     //  Program counter
@@ -155,12 +187,14 @@ module jelly2_jfive_micro_core
         if ( reset ) begin
             pc_pc <= RESET_PC_ADDR;
         end
-        else if ( cke ) begin
-            if ( branch_valid ) begin
-                pc_pc <= branch_pc;
-            end
-            else begin
-                pc_pc <= pc_pc + PC_WIDTH'(4);
+        else if ( pc_cke ) begin
+            pc_pc <= pc_pc + PC_WIDTH'(4);
+
+            // 実行ステージの期待する命令がでコードパイプになければブランチ
+            if ( !((pc_pc == ex_expect_pc)
+                || (id_pc == ex_expect_pc && if_valid)
+                || (id_pc == ex_expect_pc && id_valid)) ) begin
+                pc_pc <= ex_expect_pc;
             end
         end
     end
@@ -173,12 +207,12 @@ module jelly2_jfive_micro_core
     // PC & Instruction
     always_ff @(posedge clk) begin
         if ( reset ) begin            
-            if_pc    <= '0;
+            if_pc    <= 'x;
             if_valid <= 1'b0;
         end
-        else if ( cke ) begin
+        else if ( if_cke ) begin
             if_pc    <= pc_pc;
-            if_valid <= 1'b1 & ~branch_valid;
+            if_valid <= 1'b1;
         end
     end
 
@@ -188,25 +222,12 @@ module jelly2_jfive_micro_core
     assign if_instr  = ibus_rdata;
 
     // decocde
-    logic           [6:0]   if_opcode;
-    logic           [4:0]   if_rd;
-    logic           [4:0]   if_rs1;
-    logic           [4:0]   if_rs2;
-    logic           [2:0]   if_funct3;
-    logic           [6:0]   if_funct7;
-
-    logic   signed  [11:0]  if_imm_i;
-    logic   signed  [11:0]  if_imm_s;
-    logic   signed  [12:0]  if_imm_b;
-    logic   signed  [31:0]  if_imm_u;
-    logic   signed  [20:0]  if_imm_j;
-
-    assign if_opcode = if_instr[6:0];
-    assign if_rd     = if_instr[11:7];
-    assign if_rs1    = if_instr[19:15];
-    assign if_rs2    = if_instr[24:20];
-    assign if_funct3 = if_instr[14:12];
-    assign if_funct7 = if_instr[31:25];
+    assign if_opcode  = if_instr[6:0];
+    assign if_rd_idx  = if_instr[11:7];
+    assign if_rs1_idx = if_instr[19:15];
+    assign if_rs2_idx = if_instr[24:20];
+    assign if_funct3  = if_instr[14:12];
+    assign if_funct7  = if_instr[31:25];
 
     assign if_imm_i  = if_instr[31:20];
     assign if_imm_s  = {if_instr[31:25], if_instr[11:7]};
@@ -262,19 +283,42 @@ module jelly2_jfive_micro_core
     //  Instruction Decode
     // -----------------------------------------
 
-    assign id_valid_next = if_valid && !branch_valid;
+    logic       id_stall;
+    always_ff @(posedge clk) begin
+        if ( reset ) begin
+            id_stall <= 1'b0;
+        end
+        else if ( cke ) begin
+            if ( id_stall ) begin
+                id_stall <= 1'b0;
+            end
+            else if ( id_mem_re ) begin
+                if ( (if_opcode == 7'b1100111 && (if_rs1_idx == id_rd_idx))
+                        || (if_opcode == 7'b1100011 && ((if_rs1_idx == id_rd_idx) || (if_rs2_idx == id_rd_idx)))
+                        || (if_opcode == 7'b0000011 && (if_rs1_idx == id_rd_idx))
+                        || (if_opcode == 7'b0100011 && ((if_rs1_idx == id_rd_idx) || (if_rs2_idx == id_rd_idx)))
+                        || (if_opcode == 7'b0010011 && (if_rs1_idx == id_rd_idx))
+                        || (if_opcode == 7'b0010011 && (if_rs1_idx == id_rd_idx))
+                        || (if_opcode == 7'b0110011 && ((if_rs1_idx == id_rd_idx) || (if_rs2_idx == id_rd_idx)))
+                        || (if_opcode == 7'b0001111 && (if_rs1_idx == id_rd_idx)) ) begin
+                    id_stall <= 1'b1;
+                end
+            end
+        end
+    end
 
-    assign id_opcode = id_instr[6:0];
-    assign id_rd     = id_instr[11:7];
-    assign id_rs1    = id_instr[19:15];
-    assign id_rs2    = id_instr[24:20];
-    assign id_funct3 = id_instr[14:12];
-    assign id_funct7 = id_instr[31:25];
-    assign id_imm_i  = id_instr[31:20];
-    assign id_imm_s  = {id_instr[31:25], id_instr[11:7]};
-    assign id_imm_b  = {id_instr[31], id_instr[7], id_instr[30:25], id_instr[11:8], 1'b0};
-    assign id_imm_u  = {id_instr[31:12], 12'd0};
-    assign id_imm_j  = {id_instr[31], id_instr[19:12], id_instr[20], id_instr[30:21], 1'b0};
+
+    assign id_opcode  = id_instr[6:0];
+    assign id_rd_idx  = id_instr[11:7];
+    assign id_rs1_idx = id_instr[19:15];
+    assign id_rs2_idx = id_instr[24:20];
+    assign id_funct3  = id_instr[14:12];
+    assign id_funct7  = id_instr[31:25];
+    assign id_imm_i   = id_instr[31:20];
+    assign id_imm_s   = {id_instr[31:25], id_instr[11:7]};
+    assign id_imm_b   = {id_instr[31], id_instr[7], id_instr[30:25], id_instr[11:8], 1'b0};
+    assign id_imm_u   = {id_instr[31:12], 12'd0};
+    assign id_imm_j   = {id_instr[31], id_instr[19:12], id_instr[20], id_instr[30:21], 1'b0};
 
     logic           [11:0]  id_imm_i_u;
     assign id_imm_i_u = id_imm_i;
@@ -284,8 +328,8 @@ module jelly2_jfive_micro_core
     jelly2_register_file_ram
             #(
                 .READ_PORTS     (2),
-                .ADDR_WIDTH     (5),
-                .DATA_WIDTH     (32)
+                .ADDR_WIDTH     (RIDX_WIDTH),
+                .DATA_WIDTH     (XLEN)
             )
         i_register_file
             (
@@ -294,29 +338,28 @@ module jelly2_jfive_micro_core
                 .cke,
 
                 .wr_en          (wb_rd_en),
-                .wr_addr        (wb_rd),
-                .wr_din         (wb_rd_wdata),
+                .wr_addr        (wb_rd_idx),
+                .wr_din         (wb_rd_val),
 
-                .rd_en          (2'b11),
-                .rd_addr        ({if_rs2, if_rs1}),
-                .rd_dout        ({id_rs2_rdata_raw, id_rs1_rdata_raw})
+                .rd_en          ({2{id_cke}}),
+                .rd_addr        ({if_rs2_idx, if_rs1_idx}),
+                .rd_dout        ({id_rs2_val, id_rs1_val})
             );
 
     // forwarding
     always_ff @(posedge clk) begin
-        id_rs1_forward <= id_rd_en && (id_rd == if_rs1);
-        id_rs2_forward <= id_rd_en && (id_rd == if_rs2);
+        if ( id_cke ) begin
+            id_rs1_fwd <= 2'd0;
+            if ( ma_rd_en && (ma_rd_idx == if_rs1_idx) ) begin id_rs1_fwd <= 2'd3; end
+            if ( ex_rd_en && (ex_rd_idx == if_rs1_idx) ) begin id_rs1_fwd <= 2'd2; end
+            if ( id_rd_en && (id_rd_idx == if_rs1_idx) ) begin id_rs1_fwd <= 2'd1; end
+
+            id_rs2_fwd <= 2'd0;
+            if ( ma_rd_en && (ma_rd_idx == if_rs2_idx) ) begin id_rs2_fwd <= 2'd3; end
+            if ( ex_rd_en && (ex_rd_idx == if_rs2_idx) ) begin id_rs2_fwd <= 2'd2; end
+            if ( id_rd_en && (id_rd_idx == if_rs2_idx) ) begin id_rs2_fwd <= 2'd1; end
+        end
     end
-
-    logic   signed  [31:0]      id_rs1_rdata;
-    logic   signed  [31:0]      id_rs2_rdata;
-    assign id_rs1_rdata = id_rs1_forward ? ex_rd_wdata : id_rs1_rdata_raw;
-    assign id_rs2_rdata = id_rs2_forward ? ex_rd_wdata : id_rs2_rdata_raw;
-
-    logic           [31:0]      id_rs1_rdata_u;
-    logic           [31:0]      id_rs2_rdata_u;
-    assign id_rs1_rdata_u = id_rs1_rdata;
-    assign id_rs2_rdata_u = id_rs2_rdata;
 
     // instruction decode
     logic    id_dec_lui;
@@ -406,7 +449,6 @@ module jelly2_jfive_micro_core
     end
 
     // memory access
-    logic   signed  [31:0]                  id_mem_offset;
     logic                                   id_mem_rd;
     logic                                   id_mem_wr;
     logic           [3:0]                   id_mem_sel;
@@ -428,7 +470,7 @@ module jelly2_jfive_micro_core
             id_mem_sel      <= 'x;
             id_mem_size     <= 'x;
             id_mem_unsigned <= 1'bx;
-            if ( id_valid_next ) begin
+            if ( if_valid ) begin
                 if ( if_dec_lb || if_dec_lh || if_dec_lw || if_dec_lbu || if_dec_lhu ) begin
                     id_mem_rd       <= 1'b1;
                     id_mem_offset   <= 32'(if_imm_i);
@@ -454,10 +496,10 @@ module jelly2_jfive_micro_core
         if ( reset ) begin
             id_rd_en  <= '0;
         end
-        else if ( cke ) begin
+        else if ( id_cke ) begin
             id_rd_en <= '0;
-            if ( id_valid_next ) begin
-                id_rd_en <= (if_rd != 0) & (
+            if ( if_valid ) begin
+                id_rd_en <= (if_rd_idx != 0) & (
                                 if_dec_lui   |
                                 if_dec_auipc |
                                 if_dec_jal   |
@@ -491,44 +533,100 @@ module jelly2_jfive_micro_core
         end
     end
 
+
+    always_ff @(posedge clk) begin
+        id_branch_pc <= 'x;
+        unique case (1'b1)
+        if_dec_jal : id_branch_pc <= if_pc + PC_WIDTH'(if_imm_j);
+        if_dec_beq : id_branch_pc <= if_pc + PC_WIDTH'(if_imm_b);
+        if_dec_bne : id_branch_pc <= if_pc + PC_WIDTH'(if_imm_b);
+        if_dec_blt : id_branch_pc <= if_pc + PC_WIDTH'(if_imm_b);
+        if_dec_bge : id_branch_pc <= if_pc + PC_WIDTH'(if_imm_b);
+        if_dec_bltu: id_branch_pc <= if_pc + PC_WIDTH'(if_imm_b);
+        if_dec_bgeu: id_branch_pc <= if_pc + PC_WIDTH'(if_imm_b);
+        default:     id_branch_pc <= 'x;
+        endcase
+    end
+    
     // control
+    logic   id_valid_tmp;
     always_ff @(posedge clk) begin
         if ( reset ) begin            
             id_pc    <= '0;
             id_instr <= '0;
-            id_valid <= 1'b0;
+            id_valid_tmp <= 1'b0;
         end
-        else if ( cke ) begin
+        else if ( id_cke ) begin
             id_pc    <= if_pc;
             id_instr <= if_instr;
-            id_valid <= id_valid_next;
+            id_valid_tmp <= if_valid;
         end
     end
-
+    assign id_valid = id_valid_tmp && !id_stall;
 
 
     // -----------------------------------------
     //  Execution
     // -----------------------------------------
 
+    // control
+    always_ff @(posedge clk) begin
+        if ( reset ) begin            
+            ex_pc    <= RESET_PC_ADDR;
+            ex_instr <= 'x;
+            ex_valid <= 1'b0;
+        end
+        else if ( id_cke ) begin
+            if ( id_valid && id_pc == ex_expect_pc ) begin
+                ex_pc    <= id_pc;
+                ex_instr <= id_instr;
+                ex_valid <= id_valid;
+            end
+        end
+    end
+
+    // forwarding
+    always_comb begin
+        case ( id_rs1_fwd )
+        2'd0:   ex_fwd_rs1_val = id_rs1_val;
+        2'd1:   ex_fwd_rs1_val = ex_rd_val;
+        2'd2:   ex_fwd_rs1_val = ma_rd_val;
+        2'd3:   ex_fwd_rs1_val = wb_rd_val;
+        endcase
+        ex_fwd_rs1_val_u = ex_fwd_rs1_val;
+    end
+
+    always_comb begin
+        ex_fwd_rs2_val = 'x;
+        case ( id_rs1_fwd )
+        2'd0:   ex_fwd_rs2_val = id_rs2_val;
+        2'd1:   ex_fwd_rs2_val = ex_rd_val;
+        2'd2:   ex_fwd_rs2_val = ma_rd_val;
+        2'd3:   ex_fwd_rs2_val = wb_rd_val;
+        endcase
+        ex_fwd_rs2_val_u = ex_fwd_rs2_val;
+    end
+
     // branch
     always_comb begin
-        branch_valid = 1'b0;
-        branch_pc    = 'x;
-        unique case (1'b1)
-        id_dec_jal : begin branch_pc = id_pc                   + PC_WIDTH'(id_imm_j); branch_valid = 1'b1; end
-        id_dec_jalr: begin branch_pc = PC_WIDTH'(id_rs1_rdata) + PC_WIDTH'(id_imm_i); branch_valid = 1'b1; end
-        id_dec_beq : if ( id_rs1_rdata   == id_rs2_rdata   ) begin branch_pc = id_pc + PC_WIDTH'(id_imm_b); branch_valid = 1'b1; end
-        id_dec_bne : if ( id_rs1_rdata   != id_rs2_rdata   ) begin branch_pc = id_pc + PC_WIDTH'(id_imm_b); branch_valid = 1'b1; end
-        id_dec_blt : if ( id_rs1_rdata    < id_rs2_rdata   ) begin branch_pc = id_pc + PC_WIDTH'(id_imm_b); branch_valid = 1'b1; end
-        id_dec_bge : if ( id_rs1_rdata   >= id_rs2_rdata   ) begin branch_pc = id_pc + PC_WIDTH'(id_imm_b); branch_valid = 1'b1; end
-        id_dec_bltu: if ( id_rs1_rdata_u  < id_rs2_rdata_u ) begin branch_pc = id_pc + PC_WIDTH'(id_imm_b); branch_valid = 1'b1; end
-        id_dec_bgeu: if ( id_rs1_rdata_u >= id_rs2_rdata_u ) begin branch_pc = id_pc + PC_WIDTH'(id_imm_b); branch_valid = 1'b1; end
-        default: ;
-        endcase
+        ex_expect_pc = ex_pc;
 
-        if ( !id_valid ) begin
-            branch_valid = 1'b0;
+        if ( ex_valid ) begin
+            ex_expect_pc += PC_WIDTH'(4);
+        end
+
+        if ( id_valid ) begin
+            unique case (1'b1)
+            id_dec_jal:  begin ex_expect_pc = id_branch_pc; end
+            id_dec_jalr: begin ex_expect_pc = PC_WIDTH'(ex_fwd_rs1_val) + PC_WIDTH'(id_imm_i); end
+            id_dec_beq:  if ( ex_fwd_rs1_val   == ex_fwd_rs2_val   ) begin ex_expect_pc = id_branch_pc; end
+            id_dec_bne:  if ( ex_fwd_rs1_val   != ex_fwd_rs2_val   ) begin ex_expect_pc = id_branch_pc; end
+            id_dec_blt:  if ( ex_fwd_rs1_val    < ex_fwd_rs2_val   ) begin ex_expect_pc = id_branch_pc; end
+            id_dec_bge:  if ( ex_fwd_rs1_val   >= ex_fwd_rs2_val   ) begin ex_expect_pc = id_branch_pc; end
+            id_dec_bltu: if ( ex_fwd_rs1_val_u  < ex_fwd_rs2_val_u ) begin ex_expect_pc = id_branch_pc; end
+            id_dec_bgeu: if ( ex_fwd_rs1_val_u >= ex_fwd_rs2_val_u ) begin ex_expect_pc = id_branch_pc; end
+            default: ;
+            endcase
         end
     end
 
@@ -542,29 +640,30 @@ module jelly2_jfive_micro_core
         id_dec_auipc: ex_rd_wdata_alu <= id_imm_u + 32'(id_pc);
         id_dec_jal  : ex_rd_wdata_alu <= 32'(id_pc) + 32'd4;
         id_dec_jalr : ex_rd_wdata_alu <= 32'(id_pc) + 32'd4;
-        id_dec_addi : ex_rd_wdata_alu <= id_rs1_rdata    + 32'(id_imm_i);
-        id_dec_slti : ex_rd_wdata_alu <= (id_rs1_rdata   < 32'(id_imm_i)  ) ? 32'd1 : 32'd0;
-        id_dec_sltiu: ex_rd_wdata_alu <= (id_rs1_rdata_u < 32'(id_imm_i_u)) ? 32'd1 : 32'd0;
-        id_dec_xori : ex_rd_wdata_alu <= id_rs1_rdata    ^ 32'(id_imm_i);
-        id_dec_ori  : ex_rd_wdata_alu <= id_rs1_rdata    | 32'(id_imm_i);
-        id_dec_andi : ex_rd_wdata_alu <= id_rs1_rdata    & 32'(id_imm_i);
-        id_dec_slli : ex_rd_wdata_alu <= id_rs1_rdata   << id_imm_i_u[4:0];
-        id_dec_srli : ex_rd_wdata_alu <= id_rs1_rdata_u >> id_imm_i_u[4:0];
-        id_dec_srai : ex_rd_wdata_alu <= id_rs1_rdata  >>> id_imm_i_u[4:0];
-        id_dec_add  : ex_rd_wdata_alu <= id_rs1_rdata    + id_rs2_rdata;
-        id_dec_sub  : ex_rd_wdata_alu <= id_rs1_rdata    - id_rs2_rdata;
-        id_dec_sll  : ex_rd_wdata_alu <= id_rs1_rdata   << id_rs2_rdata_u[4:0];
-        id_dec_slt  : ex_rd_wdata_alu <= (id_rs1_rdata   < id_rs2_rdata  ) ? 32'd1 : 32'd0;
-        id_dec_sltu : ex_rd_wdata_alu <= (id_rs1_rdata_u < id_rs2_rdata_u) ? 32'd1 : 32'd0;
-        id_dec_xor  : ex_rd_wdata_alu <= id_rs1_rdata    ^ id_rs2_rdata;
-        id_dec_srl  : ex_rd_wdata_alu <= id_rs1_rdata_u >> id_rs2_rdata_u[4:0];
-        id_dec_sra  : ex_rd_wdata_alu <= id_rs1_rdata  >>> id_rs2_rdata_u[4:0];
-        id_dec_or   : ex_rd_wdata_alu <= id_rs1_rdata    | id_rs2_rdata;
-        id_dec_and  : ex_rd_wdata_alu <= id_rs1_rdata    & id_rs2_rdata;
+        id_dec_addi : ex_rd_wdata_alu <= ex_fwd_rs1_val    + 32'(id_imm_i);
+        id_dec_slti : ex_rd_wdata_alu <= (ex_fwd_rs1_val   < 32'(id_imm_i)  ) ? 32'd1 : 32'd0;
+        id_dec_sltiu: ex_rd_wdata_alu <= (ex_fwd_rs1_val_u < 32'(id_imm_i_u)) ? 32'd1 : 32'd0;
+        id_dec_xori : ex_rd_wdata_alu <= ex_fwd_rs1_val    ^ 32'(id_imm_i);
+        id_dec_ori  : ex_rd_wdata_alu <= ex_fwd_rs1_val    | 32'(id_imm_i);
+        id_dec_andi : ex_rd_wdata_alu <= ex_fwd_rs1_val    & 32'(id_imm_i);
+        id_dec_slli : ex_rd_wdata_alu <= ex_fwd_rs1_val   << id_imm_i_u[4:0];
+        id_dec_srli : ex_rd_wdata_alu <= ex_fwd_rs1_val_u >> id_imm_i_u[4:0];
+        id_dec_srai : ex_rd_wdata_alu <= ex_fwd_rs1_val  >>> id_imm_i_u[4:0];
+        id_dec_add  : ex_rd_wdata_alu <= ex_fwd_rs1_val    + ex_fwd_rs2_val;
+        id_dec_sub  : ex_rd_wdata_alu <= ex_fwd_rs1_val    - ex_fwd_rs2_val;
+        id_dec_sll  : ex_rd_wdata_alu <= ex_fwd_rs1_val   << ex_fwd_rs2_val_u[4:0];
+        id_dec_slt  : ex_rd_wdata_alu <= (ex_fwd_rs1_val   < ex_fwd_rs2_val  ) ? 32'd1 : 32'd0;
+        id_dec_sltu : ex_rd_wdata_alu <= (ex_fwd_rs1_val_u < ex_fwd_rs2_val_u) ? 32'd1 : 32'd0;
+        id_dec_xor  : ex_rd_wdata_alu <= ex_fwd_rs1_val    ^ ex_fwd_rs2_val;
+        id_dec_srl  : ex_rd_wdata_alu <= ex_fwd_rs1_val_u >> ex_fwd_rs2_val_u[4:0];
+        id_dec_sra  : ex_rd_wdata_alu <= ex_fwd_rs1_val  >>> ex_fwd_rs2_val_u[4:0];
+        id_dec_or   : ex_rd_wdata_alu <= ex_fwd_rs1_val    | ex_fwd_rs2_val;
+        id_dec_and  : ex_rd_wdata_alu <= ex_fwd_rs1_val    & ex_fwd_rs2_val;
         default: ;
         endcase
     end
 
+    /*
     function    [XLEN-1:0]  size_mask(input [SIZE_WIDTH-1:0] size);
     begin
         size_mask = 'x;
@@ -575,6 +674,7 @@ module jelly2_jfive_micro_core
         if ( XLEN >= 128 && int'(size) == 4 )  begin size_mask = XLEN'({128{1'b1}}); end
     end
     endfunction
+    */
 
     function    [SEL_WIDTH-1:0]  sel_mask(input [SIZE_WIDTH-1:0] size);
     begin
@@ -591,7 +691,7 @@ module jelly2_jfive_micro_core
     always_ff @(posedge clk) begin
         if ( reset ) begin
             ex_mem_en    <= 1'b0;
-            ex_mem_rd    <= 1'b0;
+            ex_mem_re    <= 1'b0;
             ex_mem_we    <= 1'b0;
             ex_mem_addr  <= 'x;
             ex_mem_size  <= 'x;
@@ -605,15 +705,15 @@ module jelly2_jfive_micro_core
             automatic   logic   [XLEN-1:0]      mem_wdata;
             automatic   logic   [SEL_WIDTH-1:0] mem_sel;
 
-            mem_addr = ex_fwd_rs1 + id_mem_offset;
+            mem_addr = ex_fwd_rs1_val + id_mem_offset;
             
-            mem_wdata = ex_fwd_rs2;
+            mem_wdata = ex_fwd_rs2_val;
             if ( XLEN >=  16 && mem_addr[0] )    begin   mem_wdata = mem_wdata <<  8; end;
             if ( XLEN >=  32 && mem_addr[1] )    begin   mem_wdata = mem_wdata << 16; end;
             if ( XLEN >=  64 && mem_addr[2] )    begin   mem_wdata = mem_wdata << 32; end;
             if ( XLEN >= 128 && mem_addr[3] )    begin   mem_wdata = mem_wdata << 64; end;
 
-            mem_sel   = size_mask(id_mem_size);
+            mem_sel   = sel_mask(id_mem_size);
             if ( XLEN >=  16 && mem_addr[0] )    begin   mem_sel = mem_sel << 1; end;
             if ( XLEN >=  32 && mem_addr[1] )    begin   mem_sel = mem_sel << 2; end;
             if ( XLEN >=  64 && mem_addr[2] )    begin   mem_sel = mem_sel << 4; end;
@@ -638,83 +738,48 @@ module jelly2_jfive_micro_core
 
     always_ff @(posedge clk) begin
         if ( reset ) begin
-           ma_valid  <= 1'b0;
-           ma_pc     <= 'x;
-           ma_instr  <= 'x;
+           ma_valid        <= 1'b0;
+           ma_pc           <= 'x;
+           ma_instr        <= 'x;
 
-           ma_rd_en  <= 1'b0;
-           ma_rd_idx <= 'x;
-           ma_rd_val <= 'x;
+           ma_rd_en        <= 1'b0;
+           ma_rd_idx       <= 'x;
+           ma_rd_val       <= 'x;
+
+           ma_mem_re       <= 1'b0;
+           ma_mem_addr     <= 'x;
+           ma_mem_size     <= 'x;
+           ma_mem_unsigned <= 'x;
         end
-        else if ( ma_cke ) begin
-           ma_valid  <= ex_valid;
-           ma_pc     <= ex_pc;
-           ma_instr  <= ex_instr;
+        else if ( cke ) begin
+           ma_valid        <= ex_valid;
+           ma_pc           <= ex_pc;
+           ma_instr        <= ex_instr;
 
-           ma_rd_en  <= ex_rd_en;
-           ma_rd_idx <= ex_rd_idx;
-           ma_rd_val <= ex_rd_val;
-        end
-    end
+           ma_rd_en        <= ex_rd_en;
+           ma_rd_idx       <= ex_rd_idx;
+           ma_rd_val       <= ex_rd_val;
 
-    logic                               ma_wait;
-    logic                               ma_wait_en;
-    logic                               ma_wait_re;
-    logic                               ma_wait_we;
-    logic           [XLEN-1:0]          ma_wait_addr;
-    logic           [SIZE_WIDTH-1:0]    ma_wait_size;
-    logic           [SEL_WIDTH-1:0]     ma_wait_sel;
-    logic           [SEL_WIDTH-1:0]     ma_wait_rsel;
-    logic           [SEL_WIDTH-1:0]     ma_wait_wsel;
-    logic           [XLEN-1:0]          ma_wait_wdata;
-    logic                               ma_wait_unsigned;
-
-    always_ff @(posedge clk) begin
-        if ( reset ) begin
-            ma_wait <= 1'b0;
-        end
-        else begin
-            ma_wait <= dbus_wait;
-        end
-    end
-
-    always_ff @(posedge clk) begin
-        if ( ma_cke && !)
-            ma_wait <= dbus_wait;
-        end
-    end
-
-
-    always_ff @(posedge clk) begin
-        if ( !ma_wait ) begin
-            ma_wait_en       <= ex_mem_en;
-            ma_wait_re       <= ex_mem_re;
-            ma_wait_we       <= ex_mem_we;
-            ma_wait_addr     <= ex_mem_addr;
-            ma_wait_size     <= ex_mem_size;
-            ma_wait_sel      <= ex_mem_sel;
-            ma_wait_rsel     <= ex_mem_rsel;
-            ma_wait_wsel     <= ex_mem_wsel;
-            ma_wait_wdata    <= ex_mem_wdata;
-            ma_wait_unsigned <= ex_mem_unsigned;
+           ma_mem_re       <= ex_mem_re;
+           ma_mem_addr     <= ex_mem_addr;
+           ma_mem_size     <= ex_mem_size;
+           ma_mem_unsigned <= ex_mem_unsigned;
         end
     end
 
     // data-bus access
-    assign dbus_en      = ma_wait ? ma_wait_en    : ex_mem_en;
-    assign dbus_re      = ma_wait ? ma_wait_re    : ex_mem_re;
-    assign dbus_we      = ma_wait ? ma_wait_we    : ex_mem_we;
-    assign dbus_size    = ma_wait ? ma_wait_size  : ex_mem_size;
-    assign dbus_addr    = ma_wait ? ma_wait_addr  : ex_mem_addr;
-    assign dbus_sel     = ma_wait ? ma_wait_sel   : ex_mem_sel;
-    assign dbus_rsel    = ma_wait ? ma_wait_rsel  : ex_mem_rsel;
-    assign dbus_wsel    = ma_wait ? ma_wait_wsel  : ex_mem_wsel;
-    assign dbus_wdata   = ma_wait ? ma_wait_wdata : ex_mem_wdata;
+    assign dbus_en      = ex_mem_en;
+    assign dbus_re      = ex_mem_re;
+    assign dbus_we      = ex_mem_we;
+    assign dbus_size    = ex_mem_size;
+    assign dbus_addr    = ex_mem_addr;
+    assign dbus_sel     = ex_mem_sel;
+    assign dbus_rsel    = ex_mem_rsel;
+    assign dbus_wsel    = ex_mem_wsel;
+    assign dbus_wdata   = ex_mem_wdata;
 
-    wire    dus_unsigned;
-    assign dus_unsigned = ma_wait ? ma_wait_unsigned : ex_mem_unsigned;
-    assign ma_rdata     = dbus_rdata;
-    assign ma_rvalid    = dbus_en & dbus_en;
+    assign ma_mem_rdata = dbus_rdata;
+
 
 
     // -----------------------------------------
@@ -730,31 +795,31 @@ module jelly2_jfive_micro_core
         else if ( wb_cke ) begin
             automatic   logic   [XLEN-1:0]  mem_rdata;
             
-            mem_rdata = ma_rdata;
+            mem_rdata = ma_mem_rdata;
             if ( XLEN >=  16 && dbus_addr[0] )    begin   mem_rdata = mem_rdata >>  8; end;
             if ( XLEN >=  32 && dbus_addr[1] )    begin   mem_rdata = mem_rdata >> 16; end;
             if ( XLEN >=  64 && dbus_addr[2] )    begin   mem_rdata = mem_rdata >> 32; end;
             if ( XLEN >= 128 && dbus_addr[3] )    begin   mem_rdata = mem_rdata >> 64; end;
 
-            if ( dus_unsigned ) begin
-                if ( XLEN >=  16 && int'(dbus_size) == 0 )  begin   rdata = XLEN'($unsigned(mem_rdatal[ 7:0])); end
-                if ( XLEN >=  32 && int'(dbus_size) == 1 )  begin   rdata = XLEN'($unsigned(mem_rdatal[15:0])); end
-                if ( XLEN >=  64 && int'(dbus_size) == 2 )  begin   rdata = XLEN'($unsigned(mem_rdatal[31:0])); end
-                if ( XLEN >= 128 && int'(dbus_size) == 3 )  begin   rdata = XLEN'($unsigned(mem_rdatal[63:0])); end
+            if ( ma_mem_unsigned ) begin
+                if ( XLEN >=  16 && int'(dbus_size) == 0 )  begin   mem_rdata = XLEN'($unsigned(mem_rdata[ 7:0])); end
+                if ( XLEN >=  32 && int'(dbus_size) == 1 )  begin   mem_rdata = XLEN'($unsigned(mem_rdata[15:0])); end
+                if ( XLEN >=  64 && int'(dbus_size) == 2 )  begin   mem_rdata = XLEN'($unsigned(mem_rdata[31:0])); end
+//              if ( XLEN >= 128 && int'(dbus_size) == 3 )  begin   mem_rdata = XLEN'($unsigned(mem_rdata[63:0])); end
             end
             else begin
-                if ( XLEN >=  16 && int'(dbus_size) == 0 )  begin   rdata = XLEN'($signed(mem_rdatal[ 7:0])); end
-                if ( XLEN >=  32 && int'(dbus_size) == 1 )  begin   rdata = XLEN'($signed(mem_rdatal[15:0])); end
-                if ( XLEN >=  64 && int'(dbus_size) == 2 )  begin   rdata = XLEN'($signed(mem_rdatal[31:0])); end
-                if ( XLEN >= 128 && int'(dbus_size) == 3 )  begin   rdata = XLEN'($signed(mem_rdatal[63:0])); end
+                if ( XLEN >=  16 && int'(dbus_size) == 0 )  begin   mem_rdata = XLEN'($signed(mem_rdata[ 7:0])); end
+                if ( XLEN >=  32 && int'(dbus_size) == 1 )  begin   mem_rdata = XLEN'($signed(mem_rdata[15:0])); end
+                if ( XLEN >=  64 && int'(dbus_size) == 2 )  begin   mem_rdata = XLEN'($signed(mem_rdata[31:0])); end
+//              if ( XLEN >= 128 && int'(dbus_size) == 3 )  begin   mem_rdata = XLEN'($signed(mem_rdata[63:0])); end
             end
 
-            wb_rd_en  <= ma_rd_en || ma_rvalid;
+            wb_rd_en  <= ma_rd_en || ma_mem_re;
             wb_rd_idx <= ma_rd_idx;
-            wb_rd_val <= ma_rvalid ? rdata : ma_rd_val;
+            wb_rd_val <= ma_rd_en ? wb_rd_val : mem_rdata;
         end
     end
-    
+
 endmodule
 
 

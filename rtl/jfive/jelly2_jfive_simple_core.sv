@@ -222,7 +222,7 @@ module jelly2_jfive_simple_core
                 .wr_addr        (ex_rd),
                 .wr_din         (ex_rd_wdata),
 
-                .rd_en          (2'b11),
+                .rd_en          ({2{cke}}),
                 .rd_addr        ({if_rs2, if_rs1}),
                 .rd_dout        ({id_rs2_rdata_raw, id_rs1_rdata_raw})
             );
