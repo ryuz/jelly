@@ -717,6 +717,9 @@ module jelly2_jfive_micro_core
     //  Execution
     // -----------------------------------------
 
+    logic   ex_expect_valid;
+    assign ex_expect_valid = ((ex_expect_pc == id_pc) && id_valid);
+
     // control
     always_ff @(posedge clk) begin
         if ( reset ) begin
@@ -726,7 +729,7 @@ module jelly2_jfive_micro_core
             ex_valid     <= 1'b0;
         end
         else if ( ex_cke ) begin
-            if ( ex_expect_pc == id_pc && id_valid ) begin
+            if ( ex_expect_valid ) begin
                 ex_pc        <= ex_expect_pc;
                 ex_expect_pc <= ex_branch_pc; 
                 ex_instr     <= id_instr;
@@ -868,7 +871,7 @@ module jelly2_jfive_micro_core
             ex_rd_idx    <= 'x;
         end
         else if ( ex_cke ) begin
-            ex_rd_en     <= id_rd_en & id_valid;
+            ex_rd_en     <= id_rd_en & ex_expect_valid;
             ex_rd_idx    <= id_rd_idx;
         end
     end
@@ -912,7 +915,7 @@ module jelly2_jfive_micro_core
             ex_mem_wdata    <= 'x;
             ex_mem_unsigned <= 1'bx;
             
-            if ( id_valid ) begin
+            if ( ex_expect_valid ) begin
                 automatic   logic   [XLEN-1:0]      mem_addr;
                 automatic   logic   [XLEN-1:0]      mem_wdata;
                 automatic   logic   [SEL_WIDTH-1:0] mem_sel;

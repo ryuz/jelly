@@ -21,8 +21,8 @@
 ************************************************/
 //                .align      4
 _rst_handler:   
-                lui     a1, %hi(0x12345678)
-                ori     a1, a1, %lo(0x12345678)
+//                lui     a1, %hi(0x12345678)
+//                ori     a1, a1, %lo(0x12345678)
 
                 lui     sp, %hi(___stack_end)
                 ori     sp, sp, %lo(___stack_end)
@@ -32,6 +32,11 @@ _rst_handler:
 end_loop:
                 j       end_loop
 
+
+                .global   foo
+foo:
+                li	a0,7
+                ret
 
 
 /* end of file */

@@ -22,7 +22,7 @@ module tb_main
     parameter   bit     [31:0]          MMIO_DECODE_MASK = 32'hff00_0000;
     parameter   bit     [31:0]          MMIO_DECODE_ADDR = 32'hff00_0000;
 
-    parameter   int                     MEM_SIZE         = 16384;
+    parameter   int                     MEM_SIZE         = 32'h0001_0000;
     parameter   bit                     MEM_READMEMH     = 1'b1;
     parameter                           MEM_READMEM_FIlE = "../mem.hex";
 
@@ -109,8 +109,74 @@ module tb_main
                 .mmio_wdata,
                 .mmio_rdata
             );
+    
+    wire [31:0] x0  = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[0 ];
+    wire [31:0] x1  = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[1 ];
+    wire [31:0] x2  = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[2 ];
+    wire [31:0] x3  = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[3 ];
+    wire [31:0] x4  = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[4 ];
+    wire [31:0] x5  = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[5 ];
+    wire [31:0] x6  = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[6 ];
+    wire [31:0] x7  = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[7 ];
+    wire [31:0] x8  = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[8 ];
+    wire [31:0] x9  = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[9 ];
+    wire [31:0] x10 = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[10];
+    wire [31:0] x11 = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[11];
+    wire [31:0] x12 = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[12];
+    wire [31:0] x13 = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[13];
+    wire [31:0] x14 = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[14];
+    wire [31:0] x15 = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[15];
+    wire [31:0] x16 = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[16];
+    wire [31:0] x17 = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[17];
+    wire [31:0] x18 = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[18];
+    wire [31:0] x19 = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[19];
+    wire [31:0] x20 = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[20];
+    wire [31:0] x21 = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[21];
+    wire [31:0] x22 = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[22];
+    wire [31:0] x23 = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[23];
+    wire [31:0] x24 = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[24];
+    wire [31:0] x25 = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[25];
+    wire [31:0] x26 = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[26];
+    wire [31:0] x27 = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[27];
+    wire [31:0] x28 = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[28];
+    wire [31:0] x29 = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[29];
+    wire [31:0] x30 = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[30];
+    wire [31:0] x31 = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[31];
 
-    assign mmio_rdata = 32'h12345678;
+    wire [31:0] zero = x0 ;
+    wire [31:0] ra = x1 ;
+    wire [31:0] sp = x2 ;
+    wire [31:0] gp = x3 ;
+    wire [31:0] tp = x4 ;
+    wire [31:0] t0 = x5 ;
+    wire [31:0] t1 = x6 ;
+    wire [31:0] t2 = x7 ;
+    wire [31:0] s0 = x8 ;
+    wire [31:0] s1 = x9 ;
+    wire [31:0] a0 = x10;
+    wire [31:0] a1 = x11;
+    wire [31:0] a2 = x12;
+    wire [31:0] a3 = x13;
+    wire [31:0] a4 = x14;
+    wire [31:0] a5 = x15;
+    wire [31:0] a6 = x16;
+    wire [31:0] a7 = x17;
+    wire [31:0] s2 = x18;
+    wire [31:0] s3 = x19;
+    wire [31:0] s4 = x20;
+    wire [31:0] s5 = x21;
+    wire [31:0] s6 = x22;
+    wire [31:0] s7 = x23;
+    wire [31:0] s8 = x24;
+    wire [31:0] s9 = x25;
+    wire [31:0] s10 = x26;
+    wire [31:0] s11 = x27;
+    wire [31:0] t3 = x28;
+    wire [31:0] t4 = x29;
+    wire [31:0] t5 = x30;
+    wire [31:0] t6 = x31;
+
+    assign mmio_rdata = 32'h81828384;
 
     
     always @(posedge clk) begin
@@ -122,8 +188,8 @@ module tb_main
 
     always @(posedge clk) begin
         if ( !reset ) begin
-            if ( m_wb_stb_o && m_wb_we_o && m_wb_sel_o[0] && {m_wb_adr_o, 2'b00} == 32'hff000100 ) begin
-                $display("%c", m_wb_dat_o[7:0]);
+            if ( m_wb_stb_o && m_wb_we_o && m_wb_sel_o[0] && {m_wb_adr_o, 2'b00} == 26'h0000100 ) begin
+                $write("%c", m_wb_dat_o[7:0]);
             end
         end
     end
