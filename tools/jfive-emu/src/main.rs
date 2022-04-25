@@ -121,11 +121,12 @@ fn run_jfive(mem: &mut Memory, init_pc: u32, cycle: usize) {
 
         // decode
         let (opcode, _) = bit_select(instr, 6, 0);
-        let (rd_idx, _) = bit_select(instr, 11, 7);
+        let (mut rd_idx, _) = bit_select(instr, 11, 7);
         let (rs1_idx, _) = bit_select(instr, 19, 15);
         let (rs2_idx, _) = bit_select(instr, 24, 20);
         let (funct3, _) = bit_select(instr, 14, 12);
         let (funct7, _) = bit_select(instr, 31, 25);
+        let (shamt, _) = bit_select(instr, 24, 20);
 
         let (imm_i, imm_i_u) = bit_sign(bit_select(instr, 31, 20));
         let (imm_s, _) = bit_sign(bit_cat(&[
@@ -176,129 +177,177 @@ fn run_jfive(mem: &mut Memory, init_pc: u32, cycle: usize) {
             }
             (0b1100011, 0b000, _) => {
                 mnemonic = "beq";
-                if rs1_val == rs2_val { branch_pc = (pc as i32 + imm_b) as u32; }
+                if rs1_val == rs2_val {
+                    branch_pc = (pc as i32 + imm_b) as u32;
+                }
+                rd_idx = 0;
             }
             (0b1100011, 0b001, _) => {
                 mnemonic = "bne";
-                if rs1_val != rs2_val { branch_pc = (pc as i32 + imm_b) as u32; }
+                if rs1_val != rs2_val {
+                    branch_pc = (pc as i32 + imm_b) as u32;
+                }
+                rd_idx = 0;
             }
             (0b1100011, 0b100, _) => {
                 mnemonic = "blt";
-                if rs1_val < rs2_val { branch_pc = (pc as i32 + imm_b) as u32; }
+                if rs1_val < rs2_val {
+                    branch_pc = (pc as i32 + imm_b) as u32;
+                }
+                rd_idx = 0;
             }
             (0b1100011, 0b101, _) => {
                 mnemonic = "bge";
-                if rs1_val >= rs2_val { branch_pc = (pc as i32 + imm_b) as u32; }
+                if rs1_val >= rs2_val {
+                    branch_pc = (pc as i32 + imm_b) as u32;
+                }
+                rd_idx = 0;
             }
             (0b1100011, 0b110, _) => {
                 mnemonic = "bltu";
-                if (rs1_val as u32) < (rs2_val as u32) { branch_pc = (pc as i32 + imm_b) as u32; }
+                if (rs1_val as u32) < (rs2_val as u32) {
+                    branch_pc = (pc as i32 + imm_b) as u32;
+                }
+                rd_idx = 0;
             }
             (0b1100011, 0b111, _) => {
                 mnemonic = "bgeu";
-                if (rs1_val as u32) >= (rs2_val as u32) { branch_pc = (pc as i32 + imm_b) as u32; }
+                if (rs1_val as u32) >= (rs2_val as u32) {
+                    branch_pc = (pc as i32 + imm_b) as u32;
+                }
+                rd_idx = 0;
             }
             (0b0000011, 0b000, _) => {
                 mnemonic = "lb";
-                rd_val = mem.read8i((rs1_val + imm_i) as usize) as i32;
+                rd_val = mem.read8i((rs1_val + imm_i) as u32 as usize) as i32;
             }
             (0b0000011, 0b001, _) => {
                 mnemonic = "lh";
-                rd_val = mem.read16i((rs1_val + imm_i) as usize) as i32;
+                rd_val = mem.read16i((rs1_val + imm_i) as u32 as usize) as i32;
             }
             (0b0000011, 0b010, _) => {
                 mnemonic = "lw";
-                rd_val = mem.read32i((rs1_val + imm_i) as usize) as i32;
+                rd_val = mem.read32i((rs1_val + imm_i) as u32 as usize) as i32;
             }
             (0b0000011, 0b100, _) => {
                 mnemonic = "lbu";
-                rd_val = mem.read8((rs1_val + imm_i) as usize) as i32;
+                rd_val = mem.read8((rs1_val + imm_i) as u32 as usize) as i32;
             }
             (0b0000011, 0b101, _) => {
                 mnemonic = "lhu";
-                rd_val = mem.read16((rs1_val + imm_i) as usize) as i32;
+                rd_val = mem.read16((rs1_val + imm_i) as u32 as usize) as i32;
             }
             (0b0100011, 0b000, _) => {
                 mnemonic = "sb";
-                mem.write8((rs1_val + imm_s) as usize, rs2_val as u8);
+                mem.write8((rs1_val + imm_s) as u32 as usize, rs2_val as u8);
+                rd_idx = 0;
             }
             (0b0100011, 0b001, _) => {
                 mnemonic = "sh";
-                mem.write16((rs1_val + imm_s) as usize, rs2_val as u16);
+                mem.write16((rs1_val + imm_s) as u32 as usize, rs2_val as u16);
+                rd_idx = 0;
             }
             (0b0100011, 0b010, _) => {
                 mnemonic = "sw";
-                mem.write32((rs1_val + imm_s) as usize, rs2_val as u32);
+                mem.write32((rs1_val + imm_s) as u32 as usize, rs2_val as u32);
+                rd_idx = 0;
             }
             (0b0010011, 0b000, _) => {
                 mnemonic = "addi";
+                rd_val = rs1_val + imm_i;
             }
             (0b0010011, 0b010, _) => {
                 mnemonic = "slti";
+                rd_val = if rs1_val < imm_i { 1 } else { 0 };
             }
             (0b0010011, 0b011, _) => {
                 mnemonic = "sltiu";
+                rd_val = if (rs1_val as u32) < imm_i_u { 1 } else { 0 };
             }
             (0b0010011, 0b100, _) => {
                 mnemonic = "xori";
+                rd_val = rs1_val ^ imm_i;
             }
             (0b0010011, 0b110, _) => {
                 mnemonic = "ori";
+                rd_val = rs1_val | imm_i;
             }
             (0b0010011, 0b111, _) => {
                 mnemonic = "andi";
+                rd_val = rs1_val & imm_i;
             }
             (0b0010011, 0b001, 0b0000000) => {
                 mnemonic = "slli";
+                rd_val = rs1_val << shamt;
             }
             (0b0010011, 0b101, 0b0000000) => {
                 mnemonic = "srli";
+                rd_val = ((rs1_val as u32) >> shamt) as i32;
             }
             (0b0010011, 0b101, 0b0100000) => {
                 mnemonic = "srai";
+                rd_val = rs1_val >> shamt;
             }
             (0b0110011, 0b000, 0b0000000) => {
                 mnemonic = "add";
+                rd_val = rs1_val + rs2_val;
             }
             (0b0110011, 0b000, 0b0100000) => {
                 mnemonic = "sub";
+                rd_val = rs1_val - rs2_val;
             }
             (0b0110011, 0b001, 0b0000000) => {
                 mnemonic = "sll";
+                rd_val = rs1_val << (rs2_val & 0x1f);
             }
             (0b0110011, 0b010, 0b0000000) => {
                 mnemonic = "slt";
+                rd_val = if rs1_val < rs2_val { 1 } else { 0 };
             }
             (0b0110011, 0b011, 0b0000000) => {
                 mnemonic = "sltu";
+                rd_val = if (rs1_val as u32) < (rs2_val as u32) {
+                    1
+                } else {
+                    0
+                };
             }
             (0b0110011, 0b100, 0b0000000) => {
                 mnemonic = "xor";
+                rd_val = rs1_val ^ rs2_val;
             }
             (0b0110011, 0b101, 0b0000000) => {
                 mnemonic = "srl";
+                rd_val = ((rs1_val as u32) >> (rs2_val & 0x1f)) as i32;
             }
             (0b0110011, 0b101, 0b0100000) => {
                 mnemonic = "sra";
+                rd_val = rs1_val >> (rs2_val & 0x1f);
             }
             (0b0110011, 0b110, 0b0000000) => {
                 mnemonic = "or";
+                rd_val = rs1_val | rs2_val;
             }
             (0b0110011, 0b111, 0b0000000) => {
                 mnemonic = "and";
+                rd_val = rs1_val & rs2_val;
             }
             (0b0001111, _, _) => {
                 mnemonic = "fence";
+                rd_idx = 0;
             }
             (_, _, _) => match instr {
                 0x00000073 => {
                     mnemonic = "ecall";
+                    rd_idx = 0;
                 }
                 0x00100073 => {
                     mnemonic = "ebreak";
+                    rd_idx = 0;
                 }
                 _ => {
                     mnemonic = "unknown";
+                    rd_idx = 0;
                 }
             },
         }
@@ -307,10 +356,10 @@ fn run_jfive(mem: &mut Memory, init_pc: u32, cycle: usize) {
             regs[rd_idx as usize] = rd_val;
         }
 
-        println!("{}", mnemonic);
+        //        println!("{}", mnemonic);
         println!(
-            "pc:{:08x} instr:{:08x} rd({:2}):{:08x} rs1({:2}):{:08x} rs2({:2}):{:08x}",
-            pc, instr, rd_idx, rd_val, rs1_idx, rs1_val, rs2_idx, rs2_val
+            "{:8} pc:{:08x} instr:{:08x} rd({:2}):{:08x} rs1({:2}):{:08x} rs2({:2}):{:08x}",
+            mnemonic, pc, instr, rd_idx, rd_val, rs1_idx, rs1_val, rs2_idx, rs2_val
         );
 
         pc = branch_pc;
@@ -329,7 +378,7 @@ fn main() {
     //        println!("{:x}", mem.read32(mem_offset + i));
     //    }
 
-    run_jfive(&mut mem, 0x80000000, 10);
+    run_jfive(&mut mem, 0x80000000, 100);
 }
 
 #[test]
