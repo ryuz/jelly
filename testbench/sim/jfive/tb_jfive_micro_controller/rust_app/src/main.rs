@@ -19,7 +19,9 @@ extern{
 
 #[no_mangle]
 pub unsafe extern "C" fn main() -> ! {
-//  println!("Start!");
+//  write_byte('A' as u8);
+    println!("Start!");
+    loop{}
     
     let pi8_0  = 0xf0000000  as *mut i8;
     let pu8_0  = 0xf0000000  as *mut u8;

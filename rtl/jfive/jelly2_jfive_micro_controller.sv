@@ -213,7 +213,7 @@ module jelly2_jfive_micro_controller
         i_ram_dualport
             (
                 .port0_clk          (clk),
-                .port0_en           (mem_itcm_en),
+                .port0_en           (mem_itcm_en & cke),
                 .port0_regcke       (1'b0),
                 .port0_we           (mem_itcm_wsel),
                 .port0_addr         (mem_itcm_addr),
@@ -221,7 +221,7 @@ module jelly2_jfive_micro_controller
                 .port0_dout         (mem_itcm_rdata),
 
                 .port1_clk          (clk),
-                .port1_en           (dtcm_en),
+                .port1_en           (dtcm_en & cke),
                 .port1_regcke       (1'b0),
                 .port1_we           (dtcm_wsel),
                 .port1_addr         (dtcm_addr),

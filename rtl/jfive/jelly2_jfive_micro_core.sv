@@ -291,7 +291,7 @@ module jelly2_jfive_micro_core
     logic                               if1_valid;
 
     // Instruction Fetch
-    assign itcm_en   = if_cke;
+    assign itcm_en   = 1'b1; // ~if_stall;
     assign itcm_addr = TCM_ADDR_WIDTH'(pc_pc >> 2);
     assign if0_instr = itcm_rdata;
 
@@ -373,8 +373,10 @@ module jelly2_jfive_micro_core
         if_stall_en = 1'b0;
         if ( if_rs1_en && if_rs1_idx == id_rd_idx && id_mem_re ) begin if_stall_en = 1'b1; end
         if ( if_rs2_en && if_rs2_idx == id_rd_idx && id_mem_re ) begin if_stall_en = 1'b1; end
-        if ( if_rs1_en && if_rs1_idx == ex_rd_idx && ex_mmio_re ) begin if_stall_en = 1'b1; end
-        if ( if_rs2_en && if_rs2_idx == ex_rd_idx && ex_mmio_re ) begin if_stall_en = 1'b1; end
+        if ( if_rs1_en && if_rs1_idx == ex_rd_idx && ex_mem_re ) begin if_stall_en = 1'b1; end
+        if ( if_rs2_en && if_rs2_idx == ex_rd_idx && ex_mem_re ) begin if_stall_en = 1'b1; end
+//      if ( if_rs1_en && if_rs1_idx == ma_rd_idx && ma_mem_re ) begin if_stall_en = 1'b1; end
+//      if ( if_rs2_en && if_rs2_idx == ma_rd_idx && ma_mem_re ) begin if_stall_en = 1'b1; end
     end
 
 
@@ -978,14 +980,14 @@ module jelly2_jfive_micro_core
 
 
     // data-bus access
-    assign dtcm_en      = ex_dtcm_en & ex_cke;
+    assign dtcm_en      = ex_dtcm_en;
     assign dtcm_addr    = ex_dtcm_addr;
     assign dtcm_wsel    = ex_dtcm_wsel;
     assign dtcm_wdata   = ex_dtcm_wdata;
 
-    assign mmio_en      = ex_mmio_en & ex_cke;
-    assign mmio_re      = ex_mmio_re & ex_cke;
-    assign mmio_we      = ex_mmio_we & ex_cke;
+    assign mmio_en      = ex_mmio_en;
+    assign mmio_re      = ex_mmio_re;
+    assign mmio_we      = ex_mmio_we;
     assign mmio_size    = ex_mmio_size;
     assign mmio_addr    = ex_mmio_addr;
     assign mmio_sel     = ex_mmio_sel;
