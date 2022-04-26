@@ -81,6 +81,7 @@ fn run_jfive<T: memory::MemAccess>(mem:&mut T, init_pc: u32, cycle: usize) {
         let mnemonic: &str;
         let mut rd_val: i32 = 0;
         let mut branch_pc: u32 = pc + 4;
+        let mut mem_access: String = String::new();
 
         match (opcode, funct3, funct7) {
             (0b0110111, _, _) => {
@@ -146,36 +147,45 @@ fn run_jfive<T: memory::MemAccess>(mem:&mut T, init_pc: u32, cycle: usize) {
             (0b0000011, 0b000, _) => {
                 mnemonic = "lb";
                 rd_val = mem.read8i((rs1_val + imm_i) as u32 as usize) as i32;
+                mem_access = format!("read b  {:x} => {:08x}", (rs1_val + imm_i) as u32 as usize, rd_val);
             }
             (0b0000011, 0b001, _) => {
                 mnemonic = "lh";
                 rd_val = mem.read16i((rs1_val + imm_i) as u32 as usize) as i32;
+                mem_access = format!("read h  {:x} => {:08x}", (rs1_val + imm_i) as u32 as usize, rd_val);
             }
             (0b0000011, 0b010, _) => {
                 mnemonic = "lw";
                 rd_val = mem.read32i((rs1_val + imm_i) as u32 as usize) as i32;
+                mem_access = format!("read w  {:x} => {:08x}", (rs1_val + imm_i) as u32 as usize, rd_val);
             }
             (0b0000011, 0b100, _) => {
                 mnemonic = "lbu";
                 rd_val = mem.read8((rs1_val + imm_i) as u32 as usize) as i32;
+                mem_access = format!("read bu {:x} => {:08x}", (rs1_val + imm_i) as u32 as usize, rd_val);
             }
             (0b0000011, 0b101, _) => {
                 mnemonic = "lhu";
                 rd_val = mem.read16((rs1_val + imm_i) as u32 as usize) as i32;
+                mem_access = format!("read hu {:x} => {:08x}", (rs1_val + imm_i) as u32 as usize, rd_val);
             }
             (0b0100011, 0b000, _) => {
                 mnemonic = "sb";
+                let addr = 
                 mem.write8((rs1_val + imm_s) as u32 as usize, rs2_val as u8);
+                mem_access = format!("write b {:x} <= {:02x}", (rs1_val + imm_s) as u32 as usize, rs2_val as u8);
                 rd_idx = 0;
             }
             (0b0100011, 0b001, _) => {
                 mnemonic = "sh";
                 mem.write16((rs1_val + imm_s) as u32 as usize, rs2_val as u16);
+                mem_access = format!("write h {:x} <= {:04x}", (rs1_val + imm_s) as u32 as usize, rs2_val as u16);
                 rd_idx = 0;
             }
             (0b0100011, 0b010, _) => {
                 mnemonic = "sw";
                 mem.write32((rs1_val + imm_s) as u32 as usize, rs2_val as u32);
+                mem_access = format!("write w {:x} <= {:08x}", (rs1_val + imm_s) as u32 as usize, rs2_val as u32);
                 rd_idx = 0;
             }
             (0b0010011, 0b000, _) => {
@@ -287,13 +297,16 @@ fn run_jfive<T: memory::MemAccess>(mem:&mut T, init_pc: u32, cycle: usize) {
             "{:8} pc:{:08x} instr:{:08x} rd({:2}):{:08x} rs1({:2}):{:08x} rs2({:2}):{:08x}",
             mnemonic, pc, instr, rd_idx, rd_val, rs1_idx, rs1_val, rs2_idx, rs2_val
         );
+        if mem_access.len() > 0 {
+            println!("{}", mem_access);
+        }
 
         pc = branch_pc;
     }
 }
 
 fn main() {
-    println!("Hello, world!");
+//  println!("Hello, world!");
 
     let mut map = memory::MemoryMap::new();
 

@@ -291,7 +291,7 @@ module jelly2_jfive_micro_core
     logic                               if1_valid;
 
     // Instruction Fetch
-    assign itcm_en   = 1'b1; // ~if_stall;
+    assign itcm_en   = ~if_stall;
     assign itcm_addr = TCM_ADDR_WIDTH'(pc_pc >> 2);
     assign if0_instr = itcm_rdata;
 
