@@ -1,4 +1,5 @@
-
+use std::fs::File;
+use std::io::Write;
 
 use crate::*;
 
@@ -34,7 +35,7 @@ fn bit_sign((v, l): (u32, u32)) -> (i32, u32) {
 }
 
 
-pub fn run_jfive<T: memory::MemAccess>(mem:&mut T, init_pc: u32, cycle: usize) {
+pub fn run_jfive<T: memory::MemAccess>(mem:&mut T, init_pc: u32, cycle: usize, logfile: &mut File) {
     let mut pc: u32 = init_pc;
     let mut regs: [i32; 32] = [0; 32];
 
@@ -288,12 +289,12 @@ pub fn run_jfive<T: memory::MemAccess>(mem:&mut T, init_pc: u32, cycle: usize) {
             regs[rd_idx as usize] = rd_val;
         }
         
-        println!(
+        writeln!(logfile,
             "{:8} pc:{:08x} instr:{:08x} rd({:2}):{:08x} rs1({:2}):{:08x} rs2({:2}):{:08x}",
             mnemonic, pc, instr, rd_idx, rd_val, rs1_idx, rs1_val, rs2_idx, rs2_val
-        );
+        ).unwrap();
         if mem_access.len() > 0 {
-            println!("{}", mem_access);
+            writeln!(logfile, "{}", mem_access).unwrap();
         }
 
         pc = branch_pc;
@@ -301,18 +302,23 @@ pub fn run_jfive<T: memory::MemAccess>(mem:&mut T, init_pc: u32, cycle: usize) {
 }
 
 
-#[test]
-fn test() {
-    let a = bit_select(0x1234, 7, 0);
-    assert_eq!(a, (0x34, 8));
-    let b = bit_select(0x7654, 15, 12);
-    assert_eq!(b, (0x7, 4));
-    println!("0x{:x} {}", a.0, a.1);
-    println!("0x{:x} {}", b.0, b.1);
-    let c = bit_cat(b, a);
-    assert_eq!(c, (0x734, 12));
-    println!("0x{:x} {}", c.0, c.1);
-    let c = bit_cat(a, b);
-    println!("0x{:x} {}", c.0, c.1);
-    assert_eq!(c, (0x347, 12));
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test() {
+        let a = bit_select(0x1234, 7, 0);
+        assert_eq!(a, (0x34, 8));
+        let b = bit_select(0x7654, 15, 12);
+        assert_eq!(b, (0x7, 4));
+        println!("0x{:x} {}", a.0, a.1);
+        println!("0x{:x} {}", b.0, b.1);
+        let c = bit_cat2(b, a);
+        assert_eq!(c, (0x734, 12));
+        println!("0x{:x} {}", c.0, c.1);
+        let c = bit_cat2(a, b);
+        println!("0x{:x} {}", c.0, c.1);
+        assert_eq!(c, (0x347, 12));
+    }
 }
