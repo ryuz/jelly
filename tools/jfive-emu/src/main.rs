@@ -1,85 +1,10 @@
-use std::fs::File;
-use std::io::{BufRead, BufReader};
+//use std::fs::File;
+//use std::io::{BufRead, BufReader};
+use std::rc::Rc;
+use std::cell::RefCell;
 
-struct Memory {
-    mem: Vec<u8>,
-    offset: usize,
-}
-
-#[allow(dead_code)]
-impl Memory {
-    pub fn new(size: usize, offset: usize) -> Self {
-        Memory {
-            mem: vec![0; size],
-            offset: offset,
-        }
-    }
-
-    pub fn is_valid(&self, addr: usize) -> bool {
-        addr >= self.offset && addr < self.mem.len()
-    }
-
-    pub fn write8(&mut self, addr: usize, data: u8) {
-        let addr = addr - self.offset;
-        self.mem[addr] = data;
-    }
-
-    pub fn write16(&mut self, addr: usize, data: u16) {
-        let addr = addr - self.offset;
-        self.mem[addr + 0] = ((data >> 0) & 0xff) as u8;
-        self.mem[addr + 1] = ((data >> 8) & 0xff) as u8;
-    }
-
-    pub fn write32(&mut self, addr: usize, data: u32) {
-        let addr = addr - self.offset;
-        self.mem[addr + 0] = ((data >> 0) & 0xff) as u8;
-        self.mem[addr + 1] = ((data >> 8) & 0xff) as u8;
-        self.mem[addr + 2] = ((data >> 16) & 0xff) as u8;
-        self.mem[addr + 3] = ((data >> 24) & 0xff) as u8;
-    }
-
-    pub fn read8(&mut self, addr: usize) -> u8 {
-        let addr = addr - self.offset;
-        self.mem[addr]
-    }
-
-    pub fn read16(&self, addr: usize) -> u16 {
-        let addr = addr - self.offset;
-        ((self.mem[addr + 0] as u16) << 0) + ((self.mem[addr + 1] as u16) << 8)
-    }
-
-    pub fn read32(&self, addr: usize) -> u32 {
-        let addr = addr - self.offset;
-        ((self.mem[addr + 0] as u32) << 0)
-            + ((self.mem[addr + 1] as u32) << 8)
-            + ((self.mem[addr + 2] as u32) << 16)
-            + ((self.mem[addr + 3] as u32) << 24)
-    }
-
-    pub fn read8i(&mut self, addr: usize) -> i8 {
-        self.read8(addr) as i8
-    }
-
-    pub fn read16i(&mut self, addr: usize) -> i16 {
-        self.read16(addr) as i16
-    }
-
-    pub fn read32i(&mut self, addr: usize) -> i32 {
-        self.read32(addr) as i32
-    }
-
-    pub fn load_hex32(&mut self, fname: &str) {
-        let mut addr = self.offset;
-        let f = File::open(fname).unwrap();
-        let reader = BufReader::new(f);
-        for line in reader.lines() {
-            let line = line.unwrap();
-            let hex = u32::from_str_radix(&line, 16).unwrap();
-            self.write32(addr, hex);
-            addr += 4;
-        }
-    }
-}
+mod memory;
+use memory::*;
 
 fn bit_select(v: u32, s: u32, e: u32) -> (u32, u32) {
     let len = s - e + 1;
@@ -111,7 +36,8 @@ fn bit_sign((v, l): (u32, u32)) -> (i32, u32) {
     (si, ui)
 }
 
-fn run_jfive(mem: &mut Memory, init_pc: u32, cycle: usize) {
+
+fn run_jfive<T: memory::MemAccess>(mem:&mut T, init_pc: u32, cycle: usize) {
     let mut pc: u32 = init_pc;
     let mut regs: [i32; 32] = [0; 32];
 
@@ -369,16 +295,18 @@ fn run_jfive(mem: &mut Memory, init_pc: u32, cycle: usize) {
 fn main() {
     println!("Hello, world!");
 
-    let mem_offset: usize = 0x8000_0000;
-    let mut mem = Memory::new(16 * 1024, mem_offset);
+    let mut map = memory::MemoryMap::new();
 
-    mem.load_hex32("./mem.hex");
+    let mut mem = memory::Memory::new(16 * 1024);
+    map.add(0x8000_0000, Rc::new(RefCell::new(mem)));
+
+    map.load_hex32("./mem.hex", 0x8000_0000);
 
     //    for i in 0..3 {
     //        println!("{:x}", mem.read32(mem_offset + i));
     //    }
 
-    run_jfive(&mut mem, 0x80000000, 100);
+    run_jfive(&mut map, 0x80000000, 200);
 }
 
 #[test]
