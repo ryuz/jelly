@@ -67,6 +67,7 @@ pub trait MemAccess {
 }
 
 
+// Memory map
 pub struct MemoryMap {
     map : Vec<(usize, Rc<RefCell<dyn MemAccess>>)>,
 }
@@ -110,6 +111,7 @@ impl MemAccess for MemoryMap {
 }
 
 
+// Memory
 pub struct Memory {
     mem: Vec<u8>,
 }
@@ -137,117 +139,27 @@ impl MemAccess for Memory {
 }
 
 
-
-/*
-pub struct Memory {
-    mem: Vec<u8>,
-    offset: usize,
+// stdout
+pub struct MemStdout {
+    size: usize,
 }
 
 
-impl Memory {
-    pub fn new(size: usize, offset: usize) -> Self {
-        Memory {
-            mem: vec![0; size],
-            offset: offset,
-        }
-    }
-
-    pub fn is_valid(&self, addr: usize) -> bool {
-        addr >= self.offset && addr < self.mem.len()
+impl MemStdout {
+    pub fn new(size: usize) -> Self {
+        MemStdout{ size: size}
     }
 }
 
-
-impl MemAccess for Memory {
-    fn len
-    fn write8(&mut self, addr: usize, data: u8) {
-        let addr = addr - self.offset;
-        self.mem[addr] = data;
+impl MemAccess for MemStdout {
+    fn len(&self) -> usize {
+        self.size
+    }
+    fn write8(&mut self, _addr: usize, data: u8) {
+        print!("{}", data as char)
     }
 
-    fn read8(&mut self, addr: usize) -> u8 {
-        let addr = addr - self.offset;
-        self.mem[addr]
-    }
-}
-*/
-
-
-/*
-#[allow(dead_code)]
-impl Memory {
-    pub fn new(size: usize, offset: usize) -> Self {
-        Memory {
-            mem: vec![0; size],
-            offset: offset,
-        }
-    }
-
-    pub fn is_valid(&self, addr: usize) -> bool {
-        addr >= self.offset && addr < self.mem.len()
-    }
-
-    pub fn write8(&mut self, addr: usize, data: u8) {
-        let addr = addr - self.offset;
-        self.mem[addr] = data;
-    }
-
-    pub fn write16(&mut self, addr: usize, data: u16) {
-        let addr = addr - self.offset;
-        self.mem[addr + 0] = ((data >> 0) & 0xff) as u8;
-        self.mem[addr + 1] = ((data >> 8) & 0xff) as u8;
-    }
-
-    pub fn write32(&mut self, addr: usize, data: u32) {
-        let addr = addr - self.offset;
-        self.mem[addr + 0] = ((data >> 0) & 0xff) as u8;
-        self.mem[addr + 1] = ((data >> 8) & 0xff) as u8;
-        self.mem[addr + 2] = ((data >> 16) & 0xff) as u8;
-        self.mem[addr + 3] = ((data >> 24) & 0xff) as u8;
-    }
-
-    pub fn read8(&mut self, addr: usize) -> u8 {
-        let addr = addr - self.offset;
-        self.mem[addr]
-    }
-
-    pub fn read16(&self, addr: usize) -> u16 {
-        let addr = addr - self.offset;
-        ((self.mem[addr + 0] as u16) << 0) + ((self.mem[addr + 1] as u16) << 8)
-    }
-
-    pub fn read32(&self, addr: usize) -> u32 {
-        let addr = addr - self.offset;
-        ((self.mem[addr + 0] as u32) << 0)
-            + ((self.mem[addr + 1] as u32) << 8)
-            + ((self.mem[addr + 2] as u32) << 16)
-            + ((self.mem[addr + 3] as u32) << 24)
-    }
-
-    pub fn read8i(&mut self, addr: usize) -> i8 {
-        self.read8(addr) as i8
-    }
-
-    pub fn read16i(&mut self, addr: usize) -> i16 {
-        self.read16(addr) as i16
-    }
-
-    pub fn read32i(&mut self, addr: usize) -> i32 {
-        self.read32(addr) as i32
-    }
-
-    pub fn load_hex32(&mut self, fname: &str) {
-        let mut addr = self.offset;
-        let f = File::open(fname).unwrap();
-        let reader = BufReader::new(f);
-        for line in reader.lines() {
-            let line = line.unwrap();
-            let hex = u32::from_str_radix(&line, 16).unwrap();
-            self.write32(addr, hex);
-            addr += 4;
-        }
+    fn read8(&mut self, _addr: usize) -> u8 {
+        0
     }
 }
-
-*/
