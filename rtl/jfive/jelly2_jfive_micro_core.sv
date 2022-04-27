@@ -364,7 +364,7 @@ module jelly2_jfive_micro_core
         if ( reset ) begin
             if_stall <= 1'b0;
         end
-        else begin
+        else if ( cke ) begin
             if_stall <= if_stall_en;
         end
     end
@@ -443,8 +443,10 @@ module jelly2_jfive_micro_core
     end
 
     always_ff @(posedge clk) begin
-        id_rs1_en <= if_rs1_en;
-        id_rs2_en <= if_rs2_en;
+        if ( id_cke ) begin
+            id_rs1_en <= if_rs1_en;
+            id_rs2_en <= if_rs2_en;
+        end
     end
 
     assign id_opcode  = id_instr[6:0];
@@ -648,17 +650,19 @@ module jelly2_jfive_micro_core
     assign id_rd_en = id_rd_en_tmp;// & !id_stall;
 
     always_ff @(posedge clk) begin
-        id_branch_pc <= 'x;
-        unique case (1'b1)
-        if_dec_jal : id_branch_pc <= if_pc + PC_WIDTH'(if_imm_j);
-        if_dec_beq : id_branch_pc <= if_pc + PC_WIDTH'(if_imm_b);
-        if_dec_bne : id_branch_pc <= if_pc + PC_WIDTH'(if_imm_b);
-        if_dec_blt : id_branch_pc <= if_pc + PC_WIDTH'(if_imm_b);
-        if_dec_bge : id_branch_pc <= if_pc + PC_WIDTH'(if_imm_b);
-        if_dec_bltu: id_branch_pc <= if_pc + PC_WIDTH'(if_imm_b);
-        if_dec_bgeu: id_branch_pc <= if_pc + PC_WIDTH'(if_imm_b);
-        default:     id_branch_pc <= 'x;
-        endcase
+        if ( id_cke ) begin
+            id_branch_pc <= 'x;
+            unique case (1'b1)
+            if_dec_jal : id_branch_pc <= if_pc + PC_WIDTH'(if_imm_j);
+            if_dec_beq : id_branch_pc <= if_pc + PC_WIDTH'(if_imm_b);
+            if_dec_bne : id_branch_pc <= if_pc + PC_WIDTH'(if_imm_b);
+            if_dec_blt : id_branch_pc <= if_pc + PC_WIDTH'(if_imm_b);
+            if_dec_bge : id_branch_pc <= if_pc + PC_WIDTH'(if_imm_b);
+            if_dec_bltu: id_branch_pc <= if_pc + PC_WIDTH'(if_imm_b);
+            if_dec_bgeu: id_branch_pc <= if_pc + PC_WIDTH'(if_imm_b);
+            default:     id_branch_pc <= 'x;
+            endcase
+        end
     end
 
 
@@ -693,13 +697,15 @@ module jelly2_jfive_micro_core
         end
     end
 
-    always @(posedge clk) begin
-        ex_rs1_en  <= id_rs1_en;
-        ex_rs1_idx <= id_rs1_idx;
-        ex_rs1_val <= ex_fwd_rs1_val;
-        ex_rs2_en  <= id_rs2_en;
-        ex_rs2_idx <= id_rs2_idx;
-        ex_rs2_val <= ex_fwd_rs2_val;
+    always_ff @(posedge clk) begin
+        if ( ex_cke ) begin
+            ex_rs1_en  <= id_rs1_en;
+            ex_rs1_idx <= id_rs1_idx;
+            ex_rs1_val <= ex_fwd_rs1_val;
+            ex_rs2_en  <= id_rs2_en;
+            ex_rs2_idx <= id_rs2_idx;
+            ex_rs2_val <= ex_fwd_rs2_val;
+        end
     end
 
     // forwarding
@@ -765,33 +771,35 @@ module jelly2_jfive_micro_core
     // alu
     logic   signed  [31:0]  ex_rd_wdata_alu;
     always_ff @(posedge clk) begin
-        ex_rd_val <= 'x;
-        unique case (1'b1)
-        id_dec_lui  : ex_rd_val <= id_imm_u;
-        id_dec_auipc: ex_rd_val <= id_imm_u + 32'(id_pc);
-        id_dec_jal  : ex_rd_val <= 32'(id_pc) + 32'd4;
-        id_dec_jalr : ex_rd_val <= 32'(id_pc) + 32'd4;
-        id_dec_addi : ex_rd_val <= ex_fwd_rs1_val    + 32'(id_imm_i);
-        id_dec_slti : ex_rd_val <= (ex_fwd_rs1_val   < 32'(id_imm_i)  ) ? 32'd1 : 32'd0;
-        id_dec_sltiu: ex_rd_val <= (ex_fwd_rs1_val_u < 32'(id_imm_i_u)) ? 32'd1 : 32'd0;
-        id_dec_xori : ex_rd_val <= ex_fwd_rs1_val    ^ 32'(id_imm_i);
-        id_dec_ori  : ex_rd_val <= ex_fwd_rs1_val    | 32'(id_imm_i);
-        id_dec_andi : ex_rd_val <= ex_fwd_rs1_val    & 32'(id_imm_i);
-        id_dec_slli : ex_rd_val <= ex_fwd_rs1_val   << id_imm_i_u[4:0];
-        id_dec_srli : ex_rd_val <= ex_fwd_rs1_val_u >> id_imm_i_u[4:0];
-        id_dec_srai : ex_rd_val <= ex_fwd_rs1_val  >>> id_imm_i_u[4:0];
-        id_dec_add  : ex_rd_val <= ex_fwd_rs1_val    + ex_fwd_rs2_val;
-        id_dec_sub  : ex_rd_val <= ex_fwd_rs1_val    - ex_fwd_rs2_val;
-        id_dec_sll  : ex_rd_val <= ex_fwd_rs1_val   << ex_fwd_rs2_val_u[4:0];
-        id_dec_slt  : ex_rd_val <= (ex_fwd_rs1_val   < ex_fwd_rs2_val  ) ? 32'd1 : 32'd0;
-        id_dec_sltu : ex_rd_val <= (ex_fwd_rs1_val_u < ex_fwd_rs2_val_u) ? 32'd1 : 32'd0;
-        id_dec_xor  : ex_rd_val <= ex_fwd_rs1_val    ^ ex_fwd_rs2_val;
-        id_dec_srl  : ex_rd_val <= ex_fwd_rs1_val_u >> ex_fwd_rs2_val_u[4:0];
-        id_dec_sra  : ex_rd_val <= ex_fwd_rs1_val  >>> ex_fwd_rs2_val_u[4:0];
-        id_dec_or   : ex_rd_val <= ex_fwd_rs1_val    | ex_fwd_rs2_val;
-        id_dec_and  : ex_rd_val <= ex_fwd_rs1_val    & ex_fwd_rs2_val;
-        default: ;
-        endcase
+        if ( ex_cke ) begin
+            ex_rd_val <= 'x;
+            unique case (1'b1)
+            id_dec_lui  : ex_rd_val <= id_imm_u;
+            id_dec_auipc: ex_rd_val <= id_imm_u + 32'(id_pc);
+            id_dec_jal  : ex_rd_val <= 32'(id_pc) + 32'd4;
+            id_dec_jalr : ex_rd_val <= 32'(id_pc) + 32'd4;
+            id_dec_addi : ex_rd_val <= ex_fwd_rs1_val    + 32'(id_imm_i);
+            id_dec_slti : ex_rd_val <= (ex_fwd_rs1_val   < 32'(id_imm_i)  ) ? 32'd1 : 32'd0;
+            id_dec_sltiu: ex_rd_val <= (ex_fwd_rs1_val_u < 32'(id_imm_i_u)) ? 32'd1 : 32'd0;
+            id_dec_xori : ex_rd_val <= ex_fwd_rs1_val    ^ 32'(id_imm_i);
+            id_dec_ori  : ex_rd_val <= ex_fwd_rs1_val    | 32'(id_imm_i);
+            id_dec_andi : ex_rd_val <= ex_fwd_rs1_val    & 32'(id_imm_i);
+            id_dec_slli : ex_rd_val <= ex_fwd_rs1_val   << id_imm_i_u[4:0];
+            id_dec_srli : ex_rd_val <= ex_fwd_rs1_val_u >> id_imm_i_u[4:0];
+            id_dec_srai : ex_rd_val <= ex_fwd_rs1_val  >>> id_imm_i_u[4:0];
+            id_dec_add  : ex_rd_val <= ex_fwd_rs1_val    + ex_fwd_rs2_val;
+            id_dec_sub  : ex_rd_val <= ex_fwd_rs1_val    - ex_fwd_rs2_val;
+            id_dec_sll  : ex_rd_val <= ex_fwd_rs1_val   << ex_fwd_rs2_val_u[4:0];
+            id_dec_slt  : ex_rd_val <= (ex_fwd_rs1_val   < ex_fwd_rs2_val  ) ? 32'd1 : 32'd0;
+            id_dec_sltu : ex_rd_val <= (ex_fwd_rs1_val_u < ex_fwd_rs2_val_u) ? 32'd1 : 32'd0;
+            id_dec_xor  : ex_rd_val <= ex_fwd_rs1_val    ^ ex_fwd_rs2_val;
+            id_dec_srl  : ex_rd_val <= ex_fwd_rs1_val_u >> ex_fwd_rs2_val_u[4:0];
+            id_dec_sra  : ex_rd_val <= ex_fwd_rs1_val  >>> ex_fwd_rs2_val_u[4:0];
+            id_dec_or   : ex_rd_val <= ex_fwd_rs1_val    | ex_fwd_rs2_val;
+            id_dec_and  : ex_rd_val <= ex_fwd_rs1_val    & ex_fwd_rs2_val;
+            default: ;
+            endcase
+        end
     end
 
     always_ff @(posedge clk) begin
@@ -966,16 +974,18 @@ module jelly2_jfive_micro_core
         end
     end
 
-    always @(posedge clk) begin
-        ma_rs1_en    <= ex_rs1_en;
-        ma_rs1_idx   <= ex_rs1_idx;
-        ma_rs1_val   <= ex_rs1_val;
-        ma_rs2_en    <= ex_rs2_en;
-        ma_rs2_idx   <= ex_rs2_idx;
-        ma_rs2_val   <= ex_rs2_val;
-        ma_mem_sel   <= ex_mem_sel;
-        ma_mem_we    <= ex_mem_we;
-        ma_mem_wdata <= ex_mem_wdata;
+    always_ff @(posedge clk) begin
+        if ( ma_cke ) begin
+            ma_rs1_en    <= ex_rs1_en;
+            ma_rs1_idx   <= ex_rs1_idx;
+            ma_rs1_val   <= ex_rs1_val;
+            ma_rs2_en    <= ex_rs2_en;
+            ma_rs2_idx   <= ex_rs2_idx;
+            ma_rs2_val   <= ex_rs2_val;
+            ma_mem_sel   <= ex_mem_sel;
+            ma_mem_we    <= ex_mem_we;
+            ma_mem_wdata <= ex_mem_wdata;
+        end
     end
 
 
@@ -1050,20 +1060,22 @@ module jelly2_jfive_micro_core
         end
     end
 
-    always @(posedge clk) begin
-        wb_rs1_en  <= ma_rs1_en;
-        wb_rs1_idx <= ma_rs1_en ? ma_rs1_idx : '0;
-        wb_rs1_val <= ma_rs1_en ? ma_rs1_val : '0;
-        wb_rs2_en  <= ma_rs2_en;
-        wb_rs2_idx <= ma_rs2_en ? ma_rs2_idx : '0;
-        wb_rs2_val <= ma_rs2_en ? ma_rs2_val : '0;
+    always_ff @(posedge clk) begin
+        if ( wb_cke ) begin
+            wb_rs1_en  <= ma_rs1_en;
+            wb_rs1_idx <= ma_rs1_en ? ma_rs1_idx : '0;
+            wb_rs1_val <= ma_rs1_en ? ma_rs1_val : '0;
+            wb_rs2_en  <= ma_rs2_en;
+            wb_rs2_idx <= ma_rs2_en ? ma_rs2_idx : '0;
+            wb_rs2_val <= ma_rs2_en ? ma_rs2_val : '0;
 
-        wb_mem_we    <= ma_mem_we;
-        wb_mem_re    <= ma_mem_re;
-        wb_mem_addr  <= ma_mem_addr;
-        wb_mem_sel   <= ma_mem_sel;
-        wb_mem_wdata <= ma_mem_wdata;
-        wb_mem_rdata <= ma_mem_rdata;
+            wb_mem_we    <= ma_mem_we;
+            wb_mem_re    <= ma_mem_re;
+            wb_mem_addr  <= ma_mem_addr;
+            wb_mem_sel   <= ma_mem_sel;
+            wb_mem_wdata <= ma_mem_wdata;
+            wb_mem_rdata <= ma_mem_rdata;
+        end
     end
 
 
@@ -1078,25 +1090,27 @@ module jelly2_jfive_micro_core
             initial begin
                 fp_trace = $fopen(LOG_EXE_FILE, "w");
             end
-            always @(posedge clk) begin
+            always_ff @(posedge clk) begin
                 if ( !reset ) begin
-                    if ( wb_cke && wb_valid ) begin
-                        automatic logic [RIDX_WIDTH-1:0]    rd_idx;
-                        automatic logic [XLEN-1:0]          rd_val;
-                        rd_idx = wb_rd_en ? wb_rd_idx : '0;
-                        rd_val = wb_rd_en ? wb_rd_val : '0;
+                    if ( cke ) begin
+                        if ( wb_cke && wb_valid ) begin
+                            automatic logic [RIDX_WIDTH-1:0]    rd_idx;
+                            automatic logic [XLEN-1:0]          rd_val;
+                            rd_idx = wb_rd_en ? wb_rd_idx : '0;
+                            rd_val = wb_rd_en ? wb_rd_val : '0;
 
-                        $fdisplay(fp_trace, "pc:%08x instr:%08x rd(%2d):%08x rs1(%2d):%08x rs2(%2d):%08x",
-                                wb_pc, wb_instr, rd_idx, rd_val, wb_rs1_idx, wb_rs1_val, wb_rs2_idx, wb_rs2_val);
-                        
-                        /*
-                        if ( wb_mem_we ) begin 
-                            $fdisplay(fp_trace, "  write  addr:%08x wdata:%08x sel:%b", wb_mem_addr, wb_mem_wdata, wb_mem_sel);
+                            $fdisplay(fp_trace, "pc:%08x instr:%08x rd(%2d):%08x rs1(%2d):%08x rs2(%2d):%08x",
+                                    wb_pc, wb_instr, rd_idx, rd_val, wb_rs1_idx, wb_rs1_val, wb_rs2_idx, wb_rs2_val);
+                            
+                            /*
+                            if ( wb_mem_we ) begin 
+                                $fdisplay(fp_trace, "  write  addr:%08x wdata:%08x sel:%b", wb_mem_addr, wb_mem_wdata, wb_mem_sel);
+                            end
+                            if ( wb_mem_re ) begin 
+                                $fdisplay(fp_trace, "  read   addr:%08x rdata:%08x sel:%b", wb_mem_addr, wb_mem_rdata, wb_mem_sel);
+                            end
+                            */
                         end
-                        if ( wb_mem_re ) begin 
-                            $fdisplay(fp_trace, "  read   addr:%08x rdata:%08x sel:%b", wb_mem_addr, wb_mem_rdata, wb_mem_sel);
-                        end
-                        */
                     end
                 end
             end
@@ -1107,15 +1121,17 @@ module jelly2_jfive_micro_core
             initial begin
                 fp_dbus = $fopen(LOG_MEM_FILE, "w");
             end
-            always @(posedge clk) begin
+            always_ff @(posedge clk) begin
                 if ( !reset ) begin
-                    if ( ma_mem_re ) begin
-                        $fdisplay(fp_dbus, "%t read  addr:%08x rdata:%08x sel:%b  (pc:%08x instr:%08x)",
-                                $time, ma_mem_addr, dtcm_rdata, ma_mem_sel, ma_pc, ma_instr);
-                    end
-                    if ( ex_mem_we ) begin
-                        $fdisplay(fp_dbus, "%t write addr:%08x wdata:%08x sel:%b  (pc:%08x instr:%08x)",
-                                $time, ex_mem_addr, ex_mem_wdata, ex_mem_sel, ex_pc, ex_instr);
+                    if ( cke ) begin
+                        if ( ma_mem_re ) begin
+                            $fdisplay(fp_dbus, "%t read  addr:%08x rdata:%08x sel:%b  (pc:%08x instr:%08x)",
+                                    $time, ma_mem_addr, dtcm_rdata, ma_mem_sel, ma_pc, ma_instr);
+                        end
+                        if ( ex_mem_we ) begin
+                            $fdisplay(fp_dbus, "%t write addr:%08x wdata:%08x sel:%b  (pc:%08x instr:%08x)",
+                                    $time, ex_mem_addr, ex_mem_wdata, ex_mem_sel, ex_pc, ex_instr);
+                        end
                     end
                 end
             end
