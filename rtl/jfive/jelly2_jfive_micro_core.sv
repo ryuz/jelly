@@ -713,12 +713,12 @@ module jelly2_jfive_micro_core
             ex_fwd_rs1_stage <= 2'd0;
             if ( ma_rd_idx == rs1_idx && ma_rd_en ) begin ex_fwd_rs1_stage <= 2'd3; end
             if ( ex_rd_idx == rs1_idx && ex_rd_en ) begin ex_fwd_rs1_stage <= 2'd2; end
-            if ( id_rd_idx == rs1_idx && id_rd_en ) begin ex_fwd_rs1_stage <= 2'd1; end
+            if ( id_rd_idx == rs1_idx && id_rd_en && ex_expect_valid) begin ex_fwd_rs1_stage <= 2'd1; end
 
             ex_fwd_rs2_stage <= 2'd0;
             if ( ma_rd_idx == rs2_idx && ma_rd_en ) begin ex_fwd_rs2_stage <= 2'd3; end
             if ( ex_rd_idx == rs2_idx && ex_rd_en ) begin ex_fwd_rs2_stage <= 2'd2; end
-            if ( id_rd_idx == rs2_idx && id_rd_en ) begin ex_fwd_rs2_stage <= 2'd1; end
+            if ( id_rd_idx == rs2_idx && id_rd_en && ex_expect_valid ) begin ex_fwd_rs2_stage <= 2'd1; end
         end
     end
 
@@ -1086,15 +1086,17 @@ module jelly2_jfive_micro_core
                         rd_idx = wb_rd_en ? wb_rd_idx : '0;
                         rd_val = wb_rd_en ? wb_rd_val : '0;
 
-                        $fdisplay(fp_trace, "%d pc:%08x instr:%08x rd(%2d):%08x rs1(%2d):%08x rs2(%2d):%08x",
-                                $time, wb_pc, wb_instr, rd_idx, rd_val, wb_rs1_idx, wb_rs1_val, wb_rs2_idx, wb_rs2_val);
+                        $fdisplay(fp_trace, "pc:%08x instr:%08x rd(%2d):%08x rs1(%2d):%08x rs2(%2d):%08x",
+                                wb_pc, wb_instr, rd_idx, rd_val, wb_rs1_idx, wb_rs1_val, wb_rs2_idx, wb_rs2_val);
                         
+                        /*
                         if ( wb_mem_we ) begin 
                             $fdisplay(fp_trace, "  write  addr:%08x wdata:%08x sel:%b", wb_mem_addr, wb_mem_wdata, wb_mem_sel);
                         end
                         if ( wb_mem_re ) begin 
                             $fdisplay(fp_trace, "  read   addr:%08x rdata:%08x sel:%b", wb_mem_addr, wb_mem_rdata, wb_mem_sel);
                         end
+                        */
                     end
                 end
             end

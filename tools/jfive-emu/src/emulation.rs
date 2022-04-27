@@ -35,7 +35,7 @@ fn bit_sign((v, l): (u32, u32)) -> (i32, u32) {
 }
 
 
-pub fn run_jfive<T: memory::MemAccess>(mem:&mut T, init_pc: u32, cycle: usize, logfile: &mut File) {
+pub fn run_jfive<T: memory::MemAccess>(mem:&mut T, init_pc: u32, cycle: usize, logfile: &mut File, logmem: bool) {
     let mut pc: u32 = init_pc;
     let mut regs: [i32; 32] = [0; 32];
 
@@ -46,8 +46,8 @@ pub fn run_jfive<T: memory::MemAccess>(mem:&mut T, init_pc: u32, cycle: usize, l
         // decode
         let (opcode, _) = bit_select(instr, 6, 0);
         let (mut rd_idx, _) = bit_select(instr, 11, 7);
-        let (rs1_idx, _) = bit_select(instr, 19, 15);
-        let (rs2_idx, _) = bit_select(instr, 24, 20);
+        let (mut rs1_idx, _) = bit_select(instr, 19, 15);
+        let (mut rs2_idx, _) = bit_select(instr, 24, 20);
         let (funct3, _) = bit_select(instr, 14, 12);
         let (funct7, _) = bit_select(instr, 31, 25);
         let (shamt, _) = bit_select(instr, 24, 20);
@@ -73,6 +73,18 @@ pub fn run_jfive<T: memory::MemAccess>(mem:&mut T, init_pc: u32, cycle: usize, l
             (0, 1),
         ]));
 
+        let mut rs1_en = false;
+        let mut rs2_en = false;
+        if opcode == 0b1100111 { rs1_en = true; }
+        if opcode == 0b1100011 { rs1_en = true; rs2_en = true; }
+        if opcode == 0b0000011 { rs1_en = true; }
+        if opcode == 0b0100011 { rs1_en = true; rs2_en = true; }
+        if opcode == 0b0010011 { rs1_en = true; }
+        if opcode == 0b0010011 { rs1_en = true; }
+        if opcode == 0b0110011 { rs1_en = true; rs2_en = true; }
+        if opcode == 0b0001111 { rs1_en = true; }
+        if !rs1_en { rs1_idx = 0; }
+        if !rs2_en { rs2_idx = 0; }
         let rs1_val = regs[rs1_idx as usize];
         let rs2_val = regs[rs2_idx as usize];
 
@@ -80,6 +92,7 @@ pub fn run_jfive<T: memory::MemAccess>(mem:&mut T, init_pc: u32, cycle: usize, l
         let mut rd_val: i32 = 0;
         let mut branch_pc: u32 = pc + 4;
         let mut mem_access: String = String::new();
+
 
         match (opcode, funct3, funct7) {
             (0b0110111, _, _) => {
@@ -223,11 +236,11 @@ pub fn run_jfive<T: memory::MemAccess>(mem:&mut T, init_pc: u32, cycle: usize, l
             }
             (0b0110011, 0b000, 0b0000000) => {
                 mnemonic = "add";
-                rd_val = rs1_val + rs2_val;
+                rd_val = rs1_val.wrapping_add(rs2_val);
             }
             (0b0110011, 0b000, 0b0100000) => {
                 mnemonic = "sub";
-                rd_val = rs1_val - rs2_val;
+                rd_val = rs1_val.wrapping_sub(rs2_val);
             }
             (0b0110011, 0b001, 0b0000000) => {
                 mnemonic = "sll";
@@ -288,12 +301,22 @@ pub fn run_jfive<T: memory::MemAccess>(mem:&mut T, init_pc: u32, cycle: usize, l
         if rd_idx != 0 {
             regs[rd_idx as usize] = rd_val;
         }
+        else {
+            rd_val = 0;
+        }
         
+        /*
         writeln!(logfile,
             "{:8} pc:{:08x} instr:{:08x} rd({:2}):{:08x} rs1({:2}):{:08x} rs2({:2}):{:08x}",
             mnemonic, pc, instr, rd_idx, rd_val, rs1_idx, rs1_val, rs2_idx, rs2_val
         ).unwrap();
-        if mem_access.len() > 0 {
+        */
+        writeln!(logfile,
+            "pc:{:08x} instr:{:08x} rd({:2}):{:08x} rs1({:2}):{:08x} rs2({:2}):{:08x}",
+            pc, instr, rd_idx, rd_val, rs1_idx, rs1_val, rs2_idx, rs2_val
+        ).unwrap();
+
+        if logmem && mem_access.len() > 0 {
             writeln!(logfile, "{}", mem_access).unwrap();
         }
 

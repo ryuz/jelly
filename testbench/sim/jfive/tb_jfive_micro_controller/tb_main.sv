@@ -20,7 +20,7 @@ module tb_main
     localparam  bit     [31:0]  TCM_DECODE_MASK  = 32'hff00_0000;
     localparam  bit     [31:0]  TCM_DECODE_ADDR  = 32'h8000_0000;
     localparam  int             TCM_ADDR_OFFSET  = 1 << (S_WB_ADR_WIDTH - 1);
-    localparam  int             TCM_SIZE         = 16384;
+    localparam  int             TCM_SIZE         = 64*1024;
     localparam  bit             TCM_READMEMH     = 1'b1;
     localparam                  TCM_READMEM_FIlE = "../mem.hex";
 
@@ -97,6 +97,14 @@ module tb_main
                 .m_wb_stb_o,
                 .m_wb_ack_i
             );
+    
+    int     ex_count = 0;
+    always_ff @(posedge clk) begin
+        if ( !reset ) begin
+            ex_count <= ex_count +  i_jfive_micro_controller.i_jfive_micro_core.ex_valid;
+        end
+    end
+    
     
     wire [31:0] x0  = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[0 ];
     wire [31:0] x1  = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[1 ];
