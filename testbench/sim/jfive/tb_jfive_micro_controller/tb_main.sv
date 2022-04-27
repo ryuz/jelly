@@ -36,7 +36,7 @@ module tb_main
 
     logic                           cke = 1'b1;
     always @(posedge clk) begin
-        cke <= $urandom_range(1);
+//        cke <= $urandom_range(1);
     end
 
 
@@ -195,7 +195,7 @@ module tb_main
         rand_ack <= $urandom_range(1);
     end
 
-    assign m_wb_ack_i = m_wb_stb_o; // & rand_ack;
+    assign m_wb_ack_i = m_wb_stb_o & rand_ack;
 
 endmodule
 

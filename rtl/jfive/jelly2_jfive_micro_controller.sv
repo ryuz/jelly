@@ -78,7 +78,7 @@ module jelly2_jfive_micro_controller
         if ( reset ) begin
             reg_reset  <= INIT_CTL_RESET;
         end
-        else begin
+        else if ( cke ) begin
             if ( s_wb_stb_i && s_wb_we_i ) begin
                 if (  s_wb_adr_i == S_WB_ADR_WIDTH'(ADR_CTL_RESET) && s_wb_sel_i[0] ) begin
                     reg_reset <= s_wb_dat_i[0];
@@ -108,7 +108,7 @@ module jelly2_jfive_micro_controller
         if ( reset ) begin
             core_reset <= 1'b1;
         end
-        else begin
+        else if ( cke ) begin
             core_reset <= reg_reset;
         end
     end
@@ -213,7 +213,7 @@ module jelly2_jfive_micro_controller
         i_ram_dualport
             (
                 .port0_clk          (clk),
-                .port0_en           (mem_itcm_en & cke),
+                .port0_en           (mem_itcm_en & core_cke),
                 .port0_regcke       (1'b0),
                 .port0_we           (mem_itcm_wsel),
                 .port0_addr         (mem_itcm_addr),
@@ -221,7 +221,7 @@ module jelly2_jfive_micro_controller
                 .port0_dout         (mem_itcm_rdata),
 
                 .port1_clk          (clk),
-                .port1_en           (dtcm_en & cke),
+                .port1_en           (dtcm_en & core_cke),
                 .port1_regcke       (1'b0),
                 .port1_we           (dtcm_wsel),
                 .port1_addr         (dtcm_addr),
@@ -241,7 +241,7 @@ module jelly2_jfive_micro_controller
             wb_tcm_addr  <= 'x;
             wb_tcm_wdata <= 'x;
         end
-        else begin
+        else if ( cke ) begin
             wb_tcm_en    <= 1'b0;
             wb_tcm_wsel  <= '0;
             wb_tcm_addr  <= 'x;
