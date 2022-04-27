@@ -113,7 +113,7 @@ module jelly2_jfive_micro_controller
         end
     end
 
-    wire    core_cke = cke; // && !(m_wb_stb_o && !m_wb_ack_i);
+    wire    core_cke = cke && !(m_wb_stb_o && !m_wb_ack_i);
 
     logic                            itcm_en;
     logic    [TCM_ADDR_WIDTH-1:0]    itcm_addr;
@@ -274,7 +274,9 @@ module jelly2_jfive_micro_controller
     assign m_wb_stb_o = mmio_en;
 
     always_ff @(posedge clk) begin
-        mmio_rdata <= m_wb_dat_i;
+        if ( core_cke ) begin
+           mmio_rdata <= m_wb_dat_i;
+        end
     end
 
 

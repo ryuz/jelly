@@ -41,7 +41,7 @@ int main(int argc, char** argv)
     mng->AddNode(jsim::ResetNode_Create(&top->reset, 100));
     mng->AddNode(jsim::VerilatorNode_Create(top, tfp));
 
-    mng->Run(1000000);
+    mng->Run(3000000);
 //    mng->Run();
 
 #if VM_TRACE

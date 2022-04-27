@@ -11,7 +11,7 @@ module tb_sim();
         $dumpvars(0, tb_sim);
         
     #(RATE*100);
-    #(100000*100)
+    #(40000*100)
         $finish();
     end
 

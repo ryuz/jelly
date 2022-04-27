@@ -35,6 +35,10 @@ module tb_main
     localparam  string          LOG_MEM_FILE     = "jfive_mem_log.txt";
 
     logic                           cke = 1'b1;
+    always @(posedge clk) begin
+        cke <= $urandom_range(1);
+    end
+
 
     logic   [S_WB_ADR_WIDTH-1:0]    s_wb_adr_i;
     logic   [S_WB_DAT_WIDTH-1:0]    s_wb_dat_o;
@@ -100,7 +104,7 @@ module tb_main
     
     int     ex_count = 0;
     always_ff @(posedge clk) begin
-        if ( !reset ) begin
+        if ( !reset && i_jfive_micro_controller.i_jfive_micro_core.cke ) begin
             ex_count <= ex_count +  i_jfive_micro_controller.i_jfive_micro_core.ex_valid;
         end
     end
@@ -174,8 +178,8 @@ module tb_main
 
 
     always @(posedge clk) begin
-        if ( !reset ) begin
-            if ( m_wb_stb_o && m_wb_we_o ) begin
+        if ( !reset && cke ) begin
+            if ( m_wb_stb_o && m_wb_we_o && m_wb_ack_i ) begin
                 if ( {m_wb_adr_o, 2'b00} == 26'h0000100 ) begin
                     $write("%c", m_wb_dat_o[7:0]);
                 end
@@ -185,7 +189,13 @@ module tb_main
             end
         end
     end
-    assign m_wb_ack_i = m_wb_stb_o;
+
+    bit     rand_ack;
+    always @(posedge clk) begin
+        rand_ack <= $urandom_range(1);
+    end
+
+    assign m_wb_ack_i = m_wb_stb_o; // & rand_ack;
 
 endmodule
 

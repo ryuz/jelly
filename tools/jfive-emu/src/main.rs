@@ -25,6 +25,6 @@ fn main() {
 
     map.load_hex32("./mem.hex", 0x8000_0000);
 
-    run_jfive(&mut map, 0x80000000, 10000, &mut logfile, false);
+    run_jfive(&mut map, 0x80000000, 100000, &mut logfile, false);
 }
 
