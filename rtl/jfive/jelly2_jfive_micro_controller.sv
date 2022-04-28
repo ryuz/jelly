@@ -187,7 +187,7 @@ module jelly2_jfive_micro_controller
 
     logic                           mem_itcm_en;
     logic   [TCM_ADDR_WIDTH-1:0]    mem_itcm_addr;
-    logic   [3:0]                   mem_itcm_wsel;
+    logic   [3:0]                   mem_itcm_wsel = '0;
     logic   [31:0]                  mem_itcm_wdata;
     logic   [31:0]                  mem_itcm_rdata;
 
@@ -278,8 +278,7 @@ module jelly2_jfive_micro_controller
            mmio_rdata <= m_wb_dat_i;
         end
     end
-
-
+    
 endmodule
 
 

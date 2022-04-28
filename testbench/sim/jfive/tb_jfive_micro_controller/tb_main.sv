@@ -36,7 +36,7 @@ module tb_main
 
     logic                           cke = 1'b1;
     always @(posedge clk) begin
-//        cke <= $urandom_range(1);
+        cke <= 1'($urandom_range(1));
     end
 
 
@@ -105,7 +105,7 @@ module tb_main
     int     ex_count = 0;
     always_ff @(posedge clk) begin
         if ( !reset && i_jfive_micro_controller.i_jfive_micro_core.cke ) begin
-            ex_count <= ex_count +  i_jfive_micro_controller.i_jfive_micro_core.ex_valid;
+            ex_count <= ex_count + int'(i_jfive_micro_controller.i_jfive_micro_core.ex_valid);
         end
     end
     
@@ -190,9 +190,11 @@ module tb_main
         end
     end
 
+    assign m_wb_dat_i = 32'hf1e2d3c4;
+
     bit     rand_ack;
     always @(posedge clk) begin
-        rand_ack <= $urandom_range(1);
+        rand_ack <= 1'($urandom_range(1));
     end
 
     assign m_wb_ack_i = m_wb_stb_o & rand_ack;
