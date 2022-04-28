@@ -182,7 +182,7 @@ module jelly2_jfive_micro_core
     logic                                   ex_mmio_en = '0;
     logic                                   ex_mmio_re = '0;
     logic                                   ex_mmio_we = '0;
-    logic           [XLEN-1:0]              ex_mmio_addr;
+    logic           [MMIO_ADDR_WIDTH-1:0]   ex_mmio_addr;
     logic           [SIZE_WIDTH-1:0]        ex_mmio_size;
     logic           [SEL_WIDTH-1:0]         ex_mmio_sel;
     logic           [SEL_WIDTH-1:0]         ex_mmio_rsel = '0;
@@ -333,39 +333,13 @@ module jelly2_jfive_micro_core
     assign if_imm_u  = {if_instr[31:12], 12'd0};
     assign if_imm_j  = {if_instr[31], if_instr[19:12], if_instr[20], if_instr[30:21], 1'b0};
 
-    /*
-    always_comb begin
-        if_rd_en = 1'b0;
-        if ( if_opcode == 7'b0110111 ) begin if_rd_en = 1'b1; end
-        if ( if_opcode == 7'b0010111 ) begin if_rd_en = 1'b1; end
-        if ( if_opcode == 7'b1101111 ) begin if_rd_en = 1'b1; end
-        if ( if_opcode == 7'b1100111 ) begin if_rd_en = 1'b1; end
-        if ( if_opcode == 7'b0000011 ) begin if_rd_en = 1'b1; end
-        if ( if_opcode == 7'b0010011 ) begin if_rd_en = 1'b1; end
-        if ( if_opcode == 7'b0110011 ) begin if_rd_en = 1'b1; end
-        if ( if_opcode == 7'b0001111 ) begin if_rd_en = 1'b1; end
-    end
-
-    always_comb begin
-        if_rs1_en = 1'b0;
-        if_rs2_en = 1'b0;
-        if ( if_opcode == 7'b1100111 ) begin if_rs1_en = 1'b1; end
-        if ( if_opcode == 7'b1100011 ) begin if_rs1_en = 1'b1; if_rs2_en = 1'b1; end
-        if ( if_opcode == 7'b0000011 ) begin if_rs1_en = 1'b1; end
-        if ( if_opcode == 7'b0100011 ) begin if_rs1_en = 1'b1; if_rs2_en = 1'b1; end
-        if ( if_opcode == 7'b0010011 ) begin if_rs1_en = 1'b1; end
-        if ( if_opcode == 7'b0010011 ) begin if_rs1_en = 1'b1; end
-        if ( if_opcode == 7'b0110011 ) begin if_rs1_en = 1'b1; if_rs2_en = 1'b1; end
-        if ( if_opcode == 7'b0001111 ) begin if_rs1_en = 1'b1; end
-    end
-    */
-    
+    // register
     always_comb begin
         unique case ( if_opcode )
         7'b0110111: begin if_rd_en = 1'b1; if_rs1_en = 1'b0; if_rs2_en = 1'b0; end // LUI
         7'b0010111: begin if_rd_en = 1'b1; if_rs1_en = 1'b0; if_rs2_en = 1'b0; end // AUIPC
         7'b1101111: begin if_rd_en = 1'b1; if_rs1_en = 1'b0; if_rs2_en = 1'b0; end // JAL
-        7'b1100111: begin if_rd_en = 1'b0; if_rs1_en = 1'b1; if_rs2_en = 1'b0; end // JALR
+        7'b1100111: begin if_rd_en = 1'b1; if_rs1_en = 1'b1; if_rs2_en = 1'b0; end // JALR
         7'b1100011: begin if_rd_en = 1'b0; if_rs1_en = 1'b1; if_rs2_en = 1'b1; end // Branch
         7'b0000011: begin if_rd_en = 1'b1; if_rs1_en = 1'b1; if_rs2_en = 1'b0; end // Load
         7'b0100011: begin if_rd_en = 1'b0; if_rs1_en = 1'b1; if_rs2_en = 1'b1; end // Store
@@ -622,48 +596,14 @@ module jelly2_jfive_micro_core
     end
 
     // register destination
-    logic   id_rd_en_tmp;
     always_ff @(posedge clk) begin
         if ( reset ) begin
-            id_rd_en_tmp  <= '0;
+            id_rd_en  <= '0;
         end
         else if ( id_cke ) begin
-            id_rd_en_tmp <= '0;
-            if ( if_valid ) begin
-                id_rd_en_tmp <= (if_rd_idx != 0) & (
-                                if_dec_lui   |
-                                if_dec_auipc |
-                                if_dec_jal   |
-                                if_dec_jalr  |
-                                if_dec_lb    |
-                                if_dec_lh    |
-                                if_dec_lw    |
-                                if_dec_lbu   |
-                                if_dec_lhu   |
-                                if_dec_addi  |
-                                if_dec_slti  |
-                                if_dec_sltiu |
-                                if_dec_xori  |
-                                if_dec_ori   |
-                                if_dec_andi  |
-                                if_dec_slli  |
-                                if_dec_srli  |
-                                if_dec_srai  |
-                                if_dec_add   |
-                                if_dec_sub   |
-                                if_dec_sll   |
-                                if_dec_slt   |
-                                if_dec_sltu  |
-                                if_dec_xor   |
-                                if_dec_srl   |
-                                if_dec_sra   |
-                                if_dec_or    |
-                                if_dec_and   |
-                                if_dec_fence);
-            end
+            id_rd_en <= if_rd_en && (if_rd_idx != '0) && if_valid;
         end
-    end 
-    assign id_rd_en = id_rd_en_tmp;
+    end
 
     always_ff @(posedge clk) begin
         if ( id_cke ) begin
@@ -941,7 +881,7 @@ module jelly2_jfive_micro_core
                     ex_mmio_en    <= id_mem_re || id_mem_we;
                     ex_mmio_re    <= id_mem_re;
                     ex_mmio_we    <= id_mem_we;
-                    ex_mmio_addr  <= mem_addr;
+                    ex_mmio_addr  <= MMIO_ADDR_WIDTH'(mem_addr);
                     ex_mmio_size  <= id_mem_size;
                     ex_mmio_sel   <= mem_sel;
                     ex_mmio_rsel  <= id_mem_re ? mem_sel : '0;
@@ -1017,7 +957,7 @@ module jelly2_jfive_micro_core
     assign mmio_re      = ex_mmio_re;
     assign mmio_we      = ex_mmio_we;
     assign mmio_size    = ex_mmio_size;
-    assign mmio_addr    = MMIO_ADDR_WIDTH'(ex_mmio_addr);
+    assign mmio_addr    = ex_mmio_addr;
     assign mmio_sel     = ex_mmio_sel;
     assign mmio_rsel    = ex_mmio_rsel;
     assign mmio_wsel    = ex_mmio_wsel;
