@@ -1,7 +1,7 @@
 
-TARGET    = udmabuf_sample.out
-DT_NAME   = ultra96v2_udmabuf_sample
-BIT_NAME  = ultra96v2_udmabuf_sample
+TARGET    = kria_udmabuf_sample.out
+DT_NAME   = kria_udmabuf_sample
+BIT_NAME  = kria_udmabuf_sample
 
 DTS_FILE  = $(DT_NAME).dts
 DTBO_FILE = $(DT_NAME).dtbo
@@ -82,8 +82,8 @@ load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
 	cat $(DEVTREE_PATH)/overlays/full/status
 	sudo rm /lib/firmware/$(DTBO_FILE)
 	sudo rm /lib/firmware/$(BIN_FILE)
-	sudo chmod 666 /dev/uio*
-	sudo chmod 666 /dev/udmabuf*
+#	sudo chmod 666 /dev/uio*
+#	sudo chmod 666 /dev/udmabuf*
 
 .PHONY: unload
 unload:

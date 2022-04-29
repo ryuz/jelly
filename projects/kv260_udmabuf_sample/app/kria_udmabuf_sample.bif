@@ -1,5 +1,5 @@
 all:
 {
-    ultra96v2_udmabuf_sample.bit
+    kria_udmabuf_sample.bit
 }
 
