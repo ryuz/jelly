@@ -1,0 +1,12 @@
+/dts-v1/; /plugin/;
+
+/ {
+    fragment@0 {
+        target = <&fpga_full>;
+        __overlay__ {
+            #address-cells = <2>;
+            #size-cells = <2>;
+            firmware-name = "kv260_sample.bit.bin";
+        };
+    };
+};
