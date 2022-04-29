@@ -11,15 +11,16 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
 }
 
 
+extern{
+    fn asm_test() -> i32;
+}
+
 static mut DATA : i32 = 0;
 
-extern{
-    fn foo() -> i32;
-}
 
 #[no_mangle]
 pub unsafe extern "C" fn main() -> ! {
-//  println!("Start!");
+    println!("Start!");
     
     let pi8_0  = 0xf0000000  as *mut i8;
     let pu8_0  = 0xf0000000  as *mut u8;
@@ -89,6 +90,13 @@ pub unsafe extern "C" fn main() -> ! {
     core::ptr::write_volatile(pi32, core::ptr::read_volatile(&mut DATA));
 
     println!("Hello world!");
+    println!("asm_test:{}", asm_test());
+
+    let mut a :f32 = 0.1;
+    for _ in 0..10 {
+        println!("{}", a);
+        a *= 1.1;
+    }
 
     loop {}
 }

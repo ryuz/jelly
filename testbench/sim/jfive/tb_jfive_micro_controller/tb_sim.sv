@@ -10,7 +10,8 @@ module tb_sim();
         $dumpfile("tb_sim.vcd");
         $dumpvars(0, tb_sim);
         
-    #10000
+    #(RATE*100);
+    #(40000*100)
         $finish();
     end
 
