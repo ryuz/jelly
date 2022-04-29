@@ -162,31 +162,31 @@ module jelly2_jfive_micro_core
     logic           [RIDX_WIDTH-1:0]        ex_rd_idx;
     logic   signed  [XLEN-1:0]              ex_rd_val;
 
-    logic                                   ex_mem_en;
-    logic                                   ex_mem_re;
-    logic                                   ex_mem_we;
+    logic                                   ex_mem_en = '0;
+    logic                                   ex_mem_re = '0;
+    logic                                   ex_mem_we = '0;
     logic           [XLEN-1:0]              ex_mem_addr;
     logic           [SIZE_WIDTH-1:0]        ex_mem_size;
-    logic           [SEL_WIDTH-1:0]         ex_mem_sel;
-    logic           [SEL_WIDTH-1:0]         ex_mem_rsel;
-    logic           [SEL_WIDTH-1:0]         ex_mem_wsel;
+    logic           [SEL_WIDTH-1:0]         ex_mem_sel = '0;
+    logic           [SEL_WIDTH-1:0]         ex_mem_rsel = '0;
+    logic           [SEL_WIDTH-1:0]         ex_mem_wsel = '0;
     logic           [XLEN-1:0]              ex_mem_wdata;
     logic                                   ex_mem_unsigned;
 
-    logic                                   ex_dtcm_en;
-    logic                                   ex_dtcm_re;
-    logic           [3:0]                   ex_dtcm_wsel;
+    logic                                   ex_dtcm_en = '0;
+    logic                                   ex_dtcm_re = '0;
+    logic           [3:0]                   ex_dtcm_wsel = '0;
     logic           [TCM_ADDR_WIDTH-1:0]    ex_dtcm_addr;
     logic           [31:0]                  ex_dtcm_wdata;
 
-    logic                                   ex_mmio_en;
-    logic                                   ex_mmio_re;
-    logic                                   ex_mmio_we;
-    logic           [XLEN-1:0]              ex_mmio_addr;
+    logic                                   ex_mmio_en = '0;
+    logic                                   ex_mmio_re = '0;
+    logic                                   ex_mmio_we = '0;
+    logic           [MMIO_ADDR_WIDTH-1:0]   ex_mmio_addr;
     logic           [SIZE_WIDTH-1:0]        ex_mmio_size;
     logic           [SEL_WIDTH-1:0]         ex_mmio_sel;
-    logic           [SEL_WIDTH-1:0]         ex_mmio_rsel;
-    logic           [SEL_WIDTH-1:0]         ex_mmio_wsel;
+    logic           [SEL_WIDTH-1:0]         ex_mmio_rsel = '0;
+    logic           [SEL_WIDTH-1:0]         ex_mmio_wsel = '0;
     logic           [XLEN-1:0]              ex_mmio_wdata;
 
     
@@ -333,31 +333,23 @@ module jelly2_jfive_micro_core
     assign if_imm_u  = {if_instr[31:12], 12'd0};
     assign if_imm_j  = {if_instr[31], if_instr[19:12], if_instr[20], if_instr[30:21], 1'b0};
 
+    // register
     always_comb begin
-        if_rd_en = 1'b0;
-        if ( if_opcode == 7'b0110111 ) begin if_rd_en = 1'b1; end
-        if ( if_opcode == 7'b0010111 ) begin if_rd_en = 1'b1; end
-        if ( if_opcode == 7'b1101111 ) begin if_rd_en = 1'b1; end
-        if ( if_opcode == 7'b1100111 ) begin if_rd_en = 1'b1; end
-        if ( if_opcode == 7'b0000011 ) begin if_rd_en = 1'b1; end
-        if ( if_opcode == 7'b0010011 ) begin if_rd_en = 1'b1; end
-        if ( if_opcode == 7'b0110011 ) begin if_rd_en = 1'b1; end
-        if ( if_opcode == 7'b0001111 ) begin if_rd_en = 1'b1; end
+        unique case ( if_opcode )
+        7'b0110111: begin if_rd_en = 1'b1; if_rs1_en = 1'b0; if_rs2_en = 1'b0; end // LUI
+        7'b0010111: begin if_rd_en = 1'b1; if_rs1_en = 1'b0; if_rs2_en = 1'b0; end // AUIPC
+        7'b1101111: begin if_rd_en = 1'b1; if_rs1_en = 1'b0; if_rs2_en = 1'b0; end // JAL
+        7'b1100111: begin if_rd_en = 1'b1; if_rs1_en = 1'b1; if_rs2_en = 1'b0; end // JALR
+        7'b1100011: begin if_rd_en = 1'b0; if_rs1_en = 1'b1; if_rs2_en = 1'b1; end // Branch
+        7'b0000011: begin if_rd_en = 1'b1; if_rs1_en = 1'b1; if_rs2_en = 1'b0; end // Load
+        7'b0100011: begin if_rd_en = 1'b0; if_rs1_en = 1'b1; if_rs2_en = 1'b1; end // Store
+        7'b0010011: begin if_rd_en = 1'b1; if_rs1_en = 1'b1; if_rs2_en = 1'b0; end // Arithmetic imm
+        7'b0110011: begin if_rd_en = 1'b1; if_rs1_en = 1'b1; if_rs2_en = 1'b1; end // Arithmetic rs2
+        7'b0001111: begin if_rd_en = 1'b1; if_rs1_en = 1'b1; if_rs2_en = 1'b0; end // FENCE
+        7'b1110011: begin if_rd_en = 1'b1; if_rs1_en = 1'b1; if_rs2_en = 1'b0; end // ECALL/EBREAK
+        default:    begin if_rd_en = 1'bx; if_rs1_en = 1'bx; if_rs2_en = 1'bx; end
+        endcase
     end
-
-    always_comb begin
-        if_rs1_en = 1'b0;
-        if_rs2_en = 1'b0;
-        if ( if_opcode == 7'b1100111 ) begin if_rs1_en = 1'b1; end
-        if ( if_opcode == 7'b1100011 ) begin if_rs1_en = 1'b1; if_rs2_en = 1'b1; end
-        if ( if_opcode == 7'b0000011 ) begin if_rs1_en = 1'b1; end
-        if ( if_opcode == 7'b0100011 ) begin if_rs1_en = 1'b1; if_rs2_en = 1'b1; end
-        if ( if_opcode == 7'b0010011 ) begin if_rs1_en = 1'b1; end
-        if ( if_opcode == 7'b0010011 ) begin if_rs1_en = 1'b1; end
-        if ( if_opcode == 7'b0110011 ) begin if_rs1_en = 1'b1; if_rs2_en = 1'b1; end
-        if ( if_opcode == 7'b0001111 ) begin if_rs1_en = 1'b1; end
-    end
-    
 
     // stall
     always_ff @(posedge clk) begin
@@ -375,8 +367,6 @@ module jelly2_jfive_micro_core
         if ( if_rs2_en && if_rs2_idx == id_rd_idx && id_mem_re ) begin if_stall_en = 1'b1; end
         if ( if_rs1_en && if_rs1_idx == ex_rd_idx && ex_mem_re ) begin if_stall_en = 1'b1; end
         if ( if_rs2_en && if_rs2_idx == ex_rd_idx && ex_mem_re ) begin if_stall_en = 1'b1; end
-//      if ( if_rs1_en && if_rs1_idx == ma_rd_idx && ma_mem_re ) begin if_stall_en = 1'b1; end
-//      if ( if_rs2_en && if_rs2_idx == ma_rd_idx && ma_mem_re ) begin if_stall_en = 1'b1; end
     end
 
 
@@ -606,48 +596,14 @@ module jelly2_jfive_micro_core
     end
 
     // register destination
-    logic   id_rd_en_tmp;
     always_ff @(posedge clk) begin
         if ( reset ) begin
-            id_rd_en_tmp  <= '0;
+            id_rd_en  <= '0;
         end
         else if ( id_cke ) begin
-            id_rd_en_tmp <= '0;
-            if ( if_valid ) begin
-                id_rd_en_tmp <= (if_rd_idx != 0) & (
-                                if_dec_lui   |
-                                if_dec_auipc |
-                                if_dec_jal   |
-                                if_dec_jalr  |
-                                if_dec_lb    |
-                                if_dec_lh    |
-                                if_dec_lw    |
-                                if_dec_lbu   |
-                                if_dec_lhu   |
-                                if_dec_addi  |
-                                if_dec_slti  |
-                                if_dec_sltiu |
-                                if_dec_xori  |
-                                if_dec_ori   |
-                                if_dec_andi  |
-                                if_dec_slli  |
-                                if_dec_srli  |
-                                if_dec_srai  |
-                                if_dec_add   |
-                                if_dec_sub   |
-                                if_dec_sll   |
-                                if_dec_slt   |
-                                if_dec_sltu  |
-                                if_dec_xor   |
-                                if_dec_srl   |
-                                if_dec_sra   |
-                                if_dec_or    |
-                                if_dec_and   |
-                                if_dec_fence);
-            end
+            id_rd_en <= if_rd_en && (if_rd_idx != '0) && if_valid;
         end
-    end 
-    assign id_rd_en = id_rd_en_tmp;// & !id_stall;
+    end
 
     always_ff @(posedge clk) begin
         if ( id_cke ) begin
@@ -840,6 +796,7 @@ module jelly2_jfive_micro_core
             ex_mem_unsigned  <= 1'bx;
 
             ex_dtcm_en       <= 1'b0;
+            ex_dtcm_re       <= 1'b0;
             ex_dtcm_wsel     <= '0;
             ex_dtcm_addr     <= 'x;
             ex_dtcm_wdata    <= 'x;
@@ -867,6 +824,7 @@ module jelly2_jfive_micro_core
             ex_mem_unsigned  <= 1'bx;
 
             ex_dtcm_en       <= 1'b0;
+            ex_dtcm_re       <= 1'b0;
             ex_dtcm_wsel     <= '0;
             ex_dtcm_addr     <= 'x;
             ex_dtcm_wdata    <= 'x;
@@ -923,7 +881,7 @@ module jelly2_jfive_micro_core
                     ex_mmio_en    <= id_mem_re || id_mem_we;
                     ex_mmio_re    <= id_mem_re;
                     ex_mmio_we    <= id_mem_we;
-                    ex_mmio_addr  <= mem_addr;
+                    ex_mmio_addr  <= MMIO_ADDR_WIDTH'(mem_addr);
                     ex_mmio_size  <= id_mem_size;
                     ex_mmio_sel   <= mem_sel;
                     ex_mmio_rsel  <= id_mem_re ? mem_sel : '0;
@@ -1011,7 +969,7 @@ module jelly2_jfive_micro_core
 
     // -----------------------------------------
     //  Write back
-    // -----------------------------------------
+    // -----------------------------------------ma
 
     always_ff @(posedge clk) begin
         if ( reset ) begin
@@ -1084,7 +1042,21 @@ module jelly2_jfive_micro_core
     // -----------------------------------------
 
     generate
-    if ( SIMULATION ) begin
+    if ( SIMULATION ) begin : simulation
+
+        int     exe_counter;
+        always_ff @(posedge clk) begin
+            if ( reset ) begin
+                exe_counter <= 0;
+            end
+            else if ( wb_cke ) begin
+                if ( wb_valid ) begin
+                    exe_counter <= exe_counter + 1;
+                end
+            end
+        end
+
+
         if ( LOG_EXE_ENABLE ) begin
             int     fp_trace;
             initial begin
@@ -1125,12 +1097,12 @@ module jelly2_jfive_micro_core
                 if ( !reset ) begin
                     if ( cke ) begin
                         if ( ma_mem_re ) begin
-                            $fdisplay(fp_dbus, "%t read  addr:%08x rdata:%08x sel:%b  (pc:%08x instr:%08x)",
-                                    $time, ma_mem_addr, dtcm_rdata, ma_mem_sel, ma_pc, ma_instr);
+                            $fdisplay(fp_dbus, "%10d read  addr:%08x rdata:%08x sel:%b  (pc:%08x instr:%08x)",
+                                    exe_counter, ma_mem_addr, dtcm_rdata, ma_mem_sel, ma_pc, ma_instr);
                         end
                         if ( ex_mem_we ) begin
-                            $fdisplay(fp_dbus, "%t write addr:%08x wdata:%08x sel:%b  (pc:%08x instr:%08x)",
-                                    $time, ex_mem_addr, ex_mem_wdata, ex_mem_sel, ex_pc, ex_instr);
+                            $fdisplay(fp_dbus, "%10d write addr:%08x wdata:%08x sel:%b  (pc:%08x instr:%08x)",
+                                    exe_counter, ex_mem_addr, ex_mem_wdata, ex_mem_sel, ex_pc, ex_instr);
                         end
                     end
                 end

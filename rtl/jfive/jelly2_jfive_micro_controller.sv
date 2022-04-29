@@ -36,19 +36,19 @@ module jelly2_jfive_micro_controller
             input   wire                            cke,
 
             input   wire    [S_WB_ADR_WIDTH-1:0]    s_wb_adr_i,
-            output  wire    [S_WB_DAT_WIDTH-1:0]    s_wb_dat_o,
+            output  reg     [S_WB_DAT_WIDTH-1:0]    s_wb_dat_o,
             input   wire    [S_WB_DAT_WIDTH-1:0]    s_wb_dat_i,
             input   wire    [S_WB_SEL_WIDTH-1:0]    s_wb_sel_i,
             input   wire                            s_wb_we_i,
             input   wire                            s_wb_stb_i,
-            output  wire                            s_wb_ack_o,
+            output  reg                             s_wb_ack_o,
 
-            output  wire    [M_WB_ADR_WIDTH-1:0]    m_wb_adr_o,
+            output  reg     [M_WB_ADR_WIDTH-1:0]    m_wb_adr_o,
             input   wire    [31:0]                  m_wb_dat_i,
-            output  wire    [31:0]                  m_wb_dat_o,
-            output  wire    [3:0]                   m_wb_sel_o,
-            output  wire                            m_wb_we_o,
-            output  wire                            m_wb_stb_o,
+            output  reg     [31:0]                  m_wb_dat_o,
+            output  reg     [3:0]                   m_wb_sel_o,
+            output  reg                             m_wb_we_o,
+            output  reg                             m_wb_stb_o,
             input   wire                            m_wb_ack_i
         );
 
@@ -87,15 +87,19 @@ module jelly2_jfive_micro_controller
         end
     end
 
-    assign s_wb_dat_o = (s_wb_adr_i == S_WB_ADR_WIDTH'(ADR_CORE_ID))      ? S_WB_DAT_WIDTH'(32'hffff_8723)   :
-                        (s_wb_adr_i == S_WB_ADR_WIDTH'(ADR_CORE_VERSION)) ? S_WB_DAT_WIDTH'(32'h0001_0000)   :
-                        (s_wb_adr_i == S_WB_ADR_WIDTH'(ADR_CORE_DATE))    ? S_WB_DAT_WIDTH'(32'h2022_0226)   :
-                        (s_wb_adr_i == S_WB_ADR_WIDTH'(ADR_MEM_OFFSET))   ? S_WB_DAT_WIDTH'(TCM_ADDR_OFFSET) :
-                        (s_wb_adr_i == S_WB_ADR_WIDTH'(ADR_MEM_SIZE))     ? S_WB_DAT_WIDTH'(TCM_SIZE)        :
-                        (s_wb_adr_i == S_WB_ADR_WIDTH'(ADR_CTL_RESET))    ? S_WB_DAT_WIDTH'(reg_reset)       :
-                        '0;
+    always_comb begin
+        case ( int'(s_wb_adr_i) )
+        ADR_CORE_ID:        s_wb_dat_o = S_WB_DAT_WIDTH'(32'hffff_8723);
+        ADR_CORE_VERSION:   s_wb_dat_o = S_WB_DAT_WIDTH'(32'h0001_0000);
+        ADR_CORE_DATE:      s_wb_dat_o = S_WB_DAT_WIDTH'(32'h2022_0226);
+        ADR_MEM_OFFSET:     s_wb_dat_o = S_WB_DAT_WIDTH'(TCM_ADDR_OFFSET);
+        ADR_MEM_SIZE:       s_wb_dat_o = S_WB_DAT_WIDTH'(TCM_SIZE);
+        ADR_CTL_RESET:      s_wb_dat_o = S_WB_DAT_WIDTH'(reg_reset);
+        default:            s_wb_dat_o = '0;
+        endcase
+    end
 
-    assign s_wb_ack_o = s_wb_stb_i;
+    always_comb s_wb_ack_o = s_wb_stb_i;
 
 
 
@@ -187,7 +191,7 @@ module jelly2_jfive_micro_controller
 
     logic                           mem_itcm_en;
     logic   [TCM_ADDR_WIDTH-1:0]    mem_itcm_addr;
-    logic   [3:0]                   mem_itcm_wsel;
+    logic   [3:0]                   mem_itcm_wsel = '0;
     logic   [31:0]                  mem_itcm_wdata;
     logic   [31:0]                  mem_itcm_rdata;
 
@@ -255,11 +259,11 @@ module jelly2_jfive_micro_controller
         end
     end
 
-    assign mem_itcm_en    = wb_tcm_en || itcm_en;
-    assign mem_itcm_wsel  = wb_tcm_wsel;
-    assign mem_itcm_addr  = wb_tcm_en ? wb_tcm_addr  : itcm_addr;
-    assign mem_itcm_wdata = wb_tcm_wdata;
-    assign itcm_rdata     = mem_itcm_rdata;
+    always_comb mem_itcm_en    = wb_tcm_en || itcm_en;
+    always_comb mem_itcm_wsel  = wb_tcm_wsel;
+    always_comb mem_itcm_addr  = wb_tcm_en ? wb_tcm_addr  : itcm_addr;
+    always_comb mem_itcm_wdata = wb_tcm_wdata;
+    always_comb itcm_rdata     = mem_itcm_rdata;
 
 
 
@@ -267,19 +271,18 @@ module jelly2_jfive_micro_controller
     //  Memory Mapped I/O (WISHBONE)
     // ---------------------------------------------
 
-    assign m_wb_adr_o = M_WB_ADR_WIDTH'(mmio_addr >> 2);
-    assign m_wb_dat_o = mmio_wdata;
-    assign m_wb_sel_o = mmio_sel;
-    assign m_wb_we_o  = mmio_we;
-    assign m_wb_stb_o = mmio_en;
+    always_comb m_wb_adr_o = M_WB_ADR_WIDTH'(mmio_addr >> 2);
+    always_comb m_wb_dat_o = mmio_wdata;
+    always_comb m_wb_sel_o = mmio_sel;
+    always_comb m_wb_we_o  = mmio_we;
+    always_comb m_wb_stb_o = mmio_en;
 
     always_ff @(posedge clk) begin
         if ( core_cke ) begin
            mmio_rdata <= m_wb_dat_i;
         end
     end
-
-
+    
 endmodule
 
 
