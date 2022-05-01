@@ -10,19 +10,11 @@
         };
     };
     
-    
     fragment@1 {
-        target-path = "/amba_pl@0";
-        
-        #address-cells = <2>;
-        #size-cells = <2>;
-        __overlay__ {
-            #address-cells = <2>;
-            #size-cells = <2>;
-
-            /*
-            afi0 {
-                compatible    = "xlnx,afi-fpga";
+        target = <&amba>;
+        overlay1: __overlay__ {
+            afi0: afi0 {
+                compatible = "xlnx,afi-fpga";
                 config-afi    = <0  0>,     // S_AXI_HPC0_FPD(read)  : 0:128bit, 1:64bit, 2:32bit
                                 <1  0>,     // S_AXI_HPC0_FPD(write) : 0:128bit, 1:64bit, 2:32bit
                                 <2  0>,     // S_AXI_HPC1_FPD(read)  : 0:128bit, 1:64bit, 2:32bit
@@ -40,8 +32,7 @@
                                 <14 0x0500>,// M_AXI_HPM0_FPD[9:8], M_AXI_HPM0_FPD[11:10] : 0:32bit, 1:64bit, 2:128bit
                                 <15 0x100>; // M_AXI_HPM0_LPD        : 0x000:32bit, 0x100:64bit, 0x200:128bit
             };
-            */
-            
+        
             fclk0  {
                 compatible    = "ikwzm,fclkcfg-0.10.a";
                 clocks        = <&zynqmp_clk 72 &zynqmp_clk 0>;
