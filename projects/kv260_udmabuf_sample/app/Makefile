@@ -1,7 +1,7 @@
 
-TARGET    = kria_udmabuf_sample.out
-DT_NAME   = kria_udmabuf_sample
-BIT_NAME  = kria_udmabuf_sample
+TARGET    = kv260_udmabuf_sample.out
+DT_NAME   = kv260_udmabuf_sample
+BIT_NAME  = kv260_udmabuf_sample
 
 DTS_FILE  = $(DT_NAME).dts
 DTBO_FILE = $(DT_NAME).dtbo
