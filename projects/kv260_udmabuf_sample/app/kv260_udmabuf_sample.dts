@@ -3,7 +3,7 @@
 / {
     fragment@0 {
         target = <&fpga_full>;
-        __overlay__ {
+        overlay0: __overlay__ {
             #address-cells = <2>;
             #size-cells = <2>;
             firmware-name = "kv260_udmabuf_sample.bit.bin";
@@ -44,10 +44,10 @@
         };
     };
     
-    
+
     fragment@2 {
-        target-path = "/amba";
-        __overlay__ {
+        target = <&amba>;
+        overlay2: __overlay__ {
             #address-cells = <0x2>;
             #size-cells = <0x2>;
             
@@ -59,17 +59,15 @@
             };
         };
     };
-    
 
     fragment@3 {
-        target-path = "/amba";
-        __overlay__ {
+        target = <&amba>;
+        overlay3: __overlay__ {
             #address-cells = <0x2>;
             #size-cells = <0x2>;
             udmabuf4 {
                 compatible = "ikwzm,u-dma-buf";
                 device-name = "udmabuf-jelly-sample";
-//              minor-number = <4>;
                 size = <0x0 0x00400000>;
             };
         };
