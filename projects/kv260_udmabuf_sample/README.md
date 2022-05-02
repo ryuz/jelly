@@ -1,4 +1,4 @@
-# Ultra96V2 で u-dma-buf を試すサンプル
+# Kria KV260 で u-dma-buf を試すサンプル
 
 
 ## 概要
@@ -13,13 +13,15 @@ Zynqを活用するうえで非常に有用なソフトウェアですので同�
 
 環境は下記の通りです。
 
-- [Ultra96V2](https://www.avnet.com/wps/portal/japan/products/product-highlights/ultra96/)
--  iwkzm氏の [Debianブートイメージ 2019.2版](https://qiita.com/ikwzm/items/92221c5ea6abbd5e991c)
-- Vivado 2019.2
+```
+Description:    Ubuntu 20.04.4 LTS
+kernel:         5.4.0-1017-xilinx-zynqmp
+```
 
-Debianイメージは一度起動SDを作ってしまえば Vivado だけでもいろいろできるのが素敵です。
+KV260 にはインジゲーターとして使えるLEDが無いので、PMOD に LED等を別途準備している前提としています。
 
-### Ultra96v2側の準備
+
+### KV260側の準備
 
 bootgen を使うのでインストールしておきます。
 
@@ -41,7 +43,7 @@ git clone https://github.com/ryuz/jelly
 
 で取得できます。
 
-/projects/ultra96v2_udmabuf_sample/
+/projects/kv260_udmabuf_sample/
 
 以下が今回のプロジェクトです。
 
@@ -52,7 +54,7 @@ PS用のbitstreamは PC(WindowsやLinuxなど)で Vivado を使って行いま�
 
 Vivado のプロジェクトは
 
-/projects/ultra96v2_udmabuf_sample/syn/vivado2019.2/ultra96v2_udmabuf_sample.xpr
+/projects/kv260_udmabuf_sample/syn/vivado2021.2/kv260_udmabuf_sample.xpr
 
 にありますので Vivado で開いてください。
 
@@ -63,9 +65,9 @@ Vivado メニューの「Tools」→「Run Tcl Script」で、プロジェクト
 うまくいかない場合は、既に登録されている i_design_1 を手動で削除してから、design_1.tcl を実行しても同じことができるはずです。
 
 design_1 が生成されたら「Flow」→「Run Implementation」で合成を行います。正常に合成できれば
-ultra96v2_udmabuf_sample.bit が出来上がります。
+kv260_udmabuf_sample.bit が出来上がります。
 
-このファイルを projects/ultra96v2_udmabuf_sample/app にコピーしておいてください。
+このファイルを projects/kv260_udmabuf_sample/app にコピーしておいてください。
 
 
 なお、本PLは用の bitstream は
@@ -79,12 +81,13 @@ ultra96v2_udmabuf_sample.bit が出来上がります。
 
 ## PSソフト側の作成と実行
 
-  Ultra96V2側でのPSソフトのビルドです。
-  projects/ultra96v2_udmabuf_sample/app を Ultra96 のどこか適当な箇所にコピーします。
-  Ultra96V2側の作業は Debian のブートイメージで起動したあと、常に起動したまま行うことが可能で、運用したままPLとソフトをアップデートすることも可能なのがこのブートイメージの素晴らしいところです。
+  KV260側でのPSソフトのビルドです。
+  projects/kv260_udmabuf_sample/app を KV260 のどこか適当な箇所にコピーします。
+  KV260側の作業は Linux起動したあと、常に起動したまま行うことが可能で、運用したままPLとソフトをアップデートすることも可能なのがこのブートイメージの素晴らしいところです。
 
-  Ultra96V2 の debian でも git は動きますので、こちらでも clone する手があります。
-  (なお、この app ディレクトリ以下は VS code Remote Development を使ってセルフコンパイル開発してそのままpushしています。)
+  KV260 の Linux側で git clone する手もあります。
+
+  （余談ですが、作者はVS code Remote Development を使ってセルフコンパイル開発してそのままpushしています。）
 
 ### 動かしてみる
 
@@ -113,7 +116,7 @@ DeviceTree overlay や uio へのアクセスの為にルート権限が必要�
 
 のなどの機能を担っています。
 
-ultra96v2_udmabuf_sample.dts が Device Tree overlay のソースファイルとなります。
+kv260_udmabuf_sample.dts が Device Tree overlay のソースファイルとなります。
 
 順にみていきたいと思います。
 なお、dtsファイルのコンパイルは、実行環境で行うことが必要なようです(内部で既存のDevice Treeのシンボルを参照する為)。
@@ -123,65 +126,61 @@ ultra96v2_udmabuf_sample.dts が Device Tree overlay のソースファイルと
 ``` 
     fragment@0 {
         target = <&fpga_full>;
-        __overlay__ {
+        overlay0: __overlay__ {
             #address-cells = <2>;
             #size-cells = <2>;
-            firmware-name = "ultra96v2_udmabuf_sample.bit.bin";
+            firmware-name = "kv260_udmabuf_sample.bit.bin";
         };
     };
 ```
 
-上のように指定します。この時、ultra96v2_udmabuf_sample.bit.bin は bitstream から bootgen で生成されたファイルであり、/lib/firmware に置かれている必要があります。
+上のように指定します。この時、kv260_udmabuf_sample.bit.bin は bitstream から bootgen で生成されたファイルであり、/lib/firmware に置かれている必要があります。
 
-bootgen の使い方としては、下記のような ultra96v2_udmabuf_sample.bif に対して
+bootgen の使い方としては、下記のような kv260_udmabuf_sample.bif に対して
 
-```ultra96v2_udmabuf_sample.bif
+```kv260_udmabuf_sample.bif
 all:
 {
-    ultra96v2_udmabuf_sample.bit
+    kv260_udmabuf_sample.bit
 }
 ```
 
 bootgenを用いて
 
 ```
-bootgen -image ultra96v2_udmabuf_sample.bif -arch zynqmp -process_bitstream bin
+bootgen -image kv260_udmabuf_sample.bif -arch zynqmp -process_bitstream bin
 ```
 
 と実行することによって得られます。
 上書きを許可する場合にはさらに -w を付けます。
 
+
 ### クロックと AXIのバス幅
 
 ```
     fragment@1 {
-        target-path = "/amba_pl@0";
-        
-        #address-cells = <2>;
-        #size-cells = <2>;
-        __overlay__ {
-            #address-cells = <2>;
-            #size-cells = <2>;
-            afi0 {
-                compatible    = "xlnx,afi-fpga";
-                config-afi    = <0  0>,     /* S_AXI_HPC0_FPD(read)  : 0:128bit, 1:64bit, 2:32bit */
-                                <1  0>,     /* S_AXI_HPC0_FPD(write) : 0:128bit, 1:64bit, 2:32bit */
-                                <2  0>,     /* S_AXI_HPC1_FPD(read)  : 0:128bit, 1:64bit, 2:32bit */
-                                <3  0>,     /* S_AXI_HPC1_FPD(write) : 0:128bit, 1:64bit, 2:32bit */
-                                <4  0>,     /* S_AXI_HP0_FPD(read)   : 0:128bit, 1:64bit, 2:32bit */
-                                <5  0>,     /* S_AXI_HP0_FPD(write)  : 0:128bit, 1:64bit, 2:32bit */
-                                <6  0>,     /* S_AXI_HP1_FPD(read)   : 0:128bit, 1:64bit, 2:32bit */
-                                <7  0>,     /* S_AXI_HP1_FPD(write)  : 0:128bit, 1:64bit, 2:32bit */
-                                <8  0>,     /* S_AXI_HP2_FPD(read)   : 0:128bit, 1:64bit, 2:32bit */
-                                <9  0>,     /* S_AXI_HP2_FPD(write)  : 0:128bit, 1:64bit, 2:32bit */
-                                <10 0>,     /* S_AXI_HP3_FPD(read)   : 0:128bit, 1:64bit, 2:32bit */
-                                <11 0>,     /* S_AXI_HP3_FPD(write)  : 0:128bit, 1:64bit, 2:32bit */
-                                <12 0>,     /* S_AXI_LPD(read)       : 0:128bit, 1:64bit, 2:32bit */
-                                <13 0>,     /* S_AXI_LPD(write)      : 0:128bit, 1:64bit, 2:32bit */
-                                <14 0x0500>,/* M_AXI_HPM0_FPD[9:8], M_AXI_HPM0_FPD[11:10] : 0:32bit, 1:64bit, 2:128bit */
-                                <15 0x100>; /* M_AXI_HPM0_LPD        : 0x000:32bit, 0x100:64bit, 0x200:128bit */
+        target = <&amba>;
+        overlay1: __overlay__ {
+            afi0: afi0 {
+                compatible = "xlnx,afi-fpga";
+                config-afi    = <0  0>,     // S_AXI_HPC0_FPD(read)  : 0:128bit, 1:64bit, 2:32bit
+                                <1  0>,     // S_AXI_HPC0_FPD(write) : 0:128bit, 1:64bit, 2:32bit
+                                <2  0>,     // S_AXI_HPC1_FPD(read)  : 0:128bit, 1:64bit, 2:32bit
+                                <3  0>,     // S_AXI_HPC1_FPD(write) : 0:128bit, 1:64bit, 2:32bit
+                                <4  0>,     // S_AXI_HP0_FPD(read)   : 0:128bit, 1:64bit, 2:32bit
+                                <5  0>,     // S_AXI_HP0_FPD(write)  : 0:128bit, 1:64bit, 2:32bit
+                                <6  0>,     // S_AXI_HP1_FPD(read)   : 0:128bit, 1:64bit, 2:32bit
+                                <7  0>,     // S_AXI_HP1_FPD(write)  : 0:128bit, 1:64bit, 2:32bit
+                                <8  0>,     // S_AXI_HP2_FPD(read)   : 0:128bit, 1:64bit, 2:32bit
+                                <9  0>,     // S_AXI_HP2_FPD(write)  : 0:128bit, 1:64bit, 2:32bit
+                                <10 0>,     // S_AXI_HP3_FPD(read)   : 0:128bit, 1:64bit, 2:32bit
+                                <11 0>,     // S_AXI_HP3_FPD(write)  : 0:128bit, 1:64bit, 2:32bit
+                                <12 0>,     // S_AXI_LPD(read)       : 0:128bit, 1:64bit, 2:32bit
+                                <13 0>,     // S_AXI_LPD(write)      : 0:128bit, 1:64bit, 2:32bit
+                                <14 0x0500>,// M_AXI_HPM0_FPD[9:8], M_AXI_HPM0_FPD[11:10] : 0:32bit, 1:64bit, 2:128bit
+                                <15 0x100>; // M_AXI_HPM0_LPD        : 0x000:32bit, 0x100:64bit, 0x200:128bit
             };
-            
+        
             fclk0  {
                 compatible    = "ikwzm,fclkcfg-0.10.a";
                 clocks        = <&zynqmp_clk 72 &zynqmp_clk 0>;
@@ -191,6 +190,7 @@ bootgen -image ultra96v2_udmabuf_sample.bif -arch zynqmp -process_bitstream bin
                 remove-enable = <0>;
             };
         };
+    };
 ```
 
 の config-afi の部分が AXI バスのバス幅の設定です。
@@ -199,13 +199,14 @@ bootgen -image ultra96v2_udmabuf_sample.bif -arch zynqmp -process_bitstream bin
 また、clocking0 の部分がクロックで、pclk0 を 100MHz に設定しています。
 これは[こちらの記事]([https://qiita.com/ikwzm/items/74f7c5b8474198c8af3e)を参考にさせて頂きました。
 
+
 ### uioとu-dma-buf
 
 続いて uio と u-dma-buf です。
 ``` 
     fragment@2 {
-        target-path = "/amba";
-        __overlay__ {
+        target = <&amba>;
+        overlay2: __overlay__ {
             #address-cells = <0x2>;
             #size-cells = <0x2>;
             
@@ -219,13 +220,13 @@ bootgen -image ultra96v2_udmabuf_sample.bif -arch zynqmp -process_bitstream bin
     };
 
     fragment@3 {
-        target-path = "/amba";
-        __overlay__ {
+        target = <&amba>;
+        overlay3: __overlay__ {
             #address-cells = <0x2>;
             #size-cells = <0x2>;
             udmabuf4 {
                 compatible = "ikwzm,u-dma-buf";
-                minor-number = <4>;
+                device-name = "udmabuf-jelly-sample";
                 size = <0x0 0x00400000>;
             };
         };
@@ -235,15 +236,15 @@ bootgen -image ultra96v2_udmabuf_sample.bif -arch zynqmp -process_bitstream bin
 今回はペリフェラル領域をまとめて一個の uio に割り当てています。
 開始アドレス 0xa0000000番地から サイズ 0x08000000 バイトの領域が uio_pl_peri  という名前の uio として生成されます。
 
-また udmabuf4 という名前で、0x00400000 バイトの CMA(Continuous Memory Allocator) を確保してもらうように指定しています。u-dma-buf を用いることで、連続した物理メモリアドレスを割り当ててもらうことが可能になります。
+また udmabuf-jelly-sample という名前で、0x00400000 バイトの CMA(Continuous Memory Allocator) を確保してもらうように指定しています。u-dma-buf を用いることで、連続した物理メモリアドレスを割り当ててもらうことが可能になります。
 
 ### dtcでのコンパイル
 
 ```
-dtc -I dts -O dtb -o ultra96v2_udmabuf_sample.dtbo ultra96v2_udmabuf_sample.dts
+dtc -I dts -O dtb -o kv260_udmabuf_sample.dtbo kv260_udmabuf_sample.dts
 ```
 
-とすることで ultra96v2_udmabuf_sample.dtbo を得ることができます。
+とすることで kv260_udmabuf_sample.dtbo を得ることができます。
 
 ## Overlay
 
@@ -267,8 +268,8 @@ sudo mount -t configfs configfs /configfs
 
 ```
 sudo mkdir -p /lib/firmware
-sudo cp ultra96v2_udmabuf_sample.bit.bin /lib/firmware
-sudo cp ultra96v2_udmabuf_sample.dtbo /lib/firmware
+sudo cp kv260_udmabuf_sample.bit.bin /lib/firmware
+sudo cp kv260_udmabuf_sample.dtbo /lib/firmware
 ```
 
 ### overlay 
@@ -278,7 +279,7 @@ sudo cp ultra96v2_udmabuf_sample.dtbo /lib/firmware
 ```
 sudo sh -c "echo 0 > /sys/class/fpga_manager/fpga0/flags"
 sudo mkdir /configfs/device-tree/overlays/full
-sudo sh -c "echo -n ultra96v2_udmabuf_sample.dtbo > /configfs/device-tree/overlays/full/path"
+sudo sh -c "echo -n kv260_udmabuf_sample.dtbo > /configfs/device-tree/overlays/full/path"
 ```
 
 この段階で bitstream は書き込まれ、動作を開始しています。
@@ -296,8 +297,8 @@ cat /configfs/device-tree/overlays/full/status
 役目を終えたファイルは削除してよいようです。
 
 ```
-sudo rm /lib/firmware/ultra96v2_udmabuf_sample.dtbo
-sudo rm /lib/firmware/ultra96v2_udmabuf_sample.bit.bin
+sudo rm /lib/firmware/kv260_udmabuf_sample.dtbo
+sudo rm /lib/firmware/kv260_udmabuf_sample.bit.bin
 ```
 
 ## アプリケーションの実行

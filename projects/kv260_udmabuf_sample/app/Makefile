@@ -82,8 +82,8 @@ load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
 	cat $(DEVTREE_PATH)/overlays/full/status
 	sudo rm /lib/firmware/$(DTBO_FILE)
 	sudo rm /lib/firmware/$(BIN_FILE)
-#	sudo chmod 666 /dev/uio*
-#	sudo chmod 666 /dev/udmabuf*
+	sudo chmod 666 /dev/uio*
+	sudo chmod 666 /dev/udmabuf*
 
 .PHONY: unload
 unload:
