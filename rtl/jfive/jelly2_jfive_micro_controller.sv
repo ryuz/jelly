@@ -9,8 +9,8 @@ module jelly2_jfive_micro_controller
             parameter   int                     S_WB_DAT_WIDTH   = 32,
             parameter   int                     S_WB_SEL_WIDTH   = S_WB_DAT_WIDTH/8,
 
-            parameter   bit     [31:0]          M_WB_DECODE_MASK = 32'hff00_0000,
-            parameter   bit     [31:0]          M_WB_DECODE_ADDR = 32'hf000_0000,
+            parameter   bit     [31:0]          M_WB_DECODE_MASK = 32'hf000_0000,
+            parameter   bit     [31:0]          M_WB_DECODE_ADDR = 32'h1000_0000,
             parameter   int                     M_WB_ADR_WIDTH   = 24,
 
             parameter   bit     [31:0]          TCM_DECODE_MASK  = 32'hff00_0000,
