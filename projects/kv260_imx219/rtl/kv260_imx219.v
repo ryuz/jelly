@@ -22,9 +22,6 @@ module kv260_imx219
             output  wire    [7:0]   pmod
         );
     
-    assign cam_scl = 1'bz;
-    assign cam_sda = 1'bz;
-
     wire            sys_reset;
     wire            sys_clk100;
     wire            sys_clk200;
@@ -123,12 +120,12 @@ module kv260_imx219
                 .out_clk200             (sys_clk200),
                 .out_clk250             (sys_clk250),
 
-                .i2c0_scl_i             (i2c0_scl_i),
-                .i2c0_scl_o             (i2c0_scl_o),
-                .i2c0_scl_t             (i2c0_scl_t),
-                .i2c0_sda_i             (i2c0_sda_i),
-                .i2c0_sda_o             (i2c0_sda_o),
-                .i2c0_sda_t             (i2c0_sda_t),
+                .i2c_scl_i              (i2c0_scl_i),
+                .i2c_scl_o              (i2c0_scl_o),
+                .i2c_scl_t              (i2c0_scl_t),
+                .i2c_sda_i              (i2c0_sda_i),
+                .i2c_sda_o              (i2c0_sda_o),
+                .i2c_sda_t              (i2c0_sda_t),
 
                 .m_axi4l_peri_aresetn   (axi4l_peri_aresetn),
                 .m_axi4l_peri_aclk      (axi4l_peri_aclk),
@@ -810,7 +807,13 @@ module kv260_imx219
 //    assign radio_led[1] = reg_counter_clk100[24];
 //    assign radio_led[0] = reg_counter_rxbyteclkhs[1];
     
-    assign pmod = reg_counter_clk100[15:8];
+
+    assign pmod[0] = i2c0_scl_o;
+    assign pmod[1] = i2c0_scl_t;
+    assign pmod[2] = i2c0_sda_o;
+    assign pmod[3] = i2c0_sda_t;
+    assign pmod[4] = cam_reset;
+    assign pmod[7:5] = reg_counter_clk100[15:8];
     
     reg     [7:0]   reg_frame_count;
     always @(posedge axi4s_cam_aclk) begin
