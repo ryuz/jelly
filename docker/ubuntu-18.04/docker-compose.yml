@@ -1,0 +1,18 @@
+version: "3"
+
+services:
+  zynqmp_develop:
+    build: .
+    image: ryuz88/ubuntu-18.04-petalinux-2021.2
+    container_name: ubuntu-18.04-petalinux-2021.2
+    ports:
+      - 18022:18022
+    privileged: true
+    volumes:
+      - /home/${LOCAL_USER}:/home/${LOCAL_USER}
+      - /opt:/opt
+      - /tools:/tools
+    environment:
+      LOCAL_USER: ${LOCAL_USER}
+      LOCAL_UID: ${LOCAL_UID}
+      LOCAL_GID: ${LOCAL_GID}
