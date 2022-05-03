@@ -79,7 +79,7 @@ load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
 	sudo chmod -R 777 /sys/class/gpio/gpio36
 	sudo chmod 666 /dev/uio*
 	sudo chmod 666 /dev/udmabuf*
-	sudo chmod 666 /dev/i2c-4
+	sudo chmod 666 /dev/i2c-6
 
 .PHONY: unload
 unload:
