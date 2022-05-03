@@ -17,7 +17,7 @@ module kv260_imx219
             input   wire    [1:0]   cam_data_n,
             inout   wire            cam_scl,
             inout   wire            cam_sda,
-            output  wire            cam_reset,
+            output  wire            cam_enable,
 
             output  wire    [7:0]   pmod
         );
@@ -277,28 +277,28 @@ module kv260_imx219
     wire                        wb_gid_ack_o;
         
     reg     reg_sw_reset;
-    reg     reg_cam_reset;
+    reg     reg_cam_enable;
     always @(posedge wb_peri_clk_i) begin
         if ( wb_peri_rst_i ) begin
-            reg_sw_reset  <= 1'b0;
-            reg_cam_reset <= 1'b0;
+            reg_sw_reset   <= 1'b0;
+            reg_cam_enable <= 1'b0;
         end
         else begin
             if ( wb_gid_stb_i && wb_peri_we_i ) begin
                 case ( wb_peri_adr_i[3:0] )
-                1: reg_sw_reset  <= wb_peri_dat_i;
-                2: reg_cam_reset <= wb_peri_dat_i;
+                1: reg_sw_reset   <= wb_peri_dat_i;
+                2: reg_cam_enable <= wb_peri_dat_i;
                 endcase
             end
         end
     end
     
-    assign wb_gid_dat_o = wb_peri_adr_i[3:0] == 0 ? 32'h01234567  :
-                          wb_peri_adr_i[3:0] == 1 ? reg_sw_reset  :
-                          wb_peri_adr_i[3:0] == 2 ? reg_cam_reset : 0;
+    assign wb_gid_dat_o = wb_peri_adr_i[3:0] == 0 ? 32'h01234567   :
+                          wb_peri_adr_i[3:0] == 1 ? reg_sw_reset   :
+                          wb_peri_adr_i[3:0] == 2 ? reg_cam_enable : 0;
     assign wb_gid_ack_o = wb_gid_stb_i;
 
-    assign cam_reset = reg_cam_reset;
+    assign cam_enable = reg_cam_enable;
 
 
     // ----------------------------------------
@@ -800,21 +800,6 @@ module kv260_imx219
         end
     end
     
-    
-//    assign radio_led[1] = reg_clk200_led;
-//    assign radio_led[0] = reg_clk250_led;
-    
-//    assign radio_led[1] = reg_counter_clk100[24];
-//    assign radio_led[0] = reg_counter_rxbyteclkhs[1];
-    
-
-    assign pmod[0] = i2c0_scl_o;
-    assign pmod[1] = i2c0_scl_t;
-    assign pmod[2] = i2c0_sda_o;
-    assign pmod[3] = i2c0_sda_t;
-    assign pmod[4] = cam_reset;
-    assign pmod[7:5] = reg_counter_clk100[15:8];
-    
     reg     [7:0]   reg_frame_count;
     always @(posedge axi4s_cam_aclk) begin
         if ( axi4s_csi2_tuser && axi4s_csi2_tvalid ) begin
@@ -822,7 +807,14 @@ module kv260_imx219
         end
     end
     
-//  assign pmod1 = reg_frame_count;
+    // pmod
+    assign pmod[0] = i2c0_scl_o;
+    assign pmod[1] = i2c0_scl_t;
+    assign pmod[2] = i2c0_sda_o;
+    assign pmod[3] = i2c0_sda_t;
+    assign pmod[4] = cam_enable;
+    assign pmod[5] = reg_frame_count[7];
+    assign pmod[7:6] = reg_counter_clk100[9:8];
     
     
     // Debug
