@@ -13,11 +13,11 @@ module tb_main
     localparam  int             S_WB_DAT_WIDTH   = 32;
     localparam  int             S_WB_SEL_WIDTH   = S_WB_DAT_WIDTH/8;
 
-    localparam  bit     [31:0]  M_WB_DECODE_MASK = 32'hff00_0000;
-    localparam  bit     [31:0]  M_WB_DECODE_ADDR = 32'hf000_0000;
+    localparam  bit     [31:0]  M_WB_DECODE_MASK = 32'hf000_0000;
+    localparam  bit     [31:0]  M_WB_DECODE_ADDR = 32'h1000_0000;
     localparam  int             M_WB_ADR_WIDTH   = 24;
 
-    localparam  bit     [31:0]  TCM_DECODE_MASK  = 32'hff00_0000;
+    localparam  bit     [31:0]  TCM_DECODE_MASK  = 32'hf000_0000;
     localparam  bit     [31:0]  TCM_DECODE_ADDR  = 32'h8000_0000;
     localparam  int             TCM_ADDR_OFFSET  = 1 << (S_WB_ADR_WIDTH - 1);
     localparam  int             TCM_SIZE         = 64*1024;
@@ -180,7 +180,7 @@ module tb_main
     always @(posedge clk) begin
         if ( !reset && cke ) begin
             if ( m_wb_stb_o && m_wb_we_o && m_wb_ack_i ) begin
-                if ( {m_wb_adr_o, 2'b00} == 26'h0000100 ) begin
+                if ( {m_wb_adr_o, 2'b00} == 26'h0000000 ) begin
                     $write("%c", m_wb_dat_o[7:0]);
                 end
                 else begin
