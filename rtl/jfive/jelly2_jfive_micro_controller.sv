@@ -5,30 +5,32 @@
 
 module jelly2_jfive_micro_controller
         #(
-            parameter   int                     S_WB_ADR_WIDTH   = 16,
-            parameter   int                     S_WB_DAT_WIDTH   = 32,
-            parameter   int                     S_WB_SEL_WIDTH   = S_WB_DAT_WIDTH/8,
+            parameter   int                             S_WB_ADR_WIDTH   = 16,
+            parameter   int                             S_WB_DAT_WIDTH   = 32,
+            parameter   int                             S_WB_SEL_WIDTH   = S_WB_DAT_WIDTH/8,
+            parameter   bit     [S_WB_ADR_WIDTH-1:0]    S_WB_TCM_ADR     = S_WB_ADR_WIDTH'(1 << (S_WB_ADR_WIDTH - 1)),
 
-            parameter   bit     [31:0]          M_WB_DECODE_MASK = 32'hf000_0000,
-            parameter   bit     [31:0]          M_WB_DECODE_ADDR = 32'h1000_0000,
-            parameter   int                     M_WB_ADR_WIDTH   = 24,
+            parameter   bit     [31:0]                  M_WB_DECODE_MASK = 32'hf000_0000,
+            parameter   bit     [31:0]                  M_WB_DECODE_ADDR = 32'h1000_0000,
+            parameter   int                             M_WB_ADR_WIDTH   = 24,
 
-            parameter   bit     [31:0]          TCM_DECODE_MASK  = 32'hff00_0000,
-            parameter   bit     [31:0]          TCM_DECODE_ADDR  = 32'h8000_0000,
-            parameter   int                     TCM_ADDR_OFFSET  = 1 << (S_WB_ADR_WIDTH - 1),
-            parameter   int                     TCM_SIZE         = 16384,
-            parameter   bit                     TCM_READMEMH     = 1'b0,
-            parameter                           TCM_READMEM_FIlE = "",
+            parameter   bit     [31:0]                  TCM_DECODE_MASK  = 32'hff00_0000,
+            parameter   bit     [31:0]                  TCM_DECODE_ADDR  = 32'h8000_0000,
+            parameter   int                             TCM_SIZE         = 16384,
+            parameter                                   TCM_RAM_TYPE     = "block",
+            parameter                                   TCM_RAM_MODE     = "WRITE_FIRST",
+            parameter   bit                             TCM_READMEMH     = 1'b0,
+            parameter                                   TCM_READMEM_FIlE = "",
 
-            parameter   int                     PC_WIDTH         = 32,
-            parameter   bit     [31:0]          INIT_PC_ADDR     = 32'h8000_0000,
-            parameter   bit                     INIT_CTL_RESET   = 1'b1,
+            parameter   int                             PC_WIDTH         = 32,
+            parameter   bit     [31:0]                  INIT_PC_ADDR     = 32'h8000_0000,
+            parameter   bit                             INIT_CTL_RESET   = 1'b1,
 
-            parameter   bit                     SIMULATION       = 1'b0,
-            parameter   bit                     LOG_EXE_ENABLE   = 1'b0,
-            parameter   string                  LOG_EXE_FILE     = "jfive_exe_log.txt",
-            parameter   bit                     LOG_MEM_ENABLE   = 1'b0,
-            parameter   string                  LOG_MEM_FILE     = "jfive_mem_log.txt"
+            parameter   bit                             SIMULATION       = 1'b0,
+            parameter   bit                             LOG_EXE_ENABLE   = 1'b0,
+            parameter   string                          LOG_EXE_FILE     = "jfive_exe_log.txt",
+            parameter   bit                             LOG_MEM_ENABLE   = 1'b0,
+            parameter   string                          LOG_MEM_FILE     = "jfive_mem_log.txt"
         )
         (
             input   wire                            reset,
@@ -92,7 +94,7 @@ module jelly2_jfive_micro_controller
         ADR_CORE_ID:        s_wb_dat_o = S_WB_DAT_WIDTH'(32'hffff_8723);
         ADR_CORE_VERSION:   s_wb_dat_o = S_WB_DAT_WIDTH'(32'h0001_0000);
         ADR_CORE_DATE:      s_wb_dat_o = S_WB_DAT_WIDTH'(32'h2022_0226);
-        ADR_MEM_OFFSET:     s_wb_dat_o = S_WB_DAT_WIDTH'(TCM_ADDR_OFFSET);
+        ADR_MEM_OFFSET:     s_wb_dat_o = S_WB_DAT_WIDTH'(S_WB_TCM_ADR);
         ADR_MEM_SIZE:       s_wb_dat_o = S_WB_DAT_WIDTH'(TCM_SIZE);
         ADR_CTL_RESET:      s_wb_dat_o = S_WB_DAT_WIDTH'(reg_reset);
         default:            s_wb_dat_o = '0;
@@ -158,7 +160,7 @@ module jelly2_jfive_micro_controller
             )
         i_jfive_micro_core
             (
-                .reset,
+                .reset              (core_reset),
                 .clk,
                 .cke                (core_cke),
 
@@ -202,11 +204,11 @@ module jelly2_jfive_micro_controller
                 .WE_WIDTH           (4),
                 .WORD_WIDTH         (8),
                 .MEM_SIZE           (TCM_MEM_SIZE),
-                .RAM_TYPE           ("block"),
+                .RAM_TYPE           (TCM_RAM_TYPE),
                 .DOUT_REGS0         (0),
                 .DOUT_REGS1         (0),
-                .MODE0              ("WRITE_FIRST"),
-                .MODE1              ("WRITE_FIRST"),
+                .MODE0              (TCM_RAM_MODE),
+                .MODE1              (TCM_RAM_MODE),
 
                 .FILLMEM            (0),
                 .FILLMEM_DATA       (0),
@@ -250,11 +252,11 @@ module jelly2_jfive_micro_controller
             wb_tcm_wsel  <= '0;
             wb_tcm_addr  <= 'x;
             wb_tcm_wdata <= 'x;
-            if ( s_wb_stb_i && s_wb_we_i && s_wb_sel_i != '0 && (s_wb_adr_i >= S_WB_ADR_WIDTH'(TCM_ADDR_OFFSET)) ) begin
+            if ( s_wb_stb_i && s_wb_we_i && s_wb_sel_i != '0 && (s_wb_adr_i >= S_WB_TCM_ADR) ) begin
                 wb_tcm_en    <= 1'b1;
-                wb_tcm_wsel  <= s_wb_sel_i;
-                wb_tcm_addr  <= TCM_ADDR_WIDTH'(s_wb_adr_i);
-                wb_tcm_wdata <= s_wb_dat_i;
+                wb_tcm_wsel  <= s_wb_sel_i[3:0];
+                wb_tcm_addr  <= TCM_ADDR_WIDTH'(s_wb_adr_i - S_WB_TCM_ADR);
+                wb_tcm_wdata <= s_wb_dat_i[31:0];
             end
         end
     end

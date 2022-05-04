@@ -41,7 +41,7 @@ module jelly2_register_file_ram
     generate
     for ( genvar i = 0; i < READ_PORTS; ++i ) begin : loop_ram
         logic       overwrite;
-        assign overwrite = (rd_addr[i] == wr_addr);
+        assign overwrite = (rd_addr[i] === wr_addr);
         jelly2_ram_dualport
                 #(
                     .ADDR_WIDTH         (ADDR_WIDTH),

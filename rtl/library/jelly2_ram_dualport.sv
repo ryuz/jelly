@@ -64,9 +64,28 @@ module jelly2_ram_dualport
     
     // port0
     generate
-    for ( genvar i = 0; i < WE_WIDTH; ++i ) begin : blk_wf0
-        if ( MODE0 == "WRITE_FIRST" ) begin
-            // write first
+    if ( MODE0 == "NO_CHANGE" ) begin : blk_nc0
+        // no change
+        for ( genvar i = 0; i < WE_WIDTH; ++i ) begin : loop_we0
+            always_ff @ ( posedge port0_clk ) begin
+                if ( port0_en ) begin
+                    if ( port0_we[i] ) begin
+                        mem[port0_addr][i*WORD_WIDTH +: WORD_WIDTH] <= port0_din[i*WORD_WIDTH +: WORD_WIDTH] ;
+                    end
+                end
+            end
+        end
+        always_ff @ ( posedge port0_clk ) begin
+            if ( port0_en ) begin
+                if ( ~|port0_we ) begin
+                    tmp_port0_dout <= mem[port0_addr];
+                end
+            end
+        end
+    end
+    else if ( MODE0 == "WRITE_FIRST" ) begin : blk_wf0
+        // write first
+        for ( genvar i = 0; i < WE_WIDTH; ++i ) begin : loop_we0
             always_ff @ ( posedge port0_clk ) begin
                 if ( port0_en ) begin
                     if ( port0_we[i] ) begin
@@ -79,8 +98,10 @@ module jelly2_ram_dualport
                 end
             end
         end
-        else begin : blk_rf0
-            // read first
+    end
+    else begin : blk_rf0
+        // read first
+        for ( genvar i = 0; i < WE_WIDTH; ++i ) begin : loop_we0
             always_ff @ ( posedge port0_clk ) begin
                 if ( port0_en ) begin
                     if ( port0_we[i] ) begin
@@ -110,9 +131,28 @@ module jelly2_ram_dualport
     
     // port1
     generate
-    for ( genvar i = 0; i < WE_WIDTH; ++i ) begin : blk_wf1
-        if ( MODE1 == "WRITE_FIRST" ) begin
-            // write first
+    if ( MODE1 == "NO_CHANGE" ) begin : blk_nc1
+        // no change
+        for ( genvar i = 0; i < WE_WIDTH; ++i ) begin : loop_we1
+            always_ff @ ( posedge port1_clk ) begin
+                if ( port1_en ) begin
+                    if ( port1_we[i] ) begin
+                        mem[port1_addr][i*WORD_WIDTH +: WORD_WIDTH] <= port1_din[i*WORD_WIDTH +: WORD_WIDTH] ;
+                    end
+                end
+            end
+        end
+        always_ff @ ( posedge port1_clk ) begin
+            if ( port1_en ) begin
+                    if ( ~|port1_we ) begin
+                    tmp_port1_dout <= mem[port1_addr];
+                    end
+            end
+        end
+    end
+    else if ( MODE1 == "WRITE_FIRST" ) begin : blk_wf1
+        // write first
+        for ( genvar i = 0; i < WE_WIDTH; ++i ) begin : loop_we1
             always_ff @ ( posedge port1_clk ) begin
                 if ( port1_en ) begin
                     if ( port1_we[i] ) begin
@@ -125,8 +165,10 @@ module jelly2_ram_dualport
                 end
             end
         end
-        else begin : blk_rf1
-            // read first
+    end
+    else begin : blk_rf1
+        // read first
+        for ( genvar i = 0; i < WE_WIDTH; ++i ) begin : loop_we1
             always_ff @ ( posedge port1_clk ) begin
                 if ( port1_en ) begin
                     if ( port1_we[i] ) begin
