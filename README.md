@@ -71,8 +71,6 @@ FPGAで作成したRealTime-OSアクセラレータです。
     - [Ultra96V2 で DisplayPortを試すサンプル](projects/ultra96v2_display_port/README.md)
 - projects/ultra96v2_imx219_display_port
     - [Ultra96V2 で カメラ画像(IMX219) をDisplayPortから表示](projects/ultra96v2_imx219_display_port/README.md)
-- projects/ultra96v2_imx219_display_port
-    - [Ultra96V2 で カメラ画像(IMX219) をDisplayPortから表示](projects/ultra96v2_imx219_display_port/README.md)
 - projects/ultra96v2_rtos
     - [Ultra96V2 で FPGA化した リアルタイムOS を試すサンプル](projects/ultra96v2_rtos/README.md)
 - projects/ultra96v2_jfive_sample
@@ -83,6 +81,8 @@ FPGAで作成したRealTime-OSアクセラレータです。
     - [Ultra96V2 で HLSでカメラ画像を処理してみるサンプル](projects/ultra96v2_imx219_hls_sample/README.md)
 - projects/kv260_udmabuf_sample
     - [Kria KV260 でudmabufを試すサンプル](projects/kv260_udmabuf_sample/README.md)
+- projects/kv260_imx219
+    - [Kria KV260 で カメラ画像(IMX219) を動かすサンプル](projects/kv260_imx219/README.md)
 - projects/zynqmp_rpu/zynqmp_rpu_rust
     - [ZynqMP の rpu を C++ と Rust で試すサンプル](projects/zynqmp_rpu/README.md)
 
