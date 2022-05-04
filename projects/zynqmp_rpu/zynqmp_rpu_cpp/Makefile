@@ -3,6 +3,8 @@
 PRJ_NAME = zynqmp_rpu_cpp
 TARGET = $(PRJ_NAME).elf
 
+RUN_PROC ?= remoteproc0
+
 # ツール定義
 ARCH    = arm-none-eabi-
 CC      = $(ARCH)gcc
@@ -57,13 +59,19 @@ all: $(TARGET)
 clean:
 	rm -f $(TARGET) $(OBJS) $(TARGET).map
 
-run: $(TARGET)
-	sudo cp $(TARGET) /lib/firmware
-	sudo sh -c "echo $(TARGET) > /sys/class/remoteproc/remoteproc0/firmware"
-	sudo sh -c "echo start > /sys/class/remoteproc/remoteproc0/state"
+.PHONY: run
+run: $(TARGET) stop
+	@sudo cp $(TARGET) /lib/firmware
+	@sudo sh -c "echo $(TARGET) > /sys/class/remoteproc/$(RUN_PROC)/firmware"
+	@sudo sh -c "echo start > /sys/class/remoteproc/$(RUN_PROC)/state"
+	echo "[run] $(RUN_PROC)" ; \
 
+.PHONY: stop
 stop:
-	sudo sh -c "echo stop > /sys/class/remoteproc/remoteproc0/state"
+	@if grep -q running /sys/class/remoteproc/$(RUN_PROC)/state; then \
+		sudo sh -c "echo stop > /sys/class/remoteproc/$(RUN_PROC)/state" ; \
+		echo "[stop] $(RUN_PROC)" ; \
+	fi \
 
 
 # 依存関係
