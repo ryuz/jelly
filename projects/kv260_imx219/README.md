@@ -1,26 +1,26 @@
-# Ultra96-V2 で Raspberry Pi Camera Module V2 (Sony IMX219) を DisplayPort から表示
+# Kria KV260 で Raspberry Pi Camera Module V2 (Sony IMX219) を動かす
 
 ## 概要
 
-Ultra96-V2 で Raspberry Pi Camera Module V2 (Sony IMX219) をDisplayPortから表示するサンプルです。
-
+Kria KV260 で Raspberry Pi Camera Module V2 (Sony IMX219) を動かすサンプルです。
 
 
 ## 環境
 
-このような環境で実施しております。
+### PC環境
 
-- [Ultra96V2](https://www.avnet.com/wps/portal/japan/products/product-highlights/ultra96/)
-- Raspberry Pi Camera Module V2
-- [Vivado 2019.2.1](https://japan.xilinx.com/support/download.html)
-- iwkzm氏の [Debianブートイメージ 2019.2版](https://qiita.com/ikwzm/items/92221c5ea6abbd5e991c)
-- Debianイメージへの OpenCV など各種開発環境のインストール
-- X-Window server となるPC (作者は Windows10 + [Xming](https://sourceforge.net/projects/xming/) で実施)
-- 自作の[Ultra96V2用マルチI/O拡張カード](https://github.com/ryuz/ultra96v2_multi_io)
+vivado2021.2 を用いております。
 
-基本的な環境構築は[こちらのブログ](https://github.com/ryuz/qrunch_blog/blob/master/entries/public/blog_2019_12_28_10_16_24.md)でも紹介しておりますので参考にしてください。
 
-ソフトウェアは Debian イメージ上でセルフコンパイル可能ですので、ホストPC側は Vivado のみでも開発が可能です(Vitisなどもある方がよいですが)。
+### KV260環境
+
+[認定Ubuntu](https://japan.xilinx.com/products/design-tools/embedded-software/ubuntu.html) 環境にて試しております。
+
+```
+image       : iot-kria-classic-desktop-2004-x03-20211110-98.img
+Description : Ubuntu 20.04.4 LTS
+kernel      : 5.4.0-1017-xilinx-zynqmp
+```
 
 
 ## 動かし方
@@ -33,11 +33,12 @@ git clone https://github.com/ryuz/jelly.git
 
 で一式取得してください。
 
-### Vivadoで bit ファイルを作る
 
-projects/ultra96v2_imx219_display_port/syn/vivado2019.2
+### PC側の Vivadoで bit ファイルを作る
 
-に移動して Vivado から ultra96v2_imx219_display_port.xpr を開いてください。
+projects/kv260_imx219/syn/vivado2021.2
+
+に移動して Vivado から kv260_imx219.xpr を開いてください。
 
 最初に BlockDesign を tcl から再構成する必要がります。
 
@@ -48,26 +49,22 @@ Vivado メニューの「Tools」→「Run Tcl Script」で、プロジェクト
 
 design_1 が生成されたら「Flow」→「Run Implementation」で合成を行います。正常に合成できれば
 
-ultra96v2_imx219_display_port.runs/impl_1
+kv260_imx219.runs/impl_1
 
-に ultra96v2_imx219_display_port.bit が出来上がります。
-
-### Debian起動時のパラメータ設定(CMA領域増量)
-
-今回の動作では、IMX219イメージセンサーからPL経由で画像を取り込みますが、その際に ikwzm氏の [udmabuf](https://qiita.com/ikwzm/items/cc1bb33ff43a491440ea) を用いて、CMA(DMA Contiguous Memory Allocator)領域から領域を割り当てます。
+に kv260_imx219.bit が出来上がります。
 
 
-### Ultra96V2 で実行
+### KV260 でPSソフトをコンパイルして実行
 
-projects/ultra96v2_imx219_display_port/app の内容一式と先ほど合成した ultra96v2_imx219_display_port.bit を、Ultra96V2 の Debian で作業できる適当なディレクトリにコピーします。bitファイルも同じappディレクトリに入れてください。
+projects/kv260_imx219/app の内容一式と先ほど合成した kv260_imx219.bit を、KV260 の Ubuntu で作業できる適当なディレクトリにコピーします。bitファイルも同じ app ディレクトリに入れてください。
 
-Ultra96V2 側では Debian が起動済みで ssh などで接続ができている前提ですので scp や samba などでコピーすると良いでしょう。app に関しては Ultra96V2 から git で clone することも可能です。
+を、KV260 側では Ubuntu が起動済みで ssh などで接続ができている前提ですので scp や samba などでコピーすると良いでしょう。app に関しては を、KV260 から git で clone することも可能です。
 
 この時、
 
 - OpenCV や bootgen など必要なツールがインストールできていること
 - ssh ポートフォワーディングなどで、PCに X-Window が開く状態にしておくこと
-- /dev/uio や /dev/i2c-4 などのデバイスのアクセス権が得られること
+- /dev/uio や /dev/i2c-6 などのデバイスのアクセス権が得られること
 - sudo 権限のあるユーザーで実行すること
 
 などの下準備がありますので、ブログなど参考に設定ください。
@@ -78,7 +75,7 @@ Ultra96V2 側では Debian が起動済みで ssh などで接続ができてい
 make all
 ```
 
-と実行すれば ultra96v2_imx219_display_port.out という実行ファイルが生成されます。
+と実行すれば kv260_imx219.out という実行ファイルが生成されます。
 
 ここで
 
@@ -101,7 +98,7 @@ make unload
 
 ```
 make load
-./ultra96v2_imx219_display_port.out 1000fps
+./kv260_imx219.out 1000fps
 ```
 
 のようにすれば、640x132での 1000fps モードにも切り替わります(カメラが1000fpsで動くだけで、表示は間引かれて60fpsです)。
