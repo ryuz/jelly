@@ -78,13 +78,14 @@ FPGAで作成したRealTime-OSアクセラレータです。
 - projects/ultra96v2_jfive_sample
     - [Ultra96V2 で 最小セットの RISC-V 互換コアを作ってみたサンプル](projects/ultra96v2_jfive_sample/README.md)
 - projects/ultra96v2_hls_test
-    - [コマンドラインだけでHLSで書いたIPをVivadoに取り込んで合成するサンプル](projects/ultra96v2_hls_test/README.md)
+    - [Ultra96V2 で コマンドラインだけでHLSで書いたIPをVivadoに取り込んで合成するサンプル](projects/ultra96v2_hls_test/README.md)
 - projects/ultra96v2_imx219_hls_sample
-    - [HLSでカメラ画像を処理してみるサンプル](projects/ultra96v2_imx219_hls_sample/README.md)
+    - [Ultra96V2 で HLSでカメラ画像を処理してみるサンプル](projects/ultra96v2_imx219_hls_sample/README.md)
+- projects/kv260_udmabuf_sample
+    - [Kria KV260 でudmabufを試すサンプル](projects/kv260_udmabuf_sample/README.md)
 - projects/zynqmp_rpu/zynqmp_rpu_rust
-    - [ZynqMP の rpu を Rust で試すサンプル](projects/zynqmp_rpu/zynqmp_rpu_rust/README.md)
+    - [ZynqMP の rpu を C++ と Rust で試すサンプル](projects/zynqmp_rpu/README.md)
 
 ## ライセンス
 
   license.txt にある通り、MIT ライセンスとして置いておきます。
-
