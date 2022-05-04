@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
     auto reg_colmat = uio_acc.GetAccessor(0x00120200);
     auto reg_wdma   = uio_acc.GetAccessor(0x00210000);
     
-#if 1
+#if 0
     std::cout << "CORE ID" << std::endl;
     std::cout << std::hex << reg_gid.ReadReg(0) << std::endl;
     std::cout << std::hex << uio_acc.ReadReg(0) << std::endl;
@@ -204,19 +204,10 @@ int main(int argc, char *argv[])
 
     auto dmabuf_phys_adr = udmabuf_acc.GetPhysAddr();
     auto dmabuf_mem_size = udmabuf_acc.GetSize();
-    std::cout << "udmabuf0 phys addr : 0x" << std::hex << dmabuf_phys_adr << std::endl;
-    std::cout << "udmabuf0 size      : " << std::dec << dmabuf_mem_size << std::endl;
+//  std::cout << "udmabuf0 phys addr : 0x" << std::hex << dmabuf_phys_adr << std::endl;
+//  std::cout << "udmabuf0 size      : " << std::dec << dmabuf_mem_size << std::endl;
 
-    // カメラ電源ON
-    /*
-    jelly::GpioAccessor gpio(36);
-    gpio.SetDirection(true);
-    gpio.SetValue(0);
-    usleep(500000);
-    gpio.SetValue(1);
-    usleep(500000);
-    */
-
+    // カメラON
     uio_acc.WriteReg(2, 1);
     usleep(500000);
 
@@ -228,8 +219,8 @@ int main(int argc, char *argv[])
     }
     imx219.Reset();
 
+    // カメラID取得
     std::cout << "Model ID : " << std::hex << std::setfill('0') << std::setw(4) << imx219.GetModelId() << std::endl;
-//  return 0;
 
     // camera 設定
     imx219.SetPixelClock(pixel_clock);
