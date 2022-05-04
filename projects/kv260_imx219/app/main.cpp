@@ -19,6 +19,22 @@ void capture_still_image(jelly::MemAccessor& reg_wdma, jelly::MemAccessor& reg_f
 
 int main(int argc, char *argv[])
 {
+    /*
+    {
+        jelly::I2cAccessor i2c;
+        if ( !i2c.Open("/dev/i2c-6", 0x74) ) {
+            return 1;
+        }
+        
+        cv::Mat img = cv::Mat::zeros(480, 640, CV_8UC3);
+        cv::imshow("img", img);
+        while ( (cv::waitKey(1) & 0xff) != 0x1b ) {
+            i2c.Write("\x55", 1);
+        }
+    }
+    return 0;
+    */
+
     double  pixel_clock = 91000000.0;
     bool    binning     = false;
     int     width       = 3280;
@@ -169,7 +185,7 @@ int main(int argc, char *argv[])
     auto reg_colmat = uio_acc.GetAccessor(0x00120200);
     auto reg_wdma   = uio_acc.GetAccessor(0x00210000);
     
-#if 1
+#if 0
     std::cout << "CORE ID" << std::endl;
     std::cout << std::hex << reg_gid.ReadReg(0) << std::endl;
     std::cout << std::hex << uio_acc.ReadReg(0) << std::endl;
@@ -191,22 +207,19 @@ int main(int argc, char *argv[])
 //  std::cout << "udmabuf0 phys addr : 0x" << std::hex << dmabuf_phys_adr << std::endl;
 //  std::cout << "udmabuf0 size      : " << std::dec << dmabuf_mem_size << std::endl;
 
-    // カメラ電源ON
-    jelly::GpioAccessor gpio(36);
-    gpio.SetDirection(true);
-    gpio.SetValue(0);
-    usleep(500000);
-    gpio.SetValue(1);
+    // カメラON
+    uio_acc.WriteReg(2, 1);
     usleep(500000);
 
     // IMX219 I2C control
     jelly::Imx219ControlI2c imx219;
-    if ( !imx219.Open("/dev/i2c-4", 0x10) ) {
+    if ( !imx219.Open("/dev/i2c-6", 0x10) ) {
         std::cout << "I2C open error" << std::endl;
         return 1;
     }
     imx219.Reset();
 
+    // カメラID取得
     std::cout << "Model ID : " << std::hex << std::setfill('0') << std::setw(4) << imx219.GetModelId() << std::endl;
 
     // camera 設定
