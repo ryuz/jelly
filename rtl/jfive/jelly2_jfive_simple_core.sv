@@ -11,7 +11,7 @@
 `default_nettype none
 
 
-// RISC-V(RV32I 3 stage pipelines)
+// RISC-V(RV32I 3-stage pipelines)
 module jelly2_jfive_simple_core
         #(
             parameter int                       IBUS_ADDR_WIDTH = 14,
@@ -280,6 +280,7 @@ module jelly2_jfive_simple_core
     wire    if_dec_ecall  = (if_opcode == 7'b1110011 && if_instr[20] == 1'b0);              // (if_instr == 32'h00000073);
     wire    if_dec_ebreak = (if_opcode == 7'b1110011 && if_instr[20] == 1'b1);              // (if_instr == 32'h00100073);
 
+
     // register enable
     always_comb begin
         if_rd_en  = 1'bx;
@@ -323,9 +324,11 @@ module jelly2_jfive_simple_core
     end
 
     always_ff @(posedge clk) begin
-        id_rd_en  <= if_rd_en  && (if_rd_idx  != '0) && if_valid;
-        id_rs1_en <= if_rs1_en && if_valid;
-        id_rs2_en <= if_rs2_en && if_valid;
+        if ( cke ) begin
+            id_rd_en  <= if_rd_en  && (if_rd_idx  != '0) && if_valid;
+            id_rs1_en <= if_rs1_en && if_valid;
+            id_rs2_en <= if_rs2_en && if_valid;
+        end
     end
 
     // Instruction decode
@@ -359,7 +362,7 @@ module jelly2_jfive_simple_core
             (
                 .reset,
                 .clk,
-                .cke,
+                .cke            (1'b1),
 
                 .wr_en          (ex_rd_en),
                 .wr_addr        (ex_rd_idx),
@@ -375,7 +378,7 @@ module jelly2_jfive_simple_core
     always_ff @(posedge clk) begin
         if ( cke ) begin
             id_branch_en  <= 1'b0;
-            id_branch_sel <= branch_sel_t'(4'hx);
+            id_branch_sel <= branch_sel_t'('x);
             if ( if_dec_jal  ) begin id_branch_en <= id_valid_next; id_branch_sel <= BRANCH_JAL;  end
             if ( if_dec_jalr ) begin id_branch_en <= id_valid_next; id_branch_sel <= BRANCH_JALR; end
             if ( if_dec_beq  ) begin id_branch_en <= id_valid_next; id_branch_sel <= BRANCH_BEQ;  end
@@ -403,36 +406,38 @@ module jelly2_jfive_simple_core
     logic                       id_alu_sel1;
     logic   signed  [XLEN-1:0]  id_alu_val1;
     always_ff @(posedge clk) begin
-        id_alu_sel0 <= alu_sel0_t'('x);
-        id_alu_sel1 <= alu_sel1_t'('x);
-        id_alu_val1 <= 'x;
-        
-        unique case (1'b1)
-        if_dec_lui:     begin id_alu_op <= ALU_OP_ADD; id_alu_sel0 <= ALU_SEL0_ZERO; id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_imm_u); end
-        if_dec_auipc:   begin id_alu_op <= ALU_OP_ADD; id_alu_sel0 <= ALU_SEL0_ZERO; id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_pc) + XLEN'(if_imm_u);end
-        if_dec_jal:     begin id_alu_op <= ALU_OP_ADD; id_alu_sel0 <= ALU_SEL0_ZERO; id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_pc) + XLEN'(4); end
-        if_dec_jalr:    begin id_alu_op <= ALU_OP_ADD; id_alu_sel0 <= ALU_SEL0_ZERO; id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_pc) + XLEN'(4); end
-        if_dec_addi:    begin id_alu_op <= ALU_OP_ADD; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_imm_i); end
-        if_dec_xori:    begin id_alu_op <= ALU_OP_XOR; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_imm_i); end
-        if_dec_ori:     begin id_alu_op <= ALU_OP_OR;  id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_imm_i); end
-        if_dec_andi:    begin id_alu_op <= ALU_OP_AND; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_imm_i); end
-        if_dec_slli:    begin id_alu_op <= ALU_OP_SLL; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_imm_i); end
-        if_dec_srli:    begin id_alu_op <= ALU_OP_SRL; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_imm_i); end
-        if_dec_srai:    begin id_alu_op <= ALU_OP_SRA; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_imm_i); end
-        if_dec_add:     begin id_alu_op <= ALU_OP_ADD; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_RS2; id_alu_val1 <= 'x; end
-        if_dec_sub:     begin id_alu_op <= ALU_OP_SUB; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_RS2; id_alu_val1 <= 'x; end
-        if_dec_sll:     begin id_alu_op <= ALU_OP_SLL; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_RS2; id_alu_val1 <= 'x; end
-        if_dec_slti:    begin id_alu_op <= ALU_OP_ADD; id_alu_sel0 <= ALU_SEL0_SLT;  id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(0); end
-        if_dec_sltiu:   begin id_alu_op <= ALU_OP_ADD; id_alu_sel0 <= ALU_SEL0_SLTU; id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(0); end
-        if_dec_slt:     begin id_alu_op <= ALU_OP_ADD; id_alu_sel0 <= ALU_SEL0_SLT;  id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(0); end
-        if_dec_sltu:    begin id_alu_op <= ALU_OP_ADD; id_alu_sel0 <= ALU_SEL0_SLTU; id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(0); end
-        if_dec_xor:     begin id_alu_op <= ALU_OP_XOR; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_RS2; id_alu_val1 <= 'x; end
-        if_dec_srl:     begin id_alu_op <= ALU_OP_SRL; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_RS2; id_alu_val1 <= 'x; end
-        if_dec_sra:     begin id_alu_op <= ALU_OP_SRA; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_RS2; id_alu_val1 <= 'x; end
-        if_dec_or:      begin id_alu_op <= ALU_OP_OR;  id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_RS2; id_alu_val1 <= 'x; end
-        if_dec_and:     begin id_alu_op <= ALU_OP_AND; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_RS2; id_alu_val1 <= 'x; end
-        default: ;
-        endcase
+        if ( cke ) begin
+            id_alu_sel0 <= alu_sel0_t'('x);
+            id_alu_sel1 <= alu_sel1_t'('x);
+            id_alu_val1 <= 'x;
+            
+            unique case (1'b1)
+            if_dec_lui:     begin id_alu_op <= ALU_OP_ADD; id_alu_sel0 <= ALU_SEL0_ZERO; id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_imm_u); end
+            if_dec_auipc:   begin id_alu_op <= ALU_OP_ADD; id_alu_sel0 <= ALU_SEL0_ZERO; id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_pc) + XLEN'(if_imm_u);end
+            if_dec_jal:     begin id_alu_op <= ALU_OP_ADD; id_alu_sel0 <= ALU_SEL0_ZERO; id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_pc) + XLEN'(4); end
+            if_dec_jalr:    begin id_alu_op <= ALU_OP_ADD; id_alu_sel0 <= ALU_SEL0_ZERO; id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_pc) + XLEN'(4); end
+            if_dec_addi:    begin id_alu_op <= ALU_OP_ADD; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_imm_i); end
+            if_dec_xori:    begin id_alu_op <= ALU_OP_XOR; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_imm_i); end
+            if_dec_ori:     begin id_alu_op <= ALU_OP_OR;  id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_imm_i); end
+            if_dec_andi:    begin id_alu_op <= ALU_OP_AND; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_imm_i); end
+            if_dec_slli:    begin id_alu_op <= ALU_OP_SLL; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_imm_i); end
+            if_dec_srli:    begin id_alu_op <= ALU_OP_SRL; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_imm_i); end
+            if_dec_srai:    begin id_alu_op <= ALU_OP_SRA; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_imm_i); end
+            if_dec_add:     begin id_alu_op <= ALU_OP_ADD; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_RS2; id_alu_val1 <= 'x; end
+            if_dec_sub:     begin id_alu_op <= ALU_OP_SUB; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_RS2; id_alu_val1 <= 'x; end
+            if_dec_sll:     begin id_alu_op <= ALU_OP_SLL; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_RS2; id_alu_val1 <= 'x; end
+            if_dec_slti:    begin id_alu_op <= ALU_OP_ADD; id_alu_sel0 <= ALU_SEL0_SLT;  id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(0); end
+            if_dec_sltiu:   begin id_alu_op <= ALU_OP_ADD; id_alu_sel0 <= ALU_SEL0_SLTU; id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(0); end
+            if_dec_slt:     begin id_alu_op <= ALU_OP_ADD; id_alu_sel0 <= ALU_SEL0_SLT;  id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(0); end
+            if_dec_sltu:    begin id_alu_op <= ALU_OP_ADD; id_alu_sel0 <= ALU_SEL0_SLTU; id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(0); end
+            if_dec_xor:     begin id_alu_op <= ALU_OP_XOR; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_RS2; id_alu_val1 <= 'x; end
+            if_dec_srl:     begin id_alu_op <= ALU_OP_SRL; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_RS2; id_alu_val1 <= 'x; end
+            if_dec_sra:     begin id_alu_op <= ALU_OP_SRA; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_RS2; id_alu_val1 <= 'x; end
+            if_dec_or:      begin id_alu_op <= ALU_OP_OR;  id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_RS2; id_alu_val1 <= 'x; end
+            if_dec_and:     begin id_alu_op <= ALU_OP_AND; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_RS2; id_alu_val1 <= 'x; end
+            default: ;
+            endcase
+        end
     end
 
 
@@ -477,8 +482,10 @@ module jelly2_jfive_simple_core
 
     // forwarding
     always_ff @(posedge clk) begin
-        id_rs1_forward <= id_rd_en && (id_rd_idx == if_rs1_idx) && if_valid;
-        id_rs2_forward <= id_rd_en && (id_rd_idx == if_rs2_idx) && if_valid;
+        if ( cke ) begin
+            id_rs1_forward <= id_rd_en && (id_rd_idx == if_rs1_idx) && if_valid;
+            id_rs2_forward <= id_rd_en && (id_rd_idx == if_rs2_idx) && if_valid;
+        end
     end
 
 
@@ -590,58 +597,60 @@ module jelly2_jfive_simple_core
     // ALU
     logic   signed  [31:0]  ex_alu_rd_val;
     always_ff @(posedge clk) begin
-        automatic   logic   signed  [XLEN-1:0]          alu_val0;
-        automatic   logic   signed  [XLEN-1:0]          alu_val1;
-        automatic   logic           [XLEN-1:0]          alu_val0_u;
-        automatic   logic           [XLEN-1:0]          alu_val1_u;
-        automatic   logic           [SHAMT_WIDTH-1:0]   shamt;
-        automatic   logic   signed  [XLEN-1:0]          adder_val0;
-        automatic   logic   signed  [XLEN-1:0]          adder_val1;
-        automatic   logic                               adder_carry;
-        alu_val0    = 'x;
-        alu_val1    = 'x;
-        alu_val0_u  = 'x;
-        alu_val1_u  = 'x;
-        shamt       = 'x;
-        adder_val0  = 'x;
-        adder_val1  = 'x;
-        adder_carry = 'x;
-        
-        // alu input0
-        case ( id_alu_sel0 )
-        ALU_SEL0_RS1:  begin alu_val0 = ex_fwd_rs1_val;     end
-        ALU_SEL0_ZERO: begin alu_val0 = '0;                 end
-        ALU_SEL0_SLT:  begin alu_val0 = XLEN'(ex_cond_lt);  end
-        ALU_SEL0_SLTU: begin alu_val0 = XLEN'(ex_cond_ltu); end
-        default: ;
-        endcase
+        if ( cke ) begin
+            automatic   logic   signed  [XLEN-1:0]          alu_val0;
+            automatic   logic   signed  [XLEN-1:0]          alu_val1;
+            automatic   logic           [XLEN-1:0]          alu_val0_u;
+            automatic   logic           [XLEN-1:0]          alu_val1_u;
+            automatic   logic           [SHAMT_WIDTH-1:0]   shamt;
+            automatic   logic   signed  [XLEN-1:0]          adder_val0;
+            automatic   logic   signed  [XLEN-1:0]          adder_val1;
+            automatic   logic                               adder_carry;
+            alu_val0    = 'x;
+            alu_val1    = 'x;
+            alu_val0_u  = 'x;
+            alu_val1_u  = 'x;
+            shamt       = 'x;
+            adder_val0  = 'x;
+            adder_val1  = 'x;
+            adder_carry = 'x;
+            
+            // alu input0
+            case ( id_alu_sel0 )
+            ALU_SEL0_RS1:  begin alu_val0 = ex_fwd_rs1_val;     end
+            ALU_SEL0_ZERO: begin alu_val0 = '0;                 end
+            ALU_SEL0_SLT:  begin alu_val0 = XLEN'(ex_cond_lt);  end
+            ALU_SEL0_SLTU: begin alu_val0 = XLEN'(ex_cond_ltu); end
+            default: ;
+            endcase
 
-        // alu input1
-        case ( id_alu_sel1 )
-        ALU_SEL1_RS2:  begin alu_val1 = ex_fwd_rs2_val;     end
-        ALU_SEL1_VAL:  begin alu_val1 = id_alu_val1;        end
-        default: ;
-        endcase
+            // alu input1
+            case ( id_alu_sel1 )
+            ALU_SEL1_RS2:  begin alu_val1 = ex_fwd_rs2_val;     end
+            ALU_SEL1_VAL:  begin alu_val1 = id_alu_val1;        end
+            default: ;
+            endcase
 
 
-        // alu
-        alu_val0_u = alu_val0;
-        alu_val1_u = alu_val1;
-        shamt = alu_val1_u[SHAMT_WIDTH-1:0];
-        case ( id_alu_op )
-        ALU_OP_ADD: begin adder_val0 = alu_val0;            adder_val1 =  alu_val1; adder_carry = 1'b0; end
-        ALU_OP_SUB: begin adder_val0 = alu_val0;            adder_val1 = ~alu_val1; adder_carry = 1'b1; end
-        ALU_OP_SLL: begin adder_val0 = alu_val0   << shamt; adder_val1 = '0;        adder_carry = 1'b0; end
-        ALU_OP_SRL: begin adder_val0 = alu_val0_u >> shamt; adder_val1 = '0;        adder_carry = 1'b0; end
-        ALU_OP_SRA: begin adder_val0 = alu_val0  >>> shamt; adder_val1 = '0;        adder_carry = 1'b0; end
-        ALU_OP_AND: begin adder_val0 = alu_val0 & alu_val1; adder_val1 = '0;        adder_carry = 1'b0; end
-        ALU_OP_OR:  begin adder_val0 = alu_val0 | alu_val1; adder_val1 = '0;        adder_carry = 1'b0; end
-        ALU_OP_XOR: begin adder_val0 = alu_val0 ^ alu_val1; adder_val1 = '0;        adder_carry = 1'b0; end
-        default:;
-        endcase
+            // alu
+            alu_val0_u = alu_val0;
+            alu_val1_u = alu_val1;
+            shamt = alu_val1_u[SHAMT_WIDTH-1:0];
+            case ( id_alu_op )
+            ALU_OP_ADD: begin adder_val0 = alu_val0;            adder_val1 =  alu_val1; adder_carry = 1'b0; end
+            ALU_OP_SUB: begin adder_val0 = alu_val0;            adder_val1 = ~alu_val1; adder_carry = 1'b1; end
+            ALU_OP_SLL: begin adder_val0 = alu_val0   << shamt; adder_val1 = '0;        adder_carry = 1'b0; end
+            ALU_OP_SRL: begin adder_val0 = alu_val0_u >> shamt; adder_val1 = '0;        adder_carry = 1'b0; end
+            ALU_OP_SRA: begin adder_val0 = alu_val0  >>> shamt; adder_val1 = '0;        adder_carry = 1'b0; end
+            ALU_OP_AND: begin adder_val0 = alu_val0 & alu_val1; adder_val1 = '0;        adder_carry = 1'b0; end
+            ALU_OP_OR:  begin adder_val0 = alu_val0 | alu_val1; adder_val1 = '0;        adder_carry = 1'b0; end
+            ALU_OP_XOR: begin adder_val0 = alu_val0 ^ alu_val1; adder_val1 = '0;        adder_carry = 1'b0; end
+            default:;
+            endcase
 
-        // adder
-        ex_alu_rd_val <= adder_val0 + adder_val1 + XLEN'(adder_carry);
+            // adder
+            ex_alu_rd_val <= adder_val0 + adder_val1 + XLEN'(adder_carry);
+        end
     end
 
 

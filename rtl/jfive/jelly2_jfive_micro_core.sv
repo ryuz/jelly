@@ -10,6 +10,7 @@
 `default_nettype none
 
 
+// RISC-V(RV32I 6-stage pipelines)
 module jelly2_jfive_micro_core
         #(
             parameter   int                     PC_WIDTH         = 32,
@@ -67,12 +68,14 @@ module jelly2_jfive_micro_core
     // -----------------------------------------
 
     // parameters
-    localparam XLEN        = 32;
-    localparam SEL_WIDTH   = XLEN / 8;
-    localparam SIZE_WIDTH  = 2;
-    localparam INSTR_WIDTH = 32;
-    localparam RIDX_WIDTH  = 5;
+    localparam  int     XLEN        = 32;
+    localparam  int     SEL_WIDTH   = XLEN / 8;
+    localparam  int     SIZE_WIDTH  = 2;
+    localparam  int     INSTR_WIDTH = 32;
+    localparam  int     RIDX_WIDTH  = 5;
+    localparam  int     SHAMT_WIDTH = $clog2(XLEN);
 
+    // enums
     typedef enum logic [3:0] {
         BRANCH_JAL,
         BRANCH_JALR,
@@ -83,6 +86,29 @@ module jelly2_jfive_micro_core
         BRANCH_BLTU,
         BRANCH_BGEU
     } branch_sel_t;
+
+    typedef enum logic [2:0] {
+        ALU_OP_ADD,
+        ALU_OP_SUB,
+        ALU_OP_SLL,
+        ALU_OP_SRL,
+        ALU_OP_SRA,
+        ALU_OP_AND,
+        ALU_OP_OR,
+        ALU_OP_XOR
+    } alu_op_t;
+
+    typedef enum logic [1:0] {
+        ALU_SEL0_RS1,
+        ALU_SEL0_ZERO,
+        ALU_SEL0_SLT,
+        ALU_SEL0_SLTU
+    } alu_sel0_t;
+
+    typedef enum logic [0:0] {
+        ALU_SEL1_RS2,
+        ALU_SEL1_VAL
+    } alu_sel1_t;
 
 
     // Program counter
@@ -348,22 +374,71 @@ module jelly2_jfive_micro_core
     assign if_imm_u  = {if_instr[31:12], 12'd0};
     assign if_imm_j  = {if_instr[31], if_instr[19:12], if_instr[20], if_instr[30:21], 1'b0};
 
-    // register
+   // decode
+    wire    if_dec_lui    = (if_opcode == 7'b0110111);
+    wire    if_dec_auipc  = (if_opcode == 7'b0010111);
+    wire    if_dec_jal    = (if_opcode == 7'b1101111);
+    wire    if_dec_jalr   = (if_opcode == 7'b1100111); // (if_funct3 == 3'b000);
+    wire    if_dec_branch = (if_opcode == 7'b1100011);
+    wire    if_dec_beq    = (if_dec_branch && if_funct3 == 3'b000);
+    wire    if_dec_bne    = (if_dec_branch && if_funct3 == 3'b001);
+    wire    if_dec_blt    = (if_dec_branch && if_funct3 == 3'b100);
+    wire    if_dec_bge    = (if_dec_branch && if_funct3 == 3'b101);
+    wire    if_dec_bltu   = (if_dec_branch && if_funct3 == 3'b110);
+    wire    if_dec_bgeu   = (if_dec_branch && if_funct3 == 3'b111);
+    wire    if_dec_load   = (if_opcode == 7'b0000011);
+    wire    if_dec_lb     = (if_dec_load && if_funct3 == 3'b000);
+    wire    if_dec_lh     = (if_dec_load && if_funct3 == 3'b001);
+    wire    if_dec_lw     = (if_dec_load && if_funct3 == 3'b010);
+    wire    if_dec_lbu    = (if_dec_load && if_funct3 == 3'b100);
+    wire    if_dec_lhu    = (if_dec_load && if_funct3 == 3'b101);
+    wire    if_dec_store  = (if_opcode == 7'b0100011);
+    wire    if_dec_sb     = (if_dec_store && if_funct3 == 3'b000);
+    wire    if_dec_sh     = (if_dec_store && if_funct3 == 3'b001);
+    wire    if_dec_sw     = (if_dec_store && if_funct3 == 3'b010);
+    wire    if_dec_alui   = (if_opcode == 7'b0010011);
+    wire    if_dec_addi   = (if_dec_alui && if_funct3 == 3'b000);
+    wire    if_dec_slti   = (if_dec_alui && if_funct3 == 3'b010);
+    wire    if_dec_sltiu  = (if_dec_alui && if_funct3 == 3'b011);
+    wire    if_dec_xori   = (if_dec_alui && if_funct3 == 3'b100);
+    wire    if_dec_ori    = (if_dec_alui && if_funct3 == 3'b110);
+    wire    if_dec_andi   = (if_dec_alui && if_funct3 == 3'b111);
+    wire    if_dec_slli   = (if_dec_alui && if_funct3 == 3'b001 && if_funct7[5] == 1'b0);   // if_funct7 == 7'b0000000);
+    wire    if_dec_srli   = (if_dec_alui && if_funct3 == 3'b101 && if_funct7[5] == 1'b0);   // if_funct7 == 7'b0000000);
+    wire    if_dec_srai   = (if_dec_alui && if_funct3 == 3'b101 && if_funct7[5] == 1'b1);   // if_funct7 == 7'b0100000);
+    wire    if_dec_alu    = (if_opcode == 7'b0110011);
+    wire    if_dec_add    = (if_dec_alu && if_funct3 == 3'b000  && if_funct7[5] == 1'b0);   // (if_funct7 == 7'b0000000);
+    wire    if_dec_sub    = (if_dec_alu && if_funct3 == 3'b000  && if_funct7[5] == 1'b1);   // (if_funct7 == 7'b0100000);
+    wire    if_dec_sll    = (if_dec_alu && if_funct3 == 3'b001);                            // (if_funct7 == 7'b0000000);
+    wire    if_dec_slt    = (if_dec_alu && if_funct3 == 3'b010);                            // (if_funct7 == 7'b0000000);
+    wire    if_dec_sltu   = (if_dec_alu && if_funct3 == 3'b011);                            // (if_funct7 == 7'b0000000);
+    wire    if_dec_xor    = (if_dec_alu && if_funct3 == 3'b100);                            // (if_funct7 == 7'b0000000);
+    wire    if_dec_srl    = (if_dec_alu && if_funct3 == 3'b101 && if_funct7[5] == 1'b0);    // (if_funct7 == 7'b0000000);
+    wire    if_dec_sra    = (if_dec_alu && if_funct3 == 3'b101 && if_funct7[5] == 1'b1);    // (if_funct7 == 7'b0100000);
+    wire    if_dec_or     = (if_dec_alu && if_funct3 == 3'b110);                            // (if_funct7 == 7'b0000000);
+    wire    if_dec_and    = (if_dec_alu && if_funct3 == 3'b111);                            // (if_funct7 == 7'b0000000);
+    wire    if_dec_fence  = (if_opcode == 7'b0001111);
+    wire    if_dec_ecall  = (if_opcode == 7'b1110011 && if_instr[20] == 1'b0);              // (if_instr == 32'h00000073);
+    wire    if_dec_ebreak = (if_opcode == 7'b1110011 && if_instr[20] == 1'b1);              // (if_instr == 32'h00100073);
+
+
+    // register enable
     always_comb begin
-        unique case ( if_opcode )
-        7'b0110111: begin if_rd_en = 1'b1; if_rs1_en = 1'b0; if_rs2_en = 1'b0; end // LUI
-        7'b0010111: begin if_rd_en = 1'b1; if_rs1_en = 1'b0; if_rs2_en = 1'b0; end // AUIPC
-        7'b1101111: begin if_rd_en = 1'b1; if_rs1_en = 1'b0; if_rs2_en = 1'b0; end // JAL
-        7'b1100111: begin if_rd_en = 1'b1; if_rs1_en = 1'b1; if_rs2_en = 1'b0; end // JALR
-        7'b1100011: begin if_rd_en = 1'b0; if_rs1_en = 1'b1; if_rs2_en = 1'b1; end // Branch
-        7'b0000011: begin if_rd_en = 1'b1; if_rs1_en = 1'b1; if_rs2_en = 1'b0; end // Load
-        7'b0100011: begin if_rd_en = 1'b0; if_rs1_en = 1'b1; if_rs2_en = 1'b1; end // Store
-        7'b0010011: begin if_rd_en = 1'b1; if_rs1_en = 1'b1; if_rs2_en = 1'b0; end // Arithmetic imm
-        7'b0110011: begin if_rd_en = 1'b1; if_rs1_en = 1'b1; if_rs2_en = 1'b1; end // Arithmetic rs2
-        7'b0001111: begin if_rd_en = 1'b1; if_rs1_en = 1'b1; if_rs2_en = 1'b0; end // FENCE
-        7'b1110011: begin if_rd_en = 1'b1; if_rs1_en = 1'b1; if_rs2_en = 1'b0; end // ECALL/EBREAK
-        default:    begin if_rd_en = 1'bx; if_rs1_en = 1'bx; if_rs2_en = 1'bx; end
-        endcase
+        if_rd_en  = 1'bx;
+        if_rs1_en = 1'bx;
+        if_rs2_en = 1'bx;
+        if ( if_dec_lui    ) begin if_rd_en = 1'b1; if_rs1_en = 1'b0; if_rs2_en = 1'b0; end // LUI
+        if ( if_dec_auipc  ) begin if_rd_en = 1'b1; if_rs1_en = 1'b0; if_rs2_en = 1'b0; end // AUIPC
+        if ( if_dec_jal    ) begin if_rd_en = 1'b1; if_rs1_en = 1'b0; if_rs2_en = 1'b0; end // JAL
+        if ( if_dec_jalr   ) begin if_rd_en = 1'b1; if_rs1_en = 1'b1; if_rs2_en = 1'b0; end // JALR
+        if ( if_dec_branch ) begin if_rd_en = 1'b0; if_rs1_en = 1'b1; if_rs2_en = 1'b1; end // Branch
+        if ( if_dec_load   ) begin if_rd_en = 1'b1; if_rs1_en = 1'b1; if_rs2_en = 1'b0; end // Load
+        if ( if_dec_store  ) begin if_rd_en = 1'b0; if_rs1_en = 1'b1; if_rs2_en = 1'b1; end // Store
+        if ( if_dec_alui   ) begin if_rd_en = 1'b1; if_rs1_en = 1'b1; if_rs2_en = 1'b0; end // Arithmetic imm
+        if ( if_dec_alu    ) begin if_rd_en = 1'b1; if_rs1_en = 1'b1; if_rs2_en = 1'b1; end // Arithmetic rs2
+        if ( if_dec_fence  ) begin if_rd_en = 1'b1; if_rs1_en = 1'b1; if_rs2_en = 1'b0; end // FENCE
+        if ( if_dec_ecall  ) begin if_rd_en = 1'b1; if_rs1_en = 1'b1; if_rs2_en = 1'b0; end // ECALL
+        if ( if_dec_ebreak ) begin if_rd_en = 1'b1; if_rs1_en = 1'b1; if_rs2_en = 1'b0; end // EBREAK
     end
 
     // stall
@@ -384,48 +459,6 @@ module jelly2_jfive_micro_core
         if ( if_rs2_en && if_rs2_idx == ex_rd_idx && ex_mem_re ) begin if_stall_en = 1'b1; end
     end
 
-
-    // decode
-    wire    if_dec_lui    = (if_opcode == 7'b0110111);
-    wire    if_dec_auipc  = (if_opcode == 7'b0010111);
-    wire    if_dec_jal    = (if_opcode == 7'b1101111);
-    wire    if_dec_jalr   = (if_opcode == 7'b1100111 && if_funct3 == 3'b000);
-    wire    if_dec_beq    = (if_opcode == 7'b1100011 && if_funct3 == 3'b000);
-    wire    if_dec_bne    = (if_opcode == 7'b1100011 && if_funct3 == 3'b001);
-    wire    if_dec_blt    = (if_opcode == 7'b1100011 && if_funct3 == 3'b100);
-    wire    if_dec_bge    = (if_opcode == 7'b1100011 && if_funct3 == 3'b101);
-    wire    if_dec_bltu   = (if_opcode == 7'b1100011 && if_funct3 == 3'b110);
-    wire    if_dec_bgeu   = (if_opcode == 7'b1100011 && if_funct3 == 3'b111);
-    wire    if_dec_lb     = (if_opcode == 7'b0000011 && if_funct3 == 3'b000);
-    wire    if_dec_lh     = (if_opcode == 7'b0000011 && if_funct3 == 3'b001);
-    wire    if_dec_lw     = (if_opcode == 7'b0000011 && if_funct3 == 3'b010);
-    wire    if_dec_lbu    = (if_opcode == 7'b0000011 && if_funct3 == 3'b100);
-    wire    if_dec_lhu    = (if_opcode == 7'b0000011 && if_funct3 == 3'b101);
-    wire    if_dec_sb     = (if_opcode == 7'b0100011 && if_funct3 == 3'b000);
-    wire    if_dec_sh     = (if_opcode == 7'b0100011 && if_funct3 == 3'b001);
-    wire    if_dec_sw     = (if_opcode == 7'b0100011 && if_funct3 == 3'b010);
-    wire    if_dec_addi   = (if_opcode == 7'b0010011 && if_funct3 == 3'b000);
-    wire    if_dec_slti   = (if_opcode == 7'b0010011 && if_funct3 == 3'b010);
-    wire    if_dec_sltiu  = (if_opcode == 7'b0010011 && if_funct3 == 3'b011);
-    wire    if_dec_xori   = (if_opcode == 7'b0010011 && if_funct3 == 3'b100);
-    wire    if_dec_ori    = (if_opcode == 7'b0010011 && if_funct3 == 3'b110);
-    wire    if_dec_andi   = (if_opcode == 7'b0010011 && if_funct3 == 3'b111);
-    wire    if_dec_slli   = (if_opcode == 7'b0010011 && if_funct3 == 3'b001 && if_funct7 == 7'b0000000);
-    wire    if_dec_srli   = (if_opcode == 7'b0010011 && if_funct3 == 3'b101 && if_funct7 == 7'b0000000);
-    wire    if_dec_srai   = (if_opcode == 7'b0010011 && if_funct3 == 3'b101 && if_funct7 == 7'b0100000);
-    wire    if_dec_add    = (if_opcode == 7'b0110011 && if_funct3 == 3'b000 && if_funct7 == 7'b0000000);
-    wire    if_dec_sub    = (if_opcode == 7'b0110011 && if_funct3 == 3'b000 && if_funct7 == 7'b0100000);
-    wire    if_dec_sll    = (if_opcode == 7'b0110011 && if_funct3 == 3'b001 && if_funct7 == 7'b0000000);
-    wire    if_dec_slt    = (if_opcode == 7'b0110011 && if_funct3 == 3'b010 && if_funct7 == 7'b0000000);
-    wire    if_dec_sltu   = (if_opcode == 7'b0110011 && if_funct3 == 3'b011 && if_funct7 == 7'b0000000);
-    wire    if_dec_xor    = (if_opcode == 7'b0110011 && if_funct3 == 3'b100 && if_funct7 == 7'b0000000);
-    wire    if_dec_srl    = (if_opcode == 7'b0110011 && if_funct3 == 3'b101 && if_funct7 == 7'b0000000);
-    wire    if_dec_sra    = (if_opcode == 7'b0110011 && if_funct3 == 3'b101 && if_funct7 == 7'b0100000);
-    wire    if_dec_or     = (if_opcode == 7'b0110011 && if_funct3 == 3'b110 && if_funct7 == 7'b0000000);
-    wire    if_dec_and    = (if_opcode == 7'b0110011 && if_funct3 == 3'b111 && if_funct7 == 7'b0000000);
-    wire    if_dec_fence  = (if_opcode == 7'b0001111);
-    wire    if_dec_ecall  = (if_instr == 32'h00000073);
-    wire    if_dec_ebreak = (if_instr == 32'h00100073);
 
 
 
@@ -508,6 +541,7 @@ module jelly2_jfive_micro_core
 
 
     // branch
+    /*
     always_ff @(posedge clk) begin
         if ( id_cke ) begin
             id_branch_sel <= BRANCH_JAL;
@@ -524,6 +558,21 @@ module jelly2_jfive_micro_core
             endcase
         end
     end
+    */
+    always_ff @(posedge clk) begin
+        if ( cke ) begin
+            id_branch_sel <= BRANCH_JAL;
+            if ( if_dec_jal  ) begin id_branch_sel <= BRANCH_JAL;  end
+            if ( if_dec_jalr ) begin id_branch_sel <= BRANCH_JALR; end
+            if ( if_dec_beq  ) begin id_branch_sel <= BRANCH_BEQ;  end
+            if ( if_dec_bne  ) begin id_branch_sel <= BRANCH_BNE;  end
+            if ( if_dec_blt  ) begin id_branch_sel <= BRANCH_BLT;  end
+            if ( if_dec_bge  ) begin id_branch_sel <= BRANCH_BGE;  end
+            if ( if_dec_bltu ) begin id_branch_sel <= BRANCH_BLTU; end
+            if ( if_dec_bgeu ) begin id_branch_sel <= BRANCH_BGEU; end
+        end
+    end
+
 
     always_ff @(posedge clk) begin
         if ( id_cke ) begin
@@ -536,6 +585,45 @@ module jelly2_jfive_micro_core
         end
     end
 
+    // ALU
+    alu_op_t                    id_alu_op;
+    logic   [1:0]               id_alu_sel0;
+    logic                       id_alu_sel1;
+    logic   signed  [XLEN-1:0]  id_alu_val1;
+    always_ff @(posedge clk) begin
+        if ( id_cke ) begin
+            id_alu_sel0 <= alu_sel0_t'('x);
+            id_alu_sel1 <= alu_sel1_t'('x);
+            id_alu_val1 <= 'x;
+            
+            unique case (1'b1)
+            if_dec_lui:     begin id_alu_op <= ALU_OP_ADD; id_alu_sel0 <= ALU_SEL0_ZERO; id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_imm_u); end
+            if_dec_auipc:   begin id_alu_op <= ALU_OP_ADD; id_alu_sel0 <= ALU_SEL0_ZERO; id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_pc) + XLEN'(if_imm_u);end
+            if_dec_jal:     begin id_alu_op <= ALU_OP_ADD; id_alu_sel0 <= ALU_SEL0_ZERO; id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_pc) + XLEN'(4); end
+            if_dec_jalr:    begin id_alu_op <= ALU_OP_ADD; id_alu_sel0 <= ALU_SEL0_ZERO; id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_pc) + XLEN'(4); end
+            if_dec_addi:    begin id_alu_op <= ALU_OP_ADD; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_imm_i); end
+            if_dec_xori:    begin id_alu_op <= ALU_OP_XOR; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_imm_i); end
+            if_dec_ori:     begin id_alu_op <= ALU_OP_OR;  id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_imm_i); end
+            if_dec_andi:    begin id_alu_op <= ALU_OP_AND; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_imm_i); end
+            if_dec_slli:    begin id_alu_op <= ALU_OP_SLL; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_imm_i); end
+            if_dec_srli:    begin id_alu_op <= ALU_OP_SRL; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_imm_i); end
+            if_dec_srai:    begin id_alu_op <= ALU_OP_SRA; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(if_imm_i); end
+            if_dec_add:     begin id_alu_op <= ALU_OP_ADD; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_RS2; id_alu_val1 <= 'x; end
+            if_dec_sub:     begin id_alu_op <= ALU_OP_SUB; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_RS2; id_alu_val1 <= 'x; end
+            if_dec_sll:     begin id_alu_op <= ALU_OP_SLL; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_RS2; id_alu_val1 <= 'x; end
+            if_dec_slti:    begin id_alu_op <= ALU_OP_ADD; id_alu_sel0 <= ALU_SEL0_SLT;  id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(0); end
+            if_dec_sltiu:   begin id_alu_op <= ALU_OP_ADD; id_alu_sel0 <= ALU_SEL0_SLTU; id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(0); end
+            if_dec_slt:     begin id_alu_op <= ALU_OP_ADD; id_alu_sel0 <= ALU_SEL0_SLT;  id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(0); end
+            if_dec_sltu:    begin id_alu_op <= ALU_OP_ADD; id_alu_sel0 <= ALU_SEL0_SLTU; id_alu_sel1 <= ALU_SEL1_VAL; id_alu_val1 <= XLEN'(0); end
+            if_dec_xor:     begin id_alu_op <= ALU_OP_XOR; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_RS2; id_alu_val1 <= 'x; end
+            if_dec_srl:     begin id_alu_op <= ALU_OP_SRL; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_RS2; id_alu_val1 <= 'x; end
+            if_dec_sra:     begin id_alu_op <= ALU_OP_SRA; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_RS2; id_alu_val1 <= 'x; end
+            if_dec_or:      begin id_alu_op <= ALU_OP_OR;  id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_RS2; id_alu_val1 <= 'x; end
+            if_dec_and:     begin id_alu_op <= ALU_OP_AND; id_alu_sel0 <= ALU_SEL0_RS1;  id_alu_sel1 <= ALU_SEL1_RS2; id_alu_val1 <= 'x; end
+            default: ;
+            endcase
+        end
+    end
 
     // memory access
     always_ff @(posedge clk) begin
@@ -569,7 +657,7 @@ module jelly2_jfive_micro_core
     end
 
 
-
+    /*
 
     // instruction decode
     logic    id_dec_lui;
@@ -657,50 +745,16 @@ module jelly2_jfive_micro_core
             id_dec_ebreak <= if_dec_ebreak;
         end
     end
-
+    */
 
     // -----------------------------------------
     //  Execution
     // -----------------------------------------
 
+    // forwarding
     logic   ex_expect_valid;
     assign ex_expect_valid = ((ex_expect_pc == id_pc) && id_valid);
 
-    // control
-    always_ff @(posedge clk) begin
-        if ( reset ) begin
-            ex_pc        <= INIT_PC_ADDR;
-            ex_expect_pc <= INIT_PC_ADDR;
-            ex_instr     <= 'x;
-            ex_valid     <= 1'b0;
-        end
-        else if ( ex_cke ) begin
-            if ( ex_expect_valid ) begin
-                ex_pc        <= ex_expect_pc;
-                ex_expect_pc <= ex_branch_pc; 
-                ex_instr     <= id_instr;
-                ex_valid     <= 1'b1;
-            end
-            else begin
-                ex_pc    <= 'x;
-                ex_instr <= 'x;
-                ex_valid <= 1'b0;
-            end
-        end
-    end
-
-    always_ff @(posedge clk) begin
-        if ( ex_cke ) begin
-            ex_rs1_en  <= id_rs1_en;
-            ex_rs1_idx <= id_rs1_idx;
-            ex_rs1_val <= ex_fwd_rs1_val;
-            ex_rs2_en  <= id_rs2_en;
-            ex_rs2_idx <= id_rs2_idx;
-            ex_rs2_val <= ex_fwd_rs2_val;
-        end
-    end
-
-    // forwarding
     always_ff @(posedge clk) begin
         if ( ex_cke ) begin
             automatic logic  [RIDX_WIDTH-1:0]   rs1_idx;
@@ -741,7 +795,57 @@ module jelly2_jfive_micro_core
         ex_fwd_rs2_val_u = ex_fwd_rs2_val;
     end
 
+
+    // control
+    always_ff @(posedge clk) begin
+        if ( reset ) begin
+            ex_pc        <= INIT_PC_ADDR;
+            ex_expect_pc <= INIT_PC_ADDR;
+            ex_instr     <= 'x;
+            ex_valid     <= 1'b0;
+        end
+        else if ( ex_cke ) begin
+            if ( ex_expect_valid ) begin
+                ex_pc        <= ex_expect_pc;
+                ex_expect_pc <= ex_branch_pc; 
+                ex_instr     <= id_instr;
+                ex_valid     <= 1'b1;
+            end
+            else begin
+                ex_pc    <= 'x;
+                ex_instr <= 'x;
+                ex_valid <= 1'b0;
+            end
+        end
+    end
+
+    always_ff @(posedge clk) begin
+        if ( ex_cke ) begin
+            ex_rs1_en  <= id_rs1_en;
+            ex_rs1_idx <= id_rs1_idx;
+            ex_rs1_val <= ex_fwd_rs1_val;
+            ex_rs2_en  <= id_rs2_en;
+            ex_rs2_idx <= id_rs2_idx;
+            ex_rs2_val <= ex_fwd_rs2_val;
+        end
+    end
+
+    always_ff @(posedge clk) begin
+        if ( reset ) begin            
+            ex_rd_en     <= 1'b0;
+            ex_rd_idx    <= 'x;
+        end
+        else if ( ex_cke ) begin
+            ex_rd_en     <= id_rd_en & ex_expect_valid;
+            ex_rd_idx    <= id_rd_idx;
+        end
+    end
+
+
+
+
     // conditions
+    /*
     wire ex_cond_eq   = (ex_fwd_rs1_val == ex_fwd_rs2_val);
     wire ex_cond_ne   = (ex_fwd_rs1_val != ex_fwd_rs2_val);
     wire ex_cond_lt   = (ex_fwd_rs1_val < ex_fwd_rs2_val);
@@ -750,6 +854,55 @@ module jelly2_jfive_micro_core
     wire ex_cond_ltu  = (ex_fwd_rs1_val_u < ex_fwd_rs2_val_u);
     wire ex_cond_ltiu = (ex_fwd_rs1_val_u < XLEN'(id_imm_i_u));
     wire ex_cond_geu  = (ex_fwd_rs1_val_u >= ex_fwd_rs2_val_u);
+    */
+
+    // conditions
+    logic                   ex_cond_eq; 
+    logic                   ex_cond_ne;
+    logic                   ex_cond_lt;
+    logic                   ex_cond_ge;
+    logic                   ex_cond_ltu;
+    logic                   ex_cond_geu;
+    always_comb begin
+        automatic   logic   signed  [XLEN-1:0]  cmp_data0;
+        automatic   logic   signed  [XLEN-1:0]  cmp_data1;
+        automatic   logic   signed  [XLEN-1:0]  cond_data;
+        automatic   logic                       msb_carry;
+        automatic   logic                       flg_carry;
+        automatic   logic                       flg_overflow;
+        automatic   logic                       flg_zero;
+        automatic   logic                       flg_negative;
+        cmp_data0    = 'x;
+        cmp_data1    = 'x;
+        cond_data    = 'x;
+        msb_carry    = 'x;
+        flg_carry    = 'x;
+        flg_overflow = 'x;
+        flg_zero     = 'x;
+        flg_negative = 'x;
+
+        cmp_data0 = ex_fwd_rs1_val;
+        cmp_data1 = ex_fwd_rs2_val;
+        if ( !id_opcode[5] ) begin
+            cmp_data1 = id_funct3[0] ? XLEN'(id_imm_i_u) : XLEN'(id_imm_i);
+        end
+
+        cmp_data1 = ~cmp_data1;
+        {msb_carry, cond_data[XLEN-2:0]} = {1'b0, cmp_data0[XLEN-2:0]} + {1'b0, cmp_data1[XLEN-2:0]} + XLEN'(1);
+        {flg_carry, cond_data[XLEN-1]}   = cmp_data0[XLEN-1] + cmp_data1[XLEN-1] + msb_carry;
+
+        flg_overflow = (msb_carry != flg_carry);
+        flg_zero     = (cond_data == '0);
+        flg_negative = cond_data[XLEN-1];
+
+        ex_cond_eq  = flg_zero;
+        ex_cond_ne  = !flg_zero;
+        ex_cond_lt  = (flg_overflow != flg_negative);
+        ex_cond_ge  = (flg_overflow == flg_negative);
+        ex_cond_ltu = !flg_carry;
+        ex_cond_geu = flg_carry;
+    end
+
 
     // branch
     always_comb begin
@@ -767,6 +920,7 @@ module jelly2_jfive_micro_core
     end
 
     // alu
+    /*
     always_ff @(posedge clk) begin
         if ( ex_cke ) begin
              ex_rd_val <= 'x;
@@ -776,8 +930,8 @@ module jelly2_jfive_micro_core
             id_dec_jal  : ex_rd_val <= XLEN'(id_pc) + XLEN'(4);
             id_dec_jalr : ex_rd_val <= XLEN'(id_pc) + XLEN'(4);
             id_dec_addi : ex_rd_val <= ex_fwd_rs1_val    + XLEN'(id_imm_i);
-            id_dec_slti : ex_rd_val <= ex_cond_lti  ? XLEN'(1) : XLEN'(0);
-            id_dec_sltiu: ex_rd_val <= ex_cond_ltiu ? XLEN'(1) : XLEN'(0);
+            id_dec_slti : ex_rd_val <= ex_cond_lt  ? XLEN'(1) : XLEN'(0);
+            id_dec_sltiu: ex_rd_val <= ex_cond_ltu ? XLEN'(1) : XLEN'(0);
             id_dec_xori : ex_rd_val <= ex_fwd_rs1_val    ^ XLEN'(id_imm_i);
             id_dec_ori  : ex_rd_val <= ex_fwd_rs1_val    | XLEN'(id_imm_i);
             id_dec_andi : ex_rd_val <= ex_fwd_rs1_val    & XLEN'(id_imm_i);
@@ -798,19 +952,69 @@ module jelly2_jfive_micro_core
             endcase
         end
     end
+    */
 
+    // ALU
+//    logic   signed  [31:0]  ex_alu_rd_val;
     always_ff @(posedge clk) begin
-        if ( reset ) begin            
-            ex_rd_en     <= 1'b0;
-            ex_rd_idx    <= 'x;
-        end
-        else if ( ex_cke ) begin
-            ex_rd_en     <= id_rd_en & ex_expect_valid;
-            ex_rd_idx    <= id_rd_idx;
+        if ( ex_cke ) begin
+            automatic   logic   signed  [XLEN-1:0]          alu_val0;
+            automatic   logic   signed  [XLEN-1:0]          alu_val1;
+            automatic   logic           [XLEN-1:0]          alu_val0_u;
+            automatic   logic           [XLEN-1:0]          alu_val1_u;
+            automatic   logic           [SHAMT_WIDTH-1:0]   shamt;
+            automatic   logic   signed  [XLEN-1:0]          adder_val0;
+            automatic   logic   signed  [XLEN-1:0]          adder_val1;
+            automatic   logic                               adder_carry;
+            alu_val0    = 'x;
+            alu_val1    = 'x;
+            alu_val0_u  = 'x;
+            alu_val1_u  = 'x;
+            shamt       = 'x;
+            adder_val0  = 'x;
+            adder_val1  = 'x;
+            adder_carry = 'x;
+            
+            // alu input0
+            case ( id_alu_sel0 )
+            ALU_SEL0_RS1:  begin alu_val0 = ex_fwd_rs1_val;     end
+            ALU_SEL0_ZERO: begin alu_val0 = '0;                 end
+            ALU_SEL0_SLT:  begin alu_val0 = XLEN'(ex_cond_lt);  end
+            ALU_SEL0_SLTU: begin alu_val0 = XLEN'(ex_cond_ltu); end
+            default: ;
+            endcase
+
+            // alu input1
+            case ( id_alu_sel1 )
+            ALU_SEL1_RS2:  begin alu_val1 = ex_fwd_rs2_val;     end
+            ALU_SEL1_VAL:  begin alu_val1 = id_alu_val1;        end
+            default: ;
+            endcase
+
+
+            // alu
+            alu_val0_u = alu_val0;
+            alu_val1_u = alu_val1;
+            shamt = alu_val1_u[SHAMT_WIDTH-1:0];
+            case ( id_alu_op )
+            ALU_OP_ADD: begin adder_val0 = alu_val0;            adder_val1 =  alu_val1; adder_carry = 1'b0; end
+            ALU_OP_SUB: begin adder_val0 = alu_val0;            adder_val1 = ~alu_val1; adder_carry = 1'b1; end
+            ALU_OP_SLL: begin adder_val0 = alu_val0   << shamt; adder_val1 = '0;        adder_carry = 1'b0; end
+            ALU_OP_SRL: begin adder_val0 = alu_val0_u >> shamt; adder_val1 = '0;        adder_carry = 1'b0; end
+            ALU_OP_SRA: begin adder_val0 = alu_val0  >>> shamt; adder_val1 = '0;        adder_carry = 1'b0; end
+            ALU_OP_AND: begin adder_val0 = alu_val0 & alu_val1; adder_val1 = '0;        adder_carry = 1'b0; end
+            ALU_OP_OR:  begin adder_val0 = alu_val0 | alu_val1; adder_val1 = '0;        adder_carry = 1'b0; end
+            ALU_OP_XOR: begin adder_val0 = alu_val0 ^ alu_val1; adder_val1 = '0;        adder_carry = 1'b0; end
+            default:;
+            endcase
+
+            // adder
+            ex_rd_val <= adder_val0 + adder_val1 + XLEN'(adder_carry);
         end
     end
+    
 
-
+    // memory access
     function    [SEL_WIDTH-1:0]  sel_mask(input [SIZE_WIDTH-1:0] size);
     begin
         sel_mask = 'x;
@@ -822,7 +1026,6 @@ module jelly2_jfive_micro_core
     end
     endfunction
 
-    // memory access
     always_ff @(posedge clk) begin
         if ( reset ) begin
             ex_mem_en        <= 1'b0;
