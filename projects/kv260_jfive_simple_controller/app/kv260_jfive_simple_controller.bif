@@ -1,5 +1,5 @@
 all:
 {
-    kv260_jfive_micro_controller.bit
+    kv260_jfive_simple_controller.bit
 }
 

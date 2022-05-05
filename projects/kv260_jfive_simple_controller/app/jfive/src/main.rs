@@ -52,7 +52,7 @@ pub unsafe extern "C" fn main() -> ! {
         }
 
         counter1 += 1;
-        if counter1 > 2 {
+        if counter1 > 10 {
             counter1 = 0;
             gpio1 = gpio1 ^ 1;
         }
