@@ -173,7 +173,9 @@ module kv260_jfive_micro_controller
                 .PC_WIDTH           (32),
                 .INIT_PC_ADDR       (32'h8000_0000),
                 .INIT_CTL_RESET     (1'b1),
-
+                
+                .DEVICE             ("ULTRASCALE"),
+ 
                 .SIMULATION         (SIMULATION),
                 .LOG_EXE_ENABLE     (LOG_EXE_ENABLE),
                 .LOG_MEM_ENABLE     (LOG_MEM_ENABLE)

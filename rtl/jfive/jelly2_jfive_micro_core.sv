@@ -73,6 +73,17 @@ module jelly2_jfive_micro_core
     localparam INSTR_WIDTH = 32;
     localparam RIDX_WIDTH  = 5;
 
+    typedef enum logic [3:0] {
+        BRANCH_JAL,
+        BRANCH_JALR,
+        BRANCH_BEQ,
+        BRANCH_BNE,
+        BRANCH_BLT,
+        BRANCH_BGE,
+        BRANCH_BLTU,
+        BRANCH_BGEU
+    } branch_sel_t;
+
 
     // Program counter
     logic                                   pc_cke;
@@ -127,8 +138,9 @@ module jelly2_jfive_micro_core
     logic   signed  [XLEN-1:0]              id_rs1_val;
     logic   signed  [XLEN-1:0]              id_rs2_val;
 
-    logic                                   id_branch_valid;
-    logic           [PC_WIDTH-1:0]          id_branch_pc;
+    branch_sel_t                            id_branch_sel;
+    logic           [PC_WIDTH-1:0]          id_branch_pc0;
+    logic           [PC_WIDTH-1:0]          id_branch_pc1;
 
     logic   signed  [XLEN-1:0]              id_mem_offset;
     logic                                   id_mem_re;
@@ -612,19 +624,32 @@ module jelly2_jfive_micro_core
         end
     end
 
+    // branch
     always_ff @(posedge clk) begin
         if ( id_cke ) begin
-            id_branch_pc <= 'x;
+            id_branch_sel <= BRANCH_JAL;
             unique case (1'b1)
-            if_dec_jal : id_branch_pc <= if_pc + PC_WIDTH'(if_imm_j);
-            if_dec_beq : id_branch_pc <= if_pc + PC_WIDTH'(if_imm_b);
-            if_dec_bne : id_branch_pc <= if_pc + PC_WIDTH'(if_imm_b);
-            if_dec_blt : id_branch_pc <= if_pc + PC_WIDTH'(if_imm_b);
-            if_dec_bge : id_branch_pc <= if_pc + PC_WIDTH'(if_imm_b);
-            if_dec_bltu: id_branch_pc <= if_pc + PC_WIDTH'(if_imm_b);
-            if_dec_bgeu: id_branch_pc <= if_pc + PC_WIDTH'(if_imm_b);
-            default:     id_branch_pc <= 'x;
+            if_dec_jal:     id_branch_sel <= BRANCH_JAL;
+            if_dec_jalr:    id_branch_sel <= BRANCH_JALR;
+            if_dec_beq:     id_branch_sel <= BRANCH_BEQ;
+            if_dec_bne:     id_branch_sel <= BRANCH_BNE;
+            if_dec_blt:     id_branch_sel <= BRANCH_BLT;
+            if_dec_bge:     id_branch_sel <= BRANCH_BGE;
+            if_dec_bltu:    id_branch_sel <= BRANCH_BLTU;
+            if_dec_bgeu:    id_branch_sel <= BRANCH_BGEU;
+            default:        id_branch_sel <= BRANCH_JAL;
             endcase
+        end
+    end
+
+    always_ff @(posedge clk) begin
+        if ( id_cke ) begin
+            id_branch_pc0 <= if_pc + PC_WIDTH'(4);
+            id_branch_pc1 <= if_pc + PC_WIDTH'(if_imm_b);
+            
+            if ( if_dec_jal ) begin
+                id_branch_pc0 <= if_pc + PC_WIDTH'(if_imm_j);
+            end
         end
     end
 
@@ -712,23 +737,27 @@ module jelly2_jfive_micro_core
         ex_fwd_rs2_val_u = ex_fwd_rs2_val;
     end
 
+    // conditions
+    wire ex_cond_eq  = (ex_fwd_rs1_val == ex_fwd_rs2_val);
+    wire ex_cond_ne  = (ex_fwd_rs1_val != ex_fwd_rs2_val);
+    wire ex_cond_lt  = (ex_fwd_rs1_val  < ex_fwd_rs2_val);
+    wire ex_cond_ge  = (ex_fwd_rs1_val >= ex_fwd_rs2_val);
+    wire ex_cond_ltu = ($unsigned(ex_fwd_rs1_val)  < $unsigned(ex_fwd_rs2_val));
+    wire ex_cond_geu = ($unsigned(ex_fwd_rs1_val) >= $unsigned(ex_fwd_rs2_val));
+
     // branch
     always_comb begin
-        ex_branch_pc = ex_expect_pc + PC_WIDTH'(4);
-
-        if ( id_valid ) begin
-            unique case (1'b1)
-            id_dec_jal:  begin ex_branch_pc = id_branch_pc; end
-            id_dec_jalr: begin ex_branch_pc = PC_WIDTH'(ex_fwd_rs1_val) + PC_WIDTH'(id_imm_i); end
-            id_dec_beq:  if ( ex_fwd_rs1_val   == ex_fwd_rs2_val   ) begin ex_branch_pc = id_branch_pc; end
-            id_dec_bne:  if ( ex_fwd_rs1_val   != ex_fwd_rs2_val   ) begin ex_branch_pc = id_branch_pc; end
-            id_dec_blt:  if ( ex_fwd_rs1_val    < ex_fwd_rs2_val   ) begin ex_branch_pc = id_branch_pc; end
-            id_dec_bge:  if ( ex_fwd_rs1_val   >= ex_fwd_rs2_val   ) begin ex_branch_pc = id_branch_pc; end
-            id_dec_bltu: if ( ex_fwd_rs1_val_u  < ex_fwd_rs2_val_u ) begin ex_branch_pc = id_branch_pc; end
-            id_dec_bgeu: if ( ex_fwd_rs1_val_u >= ex_fwd_rs2_val_u ) begin ex_branch_pc = id_branch_pc; end
-            default: ;
-            endcase
-        end
+        ex_branch_pc = id_branch_pc0;
+        case (id_branch_sel)
+        BRANCH_JAL:     begin ex_branch_pc = id_branch_pc0; end
+        BRANCH_JALR:    begin ex_branch_pc = PC_WIDTH'(ex_fwd_rs1_val) + PC_WIDTH'(id_imm_i); end
+        BRANCH_BEQ:     if ( ex_cond_eq  ) begin ex_branch_pc = id_branch_pc1; end
+        BRANCH_BNE:     if ( ex_cond_ne  ) begin ex_branch_pc = id_branch_pc1; end
+        BRANCH_BLT:     if ( ex_cond_lt  ) begin ex_branch_pc = id_branch_pc1; end
+        BRANCH_BGE:     if ( ex_cond_ge  ) begin ex_branch_pc = id_branch_pc1; end
+        BRANCH_BLTU:    if ( ex_cond_ltu ) begin ex_branch_pc = id_branch_pc1; end
+        BRANCH_BGEU:    if ( ex_cond_geu ) begin ex_branch_pc = id_branch_pc1; end
+        endcase
     end
 
     // alu
