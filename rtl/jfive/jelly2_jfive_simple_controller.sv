@@ -5,27 +5,38 @@
 
 module jelly2_jfive_simple_controller
         #(
-            parameter   int                     S_WB_ADR_WIDTH   = 16,
-            parameter   int                     S_WB_DAT_WIDTH   = 32,
-            parameter   int                     S_WB_SEL_WIDTH   = S_WB_DAT_WIDTH/8,
-            parameter   int                     M_WB_ADR_WIDTH   = 24,
-            parameter   int                     MMIO_ADR_WIDTH   = 16,
+            parameter   int                             S_WB_ADR_WIDTH   = 16,
+            parameter   int                             S_WB_DAT_WIDTH   = 32,
+            parameter   int                             S_WB_SEL_WIDTH   = S_WB_DAT_WIDTH/8,
+            parameter   bit     [S_WB_ADR_WIDTH-1:0]    S_WB_TCM_ADR     = S_WB_ADR_WIDTH'(1 << (S_WB_ADR_WIDTH - 1)),
 
-            parameter   int                     MEM_ADDR_OFFSET  = 1 << (S_WB_ADR_WIDTH - 1),
+            parameter   bit     [31:0]                  M_WB_DECODE_MASK = 32'hf000_0000,
+            parameter   bit     [31:0]                  M_WB_DECODE_ADDR = 32'h1000_0000,
+            parameter   int                             M_WB_ADR_WIDTH   = 24,
 
-            parameter   bit     [31:0]          MEM_DECODE_MASK  = 32'hff00_0000,
-            parameter   bit     [31:0]          MEM_DECODE_ADDR  = 32'h8000_0000,
-            parameter   bit     [31:0]          WB_DECODE_MASK   = 32'hff00_0000,
-            parameter   bit     [31:0]          WB_DECODE_ADDR   = 32'hf000_0000,
-            parameter   bit     [31:0]          MMIO_DECODE_MASK = 32'hff00_0000,
-            parameter   bit     [31:0]          MMIO_DECODE_ADDR = 32'hff00_0000,
+            parameter   bit     [31:0]                  MMIO_DECODE_MASK = 32'hff00_0000,
+            parameter   bit     [31:0]                  MMIO_DECODE_ADDR = 32'hff00_0000,
+            parameter   int                             MMIO_ADR_WIDTH   = 16,
             
-            parameter   int                     MEM_SIZE         = 16384,
-            parameter   bit                     MEM_READMEMH     = 1'b1,
-            parameter                           MEM_READMEM_FIlE = "",
+            parameter   bit     [31:0]                  TCM_DECODE_MASK  = 32'hff00_0000,
+            parameter   bit     [31:0]                  TCM_DECODE_ADDR  = 32'h8000_0000,
+            parameter   int                             TCM_SIZE         = 8192,
+            parameter                                   TCM_RAM_TYPE     = "block",
+            parameter                                   TCM_RAM_MODE     = "NO_CHANGE",
+            parameter   bit                             TCM_READMEMH     = 1'b0,
+            parameter                                   TCM_READMEM_FIlE = "",
 
-            parameter   bit     [31:0]          RESET_PC_ADDR    = 32'h8000_0000,
-            parameter   bit                     INIT_CTL_RESET   = 1'b1
+            parameter   int                             PC_WIDTH         = 32,
+            parameter   bit     [31:0]                  INIT_PC_ADDR     = 32'h8000_0000,
+            parameter   bit                             INIT_CTL_RESET   = 1'b1,
+
+            parameter                                   DEVICE           = "ULTRASCALE",
+
+            parameter   bit                             SIMULATION       = 1'b0,
+            parameter   bit                             LOG_EXE_ENABLE   = 1'b0,
+            parameter   string                          LOG_EXE_FILE     = "jfive_exe_log.txt",
+            parameter   bit                             LOG_MEM_ENABLE   = 1'b0,
+            parameter   string                          LOG_MEM_FILE     = "jfive_mem_log.txt"
         )
         (
             input   wire                            reset,
@@ -56,19 +67,19 @@ module jelly2_jfive_simple_controller
             input   wire    [31:0]                  mmio_rdata
         );
 
+
     // ---------------------------------------------
     //  parameters
     // ---------------------------------------------
 
-    localparam int      RAM_SIZE       = (MEM_SIZE + 3) / 4;
-    localparam int      RAM_ADDR_WIDTH = $clog2(RAM_SIZE);
+    localparam int      TCM_MEM_SIZE   = (TCM_SIZE + 3) / 4;
+    localparam int      TCM_ADDR_WIDTH = $clog2(TCM_MEM_SIZE);
 
-    localparam int      IBUS_ADDR_WIDTH = RAM_ADDR_WIDTH + 2;
+    localparam int      IBUS_ADDR_WIDTH = TCM_ADDR_WIDTH + 2;
     localparam int      DBUS_ADDR_WIDTH = 32;
-    localparam int      PC_WIDTH        = 32;
 
     logic   wb_mem;
-    assign wb_mem = (s_wb_adr_i >= S_WB_ADR_WIDTH'(MEM_ADDR_OFFSET));
+    assign wb_mem = (s_wb_adr_i >= S_WB_ADR_WIDTH'(S_WB_TCM_ADR));
 
 
     // ---------------------------------------------
@@ -96,12 +107,12 @@ module jelly2_jfive_simple_controller
         end
     end
 
-    assign s_wb_dat_o = (s_wb_adr_i == S_WB_ADR_WIDTH'(ADR_CORE_ID))      ? S_WB_DAT_WIDTH'(32'hffff_8723)   :
-                        (s_wb_adr_i == S_WB_ADR_WIDTH'(ADR_CORE_VERSION)) ? S_WB_DAT_WIDTH'(32'h0001_0000)   :
-                        (s_wb_adr_i == S_WB_ADR_WIDTH'(ADR_CORE_DATE))    ? S_WB_DAT_WIDTH'(32'h2022_0226)   :
-                        (s_wb_adr_i == S_WB_ADR_WIDTH'(ADR_MEM_OFFSET))   ? S_WB_DAT_WIDTH'(MEM_ADDR_OFFSET) :
-                        (s_wb_adr_i == S_WB_ADR_WIDTH'(ADR_MEM_SIZE))     ? S_WB_DAT_WIDTH'(MEM_SIZE)        :
-                        (s_wb_adr_i == S_WB_ADR_WIDTH'(ADR_CTL_RESET))    ? S_WB_DAT_WIDTH'(reg_reset)       :
+    assign s_wb_dat_o = (s_wb_adr_i == S_WB_ADR_WIDTH'(ADR_CORE_ID))      ? S_WB_DAT_WIDTH'(32'hffff_8723) :
+                        (s_wb_adr_i == S_WB_ADR_WIDTH'(ADR_CORE_VERSION)) ? S_WB_DAT_WIDTH'(32'h0001_0000) :
+                        (s_wb_adr_i == S_WB_ADR_WIDTH'(ADR_CORE_DATE))    ? S_WB_DAT_WIDTH'(32'h2022_0226) :
+                        (s_wb_adr_i == S_WB_ADR_WIDTH'(ADR_MEM_OFFSET))   ? S_WB_DAT_WIDTH'(S_WB_TCM_ADR)  :
+                        (s_wb_adr_i == S_WB_ADR_WIDTH'(ADR_MEM_SIZE))     ? S_WB_DAT_WIDTH'(TCM_SIZE)      :
+                        (s_wb_adr_i == S_WB_ADR_WIDTH'(ADR_CTL_RESET))    ? S_WB_DAT_WIDTH'(reg_reset)     :
                         '0;
 
     assign s_wb_ack_o = s_wb_stb_i;
@@ -140,7 +151,13 @@ module jelly2_jfive_simple_controller
                 .IBUS_ADDR_WIDTH    (IBUS_ADDR_WIDTH),
                 .DBUS_ADDR_WIDTH    (DBUS_ADDR_WIDTH),
                 .PC_WIDTH           (PC_WIDTH),
-                .RESET_PC_ADDR      (RESET_PC_ADDR)
+                .INIT_PC_ADDR       (INIT_PC_ADDR),
+                .DEVICE             (DEVICE),
+                .SIMULATION         (SIMULATION),
+                .LOG_EXE_ENABLE     (LOG_EXE_ENABLE),
+                .LOG_EXE_FILE       (LOG_EXE_FILE),
+                .LOG_MEM_ENABLE     (LOG_MEM_ENABLE),
+                .LOG_MEM_FILE       (LOG_MEM_FILE)
             )
         i_jfive_simple_core
             (
@@ -164,68 +181,68 @@ module jelly2_jfive_simple_controller
     //  Memory
     // ---------------------------------------------
 
-    logic                           mem_ibus_wb;
-    logic   [RAM_ADDR_WIDTH-1:0]    mem_ibus_addr;
-    logic   [3:0]                   mem_ibus_we;
-    logic   [31:0]                  mem_ibus_wdata;
-    logic   [31:0]                  mem_ibus_rdata;
+    logic                           tcm_ibus_wb;
+    logic   [TCM_ADDR_WIDTH-1:0]    tcm_ibus_addr;
+    logic   [3:0]                   tcm_ibus_we;
+    logic   [31:0]                  tcm_ibus_wdata;
+    logic   [31:0]                  tcm_ibus_rdata;
 
-    logic                           mem_dbus_valid;
-    logic   [RAM_ADDR_WIDTH-1:0]    mem_dbus_addr;
-    logic   [3:0]                   mem_dbus_we;
-    logic   [31:0]                  mem_dbus_wdata;
-    logic   [31:0]                  mem_dbus_rdata;
+    logic                           tcm_dbus_valid;
+    logic   [TCM_ADDR_WIDTH-1:0]    tcm_dbus_addr;
+    logic   [3:0]                   tcm_dbus_we;
+    logic   [31:0]                  tcm_dbus_wdata;
+    logic   [31:0]                  tcm_dbus_rdata;
 
     jelly2_ram_dualport
             #(
-                .ADDR_WIDTH         (RAM_ADDR_WIDTH),
+                .ADDR_WIDTH         (TCM_ADDR_WIDTH),
                 .DATA_WIDTH         (32),
                 .WE_WIDTH           (4),
                 .WORD_WIDTH         (8),
-                .MEM_SIZE           (RAM_SIZE),
-                .RAM_TYPE           ("block"),
+                .MEM_SIZE           (TCM_SIZE),
+                .RAM_TYPE           (TCM_RAM_TYPE),
                 .DOUT_REGS0         (0),
                 .DOUT_REGS1         (0),
-                .MODE0              ("WRITE_FIRST"),
-                .MODE1              ("WRITE_FIRST"),
+                .MODE0              (TCM_RAM_MODE),
+                .MODE1              (TCM_RAM_MODE),
 
                 .FILLMEM            (0),
                 .FILLMEM_DATA       (0),
                 .READMEMB           (0),
-                .READMEMH           (MEM_READMEMH),
-                .READMEM_FIlE       (MEM_READMEM_FIlE)
+                .READMEMH           (TCM_READMEMH),
+                .READMEM_FIlE       (TCM_READMEM_FIlE)
             )
         i_ram_dualport
             (
                 .port0_clk          (clk),
                 .port0_en           (cke),
                 .port0_regcke       (cke),
-                .port0_we           (mem_ibus_we),
-                .port0_addr         (mem_ibus_addr),
-                .port0_din          (mem_ibus_wdata),
-                .port0_dout         (mem_ibus_rdata),
+                .port0_we           (tcm_ibus_we),
+                .port0_addr         (tcm_ibus_addr),
+                .port0_din          (tcm_ibus_wdata),
+                .port0_dout         (tcm_ibus_rdata),
 
                 .port1_clk          (clk),
                 .port1_en           (cke),
                 .port1_regcke       (cke),
-                .port1_we           (mem_dbus_we),
-                .port1_addr         (mem_dbus_addr),
-                .port1_din          (mem_dbus_wdata),
-                .port1_dout         (mem_dbus_rdata)
+                .port1_we           (tcm_dbus_we),
+                .port1_addr         (tcm_dbus_addr),
+                .port1_din          (tcm_dbus_wdata),
+                .port1_dout         (tcm_dbus_rdata)
             );
 
     // ibus
-    assign mem_ibus_wb    = wb_mem && s_wb_stb_i && s_wb_we_i;
-    assign mem_ibus_addr  = mem_ibus_wb ? s_wb_adr_i[RAM_ADDR_WIDTH-1:0] : RAM_ADDR_WIDTH'(ibus_addr >> 2);
-    assign mem_ibus_we    = mem_ibus_wb ? s_wb_sel_i[3:0]              : 4'b0000;
-    assign mem_ibus_wdata = s_wb_dat_i[31:0];
-    assign ibus_rdata     = mem_ibus_rdata;
+    assign tcm_ibus_wb    = wb_mem && s_wb_stb_i && s_wb_we_i;
+    assign tcm_ibus_addr  = tcm_ibus_wb ? s_wb_adr_i[TCM_ADDR_WIDTH-1:0] : TCM_ADDR_WIDTH'(ibus_addr >> 2);
+    assign tcm_ibus_we    = tcm_ibus_wb ? s_wb_sel_i[3:0]                : 4'b0000;
+    assign tcm_ibus_wdata = s_wb_dat_i[31:0];
+    assign ibus_rdata     = tcm_ibus_rdata;
 
     // dbus
-    assign mem_dbus_valid = (dbus_addr & MEM_DECODE_MASK) == MEM_DECODE_ADDR;
-    assign mem_dbus_addr  = RAM_ADDR_WIDTH'(dbus_addr >> 2);
-    assign mem_dbus_we    = (mem_dbus_valid & dbus_wr) ? 4'(dbus_sel << dbus_addr[1:0]) : 4'd0;
-    assign mem_dbus_wdata = 32'(dbus_wdata << (dbus_addr[1:0] * 8));
+    assign tcm_dbus_valid = (dbus_addr & TCM_DECODE_MASK) == TCM_DECODE_ADDR;
+    assign tcm_dbus_addr  = TCM_ADDR_WIDTH'(dbus_addr >> 2);
+    assign tcm_dbus_we    = (tcm_dbus_valid & dbus_wr) ? 4'(dbus_sel << dbus_addr[1:0]) : 4'd0;
+    assign tcm_dbus_wdata = 32'(dbus_wdata << (dbus_addr[1:0] * 8));
 
 
 
@@ -234,7 +251,7 @@ module jelly2_jfive_simple_controller
     // ---------------------------------------------
 
     logic   wb_valid;
-    assign wb_valid   = (dbus_addr & WB_DECODE_MASK) == WB_DECODE_ADDR;
+    assign wb_valid   = (dbus_addr & M_WB_DECODE_MASK) == M_WB_DECODE_ADDR;
 
     assign m_wb_adr_o = M_WB_ADR_WIDTH'(dbus_addr >> 2);
     assign m_wb_dat_o = 32'(dbus_wdata << (dbus_addr[1:0] * 8));
@@ -271,7 +288,7 @@ module jelly2_jfive_simple_controller
     logic   rd_wb_valid;
     logic   rd_mmio_valid;
     always_ff @(posedge clk) begin
-        rd_mem_valid  <= mem_dbus_valid;
+        rd_mem_valid  <= tcm_dbus_valid;
         rd_wb_valid   <= wb_valid;
         rd_mmio_valid <= mmio_valid;
     end
@@ -281,7 +298,7 @@ module jelly2_jfive_simple_controller
         dbus_shift <= dbus_addr[1:0];
     end
 
-    assign dbus_rdata = rd_mem_valid  ? 32'(mem_dbus_rdata >> (dbus_shift * 8)) :
+    assign dbus_rdata = rd_mem_valid  ? 32'(tcm_dbus_rdata >> (dbus_shift * 8)) :
                         rd_wb_valid   ? 32'(wb_rdata       >> (dbus_shift * 8)) :
                         rd_mmio_valid ? mmio_rdata                              :
                         'x;

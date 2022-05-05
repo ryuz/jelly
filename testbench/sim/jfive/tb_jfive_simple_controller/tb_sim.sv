@@ -10,7 +10,7 @@ module tb_sim();
         $dumpfile("tb_sim.vcd");
         $dumpvars(0, tb_sim);
         
-    #2000000
+    #1000000
         $finish();
     end
 
@@ -25,8 +25,8 @@ module tb_sim();
     //  main
     // -----------------------------
 
-    tb_sim_main
-        i_sim_main
+    tb_main
+        i_main
             (
                 .reset,
                 .clk

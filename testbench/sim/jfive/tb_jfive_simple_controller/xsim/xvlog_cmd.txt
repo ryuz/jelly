@@ -4,9 +4,10 @@
 --sourcelibdir ../../../../../rtl/image
 --sourcelibdir ../../../../../rtl/math
 --sourcelibdir ../../../../../rtl/model
+--sourcelibdir ../../../../../rtl/primitive
 --sourcelibext .v
 --sourcelibext .sv
 
 ../tb_sim.sv
-../tb_sim_main.sv
+../tb_main.sv
 

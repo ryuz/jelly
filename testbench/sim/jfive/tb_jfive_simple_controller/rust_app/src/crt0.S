@@ -33,5 +33,10 @@ end_loop:
                 j       end_loop
 
 
+                .global   asm_test
+asm_test:
+                li	a0,7
+                ret
+
 
 /* end of file */

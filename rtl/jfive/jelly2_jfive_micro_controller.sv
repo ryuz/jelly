@@ -93,7 +93,7 @@ module jelly2_jfive_micro_controller
 
     always_comb begin
         case ( int'(s_wb_adr_i) )
-        ADR_CORE_ID:        s_wb_dat_o = S_WB_DAT_WIDTH'(32'hffff_8723);
+        ADR_CORE_ID:        s_wb_dat_o = S_WB_DAT_WIDTH'(32'hffff_8724);
         ADR_CORE_VERSION:   s_wb_dat_o = S_WB_DAT_WIDTH'(32'h0001_0000);
         ADR_CORE_DATE:      s_wb_dat_o = S_WB_DAT_WIDTH'(32'h2022_0226);
         ADR_MEM_OFFSET:     s_wb_dat_o = S_WB_DAT_WIDTH'(S_WB_TCM_ADR);
