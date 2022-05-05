@@ -45,6 +45,7 @@ module jelly2_register_ram32x1d
         end
 
         for ( genvar j = 0; j < DATA_WIDTH; ++j ) begin
+            wire        spo;
             wire        dpo;
             RAM32X1D
                     #(
@@ -61,7 +62,7 @@ module jelly2_register_ram32x1d
                         .A3                 (wr_addr[3]),
                         .A4                 (wr_addr[4]),
                         .D                  (wr_din[j]),
-                        .SPO                (),
+                        .SPO                (spo),
 
                         .DPRA0              (rd_addr[i][0]),
                         .DPRA1              (rd_addr[i][1]),

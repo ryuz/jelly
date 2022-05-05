@@ -90,7 +90,7 @@ module tb_main
         $write("\n");
     end
 
-
+    /*
     wire [31:0] x0  = i_top.i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[0 ];
     wire [31:0] x1  = i_top.i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[1 ];
     wire [31:0] x2  = i_top.i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[2 ];
@@ -123,6 +123,7 @@ module tb_main
     wire [31:0] x29 = i_top.i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[29];
     wire [31:0] x30 = i_top.i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[30];
     wire [31:0] x31 = i_top.i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[31];
+    */
 
 endmodule
 

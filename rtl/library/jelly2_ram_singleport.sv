@@ -22,7 +22,7 @@ module jelly2_ram_singleport
             parameter   int                                 MEM_SIZE     = (1 << ADDR_WIDTH),
             parameter                                       RAM_TYPE     = "block",
             parameter   bit                                 DOUT_REGS    = 0,
-            parameter                                       MODE         = "WRITE_FIRST",
+            parameter                                       MODE         = "NO_CHANGE",
             
             parameter   bit                                 FILLMEM      = 0,
             parameter   logic   [WE_WIDTH*WORD_WIDTH-1:0]   FILLMEM_DATA = 0,
@@ -47,9 +47,9 @@ module jelly2_ram_singleport
     logic   [WE_WIDTH*WORD_WIDTH-1:0]    tmp_dout;
     
     generate
-    for ( genvar i = 0; i < WE_WIDTH; ++i ) begin : loop_lane
-        if ( MODE == "WRITE_FIRST" ) begin : blk_write_first
-            // write first
+    if ( 256'(MODE) == 256'("WRITE_FIRST") ) begin : blk_wf
+        // write first
+        for ( genvar i = 0; i < WE_WIDTH; ++i ) begin : loop_we
             always_ff @ ( posedge clk ) begin
                 if ( en ) begin
                     if ( we[i] ) begin
@@ -62,8 +62,10 @@ module jelly2_ram_singleport
                 end
             end
         end
-        else begin : blk_read_first
-            // read first
+    end
+    else if ( 256'(MODE) == 256'("READ_FIRST") ) begin : blk_rf
+        // read first
+        for ( genvar i = 0; i < WE_WIDTH; ++i ) begin : loop_we
             always_ff @( posedge clk ) begin
                 if ( en ) begin
                     if ( we[i] ) begin
@@ -72,6 +74,32 @@ module jelly2_ram_singleport
                     tmp_dout[i*WORD_WIDTH +: WORD_WIDTH] <= mem[addr][i*WORD_WIDTH +: WORD_WIDTH];
                 end
             end
+        end
+    end
+    else if ( 256'(MODE) == 256'("NO_CHANGE") ) begin : blk_nc1
+        // no change
+        for ( genvar i = 0; i < WE_WIDTH; ++i ) begin : loop_we1
+            always_ff @ ( posedge clk ) begin
+                if ( en ) begin
+                    if ( we[i] ) begin
+                        mem[addr][i*WORD_WIDTH +: WORD_WIDTH] <= din[i*WORD_WIDTH +: WORD_WIDTH] ;
+                    end
+                end
+            end
+        end
+        always_ff @ ( posedge clk ) begin
+            if ( en ) begin
+                if ( ~|we ) begin
+                    tmp_dout <= mem[addr];
+                end
+            end
+        end
+    end
+    else begin
+        // error
+        initial begin
+            $display("!!![ERROR]!!! jelly2_ram_singleport: parameter error");
+            $stop();
         end
     end
     endgenerate

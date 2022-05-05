@@ -456,6 +456,7 @@ module jelly2_jfive_micro_core
     
 
     // register file
+    /*
     jelly2_register_file_ram
             #(
                 .READ_PORTS     (2),
@@ -476,7 +477,28 @@ module jelly2_jfive_micro_core
                 .rd_addr        ({if_rs2_idx, if_rs1_idx}),
                 .rd_dout        ({id_rs2_val, id_rs1_val})
             );
+    */
 
+    jelly2_register_ram32x1d
+            #(
+                .READ_PORTS     (2),
+                .DATA_WIDTH     (XLEN)
+            )
+        i_register_file
+            (
+                .reset,
+                .clk,
+                .cke            (1'b1),
+
+                .wr_en          (wb_rd_en),
+                .wr_addr        (wb_rd_idx),
+                .wr_din         (wb_rd_val),
+
+                .rd_en          ({2{id_cke}}),
+                .rd_addr        ({if_rs2_idx, if_rs1_idx}),
+                .rd_dout        ({id_rs2_val, id_rs1_val})
+            );
+    
     // instruction decode
     logic    id_dec_lui;
     logic    id_dec_auipc;
