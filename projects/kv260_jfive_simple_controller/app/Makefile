@@ -1,6 +1,6 @@
 
-DT_NAME   = kv260_jfive_micro_controller
-BIT_NAME  = kv260_jfive_micro_controller
+DT_NAME   = kv260_jfive_simple_controller
+BIT_NAME  = kv260_jfive_simple_controller
 
 DTS_FILE  = $(DT_NAME).dts
 DTBO_FILE = $(DT_NAME).dtbo

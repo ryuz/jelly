@@ -7,7 +7,7 @@
         overlay0: __overlay__ {
             #address-cells = <2>;
             #size-cells = <2>;
-            firmware-name = "kv260_jfive_micro_controller.bit.bin";
+            firmware-name = "kv260_jfive_simple_controller.bit.bin";
         };
     };
     

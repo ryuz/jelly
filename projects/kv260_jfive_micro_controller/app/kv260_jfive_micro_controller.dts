@@ -52,7 +52,7 @@
             #address-cells = <0x2>;
             #size-cells = <0x2>;
             
-            uio_pl_peri {
+            uio_pl_peri@a0000000 {
                 compatible = "generic-uio";
                 reg = <0x0 0xa0000000 0x0 0x08000000>;
                 interrupt-parent = <&gic>;

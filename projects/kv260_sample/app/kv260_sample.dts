@@ -3,10 +3,71 @@
 / {
     fragment@0 {
         target = <&fpga_full>;
-        __overlay__ {
+        overlay0: __overlay__ {
             #address-cells = <2>;
             #size-cells = <2>;
             firmware-name = "kv260_sample.bit.bin";
         };
     };
+
+    /*
+    fragment@1 {
+        target-path = "/axi";
+        overlay1: __overlay__ {
+            fclk0 {
+                compatible    = "ikwzm,fclkcfg-0.10.a";
+                clocks        = <&zynqmp_clk 0x47>;
+                insert-rate   = "200000000";
+                insert-enable = <1>;
+                remove-rate   = "1000000";
+                remove-enable = <0>;
+            };
+        };
+    };
+    */
+
+/*
+    fragment@1 {
+        target = <&fclk0>;
+        overlay1: __overlay__ {
+            #clock-cells = <0>;
+//          assigned-clock-rates = <50000000>;
+            assigned-clock-rates = <199999000>;
+            assigned-clocks = <&zynqmp_clk 71>;
+        };
+    };
+*/
+
+/*
+    fragment@1 {
+//      target = <&amba>;
+        target-path = "/";
+        overlay1: __overlay__ {
+            fclk0  {
+                compatible    = "ikwzm,fclkcfg-0.10.a";
+                clocks        = <&zynqmp_clk 71 &zynqmp_clk 0>;
+                insert-rate   = "100000000";
+                insert-enable = <1>;
+                remove-rate   = "1000000";
+                remove-enable = <0>;
+            };
+        };
+    };
+    */
+
+    /*
+    fragment@1 {
+        target-path = "/axi";
+        __overlay__ {
+            fclk0 {
+                compatible    = "ikwzm,fclkcfg-0.10.a";
+                clocks        = <&zynqmp_clk 0x47>;
+                insert-rate   = "50000000";
+                insert-enable = <1>;
+                remove-rate   = "1000000";
+                remove-enable = <0>;
+            };
+        };
+    };
+    */
 };
