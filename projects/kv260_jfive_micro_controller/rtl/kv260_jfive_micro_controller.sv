@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- the system on fpga system
 //
-//  Ultra96V2 RISC-V sample
+//  Kria KV260 RISC-V sample
 //
 //                                 Copyright (C) 2008-2022 by Ryuz
 //                                 https://github.com/ryuz/jelly.git
@@ -165,8 +165,8 @@ module kv260_jfive_micro_controller
                 .TCM_DECODE_MASK    (32'hff00_0000),
                 .TCM_DECODE_ADDR    (32'h8000_0000),
                 .TCM_SIZE           (4096),
-                .TCM_RAM_TYPE       ("block"),     //("block"),
-                .TCM_RAM_MODE       ("NO_CHANGE"), //("WRITE_FIRST"),
+                .TCM_RAM_TYPE       ("block"),
+                .TCM_RAM_MODE       ("NO_CHANGE"),
                 .TCM_READMEMH       (1'b0),
                 .TCM_READMEM_FIlE   (""),
 

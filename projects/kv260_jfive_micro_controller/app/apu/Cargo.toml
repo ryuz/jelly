@@ -1,5 +1,5 @@
 [package]
-name = "ultra96v2_udmabuf_sample"
+name = "jfive_sample"
 version = "0.1.0"
 edition = "2021"
 

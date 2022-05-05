@@ -541,24 +541,6 @@ module jelly2_jfive_micro_core
 
 
     // branch
-    /*
-    always_ff @(posedge clk) begin
-        if ( id_cke ) begin
-            id_branch_sel <= BRANCH_JAL;
-            unique case (1'b1)
-            if_dec_jal:     id_branch_sel <= BRANCH_JAL;
-            if_dec_jalr:    id_branch_sel <= BRANCH_JALR;
-            if_dec_beq:     id_branch_sel <= BRANCH_BEQ;
-            if_dec_bne:     id_branch_sel <= BRANCH_BNE;
-            if_dec_blt:     id_branch_sel <= BRANCH_BLT;
-            if_dec_bge:     id_branch_sel <= BRANCH_BGE;
-            if_dec_bltu:    id_branch_sel <= BRANCH_BLTU;
-            if_dec_bgeu:    id_branch_sel <= BRANCH_BGEU;
-            default:        id_branch_sel <= BRANCH_JAL;
-            endcase
-        end
-    end
-    */
     always_ff @(posedge clk) begin
         if ( cke ) begin
             id_branch_sel <= BRANCH_JAL;
@@ -572,7 +554,6 @@ module jelly2_jfive_micro_core
             if ( if_dec_bgeu ) begin id_branch_sel <= BRANCH_BGEU; end
         end
     end
-
 
     always_ff @(posedge clk) begin
         if ( id_cke ) begin
@@ -656,96 +637,6 @@ module jelly2_jfive_micro_core
         end
     end
 
-
-    /*
-
-    // instruction decode
-    logic    id_dec_lui;
-    logic    id_dec_auipc;
-    logic    id_dec_jal;
-    logic    id_dec_jalr;
-    logic    id_dec_beq;
-    logic    id_dec_bne;
-    logic    id_dec_blt;
-    logic    id_dec_bge;
-    logic    id_dec_bltu;
-    logic    id_dec_bgeu;
-    logic    id_dec_lb;
-    logic    id_dec_lh;
-    logic    id_dec_lw;
-    logic    id_dec_lbu;
-    logic    id_dec_lhu;
-    logic    id_dec_sb;
-    logic    id_dec_sh;
-    logic    id_dec_sw;
-    logic    id_dec_addi;
-    logic    id_dec_slti;
-    logic    id_dec_sltiu;
-    logic    id_dec_xori;
-    logic    id_dec_ori;
-    logic    id_dec_andi;
-    logic    id_dec_slli;
-    logic    id_dec_srli;
-    logic    id_dec_srai;
-    logic    id_dec_add;
-    logic    id_dec_sub;
-    logic    id_dec_sll;
-    logic    id_dec_slt;
-    logic    id_dec_sltu;
-    logic    id_dec_xor;
-    logic    id_dec_srl;
-    logic    id_dec_sra;
-    logic    id_dec_or;
-    logic    id_dec_and;
-    logic    id_dec_fence;
-    logic    id_dec_ecall;
-    logic    id_dec_ebreak;
-
-    always_ff @(posedge clk) begin
-        if ( id_cke ) begin
-            id_dec_lui    <= if_dec_lui;
-            id_dec_auipc  <= if_dec_auipc;
-            id_dec_jal    <= if_dec_jal;
-            id_dec_jalr   <= if_dec_jalr;
-            id_dec_beq    <= if_dec_beq;
-            id_dec_bne    <= if_dec_bne;
-            id_dec_blt    <= if_dec_blt;
-            id_dec_bge    <= if_dec_bge;
-            id_dec_bltu   <= if_dec_bltu;
-            id_dec_bgeu   <= if_dec_bgeu;
-            id_dec_lb     <= if_dec_lb;
-            id_dec_lh     <= if_dec_lh;
-            id_dec_lw     <= if_dec_lw;
-            id_dec_lbu    <= if_dec_lbu;
-            id_dec_lhu    <= if_dec_lhu;
-            id_dec_sb     <= if_dec_sb;
-            id_dec_sh     <= if_dec_sh;
-            id_dec_sw     <= if_dec_sw;
-            id_dec_addi   <= if_dec_addi;
-            id_dec_slti   <= if_dec_slti;
-            id_dec_sltiu  <= if_dec_sltiu;
-            id_dec_xori   <= if_dec_xori;
-            id_dec_ori    <= if_dec_ori;
-            id_dec_andi   <= if_dec_andi;
-            id_dec_slli   <= if_dec_slli;
-            id_dec_srli   <= if_dec_srli;
-            id_dec_srai   <= if_dec_srai;
-            id_dec_add    <= if_dec_add;
-            id_dec_sub    <= if_dec_sub;
-            id_dec_sll    <= if_dec_sll;
-            id_dec_slt    <= if_dec_slt;
-            id_dec_sltu   <= if_dec_sltu;
-            id_dec_xor    <= if_dec_xor;
-            id_dec_srl    <= if_dec_srl;
-            id_dec_sra    <= if_dec_sra;
-            id_dec_or     <= if_dec_or;
-            id_dec_and    <= if_dec_and;
-            id_dec_fence  <= if_dec_fence;
-            id_dec_ecall  <= if_dec_ecall;
-            id_dec_ebreak <= if_dec_ebreak;
-        end
-    end
-    */
 
     // -----------------------------------------
     //  Execution
@@ -842,20 +733,6 @@ module jelly2_jfive_micro_core
     end
 
 
-
-
-    // conditions
-    /*
-    wire ex_cond_eq   = (ex_fwd_rs1_val == ex_fwd_rs2_val);
-    wire ex_cond_ne   = (ex_fwd_rs1_val != ex_fwd_rs2_val);
-    wire ex_cond_lt   = (ex_fwd_rs1_val < ex_fwd_rs2_val);
-    wire ex_cond_lti  = (ex_fwd_rs1_val < XLEN'(id_imm_i));
-    wire ex_cond_ge   = (ex_fwd_rs1_val >= ex_fwd_rs2_val);
-    wire ex_cond_ltu  = (ex_fwd_rs1_val_u < ex_fwd_rs2_val_u);
-    wire ex_cond_ltiu = (ex_fwd_rs1_val_u < XLEN'(id_imm_i_u));
-    wire ex_cond_geu  = (ex_fwd_rs1_val_u >= ex_fwd_rs2_val_u);
-    */
-
     // conditions
     logic                   ex_cond_eq; 
     logic                   ex_cond_ne;
@@ -919,43 +796,7 @@ module jelly2_jfive_micro_core
         endcase
     end
 
-    // alu
-    /*
-    always_ff @(posedge clk) begin
-        if ( ex_cke ) begin
-             ex_rd_val <= 'x;
-            unique case (1'b1)
-            id_dec_lui  : ex_rd_val <= id_imm_u;
-            id_dec_auipc: ex_rd_val <= id_imm_u + XLEN'(id_pc);
-            id_dec_jal  : ex_rd_val <= XLEN'(id_pc) + XLEN'(4);
-            id_dec_jalr : ex_rd_val <= XLEN'(id_pc) + XLEN'(4);
-            id_dec_addi : ex_rd_val <= ex_fwd_rs1_val    + XLEN'(id_imm_i);
-            id_dec_slti : ex_rd_val <= ex_cond_lt  ? XLEN'(1) : XLEN'(0);
-            id_dec_sltiu: ex_rd_val <= ex_cond_ltu ? XLEN'(1) : XLEN'(0);
-            id_dec_xori : ex_rd_val <= ex_fwd_rs1_val    ^ XLEN'(id_imm_i);
-            id_dec_ori  : ex_rd_val <= ex_fwd_rs1_val    | XLEN'(id_imm_i);
-            id_dec_andi : ex_rd_val <= ex_fwd_rs1_val    & XLEN'(id_imm_i);
-            id_dec_slli : ex_rd_val <= ex_fwd_rs1_val   << id_shamt;
-            id_dec_srli : ex_rd_val <= ex_fwd_rs1_val_u >> id_shamt;
-            id_dec_srai : ex_rd_val <= ex_fwd_rs1_val  >>> id_shamt;
-            id_dec_add  : ex_rd_val <= ex_fwd_rs1_val    + ex_fwd_rs2_val;
-            id_dec_sub  : ex_rd_val <= ex_fwd_rs1_val    - ex_fwd_rs2_val;
-            id_dec_sll  : ex_rd_val <= ex_fwd_rs1_val   << ex_fwd_rs2_val_u[4:0];
-            id_dec_slt  : ex_rd_val <= ex_cond_lt  ? XLEN'(1) : XLEN'(0);
-            id_dec_sltu : ex_rd_val <= ex_cond_ltu ? XLEN'(1) : XLEN'(0);
-            id_dec_xor  : ex_rd_val <= ex_fwd_rs1_val    ^ ex_fwd_rs2_val;
-            id_dec_srl  : ex_rd_val <= ex_fwd_rs1_val_u >> ex_fwd_rs2_val_u[4:0];
-            id_dec_sra  : ex_rd_val <= ex_fwd_rs1_val  >>> ex_fwd_rs2_val_u[4:0];
-            id_dec_or   : ex_rd_val <= ex_fwd_rs1_val    | ex_fwd_rs2_val;
-            id_dec_and  : ex_rd_val <= ex_fwd_rs1_val    & ex_fwd_rs2_val;
-            default: ;
-            endcase
-        end
-    end
-    */
-
     // ALU
-//    logic   signed  [31:0]  ex_alu_rd_val;
     always_ff @(posedge clk) begin
         if ( ex_cke ) begin
             automatic   logic   signed  [XLEN-1:0]          alu_val0;
@@ -1317,15 +1158,6 @@ module jelly2_jfive_micro_core
 
                             $fdisplay(fp_trace, "pc:%08x instr:%08x rd(%2d):%08x rs1(%2d):%08x rs2(%2d):%08x",
                                     wb_pc, wb_instr, rd_idx, rd_val, wb_rs1_idx, wb_rs1_val, wb_rs2_idx, wb_rs2_val);
-                            
-                            /*
-                            if ( wb_mem_we ) begin 
-                                $fdisplay(fp_trace, "  write  addr:%08x wdata:%08x sel:%b", wb_mem_addr, wb_mem_wdata, wb_mem_sel);
-                            end
-                            if ( wb_mem_re ) begin 
-                                $fdisplay(fp_trace, "  read   addr:%08x rdata:%08x sel:%b", wb_mem_addr, wb_mem_rdata, wb_mem_sel);
-                            end
-                            */
                         end
                     end
                 end
