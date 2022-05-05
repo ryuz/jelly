@@ -2,7 +2,7 @@
 `timescale 1ns / 1ps
 `default_nettype none
 
-
+// RISC-V(RV32I 3 stage pipelines)
 module jelly2_jfive_simple_controller
         #(
             parameter   int                             S_WB_ADR_WIDTH   = 16,

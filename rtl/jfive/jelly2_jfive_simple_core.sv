@@ -11,6 +11,7 @@
 `default_nettype none
 
 
+// RISC-V(RV32I 3 stage pipelines)
 module jelly2_jfive_simple_core
         #(
             parameter int                       IBUS_ADDR_WIDTH = 14,
@@ -54,6 +55,7 @@ module jelly2_jfive_simple_core
     localparam  int     RIDX_WIDTH  = 5;
     localparam  int     SHAMT_WIDTH = $clog2(XLEN);
 
+    // enums
     typedef enum logic [3:0] {
         BRANCH_JAL,
         BRANCH_JALR,
@@ -98,9 +100,9 @@ module jelly2_jfive_simple_core
     logic                                   if_valid;
 
     logic           [6:0]                   if_opcode;
-    logic           [4:0]                   if_rd_idx;
-    logic           [4:0]                   if_rs1_idx;
-    logic           [4:0]                   if_rs2_idx;
+    logic           [RIDX_WIDTH-1:0]        if_rd_idx;
+    logic           [RIDX_WIDTH-1:0]        if_rs1_idx;
+    logic           [RIDX_WIDTH-1:0]        if_rs2_idx;
     logic           [2:0]                   if_funct3;
     logic           [6:0]                   if_funct7;
 
@@ -117,17 +119,17 @@ module jelly2_jfive_simple_core
 
     //  Instruction Decode  
     logic           [PC_WIDTH-1:0]          id_pc;
-    logic           [31:0]                  id_instr;
+    logic           [INSTR_WIDTH-1:0]       id_instr;
     logic                                   id_valid;
 
     logic           [6:0]                   id_opcode;
     logic                                   id_rd_en;
-    logic           [4:0]                   id_rd_idx;
+    logic           [RIDX_WIDTH-1:0]        id_rd_idx;
     logic                                   id_rs1_en;
     logic           [4:0]                   id_rs1_idx;
     logic   signed  [XLEN-1:0]              id_rs1_val;
     logic                                   id_rs2_en;
-    logic           [4:0]                   id_rs2_idx;
+    logic           [RIDX_WIDTH-1:0]        id_rs2_idx;
     logic   signed  [XLEN-1:0]              id_rs2_val;
     logic           [2:0]                   id_funct3;
     logic           [6:0]                   id_funct7;
@@ -142,7 +144,7 @@ module jelly2_jfive_simple_core
     logic           [PC_WIDTH-1:0]          id_branch_pc;
     branch_sel_t                            id_branch_sel;
 
-    logic   signed  [31:0]                  id_mem_offset;
+    logic   signed  [XLEN-1:0]              id_mem_offset;
     logic                                   id_mem_rd;
     logic                                   id_mem_wr;
     logic           [3:0]                   id_mem_sel;
@@ -161,19 +163,19 @@ module jelly2_jfive_simple_core
 
     logic                                   ex_valid;
     logic           [PC_WIDTH-1:0]          ex_pc;
-    logic           [31:0]                  ex_instr;
+    logic           [INSTR_WIDTH-1:0]       ex_instr;
 
     logic           [PC_WIDTH-1:0]          ex_branch_pc;
     logic                                   ex_branch_valid;
 
     logic                                   ex_rd_en;
-    logic           [4:0]                   ex_rd_idx;
+    logic           [RIDX_WIDTH-1:0]        ex_rd_idx;
     logic           [XLEN-1:0]              ex_rd_val;
     logic                                   ex_rs1_en;
-    logic           [4:0]                   ex_rs1_idx;
+    logic           [RIDX_WIDTH-1:0]        ex_rs1_idx;
     logic           [XLEN-1:0]              ex_rs1_val;
     logic                                   ex_rs2_en;
-    logic           [4:0]                   ex_rs2_idx;
+    logic           [RIDX_WIDTH-1:0]        ex_rs2_idx;
     logic           [XLEN-1:0]              ex_rs2_val;
 
 
@@ -694,7 +696,6 @@ module jelly2_jfive_simple_core
 
 
 
-
     // -----------------------------------------
     //  Trace (simulation only)
     // -----------------------------------------
@@ -766,7 +767,6 @@ module jelly2_jfive_simple_core
         end
     end
     endgenerate
-
 
 endmodule
 
