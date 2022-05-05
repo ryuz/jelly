@@ -27,6 +27,9 @@ module tb_sim();
     // -----------------------------
 
     tb_main
+            #(
+                .DEVICE     ("ULTRASCALE")
+            )
         i_main
             (
                 .reset,

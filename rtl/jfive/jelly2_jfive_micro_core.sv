@@ -22,6 +22,8 @@ module jelly2_jfive_micro_core
             parameter   int                     MMIO_ADDR_WIDTH  = 32,
             parameter   bit     [31:0]          MMIO_DECODE_MASK = 32'hff00_0000,
             parameter   bit     [31:0]          MMIO_DECODE_ADDR = 32'hff00_0000,
+            
+            parameter                           DEVICE           = "RTL",
 
             parameter   bit                     SIMULATION       = 1'b0,
             parameter   bit                     LOG_EXE_ENABLE   = 1'b0,
@@ -456,12 +458,15 @@ module jelly2_jfive_micro_core
     
 
     // register file
-    /*
-    jelly2_register_file_ram
+    jelly2_register_file
             #(
+                .WRITE_PORTS    (1),
                 .READ_PORTS     (2),
                 .ADDR_WIDTH     (RIDX_WIDTH),
-                .DATA_WIDTH     (XLEN)
+                .DATA_WIDTH     (XLEN),
+                .RAM_TYPE       ("distributed"),
+                .DEVICE         (DEVICE),
+                .SIMULATION     (SIMULATION)
             )
         i_register_file
             (
@@ -477,27 +482,7 @@ module jelly2_jfive_micro_core
                 .rd_addr        ({if_rs2_idx, if_rs1_idx}),
                 .rd_dout        ({id_rs2_val, id_rs1_val})
             );
-    */
 
-    jelly2_register_ram32x1d
-            #(
-                .READ_PORTS     (2),
-                .DATA_WIDTH     (XLEN)
-            )
-        i_register_file
-            (
-                .reset,
-                .clk,
-                .cke            (1'b1),
-
-                .wr_en          (wb_rd_en),
-                .wr_addr        (wb_rd_idx),
-                .wr_din         (wb_rd_val),
-
-                .rd_en          ({2{id_cke}}),
-                .rd_addr        ({if_rs2_idx, if_rs1_idx}),
-                .rd_dout        ({id_rs2_val, id_rs1_val})
-            );
     
     // instruction decode
     logic    id_dec_lui;

@@ -12,10 +12,11 @@
 
 
 // レジスタファイル
-module jelly2_register_ram32x1d
+module jelly2_register_file_ram32x1d
         #(
             parameter   int     READ_PORTS  = 2,
-            parameter   int     DATA_WIDTH  = 32
+            parameter   int     DATA_WIDTH  = 32,
+            parameter           DEVICE      = "RTL"
         )
         (
             input   wire                                        reset,
@@ -45,42 +46,33 @@ module jelly2_register_ram32x1d
         end
 
         for ( genvar j = 0; j < DATA_WIDTH; ++j ) begin
-            wire        spo;
-            wire        dpo;
-            RAM32X1D
+            wire        rdout;
+            jelly2_ram32x1d
                     #(
                         .INIT               (32'd0),
-                        .IS_WCLK_INVERTED   (1'b0)
+                        .IS_WCLK_INVERTED   (1'b0),
+                        .DEVICE             (DEVICE)
                     )
                 i_ram32x1d
                     (
-                        .WCLK               (clk),
-                        .WE                 (cke & wr_en),
-                        .A0                 (wr_addr[0]),
-                        .A1                 (wr_addr[1]),
-                        .A2                 (wr_addr[2]),
-                        .A3                 (wr_addr[3]),
-                        .A4                 (wr_addr[4]),
-                        .D                  (wr_din[j]),
-                        .SPO                (spo),
+                        .wclk               (clk),
+                        .wen                (cke & wr_en),
+                        .waddr              (wr_addr),
+                        .wdin               (wr_din[j]),
+                        .wdout              (),
 
-                        .DPRA0              (rd_addr[i][0]),
-                        .DPRA1              (rd_addr[i][1]),
-                        .DPRA2              (rd_addr[i][2]),
-                        .DPRA3              (rd_addr[i][3]),
-                        .DPRA4              (rd_addr[i][4]),
-                        .DPO                (dpo)
+                        .raddr              (rd_addr[i]),
+                        .rdout              (rdout)
                     );
             
             always_ff @(posedge clk) begin
                 if ( rd_en[i] ) begin
-                    rd_dout[i][j] <= overwrite ? wr_din[j] : dpo;
+                    rd_dout[i][j] <= overwrite ? wr_din[j] : rdout;
                 end
             end
         end
     end
     endgenerate
-
 
 endmodule
 

@@ -4,35 +4,38 @@
 
 
 module tb_main
+        #(
+            parameter   DEVICE = "RTL"
+        )
         (
             input   wire                        reset,
             input   wire                        clk
         );
 
-    localparam  int             S_WB_ADR_WIDTH   = 16;
-    localparam  int             S_WB_DAT_WIDTH   = 32;
-    localparam  int             S_WB_SEL_WIDTH   = S_WB_DAT_WIDTH/8;
+    localparam  int                             S_WB_ADR_WIDTH   = 16;
+    localparam  int                             S_WB_DAT_WIDTH   = 32;
+    localparam  int                             S_WB_SEL_WIDTH   = S_WB_DAT_WIDTH/8;
+    localparam  bit     [S_WB_ADR_WIDTH-1:0]    S_WB_TCM_ADR     = S_WB_ADR_WIDTH'(1 << (S_WB_ADR_WIDTH - 1));
 
-    localparam  bit     [31:0]  M_WB_DECODE_MASK = 32'hf000_0000;
-    localparam  bit     [31:0]  M_WB_DECODE_ADDR = 32'h1000_0000;
-    localparam  int             M_WB_ADR_WIDTH   = 24;
+    localparam  bit     [31:0]                  M_WB_DECODE_MASK = 32'hf000_0000;
+    localparam  bit     [31:0]                  M_WB_DECODE_ADDR = 32'h1000_0000;
+    localparam  int                             M_WB_ADR_WIDTH   = 24;
+    
+    localparam  bit     [31:0]                  TCM_DECODE_MASK  = 32'hf000_0000;
+    localparam  bit     [31:0]                  TCM_DECODE_ADDR  = 32'h8000_0000;
+    localparam  int                             TCM_SIZE         = 64*1024;
+    localparam  bit                             TCM_READMEMH     = 1'b1;
+    localparam                                  TCM_READMEM_FIlE = "../mem.hex";
 
-    localparam  bit     [31:0]  TCM_DECODE_MASK  = 32'hf000_0000;
-    localparam  bit     [31:0]  TCM_DECODE_ADDR  = 32'h8000_0000;
-    localparam  int             TCM_ADDR_OFFSET  = 1 << (S_WB_ADR_WIDTH - 1);
-    localparam  int             TCM_SIZE         = 64*1024;
-    localparam  bit             TCM_READMEMH     = 1'b1;
-    localparam                  TCM_READMEM_FIlE = "../mem.hex";
+    localparam  int                             PC_WIDTH         = 32;
+    localparam  bit     [31:0]                  INIT_PC_ADDR     = 32'h8000_0000;
+    localparam  bit                             INIT_CTL_RESET   = 1'b0;
 
-    localparam  int             PC_WIDTH         = 32;
-    localparam  bit     [31:0]  INIT_PC_ADDR     = 32'h8000_0000;
-    localparam  bit             INIT_CTL_RESET   = 1'b1;
-
-    localparam  bit             SIMULATION       = 1'b1;
-    localparam  bit             LOG_EXE_ENABLE   = 1'b1;
-    localparam  string          LOG_EXE_FILE     = "jfive_exe_log.txt";
-    localparam  bit             LOG_MEM_ENABLE   = 1'b1;
-    localparam  string          LOG_MEM_FILE     = "jfive_mem_log.txt";
+    localparam  bit                             SIMULATION       = 1'b1;
+    localparam  bit                             LOG_EXE_ENABLE   = 1'b1;
+    localparam  string                          LOG_EXE_FILE     = "jfive_exe_log.txt";
+    localparam  bit                             LOG_MEM_ENABLE   = 1'b1;
+    localparam  string                          LOG_MEM_FILE     = "jfive_mem_log.txt";
 
     logic                           cke = 1'b1;
     always @(posedge clk) begin
@@ -61,18 +64,19 @@ module tb_main
                 .S_WB_ADR_WIDTH     (S_WB_ADR_WIDTH),
                 .S_WB_DAT_WIDTH     (S_WB_DAT_WIDTH),
                 .S_WB_SEL_WIDTH     (S_WB_SEL_WIDTH),
+                .S_WB_TCM_ADR       (S_WB_TCM_ADR),
                 .M_WB_DECODE_MASK   (M_WB_DECODE_MASK),
                 .M_WB_DECODE_ADDR   (M_WB_DECODE_ADDR),
                 .M_WB_ADR_WIDTH     (M_WB_ADR_WIDTH),
                 .TCM_DECODE_MASK    (TCM_DECODE_MASK),
                 .TCM_DECODE_ADDR    (TCM_DECODE_ADDR),
-                .TCM_ADDR_OFFSET    (TCM_ADDR_OFFSET),
                 .TCM_SIZE           (TCM_SIZE),
                 .TCM_READMEMH       (TCM_READMEMH    ),
                 .TCM_READMEM_FIlE   (TCM_READMEM_FIlE),
                 .PC_WIDTH           (PC_WIDTH),
                 .INIT_PC_ADDR       (INIT_PC_ADDR),
                 .INIT_CTL_RESET     (INIT_CTL_RESET),
+                .DEVICE             (DEVICE),
                 .SIMULATION         (SIMULATION),
                 .LOG_EXE_ENABLE     (LOG_EXE_ENABLE),
                 .LOG_EXE_FILE       (LOG_EXE_FILE),
@@ -109,7 +113,7 @@ module tb_main
         end
     end
     
-    
+    /*
     wire [31:0] x0  = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[0 ];
     wire [31:0] x1  = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[1 ];
     wire [31:0] x2  = i_jfive_micro_controller.i_jfive_micro_core.i_register_file.loop_ram[0].i_ram_dualport.mem[2 ];
@@ -175,7 +179,7 @@ module tb_main
     wire [31:0] t4 = x29;
     wire [31:0] t5 = x30;
     wire [31:0] t6 = x31;
-
+    */
 
     always @(posedge clk) begin
         if ( !reset && cke ) begin

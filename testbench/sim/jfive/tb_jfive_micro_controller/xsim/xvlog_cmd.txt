@@ -3,6 +3,7 @@
 --sourcelibdir ../../../../../rtl/jfive
 --sourcelibdir ../../../../../rtl/image
 --sourcelibdir ../../../../../rtl/math
+--sourcelibdir ../../../../../rtl/primitive
 --sourcelibdir ../../../../../rtl/model
 --sourcelibext .v
 --sourcelibext .sv

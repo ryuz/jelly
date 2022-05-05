@@ -9,6 +9,7 @@
 #-Wno-UNOPTTHREADS
 
 -y ../../../../../rtl/model
+-y ../../../../../rtl/primitive
 -y ../../../../../rtl/jfive
 -y ../../../../../rtl/library
 -y ../../../../../rtl/bus

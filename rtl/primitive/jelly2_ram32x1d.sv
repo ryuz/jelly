@@ -12,15 +12,14 @@
 `default_nettype none
 
 
-module jelly_ram32x1d
+module jelly2_ram32x1d
         #(
             parameter   INIT             = 32'd0,
             parameter   IS_WCLK_INVERTED = 1'b0,
             parameter   DEVICE           = "RTL"
         )
         (
-            input   wire                clk,
-            
+            input   wire                wclk,
             input   wire                wen,
             input   wire    [4:0]       waddr,
             input   wire                wdin,
@@ -30,7 +29,7 @@ module jelly_ram32x1d
             output  reg                 rdout
         );
 
-`ifndef VERILATOR
+`ifdef VERILATOR
     localparam  SIM = 1'b1;
 `else
     localparam  SIM = 1'b0;
@@ -42,6 +41,7 @@ module jelly_ram32x1d
             256'(DEVICE) == 256'("VIRTEX6") ||
             256'(DEVICE) == 256'("7SERIES") ||
             256'(DEVICE) == 256'("ULTRASCALE") ||
+            256'(DEVICE) == 256'("ULTRASCALE_PLUS") ||
             256'(DEVICE) == 256'("ULTRASCALE_PLUS_ES1") ||
             256'(DEVICE) == 256'("ULTRASCALE_PLUS_ES2")) ) begin : xilinx_ram32x1d
         // xilinx
@@ -52,7 +52,7 @@ module jelly_ram32x1d
                 )
             i_ram32x1d
                 (
-                    .WCLK               (clk),
+                    .WCLK               (wclk),
                     .WE                 (wen),
                     .A0                 (waddr[0]),
                     .A1                 (waddr[1]),
@@ -73,7 +73,7 @@ module jelly_ram32x1d
     else begin
         logic   [31:0]  mem = INIT;
         logic           clock;
-        assign clock = IS_WCLK_INVERTED ? ~clk : clk;
+        assign clock = IS_WCLK_INVERTED ? ~wclk : wclk;
 
         always_ff @(posedge clock) begin
             if ( wen ) begin

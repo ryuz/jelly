@@ -154,6 +154,7 @@ module jelly2_jfive_micro_controller
                 .MMIO_ADDR_WIDTH    (M_WB_ADR_WIDTH + 2),
                 .MMIO_DECODE_MASK   (M_WB_DECODE_MASK),
                 .MMIO_DECODE_ADDR   (M_WB_DECODE_ADDR),
+                .DEVICE             (DEVICE),
                 .SIMULATION         (SIMULATION),
                 .LOG_EXE_ENABLE     (LOG_EXE_ENABLE),
                 .LOG_EXE_FILE       (LOG_EXE_FILE),
