@@ -16,9 +16,6 @@ module tb_main
     localparam   bit     [31:0]                  M_WB_DECODE_MASK = 32'hf000_0000;
     localparam   bit     [31:0]                  M_WB_DECODE_ADDR = 32'h1000_0000;
     localparam   int                             M_WB_ADR_WIDTH   = 24;
-    localparam   bit     [31:0]                  MMIO_DECODE_MASK = 32'hff00_0000;
-    localparam   bit     [31:0]                  MMIO_DECODE_ADDR = 32'h2000_0000;
-    localparam   int                             MMIO_ADR_WIDTH   = 16;
     localparam   bit     [31:0]                  TCM_DECODE_MASK  = 32'hff00_0000;
     localparam   bit     [31:0]                  TCM_DECODE_ADDR  = 32'h8000_0000;
     localparam   int                             TCM_SIZE         = 65536;
@@ -54,13 +51,6 @@ module tb_main
     logic                           m_wb_we_o;
     logic                           m_wb_stb_o;
     logic                           m_wb_ack_i;
-
-    logic                           mmio_wr;
-    logic                           mmio_rd;
-    logic   [MMIO_ADR_WIDTH-1:0]    mmio_addr;
-    logic   [3:0]                   mmio_sel;
-    logic   [31:0]                  mmio_wdata;
-    logic   [31:0]                  mmio_rdata;
     
     jelly2_jfive_simple_controller
             #(
@@ -71,9 +61,6 @@ module tb_main
                 .M_WB_DECODE_MASK   (M_WB_DECODE_MASK),
                 .M_WB_DECODE_ADDR   (M_WB_DECODE_ADDR),
                 .M_WB_ADR_WIDTH     (M_WB_ADR_WIDTH),
-                .MMIO_DECODE_MASK   (MMIO_DECODE_MASK),
-                .MMIO_DECODE_ADDR   (MMIO_DECODE_ADDR),
-                .MMIO_ADR_WIDTH     (MMIO_ADR_WIDTH),
                 .TCM_DECODE_MASK    (TCM_DECODE_MASK),
                 .TCM_DECODE_ADDR    (TCM_DECODE_ADDR),
                 .TCM_SIZE           (TCM_SIZE),
@@ -111,21 +98,12 @@ module tb_main
                 .m_wb_sel_o,
                 .m_wb_we_o,
                 .m_wb_stb_o,
-                .m_wb_ack_i,
-
-                .mmio_wr,
-                .mmio_rd,
-                .mmio_addr,
-                .mmio_sel,
-                .mmio_wdata,
-                .mmio_rdata
+                .m_wb_ack_i
             );
 
     assign m_wb_dat_i = 32'hf1e2d3c4;
     assign m_wb_ack_i = m_wb_stb_o;
     
-    assign mmio_rdata = 32'hf1e2d3c4;
-
     always @(posedge clk) begin
         if ( !reset && m_wb_stb_o && m_wb_we_o ) begin
             if ( m_wb_adr_o == 0 ) begin

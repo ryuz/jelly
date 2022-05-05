@@ -13,14 +13,10 @@ module jelly2_jfive_simple_controller
             parameter   bit     [31:0]                  M_WB_DECODE_MASK = 32'hf000_0000,
             parameter   bit     [31:0]                  M_WB_DECODE_ADDR = 32'h1000_0000,
             parameter   int                             M_WB_ADR_WIDTH   = 24,
-
-            parameter   bit     [31:0]                  MMIO_DECODE_MASK = 32'hff00_0000,
-            parameter   bit     [31:0]                  MMIO_DECODE_ADDR = 32'h2000_0000,
-            parameter   int                             MMIO_ADR_WIDTH   = 16,
             
             parameter   bit     [31:0]                  TCM_DECODE_MASK  = 32'hff00_0000,
             parameter   bit     [31:0]                  TCM_DECODE_ADDR  = 32'h8000_0000,
-            parameter   int                             TCM_SIZE         = 8192,
+            parameter   int                             TCM_SIZE         = 4096,
             parameter                                   TCM_RAM_TYPE     = "block",
             parameter                                   TCM_RAM_MODE     = "NO_CHANGE",
             parameter   bit                             TCM_READMEMH     = 1'b0,
@@ -57,14 +53,7 @@ module jelly2_jfive_simple_controller
             output  wire    [3:0]                   m_wb_sel_o,
             output  wire                            m_wb_we_o,
             output  wire                            m_wb_stb_o,
-            input   wire                            m_wb_ack_i,
-
-            output  wire                            mmio_wr,
-            output  wire                            mmio_rd,
-            output  wire    [MMIO_ADR_WIDTH-1:0]    mmio_addr,
-            output  wire    [3:0]                   mmio_sel,
-            output  wire    [31:0]                  mmio_wdata,
-            input   wire    [31:0]                  mmio_rdata
+            input   wire                            m_wb_ack_i
         );
 
 
@@ -266,31 +255,14 @@ module jelly2_jfive_simple_controller
 
 
     // ---------------------------------------------
-    //  Memory mapped I/O
-    // ---------------------------------------------
-
-    logic   mmio_valid;
-    assign mmio_valid = (dbus_addr & MMIO_DECODE_MASK) == MMIO_DECODE_ADDR;
-
-    assign mmio_wr    = mmio_valid & dbus_wr;
-    assign mmio_rd    = mmio_valid & dbus_rd;
-    assign mmio_addr  = MMIO_ADR_WIDTH'(dbus_addr);
-    assign mmio_sel   = dbus_sel;
-    assign mmio_wdata = dbus_wdata;
-
-
-
-    // ---------------------------------------------
     //  read
     // ---------------------------------------------
 
     logic   rd_mem_valid;
     logic   rd_wb_valid;
-    logic   rd_mmio_valid;
     always_ff @(posedge clk) begin
-        rd_mem_valid  <= tcm_dbus_valid;
-        rd_wb_valid   <= wb_valid;
-        rd_mmio_valid <= mmio_valid;
+        rd_mem_valid <= tcm_dbus_valid;
+        rd_wb_valid  <= wb_valid;
     end
 
     logic   [1:0]   dbus_shift;
@@ -300,7 +272,6 @@ module jelly2_jfive_simple_controller
 
     assign dbus_rdata = rd_mem_valid  ? 32'(tcm_dbus_rdata >> (dbus_shift * 8)) :
                         rd_wb_valid   ? 32'(wb_rdata       >> (dbus_shift * 8)) :
-                        rd_mmio_valid ? mmio_rdata                              :
                         'x;
 
 endmodule

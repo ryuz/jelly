@@ -11,7 +11,7 @@
 `timescale 1ns / 1ps
 `default_nettype none
 
-module kv260_jfive_micro_controller
+module kv260_jfive_simple_controller
             #(
                 parameter   bit     SIMULATION     = 1'b0,
                 parameter   bit     LOG_EXE_ENABLE = 1'b0,
@@ -152,7 +152,7 @@ module kv260_jfive_micro_controller
     logic                           wb_mc_stb_o;
     logic                           wb_mc_ack_i;
     
-    jelly2_jfive_micro_controller
+    jelly2_jfive_simple_controller
             #(
                 .S_WB_ADR_WIDTH     (24),
                 .S_WB_DAT_WIDTH     (WB_DAT_WIDTH),
@@ -165,8 +165,8 @@ module kv260_jfive_micro_controller
                 .TCM_DECODE_MASK    (32'hff00_0000),
                 .TCM_DECODE_ADDR    (32'h8000_0000),
                 .TCM_SIZE           (4096),
-                .TCM_RAM_TYPE       ("block"),     //("block"),
-                .TCM_RAM_MODE       ("NO_CHANGE"), //("WRITE_FIRST"),
+                .TCM_RAM_TYPE       ("block"), 
+                .TCM_RAM_MODE       ("NO_CHANGE"),
                 .TCM_READMEMH       (1'b0),
                 .TCM_READMEM_FIlE   (""),
 
@@ -180,7 +180,7 @@ module kv260_jfive_micro_controller
                 .LOG_EXE_ENABLE     (LOG_EXE_ENABLE),
                 .LOG_MEM_ENABLE     (LOG_MEM_ENABLE)
             )
-        i_jfive_micro_controller
+        i_jfive_simple_controller
             (
                 .reset              (reset),
                 .clk                (clk),
