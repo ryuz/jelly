@@ -326,7 +326,7 @@ module jelly2_jfive_simple_core
         id_rs2_en <= if_rs2_en && if_valid;
     end
 
-    // 命令デコード
+    // Instruction decode
     assign id_opcode  = id_instr[6:0];
     assign id_rd_idx  = id_instr[11:7];
     assign id_rs1_idx = id_instr[19:15];
@@ -519,39 +519,53 @@ module jelly2_jfive_simple_core
         end
     end
 
-
     // conditions
-    logic   signed  [XLEN-1:0]      ex_cond_data0;
-    logic   signed  [XLEN-1:0]      ex_cond_data1;
-    always_comb begin
-        ex_cond_data0 = ex_fwd_rs1_val;
-        ex_cond_data1 = ex_fwd_rs2_val;
-        if ( !id_opcode[5] ) begin
-            ex_cond_data1 = id_funct3[0] ? XLEN'(id_imm_i_u) : XLEN'(id_imm_i);
-        end
-    end
-
     logic                   ex_cond_eq; 
     logic                   ex_cond_ne;
     logic                   ex_cond_lt;
     logic                   ex_cond_ge;
     logic                   ex_cond_ltu;
     logic                   ex_cond_geu;
-    jelly2_jfive_conditions
-            #(
-                .DATA_WIDTH     (XLEN)
-            )
-        i_jfive_conditions
-            (
-                .in_data0       (ex_cond_data0),
-                .in_data1       (ex_cond_data1),
-                .out_eq         (ex_cond_eq),
-                .out_ne         (ex_cond_ne),
-                .out_lt         (ex_cond_lt),
-                .out_ge         (ex_cond_ge),
-                .out_ltu        (ex_cond_ltu),
-                .out_geu        (ex_cond_geu)
-            );
+    always_comb begin
+        automatic   logic   signed  [XLEN-1:0]  cmp_data0;
+        automatic   logic   signed  [XLEN-1:0]  cmp_data1;
+        automatic   logic   signed  [XLEN-1:0]  cond_data;
+        automatic   logic                       msb_carry;
+        automatic   logic                       flg_carry;
+        automatic   logic                       flg_overflow;
+        automatic   logic                       flg_zero;
+        automatic   logic                       flg_negative;
+        cmp_data0    = 'x;
+        cmp_data1    = 'x;
+        cond_data    = 'x;
+        msb_carry    = 'x;
+        flg_carry    = 'x;
+        flg_overflow = 'x;
+        flg_zero     = 'x;
+        flg_negative = 'x;
+
+        cmp_data0 = ex_fwd_rs1_val;
+        cmp_data1 = ex_fwd_rs2_val;
+        if ( !id_opcode[5] ) begin
+            cmp_data1 = id_funct3[0] ? XLEN'(id_imm_i_u) : XLEN'(id_imm_i);
+        end
+
+        cmp_data1 = ~cmp_data1;
+        {msb_carry, cond_data[XLEN-2:0]} = {1'b0, cmp_data0[XLEN-2:0]} + {1'b0, cmp_data1[XLEN-2:0]} + XLEN'(1);
+        {flg_carry, cond_data[XLEN-1]}   = cmp_data0[XLEN-1] + cmp_data1[XLEN-1] + msb_carry;
+
+        flg_overflow = (msb_carry != flg_carry);
+        flg_zero     = (cond_data == '0);
+        flg_negative = cond_data[XLEN-1];
+
+        ex_cond_eq  = flg_zero;
+        ex_cond_ne  = !flg_zero;
+        ex_cond_lt  = (flg_overflow != flg_negative);
+        ex_cond_ge  = (flg_overflow == flg_negative);
+        ex_cond_ltu = !flg_carry;
+        ex_cond_geu = flg_carry;
+    end
+
 
     // branch
     always_comb begin
@@ -570,7 +584,7 @@ module jelly2_jfive_simple_core
             endcase
         end
     end
-    
+
     // ALU
     logic   signed  [31:0]  ex_alu_rd_val;
     always_ff @(posedge clk) begin
