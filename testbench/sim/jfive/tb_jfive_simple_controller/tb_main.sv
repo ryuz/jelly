@@ -14,10 +14,10 @@ module tb_main
     localparam   int                             S_WB_SEL_WIDTH   = S_WB_DAT_WIDTH/8;
     localparam   bit     [S_WB_ADR_WIDTH-1:0]    S_WB_TCM_ADR     = S_WB_ADR_WIDTH'(1 << (S_WB_ADR_WIDTH - 1));
     localparam   bit     [31:0]                  M_WB_DECODE_MASK = 32'hf000_0000;
-    localparam   bit     [31:0]                  M_WB_DECODE_ADDR = 32'h2000_0000;
+    localparam   bit     [31:0]                  M_WB_DECODE_ADDR = 32'h1000_0000;
     localparam   int                             M_WB_ADR_WIDTH   = 24;
     localparam   bit     [31:0]                  MMIO_DECODE_MASK = 32'hff00_0000;
-    localparam   bit     [31:0]                  MMIO_DECODE_ADDR = 32'h1000_0000;
+    localparam   bit     [31:0]                  MMIO_DECODE_ADDR = 32'h2000_0000;
     localparam   int                             MMIO_ADR_WIDTH   = 16;
     localparam   bit     [31:0]                  TCM_DECODE_MASK  = 32'hff00_0000;
     localparam   bit     [31:0]                  TCM_DECODE_ADDR  = 32'h8000_0000;
@@ -127,12 +127,12 @@ module tb_main
     assign mmio_rdata = 32'hf1e2d3c4;
 
     always @(posedge clk) begin
-        if ( !reset && mmio_wr ) begin
-            if ( mmio_addr == 0 ) begin
-                $write("%c", mmio_wdata[7:0]);
+        if ( !reset && m_wb_stb_o && m_wb_we_o ) begin
+            if ( m_wb_adr_o == 0 ) begin
+                $write("%c", m_wb_dat_o[7:0]);
             end
             else begin
-                $display("write: %h %10d %b", mmio_addr, $signed(mmio_wdata), mmio_sel);
+                $display("write: %h %10d %b", m_wb_adr_o, $signed(m_wb_dat_o), m_wb_sel_o);
             end
         end
     end

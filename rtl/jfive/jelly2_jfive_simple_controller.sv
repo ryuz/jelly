@@ -15,7 +15,7 @@ module jelly2_jfive_simple_controller
             parameter   int                             M_WB_ADR_WIDTH   = 24,
 
             parameter   bit     [31:0]                  MMIO_DECODE_MASK = 32'hff00_0000,
-            parameter   bit     [31:0]                  MMIO_DECODE_ADDR = 32'hff00_0000,
+            parameter   bit     [31:0]                  MMIO_DECODE_ADDR = 32'h2000_0000,
             parameter   int                             MMIO_ADR_WIDTH   = 16,
             
             parameter   bit     [31:0]                  TCM_DECODE_MASK  = 32'hff00_0000,
@@ -256,8 +256,8 @@ module jelly2_jfive_simple_controller
     assign m_wb_adr_o = M_WB_ADR_WIDTH'(dbus_addr >> 2);
     assign m_wb_dat_o = 32'(dbus_wdata << (dbus_addr[1:0] * 8));
     assign m_wb_sel_o = 4'(dbus_sel << dbus_addr[1:0]);
-    assign m_wb_we_o  = mmio_wr;
-    assign m_wb_stb_o = mmio_wr | mmio_rd;
+    assign m_wb_we_o  = dbus_wr;
+    assign m_wb_stb_o = wb_valid && (dbus_wr | dbus_rd);
 
     logic   [31:0]  wb_rdata;
     always_ff @(posedge clk) begin

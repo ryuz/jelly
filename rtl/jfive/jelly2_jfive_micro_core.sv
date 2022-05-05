@@ -448,6 +448,15 @@ module jelly2_jfive_micro_core
     end
 
     always_ff @(posedge clk) begin
+        if ( reset ) begin
+            id_rd_en  <= '0;
+        end
+        else if ( id_cke ) begin
+            id_rd_en <= if_rd_en && (if_rd_idx != '0) && if_valid;
+        end
+    end
+    
+    always_ff @(posedge clk) begin
         if ( id_cke ) begin
             id_rs1_en <= if_rs1_en;
             id_rs2_en <= if_rs2_en;
@@ -497,7 +506,71 @@ module jelly2_jfive_micro_core
                 .rd_dout        ({id_rs2_val, id_rs1_val})
             );
 
-    
+
+    // branch
+    always_ff @(posedge clk) begin
+        if ( id_cke ) begin
+            id_branch_sel <= BRANCH_JAL;
+            unique case (1'b1)
+            if_dec_jal:     id_branch_sel <= BRANCH_JAL;
+            if_dec_jalr:    id_branch_sel <= BRANCH_JALR;
+            if_dec_beq:     id_branch_sel <= BRANCH_BEQ;
+            if_dec_bne:     id_branch_sel <= BRANCH_BNE;
+            if_dec_blt:     id_branch_sel <= BRANCH_BLT;
+            if_dec_bge:     id_branch_sel <= BRANCH_BGE;
+            if_dec_bltu:    id_branch_sel <= BRANCH_BLTU;
+            if_dec_bgeu:    id_branch_sel <= BRANCH_BGEU;
+            default:        id_branch_sel <= BRANCH_JAL;
+            endcase
+        end
+    end
+
+    always_ff @(posedge clk) begin
+        if ( id_cke ) begin
+            id_branch_pc0 <= if_pc + PC_WIDTH'(4);
+            id_branch_pc1 <= if_pc + PC_WIDTH'(if_imm_b);
+            
+            if ( if_dec_jal ) begin
+                id_branch_pc0 <= if_pc + PC_WIDTH'(if_imm_j);
+            end
+        end
+    end
+
+
+    // memory access
+    always_ff @(posedge clk) begin
+        if ( reset ) begin
+            id_mem_offset   <= 'x;
+            id_mem_re       <= 1'b0;
+            id_mem_we       <= 1'b0;
+            id_mem_size     <= 'x;
+            id_mem_unsigned <= 1'bx;
+        end
+        else if ( id_cke ) begin
+            id_mem_offset   <= 'x;
+            id_mem_re       <= 1'b0;
+            id_mem_we       <= 1'b0;
+            id_mem_size     <= 'x;
+            id_mem_unsigned <= 1'bx;
+            if ( if_valid ) begin
+                if ( if_opcode == 7'b0000011 ) begin    // load
+                    id_mem_re       <= 1'b1;
+                    id_mem_offset   <= XLEN'(if_imm_i);
+                    id_mem_unsigned <= (if_dec_lbu || if_dec_lhu);
+                end
+                if ( if_opcode == 7'b0100011 ) begin    // store
+                    id_mem_we     <= 1'b1;
+                    id_mem_offset <= XLEN'(if_imm_s);
+                end
+
+                id_mem_size   <= if_funct3[1:0];
+            end
+        end
+    end
+
+
+
+
     // instruction decode
     logic    id_dec_lui;
     logic    id_dec_auipc;
@@ -584,77 +657,6 @@ module jelly2_jfive_micro_core
             id_dec_ebreak <= if_dec_ebreak;
         end
     end
-
-    // memory access
-    always_ff @(posedge clk) begin
-        if ( reset ) begin
-            id_mem_offset   <= 'x;
-            id_mem_re       <= 1'b0;
-            id_mem_we       <= 1'b0;
-            id_mem_size     <= 'x;
-            id_mem_unsigned <= 1'bx;
-        end
-        else if ( id_cke ) begin
-            id_mem_offset   <= 'x;
-            id_mem_re       <= 1'b0;
-            id_mem_we       <= 1'b0;
-            id_mem_size     <= 'x;
-            id_mem_unsigned <= 1'bx;
-            if ( if_valid ) begin
-                if ( if_opcode == 7'b0000011 ) begin    // load
-                    id_mem_re       <= 1'b1;
-                    id_mem_offset   <= XLEN'(if_imm_i);
-                    id_mem_unsigned <= (if_dec_lbu || if_dec_lhu);
-                end
-                if ( if_opcode == 7'b0100011 ) begin    // store
-                    id_mem_we     <= 1'b1;
-                    id_mem_offset <= XLEN'(if_imm_s);
-                end
-
-                id_mem_size   <= if_funct3[1:0];
-            end
-        end
-    end
-
-    // register destination
-    always_ff @(posedge clk) begin
-        if ( reset ) begin
-            id_rd_en  <= '0;
-        end
-        else if ( id_cke ) begin
-            id_rd_en <= if_rd_en && (if_rd_idx != '0) && if_valid;
-        end
-    end
-
-    // branch
-    always_ff @(posedge clk) begin
-        if ( id_cke ) begin
-            id_branch_sel <= BRANCH_JAL;
-            unique case (1'b1)
-            if_dec_jal:     id_branch_sel <= BRANCH_JAL;
-            if_dec_jalr:    id_branch_sel <= BRANCH_JALR;
-            if_dec_beq:     id_branch_sel <= BRANCH_BEQ;
-            if_dec_bne:     id_branch_sel <= BRANCH_BNE;
-            if_dec_blt:     id_branch_sel <= BRANCH_BLT;
-            if_dec_bge:     id_branch_sel <= BRANCH_BGE;
-            if_dec_bltu:    id_branch_sel <= BRANCH_BLTU;
-            if_dec_bgeu:    id_branch_sel <= BRANCH_BGEU;
-            default:        id_branch_sel <= BRANCH_JAL;
-            endcase
-        end
-    end
-
-    always_ff @(posedge clk) begin
-        if ( id_cke ) begin
-            id_branch_pc0 <= if_pc + PC_WIDTH'(4);
-            id_branch_pc1 <= if_pc + PC_WIDTH'(if_imm_b);
-            
-            if ( if_dec_jal ) begin
-                id_branch_pc0 <= if_pc + PC_WIDTH'(if_imm_j);
-            end
-        end
-    end
-
 
 
     // -----------------------------------------

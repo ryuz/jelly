@@ -37,7 +37,7 @@ module jelly2_jfive_adder
         out_overflow = (msb_carry != out_carry);
         out_zero     = (out_data == '0);
         out_negative = out_data[DATA_WIDTH-1];
-    end    
+    end
     
 endmodule
 
