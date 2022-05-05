@@ -207,21 +207,27 @@ module kv260_jfive_micro_controller
     //  Test PMOD
     // -----------------------------
     
-    reg     [7:0]                   reg_gpio;
+    reg     [3:0]                   reg_gpio;
     always @(posedge clk) begin
         if ( reset ) begin
             reg_gpio <= 0;
         end
         else begin
             if ( wb_mc_stb_o && wb_mc_we_o && wb_mc_sel_o[0] ) begin
-                reg_gpio[wb_mc_adr_o[2:0]] <= wb_mc_dat_o[0];
+                reg_gpio[wb_mc_adr_o[1:0]] <= wb_mc_dat_o[0];
             end
         end
     end
 
     assign wb_mc_ack_i = wb_mc_stb_o;
+
+    reg     [7:0]                   reg_counter;
+    always @(posedge clk) begin
+        reg_counter <= reg_counter + 1'b1;
+    end
     
-    assign pmod = reg_gpio;
+    assign pmod[3:0] = reg_gpio;
+    assign pmod[7:4] = reg_counter[7:4];
     
 endmodule
 

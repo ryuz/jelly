@@ -131,6 +131,7 @@ module jelly2_jfive_micro_core
     logic   signed  [12:0]                  id_imm_b;
     logic   signed  [31:0]                  id_imm_u;
     logic   signed  [20:0]                  id_imm_j;
+    logic           [4:0]                   id_shamt;
 
     logic                                   id_rs1_en;
     logic                                   id_rs2_en;
@@ -464,6 +465,7 @@ module jelly2_jfive_micro_core
     assign id_imm_b   = {id_instr[31], id_instr[7], id_instr[30:25], id_instr[11:8], 1'b0};
     assign id_imm_u   = {id_instr[31:12], 12'd0};
     assign id_imm_j   = {id_instr[31], id_instr[19:12], id_instr[20], id_instr[30:21], 1'b0};
+    assign id_shamt   = id_instr[24:20];
 
     logic           [11:0]  id_imm_i_u;
     assign id_imm_i_u = id_imm_i;
@@ -599,14 +601,14 @@ module jelly2_jfive_micro_core
             id_mem_size     <= 'x;
             id_mem_unsigned <= 1'bx;
             if ( if_valid ) begin
-                if ( if_dec_lb || if_dec_lh || if_dec_lw || if_dec_lbu || if_dec_lhu ) begin
+                if ( if_opcode == 7'b0000011 ) begin    // load
                     id_mem_re       <= 1'b1;
-                    id_mem_offset   <= 32'(if_imm_i);
+                    id_mem_offset   <= XLEN'(if_imm_i);
                     id_mem_unsigned <= (if_dec_lbu || if_dec_lhu);
                 end
-                if ( if_dec_sb || if_dec_sh ||  if_dec_sw ) begin
+                if ( if_opcode == 7'b0100011 ) begin    // store
                     id_mem_we     <= 1'b1;
-                    id_mem_offset <= 32'(if_imm_s);
+                    id_mem_offset <= XLEN'(if_imm_s);
                 end
 
                 id_mem_size   <= if_funct3[1:0];
@@ -738,12 +740,14 @@ module jelly2_jfive_micro_core
     end
 
     // conditions
-    wire ex_cond_eq  = (ex_fwd_rs1_val == ex_fwd_rs2_val);
-    wire ex_cond_ne  = (ex_fwd_rs1_val != ex_fwd_rs2_val);
-    wire ex_cond_lt  = (ex_fwd_rs1_val  < ex_fwd_rs2_val);
-    wire ex_cond_ge  = (ex_fwd_rs1_val >= ex_fwd_rs2_val);
-    wire ex_cond_ltu = ($unsigned(ex_fwd_rs1_val)  < $unsigned(ex_fwd_rs2_val));
-    wire ex_cond_geu = ($unsigned(ex_fwd_rs1_val) >= $unsigned(ex_fwd_rs2_val));
+    wire ex_cond_eq   = (ex_fwd_rs1_val == ex_fwd_rs2_val);
+    wire ex_cond_ne   = (ex_fwd_rs1_val != ex_fwd_rs2_val);
+    wire ex_cond_lt   = (ex_fwd_rs1_val < ex_fwd_rs2_val);
+    wire ex_cond_lti  = (ex_fwd_rs1_val < XLEN'(id_imm_i));
+    wire ex_cond_ge   = (ex_fwd_rs1_val >= ex_fwd_rs2_val);
+    wire ex_cond_ltu  = (ex_fwd_rs1_val_u < ex_fwd_rs2_val_u);
+    wire ex_cond_ltiu = (ex_fwd_rs1_val_u < XLEN'(id_imm_i_u));
+    wire ex_cond_geu  = (ex_fwd_rs1_val_u >= ex_fwd_rs2_val_u);
 
     // branch
     always_comb begin
@@ -761,29 +765,28 @@ module jelly2_jfive_micro_core
     end
 
     // alu
-    logic   signed  [31:0]  ex_rd_wdata_alu;
     always_ff @(posedge clk) begin
         if ( ex_cke ) begin
-            ex_rd_val <= 'x;
+             ex_rd_val <= 'x;
             unique case (1'b1)
             id_dec_lui  : ex_rd_val <= id_imm_u;
-            id_dec_auipc: ex_rd_val <= id_imm_u + 32'(id_pc);
-            id_dec_jal  : ex_rd_val <= 32'(id_pc) + 32'd4;
-            id_dec_jalr : ex_rd_val <= 32'(id_pc) + 32'd4;
-            id_dec_addi : ex_rd_val <= ex_fwd_rs1_val    + 32'(id_imm_i);
-            id_dec_slti : ex_rd_val <= (ex_fwd_rs1_val   < 32'(id_imm_i)  ) ? 32'd1 : 32'd0;
-            id_dec_sltiu: ex_rd_val <= (ex_fwd_rs1_val_u < 32'(id_imm_i_u)) ? 32'd1 : 32'd0;
-            id_dec_xori : ex_rd_val <= ex_fwd_rs1_val    ^ 32'(id_imm_i);
-            id_dec_ori  : ex_rd_val <= ex_fwd_rs1_val    | 32'(id_imm_i);
-            id_dec_andi : ex_rd_val <= ex_fwd_rs1_val    & 32'(id_imm_i);
-            id_dec_slli : ex_rd_val <= ex_fwd_rs1_val   << id_imm_i_u[4:0];
-            id_dec_srli : ex_rd_val <= ex_fwd_rs1_val_u >> id_imm_i_u[4:0];
-            id_dec_srai : ex_rd_val <= ex_fwd_rs1_val  >>> id_imm_i_u[4:0];
+            id_dec_auipc: ex_rd_val <= id_imm_u + XLEN'(id_pc);
+            id_dec_jal  : ex_rd_val <= XLEN'(id_pc) + XLEN'(4);
+            id_dec_jalr : ex_rd_val <= XLEN'(id_pc) + XLEN'(4);
+            id_dec_addi : ex_rd_val <= ex_fwd_rs1_val    + XLEN'(id_imm_i);
+            id_dec_slti : ex_rd_val <= ex_cond_lti  ? XLEN'(1) : XLEN'(0);
+            id_dec_sltiu: ex_rd_val <= ex_cond_ltiu ? XLEN'(1) : XLEN'(0);
+            id_dec_xori : ex_rd_val <= ex_fwd_rs1_val    ^ XLEN'(id_imm_i);
+            id_dec_ori  : ex_rd_val <= ex_fwd_rs1_val    | XLEN'(id_imm_i);
+            id_dec_andi : ex_rd_val <= ex_fwd_rs1_val    & XLEN'(id_imm_i);
+            id_dec_slli : ex_rd_val <= ex_fwd_rs1_val   << id_shamt;
+            id_dec_srli : ex_rd_val <= ex_fwd_rs1_val_u >> id_shamt;
+            id_dec_srai : ex_rd_val <= ex_fwd_rs1_val  >>> id_shamt;
             id_dec_add  : ex_rd_val <= ex_fwd_rs1_val    + ex_fwd_rs2_val;
             id_dec_sub  : ex_rd_val <= ex_fwd_rs1_val    - ex_fwd_rs2_val;
             id_dec_sll  : ex_rd_val <= ex_fwd_rs1_val   << ex_fwd_rs2_val_u[4:0];
-            id_dec_slt  : ex_rd_val <= (ex_fwd_rs1_val   < ex_fwd_rs2_val  ) ? 32'd1 : 32'd0;
-            id_dec_sltu : ex_rd_val <= (ex_fwd_rs1_val_u < ex_fwd_rs2_val_u) ? 32'd1 : 32'd0;
+            id_dec_slt  : ex_rd_val <= ex_cond_lt  ? XLEN'(1) : XLEN'(0);
+            id_dec_sltu : ex_rd_val <= ex_cond_ltu ? XLEN'(1) : XLEN'(0);
             id_dec_xor  : ex_rd_val <= ex_fwd_rs1_val    ^ ex_fwd_rs2_val;
             id_dec_srl  : ex_rd_val <= ex_fwd_rs1_val_u >> ex_fwd_rs2_val_u[4:0];
             id_dec_sra  : ex_rd_val <= ex_fwd_rs1_val  >>> ex_fwd_rs2_val_u[4:0];

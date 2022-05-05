@@ -16,9 +16,9 @@ module jelly2_jfive_micro_controller
 
             parameter   bit     [31:0]                  TCM_DECODE_MASK  = 32'hff00_0000,
             parameter   bit     [31:0]                  TCM_DECODE_ADDR  = 32'h8000_0000,
-            parameter   int                             TCM_SIZE         = 16384,
+            parameter   int                             TCM_SIZE         = 8192,
             parameter                                   TCM_RAM_TYPE     = "block",
-            parameter                                   TCM_RAM_MODE     = "WRITE_FIRST",
+            parameter                                   TCM_RAM_MODE     = "NO_CHANGE",
             parameter   bit                             TCM_READMEMH     = 1'b0,
             parameter                                   TCM_READMEM_FIlE = "",
 
@@ -26,7 +26,7 @@ module jelly2_jfive_micro_controller
             parameter   bit     [31:0]                  INIT_PC_ADDR     = 32'h8000_0000,
             parameter   bit                             INIT_CTL_RESET   = 1'b1,
 
-            parameter                                   DEVICE           = "RTL",
+            parameter                                   DEVICE           = "ULTRASCALE",
 
             parameter   bit                             SIMULATION       = 1'b0,
             parameter   bit                             LOG_EXE_ENABLE   = 1'b0,
