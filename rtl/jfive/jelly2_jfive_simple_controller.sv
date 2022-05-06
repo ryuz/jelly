@@ -29,10 +29,10 @@ module jelly2_jfive_simple_controller
             parameter                                   DEVICE           = "ULTRASCALE",
 
             parameter   bit                             SIMULATION       = 1'b0,
-            parameter   bit                             LOG_EXE_ENABLE   = 1'b0,
-            parameter   string                          LOG_EXE_FILE     = "jfive_exe_log.txt",
-            parameter   bit                             LOG_MEM_ENABLE   = 1'b0,
-            parameter   string                          LOG_MEM_FILE     = "jfive_mem_log.txt"
+            parameter   bit                             LOG_EXE_ENABLE   = 1'b1,
+            parameter                                   LOG_EXE_FILE     = "jfive_exe_log.txt",
+            parameter   bit                             LOG_MEM_ENABLE   = 1'b1,
+            parameter                                   LOG_MEM_FILE     = "jfive_mem_log.txt"
         )
         (
             input   wire                            reset,
@@ -188,7 +188,7 @@ module jelly2_jfive_simple_controller
                 .DATA_WIDTH         (32),
                 .WE_WIDTH           (4),
                 .WORD_WIDTH         (8),
-                .MEM_SIZE           (TCM_SIZE),
+                .MEM_SIZE           (TCM_MEM_SIZE),
                 .RAM_TYPE           (TCM_RAM_TYPE),
                 .DOUT_REGS0         (0),
                 .DOUT_REGS1         (0),

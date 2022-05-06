@@ -22,4 +22,4 @@ verilate(tb_verilator
     TRACE
     INCLUDE_DIRS "."
     VERILATOR_ARGS -f verilator_cmd.txt -Os
-    SOURCES ../tb_sim_main.sv)
+    SOURCES ../tb_main.sv)

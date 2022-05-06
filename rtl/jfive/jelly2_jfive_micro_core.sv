@@ -837,6 +837,7 @@ module jelly2_jfive_micro_core
             alu_val0_u = alu_val0;
             alu_val1_u = alu_val1;
             shamt = alu_val1_u[SHAMT_WIDTH-1:0];
+            /*
             case ( id_alu_op )
             ALU_OP_ADD: begin adder_val0 = alu_val0;            adder_val1 =  alu_val1; adder_carry = 1'b0; end
             ALU_OP_SUB: begin adder_val0 = alu_val0;            adder_val1 = ~alu_val1; adder_carry = 1'b1; end
@@ -851,6 +852,21 @@ module jelly2_jfive_micro_core
 
             // adder
             ex_rd_val <= adder_val0 + adder_val1 + XLEN'(adder_carry);
+            */
+
+            ex_rd_val <= 'x;
+             case ( id_alu_op )
+            ALU_OP_ADD: begin ex_rd_val <= alu_val0 + alu_val1; end
+            ALU_OP_SUB: begin ex_rd_val <= alu_val0 - alu_val1; end
+            ALU_OP_SLL: begin ex_rd_val <= alu_val0   << shamt; end
+            ALU_OP_SRL: begin ex_rd_val <= alu_val0_u >> shamt; end
+            ALU_OP_SRA: begin ex_rd_val <= alu_val0  >>> shamt; end
+            ALU_OP_AND: begin ex_rd_val <= alu_val0 & alu_val1; end
+            ALU_OP_OR:  begin ex_rd_val <= alu_val0 | alu_val1; end
+            ALU_OP_XOR: begin ex_rd_val <= alu_val0 ^ alu_val1; end
+            default:;
+            endcase
+
         end
     end
     

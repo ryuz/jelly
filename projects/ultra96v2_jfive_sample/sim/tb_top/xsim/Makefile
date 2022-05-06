@@ -9,7 +9,7 @@ all: clean build run
 .PHONY: build
 build:
 	xvlog -f xvlog_cmd.txt
-	xelab -debug wave $(TOP_MODULE) -s $(TOP_MODULE)
+	xelab -debug wave $(TOP_MODULE) -s $(TOP_MODULE) -L unisims_ver -L unimacro_ver -L secureip
 
 .PHONY: run
 run:

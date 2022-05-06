@@ -23,9 +23,9 @@ module jelly2_jfive_simple_core
 
             parameter   bit                     SIMULATION       = 1'b0,
             parameter   bit                     LOG_EXE_ENABLE   = 1'b0,
-            parameter   string                  LOG_EXE_FILE     = "jfive_exe_log.txt",
+            parameter                           LOG_EXE_FILE     = "jfive_exe_log.txt",
             parameter   bit                     LOG_MEM_ENABLE   = 1'b0,
-            parameter   string                  LOG_MEM_FILE     = "jfive_mem_log.txt"
+            parameter                           LOG_MEM_FILE     = "jfive_mem_log.txt"
         )
         (
             input   wire                            reset,
@@ -590,6 +590,7 @@ module jelly2_jfive_simple_core
             BRANCH_BGE:     if ( ex_cond_ge  ) begin ex_branch_pc = id_branch_pc; ex_branch_valid = 1'b1; end
             BRANCH_BLTU:    if ( ex_cond_ltu ) begin ex_branch_pc = id_branch_pc; ex_branch_valid = 1'b1; end
             BRANCH_BGEU:    if ( ex_cond_geu ) begin ex_branch_pc = id_branch_pc; ex_branch_valid = 1'b1; end
+            default:;
             endcase
         end
     end

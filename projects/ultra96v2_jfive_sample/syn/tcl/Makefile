@@ -25,9 +25,12 @@ export HLS_IP
 SOURCES  = $(PRJ_DIR)/rtl/ultra96v2_jfive_sample.sv
 SOURCES += $(TOP_DIR)/rtl/jfive/jelly2_jfive_simple_controller.sv
 SOURCES += $(TOP_DIR)/rtl/jfive/jelly2_jfive_simple_core.sv
+SOURCES += $(TOP_DIR)/rtl/jfive/jelly2_register_file.sv
 SOURCES += $(TOP_DIR)/rtl/jfive/jelly2_register_file_ram.sv
+SOURCES += $(TOP_DIR)/rtl/jfive/jelly2_register_file_ram32x1d.sv
 SOURCES += $(TOP_DIR)/rtl/bus/jelly_axi4l_to_wishbone.v
 SOURCES += $(TOP_DIR)/rtl/library/jelly2_ram_dualport.sv
+SOURCES += $(TOP_DIR)/rtl/primitive/jelly2_ram32x1d.sv
 export SOURCES
 
 

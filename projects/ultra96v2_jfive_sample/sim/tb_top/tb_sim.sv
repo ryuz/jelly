@@ -38,12 +38,12 @@ module tb_sim();
     logic                       s_wb_stb_i;
     logic                       s_wb_ack_o;
 
-    tb_sim_main
+    tb_main
             #(
                 .WB_ADR_WIDTH   (WB_ADR_WIDTH),
                 .WB_DAT_WIDTH   (WB_DAT_WIDTH)
             )
-        i_sim_main
+        i_main
             (
                 .reset,
                 .clk,
@@ -149,7 +149,7 @@ module tb_sim();
     //  Simulation
     // ----------------------------------
 
-    logic   [31:0]  mem     [0:1024];
+    logic   [31:0]  mem     [0:2048];
 
     initial begin
         $readmemh("../../../app/jfive/mem.hex", mem);
@@ -164,13 +164,13 @@ module tb_sim();
         wb_read (29'h0000_0000 + 5);
         wb_write(29'ha000_0000 + 8, 1, 4'hf);
 
-        for ( int i = 0; i < 64; ++i ) begin
+        for ( int i = 0; i < 2048; ++i ) begin
             wb_write(29'h0000_0000 + 32'h8000 + i, mem[i], 4'hf);
         end
     #100;
         wb_write(29'ha000_0000 + 8, 0, 4'hf);
 
-    #20000;
+    #200000;
         $finish();
     end
 

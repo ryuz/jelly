@@ -4,10 +4,11 @@
 --sourcelibdir ../../../../../rtl/library
 --sourcelibdir ../../../../../rtl/bus
 --sourcelibdir ../../../../../rtl/jfive
+--sourcelibdir ../../../../../rtl/primitive
 --sourcelibdir ../../../../../rtl/model
 --sourcelibext .v
 --sourcelibext .sv
 
 ../tb_sim.sv
-../tb_sim_main.sv
+../tb_main.sv
 

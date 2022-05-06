@@ -12,6 +12,10 @@
 `default_nettype none
 
 module ultra96v2_jfive_sample
+            #(
+                parameter   DEVICE     = "ULTRASCALE",
+                parameter   SIMULATION = 1'b0
+            )
             (
                 output  wire    [1:0]   led
             );
@@ -146,31 +150,24 @@ module ultra96v2_jfive_sample
     logic                           wb_mc_we_o;
     logic                           wb_mc_stb_o;
     logic                           wb_mc_ack_i;
-
-    logic                           mmio_wr;
-    logic                           mmio_rd;
-    logic   [15:0]                  mmio_addr;
-    logic   [3:0]                   mmio_sel;
-    logic   [31:0]                  mmio_wdata;
-    logic   [31:0]                  mmio_rdata;
     
     jelly2_jfive_simple_controller
             #(
                 .S_WB_ADR_WIDTH     (16),
                 .S_WB_DAT_WIDTH     (WB_DAT_WIDTH),
+                .S_WB_TCM_ADR       (),
                 .M_WB_ADR_WIDTH     (16),
-                .MMIO_ADR_WIDTH     (16),
-                .MEM_DECODE_MASK    (32'hff00_0000),
-                .MEM_DECODE_ADDR    (32'h8000_0000),
-                .WB_DECODE_MASK     (32'hff00_0000),
-                .WB_DECODE_ADDR     (32'hf000_0000),
-                .MMIO_DECODE_MASK   (32'hff00_0000),
-                .MMIO_DECODE_ADDR   (32'hff00_0000),
-                .MEM_SIZE           (8192),
-                .MEM_READMEMH       (1'b0),
-                .MEM_READMEM_FIlE   (""),
-                .RESET_PC_ADDR      (32'h8000_0000),
-                .INIT_CTL_RESET     (1'b1)
+                .TCM_DECODE_MASK    (32'hff00_0000),
+                .TCM_DECODE_ADDR    (32'h8000_0000),
+                .M_WB_DECODE_MASK   (32'hff00_0000),
+                .M_WB_DECODE_ADDR   (32'h1000_0000),
+                .TCM_SIZE           (8192),
+                .TCM_READMEMH       (1'b0),
+                .TCM_READMEM_FIlE   (""),
+                .INIT_PC_ADDR       (32'h8000_0000),
+                .INIT_CTL_RESET     (1'b1),
+                .DEVICE             (DEVICE),
+                .SIMULATION         (SIMULATION)
             )
         i_jfive_simple_controller
             (
@@ -192,29 +189,12 @@ module ultra96v2_jfive_sample
                 .m_wb_sel_o         (wb_mc_sel_o),
                 .m_wb_we_o          (wb_mc_we_o),
                 .m_wb_stb_o         (wb_mc_stb_o),
-                .m_wb_ack_i         (wb_mc_ack_i),
-
-                .mmio_wr            (mmio_wr),
-                .mmio_rd            (mmio_rd),
-                .mmio_addr          (mmio_addr),
-                .mmio_sel           (mmio_sel),
-                .mmio_wdata         (mmio_wdata),
-                .mmio_rdata         (mmio_rdata)
+                .m_wb_ack_i         (wb_mc_ack_i)
             );
-
-    // WISHBONEは使わない
-    assign wb_mc_dat_i = '0;
-    assign wb_mc_ack_i = wb_mc_stb_o;
-    
-
 
     // -----------------------------
     //  Test LED
     // -----------------------------
-    
-    wire    [WB_DAT_WIDTH-1:0]      wb_led_dat_o;
-    wire                            wb_led_stb_i;
-    wire                            wb_led_ack_o;
     
     reg     [1:0]                   reg_led;
     always @(posedge clk) begin
@@ -222,10 +202,10 @@ module ultra96v2_jfive_sample
             reg_led <= 0;
         end
         else begin
-            if ( mmio_wr && mmio_sel[0] ) begin
-                case ( int'(mmio_addr) )
-                0: reg_led[0] <= mmio_wdata[0];
-                1: reg_led[1] <= mmio_wdata[0];
+            if ( wb_mc_stb_o && wb_mc_we_o && wb_mc_sel_o[0] ) begin
+                case ( int'(wb_mc_adr_o) )
+                0: reg_led[0] <= wb_mc_dat_o[0];
+                1: reg_led[1] <= wb_mc_dat_o[0];
                 default: ;
                 endcase
             end
@@ -233,6 +213,8 @@ module ultra96v2_jfive_sample
     end
     
     assign led = reg_led;
+
+    assign wb_mc_ack_i = wb_mc_stb_o;
     
 endmodule
 

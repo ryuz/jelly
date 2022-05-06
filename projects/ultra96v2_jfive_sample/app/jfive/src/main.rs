@@ -38,8 +38,8 @@ pub unsafe extern "C" fn main() -> ! {
 
 
     // LEDチカ 開始(実機用)
-    let mmio_led0 = 0xff000000  as *mut i32;
-    let mmio_led1 = 0xff000004  as *mut i32;
+    let mmio_led0 = 0x10000000  as *mut i32;
+    let mmio_led1 = 0x10000004  as *mut i32;
 
     let mut led0 = 0;
     let mut led1 = 0;
@@ -66,7 +66,7 @@ pub unsafe extern "C" fn main() -> ! {
 
 
 fn write_byte(c: u8) {
-    let mmio_putc = 0xff000100  as *mut u8;
+    let mmio_putc = 0x10000100  as *mut u8;
     unsafe {
         core::ptr::write_volatile(mmio_putc, c);
     }
