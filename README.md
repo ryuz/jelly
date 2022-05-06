@@ -14,13 +14,28 @@
 
 ## MIPS-I 互換プロセッサ
 
-/rtl/cpu/
+/rtl/mipsi/
+
 以下にあります。
 
 Verilogの勉強を始めた頃に Spartan-3 向けに試しに書いてみたプロセッサです。
 
 ブロック図などは[Webサイト](http://ryuz.my.coocan.jp/jelly/index.html)の方にあります。
 
+
+## RISV-V 互換プロセッサ
+
+/rtl/jfive
+
+以下にあります。
+
+サンプルは
+
+- [Ultra96V2 で 最小セットの RISC-V 互換コアを作ってみたサンプル](projects/ultra96v2_jfive_sample/README.md)
+- [Kria KV260 で 自作RISC-V(3段パイプライン)を試すサンプル](projects/kv260_jfive_simple_controller/README.md)
+- [Kria KV260 で 自作RISC-V(6段パイプライン)を試すサンプル](projects/kv260_jfive_micro_controller/README.md)
+
+などになります。
 
 ## FPGA化リアルタイムOS
 
@@ -83,6 +98,10 @@ FPGAで作成したRealTime-OSアクセラレータです。
     - [Kria KV260 でudmabufを試すサンプル](projects/kv260_udmabuf_sample/README.md)
 - projects/kv260_imx219
     - [Kria KV260 で カメラ画像(IMX219) を動かすサンプル](projects/kv260_imx219/README.md)
+- projects/kv260_jfive_simple_controller
+    - [Kria KV260 で 自作RISC-V(3段パイプライン)を試すサンプル](projects/kv260_jfive_simple_controller/README.md)
+- projects/kv260_jfive_micro_controller
+    - [Kria KV260 で 自作RISC-V(6段パイプライン)を試すサンプル](projects/kv260_jfive_micro_controller/README.md)
 - projects/zynqmp_rpu/zynqmp_rpu_rust
     - [ZynqMP の rpu を C++ と Rust で試すサンプル](projects/zynqmp_rpu/README.md)
 

@@ -13,6 +13,7 @@
 -y ../../../../../rtl/model
 -y ../../../../../rtl/jfive
 -y ../../../../../rtl/library
+-y ../../../../../rtl/primitive
 -y ../../../../../rtl/bus
 -y ../../../../../rtl/image
 -y ../../../../../rtl/model

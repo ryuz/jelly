@@ -793,6 +793,7 @@ module jelly2_jfive_micro_core
         BRANCH_BGE:     if ( ex_cond_ge  ) begin ex_branch_pc = id_branch_pc1; end
         BRANCH_BLTU:    if ( ex_cond_ltu ) begin ex_branch_pc = id_branch_pc1; end
         BRANCH_BGEU:    if ( ex_cond_geu ) begin ex_branch_pc = id_branch_pc1; end
+        default:;
         endcase
     end
 
