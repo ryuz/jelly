@@ -23,8 +23,8 @@ export HLS_IP
 
 # sources
 SOURCES  = $(PRJ_DIR)/rtl/kv260_jfive_simple_controller.sv
-SOURCES += $(TOP_DIR)/rtl/jfive/jelly2_jfive_micro_controller.sv
-SOURCES += $(TOP_DIR)/rtl/jfive/jelly2_jfive_micro_core.sv
+SOURCES += $(TOP_DIR)/rtl/jfive/jelly2_jfive_simple_controller.sv
+SOURCES += $(TOP_DIR)/rtl/jfive/jelly2_jfive_simple_core.sv
 SOURCES += $(TOP_DIR)/rtl/jfive/jelly2_register_file.sv
 SOURCES += $(TOP_DIR)/rtl/jfive/jelly2_register_file_ram.sv
 SOURCES += $(TOP_DIR)/rtl/jfive/jelly2_register_file_ram32x1d.sv
