@@ -31,8 +31,8 @@ Verilogの勉強を始めた頃に Spartan-3 向けに試しに書いてみた�
 
 サンプルは
 
-- [Ultra96V2 で 最小セットの RISC-V 互換コアを作ってみたサンプル](projects/ultra96v2_jfive_sample/README.md)
-- [Kria KV260 で 自作RISC-V(3段パイプライン)を試すサンプル](projects/kv260_jfive_simple_controller/README.md)
+- [Ultra96V2 で 自作RISC-V(4段パイプライン)を試すサンプル](projects/ultra96v2_jfive_sample/README.md)
+- [Kria KV260 で 自作RISC-V(4段パイプライン)を試すサンプル](projects/kv260_jfive_simple_controller/README.md)
 - [Kria KV260 で 自作RISC-V(6段パイプライン)を試すサンプル](projects/kv260_jfive_micro_controller/README.md)
 
 などになります。
@@ -89,7 +89,7 @@ FPGAで作成したRealTime-OSアクセラレータです。
 - projects/ultra96v2_rtos
     - [Ultra96V2 で FPGA化した リアルタイムOS を試すサンプル](projects/ultra96v2_rtos/README.md)
 - projects/ultra96v2_jfive_sample
-    - [Ultra96V2 で 最小セットの RISC-V 互換コアを作ってみたサンプル](projects/ultra96v2_jfive_sample/README.md)
+    - [Ultra96V2 で 自作RISC-V(4段パイプライン)を試すサンプル](projects/ultra96v2_jfive_sample/README.md)
 - projects/ultra96v2_hls_test
     - [Ultra96V2 で コマンドラインだけでHLSで書いたIPをVivadoに取り込んで合成するサンプル](projects/ultra96v2_hls_test/README.md)
 - projects/ultra96v2_imx219_hls_sample
@@ -99,7 +99,7 @@ FPGAで作成したRealTime-OSアクセラレータです。
 - projects/kv260_imx219
     - [Kria KV260 で カメラ画像(IMX219) を動かすサンプル](projects/kv260_imx219/README.md)
 - projects/kv260_jfive_simple_controller
-    - [Kria KV260 で 自作RISC-V(3段パイプライン)を試すサンプル](projects/kv260_jfive_simple_controller/README.md)
+    - [Kria KV260 で 自作RISC-V(4段パイプライン)を試すサンプル](projects/kv260_jfive_simple_controller/README.md)
 - projects/kv260_jfive_micro_controller
     - [Kria KV260 で 自作RISC-V(6段パイプライン)を試すサンプル](projects/kv260_jfive_micro_controller/README.md)
 - projects/zynqmp_rpu/zynqmp_rpu_rust
