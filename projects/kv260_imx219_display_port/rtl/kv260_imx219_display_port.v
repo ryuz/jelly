@@ -5,7 +5,7 @@
 `default_nettype none
 
 
-module ultra96v2_imx219_display_port
+module kv260_imx219_display_port
         #(
             parameter   X_NUM = 3280 / 2,
             parameter   Y_NUM = 2464 / 2
