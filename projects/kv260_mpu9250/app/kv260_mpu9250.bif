@@ -1,5 +1,5 @@
 all:
 {
-    ultra96v2_mpu9250.bit
+    kv260_mpu9250.bit
 }
 
