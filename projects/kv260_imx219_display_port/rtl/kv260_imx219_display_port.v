@@ -15,10 +15,11 @@ module kv260_imx219_display_port
             input   wire            cam_clk_n,
             input   wire    [1:0]   cam_data_p,
             input   wire    [1:0]   cam_data_n,
-            
-            output  wire    [1:0]   radio_led,
-            output  wire    [7:0]   pmod0,
-            output  wire    [7:0]   pmod1
+            inout   wire            cam_scl,
+            inout   wire            cam_sda,
+            output  wire            cam_enable,
+
+            output  wire    [7:0]   pmod
         );
     
     
@@ -73,89 +74,96 @@ module kv260_imx219_display_port
     localparam  AXI4_MEM_DATA_WIDTH = (8 << AXI4_MEM_DATA_SIZE);
     localparam  AXI4_MEM_STRB_WIDTH = AXI4_MEM_DATA_WIDTH / 8;
     
-    wire                                 axi4_mem_aresetn;
-    wire                                 axi4_mem_aclk;
+    wire                                axi4_mem_aresetn;
+    wire                                axi4_mem_aclk;
     
-    wire    [AXI4_MEM_ID_WIDTH-1:0]      axi4_mem0_awid;
-    wire    [AXI4_MEM_ADDR_WIDTH-1:0]    axi4_mem0_awaddr;
-    wire    [1:0]                        axi4_mem0_awburst;
-    wire    [3:0]                        axi4_mem0_awcache;
-    wire    [7:0]                        axi4_mem0_awlen;
-    wire    [0:0]                        axi4_mem0_awlock;
-    wire    [2:0]                        axi4_mem0_awprot;
-    wire    [3:0]                        axi4_mem0_awqos;
-    wire    [3:0]                        axi4_mem0_awregion;
-    wire    [2:0]                        axi4_mem0_awsize;
-    wire                                 axi4_mem0_awvalid;
-    wire                                 axi4_mem0_awready;
-    wire    [AXI4_MEM_STRB_WIDTH-1:0]    axi4_mem0_wstrb;
-    wire    [AXI4_MEM_DATA_WIDTH-1:0]    axi4_mem0_wdata;
-    wire                                 axi4_mem0_wlast;
-    wire                                 axi4_mem0_wvalid;
-    wire                                 axi4_mem0_wready;
-    wire    [AXI4_MEM_ID_WIDTH-1:0]      axi4_mem0_bid;
-    wire    [1:0]                        axi4_mem0_bresp;
-    wire                                 axi4_mem0_bvalid;
-    wire                                 axi4_mem0_bready;
-    wire    [AXI4_MEM_ID_WIDTH-1:0]      axi4_mem0_arid;
-    wire    [AXI4_MEM_ADDR_WIDTH-1:0]    axi4_mem0_araddr;
-    wire    [1:0]                        axi4_mem0_arburst;
-    wire    [3:0]                        axi4_mem0_arcache;
-    wire    [7:0]                        axi4_mem0_arlen;
-    wire    [0:0]                        axi4_mem0_arlock;
-    wire    [2:0]                        axi4_mem0_arprot;
-    wire    [3:0]                        axi4_mem0_arqos;
-    wire    [3:0]                        axi4_mem0_arregion;
-    wire    [2:0]                        axi4_mem0_arsize;
-    wire                                 axi4_mem0_arvalid;
-    wire                                 axi4_mem0_arready;
-    wire    [AXI4_MEM_ID_WIDTH-1:0]      axi4_mem0_rid;
-    wire    [1:0]                        axi4_mem0_rresp;
-    wire    [AXI4_MEM_DATA_WIDTH-1:0]    axi4_mem0_rdata;
-    wire                                 axi4_mem0_rlast;
-    wire                                 axi4_mem0_rvalid;
-    wire                                 axi4_mem0_rready;
+    wire    [AXI4_MEM_ID_WIDTH-1:0]     axi4_mem0_awid;
+    wire    [AXI4_MEM_ADDR_WIDTH-1:0]   axi4_mem0_awaddr;
+    wire    [1:0]                       axi4_mem0_awburst;
+    wire    [3:0]                       axi4_mem0_awcache;
+    wire    [7:0]                       axi4_mem0_awlen;
+    wire    [0:0]                       axi4_mem0_awlock;
+    wire    [2:0]                       axi4_mem0_awprot;
+    wire    [3:0]                       axi4_mem0_awqos;
+    wire    [3:0]                       axi4_mem0_awregion;
+    wire    [2:0]                       axi4_mem0_awsize;
+    wire                                axi4_mem0_awvalid;
+    wire                                axi4_mem0_awready;
+    wire    [AXI4_MEM_STRB_WIDTH-1:0]   axi4_mem0_wstrb;
+    wire    [AXI4_MEM_DATA_WIDTH-1:0]   axi4_mem0_wdata;
+    wire                                axi4_mem0_wlast;
+    wire                                axi4_mem0_wvalid;
+    wire                                axi4_mem0_wready;
+    wire    [AXI4_MEM_ID_WIDTH-1:0]     axi4_mem0_bid;
+    wire    [1:0]                       axi4_mem0_bresp;
+    wire                                axi4_mem0_bvalid;
+    wire                                axi4_mem0_bready;
+    wire    [AXI4_MEM_ID_WIDTH-1:0]     axi4_mem0_arid;
+    wire    [AXI4_MEM_ADDR_WIDTH-1:0]   axi4_mem0_araddr;
+    wire    [1:0]                       axi4_mem0_arburst;
+    wire    [3:0]                       axi4_mem0_arcache;
+    wire    [7:0]                       axi4_mem0_arlen;
+    wire    [0:0]                       axi4_mem0_arlock;
+    wire    [2:0]                       axi4_mem0_arprot;
+    wire    [3:0]                       axi4_mem0_arqos;
+    wire    [3:0]                       axi4_mem0_arregion;
+    wire    [2:0]                       axi4_mem0_arsize;
+    wire                                axi4_mem0_arvalid;
+    wire                                axi4_mem0_arready;
+    wire    [AXI4_MEM_ID_WIDTH-1:0]     axi4_mem0_rid;
+    wire    [1:0]                       axi4_mem0_rresp;
+    wire    [AXI4_MEM_DATA_WIDTH-1:0]   axi4_mem0_rdata;
+    wire                                axi4_mem0_rlast;
+    wire                                axi4_mem0_rvalid;
+    wire                                axi4_mem0_rready;
     
-    wire    [AXI4_MEM_ID_WIDTH-1:0]      axi4_mem1_awid;
-    wire    [AXI4_MEM_ADDR_WIDTH-1:0]    axi4_mem1_awaddr;
-    wire    [1:0]                        axi4_mem1_awburst;
-    wire    [3:0]                        axi4_mem1_awcache;
-    wire    [7:0]                        axi4_mem1_awlen;
-    wire    [0:0]                        axi4_mem1_awlock;
-    wire    [2:0]                        axi4_mem1_awprot;
-    wire    [3:0]                        axi4_mem1_awqos;
-    wire    [3:0]                        axi4_mem1_awregion;
-    wire    [2:0]                        axi4_mem1_awsize;
-    wire                                 axi4_mem1_awvalid;
-    wire                                 axi4_mem1_awready;
-    wire    [AXI4_MEM_STRB_WIDTH-1:0]    axi4_mem1_wstrb;
-    wire    [AXI4_MEM_DATA_WIDTH-1:0]    axi4_mem1_wdata;
-    wire                                 axi4_mem1_wlast;
-    wire                                 axi4_mem1_wvalid;
-    wire                                 axi4_mem1_wready;
-    wire    [AXI4_MEM_ID_WIDTH-1:0]      axi4_mem1_bid;
-    wire    [1:0]                        axi4_mem1_bresp;
-    wire                                 axi4_mem1_bvalid;
-    wire                                 axi4_mem1_bready;
-    wire    [AXI4_MEM_ID_WIDTH-1:0]      axi4_mem1_arid;
-    wire    [AXI4_MEM_ADDR_WIDTH-1:0]    axi4_mem1_araddr;
-    wire    [1:0]                        axi4_mem1_arburst;
-    wire    [3:0]                        axi4_mem1_arcache;
-    wire    [7:0]                        axi4_mem1_arlen;
-    wire    [0:0]                        axi4_mem1_arlock;
-    wire    [2:0]                        axi4_mem1_arprot;
-    wire    [3:0]                        axi4_mem1_arqos;
-    wire    [3:0]                        axi4_mem1_arregion;
-    wire    [2:0]                        axi4_mem1_arsize;
-    wire                                 axi4_mem1_arvalid;
-    wire                                 axi4_mem1_arready;
-    wire    [AXI4_MEM_ID_WIDTH-1:0]      axi4_mem1_rid;
-    wire    [1:0]                        axi4_mem1_rresp;
-    wire    [AXI4_MEM_DATA_WIDTH-1:0]    axi4_mem1_rdata;
-    wire                                 axi4_mem1_rlast;
-    wire                                 axi4_mem1_rvalid;
-    wire                                 axi4_mem1_rready;
-    
+    wire    [AXI4_MEM_ID_WIDTH-1:0]     axi4_mem1_awid;
+    wire    [AXI4_MEM_ADDR_WIDTH-1:0]   axi4_mem1_awaddr;
+    wire    [1:0]                       axi4_mem1_awburst;
+    wire    [3:0]                       axi4_mem1_awcache;
+    wire    [7:0]                       axi4_mem1_awlen;
+    wire    [0:0]                       axi4_mem1_awlock;
+    wire    [2:0]                       axi4_mem1_awprot;
+    wire    [3:0]                       axi4_mem1_awqos;
+    wire    [3:0]                       axi4_mem1_awregion;
+    wire    [2:0]                       axi4_mem1_awsize;
+    wire                                axi4_mem1_awvalid;
+    wire                                axi4_mem1_awready;
+    wire    [AXI4_MEM_STRB_WIDTH-1:0]   axi4_mem1_wstrb;
+    wire    [AXI4_MEM_DATA_WIDTH-1:0]   axi4_mem1_wdata;
+    wire                                axi4_mem1_wlast;
+    wire                                axi4_mem1_wvalid;
+    wire                                axi4_mem1_wready;
+    wire    [AXI4_MEM_ID_WIDTH-1:0]     axi4_mem1_bid;
+    wire    [1:0]                       axi4_mem1_bresp;
+    wire                                axi4_mem1_bvalid;
+    wire                                axi4_mem1_bready;
+    wire    [AXI4_MEM_ID_WIDTH-1:0]     axi4_mem1_arid;
+    wire    [AXI4_MEM_ADDR_WIDTH-1:0]   axi4_mem1_araddr;
+    wire    [1:0]                       axi4_mem1_arburst;
+    wire    [3:0]                       axi4_mem1_arcache;
+    wire    [7:0]                       axi4_mem1_arlen;
+    wire    [0:0]                       axi4_mem1_arlock;
+    wire    [2:0]                       axi4_mem1_arprot;
+    wire    [3:0]                       axi4_mem1_arqos;
+    wire    [3:0]                       axi4_mem1_arregion;
+    wire    [2:0]                       axi4_mem1_arsize;
+    wire                                axi4_mem1_arvalid;
+    wire                                axi4_mem1_arready;
+    wire    [AXI4_MEM_ID_WIDTH-1:0]     axi4_mem1_rid;
+    wire    [1:0]                       axi4_mem1_rresp;
+    wire    [AXI4_MEM_DATA_WIDTH-1:0]   axi4_mem1_rdata;
+    wire                                axi4_mem1_rlast;
+    wire                                axi4_mem1_rvalid;
+    wire                                axi4_mem1_rready;
+
+    wire                                i2c0_scl_i;
+    wire                                i2c0_scl_o;
+    wire                                i2c0_scl_t;
+    wire                                i2c0_sda_i;
+    wire                                i2c0_sda_o;
+    wire                                i2c0_sda_t;
+
     design_1
         i_design_1
             (
@@ -163,7 +171,14 @@ module kv260_imx219_display_port
                 .out_clk100                 (sys_clk100),
                 .out_clk200                 (sys_clk200),
                 .out_clk250                 (sys_clk250),
-                
+
+                .i2c_scl_i                  (i2c0_scl_i),
+                .i2c_scl_o                  (i2c0_scl_o),
+                .i2c_scl_t                  (i2c0_scl_t),
+                .i2c_sda_i                  (i2c0_sda_i),
+                .i2c_sda_o                  (i2c0_sda_o),
+                .i2c_sda_t                  (i2c0_sda_t),
+
                 .dp_video_ref_reset         (dp_video_ref_reset),
                 .dp_video_ref_clk           (dp_video_ref_clk),
                 .dp_video_out_vsync         (dp_video_out_vsync),
@@ -277,6 +292,23 @@ module kv260_imx219_display_port
                 .s_axi4_mem1_rready         (axi4_mem1_rready)
             );
     
+    IOBUF
+        i_iobuf_i2c0_scl
+            (
+                .I                      (i2c0_scl_o),
+                .O                      (i2c0_scl_i),
+                .T                      (i2c0_scl_t),
+                .IO                     (cam_scl)
+        );
+
+    IOBUF
+        i_iobuf_i2c0_sda
+            (
+                .I                      (i2c0_sda_o),
+                .O                      (i2c0_sda_i),
+                .T                      (i2c0_sda_t),
+                .IO                     (cam_sda)
+            );
     
     
     // AXI4L => WISHBONE
@@ -343,21 +375,30 @@ module kv260_imx219_display_port
     wire    [WB_DAT_WIDTH-1:0]  wb_gid_dat_o;
     wire                        wb_gid_stb_i;
     wire                        wb_gid_ack_o;
-    
-    assign wb_gid_dat_o = 32'h01234567;
-    assign wb_gid_ack_o = wb_gid_stb_i;
-    
+        
     reg     reg_sw_reset;
+    reg     reg_cam_enable;
     always @(posedge wb_peri_clk_i) begin
         if ( wb_peri_rst_i ) begin
-            reg_sw_reset <= 1'b0;
+            reg_sw_reset   <= 1'b0;
+            reg_cam_enable <= 1'b0;
         end
         else begin
             if ( wb_gid_stb_i && wb_peri_we_i ) begin
-                reg_sw_reset <= wb_peri_dat_i;
+                case ( wb_peri_adr_i[3:0] )
+                1: reg_sw_reset   <= wb_peri_dat_i;
+                2: reg_cam_enable <= wb_peri_dat_i;
+                endcase
             end
         end
     end
+    
+    assign wb_gid_dat_o = wb_peri_adr_i[3:0] == 0 ? 32'h01234567   :
+                          wb_peri_adr_i[3:0] == 1 ? reg_sw_reset   :
+                          wb_peri_adr_i[3:0] == 2 ? reg_cam_enable : 0;
+    assign wb_gid_ack_o = wb_gid_stb_i;
+
+    assign cam_enable = reg_cam_enable;
     
     
     
@@ -1297,9 +1338,25 @@ module kv260_imx219_display_port
         end
     end
     
+    reg     [7:0]   reg_frame_count;
+    always @(posedge axi4s_cam_aclk) begin
+        if ( axi4s_csi2_tuser && axi4s_csi2_tvalid ) begin
+            reg_frame_count <= reg_frame_count + 1;
+        end
+    end
+
+    // pmod
+    assign pmod[0] = i2c0_scl_o;
+    assign pmod[1] = i2c0_scl_t;
+    assign pmod[2] = i2c0_sda_o;
+    assign pmod[3] = i2c0_sda_t;
+    assign pmod[4] = cam_enable;
+    assign pmod[5] = reg_frame_count[7];
+    assign pmod[6] = reg_clk200_led;
+    assign pmod[7] = reg_clk250_led;
     
-    assign radio_led[1] = reg_clk200_led;
-    assign radio_led[0] = reg_clk250_led;
+//  assign radio_led[1] = reg_clk200_led;
+//  assign radio_led[0] = reg_clk250_led;
     
     
     /*
@@ -1310,17 +1367,14 @@ module kv260_imx219_display_port
     assign pmod1[4]   = reg_counter_rxbyteclkhs[10];
     assign pmod1[7:5] = 0;
     */
+
+    /*
     assign pmod0 = reg_counter_clk100[15:8];
     
-    reg     [7:0]   reg_frame_count;
-    always @(posedge axi4s_cam_aclk) begin
-        if ( axi4s_csi2_tuser && axi4s_csi2_tvalid ) begin
-            reg_frame_count <= reg_frame_count + 1;
-        end
-    end
+
     
     assign pmod1 = reg_frame_count;
-    
+    */
     
     
 endmodule
