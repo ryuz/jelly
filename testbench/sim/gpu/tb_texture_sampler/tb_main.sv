@@ -641,7 +641,6 @@ module tb_main(
                 .s_sampler2d_ready              (s_sampler2d_ready),
                 
                 .m_sampler2d_user               (m_sampler2d_user),
-                .m_sampler2d_border             (m_sampler2d_border),
                 .m_sampler2d_data               (m_sampler2d_data),
                 .m_sampler2d_strb               (),
                 .m_sampler2d_valid              (m_sampler2d_valid),
@@ -667,7 +666,6 @@ module tb_main(
                 .m_axi4_rready                  (axi4_rready)
             );
     
-
     
     jelly_axi4_slave_model
             #(

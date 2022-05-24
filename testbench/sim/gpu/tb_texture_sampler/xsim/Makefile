@@ -15,6 +15,12 @@ build:
 run:
 	xsim $(TOP_MODULE) -t xsim_run_all.tcl
 
+$(TOP_MODULE).fst: $(TOP_MODULE).vcd
+	vcd2fst $(TOP_MODULE).vcd $(TOP_MODULE).fst
+
+.PHONY: gtkwave
+gtkwave:  $(TOP_MODULE).fst
+	gtkwave $(TOP_MODULE).fst
 
 .PHONY: clean
 clean:
@@ -34,4 +40,5 @@ distclean: clean
 	-rm -f *.pgm
 	-rm -f *.ppm
 	-rm -f $(TOP_MODULE).vcd
+	-rm -f $(TOP_MODULE).fst
 	-rm -f $(TOP_MODULE).wdb
