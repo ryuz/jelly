@@ -39,7 +39,7 @@ dependencies = [
 
 [[package]]
 name = "jelly-mem_access"
-version = "0.1.3"
+version = "0.1.5"
 dependencies = [
  "delegate",
  "libc",
