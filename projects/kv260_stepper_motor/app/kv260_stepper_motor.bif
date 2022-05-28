@@ -1,0 +1,5 @@
+all:
+{
+    kv260_stepper_motor.bit
+}
+

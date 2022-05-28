@@ -65,7 +65,7 @@
 拙作の [HOS-V4a](https://github.com/ryuz/hos-v4a) にて、上記の MPIS互換コア、MicroBlaze、Cortex-R5 などに対応中です。
 
 
-## Real-time Neual Netowirk について
+## Real-time Neural Network について
 
 微分可能回路記述に基づくLUT 直接学習による深層学習モデル(LUT-Network)用の学習環境として開発中の[BinaryBrain](https://github.com/ryuz/BinaryBrain)もJellyの画像処理コンポーネントを用いてCNNを構成しており、そのまま当プラットフォームに組み込むことが可能です(NN部の入出力自体は AXI4-Stream なので汎用的です)。
 

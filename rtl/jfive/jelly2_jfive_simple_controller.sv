@@ -167,7 +167,7 @@ module jelly2_jfive_simple_controller
 
 
     // ---------------------------------------------
-    //  Memory
+    //  TCM (Tightly Coupled Memory)
     // ---------------------------------------------
 
     logic                           tcm_ibus_wb;
@@ -204,16 +204,16 @@ module jelly2_jfive_simple_controller
         i_ram_dualport
             (
                 .port0_clk          (clk),
-                .port0_en           (cke),
-                .port0_regcke       (cke),
+                .port0_en           (core_cke),
+                .port0_regcke       (core_cke),
                 .port0_we           (tcm_ibus_we),
                 .port0_addr         (tcm_ibus_addr),
                 .port0_din          (tcm_ibus_wdata),
                 .port0_dout         (tcm_ibus_rdata),
 
                 .port1_clk          (clk),
-                .port1_en           (cke),
-                .port1_regcke       (cke),
+                .port1_en           (core_cke),
+                .port1_regcke       (core_cke),
                 .port1_we           (tcm_dbus_we),
                 .port1_addr         (tcm_dbus_addr),
                 .port1_din          (tcm_dbus_wdata),
@@ -250,7 +250,9 @@ module jelly2_jfive_simple_controller
 
     logic   [31:0]  wb_rdata;
     always_ff @(posedge clk) begin
-        wb_rdata <= m_wb_dat_i;
+        if ( core_cke ) begin
+            wb_rdata <= m_wb_dat_i;
+        end
     end
 
 
@@ -261,13 +263,17 @@ module jelly2_jfive_simple_controller
     logic   rd_mem_valid;
     logic   rd_wb_valid;
     always_ff @(posedge clk) begin
-        rd_mem_valid <= tcm_dbus_valid;
-        rd_wb_valid  <= wb_valid;
+        if ( core_cke ) begin
+            rd_mem_valid <= tcm_dbus_valid;
+            rd_wb_valid  <= wb_valid;
+        end
     end
 
     logic   [1:0]   dbus_shift;
     always_ff @(posedge clk) begin
-        dbus_shift <= dbus_addr[1:0];
+        if ( core_cke ) begin
+            dbus_shift <= dbus_addr[1:0];
+        end
     end
 
     assign dbus_rdata = rd_mem_valid  ? 32'(tcm_dbus_rdata >> (dbus_shift * 8)) :
