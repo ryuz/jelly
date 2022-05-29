@@ -22,8 +22,8 @@ RISC-Vのカスタム命令に割り当てるとかがあるかと思います�
 環境は下記の通りです。
 
 - [Ultra96V2](https://www.avnet.com/wps/portal/japan/products/product-highlights/ultra96/)
--  iwkzm氏の [Debianブートイメージ 2019.2版](https://qiita.com/ikwzm/items/92221c5ea6abbd5e991c)
-- Vivado 2019.2
+-  iwkzm氏の [Debian GNU/Linux (v2021.1版) ブートイメージ](https://qiita.com/ikwzm/items/a9adc5a7329b2eb36895) 
+- Vivado 2021.2
 
 たとえば[こちら](../ultra96v2_udmabuf_sample/README.md)などの他のサンプルと同様に Debian 環境を
 前提にしております。
@@ -64,7 +64,7 @@ PS用のbitstreamは PC(WindowsやLinuxなど)で Vivado を使って行いま�
 
 Vivado のプロジェクトは
 
-/projects/ultra96v2_jfive_sample/syn/vivado2019.2/ultra96v2_jfive_sample.xpr
+/projects/ultra96v2_jfive_sample/syn/vivado2021.2/ultra96v2_jfive_sample.xpr
 
 にありますので Vivado で開いてください。
 
