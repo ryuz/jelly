@@ -35,7 +35,7 @@
         
             fclk0  {
                 compatible    = "ikwzm,fclkcfg-0.10.a";
-                clocks        = <&zynqmp_clk 72 &zynqmp_clk 0>;
+                clocks        = <&zynqmp_clk 71 &zynqmp_clk 0>;
                 insert-rate   = "100000000";
                 insert-enable = <1>;
                 remove-rate   = "1000000";
