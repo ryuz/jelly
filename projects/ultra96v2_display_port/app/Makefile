@@ -35,7 +35,7 @@ run_server: load
 	python3 flask_sample.py
 
 $(TARGET): $(OBJS)
-	g++ $(LDFLAGS) -o $(TARGET) $(OBJS)
+	g++ -o $(TARGET) $(OBJS) $(LDFLAGS)
 
 %.o : %.cpp
 	g++ $(CFLAGS) -c $< -o $@

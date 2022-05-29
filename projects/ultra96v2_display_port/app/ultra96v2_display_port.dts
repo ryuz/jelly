@@ -41,6 +41,7 @@
                 remove-rate   = "1000000";
                 remove-enable = <0>;
             };
+
             fclk1 {
                 compatible    = "ikwzm,fclkcfg-0.10.a";
                 clocks        = <&zynqmp_clk 72 &zynqmp_clk 0>;
@@ -67,7 +68,7 @@
                 compatible = "generic-uio";
                 reg = <0x0 0xfd4a0000 0x0 0x00010000>;
             };
-        }
+        };
     };
 
     fragment@3 {
