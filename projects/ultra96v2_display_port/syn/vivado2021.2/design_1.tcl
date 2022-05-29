@@ -1015,8 +1015,7 @@ Port;FD4A0000;FD4AFFFF;1|FPD;DPDMA;FD4C0000;FD4CFFFF;1|FPD;DDR_XMPU5_CFG;FD05000
   connect_bd_net -net zynq_ultra_ps_e_0_dp_video_out_hsync [get_bd_ports dp_video_out_hsync] [get_bd_pins zynq_ultra_ps_e_0/dp_video_out_hsync]
   connect_bd_net -net zynq_ultra_ps_e_0_dp_video_out_vsync [get_bd_ports dp_video_out_vsync] [get_bd_pins zynq_ultra_ps_e_0/dp_video_out_vsync]
   connect_bd_net -net zynq_ultra_ps_e_0_dp_video_ref_clk [get_bd_ports dp_video_ref_clk] [get_bd_pins proc_sys_reset_2/slowest_sync_clk] [get_bd_pins zynq_ultra_ps_e_0/dp_video_in_clk] [get_bd_pins zynq_ultra_ps_e_0/dp_video_ref_clk]
-  connect_bd_net -net zynq_ultra_ps_e_0_pl_clk0 [get_bd_ports peri_aclk] [get_bd_pins axi_protocol_convert_0/aclk] [get_bd_pins proc_sys_reset_0/slowest_sync_clk] [get_bd_pins zynq_ultra_ps_e_0/maxihpm0_fpd_aclk] [get_bd_pins zynq_ultra_ps_e_0/pl_clk0]
-  connect_bd_net -net zynq_ultra_ps_e_0_pl_clk1 [get_bd_ports mem_aclk] [get_bd_pins proc_sys_reset_1/slowest_sync_clk] [get_bd_pins zynq_ultra_ps_e_0/pl_clk1] [get_bd_pins zynq_ultra_ps_e_0/saxihpc0_fpd_aclk]
+  connect_bd_net -net zynq_ultra_ps_e_0_pl_clk0 [get_bd_ports mem_aclk] [get_bd_ports peri_aclk] [get_bd_pins axi_protocol_convert_0/aclk] [get_bd_pins proc_sys_reset_0/slowest_sync_clk] [get_bd_pins proc_sys_reset_1/slowest_sync_clk] [get_bd_pins zynq_ultra_ps_e_0/maxihpm0_fpd_aclk] [get_bd_pins zynq_ultra_ps_e_0/pl_clk0] [get_bd_pins zynq_ultra_ps_e_0/saxihpc0_fpd_aclk]
   connect_bd_net -net zynq_ultra_ps_e_0_pl_resetn0 [get_bd_pins proc_sys_reset_0/ext_reset_in] [get_bd_pins proc_sys_reset_1/ext_reset_in] [get_bd_pins proc_sys_reset_2/ext_reset_in] [get_bd_pins zynq_ultra_ps_e_0/pl_resetn0]
 
   # Create address segments
