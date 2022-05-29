@@ -37,17 +37,17 @@ int main(int argc, char *argv[])
     std::cout << "--- Display Port ---" << std::endl;
 
     // mmap udmabuf
-    std::cout << "\nudmabuf4 open" << std::endl;
-    jelly::UdmabufAccessor udmabuf_acc("udmabuf4");
+    std::cout << "\nudmabuf open" << std::endl;
+    jelly::UdmabufAccessor udmabuf_acc("udmabuf-jelly-vram0");
     if ( !udmabuf_acc.IsMapped() ) {
-        std::cout << "udmabuf4 mmap error" << std::endl;
+        std::cout << "udmabuf mmap error" << std::endl;
         return 1;
     }
     auto dmabuf_addr = udmabuf_acc.GetPhysAddr();
     auto dmabuf_size = udmabuf_acc.GetSize();
 
-    std::cout << "udmabuf4 phys addr : 0x" << std::hex << dmabuf_addr << std::endl;
-    std::cout << "udmabuf4 size      : 0x" << std::hex << dmabuf_size << std::endl;
+    std::cout << "udmabuf phys addr : 0x" << std::hex << dmabuf_addr << std::endl;
+    std::cout << "udmabuf size      : 0x" << std::hex << dmabuf_size << std::endl;
 
     cv::Mat img;
     if ( argc >= 2 ) {

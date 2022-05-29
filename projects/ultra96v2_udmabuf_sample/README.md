@@ -13,11 +13,16 @@ Zynqを活用するうえで非常に有用なソフトウェアですので同�
 
 環境は下記の通りです。
 
-- [Ultra96V2](https://www.avnet.com/wps/portal/japan/products/product-highlights/ultra96/)
--  iwkzm氏の [Debianブートイメージ 2019.2版](https://qiita.com/ikwzm/items/92221c5ea6abbd5e991c)
-- Vivado 2019.2
+[Debian GNU/Linux (v2021.1版) ブートイメージ](https://qiita.com/ikwzm/items/a9adc5a7329b2eb36895) 環境にて試しております。
 
-Debianイメージは一度起動SDを作ってしまえば Vivado だけでもいろいろできるのが素敵です。
+```
+image       : https://github.com/ikwzm/ZynqMP-FPGA-Linux/tree/v2021.1.1
+Description : Debian GNU/Linux 11
+kernel      : 5.10.0-xlnx-v2021.1-zynqmp-fpga
+```
+
+PC側の合成環境には Vivado 2021.2 を利用しております。
+
 
 ### Ultra96v2側の準備
 
@@ -52,7 +57,7 @@ PS用のbitstreamは PC(WindowsやLinuxなど)で Vivado を使って行いま�
 
 Vivado のプロジェクトは
 
-/projects/ultra96v2_udmabuf_sample/syn/vivado2019.2/ultra96v2_udmabuf_sample.xpr
+/projects/ultra96v2_udmabuf_sample/syn/vivado2021.2/ultra96v2_udmabuf_sample.xpr
 
 にありますので Vivado で開いてください。
 
@@ -123,7 +128,7 @@ ultra96v2_udmabuf_sample.dts が Device Tree overlay のソースファイルと
 ``` 
     fragment@0 {
         target = <&fpga_full>;
-        __overlay__ {
+        overlay0: __overlay__ {
             #address-cells = <2>;
             #size-cells = <2>;
             firmware-name = "ultra96v2_udmabuf_sample.bit.bin";
@@ -154,37 +159,41 @@ bootgen -image ultra96v2_udmabuf_sample.bif -arch zynqmp -process_bitstream bin
 ### クロックと AXIのバス幅
 
 ```
-    fragment@1 {
-        target-path = "/amba_pl@0";
-        
-        #address-cells = <2>;
-        #size-cells = <2>;
-        __overlay__ {
+    fragment@0 {
+        target = <&fpga_full>;
+        overlay0: __overlay__ {
             #address-cells = <2>;
             #size-cells = <2>;
-            afi0 {
-                compatible    = "xlnx,afi-fpga";
-                config-afi    = <0  0>,     /* S_AXI_HPC0_FPD(read)  : 0:128bit, 1:64bit, 2:32bit */
-                                <1  0>,     /* S_AXI_HPC0_FPD(write) : 0:128bit, 1:64bit, 2:32bit */
-                                <2  0>,     /* S_AXI_HPC1_FPD(read)  : 0:128bit, 1:64bit, 2:32bit */
-                                <3  0>,     /* S_AXI_HPC1_FPD(write) : 0:128bit, 1:64bit, 2:32bit */
-                                <4  0>,     /* S_AXI_HP0_FPD(read)   : 0:128bit, 1:64bit, 2:32bit */
-                                <5  0>,     /* S_AXI_HP0_FPD(write)  : 0:128bit, 1:64bit, 2:32bit */
-                                <6  0>,     /* S_AXI_HP1_FPD(read)   : 0:128bit, 1:64bit, 2:32bit */
-                                <7  0>,     /* S_AXI_HP1_FPD(write)  : 0:128bit, 1:64bit, 2:32bit */
-                                <8  0>,     /* S_AXI_HP2_FPD(read)   : 0:128bit, 1:64bit, 2:32bit */
-                                <9  0>,     /* S_AXI_HP2_FPD(write)  : 0:128bit, 1:64bit, 2:32bit */
-                                <10 0>,     /* S_AXI_HP3_FPD(read)   : 0:128bit, 1:64bit, 2:32bit */
-                                <11 0>,     /* S_AXI_HP3_FPD(write)  : 0:128bit, 1:64bit, 2:32bit */
-                                <12 0>,     /* S_AXI_LPD(read)       : 0:128bit, 1:64bit, 2:32bit */
-                                <13 0>,     /* S_AXI_LPD(write)      : 0:128bit, 1:64bit, 2:32bit */
-                                <14 0x0500>,/* M_AXI_HPM0_FPD[9:8], M_AXI_HPM0_FPD[11:10] : 0:32bit, 1:64bit, 2:128bit */
-                                <15 0x100>; /* M_AXI_HPM0_LPD        : 0x000:32bit, 0x100:64bit, 0x200:128bit */
+            firmware-name = "ultra96v2_udmabuf_sample.bit.bin";
+        };
+    };
+    
+    fragment@1 {
+        target = <&amba>;
+        overlay1: __overlay__ {
+            afi0: afi0 {
+                compatible = "xlnx,afi-fpga";
+                config-afi    = <0  0>,     // S_AXI_HPC0_FPD(read)  : 0:128bit, 1:64bit, 2:32bit
+                                <1  0>,     // S_AXI_HPC0_FPD(write) : 0:128bit, 1:64bit, 2:32bit
+                                <2  0>,     // S_AXI_HPC1_FPD(read)  : 0:128bit, 1:64bit, 2:32bit
+                                <3  0>,     // S_AXI_HPC1_FPD(write) : 0:128bit, 1:64bit, 2:32bit
+                                <4  0>,     // S_AXI_HP0_FPD(read)   : 0:128bit, 1:64bit, 2:32bit
+                                <5  0>,     // S_AXI_HP0_FPD(write)  : 0:128bit, 1:64bit, 2:32bit
+                                <6  0>,     // S_AXI_HP1_FPD(read)   : 0:128bit, 1:64bit, 2:32bit
+                                <7  0>,     // S_AXI_HP1_FPD(write)  : 0:128bit, 1:64bit, 2:32bit
+                                <8  0>,     // S_AXI_HP2_FPD(read)   : 0:128bit, 1:64bit, 2:32bit
+                                <9  0>,     // S_AXI_HP2_FPD(write)  : 0:128bit, 1:64bit, 2:32bit
+                                <10 0>,     // S_AXI_HP3_FPD(read)   : 0:128bit, 1:64bit, 2:32bit
+                                <11 0>,     // S_AXI_HP3_FPD(write)  : 0:128bit, 1:64bit, 2:32bit
+                                <12 0>,     // S_AXI_LPD(read)       : 0:128bit, 1:64bit, 2:32bit
+                                <13 0>,     // S_AXI_LPD(write)      : 0:128bit, 1:64bit, 2:32bit
+                                <14 0x0500>,// M_AXI_HPM0_FPD[9:8], M_AXI_HPM0_FPD[11:10] : 0:32bit, 1:64bit, 2:128bit
+                                <15 0x100>; // M_AXI_HPM0_LPD        : 0x000:32bit, 0x100:64bit, 0x200:128bit
             };
-            
+        
             fclk0  {
                 compatible    = "ikwzm,fclkcfg-0.10.a";
-                clocks        = <&zynqmp_clk 72 &zynqmp_clk 0>;
+                clocks        = <&zynqmp_clk 71 &zynqmp_clk 0>;
                 insert-rate   = "100000000";
                 insert-enable = <1>;
                 remove-rate   = "1000000";
@@ -204,12 +213,12 @@ bootgen -image ultra96v2_udmabuf_sample.bif -arch zynqmp -process_bitstream bin
 続いて uio と u-dma-buf です。
 ``` 
     fragment@2 {
-        target-path = "/amba";
-        __overlay__ {
+        target = <&amba>;
+        overlay2: __overlay__ {
             #address-cells = <0x2>;
             #size-cells = <0x2>;
             
-            uio_pl_peri {
+            uio_pl_peri@a0000000 {
                 compatible = "generic-uio";
                 reg = <0x0 0xa0000000 0x0 0x08000000>;
                 interrupt-parent = <&gic>;
@@ -219,13 +228,12 @@ bootgen -image ultra96v2_udmabuf_sample.bif -arch zynqmp -process_bitstream bin
     };
 
     fragment@3 {
-        target-path = "/amba";
-        __overlay__ {
-            #address-cells = <0x2>;
+        target = <&amba>;
+        overlay3: __overlay__ {
             #size-cells = <0x2>;
-            udmabuf4 {
+            udmabuf0 {
                 compatible = "ikwzm,u-dma-buf";
-                minor-number = <4>;
+                device-name = "udmabuf-jelly-sample";
                 size = <0x0 0x00400000>;
             };
         };

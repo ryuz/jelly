@@ -35,7 +35,7 @@
         
             fclk0  {
                 compatible    = "ikwzm,fclkcfg-0.10.a";
-                clocks        = <&zynqmp_clk 72 &zynqmp_clk 0>;
+                clocks        = <&zynqmp_clk 71 &zynqmp_clk 0>;
                 insert-rate   = "100000000";
                 insert-enable = <1>;
                 remove-rate   = "1000000";
@@ -63,9 +63,8 @@
     fragment@3 {
         target = <&amba>;
         overlay3: __overlay__ {
-//            #address-cells = <0x2>;
             #size-cells = <0x2>;
-            udmabuf4 {
+            udmabuf0 {
                 compatible = "ikwzm,u-dma-buf";
                 device-name = "udmabuf-jelly-sample";
                 size = <0x0 0x00400000>;
