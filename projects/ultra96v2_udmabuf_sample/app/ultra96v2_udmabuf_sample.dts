@@ -33,7 +33,7 @@
                                 <15 0x100>; // M_AXI_HPM0_LPD        : 0x000:32bit, 0x100:64bit, 0x200:128bit
             };
         
-            fclk0  {
+            fclk0 {
                 compatible    = "ikwzm,fclkcfg-0.10.a";
                 clocks        = <&zynqmp_clk 71 &zynqmp_clk 0>;
                 insert-rate   = "100000000";
