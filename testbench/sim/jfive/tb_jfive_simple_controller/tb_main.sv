@@ -102,10 +102,16 @@ module tb_main
             );
 
     assign m_wb_dat_i = 32'hf1e2d3c4;
-    assign m_wb_ack_i = m_wb_stb_o;
+
+    logic   ack_rand;
+    always_ff @(posedge clk) begin
+        ack_rand <= 1'($urandom_range(1));
+    end
+
+    assign m_wb_ack_i = m_wb_stb_o & ack_rand;
     
-    always @(posedge clk) begin
-        if ( !reset && m_wb_stb_o && m_wb_we_o ) begin
+    always_ff @(posedge clk) begin
+        if ( !reset && m_wb_stb_o && m_wb_we_o && m_wb_ack_i ) begin
             if ( m_wb_adr_o == 0 ) begin
                 $write("%c", m_wb_dat_o[7:0]);
             end

@@ -1,7 +1,5 @@
 
 
-TARGET = riscv_sample
-
 .PHONY: all
 all: build 
 

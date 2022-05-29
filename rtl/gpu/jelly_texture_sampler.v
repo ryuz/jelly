@@ -178,7 +178,6 @@ module jelly_texture_sampler
             output  wire    [SAMPLER2D_NUM-1:0]                             s_sampler2d_ready,
             
             output  wire    [SAMPLER2D_NUM*SAMPLER2D_USER_BITS-1:0]         m_sampler2d_user,
-            output  wire    [SAMPLER2D_NUM-1:0]                             m_sampler2d_border,
             output  wire    [SAMPLER2D_NUM*COMPONENT_NUM*DATA_WIDTH-1:0]    m_sampler2d_data,
             output  wire    [SAMPLER2D_NUM-1:0]                             m_sampler2d_strb,
             output  wire    [SAMPLER2D_NUM-1:0]                             m_sampler2d_valid,

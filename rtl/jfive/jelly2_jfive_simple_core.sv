@@ -601,20 +601,19 @@ module jelly2_jfive_simple_core
         if ( cke ) begin
             automatic   logic   signed  [XLEN-1:0]          alu_val0;
             automatic   logic   signed  [XLEN-1:0]          alu_val1;
-            automatic   logic           [XLEN-1:0]          alu_val0_u;
-            automatic   logic           [XLEN-1:0]          alu_val1_u;
+            automatic   logic   signed  [XLEN-1:0]          adder_din0;
+            automatic   logic   signed  [XLEN-1:0]          adder_din1;
+            automatic   logic                               adder_cin;
+            automatic   logic   signed  [XLEN-1:0]          adder_val;
             automatic   logic           [SHAMT_WIDTH-1:0]   shamt;
-            automatic   logic   signed  [XLEN-1:0]          adder_val0;
-            automatic   logic   signed  [XLEN-1:0]          adder_val1;
-            automatic   logic                               adder_carry;
+            automatic   logic   signed  [XLEN-1:0]          shifter_val;
             alu_val0    = 'x;
             alu_val1    = 'x;
-            alu_val0_u  = 'x;
-            alu_val1_u  = 'x;
+            adder_din0  = 'x;
+            adder_din1  = 'x;
+            adder_cin   = 'x;
             shamt       = 'x;
-            adder_val0  = 'x;
-            adder_val1  = 'x;
-            adder_carry = 'x;
+            shifter_val = 'x;
             
             // alu input0
             case ( id_alu_sel0 )
@@ -632,28 +631,40 @@ module jelly2_jfive_simple_core
             default: ;
             endcase
 
-
-            // alu
-            alu_val0_u = alu_val0;
-            alu_val1_u = alu_val1;
-            shamt = alu_val1_u[SHAMT_WIDTH-1:0];
+            // adder 
             case ( id_alu_op )
-            ALU_OP_ADD: begin adder_val0 = alu_val0;            adder_val1 =  alu_val1; adder_carry = 1'b0; end
-            ALU_OP_SUB: begin adder_val0 = alu_val0;            adder_val1 = ~alu_val1; adder_carry = 1'b1; end
-            ALU_OP_SLL: begin adder_val0 = alu_val0   << shamt; adder_val1 = '0;        adder_carry = 1'b0; end
-            ALU_OP_SRL: begin adder_val0 = alu_val0_u >> shamt; adder_val1 = '0;        adder_carry = 1'b0; end
-            ALU_OP_SRA: begin adder_val0 = alu_val0  >>> shamt; adder_val1 = '0;        adder_carry = 1'b0; end
-            ALU_OP_AND: begin adder_val0 = alu_val0 & alu_val1; adder_val1 = '0;        adder_carry = 1'b0; end
-            ALU_OP_OR:  begin adder_val0 = alu_val0 | alu_val1; adder_val1 = '0;        adder_carry = 1'b0; end
-            ALU_OP_XOR: begin adder_val0 = alu_val0 ^ alu_val1; adder_val1 = '0;        adder_carry = 1'b0; end
+            ALU_OP_ADD: begin adder_din0 = alu_val0;            adder_din1 =  alu_val1; adder_cin = 1'b0; end
+            ALU_OP_SUB: begin adder_din0 = alu_val0;            adder_din1 = ~alu_val1; adder_cin = 1'b1; end
+            ALU_OP_AND: begin adder_din0 = alu_val0 & alu_val1; adder_din1 = '0;        adder_cin = 1'b0; end
+            ALU_OP_OR:  begin adder_din0 = alu_val0 | alu_val1; adder_din1 = '0;        adder_cin = 1'b0; end
+            ALU_OP_XOR: begin adder_din0 = alu_val0 ^ alu_val1; adder_din1 = '0;        adder_cin = 1'b0; end
+            default:;
+            endcase
+            adder_val = adder_din0 + adder_din1 + XLEN'(adder_cin);
+
+            // shifter
+            shamt = alu_val1[SHAMT_WIDTH-1:0];
+            case ( id_alu_op )
+            ALU_OP_SLL: begin shifter_val = ex_fwd_rs1_val   << shamt; end
+            ALU_OP_SRL: begin shifter_val = ex_fwd_rs1_val_u >> shamt; end
+            ALU_OP_SRA: begin shifter_val = ex_fwd_rs1_val  >>> shamt; end
             default:;
             endcase
 
-            // adder
-            ex_alu_rd_val <= adder_val0 + adder_val1 + XLEN'(adder_carry);
+            // output
+            case ( id_alu_op )
+            ALU_OP_ADD: begin ex_alu_rd_val <= adder_val; end
+            ALU_OP_SUB: begin ex_alu_rd_val <= adder_val; end
+            ALU_OP_AND: begin ex_alu_rd_val <= adder_val; end
+            ALU_OP_OR:  begin ex_alu_rd_val <= adder_val; end
+            ALU_OP_XOR: begin ex_alu_rd_val <= adder_val; end
+            ALU_OP_SLL: begin ex_alu_rd_val <= shifter_val; end
+            ALU_OP_SRL: begin ex_alu_rd_val <= shifter_val; end
+            ALU_OP_SRA: begin ex_alu_rd_val <= shifter_val; end
+            default:    begin ex_alu_rd_val <= 'x; end
+            endcase
         end
     end
-
 
     // dbus access
     assign dbus_addr  = ex_fwd_rs1_val + id_mem_offset;

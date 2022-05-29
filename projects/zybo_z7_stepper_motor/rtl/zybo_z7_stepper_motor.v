@@ -42,6 +42,7 @@ module zybo_z7_stepper_motor
                 input   wire            in_reset,
                 input   wire            in_clk125,
                 
+                /*
                 output  wire            stm_ap_en,
                 output  wire            stm_an_en,
                 output  wire            stm_bp_en,
@@ -50,10 +51,16 @@ module zybo_z7_stepper_motor
                 output  wire            stm_an_hl,
                 output  wire            stm_bp_hl,
                 output  wire            stm_bn_hl,
-                
+                */
+
                 input   wire    [3:1]   push_sw,
                 input   wire    [3:0]   dip_sw,
-                output  wire    [3:0]   led
+                output  wire    [3:0]   led,
+                inout   wire    [7:0]   pmod_a,
+                inout   wire    [7:0]   pmod_b,
+                inout   wire    [7:0]   pmod_c,
+                inout   wire    [7:0]   pmod_d,
+                inout   wire    [7:0]   pmod_e
             );
     
     // -----------------------------
@@ -258,6 +265,16 @@ module zybo_z7_stepper_motor
                 .motor_b            (stmc_out_b)
             );
     
+    assign pmod_d[0] =  stmc_out_a & stmc_out_en;
+    assign pmod_d[1] = ~stmc_out_a & stmc_out_en;
+    assign pmod_d[2] =  stmc_out_b & stmc_out_en;
+    assign pmod_d[3] = ~stmc_out_b & stmc_out_en;
+    assign pmod_d[4] = 1'bz;
+    assign pmod_d[5] = 1'bz;
+    assign pmod_d[6] = 1'bz;
+    assign pmod_d[7] = 1'bz;
+
+    /*
     assign stm_ap_en = stmc_out_en & dip_sw[0];
     assign stm_an_en = stmc_out_en & dip_sw[0];
     assign stm_bp_en = stmc_out_en & dip_sw[0];
@@ -267,7 +284,7 @@ module zybo_z7_stepper_motor
     assign stm_an_hl = ~stmc_out_a;
     assign stm_bp_hl =  stmc_out_b;
     assign stm_bn_hl = ~stmc_out_b;
-    
+    */
     
     
     // -----------------------------
@@ -275,10 +292,19 @@ module zybo_z7_stepper_motor
     // -----------------------------
     
     assign led[0] = dip_sw[0];
-    assign led[1] = stm_ap_hl;
-    assign led[2] = stm_bp_hl;
-    assign led[3] = stm_ap_en;
+    assign led[1] = 1'b0; //stm_ap_hl;
+    assign led[2] = 1'b0; //stm_bp_hl;
+    assign led[3] = 1'b0; //stm_ap_en;
     
+
+    // -----------------------------
+    //  PMOD
+    // -----------------------------
+
+    assign pmod_a = 8'hzz;
+    assign pmod_b = 8'hzz;
+    assign pmod_c = 8'hzz;
+    assign pmod_e = 8'hzz;
     
     
     // -----------------------------
