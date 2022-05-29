@@ -43,8 +43,8 @@ BD_SCRIPTS = ../vivado$(VIVADO_VERSION)/design_1.tcl
 export BD_SCRIPTS
 
 # constrains
-CONSTRAINS +=../../constrain/xdc/top.xdc
-CONSTRAINS += ../../constrain/xdc/debug.xdc
+CONSTRAINS  = ../../constrain/top.xdc
+CONSTRAINS += ../../constrain/debug.xdc
 export CONSTRAINS
 
 
