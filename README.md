@@ -91,7 +91,7 @@ FPGAで作成したRealTime-OSアクセラレータです。
 - projects/ultra96v2_jfive_sample
     - [Ultra96V2 で 自作RISC-V(4段パイプライン)を試すサンプル](projects/ultra96v2_jfive_sample/README.md)
 - projects/ultra96v2_hls_test
-    - [Ultra96V2 で コマンドラインだけでHLSで書いたIPをVivadoに取り込んで合成するサンプル](projects/ultra96v2_hls_test/README.md)
+    - [Ultra96V2 で コマンドラインだけでHLSで書いたIPをVivadoに取り込んで合成するサンプル](projects/ultra96v2_hls_sample/README.md)
 - projects/ultra96v2_imx219_hls_sample
     - [Ultra96V2 で HLSでカメラ画像を処理してみるサンプル](projects/ultra96v2_imx219_hls_sample/README.md)
 - projects/kv260_udmabuf_sample

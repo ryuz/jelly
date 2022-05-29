@@ -11,7 +11,7 @@
 `timescale 1ns / 1ps
 `default_nettype none
 
-module ultra96v2_hls_test
+module ultra96v2_hls_sample
             (
                 output  wire    [1:0]   led
             );

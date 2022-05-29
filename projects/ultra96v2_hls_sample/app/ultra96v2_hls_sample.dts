@@ -6,7 +6,7 @@
         __overlay__ {
             #address-cells = <2>;
             #size-cells = <2>;
-            firmware-name = "ultra96v2_hls_test.bit.bin";
+            firmware-name = "ultra96v2_hls_sample.bit.bin";
         };
     };
     

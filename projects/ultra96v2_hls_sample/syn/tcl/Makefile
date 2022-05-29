@@ -6,8 +6,8 @@ VIVADO_VERSIONS := $(subst .,$(space),$(subst v,,$(word 2,$(shell vivado -versio
 VIVADO_VERSION  := $(word 1,$(VIVADO_VERSIONS)).$(word 2,$(VIVADO_VERSIONS))
 
 # settings
-export PRJ_NAME    = ultra96v2_hls_test_tcl
-export TOP_MODULE  = ultra96v2_hls_test
+export PRJ_NAME    = ultra96v2_hls_sample_tcl
+export TOP_MODULE  = ultra96v2_hls_sample
 export BOARD_PART  = avnet.com:ultra96v2*
 export DEVICE_PART = xczu3eg-sbva484-1-i
 
@@ -25,8 +25,8 @@ export HLS_IP
 export HLS_DIR
 
 # sources
-SOURCES  = $(PRJ_DIR)/rtl/ultra96v2_hls_test.v
-SOURCES  = $(PRJ_DIR)/rtl/test_hls.sv
+SOURCES  = $(PRJ_DIR)/rtl/ultra96v2_hls_sample.sv
+SOURCES += $(PRJ_DIR)/rtl/test_hls.sv
 SOURCES += $(TOP_DIR)/rtl/bus/jelly_axi4l_to_wishbone.v
 export SOURCES
 
@@ -39,8 +39,8 @@ BD_SCRIPTS = ../vivado$(VIVADO_VERSION)/design_1.tcl
 export BD_SCRIPTS
 
 # constrains
-CONSTRAINS  = $(PRJ_DIR)/constrain/xdc/top.xdc
-CONSTRAINS += $(PRJ_DIR)/constrain/xdc/debug.xdc
+CONSTRAINS  = $(PRJ_DIR)/constrain/top.xdc
+CONSTRAINS += $(PRJ_DIR)/constrain/debug.xdc
 export CONSTRAINS
 
 # rules
