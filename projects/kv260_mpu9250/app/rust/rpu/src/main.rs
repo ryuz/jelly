@@ -139,7 +139,7 @@ extern "C" fn task1() -> ! {
     // timer
     type TimAccessor = PhysAccessor<u64, 0x8040_0000, 0x100>;
     let  tim = JellyIntervalTimer::<TimAccessor>::new(TimAccessor::new(), Some(wait_irq::<1, 0x10>));
-    tim.set_compare_counter(2500000-1);  // 100Hz
+    tim.set_compare_counter(250000-1);  // 1kHz
     tim.set_enable(true);
 
     // PhysAccessor を使う場合
@@ -151,27 +151,43 @@ extern "C" fn task1() -> ! {
 //  let i2c = i2c::JellyI2c::<MmioAccessor<u64>, 1, 0x20>::new(i2c_acc);
 
     i2c.set_divider(50 - 1);
+//  i2c.set_divider(100 - 1);
     
     let imu = Mpu9250::new(i2c);
 
     println!("WHO_AM_I(exp:0x71):0x{:02x}", imu.read_who_am_i());
 
     let mut times: i32 = 0;
+    let mut compass0: i16 = 0;
+    let mut compass1: i16 = 0;
+    let mut compass2: i16 = 0;
     while !COM0.polling_rx() {
         tim.wait_timer();
-        let data = imu.read_sensor_data();
-        
-        if times % 100 == 0 {
-            println!("accel0      : {}", data.accel[0]     );
-            println!("accel1      : {}", data.accel[1]     );
-            println!("accel2      : {}", data.accel[2]     );
-            println!("gyro0       : {}", data.gyro[0]      );
-            println!("gyro1       : {}", data.gyro[1]      );
-            println!("gyro2       : {}", data.gyro[2]      );
-            println!("temperature : {}\n", data.temperature);
+        let sensor_data  = imu.read_sensor_data();
+        let compass_data = imu.read_compass_data();
+        match compass_data {
+            Some(data) => {
+                compass0 = data.compass[0];
+                compass1 = data.compass[1];
+                compass2 = data.compass[2];
+            }
+            None => {}
         }
 
-        let data: [u8; 14] = unsafe { core::mem::transmute(data) };
+        if times % 1000 == 0 {
+            println!("accel0      : {}", sensor_data.accel[0]);
+            println!("accel1      : {}", sensor_data.accel[1]);
+            println!("accel2      : {}", sensor_data.accel[2]);
+            println!("gyro0       : {}", sensor_data.gyro[0]);
+            println!("gyro1       : {}", sensor_data.gyro[1]);
+            println!("gyro2       : {}", sensor_data.gyro[2]);
+            println!("temperature : {}", sensor_data.temperature);
+            println!("compass     : {}", compass0);
+            println!("compass     : {}", compass1);
+            println!("compass     : {}\n", compass2);
+        }
+
+        let data: [u8; 14] = unsafe { core::mem::transmute(sensor_data) };
         COM1.write(&data);
         
 //      rtos::dly_tsk(1000000 / 100);

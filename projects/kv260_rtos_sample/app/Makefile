@@ -1,6 +1,6 @@
 
 
-PRJ_NAME  = ultra96v2_rtos
+PRJ_NAME  = kv260_rtos_sample
 DT_NAME   = $(PRJ_NAME)
 BIT_NAME  = $(PRJ_NAME)
 
@@ -84,7 +84,7 @@ load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
 	sudo rm /lib/firmware/$(DTBO_FILE)
 	sudo rm /lib/firmware/$(BIN_FILE)
 	sudo chmod 666 /dev/uio*
-	sudo chmod 666 /dev/udmabuf*
+#	sudo chmod 666 /dev/udmabuf*
 
 .PHONY: unload
 unload:

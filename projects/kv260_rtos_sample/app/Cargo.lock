@@ -23,6 +23,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "kv260_rtos_sample"
+version = "0.1.0"
+dependencies = [
+ "cc",
+ "jelly-rtos",
+ "libm",
+ "pudding-pac",
+]
+
+[[package]]
 name = "libm"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -34,14 +44,4 @@ version = "0.1.0"
 source = "git+https://github.com/ryuz/rust_rtos.git?rev=c13dd9014f86e0e230f167007e8effd9d805ef3f#c13dd9014f86e0e230f167007e8effd9d805ef3f"
 dependencies = [
  "bitflags",
-]
-
-[[package]]
-name = "ultra96v2_rtos"
-version = "0.1.0"
-dependencies = [
- "cc",
- "jelly-rtos",
- "libm",
- "pudding-pac",
 ]

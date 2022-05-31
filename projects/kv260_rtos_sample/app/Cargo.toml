@@ -1,5 +1,5 @@
 [package]
-name = "ultra96v2_rtos"
+name = "kv260_rtos_sample"
 version = "0.1.0"
 edition = "2018"
 

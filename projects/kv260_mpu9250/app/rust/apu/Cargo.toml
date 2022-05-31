@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 nix = "0.23.0"
+chrono = "0.4.19"
 jelly-mem_access = "0.1.5"
 #jelly-mem_access = {path = "../../../../../rust/mem_access" }
 jelly-pac = {path = "../../../../../rust/pac" }
