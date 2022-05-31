@@ -30,7 +30,10 @@ module ultra96v2_imx219_display_port
     wire                                sys_clk100;
     wire                                sys_clk200;
     wire                                sys_clk250;
-    
+
+    wire                                core_reset;
+    wire                                core_clk;
+
     wire                                dp_video_ref_reset;
     wire                                dp_video_ref_clk;
     wire                                dp_video_out_vsync;
@@ -163,7 +166,10 @@ module ultra96v2_imx219_display_port
                 .out_clk100                 (sys_clk100),
                 .out_clk200                 (sys_clk200),
                 .out_clk250                 (sys_clk250),
-                
+
+                .core_reset                 (core_reset),
+                .core_clk                   (core_clk),
+
                 .dp_video_ref_reset         (dp_video_ref_reset),
                 .dp_video_ref_clk           (dp_video_ref_clk),
                 .dp_video_out_vsync         (dp_video_out_vsync),
@@ -504,8 +510,8 @@ module ultra96v2_imx219_display_port
     // ----------------------------------------
     
     
-    wire            axi4s_cam_aresetn = ~sys_reset;
-    wire            axi4s_cam_aclk    = sys_clk200;
+    wire            axi4s_cam_aresetn = ~core_reset;
+    wire            axi4s_cam_aclk    = core_clk;
     
     wire    [0:0]   axi4s_csi2_tuser;
     wire            axi4s_csi2_tlast;
@@ -1212,12 +1218,12 @@ module ultra96v2_imx219_display_port
     
     assign wb_gid_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h000);   // 0x80000000-0x8000ffff
     assign wb_fmtr_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h010);   // 0x80100000-0x8010ffff
-    assign wb_rgb_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[24:17] ==  8'h02);    // 0x80120000-0x8012ffff
-    assign wb_bufm_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[25:13] == 12'h030);   // 0x80300000-0x8030ffff
-    assign wb_bufa_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[25:13] == 12'h031);   // 0x80310000-0x8031ffff
-    assign wb_vdmaw_stb_i = wb_peri_stb_i & (wb_peri_adr_i[25:13] == 12'h032);   // 0x80320000-0x8032ffff
-    assign wb_vdmar_stb_i = wb_peri_stb_i & (wb_peri_adr_i[25:13] == 12'h034);   // 0x80340000-0x8034ffff
-    assign wb_vsgen_stb_i = wb_peri_stb_i & (wb_peri_adr_i[25:13] == 12'h036);   // 0x80360000-0x8036ffff
+    assign wb_rgb_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[24:17] ==  8'h02);    // 0x80200000-0x802fffff
+    assign wb_bufm_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h030);   // 0x80300000-0x8030ffff
+    assign wb_bufa_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h031);   // 0x80310000-0x8031ffff
+    assign wb_vdmaw_stb_i = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h032);   // 0x80320000-0x8032ffff
+    assign wb_vdmar_stb_i = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h034);   // 0x80340000-0x8034ffff
+    assign wb_vsgen_stb_i = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h036);   // 0x80360000-0x8036ffff
     
     assign wb_peri_dat_o  = wb_gid_stb_i   ? wb_gid_dat_o   :
                             wb_fmtr_stb_i  ? wb_fmtr_dat_o  :
@@ -1227,7 +1233,7 @@ module ultra96v2_imx219_display_port
                             wb_vdmaw_stb_i ? wb_vdmaw_dat_o :
                             wb_vdmar_stb_i ? wb_vdmar_dat_o :
                             wb_vsgen_stb_i ? wb_vsgen_dat_o :
-                            32'h0000_0000;
+                            64'h0000_0000;
     
     assign wb_peri_ack_o  = wb_gid_stb_i   ? wb_gid_ack_o   :
                             wb_vdmaw_stb_i ? wb_vdmaw_ack_o :
@@ -1239,7 +1245,71 @@ module ultra96v2_imx219_display_port
                             wb_vsgen_stb_i ? wb_vsgen_ack_o :
                             wb_peri_stb_i;
     
-    
+
+    /*
+    jelly2_wishbone_simple_decoder
+            #(
+                .NUM            (8),
+                .WB_ADR_WIDTH   (WB_ADR_WIDTH),
+                .WB_DAT_WIDTH   (WB_DAT_WIDTH),
+                .RANGE_SHIFT    (AXI4L_PERI_DATA_SIZE),
+                .RANGE_WIDTH    (28),
+                .ADR_WIDTH      (28)
+            )
+        i_wishbone_simple_decoder
+            (
+                .reset          (wb_peri_rst_i),
+                .clk            (wb_peri_clk_i),
+
+                .range          ({
+                                    {28'h000_ffff, 28'h000_0000},
+                                    {28'h010_ffff, 28'h010_0000},
+                                    {28'h02f_ffff, 28'h020_0000},
+                                    {28'h030_ffff, 28'h030_0000},
+                                    {28'h031_ffff, 28'h031_0000},
+                                    {28'h032_ffff, 28'h032_0000},
+                                    {28'h034_ffff, 28'h034_0000},
+                                    {28'h036_ffff, 28'h036_0000}
+                                }),
+
+                .s_wb_adr_i     (wb_peri_adr_i),
+                .s_wb_dat_o     (wb_peri_dat_o),
+                .s_wb_stb_i     (wb_peri_stb_i),
+                .s_wb_ack_o     (wb_peri_ack_o),
+                
+                .m_wb_dat_i     ({
+                                    wb_gid_dat_o,
+                                    wb_fmtr_dat_o,
+                                    wb_rgb_dat_o,
+                                    wb_bufm_dat_o,
+                                    wb_bufa_dat_o,
+                                    wb_vdmaw_dat_o,
+                                    wb_vdmar_dat_o,
+                                    wb_vsgen_dat_o
+                                }),
+                .m_wb_stb_o     ({
+                                    wb_gid_stb_i,
+                                    wb_fmtr_stb_i,
+                                    wb_rgb_stb_i,
+                                    wb_bufm_stb_i,
+                                    wb_bufa_stb_i,
+                                    wb_vdmaw_stb_i,
+                                    wb_vdmar_stb_i,
+                                    wb_vsgen_stb_i
+
+                }),
+                .m_wb_ack_i     ({
+                                    wb_gid_ack_o,
+                                    wb_fmtr_ack_o,
+                                    wb_rgb_ack_o,
+                                    wb_bufm_ack_o,
+                                    wb_bufa_ack_o,
+                                    wb_vdmaw_ack_o,
+                                    wb_vdmar_ack_o,
+                                    wb_vsgen_ack_o
+                                })
+            );
+    */
     
     // ----------------------------------------
     //  Debug

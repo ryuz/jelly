@@ -43,7 +43,7 @@ if { [string first $scripts_vivado_version $current_vivado_version] == -1 } {
 
 set list_projs [get_projects -quiet]
 if { $list_projs eq "" } {
-   create_project project_1 myproj -part xczu3eg-sbva484-1-e
+   create_project project_1 myproj -part xczu3eg-sbva484-1-i
 }
 
 
@@ -264,6 +264,8 @@ proc create_root_design { parentCell } {
 
 
   # Create ports
+  set core_clk [ create_bd_port -dir O -type clk core_clk ]
+  set core_reset [ create_bd_port -dir O -from 0 -to 0 -type rst core_reset ]
   set dp_live_video_in_pixel1 [ create_bd_port -dir I -from 35 -to 0 dp_live_video_in_pixel1 ]
   set dp_video_out_hsync [ create_bd_port -dir O dp_video_out_hsync ]
   set dp_video_out_vsync [ create_bd_port -dir O dp_video_out_vsync ]
@@ -1056,20 +1058,20 @@ proc create_root_design { parentCell } {
   connect_bd_intf_net -intf_net zynq_ultra_ps_e_0_M_AXI_HPM0_LPD [get_bd_intf_pins axi_protocol_convert_0/S_AXI] [get_bd_intf_pins zynq_ultra_ps_e_0/M_AXI_HPM0_LPD]
 
   # Create port connections
-  connect_bd_net -net clk_wiz_0_clk_out1 [get_bd_ports out_clk100] [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins proc_sys_reset_1/slowest_sync_clk]
-  connect_bd_net -net clk_wiz_0_clk_out2 [get_bd_ports out_clk200] [get_bd_ports s_axi4_mem_aclk] [get_bd_pins clk_wiz_0/clk_out2] [get_bd_pins zynq_ultra_ps_e_0/saxihp0_fpd_aclk] [get_bd_pins zynq_ultra_ps_e_0/saxihpc0_fpd_aclk]
-  connect_bd_net -net clk_wiz_0_clk_out3 [get_bd_ports out_clk250] [get_bd_pins clk_wiz_0/clk_out3]
-  connect_bd_net -net clk_wiz_0_locked [get_bd_pins clk_wiz_0/locked] [get_bd_pins proc_sys_reset_1/dcm_locked]
+  connect_bd_net -net clk_wiz_0_clk_out1 [get_bd_ports out_clk100] [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins proc_sys_reset_0/slowest_sync_clk]
+  connect_bd_net -net clk_wiz_0_clk_out2 [get_bd_ports out_clk200] [get_bd_pins clk_wiz_0/clk_out2]
+  connect_bd_net -net clk_wiz_0_clk_out3 [get_bd_ports core_clk] [get_bd_ports m_axi4l_peri_aclk] [get_bd_ports out_clk250] [get_bd_ports s_axi4_mem_aclk] [get_bd_pins axi_protocol_convert_0/aclk] [get_bd_pins clk_wiz_0/clk_out3] [get_bd_pins proc_sys_reset_1/slowest_sync_clk] [get_bd_pins zynq_ultra_ps_e_0/maxihpm0_lpd_aclk] [get_bd_pins zynq_ultra_ps_e_0/saxihp0_fpd_aclk] [get_bd_pins zynq_ultra_ps_e_0/saxihpc0_fpd_aclk]
+  connect_bd_net -net clk_wiz_0_locked [get_bd_pins clk_wiz_0/locked] [get_bd_pins proc_sys_reset_0/dcm_locked] [get_bd_pins proc_sys_reset_1/dcm_locked]
   connect_bd_net -net dp_live_video_in_pixel1_0_1 [get_bd_ports dp_live_video_in_pixel1] [get_bd_pins zynq_ultra_ps_e_0/dp_live_video_in_pixel1]
-  connect_bd_net -net proc_sys_reset_0_interconnect_aresetn [get_bd_pins axi_protocol_convert_0/aresetn] [get_bd_pins proc_sys_reset_0/interconnect_aresetn]
-  connect_bd_net -net proc_sys_reset_0_peripheral_aresetn [get_bd_ports m_axi4l_peri_aresetn] [get_bd_pins proc_sys_reset_0/peripheral_aresetn]
-  connect_bd_net -net proc_sys_reset_1_interconnect_aresetn [get_bd_ports s_axi4_mem_aresetn] [get_bd_pins proc_sys_reset_1/interconnect_aresetn]
-  connect_bd_net -net proc_sys_reset_1_peripheral_reset [get_bd_ports out_reset] [get_bd_pins proc_sys_reset_1/peripheral_reset]
+  connect_bd_net -net proc_sys_reset_0_peripheral_reset [get_bd_ports out_reset] [get_bd_pins proc_sys_reset_0/peripheral_reset]
+  connect_bd_net -net proc_sys_reset_1_interconnect_aresetn [get_bd_pins axi_protocol_convert_0/aresetn] [get_bd_pins proc_sys_reset_1/interconnect_aresetn]
+  connect_bd_net -net proc_sys_reset_1_peripheral_reset [get_bd_ports core_reset] [get_bd_pins proc_sys_reset_1/peripheral_reset]
+  connect_bd_net -net proc_sys_reset_2_peripheral_aresetn [get_bd_ports m_axi4l_peri_aresetn] [get_bd_ports s_axi4_mem_aresetn] [get_bd_pins proc_sys_reset_1/peripheral_aresetn]
   connect_bd_net -net proc_sys_reset_2_peripheral_reset [get_bd_ports dp_video_ref_reset] [get_bd_pins proc_sys_reset_2/peripheral_reset]
   connect_bd_net -net zynq_ultra_ps_e_0_dp_video_out_hsync [get_bd_ports dp_video_out_hsync] [get_bd_pins zynq_ultra_ps_e_0/dp_video_out_hsync]
   connect_bd_net -net zynq_ultra_ps_e_0_dp_video_out_vsync [get_bd_ports dp_video_out_vsync] [get_bd_pins zynq_ultra_ps_e_0/dp_video_out_vsync]
   connect_bd_net -net zynq_ultra_ps_e_0_dp_video_ref_clk [get_bd_ports dp_video_ref_clk] [get_bd_pins proc_sys_reset_2/slowest_sync_clk] [get_bd_pins zynq_ultra_ps_e_0/dp_video_in_clk] [get_bd_pins zynq_ultra_ps_e_0/dp_video_ref_clk]
-  connect_bd_net -net zynq_ultra_ps_e_0_pl_clk0 [get_bd_ports m_axi4l_peri_aclk] [get_bd_pins axi_protocol_convert_0/aclk] [get_bd_pins clk_wiz_0/clk_in1] [get_bd_pins proc_sys_reset_0/slowest_sync_clk] [get_bd_pins zynq_ultra_ps_e_0/maxihpm0_lpd_aclk] [get_bd_pins zynq_ultra_ps_e_0/pl_clk0]
+  connect_bd_net -net zynq_ultra_ps_e_0_pl_clk0 [get_bd_pins clk_wiz_0/clk_in1] [get_bd_pins zynq_ultra_ps_e_0/pl_clk0]
   connect_bd_net -net zynq_ultra_ps_e_0_pl_resetn0 [get_bd_pins clk_wiz_0/resetn] [get_bd_pins proc_sys_reset_0/ext_reset_in] [get_bd_pins proc_sys_reset_1/ext_reset_in] [get_bd_pins proc_sys_reset_2/ext_reset_in] [get_bd_pins zynq_ultra_ps_e_0/pl_resetn0]
 
   # Create address segments

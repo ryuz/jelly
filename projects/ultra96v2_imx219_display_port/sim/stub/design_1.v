@@ -32,6 +32,8 @@ module design_1
     out_clk200,
     out_clk250,
     out_reset,
+    core_clk,
+    core_reset,
     s_axi4_mem0_araddr,
     s_axi4_mem0_arburst,
     s_axi4_mem0_arcache,
@@ -142,6 +144,8 @@ module design_1
   output out_clk200;
   output out_clk250;
   output [0:0]out_reset;
+  output core_clk;
+  output core_reset;
   input [48:0]s_axi4_mem0_araddr;
   input [1:0]s_axi4_mem0_arburst;
   input [3:0]s_axi4_mem0_arcache;
@@ -253,6 +257,8 @@ module design_1
   wire out_clk200;
   wire out_clk250;
   wire [0:0]out_reset;
+  wire core_clk;
+  wire core_reset;
   wire [48:0]s_axi4_mem0_araddr;
   wire [1:0]s_axi4_mem0_arburst;
   wire [3:0]s_axi4_mem0_arcache;
@@ -369,10 +375,14 @@ module design_1
     assign out_clk100            = clk100;
     assign out_clk200            = clk200;
     assign out_clk250            = clk250;
+
+    assign core_reset             = reset;
+    assign core_clk               = clk250;
+
     assign m_axi4l_peri_aresetn  = ~reset;
-    assign m_axi4l_peri_aclk     = clk100;
+    assign m_axi4l_peri_aclk     = clk250;
     assign s_axi4_mem_aresetn    = ~reset;
-    assign s_axi4_mem_aclk       = clk133;
+    assign s_axi4_mem_aclk       = clk250;
     
     
     

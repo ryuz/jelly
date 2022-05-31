@@ -15,7 +15,7 @@ module tb_top();
     initial begin
         $dumpfile("tb_top.vcd");
         $dumpvars(1, tb_top);
-        $dumpvars(1, tb_top.i_top);
+        $dumpvars(2, tb_top.i_top);
         $dumpvars(0, tb_top.i_top.i_dma_video_read);
         
     #100000000
@@ -253,9 +253,9 @@ module tb_top();
         $display("read core ID");
         wb_read ((32'h80000000>>3));     // gid
         wb_read ((32'h80100000>>3));     // fmtr
-        wb_read ((32'h80120000>>3));     // demosaic
-        wb_read ((32'h80120200>>3));     // col mat
-        wb_read ((32'h80210000>>3));     // wdma
+        wb_read ((32'h80200000>>3));     // demosaic
+        wb_read ((32'h80210000>>3));     // col mat
+        wb_read ((32'h80320000>>3));     // wdma
         
         $display("set DMA FIFO");
         wb_read ((32'h80260000>>3)+8'h00);                       // CORE ID
