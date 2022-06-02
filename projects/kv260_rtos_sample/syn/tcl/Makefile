@@ -7,10 +7,10 @@ VIVADO_VERSIONS := $(subst .,$(space),$(subst v,,$(word 2,$(shell vivado -versio
 VIVADO_VERSION  := $(word 1,$(VIVADO_VERSIONS)).$(word 2,$(VIVADO_VERSIONS))
 
 # settings
-export PRJ_NAME     = ultra96v2_rtos_tcl
-export TOP_MODULE   = ultra96v2_rtos
-export BOARD_PART   = avnet.com:ultra96v2*
-export DEVICE_PART  = xczu3eg-sbva484-1-i
+export PRJ_NAME     = kv260_rtos_sample_tcl
+export TOP_MODULE   = kv260_rtos_sample
+export BOARD_PART   = xilinx.com:kv260_som*
+export DEVICE_PART  =
 
 # directories
 TOP_DIR = ../../../..
@@ -22,7 +22,7 @@ HLS_IP =
 export HLS_IP
 
 # sources
-SOURCES  = $(PRJ_DIR)/rtl/ultra96v2_rtos.sv
+SOURCES  = $(PRJ_DIR)/rtl/kv260_rtos_sample.sv
 SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos.sv
 SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos_core.sv
 SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos_queue.sv
