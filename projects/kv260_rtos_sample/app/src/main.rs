@@ -77,6 +77,9 @@ pub unsafe extern "C" fn main() -> ! {
 
     // アイドルループ
     loop {
+//        let p = 0x80040000 as *mut u32;
+//        core::ptr::write_volatile(p, 1);
+//        core::ptr::write_volatile(p, 0);
         cpu::wfi();
     }
 }

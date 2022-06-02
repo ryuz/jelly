@@ -1,4 +1,4 @@
-# Ultra96V2 で FPGA化した リアルタイムOS を試すサンプル
+# Kria KV260 で FPGA化した リアルタイムOS を試すサンプル
 
 
 ## 概要
@@ -28,9 +28,9 @@ RPUのTCMに収まるような小規模なリアルタイム制御など、タ�
 
 ## 事前準備
 
-Ultra96V2などの ZynqMP 環境でAPU(Cortex-R5)上で、[Debian](https://qiita.com/ikwzm/items/c7687406e82ab95ac697)などが動く状態になっており、Rust インストール済みの想定です。
+ZynqMP 環境でAPU(Cortex-R5)上で、[Ubuntu](https://japan.xilinx.com/products/design-tools/embedded-software/ubuntu.html)や、[Debian](https://qiita.com/ikwzm/items/a9adc5a7329b2eb36895)などが動く状態になっており、Rust インストール済みの想定です。
 
-また、[APUからRPUを認識](https://qiita.com/Ryuz/items/c972485f4bd4ec97153d)できるようになっている想定です。
+また、[APUからRPUを認識](https://ryuz.hatenablog.com/entry/2022/05/04/100016)できるようになっている想定です。
 
 なお、ビルドもAPUで行ってしまう想定ですが、コンパイル自体はPCなどの別環境でも可能です。
 
