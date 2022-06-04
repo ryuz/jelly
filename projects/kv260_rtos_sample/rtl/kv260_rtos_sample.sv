@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- the system on fpga system
 //
-//  Ultra96V2 Real-Time OS
+//  FPGA Real-Time OS
 //
 //                                 Copyright (C) 2008-2021 by Ryuz
 //                                 https://github.com/ryuz/jelly.git

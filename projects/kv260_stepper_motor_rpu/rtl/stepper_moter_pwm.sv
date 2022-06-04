@@ -40,7 +40,7 @@ module stepper_moter_pwm
                 input   wire                            s_wb_stb_i,
                 output  reg                             s_wb_ack_o,
 
-                output  wire    [0:0]                   out_irq,
+                output  reg     [0:0]                   out_irq,
 
                 output  reg                             motor_en,
                 output  reg     [1:0]                   motor_phase
@@ -160,7 +160,8 @@ module stepper_moter_pwm
 
     always_ff @(posedge clk) begin
         if ( reset ) begin
-            counter <= '0;
+            counter  <= '0;
+            position <= '0;
         end
         else begin
             if ( enable ) begin

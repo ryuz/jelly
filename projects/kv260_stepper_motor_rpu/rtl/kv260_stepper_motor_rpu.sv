@@ -14,7 +14,7 @@
 
 module kv260_stepper_motor_rpu
             (
-                output  wire    [7:0]   pmod
+                output  reg     [7:0]   pmod
             );
     
     
@@ -207,9 +207,9 @@ module kv260_stepper_motor_rpu
                 .TSKID_WIDTH            (TSKID_WIDTH),
                 .SEMID_WIDTH            (SEMID_WIDTH),
                 .CLOCK_RATE             (250_000_000)   // 250MHz
-            )   
+            )
         i_rtos
-            (   
+            (
                 .reset                  (reset),
                 .clk                    (clk),
                 .cke                    (1'b1),
@@ -265,12 +265,10 @@ module kv260_stepper_motor_rpu
                 .STEP_WIDTH         (16),
                 .POSITION_WIDTH     (32),
 
-                .INIT_CTL_CONTROL   (1'b1),
-
+                .INIT_CTL_CONTROL   (1'b0),
                 .INIT_IRQ_ENABLE    (1'b0),
-
                 .INIT_POSITION      (32'd0),
-                .INIT_STEP          (16'd256),
+                .INIT_STEP          (16'd1),
                 .INIT_PHASE         (2'b00)
             )
         i_stepper_moter_pwm
@@ -297,7 +295,7 @@ module kv260_stepper_motor_rpu
     always_comb pmod[6] =  motor_phase[1] & motor_en;
     always_comb pmod[7] = ~motor_phase[1] & motor_en;
 
-    
+
     // -----------------------------
     //  Test Timer
     // -----------------------------
