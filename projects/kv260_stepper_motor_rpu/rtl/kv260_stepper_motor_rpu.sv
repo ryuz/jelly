@@ -290,10 +290,29 @@ module kv260_stepper_motor_rpu
                 .motor_phase        (motor_phase)
             );
 
-    always_comb pmod[4] =  motor_phase[0] & motor_en;
-    always_comb pmod[5] = ~motor_phase[0] & motor_en;
-    always_comb pmod[6] =  motor_phase[1] & motor_en;
-    always_comb pmod[7] = ~motor_phase[1] & motor_en;
+    (* IOB="true" *)    reg     motor_ap = 1'b0;
+    (* IOB="true" *)    reg     motor_an = 1'b0;
+    (* IOB="true" *)    reg     motor_bp = 1'b0;
+    (* IOB="true" *)    reg     motor_bn = 1'b0;
+    always_ff @(posedge clk) begin
+        if ( reset ) begin
+            motor_ap <= 1'b0;
+            motor_an <= 1'b0;
+            motor_bp <= 1'b0;
+            motor_bn <= 1'b0;
+        end
+        else begin
+            motor_ap <=   motor_phase[0] & motor_en;
+            motor_an <=  ~motor_phase[0] & motor_en;
+            motor_bp <=   motor_phase[1] & motor_en;
+            motor_bn <=  ~motor_phase[1] & motor_en;
+        end
+    end
+
+    always_comb pmod[4] = motor_ap;
+    always_comb pmod[5] = motor_an;
+    always_comb pmod[6] = motor_bp;
+    always_comb pmod[7] = motor_bn;
 
 
     // -----------------------------

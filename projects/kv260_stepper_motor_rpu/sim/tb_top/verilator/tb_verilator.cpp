@@ -123,7 +123,7 @@ int main(int argc, char** argv)
         wb->Write(ADR_MOTOR + REG_MOTOR_STEP,        256, 0xf);
         wb->Write(ADR_MOTOR + REG_MOTOR_CTL_CONTROL,   1, 0xf);
 
-        for ( int i = 0; i < 1000; ++i) {
+        for ( int i = 0; i < 10000; ++i) {
             wb->Wait(256);
             wb->Write(ADR_MOTOR + REG_MOTOR_POSITION, i*256, 0xf);
         }
@@ -156,10 +156,12 @@ int main(int argc, char** argv)
         wb->Wait(100);
 //      wb->Finish();
         */
+        wb->Finish();
     });
     
     // Run
-    mng->Run(10000000);
+//  mng->Run(10000000);
+    mng->Run();
 
     th.join();
 

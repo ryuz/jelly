@@ -179,10 +179,13 @@ module stepper_moter_pwm
         end
         else begin
             automatic   logic   [1:0]    phase;
-            phase  = 2'((position + POSITION_WIDTH'(counter)) >> COUNTER_WIDTH);
-            phase ^= reg_phase;
-
-            motor_phase <= phase;
+            phase = 2'((position + POSITION_WIDTH'(counter)) >> COUNTER_WIDTH);
+            case (phase)
+            2'b00:  motor_phase <= 2'b00 ^ reg_phase;
+            2'b01:  motor_phase <= 2'b01 ^ reg_phase;
+            2'b10:  motor_phase <= 2'b11 ^ reg_phase;
+            2'b11:  motor_phase <= 2'b10 ^ reg_phase;
+            endcase
         end
     end
 
