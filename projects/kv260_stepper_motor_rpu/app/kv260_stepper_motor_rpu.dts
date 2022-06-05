@@ -6,7 +6,7 @@
         overlay0: __overlay__ {
             #address-cells = <2>;
             #size-cells = <2>;
-            firmware-name = "kv260_rtos_sample.bit.bin";
+            firmware-name = "kv260_stepper_motor_rpu.bit.bin";
         };
     };
     

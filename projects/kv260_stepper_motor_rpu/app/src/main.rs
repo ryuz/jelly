@@ -1,6 +1,10 @@
 #![no_std]
 #![no_main]
 #![feature(asm)]
+#![feature(const_fn_trait_bound)]
+#![feature(const_fn_fn_ptr_basics)]
+#![feature(const_mut_refs)]
+#![allow(dead_code)]
 
 use core::panic::PanicInfo;
 use pudding_pac::arm::cpu;
@@ -9,6 +13,7 @@ mod bootstrap;
 //mod rtos;
 
 use jelly_rtos::rtos;
+use jelly_mem_access::*;
 
 #[macro_use]
 pub mod uart;
@@ -21,21 +26,74 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
     loop {}
 }
 
-static mut STACK1: [u8; 4096] = [0; 4096];
-static mut STACK2: [u8; 4096] = [0; 4096];
-static mut STACK3: [u8; 4096] = [0; 4096];
-static mut STACK4: [u8; 4096] = [0; 4096];
-static mut STACK5: [u8; 4096] = [0; 4096];
+static mut STACK: [u8; 8192] = [0; 8192];
+
+
+const  REG_MOTOTR_CORE_ID      : usize = 0x00;
+const  REG_MOTOTR_CORE_VERSION : usize = 0x01;
+const  REG_MOTOTR_CORE_CONFIG  : usize = 0x03;
+const  REG_MOTOTR_CTL_CONTROL  : usize = 0x04;
+const  REG_MOTOTR_IRQ_ENABLE   : usize = 0x08;
+const  REG_MOTOTR_IRQ_STATUS   : usize = 0x09;
+const  REG_MOTOTR_IRQ_CLR      : usize = 0x0a;
+const  REG_MOTOTR_IRQ_SET      : usize = 0x0b;
+const  REG_MOTOTR_POSITION     : usize = 0x10;
+const  REG_MOTOTR_STEP         : usize = 0x12;
+const  REG_MOTOTR_PHASE        : usize = 0x14;
+
+
+// 制御タスク
+extern "C" fn task() -> ! {
+    println!("Task start");
+    
+    let clock_rate = rtos::clock_rate();
+
+    unsafe {
+        // 制御レジスタへのアクセサ
+        let motor_acc = PhysAccessor::<u32, 0x8008_0000, 0x100>::new();
+
+        // 初期設定
+        let motor_step = 2;
+        motor_acc.write_reg(REG_MOTOTR_IRQ_ENABLE,  1);
+        motor_acc.write_reg(REG_MOTOTR_STEP,        motor_step);
+        motor_acc.write_reg(REG_MOTOTR_CTL_CONTROL, 1);
+        
+        let dt = ((65536 / motor_step) as f32) / (clock_rate  as f32);
+
+//      let mut i = 0;
+        let mut theta :f32 = 0.0;
+        loop {
+            // 制御周期を待つ
+            motor_acc.write_reg(REG_MOTOTR_IRQ_CLR, 1);
+            rtos::clr_flg(1, !1);
+            rtos::wai_flg(1, 1, rtos::WfMode::AndWait);
+            
+            theta += dt * 3.14;
+            let p = (libm::sinf(theta) * 65536.0 * 10.0) as i32;
+
+            // 位置設定
+//          println!("{}", i);
+            motor_acc.write_reg32(REG_MOTOTR_POSITION, p as u32);
+//          i += 256;
+        }
+    }
+}
+
 
 // main
 #[no_mangle]
 pub unsafe extern "C" fn main() -> ! {
     // start
     wait(1000000);
-    println!("\nJelly-RTOS start\n");
+    println!("\nRPU start\n");
+
+//    type MotorAccessor = PhysAccessor<u32, 0x8008_0000, 0x100>;
+//    let motor_acc = PhysAccessor::<u32, 0x8008_0000, 0x100>::new();
+//    println!("core_id      : {:08x}", motor_acc.read_reg(0));
 
     // start
     rtos::initialize(0x80000000);
+    rtos::ena_extflg(1, 0x1);
 
     println!("core_id      : {:08x}", rtos::core_id());
     println!("core_version : {:08x}", rtos::core_version());
@@ -56,94 +114,16 @@ pub unsafe extern "C" fn main() -> ! {
     println!("set_pscl({})\n", pscl);
     rtos::set_pscl(pscl);
 
-    // フォークを５本置く
-    rtos::sig_sem(1);
-    rtos::sig_sem(2);
-    rtos::sig_sem(3);
-    rtos::sig_sem(4);
-    rtos::sig_sem(5);
-
-    // 哲学者を5人用意
-    rtos::cre_tsk(1, &mut STACK1, task1);
-    rtos::cre_tsk(2, &mut STACK2, task2);
-    rtos::cre_tsk(3, &mut STACK3, task3);
-    rtos::cre_tsk(4, &mut STACK4, task4);
-    rtos::cre_tsk(5, &mut STACK5, task5);
+    rtos::cre_tsk(1, &mut STACK, task);
     rtos::wup_tsk(1);
-    rtos::wup_tsk(2);
-    rtos::wup_tsk(3);
-    rtos::wup_tsk(4);
-    rtos::wup_tsk(5);
+
 
     // アイドルループ
     loop {
-//        let p = 0x80040000 as *mut u32;
-//        core::ptr::write_volatile(p, 1);
-//        core::ptr::write_volatile(p, 0);
         cpu::wfi();
     }
 }
 
-extern "C" fn task1() -> ! {
-    dining_philosopher(1);
-}
-extern "C" fn task2() -> ! {
-    dining_philosopher(2);
-}
-extern "C" fn task3() -> ! {
-    dining_philosopher(3);
-}
-extern "C" fn task4() -> ! {
-    dining_philosopher(4);
-}
-extern "C" fn task5() -> ! {
-    dining_philosopher(5);
-}
-
-fn dining_philosopher(id: i32) -> ! {
-    let left = id;
-    let right = id % 5 + 1;
-    println!("[philosopher{}] dining start", id);
-    loop {
-        println!("[philosopher{}] thinking", id);
-        rtos::dly_tsk(rand_time());
-
-        'dining: loop {
-            rtos::wai_sem(left);
-            {
-                if rtos::pol_sem(right) == rtos::E_OK {
-                    println!("[philosopher{}] eating", id);
-                    rtos::dly_tsk(rand_time());
-                    rtos::sig_sem(left);
-                    rtos::sig_sem(right);
-                    break 'dining;
-                } else {
-                    rtos::sig_sem(left);
-                }
-            }
-            println!("[philosopher{}] hungry", id);
-            rtos::dly_tsk(rand_time());
-        }
-    }
-}
-
-// 乱数
-const RAND_MAX: u32 = 0xffff_ffff;
-static mut RAND_SEED: u32 = 0x1234;
-fn rand() -> u32 {
-    unsafe {
-        rtos::loc_cpu();
-        let x = RAND_SEED as u64;
-        let x = ((69069 * x + 1) & RAND_MAX as u64) as u32;
-        RAND_SEED = x;
-        rtos::unl_cpu();
-        x
-    }
-}
-
-fn rand_time() -> u32 {
-    500000 + (rand() % 1000) * 1000
-}
 
 // ループによるウェイト
 fn wait(n: i32) {
@@ -153,6 +133,7 @@ fn wait(n: i32) {
     }
 }
 
+// デバッグ用
 #[allow(dead_code)]
 pub fn memdump(addr: usize, len: usize) {
     unsafe {

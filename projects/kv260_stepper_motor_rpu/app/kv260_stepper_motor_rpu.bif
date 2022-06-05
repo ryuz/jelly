@@ -1,5 +1,5 @@
 all:
 {
-    kv260_rtos_sample.bit
+    kv260_stepper_motor_rpu.bit
 }
 
