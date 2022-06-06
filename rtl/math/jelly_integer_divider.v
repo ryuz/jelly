@@ -217,6 +217,7 @@ module jelly_integer_divider
                         3'b011: begin   reg_quotient <= inc_quotient; reg_remainder <= dec_remainder;   end
                         3'b100: begin   reg_quotient <= inc_quotient; reg_remainder <= dec_remainder;   end
                         3'b101: begin   reg_quotient <= dec_quotient; reg_remainder <= inc_remainder;   end
+                        default: ;
                         endcase
                     end
                 end

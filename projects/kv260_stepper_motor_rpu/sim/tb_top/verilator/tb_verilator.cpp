@@ -122,10 +122,12 @@ int main(int argc, char** argv)
         wb->Write(ADR_MOTOR + REG_MOTOR_POSITION,      1, 0xf);
         wb->Write(ADR_MOTOR + REG_MOTOR_STEP,        256, 0xf);
         wb->Write(ADR_MOTOR + REG_MOTOR_CTL_CONTROL,   1, 0xf);
+        wb->Write(ADR_MOTOR + REG_MOTOR_IRQ_ENABLE,    1, 0xf);
 
         for ( int i = 0; i < 10000; ++i) {
             wb->Wait(256);
             wb->Write(ADR_MOTOR + REG_MOTOR_POSITION, i*256, 0xf);
+            wb->Write(ADR_MOTOR + REG_MOTOR_IRQ_CLR, 1, 0xf);
         }
 
         /*

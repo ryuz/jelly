@@ -73,25 +73,25 @@ module jelly2_rgb2hsv
             st0_g    <= {1'b0, s_g};
             st0_b    <= {1'b0, s_b};
             if ( compare_rg && !compare_br ) begin
-                st0_sel <= 2'd0;
                 st0_max <= {1'b0, s_r};
             end
             else if ( !compare_rg && compare_gb ) begin
-                st0_sel <= 2'd1;
                 st0_max <= {1'b0, s_g};
             end
             else begin
-                st0_sel <= 2'd2;
                 st0_max <= {1'b0, s_b};
             end
 
             if ( !compare_rg && compare_br ) begin
+                st0_sel <= 2'd1;
                 st0_min <= {1'b0, s_r};
             end
             else if ( compare_rg && !compare_gb ) begin
                 st0_min <= {1'b0, s_g};
+                st0_sel <= 2'd2;
             end
             else begin
+                st0_sel <= 2'd0;
                 st0_min <= {1'b0, s_b};
             end
 
@@ -121,7 +121,7 @@ module jelly2_rgb2hsv
 
 
     logic           [USER_BITS-1:0]     div_user;
-    logic   signed  [2*DATA_WIDTH:0]    div_h;
+    logic   signed  [2*DATA_WIDTH-3:0]  div_h;
     logic   signed  [DATA_WIDTH:0]      div_s;
     logic   signed  [DATA_WIDTH:0]      div_v;
     logic   signed  [DATA_WIDTH:0]      div_offset;
@@ -130,7 +130,7 @@ module jelly2_rgb2hsv
     jelly_integer_divider
             #(
                 .USER_WIDTH          (USER_BITS+3*(1+DATA_WIDTH)),
-                .S_DIVIDEND_WIDTH    (1+DATA_WIDTH*2),
+                .S_DIVIDEND_WIDTH    (1+DATA_WIDTH*2-3),
                 .S_DIVISOR_WIDTH     (1+DATA_WIDTH),
                 .MASTER_IN_REGS      (1),
                 .MASTER_OUT_REGS     (1),
@@ -145,7 +145,7 @@ module jelly2_rgb2hsv
                 .cke                (cke),
                 
                 .s_user             ({st1_user, st1_s, st1_v, st1_offset}),
-                .s_dividend         ({st1_h, {DATA_WIDTH{1'b0}}}),
+                .s_dividend         ({st1_h, {(DATA_WIDTH-3){1'b0}}}),
                 .s_divisor          (st1_s),
                 .s_valid            (st1_valid),
                 .s_ready            (),
