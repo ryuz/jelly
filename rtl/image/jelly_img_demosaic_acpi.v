@@ -146,6 +146,7 @@ module jelly_img_demosaic_acpi
                 case ( s_wb_adr_i )
                 ADR_CTL_CONTROL:   reg_ctl_control <= write_mask(reg_ctl_control,  s_wb_dat_i, s_wb_sel_i);
                 ADR_PARAM_PHASE:   reg_param_phase <= write_mask(reg_param_phase, s_wb_dat_i, s_wb_sel_i);
+                default: ;
                 endcase
             end
         end

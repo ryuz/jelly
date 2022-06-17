@@ -214,6 +214,7 @@ module jelly_vdma_axi4s_to_axi4
                 ADR_PARAM_HEIGHT: reg_param_height <= reg_mask(reg_param_height, s_wb_dat_i, s_wb_sel_i);
                 ADR_PARAM_SIZE:   reg_param_size   <= reg_mask(reg_param_size,   s_wb_dat_i, s_wb_sel_i);
                 ADR_PARAM_AWLEN:  reg_param_awlen  <= reg_mask(reg_param_awlen,  s_wb_dat_i, s_wb_sel_i);
+                default: ;
                 endcase
             end
             

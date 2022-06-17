@@ -280,6 +280,7 @@ module jelly_img_color_matrix
                 ADR_PARAM_CLIP_MAX1:   reg_param_clip_max1 <= write_mask(reg_param_clip_max1, s_wb_dat_i, s_wb_sel_i);
                 ADR_PARAM_CLIP_MIN2:   reg_param_clip_min2 <= write_mask(reg_param_clip_min2, s_wb_dat_i, s_wb_sel_i);
                 ADR_PARAM_CLIP_MAX2:   reg_param_clip_max2 <= write_mask(reg_param_clip_max2, s_wb_dat_i, s_wb_sel_i);
+                default: ;
                 endcase
             end
         end

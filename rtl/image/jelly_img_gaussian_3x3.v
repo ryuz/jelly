@@ -144,6 +144,7 @@ module jelly_img_gaussian_3x3
                 case ( s_wb_adr_i )
                 ADR_CTL_CONTROL:  reg_ctl_control  <= write_mask(reg_ctl_control,  s_wb_dat_i, s_wb_sel_i);
                 ADR_PARAM_ENABLE: reg_param_enable <= write_mask(reg_param_enable, s_wb_dat_i, s_wb_sel_i);
+                default: ;
                 endcase
             end
         end
