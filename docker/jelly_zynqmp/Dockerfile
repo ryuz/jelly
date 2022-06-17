@@ -59,6 +59,29 @@ WORKDIR /
 # RUN rm opencv.zip opencv_contrib.zip
 # RUN rm -fr opencv-4.4.0
 
+################################################
+# risc-v
+################################################
+
+FROM ubuntu:20.04 as riscv-builder
+
+LABEL maintainter="ryuz88"
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# apt-get
+RUN apt-get update
+RUN apt-get -y upgrade
+RUN apt-get install -y build-essential cmake git
+RUN apt-get install -y autoconf automake autotools-dev curl python3 libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev
+
+# risc-v
+RUN git clone https://github.com/riscv/riscv-gnu-toolchain
+WORKDIR /riscv-gnu-toolchain
+RUN ./configure --prefix=/opt/riscv --enable-multilib
+RUN make -j8
+WORKDIR /
+#RUN rm -fr riscv-gnu-toolchain
 
 
 ################################################
@@ -132,6 +155,7 @@ RUN echo 'root:admin' | chpasswd
 # copy
 COPY --from=grpc-builder   /opt/grpc   /opt/grpc
 COPY --from=opencv-builder /opt/opencv /opt/opencv
+COPY --from=riscv-builder  /opt/riscv  /opt/riscv
 
 # entrypoint
 COPY ./files/entrypoint.sh /usr/local/bin/entrypoint.sh
