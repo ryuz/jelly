@@ -1,32 +1,120 @@
+
+################################################
+# gRPC
+################################################
+
+FROM ubuntu:20.04 as grpc-builder
+
+LABEL maintainter="ryuz88"
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# apt-get
+RUN apt-get update
+RUN apt-get -y upgrade
+RUN apt-get install -y build-essential cmake git
+RUN apt-get install -y autoconf libtool pkg-config
+
+# gRPC
+#RUN git clone --recurse-submodules -b v1.34.1 --depth 1 --shallow-submodules https://github.com/grpc/grpc
+RUN git clone --recurse-submodules -b v1.46.3 --depth 1 --shallow-submodules https://github.com/grpc/grpc
+RUN mkdir grpc/cmake/build
+WORKDIR /grpc/cmake/build
+RUN cmake -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=/opt/grpc ../..
+RUN make -j8
+RUN make install
+WORKDIR /
+#RUN rm -fr grpc
+
+
+################################################
+# OpenCV
+################################################
+
+FROM ubuntu:20.04 as opencv-builder
+
+LABEL maintainter="ryuz88"
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# apt-get
+RUN apt-get update
+RUN apt-get -y upgrade
+RUN apt-get install -y build-essential cmake git 
+RUN apt-get install -y libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev
+RUN apt-get install -y wget unzip
+
+RUN wget -O opencv.zip https://github.com/opencv/opencv/archive/4.4.0.zip
+RUN unzip opencv.zip
+RUN wget -O opencv_contrib.zip https://github.com/opencv/opencv_contrib/archive/4.4.0.zip
+RUN unzip opencv_contrib
+
+RUN mkdir opencv-4.4.0/build
+WORKDIR /opencv-4.4.0/build
+# RUN cmake .. -DCMAKE_INSTALL_PREFIX=/opt/opencv
+RUN cmake .. -DOPENCV_EXTRA_MODULES_PATH=/opencv_contrib-4.4.0/modules -DCMAKE_INSTALL_PREFIX=/opt/opencv
+RUN make -j8
+RUN make install
+WORKDIR /
+# RUN rm opencv.zip opencv_contrib.zip
+# RUN rm -fr opencv-4.4.0
+
+
+
+################################################
+# Xilinx tools
+################################################
+
+FROM ubuntu:20.04 as xilinx-builder
+
+LABEL maintainter="ryuz88"
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# apt-get
+RUN apt-get update
+RUN apt-get -y upgrade
+RUN apt-get install -y build-essential cmake git 
+RUN apt-get install -y device-tree-compiler libssl-dev
+
+# bootgen
+RUN git clone https://github.com/Xilinx/bootgen
+WORKDIR /bootgen
+RUN make
+RUN cp bootgen /usr/local/bin
+WORKDIR /
+#RUN rm -fr bootgen
+
+
+################################################
+# Target Image
+################################################
+
 FROM ubuntu:20.04
 
 LABEL maintainter="ryuz88"
 
-# update
+ENV DEBIAN_FRONTEND=noninteractive
+
+# apt-get
 RUN apt-get update
 RUN apt-get -y upgrade
+RUN apt-get install -y build-essential cmake git
 
-# basic
-RUN apt-get install -y build-essential && \
-    apt-get install -y git
+RUN apt-get install -y autoconf libtool pkg-config
+RUN apt-get install -y libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev
+RUN apt-get install -y device-tree-compiler libssl-dev
 
-# opencv
-ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get install -y cmake libeigen3-dev && \
-    apt-get install -y libgtk-3-dev qt5-default freeglut3-dev libvtk6-qt-dev && \
-    apt-get install -y libtbb-dev && \
-    apt-get install -y libjpeg-dev libpng++-dev libtiff-dev libopenexr-dev libwebp-dev && \
-    apt-get install -y libhdf5-dev && \
-    apt-get install -y wget unzip
+# for RPU
+RUN apt-get install -y gcc-arm-none-eabi
+RUN apt-get install -y libnewlib-arm-none-eabi
 
-RUN mkdir /opencv
-COPY ./files/build_opencv3.sh /opencv
-RUN cd opencv;bash build_opencv3.sh;cd ..;rm -fr opencv
+# python 
+RUN apt install -y python3-pip
+RUN pip install numpy Flask
 
-# bootgen
-RUN apt-get install -y device-tree-compiler && \
-    apt-get install -y libssl-dev
-RUN git clone https://github.com/Xilinx/bootgen;cd bootgen;make;cp bootgen /usr/local/bin;cd ..;rm -fr bootgen
+# xauth
+RUN apt-get install -y xauth
 
 # sshd
 RUN apt-get install -y openssh-server xauth
@@ -40,6 +128,10 @@ EXPOSE 20022
 # sudo
 RUN apt-get install -y sudo
 RUN echo 'root:admin' | chpasswd
+
+# copy
+COPY --from=grpc-builder   /opt/grpc   /opt/grpc
+COPY --from=opencv-builder /opt/opencv /opt/opencv
 
 # entrypoint
 COPY ./files/entrypoint.sh /usr/local/bin/entrypoint.sh
