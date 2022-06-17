@@ -1,0 +1,22 @@
+-sv
+
+--sourcelibdir ../../stub
+--sourcelibdir ../../../rtl
+--sourcelibdir ../../../../../rtl/library
+--sourcelibdir ../../../../../rtl/bus
+--sourcelibdir ../../../../../rtl/dma
+--sourcelibdir ../../../../../rtl/math
+--sourcelibdir ../../../../../rtl/primitive
+--sourcelibdir ../../../../../rtl/image
+--sourcelibdir ../../../../../rtl/video
+--sourcelibdir ../../../../../rtl/model
+
+--sourcelibext .v
+--sourcelibext .sv
+
+../tb_sim.sv
+../tb_main.sv
+../../stub/design_1.v
+../../stub/mipi_dphy_cam.v
+
+$XILINX_VIVADO/data/verilog/src/glbl.v
