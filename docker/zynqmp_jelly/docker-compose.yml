@@ -1,0 +1,19 @@
+version: "3"
+
+services:
+  zynqmp_develop:
+#   build: .
+    image: ryuz88/zynqmp_jelly
+    container_name: zynqmp_jelly
+    ports:
+      - 20022:20022
+    privileged: true
+    volumes:
+      - /home/${LOCAL_USER}:/home/${LOCAL_USER}
+      - /lib/firmware:/lib/firmware
+      - /configfs:/configfs
+      - /dev:/dev
+    environment:
+      LOCAL_USER: ${LOCAL_USER}
+      LOCAL_UID: ${LOCAL_UID}
+      LOCAL_GID: ${LOCAL_GID}
