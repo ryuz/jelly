@@ -58,7 +58,7 @@ checksum = "3ee5b7027608240d75a9cea498e033d7833f1dda31bf847c19bc8b5dd098d417"
 dependencies = [
  "delegate",
  "libc",
- "nix",
+ "nix 0.23.0",
  "thiserror",
 ]
 
@@ -72,9 +72,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.112"
+version = "0.2.126"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b03d17f364a3a042d5e5d46b053bbbf82c92c9430c592dd4c064dc6ee997125"
+checksum = "349d5a591cd28b49e1d1037471617a32ddcda5731b99419008085f72d5a53836"
 
 [[package]]
 name = "memoffset"
@@ -93,6 +93,18 @@ checksum = "f305c2c2e4c39a82f7bf0bf65fb557f9070ce06781d4f2454295cc34b1c43188"
 dependencies = [
  "bitflags",
  "cc",
+ "cfg-if",
+ "libc",
+ "memoffset",
+]
+
+[[package]]
+name = "nix"
+version = "0.24.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8f17df307904acd05aa8e32e97bb20f2a0df1728bbc2d771ae8f9a90463441e9"
+dependencies = [
+ "bitflags",
  "cfg-if",
  "libc",
  "memoffset",
@@ -184,7 +196,7 @@ dependencies = [
  "chrono",
  "jelly-mem_access",
  "jelly-pac",
- "nix",
+ "nix 0.24.1",
 ]
 
 [[package]]

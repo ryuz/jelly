@@ -9,6 +9,10 @@ all: build
 build:
 	cargo build
 
+.PHONY: clean
+build:
+	cargo clean
+
 .PHONY: run
 run:
 	cargo run
