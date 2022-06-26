@@ -170,6 +170,7 @@ RUN apt-get install -y libnewlib-arm-none-eabi
 # python 
 RUN apt install -y python3-pip
 RUN pip install numpy Flask
+RUN pip install opencv-contrib-python
 
 # xauth
 RUN apt-get install -y xauth

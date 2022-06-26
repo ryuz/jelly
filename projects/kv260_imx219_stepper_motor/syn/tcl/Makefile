@@ -96,7 +96,7 @@ SOURCES += $(TOP_DIR)/rtl/video/jelly_video_format_regularizer_core.v
 export SOURCES
 
 # IP cores
-IP_CORES  =
+IP_CORES = $(PRJ_DIR)/ip/vivado$(VIVADO_VERSION)/mipi_dphy_cam/mipi_dphy_cam.xci
 export IP_CORES
 
 # block design
