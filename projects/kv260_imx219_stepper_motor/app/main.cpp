@@ -20,21 +20,6 @@ void capture_still_image(jelly::MemAccessor& reg_wdma, jelly::MemAccessor& reg_f
 int main(int argc, char *argv[])
 {
     /*
-    {
-        jelly::I2cAccessor i2c;
-        if ( !i2c.Open("/dev/i2c-6", 0x74) ) {
-            return 1;
-        }
-        
-        cv::Mat img = cv::Mat::zeros(480, 640, CV_8UC3);
-        cv::imshow("img", img);
-        while ( (cv::waitKey(1) & 0xff) != 0x1b ) {
-            i2c.Write("\x55", 1);
-        }
-    }
-    return 0;
-    */
-
     double  pixel_clock = 91000000.0;
     bool    binning     = false;
     int     width       = 3280;
@@ -49,6 +34,22 @@ int main(int argc, char *argv[])
     int     d_gain      = 0;
     int     bayer_phase = 0;
     int     view_scale  = 4;
+    */
+
+    double  pixel_clock = 139200000.0;
+    bool    binning     = true;
+    int     width       = 640;
+    int     height      = 132;
+    int     aoi_x       = -1;
+    int     aoi_y       = -1;
+    bool    flip_h      = false;
+    bool    flip_v      = false;
+    int     frame_rate  = 1000;
+    int     exposure    = 1;
+    int     a_gain      = 20;
+    int     d_gain      = 10;
+    int     bayer_phase = 1;
+    int     view_scale  = 1;
     int     gauss_level = 0;
     int     view_select = 1;
     
