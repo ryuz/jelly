@@ -1,7 +1,7 @@
 
-TARGET    = kv260_imx219.out
-DT_NAME   = kv260_imx219
-BIT_NAME  = kv260_imx219
+TARGET    = kv260_imx219_stepper_motor.out
+DT_NAME   = kv260_imx219_stepper_motor
+BIT_NAME  = kv260_imx219_stepper_motor
 
 DTS_FILE  = $(DT_NAME).dts
 DTBO_FILE = $(DT_NAME).dtbo
