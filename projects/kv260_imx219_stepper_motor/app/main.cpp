@@ -20,21 +20,6 @@ void capture_still_image(jelly::MemAccessor& reg_wdma, jelly::MemAccessor& reg_f
 int main(int argc, char *argv[])
 {
     /*
-    {
-        jelly::I2cAccessor i2c;
-        if ( !i2c.Open("/dev/i2c-6", 0x74) ) {
-            return 1;
-        }
-        
-        cv::Mat img = cv::Mat::zeros(480, 640, CV_8UC3);
-        cv::imshow("img", img);
-        while ( (cv::waitKey(1) & 0xff) != 0x1b ) {
-            i2c.Write("\x55", 1);
-        }
-    }
-    return 0;
-    */
-
     double  pixel_clock = 91000000.0;
     bool    binning     = false;
     int     width       = 3280;
@@ -49,6 +34,24 @@ int main(int argc, char *argv[])
     int     d_gain      = 0;
     int     bayer_phase = 0;
     int     view_scale  = 4;
+    */
+
+    double  pixel_clock = 139200000.0;
+    bool    binning     = true;
+    int     width       = 640;
+    int     height      = 132;
+    int     aoi_x       = -1;
+    int     aoi_y       = -1;
+    bool    flip_h      = false;
+    bool    flip_v      = false;
+    int     frame_rate  = 1000;
+    int     exposure    = 1;
+    int     a_gain      = 20;
+    int     d_gain      = 10;
+    int     bayer_phase = 1;
+    int     view_scale  = 1;
+    int     gauss_level = 0;
+    int     view_select = 1;
     
     for ( int i = 1; i < argc; ++i ) {
         if ( strcmp(argv[i], "1000fps") == 0 ) {
@@ -181,18 +184,22 @@ int main(int argc, char *argv[])
     auto reg_gid    = uio_acc.GetAccessor(0x00000000);
     auto reg_fmtr   = uio_acc.GetAccessor(0x00100000);
 //  auto reg_prmup  = uio_acc.GetAccessor(0x00011000);
-    auto reg_demos  = uio_acc.GetAccessor(0x00120000);
-    auto reg_colmat = uio_acc.GetAccessor(0x00120200);
     auto reg_wdma   = uio_acc.GetAccessor(0x00210000);
+    auto reg_demos  = uio_acc.GetAccessor(0x00400000);
+    auto reg_colmat = uio_acc.GetAccessor(0x00400800);
+    auto reg_gauss  = uio_acc.GetAccessor(0x00402000);
+    auto reg_select = uio_acc.GetAccessor(0x00407800);
     
-#if 0
+#if 1
     std::cout << "CORE ID" << std::endl;
-    std::cout << std::hex << reg_gid.ReadReg(0) << std::endl;
-    std::cout << std::hex << uio_acc.ReadReg(0) << std::endl;
-    std::cout << std::hex << reg_fmtr.ReadReg(0) << std::endl;
-    std::cout << std::hex << reg_demos.ReadReg(0) << std::endl;
-    std::cout << std::hex << reg_colmat.ReadReg(0) << std::endl;
-    std::cout << std::hex << reg_wdma.ReadReg(0) << std::endl;
+    std::cout << "reg_gid    : " << std::hex << reg_gid.ReadReg(0) << std::endl;
+    std::cout << "uio_acc    : " << std::hex << uio_acc.ReadReg(0) << std::endl;
+    std::cout << "reg_fmtr   : " << std::hex << reg_fmtr.ReadReg(0) << std::endl;
+    std::cout << "reg_wdma   : " << std::hex << reg_wdma.ReadReg(0) << std::endl;
+    std::cout << "reg_demos  : " << std::hex << reg_demos.ReadReg(0) << std::endl;
+    std::cout << "reg_colmat : " << std::hex << reg_colmat.ReadReg(0) << std::endl;
+    std::cout << "reg_gauss  : " << std::hex << reg_gauss.ReadReg(0) << std::endl;
+    std::cout << "reg_select : " << std::hex << reg_select.ReadReg(0) << std::endl;
 #endif
     
     // mmap udmabuf
@@ -248,6 +255,9 @@ int main(int argc, char *argv[])
         imx219.SetFlip(flip_h, flip_v);
         reg_demos.WriteReg(REG_IMG_DEMOSAIC_PARAM_PHASE, bayer_phase);
         reg_demos.WriteReg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3);  // update & enable
+        reg_gauss.WriteReg(REG_IMG_GAUSS3X3_PARAM_ENABLE, gauss_level);
+        reg_gauss.WriteReg(REG_IMG_GAUSS3X3_CTL_CONTROL, 0x3);
+        reg_select.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, view_select);
 
         // キャプチャ
         capture_still_image(reg_wdma, reg_fmtr, dmabuf_phys_adr, width, height, frame_num);
@@ -259,12 +269,14 @@ int main(int argc, char *argv[])
         cv::resize(img, view_img, cv::Size(), 1.0/view_scale, 1.0/view_scale);
 
         cv::imshow("img", view_img);
+        cv::createTrackbar("select",   "img", &view_select, reg_select.ReadReg(REG_IMG_SELECTOR_CONFIG_NUM));
         cv::createTrackbar("scale",    "img", &view_scale, 4);
         cv::createTrackbar("fps",      "img", &frame_rate, 1000);
         cv::createTrackbar("exposure", "img", &exposure, 1000);
         cv::createTrackbar("a_gain",   "img", &a_gain, 20);
         cv::createTrackbar("d_gain",   "img", &d_gain, 24);
-        cv::createTrackbar("bayer" ,   "img", &bayer_phase, 3);
+        cv::createTrackbar("bayer",    "img", &bayer_phase, 3);
+        cv::createTrackbar("gauss",    "img", &gauss_level, 3);
 
         // ユーザー操作
         switch ( key ) {
