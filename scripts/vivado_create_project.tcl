@@ -108,13 +108,6 @@ if {[llength $hls_ip] > 0} {
     }
 }
 
-# create block design
-foreach fname $bd_scripts {
-    source $fname
-    regenerate_bd_layout
-    save_bd_design
-}
-
 # add source file
 foreach fname $sources {
   add_files -fileset sources_1 -norecurse $fname
@@ -133,3 +126,9 @@ foreach fname $constrains {
 # set top module
 set_property top $top_module [current_fileset]
 
+# create block design
+foreach fname $bd_scripts {
+    source $fname
+    regenerate_bd_layout
+    save_bd_design
+}
