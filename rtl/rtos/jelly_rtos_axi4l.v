@@ -17,6 +17,7 @@ module jelly_rtos_axi4l
             parameter                                   AXI4L_ADDR_WIDTH   = 29,
             parameter                                   AXI4L_DATA_WIDTH   = 32,
             parameter                                   AXI4L_STRB_WIDTH   = AXI4L_DATA_WIDTH / 8,
+            parameter                                   IRQ_NEGATIVE       = 1'b0,
             parameter                                   TMAX_TSKID         = 15,
             parameter                                   TMAX_SEMID         = 7,
             parameter                                   TMAX_FLGID         = 1,
@@ -196,6 +197,7 @@ module jelly_rtos_axi4l
             #(
                 .WB_ADR_WIDTH           (WB_ADR_WIDTH),
                 .WB_DAT_WIDTH           (WB_DAT_WIDTH),
+                .IRQ_NEGATIVE           (IRQ_NEGATIVE),
                 .TMAX_TSKID             (TMAX_TSKID),
                 .TMAX_SEMID             (TMAX_SEMID),
                 .TMAX_FLGID             (TMAX_FLGID),

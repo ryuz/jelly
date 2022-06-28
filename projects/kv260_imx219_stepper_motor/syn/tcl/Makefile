@@ -93,6 +93,16 @@ SOURCES += $(TOP_DIR)/rtl/video/jelly_vdma_axi4s_to_axi4_control.v
 SOURCES += $(TOP_DIR)/rtl/video/jelly_vdma_axi4s_to_axi4_core.v
 SOURCES += $(TOP_DIR)/rtl/video/jelly_video_format_regularizer.v
 SOURCES += $(TOP_DIR)/rtl/video/jelly_video_format_regularizer_core.v
+SOURCES += $(TOP_DIR)/rtl/rtos/jelly_rtos_axi4l.v
+SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos.sv
+SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos_core.sv
+SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos_eventflag.sv
+SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos_queue.sv
+SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos_queue_fifo.sv
+SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos_queue_priority.sv
+SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos_semaphore.sv
+SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos_task.sv
+SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos_timer.sv
 export SOURCES
 
 # IP cores

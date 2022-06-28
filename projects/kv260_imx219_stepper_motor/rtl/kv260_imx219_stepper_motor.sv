@@ -267,7 +267,9 @@ module kv260_imx219_stepper_motor
                 .m_wb_stb_o         (wb_peri_stb_i),
                 .m_wb_ack_i         (wb_peri_ack_o)
             );
-    
+
+
+
     // ----------------------------------------
     //  Global ID
     // ----------------------------------------
