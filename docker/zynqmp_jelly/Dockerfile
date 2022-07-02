@@ -1,21 +1,35 @@
-
-
 ################################################
-# OpenCV3
+# Base
 ################################################
 
-FROM ubuntu:20.04 as opencv3-builder
+FROM ubuntu:20.04 as base-builder
 
 LABEL maintainter="ryuz88"
 
 ENV DEBIAN_FRONTEND=noninteractive
 
 # apt-get
-RUN apt-get update
-RUN apt-get -y upgrade
-RUN apt-get install -y build-essential cmake git 
-RUN apt-get install -y wget unzip
-RUN apt-get install -y libeigen3-dev libgtk-3-dev qt5-default freeglut3-dev libvtk6-qt-dev libtbb-dev libjpeg-dev libpng++-dev libtiff-dev libopenexr-dev libwebp-dev libhdf5-dev
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get install -y build-essential cmake git \
+ && apt-get install -y autoconf libtool pkg-config \
+ && apt-get install -y libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev \
+ && apt-get install -y libeigen3-dev libgtk-3-dev qt5-default freeglut3-dev libvtk6-qt-dev libtbb-dev libjpeg-dev libpng++-dev libtiff-dev libopenexr-dev libwebp-dev libhdf5-dev \
+ && apt-get install -y autoconf automake autotools-dev curl python3 libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev \
+ && apt-get install -y device-tree-compiler libssl-dev \
+ && apt-get install -y gcc-arm-none-eabi \
+ && apt-get install -y libnewlib-arm-none-eabi \
+ && apt-get install -y openssh-server xauth \
+ && apt-get install -y python3-pip \
+ && apt-get install -y sudo
+
+
+
+################################################
+# OpenCV3
+################################################
+
+FROM base-builder as opencv3-builder
 
 COPY ./files/opencv3         /opencv3
 COPY ./files/opencv3_contrib /opencv3_contrib
@@ -32,22 +46,12 @@ WORKDIR /
 # RUN rm -fr opencv3 opencv3_contrib
 
 
+
 ################################################
 # OpenCV4
 ################################################
 
-FROM ubuntu:20.04 as opencv4-builder
-
-LABEL maintainter="ryuz88"
-
-ENV DEBIAN_FRONTEND=noninteractive
-
-# apt-get
-RUN apt-get update
-RUN apt-get -y upgrade
-RUN apt-get install -y build-essential cmake git 
-RUN apt-get install -y libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev
-RUN apt-get install -y wget unzip
+FROM base-builder as opencv4-builder
 
 COPY ./files/opencv4         /opencv4
 COPY ./files/opencv4_contrib /opencv4_contrib
@@ -69,17 +73,7 @@ WORKDIR /
 # risc-v
 ################################################
 
-FROM ubuntu:20.04 as riscv-builder
-
-LABEL maintainter="ryuz88"
-
-ENV DEBIAN_FRONTEND=noninteractive
-
-# apt-get
-RUN apt-get update
-RUN apt-get -y upgrade
-RUN apt-get install -y build-essential cmake git
-RUN apt-get install -y autoconf automake autotools-dev curl python3 libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev
+FROM base-builder as riscv-builder
 
 # risc-v
 COPY ./files/riscv-gnu-toolchain /riscv-gnu-toolchain
@@ -90,21 +84,12 @@ WORKDIR /
 #RUN rm -fr riscv-gnu-toolchain
 
 
+
 ################################################
 # gRPC
 ################################################
 
-FROM ubuntu:20.04 as grpc-builder
-
-LABEL maintainter="ryuz88"
-
-ENV DEBIAN_FRONTEND=noninteractive
-
-# apt-get
-RUN apt-get update
-RUN apt-get -y upgrade
-RUN apt-get install -y build-essential cmake git
-RUN apt-get install -y autoconf libtool pkg-config
+FROM base-builder as grpc-builder
 
 # gRPC
 COPY ./files/grpc /grpc
@@ -122,17 +107,7 @@ WORKDIR /
 # Xilinx tools
 ################################################
 
-FROM ubuntu:20.04 as xilinx-builder
-
-LABEL maintainter="ryuz88"
-
-ENV DEBIAN_FRONTEND=noninteractive
-
-# apt-get
-RUN apt-get update
-RUN apt-get -y upgrade
-RUN apt-get install -y build-essential cmake git 
-RUN apt-get install -y device-tree-compiler libssl-dev
+FROM base-builder as xilinx-builder
 
 # bootgen
 COPY ./files/bootgen /bootgen
@@ -143,40 +118,27 @@ WORKDIR /
 #RUN rm -fr bootgen
 
 
+
 ################################################
 # Target Image
 ################################################
 
-FROM ubuntu:20.04
+FROM base-builder
 
 LABEL maintainter="ryuz88"
 
-ENV DEBIAN_FRONTEND=noninteractive
-
-# apt-get
-RUN apt-get update
-RUN apt-get -y upgrade
-RUN apt-get install -y build-essential cmake git
-
-RUN apt-get install -y autoconf libtool pkg-config
-RUN apt-get install -y libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev
-RUN apt-get install -y libeigen3-dev libgtk-3-dev qt5-default freeglut3-dev libvtk6-qt-dev libtbb-dev libjpeg-dev libpng++-dev libtiff-dev libopenexr-dev libwebp-dev libhdf5-dev
-RUN apt-get install -y device-tree-compiler libssl-dev
-
-# for RPU
-RUN apt-get install -y gcc-arm-none-eabi
-RUN apt-get install -y libnewlib-arm-none-eabi
-
 # python 
-RUN apt install -y python3-pip
-RUN pip install numpy Flask
-RUN pip install opencv-contrib-python
+RUN pip install numpy Flask \
+ && pip install opencv-contrib-python
 
-# xauth
-RUN apt-get install -y xauth
+# copy
+COPY --from=grpc-builder    /opt/grpc        /opt/grpc
+COPY --from=opencv4-builder /opt/opencv4     /opt/opencv4
+COPY --from=opencv3-builder /opt/opencv3     /opt/opencv3
+COPY --from=riscv-builder   /opt/riscv       /opt/riscv
+COPY --from=xilinx-builder  /bootgen/bootgen /usr/local/bin
 
 # sshd
-RUN apt-get install -y openssh-server xauth
 RUN mkdir /var/run/sshd
 RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config
 RUN sed -i 's/#Port 22/Port 20022/' /etc/ssh/sshd_config
@@ -185,15 +147,7 @@ RUN sed -i 's/#X11UseLocalhost yes/X11UseLocalhost no/' /etc/ssh/sshd_config
 EXPOSE 20022
 
 # sudo
-RUN apt-get install -y sudo
 RUN echo 'root:admin' | chpasswd
-
-# copy
-COPY --from=grpc-builder    /opt/grpc        /opt/grpc
-COPY --from=opencv4-builder /opt/opencv4     /opt/opencv4
-COPY --from=opencv3-builder /opt/opencv3     /opt/opencv3
-COPY --from=riscv-builder   /opt/riscv       /opt/riscv
-COPY --from=xilinx-builder  /bootgen/bootgen /usr/local/bin
 
 # entrypoint
 COPY ./files/entrypoint.sh /usr/local/bin/entrypoint.sh
