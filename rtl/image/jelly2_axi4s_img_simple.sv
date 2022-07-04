@@ -2,7 +2,7 @@
 //  Jelly  -- The platform for real-time computing
 //   image processing
 //
-//                                 Copyright (C) 2008-2021 by Ryuz
+//                                 Copyright (C) 2008-2022 by Ryuz
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
@@ -12,22 +12,17 @@
 `default_nettype none
 
 
-//   フレーム期間中のデータ入力の無い期間は cke を落とすことを
-// 前提としてデータ稠密で、メモリを READ_FIRST モードで最適化
-//   フレーム末尾で吐き出しのためにブランクデータを入れる際は
-// line_first と line_last は正しく制御が必要
-
-module jelly2_axi4s_img
+module jelly2_axi4s_img_bridge
         #(
             parameter   int                         TUSER_WIDTH    = 1,
             parameter   int                         S_TDATA_WIDTH  = 8,
             parameter   int                         M_TDATA_WIDTH  = 24,
             parameter   int                         IMG_X_WIDTH    = 10,
             parameter   int                         IMG_Y_WIDTH    = 9,
+            parameter   int                         BLANK_Y_WIDTH  = IMG_Y_WIDTH,
             parameter   bit                         WITH_DE        = 1,
             parameter   bit                         WITH_VALID     = 1,
-            parameter   int                         BLANK_Y_WIDTH  = 8,
-            parameter   bit     [IMG_Y_WIDTH-1:0]   INIT_Y_NUM     = 480,
+
             parameter   int                         FIFO_PTR_WIDTH = 9,
             parameter                               FIFO_RAM_TYPE  = "block",
             parameter   bit                         IMG_CKE_BUFG   = 0,
@@ -39,7 +34,9 @@ module jelly2_axi4s_img
             input   wire                                aclk,
             input   wire                                aclken,
             
-            input   wire    [BLANK_Y_WIDTH-1:0]         param_blank_num,
+            input   wire    [IMG_X_WIDTH-1:0]           param_img_width,
+            input   wire    [IMG_Y_WIDTH-1:0]           param_img_height,
+            input   wire    [BLANK_Y_WIDTH-1:0]         param_blank_height,
             
             input   wire    [TUSER_WIDTH-1:0]           s_axi4s_tuser,
             input   wire                                s_axi4s_tlast,
@@ -76,105 +73,34 @@ module jelly2_axi4s_img
         );
     
     
-    // ブランキング追加中に次フレームが来てしまった場合の吸収用FIFO
-    wire    [S_TDATA_WIDTH-1:0] axi4s_fifo_tdata;
-    wire                        axi4s_fifo_tlast;
-    wire    [TUSER_WIDTH-1:0]   axi4s_fifo_tuser;
-    wire                        axi4s_fifo_tvalid;
-    wire                        axi4s_fifo_tready;
-    
-    jelly2_fifo_fwtf
-            #(
-                .DATA_WIDTH     (TUSER_WIDTH+1+S_TDATA_WIDTH),
-                .PTR_WIDTH      (FIFO_PTR_WIDTH),
-                .RAM_TYPE       (FIFO_RAM_TYPE)
-            )
-        i_fifo_fwtf
-            (
-                .reset          (~aresetn),
-                .clk            (aclk),
-                .cke            (aclken),
-                
-                .s_data         ({s_axi4s_tuser, s_axi4s_tlast, s_axi4s_tdata}),
-                .s_valid        (s_axi4s_tvalid & aclken),
-                .s_ready        (s_axi4s_tready),
-                .s_free_count   (),
-                
-                .m_data         ({axi4s_fifo_tuser, axi4s_fifo_tlast, axi4s_fifo_tdata}),
-                .m_valid        (axi4s_fifo_tvalid),
-                .m_ready        (axi4s_fifo_tready & aclken),
-                .m_data_count   ()
-            );
+    // 画像処理用のフォーマットに変換
+    logic                           cke;
 
-    
-    // ブロック処理吐き出し用にブランキングをフレーム末尾に追加
-    wire    [S_TDATA_WIDTH-1:0] axi4s_blank_tdata;
-    wire                        axi4s_blank_tlast;
-    wire    [TUSER_WIDTH-1:0]   axi4s_blank_tuser;
-    wire                        axi4s_blank_tvalid;
-    wire                        axi4s_blank_tready;
-    
-    wire    [IMG_Y_WIDTH-1:0]   param_y_num;
-    
-    jelly2_axi4s_insert_blank
+    jelly2_axi4s_to_img_simple
             #(
                 .TUSER_WIDTH        (TUSER_WIDTH),
                 .TDATA_WIDTH        (S_TDATA_WIDTH),
                 .IMG_X_WIDTH        (IMG_X_WIDTH),
                 .IMG_Y_WIDTH        (IMG_Y_WIDTH),
                 .BLANK_Y_WIDTH      (BLANK_Y_WIDTH),
-                .INIT_Y_NUM         (INIT_Y_NUM)
-            )
-        i_axi4s_insert_blank
-            (
-                .aresetn            (aresetn),
-                .aclk               (aclk),
-                .aclken             (aclken),
-                
-                .param_blank_num    (param_blank_num),
-                
-                .monitor_x_num      (),
-                .monitor_y_num      (param_y_num),
-                
-
-                .s_axi4s_tdata      (axi4s_fifo_tdata),
-                .s_axi4s_tlast      (axi4s_fifo_tlast),
-                .s_axi4s_tuser      (axi4s_fifo_tuser),
-                .s_axi4s_tvalid     (axi4s_fifo_tvalid),
-                .s_axi4s_tready     (axi4s_fifo_tready),
-                
-                .m_axi4s_tdata      (axi4s_blank_tdata),
-                .m_axi4s_tlast      (axi4s_blank_tlast),
-                .m_axi4s_tuser      (axi4s_blank_tuser),
-                .m_axi4s_tvalid     (axi4s_blank_tvalid),
-                .m_axi4s_tready     (axi4s_blank_tready)
-            );
-    
-    
-    // 画像処理用のフォーマットに変換
-    logic                           cke;
-    
-    jelly2_axi4s_to_img
-            #(
-                .TUSER_WIDTH        (TUSER_WIDTH),
-                .TDATA_WIDTH        (S_TDATA_WIDTH),
-                .IMG_Y_WIDTH        (IMG_Y_WIDTH),
                 .IMG_CKE_BUFG       (IMG_CKE_BUFG),
                 .WITH_VALID         (WITH_VALID)
             )
-        i_axi4s_to_img
+        i_axi4s_to_img_simple
             (
                 .reset              (~aresetn),
                 .clk                (aclk),
                 .cke                (cke),
                 
-                .param_y_num        (param_y_num),
+                .param_img_width,
+                .param_img_height,
+                .param_blank_height,
                 
-                .s_axi4s_tdata      (axi4s_blank_tdata),
-                .s_axi4s_tlast      (axi4s_blank_tlast),
-                .s_axi4s_tuser      (axi4s_blank_tuser),
-                .s_axi4s_tvalid     (axi4s_blank_tvalid & aclken),
-                .s_axi4s_tready     (axi4s_blank_tready),
+                .s_axi4s_tuser,
+                .s_axi4s_tlast,
+                .s_axi4s_tdata,
+                .s_axi4s_tvalid     (s_axi4s_tvalid && aclken),
+                .s_axi4s_tready,
                 
                 .m_img_cke          (img_cke),
                 .m_img_row_first    (m_img_src_row_first),
@@ -185,7 +111,7 @@ module jelly2_axi4s_img
                 .m_img_user         (m_img_src_user),
                 .m_img_data         (m_img_src_data),
                 .m_img_valid        (m_img_src_valid)
-            );
+        );
     
     
     wire    [M_TDATA_WIDTH-1:0] axi4s_0_tdata;
@@ -197,8 +123,8 @@ module jelly2_axi4s_img
             #(
                 .TUSER_WIDTH        (TUSER_WIDTH),
                 .TDATA_WIDTH        (M_TDATA_WIDTH),
-                .WITH_DE             (WITH_DE),
-                .WITH_VALID          (WITH_VALID)
+                .WITH_DE            (WITH_DE),
+                .WITH_VALID         (WITH_VALID)
             )
         i_img_to_axi4s
             (
@@ -270,7 +196,6 @@ module jelly2_axi4s_img
                 .buffered           (),
                 .s_ready_next       (cke)
             );
-    
     
 endmodule
 

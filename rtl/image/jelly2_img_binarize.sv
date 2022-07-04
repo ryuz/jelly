@@ -2,7 +2,7 @@
 //  Jelly  -- The platform for real-time computing
 //   image processing
 //
-//                                 Copyright (C) 2008-2018 by Ryuz
+//                                 Copyright (C) 2008-2022 by Ryuz
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
@@ -12,7 +12,6 @@
 `default_nettype none
 
 
-// demosaic with ACPI
 module jelly2_img_binarize
         #(
             parameter   int                                             USER_WIDTH        = 0,
@@ -31,6 +30,11 @@ module jelly2_img_binarize
             parameter   int                                             WB_DAT_WIDTH      = 32,
             parameter   int                                             WB_SEL_WIDTH      = (WB_DAT_WIDTH / 8),
             
+            parameter   bit     [WB_ADR_WIDTH-1:0]                      OFFSET_PARAM_S    = WB_ADR_WIDTH'('h20),
+            parameter   bit     [WB_ADR_WIDTH-1:0]                      STEP_PARAM_S      = WB_ADR_WIDTH'(4),
+            parameter   bit     [WB_ADR_WIDTH-1:0]                      OFFSET_PARAM_M    = WB_ADR_WIDTH'('h40),
+            parameter   bit     [WB_ADR_WIDTH-1:0]                      STEP_PARAM_M      = WB_ADR_WIDTH'(4),
+
             parameter   bit     [1:0]                                   INIT_CTL_CONTROL  = 3'b011,
             parameter   bit                                             INIT_PARAM_OR     = 1'b0,
             parameter   bit     [S_COMPONENTS-1:0][S_DATA_WIDTH-1:0]    INIT_PARAM_TH0    = '0,
@@ -90,13 +94,9 @@ module jelly2_img_binarize
     localparam  bit     [WB_ADR_WIDTH-1:0]     ADR_CTL_STATUS     = WB_ADR_WIDTH'('h05);
     localparam  bit     [WB_ADR_WIDTH-1:0]     ADR_CTL_INDEX      = WB_ADR_WIDTH'('h07);
     localparam  bit     [WB_ADR_WIDTH-1:0]     ADR_PARAM_OR       = WB_ADR_WIDTH'('h10);
-    localparam  bit     [WB_ADR_WIDTH-1:0]     OFFSET_PARAM_S     = WB_ADR_WIDTH'('h20);
-    localparam  bit     [WB_ADR_WIDTH-1:0]     STEP_PARAM_S       = WB_ADR_WIDTH'(4);
     localparam  bit     [WB_ADR_WIDTH-1:0]     ADR_PARAM_TH0      = WB_ADR_WIDTH'('h0);
     localparam  bit     [WB_ADR_WIDTH-1:0]     ADR_PARAM_TH1      = WB_ADR_WIDTH'('h1);
     localparam  bit     [WB_ADR_WIDTH-1:0]     ADR_PARAM_INV      = WB_ADR_WIDTH'('h2);
-    localparam  bit     [WB_ADR_WIDTH-1:0]     OFFSET_PARAM_M     = WB_ADR_WIDTH'('h40);
-    localparam  bit     [WB_ADR_WIDTH-1:0]     STEP_PARAM_M       = WB_ADR_WIDTH'(4);
     localparam  bit     [WB_ADR_WIDTH-1:0]     ADR_PARAM_VAL0     = WB_ADR_WIDTH'('h0);
     localparam  bit     [WB_ADR_WIDTH-1:0]     ADR_PARAM_VAL1     = WB_ADR_WIDTH'('h1);
     
@@ -330,7 +330,6 @@ module jelly2_img_binarize
                 .m_img_data,
                 .m_img_valid
             );
-    
     
     
 endmodule

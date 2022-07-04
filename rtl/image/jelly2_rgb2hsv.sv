@@ -167,7 +167,7 @@ module jelly2_rgb2hsv
         end
         else if ( cke ) begin
             m_user  <= div_user;
-            m_h     <= DATA_WIDTH'(div_h + (1+2*DATA_WIDTH)'(div_offset));
+            m_h     <= DATA_WIDTH'(div_h + (2*DATA_WIDTH-2)'(div_offset));
             m_s     <= DATA_WIDTH'(div_s);
             m_v     <= DATA_WIDTH'(div_v);
             m_valid <= div_valid;

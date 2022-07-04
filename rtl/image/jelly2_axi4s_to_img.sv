@@ -20,7 +20,6 @@ module jelly2_axi4s_to_img
             parameter   int     TUSER_WIDTH  = 1,
             parameter   int     TDATA_WIDTH  = 8,
             parameter   int     IMG_Y_WIDTH  = 9,
-            parameter   int     IMG_Y_NUM    = 480,
             parameter   bit     IMG_CKE_BUFG = 0,
             parameter   bit     WITH_VALID   = 1,
             

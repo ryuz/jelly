@@ -44,10 +44,10 @@ module jelly2_img_delay
         );
     
     wire    [USER_BITS-1:0] delay_user;
-    wire                    delay_line_first;
-    wire                    delay_line_last;
-    wire                    delay_pixel_first;
-    wire                    delay_pixel_last;
+    wire                    delay_row_first;
+    wire                    delay_row_last;
+    wire                    delay_col_first;
+    wire                    delay_col_last;
     wire                    delay_de;
     wire                    delay_valid;
     
@@ -65,20 +65,20 @@ module jelly2_img_delay
                 
                 .in_data        ({
                                     s_img_user,
-                                    s_img_line_first,
-                                    s_img_line_last,
-                                    s_img_pixel_first,
-                                    s_img_pixel_last,
+                                    s_img_row_first,
+                                    s_img_row_last,
+                                    s_img_col_first,
+                                    s_img_col_last,
                                     s_img_de,
                                     s_img_valid
                                 }),
                 
                 .out_data       ({
                                     delay_user,
-                                    delay_line_first,
-                                    delay_line_last,
-                                    delay_pixel_first,
-                                    delay_pixel_last,
+                                    delay_row_first,
+                                    delay_row_last,
+                                    delay_col_first,
+                                    delay_col_last,
                                     delay_de,
                                     delay_valid
                                 })
@@ -86,22 +86,22 @@ module jelly2_img_delay
     
     generate
     if ( USE_VALID ) begin : blk_use_valid
-        assign m_img_line_first  = delay_line_first;
-        assign m_img_line_last   = delay_line_last;
-        assign m_img_pixel_first = delay_pixel_first;
-        assign m_img_pixel_last  = delay_pixel_last;
-        assign m_img_de          = delay_de;
-        assign m_img_user        = delay_user;
-        assign m_img_valid       = delay_valid;
+        assign m_img_row_first = delay_row_first;
+        assign m_img_row_last  = delay_row_last;
+        assign m_img_col_first = delay_col_first;
+        assign m_img_col_last  = delay_col_last;
+        assign m_img_de        = delay_de;
+        assign m_img_user      = delay_user;
+        assign m_img_valid     = delay_valid;
     end
     else begin
-        assign m_img_line_first  = delay_valid & delay_line_first;
-        assign m_img_line_last   = delay_valid & delay_line_last;
-        assign m_img_pixel_first = delay_valid & delay_pixel_first;
-        assign m_img_pixel_last  = delay_valid & delay_pixel_last;
-        assign m_img_de          = delay_valid & delay_de;
-        assign m_img_user        = delay_user;
-        assign m_img_valid       = delay_valid;
+        assign m_img_row_first = delay_valid & delay_row_first;
+        assign m_img_row_last  = delay_valid & delay_row_last;
+        assign m_img_col_first = delay_valid & delay_col_first;
+        assign m_img_col_last  = delay_valid & delay_col_last;
+        assign m_img_de        = delay_valid & delay_de;
+        assign m_img_user      = delay_user;
+        assign m_img_valid     = delay_valid;
     end
     endgenerate
     
