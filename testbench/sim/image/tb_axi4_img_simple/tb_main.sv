@@ -198,7 +198,9 @@ module tb_main
                 .FILE_NAME          ("img_"),
                 .FILE_EXT           (".pgm"),
                 .SEQUENTIAL_FILE    (1),
-                .ENDIAN             (0)
+                .ENDIAN             (0),
+                .BUSY_RATE          (30),
+                .RANDOM_SEED        (732)
             )
         i_axi4s_slave_model
             (
