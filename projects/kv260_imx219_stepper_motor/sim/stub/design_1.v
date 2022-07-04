@@ -29,6 +29,31 @@ module design_1
     m_axi4l_peri_wready,
     m_axi4l_peri_wstrb,
     m_axi4l_peri_wvalid,
+    m_axi4l_rpu_aclk,
+    m_axi4l_rpu_araddr,
+    m_axi4l_rpu_aresetn,
+    m_axi4l_rpu_arprot,
+    m_axi4l_rpu_arready,
+    m_axi4l_rpu_arvalid,
+    m_axi4l_rpu_awaddr,
+    m_axi4l_rpu_awprot,
+    m_axi4l_rpu_awready,
+    m_axi4l_rpu_awvalid,
+    m_axi4l_rpu_bready,
+    m_axi4l_rpu_bresp,
+    m_axi4l_rpu_bvalid,
+    m_axi4l_rpu_rdata,
+    m_axi4l_rpu_rready,
+    m_axi4l_rpu_rresp,
+    m_axi4l_rpu_rvalid,
+    m_axi4l_rpu_wdata,
+    m_axi4l_rpu_wready,
+    m_axi4l_rpu_wstrb,
+    m_axi4l_rpu_wvalid,
+    nfiq0_lpd_rpu,
+    nfiq1_lpd_rpu,
+    nirq0_lpd_rpu,
+    nirq1_lpd_rpu,
     out_clk100,
     out_clk200,
     out_clk250,
@@ -101,6 +126,31 @@ module design_1
   input m_axi4l_peri_wready;
   output [7:0]m_axi4l_peri_wstrb;
   output m_axi4l_peri_wvalid;
+  output m_axi4l_rpu_aclk;
+  output [39:0]m_axi4l_rpu_araddr;
+  output [0:0]m_axi4l_rpu_aresetn;
+  output [2:0]m_axi4l_rpu_arprot;
+  input m_axi4l_rpu_arready;
+  output m_axi4l_rpu_arvalid;
+  output [39:0]m_axi4l_rpu_awaddr;
+  output [2:0]m_axi4l_rpu_awprot;
+  input m_axi4l_rpu_awready;
+  output m_axi4l_rpu_awvalid;
+  output m_axi4l_rpu_bready;
+  input [1:0]m_axi4l_rpu_bresp;
+  input m_axi4l_rpu_bvalid;
+  input [31:0]m_axi4l_rpu_rdata;
+  output m_axi4l_rpu_rready;
+  input [1:0]m_axi4l_rpu_rresp;
+  input m_axi4l_rpu_rvalid;
+  output [31:0]m_axi4l_rpu_wdata;
+  input m_axi4l_rpu_wready;
+  output [3:0]m_axi4l_rpu_wstrb;
+  output m_axi4l_rpu_wvalid;
+  input nfiq0_lpd_rpu;
+  input nfiq1_lpd_rpu;
+  input nirq0_lpd_rpu;
+  input nirq1_lpd_rpu;
   output out_clk100;
   output out_clk200;
   output out_clk250;
@@ -176,6 +226,31 @@ module design_1
   wire m_axi4l_peri_wready;
   wire [7:0]m_axi4l_peri_wstrb;
   wire m_axi4l_peri_wvalid;
+  wire m_axi4l_rpu_aclk;
+  wire [39:0]m_axi4l_rpu_araddr;
+  wire [0:0]m_axi4l_rpu_aresetn;
+  wire [2:0]m_axi4l_rpu_arprot;
+  wire m_axi4l_rpu_arready;
+  wire m_axi4l_rpu_arvalid;
+  wire [39:0]m_axi4l_rpu_awaddr;
+  wire [2:0]m_axi4l_rpu_awprot;
+  wire m_axi4l_rpu_awready;
+  wire m_axi4l_rpu_awvalid;
+  wire m_axi4l_rpu_bready;
+  wire [1:0]m_axi4l_rpu_bresp;
+  wire m_axi4l_rpu_bvalid;
+  wire [31:0]m_axi4l_rpu_rdata;
+  wire m_axi4l_rpu_rready;
+  wire [1:0]m_axi4l_rpu_rresp;
+  wire m_axi4l_rpu_rvalid;
+  wire [31:0]m_axi4l_rpu_wdata;
+  wire m_axi4l_rpu_wready;
+  wire [3:0]m_axi4l_rpu_wstrb;
+  wire m_axi4l_rpu_wvalid;
+  wire nfiq0_lpd_rpu;
+  wire nfiq1_lpd_rpu;
+  wire nirq0_lpd_rpu;
+  wire nirq1_lpd_rpu;
   wire out_clk100;
   wire out_clk200;
   wire out_clk250;
@@ -224,18 +299,18 @@ module design_1
 
   
     // テストベンチから force する前提
-    reg             reset       /*verilator public_flat*/;
-    reg             clk100      /*verilator public_flat*/;
-    reg             clk200      /*verilator public_flat*/;
-    reg             clk250      /*verilator public_flat*/;
+    reg             reset           /*verilator public_flat*/;
+    reg             clk100          /*verilator public_flat*/;
+    reg             clk200          /*verilator public_flat*/;
+    reg             clk250          /*verilator public_flat*/;
 	
-    reg     [36:0]  wb_adr_i    /*verilator public_flat*/;
-    reg     [63:0]  wb_dat_o    /*verilator public_flat*/;
-    reg     [63:0]  wb_dat_i    /*verilator public_flat*/;
-    reg     [7:0]   wb_sel_i    /*verilator public_flat*/;
-    reg             wb_we_i     /*verilator public_flat*/;
-    reg             wb_stb_i    /*verilator public_flat*/;
-    reg             wb_ack_o    /*verilator public_flat*/;
+    reg     [36:0]  wb_peri_adr_i   /*verilator public_flat*/;
+    reg     [63:0]  wb_peri_dat_o   /*verilator public_flat*/;
+    reg     [63:0]  wb_peri_dat_i   /*verilator public_flat*/;
+    reg     [7:0]   wb_peri_sel_i   /*verilator public_flat*/;
+    reg             wb_peri_we_i    /*verilator public_flat*/;
+    reg             wb_peri_stb_i   /*verilator public_flat*/;
+    reg             wb_peri_ack_o   /*verilator public_flat*/;
 
 
     assign out_reset             = reset;
@@ -253,14 +328,14 @@ module design_1
         i_wishbone_to_axi4l
             (
                 .s_wb_rst_i             (reset),
-                .s_wb_clk_i             (clk100),
-                .s_wb_adr_i             (wb_adr_i),
-                .s_wb_dat_o             (wb_dat_o),
-                .s_wb_dat_i             (wb_dat_i),
-                .s_wb_sel_i             (wb_sel_i),
-                .s_wb_we_i              (wb_we_i ),
-                .s_wb_stb_i             (wb_stb_i),
-                .s_wb_ack_o             (wb_ack_o),
+                .s_wb_clk_i             (clk250),
+                .s_wb_adr_i             (wb_peri_adr_i),
+                .s_wb_dat_o             (wb_peri_dat_o),
+                .s_wb_dat_i             (wb_peri_dat_i),
+                .s_wb_sel_i             (wb_peri_sel_i),
+                .s_wb_we_i              (wb_peri_we_i ),
+                .s_wb_stb_i             (wb_peri_stb_i),
+                .s_wb_ack_o             (wb_peri_ack_o),
 
                 .m_axi4l_aresetn        (m_axi4l_peri_aresetn),
                 .m_axi4l_aclk           (m_axi4l_peri_aclk),

@@ -20,7 +20,7 @@ build:
 
 .PHONY: run
 run:
-	xsim $(TOP_MODULE) -t xsim_run_all.tcl
+	xsim $(TOP_MODULE) --R
 
 
 .PHONY: vcd2fst
@@ -41,7 +41,7 @@ clean:
 	-rm -f xsim*.log
 
 .PHONY: distclean
-distclean:
+distclean: clean
 	-rm -f *.vcd
 	-rm -f *.wdb
 	-rm -f *.pgm

@@ -52,14 +52,14 @@ int main(int argc, char** argv)
     jsim::WishboneMaster wishbone_signals =
             {
                 &top->reset,
-                &top->clk100,
-                &top->s_wb_adr_i,
-                &top->s_wb_dat_o,
-                &top->s_wb_dat_i,
-                &top->s_wb_sel_i,
-                &top->s_wb_we_i,
-                &top->s_wb_stb_i,
-                &top->s_wb_ack_o
+                &top->clk250,
+                &top->s_wb_peri_adr_i,
+                &top->s_wb_peri_dat_o,
+                &top->s_wb_peri_dat_i,
+                &top->s_wb_peri_sel_i,
+                &top->s_wb_peri_we_i,
+                &top->s_wb_peri_stb_i,
+                &top->s_wb_peri_ack_o
             };
     auto wb = jsim::WishboneMasterNode_Create(wishbone_signals);
     mng->AddNode(wb);
@@ -70,10 +70,9 @@ int main(int argc, char** argv)
     
     const int reg_gid    = (0x00000000 >> 3);
     const int reg_fmtr   = (0x00100000 >> 3);
-    const int reg_demos  = (0x00120000 >> 3);
-    const int reg_colmat = (0x00120200 >> 3);
     const int reg_wdma   = (0x00210000 >> 3);
-
+    const int reg_demos  = (0x00400000 >> 3);
+    const int reg_colmat = (0x00400800 >> 3);
 
     wb->Wait(1000);
     wb->Display("start");

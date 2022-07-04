@@ -37,13 +37,6 @@ if { [string first $scripts_vivado_version $current_vivado_version] == -1 } {
 # To test this script, run the following commands from Vivado Tcl console:
 # source design_1_script.tcl
 
-
-# The design that will be created by this Tcl script contains the following 
-# module references:
-# jelly_rtos_axi4l
-
-# Please add the sources of those modules before sourcing this Tcl script.
-
 # If there is no project opened, this script will create a
 # project, but make sure you do not have an existing project
 # <./myproj/project_1.xpr> in the current working folder.
@@ -155,31 +148,6 @@ xilinx.com:ip:zynq_ultra_ps_e:3.3\
 
 }
 
-##################################################################
-# CHECK Modules
-##################################################################
-set bCheckModules 1
-if { $bCheckModules == 1 } {
-   set list_check_mods "\ 
-jelly_rtos_axi4l\
-"
-
-   set list_mods_missing ""
-   common::send_gid_msg -ssname BD::TCL -id 2020 -severity "INFO" "Checking if the following modules exist in the project's sources: $list_check_mods ."
-
-   foreach mod_vlnv $list_check_mods {
-      if { [can_resolve_reference $mod_vlnv] == 0 } {
-         lappend list_mods_missing $mod_vlnv
-      }
-   }
-
-   if { $list_mods_missing ne "" } {
-      catch {common::send_gid_msg -ssname BD::TCL -id 2021 -severity "ERROR" "The following module(s) are not found in the project: $list_mods_missing" }
-      common::send_gid_msg -ssname BD::TCL -id 2022 -severity "INFO" "Please add source files for the missing module(s) above."
-      set bCheckIPsPassed 0
-   }
-}
-
 if { $bCheckIPsPassed != 1 } {
   common::send_gid_msg -ssname BD::TCL -id 2023 -severity "WARNING" "Will not continue with creation of design due to the error(s) above."
   return 3
@@ -238,6 +206,21 @@ proc create_root_design { parentCell } {
    CONFIG.PROTOCOL {AXI4LITE} \
    ] $m_axi4l_peri
 
+  set m_axi4l_rpu [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:aximm_rtl:1.0 m_axi4l_rpu ]
+  set_property -dict [ list \
+   CONFIG.ADDR_WIDTH {40} \
+   CONFIG.DATA_WIDTH {32} \
+   CONFIG.FREQ_HZ {249997500} \
+   CONFIG.HAS_BURST {0} \
+   CONFIG.HAS_CACHE {0} \
+   CONFIG.HAS_LOCK {0} \
+   CONFIG.HAS_QOS {0} \
+   CONFIG.HAS_REGION {0} \
+   CONFIG.NUM_READ_OUTSTANDING {8} \
+   CONFIG.NUM_WRITE_OUTSTANDING {8} \
+   CONFIG.PROTOCOL {AXI4LITE} \
+   ] $m_axi4l_rpu
+
   set s_axi4_mem0 [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 s_axi4_mem0 ]
   set_property -dict [ list \
    CONFIG.ADDR_WIDTH {49} \
@@ -277,6 +260,12 @@ proc create_root_design { parentCell } {
    CONFIG.ASSOCIATED_RESET {m_axi4l_peri_aresetn} \
  ] $m_axi4l_peri_aclk
   set m_axi4l_peri_aresetn [ create_bd_port -dir O -from 0 -to 0 -type rst m_axi4l_peri_aresetn ]
+  set m_axi4l_rpu_aclk [ create_bd_port -dir O -type clk m_axi4l_rpu_aclk ]
+  set m_axi4l_rpu_aresetn [ create_bd_port -dir O -from 0 -to 0 -type rst m_axi4l_rpu_aresetn ]
+  set nfiq0_lpd_rpu [ create_bd_port -dir I nfiq0_lpd_rpu ]
+  set nfiq1_lpd_rpu [ create_bd_port -dir I nfiq1_lpd_rpu ]
+  set nirq0_lpd_rpu [ create_bd_port -dir I nirq0_lpd_rpu ]
+  set nirq1_lpd_rpu [ create_bd_port -dir I nirq1_lpd_rpu ]
   set out_clk100 [ create_bd_port -dir O -type clk out_clk100 ]
   set_property -dict [ list \
    CONFIG.ASSOCIATED_RESET {out_reset} \
@@ -298,7 +287,6 @@ proc create_root_design { parentCell } {
    CONFIG.ASSOCIATED_BUSIF {s_axi4_mem0} \
  ] $s_axi4_mem_aclk
   set s_axi4_mem_aresetn [ create_bd_port -dir O -from 0 -to 0 -type rst s_axi4_mem_aresetn ]
-  set set_flg [ create_bd_port -dir I -from 31 -to 0 set_flg ]
 
   # Create instance: axi_iic_0, and set properties
   set axi_iic_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_iic:2.1 axi_iic_0 ]
@@ -331,22 +319,6 @@ proc create_root_design { parentCell } {
    CONFIG.RESET_PORT {resetn} \
    CONFIG.RESET_TYPE {ACTIVE_LOW} \
  ] $clk_wiz_0
-
-  # Create instance: jelly_rtos_axi4l_0, and set properties
-  set block_name jelly_rtos_axi4l
-  set block_cell_name jelly_rtos_axi4l_0
-  if { [catch {set jelly_rtos_axi4l_0 [create_bd_cell -type module -reference $block_name $block_cell_name] } errmsg] } {
-     catch {common::send_gid_msg -ssname BD::TCL -id 2095 -severity "ERROR" "Unable to add referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
-     return 1
-   } elseif { $jelly_rtos_axi4l_0 eq "" } {
-     catch {common::send_gid_msg -ssname BD::TCL -id 2096 -severity "ERROR" "Unable to referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
-     return 1
-   }
-    set_property -dict [ list \
-   CONFIG.IRQ_NEGATIVE {"1"} \
-   CONFIG.TMAX_SEMID {3} \
-   CONFIG.TMAX_TSKID {7} \
- ] $jelly_rtos_axi4l_0
 
   # Create instance: proc_sys_reset_0, and set properties
   set proc_sys_reset_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 proc_sys_reset_0 ]
@@ -1020,7 +992,7 @@ Port;FD4A0000;FD4AFFFF;0|FPD;DPDMA;FD4C0000;FD4CFFFF;0|FPD;DDR_XMPU5_CFG;FD05000
   connect_bd_intf_net -intf_net S_AXI_HP0_FPD_0_1 [get_bd_intf_ports s_axi4_mem0] [get_bd_intf_pins zynq_ultra_ps_e_0/S_AXI_HP0_FPD]
   connect_bd_intf_net -intf_net axi_iic_0_IIC [get_bd_intf_ports i2c] [get_bd_intf_pins axi_iic_0/IIC]
   connect_bd_intf_net -intf_net axi_protocol_convert_0_M_AXI [get_bd_intf_ports m_axi4l_peri] [get_bd_intf_pins axi_protocol_convert_0/M_AXI]
-  connect_bd_intf_net -intf_net axi_protocol_convert_1_M_AXI [get_bd_intf_pins axi_protocol_convert_1/M_AXI] [get_bd_intf_pins jelly_rtos_axi4l_0/s_axi4l]
+  connect_bd_intf_net -intf_net axi_protocol_convert_1_M_AXI [get_bd_intf_ports m_axi4l_rpu] [get_bd_intf_pins axi_protocol_convert_1/M_AXI]
   connect_bd_intf_net -intf_net ps8_0_axi_periph_M00_AXI [get_bd_intf_pins axi_iic_0/S_AXI] [get_bd_intf_pins ps8_0_axi_periph/M00_AXI]
   connect_bd_intf_net -intf_net zynq_ultra_ps_e_0_M_AXI_HPM0_FPD [get_bd_intf_pins axi_protocol_convert_0/S_AXI] [get_bd_intf_pins zynq_ultra_ps_e_0/M_AXI_HPM0_FPD]
   connect_bd_intf_net -intf_net zynq_ultra_ps_e_0_M_AXI_HPM0_LPD [get_bd_intf_pins axi_protocol_convert_1/S_AXI] [get_bd_intf_pins zynq_ultra_ps_e_0/M_AXI_HPM0_LPD]
@@ -1029,21 +1001,23 @@ Port;FD4A0000;FD4AFFFF;0|FPD;DPDMA;FD4C0000;FD4CFFFF;0|FPD;DDR_XMPU5_CFG;FD05000
   connect_bd_net -net axi_iic_0_iic2intc_irpt [get_bd_pins axi_iic_0/iic2intc_irpt] [get_bd_pins zynq_ultra_ps_e_0/pl_ps_irq0]
   connect_bd_net -net clk_wiz_0_clk_out1 [get_bd_ports out_clk100] [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins proc_sys_reset_0/slowest_sync_clk]
   connect_bd_net -net clk_wiz_0_clk_out2 [get_bd_ports out_clk200] [get_bd_pins clk_wiz_0/clk_out2]
-  connect_bd_net -net clk_wiz_0_clk_out3 [get_bd_ports m_axi4l_peri_aclk] [get_bd_ports out_clk250] [get_bd_ports s_axi4_mem_aclk] [get_bd_pins axi_protocol_convert_0/aclk] [get_bd_pins axi_protocol_convert_1/aclk] [get_bd_pins clk_wiz_0/clk_out3] [get_bd_pins jelly_rtos_axi4l_0/aclk] [get_bd_pins proc_sys_reset_1/slowest_sync_clk] [get_bd_pins zynq_ultra_ps_e_0/maxihpm0_fpd_aclk] [get_bd_pins zynq_ultra_ps_e_0/maxihpm0_lpd_aclk] [get_bd_pins zynq_ultra_ps_e_0/saxihp0_fpd_aclk]
+  connect_bd_net -net clk_wiz_0_clk_out3 [get_bd_ports m_axi4l_peri_aclk] [get_bd_ports m_axi4l_rpu_aclk] [get_bd_ports out_clk250] [get_bd_ports s_axi4_mem_aclk] [get_bd_pins axi_protocol_convert_0/aclk] [get_bd_pins axi_protocol_convert_1/aclk] [get_bd_pins clk_wiz_0/clk_out3] [get_bd_pins proc_sys_reset_1/slowest_sync_clk] [get_bd_pins zynq_ultra_ps_e_0/maxihpm0_fpd_aclk] [get_bd_pins zynq_ultra_ps_e_0/maxihpm0_lpd_aclk] [get_bd_pins zynq_ultra_ps_e_0/saxihp0_fpd_aclk]
   connect_bd_net -net clk_wiz_0_locked [get_bd_pins clk_wiz_0/locked] [get_bd_pins proc_sys_reset_0/dcm_locked] [get_bd_pins proc_sys_reset_1/dcm_locked]
-  connect_bd_net -net jelly_rtos_axi4l_0_irq [get_bd_pins jelly_rtos_axi4l_0/irq] [get_bd_pins zynq_ultra_ps_e_0/nirq0_lpd_rpu]
-  connect_bd_net -net proc_sys_reset_0_peripheral_aresetn [get_bd_ports m_axi4l_peri_aresetn] [get_bd_ports s_axi4_mem_aresetn] [get_bd_pins proc_sys_reset_1/peripheral_aresetn]
+  connect_bd_net -net nfiq0_lpd_rpu_0_1 [get_bd_ports nfiq0_lpd_rpu] [get_bd_pins zynq_ultra_ps_e_0/nfiq0_lpd_rpu]
+  connect_bd_net -net nfiq1_lpd_rpu_0_1 [get_bd_ports nfiq1_lpd_rpu] [get_bd_pins zynq_ultra_ps_e_0/nfiq1_lpd_rpu]
+  connect_bd_net -net nirq0_lpd_rpu_0_1 [get_bd_ports nirq0_lpd_rpu] [get_bd_pins zynq_ultra_ps_e_0/nirq0_lpd_rpu]
+  connect_bd_net -net nirq1_lpd_rpu_0_1 [get_bd_ports nirq1_lpd_rpu] [get_bd_pins zynq_ultra_ps_e_0/nirq1_lpd_rpu]
+  connect_bd_net -net proc_sys_reset_0_peripheral_aresetn [get_bd_ports m_axi4l_peri_aresetn] [get_bd_ports m_axi4l_rpu_aresetn] [get_bd_ports s_axi4_mem_aresetn] [get_bd_pins proc_sys_reset_1/peripheral_aresetn]
   connect_bd_net -net proc_sys_reset_0_peripheral_reset [get_bd_ports out_reset] [get_bd_pins proc_sys_reset_0/peripheral_reset]
-  connect_bd_net -net rst_ps8_0_99M_interconnect_aresetn [get_bd_pins axi_protocol_convert_0/aresetn] [get_bd_pins axi_protocol_convert_1/aresetn] [get_bd_pins jelly_rtos_axi4l_0/aresetn] [get_bd_pins proc_sys_reset_1/interconnect_aresetn]
+  connect_bd_net -net rst_ps8_0_99M_interconnect_aresetn [get_bd_pins axi_protocol_convert_0/aresetn] [get_bd_pins axi_protocol_convert_1/aresetn] [get_bd_pins proc_sys_reset_1/interconnect_aresetn]
   connect_bd_net -net rst_ps8_0_99M_peripheral_aresetn [get_bd_pins axi_iic_0/s_axi_aresetn] [get_bd_pins ps8_0_axi_periph/ARESETN] [get_bd_pins ps8_0_axi_periph/M00_ARESETN] [get_bd_pins ps8_0_axi_periph/S00_ARESETN] [get_bd_pins rst_ps8_0_99M/peripheral_aresetn]
-  connect_bd_net -net set_flg_1 [get_bd_ports set_flg] [get_bd_pins jelly_rtos_axi4l_0/set_flg]
   connect_bd_net -net zynq_ultra_ps_e_0_pl_clk0 [get_bd_pins axi_iic_0/s_axi_aclk] [get_bd_pins clk_wiz_0/clk_in1] [get_bd_pins ps8_0_axi_periph/ACLK] [get_bd_pins ps8_0_axi_periph/M00_ACLK] [get_bd_pins ps8_0_axi_periph/S00_ACLK] [get_bd_pins rst_ps8_0_99M/slowest_sync_clk] [get_bd_pins zynq_ultra_ps_e_0/maxihpm1_fpd_aclk] [get_bd_pins zynq_ultra_ps_e_0/pl_clk0]
   connect_bd_net -net zynq_ultra_ps_e_0_pl_resetn0 [get_bd_pins clk_wiz_0/resetn] [get_bd_pins proc_sys_reset_0/ext_reset_in] [get_bd_pins proc_sys_reset_1/ext_reset_in] [get_bd_pins rst_ps8_0_99M/ext_reset_in] [get_bd_pins zynq_ultra_ps_e_0/pl_resetn0]
 
   # Create address segments
   assign_bd_address -offset 0xB0000000 -range 0x00010000 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [get_bd_addr_segs axi_iic_0/S_AXI/Reg] -force
-  assign_bd_address -offset 0x80000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [get_bd_addr_segs jelly_rtos_axi4l_0/s_axi4l/reg0] -force
   assign_bd_address -offset 0xA0000000 -range 0x10000000 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [get_bd_addr_segs m_axi4l_peri/Reg] -force
+  assign_bd_address -offset 0x80000000 -range 0x00010000 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [get_bd_addr_segs m_axi4l_rpu/Reg] -force
   assign_bd_address -offset 0x000800000000 -range 0x000800000000 -target_address_space [get_bd_addr_spaces s_axi4_mem0] [get_bd_addr_segs zynq_ultra_ps_e_0/SAXIGP2/HP0_DDR_HIGH] -force
   assign_bd_address -offset 0x00000000 -range 0x80000000 -target_address_space [get_bd_addr_spaces s_axi4_mem0] [get_bd_addr_segs zynq_ultra_ps_e_0/SAXIGP2/HP0_DDR_LOW] -force
   assign_bd_address -offset 0xFF000000 -range 0x01000000 -target_address_space [get_bd_addr_spaces s_axi4_mem0] [get_bd_addr_segs zynq_ultra_ps_e_0/SAXIGP2/HP0_LPS_OCM] -force

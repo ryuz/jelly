@@ -25,6 +25,8 @@
 -y ../../../../../rtl/dma
 -y ../../../../../rtl/math
 -y ../../../../../rtl/primitive
+-y ../../../../../rtl/rtos
 -y ../../../../../rtl/image
 -y ../../../../../rtl/video
+-y ../../../../../rtl/peripheral
 -y ../../../../../rtl/model

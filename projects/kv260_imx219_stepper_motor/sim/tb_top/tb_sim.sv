@@ -83,13 +83,13 @@ module tb_sim();
                 .clk200,
                 .clk250,
 
-                .s_wb_adr_i,
-                .s_wb_dat_o,
-                .s_wb_dat_i,
-                .s_wb_sel_i,
-                .s_wb_we_i,
-                .s_wb_stb_i,
-                .s_wb_ack_o
+                .s_wb_peri_adr_i    (s_wb_adr_i),
+                .s_wb_peri_dat_o    (s_wb_dat_o),
+                .s_wb_peri_dat_i    (s_wb_dat_i),
+                .s_wb_peri_sel_i    (s_wb_sel_i),
+                .s_wb_peri_we_i     (s_wb_we_i),
+                .s_wb_peri_stb_i    (s_wb_stb_i),
+                .s_wb_peri_ack_o    (s_wb_ack_o)
             );
     
     
@@ -98,7 +98,7 @@ module tb_sim();
     // ----------------------------------
         
     wire                            wb_rst_i = reset;
-    wire                            wb_clk_i = clk100;
+    wire                            wb_clk_i = clk250;
     reg     [WB_ADR_WIDTH-1:0]      wb_adr_o;
     wire    [WB_DAT_WIDTH-1:0]      wb_dat_i = s_wb_dat_o;
     reg     [WB_DAT_WIDTH-1:0]      wb_dat_o;

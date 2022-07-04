@@ -7,6 +7,8 @@
 --sourcelibdir ../../../../../rtl/dma
 --sourcelibdir ../../../../../rtl/math
 --sourcelibdir ../../../../../rtl/primitive
+--sourcelibdir ../../../../../rtl/peripheral
+--sourcelibdir ../../../../../rtl/rtos
 --sourcelibdir ../../../../../rtl/image
 --sourcelibdir ../../../../../rtl/video
 --sourcelibdir ../../../../../rtl/model

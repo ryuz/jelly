@@ -415,6 +415,76 @@ module image_proc
             );
     
 
+    // binarize
+    logic                               img_bin_row_first;
+    logic                               img_bin_row_last;
+    logic                               img_bin_col_first;
+    logic                               img_bin_col_last;
+    logic                               img_bin_de;
+    logic   [0:0]                       img_bin_data;
+    logic                               img_bin_valid;
+    
+    logic   [WB_DAT_WIDTH-1:0]          wb_bin_dat_o;
+    logic                               wb_bin_stb_i;
+    logic                               wb_bin_ack_o;
+
+    jelly2_img_binarize
+            #(
+                .USER_WIDTH             (0),
+                .S_COMPONENTS           (3),
+                .S_DATA_WIDTH           (DATA_WIDTH),
+                .M_COMPONENTS           (1),
+                .M_DATA_WIDTH           (1),
+                .WRAP_AROUND            (1'b1),
+                .USE_VALID              (USE_VALID),
+                .WB_ADR_WIDTH           (8),
+                .WB_DAT_WIDTH           (WB_DAT_WIDTH),
+                .INIT_CTL_CONTROL       (3'b011),
+                .INIT_PARAM_OR          (1'b0),
+                .INIT_PARAM_TH0         ('0),
+                .INIT_PARAM_TH1         ('1),
+                .INIT_PARAM_INV         ('0),
+                .INIT_PARAM_VAL0        ('0),
+                .INIT_PARAM_VAL1        ('1)
+            )
+        i_img_binarize
+            (
+                .reset                  (),
+                .clk                    (),
+                .cke                    (),
+
+                .in_update_req          (),
+                
+                .s_wb_rst_i             (),
+                .s_wb_clk_i             (),
+                .s_wb_adr_i             (),
+                .s_wb_dat_i             (),
+                .s_wb_dat_o             (),
+                .s_wb_we_i              (),
+                .s_wb_sel_i             (),
+                .s_wb_stb_i             (),
+                .s_wb_ack_o             (),
+
+                .s_img_row_first        (),
+                .s_img_row_last         (),
+                .s_img_col_first        (),
+                .s_img_col_last         (),
+                .s_img_de               (),
+                .s_img_user             (),
+                .s_img_data             (),
+                .s_img_valid            (),
+
+                .m_img_row_first        (),
+                .m_img_row_last         (),
+                .m_img_col_first        (),
+                .m_img_col_last         (),
+                .m_img_de               (),
+                .m_img_user             (),
+                .m_img_data             (),
+                .m_img_valid            ()
+            );
+    
+
     // select
     localparam      S_NUM = 4;
 

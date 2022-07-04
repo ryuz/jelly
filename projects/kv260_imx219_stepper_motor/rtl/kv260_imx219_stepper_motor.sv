@@ -27,32 +27,61 @@ module kv260_imx219_stepper_motor
     wire            sys_clk200;
     wire            sys_clk250;
     
+
+    localparam  AXI4L_RPU_ADDR_WIDTH = 40;
+    localparam  AXI4L_RPU_DATA_SIZE  = 2;     // 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
+    localparam  AXI4L_RPU_DATA_WIDTH = (8 << AXI4L_RPU_DATA_SIZE);
+    localparam  AXI4L_RPU_STRB_WIDTH = AXI4L_RPU_DATA_WIDTH / 8;
+    
+    logic                                   axi4l_rpu_aresetn;
+    logic                                   axi4l_rpu_aclk;
+    logic   [AXI4L_RPU_ADDR_WIDTH-1:0]      axi4l_rpu_awaddr;
+    logic   [2:0]                           axi4l_rpu_awprot;
+    logic                                   axi4l_rpu_awvalid;
+    logic                                   axi4l_rpu_awready;
+    logic   [AXI4L_RPU_STRB_WIDTH-1:0]      axi4l_rpu_wstrb;
+    logic   [AXI4L_RPU_DATA_WIDTH-1:0]      axi4l_rpu_wdata;
+    logic                                   axi4l_rpu_wvalid;
+    logic                                   axi4l_rpu_wready;
+    logic   [1:0]                           axi4l_rpu_bresp;
+    logic                                   axi4l_rpu_bvalid;
+    logic                                   axi4l_rpu_bready;
+    logic   [AXI4L_RPU_ADDR_WIDTH-1:0]      axi4l_rpu_araddr;
+    logic   [2:0]                           axi4l_rpu_arprot;
+    logic                                   axi4l_rpu_arvalid;
+    logic                                   axi4l_rpu_arready;
+    logic   [AXI4L_RPU_DATA_WIDTH-1:0]      axi4l_rpu_rdata;
+    logic   [1:0]                           axi4l_rpu_rresp;
+    logic                                   axi4l_rpu_rvalid;
+    logic                                   axi4l_rpu_rready;
+
+
     localparam  AXI4L_PERI_ADDR_WIDTH = 40;
     localparam  AXI4L_PERI_DATA_SIZE  = 3;     // 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
     localparam  AXI4L_PERI_DATA_WIDTH = (8 << AXI4L_PERI_DATA_SIZE);
     localparam  AXI4L_PERI_STRB_WIDTH = AXI4L_PERI_DATA_WIDTH / 8;
     
-    wire                                 axi4l_peri_aresetn;
-    wire                                 axi4l_peri_aclk;
-    wire    [AXI4L_PERI_ADDR_WIDTH-1:0]  axi4l_peri_awaddr;
-    wire    [2:0]                        axi4l_peri_awprot;
-    wire                                 axi4l_peri_awvalid;
-    wire                                 axi4l_peri_awready;
-    wire    [AXI4L_PERI_STRB_WIDTH-1:0]  axi4l_peri_wstrb;
-    wire    [AXI4L_PERI_DATA_WIDTH-1:0]  axi4l_peri_wdata;
-    wire                                 axi4l_peri_wvalid;
-    wire                                 axi4l_peri_wready;
-    wire    [1:0]                        axi4l_peri_bresp;
-    wire                                 axi4l_peri_bvalid;
-    wire                                 axi4l_peri_bready;
-    wire    [AXI4L_PERI_ADDR_WIDTH-1:0]  axi4l_peri_araddr;
-    wire    [2:0]                        axi4l_peri_arprot;
-    wire                                 axi4l_peri_arvalid;
-    wire                                 axi4l_peri_arready;
-    wire    [AXI4L_PERI_DATA_WIDTH-1:0]  axi4l_peri_rdata;
-    wire    [1:0]                        axi4l_peri_rresp;
-    wire                                 axi4l_peri_rvalid;
-    wire                                 axi4l_peri_rready;
+    logic                                   axi4l_peri_aresetn;
+    logic                                   axi4l_peri_aclk;
+    logic   [AXI4L_PERI_ADDR_WIDTH-1:0]     axi4l_peri_awaddr;
+    logic   [2:0]                           axi4l_peri_awprot;
+    logic                                   axi4l_peri_awvalid;
+    logic                                   axi4l_peri_awready;
+    logic   [AXI4L_PERI_STRB_WIDTH-1:0]     axi4l_peri_wstrb;
+    logic   [AXI4L_PERI_DATA_WIDTH-1:0]     axi4l_peri_wdata;
+    logic                                   axi4l_peri_wvalid;
+    logic                                   axi4l_peri_wready;
+    logic   [1:0]                           axi4l_peri_bresp;
+    logic                                   axi4l_peri_bvalid;
+    logic                                   axi4l_peri_bready;
+    logic   [AXI4L_PERI_ADDR_WIDTH-1:0]     axi4l_peri_araddr;
+    logic   [2:0]                           axi4l_peri_arprot;
+    logic                                   axi4l_peri_arvalid;
+    logic                                   axi4l_peri_arready;
+    logic   [AXI4L_PERI_DATA_WIDTH-1:0]     axi4l_peri_rdata;
+    logic   [1:0]                           axi4l_peri_rresp;
+    logic                                   axi4l_peri_rvalid;
+    logic                                   axi4l_peri_rready;
     
     
     
@@ -62,55 +91,57 @@ module kv260_imx219_stepper_motor
     localparam  AXI4_MEM0_DATA_WIDTH = (8 << AXI4_MEM0_DATA_SIZE);
     localparam  AXI4_MEM0_STRB_WIDTH = AXI4_MEM0_DATA_WIDTH / 8;
     
-    wire                                 axi4_mem_aresetn;
-    wire                                 axi4_mem_aclk;
+    logic                                   axi4_mem_aresetn;
+    logic                                   axi4_mem_aclk;
     
-    wire    [AXI4_MEM0_ID_WIDTH-1:0]     axi4_mem0_awid;
-    wire    [AXI4_MEM0_ADDR_WIDTH-1:0]   axi4_mem0_awaddr;
-    wire    [1:0]                        axi4_mem0_awburst;
-    wire    [3:0]                        axi4_mem0_awcache;
-    wire    [7:0]                        axi4_mem0_awlen;
-    wire    [0:0]                        axi4_mem0_awlock;
-    wire    [2:0]                        axi4_mem0_awprot;
-    wire    [3:0]                        axi4_mem0_awqos;
-    wire    [3:0]                        axi4_mem0_awregion;
-    wire    [2:0]                        axi4_mem0_awsize;
-    wire                                 axi4_mem0_awvalid;
-    wire                                 axi4_mem0_awready;
-    wire    [AXI4_MEM0_STRB_WIDTH-1:0]   axi4_mem0_wstrb;
-    wire    [AXI4_MEM0_DATA_WIDTH-1:0]   axi4_mem0_wdata;
-    wire                                 axi4_mem0_wlast;
-    wire                                 axi4_mem0_wvalid;
-    wire                                 axi4_mem0_wready;
-    wire    [AXI4_MEM0_ID_WIDTH-1:0]     axi4_mem0_bid;
-    wire    [1:0]                        axi4_mem0_bresp;
-    wire                                 axi4_mem0_bvalid;
-    wire                                 axi4_mem0_bready;
-    wire    [AXI4_MEM0_ID_WIDTH-1:0]     axi4_mem0_arid;
-    wire    [AXI4_MEM0_ADDR_WIDTH-1:0]   axi4_mem0_araddr;
-    wire    [1:0]                        axi4_mem0_arburst;
-    wire    [3:0]                        axi4_mem0_arcache;
-    wire    [7:0]                        axi4_mem0_arlen;
-    wire    [0:0]                        axi4_mem0_arlock;
-    wire    [2:0]                        axi4_mem0_arprot;
-    wire    [3:0]                        axi4_mem0_arqos;
-    wire    [3:0]                        axi4_mem0_arregion;
-    wire    [2:0]                        axi4_mem0_arsize;
-    wire                                 axi4_mem0_arvalid;
-    wire                                 axi4_mem0_arready;
-    wire    [AXI4_MEM0_ID_WIDTH-1:0]     axi4_mem0_rid;
-    wire    [1:0]                        axi4_mem0_rresp;
-    wire    [AXI4_MEM0_DATA_WIDTH-1:0]   axi4_mem0_rdata;
-    wire                                 axi4_mem0_rlast;
-    wire                                 axi4_mem0_rvalid;
-    wire                                 axi4_mem0_rready;
+    logic   [AXI4_MEM0_ID_WIDTH-1:0]        axi4_mem0_awid;
+    logic   [AXI4_MEM0_ADDR_WIDTH-1:0]      axi4_mem0_awaddr;
+    logic   [1:0]                           axi4_mem0_awburst;
+    logic   [3:0]                           axi4_mem0_awcache;
+    logic   [7:0]                           axi4_mem0_awlen;
+    logic   [0:0]                           axi4_mem0_awlock;
+    logic   [2:0]                           axi4_mem0_awprot;
+    logic   [3:0]                           axi4_mem0_awqos;
+    logic   [3:0]                           axi4_mem0_awregion;
+    logic   [2:0]                           axi4_mem0_awsize;
+    logic                                   axi4_mem0_awvalid;
+    logic                                   axi4_mem0_awready;
+    logic   [AXI4_MEM0_STRB_WIDTH-1:0]      axi4_mem0_wstrb;
+    logic   [AXI4_MEM0_DATA_WIDTH-1:0]      axi4_mem0_wdata;
+    logic                                   axi4_mem0_wlast;
+    logic                                   axi4_mem0_wvalid;
+    logic                                   axi4_mem0_wready;
+    logic   [AXI4_MEM0_ID_WIDTH-1:0]        axi4_mem0_bid;
+    logic   [1:0]                           axi4_mem0_bresp;
+    logic                                   axi4_mem0_bvalid;
+    logic                                   axi4_mem0_bready;
+    logic   [AXI4_MEM0_ID_WIDTH-1:0]        axi4_mem0_arid;
+    logic   [AXI4_MEM0_ADDR_WIDTH-1:0]      axi4_mem0_araddr;
+    logic   [1:0]                           axi4_mem0_arburst;
+    logic   [3:0]                           axi4_mem0_arcache;
+    logic   [7:0]                           axi4_mem0_arlen;
+    logic   [0:0]                           axi4_mem0_arlock;
+    logic   [2:0]                           axi4_mem0_arprot;
+    logic   [3:0]                           axi4_mem0_arqos;
+    logic   [3:0]                           axi4_mem0_arregion;
+    logic   [2:0]                           axi4_mem0_arsize;
+    logic                                   axi4_mem0_arvalid;
+    logic                                   axi4_mem0_arready;
+    logic   [AXI4_MEM0_ID_WIDTH-1:0]        axi4_mem0_rid;
+    logic   [1:0]                           axi4_mem0_rresp;
+    logic   [AXI4_MEM0_DATA_WIDTH-1:0]      axi4_mem0_rdata;
+    logic                                   axi4_mem0_rlast;
+    logic                                   axi4_mem0_rvalid;
+    logic                                   axi4_mem0_rready;
 
-    wire                                i2c0_scl_i;
-    wire                                i2c0_scl_o;
-    wire                                i2c0_scl_t;
-    wire                                i2c0_sda_i;
-    wire                                i2c0_sda_o;
-    wire                                i2c0_sda_t;
+    logic                                   i2c0_scl_i;
+    logic                                   i2c0_scl_o;
+    logic                                   i2c0_scl_t;
+    logic                                   i2c0_sda_i;
+    logic                                   i2c0_sda_o;
+    logic                                   i2c0_sda_t;
+
+    logic   [0:0]                           irq_rtos;
 
     design_1
         i_design_1
@@ -126,6 +157,33 @@ module kv260_imx219_stepper_motor
                 .i2c_sda_i              (i2c0_sda_i),
                 .i2c_sda_o              (i2c0_sda_o),
                 .i2c_sda_t              (i2c0_sda_t),
+
+                .nfiq0_lpd_rpu          (1'b1),
+                .nirq0_lpd_rpu          (~irq_rtos),
+                .nfiq1_lpd_rpu          (1'b1),
+                .nirq1_lpd_rpu          (1'b1),
+
+                .m_axi4l_rpu_aresetn    (axi4l_rpu_aresetn),
+                .m_axi4l_rpu_aclk       (axi4l_rpu_aclk),
+                .m_axi4l_rpu_awaddr     (axi4l_rpu_awaddr),
+                .m_axi4l_rpu_awprot     (axi4l_rpu_awprot),
+                .m_axi4l_rpu_awvalid    (axi4l_rpu_awvalid),
+                .m_axi4l_rpu_awready    (axi4l_rpu_awready),
+                .m_axi4l_rpu_wstrb      (axi4l_rpu_wstrb),
+                .m_axi4l_rpu_wdata      (axi4l_rpu_wdata),
+                .m_axi4l_rpu_wvalid     (axi4l_rpu_wvalid),
+                .m_axi4l_rpu_wready     (axi4l_rpu_wready),
+                .m_axi4l_rpu_bresp      (axi4l_rpu_bresp),
+                .m_axi4l_rpu_bvalid     (axi4l_rpu_bvalid),
+                .m_axi4l_rpu_bready     (axi4l_rpu_bready),
+                .m_axi4l_rpu_araddr     (axi4l_rpu_araddr),
+                .m_axi4l_rpu_arprot     (axi4l_rpu_arprot),
+                .m_axi4l_rpu_arvalid    (axi4l_rpu_arvalid),
+                .m_axi4l_rpu_arready    (axi4l_rpu_arready),
+                .m_axi4l_rpu_rdata      (axi4l_rpu_rdata),
+                .m_axi4l_rpu_rresp      (axi4l_rpu_rresp),
+                .m_axi4l_rpu_rvalid     (axi4l_rpu_rvalid),
+                .m_axi4l_rpu_rready     (axi4l_rpu_rready),
 
                 .m_axi4l_peri_aresetn   (axi4l_peri_aresetn),
                 .m_axi4l_peri_aclk      (axi4l_peri_aclk),
@@ -212,7 +270,298 @@ module kv260_imx219_stepper_motor
                 .IO                     (cam_sda)
             );
 
+    // ----------------------------------------------------
+    //  RPU
+    // ----------------------------------------------------
+
+
+    localparam  WB_RPU_DAT_SIZE  = AXI4L_RPU_DATA_SIZE;
+    localparam  WB_RPU_ADR_WIDTH = AXI4L_RPU_ADDR_WIDTH - WB_RPU_DAT_SIZE;
+    localparam  WB_RPU_DAT_WIDTH = (8 << WB_RPU_DAT_SIZE);
+    localparam  WB_RPU_SEL_WIDTH = (1 << WB_RPU_DAT_SIZE);
     
+    logic                           wb_rpu_rst_i;
+    logic                           wb_rpu_clk_i;    
+    logic   [WB_RPU_ADR_WIDTH-1:0]  wb_rpu_adr_i;
+    logic   [WB_RPU_DAT_WIDTH-1:0]  wb_rpu_dat_i;
+    logic   [WB_RPU_DAT_WIDTH-1:0]  wb_rpu_dat_o;
+    logic                           wb_rpu_we_i;
+    logic   [WB_RPU_SEL_WIDTH-1:0]  wb_rpu_sel_i;
+    logic                           wb_rpu_stb_i;
+    logic                           wb_rpu_ack_o;
+    
+    jelly_axi4l_to_wishbone
+            #(
+                .AXI4L_ADDR_WIDTH   (AXI4L_RPU_ADDR_WIDTH),
+                .AXI4L_DATA_SIZE    (AXI4L_RPU_DATA_SIZE)     // 0:8bit, 1:16bit, 2:32bit, 3:64bit, ...
+            )
+        i_axi4l_to_wishbone
+            (
+                .s_axi4l_aresetn    (axi4l_rpu_aresetn),
+                .s_axi4l_aclk       (axi4l_rpu_aclk),
+                .s_axi4l_awaddr     (axi4l_rpu_awaddr),
+                .s_axi4l_awprot     (axi4l_rpu_awprot),
+                .s_axi4l_awvalid    (axi4l_rpu_awvalid),
+                .s_axi4l_awready    (axi4l_rpu_awready),
+                .s_axi4l_wstrb      (axi4l_rpu_wstrb),
+                .s_axi4l_wdata      (axi4l_rpu_wdata),
+                .s_axi4l_wvalid     (axi4l_rpu_wvalid),
+                .s_axi4l_wready     (axi4l_rpu_wready),
+                .s_axi4l_bresp      (axi4l_rpu_bresp),
+                .s_axi4l_bvalid     (axi4l_rpu_bvalid),
+                .s_axi4l_bready     (axi4l_rpu_bready),
+                .s_axi4l_araddr     (axi4l_rpu_araddr),
+                .s_axi4l_arprot     (axi4l_rpu_arprot),
+                .s_axi4l_arvalid    (axi4l_rpu_arvalid),
+                .s_axi4l_arready    (axi4l_rpu_arready),
+                .s_axi4l_rdata      (axi4l_rpu_rdata),
+                .s_axi4l_rresp      (axi4l_rpu_rresp),
+                .s_axi4l_rvalid     (axi4l_rpu_rvalid),
+                .s_axi4l_rready     (axi4l_rpu_rready),
+                
+                .m_wb_rst_o         (wb_rpu_rst_i),
+                .m_wb_clk_o         (wb_rpu_clk_i),
+                .m_wb_adr_o         (wb_rpu_adr_i),
+                .m_wb_dat_o         (wb_rpu_dat_i),
+                .m_wb_dat_i         (wb_rpu_dat_o),
+                .m_wb_we_o          (wb_rpu_we_i),
+                .m_wb_sel_o         (wb_rpu_sel_i),
+                .m_wb_stb_o         (wb_rpu_stb_i),
+                .m_wb_ack_i         (wb_rpu_ack_o)
+            );
+    
+    
+    // -----------------------------
+    //  RTOS
+    // -----------------------------
+
+    localparam  int                     TMAX_TSKID         = 5;
+    localparam  int                     TMAX_SEMID         = 5;
+    localparam  int                     TMAX_FLGID         = 1;
+    localparam  int                     TSKPRI_WIDTH       = 4;
+    localparam  int                     WUPCNT_WIDTH       = 1;
+    localparam  int                     SUSCNT_WIDTH       = 1;
+    localparam  int                     SEMCNT_WIDTH       = 4;
+    localparam  int                     FLGPTN_WIDTH       = 32;
+    localparam  int                     SYSTIM_WIDTH       = 64;
+    localparam  int                     RELTIM_WIDTH       = 32;
+    localparam  int                     TTS_WIDTH          = 4;
+    localparam  int                     TTW_WIDTH          = 4;
+    localparam  int                     QUECNT_WIDTH       = $clog2(TMAX_TSKID);
+    localparam  int                     TSKID_WIDTH        = $clog2(TMAX_TSKID+1);
+    localparam  int                     SEMID_WIDTH        = $clog2(TMAX_SEMID+1);
+
+    logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    rtos_set_flg;
+
+    logic   [TSKID_WIDTH-1:0]                   monitor_top_tskid;
+    logic   [TSKID_WIDTH-1:0]                   monitor_run_tskid;
+    logic   [TSKPRI_WIDTH-1:0]                  monitor_run_tskpri;
+    logic   [TMAX_TSKID:1][TTS_WIDTH-1:0]       monitor_tsk_tskstat;
+    logic   [TMAX_TSKID:1][TTW_WIDTH-1:0]       monitor_tsk_tskwait;
+    logic   [TMAX_TSKID:1][WUPCNT_WIDTH-1:0]    monitor_tsk_wupcnt;
+    logic   [TMAX_TSKID:1][SUSCNT_WIDTH-1:0]    monitor_tsk_suscnt;
+    logic   [TMAX_SEMID:1][QUECNT_WIDTH-1:0]    monitor_sem_quecnt;
+    logic   [TMAX_SEMID:1][SEMCNT_WIDTH-1:0]    monitor_sem_semcnt;
+    logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    monitor_flg_flgptn;
+    logic   [WB_RPU_DAT_WIDTH-1:0]              monitor_scratch0;
+    logic   [WB_RPU_DAT_WIDTH-1:0]              monitor_scratch1;
+    logic   [WB_RPU_DAT_WIDTH-1:0]              monitor_scratch2;
+    logic   [WB_RPU_DAT_WIDTH-1:0]              monitor_scratch3;
+
+    logic   [WB_RPU_DAT_WIDTH-1:0]              wb_rtos_dat_o;
+    logic                                       wb_rtos_stb_i;
+    logic                                       wb_rtos_ack_o;
+
+    jelly2_rtos
+            #(
+                .WB_ADR_WIDTH           (WB_RPU_ADR_WIDTH),
+                .WB_DAT_WIDTH           (WB_RPU_DAT_WIDTH),
+                .TMAX_TSKID             (TMAX_TSKID),
+                .TMAX_SEMID             (TMAX_SEMID),
+                .TMAX_FLGID             (TMAX_FLGID),
+                .TSKPRI_WIDTH           (TSKPRI_WIDTH),
+                .WUPCNT_WIDTH           (WUPCNT_WIDTH),
+                .SUSCNT_WIDTH           (SUSCNT_WIDTH),
+                .SEMCNT_WIDTH           (SEMCNT_WIDTH),
+                .FLGPTN_WIDTH           (FLGPTN_WIDTH),
+                .SYSTIM_WIDTH           (SYSTIM_WIDTH),
+                .RELTIM_WIDTH           (RELTIM_WIDTH),
+                .TTS_WIDTH              (TTS_WIDTH),
+                .TTW_WIDTH              (TTW_WIDTH),
+                .QUECNT_WIDTH           (QUECNT_WIDTH),
+                .TSKID_WIDTH            (TSKID_WIDTH),
+                .SEMID_WIDTH            (SEMID_WIDTH),
+                .CLOCK_RATE             (250_000_000)   // 250MHz
+            )
+        i_rtos
+            (
+                .reset                  (wb_rpu_rst_i),
+                .clk                    (wb_rpu_clk_i),
+                .cke                    (1'b1),
+
+                .s_wb_adr_i             (wb_rpu_adr_i),
+                .s_wb_dat_i             (wb_rpu_dat_i),
+                .s_wb_dat_o             (wb_rtos_dat_o),
+                .s_wb_we_i              (wb_rpu_we_i ),
+                .s_wb_sel_i             (wb_rpu_sel_i),
+                .s_wb_stb_i             (wb_rtos_stb_i),
+                .s_wb_ack_o             (wb_rtos_ack_o),
+
+                .irq                    (irq_rtos),
+
+                .ext_set_flg            (rtos_set_flg),
+
+                .monitor_top_tskid      (monitor_top_tskid), 
+                .monitor_run_tskid      (monitor_run_tskid), 
+                .monitor_run_tskpri     (monitor_run_tskpri), 
+                .monitor_tsk_tskstat    (monitor_tsk_tskstat),
+                .monitor_tsk_tskwait    (monitor_tsk_tskwait),
+                .monitor_tsk_wupcnt     (monitor_tsk_wupcnt),
+                .monitor_tsk_suscnt     (monitor_tsk_suscnt),
+                .monitor_sem_quecnt     (monitor_sem_quecnt),
+                .monitor_sem_semcnt     (monitor_sem_semcnt),
+                .monitor_flg_flgptn     (monitor_flg_flgptn),
+                .monitor_scratch0       (monitor_scratch0),
+                .monitor_scratch1       (monitor_scratch1),
+                .monitor_scratch2       (monitor_scratch2),
+                .monitor_scratch3       (monitor_scratch3)
+            );
+    
+    
+    // -----------------------------
+    //  Stepper motor
+    // -----------------------------
+
+    logic   [WB_RPU_DAT_WIDTH-1:0]  wb_motor_dat_o;
+    logic                           wb_motor_stb_i;
+    logic                           wb_motor_ack_o;
+
+    logic                           motor_irq;
+    
+    logic                           motor_en;
+    logic   [1:0]                   motor_phase;
+    
+    stepper_moter_pwm
+            #(
+                .WB_ADR_WIDTH       (8),
+                .WB_DAT_WIDTH       (WB_RPU_DAT_WIDTH),
+
+                .COUNTER_WIDTH      (16),
+                .STEP_WIDTH         (16),
+                .POSITION_WIDTH     (32),
+
+                .INIT_CTL_CONTROL   (1'b0),
+                .INIT_IRQ_ENABLE    (1'b0),
+                .INIT_POSITION      (32'd0),
+                .INIT_STEP          (16'd1),
+                .INIT_PHASE         (2'b00)
+            )
+        i_stepper_moter_pwm
+            (
+                .reset              (wb_rpu_rst_i),
+                .clk                (wb_rpu_clk_i),
+
+                .s_wb_adr_i         (wb_rpu_adr_i[7:0]),
+                .s_wb_dat_o         (wb_motor_dat_o),
+                .s_wb_dat_i         (wb_rpu_dat_i),
+                .s_wb_we_i          (wb_rpu_we_i),
+                .s_wb_sel_i         (wb_rpu_sel_i),
+                .s_wb_stb_i         (wb_motor_stb_i),
+                .s_wb_ack_o         (wb_motor_ack_o),
+
+                .out_irq            (motor_irq),
+
+                .motor_en           (motor_en),
+                .motor_phase        (motor_phase)
+            );
+
+    (* IOB="true" *)    reg     motor_ap = 1'b0;
+    (* IOB="true" *)    reg     motor_an = 1'b0;
+    (* IOB="true" *)    reg     motor_bp = 1'b0;
+    (* IOB="true" *)    reg     motor_bn = 1'b0;
+    always_ff @(posedge wb_rpu_rst_i) begin
+        if ( wb_rpu_clk_i ) begin
+            motor_ap <= 1'b0;
+            motor_an <= 1'b0;
+            motor_bp <= 1'b0;
+            motor_bn <= 1'b0;
+        end
+        else begin
+            motor_ap <=   motor_phase[0] & motor_en;
+            motor_an <=  ~motor_phase[0] & motor_en;
+            motor_bp <=   motor_phase[1] & motor_en;
+            motor_bn <=  ~motor_phase[1] & motor_en;
+        end
+    end
+
+    assign pmod[4] = motor_ap;
+    assign pmod[5] = motor_an;
+    assign pmod[6] = motor_bp;
+    assign pmod[7] = motor_bn;
+
+
+    // -----------------------------
+    //  Timer
+    // -----------------------------
+    
+    logic                           tim_irq;
+
+    logic   [WB_RPU_DAT_WIDTH-1:0]  wb_tim_dat_o;
+    logic                           wb_tim_stb_i;
+    logic                           wb_tim_ack_o;
+    
+    jelly_interval_timer
+            #(
+                .WB_ADR_WIDTH       (2),
+                .WB_DAT_WIDTH       (WB_RPU_DAT_WIDTH),
+                .IRQ_LEVEL          (0)
+            )
+        i_interval_timer
+            (
+                .reset              (wb_rpu_rst_i),
+                .clk                (wb_rpu_clk_i),
+                
+                .interrupt_req      (tim_irq),
+                
+                .s_wb_adr_i         (wb_rpu_adr_i[1:0]),
+                .s_wb_dat_o         (wb_tim_dat_o),
+                .s_wb_dat_i         (wb_rpu_dat_i),
+                .s_wb_we_i          (wb_rpu_we_i),
+                .s_wb_sel_i         (wb_rpu_sel_i),
+                .s_wb_stb_i         (wb_tim_stb_i),
+                .s_wb_ack_o         (wb_tim_ack_o)
+            );
+    
+    always_comb begin
+        rtos_set_flg       = '0;
+        rtos_set_flg[1][0] = motor_irq;
+        rtos_set_flg[1][1] = tim_irq;
+    end
+
+
+    // -----------------------------
+    //  WISHBONE address decode
+    // -----------------------------
+    
+    assign wb_rtos_stb_i  = wb_rpu_stb_i & (wb_rpu_adr_i[23:16] == 8'h00);
+    assign wb_motor_stb_i = wb_rpu_stb_i & (wb_rpu_adr_i[23:16] == 8'h02);
+    assign wb_tim_stb_i   = wb_rpu_stb_i & (wb_rpu_adr_i[23:16] == 8'h04);
+    
+    assign wb_rpu_dat_o   = wb_rtos_stb_i  ? wb_rtos_dat_o  :
+                            wb_motor_stb_i ? wb_motor_dat_o :
+                            wb_tim_stb_i   ? wb_tim_dat_o   :
+                            '0;
+    
+    assign wb_rpu_ack_o   = wb_rtos_stb_i  ? wb_rtos_ack_o  :
+                            wb_motor_stb_i ? wb_motor_ack_o :
+                            wb_tim_stb_i   ? wb_tim_ack_o   :
+                            wb_rpu_stb_i;
+    
+
+    // ----------------------------------------------------
+    //  Peripherals
+    // ----------------------------------------------------
+
     // AXI4L => WISHBONE
     localparam  WB_ADR_WIDTH = AXI4L_PERI_ADDR_WIDTH - AXI4L_PERI_DATA_SIZE;
     localparam  WB_DAT_WIDTH = AXI4L_PERI_DATA_WIDTH;
@@ -233,7 +582,7 @@ module kv260_imx219_stepper_motor
                 .AXI4L_ADDR_WIDTH   (AXI4L_PERI_ADDR_WIDTH),
                 .AXI4L_DATA_SIZE    (AXI4L_PERI_DATA_SIZE)     // 0:8bit, 1:16bit, 2:32bit ...
             )
-        i_axi4l_to_wishbone
+        i_axi4l_to_wishbone_rpu
             (
                 .s_axi4l_aresetn    (axi4l_peri_aresetn),
                 .s_axi4l_aclk       (axi4l_peri_aclk),
@@ -817,9 +1166,7 @@ module kv260_imx219_stepper_motor
     assign pmod[1] = i2c0_scl_t;
     assign pmod[2] = i2c0_sda_o;
     assign pmod[3] = i2c0_sda_t;
-    assign pmod[4] = cam_enable;
-    assign pmod[5] = reg_frame_count[7];
-    assign pmod[7:6] = reg_counter_clk100[9:8];
+
     
     
     // Debug
