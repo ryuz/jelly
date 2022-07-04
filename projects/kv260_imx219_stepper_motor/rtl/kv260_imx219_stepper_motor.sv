@@ -7,8 +7,10 @@
 
 module kv260_imx219_stepper_motor
         #(
-            parameter   X_NUM = 3280 / 2,
-            parameter   Y_NUM = 2464 / 2
+            parameter   int     X_WIDTH = 12,
+            parameter   int     Y_WIDTH = 12,
+            parameter   int     X_NUM   = 3280 / 2,
+            parameter   int     Y_NUM   = 2464 / 2
         )
         (
             input   wire            cam_clk_p,
@@ -857,12 +859,16 @@ module kv260_imx219_stepper_motor
     
     
     // format regularizer
+    logic   [X_WIDTH-1:0]       param_img_width;
+    logic   [Y_WIDTH-1:0]       param_img_height;
+
     wire    [0:0]               axi4s_fmtr_tuser;
     wire                        axi4s_fmtr_tlast;
     wire    [9:0]               axi4s_fmtr_tdata;
     wire                        axi4s_fmtr_tvalid;
     wire                        axi4s_fmtr_tready;
     
+
     wire    [WB_DAT_WIDTH-1:0]  wb_fmtr_dat_o;
     wire                        wb_fmtr_stb_i;
     wire                        wb_fmtr_ack_o;
@@ -904,7 +910,10 @@ module kv260_imx219_stepper_motor
                 .s_wb_sel_i         (wb_peri_sel_i),
                 .s_wb_stb_i         (wb_fmtr_stb_i),
                 .s_wb_ack_o         (wb_fmtr_ack_o),
-                
+
+                .out_param_width    (param_img_width),
+                .out_param_height   (param_img_height),
+
                 .s_axi4s_tuser      (axi4s_csi2_tuser),
                 .s_axi4s_tlast      (axi4s_csi2_tlast),
                 .s_axi4s_tdata      (axi4s_csi2_tdata),
@@ -938,8 +947,8 @@ module kv260_imx219_stepper_motor
                 .S_DATA_WIDTH       (10),
                 .M_DATA_WIDTH       (8),
                 
-                .IMG_Y_NUM          (480),
-                .IMG_Y_WIDTH        (12),
+                .IMG_X_WIDTH        (X_WIDTH),
+                .IMG_Y_WIDTH        (Y_WIDTH),
                 
                 .TUSER_WIDTH        (1)
             )
@@ -947,9 +956,13 @@ module kv260_imx219_stepper_motor
             (
                 .aresetn            (axi4s_cam_aresetn),
                 .aclk               (axi4s_cam_aclk),
-                
+                .aclken             (1'b1),
+
                 .in_update_req      (1'b1),
                 
+                .param_img_width    (param_img_width),
+                .param_img_height   (param_img_height),
+
                 .s_wb_rst_i         (wb_peri_rst_i),
                 .s_wb_clk_i         (wb_peri_clk_i),
                 .s_wb_adr_i         (wb_peri_adr_i[15:0]),

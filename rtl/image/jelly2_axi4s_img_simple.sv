@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-module jelly2_axi4s_img_bridge
+module jelly2_axi4s_img_simple
         #(
             parameter   int                         TUSER_WIDTH    = 1,
             parameter   int                         S_TDATA_WIDTH  = 8,
@@ -22,9 +22,6 @@ module jelly2_axi4s_img_bridge
             parameter   int                         BLANK_Y_WIDTH  = IMG_Y_WIDTH,
             parameter   bit                         WITH_DE        = 1,
             parameter   bit                         WITH_VALID     = 1,
-
-            parameter   int                         FIFO_PTR_WIDTH = 9,
-            parameter                               FIFO_RAM_TYPE  = "block",
             parameter   bit                         IMG_CKE_BUFG   = 0,
             
             localparam  int                         USER_WIDTH     = TUSER_WIDTH > 1 ? TUSER_WIDTH - 1 : 1

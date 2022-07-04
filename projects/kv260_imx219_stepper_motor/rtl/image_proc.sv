@@ -21,7 +21,7 @@ module image_proc
             parameter   S_DATA_WIDTH  = 10,
             parameter   M_DATA_WIDTH  = 8,
             
-            parameter   IMG_Y_NUM     = 480,
+            parameter   IMG_X_WIDTH   = 12,
             parameter   IMG_Y_WIDTH   = 12,
             
             parameter   TUSER_WIDTH   = 1,
@@ -33,9 +33,13 @@ module image_proc
         (
             input   wire                        aresetn,
             input   wire                        aclk,
+            input   wire                        aclken,
             
             input   wire                        in_update_req,
-            
+
+            input   wire    [IMG_X_WIDTH-1:0]   param_img_width,
+            input   wire    [IMG_Y_WIDTH-1:0]   param_img_height,
+                        
             input   wire                        s_wb_rst_i,
             input   wire                        s_wb_clk_i,
             input   wire    [WB_ADR_WIDTH-1:0]  s_wb_adr_i,
@@ -84,24 +88,28 @@ module image_proc
     wire                                img_sink_valid;
     
     // img
-    jelly_axi4s_img
+    jelly2_axi4s_img_simple
             #(
                 .TUSER_WIDTH            (TUSER_WIDTH),
                 .S_TDATA_WIDTH          (S_TDATA_WIDTH),
                 .M_TDATA_WIDTH          (M_TDATA_WIDTH),
-                .IMG_Y_NUM              (IMG_Y_NUM),
+                .IMG_X_WIDTH            (IMG_X_WIDTH),
                 .IMG_Y_WIDTH            (IMG_Y_WIDTH),
-                .BLANK_Y_WIDTH          (8),
-                .USE_VALID              (USE_VALID),
-                .IMG_CKE_BUFG           (0)
+                .BLANK_Y_WIDTH          (4),
+                .WITH_DE                (1'b1),
+                .WITH_VALID             (USE_VALID),
+                .IMG_CKE_BUFG           (1'b0)
             )
-        jelly_axi4s_img
+        i_axi4s_img_simple
             (
-                .reset                  (reset),
-                .clk                    (clk),
-                
-                .param_blank_num        (8'h00),
-                
+                .aresetn                (aresetn),
+                .aclk                   (aclk),
+                .aclken                 (aclken),
+
+                .param_img_width        (param_img_width),
+                .param_img_height       (param_img_height),
+                .param_blank_height     (4'd5),
+
                 .s_axi4s_tdata          (s_axi4s_tdata),
                 .s_axi4s_tlast          (s_axi4s_tlast),
                 .s_axi4s_tuser          (s_axi4s_tuser),
@@ -117,23 +125,23 @@ module image_proc
                 
                 .img_cke                (cke),
                 
-                .src_img_line_first     (img_src_row_first),
-                .src_img_line_last      (img_src_row_last),
-                .src_img_pixel_first    (img_src_col_first),
-                .src_img_pixel_last     (img_src_col_last),
-                .src_img_de             (img_src_de),
-                .src_img_user           (),
-                .src_img_data           (img_src_data),
-                .src_img_valid          (img_src_valid),
+                .m_img_src_row_first    (img_src_row_first),
+                .m_img_src_row_last     (img_src_row_last),
+                .m_img_src_col_first    (img_src_col_first),
+                .m_img_src_col_last     (img_src_col_last),
+                .m_img_src_de           (img_src_de),
+                .m_img_src_user         (),
+                .m_img_src_data         (img_src_data),
+                .m_img_src_valid        (img_src_valid),
                 
-                .sink_img_line_first    (img_sink_row_first),
-                .sink_img_line_last     (img_sink_row_last),
-                .sink_img_pixel_first   (img_sink_col_first),
-                .sink_img_pixel_last    (img_sink_col_last),
-                .sink_img_user          (1'b0),
-                .sink_img_de            (img_sink_de),
-                .sink_img_data          (img_sink_data),
-                .sink_img_valid         (img_sink_valid)
+                .s_img_sink_row_first   (img_sink_row_first),
+                .s_img_sink_row_last    (img_sink_row_last),
+                .s_img_sink_col_first   (img_sink_col_first),
+                .s_img_sink_col_last    (img_sink_col_last),
+                .s_img_sink_user        (1'b0),
+                .s_img_sink_de          (img_sink_de),
+                .s_img_sink_data        (img_sink_data),
+                .s_img_sink_valid       (img_sink_valid)
             );
     
     

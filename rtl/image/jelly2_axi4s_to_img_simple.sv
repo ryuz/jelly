@@ -79,7 +79,7 @@ module jelly2_axi4s_to_img_simple
                         sva_tlast : assert (s_axi4s_tlast);
                         x_count <= '0;
                         y_count <= y_next;
-                        if ( y_next == param_img_width ) begin
+                        if ( y_next == param_img_height ) begin
                             blank   <= (param_blank_height != '0);
                             y_count <= '0;
                         end
@@ -128,10 +128,10 @@ module jelly2_axi4s_to_img_simple
 
     always_ff @(posedge clk) begin
         if ( cke && (s_axi4s_tvalid || blank) ) begin
-            img_row_first <= x_count == '0;
-            img_row_last  <= x_next == param_img_width;
-            img_col_first <= !blank && y_count == '0;
-            img_col_last  <= !blank && y_next  == param_img_height;
+            img_row_first <= !blank && y_count == '0;
+            img_row_last  <= !blank && y_next  == param_img_height;
+            img_col_first <= x_count == '0;
+            img_col_last  <= x_next == param_img_width;
             img_de        <= !blank;
             img_user      <= USER_WIDTH'(s_axi4s_tuser >> 1);
             img_data      <= s_axi4s_tdata;
