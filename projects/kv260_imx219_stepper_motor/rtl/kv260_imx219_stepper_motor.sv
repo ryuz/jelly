@@ -939,7 +939,7 @@ module kv260_imx219_stepper_motor
     wire                        wb_img_stb_i;
     wire                        wb_img_ack_o;
     
-    image_proc
+    image_processing
             #(
                 .WB_ADR_WIDTH       (16),
                 .WB_DAT_WIDTH       (WB_DAT_WIDTH),
@@ -952,7 +952,7 @@ module kv260_imx219_stepper_motor
                 
                 .TUSER_WIDTH        (1)
             )
-        i_image_proc
+        i_image_processing
             (
                 .aresetn            (axi4s_cam_aresetn),
                 .aclk               (axi4s_cam_aclk),

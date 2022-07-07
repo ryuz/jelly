@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-module jelly2_img_binarize
+module jelly2_img_binarizer
         #(
             parameter   int                                             USER_WIDTH        = 0,
             parameter   int                                             S_COMPONENTS      = 1,

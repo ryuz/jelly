@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-module image_proc
+module image_processing
         #(
             parameter   WB_ADR_WIDTH  = 16,
             parameter   WB_DAT_WIDTH  = 32,
@@ -436,7 +436,7 @@ module image_proc
     logic                               wb_bin_stb_i;
     logic                               wb_bin_ack_o;
 
-    jelly2_img_binarize
+    jelly2_img_binarizer
             #(
                 .USER_WIDTH             (0),
                 .S_COMPONENTS           (3),
@@ -457,101 +457,101 @@ module image_proc
             )
         i_img_binarize
             (
-                .reset                  (),
-                .clk                    (),
-                .cke                    (),
+                .reset                  (reset),
+                .clk                    (clk),
+                .cke                    (cke),
 
-                .in_update_req          (),
+                .in_update_req          (in_update_req),
                 
-                .s_wb_rst_i             (),
-                .s_wb_clk_i             (),
-                .s_wb_adr_i             (),
-                .s_wb_dat_i             (),
-                .s_wb_dat_o             (),
-                .s_wb_we_i              (),
-                .s_wb_sel_i             (),
-                .s_wb_stb_i             (),
-                .s_wb_ack_o             (),
+                .s_wb_rst_i             (s_wb_rst_i),
+                .s_wb_clk_i             (s_wb_clk_i),
+                .s_wb_adr_i             (s_wb_adr_i[7:0]),
+                .s_wb_dat_i             (s_wb_dat_i),
+                .s_wb_dat_o             (wb_bin_dat_o),
+                .s_wb_we_i              (s_wb_we_i),
+                .s_wb_sel_i             (s_wb_sel_i),
+                .s_wb_stb_i             (wb_bin_stb_i),
+                .s_wb_ack_o             (wb_bin_ack_o),
 
-                .s_img_row_first        (),
-                .s_img_row_last         (),
-                .s_img_col_first        (),
-                .s_img_col_last         (),
-                .s_img_de               (),
-                .s_img_user             (),
-                .s_img_data             (),
-                .s_img_valid            (),
+                .s_img_row_first        (img_hsv_row_first),
+                .s_img_row_last         (img_hsv_row_last),
+                .s_img_col_first        (img_hsv_col_first),
+                .s_img_col_last         (img_hsv_col_last),
+                .s_img_de               (img_hsv_de),
+                .s_img_user             (1'b0),
+                .s_img_data             ({img_hsv_v, img_hsv_s, img_hsv_h}),
+                .s_img_valid            (img_hsv_valid),
 
-                .m_img_row_first        (),
-                .m_img_row_last         (),
-                .m_img_col_first        (),
-                .m_img_col_last         (),
-                .m_img_de               (),
+                .m_img_row_first        (img_bin_row_first),
+                .m_img_row_last         (img_bin_row_last ),
+                .m_img_col_first        (img_bin_col_first),
+                .m_img_col_last         (img_bin_col_last ),
+                .m_img_de               (img_bin_de),
                 .m_img_user             (),
-                .m_img_data             (),
-                .m_img_valid            ()
+                .m_img_data             (img_bin_data),
+                .m_img_valid            (img_bin_valid)
             );
     
 
     // select
-    localparam      S_NUM = 4;
+    localparam      S_NUM = 5;
 
-    logic   [S_NUM-1:0]                     img_sel_in_row_first;
-    logic   [S_NUM-1:0]                     img_sel_in_row_last;
-    logic   [S_NUM-1:0]                     img_sel_in_col_first;
-    logic   [S_NUM-1:0]                     img_sel_in_col_last;
-    logic   [S_NUM-1:0]                     img_sel_in_de;
-    logic   [S_NUM-1:0][M_TDATA_WIDTH-1:0]  img_sel_in_data;
-    logic   [S_NUM-1:0]                     img_sel_in_valid;
+    logic   [S_NUM-1:0]                         img_sel_in_row_first;
+    logic   [S_NUM-1:0]                         img_sel_in_row_last;
+    logic   [S_NUM-1:0]                         img_sel_in_col_first;
+    logic   [S_NUM-1:0]                         img_sel_in_col_last;
+    logic   [S_NUM-1:0]                         img_sel_in_de;
+    logic   [S_NUM-1:0][3:0][M_DATA_WIDTH-1:0]  img_sel_in_data;
+    logic   [S_NUM-1:0]                         img_sel_in_valid;
 
-    assign img_sel_in_row_first[0] = img_src_row_first;
-    assign img_sel_in_row_last [0] = img_src_row_last;
-    assign img_sel_in_col_first[0] = img_src_col_first;
-    assign img_sel_in_col_last [0] = img_src_col_last;
-    assign img_sel_in_de       [0] = img_src_de;
-    assign img_sel_in_data     [0] = M_TDATA_WIDTH'(img_src_data);
-    assign img_sel_in_valid    [0] = img_hsv_valid;
+    assign img_sel_in_row_first[0]    = img_src_row_first;
+    assign img_sel_in_row_last [0]    = img_src_row_last;
+    assign img_sel_in_col_first[0]    = img_src_col_first;
+    assign img_sel_in_col_last [0]    = img_src_col_last;
+    assign img_sel_in_de       [0]    = img_src_de;
+    assign img_sel_in_data     [0]    = M_TDATA_WIDTH'(img_src_data);
+    assign img_sel_in_valid    [0]    = img_hsv_valid;
 
-    assign img_sel_in_row_first[1] = img_colmat_row_first;
-    assign img_sel_in_row_last [1] = img_colmat_row_last;
-    assign img_sel_in_col_first[1] = img_colmat_col_first;
-    assign img_sel_in_col_last [1] = img_colmat_col_last;
-    assign img_sel_in_de       [1] = img_colmat_de;
-    assign img_sel_in_data     [1] = {
-                                        M_DATA_WIDTH'(0),
-                                        img_colmat_r[S_DATA_WIDTH-1 -: M_DATA_WIDTH],
-                                        img_colmat_g[S_DATA_WIDTH-1 -: M_DATA_WIDTH],
-                                        img_colmat_b[S_DATA_WIDTH-1 -: M_DATA_WIDTH]
-                                    };
-    assign img_sel_in_valid    [1] = img_colmat_valid;
+    assign img_sel_in_row_first[1]    = img_colmat_row_first;
+    assign img_sel_in_row_last [1]    = img_colmat_row_last;
+    assign img_sel_in_col_first[1]    = img_colmat_col_first;
+    assign img_sel_in_col_last [1]    = img_colmat_col_last;
+    assign img_sel_in_de       [1]    = img_colmat_de;
+    assign img_sel_in_data     [1][0] = img_colmat_b[S_DATA_WIDTH-1 -: M_DATA_WIDTH];
+    assign img_sel_in_data     [1][1] = img_colmat_g[S_DATA_WIDTH-1 -: M_DATA_WIDTH];
+    assign img_sel_in_data     [1][2] = img_colmat_r[S_DATA_WIDTH-1 -: M_DATA_WIDTH];
+    assign img_sel_in_data     [1][3] = '0;
+    assign img_sel_in_valid    [1]    = img_colmat_valid;
 
-    assign img_sel_in_row_first[2] = img_gauss_row_first;
-    assign img_sel_in_row_last [2] = img_gauss_row_last;
-    assign img_sel_in_col_first[2] = img_gauss_col_first;
-    assign img_sel_in_col_last [2] = img_gauss_col_last;
-    assign img_sel_in_de       [2] = img_gauss_de;
-    assign img_sel_in_data     [2] = {
-                                        M_DATA_WIDTH'(0),
-                                        img_gauss_r[S_DATA_WIDTH-1 -: M_DATA_WIDTH],
-                                        img_gauss_g[S_DATA_WIDTH-1 -: M_DATA_WIDTH],
-                                        img_gauss_b[S_DATA_WIDTH-1 -: M_DATA_WIDTH]
-                                    };
-    assign img_sel_in_valid    [2] = img_colmat_valid;
+    assign img_sel_in_row_first[2]    = img_gauss_row_first;
+    assign img_sel_in_row_last [2]    = img_gauss_row_last;
+    assign img_sel_in_col_first[2]    = img_gauss_col_first;
+    assign img_sel_in_col_last [2]    = img_gauss_col_last;
+    assign img_sel_in_de       [2]    = img_gauss_de;
+    assign img_sel_in_data     [2][0] = img_gauss_b[S_DATA_WIDTH-1 -: M_DATA_WIDTH];
+    assign img_sel_in_data     [2][1] = img_gauss_g[S_DATA_WIDTH-1 -: M_DATA_WIDTH];
+    assign img_sel_in_data     [2][2] = img_gauss_r[S_DATA_WIDTH-1 -: M_DATA_WIDTH];
+    assign img_sel_in_data     [2][3] = '0;
+    assign img_sel_in_valid    [2]    = img_colmat_valid;
 
-    assign img_sel_in_row_first[3] = img_hsv_row_first;
-    assign img_sel_in_row_last [3] = img_hsv_row_last;
-    assign img_sel_in_col_first[3] = img_hsv_col_first;
-    assign img_sel_in_col_last [3] = img_hsv_col_last;
-    assign img_sel_in_de       [3] = img_hsv_de;
-    assign img_sel_in_data     [3] = {
-                                        M_DATA_WIDTH'(0),
-                                        img_hsv_h[S_DATA_WIDTH-1 -: M_DATA_WIDTH],
-                                        img_hsv_s[S_DATA_WIDTH-1 -: M_DATA_WIDTH],
-                                        img_hsv_v[S_DATA_WIDTH-1 -: M_DATA_WIDTH]
-                                    };
-    assign img_sel_in_valid    [3] = img_hsv_valid;
+    assign img_sel_in_row_first[3]    = img_hsv_row_first;
+    assign img_sel_in_row_last [3]    = img_hsv_row_last;
+    assign img_sel_in_col_first[3]    = img_hsv_col_first;
+    assign img_sel_in_col_last [3]    = img_hsv_col_last;
+    assign img_sel_in_de       [3]    = img_hsv_de;
+    assign img_sel_in_data     [3][0] = img_hsv_h[S_DATA_WIDTH-1 -: M_DATA_WIDTH];
+    assign img_sel_in_data     [3][1] = img_hsv_s[S_DATA_WIDTH-1 -: M_DATA_WIDTH];
+    assign img_sel_in_data     [3][2] = img_hsv_v[S_DATA_WIDTH-1 -: M_DATA_WIDTH];
+    assign img_sel_in_data     [3][3] = '0;
+    assign img_sel_in_valid    [3]    = img_hsv_valid;
 
-
+    assign img_sel_in_row_first[4]    = img_bin_row_first;
+    assign img_sel_in_row_last [4]    = img_bin_row_last;
+    assign img_sel_in_col_first[4]    = img_bin_col_first;
+    assign img_sel_in_col_last [4]    = img_bin_col_last;
+    assign img_sel_in_de       [4]    = img_bin_de;
+    assign img_sel_in_data     [4]    = {M_TDATA_WIDTH{img_bin_data}};
+    assign img_sel_in_valid    [4]    = img_bin_valid;
 
 
     logic                               img_select_row_first;
@@ -623,18 +623,21 @@ module image_proc
     assign wb_demos_stb_i  = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == (WB_ADR_WIDTH-8)'(8'h0));
     assign wb_colmat_stb_i = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == (WB_ADR_WIDTH-8)'(8'h1));
     assign wb_gauss_stb_i  = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == (WB_ADR_WIDTH-8)'(8'h4));
+    assign wb_bin_stb_i    = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == (WB_ADR_WIDTH-8)'(8'h6));
     assign wb_select_stb_i = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == (WB_ADR_WIDTH-8)'(8'hf));
     
     assign s_wb_dat_o      = wb_demos_stb_i  ? wb_demos_dat_o  :
                              wb_colmat_stb_i ? wb_colmat_dat_o :
-                             wb_gauss_stb_i  ? wb_gauss_dat_o :
+                             wb_gauss_stb_i  ? wb_gauss_dat_o  :
+                             wb_bin_stb_i    ? wb_bin_dat_o    :
                              wb_select_stb_i ? wb_select_dat_o :
                              32'h0000_0000;
     
     assign s_wb_ack_o      = wb_demos_stb_i  ? wb_demos_ack_o  :
                              wb_colmat_stb_i ? wb_colmat_ack_o :
+                             wb_gauss_stb_i  ? wb_gauss_ack_o  :
+                             wb_bin_stb_i    ? wb_bin_ack_o    :
                              wb_select_stb_i ? wb_select_ack_o :
-                             wb_gauss_stb_i  ? wb_gauss_ack_o :
                              s_wb_stb_i;
     
     
