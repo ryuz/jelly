@@ -73,7 +73,8 @@ int main(int argc, char** argv)
     const int reg_wdma   = (0x00210000 >> 3);
     const int reg_demos  = (0x00400000 >> 3);
     const int reg_colmat = (0x00400800 >> 3);
-
+    const int reg_select = (0x00407800 >> 3);
+    
     wb->Wait(1000);
     wb->Display("start");
     
@@ -84,8 +85,12 @@ int main(int argc, char** argv)
     wb->Read (reg_demos);   // demosaic
     wb->Read (reg_colmat);  // col mat
     wb->Read (reg_wdma);    // wdma
+    wb->Read (reg_select);    // wdma
+
 
     wb->Wait(1000);
+//    wb->Write(reg_select + REG_IMG_SELECTOR_CTL_SELECT, 0, 0xf);
+
     wb->Display("set format regularizer");
     wb->Read (reg_fmtr + REG_VIDEO_FMTREG_CORE_ID);                         // CORE ID
     wb->Write(reg_fmtr + REG_VIDEO_FMTREG_PARAM_WIDTH,      X_NUM, 0xf);    // width

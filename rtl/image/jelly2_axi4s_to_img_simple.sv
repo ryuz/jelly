@@ -89,7 +89,7 @@ module jelly2_axi4s_to_img_simple
             end
             else begin
                 x_count <= x_count + 1'b1;
-                if ( x_count == param_img_width ) begin
+                if ( x_next == param_img_width ) begin
                     x_count <= '0;
                     b_count <= b_next;
                     if ( b_next == param_blank_height ) begin

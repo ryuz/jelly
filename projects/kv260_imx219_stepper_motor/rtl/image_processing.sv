@@ -510,7 +510,7 @@ module image_processing
     assign img_sel_in_col_last [0]    = img_src_col_last;
     assign img_sel_in_de       [0]    = img_src_de;
     assign img_sel_in_data     [0]    = M_TDATA_WIDTH'(img_src_data);
-    assign img_sel_in_valid    [0]    = img_hsv_valid;
+    assign img_sel_in_valid    [0]    = img_src_valid;
 
     assign img_sel_in_row_first[1]    = img_colmat_row_first;
     assign img_sel_in_row_last [1]    = img_colmat_row_last;
@@ -532,7 +532,7 @@ module image_processing
     assign img_sel_in_data     [2][1] = img_gauss_g[S_DATA_WIDTH-1 -: M_DATA_WIDTH];
     assign img_sel_in_data     [2][2] = img_gauss_r[S_DATA_WIDTH-1 -: M_DATA_WIDTH];
     assign img_sel_in_data     [2][3] = '0;
-    assign img_sel_in_valid    [2]    = img_colmat_valid;
+    assign img_sel_in_valid    [2]    = img_gauss_valid;
 
     assign img_sel_in_row_first[3]    = img_hsv_row_first;
     assign img_sel_in_row_last [3]    = img_hsv_row_last;

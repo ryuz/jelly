@@ -85,7 +85,7 @@ module jelly_img_selector_core
         if ( reset ) begin
             reg_busy        <= 0;
             reg_change      <= 0;
-            reg_sel         <= 0;
+            reg_sel         <= ff1_sel;
             reg_line_first  <= 1'b0;
             reg_line_last   <= 1'b0;
             reg_pixel_first <= 1'b0;
