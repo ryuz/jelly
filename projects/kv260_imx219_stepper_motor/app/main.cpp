@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     int     exposure    = 1;
     int     a_gain      = 20;
     int     d_gain      = 10;
-    int     bayer_phase = 1;
+    int     bayer_phase = 0;
     int     view_scale  = 1;
     int     gauss_level = 0;
     int     view_select = 1;
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
             exposure    = 1;
             a_gain      = 20;
             d_gain      = 10;
-            bayer_phase = 1;
+            bayer_phase = 0;
             view_scale  = 1;
         }
         else if ( strcmp(argv[i], "720p") == 0 ) {
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
             exposure    = 20;
             a_gain      = 20;
             d_gain      = 0;
-            bayer_phase = 1;
+            bayer_phase = 0;
             view_scale  = 2;
         }
         else if ( strcmp(argv[i], "1080p") == 0 ) {
@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
             exposure    = 20;
             a_gain      = 20;
             d_gain      = 0;
-            bayer_phase = 1;
+            bayer_phase = 0;
             view_scale  = 2;
         }
         else if ( strcmp(argv[i], "full") == 0 ) {
