@@ -447,7 +447,7 @@ module image_processing
                 .USE_VALID              (USE_VALID),
                 .WB_ADR_WIDTH           (8),
                 .WB_DAT_WIDTH           (WB_DAT_WIDTH),
-                .INIT_CTL_CONTROL       (3'b011),
+                .INIT_CTL_CONTROL       (2'b11),
                 .INIT_PARAM_OR          (1'b0),
                 .INIT_PARAM_TH0         ('0),
                 .INIT_PARAM_TH1         ('1),

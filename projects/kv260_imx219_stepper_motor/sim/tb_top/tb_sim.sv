@@ -173,16 +173,24 @@ module tb_sim();
     endtask
     
 
-    localparam ADR_FMTR    = (32'h00100000 >> 3);  // ビデオサイズ正規化
-    localparam ADR_DEMOS   = (32'h00120000 >> 3);  // デモザイク
-    localparam ADR_COLMAT  = (32'h00120200 >> 3);  // カラーマトリックス
-    localparam ADR_VDMAW   = (32'h00210000 >> 3);  // Write-DMA
+//    localparam ADR_FMTR    = (32'h00100000 >> 3);  // ビデオサイズ正規化
+//    localparam ADR_DEMOS   = (32'h00120000 >> 3);  // デモザイク
+//    localparam ADR_COLMAT  = (32'h00120200 >> 3);  // カラーマトリックス
+//    localparam ADR_VDMAW   = (32'h00210000 >> 3);  // Write-DMA
+
+    localparam ADR_GID    = (32'h00000000 >> 3);
+    localparam ADR_FMTR   = (32'h00100000 >> 3);
+    localparam ADR_VDMAW  = (32'h00210000 >> 3);
+    localparam ADR_DEMOS  = (32'h00400000 >> 3);
+    localparam ADR_COLMAT = (32'h00400800 >> 3);
+    localparam ADR_SELECT = (32'h00407800 >> 3);
 
 `include "jelly/JellyRegs.vh"
     
     initial begin
     #1000;
         $display("start");
+        wb_write(ADR_SELECT + `REG_IMG_SELECTOR_CTL_SELECT, 4, 8'hff);
 
         $display("set FMTR");
         wb_read (ADR_FMTR + `REG_VIDEO_FMTREG_CORE_ID);

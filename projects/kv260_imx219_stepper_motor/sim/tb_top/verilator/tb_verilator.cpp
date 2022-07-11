@@ -89,7 +89,7 @@ int main(int argc, char** argv)
 
 
     wb->Wait(1000);
-//    wb->Write(reg_select + REG_IMG_SELECTOR_CTL_SELECT, 0, 0xf);
+    wb->Write(reg_select + REG_IMG_SELECTOR_CTL_SELECT, 4, 0xf);
 
     wb->Display("set format regularizer");
     wb->Read (reg_fmtr + REG_VIDEO_FMTREG_CORE_ID);                         // CORE ID
