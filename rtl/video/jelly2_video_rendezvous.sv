@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- The platform for real-time computing
 //
-//                                 Copyright (C) 2008-2018 by Ryuz
+//                                 Copyright (C) 2008-2022 by Ryuz
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@
 module jelly2_video_rendezvous
         #(
             parameter   int     TUSER_WIDTH = 1,
-            parameter   int     TDATA_WIDTH = 8
+            parameter   int     TDATA_WIDTH = 24
         )
         (
             input   wire                        aresetn,
