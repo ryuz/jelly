@@ -55,6 +55,8 @@ module jelly2_video_gate
 
     always_comb busy = reg_busy || ((s_axi4s_tuser[0] && s_axi4s_tvalid && s_axi4s_tready) && enable);
 
+    always_comb s_axi4s_tready = busy ? m_axi4s_tready : (param_skip || !s_axi4s_tuser[0]);
+
     always_comb m_axi4s_tuser  = s_axi4s_tuser;
     always_comb m_axi4s_tdata  = s_axi4s_tdata;
     always_comb m_axi4s_tlast  = s_axi4s_tlast;
