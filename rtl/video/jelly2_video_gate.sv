@@ -31,7 +31,7 @@ module jelly2_video_gate
             input   wire                        s_axi4s_tlast,
             input   wire    [TDATA_WIDTH-1:0]   s_axi4s_tdata,
             input   wire                        s_axi4s_tvalid,
-            output  wire                        s_axi4s_tready,
+            output  reg                         s_axi4s_tready,
             
             output  reg     [TUSER_WIDTH-1:0]   m_axi4s_tuser,
             output  reg                         m_axi4s_tlast,
@@ -53,7 +53,7 @@ module jelly2_video_gate
         end
     end
 
-    always_comb busy = reg_busy || ((s_axi4s_tuser[0] && s_axi4s_tvalid && s_axi4s_tready) && enable);
+    always_comb busy = reg_busy || ((s_axi4s_tuser[0] && s_axi4s_tvalid) && enable);
 
     always_comb s_axi4s_tready = busy ? m_axi4s_tready : (param_skip || !s_axi4s_tuser[0]);
 

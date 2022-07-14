@@ -56,12 +56,12 @@ module jelly2_video_rendezvous
 
     always_comb busy = reg_busy || ((sync_tuser[0] && sync_tvalid && sync_tready) && (s_axi4s_tuser[0] && s_axi4s_tvalid));
 
-    always_comb s_axi4s_tready = busy ? sync_tready : !(s_axi4s_tuser[0] && s_axi4s_tvalid);
+    always_comb s_axi4s_tready = busy ? (sync_tvalid & sync_tready) : !(s_axi4s_tuser[0] && s_axi4s_tvalid);
     
-    always_comb m_axi4s_tuser  = busy ? s_axi4s_tuser  : 'x;
+    always_comb m_axi4s_tuser  = s_axi4s_tuser;
     always_comb m_axi4s_tdata  = busy ? s_axi4s_tdata  : padding_tdata;
-    always_comb m_axi4s_tlast  = busy ? s_axi4s_tlast  : 1'bx;
-    always_comb m_axi4s_tvalid = busy ? s_axi4s_tvalid : 1'b0;
+    always_comb m_axi4s_tlast  = s_axi4s_tlast;
+    always_comb m_axi4s_tvalid = busy & s_axi4s_tvalid & s_axi4s_tready;
     
 endmodule
 
