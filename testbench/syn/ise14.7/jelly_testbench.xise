@@ -415,11 +415,11 @@
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="309"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
-    <file xil_pn:name="../../../rtl/image/jelly_img_demosaic_acpi_g_unit.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../rtl/image/jelly_img_demosaic_acpi_g_calc.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="310"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
-    <file xil_pn:name="../../../rtl/image/jelly_img_demosaic_acpi_rb_unit.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../../../rtl/image/jelly_img_demosaic_acpi_rb_calc.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="322"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>

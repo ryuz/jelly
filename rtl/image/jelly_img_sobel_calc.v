@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-module jelly_img_sobel_unit
+module jelly_img_sobel_calc
         #(
             parameter   USER_WIDTH   = 0,
             parameter   DATA_WIDTH   = 8,

@@ -3,12 +3,14 @@
 #--build
 #--coverage
 
--Wno-WIDTH
+#-Wno-WIDTH
 -Wno-UNSIGNED
 #-Wno-PINMISSING
 -Wno-UNOPTFLAT
 #-Wno-CASEX
 #-Wno-CASEINCOMPLETE
+
+#-Wno-fatal
 
 -y ../../../../../rtl/model
 -y ../../../../../rtl/library

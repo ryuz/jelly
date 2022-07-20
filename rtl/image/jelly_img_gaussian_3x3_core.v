@@ -107,12 +107,12 @@ module jelly_img_gaussian_3x3_core
             assign in_data[j*DATA_WIDTH +: DATA_WIDTH] = img_blk_data[j*S_DATA_WIDTH + i*DATA_WIDTH +: DATA_WIDTH];
         end
         
-        jelly_img_gaussian_3x3_unit
+        jelly_img_gaussian_3x3_calc
                 #(
                     .DATA_WIDTH         (DATA_WIDTH),
                     .OUT_DATA_WIDTH     (OUT_DATA_WIDTH)
                 )
-            i_img_gaussian_3x3_unit
+            i_img_gaussian_3x3_calc
                 (
                     .reset              (reset),
                     .clk                (clk),

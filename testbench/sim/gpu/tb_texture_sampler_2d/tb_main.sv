@@ -147,9 +147,9 @@ module tb_main(
     logic                               writer_enable;
     logic                               writer_busy;
 
-    logic   [STRIDE_C_WIDTH-1:0]        param_stride_c = (1 << BLK_X_SIZE) * (1 << BLK_Y_SIZE);
-    logic   [STRIDE_X_WIDTH-1:0]        param_stride_x = (1 << BLK_X_SIZE) * (1 << BLK_Y_SIZE) * COMPONENTS;
-    logic   [STRIDE_Y_WIDTH-1:0]        param_stride_y = X_NUM             * (1 << BLK_Y_SIZE) * COMPONENTS;
+    logic   [STRIDE_C_WIDTH-1:0]        param_stride_c = STRIDE_C_WIDTH'((1 << BLK_X_SIZE) * (1 << BLK_Y_SIZE));
+    logic   [STRIDE_X_WIDTH-1:0]        param_stride_x = STRIDE_X_WIDTH'((1 << BLK_X_SIZE) * (1 << BLK_Y_SIZE) * COMPONENTS);
+    logic   [STRIDE_Y_WIDTH-1:0]        param_stride_y = STRIDE_Y_WIDTH'(X_NUM             * (1 << BLK_Y_SIZE) * COMPONENTS);
 
     initial begin
         $display("param_stride_c : %d", param_stride_c);
@@ -203,9 +203,9 @@ module tb_main(
                 .busy                   (writer_busy),
                 
                 .param_addr             (32'h0000_0000),
-                .param_awlen            (32'h03),
-                .param_width            (X_NUM-1),
-                .param_height           (Y_NUM-1),
+                .param_awlen            (8'h03),
+                .param_width            (X_WIDTH'(X_NUM-1)),
+                .param_height           (Y_WIDTH'(Y_NUM-1)),
                 .param_stride_c         (param_stride_c),
                 .param_stride_x         (param_stride_x),
                 .param_stride_y         (param_stride_y),
@@ -607,11 +607,11 @@ module tb_main(
                 .endian                         (1'b0),
                 
                 .param_addr                     (32'h0000_0000),
-                .param_width                    (X_NUM-1),
-                .param_height                   (Y_NUM-1),
-                .param_stride_c                 ((1 << BLK_X_SIZE) * (1 << BLK_Y_SIZE)),
-                .param_stride_x                 ((1 << BLK_X_SIZE) * (1 << BLK_Y_SIZE) * COMPONENTS),
-                .param_stride_y                 (X_NUM             * (1 << BLK_Y_SIZE) * COMPONENTS),
+                .param_width                    (ADDR_X_WIDTH'(X_NUM-1)),
+                .param_height                   (ADDR_Y_WIDTH'(Y_NUM-1)),
+                .param_stride_c                 (STRIDE_C_WIDTH'((1 << BLK_X_SIZE) * (1 << BLK_Y_SIZE))),
+                .param_stride_x                 (STRIDE_X_WIDTH'((1 << BLK_X_SIZE) * (1 << BLK_Y_SIZE) * COMPONENTS)),
+                .param_stride_y                 (STRIDE_Y_WIDTH'(X_NUM             * (1 << BLK_Y_SIZE) * COMPONENTS)),
                 .param_border_value             (24'h000000),
                 .param_blank_value              ('0),
                 .param_x_op                     (3'b110),

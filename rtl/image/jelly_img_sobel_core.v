@@ -96,13 +96,13 @@ module jelly_img_sobel_core
             );
     
     
-    jelly_img_sobel_unit
+    jelly_img_sobel_calc
             #(
                 .DATA_WIDTH         (DATA_WIDTH),
                 .GRAD_X_WIDTH       (GRAD_X_WIDTH),
                 .GRAD_Y_WIDTH       (GRAD_Y_WIDTH)
             )
-        i_img_sobel_unit
+        i_img_sobel_calc
             (
                 .reset              (reset),
                 .clk                (clk),

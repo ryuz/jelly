@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-module jelly_img_gaussian_3x3_unit
+module jelly_img_gaussian_3x3_calc
         #(
             parameter   USER_WIDTH     = 0,
             parameter   DATA_WIDTH     = 8,
