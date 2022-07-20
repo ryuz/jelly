@@ -85,11 +85,12 @@ int main(int argc, char** argv)
     wb->Read (reg_demos);   // demosaic
     wb->Read (reg_colmat);  // col mat
     wb->Read (reg_wdma);    // wdma
-    wb->Read (reg_select);    // wdma
+    wb->Read (reg_select);  // wdma
 
 
     wb->Wait(1000);
-    wb->Write(reg_select + REG_IMG_SELECTOR_CTL_SELECT, 4, 0xf);
+    wb->Display("set selector");
+    wb->Write(reg_select + REG_IMG_SELECTOR_CTL_SELECT, 2, 0xf);
 
     wb->Display("set format regularizer");
     wb->Read (reg_fmtr + REG_VIDEO_FMTREG_CORE_ID);                         // CORE ID
@@ -104,6 +105,23 @@ int main(int argc, char** argv)
     wb->Read (reg_demos + REG_IMG_DEMOSAIC_CORE_ID);
     wb->Write(reg_demos + REG_IMG_DEMOSAIC_PARAM_PHASE,    0x3, 0xf);
     wb->Write(reg_demos + REG_IMG_DEMOSAIC_CTL_CONTROL,    0x3, 0xf);
+
+    wb->Display("set colmat");
+    wb->Read (reg_colmat + REG_IMG_COLMAT_CORE_ID);
+    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX00, 0x00018000, 0xf);
+    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX01, 0x00000000, 0xf);
+    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX02, 0x00000000, 0xf);
+    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX03, 0x00000000, 0xf);
+    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX10, 0x00000000, 0xf);
+    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX11, 0x00010000, 0xf);
+    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX12, 0x00000000, 0xf);
+    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX13, 0x00000000, 0xf);
+    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX20, 0x00000000, 0xf);
+    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX21, 0x00000000, 0xf);
+    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX22, 0x00020000, 0xf);
+    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX23, 0x00000000, 0xf);
+    wb->Write(reg_colmat + REG_IMG_COLMAT_CTL_CONTROL, 3, 0xf);
+
 
     wb->Display("set write DMA");
     wb->Read (reg_wdma + REG_VDMA_WRITE_CORE_ID);                         // CORE ID

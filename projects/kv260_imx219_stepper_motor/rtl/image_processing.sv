@@ -14,21 +14,24 @@
 
 module image_processing
         #(
-            parameter   WB_ADR_WIDTH  = 16,
-            parameter   WB_DAT_WIDTH  = 32,
-            parameter   WB_SEL_WIDTH  = (WB_DAT_WIDTH / 8),
+            parameter   int     WB_ADR_WIDTH  = 16,
+            parameter   int     WB_DAT_WIDTH  = 32,
+            parameter   int     WB_SEL_WIDTH  = (WB_DAT_WIDTH / 8),
+                        
+            parameter   int     S_DATA_WIDTH  = 10,
+            parameter   int     M_DATA_WIDTH  = 8,
             
-            parameter   S_DATA_WIDTH  = 10,
-            parameter   M_DATA_WIDTH  = 8,
+            parameter   int     IMG_X_WIDTH   = 12,
+            parameter   int     IMG_Y_WIDTH   = 12,
+
+            parameter   int     M0_WIDTH      = 10,
+            parameter   int     M1_WIDTH      = 18,
+
+            parameter   int     TUSER_WIDTH   = 1,
+            parameter   int     S_TDATA_WIDTH = S_DATA_WIDTH,
+            parameter   int     M_TDATA_WIDTH = 4*M_DATA_WIDTH,
             
-            parameter   IMG_X_WIDTH   = 12,
-            parameter   IMG_Y_WIDTH   = 12,
-            
-            parameter   TUSER_WIDTH   = 1,
-            parameter   S_TDATA_WIDTH = S_DATA_WIDTH,
-            parameter   M_TDATA_WIDTH = 4*M_DATA_WIDTH,
-            
-            parameter   DEVICE        = "RTL"
+            parameter           DEVICE        = "RTL"
         )
         (
             input   wire                        aresetn,
@@ -253,7 +256,7 @@ module image_processing
                 .WB_ADR_WIDTH           (6),
                 .WB_DAT_WIDTH           (WB_DAT_WIDTH),
                 
-                .INIT_PARAM_MATRIX00    (2 << 16),
+                .INIT_PARAM_MATRIX00    (1 << 16),
                 .INIT_PARAM_MATRIX01    (0),
                 .INIT_PARAM_MATRIX02    (0),
                 .INIT_PARAM_MATRIX03    (0),
@@ -511,13 +514,13 @@ module image_processing
                 .clk                    (clk),
                 .cke                    (cke),
 
-                .s_img_row_first        (s_img_row_first),
-                .s_img_row_last         (s_img_row_last),
-                .s_img_col_first        (s_img_col_first),
-                .s_img_col_last         (s_img_col_last),
-                .s_img_de               (s_img_de),
-                .s_img_data             (s_img_data),
-                .s_img_valid            (s_img_valid),
+                .s_img_row_first        (img_bin_row_first),
+                .s_img_row_last         (img_bin_row_last),
+                .s_img_col_first        (img_bin_col_first),
+                .s_img_col_last         (img_bin_col_last),
+                .s_img_de               (img_bin_de),
+                .s_img_data             (img_bin_data),
+                .s_img_valid            (img_bin_valid),
 
                 .m_moment_first         (m_moment_first),
                 .m_moment_last          (m_moment_last),
@@ -629,4 +632,58 @@ module image_processing
                 .s_img_line_last        (img_sel_in_row_last),
                 .s_img_pixel_first      (img_sel_in_col_first),
                 .s_img_pixel_last       (img_sel_in_col_last),
-                .s_i
+                .s_img_de               (img_sel_in_de),
+                .s_img_user             (1'b0),
+                .s_img_data             (img_sel_in_data),
+                .s_img_valid            (img_sel_in_valid),
+
+                .m_img_line_first       (img_select_row_first),
+                .m_img_line_last        (img_select_row_last),
+                .m_img_pixel_first      (img_select_col_first),
+                .m_img_pixel_last       (img_select_col_last ),
+                .m_img_de               (img_select_de),
+                .m_img_user             (),
+                .m_img_data             (img_select_data),
+                .m_img_valid            (img_select_valid)
+            );
+    
+    assign img_sink_row_first = img_select_row_first;
+    assign img_sink_row_last  = img_select_row_last;
+    assign img_sink_col_first = img_select_col_first;
+    assign img_sink_col_last  = img_select_col_last;
+    assign img_sink_de        = img_select_de;
+    assign img_sink_data      = img_select_data;
+    assign img_sink_valid     = img_select_valid;
+
+
+    // WHISHBONE decode
+    assign wb_demos_stb_i  = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == (WB_ADR_WIDTH-8)'(8'h0));
+    assign wb_colmat_stb_i = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == (WB_ADR_WIDTH-8)'(8'h1));
+    assign wb_gauss_stb_i  = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == (WB_ADR_WIDTH-8)'(8'h4));
+    assign wb_bin_stb_i    = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == (WB_ADR_WIDTH-8)'(8'h6));
+    assign wb_select_stb_i = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == (WB_ADR_WIDTH-8)'(8'hf));
+    
+    assign s_wb_dat_o      = wb_demos_stb_i  ? wb_demos_dat_o  :
+                             wb_colmat_stb_i ? wb_colmat_dat_o :
+                             wb_gauss_stb_i  ? wb_gauss_dat_o  :
+                             wb_bin_stb_i    ? wb_bin_dat_o    :
+                             wb_select_stb_i ? wb_select_dat_o :
+                             32'h0000_0000;
+    
+    assign s_wb_ack_o      = wb_demos_stb_i  ? wb_demos_ack_o  :
+                             wb_colmat_stb_i ? wb_colmat_ack_o :
+                             wb_gauss_stb_i  ? wb_gauss_ack_o  :
+                             wb_bin_stb_i    ? wb_bin_ack_o    :
+                             wb_select_stb_i ? wb_select_ack_o :
+                             s_wb_stb_i;
+    
+    
+endmodule
+
+
+
+`default_nettype wire
+
+
+
+// end of file
