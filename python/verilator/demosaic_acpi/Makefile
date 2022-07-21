@@ -40,7 +40,8 @@ clean:
 
 .PHONY : distclean
 distclean: clean
-	rm -f *.fst *.vcd
+	rm -f *.fst *.fst.hier
+	rm -f *.vcd
 	rm -f *.ppm *.pgm
 	rm -f axi*.txt
 	rm -f coverage.dat

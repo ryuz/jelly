@@ -1,3 +1,5 @@
+#include <pybind11/pybind11.h>
+
 #include <memory>
 #include <verilated.h>
 //#include <opencv2/opencv.hpp>
@@ -10,6 +12,7 @@
 //#include "jelly/simulator/Axi4sImageLoadNode.h"
 //#include "jelly/simulator/Axi4sImageDumpNode.h"
 #include "jelly/JellyRegs.h"
+
 
 
 namespace jsim = jelly::simulator;
@@ -59,7 +62,8 @@ public:
 
         m_top->param_img_width  = 640;
         m_top->param_img_height = 132;
-        
+
+        /*        
         jsim::Axi4sVideo axi4s_src =
                 {
                     &m_top->aresetn,
@@ -85,13 +89,12 @@ public:
         std::string s;
         auto image_src_load   = jsim::Axi4sImageLoadNode_Create(axi4s_src, "../BOAT.bmp", jsim::fmt_gray);
         auto image_dst_dump   = jsim::Axi4sImageDumpNode_Create(axi4s_dst, "img_%04d.png", jsim::fmt_gray, 256, 256);
-        auto image_angle_dump = jsim::Axi4sImageDumpNode_Create(axi4s_angle, "angle_%04d.png", jsim::fmt_color, 256, 256);
-
+        */
 
         jsim::WishboneMaster wishbone_signals =
                 {
-                    &m_top->reset,
-                    &m_top->clk,
+                    &m_top->s_wb_rst_i,
+                    &m_top->s_wb_clk_i,
                     &m_top->s_wb_adr_i,
                     &m_top->s_wb_dat_o,
                     &m_top->s_wb_dat_i,
@@ -131,6 +134,20 @@ public:
 };
 
 
+namespace py = pybind11;
+
+PYBIND11_MODULE(demosaic_acpi, p)
+{
+    py::class_<DemosaicAcpi>(p, "DemosaicAcpi")
+            .def(py::init<>())
+            .def("run",      &DemosaicAcpi::Run)
+            .def("wite_reg", &DemosaicAcpi::WriteReg)
+            .def("wait_bus", &DemosaicAcpi::WaitBus)
+            ;
+}
+
+
+/*
 int main() {
     auto sim = new DemosaicAcpi();
     sim->Run(1000);
@@ -140,7 +157,7 @@ int main() {
 
     sim->Run(4000000);
 }
-
+*/
 
 
 #if 0

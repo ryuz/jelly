@@ -22,11 +22,12 @@ module top
         (
             input   wire                            aresetn,
             input   wire                            aclk,
-            input   wire                            aclken,
+//          input   wire                            aclken,
  
             input   wire    [IMG_X_WIDTH-1:0]       param_img_width,
             input   wire    [IMG_Y_WIDTH-1:0]       param_img_height,
 
+            /*
             input   wire    [TUSER_WIDTH-1:0]       s_axi4s_tuser,
             input   wire                            s_axi4s_tlast,
             input   wire    [DATA_WIDTH-1:0]        s_axi4s_tdata,
@@ -38,6 +39,7 @@ module top
             output  wire    [3:0][DATA_WIDTH-1:0]   m_axi4s_tdata,
             output  wire                            m_axi4s_tvalid,
             input   wire                            m_axi4s_tready,
+            */
 
             input   wire                            s_wb_rst_i,
             input   wire                            s_wb_clk_i,
@@ -50,14 +52,14 @@ module top
             output  wire                            s_wb_ack_o
         );
     
-    /*
-    localparam                              FILE_NAME  = "dump_img_1000fps_raw10.pgm";
+    
+    localparam                              FILE_NAME  = "../dump_img_1000fps_raw10.pgm";
     localparam                              FILE_X_NUM = 640;
     localparam                              FILE_Y_NUM = 132;
 
     localparam  int                         IMG_WIDTH  = 640;
     localparam  int                         IMG_HEIGHT = 132;
-    */
+    
 
     // -----------------------------------------
     //  top
@@ -81,11 +83,11 @@ module top
 
 //    logic                           aresetn;
 //    logic                           aclk;
-//    logic                           aclken;
+      logic                           aclken = 1'b1;
 //    logic                           in_update_req;
 //    logic   [IMG_X_WIDTH-1:0]       param_img_width;
 //    logic   [IMG_Y_WIDTH-1:0]       param_img_height;
-    /*
+    
     logic   [TUSER_WIDTH-1:0]       s_axi4s_tuser;
     logic                           s_axi4s_tlast;
     logic   [DATA_WIDTH-1:0]        s_axi4s_tdata;
@@ -99,9 +101,6 @@ module top
     logic   [DATA_WIDTH-1:0]        m_axi4s_tdata_raw;
     logic                           m_axi4s_tvalid;
     logic                           m_axi4s_tready;
-    logic                           s_wb_rst_i;
-    logic                           s_wb_clk_i;
-    */
 
     // demosaic with ACPI
     jelly2_video_demosaic_acpi
@@ -144,10 +143,10 @@ module top
 
                 .m_axi4s_tuser      (m_axi4s_tuser),
                 .m_axi4s_tlast      (m_axi4s_tlast),
-                .m_axi4s_tdata_r    (m_axi4s_tdata[0]),
-                .m_axi4s_tdata_g    (m_axi4s_tdata[1]),
-                .m_axi4s_tdata_b    (m_axi4s_tdata[2]),
-                .m_axi4s_tdata_raw  (m_axi4s_tdata[3]),
+                .m_axi4s_tdata_r    (m_axi4s_tdata_r  ),
+                .m_axi4s_tdata_g    (m_axi4s_tdata_g  ),
+                .m_axi4s_tdata_b    (m_axi4s_tdata_b  ),
+                .m_axi4s_tdata_raw  (m_axi4s_tdata_raw),
                 .m_axi4s_tvalid     (m_axi4s_tvalid),
                 .m_axi4s_tready     (m_axi4s_tready),
 
@@ -162,7 +161,7 @@ module top
                 .s_wb_ack_o         (s_wb_ack_o)
             );
     
-    /*
+    
     // -----------------------------------------
     //  video input
     // -----------------------------------------
@@ -189,9 +188,9 @@ module top
             )
         i_axi4s_master_model
             (
-                .aresetn            (~reset),
-                .aclk               (clk),
-                .aclken             (1'b1),
+                .aresetn            (aresetn),
+                .aclk               (aclk),
+                .aclken             (aclken),
                 
                 .enable             (1'b1),
                 .busy               (),
@@ -226,9 +225,9 @@ module top
             )
         i_axi4s_slave_model
             (
-                .aresetn            (~reset),
-                .aclk               (clk),
-                .aclken             (1'b1),
+                .aresetn            (aresetn),
+                .aclk               (aclk),
+                .aclken             (aclken),
 
                 .param_width        (IMG_WIDTH),
                 .param_height       (IMG_HEIGHT),
@@ -240,7 +239,7 @@ module top
                 .s_axi4s_tvalid     (m_axi4s_tvalid),
                 .s_axi4s_tready     (m_axi4s_tready)
             );
-    */
+    
 
 endmodule
 
