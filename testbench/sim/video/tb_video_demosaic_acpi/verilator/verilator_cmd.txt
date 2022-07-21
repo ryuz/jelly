@@ -1,0 +1,30 @@
+--trace-fst --trace-params --trace-structs --trace-underscore
+#--public
+#--threads 2
+
+-D__VERILATOR__
+
+-Wno-WIDTH
+#-Wno-UNSIGNED
+#-Wno-PINMISSING
+#-Wno-UNOPTFLAT
+#-Wno-UNOPTTHREADS
+#-Wno-LITENDIAN
+#-Wno-STMTDLY
+#-Wno-CASEINCOMPLETE
+#-Wno-LATCH
+#-Wno-COMBDLY
+#-Wno-SELRANGE
+#-Wno-WIDTHCONCAT
+#-Wno-MULTITOP
+
+-y ../../../../../rtl/library
+-y ../../../../../rtl/bus
+-y ../../../../../rtl/dma
+-y ../../../../../rtl/math
+-y ../../../../../rtl/primitive
+-y ../../../../../rtl/rtos
+-y ../../../../../rtl/image
+-y ../../../../../rtl/video
+-y ../../../../../rtl/peripheral
+-y ../../../../../rtl/model

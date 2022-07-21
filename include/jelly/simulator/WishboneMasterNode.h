@@ -6,14 +6,14 @@
 #include <queue>
 #include "jelly/simulator/Manager.h"
 #include "jelly/simulator/Wishbone.h"
-
+#include "jelly/simulator/QueuedBusAccess.h"
 
 namespace jelly {
 namespace simulator {
 
 
 template<typename TWishbone>
-class WishboneMasterNode : public Node
+class WishboneMasterNode : public QueuedBusAccess
 {
 protected:
     enum AccType {
@@ -61,14 +61,18 @@ public:
         return std::shared_ptr< WishboneMasterNode >(new WishboneMasterNode(wishbone, verbose));
     }
 
-    void SetVerbose(bool verbose)
+    bool IsEmptyQueue(void) override {
+        return m_acc_que.empty();
+    }
+
+    void SetVerbose(bool verbose) override
     {
         Access acc;
         acc.acc_type = verbose ? VerboseOn : VerboseOff;
         m_acc_que.push(acc);
     }
 
-    void Wait(int cycle)
+    void Wait(int cycle) override
     {
         Access acc;
         acc.acc_type   = AccWait;
@@ -76,7 +80,7 @@ public:
         m_acc_que.push(acc);
     }
 
-    void Write(unsigned long long adr, unsigned long long dat, unsigned long long  sel, int cycle=0)
+    void Write(unsigned long long adr, unsigned long long dat, unsigned long long  sel, int cycle=0) override
     {
         Access acc;
         acc.acc_type   = AccWrite;
@@ -87,7 +91,7 @@ public:
         m_acc_que.push(acc);
     }
 
-    void Read(unsigned long long adr, int cycle=0)
+    void Read(unsigned long long adr, int cycle=0) override
     {
         Access acc;
         acc.acc_type   = AccRead;
@@ -96,7 +100,7 @@ public:
         m_acc_que.push(acc);
     }
 
-    void Display(std::string message)
+    void Display(std::string message) override
     {
         Access acc;
         acc.acc_type = AccDisplay;

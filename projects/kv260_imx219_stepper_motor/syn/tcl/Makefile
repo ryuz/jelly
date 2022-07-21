@@ -43,6 +43,7 @@ SOURCES += $(TOP_DIR)/rtl/image/jelly_img_demosaic_acpi_rb_calc.v
 SOURCES += $(TOP_DIR)/rtl/image/jelly_img_gaussian_3x3.v
 SOURCES += $(TOP_DIR)/rtl/image/jelly_img_gaussian_3x3_core.v
 SOURCES += $(TOP_DIR)/rtl/image/jelly_img_gaussian_3x3_calc.v
+SOURCES += $(TOP_DIR)/rtl/image/jelly2_img_line_moment.sv
 SOURCES += $(TOP_DIR)/rtl/image/jelly2_img_rgb2hsv.sv
 SOURCES += $(TOP_DIR)/rtl/image/jelly2_img_binarizer.sv
 SOURCES += $(TOP_DIR)/rtl/image/jelly2_img_binarizer_core.sv

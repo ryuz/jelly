@@ -88,7 +88,7 @@ module jelly2_axi4s_img
                     .INIT_Y_NUM             (INIT_Y_NUM),
                     .FIFO_PTR_WIDTH         (FIFO_PTR_WIDTH),
                     .FIFO_RAM_TYPE          (FIFO_RAM_TYPE),
-                    .IMG_CKE_BUFG           (IMG_CKE_BUFG),
+                    .IMG_CKE_BUFG           (IMG_CKE_BUFG)
                 )
             i_axi4s_img_auto
                 (
