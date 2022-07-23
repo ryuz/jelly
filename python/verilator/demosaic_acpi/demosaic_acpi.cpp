@@ -1,9 +1,15 @@
-//#include <pybind11/pybind11.h>
 
 #include <memory>
+
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
+#include <pybind11/stl.h>
+
 #include <verilated.h>
-//#include <opencv2/opencv.hpp>
 #include "Vsim_top.h"
+
+//#include <opencv2/opencv.hpp>
+
 #include "jelly/simulator/Manager.h"
 #include "jelly/simulator/ResetNode.h"
 #include "jelly/simulator/ClockNode.h"
@@ -16,6 +22,8 @@
 #include "jelly/JellyRegs.h"
 
 
+const int           DATA_WIDTH = 10;
+const std::uint64_t DATA_MASK  = (1 << DATA_WIDTH) - 1;
 
 namespace jsim = jelly::simulator;
 
@@ -105,34 +113,6 @@ public:
         m_stream_reader = jsim::Axi4StreamReaderNode_Create(axi4s_dst);
         m_mng->AddNode(m_stream_reader);
 
-        /*        
-        jsim::Axi4sVideo axi4s_src =
-                {
-                    &m_top->aresetn,
-                    &m_top->aclk,
-                    &m_top->s_axi4s_tuser,
-                    &m_top->s_axi4s_tlast,
-                    &m_top->s_axi4s_tdata,
-                    &m_top->s_axi4s_tvalid,
-                    &m_top->s_axi4s_tready
-                };
-
-        jsim::Axi4sVideo axi4s_dst =
-                {
-                    &top->aresetn,
-                    &top->aclk,
-                    &top->m_axi4s_tuser,
-                    &top->m_axi4s_tlast,
-                    &top->m_axi4s_tdata,
-                    &top->m_axi4s_tvalid,
-                    &top->m_axi4s_tready
-                };
-
-        std::string s;
-        auto image_src_load   = jsim::Axi4sImageLoadNode_Create(axi4s_src, "../BOAT.bmp", jsim::fmt_gray);
-        auto image_dst_dump   = jsim::Axi4sImageDumpNode_Create(axi4s_dst, "img_%04d.png", jsim::fmt_gray, 256, 256);
-        */
-
         jsim::WishboneMaster wishbone_signals =
                 {
                     &m_top->s_wb_rst_i,
@@ -201,25 +181,65 @@ public:
     std::size_t GetReadQueSize() {
         return m_stream_reader->GetSize();
     }
+
+
+    void WriteImage(pybind11::array_t<std::uint16_t> array)
+    {
+        pybind11::buffer_info info = array.request();
+        auto ptr = (const std::uint16_t *)info.ptr;
+        for ( int y = 0; y < m_height; ++y ) {
+            for ( int x = 0; x < m_width; ++x ) {
+                WriteStream(*ptr++, x==(m_width-1), x==0&&y==0);
+            }
+        }
+    }
+
+    pybind11::array_t<std::uint16_t> ReadImage(void)
+    {
+        // データが揃うまでシミュレーションを進める
+        while ( GetReadQueSize() < m_height * m_width ) {
+            Run(100);
+        }
+        
+        // 読み出し
+        std::vector<pybind11::ssize_t> shape{m_height, m_width, 3};
+        pybind11::array_t<std::uint16_t> array{shape};
+        pybind11::buffer_info info = array.request();
+        auto ptr = (std::uint16_t *)info.ptr;
+        for ( int i = 0; i < m_height*m_width; ++i ) {
+            auto tdata = ReadStream();
+            // OpenCV に合わせて BGR 順にする
+            ptr[i*3 + 2] = (std::uint16_t)(tdata >> ((DATA_WIDTH*0)) & DATA_MASK);
+            ptr[i*3 + 1] = (std::uint16_t)(tdata >> ((DATA_WIDTH*1)) & DATA_MASK);
+            ptr[i*3 + 0] = (std::uint16_t)(tdata >> ((DATA_WIDTH*2)) & DATA_MASK);
+        }
+        return array;
+    }
 };
 
 
 
-/*
-namespace py = pybind11;
+//namespace py = pybind11;
 
 PYBIND11_MODULE(demosaic_acpi, p)
 {
-    py::class_<DemosaicAcpi>(p, "DemosaicAcpi")
-            .def(py::init<>())
-            .def("run",      &DemosaicAcpi::Run)
-            .def("wite_reg", &DemosaicAcpi::WriteReg)
-            .def("wait_bus", &DemosaicAcpi::WaitBus)
+    pybind11::class_<DemosaicAcpi>(p, "DemosaicAcpi")
+            .def(pybind11::init<int, int>())
+            .def("set_image_size", &DemosaicAcpi::SetImageSize)
+            .def("run",            &DemosaicAcpi::Run)
+            .def("write_reg",      &DemosaicAcpi::WriteReg)
+            .def("wait_bus",       &DemosaicAcpi::WaitBus)
+            .def("write_stream",   &DemosaicAcpi::WriteStream)
+            .def("write_que_size", &DemosaicAcpi::GetWriteQueSize)
+            .def("read_stream",    &DemosaicAcpi::ReadStream)
+            .def("read_que_size",  &DemosaicAcpi::GetReadQueSize)
+            .def("write_image",    &DemosaicAcpi::WriteImage)
+            .def("read_image",     &DemosaicAcpi::ReadImage)
             ;
 }
-*/
 
 
+/*
 int main() {
     int w = 640;
     int h = 132;
@@ -248,6 +268,7 @@ int main() {
 
     return 0;
 }
+*/
 
 
 

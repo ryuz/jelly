@@ -31,9 +31,9 @@ message("VIVADO_VERSION: ${VIVADO_VERSION}")
 #message("VIVADO_VERSION_MINOR: ${VIVADO_VERSION_MINOR}")
 
 add_subdirectory(pybind11)
-#pybind11_add_module(demosaic_acpi demosaic_acpi.cpp)
+pybind11_add_module(demosaic_acpi demosaic_acpi.cpp)
 
-add_executable(demosaic_acpi ./demosaic_acpi.cpp)
+#add_executable(demosaic_acpi ./demosaic_acpi.cpp)
 
 target_include_directories(demosaic_acpi PUBLIC "../../../include")
 set(CMAKE_CXX_FLAGS "-O3 -std=c++17")
@@ -52,7 +52,7 @@ set(RTL_SRCS
 
 verilate(demosaic_acpi
 #    COVERAGE
-#    TRACE
+    TRACE
     INCLUDE_DIRS "."
     VERILATOR_ARGS -f verilator_cmd.txt -Os
     SOURCES ${RTL_SRCS})

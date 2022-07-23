@@ -115,6 +115,9 @@ protected:
     {
         // リセット解除の時だけ処理
         if ( !m_aresetn ) {
+            while ( !m_que.empty() ) {
+                m_que.pop();
+            }
             if ( m_axi4s.tready ) {
                 *m_axi4s.tready = 0;
             }

@@ -102,7 +102,7 @@ module jelly2_video_demosaic_acpi
                 .M_TDATA_WIDTH          (4*DATA_WIDTH),
                 .IMG_X_WIDTH            (IMG_X_WIDTH),
                 .IMG_Y_WIDTH            (IMG_Y_WIDTH),
-                .BLANK_Y_WIDTH          (2),
+                .BLANK_Y_WIDTH          (3),
                 .WITH_DE                (1'b1),
                 .WITH_VALID             (1'b1),
                 .IMG_CKE_BUFG           (1'b0),
@@ -118,7 +118,7 @@ module jelly2_video_demosaic_acpi
                 
                 .param_img_width,
                 .param_img_height,
-                .param_blank_height     (2'd2),
+                .param_blank_height     (3'd4),
                 
                 .s_axi4s_tuser,
                 .s_axi4s_tlast,
