@@ -52,7 +52,7 @@ set(RTL_SRCS
 
 verilate(demosaic_acpi
 #    COVERAGE
-    TRACE
+#    TRACE
     INCLUDE_DIRS "."
     VERILATOR_ARGS -f verilator_cmd.txt -Os
     SOURCES ${RTL_SRCS})

@@ -8,8 +8,6 @@
 #include <verilated.h>
 #include "Vsim_top.h"
 
-//#include <opencv2/opencv.hpp>
-
 #include "jelly/simulator/Manager.h"
 #include "jelly/simulator/ResetNode.h"
 #include "jelly/simulator/ClockNode.h"
@@ -17,9 +15,6 @@
 #include "jelly/simulator/WishboneMasterNode.h"
 #include "jelly/simulator/Axi4StreamWriterNode.h"
 #include "jelly/simulator/Axi4StreamReaderNode.h"
-//#include "jelly/simulator/Axi4sImageLoadNode.h"
-//#include "jelly/simulator/Axi4sImageDumpNode.h"
-#include "jelly/JellyRegs.h"
 
 
 const int           DATA_WIDTH = 10;
@@ -125,7 +120,7 @@ public:
                     &m_top->s_wb_stb_i,
                     &m_top->s_wb_ack_o
                 };
-        m_wb = jsim::WishboneMasterNode_Create(wishbone_signals);
+        m_wb = jsim::WishboneMasterNode_Create(wishbone_signals, false);
         m_mng->AddNode(m_wb);
     }
 
@@ -200,7 +195,7 @@ public:
         while ( GetReadQueSize() < m_height * m_width ) {
             Run(100);
         }
-        
+
         // 読み出し
         std::vector<pybind11::ssize_t> shape{m_height, m_width, 3};
         pybind11::array_t<std::uint16_t> array{shape};
@@ -244,13 +239,14 @@ int main() {
     int w = 640;
     int h = 132;
 
+    // レジスタ設定
     auto sim = new DemosaicAcpi(w, h);
     sim->Run(1000);
     sim->WriteReg(REG_IMG_DEMOSAIC_PARAM_PHASE, 3);
     sim->WriteReg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3);
     sim->WaitBus();
 
-
+    // 入力画像設定
     for ( int f = 0; f < 3; ++f ) {
         for ( int y = 0; y < h; ++y ) {
             for ( int x = 0; x < w; ++x ) {
@@ -262,57 +258,15 @@ int main() {
         }
     }
 
-    sim->Run(4000000);
+    // シミュレーション進行
+    sim->Run(2000000);
 
+    // 結果サイズ確認
     std::cout << sim->GetReadQueSize() << std::endl;
 
     return 0;
 }
 */
-
-
-
-#if 0
-int main(int argc, char** argv)
-{
-    auto contextp = std::make_shared<VerilatedContext>();
-    contextp->debug(0);
-    contextp->randReset(2);
-    contextp->commandArgs(argc, argv);
-    
-    const auto top = std::make_shared<Vtop>(contextp.get(), "top");
-
-
-    jsim::trace_ptr_t tfp = nullptr;
-#if VM_TRACE
-    contextp->traceEverOn(true);
-
-    tfp = std::make_shared<jsim::trace_t>();
-    top->trace(tfp.get(), 100);
-    tfp->open("tb_verilator" TRACE_EXT);
-#endif
-
-    auto mng = jsim::Manager::Create();
-
-    mng->AddNode(jsim::VerilatorNode_Create(top, tfp));
-
-    mng->AddNode(jsim::ResetNode_Create(&top->reset, 100));
-    mng->AddNode(jsim::ClockNode_Create(&top->clk,   1000.0/100.0));
-    
-    mng->Run(2000000);
-//    mng->Run();
-
-#if VM_TRACE
-    tfp->close();
-#endif
-
-#if VM_COVERAGE
-    contextp->coveragep()->write("coverage.dat");
-#endif
-
-    return 0;
-}
-#endif
 
 
 // end of file
