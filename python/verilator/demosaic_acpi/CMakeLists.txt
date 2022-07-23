@@ -30,7 +30,7 @@ message("VIVADO_VERSION: ${VIVADO_VERSION}")
 #message("VIVADO_VERSION_MAJOR: ${VIVADO_VERSION_MAJOR}")
 #message("VIVADO_VERSION_MINOR: ${VIVADO_VERSION_MINOR}")
 
-add_subdirectory(pybind11)
+find_package(pybind11 REQUIRED)
 pybind11_add_module(demosaic_acpi demosaic_acpi.cpp)
 
 #add_executable(demosaic_acpi ./demosaic_acpi.cpp)
