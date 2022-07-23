@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <opencv2/opencv.hpp>
 #include "jelly/simulator/Manager.h"
-#include "jelly/simulator/Axi4Stream.h"
+#include "jelly/simulator/Axi4sVideo.h"
 
 namespace jelly {
 namespace simulator {

@@ -40,7 +40,7 @@ module tb_main
     //  top
     // -----------------------------------------
 
-    localparam  bit                         SIZE_AUTO        = 1;
+    localparam  bit                         SIZE_AUTO        = 0;
     localparam  int                         TUSER_WIDTH      = 1;
     localparam  int                         DATA_WIDTH       = 10;
     localparam  int                         IMG_X_WIDTH      = 10;
@@ -149,7 +149,7 @@ module tb_main
                 .DATA_WIDTH         (DATA_WIDTH),
                 .X_NUM              (IMG_WIDTH),
                 .Y_NUM              (IMG_HEIGHT),
-                .X_BLANK            (128),
+                .X_BLANK            (16),
                 .Y_BLANK            (16),
                 .X_WIDTH            (32),
                 .Y_WIDTH            (32),
@@ -197,7 +197,7 @@ module tb_main
                 .FILE_EXT           (".ppm"),
                 .SEQUENTIAL_FILE    (1),
                 .ENDIAN             (0),
-                .BUSY_RATE          (30),
+                .BUSY_RATE          (50),
                 .RANDOM_SEED        (732)
             )
         i_axi4s_slave_model

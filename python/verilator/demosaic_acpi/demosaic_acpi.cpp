@@ -1,4 +1,4 @@
-#include <pybind11/pybind11.h>
+//#include <pybind11/pybind11.h>
 
 #include <memory>
 #include <verilated.h>
@@ -9,6 +9,7 @@
 #include "jelly/simulator/ClockNode.h"
 #include "jelly/simulator/VerilatorNode.h"
 #include "jelly/simulator/WishboneMasterNode.h"
+#include "jelly/simulator/Axi4StreamWriterNode.h"
 //#include "jelly/simulator/Axi4sImageLoadNode.h"
 //#include "jelly/simulator/Axi4sImageDumpNode.h"
 #include "jelly/JellyRegs.h"
@@ -32,6 +33,7 @@ class DemosaicAcpi {
     std::shared_ptr<VerilatedContext>       m_contextp;
     std::shared_ptr<Vsim_top>               m_top;
     std::shared_ptr<jsim::QueuedBusAccess>  m_wb;
+    std::shared_ptr<jsim::Axi4StreamWrite>  m_stream_writer;
     jsim::trace_ptr_t                       m_tfp = nullptr;
     jsim::manager_ptr_t                     m_mng;
 
@@ -63,6 +65,24 @@ public:
         m_top->param_img_width  = 640;
         m_top->param_img_height = 132;
 
+        jsim::Axi4Stream axi4s_src =
+                {
+                    &m_top->aresetn,            // aresetn
+                    &m_top->aclk,               // aclk
+                    (int*)nullptr,              // tid
+                    &m_top->s_axi4s_tuser,      // tuser
+                    &m_top->s_axi4s_tlast,      // tlast
+                    &m_top->s_axi4s_tdata,      // tdata
+                    (int*)nullptr,              // tstrb
+                    (int*)nullptr,              // tkeep
+                    (int*)nullptr,              // tdest
+                    &m_top->s_axi4s_tvalid,     // tvalid
+                    &m_top->s_axi4s_tready      // tready
+                };
+        
+        m_stream_writer = jsim::Axi4StreamWriterNode_Create(axi4s_src);
+        m_mng->AddNode(m_stream_writer);
+        
         /*        
         jsim::Axi4sVideo axi4s_src =
                 {
@@ -131,9 +151,15 @@ public:
         }
         m_mng->Run(20);
     }
+
+    void WriteStream(std::uint64_t data, std::uint8_t tlast, std::uint64_t tuser, std::uint8_t tvalid=1) {
+        m_stream_writer->Write(jsim::Axi4StreamData(data, tlast, tuser, tvalid));
+    }
 };
 
 
+
+/*
 namespace py = pybind11;
 
 PYBIND11_MODULE(demosaic_acpi, p)
@@ -145,9 +171,9 @@ PYBIND11_MODULE(demosaic_acpi, p)
             .def("wait_bus", &DemosaicAcpi::WaitBus)
             ;
 }
+*/
 
 
-/*
 int main() {
     auto sim = new DemosaicAcpi();
     sim->Run(1000);
@@ -155,9 +181,23 @@ int main() {
     sim->WriteReg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3);
     sim->WaitBus();
 
+
+    int w = 640;
+    int h = 132;
+    for ( int f = 0; f < 3; ++f ) {
+        for ( int y = 0; y < h; ++y ) {
+            for ( int x = 0; x < w; ++x ) {
+                sim->WriteStream(x, x==(w-1), x==0&&y==0);
+            }
+        }
+        for ( int i = 0; i < 1000; ++i ) {
+            sim->WriteStream(0, 0, 0, 0);
+        }
+    }
+
     sim->Run(4000000);
 }
-*/
+
 
 
 #if 0

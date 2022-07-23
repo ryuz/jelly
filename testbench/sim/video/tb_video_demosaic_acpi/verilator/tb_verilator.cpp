@@ -47,7 +47,7 @@ int main(int argc, char** argv)
     mng->AddNode(jsim::ResetNode_Create(&top->reset, 100));
     mng->AddNode(jsim::ClockNode_Create(&top->clk,   1000.0/100.0));
     
-    mng->Run(2000000);
+    mng->Run(10000000);
 //    mng->Run();
 
 #if VM_TRACE

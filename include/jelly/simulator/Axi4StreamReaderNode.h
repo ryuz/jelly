@@ -4,10 +4,10 @@
 #pragma once
 
 #include <random>
-#include <stdlib.h>
+#include <queue>
 #include <opencv2/opencv.hpp>
 #include "jelly/simulator/Manager.h"
-#include "jelly/simulator/Axi4sVideo.h"
+#include "jelly/simulator/Axi4Stream.h"
 
 
 namespace jelly {
@@ -15,33 +15,17 @@ namespace simulator {
 
 
 // 画像保存用ノード
-template<typename TAxi4sVideo>
-class Axi4sImageDumpNode : public Node
+template<typename TAxi4Stream>
+class Axi4StreamReaderNode : public Axi4StreamRead
 {
     using rand_type = std::default_random_engine;
     using dist_type = std::bernoulli_distribution;
 
 protected:
-    TAxi4sVideo             m_axi4s;
-    std::string             m_path;
+    std::queue<Axi4StreamData>  m_que;
+
+    TAxi4Stream             m_axi4s;
     bool                    m_reset_pol = false;
-
-    int                     m_limit_frame = 0;
-    bool                    m_limit_finish = false;
-
-    int                     m_frame_num = 0;
-    int                     m_format = fmt_8uc3;
-    bool                    m_img_enable = false;
-    bool                    m_img_flush = true;
-    int                     m_width  = 256;
-    int                     m_height = 256;
-    int                     m_x = 0;
-    int                     m_y = 0;
-
-    cv::Mat                 m_img;
-    std::vector<cv::Mat>    m_img_strage;
-
-    std::string             m_imshow_name;
 
     bool                    m_aresetn;
     bool                    m_aclk;
@@ -54,54 +38,29 @@ protected:
     rand_type               m_rand;
     dist_type               m_dist;
 
-    Axi4sImageDumpNode(TAxi4sVideo axi4s, std::string path, int format = fmt_8uc3, int width=256, int height=256, bool reset_pol = false) : m_dist(0.0)
+    Axi4StreamReaderNode(TAxi4sVideo axi4s, bool reset_pol = false) : m_dist(0.0)
     {
         m_axi4s     = axi4s;
-        m_path      = path;
         m_reset_pol = reset_pol;
-
-        m_format    = format;
-        m_width     = width;
-        m_height    = height;
     }
 
 public:
-    static std::shared_ptr< Axi4sImageDumpNode > Create(TAxi4sVideo axi4s, std::string path, int format = fmt_8uc3, int width=256, int height=256, bool reset_pol = false)
+    static std::shared_ptr< Axi4StreamReaderNode > Create(TAxi4sVideo axi4s, bool reset_pol = false)
     {
-        return std::shared_ptr< Axi4sImageDumpNode >(new Axi4sImageDumpNode(axi4s, path, format, width, height, reset_pol));
+        return std::shared_ptr< Axi4StreamReaderNode >(new Axi4StreamReaderNode(axi4s, reset_pol));
     }
 
-    void SetFrameNum(int frame_num) { m_frame_num = frame_num; }
-    int  GetFrameNum(void) const    { return m_frame_num; }
-
-    void SetImageFormat(int format) { m_format = format; }
-    int  GetImageFormat(void) const    { return m_format; }
-
-    void SetImageWidth(int width) { m_width  = width; }
-    void SetImageHeight(int height) { m_height = height; }
-    int GetImageWidth(void) const { return m_width; }
-    int GetImageHeight(void) const { return m_height; }
-
-    void SetImageSize(int width, int height)
-    {
-        m_width  = width;
-        m_height = height;
+    std::size_t GetSize(void) override {
+        return m_que.size();
     }
 
-    void SetImage(cv::Mat img) { m_img  = img; }
-    cv::Mat GetImage(void) const { return m_img; }
-
-    int     GetStorageFrameNum(void) const { return (int)m_img_strage.size(); }
-    cv::Mat GetStorageImage(int index) const { return m_img_strage[index]; }
-
-    void SetImageFlush(bool img_flush) { m_img_flush = img_flush; }
-    bool GetImageFlush(void) const { return m_img_flush; }
-
-    // 記録制限
-    void SetFrameLimit(int limit_frame, bool finish=false)
-    {
-        m_limit_frame = limit_frame;
-        m_limit_finish = finish;
+    bool Read(Axi4StreamData& data) override {
+        if ( m_que.empty() ) {
+            return false;
+        }
+        data = m_que.front();
+        m_que.pop();
+        return true;
     }
 
     void SetRandomWait(double rate)
@@ -114,8 +73,6 @@ public:
     {
         m_rand.seed(seed);
     }
-
-    void SetImageShow(std::string name) { m_imshow_name = name; }
 
 protected:
 
@@ -252,19 +209,13 @@ protected:
         return 0;
     }
 
-    void ThreadProc(Manager* manager) override
-    {
-        if ( !m_imshow_name.empty() && !m_img.empty() ) {
-            cv::imshow(m_imshow_name, m_img);
-        }
-    }
 };
 
 
 template<typename Tp>
-std::shared_ptr< Axi4sImageDumpNode<Tp> > Axi4sImageDumpNode_Create(Tp axi4s, std::string path, int format=fmt_8uc3, int width=256, int height=256, bool reset_pol = false)
+std::shared_ptr< Axi4StreamReaderNode<Tp> > Axi4StreamReaderNode_Create(Tp axi4s, bool reset_pol = false)
 {
-    return Axi4sImageDumpNode<Tp>::Create(axi4s, path, format, width, height, reset_pol);
+    return Axi4StreamReaderNode<Tp>::Create(axi4s, reset_pol);
 }
 
 

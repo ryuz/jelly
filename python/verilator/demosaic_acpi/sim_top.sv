@@ -27,13 +27,13 @@ module top
             input   wire    [IMG_X_WIDTH-1:0]       param_img_width,
             input   wire    [IMG_Y_WIDTH-1:0]       param_img_height,
 
-            /*
             input   wire    [TUSER_WIDTH-1:0]       s_axi4s_tuser,
             input   wire                            s_axi4s_tlast,
             input   wire    [DATA_WIDTH-1:0]        s_axi4s_tdata,
             input   wire                            s_axi4s_tvalid,
             output  wire                            s_axi4s_tready,
 
+            /*
             output  wire    [TUSER_WIDTH-1:0]       m_axi4s_tuser,
             output  wire                            m_axi4s_tlast,
             output  wire    [3:0][DATA_WIDTH-1:0]   m_axi4s_tdata,
@@ -65,7 +65,7 @@ module top
     //  top
     // -----------------------------------------
 
-    localparam  bit                         SIZE_AUTO        = 1;
+    localparam  bit                         SIZE_AUTO        = 0;
 //  localparam  int                         TUSER_WIDTH      = 1;
 //  localparam  int                         DATA_WIDTH       = 10;
     localparam  int                         MAX_X_NUM        = 4096;
@@ -88,11 +88,14 @@ module top
 //    logic   [IMG_X_WIDTH-1:0]       param_img_width;
 //    logic   [IMG_Y_WIDTH-1:0]       param_img_height;
     
+    /*
     logic   [TUSER_WIDTH-1:0]       s_axi4s_tuser;
     logic                           s_axi4s_tlast;
     logic   [DATA_WIDTH-1:0]        s_axi4s_tdata;
     logic                           s_axi4s_tvalid;
     logic                           s_axi4s_tready;
+    */
+    
     logic   [TUSER_WIDTH-1:0]       m_axi4s_tuser;
     logic                           m_axi4s_tlast;
     logic   [DATA_WIDTH-1:0]        m_axi4s_tdata_r;
@@ -143,9 +146,9 @@ module top
 
                 .m_axi4s_tuser      (m_axi4s_tuser),
                 .m_axi4s_tlast      (m_axi4s_tlast),
-                .m_axi4s_tdata_r    (m_axi4s_tdata_r  ),
-                .m_axi4s_tdata_g    (m_axi4s_tdata_g  ),
-                .m_axi4s_tdata_b    (m_axi4s_tdata_b  ),
+                .m_axi4s_tdata_r    (m_axi4s_tdata_r),
+                .m_axi4s_tdata_g    (m_axi4s_tdata_g),
+                .m_axi4s_tdata_b    (m_axi4s_tdata_b),
                 .m_axi4s_tdata_raw  (m_axi4s_tdata_raw),
                 .m_axi4s_tvalid     (m_axi4s_tvalid),
                 .m_axi4s_tready     (m_axi4s_tready),
@@ -165,7 +168,7 @@ module top
     // -----------------------------------------
     //  video input
     // -----------------------------------------
-
+    /*
     jelly2_axi4s_master_model
             #(
                 .COMPONENTS         (1),
@@ -204,7 +207,7 @@ module top
                 .m_axi4s_tvalid     (s_axi4s_tvalid),
                 .m_axi4s_tready     (s_axi4s_tready)
             );
-
+    */
 
     // -----------------------------------------
     //  dump output

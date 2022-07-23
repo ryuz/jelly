@@ -31,10 +31,9 @@ message("VIVADO_VERSION: ${VIVADO_VERSION}")
 #message("VIVADO_VERSION_MINOR: ${VIVADO_VERSION_MINOR}")
 
 add_subdirectory(pybind11)
-pybind11_add_module(demosaic_acpi demosaic_acpi.cpp)
+#pybind11_add_module(demosaic_acpi demosaic_acpi.cpp)
 
-#add_executable(demosaic_acpi ./demosaic_acpi.cpp)
-##add_library(demosaic_acpi ./demosaic_acpi.cpp)
+add_executable(demosaic_acpi ./demosaic_acpi.cpp)
 
 target_include_directories(demosaic_acpi PUBLIC "../../../include")
 set(CMAKE_CXX_FLAGS "-O3 -std=c++17")
