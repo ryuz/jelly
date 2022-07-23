@@ -102,7 +102,7 @@ struct Axi4Stream {
         if ( tstrb  ) { data.tstrb = (std::uint8_t )*tstrb; }
         if ( tkeep  ) { data.tkeep = (std::uint8_t )*tkeep; }
         if ( tdest  ) { data.tdest = (std::uint64_t)*tdest; }
-        data.tvalid = (std::uint8_t)tvalid;
+        data.tvalid = (std::uint8_t)*tvalid;
         return true;
     }
 };

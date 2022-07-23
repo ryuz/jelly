@@ -33,13 +33,11 @@ module top
             input   wire                            s_axi4s_tvalid,
             output  wire                            s_axi4s_tready,
 
-            /*
             output  wire    [TUSER_WIDTH-1:0]       m_axi4s_tuser,
             output  wire                            m_axi4s_tlast,
             output  wire    [3:0][DATA_WIDTH-1:0]   m_axi4s_tdata,
             output  wire                            m_axi4s_tvalid,
             input   wire                            m_axi4s_tready,
-            */
 
             input   wire                            s_wb_rst_i,
             input   wire                            s_wb_clk_i,
@@ -96,6 +94,7 @@ module top
     logic                           s_axi4s_tready;
     */
     
+    /*
     logic   [TUSER_WIDTH-1:0]       m_axi4s_tuser;
     logic                           m_axi4s_tlast;
     logic   [DATA_WIDTH-1:0]        m_axi4s_tdata_r;
@@ -104,6 +103,7 @@ module top
     logic   [DATA_WIDTH-1:0]        m_axi4s_tdata_raw;
     logic                           m_axi4s_tvalid;
     logic                           m_axi4s_tready;
+    */
 
     // demosaic with ACPI
     jelly2_video_demosaic_acpi
@@ -146,10 +146,10 @@ module top
 
                 .m_axi4s_tuser      (m_axi4s_tuser),
                 .m_axi4s_tlast      (m_axi4s_tlast),
-                .m_axi4s_tdata_r    (m_axi4s_tdata_r),
-                .m_axi4s_tdata_g    (m_axi4s_tdata_g),
-                .m_axi4s_tdata_b    (m_axi4s_tdata_b),
-                .m_axi4s_tdata_raw  (m_axi4s_tdata_raw),
+                .m_axi4s_tdata_r    (m_axi4s_tdata[0]),
+                .m_axi4s_tdata_g    (m_axi4s_tdata[1]),
+                .m_axi4s_tdata_b    (m_axi4s_tdata[2]),
+                .m_axi4s_tdata_raw  (m_axi4s_tdata[3]),
                 .m_axi4s_tvalid     (m_axi4s_tvalid),
                 .m_axi4s_tready     (m_axi4s_tready),
 
@@ -212,7 +212,7 @@ module top
     // -----------------------------------------
     //  dump output
     // -----------------------------------------
-
+/*
     jelly2_axi4s_slave_model
             #(
                 .COMPONENTS         (3),
@@ -242,7 +242,7 @@ module top
                 .s_axi4s_tvalid     (m_axi4s_tvalid),
                 .s_axi4s_tready     (m_axi4s_tready)
             );
-    
+    */
 
 endmodule
 

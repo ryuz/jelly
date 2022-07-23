@@ -10,6 +10,7 @@
 #include "jelly/simulator/VerilatorNode.h"
 #include "jelly/simulator/WishboneMasterNode.h"
 #include "jelly/simulator/Axi4StreamWriterNode.h"
+#include "jelly/simulator/Axi4StreamReaderNode.h"
 //#include "jelly/simulator/Axi4sImageLoadNode.h"
 //#include "jelly/simulator/Axi4sImageDumpNode.h"
 #include "jelly/JellyRegs.h"
@@ -34,12 +35,16 @@ class DemosaicAcpi {
     std::shared_ptr<Vsim_top>               m_top;
     std::shared_ptr<jsim::QueuedBusAccess>  m_wb;
     std::shared_ptr<jsim::Axi4StreamWrite>  m_stream_writer;
+    std::shared_ptr<jsim::Axi4StreamRead>   m_stream_reader;
     jsim::trace_ptr_t                       m_tfp = nullptr;
     jsim::manager_ptr_t                     m_mng;
 
+    int                                     m_width = 0;
+    int                                     m_height = 0;
+
 public:
 
-    DemosaicAcpi() {
+    DemosaicAcpi(int width, int height) {
         m_contextp = std::make_shared<VerilatedContext>();
         m_contextp->debug(0);
         m_contextp->randReset(2);
@@ -62,8 +67,7 @@ public:
         m_mng->AddNode(jsim::ResetNode_Create(&m_top->s_wb_rst_i, 100));
         m_mng->AddNode(jsim::ClockNode_Create(&m_top->s_wb_clk_i, 1000.0/100.0));
 
-        m_top->param_img_width  = 640;
-        m_top->param_img_height = 132;
+        SetImageSize(width, height);
 
         jsim::Axi4Stream axi4s_src =
                 {
@@ -83,6 +87,24 @@ public:
         m_stream_writer = jsim::Axi4StreamWriterNode_Create(axi4s_src);
         m_mng->AddNode(m_stream_writer);
         
+        jsim::Axi4Stream axi4s_dst =
+                {
+                    &m_top->aresetn,            // aresetn
+                    &m_top->aclk,               // aclk
+                    (int*)nullptr,              // tid
+                    &m_top->m_axi4s_tuser,      // tuser
+                    &m_top->m_axi4s_tlast,      // tlast
+                    &m_top->m_axi4s_tdata,      // tdata
+                    (int*)nullptr,              // tstrb
+                    (int*)nullptr,              // tkeep
+                    (int*)nullptr,              // tdest
+                    &m_top->m_axi4s_tvalid,     // tvalid
+                    &m_top->m_axi4s_tready      // tready
+                };
+        
+        m_stream_reader = jsim::Axi4StreamReaderNode_Create(axi4s_dst);
+        m_mng->AddNode(m_stream_reader);
+
         /*        
         jsim::Axi4sVideo axi4s_src =
                 {
@@ -137,9 +159,17 @@ public:
 #endif
     }
 
+    void SetImageSize(int width, int height) {
+        m_width  = width;
+        m_height = height;
+        m_top->param_img_width  = m_width;
+        m_top->param_img_height = m_height;
+    }
+
     void Run(double time=-1) {
         m_mng->Run(time);
     }
+
 
     void WriteReg(std::uint64_t addr, std::uint64_t data, std::uint64_t sel=0xff) {
         m_wb->Write(addr, data, sel);
@@ -152,8 +182,24 @@ public:
         m_mng->Run(20);
     }
 
+
     void WriteStream(std::uint64_t data, std::uint8_t tlast, std::uint64_t tuser, std::uint8_t tvalid=1) {
         m_stream_writer->Write(jsim::Axi4StreamData(data, tlast, tuser, tvalid));
+    }
+
+    std::size_t GetWriteQueSize() {
+        return m_stream_writer->GetSize();
+    }
+
+
+    std::uint64_t ReadStream() {
+        jsim::Axi4StreamData data;
+        m_stream_reader->Read(data);
+        return data.tdata;
+    }
+
+    std::size_t GetReadQueSize() {
+        return m_stream_reader->GetSize();
     }
 };
 
@@ -175,15 +221,16 @@ PYBIND11_MODULE(demosaic_acpi, p)
 
 
 int main() {
-    auto sim = new DemosaicAcpi();
+    int w = 640;
+    int h = 132;
+
+    auto sim = new DemosaicAcpi(w, h);
     sim->Run(1000);
     sim->WriteReg(REG_IMG_DEMOSAIC_PARAM_PHASE, 3);
     sim->WriteReg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3);
     sim->WaitBus();
 
 
-    int w = 640;
-    int h = 132;
     for ( int f = 0; f < 3; ++f ) {
         for ( int y = 0; y < h; ++y ) {
             for ( int x = 0; x < w; ++x ) {
@@ -196,6 +243,10 @@ int main() {
     }
 
     sim->Run(4000000);
+
+    std::cout << sim->GetReadQueSize() << std::endl;
+
+    return 0;
 }
 
 
