@@ -15,7 +15,7 @@
 // Sobel filter
 module jelly2_video_sobel
         #(
-            parameter   bit                         SIZE_AUTO      = 1,
+            parameter   bit                         SIZE_AUTO      = 0,
             parameter   int                         TUSER_WIDTH    = 1,
             parameter   int                         DATA_WIDTH     = 8,
             parameter   int                         GRAD_X_WIDTH   = DATA_WIDTH,
@@ -82,7 +82,7 @@ module jelly2_video_sobel
                 .M_TDATA_WIDTH          (DATA_WIDTH+GRAD_Y_WIDTH+GRAD_X_WIDTH),
                 .IMG_X_WIDTH            (IMG_X_WIDTH),
                 .IMG_Y_WIDTH            (IMG_Y_WIDTH),
-                .BLANK_Y_WIDTH          (3),
+                .BLANK_Y_WIDTH          (2),
                 .WITH_DE                (1'b1),
                 .WITH_VALID             (1'b1),
                 .IMG_CKE_BUFG           (1'b0),
@@ -98,7 +98,7 @@ module jelly2_video_sobel
                 
                 .param_img_width,
                 .param_img_height,
-                .param_blank_height     (3'd3),
+                .param_blank_height     (2'd2),
                 
                 .s_axi4s_tuser,
                 .s_axi4s_tlast,
