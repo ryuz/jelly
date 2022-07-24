@@ -128,7 +128,7 @@ module jelly2_video_sobel
                 .s_img_sink_col_last    (img_sink_col_last),
                 .s_img_sink_de          (img_sink_de),
                 .s_img_sink_user        (img_sink_user),
-                .s_img_sink_data        (img_sink_data),
+                .s_img_sink_data        ({img_sink_data, img_sink_grad_y, img_sink_grad_x}),
                 .s_img_sink_valid       (img_sink_valid)
             );
     

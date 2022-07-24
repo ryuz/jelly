@@ -208,7 +208,7 @@ public:
         auto ptr = (RT *)info.ptr;
         for ( int i = 0; i < m_height*m_width; ++i ) {
             auto tdata = ReadStream();
-            for ( int c = 0; c < WC; ++c ) {
+            for ( int c = 0; c < RC; ++c ) {
                 ptr[i*RC + c] = (RT)((tdata >> (RW*c)) & RM);
             }
         }
