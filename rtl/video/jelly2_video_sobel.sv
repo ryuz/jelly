@@ -133,7 +133,7 @@ module jelly2_video_sobel
             );
     
 
-    // demosaic with ACPI
+    // image processing
     jelly_img_sobel_core
             #(
                 .USER_WIDTH             (TUSER_WIDTH),

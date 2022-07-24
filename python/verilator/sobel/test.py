@@ -6,7 +6,7 @@ import sobel
 
 # source image
 src_img = np.zeros((128, 256, 1), dtype=np.uint8)
-src_img[32:64,64:128,0] = 255
+src_img[32:64,64:128,0] = 127
 # img = cv2.imread("../Mandrill.bmp", 0)
 
 # simulation
@@ -24,5 +24,5 @@ plt.imshow(dst_img[:,:,0])
 plt.subplot(313)
 plt.title('dy')
 plt.imshow(dst_img[:,:,1])
+plt.tight_layout()
 plt.show()
-
