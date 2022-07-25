@@ -6,7 +6,7 @@
 
 namespace jsim = jelly::simulator;
 
-using BaseModel = jsim::Axi4sVideoPybind11<Vsim_top, std::uint8_t, std::int16_t, 8, 16, 1, 3>;
+using BaseModel = jsim::Axi4sVideoPybind11<Vsim_top, std::uint8_t, std::int8_t, 8, 8, 3, 3>;
 
 class BoxFilter : public BaseModel {
 public:

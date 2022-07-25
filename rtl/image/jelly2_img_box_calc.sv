@@ -73,7 +73,7 @@ module jelly2_img_box_calc
             automatic logic signed  [MAC_WIDTH-1:0] tmp_data;
             tmp_data = (mac_data >>> COEFF_FRAC);
             if ( tmp_data < min_value ) begin tmp_data = min_value; end
-            if ( tmp_data < max_value ) begin tmp_data = max_value; end
+            if ( tmp_data > max_value ) begin tmp_data = max_value; end
             out_data <= tmp_data[DATA_WIDTH-1:0];
         end
     end
