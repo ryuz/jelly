@@ -16,10 +16,10 @@ module jelly2_img_box_calc
         #(
             parameter   int     ROWS         = 3,
             parameter   int     COLS         = 3,
-            parameter   int     MAX_COLS     = 4096,
             parameter   int     DATA_WIDTH   = 8,
             parameter   int     COEFF_WIDTH  = 18,
-            parameter   int     COEFF_FRAC   = 8, 
+            parameter   int     COEFF_FRAC   = 8,
+            parameter   int     MAC_WIDTH    = DATA_WIDTH + COEFF_WIDTH,
             parameter   bit     SIGNED       = 0
         )
         (
@@ -36,50 +36,47 @@ module jelly2_img_box_calc
         );
     
     localparam  CALC_WIDTH = SIGNED ? DATA_WIDTH : DATA_WIDTH + 1;
-    localparam  MUL_WIDTH  = COEFF_WIDTH + CALC_WIDTH;
 
-    logic   signed                      [CALC_WIDTH-1:0]    min_value;
-    logic   signed                      [CALC_WIDTH-1:0]    max_value;
-    always_comb min_value = SIGNED ? CALC_WIDTH'($signed(param_min)) : CALC_WIDTH'($signed({1'b0, param_min}));
-    always_comb max_value = SIGNED ? CALC_WIDTH'($signed(param_max)) : CALC_WIDTH'($signed({1'b0, param_max}));
+    logic   signed  [MAC_WIDTH-1:0]     min_value;
+    logic   signed  [MAC_WIDTH-1:0]     max_value;
+    always_comb min_value = SIGNED ? MAC_WIDTH'($signed(param_min)) : MAC_WIDTH'($signed({1'b0, param_min}));
+    always_comb max_value = SIGNED ? MAC_WIDTH'($signed(param_max)) : MAC_WIDTH'($signed({1'b0, param_max}));
 
-    logic   signed  [ROWS-1:0][COLS-1:0][CALC_WIDTH-1:0]    st0_data;
-    logic   signed  [ROWS-1:0][COLS-1:0][MUL_WIDTH-1:0]     st1_data;
-    logic   signed                      [MUL_WIDTH-1:0]     st2_data;
-    logic   signed                      [MUL_WIDTH-1:0]     st3_data;
-    logic   signed                      [MUL_WIDTH-1:0]     st4_data;
+
+    logic   signed  [MAC_WIDTH-1:0]     mac_data;
+
+    jelly2_mul_add_array
+            #(
+                .N                  (ROWS*COLS),
+                .MAC_WIDTH          (MAC_WIDTH),
+                .COEFF_WIDTH        (COEFF_WIDTH),
+                .DATA_WIDTH         (CALC_WIDTH)
+            )
+        i_mul_add_array
+            (
+                .reset,
+                .clk,
+                .cke,
+
+                .param_coeff        (param_coeff),
+
+                .s_add              ('0),
+                .s_data             (in_data),
+                .s_valid,
+
+                .m_data             (mac_data),
+                .m_valid
+            );
 
     always_ff @(posedge clk) begin
-        automatic logic signed  [MUL_WIDTH-1:0] tmp_data;
-
-        // stage0
-        for ( int i = 0; i < ROWS; ++i ) begin
-            for ( int j = 0; j < COLS; ++j ) begin
-                st0_data[i][j] <= SIGNED ? CALC_WIDTH'($signed(in_data[i][j])) : CALC_WIDTH'($signed({1'b0, in_data[i][j]}));
-            end
+        if ( cke ) begin
+            automatic logic signed  [MAC_WIDTH-1:0] tmp_data;
+            tmp_data = (mac_data >>> COEFF_FRAC);
+            if ( tmp_data < min_value ) begin tmp_data = min_value; end
+            if ( tmp_data < max_value ) begin tmp_data = max_value; end
+            out_data <= tmp_data[DATA_WIDTH-1:0];
         end
-
-        // stage1
-        for ( int i = 0; i < ROWS; ++i ) begin
-            for ( int j = 0; j < COLS; ++j ) begin
-                st1_data[i][j] <= st0_data[i][j] * param_coeff[i][j];
-            end
-        end
-
-        // stage2
-        tmp_data = '0;
-        for ( int i = 0; i < ROWS; ++i ) begin
-            for ( int j = 0; j < COLS; ++j ) begin
-                tmp_data += st1_data[i][j];
-            end
-        end
-        st2_data <= tmp_data;
-
-        // stage3
-        st3_data <= st2_data >>> COEFF_FRAC;
     end
-    
-    always_comb out_data = st3_data[DATA_WIDTH-1:0];
     
 endmodule
 

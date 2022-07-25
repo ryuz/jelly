@@ -15,7 +15,7 @@
 module jelly2_mul_add_array
         #(
             parameter   int     N           = 8,
-            parameter   int     ADD_WIDTH   = 48,
+            parameter   int     MAC_WIDTH   = 48,
             parameter   int     COEFF_WIDTH = 18,
             parameter   int     DATA_WIDTH  = 18
         )
@@ -26,21 +26,21 @@ module jelly2_mul_add_array
 
             input   wire    signed  [N-1:0][COEFF_WIDTH-1:0]    param_coeff,
 
-            input   wire    signed         [ADD_WIDTH-1:0]      s_add,
+            input   wire    signed         [MAC_WIDTH-1:0]      s_add,
             input   wire    signed  [N-1:0][DATA_WIDTH-1:0]     s_data,
             input   wire                                        s_valid,
 
-            output  wire    signed         [ADD_WIDTH-1:0]      m_data,
+            output  wire    signed         [MAC_WIDTH-1:0]      m_data,
             output  wire                                        m_valid
         );
     
-    logic   signed  [1:0][ADD_WIDTH-1:0]            stage_add;
+    logic   signed  [1:0][MAC_WIDTH-1:0]            stage_add;
     logic   signed  [N-1:0][N-1:0][DATA_WIDTH-1:0]  stage_data;
     logic   signed  [N+1:0]                         stage_valid;
     always_ff @(posedge clk) begin
         if ( reset ) begin
-            stage_add   <= '0;
-            stage_data  <= '0;
+            stage_add   <= 'x;
+            stage_data  <= 'x;
             stage_valid <= '0;
         end
         else if ( cke ) begin
@@ -59,8 +59,8 @@ module jelly2_mul_add_array
 
     logic   signed  [N-1:0][COEFF_WIDTH-1:0]    unit_mul0;
     logic   signed  [N-1:0][DATA_WIDTH-1:0]     unit_mul1;
-    logic   signed  [N-1:0][ADD_WIDTH-1:0]      unit_add;
-    logic   signed  [N-1:0][ADD_WIDTH-1:0]      unit_data;
+    logic   signed  [N-1:0][MAC_WIDTH-1:0]      unit_add;
+    logic   signed  [N-1:0][MAC_WIDTH-1:0]      unit_data;
 
     generate
     for ( genvar i = 0; i < N; ++i ) begin : loop_unit
@@ -68,7 +68,7 @@ module jelly2_mul_add_array
                 #(
                     .MUL0_WIDTH     (COEFF_WIDTH),
                     .MUL1_WIDTH     (DATA_WIDTH),
-                    .ADD_WIDTH      (ADD_WIDTH)
+                    .MAC_WIDTH      (MAC_WIDTH)
                 )
             i_mul_add_array_unit
                 (
