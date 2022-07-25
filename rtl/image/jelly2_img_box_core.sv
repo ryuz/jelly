@@ -113,8 +113,8 @@ module jelly2_img_box_core
     logic   [COMPONENTS-1:0][ROWS-1:0][COLS-1:0][DATA_WIDTH-1:0]    tmp_data;
     always_comb begin
         for ( int i = 0; i < ROWS; ++i ) begin
-            for ( int j = 0; i < COLS; ++j ) begin
-                for ( int c = 0; i < COMPONENTS; ++c ) begin
+            for ( int j = 0; j < COLS; ++j ) begin
+                for ( int c = 0; c < COMPONENTS; ++c ) begin
                     tmp_data[c][i][j] = img_blk_data[i][j][c];
                 end
             end
@@ -123,7 +123,7 @@ module jelly2_img_box_core
 
     generate
     for ( genvar c = 0; c < COMPONENTS; ++c ) begin : loop_calc
-        jelly_img_box_calc
+        jelly2_img_box_calc
                 #(
                     .ROWS               (ROWS),
                     .COLS               (COLS),

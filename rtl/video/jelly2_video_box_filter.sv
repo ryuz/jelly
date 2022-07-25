@@ -12,10 +12,9 @@
 `default_nettype none
 
 
-// demosaic with ACPI
 module jelly2_video_box_filter
         #(
-            parameter   bit                                                                 SIZE_AUTO         = 1,
+            parameter   bit                                                                 SIZE_AUTO         = 0,
             parameter   int                                                                 TUSER_WIDTH       = 1,
             parameter   int                                                                 COMPONENTS        = 3,
             parameter   int                                                                 DATA_WIDTH        = 8,
@@ -196,7 +195,7 @@ module jelly2_video_box_filter
                 .INIT_CTL_CONTROL       (INIT_CTL_CONTROL),
                 .INIT_PARAM_MIN         (INIT_PARAM_MIN),
                 .INIT_PARAM_MAX         (INIT_PARAM_MAX),
-                .INIT_PARAM_COEFF       (INIT_PARAM_COEFF),
+                .INIT_PARAM_COEFF       (INIT_PARAM_COEFF)
             )
         i_img_box
             (

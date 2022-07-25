@@ -62,10 +62,10 @@ module jelly2_img_box_calc
 
                 .s_add              ('0),
                 .s_data             (in_data),
-                .s_valid,
+                .s_valid            (1'b1),
 
                 .m_data             (mac_data),
-                .m_valid
+                .m_valid            ()
             );
 
     always_ff @(posedge clk) begin

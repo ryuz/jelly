@@ -184,8 +184,8 @@ module jelly2_img_box
         ADR_CTL_CONTROL:    s_wb_dat_o = WB_DAT_WIDTH'(reg_ctl_control);
         ADR_CTL_STATUS:     s_wb_dat_o = WB_DAT_WIDTH'(reg_ctl_control[0]);
         ADR_CTL_INDEX:      s_wb_dat_o = WB_DAT_WIDTH'(ctl_index);
-        INIT_PARAM_MIN:     s_wb_dat_o = WB_DAT_WIDTH'(reg_param_min);
-        INIT_PARAM_MAX:     s_wb_dat_o = WB_DAT_WIDTH'(reg_param_max);
+        ADR_PARAM_MIN:      s_wb_dat_o = WB_DAT_WIDTH'(reg_param_min);
+        ADR_PARAM_MAX:      s_wb_dat_o = WB_DAT_WIDTH'(reg_param_max);
         default: ;
         endcase
         

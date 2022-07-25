@@ -15,7 +15,7 @@
 // demosaic with ACPI
 module jelly2_video_demosaic_acpi
         #(
-            parameter   bit                         SIZE_AUTO         = 1,
+            parameter   bit                         SIZE_AUTO         = 0,
             parameter   int                         TUSER_WIDTH       = 1,
             parameter   int                         DATA_WIDTH        = 10,
             parameter   int                         IMG_X_WIDTH       = 10,
