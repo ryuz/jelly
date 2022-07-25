@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-module jelly2_video_overay_bram
+module jelly2_video_overlay_bram
         #(
             parameter   int                         TUSER_WIDTH        = 1,
             parameter   int                         TDATA_WIDTH        = 24,
@@ -63,11 +63,11 @@ module jelly2_video_overay_bram
             input   wire                            s_wb_clk_i,
             input   wire    [WB_ADR_WIDTH-1:0]      s_wb_adr_i,
             input   wire    [WB_DAT_WIDTH-1:0]      s_wb_dat_i,
-            output  wire    [WB_DAT_WIDTH-1:0]      s_wb_dat_o,
+            output  reg     [WB_DAT_WIDTH-1:0]      s_wb_dat_o,
             input   wire                            s_wb_we_i,
             input   wire    [WB_SEL_WIDTH-1:0]      s_wb_sel_i,
             input   wire                            s_wb_stb_i,
-            output  wire                            s_wb_ack_o
+            output  reg                             s_wb_ack_o
         );
     
     
@@ -87,6 +87,9 @@ module jelly2_video_overay_bram
     localparam  [WB_ADR_WIDTH-1:0]  ADR_PARAM_HEIGHT    = WB_ADR_WIDTH'('h0b);
     localparam  [WB_ADR_WIDTH-1:0]  ADR_PARAM_BG_EN     = WB_ADR_WIDTH'('h0e);
     localparam  [WB_ADR_WIDTH-1:0]  ADR_PARAM_BG_DATA   = WB_ADR_WIDTH'('h0f);
+    localparam  [WB_ADR_WIDTH-1:0]  ADR_CFG_MEM_OFFSET  = WB_ADR_WIDTH'('h20);
+    localparam  [WB_ADR_WIDTH-1:0]  ADR_CFG_MEM_X_WIDTH = WB_ADR_WIDTH'('h22);
+    localparam  [WB_ADR_WIDTH-1:0]  ADR_CFG_MEM_Y_WIDTH = WB_ADR_WIDTH'('h23);
 
     // registers
     logic   [1:0]               reg_ctl_control;
@@ -158,12 +161,12 @@ module jelly2_video_overay_bram
             
             if ( s_wb_stb_i && s_wb_we_i ) begin
                 case ( s_wb_adr_i )
-                ADR_CTL_CONTROL  :  reg_ctl_control   <=           2'(write_mask(WB_DAT_WIDTH'(reg_ctl_control  ), s_wb_dat_i, s_wb_sel_i));
-                ADR_PARAM_X      :  reg_param_x       <= IMG_X_WIDTH'(write_mask(WB_DAT_WIDTH'(reg_param_x      ), s_wb_dat_i, s_wb_sel_i));
-                ADR_PARAM_Y      :  reg_param_y       <= IMG_Y_WIDTH'(write_mask(WB_DAT_WIDTH'(reg_param_y      ), s_wb_dat_i, s_wb_sel_i));
-                ADR_PARAM_WIDTH  :  reg_param_width   <= IMG_X_WIDTH'(write_mask(WB_DAT_WIDTH'(reg_param_width  ), s_wb_dat_i, s_wb_sel_i));
-                ADR_PARAM_HEIGHT :  reg_param_height  <= IMG_Y_WIDTH'(write_mask(WB_DAT_WIDTH'(reg_param_height ), s_wb_dat_i, s_wb_sel_i));
-                ADR_PARAM_BG_EN  :  reg_param_bg_en   <=           1'(write_mask(WB_DAT_WIDTH'(reg_param_bg_en  ), s_wb_dat_i, s_wb_sel_i));
+                ADR_CTL_CONTROL:  reg_ctl_control   <=           2'(write_mask(WB_DAT_WIDTH'(reg_ctl_control  ), s_wb_dat_i, s_wb_sel_i));
+                ADR_PARAM_X:        reg_param_x       <= IMG_X_WIDTH'(write_mask(WB_DAT_WIDTH'(reg_param_x      ), s_wb_dat_i, s_wb_sel_i));
+                ADR_PARAM_Y:        reg_param_y       <= IMG_Y_WIDTH'(write_mask(WB_DAT_WIDTH'(reg_param_y      ), s_wb_dat_i, s_wb_sel_i));
+                ADR_PARAM_WIDTH:    reg_param_width   <= IMG_X_WIDTH'(write_mask(WB_DAT_WIDTH'(reg_param_width  ), s_wb_dat_i, s_wb_sel_i));
+                ADR_PARAM_HEIGHT:   reg_param_height  <= IMG_Y_WIDTH'(write_mask(WB_DAT_WIDTH'(reg_param_height ), s_wb_dat_i, s_wb_sel_i));
+                ADR_PARAM_BG_EN:    reg_param_bg_en   <=           1'(write_mask(WB_DAT_WIDTH'(reg_param_bg_en  ), s_wb_dat_i, s_wb_sel_i));
                 ADR_PARAM_BG_DATA:  reg_param_bg_data <= TDATA_WIDTH'(write_mask(WB_DAT_WIDTH'(reg_param_bg_data), s_wb_dat_i, s_wb_sel_i));
                 default: ;
                 endcase
@@ -175,17 +178,21 @@ module jelly2_video_overay_bram
     always_comb begin
         s_wb_dat_o = '0;
         case ( s_wb_adr_i )
-        ADR_CORE_ID:        s_wb_dat_o = WB_DAT_WIDTH'(CORE_ID           );
-        ADR_CORE_VERSION:   s_wb_dat_o = WB_DAT_WIDTH'(CORE_VERSION      );
-        ADR_CTL_CONTROL:    s_wb_dat_o = WB_DAT_WIDTH'(reg_ctl_control   );
-        ADR_CTL_STATUS:     s_wb_dat_o = WB_DAT_WIDTH'(reg_ctl_control[0]);
-        ADR_CTL_INDEX:      s_wb_dat_o = WB_DAT_WIDTH'(ctl_index         );
-        ADR_PARAM_X:        s_wb_dat_o = WB_DAT_WIDTH'(reg_param_x       );
-        ADR_PARAM_Y:        s_wb_dat_o = WB_DAT_WIDTH'(reg_param_y       );
-        ADR_PARAM_WIDTH:    s_wb_dat_o = WB_DAT_WIDTH'(reg_param_width   );
-        ADR_PARAM_HEIGHT:   s_wb_dat_o = WB_DAT_WIDTH'(reg_param_height  );
-        ADR_PARAM_BG_EN:    s_wb_dat_o = WB_DAT_WIDTH'(reg_param_bg_en   );
-        ADR_PARAM_BG_DATA:  s_wb_dat_o = WB_DAT_WIDTH'(reg_param_bg_data );
+        ADR_CORE_ID:            s_wb_dat_o = WB_DAT_WIDTH'(CORE_ID           );
+        ADR_CORE_VERSION:       s_wb_dat_o = WB_DAT_WIDTH'(CORE_VERSION      );
+        ADR_CTL_CONTROL:        s_wb_dat_o = WB_DAT_WIDTH'(reg_ctl_control   );
+        ADR_CTL_STATUS:         s_wb_dat_o = WB_DAT_WIDTH'(reg_ctl_control[0]);
+        ADR_CTL_INDEX:          s_wb_dat_o = WB_DAT_WIDTH'(ctl_index         );
+        ADR_PARAM_X:            s_wb_dat_o = WB_DAT_WIDTH'(reg_param_x       );
+        ADR_PARAM_Y:            s_wb_dat_o = WB_DAT_WIDTH'(reg_param_y       );
+        ADR_PARAM_WIDTH:        s_wb_dat_o = WB_DAT_WIDTH'(reg_param_width   );
+        ADR_PARAM_HEIGHT:       s_wb_dat_o = WB_DAT_WIDTH'(reg_param_height  );
+        ADR_PARAM_BG_EN:        s_wb_dat_o = WB_DAT_WIDTH'(reg_param_bg_en   );
+        ADR_PARAM_BG_DATA:      s_wb_dat_o = WB_DAT_WIDTH'(reg_param_bg_data );
+        ADR_CFG_MEM_OFFSET:     s_wb_dat_o = WB_DAT_WIDTH'(MEM_OFFSET);
+        ADR_CFG_MEM_X_WIDTH:    s_wb_dat_o = WB_DAT_WIDTH'(MEM_X_WIDTH);
+        ADR_CFG_MEM_Y_WIDTH:    s_wb_dat_o = WB_DAT_WIDTH'(MEM_Y_WIDTH);
+
         default: ;
         endcase
     end
@@ -260,9 +267,9 @@ module jelly2_video_overay_bram
             )
         i_param_update_slave
             (
-                .reset          (reset),
-                .clk            (clk),
-                .cke            (cke),
+                .reset          (~aresetn),
+                .clk            (aclk),
+                .cke            (aclken),
                 
                 .in_trigger     (update_trig),
                 .in_update      (reg_ctl_control[1]),
@@ -306,16 +313,16 @@ module jelly2_video_overay_bram
     
     
     // core
-    jelly2_video_overlay_bram
+    jelly2_video_overlay_bram_core
             #(
                 .TUSER_WIDTH    (TUSER_WIDTH),
                 .TDATA_WIDTH    (TDATA_WIDTH),
                 .IMG_X_WIDTH    (IMG_X_WIDTH),
                 .IMG_Y_WIDTH    (IMG_Y_WIDTH),
                 .MEM_X_WIDTH    (MEM_X_WIDTH),
-                .MEM_Y_WIDTH    (MEM_Y_WIDTH),
+                .MEM_Y_WIDTH    (MEM_Y_WIDTH)
             )
-        i_video_overlay_bram
+        i_video_overlay_bram_core
             (
                 .aresetn,
                 .aclk,

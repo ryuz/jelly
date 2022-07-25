@@ -21,7 +21,8 @@
 #define CORE_ID_VSYNC_GENERATOR                 0x527A1150
 #define CORE_ID_VSYNC_ADJUST_DE                 0x527A1152
 #define CORE_ID_VIDEO_PARAMETER_UPDATE          0x527A1F10
-#define CORE_ID_VIDEO_FMTREG                    0x527a1220
+#define CORE_ID_VIDEO_FMTREG                    0x527A1220
+#define CORE_ID_VIDEO_OVERLAY_BRAM              0x527A2400
 #define CORE_ID_IMG_PREVIOUS_FRAME              0x527A2010
 #define CORE_ID_IMG_DEMOSAIC_ACPI               0x527A2110
 #define CORE_ID_IMG_GAMMA_CORRECTION            0x527A2120
@@ -389,6 +390,18 @@
 #define REG_VIDEO_BINARIZER_CTL_INDEX           0x07
 #define REG_VIDEO_BINARIZER_PARAM_TH            0x10
 #define REG_VIDEO_BINARIZER_PARAM_INV           0x11
+
+#define REG_VIDEO_OVERLAY_CORE_ID               0x00
+#define REG_VIDEO_OVERLAY_CORE_VERSION          0x01
+#define REG_VIDEO_OVERLAY_CTL_CONTROL           0x04
+#define REG_VIDEO_OVERLAY_CTL_STATUS            0x05
+#define REG_VIDEO_OVERLAY_CTL_INDEX             0x07
+#define REG_VIDEO_OVERLAY_PARAM_X               0x08
+#define REG_VIDEO_OVERLAY_PARAM_Y               0x09
+#define REG_VIDEO_OVERLAY_PARAM_WIDTH           0x0a
+#define REG_VIDEO_OVERLAY_PARAM_HEIGHT          0x0b
+#define REG_VIDEO_OVERLAY_PARAM_BG_EN           0x0e
+#define REG_VIDEO_OVERLAY_PARAM_BG_DATA         0x0f
 
 
 /* ---------------------------------- */

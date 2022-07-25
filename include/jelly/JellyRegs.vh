@@ -21,7 +21,8 @@
 `define CORE_ID_VSYNC_GENERATOR                 32'h527A1150
 `define CORE_ID_VSYNC_ADJUST_DE                 32'h527A1152
 `define CORE_ID_VIDEO_PARAMETER_UPDATE          32'h527A1F10
-`define CORE_ID_VIDEO_FMTREG                    32'h527a1220
+`define CORE_ID_VIDEO_FMTREG                    32'h527A1220
+`define CORE_ID_VIDEO_OVERLAY_BRAM              32'h527A2400
 `define CORE_ID_IMG_PREVIOUS_FRAME              32'h527A2010
 `define CORE_ID_IMG_DEMOSAIC_ACPI               32'h527A2110
 `define CORE_ID_IMG_GAMMA_CORRECTION            32'h527A2120
@@ -389,6 +390,18 @@
 `define REG_VIDEO_BINARIZER_CTL_INDEX           8'h07
 `define REG_VIDEO_BINARIZER_PARAM_TH            8'h10
 `define REG_VIDEO_BINARIZER_PARAM_INV           8'h11
+
+`define REG_VIDEO_OVERLAY_CORE_ID               8'h00
+`define REG_VIDEO_OVERLAY_CORE_VERSION          8'h01
+`define REG_VIDEO_OVERLAY_CTL_CONTROL           8'h04
+`define REG_VIDEO_OVERLAY_CTL_STATUS            8'h05
+`define REG_VIDEO_OVERLAY_CTL_INDEX             8'h07
+`define REG_VIDEO_OVERLAY_PARAM_X               8'h08
+`define REG_VIDEO_OVERLAY_PARAM_Y               8'h09
+`define REG_VIDEO_OVERLAY_PARAM_WIDTH           8'h0a
+`define REG_VIDEO_OVERLAY_PARAM_HEIGHT          8'h0b
+`define REG_VIDEO_OVERLAY_PARAM_BG_EN           8'h0e
+`define REG_VIDEO_OVERLAY_PARAM_BG_DATA         8'h0f
 
 
 /* ---------------------------------- */

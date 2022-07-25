@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-module jelly2_video_overlay_bram
+module jelly2_video_overlay_bram_core
         #(
             parameter   int     TUSER_WIDTH = 1,
             parameter   int     TDATA_WIDTH = 24,
