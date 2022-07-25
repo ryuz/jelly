@@ -8,26 +8,26 @@ namespace jsim = jelly::simulator;
 
 using BaseModel = jsim::Axi4sVideoPybind11<Vsim_top, std::uint8_t, std::int16_t, 8, 16, 1, 3>;
 
-class Sobel : public BaseModel {
+class BoxFilter : public BaseModel {
 public:
-    Sobel(int width, int height) : BaseModel(width, height, "sobel") {}
+    BoxFilter(int width, int height) : BaseModel(width, height, "box_filter") {}
 };
 
 
-PYBIND11_MODULE(sobel, p)
+PYBIND11_MODULE(box_filter, p)
 {
-    pybind11::class_<Sobel>(p, "Sobel")
+    pybind11::class_<BoxFilter>(p, "BoxFilter")
             .def(pybind11::init<int, int>())
-            .def("set_image_size", &Sobel::SetImageSize)
-            .def("run",            &Sobel::Run)
-            .def("write_reg",      &Sobel::WriteReg)
-            .def("wait_bus",       &Sobel::WaitBus)
-            .def("write_stream",   &Sobel::WriteStream)
-            .def("write_que_size", &Sobel::GetWriteQueSize)
-            .def("read_stream",    &Sobel::ReadStream)
-            .def("read_que_size",  &Sobel::GetReadQueSize)
-            .def("write_image",    &Sobel::WriteImage)
-            .def("read_image",     &Sobel::ReadImage)
+            .def("set_image_size", &BoxFilter::SetImageSize)
+            .def("run",            &BoxFilter::Run)
+            .def("write_reg",      &BoxFilter::WriteReg)
+            .def("wait_bus",       &BoxFilter::WaitBus)
+            .def("write_stream",   &BoxFilter::WriteStream)
+            .def("write_que_size", &BoxFilter::GetWriteQueSize)
+            .def("read_stream",    &BoxFilter::ReadStream)
+            .def("read_que_size",  &BoxFilter::GetReadQueSize)
+            .def("write_image",    &BoxFilter::WriteImage)
+            .def("read_image",     &BoxFilter::ReadImage)
             ;
 }
 
