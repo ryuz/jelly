@@ -63,7 +63,7 @@ module top
     localparam  int                                                                 MAX_COLS          = 4096;
     localparam  int                                                                 USER_WIDTH        = 0;
     localparam  int                                                                 COEFF_WIDTH       = 18;
-    localparam  int                                                                 COEFF_FRAC        = 8;
+    localparam  int                                                                 COEFF_FRAC        = 16;
     localparam  int                                                                 MAC_WIDTH         = DATA_WIDTH + COEFF_WIDTH;
     localparam  bit                                                                 SIGNED            = 0;
     localparam                                                                      BORDER_MODE       = "REPLICATE";
@@ -85,7 +85,7 @@ module top
     logic                                       aclken = 1'b1;
     logic                                       in_update_req = 1'b1;
 
-    jelly2_video_box_filter
+    jelly2_video_filter2d
         #(
                 .SIZE_AUTO              (SIZE_AUTO       ),
                 .TUSER_WIDTH            (TUSER_WIDTH     ),
@@ -122,7 +122,7 @@ module top
                 .INIT_PARAM_MAX         (INIT_PARAM_MAX  ),
                 .INIT_PARAM_COEFF       (INIT_PARAM_COEFF)
             )
-        i_video_box_filter
+        i_video_filter2d
             (
                 .aresetn,
                 .aclk,

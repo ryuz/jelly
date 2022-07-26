@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-module jelly2_img_box_core
+module jelly2_img_filter2d_core
         #(
             parameter   int                                         COMPONENTS   = 3,
             parameter   int                                         ROWS         = 3,
@@ -23,7 +23,7 @@ module jelly2_img_box_core
             parameter   int                                         USER_WIDTH   = 0,
             parameter   int                                         DATA_WIDTH   = 8,
             parameter   int                                         COEFF_WIDTH  = 18,
-            parameter   int                                         COEFF_FRAC   = 8,
+            parameter   int                                         COEFF_FRAC   = 16,
             parameter   int                                         MAC_WIDTH    = DATA_WIDTH + COEFF_WIDTH,
             parameter   bit                                         SIGNED       = 0,
             parameter                                               BORDER_MODE  = "REPLICATE",
@@ -123,7 +123,7 @@ module jelly2_img_box_core
 
     generate
     for ( genvar c = 0; c < COMPONENTS; ++c ) begin : loop_calc
-        jelly2_img_box_calc
+        jelly2_img_filter2d_calc
                 #(
                     .ROWS               (ROWS),
                     .COLS               (COLS),
@@ -133,7 +133,7 @@ module jelly2_img_box_core
                     .MAC_WIDTH          (MAC_WIDTH),
                     .SIGNED             (SIGNED)
                 )
-            i_img_box_calc
+            i_img_filter2d_calc
                 (
                     .reset              (reset),
                     .clk                (clk),

@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-module jelly2_img_box
+module jelly2_img_filter2d
         #(
             parameter   int                                                                 COMPONENTS        = 3,
             parameter   int                                                                 ROWS              = 3,
@@ -23,7 +23,7 @@ module jelly2_img_box
             parameter   int                                                                 USER_WIDTH        = 0,
             parameter   int                                                                 DATA_WIDTH        = 8,
             parameter   int                                                                 COEFF_WIDTH       = 18,
-            parameter   int                                                                 COEFF_FRAC        = 8,
+            parameter   int                                                                 COEFF_FRAC        = 16,
             parameter   int                                                                 MAC_WIDTH         = DATA_WIDTH + COEFF_WIDTH,
             parameter   bit                                                                 SIGNED            = 0,
             parameter                                                                       BORDER_MODE       = "REPLICATE",
@@ -253,7 +253,7 @@ module jelly2_img_box
     
     
     // core
-    jelly2_img_box_core
+    jelly2_img_filter2d_core
         #(
                 .COMPONENTS         (COMPONENTS),
                 .ROWS               (ROWS),
@@ -273,7 +273,7 @@ module jelly2_img_box
                 .ENDIAN             (ENDIAN),
                 .USE_VALID          (USE_VALID)
             )
-        i_img_box_core
+        i_img_filter2d_core
             (
                 .reset,
                 .clk,

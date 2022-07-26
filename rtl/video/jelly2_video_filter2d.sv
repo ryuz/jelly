@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-module jelly2_video_box_filter
+module jelly2_video_filter2d
         #(
             parameter   bit                                                                 SIZE_AUTO         = 0,
             parameter   int                                                                 TUSER_WIDTH       = 1,
@@ -25,7 +25,7 @@ module jelly2_video_box_filter
             parameter   int                                                                 MAX_COLS          = 4096,
             parameter   int                                                                 USER_WIDTH        = 0,
             parameter   int                                                                 COEFF_WIDTH       = 18,
-            parameter   int                                                                 COEFF_FRAC        = 8,
+            parameter   int                                                                 COEFF_FRAC        = 16,
             parameter   int                                                                 MAC_WIDTH         = DATA_WIDTH + COEFF_WIDTH,
             parameter   bit                                                                 SIGNED            = 0,
             parameter                                                                       BORDER_MODE       = "REPLICATE",
@@ -167,7 +167,7 @@ module jelly2_video_box_filter
             );
     
 
-    jelly2_img_box
+    jelly2_img_filter2d
             #(
                 .COMPONENTS             (COMPONENTS),
                 .ROWS                   (ROWS),

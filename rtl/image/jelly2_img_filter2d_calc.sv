@@ -12,13 +12,13 @@
 `default_nettype none
 
 
-module jelly2_img_box_calc
+module jelly2_img_filter2d_calc
         #(
             parameter   int     ROWS         = 3,
             parameter   int     COLS         = 3,
             parameter   int     DATA_WIDTH   = 8,
             parameter   int     COEFF_WIDTH  = 18,
-            parameter   int     COEFF_FRAC   = 8,
+            parameter   int     COEFF_FRAC   = 16,
             parameter   int     MAC_WIDTH    = DATA_WIDTH + COEFF_WIDTH,
             parameter   bit     SIGNED       = 0
         )

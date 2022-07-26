@@ -1,7 +1,7 @@
 
 cmake_minimum_required(VERSION 3.16)
 
-set(PRJ_NAME box_filter)
+set(PRJ_NAME filter2d)
 
 project(${PRJ_NAME})
 
