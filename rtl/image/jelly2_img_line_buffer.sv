@@ -360,18 +360,18 @@ module jelly2_img_line_buffer
                     st5_pos_data[y] <= POS_WIDTH'(y);
                     if ( y > C ) begin
                         if ( y > st4_pos_first ) begin
-                            if      ( BORDER_MODE == "CONSTANT"    ) begin st5_pos_data[y] <= POS_WIDTH'(N);                       end
-                            else if ( BORDER_MODE == "REPLICATE"   ) begin st5_pos_data[y] <= st4_pos_first;                       end
-                            else if ( BORDER_MODE == "REFLECT"     ) begin st5_pos_data[y] <= POS_WIDTH'(st4_pos_first*2 - y + 1); end
-                            else if ( BORDER_MODE == "REFLECT_101" ) begin st5_pos_data[y] <= POS_WIDTH'(st4_pos_first*2 - y);     end
+                            if      ( 256'(BORDER_MODE) == 256'("CONSTANT")    ) begin st5_pos_data[y] <= POS_WIDTH'(N);                       end
+                            else if ( 256'(BORDER_MODE) == 256'("REPLICATE")   ) begin st5_pos_data[y] <= st4_pos_first;                       end
+                            else if ( 256'(BORDER_MODE) == 256'("REFLECT")     ) begin st5_pos_data[y] <= POS_WIDTH'(st4_pos_first*2 - y + 1); end
+                            else if ( 256'(BORDER_MODE) == 256'("REFLECT_101") ) begin st5_pos_data[y] <= POS_WIDTH'(st4_pos_first*2 - y);     end
                         end
                     end
                     else if ( y < C ) begin
                         if ( y < st4_pos_last ) begin
-                            if      ( BORDER_MODE == "CONSTANT"    ) begin st5_pos_data[y] <= POS_WIDTH'(N);                       end
-                            else if ( BORDER_MODE == "REPLICATE"   ) begin st5_pos_data[y] <= st4_pos_last;                        end
-                            else if ( BORDER_MODE == "REFLECT"     ) begin st5_pos_data[y] <= POS_WIDTH'(st4_pos_last*2 - y - 1);  end
-                            else if ( BORDER_MODE == "REFLECT_101" ) begin st5_pos_data[y] <= POS_WIDTH'(st4_pos_last*2 - y);      end
+                            if      ( 256'(BORDER_MODE) == 256'("CONSTANT")    ) begin st5_pos_data[y] <= POS_WIDTH'(N);                       end
+                            else if ( 256'(BORDER_MODE) == 256'("REPLICATE")   ) begin st5_pos_data[y] <= st4_pos_last;                        end
+                            else if ( 256'(BORDER_MODE) == 256'("REFLECT")     ) begin st5_pos_data[y] <= POS_WIDTH'(st4_pos_last*2 - y - 1);  end
+                            else if ( 256'(BORDER_MODE) == 256'("REFLECT_101") ) begin st5_pos_data[y] <= POS_WIDTH'(st4_pos_last*2 - y);      end
                         end
                     end
                 end

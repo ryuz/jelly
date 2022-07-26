@@ -151,6 +151,10 @@ public:
         m_wb->Write(addr, data, sel);
     }
 
+    void WriteIReg(std::uint64_t addr, std::int64_t data, std::uint64_t sel=0xff) {
+        m_wb->Write(addr, data, sel);
+    }
+
     void WaitBus(void) {
         while ( !m_wb->IsEmptyQueue() ) {
             m_mng->Run(10);
@@ -187,7 +191,7 @@ public:
             for ( int x = 0; x < m_width; ++x ) {
                 std::uint64_t data = 0;
                 for ( int c = 0; c < WC; ++c ) {
-                    data |= ((*ptr++ << (WW*c)) & WM);
+                    data |= ((*ptr++ & WM) << (WW*c));
                 }
                 WriteStream(data, x==(m_width-1), x==0&&y==0);
             }
@@ -203,7 +207,7 @@ public:
 
         // 読み出し
         std::vector<pybind11::ssize_t> shape{m_height, m_width, RC};
-        pybind11::array_t<std::uint16_t> array{shape};
+        pybind11::array_t<RT> array{shape};
         pybind11::buffer_info info = array.request();
         auto ptr = (RT *)info.ptr;
         for ( int i = 0; i < m_height*m_width; ++i ) {

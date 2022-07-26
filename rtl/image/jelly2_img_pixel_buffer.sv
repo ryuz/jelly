@@ -159,19 +159,19 @@ module jelly2_img_pixel_buffer
                 // left border
                 if ( st0_col_first[C] ) begin
                     for ( int j = C+1; j < M; j=j+1 ) begin
-                        if ( BORDER_MODE == "CONSTANT" ) begin
+                        if ( 256'(BORDER_MODE) == 256'("CONSTANT") ) begin
                             st1_data[j] <= BORDER_VALUE;
                         end
-                        else if ( BORDER_MODE == "REPLICATE" ) begin
+                        else if ( 256'(BORDER_MODE) == 256'("REPLICATE") ) begin
                             st1_data[j] <= st0_data[C];
                         end
-                        else if ( BORDER_MODE == "REFLECT" ) begin
+                        else if ( 256'(BORDER_MODE) == 256'("REFLECT") ) begin
                             int k;
                             k = C + 1 - (j - C);
                             if ( k < 0 ) begin k = 0; end
                             st1_data[j] <= st0_data[k];
                         end
-                        else if ( BORDER_MODE == "REFLECT_101" ) begin
+                        else if ( 256'(BORDER_MODE) == 256'("REFLECT_101") ) begin
                             int k;
                             k = C - (j - C);
                             if ( k < 0 ) begin k = 0; end
@@ -190,16 +190,16 @@ module jelly2_img_pixel_buffer
                 end
                 
                 if ( !st0_col_first[C] && st1_last_en ) begin
-                    if ( BORDER_MODE == "CONSTANT" ) begin
+                    if ( 256'(BORDER_MODE) == 256'("CONSTANT") ) begin
                         st1_data[0] <= BORDER_VALUE;
                     end
-                    else if ( BORDER_MODE == "REPLICATE" ) begin
+                    else if ( 256'(BORDER_MODE) == 256'("REPLICATE") ) begin
                         st1_data[0] <= st1_data[0];
                     end
-                    else if ( BORDER_MODE == "REFLECT" ) begin
+                    else if ( 256'(BORDER_MODE) == 256'("REFLECT") ) begin
                         st1_data[0] <= st0_reflect[0];
                     end
-                    else if ( BORDER_MODE == "REFLECT_101" ) begin
+                    else if ( 256'(BORDER_MODE) == 256'("REFLECT_101") ) begin
                         st1_data[0] <= st0_reflect[1];
                     end
                 end

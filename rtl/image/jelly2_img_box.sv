@@ -27,7 +27,7 @@ module jelly2_img_box
             parameter   int                                                                 MAC_WIDTH         = DATA_WIDTH + COEFF_WIDTH,
             parameter   bit                                                                 SIGNED            = 0,
             parameter                                                                       BORDER_MODE       = "REPLICATE",
-            parameter   bit         [DATA_WIDTH-1:0]                                        BORDER_VALUE      = '0,
+            parameter   bit         [COMPONENTS-1:0][DATA_WIDTH-1:0]                        BORDER_VALUE      = '0,
             parameter                                                                       RAM_TYPE          = "block",
             parameter   bit                                                                 ENDIAN            = 0,
             parameter   bit                                                                 USE_VALID         = 1,

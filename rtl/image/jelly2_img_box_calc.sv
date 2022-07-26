@@ -43,7 +43,15 @@ module jelly2_img_box_calc
     always_comb max_value = SIGNED ? MAC_WIDTH'($signed(param_max)) : MAC_WIDTH'($signed({1'b0, param_max}));
 
 
-    logic   signed  [MAC_WIDTH-1:0]     mac_data;
+    logic   signed  [ROWS-1:0][COLS-1:0][CALC_WIDTH-1:0]    mac_in_data;
+    logic   signed  [MAC_WIDTH-1:0]                         mac_out_data;
+    always_comb begin
+        for ( int i = 0; i < ROWS; ++i ) begin
+            for ( int j = 0; j < COLS; ++j ) begin
+                mac_in_data[i][j] = SIGNED ? CALC_WIDTH'($signed(in_data[i][j])) : CALC_WIDTH'($signed({1'b0, in_data[i][j]}));
+            end
+        end
+    end
 
     jelly2_mul_add_array
             #(
@@ -61,17 +69,17 @@ module jelly2_img_box_calc
                 .param_coeff        (param_coeff),
 
                 .s_add              ('0),
-                .s_data             (in_data),
+                .s_data             (mac_in_data),
                 .s_valid            (1'b1),
 
-                .m_data             (mac_data),
+                .m_data             (mac_out_data),
                 .m_valid            ()
             );
 
     always_ff @(posedge clk) begin
         if ( cke ) begin
             automatic logic signed  [MAC_WIDTH-1:0] tmp_data;
-            tmp_data = (mac_data >>> COEFF_FRAC);
+            tmp_data = (mac_out_data >>> COEFF_FRAC);
             if ( tmp_data < min_value ) begin tmp_data = min_value; end
             if ( tmp_data > max_value ) begin tmp_data = max_value; end
             out_data <= tmp_data[DATA_WIDTH-1:0];

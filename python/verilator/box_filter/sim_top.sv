@@ -67,7 +67,7 @@ module top
     localparam  int                                                                 MAC_WIDTH         = DATA_WIDTH + COEFF_WIDTH;
     localparam  bit                                                                 SIGNED            = 0;
     localparam                                                                      BORDER_MODE       = "REPLICATE";
-    localparam  bit         [DATA_WIDTH-1:0]                                        BORDER_VALUE      = '0;
+    localparam  bit         [COMPONENTS-1:0][DATA_WIDTH-1:0]                        BORDER_VALUE      = '0;
     localparam                                                                      RAM_TYPE          = "block";
     localparam  bit         [IMG_Y_WIDTH-1:0]                                       INIT_Y_NUM        = 480;
     localparam  int                                                                 FIFO_PTR_WIDTH    = IMG_X_WIDTH;

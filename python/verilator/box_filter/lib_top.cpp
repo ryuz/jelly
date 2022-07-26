@@ -6,7 +6,7 @@
 
 namespace jsim = jelly::simulator;
 
-using BaseModel = jsim::Axi4sVideoPybind11<Vsim_top, std::uint8_t, std::int8_t, 8, 8, 3, 3>;
+using BaseModel = jsim::Axi4sVideoPybind11<Vsim_top, std::uint8_t, std::uint8_t, 8, 8, 3, 3>;
 
 class BoxFilter : public BaseModel {
 public:
@@ -21,6 +21,7 @@ PYBIND11_MODULE(box_filter, p)
             .def("set_image_size", &BoxFilter::SetImageSize)
             .def("run",            &BoxFilter::Run)
             .def("write_reg",      &BoxFilter::WriteReg)
+            .def("write_ireg",     &BoxFilter::WriteIReg)
             .def("wait_bus",       &BoxFilter::WaitBus)
             .def("write_stream",   &BoxFilter::WriteStream)
             .def("write_que_size", &BoxFilter::GetWriteQueSize)

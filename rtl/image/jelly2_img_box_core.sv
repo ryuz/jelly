@@ -14,25 +14,25 @@
 
 module jelly2_img_box_core
         #(
-            parameter   int                         COMPONENTS   = 3,
-            parameter   int                         ROWS         = 3,
-            parameter   int                         COLS         = 3,
-            parameter   int                         CENTER_Y     = (ROWS-1) / 2,
-            parameter   int                         CENTER_X     = (COLS-1) / 2,
-            parameter   int                         MAX_COLS     = 4096,
-            parameter   int                         USER_WIDTH   = 0,
-            parameter   int                         DATA_WIDTH   = 8,
-            parameter   int                         COEFF_WIDTH  = 18,
-            parameter   int                         COEFF_FRAC   = 8,
-            parameter   int                         MAC_WIDTH    = DATA_WIDTH + COEFF_WIDTH,
-            parameter   bit                         SIGNED       = 0,
-            parameter                               BORDER_MODE  = "REPLICATE",
-            parameter   logic   [DATA_WIDTH-1:0]    BORDER_VALUE = {DATA_WIDTH{1'b0}},
-            parameter                               RAM_TYPE     = "block",
-            parameter   bit                         ENDIAN       = 0,
-            parameter   bit                         USE_VALID    = 1,
-            
-            localparam  int                         USER_BITS   = USER_WIDTH > 0 ? USER_WIDTH : 1
+            parameter   int                                         COMPONENTS   = 3,
+            parameter   int                                         ROWS         = 3,
+            parameter   int                                         COLS         = 3,
+            parameter   int                                         CENTER_Y     = (ROWS-1) / 2,
+            parameter   int                                         CENTER_X     = (COLS-1) / 2,
+            parameter   int                                         MAX_COLS     = 4096,
+            parameter   int                                         USER_WIDTH   = 0,
+            parameter   int                                         DATA_WIDTH   = 8,
+            parameter   int                                         COEFF_WIDTH  = 18,
+            parameter   int                                         COEFF_FRAC   = 8,
+            parameter   int                                         MAC_WIDTH    = DATA_WIDTH + COEFF_WIDTH,
+            parameter   bit                                         SIGNED       = 0,
+            parameter                                               BORDER_MODE  = "REPLICATE",
+            parameter   logic   [COMPONENTS-1:0][DATA_WIDTH-1:0]    BORDER_VALUE = '0,
+            parameter                                               RAM_TYPE     = "block",
+            parameter   bit                                         ENDIAN       = 0,
+            parameter   bit                                         USE_VALID    = 1,
+                            
+            localparam  int                                         USER_BITS   = USER_WIDTH > 0 ? USER_WIDTH : 1
         )
         (
             input   wire                                                                    reset,

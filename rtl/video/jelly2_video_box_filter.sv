@@ -29,7 +29,7 @@ module jelly2_video_box_filter
             parameter   int                                                                 MAC_WIDTH         = DATA_WIDTH + COEFF_WIDTH,
             parameter   bit                                                                 SIGNED            = 0,
             parameter                                                                       BORDER_MODE       = "REPLICATE",
-            parameter   bit         [DATA_WIDTH-1:0]                                        BORDER_VALUE      = '0,
+            parameter   bit         [COMPONENTS-1:0][DATA_WIDTH-1:0]                        BORDER_VALUE      = '0,
             parameter                                                                       RAM_TYPE          = "block",
             parameter   int                                                                 IMG_X_WIDTH       = 10,
             parameter   int                                                                 IMG_Y_WIDTH       = 9,
