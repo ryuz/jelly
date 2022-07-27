@@ -27,7 +27,7 @@ CMAKE_FLAGS += -GNinja
 endif
 
 
-all: build run
+all: build
 
 .PHONY : build
 build:
@@ -44,14 +44,15 @@ distclean: clean
 	rm -f *.vcd
 	rm -f *.ppm *.pgm
 	rm -f axi*.txt
+	rm -f *.so
+	rm -f *.dll
 	rm -f coverage.dat
 	rm -fr annotated
-
 
 .PHONY : run
 run:
 #	build/demosaic_acpi
-	python3 test_.py
+	python3 test.py
 
 .PHONY : coverage
 coverage:

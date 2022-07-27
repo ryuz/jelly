@@ -224,4 +224,30 @@ public:
 }
 }
 
+
+// 生成マクロ
+#define JSIM_DEFINE_AXI4S_VIDEO_PYBIND11(ClassName, ModuleName, Vsim_top, WT, RT, WW, RW, WC, RC)  \
+class ClassName : public jelly::simulator::Axi4sVideoPybind11<Vsim_top, WT, RT, WW, RW, WC, RC> { \
+public: \
+    ClassName(int width, int height) : jelly::simulator::Axi4sVideoPybind11<Vsim_top, WT, RT, WW, RW, WC, RC>(width, height, #ModuleName) {} \
+}; \
+PYBIND11_MODULE(ModuleName, p) { \
+    pybind11::class_<ClassName>(p, #ClassName) \
+            .def(pybind11::init<int, int>()) \
+            .def("set_image_size", &ClassName::SetImageSize) \
+            .def("run",            &ClassName::Run) \
+            .def("write_reg",      &ClassName::WriteReg) \
+            .def("write_ireg",     &ClassName::WriteIReg) \
+            .def("wait_bus",       &ClassName::WaitBus) \
+            .def("write_stream",   &ClassName::WriteStream) \
+            .def("write_que_size", &ClassName::GetWriteQueSize) \
+            .def("read_stream",    &ClassName::ReadStream) \
+            .def("read_que_size",  &ClassName::GetReadQueSize) \
+            .def("write_image",    &ClassName::WriteImage) \
+            .def("read_image",     &ClassName::ReadImage) \
+            ; \
+}
+
+
+
 // end of file

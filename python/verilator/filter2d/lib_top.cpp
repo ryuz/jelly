@@ -3,14 +3,16 @@
 #include "Vsim_top.h"
 #include "jelly/simulator/Axi4sVideoPybind11.h"
 
+JSIM_DEFINE_AXI4S_VIDEO_PYBIND11(Filter2d, filter2d, Vsim_top, std::uint8_t, std::uint8_t, 8, 8, 3, 3)
 
+/*
 namespace jsim = jelly::simulator;
 
 using BaseModel = jsim::Axi4sVideoPybind11<Vsim_top, std::uint8_t, std::uint8_t, 8, 8, 3, 3>;
 
 class Filter2d : public BaseModel {
 public:
-    Filter2d(int width, int height) : BaseModel(width, height, "box_filter") {}
+    Filter2d(int width, int height) : BaseModel(width, height, "filter2d") {}
 };
 
 
@@ -31,6 +33,6 @@ PYBIND11_MODULE(filter2d, p)
             .def("read_image",     &Filter2d::ReadImage)
             ;
 }
-
+*/
 
 // end of file

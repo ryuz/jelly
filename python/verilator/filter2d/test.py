@@ -13,9 +13,8 @@ REG_PARAM_MIN      = 0x08
 REG_PARAM_MAX      = 0x09
 REG_PARAM_COEFF    = 0x10
 
-sim = filter2d.Filter2d(0, 0)
 
-def run_filter2d(img, kernel):
+def run_filter2d(sim, img, kernel):
     sim.set_image_size(img.shape[1], img.shape[0])
     for c in range(3):
         for i in range(3):
@@ -81,13 +80,16 @@ kernel_laplacian = [
     ],
 ]
 
+# create sim
+sim = filter2d.Filter2d(0, 0)
+
 # source image
 src_img = cv2.imread("../Mandrill.bmp")
 
 # filter
-dst_img1 = run_filter2d(src_img, kernel_bypss)
-dst_img2 = run_filter2d(src_img, kernel_gauss)
-dst_img3 = run_filter2d(src_img, kernel_laplacian)
+dst_img1 = run_filter2d(sim, src_img, kernel_bypss)
+dst_img2 = run_filter2d(sim, src_img, kernel_gauss)
+dst_img3 = run_filter2d(sim, src_img, kernel_laplacian)
 
 
 # show output
