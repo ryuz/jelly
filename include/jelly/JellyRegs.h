@@ -567,6 +567,19 @@
 #define REG_IMG_PREVFRM_CURRENT_RTIMEOUT        0x37
 #define REG_IMG_PREVFRM_CURRENT_INITDATA        0x38
 
+/* binarize */
+#define REG_IMG_BIN_CORE_ID                     0x00
+#define REG_IMG_BIN_CORE_VERSION                0x01
+#define REG_IMG_BIN_CTL_CONTROL                 0x04
+#define REG_IMG_BIN_CTL_STATUS                  0x05
+#define REG_IMG_BIN_CTL_INDEX                   0x07
+#define REG_IMG_BIN_PARAM_OR                    0x10
+#define REG_IMG_BIN_PARAM_TH0(x)                (4*(x)+0x20)
+#define REG_IMG_BIN_PARAM_TH1(x)                (4*(x)+0x21)
+#define REG_IMG_BIN_PARAM_INV(x)                (4*(x)+0x22)
+#define REG_IMG_BIN_PARAM_VAL0(x)               (4*(x)+0x40)
+#define REG_IMG_BIN_PARAM_VAL1(x)               (4*(x)+0x41)
+
 /* image selector */
 #define REG_IMG_SELECTOR_CORE_ID                0x00
 #define REG_IMG_SELECTOR_CORE_VERSION           0x01

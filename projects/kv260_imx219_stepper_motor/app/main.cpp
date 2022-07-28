@@ -188,6 +188,7 @@ int main(int argc, char *argv[])
     auto reg_demos  = uio_acc.GetAccessor(0x00400000);
     auto reg_colmat = uio_acc.GetAccessor(0x00400800);
     auto reg_gauss  = uio_acc.GetAccessor(0x00402000);
+    auto reg_bin    = uio_acc.GetAccessor(0x00403000);
     auto reg_select = uio_acc.GetAccessor(0x00407800);
     
 #if 1
@@ -199,6 +200,7 @@ int main(int argc, char *argv[])
     std::cout << "reg_demos  : " << std::hex << reg_demos.ReadReg(0) << std::endl;
     std::cout << "reg_colmat : " << std::hex << reg_colmat.ReadReg(0) << std::endl;
     std::cout << "reg_gauss  : " << std::hex << reg_gauss.ReadReg(0) << std::endl;
+    std::cout << "reg_bin    : " << std::hex << reg_bin.ReadReg(0) << std::endl;
     std::cout << "reg_select : " << std::hex << reg_select.ReadReg(0) << std::endl;
 #endif
     
@@ -245,6 +247,13 @@ int main(int argc, char *argv[])
     usleep(10);
     reg_gid.WriteReg(0, 0);
 
+    int     bin0_th0 = 0;
+    int     bin0_th1 = 1023;
+    int     bin1_th0 = 0;
+    int     bin1_th1 = 1023;
+    int     bin2_th0 = 0;
+    int     bin2_th1 = 1023;
+
     int     key;
     while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
         // 設定
@@ -258,6 +267,28 @@ int main(int argc, char *argv[])
         reg_gauss.WriteReg(REG_IMG_GAUSS3X3_PARAM_ENABLE, gauss_level);
         reg_gauss.WriteReg(REG_IMG_GAUSS3X3_CTL_CONTROL, 0x3);
         reg_select.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, view_select);
+
+        // バイナリ化
+        reg_bin.WriteReg(REG_IMG_BIN_PARAM_TH0(0), bin0_th0);
+        reg_bin.WriteReg(REG_IMG_BIN_PARAM_TH1(0), bin0_th1);
+        reg_bin.WriteReg(REG_IMG_BIN_PARAM_TH0(1), bin1_th0);
+        reg_bin.WriteReg(REG_IMG_BIN_PARAM_TH1(1), bin1_th1);
+        reg_bin.WriteReg(REG_IMG_BIN_PARAM_TH0(2), bin2_th0);
+        reg_bin.WriteReg(REG_IMG_BIN_PARAM_TH1(2), bin2_th1);
+//      reg_bin.WriteReg(REG_IMG_BIN_PARAM_VAL0(0), 0);
+//      reg_bin.WriteReg(REG_IMG_BIN_PARAM_VAL1(0), 1);
+        reg_bin.WriteReg(REG_IMG_BIN_CTL_CONTROL, 3);
+
+        std::cout << "REG_IMG_BIN_PARAM_TH0(0)  : " << reg_bin.ReadReg(REG_IMG_BIN_PARAM_TH0(0) ) << std::endl;
+        std::cout << "REG_IMG_BIN_PARAM_TH1(0)  : " << reg_bin.ReadReg(REG_IMG_BIN_PARAM_TH1(0) ) << std::endl;
+        std::cout << "REG_IMG_BIN_PARAM_TH0(1)  : " << reg_bin.ReadReg(REG_IMG_BIN_PARAM_TH0(1) ) << std::endl;
+        std::cout << "REG_IMG_BIN_PARAM_TH1(1)  : " << reg_bin.ReadReg(REG_IMG_BIN_PARAM_TH1(1) ) << std::endl;
+        std::cout << "REG_IMG_BIN_PARAM_TH0(2)  : " << reg_bin.ReadReg(REG_IMG_BIN_PARAM_TH0(2) ) << std::endl;
+        std::cout << "REG_IMG_BIN_PARAM_TH1(2)  : " << reg_bin.ReadReg(REG_IMG_BIN_PARAM_TH1(2) ) << std::endl;
+        std::cout << "REG_IMG_BIN_PARAM_VAL0(0) : " << reg_bin.ReadReg(REG_IMG_BIN_PARAM_VAL0(0)) << std::endl;
+        std::cout << "REG_IMG_BIN_PARAM_VAL1(0) : " << reg_bin.ReadReg(REG_IMG_BIN_PARAM_VAL1(0)) << std::endl;
+        std::cout << "REG_IMG_BIN_CTL_CONTROL   : " << reg_bin.ReadReg(REG_IMG_BIN_CTL_CONTROL  ) << std::endl;
+
 
         // キャプチャ
         capture_still_image(reg_wdma, reg_fmtr, dmabuf_phys_adr, width, height, frame_num);
@@ -277,6 +308,14 @@ int main(int argc, char *argv[])
         cv::createTrackbar("d_gain",   "img", &d_gain, 24);
         cv::createTrackbar("bayer",    "img", &bayer_phase, 3);
         cv::createTrackbar("gauss",    "img", &gauss_level, 3);
+
+        cv::imshow("bin", cv::Mat::zeros(64, 640, CV_8UC1));
+        cv::createTrackbar("bin0_th0", "bin", &bin0_th0, 1023);
+        cv::createTrackbar("bin0_th1", "bin", &bin0_th1, 1023);
+        cv::createTrackbar("bin1_th0", "bin", &bin1_th0, 1023);
+        cv::createTrackbar("bin1_th1", "bin", &bin1_th1, 1023);
+        cv::createTrackbar("bin2_th0", "bin", &bin2_th0, 1023);
+        cv::createTrackbar("bin2_th1", "bin", &bin2_th1, 1023);
 
         // ユーザー操作
         switch ( key ) {
