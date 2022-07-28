@@ -77,15 +77,15 @@ module tb_main
 
     jelly2_axi4s_img_simple
             #(
-                .TUSER_WIDTH    (TUSER_WIDTH  ),
-                .S_TDATA_WIDTH  (S_TDATA_WIDTH),
-                .M_TDATA_WIDTH  (M_TDATA_WIDTH),
-                .IMG_X_WIDTH    (IMG_X_WIDTH  ),
-                .IMG_Y_WIDTH    (IMG_Y_WIDTH  ),
-                .BLANK_Y_WIDTH  (BLANK_Y_WIDTH),
-                .WITH_DE        (WITH_DE      ),
-                .WITH_VALID     (WITH_VALID   ),
-                .IMG_CKE_BUFG   (IMG_CKE_BUFG )
+                .TUSER_WIDTH            (TUSER_WIDTH),
+                .S_TDATA_WIDTH          (S_TDATA_WIDTH),
+                .M_TDATA_WIDTH          (M_TDATA_WIDTH),
+                .IMG_X_WIDTH            (IMG_X_WIDTH),
+                .IMG_Y_WIDTH            (IMG_Y_WIDTH),
+                .BLANK_Y_WIDTH          (BLANK_Y_WIDTH),
+                .WITH_DE                (WITH_DE),
+                .WITH_VALID             (WITH_VALID),
+                .IMG_CKE_BUFG           (IMG_CKE_BUFG)
             )
         i_top
             (

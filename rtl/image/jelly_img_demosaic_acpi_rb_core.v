@@ -98,11 +98,11 @@ module jelly_img_demosaic_acpi_rb_core
             );
     
     
-    jelly_img_demosaic_acpi_rb_unit
+    jelly_img_demosaic_acpi_rb_calc
             #(
                 .DATA_WIDTH         (DATA_WIDTH)
             )
-        i_img_demosaic_acpi_rb_unit
+        i_img_demosaic_acpi_rb_calc
             (
                 .reset              (reset),
                 .clk                (clk),

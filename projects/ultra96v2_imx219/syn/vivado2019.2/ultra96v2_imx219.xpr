@@ -290,7 +290,7 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/image/jelly_img_demosaic_acpi_g_unit.v">
+      <File Path="$PPRDIR/../../../../rtl/image/jelly_img_demosaic_acpi_g_calc.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -304,7 +304,7 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/image/jelly_img_demosaic_acpi_rb_unit.v">
+      <File Path="$PPRDIR/../../../../rtl/image/jelly_img_demosaic_acpi_rb_calc.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>

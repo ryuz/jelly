@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-module jelly_img_demosaic_acpi_g_unit
+module jelly_img_demosaic_acpi_g_calc
         #(
             parameter   DATA_WIDTH = 10
         )

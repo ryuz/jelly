@@ -94,11 +94,11 @@ module jelly_img_demosaic_acpi_g_core
                 .m_img_valid        (img_blk_valid)
             );
     
-    jelly_img_demosaic_acpi_g_unit
+    jelly_img_demosaic_acpi_g_calc
             #(
                 .DATA_WIDTH         (DATA_WIDTH)
             )
-        i_img_demosaic_acpi_g_unit
+        i_img_demosaic_acpi_g_calc
             (
                 .reset              (reset),
                 .clk                (clk),

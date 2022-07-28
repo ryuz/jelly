@@ -15,7 +15,7 @@
 
 // USE_VALID で valid 信号を使うと、信号は増えるが初期化が減る
 
-module jelly2_axi4s_to_img
+module jelly2_axi4s_to_img_auto
         #(
             parameter   int     TUSER_WIDTH  = 1,
             parameter   int     TDATA_WIDTH  = 8,

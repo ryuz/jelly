@@ -115,7 +115,7 @@ public:
             m_nodes.push_back(node);
         }
     }
-
+    
 
 protected:
     void AddEvent(node_ptr_t node, sim_time_t time)

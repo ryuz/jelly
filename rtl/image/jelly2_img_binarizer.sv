@@ -35,7 +35,7 @@ module jelly2_img_binarizer
             parameter   bit     [WB_ADR_WIDTH-1:0]                      OFFSET_PARAM_M    = WB_ADR_WIDTH'('h40),
             parameter   bit     [WB_ADR_WIDTH-1:0]                      STEP_PARAM_M      = WB_ADR_WIDTH'(4),
 
-            parameter   bit     [1:0]                                   INIT_CTL_CONTROL  = 3'b011,
+            parameter   bit     [1:0]                                   INIT_CTL_CONTROL  = 2'b00,
             parameter   bit                                             INIT_PARAM_OR     = 1'b0,
             parameter   bit     [S_COMPONENTS-1:0][S_DATA_WIDTH-1:0]    INIT_PARAM_TH0    = '0,
             parameter   bit     [S_COMPONENTS-1:0][S_DATA_WIDTH-1:0]    INIT_PARAM_TH1    = '1,
@@ -101,7 +101,7 @@ module jelly2_img_binarizer
     localparam  bit     [WB_ADR_WIDTH-1:0]     ADR_PARAM_VAL1     = WB_ADR_WIDTH'('h1);
     
     // registers
-    logic   [2:0]                                   reg_ctl_control;    // bit[0]:enable, bit[1]:update
+    logic   [1:0]                                   reg_ctl_control;    // bit[0]:enable, bit[1]:update
     logic                                           reg_param_or;
     logic   [S_COMPONENTS-1:0][S_DATA_WIDTH-1:0]    reg_param_th0;
     logic   [S_COMPONENTS-1:0][S_DATA_WIDTH-1:0]    reg_param_th1;
@@ -163,7 +163,7 @@ module jelly2_img_binarizer
         end
         else begin
             // auto clear
-            if ( update_ack && !reg_ctl_control[2] ) begin
+            if ( update_ack ) begin
                 reg_ctl_control[1] <= 1'b0;
             end
             

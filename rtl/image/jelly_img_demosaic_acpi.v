@@ -29,7 +29,7 @@ module jelly_img_demosaic_acpi
             parameter   WB_DAT_WIDTH      = 32,
             parameter   WB_SEL_WIDTH      = (WB_DAT_WIDTH / 8),
             
-            parameter   INIT_CTL_CONTROL  = 3'b011,
+            parameter   INIT_CTL_CONTROL  = 2'b01,
             parameter   INIT_PARAM_PHASE  = 2'b00,
             
             parameter   USER_BITS         = USER_WIDTH > 0 ? USER_WIDTH : 1
@@ -89,7 +89,7 @@ module jelly_img_demosaic_acpi
     localparam  ADR_CURRENT_PHASE        = 8'h18;
     
     // registers
-    reg     [2:0]       reg_ctl_control;    // bit[0]:enable, bit[1]:update, bit[2]:continue
+    reg     [1:0]       reg_ctl_control;    // bit[0]:enable, bit[1]:update
     reg     [1:0]       reg_param_phase;
     
     // shadow registers(core domain)
@@ -137,7 +137,7 @@ module jelly_img_demosaic_acpi
         end
         else begin
             // auto clear
-            if ( update_ack && !reg_ctl_control[2] ) begin
+            if ( update_ack ) begin
                 reg_ctl_control[1] <= 1'b0;
             end
             

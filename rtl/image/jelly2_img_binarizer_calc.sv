@@ -39,7 +39,7 @@ module jelly2_img_binarizer_calc
 
     logic   [S_COMPONENTS-1:0][S_DATA_WIDTH-1:0]    st0_data;
     logic   [S_COMPONENTS-1:0]                      st1_binary;
-    logic   [S_COMPONENTS-1:0]                      st2_binary;
+    logic   [M_COMPONENTS-1:0]                      st2_binary;
 
     always_ff @(posedge clk) begin
         if ( cke ) begin
@@ -49,10 +49,10 @@ module jelly2_img_binarizer_calc
             // stage1
             for ( int i = 0; i < S_COMPONENTS; i++ ) begin
                 if ( !WRAP_AROUND || param_th1[i] >= param_th0[i] ) begin
-                    st1_binary[i] <= ((s_data[i] >= param_th0[i]) && (s_data[i] <= param_th0[i])) ^ param_inv[i];
+                    st1_binary[i] <= ((s_data[i] >= param_th0[i]) && (s_data[i] <= param_th1[i])) ^ param_inv[i];
                 end
                 else begin
-                    st1_binary[i] <= ((s_data[i] <= param_th0[i]) || (s_data[i] >= param_th0[i])) ^ param_inv[i];
+                    st1_binary[i] <= ((s_data[i] >= param_th0[i]) || (s_data[i] <= param_th1[i])) ^ param_inv[i];
                 end
             end
 
@@ -61,11 +61,11 @@ module jelly2_img_binarizer_calc
                 st2_binary[0] <= param_or ? |st1_binary : &st1_binary;
             end
             else begin
-                st2_binary[0] <= st1_binary;
+                st2_binary <= st1_binary;
             end
 
             // stage3
-            for ( int i = 0; i < S_COMPONENTS; i++ ) begin
+            for ( int i = 0; i < M_COMPONENTS; i++ ) begin
                 m_data[i] <= st2_binary[i] ? param_val1[i] : param_val0[i];
             end
         end

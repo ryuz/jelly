@@ -14,21 +14,24 @@
 
 module image_processing
         #(
-            parameter   WB_ADR_WIDTH  = 16,
-            parameter   WB_DAT_WIDTH  = 32,
-            parameter   WB_SEL_WIDTH  = (WB_DAT_WIDTH / 8),
+            parameter   int     WB_ADR_WIDTH  = 16,
+            parameter   int     WB_DAT_WIDTH  = 32,
+            parameter   int     WB_SEL_WIDTH  = (WB_DAT_WIDTH / 8),
+                        
+            parameter   int     S_DATA_WIDTH  = 10,
+            parameter   int     M_DATA_WIDTH  = 8,
             
-            parameter   S_DATA_WIDTH  = 10,
-            parameter   M_DATA_WIDTH  = 8,
+            parameter   int     IMG_X_WIDTH   = 12,
+            parameter   int     IMG_Y_WIDTH   = 12,
+
+            parameter   int     M0_WIDTH      = 10,
+            parameter   int     M1_WIDTH      = 18,
+
+            parameter   int     TUSER_WIDTH   = 1,
+            parameter   int     S_TDATA_WIDTH = S_DATA_WIDTH,
+            parameter   int     M_TDATA_WIDTH = 4*M_DATA_WIDTH,
             
-            parameter   IMG_X_WIDTH   = 12,
-            parameter   IMG_Y_WIDTH   = 12,
-            
-            parameter   TUSER_WIDTH   = 1,
-            parameter   S_TDATA_WIDTH = S_DATA_WIDTH,
-            parameter   M_TDATA_WIDTH = 4*M_DATA_WIDTH,
-            
-            parameter   DEVICE        = "RTL"
+            parameter           DEVICE        = "RTL"
         )
         (
             input   wire                        aresetn,
@@ -60,7 +63,13 @@ module image_processing
             output  wire                        m_axi4s_tlast,
             output  wire    [M_TDATA_WIDTH-1:0] m_axi4s_tdata,
             output  wire                        m_axi4s_tvalid,
-            input   wire                        m_axi4s_tready
+            input   wire                        m_axi4s_tready,
+
+            output  wire                        m_moment_first,
+            output  wire                        m_moment_last,
+            output  wire   [M0_WIDTH-1:0]       m_moment_m0,
+            output  wire   [M1_WIDTH-1:0]       m_moment_m1,
+            output  wire                        m_moment_valid
         );
     
     
@@ -247,7 +256,7 @@ module image_processing
                 .WB_ADR_WIDTH           (6),
                 .WB_DAT_WIDTH           (WB_DAT_WIDTH),
                 
-                .INIT_PARAM_MATRIX00    (2 << 16),
+                .INIT_PARAM_MATRIX00    (1 << 16),
                 .INIT_PARAM_MATRIX01    (0),
                 .INIT_PARAM_MATRIX02    (0),
                 .INIT_PARAM_MATRIX03    (0),
@@ -447,7 +456,7 @@ module image_processing
                 .USE_VALID              (USE_VALID),
                 .WB_ADR_WIDTH           (8),
                 .WB_DAT_WIDTH           (WB_DAT_WIDTH),
-                .INIT_CTL_CONTROL       (3'b011),
+                .INIT_CTL_CONTROL       (2'b11),
                 .INIT_PARAM_OR          (1'b0),
                 .INIT_PARAM_TH0         ('0),
                 .INIT_PARAM_TH1         ('1),
@@ -491,8 +500,36 @@ module image_processing
                 .m_img_data             (img_bin_data),
                 .m_img_valid            (img_bin_valid)
             );
-    
 
+
+
+    jelly2_img_line_moment
+            #(
+                .M0_WIDTH               (12),
+                .M1_WIDTH               (20)
+            )
+        i_img_line_moment
+            (
+                .reset                  (reset),
+                .clk                    (clk),
+                .cke                    (cke),
+
+                .s_img_row_first        (img_bin_row_first),
+                .s_img_row_last         (img_bin_row_last),
+                .s_img_col_first        (img_bin_col_first),
+                .s_img_col_last         (img_bin_col_last),
+                .s_img_de               (img_bin_de),
+                .s_img_data             (img_bin_data),
+                .s_img_valid            (img_bin_valid),
+
+                .m_moment_first         (m_moment_first),
+                .m_moment_last          (m_moment_last),
+                .m_moment_m0            (m_moment_m0),
+                .m_moment_m1            (m_moment_m1),
+                .m_moment_valid         (m_moment_valid)
+            );
+
+    
     // select
     localparam      S_NUM = 5;
 
