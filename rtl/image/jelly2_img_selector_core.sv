@@ -48,63 +48,43 @@ module jelly2_img_selector_core
             output  reg                                 m_img_valid
         );
     
-    // 厳密にはNGだがデバッグ色の強いコアなので手を抜く
+    // DIP-SW の接続なども考慮
     (* ASYNC_REG="true" *)  reg     [SEL_WIDTH-1:0]   ff0_sel, ff1_sel;
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         ff0_sel <= sel;
         ff1_sel <= ff0_sel;
     end
     
-    
     logic                       busy;
-    logic                       change;
+    logic   [SEL_WIDTH-1:0]     next_sel;
     logic   [SEL_WIDTH-1:0]     current_sel;
+    always_comb next_sel = ff1_sel;
     
-    logic                       reg_row_first;
-    logic                       reg_row_last;
-    logic                       reg_col_first;
-    logic                       reg_col_last;
-    logic                       reg_de;
-    logic   [USER_BITS-1:0]     reg_user;
-    logic   [DATA_WIDTH-1:0]    reg_data;
-    logic                       reg_valid;
-    
-    wire                        sel_row_first  = s_img_row_first[current_sel];
-    wire                        sel_row_last   = s_img_row_last [current_sel];
-    wire                        sel_col_first  = s_img_col_first[current_sel];
-    wire                        sel_col_last   = s_img_col_last [current_sel];
-    wire                        sel_de         = s_img_de       [current_sel];
-    wire    [USER_BITS-1:0]     sel_user       = s_img_user     [current_sel];
-    wire    [DATA_WIDTH-1:0]    sel_data       = s_img_data     [current_sel];
-    wire                        sel_valid      = s_img_valid    [current_sel];
-    
-    wire                        frame_start = (sel_valid & sel_row_first & sel_col_first);
-    wire                        frame_end   = (reg_valid & reg_row_last  & reg_col_last);
-    
+    wire                        img_next_row_first    = s_img_row_first[next_sel];
+    wire                        img_next_row_last     = s_img_row_last [next_sel];
+    wire                        img_next_col_first    = s_img_col_first[next_sel];
+    wire                        img_next_col_last     = s_img_col_last [next_sel];
+    wire                        img_next_de           = s_img_de       [next_sel];
+    wire    [USER_BITS-1:0]     img_next_user         = s_img_user     [next_sel];
+    wire    [DATA_WIDTH-1:0]    img_next_data         = s_img_data     [next_sel];
+    wire                        img_next_valid        = s_img_valid    [next_sel];
+
+    wire                        img_current_row_first = s_img_row_first[current_sel];
+    wire                        img_current_row_last  = s_img_row_last [current_sel];
+    wire                        img_current_col_first = s_img_col_first[current_sel];
+    wire                        img_current_col_last  = s_img_col_last [current_sel];
+    wire                        img_current_de        = s_img_de       [current_sel];
+    wire    [USER_BITS-1:0]     img_current_user      = s_img_user     [current_sel];
+    wire    [DATA_WIDTH-1:0]    img_current_data      = s_img_data     [current_sel];
+    wire                        img_current_valid     = s_img_valid    [current_sel];
+
+    wire                        next_frame_start    = (img_next_valid & img_next_row_first & img_next_col_first);
+    wire                        current_frame_end   = (m_img_valid & m_img_row_last  & m_img_col_last);
+
     always_ff @(posedge clk) begin
         if ( reset ) begin
-            busy        <= 1'b0;
-            change      <= 1'b0;
-            current_sel <= ff1_sel;
-        end
-        else if ( cke ) begin
-            change <= (current_sel != ff1_sel);
-            
-            if ( frame_start && !change ) begin
-                busy <= 1'b1;
-            end
-            else if ( frame_end ) begin
-                busy <= 1'b0;
-            end
-            
-            if ( !frame_start && !busy ) begin
-                current_sel <= ff1_sel;
-            end
-        end
-    end
-    
-    always_ff @(posedge clk) begin
-        if ( reset ) begin
+            busy            <= 1'b0;
+            current_sel     <= ff1_sel;
             m_img_row_first <= 1'b0;
             m_img_row_last  <= 1'b0;
             m_img_col_first <= 1'b0;
@@ -114,15 +94,29 @@ module jelly2_img_selector_core
             m_img_data      <= 'x;
             m_img_valid     <= 1'b0;
         end
-        else if ( cke ) begin           
-            m_img_row_first <= sel_row_first;
-            m_img_row_last  <= sel_row_last;
-            m_img_col_first <= sel_col_first;
-            m_img_col_last  <= sel_col_last;
-            m_img_de        <= sel_de;
-            m_img_user      <= sel_user;
-            m_img_data      <= sel_data;
-            m_img_valid     <= sel_valid;
+        else if ( cke ) begin
+            if ( !busy || current_frame_end ) begin
+                busy            <= next_frame_start;
+                current_sel     <= next_sel;
+                m_img_row_first <= img_next_row_first;
+                m_img_row_last  <= img_next_row_last; 
+                m_img_col_first <= img_next_col_first;
+                m_img_col_last  <= img_next_col_last;
+                m_img_de        <= img_next_de;
+                m_img_user      <= img_next_user;
+                m_img_data      <= img_next_data;
+                m_img_valid     <= img_next_valid; 
+            end
+            else begin
+                m_img_row_first <= img_current_row_first;
+                m_img_row_last  <= img_current_row_last; 
+                m_img_col_first <= img_current_col_first;
+                m_img_col_last  <= img_current_col_last;
+                m_img_de        <= img_current_de;
+                m_img_user      <= img_current_user;
+                m_img_data      <= img_current_data;
+                m_img_valid     <= img_current_valid; 
+            end
         end
     end
     
