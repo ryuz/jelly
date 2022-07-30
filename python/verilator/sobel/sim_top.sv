@@ -70,7 +70,7 @@ module top
                 .GRAD_Y_WIDTH       (M_DATA_WIDTH),
                 .IMG_X_WIDTH        (IMG_X_WIDTH),
                 .IMG_Y_WIDTH        (IMG_Y_WIDTH),
-                .MAX_X_NUM          (4096),
+                .MAX_COLS           (4096),
                 .RAM_TYPE           ("block"),
                 .INIT_Y_NUM         (480),
                 .FIFO_PTR_WIDTH     (IMG_X_WIDTH),

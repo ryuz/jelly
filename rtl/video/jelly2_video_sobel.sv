@@ -22,7 +22,7 @@ module jelly2_video_sobel
             parameter   int                         GRAD_Y_WIDTH   = DATA_WIDTH,
             parameter   int                         IMG_X_WIDTH    = 10,
             parameter   int                         IMG_Y_WIDTH    = 9,
-            parameter   int                         MAX_X_NUM      = 4096,
+            parameter   int                         MAX_COLS       = 4096,
             parameter                               RAM_TYPE       = "block",
             parameter   bit     [IMG_Y_WIDTH-1:0]   INIT_Y_NUM     = 480,
             parameter   int                         FIFO_PTR_WIDTH = IMG_X_WIDTH,
@@ -134,13 +134,13 @@ module jelly2_video_sobel
     
 
     // image processing
-    jelly_img_sobel_core
+    jelly2_img_sobel_core
             #(
                 .USER_WIDTH             (TUSER_WIDTH),
                 .DATA_WIDTH             (DATA_WIDTH),
                 .GRAD_X_WIDTH           (GRAD_X_WIDTH),
                 .GRAD_Y_WIDTH           (GRAD_Y_WIDTH),
-                .MAX_X_NUM              (MAX_X_NUM),
+                .MAX_COLS               (MAX_COLS),
                 .RAM_TYPE               (RAM_TYPE),
                 .USE_VALID              (1)
             )
@@ -150,19 +150,19 @@ module jelly2_video_sobel
                 .clk                    (aclk),
                 .cke                    (img_cke),
 
-                .s_img_line_first       (img_src_row_first),
-                .s_img_line_last        (img_src_row_last),
-                .s_img_pixel_first      (img_src_col_first),
-                .s_img_pixel_last       (img_src_col_last),
+                .s_img_row_first        (img_src_row_first),
+                .s_img_row_last         (img_src_row_last),
+                .s_img_col_first        (img_src_col_first),
+                .s_img_col_last         (img_src_col_last),
                 .s_img_de               (img_src_de),
                 .s_img_user             (img_src_user),
                 .s_img_data             (img_src_data),
                 .s_img_valid            (img_src_valid),
 
-                .m_img_line_first       (img_sink_row_first),
-                .m_img_line_last        (img_sink_row_last),
-                .m_img_pixel_first      (img_sink_col_first),
-                .m_img_pixel_last       (img_sink_col_last),
+                .m_img_row_first        (img_sink_row_first),
+                .m_img_row_last         (img_sink_row_last),
+                .m_img_col_first        (img_sink_col_first),
+                .m_img_col_last         (img_sink_col_last),
                 .m_img_de               (img_sink_de),
                 .m_img_user             (img_sink_user),
                 .m_img_data             (img_sink_data),
