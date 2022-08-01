@@ -108,7 +108,7 @@ int main(int argc, char** argv)
 
     wb->Display("set colmat");
     wb->Read (reg_colmat + REG_IMG_COLMAT_CORE_ID);
-    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX00, 0x00018000, 0xf);
+    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX00, 0x00010000, 0xf);
     wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX01, 0x00000000, 0xf);
     wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX02, 0x00000000, 0xf);
     wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX03, 0x00000000, 0xf);

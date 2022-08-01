@@ -47,6 +47,7 @@ module tb_main
         sym_cycle <= sym_cycle + 1;
     end
 
+    localparam  DATA_WIDTH = 10;
     
     // -----------------------------------------
     //  top
@@ -86,14 +87,14 @@ module tb_main
     //  video input
     // -----------------------------------------
 
-    logic           axi4s_cam_aresetn;
-    logic           axi4s_cam_aclk;
+    logic                       axi4s_cam_aresetn;
+    logic                       axi4s_cam_aclk;
 
-    logic   [0:0]   axi4s_src_tuser;
-    logic           axi4s_src_tlast;
-    logic   [9:0]   axi4s_src_tdata;
-    logic           axi4s_src_tvalid;
-    logic           axi4s_src_tready;
+    logic   [0:0]               axi4s_src_tuser;
+    logic                       axi4s_src_tlast;
+    logic   [DATA_WIDTH-1:0]    axi4s_src_tdata;
+    logic                       axi4s_src_tvalid;
+    logic                       axi4s_src_tready;
 
     assign axi4s_cam_aresetn = i_top.axi4s_cam_aresetn;
     assign axi4s_cam_aclk    = i_top.axi4s_cam_aclk;
@@ -114,7 +115,7 @@ module tb_main
     jelly2_axi4s_master_model
             #(
                 .COMPONENTS         (1),
-                .DATA_WIDTH         (10),
+                .DATA_WIDTH         (DATA_WIDTH),
                 .X_NUM              (X_NUM),
                 .Y_NUM              (Y_NUM),
                 .X_BLANK            (128),
@@ -194,6 +195,74 @@ module tb_main
                 .s_axi4s_tready     ()
             );
 
+
+    // -----------------------------------------
+    //  HSV image
+    // -----------------------------------------
+
+    logic                               img_reset;
+    logic                               img_clk;
+    logic                               img_cke;
+    always_comb img_reset = i_top.i_image_processing.reset;
+    always_comb img_clk   = i_top.i_image_processing.clk;
+    always_comb img_cke   = i_top.i_image_processing.cke;
+
+
+    logic                               img_hsv_row_first;
+    logic                               img_hsv_row_last;
+    logic                               img_hsv_col_first;
+    logic                               img_hsv_col_last;
+    logic                               img_hsv_de;
+    logic   [DATA_WIDTH-1:0]            img_hsv_raw;
+    logic   [DATA_WIDTH-1:0]            img_hsv_h;
+    logic   [DATA_WIDTH-1:0]            img_hsv_s;
+    logic   [DATA_WIDTH-1:0]            img_hsv_v;
+    logic                               img_hsv_valid;
+
+    always_comb img_hsv_row_first = i_top.i_image_processing.img_hsv_row_first;
+    always_comb img_hsv_row_last  = i_top.i_image_processing.img_hsv_row_last;
+    always_comb img_hsv_col_first = i_top.i_image_processing.img_hsv_col_first;
+    always_comb img_hsv_col_last  = i_top.i_image_processing.img_hsv_col_last;
+    always_comb img_hsv_de        = i_top.i_image_processing.img_hsv_de;
+    always_comb img_hsv_raw       = i_top.i_image_processing.img_hsv_raw;
+    always_comb img_hsv_h         = i_top.i_image_processing.img_hsv_h;
+    always_comb img_hsv_s         = i_top.i_image_processing.img_hsv_s;
+    always_comb img_hsv_v         = i_top.i_image_processing.img_hsv_v;
+    always_comb img_hsv_valid     = i_top.i_image_processing.img_hsv_valid;
+  
+    jelly2_img_slave_model
+            #(
+                .COMPONENTS         (3),
+                .DATA_WIDTH         (DATA_WIDTH),
+                .INIT_FRAME_NUM     (0),
+                .X_WIDTH            (32),
+                .Y_WIDTH            (32),
+                .F_WIDTH            (32),
+                .FORMAT             ("P3"),
+                .FILE_NAME          ("hsv_"),
+                .FILE_EXT           (".ppm"),
+                .SEQUENTIAL_FILE    (1),
+                .ENDIAN             (0)
+            )
+    jelly2_img_slave_model
+            (
+                .reset              (img_reset),
+                .clk                (img_clk),
+                .cke                (img_cke),
+
+                .param_width        (X_NUM),
+                .param_height       (Y_NUM),
+                .frame_num          (),
+                
+                .s_img_row_first    (img_hsv_row_first),
+                .s_img_row_last     (img_hsv_row_last),
+                .s_img_col_first    (img_hsv_col_first),
+                .s_img_col_last     (img_hsv_col_last),
+                .s_img_de           (img_hsv_de),
+                .s_img_data         ({img_hsv_v, img_hsv_s, img_hsv_h}),
+                .s_img_valid        (img_hsv_valid)
+            );
+    
 endmodule
 
 
