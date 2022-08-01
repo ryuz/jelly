@@ -15,7 +15,7 @@ if (NOT verilator_FOUND)
 endif()
 
 find_package(pybind11 REQUIRED)
-pybind11_add_module(${PRJ_NAME} lib_top.cpp)
+pybind11_add_module(${PRJ_NAME} sim_lib.cpp)
 
 target_include_directories(${PRJ_NAME} PUBLIC "../../../include")
 set(CMAKE_CXX_FLAGS "-O3 -std=c++17")
