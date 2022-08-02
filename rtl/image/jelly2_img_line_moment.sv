@@ -37,6 +37,7 @@ module jelly2_img_line_moment
             output  reg                     m_moment_valid
         );
     
+    logic                       busy;
     logic   [M0_WIDTH-1:0]      acc_x;
     logic   [M0_WIDTH-1:0]      acc_m0;
     logic   [M1_WIDTH-1:0]      acc_m1;
@@ -46,6 +47,7 @@ module jelly2_img_line_moment
 
     always_ff @(posedge clk) begin
         if ( reset ) begin
+            busy      <= 1'b0;
             acc_x     <= 'x;
             acc_m0    <= 'x;
             acc_m1    <= 'x;
@@ -56,6 +58,13 @@ module jelly2_img_line_moment
         else if ( cke ) begin
             acc_valid <= 1'b0;
             if ( s_img_valid ) begin
+                if ( s_img_row_first ) begin
+                    busy <= 1'b1;
+                end
+                if ( s_img_row_last && s_img_col_last ) begin
+                    busy <= 1'b0;
+                end
+
                 if ( s_img_col_first ) begin
                     acc_x  <= M0_WIDTH'(0);
                     acc_m0 <= M0_WIDTH'(0);
@@ -76,7 +85,7 @@ module jelly2_img_line_moment
                 end
                 acc_first <= s_img_row_first;
                 acc_last  <= s_img_row_last;
-                acc_valid <= s_img_col_last;
+                acc_valid <= s_img_col_last & busy;
             end
         end
     end

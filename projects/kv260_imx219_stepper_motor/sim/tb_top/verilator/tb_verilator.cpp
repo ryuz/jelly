@@ -73,6 +73,8 @@ int main(int argc, char** argv)
     const int reg_wdma   = (0x00210000 >> 3);
     const int reg_demos  = (0x00400000 >> 3);
     const int reg_colmat = (0x00400800 >> 3);
+    const int reg_gauss  = (0x00402000 >> 3);
+    const int reg_bin    = (0x00403000 >> 3);
     const int reg_select = (0x00407800 >> 3);
     
     wb->Wait(1000);
@@ -84,6 +86,8 @@ int main(int argc, char** argv)
     wb->Read (reg_fmtr);    // fmtr
     wb->Read (reg_demos);   // demosaic
     wb->Read (reg_colmat);  // col mat
+    wb->Read (reg_gauss);   // 
+    wb->Read (reg_bin);     // 
     wb->Read (reg_wdma);    // wdma
     wb->Read (reg_select);  // wdma
 
@@ -103,25 +107,41 @@ int main(int argc, char** argv)
 
     wb->Display("set DEMOSIC");
     wb->Read (reg_demos + REG_IMG_DEMOSAIC_CORE_ID);
-    wb->Write(reg_demos + REG_IMG_DEMOSAIC_PARAM_PHASE,    0x3, 0xf);
+    wb->Write(reg_demos + REG_IMG_DEMOSAIC_PARAM_PHASE,    0x0, 0xf);
     wb->Write(reg_demos + REG_IMG_DEMOSAIC_CTL_CONTROL,    0x3, 0xf);
 
     wb->Display("set colmat");
     wb->Read (reg_colmat + REG_IMG_COLMAT_CORE_ID);
-    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX00, 0x00010000, 0xf);
+    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX00, 0x00010000, 0xf); // 0x0003a83a
     wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX01, 0x00000000, 0xf);
     wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX02, 0x00000000, 0xf);
     wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX03, 0x00000000, 0xf);
     wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX10, 0x00000000, 0xf);
-    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX11, 0x00010000, 0xf);
+    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX11, 0x00010000, 0xf); // 0x00030c30
     wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX12, 0x00000000, 0xf);
     wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX13, 0x00000000, 0xf);
     wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX20, 0x00000000, 0xf);
     wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX21, 0x00000000, 0xf);
-    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX22, 0x00020000, 0xf);
+    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX22, 0x00010000, 0xf); // 0x000456c7
     wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX23, 0x00000000, 0xf);
     wb->Write(reg_colmat + REG_IMG_COLMAT_CTL_CONTROL, 3, 0xf);
 
+    wb->Display("set gauss");
+    wb->Read (reg_gauss + REG_IMG_GAUSS3X3_CORE_ID);
+    wb->Write(reg_gauss + REG_IMG_GAUSS3X3_PARAM_ENABLE, 0x7, 0xf);
+    wb->Write(reg_gauss + REG_IMG_GAUSS3X3_CTL_CONTROL,  0x3, 0xf);
+
+    wb->Display("set bin");
+    wb->Read (reg_bin + REG_IMG_BIN_CORE_ID);
+    wb->Write(reg_bin + REG_IMG_BIN_PARAM_TH0(0),  700, 0xf);
+    wb->Write(reg_bin + REG_IMG_BIN_PARAM_TH1(0),  800, 0xf);
+    wb->Write(reg_bin + REG_IMG_BIN_PARAM_TH0(1),  200, 0xf);
+    wb->Write(reg_bin + REG_IMG_BIN_PARAM_TH1(1), 1023, 0xf);
+    wb->Write(reg_bin + REG_IMG_BIN_PARAM_TH0(2),   10, 0xf);
+    wb->Write(reg_bin + REG_IMG_BIN_PARAM_TH1(2), 1023, 0xf);
+//  wb->Write(reg_bin + REG_IMG_BIN_PARAM_VAL0(0), 0, 0xf);
+//  wb->Write(reg_bin + REG_IMG_BIN_PARAM_VAL1(0), 1, 0xf);
+    wb->Write(reg_bin + REG_IMG_BIN_CTL_CONTROL, 3, 0xf);
 
     wb->Display("set write DMA");
     wb->Read (reg_wdma + REG_VDMA_WRITE_CORE_ID);                         // CORE ID

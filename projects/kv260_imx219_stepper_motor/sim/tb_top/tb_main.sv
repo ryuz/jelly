@@ -36,7 +36,8 @@ module tb_main
 
     // setting
 //  localparam FILE_NAME  = "../../data/img_dump_640x132.pgm";
-    localparam FILE_NAME  = "../../data/dump_img_1000fps_raw10.pgm";
+//  localparam FILE_NAME  = "../../data/dump_img_1000fps_raw10.pgm";
+    localparam FILE_NAME  = "../test_raw10.pgm";
     localparam FILE_X_NUM = 640;
     localparam FILE_Y_NUM = 132;
 
@@ -195,18 +196,136 @@ module tb_main
                 .s_axi4s_tready     ()
             );
 
-
     // -----------------------------------------
-    //  HSV image
+    //  image
     // -----------------------------------------
 
     logic                               img_reset;
     logic                               img_clk;
     logic                               img_cke;
+
+    // -----------------------------------------
+    //  RGB image
+    // -----------------------------------------
+
     always_comb img_reset = i_top.i_image_processing.reset;
     always_comb img_clk   = i_top.i_image_processing.clk;
     always_comb img_cke   = i_top.i_image_processing.cke;
 
+
+    logic                               img_rgb_row_first;
+    logic                               img_rgb_row_last;
+    logic                               img_rgb_col_first;
+    logic                               img_rgb_col_last;
+    logic                               img_rgb_de;
+    logic   [DATA_WIDTH-1:0]            img_rgb_r;
+    logic   [DATA_WIDTH-1:0]            img_rgb_g;
+    logic   [DATA_WIDTH-1:0]            img_rgb_b;
+    logic                               img_rgb_valid;
+
+    always_comb img_rgb_row_first = i_top.i_image_processing.img_colmat_row_first;
+    always_comb img_rgb_row_last  = i_top.i_image_processing.img_colmat_row_last;
+    always_comb img_rgb_col_first = i_top.i_image_processing.img_colmat_col_first;
+    always_comb img_rgb_col_last  = i_top.i_image_processing.img_colmat_col_last;
+    always_comb img_rgb_de        = i_top.i_image_processing.img_colmat_de;
+    always_comb img_rgb_r         = i_top.i_image_processing.img_colmat_r;
+    always_comb img_rgb_g         = i_top.i_image_processing.img_colmat_g;
+    always_comb img_rgb_b         = i_top.i_image_processing.img_colmat_b;
+    always_comb img_rgb_valid     = i_top.i_image_processing.img_colmat_valid;
+    
+    jelly2_img_slave_model
+            #(
+                .COMPONENTS         (3),
+                .DATA_WIDTH         (DATA_WIDTH),
+                .INIT_FRAME_NUM     (0),
+                .X_WIDTH            (32),
+                .Y_WIDTH            (32),
+                .F_WIDTH            (32),
+                .FORMAT             ("P3"),
+                .FILE_NAME          ("rgb_"),
+                .FILE_EXT           (".ppm"),
+                .SEQUENTIAL_FILE    (1),
+                .ENDIAN             (0)
+            )
+        i_img_slave_model_rgb
+            (
+                .reset              (img_reset),
+                .clk                (img_clk),
+                .cke                (img_cke),
+
+                .param_width        (X_NUM),
+                .param_height       (Y_NUM),
+                .frame_num          (),
+                
+                .s_img_row_first    (img_rgb_row_first),
+                .s_img_row_last     (img_rgb_row_last),
+                .s_img_col_first    (img_rgb_col_first),
+                .s_img_col_last     (img_rgb_col_last),
+                .s_img_de           (img_rgb_de),
+                .s_img_data         ({img_rgb_b, img_rgb_g, img_rgb_r}),
+                .s_img_valid        (img_rgb_valid)
+            );
+
+    // -----------------------------------------
+    //  Gauss image
+    // -----------------------------------------
+
+    logic                               img_gauss_row_first;
+    logic                               img_gauss_row_last;
+    logic                               img_gauss_col_first;
+    logic                               img_gauss_col_last;
+    logic                               img_gauss_de;
+    logic   [DATA_WIDTH-1:0]            img_gauss_r;
+    logic   [DATA_WIDTH-1:0]            img_gauss_g;
+    logic   [DATA_WIDTH-1:0]            img_gauss_b;
+    logic                               img_gauss_valid;
+
+    always_comb img_gauss_row_first = i_top.i_image_processing.img_gauss_row_first;
+    always_comb img_gauss_row_last  = i_top.i_image_processing.img_gauss_row_last;
+    always_comb img_gauss_col_first = i_top.i_image_processing.img_gauss_col_first;
+    always_comb img_gauss_col_last  = i_top.i_image_processing.img_gauss_col_last;
+    always_comb img_gauss_de        = i_top.i_image_processing.img_gauss_de;
+    always_comb img_gauss_r         = i_top.i_image_processing.img_gauss_r;
+    always_comb img_gauss_g         = i_top.i_image_processing.img_gauss_g;
+    always_comb img_gauss_b         = i_top.i_image_processing.img_gauss_b;
+    always_comb img_gauss_valid     = i_top.i_image_processing.img_gauss_valid;
+    
+    jelly2_img_slave_model
+            #(
+                .COMPONENTS         (3),
+                .DATA_WIDTH         (DATA_WIDTH),
+                .INIT_FRAME_NUM     (0),
+                .X_WIDTH            (32),
+                .Y_WIDTH            (32),
+                .F_WIDTH            (32),
+                .FORMAT             ("P3"),
+                .FILE_NAME          ("gauss_"),
+                .FILE_EXT           (".ppm"),
+                .SEQUENTIAL_FILE    (1),
+                .ENDIAN             (0)
+            )
+        i_img_slave_model_gauss
+            (
+                .reset              (img_reset),
+                .clk                (img_clk),
+                .cke                (img_cke),
+
+                .param_width        (X_NUM),
+                .param_height       (Y_NUM),
+                .frame_num          (),
+                
+                .s_img_row_first    (img_gauss_row_first),
+                .s_img_row_last     (img_gauss_row_last),
+                .s_img_col_first    (img_gauss_col_first),
+                .s_img_col_last     (img_gauss_col_last),
+                .s_img_de           (img_gauss_de),
+                .s_img_data         ({img_gauss_b, img_gauss_g, img_gauss_r}),
+                .s_img_valid        (img_gauss_valid)
+            );
+    
+    // -----------------------------------------
+    //  HSV image
+    // -----------------------------------------
 
     logic                               img_hsv_row_first;
     logic                               img_hsv_row_last;
@@ -244,7 +363,7 @@ module tb_main
                 .SEQUENTIAL_FILE    (1),
                 .ENDIAN             (0)
             )
-    jelly2_img_slave_model
+        i_img_slave_model_hsv
             (
                 .reset              (img_reset),
                 .clk                (img_clk),
@@ -262,7 +381,62 @@ module tb_main
                 .s_img_data         ({img_hsv_v, img_hsv_s, img_hsv_h}),
                 .s_img_valid        (img_hsv_valid)
             );
-    
+
+
+    // -----------------------------------------
+    //  Binary
+    // -----------------------------------------
+
+    logic                               img_bin_row_first;
+    logic                               img_bin_row_last;
+    logic                               img_bin_col_first;
+    logic                               img_bin_col_last;
+    logic                               img_bin_de;
+    logic   [0:0]                       img_bin_data;
+    logic                               img_bin_valid;
+
+    always_comb img_bin_row_first = i_top.i_image_processing.img_bin_row_first;
+    always_comb img_bin_row_last  = i_top.i_image_processing.img_bin_row_last;
+    always_comb img_bin_col_first = i_top.i_image_processing.img_bin_col_first;
+    always_comb img_bin_col_last  = i_top.i_image_processing.img_bin_col_last;
+    always_comb img_bin_de        = i_top.i_image_processing.img_bin_de;
+    always_comb img_bin_data      = i_top.i_image_processing.img_bin_data;
+    always_comb img_bin_valid     = i_top.i_image_processing.img_bin_valid;
+  
+    jelly2_img_slave_model
+            #(
+                .COMPONENTS         (1),
+                .DATA_WIDTH         (1),
+                .INIT_FRAME_NUM     (0),
+                .X_WIDTH            (32),
+                .Y_WIDTH            (32),
+                .F_WIDTH            (32),
+                .FORMAT             ("P2"),
+                .FILE_NAME          ("bin_"),
+                .FILE_EXT           (".pgm"),
+                .SEQUENTIAL_FILE    (1),
+                .ENDIAN             (0)
+            )
+        i_img_slave_model_bin
+            (
+                .reset              (img_reset),
+                .clk                (img_clk),
+                .cke                (img_cke),
+
+                .param_width        (X_NUM),
+                .param_height       (Y_NUM),
+                .frame_num          (),
+                
+                .s_img_row_first    (img_bin_row_first),
+                .s_img_row_last     (img_bin_row_last),
+                .s_img_col_first    (img_bin_col_first),
+                .s_img_col_last     (img_bin_col_last),
+                .s_img_de           (img_bin_de),
+                .s_img_data         (img_bin_data),
+                .s_img_valid        (img_bin_valid)
+            );
+
+
 endmodule
 
 

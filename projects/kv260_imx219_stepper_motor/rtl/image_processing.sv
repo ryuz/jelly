@@ -117,7 +117,7 @@ module image_processing
 
                 .param_img_width        (param_img_width),
                 .param_img_height       (param_img_height),
-                .param_blank_height     (4'd5),
+                .param_blank_height     (4'd7),
 
                 .s_axi4s_tdata          (s_axi4s_tdata),
                 .s_axi4s_tlast          (s_axi4s_tlast),
@@ -335,7 +335,7 @@ module image_processing
 
     jelly_img_gaussian_3x3
             #(
-                .NUM                    (1),
+                .NUM                    (3),
                 .USER_WIDTH             (DATA_WIDTH),
                 .COMPONENTS             (3),
                 .DATA_WIDTH             (DATA_WIDTH),
@@ -408,16 +408,16 @@ module image_processing
                 .clk                    (clk),
                 .cke                    (cke),
                 
-                .s_img_row_first        (img_colmat_row_first),
-                .s_img_row_last         (img_colmat_row_last),
-                .s_img_col_first        (img_colmat_col_first),
-                .s_img_col_last         (img_colmat_col_last ),
-                .s_img_de               (img_colmat_de),
-                .s_img_user             (img_colmat_raw),
-                .s_img_r                (img_colmat_r),
-                .s_img_g                (img_colmat_g),
-                .s_img_b                (img_colmat_b),
-                .s_img_valid            (img_colmat_valid),
+                .s_img_row_first        (img_gauss_row_first),
+                .s_img_row_last         (img_gauss_row_last),
+                .s_img_col_first        (img_gauss_col_first),
+                .s_img_col_last         (img_gauss_col_last ),
+                .s_img_de               (img_gauss_de),
+                .s_img_user             (img_gauss_raw),
+                .s_img_r                (img_gauss_r),
+                .s_img_g                (img_gauss_g),
+                .s_img_b                (img_gauss_b),
+                .s_img_valid            (img_gauss_valid),
 
                 .m_img_row_first        (img_hsv_row_first),
                 .m_img_row_last         (img_hsv_row_last),
