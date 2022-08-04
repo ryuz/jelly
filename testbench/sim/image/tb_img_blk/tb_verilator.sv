@@ -308,7 +308,7 @@ module tb_verilator(
     
     integer frame = 0;
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( !reset & axi4s_out_tvalid & axi4s_out_tready ) begin
             if ( axi4s_out_tuser ) begin
                 frame = frame + 1;

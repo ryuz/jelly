@@ -393,7 +393,7 @@ module tb_main(
 //  wire        [SAMPLER2D_X_WIDTH-1:0]             txtadr_x_tmp = 16 * txtadr_x;
 //  wire        [SAMPLER2D_Y_WIDTH-1:0]             txtadr_y_tmp = 16 * txtadr_y;
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             txtadr_enbale <= 1'b1;
             txtadr_x      <= 0;
@@ -498,7 +498,7 @@ module tb_main(
         $display("file open");
     end
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( !reset ) begin
             if ( sink_valid && sink_ready ) begin
                 if ( COMPONENTS == 1 ) begin

@@ -156,7 +156,7 @@ module tb_sim(
                 .s_img_valid        (m_img_valid)
             );
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( frame_num > 3 ) begin
             $finish();
         end

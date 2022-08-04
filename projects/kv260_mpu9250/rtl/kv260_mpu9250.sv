@@ -376,7 +376,7 @@ module kv260_mpu9250
     logic                           wb_led_ack_o;
     
     logic   [0:0]                   reg_led;
-    always @(posedge wb_peri_clk_i) begin
+    always_ff @(posedge wb_peri_clk_i) begin
         if ( wb_peri_rst_i ) begin
             reg_led <= 0;
         end
@@ -392,7 +392,7 @@ module kv260_mpu9250
     
     
     reg     [25:0]  reg_clk_count;
-    always @(posedge wb_peri_clk_i) begin
+    always_ff @(posedge wb_peri_clk_i) begin
         if ( wb_peri_rst_i ) begin
             reg_clk_count <= 0;
         end
@@ -471,7 +471,7 @@ module kv260_mpu9250
     (* mark_debug="true" *) reg     dbg_sda_t;
     (* mark_debug="true" *) reg     dbg_sda_i;
     
-    always @(posedge wb_peri_clk_i) begin
+    always_ff @(posedge wb_peri_clk_i) begin
         dbg_irq_rtos <= rtos_irq;
         dbg_irq_i2c  <= i2c_irq;
         dbg_scl_t    <= i2c_scl_t;

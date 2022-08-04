@@ -80,7 +80,7 @@ module jelly2_img_sobel_calc
     reg     signed  [CALC_WIDTH-1:0]  st4_grad_x;
     reg     signed  [CALC_WIDTH-1:0]  st4_grad_y;
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( cke ) begin
             // stage0
             st0_data    <= in_data[1][1];

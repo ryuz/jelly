@@ -185,7 +185,7 @@ module tb_verilator(
 //  wire        [SAMPLER2D_Y_WIDTH-1:0]             src_x_tmp = 16 * src_x;
 //  wire        [SAMPLER2D_X_WIDTH-1:0]             src_y_tmp = 16 * src_y;
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             src_x     <= 0;
             src_y     <= 0;
@@ -280,7 +280,7 @@ module tb_verilator(
         $display("file open");
     end
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( !reset ) begin
             if ( sink_valid && sink_ready ) begin
                 if ( MONO ) begin
@@ -554,7 +554,7 @@ module tb_verilator(
         end
     end
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( !reset ) begin
             if ( axi4_arvalid && axi4_arready ) begin
                 if ( read_num[axi4_araddr] != 0 ) begin
@@ -574,7 +574,7 @@ module tb_verilator(
     reg     [11:0]                  tag_addr_y = 0;
     wire    [PARALLEL_SIZE-1:0]     unit_id;
     wire    [TAG_ADDR_WIDTH-1:0]    tag_addr;
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( !reset ) begin
             {tag_addr_y[PARALLEL_SIZE+TAG_ADDR_WIDTH-1:0], tag_addr_x[PARALLEL_SIZE+TAG_ADDR_WIDTH-1:0]} <= {tag_addr_y[PARALLEL_SIZE+TAG_ADDR_WIDTH-1:0], tag_addr_x[PARALLEL_SIZE+TAG_ADDR_WIDTH-1:0]} + 1;
         end

@@ -245,7 +245,7 @@ module tb_verilator(
                 .s_axi4s_tready     (axi4s_out_tready)
             );
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( !reset && output_frame_num >=2 ) begin
             $finish();
         end

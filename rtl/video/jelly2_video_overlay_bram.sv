@@ -144,7 +144,7 @@ module jelly2_video_overlay_bram
     endfunction
     
     // registers control
-    always @(posedge s_wb_clk_i) begin
+    always_ff @(posedge s_wb_clk_i) begin
         if ( s_wb_rst_i ) begin
             reg_ctl_control   <= INIT_CTL_CONTROL;
             reg_param_x       <= INIT_PARAM_X;

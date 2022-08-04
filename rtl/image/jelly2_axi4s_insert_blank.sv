@@ -65,7 +65,7 @@ module jelly2_axi4s_insert_blank
     logic   [TUSER_WIDTH-1:0]   reg_tuser;
     logic                       reg_tvalid;
 
-    always @(posedge aclk) begin
+    always_ff @(posedge aclk) begin
         if ( ~aresetn ) begin
             reg_x_counter  <= {IMG_X_WIDTH{1'b0}};
             reg_x_num      <= {IMG_X_WIDTH{1'b0}};

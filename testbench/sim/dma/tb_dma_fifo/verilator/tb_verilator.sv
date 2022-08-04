@@ -358,7 +358,7 @@ module tb_verilator
     
     reg             s_enable = 1;
     reg     [31:0]  s_count = 0;
-    always @(posedge s_clk) begin
+    always_ff @(posedge s_clk) begin
         s_count <= s_count + 1;
 
         s_enable <= (s_count > 10000 && s_count < 20000)
@@ -366,7 +366,7 @@ module tb_verilator
     end
     
     // write
-    always @(posedge s_clk) begin
+    always_ff @(posedge s_clk) begin
         if ( s_reset ) begin
             s_data  <= 0;
             s_valid <= 1'b0;
@@ -384,7 +384,7 @@ module tb_verilator
     
     reg     [M_DATA_WIDTH-1:0]  expect_m_data;
     reg                         m_data_error;
-    always @(posedge m_clk) begin
+    always_ff @(posedge m_clk) begin
         if ( m_reset ) begin
             m_ready       <= 1'b0;
             expect_m_data <= 0;
@@ -510,7 +510,7 @@ module tb_verilator
     
     reg     [WB_DAT_WIDTH-1:0]      reg_wb_dat;
     reg                             reg_wb_ack;
-    always @(posedge wb_clk_i) begin
+    always_ff @(posedge wb_clk_i) begin
         if ( ~wb_we_o & wb_stb_o & wb_ack_i ) begin
             reg_wb_dat <= wb_dat_i;
         end

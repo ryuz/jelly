@@ -72,7 +72,7 @@ module tb_verilator(
     // write
     reg     [DATA_WIDTH-1:0]    reg_data;
     reg                         reg_valid;
-    always @(posedge s_clk) begin
+    always_ff @(posedge s_clk) begin
         if ( reset ) begin
             reg_data  <= 0;
             reg_valid <= 1'b0;
@@ -94,7 +94,7 @@ module tb_verilator(
     // read
     reg     [DATA_WIDTH-1:0]    reg_expectation_value;
     reg                         reg_ready;
-    always @(posedge m_clk) begin
+    always_ff @(posedge m_clk) begin
         if ( reset ) begin
             reg_expectation_value  <= 0;
             reg_ready              <= 1'b0;

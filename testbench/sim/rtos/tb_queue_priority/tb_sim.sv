@@ -74,7 +74,7 @@ module tb_sim();
     
     reg     [WB_DAT_WIDTH-1:0]      reg_wb_dat;
     reg                             reg_wb_ack;
-    always @(posedge wb_clk_i) begin
+    always_ff @(posedge wb_clk_i) begin
         if ( ~wb_we_o & wb_stb_o & wb_ack_i ) begin
             reg_wb_dat <= wb_dat_i;
         end

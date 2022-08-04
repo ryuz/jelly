@@ -258,7 +258,7 @@ module jelly2_img_binarizer
     
     // wait for frame start to update parameters
     reg                 core_update_req;
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             core_update_req  <= 1'b0;
             core_param_or    <= INIT_PARAM_OR;

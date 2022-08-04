@@ -74,7 +74,7 @@ module stepper_motor_control
     // -----------------------------------------
     
     reg     signed  [X_DIFF_WIDTH-1:0]   reg_in_x_diff;
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( in_valid ) begin
             reg_in_x_diff <= in_x_diff;
         end
@@ -147,7 +147,7 @@ module stepper_motor_control
     end
     endfunction
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             reg_ctl_enable  <= INIT_CTL_ENABLE;
             reg_ctl_target  <= INIT_CTL_TARGET;

@@ -78,7 +78,7 @@ module tb_main
     assign wb_mc_stb_o = i_top.wb_mc_stb_o;
     assign wb_mc_ack_i = i_top.wb_mc_ack_i;
 
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( !reset ) begin
             if ( wb_mc_stb_o && wb_mc_we_o && wb_mc_adr_o == 16'h040 ) begin
                 $write("%c", wb_mc_dat_o[7:0]);

@@ -47,7 +47,7 @@ module jelly2_autoclear_for_ram
 
     // clear
     logic  [ADDR_WIDTH-1:0]     clear_addr;
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             clear_busy <= 1'b0;
             clear_addr <= 'x;

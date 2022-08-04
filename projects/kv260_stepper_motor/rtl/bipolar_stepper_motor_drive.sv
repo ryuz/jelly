@@ -61,7 +61,7 @@ module bipolar_stepper_motor_drive
     
     reg     [1:0]                   reg_out;
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             reg_out <= 2'b00;
         end

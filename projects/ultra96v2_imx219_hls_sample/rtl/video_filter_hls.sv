@@ -76,7 +76,7 @@ module video_filter_hls
     endfunction
     
     // registers control
-    always @(posedge s_wb_clk_i) begin
+    always_ff @(posedge s_wb_clk_i) begin
         if ( s_wb_rst_i ) begin
             reg_param_enable <= INIT_PARAM_ENABLE;
         end

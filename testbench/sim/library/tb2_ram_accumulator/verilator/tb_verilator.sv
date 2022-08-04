@@ -32,7 +32,7 @@ module tb_verilator(
     logic   [DATA_WIDTH-1:0]    exp_data;
     logic                       exp_valid;
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             acc_valid <= 1'b0;
         end

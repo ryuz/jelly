@@ -140,7 +140,7 @@ module jelly2_axi4s_master_model
 
     logic           valid;
 
-    always @(posedge aclk) begin
+    always_ff @(posedge aclk) begin
         if ( !aresetn ) begin
             busy  <= 1'b0;
             x     <= 0;

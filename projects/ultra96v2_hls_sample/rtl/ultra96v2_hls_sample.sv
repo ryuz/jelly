@@ -173,7 +173,7 @@ module ultra96v2_hls_sample
     wire                            wb_led_ack_o;
     
     reg     [0:0]                   reg_led;
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( ~resetn ) begin
             reg_led <= 0;
         end
@@ -189,7 +189,7 @@ module ultra96v2_hls_sample
     
     
     reg     [25:0]  reg_clk_count;
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( ~resetn ) begin
             reg_clk_count <= 0;
         end

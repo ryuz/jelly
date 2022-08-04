@@ -197,7 +197,7 @@ module ultra96v2_jfive_sample
     // -----------------------------
     
     reg     [1:0]                   reg_led;
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             reg_led <= 0;
         end

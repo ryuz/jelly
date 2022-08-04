@@ -206,7 +206,7 @@ module jelly2_ram_accumulator
     // max
     reg     [ADDR_WIDTH-1:0]    reg_max_addr;
     reg     [DATA_WIDTH-1:0]    reg_max_data;
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset || max_clear ) begin
             reg_max_addr <= {ADDR_WIDTH{1'b0}};
             reg_max_data <= {DATA_WIDTH{1'b0}};

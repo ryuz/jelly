@@ -34,7 +34,7 @@ module jelly2_mul_add_array_unit
     logic   signed  [MUL1_WIDTH-1:0]    st0_mul1;
     logic   signed  [MAC_WIDTH-1:0]     st1_mul;
 
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             st0_mul0 <= '0;
             st0_mul1 <= '0;

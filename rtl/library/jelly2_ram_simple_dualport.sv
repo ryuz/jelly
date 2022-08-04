@@ -67,7 +67,7 @@ module jelly2_ram_simple_dualport
     generate
     if ( DOUT_REGS ) begin : blk_reg
         logic   [DATA_WIDTH-1:0]    reg_dout;
-        always @(posedge rd_clk) begin
+        always_ff @(posedge rd_clk) begin
             if ( rd_regcke ) begin
                 reg_dout <= tmp_dout;
             end

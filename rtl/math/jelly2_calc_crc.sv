@@ -63,7 +63,7 @@ module jelly2_calc_crc
     reg     [CRC_WIDTH-1:0]     tmp_crc;
     reg     [DATA_WIDTH-1:0]    tmp_index;
 
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             reg_crc <= {CRC_WIDTH{1'b1}};
         end

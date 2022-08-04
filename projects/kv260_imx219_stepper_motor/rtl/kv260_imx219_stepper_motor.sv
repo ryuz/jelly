@@ -631,7 +631,7 @@ module kv260_imx219_stepper_motor
         
     reg     reg_sw_reset;
     reg     reg_cam_enable;
-    always @(posedge wb_peri_clk_i) begin
+    always_ff @(posedge wb_peri_clk_i) begin
         if ( wb_peri_rst_i ) begin
             reg_sw_reset   <= 1'b0;
             reg_cam_enable <= 1'b0;
@@ -1116,19 +1116,19 @@ module kv260_imx219_stepper_motor
     // ----------------------------------------
     
     reg     [31:0]      reg_counter_rxbyteclkhs;
-    always @(posedge rxbyteclkhs)   reg_counter_rxbyteclkhs <= reg_counter_rxbyteclkhs + 1;
+    always_ff @(posedge rxbyteclkhs)   reg_counter_rxbyteclkhs <= reg_counter_rxbyteclkhs + 1;
     
     reg     [31:0]      reg_counter_clk100;
-    always @(posedge sys_clk100)    reg_counter_clk100 <= reg_counter_clk100 + 1;
+    always_ff @(posedge sys_clk100)    reg_counter_clk100 <= reg_counter_clk100 + 1;
     
     reg     [31:0]      reg_counter_clk200;
-    always @(posedge sys_clk200)    reg_counter_clk200 <= reg_counter_clk200 + 1;
+    always_ff @(posedge sys_clk200)    reg_counter_clk200 <= reg_counter_clk200 + 1;
     
     reg     [31:0]      reg_counter_clk250;
-    always @(posedge sys_clk250)    reg_counter_clk250 <= reg_counter_clk250 + 1;
+    always_ff @(posedge sys_clk250)    reg_counter_clk250 <= reg_counter_clk250 + 1;
     
     reg     frame_toggle = 0;
-    always @(posedge axi4s_cam_aclk) begin
+    always_ff @(posedge axi4s_cam_aclk) begin
         if ( axi4s_csi2_tuser[0] && axi4s_csi2_tvalid && axi4s_csi2_tready ) begin
             frame_toggle <= ~frame_toggle;
         end
@@ -1137,7 +1137,7 @@ module kv260_imx219_stepper_motor
     
     reg     [31:0]      reg_clk200_time;
     reg                 reg_clk200_led;
-    always @(posedge sys_clk200) begin
+    always_ff @(posedge sys_clk200) begin
         if ( sys_reset ) begin
             reg_clk200_time <= 0;
             reg_clk200_led  <= 0;
@@ -1153,7 +1153,7 @@ module kv260_imx219_stepper_motor
     
     reg     [31:0]      reg_clk250_time;
     reg                 reg_clk250_led;
-    always @(posedge sys_clk250) begin
+    always_ff @(posedge sys_clk250) begin
         if ( sys_reset ) begin
             reg_clk250_time <= 0;
             reg_clk250_led  <= 0;
@@ -1168,7 +1168,7 @@ module kv260_imx219_stepper_motor
     end
     
     reg     [7:0]   reg_frame_count;
-    always @(posedge axi4s_cam_aclk) begin
+    always_ff @(posedge axi4s_cam_aclk) begin
         if ( axi4s_csi2_tuser && axi4s_csi2_tvalid ) begin
             reg_frame_count <= reg_frame_count + 1;
         end
@@ -1192,7 +1192,7 @@ module kv260_imx219_stepper_motor
     (* mark_debug = "true" *)   reg                 dbg1_rxvalidhs;
     (* mark_debug = "true" *)   reg                 dbg1_rxactivehs;
     (* mark_debug = "true" *)   reg                 dbg1_rxsynchs;
-    always @(posedge dphy_clk) begin
+    always_ff @(posedge dphy_clk) begin
         dbg_reset       <=  sys_reset | reg_sw_reset;
         dbg0_rxdatahs   <= dl0_rxdatahs;
         dbg0_rxvalidhs  <= dl0_rxvalidhs;

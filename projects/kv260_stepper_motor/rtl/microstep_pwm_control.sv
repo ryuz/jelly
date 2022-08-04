@@ -67,7 +67,7 @@ module microstep_pwm_control
     reg     [PAHSE_WIDTH-1:0]       st0_phase;
     reg     [PAHSE_WIDTH-1:0]       st1_phase;
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             st0_micro_counter <= {MICROSTEP_WIDTH{1'b0}};
             st0_nano_counter  <= {NANOSTEP_WIDTH{1'b0}};

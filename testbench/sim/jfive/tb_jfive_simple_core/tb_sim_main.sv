@@ -110,7 +110,7 @@ module tb_sim_main
     // IO
     wire mmio_valid = dbus_wr && (dbus_addr[31:24] == 8'hf0);
 
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( !reset && mmio_valid ) begin
             $display("write: %h %10d %b", dbus_addr, $signed(dbus_wdata), dbus_sel);
         end

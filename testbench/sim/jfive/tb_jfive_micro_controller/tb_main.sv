@@ -38,7 +38,7 @@ module tb_main
     localparam  string                          LOG_MEM_FILE     = "jfive_mem_log.txt";
 
     logic                           cke = 1'b1;
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         cke <= 1'($urandom_range(1));
     end
 
@@ -181,7 +181,7 @@ module tb_main
     wire [31:0] t6 = x31;
     */
 
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( !reset && cke ) begin
             if ( m_wb_stb_o && m_wb_we_o && m_wb_ack_i ) begin
                 if ( {m_wb_adr_o, 2'b00} == 26'h0000000 ) begin
@@ -197,7 +197,7 @@ module tb_main
     assign m_wb_dat_i = 32'hf1e2d3c4;
 
     bit     rand_ack;
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         rand_ack <= 1'($urandom_range(1));
     end
 

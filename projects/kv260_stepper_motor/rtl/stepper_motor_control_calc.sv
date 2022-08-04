@@ -58,7 +58,7 @@ module stepper_motor_control_calc
     reg             [D_WIDTH-1:0]   st3_d;
     reg                             st3_valid;
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             st0_d     <= {(1+X_WIDTH){1'bx}};
             st0_valid <= 1'b0;
@@ -174,7 +174,7 @@ module stepper_motor_control_calc
     
     reg     signed  [A_WIDTH:0]     st10_a;
     reg                             st10_valid;
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             st6_lim_v  <= {L_WIDTH{1'bx}};
             st6_valid  <= 1'b0;

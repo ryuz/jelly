@@ -208,7 +208,7 @@ module kv260_jfive_micro_controller
     // -----------------------------
     
     reg     [3:0]                   reg_gpio;
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             reg_gpio <= 0;
         end
@@ -222,7 +222,7 @@ module kv260_jfive_micro_controller
     assign wb_mc_ack_i = wb_mc_stb_o;
 
     reg     [7:0]                   reg_counter;
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         reg_counter <= reg_counter + 1'b1;
     end
     
