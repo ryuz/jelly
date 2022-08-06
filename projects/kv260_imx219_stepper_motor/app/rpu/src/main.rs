@@ -95,25 +95,11 @@ extern "C" fn moment_taks() -> ! {
         
         unsafe {
             if acc0 > 0 {
-                let rate: i64 = 10000;
-                let pos: i64 = ((rate * acc0) / acc1) - (320 * rate);
+                let gain: i64 = 10000;
+                let pos: i64 = ((gain * acc0) / acc1) - (320 * gain);
                 TARGET_POS = pos as i32;
-//              println!("{} {}", pos, TARGET_POS);
-
-                /*
-                let pos: f32 = (acc0 as 32 / acc1 as f32 - 320.0);
-                let pos2: f32  = pos * 10.0;
-//              println!("{}", pos);
-                let target = pos as f32; //(pos * 10.0) as i32;
-//                TARGET_POS = (target;
-                println!("{} {}", pos, pos2);
-                */
             }
         }
-        
-//        for i in 0..130 {
-//            println!("{}", pos[i]);
-//        }
     }
 }
 
@@ -121,8 +107,6 @@ extern "C" fn moment_taks() -> ! {
 extern "C" fn motor_taks() -> ! {
     println!("motor control task start");
     
-    let clock_rate = rtos::clock_rate();
-
     unsafe {
         // 制御レジスタへのアクセサ
         let motor_acc  = PhysAccessor::<u32, 0x8008_0000, 0x100>::new();
@@ -132,41 +116,35 @@ extern "C" fn motor_taks() -> ! {
         motor_acc.write_reg(REG_MOTOTR_IRQ_ENABLE,  1);
         motor_acc.write_reg(REG_MOTOTR_STEP,        motor_step);
         motor_acc.write_reg(REG_MOTOTR_CTL_CONTROL, 1);
-        
-        let dt = ((65536 / motor_step) as f32) / (clock_rate as f32);
-        
-        let mut loop_count = 0;
-//      let mut i = 0;
-        let mut theta :f32 = 0.0;
+
+//      let clock_rate = rtos::clock_rate();  
+//      let dt = ((65536 / motor_step) as f32) / (clock_rate as f32);        
+//      let mut theta :f32 = 0.0;
+
         loop {
             // 制御周期を待つ
             motor_acc.write_reg(REG_MOTOTR_IRQ_CLR, 1);
             rtos::clr_flg(1, !1);
             rtos::wai_flg(1, 1, rtos::WfMode::AndWait);
-            
-            theta += dt * 3.14;
-            let p: i32 = (libm::sinf(theta) * 65536.0 * 10.0) as i32;
-//            println!("a:{} {} {} {}", theta, t, pf, p);
-//            println!("p:{}", p);
-
-            // 位置設定
-//          println!("{}", i);
-            let target  = TARGET_POS;
+  
+            // 位置差分計算
+            let target  = -TARGET_POS;
             let current = CURRENT_POS;
             let mut diff: i32 = target - current;
+            
+            // 速度上限
             let max_speed = 2000;
             if diff > max_speed { diff = max_speed; }
             if diff < -max_speed { diff = -max_speed; }
-            let p = current + diff;
-            CURRENT_POS = p;
-            
-            if loop_count % 100 == 0 {
-//                println!("{} {} {} {}", target, current, p, diff);
-            }
+            let pos: i32 = current + diff;
 
-            motor_acc.write_reg32(REG_MOTOTR_POSITION, p as u32);
+            // 振り子運動(デバッグ用)
+//          theta += dt * 3.14;
+//          let pos: i32 = (libm::sinf(theta) * 65536.0 * 10.0) as i32;
 
-            loop_count += 1;
+            // 位置設定
+            motor_acc.write_reg32(REG_MOTOTR_POSITION, CURRENT_POS as u32);
+            CURRENT_POS = pos;
         }
     }
 }
