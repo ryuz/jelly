@@ -16,7 +16,7 @@ module jelly2_data_logger_fifo
             parameter   CORE_VERSION     = 32'h0001_0000,
             parameter   NUM              = 4,
             parameter   DATA_WIDTH       = 32,
-            parameter   TIMER_WIDTH      = 0,
+            parameter   TIMER_WIDTH      = 64,
             parameter   FIFO_ASYNC       = 1,
             parameter   FIFO_PTR_WIDTH   = 10,
             parameter   FIFO_RAM_TYPE    = "block",

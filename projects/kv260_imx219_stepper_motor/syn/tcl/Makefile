@@ -57,6 +57,7 @@ SOURCES += $(TOP_DIR)/rtl/image/jelly2_img_delay.sv
 SOURCES += $(TOP_DIR)/rtl/image/jelly2_axi4s_img_simple.sv
 SOURCES += $(TOP_DIR)/rtl/image/jelly2_axi4s_to_img_simple.sv
 SOURCES += $(TOP_DIR)/rtl/image/jelly2_img_to_axi4s.sv
+SOURCES += $(TOP_DIR)/rtl/image/jelly2_img_line_moment.sv
 SOURCES += $(TOP_DIR)/rtl/peripheral/jelly_interval_timer.v
 SOURCES += $(TOP_DIR)/rtl/library/jelly_data_delay.v
 SOURCES += $(TOP_DIR)/rtl/library/jelly_data_ff.v
@@ -111,6 +112,7 @@ SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos_queue_priority.sv
 SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos_semaphore.sv
 SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos_task.sv
 SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos_timer.sv
+SOURCES += $(TOP_DIR)/rtl/misc/jelly2_data_logger_fifo.sv
 export SOURCES
 
 # IP cores

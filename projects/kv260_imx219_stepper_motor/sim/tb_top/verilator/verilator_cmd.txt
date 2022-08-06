@@ -29,4 +29,5 @@
 -y ../../../../../rtl/image
 -y ../../../../../rtl/video
 -y ../../../../../rtl/peripheral
+-y ../../../../../rtl/misc
 -y ../../../../../rtl/model

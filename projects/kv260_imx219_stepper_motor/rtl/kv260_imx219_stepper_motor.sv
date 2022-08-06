@@ -21,7 +21,7 @@ module kv260_imx219_stepper_motor
             inout   wire            cam_sda,
             output  wire            cam_enable,
 
-            output  wire    [7:0]   pmod
+            output  reg     [7:0]   pmod
         );
     
     wire            sys_reset;
@@ -481,8 +481,8 @@ module kv260_imx219_stepper_motor
     (* IOB="true" *)    reg     motor_an = 1'b0;
     (* IOB="true" *)    reg     motor_bp = 1'b0;
     (* IOB="true" *)    reg     motor_bn = 1'b0;
-    always_ff @(posedge wb_rpu_rst_i) begin
-        if ( wb_rpu_clk_i ) begin
+    always_ff @(posedge wb_rpu_clk_i) begin
+        if ( wb_rpu_rst_i ) begin
             motor_ap <= 1'b0;
             motor_an <= 1'b0;
             motor_bp <= 1'b0;
@@ -496,10 +496,10 @@ module kv260_imx219_stepper_motor
         end
     end
 
-    assign pmod[4] = motor_ap;
-    assign pmod[5] = motor_an;
-    assign pmod[6] = motor_bp;
-    assign pmod[7] = motor_bn;
+    always_comb pmod[4] = motor_ap;
+    always_comb pmod[5] = motor_an;
+    always_comb pmod[6] = motor_bp;
+    always_comb pmod[7] = motor_bn;
 
 
     // -----------------------------
@@ -542,21 +542,76 @@ module kv260_imx219_stepper_motor
 
 
     // -----------------------------
+    //  moment log
+    // -----------------------------
+    
+    localparam  int     M0_WIDTH   = 12;
+    localparam  int     M1_WIDTH   = 18;
+    
+    logic                           moment_first;
+    logic                           moment_last;
+    logic   [M0_WIDTH-1:0]          moment_m0;
+    logic   [M1_WIDTH-1:0]          moment_m1;
+    logic                           moment_valid;
+
+    logic   [WB_RPU_DAT_WIDTH-1:0]  wb_log_dat_o;
+    logic                           wb_log_stb_i;
+    logic                           wb_log_ack_o;
+
+    jelly2_data_logger_fifo
+            #(
+                .NUM                (1),
+                .DATA_WIDTH         (32),
+                .TIMER_WIDTH        (0),
+                .FIFO_ASYNC         (1),
+                .FIFO_PTR_WIDTH     (9),
+                .FIFO_RAM_TYPE      ("block"),
+                .WB_ADR_WIDTH       (8),
+                .WB_DAT_WIDTH       (WB_RPU_DAT_WIDTH),
+                .INIT_CTL_CONTROL   (2'b00),
+                .INIT_LIMIT_SIZE    (0)
+            )
+        i_data_logger_fifo
+            (
+                .reset              (sys_reset),
+                .clk                (sys_clk200),
+                .cke                (1'b1),
+                
+                .s_data             ({moment_first, moment_last, moment_m1, moment_m0}),
+                .s_valid            (moment_valid),
+                .s_ready            (),
+                
+                .s_wb_rst_i         (wb_rpu_rst_i),
+                .s_wb_clk_i         (wb_rpu_clk_i),
+                .s_wb_adr_i         (wb_rpu_adr_i[7:0]),
+                .s_wb_dat_o         (wb_log_dat_o),
+                .s_wb_dat_i         (wb_rpu_dat_i),
+                .s_wb_we_i          (wb_rpu_we_i),
+                .s_wb_sel_i         (wb_rpu_sel_i),
+                .s_wb_stb_i         (wb_log_stb_i),
+                .s_wb_ack_o         (wb_log_ack_o)
+            );
+
+
+    // -----------------------------
     //  WISHBONE address decode
     // -----------------------------
     
     assign wb_rtos_stb_i  = wb_rpu_stb_i & (wb_rpu_adr_i[23:16] == 8'h00);
     assign wb_motor_stb_i = wb_rpu_stb_i & (wb_rpu_adr_i[23:16] == 8'h02);
     assign wb_tim_stb_i   = wb_rpu_stb_i & (wb_rpu_adr_i[23:16] == 8'h04);
+    assign wb_log_stb_i   = wb_rpu_stb_i & (wb_rpu_adr_i[23:16] == 8'h08);
     
     assign wb_rpu_dat_o   = wb_rtos_stb_i  ? wb_rtos_dat_o  :
                             wb_motor_stb_i ? wb_motor_dat_o :
                             wb_tim_stb_i   ? wb_tim_dat_o   :
+                            wb_log_stb_i   ? wb_log_dat_o   :
                             '0;
     
     assign wb_rpu_ack_o   = wb_rtos_stb_i  ? wb_rtos_ack_o  :
                             wb_motor_stb_i ? wb_motor_ack_o :
                             wb_tim_stb_i   ? wb_tim_ack_o   :
+                            wb_log_stb_i   ? wb_log_ack_o   :
                             wb_rpu_stb_i;
     
 
@@ -949,7 +1004,10 @@ module kv260_imx219_stepper_motor
                 
                 .IMG_X_WIDTH        (X_WIDTH),
                 .IMG_Y_WIDTH        (Y_WIDTH),
-                
+
+                .M0_WIDTH           (M0_WIDTH),
+                .M1_WIDTH           (M1_WIDTH),
+
                 .TUSER_WIDTH        (1)
             )
         i_image_processing
@@ -983,7 +1041,13 @@ module kv260_imx219_stepper_motor
                 .m_axi4s_tlast      (axi4s_img_tlast),
                 .m_axi4s_tdata      (axi4s_img_tdata),
                 .m_axi4s_tvalid     (axi4s_img_tvalid),
-                .m_axi4s_tready     (axi4s_img_tready)
+                .m_axi4s_tready     (axi4s_img_tready),
+
+                .m_moment_first     (moment_first),
+                .m_moment_last      (moment_last),
+                .m_moment_m0        (moment_m0),
+                .m_moment_m1        (moment_m1),
+                .m_moment_valid     (moment_valid)
             );
     
     
@@ -1175,10 +1239,10 @@ module kv260_imx219_stepper_motor
     end
     
     // pmod
-    assign pmod[0] = i2c0_scl_o;
-    assign pmod[1] = i2c0_scl_t;
-    assign pmod[2] = i2c0_sda_o;
-    assign pmod[3] = i2c0_sda_t;
+    always_comb pmod[0] = i2c0_scl_o;
+    always_comb pmod[1] = i2c0_scl_t;
+    always_comb pmod[2] = i2c0_sda_o;
+    always_comb pmod[3] = i2c0_sda_t;
 
     
     

@@ -312,6 +312,13 @@ module design_1
     reg             wb_peri_stb_i   /*verilator public_flat*/;
     reg             wb_peri_ack_o   /*verilator public_flat*/;
 
+    reg     [37:0]  wb_rpu_adr_i    /*verilator public_flat*/;
+    reg     [31:0]  wb_rpu_dat_o    /*verilator public_flat*/;
+    reg     [31:0]  wb_rpu_dat_i    /*verilator public_flat*/;
+    reg     [3:0]   wb_rpu_sel_i    /*verilator public_flat*/;
+    reg             wb_rpu_we_i     /*verilator public_flat*/;
+    reg             wb_rpu_stb_i    /*verilator public_flat*/  = 1'b0;
+    reg             wb_rpu_ack_o    /*verilator public_flat*/;
 
     assign out_reset             = reset;
     assign out_clk100            = clk100;
@@ -325,7 +332,7 @@ module design_1
                 .WB_ADR_WIDTH           (37),
                 .WB_DAT_SIZE            (3)     // 0:8bit, 1:16bit, 2:32bit ...
             )
-        i_wishbone_to_axi4l
+        i_wishbone_to_axi4l_peri
             (
                 .s_wb_rst_i             (reset),
                 .s_wb_clk_i             (clk250),
@@ -360,6 +367,45 @@ module design_1
                 .m_axi4l_rready         (m_axi4l_peri_rready)
             );
 
+    jelly_wishbone_to_axi4l
+            #(
+                .WB_ADR_WIDTH           (38),
+                .WB_DAT_SIZE            (2)     // 0:8bit, 1:16bit, 2:32bit ...
+            )
+        i_wishbone_to_axi4l_rpu
+            (
+                .s_wb_rst_i             (reset),
+                .s_wb_clk_i             (clk250),
+                .s_wb_adr_i             (wb_rpu_adr_i),
+                .s_wb_dat_o             (wb_rpu_dat_o),
+                .s_wb_dat_i             (wb_rpu_dat_i),
+                .s_wb_sel_i             (wb_rpu_sel_i),
+                .s_wb_we_i              (wb_rpu_we_i ),
+                .s_wb_stb_i             (wb_rpu_stb_i),
+                .s_wb_ack_o             (wb_rpu_ack_o),
+
+                .m_axi4l_aresetn        (m_axi4l_rpu_aresetn),
+                .m_axi4l_aclk           (m_axi4l_rpu_aclk),
+                .m_axi4l_awaddr         (m_axi4l_rpu_awaddr),
+                .m_axi4l_awprot         (m_axi4l_rpu_awprot),
+                .m_axi4l_awvalid        (m_axi4l_rpu_awvalid),
+                .m_axi4l_awready        (m_axi4l_rpu_awready),
+                .m_axi4l_wstrb          (m_axi4l_rpu_wstrb),
+                .m_axi4l_wdata          (m_axi4l_rpu_wdata),
+                .m_axi4l_wvalid         (m_axi4l_rpu_wvalid),
+                .m_axi4l_wready         (m_axi4l_rpu_wready),
+                .m_axi4l_bresp          (m_axi4l_rpu_bresp),
+                .m_axi4l_bvalid         (m_axi4l_rpu_bvalid),
+                .m_axi4l_bready         (m_axi4l_rpu_bready),
+                .m_axi4l_araddr         (m_axi4l_rpu_araddr),
+                .m_axi4l_arprot         (m_axi4l_rpu_arprot),
+                .m_axi4l_arvalid        (m_axi4l_rpu_arvalid),
+                .m_axi4l_arready        (m_axi4l_rpu_arready),
+                .m_axi4l_rdata          (m_axi4l_rpu_rdata),
+                .m_axi4l_rresp          (m_axi4l_rpu_rresp),
+                .m_axi4l_rvalid         (m_axi4l_rpu_rvalid),
+                .m_axi4l_rready         (m_axi4l_rpu_rready)
+            );
 
 	jelly_axi4_slave_model
 			#(
