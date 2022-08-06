@@ -31,6 +31,9 @@ clean: apu_clean rpu_clean
 .PHONY: run
 run: build load rpu_run apu_run rpu_stop
 
+.PHONY: stop
+stop: rpu_stop
+
 
 ### APU ###
 .PHONY: apu_build

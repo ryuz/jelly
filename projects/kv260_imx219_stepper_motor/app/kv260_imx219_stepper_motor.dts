@@ -53,6 +53,11 @@
                 compatible = "generic-uio";
                 reg = <0x0 0xa0000000 0x0 0x08000000>;
             };
+
+            uio_ocm@fffc0000 {
+                compatible = "generic-uio";
+                reg = <0x0 0xfffc0000 0x0 0x00040000>;
+            };
         };
     };
 

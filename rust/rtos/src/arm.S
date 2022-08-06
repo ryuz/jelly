@@ -4,6 +4,7 @@
 //                                          Copyright (C) 1998-2021 by Ryuz
 // ---------------------------------------------------------------------------
 
+#define _WITH_VFP       1
 
 #define Mode_USR        0x10
 #define Mode_FIQ        0x11
