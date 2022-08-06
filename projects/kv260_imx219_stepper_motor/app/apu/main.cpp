@@ -247,11 +247,11 @@ int main(int argc, char *argv[])
     usleep(10);
     reg_gid.WriteReg(0, 0);
 
-    int     bin0_th0 = 0;
-    int     bin0_th1 = 1023;
-    int     bin1_th0 = 0;
+    int     bin0_th0 = 576;
+    int     bin0_th1 = 698;
+    int     bin1_th0 = 80;
     int     bin1_th1 = 1023;
-    int     bin2_th0 = 0;
+    int     bin2_th0 = 60;
     int     bin2_th1 = 1023;
 
     int     key;
@@ -279,6 +279,7 @@ int main(int argc, char *argv[])
 //      reg_bin.WriteReg(REG_IMG_BIN_PARAM_VAL1(0), 1);
         reg_bin.WriteReg(REG_IMG_BIN_CTL_CONTROL, 3);
 
+        /*
         std::cout << "REG_IMG_BIN_PARAM_TH0(0)  : " << reg_bin.ReadReg(REG_IMG_BIN_PARAM_TH0(0) ) << std::endl;
         std::cout << "REG_IMG_BIN_PARAM_TH1(0)  : " << reg_bin.ReadReg(REG_IMG_BIN_PARAM_TH1(0) ) << std::endl;
         std::cout << "REG_IMG_BIN_PARAM_TH0(1)  : " << reg_bin.ReadReg(REG_IMG_BIN_PARAM_TH0(1) ) << std::endl;
@@ -288,7 +289,7 @@ int main(int argc, char *argv[])
         std::cout << "REG_IMG_BIN_PARAM_VAL0(0) : " << reg_bin.ReadReg(REG_IMG_BIN_PARAM_VAL0(0)) << std::endl;
         std::cout << "REG_IMG_BIN_PARAM_VAL1(0) : " << reg_bin.ReadReg(REG_IMG_BIN_PARAM_VAL1(0)) << std::endl;
         std::cout << "REG_IMG_BIN_CTL_CONTROL   : " << reg_bin.ReadReg(REG_IMG_BIN_CTL_CONTROL  ) << std::endl;
-
+        */
 
         // キャプチャ
         capture_still_image(reg_wdma, reg_fmtr, dmabuf_phys_adr, width, height, frame_num);
