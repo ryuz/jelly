@@ -4,7 +4,6 @@
 //                                          Copyright (C) 1998-2021 by Ryuz
 // ---------------------------------------------------------------------------
 
-#define _WITH_VFP       1
 
 #define Mode_USR        0x10
 #define Mode_FIQ        0x11
@@ -49,7 +48,7 @@ jelly_create_context:
                 mov     r1, #(Mode_SYS)     // spsr
                 str		r1, [r0, #(1*4)]    // spsr 部分を設定
 #ifdef _WITH_VFP    // VFP利用時
-                sub		r0, #(2*4 + 8*8)
+                sub		r0, #(2*4 + 16*8)
                 mov     r1, #0x40000000     // fpexc の EN ビットセット
                 str		r1, [r0, #(0*4)]    // spsr 部分を設定
 #endif
@@ -79,7 +78,7 @@ context_switch: mrs     r2, spsr
 
 #ifdef _WITH_VFP    // VFP利用時
                 mov     sp, r0
-                vpush   {d0-d7}     // VFP用レジスタ退避
+                vpush   {d0-d15}    // VFP用レジスタ退避
                 vmrs    r1, fpscr   // fpscr 取り出し
                 push    {r1}        // fpscr 退避
                 vmrs    r1, fpexc   // fpexc 取り出し
@@ -112,7 +111,7 @@ context_switch: mrs     r2, spsr
                 vmsr    fpexc, r1   // fpexc 設定
                 pop 	{r1}        // fpscr 復帰
                 vmsr    fpscr, r1   // fpscr 設定
-                vpop    {d0-d7}     // VFP用レジスタ復帰
+                vpop    {d0-d15}    // VFP用レジスタ復帰
                 mov     r0, sp
 #endif
                 ldmfd	r0!, {r1-r2}
