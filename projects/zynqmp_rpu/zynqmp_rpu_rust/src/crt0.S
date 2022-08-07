@@ -42,6 +42,7 @@
 #define F_Bit           0x40
 #define T_Bit           0x20
 
+                .global _vector_table
 
 
 /************************************************

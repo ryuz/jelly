@@ -37,3 +37,7 @@ stop:
 		sudo sh -c "echo stop > /sys/class/remoteproc/$(RUN_PROC)/state" ; \
 		echo "[stop] $(RUN_PROC)" ; \
 	fi \
+
+.PHONY: disasm
+disasm: build
+	arm-none-eabi-objdump -S $(EXE_FILE) > _disasm.txt

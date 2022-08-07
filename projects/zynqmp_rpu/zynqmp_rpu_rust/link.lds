@@ -3,30 +3,24 @@ ENTRY(_rst_handler)
 
 MEMORY
 {
-	vector : o = 0x00000000, l = 0x00000040		/* A-TCM */
-	ram0   : o = 0x00000040, l = 0x0000ffc0		/* A-TCM */
+	ram0   : o = 0x00000000, l = 0x00010000		/* A-TCM */
 	ram1   : o = 0x00020000, l = 0x00010000		/* B-TCM */
 }
 
 SECTIONS
 {
-	.vector :
-	{
-      	___vector = . ;
-		KEEP(*vectors.o(.text)) 
-		FILL(0xff)
-		___vector_end = . ; 
-	} > vector
-
 	.text :
 	{
+       . = 0x00000000;
 		 ___text = . ; 
+		KEEP(*(.vector))
+       . = 0x00000040;
 		*(.text .text.* .rodata*)
 		 ___text_end = . ; 
 	} > ram0
-    
 
-	data :
+
+	.data :
 	{
 		___data = . ;
 		*(.data .data.*)
@@ -49,7 +43,7 @@ SECTIONS
     .stacks ALIGN(0x08):
     {
         ___usr_stack = . ; 
-        . += 1024;
+        . += 8192;
         ___usr_stack_end = . ;
 
         ___fiq_stack = . ; 
