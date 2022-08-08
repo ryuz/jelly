@@ -7,7 +7,7 @@ import cv2
 import argparse
 
 
-def img2pgm(src, dst, depth=8, *, src_depth=None, bayer=False, phase=0):
+def img2pgm(src, dst, depth=8, *, src_depth=None, width=None, height=None, bayer=False, phase=0):
     # ありのまま読む
     img = cv2.imread(src, cv2.IMREAD_UNCHANGED)
 
@@ -27,6 +27,12 @@ def img2pgm(src, dst, depth=8, *, src_depth=None, bayer=False, phase=0):
     # depth調整
     img = img.astype(np.uint16) * (0xffff // (2**src_depth-1))    # 一旦16bit に拡張
     img = (img >> (16 - depth))
+
+    # resize
+    if width is not None or height is not None:
+        if width is not None:   w = width
+        if height is not None:  h = height
+        img = cv2.resize(img, (w, h))
 
     if bayer:
         # グレースケールなら3プレーンに
@@ -62,10 +68,15 @@ def main():
     parser.add_argument("output_file", help="output file")
     parser.add_argument("-d", "--depth", type=int, default=8)
     parser.add_argument("-sd", "--src_depth", type=int)
+    parser.add_argument("-ow", "--width", type=int)
+    parser.add_argument("-oh", "--height", type=int)
     parser.add_argument('--bayer', action="store_true")
     parser.add_argument('--phase', type=int, default=0)
     args = parser.parse_args()
-    img2pgm(args.input_file, args.output_file, depth=args.depth, src_depth=args.src_depth, bayer=args.bayer, phase=args.phase)
+    img2pgm(args.input_file, args.output_file,
+            depth=args.depth, src_depth=args.src_depth,
+            width=args.width, height=args.height,
+            bayer=args.bayer, phase=args.phase)
 
 if __name__ == '__main__':
     main()
