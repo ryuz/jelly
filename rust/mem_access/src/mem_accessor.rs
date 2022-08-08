@@ -39,6 +39,8 @@ pub trait MemAccess {
     unsafe fn write_reg16(&self, reg: usize, data: u16);
     unsafe fn write_reg32(&self, reg: usize, data: u32);
     unsafe fn write_reg64(&self, reg: usize, data: u64);
+    unsafe fn write_regf32(&self, reg: usize, data: f32);
+    unsafe fn write_regf64(&self, reg: usize, data: f64);
     unsafe fn read_reg(&self, reg: usize) -> usize;
     unsafe fn read_reg8(&self, reg: usize) -> u8;
     unsafe fn read_reg16(&self, reg: usize) -> u16;
@@ -203,6 +205,14 @@ impl<T: MemRegion, U> MemAccess for MemAccessor<T, U> {
 
     unsafe fn write_reg64(&self, reg: usize, data: u64) {
         self.write_reg_::<u64>(reg, data)
+    }
+
+    unsafe fn write_regf32(&self, reg: usize, data: f32) {
+        self.write_reg_::<f32>(reg, data)
+    }
+
+    unsafe fn write_regf64(&self, reg: usize, data: f64) {
+        self.write_reg_::<f64>(reg, data)
     }
 
     unsafe fn read_reg(&self, reg: usize) -> usize {

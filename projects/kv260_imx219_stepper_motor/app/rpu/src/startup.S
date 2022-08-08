@@ -7,11 +7,13 @@
 
                 .global     _rst_handler
                 .global     _und_handler
-                .global     _swi_handler
+                .global     _svc_handler
                 .global     _pre_handler
                 .global     _abt_handler
                 .global     _irq_handler
                 .global     _fiq_handler
+
+                .extern     irq_handler
 
                 .extern     ___bss
                 .extern     ___bss_end
@@ -22,7 +24,7 @@
                 .extern     ___abt_stack_end
                 .extern     ___und_stack_end
 
-                .extern     hw_setup
+                .extern     bootstrap
                 .extern     main
 
 
@@ -42,7 +44,6 @@
 #define F_Bit           0x40
 #define T_Bit           0x20
 
-                .global _vector_table
 
 
 /************************************************
@@ -116,7 +117,7 @@ _rst_handler:
                 isb
 
                 /* H/W 初期化 */
-                bl      hw_setup
+                bl      bootstrap
 
                 /* BSS領域の初期化 */
                 ldr     r0, =___bss
@@ -142,24 +143,22 @@ end_loop:
 _und_handler:   
                 b       _und_handler
 
-_swi_handler:   
-
+_swi_handler:   // 利用しない
                 b       _swi_handler
+
 _pre_handler:   
-
                 b       _pre_handler
+
 _abt_handler:   
-
                 b       _abt_handler
-_irq_handler:   
 
-                b       _irq_handler
+_irq_handler:   // 利用しない
+                b       _irq_handler    
+
 _fiq_handler:   
-
                 b       _fiq_handler
 
 
                 .end
-
 
 /* end of file */

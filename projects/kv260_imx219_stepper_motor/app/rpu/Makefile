@@ -1,5 +1,7 @@
 
-PRJ_NAME = zynqmp_rpu_rust
+
+PRJ_NAME  = kv260_stepper_motor_rpu
+
 
 RUN_PROC     ?= remoteproc0
 BUILD_TARGET ?= release
@@ -22,10 +24,7 @@ clean:
 	cargo clean
 
 .PHONY: run
-run: build run_rpu
-
-.PHONY: run_rpu
-run_rpu: stop
+run: build stop
 	@sudo cp $(EXE_FILE) /lib/firmware
 	@sudo sh -c "echo $(PRJ_NAME) > /sys/class/remoteproc/$(RUN_PROC)/firmware"
 	@sudo sh -c "echo start > /sys/class/remoteproc/$(RUN_PROC)/state"
@@ -37,7 +36,3 @@ stop:
 		sudo sh -c "echo stop > /sys/class/remoteproc/$(RUN_PROC)/state" ; \
 		echo "[stop] $(RUN_PROC)" ; \
 	fi \
-
-.PHONY: disasm
-disasm: build
-	arm-none-eabi-objdump -S $(EXE_FILE) > _disasm.txt

@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
     int     frame_rate  = 1000;
     int     exposure    = 1;
     int     a_gain      = 20;
-    int     d_gain      = 10;
+    int     d_gain      = 17;
     int     bayer_phase = 0;
     int     view_scale  = 1;
     int     gauss_level = 0;
@@ -181,6 +181,12 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    jelly::UioAccessor32 uio_ocm("uio_ocm", 0x040000);
+    if ( !uio_ocm.IsMapped() ) {
+        std::cout << "uio_ocmi mmap error" << std::endl;
+        return 1;
+    }
+
     auto reg_gid    = uio_acc.GetAccessor(0x00000000);
     auto reg_fmtr   = uio_acc.GetAccessor(0x00100000);
 //  auto reg_prmup  = uio_acc.GetAccessor(0x00011000);
@@ -247,11 +253,11 @@ int main(int argc, char *argv[])
     usleep(10);
     reg_gid.WriteReg(0, 0);
 
-    int     bin0_th0 = 0;
-    int     bin0_th1 = 1023;
-    int     bin1_th0 = 0;
+    int     bin0_th0 = 576;
+    int     bin0_th1 = 88;
+    int     bin1_th0 = 80;
     int     bin1_th1 = 1023;
-    int     bin2_th0 = 0;
+    int     bin2_th0 = 60;
     int     bin2_th1 = 1023;
 
     int     key;
@@ -279,6 +285,7 @@ int main(int argc, char *argv[])
 //      reg_bin.WriteReg(REG_IMG_BIN_PARAM_VAL1(0), 1);
         reg_bin.WriteReg(REG_IMG_BIN_CTL_CONTROL, 3);
 
+        /*
         std::cout << "REG_IMG_BIN_PARAM_TH0(0)  : " << reg_bin.ReadReg(REG_IMG_BIN_PARAM_TH0(0) ) << std::endl;
         std::cout << "REG_IMG_BIN_PARAM_TH1(0)  : " << reg_bin.ReadReg(REG_IMG_BIN_PARAM_TH1(0) ) << std::endl;
         std::cout << "REG_IMG_BIN_PARAM_TH0(1)  : " << reg_bin.ReadReg(REG_IMG_BIN_PARAM_TH0(1) ) << std::endl;
@@ -288,13 +295,20 @@ int main(int argc, char *argv[])
         std::cout << "REG_IMG_BIN_PARAM_VAL0(0) : " << reg_bin.ReadReg(REG_IMG_BIN_PARAM_VAL0(0)) << std::endl;
         std::cout << "REG_IMG_BIN_PARAM_VAL1(0) : " << reg_bin.ReadReg(REG_IMG_BIN_PARAM_VAL1(0)) << std::endl;
         std::cout << "REG_IMG_BIN_CTL_CONTROL   : " << reg_bin.ReadReg(REG_IMG_BIN_CTL_CONTROL  ) << std::endl;
-
+        */
 
         // キャプチャ
         capture_still_image(reg_wdma, reg_fmtr, dmabuf_phys_adr, width, height, frame_num);
         cv::Mat img(height*frame_num, width, CV_8UC4);
         udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4 * frame_num);
         
+        for ( int y = 0; y < img.rows; ++y ) {
+            std::uint32_t x = uio_ocm.ReadReg32(y);
+            if ( x != 0 ) {
+                cv::circle(img, cv::Point(x, y), 2, cv::Scalar(0, 0, 255), -1);
+            }
+        }
+
         // 表示
         cv::Mat view_img;
         cv::resize(img, view_img, cv::Size(), 1.0/view_scale, 1.0/view_scale);

@@ -1,5 +1,5 @@
 
-TARGET    = kv260_imx219_stepper_motor.out
+
 DT_NAME   = kv260_imx219_stepper_motor
 BIT_NAME  = kv260_imx219_stepper_motor
 
@@ -13,31 +13,61 @@ BIN_FILE  = $(BIT_FILE).bin
 FIRMWARE_PATH = /lib/firmware
 DEVTREE_PATH  = /configfs/device-tree
 
-CFLAGS  += -Wall -g -O0 `pkg-config --cflags opencv` -I../../../include
-LDFLAGS += -g  `pkg-config --libs opencv`
-
 RUN_OPT ?=
 
 OBJS = main.o
 
-
+### all ###
 .PHONY: all
-all: $(TARGET) $(DTBO_FILE) $(BIN_FILE)
+all: build
+
+.PHONY: build
+build: $(DTBO_FILE) $(BIN_FILE) apu_build rpu_build
 
 .PHONY: clean
-clean:
-	rm -rf $(TARGET) $(OBJS) $(DTBO_FILE) $(BIN_FILE)
+clean: apu_clean rpu_clean
+	rm -rf $(DTBO_FILE) $(BIN_FILE)
 
 .PHONY: run
-run: $(TARGET) load
-	./$(TARGET) $(RUN_OPT)
+run: build load rpu_run apu_run rpu_stop
 
-$(TARGET): $(OBJS)
-	g++ -o $(TARGET) $(OBJS) $(LDFLAGS)
+.PHONY: stop
+stop: rpu_stop
 
-%.o : %.cpp
-	g++ $(CFLAGS) -c $< -o $@
 
+### APU ###
+.PHONY: apu_build
+apu_build:
+	make -C apu
+
+.PHONY: apu_clean
+apu_clean:
+	make -C apu clean
+
+.PHONY: apu_run
+apu_run:
+	make -C apu run RUN_OPT=$(RUN_OPT)
+
+
+### RPU ###
+.PHONY: rpu_build
+rpu_build:
+	make -C rpu
+
+.PHONY: rpu_clean
+rpu_clean:
+	make -C rpu clean
+
+.PHONY: rpu_run
+rpu_run:
+	make -C rpu run RUN_OPT=$(RUN_OPT)
+
+.PHONY: rpu_stop
+rpu_stop:
+	make -C rpu stop
+
+
+### bit file ###
 $(DTBO_FILE): $(DTS_FILE)
 	dtc -I dts -O dtb -o $(DTBO_FILE) $(DTS_FILE)
 
@@ -47,7 +77,6 @@ $(BIN_FILE): $(BIF_FILE) $(BIT_FILE)
 $(DEVTREE_PATH):
 	sudo mkdir -p /configfs
 	sudo mount -t configfs configfs /configfs
-
 
 .PHONY: mount
 mount: $(DEVTREE_PATH)
@@ -60,7 +89,7 @@ umount: unload
 	fi
 
 .PHONY: load
-load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
+load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) rpu_stop unload
 	sudo mkdir -p $(FIRMWARE_PATH)
 	sudo cp $(BIN_FILE) $(FIRMWARE_PATH)
 	sudo cp $(DTBO_FILE) $(FIRMWARE_PATH)
@@ -82,7 +111,7 @@ load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
 	sudo chmod 666 /dev/i2c-6
 
 .PHONY: unload
-unload:
+unload: rpu_stop
 	@if [ -e $(DEVTREE_PATH)/overlays/full ] ; then \
 		echo unload ; \
 		sudo rmdir $(DEVTREE_PATH)/overlays/full ; \
@@ -91,14 +120,3 @@ unload:
 		sudo sh -c "echo in > /sys/class/gpio/gpio36/direction" ; \
 		sudo sh -c "echo 36 > /sys/class/gpio/unexport" ; \
 	fi
-
-.PHONY: load2
-load2: $(DTBO_FILE) $(BIN_FILE)
-	sudo fpgautil -R
-	sudo fpgautil -b $(BIT_FILE) -o udmabuf.dtbo
-#	sudo fpgautil -b $(BIT_FILE)
-
-.PHONY: unload2
-unload2:
-	sudo fpgautil -R
-
