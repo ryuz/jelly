@@ -148,7 +148,6 @@ doc/build/
 workspace/
 backup/
 target/
-data/
 
 **/ip/*
 
