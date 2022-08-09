@@ -50,8 +50,7 @@ distclean: clean
 	rm -fr annotated
 
 .PHONY : run
-run:
-#	build/demosaic_acpi
+run: build
 	python3 test.py
 
 .PHONY : coverage

@@ -51,21 +51,11 @@ module top
         );
     
     
-    localparam                              FILE_NAME  = "../dump_img_1000fps_raw10.pgm";
-    localparam                              FILE_X_NUM = 640;
-    localparam                              FILE_Y_NUM = 132;
-
-    localparam  int                         IMG_WIDTH  = 640;
-    localparam  int                         IMG_HEIGHT = 132;
-    
-
     // -----------------------------------------
     //  top
     // -----------------------------------------
 
     localparam  bit                         SIZE_AUTO        = 0;
-//  localparam  int                         TUSER_WIDTH      = 1;
-//  localparam  int                         DATA_WIDTH       = 10;
     localparam  int                         MAX_X_NUM        = 4096;
     localparam                              RAM_TYPE         = "block";
     localparam  bit     [IMG_Y_WIDTH-1:0]   INIT_Y_NUM       = 480;
@@ -79,32 +69,8 @@ module top
     localparam  bit     [1:0]               INIT_CTL_CONTROL = 2'b00;
     localparam  bit     [1:0]               INIT_PARAM_PHASE = 2'b00;
 
-//    logic                           aresetn;
-//    logic                           aclk;
-      logic                           aclken = 1'b1;
-//    logic                           in_update_req;
-//    logic   [IMG_X_WIDTH-1:0]       param_img_width;
-//    logic   [IMG_Y_WIDTH-1:0]       param_img_height;
+    logic                           aclken = 1'b1;
     
-    /*
-    logic   [TUSER_WIDTH-1:0]       s_axi4s_tuser;
-    logic                           s_axi4s_tlast;
-    logic   [DATA_WIDTH-1:0]        s_axi4s_tdata;
-    logic                           s_axi4s_tvalid;
-    logic                           s_axi4s_tready;
-    */
-    
-    /*
-    logic   [TUSER_WIDTH-1:0]       m_axi4s_tuser;
-    logic                           m_axi4s_tlast;
-    logic   [DATA_WIDTH-1:0]        m_axi4s_tdata_r;
-    logic   [DATA_WIDTH-1:0]        m_axi4s_tdata_g;
-    logic   [DATA_WIDTH-1:0]        m_axi4s_tdata_b;
-    logic   [DATA_WIDTH-1:0]        m_axi4s_tdata_raw;
-    logic                           m_axi4s_tvalid;
-    logic                           m_axi4s_tready;
-    */
-
     // demosaic with ACPI
     jelly2_video_demosaic_acpi
             #(
@@ -164,85 +130,6 @@ module top
                 .s_wb_ack_o         (s_wb_ack_o)
             );
     
-    
-    // -----------------------------------------
-    //  video input
-    // -----------------------------------------
-    /*
-    jelly2_axi4s_master_model
-            #(
-                .COMPONENTS         (1),
-                .DATA_WIDTH         (DATA_WIDTH),
-                .X_NUM              (IMG_WIDTH),
-                .Y_NUM              (IMG_HEIGHT),
-                .X_BLANK            (128),
-                .Y_BLANK            (16),
-                .X_WIDTH            (32),
-                .Y_WIDTH            (32),
-                .F_WIDTH            (32),
-                .FILE_NAME          (FILE_NAME),
-                .FILE_EXT           (""),
-                .FILE_X_NUM         (FILE_X_NUM),
-                .FILE_Y_NUM         (FILE_Y_NUM),
-                .SEQUENTIAL_FILE    (0),
-                .BUSY_RATE          (20),
-                .RANDOM_SEED        (1),
-                .ENDIAN             (0)
-            )
-        i_axi4s_master_model
-            (
-                .aresetn            (aresetn),
-                .aclk               (aclk),
-                .aclken             (aclken),
-                
-                .enable             (1'b1),
-                .busy               (),
-                
-                .m_axi4s_tuser      (s_axi4s_tuser),
-                .m_axi4s_tlast      (s_axi4s_tlast),
-                .m_axi4s_tdata      (s_axi4s_tdata),
-                .m_axi4s_tx         (),
-                .m_axi4s_ty         (),
-                .m_axi4s_tf         (),
-                .m_axi4s_tvalid     (s_axi4s_tvalid),
-                .m_axi4s_tready     (s_axi4s_tready)
-            );
-    */
-
-    // -----------------------------------------
-    //  dump output
-    // -----------------------------------------
-/*
-    jelly2_axi4s_slave_model
-            #(
-                .COMPONENTS         (3),
-                .DATA_WIDTH         (DATA_WIDTH),
-                .INIT_FRAME_NUM     (0),
-                .FORMAT             ("P3"),
-                .FILE_NAME          ("img_"),
-                .FILE_EXT           (".ppm"),
-                .SEQUENTIAL_FILE    (1),
-                .ENDIAN             (0),
-                .BUSY_RATE          (30),
-                .RANDOM_SEED        (732)
-            )
-        i_axi4s_slave_model
-            (
-                .aresetn            (aresetn),
-                .aclk               (aclk),
-                .aclken             (aclken),
-
-                .param_width        (IMG_WIDTH),
-                .param_height       (IMG_HEIGHT),
-                .frame_num          (),
-                
-                .s_axi4s_tuser      (m_axi4s_tuser),
-                .s_axi4s_tlast      (m_axi4s_tlast),
-                .s_axi4s_tdata      ({m_axi4s_tdata_b, m_axi4s_tdata_g, m_axi4s_tdata_r}),
-                .s_axi4s_tvalid     (m_axi4s_tvalid),
-                .s_axi4s_tready     (m_axi4s_tready)
-            );
-    */
 
 endmodule
 

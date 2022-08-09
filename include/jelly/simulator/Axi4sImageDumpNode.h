@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <random>
 #include <stdlib.h>
 #include <opencv2/opencv.hpp>
@@ -47,7 +48,7 @@ protected:
     bool                    m_aclk;
     bool                    m_tuser;
     bool                    m_tlast;
-    int                     m_tdata;
+    std::uint64_t           m_tdata;
     bool                    m_tvalid;
     bool                    m_tready = true;
 
@@ -195,7 +196,7 @@ protected:
         m_aclk    = (*m_axi4s.aclk != 0);
         m_tuser   = ((*m_axi4s.tuser & 1) != 0);
         m_tlast   = (*m_axi4s.tlast != 0);
-        m_tdata   = (int)*m_axi4s.tdata;
+        m_tdata   = (std::uint64_t)*m_axi4s.tdata;
         m_tvalid  = (*m_axi4s.tvalid != 0);
         m_tready  = m_axi4s.tready ? (*m_axi4s.tready != 0) : true;
     }

@@ -84,7 +84,7 @@ kernel_laplacian = [
 sim = filter2d.Filter2d(0, 0)
 
 # source image
-src_img = cv2.imread("../Mandrill.bmp")
+src_img = cv2.imread("../../../data/images/standard_images/color/Mandrill_256x256.ppm")
 
 # filter
 dst_img1 = run_filter2d(sim, src_img, kernel_bypss)

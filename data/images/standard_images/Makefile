@@ -13,41 +13,37 @@ color.zip:
 mono.zip:
 	curl -o $@ http://www.ess.ic.kanagawa-it.ac.jp/std_img/monoimage/mono.zip
 
+COLOR_FILES = color/Aerial.bmp \
+              color/Airplane.bmp \
+              color/Balloon.bmp \
+              color/Earth.bmp \
+              color/Girl.bmp \
+              color/Mandrill.bmp \
+              color/Parrots.bmp \
+              color/Pepper.bmp \
+              color/Sailboat.bmp \
+              color/couple.bmp \
+              color/milkdrop.bmp \
+              # color/Lenna.bmp
 
-.PHONY : color
-color: color.zip
-	unzip color.zip -d color
+MONO_FILES = mono/Airplane.bmp \
+             mono/BARBARA.bmp \
+             mono/BOAT.bmp \
+             mono/BRIDGE.bmp \
+             mono/Building.bmp \
+             mono/Cameraman.bmp \
+             mono/LAX.bmp \
+             mono/LENNA.bmp \
+             mono/Lighthouse.bmp \
+             mono/Text.bmp \
+             mono/WOMAN.bmp \
+             mono/girl.bmp
 
-.PHONY : mono
-mono: mono.zip
-	unzip mono.zip
+$(COLOR_FILES): color.zip
+	unzip -u -d color color.zip
 
-color/Mandrill.bmp: color
-color/Aerial.bmp: color
-color/Airplane.bmp: color
-color/Balloon.bmp: color
-color/Earth.bmp: color
-color/Girl.bmp: color
-# color/Lenna.bmp: color
-color/Mandrill.bmp: color
-color/Parrots.bmp: color
-color/Pepper.bmp: color
-color/Sailboat.bmp: color
-color/couple.bmp: color
-color/milkdrop.bmp: color
-
-mono/Airplane.bmp: mono
-mono/BARBARA.bmp: mono
-mono/BOAT.bmp: mono
-mono/BRIDGE.bmp: mono
-mono/Building.bmp: mono
-mono/Cameraman.bmp: mono
-mono/LAX.bmp: mono
-mono/LENNA.bmp: mono
-mono/Lighthouse.bmp: mono
-mono/Text.bmp: mono
-mono/WOMAN.bmp: mono
-mono/girl.bmp: mono
+$(MONO_FILES): mono.zip
+	unzip -u mono.zip 
 
 
 # convert

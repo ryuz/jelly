@@ -7,7 +7,7 @@ import sobel
 # source image
 src_img = np.zeros((128, 256, 1), dtype=np.uint8)
 src_img[32:64,64:128,0] = 127
-# img = cv2.imread("../Mandrill.bmp", 0)
+# img = cv2.imread("Mandrill.bmp", 0)
 
 # simulation
 sim = sobel.Sobel(src_img.shape[1], src_img.shape[0])

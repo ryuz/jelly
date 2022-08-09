@@ -3,6 +3,8 @@
 # cmake のフラグ
 CMAKE_FLAGS = 
 
+# data ディレクトリ
+DATA_DIR = ../../../data
 
 # clang があれば使う
 ifeq (,$(shell which clang))
@@ -49,8 +51,12 @@ distclean: clean
 	rm -f coverage.dat
 	rm -fr annotated
 
+.PHONY : setup_data
+setup_data:
+	make -C ${DATA_DIR}/images/standard_images color/Mandrill_256x256.ppm
+
 .PHONY : run
-run:
+run: build setup_data
 #	build/demosaic_acpi
 	python3 test.py
 

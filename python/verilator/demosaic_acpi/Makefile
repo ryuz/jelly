@@ -3,6 +3,9 @@
 # cmake のフラグ
 CMAKE_FLAGS = 
 
+# data ディレクトリ
+DATA_DIR = ../../../data
+
 
 # clang があれば使う
 ifeq (,$(shell which clang))
@@ -49,13 +52,14 @@ distclean: clean
 	rm -f coverage.dat
 	rm -fr annotated
 
+.PHONY : setup_data
+setup_data:
+	make -C ${DATA_DIR}/images/windowswallpaper Penguins_640x480_bayer10.pgm
+
 .PHONY : run
-run:
-#	build/demosaic_acpi
+run: build setup_data
 	python3 test.py
 
 .PHONY : coverage
 coverage:
 	verilator_coverage --annotate annotated coverage.dat
-
-

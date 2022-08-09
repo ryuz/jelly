@@ -167,7 +167,7 @@ public:
         m_stream_writer->Write(Axi4StreamData(data, tlast, tuser, tvalid));
     }
 
-    std::size_t GetWriteQueSize() {
+    std::size_t GetWriteStreamSize() {
         return m_stream_writer->GetSize();
     }
 
@@ -178,7 +178,7 @@ public:
         return data.tdata;
     }
 
-    std::size_t GetReadQueSize() {
+    std::size_t GetReadStreamSize() {
         return m_stream_reader->GetSize();
     }
 
@@ -201,7 +201,7 @@ public:
     pybind11::array_t<RT> ReadImage(void)
     {
         // データが揃うまでシミュレーションを進める
-        while ( GetReadQueSize() < m_height * m_width ) {
+        while ( GetReadStreamSize() < m_height * m_width ) {
             Run(100);
         }
 
@@ -234,17 +234,17 @@ public: \
 PYBIND11_MODULE(ModuleName, p) { \
     pybind11::class_<ClassName>(p, #ClassName) \
             .def(pybind11::init<int, int>()) \
-            .def("set_image_size", &ClassName::SetImageSize) \
-            .def("run",            &ClassName::Run) \
-            .def("write_reg",      &ClassName::WriteReg) \
-            .def("write_ireg",     &ClassName::WriteIReg) \
-            .def("wait_bus",       &ClassName::WaitBus) \
-            .def("write_stream",   &ClassName::WriteStream) \
-            .def("write_que_size", &ClassName::GetWriteQueSize) \
-            .def("read_stream",    &ClassName::ReadStream) \
-            .def("read_que_size",  &ClassName::GetReadQueSize) \
-            .def("write_image",    &ClassName::WriteImage) \
-            .def("read_image",     &ClassName::ReadImage) \
+            .def("set_image_size",        &ClassName::SetImageSize) \
+            .def("run",                   &ClassName::Run) \
+            .def("write_reg",             &ClassName::WriteReg) \
+            .def("write_ireg",            &ClassName::WriteIReg) \
+            .def("wait_bus",              &ClassName::WaitBus) \
+            .def("write_stream",          &ClassName::WriteStream) \
+            .def("get_write_stream_size", &ClassName::GetWriteStreamSize) \
+            .def("read_stream",           &ClassName::ReadStream) \
+            .def("get_read_stream_size",  &ClassName::GetReadStreamSize) \
+            .def("write_image",           &ClassName::WriteImage) \
+            .def("read_image",            &ClassName::ReadImage) \
             ; \
 }
 
