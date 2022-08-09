@@ -3,7 +3,7 @@
 #--build
 #--coverage
 
-#-Wno-WIDTH
+-Wno-WIDTH
 -Wno-UNSIGNED
 #-Wno-PINMISSING
 -Wno-UNOPTFLAT
