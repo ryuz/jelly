@@ -149,7 +149,7 @@ module jelly2_axi4_read
     wire                            conv_arready;
     wire                            s_rfifo_rd_signal;
     
-    jelly_axi4_read_width_convert
+    jelly2_axi4_read_width_convert
             #(
                 .S_ARASYNC              (ARASYNC),
                 .S_RASYNC               (RASYNC),

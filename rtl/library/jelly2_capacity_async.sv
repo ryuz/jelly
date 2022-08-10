@@ -49,7 +49,7 @@ module jelly2_capacity_async
         wire    [CAPACITY_WIDTH-1:0]    m_size;
         wire                            m_valid;
         
-        jelly_capacity_buffer
+        jelly2_capacity_buffer
                 #(
                     .CAPACITY_WIDTH         (CAPACITY_WIDTH),
                     .REQUEST_WIDTH          (REQUEST_WIDTH),
@@ -94,7 +94,7 @@ module jelly2_capacity_async
                     .m_ready                (1'b1)
                 );
         
-        jelly_capacity_buffer
+        jelly2_capacity_buffer
                 #(
                     .CAPACITY_WIDTH         (CAPACITY_WIDTH),
                     .REQUEST_WIDTH          (CAPACITY_WIDTH),
@@ -121,7 +121,7 @@ module jelly2_capacity_async
                 );
     end
     else begin : blk_sync
-        jelly_capacity_buffer
+        jelly2_capacity_buffer
                 #(
                     .CAPACITY_WIDTH         (CAPACITY_WIDTH),
                     .REQUEST_WIDTH          (REQUEST_WIDTH),

@@ -287,8 +287,8 @@ module jelly2_stream_gate
         wire    sig_start = !reg_busy;
         wire    sig_end   = (!reg_busy && (fifo_s_permit_len == (LEN_WIDTH'(1) - LEN_WIDTH'(LEN_OFFSET)))) || (reg_busy && reg_end);
         
-        wire    sig_start_overflow  = DETECTOR_ENABLE && sig_start && (param_detect_first2 & fifo_s_permit_first & ~sig_s_first); // 期待するfirstが来ていない(データ余り)
-        wire    sig_start_underflow = DETECTOR_ENABLE && sig_start && (param_detect_first2 & ~fifo_s_permit_first & sig_s_first); // 期待するより先のfirstが来ている(データ不足)
+        wire    sig_start_overflow  = DETECTOR_ENABLE && sig_start && |(param_detect_first2 & fifo_s_permit_first & ~sig_s_first); // 期待するfirstが来ていない(データ余り)
+        wire    sig_start_underflow = DETECTOR_ENABLE && sig_start && |(param_detect_first2 & ~fifo_s_permit_first & sig_s_first); // 期待するより先のfirstが来ている(データ不足)
         
         reg                     reg_underflow;
         always @(posedge clk) begin
@@ -336,7 +336,7 @@ module jelly2_stream_gate
         end
         else begin
             if ( s_permit_valid & s_permit_ready ) begin
-                count_permit_len <= count_permit_len + s_permit_len + int'(LEN_OFFSET);
+                count_permit_len <= count_permit_len + integer'(s_permit_len) + int'(LEN_OFFSET);
             end
         end
     end

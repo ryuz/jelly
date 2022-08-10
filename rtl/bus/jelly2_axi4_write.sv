@@ -172,7 +172,7 @@ module jelly2_axi4_write
     
     wire                            s_wfifo_wr_signal;
     
-    jelly_axi4_write_width_convert
+    jelly2_axi4_write_width_convert
             #(
                 .AWASYNC                (AWASYNC),
                 .WASYNC                 (WASYNC),
