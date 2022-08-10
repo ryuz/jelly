@@ -49,7 +49,7 @@ int main(int argc, char** argv)
     mng->AddNode(jsim::ResetNode_Create(&top->dst_aresetn, 100, false));
     mng->AddNode(jsim::ResetNode_Create(&top->mem_aresetn, 100, false));
     mng->AddNode(jsim::ClockNode_Create(&top->s_wb_clk_i, 1000.0/100.0));
-    mng->AddNode(jsim::ClockNode_Create(&top->src_aclk,   1000.0/233.0));
+    mng->AddNode(jsim::ClockNode_Create(&top->src_aclk,   1000.0/133.0));
     mng->AddNode(jsim::ClockNode_Create(&top->dst_aclk,   1000.0/150.0));
     mng->AddNode(jsim::ClockNode_Create(&top->mem_aclk,   1000.0/333.3));
 

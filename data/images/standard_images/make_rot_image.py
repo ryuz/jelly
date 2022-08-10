@@ -25,7 +25,7 @@ src_img = cv2.imread("color/Mandrill.bmp")
 src_img = cv2.resize(src_img, size)
 
 os.makedirs(dst_path, exist_ok=True)
-for i in range(10):
+for i in range(30):
     trans = cv2.getRotationMatrix2D((64, 64), i*10, 1)
     dst_img = cv2.warpAffine(src_img, trans, size)
     fname = os.path.join(dst_path, "img_{:04d}.ppm".format(i))
