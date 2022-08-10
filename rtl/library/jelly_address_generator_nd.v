@@ -54,6 +54,7 @@ module jelly_address_generator_nd
     wire                        ff_s_valid;
     wire                        ff_s_ready;
     
+    // verilator lint_off PINMISSING
     jelly_data_ff_pack
         #(
             .DATA0_WIDTH    (ADDR_WIDTH),
@@ -83,6 +84,7 @@ module jelly_address_generator_nd
             .m_valid        (ff_s_valid),
             .m_ready        (ff_s_ready)
         );
+    // verilator lint_on PINMISSING
     
     
     // core

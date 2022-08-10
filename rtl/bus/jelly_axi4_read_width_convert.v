@@ -342,7 +342,7 @@ module jelly_axi4_read_width_convert
                 .detect_first       (1'b0),
                 .detect_last        (1'b0),
                 .padding_en         (1'b0),
-                .padding_data       (1'b0),
+                .padding_data       ({(M_RUSER_BITS + M_RDATA_WIDTH){1'b0}}),
                 
                 .s_permit_reset     (~m_arresetn),
                 .s_permit_clk       (m_arclk),
@@ -486,7 +486,7 @@ module jelly_axi4_read_width_convert
                 .detect_first       (1'b0),
                 .detect_last        (ALLOW_UNALIGNED),
                 .padding_en         (1'b0),
-                .padding_data       (1'b0),
+                .padding_data       ({(S_RUSER_BITS + S_RDATA_WIDTH){1'b0}}),
                 
                 .s_first            (conv_rfirst),
                 .s_last             (conv_rlast),
@@ -506,7 +506,7 @@ module jelly_axi4_read_width_convert
                 .s_permit_first     (1'b1),
                 .s_permit_last      (1'b1),
                 .s_permit_len       (sr_arlen),
-                .s_permit_user      (1'b0),
+                .s_permit_user      ({ALIGN_WIDTH{1'b0}}),
                 .s_permit_valid     (sr_arvalid),
                 .s_permit_ready     (sr_arready)
             );
