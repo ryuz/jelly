@@ -415,12 +415,18 @@ module jelly_data_split_pack
                 .m_ready        (m9_ready)
             );
     
-    
+    wire    [9:0]               ff_m_valid_tmp;
+    wire    [9:0]               ff_m_ready_tmp;
+
     wire    [NUM-1:0]           ff_m_valid;
     wire    [NUM-1:0]           ff_m_ready;
-    
-    assign {ff_m9_valid, ff_m8_valid, ff_m7_valid, ff_m6_valid, ff_m5_valid, ff_m4_valid, ff_m3_valid, ff_m2_valid, ff_m1_valid, ff_m0_valid} = ff_m_valid;
-    assign ff_m_ready = {ff_m9_ready, ff_m8_ready, ff_m7_ready, ff_m6_ready, ff_m5_ready, ff_m4_ready, ff_m3_ready, ff_m2_ready, ff_m1_ready, ff_m0_ready};
+
+    assign {ff_m9_valid, ff_m8_valid, ff_m7_valid, ff_m6_valid, ff_m5_valid, ff_m4_valid, ff_m3_valid, ff_m2_valid, ff_m1_valid, ff_m0_valid} = ff_m_valid_tmp;
+    assign ff_m_ready_tmp = {ff_m9_ready, ff_m8_ready, ff_m7_ready, ff_m6_ready, ff_m5_ready, ff_m4_ready, ff_m3_ready, ff_m2_ready, ff_m1_ready, ff_m0_ready};
+
+    assign ff_m_valid_tmp[NUM-1:0] = ff_m_valid;
+    assign ff_m_ready              = ff_m_ready_tmp[NUM-1:0];
+
     
     
     // -----------------------------------------

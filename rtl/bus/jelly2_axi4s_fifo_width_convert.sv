@@ -205,7 +205,7 @@ module jelly2_axi4s_fifo_width_convert
                 );
         
         // width convert
-        jelly_axi4s_width_convert
+        jelly2_axi4s_width_convert
                 #(
                     .HAS_STRB           (HAS_STRB),
                     .HAS_KEEP           (HAS_KEEP),
@@ -216,12 +216,7 @@ module jelly2_axi4s_fifo_width_convert
                     .BYTE_WIDTH         (BYTE_WIDTH),
                     .S_TDATA_WIDTH      (S_TDATA_WIDTH),
                     .M_TDATA_WIDTH      (M_TDATA_WIDTH),
-                    .S_TSTRB_WIDTH      (S_TSTRB_WIDTH),
-                    .S_TKEEP_WIDTH      (S_TKEEP_WIDTH),
                     .S_TUSER_WIDTH      (S_TUSER_WIDTH),
-                    .M_TSTRB_WIDTH      (M_TSTRB_WIDTH),
-                    .M_TKEEP_WIDTH      (M_TKEEP_WIDTH),
-                    .M_TUSER_WIDTH      (M_TUSER_WIDTH),
                     .AUTO_FIRST         (AUTO_FIRST),
                     .FIRST_FORCE_LAST   (FIRST_FORCE_LAST),
                     .FIRST_OVERWRITE    (FIRST_OVERWRITE),
@@ -272,7 +267,7 @@ module jelly2_axi4s_fifo_width_convert
         wire                            conv_tvalid;
         wire                            conv_tready;
         
-        jelly_axi4s_width_convert
+        jelly2_axi4s_width_convert
                 #(
                     .HAS_STRB           (HAS_STRB),
                     .HAS_KEEP           (HAS_KEEP),
@@ -283,12 +278,7 @@ module jelly2_axi4s_fifo_width_convert
                     .BYTE_WIDTH         (BYTE_WIDTH),
                     .S_TDATA_WIDTH      (S_TDATA_WIDTH),
                     .M_TDATA_WIDTH      (M_TDATA_WIDTH),
-                    .S_TSTRB_WIDTH      (S_TSTRB_WIDTH),
-                    .S_TKEEP_WIDTH      (S_TKEEP_WIDTH),
                     .S_TUSER_WIDTH      (S_TUSER_WIDTH),
-                    .M_TSTRB_WIDTH      (M_TSTRB_WIDTH),
-                    .M_TKEEP_WIDTH      (M_TKEEP_WIDTH),
-                    .M_TUSER_WIDTH      (M_TUSER_WIDTH),
                     .AUTO_FIRST         (AUTO_FIRST),
                     .FIRST_OVERWRITE    (FIRST_OVERWRITE),
                     .FIRST_FORCE_LAST   (FIRST_FORCE_LAST),
