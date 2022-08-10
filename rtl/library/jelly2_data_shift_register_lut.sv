@@ -35,12 +35,12 @@ module jelly2_data_shift_register_lut
     
     generate
     if ( !VERILATOR && SEL_WIDTH <= 5
-            && (DEVICE == "SPARTAN6"
-             || DEVICE == "VIRTEX6"
-             || DEVICE == "7SERIES"
-             || DEVICE == "ULTRASCALE"
-             || DEVICE == "ULTRASCALE_PLUS_ES1"
-             || DEVICE == "ULTRASCALE_PLUS_ES2") ) begin : xilinx_srlc32e
+            && (256'(DEVICE) == 256'("SPARTAN6")
+             || 256'(DEVICE) == 256'("VIRTEX6")
+             || 256'(DEVICE) == 256'("7SERIES")
+             || 256'(DEVICE) == 256'("ULTRASCALE")
+             || 256'(DEVICE) == 256'("ULTRASCALE_PLUS_ES1")
+             || 256'(DEVICE) == 256'("ULTRASCALE_PLUS_ES2")) ) begin : xilinx_srlc32e
         
         for ( genvar i = 0; i < DATA_WIDTH; i = i+1 ) begin : loop_shift
             // XILINX

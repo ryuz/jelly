@@ -351,7 +351,7 @@ module jelly2_axi4_slave_model
             #(
                 .LATENCY            (AW_DELAY),
                 .DATA_WIDTH         (AXI_ID_WIDTH+AXI_ADDR_WIDTH+AXI_LEN_WIDTH+3+1),
-                .DATA_INIT          (1'b0)
+                .DATA_INIT          ('0)
             )
         i_data_delay_aw
             (
@@ -371,7 +371,7 @@ module jelly2_axi4_slave_model
             #(
                 .LATENCY            (AR_DELAY),
                 .DATA_WIDTH         (AXI_ID_WIDTH+AXI_ADDR_WIDTH+AXI_LEN_WIDTH+3+1),
-                .DATA_INIT          (1'b0)
+                .DATA_INIT          ('0)
             )
         i_data_delay_ar
             (

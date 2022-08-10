@@ -15,35 +15,35 @@
 // generic FIFO (First-Word Fall-Through mode)
 module jelly2_fifo_pack
         #(
-            parameter   ASYNC       = 0,
-            parameter   DATA0_WIDTH = 0,
-            parameter   DATA1_WIDTH = 0,
-            parameter   DATA2_WIDTH = 0,
-            parameter   DATA3_WIDTH = 0,
-            parameter   DATA4_WIDTH = 0,
-            parameter   DATA5_WIDTH = 0,
-            parameter   DATA6_WIDTH = 0,
-            parameter   DATA7_WIDTH = 0,
-            parameter   DATA8_WIDTH = 0,
-            parameter   DATA9_WIDTH = 0,
-            parameter   PTR_WIDTH   = 4,
-            parameter   DOUT_REGS   = 0,
-            parameter   RAM_TYPE    = "distributed",
-            parameter   LOW_DEALY   = 0,
-            parameter   S_REGS      = 0,
-            parameter   M_REGS      = 0,
+            parameter   bit     ASYNC       = 0,
+            parameter   int     DATA0_WIDTH = 0,
+            parameter   int     DATA1_WIDTH = 0,
+            parameter   int     DATA2_WIDTH = 0,
+            parameter   int     DATA3_WIDTH = 0,
+            parameter   int     DATA4_WIDTH = 0,
+            parameter   int     DATA5_WIDTH = 0,
+            parameter   int     DATA6_WIDTH = 0,
+            parameter   int     DATA7_WIDTH = 0,
+            parameter   int     DATA8_WIDTH = 0,
+            parameter   int     DATA9_WIDTH = 0,
+            parameter   int     PTR_WIDTH   = 4,
+            parameter   bit     DOUT_REGS   = 0,
+            parameter           RAM_TYPE    = "distributed",
+            parameter   bit     LOW_DEALY   = 0,
+            parameter   bit     S_REGS      = 0,
+            parameter   bit     M_REGS      = 0,
             
             // local
-            parameter   DATA0_BITS  = DATA0_WIDTH > 0 ? DATA0_WIDTH : 1,
-            parameter   DATA1_BITS  = DATA1_WIDTH > 0 ? DATA1_WIDTH : 1,
-            parameter   DATA2_BITS  = DATA2_WIDTH > 0 ? DATA2_WIDTH : 1,
-            parameter   DATA3_BITS  = DATA3_WIDTH > 0 ? DATA3_WIDTH : 1,
-            parameter   DATA4_BITS  = DATA4_WIDTH > 0 ? DATA4_WIDTH : 1,
-            parameter   DATA5_BITS  = DATA5_WIDTH > 0 ? DATA5_WIDTH : 1,
-            parameter   DATA6_BITS  = DATA6_WIDTH > 0 ? DATA6_WIDTH : 1,
-            parameter   DATA7_BITS  = DATA7_WIDTH > 0 ? DATA7_WIDTH : 1,
-            parameter   DATA8_BITS  = DATA8_WIDTH > 0 ? DATA8_WIDTH : 1,
-            parameter   DATA9_BITS  = DATA9_WIDTH > 0 ? DATA9_WIDTH : 1
+            localparam  int     DATA0_BITS  = DATA0_WIDTH > 0 ? DATA0_WIDTH : 1,
+            localparam  int     DATA1_BITS  = DATA1_WIDTH > 0 ? DATA1_WIDTH : 1,
+            localparam  int     DATA2_BITS  = DATA2_WIDTH > 0 ? DATA2_WIDTH : 1,
+            localparam  int     DATA3_BITS  = DATA3_WIDTH > 0 ? DATA3_WIDTH : 1,
+            localparam  int     DATA4_BITS  = DATA4_WIDTH > 0 ? DATA4_WIDTH : 1,
+            localparam  int     DATA5_BITS  = DATA5_WIDTH > 0 ? DATA5_WIDTH : 1,
+            localparam  int     DATA6_BITS  = DATA6_WIDTH > 0 ? DATA6_WIDTH : 1,
+            localparam  int     DATA7_BITS  = DATA7_WIDTH > 0 ? DATA7_WIDTH : 1,
+            localparam  int     DATA8_BITS  = DATA8_WIDTH > 0 ? DATA8_WIDTH : 1,
+            localparam  int     DATA9_BITS  = DATA9_WIDTH > 0 ? DATA9_WIDTH : 1
         )
         (
             // slave port
@@ -83,18 +83,18 @@ module jelly2_fifo_pack
             output  wire    [PTR_WIDTH:0]       m_data_count
         );
     
-    localparam PACK_WIDTH = DATA0_WIDTH
-                          + DATA1_WIDTH
-                          + DATA2_WIDTH
-                          + DATA3_WIDTH
-                          + DATA4_WIDTH
-                          + DATA5_WIDTH
-                          + DATA6_WIDTH
-                          + DATA7_WIDTH
-                          + DATA8_WIDTH
-                          + DATA9_WIDTH;
+    localparam  int     PACK_WIDTH = DATA0_WIDTH
+                                   + DATA1_WIDTH
+                                   + DATA2_WIDTH
+                                   + DATA3_WIDTH
+                                   + DATA4_WIDTH
+                                   + DATA5_WIDTH
+                                   + DATA6_WIDTH
+                                   + DATA7_WIDTH
+                                   + DATA8_WIDTH
+                                   + DATA9_WIDTH;
     
-    localparam PACK_BITS  = PACK_WIDTH > 0 ? PACK_WIDTH : 1;
+    localparam  int     PACK_BITS  = PACK_WIDTH > 0 ? PACK_WIDTH : 1;
     
     
     wire    [PACK_BITS-1:0]     s_pack;

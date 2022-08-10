@@ -616,7 +616,7 @@ module jelly2_axi4_write
     jelly2_fifo_generic_fwtf
             #(
                 .ASYNC                  (BASYNC),
-                .DATA_WIDTH             (1'b1),
+                .DATA_WIDTH             (1),
                 .PTR_WIDTH              (BFIFO_PTR_WIDTH),
                 .DOUT_REGS              (BFIFO_DOUT_REGS),
                 .RAM_TYPE               (BFIFO_RAM_TYPE),
