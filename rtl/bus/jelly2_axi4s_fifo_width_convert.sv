@@ -122,7 +122,7 @@ module jelly2_axi4s_fifo_width_convert
         wire    [ALIGN_M_BITS-1:0]      s_align_m_pack = HAS_ALIGN_M ? ALIGN_M_BITS'(s_align_m) : 0;
 
         // verilator lint_off PINMISSING
-        jelly_func_pack
+        jelly2_func_pack
                 #(
                     .W0                 (HAS_ALIGN_S ? ALIGN_S_WIDTH : 0),
                     .W1                 (HAS_ALIGN_M ? ALIGN_M_WIDTH : 0),

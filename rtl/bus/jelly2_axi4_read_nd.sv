@@ -163,7 +163,7 @@ module jelly2_axi4_read_nd
     wire                            arfifo_arready;
     
     // verilator lint_off PINMISSING
-    jelly_fifo_pack
+    jelly2_fifo_pack
             #(
                 .ASYNC              (ARASYNC),
                 .DATA0_WIDTH        (AXI4_ADDR_WIDTH),

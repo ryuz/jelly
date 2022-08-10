@@ -124,7 +124,7 @@ module jelly2_axi4s_width_convert
     wire                        m_conv_tready;
     
     // verilator lint_off PINMISSING
-    jelly_stream_width_convert_pack
+    jelly2_stream_width_convert_pack
             #(
                 .S_NUM              (S_NUM),
                 .M_NUM              (M_NUM),

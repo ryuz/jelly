@@ -156,7 +156,7 @@ module jelly2_axi4_read_width_convert
     wire                            arfifo_arready;
     
     // verilator lint_off PINMISSING
-    jelly_fifo_pack
+    jelly2_fifo_pack
             #(
                 .ASYNC              (S_ARASYNC),
                 .DATA0_WIDTH        (ARADDR_WIDTH),
@@ -374,7 +374,7 @@ module jelly2_axi4_read_width_convert
     
     
     // read response channel
-    jelly_signal_transfer
+    jelly2_signal_transfer
             #(
                 .ASYNC              (S_CASYNC),
                 .CAPACITY_WIDTH     (RFIFO_PTR_WIDTH)

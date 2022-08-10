@@ -90,7 +90,7 @@ module jelly2_stream_gate
     generate
     if ( !BYPASS || (BYPASS_COMBINE && ASYNC) ) begin : blk_async_fifo
         // verilator lint_off PINMISSING
-        jelly_fifo_pack
+        jelly2_fifo_pack
                 #(
                     .ASYNC              (ASYNC),
                     .DATA0_WIDTH        (N),

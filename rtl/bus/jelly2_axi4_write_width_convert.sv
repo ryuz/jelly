@@ -139,7 +139,7 @@ module jelly2_axi4_write_width_convert
     wire    [AWUSER_BITS-1:0]       awfifo_awuser;
     wire                            awfifo_awvalid;
     wire                            awfifo_awready;
-    jelly_fifo_pack
+    jelly2_fifo_pack
             #(
                 .ASYNC              (AWASYNC),
                 .DATA0_WIDTH        (AWADDR_WIDTH),
@@ -282,7 +282,7 @@ module jelly2_axi4_write_width_convert
     wire                            datfifo_awvalid;
     wire                            datfifo_awready;
     
-    jelly_fifo_pack
+    jelly2_fifo_pack
             #(
                 .ASYNC              (WASYNC),
                 .DATA0_WIDTH        (S_AWLEN_WIDTH),

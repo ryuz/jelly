@@ -184,7 +184,7 @@ module jelly2_axi4_write_nd
     wire                            awfifo_awready;
     
     // verilator lint_off PINMISSING
-    jelly_fifo_pack
+    jelly2_fifo_pack
             #(
                 .ASYNC              (AWASYNC),
                 .DATA0_WIDTH        (AXI4_ADDR_WIDTH),
