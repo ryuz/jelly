@@ -214,7 +214,7 @@ module jelly2_stream_width_convert_pack
                 .out        (s_pack)
             );
     
-    jelly_func_unpack
+    jelly2_func_unpack
             #(
                 .N          (M_NUM),
                 .W0         (UNIT0_WIDTH),

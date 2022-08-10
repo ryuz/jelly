@@ -128,7 +128,7 @@ module jelly2_fifo_pack
                 .out            (s_pack)
             );
     
-    jelly_func_unpack
+    jelly2_func_unpack
             #(
                 .N              (1),
                 .W0             (DATA0_WIDTH),

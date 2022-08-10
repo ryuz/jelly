@@ -140,7 +140,7 @@ module jelly2_axi4s_fifo_width_convert
         // unpack
         wire    [S_PACK_BITS-1:0]       fifo_pack;
         // verilator lint_off PINMISSING
-        jelly_func_unpack
+        jelly2_func_unpack
                 #(
                     .W0                 (HAS_ALIGN_S ? ALIGN_S_WIDTH : 0),
                     .W1                 (HAS_ALIGN_M ? ALIGN_M_WIDTH : 0),
