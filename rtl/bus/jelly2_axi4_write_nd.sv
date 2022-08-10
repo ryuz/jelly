@@ -495,7 +495,7 @@ module jelly2_axi4_write_nd
     // ---------------------------------------------
     
     // サイズに合わせてデータ補正
-    jelly_stream_gate
+    jelly2_stream_gate
             #(
                 .N                  (N),
                 .BYPASS             (BYPASS_GATE),

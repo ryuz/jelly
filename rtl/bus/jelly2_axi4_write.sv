@@ -353,7 +353,7 @@ module jelly2_axi4_write
     wire                            capsize_awvalid;
     wire                            capsize_awready;
     
-    jelly_capacity_size
+    jelly2_capacity_size
             #(
                 .CAPACITY_WIDTH         (CAPACITY_WIDTH),
                 .CMD_USER_WIDTH         (1 + AXI4_ADDR_WIDTH),
@@ -507,7 +507,7 @@ module jelly2_axi4_write
     // ---------------------------------
     
     // コマンド発行分だけデータを通す
-    jelly_stream_gate
+    jelly2_stream_gate
             #(
                 .DATA_WIDTH             (AXI4_STRB_WIDTH + AXI4_DATA_WIDTH),
                 .LEN_WIDTH              (AXI4_LEN_WIDTH),

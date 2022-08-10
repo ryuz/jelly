@@ -340,7 +340,7 @@ module jelly2_axi4_read
     
     wire    [CAPACITY_WIDTH-1:0]    initial_capacity = (1 << RFIFO_PTR_WIDTH);
     
-    jelly_capacity_size
+    jelly2_capacity_size
             #(
                 .CAPACITY_WIDTH         (CAPACITY_WIDTH),
                 .CMD_USER_WIDTH         (AXI4_ADDR_WIDTH),

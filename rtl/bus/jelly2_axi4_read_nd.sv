@@ -455,7 +455,7 @@ module jelly2_axi4_read_nd
     wire    [N-1:0]                 gate_rlast;
     wire                            gate_rvalid;
     wire                            gate_rready;
-    jelly_stream_gate
+    jelly2_stream_gate
             #(
                 .N                      (1),
                 .BYPASS                 ((!ALLOW_UNALIGNED && !HAS_RFIRST) || BYPASS_GATE),

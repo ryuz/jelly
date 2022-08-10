@@ -15,14 +15,14 @@
 // 容量の非同期伝搬
 module jelly2_capacity_async
         #(
-            parameter   ASYNC               = 1,
-            parameter   CAPACITY_WIDTH      = 32,               // オーバーフローしないサイズとする
-            parameter   REQUEST_WIDTH       = CAPACITY_WIDTH,
-            parameter   ISSUE_WIDTH         = CAPACITY_WIDTH,   // CAPACITY_WIDTH より大きくすること
-            parameter   REQUEST_SIZE_OFFSET = 1'b0,
-            parameter   ISSUE_SIZE_OFFSET   = 1'b0,
+            parameter   bit                             ASYNC               = 1,
+            parameter   int                             CAPACITY_WIDTH      = 32,               // オーバーフローしないサイズとする
+            parameter   int                             REQUEST_WIDTH       = CAPACITY_WIDTH,
+            parameter   int                             ISSUE_WIDTH         = CAPACITY_WIDTH,   // CAPACITY_WIDTH より大きくすること
+            parameter   bit                             REQUEST_SIZE_OFFSET = 1'b0,
+            parameter   bit                             ISSUE_SIZE_OFFSET   = 1'b0,
             
-            parameter   INIT_REQUEST        = {CAPACITY_WIDTH{1'b0}}
+            parameter   bit     [CAPACITY_WIDTH-1:0]    INIT_REQUEST        = {CAPACITY_WIDTH{1'b0}}
         )
         (
             input   wire                            s_reset,
@@ -161,7 +161,7 @@ module jelly2_capacity_async
         end
         else begin
             if ( s_request_valid ) begin
-                total_request <= total_request + s_request_size + REQUEST_SIZE_OFFSET;
+                total_request <= total_request + integer'(s_request_size) + integer'(REQUEST_SIZE_OFFSET);
             end
         end
     end
@@ -173,7 +173,7 @@ module jelly2_capacity_async
         end
         else begin
             if ( m_issue_valid & m_issue_ready ) begin
-                total_issue <= total_issue + m_issue_size + ISSUE_SIZE_OFFSET;
+                total_issue <= total_issue + integer'(m_issue_size) + integer'(ISSUE_SIZE_OFFSET);
             end
         end
     end
