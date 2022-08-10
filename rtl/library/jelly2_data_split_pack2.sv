@@ -1128,7 +1128,7 @@ module jelly2_data_split_pack2
                 .in             (m9_data)
             );
     
-    jelly_data_split_pack
+    jelly2_data_split_pack
             #(
                 .NUM            (NUM),
                 .DATA0_WIDTH    (DATA0_WIDTH),

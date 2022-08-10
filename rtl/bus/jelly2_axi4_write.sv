@@ -563,7 +563,7 @@ module jelly2_axi4_write
     wire                            ack_bvalid;
     wire                            ack_bready;
     
-    jelly_stream_add_syncflag
+    jelly2_stream_add_syncflag
             #(
                 .FIRST_WIDTH            (0),
                 .LAST_WIDTH             (1),

@@ -521,7 +521,7 @@ module jelly2_axi4_read_nd
     
     
     /*
-    jelly_stream_add_syncflag
+    jelly2_stream_add_syncflag
             #(
                 .FIRST_WIDTH            (N),
                 .LAST_WIDTH             (N),
@@ -573,7 +573,7 @@ module jelly2_axi4_read_nd
     // ---------------------------------------------
     
     // c ポートにフラグ付与
-    jelly_stream_add_syncflag
+    jelly2_stream_add_syncflag
             #(
                 .FIRST_WIDTH            (N),
                 .LAST_WIDTH             (N),

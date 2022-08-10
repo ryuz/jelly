@@ -156,7 +156,7 @@ module jelly2_axi4s_fifo_width_convert
         // verilator lint_on PINMISSING
         
         // fifo
-        jelly_axi4s_fifo
+        jelly2_axi4s_fifo
                 #(
                     .ASYNC              (ASYNC),
                     .HAS_FIRST          (HAS_FIRST),
@@ -315,7 +315,7 @@ module jelly2_axi4s_fifo_width_convert
                 );
         
         // FIFO
-        jelly_axi4s_fifo
+        jelly2_axi4s_fifo
                 #(
                     .ASYNC              (ASYNC),
                     .HAS_FIRST          (HAS_FIRST),

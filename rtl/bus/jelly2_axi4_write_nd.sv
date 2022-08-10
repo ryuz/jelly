@@ -556,7 +556,7 @@ module jelly2_axi4_write_nd
     // ---------------------------------------------
     
     // b-ack ポートにフラグ付与
-    jelly_stream_add_syncflag
+    jelly2_stream_add_syncflag
             #(
                 .FIRST_WIDTH        (N),
                 .LAST_WIDTH         (N),
