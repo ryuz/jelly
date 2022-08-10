@@ -55,7 +55,7 @@ module jelly2_capacity_size
     wire                            ff_s_valid;
     wire                            ff_s_ready;
     // verilator lint_off PINMISSING
-    jelly_data_ff_pack
+    jelly2_data_ff_pack
             #(
                 .DATA0_WIDTH        (CMD_USER_WIDTH),
                 .DATA1_WIDTH        (CMD_SIZE_WIDTH),
@@ -168,7 +168,7 @@ module jelly2_capacity_size
     assign tx_valid     = rx_valid && issue_enable;
     
     // verilator lint_off PINMISSING
-    jelly_data_ff_pack
+    jelly2_data_ff_pack
             #(
                 .DATA0_WIDTH        (CMD_USER_WIDTH),
                 .DATA1_WIDTH        (CMD_SIZE_WIDTH),

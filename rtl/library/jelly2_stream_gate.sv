@@ -171,7 +171,7 @@ module jelly2_stream_gate
         wire                        ff_m_ready;
         
         // verilator lint_off PINMISSING
-        jelly_data_ff_pack
+        jelly2_data_ff_pack
                 #(
                     .DATA0_WIDTH    (N),
                     .DATA1_WIDTH    (N),
@@ -201,7 +201,7 @@ module jelly2_stream_gate
         
         
         // verilator lint_off PINMISSING
-        jelly_data_ff_pack
+        jelly2_data_ff_pack
                 #(
                     .DATA0_WIDTH    (N),
                     .DATA1_WIDTH    (N),

@@ -55,35 +55,35 @@ module jelly2_address_generator_nd
     logic                           ff_s_ready;
     
     // verilator lint_off PINMISSING
-    jelly_data_ff_pack
-        #(
-            .DATA0_WIDTH    (ADDR_WIDTH),
-            .DATA1_WIDTH    (N*STEP_WIDTH),
-            .DATA2_WIDTH    (N*LEN_WIDTH),
-            .DATA3_WIDTH    (USER_WIDTH),
-            .S_REGS         (S_REGS),
-            .M_REGS         (S_REGS)
-        )
-    jelly_data_ff_pack
-        (
-            .reset          (reset),
-            .clk            (clk),
-            .cke            (cke),
-            
-            .s_data0        (s_addr),
-            .s_data1        (s_step),
-            .s_data2        (s_len),
-            .s_data3        (s_user),
-            .s_valid        (s_valid),
-            .s_ready        (s_ready),
-            
-            .m_data0        (ff_s_addr),
-            .m_data1        (ff_s_step),
-            .m_data2        (ff_s_len),
-            .m_data3        (ff_s_user),
-            .m_valid        (ff_s_valid),
-            .m_ready        (ff_s_ready)
-        );
+    jelly2_data_ff_pack
+            #(
+                .DATA0_WIDTH    (ADDR_WIDTH),
+                .DATA1_WIDTH    (N*STEP_WIDTH),
+                .DATA2_WIDTH    (N*LEN_WIDTH),
+                .DATA3_WIDTH    (USER_WIDTH),
+                .S_REGS         (S_REGS),
+                .M_REGS         (S_REGS)
+            )
+        i_data_ff_pack
+            (
+                .reset          (reset),
+                .clk            (clk),
+                .cke            (cke),
+                
+                .s_data0        (s_addr),
+                .s_data1        (s_step),
+                .s_data2        (s_len),
+                .s_data3        (s_user),
+                .s_valid        (s_valid),
+                .s_ready        (s_ready),
+                
+                .m_data0        (ff_s_addr),
+                .m_data1        (ff_s_step),
+                .m_data2        (ff_s_len),
+                .m_data3        (ff_s_user),
+                .m_valid        (ff_s_valid),
+                .m_ready        (ff_s_ready)
+            );
     // verilator lint_on PINMISSING
     
     

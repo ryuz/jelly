@@ -446,7 +446,7 @@ module jelly2_axi4_write
     wire                            cmd2_awvalid;
     wire                            cmd2_awready;
     
-    jelly_data_split_pack2
+    jelly2_data_split_pack2
             #(
                 .NUM                    (3),
                 .DATA0_0_WIDTH          (AXI4_ADDR_WIDTH),

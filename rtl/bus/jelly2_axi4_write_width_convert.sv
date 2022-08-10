@@ -226,7 +226,7 @@ module jelly2_axi4_write_width_convert
     wire                            dat_awvalid;
     wire                            dat_awready;
     
-    jelly_data_split_pack2
+    jelly2_data_split_pack2
             #(
                 .NUM                (2),
                 

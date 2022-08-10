@@ -57,7 +57,7 @@ module jelly2_address_width_convert
     wire                        ff_s_ready;
 
     // verilator lint_off PINMISSING
-    jelly_data_ff_pack
+    jelly2_data_ff_pack
             #(
                 .DATA0_WIDTH    (ADDR_WIDTH),
                 .DATA1_WIDTH    (S_LEN_WIDTH),

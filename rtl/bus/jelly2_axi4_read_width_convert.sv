@@ -250,7 +250,7 @@ module jelly2_axi4_read_width_convert
     wire                            sr_arready;
     
     // verilator lint_off PINMISSING
-    jelly_data_split_pack2
+    jelly2_data_split_pack2
             #(
                 .NUM                (3),
                 

@@ -297,7 +297,7 @@ module jelly2_axi4_write_nd
     wire                            ack_awready;
     
     // verilator lint_off PINMISSING
-    jelly_data_split_pack2
+    jelly2_data_split_pack2
             #(
                 .NUM                    (3),
                 .DATA0_0_WIDTH          (AXI4_ADDR_WIDTH),
