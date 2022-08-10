@@ -174,6 +174,7 @@ module jelly2_stream_add_syncflag
             (
                 .s_reset        (s_add_reset),
                 .s_clk          (s_add_clk),
+                .s_cke          (1'b1),
                 .s_data0        (s_add_first),
                 .s_data1        (s_add_last),
                 .s_valid        (s_add_valid),
@@ -181,6 +182,7 @@ module jelly2_stream_add_syncflag
                 
                 .m_reset        (reset),
                 .m_clk          (clk),
+                .m_cke          (1'b1),
                 .m_data0        (fifo_first),
                 .m_data1        (fifo_last),
                 .m_valid        (fifo_valid),

@@ -86,6 +86,7 @@ module jelly2_axi4s_fifo
             (
                 .s_reset        (~s_aresetn),
                 .s_clk          (s_aclk),
+                .s_cke          (1'b1),
                 .s_data0        (s_axi4s_tdata),
                 .s_data1        (s_axi4s_tstrb),
                 .s_data2        (s_axi4s_tkeep),
@@ -98,6 +99,7 @@ module jelly2_axi4s_fifo
                 
                 .m_reset        (~m_aresetn),
                 .m_clk          (m_aclk),
+                .m_cke          (1'b1),
                 .m_data0        (m_axi4s_tdata),
                 .m_data1        (m_axi4s_tstrb),
                 .m_data2        (m_axi4s_tkeep),

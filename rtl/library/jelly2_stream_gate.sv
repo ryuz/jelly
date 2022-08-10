@@ -109,6 +109,7 @@ module jelly2_stream_gate
                 (
                     .s_reset            (s_permit_reset),
                     .s_clk              (s_permit_clk),
+                    .s_cke              (1'b1),
                     .s_data0            (s_permit_first),
                     .s_data1            (s_permit_last),
                     .s_data2            (s_permit_len),
@@ -118,6 +119,7 @@ module jelly2_stream_gate
                     
                     .m_reset            (reset),
                     .m_clk              (clk),
+                    .m_cke              (1'b1),
                     .m_data0            (fifo_s_permit_first),
                     .m_data1            (fifo_s_permit_last),
                     .m_data2            (fifo_s_permit_len),

@@ -157,6 +157,7 @@ module jelly2_axi4_write_width_convert
             (
                 .s_reset            (~s_awresetn),
                 .s_clk              (s_awclk),
+                .s_cke              (1'b1),
                 .s_data0            (s_awaddr),
                 .s_data1            (s_awlen),
                 .s_data2            (s_awuser),
@@ -165,6 +166,7 @@ module jelly2_axi4_write_width_convert
                 
                 .m_reset            (~m_awresetn),
                 .m_clk              (m_awclk),
+                .m_cke              (1'b1),
                 .m_data0            (awfifo_awaddr),
                 .m_data1            (awfifo_awlen),
                 .m_data2            (awfifo_awuser),
@@ -299,6 +301,7 @@ module jelly2_axi4_write_width_convert
             (
                 .s_reset            (~m_awresetn),
                 .s_clk              (m_awclk),
+                .s_cke              (1'b1),
                 .s_data0            (dat_awlen),
                 .s_data1            (dat_align),
                 .s_valid            (dat_awvalid),
@@ -306,6 +309,7 @@ module jelly2_axi4_write_width_convert
                 
                 .m_reset            (~s_wresetn),
                 .m_clk              (s_wclk),
+                .m_cke              (1'b1),
                 .m_data0            (datfifo_awlen),
                 .m_data1            (datfifo_align),
                 .m_valid            (datfifo_awvalid),

@@ -49,6 +49,7 @@ module jelly2_fifo_pack
             // slave port
             input   wire                        s_reset,
             input   wire                        s_clk,
+            input   wire                        s_cke,
             input   wire    [DATA0_BITS-1:0]    s_data0,
             input   wire    [DATA1_BITS-1:0]    s_data1,
             input   wire    [DATA2_BITS-1:0]    s_data2,
@@ -66,6 +67,7 @@ module jelly2_fifo_pack
             // master port
             input   wire                        m_reset,
             input   wire                        m_clk,
+            input   wire                        m_cke,
             output  wire    [DATA0_BITS-1:0]    m_data0,
             output  wire    [DATA1_BITS-1:0]    m_data1,
             output  wire    [DATA2_BITS-1:0]    m_data2,
@@ -158,7 +160,7 @@ module jelly2_fifo_pack
                 .out9           (m_data9)
             );
     
-    jelly_fifo_generic_fwtf
+    jelly2_fifo_generic_fwtf
             #(
                 .ASYNC          (ASYNC),
                 .DATA_WIDTH     (PACK_WIDTH),
@@ -166,13 +168,14 @@ module jelly2_fifo_pack
                 .DOUT_REGS      (DOUT_REGS),
                 .RAM_TYPE       (RAM_TYPE),
                 .LOW_DEALY      (LOW_DEALY),
-                .SLAVE_REGS     (S_REGS),
-                .MASTER_REGS    (M_REGS)
+                .S_REGS         (S_REGS),
+                .M_REGS         (M_REGS)
             )
         i_fifo_generic_fwtf
             (
                 .s_reset        (s_reset),
                 .s_clk          (s_clk),
+                .s_cke          (s_cke),
                 .s_data         (s_pack),
                 .s_valid        (s_valid),
                 .s_ready        (s_ready),
@@ -180,6 +183,7 @@ module jelly2_fifo_pack
                 
                 .m_reset        (m_reset),
                 .m_clk          (m_clk),
+                .m_cke          (m_cke),
                 .m_data         (m_pack),
                 .m_valid        (m_valid),
                 .m_ready        (m_ready),

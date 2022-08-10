@@ -697,6 +697,7 @@ module tb_main
             (
                 .aresetn                (mem_aresetn),
                 .aclk                   (mem_aclk),
+//                .aclken                 (1'b1),
                 
                 .s_axi4_awid            (axi4_mem_awid),
                 .s_axi4_awaddr          (axi4_mem_awaddr),

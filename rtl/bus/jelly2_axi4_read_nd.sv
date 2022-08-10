@@ -182,6 +182,7 @@ module jelly2_axi4_read_nd
             (
                 .s_reset            (~s_arresetn),
                 .s_clk              (s_arclk),
+                .s_cke              (1'b1),
                 .s_data0            (s_araddr),
                 .s_data1            (s_arlen_max),
                 .s_data2            (s_arstep),
@@ -191,6 +192,7 @@ module jelly2_axi4_read_nd
                 
                 .m_reset            (~m_aresetn),
                 .m_clk              (m_aclk),
+                .m_cke              (1'b1),
                 .m_data0            (arfifo_araddr),
                 .m_data1            (arfifo_arlen_max),
                 .m_data2            (arfifo_arstep),
