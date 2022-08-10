@@ -161,7 +161,7 @@ module tb_main
     wire                                wb_bufm_stb_i;
     wire                                wb_bufm_ack_o;
     
-    jelly_buffer_manager
+    jelly2_buffer_manager
             #(
                 .BUFFER_NUM             (BUFFER_NUM),
                 .READER_NUM             (2),
@@ -172,11 +172,12 @@ module tb_main
                 .WB_ADR_WIDTH           (8),
                 .WB_DAT_WIDTH           (WB_DAT_WIDTH),
                 
-                .INIT_ADDR0             (32'h0000_0000),
-                .INIT_ADDR1             (32'h0010_0000),
-                .INIT_ADDR2             (32'h0020_0000),
-                .INIT_ADDR3             (32'h0030_0000),
-                .INIT_ADDR4             (32'h0040_0000)
+                .INIT_ADDR              ({
+                                            32'h0003_0000,
+                                            32'h0002_0000,
+                                            32'h0001_0000,
+                                            32'h0000_0000
+                                        })
             )
         i_buffer_manager
             (
@@ -216,7 +217,7 @@ module tb_main
     wire                                wb_bufa_stb_i;
     wire                                wb_bufa_ack_o;
     
-    jelly_buffer_allocator
+    jelly2_buffer_allocator
             #(
                 .ADDR_WIDTH             (AXI4_ADDR_WIDTH),
                 .INDEX_WIDTH            (4),
@@ -297,7 +298,7 @@ module tb_main
     wire                                wb_dmaw_stb_i;
     wire                                wb_dmaw_ack_o;
     
-    jelly_dma_video_write
+    jelly2_dma_video_write
             #(
                 .BYTE_WIDTH             (BYTE_WIDTH),
                 
@@ -466,7 +467,7 @@ module tb_main
     wire                                wb_dmar_stb_i;
     wire                                wb_dmar_ack_o;
     
-    jelly_dma_video_read
+    jelly2_dma_video_read
             #(
                 .BYTE_WIDTH             (BYTE_WIDTH),
                 
@@ -656,6 +657,7 @@ module tb_main
         end
     end
     
+
     // -----------------------------------------
     //  memory model
     // -----------------------------------------

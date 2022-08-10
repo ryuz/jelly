@@ -15,7 +15,7 @@
 
 
 // AXI4 データ書き込みコア
-module jelly_axi4_write
+module jelly2_axi4_write
         #(
             parameter   AWASYNC          = 1,
             parameter   WASYNC           = 1,
@@ -279,7 +279,7 @@ module jelly_axi4_write
     wire                            conv_wr_valid;
     wire                            conv_wr_ready;
     
-    jelly_capacity_async
+    jelly2_capacity_async
             #(
                 .ASYNC                  (WASYNC),
                 .CAPACITY_WIDTH         (CAPACITY_WIDTH),
@@ -316,7 +316,7 @@ module jelly_axi4_write
     wire                            adrgen_awvalid;
     wire                            adrgen_awready;
     
-    jelly_address_generator
+    jelly2_address_generator
             #(
                 .ADDR_WIDTH             (AXI4_ADDR_WIDTH),
                 .ADDR_UNIT              (1 << AXI4_DATA_SIZE),
@@ -398,7 +398,7 @@ module jelly_axi4_write
     wire                            align_awvalid;
     wire                            align_awready;
     
-    jelly_address_align_split
+    jelly2_address_align_split
             #(
                 .BYPASS                 (BYPASS_ALIGN),
                 .USER_WIDTH             (0),

@@ -155,6 +155,7 @@ module jelly_axi4_read_width_convert
     wire                            arfifo_arvalid;
     wire                            arfifo_arready;
     
+    // verilator lint_off PINMISSING
     jelly_fifo_pack
             #(
                 .ASYNC              (S_ARASYNC),
@@ -187,7 +188,9 @@ module jelly_axi4_read_width_convert
                 .m_valid            (arfifo_arvalid),
                 .m_ready            (arfifo_arready)
             );
+    // verilator lint_on PINMISSING
     
+
     // address convert
     wire    [ARADDR_WIDTH-1:0]      adrcnv_araddr;
     wire    [ALIGN_BITS-1:0]        adrcnv_align;
@@ -246,6 +249,7 @@ module jelly_axi4_read_width_convert
     wire                            sr_arvalid;
     wire                            sr_arready;
     
+    // verilator lint_off PINMISSING
     jelly_data_split_pack2
             #(
                 .NUM                (3),
@@ -291,6 +295,7 @@ module jelly_axi4_read_width_convert
                 .m2_valid           (sr_arvalid),
                 .m2_ready           (sr_arready)
             );
+    // verilator lint_on PINMISSING
     
     // command
     assign  m_araddr   = ar_araddr;

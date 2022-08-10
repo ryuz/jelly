@@ -15,9 +15,9 @@
 // Delay
 module jelly_data_delay
         #(
-            parameter   LATENCY    = 1,
-            parameter   DATA_WIDTH = 8,
-            parameter   DATA_INIT  = {DATA_WIDTH{1'bx}}
+            parameter                               LATENCY    = 1,
+            parameter                               DATA_WIDTH = 8,
+            parameter   logic   [DATA_WIDTH-1:0]    DATA_INIT  = {DATA_WIDTH{1'bx}}
         )
         (
             input   wire                        reset,
