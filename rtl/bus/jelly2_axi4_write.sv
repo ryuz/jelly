@@ -446,6 +446,7 @@ module jelly2_axi4_write
     wire                            cmd2_awvalid;
     wire                            cmd2_awready;
     
+    // verilator lint_off PINMISSING
     jelly2_data_split_pack2
             #(
                 .NUM                    (3),
@@ -484,6 +485,7 @@ module jelly2_axi4_write
                 .m2_valid               (cmd2_awvalid),
                 .m2_ready               (cmd2_awready)
             );
+    // verilator lint_on PINMISSING
     
     
     // aw

@@ -717,6 +717,7 @@ module jelly2_stream_width_convert
     wire    ff_m_ready;
     assign st2_ready = (ff_m_ready | st2_none);
     
+    // verilator lint_off PINMISSING
     jelly2_data_ff_pack
             #(
                 .DATA0_WIDTH    (M_DATA_WIDTH),
@@ -755,6 +756,7 @@ module jelly2_stream_width_convert
                 .m_valid        (m_valid),
                 .m_ready        (m_ready)
             );
+    // verilator lint_on PINMISSING
     
     
 endmodule

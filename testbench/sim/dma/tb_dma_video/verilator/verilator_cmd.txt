@@ -17,7 +17,7 @@
 #-Wno-SELRANGE
 #-Wno-WIDTHCONCAT
 #-Wno-MULTITOP
--Wno-fatal
+#-Wno-fatal
 
 -y ../../../../../rtl/library
 -y ../../../../../rtl/bus

@@ -139,6 +139,8 @@ module jelly2_axi4_write_width_convert
     wire    [AWUSER_BITS-1:0]       awfifo_awuser;
     wire                            awfifo_awvalid;
     wire                            awfifo_awready;
+
+    // verilator lint_off PINMISSING
     jelly2_fifo_pack
             #(
                 .ASYNC              (AWASYNC),
@@ -173,6 +175,7 @@ module jelly2_axi4_write_width_convert
                 .m_valid            (awfifo_awvalid),
                 .m_ready            (awfifo_awready)
             );
+    // verilator lint_on PINMISSING
     
     // address convert
     wire    [AWADDR_WIDTH-1:0]      adrcnv_awaddr;
@@ -228,6 +231,7 @@ module jelly2_axi4_write_width_convert
     wire                            dat_awvalid;
     wire                            dat_awready;
     
+    // verilator lint_off PINMISSING
     jelly2_data_split_pack2
             #(
                 .NUM                (2),
@@ -265,6 +269,7 @@ module jelly2_axi4_write_width_convert
                 .m1_valid           (dat_awvalid),
                 .m1_ready           (dat_awready)
             );
+    // verilator lint_on PINMISSING
     
     assign m_awaddr    = cmd_awaddr;
     assign m_awlen     = cmd_awlen;
@@ -284,6 +289,7 @@ module jelly2_axi4_write_width_convert
     wire                            datfifo_awvalid;
     wire                            datfifo_awready;
     
+    // verilator lint_off PINMISSING
     jelly2_fifo_pack
             #(
                 .ASYNC              (WASYNC),
@@ -315,6 +321,7 @@ module jelly2_axi4_write_width_convert
                 .m_valid            (datfifo_awvalid),
                 .m_ready            (datfifo_awready)
             );
+    // verilator lint_on PINMISSING
     
     
     // gate
