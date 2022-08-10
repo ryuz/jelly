@@ -12,29 +12,14 @@
 #include "jelly/JellyRegs.h"
 #include "jelly/Imx219Control.h"
 #include "jelly/GpioAccessor.h"
+#include "jelly/VideoDmaControl.h"
 
 
-void capture_still_image(jelly::MemAccessor& reg_wdma, jelly::MemAccessor& reg_fmtr, std::uintptr_t bufaddr, int width, int height, int frame_num);
+//void capture_still_image(jelly::MemAccessor& reg_wdma, jelly::MemAccessor& reg_fmtr, std::uintptr_t bufaddr, int width, int height, int frame_num);
 
 
 int main(int argc, char *argv[])
 {
-    /*
-    {
-        jelly::I2cAccessor i2c;
-        if ( !i2c.Open("/dev/i2c-6", 0x74) ) {
-            return 1;
-        }
-        
-        cv::Mat img = cv::Mat::zeros(480, 640, CV_8UC3);
-        cv::imshow("img", img);
-        while ( (cv::waitKey(1) & 0xff) != 0x1b ) {
-            i2c.Write("\x55", 1);
-        }
-    }
-    return 0;
-    */
-
     double  pixel_clock = 91000000.0;
     bool    binning     = false;
     int     width       = 3280;
@@ -207,6 +192,9 @@ int main(int argc, char *argv[])
 //  std::cout << "udmabuf0 phys addr : 0x" << std::hex << dmabuf_phys_adr << std::endl;
 //  std::cout << "udmabuf0 size      : " << std::dec << dmabuf_mem_size << std::endl;
 
+    jelly::VideoDmaControl vdmaw(reg_wdma, 4, 4, true);
+
+
     // カメラON
     uio_acc.WriteReg(2, 1);
     usleep(500000);
@@ -234,9 +222,15 @@ int main(int argc, char *argv[])
         std::cout << "udmabuf size error" << std::endl;
     }
 
-    reg_gid.WriteReg(0, 1);
-    usleep(10);
-    reg_gid.WriteReg(0, 0);
+    // video input start
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN,  1);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT,   10000000);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_WIDTH,       width);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_HEIGHT,      height);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_FILL,        0x100);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_TIMEOUT,     100000);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL,       0x03);
+    usleep(100000);
 
     int     key;
     while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
@@ -250,7 +244,8 @@ int main(int argc, char *argv[])
         reg_demos.WriteReg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3);  // update & enable
 
         // キャプチャ
-        capture_still_image(reg_wdma, reg_fmtr, dmabuf_phys_adr, width, height, frame_num);
+        vdmaw.StartOneshot(dmabuf_phys_adr, width, height, frame_num);
+//      capture_still_image(reg_wdma, reg_fmtr, dmabuf_phys_adr, width, height, frame_num);
         cv::Mat img(height*frame_num, width, CV_8UC4);
         udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4 * frame_num);
         
@@ -302,7 +297,8 @@ int main(int argc, char *argv[])
 
         case 'r': // image record
             std::cout << "record" << std::endl;
-            capture_still_image(reg_wdma, reg_fmtr, dmabuf_phys_adr, width, height, rec_frame_num);
+//          capture_still_image(reg_wdma, reg_fmtr, dmabuf_phys_adr, width, height, rec_frame_num);
+            vdmaw.StartOneshot(dmabuf_phys_adr, width, height, rec_frame_num);
             int offset = 0;
             for ( int i = 0; i < rec_frame_num; i++ ) {
                 char fname[64];
@@ -326,7 +322,7 @@ int main(int argc, char *argv[])
 }
 
 
-
+/*
 // 静止画キャプチャ
 void capture_still_image(jelly::MemAccessor& reg_wdma, jelly::MemAccessor& reg_fmtr, std::uintptr_t bufaddr, int width, int height, int frame_num)
 {
@@ -362,6 +358,7 @@ void capture_still_image(jelly::MemAccessor& reg_wdma, jelly::MemAccessor& reg_f
         usleep(1000);
     }
 }
+*/
 
 
 // end of file
