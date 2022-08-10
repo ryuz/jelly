@@ -14,68 +14,51 @@
 
 module jelly2_axi4s_fifo_width_convert
         #(
-            parameter ASYNC            = 1,
-            parameter FIFO_PTR_WIDTH   = 9,
-            parameter FIFO_RAM_TYPE    = "block",
-            parameter FIFO_LOW_DEALY   = 0,
-            parameter FIFO_DOUT_REGS   = 1,
-            parameter FIFO_S_REGS      = 1,
-            parameter FIFO_M_REGS      = 1,
+            parameter   bit     ASYNC            = 1,
+            parameter   int     FIFO_PTR_WIDTH   = 9,
+            parameter           FIFO_RAM_TYPE    = "block",
+            parameter   bit     FIFO_LOW_DEALY   = 0,
+            parameter   bit     FIFO_DOUT_REGS   = 1,
+            parameter   bit     FIFO_S_REGS      = 1,
+            parameter   bit     FIFO_M_REGS      = 1,
             
-            parameter HAS_STRB         = 0,
-            parameter HAS_KEEP         = 0,
-            parameter HAS_FIRST        = 0,
-            parameter HAS_LAST         = 0,
-            parameter HAS_ALIGN_S      = 0,  // slave 側のアライメントを指定する
-            parameter HAS_ALIGN_M      = 0,  // master 側のアライメントを指定する
+            parameter   bit     HAS_STRB         = 0,
+            parameter   bit     HAS_KEEP         = 0,
+            parameter   bit     HAS_FIRST        = 0,
+            parameter   bit     HAS_LAST         = 0,
+            parameter   bit     HAS_ALIGN_S      = 0,  // slave 側のアライメントを指定する
+            parameter   bit     HAS_ALIGN_M      = 0,  // master 側のアライメントを指定する
             
-            parameter BYTE_WIDTH       = 8,
-            parameter S_TDATA_WIDTH    = 32,
-            parameter M_TDATA_WIDTH    = 64,
-            parameter S_TUSER_WIDTH    = 0,
+            parameter   int     BYTE_WIDTH       = 8,
+            parameter   int     S_TDATA_WIDTH    = 32,
+            parameter   int     M_TDATA_WIDTH    = 64,
+            parameter   int     S_TUSER_WIDTH    = 0,
             
-            parameter AUTO_FIRST       = (HAS_LAST & !HAS_FIRST),    // last の次を自動的に first とする
-            parameter FIRST_OVERWRITE  = 0,  // first時前方に残変換があれば吐き出さずに上書き
-            parameter FIRST_FORCE_LAST = 0,  // first時前方に残変換があれば強制的にlastを付与(残が無い場合はlastはつかない)
-            parameter ALIGN_S_WIDTH    = S_TDATA_WIDTH / BYTE_WIDTH <=   2 ? 1 :
-                                         S_TDATA_WIDTH / BYTE_WIDTH <=   4 ? 2 :
-                                         S_TDATA_WIDTH / BYTE_WIDTH <=   8 ? 3 :
-                                         S_TDATA_WIDTH / BYTE_WIDTH <=  16 ? 4 :
-                                         S_TDATA_WIDTH / BYTE_WIDTH <=  32 ? 5 :
-                                         S_TDATA_WIDTH / BYTE_WIDTH <=  64 ? 6 :
-                                         S_TDATA_WIDTH / BYTE_WIDTH <= 128 ? 7 :
-                                         S_TDATA_WIDTH / BYTE_WIDTH <= 256 ? 8 :
-                                         S_TDATA_WIDTH / BYTE_WIDTH <= 512 ? 9 : 10,
-            parameter ALIGN_M_WIDTH    = M_TDATA_WIDTH / BYTE_WIDTH <=   2 ? 1 :
-                                         M_TDATA_WIDTH / BYTE_WIDTH <=   4 ? 2 :
-                                         M_TDATA_WIDTH / BYTE_WIDTH <=   8 ? 3 :
-                                         M_TDATA_WIDTH / BYTE_WIDTH <=  16 ? 4 :
-                                         M_TDATA_WIDTH / BYTE_WIDTH <=  32 ? 5 :
-                                         M_TDATA_WIDTH / BYTE_WIDTH <=  64 ? 6 :
-                                         M_TDATA_WIDTH / BYTE_WIDTH <= 128 ? 7 :
-                                         M_TDATA_WIDTH / BYTE_WIDTH <= 256 ? 8 :
-                                         M_TDATA_WIDTH / BYTE_WIDTH <= 512 ? 9 : 10,
+            parameter   bit     AUTO_FIRST       = (HAS_LAST & !HAS_FIRST),    // last の次を自動的に first とする
+            parameter   bit     FIRST_OVERWRITE  = 0,  // first時前方に残変換があれば吐き出さずに上書き
+            parameter   bit     FIRST_FORCE_LAST = 0,  // first時前方に残変換があれば強制的にlastを付与(残が無い場合はlastはつかない)
+            parameter   int     ALIGN_S_WIDTH    = $clog2(S_TDATA_WIDTH / BYTE_WIDTH),
+            parameter   int     ALIGN_M_WIDTH    = $clog2(M_TDATA_WIDTH / BYTE_WIDTH),
             
+            parameter   bit     CONVERT_S_REGS   = 1,
             
-            parameter CONVERT_S_REGS   = 1,
-            
-            parameter POST_CONVERT     = (M_TDATA_WIDTH < S_TDATA_WIDTH),
+            parameter   bit     POST_CONVERT     = (M_TDATA_WIDTH < S_TDATA_WIDTH),
             
             // local
-            parameter S_TSTRB_WIDTH    = S_TDATA_WIDTH / BYTE_WIDTH,
-            parameter S_TKEEP_WIDTH    = S_TDATA_WIDTH / BYTE_WIDTH,
-            parameter M_TSTRB_WIDTH    = M_TDATA_WIDTH / BYTE_WIDTH,
-            parameter M_TKEEP_WIDTH    = M_TDATA_WIDTH / BYTE_WIDTH,
-            parameter M_TUSER_WIDTH    = S_TUSER_WIDTH * M_TDATA_WIDTH / S_TDATA_WIDTH,
-            
-            parameter S_TDATA_BITS     = S_TDATA_WIDTH > 0 ? S_TDATA_WIDTH : 1,
-            parameter S_TSTRB_BITS     = S_TSTRB_WIDTH > 0 ? S_TSTRB_WIDTH : 1,
-            parameter S_TKEEP_BITS     = S_TKEEP_WIDTH > 0 ? S_TKEEP_WIDTH : 1,
-            parameter S_TUSER_BITS     = S_TUSER_WIDTH > 0 ? S_TUSER_WIDTH : 1,
-            parameter M_TDATA_BITS     = M_TDATA_WIDTH > 0 ? M_TDATA_WIDTH : 1,
-            parameter M_TSTRB_BITS     = M_TSTRB_WIDTH > 0 ? M_TSTRB_WIDTH : 1,
-            parameter M_TKEEP_BITS     = M_TKEEP_WIDTH > 0 ? M_TKEEP_WIDTH : 1,
-            parameter M_TUSER_BITS     = M_TUSER_WIDTH > 0 ? M_TUSER_WIDTH : 1
+            localparam  int     S_TSTRB_WIDTH    = S_TDATA_WIDTH / BYTE_WIDTH,
+            localparam  int     S_TKEEP_WIDTH    = S_TDATA_WIDTH / BYTE_WIDTH,
+            localparam  int     M_TSTRB_WIDTH    = M_TDATA_WIDTH / BYTE_WIDTH,
+            localparam  int     M_TKEEP_WIDTH    = M_TDATA_WIDTH / BYTE_WIDTH,
+            localparam  int     M_TUSER_WIDTH    = S_TUSER_WIDTH * M_TDATA_WIDTH / S_TDATA_WIDTH,
+
+            localparam  int     S_TDATA_BITS     = S_TDATA_WIDTH > 0 ? S_TDATA_WIDTH : 1,
+            localparam  int     S_TSTRB_BITS     = S_TSTRB_WIDTH > 0 ? S_TSTRB_WIDTH : 1,
+            localparam  int     S_TKEEP_BITS     = S_TKEEP_WIDTH > 0 ? S_TKEEP_WIDTH : 1,
+            localparam  int     S_TUSER_BITS     = S_TUSER_WIDTH > 0 ? S_TUSER_WIDTH : 1,
+            localparam  int     M_TDATA_BITS     = M_TDATA_WIDTH > 0 ? M_TDATA_WIDTH : 1,
+            localparam  int     M_TSTRB_BITS     = M_TSTRB_WIDTH > 0 ? M_TSTRB_WIDTH : 1,
+            localparam  int     M_TKEEP_BITS     = M_TKEEP_WIDTH > 0 ? M_TKEEP_WIDTH : 1,
+            localparam  int     M_TUSER_BITS     = M_TUSER_WIDTH > 0 ? M_TUSER_WIDTH : 1
         )
         (
             input   wire                        endian,
@@ -135,8 +118,10 @@ module jelly2_axi4s_fifo_width_convert
         
         // pack
         wire    [S_PACK_BITS-1:0]       s_pack;
-        wire    [ALIGN_S_BITS-1:0]      s_align_s_pack = HAS_ALIGN_S ? s_align_s : 1'b0;
-        wire    [ALIGN_M_BITS-1:0]      s_align_m_pack = HAS_ALIGN_M ? s_align_m : 1'b0;
+        wire    [ALIGN_S_BITS-1:0]      s_align_s_pack = HAS_ALIGN_S ? ALIGN_S_BITS'(s_align_s) : 0;
+        wire    [ALIGN_M_BITS-1:0]      s_align_m_pack = HAS_ALIGN_M ? ALIGN_M_BITS'(s_align_m) : 0;
+
+        // verilator lint_off PINMISSING
         jelly_func_pack
                 #(
                     .W0                 (HAS_ALIGN_S ? ALIGN_S_WIDTH : 0),
@@ -150,9 +135,11 @@ module jelly2_axi4s_fifo_width_convert
                     .in2                (s_axi4s_tuser),
                     .out                (s_pack)
                 );
+        // verilator lint_on PINMISSING
         
         // unpack
         wire    [S_PACK_BITS-1:0]       fifo_pack;
+        // verilator lint_off PINMISSING
         jelly_func_unpack
                 #(
                     .W0                 (HAS_ALIGN_S ? ALIGN_S_WIDTH : 0),
@@ -166,6 +153,7 @@ module jelly2_axi4s_fifo_width_convert
                     .out1               (fifo_align_m),
                     .out2               (fifo_tuser)
                 );
+        // verilator lint_on PINMISSING
         
         // fifo
         jelly_axi4s_fifo
@@ -393,7 +381,7 @@ module jelly2_axi4s_fifo_width_convert
     
     // for simulation
     integer count_s;
-    always @(posedge s_aclk) begin
+    always_ff @(posedge s_aclk) begin
         if ( ~s_aresetn ) begin
             count_s <= 0;
         end
@@ -405,7 +393,7 @@ module jelly2_axi4s_fifo_width_convert
     end
     
     integer count_m;
-    always @(posedge m_aclk) begin
+    always_ff @(posedge m_aclk) begin
         if ( ~m_aresetn ) begin
             count_m <= 0;
         end

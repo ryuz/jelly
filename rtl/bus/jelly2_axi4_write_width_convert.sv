@@ -323,7 +323,7 @@ module jelly2_axi4_write_width_convert
     wire                            gate_wvalid;
     wire                            gate_wready;
     
-    jelly_stream_gate
+    jelly2_stream_gate
             #(
                 .BYPASS             (BYPASS_GATE && !HAS_S_WLAST),
                 .DETECTOR_ENABLE    (0),

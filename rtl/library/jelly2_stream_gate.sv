@@ -235,7 +235,7 @@ module jelly2_stream_gate
         
         // auto first
         reg     [N-1:0]     reg_auto_first;
-        always @(posedge clk) begin
+        always_ff @(posedge clk) begin
             if ( reset ) begin
                 reg_auto_first <= {N{1'b1}};
             end
@@ -257,7 +257,7 @@ module jelly2_stream_gate
         reg                     reg_busy;
         reg     [LEN_WIDTH-1:0] reg_len;
         reg                     reg_end;
-        always @(posedge clk) begin
+        always_ff @(posedge clk) begin
             if ( reset ) begin
                 reg_busy <= 1'b0;
                 reg_len  <= {LEN_WIDTH{1'bx}};
@@ -291,7 +291,7 @@ module jelly2_stream_gate
         wire    sig_start_underflow = DETECTOR_ENABLE && sig_start && |(param_detect_first2 & ~fifo_s_permit_first & sig_s_first); // 期待するより先のfirstが来ている(データ不足)
         
         reg                     reg_underflow;
-        always @(posedge clk) begin
+        always_ff @(posedge clk) begin
             if ( reset ) begin
                 reg_underflow <= 1'b0;
             end
@@ -330,7 +330,7 @@ module jelly2_stream_gate
     
     // for simulation
     integer count_permit_len;
-    always @(posedge s_permit_clk) begin
+    always_ff @(posedge s_permit_clk) begin
         if ( s_permit_reset ) begin
             count_permit_len <= 0;
         end
@@ -343,7 +343,7 @@ module jelly2_stream_gate
     
     integer count_s;
     integer count_m;
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             count_s <= 0;
             count_m <= 0;

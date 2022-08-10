@@ -88,7 +88,7 @@ module jelly2_buffer_manager
     endfunction
     
     
-    always @(posedge s_wb_clk_i ) begin
+    always_ff @(posedge s_wb_clk_i ) begin
         if ( s_wb_rst_i ) begin
             reg_addr <= INIT_ADDR;
         end
@@ -105,7 +105,7 @@ module jelly2_buffer_manager
     end
     
     reg     [WB_DAT_WIDTH-1:0]  wb_dat_o;
-    always @* begin
+    always_comb begin
         wb_dat_o = {WB_DAT_WIDTH{1'b0}};
         
         case ( s_wb_adr_i )

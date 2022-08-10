@@ -93,7 +93,7 @@ module jelly2_capacity_size
         reg     [CMD_SIZE_WIDTH-1:0]    reg_rx_size;
         reg     [CAPACITY_WIDTH-1:0]    reg_rx_issue;
         reg                             reg_rx_valid;
-        always @(posedge clk) begin
+        always_ff @(posedge clk) begin
             if ( reset ) begin
                 reg_rx_user  <= {CMD_USER_BITS{1'bx}};
                 reg_rx_size  <= {CMD_SIZE_WIDTH{1'bx}};
@@ -133,7 +133,7 @@ module jelly2_capacity_size
     wire                            issue_enable;
     assign issue_enable = (current_capacity >= rx_issue);
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             reg_charge       <= initial_capacity;
             

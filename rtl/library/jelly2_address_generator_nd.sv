@@ -97,7 +97,7 @@ module jelly2_address_generator_nd
     logic   [USER_BITS-1:0]             reg_user,  next_user;
     logic                               reg_valid, next_valid;
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             reg_addr  <= 'x;
             reg_len   <= 'x;

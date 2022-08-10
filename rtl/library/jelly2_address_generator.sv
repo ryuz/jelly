@@ -85,7 +85,7 @@ module jelly2_address_generator
     
     wire                            st0_last = SIZE_WIDTH'({1'b0, st0_size}) + SIZE_WIDTH'(SIZE_OFFSET) <= SIZE_WIDTH'({1'b0, st0_max_len}) + SIZE_WIDTH'(LEN_OFFSET);
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             st0_addr_base <= {ADDR_WIDTH{1'bx}};
             st0_max_len   <= {LEN_WIDTH{1'bx}};
@@ -121,7 +121,7 @@ module jelly2_address_generator
     reg                             st1_valid;
     wire                            st1_ready;
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             st1_addr   <= {ADDR_WIDTH{1'bx}};
             st1_len    <= {LEN_WIDTH{1'bx}};

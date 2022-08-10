@@ -130,7 +130,7 @@ module jelly2_address_align_split
         reg     [LEN_WIDTH-1:0]     reg_len_base;
         reg                         reg_valid;
         
-        always @(posedge clk) begin
+        always_ff @(posedge clk) begin
             if ( reset ) begin
                 reg_split    <= 1'b0;
                 reg_first    <= 1'bx;

@@ -325,27 +325,27 @@ module jelly_stream_gate
     
     // for simulation
     integer count_permit_len;
-    always @(posedge s_permit_clk) begin
+    always_ff @(posedge s_permit_clk) begin
         if ( s_permit_reset ) begin
             count_permit_len <= 0;
         end
         else begin
             if ( s_permit_valid & s_permit_ready ) begin
-                count_permit_len <= count_permit_len + s_permit_len + LEN_OFFSET;
+                count_permit_len <= count_permit_len + s_permit_len + int'(LEN_OFFSET);
             end
         end
     end
     
     integer count_s;
     integer count_m;
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             count_s <= 0;
             count_m <= 0;
         end
         else if ( cke ) begin
-            count_s <= count_s + (s_valid & s_ready);
-            count_m <= count_m + (m_valid & m_ready);
+            count_s <= count_s + integer'(s_valid && s_ready);
+            count_m <= count_m + integer'(m_valid && m_ready);
         end
     end
     

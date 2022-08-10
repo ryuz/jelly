@@ -318,7 +318,7 @@ module jelly2_axi4_read_width_convert
     wire                            gate_rvalid;
     wire                            gate_rready;
     
-    jelly_stream_gate
+    jelly2_stream_gate
             #(
                 .BYPASS             (!(ALLOW_UNALIGNED && !HAS_M_RLAST)),   // 基本アライメントしなければバイパスする
                 .BYPASS_COMBINE     (ALLOW_UNALIGNED),                      // 下位からフラグが来る場合もalignはつける
@@ -462,7 +462,7 @@ module jelly2_axi4_read_width_convert
     
     
     // gate (アライン補正の余分をカット。上位側で整形する場合はBYPASS_GATEで強制バイパス可)
-    jelly_stream_gate
+    jelly2_stream_gate
             #(
                 .BYPASS             (!ALLOW_UNALIGNED || BYPASS_GATE),
                 .DETECTOR_ENABLE    (!BYPASS_GATE),

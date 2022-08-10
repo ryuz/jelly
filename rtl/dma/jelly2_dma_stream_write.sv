@@ -379,7 +379,7 @@ module jelly2_dma_stream_write
     end
     endfunction
     
-    always @(posedge s_wb_clk_i ) begin
+    always_ff @(posedge s_wb_clk_i ) begin
         if ( s_wb_rst_i ) begin
             reg_ctl_control      <= INIT_CTL_CONTROL;
             reg_ctl_status       <= 0;
@@ -652,7 +652,7 @@ module jelly2_dma_stream_write
     
     
     (* ASYNC_REG = "true" *)    reg         reg_wskip_ff0, reg_wskip_ff1;
-    always @(posedge s_wclk ) begin
+    always_ff @(posedge s_wclk ) begin
         if ( ~s_wresetn ) begin
             reg_wskip_ff0 <= 1'b0;
             reg_wskip_ff1 <= 1'b0;

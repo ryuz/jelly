@@ -96,7 +96,7 @@ module jelly2_address_width_convert
     reg     [USER_BITS-1:0]     reg_user;
     reg                         reg_valid;
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             reg_addr  <= {ADDR_WIDTH{1'bx}};
             reg_align <= {ALIGN_WIDTH{1'bx}};

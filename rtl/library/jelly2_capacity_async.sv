@@ -155,7 +155,7 @@ module jelly2_capacity_async
     
     // debug (for simulation)
     integer total_request;
-    always @(posedge s_clk) begin
+    always_ff @(posedge s_clk) begin
         if ( s_reset ) begin
             total_request <= 0;
         end
@@ -167,7 +167,7 @@ module jelly2_capacity_async
     end
     
     integer total_issue;
-    always @(posedge m_clk) begin
+    always_ff @(posedge m_clk) begin
         if ( m_reset ) begin
             total_issue <= 0;
         end
