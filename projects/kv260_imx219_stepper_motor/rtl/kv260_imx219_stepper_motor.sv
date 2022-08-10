@@ -477,10 +477,10 @@ module kv260_imx219_stepper_motor
                 .motor_phase        (motor_phase)
             );
 
-    (* IOB="true" *)    reg     motor_ap = 1'b0;
-    (* IOB="true" *)    reg     motor_an = 1'b0;
-    (* IOB="true" *)    reg     motor_bp = 1'b0;
-    (* IOB="true" *)    reg     motor_bn = 1'b0;
+    logic   motor_ap = 1'b0;
+    logic   motor_an = 1'b0;
+    logic   motor_bp = 1'b0;
+    logic   motor_bn = 1'b0;
     always_ff @(posedge wb_rpu_clk_i) begin
         if ( wb_rpu_rst_i ) begin
             motor_ap <= 1'b0;
