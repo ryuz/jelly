@@ -694,16 +694,16 @@ module kv260_imx219_stepper_motor
         else begin
             if ( wb_gid_stb_i && wb_peri_we_i ) begin
                 case ( wb_peri_adr_i[3:0] )
-                1: reg_sw_reset   <= wb_peri_dat_i;
-                2: reg_cam_enable <= wb_peri_dat_i;
+                1: reg_sw_reset   <= 1'(wb_peri_dat_i);
+                2: reg_cam_enable <= 1'(wb_peri_dat_i);
                 endcase
             end
         end
     end
     
-    assign wb_gid_dat_o = wb_peri_adr_i[3:0] == 0 ? 32'h01234567   :
-                          wb_peri_adr_i[3:0] == 1 ? reg_sw_reset   :
-                          wb_peri_adr_i[3:0] == 2 ? reg_cam_enable : 0;
+    assign wb_gid_dat_o = wb_peri_adr_i[3:0] == 4'h0 ? WB_DAT_WIDTH'(32'h01234567  ) :
+                          wb_peri_adr_i[3:0] == 4'h1 ? WB_DAT_WIDTH'(reg_sw_reset  ) :
+                          wb_peri_adr_i[3:0] == 4'h2 ? WB_DAT_WIDTH'(reg_cam_enable) : '0;
     assign wb_gid_ack_o = wb_gid_stb_i;
 
     assign cam_enable = reg_cam_enable;
@@ -928,15 +928,15 @@ module kv260_imx219_stepper_motor
     wire                        wb_fmtr_stb_i;
     wire                        wb_fmtr_ack_o;
     
-    jelly_video_format_regularizer
+    jelly2_video_format_regularizer
             #(
                 .WB_ADR_WIDTH       (8),
                 .WB_DAT_WIDTH       (WB_DAT_WIDTH),
                 
                 .TUSER_WIDTH        (1),
                 .TDATA_WIDTH        (10),
-                .X_WIDTH            (16),
-                .Y_WIDTH            (16),
+                .X_WIDTH            (X_WIDTH),
+                .Y_WIDTH            (Y_WIDTH),
                 .TIMER_WIDTH        (32),
                 .S_SLAVE_REGS       (1),
                 .S_MASTER_REGS      (1),

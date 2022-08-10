@@ -126,7 +126,7 @@ module mipi_dphy_cam
     assign cl_rxulpsclknot   = 0;
     assign cl_ulpsactivenot  = 0;
     
-    assign dl0_rxdatahs      = reg_data0;
+    assign dl0_rxdatahs      = reg_data0[7:0];
     assign dl0_rxvalidhs     = 1;
     assign dl0_rxactivehs    = 1;
     assign dl0_rxsynchs      = (reg_data0 == 0);
@@ -147,7 +147,7 @@ module mipi_dphy_cam
     assign dl0_errsyncesc    = 0;
     assign dl0_errcontrol    = 0;
     
-    assign dl1_rxdatahs      = reg_data1;
+    assign dl1_rxdatahs      = reg_data1[7:0];
     assign dl1_rxvalidhs     = 1;
     assign dl1_rxactivehs    = 1;
     assign dl1_rxsynchs      = (reg_data1 == 0);

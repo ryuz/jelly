@@ -122,7 +122,7 @@ module jelly2_fifo_async
     reg     [PTR_WIDTH:0]   next_wr_wptr;
     reg                     next_wr_full;
     reg     [PTR_WIDTH:0]   next_wr_free_count;
-    always @* begin
+    always_comb begin
         next_wr_wptr       = wr_wptr;
         next_wr_full       = wr_full;
         next_wr_free_count = wr_free_count;
@@ -135,7 +135,7 @@ module jelly2_fifo_async
         next_wr_free_count = ((wr_rptr - next_wr_wptr) + (1 << PTR_WIDTH));
     end
     
-    always @ ( posedge wr_clk ) begin
+    always_ff @ ( posedge wr_clk ) begin
         if ( wr_reset ) begin
             wr_wptr                <= 0;
             wr_wptr_gray__async_tx <= 0;
@@ -192,7 +192,7 @@ module jelly2_fifo_async
     reg     [PTR_WIDTH:0]   next_rd_rptr;
     reg                     next_rd_empty;
     reg     [PTR_WIDTH:0]   next_rd_data_count;
-    always @* begin
+    always_comb begin
         next_rd_rptr       = rd_rptr;
         next_rd_empty      = rd_empty;
         next_rd_data_count = rd_data_count;
@@ -205,7 +205,7 @@ module jelly2_fifo_async
         next_rd_data_count = (rd_wptr - next_rd_rptr);
     end
     
-    always @ ( posedge rd_clk ) begin
+    always_ff @ ( posedge rd_clk ) begin
         if ( rd_reset ) begin
             rd_rptr                <= 0;
             rd_rptr_gray__async_tx <= 0;

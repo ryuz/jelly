@@ -505,8 +505,8 @@ module image_processing
 
     jelly2_img_line_moment
             #(
-                .M0_WIDTH               (12),
-                .M1_WIDTH               (20)
+                .M0_WIDTH               (M0_WIDTH),
+                .M1_WIDTH               (M1_WIDTH)
             )
         i_img_line_moment
             (
@@ -633,7 +633,7 @@ module image_processing
                 .s_img_pixel_first      (img_sel_in_col_first),
                 .s_img_pixel_last       (img_sel_in_col_last),
                 .s_img_de               (img_sel_in_de),
-                .s_img_user             (1'b0),
+                .s_img_user             ('0),
                 .s_img_data             (img_sel_in_data),
                 .s_img_valid            (img_sel_in_valid),
 
@@ -668,7 +668,7 @@ module image_processing
                              wb_gauss_stb_i  ? wb_gauss_dat_o  :
                              wb_bin_stb_i    ? wb_bin_dat_o    :
                              wb_select_stb_i ? wb_select_dat_o :
-                             32'h0000_0000;
+                             '0;
     
     assign s_wb_ack_o      = wb_demos_stb_i  ? wb_demos_ack_o  :
                              wb_colmat_stb_i ? wb_colmat_ack_o :

@@ -14,7 +14,7 @@ module tb_main
             parameter   X_NUM = 640,   // 3280 / 2,
             parameter   Y_NUM = 132,   // 2464 / 2
 
-            parameter   WB_ADR_WIDTH = 30,
+            parameter   WB_ADR_WIDTH = 37,
             parameter   WB_DAT_WIDTH = 64,
             parameter   WB_SEL_WIDTH = (WB_DAT_WIDTH / 8)
         )
@@ -191,7 +191,7 @@ module tb_main
                 
                 .s_axi4s_tuser      (axi4s_img_tuser),
                 .s_axi4s_tlast      (axi4s_img_tlast),
-                .s_axi4s_tdata      (axi4s_img_tdata),
+                .s_axi4s_tdata      (axi4s_img_tdata[23:0]),
                 .s_axi4s_tvalid     (axi4s_img_tvalid & axi4s_img_tready),
                 .s_axi4s_tready     ()
             );

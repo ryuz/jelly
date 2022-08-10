@@ -33,7 +33,7 @@ module jelly2_signal_transfer_sync
     reg     [CAPACITY_WIDTH-1:0]    reg_capacity;
     wire    [CAPACITY_WIDTH-1:0]    next_capacity = reg_capacity + s_valid - (m_valid & m_ready);
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             reg_valid    <= 1'b0;
             reg_capacity <= {CAPACITY_WIDTH{1'b0}};
