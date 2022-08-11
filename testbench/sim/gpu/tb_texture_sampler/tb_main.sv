@@ -9,8 +9,9 @@ module tb_main(
         );
 
     // setting
-    localparam          FILE_NAME        = "../../../../data/Penguins_640x480.ppm";
+//  localparam          FILE_NAME        = "../../../../data/Penguins_640x480.ppm";
 //  localparam          FILE_NAME        = "../../../../data/Chrysanthemum_640x480.ppm";
+    localparam          FILE_NAME        = "../../../../../data/images/windowswallpaper/Penguins_640x480.ppm";
     localparam  int     COMPONENTS       = 3;
     localparam  int     DATA_SIZE        = 0;
     localparam  int     DATA_WIDTH       = (8 << DATA_SIZE);
@@ -667,7 +668,7 @@ module tb_main(
             );
     
     
-    jelly_axi4_slave_model
+    jelly2_axi4_slave_model
             #(
                 .AXI_ID_WIDTH                   (AXI4_ID_WIDTH),
                 .AXI_ADDR_WIDTH                 (AXI4_ADDR_WIDTH),
@@ -698,6 +699,7 @@ module tb_main(
             (
                 .aresetn                        (~reset),
                 .aclk                           (clk),
+                .aclken                         (1'b1),
                 
                 .s_axi4_awid                    (axi4_awid),
                 .s_axi4_awaddr                  (axi4_awaddr),

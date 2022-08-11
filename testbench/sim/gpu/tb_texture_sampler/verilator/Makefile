@@ -40,14 +40,19 @@ clean:
 
 .PHONY : distclean
 distclean: clean
-	rm -f img_*.png angle_*.png
-	rm -f *.fst *.vcd
+	rm -f axi4_*.txt
+	rm -f *_log.txt
+	rm -f *.ppm *pgm
+	rm -f *.vcd *.fst *.fst.hier
 	rm -f coverage.dat
 	rm -fr annotated
 
+.PHONY : setup_dataset
+setup_dataset:
+	make -C ../../../../../data/images/windowswallpaper Penguins_640x480.ppm
 
 .PHONY : run
-run:
+run: setup_dataset
 	build/tb_verilator
 
 .PHONY : coverage
