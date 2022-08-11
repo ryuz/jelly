@@ -4,9 +4,9 @@
 
 -D__VERILATOR__
 
--Wno-WIDTH
--Wno-UNSIGNED
--Wno-PINMISSING
+#-Wno-WIDTH
+#-Wno-UNSIGNED
+#-Wno-PINMISSING
 -Wno-UNOPTFLAT
 #-Wno-UNOPTTHREADS
 #-Wno-LITENDIAN
@@ -18,7 +18,7 @@
 #-Wno-WIDTHCONCAT
 #-Wno-MULTITOP
 
--Wno-fatal
+#-Wno-fatal
 
 -y ../../stub
 -y ../../../rtl

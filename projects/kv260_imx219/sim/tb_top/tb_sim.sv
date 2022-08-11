@@ -13,15 +13,15 @@ module tb_sim();
     
     initial begin
         $dumpfile("tb_sim.vcd");
-        $dumpvars(0, tb_sim);
+        $dumpvars(1, tb_sim);
         
-    #1000000
+    #10000000
         $finish;
     end
     
     
     parameter   X_NUM = 640;   // 3280 / 2;
-    parameter   Y_NUM = 132;   // 2464 / 2;
+    parameter   Y_NUM = 480;   // 2464 / 2;
 
 
     // ---------------------------------
@@ -180,17 +180,15 @@ module tb_sim();
 
     localparam ADR_GID    = (32'h00000000 >> 3);
     localparam ADR_FMTR   = (32'h00100000 >> 3);
+    localparam ADR_DEMOS  = (32'h00120000 >> 3);
+    localparam ADR_COLMAT = (32'h00120200 >> 3);
     localparam ADR_VDMAW  = (32'h00210000 >> 3);
-    localparam ADR_DEMOS  = (32'h00400000 >> 3);
-    localparam ADR_COLMAT = (32'h00400800 >> 3);
-    localparam ADR_SELECT = (32'h00407800 >> 3);
 
 `include "jelly/JellyRegs.vh"
     
     initial begin
     #1000;
         $display("start");
-        wb_write(ADR_SELECT + `REG_IMG_SELECTOR_CTL_SELECT, 4, 8'hff);
 
         $display("set FMTR");
         wb_read (ADR_FMTR + `REG_VIDEO_FMTREG_CORE_ID);
@@ -200,20 +198,20 @@ module tb_sim();
 
         $display("set DEMOSIC");
         wb_read (ADR_DEMOS + `REG_IMG_DEMOSAIC_CORE_ID);
-        wb_write(ADR_DEMOS + `REG_IMG_DEMOSAIC_PARAM_PHASE,     3, 8'hff);
+        wb_write(ADR_DEMOS + `REG_IMG_DEMOSAIC_PARAM_PHASE,     0, 8'hff);
         wb_write(ADR_DEMOS + `REG_IMG_DEMOSAIC_CTL_CONTROL, 32'h3, 8'hff);
 
         $display("set write DMA");
         wb_read (ADR_VDMAW + `REG_VDMA_WRITE_CORE_ID);
         wb_write(ADR_VDMAW + `REG_VDMA_WRITE_PARAM_ADDR,              32'h0000000, 8'hff);
-        wb_write(ADR_VDMAW + `REG_VDMA_WRITE_PARAM_LINE_STEP,             X_NUM*3, 8'hff);
+        wb_write(ADR_VDMAW + `REG_VDMA_WRITE_PARAM_LINE_STEP,             X_NUM*4, 8'hff);
         wb_write(ADR_VDMAW + `REG_VDMA_WRITE_PARAM_H_SIZE,                X_NUM-1, 8'hff);
         wb_write(ADR_VDMAW + `REG_VDMA_WRITE_PARAM_V_SIZE,                Y_NUM-1, 8'hff);
-        wb_write(ADR_VDMAW + `REG_VDMA_WRITE_PARAM_FRAME_STEP,      Y_NUM*X_NUM*3, 8'hff);
+        wb_write(ADR_VDMAW + `REG_VDMA_WRITE_PARAM_FRAME_STEP,      Y_NUM*X_NUM*4, 8'hff);
         wb_write(ADR_VDMAW + `REG_VDMA_WRITE_PARAM_F_SIZE,                    1-1, 8'hff);
         wb_write(ADR_VDMAW + `REG_VDMA_WRITE_CTL_CONTROL,                       3, 8'hff);  // update & enable
 
-    #1000000;
+    #4000000;
         $finish();
     end
     

@@ -406,7 +406,8 @@ module jelly2_axi4_slave_model
     
     
     // memory
-    localparam  MEM_ADDR_MASK = ((1 << MEM_WIDTH) - 1);
+    localparam  MEM_ADDR_WIDTH = $clog2(MEM_SIZE);
+    localparam  MEM_ADDR_MASK  = ((1 << MEM_WIDTH) - 1);
     reg     [AXI_DATA_WIDTH-1:0]    mem     [MEM_SIZE-1:0];
         
     // write
@@ -476,10 +477,10 @@ module jelly2_axi4_slave_model
     always_ff @( posedge aclk ) begin
         if ( aclken ) begin
             if ( aresetn && axi4_wvalid && axi4_wready ) begin
-                if ( (sig_awaddr >> AXI_DATA_SIZE) < MEM_SIZE ) begin
+                if ( int'(sig_awaddr >> AXI_DATA_SIZE) < MEM_SIZE ) begin
                     for ( i = 0; i < AXI_STRB_WIDTH; i = i + 1 ) begin
                         if ( axi4_wstrb[i] ) begin
-                            mem[sig_awaddr >> AXI_DATA_SIZE][i*8 +: 8] <= axi4_wdata[i*8 +: 8];
+                            mem[MEM_ADDR_WIDTH'(sig_awaddr >> AXI_DATA_SIZE)][i*8 +: 8] <= axi4_wdata[i*8 +: 8];
                         end
                     end
                 end
@@ -559,8 +560,9 @@ module jelly2_axi4_slave_model
 //  assign axi4_rdata   = (axi4_rvalid && ((reg_araddr >> AXI_DATA_SIZE) < MEM_SIZE)) ? mem[reg_araddr >> AXI_DATA_SIZE] : {AXI_DATA_WIDTH{1'bx}};
 
 //  assign axi4_rdata   = mem[MEM_ADDR_MASK & (reg_araddr >> AXI_DATA_SIZE)];
-    assign axi4_rdata   = READ_DATA_ADDR                                              ? reg_araddr :
-                          (axi4_rvalid && ((reg_araddr >> AXI_DATA_SIZE) < MEM_SIZE)) ? mem[reg_araddr >> AXI_DATA_SIZE] : {AXI_DATA_WIDTH{1'bx}};
+    assign axi4_rdata   = READ_DATA_ADDR                                                  ? AXI_DATA_WIDTH'(reg_araddr)                       :
+                          (axi4_rvalid && (int'(reg_araddr >> AXI_DATA_SIZE) < MEM_SIZE)) ? mem[MEM_ADDR_WIDTH'(reg_araddr >> AXI_DATA_SIZE)] :
+                          {AXI_DATA_WIDTH{1'bx}};
     
     assign axi4_rlast   = axi4_rvalid ? reg_rlast : 1'bx;
     assign axi4_rvalid  = reg_rvalid;

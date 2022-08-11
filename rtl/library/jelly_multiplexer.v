@@ -29,6 +29,7 @@ module jelly_multiplexer
             output  wire    [OUT_WIDTH-1:0]     dout
         );
     
+    // verilator lint_off WIDTH
     generate
     if ( SEL_WIDTH > 0 ) begin
         reg     [OUT_WIDTH-1:0]     sig_dout;
@@ -52,6 +53,7 @@ module jelly_multiplexer
         assign dout = din;
     end
     endgenerate
+    // verilator lint_on WIDTH
     
 endmodule
 

@@ -156,6 +156,7 @@ module kv260_imx219
                 .s_axi4_mem_aclk        (axi4_mem_aclk),
                 
                 .s_axi4_mem0_awid       (axi4_mem0_awid),
+                .s_axi4_mem0_awuser     (),
                 .s_axi4_mem0_awaddr     (axi4_mem0_awaddr),
                 .s_axi4_mem0_awburst    (axi4_mem0_awburst),
                 .s_axi4_mem0_awcache    (axi4_mem0_awcache),
@@ -176,6 +177,7 @@ module kv260_imx219
                 .s_axi4_mem0_bresp      (axi4_mem0_bresp),
                 .s_axi4_mem0_bvalid     (axi4_mem0_bvalid),
                 .s_axi4_mem0_bready     (axi4_mem0_bready),
+                .s_axi4_mem0_aruser     (),
                 .s_axi4_mem0_araddr     (axi4_mem0_araddr),
                 .s_axi4_mem0_arburst    (axi4_mem0_arburst),
                 .s_axi4_mem0_arcache    (axi4_mem0_arcache),
@@ -446,19 +448,14 @@ module kv260_imx219
     //  CSI-2
     // ----------------------------------------
     
-                            wire            axi4s_cam_aresetn   /*verilator public_flat*/;
-                            wire            axi4s_cam_aclk      /*verilator public_flat*/;
-    (* mark_debug="true" *) wire    [0:0]   axi4s_csi2_tuser    /*verilator public_flat*/;
-    (* mark_debug="true" *) wire            axi4s_csi2_tlast    /*verilator public_flat*/;
-    (* mark_debug="true" *) wire    [9:0]   axi4s_csi2_tdata    /*verilator public_flat*/;
-    (* mark_debug="true" *) wire            axi4s_csi2_tvalid   /*verilator public_flat*/;
-    (* mark_debug="true" *) wire            axi4s_csi2_tready   /*verilator public_flat*/;
+    logic           axi4s_cam_aresetn   /*verilator public_flat*/;
+    logic           axi4s_cam_aclk      /*verilator public_flat*/;
+    logic   [0:0]   axi4s_csi2_tuser    /*verilator public_flat*/;
+    logic           axi4s_csi2_tlast    /*verilator public_flat*/;
+    logic   [9:0]   axi4s_csi2_tdata    /*verilator public_flat*/;
+    logic           axi4s_csi2_tvalid   /*verilator public_flat*/;
+    logic           axi4s_csi2_tready   /*verilator public_flat*/;
 
-    wire    [0:0]   axi4s2_csi2_tuser    /*verilator public_flat*/;
-    wire            axi4s2_csi2_tlast    /*verilator public_flat*/;
-    wire    [9:0]   axi4s2_csi2_tdata    /*verilator public_flat*/;
-    wire            axi4s2_csi2_tvalid   /*verilator public_flat*/;
-    wire            axi4s2_csi2_tready   /*verilator public_flat*/;
 
     assign axi4s_cam_aresetn = ~sys_reset;
     assign axi4s_cam_aclk    = sys_clk200;
@@ -471,7 +468,7 @@ module kv260_imx219
     wire            mipi_packet_lost;
     wire            mipi_fifo_overflow;
     
-    jelly_mipi_csi2_rx
+    jelly2_mipi_csi2_rx
             #(
                 .LANES              (2),
                 .DATA_WIDTH         (10),
@@ -656,8 +653,8 @@ module kv260_imx219
                 
                 .INDEX_WIDTH            (1),
                 .SIZE_OFFSET            (1'b1),
-                .H_SIZE_WIDTH           (12),
-                .V_SIZE_WIDTH           (12),
+                .H_SIZE_WIDTH           (14),
+                .V_SIZE_WIDTH           (14),
                 .F_SIZE_WIDTH           (8),
                 .LINE_STEP_WIDTH        (AXI4_MEM0_ADDR_WIDTH),
                 .FRAME_STEP_WIDTH       (AXI4_MEM0_ADDR_WIDTH),
@@ -665,12 +662,12 @@ module kv260_imx219
                 .INIT_CTL_CONTROL       (4'b0000),
                 .INIT_IRQ_ENABLE        (1'b0),
                 .INIT_PARAM_ADDR        (0),
-                .INIT_PARAM_AWLEN_MAX   (255),
-                .INIT_PARAM_H_SIZE      (X_NUM-1),
-                .INIT_PARAM_V_SIZE      (Y_NUM-1),
-                .INIT_PARAM_LINE_STEP   (8192),
-                .INIT_PARAM_F_SIZE      (0),
-                .INIT_PARAM_FRAME_STEP  (Y_NUM*8192),
+                .INIT_PARAM_AWLEN_MAX   (8'd255),
+                .INIT_PARAM_H_SIZE      (14'(X_NUM-1)),
+                .INIT_PARAM_V_SIZE      (14'(Y_NUM-1)),
+                .INIT_PARAM_LINE_STEP   (AXI4_MEM0_ADDR_WIDTH'(8192)),
+                .INIT_PARAM_F_SIZE      (8'd0),
+                .INIT_PARAM_FRAME_STEP  (AXI4_MEM0_ADDR_WIDTH'(Y_NUM*8192)),
                 .INIT_SKIP_EN           (1'b1),
                 .INIT_DETECT_FIRST      (3'b010),
                 .INIT_DETECT_LAST       (3'b001),

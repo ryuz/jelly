@@ -62,25 +62,23 @@ module video_raw_to_rgb
         );
     
     
-    localparam  USE_VALID = 0;
-    
     wire                                reset = ~aresetn;
     wire                                clk   = aclk;
     wire                                cke;
     
-    wire                                img_src_line_first;
-    wire                                img_src_line_last;
-    wire                                img_src_pixel_first;
-    wire                                img_src_pixel_last;
+    wire                                img_src_row_first;
+    wire                                img_src_row_last;
+    wire                                img_src_col_first;
+    wire                                img_src_col_last;
     wire                                img_src_de;
     wire    [TUSER_WIDTH-1:0]           img_src_user;
     wire    [S_TDATA_WIDTH-1:0]         img_src_data;
     wire                                img_src_valid;
     
-    wire                                img_sink_line_first;
-    wire                                img_sink_line_last;
-    wire                                img_sink_pixel_first;
-    wire                                img_sink_pixel_last;
+    wire                                img_sink_row_first;
+    wire                                img_sink_row_last;
+    wire                                img_sink_col_first;
+    wire                                img_sink_col_last;
     wire                                img_sink_de;
     wire    [TUSER_WIDTH-1:0]           img_sink_user;
     wire    [M_TDATA_WIDTH-1:0]         img_sink_data;
@@ -125,19 +123,19 @@ module video_raw_to_rgb
 
                 .img_cke                (cke),
                 
-                .m_img_src_row_first    (img_src_line_first),
-                .m_img_src_row_last     (img_src_line_last),
-                .m_img_src_col_first    (img_src_pixel_first),
-                .m_img_src_col_last     (img_src_pixel_last),
+                .m_img_src_row_first    (img_src_row_first),
+                .m_img_src_row_last     (img_src_row_last),
+                .m_img_src_col_first    (img_src_col_first),
+                .m_img_src_col_last     (img_src_col_last),
                 .m_img_src_de           (img_src_de),
                 .m_img_src_user         (img_src_user),
                 .m_img_src_data         (img_src_data),
                 .m_img_src_valid        (img_src_valid),
                 
-                .s_img_sink_row_first   (img_sink_line_first),
-                .s_img_sink_row_last    (img_sink_line_last),
-                .s_img_sink_col_first   (img_sink_pixel_first),
-                .s_img_sink_col_last    (img_sink_pixel_last),
+                .s_img_sink_row_first   (img_sink_row_first),
+                .s_img_sink_row_last    (img_sink_row_last),
+                .s_img_sink_col_first   (img_sink_col_first),
+                .s_img_sink_col_last    (img_sink_col_last),
                 .s_img_sink_user        (img_sink_user),
                 .s_img_sink_de          (img_sink_de),
                 .s_img_sink_data        (img_sink_data),
@@ -146,10 +144,10 @@ module video_raw_to_rgb
 
     
     // demosaic
-    wire                                img_demos_line_first;
-    wire                                img_demos_line_last;
-    wire                                img_demos_pixel_first;
-    wire                                img_demos_pixel_last;
+    wire                                img_demos_row_first;
+    wire                                img_demos_row_last;
+    wire                                img_demos_col_first;
+    wire                                img_demos_col_last;
     wire                                img_demos_de;
     wire    [TUSER_WIDTH-1:0]           img_demos_user;
     wire    [DATA_WIDTH-1:0]            img_demos_raw;
@@ -162,18 +160,17 @@ module video_raw_to_rgb
     wire                                wb_demos_stb_i;
     wire                                wb_demos_ack_o;
     
-    jelly_img_demosaic_acpi
+    jelly2_img_demosaic_acpi
             #(
                 .USER_WIDTH             (TUSER_WIDTH),
                 .DATA_WIDTH             (DATA_WIDTH),
-                .MAX_X_NUM              (4096),
+                .MAX_COLS               (4096),
                 .RAM_TYPE               ("block"),
-                .USE_VALID              (USE_VALID),
                 
                 .WB_ADR_WIDTH           (6),
                 .WB_DAT_WIDTH           (WB_DAT_WIDTH),
                 
-                .INIT_PARAM_PHASE       (2'b11)
+                .INIT_PARAM_PHASE       (2'b00)
             )
         i_img_demosaic_acpi
             (
@@ -193,19 +190,19 @@ module video_raw_to_rgb
                 .s_wb_stb_i             (wb_demos_stb_i),
                 .s_wb_ack_o             (wb_demos_ack_o),
                 
-                .s_img_line_first       (img_src_line_first),
-                .s_img_line_last        (img_src_line_last),
-                .s_img_pixel_first      (img_src_pixel_first),
-                .s_img_pixel_last       (img_src_pixel_last),
+                .s_img_row_first        (img_src_row_first),
+                .s_img_row_last         (img_src_row_last),
+                .s_img_col_first        (img_src_col_first),
+                .s_img_col_last         (img_src_col_last),
                 .s_img_de               (img_src_de),
                 .s_img_user             (img_src_user),
                 .s_img_raw              (img_src_data),
                 .s_img_valid            (img_src_valid),
                 
-                .m_img_line_first       (img_demos_line_first),
-                .m_img_line_last        (img_demos_line_last),
-                .m_img_pixel_first      (img_demos_pixel_first),
-                .m_img_pixel_last       (img_demos_pixel_last),
+                .m_img_row_first        (img_demos_row_first),
+                .m_img_row_last         (img_demos_row_last),
+                .m_img_col_first        (img_demos_col_first),
+                .m_img_col_last         (img_demos_col_last),
                 .m_img_de               (img_demos_de),
                 .m_img_user             (img_demos_user),
                 .m_img_raw              (img_demos_raw),
@@ -220,7 +217,7 @@ module video_raw_to_rgb
     wire                                wb_colmat_stb_i;
     wire                                wb_colmat_ack_o;
     
-    jelly_img_color_matrix
+    jelly2_img_color_matrix
             #(
                 .USER_WIDTH             (TUSER_WIDTH+10),
                 .DATA_WIDTH             (DATA_WIDTH),
@@ -233,21 +230,21 @@ module video_raw_to_rgb
                 .STATIC_COEFF           (1),
                 .DEVICE                 (DEVICE),
                 
-                .WB_ADR_WIDTH           (6),
+                .WB_ADR_WIDTH           (8),
                 .WB_DAT_WIDTH           (WB_DAT_WIDTH),
                 
-                .INIT_PARAM_MATRIX00    (2 << 16),
-                .INIT_PARAM_MATRIX01    (0),
-                .INIT_PARAM_MATRIX02    (0),
-                .INIT_PARAM_MATRIX03    (0),
-                .INIT_PARAM_MATRIX10    (0),
-                .INIT_PARAM_MATRIX11    (1 << 16),
-                .INIT_PARAM_MATRIX12    (0),
-                .INIT_PARAM_MATRIX13    (0),
-                .INIT_PARAM_MATRIX20    (0),
-                .INIT_PARAM_MATRIX21    (0),
-                .INIT_PARAM_MATRIX22    (2 << 16),
-                .INIT_PARAM_MATRIX23    (0),
+                .INIT_PARAM_MATRIX00    (25'h010000),
+                .INIT_PARAM_MATRIX01    (25'h000000),
+                .INIT_PARAM_MATRIX02    (25'h000000),
+                .INIT_PARAM_MATRIX03    (25'h000000),
+                .INIT_PARAM_MATRIX10    (25'h000000),
+                .INIT_PARAM_MATRIX11    (25'h010000),
+                .INIT_PARAM_MATRIX12    (25'h000000),
+                .INIT_PARAM_MATRIX13    (25'h000000),
+                .INIT_PARAM_MATRIX20    (25'h000000),
+                .INIT_PARAM_MATRIX21    (25'h000000),
+                .INIT_PARAM_MATRIX22    (25'h010000),
+                .INIT_PARAM_MATRIX23    (25'h000000),
                 .INIT_PARAM_CLIP_MIN0   ({DATA_WIDTH{1'b0}}),
                 .INIT_PARAM_CLIP_MAX0   ({DATA_WIDTH{1'b1}}),
                 .INIT_PARAM_CLIP_MIN1   ({DATA_WIDTH{1'b0}}),
@@ -265,7 +262,7 @@ module video_raw_to_rgb
                 
                 .s_wb_rst_i             (s_wb_rst_i),
                 .s_wb_clk_i             (s_wb_clk_i),
-                .s_wb_adr_i             (s_wb_adr_i[5:0]),
+                .s_wb_adr_i             (s_wb_adr_i[7:0]),
                 .s_wb_dat_i             (s_wb_dat_i),
                 .s_wb_dat_o             (wb_colmat_dat_o),
                 .s_wb_we_i              (s_wb_we_i),
@@ -273,10 +270,10 @@ module video_raw_to_rgb
                 .s_wb_stb_i             (wb_colmat_stb_i),
                 .s_wb_ack_o             (wb_colmat_ack_o),
                 
-                .s_img_line_first       (img_demos_line_first),
-                .s_img_line_last        (img_demos_line_last),
-                .s_img_pixel_first      (img_demos_pixel_first),
-                .s_img_pixel_last       (img_demos_pixel_last),
+                .s_img_row_first        (img_demos_row_first),
+                .s_img_row_last         (img_demos_row_last),
+                .s_img_col_first        (img_demos_col_first),
+                .s_img_col_last         (img_demos_col_last),
                 .s_img_de               (img_demos_de),
                 .s_img_user             ({img_demos_user, img_demos_raw}),
                 .s_img_color0           (img_demos_r),
@@ -284,10 +281,10 @@ module video_raw_to_rgb
                 .s_img_color2           (img_demos_b),
                 .s_img_valid            (img_demos_valid),
                 
-                .m_img_line_first       (img_sink_line_first),
-                .m_img_line_last        (img_sink_line_last),
-                .m_img_pixel_first      (img_sink_pixel_first),
-                .m_img_pixel_last       (img_sink_pixel_last),
+                .m_img_row_first        (img_sink_row_first),
+                .m_img_row_last         (img_sink_row_last),
+                .m_img_col_first        (img_sink_col_first),
+                .m_img_col_last         (img_sink_col_last),
                 .m_img_de               (img_sink_de),
                 .m_img_user             ({img_sink_user, img_sink_data[DATA_WIDTH*3 +: DATA_WIDTH]}),
                 .m_img_color0           (img_sink_data[DATA_WIDTH*2 +: DATA_WIDTH]),
@@ -301,7 +298,7 @@ module video_raw_to_rgb
     
     assign s_wb_dat_o      = wb_demos_stb_i  ? wb_demos_dat_o  :
                              wb_colmat_stb_i ? wb_colmat_dat_o :
-                             32'h0000_0000;
+                             '0;
     
     assign s_wb_ack_o      = wb_demos_stb_i  ? wb_demos_ack_o  :
                              wb_colmat_stb_i ? wb_colmat_ack_o :

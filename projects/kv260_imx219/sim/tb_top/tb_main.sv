@@ -70,7 +70,13 @@ module tb_main
                 .cam_clk_p      (),
                 .cam_clk_n      (),
                 .cam_data_p     (),
-                .cam_data_n     ()
+                .cam_data_n     (),
+                
+                .cam_enable     (),
+                .cam_scl        (),
+                .cam_sda        (),
+
+                .pmod           ()
             );
 
     
@@ -108,17 +114,11 @@ module tb_main
     assign axi4s_src_tready  = i_top.axi4s_csi2_tready;
 
     // force を verilator の為に毎回実行する
-`ifdef __VERILATOR__
-    always_comb begin
-`else
-    initial begin
-`endif
-        force i_top.axi4s_csi2_tuser  = axi4s_src_tuser;
-        force i_top.axi4s_csi2_tlast  = axi4s_src_tlast;
-        force i_top.axi4s_csi2_tdata  = axi4s_src_tdata;
-        force i_top.axi4s_csi2_tvalid = axi4s_src_tvalid;
-    end
-
+    always_comb force   i_top.axi4s_csi2_tuser  = axi4s_src_tuser;
+    always_comb force   i_top.axi4s_csi2_tlast  = axi4s_src_tlast;
+    always_comb force   i_top.axi4s_csi2_tdata  = axi4s_src_tdata;
+    always_comb force   i_top.axi4s_csi2_tvalid = axi4s_src_tvalid;
+    
     jelly2_axi4s_master_model
             #(
                 .COMPONENTS         (1),

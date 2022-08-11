@@ -52,7 +52,7 @@ module jelly_mul_add3
     localparam  MY_WIDTH = B_WIDTH + Y_WIDTH;
     localparam  MZ_WIDTH = C_WIDTH + Z_WIDTH;
     
-    
+    // verilator lint_off WIDTH
     generate
     if ( DEVICE == "VIRTEX6" || DEVICE == "SPARTAN6" || DEVICE == "7SERIES" ) begin : blk_dsp48e1
         
@@ -314,7 +314,7 @@ module jelly_mul_add3
         assign p = st4_p;
     end
     endgenerate
-    
+    // verilator lint_on WIDTH
     
 endmodule
 
