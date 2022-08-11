@@ -115,6 +115,7 @@ int main(int argc, char** argv)
     wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX23, 0x00000000, 0xf);
     wb->Write(reg_colmat + REG_IMG_COLMAT_CTL_CONTROL, 3, 0xf);
 
+    wb->Wait(10000);
     wb->Display("set write DMA");
     wb->Read (reg_wdma + REG_VDMA_WRITE_CORE_ID);                               // CORE ID
     wb->Write(reg_wdma + REG_VDMA_WRITE_PARAM_ADDR,          0x30000000, 0xf);  // address
@@ -123,14 +124,14 @@ int main(int argc, char** argv)
     wb->Write(reg_wdma + REG_VDMA_WRITE_PARAM_V_SIZE,           Y_NUM-1, 0xf);  // height
     wb->Write(reg_wdma + REG_VDMA_WRITE_PARAM_F_SIZE,               1-1, 0xf);
     wb->Write(reg_wdma + REG_VDMA_WRITE_PARAM_FRAME_STEP, X_NUM*Y_NUM*4, 0xff);
-    wb->Write(reg_wdma + REG_VDMA_WRITE_CTL_CONTROL,                  3, 0xf);  // update & enable
-    wb->Wait(1000);
-    wb->Read (reg_wdma + REG_VDMA_WRITE_CTL_STATUS);  // read status
-    wb->Read (reg_wdma + REG_VDMA_WRITE_CTL_STATUS);  // read status
-    wb->Read (reg_wdma + REG_VDMA_WRITE_CTL_STATUS);  // read status
-    wb->Read (reg_wdma + REG_VDMA_WRITE_CTL_STATUS);  // read status
+//  wb->Write(reg_wdma + REG_VDMA_WRITE_CTL_CONTROL,                  3, 0xf);  // update & enable
+    wb->Write(reg_wdma + REG_VDMA_WRITE_CTL_CONTROL,                  7, 0xf);  // update & enable & oneshot
+    for ( int i = 0; i < 20; ++i ) {
+        wb->Read (reg_wdma + REG_VDMA_WRITE_CTL_STATUS);  // read status
+        wb->Wait(100000);
+    }
     
-    mng->Run(4000000);
+    mng->Run(10000000);
 //    mng->Run();
 
 #if VM_TRACE

@@ -16,18 +16,22 @@ export DEVICE_PART  =
 TOP_DIR = ../../../..
 PRJ_DIR = ../..
 
+# include
+JELLY_TOP_DIR = $(TOP_DIR)
+-include $(JELLY_TOP_DIR)/include/make/def_sources.inc
 
 # HLS IP
 HLS_IP =
 export HLS_IP
 
 # sources
-SOURCES  = $(PRJ_DIR)/rtl/kv260_imx219.v
-SOURCES += $(PRJ_DIR)/rtl/video_raw_to_rgb.v
+SOURCES  = $(PRJ_DIR)/rtl/kv260_imx219.sv
+SOURCES += $(PRJ_DIR)/rtl/video_raw_to_rgb.sv
+SOURCES += $(JELLY_RTL_SOURCES)
 export SOURCES
 
 # IP cores
-IP_CORES  =
+IP_CORES = ../../ip/vivado$(VIVADO_VERSION)/mipi_dphy_cam/mipi_dphy_cam.xci
 export IP_CORES
 
 # block design
@@ -42,16 +46,19 @@ export CONSTRAINS
 
 # rules
 .PHONY : all
-all: clean create build
+all: build
+
+.PHONY : rebuild
+rebuild: clean create build
 
 .PHONY : create
 create: $(PRJ_NAME).xpr
 
-$(PRJ_NAME).xpr:
+$(PRJ_NAME).xpr: $(SOURCES)
 	vivado -m64 -mode batch -source $(TOP_DIR)/scripts/vivado_create_project.tcl
 
 .PHONY : build
-build:
+build: $(PRJ_NAME).xpr
 	vivado -m64 -mode batch -source $(TOP_DIR)/scripts/vivado_implementation.tcl
 
 .PHONY : clean
