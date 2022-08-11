@@ -203,6 +203,7 @@ module jelly2_axi4_write_nd
             (
                 .s_reset            (~s_awresetn),
                 .s_clk              (s_awclk),
+                .s_cke              (1'b1),
                 .s_data0            (s_awaddr),
                 .s_data1            (s_awlen_max),
                 .s_data2            (s_awstep),
@@ -212,6 +213,7 @@ module jelly2_axi4_write_nd
                 
                 .m_reset            (~m_aresetn),
                 .m_clk              (m_aclk),
+                .m_cke              (1'b1),
                 .m_data0            (awfifo_awaddr),
                 .m_data1            (awfifo_awlen_max),
                 .m_data2            (awfifo_awstep),

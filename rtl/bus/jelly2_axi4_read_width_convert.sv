@@ -174,6 +174,7 @@ module jelly2_axi4_read_width_convert
             (
                 .s_reset            (~s_arresetn),
                 .s_clk              (s_arclk),
+                .s_cke              (1'b1),
                 .s_data0            (s_araddr),
                 .s_data1            (s_arlen),
                 .s_data2            (s_aruser),
@@ -182,6 +183,7 @@ module jelly2_axi4_read_width_convert
                 
                 .m_reset            (~m_arresetn),
                 .m_clk              (m_arclk),
+                .m_cke              (1'b1),
                 .m_data0            (arfifo_araddr),
                 .m_data1            (arfifo_arlen),
                 .m_data2            (arfifo_aruser),

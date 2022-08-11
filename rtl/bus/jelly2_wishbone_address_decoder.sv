@@ -18,7 +18,9 @@ module jelly2_wishbone_address_decoder
             parameter   int     WB_DAT_WIDTH  = 32,
             parameter   int     WB_SEL_WIDTH  = (WB_DAT_WIDTH / 8),
             parameter   int     RANGE_SHIFT   = 0,
-            parameter   int     RANGE_WIDTH   = WB_ADR_WIDTH + RANGE_SHIFT
+            parameter   int     RANGE_WIDTH   = WB_ADR_WIDTH + RANGE_SHIFT,
+            parameter   bit     SREG          = 1'b0,
+            parameter   bit     MREG          = 1'b0
         )
         (
             input   wire                                    reset,
@@ -59,7 +61,7 @@ module jelly2_wishbone_address_decoder
                 .WB_DAT_WIDTH   (WB_DAT_WIDTH),
                 .WB_SEL_WIDTH   (WB_SEL_WIDTH),
                 .SREG           (SREG),
-                .MREG           (1'b0),
+                .MREG           (1'b0)
             )
         i_wishbone_ff_s
             (
@@ -102,7 +104,7 @@ module jelly2_wishbone_address_decoder
                     .WB_DAT_WIDTH   (WB_DAT_WIDTH),
                     .WB_SEL_WIDTH   (WB_SEL_WIDTH),
                     .SREG           (1'b0),
-                    .MREG           (MREG),
+                    .MREG           (MREG)
                 )
             i_wishbone_ff_m
                 (

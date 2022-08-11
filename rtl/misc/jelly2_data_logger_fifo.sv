@@ -12,19 +12,19 @@
 
 module jelly2_data_logger_fifo
         #(
-            parameter   CORE_ID          = 32'h527a_f002,
-            parameter   CORE_VERSION     = 32'h0001_0000,
-            parameter   NUM              = 4,
-            parameter   DATA_WIDTH       = 32,
-            parameter   TIMER_WIDTH      = 64,
-            parameter   FIFO_ASYNC       = 1,
-            parameter   FIFO_PTR_WIDTH   = 10,
-            parameter   FIFO_RAM_TYPE    = "block",
-            parameter   WB_ADR_WIDTH     = 8,
-            parameter   WB_DAT_WIDTH     = 32,
-            parameter   WB_SEL_WIDTH     = (WB_DAT_WIDTH / 8),
-            parameter   INIT_CTL_CONTROL = 2'b00,
-            parameter   INIT_LIMIT_SIZE  = 0
+            parameter                               CORE_ID          = 32'h527a_f002,
+            parameter                               CORE_VERSION     = 32'h0001_0000,
+            parameter   int                         NUM              = 4,
+            parameter   int                         DATA_WIDTH       = 32,
+            parameter   int                         TIMER_WIDTH      = 64,
+            parameter   bit                         FIFO_ASYNC       = 1,
+            parameter   int                         FIFO_PTR_WIDTH   = 10,
+            parameter                               FIFO_RAM_TYPE    = "block",
+            parameter   int                         WB_ADR_WIDTH     = 8,
+            parameter   int                         WB_DAT_WIDTH     = 32,
+            parameter   int                         WB_SEL_WIDTH     = (WB_DAT_WIDTH / 8),
+            parameter   bit     [1:0]               INIT_CTL_CONTROL = 2'b00,
+            parameter   bit     [FIFO_PTR_WIDTH:0]  INIT_LIMIT_SIZE  = 0
         )
         (
             input   wire                                reset,
@@ -64,8 +64,8 @@ module jelly2_data_logger_fifo
     logic   [TIMER_WIDTH+NUM*DATA_WIDTH-1:0]    fifo_s_pack;
     logic   [TIMER_WIDTH+NUM*DATA_WIDTH-1:0]    fifo_m_pack;    
     
-    assign fifo_s_pack = {fifo_s_timer, s_data};
-    assign {fifo_m_timer, fifo_m_data} = {1'b0, fifo_m_pack};
+    assign fifo_s_pack = (TIMER_WIDTH+NUM*DATA_WIDTH)'({fifo_s_timer, s_data});
+    assign {fifo_m_timer, fifo_m_data} = (TIMER_BITS+NUM*DATA_WIDTH)'({1'b0, fifo_m_pack});
     
     jelly_fifo_generic_fwtf
             #(
@@ -121,16 +121,16 @@ module jelly2_data_logger_fifo
     // -------------------------------------
     
     // register address offset
-    localparam  int  ADR_CORE_ID        = 'h00;
-    localparam  int  ADR_CORE_VERSION   = 'h01;
-    localparam  int  ADR_CTL_CONTROL    = 'h04;
-    localparam  int  ADR_CTL_STATUS     = 'h05;
-    localparam  int  ADR_CTL_COUNT      = 'h07;
-    localparam  int  ADR_LIMIT_SIZE     = 'h08;
-    localparam  int  ADR_READ_DATA      = 'h10;
-    localparam  int  ADR_POL_TIMER0     = 'h18;
-    localparam  int  ADR_POL_TIMER1     = 'h19;
-    localparam  int  ADR_POL_DATA_BASE  = 'h20;
+    localparam  bit [WB_ADR_WIDTH-1:0]  ADR_CORE_ID        = WB_ADR_WIDTH'('h00);
+    localparam  bit [WB_ADR_WIDTH-1:0]  ADR_CORE_VERSION   = WB_ADR_WIDTH'('h01);
+    localparam  bit [WB_ADR_WIDTH-1:0]  ADR_CTL_CONTROL    = WB_ADR_WIDTH'('h04);
+    localparam  bit [WB_ADR_WIDTH-1:0]  ADR_CTL_STATUS     = WB_ADR_WIDTH'('h05);
+    localparam  bit [WB_ADR_WIDTH-1:0]  ADR_CTL_COUNT      = WB_ADR_WIDTH'('h07);
+    localparam  bit [WB_ADR_WIDTH-1:0]  ADR_LIMIT_SIZE     = WB_ADR_WIDTH'('h08);
+    localparam  bit [WB_ADR_WIDTH-1:0]  ADR_READ_DATA      = WB_ADR_WIDTH'('h10);
+    localparam  bit [WB_ADR_WIDTH-1:0]  ADR_POL_TIMER0     = WB_ADR_WIDTH'('h18);
+    localparam  bit [WB_ADR_WIDTH-1:0]  ADR_POL_TIMER1     = WB_ADR_WIDTH'('h19);
+    localparam  bit [WB_ADR_WIDTH-1:0]  ADR_POL_DATA_BASE  = WB_ADR_WIDTH'('h20);
     
     // registers
     reg                             reg_force_read;
@@ -141,9 +141,8 @@ module jelly2_data_logger_fifo
                                         input [WB_DAT_WIDTH-1:0] wdat,
                                         input [WB_SEL_WIDTH-1:0] msk
                                     );
-    integer i;
     begin
-        for ( i = 0; i < WB_DAT_WIDTH; i = i+1 ) begin
+        for ( int i = 0; i < WB_DAT_WIDTH; ++i ) begin
             reg_mask[i] = msk[i/8] ? wdat[i] : org[i];
         end
     end
@@ -161,7 +160,7 @@ module jelly2_data_logger_fifo
                     reg_force_read <= s_wb_dat_i[1];
                 end
                 if ( s_wb_adr_i == ADR_LIMIT_SIZE ) begin
-                    reg_limit_size <= reg_mask(reg_limit_size, s_wb_dat_i, s_wb_sel_i);
+                    reg_limit_size <= (FIFO_PTR_WIDTH+1)'(reg_mask(WB_DAT_WIDTH'(reg_limit_size), s_wb_dat_i, s_wb_sel_i));
                 end
             end
         end
@@ -178,13 +177,13 @@ module jelly2_data_logger_fifo
         ADR_CTL_STATUS:     s_wb_dat_o = WB_DAT_WIDTH'(fifo_m_valid);
         ADR_CTL_COUNT:      s_wb_dat_o = WB_DAT_WIDTH'(fifo_m_data_count);
         ADR_READ_DATA:      s_wb_dat_o = WB_DAT_WIDTH'(fifo_m_data);
-        ADR_POL_TIMER0:     s_wb_dat_o = WB_DAT_WIDTH'(fifo_m_timer >> (0*WB_DAT_WIDTH));
-        ADR_POL_TIMER1:     s_wb_dat_o = WB_DAT_WIDTH'(fifo_m_timer >> (1*WB_DAT_WIDTH));
+        ADR_POL_TIMER0:     s_wb_dat_o = WB_DAT_WIDTH'((WB_DAT_WIDTH*2)'(fifo_m_timer) >> (0*WB_DAT_WIDTH));
+        ADR_POL_TIMER1:     s_wb_dat_o = WB_DAT_WIDTH'((WB_DAT_WIDTH*2)'(fifo_m_timer) >> (1*WB_DAT_WIDTH));
         default: ;
         endcase
 
         for ( int i = 0; i < NUM; ++i ) begin
-            if ( int'(s_wb_adr_i) == ADR_POL_DATA_BASE+i ) begin
+            if ( s_wb_adr_i == ADR_POL_DATA_BASE+WB_ADR_WIDTH'(i) ) begin
                 s_wb_dat_o = WB_DAT_WIDTH'(fifo_m_data[i]);
             end
         end

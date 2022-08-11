@@ -326,7 +326,7 @@ module jelly2_dma_stream_read
     reg                             reg_arvalid;
     wire                            s_arready;
     
-    assign out_irq        = out_irq & reg_irq_enable;
+    assign out_irq        = |(reg_irq_status & reg_irq_enable);
     
     assign buffer_request = (sig_start && reg_ctl_control[3]);
     assign buffer_release = (sig_end || (!sig_start && !reg_ctl_status));

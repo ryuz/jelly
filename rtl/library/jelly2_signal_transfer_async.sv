@@ -63,7 +63,7 @@ module jelly2_signal_transfer_async
     
     wire    [PTR_WIDTH-1:0] next_s_ptr = reg_s_ptr + PTR_WIDTH'(s_valid);
     
-    always @(posedge s_clk) begin
+    always_ff @(posedge s_clk) begin
         if ( s_reset ) begin
             reg_s_ptr  <= {PTR_WIDTH{1'b0}};
             reg_s_gray <= {PTR_WIDTH{1'b0}};
@@ -81,7 +81,7 @@ module jelly2_signal_transfer_async
     
     assign m_gray = reg_m_gray;
     
-    always @(posedge m_clk) begin
+    always_ff @(posedge m_clk) begin
         if ( m_reset ) begin
             reg_m_gray_ff <= {PTR_WIDTH{1'b0}};
             reg_m_gray    <= {PTR_WIDTH{1'b0}};
@@ -100,7 +100,7 @@ module jelly2_signal_transfer_async
     reg     [CAPACITY_WIDTH-1:0]    reg_capacity;
     wire    [CAPACITY_WIDTH-1:0]    next_capacity = reg_capacity + CAPACITY_WIDTH'(ptr_diff) - CAPACITY_WIDTH'(m_valid && m_ready);
     
-    always @(posedge m_clk) begin
+    always_ff @(posedge m_clk) begin
         if ( m_reset ) begin
             reg_valid    <= 1'b0;
             reg_capacity <= {CAPACITY_WIDTH{1'b0}};

@@ -28,7 +28,7 @@ module jelly_mipi_ecc24
             input   wire    [5:0]               s_ecc,
             input   wire                        s_valid,
             
-            output  wire    [USER_WIDTH-1:0]    m_user,
+            output  wire    [USER_BITS-1:0]     m_user,
             output  wire    [23:0]              m_data,
             output  wire                        m_error,
             output  wire                        m_corrected,
@@ -37,57 +37,57 @@ module jelly_mipi_ecc24
     
     
     // ecc table
-    wire    [0:5]   ecc_tbl_0  = 6'h07;
-    wire    [0:5]   ecc_tbl_1  = 6'h0b;
-    wire    [0:5]   ecc_tbl_2  = 6'h0d;
-    wire    [0:5]   ecc_tbl_3  = 6'h0e;
-    wire    [0:5]   ecc_tbl_4  = 6'h13;
-    wire    [0:5]   ecc_tbl_5  = 6'h15;
-    wire    [0:5]   ecc_tbl_6  = 6'h16;
-    wire    [0:5]   ecc_tbl_7  = 6'h19;
-    wire    [0:5]   ecc_tbl_8  = 6'h1a;
-    wire    [0:5]   ecc_tbl_9  = 6'h1c;
-    wire    [0:5]   ecc_tbl_10 = 6'h23;
-    wire    [0:5]   ecc_tbl_11 = 6'h25;
-    wire    [0:5]   ecc_tbl_12 = 6'h26;
-    wire    [0:5]   ecc_tbl_13 = 6'h29;
-    wire    [0:5]   ecc_tbl_14 = 6'h2a;
-    wire    [0:5]   ecc_tbl_15 = 6'h2c;
-    wire    [0:5]   ecc_tbl_16 = 6'h31;
-    wire    [0:5]   ecc_tbl_17 = 6'h32;
-    wire    [0:5]   ecc_tbl_18 = 6'h34;
-    wire    [0:5]   ecc_tbl_19 = 6'h38;
-    wire    [0:5]   ecc_tbl_20 = 6'h1f;
-    wire    [0:5]   ecc_tbl_21 = 6'h2f;
-    wire    [0:5]   ecc_tbl_22 = 6'h37;
-    wire    [0:5]   ecc_tbl_23 = 6'h3b;
+    wire    [5:0]   ecc_tbl_0  = 6'h07;
+    wire    [5:0]   ecc_tbl_1  = 6'h0b;
+    wire    [5:0]   ecc_tbl_2  = 6'h0d;
+    wire    [5:0]   ecc_tbl_3  = 6'h0e;
+    wire    [5:0]   ecc_tbl_4  = 6'h13;
+    wire    [5:0]   ecc_tbl_5  = 6'h15;
+    wire    [5:0]   ecc_tbl_6  = 6'h16;
+    wire    [5:0]   ecc_tbl_7  = 6'h19;
+    wire    [5:0]   ecc_tbl_8  = 6'h1a;
+    wire    [5:0]   ecc_tbl_9  = 6'h1c;
+    wire    [5:0]   ecc_tbl_10 = 6'h23;
+    wire    [5:0]   ecc_tbl_11 = 6'h25;
+    wire    [5:0]   ecc_tbl_12 = 6'h26;
+    wire    [5:0]   ecc_tbl_13 = 6'h29;
+    wire    [5:0]   ecc_tbl_14 = 6'h2a;
+    wire    [5:0]   ecc_tbl_15 = 6'h2c;
+    wire    [5:0]   ecc_tbl_16 = 6'h31;
+    wire    [5:0]   ecc_tbl_17 = 6'h32;
+    wire    [5:0]   ecc_tbl_18 = 6'h34;
+    wire    [5:0]   ecc_tbl_19 = 6'h38;
+    wire    [5:0]   ecc_tbl_20 = 6'h1f;
+    wire    [5:0]   ecc_tbl_21 = 6'h2f;
+    wire    [5:0]   ecc_tbl_22 = 6'h37;
+    wire    [5:0]   ecc_tbl_23 = 6'h3b;
     
     
     
-    reg     [USER_WIDTH-1:0]    st0_user;
+    reg     [USER_BITS-1:0]     st0_user;
     reg     [23:0]              st0_data;
     reg     [5:0]               st0_ecc;
     reg                         st0_valid;
     
-    reg     [USER_WIDTH-1:0]    st1_user;
+    reg     [USER_BITS-1:0]     st1_user;
     reg     [23:0]              st1_data;
     reg     [5:0]               st1_recv_ecc;
     reg     [5:0]               st1_calc_ecc;
     reg                         st1_valid;
     
-    reg     [USER_WIDTH-1:0]    st2_user;
+    reg     [USER_BITS-1:0]     st2_user;
     reg     [23:0]              st2_data;
     reg     [5:0]               st2_syndrome;
     reg                         st2_valid;
     
-    reg     [USER_WIDTH-1:0]    st3_user;
+    reg     [USER_BITS-1:0]     st3_user;
     reg     [23:0]              st3_data;
     reg     [23:0]              st3_xor;
     reg                         st3_error;
     reg                         st3_crrected;
     reg                         st3_valid;
     
-    reg     [USER_WIDTH-1:0]    st4_user;
+    reg     [USER_BITS-1:0]     st4_user;
     reg     [23:0]              st4_data;
     reg                         st4_error;
     reg                         st4_corrected;
@@ -104,30 +104,30 @@ module jelly_mipi_ecc24
             st1_user      <= st0_user;
             st1_data      <= st0_data;
             st1_recv_ecc  <= st0_ecc;
-            st1_calc_ecc  <= (st0_data[0]  ? ecc_tbl_0  : 5'd0)
-                           ^ (st0_data[1]  ? ecc_tbl_1  : 5'd0)
-                           ^ (st0_data[2]  ? ecc_tbl_2  : 5'd0)
-                           ^ (st0_data[3]  ? ecc_tbl_3  : 5'd0)
-                           ^ (st0_data[4]  ? ecc_tbl_4  : 5'd0)
-                           ^ (st0_data[5]  ? ecc_tbl_5  : 5'd0)
-                           ^ (st0_data[6]  ? ecc_tbl_6  : 5'd0)
-                           ^ (st0_data[7]  ? ecc_tbl_7  : 5'd0)
-                           ^ (st0_data[8]  ? ecc_tbl_8  : 5'd0)
-                           ^ (st0_data[9]  ? ecc_tbl_9  : 5'd0)
-                           ^ (st0_data[10] ? ecc_tbl_10 : 5'd0)
-                           ^ (st0_data[11] ? ecc_tbl_11 : 5'd0)
-                           ^ (st0_data[12] ? ecc_tbl_12 : 5'd0)
-                           ^ (st0_data[13] ? ecc_tbl_13 : 5'd0)
-                           ^ (st0_data[14] ? ecc_tbl_14 : 5'd0)
-                           ^ (st0_data[15] ? ecc_tbl_15 : 5'd0)
-                           ^ (st0_data[16] ? ecc_tbl_16 : 5'd0)
-                           ^ (st0_data[17] ? ecc_tbl_17 : 5'd0)
-                           ^ (st0_data[18] ? ecc_tbl_18 : 5'd0)
-                           ^ (st0_data[19] ? ecc_tbl_19 : 5'd0)
-                           ^ (st0_data[20] ? ecc_tbl_20 : 5'd0)
-                           ^ (st0_data[21] ? ecc_tbl_21 : 5'd0)
-                           ^ (st0_data[22] ? ecc_tbl_22 : 5'd0)
-                           ^ (st0_data[23] ? ecc_tbl_23 : 5'd0);
+            st1_calc_ecc  <= (st0_data[0]  ? ecc_tbl_0  : 6'd0)
+                           ^ (st0_data[1]  ? ecc_tbl_1  : 6'd0)
+                           ^ (st0_data[2]  ? ecc_tbl_2  : 6'd0)
+                           ^ (st0_data[3]  ? ecc_tbl_3  : 6'd0)
+                           ^ (st0_data[4]  ? ecc_tbl_4  : 6'd0)
+                           ^ (st0_data[5]  ? ecc_tbl_5  : 6'd0)
+                           ^ (st0_data[6]  ? ecc_tbl_6  : 6'd0)
+                           ^ (st0_data[7]  ? ecc_tbl_7  : 6'd0)
+                           ^ (st0_data[8]  ? ecc_tbl_8  : 6'd0)
+                           ^ (st0_data[9]  ? ecc_tbl_9  : 6'd0)
+                           ^ (st0_data[10] ? ecc_tbl_10 : 6'd0)
+                           ^ (st0_data[11] ? ecc_tbl_11 : 6'd0)
+                           ^ (st0_data[12] ? ecc_tbl_12 : 6'd0)
+                           ^ (st0_data[13] ? ecc_tbl_13 : 6'd0)
+                           ^ (st0_data[14] ? ecc_tbl_14 : 6'd0)
+                           ^ (st0_data[15] ? ecc_tbl_15 : 6'd0)
+                           ^ (st0_data[16] ? ecc_tbl_16 : 6'd0)
+                           ^ (st0_data[17] ? ecc_tbl_17 : 6'd0)
+                           ^ (st0_data[18] ? ecc_tbl_18 : 6'd0)
+                           ^ (st0_data[19] ? ecc_tbl_19 : 6'd0)
+                           ^ (st0_data[20] ? ecc_tbl_20 : 6'd0)
+                           ^ (st0_data[21] ? ecc_tbl_21 : 6'd0)
+                           ^ (st0_data[22] ? ecc_tbl_22 : 6'd0)
+                           ^ (st0_data[23] ? ecc_tbl_23 : 6'd0);
             
             // stage 2
             st2_user      <= st1_user;

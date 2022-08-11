@@ -7,8 +7,10 @@
 
 module kv260_imx219_display_port
         #(
-            parameter   X_NUM = 3280 / 2,
-            parameter   Y_NUM = 2464 / 2
+            parameter   X_WIDTH = 13,
+            parameter   Y_WIDTH = 12,
+            parameter   X_NUM   = 3280 / 2,
+            parameter   Y_NUM   = 2464 / 2
         )
         (
             input   wire            cam_clk_p,
@@ -600,25 +602,28 @@ module kv260_imx219_display_port
     
     
     // format regularizer
+    wire    [X_WIDTH-1:0]       fmtr_param_width;
+    wire    [Y_WIDTH-1:0]       fmtr_param_height;
+    
     wire    [0:0]               axi4s_fmtr_tuser;
     wire                        axi4s_fmtr_tlast;
     wire    [9:0]               axi4s_fmtr_tdata;
     wire                        axi4s_fmtr_tvalid;
     wire                        axi4s_fmtr_tready;
-    
+
     wire    [WB_DAT_WIDTH-1:0]  wb_fmtr_dat_o;
     wire                        wb_fmtr_stb_i;
     wire                        wb_fmtr_ack_o;
     
-    jelly_video_format_regularizer
+    jelly2_video_format_regularizer
             #(
                 .WB_ADR_WIDTH               (8),
                 .WB_DAT_WIDTH               (WB_DAT_WIDTH),
                 
                 .TUSER_WIDTH                (1),
                 .TDATA_WIDTH                (10),
-                .X_WIDTH                    (16),
-                .Y_WIDTH                    (16),
+                .X_WIDTH                    (X_WIDTH),
+                .Y_WIDTH                    (Y_WIDTH),
                 .TIMER_WIDTH                (32),
                 .S_SLAVE_REGS               (1),
                 .S_MASTER_REGS              (1),
@@ -637,17 +642,10 @@ module kv260_imx219_display_port
                 .aresetn                    (axi4s_cam_aresetn),
                 .aclk                       (axi4s_cam_aclk),
                 .aclken                     (1'b1),
-                
-                .s_wb_rst_i                 (wb_peri_rst_i),
-                .s_wb_clk_i                 (wb_peri_clk_i),
-                .s_wb_adr_i                 (wb_peri_adr_i[7:0]),
-                .s_wb_dat_o                 (wb_fmtr_dat_o),
-                .s_wb_dat_i                 (wb_peri_dat_i),
-                .s_wb_we_i                  (wb_peri_we_i),
-                .s_wb_sel_i                 (wb_peri_sel_i),
-                .s_wb_stb_i                 (wb_fmtr_stb_i),
-                .s_wb_ack_o                 (wb_fmtr_ack_o),
-                
+
+                .out_param_width            (fmtr_param_width),
+                .out_param_height           (fmtr_param_height),
+
                 .s_axi4s_tuser              (axi4s_csi2_tuser),
                 .s_axi4s_tlast              (axi4s_csi2_tlast),
                 .s_axi4s_tdata              (axi4s_csi2_tdata),
@@ -658,7 +656,17 @@ module kv260_imx219_display_port
                 .m_axi4s_tlast              (axi4s_fmtr_tlast),
                 .m_axi4s_tdata              (axi4s_fmtr_tdata),
                 .m_axi4s_tvalid             (axi4s_fmtr_tvalid),
-                .m_axi4s_tready             (axi4s_fmtr_tready)
+                .m_axi4s_tready             (axi4s_fmtr_tready),
+
+                .s_wb_rst_i                 (wb_peri_rst_i),
+                .s_wb_clk_i                 (wb_peri_clk_i),
+                .s_wb_adr_i                 (wb_peri_adr_i[7:0]),
+                .s_wb_dat_o                 (wb_fmtr_dat_o),
+                .s_wb_dat_i                 (wb_peri_dat_i),
+                .s_wb_we_i                  (wb_peri_we_i),
+                .s_wb_sel_i                 (wb_peri_sel_i),
+                .s_wb_stb_i                 (wb_fmtr_stb_i),
+                .s_wb_ack_o                 (wb_fmtr_ack_o)
             );
     
     
@@ -687,8 +695,9 @@ module kv260_imx219_display_port
                 .S_DATA_WIDTH               (10),
                 .M_DATA_WIDTH               (8),
                 
+                .X_WIDTH                    (X_WIDTH),
+                .Y_WIDTH                    (Y_WIDTH),
                 .IMG_Y_NUM                  (1080),
-                .IMG_Y_WIDTH                (12),
                 
                 .TUSER_WIDTH                (1)
             )
@@ -696,7 +705,10 @@ module kv260_imx219_display_port
             (
                 .aresetn                    (axi4s_cam_aresetn),
                 .aclk                       (axi4s_cam_aclk),
-                
+
+                .param_width                (fmtr_param_width),
+                .param_height               (fmtr_param_height),
+
                 .in_update_req              (1'b1),
                 
                 .s_wb_rst_i                 (wb_peri_rst_i),
@@ -884,7 +896,7 @@ module kv260_imx219_display_port
     wire                                wb_vdmaw_stb_i;
     wire                                wb_vdmaw_ack_o;
     
-    jelly_dma_video_write
+    jelly2_dma_video_write
             #(
                 .WB_ASYNC                   (1),
                 .WB_ADR_WIDTH               (8),
@@ -1012,7 +1024,7 @@ module kv260_imx219_display_port
     wire                                wb_vdmar_stb_i;
     wire                                wb_vdmar_ack_o;
     
-    jelly_dma_video_read
+    jelly2_dma_video_read
             #(
                 .WB_ASYNC                   (1),
                 .WB_ADR_WIDTH               (8),
@@ -1039,7 +1051,7 @@ module kv260_imx219_display_port
                 .INIT_CTL_CONTROL           (4'b0000),
                 .INIT_IRQ_ENABLE            (1'b0),
                 .INIT_PARAM_ADDR            (0),
-                .INIT_PARAM_AWLEN_MAX       (255),
+                .INIT_PARAM_ARLEN_MAX       (255),
                 .INIT_PARAM_H_SIZE          (VOUT_X_NUM-1),
                 .INIT_PARAM_V_SIZE          (VOUT_Y_NUM-1),
                 .INIT_PARAM_LINE_STEP       (8192),

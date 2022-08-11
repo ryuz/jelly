@@ -187,6 +187,7 @@ module jelly_fixed_matrix3x4
     wire    signed  [P_WIDTH-1:0]   x_d;
     wire    signed  [P_WIDTH-1:0]   y_d;
     wire    signed  [P_WIDTH-1:0]   z_d;
+    // verilator lint_off WIDTH
     generate
     if ( S_FIXED_FRAC_WIDTH > (COEFF3_FRAC_WIDTH - COEFF_FRAC_WIDTH) ) begin
         assign x_d = (src_coeff03 <<< (S_FIXED_FRAC_WIDTH - (COEFF3_FRAC_WIDTH - COEFF_FRAC_WIDTH)));
@@ -216,6 +217,7 @@ module jelly_fixed_matrix3x4
         assign sink_fixed_z = (z_p <<< (M_FIXED_FRAC_WIDTH - (COEFF_FRAC_WIDTH+S_FIXED_FRAC_WIDTH)));
     end
     endgenerate
+    // verilator lint_on WIDTH
 
 
     reg     [USER_BITS-1:0]         st0_user;
@@ -337,8 +339,6 @@ module jelly_fixed_matrix3x4
                 
                 .p              (z_p)
             );
-    
-    
     
 endmodule
 

@@ -339,10 +339,10 @@ module tb_main
                 .INIT_IRQ_ENABLE        (1'b0),
                 .INIT_PARAM_ADDR        (0),
                 .INIT_PARAM_AWLEN_MAX   (255),
-                .INIT_PARAM_H_SIZE      (X_NUM-1),
-                .INIT_PARAM_V_SIZE      (Y_NUM-1),
+                .INIT_PARAM_H_SIZE      (12'(X_NUM-1)),
+                .INIT_PARAM_V_SIZE      (12'(Y_NUM-1)),
                 .INIT_PARAM_LINE_STEP   (X_NUM*4),
-                .INIT_PARAM_F_SIZE      (0),
+                .INIT_PARAM_F_SIZE      (8'(0)),
                 .INIT_PARAM_FRAME_STEP  (X_NUM*Y_NUM*4),
                 .INIT_SKIP_EN           (1'b1),
                 .INIT_DETECT_FIRST      (3'b010),
@@ -506,11 +506,11 @@ module tb_main
                 .INIT_CTL_CONTROL       (4'b0000),
                 .INIT_IRQ_ENABLE        (1'b0),
                 .INIT_PARAM_ADDR        (0),
-                .INIT_PARAM_AWLEN_MAX   (3),
-                .INIT_PARAM_H_SIZE      (X_NUM-1),
-                .INIT_PARAM_V_SIZE      (Y_NUM-1),
+                .INIT_PARAM_ARLEN_MAX   (AXI4_LEN_WIDTH'(3)),
+                .INIT_PARAM_H_SIZE      (12'(X_NUM-1)),
+                .INIT_PARAM_V_SIZE      (12'(Y_NUM-1)),
                 .INIT_PARAM_LINE_STEP   (X_NUM*4),
-                .INIT_PARAM_F_SIZE      (0),
+                .INIT_PARAM_F_SIZE      (8'(0)),
                 .INIT_PARAM_FRAME_STEP  (X_NUM*Y_NUM*4),
                 
                 .CORE_ID                (32'h527a_ffff),
@@ -662,7 +662,7 @@ module tb_main
     //  memory model
     // -----------------------------------------
     
-    jelly_axi4_slave_model
+    jelly2_axi4_slave_model
             #(
                 .AXI_ID_WIDTH           (AXI4_ID_WIDTH),
                 .AXI_ADDR_WIDTH         (AXI4_ADDR_WIDTH),
@@ -697,6 +697,7 @@ module tb_main
             (
                 .aresetn                (mem_aresetn),
                 .aclk                   (mem_aclk),
+                .aclken                 (1'b1),
                 
                 .s_axi4_awid            (axi4_mem_awid),
                 .s_axi4_awaddr          (axi4_mem_awaddr),

@@ -446,6 +446,7 @@ module jelly2_axi4_write
     wire                            cmd2_awvalid;
     wire                            cmd2_awready;
     
+    // verilator lint_off PINMISSING
     jelly2_data_split_pack2
             #(
                 .NUM                    (3),
@@ -484,6 +485,7 @@ module jelly2_axi4_write
                 .m2_valid               (cmd2_awvalid),
                 .m2_ready               (cmd2_awready)
             );
+    // verilator lint_on PINMISSING
     
     
     // aw
@@ -613,21 +615,22 @@ module jelly2_axi4_write
     wire                            bfifo_valid;
     wire                            bfifo_ready;
     
-    jelly_fifo_generic_fwtf
+    jelly2_fifo_generic_fwtf
             #(
                 .ASYNC                  (BASYNC),
-                .DATA_WIDTH             (1'b1),
+                .DATA_WIDTH             (1),
                 .PTR_WIDTH              (BFIFO_PTR_WIDTH),
                 .DOUT_REGS              (BFIFO_DOUT_REGS),
                 .RAM_TYPE               (BFIFO_RAM_TYPE),
                 .LOW_DEALY              (BFIFO_LOW_DEALY),
-                .SLAVE_REGS             (BFIFO_S_REGS),
-                .MASTER_REGS            (BFIFO_M_REGS)
+                .S_REGS                 (BFIFO_S_REGS),
+                .M_REGS                 (BFIFO_M_REGS)
             )
         i_fifo_generic_fwtf_b
             (
                 .s_reset                (~m_aresetn),
                 .s_clk                  (m_aclk),
+                .s_cke                  (1'b1),
                 .s_data                 (1'b0),
                 .s_valid                (bfifo_valid),
                 .s_ready                (bfifo_ready),
@@ -635,6 +638,7 @@ module jelly2_axi4_write
                 
                 .m_reset                (~s_bresetn),
                 .m_clk                  (s_bclk),
+                .m_cke                  (1'b1),
                 .m_data                 (),
                 .m_valid                (s_bvalid),
                 .m_ready                (s_bready),

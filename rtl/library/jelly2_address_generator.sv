@@ -76,11 +76,11 @@ module jelly2_address_generator
     
     
     // stage0
-    reg     [ADDR_WIDTH-1:0]        st0_addr_base;
-    reg     [LEN_WIDTH-1:0]         st0_max_len;
-    reg     [SIZE_WIDTH-1:0]        st0_addr;
-    reg     [SIZE_WIDTH-1:0]        st0_size;
-    reg                             st0_valid;
+    logic   [ADDR_WIDTH-1:0]        st0_addr_base;
+    logic   [LEN_WIDTH-1:0]         st0_max_len;
+    logic   [SIZE_WIDTH-1:0]        st0_addr;
+    logic   [SIZE_WIDTH-1:0]        st0_size;
+    logic                           st0_valid;
     wire                            st0_ready;
     
     wire                            st0_last = SIZE_WIDTH'({1'b0, st0_size}) + SIZE_WIDTH'(SIZE_OFFSET) <= SIZE_WIDTH'({1'b0, st0_max_len}) + SIZE_WIDTH'(LEN_OFFSET);
@@ -103,7 +103,7 @@ module jelly2_address_generator
                     st0_valid     <= ff_s_valid;
                 end
                 else begin
-                    st0_addr      <= st0_addr + (ADDR_WIDTH'(st0_max_len) + ADDR_WIDTH'(LEN_OFFSET)) * ADDR_WIDTH'(ADDR_UNIT);
+                    st0_addr      <= st0_addr + (SIZE_WIDTH'(st0_max_len) + SIZE_WIDTH'(LEN_OFFSET)) * SIZE_WIDTH'(ADDR_UNIT);
                     st0_size      <= st0_size - SIZE_WIDTH'(st0_max_len) - SIZE_WIDTH'(LEN_OFFSET);
                     st0_valid     <= !st0_last;
                 end
@@ -115,10 +115,10 @@ module jelly2_address_generator
     
     
     // stage1
-    reg     [ADDR_WIDTH-1:0]        st1_addr;
-    reg     [LEN_WIDTH-1:0]         st1_len;
-    reg                             st1_last;
-    reg                             st1_valid;
+    logic   [ADDR_WIDTH-1:0]        st1_addr;
+    logic   [LEN_WIDTH-1:0]         st1_len;
+    logic                           st1_last;
+    logic                           st1_valid;
     wire                            st1_ready;
     
     always_ff @(posedge clk) begin
@@ -136,7 +136,7 @@ module jelly2_address_generator
                 st1_valid  <= 1'b0;
             end
             if ( st0_valid && st0_ready ) begin
-                st1_addr  <= st0_addr_base + st0_addr;
+                st1_addr  <= st0_addr_base + ADDR_WIDTH'(st0_addr);
                 st1_len   <= st0_last ? LEN_WIDTH'(st0_size + SIZE_WIDTH'(SIZE_OFFSET) - SIZE_WIDTH'(LEN_OFFSET)) : st0_max_len;
                 st1_last  <= st0_last;
                 st1_valid <= 1'b1;

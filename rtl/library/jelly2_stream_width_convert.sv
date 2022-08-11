@@ -357,7 +357,7 @@ module jelly2_stream_width_convert
         reg                             reg_last;
         reg     [COUNT_WIDTH-1:0]       reg_count;
         reg                             reg_valid;
-        always @(posedge clk) begin
+        always_ff @(posedge clk) begin
             if ( cke && ff_s_ready ) begin
                 if ( ff_s_first ) begin
                     if ( endian ) begin
@@ -388,7 +388,7 @@ module jelly2_stream_width_convert
             end
         end
         
-        always @(posedge clk) begin
+        always_ff @(posedge clk) begin
             if ( reset ) begin
                 reg_valid <= 1'b0;
             end
@@ -458,7 +458,7 @@ module jelly2_stream_width_convert
         reg                         reg_ready,  next_ready;     // 今のデータが吐き出せれば受け入れ可
         reg                         reg_valid,  next_valid;
         
-        always @(posedge clk) begin
+        always_ff @(posedge clk) begin
             if ( reset ) begin
                 reg_count  <= {COUNT_WIDTH{1'b0}};
                 reg_data   <= {BUF_WIDTH{1'bx}}; 
@@ -492,7 +492,7 @@ module jelly2_stream_width_convert
             end
         end
         
-        always @* begin
+        always_comb begin
             next_count  = reg_count;
             next_data   = reg_data;
             next_strb   = reg_strb;
@@ -626,7 +626,7 @@ module jelly2_stream_width_convert
         reg                         reg_none,   next_none;
         reg                         reg_valid,  next_valid;
         
-        always @(posedge clk) begin
+        always_ff @(posedge clk) begin
             if ( reset ) begin
                 reg_data   <= {M_DATA_WIDTH{1'bx}};
                 reg_strb   <= {M_NUM{1'b0}};
@@ -717,6 +717,7 @@ module jelly2_stream_width_convert
     wire    ff_m_ready;
     assign st2_ready = (ff_m_ready | st2_none);
     
+    // verilator lint_off PINMISSING
     jelly2_data_ff_pack
             #(
                 .DATA0_WIDTH    (M_DATA_WIDTH),
@@ -755,6 +756,7 @@ module jelly2_stream_width_convert
                 .m_valid        (m_valid),
                 .m_ready        (m_ready)
             );
+    // verilator lint_on PINMISSING
     
     
 endmodule

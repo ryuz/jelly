@@ -14,10 +14,12 @@
 // First-Word Fall-Through read
 module jelly2_fifo_read_fwtf
         #(
-            parameter   int     DATA_WIDTH = 8,
-            parameter   int     PTR_WIDTH  = 8,
-            parameter   bit     DOUT_REGS  = 0,
-            parameter   bit     M_REGS     = 1
+            parameter   int     DATA_WIDTH  = 8,
+            parameter   int     PTR_WIDTH   = 8,
+            parameter   bit     DOUT_REGS   = 0,
+            parameter   bit     M_REGS      = 1,
+
+            localparam  int     COUNT_WIDTH = PTR_WIDTH + 1
         )
         (
             input   wire                        reset,
@@ -28,15 +30,15 @@ module jelly2_fifo_read_fwtf
             output  wire                        rd_regcke,
             input   wire    [DATA_WIDTH-1:0]    rd_data,
             input   wire                        rd_empty,
-            input   wire    [PTR_WIDTH:0]       rd_count,
+            input   wire    [COUNT_WIDTH-1:0]   rd_count,
             
             output  wire    [DATA_WIDTH-1:0]    m_data,
             output  wire                        m_valid,
             input   wire                        m_ready,
-            output  wire    [PTR_WIDTH:0]       m_count
+            output  wire    [COUNT_WIDTH-1:0]   m_count
         );
     
-    localparam PIPELINE_STAGES = 1 + DOUT_REGS;
+    localparam  PIPELINE_STAGES = 1 + DOUT_REGS;
 
     logic   [PIPELINE_STAGES-1:0]   stage_cke;
     logic   [PIPELINE_STAGES-1:0]   stage_valid;
@@ -79,11 +81,11 @@ module jelly2_fifo_read_fwtf
     generate
     if ( DOUT_REGS ) begin
         assign rd_regcke = stage_cke[1];
-        assign m_count   = rd_count + m_valid + buffered + stage_valid[0] + stage_valid[1];
+        assign m_count   = rd_count + COUNT_WIDTH'(m_valid) + COUNT_WIDTH'(buffered) + COUNT_WIDTH'(stage_valid[0]) + COUNT_WIDTH'(stage_valid[1]);
     end
     else begin
         assign rd_regcke = 1'b0;
-        assign m_count   = rd_count + (PTR_WIDTH+1)'(m_valid) + (PTR_WIDTH+1)'(buffered) + (PTR_WIDTH+1)'(stage_valid[0]);
+        assign m_count   = rd_count + COUNT_WIDTH'(m_valid) + COUNT_WIDTH'(buffered) + COUNT_WIDTH'(stage_valid[0]);
     end
     endgenerate
     

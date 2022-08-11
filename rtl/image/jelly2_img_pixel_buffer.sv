@@ -66,7 +66,6 @@ module jelly2_img_pixel_buffer
         logic   [C-1:0]                             st0_buf_de;
         logic   [C-1:0][USER_BITS-1:0]              st0_buf_user;
         logic   [(M-1)-1:0][DATA_WIDTH-1:0]         st0_buf_data;
-        logic   [C-1:0]                             st0_buf_valid;
 
         wire    [C:0]                               st0_row_first  = {st0_buf_row_first,  in_img_row_first};
         wire    [C:0]                               st0_row_last   = {st0_buf_row_last,   in_img_row_last};
@@ -75,7 +74,7 @@ module jelly2_img_pixel_buffer
         wire    [C:0]                               st0_de         = {st0_buf_de,         in_img_de};
         wire    [C:0][USER_BITS-1:0]                st0_user       = {st0_buf_user,       s_img_user};
         wire    [M-1:0][DATA_WIDTH-1:0]             st0_data       = {st0_buf_data,       s_img_data};
-        wire    [C:0]                               st0_valid      = {st0_buf_valid,      s_img_valid};
+        wire                                        st0_valid      = s_img_valid;
         
         logic   [REFLECT_NUM-1:0][DATA_WIDTH-1:0]   st0_reflect;
         
@@ -88,7 +87,6 @@ module jelly2_img_pixel_buffer
                 st0_buf_de         <= '0;
                 st0_buf_user       <= 'x;
                 st0_buf_data       <= 'x;
-                st0_buf_valid      <= '0;
             end
             else if ( cke ) begin
                 st0_buf_row_first[0] <= s_img_valid & s_img_row_first;
@@ -98,8 +96,7 @@ module jelly2_img_pixel_buffer
                 st0_buf_de       [0] <= s_img_valid & s_img_de;
                 st0_buf_user     [0] <= s_img_user;
                 st0_buf_data     [0] <= s_img_data;
-                st0_buf_valid    [0] <= s_img_valid;
-                for ( int i = 1; i <= C; ++i ) begin
+                for ( int i = 1; i < C; ++i ) begin
                     st0_buf_row_first[i] <= st0_buf_row_first[i-1];
                     st0_buf_row_last [i] <= st0_buf_row_last [i-1];
                     st0_buf_col_first[i] <= st0_buf_col_first[i-1];
@@ -107,7 +104,6 @@ module jelly2_img_pixel_buffer
                     st0_buf_de       [i] <= st0_buf_de       [i-1];
                     st0_buf_user     [i] <= st0_buf_user     [i-1];
                     st0_buf_data     [i] <= st0_buf_data     [i-1];
-                    st0_buf_valid    [i] <= st0_buf_valid    [i-1];
                 end
 
                 st0_reflect <= (st0_reflect >> DATA_WIDTH);
@@ -147,7 +143,7 @@ module jelly2_img_pixel_buffer
                 st1_col_last  <= st0_col_last[C];
                 st1_de        <= st0_de[C];
                 st1_user      <= st0_user[C];
-                st1_valid     <= st0_valid[C];
+                st1_valid     <= st0_valid;
                 if ( st0_col_first[C] ) begin
                     st1_data  <= st0_data;
                 end
@@ -224,7 +220,7 @@ module jelly2_img_pixel_buffer
             assign out_de         = st0_de[C];
             assign out_user       = st0_user[C];
             assign out_data       = st0_data;
-            assign out_valid      = st0_valid[C];
+            assign out_valid      = st0_valid;
         end
         else begin
             assign out_row_first = st1_row_first;
