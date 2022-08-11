@@ -8,18 +8,20 @@
 -Wno-UNSIGNED
 -Wno-PINMISSING
 -Wno-UNOPTFLAT
--Wno-UNOPTTHREADS
--Wno-LITENDIAN
--Wno-STMTDLY
--Wno-CASEINCOMPLETE
--Wno-LATCH
--Wno-COMBDLY
--Wno-SELRANGE
--Wno-WIDTHCONCAT
--Wno-MULTITOP
+#-Wno-UNOPTTHREADS
+#-Wno-LITENDIAN
+#-Wno-STMTDLY
+#-Wno-CASEINCOMPLETE
+#-Wno-LATCH
+#-Wno-COMBDLY
+#-Wno-SELRANGE
+#-Wno-WIDTHCONCAT
+#-Wno-MULTITOP
 
 -Wno-fatal
 
+-y ../../stub
+-y ../../../rtl
 -y ../../../../../rtl/library
 -y ../../../../../rtl/bus
 -y ../../../../../rtl/dma
@@ -29,4 +31,5 @@
 -y ../../../../../rtl/image
 -y ../../../../../rtl/video
 -y ../../../../../rtl/peripheral
+-y ../../../../../rtl/misc
 -y ../../../../../rtl/model

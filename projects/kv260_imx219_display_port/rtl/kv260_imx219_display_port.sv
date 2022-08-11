@@ -610,7 +610,7 @@ module kv260_imx219_display_port
     wire                        wb_fmtr_stb_i;
     wire                        wb_fmtr_ack_o;
     
-    jelly_video_format_regularizer
+    jelly2_video_format_regularizer
             #(
                 .WB_ADR_WIDTH               (8),
                 .WB_DAT_WIDTH               (WB_DAT_WIDTH),
@@ -884,7 +884,7 @@ module kv260_imx219_display_port
     wire                                wb_vdmaw_stb_i;
     wire                                wb_vdmaw_ack_o;
     
-    jelly_dma_video_write
+    jelly2_dma_video_write
             #(
                 .WB_ASYNC                   (1),
                 .WB_ADR_WIDTH               (8),
@@ -1012,7 +1012,7 @@ module kv260_imx219_display_port
     wire                                wb_vdmar_stb_i;
     wire                                wb_vdmar_ack_o;
     
-    jelly_dma_video_read
+    jelly2_dma_video_read
             #(
                 .WB_ASYNC                   (1),
                 .WB_ADR_WIDTH               (8),
@@ -1039,7 +1039,7 @@ module kv260_imx219_display_port
                 .INIT_CTL_CONTROL           (4'b0000),
                 .INIT_IRQ_ENABLE            (1'b0),
                 .INIT_PARAM_ADDR            (0),
-                .INIT_PARAM_AWLEN_MAX       (255),
+                .INIT_PARAM_ARLEN_MAX       (255),
                 .INIT_PARAM_H_SIZE          (VOUT_X_NUM-1),
                 .INIT_PARAM_V_SIZE          (VOUT_Y_NUM-1),
                 .INIT_PARAM_LINE_STEP       (8192),
