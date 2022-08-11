@@ -70,33 +70,62 @@ int main(int argc, char** argv)
     const int X_NUM = 320;
     const int Y_NUM = 240;
     
-    const int reg_gid    = (0x00000000 >> 3);
-    const int reg_fmtr   = (0x00100000 >> 3);
-    const int reg_wdma   = (0x00210000 >> 3);
-    const int reg_demos  = (0x00400000 >> 3);
-    const int reg_colmat = (0x00400800 >> 3);
-    const int reg_gauss  = (0x00402000 >> 3);
-    const int reg_bin    = (0x00403000 >> 3);
-    const int reg_select = (0x00407800 >> 3);
+//   const int reg_gid    = (0x00000000 >> 3);
+//   const int reg_fmtr   = (0x00100000 >> 3);
+//   const int reg_wdma   = (0x00210000 >> 3);
+//   const int reg_demos  = (0x00400000 >> 3);
+//   const int reg_colmat = (0x00400800 >> 3);
+//   const int reg_gauss  = (0x00402000 >> 3);
+//   const int reg_bin    = (0x00403000 >> 3);
+//   const int reg_select = (0x00407800 >> 3);
     
+    const int   reg_gid     = (0x00000000 >> 3);
+    const int   reg_fmtr    = (0x00100000 >> 3);  // ビデオサイズ正規化
+    const int   reg_demos   = (0x00200000 >> 3);  // デモザイク
+    const int   reg_colmat  = (0x00210000 >> 3);  // カラーマトリックス
+    const int   reg_gamma   = (0x00220000 >> 3);  // ガンマ補正
+    const int   reg_gauss   = (0x00240000 >> 3);  // ガウシアンフィルタ
+    const int   reg_canny   = (0x00250000 >> 3);  // Cannyフィルタ
+    const int   reg_prvfrm  = (0x00260000 >> 3);  // FIFO dma
+    const int   reg_bindiff = (0x00270000 >> 3);  // 前画像との差分バイナライズ
+    const int   reg_sel     = (0x002f0000 >> 3);  // 出力切り替え
+    const int   reg_bufmng  = (0x00300000 >> 3);  // Buffer manager
+    const int   reg_bufalc  = (0x00310000 >> 3);  // Buffer allocator
+    const int   reg_vdmaw   = (0x00320000 >> 3);  // Write-DMA
+    const int   reg_vdmar   = (0x00340000 >> 3);  // Read-DMA
+    const int   reg_vsgen   = (0x00360000 >> 3);  // Video out sync generator
+
     wb->Wait(1000);
     wb->Display("start");
     
     wb->Wait(1000);
     wb->Display("read core ID");
-    wb->Read (reg_gid);     // gid
-    wb->Read (reg_fmtr);    // fmtr
-    wb->Read (reg_demos);   // demosaic
-    wb->Read (reg_colmat);  // col mat
-    wb->Read (reg_gauss);   // 
-    wb->Read (reg_bin);     // 
-    wb->Read (reg_wdma);    // wdma
-    wb->Read (reg_select);  // wdma
+    wb->Read (reg_gid    );     // gid
+    wb->Read (reg_fmtr   );
+    wb->Read (reg_demos  );
+    wb->Read (reg_colmat );
+    wb->Read (reg_gamma  );
+    wb->Read (reg_gauss  );
+    wb->Read (reg_canny  );
+    wb->Read (reg_prvfrm );
+    wb->Read (reg_bindiff);
+    wb->Read (reg_sel    );
+    wb->Read (reg_bufmng );
+    wb->Read (reg_bufalc );
+    wb->Read (reg_vdmaw  );
+    wb->Read (reg_vdmar  );
+    wb->Read (reg_vsgen  );
 
 
     wb->Wait(1000);
     wb->Display("set selector");
-    wb->Write(reg_select + REG_IMG_SELECTOR_CTL_SELECT, 2, 0xf);
+    wb->Write(reg_sel + REG_IMG_SELECTOR_CTL_SELECT, 0, 0xf);
+
+    wb->Display("set DMA-FIFO");
+    wb->Read (reg_prvfrm + REG_IMG_PREVFRM_CORE_ID);
+    wb->Write(reg_prvfrm + REG_IMG_PREVFRM_PARAM_ADDR, 0x0, 0xf);
+    wb->Write(reg_prvfrm + REG_IMG_PREVFRM_PARAM_SIZE, X_NUM*Y_NUM*4, 0xf);
+    wb->Write(reg_prvfrm + REG_IMG_PREVFRM_CTL_CONTROL,0x3, 0xf);
 
     wb->Display("set format regularizer");
     wb->Read (reg_fmtr + REG_VIDEO_FMTREG_CORE_ID);                         // CORE ID
@@ -133,32 +162,34 @@ int main(int argc, char** argv)
     wb->Write(reg_gauss + REG_IMG_GAUSS3X3_PARAM_ENABLE, 0x7, 0xf);
     wb->Write(reg_gauss + REG_IMG_GAUSS3X3_CTL_CONTROL,  0x3, 0xf);
 
+    /*
     wb->Display("set bin");
-    wb->Read (reg_bin + REG_IMG_BIN_CORE_ID);
-    wb->Write(reg_bin + REG_IMG_BIN_PARAM_TH0(0),  700, 0xf);
-    wb->Write(reg_bin + REG_IMG_BIN_PARAM_TH1(0),  800, 0xf);
-    wb->Write(reg_bin + REG_IMG_BIN_PARAM_TH0(1),  200, 0xf);
-    wb->Write(reg_bin + REG_IMG_BIN_PARAM_TH1(1), 1023, 0xf);
-    wb->Write(reg_bin + REG_IMG_BIN_PARAM_TH0(2),   10, 0xf);
-    wb->Write(reg_bin + REG_IMG_BIN_PARAM_TH1(2), 1023, 0xf);
-//  wb->Write(reg_bin + REG_IMG_BIN_PARAM_VAL0(0), 0, 0xf);
-//  wb->Write(reg_bin + REG_IMG_BIN_PARAM_VAL1(0), 1, 0xf);
-    wb->Write(reg_bin + REG_IMG_BIN_CTL_CONTROL, 3, 0xf);
+    wb->Read (reg_bindiff + REG_IMG_BIN_CORE_ID);
+    wb->Write(reg_bindiff + REG_IMG_BIN_PARAM_TH0(0),  700, 0xf);
+    wb->Write(reg_bindiff + REG_IMG_BIN_PARAM_TH1(0),  800, 0xf);
+    wb->Write(reg_bindiff + REG_IMG_BIN_PARAM_TH0(1),  200, 0xf);
+    wb->Write(reg_bindiff + REG_IMG_BIN_PARAM_TH1(1), 1023, 0xf);
+    wb->Write(reg_bindiff + REG_IMG_BIN_PARAM_TH0(2),   10, 0xf);
+    wb->Write(reg_bindiff + REG_IMG_BIN_PARAM_TH1(2), 1023, 0xf);
+//  wb->Write(reg_bindiff + REG_IMG_BIN_PARAM_VAL0(0), 0, 0xf);
+//  wb->Write(reg_bindiff + REG_IMG_BIN_PARAM_VAL1(0), 1, 0xf);
+    wb->Write(reg_bindiff + REG_IMG_BIN_CTL_CONTROL, 3, 0xf);
+    */
 
     wb->Display("set write DMA");
-    wb->Read (reg_wdma + REG_VDMA_WRITE_CORE_ID);                         // CORE ID
-    wb->Write(reg_wdma + REG_VDMA_WRITE_PARAM_ADDR,          0x30000000, 0xf);  // address
-    wb->Write(reg_wdma + REG_VDMA_WRITE_PARAM_LINE_STEP,        X_NUM*4, 0xf);  // stride
-    wb->Write(reg_wdma + REG_VDMA_WRITE_PARAM_H_SIZE,           X_NUM-1, 0xf);   // width
-    wb->Write(reg_wdma + REG_VDMA_WRITE_PARAM_V_SIZE,           Y_NUM-1, 0xf);  // height
-    wb->Write(reg_wdma + REG_VDMA_WRITE_PARAM_F_SIZE,               1-1, 0xf);
-    wb->Write(reg_wdma + REG_VDMA_WRITE_PARAM_FRAME_STEP, X_NUM*Y_NUM*4, 0xff);
-    wb->Write(reg_wdma + REG_VDMA_WRITE_CTL_CONTROL,                  3, 0xf);  // update & enable
+    wb->Read (reg_vdmaw + REG_VDMA_WRITE_CORE_ID);                         // CORE ID
+    wb->Write(reg_vdmaw + REG_VDMA_WRITE_PARAM_ADDR,          0x30000000, 0xf);  // address
+    wb->Write(reg_vdmaw + REG_VDMA_WRITE_PARAM_LINE_STEP,        X_NUM*4, 0xf);  // stride
+    wb->Write(reg_vdmaw + REG_VDMA_WRITE_PARAM_H_SIZE,           X_NUM-1, 0xf);   // width
+    wb->Write(reg_vdmaw + REG_VDMA_WRITE_PARAM_V_SIZE,           Y_NUM-1, 0xf);  // height
+    wb->Write(reg_vdmaw + REG_VDMA_WRITE_PARAM_F_SIZE,               1-1, 0xf);
+    wb->Write(reg_vdmaw + REG_VDMA_WRITE_PARAM_FRAME_STEP, X_NUM*Y_NUM*4, 0xff);
+    wb->Write(reg_vdmaw + REG_VDMA_WRITE_CTL_CONTROL,                  3, 0xf);  // update & enable
     wb->Wait(1000);
-    wb->Read (reg_wdma + REG_VDMA_WRITE_CTL_STATUS);  // read status
-    wb->Read (reg_wdma + REG_VDMA_WRITE_CTL_STATUS);  // read status
-    wb->Read (reg_wdma + REG_VDMA_WRITE_CTL_STATUS);  // read status
-    wb->Read (reg_wdma + REG_VDMA_WRITE_CTL_STATUS);  // read status
+    wb->Read (reg_vdmaw + REG_VDMA_WRITE_CTL_STATUS);  // read status
+    wb->Read (reg_vdmaw + REG_VDMA_WRITE_CTL_STATUS);  // read status
+    wb->Read (reg_vdmaw + REG_VDMA_WRITE_CTL_STATUS);  // read status
+    wb->Read (reg_vdmaw + REG_VDMA_WRITE_CTL_STATUS);  // read status
     
     mng->Run(2000000*2);
 //    mng->Run();
