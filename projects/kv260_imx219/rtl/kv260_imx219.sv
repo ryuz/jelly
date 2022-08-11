@@ -7,8 +7,10 @@
 
 module kv260_imx219
         #(
-            parameter   X_NUM = 3280 / 2,
-            parameter   Y_NUM = 2464 / 2
+            parameter   X_WIDTH = 16,
+            parameter   Y_WIDTH = 16,
+            parameter   X_NUM   = 3280 / 2,
+            parameter   Y_NUM   = 2464 / 2
         )
         (
             input   wire            cam_clk_p,
@@ -268,6 +270,7 @@ module kv260_imx219
                 .m_wb_ack_i         (wb_peri_ack_o)
             );
     
+
     // ----------------------------------------
     //  Global ID
     // ----------------------------------------
@@ -286,16 +289,16 @@ module kv260_imx219
         else begin
             if ( wb_gid_stb_i && wb_peri_we_i ) begin
                 case ( wb_peri_adr_i[3:0] )
-                1: reg_sw_reset   <= wb_peri_dat_i;
-                2: reg_cam_enable <= wb_peri_dat_i;
+                1: reg_sw_reset   <= 1'(wb_peri_dat_i);
+                2: reg_cam_enable <= 1'(wb_peri_dat_i);
                 endcase
             end
         end
     end
     
-    assign wb_gid_dat_o = wb_peri_adr_i[3:0] == 0 ? 32'h01234567   :
-                          wb_peri_adr_i[3:0] == 1 ? reg_sw_reset   :
-                          wb_peri_adr_i[3:0] == 2 ? reg_cam_enable : 0;
+    assign wb_gid_dat_o = wb_peri_adr_i[3:0] == 0 ? WB_DAT_WIDTH'(32'h01234567)   :
+                          wb_peri_adr_i[3:0] == 1 ? WB_DAT_WIDTH'(reg_sw_reset)   :
+                          wb_peri_adr_i[3:0] == 2 ? WB_DAT_WIDTH'(reg_cam_enable) : '0;
     assign wb_gid_ack_o = wb_gid_stb_i;
 
     assign cam_enable = reg_cam_enable;
@@ -511,12 +514,15 @@ module kv260_imx219
     wire    [9:0]               axi4s_fmtr_tdata;
     wire                        axi4s_fmtr_tvalid;
     wire                        axi4s_fmtr_tready;
-    
+
+    wire    [X_WIDTH-1:0]       fmtr_param_width;
+    wire    [Y_WIDTH-1:0]       fmtr_param_height;
+
     wire    [WB_DAT_WIDTH-1:0]  wb_fmtr_dat_o;
     wire                        wb_fmtr_stb_i;
     wire                        wb_fmtr_ack_o;
     
-    jelly_video_format_regularizer
+    jelly2_video_format_regularizer
             #(
                 .WB_ADR_WIDTH       (8),
                 .WB_DAT_WIDTH       (WB_DAT_WIDTH),
@@ -543,16 +549,9 @@ module kv260_imx219
                 .aresetn            (axi4s_cam_aresetn),
                 .aclk               (axi4s_cam_aclk),
                 .aclken             (1'b1),
-                
-                .s_wb_rst_i         (wb_peri_rst_i),
-                .s_wb_clk_i         (wb_peri_clk_i),
-                .s_wb_adr_i         (wb_peri_adr_i[7:0]),
-                .s_wb_dat_o         (wb_fmtr_dat_o),
-                .s_wb_dat_i         (wb_peri_dat_i),
-                .s_wb_we_i          (wb_peri_we_i),
-                .s_wb_sel_i         (wb_peri_sel_i),
-                .s_wb_stb_i         (wb_fmtr_stb_i),
-                .s_wb_ack_o         (wb_fmtr_ack_o),
+
+                .out_param_width    (fmtr_param_width),
+                .out_param_height   (fmtr_param_height),
                 
                 .s_axi4s_tuser      (axi4s_csi2_tuser),
                 .s_axi4s_tlast      (axi4s_csi2_tlast),
@@ -564,7 +563,17 @@ module kv260_imx219
                 .m_axi4s_tlast      (axi4s_fmtr_tlast),
                 .m_axi4s_tdata      (axi4s_fmtr_tdata),
                 .m_axi4s_tvalid     (axi4s_fmtr_tvalid),
-                .m_axi4s_tready     (axi4s_fmtr_tready)
+                .m_axi4s_tready     (axi4s_fmtr_tready),
+
+                .s_wb_rst_i         (wb_peri_rst_i),
+                .s_wb_clk_i         (wb_peri_clk_i),
+                .s_wb_adr_i         (wb_peri_adr_i[7:0]),
+                .s_wb_dat_o         (wb_fmtr_dat_o),
+                .s_wb_dat_i         (wb_peri_dat_i),
+                .s_wb_we_i          (wb_peri_we_i),
+                .s_wb_sel_i         (wb_peri_sel_i),
+                .s_wb_stb_i         (wb_fmtr_stb_i),
+                .s_wb_ack_o         (wb_fmtr_ack_o)
             );
     
     
@@ -581,15 +590,13 @@ module kv260_imx219
     
     video_raw_to_rgb
             #(
-                .WB_ADR_WIDTH       (10),
-                .WB_DAT_WIDTH       (WB_DAT_WIDTH),
                 
+                .TUSER_WIDTH        (1),
                 .DATA_WIDTH         (10),
-                
-                .IMG_Y_NUM          (480),
-                .IMG_Y_WIDTH        (12),
-                
-                .TUSER_WIDTH        (1)
+                .X_WIDTH            (X_WIDTH),
+                .Y_WIDTH            (Y_WIDTH),
+                .WB_ADR_WIDTH       (10),
+                .WB_DAT_WIDTH       (WB_DAT_WIDTH)
             )
         i_video_raw_to_rgb
             (
@@ -597,17 +604,10 @@ module kv260_imx219
                 .aclk               (axi4s_cam_aclk),
                 
                 .in_update_req      (1'b1),
-                
-                .s_wb_rst_i         (wb_peri_rst_i),
-                .s_wb_clk_i         (wb_peri_clk_i),
-                .s_wb_adr_i         (wb_peri_adr_i[9:0]),
-                .s_wb_dat_o         (wb_rgb_dat_o),
-                .s_wb_dat_i         (wb_peri_dat_i),
-                .s_wb_we_i          (wb_peri_we_i),
-                .s_wb_sel_i         (wb_peri_sel_i),
-                .s_wb_stb_i         (wb_rgb_stb_i),
-                .s_wb_ack_o         (wb_rgb_ack_o),
-                
+
+                .param_width        (fmtr_param_width),
+                .param_height       (fmtr_param_height),
+
                 .s_axi4s_tuser      (axi4s_fmtr_tuser),
                 .s_axi4s_tlast      (axi4s_fmtr_tlast),
                 .s_axi4s_tdata      (axi4s_fmtr_tdata),
@@ -618,7 +618,17 @@ module kv260_imx219
                 .m_axi4s_tlast      (axi4s_rgb_tlast),
                 .m_axi4s_tdata      (axi4s_rgb_tdata),
                 .m_axi4s_tvalid     (axi4s_rgb_tvalid),
-                .m_axi4s_tready     (axi4s_rgb_tready)
+                .m_axi4s_tready     (axi4s_rgb_tready),
+
+                .s_wb_rst_i         (wb_peri_rst_i),
+                .s_wb_clk_i         (wb_peri_clk_i),
+                .s_wb_adr_i         (wb_peri_adr_i[9:0]),
+                .s_wb_dat_o         (wb_rgb_dat_o),
+                .s_wb_dat_i         (wb_peri_dat_i),
+                .s_wb_we_i          (wb_peri_we_i),
+                .s_wb_sel_i         (wb_peri_sel_i),
+                .s_wb_stb_i         (wb_rgb_stb_i),
+                .s_wb_ack_o         (wb_rgb_ack_o)
             );
     
     
@@ -627,6 +637,113 @@ module kv260_imx219
     wire                        wb_vdmaw_stb_i;
     wire                        wb_vdmaw_ack_o;
     
+    
+    jelly2_dma_video_write
+            #(
+                .WB_ASYNC               (1),
+                .WB_ADR_WIDTH           (8),
+                .WB_DAT_WIDTH           (WB_DAT_WIDTH),
+                
+                .AXI4S_ASYNC            (1),
+                .AXI4S_DATA_WIDTH       (32),
+                .AXI4S_USER_WIDTH       (1),
+                
+                .AXI4_ID_WIDTH          (AXI4_MEM0_ID_WIDTH),
+                .AXI4_ADDR_WIDTH        (AXI4_MEM0_ADDR_WIDTH),
+                .AXI4_DATA_SIZE         (AXI4_MEM0_DATA_SIZE),
+                .AXI4_LEN_WIDTH         (8),
+                .AXI4_QOS_WIDTH         (4),
+                
+                .INDEX_WIDTH            (1),
+                .SIZE_OFFSET            (1'b1),
+                .H_SIZE_WIDTH           (12),
+                .V_SIZE_WIDTH           (12),
+                .F_SIZE_WIDTH           (8),
+                .LINE_STEP_WIDTH        (AXI4_MEM0_ADDR_WIDTH),
+                .FRAME_STEP_WIDTH       (AXI4_MEM0_ADDR_WIDTH),
+                
+                .INIT_CTL_CONTROL       (4'b0000),
+                .INIT_IRQ_ENABLE        (1'b0),
+                .INIT_PARAM_ADDR        (0),
+                .INIT_PARAM_AWLEN_MAX   (255),
+                .INIT_PARAM_H_SIZE      (X_NUM-1),
+                .INIT_PARAM_V_SIZE      (Y_NUM-1),
+                .INIT_PARAM_LINE_STEP   (8192),
+                .INIT_PARAM_F_SIZE      (0),
+                .INIT_PARAM_FRAME_STEP  (Y_NUM*8192),
+                .INIT_SKIP_EN           (1'b1),
+                .INIT_DETECT_FIRST      (3'b010),
+                .INIT_DETECT_LAST       (3'b001),
+                .INIT_PADDING_EN        (1'b1),
+                .INIT_PADDING_DATA      (32'd0),
+                
+                .BYPASS_GATE            (0),
+                .BYPASS_ALIGN           (0),
+                .DETECTOR_ENABLE        (1),
+                .ALLOW_UNALIGNED        (1), // (0),
+                .CAPACITY_WIDTH         (32),
+                
+                .WFIFO_PTR_WIDTH        (9),
+                .WFIFO_RAM_TYPE         ("block")
+            )
+        i_dma_video_write
+            (
+                .endian                 (1'b0),
+                
+                .s_wb_rst_i             (wb_peri_rst_i),
+                .s_wb_clk_i             (wb_peri_clk_i),
+                .s_wb_adr_i             (wb_peri_adr_i[7:0]),
+                .s_wb_dat_i             (wb_peri_dat_i),
+                .s_wb_dat_o             (wb_vdmaw_dat_o),
+                .s_wb_we_i              (wb_peri_we_i),
+                .s_wb_sel_i             (wb_peri_sel_i),
+                .s_wb_stb_i             (wb_vdmaw_stb_i),
+                .s_wb_ack_o             (wb_vdmaw_ack_o),
+                .out_irq                (),
+                
+                .buffer_request         (),
+                .buffer_release         (),
+                .buffer_addr            ('0),
+                
+                .s_axi4s_aresetn        (axi4s_cam_aresetn),
+                .s_axi4s_aclk           (axi4s_cam_aclk),
+                .s_axi4s_tuser          (axi4s_rgb_tuser),
+                .s_axi4s_tlast          (axi4s_rgb_tlast),
+                .s_axi4s_tdata          ({
+                                             axi4s_rgb_tdata[39:32],
+                                             axi4s_rgb_tdata[29:22],
+                                             axi4s_rgb_tdata[19:12],
+                                             axi4s_rgb_tdata[ 9: 2]
+                                         }),
+                .s_axi4s_tvalid         (axi4s_rgb_tvalid),
+                .s_axi4s_tready         (axi4s_rgb_tready),
+                
+                .m_aresetn              (axi4_mem_aresetn),
+                .m_aclk                 (axi4_mem_aclk),
+                .m_axi4_awid            (axi4_mem0_awid),
+                .m_axi4_awaddr          (axi4_mem0_awaddr),
+                .m_axi4_awburst         (axi4_mem0_awburst),
+                .m_axi4_awcache         (axi4_mem0_awcache),
+                .m_axi4_awlen           (axi4_mem0_awlen),
+                .m_axi4_awlock          (axi4_mem0_awlock),
+                .m_axi4_awprot          (axi4_mem0_awprot),
+                .m_axi4_awqos           (axi4_mem0_awqos),
+                .m_axi4_awregion        (),
+                .m_axi4_awsize          (axi4_mem0_awsize),
+                .m_axi4_awvalid         (axi4_mem0_awvalid),
+                .m_axi4_awready         (axi4_mem0_awready),
+                .m_axi4_wstrb           (axi4_mem0_wstrb),
+                .m_axi4_wdata           (axi4_mem0_wdata),
+                .m_axi4_wlast           (axi4_mem0_wlast),
+                .m_axi4_wvalid          (axi4_mem0_wvalid),
+                .m_axi4_wready          (axi4_mem0_wready),
+                .m_axi4_bid             (axi4_mem0_bid),
+                .m_axi4_bresp           (axi4_mem0_bresp),
+                .m_axi4_bvalid          (axi4_mem0_bvalid),
+                .m_axi4_bready          (axi4_mem0_bready)
+            );
+    
+    /*
     jelly_vdma_axi4s_to_axi4
             #(
                 .ASYNC              (1),
@@ -703,7 +820,7 @@ module kv260_imx219
                 .s_wb_stb_i         (wb_vdmaw_stb_i),
                 .s_wb_ack_o         (wb_vdmaw_ack_o)
             );
-        
+    */
     
     // read は未使用
     assign axi4_mem0_arid     = 0;

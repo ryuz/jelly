@@ -216,7 +216,7 @@ module image_processing
                 .WB_ADR_WIDTH           (6),
                 .WB_DAT_WIDTH           (WB_DAT_WIDTH),
                 
-                .INIT_PARAM_PHASE       (2'b11)
+                .INIT_PARAM_PHASE       (2'b00)
             )
         i_img_demosaic_acpi
             (
@@ -287,7 +287,7 @@ module image_processing
                 .COEFF3_INT_WIDTH       (9),
                 .COEFF3_FRAC_WIDTH      (16),
                 .STATIC_COEFF           (1),
-                .DEVICE                 ("7SERIES"),
+                .DEVICE                 ("RTL"),
                 
                 .WB_ADR_WIDTH           (6),
                 .WB_DAT_WIDTH           (WB_DAT_WIDTH),

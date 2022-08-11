@@ -192,22 +192,19 @@ module jelly2_video_format_regularizer
     // -------------------------------------
     
     // core
-    (* ASYNC_REG = "true" *)    reg                             ff0_ctl_enable,        ff1_ctl_enable,    ff2_ctl_enable;
-    (* ASYNC_REG = "true" *)    reg                             ff0_ctl_update,        ff1_ctl_update;
-    (* ASYNC_REG = "true" *)    reg                             ff0_ctl_skip,          ff1_ctl_skip;
-    (* ASYNC_REG = "true" *)    reg                             ff0_ctl_frm_timer_en,  ff1_ctl_frm_timer_en;
-    (* ASYNC_REG = "true" *)    reg     [FRAME_TIMER_WIDTH-1:0] ff0_ctl_frm_timeout,   ff1_ctl_frm_timeout;
-    
-    (* ASYNC_REG = "true" *)    reg     [X_WIDTH-1:0]           ff0_param_width,       ff1_param_width;
-    (* ASYNC_REG = "true" *)    reg     [Y_WIDTH-1:0]           ff0_param_height,      ff1_param_height;
-    (* ASYNC_REG = "true" *)    reg     [TDATA_WIDTH-1:0]       ff0_param_fill,        ff1_param_fill;
-    (* ASYNC_REG = "true" *)    reg     [TIMER_WIDTH-1:0]       ff0_param_timeout,     ff1_param_timeout;
+    (* ASYNC_REG = "true" *)    logic     ff0_ctl_enable,        ff1_ctl_enable,    ff2_ctl_enable;
+    (* ASYNC_REG = "true" *)    logic     ff0_ctl_update,        ff1_ctl_update;
+    (* ASYNC_REG = "true" *)    logic     ff0_ctl_skip,          ff1_ctl_skip;
+    (* ASYNC_REG = "true" *)    logic     ff0_ctl_frm_timer_en,  ff1_ctl_frm_timer_en;
     
     always_ff @(posedge aclk) begin
         if ( ~aresetn ) begin
             ff0_ctl_enable       <= 1'b0;
             ff1_ctl_enable       <= 1'b0;
             ff2_ctl_enable       <= 1'b0;
+            
+            ff0_ctl_update       <= 1'b0;
+            ff1_ctl_update       <= 1'b0;
             
             ff0_ctl_skip         <= 1'b0;
             ff1_ctl_skip         <= 1'b0;
@@ -216,37 +213,21 @@ module jelly2_video_format_regularizer
             ff1_ctl_frm_timer_en <= 1'b0;
         end
         else begin
-            ff0_ctl_enable        <= reg_ctl_control[0];
-            ff1_ctl_enable        <= ff0_ctl_enable;
-            ff2_ctl_enable        <= ff1_ctl_enable;
-            
-            ff0_ctl_skip          <= reg_ctl_skip;
-            ff1_ctl_skip          <= ff0_ctl_skip;
+            ff0_ctl_enable       <= reg_ctl_control[0];
+            ff1_ctl_enable       <= ff0_ctl_enable;
+            ff2_ctl_enable       <= ff1_ctl_enable;
+
+            ff0_ctl_update       <= reg_ctl_control[1];
+            ff1_ctl_update       <= ff0_ctl_update;
+
+            ff0_ctl_skip         <= reg_ctl_skip;
+            ff1_ctl_skip         <= ff0_ctl_skip;
             
             ff0_ctl_frm_timer_en <= reg_ctl_frm_timer_en;
             ff1_ctl_frm_timer_en <= ff0_ctl_frm_timer_en;
         end
     end
     
-    always_ff @(posedge aclk) begin
-        ff0_ctl_update      <= reg_ctl_control[1];
-        ff0_ctl_frm_timeout <= reg_ctl_frm_timeout;
-        ff0_param_width     <= reg_param_width;
-        ff0_param_height    <= reg_param_height;
-        ff0_param_fill      <= reg_param_fill;
-        ff0_param_timeout   <= reg_param_timeout;
-        
-        ff1_ctl_update      <= ff0_ctl_update;
-        ff1_ctl_frm_timeout <= ff0_ctl_frm_timeout;
-        ff1_param_width     <= ff0_param_width;
-        ff1_param_height    <= ff0_param_height;
-        ff1_param_fill      <= ff0_param_fill;
-        ff1_param_timeout   <= ff0_param_timeout;
-    end
-
-    assign out_param_width  = ff1_param_width;
-    assign out_param_height = ff1_param_height;
-
     // core
     jelly_video_format_regularizer_core
             #(
@@ -273,13 +254,16 @@ module jelly2_video_format_regularizer
                 .ctl_index          (index),
                 .ctl_skip           (ff1_ctl_skip),
                 .ctl_frm_timer_en   (ff1_ctl_frm_timer_en),
-                .ctl_frm_timeout    (ff1_ctl_frm_timeout),
+                .ctl_frm_timeout    (reg_ctl_frm_timeout),
                 
-                .param_width        (ff1_param_width),
-                .param_height       (ff1_param_height),
-                .param_fill         (ff1_param_fill),
-                .param_timeout      (ff1_param_timeout),
-                
+                .param_width        (reg_param_width),
+                .param_height       (reg_param_height),
+                .param_fill         (reg_param_fill),
+                .param_timeout      (reg_param_timeout),
+
+                .current_width      (out_param_width),
+                .current_height     (out_param_height),
+
                 .s_axi4s_tuser      (s_axi4s_tuser),
                 .s_axi4s_tlast      (s_axi4s_tlast),
                 .s_axi4s_tdata      (s_axi4s_tdata),
@@ -292,7 +276,6 @@ module jelly2_video_format_regularizer
                 .m_axi4s_tvalid     (m_axi4s_tvalid),
                 .m_axi4s_tready     (m_axi4s_tready)
             );
-    
     
 endmodule
 

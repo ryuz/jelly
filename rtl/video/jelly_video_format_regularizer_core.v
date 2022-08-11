@@ -43,6 +43,9 @@ module jelly_video_format_regularizer_core
             input   wire    [Y_WIDTH-1:0]           param_height,
             input   wire    [TDATA_WIDTH-1:0]       param_fill,
             input   wire    [TIMER_WIDTH-1:0]       param_timeout,
+
+            output  reg     [X_WIDTH-1:0]           current_width,
+            output  reg     [Y_WIDTH-1:0]           current_height,
             
             input   wire    [TUSER_WIDTH-1:0]       s_axi4s_tuser,
             input   wire                            s_axi4s_tlast,
@@ -139,6 +142,9 @@ module jelly_video_format_regularizer_core
     
     always @(posedge aclk) begin
         if ( ~aresetn ) begin
+            current_width     <= {X_WIDTH{1'b0}};
+            current_height    <= {Y_WIDTH{1'b0}};
+            
             reg_index         <= {INDEX_WIDTH{1'b0}};
             reg_param_width   <= {X_WIDTH{1'bx}};
             reg_param_height  <= {Y_WIDTH{1'bx}};
@@ -265,6 +271,8 @@ module jelly_video_format_regularizer_core
                         reg_param_height  <= param_height - 1;
                         reg_param_fill    <= param_fill;
                         reg_param_timeout <= param_timeout;
+                        current_width     <= param_width;
+                        current_height    <= param_height;
                     end
                 end
             end
@@ -316,30 +324,6 @@ module jelly_video_format_regularizer_core
                 .buffered       (),
                 .s_ready_next   ()
             );
-    
-    
-    /*
-    reg     [TUSER_WIDTH-1:0]   st1_tuser;
-    reg                         st1_tlast;
-    reg     [TDATA_WIDTH-1:0]   st1_tdata;
-    reg                         st1_tvalid;
-    
-    always @(posedge aclk) begin
-        if ( ~aresetn ) begin
-            st1_tuser  <= {TUSER_WIDTH{1'bx}};
-            st1_tlast  <= 1'bx;
-            st1_tdata  <= {TDATA_WIDTH{1'bx}};
-            st1_tvalid <= 1'b0;
-        end
-        else if ( cke ) begin
-            st1_tuser  <= reg_tuser;
-            st1_tlast  <= reg_x_last;
-            st1_tdata  <= reg_tdata;
-            st1_tvalid <= reg_tvalid;
-        end
-    end
-    */
-    
     
     
 endmodule
