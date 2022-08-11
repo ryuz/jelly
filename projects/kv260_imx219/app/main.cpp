@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
             exposure    = 1;
             a_gain      = 20;
             d_gain      = 10;
-            bayer_phase = 1;
+            bayer_phase = 0;
             view_scale  = 1;
         }
         else if ( strcmp(argv[i], "720p") == 0 ) {
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
             exposure    = 20;
             a_gain      = 20;
             d_gain      = 0;
-            bayer_phase = 1;
+            bayer_phase = 0;
             view_scale  = 2;
         }
         else if ( strcmp(argv[i], "1080p") == 0 ) {
@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
             exposure    = 20;
             a_gain      = 20;
             d_gain      = 0;
-            bayer_phase = 1;
+            bayer_phase = 0;
             view_scale  = 2;
         }
         else if ( strcmp(argv[i], "full") == 0 ) {
@@ -244,7 +244,7 @@ int main(int argc, char *argv[])
         reg_demos.WriteReg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3);  // update & enable
 
         // キャプチャ
-        vdmaw.StartOneshot(dmabuf_phys_adr, width, height, frame_num);
+        vdmaw.Oneshot(dmabuf_phys_adr, width, height, frame_num);
 //      capture_still_image(reg_wdma, reg_fmtr, dmabuf_phys_adr, width, height, frame_num);
         cv::Mat img(height*frame_num, width, CV_8UC4);
         udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4 * frame_num);
@@ -298,7 +298,7 @@ int main(int argc, char *argv[])
         case 'r': // image record
             std::cout << "record" << std::endl;
 //          capture_still_image(reg_wdma, reg_fmtr, dmabuf_phys_adr, width, height, rec_frame_num);
-            vdmaw.StartOneshot(dmabuf_phys_adr, width, height, rec_frame_num);
+            vdmaw.Oneshot(dmabuf_phys_adr, width, height, rec_frame_num);
             int offset = 0;
             for ( int i = 0; i < rec_frame_num; i++ ) {
                 char fname[64];
