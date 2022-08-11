@@ -340,8 +340,6 @@ module jelly_fixed_matrix3x4
                 .p              (z_p)
             );
     
-    
-    
 endmodule
 
 
