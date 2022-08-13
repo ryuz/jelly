@@ -25,16 +25,16 @@ module jelly2_data_gather
             parameter   bit     INTERNAL_REGS  = (PORT_NUM > 32)
         )
         (
-            input   wire                                reset,
-            input   wire                                clk,
+            input   wire                                    reset,
+            input   wire                                    clk,
             
-            input   wire    [PORT_NUM*DATA_WIDTH-1:0]   s_data,
-            input   wire    [PORT_NUM-1:0]              s_valid,
-            output  wire    [PORT_NUM-1:0]              s_ready,
+            input   wire    [PORT_NUM-1:0][DATA_WIDTH-1:0]  s_data,
+            input   wire    [PORT_NUM-1:0]                  s_valid,
+            output  wire    [PORT_NUM-1:0]                  s_ready,
             
-            output  wire    [DATA_WIDTH-1:0]            m_data,
-            output  wire                                m_valid,
-            input   wire                                m_ready
+            output  wire    [DATA_WIDTH-1:0]                m_data,
+            output  wire                                    m_valid,
+            input   wire                                    m_ready
             
         );
     
@@ -53,9 +53,9 @@ module jelly2_data_gather
     end
     else begin : blk_gather
         // FIFO
-        wire    [PORT_NUM*DATA_WIDTH-1:0]   fifo_data;
-        wire    [PORT_NUM-1:0]              fifo_valid;
-        wire    [PORT_NUM-1:0]              fifo_ready;
+        wire    [PORT_NUM-1:0][DATA_WIDTH-1:0]  fifo_data;
+        wire    [PORT_NUM-1:0]                  fifo_valid;
+        wire    [PORT_NUM-1:0]                  fifo_ready;
         
         for ( i = 0; i < PORT_NUM; i = i+1 ) begin : loop_fifo
             wire    [DATA_WIDTH-1:0]    s_ff_data;
@@ -74,7 +74,7 @@ module jelly2_data_gather
                         .clk            (clk),
                         .cke            (1'b1),
                         
-                        .s_data         (s_data[i*DATA_WIDTH +: DATA_WIDTH]),
+                        .s_data         (s_data[i]),
                         .s_valid        (s_valid[i]),
                         .s_ready        (s_ready[i]),
                         
@@ -86,25 +86,26 @@ module jelly2_data_gather
                         .s_ready_next   ()
                     );
             
-            jelly_fifo_fwtf
+            jelly2_fifo_fwtf
                     #(
                         .DATA_WIDTH     (DATA_WIDTH),
                         .PTR_WIDTH      (FIFO_PTR_WIDTH),
                         .DOUT_REGS      (0),
                         .RAM_TYPE       (FIFO_RAM_TYPE),
-                        .MASTER_REGS    (INTERNAL_REGS)
+                        .M_REGS         (INTERNAL_REGS)
                     )
                 i_fifo_fwtf
                     (
                         .reset          (reset),
                         .clk            (clk),
+                        .cke            (1'b1),
                         
                         .s_data         (s_ff_data),
                         .s_valid        (s_ff_valid),
                         .s_ready        (s_ff_ready),
                         .s_free_count   (),
                         
-                        .m_data         (fifo_data[i*DATA_WIDTH +: DATA_WIDTH]),
+                        .m_data         (fifo_data[i]),
                         .m_valid        (fifo_valid[i]),
                         .m_ready        (fifo_ready[i]),
                         .m_data_count   ()
@@ -121,7 +122,7 @@ module jelly2_data_gather
         wire                            m_ff_valid;
         wire                            m_ff_ready;
         
-        assign m_ff_data  = fifo_data[reg_sel*DATA_WIDTH +: DATA_WIDTH];
+        assign m_ff_data  = fifo_data[reg_sel];
         assign m_ff_valid = fifo_valid[reg_sel];
         assign fifo_ready = ({{(PORT_NUM-1){1'b0}}, m_ff_ready} << reg_sel);
         

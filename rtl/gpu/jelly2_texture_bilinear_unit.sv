@@ -478,27 +478,28 @@ module jelly2_texture_bilinear_unit
     
     generate
     if ( USER_WIDTH > 0 ) begin : blk_user
-        jelly_fifo_fwtf
+        jelly2_fifo_fwtf
                 #(
                     .DATA_WIDTH     (USER_WIDTH),
                     .PTR_WIDTH      (USER_FIFO_PTR_WIDTH),
                     .DOUT_REGS      (0),
                     .RAM_TYPE       (USER_FIFO_RAM_TYPE),
-                    .MASTER_REGS    (USER_FIFO_M_REGS)
+                    .M_REGS         (USER_FIFO_M_REGS)
                 )
             jelly_fifo_fwtf
                 (
                     .reset          (reset),
                     .clk            (clk),
+                    .cke            (cke),
                     
                     .s_data         (s_user),
-                    .s_valid        (cke & s_valid & s_ready),
+                    .s_valid        (s_valid & s_ready),
                     .s_ready        (),
                     .s_free_count   (),
                     
                     .m_data         (m_user),
                     .m_valid        (),
-                    .m_ready        (cke & m_valid & m_ready),
+                    .m_ready        (m_valid & m_ready),
                     .m_data_count   ()
                 );
     end
