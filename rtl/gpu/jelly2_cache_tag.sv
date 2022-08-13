@@ -87,7 +87,7 @@ module jelly2_cache_tag
         assign m_addr = m_tag;
     end
     else if ( TAG_WIDTH <= 0 ) begin : blk_full_associative
-        jelly_cache_tag_full_associative
+        jelly2_cache_tag_full_associative
                 #(
                     .USER_WIDTH         (USER_WIDTH),
                     .WAY_NUM            (WAY_NUM),

@@ -34,7 +34,7 @@ module jelly2_texture_cache_tag_addr
             output  wire    [INDEX_WIDTH-1:0]       index
         );
     
-    localparam  SHUFFLE_WIDTH    = PARALLEL_SIZE + TAG_ADDR_WIDTH;
+    localparam  SHUFFLE_WIDTH    = PARALLEL_SIZE + TAG_ADDR_WIDTH > 0 ? PARALLEL_SIZE + TAG_ADDR_WIDTH : 1;
     localparam  HALF_ADDR_WIDTH  = TAG_ADDR_WIDTH / 2;
     localparam  TWIST_OFFSET     = (1 << (PARALLEL_SIZE + TAG_ADDR_WIDTH - 1));
     
@@ -58,7 +58,7 @@ module jelly2_texture_cache_tag_addr
         wire    [SHUFFLE_WIDTH-1:0]     shuffle_addr = SHUFFLE_WIDTH'(addrx) + SHUFFLE_WIDTH'(TWIST_OFFSET * addry) - SHUFFLE_WIDTH'(addry);
         
         assign unit_id  = PARALLEL_SIZE > 0 ? ID_WIDTH'(shuffle_addr) : 0;
-        assign tag_addr = (shuffle_addr >> PARALLEL_SIZE);
+        assign tag_addr = TAG_ADDR_BITS'(shuffle_addr >> PARALLEL_SIZE);
         assign index    = {addry, addrx};
     end
     else if ( ALGORITHM == "NORMAL" ) begin : blk_normal
