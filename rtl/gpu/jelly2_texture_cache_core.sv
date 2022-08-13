@@ -204,7 +204,7 @@ module jelly2_texture_cache_core
     
     wire                                                                                        l1_clear_busy;
     
-    jelly_texture_cache_l1
+    jelly2_texture_cache_l1
             #(
                 .CACHE_NUM              (L1_CACHE_NUM),
                 
@@ -326,7 +326,7 @@ module jelly2_texture_cache_core
 
     wire                            l2_clear_busy;
             
-    jelly_texture_cache_l2
+    jelly2_texture_cache_l2
             #(
                 
                 .COMPONENT_NUM          (COMPONENT_NUM),
