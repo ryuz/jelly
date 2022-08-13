@@ -226,7 +226,7 @@ module jelly2_texture_cache_l2
     end
     endgenerate
     
-    jelly_data_arbiter_ring_bus
+    jelly2_data_arbiter_ring_bus
             #(
                 .S_NUM              (S_NUM),
                 .S_ID_WIDTH         (S_ID_WIDTH),

@@ -254,8 +254,7 @@ module jelly2_texture_sampler
         wire                                        bilinear_rready;
         
         if ( USE_BILINEAR ) begin : blk_bilinear
-            
-            jelly_texture_bilinear_unit
+            jelly2_texture_bilinear_unit
                     #(
                         .COMPONENT_NUM          (COMPONENT_NUM),
                         .DATA_WIDTH             (DATA_WIDTH),
