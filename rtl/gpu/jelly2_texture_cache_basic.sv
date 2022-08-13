@@ -407,7 +407,7 @@ module jelly2_texture_cache_basic
     //  cahce memory
     // ---------------------------------
     
-    jelly_texture_cache_mem
+    jelly2_texture_cache_mem
             #(
                 .USER_WIDTH             (S_USER_WIDTH),
                 .COMPONENT_NUM          (COMPONENT_NUM),

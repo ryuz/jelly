@@ -514,7 +514,7 @@ module jelly2_texture_cache_l2
                 .m_ready            (ringbus_arready)
             );
 
-    jelly_data_switch
+    jelly2_data_switch
             #(
                 .NUM                (CACHE_NUM),
                 .ID_WIDTH           (CACHE_ID_WIDTH),
@@ -556,7 +556,7 @@ module jelly2_texture_cache_l2
     wire                                dma_rvalid;
     wire                                dma_rready;
     
-    jelly_texture_cache_dma
+    jelly2_texture_cache_dma
             #(
                 .COMPONENT_NUM          (COMPONENT_NUM),
                 .COMPONENT_SEL_WIDTH    (COMPONENT_SEL_WIDTH),
