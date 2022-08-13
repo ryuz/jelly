@@ -518,7 +518,7 @@ module tb_main(
     
 
     //  core
-    jelly_texture_sampler
+    jelly2_texture_sampler
             #(
                 .COMPONENT_NUM                  (COMPONENTS),
                 .DATA_SIZE                      (DATA_SIZE),
@@ -533,9 +533,9 @@ module tb_main(
                 
                 .USE_BILINEAR                   (USE_BILINEAR),
                 .USE_BORDER                     (USE_BORDER),
-                                                
+
                 .SAMPLER1D_NUM                  (SAMPLER1D_NUM),
-                                                
+
                 .SAMPLER2D_NUM                  (SAMPLER2D_NUM),
                 .SAMPLER2D_USER_WIDTH           (SAMPLER2D_USER_WIDTH),
                 .SAMPLER2D_X_INT_WIDTH          (SAMPLER2D_X_INT_WIDTH),
@@ -552,7 +552,6 @@ module tb_main(
                 .SAMPLER2D_X_WIDTH              (SAMPLER2D_X_WIDTH),
                 .SAMPLER2D_Y_WIDTH              (SAMPLER2D_Y_WIDTH),
                 .SAMPLER2D_COEFF_WIDTH          (SAMPLER2D_COEFF_WIDTH),
-                .SAMPLER2D_USER_BITS            (SAMPLER2D_USER_BITS),
                 
                 .SAMPLER3D_NUM                  (SAMPLER3D_NUM),
                 
