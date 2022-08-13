@@ -181,7 +181,7 @@ module jelly2_texture_cache_l2
         assign s_blk_addrx = BLK_ADDR_X_WIDTH'(s_araddrx[i] >> BLK_X_SIZE);
         assign s_blk_addry = BLK_ADDR_Y_WIDTH'(s_araddry[i] >> BLK_Y_SIZE);
         
-        jelly_texture_cache_tag_addr
+        jelly2_texture_cache_tag_addr
                 #(
                     .PARALLEL_SIZE      (PARALLEL_SIZE),
                     

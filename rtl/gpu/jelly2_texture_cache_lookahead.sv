@@ -136,7 +136,7 @@ module jelly2_texture_cache_lookahead
     wire                                tag_valid;
     wire                                tag_ready;
     
-    jelly_texture_cache_tag
+    jelly2_texture_cache_tag
             #(
                 .USER_WIDTH             (S_USER_WIDTH),
                 

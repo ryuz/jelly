@@ -207,18 +207,19 @@ module jelly2_texture_cache_dma
     wire                            que_arvalid;
     wire                            que_arready;
     
-    jelly_fifo_fwtf
+    jelly2_fifo_fwtf
             #(
                 .DATA_WIDTH         (ID_WIDTH+ADDR_WIDTH),
                 .PTR_WIDTH          (QUE_FIFO_PTR_WIDTH),
                 .RAM_TYPE           (QUE_FIFO_RAM_TYPE),
-                .SLAVE_REGS         (QUE_FIFO_S_REGS),
-                .MASTER_REGS        (QUE_FIFO_M_REGS)
+                .S_REGS             (QUE_FIFO_S_REGS),
+                .M_REGS             (QUE_FIFO_M_REGS)
             )
         i_fifo_fwtf
             (
                 .reset              (reset),
                 .clk                (clk),
+                .cke                (1'b1),
                 
                 .s_data             ({slave_arid, slave_araddr}),
                 .s_valid            (slave_arvalid),

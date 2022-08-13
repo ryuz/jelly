@@ -211,7 +211,7 @@ module jelly2_texture_cache_basic
     wire                                tagram_valid;
     wire                                tagram_ready;
     
-    jelly_texture_cache_tag
+    jelly2_texture_cache_tag
             #(
                 .USER_WIDTH             (S_USER_WIDTH),
                 
