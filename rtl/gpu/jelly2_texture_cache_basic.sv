@@ -159,7 +159,7 @@ module jelly2_texture_cache_basic
     wire                            blkaddr_arvalid;
     wire                            blkaddr_arready;
     
-    jelly_texture_blk_addr
+    jelly2_texture_blk_addr
             #(
                 .USER_WIDTH             (S_USER_WIDTH+1),
                 
