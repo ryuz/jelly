@@ -312,8 +312,8 @@ module jelly2_texture_sampler
             wire    signed  [SAMPLER2D_Y_WIDTH-1:0] tmp_y = s_sampler2d_y[i] + ((1 << SAMPLER2D_Y_FRAC_WIDTH) >> 1);
             
             assign bilinear_aruser   = s_sampler2d_user[i];
-            assign bilinear_araddrx  = (tmp_x >>> SAMPLER2D_X_FRAC_WIDTH);
-            assign bilinear_araddry  = (tmp_y >>> SAMPLER2D_Y_FRAC_WIDTH);
+            assign bilinear_araddrx  = SAMPLER2D_X_INT_WIDTH'(tmp_x >>> SAMPLER2D_X_FRAC_WIDTH);
+            assign bilinear_araddry  = SAMPLER2D_Y_INT_WIDTH'(tmp_y >>> SAMPLER2D_Y_FRAC_WIDTH);
             assign bilinear_arstrb   = s_sampler2d_strb  [i];
             assign bilinear_arvalid  = s_sampler2d_valid [i];
             
@@ -381,8 +381,8 @@ module jelly2_texture_sampler
         else begin : blk_no_border
             assign sampler2d_aruser  [i] = bilinear_aruser;
             assign sampler2d_arborder[i] = 1'b0;
-            assign sampler2d_araddrx [i] = bilinear_araddrx;
-            assign sampler2d_araddry [i] = bilinear_araddry;
+            assign sampler2d_araddrx [i] = ADDR_X_WIDTH'(bilinear_araddrx);
+            assign sampler2d_araddry [i] = ADDR_Y_WIDTH'(bilinear_araddry);
             assign sampler2d_arstrb  [i] = bilinear_arstrb;
             assign sampler2d_arvalid [i] = bilinear_arvalid;
             

@@ -22,7 +22,7 @@ module tb_main(
     localparam  int     X_NUM            = 640;
     localparam  int     Y_NUM            = 480;
 
-    localparam  int     BLK_X_SIZE       = 4;  // 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
+    localparam  int     BLK_X_SIZE       = 5;  // 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
     localparam  int     BLK_Y_SIZE       = 4;  // 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
     localparam  int     STEP_Y_SIZE      = 2;
 
@@ -146,7 +146,7 @@ module tb_main(
     localparam  int     X_WIDTH                = 10;
     localparam  int     Y_WIDTH                = 9;
     localparam  int     STRIDE_C_WIDTH         = 14;
-    localparam  int     STRIDE_X_WIDTH         = 14;
+    localparam  int     STRIDE_X_WIDTH         = 16;
     localparam  int     STRIDE_Y_WIDTH         = 15;
 
     logic                               writer_enable;
@@ -252,7 +252,7 @@ module tb_main(
     
 //  parameter   int     DATA_WIDTH                    = 8;
     parameter   int     ADDR_WIDTH                    = 24;
-    parameter   int     ADDR_X_WIDTH                  = 12;
+    parameter   int     ADDR_X_WIDTH                  = 14;
     parameter   int     ADDR_Y_WIDTH                  = 12;
 //    parameter     tnt     STRIDE_C_WIDTH                = 12;
 //    parameter     tnt     STRIDE_X_WIDTH                = 13;
@@ -297,8 +297,8 @@ module tb_main(
     parameter           L1_MEM_RAM_TYPE               = "block";
     parameter   int     L1_DATA_SIZE                  = 2;
     
-    parameter   int     L2_PARALLEL_SIZE              = 2;
-    parameter   int     L2_USE_LOOK_AHEAD             = 0;
+    parameter   int     L2_PARALLEL_SIZE              = 1;
+    parameter   int     L2_USE_LOOK_AHEAD             = 1;
     parameter   int     L2_QUE_FIFO_PTR_WIDTH         = 6;
     parameter   int     L2_AR_FIFO_PTR_WIDTH          = 0;
     parameter   int     L2_R_FIFO_PTR_WIDTH           = 6;

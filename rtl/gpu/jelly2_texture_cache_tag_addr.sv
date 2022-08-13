@@ -45,8 +45,8 @@ module jelly2_texture_cache_tag_addr
     
     generate
     if ( ALGORITHM == "SUDOKU" ) begin : blk_sudoku
-        wire    [SHUFFLE_WIDTH-1:0]     shuffle_x    = addrx;
-        wire    [SHUFFLE_WIDTH-1:0]     shuffle_y    = addry;
+        wire    [SHUFFLE_WIDTH-1:0]     shuffle_x    = SHUFFLE_WIDTH'(addrx);
+        wire    [SHUFFLE_WIDTH-1:0]     shuffle_y    = SHUFFLE_WIDTH'(addry);
         
         wire    [SHUFFLE_WIDTH-1:0]     shuffle_addr = (SHUFFLE_WIDTH'({shuffle_y, shuffle_y} >> HALF_ADDR_WIDTH) + shuffle_x);
         

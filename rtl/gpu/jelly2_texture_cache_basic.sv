@@ -388,7 +388,7 @@ module jelly2_texture_cache_basic
     assign tagram_ready = (reg_tagram_ready && (!reg_valid || mem_ready));
     
     assign m_araddrx    = ADDR_X_WIDTH'(reg_blk_addrx) << BLK_X_SIZE;
-    assign m_araddry    = ADDR_X_WIDTH'(reg_blk_addry) << BLK_Y_SIZE;
+    assign m_araddry    = ADDR_Y_WIDTH'(reg_blk_addry) << BLK_Y_SIZE;
     assign m_arvalid    = reg_m_arvalid;
     
     assign m_rready     = (USE_WAIT || mem_ready);

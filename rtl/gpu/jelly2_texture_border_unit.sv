@@ -175,7 +175,7 @@ module jelly2_texture_border_unit
     reg                                 src_y_over;
     reg     signed  [Y_WIDTH-1:0]       src_y0;
     reg     signed  [Y_WIDTH-1:0]       src_y1;
-    reg     signed  [X_WIDTH-1:0]       src_yy;
+    reg     signed  [Y_WIDTH-1:0]       src_yy;
     reg             [2:0]               src_y_op;
     
     always @* begin
@@ -311,8 +311,8 @@ module jelly2_texture_border_unit
         3'b000: begin   st0_y0 = image_height;    st0_y1 = ~st0_y;          st0_y_carry = 1'b0; end
         3'b010: begin   st0_y0 = image_height;    st0_y1 = st0_y;           st0_y_carry = 1'b0; end
         3'b011: begin   st0_y0 = image_height;    st0_y1 = st0_y;           st0_y_carry = 1'b1; end
-        3'b100: begin   st0_y0 = {X_WIDTH{1'b0}}; st0_y1 = ~st0_y;          st0_y_carry = 1'b0; end
-        3'b101: begin   st0_y0 = {X_WIDTH{1'b0}}; st0_y1 = ~st0_y;          st0_y_carry = 1'b1; end
+        3'b100: begin   st0_y0 = {Y_WIDTH{1'b0}}; st0_y1 = ~st0_y;          st0_y_carry = 1'b0; end
+        3'b101: begin   st0_y0 = {Y_WIDTH{1'b0}}; st0_y1 = ~st0_y;          st0_y_carry = 1'b1; end
         3'b110: begin   st0_y0 = image_height;    st0_y1 = {Y_WIDTH{1'b1}}; st0_y_carry = 1'b0; end
         default: ;
         endcase
