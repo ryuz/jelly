@@ -10,7 +10,7 @@
 #-Wno-CASEX
 #-Wno-CASEINCOMPLETE
 
-#-Wno-fatal
+-Wno-fatal
 
 -y ../../../../../rtl/model
 -y ../../../../../rtl/library

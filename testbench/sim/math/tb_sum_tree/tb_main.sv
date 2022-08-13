@@ -18,8 +18,8 @@ module tb_main
     end
 
     // target
-    localparam  int         N            = 7;
-    localparam  int         S_DATA_WIDTH = 9;
+    localparam  int         N            = 3;
+    localparam  int         S_DATA_WIDTH = 8;
     localparam  int         M_DATA_WIDTH = S_DATA_WIDTH + $clog2(N);
     localparam  int         USER_WIDTH   = M_DATA_WIDTH;
     localparam  bit         SIGNED       = 1;
@@ -80,19 +80,23 @@ module tb_main
     always_comb begin
         s_user = '0;
         for ( int i = 0; i < N; ++i ) begin
-            s_user += M_DATA_WIDTH'(s_data[i]);
+            s_user += M_DATA_WIDTH'($signed(s_data[i]));
         end
     end
 
+    logic   err;
     int     ok_count;
     always_ff @( posedge clk ) begin
         if ( reset ) begin
             ok_count <= 0;
         end
         else if ( cke ) begin
+            err <= 1'b0;
             if ( m_valid ) begin
                 if ( m_data != m_user ) begin
                     $error("error!");
+//                  $finish(1);
+                    err <= 1'b1;
                 end
                 else begin
                     ok_count <= ok_count + 1;

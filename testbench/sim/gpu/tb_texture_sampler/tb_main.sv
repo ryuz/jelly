@@ -8,6 +8,10 @@ module tb_main(
             input   wire    clk
         );
 
+    logic   [7:0]   test = 8'h80;
+    initial $display("test:%d", int'(test));
+
+
     // setting
 //  localparam          FILE_NAME        = "../../../../data/Penguins_640x480.ppm";
 //  localparam          FILE_NAME        = "../../../../data/Chrysanthemum_640x480.ppm";
@@ -169,7 +173,7 @@ module tb_main(
         end
     end
 
-    jelly_texture_writer_core
+    jelly2_texture_writer_core
             #(
                 .COMPONENT_NUM          (COMPONENTS),
                 .COMPONENT_DATA_WIDTH   (DATA_WIDTH),
@@ -430,7 +434,7 @@ module tb_main(
     wire                                            sink_valid;
     reg                                             sink_ready = 1;
     
-    jelly_data_scatter
+    jelly2_data_scatter
             #(
                 .PORT_NUM       (SAMPLER2D_NUM),
                 .DATA_WIDTH     (SAMPLER2D_Y_WIDTH+SAMPLER2D_X_WIDTH),
@@ -461,7 +465,7 @@ module tb_main(
     endgenerate
     
     
-    jelly_data_gather
+    jelly2_data_gather
             #(
                 .PORT_NUM       (SAMPLER2D_NUM),
                 .DATA_WIDTH     (COMPONENTS*DATA_WIDTH),

@@ -55,6 +55,9 @@ setup_dataset:
 run: setup_dataset
 	build/tb_verilator
 
+.PHONY : rerun
+rerun: distclean build run
+
 .PHONY : coverage
 coverage:
 	verilator_coverage --annotate annotated coverage.dat
