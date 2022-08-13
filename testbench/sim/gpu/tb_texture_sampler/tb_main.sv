@@ -284,7 +284,7 @@ module tb_main(
     parameter   int     SAMPLER3D_NUM                 = 0;
     
     parameter   int     L1_CACHE_NUM                  = SAMPLER1D_NUM + SAMPLER2D_NUM + SAMPLER3D_NUM;
-    parameter   int     L1_USE_LOOK_AHEAD             = 0;
+    parameter   int     L1_USE_LOOK_AHEAD             = 1;
     parameter   int     L1_QUE_FIFO_PTR_WIDTH         = 6;
     parameter   int     L1_AR_FIFO_PTR_WIDTH          = 0;
     parameter   int     L1_R_FIFO_PTR_WIDTH           = 6;
@@ -305,11 +305,11 @@ module tb_main(
     parameter   int     L2_CACHE_NUM                  = (1 << L2_PARALLEL_SIZE);
     parameter   int     L2_WAY_NUM                    = 4;
     parameter   int     L2_TAG_ADDR_WIDTH             = 6;
-    parameter   int     L2_TAG_ALGORITHM              = "NORMAL";    // L2_PARALLEL_SIZE > 0 ? "SUDOKU" : "TWIST";
+    parameter           L2_TAG_ALGORITHM              = "NORMAL";    // L2_PARALLEL_SIZE > 0 ? "SUDOKU" : "TWIST";
     parameter   int     L2_BLK_X_SIZE                 = BLK_X_SIZE;  // 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
     parameter   int     L2_BLK_Y_SIZE                 = BLK_Y_SIZE;  // 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
-    parameter   int     L2_TAG_RAM_TYPE               = "distributed";
-    parameter   int     L2_MEM_RAM_TYPE               = "block";
+    parameter           L2_TAG_RAM_TYPE               = "distributed";
+    parameter           L2_MEM_RAM_TYPE               = "block";
     
     /*
     parameter   int     M_AXI4_ID_WIDTH               = 6;

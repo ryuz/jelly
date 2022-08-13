@@ -489,7 +489,7 @@ module jelly2_texture_cache_l2
     // r pack
     assign ringbus_rpacket = {ringbus_rlast, ringbus_rcomponent, ringbus_rdata};
     
-    jelly_data_arbiter_ring_bus
+    jelly2_data_arbiter_ring_bus
             #(
                 .S_NUM              (CACHE_NUM),
                 .S_ID_WIDTH         (CACHE_ID_WIDTH),

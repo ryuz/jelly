@@ -38,11 +38,12 @@ module jelly2_data_arbiter_ring_bus
             input   wire    [M_NUM-1:0]                     m_ready
         );
     
-
+    // verilator lint_off UNOPTFLAT
     logic   [(S_NUM+1)-1:0][M_ID_WIDTH-1:0]     ringbus_s_id_to;
     logic   [(S_NUM+1)-1:0][S_ID_WIDTH-1:0]     ringbus_s_id_from;
     logic   [(S_NUM+1)-1:0][DATA_WIDTH-1:0]     ringbus_s_data;
     logic   [(S_NUM+1)-1:0]                     ringbus_s_valid;
+    // verilator lint_on UNOPTFLAT
     
     logic   [(M_NUM+1)-1:0][M_ID_WIDTH-1:0]     ringbus_m_id_to;
     logic   [(M_NUM+1)-1:0][S_ID_WIDTH-1:0]     ringbus_m_id_from;

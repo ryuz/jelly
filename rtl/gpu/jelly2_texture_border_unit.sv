@@ -108,7 +108,10 @@ module jelly2_texture_border_unit
     
     localparam  PIPELINE_STAGES = 2;
     
+    // verilator lint_off UNOPTFLAT
     wire            [PIPELINE_STAGES-1:0]   stage_cke;
+    // verilator lint_on UNOPTFLAT
+    
     wire            [PIPELINE_STAGES-1:0]   stage_valid;
     
     

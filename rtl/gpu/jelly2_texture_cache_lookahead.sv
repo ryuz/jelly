@@ -110,8 +110,6 @@ module jelly2_texture_cache_lookahead
             output  wire                                                    m_rready
         );
     
-    genvar  i;
-    
     // ---------------------------------
     //  localparam
     // ---------------------------------
@@ -200,18 +198,19 @@ module jelly2_texture_cache_lookahead
     wire                            arfifo_m_arvalid;
     wire                            arfifo_m_arready;
     
-    jelly_fifo_fwtf
+    jelly2_fifo_fwtf
             #(
                 .DATA_WIDTH         (ADDR_X_WIDTH+ADDR_Y_WIDTH),
                 .PTR_WIDTH          (AR_FIFO_PTR_WIDTH),
                 .RAM_TYPE           (AR_FIFO_RAM_TYPE),
-                .SLAVE_REGS         (AR_FIFO_S_REGS),
-                .MASTER_REGS        (AR_FIFO_M_REGS)
+                .S_REGS             (AR_FIFO_S_REGS),
+                .M_REGS             (AR_FIFO_M_REGS)
             )
         i_fifo_fwtf_ar
             (
                 .reset              (reset),
                 .clk                (clk),
+                .cke                (1'b1),
                 
                 .s_data             ({arfifo_s_araddrx, arfifo_s_araddry}),
                 .s_valid            (arfifo_s_arvalid),
@@ -236,20 +235,21 @@ module jelly2_texture_cache_lookahead
     wire    [M_STRB_WIDTH-1:0]                              rfifo_array_rready;
     
     generate
-    for ( i = 0; i < M_STRB_WIDTH; i = i+1 ) begin : loop_r_fifo
-        jelly_fifo_fwtf
+    for ( genvar i = 0; i < M_STRB_WIDTH; ++i ) begin : loop_r_fifo
+        jelly2_fifo_fwtf
                 #(
                     .DATA_WIDTH         (1+M_COMPONENT_DATA_WIDTH),
                     .PTR_WIDTH          (R_FIFO_PTR_WIDTH),
                     .RAM_TYPE           (R_FIFO_RAM_TYPE),
-                    .SLAVE_REGS         (R_FIFO_S_REGS),
-                    .MASTER_REGS        (R_FIFO_M_REGS)
+                    .S_REGS             (R_FIFO_S_REGS),
+                    .M_REGS             (R_FIFO_M_REGS)
                 )
             i_fifo_fwtf_r
                 (
                     .reset              (reset),
                     .clk                (clk),
-                    
+                    .cke                (1'b1),
+
                     .s_data             ({m_rlast, m_rdata[i]}),
                     .s_valid            (m_rvalid & m_rstrb[i]),
                     .s_ready            (rfifo_s_ready[i]),
@@ -317,7 +317,7 @@ module jelly2_texture_cache_lookahead
     wire    [M_DATA_WIDTH-1:0]      base_m_rdata;
     wire                            base_m_rvalid;
     
-    jelly_texture_cache_basic
+    jelly2_texture_cache_basic
             #(
                 .COMPONENT_NUM          (COMPONENT_NUM),
                 .COMPONENT_DATA_WIDTH   (COMPONENT_DATA_WIDTH),
@@ -409,7 +409,7 @@ module jelly2_texture_cache_lookahead
     
     // limitter for FIFO size
     wire    base_limit_arready;
-    jelly_texture_cache_limitter
+    jelly2_texture_cache_limitter
             #(
                 .LIMIT_NUM      (LOOK_AHEAD_NUM),
                 .PACKET_FIRST   (0)
@@ -431,7 +431,7 @@ module jelly2_texture_cache_lookahead
     
     // limitter for in-order packet
     wire    m_limit_arready;
-    jelly_texture_cache_limitter
+    jelly2_texture_cache_limitter
             #(
                 .LIMIT_NUM      (M_INORDER ? 1 : 0),
                 .PACKET_FIRST   (M_INORDER_DATA_FIRST)
@@ -474,7 +474,7 @@ module jelly2_texture_cache_lookahead
     
     // read data
     reg     reg_mem_rready;
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             reg_mem_rready <= 1'b0;
         end

@@ -6,11 +6,11 @@
 #-Wno-WIDTH
 #-Wno-UNSIGNED
 #-Wno-PINMISSING
--Wno-UNOPTFLAT
+#-Wno-UNOPTFLAT
 #-Wno-CASEX
 #-Wno-CASEINCOMPLETE
 
--Wno-fatal
+#-Wno-fatal
 
 -y ../../../../../rtl/model
 -y ../../../../../rtl/library

@@ -119,7 +119,7 @@ module jelly2_cache_tag
         assign m_addr = m_way;
     end
     else begin : blk_set_associative
-        jelly_cache_tag_set_associative
+        jelly2_cache_tag_set_associative
                 #(
                     .USER_WIDTH         (USER_WIDTH),
                     .WAY_NUM            (WAY_NUM),
