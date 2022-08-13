@@ -15,16 +15,16 @@
 // border
 module jelly2_texture_border_unit
         #(
-            parameter   USER_WIDTH   = 0,
-            parameter   DATA_WIDTH   = 8,
-            parameter   ADDR_X_WIDTH = 10,
-            parameter   ADDR_Y_WIDTH = 10,
-            parameter   X_WIDTH      = 12,
-            parameter   Y_WIDTH      = 12,
-            parameter   M_REGS       = 0,
+            parameter   int     USER_WIDTH   = 0,
+            parameter   int     DATA_WIDTH   = 8,
+            parameter   int     ADDR_X_WIDTH = 10,
+            parameter   int     ADDR_Y_WIDTH = 10,
+            parameter   int     X_WIDTH      = 12,
+            parameter   int     Y_WIDTH      = 12,
+            parameter   bit     M_REGS       = 0,
             
             // local
-            parameter   USER_BITS    = USER_WIDTH > 0 ? USER_WIDTH : 1
+            localparam  int     USER_BITS    = USER_WIDTH > 0 ? USER_WIDTH : 1
         )
         (
             input   wire                                reset,
@@ -97,8 +97,8 @@ module jelly2_texture_border_unit
     //  local parameter
     // -------------------------------------
         
-    wire    signed  [X_WIDTH-1:0]       image_width  = {1'b0, param_width};
-    wire    signed  [Y_WIDTH-1:0]       image_height = {1'b0, param_height};
+    wire    signed  [X_WIDTH-1:0]       image_width  = X_WIDTH'({1'b0, param_width});
+    wire    signed  [Y_WIDTH-1:0]       image_height = Y_WIDTH'({1'b0, param_height});
     
     
     
@@ -329,8 +329,8 @@ module jelly2_texture_border_unit
             
             st1_border <= st0_strb & st0_border;
             
-            st1_x      <= st0_x0 + st0_x1 + st0_x_carry;
-            st1_y      <= st0_y0 + st0_y1 + st0_y_carry;
+            st1_x      <= st0_x0 + st0_x1 + X_WIDTH'(st0_x_carry);
+            st1_y      <= st0_y0 + st0_y1 + Y_WIDTH'(st0_y_carry);
         end
     end
     
@@ -338,8 +338,8 @@ module jelly2_texture_border_unit
     assign sink_user   = st1_user;
     assign sink_strb   = st1_strb;
     assign sink_border = st1_border;
-    assign sink_addrx  = st1_x;
-    assign sink_addry  = st1_y;
+    assign sink_addrx  = ADDR_X_WIDTH'(st1_x);
+    assign sink_addry  = ADDR_Y_WIDTH'(st1_y);
     
     
     // -------------------------------------

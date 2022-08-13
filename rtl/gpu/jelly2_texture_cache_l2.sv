@@ -284,7 +284,7 @@ module jelly2_texture_cache_l2
     end
     endgenerate
     
-    jelly_data_crossbar_simple
+    jelly2_data_crossbar_simple
             #(
                 .S_NUM          (CACHE_NUM),
                 .S_ID_WIDTH     (CACHE_ID_WIDTH),

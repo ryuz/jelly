@@ -328,7 +328,7 @@ module jelly2_texture_sampler
         end
         
         if ( USE_BORDER ) begin : blk_border
-            jelly_texture_border_unit
+            jelly2_texture_border_unit
                     #(
                         .USER_WIDTH         (BILINEAR_USER_WIDTH),
                         .DATA_WIDTH         (COMPONENT_NUM*DATA_WIDTH),
