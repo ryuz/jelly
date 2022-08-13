@@ -101,7 +101,7 @@ module jelly2_texture_cache_mem
     generate
     for ( genvar i = 0; i < COMPONENT_NUM; ++i ) begin : mem_loop
         // CACHE-RAM
-        jelly_ram_singleport
+        jelly2_ram_singleport
                 #(
                     .ADDR_WIDTH         (TBL_ADDR_WIDTH + MEM_ADDR_WIDTH),
                     .MEM_SIZE           (TBL_MEM_SIZE << MEM_ADDR_WIDTH),

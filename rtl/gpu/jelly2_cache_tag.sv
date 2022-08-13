@@ -53,7 +53,7 @@ module jelly2_cache_tag
     
     generate
     if ( WAY_WIDTH <= 0 ) begin : blk_directmap
-        jelly_cache_tag_directmap
+        jelly2_cache_tag_directmap
                 #(
                     .USER_WIDTH         (USER_WIDTH),
                     .INDEX_WIDTH        (INDEX_WIDTH),

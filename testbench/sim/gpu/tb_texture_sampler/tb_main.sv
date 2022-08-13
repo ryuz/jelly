@@ -288,7 +288,7 @@ module tb_main(
     parameter   int     L1_QUE_FIFO_PTR_WIDTH         = 6;
     parameter   int     L1_AR_FIFO_PTR_WIDTH          = 0;
     parameter   int     L1_R_FIFO_PTR_WIDTH           = 6;
-    parameter   int     L1_WAY_NUM                    = 4;
+    parameter   int     L1_WAY_NUM                    = 0;//4;
     parameter   int     L1_TAG_ADDR_WIDTH             = 4;
     parameter           L1_TAG_ALGORITHM              = "NORMAL"; // L2_PARALLEL_SIZE > 0 ? "SUDOKU" : "TWIST";
     parameter   int     L1_BLK_X_SIZE                 = 2;  // 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
