@@ -230,7 +230,7 @@ module jelly2_cache_tag_set_associative
         end
     end
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( cke ) begin
             st1_dout <= mem_data[st0_tag];
             if ( st2_we ) begin

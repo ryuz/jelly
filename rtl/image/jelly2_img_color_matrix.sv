@@ -378,7 +378,7 @@ module jelly2_img_color_matrix
     
     // wait for frame start to update parameters
     reg                 reg_update_req;
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             reg_update_req       <= 1'b0;
             

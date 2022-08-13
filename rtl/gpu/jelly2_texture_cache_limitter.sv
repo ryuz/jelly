@@ -43,7 +43,7 @@ module jelly2_texture_cache_limitter
         
         if ( PACKET_FIRST ) begin
             reg     reg_rfirst;
-            always @(posedge clk) begin
+            always_ff @(posedge clk) begin
                 if ( reset ) begin
                     reg_rfirst <= 1'b1;
                 end
@@ -64,7 +64,7 @@ module jelly2_texture_cache_limitter
         reg     [COUNTER_WIDTH-1:0]     reg_counter, next_counter;
         reg                             reg_arready, next_arready;
         
-        always @* begin
+        always_comb begin
             next_counter = reg_counter;
             next_arready = reg_arready;
             
@@ -79,7 +79,7 @@ module jelly2_texture_cache_limitter
             next_arready = (int'(next_counter) < LIMIT_NUM);
         end
         
-        always @(posedge clk) begin
+        always_ff @(posedge clk) begin
             if ( reset ) begin
                 reg_counter <= {COUNTER_WIDTH{1'b0}};
                 reg_arready <= 1'b1;

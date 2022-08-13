@@ -243,7 +243,7 @@ module jelly2_texture_cache_dma
     reg     [M_AXI4_ADDR_WIDTH-1:0]     reg_araddr;
     reg                                 reg_arvalid;
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             reg_arid        <= {M_AXI4_ID_WIDTH{1'bx}};
             reg_arcomponent <= {COMPONENT_SEL_WIDTH{1'bx}};
@@ -283,7 +283,7 @@ module jelly2_texture_cache_dma
     
     // data
     reg     [COMPONENT_SEL_WIDTH-1:0]   reg_rcomponent;
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             reg_rcomponent <= {COMPONENT_SEL_WIDTH{1'b0}};
         end

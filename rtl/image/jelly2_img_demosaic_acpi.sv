@@ -131,7 +131,7 @@ module jelly2_img_demosaic_acpi
     endfunction
     
     // registers control
-    always @(posedge s_wb_clk_i) begin
+    always_ff @(posedge s_wb_clk_i) begin
         if ( s_wb_rst_i ) begin
             reg_ctl_control <= INIT_CTL_CONTROL;
             reg_param_phase <= INIT_PARAM_PHASE;
@@ -199,7 +199,7 @@ module jelly2_img_demosaic_acpi
     
     // wait for frame start to update parameters
     reg                 reg_update_req;
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             reg_update_req   <= 1'b0;
             

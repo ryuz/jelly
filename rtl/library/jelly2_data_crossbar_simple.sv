@@ -65,7 +65,7 @@ module jelly2_data_crossbar_simple
     end
     endgenerate
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             st0_data  <= 'x;
             st0_valid <= '0;

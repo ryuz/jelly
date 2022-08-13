@@ -242,7 +242,7 @@ module jelly2_texture_cache_tag
             end
         end
         
-        always @(posedge clk) begin
+        always_ff @(posedge clk) begin
             if ( !reset ) begin
                 if ( tag_valid & tag_ready ) begin
                     fp = $fopen(LOG_FILE, "a");

@@ -110,7 +110,7 @@ module jelly2_video_format_regularizer
     // latch core domein signals
     (* ASYNC_REG = "true" *)    reg                         ff0_busy,  ff1_busy;
     (* ASYNC_REG = "true" *)    reg     [INDEX_WIDTH-1:0]   ff0_index, ff1_index, ff2_index;
-    always @(posedge s_wb_clk_i) begin
+    always_ff @(posedge s_wb_clk_i) begin
         ff0_busy  <= busy;
         ff1_busy  <= ff0_busy;
         

@@ -126,7 +126,7 @@ module jelly2_data_gather
         assign m_ff_valid = fifo_valid[reg_sel];
         assign fifo_ready = ({{(PORT_NUM-1){1'b0}}, m_ff_ready} << reg_sel);
         
-        always @(posedge clk) begin
+        always_ff @(posedge clk) begin
             if ( reset ) begin
                 reg_sel        <= {SEL_WIDTH{1'b0}};
                 reg_unit_count <= {UNIT_COUNT_WIDTH{1'b0}};

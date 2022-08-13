@@ -200,7 +200,7 @@ module jelly2_texture_bilinear_unit
     reg                                     mem_st3_strb;
     reg                                     mem_st3_valid;
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             s_ff_phase     <= 2'b00;
             
@@ -329,7 +329,7 @@ module jelly2_texture_bilinear_unit
     reg                                             acc_st3_strb;
     reg                                             acc_st3_valid;
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             m_mem_rphase   <= 2'b00;
             

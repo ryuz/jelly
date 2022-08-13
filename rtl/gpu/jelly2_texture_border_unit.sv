@@ -178,7 +178,7 @@ module jelly2_texture_border_unit
     reg     signed  [Y_WIDTH-1:0]       src_yy;
     reg             [2:0]               src_y_op;
     
-    always @* begin
+    always_comb begin
         // X
         src_x_under = 1'bx;
         src_x_over  = 1'bx;
@@ -264,7 +264,7 @@ module jelly2_texture_border_unit
     reg             [2:0]           st0_y_op;
     
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( stage_cke[0] ) begin
             st0_user   <= src_user;
             st0_strb   <= src_strb;
@@ -288,7 +288,7 @@ module jelly2_texture_border_unit
     reg     signed  [Y_WIDTH-1:0]   st0_y1;
     reg                             st0_y_carry;
     
-    always @* begin
+    always_comb begin
         // X
         st0_x0      = {X_WIDTH{1'bx}};
         st0_x1      = {X_WIDTH{1'bx}};
@@ -325,7 +325,7 @@ module jelly2_texture_border_unit
     reg     signed  [X_WIDTH-1:0]   st1_x;
     reg     signed  [Y_WIDTH-1:0]   st1_y;
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( stage_cke[1] ) begin
             st1_user   <= st0_user;
             st1_strb   <= st0_strb & !st0_border;

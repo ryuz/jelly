@@ -138,7 +138,7 @@ module jelly2_texture_cache_mem
     
     
     // pipeline
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             st1_user   <= {USER_WIDTH{1'bx}};
             st1_last   <= 1'bx;
