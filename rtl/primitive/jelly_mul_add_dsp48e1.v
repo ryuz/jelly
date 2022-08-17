@@ -60,6 +60,7 @@ module jelly_mul_add_dsp48e1
             output  wire    signed  [PC_WIDTH-1:0]  pcout
         );
     
+    // verilator lint_off WIDTH
     
     localparam CAN_USE_DSP48E1 = (((A_WIDTH <= 25) && (B_WIDTH <= 18)) || ((A_WIDTH <= 18) && (B_WIDTH <= 25))
                                     && (C_WIDTH <= 48) && (P_WIDTH <= 48) && (M_WIDTH <= 43));
@@ -367,6 +368,7 @@ module jelly_mul_add_dsp48e1
     end
     endgenerate
     
+    // verilator lint_on WIDTH
     
 endmodule
 

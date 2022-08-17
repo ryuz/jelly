@@ -185,7 +185,7 @@ module jelly2_img_color_matrix_core
     logic           [DATA_WIDTH-1:0]        clip_color2;
     logic                                   clip_valid;
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( cke ) begin
             clip_row_first  <= matrix_valid & matrix_row_first;
             clip_row_last   <= matrix_valid & matrix_row_last;
@@ -206,7 +206,7 @@ module jelly2_img_color_matrix_core
         end
     end
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             clip_valid <= 1'b0;
         end

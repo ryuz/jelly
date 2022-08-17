@@ -22,7 +22,7 @@ module tb_main(
     localparam  int     X_NUM            = 640;
     localparam  int     Y_NUM            = 480;
 
-    localparam  int     BLK_X_SIZE       = 4;  // 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
+    localparam  int     BLK_X_SIZE       = 5;  // 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
     localparam  int     BLK_Y_SIZE       = 4;  // 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
     localparam  int     STEP_Y_SIZE      = 2;
 
@@ -143,18 +143,18 @@ module tb_main(
     //  textrute writer
     // ---------------------------------------------
 
-    localparam X_WIDTH                = 10;
-    localparam Y_WIDTH                = 9;
-    localparam STRIDE_C_WIDTH         = 14;
-    localparam STRIDE_X_WIDTH         = 14;
-    localparam STRIDE_Y_WIDTH         = 15;
+    localparam  int     X_WIDTH                = 10;
+    localparam  int     Y_WIDTH                = 9;
+    localparam  int     STRIDE_C_WIDTH         = 14;
+    localparam  int     STRIDE_X_WIDTH         = 16;
+    localparam  int     STRIDE_Y_WIDTH         = 15;
 
     logic                               writer_enable;
     logic                               writer_busy;
 
-    logic   [STRIDE_C_WIDTH-1:0]        param_stride_c = (1 << BLK_X_SIZE) * (1 << BLK_Y_SIZE);
-    logic   [STRIDE_X_WIDTH-1:0]        param_stride_x = (1 << BLK_X_SIZE) * (1 << BLK_Y_SIZE) * COMPONENTS;
-    logic   [STRIDE_Y_WIDTH-1:0]        param_stride_y = X_NUM             * (1 << BLK_Y_SIZE) * COMPONENTS;
+    logic   [STRIDE_C_WIDTH-1:0]        param_stride_c = STRIDE_C_WIDTH'((1 << BLK_X_SIZE) * (1 << BLK_Y_SIZE));
+    logic   [STRIDE_X_WIDTH-1:0]        param_stride_x = STRIDE_X_WIDTH'((1 << BLK_X_SIZE) * (1 << BLK_Y_SIZE) * COMPONENTS);
+    logic   [STRIDE_Y_WIDTH-1:0]        param_stride_y = STRIDE_Y_WIDTH'(X_NUM             * (1 << BLK_Y_SIZE) * COMPONENTS);
 
     initial begin
         $display("param_stride_c : %d", param_stride_c);
@@ -208,9 +208,9 @@ module tb_main(
                 .busy                   (writer_busy),
                 
                 .param_addr             (32'h0000_0000),
-                .param_awlen            (32'h03),
-                .param_width            (X_NUM-1),
-                .param_height           (Y_NUM-1),
+                .param_awlen            (AXI4_LEN_WIDTH'('h03)),
+                .param_width            (X_WIDTH'(X_NUM-1)),
+                .param_height           (Y_WIDTH'(Y_NUM-1)),
                 .param_stride_c         (param_stride_c),
                 .param_stride_x         (param_stride_x),
                 .param_stride_y         (param_stride_y),
@@ -250,86 +250,86 @@ module tb_main(
     //  textrute sampler
     // ---------------------------------------------
     
-//  parameter   DATA_WIDTH                    = 8;
-    parameter   ADDR_WIDTH                    = 24;
-    parameter   ADDR_X_WIDTH                  = 12;
-    parameter   ADDR_Y_WIDTH                  = 12;
-//    parameter   STRIDE_C_WIDTH                = 12;
-//    parameter   STRIDE_X_WIDTH                = 13;
-//    parameter   STRIDE_Y_WIDTH                = 14;
+//  parameter   int     DATA_WIDTH                    = 8;
+    parameter   int     ADDR_WIDTH                    = 24;
+    parameter   int     ADDR_X_WIDTH                  = 14;
+    parameter   int     ADDR_Y_WIDTH                  = 12;
+//    parameter     tnt     STRIDE_C_WIDTH                = 12;
+//    parameter     tnt     STRIDE_X_WIDTH                = 13;
+//    parameter     tnt     STRIDE_Y_WIDTH                = 14;
     
-    parameter   USE_BILINEAR                  = 1;
-    parameter   USE_BORDER                    = 1;
+    parameter   bit     USE_BILINEAR                  = 1;
+    parameter   bit     USE_BORDER                    = 1;
     
-    parameter   SAMPLER1D_NUM                 = 0;
+    parameter   int     SAMPLER1D_NUM                 = 0;
     
-    parameter   SAMPLER2D_NUM                 = 16;
-    parameter   SAMPLER2D_USER_WIDTH          = 0;
-    parameter   SAMPLER2D_X_INT_WIDTH         = ADDR_X_WIDTH+2;
-    parameter   SAMPLER2D_X_FRAC_WIDTH        = 4;
-    parameter   SAMPLER2D_Y_INT_WIDTH         = ADDR_Y_WIDTH+2;
-    parameter   SAMPLER2D_Y_FRAC_WIDTH        = 4;
-    parameter   SAMPLER2D_COEFF_INT_WIDTH     = 1;
-    parameter   SAMPLER2D_COEFF_FRAC_WIDTH    = SAMPLER2D_X_FRAC_WIDTH + SAMPLER2D_Y_FRAC_WIDTH;
-    parameter   SAMPLER2D_S_REGS              = 1;
-    parameter   SAMPLER2D_M_REGS              = 1;
-    parameter   SAMPLER2D_USER_FIFO_PTR_WIDTH = 6;
-    parameter   SAMPLER2D_USER_FIFO_RAM_TYPE  = "distributed";
-    parameter   SAMPLER2D_USER_FIFO_M_REGS    = 0;
-    parameter   SAMPLER2D_X_WIDTH             = SAMPLER2D_X_INT_WIDTH + SAMPLER2D_X_FRAC_WIDTH;
-    parameter   SAMPLER2D_Y_WIDTH             = SAMPLER2D_Y_INT_WIDTH + SAMPLER2D_Y_FRAC_WIDTH;
-    parameter   SAMPLER2D_COEFF_WIDTH         = SAMPLER2D_COEFF_INT_WIDTH + SAMPLER2D_COEFF_FRAC_WIDTH;
-    parameter   SAMPLER2D_USER_BITS           = SAMPLER2D_USER_WIDTH > 0 ? SAMPLER2D_USER_WIDTH : 1;
+    parameter   int     SAMPLER2D_NUM                 = 16;
+    parameter   int     SAMPLER2D_USER_WIDTH          = 0;
+    parameter   int     SAMPLER2D_X_INT_WIDTH         = ADDR_X_WIDTH+2;
+    parameter   int     SAMPLER2D_X_FRAC_WIDTH        = 4;
+    parameter   int     SAMPLER2D_Y_INT_WIDTH         = ADDR_Y_WIDTH+2;
+    parameter   int     SAMPLER2D_Y_FRAC_WIDTH        = 4;
+    parameter   int     SAMPLER2D_COEFF_INT_WIDTH     = 1;
+    parameter   int     SAMPLER2D_COEFF_FRAC_WIDTH    = SAMPLER2D_X_FRAC_WIDTH + SAMPLER2D_Y_FRAC_WIDTH;
+    parameter   bit     SAMPLER2D_S_REGS              = 1;
+    parameter   bit     SAMPLER2D_M_REGS              = 1;
+    parameter   int     SAMPLER2D_USER_FIFO_PTR_WIDTH = 6;
+    parameter           SAMPLER2D_USER_FIFO_RAM_TYPE  = "distributed";
+    parameter   bit     SAMPLER2D_USER_FIFO_M_REGS    = 0;
+    parameter   int     SAMPLER2D_X_WIDTH             = SAMPLER2D_X_INT_WIDTH + SAMPLER2D_X_FRAC_WIDTH;
+    parameter   int     SAMPLER2D_Y_WIDTH             = SAMPLER2D_Y_INT_WIDTH + SAMPLER2D_Y_FRAC_WIDTH;
+    parameter   int     SAMPLER2D_COEFF_WIDTH         = SAMPLER2D_COEFF_INT_WIDTH + SAMPLER2D_COEFF_FRAC_WIDTH;
+    parameter   int     SAMPLER2D_USER_BITS           = SAMPLER2D_USER_WIDTH > 0 ? SAMPLER2D_USER_WIDTH : 1;
     
-    parameter   SAMPLER3D_NUM                 = 0;
+    parameter   int     SAMPLER3D_NUM                 = 0;
     
-    parameter   L1_CACHE_NUM                  = SAMPLER1D_NUM + SAMPLER2D_NUM + SAMPLER3D_NUM;
-    parameter   L1_USE_LOOK_AHEAD             = 0;
-    parameter   L1_QUE_FIFO_PTR_WIDTH         = 6;
-    parameter   L1_AR_FIFO_PTR_WIDTH          = 0;
-    parameter   L1_R_FIFO_PTR_WIDTH           = 6;
-    parameter   L1_WAY_NUM                    = 4;
-    parameter   L1_TAG_ADDR_WIDTH             = 4;
-    parameter   L1_TAG_ALGORITHM              = "NORMAL"; // L2_PARALLEL_SIZE > 0 ? "SUDOKU" : "TWIST";
-    parameter   L1_BLK_X_SIZE                 = 2;  // 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
-    parameter   L1_BLK_Y_SIZE                 = 2;  // 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
-    parameter   L1_TAG_RAM_TYPE               = "distributed";
-    parameter   L1_MEM_RAM_TYPE               = "block";
-    parameter   L1_DATA_SIZE                  = 2;
+    parameter   int     L1_CACHE_NUM                  = SAMPLER1D_NUM + SAMPLER2D_NUM + SAMPLER3D_NUM;
+    parameter   int     L1_USE_LOOK_AHEAD             = 1;
+    parameter   int     L1_QUE_FIFO_PTR_WIDTH         = 6;
+    parameter   int     L1_AR_FIFO_PTR_WIDTH          = 0;
+    parameter   int     L1_R_FIFO_PTR_WIDTH           = 6;
+    parameter   int     L1_WAY_NUM                    = 4;
+    parameter   int     L1_TAG_ADDR_WIDTH             = 6;
+    parameter           L1_TAG_ALGORITHM              = "NORMAL"; // L2_PARALLEL_SIZE > 0 ? "SUDOKU" : "TWIST";
+    parameter   int     L1_BLK_X_SIZE                 = 2;  // 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
+    parameter   int     L1_BLK_Y_SIZE                 = 2;  // 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
+    parameter           L1_TAG_RAM_TYPE               = "distributed";
+    parameter           L1_MEM_RAM_TYPE               = "block";
+    parameter   int     L1_DATA_SIZE                  = 2;
     
-    parameter   L2_PARALLEL_SIZE              = 2;
-    parameter   L2_USE_LOOK_AHEAD             = 0;
-    parameter   L2_QUE_FIFO_PTR_WIDTH         = 6;
-    parameter   L2_AR_FIFO_PTR_WIDTH          = 0;
-    parameter   L2_R_FIFO_PTR_WIDTH           = 6;
-    parameter   L2_CACHE_NUM                  = (1 << L2_PARALLEL_SIZE);
-    parameter   L2_WAY_NUM                    = 4;
-    parameter   L2_TAG_ADDR_WIDTH             = 6;
-    parameter   L2_TAG_ALGORITHM              = "NORMAL";    // L2_PARALLEL_SIZE > 0 ? "SUDOKU" : "TWIST";
-    parameter   L2_BLK_X_SIZE                 = BLK_X_SIZE;  // 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
-    parameter   L2_BLK_Y_SIZE                 = BLK_Y_SIZE;  // 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
-    parameter   L2_TAG_RAM_TYPE               = "distributed";
-    parameter   L2_MEM_RAM_TYPE               = "block";
+    parameter   int     L2_PARALLEL_SIZE              = 1;
+    parameter   int     L2_USE_LOOK_AHEAD             = 1;
+    parameter   int     L2_QUE_FIFO_PTR_WIDTH         = 6;
+    parameter   int     L2_AR_FIFO_PTR_WIDTH          = 0;
+    parameter   int     L2_R_FIFO_PTR_WIDTH           = 6;
+    parameter   int     L2_CACHE_NUM                  = (1 << L2_PARALLEL_SIZE);
+    parameter   int     L2_WAY_NUM                    = 4;
+    parameter   int     L2_TAG_ADDR_WIDTH             = 6;
+    parameter           L2_TAG_ALGORITHM              = "NORMAL";    // L2_PARALLEL_SIZE > 0 ? "SUDOKU" : "TWIST";
+    parameter   int     L2_BLK_X_SIZE                 = BLK_X_SIZE;  // 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
+    parameter   int     L2_BLK_Y_SIZE                 = BLK_Y_SIZE;  // 0:1pixel; 1:2pixel; 2:4pixel; 3:8pixel ...
+    parameter           L2_TAG_RAM_TYPE               = "distributed";
+    parameter           L2_MEM_RAM_TYPE               = "block";
     
     /*
-    parameter   M_AXI4_ID_WIDTH               = 6;
-    parameter   M_AXI4_ADDR_WIDTH             = 32;
-    parameter   M_AXI4_DATA_SIZE              = 3;  // 0:8bit; 1:16bit; 2:32bit; 3:64bit ...
-    parameter   M_AXI4_DATA_WIDTH             = (8 << M_AXI4_DATA_SIZE);
-    parameter   M_AXI4_LEN_WIDTH              = 8;
-    parameter   M_AXI4_QOS_WIDTH              = 4;
+    parameter   int     M_AXI4_ID_WIDTH               = 6;
+    parameter   int     M_AXI4_ADDR_WIDTH             = 32;
+    parameter   int     M_AXI4_DATA_SIZE              = 3;  // 0:8bit; 1:16bit; 2:32bit; 3:64bit ...
+    parameter   int     M_AXI4_DATA_WIDTH             = (8 << M_AXI4_DATA_SIZE);
+    parameter   int     M_AXI4_LEN_WIDTH              = 8;
+    parameter   int     M_AXI4_QOS_WIDTH              = 4;
     */
-    parameter   M_AXI4_ARID                   = {AXI4_ID_WIDTH{1'b0}};
-    parameter   M_AXI4_ARSIZE                 = AXI4_DATA_SIZE;
-    parameter   M_AXI4_ARBURST                = 2'b01;
-    parameter   M_AXI4_ARLOCK                 = 1'b0;
-    parameter   M_AXI4_ARCACHE                = 4'b0001;
-    parameter   M_AXI4_ARPROT                 = 3'b000;
-    parameter   M_AXI4_ARQOS                  = 0;
-    parameter   M_AXI4_ARREGION               = 4'b0000;
-    parameter   M_AXI4_REGS                   = 1;
+    parameter   bit     [AXI4_ID_WIDTH-1:0]     M_AXI4_ARID                   = {AXI4_ID_WIDTH{1'b0}};
+    parameter   bit     [2:0]                   M_AXI4_ARSIZE                 = 3'(AXI4_DATA_SIZE);
+    parameter   bit     [1:0]                   M_AXI4_ARBURST                = 2'b01;
+    parameter   bit     [0:0]                   M_AXI4_ARLOCK                 = 1'b0;
+    parameter   bit     [3:0]                   M_AXI4_ARCACHE                = 4'b0001;
+    parameter   bit     [2:0]                   M_AXI4_ARPROT                 = 3'b000;
+    parameter   bit     [AXI4_QOS_WIDTH-1:0]    M_AXI4_ARQOS                  = 0;
+    parameter   bit     [3:0]                   M_AXI4_ARREGION               = 4'b0000;
+    parameter   bit                             M_AXI4_REGS                   = 1;
 
-    parameter   DEVICE                        = "RTL";
+    parameter                                   DEVICE                        = "RTL";
     
     
     logic   [L1_CACHE_NUM-1:0]                              status_l1_idle;
@@ -346,9 +346,9 @@ module tb_main(
     logic   [L2_CACHE_NUM-1:0]                              status_l2_blank;
     
     // 2D sampler
-    logic   [SAMPLER2D_NUM*SAMPLER2D_USER_BITS-1:0]         s_sampler2d_user;
-    logic   [SAMPLER2D_NUM*SAMPLER2D_X_WIDTH-1:0]           s_sampler2d_x;
-    logic   [SAMPLER2D_NUM*SAMPLER2D_Y_WIDTH-1:0]           s_sampler2d_y;
+    logic   [SAMPLER2D_NUM-1:0][SAMPLER2D_USER_BITS-1:0]    s_sampler2d_user;
+    logic   [SAMPLER2D_NUM-1:0][SAMPLER2D_X_WIDTH-1:0]      s_sampler2d_x;
+    logic   [SAMPLER2D_NUM-1:0][SAMPLER2D_Y_WIDTH-1:0]      s_sampler2d_y;
     logic   [SAMPLER2D_NUM-1:0]                             s_sampler2d_strb = {SAMPLER2D_NUM{1'b1}};
     logic   [SAMPLER2D_NUM-1:0]                             s_sampler2d_valid;
     logic   [SAMPLER2D_NUM-1:0]                             s_sampler2d_ready;
@@ -361,10 +361,10 @@ module tb_main(
     logic   [SAMPLER2D_NUM-1:0]                             m_sampler2d_ready;
     
     
-    parameter   LINE_SIZE     = 640;
-    parameter   UNIT_SIZE     = (LINE_SIZE + (SAMPLER2D_NUM-1)) / SAMPLER2D_NUM;
+    parameter   int     LINE_SIZE     = 640;
+    parameter   int     UNIT_SIZE     = (LINE_SIZE + (SAMPLER2D_NUM-1)) / SAMPLER2D_NUM;
     
-    wire    [SAMPLER2D_NUM*(SAMPLER2D_Y_WIDTH+SAMPLER2D_X_WIDTH)-1:0]   s_samoler2d_packet;
+    wire    [SAMPLER2D_NUM-1:0][(SAMPLER2D_Y_WIDTH+SAMPLER2D_X_WIDTH)-1:0]   s_samoler2d_packet;
     
 
     // texture address
@@ -459,8 +459,8 @@ module tb_main(
     genvar  i;
     generate
     for ( i = 0; i < SAMPLER2D_NUM; i = i+1 ) begin : loop_packet
-        assign s_sampler2d_x[i*SAMPLER2D_X_WIDTH +: SAMPLER2D_X_WIDTH] = s_samoler2d_packet[i*(SAMPLER2D_Y_WIDTH+SAMPLER2D_X_WIDTH)+0                 +: SAMPLER2D_X_WIDTH];
-        assign s_sampler2d_y[i*SAMPLER2D_Y_WIDTH +: SAMPLER2D_Y_WIDTH] = s_samoler2d_packet[i*(SAMPLER2D_Y_WIDTH+SAMPLER2D_X_WIDTH)+SAMPLER2D_X_WIDTH +: SAMPLER2D_Y_WIDTH];
+        assign s_sampler2d_x[i] = s_samoler2d_packet[i][0                 +: SAMPLER2D_X_WIDTH];
+        assign s_sampler2d_y[i] = s_samoler2d_packet[i][SAMPLER2D_X_WIDTH +: SAMPLER2D_Y_WIDTH];
     end
     endgenerate
     
@@ -518,7 +518,7 @@ module tb_main(
     
 
     //  core
-    jelly_texture_sampler
+    jelly2_texture_sampler
             #(
                 .COMPONENT_NUM                  (COMPONENTS),
                 .DATA_SIZE                      (DATA_SIZE),
@@ -533,9 +533,9 @@ module tb_main(
                 
                 .USE_BILINEAR                   (USE_BILINEAR),
                 .USE_BORDER                     (USE_BORDER),
-                                                
+
                 .SAMPLER1D_NUM                  (SAMPLER1D_NUM),
-                                                
+
                 .SAMPLER2D_NUM                  (SAMPLER2D_NUM),
                 .SAMPLER2D_USER_WIDTH           (SAMPLER2D_USER_WIDTH),
                 .SAMPLER2D_X_INT_WIDTH          (SAMPLER2D_X_INT_WIDTH),
@@ -552,7 +552,6 @@ module tb_main(
                 .SAMPLER2D_X_WIDTH              (SAMPLER2D_X_WIDTH),
                 .SAMPLER2D_Y_WIDTH              (SAMPLER2D_Y_WIDTH),
                 .SAMPLER2D_COEFF_WIDTH          (SAMPLER2D_COEFF_WIDTH),
-                .SAMPLER2D_USER_BITS            (SAMPLER2D_USER_BITS),
                 
                 .SAMPLER3D_NUM                  (SAMPLER3D_NUM),
                 
@@ -612,11 +611,11 @@ module tb_main(
                 .endian                         (1'b0),
                 
                 .param_addr                     (32'h0000_0000),
-                .param_width                    (X_NUM-1),
-                .param_height                   (Y_NUM-1),
-                .param_stride_c                 ((1 << BLK_X_SIZE) * (1 << BLK_Y_SIZE)),
-                .param_stride_x                 ((1 << BLK_X_SIZE) * (1 << BLK_Y_SIZE) * COMPONENTS),
-                .param_stride_y                 (X_NUM             * (1 << BLK_Y_SIZE) * COMPONENTS),
+                .param_width                    (ADDR_X_WIDTH'(X_NUM-1)),
+                .param_height                   (ADDR_Y_WIDTH'(Y_NUM-1)),
+                .param_stride_c                 (STRIDE_C_WIDTH'((1 << BLK_X_SIZE) * (1 << BLK_Y_SIZE))),
+                .param_stride_x                 (STRIDE_X_WIDTH'((1 << BLK_X_SIZE) * (1 << BLK_Y_SIZE) * COMPONENTS)),
+                .param_stride_y                 (STRIDE_Y_WIDTH'(X_NUM             * (1 << BLK_Y_SIZE) * COMPONENTS)),
                 .param_border_value             (24'h000000),
                 .param_blank_value              ('0),
                 .param_x_op                     (3'b110),

@@ -18,13 +18,15 @@
 #-Wno-WIDTHCONCAT
 #-Wno-MULTITOP
 
--y ../../../rtl/library
--y ../../../rtl/bus
--y ../../../rtl/dma
--y ../../../rtl/math
--y ../../../rtl/primitive
--y ../../../rtl/rtos
--y ../../../rtl/image
--y ../../../rtl/video
--y ../../../rtl/peripheral
--y ../../../rtl/model
+#-Wno-fatal
+
+-y ../../../../../rtl/library
+-y ../../../../../rtl/bus
+-y ../../../../../rtl/dma
+-y ../../../../../rtl/math
+-y ../../../../../rtl/primitive
+-y ../../../../../rtl/rtos
+-y ../../../../../rtl/image
+-y ../../../../../rtl/video
+-y ../../../../../rtl/peripheral
+-y ../../../../../rtl/model

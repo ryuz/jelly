@@ -127,7 +127,7 @@ module jelly2_rgb2hsv
     logic   signed  [DATA_WIDTH:0]      div_offset;
     logic                               div_valid;
 
-    jelly_integer_divider
+    jelly2_integer_divider
             #(
                 .USER_WIDTH          (USER_BITS+3*(1+DATA_WIDTH)),
                 .S_DIVIDEND_WIDTH    (1+DATA_WIDTH*2-3),

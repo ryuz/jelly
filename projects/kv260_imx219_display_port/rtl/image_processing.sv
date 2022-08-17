@@ -152,7 +152,7 @@ module image_processing
                 .BLANK_Y_WIDTH          (8),
                 .IMG_CKE_BUFG           (0)
             )
-        jelly_axi4s_img
+        i_axi4s_img
             (
                 .aresetn                (aresetn),
                 .aclk                   (aclk),

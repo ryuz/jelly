@@ -14,164 +14,164 @@
 
 module jelly2_texture_cache_core
         #(
-            parameter   COMPONENT_NUM          = 3,
-            parameter   COMPONENT_DATA_SIZE    = 0, // 0:8bit, 1:16bit, 2:32bit, ...
+            parameter   int                             COMPONENT_NUM          = 3,
+            parameter   int                             COMPONENT_DATA_SIZE    = 0, // 0:8bit, 1:16bit, 2:32bit, ...
+
+            parameter   int                             USER_WIDTH             = 1,
+            parameter   bit                             USE_S_RREADY           = 1, // 0: s_rready is always 1'b1.   1: handshake mode.
+
+            parameter   int                             ADDR_WIDTH             = 24,
+            parameter   int                             ADDR_X_WIDTH           = 12,
+            parameter   int                             ADDR_Y_WIDTH           = 12,
+            parameter   int                             STRIDE_C_WIDTH         = 14,
+            parameter   int                             STRIDE_X_WIDTH         = 14,
+            parameter   int                             STRIDE_Y_WIDTH         = 14,
+            parameter   int                             S_DATA_SIZE            = 0,
             
-            parameter   USER_WIDTH             = 1,
-            parameter   USE_S_RREADY           = 1, // 0: s_rready is always 1'b1.   1: handshake mode.
+            parameter   int                             M_AXI4_ID_WIDTH               = 6,
+            parameter   int                             M_AXI4_ADDR_WIDTH             = 32,
+            parameter   int                             M_AXI4_DATA_SIZE              = 3,  // 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
+            parameter   int                             M_AXI4_DATA_WIDTH             = (8 << M_AXI4_DATA_SIZE),
+            parameter   int                             M_AXI4_LEN_WIDTH              = 8,
+            parameter   int                             M_AXI4_QOS_WIDTH              = 4,
+            parameter   bit     [M_AXI4_ID_WIDTH-1:0]   M_AXI4_ARID                   = {M_AXI4_ID_WIDTH{1'b0}},
+            parameter   bit     [2:0]                   M_AXI4_ARSIZE                 = 3'(M_AXI4_DATA_SIZE),
+            parameter   bit     [1:0]                   M_AXI4_ARBURST                = 2'b01,
+            parameter   bit     [0:0]                   M_AXI4_ARLOCK                 = 1'b0,
+            parameter   bit     [3:0]                   M_AXI4_ARCACHE                = 4'b0001,
+            parameter   bit     [2:0]                   M_AXI4_ARPROT                 = 3'b000,
+            parameter   bit     [M_AXI4_QOS_WIDTH-1:0]  M_AXI4_ARQOS                  = 0,
+            parameter   bit     [3:0]                   M_AXI4_ARREGION               = 4'b0000,
+            parameter   bit                             M_AXI4_REGS                   = 1,
+
+            parameter   int                             L1_CACHE_NUM                  = 4,
+            parameter   bit                             L1_USE_LOOK_AHEAD             = 0,
+            parameter   int                             L1_BLK_X_SIZE                 = 2,  // 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
+            parameter   int                             L1_BLK_Y_SIZE                 = 2,  // 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
+            parameter   int                             L1_WAY_NUM                    = 4,
+            parameter   int                             L1_TAG_ADDR_WIDTH             = 6,
+            parameter                                   L1_TAG_RAM_TYPE               = "distributed",
+            parameter                                   L1_TAG_ALGORITHM              = "NORMAL", // "TWIST",
+            parameter   bit                             L1_TAG_M_SLAVE_REGS           = 0,
+            parameter   bit                             L1_TAG_M_MASTER_REGS          = 0,
+            parameter                                   L1_MEM_RAM_TYPE               = "block",
+            parameter   int                             L1_DATA_SIZE                  = 2,
+            parameter   int                             L1_QUE_FIFO_PTR_WIDTH         = L1_USE_LOOK_AHEAD ? 5 : 0,
+            parameter                                   L1_QUE_FIFO_RAM_TYPE          = "distributed",
+            parameter   bit                             L1_QUE_FIFO_S_REGS            = 0,
+            parameter   bit                             L1_QUE_FIFO_M_REGS            = 0,
+            parameter   int                             L1_AR_FIFO_PTR_WIDTH          = 0,
+            parameter                                   L1_AR_FIFO_RAM_TYPE           = "distributed",
+            parameter   bit                             L1_AR_FIFO_S_REGS             = 0,
+            parameter   bit                             L1_AR_FIFO_M_REGS             = 0,
+            parameter   int                             L1_R_FIFO_PTR_WIDTH           = L1_USE_LOOK_AHEAD ? L1_BLK_Y_SIZE + L1_BLK_X_SIZE - L1_DATA_SIZE : 0,
+            parameter                                   L1_R_FIFO_RAM_TYPE            = "block",
+            parameter   bit                             L1_R_FIFO_S_REGS              = 0,
+            parameter   bit                             L1_R_FIFO_M_REGS              = 0,
+            parameter   bit                             L1_LOG_ENABLE                 = 0,
+            parameter                                   L1_LOG_FILE                   = "l1_log.txt",
+            parameter   int                             L1_LOG_ID                     = 0,
             
-            parameter   ADDR_WIDTH             = 24,
-            parameter   ADDR_X_WIDTH           = 12,
-            parameter   ADDR_Y_WIDTH           = 12,
-            parameter   STRIDE_C_WIDTH         = 14,
-            parameter   STRIDE_X_WIDTH         = 14,
-            parameter   STRIDE_Y_WIDTH         = 14,
-            parameter   S_DATA_SIZE            = 0,
+            parameter   int                             L2_PARALLEL_SIZE              = 2,
+            parameter   int                             L2_CACHE_NUM                  = (1 << L2_PARALLEL_SIZE),
+            parameter   bit                             L2_USE_LOOK_AHEAD             = 0,
+            parameter   int                             L2_BLK_X_SIZE                 = 3,  // 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
+            parameter   int                             L2_BLK_Y_SIZE                 = 3,  // 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
+            parameter   int                             L2_WAY_NUM                    = 4,
+            parameter   int                             L2_TAG_ADDR_WIDTH             = 6,
+            parameter                                   L2_TAG_RAM_TYPE               = "distributed",
+            parameter                                   L2_TAG_ALGORITHM              = "NORMAL", // L2_PARALLEL_SIZE > 0 ? "SUDOKU" : "TWIST",
+            parameter   bit                             L2_TAG_M_SLAVE_REGS           = 0,
+            parameter   bit                             L2_TAG_M_MASTER_REGS          = 0,
+            parameter                                   L2_MEM_RAM_TYPE               = "block",
+            parameter   int                             L2_QUE_FIFO_PTR_WIDTH         = L2_USE_LOOK_AHEAD ? 5 : 0,
+            parameter                                   L2_QUE_FIFO_RAM_TYPE          = "distributed",
+            parameter   bit                             L2_QUE_FIFO_S_REGS            = 0,
+            parameter   bit                             L2_QUE_FIFO_M_REGS            = 0,
+            parameter   int                             L2_AR_FIFO_PTR_WIDTH          = 0,
+            parameter                                   L2_AR_FIFO_RAM_TYPE           = "distributed",
+            parameter   bit                             L2_AR_FIFO_S_REGS             = 0,
+            parameter   bit                             L2_AR_FIFO_M_REGS             = 0,
+            parameter   int                             L2_R_FIFO_PTR_WIDTH           = L2_USE_LOOK_AHEAD ? L2_BLK_Y_SIZE + L2_BLK_X_SIZE - M_AXI4_DATA_SIZE : 0,
+            parameter                                   L2_R_FIFO_RAM_TYPE            = "block",
+            parameter   bit                             L2_R_FIFO_S_REGS              = 0,
+            parameter   bit                             L2_R_FIFO_M_REGS              = 0,
+            parameter                                   L2_LOG_ENABLE                 = 0,
+            parameter                                   L2_LOG_FILE                   = "l2_log.txt",
+            parameter   int                             L2_LOG_ID                     = 0,
             
-            parameter   M_AXI4_ID_WIDTH        = 6,
-            parameter   M_AXI4_ADDR_WIDTH      = 32,
-            parameter   M_AXI4_DATA_SIZE       = 3, // 0:8bit, 1:16bit, 2:32bit, 3:64bit ...
-            parameter   M_AXI4_DATA_WIDTH      = (8 << M_AXI4_DATA_SIZE),
-            parameter   M_AXI4_LEN_WIDTH       = 8,
-            parameter   M_AXI4_QOS_WIDTH       = 4,
-            parameter   M_AXI4_ARID            = {M_AXI4_ID_WIDTH{1'b0}},
-            parameter   M_AXI4_ARSIZE          = M_AXI4_DATA_SIZE,
-            parameter   M_AXI4_ARBURST         = 2'b01,
-            parameter   M_AXI4_ARLOCK          = 1'b0,
-            parameter   M_AXI4_ARCACHE         = 4'b0001,
-            parameter   M_AXI4_ARPROT          = 3'b000,
-            parameter   M_AXI4_ARQOS           = 0,
-            parameter   M_AXI4_ARREGION        = 4'b0000,
-            parameter   M_AXI4_REGS            = 1,
-            
-            parameter   L1_CACHE_NUM           = 4,
-            parameter   L1_USE_LOOK_AHEAD      = 0,
-            parameter   L1_BLK_X_SIZE          = 2, // 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
-            parameter   L1_BLK_Y_SIZE          = 2, // 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
-            parameter   L1_WAY_NUM             = 1,
-            parameter   L1_TAG_ADDR_WIDTH      = 6,
-            parameter   L1_TAG_RAM_TYPE        = "distributed",
-            parameter   L1_TAG_ALGORITHM       = "TWIST",
-            parameter   L1_TAG_M_SLAVE_REGS    = 0,
-            parameter   L1_TAG_M_MASTER_REGS   = 0,
-            parameter   L1_MEM_RAM_TYPE        = "block",
-            parameter   L1_DATA_SIZE           = 1,
-            parameter   L1_QUE_FIFO_PTR_WIDTH  = L1_USE_LOOK_AHEAD ? 5 : 0,
-            parameter   L1_QUE_FIFO_RAM_TYPE   = "distributed",
-            parameter   L1_QUE_FIFO_S_REGS     = 0,
-            parameter   L1_QUE_FIFO_M_REGS     = 0,
-            parameter   L1_AR_FIFO_PTR_WIDTH   = 0,
-            parameter   L1_AR_FIFO_RAM_TYPE    = "distributed",
-            parameter   L1_AR_FIFO_S_REGS      = 0,
-            parameter   L1_AR_FIFO_M_REGS      = 0,
-            parameter   L1_R_FIFO_PTR_WIDTH    = L1_USE_LOOK_AHEAD ? L1_BLK_Y_SIZE + L1_BLK_X_SIZE - L1_DATA_SIZE : 0,
-            parameter   L1_R_FIFO_RAM_TYPE     = "block",
-            parameter   L1_R_FIFO_S_REGS       = 0,
-            parameter   L1_R_FIFO_M_REGS       = 0,
-            parameter   L1_LOG_ENABLE          = 0,
-            parameter   L1_LOG_FILE            = "l1_log.txt",
-            parameter   L1_LOG_ID              = 0,
-            
-            parameter   L2_PARALLEL_SIZE       = 2, // n^2
-            parameter   L2_USE_LOOK_AHEAD      = 0,
-            parameter   L2_BLK_X_SIZE          = 3, // 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
-            parameter   L2_BLK_Y_SIZE          = 3, // 0:1pixel, 1:2pixel, 2:4pixel, 3:8pixel ...
-            parameter   L2_WAY_NUM             = 1,
-            parameter   L2_TAG_ADDR_WIDTH      = 6,
-            parameter   L2_TAG_RAM_TYPE        = "distributed",
-            parameter   L2_TAG_ALGORITHM       = L2_PARALLEL_SIZE > 0 ? "SUDOKU" : "TWIST",
-            parameter   L2_TAG_M_SLAVE_REGS    = 0,
-            parameter   L2_TAG_M_MASTER_REGS   = 0,
-            parameter   L2_MEM_RAM_TYPE        = "block",
-            parameter   L2_QUE_FIFO_PTR_WIDTH  = L2_USE_LOOK_AHEAD ? 5 : 0,
-            parameter   L2_QUE_FIFO_RAM_TYPE   = "distributed",
-            parameter   L2_QUE_FIFO_S_REGS     = 0,
-            parameter   L2_QUE_FIFO_M_REGS     = 0,
-            parameter   L2_AR_FIFO_PTR_WIDTH   = 0,
-            parameter   L2_AR_FIFO_RAM_TYPE    = "distributed",
-            parameter   L2_AR_FIFO_S_REGS      = 0,
-            parameter   L2_AR_FIFO_M_REGS      = 0,
-            parameter   L2_R_FIFO_PTR_WIDTH    = L2_USE_LOOK_AHEAD ? L2_BLK_Y_SIZE + L2_BLK_X_SIZE - M_AXI4_DATA_SIZE : 0,
-            parameter   L2_R_FIFO_RAM_TYPE     = "block",
-            parameter   L2_R_FIFO_S_REGS       = 0,
-            parameter   L2_R_FIFO_M_REGS       = 0,
-            parameter   L2_LOG_ENABLE          = 0,
-            parameter   L2_LOG_FILE            = "l2_log.txt",
-            parameter   L2_LOG_ID              = 0,
-            
-            parameter   DMA_QUE_FIFO_PTR_WIDTH = 6,
-            parameter   DMA_QUE_FIFO_RAM_TYPE  = "distributed",
-            parameter   DMA_QUE_FIFO_S_REGS    = 0,
-            parameter   DMA_QUE_FIFO_M_REGS    = 1,
-            parameter   DMA_S_AR_REGS          = 1,
-            parameter   DMA_S_R_REGS           = 1,
+            parameter   int                             DMA_QUE_FIFO_PTR_WIDTH        = 6,
+            parameter                                   DMA_QUE_FIFO_RAM_TYPE         = "distributed",
+            parameter   bit                             DMA_QUE_FIFO_S_REGS           = 0,
+            parameter   bit                             DMA_QUE_FIFO_M_REGS           = 1,
+            parameter   bit                             DMA_S_AR_REGS                 = 1,
+            parameter   bit                             DMA_S_R_REGS                  = 1,
             
             // local
-            parameter   COMPONENT_DATA_WIDTH   = (8 << COMPONENT_DATA_SIZE),
-            parameter   S_DATA_WIDTH           = ((COMPONENT_NUM * COMPONENT_DATA_WIDTH) << S_DATA_SIZE),
-            parameter   L2_CACHE_NUM           = (1 << L2_PARALLEL_SIZE)
+            localparam  int                             COMPONENT_DATA_WIDTH   = (8 << COMPONENT_DATA_SIZE),
+            localparam  int                             S_DATA_WIDTH           = ((COMPONENT_NUM * COMPONENT_DATA_WIDTH) << S_DATA_SIZE)
         )
         (
-            input   wire                                    reset,
-            input   wire                                    clk,
+            input   wire                                            reset,
+            input   wire                                            clk,
+
+            input   wire                                            endian,
+
+            input   wire                                            clear_start,
+            output  wire                                            clear_busy,
+
+            input   wire    [M_AXI4_ADDR_WIDTH-1:0]                 param_addr,
+            input   wire    [STRIDE_C_WIDTH-1:0]                    param_stride_c,
+            input   wire    [STRIDE_X_WIDTH-1:0]                    param_stride_x,
+            input   wire    [STRIDE_Y_WIDTH-1:0]                    param_stride_y,
+            input   wire    [S_DATA_WIDTH-1:0]                      param_blank_value,
+
+            output  wire    [L1_CACHE_NUM-1:0]                      status_l1_idle,
+            output  wire    [L1_CACHE_NUM-1:0]                      status_l1_stall,
+            output  wire    [L1_CACHE_NUM-1:0]                      status_l1_access,
+            output  wire    [L1_CACHE_NUM-1:0]                      status_l1_hit,
+            output  wire    [L1_CACHE_NUM-1:0]                      status_l1_miss,
+            output  wire    [L1_CACHE_NUM-1:0]                      status_l1_blank,
+            output  wire    [L2_CACHE_NUM-1:0]                      status_l2_idle,
+            output  wire    [L2_CACHE_NUM-1:0]                      status_l2_stall,
+            output  wire    [L2_CACHE_NUM-1:0]                      status_l2_access,
+            output  wire    [L2_CACHE_NUM-1:0]                      status_l2_hit,
+            output  wire    [L2_CACHE_NUM-1:0]                      status_l2_miss,
+            output  wire    [L2_CACHE_NUM-1:0]                      status_l2_blank,
             
-            input   wire                                    endian,
+            input   wire    [L1_CACHE_NUM-1:0][USER_WIDTH-1:0]      s_aruser,
+            input   wire    [L1_CACHE_NUM-1:0][ADDR_X_WIDTH-1:0]    s_araddrx,
+            input   wire    [L1_CACHE_NUM-1:0][ADDR_Y_WIDTH-1:0]    s_araddry,
+            input   wire    [L1_CACHE_NUM-1:0]                      s_arstrb,
+            input   wire    [L1_CACHE_NUM-1:0]                      s_arvalid,
+            output  wire    [L1_CACHE_NUM-1:0]                      s_arready,
             
-            input   wire                                    clear_start,
-            output  wire                                    clear_busy,
-            
-            input   wire    [M_AXI4_ADDR_WIDTH-1:0]         param_addr,
-            input   wire    [STRIDE_C_WIDTH-1:0]            param_stride_c,
-            input   wire    [STRIDE_X_WIDTH-1:0]            param_stride_x,
-            input   wire    [STRIDE_Y_WIDTH-1:0]            param_stride_y,
-            input   wire    [S_DATA_WIDTH-1:0]              param_blank_value,
-            
-            output  wire    [L1_CACHE_NUM-1:0]              status_l1_idle,
-            output  wire    [L1_CACHE_NUM-1:0]              status_l1_stall,
-            output  wire    [L1_CACHE_NUM-1:0]              status_l1_access,
-            output  wire    [L1_CACHE_NUM-1:0]              status_l1_hit,
-            output  wire    [L1_CACHE_NUM-1:0]              status_l1_miss,
-            output  wire    [L1_CACHE_NUM-1:0]              status_l1_blank,
-            output  wire    [L2_CACHE_NUM-1:0]              status_l2_idle,
-            output  wire    [L2_CACHE_NUM-1:0]              status_l2_stall,
-            output  wire    [L2_CACHE_NUM-1:0]              status_l2_access,
-            output  wire    [L2_CACHE_NUM-1:0]              status_l2_hit,
-            output  wire    [L2_CACHE_NUM-1:0]              status_l2_miss,
-            output  wire    [L2_CACHE_NUM-1:0]              status_l2_blank,
-            
-            input   wire    [L1_CACHE_NUM*USER_WIDTH-1:0]   s_aruser,
-            input   wire    [L1_CACHE_NUM*ADDR_X_WIDTH-1:0] s_araddrx,
-            input   wire    [L1_CACHE_NUM*ADDR_Y_WIDTH-1:0] s_araddry,
-            input   wire    [L1_CACHE_NUM-1:0]              s_arstrb,
-            input   wire    [L1_CACHE_NUM-1:0]              s_arvalid,
-            output  wire    [L1_CACHE_NUM-1:0]              s_arready,
-            
-            output  wire    [L1_CACHE_NUM*USER_WIDTH-1:0]   s_ruser,
-            output  wire    [L1_CACHE_NUM*S_DATA_WIDTH-1:0] s_rdata,
-            output  wire    [L1_CACHE_NUM-1:0]              s_rstrb,
-            output  wire    [L1_CACHE_NUM-1:0]              s_rvalid,
-            input   wire    [L1_CACHE_NUM-1:0]              s_rready,
+            output  wire    [L1_CACHE_NUM-1:0][USER_WIDTH-1:0]      s_ruser,
+            output  wire    [L1_CACHE_NUM-1:0][S_DATA_WIDTH-1:0]    s_rdata,
+            output  wire    [L1_CACHE_NUM-1:0]                      s_rstrb,
+            output  wire    [L1_CACHE_NUM-1:0]                      s_rvalid,
+            input   wire    [L1_CACHE_NUM-1:0]                      s_rready,
             
             
             // AXI4 read (master)
-            output  wire    [M_AXI4_ID_WIDTH-1:0]           m_axi4_arid,
-            output  wire    [M_AXI4_ADDR_WIDTH-1:0]         m_axi4_araddr,
-            output  wire    [M_AXI4_LEN_WIDTH-1:0]          m_axi4_arlen,
-            output  wire    [2:0]                           m_axi4_arsize,
-            output  wire    [1:0]                           m_axi4_arburst,
-            output  wire    [0:0]                           m_axi4_arlock,
-            output  wire    [3:0]                           m_axi4_arcache,
-            output  wire    [2:0]                           m_axi4_arprot,
-            output  wire    [M_AXI4_QOS_WIDTH-1:0]          m_axi4_arqos,
-            output  wire    [3:0]                           m_axi4_arregion,
-            output  wire                                    m_axi4_arvalid,
-            input   wire                                    m_axi4_arready,
-            input   wire    [M_AXI4_ID_WIDTH-1:0]           m_axi4_rid,
-            input   wire    [M_AXI4_DATA_WIDTH-1:0]         m_axi4_rdata,
-            input   wire    [1:0]                           m_axi4_rresp,
-            input   wire                                    m_axi4_rlast,
-            input   wire                                    m_axi4_rvalid,
-            output  wire                                    m_axi4_rready
+            output  wire    [M_AXI4_ID_WIDTH-1:0]                   m_axi4_arid,
+            output  wire    [M_AXI4_ADDR_WIDTH-1:0]                 m_axi4_araddr,
+            output  wire    [M_AXI4_LEN_WIDTH-1:0]                  m_axi4_arlen,
+            output  wire    [2:0]                                   m_axi4_arsize,
+            output  wire    [1:0]                                   m_axi4_arburst,
+            output  wire    [0:0]                                   m_axi4_arlock,
+            output  wire    [3:0]                                   m_axi4_arcache,
+            output  wire    [2:0]                                   m_axi4_arprot,
+            output  wire    [M_AXI4_QOS_WIDTH-1:0]                  m_axi4_arqos,
+            output  wire    [3:0]                                   m_axi4_arregion,
+            output  wire                                            m_axi4_arvalid,
+            input   wire                                            m_axi4_arready,
+            input   wire    [M_AXI4_ID_WIDTH-1:0]                   m_axi4_rid,
+            input   wire    [M_AXI4_DATA_WIDTH-1:0]                 m_axi4_rdata,
+            input   wire    [1:0]                                   m_axi4_rresp,
+            input   wire                                            m_axi4_rlast,
+            input   wire                                            m_axi4_rvalid,
+            output  wire                                            m_axi4_rready
         );
     
     
@@ -179,27 +179,11 @@ module jelly2_texture_cache_core
     //  localparam
     // -----------------------------
     
-    localparam  L1_ID_WIDTH             = L1_CACHE_NUM <=    2 ? 1 :
-                                          L1_CACHE_NUM <=    4 ? 2 :
-                                          L1_CACHE_NUM <=    8 ? 3 :
-                                          L1_CACHE_NUM <=   16 ? 4 :
-                                          L1_CACHE_NUM <=   32 ? 5 :
-                                          L1_CACHE_NUM <=   64 ? 6 :
-                                          L1_CACHE_NUM <=  128 ? 7 :
-                                          L1_CACHE_NUM <=  256 ? 8 : 9;
+    localparam  L1_ID_WIDTH      = $clog2(L1_CACHE_NUM) > 0 ? $clog2(L1_CACHE_NUM) : 1;
+    localparam  L1_DATA_NUM      = (1 << L1_DATA_SIZE);
 
-    localparam  L1_DATA_WIDTH           = ((COMPONENT_NUM * COMPONENT_DATA_WIDTH) << L1_DATA_SIZE);
-    
-    localparam  L2_ID_WIDTH             = L2_CACHE_NUM <=    2 ? 1 :
-                                          L2_CACHE_NUM <=    4 ? 2 :
-                                          L2_CACHE_NUM <=    8 ? 3 :
-                                          L2_CACHE_NUM <=   16 ? 4 :
-                                          L2_CACHE_NUM <=   32 ? 5 :
-                                          L2_CACHE_NUM <=   64 ? 6 :
-                                          L2_CACHE_NUM <=  128 ? 7 :
-                                          L2_CACHE_NUM <=  256 ? 8 : 9;
-    
-    localparam  L2_COMPONENT_NUM        = COMPONENT_NUM;
+    localparam  L2_ID_WIDTH      =  $clog2(L2_CACHE_NUM) > 0 ? $clog2(L2_CACHE_NUM) : 1;
+    localparam  L2_COMPONENT_NUM = COMPONENT_NUM;
     
     
     
@@ -207,20 +191,20 @@ module jelly2_texture_cache_core
     //  L1 Cache
     // -----------------------------
     
-    wire    [L1_CACHE_NUM-1:0]                      m_arlast;
-    wire    [L1_CACHE_NUM*ADDR_X_WIDTH-1:0]         m_araddrx;
-    wire    [L1_CACHE_NUM*ADDR_Y_WIDTH-1:0]         m_araddry;
-    wire    [L1_CACHE_NUM-1:0]                      m_arvalid;
-    wire    [L1_CACHE_NUM-1:0]                      m_arready;
+    wire    [L1_CACHE_NUM-1:0]                                                                  m_arlast;
+    wire    [L1_CACHE_NUM-1:0][ADDR_X_WIDTH-1:0]                                                m_araddrx;
+    wire    [L1_CACHE_NUM-1:0][ADDR_Y_WIDTH-1:0]                                                m_araddry;
+    wire    [L1_CACHE_NUM-1:0]                                                                  m_arvalid;
+    wire    [L1_CACHE_NUM-1:0]                                                                  m_arready;
+
+    wire    [L1_CACHE_NUM-1:0]                                                                  m_rlast;
+    wire    [L1_CACHE_NUM-1:0][L1_DATA_NUM-1:0][COMPONENT_NUM-1:0][COMPONENT_DATA_WIDTH-1:0]    m_rdata;
+    wire    [L1_CACHE_NUM-1:0]                                                                  m_rvalid;
+    wire    [L1_CACHE_NUM-1:0]                                                                  m_rready;
     
-    wire    [L1_CACHE_NUM-1:0]                      m_rlast;
-    wire    [L1_CACHE_NUM*L1_DATA_WIDTH-1:0]        m_rdata;
-    wire    [L1_CACHE_NUM-1:0]                      m_rvalid;
-    wire    [L1_CACHE_NUM-1:0]                      m_rready;
+    wire                                                                                        l1_clear_busy;
     
-    wire                                            l1_clear_busy;
-    
-    jelly_texture_cache_l1
+    jelly2_texture_cache_l1
             #(
                 .CACHE_NUM              (L1_CACHE_NUM),
                 
@@ -315,25 +299,22 @@ module jelly2_texture_cache_core
     // -----------------------------
     
     localparam  L2_USER_WIDTH = L1_ID_WIDTH;
-    localparam  L1_DATA_NUM   = (1 << L1_DATA_SIZE);
     
-    wire    [L1_CACHE_NUM-1:0]                  l2_rlast;
-    wire    [L1_CACHE_NUM*L1_DATA_WIDTH-1:0]    l2_rdata;
+    wire    [L1_CACHE_NUM-1:0]                                                                  l2_rlast;
+    wire    [L1_CACHE_NUM-1:0][L1_DATA_NUM-1:0][COMPONENT_NUM-1:0][COMPONENT_DATA_WIDTH-1:0]    l2_rdata;
     
-    genvar  i, j, k;
     generate
-    for ( i = 0; i < L1_CACHE_NUM; i = i+1 ) begin : l2_user_loop
-        assign m_rlast[i]                                = l2_rlast[i];
+    for ( genvar i = 0; i < L1_CACHE_NUM; ++i ) begin : l2_user_loop
+        assign m_rlast[i] = l2_rlast[i];
         
-        wire    [L1_DATA_WIDTH-1:0]     m_rdata_c;
-        wire    [L1_DATA_WIDTH-1:0]     l2_rdata_c;
-        assign m_rdata[i*L1_DATA_WIDTH +: L1_DATA_WIDTH] = m_rdata_c;
-        assign l2_rdata_c                                = l2_rdata[i*L1_DATA_WIDTH +: L1_DATA_WIDTH];
+        wire    [L1_DATA_NUM-1:0][COMPONENT_NUM-1:0][COMPONENT_DATA_WIDTH-1:0]      m_rdata_c;
+        wire    [L2_COMPONENT_NUM-1:0][L1_DATA_NUM-1:0][COMPONENT_DATA_WIDTH-1:0]   l2_rdata_c;
+        assign m_rdata[i] = m_rdata_c;
+        assign l2_rdata_c = l2_rdata[i];
         
-        for ( j = 0; j < L1_DATA_NUM; j = j+1 ) begin : j_loop
-            for ( k = 0; k < L2_COMPONENT_NUM; k = k+1 ) begin : k_loop
-                assign m_rdata_c[(j*COMPONENT_NUM+k)*COMPONENT_DATA_WIDTH +: COMPONENT_DATA_WIDTH]
-                                = l2_rdata_c[(k*L1_DATA_NUM+j)*COMPONENT_DATA_WIDTH +: COMPONENT_DATA_WIDTH];
+        for ( genvar j = 0; j < L1_DATA_NUM; ++j ) begin : j_loop
+            for ( genvar k = 0; k < COMPONENT_NUM; ++k ) begin : k_loop
+                assign m_rdata_c[j][k] = l2_rdata_c[k][j];
             end
         end
     end
@@ -345,7 +326,7 @@ module jelly2_texture_cache_core
 
     wire                            l2_clear_busy;
             
-    jelly_texture_cache_l2
+    jelly2_texture_cache_l2
             #(
                 
                 .COMPONENT_NUM          (COMPONENT_NUM),

@@ -11,7 +11,7 @@
 // `default_nettype none
 
 
-module jelly_axi4s_slave_dump
+module jelly2_axi4s_slave_dump
         #(
             parameter   integer COMPONENT_NUM    = 3,
             parameter   integer DATA_WIDTH       = 8,

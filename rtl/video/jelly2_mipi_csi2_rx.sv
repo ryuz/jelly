@@ -164,7 +164,7 @@ module jelly2_mipi_csi2_rx
     
     // frame start
     reg         reg_out_tuser;
-    always @(posedge aclk) begin
+    always_ff @(posedge aclk) begin
         if ( ~aresetn ) begin
             reg_out_tuser <= 1'b0;
         end

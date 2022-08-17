@@ -1,18 +1,15 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- The platform for real-time computing
 //
-//                                 Copyright (C) 2008-2015 by Ryuz
+//                                 Copyright (C) 2008-2022 by Ryuz
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
-
 
 
 `timescale 1ns / 1ps
 `default_nettype none
 
 
-
-// FIFO
 module jelly2_texture_writer_core
         #(
             parameter   int                             COMPONENT_NUM        = 3,

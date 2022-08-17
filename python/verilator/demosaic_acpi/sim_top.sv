@@ -56,7 +56,7 @@ module top
     // -----------------------------------------
 
     localparam  bit                         SIZE_AUTO        = 0;
-    localparam  int                         MAX_X_NUM        = 4096;
+    localparam  int                         MAX_COLS         = 4096;
     localparam                              RAM_TYPE         = "block";
     localparam  bit     [IMG_Y_WIDTH-1:0]   INIT_Y_NUM       = 480;
     localparam  int                         FIFO_PTR_WIDTH   = IMG_X_WIDTH;
@@ -79,7 +79,7 @@ module top
                 .DATA_WIDTH         (DATA_WIDTH),
                 .IMG_X_WIDTH        (IMG_X_WIDTH),
                 .IMG_Y_WIDTH        (IMG_Y_WIDTH),
-                .MAX_X_NUM          (MAX_X_NUM),
+                .MAX_COLS           (MAX_COLS),
                 .RAM_TYPE           (RAM_TYPE),
                 .INIT_Y_NUM         (INIT_Y_NUM),
                 .FIFO_PTR_WIDTH     (FIFO_PTR_WIDTH),
