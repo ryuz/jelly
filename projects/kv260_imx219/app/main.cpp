@@ -167,10 +167,10 @@ int main(int argc, char *argv[])
     auto reg_fmtr   = uio_acc.GetAccessor(0x00100000);
 //  auto reg_prmup  = uio_acc.GetAccessor(0x00011000);
     auto reg_demos  = uio_acc.GetAccessor(0x00120000);
-    auto reg_colmat = uio_acc.GetAccessor(0x00120200);
+    auto reg_colmat = uio_acc.GetAccessor(0x00120800);
     auto reg_wdma   = uio_acc.GetAccessor(0x00210000);
     
-#if 0
+#if 1
     std::cout << "CORE ID" << std::endl;
     std::cout << std::hex << reg_gid.ReadReg(0) << std::endl;
     std::cout << std::hex << uio_acc.ReadReg(0) << std::endl;

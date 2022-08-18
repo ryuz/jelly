@@ -257,7 +257,7 @@ impl Imx219Control {
         self.i2c_read_u16(IMX219_MODEL_ID)
     }
 
-    fn reset(&mut self) -> Result<(), Box<dyn Error>> {
+    pub fn reset(&mut self) -> Result<(), Box<dyn Error>> {
         self.check_open()?;
 
         // ソフトリセット
@@ -282,14 +282,14 @@ impl Imx219Control {
         Ok(())
     }
 
-    fn start(&mut self) -> Result<(), Box<dyn Error>> {
+    pub fn start(&mut self) -> Result<(), Box<dyn Error>> {
         self.check_open()?;
         self.i2c_write_u8(IMX219_MODE_SEL, 0x01)?; // mode_select [4:0] 0: SW standby, 1: Streaming
         self.running = true;
         Ok(())
     }
 
-    fn stop(&mut self) -> Result<(), Box<dyn Error>> {
+    pub fn stop(&mut self) -> Result<(), Box<dyn Error>> {
         self.check_open()?;
         self.i2c_write_u8(IMX219_MODE_SEL, 0x00)?; // mode_select [4:0] 0: SW standby, 1: Streaming
         self.running = false;
