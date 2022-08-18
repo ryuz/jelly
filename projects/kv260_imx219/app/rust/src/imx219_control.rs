@@ -151,6 +151,7 @@ const IMX219_RESERVE_10: u16 = 0x031E;
 const IMX219_RESERVE_11: u16 = 0x031F;
 const IMX219_FLASH_STATUS: u16 = 0x0321;
 
+use std::cmp::{max, min};
 use std::error::Error;
 use std::thread;
 use std::time::Duration;
@@ -166,21 +167,21 @@ pub struct Imx219Control {
     running: bool,
     binning_h: bool,
     binning_v: bool,
-    aoi_x: u32,
-    aoi_y: u32,
-    width: u32,
-    height: u32,
+    aoi_x: i32,
+    aoi_y: i32,
+    width: i32,
+    height: i32,
     framerate: f64,
     exposure: f64,
     gain: f64,
     flip_h: bool,
     flip_v: bool,
     pll_vt_mpy: u16,
-    line_length: u32,
-    frm_length: u32,
-    coarse_integration_time: u32,
-    ana_gain_global: u32,
-    dig_gain_global: u32,
+    line_length: u16,
+    frm_length: u16,
+    coarse_integration_time: u16,
+    ana_gain_global: u8,
+    dig_gain_global: u16,
 }
 
 impl Imx219Control {
@@ -300,7 +301,284 @@ impl Imx219Control {
         Ok(())
     }
 
-    pub fn get_pixel_clock(&mut self) -> f64 {
-        8000000.0 * self.pll_vt_mpy as f64 / 5.0
+    pub fn get_pixel_clock(&mut self) -> Result<f64, Box<dyn Error>> {
+        Ok(8000000.0 * self.pll_vt_mpy as f64 / 5.0)
+    }
+
+    pub fn set_gain(&mut self, db: f64) -> Result<(), Box<dyn Error>> {
+        self.check_open()?;
+
+        let db = if db > 0.0 { db } else { 0.0 };
+        let db = if db < 20.57 { db } else { 20.57 };
+        let gain = 10f64.powf(db / 20.0);
+        self.ana_gain_global = (256.0 * ((gain - 1.0) / gain)) as u8;
+        self.i2c_write_u8(IMX219_ANA_GAIN_GLOBAL_A, self.ana_gain_global)?;
+        Ok(())
+    }
+
+    pub fn get_gain(&mut self) -> Result<f64, Box<dyn Error>> {
+        let gain = 256.0 / (256.0 - self.ana_gain_global as f64);
+        Ok(20.0 * gain.log10())
+    }
+
+    pub fn set_digital_gain(&mut self, db: f64) -> Result<(), Box<dyn Error>> {
+        self.check_open()?;
+
+        let db = if db > 0.0 { db } else { 0.0 };
+        let db = if db < 24.0 { db } else { 24.0 };
+        let gain = 10f64.powf(db / 20.0);
+        self.dig_gain_global = (gain * 256.0) as u16;
+        self.i2c_write_u16(IMX219_DIG_GAIN_GLOBAL_A, self.dig_gain_global)?;
+        Ok(())
+    }
+
+    pub fn get_digital_gain(&mut self) -> Result<f64, Box<dyn Error>> {
+        let gain = self.dig_gain_global as f64 / 256.0;
+        Ok(20.0 * gain.log10())
+    }
+
+    pub fn set_frame_rate(&mut self, fps: f64) -> Result<(), Box<dyn Error>> {
+        self.check_open()?;
+
+        let new_frm_length =
+            ((2.0 * self.get_pixel_clock()?) / (self.line_length as f64 * fps)) as i32;
+        let min_frm_length = if self.binning_v {
+            self.height / 2 + 14
+        } else {
+            self.height + 16
+        };
+        self.frm_length = max(new_frm_length, min_frm_length) as u16;
+        self.coarse_integration_time = min(self.coarse_integration_time, self.frm_length - 4);
+
+        self.i2c_write_u16(IMX219_FRM_LENGTH_A, self.frm_length)?;
+        self.i2c_write_u16(
+            IMX219_COARSE_INTEGRATION_TIME_A,
+            self.coarse_integration_time,
+        )?;
+        Ok(())
+    }
+
+    pub fn get_frame_rate(&mut self) -> Result<f64, Box<dyn Error>> {
+        Ok((2.0 * self.get_pixel_clock()?) / (self.frm_length as f64 * self.line_length as f64))
+    }
+
+    pub fn set_exposure_time(&mut self, exposure_time: f64) -> Result<(), Box<dyn Error>> {
+        self.check_open()?;
+
+        let new_coarse_integration_time =
+            ((2.0 * self.get_pixel_clock()?) * exposure_time / self.line_length as f64) as u16;
+        self.coarse_integration_time = min(new_coarse_integration_time, self.frm_length - 4);
+
+        self.i2c_write_u16(
+            IMX219_COARSE_INTEGRATION_TIME_A,
+            self.coarse_integration_time,
+        )?;
+        Ok(())
+    }
+
+    pub fn get_exposure_time(&mut self) -> Result<f64, Box<dyn Error>> {
+        Ok(
+            (self.coarse_integration_time as f64 * self.line_length as f64)
+                / (2.0 * self.get_pixel_clock()?),
+        )
+    }
+
+    pub fn sensor_width(&self) -> i32 {
+        if self.binning_h {
+            3296 / 2
+        } else {
+            3296
+        }
+    }
+    pub fn sensor_height(&self) -> i32 {
+        if self.binning_v {
+            (2480 + 16 + 16 + 8) / 2
+        } else {
+            2480 + 16 + 16 + 8
+        }
+    }
+    pub fn sensor_center_x(&self) -> i32 {
+        if self.binning_h {
+            (8 + (3280 / 2)) / 2
+        } else {
+            8 + (3280 / 2)
+        }
+    }
+    pub fn sensor_center_y(&self) -> i32 {
+        if self.binning_v {
+            (8 + (2464 / 2)) / 2
+        } else {
+            8 + (2464 / 2)
+        }
+    }
+
+    pub fn set_aoi(
+        &mut self,
+        width: i32,
+        height: i32,
+        x: i32,
+        y: i32,
+        binning_h: bool,
+        binning_v: bool,
+    ) -> Result<(), Box<dyn Error>> {
+        self.check_open()?;
+
+        self.binning_h = binning_h;
+        self.binning_v = binning_v;
+        let sensor_width = self.sensor_width();
+        let sensor_height = self.sensor_height();
+        self.width = min(width, sensor_width);
+        self.height = min(height, sensor_height);
+
+        let x = if x < 0 {
+            self.sensor_center_x() - (self.width / 2)
+        } else {
+            x
+        };
+        let y = if y < 0 {
+            self.sensor_center_y() - (self.height / 2)
+        } else {
+            y
+        };
+
+        self.aoi_x = min(sensor_width - self.width, x);
+        self.aoi_y = min(sensor_height - self.height, y);
+
+        let min_frm_length = if self.binning_v {
+            self.height / 2 + 14
+        } else {
+            self.height + 16
+        };
+        self.frm_length = max(self.frm_length, min_frm_length as u16);
+        self.coarse_integration_time = min(self.coarse_integration_time, self.frm_length - 4);
+
+        self.setup()?;
+
+        Ok(())
+    }
+
+    pub fn set_aoi_size(&mut self, width: i32, height: i32) -> Result<(), Box<dyn Error>> {
+        self.set_aoi(
+            width,
+            height,
+            self.aoi_x,
+            self.aoi_y,
+            self.binning_h,
+            self.binning_v,
+        )
+    }
+
+    pub fn set_aoi_position(&mut self, x: i32, y: i32) -> Result<(), Box<dyn Error>> {
+        self.set_aoi(
+            self.width,
+            self.height,
+            x,
+            y,
+            self.binning_h,
+            self.binning_v,
+        )
+    }
+
+    pub fn aoi_width(&self) -> i32 {
+        self.width
+    }
+    pub fn aoi_height(&self) -> i32 {
+        self.height
+    }
+    pub fn aoi_x(&self) -> i32 {
+        self.aoi_x
+    }
+    pub fn aoi_y(&self) -> i32 {
+        self.aoi_y
+    }
+
+    pub fn set_flip(&mut self, flip_h: bool, flip_v: bool) -> Result<(), Box<dyn Error>> {
+        self.check_open()?;
+
+        self.flip_h = flip_h;
+        self.flip_v = flip_v;
+
+        let mut flip: u8 = 0;
+        if self.flip_h {
+            flip |= 0x01;
+        }
+        if self.flip_v {
+            flip |= 0x02;
+        }
+        self.i2c_write_u8(IMX219_IMG_ORIENTATION_A, flip)?;
+        Ok(())
+    }
+
+    pub fn flip_h(&self) -> bool {
+        self.flip_h
+    }
+    pub fn flip_v(&self) -> bool {
+        self.flip_v
+    }
+
+    pub fn setup(&mut self) -> Result<(), Box<dyn Error>> {
+        self.check_open()?;
+
+        self.i2c_write_u8(IMX219_MODE_SEL, 0x00)?; // mode_select [4:0]  (0: SW standby, 1: Streaming)
+
+        self.i2c_write_u16(IMX219_CSI_DATA_FORMAT_A, 0x0A0A)?; // CSI-2 data format(0x0808:RAW8, 0x0A0A: RAW10)
+        self.i2c_write_u8(IMX219_VTPXCK_DIV, 0x05)?; // vt_pix_clk_div
+        self.i2c_write_u8(IMX219_VTSYCK_DIV, 0x01)?; // vt_sys_clk_div
+        self.i2c_write_u8(IMX219_PREPLLCK_VT_DIV, 0x03)?; // pre_pll_clk_vt_div(EXCK_FREQ 0:6-12MHz, 2:12-24MHz, 3:24-27MHz)
+        self.i2c_write_u8(IMX219_PREPLLCK_OP_DIV, 0x03)?; // pre_pll_clk_op_div(EXCK_FREQ 0:6-12MHz, 2:12-24MHz, 3:24-27MHz)
+        self.i2c_write_u16(IMX219_PLL_VT_MPY, self.pll_vt_mpy)?; // pll_vt_multiplier
+        self.i2c_write_u8(IMX219_OPPXCK_DIV, 0x0A)?; // op_pix_clk_div
+        self.i2c_write_u8(IMX219_OPSYCK_DIV, 0x01)?; // op_sys_clk_div
+        self.i2c_write_u16(IMX219_PLL_OP_MPY, 0x0072)?; // pll_op_multiplier
+
+        let aoi_x = if self.binning_h {
+            self.aoi_x * 2
+        } else {
+            self.aoi_x
+        };
+        let aoi_y = if self.binning_v {
+            self.aoi_y * 2
+        } else {
+            self.aoi_y
+        };
+        let aoi_w = if self.binning_h {
+            self.width * 2
+        } else {
+            self.width
+        };
+        let aoi_h = if self.binning_v {
+            self.height * 2
+        } else {
+            self.height
+        };
+        self.i2c_write_u16(IMX219_X_ADD_STA_A, aoi_x as u16)?; // x_addr_start  X-address of the top left corner of the visible pixel data Units: Pixels
+        self.i2c_write_u16(IMX219_X_ADD_END_A, (aoi_x + aoi_w - 1) as u16)?; //
+        self.i2c_write_u16(IMX219_Y_ADD_STA_A, aoi_y as u16)?; //
+        self.i2c_write_u16(IMX219_Y_ADD_END_A, (aoi_y + aoi_h - 1) as u16)?; //
+        self.i2c_write_u16(IMX219_X_OUTPUT_SIZE, self.width as u16)?; // x_output_size
+        self.i2c_write_u16(IMX219_Y_OUTPUT_SIZE, self.height as u16)?; // y_output_size
+
+        self.i2c_write_u8(
+            IMX219_BINNING_MODE_H_A,
+            if self.binning_h { 0x03 } else { 0x00 },
+        )?; // 0:no-binning, 1:x2-binning, 2:x4-binning, 3:x2 analog (special)
+        self.i2c_write_u8(
+            IMX219_BINNING_MODE_V_A,
+            if self.binning_v { 0x03 } else { 0x00 },
+        )?; // 0:no-binning, 1:x2-binning, 2:x4-binning, 3:x2 analog (special)
+
+        self.i2c_write_u16(IMX219_LINE_LENGTH_A, 3448)?; // 0x0D78=3448   LINE_LENGTH_A (line_length_pck Units: Pixels)
+        self.i2c_write_u16(IMX219_FRM_LENGTH_A, self.frm_length)?;
+        self.i2c_write_u16(
+            IMX219_COARSE_INTEGRATION_TIME_A,
+            self.coarse_integration_time,
+        )?;
+
+        // restart
+        if self.running {
+            self.i2c_write_u8(IMX219_MODE_SEL, 0x01)?; // mode_select [4:0] 0: SW standby, 1: Streaming
+        }
+
+        Ok(())
     }
 }
