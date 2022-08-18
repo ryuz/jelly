@@ -44,9 +44,9 @@ namespace jelly {
 #define IMX219_FRM_FMT_DESC2_1             0x0047
 #define IMX219_MODE_SEL                    0x0100
 #define IMX219_SW_RESET                    0x0103
-#define IMX219_CORRUPTED FRAME STATUS      0x0104
+#define IMX219_CORRUPTED_FRAME_STATUS      0x0104
 #define IMX219_MASK_CORRUPTED_FRAMES       0x0105
-#define IMX219_FAST STANDBY ENABLE         0x0106
+#define IMX219_FAST_STANDBY_ENABLE         0x0106
 #define IMX219_CSI_CH_ID                   0x0110
 #define IMX219_CSI_SIG_MODE                0x0111
 #define IMX219_CSI_LANE_MODE               0x0114
