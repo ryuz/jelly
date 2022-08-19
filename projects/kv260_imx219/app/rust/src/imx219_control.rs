@@ -210,8 +210,14 @@ impl Imx219Control {
     }
 
     pub fn i2c_write(&mut self, addr: u16, data: &[u8]) -> Result<(), Box<dyn Error>> {
-        self.i2c.write(&(addr.to_be_bytes()))?;
-        self.i2c.write(data)
+        let addr = addr.to_be_bytes();
+        let mut buf = Vec::<u8>::new();
+        buf.push(addr[0]);
+        buf.push(addr[1]);
+        for v in data {
+            buf.push(*v);
+        }
+        self.i2c.write(&buf)
     }
 
     pub fn i2c_read(&mut self, addr: u16, buf: &mut [u8]) -> Result<(), Box<dyn Error>> {
@@ -220,8 +226,11 @@ impl Imx219Control {
     }
 
     pub fn i2c_write_u8(&mut self, addr: u16, data: u8) -> Result<(), Box<dyn Error>> {
-        self.i2c.write(&(addr.to_be_bytes()))?;
-        self.i2c.write(&(data.to_be_bytes()))
+//        self.i2c.write(&(addr.to_be_bytes()))?;
+//        self.i2c.write(&(data.to_be_bytes()))?;
+        self.i2c_write(addr, &(data.to_be_bytes()))?;
+        println!("i2c_u8 {:04x} <= {:02x} {:02x} {:02x}", addr, data, self.i2c_read_u8(addr)?, self.i2c_read_u8(addr)?);
+        Ok(())
     }
 
     pub fn i2c_read_u8(&mut self, addr: u16) -> Result<u8, Box<dyn Error>> {
@@ -232,8 +241,11 @@ impl Imx219Control {
     }
 
     pub fn i2c_write_u16(&mut self, addr: u16, data: u16) -> Result<(), Box<dyn Error>> {
-        self.i2c.write(&(addr.to_be_bytes()))?;
-        self.i2c.write(&(data.to_be_bytes()))
+//        self.i2c.write(&(addr.to_be_bytes()))?;
+//        self.i2c.write(&(data.to_be_bytes()))?;
+        self.i2c_write(addr, &(data.to_be_bytes()))?;
+        println!("i2c_16 {:04x} <= {:04x} {:04x} {:04x}", addr, data, self.i2c_read_u16(addr)?, self.i2c_read_u16(addr)?);
+        Ok(())
     }
 
     pub fn i2c_read_u16(&mut self, addr: u16) -> Result<u16, Box<dyn Error>> {
@@ -262,7 +274,7 @@ impl Imx219Control {
 
         // ソフトリセット
         self.i2c_write_u8(IMX219_SW_RESET, 0x01)?;
-        thread::sleep(Duration::from_millis(1));
+        thread::sleep(Duration::from_millis(10));
 
         // 初期設定
         self.i2c_write_u8(IMX219_CSI_LANE_MODE, 0x01)?; // 03: 4Lane, 01: 2Lane
