@@ -1,5 +1,13 @@
 #![allow(dead_code)]
 
+use std::cmp::{max, min};
+use std::error::Error;
+use std::thread;
+use std::time::Duration;
+
+use crate::i2c_access::I2cAccess;
+
+
 // レジスタ定義
 const IMX219_MODEL_ID: u16 = 0x0000;
 const IMX219_MODEL_ID_0: u16 = 0x0000;
@@ -151,15 +159,7 @@ const IMX219_RESERVE_10: u16 = 0x031E;
 const IMX219_RESERVE_11: u16 = 0x031F;
 const IMX219_FLASH_STATUS: u16 = 0x0321;
 
-use std::cmp::{max, min};
-use std::error::Error;
-use std::thread;
-use std::time::Duration;
 
-pub trait I2cAccess {
-    fn write(&mut self, data: &[u8]) -> Result<(), Box<dyn Error>>;
-    fn read(&mut self, buf: &mut [u8]) -> Result<(), Box<dyn Error>>;
-}
 
 pub struct Imx219Control {
     i2c: Box<dyn I2cAccess>,
@@ -217,17 +217,19 @@ impl Imx219Control {
         for v in data {
             buf.push(*v);
         }
-        self.i2c.write(&buf)
+        self.i2c.write(&buf)?;
+        Ok(())
     }
 
     pub fn i2c_read(&mut self, addr: u16, buf: &mut [u8]) -> Result<(), Box<dyn Error>> {
         self.i2c.write(&(addr.to_be_bytes()))?;
-        self.i2c.read(buf)
+        self.i2c.read(buf)?;
+        Ok(())
     }
 
     pub fn i2c_write_u8(&mut self, addr: u16, data: u8) -> Result<(), Box<dyn Error>> {
         self.i2c_write(addr, &(data.to_be_bytes()))?;
-        //      println!("i2c_u8  {:04x} <= {:02x}", addr, data);
+//      println!("i2c_u8  {:04x} <= {:02x}", addr, data);
         Ok(())
     }
 
@@ -240,7 +242,7 @@ impl Imx219Control {
 
     pub fn i2c_write_u16(&mut self, addr: u16, data: u16) -> Result<(), Box<dyn Error>> {
         self.i2c_write(addr, &(data.to_be_bytes()))?;
-        //      println!("i2c_u16 {:04x} <= {:04x}", addr, data);
+//      println!("i2c_u16 {:04x} <= {:04x}", addr, data);
         Ok(())
     }
 
@@ -592,3 +594,11 @@ impl Imx219Control {
         Ok(())
     }
 }
+
+
+impl Drop for Imx219Control {
+    fn drop(&mut self) {
+        self.close();
+    }
+}
+

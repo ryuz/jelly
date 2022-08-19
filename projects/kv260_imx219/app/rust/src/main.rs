@@ -17,13 +17,17 @@ use opencv::{
 //    prelude::*,
 };
 
-mod imx219_control;
-use imx219_control::*;
+//mod imx219_control;
+//use imx219_control::*;
+use jelly_lib::imx219_control::Imx219Control;
+use jelly_lib::linux_i2c::LinuxI2c;
 
+/*
 use i2cdev::core::*;
 use i2cdev::linux::LinuxI2CDevice;
 
-impl I2cAccess for LinuxI2CDevice {
+
+impl jelly_pac::imx219_control::I2cAccess for LinuxI2CDevice {
     fn write(&mut self, data: &[u8]) -> Result<(), Box<dyn Error>> {
         thread::sleep(Duration::from_millis(1));
         match I2CDevice::write(self, data) {
@@ -40,6 +44,7 @@ impl I2cAccess for LinuxI2CDevice {
         }
     }
 }
+*/
 
 /*
 mod i2c_accessor;
@@ -295,7 +300,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // IMX219 control
     //    let i2c = Box::new(I2cAccessor::new("/dev/i2c-6", 0x10).expect("Failed to open i2c"));
-    let i2c = Box::new(LinuxI2CDevice::new("/dev/i2c-6", 0x10).expect("Failed to open i2c"));
+//    let i2c = Box::new(LinuxI2CDevice::new("/dev/i2c-6", 0x10).expect("Failed to open i2c"));
+    let i2c = Box::new(LinuxI2c::new("/dev/i2c-6", 0x10).unwrap());
     let mut imx219 = Imx219Control::new(i2c);
     println!("reset");
     imx219.reset()?;
