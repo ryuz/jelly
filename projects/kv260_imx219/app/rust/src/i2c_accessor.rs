@@ -6,22 +6,13 @@ use nix::unistd::{close, read, write};
 use std::os::unix::io::RawFd;
 use std::error::Error;
 
-//use anyhow::Result;
-//use libc::{c_char, c_ushort};
-//use notify::{watcher, DebouncedEvent, RecursiveMode, Watcher};
-//use std::path::PathBuf;
-//use std::thread::sleep;
-//use std::time::Duration;
-
 
 pub struct I2cAccessor {
     fd: RawFd,
 }
 
-
 // #define I2C_SLAVE        0x0703 
 nix::ioctl_write_int_bad!(i2c_slave, 0x0703);
-
 
 
 impl I2cAccessor {
@@ -42,13 +33,11 @@ impl I2cAccessor {
 
     pub fn i2c_write(&mut self, data: &[u8]) -> Result<usize, Box<dyn Error>> {
         let l = write(self.fd, data)?;
-//        println!("{}", l);
         Ok(l)
     }
 
     pub fn i2c_read(&mut self, buf: &mut [u8]) -> Result<usize, Box<dyn Error>> {
         let l = read(self.fd, buf)?;
-//        println!("{}", l);
         Ok(l)
     }
 }

@@ -226,10 +226,8 @@ impl Imx219Control {
     }
 
     pub fn i2c_write_u8(&mut self, addr: u16, data: u8) -> Result<(), Box<dyn Error>> {
-//        self.i2c.write(&(addr.to_be_bytes()))?;
-//        self.i2c.write(&(data.to_be_bytes()))?;
         self.i2c_write(addr, &(data.to_be_bytes()))?;
-        println!("i2c_u8 {:04x} <= {:02x} {:02x} {:02x}", addr, data, self.i2c_read_u8(addr)?, self.i2c_read_u8(addr)?);
+        //      println!("i2c_u8  {:04x} <= {:02x}", addr, data);
         Ok(())
     }
 
@@ -241,10 +239,8 @@ impl Imx219Control {
     }
 
     pub fn i2c_write_u16(&mut self, addr: u16, data: u16) -> Result<(), Box<dyn Error>> {
-//        self.i2c.write(&(addr.to_be_bytes()))?;
-//        self.i2c.write(&(data.to_be_bytes()))?;
         self.i2c_write(addr, &(data.to_be_bytes()))?;
-        println!("i2c_16 {:04x} <= {:04x} {:04x} {:04x}", addr, data, self.i2c_read_u16(addr)?, self.i2c_read_u16(addr)?);
+        //      println!("i2c_u16 {:04x} <= {:04x}", addr, data);
         Ok(())
     }
 
@@ -259,7 +255,9 @@ impl Imx219Control {
         Ok(())
     }
 
-    pub fn close(&mut self) {}
+    pub fn close(&mut self) {
+        self.stop().unwrap();
+    }
 
     fn check_open(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
