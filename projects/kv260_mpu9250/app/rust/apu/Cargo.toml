@@ -6,8 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-nix = "0.24.0"
+nix = "0.25.0"
 #chrono = "0.4.19"
-jelly-mem_access = "0.1.5"
-#jelly-mem_access = {path = "../../../../../rust/mem_access" }
+#jelly-mem_access = "0.1.5"
+jelly-mem_access = {path = "../../../../../rust/mem_access" }
 jelly-pac = {path = "../../../../../rust/pac" }
