@@ -332,7 +332,7 @@ impl<T: MemAccess> VideoDmaControl<T> {
         self.wait_for_stop()
     }
 
-    pub fn one_shot(
+    pub fn oneshot(
         &mut self,
         addr: usize,
         width: i32,
@@ -363,7 +363,7 @@ impl<T: MemAccess> VideoDmaControl<T> {
         return true;
     }
 
-    pub fn start_one_shot(
+    pub fn start_oneshot(
         &mut self,
         addr: usize,
         width: i32,

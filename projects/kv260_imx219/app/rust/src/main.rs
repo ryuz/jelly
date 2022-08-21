@@ -1,8 +1,5 @@
 #![allow(dead_code)]
 
-//use nix::fcntl::{open, OFlag};
-//use nix::unistd::{close, read, write};
-//use std::os::unix::io::RawFd;
 
 use std::error::Error;
 use std::thread;
@@ -17,53 +14,12 @@ use opencv::{
 //    prelude::*,
 };
 
-//mod imx219_control;
-//use imx219_control::*;
-use jelly_lib::imx219_control::Imx219Control;
 use jelly_lib::linux_i2c::LinuxI2c;
-
-/*
-use i2cdev::core::*;
-use i2cdev::linux::LinuxI2CDevice;
+use jelly_lib::imx219_control::Imx219Control;
+use jelly_pac::video_dma_control::VideoDmaControl;
 
 
-impl jelly_pac::imx219_control::I2cAccess for LinuxI2CDevice {
-    fn write(&mut self, data: &[u8]) -> Result<(), Box<dyn Error>> {
-        thread::sleep(Duration::from_millis(1));
-        match I2CDevice::write(self, data) {
-            Ok(f) => Ok(f),
-            Err(error) => Err(Box::new(error)),
-        }
-    }
-
-    fn read(&mut self, buf: &mut [u8]) -> Result<(), Box<dyn Error>> {
-        thread::sleep(Duration::from_millis(1));
-        match I2CDevice::read(self, buf) {
-            Ok(f) => Ok(f),
-            Err(error) => Err(Box::new(error)),
-        }
-    }
-}
-*/
-
-/*
-mod i2c_accessor;
-use i2c_accessor::*;
-
-impl I2cAccess for I2cAccessor {
-    fn write(&mut self, data: &[u8]) -> Result<(), Box<dyn Error>> {
-        self.i2c_write(data)?;
-        Ok(())
-    }
-
-    fn read(&mut self, buf: &mut [u8]) -> Result<(), Box<dyn Error>> {
-        self.i2c_read(buf)?;
-        Ok(())
-    }
-}
-*/
-
-/* Video format regularizer */
+// Video format regularizer
 const REG_VIDEO_FMTREG_CORE_ID: usize = 0x00;
 const REG_VIDEO_FMTREG_CORE_VERSION: usize = 0x01;
 const REG_VIDEO_FMTREG_CTL_CONTROL: usize = 0x04;
@@ -77,7 +33,7 @@ const REG_VIDEO_FMTREG_PARAM_HEIGHT: usize = 0x11;
 const REG_VIDEO_FMTREG_PARAM_FILL: usize = 0x12;
 const REG_VIDEO_FMTREG_PARAM_TIMEOUT: usize = 0x13;
 
-/* Demosaic */
+// Demosaic
 const REG_IMG_DEMOSAIC_CORE_ID: usize = 0x00;
 const REG_IMG_DEMOSAIC_CORE_VERSION: usize = 0x01;
 const REG_IMG_DEMOSAIC_CTL_CONTROL: usize = 0x04;
@@ -107,6 +63,7 @@ const REG_VIDEO_WDMA_MONITOR_SIZE      : usize =       0x14;
 const REG_VIDEO_WDMA_MONITOR_AWLEN     : usize =       0x17;
 */
 
+/*
 /* DMA Stream write */
 const REG_DMA_WRITE_CORE_ID: usize = 0x00;
 const REG_DMA_WRITE_CORE_VERSION: usize = 0x01;
@@ -200,6 +157,7 @@ const REG_VDMA_WRITE_SHADOW_V_SIZE: usize = REG_DMA_WRITE_SHADOW_AWLEN1;
 const REG_VDMA_WRITE_SHADOW_LINE_STEP: usize = REG_DMA_WRITE_SHADOW_AWSTEP1;
 const REG_VDMA_WRITE_SHADOW_F_SIZE: usize = REG_DMA_WRITE_SHADOW_AWLEN2;
 const REG_VDMA_WRITE_SHADOW_FRAME_STEP: usize = REG_DMA_WRITE_SHADOW_AWSTEP2;
+*/
 
 use std::os::raw::c_void;
 
@@ -255,20 +213,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         udmabuf_acc.size()
     );
 
-    for i in 0..1024 * 16 {
-        //      unsafe {print!("{:02x} ", udmabuf_acc.read_mem8(i));}
-        unsafe {
-            udmabuf_acc.write_mem8(i, (i % 256) as u8);
-        }
-    }
-    //    return Ok(());
-    unsafe {
-        println!(
-            "{:02x} {:02x}",
-            udmabuf_acc.read_mem8(0),
-            udmabuf_acc.read_mem8(1)
-        );
-    }
 
     // UIO
     println!("\nuio open");
@@ -291,6 +235,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         println!("reg_colmat : {:08x}", reg_colmat.read_reg(0));
         println!("reg_wdma   : {:08x}", reg_wdma.read_reg(0));
     }
+    
+    let mut vdmaw = VideoDmaControl::new(uio_acc.subclone(0x00210000, 0x400), 4, 4).unwrap();
 
     // カメラON
     unsafe {
@@ -352,6 +298,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         // キャプチャ
         // DMA start (one shot)
+        /*
         unsafe {
             /*
             reg_wdma.write_reg(REG_VIDEO_WDMA_PARAM_ADDR,   udmabuf_acc.phys_addr());
@@ -376,20 +323,20 @@ fn main() -> Result<(), Box<dyn Error>> {
             reg_wdma.write_reg(REG_VDMA_WRITE_PARAM_F_SIZE, 1 - 1);
             reg_wdma.write_reg(REG_VDMA_WRITE_CTL_CONTROL, 0x7);
         }
-        //      break;
 
         // 取り込み完了を待つ
         thread::sleep(Duration::from_millis(10));
         while (unsafe { reg_wdma.read_reg(REG_VDMA_WRITE_CTL_STATUS) } != 0) {
             thread::sleep(Duration::from_millis(10));
         }
+        */
+        
+        vdmaw.oneshot(udmabuf_acc.phys_addr(), width, height, 1, 0, 0, 0, 0);
+
 
         let mut buf = vec![0u8; (width * height * 4) as usize];
         unsafe {
             udmabuf_acc.copy_to(0, buf.as_mut_ptr(), (width * height * 4) as usize);
-            //          println!("{:02x} {:02x}", buf[0], buf[1]);
-            //            println!("{:02x} {:02x}", udmabuf_acc.read_mem8(0), udmabuf_acc.read_mem8(1));
-
             let img = Mat::new_rows_cols_with_data(
                 height,
                 width,
