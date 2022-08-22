@@ -14,7 +14,7 @@
 
 module video_raw_to_rgb
         #(
-            parameter   WB_ADR_WIDTH  = 8,
+            parameter   WB_ADR_WIDTH  = 10,
             parameter   WB_DAT_WIDTH  = 32,
             parameter   WB_SEL_WIDTH  = (WB_DAT_WIDTH / 8),
             
@@ -293,8 +293,8 @@ module video_raw_to_rgb
                 .m_img_valid            (img_sink_valid)
             );
     
-    assign wb_demos_stb_i  = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:6] == 0);
-    assign wb_colmat_stb_i = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:6] == 1);
+    assign wb_demos_stb_i  = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == 0);
+    assign wb_colmat_stb_i = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == 1);
     
     assign s_wb_dat_o      = wb_demos_stb_i  ? wb_demos_dat_o  :
                              wb_colmat_stb_i ? wb_colmat_dat_o :
