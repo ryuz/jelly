@@ -1,0 +1,15 @@
+syntax = "proto3";
+package camera_control;
+
+service CameraControl {
+    rpc Open (OpenRequest) returns (BoolResponse);
+}
+
+message OpenRequest {
+    int32 id = 1;
+}
+
+message BoolResponse {
+    bool result = 1;
+}
+
