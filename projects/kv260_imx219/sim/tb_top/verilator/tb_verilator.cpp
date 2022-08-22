@@ -71,7 +71,7 @@ int main(int argc, char** argv)
     const int reg_gid    = (0x00000000 >> 3);
     const int reg_fmtr   = (0x00100000 >> 3);
     const int reg_demos  = (0x00120000 >> 3);
-    const int reg_colmat = (0x00120200 >> 3);
+    const int reg_colmat = (0x00120800 >> 3);
     const int reg_wdma   = (0x00210000 >> 3);
         
     wb->Wait(1000);

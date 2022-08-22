@@ -32,6 +32,10 @@ clean:
 run: $(TARGET) load
 	./$(TARGET) $(RUN_OPT)
 
+.PHONY: run_rust
+run_rust: load
+	cd rust; cargo run
+
 $(TARGET): $(OBJS)
 	g++ -o $(TARGET) $(OBJS) $(LDFLAGS)
 

@@ -24,13 +24,13 @@ fn main() {
     // mmap udmabuf
     let udmabuf_device_name = "udmabuf-jelly-sample";
     println!("\nudmabuf open");
-    let udmabuf_acc = UdmabufAccessor::<usize>::new(udmabuf_device_name, false).unwrap();
+    let udmabuf_acc = UdmabufAccessor::<usize>::new(udmabuf_device_name, false).expect("Failed to open udmabuf");
     println!("{} phys addr : 0x{:x}", udmabuf_device_name, udmabuf_acc.phys_addr());
     println!("{} size      : 0x{:x}", udmabuf_device_name, udmabuf_acc.size());
 
     // mmap uio
     println!("\nuio open");
-    let mut uio_acc = UioAccessor::<usize>::new_with_name("uio_pl_peri").unwrap();
+    let mut uio_acc = UioAccessor::<usize>::new_with_name("uio_pl_peri").expect("Failed to open uio");
     println!("uio_pl_peri phys addr : 0x{:x}", uio_acc.phys_addr());
     println!("uio_pl_peri size      : 0x{:x}", uio_acc.size());
 

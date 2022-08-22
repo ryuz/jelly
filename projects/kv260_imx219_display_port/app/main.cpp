@@ -434,6 +434,10 @@ int main(int argc, char *argv[])
 
             gamma_prev = gamma;
         }
+        
+        // gauusian
+        reg_gauss.WriteReg(REG_IMG_GAUSS3X3_PARAM_ENABLE, (1 << gauss_level)-1);
+        reg_gauss.WriteReg(REG_IMG_GAUSS3X3_CTL_CONTROL, 0x3);
 
         // canny
         reg_canny.WriteReg(REG_IMG_CANNY_PARAM_TH, canny_th*canny_th);

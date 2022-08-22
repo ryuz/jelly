@@ -9,6 +9,7 @@ pub mod communication_pipe;
 pub mod i2c;
 pub mod interval_timer;
 
+pub mod video_dma_control;
 
 #[cfg(test)]
 mod tests {

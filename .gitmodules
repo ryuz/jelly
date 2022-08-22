@@ -1,0 +1,3 @@
+[submodule "rust/mem_access"]
+	path = rust/mem_access
+	url = https://github.com/ryuz/jelly-mem_access.git
