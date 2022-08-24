@@ -1,14 +1,14 @@
+#![allow(dead_code)]
+
 use std::error::Error;
 use std::thread;
 use std::time::Duration;
 
 use jelly_mem_access::*;
 
-
-use jelly_lib::linux_i2c::LinuxI2c;
 use jelly_lib::imx219_control::Imx219Control;
+use jelly_lib::linux_i2c::LinuxI2c;
 use jelly_pac::video_dma_control::VideoDmaControl;
-
 
 // Video format regularizer
 const REG_VIDEO_FMTREG_CORE_ID: usize = 0x00;
@@ -33,43 +33,47 @@ const REG_IMG_DEMOSAIC_CTL_INDEX: usize = 0x07;
 const REG_IMG_DEMOSAIC_PARAM_PHASE: usize = 0x08;
 const REG_IMG_DEMOSAIC_CURRENT_PHASE: usize = 0x18;
 
-
-
-pub struct CameraControl {
+pub struct CameraManager {
     pixel_clock: f64,
-    binning    : bool,
-    width      : i32,
-    height     : i32 ,
-    aoi_x      : i32 ,
-    aoi_y      : i32 ,
-    flip_h     : bool,
-    flip_v     : bool,
-    frame_rate : i32 ,
-    exposure   : i32 ,
-    a_gain     : i32 ,
-    d_gain     : i32 ,
-    bayer_phase: i32 ,
-    view_scale : i32 ,
+    binning: bool,
+    width: i32,
+    height: i32,
+    aoi_x: i32,
+    aoi_y: i32,
+    flip_h: bool,
+    flip_v: bool,
+    frame_rate: i32,
+    exposure: i32,
+    a_gain: i32,
+    d_gain: i32,
+    bayer_phase: i32,
+    view_scale: i32,
 
-    udmabuf_acc : UdmabufAccessor::<usize>,
-    uio_acc    : UioAccessor::<usize>,
-    reg_gid    : UioAccessor<usize>,
-    reg_fmtr   : UioAccessor<usize>,
-    reg_demos  : UioAccessor<usize>,
-    reg_colmat : UioAccessor<usize>,
-    reg_wdma   : UioAccessor<usize>,
-    imx219_ctl : Imx219Control,
+    udmabuf_acc: UdmabufAccessor<usize>,
+    uio_acc: UioAccessor<usize>,
+    reg_gid: UioAccessor<usize>,
+    reg_fmtr: UioAccessor<usize>,
+    reg_demos: UioAccessor<usize>,
+    reg_colmat: UioAccessor<usize>,
+    reg_wdma: UioAccessor<usize>,
+
+    imx219_ctl: Imx219Control<LinuxI2c>,
+    vdmaw: VideoDmaControl<UioAccessor<usize>>,
 }
 
+impl Default for CameraManager {
+    fn default() -> Self {
+        CameraManager::new()
+    }
+}
 
-impl CameraControl {
-
+impl CameraManager {
     pub fn new() -> Self {
-
         // mmap udmabuf
         let udmabuf_device_name = "udmabuf-jelly-vram0";
         println!("\nudmabuf open");
-        let udmabuf_acc = UdmabufAccessor::<usize>::new(udmabuf_device_name, false).expect("Failed to open udmabuf");
+        let udmabuf_acc = UdmabufAccessor::<usize>::new(udmabuf_device_name, false)
+            .expect("Failed to open udmabuf");
         println!(
             "{} phys addr : 0x{:x}",
             udmabuf_device_name,
@@ -83,7 +87,8 @@ impl CameraControl {
 
         // UIO
         println!("\nuio open");
-        let uio_acc = UioAccessor::<usize>::new_with_name("uio_pl_peri").expect("Failed to open uio");
+        let uio_acc =
+            UioAccessor::<usize>::new_with_name("uio_pl_peri").expect("Failed to open uio");
         println!("uio_pl_peri phys addr : 0x{:x}", uio_acc.phys_addr());
         println!("uio_pl_peri size      : 0x{:x}", uio_acc.size());
 
@@ -102,46 +107,46 @@ impl CameraControl {
             println!("reg_colmat : {:08x}", reg_colmat.read_reg(0));
             println!("reg_wdma   : {:08x}", reg_wdma.read_reg(0));
         }
-        
-        let mut vdmaw = VideoDmaControl::new(uio_acc.subclone(0x00210000, 0x400), 4, 4).unwrap();
-        
-        let i2c = Box::new(LinuxI2c::new("/dev/i2c-6", 0x10).unwrap());
-        let mut imx219_ctl = Imx219Control::new(i2c);
 
-        CameraControl {
+        let vdmaw = VideoDmaControl::new(uio_acc.subclone(0x00210000, 0x400), 4, 4).unwrap();
+        let i2c = LinuxI2c::new("/dev/i2c-6", 0x10).unwrap();
+        let imx219_ctl = Imx219Control::new(i2c);
+
+        CameraManager {
             pixel_clock: 91000000.0,
-            binning    : false,
-            width      : 3280,
-            height     : 2464,
-            aoi_x      : 0,
-            aoi_y      : 0,
-            flip_h     : false,
-            flip_v     : false,
-            frame_rate : 20,
-            exposure   : 33,
-            a_gain     : 20,
-            d_gain     : 0,
+            binning: false,
+            width: 3280,
+            height: 2464,
+            aoi_x: 0,
+            aoi_y: 0,
+            flip_h: false,
+            flip_v: false,
+            frame_rate: 20,
+            exposure: 33,
+            a_gain: 20,
+            d_gain: 0,
             bayer_phase: 0,
-            view_scale : 4,
-            udmabuf_acc : udmabuf_acc,
-            uio_acc : uio_acc,
-            reg_gid    : reg_gid   ,
-            reg_fmtr   : reg_fmtr  ,
-            reg_demos  : reg_demos ,
-            reg_colmat : reg_colmat,
-            reg_wdma   : reg_wdma  ,
+            view_scale: 4,
+            udmabuf_acc: udmabuf_acc,
+            uio_acc: uio_acc,
+            reg_gid: reg_gid,
+            reg_fmtr: reg_fmtr,
+            reg_demos: reg_demos,
+            reg_colmat: reg_colmat,
+            reg_wdma: reg_wdma,
             imx219_ctl: imx219_ctl,
+            vdmaw: vdmaw,
         }
     }
 
-    pub fn open(&mut self) -> Result<(), Box<dyn Error>>
-    {
+    pub fn open(&mut self) -> Result<(), Box<dyn Error>> {
         // カメラON
         unsafe {
             self.uio_acc.write_reg(2, 1);
         }
         thread::sleep(Duration::from_millis(500));
 
+        /*
         // IMX219 control
         println!("reset");
         self.imx219_ctl.reset()?;
@@ -153,9 +158,10 @@ impl CameraControl {
         self.imx219_ctl.set_pixel_clock(self.pixel_clock)?;
         self.imx219_ctl.set_aoi(self.width, self.height, self.aoi_x, self.aoi_y, self.binning, self.binning)?;
         self.imx219_ctl.start()?;
-        
+
         self.imx219_ctl.stop()?;
-        
+        */
+
         /*
 
         // video input start
@@ -169,7 +175,7 @@ impl CameraControl {
             reg_fmtr.write_reg(REG_VIDEO_FMTREG_CTL_CONTROL, 0x03);
         }
         thread::sleep(Duration::from_millis(100));
-        
+
         // 設定
         imx219.set_frame_rate(frame_rate as f64)?;
         imx219.set_exposure_time(exposure as f64 / 1000.0)?;
@@ -180,10 +186,13 @@ impl CameraControl {
 
         Ok(())
     }
+
+    pub fn close(&mut self) {
+        self.imx219_ctl.close();
+    }
 }
 
-
-    /*
+/*
 
     let pixel_clock: f64 = 91000000.0;
     let binning: bool = true;
@@ -238,7 +247,7 @@ impl CameraControl {
         println!("reg_colmat : {:08x}", reg_colmat.read_reg(0));
         println!("reg_wdma   : {:08x}", reg_wdma.read_reg(0));
     }
-    
+
     let mut vdmaw = VideoDmaControl::new(uio_acc.subclone(0x00210000, 0x400), 4, 4).unwrap();
 
     // カメラON
@@ -333,7 +342,7 @@ impl CameraControl {
             thread::sleep(Duration::from_millis(10));
         }
         */
-        
+
         vdmaw.oneshot(udmabuf_acc.phys_addr(), width, height, 1, 0, 0, 0, 0);
 
 
@@ -360,4 +369,3 @@ impl CameraControl {
     Ok(())
 }
 */
-

@@ -161,8 +161,8 @@ const IMX219_FLASH_STATUS: u16 = 0x0321;
 
 
 
-pub struct Imx219Control {
-    i2c: Box<dyn I2cAccess>,
+pub struct Imx219Control<I2C: I2cAccess> {
+    i2c: I2C,
 
     running: bool,
     binning_h: bool,
@@ -184,8 +184,8 @@ pub struct Imx219Control {
     dig_gain_global: u16,
 }
 
-impl Imx219Control {
-    pub fn new(i2c: Box<dyn I2cAccess>) -> Self {
+impl<I2C: I2cAccess> Imx219Control<I2C> {
+    pub fn new(i2c: I2C) -> Self {
         Self {
             i2c: i2c,
             running: false,
@@ -596,7 +596,7 @@ impl Imx219Control {
 }
 
 
-impl Drop for Imx219Control {
+impl<I2C: I2cAccess> Drop for Imx219Control<I2C> {
     fn drop(&mut self) {
         self.close();
     }
