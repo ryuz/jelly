@@ -131,7 +131,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // IMX219 control
     //    let i2c = Box::new(I2cAccessor::new("/dev/i2c-6", 0x10).expect("Failed to open i2c"));
 //    let i2c = Box::new(LinuxI2CDevice::new("/dev/i2c-6", 0x10).expect("Failed to open i2c"));
-    let i2c = Box::new(LinuxI2c::new("/dev/i2c-6", 0x10).unwrap());
+    let i2c = LinuxI2c::new("/dev/i2c-6", 0x10).unwrap();
     let mut imx219 = Imx219Control::new(i2c);
     println!("reset");
     imx219.reset()?;
@@ -180,41 +180,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             reg_demos.write_reg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3); // update & enable
         }
 
-        // キャプチャ
-        // DMA start (one shot)
-        /*
-        unsafe {
-            /*
-            reg_wdma.write_reg(REG_VIDEO_WDMA_PARAM_ADDR,   udmabuf_acc.phys_addr());
-            reg_wdma.write_reg(REG_VIDEO_WDMA_PARAM_STRIDE, (width*4) as usize);
-            reg_wdma.write_reg(REG_VIDEO_WDMA_PARAM_WIDTH,  width as usize);
-            reg_wdma.write_reg(REG_VIDEO_WDMA_PARAM_HEIGHT, height as usize);
-            reg_wdma.write_reg(REG_VIDEO_WDMA_PARAM_SIZE,   (width*height*1) as usize);
-            reg_wdma.write_reg(REG_VIDEO_WDMA_PARAM_AWLEN,  31);
-            reg_wdma.write_reg(REG_VIDEO_WDMA_CTL_CONTROL,  0x07);
-            */
-
-            reg_wdma.write_reg(REG_VDMA_WRITE_PARAM_ADDR, udmabuf_acc.phys_addr());
-            reg_wdma.write_reg(REG_VDMA_WRITE_PARAM_OFFSET, 0);
-            reg_wdma.write_reg(REG_VDMA_WRITE_PARAM_AWLEN_MAX, 15);
-            reg_wdma.write_reg(REG_VDMA_WRITE_PARAM_LINE_STEP, (width * 4) as usize);
-            reg_wdma.write_reg(REG_VDMA_WRITE_PARAM_H_SIZE, (width - 1) as usize);
-            reg_wdma.write_reg(REG_VDMA_WRITE_PARAM_V_SIZE, (height - 1) as usize);
-            reg_wdma.write_reg(
-                REG_VDMA_WRITE_PARAM_FRAME_STEP,
-                (width * height * 4) as usize,
-            );
-            reg_wdma.write_reg(REG_VDMA_WRITE_PARAM_F_SIZE, 1 - 1);
-            reg_wdma.write_reg(REG_VDMA_WRITE_CTL_CONTROL, 0x7);
-        }
-
-        // 取り込み完了を待つ
-        thread::sleep(Duration::from_millis(10));
-        while (unsafe { reg_wdma.read_reg(REG_VDMA_WRITE_CTL_STATUS) } != 0) {
-            thread::sleep(Duration::from_millis(10));
-        }
-        */
-        
+        // 1frame キャプチャ
         vdmaw.oneshot(udmabuf_acc.phys_addr(), width, height, 1, 0, 0, 0, 0);
 
 

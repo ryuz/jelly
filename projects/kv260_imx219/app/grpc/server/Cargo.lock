@@ -696,6 +696,7 @@ dependencies = [
  "jelly-lib",
  "jelly-mem_access",
  "jelly-pac",
+ "once_cell",
  "prost",
  "tokio",
  "tonic",
