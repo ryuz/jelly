@@ -42,10 +42,10 @@ pub struct CameraManager {
     aoi_y: i32,
     flip_h: bool,
     flip_v: bool,
-    frame_rate: i32,
-    exposure: i32,
-    a_gain: i32,
-    d_gain: i32,
+    frame_rate: f64,
+    exposure: f64,
+    a_gain: f64,
+    d_gain: f64,
     bayer_phase: i32,
     view_scale: i32,
 
@@ -121,10 +121,10 @@ impl CameraManager {
             aoi_y: 0,
             flip_h: false,
             flip_v: false,
-            frame_rate: 20,
-            exposure: 33,
-            a_gain: 20,
-            d_gain: 0,
+            frame_rate: 20.0,
+            exposure: 33.3,
+            a_gain: 20.0,
+            d_gain: 0.0,
             bayer_phase: 0,
             view_scale: 4,
             udmabuf_acc: udmabuf_acc,
@@ -146,7 +146,6 @@ impl CameraManager {
         }
         thread::sleep(Duration::from_millis(500));
 
-        /*
         // IMX219 control
         println!("reset");
         self.imx219_ctl.reset()?;
@@ -159,36 +158,42 @@ impl CameraManager {
         self.imx219_ctl.set_aoi(self.width, self.height, self.aoi_x, self.aoi_y, self.binning, self.binning)?;
         self.imx219_ctl.start()?;
 
-        self.imx219_ctl.stop()?;
-        */
-
-        /*
 
         // video input start
         unsafe {
-            reg_fmtr.write_reg(REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN, 1);
-            reg_fmtr.write_reg(REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT, 10000000);
-            reg_fmtr.write_reg(REG_VIDEO_FMTREG_PARAM_WIDTH, width as usize);
-            reg_fmtr.write_reg(REG_VIDEO_FMTREG_PARAM_HEIGHT, height as usize);
-            reg_fmtr.write_reg(REG_VIDEO_FMTREG_PARAM_FILL, 0x100);
-            reg_fmtr.write_reg(REG_VIDEO_FMTREG_PARAM_TIMEOUT, 1000000);
-            reg_fmtr.write_reg(REG_VIDEO_FMTREG_CTL_CONTROL, 0x03);
+            self.reg_fmtr.write_reg(REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN, 1);
+            self.reg_fmtr.write_reg(REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT, 10000000);
+            self.reg_fmtr.write_reg(REG_VIDEO_FMTREG_PARAM_WIDTH, self.width as usize);
+            self.reg_fmtr.write_reg(REG_VIDEO_FMTREG_PARAM_HEIGHT, self.height as usize);
+            self.reg_fmtr.write_reg(REG_VIDEO_FMTREG_PARAM_FILL, 0x100);
+            self.reg_fmtr.write_reg(REG_VIDEO_FMTREG_PARAM_TIMEOUT, 1000000);
+            self.reg_fmtr.write_reg(REG_VIDEO_FMTREG_CTL_CONTROL, 0x03);
         }
         thread::sleep(Duration::from_millis(100));
 
         // 設定
-        imx219.set_frame_rate(frame_rate as f64)?;
-        imx219.set_exposure_time(exposure as f64 / 1000.0)?;
-        imx219.set_gain(a_gain as f64)?;
-        imx219.set_digital_gain(d_gain as f64)?;
-        imx219.set_flip(flip_h, flip_v)?;
-        */
+        self.imx219_ctl.set_frame_rate(self.frame_rate)?;
+        self.imx219_ctl.set_exposure_time(self.exposure)?;
+        self.imx219_ctl.set_gain(self.a_gain)?;
+        self.imx219_ctl.set_digital_gain(self.d_gain)?;
+        self.imx219_ctl.set_flip(self.flip_h, self.flip_v)?;
 
         Ok(())
     }
 
     pub fn close(&mut self) {
         self.imx219_ctl.close();
+    }
+
+    pub fn get_image(&mut self) -> Result< Vec<u8>, Box<dyn Error> > {
+        // 1frame 取り込み
+        self.vdmaw.oneshot(self.udmabuf_acc.phys_addr(), self.width, self.height, 1, 0, 0, 0, 0);
+        let img_size = (self.width * self.height * 4) as usize;
+        let mut buf = vec![0u8; img_size];
+        unsafe {
+            self.udmabuf_acc.copy_to(0, buf.as_mut_ptr(), img_size);
+        }
+        Ok(buf)
     }
 }
 

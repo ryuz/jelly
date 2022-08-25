@@ -3,13 +3,29 @@ package camera_control;
 
 service CameraControl {
     rpc Open (OpenRequest) returns (BoolResponse);
+    rpc Close (Empty) returns (BoolResponse);
+    rpc GetImage (Empty) returns (ImageResponse);
 }
 
-message OpenRequest {
-    int32 id = 1;
+
+message Empty {
 }
 
 message BoolResponse {
     bool result = 1;
 }
+
+
+message OpenRequest {
+    int32 id = 1;
+}
+
+message ImageResponse {
+    bool result = 1;
+    int32 format = 2;
+    int32 width = 3;
+    int32 height = 4;
+    bytes image = 5;
+}
+
 

@@ -1,6 +1,6 @@
 use camera_control::{
     camera_control_server::{CameraControl, CameraControlServer},
-    BoolResponse, OpenRequest,
+    Empty, BoolResponse, OpenRequest, ImageResponse,
 };
 use tonic::{transport::Server, Request, Response, Status};
 
@@ -26,9 +26,29 @@ impl CameraControl for CameraControlService {
         let r = request.into_inner();
         println!("open:{}", r.id);
         let result = match CAM_CTL.lock().unwrap().open() {Ok(_) => true, Err(_) => false};
-        Ok(Response::new(camera_control::BoolResponse { result: result }))
+        Ok(Response::new(BoolResponse { result: result }))
+    }
+
+    async fn close(&self, _request: Request<Empty>) -> Result<Response<BoolResponse>, Status> {
+        println!("close");
+        CAM_CTL.lock().unwrap().close();
+        Ok(Response::new(BoolResponse { result: true }))
+    }
+
+    async fn get_image(&self, _request: Request<Empty>) -> Result<Response<ImageResponse>, Status> {
+        println!("get_image");
+        
+        match CAM_CTL.lock().unwrap().get_image() {
+            Ok(img) => {
+                Ok(Response::new(ImageResponse { result: true, format: 1, width: 640, height: 460, image: img}))
+            },
+            Err(_) => {
+                Ok(Response::new(ImageResponse { result: false, format: 0, width: 0, height: 0, image: vec![0u8; 0]}))
+            },
+        }
     }
 }
+
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
