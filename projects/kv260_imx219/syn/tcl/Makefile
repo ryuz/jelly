@@ -7,10 +7,18 @@ VIVADO_VERSIONS := $(subst .,$(space),$(subst v,,$(word 2,$(shell vivado -versio
 VIVADO_VERSION  := $(word 1,$(VIVADO_VERSIONS)).$(word 2,$(VIVADO_VERSIONS))
 
 # settings
-export PRJ_NAME     = kv260_imx219_tcl
-export TOP_MODULE   = kv260_imx219
+PROJECT_NAME = kv260_imx219
+export PRJ_NAME     = $(PROJECT_NAME)_tcl
+export TOP_MODULE   = $(PROJECT_NAME)
 export BOARD_PART   = xilinx.com:kv260_som*
 export DEVICE_PART  =
+
+BOARD_ADDRESS  ?= kria
+BOARD_WORK_DIR ?= git-work/jelly
+
+BIT_FILE = $(PRJ_NAME).runs/impl_1/$(TOP_MODULE).bit
+
+
 
 # directories
 TOP_DIR = ../../../..
@@ -54,11 +62,21 @@ rebuild: clean create build
 .PHONY : create
 create: $(PRJ_NAME).xpr
 
-$(PRJ_NAME).xpr: $(SOURCES)
+.PHONY : build
+build: $(BIT_FILE)
+
+.PHONY : bit_scp
+bit_scp: $(BIT_FILE)
+	scp $(BIT_FILE) $(BOARD_ADDRESS):$(BOARD_WORK_DIR)/projects/$(PROJECT_NAME)/app
+
+.PHONY : bit_cp
+bit_cp: $(BIT_FILE)
+	cp $(BIT_FILE) ../../app
+
+$(PRJ_NAME).xpr: $(IP_CORES) $(BD_SCRIPTS)
 	vivado -m64 -mode batch -source $(TOP_DIR)/scripts/vivado_create_project.tcl
 
-.PHONY : build
-build: $(PRJ_NAME).xpr
+$(BIT_FILE): $(PRJ_NAME).xpr $(SOURCES) $(CONSTRAINS)
 	vivado -m64 -mode batch -source $(TOP_DIR)/scripts/vivado_implementation.tcl
 
 .PHONY : clean
