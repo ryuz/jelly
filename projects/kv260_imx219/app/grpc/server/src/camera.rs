@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use std::error::Error;
+use std::fmt;
 use std::thread;
 use std::time::Duration;
 
@@ -34,6 +35,8 @@ const REG_IMG_DEMOSAIC_PARAM_PHASE: usize = 0x08;
 const REG_IMG_DEMOSAIC_CURRENT_PHASE: usize = 0x18;
 
 pub struct CameraManager {
+    opened: bool,
+
     pixel_clock: f64,
     binning: bool,
     width: i32,
@@ -44,10 +47,9 @@ pub struct CameraManager {
     flip_v: bool,
     frame_rate: f64,
     exposure: f64,
-    a_gain: f64,
-    d_gain: f64,
+    analog_gain: f64,
+    digital_gain: f64,
     bayer_phase: i32,
-    view_scale: i32,
 
     udmabuf_acc: UdmabufAccessor<usize>,
     uio_acc: UioAccessor<usize>,
@@ -66,6 +68,25 @@ impl Default for CameraManager {
         CameraManager::new()
     }
 }
+
+#[derive(Debug)]
+enum CameraError {
+    Msg(String),
+}
+
+impl fmt::Display for CameraError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let CameraError::Msg(msg) = self;
+        write!(f, "CameraError : {}", msg)
+    }
+}
+
+impl Error for CameraError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        None
+    }
+}
+
 
 impl CameraManager {
     pub fn new() -> Self {
@@ -113,6 +134,34 @@ impl CameraManager {
         let imx219_ctl = Imx219Control::new(i2c);
 
         CameraManager {
+            opened: false,
+
+            pixel_clock: 91000000.0,
+            binning: false,
+            width: 1280,
+            height: 720,
+            aoi_x: -1,
+            aoi_y: -1,
+            flip_h: false,
+            flip_v: false,
+            frame_rate: 60.0,
+            exposure: 20.0,
+            analog_gain: 20.0,
+            digital_gain: 0.0,
+            bayer_phase: 0,
+            udmabuf_acc: udmabuf_acc,
+            uio_acc: uio_acc,
+            reg_gid: reg_gid,
+            reg_fmtr: reg_fmtr,
+            reg_demos: reg_demos,
+            reg_colmat: reg_colmat,
+            reg_wdma: reg_wdma,
+            imx219_ctl: imx219_ctl,
+            vdmaw: vdmaw,
+        }
+        
+        /*
+        CameraManager {
             pixel_clock: 91000000.0,
             binning: false,
             width: 3280,
@@ -137,9 +186,16 @@ impl CameraManager {
             imx219_ctl: imx219_ctl,
             vdmaw: vdmaw,
         }
+        */
+    }
+
+    pub fn is_opened(&self) -> bool {
+        self.opened
     }
 
     pub fn open(&mut self) -> Result<(), Box<dyn Error>> {
+        if self.is_opened() { self.close(); }
+
         // カメラON
         unsafe {
             self.uio_acc.write_reg(2, 1);
@@ -158,7 +214,6 @@ impl CameraManager {
         self.imx219_ctl.set_aoi(self.width, self.height, self.aoi_x, self.aoi_y, self.binning, self.binning)?;
         self.imx219_ctl.start()?;
 
-
         // video input start
         unsafe {
             self.reg_fmtr.write_reg(REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN, 1);
@@ -171,21 +226,49 @@ impl CameraManager {
         }
         thread::sleep(Duration::from_millis(100));
 
+        // bayer
+        unsafe {
+            self.reg_demos.write_reg(REG_IMG_DEMOSAIC_PARAM_PHASE, self.bayer_phase as usize);
+            self.reg_demos.write_reg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3); // update & enable
+        }
+
         // 設定
         self.imx219_ctl.set_frame_rate(self.frame_rate)?;
         self.imx219_ctl.set_exposure_time(self.exposure)?;
-        self.imx219_ctl.set_gain(self.a_gain)?;
-        self.imx219_ctl.set_digital_gain(self.d_gain)?;
+        self.imx219_ctl.set_gain(self.analog_gain)?;
+        self.imx219_ctl.set_digital_gain(self.digital_gain)?;
         self.imx219_ctl.set_flip(self.flip_h, self.flip_v)?;
+        
+        self.opened = true;
 
         Ok(())
     }
 
     pub fn close(&mut self) {
+        if !self.is_opened() {
+            return;
+        }
+
         self.imx219_ctl.close();
+
+        unsafe {
+            self.reg_fmtr.write_reg(REG_VIDEO_FMTREG_CTL_CONTROL, 0x00);
+        }
+
+        self.opened = false;
     }
 
-    pub fn get_image(&mut self) -> Result< Vec<u8>, Box<dyn Error> > {
+//    fn check_opened(&self) -> Result< (), Box<dyn Error> > {
+//        if self.is_opened() { Ok(()) } else { Err(Box::new(CameraError::Msg("device is not opened!".to_string()))) }
+//    }
+
+    fn check_opened(&self) -> Result< (), CameraError> {
+        if self.is_opened() { Ok(()) } else { Err(CameraError::Msg("device is not opened!".to_string())) }
+    }
+
+    pub fn get_image(&mut self) -> Result< (i32, i32, Vec<u8>), Box<dyn Error> > {
+        self.check_opened()?;
+        
         // 1frame 取り込み
         self.vdmaw.oneshot(self.udmabuf_acc.phys_addr(), self.width, self.height, 1, 0, 0, 0, 0);
         let img_size = (self.width * self.height * 4) as usize;
@@ -193,184 +276,94 @@ impl CameraManager {
         unsafe {
             self.udmabuf_acc.copy_to(0, buf.as_mut_ptr(), img_size);
         }
-        Ok(buf)
+        Ok((self.width, self.height, buf))
     }
+
+
+    pub fn pixel_clock(&self) ->  f64 {self.pixel_clock } 
+    pub fn binning(&self) ->  bool{self.binning }
+    pub fn width(&self) -> i32 { self.width }
+    pub fn height(&self) -> i32  { self.height }
+    pub fn aoi_x(&self) ->  i32{self.aoi_x }
+    pub fn aoi_y(&self) ->  i32{self.aoi_y }
+    pub fn flip_h(&self) ->  bool{self.flip_h }
+    pub fn flip_v(&self) ->  bool{self.flip_v }
+    pub fn frame_rate(&self) ->  f64{self.frame_rate }
+    pub fn exposure(&self) ->  f64{self.exposure }
+    pub fn analog_gain(&self) ->  f64{self.analog_gain }
+    pub fn digital_gain(&self) ->  f64{self.digital_gain }
+    pub fn bayer_phase(&self) ->  i32{self.bayer_phase }
+
+    pub fn set_aoi_size(&mut self, width: i32, height: i32)  -> Result< (), Box<dyn Error> > {
+        let opened = self.is_opened();
+        self.close();
+        self.width = width;
+        self.height = height;
+        if opened { self.open() } else { Ok(()) }
+    }
+
+    pub fn set_aoi(&mut self, width: i32, height: i32, x: i32, y: i32)  -> Result< (), Box<dyn Error> > {
+        let opened = self.is_opened();
+        self.close();
+        self.width = width;
+        self.height = height;
+        self.aoi_x = x;
+        self.aoi_y = y;
+        if opened { self.open() } else { Ok(()) }
+    }
+
+    pub fn set_frame_rate(&mut self, frame_rate: f64)  -> Result< (), Box<dyn Error> > {
+        let opened = self.is_opened();
+        self.close();
+        self.frame_rate = frame_rate;
+        if opened { self.open() } else { Ok(()) }
+    }
+
+    pub fn set_exposure_time(&mut self, exposure: f64)  -> Result< (), Box<dyn Error> > {
+        let opened = self.is_opened();
+        self.close();
+        self.exposure = exposure;
+        if opened { self.open() } else { Ok(()) }
+    }
+
+    pub fn set_gain(&mut self, gain: f64)  -> Result< (), Box<dyn Error> > {
+        self.analog_gain = gain;
+        if self.is_opened() {
+            self.imx219_ctl.set_gain(self.analog_gain)
+        }
+        else {
+            Ok(())
+        }
+    }
+
+    pub fn set_digital_gain(&mut self, gain: f64)  -> Result< (), Box<dyn Error> > {
+        self.digital_gain = gain;
+        if self.is_opened() {
+            self.imx219_ctl.set_digital_gain(self.digital_gain)
+        }
+        else {
+            Ok(())
+        }
+    }
+
+    pub fn set_flip(&mut self, flip_h: bool, flip_v: bool)  -> Result< (), Box<dyn Error> > {
+        self.flip_h = flip_h;
+        self.flip_v = flip_v;
+        if self.is_opened() {
+            self.imx219_ctl.set_flip(self.flip_h, self.flip_v)
+        }
+        else {
+            Ok(())
+        }
+    }
+
+    pub fn set_bayer_phase(&mut self, phase:i32)  -> Result< (), Box<dyn Error> > {
+        self.bayer_phase = phase;
+        unsafe {
+            self.reg_demos.write_reg(REG_IMG_DEMOSAIC_PARAM_PHASE, self.bayer_phase as usize);
+            self.reg_demos.write_reg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3); // update & enable
+        }
+        Ok(())
+    }
+
 }
-
-/*
-
-    let pixel_clock: f64 = 91000000.0;
-    let binning: bool = true;
-    let width: i32 = 1280;
-    let height: i32 = 720;
-    let aoi_x: i32 = -1;
-    let aoi_y: i32 = -1;
-    let flip_h: bool = false;
-    let flip_v: bool = false;
-    let frame_rate: i32 = 60;
-    let exposure: i32 = 20;
-    let a_gain: i32 = 20;
-    let d_gain: i32 = 0;
-    let bayer_phase: i32 = 0;
-    //    let view_scale  : i32 = 2;
-
-    // mmap udmabuf
-    let udmabuf_device_name = "udmabuf-jelly-vram0";
-    println!("\nudmabuf open");
-    let udmabuf_acc =
-        UdmabufAccessor::<usize>::new(udmabuf_device_name, false).expect("Failed to open udmabuf");
-    println!(
-        "{} phys addr : 0x{:x}",
-        udmabuf_device_name,
-        udmabuf_acc.phys_addr()
-    );
-    println!(
-        "{} size      : 0x{:x}",
-        udmabuf_device_name,
-        udmabuf_acc.size()
-    );
-
-
-    // UIO
-    println!("\nuio open");
-    let uio_acc = UioAccessor::<usize>::new_with_name("uio_pl_peri").expect("Failed to open uio");
-    println!("uio_pl_peri phys addr : 0x{:x}", uio_acc.phys_addr());
-    println!("uio_pl_peri size      : 0x{:x}", uio_acc.size());
-
-    let reg_gid = uio_acc.subclone(0x00000000, 0x400);
-    let reg_fmtr = uio_acc.subclone(0x00100000, 0x400);
-    let reg_demos = uio_acc.subclone(0x00120000, 0x400);
-    let reg_colmat = uio_acc.subclone(0x00120800, 0x400);
-    let reg_wdma = uio_acc.subclone(0x00210000, 0x400);
-
-    println!("CORE ID");
-    unsafe {
-        println!("reg_gid    : {:08x}", reg_gid.read_reg(0));
-        println!("uio_acc    : {:08x}", uio_acc.read_reg(0));
-        println!("reg_fmtr   : {:08x}", reg_fmtr.read_reg(0));
-        println!("reg_demos  : {:08x}", reg_demos.read_reg(0));
-        println!("reg_colmat : {:08x}", reg_colmat.read_reg(0));
-        println!("reg_wdma   : {:08x}", reg_wdma.read_reg(0));
-    }
-
-    let mut vdmaw = VideoDmaControl::new(uio_acc.subclone(0x00210000, 0x400), 4, 4).unwrap();
-
-    // カメラON
-    unsafe {
-        uio_acc.write_reg(2, 1);
-    }
-    thread::sleep(Duration::from_millis(500));
-
-    // IMX219 control
-    //    let i2c = Box::new(I2cAccessor::new("/dev/i2c-6", 0x10).expect("Failed to open i2c"));
-//    let i2c = Box::new(LinuxI2CDevice::new("/dev/i2c-6", 0x10).expect("Failed to open i2c"));
-    let i2c = Box::new(LinuxI2c::new("/dev/i2c-6", 0x10).unwrap());
-    let mut imx219 = Imx219Control::new(i2c);
-    println!("reset");
-    imx219.reset()?;
-
-    // カメラID取得
-    println!("sensor model ID:{:04x}", imx219.get_model_id().unwrap());
-
-    // camera 設定
-    imx219.set_pixel_clock(pixel_clock)?;
-    imx219.set_aoi(width, height, aoi_x, aoi_y, binning, binning)?;
-    imx219.start()?;
-
-    //    int     rec_frame_num = std::min(100, (int)(dmabuf_mem_size / (width * height * 4)));
-    //    int     frame_num     = 1;
-    //    if ( rec_frame_num <= 0 ) {
-    //        std::cout << "udmabuf size error" << std::endl;
-    //    }
-
-    // video input start
-    unsafe {
-        reg_fmtr.write_reg(REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN, 1);
-        reg_fmtr.write_reg(REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT, 10000000);
-        reg_fmtr.write_reg(REG_VIDEO_FMTREG_PARAM_WIDTH, width as usize);
-        reg_fmtr.write_reg(REG_VIDEO_FMTREG_PARAM_HEIGHT, height as usize);
-        reg_fmtr.write_reg(REG_VIDEO_FMTREG_PARAM_FILL, 0x100);
-        reg_fmtr.write_reg(REG_VIDEO_FMTREG_PARAM_TIMEOUT, 1000000);
-        reg_fmtr.write_reg(REG_VIDEO_FMTREG_CTL_CONTROL, 0x03);
-    }
-    thread::sleep(Duration::from_millis(100));
-
-    // 設定
-    imx219.set_frame_rate(frame_rate as f64)?;
-    imx219.set_exposure_time(exposure as f64 / 1000.0)?;
-    imx219.set_gain(a_gain as f64)?;
-    imx219.set_digital_gain(d_gain as f64)?;
-    imx219.set_flip(flip_h, flip_v)?;
-
-    loop {
-        let key = wait_key(10).unwrap();
-        if key == 0x1b {
-            break;
-        }
-
-        unsafe {
-            reg_demos.write_reg(REG_IMG_DEMOSAIC_PARAM_PHASE, bayer_phase as usize);
-            reg_demos.write_reg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3); // update & enable
-        }
-
-        // キャプチャ
-        // DMA start (one shot)
-        /*
-        unsafe {
-            /*
-            reg_wdma.write_reg(REG_VIDEO_WDMA_PARAM_ADDR,   udmabuf_acc.phys_addr());
-            reg_wdma.write_reg(REG_VIDEO_WDMA_PARAM_STRIDE, (width*4) as usize);
-            reg_wdma.write_reg(REG_VIDEO_WDMA_PARAM_WIDTH,  width as usize);
-            reg_wdma.write_reg(REG_VIDEO_WDMA_PARAM_HEIGHT, height as usize);
-            reg_wdma.write_reg(REG_VIDEO_WDMA_PARAM_SIZE,   (width*height*1) as usize);
-            reg_wdma.write_reg(REG_VIDEO_WDMA_PARAM_AWLEN,  31);
-            reg_wdma.write_reg(REG_VIDEO_WDMA_CTL_CONTROL,  0x07);
-            */
-
-            reg_wdma.write_reg(REG_VDMA_WRITE_PARAM_ADDR, udmabuf_acc.phys_addr());
-            reg_wdma.write_reg(REG_VDMA_WRITE_PARAM_OFFSET, 0);
-            reg_wdma.write_reg(REG_VDMA_WRITE_PARAM_AWLEN_MAX, 15);
-            reg_wdma.write_reg(REG_VDMA_WRITE_PARAM_LINE_STEP, (width * 4) as usize);
-            reg_wdma.write_reg(REG_VDMA_WRITE_PARAM_H_SIZE, (width - 1) as usize);
-            reg_wdma.write_reg(REG_VDMA_WRITE_PARAM_V_SIZE, (height - 1) as usize);
-            reg_wdma.write_reg(
-                REG_VDMA_WRITE_PARAM_FRAME_STEP,
-                (width * height * 4) as usize,
-            );
-            reg_wdma.write_reg(REG_VDMA_WRITE_PARAM_F_SIZE, 1 - 1);
-            reg_wdma.write_reg(REG_VDMA_WRITE_CTL_CONTROL, 0x7);
-        }
-
-        // 取り込み完了を待つ
-        thread::sleep(Duration::from_millis(10));
-        while (unsafe { reg_wdma.read_reg(REG_VDMA_WRITE_CTL_STATUS) } != 0) {
-            thread::sleep(Duration::from_millis(10));
-        }
-        */
-
-        vdmaw.oneshot(udmabuf_acc.phys_addr(), width, height, 1, 0, 0, 0, 0);
-
-
-        let mut buf = vec![0u8; (width * height * 4) as usize];
-        unsafe {
-            udmabuf_acc.copy_to(0, buf.as_mut_ptr(), (width * height * 4) as usize);
-            let img = Mat::new_rows_cols_with_data(
-                height,
-                width,
-                CV_8UC4,
-                buf.as_mut_ptr() as *mut c_void,
-                (width * 4) as usize,
-            )
-            .unwrap();
-            imshow("img", &img)?;
-        }
-    }
-
-    // close
-    imx219.stop()?;
-
-    println!("Hello, world!");
-
-    Ok(())
-}
-*/
