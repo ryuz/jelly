@@ -19,8 +19,23 @@ const canvasRef = ref<HTMLCanvasElement>()
 let ctx: CanvasRenderingContext2D
 let callbackId: number = 0
 
+function base64decode(data:string){
+    return new Uint8Array([...atob(data)].map(s => s.charCodeAt(0)));
+}
+
+/*
+function base64ToUint8Array(base64Str: string) {
+    const raw = atob(base64Str);
+    return Uint8Array.from(Array.prototype.map.call(raw, (x) => { 
+        return x.charCodeAt(0); 
+    })); 
+}
+*/
+
 async function get_image(id: number): Promise<ImageData> {
-    let [w,  h, img]: [number, number, number[]] = await invoke("get_image", {id: id});
+//    let [w,  h, img]: [number, number, number[]] = await invoke("get_image", {id: id});
+    let [w,  h, enc]: [number, number, string] = await invoke("get_image", {id: id});
+    let img = base64decode(enc)
 //    console.log(w)
 //    console.log(h)
 //    console.log(img)
@@ -32,7 +47,7 @@ async function get_image(id: number): Promise<ImageData> {
 }
 
 async function set_aoi(width: number, height: number) {
-    await invoke("set_aoi", {width: width, height:height, x:-1, y:-1});
+    await invoke("set_aoi", {id:1, width: width, height:height, x:-1, y:-1});
 }
 
 onMounted(() => {
@@ -60,8 +75,8 @@ const draw = async () => {
 
 const animation = async () => {
     await draw();
-//  callbackId = requestAnimationFrame(moveAnimation)
-//  setTimeout(() => {requestAnimationFrame(moveAnimation)}, 1000)
+    callbackId = requestAnimationFrame(moveAnimation)
+    setTimeout(() => {requestAnimationFrame(moveAnimation)}, 10)
 }
 
 

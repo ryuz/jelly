@@ -49,52 +49,57 @@ async fn check_connect(cam_mng: &State<'_, CameraManager>) -> Result<(), ()> {
 
 #[tauri::command]
 async fn get_image(id: i32,
-    cam_mng: State<'_, CameraManager>) -> Result<(usize, usize, Vec<u8>), ()> {
+    cam_mng: State<'_, CameraManager>) -> Result<(usize, usize, String), ()> {
+        //Result<(usize, usize, Vec<u8>), ()> {
     println!("get_image");
-    check_connect(&cam_mng).await?;
-    let mut connect = cam_mng.lock().await;
-    let client = connect.client.as_mut().ok_or(())?;
 
-    let request = tonic::Request::new(SetAoiRequest {id: 1, width:640, height:480, x:-1, y:-1});
-    client.set_aoi(request).await;
+    if check_connect(&cam_mng).await.is_ok() {
 
-    let request = tonic::Request::new(GetImageRequest { id: id });
-    let img = client.get_image(request).await.unwrap();
-    let img = img.into_inner();
-    println!("width : {}", img.width);
-    println!("height: {}", img.height);
-    println!("len: {}", img.image.len());
+        let mut connect = cam_mng.lock().await;
+        let client = connect.client.as_mut().ok_or(())?;
 
-    let w = img.width as usize;
-    let h = img.height as usize;
-    let src = img.image;
-    let mut img = Vec::<u8>::with_capacity(w * h * 4);
-    unsafe { img.set_len(w * h * 4); }
-    for y in 0..h {
-        for x in 0..w {
-            img[(y * w + x) * 4 + 0] = src[(y * w + x) * 4 + 2];
-            img[(y * w + x) * 4 + 1] = src[(y * w + x) * 4 + 1];
-            img[(y * w + x) * 4 + 2] = src[(y * w + x) * 4 + 0];
-            img[(y * w + x) * 4 + 3] = 255; // A
+        let request = tonic::Request::new(SetAoiRequest {id: 1, width:640, height:480, x:-1, y:-1});
+        client.set_aoi(request).await;
+
+        let request = tonic::Request::new(GetImageRequest { id: id });
+        let img = client.get_image(request).await.unwrap();
+        let img = img.into_inner();
+        println!("width : {}", img.width);
+        println!("height: {}", img.height);
+        println!("len: {}", img.image.len());
+
+        let w = img.width as usize;
+        let h = img.height as usize;
+        let src = img.image;
+        let mut img = Vec::<u8>::with_capacity(w * h * 4);
+        unsafe { img.set_len(w * h * 4); }
+        for y in 0..h {
+            for x in 0..w {
+                img[(y * w + x) * 4 + 0] = src[(y * w + x) * 4 + 2];
+                img[(y * w + x) * 4 + 1] = src[(y * w + x) * 4 + 1];
+                img[(y * w + x) * 4 + 2] = src[(y * w + x) * 4 + 0];
+                img[(y * w + x) * 4 + 3] = 255; // A
+            }
         }
+//      Ok((w, h, img))
+        let encode_bin : String = base64::encode(img);
+        Ok((w, h, encode_bin))
     }
-    Ok((w, h, img))
-
-    /*
-    println!("get_image");
-    const W: usize = 640;
-    const H: usize = 480;
-    let mut img = vec![0; W * H * 4];
-    for y in 0..H {
-        for x in 0..W {
-            img[(y * W + x) * 4 + 0] = (x % 256) as u8;   // R
-            img[(y * W + x) * 4 + 1] = (y % 256) as u8;   // G
-            img[(y * W + x) * 4 + 2] = (x % 256) as u8;   // B
-            img[(y * W + x) * 4 + 3] = 255; // A
+    else {
+        const W: usize = 640;
+        const H: usize = 480;
+        let mut img = vec![0; W * H * 4];
+        for y in 0..H {
+            for x in 0..W {
+                img[(y * W + x) * 4 + 0] = (x % 256) as u8;   // R
+                img[(y * W + x) * 4 + 1] = (y % 256) as u8;   // G
+                img[(y * W + x) * 4 + 2] = (x % 256) as u8;   // B
+                img[(y * W + x) * 4 + 3] = 255; // A
+            }
         }
+        let encode_bin : String = base64::encode(img);
+        Ok((W, H, encode_bin))
     }
-    Ok((W, H, img))
-    */
 }
 
 
