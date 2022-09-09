@@ -36,6 +36,11 @@ run: $(TARGET) load
 run_rust: load
 	cd rust; cargo run
 
+.PHONY: server
+server: load
+	cd grpc/server; cargo run
+
+
 $(TARGET): $(OBJS)
 	g++ -o $(TARGET) $(OBJS) $(LDFLAGS)
 

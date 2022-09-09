@@ -79,6 +79,7 @@ impl CameraControl for CameraControlService {
 
     async fn set_gain(&self, request: Request<SetGainRequest>) -> Result<Response<BoolResponse>, Status> {
         let req = request.into_inner();
+        println!("set_gain:{}", req.id);
         let result = match CAM_CTL.lock().unwrap().set_gain(req.gain) {Ok(_) => true, Err(_) => false};
         Ok(Response::new(BoolResponse { result: result }))
     }
