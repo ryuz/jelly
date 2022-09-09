@@ -58,8 +58,8 @@ async fn get_image(id: i32,
         let mut connect = cam_mng.lock().await;
         let client = connect.client.as_mut().ok_or(())?;
 
-        let request = tonic::Request::new(SetAoiRequest {id: 1, width:640, height:480, x:-1, y:-1});
-        client.set_aoi(request).await;
+//        let request = tonic::Request::new(SetAoiRequest {id: 1, width:640, height:480, x:-1, y:-1});
+//        client.set_aoi(request).await;
 
         let request = tonic::Request::new(GetImageRequest { id: id });
         let img = client.get_image(request).await.unwrap();
@@ -102,6 +102,41 @@ async fn get_image(id: i32,
     }
 }
 
+
+/*
+static mut COUNT: usize = 0;
+
+#[tauri::command]
+async fn get_image(id: i32,
+    cam_mng: State<'_, CameraManager>) -> Result<(usize, usize, String), ()> {
+    
+    let mut xx: usize;
+    unsafe {
+        println!("get_image {}", COUNT);
+        xx = COUNT;
+        COUNT += 1;
+    }
+
+    const W: usize = 640;
+    const H: usize = 480;
+    let mut img = vec![0; W * H * 4];
+    for y in 0..H {
+        for x in 0..W {
+            img[(y * W + x) * 4 + 0] = (x % 256) as u8;   // R
+            img[(y * W + x) * 4 + 1] = (y % 256) as u8;   // G
+            img[(y * W + x) * 4 + 2] = (x % 256) as u8;   // B
+            img[(y * W + x) * 4 + 3] = 255; // A
+            if x == (xx%W) { 
+                img[(y * W + x) * 4 + 0] = 0;   // R
+                img[(y * W + x) * 4 + 1] = 0;   // G
+                img[(y * W + x) * 4 + 2] = 0;   // B
+            }
+        }
+    }
+    let encode_bin : String = base64::encode(img);
+    Ok((W, H, encode_bin))
+}
+*/
 
 #[tauri::command]
 async fn set_aoi(id: i32, width: i32, height: i32, x: i32, y: i32,

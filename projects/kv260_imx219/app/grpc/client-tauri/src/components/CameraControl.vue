@@ -10,7 +10,7 @@ import { ref, watch } from 'vue'
 import { invoke } from "@tauri-apps/api/tauri";
 import AppVue from "../App.vue";
 
-const analogGain = ref<Number>(20.0)
+const analogGain = ref(20.0)
 
 watch(analogGain, async () => {
     console.log("analogGain")

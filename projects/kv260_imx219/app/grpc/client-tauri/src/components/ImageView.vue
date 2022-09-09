@@ -12,8 +12,8 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { invoke } from "@tauri-apps/api/tauri";
 import AppVue from "../App.vue";
 
-const imgWidth  = ref(640)
-const imgHeight = ref(480)
+const imgWidth  = ref(1280)
+const imgHeight = ref(720)
 
 const canvasRef = ref<HTMLCanvasElement>()
 let ctx: CanvasRenderingContext2D
@@ -23,14 +23,6 @@ function base64decode(data:string){
     return new Uint8Array([...atob(data)].map(s => s.charCodeAt(0)));
 }
 
-/*
-function base64ToUint8Array(base64Str: string) {
-    const raw = atob(base64Str);
-    return Uint8Array.from(Array.prototype.map.call(raw, (x) => { 
-        return x.charCodeAt(0); 
-    })); 
-}
-*/
 
 async function get_image(id: number): Promise<ImageData> {
 //    let [w,  h, img]: [number, number, number[]] = await invoke("get_image", {id: id});
@@ -76,7 +68,7 @@ const draw = async () => {
 const animation = async () => {
     await draw();
     callbackId = requestAnimationFrame(moveAnimation)
-    setTimeout(() => {requestAnimationFrame(moveAnimation)}, 10)
+//  setTimeout(() => {callbackId = requestAnimationFrame(moveAnimation)}, 10)
 }
 
 
