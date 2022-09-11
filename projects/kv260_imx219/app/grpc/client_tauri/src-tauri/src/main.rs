@@ -46,7 +46,7 @@ async fn check_connect(cam_mng: &State<'_, CameraManager>) -> Result<(), ()> {
     }
 }
 
-
+/*
 #[tauri::command]
 async fn get_image(id: i32,
     cam_mng: State<'_, CameraManager>) -> Result<(usize, usize, String), ()> {
@@ -101,7 +101,7 @@ async fn get_image(id: i32,
         Ok((W, H, encode_bin))
     }
 }
-
+*/
 
 /*
 static mut COUNT: usize = 0;
@@ -112,7 +112,7 @@ async fn get_image(id: i32,
     
     let mut xx: usize;
     unsafe {
-        println!("get_image {}", COUNT);
+//        println!("get_image {}", COUNT);
         xx = COUNT;
         COUNT += 1;
     }
@@ -137,6 +137,83 @@ async fn get_image(id: i32,
     Ok((W, H, encode_bin))
 }
 */
+
+
+use opencv::core::*;
+use opencv::imgcodecs::*;
+use opencv::imgproc::*;
+
+/*
+#[tauri::command]
+async fn get_image(id: i32,
+    cam_mng: State<'_, CameraManager>) -> Result<String, ()> {
+
+    const W: usize = 640;
+    const H: usize = 480;
+    
+    let mut img = Mat::zeros(480, 640, CV_8UC3).unwrap().to_mat().unwrap();
+    circle(&mut img, Point::new(320, 240), 100, Scalar::new(255., 0., 255., 255.), 5, LINE_8, 0).unwrap();
+    imwrite("test_.png", &img, &Vector::<i32>::new()).unwrap();
+
+    let mut buf = Vector::default();
+    imencode(".png", &mut img, &mut buf, &Vector::default()).unwrap();
+    let encode_bin : String = base64::encode(buf.to_vec());
+    let encode_bin = format!("data:image/png;base64,{}", encode_bin);
+/*
+    let mut buf = Vector::default();
+    imencode(".ppm", &mut img, &mut buf, &Vector::default()).unwrap();
+    let encode_bin : String = base64::encode(buf.to_vec());
+    let encode_bin = format!("data:image/ppm;base64,{}", encode_bin);
+*/
+    //    println!("{}", encode_bin);
+    Ok(encode_bin)
+}
+*/
+
+static mut COUNT: i32 = 0;
+
+#[tauri::command]
+async fn get_image(id: i32, cam_mng: State<'_, CameraManager>) -> Result<String, ()> {
+    if check_connect(&cam_mng).await.is_ok() {
+        // カメラ画像
+        let mut connect = cam_mng.lock().await;
+        let client = connect.client.as_mut().ok_or(())?;
+        let request = tonic::Request::new(GetImageRequest { id: id });
+        let img = client.get_image(request).await.unwrap();
+        let mut img = img.into_inner();
+        let mut mat = unsafe { Mat::new_rows_cols_with_data(img.height, img.width, CV_8UC4, img.image.as_mut_ptr() as *mut std::os::raw::c_void, (img.width * 4) as usize).unwrap() };
+        let mut img = Mat::default();
+        cvt_color(&mat, &mut img, COLOR_BGRA2BGR, 0).unwrap();        
+        unsafe {
+            if COUNT == 2 {
+                imwrite("camera_.png", &img, &Vector::<i32>::new()).unwrap();
+            }
+            COUNT += 1;
+        }
+        let mut buf = Vector::default();
+        imencode(".png", &mut img, &mut buf, &Vector::default()).unwrap();
+        let encode_bin : String = base64::encode(buf.to_vec());
+        let encode_bin = format!("data:image/png;base64,{}", encode_bin);
+        Ok(encode_bin)
+    }
+    else {
+        // ダミー画像
+        let mut img = Mat::zeros(480, 640, CV_8UC3).unwrap().to_mat().unwrap();
+
+        unsafe {
+            circle(&mut img, Point::new(320, 240), COUNT%200, Scalar::new(255., 0., 255., 255.), 5, LINE_8, 0).unwrap();
+            COUNT += 1;
+        }
+
+        let mut buf = Vector::default();
+        imencode(".png", &mut img, &mut buf, &Vector::default()).unwrap();
+        let encode_bin : String = base64::encode(buf.to_vec());
+        let encode_bin = format!("data:image/png;base64,{}", encode_bin);
+        Ok(encode_bin)
+    }
+}
+
+
 
 #[tauri::command]
 async fn set_aoi(id: i32, width: i32, height: i32, x: i32, y: i32,
