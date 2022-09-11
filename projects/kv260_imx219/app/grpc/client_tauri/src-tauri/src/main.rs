@@ -12,6 +12,11 @@ use camera_control::*;
 use camera_control_client::CameraControlClient;
 use tonic::transport::Channel;
 
+use opencv::core::*;
+use opencv::imgcodecs::*;
+use opencv::imgproc::*;
+
+
 pub mod camera_control {
     tonic::include_proto!("camera_control");
 }
@@ -31,7 +36,6 @@ impl CameraConnect {
 type CameraManager = Mutex<CameraConnect>;
 
 
-
 async fn check_connect(cam_mng: &State<'_, CameraManager>) -> Result<(), ()> {
     let mut connect = cam_mng.lock().await;
     if connect.client.is_some() { Ok(()) } else {
@@ -47,128 +51,11 @@ async fn check_connect(cam_mng: &State<'_, CameraManager>) -> Result<(), ()> {
 }
 
 /*
-#[tauri::command]
-async fn get_image(id: i32,
-    cam_mng: State<'_, CameraManager>) -> Result<(usize, usize, String), ()> {
-        //Result<(usize, usize, Vec<u8>), ()> {
-    println!("get_image");
-
-    if check_connect(&cam_mng).await.is_ok() {
-
-        let mut connect = cam_mng.lock().await;
-        let client = connect.client.as_mut().ok_or(())?;
-
-//        let request = tonic::Request::new(SetAoiRequest {id: 1, width:640, height:480, x:-1, y:-1});
-//        client.set_aoi(request).await;
-
-        let request = tonic::Request::new(GetImageRequest { id: id });
-        let img = client.get_image(request).await.unwrap();
-        let img = img.into_inner();
-        println!("width : {}", img.width);
-        println!("height: {}", img.height);
-        println!("len: {}", img.image.len());
-
-        let w = img.width as usize;
-        let h = img.height as usize;
-        let src = img.image;
-        let mut img = Vec::<u8>::with_capacity(w * h * 4);
-        unsafe { img.set_len(w * h * 4); }
-        for y in 0..h {
-            for x in 0..w {
-                img[(y * w + x) * 4 + 0] = src[(y * w + x) * 4 + 2];
-                img[(y * w + x) * 4 + 1] = src[(y * w + x) * 4 + 1];
-                img[(y * w + x) * 4 + 2] = src[(y * w + x) * 4 + 0];
-                img[(y * w + x) * 4 + 3] = 255; // A
-            }
-        }
-//      Ok((w, h, img))
-        let encode_bin : String = base64::encode(img);
-        Ok((w, h, encode_bin))
-    }
-    else {
-        const W: usize = 640;
-        const H: usize = 480;
-        let mut img = vec![0; W * H * 4];
-        for y in 0..H {
-            for x in 0..W {
-                img[(y * W + x) * 4 + 0] = (x % 256) as u8;   // R
-                img[(y * W + x) * 4 + 1] = (y % 256) as u8;   // G
-                img[(y * W + x) * 4 + 2] = (x % 256) as u8;   // B
-                img[(y * W + x) * 4 + 3] = 255; // A
-            }
-        }
-        let encode_bin : String = base64::encode(img);
-        Ok((W, H, encode_bin))
-    }
-}
-*/
-
-/*
-static mut COUNT: usize = 0;
-
-#[tauri::command]
-async fn get_image(id: i32,
-    cam_mng: State<'_, CameraManager>) -> Result<(usize, usize, String), ()> {
-    
-    let mut xx: usize;
-    unsafe {
-//        println!("get_image {}", COUNT);
-        xx = COUNT;
-        COUNT += 1;
-    }
-
-    const W: usize = 640;
-    const H: usize = 480;
-    let mut img = vec![0; W * H * 4];
-    for y in 0..H {
-        for x in 0..W {
-            img[(y * W + x) * 4 + 0] = (x % 256) as u8;   // R
-            img[(y * W + x) * 4 + 1] = (y % 256) as u8;   // G
-            img[(y * W + x) * 4 + 2] = (x % 256) as u8;   // B
-            img[(y * W + x) * 4 + 3] = 255; // A
-            if x == (xx%W) { 
-                img[(y * W + x) * 4 + 0] = 0;   // R
-                img[(y * W + x) * 4 + 1] = 0;   // G
-                img[(y * W + x) * 4 + 2] = 0;   // B
-            }
-        }
-    }
-    let encode_bin : String = base64::encode(img);
-    Ok((W, H, encode_bin))
-}
-*/
-
-
-use opencv::core::*;
-use opencv::imgcodecs::*;
-use opencv::imgproc::*;
-
-/*
-#[tauri::command]
-async fn get_image(id: i32,
-    cam_mng: State<'_, CameraManager>) -> Result<String, ()> {
-
-    const W: usize = 640;
-    const H: usize = 480;
-    
-    let mut img = Mat::zeros(480, 640, CV_8UC3).unwrap().to_mat().unwrap();
-    circle(&mut img, Point::new(320, 240), 100, Scalar::new(255., 0., 255., 255.), 5, LINE_8, 0).unwrap();
-    imwrite("test_.png", &img, &Vector::<i32>::new()).unwrap();
-
-    let mut buf = Vector::default();
-    imencode(".png", &mut img, &mut buf, &Vector::default()).unwrap();
-    let encode_bin : String = base64::encode(buf.to_vec());
-    let encode_bin = format!("data:image/png;base64,{}", encode_bin);
-/*
-    let mut buf = Vector::default();
-    imencode(".ppm", &mut img, &mut buf, &Vector::default()).unwrap();
-    let encode_bin : String = base64::encode(buf.to_vec());
-    let encode_bin = format!("data:image/ppm;base64,{}", encode_bin);
-*/
-    //    println!("{}", encode_bin);
-    Ok(encode_bin)
-}
-*/
+async fn connect_error(cam_mng: &State<'_, CameraManager>) -> Err() {
+    let mut connect = cam_mng.lock().await;
+    connect.client = None;
+    Err()
+}*/
 
 
 #[tauri::command]
@@ -178,7 +65,7 @@ async fn get_image(id: i32, cam_mng: State<'_, CameraManager>) -> Result<String,
         let mut connect = cam_mng.lock().await;
         let client = connect.client.as_mut().ok_or(())?;
         let request = tonic::Request::new(GetImageRequest { id: id });
-        let img = client.get_image(request).await.unwrap();
+        let img = client.get_image(request).await.or_else(|_| {connect.client = None; Err(())})?;
         let mut img = img.into_inner();
         let mut mat = unsafe { Mat::new_rows_cols_with_data(img.height, img.width, CV_8UC4, img.image.as_mut_ptr() as *mut std::os::raw::c_void, (img.width * 4) as usize).unwrap() };
         let mut img = Mat::default();
