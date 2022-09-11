@@ -170,11 +170,10 @@ async fn get_image(id: i32,
 }
 */
 
-static mut COUNT: i32 = 0;
 
 #[tauri::command]
 async fn get_image(id: i32, cam_mng: State<'_, CameraManager>) -> Result<String, ()> {
-    if check_connect(&cam_mng).await.is_ok() {
+    let mut img = if check_connect(&cam_mng).await.is_ok() {
         // カメラ画像
         let mut connect = cam_mng.lock().await;
         let client = connect.client.as_mut().ok_or(())?;
@@ -183,34 +182,21 @@ async fn get_image(id: i32, cam_mng: State<'_, CameraManager>) -> Result<String,
         let mut img = img.into_inner();
         let mut mat = unsafe { Mat::new_rows_cols_with_data(img.height, img.width, CV_8UC4, img.image.as_mut_ptr() as *mut std::os::raw::c_void, (img.width * 4) as usize).unwrap() };
         let mut img = Mat::default();
-        cvt_color(&mat, &mut img, COLOR_BGRA2BGR, 0).unwrap();        
-        unsafe {
-            if COUNT == 2 {
-                imwrite("camera_.png", &img, &Vector::<i32>::new()).unwrap();
-            }
-            COUNT += 1;
-        }
-        let mut buf = Vector::default();
-        imencode(".png", &mut img, &mut buf, &Vector::default()).unwrap();
-        let encode_bin : String = base64::encode(buf.to_vec());
-        let encode_bin = format!("data:image/png;base64,{}", encode_bin);
-        Ok(encode_bin)
+        cvt_color(&mat, &mut img, COLOR_BGRA2BGR, 0).unwrap();
+        img
     }
     else {
         // ダミー画像
         let mut img = Mat::zeros(480, 640, CV_8UC3).unwrap().to_mat().unwrap();
-
-        unsafe {
-            circle(&mut img, Point::new(320, 240), COUNT%200, Scalar::new(255., 0., 255., 255.), 5, LINE_8, 0).unwrap();
-            COUNT += 1;
-        }
-
-        let mut buf = Vector::default();
-        imencode(".png", &mut img, &mut buf, &Vector::default()).unwrap();
-        let encode_bin : String = base64::encode(buf.to_vec());
-        let encode_bin = format!("data:image/png;base64,{}", encode_bin);
-        Ok(encode_bin)
-    }
+        line(&mut img, Point::new(0, 0), Point::new(640, 480), Scalar::new(0., 0., 255., 255.), 5, LINE_8, 0).unwrap();
+        line(&mut img, Point::new(640, 0), Point::new(0, 480), Scalar::new(0., 0., 255., 255.), 5, LINE_8, 0).unwrap();
+        img
+    };
+    let mut buf = Vector::default();
+    imencode(".png", &mut img, &mut buf, &Vector::default()).unwrap();
+    let encode_bin : String = base64::encode(buf.to_vec());
+    let encode_bin = format!("data:image/png;base64,{}", encode_bin);
+    Ok(encode_bin)
 }
 
 

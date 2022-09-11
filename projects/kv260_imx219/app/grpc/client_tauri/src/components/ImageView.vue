@@ -13,8 +13,8 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { invoke } from "@tauri-apps/api/tauri";
 import AppVue from "../App.vue";
 
-const imgWidth  = ref(640)
-const imgHeight = ref(480)
+const imgWidth  = ref(1280)
+const imgHeight = ref(720)
 const frameNum = ref(0)
 
 const canvasRef = ref<HTMLCanvasElement>()
