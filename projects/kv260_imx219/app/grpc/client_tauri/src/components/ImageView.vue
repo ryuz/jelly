@@ -45,18 +45,21 @@ async function get_image(id: number): Promise<ImageData> {
 async function get_image(id: number): Promise<string> {
     frameNum.value++;
 //    let [w,  h, img]: [number, number, number[]] = await invoke("get_image", {id: id});
-    let img_str: string = await invoke("get_image", {id: id});
+    let [w, h, img_str]: [number, number, string] = await invoke("get_image", {id: id});
+    imgWidth.value = w;
+    imgHeight.value = h;
     return img_str;
 }
 
-async function set_aoi(width: number, height: number) {
-    await invoke("set_aoi", {id:1, width: width, height:height, x:-1, y:-1});
-}
+//async function set_aoi(width: number, height: number) {
+//    await invoke("set_aoi", {id:1, width: width, height:height, x:-1, y:-1});
+//}
+
 
 onMounted(() => {
     ctx = canvasRef.value?.getContext('2d')!
     callbackId = requestAnimationFrame(moveAnimation)
-    set_aoi(imgWidth.value, imgHeight.value)
+//  set_aoi(imgWidth.value, imgHeight.value)
 })
 
 onBeforeUnmount(() => {
