@@ -45,7 +45,7 @@ module jelly2_video_rendezvous
     logic       reg_busy;
     always_ff @ (posedge aclk) begin
         if ( ~aresetn ) begin
-            reg_busy <= !0;
+            reg_busy <= '0;
         end
         else if ( aclken ) begin
             if ( sync_tuser[0] && sync_tvalid && sync_tready ) begin

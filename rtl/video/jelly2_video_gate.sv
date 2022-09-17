@@ -44,7 +44,7 @@ module jelly2_video_gate
     logic       reg_busy;
     always_ff @ (posedge aclk) begin
         if ( ~aresetn ) begin
-            reg_busy <= !0;
+            reg_busy <= '0;
         end
         else if ( aclken ) begin
             if ( s_axi4s_tuser[0] && s_axi4s_tvalid && s_axi4s_tready ) begin
