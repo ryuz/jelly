@@ -14,7 +14,7 @@ pub mod camera_control {
 
 #[derive(Debug, Default)]
 pub struct CameraControlService {
-//    verbose : i32,
+    verbose : i32,
 }
 
 mod camera;
@@ -29,14 +29,14 @@ static CAM_CTL: Lazy<Mutex<CameraManager>> = Lazy::new(|| Mutex::new(CameraManag
 impl CameraControl for CameraControlService {
     async fn open(&self, request: Request<OpenRequest>) -> Result<Response<BoolResponse>, Status> {
         let req = request.into_inner();
-        println!("open:{}", req.id);
+        if self.verbose >= 1 { println!("open:{}", req.id); }
         let result = match CAM_CTL.lock().unwrap().open() {Ok(_) => true, Err(_) => false};
         Ok(Response::new(BoolResponse { result: result }))
     }
 
     async fn close(&self, request: Request<CloseRequest>) -> Result<Response<BoolResponse>, Status> {
         let req = request.into_inner();
-        println!("close:{}", req.id);
+        if self.verbose >= 1 { println!("close:{}", req.id); }
         CAM_CTL.lock().unwrap().close();
         Ok(Response::new(BoolResponse { result: true }))
     }
@@ -47,7 +47,7 @@ impl CameraControl for CameraControlService {
 
     async fn get_image(&self, request: Request<GetImageRequest>) -> Result<Response<ImageResponse>, Status> {
         let req = request.into_inner();
-        println!("get_image:{}", req.id);
+        if self.verbose >= 2 { println!("get_image:{}", req.id); }
         
         match CAM_CTL.lock().unwrap().get_image() {
             Ok((w, h, img)) => {
@@ -61,43 +61,49 @@ impl CameraControl for CameraControlService {
 
     async fn set_aoi(&self, request: Request<SetAoiRequest>) -> Result<Response<BoolResponse>, Status> {
         let req = request.into_inner();
+        if self.verbose >= 1 { println!("set_aoi:{}", req.id); }
         let result = match CAM_CTL.lock().unwrap().set_aoi(req.width, req.height, req.x, req.y) {Ok(_) => true, Err(_) => false};
         Ok(Response::new(BoolResponse { result: result }))
     }
     
     async fn set_frame_rate(&self, request: Request<SetFrameRateRequest>) -> Result<Response<BoolResponse>, Status> {
         let req = request.into_inner();
+        if self.verbose >= 1 { println!("set_frame_rate:{}", req.id); }
         let result = match CAM_CTL.lock().unwrap().set_frame_rate(req.frame_rate) {Ok(_) => true, Err(_) => false};
         Ok(Response::new(BoolResponse { result: result }))
     }
 
     async fn set_exposure_time(&self, request: Request<SetExposureTimeRequest>) -> Result<Response<BoolResponse>, Status> {
         let req = request.into_inner();
+        if self.verbose >= 1 { println!("set_exposure_time:{}", req.id); }
         let result = match CAM_CTL.lock().unwrap().set_exposure_time(req.exposure) {Ok(_) => true, Err(_) => false};
         Ok(Response::new(BoolResponse { result: result }))
     }
 
     async fn set_gain(&self, request: Request<SetGainRequest>) -> Result<Response<BoolResponse>, Status> {
         let req = request.into_inner();
-        println!("set_gain:{}", req.id);
+        if self.verbose >= 1 { println!("set_gain:{}", req.id); }
         let result = match CAM_CTL.lock().unwrap().set_gain(req.gain) {Ok(_) => true, Err(_) => false};
         Ok(Response::new(BoolResponse { result: result }))
     }
 
     async fn set_digital_gain(&self, request: Request<SetGainRequest>) -> Result<Response<BoolResponse>, Status> {
         let req = request.into_inner();
+        if self.verbose >= 1 { println!("set_digital_gain:{}", req.id); }
         let result = match CAM_CTL.lock().unwrap().set_digital_gain(req.gain) {Ok(_) => true, Err(_) => false};
         Ok(Response::new(BoolResponse { result: result }))
     }
 
     async fn set_flip(&self, request: Request<SetFlipRequest>) -> Result<Response<BoolResponse>, Status> {
         let req = request.into_inner();
+        if self.verbose >= 1 { println!("set_flip:{}", req.id); }
         let result = match CAM_CTL.lock().unwrap().set_flip(req.flip_h, req.flip_v) {Ok(_) => true, Err(_) => false};
         Ok(Response::new(BoolResponse { result: result }))
     }
 
     async fn set_bayer_phase(&self, request: Request<SetBayerPhaseRequest>) -> Result<Response<BoolResponse>, Status> {
         let req = request.into_inner();
+        if self.verbose >= 1 { println!("set_bayer_phase:{}", req.id); }
         let result = match CAM_CTL.lock().unwrap().set_bayer_phase(req.phase) {Ok(_) => true, Err(_) => false};
         Ok(Response::new(BoolResponse { result: result }))
     }
@@ -110,7 +116,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     CAM_CTL.lock().unwrap().open()?;
 
     let address = "0.0.0.0:50051".parse().unwrap();
-    let camera_contro_service = CameraControlService::default();
+    let mut camera_contro_service = CameraControlService::default();
+    camera_contro_service.verbose = 0;
 
     Server::builder()
         .add_service(CameraControlServer::new(camera_contro_service))
