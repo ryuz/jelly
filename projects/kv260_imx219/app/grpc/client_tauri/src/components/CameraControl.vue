@@ -4,26 +4,72 @@
 <template>
 
 <div>camera address : <input v-model="cameraUrl"><button @click="onConnect">Connect</button> </div>
+<br>
+<br>
 
 <div class="slider">
 <div class="slider_text">width</div>
-<div class="slider_input"><input type="range" maxlength="200" min="16" max="2048" step="16" v-model="aoiWidth"></div>
+<div class="slider_input"><input type="range" min="16" max="2048" step="16" v-model="aoiWidth"></div>
 <div class="slider_value">{{ aoiWidth }}</div>
 </div>
 
+<div class="slider">
+<div class="slider_text">height</div>
+<div class="slider_input"><input type="range" min="16" max="1024" step="16" v-model="aoiHeight"></div>
+<div class="slider_value">{{ aoiHeight }}</div>
+</div>
 
-<p>height       : <input type="range" min="16" max="1024" step="16" v-model="aoiHeight"> {{ aoiHeight }}</p>
-<p>aoi-x        : <input type="range" min="16" max="2048" step="16" v-model="aoiX">      {{ aoiX }}</p>
-<p>aoi-y        : <input type="range" min="16" max="1024" step="16" v-model="aoiY">      {{ aoiY }}</p>
-<label>set aoi : <button @click="onSetAoi">reflect</button></label>
+<div class="slider">
+<div class="slider_text">aoi-x</div>
+<div class="slider_input"><input type="range" min="16" max="2048" step="16" v-model="aoiX"></div>
+<div class="slider_value">{{ aoiX }}</div>
+</div>
 
-<p>analog-gain  : <input type="range" min="0.0" max="20.0" step="0.1" v-model="analogGain">  {{ analogGain }}</p>
-<p>digital-gain : <input type="range" min="0.0" max="20.0" step="0.1" v-model="digitalGain"> {{ digitalGain }}</p>
+<div class="slider">
+<div class="slider_text">aoi-y</div>
+<div class="slider_input"><input type="range" min="16" max="1024" step="16" v-model="aoiY"></div>
+<div class="slider_value">{{ aoiY }}</div>
+</div>
 
-<p> flip-h<input type="checkbox" v-model="flipH"></p>
-<p> flip-v<input type="checkbox" v-model="flipV"></p>
+<div class="slider">
+<div class="slider_text">aoi-y</div>
+<div class="slider_input"><input type="range" min="16" max="1024" step="16" v-model="aoiY"></div>
+<div class="slider_value">{{ aoiY }}</div>
+</div>
 
-<p>bayer-phase  : <input type="range" min="0" max="3" step="1" v-model="bayerPhase">      {{ bayerPhase }}</p>
+<div class="item">
+<div class="item_text">set aoi</div>
+<div class="item_main"><button @click="onSetAoi">reflect</button></div>
+</div>
+
+<div class="slider">
+<div class="slider_text">analog-gain</div>
+<div class="slider_input"><input type="range" min="0.0" max="20.0" step="0.1" v-model="analogGain"> </div>
+<div class="slider_value">{{ analogGain }}</div>
+</div>
+
+<div class="slider">
+<div class="slider_text">digital-gain</div>
+<div class="slider_input"><input type="range" min="0.0" max="20.0" step="0.1" v-model="digitalGain">  </div>
+<div class="slider_value">{{ digitalGain }}</div>
+</div>
+
+<div class="item">
+<div class="item_text">flip-h</div>
+<div class="item_main"><input type="checkbox" v-model="flipH"></div>
+</div>
+
+<div class="item">
+<div class="item_text">flip-v</div>
+<div class="item_main"><input type="checkbox" v-model="flipV"></div>
+</div>
+
+<div class="slider">
+<div class="slider_text">bayer-phase</div>
+<div class="slider_input"><input type="range" min="0" max="3" step="1" v-model="bayerPhase"></div>
+<div class="slider_value">{{ bayerPhase }}</div>
+</div>
+
 
 </template>
 
@@ -98,6 +144,19 @@ watch(bayerPhase, async () => { set_bayer_phase(); })
     border: 1px solid #000;
 }
 
+
+.item {
+  display: flex;
+  align-content: space-evenly;
+}
+.item_text {
+    width: 10em;
+}
+.item_main {
+    width: 100px; 
+}
+
+
 .slider {
   display: flex;
   align-content: space-evenly;
@@ -110,7 +169,7 @@ watch(bayerPhase, async () => { set_bayer_phase(); })
     width: 200px; 
 }
 .slider_value {
-    width: 10%;
+    width: 10em;
 }
 
 

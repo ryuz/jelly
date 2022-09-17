@@ -222,6 +222,7 @@ async fn set_bayer_phase(id: i32, phase: i32,
 
 fn main() -> Result<(), Box<dyn std::error::Error>>  {
     println!("Start!!");
+    println!("OpenCV : {}", opencv::core::CV_VERSION);
 
     let connection = Mutex::new(CameraConnect::new());
     tauri::Builder::default()

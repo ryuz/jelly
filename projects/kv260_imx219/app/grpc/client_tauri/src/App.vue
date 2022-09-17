@@ -9,8 +9,10 @@ import CameraControl from "./components/CameraControl.vue";
 <template>
   <div class="container">
     <h1>Kria KV260 IMX219 Camera Control</h1>
-    <CameraControl />
-    <ImageView />
+    <div class="frame">
+    <div class="pain image"><ImageView /></div>
+    <div class="pain control"><CameraControl /></div>
+    </div>
   </div>
 </template>
 
@@ -22,4 +24,9 @@ import CameraControl from "./components/CameraControl.vue";
 .logo.vue:hover {
   filter: drop-shadow(0 0 2em #249b73);
 }
+.frame {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+}
+
 </style>

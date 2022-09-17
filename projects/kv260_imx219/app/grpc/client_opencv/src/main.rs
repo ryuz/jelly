@@ -16,6 +16,7 @@ use opencv::highgui::*;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Start");
+    println!("OpenCV : {}", opencv::core::CV_VERSION);
 
     let mut width:     i32 = 1280;
     let mut height:    i32 = 760;
