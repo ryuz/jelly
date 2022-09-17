@@ -42,122 +42,6 @@ const REG_IMG_DEMOSAIC_CTL_INDEX: usize = 0x07;
 const REG_IMG_DEMOSAIC_PARAM_PHASE: usize = 0x08;
 const REG_IMG_DEMOSAIC_CURRENT_PHASE: usize = 0x18;
 
-/* Video Write-DMA */
-/*
-const REG_VIDEO_WDMA_CORE_ID           : usize =       0x00;
-const REG_VIDEO_WDMA_VERSION           : usize =       0x01;
-const REG_VIDEO_WDMA_CTL_CONTROL       : usize =       0x04;
-const REG_VIDEO_WDMA_CTL_STATUS        : usize =       0x05;
-const REG_VIDEO_WDMA_CTL_INDEX         : usize =       0x07;
-const REG_VIDEO_WDMA_PARAM_ADDR        : usize =       0x08;
-const REG_VIDEO_WDMA_PARAM_STRIDE      : usize =       0x09;
-const REG_VIDEO_WDMA_PARAM_WIDTH       : usize =       0x0a;
-const REG_VIDEO_WDMA_PARAM_HEIGHT      : usize =       0x0b;
-const REG_VIDEO_WDMA_PARAM_SIZE        : usize =       0x0c;
-const REG_VIDEO_WDMA_PARAM_AWLEN       : usize =       0x0f;
-const REG_VIDEO_WDMA_MONITOR_ADDR      : usize =       0x10;
-const REG_VIDEO_WDMA_MONITOR_STRIDE    : usize =       0x11;
-const REG_VIDEO_WDMA_MONITOR_WIDTH     : usize =       0x12;
-const REG_VIDEO_WDMA_MONITOR_HEIGHT    : usize =       0x13;
-const REG_VIDEO_WDMA_MONITOR_SIZE      : usize =       0x14;
-const REG_VIDEO_WDMA_MONITOR_AWLEN     : usize =       0x17;
-*/
-
-/*
-/* DMA Stream write */
-const REG_DMA_WRITE_CORE_ID: usize = 0x00;
-const REG_DMA_WRITE_CORE_VERSION: usize = 0x01;
-const REG_DMA_WRITE_CORE_CONFIG: usize = 0x03;
-const REG_DMA_WRITE_CTL_CONTROL: usize = 0x04;
-const REG_DMA_WRITE_CTL_STATUS: usize = 0x05;
-const REG_DMA_WRITE_CTL_INDEX: usize = 0x07;
-const REG_DMA_WRITE_IRQ_ENABLE: usize = 0x08;
-const REG_DMA_WRITE_IRQ_STATUS: usize = 0x09;
-const REG_DMA_WRITE_IRQ_CLR: usize = 0x0a;
-const REG_DMA_WRITE_IRQ_SET: usize = 0x0b;
-const REG_DMA_WRITE_PARAM_AWADDR: usize = 0x10;
-const REG_DMA_WRITE_PARAM_AWOFFSET: usize = 0x18;
-const REG_DMA_WRITE_PARAM_AWLEN_MAX: usize = 0x1c;
-const REG_DMA_WRITE_PARAM_AWLEN0: usize = 0x20;
-const REG_DMA_WRITE_PARAM_AWLEN1: usize = 0x24;
-const REG_DMA_WRITE_PARAM_AWSTEP1: usize = 0x25;
-const REG_DMA_WRITE_PARAM_AWLEN2: usize = 0x28;
-const REG_DMA_WRITE_PARAM_AWSTEP2: usize = 0x29;
-const REG_DMA_WRITE_PARAM_AWLEN3: usize = 0x2c;
-const REG_DMA_WRITE_PARAM_AWSTEP3: usize = 0x2d;
-const REG_DMA_WRITE_PARAM_AWLEN4: usize = 0x30;
-const REG_DMA_WRITE_PARAM_AWSTEP4: usize = 0x31;
-const REG_DMA_WRITE_PARAM_AWLEN5: usize = 0x34;
-const REG_DMA_WRITE_PARAM_AWSTEP5: usize = 0x35;
-const REG_DMA_WRITE_PARAM_AWLEN6: usize = 0x38;
-const REG_DMA_WRITE_PARAM_AWSTEP6: usize = 0x39;
-const REG_DMA_WRITE_PARAM_AWLEN7: usize = 0x3c;
-const REG_DMA_WRITE_PARAM_AWSTEP7: usize = 0x3d;
-const REG_DMA_WRITE_PARAM_AWLEN8: usize = 0x30;
-const REG_DMA_WRITE_PARAM_AWSTEP8: usize = 0x31;
-const REG_DMA_WRITE_PARAM_AWLEN9: usize = 0x44;
-const REG_DMA_WRITE_PARAM_AWSTEP9: usize = 0x45;
-const REG_DMA_WRITE_WSKIP_EN: usize = 0x70;
-const REG_DMA_WRITE_WDETECT_FIRST: usize = 0x72;
-const REG_DMA_WRITE_WDETECT_LAST: usize = 0x73;
-const REG_DMA_WRITE_WPADDING_EN: usize = 0x74;
-const REG_DMA_WRITE_WPADDING_DATA: usize = 0x75;
-const REG_DMA_WRITE_WPADDING_STRB: usize = 0x76;
-const REG_DMA_WRITE_SHADOW_AWADDR: usize = 0x90;
-const REG_DMA_WRITE_SHADOW_AWLEN_MAX: usize = 0x91;
-const REG_DMA_WRITE_SHADOW_AWLEN0: usize = 0xa0;
-const REG_DMA_WRITE_SHADOW_AWLEN1: usize = 0xa4;
-const REG_DMA_WRITE_SHADOW_AWSTEP1: usize = 0xa5;
-const REG_DMA_WRITE_SHADOW_AWLEN2: usize = 0xa8;
-const REG_DMA_WRITE_SHADOW_AWSTEP2: usize = 0xa9;
-const REG_DMA_WRITE_SHADOW_AWLEN3: usize = 0xac;
-const REG_DMA_WRITE_SHADOW_AWSTEP3: usize = 0xad;
-const REG_DMA_WRITE_SHADOW_AWLEN4: usize = 0xb0;
-const REG_DMA_WRITE_SHADOW_AWSTEP4: usize = 0xb1;
-const REG_DMA_WRITE_SHADOW_AWLEN5: usize = 0xb4;
-const REG_DMA_WRITE_SHADOW_AWSTEP5: usize = 0xb5;
-const REG_DMA_WRITE_SHADOW_AWLEN6: usize = 0xb8;
-const REG_DMA_WRITE_SHADOW_AWSTEP6: usize = 0xb9;
-const REG_DMA_WRITE_SHADOW_AWLEN7: usize = 0xbc;
-const REG_DMA_WRITE_SHADOW_AWSTEP7: usize = 0xbd;
-const REG_DMA_WRITE_SHADOW_AWLEN8: usize = 0xb0;
-const REG_DMA_WRITE_SHADOW_AWSTEP8: usize = 0xb1;
-const REG_DMA_WRITE_SHADOW_AWLEN9: usize = 0xc4;
-const REG_DMA_WRITE_SHADOW_AWSTEP9: usize = 0xc5;
-
-/* DMA Video write */
-const REG_VDMA_WRITE_CORE_ID: usize = REG_DMA_WRITE_CORE_ID;
-const REG_VDMA_WRITE_CORE_VERSION: usize = REG_DMA_WRITE_CORE_VERSION;
-const REG_VDMA_WRITE_CORE_CONFIG: usize = REG_DMA_WRITE_CORE_CONFIG;
-const REG_VDMA_WRITE_CTL_CONTROL: usize = REG_DMA_WRITE_CTL_CONTROL;
-const REG_VDMA_WRITE_CTL_STATUS: usize = REG_DMA_WRITE_CTL_STATUS;
-const REG_VDMA_WRITE_CTL_INDEX: usize = REG_DMA_WRITE_CTL_INDEX;
-const REG_VDMA_WRITE_IRQ_ENABLE: usize = REG_DMA_WRITE_IRQ_ENABLE;
-const REG_VDMA_WRITE_IRQ_STATUS: usize = REG_DMA_WRITE_IRQ_STATUS;
-const REG_VDMA_WRITE_IRQ_CLR: usize = REG_DMA_WRITE_IRQ_CLR;
-const REG_VDMA_WRITE_IRQ_SET: usize = REG_DMA_WRITE_IRQ_SET;
-const REG_VDMA_WRITE_PARAM_ADDR: usize = REG_DMA_WRITE_PARAM_AWADDR;
-const REG_VDMA_WRITE_PARAM_OFFSET: usize = REG_DMA_WRITE_PARAM_AWOFFSET;
-const REG_VDMA_WRITE_PARAM_AWLEN_MAX: usize = REG_DMA_WRITE_PARAM_AWLEN_MAX;
-const REG_VDMA_WRITE_PARAM_H_SIZE: usize = REG_DMA_WRITE_PARAM_AWLEN0;
-const REG_VDMA_WRITE_PARAM_V_SIZE: usize = REG_DMA_WRITE_PARAM_AWLEN1;
-const REG_VDMA_WRITE_PARAM_LINE_STEP: usize = REG_DMA_WRITE_PARAM_AWSTEP1;
-const REG_VDMA_WRITE_PARAM_F_SIZE: usize = REG_DMA_WRITE_PARAM_AWLEN2;
-const REG_VDMA_WRITE_PARAM_FRAME_STEP: usize = REG_DMA_WRITE_PARAM_AWSTEP2;
-const REG_VDMA_WRITE_SKIP_EN: usize = REG_DMA_WRITE_WSKIP_EN;
-const REG_VDMA_WRITE_DETECT_FIRST: usize = REG_DMA_WRITE_WDETECT_FIRST;
-const REG_VDMA_WRITE_DETECT_LAST: usize = REG_DMA_WRITE_WDETECT_LAST;
-const REG_VDMA_WRITE_PADDING_EN: usize = REG_DMA_WRITE_WPADDING_EN;
-const REG_VDMA_WRITE_PADDING_DATA: usize = REG_DMA_WRITE_WPADDING_DATA;
-const REG_VDMA_WRITE_PADDING_STRB: usize = REG_DMA_WRITE_WPADDING_STRB;
-const REG_VDMA_WRITE_SHADOW_ADDR: usize = REG_DMA_WRITE_SHADOW_AWADDR;
-const REG_VDMA_WRITE_SHADOW_AWLEN_MAX: usize = REG_DMA_WRITE_SHADOW_AWLEN_MAX;
-const REG_VDMA_WRITE_SHADOW_H_SIZE: usize = REG_DMA_WRITE_SHADOW_AWLEN0;
-const REG_VDMA_WRITE_SHADOW_V_SIZE: usize = REG_DMA_WRITE_SHADOW_AWLEN1;
-const REG_VDMA_WRITE_SHADOW_LINE_STEP: usize = REG_DMA_WRITE_SHADOW_AWSTEP1;
-const REG_VDMA_WRITE_SHADOW_F_SIZE: usize = REG_DMA_WRITE_SHADOW_AWLEN2;
-const REG_VDMA_WRITE_SHADOW_FRAME_STEP: usize = REG_DMA_WRITE_SHADOW_AWSTEP2;
-*/
 
 use std::os::raw::c_void;
 
@@ -247,7 +131,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // IMX219 control
     //    let i2c = Box::new(I2cAccessor::new("/dev/i2c-6", 0x10).expect("Failed to open i2c"));
 //    let i2c = Box::new(LinuxI2CDevice::new("/dev/i2c-6", 0x10).expect("Failed to open i2c"));
-    let i2c = Box::new(LinuxI2c::new("/dev/i2c-6", 0x10).unwrap());
+    let i2c = LinuxI2c::new("/dev/i2c-6", 0x10).unwrap();
     let mut imx219 = Imx219Control::new(i2c);
     println!("reset");
     imx219.reset()?;
@@ -296,41 +180,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             reg_demos.write_reg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3); // update & enable
         }
 
-        // キャプチャ
-        // DMA start (one shot)
-        /*
-        unsafe {
-            /*
-            reg_wdma.write_reg(REG_VIDEO_WDMA_PARAM_ADDR,   udmabuf_acc.phys_addr());
-            reg_wdma.write_reg(REG_VIDEO_WDMA_PARAM_STRIDE, (width*4) as usize);
-            reg_wdma.write_reg(REG_VIDEO_WDMA_PARAM_WIDTH,  width as usize);
-            reg_wdma.write_reg(REG_VIDEO_WDMA_PARAM_HEIGHT, height as usize);
-            reg_wdma.write_reg(REG_VIDEO_WDMA_PARAM_SIZE,   (width*height*1) as usize);
-            reg_wdma.write_reg(REG_VIDEO_WDMA_PARAM_AWLEN,  31);
-            reg_wdma.write_reg(REG_VIDEO_WDMA_CTL_CONTROL,  0x07);
-            */
-
-            reg_wdma.write_reg(REG_VDMA_WRITE_PARAM_ADDR, udmabuf_acc.phys_addr());
-            reg_wdma.write_reg(REG_VDMA_WRITE_PARAM_OFFSET, 0);
-            reg_wdma.write_reg(REG_VDMA_WRITE_PARAM_AWLEN_MAX, 15);
-            reg_wdma.write_reg(REG_VDMA_WRITE_PARAM_LINE_STEP, (width * 4) as usize);
-            reg_wdma.write_reg(REG_VDMA_WRITE_PARAM_H_SIZE, (width - 1) as usize);
-            reg_wdma.write_reg(REG_VDMA_WRITE_PARAM_V_SIZE, (height - 1) as usize);
-            reg_wdma.write_reg(
-                REG_VDMA_WRITE_PARAM_FRAME_STEP,
-                (width * height * 4) as usize,
-            );
-            reg_wdma.write_reg(REG_VDMA_WRITE_PARAM_F_SIZE, 1 - 1);
-            reg_wdma.write_reg(REG_VDMA_WRITE_CTL_CONTROL, 0x7);
-        }
-
-        // 取り込み完了を待つ
-        thread::sleep(Duration::from_millis(10));
-        while (unsafe { reg_wdma.read_reg(REG_VDMA_WRITE_CTL_STATUS) } != 0) {
-            thread::sleep(Duration::from_millis(10));
-        }
-        */
-        
+        // 1frame キャプチャ
         vdmaw.oneshot(udmabuf_acc.phys_addr(), width, height, 1, 0, 0, 0, 0);
 
 

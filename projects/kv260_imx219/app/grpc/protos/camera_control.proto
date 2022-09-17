@@ -1,0 +1,84 @@
+syntax = "proto3";
+package camera_control;
+
+service CameraControl {
+    rpc Open (OpenRequest) returns (BoolResponse);
+    rpc Close (CloseRequest) returns (BoolResponse);
+    rpc IsOpened (IsOpenedRequest) returns (BoolResponse);
+    rpc GetImage (GetImageRequest) returns (ImageResponse);
+    rpc SetAoi (SetAoiRequest) returns (BoolResponse);
+    rpc SetFrameRate(SetFrameRateRequest) returns (BoolResponse);
+    rpc SetExposureTime(SetExposureTimeRequest) returns (BoolResponse);
+    rpc SetGain(SetGainRequest) returns (BoolResponse);
+    rpc SetDigitalGain(SetGainRequest) returns (BoolResponse);
+    rpc SetFlip(SetFlipRequest) returns (BoolResponse);
+    rpc SetBayerPhase(SetBayerPhaseRequest) returns (BoolResponse);
+}
+
+
+message Empty {
+}
+
+message OpenRequest {
+    int32 id = 1;
+}
+
+message CloseRequest {
+    int32 id = 1;
+}
+
+message IsOpenedRequest {
+    int32 id = 1;
+}
+
+message GetImageRequest {
+    int32 id = 1;
+}
+
+message SetAoiRequest{
+    int32 id = 1;
+    int32 width = 2;
+    int32 height = 3;
+    int32 x = 4;
+    int32 y = 5;
+}
+
+message SetFrameRateRequest{
+    int32 id = 1;
+    double frame_rate = 2;
+}
+
+message SetExposureTimeRequest{
+    int32 id = 1;
+    double exposure = 2;
+}  
+
+message SetGainRequest {
+    int32 id = 1;
+    double gain = 2;
+}  
+
+message SetFlipRequest {
+    int32 id = 1;
+    bool flip_h = 2;
+    bool flip_v = 3;
+}
+
+message SetBayerPhaseRequest {
+    int32 id = 1;
+    int32 phase = 2;
+}
+
+
+message BoolResponse {
+    bool result = 1;
+}
+
+message ImageResponse {
+    bool result = 1;
+    int32 format = 2;
+    int32 width = 3;
+    int32 height = 4;
+    bytes image = 5;
+}
+

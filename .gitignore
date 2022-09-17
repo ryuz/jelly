@@ -98,6 +98,9 @@ _*
 *.gtkw
 *.gtkwave
 
+*_pb2.py
+*_pb2_grpc.py
+
 *_tcl.xpr
 
 veritak_src_files.txt
