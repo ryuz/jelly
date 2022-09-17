@@ -24,6 +24,7 @@ tonic = "0.8.0"
 futures = "0.3.24"
 once_cell = "1.14.0"
 base64="0.13.0"
+opencv = "0.67.0"
 
 [features]
 # by default Tauri runs in production mode

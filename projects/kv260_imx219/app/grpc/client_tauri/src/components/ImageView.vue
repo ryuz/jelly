@@ -1,5 +1,6 @@
 
 <template>
+    <div> frame : {{ frameNum }}</div>
     <div>
     <canvas :width="imgWidth" :height="imgHeight" ref="canvasRef"></canvas>
     </div>
@@ -12,8 +13,9 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { invoke } from "@tauri-apps/api/tauri";
 import AppVue from "../App.vue";
 
-const imgWidth  = ref(640)
-const imgHeight = ref(480)
+const imgWidth  = ref(1280)
+const imgHeight = ref(720)
+const frameNum = ref(0)
 
 const canvasRef = ref<HTMLCanvasElement>()
 let ctx: CanvasRenderingContext2D
@@ -24,36 +26,40 @@ function base64decode(data:string){
 }
 
 /*
-function base64ToUint8Array(base64Str: string) {
-    const raw = atob(base64Str);
-    return Uint8Array.from(Array.prototype.map.call(raw, (x) => { 
-        return x.charCodeAt(0); 
-    })); 
-}
-*/
-
 async function get_image(id: number): Promise<ImageData> {
+    frameNum.value++;
 //    let [w,  h, img]: [number, number, number[]] = await invoke("get_image", {id: id});
     let [w,  h, enc]: [number, number, string] = await invoke("get_image", {id: id});
-    let img = base64decode(enc)
+    let img = base64decode(enc);
 //    console.log(w)
 //    console.log(h)
 //    console.log(img)
-    imgWidth.value = w
-    imgHeight.value = h
+    imgWidth.value = w;
+    imgHeight.value = h;
     let array = new Uint8ClampedArray(img);
-    let imgData = new ImageData(array, w, h)
-    return imgData
+    let imgData = new ImageData(array, w, h);
+    return imgData;
+}
+*/
+
+async function get_image(id: number): Promise<string> {
+    frameNum.value++;
+//    let [w,  h, img]: [number, number, number[]] = await invoke("get_image", {id: id});
+    let [w, h, img_str]: [number, number, string] = await invoke("get_image", {id: id});
+    imgWidth.value = w;
+    imgHeight.value = h;
+    return img_str;
 }
 
-async function set_aoi(width: number, height: number) {
-    await invoke("set_aoi", {id:1, width: width, height:height, x:-1, y:-1});
-}
+//async function set_aoi(width: number, height: number) {
+//    await invoke("set_aoi", {id:1, width: width, height:height, x:-1, y:-1});
+//}
+
 
 onMounted(() => {
     ctx = canvasRef.value?.getContext('2d')!
     callbackId = requestAnimationFrame(moveAnimation)
-    set_aoi(imgWidth.value, imgHeight.value)
+//  set_aoi(imgWidth.value, imgHeight.value)
 })
 
 onBeforeUnmount(() => {
@@ -68,15 +74,27 @@ const moveAnimation = () => {
     animation()
 };
 
+/*
 const draw = async () => {
     let imgData = await get_image(1)
     ctx.putImageData(imgData, 0, 0)
+}
+*/
+const draw = async () => {
+    let img_str = await get_image(1)
+    var img = new Image();
+//    img.src = "data:image/png;base64," + img_str;
+    img.src = img_str;
+    img.onload = () => {
+        ctx.drawImage(img, 50, 0);
+    };
+//    ctx.putImageData(imgData, 0, 0)
 }
 
 const animation = async () => {
     await draw();
     callbackId = requestAnimationFrame(moveAnimation)
-    setTimeout(() => {requestAnimationFrame(moveAnimation)}, 10)
+//  setTimeout(() => {callbackId = requestAnimationFrame(moveAnimation)}, 10)
 }
 
 
@@ -84,6 +102,8 @@ const animation = async () => {
   
 <style scoped>
 .canvas {
+    margin:0 auto;
+    text-align: center;
     border: 1px solid #000;
 }
 </style>
