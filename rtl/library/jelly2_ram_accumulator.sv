@@ -14,20 +14,23 @@
 // accumulator memory
 module jelly2_ram_accumulator
         #(
-            parameter   int                         ADDR_WIDTH   = 11,
-            parameter   int                         DATA_WIDTH   = 18,
-            parameter   int                         MEM_SIZE     = (1 << ADDR_WIDTH),
-            parameter                               RAM_TYPE     = "block",
-            
-            parameter   bit                         FILLMEM      = 0,
-            parameter   logic   [DATA_WIDTH-1:0]    FILLMEM_DATA = 0,
-            parameter   bit                         READMEMB     = 0,
-            parameter   bit                         READMEMH     = 0,
-            parameter                               READMEM_FIlE = "",
+            parameter   int                         USER_WIDTH     = 0,
+            parameter   int                         ADDR_WIDTH     = 11,
+            parameter   int                         DATA_WIDTH     = 18,
+            parameter   int                         MEM_SIZE       = (1 << ADDR_WIDTH),
+            parameter                               RAM_TYPE       = "block",
 
-            parameter   int                         RAM_ADDR_WIDTH  = RAM_TYPE == "ultra" ? (ADDR_WIDTH > 12 ? 12 : ADDR_WIDTH)
-                                                                                          : (ADDR_WIDTH > 9 ? 9 : ADDR_WIDTH), 
-            parameter   int                         RAM_MEM_SIZE    = (1 << RAM_ADDR_WIDTH)
+            parameter   bit                         FILLMEM        = 0,
+            parameter   logic   [DATA_WIDTH-1:0]    FILLMEM_DATA   = 0,
+            parameter   bit                         READMEMB       = 0,
+            parameter   bit                         READMEMH       = 0,
+            parameter                               READMEM_FIlE   = "",
+
+            parameter   int                         RAM_ADDR_WIDTH = RAM_TYPE == "ultra" ? (ADDR_WIDTH > 12 ? 12 : ADDR_WIDTH)
+                                                                                          : (ADDR_WIDTH > 10 ? 10 : ADDR_WIDTH), 
+            parameter   int                         RAM_MEM_SIZE   = (1 << RAM_ADDR_WIDTH),
+
+            localparam  int                         USER_BITS      = USER_WIDTH > 0 ? USER_WIDTH : 1
         )
         (
             // system
@@ -35,39 +38,46 @@ module jelly2_ram_accumulator
             input   wire                        clk,
             input   wire                        cke,
 
-            // accumulator port
-            input   wire    [ADDR_WIDTH-1:0]    acc_addr,
-            input   wire    [DATA_WIDTH-1:0]    acc_data,
-            input   wire    [0:0]               acc_operation,  // 0:add, 1:subtraction
-            input   wire                        acc_valid,
-
             // clear
             input   wire                        clear_start,
             output  wire                        clear_busy,
 
+            // accumulator port
+            input   wire    [USER_BITS-1:0]     s_user,
+            input   wire    [1:0]               s_operation,  // 0:add, 1:subtraction, 2: read(nop), 3: overwrite
+            input   wire    [ADDR_WIDTH-1:0]    s_addr,
+            input   wire    [DATA_WIDTH-1:0]    s_data,
+            input   wire                        s_valid,
+
+            output  wire    [USER_BITS-1:0]     m_user,
+            output  wire    [DATA_WIDTH-1:0]    m_data,
+            output  wire                        m_valid,
+            
             // max
             input   wire                        max_clear,
             output  wire    [ADDR_WIDTH-1:0]    max_addr,
             output  wire    [DATA_WIDTH-1:0]    max_data
         );
     
+    logic   [USER_BITS-1:0]     st0_user;
     logic                       st0_we;
     logic   [ADDR_WIDTH-1:0]    st0_addr;
     logic   [DATA_WIDTH-1:0]    st0_din;
     logic   [DATA_WIDTH-1:0]    st0_data;
-    logic   [0:0]               st0_operation;
+    logic   [1:0]               st0_operation;
     logic                       st0_valid;
     
+    logic   [USER_BITS-1:0]     st1_user;
     logic                       st1_fw_st2;
     logic                       st1_fw_st3;
     logic   [ADDR_WIDTH-1:0]    st1_addr;
     logic   [DATA_WIDTH-1:0]    st1_data;
-    logic   [0:0]               st1_operation;
+    logic   [1:0]               st1_operation;
     logic                       st1_valid;
-    
     logic   [DATA_WIDTH-1:0]    st1_dout;
     logic   [DATA_WIDTH-1:0]    st1_rdata;
     
+    logic   [USER_BITS-1:0]     st2_user;
     logic                       st2_we;
     logic   [ADDR_WIDTH-1:0]    st2_addr;
     logic   [DATA_WIDTH-1:0]    st2_data;
@@ -86,19 +96,22 @@ module jelly2_ram_accumulator
     // pipeline
     always_ff @(posedge clk) begin
         if ( reset ) begin
+            st0_user      <= 'x;
             st0_we        <= 1'bx;
             st0_addr      <= {ADDR_WIDTH{1'bx}};
             st0_data      <= {DATA_WIDTH{1'bx}};
-            st0_operation <= 1'bx;
+            st0_operation <= 'x;
             st0_valid     <= 1'b0;
             
+            st1_user      <= 'x;
             st1_fw_st2    <= 1'bx;
             st1_fw_st3    <= 1'bx;
             st1_addr      <= {ADDR_WIDTH{1'bx}};
             st1_data      <= {DATA_WIDTH{1'bx}};
-            st1_operation <= 1'bx;
+            st1_operation <= 'x;
             st1_valid     <= 1'b0;
             
+            st2_user      <= 'x;
             st2_we        <= 1'b0;
             st2_addr      <= {ADDR_WIDTH{1'bx}};
             st2_data      <= {DATA_WIDTH{1'bx}};
@@ -108,14 +121,16 @@ module jelly2_ram_accumulator
         end
         else if ( cke ) begin
             // stage 0
+            st0_user      <= s_user;
             st0_we        <= 1'b0;
-            st0_addr      <= acc_addr;
+            st0_addr      <= s_addr;
             st0_din       <= '0;
-            st0_data      <= acc_data;
-            st0_operation <= acc_operation;
-            st0_valid     <= acc_valid;
+            st0_data      <= s_data;
+            st0_operation <= s_operation;
+            st0_valid     <= s_valid;
             
             // stage 1
+            st1_user      <= st0_user;
             st1_fw_st2    <= st0_valid && st1_valid && (st0_addr == st1_addr);
             st1_fw_st3    <= st0_valid && st2_valid && (st0_addr == st2_addr);
             st1_addr      <= st0_addr;
@@ -124,16 +139,27 @@ module jelly2_ram_accumulator
             st1_valid     <= st0_valid;
             
             // stage 2
+            st2_user      <= st1_user;
             st2_we        <= st1_valid;
             st2_addr      <= st1_addr;
-            st2_data      <= (st1_operation == 1'b0) ? st1_rdata + st1_data : st1_rdata - st1_data;
+            case ( st1_operation )
+            2'b00:  st2_data <= st1_rdata + st1_data;   // add
+            2'b01:  st2_data <= st1_rdata - st1_data;   // sub
+            2'b10:  st2_data <= st1_rdata;              // nop
+            2'b11:  st2_data <= st1_data;               // overwirte
+            endcase
             st2_valid     <= st1_valid;
             
             // stage 3
             st3_data      <= st2_data;
         end
     end
-    
+
+    assign m_user  = st2_user;
+    assign m_data  = st2_data;
+    assign m_valid = st2_valid;
+
+
     
     // memory
     logic   [1:0]                   ram_reset;

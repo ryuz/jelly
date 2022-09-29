@@ -55,10 +55,10 @@ int main(int argc, char** argv)
     auto mng = jsim::Manager::Create();
 
     mng->AddNode(jsim::VerilatorNode_Create(top, tfp));
-    mng->AddNode(jsim::ResetNode_Create(&top->reset, 100));
+//  mng->AddNode(jsim::ResetNode_Create(&top->reset, 100));
     mng->AddNode(jsim::ClockNode_Create(&top->clk, 5.0));
 
-    mng->Run(100000);
+    mng->Run(1000000);
 //    mng->Run();
 
 #if VM_TRACE
