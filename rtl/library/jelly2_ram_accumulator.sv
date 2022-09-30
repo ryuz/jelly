@@ -27,7 +27,7 @@ module jelly2_ram_accumulator
             parameter                               READMEM_FIlE   = "",
 
             parameter   int                         RAM_ADDR_WIDTH = RAM_TYPE == "ultra" ? (ADDR_WIDTH > 12 ? 12 : ADDR_WIDTH)
-                                                                                          : (ADDR_WIDTH > 10 ? 10 : ADDR_WIDTH), 
+                                                                                         : (ADDR_WIDTH > 10 ? 10 : ADDR_WIDTH), 
             parameter   int                         RAM_MEM_SIZE   = (1 << RAM_ADDR_WIDTH),
 
             localparam  int                         USER_BITS      = USER_WIDTH > 0 ? USER_WIDTH : 1
