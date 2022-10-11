@@ -18,13 +18,13 @@ module jelly2_linear_interpolation
             parameter   int     COMPONENT_NUM = 1,
             parameter   int     RATE_WIDTH    = 8,
             parameter   int     RATE_Q        = RATE_WIDTH,
-            parameter   int     S_DATA_WIDTH  = 16,
+            parameter   int     S_DATA_WIDTH  = 8,
             parameter   int     S_DATA_Q      = 0,
             parameter   bit     S_DATA_SIGNED = 1,
             parameter   int     M_DATA_WIDTH  = S_DATA_WIDTH,
             parameter   int     M_DATA_Q      = S_DATA_Q,
-            parameter   bit     RATE_SIGNED   = 1,
-            parameter   bit     DATA_SIGNED   = 1,
+            parameter   bit     RATE_SIGNED   = 0,
+            parameter   bit     DATA_SIGNED   = 0,
             parameter   bit     ROUNDING      = 0,
             
             localparam  int     USER_BITS     = USER_WIDTH > 0 ? USER_WIDTH : 1
@@ -50,8 +50,8 @@ module jelly2_linear_interpolation
     localparam  int     DATA_BITS = DATA_SIGNED ? S_DATA_WIDTH : S_DATA_WIDTH + 1;
     localparam  int     MUL_BITS  = RATE_BITS + DATA_BITS;
 
-    logic   signed  [RATE_BITS-1:0] rate_one        = RATE_BITS'(1 << Q_WIDTH);
-    logic   signed  [MUL_BITS-1:0]  rounding_offset = ROUNDING ? MUL_BITS'((1 << (RATE_WIDTH + RATE_Q - S_DATA_Q)) >> 1) : '0;
+    logic   signed  [RATE_BITS-1:0] rate_one        = RATE_BITS'(1 << RATE_Q);
+    logic   signed  [MUL_BITS-1:0]  rounding_offset = ROUNDING ? MUL_BITS'((1 << (RATE_Q - S_DATA_Q)) >> 1) : '0;
 
     // input
     logic   signed  [RATE_BITS-1:0]                     in_rate;
