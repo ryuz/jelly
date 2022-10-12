@@ -91,7 +91,7 @@ module jelly2_linear_interpolation
             st0_data1 <= in_data1;
 
             // stage1
-            st1_user  <= s_user;
+            st1_user  <= st0_user;
             for ( int i = 0; i < COMPONENT_NUM; ++i ) begin
                 st1_data0[i] <= $signed(st0_data0[i]) * st0_rate0;
                 st1_data1[i] <= $signed(st0_data1[i]) * st0_rate1;
