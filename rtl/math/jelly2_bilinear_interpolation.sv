@@ -70,10 +70,10 @@ module jelly2_bilinear_interpolation
         in_rate_x = RATE_SIGNED ? RATE_BITS'($signed(s_rate_x)) : RATE_BITS'($signed({1'b0, s_rate_x}));
         in_rate_y = RATE_SIGNED ? RATE_BITS'($signed(s_rate_y)) : RATE_BITS'($signed({1'b0, s_rate_y}));
         for ( int i = 0; i < COMPONENT_NUM; ++i ) begin
-            in_data00[i] = DATA_SIGNED ? MUL_BITS'($signed(s_data00[i])) : MUL_BITS'($signed({1'b0, s_data00[i]}));
-            in_data01[i] = DATA_SIGNED ? MUL_BITS'($signed(s_data01[i])) : MUL_BITS'($signed({1'b0, s_data01[i]}));
-            in_data10[i] = DATA_SIGNED ? MUL_BITS'($signed(s_data10[i])) : MUL_BITS'($signed({1'b0, s_data10[i]}));
-            in_data11[i] = DATA_SIGNED ? MUL_BITS'($signed(s_data11[i])) : MUL_BITS'($signed({1'b0, s_data11[i]}));
+            in_data00[i] = (DATA_SIGNED ? MUL_BITS'($signed(s_data00[i])) : MUL_BITS'($signed({1'b0, s_data00[i]}))) << RATE_Q;
+            in_data01[i] = (DATA_SIGNED ? MUL_BITS'($signed(s_data01[i])) : MUL_BITS'($signed({1'b0, s_data01[i]}))) << RATE_Q;
+            in_data10[i] = (DATA_SIGNED ? MUL_BITS'($signed(s_data10[i])) : MUL_BITS'($signed({1'b0, s_data10[i]}))) << RATE_Q;
+            in_data11[i] = (DATA_SIGNED ? MUL_BITS'($signed(s_data11[i])) : MUL_BITS'($signed({1'b0, s_data11[i]}))) << RATE_Q;
         end
     end
 
@@ -129,8 +129,8 @@ module jelly2_bilinear_interpolation
             for ( int i = 0; i < COMPONENT_NUM; ++i ) begin
                 st0_data0[i]  <= $signed(in_data00[i]);
                 st0_data1[i]  <= $signed(in_data01[i]) - $signed(in_data00[i]);
-                st0_data1[i]  <= $signed(in_data10[i]) - $signed(in_data00[i]);
-                st0_data1[i]  <= $signed(in_data11[i]) - $signed(in_data10[i]);
+                st0_data2[i]  <= $signed(in_data10[i]) - $signed(in_data00[i]);
+                st0_data3[i]  <= $signed(in_data11[i]) - $signed(in_data10[i]);
             end
 
             // stage1
@@ -141,7 +141,7 @@ module jelly2_bilinear_interpolation
                 st1_data0[i] <= $signed(st0_data0[i]);
                 st1_data1[i] <= $signed(st0_data1[i]);
                 st1_data2[i] <= $signed(st0_data3[i]) - $signed(st0_data1[i]);
-                st1_data3[i] <= $signed(st0_data1[i]) * st0_rate_y;
+                st1_data3[i] <= ($signed(st0_data2[i]) * st0_rate_y) >>> RATE_Q;
             end
 
             // stage2
@@ -150,7 +150,7 @@ module jelly2_bilinear_interpolation
             for ( int i = 0; i < COMPONENT_NUM; ++i ) begin
                 st2_data0[i] <= $signed(st1_data0[i]) + $signed(st1_data3[i]);
                 st2_data1[i] <= $signed(st1_data1[i]);
-                st2_data2[i] <= $signed(st1_data2[i]) * st1_rate_y;
+                st2_data2[i] <= ($signed(st1_data2[i]) * st1_rate_y) >>> RATE_Q;
             end
 
             // stage3
@@ -165,7 +165,7 @@ module jelly2_bilinear_interpolation
             st4_user   <= st3_user;
             for ( int i = 0; i < COMPONENT_NUM; ++i ) begin
                 st4_data0[i] <= $signed(st3_data0[i]);
-                st4_data1[i] <= $signed(st3_data1[i]) + st3_rate_x;
+                st4_data1[i] <= ($signed(st3_data1[i]) * st3_rate_x) >>> RATE_Q;;
             end
 
             // stage5
@@ -198,7 +198,7 @@ module jelly2_bilinear_interpolation
     always_comb begin
         m_user  = st5_user;
         for ( int i = 0; i < COMPONENT_NUM; ++i ) begin
-            m_data[i] = M_DATA_WIDTH'(st5_data[i] >> (RATE_Q - M_DATA_Q));
+            m_data[i] = M_DATA_WIDTH'(st5_data[i] >>> (RATE_Q - M_DATA_Q));
         end
         m_valid = st5_valid;
     end
