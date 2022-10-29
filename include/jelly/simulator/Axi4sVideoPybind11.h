@@ -150,6 +150,17 @@ public:
         m_mng->Run(time);
     }
 
+    void ReadReg(std::uint64_t addr) {
+        m_wb->Read(addr);
+    }
+
+    std::uint64_t GetReadRegData(void) {
+        std::uint64_t data;
+        while ( !m_wb->GetReadData(data) ) {
+            m_mng->Step();
+        }
+        return data;
+    }
 
     void WriteReg(std::uint64_t addr, std::uint64_t data, std::uint64_t sel=0xff) {
         m_wb->Write(addr, data, sel);
@@ -159,11 +170,11 @@ public:
         m_wb->Write(addr, data, sel);
     }
 
+
     void WaitBus(void) {
         while ( !m_wb->IsEmptyQueue() ) {
-            m_mng->Run(10);
+            m_mng->Step();
         }
-        m_mng->Run(20);
     }
 
 
@@ -240,6 +251,8 @@ PYBIND11_MODULE(ModuleName, p) { \
             .def(pybind11::init<int, int>()) \
             .def("set_image_size",        &ClassName::SetImageSize) \
             .def("run",                   &ClassName::Run) \
+            .def("read_reg",              &ClassName::ReadReg) \
+            .def("get_read_reg_data",     &ClassName::GetReadRegData) \
             .def("write_reg",             &ClassName::WriteReg) \
             .def("write_ireg",            &ClassName::WriteIReg) \
             .def("wait_bus",              &ClassName::WaitBus) \

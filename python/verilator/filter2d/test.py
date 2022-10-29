@@ -83,6 +83,9 @@ kernel_laplacian = [
 # create sim
 sim = filter2d.Filter2d(0, 0)
 
+sim.read_reg(0)
+print(hex(sim.get_read_reg_data()))
+
 # source image
 src_img = cv2.imread("../../../data/images/standard_images/color/Mandrill_256x256.ppm")
 print(src_img.shape)
