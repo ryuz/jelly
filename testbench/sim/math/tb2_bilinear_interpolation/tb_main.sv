@@ -90,11 +90,9 @@ module tb_main
             s_valid <= '0;
         end
         else if ( cke ) begin
-            s_rate_x  <= s_rate_x + 0;
-            s_rate_y  <= s_rate_y + 1;
-            s_rate_x  <= 100;
-            s_rate_y  <= 200;
-            s_valid <= '1;
+            s_rate_x  <= s_rate_x + 1;
+            s_rate_y  <= s_rate_y + 2;
+            s_valid   <= '1;
         end
     end
 

@@ -25,6 +25,8 @@ protected:
     std::queue<Axi4StreamData>  m_que;
 
     TAxi4Stream             m_axi4s;
+    Axi4StreamData          m_data;
+
     bool                    m_reset_pol = false;
 
     bool                    m_aresetn;
@@ -97,6 +99,8 @@ protected:
         m_tdata   = (std::uint64_t)*m_axi4s.tdata;
         m_tvalid  = (*m_axi4s.tvalid != 0);
         m_tready  = m_axi4s.tready ? (*m_axi4s.tready != 0) : true;
+
+        m_axi4s.Get(m_data);
     }
 
     bool CheckProc(Manager* manager) override
@@ -133,9 +137,9 @@ protected:
             return 0;
         }
 
-        Axi4StreamData data;
-        m_axi4s.Get(data);
-        m_que.push(data);
+//        Axi4StreamData data;
+//        m_axi4s.Get(data);
+        m_que.push(m_data);
 
         return 0;
     }

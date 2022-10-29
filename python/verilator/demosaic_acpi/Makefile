@@ -32,7 +32,7 @@ endif
 
 all: build
 
-.PHONY : build
+.PHONY : build run
 build:
 	mkdir -p build && cd build && cmake $(CMAKE_FLAGS) -Dpybind11_DIR=`pybind11-config --cmakedir` ..
 	cmake --build build -j
