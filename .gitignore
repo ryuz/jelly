@@ -11,6 +11,7 @@ _*
 *.so
 *.bin
 *.bit
+*.dtb
 *.dtbo
 *.obj
 *.vcd

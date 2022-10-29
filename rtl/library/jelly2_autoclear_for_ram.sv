@@ -15,7 +15,7 @@
 module jelly2_autoclear_for_ram
         #(
             parameter   int     BANK_NUM        = 4,
-            parameter   int     BANK_WIDTH      = 2,
+            parameter   int     BANK_WIDTH      = $clog2(BANK_NUM),
             parameter   int     ADDR_WIDTH      = 9,
             parameter   int     DATA_WIDTH      = 8,
             parameter   int     MEM_SIZE        = (1 << ADDR_WIDTH),
@@ -44,6 +44,7 @@ module jelly2_autoclear_for_ram
             input   wire    [BANK_NUM-1:0][DATA_WIDTH-1:0]      ram_dout
         );
     
+    localparam  BANK_BITS = BANK_WIDTH > 0 ? BANK_WIDTH : 1;
 
     // clear
     logic  [ADDR_WIDTH-1:0]     clear_addr;
@@ -66,7 +67,7 @@ module jelly2_autoclear_for_ram
         end
     end
     
-    wire    [BANK_WIDTH-1:0]     st0_bank = BANK_WIDTH'(addr >> ADDR_WIDTH);
+    wire    [BANK_BITS-1:0]     st0_bank = BANK_BITS'(addr >> ADDR_WIDTH);
     always_comb begin : blk_ram
         for ( int i = 0; i < BANK_NUM; ++i ) begin
             ram_en    [i] = clear_busy ? 1'b1       : en;
@@ -77,9 +78,9 @@ module jelly2_autoclear_for_ram
         end
     end
     
-    logic   [BANK_WIDTH-1:0]    bank;
+    logic   [BANK_BITS-1:0]     bank;
     
-    logic   [BANK_WIDTH-1:0]    st1_bank;
+    logic   [BANK_BITS-1:0]     st1_bank;
     always_ff @(posedge clk) begin
         if ( en ) begin
             st1_bank <= st0_bank;
@@ -88,7 +89,7 @@ module jelly2_autoclear_for_ram
     
     generate
     if ( DOUT_REGS ) begin : blk_regs
-        logic   [BANK_WIDTH-1:0]    st2_bank;
+        logic   [BANK_BITS-1:0]     st2_bank;
         always_ff @(posedge clk) begin
             if ( regcke ) begin
                 st2_bank <= st1_bank;

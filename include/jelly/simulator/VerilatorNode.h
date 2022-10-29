@@ -33,26 +33,30 @@ using trace_ptr_t = void*;
 
 #endif
 
+using context_ptr_t = std::shared_ptr<VerilatedContext>;
+
 
 template<typename ModuleType>
 class VerilatorNode : public Node
 {
-    using module_ptr_t = std::shared_ptr<ModuleType>;
+    using module_ptr_t  = std::shared_ptr<ModuleType>;
 
 protected:
     module_ptr_t     m_module;
     trace_ptr_t      m_tfp;
+    context_ptr_t    m_contextp;
     
-    VerilatorNode(module_ptr_t module, trace_ptr_t tfp=nullptr)
+    VerilatorNode(module_ptr_t module, trace_ptr_t tfp=nullptr, context_ptr_t contextp=nullptr)
     {
-        m_module = module;
-        m_tfp    = tfp;
+        m_module   = module;
+        m_tfp      = tfp;
+        m_contextp = contextp;
     }
 
 public:
-    static std::shared_ptr<VerilatorNode> Create(module_ptr_t module, trace_ptr_t tfp=nullptr)
+    static std::shared_ptr<VerilatorNode> Create(module_ptr_t module, trace_ptr_t tfp=nullptr, context_ptr_t contextp=nullptr)
     {
-        return std::shared_ptr<VerilatorNode>(new VerilatorNode(module, tfp));
+        return std::shared_ptr<VerilatorNode>(new VerilatorNode(module, tfp, contextp));
     }
 
 protected:
@@ -63,6 +67,7 @@ protected:
 
     void EvalProc(Manager* manager) override
     {
+        if ( m_contextp ) { m_contextp->time(manager->GetSimTime()); }
         m_module->eval();
         if ( Verilated::gotFinish() ) {
             manager->Finish();
@@ -80,9 +85,9 @@ protected:
 };
 
 template<typename ModuleTp>
-std::shared_ptr< VerilatorNode<ModuleTp> > VerilatorNode_Create(std::shared_ptr<ModuleTp> module, trace_ptr_t tfp=nullptr)
+std::shared_ptr< VerilatorNode<ModuleTp> > VerilatorNode_Create(std::shared_ptr<ModuleTp> module, trace_ptr_t tfp=nullptr, context_ptr_t contextp=nullptr)
 {
-    return VerilatorNode<ModuleTp>::Create(module, tfp);
+    return VerilatorNode<ModuleTp>::Create(module, tfp, contextp);
 }
 
 }

@@ -27,11 +27,11 @@ CMAKE_FLAGS += -GNinja
 endif
 
 
-all: build  run
+all: build run
 
 .PHONY : build
 build:
-	mkdir -p build && cd build && cmake $(CMAKE_FLAGS) -Dpybind11_DIR=`pybind11-config --cmakedir` ..
+	mkdir -p build && cd build && cmake $(CMAKE_FLAGS) ..
 	cmake --build build -j
 
 .PHONY : clean
@@ -40,21 +40,17 @@ clean:
 
 .PHONY : distclean
 distclean: clean
-	rm -f *.fst *.fst.hier
-	rm -f *.vcd
-	rm -f *.ppm *.pgm
-	rm -f axi*.txt
-	rm -f *.so
-	rm -f *.dll
+	rm -f img_*.png angle_*.png
+	rm -f *.fst *.vcd
 	rm -f coverage.dat
 	rm -fr annotated
 
+
 .PHONY : run
-run: build
-	python3 test.py
+run:
+	build/tb_verilator
 
 .PHONY : coverage
 coverage:
 	verilator_coverage --annotate annotated coverage.dat
-
 
