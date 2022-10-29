@@ -25,6 +25,10 @@ def run_filter2d(sim, img, kernel):
     sim.write_image(img)
     return sim.read_image()
 
+def read_register(addr):
+    sim.read_reg(addr)
+    return sim.get_read_reg_data()
+
 
 kernel_bypss = [
     [
@@ -83,12 +87,11 @@ kernel_laplacian = [
 # create sim
 sim = filter2d.Filter2d(0, 0)
 
-sim.read_reg(0)
-print(hex(sim.get_read_reg_data()))
+print("ID: %08x"%read_register(0))
 
 # source image
 src_img = cv2.imread("../../../data/images/standard_images/color/Mandrill_256x256.ppm")
-print(src_img.shape)
+# print(src_img.shape)
 
 # filter
 dst_img1 = run_filter2d(sim, src_img, kernel_bypss)

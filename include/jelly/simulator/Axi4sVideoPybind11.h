@@ -175,6 +175,7 @@ public:
         while ( !m_wb->IsEmptyQueue() ) {
             m_mng->Step();
         }
+        m_mng->Run(100);    // 確実に反映させるために少し進める
     }
 
 
