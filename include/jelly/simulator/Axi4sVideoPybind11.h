@@ -65,7 +65,7 @@ public:
 #endif
 
         m_mng = Manager::Create();
-        m_mng->AddNode(VerilatorNode_Create(m_top, m_tfp));
+        m_mng->AddNode(VerilatorNode_Create(m_top, m_tfp, m_contextp));
         m_mng->AddNode(ResetNode_Create(&m_top->aresetn,    reset_time, false));
         m_mng->AddNode(ClockNode_Create(&m_top->aclk,       clk_rate));
         m_mng->AddNode(ResetNode_Create(&m_top->s_wb_rst_i, reset_time));
@@ -142,6 +142,10 @@ public:
         m_top->param_img_height = m_height;
     }
 
+    void Step(void) {
+        m_mng->Step();
+    }
+
     void Run(double time=-1) {
         m_mng->Run(time);
     }
@@ -202,7 +206,7 @@ public:
     {
         // データが揃うまでシミュレーションを進める
         while ( GetReadStreamSize() < m_height * m_width ) {
-            Run(100);
+            Step();
         }
 
         // 読み出し

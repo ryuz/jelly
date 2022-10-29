@@ -28,22 +28,24 @@ protected:
     Axi4StreamData          m_data;
 
     bool                    m_reset_pol = false;
+    bool                    m_monitor   = false;
 
     bool                    m_aresetn;
     bool                    m_aclk;
-    bool                    m_tuser;
-    bool                    m_tlast;
-    std::uint64_t           m_tdata;
-    bool                    m_tvalid;
-    bool                    m_tready = true;
+//    bool                    m_tuser;
+//    bool                    m_tlast;
+//    std::uint64_t           m_tdata;
+//    bool                    m_tvalid;
+//    bool                    m_tready = true;
 
     rand_type               m_rand;
     dist_type               m_dist;
 
-    Axi4StreamReaderNode(TAxi4Stream axi4s, bool reset_pol = false) : m_dist(0.0)
+    Axi4StreamReaderNode(TAxi4Stream axi4s, bool reset_pol = false, bool monitor = false ) : m_dist(0.0)
     {
         m_axi4s     = axi4s;
         m_reset_pol = reset_pol;
+        m_monitor   = monitor;
     }
 
 public:
@@ -94,13 +96,14 @@ protected:
     {
         m_aresetn = m_reset_pol ? (*m_axi4s.aresetn == 0) : (*m_axi4s.aresetn != 0);
         m_aclk    = (*m_axi4s.aclk != 0);
-        m_tuser   = ((*m_axi4s.tuser & 1) != 0);
-        m_tlast   = (*m_axi4s.tlast != 0);
-        m_tdata   = (std::uint64_t)*m_axi4s.tdata;
-        m_tvalid  = (*m_axi4s.tvalid != 0);
-        m_tready  = m_axi4s.tready ? (*m_axi4s.tready != 0) : true;
+//        m_tuser   = ((*m_axi4s.tuser & 1) != 0);
+//        m_tlast   = (*m_axi4s.tlast != 0);
+//        m_tdata   = (std::uint64_t)*m_axi4s.tdata;
+//        m_tvalid  = (*m_axi4s.tvalid != 0);
+//        m_tready  = m_axi4s.tready ? (*m_axi4s.tready != 0) : true;
 
         m_axi4s.Get(m_data);
+//        printf("[%20d] get: %x %x\n", manager->GetSimTime(), m_data.tdata, m_data.tvalid);
     }
 
     bool CheckProc(Manager* manager) override
@@ -123,23 +126,24 @@ protected:
             while ( !m_que.empty() ) {
                 m_que.pop();
             }
-            if ( m_axi4s.tready ) {
+            if ( !m_monitor && m_axi4s.tready ) {
                 *m_axi4s.tready = 0;
             }
+            return 0;
         }
 
         // ready があれば設定
-        if ( m_axi4s.tready ) {
+        if ( !m_monitor && m_axi4s.tready ) {
             *m_axi4s.tready = m_dist(m_rand) ? 0 : 1;
         }
 
-        if ( !(m_tvalid && m_tready) ) {
-            return 0;
+        if ( m_data.tvalid != 0 ) {
+//            printf("push: %x\n", m_data.tdata);
+            m_que.push(m_data);
         }
 
 //        Axi4StreamData data;
 //        m_axi4s.Get(data);
-        m_que.push(m_data);
 
         return 0;
     }
