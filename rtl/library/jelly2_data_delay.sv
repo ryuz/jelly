@@ -67,7 +67,7 @@ module jelly2_data_delay
             end
         end
 
-        always_comb s_ready = m_ready || !&buf_valid;
+        always_comb s_ready = m_ready || !(&buf_valid);
         always_comb m_valid = buf_valid[LATENCY-1];
         always_comb m_data  = buf_data[LATENCY-1];
     end
