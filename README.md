@@ -74,12 +74,23 @@ FPGAで作成したRealTime-OSアクセラレータです。
 
 ## Zynqベースのシステム
 
-- projects/zybo_z7_udmabuf_sample
-    - [Zybo Z7 でudmabufを試すサンプル](projects/zybo_z7_udmabuf_sample/README.md)
-- projects/zybo_z7_imx219
-    - [Zybo Z7 で RaspberryPI Camera Module V2(Sony IMX219)](projects/zybo_z7_imx219/README.md)
-- projects/zybo_z7_imx219_hdmi
-    - [Zybo Z7 で カメラ画像(IMX219) をHDMIコネクタから表示](projects/zybo_z7_imx219_hdmi/README.md)
+以下、Jelly 内のサンプルプログラムの紹介です。
+
+- projects/zynqmp_rpu/zynqmp_rpu_rust
+    - [ZynqMP の rpu を C++ と Rust で試すサンプル](projects/zynqmp_rpu/README.md)
+
+- projects/kv260_udmabuf_sample
+    - [Kria KV260 でudmabufを試すサンプル](projects/kv260_udmabuf_sample/README.md)
+- projects/kv260_imx219
+    - [Kria KV260 で カメラ画像(IMX219) を動かすサンプル](projects/kv260_imx219/README.md)
+- projects/kv260_rtos_sample  
+    - [Kria KV260 で FPGA化した リアルタイムOS を試すサンプル](projects/kv260_rtos_sample/README.md)
+- projects/kv260_jfive_simple_controller
+    - [Kria KV260 で 自作RISC-V(4段パイプライン)を試すサンプル](projects/kv260_jfive_simple_controller/README.md)
+- projects/kv260_jfive_micro_controller
+    - [Kria KV260 で 自作RISC-V(6段パイプライン)を試すサンプル](projects/kv260_jfive_micro_controller/README.md)
+
+
 - projects/ultra96v2_udmabuf_sample
     - [Ultra96V2 でudmabufを試すサンプル](projects/ultra96v2_udmabuf_sample/README.md)
 - projects/ultra96v2_display_port
@@ -94,16 +105,18 @@ FPGAで作成したRealTime-OSアクセラレータです。
     - [Ultra96V2 で コマンドラインだけでHLSで書いたIPをVivadoに取り込んで合成するサンプル](projects/ultra96v2_hls_sample/README.md)
 - projects/ultra96v2_imx219_hls_sample
     - [Ultra96V2 で HLSでカメラ画像を処理してみるサンプル](projects/ultra96v2_imx219_hls_sample/README.md)
-- projects/kv260_udmabuf_sample
-    - [Kria KV260 でudmabufを試すサンプル](projects/kv260_udmabuf_sample/README.md)
-- projects/kv260_imx219
-    - [Kria KV260 で カメラ画像(IMX219) を動かすサンプル](projects/kv260_imx219/README.md)
-- projects/kv260_jfive_simple_controller
-    - [Kria KV260 で 自作RISC-V(4段パイプライン)を試すサンプル](projects/kv260_jfive_simple_controller/README.md)
-- projects/kv260_jfive_micro_controller
-    - [Kria KV260 で 自作RISC-V(6段パイプライン)を試すサンプル](projects/kv260_jfive_micro_controller/README.md)
-- projects/zynqmp_rpu/zynqmp_rpu_rust
-    - [ZynqMP の rpu を C++ と Rust で試すサンプル](projects/zynqmp_rpu/README.md)
+
+
+- projects/zybo_z7_udmabuf_sample
+    - [Zybo Z7 でudmabufを試すサンプル](projects/zybo_z7_udmabuf_sample/README.md)
+- projects/zybo_z7_imx219
+    - [Zybo Z7 で RaspberryPI Camera Module V2(Sony IMX219)](projects/zybo_z7_imx219/README.md)
+- projects/zybo_z7_imx219_hdmi
+    - [Zybo Z7 で カメラ画像(IMX219) をHDMIコネクタから表示](projects/zybo_z7_imx219_hdmi/README.md)
+
+
+
+あまりに ZynqMP ネタが増えてきたので[ZynqMPを理解しよう](https://zenn.dev/ryuz88/books/zynqmp_study)という記事を書いてみました。
 
 ## ライセンス
 
