@@ -29,5 +29,5 @@ verilate(${PRJ_NAME}
 #    COVERAGE
     TRACE
     INCLUDE_DIRS "."
-    VERILATOR_ARGS -f verilator_cmd.txt -Os
+    VERILATOR_ARGS -f verilator_cmd.txt -O3
     SOURCES ${RTL_SRCS})
