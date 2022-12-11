@@ -64,7 +64,7 @@ run: $(TARGET) stop
 	@sudo cp $(TARGET) /lib/firmware
 	@sudo sh -c "echo $(TARGET) > /sys/class/remoteproc/$(RUN_PROC)/firmware"
 	@sudo sh -c "echo start > /sys/class/remoteproc/$(RUN_PROC)/state"
-	echo "[run] $(RUN_PROC)" ; \
+	@echo "[run] $(RUN_PROC)"
 
 .PHONY: stop
 stop:

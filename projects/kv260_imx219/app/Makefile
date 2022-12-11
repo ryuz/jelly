@@ -104,7 +104,7 @@ unload:
 .PHONY: load2
 load2: $(DTBO_FILE) $(BIN_FILE)
 	sudo fpgautil -R
-	sudo fpgautil -b $(BIT_FILE) -o udmabuf.dtbo
+	sudo fpgautil -b $(BIT_FILE) -o $(DTBO_FILE)
 #	sudo fpgautil -b $(BIT_FILE)
 
 .PHONY: unload2
