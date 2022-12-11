@@ -94,7 +94,6 @@ struct Axi4Stream {
     }
 
     bool Get(Axi4StreamData& data) {
-        if ( *tvalid == 0 ) { return false; }
         if ( tid    ) { data.tid   = (std::uint64_t)*tid  ; }
         if ( tuser  ) { data.tuser = (std::uint64_t)*tuser; }
         if ( tlast  ) { data.tlast = (std::uint8_t )*tlast; }
@@ -102,8 +101,13 @@ struct Axi4Stream {
         if ( tstrb  ) { data.tstrb = (std::uint8_t )*tstrb; }
         if ( tkeep  ) { data.tkeep = (std::uint8_t )*tkeep; }
         if ( tdest  ) { data.tdest = (std::uint64_t)*tdest; }
-        data.tvalid = (std::uint8_t)*tvalid;
-        return true;
+        if ( tready ) {
+            data.tvalid = (*tvalid != 0 && *tready != 0) ? 1 : 0;
+        }
+        else {
+            data.tvalid = (*tvalid != 0) ? 1 : 0;
+        }
+        return data.tvalid;
     }
 };
 

@@ -25,6 +25,10 @@ def run_filter2d(sim, img, kernel):
     sim.write_image(img)
     return sim.read_image()
 
+def read_register(addr):
+    sim.read_reg(addr)
+    return sim.get_read_reg_data()
+
 
 kernel_bypss = [
     [
@@ -83,14 +87,16 @@ kernel_laplacian = [
 # create sim
 sim = filter2d.Filter2d(0, 0)
 
+print("ID: %08x"%read_register(0))
+
 # source image
 src_img = cv2.imread("../../../data/images/standard_images/color/Mandrill_256x256.ppm")
+# print(src_img.shape)
 
 # filter
 dst_img1 = run_filter2d(sim, src_img, kernel_bypss)
 dst_img2 = run_filter2d(sim, src_img, kernel_gauss)
 dst_img3 = run_filter2d(sim, src_img, kernel_laplacian)
-
 
 # show output
 plt.figure(figsize=(6, 6))
@@ -107,4 +113,7 @@ plt.subplot(224)
 plt.title('dst3(Laplacian)')
 plt.imshow(dst_img3[:,:,::-1])
 plt.tight_layout()
-plt.show()
+plt.savefig("result.png")
+plt.close()
+#plt.show()
+

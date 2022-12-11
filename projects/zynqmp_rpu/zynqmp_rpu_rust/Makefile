@@ -24,6 +24,7 @@ clean:
 .PHONY: run
 run: build run_rpu
 
+
 .PHONY: run_rpu
 run_rpu: stop
 	@sudo cp $(EXE_FILE) /lib/firmware
@@ -41,3 +42,19 @@ stop:
 .PHONY: disasm
 disasm: build
 	arm-none-eabi-objdump -S $(EXE_FILE) > _disasm.txt
+
+
+../zynqmp-qemu-arm.dtb: ../zynqmp-qemu-arm.dts
+	dtc -I dts -O dtb ../zynqmp-qemu-arm.dts -o ../zynqmp-qemu-arm.dtb
+
+.PHONY: qemu
+qemu: $(TARGET) ../zynqmp-qemu-arm.dtb
+	@echo "Press Ctrl+A X to quit"
+	qemu-system-aarch64 \
+		-M arm-generic-fdt \
+		-serial null -serial mon:stdio \
+		-device loader,file=$(EXE_FILE),cpu-num=4 \
+		-device loader,addr=0XFF5E023C,data=0x80088fde,data-len=4 \
+		-device loader,addr=0xff9a0000,data=0x80000218,data-len=4 \
+		-hw-dtb ../zynqmp-qemu-arm.dtb \
+		-display none

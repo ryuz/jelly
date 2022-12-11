@@ -50,6 +50,19 @@ module top
             output  wire                                        s_wb_ack_o
         );
     
+    /*
+    integer     m_count = 0;
+    always_ff @(posedge aclk) begin
+        if ( ~aresetn ) begin
+            m_count <= 0;
+        end
+        else begin
+            if ( m_axi4s_tvalid && m_axi4s_tready ) begin
+                m_count <= m_count + 1;
+            end
+        end
+    end
+    */
 
     // -----------------------------------------
     //  top
@@ -137,6 +150,7 @@ module top
                 .s_axi4s_tdata,
                 .s_axi4s_tvalid,
                 .s_axi4s_tready,
+
                 .m_axi4s_tuser,
                 .m_axi4s_tlast,
                 .m_axi4s_tdata,
@@ -153,7 +167,7 @@ module top
                 .s_wb_stb_i,
                 .s_wb_ack_o
             );
-
+    
 endmodule
 
 

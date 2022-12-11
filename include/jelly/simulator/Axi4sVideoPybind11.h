@@ -65,7 +65,7 @@ public:
 #endif
 
         m_mng = Manager::Create();
-        m_mng->AddNode(VerilatorNode_Create(m_top, m_tfp));
+        m_mng->AddNode(VerilatorNode_Create(m_top, m_tfp, m_contextp));
         m_mng->AddNode(ResetNode_Create(&m_top->aresetn,    reset_time, false));
         m_mng->AddNode(ClockNode_Create(&m_top->aclk,       clk_rate));
         m_mng->AddNode(ResetNode_Create(&m_top->s_wb_rst_i, reset_time));
@@ -142,10 +142,25 @@ public:
         m_top->param_img_height = m_height;
     }
 
+    void Step(void) {
+        m_mng->Step();
+    }
+
     void Run(double time=-1) {
         m_mng->Run(time);
     }
 
+    void ReadReg(std::uint64_t addr) {
+        m_wb->Read(addr);
+    }
+
+    std::uint64_t GetReadRegData(void) {
+        std::uint64_t data;
+        while ( !m_wb->GetReadData(data) ) {
+            m_mng->Step();
+        }
+        return data;
+    }
 
     void WriteReg(std::uint64_t addr, std::uint64_t data, std::uint64_t sel=0xff) {
         m_wb->Write(addr, data, sel);
@@ -155,11 +170,12 @@ public:
         m_wb->Write(addr, data, sel);
     }
 
+
     void WaitBus(void) {
         while ( !m_wb->IsEmptyQueue() ) {
-            m_mng->Run(10);
+            m_mng->Step();
         }
-        m_mng->Run(20);
+        m_mng->Run(100);    // 確実に反映させるために少し進める
     }
 
 
@@ -202,7 +218,7 @@ public:
     {
         // データが揃うまでシミュレーションを進める
         while ( GetReadStreamSize() < m_height * m_width ) {
-            Run(100);
+            Step();
         }
 
         // 読み出し
@@ -236,6 +252,8 @@ PYBIND11_MODULE(ModuleName, p) { \
             .def(pybind11::init<int, int>()) \
             .def("set_image_size",        &ClassName::SetImageSize) \
             .def("run",                   &ClassName::Run) \
+            .def("read_reg",              &ClassName::ReadReg) \
+            .def("get_read_reg_data",     &ClassName::GetReadRegData) \
             .def("write_reg",             &ClassName::WriteReg) \
             .def("write_ireg",            &ClassName::WriteIReg) \
             .def("wait_bus",              &ClassName::WaitBus) \

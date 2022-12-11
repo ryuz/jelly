@@ -29,7 +29,7 @@ CMAKE_FLAGS += -GNinja
 endif
 
 
-all: build
+all: build run
 
 .PHONY : build
 build:
@@ -44,6 +44,7 @@ clean:
 distclean: clean
 	rm -f *.fst *.fst.hier
 	rm -f *.vcd
+	rm -f *.png
 	rm -f *.ppm *.pgm
 	rm -f axi*.txt
 	rm -f *.so

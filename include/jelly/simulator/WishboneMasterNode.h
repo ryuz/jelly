@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <queue>
 #include "jelly/simulator/Manager.h"
@@ -25,29 +26,30 @@ protected:
         VerboseOff,
     };
     struct Access {
-        AccType             acc_type;
-        int                 wait_cycle=0;
-        unsigned long long  adr;
-        unsigned long long  dat;
-        unsigned long long  sel;
-        std::string         message;
+        AccType         acc_type;
+        int             wait_cycle=0;
+        std::uint64_t   adr;
+        std::uint64_t   dat;
+        std::uint64_t   sel;
+        std::string     message;
     };
 
-    std::queue<Access>  m_acc_que;
+    std::queue<Access>          m_acc_que;
+    std::queue<std::uint64_t>   m_dat_que;
 
-    TWishbone           m_wishbone;
-    bool                m_verbose;
-    int                 m_wait_count = 0;
-
-    bool                m_rst_i;
-    bool                m_clk_i;
-    unsigned long long  m_adr_o;
-    unsigned long long  m_dat_i;
-    unsigned long long  m_dat_o;
-    unsigned long long  m_sel_o;
-    bool                m_we_o;
-    bool                m_stb_o;
-    bool                m_ack_i;
+    TWishbone                   m_wishbone;
+    bool                        m_verbose;
+    int                         m_wait_count = 0;
+    
+    bool                        m_rst_i;
+    bool                        m_clk_i;
+    std::uint64_t               m_adr_o;
+    std::uint64_t               m_dat_i;
+    std::uint64_t               m_dat_o;
+    std::uint64_t               m_sel_o;
+    bool                        m_we_o;
+    bool                        m_stb_o;
+    bool                        m_ack_i;
 
     WishboneMasterNode(TWishbone wishbone, bool verbose)
     {
@@ -80,7 +82,7 @@ public:
         m_acc_que.push(acc);
     }
 
-    void Write(unsigned long long adr, unsigned long long dat, unsigned long long  sel, int cycle=0) override
+    void Write(std::uint64_t adr, std::uint64_t dat, std::uint64_t sel, int cycle=0) override
     {
         Access acc;
         acc.acc_type   = AccWrite;
@@ -91,7 +93,7 @@ public:
         m_acc_que.push(acc);
     }
 
-    void Read(unsigned long long adr, int cycle=0) override
+    void Read(std::uint64_t adr, int cycle=0) override
     {
         Access acc;
         acc.acc_type   = AccRead;
@@ -99,6 +101,15 @@ public:
         acc.adr = adr;
         m_acc_que.push(acc);
     }
+
+    bool GetReadData(std::uint64_t& data) override {
+        if ( m_dat_que.empty() ) {
+            return false;
+        }
+        data = m_dat_que.front();
+        m_dat_que.pop();
+        return true;
+    };
 
     void Display(std::string message) override
     {
@@ -124,10 +135,10 @@ protected:
     {
         m_rst_i = (*m_wishbone.rst_i != 0);
         m_clk_i = (*m_wishbone.clk_i != 0);
-        m_adr_o = (unsigned long long)(*m_wishbone.adr_o);
-        m_dat_i = (unsigned long long)(*m_wishbone.dat_i);
-        m_dat_o = (unsigned long long)(*m_wishbone.dat_o);
-        m_sel_o = (unsigned long long)(*m_wishbone.sel_o);
+        m_adr_o = (std::uint64_t)(*m_wishbone.adr_o);
+        m_dat_i = (std::uint64_t)(*m_wishbone.dat_i);
+        m_dat_o = (std::uint64_t)(*m_wishbone.dat_o);
+        m_sel_o = (std::uint64_t)(*m_wishbone.sel_o);
         m_we_o  = (*m_wishbone.we_o != 0);
         m_stb_o = (*m_wishbone.stb_o != 0);
         m_ack_i = (*m_wishbone.ack_i != 0);
@@ -164,12 +175,17 @@ protected:
         }
 
         // アクセス完了なら
-        if ( m_ack_i && m_verbose ) {
+        if ( m_ack_i ) {
             if ( m_we_o ) {
-                std::cout << std::hex << "[WISHBONE] write(adr: 0x" << m_adr_o << " dat: 0x" << m_dat_o << ")"<< std::endl;
+                if ( m_verbose ) {
+                    std::cout << std::hex << "[WISHBONE] write(adr: 0x" << m_adr_o << " dat: 0x" << m_dat_o << " sel: 0x" << m_sel_o << ")"<< std::endl;
+                }
             }
             else {
-                std::cout << std::hex << "[WISHBONE] read(adr: 0x" << m_adr_o << ") => 0x" << m_dat_i << std::endl;
+                m_dat_que.push(m_dat_i);
+                if ( m_verbose ) {
+                    std::cout << std::hex << "[WISHBONE] read(adr: 0x" << m_adr_o << ") => 0x" << m_dat_i << std::endl;
+                }
             }
         }
         *m_wishbone.stb_o = 0;

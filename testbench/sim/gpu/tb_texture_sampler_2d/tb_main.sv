@@ -9,8 +9,8 @@ module tb_main(
         );
 
     // setting
-    localparam          FILE_NAME        = "../../../../data/Penguins_640x480.ppm";
-//  localparam          FILE_NAME        = "../../../../data/Chrysanthemum_640x480.ppm";
+    localparam          FILE_NAME        = "../../../../../data/images/windowswallpaper/Penguins_640x480.ppm";
+//  localparam          FILE_NAME        = "../../../../../data/images/windowswallpaper/Chrysanthemum_640x480.ppm";
     localparam  int     COMPONENTS       = 3;
     localparam  int     DATA_SIZE        = 0;
     localparam  int     DATA_WIDTH       = (8 << DATA_SIZE);

@@ -14,39 +14,41 @@
 // RAM with auto clear
 module jelly2_ram_with_autoclear
         #(
-            parameter   int                         ADDR_WIDTH      = 12,
-            parameter   int                         DATA_WIDTH      = 8,
-            parameter   int                         MEM_SIZE        = (1 << ADDR_WIDTH),
-            parameter                               RAM_TYPE        = "block",
-            parameter   bit                         DOUT_REGS0      = 0,
-            parameter   bit                         DOUT_REGS1      = 0,
-            parameter                               MODE0           = "WRITE_FIRST",
-            parameter                               MODE1           = "WRITE_FIRST",
-            parameter   bit                         FILLMEM         = 0,
-            parameter   logic   [DATA_WIDTH-1:0]    FILLMEM_DATA    = 0,
-            parameter   bit                         READMEMB        = 0,
-            parameter   bit                         READMEMH        = 0,
-            parameter                               READMEM_FIlE    = "",
-            parameter   int                         RAM_ADDR_WIDTH  = RAM_TYPE == "ultra" ? (ADDR_WIDTH > 12 ? 12 : ADDR_WIDTH)
-                                                                                          : (ADDR_WIDTH > 9 ? 9 : ADDR_WIDTH), 
-            parameter   int                         RAM_MEM_SIZE    = (1 << RAM_ADDR_WIDTH),
-            parameter   int                         RAM_BANK_WIDTH  = ADDR_WIDTH > RAM_ADDR_WIDTH ? ADDR_WIDTH - RAM_ADDR_WIDTH : 1,
-            parameter   int                         RAM_BANK_NUM    = (MEM_SIZE + RAM_MEM_SIZE - 1) / RAM_MEM_SIZE
+            parameter   int                                 ADDR_WIDTH      = 12,
+            parameter   int                                 DATA_WIDTH      = 8,
+            parameter   int                                 WE_WIDTH        = 1,
+            parameter   int                                 WORD_WIDTH      = DATA_WIDTH/WE_WIDTH,
+            parameter   int                                 MEM_SIZE        = (1 << ADDR_WIDTH),
+            parameter                                       RAM_TYPE        = "block",
+            parameter   bit                                 DOUT_REGS0      = 0,
+            parameter   bit                                 DOUT_REGS1      = 0,
+            parameter                                       MODE0           = "NO_CHANGE",
+            parameter                                       MODE1           = "NO_CHANGE",
+            parameter   bit                                 FILLMEM         = 0,
+            parameter   logic   [WE_WIDTH*WORD_WIDTH-1:0]   FILLMEM_DATA    = 0,
+            parameter   bit                                 READMEMB        = 0,
+            parameter   bit                                 READMEMH        = 0,
+            parameter                                       READMEM_FIlE    = "",
+            parameter   int                                 RAM_ADDR_WIDTH  = RAM_TYPE == "ultra" ? (ADDR_WIDTH > 12 ? 12 : ADDR_WIDTH)
+                                                                                                  : (ADDR_WIDTH > 10 ? 10 : ADDR_WIDTH),
+            parameter   int                                 RAM_MEM_SIZE    = (1 << RAM_ADDR_WIDTH),
+            parameter   int                                 RAM_BANK_WIDTH  = ADDR_WIDTH - RAM_ADDR_WIDTH,
+            parameter   int                                 RAM_BANK_NUM    = (MEM_SIZE + RAM_MEM_SIZE - 1) / RAM_MEM_SIZE
         )
         (
-            input   wire    [1:0]                   reset,
-            input   wire    [1:0]                   clk,
+            input   wire    [1:0]                           reset,
+            input   wire    [1:0]                           clk,
 
-            input   wire    [1:0][DATA_WIDTH-1:0]   clear_din,
-            input   wire    [1:0]                   clear_start,
-            output  wire    [1:0]                   clear_busy,
+            input   wire    [1:0][WE_WIDTH*WORD_WIDTH-1:0]  clear_din,
+            input   wire    [1:0]                           clear_start,
+            output  wire    [1:0]                           clear_busy,
 
-            input   wire    [1:0]                   en,
-            input   wire    [1:0]                   regcke,
-            input   wire    [1:0]                   we,
-            input   wire    [1:0][ADDR_WIDTH-1:0]   addr,
-            input   wire    [1:0][DATA_WIDTH-1:0]   din,
-            output  wire    [1:0][DATA_WIDTH-1:0]   dout
+            input   wire    [1:0]                           en,
+            input   wire    [1:0]                           regcke,
+            input   wire    [1:0][WE_WIDTH-1:0]             we,
+            input   wire    [1:0][ADDR_WIDTH-1:0]           addr,
+            input   wire    [1:0][WE_WIDTH*WORD_WIDTH-1:0]  din,
+            output  wire    [1:0][WE_WIDTH*WORD_WIDTH-1:0]  dout
         );
     
     // RAM
@@ -63,6 +65,8 @@ module jelly2_ram_with_autoclear
                 #(
                     .ADDR_WIDTH     (RAM_ADDR_WIDTH),
                     .DATA_WIDTH     (DATA_WIDTH),
+                    .WE_WIDTH       (WE_WIDTH),
+                    .WORD_WIDTH     (WORD_WIDTH),
                     .MEM_SIZE       (RAM_MEM_SIZE),
                     .RAM_TYPE       (RAM_TYPE),
                     .DOUT_REGS0     (DOUT_REGS0),

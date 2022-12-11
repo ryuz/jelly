@@ -1,5 +1,7 @@
 [target.armv7r-none-eabi]
 rustflags = ["-C", "link-args=-Tlink.lds", "-C", "target-feature=+v7,+vfp3,-d32"]
+runner = "./run_qemu.sh"
+#runner = "qemu-system-aarch64 -M arm-generic-fdt -cpu cortex-r5 -serial null -serial mon:stdio -device loader,addr=0XFF5E023C,data=0x80088fde,data-len=4 -device loader,addr=0xff9a0000,data=0x80000218,data-len=4 -hw-dtb ../zynqmp-qemu-arm.dtb -display none"
 
 [build]
 target = "armv7r-none-eabi"
