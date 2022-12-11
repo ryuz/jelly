@@ -13,6 +13,7 @@
 
 module kv260_udmabuf_sample
             (
+                output  wire            fan_en,
                 output  wire    [1:0]   led
             );
     
@@ -130,6 +131,8 @@ module kv260_udmabuf_sample
     design_1
         i_design_1
             (
+                .fan_en                 (fan_en),
+                
                 .out_resetn             (resetn),
                 .out_clk                (clk),
                 
