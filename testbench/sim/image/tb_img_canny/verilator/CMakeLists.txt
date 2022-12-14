@@ -29,5 +29,5 @@ target_link_libraries(tb_verilator PUBLIC "-pthread")
 verilate(tb_verilator
 #    COVERAGE TRACE
     INCLUDE_DIRS "."
-    VERILATOR_ARGS -f verilator_cmd.txt -Os
+    VERILATOR_ARGS -f verilator_cmd.txt -O3
     SOURCES ../tb_sim_main.v)

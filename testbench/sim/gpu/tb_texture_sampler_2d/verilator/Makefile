@@ -26,6 +26,8 @@ ifeq ($(WITH_NINJA),Yes)
 CMAKE_FLAGS += -GNinja
 endif
 
+IMG_PATH=../../../../../data/images/windowswallpaper
+IMG_FILE=Penguins_640x480.ppm
 
 all: build run
 
@@ -47,10 +49,12 @@ distclean: clean
 
 
 .PHONY : run
-run:
+run: $(IMG_PATH)/$(IMG_FILE)
 	build/tb_verilator
 
 .PHONY : coverage
 coverage:
 	verilator_coverage --annotate annotated coverage.dat
 
+$(IMG_PATH)/$(IMG_FILE):
+	make -C $(IMG_PATH) $(IMG_FILE)
