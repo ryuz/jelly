@@ -120,6 +120,35 @@ public:
         m_acc_que.push(acc);
     }
 
+    void WaitIdle(void) {
+        assert(this->m_mng);
+        while ( !m_dat_que.empty() || m_wait_count > 0 ) {
+            this->m_mng->Step();
+        }
+    }
+
+    void ExecWait(int cycle=0)
+    {
+        Wait(cycle);
+        WaitIdle();
+    }
+
+    void ExecWrite(std::uint64_t adr, std::uint64_t dat, std::uint64_t sel, int cycle=0)
+    {
+        Write(adr, dat, sel, cycle);
+        WaitIdle();
+    }
+
+    std::uint64_t ExecRead(std::uint64_t adr)
+    {
+        std::uint64_t data;
+        WaitIdle();
+        while ( GetReadData(data) ) { this->m_mng->Step(); }
+        Read(adr);
+        while ( !GetReadData(data) ) { this->m_mng->Step(); }
+        return data;
+    }
+
 protected:
     sim_time_t InitialProc(Manager* manager) override
     {
