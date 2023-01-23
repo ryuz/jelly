@@ -3,6 +3,7 @@
 
 
 #include <iostream>
+#include <cassert>
 #include <memory>
 #include <cstdint>
 #include <vector>
@@ -34,9 +35,12 @@ class Node
 {
     friend Manager;
 
-protected:
-    bool    m_active = false;    // 処理フラグ
+public:
+    virtual             ~Node();
 
+protected:
+    Manager*            m_mng    = nullptr; // マネージャ
+    bool                m_active = false;   // 処理フラグ
     virtual sim_time_t  InitialProc(Manager* manager) { return 0; }     // シミュレーション開始時に一度呼ばれる
     virtual void        FinalProc(Manager* manager) {}                  // シミュレーション終了時に一度呼ばれる
     virtual sim_time_t  EventProc(Manager* manager) { return 0; }       // イベント処理に呼ばれる
@@ -50,6 +54,8 @@ protected:
 
 class Manager
 {
+    friend Node;
+
     using mutex_t = std::recursive_mutex;
 
 protected:
@@ -110,14 +116,28 @@ public:
     void AddNode(node_ptr_t node)
     {
         std::lock_guard<mutex_t>    lock(m_mtx);
-
+        assert(node->m_mng == nullptr);
+        node->m_mng = this;
         if ( node ) {
             m_nodes.push_back(node);
         }
     }
     
-
 protected:
+    void RemoveNode(Node* node)
+    {
+        std::lock_guard<mutex_t>    lock(m_mtx);
+        assert(node->m_mng == this);
+        node->m_mng = nullptr;
+        for ( auto iter = m_nodes.begin(); iter != m_nodes.end(); ) {
+            if ( (*iter).get() == node ) {
+                m_nodes.erase(iter);
+                return;
+            }
+        }
+        assert(0);
+    }
+
     void AddEvent(node_ptr_t node, sim_time_t time)
     {
         std::lock_guard<mutex_t>    lock(m_mtx);
@@ -381,6 +401,12 @@ public:
     }
 };
 
+
+inline Node::~Node() {
+    if ( m_mng ) {
+        m_mng->RemoveNode(this);
+    }
+}
 
 }
 }
