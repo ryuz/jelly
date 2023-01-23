@@ -120,9 +120,17 @@ public:
         m_acc_que.push(acc);
     }
 
+    bool IsBusy(void) {
+        return (!m_acc_que.empty() || m_wait_count > 0);
+    }
+
+    std::size_t GetReadDataCount(void) {
+        return m_dat_que.size();
+    }
+
     void WaitIdle(void) {
         assert(this->m_mng);
-        while ( !m_dat_que.empty() || m_wait_count > 0 ) {
+        while ( IsBusy() ) {
             this->m_mng->Step();
         }
     }
