@@ -98,6 +98,9 @@ protected:
 public:
     ~Manager() {
         CallFinal();
+        for ( auto& node : m_nodes ) {
+            node->m_mng = nullptr;
+        }
     }
 
     static manager_ptr_t Create(void)
