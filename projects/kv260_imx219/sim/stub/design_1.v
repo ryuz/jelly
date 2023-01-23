@@ -2,7 +2,9 @@
 `timescale 1 ns / 1 ps
 
 module design_1
-   (i2c_scl_i,
+   (
+    fan_en,
+    i2c_scl_i,
     i2c_scl_o,
     i2c_scl_t,
     i2c_sda_i,
@@ -74,6 +76,7 @@ module design_1
     s_axi4_mem0_wvalid,
     s_axi4_mem_aclk,
     s_axi4_mem_aresetn);
+  output fan_en;
   input i2c_scl_i;
   output i2c_scl_o;
   output i2c_scl_t;
@@ -147,6 +150,7 @@ module design_1
   output s_axi4_mem_aclk;
   output [0:0]s_axi4_mem_aresetn;
 
+  wire fan_en;
   wire i2c_scl_i;
   wire i2c_scl_io;
   wire i2c_scl_o;
@@ -222,7 +226,8 @@ module design_1
   wire s_axi4_mem_aclk;
   wire [0:0]s_axi4_mem_aresetn;
 
-  
+    assign fan_en = 1'b0;
+
     // テストベンチから force する前提
     reg             reset           /*verilator public_flat*/;
     reg             clk100          /*verilator public_flat*/;

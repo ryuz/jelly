@@ -67,6 +67,8 @@ module tb_main
             )
         i_top
             (
+                .fan_en         (),
+                
                 .cam_clk_p      (),
                 .cam_clk_n      (),
                 .cam_data_p     (),
