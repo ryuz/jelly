@@ -1,8 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- The platform for real-time computing
-//   image processing
 //
-//                                 Copyright (C) 2008-2020 by Ryuz
+//                                 Copyright (C) 2008-2022 by Ryuz
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
