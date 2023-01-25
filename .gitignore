@@ -1,6 +1,6 @@
-
 .*
 !.gitignore
+!.python-version
 
 _*
 *_
@@ -153,7 +153,7 @@ workspace/
 backup/
 target/
 
-**/ip/*
+# **/ip/*
 
 # hos
 kernel_cfg.c
@@ -187,5 +187,3 @@ udmabuf_sample
 memwrite
 memread
 memdump
-
-projects/arty_a7_35t_sample/
