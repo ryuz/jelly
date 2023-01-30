@@ -23,7 +23,7 @@ module jelly2_video_size_parameter
 
 
             parameter   int                     INDEX_WIDTH       = 1,
-            parameter   bit     [31:0]          CORE_ID           = 32'hffff1002,
+            parameter   bit     [31:0]          CORE_ID           = 32'h527A1230,
             parameter   bit     [31:0]          CORE_VERSION      = 32'h00000000,
             parameter   bit     [2:0]           INIT_CTL_CONTROL  = 3'b011,
             parameter   bit     [X_WIDTH-1:0]   INIT_PARAM_X_SIZE = 0,

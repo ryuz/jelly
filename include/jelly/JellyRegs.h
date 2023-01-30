@@ -20,6 +20,7 @@
 #define CORE_ID_VIDEO_VOUT                      0x527A1140
 #define CORE_ID_VSYNC_GENERATOR                 0x527A1150
 #define CORE_ID_VSYNC_ADJUST_DE                 0x527A1152
+#define CORE_ID_VIDEO_SIZE_PARAMETER            0x527A1230
 #define CORE_ID_VIDEO_PARAMETER_UPDATE          0x527A1F10
 #define CORE_ID_VIDEO_FMTREG                    0x527A1220
 #define CORE_ID_VIDEO_OVERLAY_BRAM              0x527A2400
@@ -262,12 +263,6 @@
 #define REG_VDMA_READ_SHADOW_F_SIZE             REG_DMA_READ_SHADOW_ARLEN2
 #define REG_VDMA_READ_SHADOW_FRAME_STEP         REG_DMA_READ_SHADOW_ARSTEP2
 
-
-
-/* ---------------------------------- */
-/*  Video                             */
-/* ---------------------------------- */
-
 /* FIFO with DMA */
 #define REG_DAM_FIFO_CORE_ID                    0x00
 #define REG_DAM_FIFO_CORE_VERSION               0x01
@@ -288,6 +283,21 @@
 #define REG_DAM_FIFO_CURRENT_WTIMEOUT           0x33
 #define REG_DAM_FIFO_CURRENT_ARLEN              0x34
 #define REG_DAM_FIFO_CURRENT_RTIMEOUT           0x37
+
+
+
+/* ---------------------------------- */
+/*  Video                             */
+/* ---------------------------------- */
+
+/* size parameter assignment */
+#define REG_VIDEO_SIZE_PARAMETER_CORE_ID        0x00
+#define REG_VIDEO_SIZE_PARAMETER_CORE_VERSION   0x01
+#define REG_VIDEO_SIZE_PARAMETER_CTL_CONTROL    0x04
+#define REG_VIDEO_SIZE_PARAMETER_CTL_STATUS     0x05
+#define REG_VIDEO_SIZE_PARAMETER_CTL_INDEX      0x07
+#define REG_VIDEO_SIZE_PARAMETER_PARAM_X_SIZE   0x10
+#define REG_VIDEO_SIZE_PARAMETER_PARAM_Y_SIZE   0x11
 
 /* parameter update control */
 #define REG_VIDEO_PRMUP_CORE_ID                 0x00
