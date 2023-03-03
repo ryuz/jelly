@@ -36,6 +36,10 @@ run: $(TARGET) load
 run_rust: load
 	cd rust; cargo run
 
+.PHONY: build_rust
+build_rust:
+	cd rust; cargo build
+
 .PHONY: server
 server: load
 	cd grpc/server; cargo run

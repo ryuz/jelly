@@ -120,7 +120,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         println!("reg_wdma   : {:08x}", reg_wdma.read_reg(0));
     }
     
-    let mut vdmaw = VideoDmaControl::new(uio_acc.subclone(0x00210000, 0x400), 4, 4).unwrap();
+    // DMA制御
+    let mut vdmaw = VideoDmaControl::new(reg_wdma, 4, 4).unwrap();
 
     // カメラON
     unsafe {
