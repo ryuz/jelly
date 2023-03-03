@@ -1,0 +1,13 @@
+
+-sv
+--sourcelibext ..
+--sourcelibdir ../../../../../rtl/library
+--sourcelibdir ../../../../../rtl/bus
+--sourcelibdir ../../../../../rtl/image
+--sourcelibdir ../../../../../rtl/math
+--sourcelibdir ../../../../../rtl/model
+--sourcelibext .v
+--sourcelibext .sv
+
+../tb_sim.sv
+../tb_main.sv
