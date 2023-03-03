@@ -45,6 +45,14 @@ const REG_IMG_DEMOSAIC_CURRENT_PHASE: usize = 0x18;
 
 use std::os::raw::c_void;
 
+
+
+fn usleep() {
+    thread::sleep(Duration::from_micros(1));
+}
+
+
+
 fn main() -> Result<(), Box<dyn Error>> {
     // start
     println!("start");
@@ -121,7 +129,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     
     // DMA制御
-    let mut vdmaw = VideoDmaControl::new(reg_wdma, 4, 4).unwrap();
+    let mut vdmaw = VideoDmaControl::new(reg_wdma, 4, 4, Some(usleep)).unwrap();
 
     // カメラON
     unsafe {
@@ -182,7 +190,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
 
         // 1frame キャプチャ
-        vdmaw.oneshot(udmabuf_acc.phys_addr(), width, height, 1, 0, 0, 0, 0);
+        vdmaw.oneshot(udmabuf_acc.phys_addr(), width, height, 1, 0, 0, 0, 0, Some(100000))?;
 
 
         let mut buf = vec![0u8; (width * height * 4) as usize];
