@@ -36,6 +36,10 @@ run: $(TARGET) load
 run_rust: load
 	cd rust; cargo run
 
+.PHONY: build_rust
+build_rust:
+	cd rust; cargo build
+
 .PHONY: server
 server: load
 	cd grpc/server; cargo run
@@ -83,22 +87,6 @@ load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
 	cat $(DEVTREE_PATH)/overlays/full/status
 	sudo rm /lib/firmware/$(DTBO_FILE)
 	sudo rm /lib/firmware/$(BIN_FILE)
-	@if [ -e /sys/class/gpio/gpiochip0 ] ; then \
-		if [ ! -e /sys/class/gpio/gpio36 ] ; then \
-			sudo sh -c "echo 36  > /sys/class/gpio/export" ; \
-			sudo sh -c "echo out > /sys/class/gpio/gpio36/direction" ; \
-			sudo sh -c "echo 1   > /sys/class/gpio/gpio36/value" ; \
-		fi ; \
-		sudo chmod -R 777 /sys/class/gpio/gpio36 ; \
-	fi
-	@if [ -e /sys/class/gpio/gpiochip334 ] ; then \
-		if [ ! -e /sys/class/gpio/gpio370 ] ; then \
-			sudo sh -c "echo 370  > /sys/class/gpio/export" ; \
-			sudo sh -c "echo out > /sys/class/gpio/gpio370/direction" ; \
-			sudo sh -c "echo 1   > /sys/class/gpio/gpio370/value" ; \
-		fi ; \
-		sudo chmod -R 777 /sys/class/gpio/gpio370 ; \
-	fi
 	sudo chmod 666 /dev/uio*
 	sudo chmod 666 /dev/udmabuf*
 	sudo chmod 666 /dev/i2c-6
@@ -108,10 +96,6 @@ unload:
 	@if [ -e $(DEVTREE_PATH)/overlays/full ] ; then \
 		echo unload ; \
 		sudo rmdir $(DEVTREE_PATH)/overlays/full ; \
-	fi
-	@if [ -e /sys/class/gpio/gpio36 ] ; then \
-		sudo sh -c "echo in > /sys/class/gpio/gpio36/direction" ; \
-		sudo sh -c "echo 36 > /sys/class/gpio/unexport" ; \
 	fi
 
 .PHONY: load2

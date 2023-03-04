@@ -79,59 +79,66 @@ int main(int argc, char** argv)
     
     wb->Wait(1000);
     wb->Display("read core ID");
-    wb->Read (reg_gid);     // gid
-    wb->Read (reg_fmtr);    // fmtr
-    wb->Read (reg_demos);   // demosaic
-    wb->Read (reg_colmat);  // col mat
-    wb->Read (reg_wdma);    // wdma
+    wb->ExecRead (reg_gid);     // gid
+    wb->ExecRead (reg_fmtr);    // fmtr
+    wb->ExecRead (reg_demos);   // demosaic
+    wb->ExecRead (reg_colmat);  // col mat
+    wb->ExecRead (reg_wdma);    // wdma
 
     wb->Display("set format regularizer");
-    wb->Read (reg_fmtr + REG_VIDEO_FMTREG_CORE_ID);                         // CORE ID
-    wb->Write(reg_fmtr + REG_VIDEO_FMTREG_PARAM_WIDTH,      X_NUM, 0xf);    // width
-    wb->Write(reg_fmtr + REG_VIDEO_FMTREG_PARAM_HEIGHT,     Y_NUM, 0xf);    // height
-    wb->Write(reg_fmtr + REG_VIDEO_FMTREG_PARAM_FILL,           0, 0xf);    // fill
-    wb->Write(reg_fmtr + REG_VIDEO_FMTREG_PARAM_TIMEOUT,     1024, 0xf);    // timeout
-    wb->Write(reg_fmtr + REG_VIDEO_FMTREG_CTL_CONTROL,          1, 0xf);    // enable
-    wb->Wait(1000);
+    wb->ExecRead (reg_fmtr + REG_VIDEO_FMTREG_CORE_ID);                         // CORE ID
+    wb->ExecWrite(reg_fmtr + REG_VIDEO_FMTREG_PARAM_WIDTH,      X_NUM, 0xf);    // width
+    wb->ExecWrite(reg_fmtr + REG_VIDEO_FMTREG_PARAM_HEIGHT,     Y_NUM, 0xf);    // height
+    wb->ExecWrite(reg_fmtr + REG_VIDEO_FMTREG_PARAM_FILL,           0, 0xf);    // fill
+    wb->ExecWrite(reg_fmtr + REG_VIDEO_FMTREG_PARAM_TIMEOUT,     1024, 0xf);    // timeout
+    wb->ExecWrite(reg_fmtr + REG_VIDEO_FMTREG_CTL_CONTROL,          1, 0xf);    // enable
+    wb->ExecWait(1000);
 
     wb->Display("set DEMOSIC");
-    wb->Read (reg_demos + REG_IMG_DEMOSAIC_CORE_ID);
-    wb->Write(reg_demos + REG_IMG_DEMOSAIC_PARAM_PHASE,    0x0, 0xf);
-    wb->Write(reg_demos + REG_IMG_DEMOSAIC_CTL_CONTROL,    0x3, 0xf);
+    wb->ExecRead (reg_demos + REG_IMG_DEMOSAIC_CORE_ID);
+    wb->ExecWrite(reg_demos + REG_IMG_DEMOSAIC_PARAM_PHASE,    0x0, 0xf);
+    wb->ExecWrite(reg_demos + REG_IMG_DEMOSAIC_CTL_CONTROL,    0x3, 0xf);
 
     wb->Display("set colmat");
-    wb->Read (reg_colmat + REG_IMG_COLMAT_CORE_ID);
-    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX00, 0x00010000, 0xf); // 0x0003a83a
-    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX01, 0x00000000, 0xf);
-    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX02, 0x00000000, 0xf);
-    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX03, 0x00000000, 0xf);
-    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX10, 0x00000000, 0xf);
-    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX11, 0x00010000, 0xf); // 0x00030c30
-    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX12, 0x00000000, 0xf);
-    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX13, 0x00000000, 0xf);
-    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX20, 0x00000000, 0xf);
-    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX21, 0x00000000, 0xf);
-    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX22, 0x00010000, 0xf); // 0x000456c7
-    wb->Write(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX23, 0x00000000, 0xf);
-    wb->Write(reg_colmat + REG_IMG_COLMAT_CTL_CONTROL, 3, 0xf);
+    wb->ExecRead (reg_colmat + REG_IMG_COLMAT_CORE_ID);
+    wb->ExecWrite(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX00, 0x00010000, 0xf); // 0x0003a83a
+    wb->ExecWrite(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX01, 0x00000000, 0xf);
+    wb->ExecWrite(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX02, 0x00000000, 0xf);
+    wb->ExecWrite(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX03, 0x00000000, 0xf);
+    wb->ExecWrite(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX10, 0x00000000, 0xf);
+    wb->ExecWrite(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX11, 0x00010000, 0xf); // 0x00030c30
+    wb->ExecWrite(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX12, 0x00000000, 0xf);
+    wb->ExecWrite(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX13, 0x00000000, 0xf);
+    wb->ExecWrite(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX20, 0x00000000, 0xf);
+    wb->ExecWrite(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX21, 0x00000000, 0xf);
+    wb->ExecWrite(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX22, 0x00010000, 0xf); // 0x000456c7
+    wb->ExecWrite(reg_colmat + REG_IMG_COLMAT_PARAM_MATRIX23, 0x00000000, 0xf);
+    wb->ExecWrite(reg_colmat + REG_IMG_COLMAT_CTL_CONTROL, 3, 0xf);
 
-    wb->Wait(10000);
+    wb->ExecWait(10000);
     wb->Display("set write DMA");
-    wb->Read (reg_wdma + REG_VDMA_WRITE_CORE_ID);                               // CORE ID
-    wb->Write(reg_wdma + REG_VDMA_WRITE_PARAM_ADDR,          0x30000000, 0xf);  // address
-    wb->Write(reg_wdma + REG_VDMA_WRITE_PARAM_LINE_STEP,        X_NUM*4, 0xf);  // stride
-    wb->Write(reg_wdma + REG_VDMA_WRITE_PARAM_H_SIZE,           X_NUM-1, 0xf);  // width
-    wb->Write(reg_wdma + REG_VDMA_WRITE_PARAM_V_SIZE,           Y_NUM-1, 0xf);  // height
-    wb->Write(reg_wdma + REG_VDMA_WRITE_PARAM_F_SIZE,               1-1, 0xf);
-    wb->Write(reg_wdma + REG_VDMA_WRITE_PARAM_FRAME_STEP, X_NUM*Y_NUM*4, 0xff);
-//  wb->Write(reg_wdma + REG_VDMA_WRITE_CTL_CONTROL,                  3, 0xf);  // update & enable
-    wb->Write(reg_wdma + REG_VDMA_WRITE_CTL_CONTROL,                  7, 0xf);  // update & enable & oneshot
-    for ( int i = 0; i < 20; ++i ) {
-        wb->Read (reg_wdma + REG_VDMA_WRITE_CTL_STATUS);  // read status
-        wb->Wait(100000);
+    wb->ExecRead (reg_wdma + REG_VDMA_WRITE_CORE_ID);                               // CORE ID
+    wb->ExecWrite(reg_wdma + REG_VDMA_WRITE_PARAM_ADDR,          0x30000000, 0xf);  // address
+    wb->ExecWrite(reg_wdma + REG_VDMA_WRITE_PARAM_LINE_STEP,        X_NUM*4, 0xf);  // stride
+    wb->ExecWrite(reg_wdma + REG_VDMA_WRITE_PARAM_H_SIZE,           X_NUM-1, 0xf);  // width
+    wb->ExecWrite(reg_wdma + REG_VDMA_WRITE_PARAM_V_SIZE,           Y_NUM-1, 0xf);  // height
+    wb->ExecWrite(reg_wdma + REG_VDMA_WRITE_PARAM_F_SIZE,               1-1, 0xf);
+    wb->ExecWrite(reg_wdma + REG_VDMA_WRITE_PARAM_FRAME_STEP, X_NUM*Y_NUM*4, 0xff);
+//  wb->ExecWrite(reg_wdma + REG_VDMA_WRITE_CTL_CONTROL,                  3, 0xf);  // update & enable
+    wb->ExecWrite(reg_wdma + REG_VDMA_WRITE_CTL_CONTROL,                  7, 0xf);  // update & enable & oneshot
+    wb->ExecWait(1000);
+
+    wb->Display("wait for DMA end");
+//    wb->SetVerbose(false);
+    while ( wb->ExecRead (reg_wdma + REG_VDMA_WRITE_CTL_STATUS) != 0 ) {
+//      wb->ExecWait(10000);
+        mng->Run(100000);
     }
+    wb->Display("DMA end");
+
+    mng->Run(10000);
     
-    mng->Run(10000000);
+//    mng->Run(1000000);
 //    mng->Run();
 
 #if VM_TRACE
