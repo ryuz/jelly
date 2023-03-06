@@ -368,7 +368,9 @@ module zybo_z7_lan8720
                 .rmii_rx            (mii0_rx),
                 .rmii_crs           (mii0_crs),
                 .rmii_mdc           (mii0_mdc),
-                .rmii_mdio          (mii0_mdio),
+                .rmii_mdio_i        (mii0_mdio),
+                .rmii_mdio_o        (),
+                .rmii_mdio_t        (),
 
                 .m_axi4s_rx_tfirst  (axi4s_rx0_tfirst),
                 .m_axi4s_rx_tlast   (axi4s_rx0_tlast),
@@ -383,7 +385,10 @@ module zybo_z7_lan8720
 
     always_ff @(posedge mii0_clk) begin
         if ( axi4s_rx0_tvalid ) begin
-            $display("%b %b %02h", axi4s_rx0_tfirst, axi4s_rx0_tlast, axi4s_rx0_tdata);
+//          $display("%b %b %02h", axi4s_rx0_tfirst, axi4s_rx0_tlast, axi4s_rx0_tdata);
+            if ( axi4s_rx0_tfirst ) $write("[mii] ");
+            $write("%02h ", axi4s_rx0_tdata);
+            if ( axi4s_rx0_tlast ) $display("");
         end
     end
 

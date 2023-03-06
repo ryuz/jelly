@@ -131,7 +131,7 @@ module tb_main
 
     logic   [2:0]   rx_data     [0:8191];
     initial begin
-        $readmemh("../../data/rx_data.txt", rx_data);
+        $readmemh("../../_data/rx_data.txt", rx_data);
     end
 
     logic               mii0_refclk;

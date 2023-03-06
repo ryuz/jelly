@@ -5,25 +5,27 @@
 
 module rmii_phy
         (
-            input   logic               reset,
-            input   logic               clk,
+            input   wire                reset,
+            input   wire                clk,
             
-            output  logic               rmii_txen,
-            output  logic   [1:0]       rmii_tx,
-            input   logic   [1:0]       rmii_rx,
-            input   logic               rmii_crs,
-            input   logic               rmii_mdc,
-            inout   logic               rmii_mdio,
+            output  wire                rmii_txen,
+            output  wire    [1:0]       rmii_tx,
+            input   wire    [1:0]       rmii_rx,
+            input   wire                rmii_crs,
+            input   wire                rmii_mdc,
+            input   wire                rmii_mdio_i,
+            output  wire                rmii_mdio_o,
+            output  wire                rmii_mdio_t,
 
-            output  logic               m_axi4s_rx_tfirst,
-            output  logic               m_axi4s_rx_tlast,
-            output  logic   [7:0]       m_axi4s_rx_tdata,
-            output  logic               m_axi4s_rx_tvalid,
+            output  wire                m_axi4s_rx_tfirst,
+            output  wire                m_axi4s_rx_tlast,
+            output  wire    [7:0]       m_axi4s_rx_tdata,
+            output  wire                m_axi4s_rx_tvalid,
 
-            input   logic               s_axi4s_tx_tlast,
-            input   logic   [7:0]       s_axi4s_tx_tdata,
-            input   logic               s_axi4s_tx_tvalid,
-            output  logic               m_axi4s_tx_tready
+            input   wire                s_axi4s_tx_tlast,
+            input   wire    [7:0]       s_axi4s_tx_tdata,
+            input   wire                s_axi4s_tx_tvalid,
+            output  wire                m_axi4s_tx_tready
         );
 
     (* IOB = "true" *)  logic           rx0_en;

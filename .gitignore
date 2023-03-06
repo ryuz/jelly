@@ -1,6 +1,7 @@
 .*
 !.gitignore
 !.python-version
+!.vitis-version
 
 _*
 *_
