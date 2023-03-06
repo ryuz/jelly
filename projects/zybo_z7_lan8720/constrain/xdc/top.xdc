@@ -8,27 +8,33 @@
 # in_clk125
 create_clock -period 8.000 -name in_clk125 -waveform {0.000 4.000} [get_ports in_clk125]
 
-# HDMI-RX 480p (27.7MHz)
-# create_clock -period 36.101 -name hdmi_clk_p -waveform {0.000 18.050} [get_ports hdmi_clk_p]
 
-
-# clk_fpga_0                     133MHz   7.500ns
-# clk_fpga_1                     100MHz  10.000ns
+# clk_fpga_0                     100MHz  10.000ns
+# clk_fpga_1                     133MHz   7.500ns
 # clk_out1_design_1_clk_wiz_0_0  100MHz  10.000ns
 # clk_out2_design_1_clk_wiz_0_0  200MHz   5.000ns
-# rxbyteclkhs                             8.768ns
+# clk_out3_design_1_clk_wiz_0_0  250MHz   4.000ns
 
-# set_clock_groups -name async_clks0 -asynchronous -group [get_clocks -include_generated_clocks in_clk125]   -group {clk_fpga_0 clk_fpga_1}
-# set_clock_groups -name async_clks1 -asynchronous -group [get_clocks -include_generated_clocks rxbyteclkhs] -group {clk_fpga_0 clk_fpga_1}
-# set_clock_groups -name async_clks2 -asynchronous -group [get_clocks -include_generated_clocks rxbyteclkhs] -group [get_clocks -include_generated_clocks in_clk125]
-# set_clock_groups -name async_clks3 -asynchronous -group {clk_fpga_1} -group {clk_out2_design_1_clk_wiz_0_0}
+set_max_delay -datapath_only -from [get_clocks clk_fpga_0]                    -to [get_clocks clk_fpga_1]                    7.500
+set_max_delay -datapath_only -from [get_clocks clk_fpga_0]                    -to [get_clocks clk_out2_design_1_clk_wiz_0_0] 5.000
 
+set_max_delay -datapath_only -from [get_clocks clk_fpga_1]                    -to [get_clocks clk_fpga_0]                    7.500
+set_max_delay -datapath_only -from [get_clocks clk_fpga_1]                    -to [get_clocks clk_out2_design_1_clk_wiz_0_0] 5.000
 
-#set_max_delay -datapath_only -from [get_clocks clk_fpga_0] -to [get_clocks clk_fpga_1] 7.500
-#set_max_delay -datapath_only -from [get_clocks clk_fpga_1] -to [get_clocks clk_fpga_0] 7.500
+set_max_delay -datapath_only -from [get_clocks clk_out1_design_1_clk_wiz_0_0] -to [get_clocks clk_out2_design_1_clk_wiz_0_0] 5.000
+set_max_delay -datapath_only -from [get_clocks clk_out1_design_1_clk_wiz_0_0] -to [get_clocks clk_out3_design_1_clk_wiz_0_0] 4.000
 
+set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -to [get_clocks clk_fpga_1]                    5.000
+set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -to [get_clocks clk_fpga_0]                    5.000
+set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -to [get_clocks clk_out3_design_1_clk_wiz_0_0] 4.000
 
-set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pmod_jb_p_IBUF[4]]
+set_max_delay -datapath_only -from [get_clocks clk_out3_design_1_clk_wiz_0_0] -to [get_clocks clk_out2_design_1_clk_wiz_0_0] 4.000
+
+set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets i_iobuf_pmod_b6/O]
+set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets i_iobuf_pmod_d6/O]
+
+set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pmod_b_IBUF[6]]
+set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pmod_d_IBUF[6]]
 
 
 ################################
@@ -71,42 +77,132 @@ set_property IOSTANDARD LVCMOS33 [get_ports {led[2]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {led[3]}]
 
 
-# PMOD_A
-set_property IOSTANDARD LVCMOS33 [get_ports {pmod_a[7]}]
-set_property IOSTANDARD LVCMOS33 [get_ports {pmod_a[6]}]
-set_property IOSTANDARD LVCMOS33 [get_ports {pmod_a[5]}]
-set_property IOSTANDARD LVCMOS33 [get_ports {pmod_a[4]}]
-set_property IOSTANDARD LVCMOS33 [get_ports {pmod_a[3]}]
-set_property IOSTANDARD LVCMOS33 [get_ports {pmod_a[2]}]
-set_property IOSTANDARD LVCMOS33 [get_ports {pmod_a[1]}]
-set_property IOSTANDARD LVCMOS33 [get_ports {pmod_a[0]}]
+# PMOD(JA)
 set_property PACKAGE_PIN N15 [get_ports {pmod_a[0]}]
-set_property PACKAGE_PIN N16 [get_ports {pmod_a[4]}]
 set_property PACKAGE_PIN L14 [get_ports {pmod_a[1]}]
-set_property PACKAGE_PIN L15 [get_ports {pmod_a[5]}]
 set_property PACKAGE_PIN K16 [get_ports {pmod_a[2]}]
-set_property PACKAGE_PIN J16 [get_ports {pmod_a[6]}]
 set_property PACKAGE_PIN K14 [get_ports {pmod_a[3]}]
+set_property PACKAGE_PIN N16 [get_ports {pmod_a[4]}]
+set_property PACKAGE_PIN L15 [get_ports {pmod_a[5]}]
+set_property PACKAGE_PIN J16 [get_ports {pmod_a[6]}]
 set_property PACKAGE_PIN J14 [get_ports {pmod_a[7]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_a[0]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_a[1]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_a[2]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_a[3]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_a[4]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_a[5]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_a[6]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_a[7]}]
+set_property PULLUP true [get_ports {pmod_a[0]}]
+set_property PULLUP true [get_ports {pmod_a[1]}]
+set_property PULLUP true [get_ports {pmod_a[2]}]
+set_property PULLUP true [get_ports {pmod_a[3]}]
+set_property PULLUP true [get_ports {pmod_a[4]}]
+set_property PULLUP true [get_ports {pmod_a[5]}]
+set_property PULLUP true [get_ports {pmod_a[6]}]
+set_property PULLUP true [get_ports {pmod_a[7]}]
 
-# PMOD_B
-set_property PACKAGE_PIN V8  [get_ports {pmod_jb_p[1]}]
-set_property PACKAGE_PIN U7  [get_ports {pmod_jb_p[2]}]
-set_property PACKAGE_PIN Y7  [get_ports {pmod_jb_p[3]}]
-set_property PACKAGE_PIN V6  [get_ports {pmod_jb_p[4]}]
-set_property PACKAGE_PIN W8  [get_ports {pmod_jb_n[1]}]
-set_property PACKAGE_PIN V7  [get_ports {pmod_jb_n[2]}]
-set_property PACKAGE_PIN Y6  [get_ports {pmod_jb_n[3]}]
-set_property PACKAGE_PIN W6  [get_ports {pmod_jb_n[4]}]
-set_property IOSTANDARD LVCMOS33 [get_ports {pmod_jb_n[1]}]
-set_property IOSTANDARD LVCMOS33 [get_ports {pmod_jb_n[2]}]
-set_property IOSTANDARD LVCMOS33 [get_ports {pmod_jb_n[3]}]
-set_property IOSTANDARD LVCMOS33 [get_ports {pmod_jb_n[4]}]
-set_property IOSTANDARD LVCMOS33 [get_ports {pmod_jb_p[1]}]
-set_property IOSTANDARD LVCMOS33 [get_ports {pmod_jb_p[2]}]
-set_property IOSTANDARD LVCMOS33 [get_ports {pmod_jb_p[3]}]
-set_property IOSTANDARD LVCMOS33 [get_ports {pmod_jb_p[4]}]
+# PMOD(JB)
+set_property PACKAGE_PIN V8 [get_ports {pmod_b[0]}]
+set_property PACKAGE_PIN W8 [get_ports {pmod_b[1]}]
+set_property PACKAGE_PIN U7 [get_ports {pmod_b[2]}]
+set_property PACKAGE_PIN V7 [get_ports {pmod_b[3]}]
+set_property PACKAGE_PIN Y7 [get_ports {pmod_b[4]}]
+set_property PACKAGE_PIN Y6 [get_ports {pmod_b[5]}]
+set_property PACKAGE_PIN V6 [get_ports {pmod_b[6]}]
+set_property PACKAGE_PIN W6 [get_ports {pmod_b[7]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_b[0]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_b[1]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_b[2]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_b[3]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_b[4]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_b[5]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_b[6]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_b[7]}]
+set_property PULLUP true [get_ports {pmod_b[0]}]
+set_property PULLUP true [get_ports {pmod_b[1]}]
+set_property PULLUP true [get_ports {pmod_b[2]}]
+set_property PULLUP true [get_ports {pmod_b[3]}]
+set_property PULLUP true [get_ports {pmod_b[4]}]
+set_property PULLUP true [get_ports {pmod_b[5]}]
+set_property PULLUP true [get_ports {pmod_b[6]}]
+set_property PULLUP true [get_ports {pmod_b[7]}]
 
-# PMOD_C
-set_property PACKAGE_PIN V15  [get_ports {pmod_jc_p[1]}]
-set_property IOSTANDARD LVCMOS33 [get_ports {pmod_jc_p[1]}]
+# PMOD(JC)
+set_property PACKAGE_PIN V15 [get_ports {pmod_c[0]}]
+set_property PACKAGE_PIN W15 [get_ports {pmod_c[1]}]
+set_property PACKAGE_PIN T11 [get_ports {pmod_c[2]}]
+set_property PACKAGE_PIN T10 [get_ports {pmod_c[3]}]
+set_property PACKAGE_PIN W14 [get_ports {pmod_c[4]}]
+set_property PACKAGE_PIN Y14 [get_ports {pmod_c[5]}]
+set_property PACKAGE_PIN T12 [get_ports {pmod_c[6]}]
+set_property PACKAGE_PIN U12 [get_ports {pmod_c[7]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_c[0]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_c[1]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_c[2]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_c[3]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_c[4]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_c[5]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_c[6]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_c[7]}]
+set_property PULLUP true [get_ports {pmod_c[0]}]
+set_property PULLUP true [get_ports {pmod_c[1]}]
+set_property PULLUP true [get_ports {pmod_c[2]}]
+set_property PULLUP true [get_ports {pmod_c[3]}]
+set_property PULLUP true [get_ports {pmod_c[4]}]
+set_property PULLUP true [get_ports {pmod_c[5]}]
+set_property PULLUP true [get_ports {pmod_c[6]}]
+set_property PULLUP true [get_ports {pmod_c[7]}]
+
+# PMOD(JD)
+set_property PACKAGE_PIN T14 [get_ports {pmod_d[0]}]
+set_property PACKAGE_PIN T15 [get_ports {pmod_d[1]}]
+set_property PACKAGE_PIN P14 [get_ports {pmod_d[2]}]
+set_property PACKAGE_PIN R14 [get_ports {pmod_d[3]}]
+set_property PACKAGE_PIN U14 [get_ports {pmod_d[4]}]
+set_property PACKAGE_PIN U15 [get_ports {pmod_d[5]}]
+set_property PACKAGE_PIN V17 [get_ports {pmod_d[6]}]
+set_property PACKAGE_PIN V18 [get_ports {pmod_d[7]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_d[0]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_d[1]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_d[2]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_d[3]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_d[4]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_d[5]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_d[6]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_d[7]}]
+set_property PULLUP true [get_ports {pmod_d[0]}]
+set_property PULLUP true [get_ports {pmod_d[1]}]
+set_property PULLUP true [get_ports {pmod_d[2]}]
+set_property PULLUP true [get_ports {pmod_d[3]}]
+set_property PULLUP true [get_ports {pmod_d[4]}]
+set_property PULLUP true [get_ports {pmod_d[5]}]
+set_property PULLUP true [get_ports {pmod_d[6]}]
+set_property PULLUP true [get_ports {pmod_d[7]}]
+
+# PMOD(JE)
+set_property PACKAGE_PIN V12 [get_ports {pmod_e[0]}]
+set_property PACKAGE_PIN W16 [get_ports {pmod_e[1]}]
+set_property PACKAGE_PIN J15 [get_ports {pmod_e[2]}]
+set_property PACKAGE_PIN H15 [get_ports {pmod_e[3]}]
+set_property PACKAGE_PIN V13 [get_ports {pmod_e[4]}]
+set_property PACKAGE_PIN U17 [get_ports {pmod_e[5]}]
+set_property PACKAGE_PIN T17 [get_ports {pmod_e[6]}]
+set_property PACKAGE_PIN Y17 [get_ports {pmod_e[7]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_e[0]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_e[1]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_e[2]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_e[3]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_e[4]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_e[5]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_e[6]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod_e[7]}]
+set_property PULLUP true [get_ports {pmod_e[0]}]
+set_property PULLUP true [get_ports {pmod_e[1]}]
+set_property PULLUP true [get_ports {pmod_e[2]}]
+set_property PULLUP true [get_ports {pmod_e[3]}]
+set_property PULLUP true [get_ports {pmod_e[4]}]
+set_property PULLUP true [get_ports {pmod_e[5]}]
+set_property PULLUP true [get_ports {pmod_e[6]}]
+set_property PULLUP true [get_ports {pmod_e[7]}]

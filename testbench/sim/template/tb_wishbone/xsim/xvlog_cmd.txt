@@ -1,0 +1,5 @@
+-sv
+
+../tb_sim.sv
+../tb_main.sv
+
