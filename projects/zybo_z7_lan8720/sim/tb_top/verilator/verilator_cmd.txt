@@ -17,6 +17,7 @@
 #-Wno-SELRANGE
 #-Wno-WIDTHCONCAT
 #-Wno-MULTITOP
+--Wno-MULTIDRIVEN
 
 #-Wno-fatal
 

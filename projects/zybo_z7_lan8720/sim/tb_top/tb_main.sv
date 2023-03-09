@@ -11,11 +11,8 @@
 
 module tb_main
         #(
-            parameter   X_NUM = 640,   // 3280 / 2,
-            parameter   Y_NUM = 480,   // 2464 / 2
-
-            parameter   WB_ADR_WIDTH = 37,
-            parameter   WB_DAT_WIDTH = 64,
+            parameter   WB_ADR_WIDTH = 29,
+            parameter   WB_DAT_WIDTH = 32,
             parameter   WB_SEL_WIDTH = (WB_DAT_WIDTH / 8)
         )
         (
@@ -44,32 +41,34 @@ module tb_main
     logic   [3:0]   push_sw;
     logic   [3:0]   dip_sw;
     logic   [3:0]   led;
-    logic   [7:0]   pmod_a;
-    logic   [7:0]   pmod_b;
-    logic   [7:0]   pmod_c;
-    logic   [7:0]   pmod_d;
-    logic   [7:0]   pmod_e;
-    logic   [14:0]  DDR_addr;
-    logic   [2:0]   DDR_ba;
-    logic           DDR_cas_n;
-    logic           DDR_ck_n;
-    logic           DDR_ck_p;
-    logic           DDR_cke;
-    logic           DDR_cs_n;
-    logic   [3:0]   DDR_dm;
-    logic   [31:0]  DDR_dq;
-    logic   [3:0]   DDR_dqs_n;
-    logic   [3:0]   DDR_dqs_p;
-    logic           DDR_odt;
-    logic           DDR_ras_n;
-    logic           DDR_reset_n;
-    logic           DDR_we_n;
-    logic           FIXED_IO_ddr_vrn;
-    logic           FIXED_IO_ddr_vrp;
-    logic   [53:0]  FIXED_IO_mio;
-    logic           FIXED_IO_ps_clk;
-    logic           FIXED_IO_ps_porb;
-    logic           FIXED_IO_ps_srstb;
+
+    wire    [7:0]   pmod_a;
+    wire    [7:0]   pmod_b;
+    wire    [7:0]   pmod_c;
+    wire    [7:0]   pmod_d;
+    wire    [7:0]   pmod_e;
+
+    wire    [14:0]  DDR_addr;
+    wire    [2:0]   DDR_ba;
+    wire            DDR_cas_n;
+    wire            DDR_ck_n;
+    wire            DDR_ck_p;
+    wire            DDR_cke;
+    wire            DDR_cs_n;
+    wire    [3:0]   DDR_dm;
+    wire    [31:0]  DDR_dq;
+    wire    [3:0]   DDR_dqs_n;
+    wire    [3:0]   DDR_dqs_p;
+    wire            DDR_odt;
+    wire            DDR_ras_n;
+    wire            DDR_reset_n;
+    wire            DDR_we_n;
+    wire            FIXED_IO_ddr_vrn;
+    wire            FIXED_IO_ddr_vrp;
+    wire    [53:0]  FIXED_IO_mio;
+    wire            FIXED_IO_ps_clk;
+    wire            FIXED_IO_ps_porb;
+    wire            FIXED_IO_ps_srstb;
     
     zybo_z7_lan8720
         i_top
@@ -152,17 +151,59 @@ module tb_main
     end
 
 
-//    assign pmod_b[0] = mii0_tx[0];
-    assign pmod_b[1] = mii0_rx[1];
-    assign pmod_b[2] = mii0_crs;
-//    assign pmod_b[3] = mii0_mdc;
-//    assign pmod_b[4] = mii0_txen;
-    assign pmod_b[5] = mii0_rx[0];
-    assign pmod_b[6] = mii0_refclk;
-//    assign pmod_b[7] = mii0_mdio;
+//    assign pmod_a[0] = mii0_tx[0];
+    assign pmod_a[1] = mii0_rx[1];
+    assign pmod_a[2] = mii0_crs;
+//    assign pmod_a[3] = mii0_mdc;
+//    assign pmod_a[4] = mii0_txen;
+    assign pmod_a[5] = mii0_rx[0];
+    assign pmod_a[6] = mii0_refclk;
+//    assign pmod_a[7] = mii0_mdio;
 //    assign pmod_c[0] = mii0_tx[1];
 
+    assign pmod_b[6] = mii0_refclk;
+    assign pmod_d[6] = mii0_refclk;
+    assign pmod_e[6] = mii0_refclk;
 
+    // loop-back
+    assign pmod_b[2] = pmod_a[4]; // crs <- txen
+    assign pmod_b[5] = pmod_a[5]; // rx0 <- tx0
+    assign pmod_b[1] = pmod_c[0]; // rx1 <- tx1
+
+    assign pmod_d[2] = pmod_b[4]; // crs <- txen
+    assign pmod_d[5] = pmod_b[5]; // rx0 <- tx0
+    assign pmod_d[1] = pmod_c[1]; // rx1 <- tx1
+
+
+
+    // RX
+    wire    [3:0]           axi4s_eth_rx_tfirst = i_top.axi4s_eth_rx_tfirst;
+    wire    [3:0]           axi4s_eth_rx_tlast  = i_top.axi4s_eth_rx_tlast ;
+    wire    [3:0][7:0]      axi4s_eth_rx_tdata  = i_top.axi4s_eth_rx_tdata ;
+    wire    [3:0]           axi4s_eth_rx_tvalid = i_top.axi4s_eth_rx_tvalid;
+    wire    [3:0]           axi4s_eth_tx_tlast  = i_top.axi4s_eth_tx_tlast ;
+    wire    [3:0][7:0]      axi4s_eth_tx_tdata  = i_top.axi4s_eth_tx_tdata ;
+    wire    [3:0]           axi4s_eth_tx_tvalid = i_top.axi4s_eth_tx_tvalid;
+    wire    [3:0]           axi4s_eth_tx_tready = i_top.axi4s_eth_tx_tready;
+
+    /*
+    always_ff @(posedge i_top.mii_refclk[0]) begin
+        if ( axi4s_eth_rx_tvalid[0] ) begin
+            if ( axi4s_eth_rx_tfirst[0] ) $write("[mii] ");
+            $write("%02h ", axi4s_eth_rx_tdata[0]);
+            if ( axi4s_eth_rx_tlast[0] ) $display("");
+        end
+    end
+    */
+    
+    int     ch = 2;
+    always_ff @(posedge i_top.mii_refclk[ch]) begin
+        if ( axi4s_eth_rx_tvalid[ch] ) begin
+            if ( axi4s_eth_rx_tfirst[ch] ) $write("[mii(%1d)] ", ch);
+            $write("%02h ", axi4s_eth_rx_tdata[ch]);
+            if ( axi4s_eth_rx_tlast[ch] ) $display("");
+        end
+    end
 
 endmodule
 

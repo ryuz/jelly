@@ -329,60 +329,126 @@ module zybo_z7_lan8720
     // LAN
     // ---------------------------------
 
-    logic               mii0_refclk;
-    logic               mii0_txen;
-    logic   [1:0]       mii0_tx;
-    logic   [1:0]       mii0_rx;
-    logic               mii0_crs;
-    logic               mii0_mdc;
-    logic               mii0_mdio;
+    logic   [3:0]       mii_refclk;
+    logic   [3:0]       mii_txen;
+    logic   [3:0][1:0]  mii_tx;
+    logic   [3:0][1:0]  mii_rx;
+    logic   [3:0]       mii_crs;
+    logic   [3:0]       mii_mdc;
+    logic   [3:0]       mii_mdio_t;
+    logic   [3:0]       mii_mdio_i;
+    logic   [3:0]       mii_mdio_o;
 
-    IOBUF   i_iobuf_pmod_b0 (.IO(pmod_b[0]), .I(mii0_tx[0]), .O(),            .T(1'b0));
-    IOBUF   i_iobuf_pmod_b1 (.IO(pmod_b[1]), .I(1'b0),       .O(mii0_rx[1]),  .T(1'b1));
-    IOBUF   i_iobuf_pmod_b2 (.IO(pmod_b[2]), .I(1'b0),       .O(mii0_crs  ),  .T(1'b1));
-    IOBUF   i_iobuf_pmod_b3 (.IO(pmod_b[3]), .I(1'b1),       .O(mii0_mdc  ),  .T(1'b0));
-    IOBUF   i_iobuf_pmod_b4 (.IO(pmod_b[4]), .I(mii0_txen),  .O(),            .T(1'b0));
-    IOBUF   i_iobuf_pmod_b5 (.IO(pmod_b[5]), .I(1'b0),       .O(mii0_rx[0]),  .T(1'b1));
-    IOBUF   i_iobuf_pmod_b6 (.IO(pmod_b[6]), .I(1'b0),       .O(mii0_refclk), .T(1'b1));
-    IOBUF   i_iobuf_pmod_b7 (.IO(pmod_b[7]), .I(1'b0),       .O(mii0_mdio ),  .T(1'b1));
-    IOBUF   i_iobuf_pmod_c0 (.IO(pmod_c[0]), .I(mii0_tx[1]), .O(),            .T(1'b0));
+    IOBUF   i_iobuf_pmod_a0 (.IO(pmod_a[0]), .I(mii_tx    [0][0]), .O(),                 .T(1'b0));
+    IOBUF   i_iobuf_pmod_a1 (.IO(pmod_a[1]), .I(1'b0),             .O(mii_rx    [0][1]), .T(1'b1));
+    IOBUF   i_iobuf_pmod_a2 (.IO(pmod_a[2]), .I(1'b0),             .O(mii_crs   [0]  ),  .T(1'b1));
+    IOBUF   i_iobuf_pmod_a3 (.IO(pmod_a[3]), .I(1'b1),             .O(mii_mdc   [0]  ),  .T(1'b0));
+    IOBUF   i_iobuf_pmod_a4 (.IO(pmod_a[4]), .I(mii_txen  [0]),    .O(),                 .T(1'b0));
+    IOBUF   i_iobuf_pmod_a5 (.IO(pmod_a[5]), .I(1'b0),             .O(mii_rx    [0][0]), .T(1'b1));
+    IOBUF   i_iobuf_pmod_a6 (.IO(pmod_a[6]), .I(1'b0),             .O(mii_refclk[0]),    .T(1'b1));
+    IOBUF   i_iobuf_pmod_a7 (.IO(pmod_a[7]), .I(mii_mdio_o[0]),    .O(mii_mdio_i[0]),    .T(mii_mdio_t[0]));
+    IOBUF   i_iobuf_pmod_c0 (.IO(pmod_c[0]), .I(mii_tx    [0][1]), .O(),                 .T(1'b0));
 
-    logic               axi4s_rx0_tfirst;
-    logic               axi4s_rx0_tlast;
-    logic   [7:0]       axi4s_rx0_tdata;
-    logic               axi4s_rx0_tvalid;
+    IOBUF   i_iobuf_pmod_b0 (.IO(pmod_b[0]), .I(mii_tx    [1][0]), .O(),                 .T(1'b0));
+    IOBUF   i_iobuf_pmod_b1 (.IO(pmod_b[1]), .I(1'b0),             .O(mii_rx    [1][1]), .T(1'b1));
+    IOBUF   i_iobuf_pmod_b2 (.IO(pmod_b[2]), .I(1'b0),             .O(mii_crs   [1]  ),  .T(1'b1));
+    IOBUF   i_iobuf_pmod_b3 (.IO(pmod_b[3]), .I(1'b1),             .O(mii_mdc   [1]  ),  .T(1'b0));
+    IOBUF   i_iobuf_pmod_b4 (.IO(pmod_b[4]), .I(mii_txen  [1]),    .O(),                 .T(1'b0));
+    IOBUF   i_iobuf_pmod_b5 (.IO(pmod_b[5]), .I(1'b0),             .O(mii_rx    [1][0]), .T(1'b1));
+    IOBUF   i_iobuf_pmod_b6 (.IO(pmod_b[6]), .I(1'b0),             .O(mii_refclk[1]),    .T(1'b1));
+    IOBUF   i_iobuf_pmod_b7 (.IO(pmod_b[7]), .I(mii_mdio_o[1]),    .O(mii_mdio_i[1]),    .T(mii_mdio_t[1]));
+    IOBUF   i_iobuf_pmod_c1 (.IO(pmod_c[1]), .I(mii_tx    [1][1]), .O(),                 .T(1'b0));
 
-    logic               axi4s_tx0_tlast;
-    logic   [7:0]       axi4s_tx0_tdata;
-    logic               axi4s_tx0_tvalid;
-    logic               axi4s_tx0_tready;
+    IOBUF   i_iobuf_pmod_d0 (.IO(pmod_d[0]), .I(mii_tx    [2][0]), .O(),                 .T(1'b0));
+    IOBUF   i_iobuf_pmod_d1 (.IO(pmod_d[1]), .I(1'b0),             .O(mii_rx    [2][1]), .T(1'b1));
+    IOBUF   i_iobuf_pmod_d2 (.IO(pmod_d[2]), .I(1'b0),             .O(mii_crs   [2]  ),  .T(1'b1));
+    IOBUF   i_iobuf_pmod_d3 (.IO(pmod_d[3]), .I(1'b1),             .O(mii_mdc   [2]  ),  .T(1'b0));
+    IOBUF   i_iobuf_pmod_d4 (.IO(pmod_d[4]), .I(mii_txen  [2]),    .O(),                 .T(1'b0));
+    IOBUF   i_iobuf_pmod_d5 (.IO(pmod_d[5]), .I(1'b0),             .O(mii_rx    [2][0]), .T(1'b1));
+    IOBUF   i_iobuf_pmod_d6 (.IO(pmod_d[6]), .I(1'b0),             .O(mii_refclk[2]),    .T(1'b1));
+    IOBUF   i_iobuf_pmod_d7 (.IO(pmod_d[7]), .I(mii_mdio_o[2]),    .O(mii_mdio_i[2]),    .T(mii_mdio_t[2]));
+    IOBUF   i_iobuf_pmod_c2 (.IO(pmod_c[2]), .I(mii_tx    [2][1]), .O(),                 .T(1'b0));
 
-    rmii_phy
-        i_rmii_phy_0
-            (
-                .reset              (sys_reset),
-                .clk                (mii0_refclk),
-                
-                .rmii_txen          (mii0_txen),
-                .rmii_tx            (mii0_tx),
-                .rmii_rx            (mii0_rx),
-                .rmii_crs           (mii0_crs),
-                .rmii_mdc           (mii0_mdc),
-                .rmii_mdio_i        (mii0_mdio),
-                .rmii_mdio_o        (),
-                .rmii_mdio_t        (),
+    IOBUF   i_iobuf_pmod_e0 (.IO(pmod_e[0]), .I(mii_tx    [3][0]), .O(),                 .T(1'b0));
+    IOBUF   i_iobuf_pmod_e1 (.IO(pmod_e[1]), .I(1'b0),             .O(mii_rx    [3][1]), .T(1'b1));
+    IOBUF   i_iobuf_pmod_e2 (.IO(pmod_e[2]), .I(1'b0),             .O(mii_crs   [3]  ),  .T(1'b1));
+    IOBUF   i_iobuf_pmod_e3 (.IO(pmod_e[3]), .I(1'b1),             .O(mii_mdc   [3]  ),  .T(1'b0));
+    IOBUF   i_iobuf_pmod_e4 (.IO(pmod_e[4]), .I(mii_txen  [3]),    .O(),                 .T(1'b0));
+    IOBUF   i_iobuf_pmod_e5 (.IO(pmod_e[5]), .I(1'b0),             .O(mii_rx    [3][0]), .T(1'b1));
+    IOBUF   i_iobuf_pmod_e6 (.IO(pmod_e[6]), .I(1'b0),             .O(mii_refclk[3]),    .T(1'b1));
+    IOBUF   i_iobuf_pmod_e7 (.IO(pmod_e[7]), .I(mii_mdio_o[3]),    .O(mii_mdio_i[3]),    .T(mii_mdio_t[3]));
+    IOBUF   i_iobuf_pmod_c3 (.IO(pmod_c[3]), .I(mii_tx    [3][1]), .O(),                 .T(1'b0));
 
-                .m_axi4s_rx_tfirst  (axi4s_rx0_tfirst),
-                .m_axi4s_rx_tlast   (axi4s_rx0_tlast),
-                .m_axi4s_rx_tdata   (axi4s_rx0_tdata),
-                .m_axi4s_rx_tvalid  (axi4s_rx0_tvalid),
 
-                .s_axi4s_tx_tlast   (axi4s_tx0_tlast),
-                .s_axi4s_tx_tdata   (axi4s_tx0_tdata),
-                .s_axi4s_tx_tvalid  (axi4s_tx0_tvalid),
-                .m_axi4s_tx_tready  (axi4s_tx0_tready)
-            );
+    logic   [3:0]           axi4s_eth_rx_tfirst;
+    logic   [3:0]           axi4s_eth_rx_tlast;
+    logic   [3:0][7:0]      axi4s_eth_rx_tdata;
+    logic   [3:0]           axi4s_eth_rx_tvalid;
+    logic   [3:0]           axi4s_eth_tx_tlast;
+    logic   [3:0][7:0]      axi4s_eth_tx_tdata;
+    logic   [3:0]           axi4s_eth_tx_tvalid;
+    logic   [3:0]           axi4s_eth_tx_tready;
 
+    generate
+    for ( genvar i = 0; i < 4; ++i ) begin : loop_rmii_phy
+        rmii_phy
+            i_rmii_phy
+                (
+                    .reset              (sys_reset),
+                    .clk                (mii_refclk[i]),
+                    
+                    .rmii_txen          (mii_txen  [i]),
+                    .rmii_tx            (mii_tx    [i]),
+                    .rmii_rx            (mii_rx    [i]),
+                    .rmii_crs           (mii_crs   [i]),
+                    .rmii_mdc           (mii_mdc   [i]),
+                    .rmii_mdio_i        (mii_mdio_i[i]),
+                    .rmii_mdio_o        (mii_mdio_o[i]),
+                    .rmii_mdio_t        (mii_mdio_t[i]),
+
+                    .m_axi4s_rx_tfirst  (axi4s_eth_rx_tfirst[i]),
+                    .m_axi4s_rx_tlast   (axi4s_eth_rx_tlast [i]),
+                    .m_axi4s_rx_tdata   (axi4s_eth_rx_tdata [i]),
+                    .m_axi4s_rx_tvalid  (axi4s_eth_rx_tvalid[i]),
+
+                    .s_axi4s_tx_tlast   (axi4s_eth_tx_tlast [i]),
+                    .s_axi4s_tx_tdata   (axi4s_eth_tx_tdata [i]),
+                    .s_axi4s_tx_tvalid  (axi4s_eth_tx_tvalid[i]),
+                    .s_axi4s_tx_tready  (axi4s_eth_tx_tready[i])
+                );
+        
+        logic   [5:0]   cycle;
+        always_ff @(posedge mii_refclk[i] or posedge sys_reset ) begin
+            if ( sys_reset ) begin
+                cycle                  <= 0;
+                axi4s_eth_tx_tlast [i] <= '0;
+                axi4s_eth_tx_tdata [i] <= '0;
+                axi4s_eth_tx_tvalid[i] <= 1'b0;
+            end
+            else begin
+                if ( !axi4s_eth_tx_tvalid[i] || axi4s_eth_tx_tready[i] ) begin
+                    cycle <= cycle + 1'b1;
+
+                    axi4s_eth_tx_tvalid[i] <= cycle[5];
+                    axi4s_eth_tx_tlast [i] <= (cycle[4:0] == 5'h1f);
+                    case ( 32'(cycle[4:0]) )
+                    0: axi4s_eth_tx_tdata [i] <= 8'h55;
+                    1: axi4s_eth_tx_tdata [i] <= 8'h55;
+                    2: axi4s_eth_tx_tdata [i] <= 8'h55;
+                    3: axi4s_eth_tx_tdata [i] <= 8'h55;
+                    4: axi4s_eth_tx_tdata [i] <= 8'h55;
+                    5: axi4s_eth_tx_tdata [i] <= 8'h55;
+                    6: axi4s_eth_tx_tdata [i] <= 8'h55;
+                    7: axi4s_eth_tx_tdata [i] <= 8'hd5;
+                    default: axi4s_eth_tx_tdata[i] <= 8'h00;//axi4s_eth_tx_tdata[i] + 8'(i+1);
+                    endcase
+                end
+            end
+        end
+    end
+    endgenerate
+
+    /*
     always_ff @(posedge mii0_clk) begin
         if ( axi4s_rx0_tvalid ) begin
 //          $display("%b %b %02h", axi4s_rx0_tfirst, axi4s_rx0_tlast, axi4s_rx0_tdata);
@@ -419,9 +485,9 @@ module zybo_z7_lan8720
             mii0_tx[1:0] = '0;
         end
     end
+    */
 
-
-
+    /*
 //  (* mark_debug = "true" *)   logic               dbg_mii0_clk;
     (* mark_debug = "true" *)   logic               dbg_mii0_txen;
     (* mark_debug = "true" *)   logic   [1:0]       dbg_mii0_tx;
@@ -439,22 +505,6 @@ module zybo_z7_lan8720
         dbg_mii0_mdio   <= mii0_mdio; 
     end
 
-    logic               mii1_refclk;
-    logic               mii1_txen;
-    logic   [1:0]       mii1_tx;
-    logic   [1:0]       mii1_rx;
-    logic               mii1_crs;
-    logic               mii1_mdc;
-    logic               mii1_mdio;
-    IOBUF   i_iobuf_pmod_d0 (.IO(pmod_d[0]), .I(mii1_tx[0]), .O(),            .T(1'b0));
-    IOBUF   i_iobuf_pmod_d1 (.IO(pmod_d[1]), .I(1'b0),       .O(mii1_rx[1]),  .T(1'b1));
-    IOBUF   i_iobuf_pmod_d2 (.IO(pmod_d[2]), .I(1'b0),       .O(mii1_crs  ),  .T(1'b1));
-    IOBUF   i_iobuf_pmod_d3 (.IO(pmod_d[3]), .I(1'b1),       .O(mii1_mdc  ),  .T(1'b0));
-    IOBUF   i_iobuf_pmod_d4 (.IO(pmod_d[4]), .I(mii1_txen),  .O(),            .T(1'b0));
-    IOBUF   i_iobuf_pmod_d5 (.IO(pmod_d[5]), .I(1'b0),       .O(mii1_rx[0]),  .T(1'b1));
-    IOBUF   i_iobuf_pmod_d6 (.IO(pmod_d[6]), .I(1'b0),       .O(mii1_refclk), .T(1'b1));
-    IOBUF   i_iobuf_pmod_d7 (.IO(pmod_d[7]), .I(1'b0),       .O(mii1_mdio ),  .T(1'b1));
-    IOBUF   i_iobuf_pmod_e0 (.IO(pmod_e[0]), .I(mii1_tx[1]), .O(),            .T(1'b0));
 
     logic               mii1_clk;
     BUFG    i_bufg_mmi1_clk (.I(mii1_refclk), .O(mii1_clk));
@@ -480,21 +530,6 @@ module zybo_z7_lan8720
         end
     end
 
-
-    /*
-    assign dbg_mii1_txen = 1'b0;
-
-    assign mii1_tx[0] = pmod_d[0];
-    assign mii1_rx[1] = pmod_d[1];
-    assign mii1_crs   = pmod_d[2];
-    assign mii1_mdc   = pmod_d[3];
-    assign mii1_txen  = pmod_d[4];
-    assign mii1_rx[0] = pmod_d[5];
-    assign mii1_clk   = pmod_d[6];
-    assign mii1_mdio  = pmod_d[7];
-    assign mii1_tx[1] = pmod_e[0];
-    */
-
 //    (* mark_debug = "true" *)   logic               dbg_mii1_clk;
     (* mark_debug = "true" *)   logic               dbg_mii1_txen;
     (* mark_debug = "true" *)   logic   [1:0]       dbg_mii1_tx;
@@ -511,7 +546,7 @@ module zybo_z7_lan8720
         dbg_mii1_mdc    <= mii1_mdc ;
         dbg_mii1_mdio   <= mii1_mdio; 
     end
-
+    */
 
 
     // ----------------------------------------
@@ -525,10 +560,10 @@ module zybo_z7_lan8720
     always_ff @(posedge sys_clk100)         reg_counter_clk100 <= reg_counter_clk100 + 1;
     
     logic   [31:0]      reg_counter_mii0_clk;
-    always_ff @(posedge mii0_clk)           reg_counter_mii0_clk <= reg_counter_mii0_clk + 1;
+    always_ff @(posedge mii_refclk[0])           reg_counter_mii0_clk <= reg_counter_mii0_clk + 1;
     
     logic   [31:0]      reg_counter_mii1_clk;
-    always_ff @(posedge mii1_clk)           reg_counter_mii1_clk <= reg_counter_mii1_clk + 1;
+    always_ff @(posedge mii_refclk[1])           reg_counter_mii1_clk <= reg_counter_mii1_clk + 1;
 
     logic   [31:0]      reg_counter_peri_aclk;
     always_ff @(posedge axi4l_peri_aclk)    reg_counter_peri_aclk <= reg_counter_peri_aclk + 1;

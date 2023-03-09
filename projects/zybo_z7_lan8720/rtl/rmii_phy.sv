@@ -25,7 +25,7 @@ module rmii_phy
             input   wire                s_axi4s_tx_tlast,
             input   wire    [7:0]       s_axi4s_tx_tdata,
             input   wire                s_axi4s_tx_tvalid,
-            output  wire                m_axi4s_tx_tready
+            output  wire                s_axi4s_tx_tready
         );
 
     (* IOB = "true" *)  logic           rx0_en;
@@ -87,7 +87,7 @@ module rmii_phy
                 .S_REGS             (1),
                 .M_REGS             (1)
             )
-        i_stream_width_convert
+        i_stream_width_convert_rx
             (
                 .reset              (reset),
                 .clk                (clk),
@@ -120,6 +120,58 @@ module rmii_phy
             );
     
 
+    jelly2_stream_width_convert
+            #(
+                .UNIT_WIDTH         (2),
+                .S_NUM              (4),
+                .M_NUM              (1),
+                .HAS_FIRST          (0),  // first を備える
+                .HAS_LAST           (1),  // last を備える
+                .HAS_STRB           (0),  // strb を備える
+                .HAS_KEEP           (0),  // keep を備える
+                .AUTO_FIRST         (0),  // last の次を自動的に first とする
+                .HAS_ALIGN_S        (0),  // slave 側のアライメントを指定する
+                .HAS_ALIGN_M        (0),  // master 側のアライメントを指定する
+                .FIRST_OVERWRITE    (1),  // first時前方に残変換があれば吐き出さずに上書き
+                .FIRST_FORCE_LAST   (1),  // first時前方に残変換があれば強制的にlastを付与(残が無い場合はlastはつかない)
+                .REDUCE_KEEP        (0),
+                .USER_F_WIDTH       (0),
+                .USER_L_WIDTH       (0),
+                .S_REGS             (1),
+                .M_REGS             (1)
+            )
+        i_stream_width_convert_tx
+            (
+                .reset              (reset),
+                .clk                (clk),
+                .cke                (1'b1),
+                
+                .endian             (1'b0),
+                .padding            ('0),
+                
+                .s_align_s          ('0),
+                .s_align_m          ('0),
+                .s_first            ('0),
+                .s_last             (s_axi4s_tx_tlast),
+                .s_data             (s_axi4s_tx_tdata),
+                .s_strb             ('0),
+                .s_keep             ('0),
+                .s_user_f           ('0),
+                .s_user_l           ('0),
+                .s_valid            (s_axi4s_tx_tvalid),
+                .s_ready            (s_axi4s_tx_tready),
+                
+                .m_first            (),
+                .m_last             (),
+                .m_data             (rmii_tx),
+                .m_strb             (),
+                .m_keep             (),
+                .m_user_f           (),
+                .m_user_l           (),
+                .m_valid            (rmii_txen),
+                .m_ready            (1'b1)
+            );
+    
 endmodule
 
 
