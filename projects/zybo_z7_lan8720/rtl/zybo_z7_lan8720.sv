@@ -380,14 +380,14 @@ module zybo_z7_lan8720
     IOBUF   i_iobuf_pmod_c3 (.IO(pmod_c[3]), .I(mii_tx    [3][1]), .O(),                 .T(1'b0));
 
 
-    logic   [3:0]           axi4s_eth_rx_tfirst;
-    logic   [3:0]           axi4s_eth_rx_tlast;
-    logic   [3:0][7:0]      axi4s_eth_rx_tdata;
-    logic   [3:0]           axi4s_eth_rx_tvalid;
-    logic   [3:0]           axi4s_eth_tx_tlast;
-    logic   [3:0][7:0]      axi4s_eth_tx_tdata;
-    logic   [3:0]           axi4s_eth_tx_tvalid;
-    logic   [3:0]           axi4s_eth_tx_tready;
+    (* mark_debug="true" *) logic   [3:0]           axi4s_eth_rx_tfirst;
+    (* mark_debug="true" *) logic   [3:0]           axi4s_eth_rx_tlast;
+    (* mark_debug="true" *) logic   [3:0][7:0]      axi4s_eth_rx_tdata;
+    (* mark_debug="true" *) logic   [3:0]           axi4s_eth_rx_tvalid;
+    (* mark_debug="true" *) logic   [3:0]           axi4s_eth_tx_tlast;
+    (* mark_debug="true" *) logic   [3:0][7:0]      axi4s_eth_tx_tdata;
+    (* mark_debug="true" *) logic   [3:0]           axi4s_eth_tx_tvalid;
+    (* mark_debug="true" *) logic   [3:0]           axi4s_eth_tx_tready;
 
     generate
     for ( genvar i = 0; i < 4; ++i ) begin : loop_rmii_phy
@@ -417,6 +417,7 @@ module zybo_z7_lan8720
                     .s_axi4s_tx_tready  (axi4s_eth_tx_tready[i])
                 );
         
+        // ダミー送信
         logic   [5:0]   cycle;
         always_ff @(posedge mii_refclk[i] or posedge sys_reset ) begin
             if ( sys_reset ) begin
@@ -440,7 +441,7 @@ module zybo_z7_lan8720
                     5: axi4s_eth_tx_tdata [i] <= 8'h55;
                     6: axi4s_eth_tx_tdata [i] <= 8'h55;
                     7: axi4s_eth_tx_tdata [i] <= 8'hd5;
-                    default: axi4s_eth_tx_tdata[i] <= 8'h00;//axi4s_eth_tx_tdata[i] + 8'(i+1);
+                    default: axi4s_eth_tx_tdata[i] <= axi4s_eth_tx_tdata[i] + 8'(i+1);
                     endcase
                 end
             end

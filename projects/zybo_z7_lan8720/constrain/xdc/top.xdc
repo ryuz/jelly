@@ -30,11 +30,13 @@ set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -t
 
 set_max_delay -datapath_only -from [get_clocks clk_out3_design_1_clk_wiz_0_0] -to [get_clocks clk_out2_design_1_clk_wiz_0_0] 4.000
 
+set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets i_iobuf_pmod_a6/O]
 set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets i_iobuf_pmod_b6/O]
 set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets i_iobuf_pmod_d6/O]
+set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets i_iobuf_pmod_e6/O]
 
-set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pmod_b_IBUF[6]]
-set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pmod_d_IBUF[6]]
+#set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pmod_b_IBUF[6]]
+#set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pmod_d_IBUF[6]]
 
 
 ################################

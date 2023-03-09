@@ -165,14 +165,19 @@ module tb_main
     assign pmod_d[6] = mii0_refclk;
     assign pmod_e[6] = mii0_refclk;
 
+    
     // loop-back
     assign pmod_b[2] = pmod_a[4]; // crs <- txen
-    assign pmod_b[5] = pmod_a[5]; // rx0 <- tx0
+    assign pmod_b[5] = pmod_a[0]; // rx0 <- tx0
     assign pmod_b[1] = pmod_c[0]; // rx1 <- tx1
 
     assign pmod_d[2] = pmod_b[4]; // crs <- txen
-    assign pmod_d[5] = pmod_b[5]; // rx0 <- tx0
+    assign pmod_d[5] = pmod_b[0]; // rx0 <- tx0
     assign pmod_d[1] = pmod_c[1]; // rx1 <- tx1
+
+    assign pmod_e[2] = pmod_d[4]; // crs <- txen
+    assign pmod_e[5] = pmod_d[0]; // rx0 <- tx0
+    assign pmod_e[1] = pmod_c[2]; // rx1 <- tx1
 
 
 
