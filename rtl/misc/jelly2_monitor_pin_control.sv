@@ -134,7 +134,12 @@ module jelly2_monitor_pin_control
     
     always_comb begin
         for ( int i = 0; i < OUTPUT_WIDTH; ++i ) begin
-            out_data[i] = in_data[reg_select[i]];
+            if ( reg_override[i] ) begin
+                out_data[i] = reg_out_value[i];
+            end
+            else begin
+                out_data[i] = in_data[reg_select[i]];
+            end
         end
     end
 
