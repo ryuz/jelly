@@ -8,11 +8,11 @@
 #-Wno-UNOPTFLAT
 #-Wno-UNOPTTHREADS
 
--y ../../../../../rtl/rtos
--y ../../../../../rtl/library
--y ../../../../../rtl/bus
--y ../../../../../rtl/image
--y ../../../../../rtl/model
--y ../../../../../rtl/video
--y ../../../../../rtl/math
--y ../../../../../rtl/model
+-y ../../../../../rtl/v2/rtos
+-y ../../../../../rtl/v2/library
+-y ../../../../../rtl/v2/bus
+-y ../../../../../rtl/v2/image
+-y ../../../../../rtl/v2/model
+-y ../../../../../rtl/v2/video
+-y ../../../../../rtl/v2/math
+-y ../../../../../rtl/v2/model

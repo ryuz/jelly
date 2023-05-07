@@ -1,10 +1,10 @@
 -sv
---sourcelibdir ../../../../../rtl/library
---sourcelibdir ../../../../../rtl/jfive
---sourcelibdir ../../../../../rtl/image
---sourcelibdir ../../../../../rtl/math
---sourcelibdir ../../../../../rtl/model
---sourcelibdir ../../../../../rtl/primitive
+--sourcelibdir ../../../../../rtl/v2/library
+--sourcelibdir ../../../../../rtl/v2/jfive
+--sourcelibdir ../../../../../rtl/v2/image
+--sourcelibdir ../../../../../rtl/v2/math
+--sourcelibdir ../../../../../rtl/v2/model
+--sourcelibdir ../../../../../rtl/v2/primitive
 --sourcelibext .v
 --sourcelibext .sv
 

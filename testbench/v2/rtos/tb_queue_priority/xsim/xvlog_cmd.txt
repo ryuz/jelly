@@ -1,11 +1,11 @@
 -sv
---sourcelibdir ../../../../../rtl/rtos
---sourcelibdir ../../../../../rtl/library
---sourcelibdir ../../../../../rtl/bus
---sourcelibdir ../../../../../rtl/peripheral
---sourcelibdir ../../../../../rtl/image
---sourcelibdir ../../../../../rtl/math
---sourcelibdir ../../../../../rtl/model
+--sourcelibdir ../../../../../rtl/v2/rtos
+--sourcelibdir ../../../../../rtl/v2/library
+--sourcelibdir ../../../../../rtl/v2/bus
+--sourcelibdir ../../../../../rtl/v2/peripheral
+--sourcelibdir ../../../../../rtl/v2/image
+--sourcelibdir ../../../../../rtl/v2/math
+--sourcelibdir ../../../../../rtl/v2/model
 --sourcelibext .v
 --sourcelibext .sv
 
