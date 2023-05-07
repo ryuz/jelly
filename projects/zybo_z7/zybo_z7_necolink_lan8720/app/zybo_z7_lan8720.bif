@@ -1,0 +1,5 @@
+all:
+{
+    zybo_z7_lan8720.bit
+}
+

@@ -1,0 +1,12 @@
+-sv
+--sourcelibdir ../../../../../rtl/v1/library
+--sourcelibdir ../../../../../rtl/v1/bus
+--sourcelibdir ../../../../../rtl/v1/gpu
+--sourcelibdir ../../../../../rtl/v1/math
+--sourcelibdir ../../../../../rtl/v1/primitive
+--sourcelibdir ../../../../../rtl/v1/model
+--sourcelibext .v
+--sourcelibext .sv
+
+../tb_texture_sampler.v
+

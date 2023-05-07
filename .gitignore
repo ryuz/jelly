@@ -1,42 +1,97 @@
+
+# special file
 .*
 !.gitignore
 !.python-version
+!.vitis-version
 
+# private file
 _*
 *_
 *_.*
 
-*.json
-*.o
-*.so
-*.bin
-*.bit
-*.dtb
-*.dtbo
-*.obj
-*.vcd
-*.fst
-*.hier
-*.elf
-*.xsa
+# backup
+backup/
+*.bak
+*.back
+Untitled.*
+* copy
+* copy.*
+*コピー
+*コピー.*
 
+# media file
 *.bmp
 *.png
 *.jpg
 *.pgm
 *.ppm
-*.hex
-*.csv
 *.mp4
 *.avi
 
+# binary file
+*.out
+*.elf
+*.o
+*.so
+*.exe
+*.obj
+*.lib
+*.bin
+*.dtb
+*.dtbo
+*.bit
+*.xsa
 
-*.zip
+# wave file
+*.wdb
+*.vcd
+*.fst
+*.hier
+*.gtkw
+*.gtkwave
+
+# data file
+*.hex
+*.csv
+*.json
+*.pickle
+
+# archive
 *.tar
 *.gz
 *.tgz
+*.zip
 *.7z
 
+# Xilinx
+xsim.dir/
+xst/
+iseconfig/
+_xmsgs/
+*.Xil/
+*.cache/
+*.hw/
+*.runs/
+*.sdk/
+*.sim/
+*.srcs/
+*.gen/
+*.gise
+*.ip_user_files/
+*.ioplanning/
+NA/
+
+# Veritak
+veritak_src_files.txt
+veritak_command.txt
+*.vtakdisk
+*.vtakwave
+
+
+
+# other
+*.das
 *.ncb
 *.opt
 *.plg
@@ -52,8 +107,6 @@ _*
 *.jou
 *.log
 *.pb
-*.vtakdisk
-*.vtakwave
 *.sdf
 *.suo
 *.xml
@@ -92,20 +145,16 @@ _*
 *.lst
 *.lnk
 *.vvp
-*.wdb
-*.vcd
-*.fst
-*.das
-*.gtkw
-*.gtkwave
+
+.vs/
+
 
 *_pb2.py
 *_pb2_grpc.py
 
 *_tcl.xpr
 
-veritak_src_files.txt
-veritak_command.txt
+
 p_temp*.txt
 *_log.txt
 out*.txt
@@ -132,21 +181,8 @@ annotated/
 build/
 Debug/
 Release/
-xsim.dir/
-xst/
-.vs/
-iseconfig/
-_xmsgs/
-*.Xil/
-*.cache/
-*.hw/
-*.runs/
-*.sdk/
-*.sim/
-*.srcs/
-*.gen/
-*.gise
-*.ip_user_files/
+
+
 .ipynb_checkpoints/
 doc/build/
 workspace/
@@ -166,12 +202,6 @@ copy_bit.*
 bit_copy.*
 bin_copy.*
 
-*.bak
-*_
-*コピー
-*コピー.*
-* copy.*
-Untitled.*
 
 a.out
 bitmap.h

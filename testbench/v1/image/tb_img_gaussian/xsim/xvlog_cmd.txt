@@ -1,0 +1,9 @@
+-sv
+--sourcelibdir ../../../../../rtl/v1/library
+--sourcelibdir ../../../../../rtl/v1/image
+--sourcelibdir ../../../../../rtl/v1/model
+--sourcelibext .v
+--sourcelibext .sv
+
+../tb_img_gaussian.v
+
