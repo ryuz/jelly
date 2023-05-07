@@ -8,6 +8,7 @@ VIVADO_VERSION  := $(word 1,$(VIVADO_VERSIONS)).$(word 2,$(VIVADO_VERSIONS))
 
 # settings
 PROJECT_NAME = kv260_imx219
+BOARD_NAME   = kv260
 export PRJ_NAME     = $(PROJECT_NAME)_tcl
 export TOP_MODULE   = $(PROJECT_NAME)
 export BOARD_PART   = xilinx.com:kv260_som*
@@ -17,7 +18,6 @@ BOARD_ADDRESS  ?= kria
 BOARD_WORK_DIR ?= git-work/jelly
 
 BIT_FILE = $(PRJ_NAME).runs/impl_1/$(TOP_MODULE).bit
-
 
 
 # directories
@@ -64,11 +64,11 @@ rebuild: clean create build
 create: $(PRJ_NAME).xpr
 
 .PHONY : build
-build: $(BIT_FILE)
+build: $(BIT_FILE) check_log
 
 .PHONY : bit_scp
 bit_scp: $(BIT_FILE)
-	scp $(BIT_FILE) $(BOARD_ADDRESS):$(BOARD_WORK_DIR)/projects/$(PROJECT_NAME)/app
+	scp $(BIT_FILE) $(BOARD_ADDRESS):$(BOARD_WORK_DIR)/projects/$(BOARD_NAME)$(PROJECT_NAME)/app
 
 .PHONY : bit_cp
 bit_cp: $(BIT_FILE)
@@ -80,6 +80,13 @@ $(PRJ_NAME).xpr: $(IP_CORES) $(BD_SCRIPTS)
 $(BIT_FILE): $(PRJ_NAME).xpr $(SOURCES) $(CONSTRAINS)
 	vivado -m64 -mode batch -source $(TOP_DIR)/scripts/vivado_implementation.tcl
 
+.PHONY : check_log
+check_log:
+	@echo "----- synth_1 -----"
+	@cat $(PRJ_NAME).runs/synth_1/runme.log | grep encountered.
+	@echo "----- impl_1 -----"
+	@cat $(PRJ_NAME).runs/impl_1/runme.log | grep encountered.
+
 .PHONY : clean
 clean:
 	-rm -fr .Xil
@@ -90,6 +97,6 @@ clean:
 	-rm -fr $(PRJ_NAME).sim
 	-rm -fr $(PRJ_NAME).srcs
 	-rm -fr $(PRJ_NAME).gen
-	-rm -fr $(PRJ_NAME).xpr
+	-rm -f $(PRJ_NAME).xpr
 	-rm -f vivado*.jou
 	-rm -f vivado*.log

@@ -3,7 +3,7 @@
 <!--                                                         -->
 <!-- Copyright 1986-2021 Xilinx, Inc. All Rights Reserved.   -->
 
-<Project Version="7" Minor="56" Path="/home/ryuji/git-work/jelly_develop/projects/ultra96v2_imx219_hls_sample/syn/vivado2021.2/ultra96v2_imx219_hls_sample.xpr">
+<Project Version="7" Minor="56" Path="/home/ryuji/git-work/jelly_develop/projects/ultra96v2/ultra96v2_imx219_hls_sample/syn/vivado2021.2/ultra96v2_imx219_hls_sample.xpr">
   <DefaultLaunch Dir="$PRUNDIR"/>
   <Configuration>
     <Option Name="Id" Val="04d0077474f14c6f802c05dae35ffa6c"/>

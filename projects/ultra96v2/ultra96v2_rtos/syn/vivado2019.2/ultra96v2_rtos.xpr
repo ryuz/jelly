@@ -3,7 +3,7 @@
 <!--                                                         -->
 <!-- Copyright 1986-2019 Xilinx, Inc. All Rights Reserved.   -->
 
-<Project Version="7" Minor="44" Path="/home/ryuji/git-work/jelly_develop/projects/ultra96v2_rtos/syn/vivado2019.2/ultra96v2_rtos.xpr">
+<Project Version="7" Minor="44" Path="/home/ryuji/git-work/jelly_develop/projects/ultra96v2/ultra96v2_rtos/syn/vivado2019.2/ultra96v2_rtos.xpr">
   <DefaultLaunch Dir="$PRUNDIR"/>
   <Configuration>
     <Option Name="Id" Val="ef9b100bcadb44999ebc470eca7fc372"/>
@@ -21,7 +21,7 @@
     <Option Name="ActiveSimSet" Val="sim_1"/>
     <Option Name="DefaultLib" Val="xil_defaultlib"/>
     <Option Name="ProjectType" Val="Default"/>
-    <Option Name="IPOutputRepo" Val="D:/home/ryuji/git_work/github/jelly_develop/projects/ultra96v2_udmabuf_sample/syn/vivado2019.2/ultra96v2_udmabuf_sample.cache/ip"/>
+    <Option Name="IPOutputRepo" Val="D:/home/ryuji/git_work/github/jelly_develop/projects/ultra96v2/ultra96v2_udmabuf_sample/syn/vivado2019.2/ultra96v2_udmabuf_sample.cache/ip"/>
     <Option Name="IPCachePermission" Val="read"/>
     <Option Name="IPCachePermission" Val="write"/>
     <Option Name="EnableCoreContainer" Val="FALSE"/>

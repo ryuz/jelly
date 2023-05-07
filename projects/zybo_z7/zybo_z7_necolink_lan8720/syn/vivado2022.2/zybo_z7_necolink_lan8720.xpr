@@ -295,6 +295,13 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
+      <File Path="$PPRDIR/../../../../../rtl/v2/network/jelly2_necolink_message.sv">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
       <File Path="$PPRDIR/../../../../../rtl/v2/network/jelly2_necolink_packet_generator.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>

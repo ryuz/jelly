@@ -22,7 +22,7 @@ Vitis 2021.2 を想定しています。
 source /tools/Xilinx/Vitis/2021.2/settings64.sh
 ```
 
-を実行したのちに projects/ultra96v2_hls_sample/syn/tcl に移動し、
+を実行したのちに projects/ultra96v2/ultra96v2_hls_sample/syn/tcl に移動し、
 
 ```
 make
@@ -33,7 +33,7 @@ make
 
 ## HLSのシミュレーション
 
-projects/ultra96v2_hls_sample/hls に移動したのちに
+projects/ultra96v2/ultra96v2_hls_sample/hls に移動したのちに
 
 ```
 make csim
@@ -52,7 +52,7 @@ make cosim
 
 ### xsim でのシミュレーション
 
-projects/ultra96v2_hls_sample/sim/tb_top/xsim に移動したのちに
+projects/ultra96v2/ultra96v2_hls_sample/sim/tb_top/xsim に移動したのちに
 
 ```
 make
@@ -60,7 +60,7 @@ make
 
 ### verilator でのシミュレーション
 
-projects/ultra96v2_hls_sample/sim/tb_top/verilator に移動したのちに
+projects/ultra96v2/ultra96v2_hls_sample/sim/tb_top/verilator に移動したのちに
 
 ```
 make

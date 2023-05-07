@@ -64,7 +64,7 @@ PS用のbitstreamは PC(WindowsやLinuxなど)で Vivado を使って行いま�
 
 Vivado のプロジェクトは
 
-/projects/ultra96v2_jfive_sample/syn/vivado2021.2/ultra96v2_jfive_sample.xpr
+/projects/ultra96v2/ultra96v2_jfive_sample/syn/vivado2021.2/ultra96v2_jfive_sample.xpr
 
 にありますので Vivado で開いてください。
 
@@ -77,14 +77,14 @@ Vivado メニューの「Tools」→「Run Tcl Script」で、プロジェクト
 design_1 が生成されたら「Flow」→「Run Implementation」で合成を行います。正常に合成できれば
 ultra96v2_jfive_sample.bit が出来上がります。
 
-このファイルを projects/ultra96v2_jfive_sample/app にコピーしておいてください。
+このファイルを projects/ultra96v2/ultra96v2_jfive_sample/app にコピーしておいてください。
 
 
 
 ## PSソフト側の作成と実行
 
   Ultra96V2側でのPSソフトのビルドです。
-  projects/ultra96v2_jfive_sample/app を Ultra96 のどこか適当な箇所にコピーします。
+  projects/ultra96v2/ultra96v2_jfive_sample/app を Ultra96 のどこか適当な箇所にコピーします。
 
 ### 動かしてみる
 

@@ -3,7 +3,7 @@
 <!--                                                         -->
 <!-- Copyright 1986-2021 Xilinx, Inc. All Rights Reserved.   -->
 
-<Project Version="7" Minor="56" Path="/home/ryuji/git-work/jelly/projects/kv260_jfive_simple_controller/syn/vivado2021.2/kv260_jfive_simple_controller.xpr">
+<Project Version="7" Minor="56" Path="/home/ryuji/git-work/jelly/projects/kv260/kv260_jfive_simple_controller/syn/vivado2021.2/kv260_jfive_simple_controller.xpr">
   <DefaultLaunch Dir="$PRUNDIR"/>
   <Configuration>
     <Option Name="Id" Val="04d0077474f14c6f802c05dae35ffa6c"/>

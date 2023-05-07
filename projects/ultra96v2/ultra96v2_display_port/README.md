@@ -38,7 +38,7 @@ git clone https://github.com/ryuz/jelly
 ```
 で取得できます。
 
-/projects/ultra96v2_display_port/
+/projects/ultra96v2/ultra96v2_display_port/
 
 以下が今回のプロジェクトです。
 
@@ -49,7 +49,7 @@ PS用のbitstreamは PC(WindowsやLinuxなど)で Vivado を使って行いま�
 
 Vivado のプロジェクトは
 
-/projects/ultra96v2_display_port/syn/vivado2019.2/ultra96v2_display_port.xpr
+/projects/ultra96v2/ultra96v2_display_port/syn/vivado2019.2/ultra96v2_display_port.xpr
 
 にありますので Vivado で開いてください。
 
@@ -62,12 +62,12 @@ Vivado メニューの「Tools」→「Run Tcl Script」で、プロジェクト
 design_1 が生成されたら「Flow」→「Run Implementation」で合成を行います。正常に合成できれば
 ultra96v2_display_port.bit が出来上がります。
 
-このファイルを projects/ultra96v2_display_port/app にコピーしておいてください。
+このファイルを projects/ultra96v2/ultra96v2_display_port/app にコピーしておいてください。
 
 
 ## ソフト側の作成と実行
   Ultra96V2側のソフトの開発です。
-  projects/ultra96v2_display_port/app を Ultra96 のどこか適当な箇所にコピーします。
+  projects/ultra96v2/ultra96v2_display_port/app を Ultra96 のどこか適当な箇所にコピーします。
   Ultra96V2側の作業は Debian のブートイメージで起動したあと、常に起動したまま行うことが可能で、運用したままPLとソフトをアップデートすることも可能なのがこのブートイメージの素晴らしいところです。
 
   Ultra96V2 の debian でも git は動きますので、こちらでも clone する手があります。

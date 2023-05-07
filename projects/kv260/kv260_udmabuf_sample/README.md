@@ -43,7 +43,7 @@ git clone https://github.com/ryuz/jelly
 
 で取得できます。
 
-/projects/kv260_udmabuf_sample/
+/projects/kv260/kv260_udmabuf_sample/
 
 以下が今回のプロジェクトです。
 
@@ -54,7 +54,7 @@ PS用のbitstreamは PC(WindowsやLinuxなど)で Vivado を使って行いま�
 
 Vivado のプロジェクトは
 
-/projects/kv260_udmabuf_sample/syn/vivado2021.2/kv260_udmabuf_sample.xpr
+/projects/kv260/kv260_udmabuf_sample/syn/vivado2021.2/kv260_udmabuf_sample.xpr
 
 にありますので Vivado で開いてください。
 
@@ -67,7 +67,7 @@ Vivado メニューの「Tools」→「Run Tcl Script」で、プロジェクト
 design_1 が生成されたら「Flow」→「Run Implementation」で合成を行います。正常に合成できれば
 kv260_udmabuf_sample.bit が出来上がります。
 
-このファイルを projects/kv260_udmabuf_sample/app にコピーしておいてください。
+このファイルを projects/kv260/kv260_udmabuf_sample/app にコピーしておいてください。
 
 
 なお、本PLは用の bitstream は
@@ -82,7 +82,7 @@ kv260_udmabuf_sample.bit が出来上がります。
 ## PSソフト側の作成と実行
 
   KV260側でのPSソフトのビルドです。
-  projects/kv260_udmabuf_sample/app を KV260 のどこか適当な箇所にコピーします。
+  projects/kv260/kv260_udmabuf_sample/app を KV260 のどこか適当な箇所にコピーします。
   KV260側の作業は Linux起動したあと、常に起動したまま行うことが可能で、運用したままPLとソフトをアップデートすることも可能なのがこのブートイメージの素晴らしいところです。
 
   KV260 の Linux側で git clone する手もあります。
@@ -308,7 +308,7 @@ sudo rm /lib/firmware/kv260_udmabuf_sample.bit.bin
 
 このやり方は[別の記事](https://ryuz.qrunch.io/entries/ijzqKpPDK4nWbGIU)で紹介しております。
 
-詳しくは[main.cpp](https://github.com/ryuz/jelly/blob/master/projects/ultra96v2_udmabuf_sample/app/main.cpp)をお読みください。
+詳しくは[main.cpp](https://github.com/ryuz/jelly/blob/master/projects/ultra96v2/ultra96v2_udmabuf_sample/app/main.cpp)をお読みください。
 
 うまく動けば、udmabuf領域にPLのコアからと、Cortex-A53 の双方からアクセスして、データがやり取りできることが確認できます。
 また、uio にマップした RADIO_LED もソフトウェアから点滅させています。

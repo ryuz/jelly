@@ -3,7 +3,7 @@
 <!--                                                         -->
 <!-- Copyright 1986-2021 Xilinx, Inc. All Rights Reserved.   -->
 
-<Project Version="7" Minor="56" Path="/home/ryuji/git-work/jelly/projects/kv260_jfive_micro_controller/syn/vivado2021.2/kv260_jfive_micro_controller.xpr">
+<Project Version="7" Minor="56" Path="/home/ryuji/git-work/jelly/projects/kv260/kv260_jfive_micro_controller/syn/vivado2021.2/kv260_jfive_micro_controller.xpr">
   <DefaultLaunch Dir="$PRUNDIR"/>
   <Configuration>
     <Option Name="Id" Val="04d0077474f14c6f802c05dae35ffa6c"/>
@@ -46,7 +46,7 @@
     <Option Name="ActiveSimSet" Val="sim_1"/>
     <Option Name="DefaultLib" Val="xil_defaultlib"/>
     <Option Name="ProjectType" Val="Default"/>
-    <Option Name="IPOutputRepo" Val="/home/ryuji/git-work/jelly/projects/kv260_imx219/syn/vivado2021.2/kv260_imx219.cache/ip"/>
+    <Option Name="IPOutputRepo" Val="/home/ryuji/git-work/jelly/projects/kv260/kv260_imx219/syn/vivado2021.2/kv260_imx219.cache/ip"/>
     <Option Name="IPCachePermission" Val="read"/>
     <Option Name="IPCachePermission" Val="write"/>
     <Option Name="EnableCoreContainer" Val="FALSE"/>

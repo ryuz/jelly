@@ -73,7 +73,7 @@ PS用のbitstreamは PC(WindowsやLinuxなど)で Vivado を使って行いま�
 
 Vivado のプロジェクトは
 
-/projects/kv260_jfive_micro_controller/syn/vivado2021.2/kv260_jfive_micro_controller.xpr
+/projects/kv260/kv260_jfive_micro_controller/syn/vivado2021.2/kv260_jfive_micro_controller.xpr
 
 にありますので Vivado で開いてください。
 
@@ -86,14 +86,14 @@ Vivado メニューの「Tools」→「Run Tcl Script」で、プロジェクト
 design_1 が生成されたら「Flow」→「Run Implementation」で合成を行います。正常に合成できれば
 kv260_jfive_micro_controller.bit が出来上がります。
 
-このファイルを projects/kv260_jfive_micro_controller/app にコピーしておいてください。
+このファイルを projects/kv260/kv260_jfive_micro_controller/app にコピーしておいてください。
 
 
 
 ## PSソフト側の作成と実行
 
   KV260 側でのPSソフトのビルドです。
-  projects/kv260_jfive_micro_controller/app を KV260 のどこか適当な箇所にコピーします。
+  projects/kv260/kv260_jfive_micro_controller/app を KV260 のどこか適当な箇所にコピーします。
 
 ### 動かしてみる
 

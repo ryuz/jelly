@@ -36,7 +36,7 @@ git clone https://github.com/ryuz/jelly.git
 
 ### PC側の Vivadoで bit ファイルを作る
 
-projects/kv260_imx219/syn/vivado2021.2
+projects/kv260/kv260_imx219/syn/vivado2021.2
 
 に移動して Vivado から kv260_imx219.xpr を開いてください。
 
@@ -56,7 +56,7 @@ kv260_imx219.runs/impl_1
 
 ### KV260 でPSソフトをコンパイルして実行
 
-projects/kv260_imx219/app の内容一式と先ほど合成した kv260_imx219.bit を、KV260 の Ubuntu で作業できる適当なディレクトリにコピーします。bitファイルも同じ app ディレクトリに入れてください。
+projects/kv260/kv260_imx219/app の内容一式と先ほど合成した kv260_imx219.bit を、KV260 の Ubuntu で作業できる適当なディレクトリにコピーします。bitファイルも同じ app ディレクトリに入れてください。
 
 を、KV260 側では Ubuntu が起動済みで ssh などで接続ができている前提ですので scp や samba などでコピーすると良いでしょう。app に関しては を、KV260 から git で clone することも可能です。
 

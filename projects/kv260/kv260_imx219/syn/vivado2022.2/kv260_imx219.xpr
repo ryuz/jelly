@@ -3,7 +3,7 @@
 <!--                                                         -->
 <!-- Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.   -->
 
-<Project Version="7" Minor="61" Path="/home/ryuji/git-work/jelly/projects/kv260_imx219/syn/vivado2022.2/kv260_imx219.xpr">
+<Project Version="7" Minor="61" Path="/home/ryuji/git-work/jelly/projects/kv260/kv260_imx219/syn/vivado2022.2/kv260_imx219.xpr">
   <DefaultLaunch Dir="$PRUNDIR"/>
   <Configuration>
     <Option Name="Id" Val="04d0077474f14c6f802c05dae35ffa6c"/>

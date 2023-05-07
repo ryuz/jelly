@@ -3,7 +3,7 @@
 <!--                                                         -->
 <!-- Copyright 1986-2019 Xilinx, Inc. All Rights Reserved.   -->
 
-<Project Version="7" Minor="44" Path="D:/home/ryuji/git_work/github/jelly_develop/projects/ultra96v2_mpu9250/syn/vivado2019.2/ultra96v2_mpu9250.xpr">
+<Project Version="7" Minor="44" Path="D:/home/ryuji/git_work/github/jelly_develop/projects/ultra96v2/ultra96v2_mpu9250/syn/vivado2019.2/ultra96v2_mpu9250.xpr">
   <DefaultLaunch Dir="$PRUNDIR"/>
   <Configuration>
     <Option Name="Id" Val="ef9b100bcadb44999ebc470eca7fc372"/>

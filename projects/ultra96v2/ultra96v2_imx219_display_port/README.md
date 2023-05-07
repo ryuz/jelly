@@ -44,7 +44,7 @@ git clone https://github.com/ryuz/jelly.git
 
 ### Vivadoで bit ファイルを作る
 
-projects/ultra96v2_imx219_display_port/syn/vivado2021.2
+projects/ultra96v2/ultra96v2_imx219_display_port/syn/vivado2021.2
 
 に移動して Vivado から ultra96v2_imx219_display_port.xpr を開いてください。
 
@@ -68,7 +68,7 @@ ultra96v2_imx219_display_port.runs/impl_1
 
 ### Ultra96V2 で実行
 
-projects/ultra96v2_imx219_display_port/app の内容一式と先ほど合成した ultra96v2_imx219_display_port.bit を、Ultra96V2 の Debian で作業できる適当なディレクトリにコピーします。bitファイルも同じappディレクトリに入れてください。
+projects/ultra96v2/ultra96v2_imx219_display_port/app の内容一式と先ほど合成した ultra96v2_imx219_display_port.bit を、Ultra96V2 の Debian で作業できる適当なディレクトリにコピーします。bitファイルも同じappディレクトリに入れてください。
 
 Ultra96V2 側では Debian が起動済みで ssh などで接続ができている前提ですので scp や samba などでコピーすると良いでしょう。app に関しては Ultra96V2 から git で clone することも可能です。
 

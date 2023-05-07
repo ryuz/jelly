@@ -46,7 +46,7 @@ git clone https://github.com/ryuz/jelly
 
 で取得できます。
 
-/projects/ultra96v2_udmabuf_sample/
+/projects/ultra96v2/ultra96v2_udmabuf_sample/
 
 以下が今回のプロジェクトです。
 
@@ -57,7 +57,7 @@ PS用のbitstreamは PC(WindowsやLinuxなど)で Vivado を使って行いま�
 
 Vivado のプロジェクトは
 
-/projects/ultra96v2_udmabuf_sample/syn/vivado2021.2/ultra96v2_udmabuf_sample.xpr
+/projects/ultra96v2/ultra96v2_udmabuf_sample/syn/vivado2021.2/ultra96v2_udmabuf_sample.xpr
 
 にありますので Vivado で開いてください。
 
@@ -70,7 +70,7 @@ Vivado メニューの「Tools」→「Run Tcl Script」で、プロジェクト
 design_1 が生成されたら「Flow」→「Run Implementation」で合成を行います。正常に合成できれば
 ultra96v2_udmabuf_sample.bit が出来上がります。
 
-このファイルを projects/ultra96v2_udmabuf_sample/app にコピーしておいてください。
+このファイルを projects/ultra96v2/ultra96v2_udmabuf_sample/app にコピーしておいてください。
 
 
 なお、本PLは用の bitstream は
@@ -85,7 +85,7 @@ ultra96v2_udmabuf_sample.bit が出来上がります。
 ## PSソフト側の作成と実行
 
   Ultra96V2側でのPSソフトのビルドです。
-  projects/ultra96v2_udmabuf_sample/app を Ultra96 のどこか適当な箇所にコピーします。
+  projects/ultra96v2/ultra96v2_udmabuf_sample/app を Ultra96 のどこか適当な箇所にコピーします。
   Ultra96V2側の作業は Debian のブートイメージで起動したあと、常に起動したまま行うことが可能で、運用したままPLとソフトをアップデートすることも可能なのがこのブートイメージの素晴らしいところです。
 
   Ultra96V2 の debian でも git は動きますので、こちらでも clone する手があります。
@@ -315,7 +315,7 @@ sudo rm /lib/firmware/ultra96v2_udmabuf_sample.bit.bin
 
 このやり方は[別の記事](https://ryuz.qrunch.io/entries/ijzqKpPDK4nWbGIU)で紹介しております。
 
-詳しくは[main.cpp](https://github.com/ryuz/jelly/blob/master/projects/ultra96v2_udmabuf_sample/app/main.cpp)をお読みください。
+詳しくは[main.cpp](https://github.com/ryuz/jelly/blob/master/projects/ultra96v2/ultra96v2_udmabuf_sample/app/main.cpp)をお読みください。
 
 うまく動けば、udmabuf領域にPLのコアからと、Cortex-A53 の双方からアクセスして、データがやり取りできることが確認できます。
 また、uio にマップした RADIO_LED もソフトウェアから点滅させています。

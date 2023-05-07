@@ -88,7 +88,7 @@ module jelly2_necolink_message
                 .DATA_WIDTH         (8                  ),
                 .MEM_SIZE           (MESSAGE_BYTES      ),
                 .RAM_TYPE           (BUF_RAM_TYPE       ),
-                .DOUT_REGS          (1                  ),
+                .DOUT_REGS          (1                  )
             )
         u_ram_simple_dualport
             (

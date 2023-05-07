@@ -23,7 +23,7 @@ Vitis 2021.2 を想定しています。
 source /tools/Xilinx/Vitis/2021.2/settings64.sh
 ```
 
-を実行したのちに projects/ultra96v2_imx219_hls_sample/syn/tcl に移動し、
+を実行したのちに projects/ultra96v2/ultra96v2_imx219_hls_sample/syn/tcl に移動し、
 
 ```
 make
@@ -34,7 +34,7 @@ make
 
 ## HLSのシミュレーション
 
-projects/ultra96v2_imx219_hls_sample/hls に移動したのちに
+projects/ultra96v2/ultra96v2_imx219_hls_sample/hls に移動したのちに
 
 ```
 make csim
@@ -53,7 +53,7 @@ make cosim
 
 ### xsim でのシミュレーション
 
-projects/ultra96v2_imx219_hls_sample/sim/tb_top/xsim に移動したのちに
+projects/ultra96v2/ultra96v2_imx219_hls_sample/sim/tb_top/xsim に移動したのちに
 
 ```
 make
@@ -61,7 +61,7 @@ make
 
 ### verilator でのシミュレーション
 
-projects/ultra96v2_imx219_hls_sample/sim/tb_top/verilator に作成中ですが、HLS の出力に verilator 未対応出力があるようで対応できていません。
+projects/ultra96v2/ultra96v2_imx219_hls_sample/sim/tb_top/verilator に作成中ですが、HLS の出力に verilator 未対応出力があるようで対応できていません。
 
 Vitis 2019.2 ではシミュレーションは動作しましたが、合成時に Initiation Interval = 1 が達成出来ないため動作しません。
 

@@ -3,7 +3,7 @@
 <!--                                                         -->
 <!-- Copyright 1986-2019 Xilinx, Inc. All Rights Reserved.   -->
 
-<Project Version="7" Minor="44" Path="I:/jelly_develop/projects/ultra96v2_ps_test/syn/vivado2019.2/ultra96v2_ps_test.xpr">
+<Project Version="7" Minor="44" Path="I:/jelly_develop/projects/ultra96v2/ultra96v2_ps_test/syn/vivado2019.2/ultra96v2_ps_test.xpr">
   <DefaultLaunch Dir="$PRUNDIR"/>
   <Configuration>
     <Option Name="Id" Val="749337c84b7f44adb4773b9e10d5f553"/>
