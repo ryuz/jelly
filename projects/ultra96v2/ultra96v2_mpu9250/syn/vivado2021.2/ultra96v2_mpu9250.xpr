@@ -105,168 +105,168 @@
           <Proxy FileSetName="design_1_axi_protocol_convert_0_0"/>
         </CompFileExtendedInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/bus/jelly_axi4l_to_wishbone.v">
+      <File Path="$PPRDIR/../../../../../rtl/v1/bus/jelly_axi4l_to_wishbone.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/peripheral/jelly_i2c.v">
+      <File Path="$PPRDIR/../../../../../rtl/v1/peripheral/jelly_i2c.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/peripheral/jelly_i2c_core.v">
+      <File Path="$PPRDIR/../../../../../rtl/v1/peripheral/jelly_i2c_core.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/peripheral/jelly_interval_timer.v">
+      <File Path="$PPRDIR/../../../../../rtl/v1/peripheral/jelly_interval_timer.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/library/jelly_pipeline_control.v">
+      <File Path="$PPRDIR/../../../../../rtl/v1/library/jelly_pipeline_control.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/library/jelly_pipeline_insert_ff.v">
+      <File Path="$PPRDIR/../../../../../rtl/v1/library/jelly_pipeline_insert_ff.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/misc/jelly2_communication_pipe.sv">
+      <File Path="$PPRDIR/../../../../../rtl/v2/misc/jelly2_communication_pipe.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/misc/jelly2_communication_pipes.sv">
+      <File Path="$PPRDIR/../../../../../rtl/v2/misc/jelly2_communication_pipes.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/library/jelly2_data_shift_register_lut.sv">
+      <File Path="$PPRDIR/../../../../../rtl/v2/library/jelly2_data_shift_register_lut.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/library/jelly2_fifo.sv">
+      <File Path="$PPRDIR/../../../../../rtl/v2/library/jelly2_fifo.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/library/jelly2_fifo_fwtf.sv">
+      <File Path="$PPRDIR/../../../../../rtl/v2/library/jelly2_fifo_fwtf.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/library/jelly2_fifo_ram.sv">
+      <File Path="$PPRDIR/../../../../../rtl/v2/library/jelly2_fifo_ram.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/library/jelly2_fifo_read_fwtf.sv">
+      <File Path="$PPRDIR/../../../../../rtl/v2/library/jelly2_fifo_read_fwtf.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/library/jelly2_fifo_shifter.sv">
+      <File Path="$PPRDIR/../../../../../rtl/v2/library/jelly2_fifo_shifter.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/library/jelly2_ram_simple_dualport.sv">
+      <File Path="$PPRDIR/../../../../../rtl/v2/library/jelly2_ram_simple_dualport.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/rtos/jelly2_rtos.sv">
+      <File Path="$PPRDIR/../../../../../rtl/v2/rtos/jelly2_rtos.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/rtos/jelly2_rtos_core.sv">
+      <File Path="$PPRDIR/../../../../../rtl/v2/rtos/jelly2_rtos_core.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/rtos/jelly2_rtos_eventflag.sv">
+      <File Path="$PPRDIR/../../../../../rtl/v2/rtos/jelly2_rtos_eventflag.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/rtos/jelly2_rtos_queue.sv">
+      <File Path="$PPRDIR/../../../../../rtl/v2/rtos/jelly2_rtos_queue.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/rtos/jelly2_rtos_queue_fifo.sv">
+      <File Path="$PPRDIR/../../../../../rtl/v2/rtos/jelly2_rtos_queue_fifo.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/rtos/jelly2_rtos_queue_priority.sv">
+      <File Path="$PPRDIR/../../../../../rtl/v2/rtos/jelly2_rtos_queue_priority.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/rtos/jelly2_rtos_semaphore.sv">
+      <File Path="$PPRDIR/../../../../../rtl/v2/rtos/jelly2_rtos_semaphore.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/rtos/jelly2_rtos_task.sv">
+      <File Path="$PPRDIR/../../../../../rtl/v2/rtos/jelly2_rtos_task.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/rtos/jelly2_rtos_timer.sv">
+      <File Path="$PPRDIR/../../../../../rtl/v2/rtos/jelly2_rtos_timer.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>

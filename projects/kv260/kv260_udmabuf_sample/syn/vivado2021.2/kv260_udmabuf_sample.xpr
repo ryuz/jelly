@@ -102,14 +102,14 @@
           <Proxy FileSetName="design_1_proc_sys_reset_0_0"/>
         </CompFileExtendedInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/bus/jelly_axi4l_to_wishbone.v">
+      <File Path="$PPRDIR/../../../../../rtl/v1/bus/jelly_axi4l_to_wishbone.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/peripheral/jelly_interval_timer.v">
+      <File Path="$PPRDIR/../../../../../rtl/v1/peripheral/jelly_interval_timer.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>

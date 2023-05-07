@@ -20,14 +20,14 @@
 
 -y ../../stub
 -y ../../../rtl
--y ../../../../../rtl/library
--y ../../../../../rtl/bus
--y ../../../../../rtl/dma
--y ../../../../../rtl/math
--y ../../../../../rtl/primitive
--y ../../../../../rtl/rtos
--y ../../../../../rtl/image
--y ../../../../../rtl/video
--y ../../../../../rtl/peripheral
--y ../../../../../rtl/misc
--y ../../../../../rtl/model
+-y ../../../../../rtl/v2/library
+-y ../../../../../rtl/v2/bus
+-y ../../../../../rtl/v2/dma
+-y ../../../../../rtl/v2/math
+-y ../../../../../rtl/v2/primitive
+-y ../../../../../rtl/v2/rtos
+-y ../../../../../rtl/v2/image
+-y ../../../../../rtl/v2/video
+-y ../../../../../rtl/v2/peripheral
+-y ../../../../../rtl/v2/misc
+-y ../../../../../rtl/v2/model

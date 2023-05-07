@@ -13,7 +13,8 @@ export BOARD_PART   = xilinx.com:kv260_som*
 export DEVICE_PART  =
 
 # directories
-TOP_DIR = ../../../..
+TOP_DIR = ../../../../..
+
 PRJ_DIR = ../..
 
 
@@ -23,30 +24,30 @@ export HLS_IP
 
 # sources
 SOURCES  = $(PRJ_DIR)/rtl/kv260_mpu9250.sv
-SOURCES += $(TOP_DIR)/rtl/bus/jelly_axi4l_to_wishbone.v
-SOURCES += $(TOP_DIR)/rtl/peripheral/jelly_interval_timer.v
-SOURCES += $(TOP_DIR)/rtl/peripheral/jelly_i2c.v
-SOURCES += $(TOP_DIR)/rtl/peripheral/jelly_i2c_core.v
-SOURCES += $(TOP_DIR)/rtl/library/jelly_pipeline_control.v
-SOURCES += $(TOP_DIR)/rtl/library/jelly_pipeline_insert_ff.v
-SOURCES += $(TOP_DIR)/rtl/misc/jelly2_communication_pipe.sv
-SOURCES += $(TOP_DIR)/rtl/misc/jelly2_communication_pipes.sv
-SOURCES += $(TOP_DIR)/rtl/library/jelly2_data_shift_register_lut.sv
-SOURCES += $(TOP_DIR)/rtl/library/jelly2_fifo.sv
-SOURCES += $(TOP_DIR)/rtl/library/jelly2_fifo_fwtf.sv
-SOURCES += $(TOP_DIR)/rtl/library/jelly2_fifo_ram.sv
-SOURCES += $(TOP_DIR)/rtl/library/jelly2_fifo_read_fwtf.sv
-SOURCES += $(TOP_DIR)/rtl/library/jelly2_fifo_shifter.sv
-SOURCES += $(TOP_DIR)/rtl/library/jelly2_ram_simple_dualport.sv
-SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos.sv
-SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos_core.sv
-SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos_eventflag.sv
-SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos_queue.sv
-SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos_queue_fifo.sv
-SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos_queue_priority.sv
-SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos_semaphore.sv
-SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos_task.sv
-SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos_timer.sv
+SOURCES += $(TOP_DIR)/rtl/v1/bus/jelly_axi4l_to_wishbone.v
+SOURCES += $(TOP_DIR)/rtl/v1/peripheral/jelly_interval_timer.v
+SOURCES += $(TOP_DIR)/rtl/v1/peripheral/jelly_i2c.v
+SOURCES += $(TOP_DIR)/rtl/v1/peripheral/jelly_i2c_core.v
+SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_pipeline_control.v
+SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_pipeline_insert_ff.v
+SOURCES += $(TOP_DIR)/rtl/v2/v1/misc/jelly_communication_pipe.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/misc/jelly_communication_pipes.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/library/jelly_data_shift_register_lut.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/library/jelly_fifo.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/library/jelly_fifo_fwtf.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/library/jelly_fifo_ram.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/library/jelly_fifo_read_fwtf.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/library/jelly_fifo_shifter.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/library/jelly_ram_simple_dualport.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/rtos/jelly_rtos.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/rtos/jelly_rtos_core.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/rtos/jelly_rtos_eventflag.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/rtos/jelly_rtos_queue.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/rtos/jelly_rtos_queue_fifo.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/rtos/jelly_rtos_queue_priority.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/rtos/jelly_rtos_semaphore.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/rtos/jelly_rtos_task.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/rtos/jelly_rtos_timer.sv
 
 export SOURCES
 

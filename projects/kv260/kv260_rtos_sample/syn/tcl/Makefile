@@ -13,7 +13,8 @@ export BOARD_PART   = xilinx.com:kv260_som*
 export DEVICE_PART  =
 
 # directories
-TOP_DIR = ../../../..
+TOP_DIR = ../../../../..
+
 PRJ_DIR = ../..
 
 
@@ -23,17 +24,17 @@ export HLS_IP
 
 # sources
 SOURCES  = $(PRJ_DIR)/rtl/kv260_rtos_sample.sv
-SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos.sv
-SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos_core.sv
-SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos_queue.sv
-SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos_queue_priority.sv
-SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos_queue_fifo.sv
-SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos_task.sv
-SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos_eventflag.sv
-SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos_semaphore.sv
-SOURCES += $(TOP_DIR)/rtl/rtos/jelly2_rtos_timer.sv
-SOURCES += $(TOP_DIR)/rtl/bus/jelly_axi4l_to_wishbone.v
-SOURCES += $(TOP_DIR)/rtl/peripheral/jelly_interval_timer.v
+SOURCES += $(TOP_DIR)/rtl/v2/v1/rtos/jelly_rtos.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/rtos/jelly_rtos_core.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/rtos/jelly_rtos_queue.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/rtos/jelly_rtos_queue_priority.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/rtos/jelly_rtos_queue_fifo.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/rtos/jelly_rtos_task.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/rtos/jelly_rtos_eventflag.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/rtos/jelly_rtos_semaphore.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/rtos/jelly_rtos_timer.sv
+SOURCES += $(TOP_DIR)/rtl/v1/bus/jelly_axi4l_to_wishbone.v
+SOURCES += $(TOP_DIR)/rtl/v1/peripheral/jelly_interval_timer.v
 export SOURCES
 
 # IP cores

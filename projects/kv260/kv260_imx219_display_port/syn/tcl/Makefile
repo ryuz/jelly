@@ -13,7 +13,8 @@ export BOARD_PART  = xilinx.com:kv260_som*
 export DEVICE_PART =
 
 # directories
-TOP_DIR = ../../../..
+TOP_DIR = ../../../../..
+
 PRJ_DIR = ../..
 
 # include

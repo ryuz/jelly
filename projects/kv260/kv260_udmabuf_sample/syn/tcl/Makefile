@@ -13,7 +13,8 @@ export BOARD_PART   = xilinx.com:kv260_som*
 export DEVICE_PART  =
 
 # directories
-TOP_DIR = ../../../..
+TOP_DIR = ../../../../..
+
 PRJ_DIR = ../..
 
 
@@ -25,8 +26,8 @@ export HLS_IP
 SOURCES  = $(PRJ_DIR)/rtl/kv260_udmabuf_sample.v
 SOURCES += $(PRJ_DIR)/rtl/test_dma.v
 SOURCES += $(PRJ_DIR)/rtl/test_dma_core.v
-SOURCES += $(TOP_DIR)/rtl/bus/jelly_axi4l_to_wishbone.v
-SOURCES += $(TOP_DIR)/rtl/peripheral/jelly_interval_timer.v
+SOURCES += $(TOP_DIR)/rtl/v1/bus/jelly_axi4l_to_wishbone.v
+SOURCES += $(TOP_DIR)/rtl/v1/peripheral/jelly_interval_timer.v
 export SOURCES
 
 # IP cores

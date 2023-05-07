@@ -21,7 +21,8 @@ BIT_FILE = $(PRJ_NAME).runs/impl_1/$(TOP_MODULE).bit
 
 
 # directories
-TOP_DIR = ../../../..
+TOP_DIR = ../../../../..
+
 PRJ_DIR = ../..
 
 # include

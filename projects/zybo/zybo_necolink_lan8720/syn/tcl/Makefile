@@ -21,7 +21,8 @@ BIT_FILE = $(PRJ_NAME).runs/impl_1/$(TOP_MODULE).bit
 
 
 # directories
-TOP_DIR = ../../../..
+TOP_DIR = ../../../../..
+
 PRJ_DIR = ../..
 
 # include
@@ -59,28 +60,28 @@ SOURCES += $(JELLYVL_DIR)/jellyvl_synctimer_adjuster_driver.sv
 SOURCES += $(JELLYVL_DIR)/jellyvl_synctimer_core.sv
 SOURCES += $(JELLYVL_DIR)/jellyvl_synctimer_timer.sv
 SOURCES += $(JELLYVL_DIR)/jellyvl_synctimer_limitter.sv
-#SOURCES += $(TOP_DIR)/rtl/library/jelly2_data_ff_pack.sv
-#SOURCES += $(TOP_DIR)/rtl/library/jelly2_data_shift_register_lut.sv
-#SOURCES += $(TOP_DIR)/rtl/library/jelly2_fifo.sv
-#SOURCES += $(TOP_DIR)/rtl/library/jelly2_fifo_async_fwtf.sv
-#SOURCES += $(TOP_DIR)/rtl/library/jelly2_fifo_fwtf.sv
-#SOURCES += $(TOP_DIR)/rtl/library/jelly2_fifo_generic_fwtf.sv
-#SOURCES += $(TOP_DIR)/rtl/library/jelly2_fifo_ram.sv
-#SOURCES += $(TOP_DIR)/rtl/library/jelly2_fifo_read_fwtf.sv
-#SOURCES += $(TOP_DIR)/rtl/library/jelly2_fifo_shifter.sv
-#SOURCES += $(TOP_DIR)/rtl/library/jelly2_func_pack.sv
-#SOURCES += $(TOP_DIR)/rtl/library/jelly2_func_unpack.sv
-#SOURCES += $(TOP_DIR)/rtl/library/jelly2_ram_simple_dualport.sv
-#SOURCES += $(TOP_DIR)/rtl/library/jelly2_stream_width_convert.sv
-#SOURCES += $(TOP_DIR)/rtl/library/jelly_data_ff.v
-#SOURCES += $(TOP_DIR)/rtl/library/jelly_fifo_async.v
-#SOURCES += $(TOP_DIR)/rtl/library/jelly_func_binary_to_graycode.v
-#SOURCES += $(TOP_DIR)/rtl/library/jelly_func_graycode_to_binary.v
-#SOURCES += $(TOP_DIR)/rtl/library/jelly_pipeline_control.v
-#SOURCES += $(TOP_DIR)/rtl/library/jelly_pipeline_insert_ff.v
-#SOURCES += $(TOP_DIR)/rtl/library/jelly_ram_simple_dualport.v
-#SOURCES += $(TOP_DIR)/rtl/library/jelly_reset.v
-#SOURCES += $(TOP_DIR)/rtl/math/jelly2_calc_crc.sv
+#SOURCES += $(TOP_DIR)/rtl/v2/v1/library/jelly_data_ff_pack.sv
+#SOURCES += $(TOP_DIR)/rtl/v2/v1/library/jelly_data_shift_register_lut.sv
+#SOURCES += $(TOP_DIR)/rtl/v2/v1/library/jelly_fifo.sv
+#SOURCES += $(TOP_DIR)/rtl/v2/v1/library/jelly_fifo_async_fwtf.sv
+#SOURCES += $(TOP_DIR)/rtl/v2/v1/library/jelly_fifo_fwtf.sv
+#SOURCES += $(TOP_DIR)/rtl/v2/v1/library/jelly_fifo_generic_fwtf.sv
+#SOURCES += $(TOP_DIR)/rtl/v2/v1/library/jelly_fifo_ram.sv
+#SOURCES += $(TOP_DIR)/rtl/v2/v1/library/jelly_fifo_read_fwtf.sv
+#SOURCES += $(TOP_DIR)/rtl/v2/v1/library/jelly_fifo_shifter.sv
+#SOURCES += $(TOP_DIR)/rtl/v2/v1/library/jelly_func_pack.sv
+#SOURCES += $(TOP_DIR)/rtl/v2/v1/library/jelly_func_unpack.sv
+#SOURCES += $(TOP_DIR)/rtl/v2/v1/library/jelly_ram_simple_dualport.sv
+#SOURCES += $(TOP_DIR)/rtl/v2/v1/library/jelly_stream_width_convert.sv
+#SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_data_ff.v
+#SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_fifo_async.v
+#SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_func_binary_to_graycode.v
+#SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_func_graycode_to_binary.v
+#SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_pipeline_control.v
+#SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_pipeline_insert_ff.v
+#SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_ram_simple_dualport.v
+#SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_reset.v
+#SOURCES += $(TOP_DIR)/rtl/v2/v1/math/jelly_calc_crc.sv
 SOURCES += $(JELLY_RTL_SOURCES)
 export SOURCES
 

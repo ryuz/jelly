@@ -13,7 +13,7 @@ BIN_FILE  = $(BIT_FILE).bin
 FIRMWARE_PATH = /lib/firmware
 DEVTREE_PATH  = /configfs/device-tree
 
-CFLAGS  += -g -O0 -I../../../include
+CFLAGS  += -g -O0 -I../../../../include
 LDFLAGS += -g -O0 
 
 OBJS = main.o

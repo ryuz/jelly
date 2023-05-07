@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-module jelly_rtos_axi4l
+module jelly2_rtos_axi4l
         #(
             parameter                                   AXI4L_ADDR_WIDTH   = 29,
             parameter                                   AXI4L_DATA_WIDTH   = 32,

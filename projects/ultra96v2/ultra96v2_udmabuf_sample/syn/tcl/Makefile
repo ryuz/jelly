@@ -13,7 +13,8 @@ export BOARD_PART   = avnet.com:ultra96v2*
 export DEVICE_PART  = xczu3eg-sbva484-1-i
 
 # directories
-TOP_DIR = ../../../..
+TOP_DIR = ../../../../..
+
 PRJ_DIR = ../..
 
 
@@ -25,8 +26,8 @@ export HLS_IP
 SOURCES  = $(PRJ_DIR)/rtl/ultra96v2_udmabuf_sample.v
 SOURCES += $(PRJ_DIR)/rtl/test_dma.v
 SOURCES += $(PRJ_DIR)/rtl/test_dma_core.v
-SOURCES += $(TOP_DIR)/rtl/bus/jelly_axi4l_to_wishbone.v
-SOURCES += $(TOP_DIR)/rtl/peripheral/jelly_interval_timer.v
+SOURCES += $(TOP_DIR)/rtl/v1/bus/jelly_axi4l_to_wishbone.v
+SOURCES += $(TOP_DIR)/rtl/v1/peripheral/jelly_interval_timer.v
 export SOURCES
 
 # IP cores

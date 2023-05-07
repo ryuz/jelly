@@ -13,7 +13,8 @@ export BOARD_PART   = avnet.com:ultra96v2*
 export DEVICE_PART  = xczu3eg-sbva484-1-i
 
 # directories
-TOP_DIR = ../../../..
+TOP_DIR = ../../../../..
+
 PRJ_DIR = ../..
 
 
@@ -23,14 +24,14 @@ export HLS_IP
 
 # sources
 SOURCES  = $(PRJ_DIR)/rtl/ultra96v2_jfive_sample.sv
-SOURCES += $(TOP_DIR)/rtl/jfive/jelly2_jfive_simple_controller.sv
-SOURCES += $(TOP_DIR)/rtl/jfive/jelly2_jfive_simple_core.sv
-SOURCES += $(TOP_DIR)/rtl/jfive/jelly2_register_file.sv
-SOURCES += $(TOP_DIR)/rtl/jfive/jelly2_register_file_ram.sv
-SOURCES += $(TOP_DIR)/rtl/jfive/jelly2_register_file_ram32x1d.sv
-SOURCES += $(TOP_DIR)/rtl/bus/jelly_axi4l_to_wishbone.v
-SOURCES += $(TOP_DIR)/rtl/library/jelly2_ram_dualport.sv
-SOURCES += $(TOP_DIR)/rtl/primitive/jelly2_ram32x1d.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/jfive/jelly_jfive_simple_controller.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/jfive/jelly_jfive_simple_core.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/jfive/jelly_register_file.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/jfive/jelly_register_file_ram.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/jfive/jelly_register_file_ram32x1d.sv
+SOURCES += $(TOP_DIR)/rtl/v1/bus/jelly_axi4l_to_wishbone.v
+SOURCES += $(TOP_DIR)/rtl/v2/v1/library/jelly_ram_dualport.sv
+SOURCES += $(TOP_DIR)/rtl/v2/v1/primitive/jelly_ram32x1d.sv
 export SOURCES
 
 

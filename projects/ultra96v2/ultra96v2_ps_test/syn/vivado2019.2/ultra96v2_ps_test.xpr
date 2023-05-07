@@ -80,21 +80,21 @@
           <Proxy FileSetName="design_1_ila_0_0"/>
         </CompFileExtendedInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/misc/jelly_axi4_dummy_slave.v">
+      <File Path="$PPRDIR/../../../../../rtl/v1/misc/jelly_axi4_dummy_slave.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/misc/jelly_axi4_dummy_slave_read.v">
+      <File Path="$PPRDIR/../../../../../rtl/v1/misc/jelly_axi4_dummy_slave_read.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/misc/jelly_axi4_dummy_slave_write.v">
+      <File Path="$PPRDIR/../../../../../rtl/v1/misc/jelly_axi4_dummy_slave_write.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>

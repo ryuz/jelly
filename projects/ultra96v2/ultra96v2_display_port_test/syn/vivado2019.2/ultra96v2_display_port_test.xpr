@@ -69,7 +69,7 @@
           <Proxy FileSetName="design_1_zynq_ultra_ps_e_0_0"/>
         </CompFileExtendedInfo>
       </File>
-      <File Path="$PPRDIR/../../../../rtl/video/jelly_vsync_generator_core.v">
+      <File Path="$PPRDIR/../../../../../rtl/v1/video/jelly_vsync_generator_core.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
