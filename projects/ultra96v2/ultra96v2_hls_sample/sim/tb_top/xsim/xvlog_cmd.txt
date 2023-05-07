@@ -6,14 +6,14 @@
 --sourcelibdir ../../../syn/tcl/ultra96v2_hls_test_tcl.gen/sources_1/ip/divider_0/hdl/verilog
 --sourcelibdir ../../../syn/tcl/ultra96v2_hls_test_tcl.srcs/sources_1/ip/divider_0/sim
 --sourcelibdir ../../../syn/tcl/ultra96v2_hls_test_tcl.srcs/sources_1/ip/divider_0/hdl/verilog
---sourcelibdir ../../../../../rtl/v2/rtos
---sourcelibdir ../../../../../rtl/v2/library
---sourcelibdir ../../../../../rtl/v2/bus
---sourcelibdir ../../../../../rtl/v2/peripheral
---sourcelibdir ../../../../../rtl/v2/image
---sourcelibdir ../../../../../rtl/v2/math
---sourcelibdir ../../../../../rtl/v2/misc
---sourcelibdir ../../../../../rtl/v2/model
+--sourcelibdir ../../../../../../rtl/v2/rtos
+--sourcelibdir ../../../../../../rtl/v2/library
+--sourcelibdir ../../../../../../rtl/v2/bus
+--sourcelibdir ../../../../../../rtl/v2/peripheral
+--sourcelibdir ../../../../../../rtl/v2/image
+--sourcelibdir ../../../../../../rtl/v2/math
+--sourcelibdir ../../../../../../rtl/v2/misc
+--sourcelibdir ../../../../../../rtl/v2/model
 --sourcelibext .v
 --sourcelibext .sv
 

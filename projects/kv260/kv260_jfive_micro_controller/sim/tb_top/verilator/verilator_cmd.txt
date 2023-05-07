@@ -10,12 +10,12 @@
 
 -y ../../stub
 -y ../../../rtl
--y ../../../../../rtl/v2/model
--y ../../../../../rtl/v2/jfive
--y ../../../../../rtl/v2/library
--y ../../../../../rtl/v2/primitive
--y ../../../../../rtl/v2/bus
--y ../../../../../rtl/v2/image
--y ../../../../../rtl/v2/model
--y ../../../../../rtl/v2/video
--y ../../../../../rtl/v2/math
+-y ../../../../../../rtl/v2/model
+-y ../../../../../../rtl/v2/jfive
+-y ../../../../../../rtl/v2/library
+-y ../../../../../../rtl/v2/primitive
+-y ../../../../../../rtl/v2/bus
+-y ../../../../../../rtl/v2/image
+-y ../../../../../../rtl/v2/model
+-y ../../../../../../rtl/v2/video
+-y ../../../../../../rtl/v2/math

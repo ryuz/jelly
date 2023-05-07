@@ -33,7 +33,7 @@ message("VIVADO_VERSION: ${VIVADO_VERSION}")
 
 add_executable(tb_verilator ./tb_verilator.cpp)
 
-target_include_directories(tb_verilator PUBLIC "../../../../../include")
+target_include_directories(tb_verilator PUBLIC "../../../../../../include")
 set(CMAKE_CXX_FLAGS "-O3 -std=c++17")
 target_link_libraries(tb_verilator PUBLIC "-pthread") 
 
