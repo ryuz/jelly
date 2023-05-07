@@ -39,7 +39,7 @@ module jelly2_calc_crc
     bit     [CRC_WIDTH-1:0]     reps;
     bit     [CRC_WIDTH-1:0]     crc_table[0:TABLE_SIZE-1];
 
-    initial begin
+    always_comb begin
         if ( !REVERSED ) begin
             for ( int i = 0; i < CRC_WIDTH; ++i ) begin
                 reps[i] = POLY_REPS[CRC_WIDTH-1 - i];

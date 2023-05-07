@@ -52,7 +52,7 @@ module jelly2_wishbone_async
     jelly_data_async
             #(
                 .ASYNC          (ASYNC),
-                .DATA_WIDTH     (WB_ADR_WIDTH + WB_DAT_WIDTH + WB_SEL_WIDTH + 1),
+                .DATA_WIDTH     (WB_ADR_WIDTH + WB_DAT_WIDTH + WB_SEL_WIDTH + 1)
             )
         i_data_async_cmd
             (
@@ -72,7 +72,7 @@ module jelly2_wishbone_async
     jelly_data_async
             #(
                 .ASYNC          (ASYNC),
-                .DATA_WIDTH     (WB_DAT_WIDTH),
+                .DATA_WIDTH     (WB_DAT_WIDTH)
             )
         i_data_async_ack
             (

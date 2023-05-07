@@ -19,7 +19,7 @@ module jelly_reset
             parameter   OUT_LOW_ACTIVE = 0,
             parameter   INPUT_REGS     = 2,
             parameter   COUNTER_WIDTH  = 0,
-            parameter   COUNTER_VALUE  = COUNTER_WIDTH > 0 ? {COUNTER_WIDTH{1'b1}} : 0,
+            parameter   COUNTER_VALUE  = COUNTER_WIDTH > 0 ? (1 << COUNTER_WIDTH) - 1 : 0,
             parameter   INSERT_BUFG    = 0
         )
         (
