@@ -1,15 +1,15 @@
 -sv
 
---sourcelibdir ../../../../../rtl/library
---sourcelibdir ../../../../../rtl/bus
---sourcelibdir ../../../../../rtl/dma
---sourcelibdir ../../../../../rtl/math
---sourcelibdir ../../../../../rtl/primitive
---sourcelibdir ../../../../../rtl/peripheral
---sourcelibdir ../../../../../rtl/rtos
---sourcelibdir ../../../../../rtl/image
---sourcelibdir ../../../../../rtl/video
---sourcelibdir ../../../../../rtl/model
+--sourcelibdir ../../../../../rtl/v1/library
+--sourcelibdir ../../../../../rtl/v1/bus
+--sourcelibdir ../../../../../rtl/v1/dma
+--sourcelibdir ../../../../../rtl/v1/math
+--sourcelibdir ../../../../../rtl/v1/primitive
+--sourcelibdir ../../../../../rtl/v1/peripheral
+--sourcelibdir ../../../../../rtl/v1/rtos
+--sourcelibdir ../../../../../rtl/v1/image
+--sourcelibdir ../../../../../rtl/v1/video
+--sourcelibdir ../../../../../rtl/v1/model
 
 --sourcelibext .v
 --sourcelibext .sv

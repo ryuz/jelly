@@ -19,13 +19,13 @@
 #-Wno-MULTITOP
 -Wno-fatal
 
--y ../../../../../rtl/library
--y ../../../../../rtl/bus
--y ../../../../../rtl/dma
--y ../../../../../rtl/math
--y ../../../../../rtl/primitive
--y ../../../../../rtl/rtos
--y ../../../../../rtl/image
--y ../../../../../rtl/video
--y ../../../../../rtl/peripheral
--y ../../../../../rtl/model
+-y ../../../../../rtl/v1/library
+-y ../../../../../rtl/v1/bus
+-y ../../../../../rtl/v1/dma
+-y ../../../../../rtl/v1/math
+-y ../../../../../rtl/v1/primitive
+-y ../../../../../rtl/v1/rtos
+-y ../../../../../rtl/v1/image
+-y ../../../../../rtl/v1/video
+-y ../../../../../rtl/v1/peripheral
+-y ../../../../../rtl/v1/model

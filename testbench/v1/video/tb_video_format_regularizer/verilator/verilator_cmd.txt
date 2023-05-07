@@ -4,10 +4,10 @@
 
 -Wno-WIDTH
 
--y ../../../../../rtl/model
--y ../../../../../rtl/library
--y ../../../../../rtl/bus
--y ../../../../../rtl/image
--y ../../../../../rtl/model
--y ../../../../../rtl/video
--y ../../../../../rtl/math
+-y ../../../../../rtl/v1/model
+-y ../../../../../rtl/v1/library
+-y ../../../../../rtl/v1/bus
+-y ../../../../../rtl/v1/image
+-y ../../../../../rtl/v1/model
+-y ../../../../../rtl/v1/video
+-y ../../../../../rtl/v1/math

@@ -1,7 +1,7 @@
 -sv
---sourcelibdir ../../../../../rtl/library
---sourcelibdir ../../../../../rtl/image
---sourcelibdir ../../../../../rtl/model
+--sourcelibdir ../../../../../rtl/v1/library
+--sourcelibdir ../../../../../rtl/v1/image
+--sourcelibdir ../../../../../rtl/v1/model
 --sourcelibext .v
 --sourcelibext .sv
 
