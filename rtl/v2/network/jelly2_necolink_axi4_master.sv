@@ -59,30 +59,38 @@ module jelly2_necolink_master
             input   var logic                           s_msg_rx_valid              
         );
 
-    logic   [7:0][7:0]      tx_msg_cmd;
+    
+
+    logic   [15:0][7:0]      tx_msg_cmd;
 
     always_ff @(posedge aclk) begin
         if ( ~aresetn ) begin
+            tx_msg_cmd <= 'x;
         end
         else if ( aclken ) begin
-            tx_msg_cmd[ 0] <= 8'h10;
-            tx_msg_cmd[ 1] <= 8'(16'(s_axi4_awid  ) >> (8*0));
-            tx_msg_cmd[ 2] <= 8'(16'(s_axi4_awid  ) >> (8*1));
-            tx_msg_cmd[ 3] <= 8'(64'(s_axi4_awaddr) >> (8*0));
-            tx_msg_cmd[ 4] <= 8'(64'(s_axi4_awaddr) >> (8*1));
-            tx_msg_cmd[ 5] <= 8'(64'(s_axi4_awaddr) >> (8*2));
-            tx_msg_cmd[ 6] <= 8'(64'(s_axi4_awaddr) >> (8*3));
-            tx_msg_cmd[ 7] <= 8'(64'(s_axi4_awaddr) >> (8*4));
-            tx_msg_cmd[ 8] <= 8'(64'(s_axi4_awaddr) >> (8*5));
-            tx_msg_cmd[ 9] <= 8'(64'(s_axi4_awaddr) >> (8*6));
-            tx_msg_cmd[10] <= 8'(64'(s_axi4_awaddr) >> (8*7));
-            tx_msg_cmd[11] <= 8'(s_axi4_awlen);
-            tx_msg_cmd[12] <= {1'b0, s_axi4_awprot, 1'b0, s_axi4_awlock, s_axi4_awburst};
-            tx_msg_cmd[13] <= 8'(s_axi4_awsize);
-            tx_msg_cmd[14] <= {s_axi4_awregion, s_axi4_awcache};
-            tx_msg_cmd[15] <= 8'(s_axi4_awqos);
+            if ( s_axi4_awvalid && s_axi4_awready ) begin
+                tx_msg_cmd[ 0] <= 8'h10;
+                tx_msg_cmd[ 1] <= 8'(16'(s_axi4_awid  ) >> (8*0));
+                tx_msg_cmd[ 2] <= 8'(16'(s_axi4_awid  ) >> (8*1));
+                tx_msg_cmd[ 3] <= 8'(64'(s_axi4_awaddr) >> (8*0));
+                tx_msg_cmd[ 4] <= 8'(64'(s_axi4_awaddr) >> (8*1));
+                tx_msg_cmd[ 5] <= 8'(64'(s_axi4_awaddr) >> (8*2));
+                tx_msg_cmd[ 6] <= 8'(64'(s_axi4_awaddr) >> (8*3));
+                tx_msg_cmd[ 7] <= 8'(64'(s_axi4_awaddr) >> (8*4));
+                tx_msg_cmd[ 8] <= 8'(64'(s_axi4_awaddr) >> (8*5));
+                tx_msg_cmd[ 9] <= 8'(64'(s_axi4_awaddr) >> (8*6));
+                tx_msg_cmd[10] <= 8'(64'(s_axi4_awaddr) >> (8*7));
+                tx_msg_cmd[11] <= 8'(s_axi4_awlen);
+                tx_msg_cmd[12] <= {1'b0, s_axi4_awprot, 1'b0, s_axi4_awlock, s_axi4_awburst};
+                tx_msg_cmd[13] <= 8'(s_axi4_awsize);
+                tx_msg_cmd[14] <= {s_axi4_awregion, s_axi4_awcache};
+                tx_msg_cmd[15] <= 8'(s_axi4_awqos);
+            end
         end
     end
+
+
+
 
 endmodule
 
