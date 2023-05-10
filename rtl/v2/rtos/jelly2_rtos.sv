@@ -143,16 +143,16 @@ module jelly2_rtos
 
     // task
     logic   [TSKPRI_WIDTH-1:0]                  chg_pri_tskpri;
-    logic                                       chg_pri_valid = '0;
-    logic                                       wup_tsk_valid = '0;
-    logic                                       slp_tsk_valid = '0;
-    logic                                       rsm_tsk_valid = '0;
-    logic                                       sus_tsk_valid = '0;
-    logic                                       rel_wai_valid = '0;
+    logic                                       chg_pri_valid;
+    logic                                       wup_tsk_valid;
+    logic                                       slp_tsk_valid;
+    logic                                       rsm_tsk_valid;
+    logic                                       sus_tsk_valid;
+    logic                                       rel_wai_valid;
     logic   [RELTIM_WIDTH-1:0]                  dly_tsk_dlytim;
-    logic                                       dly_tsk_valid = '0;
+    logic                                       dly_tsk_valid;
     logic   [RELTIM_WIDTH-1:0]                  set_tmo_tmotim;
-    logic                                       set_tmo_valid = '0;
+    logic                                       set_tmo_valid;
     logic   [TMAX_TSKID:1][TTS_WIDTH-1:0]       task_tskstat;
     logic   [TMAX_TSKID:1][TTW_WIDTH-1:0]       task_tskwait;
     logic   [TMAX_TSKID:1][WUPCNT_WIDTH-1:0]    task_wupcnt;
@@ -162,9 +162,9 @@ module jelly2_rtos
     logic   [TMAX_TSKID:1][ER_WIDTH-1:0]        task_ercd;
 
     // semaphore                
-    logic                                       sig_sem_valid = '0;
-    logic                                       wai_sem_valid = '0;
-    logic                                       pol_sem_valid = '0;
+    logic                                       sig_sem_valid;
+    logic                                       wai_sem_valid;
+    logic                                       pol_sem_valid;
     logic                                       pol_sem_ack;
     logic   [TMAX_SEMID:1][SEMCNT_WIDTH-1:0]    semaphore_semcnt;
     logic   [TMAX_SEMID:1][QUECNT_WIDTH-1:0]    semaphore_quecnt;
@@ -179,9 +179,9 @@ module jelly2_rtos
 
     // timer
     logic   [PRESCL_WIDTH-1:0]                  set_pscl_scale;
-    logic                                       set_pscl_valid = 1'b0;
+    logic                                       set_pscl_valid;
     logic   [SYSTIM_WIDTH-1:0]                  set_tim_systim;
-    logic                                       set_tim_valid = 1'b0;
+    logic                                       set_tim_valid;
     logic                                       time_tick;
     logic   [SYSTIM_WIDTH-1:0]                  systim;
     logic   [SYSTIM_WIDTH-1:0]                  reg_systim;

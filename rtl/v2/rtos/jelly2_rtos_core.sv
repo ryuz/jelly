@@ -157,10 +157,10 @@ module jelly2_rtos_core
 
     logic   [TSKID_WIDTH-1:0]   rdq_add_tskid;
     logic   [TSKPRI_WIDTH-1:0]  rdq_add_tskpri;
-    logic                       rdq_add_valid = '0;
+    logic                       rdq_add_valid;
 
     logic   [TSKID_WIDTH-1:0]   rdq_rmv_tskid;
-    logic                       rdq_rmv_valid = '0;
+    logic                       rdq_rmv_valid;
 
     logic   [TSKID_WIDTH-1:0]   rdq_top_tskid_tmp;
     logic                       rdq_top_valid;
@@ -206,8 +206,8 @@ module jelly2_rtos_core
     logic   [TMAX_TSKID:1]              task_timeout_req;
     logic   [TMAX_TSKID:1]              task_timeout_ack;
 
-    logic   [TMAX_TSKID:1]              task_rdy_tsk = '0;
-    logic   [TMAX_TSKID:1]              task_rel_tsk = '0;
+    logic   [TMAX_TSKID:1]              task_rdy_tsk;
+    logic   [TMAX_TSKID:1]              task_rel_tsk;
 
     generate
     for ( genvar i = 1; i <= TMAX_TSKID; ++i ) begin : loop_tsk
