@@ -12,6 +12,9 @@
 
 -y ../../stub
 -y ../../../rtl
+-y ../../../../../../rtl/v1/library
+-y ../../../../../../rtl/v1/bus
+-y ../../../../../../rtl/v1/peripheral
 -y ../../../../../../rtl/v2/rtos
 -y ../../../../../../rtl/v2/library
 -y ../../../../../../rtl/v2/bus
