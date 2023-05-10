@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-module jelly2_necolink_master
+module jelly2_necolink_axi4_master
         #(
             parameter   int unsigned    AXI4_ID_WIDTH   = 6,
             parameter   int unsigned    AXI4_ADDR_WIDTH = 64,
