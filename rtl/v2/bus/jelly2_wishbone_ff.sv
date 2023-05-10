@@ -20,25 +20,25 @@ module jelly2_wishbone_ff
             parameter   bit     MREG          = 0
         )
         (
-            input   wire                        reset,
-            input   wire                        clk,
-            input   wire                        cke,
+            input   var logic                       reset,
+            input   var logic                       clk,
+            input   var logic                       cke,
             
-            input   wire    [WB_ADR_WIDTH-1:0]  s_wb_adr_i,
-            output  reg     [WB_DAT_WIDTH-1:0]  s_wb_dat_o,
-            input   wire    [WB_DAT_WIDTH-1:0]  s_wb_dat_i,
-            input   wire    [WB_SEL_WIDTH-1:0]  s_wb_sel_i,
-            input   wire                        s_wb_we_i,
-            input   wire                        s_wb_stb_i,
-            output  wire                        s_wb_ack_o,
+            input   var logic   [WB_ADR_WIDTH-1:0]  s_wb_adr_i,
+            output  var logic   [WB_DAT_WIDTH-1:0]  s_wb_dat_o,
+            input   var logic   [WB_DAT_WIDTH-1:0]  s_wb_dat_i,
+            input   var logic   [WB_SEL_WIDTH-1:0]  s_wb_sel_i,
+            input   var logic                       s_wb_we_i,
+            input   var logic                       s_wb_stb_i,
+            output  var logic                       s_wb_ack_o,
             
-            output  reg     [WB_ADR_WIDTH-1:0]  m_wb_adr_o,
-            input   wire    [WB_DAT_WIDTH-1:0]  m_wb_dat_i,
-            output  reg     [WB_DAT_WIDTH-1:0]  m_wb_dat_o,
-            output  reg     [WB_SEL_WIDTH-1:0]  m_wb_sel_o,
-            output  reg                         m_wb_we_o,
-            output  reg                         m_wb_stb_o,
-            input   wire                        m_wb_ack_i
+            output  var logic   [WB_ADR_WIDTH-1:0]  m_wb_adr_o,
+            input   var logic   [WB_DAT_WIDTH-1:0]  m_wb_dat_i,
+            output  var logic   [WB_DAT_WIDTH-1:0]  m_wb_dat_o,
+            output  var logic   [WB_SEL_WIDTH-1:0]  m_wb_sel_o,
+            output  var logic                       m_wb_we_o,
+            output  var logic                       m_wb_stb_o,
+            input   var logic                       m_wb_ack_i
         );
     
     // temporary

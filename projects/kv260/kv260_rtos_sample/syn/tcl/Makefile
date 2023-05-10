@@ -77,10 +77,11 @@ bit_scp: $(BIT_FILE)
 bit_cp: $(BIT_FILE)
 	cp $(BIT_FILE) ../../app
 
-$(PRJ_NAME).xpr: $(IP_CORES) $(BD_SCRIPTS)
+$(PRJ_NAME).xpr: $(SOURCES) $(CONSTRAINS) $(IP_CORES) $(BD_SCRIPTS) Makefile
+	rm -f $(PRJ_NAME).xpr
 	vivado -m64 -mode batch -source $(TOP_DIR)/scripts/vivado_create_project.tcl
 
-$(BIT_FILE): $(PRJ_NAME).xpr $(SOURCES) $(CONSTRAINS)
+$(BIT_FILE): $(PRJ_NAME).xpr
 	vivado -m64 -mode batch -source $(TOP_DIR)/scripts/vivado_implementation.tcl
 
 .PHONY : check_log
