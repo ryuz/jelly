@@ -7,15 +7,28 @@ VIVADO_VERSIONS := $(subst .,$(space),$(subst v,,$(word 2,$(shell vivado -versio
 VIVADO_VERSION  := $(word 1,$(VIVADO_VERSIONS)).$(word 2,$(VIVADO_VERSIONS))
 
 # settings
-export PRJ_NAME     = ultra96v2_udmabuf_sample_tcl
-export TOP_MODULE   = ultra96v2_udmabuf_sample
+PROJECT_NAME = ultra96v2_udmabuf_sample
+BOARD_NAME   = ultra96v2
+export PRJ_NAME     = $(PROJECT_NAME)_tcl
+export TOP_MODULE   = $(PROJECT_NAME)
 export BOARD_PART   = avnet.com:ultra96v2*
 export DEVICE_PART  = xczu3eg-sbva484-1-i
+
+BOARD_ADDRESS  ?= debian-ultra96v2
+BOARD_WORK_DIR ?= git-work/jelly
+
+BIT_FILE = $(PRJ_NAME).runs/impl_1/$(TOP_MODULE).bit
+
 
 # directories
 TOP_DIR = ../../../../..
 
 PRJ_DIR = ../..
+
+# include
+JELLY_TOP_DIR = $(TOP_DIR)
+-include $(JELLY_TOP_DIR)/include/make/def_sources.inc
+
 
 
 # HLS IP
@@ -30,6 +43,7 @@ SOURCES += $(TOP_DIR)/rtl/v1/bus/jelly_axi4l_to_wishbone.v
 SOURCES += $(TOP_DIR)/rtl/v1/peripheral/jelly_interval_timer.v
 export SOURCES
 
+
 # IP cores
 IP_CORES  =
 export IP_CORES
@@ -39,24 +53,46 @@ BD_SCRIPTS = ../vivado$(VIVADO_VERSION)/design_1.tcl
 export BD_SCRIPTS
 
 # constrains
-CONSTRAINS  = ../../constrain/xdc/top.xdc
-CONSTRAINS += ../../constrain/xdc/debug.xdc
+CONSTRAINS  = ../../constrain/top.xdc
+CONSTRAINS += ../../constrain/debug.xdc
 export CONSTRAINS
+
 
 
 # rules
 .PHONY : all
-all: clean create build
+all: build
+
+.PHONY : rebuild
+rebuild: clean create build
 
 .PHONY : create
 create: $(PRJ_NAME).xpr
 
-$(PRJ_NAME).xpr:
+.PHONY : build
+build: $(BIT_FILE) check_log
+
+.PHONY : bit_scp
+bit_scp: $(BIT_FILE)
+	scp $(BIT_FILE) $(BOARD_ADDRESS):$(BOARD_WORK_DIR)/projects/$(BOARD_NAME)/$(PROJECT_NAME)/app
+
+.PHONY : bit_cp
+bit_cp: $(BIT_FILE)
+	cp $(BIT_FILE) ../../app
+
+$(PRJ_NAME).xpr: $(SOURCES) $(CONSTRAINS) $(IP_CORES) $(BD_SCRIPTS) Makefile
+	rm -f $(PRJ_NAME).xpr
 	vivado -m64 -mode batch -source $(TOP_DIR)/scripts/vivado_create_project.tcl
 
-.PHONY : build
-build:
+$(BIT_FILE): $(PRJ_NAME).xpr
 	vivado -m64 -mode batch -source $(TOP_DIR)/scripts/vivado_implementation.tcl
+
+.PHONY : check_log
+check_log:
+	@echo "----- synth_1 -----"
+	@cat $(PRJ_NAME).runs/synth_1/runme.log | grep encountered.
+	@echo "----- impl_1 -----"
+	@cat $(PRJ_NAME).runs/impl_1/runme.log | grep encountered.
 
 .PHONY : clean
 clean:
