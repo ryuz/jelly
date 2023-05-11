@@ -1,4 +1,4 @@
-# Zybo Z7 で udmabuf を試すサンプル
+# Zybo で udmabuf を試すサンプル
 
 ## 概要
 
@@ -13,14 +13,14 @@ Zynqを活用するうえで非常に有用なソフトウェアですので同�
 ### 環境
 環境は下記の通りです。
 
-- [ZYBO-Z7](https://reference.digilentinc.com/reference/programmable-logic/zybo-z7/start)
+- [ZYBO-Z7](https://reference.digilentinc.com/reference/programmable-logic/zybo/start)
 -  iwkzm氏の [Debianブートイメージ v1.0.1](https://qiita.com/ikwzm/items/7e90f0ca2165dbb9a577)
 - Vivado 2019.2
 
 Debianイメージは一度起動SDを作ってしまえば Vivado だけでもいろいろできるのが素敵です。
 [こちら](https://ryuz.qrunch.io/entries/jU8BkKu8bxqOeGAC)の別記事でも少し紹介しておりますので参考になれば幸いです。
 
-なおZYBO-Z7 には FPGA規模の違いで XC7Z010 のものと XC7Z020 のもとあります。今回は XC7Z020 を使っていますが、移植は容易と思います。
+なおZYBO には FPGA規模の違いで XC7Z010 のものと XC7Z020 のもとあります。今回は XC7Z020 を使っていますが、移植は容易と思います。
 
 
 ### ZYBO-Z7側の準備
