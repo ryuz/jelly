@@ -18,20 +18,20 @@ module jelly2_rtos_queue_fifo
             parameter int   COUNT_WIDTH = $clog2(QUE_SIZE+1)
         )
         (
-            input   wire                        reset,
-            input   wire                        clk,
-            input   wire                        cke,
+            input   var logic                       reset,
+            input   var logic                       clk,
+            input   var logic                       cke,
 
-            input   wire    [ID_WIDTH-1:0]      add_id,
-            input   wire                        add_valid,
+            input   var logic   [ID_WIDTH-1:0]      add_id,
+            input   var logic                       add_valid,
 
-            input   wire    [ID_WIDTH-1:0]      remove_id,
-            input   wire                        remove_valid,
+            input   var logic   [ID_WIDTH-1:0]      remove_id,
+            input   var logic                       remove_valid,
 
-            output  wire    [ID_WIDTH-1:0]      top_id,
-            output  wire                        top_valid,
+            output  var logic   [ID_WIDTH-1:0]      top_id,
+            output  var logic                       top_valid,
 
-            output  reg     [COUNT_WIDTH-1:0]   count
+            output  var logic   [COUNT_WIDTH-1:0]   count
         );
 
 

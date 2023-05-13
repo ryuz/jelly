@@ -87,36 +87,36 @@ module jelly2_rtos
             parameter   bit     [SCRATCH3_WIDTH-1:0]                INIT_SCRATCH3      = '0
         )
         (
-            input   wire                                        reset,
-            input   wire                                        clk,
-            input   wire                                        cke,
+            input   var logic                                       reset,
+            input   var logic                                       clk,
+            input   var logic                                       cke,
 
-            input   wire    [WB_ADR_WIDTH-1:0]                  s_wb_adr_i,
-            input   wire    [WB_DAT_WIDTH-1:0]                  s_wb_dat_i,
-            output  reg     [WB_DAT_WIDTH-1:0]                  s_wb_dat_o,
-            input   wire                                        s_wb_we_i,
-            input   wire    [WB_SEL_WIDTH-1:0]                  s_wb_sel_i,
-            input   wire                                        s_wb_stb_i,
-            output  reg                                         s_wb_ack_o,
+            input   var logic   [WB_ADR_WIDTH-1:0]                  s_wb_adr_i,
+            input   var logic   [WB_DAT_WIDTH-1:0]                  s_wb_dat_i,
+            output  var logic   [WB_DAT_WIDTH-1:0]                  s_wb_dat_o,
+            input   var logic                                       s_wb_we_i,
+            input   var logic   [WB_SEL_WIDTH-1:0]                  s_wb_sel_i,
+            input   var logic                                       s_wb_stb_i,
+            output  var logic                                       s_wb_ack_o,
 
-            output  wire                                        irq,
+            output  var logic                                       irq,
 
-            input   wire    [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    ext_set_flg,
+            input   var logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    ext_set_flg,
 
-            output  wire    [TSKID_WIDTH-1:0]                   monitor_top_tskid,
-            output  wire    [TSKID_WIDTH-1:0]                   monitor_run_tskid,
-            output  wire    [TSKPRI_WIDTH-1:0]                  monitor_run_tskpri,
-            output  wire    [TMAX_TSKID:1][TTS_WIDTH-1:0]       monitor_tsk_tskstat,
-            output  wire    [TMAX_TSKID:1][TTW_WIDTH-1:0]       monitor_tsk_tskwait,
-            output  wire    [TMAX_TSKID:1][WUPCNT_WIDTH-1:0]    monitor_tsk_wupcnt,
-            output  wire    [TMAX_TSKID:1][SUSCNT_WIDTH-1:0]    monitor_tsk_suscnt,
-            output  wire    [TMAX_SEMID:1][QUECNT_WIDTH-1:0]    monitor_sem_quecnt,
-            output  wire    [TMAX_SEMID:1][SEMCNT_WIDTH-1:0]    monitor_sem_semcnt,
-            output  wire    [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    monitor_flg_flgptn,
-            output  wire    [SCRATCH0_WIDTH-1:0]                monitor_scratch0,
-            output  wire    [SCRATCH1_WIDTH-1:0]                monitor_scratch1,
-            output  wire    [SCRATCH2_WIDTH-1:0]                monitor_scratch2,
-            output  wire    [SCRATCH3_WIDTH-1:0]                monitor_scratch3
+            output  var logic   [TSKID_WIDTH-1:0]                   monitor_top_tskid,
+            output  var logic   [TSKID_WIDTH-1:0]                   monitor_run_tskid,
+            output  var logic   [TSKPRI_WIDTH-1:0]                  monitor_run_tskpri,
+            output  var logic   [TMAX_TSKID:1][TTS_WIDTH-1:0]       monitor_tsk_tskstat,
+            output  var logic   [TMAX_TSKID:1][TTW_WIDTH-1:0]       monitor_tsk_tskwait,
+            output  var logic   [TMAX_TSKID:1][WUPCNT_WIDTH-1:0]    monitor_tsk_wupcnt,
+            output  var logic   [TMAX_TSKID:1][SUSCNT_WIDTH-1:0]    monitor_tsk_suscnt,
+            output  var logic   [TMAX_SEMID:1][QUECNT_WIDTH-1:0]    monitor_sem_quecnt,
+            output  var logic   [TMAX_SEMID:1][SEMCNT_WIDTH-1:0]    monitor_sem_semcnt,
+            output  var logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    monitor_flg_flgptn,
+            output  var logic   [SCRATCH0_WIDTH-1:0]                monitor_scratch0,
+            output  var logic   [SCRATCH1_WIDTH-1:0]                monitor_scratch1,
+            output  var logic   [SCRATCH2_WIDTH-1:0]                monitor_scratch2,
+            output  var logic   [SCRATCH3_WIDTH-1:0]                monitor_scratch3
         );
 
 

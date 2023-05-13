@@ -21,18 +21,18 @@ module jelly2_rtos_timer
             parameter   bit     [PRESCL_WIDTH-1:0]  INIT_PRESCL  = '0
         )
         (
-            input   wire                            reset,
-            input   wire                            clk,
-            input   wire                            cke,
+            input   var logic                           reset,
+            input   var logic                           clk,
+            input   var logic                           cke,
 
-            output  reg                             time_tick,
-            output  reg     [SYSTIM_WIDTH-1:0]      systim,
+            output  var logic                           time_tick,
+            output  var logic   [SYSTIM_WIDTH-1:0]      systim,
 
-            input   wire    [PRESCL_WIDTH-1:0]      set_pscl_scale,
-            input   wire                            set_pscl_valid,
+            input   var logic   [PRESCL_WIDTH-1:0]      set_pscl_scale,
+            input   var logic                           set_pscl_valid,
 
-            input   wire    [SYSTIM_WIDTH-1:0]      set_tim_systim,
-            input   wire                            set_tim_valid
+            input   var logic   [SYSTIM_WIDTH-1:0]      set_tim_systim,
+            input   var logic                           set_tim_valid
         );
 
     logic           set_pscl;

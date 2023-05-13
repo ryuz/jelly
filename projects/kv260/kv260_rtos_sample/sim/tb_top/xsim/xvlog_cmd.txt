@@ -2,6 +2,9 @@
 --sourcelibdir ..
 --sourcelibdir ../../stub
 --sourcelibdir ../../../rtl
+--sourcelibdir ../../../../../../rtl/v1/library
+--sourcelibdir ../../../../../../rtl/v1/bus
+--sourcelibdir ../../../../../../rtl/v1/peripheral
 --sourcelibdir ../../../../../../rtl/v2/rtos
 --sourcelibdir ../../../../../../rtl/v2/library
 --sourcelibdir ../../../../../../rtl/v2/bus
