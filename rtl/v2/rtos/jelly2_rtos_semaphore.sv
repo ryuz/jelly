@@ -29,28 +29,28 @@ module jelly2_rtos_semaphore
             parameter   bit     [SEMCNT_WIDTH-1:0]  INIT_SEMCNT    = '0
         )
         (
-            input   wire                            reset,
-            input   wire                            clk,
-            input   wire                            cke,
+            input   var logic                           reset,
+            input   var logic                           clk,
+            input   var logic                           cke,
 
-            input   wire    [SEMID_WIDTH-1:0]       op_semid,
-            input   wire    [TSKID_WIDTH-1:0]       op_tskid,
-            input   wire    [TSKPRI_WIDTH-1:0]      op_tskpri,
+            input   var logic   [SEMID_WIDTH-1:0]       op_semid,
+            input   var logic   [TSKID_WIDTH-1:0]       op_tskid,
+            input   var logic   [TSKPRI_WIDTH-1:0]      op_tskpri,
 
-            input   wire                            sig_sem_valid,
-            input   wire                            pol_sem_valid,
-            output  reg                             pol_sem_ack,
-            input   wire                            wai_sem_valid,
-            input   wire                            rel_wai_valid,
+            input   var logic                           sig_sem_valid,
+            input   var logic                           pol_sem_valid,
+            output  var logic                           pol_sem_ack,
+            input   var logic                           wai_sem_valid,
+            input   var logic                           rel_wai_valid,
 
-            input   wire    [TSKID_WIDTH-1:0]       timeout_tskid,
-            input   wire                            timeout_valid,
+            input   var logic   [TSKID_WIDTH-1:0]       timeout_tskid,
+            input   var logic                           timeout_valid,
 
-            output  reg     [TSKID_WIDTH-1:0]       wakeup_tskid,
-            output  reg                             wakeup_valid,
+            output  var logic   [TSKID_WIDTH-1:0]       wakeup_tskid,
+            output  var logic                           wakeup_valid,
 
-            output  reg     [SEMCNT_WIDTH-1:0]      semcnt,
-            output  wire    [QUECNT_WIDTH-1:0]      quecnt
+            output  var logic   [SEMCNT_WIDTH-1:0]      semcnt,
+            output  var logic   [QUECNT_WIDTH-1:0]      quecnt
         );
 
     // wait queue
@@ -66,29 +66,29 @@ module jelly2_rtos_semaphore
 
     jelly2_rtos_queue
             #(
-                .PRIORITY_ORDER (PRIORITY_ORDER),
-                .QUE_SIZE       (QUE_SIZE),
-                .ID_WIDTH       (TSKID_WIDTH),
-                .PRI_WIDTH      (TSKPRI_WIDTH),
-                .COUNT_WIDTH    (QUECNT_WIDTH)
+                .PRIORITY_ORDER (PRIORITY_ORDER ),
+                .QUE_SIZE       (QUE_SIZE       ),
+                .ID_WIDTH       (TSKID_WIDTH    ),
+                .PRI_WIDTH      (TSKPRI_WIDTH   ),
+                .COUNT_WIDTH    (QUECNT_WIDTH   )
             )
         i_rtos_queue
             (
-                .reset          (reset),
-                .clk            (clk),
-                .cke            (cke),
+                .reset          (reset          ),
+                .clk            (clk            ),
+                .cke            (cke            ),
 
-                .add_id         (que_add_tskid),
-                .add_pri        (que_add_tskpri),
-                .add_valid      (que_add_valid),
+                .add_id         (que_add_tskid  ),
+                .add_pri        (que_add_tskpri ),
+                .add_valid      (que_add_valid  ),
 
-                .remove_id      (que_rmv_tskid),
-                .remove_valid   (que_rmv_valid),
+                .remove_id      (que_rmv_tskid  ),
+                .remove_valid   (que_rmv_valid  ),
 
-                .top_id         (que_top_tskid),
-                .top_valid      (que_top_valid),
+                .top_id         (que_top_tskid  ),
+                .top_valid      (que_top_valid  ),
 
-                .count          (quecnt)
+                .count          (quecnt         )
             );
 
     logic                       op_valid;

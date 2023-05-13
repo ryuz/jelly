@@ -18,14 +18,14 @@ module jelly2_rtos_eventflag
             parameter   bit     [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    INIT_FLGPTN  = '0
         )
         (
-            input   wire                                        reset,
-            input   wire                                        clk,
-            input   wire                                        cke,
+            input   var logic                                       reset,
+            input   var logic                                       clk,
+            input   var logic                                       cke,
 
-            output  reg     [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    flgptn,
+            output  var logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    flgptn,
 
-            input   wire    [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    set_flg,
-            input   wire    [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    clr_flg
+            input   var logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    set_flg,
+            input   var logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    clr_flg
         );
 
     always_ff @(posedge clk) begin
