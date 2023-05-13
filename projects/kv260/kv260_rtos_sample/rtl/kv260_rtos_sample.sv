@@ -3,7 +3,7 @@
 //
 //  FPGA Real-Time OS
 //
-//                                 Copyright (C) 2008-2021 by Ryuz
+//                                 Copyright (C) 2008-2023 by Ryuz
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
@@ -14,7 +14,8 @@
 
 module kv260_rtos_sample
             (
-                output  wire    [7:0]   pmod
+                output  var logic           fan_en,
+                output  var logic   [7:0]   pmod
             );
     
     
@@ -56,6 +57,8 @@ module kv260_rtos_sample
     design_1
         i_design_1
             (
+                .fan_en             (fan_en),
+
                 .m_axi4l_aresetn    (axi4l_aresetn),
                 .m_axi4l_aclk       (axi4l_aclk),
                 .m_axi4l_awaddr     (axi4l_awaddr),
