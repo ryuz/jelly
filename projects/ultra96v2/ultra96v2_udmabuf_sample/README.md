@@ -313,9 +313,9 @@ sudo rm /lib/firmware/ultra96v2_udmabuf_sample.bit.bin
 ここでアプロケーションを実行します。
 /dev 以下に uio や dmabuf に対応するデバイスがが追加されているはずなのでそれらを開いてアクセスすることができます。
 
-このやり方は[別の記事](https://ryuz.qrunch.io/entries/ijzqKpPDK4nWbGIU)で紹介しております。
+このやり方は[別の記事](https://ryuz.hatenablog.com/entry/2021/04/03/201054)で紹介しております。
 
-詳しくは[main.cpp](https://github.com/ryuz/jelly/blob/master/projects/ultra96v2/ultra96v2_udmabuf_sample/app/main.cpp)をお読みください。
+詳しくは[main.cpp](app/main.cpp)をお読みください。
 
 うまく動けば、udmabuf領域にPLのコアからと、Cortex-A53 の双方からアクセスして、データがやり取りできることが確認できます。
 また、uio にマップした RADIO_LED もソフトウェアから点滅させています。

@@ -17,7 +17,7 @@ Ultra96-V2 で Raspberry Pi Camera Module V2 (Sony IMX219) をDisplayPortから�
 - X-Window server となるPC (作者は Windows10 + [Xming](https://sourceforge.net/projects/xming/) で実施)
 - 自作の[Ultra96V2用マルチI/O拡張カード](https://github.com/ryuz/ultra96v2_multi_io)
 
-基本的な環境構築は[こちらのブログ](https://github.com/ryuz/qrunch_blog/blob/master/entries/public/blog_2019_12_28_10_16_24.md)でも紹介しておりますので参考にしてください。
+基本的な環境構築は[こちらのブログ](https://qiita.com/Ryuz/items/7498f2f8a7ab838aa196)でも紹介しておりますので参考にしてください。
 
 
 [Debian GNU/Linux (v2021.1版) ブートイメージ](https://qiita.com/ikwzm/items/a9adc5a7329b2eb36895) 環境にて試しております。

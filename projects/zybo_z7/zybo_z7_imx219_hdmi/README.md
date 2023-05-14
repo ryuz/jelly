@@ -18,7 +18,7 @@ ZYBO-Z7 で Raspberry Pi Camera Module V2 (Sony IMX219) をHDMIコネクタか�
 - Debianイメージへの OpenCV など各種開発環境のインストール
 - X-Window server となるPC (作者は Windows10 + [Xming](https://sourceforge.net/projects/xming/) で実施)
 
-基本的な環境構築は[こちらのブログ](https://ryuz.qrunch.io/entries/jU8BkKu8bxqOeGAC)でも紹介しておりますので参考にしてください。
+基本的な環境構築は[こちらの記事](https://qiita.com/Ryuz/items/fcda012ce0deeca068c6)でも紹介しておりますので参考にしてください。
 
 ソフトウェアは Debian イメージ上でセルフコンパイル可能ですので、ホストPC側は Vivado のみでも開発が可能です(Vitisなどもある方がよいですが)。
 

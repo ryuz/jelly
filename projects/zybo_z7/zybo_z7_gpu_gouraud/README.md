@@ -15,7 +15,7 @@ ZYBO-Z7 でグーローシェーディングしたポリゴンをHDMIコネク�
 - [Vivado 2019.2.1](https://japan.xilinx.com/support/download.html)
 - [ikwzm氏](https://qiita.com/ikwzm) の [Debianブートイメージ](https://qiita.com/ikwzm/items/7e90f0ca2165dbb9a577)
 
-基本的な環境構築は[こちらのブログ](https://ryuz.qrunch.io/entries/jU8BkKu8bxqOeGAC)でも紹介しておりますので参考にしてください。
+基本的な環境構築は[こちらのブログ](https://qiita.com/Ryuz/items/fcda012ce0deeca068c6)でも紹介しておりますので参考にしてください。
 
 ソフトウェアは Debian イメージ上でセルフコンパイル可能ですので、ホストPC側は Vivado のみでも開発が可能です(Vitisなどもある方がよいですが)。
 
