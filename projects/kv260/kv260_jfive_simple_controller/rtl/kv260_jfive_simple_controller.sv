@@ -18,7 +18,8 @@ module kv260_jfive_simple_controller
                 parameter   bit     LOG_MEM_ENABLE = 1'b0
             )
             (
-                output  wire    [7:0]   pmod
+                output  var logic           fan_en,
+                output  var logic   [7:0]   pmod
             );
     
     
@@ -54,6 +55,8 @@ module kv260_jfive_simple_controller
     design_1
         i_design_1
             (
+                .fan_en                 (fan_en),
+                
                 .out_reset              (reset),
                 .out_clk                (clk),
                 

@@ -28,24 +28,32 @@
 
 ### rtl ディレクトリ
 
+rtl ディレクトリの下には v1 と v2 があります。
+
+v1 が主に verilog-2001 + veritak 時代に作成した資産で、v2 が現在 SystemVerilog + Verilator にて開発中のものです。
+
+SystemVerilog らしく Interface や package を使ったものも考えていますが、ツール側の対応や安定にもうしばらくかかりそうですので、v3 以降で考えています。
+
+
 |ディレクトリ       |説明|
 |:-----------------|:-------------------|
-|library           |各種ライブラリ的モジュール|
-|bus               |バス変換などのモジュール|
-|math              |算術計算関連|
-|video             |ビデオ信号処理各種|
-|image             |画像処理各種|
-|gpu               |Real-time GPU |
-|peripheral        |マイコン周辺モジュール|
-|primitive         |デバイスプリミティブなモジュール|
-|misc              |その他コア|
-|model             |シミュレーション用モデル|
-|cpu               |CPUコア(MIPS-I互換) Real-time OS 対応|
-|cache             |キャッシュメモリ |
-|legacy            |過去の遺物(新コアに移行前の旧RTL置き場)|
+|library           | 各種ライブラリ的モジュール|
+|bus               | バス変換などのモジュール|
+|math              | 算術計算関連|
+|video             | ビデオ信号処理各種|
+|image             | 画像処理各種|
+|gpu               | Real-time GPU |
+|peripheral        | マイコン周辺モジュール|
+|primitive         | デバイスプリミティブなモジュール|
+|misc              | その他コア|
+|model             | シミュレーション用モデル|
+|mipsi             | MIPS-I互換CPU|
+|jfive             | RISC-V互換CPU|
+|cache             | キャッシュメモリ |
+|legacy            | 過去の遺物(新コアに移行前の旧RTL置き場)|
 
 
-### project ディレクトリ
+### projects ディレクトリ
 
 
 |ディレクトリ       |説明|

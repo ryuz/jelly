@@ -1,6 +1,8 @@
 -sv
 --sourcelibdir ../../stub
 --sourcelibdir ../../../rtl
+--sourcelibdir ../../../../../../rtl/v1/library
+--sourcelibdir ../../../../../../rtl/v1/bus
 --sourcelibdir ../../../../../../rtl/v2/library
 --sourcelibdir ../../../../../../rtl/v2/bus
 --sourcelibdir ../../../../../../rtl/v2/jfive

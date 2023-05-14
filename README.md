@@ -86,9 +86,9 @@ FPGAで作成したRealTime-OSアクセラレータです。
 - projects/kv260/kv260_rtos_sample  
     - [Kria KV260 で FPGA化した リアルタイムOS を試すサンプル](projects/kv260/kv260_rtos_sample/README.md)
 - projects/kv260/kv260_jfive_simple_controller
-    - [Kria KV260 で 自作RISC-V(4段パイプライン)を試すサンプル](projects/kv260/kv260_jfive_simple_controller/README.md)
+    - [Kria KV260 で 自作RISC-V(4段パイプライン)を200MHzで試すサンプル](projects/kv260/kv260_jfive_simple_controller/README.md)
 - projects/kv260/kv260_jfive_micro_controller
-    - [Kria KV260 で 自作RISC-V(6段パイプライン)を試すサンプル](projects/kv260/kv260_jfive_micro_controller/README.md)
+    - [Kria KV260 で 自作RISC-V(6段パイプライン)を250MHzで試すサンプル](projects/kv260/kv260_jfive_micro_controller/README.md)
 
 
 - projects/ultra96v2/ultra96v2_udmabuf_sample

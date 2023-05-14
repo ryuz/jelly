@@ -57,7 +57,10 @@ protected:
 			return 0;
 		}
 		char buf[32];
-		fgets(buf, 32, fp);
+		if ( fgets(buf, 32, fp) == NULL ) {
+			fclose(fp);
+			return -1;
+		}
 		fclose(fp);
 		return static_cast<std::intptr_t>(strtoull(buf, NULL, 16));
 	}
@@ -72,7 +75,10 @@ protected:
 			return 0;
 		}
 		char buf[32];
-		fgets(buf, 32, fp);
+		if ( fgets(buf, 32, fp) == NULL ) {
+			fclose(fp);
+			return -1;
+		}
 		fclose(fp);
 		return static_cast<std::size_t>(strtoull(buf, NULL, 0));
 	}

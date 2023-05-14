@@ -1,4 +1,4 @@
-# Zybo で udmabuf を試すサンプル
+# Zybo Z7 で udmabuf を試すサンプル
 
 ## 概要
 

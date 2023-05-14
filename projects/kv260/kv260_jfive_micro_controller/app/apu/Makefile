@@ -10,7 +10,7 @@ build:
 	cargo build
 
 .PHONY: clean
-build:
+clean:
 	cargo clean
 
 .PHONY: run

@@ -17,7 +17,7 @@ HLS_TOOL = vitis_hls
 #HLS_TOOL = vivado_hls
 
 # directories
-TOP_DIR       = ../../..
+TOP_DIR       = ../../../..
 SOURCE_DIR    = src
 TESTBENCH_DIR = testbench
 TARGET_DIR    = $(HLS_TARGET)/$(HLS_SOLUTION)

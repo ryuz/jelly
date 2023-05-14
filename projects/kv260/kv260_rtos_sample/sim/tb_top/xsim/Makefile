@@ -13,7 +13,7 @@ build:
 
 .PHONY : run
 run:
-	xsim $(TOP_MODULE) -t xsim_run_all.tcl
+	xsim $(TOP_MODULE) --R
 
 .PHONY : clean
 clean:

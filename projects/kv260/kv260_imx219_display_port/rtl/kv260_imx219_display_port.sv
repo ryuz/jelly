@@ -21,6 +21,7 @@ module kv260_imx219_display_port
             inout   wire            cam_sda,
             output  wire            cam_enable,
 
+            output  wire            fan_en,
             output  wire    [7:0]   pmod
         );
     
@@ -169,6 +170,8 @@ module kv260_imx219_display_port
     design_1
         i_design_1
             (
+                .fan_en                     (fan_en),
+                
                 .out_reset                  (sys_reset),
                 .out_clk100                 (sys_clk100),
                 .out_clk200                 (sys_clk200),

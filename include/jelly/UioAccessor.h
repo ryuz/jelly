@@ -139,7 +139,10 @@ public:
 				return -1;
 			}
 			char	uio_name[64];
-			fgets(uio_name, 64, fp);
+			if ( fgets(uio_name, 64, fp) == NULL ) {
+				fclose(fp);
+				return -1;
+			}
 			fclose(fp);
 
 			// chomp

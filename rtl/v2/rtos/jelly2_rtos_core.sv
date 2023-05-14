@@ -43,77 +43,77 @@ module jelly2_rtos_core
             parameter   bit                                         USE_WAI_FLG  = 1,
             parameter   bit                                         USE_SET_PSCL = 1,
             parameter   bit                                         USE_SET_TIM  = 1,
-            parameter   int                                         TSKID_WIDTH  = $clog2(TMAX_TSKID+1),
-            parameter   int                                         SEMID_WIDTH  = $clog2(TMAX_SEMID+1),
+            parameter   int                                         TSKID_WIDTH  = $clog2(TMAX_TSKID + 1),
+            parameter   int                                         SEMID_WIDTH  = $clog2(TMAX_SEMID + 1),
             parameter   int                                         QUECNT_WIDTH = $clog2(TMAX_TSKID),
             parameter   bit     [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    INIT_FLGPTN  = '0,
             parameter   bit     [PRESCL_WIDTH-1:0]                  INIT_PRESCL  = '0,
             parameter   bit     [SYSTIM_WIDTH-1:0]                  INIT_SYSTIM  = '0
         )
         (
-            input   wire                                        reset,
-            input   wire                                        clk,
-            input   wire                                        cke,
+            input   var logic                                       reset,
+            input   var logic                                       clk,
+            input   var logic                                       cke,
 
-            output  wire                                        busy,
+            output  var logic                                       busy,
 
-            // ready queue              
-            output  wire    [TSKID_WIDTH-1:0]                   rdq_top_tskid,
-            output  wire    [TSKPRI_WIDTH-1:0]                  rdq_top_tskpri,
-            output  wire    [QUECNT_WIDTH-1:0]                  rdq_quecnt,
+            // ready queue          
+            output  var logic   [TSKID_WIDTH-1:0]                   rdq_top_tskid,
+            output  var logic   [TSKPRI_WIDTH-1:0]                  rdq_top_tskpri,
+            output  var logic   [QUECNT_WIDTH-1:0]                  rdq_quecnt,
 
             // run task
-            input   wire    [TSKID_WIDTH-1:0]                   run_tskid,
-            input   wire    [TSKPRI_WIDTH-1:0]                  run_tskpri,
+            input   var logic   [TSKID_WIDTH-1:0]                   run_tskid,
+            input   var logic   [TSKPRI_WIDTH-1:0]                  run_tskpri,
 
             // operation id
-            input   wire    [TSKID_WIDTH-1:0]                   op_tskid,
-            input   wire    [SEMID_WIDTH-1:0]                   op_semid,
+            input   var logic   [TSKID_WIDTH-1:0]                   op_tskid,
+            input   var logic   [SEMID_WIDTH-1:0]                   op_semid,
 
             // task
-            input   wire    [TSKPRI_WIDTH-1:0]                  chg_pri_tskpri,
-            input   wire                                        chg_pri_valid,
-            input   wire                                        wup_tsk_valid,
-            input   wire                                        slp_tsk_valid,
-            input   wire                                        rsm_tsk_valid,
-            input   wire                                        sus_tsk_valid,
-            input   wire                                        rel_wai_valid,
-            input   wire    [RELTIM_WIDTH-1:0]                  dly_tsk_dlytim,
-            input   wire                                        dly_tsk_valid,
-            input   wire    [RELTIM_WIDTH-1:0]                  set_tmo_tmotim,
-            input   wire                                        set_tmo_valid,
-            output  wire    [TMAX_TSKID:1][TTS_WIDTH-1:0]       task_tskstat,
-            output  wire    [TMAX_TSKID:1][TTW_WIDTH-1:0]       task_tskwait,
-            output  wire    [TMAX_TSKID:1][TSKPRI_WIDTH-1:0]    task_tskpri,
-            output  wire    [TMAX_TSKID:1][WUPCNT_WIDTH-1:0]    task_wupcnt,
-            output  wire    [TMAX_TSKID:1][SUSCNT_WIDTH-1:0]    task_suscnt,
-            output  wire    [TMAX_TSKID:1][RELTIM_WIDTH-1:0]    task_timcnt,
-            output  wire    [TMAX_TSKID:1][ER_WIDTH-1:0]        task_ercd,
+            input   var logic   [TSKPRI_WIDTH-1:0]                  chg_pri_tskpri,
+            input   var logic                                       chg_pri_valid,
+            input   var logic                                       wup_tsk_valid,
+            input   var logic                                       slp_tsk_valid,
+            input   var logic                                       rsm_tsk_valid,
+            input   var logic                                       sus_tsk_valid,
+            input   var logic                                       rel_wai_valid,
+            input   var logic   [RELTIM_WIDTH-1:0]                  dly_tsk_dlytim,
+            input   var logic                                       dly_tsk_valid,
+            input   var logic   [RELTIM_WIDTH-1:0]                  set_tmo_tmotim,
+            input   var logic                                       set_tmo_valid,
+            output  var logic   [TMAX_TSKID:1][TTS_WIDTH-1:0]       task_tskstat,
+            output  var logic   [TMAX_TSKID:1][TTW_WIDTH-1:0]       task_tskwait,
+            output  var logic   [TMAX_TSKID:1][TSKPRI_WIDTH-1:0]    task_tskpri,
+            output  var logic   [TMAX_TSKID:1][WUPCNT_WIDTH-1:0]    task_wupcnt,
+            output  var logic   [TMAX_TSKID:1][SUSCNT_WIDTH-1:0]    task_suscnt,
+            output  var logic   [TMAX_TSKID:1][RELTIM_WIDTH-1:0]    task_timcnt,
+            output  var logic   [TMAX_TSKID:1][ER_WIDTH-1:0]        task_ercd,
 
             // semaphore                
-            input   wire                                        sig_sem_valid,
-            input   wire                                        pol_sem_valid,
-            output  reg                                         pol_sem_ack,
-            input   wire                                        wai_sem_valid,
-            output  wire    [TMAX_SEMID:1][SEMCNT_WIDTH-1:0]    semaphore_semcnt,
-            output  wire    [TMAX_SEMID:1][QUECNT_WIDTH-1:0]    semaphore_quecnt,
+            input   var logic                                       sig_sem_valid,
+            input   var logic                                       pol_sem_valid,
+            output  var logic                                       pol_sem_ack,
+            input   var logic                                       wai_sem_valid,
+            output  var logic   [TMAX_SEMID:1][SEMCNT_WIDTH-1:0]    semaphore_semcnt,
+            output  var logic   [TMAX_SEMID:1][QUECNT_WIDTH-1:0]    semaphore_quecnt,
             
 
             // event flag
-            input   wire    [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    set_flg,
-            input   wire    [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    clr_flg,
-            input   wire    [0:0]                               wai_flg_wfmode,
-            input   wire    [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    wai_flg_flgptn,
-            input   wire                                        wai_flg_valid,
-            output  wire    [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    flg_flgptn,
+            input   var logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    set_flg,
+            input   var logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    clr_flg,
+            input   var logic   [0:0]                               wai_flg_wfmode,
+            input   var logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    wai_flg_flgptn,
+            input   var logic                                       wai_flg_valid,
+            output  var logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    flg_flgptn,
 
             // timer
-            input   wire    [PRESCL_WIDTH-1:0]                  set_pscl_scale,
-            input   wire                                        set_pscl_valid,
-            input   wire    [SYSTIM_WIDTH-1:0]                  set_tim_systim,
-            input   wire                                        set_tim_valid,
-            output  wire                                        time_tick,
-            output  wire    [SYSTIM_WIDTH-1:0]                  systim
+            input   var logic   [PRESCL_WIDTH-1:0]                  set_pscl_scale,
+            input   var logic                                       set_pscl_valid,
+            input   var logic   [SYSTIM_WIDTH-1:0]                  set_tim_systim,
+            input   var logic                                       set_tim_valid,
+            output  var logic                                       time_tick,
+            output  var logic   [SYSTIM_WIDTH-1:0]                  systim
         );
 
 
@@ -157,10 +157,10 @@ module jelly2_rtos_core
 
     logic   [TSKID_WIDTH-1:0]   rdq_add_tskid;
     logic   [TSKPRI_WIDTH-1:0]  rdq_add_tskpri;
-    logic                       rdq_add_valid = '0;
+    logic                       rdq_add_valid;
 
     logic   [TSKID_WIDTH-1:0]   rdq_rmv_tskid;
-    logic                       rdq_rmv_valid = '0;
+    logic                       rdq_rmv_valid;
 
     logic   [TSKID_WIDTH-1:0]   rdq_top_tskid_tmp;
     logic                       rdq_top_valid;
@@ -172,9 +172,9 @@ module jelly2_rtos_core
                 .ID_WIDTH           (TSKID_WIDTH),
                 .PRI_WIDTH          (TSKPRI_WIDTH),
                 .COUNT_WIDTH        (QUECNT_WIDTH)
-            )       
+            )
         i_ready_queue
-            (       
+            (
                 .reset              (reset),
                 .clk                (clk),
                 .cke                (cke),
@@ -206,8 +206,8 @@ module jelly2_rtos_core
     logic   [TMAX_TSKID:1]              task_timeout_req;
     logic   [TMAX_TSKID:1]              task_timeout_ack;
 
-    logic   [TMAX_TSKID:1]              task_rdy_tsk = '0;
-    logic   [TMAX_TSKID:1]              task_rel_tsk = '0;
+    logic   [TMAX_TSKID:1]              task_rdy_tsk;
+    logic   [TMAX_TSKID:1]              task_rel_tsk;
 
     generate
     for ( genvar i = 1; i <= TMAX_TSKID; ++i ) begin : loop_tsk

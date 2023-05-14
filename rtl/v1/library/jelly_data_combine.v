@@ -55,8 +55,8 @@ module jelly_data_combine
         jelly_data_ff
                 #(
                     .DATA_WIDTH     (DATA_WIDTH),
-                    .SLAVE_REGS     (S_REGS),
-                    .MASTER_REGS    (0)
+                    .S_REGS         (S_REGS),
+                    .M_REGS         (0)
                 )
             i_data_ff_s
                 (
@@ -70,10 +70,7 @@ module jelly_data_combine
                     
                     .m_data         (ff_s_data [i*DATA_WIDTH +: DATA_WIDTH]),
                     .m_valid        (ff_s_valid[i]),
-                    .m_ready        (ff_s_ready[i]),
-                    
-                    .buffered       (),
-                    .s_ready_next   ()
+                    .m_ready        (ff_s_ready[i])
                 );
     end
     endgenerate

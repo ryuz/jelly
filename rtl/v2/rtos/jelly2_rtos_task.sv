@@ -39,52 +39,52 @@ module jelly2_rtos_task
             parameter   bit     [TSKPRI_WIDTH-1:0]  INIT_TSKPRI  = TSKPRI_WIDTH'(TSKID)
         )
         (
-            input   wire                                        reset,
-            input   wire                                        clk,
-            input   wire                                        cke,
+            input   var logic                                       reset,
+            input   var logic                                       clk,
+            input   var logic                                       cke,
 
-            input   wire                                        time_tick,
+            input   var logic                                       time_tick,
 
-            output  wire                                        busy,
+            output  var logic                                       busy,
 
 
-            output  reg                                         rdq_add_req,
-            input   wire                                        rdq_add_ack,
+            output  var logic                                       rdq_add_req,
+            input   var logic                                       rdq_add_ack,
 
-            output  reg                                         rdq_rmv,
+            output  var logic                                       rdq_rmv,
 
-            output  reg                                         timeout_req,
-            input   wire                                        timeout_ack,
+            output  var logic                                       timeout_req,
+            input   var logic                                       timeout_ack,
 
-            input   wire                                        rel_tsk,
+            input   var logic                                       rel_tsk,
 
-            output  reg     [TTS_WIDTH-1:0]                     tskstat,
-            output  reg     [TTW_WIDTH-1:0]                     tskwait,
-            output  reg     [WUPCNT_WIDTH-1:0]                  wupcnt,
-            output  reg     [SUSCNT_WIDTH-1:0]                  suscnt,
-            output  reg     [TSKPRI_WIDTH-1:0]                  tskpri,
-            output  reg     [RELTIM_WIDTH-1:0]                  timcnt,
-            output  wire    [ER_WIDTH-1:0]                      ercd,
+            output  var logic   [TTS_WIDTH-1:0]                     tskstat,
+            output  var logic   [TTW_WIDTH-1:0]                     tskwait,
+            output  var logic   [WUPCNT_WIDTH-1:0]                  wupcnt,
+            output  var logic   [SUSCNT_WIDTH-1:0]                  suscnt,
+            output  var logic   [TSKPRI_WIDTH-1:0]                  tskpri,
+            output  var logic   [RELTIM_WIDTH-1:0]                  timcnt,
+            output  var logic   [ER_WIDTH-1:0]                      ercd,
 
-            input   wire    [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    flgptn,
+            input   var logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    flgptn,
             
-            input   wire    [TSKID_WIDTH-1:0]                   run_tskid,
-            input   wire    [TSKID_WIDTH-1:0]                   op_tskid,
-            input   wire    [TSKPRI_WIDTH-1:0]                  chg_pri_tskpri,
-            input   wire                                        chg_pri_valid,
-            input   wire                                        wup_tsk_valid,
-            input   wire                                        slp_tsk_valid,
-            input   wire                                        sus_tsk_valid,
-            input   wire                                        rsm_tsk_valid,
-            input   wire    [RELTIM_WIDTH-1:0]                  dly_tsk_dlytim,
-            input   wire                                        dly_tsk_valid,
-            input   wire                                        rel_wai_valid,
-            input   wire                                        wai_sem_valid,
-            input   wire    [0:0]                               wai_flg_wfmode,
-            input   wire    [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    wai_flg_flgptn,
-            input   wire                                        wai_flg_valid,
-            input   wire    [RELTIM_WIDTH-1:0]                  set_tmo_tmotim,
-            input   wire                                        set_tmo_valid
+            input   var logic   [TSKID_WIDTH-1:0]                   run_tskid,
+            input   var logic   [TSKID_WIDTH-1:0]                   op_tskid,
+            input   var logic   [TSKPRI_WIDTH-1:0]                  chg_pri_tskpri,
+            input   var logic                                       chg_pri_valid,
+            input   var logic                                       wup_tsk_valid,
+            input   var logic                                       slp_tsk_valid,
+            input   var logic                                       sus_tsk_valid,
+            input   var logic                                       rsm_tsk_valid,
+            input   var logic   [RELTIM_WIDTH-1:0]                  dly_tsk_dlytim,
+            input   var logic                                       dly_tsk_valid,
+            input   var logic                                       rel_wai_valid,
+            input   var logic                                       wai_sem_valid,
+            input   var logic   [0:0]                               wai_flg_wfmode,
+            input   var logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    wai_flg_flgptn,
+            input   var logic                                       wai_flg_valid,
+            input   var logic   [RELTIM_WIDTH-1:0]                  set_tmo_tmotim,
+            input   var logic                                       set_tmo_valid
         );
 
 

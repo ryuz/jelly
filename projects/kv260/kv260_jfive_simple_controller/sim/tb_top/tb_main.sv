@@ -37,6 +37,7 @@ module tb_main
             )
         i_top
             (
+                .fan_en     (),
                 .pmod       (pmod)
             );
     

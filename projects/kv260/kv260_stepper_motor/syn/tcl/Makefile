@@ -7,15 +7,27 @@ VIVADO_VERSIONS := $(subst .,$(space),$(subst v,,$(word 2,$(shell vivado -versio
 VIVADO_VERSION  := $(word 1,$(VIVADO_VERSIONS)).$(word 2,$(VIVADO_VERSIONS))
 
 # settings
-export PRJ_NAME     = kv260_mpu9250_tcl
-export TOP_MODULE   = kv260_mpu9250
+PROJECT_NAME = kv260_stepper_motor
+BOARD_NAME   = kv260
+export PRJ_NAME     = $(PROJECT_NAME)_tcl
+export TOP_MODULE   = $(PROJECT_NAME)
 export BOARD_PART   = xilinx.com:kv260_som*
 export DEVICE_PART  =
+
+BOARD_ADDRESS  ?= kria
+BOARD_WORK_DIR ?= git-work/jelly
+
+BIT_FILE = $(PRJ_NAME).runs/impl_1/$(TOP_MODULE).bit
+
 
 # directories
 TOP_DIR = ../../../../..
 
 PRJ_DIR = ../..
+
+# include
+JELLY_TOP_DIR = $(TOP_DIR)
+-include $(JELLY_TOP_DIR)/include/make/def_sources.inc
 
 
 # HLS IP
@@ -23,34 +35,13 @@ HLS_IP =
 export HLS_IP
 
 # sources
-SOURCES  = $(PRJ_DIR)/rtl/kv260_mpu9250.sv
-SOURCES += $(TOP_DIR)/rtl/v1/bus/jelly_axi4l_to_wishbone.v
-SOURCES += $(TOP_DIR)/rtl/v1/peripheral/jelly_interval_timer.v
-SOURCES += $(TOP_DIR)/rtl/v1/peripheral/jelly_i2c.v
-SOURCES += $(TOP_DIR)/rtl/v1/peripheral/jelly_i2c_core.v
-SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_pipeline_control.v
-SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_pipeline_insert_ff.v
-SOURCES += $(TOP_DIR)/rtl/v2/v1/misc/jelly_communication_pipe.sv
-SOURCES += $(TOP_DIR)/rtl/v2/v1/misc/jelly_communication_pipes.sv
-SOURCES += $(TOP_DIR)/rtl/v2/v1/library/jelly_data_shift_register_lut.sv
-SOURCES += $(TOP_DIR)/rtl/v2/v1/library/jelly_fifo.sv
-SOURCES += $(TOP_DIR)/rtl/v2/v1/library/jelly_fifo_fwtf.sv
-SOURCES += $(TOP_DIR)/rtl/v2/v1/library/jelly_fifo_ram.sv
-SOURCES += $(TOP_DIR)/rtl/v2/v1/library/jelly_fifo_read_fwtf.sv
-SOURCES += $(TOP_DIR)/rtl/v2/v1/library/jelly_fifo_shifter.sv
-SOURCES += $(TOP_DIR)/rtl/v2/v1/library/jelly_ram_simple_dualport.sv
-SOURCES += $(TOP_DIR)/rtl/v2/v1/rtos/jelly_rtos.sv
-SOURCES += $(TOP_DIR)/rtl/v2/v1/rtos/jelly_rtos_core.sv
-SOURCES += $(TOP_DIR)/rtl/v2/v1/rtos/jelly_rtos_eventflag.sv
-SOURCES += $(TOP_DIR)/rtl/v2/v1/rtos/jelly_rtos_queue.sv
-SOURCES += $(TOP_DIR)/rtl/v2/v1/rtos/jelly_rtos_queue_fifo.sv
-SOURCES += $(TOP_DIR)/rtl/v2/v1/rtos/jelly_rtos_queue_priority.sv
-SOURCES += $(TOP_DIR)/rtl/v2/v1/rtos/jelly_rtos_semaphore.sv
-SOURCES += $(TOP_DIR)/rtl/v2/v1/rtos/jelly_rtos_task.sv
-SOURCES += $(TOP_DIR)/rtl/v2/v1/rtos/jelly_rtos_timer.sv
-
+SOURCES  = $(PRJ_DIR)/rtl/kv260_stepper_motor.sv
+SOURCES += $(PRJ_DIR)/rtl/microstep_pwm_control.sv
+SOURCES += $(PRJ_DIR)/rtl/bipolar_stepper_motor_drive.sv
+SOURCES += $(PRJ_DIR)/rtl/stepper_motor_control.sv
+SOURCES += $(PRJ_DIR)/rtl/stepper_motor_control_calc.sv
+SOURCES += $(JELLY_RTL_SOURCES)
 export SOURCES
-
 
 # IP cores
 IP_CORES  =
@@ -68,17 +59,38 @@ export CONSTRAINS
 
 # rules
 .PHONY : all
-all: clean create build
+all: build
+
+.PHONY : rebuild
+rebuild: clean create build
 
 .PHONY : create
 create: $(PRJ_NAME).xpr
 
-$(PRJ_NAME).xpr:
+.PHONY : build
+build: $(BIT_FILE) check_log
+
+.PHONY : bit_scp
+bit_scp: $(BIT_FILE)
+	scp $(BIT_FILE) $(BOARD_ADDRESS):$(BOARD_WORK_DIR)/projects/$(BOARD_NAME)/$(PROJECT_NAME)/app
+
+.PHONY : bit_cp
+bit_cp: $(BIT_FILE)
+	cp $(BIT_FILE) ../../app
+
+$(PRJ_NAME).xpr: $(SOURCES) $(CONSTRAINS) $(IP_CORES) $(BD_SCRIPTS) Makefile
+	rm -f $(PRJ_NAME).xpr
 	vivado -m64 -mode batch -source $(TOP_DIR)/scripts/vivado_create_project.tcl
 
-.PHONY : build
-build:
+$(BIT_FILE): $(PRJ_NAME).xpr
 	vivado -m64 -mode batch -source $(TOP_DIR)/scripts/vivado_implementation.tcl
+
+.PHONY : check_log
+check_log:
+	@echo "----- synth_1 -----"
+	@cat $(PRJ_NAME).runs/synth_1/runme.log | grep encountered.
+	@echo "----- impl_1 -----"
+	@cat $(PRJ_NAME).runs/impl_1/runme.log | grep encountered.
 
 .PHONY : clean
 clean:
