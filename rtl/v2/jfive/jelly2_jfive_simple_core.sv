@@ -14,10 +14,10 @@
 // RISC-V(RV32I 3-stage pipelines)
 module jelly2_jfive_simple_core
         #(
-            parameter int                       IBUS_ADDR_WIDTH = 14,
-            parameter int                       DBUS_ADDR_WIDTH = 32,
-            parameter int                       PC_WIDTH        = IBUS_ADDR_WIDTH,
-            parameter bit   [PC_WIDTH-1:0]      INIT_PC_ADDR    = PC_WIDTH'(32'h80000000),
+            parameter   int                     IBUS_ADDR_WIDTH = 14,
+            parameter   int                     DBUS_ADDR_WIDTH = 32,
+            parameter   int                     PC_WIDTH        = IBUS_ADDR_WIDTH,
+            parameter   bit   [PC_WIDTH-1:0]    INIT_PC_ADDR    = PC_WIDTH'(32'h80000000),
 
             parameter                           DEVICE           = "RTL",
 
@@ -28,19 +28,19 @@ module jelly2_jfive_simple_core
             parameter                           LOG_MEM_FILE     = "jfive_mem_log.txt"
         )
         (
-            input   wire                            reset,
-            input   wire                            clk,
-            input   wire                            cke,
+            input   var logic                           reset,
+            input   var logic                           clk,
+            input   var logic                           cke,
 
-            output  wire    [IBUS_ADDR_WIDTH-1:0]   ibus_addr,
-            input   wire    [31:0]                  ibus_rdata,
+            output  var logic   [IBUS_ADDR_WIDTH-1:0]   ibus_addr,
+            input   var logic   [31:0]                  ibus_rdata,
 
-            output  wire    [DBUS_ADDR_WIDTH-1:0]   dbus_addr,
-            output  wire                            dbus_rd,
-            output  wire                            dbus_wr,
-            output  wire    [3:0]                   dbus_sel,
-            output  wire    [31:0]                  dbus_wdata,
-            input   wire    [31:0]                  dbus_rdata
+            output  var logic   [DBUS_ADDR_WIDTH-1:0]   dbus_addr,
+            output  var logic                           dbus_rd,
+            output  var logic                           dbus_wr,
+            output  var logic   [3:0]                   dbus_sel,
+            output  var logic   [31:0]                  dbus_wdata,
+            input   var logic   [31:0]                  dbus_rdata
         );
 
     // -----------------------------------------

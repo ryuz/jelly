@@ -1,3 +1,10 @@
+// ---------------------------------------------------------------------------
+//  Jelly  -- The platform for real-time computing
+//
+//                                 Copyright (C) 2008-2022 by Ryuz
+//                                 https://github.com/ryuz/jelly.git
+// ---------------------------------------------------------------------------
+
 
 `timescale 1ns / 1ps
 `default_nettype none
@@ -35,25 +42,25 @@ module jelly2_jfive_micro_controller
             parameter   string                          LOG_MEM_FILE     = "jfive_mem_log.txt"
         )
         (
-            input   wire                            reset,
-            input   wire                            clk,
-            input   wire                            cke,
+            input   var logic                           reset,
+            input   var logic                           clk,
+            input   var logic                           cke,
 
-            input   wire    [S_WB_ADR_WIDTH-1:0]    s_wb_adr_i,
-            output  reg     [S_WB_DAT_WIDTH-1:0]    s_wb_dat_o,
-            input   wire    [S_WB_DAT_WIDTH-1:0]    s_wb_dat_i,
-            input   wire    [S_WB_SEL_WIDTH-1:0]    s_wb_sel_i,
-            input   wire                            s_wb_we_i,
-            input   wire                            s_wb_stb_i,
-            output  reg                             s_wb_ack_o,
+            input   var logic   [S_WB_ADR_WIDTH-1:0]    s_wb_adr_i,
+            output  var logic   [S_WB_DAT_WIDTH-1:0]    s_wb_dat_o,
+            input   var logic   [S_WB_DAT_WIDTH-1:0]    s_wb_dat_i,
+            input   var logic   [S_WB_SEL_WIDTH-1:0]    s_wb_sel_i,
+            input   var logic                           s_wb_we_i,
+            input   var logic                           s_wb_stb_i,
+            output  var logic                           s_wb_ack_o,
 
-            output  reg     [M_WB_ADR_WIDTH-1:0]    m_wb_adr_o,
-            input   wire    [31:0]                  m_wb_dat_i,
-            output  reg     [31:0]                  m_wb_dat_o,
-            output  reg     [3:0]                   m_wb_sel_o,
-            output  reg                             m_wb_we_o,
-            output  reg                             m_wb_stb_o,
-            input   wire                            m_wb_ack_i
+            output  var logic   [M_WB_ADR_WIDTH-1:0]    m_wb_adr_o,
+            input   var logic   [31:0]                  m_wb_dat_i,
+            output  var logic   [31:0]                  m_wb_dat_o,
+            output  var logic   [3:0]                   m_wb_sel_o,
+            output  var logic                           m_wb_we_o,
+            output  var logic                           m_wb_stb_o,
+            input   var logic                           m_wb_ack_i
         );
 
 

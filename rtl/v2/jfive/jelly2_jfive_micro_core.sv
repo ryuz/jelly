@@ -33,33 +33,33 @@ module jelly2_jfive_micro_core
             parameter   string                  LOG_MEM_FILE     = "jfive_mem_log.txt"
         )
         (
-            input   wire                            reset,
-            input   wire                            clk,
-            input   wire                            cke,
+            input   var logic                           reset,
+            input   var logic                           clk,
+            input   var logic                           cke,
 
             // Tightly Coupled Memory (Instruction)
-            output  wire                            itcm_en,        // enable
-            output  wire    [TCM_ADDR_WIDTH-1:0]    itcm_addr,      // address
-            input   wire    [31:0]                  itcm_rdata,     // read data
+            output  var logic                           itcm_en,        // enable
+            output  var logic   [TCM_ADDR_WIDTH-1:0]    itcm_addr,      // address
+            input   var logic   [31:0]                  itcm_rdata,     // read data
 
             // Tightly Coupled Memory (Data)
-            output  wire                            dtcm_en,        // enable
-            output  wire    [TCM_ADDR_WIDTH-1:0]    dtcm_addr,      // size
-            output  wire    [3:0]                   dtcm_wsel,      // byte lane select(write only)
-            output  wire    [31:0]                  dtcm_wdata,     // write data
-            input   wire    [31:0]                  dtcm_rdata,     // read data
+            output  var logic                           dtcm_en,        // enable
+            output  var logic   [TCM_ADDR_WIDTH-1:0]    dtcm_addr,      // size
+            output  var logic   [3:0]                   dtcm_wsel,      // byte lane select(write only)
+            output  var logic   [31:0]                  dtcm_wdata,     // write data
+            input   var logic   [31:0]                  dtcm_rdata,     // read data
             
             // Memory mapped I/O
-            output  wire                            mmio_en,        // read or write
-            output  wire                            mmio_re,        // read enable
-            output  wire                            mmio_we,        // write enable
-            output  wire    [1:0]                   mmio_size,      // address
-            output  wire    [MMIO_ADDR_WIDTH-1:0]   mmio_addr,      // size
-            output  wire    [3:0]                   mmio_sel,       // byte lane select
-            output  wire    [3:0]                   mmio_rsel,      // byte lane select(read only)
-            output  wire    [3:0]                   mmio_wsel,      // byte lane select(write only)
-            output  wire    [31:0]                  mmio_wdata,     // write data
-            input   wire    [31:0]                  mmio_rdata      // read data
+            output  var logic                           mmio_en,        // read or write
+            output  var logic                           mmio_re,        // read enable
+            output  var logic                           mmio_we,        // write enable
+            output  var logic   [1:0]                   mmio_size,      // address
+            output  var logic   [MMIO_ADDR_WIDTH-1:0]   mmio_addr,      // size
+            output  var logic   [3:0]                   mmio_sel,       // byte lane select
+            output  var logic   [3:0]                   mmio_rsel,      // byte lane select(read only)
+            output  var logic   [3:0]                   mmio_wsel,      // byte lane select(write only)
+            output  var logic   [31:0]                  mmio_wdata,     // write data
+            input   var logic   [31:0]                  mmio_rdata      // read data
         );
 
 

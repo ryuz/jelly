@@ -23,19 +23,19 @@ module jelly2_register_file_ram
             parameter           RAM_TYPE   = "distributed"
         )
         (
-            input   wire                                        reset,
-            input   wire                                        clk,
-            input   wire                                        cke,
+            input   var logic                                       reset,
+            input   var logic                                       clk,
+            input   var logic                                       cke,
 
             // write port
-            input   wire                                        wr_en,
-            input   wire    [ADDR_WIDTH-1:0]                    wr_addr,
-            input   wire    [DATA_WIDTH-1:0]                    wr_din,
+            input   var logic                                       wr_en,
+            input   var logic   [ADDR_WIDTH-1:0]                    wr_addr,
+            input   var logic   [DATA_WIDTH-1:0]                    wr_din,
 
             // read port
-            input   wire    [READ_PORTS-1:0]                    rd_en,
-            input   wire    [READ_PORTS-1:0][ADDR_WIDTH-1:0]    rd_addr,
-            output  wire    [READ_PORTS-1:0][DATA_WIDTH-1:0]    rd_dout
+            input   var logic   [READ_PORTS-1:0]                    rd_en,
+            input   var logic   [READ_PORTS-1:0][ADDR_WIDTH-1:0]    rd_addr,
+            output  var logic   [READ_PORTS-1:0][DATA_WIDTH-1:0]    rd_dout
         );
     
     generate

@@ -19,19 +19,19 @@ module jelly2_register_file_ram32x1d
             parameter           DEVICE      = "RTL"
         )
         (
-            input   wire                                        reset,
-            input   wire                                        clk,
-            input   wire                                        cke,
+            input   var logic                                       reset,
+            input   var logic                                       clk,
+            input   var logic                                       cke,
 
             // write port
-            input   wire                                        wr_en,
-            input   wire    [4:0]                               wr_addr,
-            input   wire    [DATA_WIDTH-1:0]                    wr_din,
+            input   var logic                                       wr_en,
+            input   var logic   [4:0]                               wr_addr,
+            input   var logic   [DATA_WIDTH-1:0]                    wr_din,
 
             // read port
-            input   wire    [READ_PORTS-1:0]                    rd_en,
-            input   wire    [READ_PORTS-1:0][4:0]               rd_addr,
-            output  reg     [READ_PORTS-1:0][DATA_WIDTH-1:0]    rd_dout
+            input   var logic   [READ_PORTS-1:0]                    rd_en,
+            input   var logic   [READ_PORTS-1:0][4:0]               rd_addr,
+            output  var logic   [READ_PORTS-1:0][DATA_WIDTH-1:0]    rd_dout
         );
     
     generate
@@ -46,7 +46,7 @@ module jelly2_register_file_ram32x1d
         end
 
         for ( genvar j = 0; j < DATA_WIDTH; ++j ) begin
-            wire        rdout;
+            logic   rdout;
             jelly2_ram32x1d
                     #(
                         .INIT               (32'd0),

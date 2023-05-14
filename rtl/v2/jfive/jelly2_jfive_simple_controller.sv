@@ -35,25 +35,25 @@ module jelly2_jfive_simple_controller
             parameter                                   LOG_MEM_FILE     = "jfive_mem_log.txt"
         )
         (
-            input   wire                            reset,
-            input   wire                            clk,
-            input   wire                            cke,
+            input   var logic                           reset,
+            input   var logic                           clk,
+            input   var logic                           cke,
 
-            input   wire    [S_WB_ADR_WIDTH-1:0]    s_wb_adr_i,
-            output  wire    [S_WB_DAT_WIDTH-1:0]    s_wb_dat_o,
-            input   wire    [S_WB_DAT_WIDTH-1:0]    s_wb_dat_i,
-            input   wire    [S_WB_SEL_WIDTH-1:0]    s_wb_sel_i,
-            input   wire                            s_wb_we_i,
-            input   wire                            s_wb_stb_i,
-            output  wire                            s_wb_ack_o,
+            input   var logic   [S_WB_ADR_WIDTH-1:0]    s_wb_adr_i,
+            output  var logic   [S_WB_DAT_WIDTH-1:0]    s_wb_dat_o,
+            input   var logic   [S_WB_DAT_WIDTH-1:0]    s_wb_dat_i,
+            input   var logic   [S_WB_SEL_WIDTH-1:0]    s_wb_sel_i,
+            input   var logic                           s_wb_we_i,
+            input   var logic                           s_wb_stb_i,
+            output  var logic                           s_wb_ack_o,
 
-            output  wire    [M_WB_ADR_WIDTH-1:0]    m_wb_adr_o,
-            input   wire    [31:0]                  m_wb_dat_i,
-            output  wire    [31:0]                  m_wb_dat_o,
-            output  wire    [3:0]                   m_wb_sel_o,
-            output  wire                            m_wb_we_o,
-            output  wire                            m_wb_stb_o,
-            input   wire                            m_wb_ack_i
+            output  var logic   [M_WB_ADR_WIDTH-1:0]    m_wb_adr_o,
+            input   var logic   [31:0]                  m_wb_dat_i,
+            output  var logic   [31:0]                  m_wb_dat_o,
+            output  var logic   [3:0]                   m_wb_sel_o,
+            output  var logic                           m_wb_we_o,
+            output  var logic                           m_wb_stb_o,
+            input   var logic                           m_wb_ack_i
         );
 
 

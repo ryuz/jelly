@@ -4,6 +4,8 @@
 
 module design_1
         (
+            output  wire            fan_en,
+
             output  wire            out_reset,
             output  wire            out_clk,
             
