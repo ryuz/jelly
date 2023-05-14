@@ -88,13 +88,12 @@
                 #size-cells = <0>;
                 clock-names = "s_axi_aclk";
                 clocks = <&zynqmp_clk 71>;
-                clock-frequency = <10000>;
+                clock-frequency = <100000>;
                 compatible = "xlnx,axi-iic-2.1", "xlnx,xps-iic-2.00.a";
                 interrupt-names = "iic2intc_irpt";
                 interrupt-parent = <&gic>;
                 interrupts = <0 89 4>;
-                reg = <0x00 0xb0000000 0x00 0x10000>;
-
+                reg = <0x0 0xb0000000 0x0 0x10000>;
                 i2c-switch@74 {
                     compatible = "nxp,pca9546";
                     #address-cells = <1>;
