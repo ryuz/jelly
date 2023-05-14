@@ -7,10 +7,18 @@ VIVADO_VERSIONS := $(subst .,$(space),$(subst v,,$(word 2,$(shell vivado -versio
 VIVADO_VERSION  := $(word 1,$(VIVADO_VERSIONS)).$(word 2,$(VIVADO_VERSIONS))
 
 # settings
-export PRJ_NAME    = kv260_imx219_display_port_tcl
-export TOP_MODULE  = kv260_imx219_display_port
-export BOARD_PART  = xilinx.com:kv260_som*
-export DEVICE_PART =
+PROJECT_NAME = kv260_imx219_display_port
+BOARD_NAME   = kv260
+export PRJ_NAME     = $(PROJECT_NAME)_tcl
+export TOP_MODULE   = $(PROJECT_NAME)
+export BOARD_PART   = xilinx.com:kv260_som*
+export DEVICE_PART  =
+
+BOARD_ADDRESS  ?= kria
+BOARD_WORK_DIR ?= git-work/jelly
+
+BIT_FILE = $(PRJ_NAME).runs/impl_1/$(TOP_MODULE).bit
+
 
 # directories
 TOP_DIR = ../../../../..
@@ -32,7 +40,7 @@ SOURCES += $(JELLY_RTL_SOURCES)
 export SOURCES
 
 # IP cores
-IP_CORES  = ../../ip/vivado$(VIVADO_VERSION)/mipi_dphy_cam/mipi_dphy_cam.xci
+IP_CORES = ../../ip/vivado$(VIVADO_VERSION)/mipi_dphy_cam/mipi_dphy_cam.xci
 export IP_CORES
 
 # block design
@@ -45,6 +53,7 @@ CONSTRAINS += ../../constrain/debug.xdc
 export CONSTRAINS
 
 
+
 # rules
 .PHONY : all
 all: build
@@ -55,12 +64,30 @@ rebuild: clean create build
 .PHONY : create
 create: $(PRJ_NAME).xpr
 
-$(PRJ_NAME).xpr: $(SOURCES) $(IP_CORES) $(CONSTRAINS)
+.PHONY : build
+build: $(BIT_FILE) check_log
+
+.PHONY : bit_scp
+bit_scp: $(BIT_FILE)
+	scp $(BIT_FILE) $(BOARD_ADDRESS):$(BOARD_WORK_DIR)/projects/$(BOARD_NAME)/$(PROJECT_NAME)/app
+
+.PHONY : bit_cp
+bit_cp: $(BIT_FILE)
+	cp $(BIT_FILE) ../../app
+
+$(PRJ_NAME).xpr: $(SOURCES) $(CONSTRAINS) $(IP_CORES) $(BD_SCRIPTS) Makefile
+	rm -f $(PRJ_NAME).xpr
 	vivado -m64 -mode batch -source $(TOP_DIR)/scripts/vivado_create_project.tcl
 
-.PHONY : build
-build:
+$(BIT_FILE): $(PRJ_NAME).xpr
 	vivado -m64 -mode batch -source $(TOP_DIR)/scripts/vivado_implementation.tcl
+
+.PHONY : check_log
+check_log:
+	@echo "----- synth_1 -----"
+	@cat $(PRJ_NAME).runs/synth_1/runme.log | grep encountered.
+	@echo "----- impl_1 -----"
+	@cat $(PRJ_NAME).runs/impl_1/runme.log | grep encountered.
 
 .PHONY : clean
 clean:

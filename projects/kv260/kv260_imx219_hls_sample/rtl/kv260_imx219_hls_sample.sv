@@ -15,7 +15,10 @@ module kv260_imx219_hls_sample
             input   wire            cam_clk_n,
             input   wire    [1:0]   cam_data_p,
             input   wire    [1:0]   cam_data_n,
-            
+            inout   wire            cam_scl,
+            inout   wire            cam_sda,
+            output  wire            cam_enable,
+
             output  wire            fan_en,
             output  wire    [7:0]   pmod
         );
@@ -154,7 +157,14 @@ module kv260_imx219_hls_sample
     wire                                 axi4_mem1_rlast;
     wire                                 axi4_mem1_rvalid;
     wire                                 axi4_mem1_rready;
-    
+
+    wire                                i2c0_scl_i;
+    wire                                i2c0_scl_o;
+    wire                                i2c0_scl_t;
+    wire                                i2c0_sda_i;
+    wire                                i2c0_sda_o;
+    wire                                i2c0_sda_t;
+
     design_1
         i_design_1
             (
@@ -164,7 +174,14 @@ module kv260_imx219_hls_sample
                 .out_clk100                 (sys_clk100),
                 .out_clk200                 (sys_clk200),
                 .out_clk250                 (sys_clk250),
-                
+
+                .i2c_scl_i                  (i2c0_scl_i),
+                .i2c_scl_o                  (i2c0_scl_o),
+                .i2c_scl_t                  (i2c0_scl_t),
+                .i2c_sda_i                  (i2c0_sda_i),
+                .i2c_sda_o                  (i2c0_sda_o),
+                .i2c_sda_t                  (i2c0_sda_t),
+
                 .dp_video_ref_reset         (dp_video_ref_reset),
                 .dp_video_ref_clk           (dp_video_ref_clk),
                 .dp_video_out_vsync         (dp_video_out_vsync),
@@ -278,7 +295,24 @@ module kv260_imx219_hls_sample
                 .s_axi4_mem1_rready         (axi4_mem1_rready)
             );
     
-    
+    IOBUF
+        i_iobuf_i2c0_scl
+            (
+                .I                      (i2c0_scl_o),
+                .O                      (i2c0_scl_i),
+                .T                      (i2c0_scl_t),
+                .IO                     (cam_scl)
+        );
+
+    IOBUF
+        i_iobuf_i2c0_sda
+            (
+                .I                      (i2c0_sda_o),
+                .O                      (i2c0_sda_i),
+                .T                      (i2c0_sda_t),
+                .IO                     (cam_sda)
+            );
+
     
     // AXI4L => WISHBONE
     localparam  WB_ADR_WIDTH = AXI4L_PERI_ADDR_WIDTH - AXI4L_PERI_DATA_SIZE;
@@ -344,21 +378,30 @@ module kv260_imx219_hls_sample
     wire    [WB_DAT_WIDTH-1:0]  wb_gid_dat_o;
     wire                        wb_gid_stb_i;
     wire                        wb_gid_ack_o;
-    
-    assign wb_gid_dat_o = 32'h01234567;
-    assign wb_gid_ack_o = wb_gid_stb_i;
-    
+        
     reg     reg_sw_reset;
+    reg     reg_cam_enable;
     always_ff @(posedge wb_peri_clk_i) begin
         if ( wb_peri_rst_i ) begin
-            reg_sw_reset <= 1'b0;
+            reg_sw_reset   <= 1'b0;
+            reg_cam_enable <= 1'b0;
         end
         else begin
             if ( wb_gid_stb_i && wb_peri_we_i ) begin
-                reg_sw_reset <= wb_peri_dat_i;
+                case ( wb_peri_adr_i[3:0] )
+                1: reg_sw_reset   <= 1'(wb_peri_dat_i);
+                2: reg_cam_enable <= 1'(wb_peri_dat_i);
+                endcase
             end
         end
     end
+    
+    assign wb_gid_dat_o = wb_peri_adr_i[3:0] == 0 ? WB_DAT_WIDTH'(32'h01234567)   :
+                          wb_peri_adr_i[3:0] == 1 ? WB_DAT_WIDTH'(reg_sw_reset)   :
+                          wb_peri_adr_i[3:0] == 2 ? WB_DAT_WIDTH'(reg_cam_enable) : '0;
+    assign wb_gid_ack_o = wb_gid_stb_i;
+
+    assign cam_enable = reg_cam_enable;
     
     
     
@@ -1275,12 +1318,12 @@ module kv260_imx219_hls_sample
     assign wb_gid_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h000);   // 0x80000000-0x8000ffff
     assign wb_fmtr_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h010);   // 0x80100000-0x8010ffff
     assign wb_rgb_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[24:17] ==  8'h02);    // 0x80120000-0x8012ffff
-    assign wb_bufm_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[25:13] == 12'h030);   // 0x80300000-0x8030ffff
-    assign wb_bufa_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[25:13] == 12'h031);   // 0x80310000-0x8031ffff
-    assign wb_vdmaw_stb_i = wb_peri_stb_i & (wb_peri_adr_i[25:13] == 12'h032);   // 0x80320000-0x8032ffff
-    assign wb_vdmar_stb_i = wb_peri_stb_i & (wb_peri_adr_i[25:13] == 12'h034);   // 0x80340000-0x8034ffff
-    assign wb_vsgen_stb_i = wb_peri_stb_i & (wb_peri_adr_i[25:13] == 12'h036);   // 0x80360000-0x8036ffff
-    assign wb_hls_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[25:13] == 12'h040);   // 0x80400000-0x8040ffff
+    assign wb_bufm_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h030);   // 0x80300000-0x8030ffff
+    assign wb_bufa_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h031);   // 0x80310000-0x8031ffff
+    assign wb_vdmaw_stb_i = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h032);   // 0x80320000-0x8032ffff
+    assign wb_vdmar_stb_i = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h034);   // 0x80340000-0x8034ffff
+    assign wb_vsgen_stb_i = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h036);   // 0x80360000-0x8036ffff
+    assign wb_hls_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h040);   // 0x80400000-0x8040ffff
     
     assign wb_peri_dat_o  = wb_gid_stb_i   ? wb_gid_dat_o   :
                             wb_fmtr_stb_i  ? wb_fmtr_dat_o  :
