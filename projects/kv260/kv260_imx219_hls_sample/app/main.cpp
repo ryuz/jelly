@@ -36,7 +36,6 @@
 
 int main(int argc, char *argv[])
 {
-    bool    use_dp      = false;
     double  pixel_clock = 91000000.0;
     bool    binning     = true;
     int     width       = 1280;
@@ -51,11 +50,13 @@ int main(int argc, char *argv[])
     int     d_gain      = 1;
     int     bayer_phase = 0;
     int     view_scale  = 2;
-    int     view_x      = -1;
-    int     view_y      = -1;
-    bool    colmat_en   = false;
+//    int     view_x      = -1;
+//    int     view_y      = -1;
+//    bool    colmat_en   = false;
     int     gamma       = 22;
     int     gauss_level = 0;
+    int     canny_th    = 127;
+    int     diff_th     = 15;
     cv::Mat imgBack;
     
     for ( int i = 1; i < argc; ++i ) {
@@ -173,20 +174,24 @@ int main(int argc, char *argv[])
             imgBack = cv::imread(argv[i]);
             cv::resize(imgBack, imgBack, cv::Size(1280, 720));
         }
-        else if ( strcmp(argv[i], "-dp") == 0 ) {
-            use_dp = true;
-        }
         else {
             std::cout << "unknown option : " << argv[i] << std::endl;
             return 1;
         }
     }
 
+    width &= ~0xf;
+    width  = std::max(width, 16);
+    height = std::max(height, 2);
+
+
+
+
     // udmabuf
-    std::cout << "\nudmabuf-jelly-vram0 open" << std::endl;
+    std::cout << "\nudmabuf open" << std::endl;
     jelly::UdmabufAccessor udmabuf_acc("udmabuf-jelly-vram0");
     if ( !udmabuf_acc.IsMapped() ) {
-        std::cout << "udmabuf-jelly-vram0 oepn error" << std::endl;
+        std::cout << "udmabuf oepn error" << std::endl;
         return 1;
     }
     auto dmabuf_addr = udmabuf_acc.GetPhysAddr();
@@ -199,7 +204,7 @@ int main(int argc, char *argv[])
     std::cout << "\nuio open" << std::endl;
     jelly::UioAccessor uio_acc("uio_pl_peri", 0x08000000);
     if ( !uio_acc.IsMapped() ) {
-        std::cout << "uio_pl_peri oepn error" << std::endl;
+        std::cout << "uio_pl_peri mmap error" << std::endl;
         return 1;
     }
 
@@ -209,6 +214,9 @@ int main(int argc, char *argv[])
     auto reg_colmat  = uio_acc.GetAccessor(0x00210000);  // カラーマトリックス
     auto reg_gamma   = uio_acc.GetAccessor(0x00220000);  // ガンマ補正
     auto reg_gauss   = uio_acc.GetAccessor(0x00240000);  // ガウシアンフィルタ
+    auto reg_canny   = uio_acc.GetAccessor(0x00250000);  // Cannyフィルタ
+    auto reg_imgdma  = uio_acc.GetAccessor(0x00260000);  // FIFO dma
+    auto reg_bindiff = uio_acc.GetAccessor(0x00270000);  // 前画像との差分バイナライズ
     auto reg_sel     = uio_acc.GetAccessor(0x002f0000);  // 出力切り替え
     auto reg_bufmng  = uio_acc.GetAccessor(0x00300000);  // Buffer manager
     auto reg_bufalc  = uio_acc.GetAccessor(0x00310000);  // Buffer allocator
@@ -225,18 +233,44 @@ int main(int argc, char *argv[])
     std::cout << "colmat  : " << std::hex << reg_colmat.ReadReg(0) << std::endl;
     std::cout << "gamma   : " << std::hex << reg_gamma.ReadReg(0) << std::endl;
     std::cout << "gauss   : " << std::hex << reg_gauss.ReadReg(0) << std::endl;
+    std::cout << "canny   : " << std::hex << reg_canny.ReadReg(0) << std::endl;
+    std::cout << "imgdma  : " << std::hex << reg_imgdma.ReadReg(0) << std::endl;
+    std::cout << "bindiff : " << std::hex << reg_bindiff.ReadReg(0) << std::endl;
     std::cout << "sel     : " << std::hex << reg_sel.ReadReg(0) << std::endl;
     std::cout << "bufmng  : " << std::hex << reg_bufmng.ReadReg(0) << std::endl;
     std::cout << "bufalc  : " << std::hex << reg_bufalc.ReadReg(0) << std::endl;
     std::cout << "vdmaw   : " << std::hex << reg_vdmaw.ReadReg(0) << std::endl;
     std::cout << "vdmar   : " << std::hex << reg_vdmar.ReadReg(0) << std::endl;
     std::cout << "vsgen   : " << std::hex << reg_vsgen.ReadReg(0) << std::endl;
-    std::cout << "hls     : " << std::hex << reg_hls.ReadReg(0) << std::endl;
 #endif
 
     // DMA
     jelly::VideoDmaControl  vdmaw(reg_vdmaw, 3, 3, true);
     jelly::VideoDmaControl  vdmar(reg_vdmar, 3, 3, true);
+
+
+    // memmeap iamge fifo
+    jelly::UdmabufAccessor udmabuf5_acc("udmabuf-jelly-vram1");
+    if ( !udmabuf5_acc.IsMapped() ) {
+        std::cout << "udmabuf : open error or mmap error" << std::endl;
+        return 1;
+    }
+
+    reg_imgdma.WriteReg(REG_DAM_FIFO_CTL_CONTROL, 0x0);
+    usleep(100);
+
+    auto fifobuf_phys_adr = udmabuf5_acc.GetPhysAddr();
+    auto fifobuf_mem_size = udmabuf5_acc.GetSize();
+    std::cout << "udmabuf phys addr : 0x" << std::hex << fifobuf_phys_adr << std::endl;
+    std::cout << "udmabuf size      : " << std::dec << fifobuf_mem_size << std::endl;
+    reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_ADDR,     fifobuf_phys_adr);
+    reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_SIZE,     fifobuf_mem_size);
+    reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_AWLEN,    0x0f);
+    reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_WTIMEOUT, 0xff);
+    reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_ARLEN,    0x0f);
+    reg_imgdma.WriteReg(REG_DAM_FIFO_PARAM_RTIMEOUT, 0xff);
+    reg_imgdma.WriteReg(REG_DAM_FIFO_CTL_CONTROL,    0x3);
+
 
     // DisplayPort 設定
     std::cout << "\nuio DP open" << std::endl;
@@ -247,7 +281,6 @@ int main(int argc, char *argv[])
     }
     auto old_dp_avsel = reg_dp.ReadMem32(AV_BUF_OUTPUT_AUDIO_VIDEO_SELECT);
     auto old_dp_alpha = reg_dp.ReadMem32(V_BLEND_SET_GLOBAL_ALPHA_REG);
-
     reg_dp.WriteMem32(AV_BUF_OUTPUT_AUDIO_VIDEO_SELECT, 0x54);
     reg_dp.WriteMem32(V_BLEND_SET_GLOBAL_ALPHA_REG,     0x101);
 
@@ -262,18 +295,6 @@ int main(int argc, char *argv[])
     int h_start = dp_hstart-dp_hswidth-17;
     int v_start = dp_vstart-dp_vswidth-1;
 
-    // DP未接続時対策
-    if ( dp_hres == 0 || dp_vres == 0 ) {
-        std::cout << "Display port is not active." << std::endl;
-        dp_hres = width;
-        dp_vres = height;
-    }
-
-    width  = std::max(width, 16);
-    height = std::max(height, 2);
-    width  = std::min(dp_hres, width);   
-    height = std::min(dp_vres, height);
-    width &= ~0xf;
 
     // 背景書き込み
     if ( imgBack.empty() ) {
@@ -285,16 +306,20 @@ int main(int argc, char *argv[])
 
 
     // カメラ電源ON
+    /*
     jelly::GpioAccessor gpio(36);
     gpio.SetDirection(true);
     gpio.SetValue(0);
     usleep(500000);
     gpio.SetValue(1);
     usleep(500000);
+    */
+    uio_acc.WriteReg(2, 1);
+    usleep(500000);
 
     // IMX219 I2C control
     jelly::Imx219ControlI2c imx219;
-    if ( !imx219.Open("/dev/i2c-4", 0x10) ) {
+    if ( !imx219.Open("/dev/i2c-6", 0x10) ) {
         std::cout << "I2C open error" << std::endl;
         return 1;
     }
@@ -378,6 +403,8 @@ int main(int argc, char *argv[])
         cv::createTrackbar("bayer",     "Camera", &bayer_phase, 3);
         cv::createTrackbar("gamm" ,     "Camera", &gamma, 30);
         cv::createTrackbar("gauss" ,    "Camera", &gauss_level, 3);
+        cv::createTrackbar("canny_th" , "Camera", &canny_th, 255);
+        cv::createTrackbar("diff_th" ,  "Camera", &diff_th, 255);
 
         // imx219
         imx219.SetFrameRate(frame_rate);
@@ -408,6 +435,19 @@ int main(int argc, char *argv[])
 
             gamma_prev = gamma;
         }
+        
+        // gauusian
+        reg_gauss.WriteReg(REG_IMG_GAUSS3X3_PARAM_ENABLE, (1 << gauss_level)-1);
+        reg_gauss.WriteReg(REG_IMG_GAUSS3X3_CTL_CONTROL, 0x3);
+
+        // canny
+        reg_canny.WriteReg(REG_IMG_CANNY_PARAM_TH, canny_th*canny_th);
+        reg_canny.WriteReg(REG_IMG_CANNY_CTL_CONTROL, 0x3);
+
+        // diff binarize
+        reg_bindiff.WriteReg(REG_IMG_BINARIZER_PARAM_TH, diff_th);
+        reg_bindiff.WriteReg(REG_IMG_BINARIZER_CTL_CONTROL, 0x3);
+        
 
         // display port
         reg_vsgen.WriteReg(REG_VIDEO_ADJDE_PARAM_HSTART, h_start);
@@ -422,7 +462,7 @@ int main(int argc, char *argv[])
 
         case 'x':   reg_hls.WriteReg(0x08, 1); break;
         case 'y':   reg_hls.WriteReg(0x08, 0); break;
-
+        
         case 'r':
             for ( int i = 0; i < 100; ++i ) {
                 cv::waitKey(10);
@@ -449,6 +489,10 @@ int main(int argc, char *argv[])
         }
     }
     
+    // FIFO 停止
+    reg_imgdma.WriteReg(REG_DAM_FIFO_CTL_CONTROL, 0x0);
+    usleep(100);
+
     // DMA 停止
     vdmaw.Stop();
     vdmar.Stop();
