@@ -40,7 +40,7 @@ git clone https://github.com/ryuz/jelly.git
 
 ### プロジェクトの場所
 
-projects/zybo_vga 以下にあります。
+projects/zybo/zybo_vga 以下にあります。
 
 ### ソースの説明
 
@@ -55,7 +55,7 @@ projects/zybo_vga 以下にあります。
 
 ### Vivadoで bit ファイルを作る
 
-projects/zybo_vga/syn/vivado2019.2
+projects/zybo/zybo_vga/syn/vivado2019.2
 
 に移動して Vivado から zybo_vga.xpr を開いてください。
 
@@ -87,7 +87,7 @@ zybo_vga.runs/impl_1
 
 ZYBO で Debian Linux が実行できる前提です。ZYBO のジャンパピンでブートモードを SD にして、Debian を起動します。
 
-projects/zybo_vga/app の内容一式と先ほど合成した zybo_vga_zynq.bit を、ZYBO の Debian で作業できる適当なディレクトリにコピーします。bitファイルも同じappディレクトリに入れてください。
+projects/zybo/zybo_vga/app の内容一式と先ほど合成した zybo_vga_zynq.bit を、ZYBO の Debian で作業できる適当なディレクトリにコピーします。bitファイルも同じappディレクトリに入れてください。
 
 ZYBO 側では Debian が起動済みで ssh などで接続ができている前提ですので scp や samba などでコピーすると良いでしょう。app に関しては ZYBO から git で clone することも可能です。
 

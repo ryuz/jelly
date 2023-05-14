@@ -44,7 +44,7 @@ git clone https://github.com/ryuz/jelly
 ```
 で取得できます。
 
-/projects/zybo_z7_udmabuf_sample/
+/projects/zybo_z7/zybo_z7_udmabuf_sample/
 
 以下が今回のプロジェクトです。
 
@@ -55,7 +55,7 @@ PS用のbitstreamは PC(WindowsやLinuxなど)で Vivado を使って行いま�
 
 Vivado のプロジェクトは
 
-/projects/zybo_z7_udmabuf_sample/syn/vivado2019.2/zybo_z7_udmabuf_sample.xpr
+/projects/zybo_z7/zybo_z7_udmabuf_sample/syn/vivado2019.2/zybo_z7_udmabuf_sample.xpr
 
 にありますので Vivado で開いてください。
 
@@ -68,7 +68,7 @@ Vivado メニューの「Tools」→「Run Tcl Script」で、プロジェクト
 design_1 が生成されたら「Flow」→「Run Implementation」で合成を行います。正常に合成できれば
 ultra96v2_udmabuf_sample.bit が出来上がります。
 
-このファイルを projects/zybo_z7_udmabuf_sample/app にコピーしておいてください。
+このファイルを projects/zybo_z7/zybo_z7_udmabuf_sample/app にコピーしておいてください。
 
 なお、本PLは用の bitstream は
 
