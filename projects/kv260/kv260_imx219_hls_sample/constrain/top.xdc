@@ -1,3 +1,5 @@
+set_property PACKAGE_PIN A12 [get_ports fan_en]
+set_property IOSTANDARD LVCMOS33 [get_ports fan_en]
 
 
 ################################
@@ -17,135 +19,76 @@
 # cam_clk_p
 create_clock -period 2.1929 -name cam_clk_p -waveform {0.000 1.0964} [get_ports cam_clk_p]
 
-set_max_delay -datapath_only -from [get_clocks cam_clk_p_FIFO_WRCLK_OUT]      -to [get_clocks clk_out2_design_1_clk_wiz_0_0]  5.000
-set_max_delay -datapath_only -from [get_clocks cam_clk_p_FIFO_WRCLK_OUT]      -to [get_clocks clk_out3_design_1_clk_wiz_0_0]  4.000
+set_max_delay -datapath_only -from [get_clocks cam_clk_p_FIFO_WRCLK_OUT]      -to [get_clocks clk_out3_design_1_clk_wiz_0_0]  5.000
 set_max_delay -datapath_only -from [get_clocks clk_out1_design_1_clk_wiz_0_0] -to [get_clocks cam_clk_p_FIFO_WRCLK_OUT]       5.000
 set_max_delay -datapath_only -from [get_clocks clk_out1_design_1_clk_wiz_0_0] -to [get_clocks clk_out2_design_1_clk_wiz_0_0]  5.000
 set_max_delay -datapath_only -from [get_clocks clk_out1_design_1_clk_wiz_0_0] -to [get_clocks clk_out3_design_1_clk_wiz_0_0]  4.000
+set_max_delay -datapath_only -from [get_clocks clk_out1_design_1_clk_wiz_0_0] -to [get_clocks clk_pl_0]                       5.000
 set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -to [get_clocks cam_clk_p_FIFO_WRCLK_OUT]       5.000
-set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -to [get_clocks clk_out3_design_1_clk_wiz_0_0]  5.000
+set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -to [get_clocks clk_out1_design_1_clk_wiz_0_0]  5.000
+set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -to [get_clocks clk_out3_design_1_clk_wiz_0_0]  4.000
 set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -to [get_clocks clk_pl_0]                       5.000
 set_max_delay -datapath_only -from [get_clocks clk_out3_design_1_clk_wiz_0_0] -to [get_clocks cam_clk_p_FIFO_WRCLK_OUT]       4.000
+set_max_delay -datapath_only -from [get_clocks clk_out3_design_1_clk_wiz_0_0] -to [get_clocks clk_out1_design_1_clk_wiz_0_0]  4.000
 set_max_delay -datapath_only -from [get_clocks clk_out3_design_1_clk_wiz_0_0] -to [get_clocks clk_out2_design_1_clk_wiz_0_0]  4.000
-set_max_delay -datapath_only -from [get_clocks clk_pl_0]                      -to [get_clocks clk_out2_design_1_clk_wiz_0_0]  5.000
+set_max_delay -datapath_only -from [get_clocks clk_out3_design_1_clk_wiz_0_0] -to [get_clocks clk_pl_0]                       4.000
 set_max_delay -datapath_only -from [get_clocks clk_pl_0]                      -to [get_clocks cam_clk_p_FIFO_WRCLK_OUT]       5.000
+set_max_delay -datapath_only -from [get_clocks clk_pl_0]                      -to [get_clocks clk_out1_design_1_clk_wiz_0_0]  5.000
+set_max_delay -datapath_only -from [get_clocks clk_pl_0]                      -to [get_clocks clk_out2_design_1_clk_wiz_0_0]  5.000
+set_max_delay -datapath_only -from [get_clocks clk_pl_0]                      -to [get_clocks clk_out3_design_1_clk_wiz_0_0]  4.000
 
-
-
-################################
-# I/O
-################################
-
-# radio LED
-set_property PACKAGE_PIN A9  [get_ports {radio_led[0]}]
-set_property PACKAGE_PIN B9  [get_ports {radio_led[1]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {radio_led[0]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {radio_led[1]}]
-
-
-
-
-
-######################################
-# multi-io board
-######################################
 
 # MIPI
-set_property PACKAGE_PIN N2 [get_ports cam_clk_p]
-set_property PACKAGE_PIN P1 [get_ports cam_clk_n]
-set_property PACKAGE_PIN N5 [get_ports {cam_data_p[0]}]
-set_property PACKAGE_PIN N4 [get_ports {cam_data_n[0]}]
-set_property PACKAGE_PIN M2 [get_ports {cam_data_p[1]}]
-set_property PACKAGE_PIN M1 [get_ports {cam_data_n[1]}]
+set_property PACKAGE_PIN D7  [get_ports cam_clk_p]
+set_property PACKAGE_PIN D6  [get_ports cam_clk_n]
+set_property PACKAGE_PIN E5  [get_ports {cam_data_p[0]}]
+set_property PACKAGE_PIN D5  [get_ports {cam_data_n[0]}]
+set_property PACKAGE_PIN G6  [get_ports {cam_data_p[1]}]
+set_property PACKAGE_PIN F6  [get_ports {cam_data_n[1]}]
 
-#set_property PACKAGE_PIN T3 [get_ports cam_clk_p]
-#set_property PACKAGE_PIN T2 [get_ports cam_clk_n]
-#set_property PACKAGE_PIN P3 [get_ports {cam_data_p[0]}]
-#set_property PACKAGE_PIN R3 [get_ports {cam_data_n[0]}]
-#set_property PACKAGE_PIN U2 [get_ports {cam_data_p[1]}]
-#set_property PACKAGE_PIN U1 [get_ports {cam_data_n[1]}]
+#set_property PACKAGE_PIN G11 [get_ports cam_scl]
+#set_property PACKAGE_PIN F10 [get_ports cam_sda]
+#set_property IOSTANDARD LVCMOS33 [get_ports cam_scl]
+#set_property IOSTANDARD LVCMOS33 [get_ports cam_sda]
 
-
-# HS_DSI_CLK_P  J5  push_sw[0]
-# HS_DSI_CLK_N  H5  push_sw[1]
-# HS_DSI_D0_P   G1  dip_sw[0]
-# HS_DSI_D0_N   F1  dip_sw[1]
-# HS_DSI_D1_P   E4  dip_sw[2]
-# HS_DSI_D1_N   E3  dip_sw[3]
-# HS_DSI_D2_P   E1  led[0]
-# HS_DSI_D2_N   D1  led[1]
-# HS_DSI_D3_P   D3  led[2]
-# HS_DSI_D3_N   C3  led[3]
-
-#set_property PACKAGE_PIN J5  [get_ports {push_sw[0]}]
-#set_property PACKAGE_PIN H5  [get_ports {push_sw[1]}]
-#set_property PACKAGE_PIN G1  [get_ports {dip_sw[0]}]
-#set_property PACKAGE_PIN F1  [get_ports {dip_sw[1]}]
-#set_property PACKAGE_PIN E4  [get_ports {dip_sw[2]}]
-#set_property PACKAGE_PIN E3  [get_ports {dip_sw[3]}]
-#set_property PACKAGE_PIN E1  [get_ports {led[0]}]
-#set_property PACKAGE_PIN D1  [get_ports {led[1]}]
-#set_property PACKAGE_PIN D3  [get_ports {led[2]}]
-#set_property PACKAGE_PIN C3  [get_ports {led[3]}]
-#set_property IOSTANDARD LVCMOS12 [get_ports {push_sw[0]}]
-#set_property IOSTANDARD LVCMOS12 [get_ports {push_sw[1]}]
-#set_property IOSTANDARD LVCMOS12 [get_ports {dip_sw[0]}]
-#set_property IOSTANDARD LVCMOS12 [get_ports {dip_sw[1]}]
-#set_property IOSTANDARD LVCMOS12 [get_ports {dip_sw[2]}]
-#set_property IOSTANDARD LVCMOS12 [get_ports {dip_sw[3]}]
-#set_property IOSTANDARD LVCMOS12 [get_ports {led[0]}]
-#set_property IOSTANDARD LVCMOS12 [get_ports {led[1]}]
-#set_property IOSTANDARD LVCMOS12 [get_ports {led[2]}]
-#set_property IOSTANDARD LVCMOS12 [get_ports {led[3]}]
+set_property PACKAGE_PIN F11 [get_ports cam_enable]
+set_property IOSTANDARD LVCMOS33 [get_ports cam_enable]
 
 
-# HD_GPIO_0   D7   pmod0[0]
-# HD_GPIO_1   F8   pmod0[1]
-# HD_GPIO_2   F7   pmod0[6]*
-# HD_GPIO_3   G7   pmod0[3]
-# HD_GPIO_4   F6   pmod0[4]
-# HD_GPIO_5   G5   pmod0[5]
-# HD_GPIO_6   A6   pmod0[2]*
-# HD_GPIO_7   A7   pmod0[7]
-# HD_GPIO_8   G6   pmod1[0]
-# HD_GPIO_9   E6   pmod1[1]
-# HD_GPIO_10  E5   pmod1[2]
-# HD_GPIO_11  D6   pmod1[3]
-# HD_GPIO_12  D5   pmod1[4]
-# HD_GPIO_13  C7   pmod1[5]
-# HD_GPIO_14  B6   pmod1[6]
-# HD_GPIO_15  C5   pmod1[7]
+# 2  CSI0_D0_N  HPA11_N      SOM240_1 B11  som240_1_b11  D5
+# 3  CSI0_D0_P  HPA11_P      SOM240_1 B10  som240_1_b10  E5
+# 5  CSI0_D1_N  HPA12_N      SOM240_1 A10  som240_1_a10  F6
+# 6  CSI0_D1_P  HPA12_P      SOM240_1 A9   som240_1_a9   G6
+# 8  CSI0_CLK_N HPA10_CC_N   SOM240_1 C13  som240_1_c13  D6
+# 9  CSI0_CLK_P HPA10_CC_P   SOM240_1 C12  som240_1_c12  D7
+# 11 GPIO       RPI_ENABLE   SLG7XL44677
+# 12 CLK        HDA10        SOM240_1 A16  som240_1_a16  J12
+# 13 SCL        RPI_I2C_SCK  TCA9546A SC2
+# 14 SDA        RPI_I2C_SDA  TCA9546A SD2
+#
+# SLG7XL44677
+#    HDIO_RPI   HDA09        SOM240_1 A15  som240_1_a15  F11
+#
+# TCA9546A (I2C ADDR = 0x74)
+#    SCL        HDA00_CC      SOM240_1 D16 som240_1_d16  G11
+#    SDA        HDA01         SOM240_1 D17 som240_1_d17  F10
 
-set_property PACKAGE_PIN D7  [get_ports {pmod0[0]}]
-set_property PACKAGE_PIN F8  [get_ports {pmod0[1]}]
-set_property PACKAGE_PIN F7  [get_ports {pmod0[6]}]
-set_property PACKAGE_PIN G7  [get_ports {pmod0[3]}]
-set_property PACKAGE_PIN F6  [get_ports {pmod0[4]}]
-set_property PACKAGE_PIN G5  [get_ports {pmod0[5]}]
-set_property PACKAGE_PIN A6  [get_ports {pmod0[2]}]
-set_property PACKAGE_PIN A7  [get_ports {pmod0[7]}]
-set_property PACKAGE_PIN G6  [get_ports {pmod1[0]}]
-set_property PACKAGE_PIN E6  [get_ports {pmod1[1]}]
-set_property PACKAGE_PIN E5  [get_ports {pmod1[2]}]
-set_property PACKAGE_PIN D6  [get_ports {pmod1[3]}]
-set_property PACKAGE_PIN D5  [get_ports {pmod1[4]}]
-set_property PACKAGE_PIN C7  [get_ports {pmod1[5]}]
-set_property PACKAGE_PIN B6  [get_ports {pmod1[6]}]
-set_property PACKAGE_PIN C5  [get_ports {pmod1[7]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {pmod0[0]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {pmod0[1]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {pmod0[2]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {pmod0[3]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {pmod0[4]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {pmod0[5]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {pmod0[6]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {pmod0[7]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {pmod1[0]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {pmod1[1]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {pmod1[6]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {pmod1[3]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {pmod1[4]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {pmod1[5]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {pmod1[2]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {pmod1[7]}]
+
+# PMOD0
+set_property PACKAGE_PIN H12 [get_ports {pmod[0]}]
+set_property PACKAGE_PIN E10 [get_ports {pmod[1]}]
+set_property PACKAGE_PIN D10 [get_ports {pmod[2]}]
+set_property PACKAGE_PIN C11 [get_ports {pmod[3]}]
+set_property PACKAGE_PIN B10 [get_ports {pmod[4]}]
+set_property PACKAGE_PIN E12 [get_ports {pmod[5]}]
+set_property PACKAGE_PIN D11 [get_ports {pmod[6]}]
+set_property PACKAGE_PIN B11 [get_ports {pmod[7]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod[0]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod[1]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod[2]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod[3]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod[4]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod[5]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod[6]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pmod[7]}]
 

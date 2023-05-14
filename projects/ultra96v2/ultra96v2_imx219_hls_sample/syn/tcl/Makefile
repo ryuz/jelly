@@ -31,6 +31,7 @@ JELLY_TOP_DIR = $(TOP_DIR)
 
 
 # HLS
+HLS_DIR = $(PRJ_DIR)/hls
 HLS_EXPORT_FILE = $(HLS_DIR)/video_filter/solution_1/impl/export.zip
 
 # HLS IP
@@ -40,8 +41,8 @@ export HLS_DIR
 
 # sources
 SOURCES  = $(PRJ_DIR)/rtl/ultra96v2_imx219_hls_sample.sv
-SOURCES  = $(PRJ_DIR)/rtl/image_processing.sv
-SOURCES  = $(PRJ_DIR)/rtl/video_filter_hls.sv
+SOURCES += $(PRJ_DIR)/rtl/image_processing.sv
+SOURCES += $(PRJ_DIR)/rtl/video_filter_hls.sv
 SOURCES += $(JELLY_RTL_SOURCES)
 export SOURCES
 
@@ -76,6 +77,10 @@ build: build_hls $(BIT_FILE) check_log
 
 .PHONY : bit_scp
 bit_scp: $(BIT_FILE)
+	scp $(BIT_FILE) $(BOARD_ADDRESS):$(BOARD_WORK_DIR)/projects/$(BOARD_NAME)/$(PROJECT_NAME)/app
+
+.PHONY : bit_scp_force
+bit_scp_force:
 	scp $(BIT_FILE) $(BOARD_ADDRESS):$(BOARD_WORK_DIR)/projects/$(BOARD_NAME)/$(PROJECT_NAME)/app
 
 .PHONY : bit_cp

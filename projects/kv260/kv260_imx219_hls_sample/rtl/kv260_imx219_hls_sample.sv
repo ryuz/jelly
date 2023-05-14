@@ -17,9 +17,7 @@ module kv260_imx219_hls_sample
             input   wire    [1:0]   cam_data_n,
             
             output  wire            fan_en,
-            output  wire    [1:0]   radio_led,
-            output  wire    [7:0]   pmod0,
-            output  wire    [7:0]   pmod1
+            output  wire    [7:0]   pmod
         );
     
     
@@ -1365,30 +1363,10 @@ module kv260_imx219_hls_sample
     end
     
     
-    assign radio_led[1] = reg_clk200_led;
-    assign radio_led[0] = reg_clk250_led;
-    
-    
-    /*
-    assign pmod1[0]   = sys_reset;
-    assign pmod1[1]   = reg_counter_clk100[10]; 
-    assign pmod1[2]   = reg_counter_clk200[10];
-    assign pmod1[3]   = reg_counter_clk250[10];
-    assign pmod1[4]   = reg_counter_rxbyteclkhs[10];
-    assign pmod1[7:5] = 0;
-    */
-    assign pmod0 = reg_counter_clk100[15:8];
-    
-    reg     [7:0]   reg_frame_count;
-    always_ff @(posedge axi4s_cam_aclk) begin
-        if ( axi4s_csi2_tuser && axi4s_csi2_tvalid ) begin
-            reg_frame_count <= reg_frame_count + 1;
-        end
-    end
-    
-    assign pmod1 = reg_frame_count;
-    
-    
+    assign pmod[0]   = reg_clk250_led;
+    assign pmod[1]   = reg_clk200_led;
+    assign pmod[3:2] = reg_counter_clk100[9:8];
+    assign pmod[7:4] = '0;
     
 endmodule
 
