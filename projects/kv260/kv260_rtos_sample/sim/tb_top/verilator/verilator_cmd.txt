@@ -1,0 +1,26 @@
+--trace-fst --trace-params --trace-structs --trace-underscore
+#--public
+#--threads 2
+
+#-Wno-WIDTH
+#-Wno-UNSIGNED
+#-Wno-PINMISSING
+#-Wno-UNOPTFLAT
+#-Wno-UNOPTTHREADS
+
+--report-unoptflat 
+
+-y ../../stub
+-y ../../../rtl
+-y ../../../../../../rtl/v1/library
+-y ../../../../../../rtl/v1/bus
+-y ../../../../../../rtl/v1/peripheral
+-y ../../../../../../rtl/v2/rtos
+-y ../../../../../../rtl/v2/library
+-y ../../../../../../rtl/v2/bus
+-y ../../../../../../rtl/v2/image
+-y ../../../../../../rtl/v2/model
+-y ../../../../../../rtl/v2/video
+-y ../../../../../../rtl/v2/math
+-y ../../../../../../rtl/v2/peripheral
+-y ../../../../../../rtl/v2/model

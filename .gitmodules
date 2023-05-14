@@ -7,3 +7,6 @@
 [submodule "rust/pac"]
 	path = rust/pac
 	url = https://github.com/ryuz/jelly-pac.git
+[submodule "jellyvl"]
+	path = jellyvl
+	url = https://github.com/ryuz/jellyvl.git

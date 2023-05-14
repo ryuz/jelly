@@ -1,0 +1,16 @@
+[package]
+name = "kv260_stepper_motor_rpu"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+#rand = { version = "0.8.4", default_features = false, features = ["small_rng"] }
+pudding-pac = { git="https://github.com/ryuz/rust_rtos.git", rev = "c13dd9014f86e0e230f167007e8effd9d805ef3f" } 
+jelly-rtos = { path = "../../../../rust/rtos", default-features=false, features=[] }
+jelly-mem_access = { version="0.1.5", default-features=false}
+libm = "*"
+
+[build-dependencies]
+cc = "1.0.36"

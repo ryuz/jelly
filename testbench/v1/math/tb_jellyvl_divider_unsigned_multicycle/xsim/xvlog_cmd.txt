@@ -1,0 +1,16 @@
+
+-sv
+--sourcelibdir ../../../../../jellyvl/sv
+--sourcelibdir ..
+--sourcelibdir ../../../../../rtl/v1/library
+--sourcelibdir ../../../../../rtl/v1/bus
+--sourcelibdir ../../../../../rtl/v1/image
+--sourcelibdir ../../../../../rtl/v1/math
+--sourcelibdir ../../../../../rtl/v1/model
+--sourcelibext .v
+--sourcelibext .sv
+
+../tb_sim.sv
+../tb_main.sv
+
+

@@ -1,6 +1,7 @@
 grpc-*/
 opencv-*/
 opencv_contrib-*/
+riscv-gnu-toolchain-*/
 
 opencv3/
 opencv3_contrib/

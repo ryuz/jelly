@@ -1,0 +1,13 @@
+-sv
+--sourcelibdir ../../../../../rtl/v2/library
+--sourcelibdir ../../../../../rtl/v2/jfive
+--sourcelibdir ../../../../../rtl/v2/image
+--sourcelibdir ../../../../../rtl/v2/math
+--sourcelibdir ../../../../../rtl/v2/primitive
+--sourcelibdir ../../../../../rtl/v2/model
+--sourcelibext .v
+--sourcelibext .sv
+
+../tb_sim.sv
+../tb_main.sv
+

@@ -1,0 +1,23 @@
+--trace-fst --trace-params --trace-structs --trace-underscore
+#--public
+#--build
+#--coverage
+
+#-Wno-WIDTH
+#-Wno-UNSIGNED
+#-Wno-PINMISSING
+#-Wno-UNOPTFLAT
+#-Wno-CASEX
+#-Wno-CASEINCOMPLETE
+
+#-Wno-fatal
+
+-y ../../../../../rtl/v2/model
+-y ../../../../../rtl/v2/library
+-y ../../../../../rtl/v2/bus
+-y ../../../../../rtl/v2/gpu
+-y ../../../../../rtl/v2/image
+-y ../../../../../rtl/v2/model
+-y ../../../../../rtl/v2/video
+-y ../../../../../rtl/v2/primitive
+-y ../../../../../rtl/v2/math

@@ -53,8 +53,8 @@ def write_files(f, macro_name, files):
 
 
 # ファイル一覧取得
-sv_files   = remove_ignore_file(glob.glob(os.path.join(RTL_DIR, "**/*.sv")))
-vlog_files = remove_ignore_file(glob.glob(os.path.join(RTL_DIR, "**/*.v")))
+sv_files   = remove_ignore_file(glob.glob(os.path.join(RTL_DIR, "**/*.sv"), recursive=True))
+vlog_files = remove_ignore_file(glob.glob(os.path.join(RTL_DIR, "**/*.v"), recursive=True))
 
 # モジュール名重複チェック
 modules = dict()
