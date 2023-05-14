@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <signal.h>
+#include <iostream>
 
 #include <opencv2/opencv.hpp>
 
@@ -15,8 +17,11 @@
 #include "jelly/VideoDmaControl.h"
 
 
-//void capture_still_image(jelly::MemAccessor& reg_wdma, jelly::MemAccessor& reg_fmtr, std::uintptr_t bufaddr, int width, int height, int frame_num);
 
+static  volatile    bool    g_signal = false;
+void signal_handler(int signo) {
+    g_signal = true;
+}
 
 int main(int argc, char *argv[])
 {
@@ -155,6 +160,8 @@ int main(int argc, char *argv[])
     width  = std::max(width, 16);
     height = std::max(height, 2);
 
+    // set signal
+    signal(SIGINT, signal_handler);
 
     // mmap uio
     jelly::UioAccessor uio_acc("uio_pl_peri", 0x08000000);
@@ -234,6 +241,8 @@ int main(int argc, char *argv[])
 
     int     key;
     while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
+        if ( g_signal ) { break; }
+
         // 設定
         imx219.SetFrameRate(frame_rate);
         imx219.SetExposureTime(exposure / 1000.0);
@@ -313,6 +322,8 @@ int main(int argc, char *argv[])
             break;
         }
     }
+
+    std::cout << "close device" << std::endl;
 
     // close
     imx219.Stop();
