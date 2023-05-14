@@ -9,7 +9,7 @@
 `default_nettype none
 
 
-module tb_sim_main
+module tb_main
         #(
             parameter   X_NUM = 1024, // 3280 / 2,
             parameter   Y_NUM = 64   // 2464 / 2
@@ -31,7 +31,7 @@ module tb_sim_main
 
 
     // top
-    ultra96v2_imx219_hls_sample
+    kv260_imx219_hls_sample
             #(
                 .X_NUM          (X_NUM),
                 .Y_NUM          (Y_NUM)

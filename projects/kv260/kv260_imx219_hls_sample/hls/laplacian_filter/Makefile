@@ -1,6 +1,6 @@
 
 # setting
-export HLS_TARGET   = video_filter
+export HLS_TARGET   = laplacian_filter
 export HLS_SOLUTION = solution_1
 export DEVICE_PART  = xck26-sfvc784-2LV-c
 export CLOCK_PERIOD = 4.0
@@ -17,7 +17,7 @@ HLS_TOOL = vitis_hls
 #HLS_TOOL = vivado_hls
 
 # directories
-TOP_DIR       = ../../../..
+TOP_DIR       = ../../../../..
 SOURCE_DIR    = src
 TESTBENCH_DIR = testbench
 TARGET_DIR    = $(HLS_TARGET)/$(HLS_SOLUTION)
@@ -32,11 +32,11 @@ export SOURCE_FLAGS    = -std=c++14 -I$(TOP_DIR)/include -I$(SOURCE_DIR)
 export TESTBENCH_FLAGS = -std=c++14 -I$(TOP_DIR)/include -I$(SOURCE_DIR) -I$(TESTBENCH_DIR)
 
 # source
-SOURCES = $(SOURCE_DIR)/video_filter.cpp
+SOURCES = $(SOURCE_DIR)/laplacian_filter.cpp
 export SOURCES
 
 # testbanch
-TESTBENCHS = $(TESTBENCH_DIR)/tb_video_filter.cpp
+TESTBENCHS = $(TESTBENCH_DIR)/tb_laplacian_filter.cpp
 export TESTBENCHS
 
 # rules

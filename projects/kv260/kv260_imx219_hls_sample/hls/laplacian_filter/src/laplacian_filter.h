@@ -15,7 +15,7 @@ using axi4s_t  = ap_axis<PIXEL_BITS, 1, 1, 1>;
 using width_t  = ap_uint<16>;
 using height_t = ap_uint<16>;
 
-void video_filter(
+void laplacian_filter(
         hls::stream<axi4s_t>& s_axi4s,
         hls::stream<axi4s_t>& m_axi4s,
         width_t width,
