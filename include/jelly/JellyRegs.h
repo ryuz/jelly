@@ -20,6 +20,7 @@
 #define CORE_ID_VIDEO_VOUT                      0x527A1140
 #define CORE_ID_VSYNC_GENERATOR                 0x527A1150
 #define CORE_ID_VSYNC_ADJUST_DE                 0x527A1152
+#define CORE_ID_VIDEO_SIZE_PARAMETER            0x527A1230
 #define CORE_ID_VIDEO_PARAMETER_UPDATE          0x527A1F10
 #define CORE_ID_VIDEO_FMTREG                    0x527A1220
 #define CORE_ID_VIDEO_OVERLAY_BRAM              0x527A2400
@@ -262,12 +263,6 @@
 #define REG_VDMA_READ_SHADOW_F_SIZE             REG_DMA_READ_SHADOW_ARLEN2
 #define REG_VDMA_READ_SHADOW_FRAME_STEP         REG_DMA_READ_SHADOW_ARSTEP2
 
-
-
-/* ---------------------------------- */
-/*  Video                             */
-/* ---------------------------------- */
-
 /* FIFO with DMA */
 #define REG_DAM_FIFO_CORE_ID                    0x00
 #define REG_DAM_FIFO_CORE_VERSION               0x01
@@ -288,6 +283,21 @@
 #define REG_DAM_FIFO_CURRENT_WTIMEOUT           0x33
 #define REG_DAM_FIFO_CURRENT_ARLEN              0x34
 #define REG_DAM_FIFO_CURRENT_RTIMEOUT           0x37
+
+
+
+/* ---------------------------------- */
+/*  Video                             */
+/* ---------------------------------- */
+
+/* size parameter assignment */
+#define REG_VIDEO_SIZE_PARAMETER_CORE_ID        0x00
+#define REG_VIDEO_SIZE_PARAMETER_CORE_VERSION   0x01
+#define REG_VIDEO_SIZE_PARAMETER_CTL_CONTROL    0x04
+#define REG_VIDEO_SIZE_PARAMETER_CTL_STATUS     0x05
+#define REG_VIDEO_SIZE_PARAMETER_CTL_INDEX      0x07
+#define REG_VIDEO_SIZE_PARAMETER_PARAM_X_SIZE   0x10
+#define REG_VIDEO_SIZE_PARAMETER_PARAM_Y_SIZE   0x11
 
 /* parameter update control */
 #define REG_VIDEO_PRMUP_CORE_ID                 0x00
@@ -649,6 +659,14 @@
 #define REG_COMMUNICATION_PIPE_RX_FREE_COUNT    0x1a
 #define REG_COMMUNICATION_PIPE_RX_IRQ_STATUS    0x1c
 #define REG_COMMUNICATION_PIPE_RX_IRQ_ENABLE    0x1d
+
+#define REG_MONITORPINCTL_CORE_ID               0x00
+#define REG_MONITORPINCTL_CORE_VERSION          0x01
+#define REG_MONITORPINCTL_IN_DATA(n)            (0x10+(n))
+#define REG_MONITORPINCTL_SELECT(n)             (0x20+(n)*4)
+#define REG_MONITORPINCTL_OVERRIDE(n)           (0x21+(n)*4)
+#define REG_MONITORPINCTL_OUT_VALUE(n)          (0x22+(n)*4)
+#define REG_MONITORPINCTL_MONITOR(n)            (0x23+(n)*4)
 
 
 #endif	/* __RYUZ__JELLY__REGS__H__ */

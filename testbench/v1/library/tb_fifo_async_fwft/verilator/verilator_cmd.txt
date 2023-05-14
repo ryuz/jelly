@@ -1,0 +1,18 @@
+--trace-fst 
+--trace-params --trace-structs --trace-underscore
+#--public
+#--threads 2
+
+-Wno-WIDTH
+-Wno-UNSIGNED
+-Wno-PINMISSING
+-Wno-UNOPTFLAT
+-Wno-UNOPTTHREADS
+
+-y ../../../../../rtl/v1/model
+-y ../../../../../rtl/v1/library
+-y ../../../../../rtl/v1/bus
+-y ../../../../../rtl/v1/image
+-y ../../../../../rtl/v1/model
+-y ../../../../../rtl/v1/video
+-y ../../../../../rtl/v1/math

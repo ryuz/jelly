@@ -14,13 +14,13 @@
 
 ## MIPS-I 互換プロセッサ
 
-/rtl/mipsi/
+/rtl/v1/mipsi/
 
 以下にあります。
 
 Verilogの勉強を始めた頃に Spartan-3 向けに試しに書いてみたプロセッサです。
 
-ブロック図などは[Webサイト](http://ryuz.my.coocan.jp/jelly/index.html)の方にあります。
+ブロック図などは[Webサイト](http://ryuz.my.coocan.jp/legacy/jelly/index.html)の方にあります。
 
 
 ## RISV-V 互換プロセッサ
@@ -31,9 +31,9 @@ Verilogの勉強を始めた頃に Spartan-3 向けに試しに書いてみた�
 
 サンプルは
 
-- [Ultra96V2 で 自作RISC-V(4段パイプライン)を試すサンプル](projects/ultra96v2_jfive_sample/README.md)
-- [Kria KV260 で 自作RISC-V(4段パイプライン)を試すサンプル](projects/kv260_jfive_simple_controller/README.md)
-- [Kria KV260 で 自作RISC-V(6段パイプライン)を試すサンプル](projects/kv260_jfive_micro_controller/README.md)
+- [Ultra96V2 で 自作RISC-V(4段パイプライン)を試すサンプル](projects/ultra96v2/ultra96v2_jfive_sample/README.md)
+- [Kria KV260 で 自作RISC-V(4段パイプライン)を試すサンプル](projects/kv260/kv260_jfive_simple_controller/README.md)
+- [Kria KV260 で 自作RISC-V(6段パイプライン)を試すサンプル](projects/kv260/kv260_jfive_micro_controller/README.md)
 
 などになります。
 
@@ -46,12 +46,12 @@ FPGAで作成したRealTime-OSアクセラレータです。
 
 今のところ ZynqMP の RPU(Cortex-R5) のアクセラレートのみですが、ITRON風味のRTOSスケジューリング補助回路となっています。
 
-現状 Rust での開発を想定して[サンプル](projects/ultra96v2_rtos/README.md)を準備しております。
+現状 Rust での開発を想定して[サンプル](projects/ultra96v2/ultra96v2_rtos/README.md)を準備しております。
 
 
 ## リアルタイムGPU
 
-/rtl/gpu
+/rtl/v1/gpu
 以下にあります。
 
 フレームメモリを使わないフィルタ型の低遅延なリアルタイム描画を目指したものです。
@@ -63,56 +63,56 @@ FPGAで作成したRealTime-OSアクセラレータです。
 
 もはやこれが Jelly のメインかもです
 
-- rtl/library      FIFOとかRAMとか様々なRTLのパーツ
-- rtl/bus          AXIとかWISHBONEとかのバスブリッジ等のパーツ
-- rtl/math         GPUとかで使うような算術パーツ
-- rtl/peripheral   UARTとかI2CとかTIMERとかののパーツ
-- rtl/video        DVIとかHDMIとかのビデオ処理
-- rtl/image        画像処理用パーツ(ニューラルネットの畳み込みでも利用)
-- rtl/model        シミュレーション用の便利モデルいろいろ
+- rtl/v2/library      FIFOとかRAMとか様々なRTLのパーツ
+- rtl/v2/bus          AXIとかWISHBONEとかのバスブリッジ等のパーツ
+- rtl/v2/math         GPUとかで使うような算術パーツ
+- rtl/v2/peripheral   UARTとかI2CとかTIMERとかののパーツ
+- rtl/v2/video        DVIとかHDMIとかのビデオ処理
+- rtl/v2/image        画像処理用パーツ(ニューラルネットの畳み込みでも利用)
+- rtl/v2/model        シミュレーション用の便利モデルいろいろ
 
 
 ## Zynqベースのシステム
 
 以下、Jelly 内のサンプルプログラムの紹介です。
 
-- projects/zynqmp_rpu/zynqmp_rpu_rust
-    - [ZynqMP の rpu を C++ と Rust で試すサンプル](projects/zynqmp_rpu/README.md)
+- projects/zynqmp/zynqmp_rpu/zynqmp_rpu_rust
+    - [ZynqMP の rpu を C++ と Rust で試すサンプル](projects/zynqmp/zynqmp_rpu/README.md)
 
-- projects/kv260_udmabuf_sample
-    - [Kria KV260 でudmabufを試すサンプル](projects/kv260_udmabuf_sample/README.md)
-- projects/kv260_imx219
-    - [Kria KV260 で カメラ画像(IMX219) を動かすサンプル](projects/kv260_imx219/README.md)
-- projects/kv260_rtos_sample  
-    - [Kria KV260 で FPGA化した リアルタイムOS を試すサンプル](projects/kv260_rtos_sample/README.md)
-- projects/kv260_jfive_simple_controller
-    - [Kria KV260 で 自作RISC-V(4段パイプライン)を試すサンプル](projects/kv260_jfive_simple_controller/README.md)
-- projects/kv260_jfive_micro_controller
-    - [Kria KV260 で 自作RISC-V(6段パイプライン)を試すサンプル](projects/kv260_jfive_micro_controller/README.md)
-
-
-- projects/ultra96v2_udmabuf_sample
-    - [Ultra96V2 でudmabufを試すサンプル](projects/ultra96v2_udmabuf_sample/README.md)
-- projects/ultra96v2_display_port
-    - [Ultra96V2 で DisplayPortを試すサンプル](projects/ultra96v2_display_port/README.md)
-- projects/ultra96v2_imx219_display_port
-    - [Ultra96V2 で カメラ画像(IMX219) をDisplayPortから表示](projects/ultra96v2_imx219_display_port/README.md)
-- projects/ultra96v2_rtos
-    - [Ultra96V2 で FPGA化した リアルタイムOS を試すサンプル](projects/ultra96v2_rtos/README.md)
-- projects/ultra96v2_jfive_sample
-    - [Ultra96V2 で 自作RISC-V(4段パイプライン)を試すサンプル](projects/ultra96v2_jfive_sample/README.md)
-- projects/ultra96v2_hls_test
-    - [Ultra96V2 で コマンドラインだけでHLSで書いたIPをVivadoに取り込んで合成するサンプル](projects/ultra96v2_hls_sample/README.md)
-- projects/ultra96v2_imx219_hls_sample
-    - [Ultra96V2 で HLSでカメラ画像を処理してみるサンプル](projects/ultra96v2_imx219_hls_sample/README.md)
+- projects/kv260/kv260_udmabuf_sample
+    - [Kria KV260 でudmabufを試すサンプル](projects/kv260/kv260_udmabuf_sample/README.md)
+- projects/kv260/kv260_imx219
+    - [Kria KV260 で カメラ画像(IMX219) を動かすサンプル](projects/kv260/kv260_imx219/README.md)
+- projects/kv260/kv260_rtos_sample  
+    - [Kria KV260 で FPGA化した リアルタイムOS を試すサンプル](projects/kv260/kv260_rtos_sample/README.md)
+- projects/kv260/kv260_jfive_simple_controller
+    - [Kria KV260 で 自作RISC-V(4段パイプライン)を200MHzで試すサンプル](projects/kv260/kv260_jfive_simple_controller/README.md)
+- projects/kv260/kv260_jfive_micro_controller
+    - [Kria KV260 で 自作RISC-V(6段パイプライン)を250MHzで試すサンプル](projects/kv260/kv260_jfive_micro_controller/README.md)
 
 
-- projects/zybo_z7_udmabuf_sample
-    - [Zybo Z7 でudmabufを試すサンプル](projects/zybo_z7_udmabuf_sample/README.md)
-- projects/zybo_z7_imx219
-    - [Zybo Z7 で RaspberryPI Camera Module V2(Sony IMX219)](projects/zybo_z7_imx219/README.md)
-- projects/zybo_z7_imx219_hdmi
-    - [Zybo Z7 で カメラ画像(IMX219) をHDMIコネクタから表示](projects/zybo_z7_imx219_hdmi/README.md)
+- projects/ultra96v2/ultra96v2_udmabuf_sample
+    - [Ultra96V2 でudmabufを試すサンプル](projects/ultra96v2/ultra96v2_udmabuf_sample/README.md)
+- projects/ultra96v2/ultra96v2_display_port
+    - [Ultra96V2 で DisplayPortを試すサンプル](projects/ultra96v2/ultra96v2_display_port/README.md)
+- projects/ultra96v2/ultra96v2_imx219_display_port
+    - [Ultra96V2 で カメラ画像(IMX219) をDisplayPortから表示](projects/ultra96v2/ultra96v2_imx219_display_port/README.md)
+- projects/ultra96v2/ultra96v2_rtos
+    - [Ultra96V2 で FPGA化した リアルタイムOS を試すサンプル](projects/ultra96v2/ultra96v2_rtos/README.md)
+- projects/ultra96v2/ultra96v2_jfive_sample
+    - [Ultra96V2 で 自作RISC-V(4段パイプライン)を試すサンプル](projects/ultra96v2/ultra96v2_jfive_sample/README.md)
+- projects/ultra96v2/ultra96v2_hls_test
+    - [Ultra96V2 で コマンドラインだけでHLSで書いたIPをVivadoに取り込んで合成するサンプル](projects/ultra96v2/ultra96v2_hls_sample/README.md)
+- projects/ultra96v2/ultra96v2_imx219_hls_sample
+    - [Ultra96V2 で HLSでカメラ画像を処理してみるサンプル](projects/ultra96v2/ultra96v2_imx219_hls_sample/README.md)
+
+
+- projects/zybo_z7/zybo_z7_udmabuf_sample
+    - [Zybo Z7 でudmabufを試すサンプル](projects/zybo_z7/zybo_z7_udmabuf_sample/README.md)
+- projects/zybo_z7/zybo_z7_imx219
+    - [Zybo Z7 で RaspberryPI Camera Module V2(Sony IMX219)](projects/zybo_z7/zybo_z7_imx219/README.md)
+- projects/zybo_z7/zybo_z7_imx219_hdmi
+    - [Zybo Z7 で カメラ画像(IMX219) をHDMIコネクタから表示](projects/zybo_z7/zybo_z7_imx219_hdmi/README.md)
 
 
 

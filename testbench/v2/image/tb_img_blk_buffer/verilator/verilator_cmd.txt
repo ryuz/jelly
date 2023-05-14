@@ -1,0 +1,9 @@
+--trace-fst --trace-params --trace-structs --trace-underscore
+
+-y ../../../../../rtl/v2/model
+-y ../../../../../rtl/v2/library
+-y ../../../../../rtl/v2/bus
+-y ../../../../../rtl/v2/image
+-y ../../../../../rtl/v2/model
+-y ../../../../../rtl/v2/video
+-y ../../../../../rtl/v2/math

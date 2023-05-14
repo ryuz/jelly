@@ -637,6 +637,13 @@
 `define REG_COMMUNICATION_PIPE_RX_IRQ_STATUS    8'h1c
 `define REG_COMMUNICATION_PIPE_RX_IRQ_ENABLE    8'h1d
 
+`define REG_MONITORPINCTL_CORE_ID               8'h00
+`define REG_MONITORPINCTL_CORE_VERSION          8'h01
+`define REG_MONITORPINCTL_IN_DATA(n)            (8'h10+(n))
+`define REG_MONITORPINCTL_SELECT(n)             (8'h20+(n)*4)
+`define REG_MONITORPINCTL_OVERRIDE(n)           (8'h21+(n)*4)
+`define REG_MONITORPINCTL_OUT_VALUE(n)          (8'h22+(n)*4)
+`define REG_MONITORPINCTL_MONITOR(n)            (8'h23+(n)*4)
 
 `endif	/* __RYUZ__JELLY__REGS__H__ */
 
