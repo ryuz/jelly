@@ -57,12 +57,12 @@ module tb_sim();
     //  main
     // ---------------------------------
     
-    tb_sim_main
+    tb_main
             #(
                 .X_NUM  (X_NUM),
                 .Y_NUM  (Y_NUM)
             )
-        i_tb_sim_main
+        i_tb_main
             (
                 .reset  (reset),
                 .clk    (clk100)
@@ -158,21 +158,22 @@ module tb_sim();
     
     
 
-    localparam ADR_FMTR    = (32'h00100000 >> 3);  // ビデオサイズ正規化
-    localparam ADR_DEMOS   = (32'h00200000 >> 3);  // デモザイク
-    localparam ADR_COLMAT  = (32'h00210000 >> 3);  // カラーマトリックス
-    localparam ADR_GAMMA   = (32'h00220000 >> 3);  // ガンマ補正
-    localparam ADR_GAUSS   = (32'h00240000 >> 3);  // ガウシアンフィルタ
-    localparam ADR_CANNY   = (32'h00250000 >> 3);  // Cannyフィルタ
-    localparam ADR_IMGDMA  = (32'h00260000 >> 3);  // FIFO dma
-    localparam ADR_BINDIFF = (32'h00270000 >> 3);  // 前画像との差分バイナライズ
-    localparam ADR_SEL     = (32'h002f0000 >> 3);  // 出力切り替え
-    localparam ADR_BUFMNG  = (32'h00300000 >> 3);  // Buffer manager
-    localparam ADR_BUFALC  = (32'h00310000 >> 3);  // Buffer allocator
-    localparam ADR_VDMAW   = (32'h00320000 >> 3);  // Write-DMA
-    localparam ADR_VDMAR   = (32'h00340000 >> 3);  // Read-DMA
-    localparam ADR_VSGEN   = (32'h00360000 >> 3);  // Video out sync generator
-    localparam ADR_HLS     = (32'h00400000 >> 3);
+    localparam ADR_FMTR          = (32'h00100000 >> 3);  // ビデオサイズ正規化
+    localparam ADR_DEMOS         = (32'h00200000 >> 3);  // デモザイク
+    localparam ADR_COLMAT        = (32'h00210000 >> 3);  // カラーマトリックス
+    localparam ADR_GAMMA         = (32'h00220000 >> 3);  // ガンマ補正
+    localparam ADR_GAUSS         = (32'h00240000 >> 3);  // ガウシアンフィルタ
+    localparam ADR_CANNY         = (32'h00250000 >> 3);  // Cannyフィルタ
+    localparam ADR_IMGDMA        = (32'h00260000 >> 3);  // FIFO dma
+    localparam ADR_BINDIFF       = (32'h00270000 >> 3);  // 前画像との差分バイナライズ
+    localparam ADR_SEL           = (32'h002f0000 >> 3);  // 出力切り替え
+    localparam ADR_BUFMNG        = (32'h00300000 >> 3);  // Buffer manager
+    localparam ADR_BUFALC        = (32'h00310000 >> 3);  // Buffer allocator
+    localparam ADR_VDMAW         = (32'h00320000 >> 3);  // Write-DMA
+    localparam ADR_VDMAR         = (32'h00340000 >> 3);  // Read-DMA
+    localparam ADR_VSGEN         = (32'h00360000 >> 3);  // Video out sync generator
+    localparam ADR_HLS_GAUSSINA  = (32'h00400000 >> 3);
+    localparam ADR_HLS_LAPLACIAN = (32'h00410000 >> 3);
 
 `include "jelly/JellyRegs.vh"
     
@@ -203,7 +204,8 @@ module tb_sim();
 
     #200000;
         $display("set HLS");
-        wb_write(ADR_HLS + 32'h08, 1, 8'hff);
+        wb_write(ADR_HLS_GAUSSINA  + 32'h08, 1, 8'hff);
+        wb_write(ADR_HLS_LAPLACIAN + 32'h08, 1, 8'hff);
 
     #1000000;
         $finish();

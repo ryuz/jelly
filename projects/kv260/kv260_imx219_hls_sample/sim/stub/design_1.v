@@ -1,12 +1,19 @@
 
 `timescale 1 ns / 1 ps
 
-module design_1
+module design_1_wrapper
    (dp_live_video_in_pixel1,
     dp_video_out_hsync,
     dp_video_out_vsync,
     dp_video_ref_clk,
     dp_video_ref_reset,
+    fan_en,
+    i2c_scl_i,
+    i2c_scl_o,
+    i2c_scl_t,
+    i2c_sda_i,
+    i2c_sda_o,
+    i2c_sda_t,
     m_axi4l_peri_aclk,
     m_axi4l_peri_araddr,
     m_axi4l_peri_aresetn,
@@ -117,6 +124,13 @@ module design_1
   output dp_video_out_vsync;
   output dp_video_ref_clk;
   output [0:0]dp_video_ref_reset;
+  output [0:0]fan_en;
+  output i2c_scl_o;
+  input i2c_scl_i;
+  output i2c_scl_t;
+  output i2c_sda_o;
+  input i2c_sda_i;
+  output i2c_sda_t;
   output m_axi4l_peri_aclk;
   output [39:0]m_axi4l_peri_araddr;
   output [0:0]m_axi4l_peri_aresetn;
@@ -228,6 +242,13 @@ module design_1
   wire dp_video_out_vsync;
   wire dp_video_ref_clk;
   wire [0:0]dp_video_ref_reset;
+  wire [0:0]fan_en;
+  wire i2c_scl_i;
+  wire i2c_scl_o;
+  wire i2c_scl_t;
+  wire i2c_sda_i;
+  wire i2c_sda_o;
+  wire i2c_sda_t;
   wire m_axi4l_peri_aclk;
   wire [39:0]m_axi4l_peri_araddr;
   wire [0:0]m_axi4l_peri_aresetn;
@@ -333,7 +354,8 @@ module design_1
   wire s_axi4_mem1_wvalid;
   wire s_axi4_mem_aclk;
   wire [0:0]s_axi4_mem_aresetn;
-  
+    
+
     // テストベンチから force する前提
     reg             reset       /*verilator public_flat*/;
     reg             clk100      /*verilator public_flat*/;

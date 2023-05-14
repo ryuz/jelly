@@ -1,11 +1,11 @@
 
 
 #include "jelly/hls/WindowFilter.h"
-#include "video_filter.h"
+#include "gaussian_filter.h"
 
 
-using VideoFilter = jelly::WindowFilter<pixel_t, 3, 3, 1, 1, 2048, 4096>;
-using window_t    = VideoFilter::Window;
+using GaussianFilter = jelly::WindowFilter<pixel_t, 3, 3, 1, 1, 2048, 4096>;
+using window_t       = GaussianFilter::Window;
 
 
 struct rgb_t {
@@ -33,7 +33,7 @@ pixel_t rgb_to_pixel(rgb_t rgb)
 }
 
 
-void video_filter_in(
+void gaussian_filter_in(
         hls::stream<axi4s_t>&   s_axi4s,
         hls::stream<pixel_t>&   m_stream,
         width_t                 width,
@@ -58,7 +58,7 @@ void video_filter_in(
 }
 
 
-void video_filter_out(
+void gaussian_filter_out(
         hls::stream<window_t>&  s_stream,
         hls::stream<axi4s_t>&   m_axi4s,
         width_t                 width,
@@ -77,15 +77,16 @@ void video_filter_out(
                 for ( int c = 0; c < 3; ++c ) {
                     #pragma HLS unroll
                     // Laplacian Filter
-                    int val =   (int)window.val[0][0].range(8*c+7, 8*c)
-                              + (int)window.val[0][1].range(8*c+7, 8*c)
-                              + (int)window.val[0][2].range(8*c+7, 8*c)
-                              + (int)window.val[1][0].range(8*c+7, 8*c)
-                              + (int)window.val[1][2].range(8*c+7, 8*c)
-                              + (int)window.val[2][0].range(8*c+7, 8*c)
-                              + (int)window.val[2][1].range(8*c+7, 8*c)
-                              + (int)window.val[2][2].range(8*c+7, 8*c)
-                              - ((int)window.val[1][1].range(8*c+7, 8*c) << 3);
+                    int val =   (int)window.val[0][0].range(8*c+7, 8*c) * 1
+                              + (int)window.val[0][1].range(8*c+7, 8*c) * 2
+                              + (int)window.val[0][2].range(8*c+7, 8*c) * 1
+                              + (int)window.val[1][0].range(8*c+7, 8*c) * 2
+                              + (int)window.val[1][1].range(8*c+7, 8*c) * 4
+                              + (int)window.val[1][2].range(8*c+7, 8*c) * 2
+                              + (int)window.val[2][0].range(8*c+7, 8*c) * 1
+                              + (int)window.val[2][1].range(8*c+7, 8*c) * 2
+                              + (int)window.val[2][2].range(8*c+7, 8*c) * 1;
+                    val /= 16;
                     if ( val <   0 ) { val = 0; }
                     if ( val > 255 ) { val = 255; }
                     pix.range(8*c+7, 8*c) = val;
@@ -106,7 +107,7 @@ void video_filter_out(
 }
 
 
-void video_filter(
+void gaussian_filter(
         hls::stream<axi4s_t>& s_axi4s,
         hls::stream<axi4s_t>& m_axi4s,
         width_t width,
@@ -123,8 +124,8 @@ void video_filter(
     #pragma HLS dataflow
     int tmp_width = width;
     int tmp_height = height;
-    video_filter_in(s_axi4s, stream_in, width, height);
-    VideoFilter::Streaming(stream_in, stream_out, tmp_height, tmp_width); //, BORDER_REFLECT_101, rgb_t());
-    video_filter_out(stream_out, m_axi4s, width, height, enable);
+    gaussian_filter_in(s_axi4s, stream_in, width, height);
+    GaussianFilter::Streaming(stream_in, stream_out, tmp_height, tmp_width); //, BORDER_REFLECT_101, rgb_t());
+    gaussian_filter_out(stream_out, m_axi4s, width, height, enable);
 }
 

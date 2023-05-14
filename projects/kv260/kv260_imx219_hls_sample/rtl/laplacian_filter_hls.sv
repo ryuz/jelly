@@ -5,7 +5,7 @@
 `default_nettype none
 
 
-module video_filter_hls
+module laplacian_filter_hls
         #(
             parameter   WB_ADR_WIDTH       = 17,
             parameter   WB_DAT_WIDTH       = 32,
@@ -97,8 +97,8 @@ module video_filter_hls
     assign s_wb_ack_o = s_wb_stb_i;
     
     
-    video_filter_0
-        i_video_filter_0
+    laplacian_filter_0
+        i_laplacian_filter_0
             (
                 .ap_clk             (aclk),
                 .ap_rst_n           (aresetn),
