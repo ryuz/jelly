@@ -242,7 +242,7 @@ sudo rm /lib/firmware/zybo_z7_udmabuf_sample.bit.bin
 
 このやり方は[別の記事](https://ryuz.hatenablog.com/entry/2021/04/03/201054)で紹介しております。
 
-詳しくは[main.cpp](https://github.com/ryuz/jelly/blob/master/projects/zybo_z7_udmabuf_sample/app/main.cpp)をお読みください。
+詳しくは[main.cpp](app/main.cpp)をお読みください。
 
 うまく動けば、udmabuf領域にPLのコアからと、Cortex-A9 の双方からアクセスして、データがやり取りできることが確認できます。
 また、uio にマップした RADIO_LED もソフトウェアから点滅させています。
