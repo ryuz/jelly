@@ -105,7 +105,6 @@
                 interrupt-parent = <&gic>;
                 interrupts = <0 89 4>;
                 reg = <0x0 0xb0000000 0x0 0x10000>;
-                
                 i2c-switch@74 {
                     compatible = "nxp,pca9546";
                     #address-cells = <1>;
