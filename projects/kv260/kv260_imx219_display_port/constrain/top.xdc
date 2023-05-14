@@ -72,6 +72,10 @@ set_property IOSTANDARD LVCMOS33 [get_ports cam_enable]
 #    SDA        HDA01         SOM240_1 D17 som240_1_d17  F10
 
 
+# fan
+set_property PACKAGE_PIN A12 [get_ports fan_en]
+set_property IOSTANDARD LVCMOS33 [get_ports fan_en]
+
 # PMOD0
 set_property PACKAGE_PIN H12 [get_ports {pmod[0]}]
 set_property PACKAGE_PIN E10 [get_ports {pmod[1]}]

@@ -2,7 +2,7 @@
 # setting
 export HLS_TARGET   = video_filter
 export HLS_SOLUTION = solution_1
-export DEVICE_PART  = xczu3eg-sbva484-1-i
+export DEVICE_PART  = xck26-sfvc784-2LV-c
 export CLOCK_PERIOD = 4.0
 
 export CSIM_OPTIONS  ?= 

@@ -7,7 +7,7 @@ VIVADO_VERSIONS := $(subst .,$(space),$(subst v,,$(word 2,$(shell vivado -versio
 VIVADO_VERSION  := $(word 1,$(VIVADO_VERSIONS)).$(word 2,$(VIVADO_VERSIONS))
 
 # settings
-PROJECT_NAME = kv260_udmabuf_sample
+PROJECT_NAME = kv260_imx219_hls_sample
 BOARD_NAME   = kv260
 export PRJ_NAME     = $(PROJECT_NAME)_tcl
 export TOP_MODULE   = $(PROJECT_NAME)
@@ -30,20 +30,24 @@ JELLY_TOP_DIR = $(TOP_DIR)
 -include $(JELLY_TOP_DIR)/include/make/def_sources.inc
 
 
+# HLS
+HLS_EXPORT_FILE = $(HLS_DIR)/video_filter/solution_1/impl/export.zip
+
 # HLS IP
-HLS_IP =
+HLS_IP = video_filter,video_filter_0
 export HLS_IP
+export HLS_DIR
 
 # sources
-SOURCES  = $(PRJ_DIR)/rtl/kv260_udmabuf_sample.v
-SOURCES += $(PRJ_DIR)/rtl/test_dma.v
-SOURCES += $(PRJ_DIR)/rtl/test_dma_core.v
-SOURCES += $(TOP_DIR)/rtl/v1/bus/jelly_axi4l_to_wishbone.v
-SOURCES += $(TOP_DIR)/rtl/v1/peripheral/jelly_interval_timer.v
+SOURCES  = $(PRJ_DIR)/rtl/ultra96v2_imx219_hls_sample.sv
+SOURCES  = $(PRJ_DIR)/rtl/image_processing.sv
+SOURCES  = $(PRJ_DIR)/rtl/video_filter_hls.sv
+SOURCES += $(JELLY_RTL_SOURCES)
 export SOURCES
 
+
 # IP cores
-IP_CORES  =
+IP_CORES  =  $(PRJ_DIR)/ip/vivado$(VIVADO_VERSION)/mipi_dphy_cam/mipi_dphy_cam.xci
 export IP_CORES
 
 # block design
@@ -54,6 +58,7 @@ export BD_SCRIPTS
 CONSTRAINS  = ../../constrain/top.xdc
 CONSTRAINS += ../../constrain/debug.xdc
 export CONSTRAINS
+
 
 
 # rules
@@ -67,7 +72,7 @@ rebuild: clean create build
 create: $(PRJ_NAME).xpr
 
 .PHONY : build
-build: $(BIT_FILE) check_log
+build: build_hls $(BIT_FILE) check_log
 
 .PHONY : bit_scp
 bit_scp: $(BIT_FILE)
@@ -104,3 +109,15 @@ clean:
 	-rm -fr $(PRJ_NAME).xpr
 	-rm -f vivado*.jou
 	-rm -f vivado*.log
+
+
+.PHONY : build_hls
+build_hls:
+	make -C $(PRJ_DIR)/hls
+
+.PHONY : clean_hls
+clean_hls:
+	make -C $(PRJ_DIR)/hls clean
+
+.PHONY : distclean
+distclean: clean_hls clean

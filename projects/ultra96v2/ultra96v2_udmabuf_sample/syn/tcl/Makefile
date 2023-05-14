@@ -14,7 +14,7 @@ export TOP_MODULE   = $(PROJECT_NAME)
 export BOARD_PART   = avnet.com:ultra96v2*
 export DEVICE_PART  = xczu3eg-sbva484-1-i
 
-BOARD_ADDRESS  ?= debian-ultra96v2
+BOARD_ADDRESS  ?= debian-ultra96
 BOARD_WORK_DIR ?= git-work/jelly
 
 BIT_FILE = $(PRJ_NAME).runs/impl_1/$(TOP_MODULE).bit
