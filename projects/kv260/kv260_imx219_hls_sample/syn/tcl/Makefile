@@ -31,9 +31,9 @@ JELLY_TOP_DIR = $(TOP_DIR)
 
 
 # HLS
-HLS_DIR = $(PRJ_DIR)/hls
-HLS_EXPORT_FILE  = $(HLS_DIR)/gaussian_filter/gaussian_filter/solution_1/impl/export.zip
-HLS_EXPORT_FILE += $(HLS_DIR)/laplacian_filter/laplacian_filter/solution_1/impl/export.zip
+HLS_DIR = $(PRJ_DIR)/hls/gaussian_filter $(PRJ_DIR)/hls/laplacian_filter
+HLS_EXPORT_FILE  = $(PRJ_DIR)/hls/gaussian_filter/gaussian_filter/solution_1/impl/export.zip
+HLS_EXPORT_FILE += $(PRJ_DIR)/hls/laplacian_filter/laplacian_filter/solution_1/impl/export.zip
 
 # HLS IP
 HLS_IP = gaussian_filter,gaussian_filter_0 laplacian_filter,laplacian_filter_0
@@ -124,13 +124,13 @@ clean:
 
 .PHONY : build_hls
 build_hls:
-	make -C $(HLS_DIR)/gaussian_filter
-	make -C $(HLS_DIR)/laplacian_filter
+	make -C $(PRJ_DIR)/hls/gaussian_filter
+	make -C $(PRJ_DIR)/hls/laplacian_filter
 
 .PHONY : clean_hls
 clean_hls:
-	make -C $(HLS_DIR)/gaussian_filter  clean
-	make -C $(HLS_DIR)/laplacian_filter clean
+	make -C $(PRJ_DIR)/hls/gaussian_filter  clean
+	make -C $(PRJ_DIR)/hls/laplacian_filter clean
 
 .PHONY : distclean
 distclean: clean_hls clean

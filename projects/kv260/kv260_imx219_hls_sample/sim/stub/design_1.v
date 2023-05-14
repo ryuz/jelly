@@ -1,7 +1,7 @@
 
 `timescale 1 ns / 1 ps
 
-module design_1_wrapper
+module design_1
    (dp_live_video_in_pixel1,
     dp_video_out_hsync,
     dp_video_out_vsync,

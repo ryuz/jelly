@@ -16,9 +16,11 @@ all: clean build run
 .PHONY: build
 build:
 	make -C ../../../syn/tcl create
+#	xvlog ../../../syn/tcl/kv260_imx219_hls_sample_tcl.gen/sources_1/ip/gaussian_filter_0/hdl/verilog/gaussian_filter_hls_deadlock_detection_unit.v
+#	xvlog ../../../syn/tcl/kv260_imx219_hls_sample_tcl.gen/sources_1/ip/laplacian_filter_0/hdl/verilog/laplacian_filter_hls_deadlock_detection_unit.v
+	xvlog ../../../syn/tcl/kv260_imx219_hls_sample_tcl.gen/sources_1/ip/gaussian_filter_0/hdl/verilog/*.v
+	xvlog ../../../syn/tcl/kv260_imx219_hls_sample_tcl.gen/sources_1/ip/laplacian_filter_0/hdl/verilog/*.v
 	xvlog -f xvlog_cmd.txt -i ../../../../../../include
-	xvlog ../../../syn/tcl/kr260_imx219_hls_sample_tcl.gen/sources_1/ip/gaussian_filter_0/hdl/verilog/gaussian_filter_hls_deadlock_detection_unit.v
-	xvlog ../../../syn/tcl/kr260_imx219_hls_sample_tcl.gen/sources_1/ip/laplacian_filter_0/hdl/verilog/laplacian_filter_hls_deadlock_detection_unit.v
 	xelab -debug wave $(TOP_MODULE) glbl -s $(TOP_MODULE) -L unisims_ver -L unimacro_ver -L secureip
 
 .PHONY: run
