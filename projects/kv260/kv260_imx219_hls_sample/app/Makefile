@@ -1,7 +1,7 @@
 
-TARGET    = ultra96v2_imx219_hls_sample.out
-DT_NAME   = ultra96v2_imx219_hls_sample
-BIT_NAME  = ultra96v2_imx219_hls_sample
+TARGET    = kv260_imx219_hls_sample.out
+DT_NAME   = kv260_imx219_hls_sample
+BIT_NAME  = kv260_imx219_hls_sample
 
 RUN_OPT  ?=
 
@@ -37,7 +37,7 @@ run_server: load
 	python3 flask_sample.py
 
 $(TARGET): $(OBJS)
-	g++ $(LDFLAGS) -o $(TARGET) $(OBJS)
+	g++ -o $(TARGET) $(OBJS) $(LDFLAGS)
 
 %.o : %.cpp
 	g++ $(CFLAGS) -c $< -o $@
@@ -65,23 +65,22 @@ umount: unload
 
 .PHONY: load
 load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
+	@if [ -e /configfs/device-tree/overlays/k26-starter-kits_image_1 ] ; then \
+		sudo rmdir /configfs/device-tree/overlays/k26-starter-kits_image_1 ; \
+	fi
 	sudo mkdir -p $(FIRMWARE_PATH)
 	sudo cp $(BIN_FILE) $(FIRMWARE_PATH)
 	sudo cp $(DTBO_FILE) $(FIRMWARE_PATH)
 	sudo sh -c "echo 0 > /sys/class/fpga_manager/fpga0/flags"
 	sudo mkdir $(DEVTREE_PATH)/overlays/full
 	sudo sh -c "echo -n $(DTBO_FILE) > /configfs/device-tree/overlays/full/path"
-	sleep 2
+	sleep 1
 	cat $(DEVTREE_PATH)/overlays/full/status
 	sudo rm /lib/firmware/$(DTBO_FILE)
 	sudo rm /lib/firmware/$(BIN_FILE)
 	sudo chmod 666 /dev/uio*
 	sudo chmod 666 /dev/udmabuf*
-	sudo chmod 666 /dev/i2c-4
-#	sudo memwrite 0xfd4aa00c 0xff
-#	sudo memwrite 0xfd4ab120 0x00
-#	sudo memwrite 0xfd4ab070 0x54
-##	sudo memwrite 0xfd4ab070 0x3c
+	sudo chmod 666 /dev/i2c-6
 
 .PHONY: unload
 unload:
