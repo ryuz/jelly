@@ -31,18 +31,20 @@ JELLY_TOP_DIR = $(TOP_DIR)
 
 
 # HLS
-HLS_DIR = $(PRJ_DIR)/hls
-HLS_EXPORT_FILE = $(HLS_DIR)/video_filter/solution_1/impl/export.zip
+HLS_DIR = $(PRJ_DIR)/hls/gaussian_filter $(PRJ_DIR)/hls/laplacian_filter
+HLS_EXPORT_FILE  = $(PRJ_DIR)/hls/gaussian_filter/gaussian_filter/solution_1/impl/export.zip
+HLS_EXPORT_FILE += $(PRJ_DIR)/hls/laplacian_filter/laplacian_filter/solution_1/impl/export.zip
 
 # HLS IP
-HLS_IP = video_filter,video_filter_0
+HLS_IP = gaussian_filter,gaussian_filter_0 laplacian_filter,laplacian_filter_0
 export HLS_IP
 export HLS_DIR
 
 # sources
 SOURCES  = $(PRJ_DIR)/rtl/kv260_imx219_hls_sample.sv
 SOURCES += $(PRJ_DIR)/rtl/image_processing.sv
-SOURCES += $(PRJ_DIR)/rtl/video_filter_hls.sv
+SOURCES += $(PRJ_DIR)/rtl/gaussian_filter_hls.sv
+SOURCES += $(PRJ_DIR)/rtl/laplacian_filter_hls.sv
 SOURCES += $(JELLY_RTL_SOURCES)
 export SOURCES
 
@@ -122,11 +124,13 @@ clean:
 
 .PHONY : build_hls
 build_hls:
-	make -C $(PRJ_DIR)/hls
+	make -C $(PRJ_DIR)/hls/gaussian_filter
+	make -C $(PRJ_DIR)/hls/laplacian_filter
 
 .PHONY : clean_hls
 clean_hls:
-	make -C $(PRJ_DIR)/hls clean
+	make -C $(PRJ_DIR)/hls/gaussian_filter  clean
+	make -C $(PRJ_DIR)/hls/laplacian_filter clean
 
 .PHONY : distclean
 distclean: clean_hls clean

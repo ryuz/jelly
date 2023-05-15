@@ -15,7 +15,7 @@ ZYBO-Z7 でグーローシェーディングしたポリゴンをHDMIコネク�
 - [Vivado 2019.2.1](https://japan.xilinx.com/support/download.html)
 - [ikwzm氏](https://qiita.com/ikwzm) の [Debianブートイメージ](https://qiita.com/ikwzm/items/7e90f0ca2165dbb9a577)
 
-基本的な環境構築は[こちらのブログ](https://ryuz.qrunch.io/entries/jU8BkKu8bxqOeGAC)でも紹介しておりますので参考にしてください。
+基本的な環境構築は[こちらのブログ](https://qiita.com/Ryuz/items/fcda012ce0deeca068c6)でも紹介しておりますので参考にしてください。
 
 ソフトウェアは Debian イメージ上でセルフコンパイル可能ですので、ホストPC側は Vivado のみでも開発が可能です(Vitisなどもある方がよいですが)。
 
@@ -32,7 +32,7 @@ git clone https://github.com/ryuz/jelly.git
 
 ### Vivadoで bit ファイルを作る
 
-projects/zybo_z7_gpu_gouraud/syn/vivado2019.2
+projects/zybo_z7/zybo_z7_gpu_gouraud/syn/vivado2019.2
 
 に移動して Vivado から zybo_z7_gpu_gouraud.xpr を開いてください。
 
@@ -54,7 +54,7 @@ zybo_z7_gpu_gouraud.runs/impl_1
 
 ZYBO Z7 で Linux を起動してください。
 
-次に projects/zybo_z7_gpu_gouraud/app の内容一式と先ほど合成した zybo_z7_gpu_gouraud.bit を、ZYBO の Debian で作業できる適当なディレクトリにコピーします。bitファイルも同じappディレクトリに入れてください。
+次に projects/zybo_z7/zybo_z7_gpu_gouraud/app の内容一式と先ほど合成した zybo_z7_gpu_gouraud.bit を、ZYBO の Debian で作業できる適当なディレクトリにコピーします。bitファイルも同じappディレクトリに入れてください。
 
 ZYBO 側では Debian が起動済みで ssh などで接続ができている前提ですので scp や samba などでコピーすると良いでしょう。app に関しては ZYBO から git で clone することも可能です。
 

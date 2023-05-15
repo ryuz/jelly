@@ -5,7 +5,7 @@
 `default_nettype none
 
 
-module video_filter_hls
+module laplacian_filter_hls
         #(
             parameter   WB_ADR_WIDTH       = 17,
             parameter   WB_DAT_WIDTH       = 32,
@@ -97,8 +97,8 @@ module video_filter_hls
     assign s_wb_ack_o = s_wb_stb_i;
     
     
-    video_filter_0
-        i_video_filter_0
+    laplacian_filter_0
+        i_laplacian_filter_0
             (
                 .ap_clk             (aclk),
                 .ap_rst_n           (aresetn),
@@ -111,12 +111,12 @@ module video_filter_hls
                 .s_axi4s_TDATA      (s_axi4s_tdata),
                 .s_axi4s_TVALID     (s_axi4s_tvalid),
                 .s_axi4s_TREADY     (s_axi4s_tready),
-                .s_axi4s_TKEEP      (),
-                .s_axi4s_TSTRB      (),
+                .s_axi4s_TKEEP      ('1),
+                .s_axi4s_TSTRB      ('1),
                 .s_axi4s_TUSER      (s_axi4s_tuser),
                 .s_axi4s_TLAST      (s_axi4s_tlast),
-                .s_axi4s_TID        (),
-                .s_axi4s_TDEST      (),
+                .s_axi4s_TID        ('0),
+                .s_axi4s_TDEST      ('0),
 
                 .m_axi4s_TDATA      (m_axi4s_tdata),
                 .m_axi4s_TVALID     (m_axi4s_tvalid),

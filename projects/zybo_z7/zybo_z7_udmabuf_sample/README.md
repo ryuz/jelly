@@ -18,7 +18,7 @@ Zynqを活用するうえで非常に有用なソフトウェアですので同�
 - Vivado 2019.2
 
 Debianイメージは一度起動SDを作ってしまえば Vivado だけでもいろいろできるのが素敵です。
-[こちら](https://ryuz.qrunch.io/entries/jU8BkKu8bxqOeGAC)の別記事でも少し紹介しておりますので参考になれば幸いです。
+[こちら](https://qiita.com/Ryuz/items/fcda012ce0deeca068c6)の別記事でも少し紹介しておりますので参考になれば幸いです。
 
 なおZYBO-Z7 には FPGA規模の違いで XC7Z010 のものと XC7Z020 のもとあります。今回は XC7Z020 を使っていますが、移植は容易と思います。
 
@@ -44,7 +44,7 @@ git clone https://github.com/ryuz/jelly
 ```
 で取得できます。
 
-/projects/zybo_z7_udmabuf_sample/
+/projects/zybo_z7/zybo_z7/zybo_z7_udmabuf_sample/
 
 以下が今回のプロジェクトです。
 
@@ -55,7 +55,7 @@ PS用のbitstreamは PC(WindowsやLinuxなど)で Vivado を使って行いま�
 
 Vivado のプロジェクトは
 
-/projects/zybo_z7_udmabuf_sample/syn/vivado2019.2/zybo_z7_udmabuf_sample.xpr
+/projects/zybo_z7/zybo_z7_udmabuf_sample/syn/vivado2019.2/zybo_z7_udmabuf_sample.xpr
 
 にありますので Vivado で開いてください。
 
@@ -68,7 +68,7 @@ Vivado メニューの「Tools」→「Run Tcl Script」で、プロジェクト
 design_1 が生成されたら「Flow」→「Run Implementation」で合成を行います。正常に合成できれば
 ultra96v2_udmabuf_sample.bit が出来上がります。
 
-このファイルを projects/zybo_z7_udmabuf_sample/app にコピーしておいてください。
+このファイルを projects/zybo_z7/zybo_z7_udmabuf_sample/app にコピーしておいてください。
 
 なお、本PLは用の bitstream は
 
@@ -81,7 +81,7 @@ ultra96v2_udmabuf_sample.bit が出来上がります。
 
 ## ソフト側の作成と実行
   ZYBO-Z7側のソフトの開発です。
-  projects/zybo_z7_udmabuf_sample/app を ZYBO-Z7 のどこか適当な箇所にコピーします。
+  projects/zybo_z7/zybo_z7_udmabuf_sample/app を ZYBO-Z7 のどこか適当な箇所にコピーします。
   ZYBO-Z7側の作業は Debian のブートイメージで起動したあと、常に起動したまま行うことが可能で、運用したままPLとソフトをアップデートすることも可能なのがこのブートイメージの素晴らしいところです。
 
   ZYBO-Z7 の debian でも git は動きますので、こちらでも clone する手があります。
@@ -220,7 +220,7 @@ sudo cp zybo_z7_udmabuf_sample.dtbo /configfs/device-tree/overlays/full/dtbo
 sudo sh -c "echo 1 > /configfs/device-tree/overlays/full/status"
 ```
 
-なおこの部分の手順は[Ultra96V2の記事](https://ryuz.qrunch.io/entries/TDI9ZcCSyZZSo332)と少し違う手順になっています。
+なおこの部分の手順は[Ultra96V2の記事](https://qiita.com/Ryuz/items/db99d50c1c4ba3af67d9)と少し違う手順になっています。
 この点について、[ikwzm氏から教えて頂いた情報](https://twitter.com/ikwzm/status/1256101833598046208)として、
 
 > configFS を使った Device Tree Overlay のメカニズムは、Ultra96(ZynqMP) は Xilinx の linux-xlnx で提供されています。が、ZYBO(Zynq) で使っている Linux(メインライン)にはありません。仕方が無いので私が独自に作ったのですが、微妙に違ってしまったのです。。。（汗
@@ -240,9 +240,9 @@ sudo rm /lib/firmware/zybo_z7_udmabuf_sample.bit.bin
 ここでアプロケーションを実行します。
 /dev 以下に uio や dmabuf に対応するデバイスがが追加されているはずなのでそれらを開いてアクセスすることができます。
 
-このやり方は[別の記事](https://ryuz.qrunch.io/entries/ijzqKpPDK4nWbGIU)で紹介しております。
+このやり方は[別の記事](https://ryuz.hatenablog.com/entry/2021/04/03/201054)で紹介しております。
 
-詳しくは[main.cpp](https://github.com/ryuz/jelly/blob/master/projects/zybo_z7_udmabuf_sample/app/main.cpp)をお読みください。
+詳しくは[main.cpp](app/main.cpp)をお読みください。
 
 うまく動けば、udmabuf領域にPLのコアからと、Cortex-A9 の双方からアクセスして、データがやり取りできることが確認できます。
 また、uio にマップした RADIO_LED もソフトウェアから点滅させています。

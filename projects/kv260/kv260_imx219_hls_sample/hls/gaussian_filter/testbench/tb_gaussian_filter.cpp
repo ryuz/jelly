@@ -1,7 +1,7 @@
 
 
 #include <assert.h>
-#include "video_filter.h"
+#include "gaussian_filter.h"
 
 
 pixel_t make_pattern(int x, int y) {
@@ -31,7 +31,7 @@ int main()
         }
     }
 
-    video_filter(s_axi4s, m_axi4s, width, height, false);
+    gaussian_filter(s_axi4s, m_axi4s, width, height, false);
 
     for( int y = 0; y < height; ++y ) {
         for( int x = 0; x < width; ++x ){

@@ -1,12 +1,11 @@
-// ---------------------------------------------------------------------------
-//  udmabuf テスト
-//                                  Copyright (C) 2015-2020 by Ryuz
-//                                  https://github.com/ryuz/
-// ---------------------------------------------------------------------------
-
-
-#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#include <fcntl.h>
 #include <unistd.h>
+#include <signal.h>
+#include <iostream>
 
 #include <opencv2/opencv.hpp>
 
@@ -33,6 +32,10 @@
 #define AV_BUF_AUD_VID_CLK_SOURCE           0x0000B120
 
 
+static  volatile    bool    g_signal = false;
+void signal_handler(int signo) {
+    g_signal = true;
+}
 
 int main(int argc, char *argv[])
 {
@@ -184,8 +187,8 @@ int main(int argc, char *argv[])
     width  = std::max(width, 16);
     height = std::max(height, 2);
 
-
-
+    // set signal
+    signal(SIGINT, signal_handler);
 
     // udmabuf
     std::cout << "\nudmabuf open" << std::endl;
@@ -390,6 +393,8 @@ int main(int argc, char *argv[])
     int key;
     int gamma_prev = 0;
     while ( (key = cv::waitKey(10)) != 0x1b ) {
+        if ( g_signal ) { break; }
+
         cv::Mat img(height, width, CV_8UC3);
         udmabuf_acc.ReadImage2d(3, width, height, img.data, 0, 0, 0, 0, dp_hres*3, offset_x, offset_y);
         cv::Mat imgView;
@@ -485,6 +490,8 @@ int main(int argc, char *argv[])
         }
     }
     
+    std::cout << "close device" << std::endl;
+
     // FIFO 停止
     reg_imgdma.WriteReg(REG_DAM_FIFO_CTL_CONTROL, 0x0);
     usleep(100);

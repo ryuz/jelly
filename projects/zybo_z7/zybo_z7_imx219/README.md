@@ -16,7 +16,7 @@
 - Debianイメージへの OpenCV など各種開発環境のインストール
 - X-Window server となるPC (作者は Windows10 + [Xming](https://sourceforge.net/projects/xming/) で実施)
 
-基本的な環境構築は[こちらのブログ](https://ryuz.qrunch.io/entries/jU8BkKu8bxqOeGAC)でも紹介しておりますので参考にしてください。
+基本的な環境構築は[こちらの記事](https://qiita.com/Ryuz/items/fcda012ce0deeca068c6)でも紹介しておりますので参考にしてください。
 
 ソフトウェアは Debian イメージ上でセルフコンパイル可能ですので、ホストPC側は Vivado のみでも開発が可能です(Vitisなどもある方がよいですが)。
 
@@ -33,7 +33,7 @@ git clone https://github.com/ryuz/jelly.git
 
 ### Vivadoで bit ファイルを作る
 
-projects/zybo_z7_imx219/syn/vivado2019.2
+projects/zybo_z7/zybo_z7_imx219/syn/vivado2019.2
 
 に移動して Vivado から zybo_z7_imx219.xpr を開いてください。
 
@@ -67,7 +67,7 @@ linux_boot_args=console=ttyPS0,115200 root=/dev/mmcblk0p2 rw rootwait uio_pdrv_g
 
 取付向きに注意して ZYBO-Z7 の MIPIコネクタ(J2) に、Camera Module V2 を接続します。フレキの接点が出ている側が基板の外側を向きます。
 
-次に projects/zybo_z7_imx219/app の内容一式と先ほど合成した zybo_z7_imx219.bit を、ZYBO の Debian で作業できる適当なディレクトリにコピーします。bitファイルも同じappディレクトリに入れてください。
+次に projects/zybo_z7/zybo_z7_imx219/app の内容一式と先ほど合成した zybo_z7_imx219.bit を、ZYBO の Debian で作業できる適当なディレクトリにコピーします。bitファイルも同じappディレクトリに入れてください。
 
 ZYBO 側では Debian が起動済みで ssh などで接続ができている前提ですので scp や samba などでコピーすると良いでしょう。app に関しては ZYBO から git で clone することも可能です。
 

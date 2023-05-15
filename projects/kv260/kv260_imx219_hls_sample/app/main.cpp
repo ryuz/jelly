@@ -213,21 +213,22 @@ int main(int argc, char *argv[])
     }
 
     // UIOの中をさらにコアごとに割り当て
-    auto reg_fmtr    = uio_acc.GetAccessor(0x00100000);  // ビデオサイズ正規化
-    auto reg_demos   = uio_acc.GetAccessor(0x00200000);  // デモザイク
-    auto reg_colmat  = uio_acc.GetAccessor(0x00210000);  // カラーマトリックス
-    auto reg_gamma   = uio_acc.GetAccessor(0x00220000);  // ガンマ補正
-    auto reg_gauss   = uio_acc.GetAccessor(0x00240000);  // ガウシアンフィルタ
-    auto reg_canny   = uio_acc.GetAccessor(0x00250000);  // Cannyフィルタ
-    auto reg_imgdma  = uio_acc.GetAccessor(0x00260000);  // FIFO dma
-    auto reg_bindiff = uio_acc.GetAccessor(0x00270000);  // 前画像との差分バイナライズ
-    auto reg_sel     = uio_acc.GetAccessor(0x002f0000);  // 出力切り替え
-    auto reg_bufmng  = uio_acc.GetAccessor(0x00300000);  // Buffer manager
-    auto reg_bufalc  = uio_acc.GetAccessor(0x00310000);  // Buffer allocator
-    auto reg_vdmaw   = uio_acc.GetAccessor(0x00320000);  // Write-DMA
-    auto reg_vdmar   = uio_acc.GetAccessor(0x00340000);  // Read-DMA
-    auto reg_vsgen   = uio_acc.GetAccessor(0x00360000);  // Video out sync generator
-    auto reg_hls     = uio_acc.GetAccessor(0x00400000);
+    auto reg_fmtr          = uio_acc.GetAccessor(0x00100000);  // ビデオサイズ正規化
+    auto reg_demos         = uio_acc.GetAccessor(0x00200000);  // デモザイク
+    auto reg_colmat        = uio_acc.GetAccessor(0x00210000);  // カラーマトリックス
+    auto reg_gamma         = uio_acc.GetAccessor(0x00220000);  // ガンマ補正
+    auto reg_gauss         = uio_acc.GetAccessor(0x00240000);  // ガウシアンフィルタ
+    auto reg_canny         = uio_acc.GetAccessor(0x00250000);  // Cannyフィルタ
+    auto reg_imgdma        = uio_acc.GetAccessor(0x00260000);  // FIFO dma
+    auto reg_bindiff       = uio_acc.GetAccessor(0x00270000);  // 前画像との差分バイナライズ
+    auto reg_sel           = uio_acc.GetAccessor(0x002f0000);  // 出力切り替え
+    auto reg_bufmng        = uio_acc.GetAccessor(0x00300000);  // Buffer manager
+    auto reg_bufalc        = uio_acc.GetAccessor(0x00310000);  // Buffer allocator
+    auto reg_vdmaw         = uio_acc.GetAccessor(0x00320000);  // Write-DMA
+    auto reg_vdmar         = uio_acc.GetAccessor(0x00340000);  // Read-DMA
+    auto reg_vsgen         = uio_acc.GetAccessor(0x00360000);  // Video out sync generator
+    auto reg_hls_gaussian  = uio_acc.GetAccessor(0x00400000);
+    auto reg_hls_laplacian = uio_acc.GetAccessor(0x00410000);
 
 #if 1
     // ID確認
@@ -466,8 +467,10 @@ int main(int argc, char *argv[])
 
         case 'd':   cv::imwrite("dump.png", img); break;
 
-        case 'x':   reg_hls.WriteReg(0x08, 1); break;
-        case 'y':   reg_hls.WriteReg(0x08, 0); break;
+        case 'x':   reg_hls_gaussian.WriteReg(0x08, 1); break;
+        case 'X':   reg_hls_gaussian.WriteReg(0x08, 0); break;
+        case 'y':   reg_hls_laplacian.WriteReg(0x08, 1); break;
+        case 'Y':   reg_hls_laplacian.WriteReg(0x08, 0); break;
         
         case 'r':
             for ( int i = 0; i < 100; ++i ) {
