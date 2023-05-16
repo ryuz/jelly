@@ -1,6 +1,6 @@
 #![no_std]
 #![no_main]
-#![feature(asm)]
+//#![feature(asm)]
 
 use core::panic::PanicInfo;
 use pudding_pac::arm::cpu;
