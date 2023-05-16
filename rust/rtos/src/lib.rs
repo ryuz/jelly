@@ -1,6 +1,6 @@
 #![no_std]
 #![no_main]
-#![feature(asm)]
+//#![feature(asm)]
 
 pub mod rtos;
 pub use rtos::*;
