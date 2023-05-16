@@ -7,14 +7,14 @@ VIVADO_VERSIONS := $(subst .,$(space),$(subst v,,$(word 2,$(shell vivado -versio
 VIVADO_VERSION  := $(word 1,$(VIVADO_VERSIONS)).$(word 2,$(VIVADO_VERSIONS))
 
 # settings
-PROJECT_NAME = ultra96v2_rtos
-BOARD_NAME   = ultra96v2
+PROJECT_NAME = kv260_rtos
+BOARD_NAME   = kv260
 export PRJ_NAME     = $(PROJECT_NAME)_tcl
 export TOP_MODULE   = $(PROJECT_NAME)
-export BOARD_PART   = avnet.com:ultra96v2*
-export DEVICE_PART  = xczu3eg-sbva484-1-i
+export BOARD_PART   = xilinx.com:kv260_som*
+export DEVICE_PART  =
 
-BOARD_ADDRESS  ?= debian-ultra96
+BOARD_ADDRESS  ?= kria
 BOARD_WORK_DIR ?= git-work/jelly
 
 BIT_FILE = $(PRJ_NAME).runs/impl_1/$(TOP_MODULE).bit
