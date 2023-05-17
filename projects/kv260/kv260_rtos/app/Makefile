@@ -1,6 +1,6 @@
 
 
-PRJ_NAME  = ultra96v2_rtos
+PRJ_NAME  = kv260_rtos
 DT_NAME   = $(PRJ_NAME)
 BIT_NAME  = $(PRJ_NAME)
 
@@ -73,6 +73,9 @@ umount: unload
 
 .PHONY: load
 load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
+	@if [ -e /configfs/device-tree/overlays/k26-starter-kits_image_1 ] ; then \
+		sudo rmdir /configfs/device-tree/overlays/k26-starter-kits_image_1 ; \
+	fi
 	sudo mkdir -p $(FIRMWARE_PATH)
 	sudo cp $(BIN_FILE) $(FIRMWARE_PATH)
 	sudo cp $(DTBO_FILE) $(FIRMWARE_PATH)
