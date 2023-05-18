@@ -84,7 +84,7 @@ FPGAで作成したRealTime-OSアクセラレータです。
 - projects/kv260/kv260_imx219
     - [Kria KV260 で カメラ画像(IMX219) を動かすサンプル](projects/kv260/kv260_imx219/README.md)
 - projects/kv260/kv260_rtos_sample  
-    - [Kria KV260 で FPGA化した リアルタイムOS を試すサンプル](projects/kv260/kv260_rtos_sample/README.md)
+    - [Kria KV260 で FPGA化した リアルタイムOS を試すサンプル](projects/kv260/kv260_rtos/README.md)
 - projects/kv260/kv260_jfive_simple_controller
     - [Kria KV260 で 自作RISC-V(4段パイプライン)を200MHzで試すサンプル](projects/kv260/kv260_jfive_simple_controller/README.md)
 - projects/kv260/kv260_jfive_micro_controller
