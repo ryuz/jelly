@@ -6,6 +6,7 @@
 
 
                 /* 外部定数宣言 */
+                .global _vector_table
                 .global _rst_handler
                 .global _und_handler
                 .global _svc_handler
@@ -16,10 +17,12 @@
                 .extern jelly_irq_handler
                 .extern jelly_svc_handler
 
-                .text
+          /*    .text  */
+                .section  .vector
                 .align  2
 
                 /* ベクタ定義 */
+_vector_table:
                 ldr     pc, adr_rst_hdr
                 ldr     pc, adr_und_hdr
                 ldr     pc, adr_svc_hdr

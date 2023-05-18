@@ -3,30 +3,24 @@ ENTRY(_rst_handler)
 
 MEMORY
 {
-	vector : o = 0x00000000, l = 0x00000040		/* TCM-A */
-	ram0   : o = 0x00000040, l = 0x0000ffc0		/* TCM-A */
-	ram1   : o = 0x00020000, l = 0x00010000		/* TCM-B0/1 */
+	ram0   : o = 0x00000000, l = 0x00010000		/* A-TCM */
+	ram1   : o = 0x00020000, l = 0x00010000		/* B-TCM */
 }
 
 SECTIONS
 {
-	.vector :
-	{
-      	___vector = . ;
-		KEEP(*vectors.o(.text)) 
-		FILL(0xff)
-		___vector_end = . ; 
-	} > vector
-
 	.text :
 	{
+       . = 0x00000000;
 		 ___text = . ; 
+		KEEP(*(.vector))
+       . = 0x00000040;
 		*(.text .text.* .rodata*)
 		 ___text_end = . ; 
 	} > ram0
-    
 
-	data :
+
+	.data :
 	{
 		___data = . ;
 		*(.data .data.*)
@@ -49,27 +43,27 @@ SECTIONS
     .stacks ALIGN(0x08):
     {
         ___usr_stack = . ; 
-        . += 4096;
+        . += 8192;
         ___usr_stack_end = . ;
 
         ___fiq_stack = . ; 
-        . += 32;
+        . += 512;
         ___fiq_stack_end = . ;
 
         ___irq_stack = . ; 
-        . += 32;
+        . += 512;
         ___irq_stack_end = . ;
 
         ___svc_stack = . ; 
-        . += 32;
+        . += 128;
         ___svc_stack_end = . ;
 
         ___abt_stack = . ; 
-        . += 32;
+        . += 128;
         ___abt_stack_end = . ;
 
         ___und_stack = . ; 
-        . += 32;
+        . += 128;
         ___und_stack_end = . ;
     } > ram1
 
