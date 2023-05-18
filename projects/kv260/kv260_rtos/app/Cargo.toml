@@ -7,7 +7,8 @@ edition = "2021"
 
 [dependencies]
 #rand = { version = "0.8.4", default_features = false, features = ["small_rng"] }
-pudding-pac = { git="https://github.com/ryuz/pudding-pac.git", branch = "work" }
+#pudding-pac = { git="https://github.com/ryuz/pudding-pac.git", branch = "work" }
+pudding-pac = { git = "https://github.com/ryuz/pudding-pac.git",    branch="work", default-features=false} 
 jelly-rtos = { path = "../../../../rust/rtos", default-features=false, features=[] }
 libm = "*"
 
