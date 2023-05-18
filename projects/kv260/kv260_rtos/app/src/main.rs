@@ -52,7 +52,7 @@ pub unsafe extern "C" fn main() -> ! {
     println!("");
 
     // 時間単位を us 単位にする
-    let pscl:u32 = rtos::clock_rate() / 1000000 - 1;
+    let pscl: u32 = rtos::clock_rate() / 1000000 - 1;
     println!("set_pscl({})\n", pscl);
     rtos::set_pscl(pscl);
 
@@ -167,4 +167,3 @@ pub fn memdump(addr: usize, len: usize) {
         }
     }
 }
-

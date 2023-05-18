@@ -28,6 +28,10 @@ clean:
 	cargo clean
 	rm -rf $(DTBO_FILE) $(BIN_FILE)
 
+.PHONY: fmt
+fmt:
+	cargo fmt
+
 .PHONY: run
 run: build load run_rpu
 
