@@ -45,7 +45,7 @@ adr_abt_hdr:
 adr_irq_hdr:
                 .long   jelly_irq_handler  // _irq_handler
 adr_fiq_hdr:
-                .long   _fiq_handler
+                .long   fiq_handler
 
 
                 .end

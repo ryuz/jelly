@@ -1,6 +1,6 @@
 
 
-PRJ_NAME  = kv260_rtos
+PRJ_NAME  = kv260_rtos_sample
 DT_NAME   = $(PRJ_NAME)
 BIT_NAME  = $(PRJ_NAME)
 

@@ -6,7 +6,7 @@
         overlay0: __overlay__ {
             #address-cells = <2>;
             #size-cells = <2>;
-            firmware-name = "kv260_rtos.bit.bin";
+            firmware-name = "kv260_rtos_sample.bit.bin";
         };
     };
     
@@ -41,16 +41,6 @@
                 clocks = <&zynqmp_clk 71>;
                 compatible = "xlnx,fclk";
             };
-            /*
-            fclk0  {
-                compatible    = "ikwzm,fclkcfg-0.10.a";
-                clocks        = <&zynqmp_clk 71 &zynqmp_clk 0>;
-                insert-rate   = "100000000";
-                insert-enable = <1>;
-                remove-rate   = "1000000";
-                remove-enable = <0>;
-            };
-            */
         };
     };
 
@@ -67,16 +57,4 @@
             };
         };
     };
-
-    fragment@3 {
-        target = <&amba>;
-        overlay3: __overlay__ {
-            #size-cells = <0x2>;
-            udmabuf4 {
-                compatible = "ikwzm,u-dma-buf";
-                device-name = "udmabuf-jelly-vram0";
-                size = <0x0 0x10000000>;
-            };
-        };
-    }; 
 };
