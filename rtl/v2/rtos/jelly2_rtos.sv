@@ -16,7 +16,6 @@ module jelly2_rtos
             parameter   int                                         WB_ADR_WIDTH       = 16,
             parameter   int                                         WB_DAT_WIDTH       = 32,
             parameter   int                                         WB_SEL_WIDTH       = WB_DAT_WIDTH/8,
-            parameter   bit                                         IRQ_NEGATIVE       = 1'b0,
             parameter   int                                         TMAX_TSKID         = 15,
             parameter   int                                         TMAX_SEMID         = 7,
             parameter   int                                         TMAX_FLGID         = 2,
@@ -99,7 +98,7 @@ module jelly2_rtos
             input   var logic                                       s_wb_stb_i,
             output  var logic                                       s_wb_ack_o,
 
-            output  var logic                                       irq,
+            output  var logic                                       irq_n,
 
             input   var logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    ext_set_flg,
 
@@ -463,7 +462,9 @@ module jelly2_rtos
         end
     end
     
-    assign irq = ((reg_irq & irq_enable) | irq_force) ^ IRQ_NEGATIVE;
+    logic       irq;
+    assign irq   = ((reg_irq & irq_enable) | irq_force);
+    assign irq_n = ~irq;
 
     always_comb begin : blk_wb_cmd
         op_tskid = 'x;
