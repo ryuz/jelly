@@ -26,6 +26,8 @@ module jelly2_necolink_axi4_master
             input   var logic                           aclk                        ,
             input   var logic                           aclken                      ,
 
+            input   var logic   [7:0]                   s_axi4_awnode               ,
+            input   var logic                           s_axi4_awacken              ,
             input   var logic   [AXI4_ID_WIDTH-1:0]     s_axi4_awid                 ,
             input   var logic   [AXI4_ADDR_WIDTH-1:0]   s_axi4_awaddr               ,
             input   var logic   [AXI4_LEN_WIDTH-1:0]    s_axi4_awlen                ,
@@ -52,6 +54,7 @@ module jelly2_necolink_axi4_master
             output  var logic   [7:0]                   m_msg_tx_data               ,
             output  var logic                           m_msg_tx_valid              ,
             input   var logic                           m_msg_tx_ready              ,
+
             input   var logic                           s_msg_rx_first              ,
             input   var logic                           s_msg_rx_last               ,
             input   var logic   [7:0]                   s_msg_rx_src_node           ,
@@ -59,7 +62,74 @@ module jelly2_necolink_axi4_master
             input   var logic                           s_msg_rx_valid              
         );
 
+    // state control
+    logic                           tx_busy;
+    logic                           tx_enable;
+    logic                           addr_enable;
+    logic                           data_enable;
+    always_ff @(posedge aclk) begin
+        if ( ~aresetn ) begin
+            tx_busy     <= 1'b0;
+            tx_enable   <= 1'b0;
+            addr_enable <= 1'b0;
+            data_enable <= 1'b0;
+        end
+        else if ( aclken ) begin
+            if ( s_axi4_awvalid && s_axi4_awready ) begin
+                addr_enable <= 1'b1;
+            end
+            if ( s_axi4_wlast && s_axi4_wvalid && s_axi4_wready ) begin
+                data_enable <= 1'b1;
+            end
+
+            if ( !tx_busy && addr_enable && data_enable && ~m_msg_tx_ready ) begin
+                tx_busy     <= 1'b0;
+            end
+
+            if ( tx_busy && ~m_msg_tx_ready ) begin
+                addr_enable <= 1'b0;
+                data_enable <= 1'b0;
+            end
+        end
+    end
+
     
+    // data
+    logic                           w_busy;
+
+    logic   [AXI4_DATA_WIDTH-1:0]   fifo_wdata  ;
+    logic   [AXI4_STRB_WIDTH-1:0]   fifo_wstrb  ;
+    logic                           fifo_wlast  ;
+    logic                           fifo_wvalid ;
+    logic                           fifo_wready ;
+
+    jelly2_fifo_fwtf
+            #(
+                .DATA_WIDTH     (AXI4_STRB_WIDTH + AXI4_DATA_WIDTH  ),
+                .PTR_WIDTH      (AXI4_LEN_WIDTH                     ),
+                .DOUT_REGS      (0                                  ),
+                .RAM_TYPE       ("distributer"                      ),
+                .LOW_DEALY      (0                                  ),
+                .S_REGS         (0                                  ),
+                .M_REGS         (0                                  )
+            )
+        i_fifo_fwtf
+            (
+                .reset          (~aresetn                           ),
+                .clk            (aclk                               ),
+                .cke            (aclken                             ),
+
+                .s_data         ({s_axi4_wstrb, s_axi4_wdata}       ),
+                .s_valid        (s_axi4_wvalid & s_axi4_wready      ),
+                .s_ready        (),
+                .s_free_count   (),
+                
+                .m_data         (),
+                .m_valid        (),
+                .m_ready        (),
+                .m_data_count   ()
+            );
+
 
     logic   [15:0][7:0]      tx_msg_cmd;
 
