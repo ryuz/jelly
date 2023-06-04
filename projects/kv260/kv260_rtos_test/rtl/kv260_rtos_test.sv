@@ -12,9 +12,10 @@
 `default_nettype none
 
 
-module ultra96v2_rtos
+module kv260_rtos_test
             (
-                output  wire    [1:0]   led
+                output  var logic           fan_en,
+                output  var logic   [1:0]   led
             );
     
     
@@ -56,6 +57,8 @@ module ultra96v2_rtos
     design_1
         i_design_1
             (
+                .fan_en             (fan_en),
+                
                 .m_axi4l_aresetn    (axi4l_aresetn),
                 .m_axi4l_aclk       (axi4l_aclk),
                 .m_axi4l_awaddr     (axi4l_awaddr),
@@ -252,19 +255,33 @@ module ultra96v2_rtos
     logic                           wb_led_stb_i;
     logic                           wb_led_ack_o;
     
-    logic   [0:0]                   reg_led;
+    (* mark_debug="true" *)
+    logic   [1:0]                   reg_led;
+
     always_ff @(posedge clk) begin
         if ( reset ) begin
             reg_led <= 0;
         end
         else begin
             if (wb_led_stb_i && wb_we_i && wb_sel_i[0]) begin
-                reg_led <= wb_dat_i[0:0];
+                case ( wb_adr_i[1:0] )
+                2'b00:  reg_led[0] <= wb_dat_i[0:0];
+                2'b01:  reg_led[1] <= wb_dat_i[0:0];
+                default: ;
+                endcase
             end
         end
     end
     
-    assign wb_led_dat_o = {31'd0, reg_led};
+    always_comb begin
+        wb_led_dat_o = '0;
+        case ( wb_adr_i[1:0] )
+        2'b00:  wb_led_dat_o = WB_DAT_WIDTH'(reg_led[0]);
+        2'b01:  wb_led_dat_o = WB_DAT_WIDTH'(reg_led[1]);
+        default: ;
+        endcase
+    end
+
     assign wb_led_ack_o = wb_led_stb_i;
     
     
@@ -278,8 +295,7 @@ module ultra96v2_rtos
         end
     end
     
-    assign led[0] = reg_led;
-    assign led[1] = reg_clk_count[25];
+    assign led = reg_led;
     
     
     
@@ -288,6 +304,7 @@ module ultra96v2_rtos
     //  Test Timer
     // -----------------------------
     
+    (* mark_debug="true" *)
     logic                           tim_irq;
 
     logic   [WB_DAT_WIDTH-1:0]      wb_tim_dat_o;
