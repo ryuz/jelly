@@ -1,5 +1,0 @@
-all:
-{
-    kv260_rtos.bit
-}
-

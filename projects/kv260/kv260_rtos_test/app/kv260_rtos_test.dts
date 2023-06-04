@@ -6,7 +6,7 @@
         overlay0: __overlay__ {
             #address-cells = <2>;
             #size-cells = <2>;
-            firmware-name = "kv260_rtos.bit.bin";
+            firmware-name = "kv260_rtos_test.bit.bin";
         };
     };
     
