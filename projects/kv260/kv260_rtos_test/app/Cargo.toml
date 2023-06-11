@@ -1,5 +1,5 @@
 [package]
-name = "kv260_rtos"
+name = "kv260_rtos_test"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 pudding-pac = { version = "0.1.3", default-features=false} 
 jelly-rtos = { path = "../../../../rust/rtos", default-features=false, features=[] }
+jelly-mem_access = { path = "../../../../rust/mem_access", default-features=false}
 libm = "*"
 
 [build-dependencies]

@@ -66,14 +66,14 @@ pub unsafe extern "C" fn main() -> ! {
     // 哲学者を5人用意
     rtos::cre_tsk(1, &mut STACK1, task1);
     rtos::cre_tsk(2, &mut STACK2, task2);
-    rtos::cre_tsk(3, &mut STACK3, task3);
-    rtos::cre_tsk(4, &mut STACK4, task4);
-    rtos::cre_tsk(5, &mut STACK5, task5);
+//    rtos::cre_tsk(3, &mut STACK3, task3);
+//    rtos::cre_tsk(4, &mut STACK4, task4);
+//    rtos::cre_tsk(5, &mut STACK5, task5);
     rtos::wup_tsk(1);
     rtos::wup_tsk(2);
-    rtos::wup_tsk(3);
-    rtos::wup_tsk(4);
-    rtos::wup_tsk(5);
+//    rtos::wup_tsk(3);
+//    rtos::wup_tsk(4);
+//    rtos::wup_tsk(5);
 
     // アイドルループ
     loop {
@@ -81,12 +81,43 @@ pub unsafe extern "C" fn main() -> ! {
     }
 }
 
+use jelly_mem_access::*;
+
+
+const INTERVAL_TIMER_ADR_CONTROL : usize = 0x00;
+const INTERVAL_TIMER_ADR_COMPARE : usize = 0x01;
+//const INTERVAL_TIMER_ADR_COUNTER : usize = 0x11;
+
 extern "C" fn task1() -> ! {
-    dining_philosopher(1);
+    let reg_led = PhysAccessor::<u32, 0x8004_0000, 0x100>::new();
+    let reg_tim = PhysAccessor::<u32, 0x8008_0000, 0x100>::new();
+    
+    unsafe {
+        reg_tim.write_reg(INTERVAL_TIMER_ADR_COMPARE, 250*2-1);   // 2us 周期
+        reg_tim.write_reg(INTERVAL_TIMER_ADR_CONTROL, 1);
+        rtos::ena_extflg(1, 1);
+
+        loop {
+            rtos::wai_flg(1, 1, rtos::WfMode::AndWait);
+            rtos::clr_flg(1, 0);
+
+            reg_led.write_reg(0, !reg_led.read_reg(0));
+        }
+    }
 }
+
 extern "C" fn task2() -> ! {
-    dining_philosopher(2);
+    let reg_led = PhysAccessor::<u32, 0x8004_0000, 0x100>::new();
+    unsafe {
+        loop {
+            rtos::dly_tsk(5);   // 5us 待ち
+            reg_led.write_reg(1, !reg_led.read_reg(1));
+        }
+    }
 }
+
+
+
 extern "C" fn task3() -> ! {
     dining_philosopher(3);
 }
