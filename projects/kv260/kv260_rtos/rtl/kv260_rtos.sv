@@ -178,6 +178,7 @@ module kv260_rtos
     (* mark_debug = "true" *)   logic   [TMAX_TSKID:1][TTW_WIDTH-1:0]       monitor_tsk_tskwait;
     (* mark_debug = "true" *)   logic   [TMAX_TSKID:1][WUPCNT_WIDTH-1:0]    monitor_tsk_wupcnt;
     (* mark_debug = "true" *)   logic   [TMAX_TSKID:1][SUSCNT_WIDTH-1:0]    monitor_tsk_suscnt;
+    (* mark_debug = "true" *)   logic   [TMAX_TSKID:1][RELTIM_WIDTH-1:0]    monitor_tsk_timcnt;
     (* mark_debug = "true" *)   logic   [TMAX_SEMID:1][QUECNT_WIDTH-1:0]    monitor_sem_quecnt;
     (* mark_debug = "true" *)   logic   [TMAX_SEMID:1][SEMCNT_WIDTH-1:0]    monitor_sem_semcnt;
     (* mark_debug = "true" *)   logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    monitor_flg_flgptn;
@@ -236,6 +237,7 @@ module kv260_rtos
                 .monitor_tsk_tskwait    (monitor_tsk_tskwait),
                 .monitor_tsk_wupcnt     (monitor_tsk_wupcnt),
                 .monitor_tsk_suscnt     (monitor_tsk_suscnt),
+                .monitor_tsk_timcnt     (monitor_tsk_timcnt),
                 .monitor_sem_quecnt     (monitor_sem_quecnt),
                 .monitor_sem_semcnt     (monitor_sem_semcnt),
                 .monitor_flg_flgptn     (monitor_flg_flgptn),
