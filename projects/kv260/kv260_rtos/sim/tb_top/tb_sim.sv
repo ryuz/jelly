@@ -163,6 +163,7 @@ module tb_sim();
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SLP_TSK     = OPCODE_WIDTH'(8'h11);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_RSM_TSK     = OPCODE_WIDTH'(8'h14);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SUS_TSK     = OPCODE_WIDTH'(8'h15);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REL_WAI     = OPCODE_WIDTH'(8'h16);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_DLY_TSK     = OPCODE_WIDTH'(8'h18);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CHG_PRI     = OPCODE_WIDTH'(8'h1c);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SET_TMO     = OPCODE_WIDTH'(8'h1f);
@@ -633,6 +634,9 @@ module tb_sim();
         wb_write(make_addr(OPCODE_WAI_SEM, 2),   0, 4'hf);
         wb_write(make_addr(OPCODE_SET_TMO, 2),  30, 4'hf);
         swtich_and_check(0);
+
+//        wb_write(make_addr(OPCODE_REL_WAI, 1),   0, 4'hf);
+//        wb_read(make_addr(OPCODE_REF_ERCD, 1));
 
     #300
         swtich_and_check(2);

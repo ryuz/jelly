@@ -35,6 +35,23 @@ ZynqMP 環境でAPU(Cortex-R5)上で、[Ubuntu](https://japan.xilinx.com/product
 なお、ビルドもAPUで行ってしまう想定ですが、コンパイル自体はPCなどの別環境でも可能です。
 
 
+## 動作を確認した環境
+
+### PC環境
+
+vivado2022.2 を用いております。
+
+### KV260環境
+
+[認定Ubuntu](https://japan.xilinx.com/products/design-tools/embedded-software/ubuntu.html) 環境にて試しております。
+
+```
+image       : iot-limerick-kria-classic-desktop-2204-x06-20220614-78.img
+Description : Ubuntu 22.04.2 LTS
+kernel      : 5.15.0-1018-xilinx-zynqmp
+```
+
+
 ### Rust インストール
 
 https://www.rust-lang.org/ja/tools/install

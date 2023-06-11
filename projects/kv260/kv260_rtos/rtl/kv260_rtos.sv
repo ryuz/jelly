@@ -52,7 +52,7 @@ module kv260_rtos
     logic                           axi4l_rready;
     
     (* mark_debug="true" *)
-    logic   [0:0]                   irq_rtos;
+    logic   [0:0]                   rtos_irq_n;
     
     design_1
         i_design_1
@@ -82,7 +82,7 @@ module kv260_rtos
                 .m_axi4l_rready     (axi4l_rready),
                 
                 .nfiq0_lpd_rpu      (1'b1),
-                .nirq0_lpd_rpu      (~irq_rtos),
+                .nirq0_lpd_rpu      (rtos_irq_n),
                 .nfiq1_lpd_rpu      (1'b1),
                 .nirq1_lpd_rpu      (1'b1)
             );
@@ -178,6 +178,7 @@ module kv260_rtos
     (* mark_debug = "true" *)   logic   [TMAX_TSKID:1][TTW_WIDTH-1:0]       monitor_tsk_tskwait;
     (* mark_debug = "true" *)   logic   [TMAX_TSKID:1][WUPCNT_WIDTH-1:0]    monitor_tsk_wupcnt;
     (* mark_debug = "true" *)   logic   [TMAX_TSKID:1][SUSCNT_WIDTH-1:0]    monitor_tsk_suscnt;
+    (* mark_debug = "true" *)   logic   [TMAX_TSKID:1][RELTIM_WIDTH-1:0]    monitor_tsk_timcnt;
     (* mark_debug = "true" *)   logic   [TMAX_SEMID:1][QUECNT_WIDTH-1:0]    monitor_sem_quecnt;
     (* mark_debug = "true" *)   logic   [TMAX_SEMID:1][SEMCNT_WIDTH-1:0]    monitor_sem_semcnt;
     (* mark_debug = "true" *)   logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    monitor_flg_flgptn;
@@ -225,7 +226,7 @@ module kv260_rtos
                 .s_wb_stb_i             (wb_rtos_stb_i),
                 .s_wb_ack_o             (wb_rtos_ack_o),
 
-                .irq                    (irq_rtos),
+                .irq_n                  (rtos_irq_n),
 
                 .ext_set_flg            (rtos_set_flg),
 
@@ -236,6 +237,7 @@ module kv260_rtos
                 .monitor_tsk_tskwait    (monitor_tsk_tskwait),
                 .monitor_tsk_wupcnt     (monitor_tsk_wupcnt),
                 .monitor_tsk_suscnt     (monitor_tsk_suscnt),
+                .monitor_tsk_timcnt     (monitor_tsk_timcnt),
                 .monitor_sem_quecnt     (monitor_sem_quecnt),
                 .monitor_sem_semcnt     (monitor_sem_semcnt),
                 .monitor_flg_flgptn     (monitor_flg_flgptn),

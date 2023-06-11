@@ -3,10 +3,8 @@
 use core::ptr;
 use pudding_pac::arm::cpu;
 
-
 // API仕様説明するのが面倒なのでなるべく ITRON4.0仕様に合わせるものとする
 // https://www.tron.org/ja/specifications/
-
 
 pub type ID = i32;
 pub type PRI = i32;
@@ -16,9 +14,9 @@ pub type FLGPTN = u32;
 
 pub const TSK_SELF: ID = 0;
 
-pub const E_OK: ER    = 0;
-pub const E_OBJ: ER   = -41;
-pub const E_QOVR: ER  = -43;
+pub const E_OK: ER = 0;
+pub const E_OBJ: ER = -41;
+pub const E_QOVR: ER = -43;
 pub const E_RLWAI: ER = -49;
 pub const E_TMOUT: ER = -50;
 
@@ -33,6 +31,7 @@ const OPCODE_WUP_TSK: usize = 0x10;
 const OPCODE_SLP_TSK: usize = 0x11;
 const OPCODE_RSM_TSK: usize = 0x14;
 const OPCODE_SUS_TSK: usize = 0x15;
+const OPCODE_REL_WAI: usize = 0x16;
 const OPCODE_DLY_TSK: usize = 0x18;
 const OPCODE_CHG_PRI: usize = 0x1c;
 const OPCODE_SET_TMO: usize = 0x1f;
@@ -95,7 +94,6 @@ pub static mut JELLY_RTOS_RUN_TSKID: usize = 0;
 #[no_mangle]
 pub static mut JELLY_RTOS_SP_TABLE: [usize; 16] = [0; 16];
 
-
 fn make_addr(opcode: usize, id: usize) -> usize {
     unsafe {
         JELLY_RTOS_CORE_BASE
@@ -112,7 +110,6 @@ unsafe fn read_reg(opcode: usize, id: usize) -> u32 {
     let addr = make_addr(opcode, id);
     ptr::read_volatile(addr as *mut u32)
 }
-
 
 extern "C" {
     fn jelly_create_context(isp: usize, entry: extern "C" fn() -> !) -> usize;
@@ -145,10 +142,10 @@ pub fn initialize(core_base: usize) {
     unsafe {
         // アドレス設定
         JELLY_RTOS_CORE_BASE = core_base;
-        
+
         // ID確認
         assert!(read_reg(OPCODE_SYS_CFG, SYS_CFG_CORE_ID) == 0x834f5452);
-        
+
         // ソフトリセット
         write_reg(OPCODE_SYS_CFG, SYS_CFG_SOFT_RESET, 1);
 
@@ -158,12 +155,13 @@ pub fn initialize(core_base: usize) {
     }
 }
 
-
-fn get_ercd(tskid: usize) -> ER
-{
-    if cfg!(feature = "ercd") { unsafe {read_reg(OPCODE_REF_ERCD, tskid) as ER} } else { E_OK }
+fn get_ercd(tskid: usize) -> ER {
+    if cfg!(feature = "ercd") {
+        unsafe { read_reg(OPCODE_REF_ERCD, tskid) as ER }
+    } else {
+        E_OK
+    }
 }
-
 
 pub fn cre_tsk(tskid: ID, stack: &mut [u8], entry: extern "C" fn() -> !) -> ER {
     let mut isp = (&mut stack[0] as *mut u8 as usize) + stack.len();
@@ -191,17 +189,29 @@ pub fn wup_tsk(tskid: ID) -> ER {
 pub fn slp_tsk() -> ER {
     unsafe {
         let tskid = JELLY_RTOS_RUN_TSKID;
-        let _sc = SystemCall::new();
-        write_reg(OPCODE_SLP_TSK, tskid, 0);
+        {
+            let _sc = SystemCall::new();
+            write_reg(OPCODE_SLP_TSK, tskid, 0);
+        }
         get_ercd(tskid)
     }
+}
+
+pub fn rel_wai(tskid: ID) -> ER {
+    unsafe {
+        let _sc = SystemCall::new();
+        write_reg(OPCODE_REL_WAI, tskid as usize, 0);
+    }
+    E_OK
 }
 
 pub fn dly_tsk(dlytim: u32) -> ER {
     unsafe {
         let tskid: usize = JELLY_RTOS_RUN_TSKID;
-        let _sc = SystemCall::new();
-        write_reg(OPCODE_DLY_TSK, tskid, dlytim);
+        {
+            let _sc = SystemCall::new();
+            write_reg(OPCODE_DLY_TSK, tskid, dlytim);
+        }
         get_ercd(tskid)
     }
 }
@@ -214,16 +224,22 @@ pub fn sig_sem(semid: ID) -> ER {
     E_OK
 }
 
-
 pub fn pol_sem(semid: ID) -> ER {
-    unsafe { if read_reg(OPCODE_POL_SEM, semid as usize) != 0 { E_OK } else { E_TMOUT }  }
+    unsafe {
+        if read_reg(OPCODE_POL_SEM, semid as usize) != 0 {
+            E_OK
+        } else {
+            E_TMOUT
+        }
+    }
 }
 
-pub fn wai_sem(semid: ID) -> ER
-{
+pub fn wai_sem(semid: ID) -> ER {
     unsafe {
-        let _sc = SystemCall::new();
-        write_reg(OPCODE_WAI_SEM, semid as usize, 0);
+        {
+            let _sc = SystemCall::new();
+            write_reg(OPCODE_WAI_SEM, semid as usize, 0);
+        }
         get_ercd(JELLY_RTOS_RUN_TSKID)
     }
 }
@@ -231,13 +247,14 @@ pub fn wai_sem(semid: ID) -> ER
 pub fn twai_sem(semid: ID, tmout: TMO) -> ER {
     unsafe {
         let tskid: usize = JELLY_RTOS_RUN_TSKID;
-        let _sc = SystemCall::new();
-        write_reg(OPCODE_WAI_SEM, semid as usize, 0);
-        write_reg(OPCODE_SET_TMO, tskid, tmout as u32);
+        {
+            let _sc = SystemCall::new();
+            write_reg(OPCODE_WAI_SEM, semid as usize, 0);
+            write_reg(OPCODE_SET_TMO, tskid, tmout as u32);
+        }
         get_ercd(tskid)
     }
 }
-
 
 pub fn ena_extflg(flgid: ID, flgptn: FLGPTN) -> ER {
     unsafe {
@@ -280,8 +297,20 @@ pub fn pol_flg(flgid: ID, waiptn: FLGPTN, wfmode: WfMode) -> ER {
     unsafe {
         let flgptn = read_reg(OPCODE_REF_FLGPTN, flgid as usize) as FLGPTN;
         match wfmode {
-            WfMode::AndWait => if flgptn & waiptn == waiptn { E_OK } else { E_TMOUT }
-            WfMode::OrWait =>  if flgptn & waiptn != 0 { E_OK } else { E_TMOUT }
+            WfMode::AndWait => {
+                if flgptn & waiptn == waiptn {
+                    E_OK
+                } else {
+                    E_TMOUT
+                }
+            }
+            WfMode::OrWait => {
+                if flgptn & waiptn != 0 {
+                    E_OK
+                } else {
+                    E_TMOUT
+                }
+            }
         }
     }
 }
@@ -289,10 +318,12 @@ pub fn pol_flg(flgid: ID, waiptn: FLGPTN, wfmode: WfMode) -> ER {
 pub fn wai_flg(flgid: ID, waiptn: u32, wfmode: WfMode) -> ER {
     unsafe {
         let tskid: usize = JELLY_RTOS_RUN_TSKID;
-        let _sc = SystemCall::new();
-        match wfmode {
-            WfMode::AndWait => write_reg(OPCODE_WAI_FLG_AND, flgid as usize, waiptn),
-            WfMode::OrWait => write_reg(OPCODE_WAI_FLG_OR, flgid as usize, waiptn),
+        {
+            let _sc = SystemCall::new();
+            match wfmode {
+                WfMode::AndWait => write_reg(OPCODE_WAI_FLG_AND, flgid as usize, waiptn),
+                WfMode::OrWait => write_reg(OPCODE_WAI_FLG_OR, flgid as usize, waiptn),
+            }
         }
         get_ercd(tskid)
     }
@@ -301,16 +332,17 @@ pub fn wai_flg(flgid: ID, waiptn: u32, wfmode: WfMode) -> ER {
 pub fn twai_flg(flgid: ID, waiptn: u32, wfmode: WfMode, tmout: TMO) -> ER {
     unsafe {
         let tskid: usize = JELLY_RTOS_RUN_TSKID;
-        let _sc = SystemCall::new();
-        match wfmode {
-            WfMode::AndWait => write_reg(OPCODE_WAI_FLG_AND, flgid as usize, waiptn),
-            WfMode::OrWait => write_reg(OPCODE_WAI_FLG_OR, flgid as usize, waiptn),
+        {
+            let _sc = SystemCall::new();
+            match wfmode {
+                WfMode::AndWait => write_reg(OPCODE_WAI_FLG_AND, flgid as usize, waiptn),
+                WfMode::OrWait => write_reg(OPCODE_WAI_FLG_OR, flgid as usize, waiptn),
+            }
+            write_reg(OPCODE_SET_TMO, tskid, tmout as u32);
         }
-        write_reg(OPCODE_SET_TMO, tskid, tmout as u32);
         get_ercd(tskid)
     }
 }
-
 
 pub fn loc_cpu() -> ER {
     unsafe {
@@ -340,27 +372,29 @@ pub fn set_pscl(prescale: u32) -> ER {
     E_OK
 }
 
-pub fn set_scratch(id : usize, data: u32) -> ER {
+pub fn set_scratch(id: usize, data: u32) -> ER {
     unsafe {
         match id {
-        0 => write_reg(OPCODE_CPU_CTL, CPU_CTL_SCRATCH0, data),
-        1 => write_reg(OPCODE_CPU_CTL, CPU_CTL_SCRATCH1, data),
-        2 => write_reg(OPCODE_CPU_CTL, CPU_CTL_SCRATCH2, data),
-        3 => write_reg(OPCODE_CPU_CTL, CPU_CTL_SCRATCH3, data),
-        _ => {},
+            0 => write_reg(OPCODE_CPU_CTL, CPU_CTL_SCRATCH0, data),
+            1 => write_reg(OPCODE_CPU_CTL, CPU_CTL_SCRATCH1, data),
+            2 => write_reg(OPCODE_CPU_CTL, CPU_CTL_SCRATCH2, data),
+            3 => write_reg(OPCODE_CPU_CTL, CPU_CTL_SCRATCH3, data),
+            _ => {}
         }
     }
     E_OK
 }
 
-pub fn ref_ercd(tskid: ID) -> ER
-{
-    unsafe { 
-        let tskid: usize = if tskid > 0 { tskid as usize } else { JELLY_RTOS_RUN_TSKID };
+pub fn ref_ercd(tskid: ID) -> ER {
+    unsafe {
+        let tskid: usize = if tskid > 0 {
+            tskid as usize
+        } else {
+            JELLY_RTOS_RUN_TSKID
+        };
         get_ercd(tskid)
     }
 }
-
 
 pub fn core_id() -> u32 {
     unsafe { read_reg(OPCODE_SYS_CFG, SYS_CFG_CORE_ID) as u32 }
@@ -409,4 +443,3 @@ pub fn systim_width() -> u32 {
 pub fn reltim_width() -> u32 {
     unsafe { read_reg(OPCODE_SYS_CFG, SYS_CFG_RELTIM_WIDTH) as u32 }
 }
-

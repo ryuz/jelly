@@ -51,7 +51,7 @@ module ultra96v2_rtos
     logic                           axi4l_rready;
     
     (* mark_debug="true" *)
-    logic   [0:0]                   irq_rtos;
+    logic   [0:0]                   rtos_irq_n;
     
     design_1
         i_design_1
@@ -79,7 +79,7 @@ module ultra96v2_rtos
                 .m_axi4l_rready     (axi4l_rready),
                 
                 .nfiq0_lpd_rpu      (1'b1),
-                .nirq0_lpd_rpu      (~irq_rtos),
+                .nirq0_lpd_rpu      (rtos_irq_n),
                 .nfiq1_lpd_rpu      (1'b1),
                 .nirq1_lpd_rpu      (1'b1)
             );
@@ -222,7 +222,7 @@ module ultra96v2_rtos
                 .s_wb_stb_i             (wb_rtos_stb_i),
                 .s_wb_ack_o             (wb_rtos_ack_o),
 
-                .irq                    (irq_rtos),
+                .irq_n                  (rtos_irq_n),
 
                 .ext_set_flg            (rtos_set_flg),
 
