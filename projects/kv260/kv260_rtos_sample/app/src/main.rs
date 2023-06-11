@@ -97,6 +97,7 @@ extern "C" fn task5() -> ! {
     dining_philosopher(5);
 }
 
+
 fn dining_philosopher(id: i32) -> ! {
     let left = id;
     let right = id % 5 + 1;
@@ -106,9 +107,8 @@ fn dining_philosopher(id: i32) -> ! {
         rtos::dly_tsk(rand_time());
 
         'dining: loop {
-            rtos::wai_sem(left);
-            {
-                if rtos::pol_sem(right) == rtos::E_OK {
+            if rtos::twai_sem(left, 500000) == rtos::E_OK {
+                if rtos::twai_sem(right, 500000) == rtos::E_OK {
                     println!("[philosopher{}] eating", id);
                     rtos::dly_tsk(rand_time());
                     rtos::sig_sem(left);
@@ -116,13 +116,16 @@ fn dining_philosopher(id: i32) -> ! {
                     break 'dining;
                 } else {
                     rtos::sig_sem(left);
+                    println!("[philosopher{}] hungry (Right fork unavailable)", id);
+                    break 'dining;
                 }
             }
-            println!("[philosopher{}] hungry", id);
-            rtos::dly_tsk(rand_time());
+            println!("[philosopher{}] hungry (Left fork unavailable)", id);
+            break 'dining;
         }
     }
 }
+
 
 // 乱数
 const RAND_MAX: u32 = 0xffff_ffff;

@@ -5,26 +5,12 @@
 
 PL に RTOS(リアルタイムOS)機能を実装し、RPU(Cortex-R5) を試してみるサンプルです。
 
-コンセプトを記載したブログは[こちら](https://ryuz.hatenablog.com/entry/2021/11/23/111925)です。
+基本的には[こちら](../kv260_rtos/README.md)のサンプルと同じですが、以下の二点が異なります。
 
-ITRON風のAPIを、PLのメモリ空間にメモリマップドレジスタとして配置して、タスクスケジューラの機能を実装しています。
+- AXI4-Light インターフェースを有し、ブロックデザインの中でRTLに接続している
+- サンプルプログラムでセマフォを pol_sem() ではなく twai_sem() を使ってタイムアウト付きの待ちを行っている
 
-PLでの実装により
-
-- タスク数Nに関わらず各種優先度比較に関わる処理が O(1) で完了する
-- PLで処理した分 Cortex-R5 の TCM の RTOS での消費を抑えられる
-- イベントフラグなどをPLの別の回路から直接セット要求できる
-
-などが特徴となっています。
-
-現時点では割り込み処理はタスクスイッチのみに利用し、いわゆる割り込み処理はPLからイベントフラグなどで直接的に起動したタスクで行う前提としております。
-
-また、PS部からの操作でしかないので APU(Cortex-A53) から set_flg や sig_sem() したりしてプロセッサ間で通信することもおそらく可能と思います。
-
-RPUのTCMに収まるような小規模なリアルタイム制御など、タスク数が少ない範囲ではある程度実用になるのではないかと思い、実験中です。
-
-なお、今回 RPU 側のソフトには Rust を用いております。
-
+そのほかは概ね同一です。
 
 ## 事前準備
 
@@ -34,11 +20,27 @@ ZynqMP 環境でAPU(Cortex-R5)上で、[Ubuntu](https://japan.xilinx.com/product
 
 なお、ビルドもAPUで行ってしまう想定ですが、コンパイル自体はPCなどの別環境でも可能です。
 
+## 動作を確認した環境
+
+### PC環境
+
+vivado2022.2 を用いております。
+
+### KV260環境
+
+[認定Ubuntu](https://japan.xilinx.com/products/design-tools/embedded-software/ubuntu.html) 環境にて試しております。
+
+```
+image       : iot-limerick-kria-classic-desktop-2204-x06-20220614-78.img
+Description : Ubuntu 22.04.2 LTS
+kernel      : 5.15.0-1018-xilinx-zynqmp
+```
 
 ### Rust インストール
 
 https://www.rust-lang.org/ja/tools/install
-に従ってインストール
+
+に従ってインストールください。
 
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
@@ -46,12 +48,16 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 ### クロスコンパイラ準備
 
+下記のように Ubuntu にインストールください。
+
 ```
 sudo apt install gcc-arm-none-eabi
 sudo apt install libnewlib-arm-none-eabi
 ```
 
 ### Cortex-R5 用準備
+
+下記のように Ubuntu にインストールください。
 
 ```
 rustup update
