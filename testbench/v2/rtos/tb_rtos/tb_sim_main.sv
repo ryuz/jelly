@@ -70,7 +70,7 @@ module tb_sim_main
         );
 
     logic                                       cke = 1'b1;
-    logic                                       irq;
+    logic                                       irq_n;
 
     logic   [FLGPTN_WIDTH-1:0]                  extflg_flgptn;
 
@@ -88,7 +88,7 @@ module tb_sim_main
     logic   [SCRATCH2_WIDTH-1:0]                monitor_scratch2;
     logic   [SCRATCH3_WIDTH-1:0]                monitor_scratch3;
     
-    jelly_rtos
+    jelly2_rtos
             #(
                 .WB_ADR_WIDTH           (WB_ADR_WIDTH       ),
                 .WB_DAT_WIDTH           (WB_DAT_WIDTH       ),

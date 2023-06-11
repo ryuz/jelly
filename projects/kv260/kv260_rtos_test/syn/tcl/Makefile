@@ -7,7 +7,7 @@ VIVADO_VERSIONS := $(subst .,$(space),$(subst v,,$(word 2,$(shell vivado -versio
 VIVADO_VERSION  := $(word 1,$(VIVADO_VERSIONS)).$(word 2,$(VIVADO_VERSIONS))
 
 # settings
-PROJECT_NAME = kv260_rtos
+PROJECT_NAME = kv260_rtos_test
 BOARD_NAME   = kv260
 export PRJ_NAME     = $(PROJECT_NAME)_tcl
 export TOP_MODULE   = $(PROJECT_NAME)
@@ -36,7 +36,7 @@ HLS_IP =
 export HLS_IP
 
 # sources
-SOURCES  = $(PRJ_DIR)/rtl/kv260_rtos.sv
+SOURCES  = $(PRJ_DIR)/rtl/kv260_rtos_test.sv
 SOURCES += $(JELLY_RTL_SOURCES)
 export SOURCES
 
