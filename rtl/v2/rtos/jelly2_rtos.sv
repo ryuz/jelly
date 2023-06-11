@@ -109,6 +109,7 @@ module jelly2_rtos
             output  var logic   [TMAX_TSKID:1][TTW_WIDTH-1:0]       monitor_tsk_tskwait,
             output  var logic   [TMAX_TSKID:1][WUPCNT_WIDTH-1:0]    monitor_tsk_wupcnt,
             output  var logic   [TMAX_TSKID:1][SUSCNT_WIDTH-1:0]    monitor_tsk_suscnt,
+            output  var logic   [TMAX_TSKID:1][RELTIM_WIDTH-1:0]    monitor_tsk_timcnt,
             output  var logic   [TMAX_SEMID:1][QUECNT_WIDTH-1:0]    monitor_sem_quecnt,
             output  var logic   [TMAX_SEMID:1][SEMCNT_WIDTH-1:0]    monitor_sem_semcnt,
             output  var logic   [TMAX_FLGID:1][FLGPTN_WIDTH-1:0]    monitor_flg_flgptn,
@@ -298,6 +299,7 @@ module jelly2_rtos
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SLP_TSK       = OPCODE_WIDTH'(8'h11);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_RSM_TSK       = OPCODE_WIDTH'(8'h14);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SUS_TSK       = OPCODE_WIDTH'(8'h15);
+    localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_REL_WAI       = OPCODE_WIDTH'(8'h16);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_DLY_TSK       = OPCODE_WIDTH'(8'h18);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_CHG_PRI       = OPCODE_WIDTH'(8'h1c);
     localparam  bit     [OPCODE_WIDTH-1:0]  OPCODE_SET_TMO       = OPCODE_WIDTH'(8'h1f);
@@ -475,6 +477,7 @@ module jelly2_rtos
         rsm_tsk_valid = '0;
         sus_tsk_valid = '0;
         rel_wai_valid = '0;
+        set_tmo_valid = '0;
         dly_tsk_dlytim = 'x;
         dly_tsk_valid  = '0;
 
@@ -501,7 +504,8 @@ module jelly2_rtos
             OPCODE_SLP_TSK: if ( USE_SLP_TSK ) begin slp_tsk_valid = 1'b1; op_tskid = TSKID_WIDTH'(dec_id); end
             OPCODE_RSM_TSK: if ( USE_SUS_TSK ) begin rsm_tsk_valid = 1'b1; op_tskid = TSKID_WIDTH'(dec_id); end
             OPCODE_SUS_TSK: if ( USE_SUS_TSK ) begin sus_tsk_valid = 1'b1; op_tskid = TSKID_WIDTH'(dec_id); end
-            OPCODE_SET_TMO: if ( USE_SET_TMO ) begin set_tmo_valid = 1'b1; op_tskid = TSKID_WIDTH'(dec_id); set_tmo_tmotim = FLGPTN_WIDTH'(s_wb_dat_i); end
+            OPCODE_REL_WAI: if ( USE_REL_WAI ) begin rel_wai_valid = 1'b1; op_tskid = TSKID_WIDTH'(dec_id); end
+            OPCODE_SET_TMO: if ( USE_SET_TMO ) begin set_tmo_valid = 1'b1; op_tskid = TSKID_WIDTH'(dec_id); set_tmo_tmotim = RELTIM_WIDTH'(s_wb_dat_i); end
             
             OPCODE_SET_FLG:
                 begin
@@ -671,6 +675,7 @@ module jelly2_rtos
     assign monitor_tsk_tskwait = task_tskwait;
     assign monitor_tsk_wupcnt  = task_wupcnt;
     assign monitor_tsk_suscnt  = task_suscnt;
+    assign monitor_tsk_timcnt  = task_timcnt;
     assign monitor_sem_quecnt  = semaphore_quecnt;
     assign monitor_sem_semcnt  = semaphore_semcnt;
     assign monitor_flg_flgptn  = flg_flgptn;
