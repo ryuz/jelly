@@ -6,8 +6,8 @@
 // ---------------------------------------------------------------------------
 
 
-#ifndef	__RYUZ__JELLY__UIO_ACCESSOR_H__
-#define	__RYUZ__JELLY__UIO_ACCESSOR_H__
+#ifndef __RYUZ__JELLY__UIO_ACCESSOR_H__
+#define __RYUZ__JELLY__UIO_ACCESSOR_H__
 
 
 #include <string.h>
@@ -26,15 +26,17 @@ namespace jelly {
 // memory manager
 class AccessorUioManager : public AccessorMmapManager
 {
-	using _super = AccessorMmapManager;
+    using _super = AccessorMmapManager;
 
 protected:
-	AccessorUioManager(const char* fname, std::size_t size, off_t offset, int flags) { Mmap(fname, size, offset, flags); }
+    int   m_id = 0;
+
+    AccessorUioManager(const char* fname, std::size_t size, off_t offset, int flags) { Mmap(fname, size, offset, flags); }
 
 public:
-	~AccessorUioManager() { Munmap(); }
-	
-	static std::shared_ptr<AccessorUioManager> Create(const char* fname, size_t size, off_t offset=0, int flags=(O_RDWR | O_SYNC))
+    ~AccessorUioManager() { Munmap(); }
+    
+    static std::shared_ptr<AccessorUioManager> Create(const char* fname, size_t size, off_t offset=0, int flags=(O_RDWR | O_SYNC))
     {
         return std::shared_ptr<AccessorUioManager>(new AccessorUioManager(fname, size, offset, flags));
     }
@@ -55,32 +57,32 @@ public:
     }
 
 protected:
-	bool Mmap(const char* fname, std::size_t size, off_t offset, int flags)
-	{
-		// open
-		int	fd;
-		if ( (fd = open(fname, flags)) < 0 ) {
-			return false;
-		}
+    bool Mmap(const char* fname, std::size_t size, off_t offset, int flags)
+    {
+        // open
+        int fd;
+        if ( (fd = open(fname, flags)) < 0 ) {
+            return false;
+        }
         
-		// mmap
-		if ( !_super::Mmap(fd, size, offset) ) {
-			close(fd);
-			return false;
-		}
-	    return true;
-	}
+        // mmap
+        if ( !_super::Mmap(fd, size, offset) ) {
+            close(fd);
+            return false;
+        }
+        return true;
+    }
 
-	void Munmap(void)
-	{
-		if ( !_super::IsMapped() ) {
-			return;
-		}
+    void Munmap(void)
+    {
+        if ( !_super::IsMapped() ) {
+            return;
+        }
 
-		int fd = _super::GetFd();
-		_super::Munmap();
-		close(fd);
-	}
+        int fd = _super::GetFd();
+        _super::Munmap();
+        close(fd);
+    }
 };
 
 
@@ -88,77 +90,117 @@ template <typename DataType=std::uintptr_t, typename MemAddrType=std::uintptr_t,
 class UioAccessor_ : public MmapAccessor_<DataType, MemAddrType, RegAddrType>
 {
 protected:
-	bool Open(const char* dev_fname, std::size_t size, std::size_t offset)
-	{
-		auto uio_manager = AccessorUioManager::Create(dev_fname, size);
-		if ( uio_manager->IsMapped() ) {
-			this->SetMemManager(uio_manager, offset);
-			return true;
-		}
-		return false;
-	}
+    std::intptr_t   m_phys_addr = 0;
 
-	bool Open(int id, std::size_t size, std::size_t offset)
-	{
-		char	dev_fname[16];
-		snprintf(dev_fname, 16, "/dev/uio%d", id);
-		return Open(dev_fname, size, offset);
-	}
+    bool Open(const char* dev_fname, std::size_t size, std::size_t offset)
+    {
+        auto uio_manager = AccessorUioManager::Create(dev_fname, size);
+        if ( uio_manager->IsMapped() ) {
+            this->SetMemManager(uio_manager, offset);
+            return true;
+        }
+        return false;
+    }
+
+    bool Open(int id, std::size_t size, std::size_t offset)
+    {
+        m_phys_addr = GetPhysAddr_(id);
+        auto dev_size = GetSize_(id);
+        if ( size == 0 || (dev_size > 0 && size > dev_size) ) {
+             size = dev_size;
+        }
+
+        char    dev_fname[16];
+        snprintf(dev_fname, 16, "/dev/uio%d", id);
+        return Open(dev_fname, size, offset);
+    }
 
 public:
-	UioAccessor_() {}
+    UioAccessor_() {}
 
-	UioAccessor_(int id, std::size_t size, std::size_t offset=0) {
-		Open(id, size, offset);
-	}
+    UioAccessor_(int id, std::size_t size=0, std::size_t offset=0) {
+        Open(id, size, offset);
+    }
 
-	UioAccessor_(const char* name, std::size_t size, std::size_t offset=0) {
-		int id = SearchDeviceId(name);
-		if ( id >= 0 ) {
-			Open(id, size, offset);
-		}
-	}
+    UioAccessor_(const char* name, std::size_t size=0, std::size_t offset=0) {
+        int id = SearchDeviceId(name);
+        if ( id >= 0 ) {
+            Open(id, size, offset);
+        }
+    }
 
-	~UioAccessor_()	{}
+    ~UioAccessor_() {}
 
+    std::uintptr_t GetPhysAddr(void)
+    {
+        return m_phys_addr;
+    }
+    
+    std::shared_ptr<AccessorUioManager> GetUioManager(void)
+    {
+        return std::dynamic_pointer_cast<AccessorUioManager>(this->m_mem_manager);
+    }
 
-	
-	std::shared_ptr<AccessorUioManager> GetUioManager(void)
-	{
-		return std::dynamic_pointer_cast<AccessorUioManager>(this->m_mem_manager);
-	}
+    static int SearchDeviceId(const char* name)
+    {
+        for ( int i = 0; i < 256; i++ ) {
+            // read name
+            FILE    *fp;
+            char    class_fname[32];
+            snprintf(class_fname, 32, "/sys/class/uio/uio%d/name", i);
+            if ( (fp = fopen(class_fname, "r")) == NULL ) {
+                return -1;
+            }
+            char    uio_name[64];
+            fgets(uio_name, 64, fp);
+            fclose(fp);
 
-	static int SearchDeviceId(const char* name)
-	{
-		for ( int i = 0; i < 256; i++ ) {
-			// read name
-			FILE	*fp;
-			char	class_fname[32];
-			snprintf(class_fname, 32, "/sys/class/uio/uio%d/name", i);
-			if ( (fp = fopen(class_fname, "r")) == NULL ) {
-				return -1;
-			}
-			char	uio_name[64];
-			if ( fgets(uio_name, 64, fp) == NULL ) {
-				fclose(fp);
-				return -1;
-			}
-			fclose(fp);
+            // chomp
+            int len = strlen(uio_name);
+            if ( len > 0 && uio_name[len-1] == '\n' ) {
+                uio_name[len-1] = '\0';
+            }
+            
+            // compare
+            if ( strcmp(uio_name, name) == 0 ) {
+                return i;
+            }
+        }
+        return -1;
+    }
 
-			// chomp
-			int len = strlen(uio_name);
-			if ( len > 0 && uio_name[len-1] == '\n' ) {
-				uio_name[len-1] = '\0';
-			}
-			
-			// compare
-			if ( strcmp(uio_name, name) == 0 ) {
-				return i;
-			}
-		}
-		return -1;
-	}
+private:
+    static std::uintptr_t GetPhysAddr_(int id)
+    {
+        FILE    *fp;
+        char    class_fname[64];
+        snprintf(class_fname, 64, "/sys/class/uio/uio%d/maps/map0/addr", id);
+        if ( (fp = fopen(class_fname, "r")) == NULL ) {
+            return 0;
+        }
+        char    uio_addr[64];
+        fgets(uio_addr, 64, fp);
+        fclose(fp);
 
+        return (std::uintptr_t)std::strtoll(uio_addr, nullptr, 0);
+    }
+
+    static std::size_t GetSize_(int id)
+    {
+        FILE    *fp;
+        char    class_fname[64];
+        snprintf(class_fname, 64, "/sys/class/uio/uio%d/maps/map0/size", id);
+        if ( (fp = fopen(class_fname, "r")) == NULL ) {
+            return 0;
+        }
+        char    uio_size[64];
+        fgets(uio_size, 64, fp);
+        fclose(fp);
+
+        return (std::size_t)std::strtoll(uio_size, nullptr, 0);
+    }
+
+public:
     void SetIrqEnable(bool enable)
     {
         GetUioManager()->SetIrqEnable(enable);
@@ -168,7 +210,6 @@ public:
     {
         return GetUioManager()->WaitIrq();
     }
-
 };
 
 
@@ -180,7 +221,7 @@ using UioAccessor8  = UioAccessor_<std::uint8_t>;
 
 }
 
-#endif	// __RYUZ__JELLY__MMAP_ACCESSOR_H__
+#endif  // __RYUZ__JELLY__MMAP_ACCESSOR_H__
 
 
 // end of file
