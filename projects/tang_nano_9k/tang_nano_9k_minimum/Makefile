@@ -1,13 +1,12 @@
 
 
-TARGET = tang_nano_9k_blinking_led
 
-FS_FILE = impl/pnr/$(TARGET).fs
+FS_FILE = impl/pnr/top.fs
 
 all: $(FS_FILE)
 
-$(FS_FILE): tang_nano_9k_blinking_led.v tang_nano_9k_blinking_led.cst
-	gw_sh tang_nano_9k_blinking_led.tcl
+$(FS_FILE): top.v top.cst
+	gw_sh build.tcl
 
 clean:
 	rm -fr impl
