@@ -129,7 +129,7 @@ impl CameraManager {
             println!("reg_wdma   : {:08x}", reg_wdma.read_reg(0));
         }
 
-        let vdmaw = VideoDmaControl::new(uio_acc.subclone(0x00210000, 0x400), 4, 4).unwrap();
+        let vdmaw = VideoDmaControl::new(uio_acc.subclone(0x00210000, 0x400), 4, 4, None).unwrap();
         let i2c = LinuxI2c::new("/dev/i2c-6", 0x10).unwrap();
         let imx219_ctl = Imx219Control::new(i2c);
 
@@ -270,7 +270,7 @@ impl CameraManager {
         self.check_opened()?;
         
         // 1frame 取り込み
-        self.vdmaw.oneshot(self.udmabuf_acc.phys_addr(), self.width, self.height, 1, 0, 0, 0, 0);
+        self.vdmaw.oneshot(self.udmabuf_acc.phys_addr(), self.width, self.height, 1, 0, 0, 0, 0, None)?;
         let img_size = (self.width * self.height * 4) as usize;
         let mut buf = vec![0u8; img_size];
         unsafe {
