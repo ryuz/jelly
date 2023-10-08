@@ -7,9 +7,9 @@ edition = "2021"
 
 [dependencies]
 
-opencv = "0.77.0"
+opencv = "0.82.1"
 
-jelly-mem_access = "0.1.8"
+jelly-mem_access = "0.1.11"
 #jelly-mem_access = { path = "../../../../../rust/mem_access" }
 jelly-lib        = { path = "../../../../../rust/lib" }
 jelly-pac        = { path = "../../../../../rust/pac" }

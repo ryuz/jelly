@@ -1,0 +1,13 @@
+//Copyright (C)2014-2023 Gowin Semiconductor Corporation.
+//All rights reserved. 
+//File Title: Physical Constraints file
+//GOWIN Version: 1.9.9 Beta-4
+//Part Number: GW1NR-LV9QN88PC6/I5
+//Device: GW1NR-9
+//Device Version: C
+//Created Time: Sat 10 07 18:39:16 2023
+
+IO_LOC "led" 10;
+IO_PORT "led" PULL_MODE=UP DRIVE=8 BANK_VCCIO=1.8;
+IO_LOC "clk" 52;
+IO_PORT "clk" PULL_MODE=UP BANK_VCCIO=1.8;
