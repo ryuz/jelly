@@ -85,6 +85,7 @@ NA/
 
 # Gowin
 impl/
+*.fs
 
 # Veritak
 veritak_src_files.txt
