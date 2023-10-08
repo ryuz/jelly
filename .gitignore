@@ -83,6 +83,9 @@ _xmsgs/
 *.ioplanning/
 NA/
 
+# Gowin
+impl/
+
 # Veritak
 veritak_src_files.txt
 veritak_command.txt
