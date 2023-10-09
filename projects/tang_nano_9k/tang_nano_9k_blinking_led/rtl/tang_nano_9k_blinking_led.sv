@@ -6,7 +6,7 @@ module tang_nano_9k_blink_led
             input   var logic           reset_n,
             input   var logic           clk,
 
-            output  var logic   [4:0]   led
+            output  var logic   [4:0]   led_n
         );
 
     logic   [26:0]  counter;
@@ -18,6 +18,6 @@ module tang_nano_9k_blink_led
             counter <= counter + 1;
         end
     end
-    assign led = counter[26:22];
+    assign led_n = ~counter[26:22];
 
 endmodule
