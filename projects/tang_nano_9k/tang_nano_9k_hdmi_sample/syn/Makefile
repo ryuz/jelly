@@ -4,17 +4,23 @@
 DEVICE_NAME = GW1NR-LV9QN88PC6/I5
 DEVICE_VERSION = C
 
-BASE_NAME = tang_nano_9k_blinking_led
+BASE_NAME = tang_nano_9k_hdmi_sample
 
-FS_FILE = impl/pnr/tang_nano_9k_blinking_led.fs
+FS_FILE = impl/pnr/$(BASE_NAME).fs
 
 TOP_DIR = ../../../..
 RTL_DIR = ../rtl
 CTS_DIR = ../cst
 
-VLOG_SOURCES = $(RTL_DIR)/tang_nano_9k_blinking_led.sv
+VLOG_SOURCES  = $(RTL_DIR)/tang_nano_9k_hdmi_sample.sv
+VLOG_SOURCES += $(RTL_DIR)/clkgen_pll.sv
+VLOG_SOURCES += $(RTL_DIR)/clkgen_clkdiv.sv
+VLOG_SOURCES += $(RTL_DIR)/dvi_tx.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_reset.v
+VLOG_SOURCES += $(TOP_DIR)/rtl/v1/video/jelly_dvi_tx_encode.v
+VLOG_SOURCES += $(TOP_DIR)/rtl/v1/video/jelly_vsync_generator_core.v
 
-CST_SOURCES = $(CTS_DIR)/tang_nano_9k_blinking_led.cst
+CST_SOURCES = $(CTS_DIR)/tang_nano_9k_hdmi_sample.cst
 
 # for tcl script
 export DEVICE_NAME
