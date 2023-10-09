@@ -1,11 +1,33 @@
 
+
+
+DEVICE_NAME = GW1NR-LV9QN88PC6/I5
+DEVICE_VERSION = C
+
+BASE_NAME = tang_nano_9k_blinking_led
+
 FS_FILE = impl/pnr/tang_nano_9k_blinking_led.fs
-RTL     = ../rtl/tang_nano_9k_blinking_led.sv
+
+TOP_DIR = ../../../..
+RTL_DIR = ../rtl
+CTS_DIR = ../cst
+
+VLOG_SOURCES = $(RTL_DIR)/tang_nano_9k_blinking_led.sv
+
+CST_SOURCES = $(CTS_DIR)/tang_nano_9k_blinking_led.cst
+
+# for tcl script
+export DEVICE_NAME
+export DEVICE_VERSION
+export BASE_NAME
+export VLOG_SOURCES
+export CST_SOURCES
+export WSLENV=DEVICE_NAME:DEVICE_VERSION:BASE_NAME:VLOG_SOURCES/l:CST_SOURCES/l
 
 all: $(FS_FILE)
 
-$(FS_FILE): $(RTL)
-	gw_sh tang_nano_9k_blinking_led.tcl
+$(FS_FILE): $(VLOG_SOURCES)
+	gw_sh $(TOP_DIR)/scripts/gowin_build.tcl
 
 clean:
 	rm -fr impl
