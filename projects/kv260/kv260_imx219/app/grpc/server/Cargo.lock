@@ -336,9 +336,7 @@ dependencies = [
 
 [[package]]
 name = "jelly-mem_access"
-version = "0.1.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1d9c74e93a3aa63fac2215e573a96440373da30b464788723f6f6a8e97e58f99"
+version = "0.1.11"
 dependencies = [
  "delegate",
  "libc",
@@ -347,11 +345,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "jelly-mem_access"
+version = "0.1.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "39177b25d407ec9a1c78f25e976465645e462730c28588466a1103eec3281654"
+dependencies = [
+ "delegate",
+]
+
+[[package]]
 name = "jelly-pac"
 version = "0.1.0"
 dependencies = [
  "delegate",
- "jelly-mem_access",
+ "jelly-mem_access 0.1.11 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -666,7 +673,7 @@ name = "server"
 version = "0.1.0"
 dependencies = [
  "jelly-lib",
- "jelly-mem_access",
+ "jelly-mem_access 0.1.11",
  "jelly-pac",
  "once_cell",
  "prost",
@@ -764,9 +771,9 @@ dependencies = [
 
 [[package]]
 name = "tokio"
-version = "1.20.3"
+version = "1.20.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "664cf6576f16c0ad68184998f3c2d4be9903ede6b291a5b5cfc97d29e0057283"
+checksum = "eb78f30e4b41e98ca4cce5acb51168a033839a7af9e42b380355808e14e98ee0"
 dependencies = [
  "autocfg",
  "bytes",
