@@ -50,6 +50,42 @@ module tang_nano_9k_hdmi_sample
                 .out_reset          (reset              )    // syncrnous reset
             );
 
+
+    // timing gen
+    logic                           syncgen_vsync;
+    logic                           syncgen_hsync;
+    logic                           syncgen_de;
+    jelly_vsync_generator_core
+            #(
+                .V_COUNTER_WIDTH    (9  ),
+                .H_COUNTER_WIDTH    (10 )
+            )
+        u_vsync_generator_core
+            (
+                .reset              (reset  ),
+                .clk                (clk    ),
+                
+                .ctl_enable         (1'b1   ),
+                .ctl_busy           (       ),
+                
+                .param_htotal       (10'(96 + 16 + 640 + 48 )),
+                .param_hdisp_start  (10'(96 + 16            )),
+                .param_hdisp_end    (10'(96 + 16 + 640      )),
+                .param_hsync_start  (10'(0                  )),
+                .param_hsync_end    (10'(96                 )),
+                .param_hsync_pol    (1'b0                    ), // 0:n 1:p
+                .param_vtotal       ( 9'(2 + 10 + 480 + 33  )),
+                .param_vdisp_start  ( 9'(2 + 10             )),
+                .param_vdisp_end    ( 9'(2 + 10 + 480       )),
+                .param_vsync_start  ( 9'(0                  )),
+                .param_vsync_end    ( 9'(2                  )),
+                .param_vsync_pol    (1'b0                    ), // 0:n 1:p
+                
+                .out_vsync          (syncgen_vsync  ),
+                .out_hsync          (syncgen_hsync  ),
+                .out_de             (syncgen_de     )
+        );
+
     // DVI TX
     dvi_tx
         u_dvi_tx
@@ -58,10 +94,10 @@ module tang_nano_9k_hdmi_sample
                 .clk            (clk    ),
                 .clk_x5         (clk_x5 ),
 
-                .in_vsync       ('0),
-                .in_hsync       ('0),
-                .in_de          ('0),
-                .in_data        ('0),
+                .in_vsync       (syncgen_vsync),
+                .in_hsync       (syncgen_hsync),
+                .in_de          (syncgen_de),
+                .in_data        (24'hff00ff),
                 .in_ctl         ('0),
 
                 .out_clk_p      (dvi_tx_clk_p),

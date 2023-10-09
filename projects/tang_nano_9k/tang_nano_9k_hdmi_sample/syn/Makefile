@@ -18,6 +18,7 @@ VLOG_SOURCES += $(RTL_DIR)/clkgen_clkdiv.sv
 VLOG_SOURCES += $(RTL_DIR)/dvi_tx.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_reset.v
 VLOG_SOURCES += $(TOP_DIR)/rtl/v1/video/jelly_dvi_tx_encode.v
+VLOG_SOURCES += $(TOP_DIR)/rtl/v1/video/jelly_vsync_generator_core.v
 
 CST_SOURCES = $(CTS_DIR)/tang_nano_9k_hdmi_sample.cst
 
