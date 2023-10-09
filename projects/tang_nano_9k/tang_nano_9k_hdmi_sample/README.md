@@ -1,11 +1,12 @@
-# Tang Nano 9k の LEDチカチカ
+# Tang Nano 9k の HDMI(DVI)出力確認
 
 
 ## 概要
-コマンドラインから [Tang Nano 9k](https://wiki.sipeed.com/hardware/en/tang/Tang-Nano-9K/Nano-9K.html) で
-LEDチカチカをするものです。
 
-主に tcl スクリプトで SystemVerilog をビルドして、実行することのサンプルです。
+コマンドラインから [Tang Nano 9k](https://wiki.sipeed.com/hardware/en/tang/Tang-Nano-9K/Nano-9K.html) で
+HDMIコネクタを使った DVI 出力確認をするものです。
+
+主に tcl スクリプトで SystemVerilog をビルドして実行できます。
 
 
 ## 環境
