@@ -51,8 +51,7 @@ module tang_nano_9k_hdmi_sample
             );
 
 
-
-    // timing gen
+    // generate video sync 
     logic                           syncgen_vsync;
     logic                           syncgen_hsync;
     logic                           syncgen_de;
@@ -87,9 +86,11 @@ module tang_nano_9k_hdmi_sample
                 .out_de             (syncgen_de     )
         );
 
+
+    // 適当にパターンを作る
     logic           prev_hsync;
-    logic   [11:0]   x;
-    logic   [11:0]   y;
+    logic   [9:0]   x;
+    logic   [9:0]   y;
     always_ff @(posedge clk) begin
         prev_hsync <= syncgen_hsync;
         if ( syncgen_vsync == 1'b0 ) begin
@@ -106,9 +107,15 @@ module tang_nano_9k_hdmi_sample
             x <= x + 1;
         end
     end
+    
+    logic   [7:0]   xy;
+    assign xy  = 8'(x + y);
+
+    logic   [23:0]  rgb;
+    assign rgb = {xy, y[7:0], x[7:0]};
+
 
     // DVI TX
-    wire    [7:0]   xy = x + y;
     dvi_tx
         u_dvi_tx
             (
@@ -119,7 +126,7 @@ module tang_nano_9k_hdmi_sample
                 .in_vsync       (syncgen_vsync),
                 .in_hsync       (syncgen_hsync),
                 .in_de          (syncgen_de),
-                .in_data        ({xy, y[7:0], x[7:0]}),
+                .in_data        (rgb),
                 .in_ctl         ('0),
 
                 .out_clk_p      (dvi_tx_clk_p),
