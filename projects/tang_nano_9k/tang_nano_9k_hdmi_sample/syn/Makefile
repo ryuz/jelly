@@ -15,7 +15,9 @@ CTS_DIR = ../cst
 VLOG_SOURCES  = $(RTL_DIR)/tang_nano_9k_hdmi_sample.sv
 VLOG_SOURCES += $(RTL_DIR)/clkgen_pll.sv
 VLOG_SOURCES += $(RTL_DIR)/clkgen_clkdiv.sv
+VLOG_SOURCES += $(RTL_DIR)/dvi_tx.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_reset.v
+VLOG_SOURCES += $(TOP_DIR)/rtl/v1/video/jelly_dvi_tx_encode.v
 
 CST_SOURCES = $(CTS_DIR)/tang_nano_9k_hdmi_sample.cst
 
@@ -29,7 +31,7 @@ export WSLENV=DEVICE_NAME:DEVICE_VERSION:BASE_NAME:VLOG_SOURCES:CST_SOURCES
 
 all: $(FS_FILE)
 
-$(FS_FILE): $(VLOG_SOURCES)
+$(FS_FILE): $(VLOG_SOURCES) $(CST_SOURCES)
 	gw_sh $(TOP_DIR)/scripts/gowin_build.tcl
 
 clean:

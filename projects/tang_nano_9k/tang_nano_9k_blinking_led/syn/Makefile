@@ -26,7 +26,7 @@ export WSLENV=DEVICE_NAME:DEVICE_VERSION:BASE_NAME:VLOG_SOURCES:CST_SOURCES
 
 all: $(FS_FILE)
 
-$(FS_FILE): $(VLOG_SOURCES)
+$(FS_FILE): $(VLOG_SOURCES) $(CST_SOURCES)
 	gw_sh $(TOP_DIR)/scripts/gowin_build.tcl
 
 clean:

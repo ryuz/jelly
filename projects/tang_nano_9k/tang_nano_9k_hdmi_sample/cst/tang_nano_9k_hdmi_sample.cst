@@ -1,8 +1,8 @@
 
-IO_LOC "reset_n" 4;
-IO_PORT "reset_n" PULL_MODE=UP;
-IO_LOC "clk" 52;
-IO_PORT "clk" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+IO_LOC "in_reset_n" 4;
+IO_PORT "in_reset_n" PULL_MODE=UP;
+IO_LOC "in_clk" 52;
+IO_PORT "in_clk" IO_TYPE=LVCMOS33 PULL_MODE=UP;
 
 IO_LOC "led_n[0]" 10;
 IO_PORT "led_n[0]" PULL_MODE=NONE DRIVE=8;
@@ -14,3 +14,12 @@ IO_LOC "led_n[3]" 14;
 IO_PORT "led_n[3]" PULL_MODE=NONE DRIVE=8;
 IO_LOC "led_n[4]" 15;
 IO_PORT "led_n[4]" PULL_MODE=NONE DRIVE=8;
+
+IO_LOC "dvi_tx_data_p[0]" 71,70;
+IO_PORT "dvi_tx_data_p[0]" PULL_MODE=NONE DRIVE=8;
+IO_LOC "dvi_tx_data_p[1]" 73,72;
+IO_PORT "dvi_tx_data_p[1]" PULL_MODE=NONE DRIVE=8;
+IO_LOC "dvi_tx_data_p[2]" 75,74;
+IO_PORT "dvi_tx_data_p[2]" PULL_MODE=NONE DRIVE=8;
+IO_LOC "dvi_tx_clk_p" 69,68;
+IO_PORT "dvi_tx_clk_p" PULL_MODE=NONE DRIVE=8;
