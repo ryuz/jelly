@@ -14,6 +14,7 @@ CTS_DIR = ../cst
 
 VLOG_SOURCES  = $(RTL_DIR)/tang_nano_9k_hdmi_sample.sv
 VLOG_SOURCES += $(RTL_DIR)/clkgen_pll.sv
+VLOG_SOURCES += $(RTL_DIR)/clkgen_clkdiv.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_reset.v
 
 CST_SOURCES = $(CTS_DIR)/tang_nano_9k_hdmi_sample.cst

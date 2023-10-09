@@ -9,20 +9,26 @@ module tang_nano_9k_hdmi_sample
             output  var logic   [4:0]   led_n
         );
 
-    logic   clk2;
+    // PLL
+    logic   clk_tmds;
     logic   lock;
     clkgen_pll
         u_clkgen_pll
             (
-                .clk_in     (clk),
-                .clk_out    (clk2),
-                .lock       (lock)
+                .clk_in     (clk            ),
+                .clk_out    (clk_tmds       ),
+                .lock       (lock           )
             );
 
-    logic   clkoutp;
-    logic   clkoutd;
-    logic   clkoutd3;
-
+    // CLKDIV
+    logic   clk_tmds_div5;
+    clkgen_clkdiv
+        u_clkgen_clkdiv
+            (
+                .reset_n    (reset_n        ),
+                .clk_in     (clk_tmds       ),
+                .clk_out    (clk_tmds_div5  )
+            );
 
     // reset sync
     logic   reset;
@@ -34,14 +40,14 @@ module tang_nano_9k_hdmi_sample
             )
         u_reset
             (
-                .clk                (clk),
-                .in_reset           (reset_n & lock),   // asyncrnous reset
-                .out_reset          (reset)             // syncrnous reset
+                .clk                (clk_tmds       ),
+                .in_reset           (reset_n & lock ),   // asyncrnous reset
+                .out_reset          (reset          )    // syncrnous reset
             );
     
 
     logic   [26:0]  counter;
-    always_ff @(posedge clk2) begin
+    always_ff @(posedge clk_tmds) begin
         if ( reset ) begin
             counter <= 0;
         end
