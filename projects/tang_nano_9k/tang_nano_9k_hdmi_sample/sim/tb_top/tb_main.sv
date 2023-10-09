@@ -45,8 +45,8 @@ module tb_main
 
 
     // for verilator
-    always_comb force u_top.clk    = clk;
-    always_comb force u_top.clk_x5 = clk_x5;
+    always_comb force u_top.u_clkgen_clkdiv.clk_out = clk;
+    always_comb force u_top.u_clkgen_pll.clk_out    = clk_x5;
 
 
 endmodule
