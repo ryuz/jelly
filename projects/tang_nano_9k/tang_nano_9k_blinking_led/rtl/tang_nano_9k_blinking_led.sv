@@ -10,7 +10,7 @@ module tang_nano_9k_blink_led
         );
 
     logic   [26:0]  counter;
-    always_ff @(posedge clk) begin
+    always_ff @(posedge clk or negedge reset_n) begin
         if ( ~reset_n ) begin
             counter <= 0;
         end
