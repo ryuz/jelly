@@ -21,3 +21,6 @@ module tang_nano_9k_blink_led
     assign led_n = ~counter[26:22];
 
 endmodule
+
+
+`default_nettype wire
