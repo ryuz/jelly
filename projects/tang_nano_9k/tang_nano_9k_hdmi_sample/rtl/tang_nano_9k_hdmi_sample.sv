@@ -51,13 +51,14 @@ module tang_nano_9k_hdmi_sample
             );
 
 
+
     // timing gen
     logic                           syncgen_vsync;
     logic                           syncgen_hsync;
     logic                           syncgen_de;
     jelly_vsync_generator_core
             #(
-                .V_COUNTER_WIDTH    (9  ),
+                .V_COUNTER_WIDTH    (10 ),
                 .H_COUNTER_WIDTH    (10 )
             )
         u_vsync_generator_core
@@ -74,11 +75,11 @@ module tang_nano_9k_hdmi_sample
                 .param_hsync_start  (10'(0                  )),
                 .param_hsync_end    (10'(96                 )),
                 .param_hsync_pol    (1'b0                    ), // 0:n 1:p
-                .param_vtotal       ( 9'(2 + 10 + 480 + 33  )),
-                .param_vdisp_start  ( 9'(2 + 10             )),
-                .param_vdisp_end    ( 9'(2 + 10 + 480       )),
-                .param_vsync_start  ( 9'(0                  )),
-                .param_vsync_end    ( 9'(2                  )),
+                .param_vtotal       (10'(2 + 10 + 480 + 33  )),
+                .param_vdisp_start  (10'(2 + 10             )),
+                .param_vdisp_end    (10'(2 + 10 + 480       )),
+                .param_vsync_start  (10'(0                  )),
+                .param_vsync_end    (10'(2                  )),
                 .param_vsync_pol    (1'b0                    ), // 0:n 1:p
                 
                 .out_vsync          (syncgen_vsync  ),
@@ -86,7 +87,28 @@ module tang_nano_9k_hdmi_sample
                 .out_de             (syncgen_de     )
         );
 
+    logic           prev_hsync;
+    logic   [11:0]   x;
+    logic   [11:0]   y;
+    always_ff @(posedge clk) begin
+        prev_hsync <= syncgen_hsync;
+        if ( syncgen_vsync == 1'b0 ) begin
+            y <= 0;
+        end
+        else if ( {prev_hsync, syncgen_hsync} == 2'b01 ) begin
+            y <= y + 1;
+        end
+
+        if ( syncgen_hsync == 1'b0 ) begin
+            x <= 0;
+        end
+        else if ( syncgen_de ) begin
+            x <= x + 1;
+        end
+    end
+
     // DVI TX
+    wire    [7:0]   xy = x + y;
     dvi_tx
         u_dvi_tx
             (
@@ -97,7 +119,7 @@ module tang_nano_9k_hdmi_sample
                 .in_vsync       (syncgen_vsync),
                 .in_hsync       (syncgen_hsync),
                 .in_de          (syncgen_de),
-                .in_data        (24'hff00ff),
+                .in_data        ({xy, y[7:0], x[7:0]}),
                 .in_ctl         ('0),
 
                 .out_clk_p      (dvi_tx_clk_p),
