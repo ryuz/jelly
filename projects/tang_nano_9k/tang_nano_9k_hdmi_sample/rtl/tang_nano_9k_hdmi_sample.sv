@@ -89,31 +89,59 @@ module tang_nano_9k_hdmi_sample
 
 
     // 適当にパターンを作る
-    logic           prev_hsync;
-    logic   [9:0]   x;
-    logic   [9:0]   y;
+    logic           prev_de;
+    logic   [10:0]  syncgen_x;
+    logic   [10:0]  syncgen_y;
     always_ff @(posedge clk) begin
-        prev_hsync <= syncgen_hsync;
+        prev_de <= syncgen_de;
         if ( syncgen_vsync == 1'b0 ) begin
-            y <= 0;
+            syncgen_y <= 0;
         end
-        else if ( {prev_hsync, syncgen_hsync} == 2'b01 ) begin
-            y <= y + 1;
+        else if ( {prev_de, syncgen_de} == 2'b10 ) begin
+            syncgen_y <= syncgen_y + 1;
         end
 
         if ( syncgen_hsync == 1'b0 ) begin
-            x <= 0;
+            syncgen_x <= 0;
         end
         else if ( syncgen_de ) begin
-            x <= x + 1;
+            syncgen_x <= syncgen_x + 1;
         end
     end
     
-    logic   [7:0]   xy;
-    assign xy  = 8'(x + y);
+//    logic   [7:0]   xy;
+//    assign xy  = 8'(syncgen_x + syncgen_y);
+//    logic   [23:0]  syncgen_rgb;
+//    assign syncgen_rgb = {xy, syncgen_y[7:0], syncgen_x[7:0]};
 
-    logic   [23:0]  rgb;
-    assign rgb = {xy, y[7:0], x[7:0]};
+
+
+    logic               draw_vsync;
+    logic               draw_hsync;
+    logic               draw_de;
+    logic   [2:0][7:0]  draw_rgb;
+
+    draw_video
+            #(
+                .X_WIDTH    (11),
+                .Y_WIDTH    (11)
+            )
+        i_draw_video
+            (
+                .reset,
+                .clk,
+
+                .in_vsync   (syncgen_vsync),
+                .in_hsync   (syncgen_hsync),
+                .in_de      (syncgen_de),
+                .in_x       (syncgen_x),
+                .in_y       (syncgen_y),
+
+                .out_vsync  (draw_vsync),
+                .out_hsync  (draw_hsync),
+                .out_de     (draw_de),
+                .out_rgb    (draw_rgb)
+            );
 
 
     // DVI TX
@@ -124,10 +152,10 @@ module tang_nano_9k_hdmi_sample
                 .clk            (clk    ),
                 .clk_x5         (clk_x5 ),
 
-                .in_vsync       (syncgen_vsync),
-                .in_hsync       (syncgen_hsync),
-                .in_de          (syncgen_de),
-                .in_data        (rgb),
+                .in_vsync       (draw_vsync),
+                .in_hsync       (draw_hsync),
+                .in_de          (draw_de),
+                .in_data        (draw_rgb),
                 .in_ctl         ('0),
 
                 .out_clk_p      (dvi_tx_clk_p),
