@@ -1,7 +1,7 @@
 
 `default_nettype none
 
-module tang_nano_9k_blink_led
+module tang_nano_9k_blinking_led
         (
             input   var logic           reset_n,
             input   var logic           clk,
