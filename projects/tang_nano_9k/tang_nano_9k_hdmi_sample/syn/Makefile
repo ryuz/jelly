@@ -1,12 +1,12 @@
 
 
-
 DEVICE_NAME = GW1NR-LV9QN88PC6/I5
 DEVICE_VERSION = C
 
-BASE_NAME = tang_nano_9k_hdmi_sample
+TOP_MODULE = tang_nano_9k_hdmi_sample
+OUTPUT_BASE_NAME = $(TOP_MODULE)
 
-FS_FILE = impl/pnr/$(BASE_NAME).fs
+FS_FILE = impl/pnr/$(OUTPUT_BASE_NAME).fs
 
 TOP_DIR = ../../../..
 RTL_DIR = ../rtl
@@ -24,14 +24,16 @@ VLOG_SOURCES += $(TOP_DIR)/rtl/v1/video/jelly_vsync_generator_core.v
 SDC_SOURCES = $(CONSTRAIN_DIR)/tang_nano_9k_hdmi_sample.sdc
 CST_SOURCES = $(CONSTRAIN_DIR)/tang_nano_9k_hdmi_sample.cst
 
+
 # for tcl script
 export DEVICE_NAME
 export DEVICE_VERSION
-export BASE_NAME
+export TOP_MODULE
+export OUTPUT_BASE_NAME
 export VLOG_SOURCES
 export SDC_SOURCES
 export CST_SOURCES
-export WSLENV=DEVICE_NAME:DEVICE_VERSION:BASE_NAME:VLOG_SOURCES:CST_SOURCES
+export WSLENV=DEVICE_NAME:DEVICE_VERSION:TOP_MODULE:OUTPUT_BASE_NAME:VLOG_SOURCES:SDC_SOURCES:CST_SOURCES
 
 all: $(FS_FILE)
 
