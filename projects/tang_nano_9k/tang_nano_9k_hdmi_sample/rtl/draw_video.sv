@@ -64,10 +64,10 @@ module draw_video
             end
             else if ( frame_start ) begin
                 if ( bar_x <= coord_t'(X_SIZE - BAR_W / 2) && push_sw ) begin
-                    bar_x <= bar_x + 2;
+                    bar_x <= bar_x + 3;
                 end
                 if ( bar_x >= coord_t'(BAR_W / 2) && ~push_sw ) begin
-                    bar_x <= bar_x - 2;
+                    bar_x <= bar_x - 3;
                 end
             end
         end
@@ -111,13 +111,11 @@ module draw_video
 
                 // Y方向の反射
                 if ( (ball_y <= coord_t'(BALL_R) && ball_dy < 0)
-                     || (ball_y >= coord_t'(Y_SIZE - BALL_R) && ball_dy > 0 && ball_bar_hit) ) begin
+                     || (ball_y > coord_t'(Y_SIZE - BALL_R - BAR_H) && ball_dy > 0 && ball_bar_hit) ) begin
                         ball_dy <= -ball_dy;                    
                 end 
 
-                if ( ball_y > coord_t'(Y_SIZE - BALL_R) ) begin
-                    ball_dead <= 1'b1;
-                end
+                ball_dead <= (ball_y >= coord_t'(Y_SIZE - BALL_R));
                 if ( ball_y > coord_t'(Y_SIZE) ) begin
                     ball_restart <= 1'b1;
                 end
