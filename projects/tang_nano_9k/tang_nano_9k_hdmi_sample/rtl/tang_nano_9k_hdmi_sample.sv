@@ -12,6 +12,7 @@ module tang_nano_9k_hdmi_sample
             output  var logic   [2:0]   dvi_tx_data_p,
             output  var logic   [2:0]   dvi_tx_data_n,
 
+            input   var logic   [0:0]   push_sw_n,
             output  var logic   [4:0]   led_n
         );
 
@@ -130,6 +131,8 @@ module tang_nano_9k_hdmi_sample
             (
                 .reset,
                 .clk,
+
+                .push_sw    (~push_sw_n[0]),
 
                 .in_vsync   (syncgen_vsync),
                 .in_hsync   (syncgen_hsync),

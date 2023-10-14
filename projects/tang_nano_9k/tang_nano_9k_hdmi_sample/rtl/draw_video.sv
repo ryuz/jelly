@@ -9,13 +9,18 @@ module draw_video
         #(
             parameter X_SIZE = 640,
             parameter Y_SIZE = 480,
-            parameter BALL_R  = 8,
+            parameter BALL_R = 8,
+            parameter BAR_W  = 32,
+            parameter BAR_H  = 6,
             parameter X_WIDTH = $clog2(X_SIZE),
             parameter Y_WIDTH = $clog2(Y_SIZE)
         )
         (
             input   var logic                   reset,
             input   var logic                   clk,
+
+            // control
+            input   var logic                   push_sw,
 
             // input        
             input   var logic                   in_vsync,
@@ -48,6 +53,22 @@ module draw_video
             else begin
                 prev_vsync  <= in_vsync;
                 frame_start <= {prev_vsync, in_vsync} == 2'b10;
+            end
+        end
+
+
+        coord_t bar_x;
+        always_ff @(posedge clk) begin
+            if ( reset ) begin
+                bar_x <= coord_t'(X_SIZE / 2);
+            end
+            else if ( frame_start ) begin
+                if ( bar_x <= coord_t'(X_SIZE - BAR_W / 2) && push_sw ) begin
+                    bar_x <= bar_x + 2;
+                end
+                if ( bar_x >= coord_t'(BAR_W / 2) && ~push_sw ) begin
+                    bar_x <= bar_x - 2;
+                end
             end
         end
 
@@ -128,8 +149,10 @@ module draw_video
         coord2_t            st2_ball_y2 ;
 
         coord2_t            st3_ball_r2 ;
+        coord_t             st3_bar_dx  ;
 
         logic               st4_ball    ;
+        logic               st4_bar     ;
 
         logic   [2:0][7:0]  st5_rgb   ;
 
@@ -145,14 +168,21 @@ module draw_video
 
             // stage 3
             st3_ball_r2 <= st2_ball_x2 + st2_ball_y2;
+            st3_bar_dx  <= st_x[2] - bar_x;
 
             // stage 4
             st4_ball    <= (st3_ball_r2 <= coord2_t'(BALL_R * BALL_R));
+            st4_bar     <= st_y[3] >= coord_t'(Y_SIZE - BAR_H)
+                            && st3_bar_dx >= coord_t'(-BAR_W / 2)
+                            && st3_bar_dx <= coord_t'(BAR_W / 2);
 
             // stage 5
             st5_rgb <= 24'h00002f;   // BGC
             if (st_x[4][4:0] == '0 || st_y[4][4:0] == '0) begin
                 st5_rgb <= 24'h0000ff;  // grid
+            end
+            if ( st4_bar ) begin
+                st5_rgb <= 24'h7fff7f;  // bar
             end
             if ( st4_ball ) begin
                 st5_rgb <= 24'hffffff;  // ball
