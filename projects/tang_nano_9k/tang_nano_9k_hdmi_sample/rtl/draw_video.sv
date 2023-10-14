@@ -10,8 +10,8 @@ module draw_video
             parameter X_SIZE = 640,
             parameter Y_SIZE = 480,
             parameter BALL_R = 8,
-            parameter BAR_W  = 32,
-            parameter BAR_H  = 6,
+            parameter BAR_W  = 64,
+            parameter BAR_H  = 12,
             parameter X_WIDTH = $clog2(X_SIZE),
             parameter Y_WIDTH = $clog2(Y_SIZE)
         )
@@ -73,22 +73,36 @@ module draw_video
         end
 
         // ball position
+        logic   ball_restart;
+        logic   ball_dead;
         coord_t ball_dx;
         coord_t ball_dy;
         coord_t ball_x;
         coord_t ball_y;
+
+        logic   ball_bar_hit;
+        coord_t ball_bar_dx;
         always_ff @(posedge clk) begin
-            if ( reset ) begin
-                ball_dx <= coord_t'(-1);
-                ball_dy <= coord_t'(-1);
-                ball_x  <= coord_t'(X_SIZE / 2);
-                ball_y  <= coord_t'(Y_SIZE / 2);
+            ball_bar_dx  <= ball_x - bar_x;
+            ball_bar_hit <= ball_bar_dx >= coord_t'(-BAR_W / 2)
+                            && ball_bar_dx <= coord_t'(BAR_W / 2);
+        end
+
+        always_ff @(posedge clk) begin
+            if ( reset || ball_restart ) begin
+                ball_restart <= 1'b0;
+                ball_dead    <= 1'b0;
+                ball_dx      <= coord_t'(-2);
+                ball_dy      <= coord_t'(-2);
+                ball_x       <= coord_t'(X_SIZE / 2);
+                ball_y       <= coord_t'(Y_SIZE / 2);
             end
             else if ( frame_start ) begin
                 // ボールを移動させる
                 ball_x <= ball_x + ball_dx;
                 ball_y <= ball_y + ball_dy;
                 
+
                 // X方向の反射
                 if ( (ball_x < coord_t'(BALL_R) && ball_dx < 0)
                      || (ball_x > coord_t'(X_SIZE - BALL_R) && ball_dx > 0) ) begin
@@ -96,13 +110,21 @@ module draw_video
                 end 
 
                 // Y方向の反射
-                if ( (ball_y < coord_t'(BALL_R) && ball_dy < 0)
-                     || (ball_y > coord_t'(Y_SIZE - BALL_R) && ball_dy > 0) ) begin
+                if ( (ball_y <= coord_t'(BALL_R) && ball_dy < 0)
+                     || (ball_y >= coord_t'(Y_SIZE - BALL_R) && ball_dy > 0 && ball_bar_hit) ) begin
                         ball_dy <= -ball_dy;                    
                 end 
+
+                if ( ball_y > coord_t'(Y_SIZE - BALL_R) ) begin
+                    ball_dead <= 1'b1;
+                end
+                if ( ball_y > coord_t'(Y_SIZE) ) begin
+                    ball_restart <= 1'b1;
+                end
             end
         end
-        
+
+
         localparam STAGES = 5;
         logic       st_vsync    [STAGES-1:0];
         logic       st_hsync    [STAGES-1:0];
@@ -177,9 +199,9 @@ module draw_video
                             && st3_bar_dx <= coord_t'(BAR_W / 2);
 
             // stage 5
-            st5_rgb <= 24'h00002f;   // BGC
+            st5_rgb <= ball_dead ? 24'h2f0000 : 24'h00002f;   // BGC
             if (st_x[4][4:0] == '0 || st_y[4][4:0] == '0) begin
-                st5_rgb <= 24'h0000ff;  // grid
+                st5_rgb <= ball_dead ? 24'hff0000 : 24'h0000ff;  // grid
             end
             if ( st4_bar ) begin
                 st5_rgb <= 24'h7fff7f;  // bar
