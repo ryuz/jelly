@@ -1,34 +1,39 @@
 
 
-
 DEVICE_NAME = GW1NR-LV9QN88PC6/I5
 DEVICE_VERSION = C
 
-BASE_NAME = tang_nano_9k_hdmi_sample
+TOP_MODULE = tang_nano_9k_hdmi_sample
+OUTPUT_BASE_NAME = $(TOP_MODULE)
 
-FS_FILE = impl/pnr/$(BASE_NAME).fs
+FS_FILE = impl/pnr/$(OUTPUT_BASE_NAME).fs
 
 TOP_DIR = ../../../..
 RTL_DIR = ../rtl
-CTS_DIR = ../cst
+CONSTRAIN_DIR = ../constrain
 
 VLOG_SOURCES  = $(RTL_DIR)/tang_nano_9k_hdmi_sample.sv
 VLOG_SOURCES += $(RTL_DIR)/clkgen_pll.sv
 VLOG_SOURCES += $(RTL_DIR)/clkgen_clkdiv.sv
 VLOG_SOURCES += $(RTL_DIR)/dvi_tx.sv
+VLOG_SOURCES += $(RTL_DIR)/draw_video.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_reset.v
 VLOG_SOURCES += $(TOP_DIR)/rtl/v1/video/jelly_dvi_tx_encode.v
 VLOG_SOURCES += $(TOP_DIR)/rtl/v1/video/jelly_vsync_generator_core.v
 
-CST_SOURCES = $(CTS_DIR)/tang_nano_9k_hdmi_sample.cst
+SDC_SOURCES = $(CONSTRAIN_DIR)/tang_nano_9k_hdmi_sample.sdc
+CST_SOURCES = $(CONSTRAIN_DIR)/tang_nano_9k_hdmi_sample.cst
+
 
 # for tcl script
 export DEVICE_NAME
 export DEVICE_VERSION
-export BASE_NAME
+export TOP_MODULE
+export OUTPUT_BASE_NAME
 export VLOG_SOURCES
+export SDC_SOURCES
 export CST_SOURCES
-export WSLENV=DEVICE_NAME:DEVICE_VERSION:BASE_NAME:VLOG_SOURCES:CST_SOURCES
+export WSLENV=DEVICE_NAME:DEVICE_VERSION:TOP_MODULE:OUTPUT_BASE_NAME:VLOG_SOURCES:SDC_SOURCES:CST_SOURCES
 
 all: $(FS_FILE)
 
