@@ -7,8 +7,11 @@
 
 module draw_video
         #(
-            parameter X_WIDTH = 10,
-            parameter Y_WIDTH = 10
+            parameter X_SIZE = 640,
+            parameter Y_SIZE = 480,
+            parameter BALL_R  = 8,
+            parameter X_WIDTH = $clog2(X_SIZE),
+            parameter Y_WIDTH = $clog2(Y_SIZE)
         )
         (
             input   var logic                   reset,
@@ -25,51 +28,138 @@ module draw_video
             output  var logic                   out_vsync,
             output  var logic                   out_hsync,
             output  var logic                   out_de,
-            output  var logic   [2:0][7:0]      out_rgb
+            output  var logic   [2:0][7:0]      out_rgb,
+            output  var logic                   out_fs,
+            output  var logic                   out_le
         );
-    
-        logic                           st0_vsync;
-        logic                           st0_hsync;
-        logic                           st0_de   ;
-        logic   signed  [X_WIDTH:0]     st0_x    ;
-        logic   signed  [Y_WIDTH:0]     st0_y    ;
 
-        logic                           st1_vsync;
-        logic                           st1_hsync;
-        logic                           st1_de   ;
-        logic           [X_WIDTH*2:0]   st1_xx   ;
-        logic           [Y_WIDTH*2:0]   st1_yy   ;
+        localparam COORD_WIDTH = (X_WIDTH > Y_WIDTH ? X_WIDTH : Y_WIDTH) + 1;
+        localparam type coord_t  = logic signed [COORD_WIDTH-1:0];
+        localparam type coord2_t = logic signed [COORD_WIDTH*2:0];
 
-        logic                           st2_vsync;
-        logic                           st2_hsync;
-        logic                           st2_de   ;
-        logic   [X_WIDTH*2+Y_WIDTH*2:0] st2_len  ;
+        // detect frame start
+        logic       prev_vsync;
+        logic       frame_start;
+        always_ff @(posedge clk) begin
+            if ( reset ) begin
+                prev_vsync <= 1'b0;
+                frame_start    <= 1'b0;
+            end
+            else begin
+                prev_vsync  <= in_vsync;
+                frame_start <= {prev_vsync, in_vsync} == 2'b10;
+            end
+        end
+
+        // ball position
+        coord_t ball_dx;
+        coord_t ball_dy;
+        coord_t ball_x;
+        coord_t ball_y;
+        always_ff @(posedge clk) begin
+            if ( reset ) begin
+                ball_dx <= coord_t'(-1);
+                ball_dy <= coord_t'(-1);
+                ball_x  <= coord_t'(X_SIZE / 2);
+                ball_y  <= coord_t'(Y_SIZE / 2);
+            end
+            else if ( frame_start ) begin
+                // ボールを移動させる
+                ball_x <= ball_x + ball_dx;
+                ball_y <= ball_y + ball_dy;
+                
+                // X方向の反射
+                if ( (ball_x < coord_t'(BALL_R) && ball_dx < 0)
+                     || (ball_x > coord_t'(X_SIZE - BALL_R) && ball_dx > 0) ) begin
+                        ball_dx <= -ball_dx;                    
+                end 
+
+                // Y方向の反射
+                if ( (ball_y < coord_t'(BALL_R) && ball_dy < 0)
+                     || (ball_y > coord_t'(Y_SIZE - BALL_R) && ball_dy > 0) ) begin
+                        ball_dy <= -ball_dy;                    
+                end 
+            end
+        end
+        
+        localparam STAGES = 5;
+        logic       st_vsync    [STAGES-1:0];
+        logic       st_hsync    [STAGES-1:0];
+        logic       st_de       [STAGES-1:0];
+        coord_t     st_x        [STAGES-1:0];
+        coord_t     st_y        [STAGES-1:0];
+        always_ff @(posedge clk) begin
+            if ( reset ) begin
+                for ( int i = 0; i < STAGES; ++i ) begin
+                    st_vsync[i] <= 1'b1;
+                    st_hsync[i] <= 1'b1;
+                    st_de   [i] <= 1'b0;
+                    st_x    [i] <= 'x;
+                    st_y    [i] <= 'x;
+                end
+            end
+            else begin
+                st_vsync[0] <= in_vsync;
+                st_hsync[0] <= in_hsync;
+                st_de   [0] <= in_de   ;
+                st_x    [0] <= coord_t'({1'b0, in_x});
+                st_y    [0] <= coord_t'({1'b0, in_y});
+                for ( int i = 1; i < STAGES; ++i ) begin
+                    st_vsync[i] <= st_vsync[i-1];
+                    st_hsync[i] <= st_hsync[i-1];
+                    st_de   [i] <= st_de   [i-1];
+                    st_x    [i] <= st_x    [i-1];
+                    st_y    [i] <= st_y    [i-1];
+                end
+            end
+        end
+        assign out_vsync = st_vsync[STAGES-1];
+        assign out_hsync = st_hsync[STAGES-1];
+        assign out_de    = st_de   [STAGES-1];
+        assign out_fs    = st_x[STAGES-1] == '0 && st_y[STAGES-1] == '0;    // for axi4s tuser
+        assign out_le    = st_x[STAGES-1] == coord_t'(X_SIZE-1);            // for axi4s tlast
+        
+
+        // draw
+        coord_t             st1_ball_x  ;
+        coord_t             st1_ball_y  ;
+
+        coord2_t            st2_ball_x2 ;
+        coord2_t            st2_ball_y2 ;
+
+        coord2_t            st3_ball_r2 ;
+
+        logic               st4_ball    ;
+
+        logic   [2:0][7:0]  st5_rgb   ;
+
         
         always_ff @(posedge clk) begin
-            st0_vsync <= in_vsync;
-            st0_hsync <= in_hsync;
-            st0_de    <= in_de;
-            st0_x     <= $signed(in_x) - 360;
-            st0_y     <= $signed(in_y) - 240;
+            // stage 1
+            st1_ball_x <= st_x[0] - ball_x;
+            st1_ball_y <= st_y[0] - ball_y;
 
-            st1_vsync <= st0_vsync;
-            st1_hsync <= st0_hsync;
-            st1_de    <= st0_de;
-            st1_xx    <= st0_x * st0_x;
-            st1_yy    <= st0_y * st0_y;
+            // stage 2
+            st2_ball_x2 <= coord2_t'(st1_ball_x) * coord2_t'(st1_ball_x);
+            st2_ball_y2 <= coord2_t'(st1_ball_y) * coord2_t'(st1_ball_y);
 
-            st2_vsync <= st0_vsync;
-            st2_hsync <= st0_hsync;
-            st2_de    <= st0_de;
-            st2_len   <= st1_xx + st1_yy;
+            // stage 3
+            st3_ball_r2 <= st2_ball_x2 + st2_ball_y2;
 
-            out_vsync  <= st2_vsync;
-            out_hsync  <= st2_hsync;
-            out_de     <= st2_de;
-            out_rgb[2] <= st2_len < 100*100 ? 8'hff : 8'h00;
-            out_rgb[1] <= st2_len < 150*150 ? 8'hff : 8'h00;
-            out_rgb[0] <= st2_len < 200*200 ? 8'hff : 8'h00;
+            // stage 4
+            st4_ball    <= (st3_ball_r2 <= coord2_t'(BALL_R * BALL_R));
+
+            // stage 5
+            st5_rgb <= 24'h00002f;   // BGC
+            if (st_x[4][4:0] == '0 || st_y[4][4:0] == '0) begin
+                st5_rgb <= 24'h0000ff;  // grid
+            end
+            if ( st4_ball ) begin
+                st5_rgb <= 24'hffffff;  // ball
+            end
         end
+
+        assign out_rgb = st5_rgb;
     
 
 endmodule
