@@ -1,0 +1,5 @@
+all:
+{
+    zybo_ov7670.bit
+}
+
