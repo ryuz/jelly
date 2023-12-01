@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 //        cv::resize(img, view_img, cv::Size(), 0.5, 1.0/view_scale);
 
         cv::Mat view_img;
-        cv::cvtColor(img, view_img, CV_RGB5652RGB);
+        cv::cvtColor(img, view_img, CV_BGR5652RGB);
 
         cv::imshow("img", view_img);
 //        cv::createTrackbar("scale",    "img", &view_scale, 4);
