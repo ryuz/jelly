@@ -16,8 +16,8 @@ void capture_still_image(jelly::MemAccessor& reg_wdma, std::uintptr_t bufaddr, i
 
 int main(int argc, char *argv[])
 {
-    int width  = 640;
-    int height = 480;
+    int width  = 640-16;
+    int height = 480-16;
 
 
     // mmap uio
@@ -49,28 +49,60 @@ int main(int argc, char *argv[])
 
 
     int     rec_frame_num = std::min(100, (int)(dmabuf_mem_size / (width * height * 2)));
-    int     frame_num     = 1;
+//  int     frame_num     = 1;
 
     if ( rec_frame_num <= 0 ) {
         std::cout << "udmabuf size error" << std::endl;
     }
 
+    int     swap   = 0;
+    int     bitpos = 5+6+1;
     int     key;
     while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
         // キャプチャ
         vdmaw.Oneshot(dmabuf_phys_adr, width, height, 1);
 //      capture_still_image(reg_wdma, dmabuf_phys_adr, width, height, 1);
-        cv::Mat img(height*frame_num, width, CV_16U);
+//      cv::Mat img(height*frame_num, width, CV_8UC2);
+        cv::Mat img(height, width, CV_16U);
         udmabuf_acc.MemCopyTo(img.data, 0, width * height * 2 * 1);
+
+        cv::Mat view_img(height, width, CV_8UC3);
+        for ( int y = 0; y < img.rows; ++y ) {
+            for ( int x = 0; x < img.cols; ++x ) {
+                unsigned short d = img.at<unsigned short>(y, x);
+                unsigned short v = swap ? ((d << 8) | (d >> 8)) : d;
+                view_img.at<cv::Vec3b>(y, x)[0] = (((v >> bitpos) & 0xf) << 4);
+                view_img.at<cv::Vec3b>(y, x)[1] = (((v >> bitpos) & 0xf) << 4);
+                view_img.at<cv::Vec3b>(y, x)[2] = (((v >> bitpos) & 0xf) << 4);
+
+//              view_img.at<cv::Vec3b>(y, x)[0] = (((v >> 11) & 0x1f) << 3);
+//              view_img.at<cv::Vec3b>(y, x)[1] = (((v >> 11) & 0x1f) << 3);
+//              view_img.at<cv::Vec3b>(y, x)[2] = (((v >> 11) & 0x1f) << 3);
+//                view_img.at<cv::Vec3b>(y, x)[0] = ((img.at<unsigned short>(y, x) >> 5) & 0x3f) << 2;
+//                view_img.at<cv::Vec3b>(y, x)[1] = ((img.at<unsigned short>(y, x) >> 5) & 0x3f) << 2;
+//                view_img.at<cv::Vec3b>(y, x)[2] = ((img.at<unsigned short>(y, x) >> 5) & 0x3f) << 2;
+//                view_img.at<cv::Vec3b>(y, x)[0] = ((v >> 8) & 0x7) << 4;
+//                view_img.at<cv::Vec3b>(y, x)[1] = ((v >> 8) & 0x7) << 4;
+//                view_img.at<cv::Vec3b>(y, x)[2] = ((v >> 8) & 0x7) << 4;
+            }
+        }
         
+        /* 
+        std::vector<cv::Mat> planes;
+        cv::split(img, planes);
+        std::vector<cv::Mat> color_shuffle;
+        color_shuffle.push_back(planes[1]);
+        color_shuffle.push_back(planes[0]);
+        cv::merge(color_shuffle, img);
+        */
+
         // 表示
 //        cv::Mat view_img;
-//        cv::resize(img, view_img, cv::Size(), 0.5, 1.0/view_scale);
-
-        cv::Mat view_img;
-        cv::cvtColor(img, view_img, CV_BGR5652RGB);
-
+//        cv::cvtColor(img, view_img, CV_BGR5652RGB);
         cv::imshow("img", view_img);
+        cv::createTrackbar("swap",   "img", &swap,   1);
+        cv::createTrackbar("bitpos", "img", &bitpos, 12);
+
 //        cv::createTrackbar("scale",    "img", &view_scale, 4);
 //        cv::createTrackbar("fps",      "img", &frame_rate, 1000);
 //        cv::createTrackbar("exposure", "img", &exposure, 1000);
