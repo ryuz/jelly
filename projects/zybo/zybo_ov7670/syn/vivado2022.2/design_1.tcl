@@ -223,7 +223,7 @@ proc create_root_design { parentCell } {
    CONFIG.HAS_REGION {1} \
    CONFIG.HAS_RRESP {1} \
    CONFIG.HAS_WSTRB {1} \
-   CONFIG.ID_WIDTH {0} \
+   CONFIG.ID_WIDTH {6} \
    CONFIG.MAX_BURST_LENGTH {256} \
    CONFIG.NUM_READ_OUTSTANDING {2} \
    CONFIG.NUM_READ_THREADS {1} \
@@ -240,6 +240,7 @@ proc create_root_design { parentCell } {
 
 
   # Create ports
+  set in_cam_clk [ create_bd_port -dir I -type clk -freq_hz 25000000 in_cam_clk ]
   set in_clk125 [ create_bd_port -dir I -type clk -freq_hz 125000000 in_clk125 ]
   set_property -dict [ list \
    CONFIG.PHASE {0.000} \
@@ -248,6 +249,11 @@ proc create_root_design { parentCell } {
   set_property -dict [ list \
    CONFIG.POLARITY {ACTIVE_HIGH} \
  ] $in_reset
+  set out_cam_clk [ create_bd_port -dir O -type clk out_cam_clk ]
+  set_property -dict [ list \
+   CONFIG.ASSOCIATED_RESET {out_cam_reset} \
+ ] $out_cam_clk
+  set out_cam_reset [ create_bd_port -dir O -from 0 -to 0 -type rst out_cam_reset ]
   set out_clk25 [ create_bd_port -dir O -type clk out_clk25 ]
   set_property -dict [ list \
    CONFIG.FREQ_HZ {25000000} \
@@ -296,8 +302,22 @@ proc create_root_design { parentCell } {
   ] $clk_wiz_0
 
 
+  # Create instance: clk_wiz_1, and set properties
+  set clk_wiz_1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:clk_wiz:6.0 clk_wiz_1 ]
+  set_property -dict [list \
+    CONFIG.CLKOUT1_JITTER {401.466} \
+    CONFIG.CLKOUT1_PHASE_ERROR {245.713} \
+    CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {25.000} \
+    CONFIG.MMCM_CLKFBOUT_MULT_F {36.500} \
+    CONFIG.MMCM_CLKOUT0_DIVIDE_F {36.500} \
+  ] $clk_wiz_1
+
+
   # Create instance: proc_sys_reset_0, and set properties
   set proc_sys_reset_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 proc_sys_reset_0 ]
+
+  # Create instance: proc_sys_reset_1, and set properties
+  set proc_sys_reset_1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 proc_sys_reset_1 ]
 
   # Create instance: processing_system7_0, and set properties
   set processing_system7_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:processing_system7:5.5 processing_system7_0 ]
@@ -317,12 +337,16 @@ proc create_root_design { parentCell } {
   connect_bd_intf_net -intf_net processing_system7_0_M_AXI_GP0 [get_bd_intf_pins axi_protocol_convert_1/S_AXI] [get_bd_intf_pins processing_system7_0/M_AXI_GP0]
 
   # Create port connections
+  connect_bd_net -net clk_in1_0_1 [get_bd_ports in_cam_clk] [get_bd_pins clk_wiz_1/clk_in1]
   connect_bd_net -net clk_wiz_0_clk_out1 [get_bd_ports out_clk25] [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins proc_sys_reset_0/slowest_sync_clk]
   connect_bd_net -net clk_wiz_0_clk_out2 [get_bd_ports out_clk125] [get_bd_pins axi_protocol_convert_0/aclk] [get_bd_pins axi_protocol_convert_1/aclk] [get_bd_pins clk_wiz_0/clk_out2] [get_bd_pins processing_system7_0/M_AXI_GP0_ACLK] [get_bd_pins processing_system7_0/S_AXI_HP0_ACLK]
   connect_bd_net -net clk_wiz_0_locked [get_bd_pins clk_wiz_0/locked] [get_bd_pins proc_sys_reset_0/dcm_locked]
+  connect_bd_net -net clk_wiz_1_clk_out1 [get_bd_ports out_cam_clk] [get_bd_pins clk_wiz_1/clk_out1] [get_bd_pins proc_sys_reset_1/slowest_sync_clk]
+  connect_bd_net -net clk_wiz_1_locked [get_bd_pins clk_wiz_1/locked] [get_bd_pins proc_sys_reset_1/dcm_locked]
   connect_bd_net -net proc_sys_reset_0_peripheral_aresetn [get_bd_pins axi_protocol_convert_0/aresetn] [get_bd_pins axi_protocol_convert_1/aresetn] [get_bd_pins proc_sys_reset_0/peripheral_aresetn]
   connect_bd_net -net proc_sys_reset_0_peripheral_reset [get_bd_ports out_reset] [get_bd_pins proc_sys_reset_0/peripheral_reset]
-  connect_bd_net -net reset_0_1 [get_bd_ports in_reset] [get_bd_pins clk_wiz_0/reset] [get_bd_pins proc_sys_reset_0/ext_reset_in]
+  connect_bd_net -net proc_sys_reset_1_peripheral_reset [get_bd_ports out_cam_reset] [get_bd_pins proc_sys_reset_1/peripheral_reset]
+  connect_bd_net -net reset_0_1 [get_bd_ports in_reset] [get_bd_pins clk_wiz_0/reset] [get_bd_pins clk_wiz_1/reset] [get_bd_pins proc_sys_reset_0/ext_reset_in] [get_bd_pins proc_sys_reset_1/ext_reset_in]
   connect_bd_net -net sys_clock_1 [get_bd_ports in_clk125] [get_bd_pins clk_wiz_0/clk_in1]
 
   # Create address segments

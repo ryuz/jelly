@@ -58,6 +58,10 @@ module zybo_ov7670
     logic           reset;
     logic           clk25;
     logic           clk125;
+
+    logic           cam_reset;
+    logic           cam_clk;
+    logic           cam_clk_in;
     
     logic           axi4l_peri_aresetn;
     logic           axi4l_peri_aclk;
@@ -138,6 +142,10 @@ module zybo_ov7670
                 .out_clk25              (clk25),
                 .out_clk125             (clk125),
 
+                .in_cam_clk             (cam_clk_in),
+                .out_cam_clk            (cam_clk),
+                .out_cam_reset          (cam_reset),
+
                 .m_axi4l_peri_awaddr    (axi4l_peri_awaddr),
                 .m_axi4l_peri_awprot    (axi4l_peri_awprot),
                 .m_axi4l_peri_awvalid   (axi4l_peri_awvalid),
@@ -166,7 +174,7 @@ module zybo_ov7670
                 .s_axi4_mem_awlock      (axi4_mem_awlock),
                 .s_axi4_mem_awprot      (axi4_mem_awprot),
                 .s_axi4_mem_awqos       (axi4_mem_awqos),
-    //          .s_axi4_mem_awregion    (axi4_mem_awregion),
+                .s_axi4_mem_awregion    (axi4_mem_awregion),
                 .s_axi4_mem_awsize      (axi4_mem_awsize),
                 .s_axi4_mem_awvalid     (axi4_mem_awvalid),
                 .s_axi4_mem_awready     (axi4_mem_awready),
@@ -187,7 +195,7 @@ module zybo_ov7670
                 .s_axi4_mem_arlock      (axi4_mem_arlock),
                 .s_axi4_mem_arprot      (axi4_mem_arprot),
                 .s_axi4_mem_arqos       (axi4_mem_arqos),
-    //          .s_axi4_mem_arregion    (axi4_mem_arregion),
+                .s_axi4_mem_arregion    (axi4_mem_arregion),
                 .s_axi4_mem_arsize      (axi4_mem_arsize),
                 .s_axi4_mem_arvalid     (axi4_mem_arvalid),
                 .s_axi4_mem_arready     (axi4_mem_arready),
@@ -326,6 +334,7 @@ module zybo_ov7670
     IOBUF   i_iobuf_pmod_b6 (.IO(pmod_b[6]), .I(1'b0), .O(ov7670_d[6]), .T(1'b1));
     IOBUF   i_iobuf_pmod_b7 (.IO(pmod_b[7]), .I(1'b0), .O(ov7670_d[7]), .T(1'b1));
 
+    /*
     // clock
     logic           ov7670_pclk;
     BUFG    ibufg_pclk(.I(ov7670_pclk_in), .O(ov7670_pclk));
@@ -339,76 +348,82 @@ module zybo_ov7670
                 .in_reset   (reset          ),      // asyncrnous reset
                 .out_reset  (ov7670_reset   )       // syncrnous reset
             );
+    */
+
+    assign cam_clk_in = ov7670_pclk_in;
 
     // input reg
     (* IOB = "true" *)   logic           in_ov7670_vs   ;
     (* IOB = "true" *)   logic           in_ov7670_hs   ;
     (* IOB = "true" *)   logic   [7:0]   in_ov7670_d    ;
-    always_ff @(posedge ov7670_pclk) begin
+    always_ff @(posedge cam_clk) begin
         in_ov7670_vs <= ov7670_vs;
         in_ov7670_hs <= ov7670_hs;
         in_ov7670_d  <= ov7670_d ;
+    end
+    
+    logic   [15:0]   in_ov7670_h_count;
+    logic   [15:0]   in_ov7670_v_count;
+    always_ff @(posedge cam_clk) begin
+        if ( in_ov7670_hs ) begin
+            in_ov7670_h_count <= in_ov7670_h_count + 1'b1;
+        end
+        else begin
+            in_ov7670_h_count <= '0;
+        end
+        if ( in_ov7670_hs && in_ov7670_h_count == '0 ) begin
+            in_ov7670_v_count <= in_ov7670_v_count + 1'b1;
+        end
+        if ( in_ov7670_vs ) begin
+            in_ov7670_v_count <= '0;
+        end
     end
 
     // dbg
     (* mark_debug = "true" *)   logic           dbg_ov7670_vs     ;
     (* mark_debug = "true" *)   logic           dbg_ov7670_hs     ;
     (* mark_debug = "true" *)   logic   [7:0]   dbg_ov7670_d      ;
-    (* mark_debug = "true" *)   logic   [15:0]  dbg_ov7670_h_count  ;       // 2378/2 = 1189
-    (* mark_debug = "true" *)   logic   [15:0]  dbg_ov7670_v_count  ;       // 740
-    always_ff @(posedge ov7670_pclk) begin
-        dbg_ov7670_vs <= in_ov7670_vs;
-        dbg_ov7670_hs <= in_ov7670_hs;
-        dbg_ov7670_d  <= in_ov7670_d ;
-
-        if ( dbg_ov7670_hs ) begin
-            dbg_ov7670_h_count <= dbg_ov7670_h_count + 1;
-        end
-        else begin
-            dbg_ov7670_h_count <= '0;
-        end
-
-        if ( dbg_ov7670_hs && dbg_ov7670_h_count == '0 ) begin
-            dbg_ov7670_v_count <= dbg_ov7670_v_count + 1;
-        end
-        if ( dbg_ov7670_vs ) begin
-            dbg_ov7670_v_count <= '0;
-        end
+    (* mark_debug = "true" *)   logic   [15:0]  dbg_ov7670_h_count  ;       // 1280/2 = 640
+    (* mark_debug = "true" *)   logic   [15:0]  dbg_ov7670_v_count  ;       // 480
+    always_ff @(posedge cam_clk) begin
+        dbg_ov7670_vs      <= in_ov7670_vs;
+        dbg_ov7670_hs      <= in_ov7670_hs;
+        dbg_ov7670_d       <= in_ov7670_d ;
+        dbg_ov7670_h_count <= in_ov7670_h_count;
+        dbg_ov7670_v_count <= in_ov7670_v_count;
     end
 
-    logic           reg_ov7670_busy ;
-    logic   [15:0]  reg_ov7670_count;
-    logic           reg_ov7670_fs   ;
-    logic           reg_ov7670_last ;
-    logic   [15:0]  reg_ov7670_d    ;
-    logic           reg_ov7670_valid;
-    always_ff @(posedge ov7670_pclk) begin
-        if ( ov7670_reset ) begin
+
+    (* mark_debug = "true" *)   logic           reg_ov7670_busy ;
+    (* mark_debug = "true" *)   logic           reg_ov7670_fs   ;
+    (* mark_debug = "true" *)   logic           reg_ov7670_last ;
+    (* mark_debug = "true" *)   logic   [15:0]  reg_ov7670_d    ;
+    (* mark_debug = "true" *)   logic           reg_ov7670_valid;
+    always_ff @(posedge cam_clk) begin
+        if ( cam_reset ) begin
             reg_ov7670_busy   <= 1'b0;
             reg_ov7670_fs     <= 1'bx;
             reg_ov7670_last   <= 1'bx;
             reg_ov7670_d      <= 'x;
-            reg_ov7670_count  <= 'x;
         end
         else begin
             if ( in_ov7670_vs ) begin
                 reg_ov7670_busy   <= 1'b1;
                 reg_ov7670_fs     <= 1'b1;
                 reg_ov7670_last   <= 1'b0;
-                reg_ov7670_count  <= '0;
             end
             else begin
                 if ( in_ov7670_hs ) begin
-                    reg_ov7670_count <= reg_ov7670_count + 1;
-                    if ( reg_ov7670_count[0] ) begin
-                        reg_ov7670_d[7:0] <= in_ov7670_d;
+                    if ( in_ov7670_h_count[0] == 1'b0 ) begin
+                        reg_ov7670_d[15:8] <= in_ov7670_d;
                     end
                     else begin
-                        reg_ov7670_d[15:8] <= in_ov7670_d;
-                        reg_ov7670_last    <= reg_ov7670_count == 16'd2377;
+                        reg_ov7670_last   <= in_ov7670_h_count == 16'd1279;
+                        reg_ov7670_d[7:0] <= in_ov7670_d;
                     end
                 end
-                reg_ov7670_valid <= reg_ov7670_busy && in_ov7670_hs && reg_ov7670_count[0];
+
+                reg_ov7670_valid <= reg_ov7670_busy && in_ov7670_hs && (in_ov7670_h_count[0] == 1'b1);
                 if ( reg_ov7670_valid ) begin
                     reg_ov7670_fs <= 1'b0;
                 end
@@ -416,11 +431,13 @@ module zybo_ov7670
         end
     end
     
+
     (* mark_debug = "true" *)   logic   [0:0]   axi4s_ov7670_tuser;
     (* mark_debug = "true" *)   logic           axi4s_ov7670_tlast;
     (* mark_debug = "true" *)   logic   [15:0]  axi4s_ov7670_tdata;
     (* mark_debug = "true" *)   logic           axi4s_ov7670_tvalid;
-    always_ff @(posedge ov7670_pclk) begin
+    (* mark_debug = "true" *)   logic           axi4s_ov7670_tready;
+    always_ff @(posedge cam_clk) begin
         axi4s_ov7670_tuser  <= reg_ov7670_fs;
         axi4s_ov7670_tlast  <= reg_ov7670_last;
         axi4s_ov7670_tdata  <= reg_ov7670_d;
@@ -466,11 +483,11 @@ module zybo_ov7670
                 .INIT_IRQ_ENABLE        (1'b0),
                 .INIT_PARAM_ADDR        (0),
                 .INIT_PARAM_AWLEN_MAX   (8'd255),
-                .INIT_PARAM_H_SIZE      (14'(1189-1)),
-                .INIT_PARAM_V_SIZE      (14'(740-1)),
-                .INIT_PARAM_LINE_STEP   (32'(8192)),
+                .INIT_PARAM_H_SIZE      (14'(640-1)),
+                .INIT_PARAM_V_SIZE      (14'(480-1)),
+                .INIT_PARAM_LINE_STEP   (32'(640*2)),
                 .INIT_PARAM_F_SIZE      (8'd0),
-                .INIT_PARAM_FRAME_STEP  (32'(740*8192)),
+                .INIT_PARAM_FRAME_STEP  (32'(640*2)),
                 .INIT_SKIP_EN           (1'b1),
                 .INIT_DETECT_FIRST      (3'b010),
                 .INIT_DETECT_LAST       (3'b001),
@@ -505,13 +522,13 @@ module zybo_ov7670
                 .buffer_release         (),
                 .buffer_addr            ('0),
                 
-                .s_axi4s_aresetn        (~ov7670_reset),
-                .s_axi4s_aclk           (ov7670_pclk),
+                .s_axi4s_aresetn        (~cam_reset),
+                .s_axi4s_aclk           (cam_clk),
                 .s_axi4s_tuser          (axi4s_ov7670_tuser),
                 .s_axi4s_tlast          (axi4s_ov7670_tlast),
                 .s_axi4s_tdata          (axi4s_ov7670_tdata),
                 .s_axi4s_tvalid         (axi4s_ov7670_tvalid),
-                .s_axi4s_tready         (),
+                .s_axi4s_tready         (axi4s_ov7670_tready),
                 
                 .m_aresetn              (axi4_mem_aresetn),
                 .m_aclk                 (axi4_mem_aclk),
@@ -605,7 +622,7 @@ module zybo_ov7670
     always_ff @(posedge clk25)  reg_counter_clk25 <= reg_counter_clk25 + 1;
 
     logic   [31:0]      reg_counter_pclk;
-    always_ff @(posedge ov7670_pclk)  reg_counter_pclk <= reg_counter_pclk + 1;
+    always_ff @(posedge cam_clk)  reg_counter_pclk <= reg_counter_pclk + 1;
 
     assign led[0] = dip_sw[0];
     assign led[1] = dip_sw[1];
