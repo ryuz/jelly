@@ -12,7 +12,15 @@ module tb_main
     parameter   int                     DATA_WIDTH = 18;
     parameter   int                     DATA_Q     = 12;
 
+    int cycle = 0;
+    always_ff @( posedge clk ) begin
+        cycle <= cycle + 1;
+    end
+
+
     logic                       cke = 1'b1;
+
+    
 
     logic                       start;
     logic                       ready;
@@ -26,6 +34,7 @@ module tb_main
     logic   [2:0]               out_addr;
     logic   [DATA_WIDTH-1:0]    out_wdata;
 
+    assign start = ready && (cycle > 200 && cycle < 1000);
 
     jelly2_llm_dct_8
             #(
@@ -64,7 +73,7 @@ module tb_main
         in_mem[7] = 74;
     end
 
-    assign start = 1'b1;
+//    assign start = 1'b1;
 
     always_ff @(posedge clk) begin
         in_rdata <= DATA_WIDTH'(in_mem[in_addr]) << (DATA_Q - 8);

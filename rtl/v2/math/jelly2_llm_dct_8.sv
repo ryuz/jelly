@@ -188,6 +188,8 @@ module jelly2_llm_dct_8
         end
     end
     
+    assign ready = !st0_0_valid || (st0_0_addr == 3'd4);
+
     assign in_re   = st0_0_valid;
     assign in_addr = st0_0_addr;
 
@@ -287,7 +289,8 @@ module jelly2_llm_dct_8
                 st1_0_valid <= 1'b1;
                 st1_0_addr  <= '0;
             end
-            else begin
+            else if ( st1_0_valid ) begin
+                st1_0_valid <= (st1_0_addr != 3'd7);
                 case (st1_0_addr)
                 3'd0: st1_0_addr <= 3'd3;
                 3'd3: st1_0_addr <= 3'd1;
@@ -455,7 +458,8 @@ module jelly2_llm_dct_8
                 st2_0_valid <= 1'b1;
                 st2_0_addr  <= 3'd1;
             end
-            else begin
+            else if ( st2_0_valid ) begin
+                st2_0_valid <= (st2_0_addr != 3'd6);
                 case (st2_0_addr)
                 3'd1: st2_0_addr <= 3'd0;
                 3'd0: st2_0_addr <= 3'd2;
@@ -653,7 +657,8 @@ module jelly2_llm_dct_8
                 st3_0_valid <= 1'b1;
                 st3_0_addr  <= 3'd0;
             end
-            else begin
+            else if ( st3_0_valid ) begin
+                st3_0_valid <= (st3_0_addr != 3'd6);
                 case (st3_0_addr)
                 3'd0: st3_0_addr <= 3'd1;
                 3'd1: st3_0_addr <= 3'd2;
@@ -752,6 +757,11 @@ module jelly2_llm_dct_8
     assign st2_rd_en   = st3_0_valid;
     assign st2_rd_addr = st3_0_addr;
 
+    assign out_we    = st3_10_valid;
+    assign out_addr  = st3_10_addr;
+    assign out_wdata = st3_10_data;
+
+    assign done = st3_10_valid && st3_10_addr == 3'd7;
 
 endmodule
 
