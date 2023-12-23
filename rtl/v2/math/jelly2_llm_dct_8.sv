@@ -40,12 +40,84 @@ module jelly2_llm_dct_8
     typedef logic   signed  [DATA_WIDTH*2-1:0]  mul_t;
 
     function    calc_t mul(input calc_t a, input calc_t b);
-        return calc_t'((mul_t'(a) * mul_t'(b)) >>> DATA_Q);
+        return calc_t'((mul_t'(a) * mul_t'(b) + (mul_t'(1) << (DATA_Q - 1))) >>> DATA_Q);
     endfunction
 
-    
 
-    // stage0
+    function calc_t from_q32(input [33:0] v);
+        return calc_t'((v + (34'd1 << (31 - DATA_Q))) >> (32 - DATA_Q));
+    endfunction
+
+    // 1 / sqrt(2)
+    calc_t  RSQRT2;
+    assign RSQRT2 = from_q32(34'hb504f334);
+
+    // cos(pi * i/16) * sqrt(2)
+    calc_t  R   [0:7];
+    assign  R[0] = from_q32(34'h16a09e668);
+    assign  R[1] = from_q32(34'h163150b16);
+    assign  R[2] = from_q32(34'h14e7ae914);
+    assign  R[3] = from_q32(34'h12d062ef9);
+    assign  R[4] = from_q32(34'h100000000);
+    assign  R[5] = from_q32(34'h0c9234e07);
+    assign  R[6] = from_q32(34'h08a8bd3df);
+    assign  R[7] = from_q32(34'h046a1577b);
+
+    
+    // -----------------------------------------
+    //  stage0
+    // -----------------------------------------
+
+    // buffer
+    logic                       st0_wr_en;
+    logic   [2:0]               st0_wr_addr;
+    logic   [DATA_WIDTH-1:0]    st0_wr_din;
+
+    logic                       st0_rd_en;
+    logic   [2:0]               st0_rd_addr;
+    logic   [DATA_WIDTH-1:0]    st0_rd_dout;
+
+    logic                       st0_wr_last;
+    logic                       st0_wr_bank;
+    logic                       st0_rd_bank;
+
+    jelly2_ram_simple_dualport
+            #(
+                .ADDR_WIDTH     (4),
+                .DATA_WIDTH     (DATA_WIDTH),
+                .MEM_SIZE       (16),
+                .RAM_TYPE       ("distributed"),
+                .DOUT_REGS      (0)
+            )
+        u_ram_simple_dualport_0
+            (
+                .wr_clk         (clk),
+                .wr_en          (st0_wr_en), // dont' care cke
+                .wr_addr        ({st0_wr_bank, st0_wr_addr}),
+                .wr_din         (st0_wr_din),
+                
+                .rd_clk         (clk),
+                .rd_en          (cke),
+                .rd_regcke      (1'b0),
+                .rd_addr        ({st0_rd_bank, st0_rd_addr}),
+                .rd_dout        (st0_rd_dout)
+            );
+
+    always_ff @(posedge clk) begin
+        if ( reset ) begin
+            st0_wr_bank <= 1'b0;
+            st0_rd_bank <= 1'b0;
+        end
+        else if ( cke ) begin
+            if ( st0_wr_en && st0_wr_last ) begin
+                st0_rd_bank <= st0_wr_bank;
+                st0_wr_bank <= st0_wr_bank + 1'b1;
+            end
+        end
+    end
+
+
+    // pipeline
     logic           st0_0_valid;
     logic   [2:0]   st0_0_addr;
 
@@ -79,10 +151,19 @@ module jelly2_llm_dct_8
             // stage0-0
             if ( !st0_0_valid || st0_0_addr == 3'd4 ) begin
                 st0_0_valid <= start;
-                st0_0_addr  <= '0;
+                st0_0_addr  <= 3'd0;
             end
             else begin
-                st0_0_addr <= ~st0_0_addr + {2'b00, st0_0_addr[2]};
+                case (st0_0_addr)
+                3'd0: st0_0_addr <= 3'd7;
+                3'd7: st0_0_addr <= 3'd1;
+                3'd1: st0_0_addr <= 3'd6;
+                3'd6: st0_0_addr <= 3'd2;
+                3'd2: st0_0_addr <= 3'd5;
+                3'd5: st0_0_addr <= 3'd3;
+                3'd3: st0_0_addr <= 3'd4;
+                3'd4: st0_0_addr <= 3'd0;
+                endcase
             end
 
             // stage0-1
@@ -105,19 +186,30 @@ module jelly2_llm_dct_8
     
     assign in_re   = st0_0_valid;
     assign in_addr = st0_0_addr;
-   
+
+    assign st0_wr_last = st0_3_last;
+    assign st0_wr_en   = st0_3_valid;
+    assign st0_wr_addr = st0_3_addr;
+    assign st0_wr_din  = st0_3_data;
+    
+
+
+    // -----------------------------------------
+    //  stage1
+    // -----------------------------------------
 
     // buffer
-    logic                       st0_wr_en;
-    logic   [2:0]               st0_wr_addr;
-    logic   [DATA_WIDTH-1:0]    st0_wr_din;
+    logic                       st1_wr_en;
+    logic   [2:0]               st1_wr_addr;
+    logic   [DATA_WIDTH-1:0]    st1_wr_din;
 
-    logic                       st0_rd_en;
-    logic   [2:0]               st0_rd_addr;
-    logic   [DATA_WIDTH-1:0]    st0_rd_dout;
+    logic                       st1_rd_en;
+    logic   [2:0]               st1_rd_addr;
+    logic   [DATA_WIDTH-1:0]    st1_rd_dout;
 
-    logic                       st0_wr_bank;
-    logic                       st0_rd_bank;
+    logic                       st1_wr_last;
+    logic                       st1_wr_bank;
+    logic                       st1_rd_bank;
 
     jelly2_ram_simple_dualport
             #(
@@ -127,39 +219,35 @@ module jelly2_llm_dct_8
                 .RAM_TYPE       ("distributed"),
                 .DOUT_REGS      (0)
             )
-        u_ram_simple_dualport_0
+        u_ram_simple_dualport_1
             (
                 .wr_clk         (clk),
-                .wr_en          (st0_wr_en), // dont' care cke
-                .wr_addr        ({st0_wr_bank, st0_wr_addr}),
-                .wr_din         (st0_wr_din),
+                .wr_en          (st1_wr_en), // dont' care cke
+                .wr_addr        ({st1_wr_bank, st1_wr_addr}),
+                .wr_din         (st1_wr_din),
                 
                 .rd_clk         (clk),
                 .rd_en          (cke),
                 .rd_regcke      (1'b0),
-                .rd_addr        ({st0_rd_bank, st0_rd_addr}),
-                .rd_dout        (st0_rd_dout)
+                .rd_addr        ({st1_rd_bank, st1_rd_addr}),
+                .rd_dout        (st1_rd_dout)
             );
 
     always_ff @(posedge clk) begin
         if ( reset ) begin
-            st0_wr_bank <= 1'b0;
-            st0_rd_bank <= 1'b0;
+            st1_wr_bank <= 1'b0;
+            st1_rd_bank <= 1'b0;
         end
         else if ( cke ) begin
-            if ( st0_3_valid && st0_3_last ) begin
-                st0_rd_bank <= st0_wr_bank;
-                st0_wr_bank <= st0_wr_bank + 1'b1;
+            if ( st1_wr_en && st1_wr_last ) begin
+                st1_rd_bank <= st1_wr_bank;
+                st1_wr_bank <= st1_wr_bank + 1'b1;
             end
         end
     end
 
-    assign st0_wr_en   = st0_3_valid;
-    assign st0_wr_addr = st0_3_addr;
-    assign st0_wr_din  = st0_3_data;
-    
 
-    // stage1
+    // pipeline
     logic           st1_0_valid;
     logic   [2:0]   st1_0_addr;
 
@@ -172,6 +260,7 @@ module jelly2_llm_dct_8
     calc_t          st1_2_data1;
 
     logic           st1_3_valid;
+    logic           st1_3_last;
     logic   [2:0]   st1_3_addr;
     calc_t          st1_3_data;
 
@@ -185,24 +274,36 @@ module jelly2_llm_dct_8
             st1_2_data0 <= 'x;
             st1_2_data1 <= 'x;
             st1_3_valid <= 1'b0;
+            st1_3_last  <= 'x;
             st1_3_data  <= 'x;
         end
         else if ( cke ) begin
             // stage1-0
-            if ( st0_3_valid && st0_3_last ) begin
+            if ( st0_wr_en && st0_wr_last ) begin
                 st1_0_valid <= 1'b1;
                 st1_0_addr  <= '0;
             end
             else begin
-                case (st1_0_addr[1:0])
-                2'b00: st1_0_addr[1:0] <= 2'b11;
-                2'b11: st1_0_addr[1:0] <= 2'b01;
-                2'b01: st1_0_addr[1:0] <= 2'b10;
-                2'b10: st1_0_addr[1:0] <= 2'b00;
+         //      case (st1_0_addr[1:0])
+         //      2'b00: st1_0_addr[1:0] <= 2'b11;
+         //      2'b11: st1_0_addr[1:0] <= 2'b01;
+         //      2'b01: st1_0_addr[1:0] <= 2'b10;
+         //      2'b10: st1_0_addr[1:0] <= 2'b00;
+         //      endcase
+         //      if ( st1_0_addr[1:0] == 2'b10 ) begin
+         //          st1_0_addr[2] <= st1_0_addr[2] + 1'b1;
+         //      end
+
+                case (st1_0_addr)
+                3'd0: st1_0_addr <= 3'd3;
+                3'd3: st1_0_addr <= 3'd1;
+                3'd1: st1_0_addr <= 3'd2;
+                3'd2: st1_0_addr <= 3'd4;
+                3'd4: st1_0_addr <= 3'd5;
+                3'd5: st1_0_addr <= 3'd6;
+                3'd6: st1_0_addr <= 3'd7;
+                3'd7: st1_0_addr <= 3'd0;
                 endcase
-                if ( st1_0_addr[1:0] == 2'b10 ) begin
-                    st1_0_addr[2] <= st1_0_addr[2] + 1'b1;
-                end
             end
             
             // stage1-1
@@ -217,6 +318,7 @@ module jelly2_llm_dct_8
 
             // stage1-3
             st1_3_valid  <= st1_2_valid;
+            st1_3_last   <= st1_2_addr == 3'd7;
             st1_3_addr   <= st1_2_addr;
             if ( st1_2_addr[2] == 1'b0 ) begin
                 st1_3_data <= st1_2_addr[1] == 1'b0 ? st1_2_data0 + st0_rd_dout : st1_2_data1 - st1_2_data0;
@@ -229,7 +331,208 @@ module jelly2_llm_dct_8
     
     assign st0_rd_en   = st1_0_valid;
     assign st0_rd_addr = st1_0_addr;
- 
+
+    assign st1_wr_en   = st1_3_valid;
+    assign st1_wr_last = st1_3_last;
+    assign st1_wr_addr = st1_3_addr;
+    assign st1_wr_din  = st1_3_data;
+
+
+
+    // -----------------------------------------
+    //  stage2
+    // -----------------------------------------
+
+    // buffer
+    logic                       st2_wr_en;
+    logic   [2:0]               st2_wr_addr;
+    logic   [DATA_WIDTH-1:0]    st2_wr_din;
+
+    logic                       st2_rd_en;
+    logic   [2:0]               st2_rd_addr;
+    logic   [DATA_WIDTH-1:0]    st2_rd_dout;
+
+    logic                       st2_wr_last;
+    logic                       st2_wr_bank;
+    logic                       st2_rd_bank;
+
+    jelly2_ram_simple_dualport
+            #(
+                .ADDR_WIDTH     (4),
+                .DATA_WIDTH     (DATA_WIDTH),
+                .MEM_SIZE       (16),
+                .RAM_TYPE       ("distributed"),
+                .DOUT_REGS      (0)
+            )
+        u_ram_simple_dualport_2
+            (
+                .wr_clk         (clk),
+                .wr_en          (st2_wr_en), // dont' care cke
+                .wr_addr        ({st2_wr_bank, st2_wr_addr}),
+                .wr_din         (st2_wr_din),
+                
+                .rd_clk         (clk),
+                .rd_en          (cke),
+                .rd_regcke      (1'b0),
+                .rd_addr        ({st2_rd_bank, st2_rd_addr}),
+                .rd_dout        (st2_rd_dout)
+            );
+
+    always_ff @(posedge clk) begin
+        if ( reset ) begin
+            st2_wr_bank <= 1'b0;
+            st2_rd_bank <= 1'b0;
+        end
+        else if ( cke ) begin
+            if ( st2_wr_en && st2_wr_last ) begin
+                st2_rd_bank <= st2_wr_bank;
+                st2_wr_bank <= st2_wr_bank + 1'b1;
+            end
+        end
+    end
+
+
+    logic           st2_0_valid;
+    logic   [2:0]   st2_0_addr;
+
+    logic           st2_1_valid;
+    logic   [2:0]   st2_1_addr;
+
+    logic           st2_2_valid;
+    logic   [2:0]   st2_2_addr;
+    calc_t          st2_2_data;
+
+    logic           st2_3_valid;
+    logic   [2:0]   st2_3_addr;
+    calc_t          st2_3_data0;
+    calc_t          st2_3_data1;
+    calc_t          st2_3_r0;
+    calc_t          st2_3_r1;
+
+    logic           st2_4_valid;
+    logic   [2:0]   st2_4_addr;
+    calc_t          st2_4_data0;
+    calc_t          st2_4_data1;
+    calc_t          st2_4_r0;
+    calc_t          st2_4_r1;
+
+    logic           st2_5_valid;
+    logic   [2:0]   st2_5_addr;
+    calc_t          st2_5_data0;
+    calc_t          st2_5_data1;
+
+    logic           st2_6_valid;
+    logic           st2_6_last;
+    logic   [2:0]   st2_6_addr;
+    calc_t          st2_6_data;
+
+    always_ff @(posedge clk) begin
+        if ( reset ) begin
+            st2_0_valid <= 1'b0;
+            st2_0_addr  <= 'x;
+            st2_1_valid <= 1'b0;
+            st2_1_addr  <= 'x;
+            st2_2_valid <= 1'b0;
+            st2_2_data  <= 'x;
+            st2_3_valid <= 1'b0;
+            st2_3_data0 <= 'x;
+            st2_3_data1 <= 'x;
+            st2_3_r0    <= 'x;
+            st2_3_r1    <= 'x;
+        end
+        else if ( cke ) begin
+            // stage2-0
+            if ( st1_wr_en && st1_wr_last ) begin
+                st2_0_valid <= 1'b1;
+                st2_0_addr  <= 3'd1;
+            end
+            else begin
+                case (st2_0_addr)
+                3'd1: st2_0_addr <= 3'd0;
+                3'd0: st2_0_addr <= 3'd2;
+                3'd2: st2_0_addr <= 3'd3;
+                3'd3: st2_0_addr <= 3'd7;
+                3'd7: st2_0_addr <= 3'd4;
+                3'd4: st2_0_addr <= 3'd5;
+                3'd5: st2_0_addr <= 3'd6;
+                3'd6: st2_0_addr <= 3'd1;
+                endcase
+            end
+            
+            // stage2-1
+            st2_1_valid  <= st2_0_valid;
+            st2_1_addr   <= st2_0_addr;
+            case (st2_0_addr)
+            3'd1: st2_1_addr <= 3'd0;
+            3'd0: st2_1_addr <= 3'd1;
+            3'd2: st2_1_addr <= 3'd2;
+            3'd3: st2_1_addr <= 3'd3;
+            3'd7: st2_1_addr <= 3'd4;
+            3'd4: st2_1_addr <= 3'd7;
+            3'd5: st2_1_addr <= 3'd6;
+            3'd6: st2_1_addr <= 3'd5;
+            endcase
+
+            // stage2-2
+            st2_2_valid  <= st2_1_valid;
+            st2_2_addr   <= st2_1_addr;
+            st2_2_data   <= st1_rd_dout;
+
+            // stage2-3
+            st2_3_valid  <= st2_2_valid;
+            st2_3_addr   <= st2_2_addr;
+            if ( st2_2_addr[0] == 1'b0 ) begin
+                st2_3_data0 <= st2_2_data;
+                st2_3_data1 <= st1_rd_dout;
+            end
+            else begin
+                st2_3_data0 <= st2_3_data1;
+                st2_3_data1 <= st2_3_data0;
+            end
+            case ( st2_2_addr )
+            3'd0: begin st2_3_r0 <= R[4]; st2_3_r1 <= R[4]; end
+            3'd1: begin st2_3_r0 <= R[4]; st2_3_r1 <= R[4]; end
+            3'd2: begin st2_3_r0 <= R[6]; st2_3_r1 <= R[2]; end
+            3'd3: begin st2_3_r0 <= R[6]; st2_3_r1 <= R[2]; end
+            3'd4: begin st2_3_r0 <= R[3]; st2_3_r1 <= -R[5]; end
+            3'd7: begin st2_3_r0 <= R[3]; st2_3_r1 <= -R[5]; end
+            3'd6: begin st2_3_r0 <= R[1]; st2_3_r1 <= R[7]; end
+            3'd5: begin st2_3_r0 <= R[1]; st2_3_r1 <= R[7]; end
+            endcase
+
+            // stage2-4
+            st2_4_valid  <= st2_3_valid;
+            st2_4_addr   <= st2_3_addr;
+            st2_4_data0  <= st2_3_data0;
+            st2_4_data1  <= st2_3_data1;
+            st2_4_r0     <= st2_3_r0;
+            st2_4_r1     <= st2_3_r1;
+
+            // stage2-5
+            st2_5_valid  <= st2_4_valid;
+            st2_5_addr   <= st2_4_addr;
+            st2_5_data0  <= mul(st2_4_data0, st2_4_r0);
+            st2_5_data1  <= mul(st2_4_data1, st2_4_r1);
+
+            // stage2-6
+            st2_6_valid  <= st2_5_valid;
+            st2_6_last   <= st2_5_addr == 3'd5;
+            st2_6_addr   <= st2_5_addr;
+            st2_6_data   <= st2_5_addr[0] == 1'b0 ? st2_5_data0 + st2_5_data1 : st2_5_data0 - st2_5_data1;
+        end
+    end
+    
+
+    assign st1_rd_en   = st2_0_valid;
+    assign st1_rd_addr = st2_0_addr;
+
+    assign st2_wr_en   = st2_6_valid;
+    assign st2_wr_last = st2_6_last;
+    assign st2_wr_addr = st2_6_addr;
+    assign st2_wr_din  = st2_6_data;
+
+
+
 
 endmodule
 
