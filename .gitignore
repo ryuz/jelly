@@ -42,6 +42,7 @@ Untitled.*
 *.dtb
 *.dtbo
 *.bit
+*.ltx
 *.xsa
 
 # wave file

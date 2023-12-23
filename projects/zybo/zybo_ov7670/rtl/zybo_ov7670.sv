@@ -576,15 +576,52 @@ module zybo_ov7670
 //    assign ov7670_hs     ;
     assign ov7670_sysclk = clk25;
 //  assign ov7670_pclk   = clk25;
+    
+    logic sccb_rst_n;
+    logic sccb_sda;
+    logic sccb_scl;
+    logic sccb_init_done;
+
+    (* mark_debug = "true" *)   logic dbg_sccb_rst_n;
+    (* mark_debug = "true" *)   logic dbg_sccb_sda;
+    (* mark_debug = "true" *)   logic dbg_sccb_scl;
+    (* mark_debug = "true" *)   logic dbg_sccb_init_done;
+    always_ff @(posedge clk25) begin
+        dbg_sccb_rst_n      <= sccb_rst_n      ;
+        dbg_sccb_sda        <= sccb_sda        ;
+        dbg_sccb_scl        <= sccb_scl        ;
+        dbg_sccb_init_done  <= sccb_init_done  ;
+    end
+
+    logic           sccb_reset;
+    logic   [15:0]   sccb_reset_cnt = 16'hffff;
+
+    assign sccb_reset = reset || push_sw[1];
+    always_ff @(posedge clk25 or posedge sccb_reset) begin
+        if ( sccb_reset ) begin
+            sccb_reset_cnt <= 16'hffff;
+            sccb_rst_n     <= 1'b0;
+        end
+        else begin
+            if ( sccb_reset_cnt > 0 ) begin
+                sccb_reset_cnt <= sccb_reset_cnt - 1;
+            end
+            sccb_rst_n <= (sccb_reset_cnt == 0);
+        end
+    end
+
+    assign sccb_rst_n = sccb_rst_n;
+    assign ov7670_sda = sccb_sda;
+    assign ov7670_scl = sccb_scl;
 
     sccb_top
         i_sccb_top
             (
-                .clk_25m    (clk25      ),
-                .rst_n      (~reset     ),
-                .sda        (ov7670_sda ),
-                .scl        (ov7670_scl ),
-                .init_done  (           )
+                .clk_25m    (clk25          ),
+                .rst_n      (sccb_rst_n     ),
+                .sda        (sccb_sda       ),
+                .scl        (sccb_scl       ),
+                .init_done  (sccb_init_done )
             );
         
         /*
