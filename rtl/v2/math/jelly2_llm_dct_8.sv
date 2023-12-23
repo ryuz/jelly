@@ -52,6 +52,10 @@ module jelly2_llm_dct_8
     calc_t  RSQRT2;
     assign RSQRT2 = from_q32(34'hb504f334);
 
+    // 0.5 / sqrt(2)
+    calc_t  RSQRT2H;
+    assign RSQRT2H = from_q32(34'h5a82799a);
+
     // cos(pi * i/16) * sqrt(2)
     calc_t  R   [0:7];
     assign  R[0] = from_q32(34'h16a09e668);
@@ -284,16 +288,6 @@ module jelly2_llm_dct_8
                 st1_0_addr  <= '0;
             end
             else begin
-         //      case (st1_0_addr[1:0])
-         //      2'b00: st1_0_addr[1:0] <= 2'b11;
-         //      2'b11: st1_0_addr[1:0] <= 2'b01;
-         //      2'b01: st1_0_addr[1:0] <= 2'b10;
-         //      2'b10: st1_0_addr[1:0] <= 2'b00;
-         //      endcase
-         //      if ( st1_0_addr[1:0] == 2'b10 ) begin
-         //          st1_0_addr[2] <= st1_0_addr[2] + 1'b1;
-         //      end
-
                 case (st1_0_addr)
                 3'd0: st1_0_addr <= 3'd3;
                 3'd3: st1_0_addr <= 3'd1;
@@ -391,7 +385,8 @@ module jelly2_llm_dct_8
         end
     end
 
-
+    
+    // pipeline
     logic           st2_0_valid;
     logic   [2:0]   st2_0_addr;
 
@@ -439,6 +434,20 @@ module jelly2_llm_dct_8
             st2_3_data1 <= 'x;
             st2_3_r0    <= 'x;
             st2_3_r1    <= 'x;
+            st2_4_valid <= 1'b0;
+            st2_4_addr  <= 'x;
+            st2_4_data0 <= 'x;
+            st2_4_data1 <= 'x;
+            st2_4_r0    <= 'x;
+            st2_4_r1    <= 'x;
+            st2_5_valid <= 1'b0;
+            st2_5_addr  <= 'x;
+            st2_5_data0 <= 'x;
+            st2_5_data1 <= 'x;
+            st2_6_valid <= 1'b0;
+            st2_6_last  <= 'x;
+            st2_6_addr  <= 'x;
+            st2_6_data  <= 'x;
         end
         else if ( cke ) begin
             // stage2-0
@@ -532,6 +541,216 @@ module jelly2_llm_dct_8
     assign st2_wr_din  = st2_6_data;
 
 
+
+    // -----------------------------------------
+    //  stage3
+    // -----------------------------------------
+
+    // pipeline
+    logic           st3_0_valid;
+    logic   [2:0]   st3_0_addr;
+
+    logic           st3_1_valid;
+    logic   [2:0]   st3_1_addr;
+
+    logic           st3_2_valid;
+    logic   [2:0]   st3_2_addr;
+    calc_t          st3_2_data;
+
+    logic           st3_3_valid;
+    logic   [2:0]   st3_3_addr;
+    calc_t          st3_3_data;
+    calc_t          st3_3_data0;
+    calc_t          st3_3_data1;
+
+    logic           st3_4_valid;
+    logic   [2:0]   st3_4_addr;
+    calc_t          st3_4_data;
+    calc_t          st3_4_data0;
+    calc_t          st3_4_data1;
+
+    logic           st3_5_valid;
+    logic   [2:0]   st3_5_addr;
+    calc_t          st3_5_data;
+    calc_t          st3_5_add;
+    calc_t          st3_5_sub;
+
+    logic           st3_6_valid;
+    logic   [2:0]   st3_6_addr;
+    calc_t          st3_6_data;
+    calc_t          st3_6_mul;
+    calc_t          st3_6_sub0;
+    calc_t          st3_6_sub1;
+ 
+    logic           st3_7_valid;
+    logic   [2:0]   st3_7_addr;
+    calc_t          st3_7_data;
+    calc_t          st3_7_mul0;
+    calc_t          st3_7_mul1;
+
+    logic           st3_8_valid;
+    logic   [2:0]   st3_8_addr;
+    calc_t          st3_8_data;
+    calc_t          st3_8_data0;
+    calc_t          st3_8_data1;
+
+    logic           st3_9_valid;
+    logic   [2:0]   st3_9_addr;
+    calc_t          st3_9_data;
+
+    logic           st3_10_valid;
+    logic   [2:0]   st3_10_addr;
+    calc_t          st3_10_data;
+
+    always_ff @(posedge clk) begin
+        if ( reset ) begin
+            st3_0_valid  <= 1'b0;
+            st3_0_addr   <= 'x;
+            st3_1_valid  <= 1'b0;
+            st3_1_addr   <= 'x;
+            st3_2_valid  <= 1'b0;
+            st3_2_data   <= 'x;
+            st3_3_valid  <= 1'b0;
+            st3_3_data   <= 'x;
+            st3_3_data0  <= 'x;
+            st3_3_data1  <= 'x;
+            st3_4_valid  <= 1'b0;
+            st3_4_addr   <= 'x;
+            st3_4_data   <= 'x;
+            st3_4_data0  <= 'x;
+            st3_4_data1  <= 'x;
+            st3_5_valid  <= 1'b0;
+            st3_5_addr   <= 'x;
+            st3_5_data   <= 'x;
+            st3_5_add    <= 'x;
+            st3_5_sub    <= 'x;
+            st3_6_valid  <= 1'b0;
+            st3_6_addr   <= 'x;
+            st3_6_data   <= 'x;
+            st3_6_mul    <= 'x;
+            st3_6_sub0   <= 'x;
+            st3_6_sub1   <= 'x;
+            st3_7_valid  <= 1'b0;
+            st3_7_addr   <= 'x;
+            st3_7_data   <= 'x;
+            st3_7_mul0   <= 'x;
+            st3_7_mul1   <= 'x;
+            st3_8_valid  <= 1'b0;
+            st3_8_addr   <= 'x;
+            st3_8_data   <= 'x;
+            st3_8_data0  <= 'x;
+            st3_8_data1  <= 'x;
+            st3_9_valid  <= 1'b0;
+            st3_9_addr   <= 'x;
+            st3_9_data   <= 'x;
+            st3_10_valid <= 1'b0;
+            st3_10_addr  <= 'x;
+            st3_10_data  <= 'x;
+        end
+        else if ( cke ) begin
+            // stage3-0
+            if ( st2_wr_en && st2_wr_last ) begin
+                st3_0_valid <= 1'b1;
+                st3_0_addr  <= 3'd0;
+            end
+            else begin
+                case (st3_0_addr)
+                3'd0: st3_0_addr <= 3'd1;
+                3'd1: st3_0_addr <= 3'd2;
+                3'd2: st3_0_addr <= 3'd3;
+                3'd3: st3_0_addr <= 3'd7;
+                3'd7: st3_0_addr <= 3'd5;
+                3'd5: st3_0_addr <= 3'd4;
+                3'd4: st3_0_addr <= 3'd6;
+                3'd6: st3_0_addr <= 3'd0;
+                endcase
+            end
+            
+            // stage3-1
+            st3_1_valid <= st3_0_valid;
+            st3_1_addr  <= st3_0_addr;
+            case (st3_0_addr)
+            3'd0: st3_1_addr <= 3'd0;
+            3'd1: st3_1_addr <= 3'd4;
+            3'd2: st3_1_addr <= 3'd2;
+            3'd3: st3_1_addr <= 3'd6;
+            3'd7: st3_1_addr <= 3'd5;
+            3'd5: st3_1_addr <= 3'd3;
+            3'd4: st3_1_addr <= 3'd1;
+            3'd6: st3_1_addr <= 3'd7;
+            endcase
+
+            // stage3-2
+            st3_2_valid  <= st3_1_valid;
+            st3_2_addr   <= st3_1_addr;
+            st3_2_data   <= st2_rd_dout;
+
+            // stage3-3
+            st3_3_valid  <= st3_2_valid;
+            st3_3_addr   <= st3_2_addr;
+            st3_3_data   <= st3_2_data;
+            if ( st3_2_addr == 3'd5 || st3_2_addr == 3'd1 ) begin
+                st3_3_data0 <= st3_2_data;
+                st3_3_data1 <= st2_rd_dout;
+            end
+
+            // stage3-4
+            st3_4_valid  <= st3_3_valid;
+            st3_4_addr   <= st3_3_addr;
+            st3_4_data   <= st3_3_data;
+            st3_4_data0  <= st3_3_data0;
+            st3_4_data1  <= st3_3_data1;
+
+            // stage3-5
+            st3_5_valid  <= st3_4_valid;
+            st3_5_addr   <= st3_4_addr;
+            st3_5_data   <= st3_4_data;
+            st3_5_add    <= st3_4_data0 + st3_4_data1;
+            st3_5_sub    <= st3_4_data0 - st3_4_data1;
+
+            // stage3-6
+            st3_6_valid  <= st3_5_valid;
+            st3_6_addr   <= st3_5_addr;
+            st3_6_data   <= st3_5_data;
+            st3_6_mul    <= mul(st3_5_add, RSQRT2);
+            if ( st3_5_addr == 3'd5 ) st3_6_sub0 <= st3_5_sub;
+            if ( st3_5_addr == 3'd1 ) st3_6_sub1 <= st3_5_sub;
+
+            // stage3-7
+            st3_7_valid  <= st3_6_valid;
+            st3_7_addr   <= st3_6_addr;
+            st3_7_data   <= st3_6_data;
+            if ( st3_6_addr == 3'd5 ) st3_7_mul0 <= st3_6_mul;
+            if ( st3_6_addr == 3'd1 ) st3_7_mul1 <= st3_6_mul;
+
+            // stage3-8
+            st3_8_valid  <= st3_7_valid;
+            st3_8_addr   <= st3_7_addr;
+            case ( st3_7_addr )
+            3'd0: st3_8_data <= st3_7_data;
+            3'd4: st3_8_data <= st3_7_data;
+            3'd2: st3_8_data <= st3_7_data;
+            3'd6: st3_8_data <= st3_7_data;
+            3'd5: st3_8_data <= st3_6_sub0;
+            3'd3: st3_8_data <= st3_6_sub1;
+            3'd1: st3_8_data <= st3_7_mul1 + st3_7_mul0;
+            3'd7: st3_8_data <= st3_7_mul1 - st3_7_mul0;
+            endcase
+
+            // stage3-9
+            st3_9_valid <= st3_8_valid;
+            st3_9_addr  <= st3_8_addr;
+            st3_9_data  <= st3_8_data;
+
+            // stage3-10
+            st3_10_valid <= st3_9_valid;
+            st3_10_addr  <= st3_9_addr;
+            st3_10_data  <= mul(st3_9_data, RSQRT2H);
+        end
+    end
+
+    assign st2_rd_en   = st3_0_valid;
+    assign st2_rd_addr = st3_0_addr;
 
 
 endmodule
