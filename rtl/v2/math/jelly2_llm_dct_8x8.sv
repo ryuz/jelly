@@ -189,9 +189,10 @@ module jelly2_llm_dct_8x8
         end
     end
 
-    assign wr_en   = h_out_we;
-    assign wr_last = h_done && h_out_last;
-    assign wr_addr = {h_out_addry, h_out_addrx};
+    assign wr_en    = h_out_we;
+    assign wr_last  = h_done && h_out_last;
+    assign wr_addr  = {h_out_addry, h_out_addrx};
+    assign wr_din   = h_out_wdata;
 
 
 
@@ -269,8 +270,10 @@ module jelly2_llm_dct_8x8
     end
 
     assign v_start = (v_busy && !v_in_last) || (h_done && h_out_last);
-    assign rd_en   = v_in_re;
-    assign rd_addr = {v_in_addry, h_out_addrx};
+
+    assign rd_en      = v_in_re;
+    assign rd_addr    = {v_in_addry, v_in_addrx};
+    assign v_in_rdata = rd_dout;
 
 
     // output

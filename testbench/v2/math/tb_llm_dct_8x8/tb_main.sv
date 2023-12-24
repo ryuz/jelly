@@ -77,19 +77,29 @@ module tb_main
         {8'h1d, 8'h54, 8'h53, 8'h19, 8'h5e, 8'h98, 8'h48, 8'h40 }
     };
 
-//    assign start = 1'b1;
+//  assign start = 1'b1;
 
     always_ff @(posedge clk) begin
         in_rdata <= DATA_WIDTH'(in_mem[in_addry][in_addrx]) << (DATA_Q - 8);
     end
 
+    logic   [17:0]   out_mem  [0:7][0:7];
+    always_ff @(posedge clk) begin
+        if ( out_we ) begin
+            out_mem[out_addry][out_addrx] <= out_wdata;
+        end
 
-
+        if ( cycle == 1000 ) begin
+            for ( int y = 0; y < 8; ++y ) begin
+                for ( int x = 0; x < 8; ++x ) begin
+                    $display("%d ", out_mem[y][x]);
+                end
+            end
+        end
+    end
 
 endmodule
 
-
 `default_nettype wire
-
 
 // end of file
