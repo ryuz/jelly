@@ -123,6 +123,7 @@ module jelly2_llm_dct_8
 
     // pipeline
     logic           st0_0_valid;
+    logic           st0_0_last;
     logic   [2:0]   st0_0_addr;
 
     logic           st0_1_valid;
@@ -141,6 +142,7 @@ module jelly2_llm_dct_8
     always_ff @(posedge clk) begin
         if ( reset ) begin
             st0_0_valid <= 1'b0;
+            st0_0_last  <= 1'b0;
             st0_0_addr  <= 'x;
             st0_1_valid <= 1'b0;
             st0_1_addr  <= 'x;
@@ -153,11 +155,13 @@ module jelly2_llm_dct_8
         end
         else if ( cke ) begin
             // stage0-0
-            if ( !st0_0_valid || st0_0_addr == 3'd4 ) begin
+            if ( ready ) begin
                 st0_0_valid <= start;
+                st0_0_last  <= 1'b0;
                 st0_0_addr  <= 3'd0;
             end
             else begin
+                st0_0_last <= (st0_0_addr == 3'd3);
                 case (st0_0_addr)
                 3'd0: st0_0_addr <= 3'd7;
                 3'd7: st0_0_addr <= 3'd1;
@@ -188,7 +192,7 @@ module jelly2_llm_dct_8
         end
     end
     
-    assign ready = !st0_0_valid || (st0_0_addr == 3'd4);
+    assign ready = !st0_0_valid || st0_0_last;
 
     assign in_re   = st0_0_valid;
     assign in_addr = st0_0_addr;
