@@ -44,29 +44,27 @@ module jelly2_llm_dct_8
     endfunction
 
 
-    function calc_t from_q32(input [33:0] v);
-        return calc_t'((v + (34'd1 << (31 - DATA_Q))) >> (32 - DATA_Q));
-    endfunction
-
     // 1 / sqrt(2)
     calc_t  RSQRT2;
-    assign RSQRT2 = from_q32(34'hb504f334);
+    assign RSQRT2 = calc_t'(int'(1.0 / $sqrt(2.0) * (1 << DATA_Q)));
 
     // 0.5 / sqrt(2)
     calc_t  RSQRT2H;
-    assign RSQRT2H = from_q32(34'h5a82799a);
+    assign RSQRT2H = calc_t'(int'(0.5 / $sqrt(2.0) * (1 << DATA_Q)));
 
     // cos(pi * i/16) * sqrt(2)
     calc_t  R   [0:7];
-    assign  R[0] = from_q32(34'h16a09e668);
-    assign  R[1] = from_q32(34'h163150b16);
-    assign  R[2] = from_q32(34'h14e7ae914);
-    assign  R[3] = from_q32(34'h12d062ef9);
-    assign  R[4] = from_q32(34'h100000000);
-    assign  R[5] = from_q32(34'h0c9234e07);
-    assign  R[6] = from_q32(34'h08a8bd3df);
-    assign  R[7] = from_q32(34'h046a1577b);
+    localparam  real    PI = 3.14159265358979323846;
+    assign  R[0] = calc_t'(int'($cos(PI * 0 / 16) * $sqrt(2.0) * (1 << DATA_Q)));
+    assign  R[1] = calc_t'(int'($cos(PI * 1 / 16) * $sqrt(2.0) * (1 << DATA_Q)));
+    assign  R[2] = calc_t'(int'($cos(PI * 2 / 16) * $sqrt(2.0) * (1 << DATA_Q)));
+    assign  R[3] = calc_t'(int'($cos(PI * 3 / 16) * $sqrt(2.0) * (1 << DATA_Q)));
+    assign  R[4] = calc_t'(int'($cos(PI * 4 / 16) * $sqrt(2.0) * (1 << DATA_Q)));
+    assign  R[5] = calc_t'(int'($cos(PI * 5 / 16) * $sqrt(2.0) * (1 << DATA_Q)));
+    assign  R[6] = calc_t'(int'($cos(PI * 6 / 16) * $sqrt(2.0) * (1 << DATA_Q)));
+    assign  R[7] = calc_t'(int'($cos(PI * 7 / 16) * $sqrt(2.0) * (1 << DATA_Q)));
 
+    
     
     // -----------------------------------------
     //  stage0
