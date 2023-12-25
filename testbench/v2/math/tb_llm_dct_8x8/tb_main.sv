@@ -77,13 +77,25 @@ module tb_main
         {8'h1d, 8'h54, 8'h53, 8'h19, 8'h5e, 8'h98, 8'h48, 8'h40 }
     };
 
+    // 期待値
+    logic   signed  [17:0]   exp_mem  [0:7][0:7] = {
+        {11086, -1181,  -411,   531, -1551,  -283,   387,   510},
+        { -291,  1712,   519,  -167,   404,  1029,   -56,   772},
+        { -353,   270,   -48,   640,   217,   455,    21,   687},
+        { 1150, -1403,   292,   -92,   191,  1177,   513,   380},
+        {  324,   104,   408,  -321,  -468,   -53,   892,   210},
+        {  538,   157,   352,   -62,   -56,   -64,  -862,  -169},
+        {  255,  -121,   432,   463,  -605,   375,   116,  -589},
+        {  248,   309,   198,    -7,   208,    25,   337,   -53}
+    };
+
 //  assign start = 1'b1;
 
     always_ff @(posedge clk) begin
         in_rdata <= DATA_WIDTH'(in_mem[in_addry][in_addrx]) << (DATA_Q - 8);
     end
 
-    logic   [17:0]   out_mem  [0:7][0:7];
+    logic      signed   [17:0]   out_mem  [0:7][0:7];
     always_ff @(posedge clk) begin
         if ( out_we ) begin
             out_mem[out_addry][out_addrx] <= out_wdata;
@@ -92,8 +104,12 @@ module tb_main
         if ( cycle == 1000 ) begin
             for ( int y = 0; y < 8; ++y ) begin
                 for ( int x = 0; x < 8; ++x ) begin
-                    $display("%d ", out_mem[y][x]);
+                    $write("%d ", out_mem[y][x]);
+                    if ( out_mem[y][x] != exp_mem[y][x] ) begin
+                        $write("NG! ");
+                    end
                 end
+                $display("");
             end
         end
     end
