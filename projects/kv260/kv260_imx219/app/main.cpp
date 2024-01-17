@@ -38,6 +38,7 @@ int main(int argc, char *argv[])
     int     a_gain      = 20;
     int     d_gain      = 0;
     int     bayer_phase = 0;
+    int     fmtsel      = 0;
     int     view_scale  = 4;
     
     for ( int i = 1; i < argc; ++i ) {
@@ -175,6 +176,7 @@ int main(int argc, char *argv[])
 //  auto reg_prmup  = uio_acc.GetAccessor(0x00011000);
     auto reg_demos  = uio_acc.GetAccessor(0x00120000);
     auto reg_colmat = uio_acc.GetAccessor(0x00120800);
+    auto reg_sel    = uio_acc.GetAccessor(0x00130000);
     auto reg_wdma   = uio_acc.GetAccessor(0x00210000);
     
 #if 1
@@ -251,6 +253,7 @@ int main(int argc, char *argv[])
         imx219.SetFlip(flip_h, flip_v);
         reg_demos.WriteReg(REG_IMG_DEMOSAIC_PARAM_PHASE, bayer_phase);
         reg_demos.WriteReg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3);  // update & enable
+        reg_sel.WriteReg(0, fmtsel);
 
         // キャプチャ
         vdmaw.Oneshot(dmabuf_phys_adr, width, height, frame_num);
@@ -259,16 +262,19 @@ int main(int argc, char *argv[])
         udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4 * frame_num);
         
         // 表示
+        view_scale = std::max(1, view_scale);
         cv::Mat view_img;
         cv::resize(img, view_img, cv::Size(), 1.0/view_scale, 1.0/view_scale);
 
         cv::imshow("img", view_img);
         cv::createTrackbar("scale",    "img", &view_scale, 4);
+        cv::setTrackbarMin("scale",    "img", 1);
         cv::createTrackbar("fps",      "img", &frame_rate, 1000);
         cv::createTrackbar("exposure", "img", &exposure, 1000);
         cv::createTrackbar("a_gain",   "img", &a_gain, 20);
         cv::createTrackbar("d_gain",   "img", &d_gain, 24);
         cv::createTrackbar("bayer" ,   "img", &bayer_phase, 3);
+        cv::createTrackbar("fmtsel",   "img", &fmtsel, 3);
 
         // ユーザー操作
         switch ( key ) {
@@ -325,6 +331,8 @@ int main(int argc, char *argv[])
 
     std::cout << "close device" << std::endl;
 
+    vdmaw.Stop();
+
     // close
     imx219.Stop();
     imx219.Close();
@@ -333,43 +341,6 @@ int main(int argc, char *argv[])
 }
 
 
-/*
-// 静止画キャプチャ
-void capture_still_image(jelly::MemAccessor& reg_wdma, jelly::MemAccessor& reg_fmtr, std::uintptr_t bufaddr, int width, int height, int frame_num)
-{
-    // DMA start (one shot)
-    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_ADDR,   bufaddr);
-    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_STRIDE, width*4);
-    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_WIDTH,  width);
-    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_HEIGHT, height);
-    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_SIZE,   width*height*frame_num);
-    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_AWLEN,  31);
-    reg_wdma.WriteReg(REG_VIDEO_WDMA_CTL_CONTROL,  0x07);
-    
-    // video format regularizer
-    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN,  1);
-    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT,   10000000);
-    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_WIDTH,       width);
-    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_HEIGHT,      height);
-    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_FILL,        0x100);
-    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_TIMEOUT,     100000);
-    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL,       0x03);
-    usleep(100000);
-    
-    // 取り込み完了を待つ
-    usleep(10000);
-    while ( reg_wdma.ReadReg(REG_VIDEO_WDMA_CTL_STATUS) != 0 ) {
-        usleep(10000);
-    }
-    
-    // normalizer stop
-    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL, 0x00);
-    usleep(1000);
-    while ( reg_wdma.ReadReg(REG_VIDEO_FMTREG_CTL_STATUS) != 0 ) {
-        usleep(1000);
-    }
-}
-*/
 
 
 // end of file
