@@ -20,12 +20,22 @@ module jelly3_axi4l_register
     localparam REG_DATA_WIDTH = WIDTH;
     localparam AXI_ADDR_WIDTH = s_axi4l.ADDR_WIDTH;
     localparam AXI_DATA_WIDTH = s_axi4l.DATA_WIDTH;
+    localparam AXI_STRB_WIDTH = s_axi4l.STRB_WIDTH;
+    localparam AXI_UNIT_WIDTH = $clog2(s_axi4l.STRB_WIDTH);
 
     typedef logic   [REG_ADDR_WIDTH-1:0]        reg_addr_t;
     typedef logic   [REG_DATA_WIDTH-1:0]        reg_data_t;
     typedef logic   [s_axi4l.DATA_WIDTH-1:0]    axi_data_t;
 
+    // address
+    reg_addr_t  reg_waddr;
+    reg_addr_t  reg_raddr;
+    assign reg_waddr = s_axi4l.awaddr[AXI_UNIT_WIDTH +: REG_ADDR_WIDTH];
+    assign reg_raddr = s_axi4l.araddr[AXI_UNIT_WIDTH +: REG_ADDR_WIDTH];
+
+    // register
     reg_data_t  reg_data    [0:NUM-1];
+
 
     // write
     logic       bvalid;
@@ -41,12 +51,14 @@ module jelly3_axi4l_register
                 bvalid <= 0;
             end
             if ( s_axi4l.awvalid && s_axi4l.awready ) begin
-                reg_data[reg_addr_t'(s_axi4l.awaddr)] <= reg_data_t'(s_axi4l.wdata);
+                reg_data[reg_waddr] <= reg_data_t'(s_axi4l.wdata);
                 bvalid <= 1'b1;
             end
         end
     end
-    assign s_axi4l.awready = ~bvalid || s_axi4l.bready;
+
+    assign s_axi4l.awready = (~bvalid || s_axi4l.bready) && s_axi4l.wvalid;
+    assign s_axi4l.wready  = (~bvalid || s_axi4l.bready) && s_axi4l.awvalid;
     assign s_axi4l.bresp   = '0;
     assign s_axi4l.bvalid  = bvalid;
 
@@ -65,7 +77,7 @@ module jelly3_axi4l_register
                 rvalid <= 1'b0;
             end
             if ( s_axi4l.arvalid && s_axi4l.arready ) begin
-                rdata  <= reg_data[reg_addr_t'(s_axi4l.araddr)];
+                rdata  <= reg_data[reg_raddr];
                 rvalid <= 1'b1;
             end
         end

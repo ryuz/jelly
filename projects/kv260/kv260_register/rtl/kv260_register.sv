@@ -80,29 +80,29 @@ module kv260_register
             );
 
 
-    assign i_axi4l_if.awaddr    = axi4l_awaddr    ;
-    assign i_axi4l_if.awprot    = axi4l_awprot    ;
-    assign i_axi4l_if.awvalid   = axi4l_awvalid   ;
-    assign axi4l_awready        = i_axi4l_if.awready   ;
+    assign i_axi4l_if.awaddr    = axi4l_awaddr      ;
+    assign i_axi4l_if.awprot    = axi4l_awprot      ;
+    assign i_axi4l_if.awvalid   = axi4l_awvalid     ;
+    assign axi4l_awready        = i_axi4l_if.awready;
 
-    assign i_axi4l_if.wdata     = axi4l_wdata     ;
-    assign i_axi4l_if.wstrb     = axi4l_wstrb     ;
-    assign i_axi4l_if.wvalid    = axi4l_wvalid    ;
-    assign axi4l_wready         = i_axi4l_if.wready    ;
+    assign i_axi4l_if.wdata     = axi4l_wdata       ;
+    assign i_axi4l_if.wstrb     = axi4l_wstrb       ;
+    assign i_axi4l_if.wvalid    = axi4l_wvalid      ;
+    assign axi4l_wready         = i_axi4l_if.wready ;
     
-    assign axi4l_bresp          = i_axi4l_if.bresp     ;
-    assign axi4l_bvalid         = i_axi4l_if.bvalid    ;
-    assign i_axi4l_if.bready    = axi4l_bready    ;
+    assign axi4l_bresp          = i_axi4l_if.bresp  ;
+    assign axi4l_bvalid         = i_axi4l_if.bvalid ;
+    assign i_axi4l_if.bready    = axi4l_bready      ;
     
-    assign i_axi4l_if.araddr    = axi4l_araddr    ;
-    assign i_axi4l_if.arprot    = axi4l_arprot    ;
-    assign i_axi4l_if.arvalid   = axi4l_arvalid   ;
-    assign i_axi4l_if.arready   = i_axi4l_if.arready   ;
+    assign i_axi4l_if.araddr    = axi4l_araddr      ;
+    assign i_axi4l_if.arprot    = axi4l_arprot      ;
+    assign i_axi4l_if.arvalid   = axi4l_arvalid     ;
+    assign axi4l_arready        = i_axi4l_if.arready;
 
-    assign axi4l_rdata          = i_axi4l_if.rdata     ;
-    assign axi4l_rresp          = i_axi4l_if.rresp     ;
-    assign axi4l_rvalid         = i_axi4l_if.rvalid    ;
-    assign i_axi4l_if.rready    = axi4l_rready    ;
+    assign axi4l_rdata          = i_axi4l_if.rdata  ;
+    assign axi4l_rresp          = i_axi4l_if.rresp  ;
+    assign axi4l_rvalid         = i_axi4l_if.rvalid ;
+    assign i_axi4l_if.rready    = axi4l_rready      ;
 
     logic   [3:0][31:0]  value;
             

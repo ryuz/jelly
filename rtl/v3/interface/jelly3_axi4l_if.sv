@@ -91,15 +91,15 @@ interface jelly3_axi4l_if
             output  bvalid,
             input   bready,
             
-            output  araddr,
-            output  arprot,
-            output  arvalid,
-            input   arready,
+            input   araddr,
+            input   arprot,
+            input   arvalid,
+            output  arready,
         
-            input   rdata,
-            input   rresp,
-            input   rvalid,
-            output  rready
+            output  rdata,
+            output  rresp,
+            output  rvalid,
+            input   rready
         );
 
 endinterface
