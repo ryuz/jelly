@@ -7,7 +7,8 @@
 
 module kv260_register
             (
-                output  wire    [7:0]   pmod
+                output  var logic   [7:0]   pmod,
+                output  var logic           fan_en
             );
     
 
@@ -61,7 +62,9 @@ module kv260_register
                 .m_axi4l_rdata      (axi4l_rdata    ),
                 .m_axi4l_rresp      (axi4l_rresp    ),
                 .m_axi4l_rvalid     (axi4l_rvalid   ),
-                .m_axi4l_rready     (axi4l_rready   )
+                .m_axi4l_rready     (axi4l_rready   ),
+
+                .fan_en             (fan_en         )
             );
 
 
@@ -114,7 +117,7 @@ module kv260_register
                 .value      (value)
             );
 
-    assign pmod[3:0] = value[0];
+    assign pmod[7:0] = value[0][7:0];
 
 endmodule
 
