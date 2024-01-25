@@ -46,7 +46,6 @@ endif()
 
 set(RTL_SRCS
     ../tb_main.sv
-#    ../../../../../../rtl/v3/interface/jelly3_axi4l_if.sv
     ../../stub/design_1.v
 )
 

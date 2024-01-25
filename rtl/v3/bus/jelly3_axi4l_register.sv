@@ -36,6 +36,12 @@ module jelly3_axi4l_register
     // register
     reg_data_t  reg_data    [0:NUM-1];
 
+    always_comb begin
+        for ( int i = 0; i < NUM; i++ ) begin
+            value[i] = reg_data[i];
+        end
+    end
+
 
     // write
     logic       bvalid;
@@ -82,6 +88,8 @@ module jelly3_axi4l_register
             end
         end
     end
+
+    assign s_axi4l.arready = ~rvalid || s_axi4l.rready;
 
     assign s_axi4l.rdata  = rdata;
     assign s_axi4l.rresp  = '0;
