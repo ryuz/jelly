@@ -678,12 +678,10 @@ module kv260_imx219
                     axi4s_rgb_tdata[29:0]
                 };
             end
-        2'b10: begin // RAW U32
+        2'b10: begin // RAW S32
             axi4s_sel_tdata = {
-                axi4s_rgb_tdata[39:30],
-                axi4s_rgb_tdata[39:30],
-                axi4s_rgb_tdata[39:30],
-                axi4s_rgb_tdata[39:38]
+                22'd0,
+                axi4s_rgb_tdata[39:30]
             };
         end
         2'b11: begin // RAW S32
