@@ -16,22 +16,36 @@ module jelly3_axi4l_register
         output  logic   [NUM-1:0][WIDTH-1:0]    value
     );
 
-    localparam REG_ADDR_WIDTH = $clog2(NUM);
-    localparam REG_DATA_WIDTH = WIDTH;
-    localparam AXI_ADDR_WIDTH = s_axi4l.ADDR_WIDTH;
-    localparam AXI_DATA_WIDTH = s_axi4l.DATA_WIDTH;
-    localparam AXI_STRB_WIDTH = s_axi4l.STRB_WIDTH;
-    localparam AXI_UNIT_WIDTH = $clog2(s_axi4l.STRB_WIDTH);
+    localparam REG_ADDR_BITS = $clog2(NUM);
+    localparam REG_DATA_BITS = WIDTH;
+    localparam AXI_ADDR_BITS = s_axi4l.ADDR_BITS;
+    localparam AXI_DATA_BITS = s_axi4l.DATA_BITS;
+    localparam AXI_STRB_BITS = s_axi4l.STRB_BITS;
+    localparam AXI_UNIT_BITS = $clog2(s_axi4l.STRB_BITS);
 
-    typedef logic   [REG_ADDR_WIDTH-1:0]        reg_addr_t;
-    typedef logic   [REG_DATA_WIDTH-1:0]        reg_data_t;
-    typedef logic   [s_axi4l.DATA_WIDTH-1:0]    axi_data_t;
+    typedef logic   [REG_ADDR_BITS-1:0]        reg_addr_t;
+    typedef logic   [REG_DATA_BITS-1:0]        reg_data_t;
+    typedef logic   [s_axi4l.DATA_BITS-1:0]    axi_data_t;
+
+    // write mask
+    function [AXI_DATA_BITS-1:0] write_mask(
+                                        input [AXI_DATA_BITS-1:0] org,
+                                        input [AXI_DATA_BITS-1:0] wdat,
+                                        input [AXI_STRB_BITS-1:0] msk
+                                    );
+    begin
+        for ( int i = 0; i < AXI_DATA_BITS; ++i ) begin
+            write_mask[i] = msk[i/8] ? wdat[i] : org[i];
+        end
+    end
+    endfunction
+
 
     // address
     reg_addr_t  reg_waddr;
     reg_addr_t  reg_raddr;
-    assign reg_waddr = s_axi4l.awaddr[AXI_UNIT_WIDTH +: REG_ADDR_WIDTH];
-    assign reg_raddr = s_axi4l.araddr[AXI_UNIT_WIDTH +: REG_ADDR_WIDTH];
+    assign reg_waddr = s_axi4l.awaddr[AXI_UNIT_BITS +: REG_ADDR_BITS];
+    assign reg_raddr = s_axi4l.araddr[AXI_UNIT_BITS +: REG_ADDR_BITS];
 
     // register
     reg_data_t  reg_data    [0:NUM-1];
@@ -57,7 +71,7 @@ module jelly3_axi4l_register
                 bvalid <= 0;
             end
             if ( s_axi4l.awvalid && s_axi4l.awready ) begin
-                reg_data[reg_waddr] <= reg_data_t'(s_axi4l.wdata);
+                reg_data[reg_waddr] <= reg_data_t'(write_mask(axi_data_t'(reg_data[reg_waddr]), s_axi4l.wdata, s_axi4l.wstrb));
                 bvalid <= 1'b1;
             end
         end

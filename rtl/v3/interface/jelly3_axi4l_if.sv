@@ -7,38 +7,38 @@
 
 interface jelly3_axi4l_if
     #(
-        parameter   int     ADDR_WIDTH = 32,
-        parameter   int     DATA_WIDTH = 32,
-        parameter   int     STRB_WIDTH = DATA_WIDTH / 8,
-        parameter   int     PROT_WIDTH = 3,
-        parameter   int     RESP_WIDTH = 2
+        parameter   int     ADDR_BITS = 32,
+        parameter   int     DATA_BITS = 32,
+        parameter   int     STRB_BITS = DATA_BITS / 8,
+        parameter   int     PROT_BITS = 3,
+        parameter   int     RESP_BITS = 2
     )
     (
         input   var logic   aresetn,
         input   var logic   aclk
     );
 
-    logic   [ADDR_WIDTH-1:0]    awaddr;
-    logic   [PROT_WIDTH-1:0]    awprot;
+    logic   [ADDR_BITS-1:0]     awaddr;
+    logic   [PROT_BITS-1:0]     awprot;
     logic                       awvalid;
     logic                       awready;
 
-    logic   [STRB_WIDTH-1:0]    wstrb;
-    logic   [DATA_WIDTH-1:0]    wdata;
+    logic   [STRB_BITS-1:0]     wstrb;
+    logic   [DATA_BITS-1:0]     wdata;
     logic                       wvalid;
     logic                       wready;
 
-    logic   [RESP_WIDTH-1:0]    bresp;
+    logic   [RESP_BITS-1:0]     bresp;
     logic                       bvalid;
     logic                       bready;
    
-    logic   [ADDR_WIDTH-1:0]    araddr;
-    logic   [PROT_WIDTH-1:0]    arprot;
+    logic   [ADDR_BITS-1:0]     araddr;
+    logic   [PROT_BITS-1:0]     arprot;
     logic                       arvalid;
     logic                       arready;
 
-    logic   [DATA_WIDTH-1:0]    rdata;
-    logic   [RESP_WIDTH-1:0]    rresp;
+    logic   [DATA_BITS-1:0]     rdata;
+    logic   [RESP_BITS-1:0]     rresp;
     logic                       rvalid;
     logic                       rready;
 

@@ -70,8 +70,8 @@ module kv260_register
 
     jelly3_axi4l_if
             #(
-                .ADDR_WIDTH     (40),
-                .DATA_WIDTH     (32)
+                .ADDR_BITS     (40),
+                .DATA_BITS     (32)
             )
         i_axi4l_if
             (

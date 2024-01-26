@@ -32,33 +32,28 @@ module tb_sim();
     logic           clk = 1'b1;
     always #(RATE/2.0) clk <= ~clk;
 
-//    initial begin
-//        force i_tb_main.i_top.i_design_1.reset = reset;
-//        force i_tb_main.i_top.i_design_1.clk   = clk100;
-//    end
-
     
 
     // ---------------------------------
     //  main
     // ---------------------------------
     
-    parameter   WB_ADR_WIDTH = 38;
-    parameter   WB_DAT_WIDTH = 32;
-    parameter   WB_SEL_WIDTH = (WB_DAT_WIDTH / 8);
+    parameter   WB_ADR_BITS = 38;
+    parameter   WB_DAT_BITS = 32;
+    parameter   WB_SEL_BITS = (WB_DAT_BITS / 8);
 
-    var logic   [WB_ADR_WIDTH-1:0]  s_wb_adr_i;
-    var logic   [WB_DAT_WIDTH-1:0]  s_wb_dat_o;
-    var logic   [WB_DAT_WIDTH-1:0]  s_wb_dat_i;
-    var logic   [WB_SEL_WIDTH-1:0]  s_wb_sel_i;
+    var logic   [WB_ADR_BITS-1:0]   s_wb_adr_i;
+    var logic   [WB_DAT_BITS-1:0]   s_wb_dat_o;
+    var logic   [WB_DAT_BITS-1:0]   s_wb_dat_i;
+    var logic   [WB_SEL_BITS-1:0]   s_wb_sel_i;
     var logic                       s_wb_we_i;
     var logic                       s_wb_stb_i;
     var logic                       s_wb_ack_o;
 
     tb_main
             #(
-                .WB_ADR_WIDTH   (WB_ADR_WIDTH),
-                .WB_DAT_WIDTH   (WB_DAT_WIDTH)
+                .WB_ADR_BITS   (WB_ADR_BITS),
+                .WB_DAT_BITS   (WB_DAT_BITS)
             )
         i_tb_main
             (
@@ -80,20 +75,18 @@ module tb_sim();
         
     logic                           wb_rst_i;
     logic                           wb_clk_i;
-    logic   [WB_ADR_WIDTH-1:0]      wb_adr_o;
-    logic   [WB_DAT_WIDTH-1:0]      wb_dat_i;
-    logic   [WB_DAT_WIDTH-1:0]      wb_dat_o;
+    logic   [WB_ADR_BITS-1:0]       wb_adr_o;
+    logic   [WB_DAT_BITS-1:0]       wb_dat_i;
+    logic   [WB_DAT_BITS-1:0]       wb_dat_o;
     logic                           wb_we_o;
-    logic   [WB_SEL_WIDTH-1:0]      wb_sel_o;
+    logic   [WB_SEL_BITS-1:0]       wb_sel_o;
     logic                           wb_stb_o = '0;
     logic                           wb_ack_i;
 
     assign wb_rst_i = reset;
     assign wb_clk_i = clk;
     assign wb_dat_i = s_wb_dat_o;
-//  logic  wb_stb_o = 0;
     assign wb_ack_i = s_wb_ack_o;
-
 
     assign s_wb_adr_i = wb_adr_o;
     assign s_wb_dat_i = wb_dat_o;
@@ -102,7 +95,7 @@ module tb_sim();
     assign s_wb_stb_i = wb_stb_o;
     
     
-    logic   [WB_DAT_WIDTH-1:0]  reg_wb_dat;
+    logic   [WB_DAT_BITS-1:0]  reg_wb_dat;
     logic                       reg_wb_ack;
     always_ff @(posedge wb_clk_i) begin
         if ( ~wb_we_o & wb_stb_o & wb_ack_i ) begin
@@ -113,9 +106,9 @@ module tb_sim();
     
     
     task wb_write(
-                input [WB_ADR_WIDTH-1:0]    adr,
-                input [WB_DAT_WIDTH-1:0]    dat,
-                input [WB_SEL_WIDTH:0]      sel
+                input [WB_ADR_BITS-1:0]    adr,
+                input [WB_DAT_BITS-1:0]    dat,
+                input [WB_SEL_BITS:0]      sel
             );
     begin
         $display("WISHBONE_WRITE(adr:%h dat:%h sel:%b)", adr, dat, sel);
@@ -129,31 +122,31 @@ module tb_sim();
             while ( reg_wb_ack == 1'b0 ) begin
                 @(negedge wb_clk_i);
             end
-            wb_adr_o = {WB_ADR_WIDTH{1'bx}};
-            wb_dat_o = {WB_DAT_WIDTH{1'bx}};
-            wb_sel_o = {WB_SEL_WIDTH{1'bx}};
+            wb_adr_o = {WB_ADR_BITS{1'bx}};
+            wb_dat_o = {WB_DAT_BITS{1'bx}};
+            wb_sel_o = {WB_SEL_BITS{1'bx}};
             wb_we_o  = 1'bx;
             wb_stb_o = 1'b0;
     end
     endtask
     
     task wb_read(
-                input [WB_ADR_WIDTH-1:0]    adr
+                input [WB_ADR_BITS-1:0]    adr
             );
     begin
         @(negedge wb_clk_i);
             wb_adr_o = adr;
-            wb_dat_o = {WB_DAT_WIDTH{1'bx}};
-            wb_sel_o = {WB_SEL_WIDTH{1'b1}};
+            wb_dat_o = {WB_DAT_BITS{1'bx}};
+            wb_sel_o = {WB_SEL_BITS{1'b1}};
             wb_we_o  = 1'b0;
             wb_stb_o = 1'b1;
         @(negedge wb_clk_i);
             while ( reg_wb_ack == 1'b0 ) begin
                 @(negedge wb_clk_i);
             end
-            wb_adr_o = {WB_ADR_WIDTH{1'bx}};
-            wb_dat_o = {WB_DAT_WIDTH{1'bx}};
-            wb_sel_o = {WB_SEL_WIDTH{1'bx}};
+            wb_adr_o = {WB_ADR_BITS{1'bx}};
+            wb_dat_o = {WB_DAT_BITS{1'bx}};
+            wb_sel_o = {WB_SEL_BITS{1'bx}};
             wb_we_o  = 1'bx;
             wb_stb_o = 1'b0;
             $display("WISHBONE_READ(adr:%h dat:%h)", adr, reg_wb_dat);
@@ -164,16 +157,31 @@ module tb_sim();
     initial begin
     #1000;
         $display("start");
+        
+        // read initial value
+        $display("read initial value");
         wb_read (0);
         wb_read (1);
         wb_read (2);
         wb_read (3);
 
-        wb_write(0, 32'h11, 4'hf);
-        wb_write(1, 32'h22, 4'hf);
-        wb_write(2, 32'h33, 4'hf);
-        wb_write(3, 32'h44, 4'hf);
+        // write test
+        $display("write test");
+        wb_write(0, 32'h1100_0011, 4'hf);
+        wb_write(1, 32'h0022_2200, 4'hf);
+        wb_write(2, 32'h3333_0000, 4'hf);
+        wb_write(3, 32'h0000_4444, 4'hf);
+        wb_read (0);
+        wb_read (1);
+        wb_read (2);
+        wb_read (3);
 
+        // strb test
+        $display("strb test");
+        wb_write(0, 32'h5500_0000, 4'h8);
+        wb_write(1, 32'h0066_0000, 4'h4);
+        wb_write(2, 32'h0000_7700, 4'h2);
+        wb_write(3, 32'h0066_0088, 4'h1);
         wb_read (0);
         wb_read (1);
         wb_read (2);
@@ -182,7 +190,6 @@ module tb_sim();
     #1000;
         $finish();
     end
-    
     
 endmodule
 
