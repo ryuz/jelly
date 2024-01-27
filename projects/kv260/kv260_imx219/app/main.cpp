@@ -241,6 +241,18 @@ int main(int argc, char *argv[])
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL,       0x03);
     usleep(100000);
 
+    cv::imshow("img", cv::Mat::zeros(480, 640, CV_8UC3));
+    cv::createTrackbar("scale",    "img", &view_scale, 4);
+    cv::setTrackbarMin("scale",    "img", 1);
+    cv::createTrackbar("fps",      "img", &frame_rate, 1000);
+    cv::setTrackbarMin("fps",      "img", 5);
+    cv::createTrackbar("exposure", "img", &exposure, 1000);
+    cv::setTrackbarMin("exposure", "img", 1);
+    cv::createTrackbar("a_gain",   "img", &a_gain, 20);
+    cv::createTrackbar("d_gain",   "img", &d_gain, 24);
+    cv::createTrackbar("bayer" ,   "img", &bayer_phase, 3);
+    cv::createTrackbar("fmtsel",   "img", &fmtsel, 3);
+    
     int     key;
     while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
         if ( g_signal ) { break; }
@@ -277,18 +289,7 @@ int main(int argc, char *argv[])
         view_scale = std::max(1, view_scale);
         cv::Mat view_img;
         cv::resize(img, view_img, cv::Size(), 1.0/view_scale, 1.0/view_scale);
-
         cv::imshow("img", view_img);
-        cv::createTrackbar("scale",    "img", &view_scale, 4);
-        cv::setTrackbarMin("scale",    "img", 1);
-        cv::createTrackbar("fps",      "img", &frame_rate, 1000);
-        cv::setTrackbarMin("fps",      "img", 5);
-        cv::createTrackbar("exposure", "img", &exposure, 1000);
-        cv::setTrackbarMin("exposure", "img", 1);
-        cv::createTrackbar("a_gain",   "img", &a_gain, 20);
-        cv::createTrackbar("d_gain",   "img", &d_gain, 24);
-        cv::createTrackbar("bayer" ,   "img", &bayer_phase, 3);
-        cv::createTrackbar("fmtsel",   "img", &fmtsel, 3);
 
         // ユーザー操作
         switch ( key ) {
@@ -322,7 +323,7 @@ int main(int argc, char *argv[])
             }
             else {
                 cv::Mat imgRgb;
-                cv::cvtColor(img, imgRgb, CV_BGRA2BGR);
+                cv::cvtColor(img, imgRgb, cv::COLOR_BGRA2BGR);
                 cv::imwrite("img_dump.png", imgRgb);
             }
             break;
@@ -338,7 +339,7 @@ int main(int argc, char *argv[])
                 udmabuf_acc.MemCopyTo(imgRec.data, offset, width * height * 4);
                 offset += width * height * 4;
                 cv::Mat imgRgb;
-                cv::cvtColor(imgRec, imgRgb, CV_BGRA2BGR);
+                cv::cvtColor(imgRec, imgRgb, cv::COLOR_BGRA2BGR);
                 cv::imwrite(fname, imgRgb);
             }
             break;
