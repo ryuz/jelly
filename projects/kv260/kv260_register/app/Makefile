@@ -1,7 +1,7 @@
 
-TARGET    = kv260_imx219.out
-DT_NAME   = kv260_imx219
-BIT_NAME  = kv260_imx219
+TARGET    = kv260_register.out
+DT_NAME   = kv260_register
+BIT_NAME  = kv260_register
 
 DTS_FILE  = $(DT_NAME).dts
 DTBO_FILE = $(DT_NAME).dtbo
@@ -13,10 +13,8 @@ BIN_FILE  = $(BIT_FILE).bin
 FIRMWARE_PATH = /lib/firmware
 DEVTREE_PATH  = /configfs/device-tree
 
-CFLAGS  += -Wall -g -O2 `pkg-config --cflags opencv4` -I../../../../include
-LDFLAGS += -g  `pkg-config --libs opencv4`
-
-RUN_OPT ?=
+CFLAGS  += -g -O0 -I../../../../include
+LDFLAGS += 
 
 OBJS = main.o
 
@@ -30,7 +28,11 @@ clean:
 
 .PHONY: run
 run: $(TARGET) load
-	./$(TARGET) $(RUN_OPT)
+	sudo ./$(TARGET)
+
+.PHONY: run_server
+run_server: load
+	python3 flask_sample.py
 
 .PHONY: run_rust
 run_rust: load
@@ -40,13 +42,9 @@ run_rust: load
 build_rust:
 	cd rust; cargo build
 
-.PHONY: server
-server: load
-	cd grpc/server; cargo run
-
 
 $(TARGET): $(OBJS)
-	g++ -o $(TARGET) $(OBJS) $(LDFLAGS)
+	g++ $(LDFLAGS) -o $(TARGET) $(OBJS)
 
 %.o : %.cpp
 	g++ $(CFLAGS) -c $< -o $@
@@ -88,8 +86,6 @@ load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
 	sudo rm /lib/firmware/$(DTBO_FILE)
 	sudo rm /lib/firmware/$(BIN_FILE)
 	sudo chmod 666 /dev/uio*
-	sudo chmod 666 /dev/udmabuf*
-	sudo chmod 666 /dev/i2c-6
 
 .PHONY: unload
 unload:
