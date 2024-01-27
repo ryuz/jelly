@@ -23,6 +23,14 @@ kernel      : 5.4.0-1017-xilinx-zynqmp
 ```
 
 
+### OpenCV
+
+```
+sudo apt update
+sudo apt install libopencv-dev
+```
+
+
 ## 動かし方
 
 ### gitリポジトリ取得
