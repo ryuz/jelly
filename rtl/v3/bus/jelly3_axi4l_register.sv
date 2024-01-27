@@ -16,12 +16,12 @@ module jelly3_axi4l_register
         output  logic   [NUM-1:0][WIDTH-1:0]    value
     );
 
-    localparam REG_ADDR_BITS = $clog2(NUM);
-    localparam REG_DATA_BITS = WIDTH;
-    localparam AXI_ADDR_BITS = s_axi4l.ADDR_BITS;
-    localparam AXI_DATA_BITS = s_axi4l.DATA_BITS;
-    localparam AXI_STRB_BITS = s_axi4l.STRB_BITS;
-    localparam AXI_UNIT_BITS = $clog2(s_axi4l.STRB_BITS);
+    localparam  int     REG_ADDR_BITS = $clog2(NUM);
+    localparam  int     REG_DATA_BITS = WIDTH;
+    localparam  int     AXI_ADDR_BITS = s_axi4l.ADDR_BITS;
+    localparam  int     AXI_DATA_BITS = s_axi4l.DATA_BITS;
+    localparam  int     AXI_STRB_BITS = s_axi4l.STRB_BITS;
+    localparam  int     AXI_UNIT_BITS = $clog2(s_axi4l.STRB_BITS);
 
     typedef logic   [REG_ADDR_BITS-1:0]        reg_addr_t;
     typedef logic   [REG_DATA_BITS-1:0]        reg_data_t;

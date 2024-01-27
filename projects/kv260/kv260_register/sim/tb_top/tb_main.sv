@@ -11,17 +11,17 @@
 
 module tb_main
         #(
-            parameter   WB_ADR_BITS = 38,
-            parameter   WB_DAT_BITS = 32,
-            parameter   WB_SEL_BITS = (WB_DAT_BITS / 8)
+            parameter   int     WB_ADR_BITS = 38,
+            parameter   int     WB_DAT_BITS = 32,
+            parameter   int     WB_SEL_BITS = (WB_DAT_BITS / 8)
         )
         (
             input   var logic                       reset,
             input   var logic                       clk,
-            input   var logic   [WB_ADR_BITS-1:0]  s_wb_adr_i,
-            output  var logic   [WB_DAT_BITS-1:0]  s_wb_dat_o,
-            input   var logic   [WB_DAT_BITS-1:0]  s_wb_dat_i,
-            input   var logic   [WB_SEL_BITS-1:0]  s_wb_sel_i,
+            input   var logic   [WB_ADR_BITS-1:0]   s_wb_adr_i,
+            output  var logic   [WB_DAT_BITS-1:0]   s_wb_dat_o,
+            input   var logic   [WB_DAT_BITS-1:0]   s_wb_dat_i,
+            input   var logic   [WB_SEL_BITS-1:0]   s_wb_sel_i,
             input   var logic                       s_wb_we_i,
             input   var logic                       s_wb_stb_i,
             output  var logic                       s_wb_ack_o
@@ -56,7 +56,6 @@ module tb_main
 
     assign s_wb_dat_o = i_top.i_design_1.wb_dat_o;
     assign s_wb_ack_o = i_top.i_design_1.wb_ack_o;
-
 
 endmodule
 
