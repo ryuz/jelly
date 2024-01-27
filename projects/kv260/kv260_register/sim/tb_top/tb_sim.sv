@@ -108,7 +108,7 @@ module tb_sim();
     task wb_write(
                 input [WB_ADR_BITS-1:0]    adr,
                 input [WB_DAT_BITS-1:0]    dat,
-                input [WB_SEL_BITS:0]      sel
+                input [WB_SEL_BITS-1:0]    sel
             );
     begin
         $display("WISHBONE_WRITE(adr:%h dat:%h sel:%b)", adr, dat, sel);

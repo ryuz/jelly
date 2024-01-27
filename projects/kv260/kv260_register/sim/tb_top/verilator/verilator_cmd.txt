@@ -1,5 +1,9 @@
 --trace-fst --trace-params --trace-structs --trace-underscore
 
+--binary
+-j 0
+#-Wall
+
 -D__VERILATOR__
 
 -y ../../stub
@@ -20,15 +24,12 @@
 -y ../../../../../../rtl/v3/bus
 
 #-Wno-WIDTH
--Wno-PINCONNECTEMPTY
--Wno-UNUSEDPARAM
--Wno-UNUSEDSIGNAL
--Wno-UNUSEDPARAM
--Wno-fatal
+#-Wno-PINCONNECTEMPTY
+#-Wno-UNUSEDPARAM
+#-Wno-UNUSEDSIGNAL
+#-Wno-UNUSEDPARAM
+#-Wno-fatal
 
---binary
--j 0
--Wall
 
 ../tb_sim.sv
 ../tb_main.sv
