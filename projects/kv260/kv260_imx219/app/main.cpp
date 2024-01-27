@@ -257,10 +257,22 @@ int main(int argc, char *argv[])
 
         // キャプチャ
         vdmaw.Oneshot(dmabuf_phys_adr, width, height, frame_num);
-//      capture_still_image(reg_wdma, reg_fmtr, dmabuf_phys_adr, width, height, frame_num);
-        cv::Mat img(height*frame_num, width, CV_8UC4);
-        udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4 * frame_num);
-        
+        cv::Mat img;
+        if ( fmtsel == 3 ) {
+            img = cv::Mat(height*frame_num, width, CV_32S);
+            udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4 * frame_num);
+            cv::Mat img_u16;
+            img.convertTo(img_u16, CV_16U, 65535.0/2147483647.0);
+//          cv::Mat img_col;
+//          cv::cvtColor(img_u16, img_col, CV_BayerBG2BGR);
+            img = img_u16;
+        }
+        else {
+            img = cv::Mat(height*frame_num, width, CV_8UC4);
+            udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4 * frame_num);
+        }
+
+
         // 表示
         view_scale = std::max(1, view_scale);
         cv::Mat view_img;
@@ -270,7 +282,9 @@ int main(int argc, char *argv[])
         cv::createTrackbar("scale",    "img", &view_scale, 4);
         cv::setTrackbarMin("scale",    "img", 1);
         cv::createTrackbar("fps",      "img", &frame_rate, 1000);
+        cv::setTrackbarMin("fps",      "img", 5);
         cv::createTrackbar("exposure", "img", &exposure, 1000);
+        cv::setTrackbarMin("exposure", "img", 1);
         cv::createTrackbar("a_gain",   "img", &a_gain, 20);
         cv::createTrackbar("d_gain",   "img", &d_gain, 24);
         cv::createTrackbar("bayer" ,   "img", &bayer_phase, 3);
@@ -303,7 +317,10 @@ int main(int argc, char *argv[])
         case 's':  imx219.SetAoiPosition(imx219.GetAoiX() + 4, imx219.GetAoiY());    break;
 
         case 'd':   // image dump
-            {
+            if ( fmtsel == 3 ) {
+                cv::imwrite("img_dump_raw.png", img);
+            }
+            else {
                 cv::Mat imgRgb;
                 cv::cvtColor(img, imgRgb, CV_BGRA2BGR);
                 cv::imwrite("img_dump.png", imgRgb);
@@ -312,7 +329,6 @@ int main(int argc, char *argv[])
 
         case 'r': // image record
             std::cout << "record" << std::endl;
-//          capture_still_image(reg_wdma, reg_fmtr, dmabuf_phys_adr, width, height, rec_frame_num);
             vdmaw.Oneshot(dmabuf_phys_adr, width, height, rec_frame_num);
             int offset = 0;
             for ( int i = 0; i < rec_frame_num; i++ ) {
