@@ -151,6 +151,7 @@ veritak_command.txt
 *.lst
 *.lnk
 *.vvp
+*.deb
 
 .vs/
 
