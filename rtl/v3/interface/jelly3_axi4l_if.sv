@@ -123,7 +123,8 @@ interface jelly3_axi4l_if
         logic fetch_awready;
         logic fetch_wready;
         $display("[axi4l write] addr:%x <= data:%x strb:%x", addr, data, strb);
-        @(negedge aclk);
+        @(posedge aclk);
+        #0.1;
         awaddr  = addr;
         awprot  = '0;
         awvalid = 1'b1;
@@ -136,7 +137,7 @@ interface jelly3_axi4l_if
         while ( awvalid || wvalid ) begin
             fetch_awready = awready;
             fetch_wready  = wready;   
-            @(negedge aclk);
+            #0.1;
             if ( fetch_awready ) begin
                 awaddr  = 'x;
                 awprot  = 'x;
@@ -150,13 +151,13 @@ interface jelly3_axi4l_if
             @(posedge aclk);
         end
 
-        @(negedge aclk);
+        #0.1;
         bready = 1'b1;
         @(posedge aclk);
         while ( !bvalid ) begin
             @(posedge aclk);
         end
-        @(negedge aclk);
+        #0.1;
         bready = 1'b0;
     endtask
 
@@ -164,7 +165,8 @@ interface jelly3_axi4l_if
                 input   logic   [ADDR_BITS-1:0]     addr,
                 output  logic   [DATA_BITS-1:0]     data
             );
-        @(negedge aclk);
+        @(posedge aclk);
+        #0.1;
         araddr  = addr;
         arprot  = '0;
         arvalid = 1'b1;
@@ -174,7 +176,7 @@ interface jelly3_axi4l_if
             @(posedge aclk);
         end
 
-        @(negedge aclk);
+        #0.1;
         araddr  = 'x;
         arprot  = 'x;
         arvalid = 1'b0;
@@ -185,7 +187,7 @@ interface jelly3_axi4l_if
         end
         data = rdata;
         $display("[axi4l read] addr:%x => data:%x", addr, data);
-        @(negedge aclk);
+        #0.1;
         rready = 1'b0;
     endtask
 
