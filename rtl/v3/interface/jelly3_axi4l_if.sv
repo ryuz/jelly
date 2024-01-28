@@ -7,17 +7,23 @@
 
 interface jelly3_axi4l_if
     #(
-        parameter   int     ADDR_BITS = 32,
-        parameter   int     DATA_BITS = 32,
-        parameter   int     STRB_BITS = DATA_BITS / 8,
-        parameter   int     PROT_BITS = 3,
-        parameter   int     RESP_BITS = 2
+        parameter   int                         ADDR_BITS = 32,
+        parameter   int                         DATA_BITS = 32,
+        parameter   int                         BYTE_BITS = 8,
+        parameter   int                         STRB_BITS = DATA_BITS / BYTE_BITS,
+        parameter   int                         PROT_BITS = 3,
+        parameter   int                         RESP_BITS = 2
     )
     (
         input   var logic   aresetn,
         input   var logic   aclk
     );
 
+    // attributes
+    bit     [ADDR_BITS-1:0]     addr_base;
+    bit     [ADDR_BITS-1:0]     addr_high;
+
+    // signals
     logic   [ADDR_BITS-1:0]     awaddr;
     logic   [PROT_BITS-1:0]     awprot;
     logic                       awvalid;

@@ -109,7 +109,7 @@ module kv260_register
     jelly3_axi4l_register
             #(
                 .NUM        (4),
-                .WIDTH      (32)
+                .BITS       (32)
             )
         u_axi4l_register
             (

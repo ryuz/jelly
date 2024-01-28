@@ -1,4 +1,9 @@
-
+// ---------------------------------------------------------------------------
+//  Jelly  -- The platform for real-time computing
+//
+//                                 Copyright (C) 2008-2024 by Ryuz
+//                                 https://github.com/ryuz/jelly.git
+// ---------------------------------------------------------------------------
 
 
 `timescale 1ns / 1ps
@@ -7,17 +12,18 @@
 
 module jelly3_axi4l_register
     #(
-        parameter   int                             NUM   = 4,
-        parameter   int                             WIDTH = 32,
-        parameter   logic   [NUM-1:0][WIDTH-1:0]    INIT  = '0
+        parameter   int                             NUM  = 4,
+        parameter   int                             BITS = 32,
+        parameter   logic   [NUM-1:0][BITS-1:0]     INIT = '0
     )
     (
         jelly3_axi4l_if.s                       s_axi4l,
-        output  logic   [NUM-1:0][WIDTH-1:0]    value
+        output  logic   [NUM-1:0][BITS-1:0]     value
     );
 
+    
     localparam  int     REG_ADDR_BITS = $clog2(NUM);
-    localparam  int     REG_DATA_BITS = WIDTH;
+    localparam  int     REG_DATA_BITS = BITS;
     localparam  int     AXI_ADDR_BITS = s_axi4l.ADDR_BITS;
     localparam  int     AXI_DATA_BITS = s_axi4l.DATA_BITS;
     localparam  int     AXI_STRB_BITS = s_axi4l.STRB_BITS;
