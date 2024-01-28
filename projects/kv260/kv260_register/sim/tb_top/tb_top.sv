@@ -88,39 +88,54 @@ module tb_top();
     assign i_axi4l_peri.rresp   = i_top.i_design_1.m_axi4l_rresp   ;
     assign i_axi4l_peri.rvalid  = i_top.i_design_1.m_axi4l_rvalid  ;
 
-
+    jelly3_axi4l_accessor
+            #(
+                .RAND_RATE_AW   (50),
+                .RAND_RATE_W    (50),
+                .RAND_RATE_B    (50),
+                .RAND_RATE_AR   (50),
+                .RAND_RATE_R    (50)
+            )
+        u_axi4l_accessor
+            (
+                .m_axi4l        (i_axi4l_peri)
+            );
+    
     initial begin
         logic [AXI4L_DATA_BITS-1:0]  rdata;
 
         #1000;
-        i_axi4l_peri.read(40'ha000_0000, rdata);
-        i_axi4l_peri.read(40'ha000_0004, rdata);
-        i_axi4l_peri.read(40'ha000_0008, rdata);
-        i_axi4l_peri.read(40'ha000_000c, rdata);
+        u_axi4l_accessor.read(40'ha000_0000, rdata);
+        u_axi4l_accessor.read(40'ha000_0004, rdata);
+        u_axi4l_accessor.read(40'ha000_0008, rdata);
+        u_axi4l_accessor.read(40'ha000_000c, rdata);
 
-        i_axi4l_peri.write(40'ha000_0000, 32'h1100_0011, 4'hf);
-        i_axi4l_peri.write(40'ha000_0004, 32'h0022_2200, 4'hf);
-        i_axi4l_peri.write(40'ha000_0008, 32'h3333_3333, 4'hf);
-        i_axi4l_peri.write(40'ha000_000c, 32'h4040_4040, 4'hf);
+        u_axi4l_accessor.write(40'ha000_0000, 32'h1100_0011, 4'hf);
+        u_axi4l_accessor.write(40'ha000_0004, 32'h0022_2200, 4'hf);
+        u_axi4l_accessor.write(40'ha000_0008, 32'h3333_3333, 4'hf);
+        u_axi4l_accessor.write(40'ha000_000c, 32'h4040_4040, 4'hf);
 
-        i_axi4l_peri.read(40'ha000_0000, rdata);
-        i_axi4l_peri.read(40'ha000_0004, rdata);
-        i_axi4l_peri.read(40'ha000_0008, rdata);
-        i_axi4l_peri.read(40'ha000_000c, rdata);
+        u_axi4l_accessor.read(40'ha000_0000, rdata);
+        u_axi4l_accessor.read(40'ha000_0004, rdata);
+        u_axi4l_accessor.read(40'ha000_0008, rdata);
+        u_axi4l_accessor.read(40'ha000_000c, rdata);
 
-        i_axi4l_peri.write(40'ha000_0000, 32'h44aa_aaaa, 4'h8);
-        i_axi4l_peri.write(40'ha000_0004, 32'hbb55_bbbb, 4'h4);
-        i_axi4l_peri.write(40'ha000_0008, 32'hcccc_66cc, 4'h2);
-        i_axi4l_peri.write(40'ha000_000c, 32'hffff_ff77, 4'h1);
+        u_axi4l_accessor.write(40'ha000_0000, 32'h44aa_aaaa, 4'h8);
+        u_axi4l_accessor.write(40'ha000_0004, 32'hbb55_bbbb, 4'h4);
+        u_axi4l_accessor.write(40'ha000_0008, 32'hcccc_66cc, 4'h2);
+        u_axi4l_accessor.write(40'ha000_000c, 32'hffff_ff77, 4'h1);
 
-        i_axi4l_peri.read(40'ha000_0000, rdata);
-        i_axi4l_peri.read(40'ha000_0004, rdata);
-        i_axi4l_peri.read(40'ha000_0008, rdata);
-        i_axi4l_peri.read(40'ha000_000c, rdata);
+        u_axi4l_accessor.read(40'ha000_0000, rdata);
+        u_axi4l_accessor.read(40'ha000_0004, rdata);
+        u_axi4l_accessor.read(40'ha000_0008, rdata);
+        u_axi4l_accessor.read(40'ha000_000c, rdata);
 
     end
     
+
+
 endmodule
+
 
 
 `default_nettype wire

@@ -24,6 +24,7 @@
 -y ../../../../../../rtl/v3/package
 -y ../../../../../../rtl/v3/interface
 -y ../../../../../../rtl/v3/bus
+-y ../../../../../../rtl/v3/model
 
 #-Wno-WIDTH
 #-Wno-PINCONNECTEMPTY

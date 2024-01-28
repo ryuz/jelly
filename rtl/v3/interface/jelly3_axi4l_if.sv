@@ -1,4 +1,9 @@
-
+// ---------------------------------------------------------------------------
+//  Jelly  -- The platform for real-time computing
+//
+//                                 Copyright (C) 2008-2024 by Ryuz
+//                                 https://github.com/ryuz/jelly.git
+// ---------------------------------------------------------------------------
 
 
 `timescale 1ns / 1ps
@@ -124,7 +129,7 @@ interface jelly3_axi4l_if
         logic fetch_wready;
         $display("[axi4l write] addr:%x <= data:%x strb:%x", addr, data, strb);
         @(posedge aclk);
-        #0.1;
+        #0.01;
         awaddr  = addr;
         awprot  = '0;
         awvalid = 1'b1;
@@ -137,7 +142,7 @@ interface jelly3_axi4l_if
         while ( awvalid || wvalid ) begin
             fetch_awready = awready;
             fetch_wready  = wready;   
-            #0.1;
+            #0.01;
             if ( fetch_awready ) begin
                 awaddr  = 'x;
                 awprot  = 'x;
@@ -151,13 +156,13 @@ interface jelly3_axi4l_if
             @(posedge aclk);
         end
 
-        #0.1;
+        #0.01;
         bready = 1'b1;
         @(posedge aclk);
         while ( !bvalid ) begin
             @(posedge aclk);
         end
-        #0.1;
+        #0.01;
         bready = 1'b0;
     endtask
 
@@ -166,7 +171,7 @@ interface jelly3_axi4l_if
                 output  logic   [DATA_BITS-1:0]     data
             );
         @(posedge aclk);
-        #0.1;
+        #0.01;
         araddr  = addr;
         arprot  = '0;
         arvalid = 1'b1;
@@ -176,7 +181,7 @@ interface jelly3_axi4l_if
             @(posedge aclk);
         end
 
-        #0.1;
+        #0.01;
         araddr  = 'x;
         arprot  = 'x;
         arvalid = 1'b0;
@@ -187,7 +192,7 @@ interface jelly3_axi4l_if
         end
         data = rdata;
         $display("[axi4l read] addr:%x => data:%x", addr, data);
-        #0.1;
+        #0.01;
         rready = 1'b0;
     endtask
 
