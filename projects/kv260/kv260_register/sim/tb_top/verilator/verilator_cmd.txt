@@ -33,8 +33,8 @@
 #-Wno-fatal
 
 
-../tb_sim.sv
-../tb_main.sv
+../tb_top.sv
+#../../../../../../rtl/v3/package/jelly3_axi4l_task.sv
 
---top tb_sim
+--top tb_top
 

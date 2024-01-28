@@ -19,8 +19,7 @@
 --sourcelibext .v
 --sourcelibext .sv
 
-../tb_sim.sv
-../tb_main.sv
+../tb_top.sv
 ../../stub/design_1.v
 
 $XILINX_VIVADO/data/verilog/src/glbl.v

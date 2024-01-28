@@ -6,7 +6,7 @@ VIVADO_VERSION  := $(word 1,$(VIVADO_VERSIONS)).$(word 2,$(VIVADO_VERSIONS))
 
 
 # setting
-TOP_MODULE = tb_sim
+TOP_MODULE = tb_top
 
 
 # rules

@@ -26,27 +26,27 @@ interface jelly3_axi4l_if
     // signals
     logic   [ADDR_BITS-1:0]     awaddr;
     logic   [PROT_BITS-1:0]     awprot;
-    logic                       awvalid;
+    logic                       awvalid = 1'b0;
     logic                       awready;
 
     logic   [STRB_BITS-1:0]     wstrb;
     logic   [DATA_BITS-1:0]     wdata;
-    logic                       wvalid;
+    logic                       wvalid = 1'b0;
     logic                       wready;
 
     logic   [RESP_BITS-1:0]     bresp;
     logic                       bvalid;
-    logic                       bready;
+    logic                       bready = 1'b0;
    
     logic   [ADDR_BITS-1:0]     araddr;
     logic   [PROT_BITS-1:0]     arprot;
-    logic                       arvalid;
+    logic                       arvalid = 1'b0;
     logic                       arready;
 
     logic   [DATA_BITS-1:0]     rdata;
     logic   [RESP_BITS-1:0]     rresp;
     logic                       rvalid;
-    logic                       rready;
+    logic                       rready = 1'b0;
 
     modport m
         (
@@ -113,6 +113,69 @@ interface jelly3_axi4l_if
             output  rvalid,
             input   rready
         );
+
+    
+    task write(
+                input   logic   [ADDR_BITS-1:0]     addr,
+                input   logic   [DATA_BITS-1:0]     data,
+                input   logic   [STRB_BITS-1:0]     strb
+            );
+        $display("[axi4l write] addr:%x <= data:%x strb:%x", addr, data, strb);
+        @(posedge aclk);
+            awaddr  <= addr;
+            awprot  <= '0;
+            awvalid <= 1'b1;
+            wstrb   <= strb;
+            wdata   <= data;
+            wvalid  <= 1'b1;
+            bready  <= 1'b0;
+        @(posedge aclk);
+            while ( awvalid || wvalid ) begin
+                if ( awready ) begin
+                    awaddr  <= 'x;
+                    awprot  <= 'x;
+                    awvalid <= 1'b0;
+                end
+                if ( wready  ) begin
+                    wstrb   <= 'x;
+                    wdata   <= 'x;
+                    wvalid  <= 1'b0;
+                end
+                @(posedge aclk);
+            end
+            bready <= 1'b1;
+            @(posedge aclk);
+            while ( !bvalid ) begin
+                @(posedge aclk);
+            end
+            bready <= 1'b0;
+    endtask
+
+    task read(
+                input   logic   [ADDR_BITS-1:0]     addr,
+                output  logic   [DATA_BITS-1:0]     data
+            );
+        @(posedge aclk);
+            araddr  <= addr;
+            arprot  <= '0;
+            arvalid <= 1'b1;
+            rready  <= 1'b0;
+        @(posedge aclk);
+            while ( !arready ) begin
+                @(posedge aclk);
+            end
+            araddr  <= 'x;
+            arprot  <= 'x;
+            arvalid <= 1'b0;
+            rready  <= 1'b1;
+            @(posedge aclk);
+            while ( !rvalid ) begin
+                @(posedge aclk);
+            end
+            data = rdata;
+            rready <= 1'b0;
+            $display("[axi4l read] addr:%x => data:%x", addr, data);
+    endtask
 
 endinterface
 
