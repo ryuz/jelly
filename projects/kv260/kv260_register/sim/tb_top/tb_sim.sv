@@ -160,32 +160,48 @@ module tb_sim();
         
         // read initial value
         $display("read initial value");
-        wb_read (0);
-        wb_read (1);
-        wb_read (2);
-        wb_read (3);
+        wb_read (38'h2800_0000);
+        wb_read (38'h2800_0001);
+        wb_read (38'h2800_0002);
+        wb_read (38'h2800_0003);
 
         // write test
         $display("write test");
-        wb_write(0, 32'h1100_0011, 4'hf);
-        wb_write(1, 32'h0022_2200, 4'hf);
-        wb_write(2, 32'h3333_0000, 4'hf);
-        wb_write(3, 32'h0000_4444, 4'hf);
-        wb_read (0);
-        wb_read (1);
-        wb_read (2);
-        wb_read (3);
+        wb_write(38'h2800_0000, 32'h1100_0011, 4'hf);
+        wb_write(38'h2800_0001, 32'h0022_2200, 4'hf);
+        wb_write(38'h2800_0002, 32'h3333_0000, 4'hf);
+        wb_write(38'h2800_0003, 32'h0000_4444, 4'hf);
+        wb_read (38'h2800_0000);
+        wb_read (38'h2800_0001);
+        wb_read (38'h2800_0002);
+        wb_read (38'h2800_0003);
 
         // strb test
         $display("strb test");
-        wb_write(0, 32'h5500_0000, 4'h8);
-        wb_write(1, 32'h0066_0000, 4'h4);
-        wb_write(2, 32'h0000_7700, 4'h2);
-        wb_write(3, 32'h0066_0088, 4'h1);
-        wb_read (0);
-        wb_read (1);
-        wb_read (2);
-        wb_read (3);
+        wb_write(38'h2800_0000, 32'h5500_0000, 4'h8);
+        wb_write(38'h2800_0001, 32'h0066_0000, 4'h4);
+        wb_write(38'h2800_0002, 32'h0000_7700, 4'h2);
+        wb_write(38'h2800_0003, 32'h0066_0088, 4'h1);
+        wb_read (38'h2800_0000);
+        wb_read (38'h2800_0001);
+        wb_read (38'h2800_0002);
+        wb_read (38'h2800_0003);
+
+        $display("access reg2");
+        wb_read (38'h2800_4000);
+        wb_read (38'h2800_4001);
+        wb_write(38'h2800_4000, 32'haaaa_aaaa, 4'hf);
+        wb_write(38'h2800_4001, 32'hbbbb_bbbb, 4'hf);
+        wb_read (38'h2800_4000);
+        wb_read (38'h2800_4001);
+
+
+        // out range
+        $display("out range");
+        wb_write(38'hff00_0000, 32'haaaa_5555, 4'h1);
+        wb_read (38'hff00_0000);
+        wb_write(38'hff00_0000, 32'haaaa_5555, 4'h1);
+        wb_read (38'hff00_0000);
 
     #1000;
         $finish();

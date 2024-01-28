@@ -68,7 +68,7 @@ module jelly3_axi4l_addr_decoder
     logic   [s_axi4l.PROT_BITS-1:0] m_awprot;
     logic                           m_awvalid     [NUM];
     logic   [s_axi4l.STRB_BITS-1:0] m_wstrb;
-    logic   [s_axi4l.STRB_BITS-1:0] m_wdata;
+    logic   [s_axi4l.DATA_BITS-1:0] m_wdata;
     logic                           m_wvalid      [NUM];
 
     always_ff @(posedge s_axi4l.aclk ) begin
@@ -128,11 +128,13 @@ module jelly3_axi4l_addr_decoder
     end
 
     for ( genvar i = 0; i < NUM; i++ ) begin
-        assign m_axi4l[i].awaddr = m_awvalid[i] ? m_awaddr : 'x;
-        assign m_axi4l[i].awprot = m_awvalid[i] ? m_awprot : 'x;
-        assign m_axi4l[i].wstrb  = m_wvalid [i] ? m_wstrb  : 'x;
-        assign m_axi4l[i].wdata  = m_wvalid [i] ? m_wdata  : 'x;
-        assign m_axi4l[i].bready = 1'b1;
+        assign m_axi4l[i].awaddr  = m_awvalid[i] ? m_awaddr : 'x;
+        assign m_axi4l[i].awprot  = m_awvalid[i] ? m_awprot : 'x;
+        assign m_axi4l[i].awvalid = m_awvalid[i];
+        assign m_axi4l[i].wstrb   = m_wvalid [i] ? m_wstrb  : 'x;
+        assign m_axi4l[i].wdata   = m_wvalid [i] ? m_wdata  : 'x;
+        assign m_axi4l[i].wvalid  = m_wvalid[i];
+        assign m_axi4l[i].bready  = 1'b1;
     end
 
     assign s_axi4l.awready = s_axi4l.wvalid  && (!write_busy || (s_axi4l.bvalid && s_axi4l.bready));
@@ -199,16 +201,17 @@ module jelly3_axi4l_addr_decoder
                 if ( m_rvalid[i] ) begin
                     s_axi4l.rdata  <= m_rdata[i];
                     s_axi4l.rresp  <= m_rresp[i];
-                    s_axi4l.bvalid <= 1'b1;
+                    s_axi4l.rvalid <= 1'b1;
                 end
             end
         end
     end
 
     for ( genvar i = 0; i < NUM; i++ ) begin
-        assign m_axi4l[i].araddr = m_arvalid[i] ? m_araddr : 'x;
-        assign m_axi4l[i].arprot = m_arvalid[i] ? m_arprot : 'x;
-        assign m_axi4l[i].rready = 1'b1;
+        assign m_axi4l[i].araddr  = m_arvalid[i] ? m_araddr : 'x;
+        assign m_axi4l[i].arprot  = m_arvalid[i] ? m_arprot : 'x;
+        assign m_axi4l[i].arvalid = m_arvalid[i];
+        assign m_axi4l[i].rready  = 1'b1;
     end
 
     assign s_axi4l.arready = !read_busy || (s_axi4l.rvalid && s_axi4l.rready);

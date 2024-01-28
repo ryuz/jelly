@@ -105,6 +105,13 @@
           <Proxy FileSetName="design_1_proc_sys_reset_0_0"/>
         </CompFileExtendedInfo>
       </File>
+      <File Path="$PPRDIR/../../../../../rtl/v3/bus/jelly3_axi4l_addr_decoder.sv">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
       <File Path="$PPRDIR/../../../../../rtl/v3/interface/jelly3_axi4l_if.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>

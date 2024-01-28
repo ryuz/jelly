@@ -50,6 +50,9 @@ interface jelly3_axi4l_if
 
     modport m
         (
+            input   addr_base,
+            input   addr_high,
+        
             input   aresetn,
             input   aclk,
     
@@ -80,6 +83,9 @@ interface jelly3_axi4l_if
 
     modport s
         (
+            input   addr_base,
+            input   addr_high,
+
             input   aresetn,
             input   aclk,
     

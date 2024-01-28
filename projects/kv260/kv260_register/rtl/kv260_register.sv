@@ -67,57 +67,106 @@ module kv260_register
                 .fan_en             (fan_en         )
             );
 
+    localparam AXI4L_ADDR_BITS = 40;
+    localparam AXI4L_DATA_BITS = 32;
 
     jelly3_axi4l_if
             #(
-                .ADDR_BITS     (40),
-                .DATA_BITS     (32)
+                .ADDR_BITS     (AXI4L_ADDR_BITS),
+                .DATA_BITS     (AXI4L_DATA_BITS)
             )
-        i_axi4l_if
+        i_axi4l_peri
             (
                 .aresetn        (axi4l_aresetn),
                 .aclk           (axi4l_aclk)
             );
 
 
-    assign i_axi4l_if.awaddr    = axi4l_awaddr      ;
-    assign i_axi4l_if.awprot    = axi4l_awprot      ;
-    assign i_axi4l_if.awvalid   = axi4l_awvalid     ;
-    assign axi4l_awready        = i_axi4l_if.awready;
+    assign i_axi4l_peri.awaddr    = axi4l_awaddr      ;
+    assign i_axi4l_peri.awprot    = axi4l_awprot      ;
+    assign i_axi4l_peri.awvalid   = axi4l_awvalid     ;
+    assign axi4l_awready          = i_axi4l_peri.awready;
 
-    assign i_axi4l_if.wdata     = axi4l_wdata       ;
-    assign i_axi4l_if.wstrb     = axi4l_wstrb       ;
-    assign i_axi4l_if.wvalid    = axi4l_wvalid      ;
-    assign axi4l_wready         = i_axi4l_if.wready ;
+    assign i_axi4l_peri.wdata     = axi4l_wdata       ;
+    assign i_axi4l_peri.wstrb     = axi4l_wstrb       ;
+    assign i_axi4l_peri.wvalid    = axi4l_wvalid      ;
+    assign axi4l_wready           = i_axi4l_peri.wready ;
     
-    assign axi4l_bresp          = i_axi4l_if.bresp  ;
-    assign axi4l_bvalid         = i_axi4l_if.bvalid ;
-    assign i_axi4l_if.bready    = axi4l_bready      ;
+    assign axi4l_bresp            = i_axi4l_peri.bresp  ;
+    assign axi4l_bvalid           = i_axi4l_peri.bvalid ;
+    assign i_axi4l_peri.bready    = axi4l_bready      ;
     
-    assign i_axi4l_if.araddr    = axi4l_araddr      ;
-    assign i_axi4l_if.arprot    = axi4l_arprot      ;
-    assign i_axi4l_if.arvalid   = axi4l_arvalid     ;
-    assign axi4l_arready        = i_axi4l_if.arready;
+    assign i_axi4l_peri.araddr    = axi4l_araddr      ;
+    assign i_axi4l_peri.arprot    = axi4l_arprot      ;
+    assign i_axi4l_peri.arvalid   = axi4l_arvalid     ;
+    assign axi4l_arready          = i_axi4l_peri.arready;
 
-    assign axi4l_rdata          = i_axi4l_if.rdata  ;
-    assign axi4l_rresp          = i_axi4l_if.rresp  ;
-    assign axi4l_rvalid         = i_axi4l_if.rvalid ;
-    assign i_axi4l_if.rready    = axi4l_rready      ;
+    assign axi4l_rdata            = i_axi4l_peri.rdata  ;
+    assign axi4l_rresp            = i_axi4l_peri.rresp  ;
+    assign axi4l_rvalid           = i_axi4l_peri.rvalid ;
+    assign i_axi4l_peri.rready    = axi4l_rready      ;
 
-    logic   [3:0][31:0]  value;
-            
+
+    // address decoder
+    localparam AXI4L_DEC_NUM  = 2;
+    localparam AXI4L_DEC_REG0 = 0;
+    localparam AXI4L_DEC_REG1 = 1;
+
+    jelly3_axi4l_if
+            #(
+                .ADDR_BITS      (AXI4L_ADDR_BITS),
+                .DATA_BITS      (AXI4L_DATA_BITS)
+            )
+        i_axi4l_dec [AXI4L_DEC_NUM]
+            (
+                .aresetn        (axi4l_aresetn),
+                .aclk           (axi4l_aclk)
+            );
+
+    jelly3_axi4l_addr_decoder
+            #(
+                .NUM            (AXI4L_DEC_NUM)
+            )
+        u_axi4l_addr_decoder
+            (
+                .s_axi4l        (i_axi4l_peri),
+                .m_axi4l        (i_axi4l_dec)
+            );
+
+    // address map
+    assign {i_axi4l_dec[AXI4L_DEC_REG0].addr_base, i_axi4l_dec[AXI4L_DEC_REG0].addr_high} = {40'ha000_0000, 40'ha000_ffff};
+    assign {i_axi4l_dec[AXI4L_DEC_REG1].addr_base, i_axi4l_dec[AXI4L_DEC_REG1].addr_high} = {40'ha001_0000, 40'ha001_ffff};
+
+
+
+
+    logic   [3:0][31:0]  value0;
     jelly3_axi4l_register
             #(
                 .NUM        (4),
                 .BITS       (32)
             )
-        u_axi4l_register
+        u_axi4l_register_0
             (
-                .s_axi4l    (i_axi4l_if),
-                .value      (value)
+                .s_axi4l    (i_axi4l_dec[AXI4L_DEC_REG0]),
+                .value      (value0)
             );
 
-    assign pmod[7:0] = value[0][7:0];
+    logic   [3:0][31:0]  value1;    
+    jelly3_axi4l_register
+            #(
+                .NUM        (4),
+                .BITS       (32)
+            )
+        u_axi4l_register_1
+            (
+                .s_axi4l    (i_axi4l_dec[AXI4L_DEC_REG1]),
+                .value      (value1)
+            );
+        
+
+    assign pmod[3:0] = value0[0][3:0];
+    assign pmod[7:4] = value1[0][3:0];
 
 endmodule
 
