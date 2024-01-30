@@ -27,10 +27,10 @@ def get_module_name(file_name):
     """モジュール名の取得"""
     with open(file_name, "r") as f:
         contents = f.read()
-    pattern = r"module\s+(\w+)\s*"
+    pattern = r"\n(module|interface|package)\s+(\w+)\s*"
     match = re.search(pattern, contents)
     if match:
-        return match.group(1)
+        return match.group(2)
     else:
         print(f"Error: module name not found {file_name}")
 #       assert(0)

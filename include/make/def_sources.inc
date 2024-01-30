@@ -539,6 +539,8 @@ JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v2/math/jelly2_bilinear_interpolation.s
 JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v2/math/jelly2_calc_crc.sv
 JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v2/math/jelly2_integer_divider.sv
 JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v2/math/jelly2_linear_interpolation.sv
+JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v2/math/jelly2_llm_dct_8.sv
+JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v2/math/jelly2_llm_dct_8x8.sv
 JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v2/math/jelly2_mul_add_array.sv
 JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v2/math/jelly2_mul_add_array_unit.sv
 JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v2/math/jelly2_signed_divide_multicycle.sv
@@ -588,6 +590,9 @@ JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v2/video/jelly2_video_rendezvous.sv
 JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v2/video/jelly2_video_rgb2hsv.sv
 JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v2/video/jelly2_video_size_parameter.sv
 JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v2/video/jelly2_video_sobel.sv
+JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v3/bus/jelly3_axi4l_addr_decoder.sv
+JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v3/bus/jelly3_axi4l_register.sv
+JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v3/interface/jelly3_axi4l_if.sv
 
 
 JELLY_RTL_SOURCES = $(JELLY_VLOG_SOURCES) $(JELLY_SV_SOURCES)
