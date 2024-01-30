@@ -33,6 +33,7 @@
 #-Wno-UNUSEDPARAM
 #-Wno-fatal
 
+--assert
 
 ../tb_top.sv
 #../../../../../../rtl/v3/package/jelly3_axi4l_task.sv

@@ -25,3 +25,6 @@
 ../../stub/design_1.v
 
 $XILINX_VIVADO/data/verilog/src/glbl.v
+
+
+-d __SIMULATION__

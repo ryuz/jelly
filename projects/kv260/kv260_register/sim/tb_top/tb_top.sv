@@ -100,36 +100,97 @@ module tb_top();
             (
                 .m_axi4l        (i_axi4l_peri)
             );
-    
+
     initial begin
         logic [AXI4L_DATA_BITS-1:0]  rdata;
 
         #1000;
-        u_axi4l_accessor.read(40'ha000_0000, rdata);
-        u_axi4l_accessor.read(40'ha000_0004, rdata);
-        u_axi4l_accessor.read(40'ha000_0008, rdata);
-        u_axi4l_accessor.read(40'ha000_000c, rdata);
 
+        // REG0
+
+        // read initial value
+        u_axi4l_accessor.read(40'ha000_0000, rdata);
+        assert( rdata == 32'h0000_0000 ) else begin $display("read data mismatch"); $fatal; end
+        u_axi4l_accessor.read(40'ha000_0004, rdata);
+        assert( rdata == 32'h0000_0000 ) else begin $display("read data mismatch"); $fatal; end
+        u_axi4l_accessor.read(40'ha000_0008, rdata);
+        assert( rdata == 32'h0000_0000 ) else begin $display("read data mismatch"); $fatal; end
+        u_axi4l_accessor.read(40'ha000_000c, rdata);
+        assert( rdata == 32'h0000_0000 ) else begin $display("read data mismatch"); $fatal; end
+
+        // write test
         u_axi4l_accessor.write(40'ha000_0000, 32'h1100_0011, 4'hf);
         u_axi4l_accessor.write(40'ha000_0004, 32'h0022_2200, 4'hf);
         u_axi4l_accessor.write(40'ha000_0008, 32'h3333_3333, 4'hf);
         u_axi4l_accessor.write(40'ha000_000c, 32'h4040_4040, 4'hf);
 
         u_axi4l_accessor.read(40'ha000_0000, rdata);
+        assert( rdata == 32'h1100_0011 ) else begin $display("read data mismatch"); $fatal; end
         u_axi4l_accessor.read(40'ha000_0004, rdata);
+        assert( rdata == 32'h0022_2200 ) else begin $display("read data mismatch"); $fatal; end
         u_axi4l_accessor.read(40'ha000_0008, rdata);
+        assert( rdata == 32'h3333_3333 ) else begin $display("read data mismatch"); $fatal; end
         u_axi4l_accessor.read(40'ha000_000c, rdata);
+        assert( rdata == 32'h4040_4040 ) else begin $display("read data mismatch"); $fatal; end
 
+        // strb test
         u_axi4l_accessor.write(40'ha000_0000, 32'h44aa_aaaa, 4'h8);
         u_axi4l_accessor.write(40'ha000_0004, 32'hbb55_bbbb, 4'h4);
         u_axi4l_accessor.write(40'ha000_0008, 32'hcccc_66cc, 4'h2);
         u_axi4l_accessor.write(40'ha000_000c, 32'hffff_ff77, 4'h1);
 
         u_axi4l_accessor.read(40'ha000_0000, rdata);
+        assert( rdata == 32'h4400_0011 ) else begin $display("read data mismatch"); $fatal; end
         u_axi4l_accessor.read(40'ha000_0004, rdata);
+        assert( rdata == 32'h0055_2200 ) else begin $display("read data mismatch"); $fatal; end
         u_axi4l_accessor.read(40'ha000_0008, rdata);
+        assert( rdata == 32'h3333_6633 ) else begin $display("read data mismatch"); $fatal; end
         u_axi4l_accessor.read(40'ha000_000c, rdata);
+        assert( rdata == 32'h4040_4077 ) else begin $display("read data mismatch"); $fatal; end
 
+
+        // REG0
+
+        // read initial value
+        u_axi4l_accessor.read(40'ha001_0000, rdata);
+        assert( rdata == 32'h0000_0000 ) else begin $display("read data mismatch"); $fatal; end
+        u_axi4l_accessor.read(40'ha001_0004, rdata);
+        assert( rdata == 32'h0000_0000 ) else begin $display("read data mismatch"); $fatal; end
+        u_axi4l_accessor.read(40'ha001_0008, rdata);
+        assert( rdata == 32'h0000_0000 ) else begin $display("read data mismatch"); $fatal; end
+        u_axi4l_accessor.read(40'ha001_000c, rdata);
+        assert( rdata == 32'h0000_0000 ) else begin $display("read data mismatch"); $fatal; end
+
+        // write test
+        u_axi4l_accessor.write(40'ha001_0000, 32'h1100_0011, 4'hf);
+        u_axi4l_accessor.write(40'ha001_0004, 32'h0022_2200, 4'hf);
+        u_axi4l_accessor.write(40'ha001_0008, 32'h3333_3333, 4'hf);
+        u_axi4l_accessor.write(40'ha001_000c, 32'h4040_4040, 4'hf);
+
+        u_axi4l_accessor.read(40'ha001_0000, rdata);
+        assert( rdata == 32'h1100_0011 ) else begin $display("read data mismatch"); $fatal; end
+        u_axi4l_accessor.read(40'ha001_0004, rdata);
+        assert( rdata == 32'h0022_2200 ) else begin $display("read data mismatch"); $fatal; end
+        u_axi4l_accessor.read(40'ha001_0008, rdata);
+        assert( rdata == 32'h3333_3333 ) else begin $display("read data mismatch"); $fatal; end
+        u_axi4l_accessor.read(40'ha001_000c, rdata);
+        assert( rdata == 32'h4040_4040 ) else begin $display("read data mismatch"); $fatal; end
+
+        // strb test
+        u_axi4l_accessor.write(40'ha001_0000, 32'h44aa_aaaa, 4'h8);
+        u_axi4l_accessor.write(40'ha001_0004, 32'hbb55_bbbb, 4'h4);
+        u_axi4l_accessor.write(40'ha001_0008, 32'hcccc_66cc, 4'h2);
+        u_axi4l_accessor.write(40'ha001_000c, 32'hffff_ff77, 4'h1);
+
+        u_axi4l_accessor.read(40'ha001_0000, rdata);
+        assert( rdata == 32'h4400_0011 ) else begin $display("read data mismatch"); $fatal; end
+        u_axi4l_accessor.read(40'ha001_0004, rdata);
+        assert( rdata == 32'h0055_2200 ) else begin $display("read data mismatch"); $fatal; end
+        u_axi4l_accessor.read(40'ha001_0008, rdata);
+        assert( rdata == 32'h3333_6633 ) else begin $display("read data mismatch"); $fatal; end
+        u_axi4l_accessor.read(40'ha001_000c, rdata);
+        assert( rdata == 32'h4040_4077 ) else begin $display("read data mismatch"); $fatal; end
+    
     end
     
 
