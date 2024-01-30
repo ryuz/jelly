@@ -190,6 +190,7 @@ module jelly3_axi4l_addr_decoder
             if ( s_axi4l.arvalid && s_axi4l.arready ) begin
                 read_busy  <= 1'b1;
                 m_araddr <= s_axi4l.araddr;
+                m_arprot <= s_axi4l.arprot;
                 for ( int i = 0; i < NUM; i++ ) begin
                     if ( araddr_match[i] ) begin
                         m_arvalid[i] <= 1'b1;
