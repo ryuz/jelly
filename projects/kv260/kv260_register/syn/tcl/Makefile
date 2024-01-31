@@ -37,6 +37,7 @@ export HLS_IP
 SOURCES  = $(PRJ_DIR)/rtl/kv260_register.sv
 SOURCES += $(TOP_DIR)/rtl/v3/interface/jelly3_axi4l_if.sv
 SOURCES += $(TOP_DIR)/rtl/v3/bus/jelly3_axi4l_register.sv
+SOURCES += $(TOP_DIR)/rtl/v3/bus/jelly3_axi4l_addr_decoder.sv
 export SOURCES
 
 # IP cores
