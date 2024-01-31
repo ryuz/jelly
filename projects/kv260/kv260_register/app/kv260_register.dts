@@ -53,7 +53,7 @@
             
             uio_pl_peri {
                 compatible = "generic-uio";
-                reg = <0x0 0xa0000000 0x0 0x00010000>;
+                reg = <0x0 0xa0000000 0x0 0x10000000>;
                 interrupt-parent = <&gic>;
                 interrupts = <0 89 4>;
             };
