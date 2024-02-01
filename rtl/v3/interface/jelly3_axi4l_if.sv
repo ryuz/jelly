@@ -37,8 +37,8 @@ interface jelly3_axi4l_if
     logic                       awvalid = 1'b0;
     logic                       awready;
 
-    logic   [STRB_BITS-1:0]     wstrb;
     logic   [DATA_BITS-1:0]     wdata;
+    logic   [STRB_BITS-1:0]     wstrb;
     logic                       wvalid = 1'b0;
     logic                       wready;
 

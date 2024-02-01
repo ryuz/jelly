@@ -11,24 +11,38 @@
 
 module tb_main
         #(
-            parameter   int     WB_ADR_BITS = 38,
-            parameter   int     WB_DAT_BITS = 32,
-            parameter   int     WB_SEL_BITS = (WB_DAT_BITS / 8)
+            parameter   int     AXI4L_ADDR_BITS = 40,
+            parameter   int     AXI4L_DATA_BITS = 32,
+            parameter   int     AXI4L_STRB_BITS = AXI4L_DATA_BITS/8,
+            parameter   int     AXI4L_PROT_BITS = 3,
+            parameter   int     AXI4L_RESP_BITS = 2
         )
         (
-            input   var logic                       reset,
-            input   var logic                       clk,
-            input   var logic   [WB_ADR_BITS-1:0]   s_wb_adr_i,
-            output  var logic   [WB_DAT_BITS-1:0]   s_wb_dat_o,
-            input   var logic   [WB_DAT_BITS-1:0]   s_wb_dat_i,
-            input   var logic   [WB_SEL_BITS-1:0]   s_wb_sel_i,
-            input   var logic                       s_wb_we_i,
-            input   var logic                       s_wb_stb_i,
-            output  var logic                       s_wb_ack_o
+            input   var logic                           aresetn         ,
+            input   var logic                           aclk            ,
+            input   var logic   [AXI4L_ADDR_BITS-1:0]   s_axi4l_awaddr  ,
+            input   var logic   [AXI4L_PROT_BITS-1:0]   s_axi4l_awprot  ,
+            input   var logic                           s_axi4l_awvalid ,
+            output  var logic                           s_axi4l_awready ,
+            input   var logic   [AXI4L_DATA_BITS-1:0]   s_axi4l_wdata   ,
+            input   var logic   [AXI4L_STRB_BITS-1:0]   s_axi4l_wstrb   ,
+            input   var logic                           s_axi4l_wvalid  ,
+            output  var logic                           s_axi4l_wready  ,
+            output  var logic   [AXI4L_RESP_BITS-1:0]   s_axi4l_bresp   ,
+            output  var logic                           s_axi4l_bvalid  ,
+            input   var logic                           s_axi4l_bready  ,
+            input   var logic   [AXI4L_ADDR_BITS-1:0]   s_axi4l_araddr  ,
+            input   var logic   [AXI4L_PROT_BITS-1:0]   s_axi4l_arprot  ,
+            input   var logic                           s_axi4l_arvalid ,
+            output  var logic                           s_axi4l_arready ,
+            output  var logic   [AXI4L_DATA_BITS-1:0]   s_axi4l_rdata   ,
+            output  var logic   [AXI4L_RESP_BITS-1:0]   s_axi4l_rresp   ,
+            output  var logic                           s_axi4l_rvalid  ,
+            input   var logic                           s_axi4l_rready  
         );
     
     int     sym_cycle = 0;
-    always_ff @(posedge clk) begin
+    always_ff @(posedge aclk) begin
         sym_cycle <= sym_cycle + 1;
     end
 
@@ -44,18 +58,30 @@ module tb_main
                 .fan_en         ()
             );
 
+
+    always_comb force i_top.i_design_1.m_axi4l_aresetn = aresetn;
+    always_comb force i_top.i_design_1.m_axi4l_aclk    = aclk   ;
+    always_comb force i_top.i_design_1.m_axi4l_awaddr  = s_axi4l_awaddr ;
+    always_comb force i_top.i_design_1.m_axi4l_awprot  = s_axi4l_awprot ;
+    always_comb force i_top.i_design_1.m_axi4l_awvalid = s_axi4l_awvalid;
+    always_comb force i_top.i_design_1.m_axi4l_wstrb   = s_axi4l_wstrb  ;
+    always_comb force i_top.i_design_1.m_axi4l_wdata   = s_axi4l_wdata  ;
+    always_comb force i_top.i_design_1.m_axi4l_wvalid  = s_axi4l_wvalid ;
+    always_comb force i_top.i_design_1.m_axi4l_bready  = s_axi4l_bready ;
+    always_comb force i_top.i_design_1.m_axi4l_araddr  = s_axi4l_araddr ;
+    always_comb force i_top.i_design_1.m_axi4l_arprot  = s_axi4l_arprot ;
+    always_comb force i_top.i_design_1.m_axi4l_arvalid = s_axi4l_arvalid;
+    always_comb force i_top.i_design_1.m_axi4l_rready  = s_axi4l_rready ;
+
+    assign s_axi4l_awready = i_top.i_design_1.m_axi4l_awready ;
+    assign s_axi4l_wready  = i_top.i_design_1.m_axi4l_wready  ;
+    assign s_axi4l_bresp   = i_top.i_design_1.m_axi4l_bresp   ;
+    assign s_axi4l_bvalid  = i_top.i_design_1.m_axi4l_bvalid  ;
+    assign s_axi4l_arready = i_top.i_design_1.m_axi4l_arready ;
+    assign s_axi4l_rdata   = i_top.i_design_1.m_axi4l_rdata   ;
+    assign s_axi4l_rresp   = i_top.i_design_1.m_axi4l_rresp   ;
+    assign s_axi4l_rvalid  = i_top.i_design_1.m_axi4l_rvalid  ;
     
-    always_comb force i_top.i_design_1.reset = reset;
-    always_comb force i_top.i_design_1.clk   = clk;
-
-    always_comb force i_top.i_design_1.wb_adr_i = s_wb_adr_i;
-    always_comb force i_top.i_design_1.wb_dat_i = s_wb_dat_i;
-    always_comb force i_top.i_design_1.wb_sel_i = s_wb_sel_i;
-    always_comb force i_top.i_design_1.wb_we_i  = s_wb_we_i;
-    always_comb force i_top.i_design_1.wb_stb_i = s_wb_stb_i;
-
-    assign s_wb_dat_o = i_top.i_design_1.wb_dat_o;
-    assign s_wb_ack_o = i_top.i_design_1.wb_ack_o;
 
 endmodule
 

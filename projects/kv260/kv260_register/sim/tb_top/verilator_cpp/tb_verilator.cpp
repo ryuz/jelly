@@ -6,9 +6,7 @@
 #include "jelly/simulator/ResetNode.h"
 #include "jelly/simulator/ClockNode.h"
 #include "jelly/simulator/VerilatorNode.h"
-#include "jelly/simulator/WishboneMasterNode.h"
-//#include "jelly/simulator/Axi4sImageLoadNode.h"
-//#include "jelly/simulator/Axi4sImageDumpNode.h"
+#include "jelly/simulator/Axi4LiteMasterNode.h"
 #include "jelly/JellyRegs.h"
 
 
@@ -44,45 +42,67 @@ int main(int argc, char** argv)
 
     mng->AddNode(jsim::VerilatorNode_Create(top, tfp));
 
-    mng->AddNode(jsim::ResetNode_Create(&top->reset, 100));
-    mng->AddNode(jsim::ClockNode_Create(&top->clk,   1000.0/100.0));
+    mng->AddNode(jsim::ResetNode_Create(&top->aresetn, 100, false));
+    mng->AddNode(jsim::ClockNode_Create(&top->aclk,   1000.0/100.0));
 
-    jsim::WishboneMaster wishbone_signals =
+    jsim::Axi4Lite axi4lite_signals =
             {
-                &top->reset,
-                &top->clk,
-                &top->s_wb_adr_i,
-                &top->s_wb_dat_o,
-                &top->s_wb_dat_i,
-                &top->s_wb_sel_i,
-                &top->s_wb_we_i,
-                &top->s_wb_stb_i,
-                &top->s_wb_ack_o
+                &top->aresetn           ,
+                &top->aclk              ,
+                &top->s_axi4l_awaddr    ,
+                &top->s_axi4l_awprot    ,
+                &top->s_axi4l_awvalid   ,
+                &top->s_axi4l_awready   ,
+                &top->s_axi4l_wdata     ,
+                &top->s_axi4l_wstrb     ,
+                &top->s_axi4l_wvalid    ,
+                &top->s_axi4l_wready    ,
+                &top->s_axi4l_bresp     ,
+                &top->s_axi4l_bvalid    ,
+                &top->s_axi4l_bready    ,
+                &top->s_axi4l_araddr    ,
+                &top->s_axi4l_arprot    ,
+                &top->s_axi4l_arvalid   ,
+                &top->s_axi4l_arready   ,
+                &top->s_axi4l_rdata     ,
+                &top->s_axi4l_rresp     ,
+                &top->s_axi4l_rvalid    ,
+                &top->s_axi4l_rready    ,
             };
-    auto wb = jsim::WishboneMasterNode_Create(wishbone_signals);
-    mng->AddNode(wb);
+    auto axi4l = jsim::Axi4LiteMasterNode_Create(axi4lite_signals);
+    mng->AddNode(axi4l);
 
 
         
-    wb->Wait(100);
-    wb->Display("start");    
+    axi4l->Wait(100);
+    axi4l->Display("start");    
 
-    wb->ExecRead (0);
-    wb->ExecRead (1);
-    wb->ExecRead (2);
-    wb->ExecRead (3);
+    axi4l->ExecRead (0xa0000000);
+    axi4l->ExecRead (0xa0000004);
+    axi4l->ExecRead (0xa0000008);
+    axi4l->ExecRead (0xa000000c);
 
-    wb->ExecWrite(0, 0x11, 0xf);
-    wb->ExecWrite(1, 0x22, 0xf);
-    wb->ExecWrite(2, 0x33, 0xf);
-    wb->ExecWrite(3, 0x44, 0xf);
+    axi4l->ExecWrite(0xa0000000, 0x11111111, 0xf);
+    axi4l->ExecWrite(0xa0000004, 0x22002200, 0xf);
+    axi4l->ExecWrite(0xa0000008, 0x00000033, 0xf);
+    axi4l->ExecWrite(0xa000000c, 0x00440000, 0xf);
 
-    wb->ExecRead (0);
-    wb->ExecRead (1);
-    wb->ExecRead (2);
-    wb->ExecRead (3);
+    axi4l->ExecRead (0xa0000000);
+    axi4l->ExecRead (0xa0000004);
+    axi4l->ExecRead (0xa0000008);
+    axi4l->ExecRead (0xa000000c);
 
-    wb->Display("end");
+    axi4l->ExecWrite(0xa0000000, 0xff000000, 0x8);
+    axi4l->ExecWrite(0xa0000004, 0x00ee0000, 0x4);
+    axi4l->ExecWrite(0xa0000008, 0x0000dd00, 0x2);
+    axi4l->ExecWrite(0xa000000c, 0x001100cc, 0x1);
+
+    axi4l->ExecRead (0xa0000000);
+    axi4l->ExecRead (0xa0000004);
+    axi4l->ExecRead (0xa0000008);
+    axi4l->ExecRead (0xa000000c);
+
+    axi4l->Display("end");
 
     mng->Run(10000);
     

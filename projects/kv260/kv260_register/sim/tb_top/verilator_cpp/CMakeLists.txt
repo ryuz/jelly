@@ -45,7 +45,7 @@ endif()
 
 
 set(RTL_SRCS
-    ../tb_main.sv
+    ./tb_main.sv
     ../../stub/design_1.v
 )
 
