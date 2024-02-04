@@ -2,10 +2,20 @@
 
 --binary
 -j 0
-#-Wall
 
 -D__VERILATOR__
 -D__SIMULATION__
+
+
+#-Wall
+#-Wno-WIDTH
+#-Wno-PINCONNECTEMPTY
+#-Wno-UNUSEDPARAM
+#-Wno-UNUSEDSIGNAL
+#-Wno-UNUSEDPARAM
+#-Wno-fatal
+
+--assert
 
 -y ../../stub
 -y ../../../rtl
@@ -26,17 +36,7 @@
 -y ../../../../../../rtl/v3/bus
 -y ../../../../../../rtl/v3/model
 
-#-Wno-WIDTH
-#-Wno-PINCONNECTEMPTY
-#-Wno-UNUSEDPARAM
-#-Wno-UNUSEDSIGNAL
-#-Wno-UNUSEDPARAM
-#-Wno-fatal
-
---assert
-
 ../tb_top.sv
 #../../../../../../rtl/v3/package/jelly3_axi4l_task.sv
 
 --top tb_top
-
