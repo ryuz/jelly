@@ -89,9 +89,9 @@ int main(int argc, char** argv)
     wb->ExecRead (reg_fmtr + REG_VIDEO_FMTREG_CORE_ID);                         // CORE ID
     wb->ExecWrite(reg_fmtr + REG_VIDEO_FMTREG_PARAM_WIDTH,      X_NUM, 0xf);    // width
     wb->ExecWrite(reg_fmtr + REG_VIDEO_FMTREG_PARAM_HEIGHT,     Y_NUM, 0xf);    // height
-    wb->ExecWrite(reg_fmtr + REG_VIDEO_FMTREG_PARAM_FILL,           0, 0xf);    // fill
-    wb->ExecWrite(reg_fmtr + REG_VIDEO_FMTREG_PARAM_TIMEOUT,     1024, 0xf);    // timeout
-    wb->ExecWrite(reg_fmtr + REG_VIDEO_FMTREG_CTL_CONTROL,          1, 0xf);    // enable
+//  wb->ExecWrite(reg_fmtr + REG_VIDEO_FMTREG_PARAM_FILL,           0, 0xf);    // fill
+//  wb->ExecWrite(reg_fmtr + REG_VIDEO_FMTREG_PARAM_TIMEOUT,     1024, 0xf);    // timeout
+    wb->ExecWrite(reg_fmtr + REG_VIDEO_FMTREG_CTL_CONTROL,          3, 0xf);    // enable
     wb->ExecWait(1000);
 
     wb->Display("set DEMOSIC");
@@ -118,14 +118,14 @@ int main(int argc, char** argv)
     wb->ExecWait(10000);
     wb->Display("set write DMA");
     wb->ExecRead (reg_wdma + REG_VDMA_WRITE_CORE_ID);                               // CORE ID
-    wb->ExecWrite(reg_wdma + REG_VDMA_WRITE_PARAM_ADDR,          0x30000000, 0xf);  // address
+    wb->ExecWrite(reg_wdma + REG_VDMA_WRITE_PARAM_ADDR,          0x00000000, 0xf);  // address
     wb->ExecWrite(reg_wdma + REG_VDMA_WRITE_PARAM_LINE_STEP,        X_NUM*4, 0xf);  // stride
     wb->ExecWrite(reg_wdma + REG_VDMA_WRITE_PARAM_H_SIZE,           X_NUM-1, 0xf);  // width
     wb->ExecWrite(reg_wdma + REG_VDMA_WRITE_PARAM_V_SIZE,           Y_NUM-1, 0xf);  // height
     wb->ExecWrite(reg_wdma + REG_VDMA_WRITE_PARAM_F_SIZE,               1-1, 0xf);
     wb->ExecWrite(reg_wdma + REG_VDMA_WRITE_PARAM_FRAME_STEP, X_NUM*Y_NUM*4, 0xff);
-//  wb->ExecWrite(reg_wdma + REG_VDMA_WRITE_CTL_CONTROL,                  3, 0xf);  // update & enable
-    wb->ExecWrite(reg_wdma + REG_VDMA_WRITE_CTL_CONTROL,                  7, 0xf);  // update & enable & oneshot
+    wb->ExecWrite(reg_wdma + REG_VDMA_WRITE_CTL_CONTROL,                  3, 0xf);  // update & enable
+//  wb->ExecWrite(reg_wdma + REG_VDMA_WRITE_CTL_CONTROL,                  7, 0xf);  // update & enable & oneshot
     wb->ExecWait(1000);
 
     wb->Display("wait for DMA end");

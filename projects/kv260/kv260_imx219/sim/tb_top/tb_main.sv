@@ -41,7 +41,7 @@ module tb_main
 //  localparam FILE_X_NUM = 640;
 //  localparam FILE_Y_NUM = 132;
 
-    localparam FILE_NAME  = "../../../../../data/images/windowswallpaper/Penguins_640x480_bayer10.pgm";
+    localparam FILE_NAME  = "../../../../../../data/images/windowswallpaper/Penguins_640x480_bayer10.pgm";
     localparam FILE_X_NUM = 640;
     localparam FILE_Y_NUM = 480;
     localparam DATA_WIDTH = 10;
