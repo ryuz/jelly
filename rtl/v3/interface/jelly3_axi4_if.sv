@@ -56,59 +56,80 @@ interface jelly3_axi4_if
         input   var logic   aclk
     );
 
+    // typedef
+    typedef logic   [ID_BITS-1:0]       id_t;
+    typedef logic   [ADDR_BITS-1:0]     addr_t;
+    typedef logic   [LEN_BITS-1:0]      len_t;
+    typedef logic   [SIZE_BITS-1:0]     size_t;
+    typedef logic   [BURST_BITS-1:0]    burst_t;
+    typedef logic   [LOCK_BITS:0]       lock_t;
+    typedef logic   [CACHE_BITS:0]      cache_t;
+    typedef logic   [PROT_BITS-1:0]     prot_t;
+    typedef logic   [QOS_BITS-1:0]      qos_t;
+    typedef logic   [REGION_BITS-1:0]   region_t;
+    typedef logic   [DATA_BITS-1:0]     data_t;
+    typedef logic   [STRB_BITS-1:0]     strb_t;
+    typedef logic   [RESP_BITS-1:0]     resp_t;
+    typedef logic   [AWUSER_BITS-1:0]   awuser_t;
+    typedef logic   [WUSER_BITS-1:0]    wuser_t;
+    typedef logic   [BUSER_BITS-1:0]    buser_t;
+    typedef logic   [ARUSER_BITS-1:0]   aruser_t;
+    typedef logic   [RUSER_BITS-1:0]    ruser_t;
+ 
+
     // attributes
     bit     [ADDR_BITS-1:0]         addr_base   ;
     bit     [ADDR_BITS-1:0]         addr_high   ;
 
     // signals  
-    logic   [ID_BITS-1:0]           awid        ;
-    logic   [ADDR_BITS-1:0]         awaddr      ;
-    logic   [LEN_BITS-1:0]          awlen       ;
-    logic   [SIZE_BITS-1:0]         awsize      ;
-    logic   [BURST_BITS-1:0]        awburst     ;
-    logic   [LOCK_BITS:0]           awlock      ;
-    logic   [CACHE_BITS:0]          awcache     ;
-    logic   [PROT_BITS-1:0]         awprot      ;
-    logic   [QOS_WIDTH-1:0]         awqos       ;
-    logic   [REGION_BITS-1:0]       awregion    ;
-    logic   [AWUSER_BITS-1:0]       awuser      ;
-    logic                           awvalid     ;
-    logic                           awready     ;
+    id_t        awid        ;
+    addr_t      awaddr      ;
+    len_t       awlen       ;
+    size_t      awsize      ;
+    burst_t     awburst     ;
+    lock_t      awlock      ;
+    cache_t     awcache     ;
+    prot_t      awprot      ;
+    qos_t       awqos       ;
+    region_t    awregion    ;
+    awuser_t    awuser      ;
+    logic       awvalid     ;
+    logic       awready     ;
 
-    logic   [DATA_BITS-1:0]         wdata       ;
-    logic   [STRB_BITS-1:0]         wstrb       ;
-    logic                           wlast       ;
-    logic   [WUSER_BITS-1:0]        wuser       ;
-    logic                           wvalid      ;
-    logic                           wready      ;
+    data_t      wdata       ;
+    strb_t      wstrb       ;
+    logic       wlast       ;
+    wuser_t     wuser       ;
+    logic       wvalid      ;
+    logic       wready      ;
 
-    logic   [ID_BITS-1:0]           bid         ;
-    logic   [RESP_BITS-1:0]         bresp       ;
-    logic   [BUSER_BITS-1:0]        buser       ;
-    logic                           bvalid      ;
-    logic                           bready      ;
+    id_t        bid         ;
+    resp_t      bresp       ;
+    buser_t     buser       ;
+    logic       bvalid      ;
+    logic       bready      ;
 
-    logic   [ID_BITS-1:0]           arid        ;
-    logic   [ADDR_BITS-1:0]         araddr      ;
-    logic   [LEN_BITS-1:0]          arlen       ;
-    logic   [SIZE_BITS-1:0]         arsize      ;
-    logic   [BURST_BITS-1:0]        arburst     ;
-    logic   [LOCK_BITS:0]           arlock      ;
-    logic   [CACHE_BITS:0]          arcache     ;
-    logic   [PROT_BITS-1:0]         arprot      ;
-    logic   [QOS_WIDTH-1:0]         arqos       ;
-    logic   [REGION_BITS-1:0]       arregion    ;
-    logic   [ARUSER_BITS-1:0]       aruser      ;
-    logic                           arvalid     ;
-    logic                           arready     ;
+    id_t        arid        ;
+    addr_t      araddr      ;
+    len_t       arlen       ;
+    size_t      arsize      ;
+    burst_t     arburst     ;
+    lock_t      arlock      ;
+    cache_t     arcache     ;
+    prot_t      arprot      ;
+    qos_t       arqos       ;
+    region_t    arregion    ;
+    aruser_t    aruser      ;
+    logic       arvalid     ;
+    logic       arready     ;
 
-    logic   [ID_BITS-1:0]           rid         ;
-    logic   [DATA_BITS-1:0]         rdata       ;
-    logic   [RESP_BITS-1:0]         rresp       ;
-    logic                           rlast       ;
-    logic   [RUSER_BITS-1:0]        ruser       ;
-    logic                           rvalid      ;
-    logic                           rready      ;
+    id_t        rid         ;
+    data_t      rdata       ;
+    resp_t      rresp       ;
+    logic       rlast       ;
+    ruser_t     ruser       ;
+    logic       rvalid      ;
+    logic       rready      ;
 
     modport m
         (

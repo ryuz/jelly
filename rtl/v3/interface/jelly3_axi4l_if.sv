@@ -27,35 +27,42 @@ interface jelly3_axi4l_if
         input   var logic   aclk
     );
 
+    typedef logic   [ADDR_BITS-1:0]     addr_t;
+    typedef logic   [DATA_BITS-1:0]     data_t;
+    typedef logic   [STRB_BITS-1:0]     strb_t;
+    typedef logic   [PROT_BITS-1:0]     prot_t;
+    typedef logic   [RESP_BITS-1:0]     resp_t;
+
+
     // attributes
-    bit     [ADDR_BITS-1:0]     addr_base;
-    bit     [ADDR_BITS-1:0]     addr_high;
+    addr_t      addr_base;
+    addr_t      addr_high;
 
     // signals
-    logic   [ADDR_BITS-1:0]     awaddr;
-    logic   [PROT_BITS-1:0]     awprot;
-    logic                       awvalid;
-    logic                       awready;
+    addr_t      awaddr;
+    prot_t      awprot;
+    logic       awvalid;
+    logic       awready;
 
-    logic   [DATA_BITS-1:0]     wdata;
-    logic   [STRB_BITS-1:0]     wstrb;
-    logic                       wvalid;
-    logic                       wready;
+    data_t      wdata;
+    strb_t      wstrb;
+    logic       wvalid;
+    logic       wready;
 
-    logic   [RESP_BITS-1:0]     bresp;
-    logic                       bvalid;
-    logic                       bready;
+    resp_t      bresp;
+    logic       bvalid;
+    logic       bready;
    
-    logic   [ADDR_BITS-1:0]     araddr;
-    logic   [PROT_BITS-1:0]     arprot;
-    logic                       arvalid;
-    logic                       arready;
+    addr_t      araddr;
+    prot_t      arprot;
+    logic       arvalid;
+    logic       arready;
 
-    logic   [DATA_BITS-1:0]     rdata;
-    logic   [RESP_BITS-1:0]     rresp;
-    logic                       rvalid;
-    logic                       rready;
-
+    data_t      rdata;
+    resp_t      rresp;
+    logic       rvalid;
+    logic       rready;
+    
     modport m
         (
             input   addr_base,
@@ -123,122 +130,84 @@ interface jelly3_axi4l_if
         );
 
 
-/*
-// valid 時に信号が有効であること
-property prop_valid_addr (logic [ADDR_BITS-1:0] addr, logic valid);
-@(posedge aclk) valid |-> !$isunknown(addr);
-endproperty
-property prop_valid_prot (logic [PROT_BITS-1:0] prot, logic valid);
-@(posedge aclk) valid |-> !$isunknown(prot);
-endproperty
-property prop_valid_data (logic [DATA_BITS-1:0] data, logic valid);
-@(posedge aclk) valid |-> !$isunknown(data);
-endproperty
-property prop_valid_strb (logic [STRB_BITS-1:0] strb, logic valid);
-@(posedge aclk) valid |-> !$isunknown(strb);
-endproperty
-property prop_valid_resp (logic [RESP_BITS-1:0] resp, logic valid);
-@(posedge aclk) valid |-> !$isunknown(resp);
-endproperty
 
-ASSERT_VALID_AWADDR : assert property(prop_valid_addr(awaddr,  awvalid));
-ASSERT_VALID_AWPROT : assert property(prop_valid_prot(awprot,  awvalid));
-ASSERT_VALID_WDATA  : assert property(prop_valid_data(wdata,   wvalid ));
-ASSERT_VALID_WSTRB  : assert property(prop_valid_strb(wstrb,   wvalid ));
-ASSERT_VALID_BRESP  : assert property(prop_valid_resp(bresp,   bvalid ));
-ASSERT_VALID_ARADDR : assert property(prop_valid_addr(araddr,  arvalid));
-ASSERT_VALID_ARPROT : assert property(prop_valid_prot(arprot,  arvalid));
-ASSERT_VALID_RDATA  : assert property(prop_valid_data(rdata,   rvalid ));
-ASSERT_VALID_RRESP  : assert property(prop_valid_resp(rresp,   rvalid ));
+// awaddr
+property prop_awaddr_valid  ; @(posedge aclk) disable iff ( ~aresetn ) awvalid |-> !$isunknown(awaddr ); endproperty
+property prop_awaddr_stable ; @(posedge aclk) disable iff ( ~aresetn ) (awvalid && !awready) |=> $stable(awaddr ); endproperty
+ASSERT_AWADDR_VALID  : assert property(prop_awaddr_valid );
+ASSERT_AWADDR_STABLE : assert property(prop_awaddr_stable );
+
+// awprot
+property prop_awprot_valid  ; @(posedge aclk) disable iff ( ~aresetn ) awvalid |-> !$isunknown(awprot ); endproperty
+property prop_awprot_stable ; @(posedge aclk) disable iff ( ~aresetn ) (awvalid && !awready) |=> $stable(awprot ); endproperty
+ASSERT_AWPROT_VALID  : assert property(prop_awprot_valid );
+ASSERT_AWPROT_STABLE : assert property(prop_awprot_stable );
+
+// awvalid
+property prop_awvalid_stable ; @(posedge aclk) disable iff ( ~aresetn ) (awvalid && !awready) |=> $stable(awvalid ); endproperty
+ASSERT_AWVALID_STABLE : assert property(prop_awvalid_stable );
 
 
-// valid が 1 の時に ready が 0 なら次のサイクルでもvalidは維持
-property prop_stable_valid(logic valid, logic ready);
-@(posedge aclk) (valid && !ready) |=> valid;
-endproperty
-ASSERT_STABLE_AWVALID : assert property(prop_stable_valid(awvalid, awready));
-ASSERT_STABLE_WVALID  : assert property(prop_stable_valid(wvalid,  wready ));
-ASSERT_STABLE_BVALID  : assert property(prop_stable_valid(bvalid,  bready ));
-ASSERT_STABLE_ARVALID : assert property(prop_stable_valid(arvalid, arready));
-ASSERT_STABLE_RVALID  : assert property(prop_stable_valid(rvalid,  rready ));
+// wdata
+property prop_wdata_valid  ; @(posedge aclk) disable iff ( ~aresetn ) wvalid |-> !$isunknown(wdata ); endproperty
+property prop_wdata_stable ; @(posedge aclk) disable iff ( ~aresetn ) (wvalid && !wready) |=> $stable(wdata ); endproperty
+ASSERT_WDATA_VALID  : assert property(prop_wdata_valid );
+ASSERT_WDATA_STABLE : assert property(prop_wdata_stable );
 
-// valid が 1 の時に ready が 0 なら次のサイクルで信号は変化しない
-property prop_stable_addr(logic [ADDR_BITS-1:0] addr, logic valid, logic ready);
-@(posedge aclk) (valid && !ready) |=> $stable(addr);
-endproperty
-property prop_stable_prot(logic [PROT_BITS-1:0] prot, logic valid, logic ready);
-@(posedge aclk) (valid && !ready) |=> $stable(prot);
-endproperty
-property prop_stable_data(logic [DATA_BITS-1:0] data, logic valid, logic ready);
-@(posedge aclk) (valid && !ready) |=> $stable(data);
-endproperty
-property prop_stable_strb(logic [STRB_BITS-1:0] strb, logic valid, logic ready);
-@(posedge aclk) (valid && !ready) |=> $stable(strb);
-endproperty
-property prop_stable_resp(logic [RESP_BITS-1:0] resp, logic valid, logic ready);
-@(posedge aclk) (valid && !ready) |=> $stable(resp);
-endproperty
-ASSERT_STABLE_AWADDR  : assert property(prop_stable_addr(awaddr, awvalid, awready));
-ASSERT_STABLE_AWPROT  : assert property(prop_stable_prot(awprot, awvalid, awready));
-ASSERT_STABLE_WDATA   : assert property(prop_stable_data(wdata,  wvalid,  wready ));
-ASSERT_STABLE_WSTRB   : assert property(prop_stable_strb(wstrb,  wvalid,  wready ));
-ASSERT_STABLE_BRESP   : assert property(prop_stable_resp(bresp,  bvalid,  bready ));
-ASSERT_STABLE_ARADDR  : assert property(prop_stable_addr(araddr, arvalid, arready));
-ASSERT_STABLE_ARPROT  : assert property(prop_stable_prot(arprot, arvalid, arready));
-ASSERT_STABLE_RDATA   : assert property(prop_stable_data(rdata,  rvalid,  rready ));
-ASSERT_STABLE_RRESP   : assert property(prop_stable_resp(rresp,  rvalid,  rready ));
-*/
+// wstrb
+property prop_wstrb_valid  ; @(posedge aclk) disable iff ( ~aresetn ) wvalid |-> !$isunknown(wstrb ); endproperty
+property prop_wstrb_stable ; @(posedge aclk) disable iff ( ~aresetn ) (wvalid && !wready) |=> $stable(wstrb ); endproperty
+ASSERT_WSTRB_VALID  : assert property(prop_wstrb_valid );
+ASSERT_WSTRB_STABLE : assert property(prop_wstrb_stable );
+
+// wvalid
+property prop_wvalid_stable ; @(posedge aclk) disable iff ( ~aresetn ) (wvalid && !wready) |=> $stable(wvalid ); endproperty
+ASSERT_WVALID_STABLE : assert property(prop_wvalid_stable );
 
 
-// valid 時に信号が有効であること
-property prop_valid_awaddr ; @(posedge aclk) disable iff ( ~aresetn ) awvalid |-> !$isunknown(awaddr ); endproperty
-property prop_valid_awprot ; @(posedge aclk) disable iff ( ~aresetn ) awvalid |-> !$isunknown(awprot ); endproperty
-property prop_valid_wdata  ; @(posedge aclk) disable iff ( ~aresetn ) wvalid  |-> !$isunknown(wdata  ); endproperty
-property prop_valid_wstrb  ; @(posedge aclk) disable iff ( ~aresetn ) wvalid  |-> !$isunknown(wstrb  ); endproperty
-property prop_valid_bresp  ; @(posedge aclk) disable iff ( ~aresetn ) bvalid  |-> !$isunknown(bresp  ); endproperty
-property prop_valid_araddr ; @(posedge aclk) disable iff ( ~aresetn ) arvalid |-> !$isunknown(araddr ); endproperty
-property prop_valid_arprot ; @(posedge aclk) disable iff ( ~aresetn ) arvalid |-> !$isunknown(arprot ); endproperty
-property prop_valid_rdata  ; @(posedge aclk) disable iff ( ~aresetn ) rvalid  |-> !$isunknown(rdata  ); endproperty
-property prop_valid_rresp  ; @(posedge aclk) disable iff ( ~aresetn ) rvalid  |-> !$isunknown(rresp  ); endproperty
-ASSERT_VALID_AWADDR  : assert property(prop_valid_awaddr );
-ASSERT_VALID_AWPROT  : assert property(prop_valid_awprot );
-ASSERT_VALID_WDATA   : assert property(prop_valid_wdata  );
-ASSERT_VALID_WSTRB   : assert property(prop_valid_wstrb  );
-ASSERT_VALID_BRESP   : assert property(prop_valid_bresp  );
-ASSERT_VALID_ARADDR  : assert property(prop_valid_araddr );
-ASSERT_VALID_ARPROT  : assert property(prop_valid_arprot );
-ASSERT_VALID_RDATA   : assert property(prop_valid_rdata  );
-ASSERT_VALID_RRESP   : assert property(prop_valid_rresp  );
+// bresp
+property prop_bresp_valid  ; @(posedge aclk) disable iff ( ~aresetn ) bvalid |-> !$isunknown(bresp ); endproperty
+property prop_bresp_stable ; @(posedge aclk) disable iff ( ~aresetn ) (bvalid && !bready) |=> $stable(bresp ); endproperty
+ASSERT_BRESP_VALID  : assert property(prop_bresp_valid );
+ASSERT_BRESP_STABLE : assert property(prop_bresp_stable );
 
-// valid が 1 の時に ready が 0 なら次のサイクルで信号は変化しない
-property prop_stable_awaddr ; @(posedge aclk) disable iff ( ~aresetn ) (awvalid && !awready) |=> $stable(awaddr ); endproperty
-property prop_stable_awprot ; @(posedge aclk) disable iff ( ~aresetn ) (awvalid && !awready) |=> $stable(awprot ); endproperty
-property prop_stable_awvalid; @(posedge aclk) disable iff ( ~aresetn ) (awvalid && !awready) |=> $stable(awvalid); endproperty
-property prop_stable_wdata  ; @(posedge aclk) disable iff ( ~aresetn ) (wvalid  && !wready ) |=> $stable(wdata  ); endproperty
-property prop_stable_wstrb  ; @(posedge aclk) disable iff ( ~aresetn ) (wvalid  && !wready ) |=> $stable(wstrb  ); endproperty
-property prop_stable_wvalid ; @(posedge aclk) disable iff ( ~aresetn ) (wvalid  && !wready ) |=> $stable(wvalid ); endproperty
-property prop_stable_bresp  ; @(posedge aclk) disable iff ( ~aresetn ) (bvalid  && !bready ) |=> $stable(bresp  ); endproperty
-property prop_stable_bvalid ; @(posedge aclk) disable iff ( ~aresetn ) (bvalid  && !bready ) |=> $stable(bvalid ); endproperty
-property prop_stable_araddr ; @(posedge aclk) disable iff ( ~aresetn ) (arvalid && !arready) |=> $stable(araddr ); endproperty
-property prop_stable_arprot ; @(posedge aclk) disable iff ( ~aresetn ) (arvalid && !arready) |=> $stable(arprot ); endproperty
-property prop_stable_arvalid; @(posedge aclk) disable iff ( ~aresetn ) (arvalid && !arready) |=> $stable(arvalid); endproperty
-property prop_stable_rdata  ; @(posedge aclk) disable iff ( ~aresetn ) (rvalid  && !rready ) |=> $stable(rdata  ); endproperty
-property prop_stable_rresp  ; @(posedge aclk) disable iff ( ~aresetn ) (rvalid  && !rready ) |=> $stable(rresp  ); endproperty
-property prop_stable_rvalid ; @(posedge aclk) disable iff ( ~aresetn ) (rvalid  && !rready ) |=> $stable(rvalid ); endproperty
-ASSERT_STABLE_AWADDR  : assert property(prop_stable_awaddr );
-ASSERT_STABLE_AWPROT  : assert property(prop_stable_awprot );
-ASSERT_STABLE_AWVALID : assert property(prop_stable_awvalid);
-ASSERT_STABLE_WDATA   : assert property(prop_stable_wdata  );
-ASSERT_STABLE_WSTRB   : assert property(prop_stable_wstrb  );
-ASSERT_STABLE_WVALID  : assert property(prop_stable_wvalid );
-ASSERT_STABLE_BRESP   : assert property(prop_stable_bresp  );
-ASSERT_STABLE_BVALID  : assert property(prop_stable_bvalid );
-ASSERT_STABLE_ARADDR  : assert property(prop_stable_araddr );
-ASSERT_STABLE_ARPROT  : assert property(prop_stable_arprot );
-ASSERT_STABLE_ARVALID : assert property(prop_stable_arvalid);
-ASSERT_STABLE_RDATA   : assert property(prop_stable_rdata  );
-ASSERT_STABLE_RRESP   : assert property(prop_stable_rresp  );
-ASSERT_STABLE_RVALID  : assert property(prop_stable_rvalid );
+// bvalid
+property prop_bvalid_stable ; @(posedge aclk) disable iff ( ~aresetn ) (bvalid && !bready) |=> $stable(bvalid ); endproperty
+ASSERT_BVALID_STABLE : assert property(prop_bvalid_stable );
+
+
+// araddr
+property prop_araddr_valid  ; @(posedge aclk) disable iff ( ~aresetn ) arvalid |-> !$isunknown(araddr ); endproperty
+property prop_araddr_stable ; @(posedge aclk) disable iff ( ~aresetn ) (arvalid && !arready) |=> $stable(araddr ); endproperty
+ASSERT_ARADDR_VALID  : assert property(prop_araddr_valid );
+ASSERT_ARADDR_STABLE : assert property(prop_araddr_stable );
+
+// arprot
+property prop_arprot_valid  ; @(posedge aclk) disable iff ( ~aresetn ) arvalid |-> !$isunknown(arprot ); endproperty
+property prop_arprot_stable ; @(posedge aclk) disable iff ( ~aresetn ) (arvalid && !arready) |=> $stable(arprot ); endproperty
+ASSERT_ARPROT_VALID  : assert property(prop_arprot_valid );
+ASSERT_ARPROT_STABLE : assert property(prop_arprot_stable );
+
+// arvalid
+property prop_arvalid_stable ; @(posedge aclk) disable iff ( ~aresetn ) (arvalid && !arready) |=> $stable(arvalid ); endproperty
+ASSERT_ARVALID_STABLE : assert property(prop_arvalid_stable );
+
+
+// rdata
+property prop_rdata_valid  ; @(posedge aclk) disable iff ( ~aresetn ) rvalid |-> !$isunknown(rdata ); endproperty
+property prop_rdata_stable ; @(posedge aclk) disable iff ( ~aresetn ) (rvalid && !rready) |=> $stable(rdata ); endproperty
+ASSERT_RDATA_VALID  : assert property(prop_rdata_valid );
+ASSERT_RDATA_STABLE : assert property(prop_rdata_stable );
+
+// rresp
+property prop_rresp_valid  ; @(posedge aclk) disable iff ( ~aresetn ) rvalid |-> !$isunknown(rresp ); endproperty
+property prop_rresp_stable ; @(posedge aclk) disable iff ( ~aresetn ) (rvalid && !rready) |=> $stable(rresp ); endproperty
+ASSERT_RRESP_VALID  : assert property(prop_rresp_valid );
+ASSERT_RRESP_STABLE : assert property(prop_rresp_stable );
+
+// rvalid
+property prop_rvalid_stable ; @(posedge aclk) disable iff ( ~aresetn ) (rvalid && !rready) |=> $stable(rvalid ); endproperty
+ASSERT_RVALID_STABLE : assert property(prop_rvalid_stable );
 
 
 
