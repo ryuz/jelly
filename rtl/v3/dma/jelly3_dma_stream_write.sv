@@ -11,7 +11,6 @@
 `default_nettype none
 
 
-
 module jelly3_dma_stream_write
         #(
             // 基本設定

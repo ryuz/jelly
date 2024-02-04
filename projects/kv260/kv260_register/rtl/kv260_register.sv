@@ -119,23 +119,26 @@ module kv260_register
             )
         i_axi4l_dec [AXI4L_DEC_NUM]
             (
-                .aresetn        (axi4l_aresetn),
-                .aclk           (axi4l_aclk)
+                .aresetn        (axi4l_aresetn  ),
+                .aclk           (axi4l_aclk     )
             );
-
-    jelly3_axi4l_addr_decoder
-            #(
-                .NUM            (AXI4L_DEC_NUM)
-            )
-        u_axi4l_addr_decoder
-            (
-                .s_axi4l        (i_axi4l_peri),
-                .m_axi4l        (i_axi4l_dec)
-            );
-
+    
     // address map
     assign {i_axi4l_dec[AXI4L_DEC_REG0].addr_base, i_axi4l_dec[AXI4L_DEC_REG0].addr_high} = {40'ha000_0000, 40'ha000_ffff};
     assign {i_axi4l_dec[AXI4L_DEC_REG1].addr_base, i_axi4l_dec[AXI4L_DEC_REG1].addr_high} = {40'ha001_0000, 40'ha001_ffff};
+        
+    jelly3_axi4l_addr_decoder
+            #(
+                .NUM            (AXI4L_DEC_NUM  ),
+                .DEC_ADDR_BITS  (28             )
+            )
+        u_axi4l_addr_decoder
+            (
+                .s_axi4l        (i_axi4l_peri   ),
+                .m_axi4l        (i_axi4l_dec    )
+            );
+
+
 
 
 
