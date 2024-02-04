@@ -12,13 +12,21 @@
 
 
 module jelly3_axi4l_addr_decoder
-    #(
-        parameter   int     NUM       = 4
-    )
-    (
-        jelly3_axi4l_if.s   s_axi4l,
-        jelly3_axi4l_if.m   m_axi4l  [NUM]
-    );
+        #(
+            parameter   int             NUM       = 4,
+            parameter   int             DEC_ADDR_BITS = 0,
+            parameter   bit     [63:0]  DEC_ADDR_MASK = '1
+        )
+        (
+            jelly3_axi4l_if.s   s_axi4l,
+            jelly3_axi4l_if.m   m_axi4l  [NUM]
+        );
+
+    localparam int DEC_MASK_BITS = DEC_ADDR_BITS > 0 ? DEC_ADDR_BITS : s_axi4l.ADDR_BITS;
+    typedef logic   [DEC_MASK_BITS-1:0]     mask_t;
+    function [DEC_MASK_BITS-1:0] dec_addr_mask(input [s_axi4l.ADDR_BITS-1:0] addr);
+        return DEC_MASK_BITS'(addr) & DEC_MASK_BITS'(DEC_ADDR_MASK);
+    endfunction
 
     logic   [s_axi4l.ADDR_BITS-1:0]  addr_base   [NUM];
     logic   [s_axi4l.ADDR_BITS-1:0]  addr_high   [NUM];
@@ -26,7 +34,6 @@ module jelly3_axi4l_addr_decoder
         assign addr_base[i] = m_axi4l[i].addr_base;
         assign addr_high[i] = m_axi4l[i].addr_high;
     end
-
 
     // address decode
     logic   [NUM-1:0]  awaddr_match;
@@ -36,7 +43,8 @@ module jelly3_axi4l_addr_decoder
         awaddr_other = 1'b0;
         awaddr_other = 1'b1;
         for ( int i = 0; i < NUM; i++ ) begin
-            if ( s_axi4l.awaddr >= addr_base[i] && s_axi4l.awaddr <= addr_high[i] ) begin
+            if ( dec_addr_mask(s_axi4l.awaddr) >= dec_addr_mask(addr_base[i])
+              && dec_addr_mask(s_axi4l.awaddr) <= dec_addr_mask(addr_high[i]) ) begin
                 awaddr_match[i] = 1'b1;
                 awaddr_other    = 1'b0;
             end
@@ -50,13 +58,14 @@ module jelly3_axi4l_addr_decoder
         araddr_other = 1'b0;
         araddr_other = 1'b1;
         for ( int i = 0; i < NUM; i++ ) begin
-            if ( s_axi4l.araddr >= addr_base[i] && s_axi4l.araddr <= addr_high[i] ) begin
+            if ( dec_addr_mask(s_axi4l.araddr) >= dec_addr_mask(addr_base[i])
+              && dec_addr_mask(s_axi4l.araddr) <= dec_addr_mask(addr_high[i]) ) begin
                 araddr_match[i] = 1'b1;
                 araddr_other    = 1'b0;
             end
         end
     end
-
+    
     // write
     logic                           m_awready     [NUM];
     logic                           m_wready      [NUM];
