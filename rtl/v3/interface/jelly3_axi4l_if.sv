@@ -34,27 +34,27 @@ interface jelly3_axi4l_if
     // signals
     logic   [ADDR_BITS-1:0]     awaddr;
     logic   [PROT_BITS-1:0]     awprot;
-    logic                       awvalid = 1'b0;
+    logic                       awvalid;
     logic                       awready;
 
     logic   [DATA_BITS-1:0]     wdata;
     logic   [STRB_BITS-1:0]     wstrb;
-    logic                       wvalid = 1'b0;
+    logic                       wvalid;
     logic                       wready;
 
     logic   [RESP_BITS-1:0]     bresp;
     logic                       bvalid;
-    logic                       bready = 1'b0;
+    logic                       bready;
    
     logic   [ADDR_BITS-1:0]     araddr;
     logic   [PROT_BITS-1:0]     arprot;
-    logic                       arvalid = 1'b0;
+    logic                       arvalid;
     logic                       arready;
 
     logic   [DATA_BITS-1:0]     rdata;
     logic   [RESP_BITS-1:0]     rresp;
     logic                       rvalid;
-    logic                       rready = 1'b0;
+    logic                       rready;
 
     modport m
         (

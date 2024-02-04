@@ -40,13 +40,14 @@ interface jelly3_axi4s_if
     logic   [ID_BITS-1:0]       tid;
     logic   [DEST_BITS-1:0]     tdest;
     logic   [USER_BITS-1:0]     tuser;
-    logic                       tvalid = 1'b0;
+    logic                       tvalid;
     logic                       tready;
 
     modport m
         (
             input   aresetn,
             input   aclk,
+            input   aclken,
     
             output  tdata,
             output  tstrb,
@@ -55,6 +56,7 @@ interface jelly3_axi4s_if
             output  tid,
             output  tdest,
             output  tuser,
+            output  tvalid,
             input   tready
         );
 
@@ -70,12 +72,13 @@ interface jelly3_axi4s_if
             input   tid,
             input   tdest,
             input   tuser,
+            input   tvalid,
             output  tready
         );
 
 
 // valid 時に信号が有効であること
-property prop_tdata_valid ; @(posedge aclk) disable iff ( ~aresetn ) tvalid |-> !$isunknown(tadata ); endproperty
+property prop_tdata_valid ; @(posedge aclk) disable iff ( ~aresetn ) tvalid |-> !$isunknown(tdata ); endproperty
 property prop_tdata_stable; @(posedge aclk) disable iff ( ~aresetn ) (tvalid && !tready) |=> $stable(tdata); endproperty
 ASSERT_TDATA_VALID  : assert property(prop_tdata_valid );
 ASSERT_TDATA_STABLE : assert property(prop_tdata_stable );
