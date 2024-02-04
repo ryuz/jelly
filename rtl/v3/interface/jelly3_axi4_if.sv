@@ -226,6 +226,140 @@ interface jelly3_axi4_if
             input   rready      
         );
 
+    modport mw
+        (
+            input   addr_base   ,
+            input   addr_high   ,
+
+            input   aresetn     ,
+            input   aclk        ,
+
+            output  awid        ,
+            output  awaddr      ,
+            output  awlen       ,
+            output  awsize      ,
+            output  awburst     ,
+            output  awlock      ,
+            output  awcache     ,
+            output  awprot      ,
+            output  awqos       ,
+            output  awregion    ,
+            output  awuser      ,
+            output  awvalid     ,
+            input   awready     ,
+
+            output  wdata       ,
+            output  wstrb       ,
+            output  wlast       ,
+            output  wuser       ,
+            output  wvalid      ,
+            input   wready      ,
+
+            input   bid         ,
+            input   bresp       ,
+            input   buser       ,
+            input   bvalid      ,
+            output  bready      
+        );
+    
+    modport mr
+        (
+            input   addr_base   ,
+            input   addr_high   ,
+
+            input   aresetn     ,
+            input   aclk        ,
+            output  arid        ,
+            output  araddr      ,
+            output  arlen       ,
+            output  arsize      ,
+            output  arburst     ,
+            output  arlock      ,
+            output  arcache     ,
+            output  arprot      ,
+            output  arqos       ,
+            output  arregion    ,
+            output  aruser      ,
+            output  arvalid     ,
+
+            input   arready     ,
+            input   rid         ,
+            input   rdata       ,
+            input   rresp       ,
+            input   rlast       ,
+            input   ruser       ,
+            input   rvalid      ,
+            output  rready      
+        );
+
+    modport sw
+        (
+            input   addr_base   ,
+            input   addr_high   ,
+
+            input   aresetn     ,
+            input   aclk        ,
+
+            input   awid        ,
+            input   awaddr      ,
+            input   awlen       ,
+            input   awsize      ,
+            input   awburst     ,
+            input   awlock      ,
+            input   awcache     ,
+            input   awprot      ,
+            input   awqos       ,
+            input   awregion    ,
+            input   awuser      ,
+            input   awvalid     ,
+            output  awready     ,
+
+            input   wdata       ,
+            input   wstrb       ,
+            input   wlast       ,
+            input   wuser       ,
+            input   wvalid      ,
+            output  wready      ,
+
+            output  bid         ,
+            output  bresp       ,
+            output  buser       ,
+            output  bvalid      ,
+            input   bready      
+        );
+
+    modport sr
+        (
+            input   addr_base   ,
+            input   addr_high   ,
+
+            input   aresetn     ,
+            input   aclk        ,
+
+            input   arid        ,
+            input   araddr      ,
+            input   arlen       ,
+            input   arsize      ,
+            input   arburst     ,
+            input   arlock      ,
+            input   arcache     ,
+            input   arprot      ,
+            input   arqos       ,
+            input   arregion    ,
+            input   aruser      ,
+            output  arvalid     ,
+
+            output  arready     ,
+            output  rid         ,
+            output  rdata       ,
+            output  rresp       ,
+            output  rlast       ,
+            output  ruser       ,
+            output  rvalid      ,
+            input   rready      
+        );
+
+
 
 
 // awaddr
