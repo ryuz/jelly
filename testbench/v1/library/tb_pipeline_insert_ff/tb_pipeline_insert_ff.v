@@ -10,7 +10,7 @@ module tb_pipeline_insert_ff();
         $dumpfile("tb_pipeline_insert_ff.vcd");
         $dumpvars(0, tb_pipeline_insert_ff);
         
-        #100000;
+        #10000;
             $finish;
     end
     

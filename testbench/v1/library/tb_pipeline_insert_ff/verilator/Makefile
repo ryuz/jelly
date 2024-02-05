@@ -21,7 +21,7 @@ distclean: clean
 
 .PHONY : run
 run:
-	./obj_dir/Vtb_sim
+	./obj_dir/Vtb_pipeline_insert_ff
 
 .PHONY : coverage
 coverage:
