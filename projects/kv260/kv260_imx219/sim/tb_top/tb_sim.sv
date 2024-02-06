@@ -57,7 +57,7 @@ module tb_sim();
     //  main
     // ---------------------------------
 
-    parameter   WB_ADR_WIDTH        = 30;
+    parameter   WB_ADR_WIDTH        = 37;
     parameter   WB_DAT_WIDTH        = 64;
     parameter   WB_SEL_WIDTH        = (WB_DAT_WIDTH / 8);
     
@@ -127,7 +127,7 @@ module tb_sim();
     task wb_write(
                 input [WB_ADR_WIDTH-1:0]    adr,
                 input [WB_DAT_WIDTH-1:0]    dat,
-                input [WB_SEL_WIDTH:0]      sel
+                input [WB_SEL_WIDTH-1:0]    sel
             );
     begin
         $display("WISHBONE_WRITE(adr:%h dat:%h sel:%b)", adr, dat, sel);
@@ -178,11 +178,11 @@ module tb_sim();
 //    localparam ADR_COLMAT  = (32'h00120200 >> 3);  // カラーマトリックス
 //    localparam ADR_VDMAW   = (32'h00210000 >> 3);  // Write-DMA
 
-    localparam ADR_GID    = (32'h00000000 >> 3);
-    localparam ADR_FMTR   = (32'h00100000 >> 3);
-    localparam ADR_DEMOS  = (32'h00120000 >> 3);
-    localparam ADR_COLMAT = (32'h00120200 >> 3);
-    localparam ADR_VDMAW  = (32'h00210000 >> 3);
+    localparam  ADR_GID    = WB_ADR_WIDTH'(32'h00000000) >> 3;
+    localparam  ADR_FMTR   = WB_ADR_WIDTH'(32'h00100000) >> 3;
+    localparam  ADR_DEMOS  = WB_ADR_WIDTH'(32'h00120000) >> 3;
+    localparam  ADR_COLMAT = WB_ADR_WIDTH'(32'h00120200) >> 3;
+    localparam  ADR_VDMAW  = WB_ADR_WIDTH'(32'h00210000) >> 3;
 
 `include "jelly/JellyRegs.vh"
     
@@ -191,25 +191,25 @@ module tb_sim();
         $display("start");
 
         $display("set FMTR");
-        wb_read (ADR_FMTR + `REG_VIDEO_FMTREG_CORE_ID);
-        wb_write(ADR_FMTR + `REG_VIDEO_FMTREG_PARAM_WIDTH,  X_NUM, 8'hff);
-        wb_write(ADR_FMTR + `REG_VIDEO_FMTREG_PARAM_HEIGHT, Y_NUM, 8'hff);
-        wb_write(ADR_FMTR + `REG_VIDEO_FMTREG_CTL_CONTROL,      32'h3, 8'hff);
+        wb_read (ADR_FMTR + WB_ADR_WIDTH'(`REG_VIDEO_FMTREG_CORE_ID     ));
+        wb_write(ADR_FMTR + WB_ADR_WIDTH'(`REG_VIDEO_FMTREG_PARAM_WIDTH ), X_NUM, 8'hff);
+        wb_write(ADR_FMTR + WB_ADR_WIDTH'(`REG_VIDEO_FMTREG_PARAM_HEIGHT), Y_NUM, 8'hff);
+        wb_write(ADR_FMTR + WB_ADR_WIDTH'(`REG_VIDEO_FMTREG_CTL_CONTROL ), 64'h3, 8'hff);
 
         $display("set DEMOSIC");
-        wb_read (ADR_DEMOS + `REG_IMG_DEMOSAIC_CORE_ID);
-        wb_write(ADR_DEMOS + `REG_IMG_DEMOSAIC_PARAM_PHASE,     0, 8'hff);
-        wb_write(ADR_DEMOS + `REG_IMG_DEMOSAIC_CTL_CONTROL, 32'h3, 8'hff);
+        wb_read (ADR_DEMOS + WB_ADR_WIDTH'(`REG_IMG_DEMOSAIC_CORE_ID    ));
+        wb_write(ADR_DEMOS + WB_ADR_WIDTH'(`REG_IMG_DEMOSAIC_PARAM_PHASE),     0, 8'hff);
+        wb_write(ADR_DEMOS + WB_ADR_WIDTH'(`REG_IMG_DEMOSAIC_CTL_CONTROL), 64'h3, 8'hff);
 
         $display("set write DMA");
-        wb_read (ADR_VDMAW + `REG_VDMA_WRITE_CORE_ID);
-        wb_write(ADR_VDMAW + `REG_VDMA_WRITE_PARAM_ADDR,              32'h0000000, 8'hff);
-        wb_write(ADR_VDMAW + `REG_VDMA_WRITE_PARAM_LINE_STEP,             X_NUM*4, 8'hff);
-        wb_write(ADR_VDMAW + `REG_VDMA_WRITE_PARAM_H_SIZE,                X_NUM-1, 8'hff);
-        wb_write(ADR_VDMAW + `REG_VDMA_WRITE_PARAM_V_SIZE,                Y_NUM-1, 8'hff);
-        wb_write(ADR_VDMAW + `REG_VDMA_WRITE_PARAM_FRAME_STEP,      Y_NUM*X_NUM*4, 8'hff);
-        wb_write(ADR_VDMAW + `REG_VDMA_WRITE_PARAM_F_SIZE,                    1-1, 8'hff);
-        wb_write(ADR_VDMAW + `REG_VDMA_WRITE_CTL_CONTROL,                       3, 8'hff);  // update & enable
+        wb_read (ADR_VDMAW + WB_ADR_WIDTH'(`REG_VDMA_WRITE_CORE_ID       ));
+        wb_write(ADR_VDMAW + WB_ADR_WIDTH'(`REG_VDMA_WRITE_PARAM_ADDR    ),              64'h0000000, 8'hff);
+        wb_write(ADR_VDMAW + WB_ADR_WIDTH'(`REG_VDMA_WRITE_PARAM_LINE_STEP),             X_NUM*4, 8'hff);
+        wb_write(ADR_VDMAW + WB_ADR_WIDTH'(`REG_VDMA_WRITE_PARAM_H_SIZE),                X_NUM-1, 8'hff);
+        wb_write(ADR_VDMAW + WB_ADR_WIDTH'(`REG_VDMA_WRITE_PARAM_V_SIZE),                Y_NUM-1, 8'hff);
+        wb_write(ADR_VDMAW + WB_ADR_WIDTH'(`REG_VDMA_WRITE_PARAM_FRAME_STEP),      Y_NUM*X_NUM*4, 8'hff);
+        wb_write(ADR_VDMAW + WB_ADR_WIDTH'(`REG_VDMA_WRITE_PARAM_F_SIZE),                    1-1, 8'hff);
+        wb_write(ADR_VDMAW + WB_ADR_WIDTH'(`REG_VDMA_WRITE_CTL_CONTROL),                       3, 8'hff);  // update & enable
 
     #4000000;
         $finish();

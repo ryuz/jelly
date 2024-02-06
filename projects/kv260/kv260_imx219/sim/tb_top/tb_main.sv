@@ -111,6 +111,7 @@ module tb_main
     logic                       axi4s_src_tvalid;
     logic                       axi4s_src_tready;
 
+    
     assign axi4s_cam_aresetn = i_top.axi4s_cam_aresetn;
     assign axi4s_cam_aclk    = i_top.axi4s_cam_aclk;
     assign axi4s_src_tready  = i_top.axi4s_csi2_tready;
@@ -121,6 +122,16 @@ module tb_main
     always_comb force   i_top.axi4s_csi2_tdata  = axi4s_src_tdata;
     always_comb force   i_top.axi4s_csi2_tvalid = axi4s_src_tvalid;
     
+    /*
+    assign axi4s_cam_aresetn = i_top.i_mipi_csi2_rx.axi4s_aresetn;
+    assign axi4s_cam_aclk    = i_top.i_mipi_csi2_rx.axi4s_aclk;
+    assign axi4s_src_tready  = i_top.i_mipi_csi2_rx.axi4s_tready;
+    always_comb force   i_top.i_mipi_csi2_rx.axi4s_tuser  = axi4s_src_tuser    ;
+    always_comb force   i_top.i_mipi_csi2_rx.axi4s_tlast  = axi4s_src_tlast    ;   
+    always_comb force   i_top.i_mipi_csi2_rx.axi4s_tdata  = axi4s_src_tdata    ;
+    always_comb force   i_top.i_mipi_csi2_rx.axi4s_tvalid = axi4s_src_tvalid   ;
+    */
+
     jelly2_axi4s_master_model
             #(
                 .COMPONENTS         (1),

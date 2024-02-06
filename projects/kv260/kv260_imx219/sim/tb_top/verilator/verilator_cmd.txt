@@ -13,6 +13,7 @@
 #-Wno-UNUSEDPARAM
 #-Wno-UNUSEDSIGNAL
 #-Wno-UNUSEDPARAM
+-Wno-UNOPTFLAT
 -Wno-fatal
 
 --assert
@@ -50,5 +51,6 @@
 
 ../tb_sim.sv
 ../tb_main.sv
+#../stub/jelly2_mipi_csi2_rx.sv
 
 --top tb_sim
