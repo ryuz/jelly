@@ -132,20 +132,20 @@ interface jelly3_axi4l_if
 
 
 // awaddr
-property prop_awaddr_valid  ; @(posedge aclk) disable iff ( ~aresetn ) awvalid |-> !$isunknown(awaddr ); endproperty
-property prop_awaddr_stable ; @(posedge aclk) disable iff ( ~aresetn ) (awvalid && !awready) |=> $stable(awaddr ); endproperty
-ASSERT_AWADDR_VALID  : assert property(prop_awaddr_valid );
-ASSERT_AWADDR_STABLE : assert property(prop_awaddr_stable );
+property prop_awaddr_valid  ; @(posedge aclk) disable iff ( ~aresetn ) awvalid |-> !$isunknown(awaddr); endproperty
+property prop_awaddr_stable ; @(posedge aclk) disable iff ( ~aresetn ) (awvalid && !awready) |=> $stable(awaddr); endproperty
+ASSERT_AWADDR_VALID  : assert property(prop_awaddr_valid);
+ASSERT_AWADDR_STABLE : assert property(prop_awaddr_stable);
 
 // awprot
 property prop_awprot_valid  ; @(posedge aclk) disable iff ( ~aresetn ) awvalid |-> !$isunknown(awprot ); endproperty
-property prop_awprot_stable ; @(posedge aclk) disable iff ( ~aresetn ) (awvalid && !awready) |=> $stable(awprot ); endproperty
-ASSERT_AWPROT_VALID  : assert property(prop_awprot_valid );
-ASSERT_AWPROT_STABLE : assert property(prop_awprot_stable );
+property prop_awprot_stable ; @(posedge aclk) disable iff ( ~aresetn ) (awvalid && !awready) |=> $stable(awprot); endproperty
+ASSERT_AWPROT_VALID  : assert property(prop_awprot_valid);
+ASSERT_AWPROT_STABLE : assert property(prop_awprot_stable);
 
 // awvalid
 property prop_awvalid_stable ; @(posedge aclk) disable iff ( ~aresetn ) (awvalid && !awready) |=> $stable(awvalid ); endproperty
-ASSERT_AWVALID_STABLE : assert property(prop_awvalid_stable );
+ASSERT_AWVALID_STABLE : assert property(prop_awvalid_stable);
 
 
 // wdata

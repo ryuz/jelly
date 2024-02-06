@@ -47,7 +47,6 @@ interface jelly3_axi4s_if
         (
             input   aresetn,
             input   aclk,
-            input   aclken,
     
             output  tdata,
             output  tstrb,
@@ -77,7 +76,9 @@ interface jelly3_axi4s_if
         );
 
 
-// valid 時に信号が有効であること
+property prop_tvalid_stable; @(posedge aclk) disable iff ( ~aresetn ) (tvalid && !tready) |=> $stable(tvalid); endproperty
+ASSERT_TVALID_STABLE : assert property(prop_tvalid_stable );
+
 property prop_tdata_valid ; @(posedge aclk) disable iff ( ~aresetn ) tvalid |-> !$isunknown(tdata ); endproperty
 property prop_tdata_stable; @(posedge aclk) disable iff ( ~aresetn ) (tvalid && !tready) |=> $stable(tdata); endproperty
 ASSERT_TDATA_VALID  : assert property(prop_tdata_valid );

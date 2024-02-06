@@ -24,12 +24,12 @@ module jelly3_data_ff
             input   var logic   cke         ,
             
             // slave port
-            input   data_t      s_data      ,
+            input   var data_t  s_data      ,
             input   var logic   s_valid     ,
             output  var logic   s_ready     ,
             
             // master port
-            output  data_t      m_data      ,
+            output  var data_t  m_data      ,
             output  var logic   m_valid     ,
             input   var logic   m_ready
         );
