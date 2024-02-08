@@ -42,7 +42,7 @@ module jelly3_video_format_regularizer_core
             input   var timer_t                         param_timeout,
 
             output  var width_t                         current_width,
-            output  var timer_t                         current_height
+            output  var height_t                        current_height
         );
     
     
@@ -65,23 +65,23 @@ module jelly3_video_format_regularizer_core
 
     jelly3_data_ff
             #(
-                .data_t         (axi4s_t    ),
-                .S_REGS         (S_REGS     ),
-                .M_REGS         (1          )
+                .data_t         (axi4s_t                                        ),
+                .S_REGS         (S_REGS                                         ),
+                .M_REGS         (1                                              )
             )
         i_pipeline_insert_ff_s
             (
-                .reset          (~s_axi4s.aresetn   ),
-                .clk            (s_axi4s.aclk       ),
-                .cke            (aclken             ),
+                .reset          (~s_axi4s.aresetn                               ),
+                .clk            (s_axi4s.aclk                                   ),
+                .cke            (aclken                                         ),
                 
-                .s_data         ({s_axi4s.tuser, s_axi4s.tlast, s_axi4s.tdata}),
-                .s_valid        (s_axi4s.tvalid),
-                .s_ready        (s_axi4s.tready),
+                .s_data         ({s_axi4s.tuser, s_axi4s.tlast, s_axi4s.tdata}  ),
+                .s_valid        (s_axi4s.tvalid                                 ),
+                .s_ready        (s_axi4s.tready                                 ),
                 
-                .m_data         ({in_tuser, in_tlast, in_tdata}),
-                .m_valid        (in_tvalid),
-                .m_ready        (in_tready)
+                .m_data         ({in_tuser, in_tlast, in_tdata}                 ),
+                .m_valid        (in_tvalid                                      ),
+                .m_ready        (in_tready                                      )
             );
     
     
@@ -297,23 +297,23 @@ module jelly3_video_format_regularizer_core
     // output FF
     jelly3_data_ff
             #(
-                .data_t         (axi4s_t    ),
-                .S_REGS         (1          ),
-                .M_REGS         (M_REGS     )
+                .data_t         (axi4s_t                                        ),
+                .S_REGS         (1                                              ),
+                .M_REGS         (M_REGS                                         )
             )
         i_pipeline_insert_ff_m
             (
-                .reset          (~s_axi4s.aresetn),
-                .clk            (s_axi4s.aclk),
-                .cke            (aclken),
+                .reset          (~s_axi4s.aresetn                               ),
+                .clk            (s_axi4s.aclk                                   ),
+                .cke            (aclken                                         ),
                 
-                .s_data         ({reg_tuser, reg_tlast, reg_tdata}),
-                .s_valid        (reg_tvalid),
-                .s_ready        (sig_tready),
+                .s_data         ({reg_tuser, reg_tlast, reg_tdata}              ),
+                .s_valid        (reg_tvalid                                     ),
+                .s_ready        (sig_tready                                     ),
                 
-                .m_data         ({m_axi4s.tuser, m_axi4s.tlast, m_axi4s.tdata}),
-                .m_valid        (m_axi4s.tvalid),
-                .m_ready        (m_axi4s.tready)
+                .m_data         ({m_axi4s.tuser, m_axi4s.tlast, m_axi4s.tdata}  ),
+                .m_valid        (m_axi4s.tvalid                                 ),
+                .m_ready        (m_axi4s.tready                                 )
             );
     
     
