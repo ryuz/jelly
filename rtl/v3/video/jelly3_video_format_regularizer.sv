@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-module jelly2_video_format_regularizer
+module jelly3_video_format_regularizer
         #(
             parameter   type            width_t         = logic [15:0]  ,
             parameter   type            height_t        = logic [15:0]  ,
@@ -52,6 +52,7 @@ module jelly2_video_format_regularizer
     localparam type axi4s_data_t = logic [m_axi4s.DATA_BITS-1:0];
     localparam type axi4l_data_t = logic [s_axi4l.DATA_BITS-1:0];
     
+
 
     // -------------------------------------
     //  registers
