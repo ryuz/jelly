@@ -88,15 +88,15 @@ module jelly3_video_format_regularizer
     logic           busy;
     index_t         index;
     
-    // latch core domein signals
+    // latch core domain signals
     (* ASYNC_REG = "true" *)    logic     ff0_busy,  ff1_busy;
     (* ASYNC_REG = "true" *)    index_t   ff0_index, ff1_index, ff2_index;
     always_ff @(posedge s_axi4l.aclk) begin
-        ff0_busy  <= busy;
-        ff1_busy  <= ff0_busy;        
-        ff0_index <= index;
-        ff1_index <= ff0_index;
-        ff2_index <= ff1_index;
+        ff0_busy  <= busy       ;
+        ff1_busy  <= ff0_busy   ;
+        ff0_index <= index      ;
+        ff1_index <= ff0_index  ;
+        ff2_index <= ff1_index  ;
     end
 
     function [s_axi4l.DATA_BITS-1:0] write_mask(

@@ -9,7 +9,7 @@ module tb_video_format_regularizer();
         $dumpfile("tb_video_format_regularizer.vcd");
         $dumpvars(0, tb_video_format_regularizer);
     
-    #20000000
+    #40000000
         $finish;
     end
     
@@ -61,10 +61,10 @@ module tb_video_format_regularizer();
     parameter   bit     [1:0]   INIT_CTL_CONTROL      = 2'b00;
     parameter   bit             INIT_CTL_SKIP         = 1;
     parameter   bit             INIT_CTL_FRM_TIMER_EN = 0;
-    parameter   frame_timer_t   INIT_CTL_FRM_TIMEOUT  = 10000000;
+    parameter   frame_timer_t   INIT_CTL_FRM_TIMEOUT  = 1000000;
     parameter   width_t         INIT_PARAM_WIDTH      = 256;
     parameter   height_t        INIT_PARAM_HEIGHT     = 256;
-    parameter                   INIT_PARAM_FILL       = 0;
+    parameter                   INIT_PARAM_FILL       = 24'h0000ff;
     parameter   timer_t         INIT_PARAM_TIMEOUT    = 0;
 
 
@@ -156,34 +156,14 @@ module tb_video_format_regularizer();
     localparam  IMG_HEIGHT = 256;
 
     // master
-    /*
-    jelly_axi4s_master_model
-            #(
-                .AXI4S_DATA_WIDTH   (i_axi4s_src.DATA_BITS),
-                .X_NUM              (IMG_WIDTH),
-                .Y_NUM              (IMG_HEIGHT),
-                .PPM_FILE           ("../Mandrill_256x256.ppm"),
-                .BUSY_RATE          (0),
-                .RANDOM_SEED        (0)
-            )
-        i_axi4s_master_model
-            (
-                .aresetn            (axi4l_aresetn),
-                .aclk               (axi4l_aclk),
-                
-                .m_axi4s_tuser      (i_axi4s_src.tuser),
-                .m_axi4s_tlast      (i_axi4s_src.tlast),
-                .m_axi4s_tdata      (i_axi4s_src.tdata),
-                .m_axi4s_tvalid     (i_axi4s_src.tvalid),
-                .m_axi4s_tready     (i_axi4s_src.tready & !timeout_busy)
-            );
-    */
     jelly3_model_axi4s_m
             #(
-                .IMG_WIDTH          (IMG_WIDTH),
-                .IMG_HEIGHT         (IMG_HEIGHT),
+                .IMG_WIDTH          (IMG_WIDTH-11),
+                .IMG_HEIGHT         (IMG_HEIGHT/2),
                 .FILE_NAME          ("../Mandrill_256x256.ppm"),
-                .BUSY_RATE          (0),
+                .FILE_IMG_WIDTH     (256),
+                .FILE_IMG_HEIGHT    (256),
+                .BUSY_RATE          (50),
                 .RANDOM_SEED        (123)
             )
         u_model_axi4s_m
@@ -198,11 +178,9 @@ module tb_video_format_regularizer();
                 .out_f              (               )
             );
 
-// i_axi4s_src.tready & !timeout_busy
-
     // slave
     always_ff @(posedge axi4l_aclk) begin
-        i_axi4s_dst.tready <= 1'b1; // 1'($random());
+        i_axi4s_dst.tready <= 1'($random());
     end
     
     
@@ -219,14 +197,14 @@ module tb_video_format_regularizer();
          $fdisplay(fp_img, "255");
     end
     
-    always @(posedge axi4s_aclk) begin
+    always_ff @(posedge axi4s_aclk) begin
         if ( axi4s_aresetn && i_axi4s_dst.tvalid && i_axi4s_dst.tready ) begin
              $fdisplay(fp_img, "%d %d %d", i_axi4s_dst.tdata[0*8 +: 8], i_axi4s_dst.tdata[1*8 +: 8], i_axi4s_dst.tdata[2*8 +: 8]);
         end
     end
     
     integer frame_count = 0;
-    always @(posedge axi4s_aclk) begin
+    always_ff @(posedge axi4s_aclk) begin
         if ( axi4s_aresetn && i_axi4s_dst.tuser[0] && i_axi4s_dst.tvalid && i_axi4s_dst.tready ) begin
             $display("frame : %d", frame_count);
             frame_count = frame_count + 1;
@@ -245,18 +223,18 @@ module tb_video_format_regularizer();
     localparam type axi4l_addr_t = logic [i_axi4l.ADDR_BITS-1:0];
     localparam type axi4l_data_t = logic [i_axi4l.DATA_BITS-1:0];
 
-    localparam  axi4l_addr_t    ADR_CORE_ID            = axi4l_addr_t'('h00) << 2; // $bits(i_axi4l.STRB_BITS);
-    localparam  axi4l_addr_t    ADR_CORE_VERSION       = axi4l_addr_t'('h01) << 2; // $bits(i_axi4l.STRB_BITS);
-    localparam  axi4l_addr_t    ADR_CTL_CONTROL        = axi4l_addr_t'('h04) << 2; // $bits(i_axi4l.STRB_BITS);
-    localparam  axi4l_addr_t    ADR_CTL_STATUS         = axi4l_addr_t'('h05) << 2; // $bits(i_axi4l.STRB_BITS);
-    localparam  axi4l_addr_t    ADR_CTL_INDEX          = axi4l_addr_t'('h07) << 2; // $bits(i_axi4l.STRB_BITS);
-    localparam  axi4l_addr_t    ADR_CTL_SKIP           = axi4l_addr_t'('h08) << 2; // $bits(i_axi4l.STRB_BITS);
-    localparam  axi4l_addr_t    ADR_CTL_FRM_TIMER_EN   = axi4l_addr_t'('h0a) << 2; // $bits(i_axi4l.STRB_BITS);
-    localparam  axi4l_addr_t    ADR_CTL_FRM_TIMEOUT    = axi4l_addr_t'('h0b) << 2; // $bits(i_axi4l.STRB_BITS);
-    localparam  axi4l_addr_t    ADR_PARAM_WIDTH        = axi4l_addr_t'('h10) << 2; // $bits(i_axi4l.STRB_BITS);
-    localparam  axi4l_addr_t    ADR_PARAM_HEIGHT       = axi4l_addr_t'('h11) << 2; // $bits(i_axi4l.STRB_BITS);
-    localparam  axi4l_addr_t    ADR_PARAM_FILL         = axi4l_addr_t'('h12) << 2; // $bits(i_axi4l.STRB_BITS);
-    localparam  axi4l_addr_t    ADR_PARAM_TIMEOUT      = axi4l_addr_t'('h13) << 2; // $bits(i_axi4l.STRB_BITS);
+    localparam  axi4l_addr_t    ADR_CORE_ID            = axi4l_addr_t'('h00) * (i_axi4l.DATA_BITS/8);
+    localparam  axi4l_addr_t    ADR_CORE_VERSION       = axi4l_addr_t'('h01) * (i_axi4l.DATA_BITS/8);
+    localparam  axi4l_addr_t    ADR_CTL_CONTROL        = axi4l_addr_t'('h04) * (i_axi4l.DATA_BITS/8);
+    localparam  axi4l_addr_t    ADR_CTL_STATUS         = axi4l_addr_t'('h05) * (i_axi4l.DATA_BITS/8);
+    localparam  axi4l_addr_t    ADR_CTL_INDEX          = axi4l_addr_t'('h07) * (i_axi4l.DATA_BITS/8);
+    localparam  axi4l_addr_t    ADR_CTL_SKIP           = axi4l_addr_t'('h08) * (i_axi4l.DATA_BITS/8);
+    localparam  axi4l_addr_t    ADR_CTL_FRM_TIMER_EN   = axi4l_addr_t'('h0a) * (i_axi4l.DATA_BITS/8);
+    localparam  axi4l_addr_t    ADR_CTL_FRM_TIMEOUT    = axi4l_addr_t'('h0b) * (i_axi4l.DATA_BITS/8);
+    localparam  axi4l_addr_t    ADR_PARAM_WIDTH        = axi4l_addr_t'('h10) * (i_axi4l.DATA_BITS/8);
+    localparam  axi4l_addr_t    ADR_PARAM_HEIGHT       = axi4l_addr_t'('h11) * (i_axi4l.DATA_BITS/8);
+    localparam  axi4l_addr_t    ADR_PARAM_FILL         = axi4l_addr_t'('h12) * (i_axi4l.DATA_BITS/8);
+    localparam  axi4l_addr_t    ADR_PARAM_TIMEOUT      = axi4l_addr_t'('h13) * (i_axi4l.DATA_BITS/8);
 
     jelly3_axi4l_accessor
             #(
@@ -291,6 +269,12 @@ module tb_video_format_regularizer();
                 
         #(RATE100*100);
         $display("enable");
+
+        u_axi4l_accessor.write(ADR_PARAM_WIDTH,  IMG_WIDTH,  4'b1111);
+        u_axi4l_accessor.write(ADR_PARAM_HEIGHT, IMG_HEIGHT, 4'b1111);
+        u_axi4l_accessor.write(ADR_PARAM_TIMEOUT, 1000, 4'b1111);
+        u_axi4l_accessor.write(ADR_CTL_FRM_TIMEOUT,     100000, 4'b1111);
+        u_axi4l_accessor.write(ADR_CTL_FRM_TIMER_EN,         1, 4'b1111);
         u_axi4l_accessor.write(ADR_CTL_CONTROL, 1, 4'b1111);
         u_axi4l_accessor.read(ADR_CTL_STATUS,    rdata);
         

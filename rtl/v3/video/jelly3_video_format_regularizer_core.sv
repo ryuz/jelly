@@ -182,10 +182,10 @@ module jelly3_video_format_regularizer_core
             end
             
             // fill_v
-            if ( reg_busy && (in_tuser[0] && in_tvalid && in_tready) ) begin
+            if ( reg_busy && (in_tuser[0] && in_tvalid) ) begin
                 reg_fill_v <= 1'b1;
             end
-            if ( sig_x_last && sig_y_last && sig_valid) begin
+            if ( sig_x_last && sig_y_last && sig_valid ) begin
                 reg_fill_v <= 1'b0;
             end
             
