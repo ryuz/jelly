@@ -169,12 +169,12 @@ module jelly3_video_format_regularizer_core
             if ( (sig_x_last && sig_valid) && !reg_fill_h ) begin
                 reg_skip <= 1'b1;
             end
-            if ( in_tlast && in_tvalid ) begin
+            if ( in_tlast && in_tvalid && in_tready ) begin
                 reg_skip <= 1'b0;
             end
             
             // fill_h
-            if ( !reg_skip && (in_tlast && in_tvalid) ) begin
+            if ( !reg_skip && (in_tlast && in_tvalid && in_tready) ) begin
                 reg_fill_h <= 1'b1;
             end
             if ( sig_x_last && sig_valid ) begin
@@ -182,7 +182,7 @@ module jelly3_video_format_regularizer_core
             end
             
             // fill_v
-            if ( reg_busy && (in_tuser[0] && in_tvalid) ) begin
+            if ( reg_busy && (in_tuser[0] && in_tvalid && in_tready) ) begin
                 reg_fill_v <= 1'b1;
             end
             if ( sig_x_last && sig_y_last && sig_valid) begin
@@ -244,9 +244,9 @@ module jelly3_video_format_regularizer_core
                 reg_y       <= '0;
                 reg_y_last  <= 1'b0; // (param_height == 1);
                 
-                reg_param_width   <= 'x;
-                reg_param_height  <= 'x;
-                reg_param_fill    <= 'x;
+//              reg_param_width   <= 'x;
+//              reg_param_height  <= 'x;
+//              reg_param_fill    <= 'x;
                 
                 if ( ((in_tuser[0] && in_tvalid) || reg_frame_timeout) && ctl_enable ) begin
                     // start
@@ -286,7 +286,7 @@ module jelly3_video_format_regularizer_core
             // data
             reg_tuser  <= sig_x_first && sig_y_first;
             reg_tlast  <= sig_x_last;
-            reg_tdata  <= reg_fill_h || reg_fill_v || reg_frame_timeout ? reg_param_fill : in_tdata;
+            reg_tdata  <= (reg_fill_h || reg_fill_v || reg_frame_timeout) ? reg_param_fill : in_tdata;
             reg_tvalid <= sig_valid;
         end
     end

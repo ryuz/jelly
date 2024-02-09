@@ -71,6 +71,7 @@ module jelly3_video_format_regularizer
     localparam  regadr_t REGADR_PARAM_HEIGHT       = regadr_t'('h11);
     localparam  regadr_t REGADR_PARAM_FILL         = regadr_t'('h12);
     localparam  regadr_t REGADR_PARAM_TIMEOUT      = regadr_t'('h13);
+
     
     // registers
     logic   [1:0]   reg_ctl_control;
@@ -104,7 +105,7 @@ module jelly3_video_format_regularizer
                                         input [s_axi4l.STRB_BITS-1:0] strb
                                     );
         for ( int i = 0; i < s_axi4l.DATA_BITS; i++ ) begin
-            write_mask[i] = strb[i/8] ? org[i] : org[i];
+            write_mask[i] = strb[i/8] ? data[i] : org[i];
         end
     endfunction
 
@@ -129,7 +130,7 @@ module jelly3_video_format_regularizer
                 reg_ctl_control[1] <= 1'b0;     // auto clear
             end
             
-            if ( s_axi4l.awvalid && s_axi4l.awready ) begin
+            if ( s_axi4l.awvalid && s_axi4l.awready && s_axi4l.wvalid && s_axi4l.wready ) begin
                 case ( regadr_write )
                 REGADR_CTL_CONTROL:        reg_ctl_control      <=             2'(write_mask(axi4l_data_t'(reg_ctl_control      ), s_axi4l.wdata, s_axi4l.wstrb));
                 REGADR_CTL_SKIP:           reg_ctl_skip         <=             1'(write_mask(axi4l_data_t'(reg_ctl_skip         ), s_axi4l.wdata, s_axi4l.wstrb));

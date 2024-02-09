@@ -330,7 +330,7 @@ module jelly3_dma_stream_write
                                         input [s_axi4l.STRB_BITS-1:0] strb
                                     );
         for ( int i = 0; i < s_axi4l.DATA_BITS; i++ ) begin
-            write_mask[i] = strb[i/8] ? org[i] : org[i];
+            write_mask[i] = strb[i/8] ? data[i] : org[i];
         end
     endfunction
     
