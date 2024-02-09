@@ -22,12 +22,15 @@ FLAGS += $(addprefix -y ,$(SIM_LIB_DIRS))
 #FLAGS += -Wno-WIDTHTRUNC
 #FLAGS += -Wno-fatal
 
+SRCS = ../$(TOP_MODULE).sv
 
+
+# rulres
 all: build run
 
 .PHONY : build
 build:
-	verilator ../$(TOP_MODULE).sv --top $(TOP_MODULE) $(FLAGS)
+	verilator $(FLAGS) --top $(TOP_MODULE) $(SRCS)
 
 .PHONY : run
 run:

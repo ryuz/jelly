@@ -1,20 +1,34 @@
 
 
-TOP_MODULE=tb_video_format_regularizer
+# setting
+TOP_MODULE = tb_video_format_regularizer
 
+JELLY_TOP_DIR = ../../../../..
+
+-include $(JELLY_TOP_DIR)/include/make/def_simulation.inc
+
+VLOGFLAGS  = -sv
+VLOGFLAGS += --sourcelibext .v
+VLOGFLAGS += --sourcelibext .sv
+VLOGFLAGS += $(addprefix --sourcelibdir ,$(SIM_LIB_DIRS))
+
+ELABFLAGS  = -debug wave
+
+SRCS = ../$(TOP_MODULE).sv
+
+
+# rulres
 .PHONY: all
 all: clean build run
 
-
 .PHONY: build
 build:
-	xvlog -f xvlog_cmd.txt
-	xelab -debug wave $(TOP_MODULE) -s $(TOP_MODULE)
+	xvlog $(VLOGFLAGS) $(SRCS)
+	xelab $(ELABFLAGS) $(TOP_MODULE) -s $(TOP_MODULE)
 
 .PHONY: run
 run:
 	xsim $(TOP_MODULE) --R
-
 
 .PHONY: clean
 clean:
