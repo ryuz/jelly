@@ -69,7 +69,7 @@ module jelly3_video_format_regularizer_core
                 .S_REGS         (S_REGS                                         ),
                 .M_REGS         (1                                              )
             )
-        i_pipeline_insert_ff_s
+        u_data_ff_s
             (
                 .reset          (~s_axi4s.aresetn                               ),
                 .clk            (s_axi4s.aclk                                   ),
@@ -301,7 +301,7 @@ module jelly3_video_format_regularizer_core
                 .S_REGS         (1                                              ),
                 .M_REGS         (M_REGS                                         )
             )
-        i_pipeline_insert_ff_m
+        u_data_ff_m
             (
                 .reset          (~s_axi4s.aresetn                               ),
                 .clk            (s_axi4s.aclk                                   ),
