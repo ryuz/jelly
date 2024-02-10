@@ -667,6 +667,9 @@ module jelly3_dma_stream_write
     logic                           s_bvalid;
     logic                           s_bready;
     
+//    localparam AXI4_DATA_SIZE = $clog2(m_axi4.DATA_BITS/8);
+    localparam AXI4_DATA_SIZE = $clog2(m_axi4.STRB_BITS);
+
     jelly2_axi4_write_nd
             #(
                 .N                      (N                          ),
@@ -688,7 +691,7 @@ module jelly3_dma_stream_write
 
                 .AXI4_ID_WIDTH          (m_axi4.ID_BITS             ),
                 .AXI4_ADDR_WIDTH        (m_axi4.ADDR_BITS           ),
-                .AXI4_DATA_SIZE         ($clog2(m_axi4.DATA_BITS)   ),
+                .AXI4_DATA_SIZE         (AXI4_DATA_SIZE             ),
                 .AXI4_DATA_WIDTH        (m_axi4.DATA_BITS           ),
                 .AXI4_STRB_WIDTH        (m_axi4.STRB_BITS           ),
                 .AXI4_LEN_WIDTH         (m_axi4.LEN_BITS            ),

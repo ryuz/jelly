@@ -161,7 +161,7 @@ module jelly3_dma_video_write
                 .INIT_IRQ_ENABLE        (INIT_IRQ_ENABLE        ),
                 .INIT_PARAM_AWADDR      (INIT_PARAM_ADDR        ),
                 .INIT_PARAM_AWOFFSET    (INIT_PARAM_OFFSET      ),
-                .INIT_PARAM_AWLEN_MAX   (INIT_PARAM_AWLEN_MAX   ),
+                .INIT_PARAM_AWLEN_MAX   (int'(INIT_PARAM_AWLEN_MAX)),
                 .INIT_PARAM_AWLEN0      (INIT_PARAM_H_SIZE      ),
                 .INIT_PARAM_AWLEN1      (INIT_PARAM_V_SIZE      ),
                 .INIT_PARAM_AWSTEP1     (INIT_PARAM_LINE_STEP   ),
