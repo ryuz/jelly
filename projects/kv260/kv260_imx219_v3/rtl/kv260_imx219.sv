@@ -32,6 +32,7 @@ module kv260_imx219
 
     localparam  int     AXI4L_PERI_ADDR_BITS = 40;
     localparam  int     AXI4L_PERI_DATA_BITS = 64;
+    localparam  int     AXI4_MEM_ID_BITS     = 6;
     localparam  int     AXI4_MEM_ADDR_BITS   = 49;
     localparam  int     AXI4_MEM_DATA_BITS   = 128;
    
@@ -67,6 +68,7 @@ module kv260_imx219
 
     jelly3_axi4_if
             #(
+                .ID_BITS    (AXI4_MEM_ID_BITS       ),
                 .ADDR_BITS  (AXI4_MEM_ADDR_BITS     ),
                 .DATA_BITS  (AXI4_MEM_DATA_BITS     )
             )
@@ -665,7 +667,7 @@ module kv260_imx219
                 .INIT_DETECT_FIRST      (3'b010                 ),
                 .INIT_DETECT_LAST       (3'b001                 ),
                 .INIT_PADDING_EN        (1'b1                   ),
-                .INIT_PADDING_DATA      (32'd0                  ),
+                .INIT_PADDING_DATA      (10'd0                  ),
                 
                 .BYPASS_GATE            (0                      ),
                 .BYPASS_ALIGN           (0                      ),

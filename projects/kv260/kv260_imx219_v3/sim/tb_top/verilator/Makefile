@@ -21,10 +21,10 @@ FLAGS += $(addprefix -y ,$(SIM_LIB_DIRS))
 #FLAGS += -Wno-UNUSEDPARAM
 #FLAGS += -Wno-UNUSEDSIGNAL
 #FLAGS += -Wno-UNUSEDPARAM
-FLAGS += -Wno-WIDTHTRUNC
+#FLAGS += -Wno-WIDTHTRUNC
 FLAGS += -Wno-WIDTHEXPAND
 FLAGS += -Wno-UNOPTFLAT
-#FLAGS += -Wno-fatal
+FLAGS += -Wno-fatal
 
 SRCS  = ../$(TOP_MODULE).sv
 SRCS += ../../stub/design_1.v

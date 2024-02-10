@@ -38,7 +38,7 @@ module jelly2_axi4_write
             parameter   AXI4_LEN_WIDTH   = 8,
             parameter   AXI4_QOS_WIDTH   = 4,
             parameter   AXI4_AWID        = {AXI4_ID_WIDTH{1'b0}},
-            parameter   AXI4_AWSIZE      = AXI4_DATA_SIZE,
+            parameter   AXI4_AWSIZE      = 3'(AXI4_DATA_SIZE),
             parameter   AXI4_AWBURST     = 2'b01,
             parameter   AXI4_AWLOCK      = 1'b0,
             parameter   AXI4_AWCACHE     = 4'b0001,

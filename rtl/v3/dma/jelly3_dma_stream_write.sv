@@ -349,7 +349,7 @@ module jelly3_dma_stream_write
             reg_irq_status       <= 0;
             reg_param_awaddr     <= INIT_PARAM_AWADDR;
             reg_param_awoffset   <= INIT_PARAM_AWOFFSET;
-            reg_param_awlen_max  <= INIT_PARAM_AWLEN_MAX;
+            reg_param_awlen_max  <= m_axi4.LEN_BITS'(INIT_PARAM_AWLEN_MAX);
             reg_param_awlen0     <= INIT_PARAM_AWLEN0;
 //          reg_param_awstep0    <= INIT_PARAM_AWSTEP0;
             reg_param_awlen1     <= (N > 1) ? INIT_PARAM_AWLEN1  : '0;
@@ -378,7 +378,7 @@ module jelly3_dma_stream_write
             reg_wpadding_strb    <= INIT_WPADDING_STRB;
             reg_shadow_awaddr    <= INIT_PARAM_AWADDR;
             reg_shadow_awoffset  <= INIT_PARAM_AWOFFSET;
-            reg_shadow_awlen_max <= INIT_PARAM_AWLEN_MAX;
+            reg_shadow_awlen_max <= m_axi4.LEN_BITS'(INIT_PARAM_AWLEN_MAX);
             reg_shadow_awlen0    <= INIT_PARAM_AWLEN0;
 //          reg_shadow_awstep0   <= INIT_PARAM_AWSTEP0;
             reg_shadow_awlen1    <= (N > 1) ? INIT_PARAM_AWLEN1  : 0;
@@ -694,7 +694,7 @@ module jelly3_dma_stream_write
                 .AXI4_LEN_WIDTH         (m_axi4.LEN_BITS            ),
                 .AXI4_QOS_WIDTH         (m_axi4.QOS_BITS            ),
                 .AXI4_AWID              (AXI4_AWID                  ),
-                .AXI4_AWSIZE            ($clog2(m_axi4.STRB_BITS)   ),
+                .AXI4_AWSIZE            (3'($clog2(m_axi4.STRB_BITS))),
                 .AXI4_AWBURST           (2'b01                      ),
                 .AXI4_AWLOCK            (AXI4_AWLOCK                ),
                 .AXI4_AWCACHE           (AXI4_AWCACHE               ),
