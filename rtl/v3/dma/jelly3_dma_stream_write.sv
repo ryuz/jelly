@@ -688,7 +688,7 @@ module jelly3_dma_stream_write
 
                 .AXI4_ID_WIDTH          (m_axi4.ID_BITS             ),
                 .AXI4_ADDR_WIDTH        (m_axi4.ADDR_BITS           ),
-                .AXI4_DATA_SIZE         (m_axi4.DATA_BITS           ),
+                .AXI4_DATA_SIZE         ($clog2(m_axi4.DATA_BITS)   ),
                 .AXI4_DATA_WIDTH        (m_axi4.DATA_BITS           ),
                 .AXI4_STRB_WIDTH        (m_axi4.STRB_BITS           ),
                 .AXI4_LEN_WIDTH         (m_axi4.LEN_BITS            ),
@@ -774,8 +774,8 @@ module jelly3_dma_stream_write
                 .s_wclk                 (s_axi4s.aclk               ),
                 .s_wdata                (s_axi4s.tdata              ),
                 .s_wstrb                (s_axi4s.tstrb              ),
-                .s_wfirst               (1'b0                       ),
-                .s_wlast                (s_axi4s.tlast              ),
+                .s_wfirst               ('0                         ),
+                .s_wlast                (N'(s_axi4s.tlast)          ),
                 .s_wvalid               (s_axi4s.tvalid             ),
                 .s_wready               (s_axi4s.tready             ),
                 
