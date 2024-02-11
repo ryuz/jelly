@@ -14,160 +14,160 @@
 // AXI4 N次元データ書き込みコア
 module jelly2_axi4_write_nd
         #(
-            parameter N                   = 1,
-            
-            parameter AWASYNC             = 1,
-            parameter WASYNC              = 1,
-            parameter BASYNC              = 1,
-            
-            parameter BYTE_WIDTH          = 8,
-            parameter BYPASS_GATE         = 0,
-            parameter BYPASS_ALIGN        = 0,
-            parameter WDETECTOR_ENABLE    = 1,
-            parameter ALLOW_UNALIGNED     = 0,
-            
-            parameter HAS_WSTRB           = 0,
-            parameter HAS_WFIRST          = 0,
-            parameter HAS_WLAST           = 0,
-            
-            parameter AXI4_ID_WIDTH       = 6,
-            parameter AXI4_ADDR_WIDTH     = 32,
-            parameter AXI4_DATA_SIZE      = 2,    // 0:8bit, 1:16bit, 2:32bit ...
-            parameter AXI4_DATA_WIDTH     = (BYTE_WIDTH << AXI4_DATA_SIZE),
-            parameter AXI4_STRB_WIDTH     = AXI4_DATA_WIDTH / BYTE_WIDTH,
-            parameter AXI4_LEN_WIDTH      = 8,
-            parameter AXI4_QOS_WIDTH      = 4,
-            parameter AXI4_AWID           = {AXI4_ID_WIDTH{1'b0}},
-            parameter AXI4_AWSIZE         = AXI4_DATA_SIZE,
-            parameter AXI4_AWBURST        = 2'b01,
-            parameter AXI4_AWLOCK         = 1'b0,
-            parameter AXI4_AWCACHE        = 4'b0001,
-            parameter AXI4_AWPROT         = 3'b000,
-            parameter AXI4_AWQOS          = 0,
-            parameter AXI4_AWREGION       = 4'b0000,
-            parameter AXI4_ALIGN          = 12,  // 2^12 = 4k が境界
-            
-            parameter S_WDATA_WIDTH       = 32,
-            parameter S_WSTRB_WIDTH       = S_WDATA_WIDTH / BYTE_WIDTH,
-            parameter S_AWSTEP_WIDTH      = AXI4_ADDR_WIDTH,
-            parameter S_AWLEN_WIDTH       = AXI4_ADDR_WIDTH,
-            parameter S_AWLEN_OFFSET      = 1'b1,
-            
-            parameter CAPACITY_WIDTH      = AXI4_ADDR_WIDTH,   // 内部キューイング用
-            
-            parameter CONVERT_S_REGS      = 0,
-            
-            parameter WFIFO_PTR_WIDTH     = 9,
-            parameter WFIFO_RAM_TYPE      = "block",
-            parameter WFIFO_LOW_DEALY     = 0,
-            parameter WFIFO_DOUT_REGS     = 1,
-            parameter WFIFO_S_REGS        = 0,
-            parameter WFIFO_M_REGS        = 1,
-            
-            parameter AWFIFO_PTR_WIDTH    = 4,
-            parameter AWFIFO_RAM_TYPE     = "distributed",
-            parameter AWFIFO_LOW_DEALY    = 1,
-            parameter AWFIFO_DOUT_REGS    = 0,
-            parameter AWFIFO_S_REGS       = 1,
-            parameter AWFIFO_M_REGS       = 1,
-            
-            parameter BFIFO_PTR_WIDTH     = 4,
-            parameter BFIFO_RAM_TYPE      = "distributed",
-            parameter BFIFO_LOW_DEALY     = 0,
-            parameter BFIFO_DOUT_REGS     = 0,
-            parameter BFIFO_S_REGS        = 0,
-            parameter BFIFO_M_REGS        = 0,
-            
-            parameter SWFIFOPTR_WIDTH     = 4,
-            parameter SWFIFORAM_TYPE      = "distributed",
-            parameter SWFIFOLOW_DEALY     = 1,
-            parameter SWFIFODOUT_REGS     = 0,
-            parameter SWFIFOS_REGS        = 0,
-            parameter SWFIFOM_REGS        = 0,
-            
-            parameter MBFIFO_PTR_WIDTH    = 4,
-            parameter MBFIFO_RAM_TYPE     = "distributed",
-            parameter MBFIFO_LOW_DEALY    = 1,
-            parameter MBFIFO_DOUT_REGS    = 0,
-            parameter MBFIFO_S_REGS       = 0,
-            parameter MBFIFO_M_REGS       = 0,
-            
-            parameter WDATFIFO_PTR_WIDTH  = 4,
-            parameter WDATFIFO_DOUT_REGS  = 0,
-            parameter WDATFIFO_RAM_TYPE   = "distributed",
-            parameter WDATFIFO_LOW_DEALY  = 1,
-            parameter WDATFIFO_S_REGS     = 0,
-            parameter WDATFIFO_M_REGS     = 0,
-            parameter WDAT_S_REGS         = 0,
-            parameter WDAT_M_REGS         = 1,
-            
-            parameter BACKFIFO_PTR_WIDTH  = 4,
-            parameter BACKFIFO_DOUT_REGS  = 0,
-            parameter BACKFIFO_RAM_TYPE   = "distributed",
-            parameter BACKFIFO_LOW_DEALY  = 1,
-            parameter BACKFIFO_S_REGS     = 0,
-            parameter BACKFIFO_M_REGS     = 0,
-            parameter BACK_S_REGS         = 0,
-            parameter BACK_M_REGS         = 1
+            parameter   int                             N                   = 1,
+    
+            parameter   bit                             AWASYNC             = 1,
+            parameter   bit                             WASYNC              = 1,
+            parameter   bit                             BASYNC              = 1,
+    
+            parameter   int                             BYTE_WIDTH          = 8,
+            parameter   bit                             BYPASS_GATE         = 0,
+            parameter   bit                             BYPASS_ALIGN        = 0,
+            parameter   bit                             WDETECTOR_ENABLE    = 1,
+            parameter   bit                             ALLOW_UNALIGNED     = 0,
+    
+            parameter   bit                             HAS_WSTRB           = 0,
+            parameter   bit                             HAS_WFIRST          = 0,
+            parameter   bit                             HAS_WLAST           = 0,
+    
+            parameter   int                             AXI4_ID_WIDTH       = 6,
+            parameter   int                             AXI4_ADDR_WIDTH     = 32,
+            parameter   int                             AXI4_DATA_SIZE      = 2,    // 0:8bit, 1:16bit, 2:32bit ...
+            parameter   int                             AXI4_DATA_WIDTH     = (BYTE_WIDTH << AXI4_DATA_SIZE),
+            parameter   int                             AXI4_STRB_WIDTH     = AXI4_DATA_WIDTH / BYTE_WIDTH,
+            parameter   int                             AXI4_LEN_WIDTH      = 8,
+            parameter   int                             AXI4_QOS_WIDTH      = 4,
+            parameter   bit   [AXI4_ID_WIDTH-1:0]       AXI4_AWID           = {AXI4_ID_WIDTH{1'b0}},
+            parameter   bit   [2:0]                     AXI4_AWSIZE         = 3'(AXI4_DATA_SIZE),
+            parameter   bit   [1:0]                     AXI4_AWBURST        = 2'b01,
+            parameter   bit   [0:0]                     AXI4_AWLOCK         = 1'b0,
+            parameter   bit   [3:0]                     AXI4_AWCACHE        = 4'b0001,
+            parameter   bit   [2:0]                     AXI4_AWPROT         = 3'b000,
+            parameter   bit   [AXI4_QOS_WIDTH-1:0]      AXI4_AWQOS          = 0,
+            parameter   bit   [3:0]                     AXI4_AWREGION       = 4'b0000,
+            parameter   int                             AXI4_ALIGN          = 12,  // 2^12 = 4k が境界
+    
+            parameter   int                             S_WDATA_WIDTH       = 32,
+            parameter   int                             S_WSTRB_WIDTH       = S_WDATA_WIDTH / BYTE_WIDTH,
+            parameter   int                             S_AWSTEP_WIDTH      = AXI4_ADDR_WIDTH,
+            parameter   int                             S_AWLEN_WIDTH       = AXI4_ADDR_WIDTH,
+            parameter   bit                             S_AWLEN_OFFSET      = 1'b1,
+    
+            parameter   int                             CAPACITY_WIDTH      = AXI4_ADDR_WIDTH,   // 内部キューイング用
+    
+            parameter   bit                             CONVERT_S_REGS      = 0,
+    
+            parameter   int                             WFIFO_PTR_WIDTH     = 9,
+            parameter                                   WFIFO_RAM_TYPE      = "block",
+            parameter   bit                             WFIFO_LOW_DEALY     = 0,
+            parameter   bit                             WFIFO_DOUT_REGS     = 1,
+            parameter   bit                             WFIFO_S_REGS        = 0,
+            parameter   bit                             WFIFO_M_REGS        = 1,
+    
+            parameter   int                             AWFIFO_PTR_WIDTH    = 4,
+            parameter                                   AWFIFO_RAM_TYPE     = "distributed",
+            parameter   bit                             AWFIFO_LOW_DEALY    = 1,
+            parameter   bit                             AWFIFO_DOUT_REGS    = 0,
+            parameter   bit                             AWFIFO_S_REGS       = 1,
+            parameter   bit                             AWFIFO_M_REGS       = 1,
+    
+            parameter   int                             BFIFO_PTR_WIDTH     = 4,
+            parameter                                   BFIFO_RAM_TYPE      = "distributed",
+            parameter   bit                             BFIFO_LOW_DEALY     = 0,
+            parameter   bit                             BFIFO_DOUT_REGS     = 0,
+            parameter   bit                             BFIFO_S_REGS        = 0,
+            parameter   bit                             BFIFO_M_REGS        = 0,
+    
+            parameter   int                             SWFIFOPTR_WIDTH     = 4,
+            parameter                                   SWFIFORAM_TYPE      = "distributed",
+            parameter   bit                             SWFIFOLOW_DEALY     = 1,
+            parameter   bit                             SWFIFODOUT_REGS     = 0,
+            parameter   bit                             SWFIFOS_REGS        = 0,
+            parameter   bit                             SWFIFOM_REGS        = 0,
+    
+            parameter   int                             MBFIFO_PTR_WIDTH    = 4,
+            parameter                                   MBFIFO_RAM_TYPE     = "distributed",
+            parameter   bit                             MBFIFO_LOW_DEALY    = 1,
+            parameter   bit                             MBFIFO_DOUT_REGS    = 0,
+            parameter   bit                             MBFIFO_S_REGS       = 0,
+            parameter   bit                             MBFIFO_M_REGS       = 0,
+    
+            parameter   int                             WDATFIFO_PTR_WIDTH  = 4,
+            parameter   bit                             WDATFIFO_DOUT_REGS  = 0,
+            parameter                                   WDATFIFO_RAM_TYPE   = "distributed",
+            parameter   bit                             WDATFIFO_LOW_DEALY  = 1,
+            parameter   bit                             WDATFIFO_S_REGS     = 0,
+            parameter   bit                             WDATFIFO_M_REGS     = 0,
+            parameter   bit                             WDAT_S_REGS         = 0,
+            parameter   bit                             WDAT_M_REGS         = 1,
+    
+            parameter   int                             BACKFIFO_PTR_WIDTH  = 4,
+            parameter   bit                             BACKFIFO_DOUT_REGS  = 0,
+            parameter                                   BACKFIFO_RAM_TYPE   = "distributed",
+            parameter   bit                             BACKFIFO_LOW_DEALY  = 1,
+            parameter   bit                             BACKFIFO_S_REGS     = 0,
+            parameter   bit                             BACKFIFO_M_REGS     = 0,
+            parameter   bit                             BACK_S_REGS         = 0,
+            parameter   bit                             BACK_M_REGS         = 1
         )
         (
-            input   wire                            endian,
+            input   var logic                           endian,
             
-            input   wire                            s_awresetn,
-            input   wire                            s_awclk,
-            input   wire    [AXI4_ADDR_WIDTH-1:0]   s_awaddr,
-            input   wire    [AXI4_LEN_WIDTH-1:0]    s_awlen_max,
-            input   wire    [N*S_AWSTEP_WIDTH-1:0]  s_awstep,       // step0は無視(1固定、つまり連続アクセスのみ)
-            input   wire    [N*S_AWLEN_WIDTH-1:0]   s_awlen,
-            input   wire                            s_awvalid,
-            output  wire                            s_awready,
+            input   var logic                           s_awresetn,
+            input   var logic                           s_awclk,
+            input   var logic   [AXI4_ADDR_WIDTH-1:0]   s_awaddr,
+            input   var logic   [AXI4_LEN_WIDTH-1:0]    s_awlen_max,
+            input   var logic   [N*S_AWSTEP_WIDTH-1:0]  s_awstep,       // step0は無視(1固定、つまり連続アクセスのみ)
+            input   var logic   [N*S_AWLEN_WIDTH-1:0]   s_awlen,
+            input   var logic                           s_awvalid,
+            output  var logic                           s_awready,
             
-            input   wire                            s_wresetn,
-            input   wire                            s_wclk,
-            input   wire    [S_WDATA_WIDTH-1:0]     s_wdata,
-            input   wire    [S_WSTRB_WIDTH-1:0]     s_wstrb,
-            input   wire    [N-1:0]                 s_wfirst, 
-            input   wire    [N-1:0]                 s_wlast,
-            input   wire                            s_wvalid,
-            output  wire                            s_wready,
+            input   var logic                           s_wresetn,
+            input   var logic                           s_wclk,
+            input   var logic   [S_WDATA_WIDTH-1:0]     s_wdata,
+            input   var logic   [S_WSTRB_WIDTH-1:0]     s_wstrb,
+            input   var logic   [N-1:0]                 s_wfirst,
+            input   var logic   [N-1:0]                 s_wlast,
+            input   var logic                           s_wvalid,
+            output  var logic                           s_wready,
             
-            input   wire                            wskip,
-            input   wire    [N-1:0]                 wdetect_first,
-            input   wire    [N-1:0]                 wdetect_last,
-            input   wire                            wpadding_en,
-            input   wire    [S_WDATA_WIDTH-1:0]     wpadding_data,
-            input   wire    [S_WSTRB_WIDTH-1:0]     wpadding_strb,
+            input   var logic                           wskip,
+            input   var logic   [N-1:0]                 wdetect_first,
+            input   var logic   [N-1:0]                 wdetect_last,
+            input   var logic                           wpadding_en,
+            input   var logic   [S_WDATA_WIDTH-1:0]     wpadding_data,
+            input   var logic   [S_WSTRB_WIDTH-1:0]     wpadding_strb,
             
-            input   wire                            s_bresetn,
-            input   wire                            s_bclk,
-            output  wire    [N-1:0]                 s_bfirst,
-            output  wire    [N-1:0]                 s_blast,
-            output  wire                            s_bvalid,
-            input   wire                            s_bready,
+            input   var logic                           s_bresetn,
+            input   var logic                           s_bclk,
+            output  var logic   [N-1:0]                 s_bfirst,
+            output  var logic   [N-1:0]                 s_blast,
+            output  var logic                           s_bvalid,
+            input   var logic                           s_bready,
             
-            input   wire                            m_aresetn,
-            input   wire                            m_aclk,
-            output  wire    [AXI4_ID_WIDTH-1:0]     m_axi4_awid,
-            output  wire    [AXI4_ADDR_WIDTH-1:0]   m_axi4_awaddr,
-            output  wire    [AXI4_LEN_WIDTH-1:0]    m_axi4_awlen,
-            output  wire    [2:0]                   m_axi4_awsize,
-            output  wire    [1:0]                   m_axi4_awburst,
-            output  wire    [0:0]                   m_axi4_awlock,
-            output  wire    [3:0]                   m_axi4_awcache,
-            output  wire    [2:0]                   m_axi4_awprot,
-            output  wire    [AXI4_QOS_WIDTH-1:0]    m_axi4_awqos,
-            output  wire    [3:0]                   m_axi4_awregion,
-            output  wire                            m_axi4_awvalid,
-            input   wire                            m_axi4_awready,
-            output  wire    [AXI4_DATA_WIDTH-1:0]   m_axi4_wdata,
-            output  wire    [AXI4_STRB_WIDTH-1:0]   m_axi4_wstrb,
-            output  wire                            m_axi4_wlast,
-            output  wire                            m_axi4_wvalid,
-            input   wire                            m_axi4_wready,
-            input   wire    [AXI4_ID_WIDTH-1:0]     m_axi4_bid,
-            input   wire    [1:0]                   m_axi4_bresp,
-            input   wire                            m_axi4_bvalid,
-            output  wire                            m_axi4_bready
+            input   var logic                           m_aresetn,
+            input   var logic                           m_aclk,
+            output  var logic   [AXI4_ID_WIDTH-1:0]     m_axi4_awid,
+            output  var logic   [AXI4_ADDR_WIDTH-1:0]   m_axi4_awaddr,
+            output  var logic   [AXI4_LEN_WIDTH-1:0]    m_axi4_awlen,
+            output  var logic   [2:0]                   m_axi4_awsize,
+            output  var logic   [1:0]                   m_axi4_awburst,
+            output  var logic   [0:0]                   m_axi4_awlock,
+            output  var logic   [3:0]                   m_axi4_awcache,
+            output  var logic   [2:0]                   m_axi4_awprot,
+            output  var logic   [AXI4_QOS_WIDTH-1:0]    m_axi4_awqos,
+            output  var logic   [3:0]                   m_axi4_awregion,
+            output  var logic                           m_axi4_awvalid,
+            input   var logic                           m_axi4_awready,
+            output  var logic   [AXI4_DATA_WIDTH-1:0]   m_axi4_wdata,
+            output  var logic   [AXI4_STRB_WIDTH-1:0]   m_axi4_wstrb,
+            output  var logic                           m_axi4_wlast,
+            output  var logic                           m_axi4_wvalid,
+            input   var logic                           m_axi4_wready,
+            input   var logic   [AXI4_ID_WIDTH-1:0]     m_axi4_bid,
+            input   var logic   [1:0]                   m_axi4_bresp,
+            input   var logic                           m_axi4_bvalid,
+            output  var logic                           m_axi4_bready
         );
     
     
@@ -176,12 +176,12 @@ module jelly2_axi4_write_nd
     // ---------------------------------------------
     
     // m_aw 側にクロック載せ替え
-    wire    [AXI4_ADDR_WIDTH-1:0]   awfifo_awaddr;
-    wire    [AXI4_LEN_WIDTH-1:0]    awfifo_awlen_max;
-    wire    [N*S_AWSTEP_WIDTH-1:0]  awfifo_awstep;
-    wire    [N*S_AWLEN_WIDTH-1:0]   awfifo_awlen;
-    wire                            awfifo_awvalid;
-    wire                            awfifo_awready;
+    logic   [AXI4_ADDR_WIDTH-1:0]   awfifo_awaddr;
+    logic   [AXI4_LEN_WIDTH-1:0]    awfifo_awlen_max;
+    logic   [N*S_AWSTEP_WIDTH-1:0]  awfifo_awstep;
+    logic   [N*S_AWLEN_WIDTH-1:0]   awfifo_awlen;
+    logic                           awfifo_awvalid;
+    logic                           awfifo_awready;
     
     // verilator lint_off PINMISSING
     jelly2_fifo_pack
@@ -225,13 +225,13 @@ module jelly2_axi4_write_nd
     
     
     // address generate
-    wire    [AXI4_ADDR_WIDTH-1:0]   adrgen_awaddr;
-    wire    [S_AWLEN_WIDTH-1:0]     adrgen_awlen;
-    wire    [AXI4_LEN_WIDTH-1:0]    adrgen_awlen_max;
-    wire    [N-1:0]                 adrgen_awfirst;
-    wire    [N-1:0]                 adrgen_awlast;
-    wire                            adrgen_awvalid;
-    wire                            adrgen_awready;
+    logic   [AXI4_ADDR_WIDTH-1:0]   adrgen_awaddr;
+    logic   [S_AWLEN_WIDTH-1:0]     adrgen_awlen;
+    logic   [AXI4_LEN_WIDTH-1:0]    adrgen_awlen_max;
+    logic   [N-1:0]                 adrgen_awfirst;
+    logic   [N-1:0]                 adrgen_awlast;
+    logic                           adrgen_awvalid;
+    logic                           adrgen_awready;
     
     generate
     if ( N >= 2 ) begin : blk_adrgen_nd
@@ -281,22 +281,22 @@ module jelly2_axi4_write_nd
     
     
     // コマンド分岐
-    wire    [AXI4_ADDR_WIDTH-1:0]   cmd_awaddr;
-    wire    [S_AWLEN_WIDTH-1:0]     cmd_awlen;
-    wire    [AXI4_LEN_WIDTH-1:0]    cmd_awlen_max;
-    wire                            cmd_awvalid;
-    wire                            cmd_awready;
+    logic   [AXI4_ADDR_WIDTH-1:0]   cmd_awaddr;
+    logic   [S_AWLEN_WIDTH-1:0]     cmd_awlen;
+    logic   [AXI4_LEN_WIDTH-1:0]    cmd_awlen_max;
+    logic                           cmd_awvalid;
+    logic                           cmd_awready;
     
-    wire    [N-1:0]                 dat_awfirst;
-    wire    [N-1:0]                 dat_awlast;
-    wire    [S_AWLEN_WIDTH-1:0]     dat_awlen;
-    wire                            dat_awvalid;
-    wire                            dat_awready;
+    logic   [N-1:0]                 dat_awfirst;
+    logic   [N-1:0]                 dat_awlast;
+    logic   [S_AWLEN_WIDTH-1:0]     dat_awlen;
+    logic                           dat_awvalid;
+    logic                           dat_awready;
     
-    wire    [N-1:0]                 ack_awfirst;
-    wire    [N-1:0]                 ack_awlast;
-    wire                            ack_awvalid;
-    wire                            ack_awready;
+    logic   [N-1:0]                 ack_awfirst;
+    logic   [N-1:0]                 ack_awlast;
+    logic                           ack_awvalid;
+    logic                           ack_awready;
     
     // verilator lint_off PINMISSING
     jelly2_data_split_pack2
@@ -353,15 +353,15 @@ module jelly2_axi4_write_nd
     // ---------------------------------------------
     
     // write
-    wire    [S_WDATA_WIDTH-1:0]     write_wdata;
-    wire    [S_WSTRB_WIDTH-1:0]     write_wstrb;
-    wire    [N-1:0]                 write_wfirst;
-    wire    [N-1:0]                 write_wlast;
-    wire                            write_wvalid;
-    wire                            write_wready;
+    logic   [S_WDATA_WIDTH-1:0]     write_wdata;
+    logic   [S_WSTRB_WIDTH-1:0]     write_wstrb;
+    logic   [N-1:0]                 write_wfirst;
+    logic   [N-1:0]                 write_wlast;
+    logic                           write_wvalid;
+    logic                           write_wready;
     
-    wire                            write_bvalid;
-    wire                            write_bready;
+    logic                           write_bvalid;
+    logic                           write_bready;
     
     jelly2_axi4_write
         #(
