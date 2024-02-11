@@ -292,7 +292,7 @@ module tb_axi4_write();
             end
         end
     end
-    assign s_awlen_max = 8'd127;
+    assign s_awlen_max = 8'd31;
 
     always_ff @(posedge s_wclk) begin
         if ( ~s_wresetn ) begin

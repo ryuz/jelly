@@ -17,8 +17,8 @@ module jelly3_model_axi4s_m
             parameter   int     DATA_BITS        = 8,
             parameter   int     IMG_WIDTH        = 640,
             parameter   int     IMG_HEIGHT       = 480,
-            parameter   int     X_BLANK          = 0,
-            parameter   int     Y_BLANK          = 0,
+            parameter   int     H_BLANK          = 0,
+            parameter   int     V_BLANK          = 0,
             parameter   type    x_t              = logic [31:0],
             parameter   type    y_t              = logic [31:0],
             parameter   type    f_t              = logic [31:0],
@@ -123,8 +123,8 @@ module jelly3_model_axi4s_m
     //  main
     // -----------------------------
 
-    localparam TOTAL_X = IMG_WIDTH + X_BLANK;
-    localparam TOTAL_Y = IMG_HEIGHT + Y_BLANK;
+    localparam TOTAL_H = IMG_WIDTH + H_BLANK;
+    localparam TOTAL_V = IMG_HEIGHT + V_BLANK;
     
     reg     [31:0]  rand_seed = RANDOM_SEED;
 
@@ -150,10 +150,10 @@ module jelly3_model_axi4s_m
             end
             else if ( valid && (!m_axi4s.tvalid || m_axi4s.tready) ) begin
                 x <= x + 1;
-                if ( x >= (TOTAL_X-1) ) begin
+                if ( x >= (TOTAL_H-1) ) begin
                     x <= 0;
                     y <= y + 1;
-                    if ( y >= (TOTAL_Y-1) ) begin
+                    if ( y >= (TOTAL_V-1) ) begin
                         y <= 0;
                         f <= f + 1;
                         busy <= 1'b0;

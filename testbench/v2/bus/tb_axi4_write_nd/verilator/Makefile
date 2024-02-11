@@ -1,7 +1,7 @@
 
 
 # setting
-TOP_MODULE = tb_axi4_write
+TOP_MODULE = tb_axi4_write_nd
 
 JELLY_TOP_DIR = ../../../../..
 
@@ -21,7 +21,7 @@ FLAGS += $(addprefix -y ,$(SIM_LIB_DIRS))
 #FLAGS += -Wno-UNUSEDPARAM
 #FLAGS += -Wno-WIDTHTRUNC
 #FLAGS += -Wno-WIDTHEXPAND
-#FLAGS += -Wno-fatal
+FLAGS += -Wno-fatal
 
 SRCS = ../$(TOP_MODULE).sv
 

@@ -9,7 +9,7 @@ module tb_top();
         $dumpfile("tb_top.vcd");
         $dumpvars(0, tb_top);
     
-    #100000
+    #10000000
         $finish;
     end
     
@@ -23,16 +23,16 @@ module tb_top();
     localparam RATE250 = 1000.0/250.00;
     localparam RATE133 = 1000.0/133.33;
 
-    reg			reset = 1;
+    logic       reset = 1;
     initial #100 reset = 0;
 
-    reg			clk100 = 1'b1;
+    logic       clk100 = 1'b1;
     always #(RATE100/2.0) clk100 <= ~clk100;
 
-    reg			clk200 = 1'b1;
+    logic       clk200 = 1'b1;
     always #(RATE200/2.0) clk200 <= ~clk200;
 
-    reg			clk250 = 1'b1;
+    logic       clk250 = 1'b1;
     always #(RATE250/2.0) clk250 <= ~clk250;
 
 
@@ -52,7 +52,7 @@ module tb_top();
                 .IMG_WIDTH      (IMG_WIDTH      ),
                 .IMG_HEIGHT     (IMG_HEIGHT     )
             )
-        i_top
+        u_top
             (
                 .cam_clk_p      (),
                 .cam_clk_n      (),
@@ -70,16 +70,16 @@ module tb_top();
     //  Clock & Reset
     // -----------------------------
     
-    always_comb force i_top.i_design_1.reset  = reset;
-    always_comb force i_top.i_design_1.clk100 = clk100;
-    always_comb force i_top.i_design_1.clk200 = clk200;
-    always_comb force i_top.i_design_1.clk250 = clk250;
+    always_comb force u_top.u_design_1.reset  = reset;
+    always_comb force u_top.u_design_1.clk100 = clk100;
+    always_comb force u_top.u_design_1.clk200 = clk200;
+    always_comb force u_top.u_design_1.clk250 = clk250;
 
-    always_comb force i_top.i_design_1.m_axi4l_peri_aresetn = ~reset;
-    always_comb force i_top.i_design_1.m_axi4l_peri_aclk    = clk250;
+    always_comb force u_top.u_design_1.m_axi4l_peri_aresetn = ~reset;
+    always_comb force u_top.u_design_1.m_axi4l_peri_aclk    = clk250;
 
-    always_comb force i_top.i_design_1.s_axi4_mem_aresetn = ~reset;
-    always_comb force i_top.i_design_1.s_axi4_mem_aclk    = clk250;
+    always_comb force u_top.u_design_1.s_axi4_mem_aresetn = ~reset;
+    always_comb force u_top.u_design_1.s_axi4_mem_aclk    = clk250;
     
 
     // -----------------------------
@@ -88,9 +88,6 @@ module tb_top();
 
     logic   axi4s_src_aresetn;
     logic   axi4s_src_aclk;
-
-    assign axi4s_src_aresetn = i_top.i_mipi_csi2_rx.m_axi4s_aresetn;
-    assign axi4s_src_aclk    = i_top.i_mipi_csi2_rx.m_axi4s_aclk;
 
     jelly3_axi4s_if
             #(
@@ -102,22 +99,27 @@ module tb_top();
                 .aresetn        (axi4s_src_aresetn),
                 .aclk           (axi4s_src_aclk)
             );
+
+    assign axi4s_src_aresetn = u_top.u_mipi_csi2_rx.m_axi4s_aresetn;
+    assign axi4s_src_aclk    = u_top.u_mipi_csi2_rx.m_axi4s_aclk;
     
-    always_comb force i_top.i_mipi_csi2_rx.axi4s_tuser  = i_axi4s_src.tuser ;
-    always_comb force i_top.i_mipi_csi2_rx.axi4s_tlast  = i_axi4s_src.tlast ;
-    always_comb force i_top.i_mipi_csi2_rx.axi4s_tdata  = i_axi4s_src.tdata ;
-    always_comb force i_top.i_mipi_csi2_rx.axi4s_tvalid = i_axi4s_src.tvalid;
-    assign i_axi4s_src.tready = i_top.i_mipi_csi2_rx.axi4s_tready;
+    always_comb force u_top.u_mipi_csi2_rx.axi4s_tuser  = i_axi4s_src.tuser ;
+    always_comb force u_top.u_mipi_csi2_rx.axi4s_tlast  = i_axi4s_src.tlast ;
+    always_comb force u_top.u_mipi_csi2_rx.axi4s_tdata  = i_axi4s_src.tdata ;
+    always_comb force u_top.u_mipi_csi2_rx.axi4s_tvalid = i_axi4s_src.tvalid;
+    assign i_axi4s_src.tready = u_top.u_mipi_csi2_rx.axi4s_tready;
 
 
-    localparam  SIM_IMG_WIDTH  = 256;
-    localparam  SIM_IMG_HEIGHT = 256;
+    localparam  SIM_IMG_WIDTH  = 128;//256;
+    localparam  SIM_IMG_HEIGHT = 64; //256;
 
     // master
     jelly3_model_axi4s_m
             #(
                 .IMG_WIDTH          (SIM_IMG_WIDTH),
                 .IMG_HEIGHT         (SIM_IMG_HEIGHT),
+                .H_BLANK            (64),
+                .V_BLANK            (32),
                 .FILE_NAME          (),//"../Mandrill_256x256.ppm"),
                 .FILE_IMG_WIDTH     (256),
                 .FILE_IMG_HEIGHT    (256),
@@ -177,31 +179,30 @@ module tb_top();
     logic           axi4l_peri_wvalid   ;
     */
 
-    assign axi4l_peri_aresetn = i_top.i_design_1.axi4l_peri_aresetn ;
-    assign axi4l_peri_aclk    = i_top.i_design_1.axi4l_peri_aclk    ;
+    assign axi4l_peri_aresetn = u_top.u_design_1.axi4l_peri_aresetn ;
+    assign axi4l_peri_aclk    = u_top.u_design_1.axi4l_peri_aclk    ;
 
-    assign axi4l_peri.awready = i_top.i_design_1.axi4l_peri_awready ;
-    assign axi4l_peri.wready  = i_top.i_design_1.axi4l_peri_wready  ;
-    assign axi4l_peri.bready  = i_top.i_design_1.axi4l_peri_bready  ;
-    assign axi4l_peri.bresp   = i_top.i_design_1.axi4l_peri_bresp   ;
-    assign axi4l_peri.bvalid  = i_top.i_design_1.axi4l_peri_bvalid  ;
-    assign axi4l_peri.arready = i_top.i_design_1.axi4l_peri_arready ;
-    assign axi4l_peri.rdata   = i_top.i_design_1.axi4l_peri_rdata   ;
-    assign axi4l_peri.rresp   = i_top.i_design_1.axi4l_peri_rresp   ;
-    assign axi4l_peri.rvalid  = i_top.i_design_1.axi4l_peri_rvalid  ;
+    assign axi4l_peri.awready = u_top.u_design_1.axi4l_peri_awready ;
+    assign axi4l_peri.wready  = u_top.u_design_1.axi4l_peri_wready  ;
+    assign axi4l_peri.bready  = u_top.u_design_1.axi4l_peri_bready  ;
+    assign axi4l_peri.bresp   = u_top.u_design_1.axi4l_peri_bresp   ;
+    assign axi4l_peri.bvalid  = u_top.u_design_1.axi4l_peri_bvalid  ;
+    assign axi4l_peri.arready = u_top.u_design_1.axi4l_peri_arready ;
+    assign axi4l_peri.rdata   = u_top.u_design_1.axi4l_peri_rdata   ;
+    assign axi4l_peri.rresp   = u_top.u_design_1.axi4l_peri_rresp   ;
+    assign axi4l_peri.rvalid  = u_top.u_design_1.axi4l_peri_rvalid  ;
 
-    always_comb force i_top.i_design_1.axi4l_peri_awaddr  = axi4l_peri.awaddr ;
-    always_comb force i_top.i_design_1.axi4l_peri_awprot  = axi4l_peri.awprot ;
-    always_comb force i_top.i_design_1.axi4l_peri_awvalid = axi4l_peri.awvalid;
-    always_comb force i_top.i_design_1.axi4l_peri_wdata   = axi4l_peri.wdata  ;
-    always_comb force i_top.i_design_1.axi4l_peri_wstrb   = axi4l_peri.wstrb  ;
-    always_comb force i_top.i_design_1.axi4l_peri_wvalid  = axi4l_peri.wvalid ;
-    always_comb force i_top.i_design_1.axi4l_peri_bready  = axi4l_peri.bready ;
-    always_comb force i_top.i_design_1.axi4l_peri_araddr  = axi4l_peri.araddr ;
-    always_comb force i_top.i_design_1.axi4l_peri_arprot  = axi4l_peri.arprot ;
-    always_comb force i_top.i_design_1.axi4l_peri_arvalid = axi4l_peri.arvalid;
-    always_comb force i_top.i_design_1.axi4l_peri_rready  = axi4l_peri.rready ;
-
+    always_comb force u_top.u_design_1.axi4l_peri_awaddr  = axi4l_peri.awaddr ;
+    always_comb force u_top.u_design_1.axi4l_peri_awprot  = axi4l_peri.awprot ;
+    always_comb force u_top.u_design_1.axi4l_peri_awvalid = axi4l_peri.awvalid;
+    always_comb force u_top.u_design_1.axi4l_peri_wdata   = axi4l_peri.wdata  ;
+    always_comb force u_top.u_design_1.axi4l_peri_wstrb   = axi4l_peri.wstrb  ;
+    always_comb force u_top.u_design_1.axi4l_peri_wvalid  = axi4l_peri.wvalid ;
+    always_comb force u_top.u_design_1.axi4l_peri_bready  = axi4l_peri.bready ;
+    always_comb force u_top.u_design_1.axi4l_peri_araddr  = axi4l_peri.araddr ;
+    always_comb force u_top.u_design_1.axi4l_peri_arprot  = axi4l_peri.arprot ;
+    always_comb force u_top.u_design_1.axi4l_peri_arvalid = axi4l_peri.arvalid;
+    always_comb force u_top.u_design_1.axi4l_peri_rready  = axi4l_peri.rready ;
 
 
 
@@ -209,13 +210,16 @@ module tb_top();
     //  access
     // -----------------------------
 
+`include "jelly/JellyRegs.vh"
     
     localparam type axi4l_addr_t = logic [axi4l_peri.ADDR_BITS-1:0];
     localparam type axi4l_data_t = logic [axi4l_peri.DATA_BITS-1:0];
 
     localparam  axi4l_addr_t    ADR_GPIO = axi4l_addr_t'(40'ha000_0000);
     localparam  axi4l_addr_t    ADR_FMTR = axi4l_addr_t'(40'ha010_0000);
+    localparam  axi4l_addr_t    ADR_WDMA = axi4l_addr_t'(40'ha021_0000);
 
+    /*
     localparam  axi4l_addr_t    ADR_CORE_ID            = axi4l_addr_t'('h00) * (axi4l_peri.DATA_BITS/8);
     localparam  axi4l_addr_t    ADR_CORE_VERSION       = axi4l_addr_t'('h01) * (axi4l_peri.DATA_BITS/8);
     localparam  axi4l_addr_t    ADR_CTL_CONTROL        = axi4l_addr_t'('h04) * (axi4l_peri.DATA_BITS/8);
@@ -228,6 +232,7 @@ module tb_top();
     localparam  axi4l_addr_t    ADR_PARAM_HEIGHT       = axi4l_addr_t'('h11) * (axi4l_peri.DATA_BITS/8);
     localparam  axi4l_addr_t    ADR_PARAM_FILL         = axi4l_addr_t'('h12) * (axi4l_peri.DATA_BITS/8);
     localparam  axi4l_addr_t    ADR_PARAM_TIMEOUT      = axi4l_addr_t'('h13) * (axi4l_peri.DATA_BITS/8);
+    */
 
     jelly3_axi4l_accessor
             #(
@@ -237,7 +242,7 @@ module tb_top();
                 .RAND_RATE_AR   (0),
                 .RAND_RATE_R    (0)
             )
-        u_axi4l_accessor
+        u_axi4l
             (
                 .m_axi4l        (axi4l_peri.m)
             );
@@ -247,30 +252,79 @@ module tb_top();
         
         #(RATE100*200);
         $display("start");
-        u_axi4l_accessor.read(ADR_FMTR + ADR_CORE_ID,          rdata);
-        u_axi4l_accessor.read(ADR_FMTR + ADR_CORE_VERSION,     rdata);
-        u_axi4l_accessor.read(ADR_FMTR + ADR_CTL_CONTROL,      rdata);
-        u_axi4l_accessor.read(ADR_FMTR + ADR_CTL_STATUS,       rdata);
-        u_axi4l_accessor.read(ADR_FMTR + ADR_CTL_INDEX,        rdata);
-        u_axi4l_accessor.read(ADR_FMTR + ADR_CTL_SKIP,         rdata);
-        u_axi4l_accessor.read(ADR_FMTR + ADR_CTL_FRM_TIMER_EN, rdata);
-        u_axi4l_accessor.read(ADR_FMTR + ADR_CTL_FRM_TIMEOUT,  rdata);
-        u_axi4l_accessor.read(ADR_FMTR + ADR_PARAM_WIDTH,      rdata);
-        u_axi4l_accessor.read(ADR_FMTR + ADR_PARAM_HEIGHT,     rdata);
-        u_axi4l_accessor.read(ADR_FMTR + ADR_PARAM_FILL,       rdata);
-        u_axi4l_accessor.read(ADR_FMTR + ADR_PARAM_TIMEOUT,    rdata);
+        u_axi4l.read_reg(ADR_FMTR, `REG_VIDEO_FMTREG_CORE_ID,          rdata);
+        u_axi4l.read_reg(ADR_FMTR, `REG_VIDEO_FMTREG_CORE_VERSION,     rdata);
+        u_axi4l.read_reg(ADR_FMTR, `REG_VIDEO_FMTREG_CTL_CONTROL,      rdata);
+        u_axi4l.read_reg(ADR_FMTR, `REG_VIDEO_FMTREG_CTL_STATUS,       rdata);
+        u_axi4l.read_reg(ADR_FMTR, `REG_VIDEO_FMTREG_CTL_INDEX,        rdata);
+        u_axi4l.read_reg(ADR_FMTR, `REG_VIDEO_FMTREG_CTL_SKIP,         rdata);
+        u_axi4l.read_reg(ADR_FMTR, `REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN, rdata);
+        u_axi4l.read_reg(ADR_FMTR, `REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT,  rdata);
+        u_axi4l.read_reg(ADR_FMTR, `REG_VIDEO_FMTREG_PARAM_WIDTH,      rdata);
+        u_axi4l.read_reg(ADR_FMTR, `REG_VIDEO_FMTREG_PARAM_HEIGHT,     rdata);
+        u_axi4l.read_reg(ADR_FMTR, `REG_VIDEO_FMTREG_PARAM_FILL,       rdata);
+        u_axi4l.read_reg(ADR_FMTR, `REG_VIDEO_FMTREG_PARAM_TIMEOUT,    rdata);
+
+        #(RATE100*100);
+        $display("enable");
+        u_axi4l.write_reg(ADR_FMTR, `REG_VIDEO_FMTREG_PARAM_WIDTH     , SIM_IMG_WIDTH , 8'hff);
+        u_axi4l.write_reg(ADR_FMTR, `REG_VIDEO_FMTREG_PARAM_HEIGHT    , SIM_IMG_HEIGHT, 8'hff);
+//      u_axi4l.write_reg(ADR_FMTR, `REG_VIDEO_FMTREG_PARAM_TIMEOUT   , 1000          , 8'hff);
+//      u_axi4l.write_reg(ADR_FMTR, `REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT , 100000        , 8'hff);
+        u_axi4l.write_reg(ADR_FMTR, `REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN, 1             , 8'hff);
+        u_axi4l.write_reg(ADR_FMTR, `REG_VIDEO_FMTREG_CTL_CONTROL     , 1             , 8'hff);
+        u_axi4l.read_reg (ADR_FMTR, `REG_VIDEO_FMTREG_CTL_STATUS      , rdata);
+
+        $display("set write DMA");
+        u_axi4l.read_reg (ADR_WDMA, `REG_VDMA_WRITE_CORE_ID         , rdata);
+        u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_PARAM_ADDR      , 64'h0000a00                   , 8'hff);
+        u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_PARAM_LINE_STEP , SIM_IMG_WIDTH*4               , 8'hff);
+        u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_PARAM_H_SIZE    , SIM_IMG_WIDTH-1               , 8'hff);
+        u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_PARAM_V_SIZE    , SIM_IMG_HEIGHT-1              , 8'hff);
+        u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_PARAM_FRAME_STEP, SIM_IMG_HEIGHT*SIM_IMG_WIDTH*4, 8'hff);
+        u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_PARAM_F_SIZE    , 1-1                           , 8'hff);
+        u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_CTL_CONTROL     , 3                             , 8'hff);  // update & enable
+
+        /*
+        $display("start");
+        u_axi4l.read(ADR_FMTR + ADR_CORE_ID,          rdata);
+        u_axi4l.read(ADR_FMTR + ADR_CORE_VERSION,     rdata);
+        u_axi4l.read(ADR_FMTR + ADR_CTL_CONTROL,      rdata);
+        u_axi4l.read(ADR_FMTR + ADR_CTL_STATUS,       rdata);
+        u_axi4l.read(ADR_FMTR + ADR_CTL_INDEX,        rdata);
+        u_axi4l.read(ADR_FMTR + ADR_CTL_SKIP,         rdata);
+        u_axi4l.read(ADR_FMTR + ADR_CTL_FRM_TIMER_EN, rdata);
+        u_axi4l.read(ADR_FMTR + ADR_CTL_FRM_TIMEOUT,  rdata);
+        u_axi4l.read(ADR_FMTR + ADR_PARAM_WIDTH,      rdata);
+        u_axi4l.read(ADR_FMTR + ADR_PARAM_HEIGHT,     rdata);
+        u_axi4l.read(ADR_FMTR + ADR_PARAM_FILL,       rdata);
+        u_axi4l.read(ADR_FMTR + ADR_PARAM_TIMEOUT,    rdata);
                 
         #(RATE100*100);
         $display("enable");
-        u_axi4l_accessor.write(ADR_FMTR + ADR_PARAM_WIDTH       , SIM_IMG_WIDTH , 4'b1111);
-        u_axi4l_accessor.write(ADR_FMTR + ADR_PARAM_HEIGHT      , SIM_IMG_HEIGHT, 4'b1111);
-        u_axi4l_accessor.write(ADR_FMTR + ADR_PARAM_TIMEOUT     , 1000          , 4'b1111);
-        u_axi4l_accessor.write(ADR_FMTR + ADR_CTL_FRM_TIMEOUT   , 100000        , 4'b1111);
-        u_axi4l_accessor.write(ADR_FMTR + ADR_CTL_FRM_TIMER_EN  , 1             , 4'b1111);
-        u_axi4l_accessor.write(ADR_FMTR + ADR_CTL_CONTROL       , 1             , 4'b1111);
-        u_axi4l_accessor.read (ADR_FMTR + ADR_CTL_STATUS        , rdata);
+        u_axi4l.write(ADR_FMTR + ADR_PARAM_WIDTH       , SIM_IMG_WIDTH , 4'b1111);
+        u_axi4l.write(ADR_FMTR + ADR_PARAM_HEIGHT      , SIM_IMG_HEIGHT, 4'b1111);
+//      u_axi4l.write(ADR_FMTR + ADR_PARAM_TIMEOUT     , 1000          , 4'b1111);
+//      u_axi4l.write(ADR_FMTR + ADR_CTL_FRM_TIMEOUT   , 100000        , 4'b1111);
+        u_axi4l.write(ADR_FMTR + ADR_CTL_FRM_TIMER_EN  , 1             , 4'b1111);
+        u_axi4l.write(ADR_FMTR + ADR_CTL_CONTROL       , 1             , 4'b1111);
+        u_axi4l.read (ADR_FMTR + ADR_CTL_STATUS        , rdata);
 
+        $display("set DEMOSIC");
+//        wb_read (ADR_DEMOS + WB_ADR_WIDTH'(`REG_IMG_DEMOSAIC_CORE_ID    ));
+//        wb_write(ADR_DEMOS + WB_ADR_WIDTH'(`REG_IMG_DEMOSAIC_PARAM_PHASE),     0, 8'hff);
+//        wb_write(ADR_DEMOS + WB_ADR_WIDTH'(`REG_IMG_DEMOSAIC_CTL_CONTROL), 64'h3, 8'hff);
 
+        $display("set write DMA");
+        u_axi4l.read (ADR_VDMAW + axi4l_addr_t'(`REG_VDMA_WRITE_CORE_ID       ));
+        u_axi4l.write(ADR_VDMAW + axi4l_addr_t'(`REG_VDMA_WRITE_PARAM_ADDR    ),              64'h0000a00, 8'hff);
+        u_axi4l.write(ADR_VDMAW + axi4l_addr_t'(`REG_VDMA_WRITE_PARAM_LINE_STEP),             X_NUM*4, 8'hff);
+        u_axi4l.write(ADR_VDMAW + axi4l_addr_t'(`REG_VDMA_WRITE_PARAM_H_SIZE),                X_NUM-1, 8'hff);
+        u_axi4l.write(ADR_VDMAW + axi4l_addr_t'(`REG_VDMA_WRITE_PARAM_V_SIZE),                Y_NUM-1, 8'hff);
+        u_axi4l.write(ADR_VDMAW + axi4l_addr_t'(`REG_VDMA_WRITE_PARAM_FRAME_STEP),      Y_NUM*X_NUM*4, 8'hff);
+        u_axi4l.write(ADR_VDMAW + axi4l_addr_t'(`REG_VDMA_WRITE_PARAM_F_SIZE),                    1-1, 8'hff);
+        u_axi4l.write(ADR_VDMAW + axi4l_addr_t'(`REG_VDMA_WRITE_CTL_CONTROL),                       3, 8'hff);  // update & enable
+        */
     end
 
 endmodule

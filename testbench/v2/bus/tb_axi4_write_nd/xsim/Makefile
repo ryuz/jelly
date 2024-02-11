@@ -1,27 +1,20 @@
 
 
 # setting
-TOP_MODULE = tb_top
+TOP_MODULE = tb_axi4_write_nd
 
-JELLY_TOP_DIR = ../../../../../..
+JELLY_TOP_DIR = ../../../../..
 
 -include $(JELLY_TOP_DIR)/include/make/def_simulation.inc
 
 VLOGFLAGS  = -sv
 VLOGFLAGS += --sourcelibext .v
 VLOGFLAGS += --sourcelibext .sv
-VLOGFLAGS += --sourcelibdir ../../stub
-VLOGFLAGS += --sourcelibdir ../../../rtl
 VLOGFLAGS += $(addprefix --sourcelibdir ,$(SIM_LIB_DIRS))
-VLOGFLAGS += -i $(JELLY_TOP_DIR)/include
 
 ELABFLAGS  = -debug wave
 
-SRCS  = ../$(TOP_MODULE).sv
-SRCS += ../../stub/design_1.v
-SRCS += ../../stub/IOBUF.v
-SRCS += ../../stub/mipi_dphy_cam.v
-SRCS += ../../stub/jelly2_mipi_csi2_rx.sv
+SRCS = ../$(TOP_MODULE).sv
 
 
 # rulres
@@ -52,6 +45,7 @@ clean:
 
 .PHONY: distclean
 distclean: clean
+	-rm -f *_log.txt
 	-rm -f *.pgm
 	-rm -f *.ppm
 	-rm -f $(TOP_MODULE).vcd

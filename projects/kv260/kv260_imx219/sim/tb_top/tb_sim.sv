@@ -45,13 +45,14 @@ module tb_sim();
     reg			clk250 = 1'b1;
     always #(RATE250/2.0) clk250 <= ~clk250;
 
+    /*
     initial begin
       force i_tb_main.i_top.i_design_1.reset = reset;
       force i_tb_main.i_top.i_design_1.clk100 = clk100;
       force i_tb_main.i_top.i_design_1.clk200 = clk200;
       force i_tb_main.i_top.i_design_1.clk250 = clk250;
     end
-
+    */
     
     // ---------------------------------
     //  main
@@ -203,7 +204,7 @@ module tb_sim();
 
         $display("set write DMA");
         wb_read (ADR_VDMAW + WB_ADR_WIDTH'(`REG_VDMA_WRITE_CORE_ID       ));
-        wb_write(ADR_VDMAW + WB_ADR_WIDTH'(`REG_VDMA_WRITE_PARAM_ADDR    ),              64'h0000000, 8'hff);
+        wb_write(ADR_VDMAW + WB_ADR_WIDTH'(`REG_VDMA_WRITE_PARAM_ADDR    ),              64'h0000a00, 8'hff);
         wb_write(ADR_VDMAW + WB_ADR_WIDTH'(`REG_VDMA_WRITE_PARAM_LINE_STEP),             X_NUM*4, 8'hff);
         wb_write(ADR_VDMAW + WB_ADR_WIDTH'(`REG_VDMA_WRITE_PARAM_H_SIZE),                X_NUM-1, 8'hff);
         wb_write(ADR_VDMAW + WB_ADR_WIDTH'(`REG_VDMA_WRITE_PARAM_V_SIZE),                Y_NUM-1, 8'hff);

@@ -80,7 +80,8 @@ module tb_main
 
                 .pmod           ()
             );
-
+    
+    
     
     always_comb force i_top.i_design_1.reset  = reset;
     always_comb force i_top.i_design_1.clk100 = clk100;
@@ -95,9 +96,9 @@ module tb_main
 
     assign s_wb_peri_dat_o = i_top.i_design_1.wb_peri_dat_o;
     assign s_wb_peri_ack_o = i_top.i_design_1.wb_peri_ack_o;
+    
 
-
-
+    
     // -----------------------------------------
     //  video input
     // -----------------------------------------
@@ -117,20 +118,18 @@ module tb_main
     assign axi4s_src_tready  = i_top.axi4s_csi2_tready;
 
     // force を verilator の為に毎回実行する
-    always_comb force   i_top.axi4s_csi2_tuser  = axi4s_src_tuser;
-    always_comb force   i_top.axi4s_csi2_tlast  = axi4s_src_tlast;
-    always_comb force   i_top.axi4s_csi2_tdata  = axi4s_src_tdata;
-    always_comb force   i_top.axi4s_csi2_tvalid = axi4s_src_tvalid;
+    always_comb force   i_top.i_mipi_csi2_rx.axi4s_tuser  = axi4s_src_tuser;
+    always_comb force   i_top.i_mipi_csi2_rx.axi4s_tlast  = axi4s_src_tlast;
+    always_comb force   i_top.i_mipi_csi2_rx.axi4s_tdata  = axi4s_src_tdata;
+    always_comb force   i_top.i_mipi_csi2_rx.axi4s_tvalid = axi4s_src_tvalid;
     
-    /*
-    assign axi4s_cam_aresetn = i_top.i_mipi_csi2_rx.axi4s_aresetn;
-    assign axi4s_cam_aclk    = i_top.i_mipi_csi2_rx.axi4s_aclk;
-    assign axi4s_src_tready  = i_top.i_mipi_csi2_rx.axi4s_tready;
-    always_comb force   i_top.i_mipi_csi2_rx.axi4s_tuser  = axi4s_src_tuser    ;
-    always_comb force   i_top.i_mipi_csi2_rx.axi4s_tlast  = axi4s_src_tlast    ;   
-    always_comb force   i_top.i_mipi_csi2_rx.axi4s_tdata  = axi4s_src_tdata    ;
-    always_comb force   i_top.i_mipi_csi2_rx.axi4s_tvalid = axi4s_src_tvalid   ;
-    */
+ //   assign axi4s_cam_aresetn = i_top.i_mipi_csi2_rx.axi4s_aresetn;
+ //   assign axi4s_cam_aclk    = i_top.i_mipi_csi2_rx.axi4s_aclk;
+ //   assign axi4s_src_tready  = i_top.i_mipi_csi2_rx.axi4s_tready;
+ //   always_comb force   i_top.i_mipi_csi2_rx.axi4s_tuser  = axi4s_src_tuser    ;
+ //   always_comb force   i_top.i_mipi_csi2_rx.axi4s_tlast  = axi4s_src_tlast    ;   
+ //   always_comb force   i_top.i_mipi_csi2_rx.axi4s_tdata  = axi4s_src_tdata    ;
+ //   always_comb force   i_top.i_mipi_csi2_rx.axi4s_tvalid = axi4s_src_tvalid   ;
 
     jelly2_axi4s_master_model
             #(
@@ -214,6 +213,7 @@ module tb_main
                 .s_axi4s_tvalid     (axi4s_rgb_tvalid & axi4s_rgb_tready),
                 .s_axi4s_tready     ()
             );
+    
 
     /*
     // -----------------------------------------

@@ -153,6 +153,25 @@ module jelly3_axi4l_accessor
         $display("[axi4l read] addr:%x => data:%x", addr, data);
     endtask
 
+    localparam ADDR_UNIT = m_axi4l.DATA_BITS / 8;
+
+    task write_reg(
+                input   logic   [m_axi4l.ADDR_BITS-1:0]     base_addr,
+                input   int                                 reg_idx,
+                input   logic   [m_axi4l.DATA_BITS-1:0]     data,
+                input   logic   [m_axi4l.STRB_BITS-1:0]     strb
+            );
+        write(base_addr + m_axi4l.ADDR_BITS'(reg_idx) * ADDR_UNIT, data, strb);
+    endtask
+
+    task read_reg(
+                input   logic   [m_axi4l.ADDR_BITS-1:0]     base_addr,
+                input   int                                 reg_idx,
+                output  logic   [m_axi4l.DATA_BITS-1:0]     data
+            );
+        read(base_addr + m_axi4l.ADDR_BITS'(reg_idx) * ADDR_UNIT, data);
+    endtask
+
 endmodule
 
 

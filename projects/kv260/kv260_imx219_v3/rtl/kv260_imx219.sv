@@ -79,7 +79,7 @@ module kv260_imx219
             );
     
     design_1
-        i_design_1
+        u_design_1
             (
                 .fan_en                 (fan_en             ),
                 
@@ -165,7 +165,7 @@ module kv260_imx219
 
     // I2C
     IOBUF
-        i_iobuf_i2c0_scl
+        u_iobuf_i2c0_scl
             (
                 .I                      (i2c0_scl_o ),
                 .O                      (i2c0_scl_i ),
@@ -174,7 +174,7 @@ module kv260_imx219
         );
 
     IOBUF
-        i_iobuf_i2c0_sda
+        u_iobuf_i2c0_sda
             (
                 .I                      (i2c0_sda_o ),
                 .O                      (i2c0_sda_i ),
@@ -186,10 +186,11 @@ module kv260_imx219
     //  Address decoder
     // ----------------------------------------
 
-    localparam DEC_NUM   = 3;
     localparam DEC_GPIO  = 0;
     localparam DEC_FMTR  = 1;
-    localparam DEC_VWDMA = 2;
+    localparam DEC_WDMA = 2;
+
+    localparam DEC_NUM   = 3;
 
     jelly3_axi4l_if
             #(
@@ -205,6 +206,7 @@ module kv260_imx219
     // address map
     assign {axi4l_dec[DEC_GPIO].addr_base, axi4l_dec[DEC_GPIO].addr_high} = {40'ha000_0000, 40'ha000_0000};
     assign {axi4l_dec[DEC_FMTR].addr_base, axi4l_dec[DEC_FMTR].addr_high} = {40'ha010_0000, 40'ha010_ffff};
+    assign {axi4l_dec[DEC_WDMA].addr_base, axi4l_dec[DEC_WDMA].addr_high} = {40'ha021_0000, 40'ha021_ffff};
 
 //    assign wb_gid_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h000);   // 0x80000000-0x8000ffff
 //    assign wb_fmtr_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h010);   // 0x80100000-0x8010ffff
@@ -345,7 +347,7 @@ module kv260_imx219
     logic               dl1_errcontrol;
     
     mipi_dphy_cam
-        i_mipi_dphy_cam
+        u_mipi_dphy_cam
             (
                 .core_clk           (sys_clk200),
                 .core_rst           (sys_reset | reg_sw_reset),
@@ -453,7 +455,7 @@ module kv260_imx219
                 .M_FIFO_ASYNC       (1  ),
                 .M_FIFO_PTR_WIDTH   (10 )
             )
-        i_mipi_csi2_rx
+        u_mipi_csi2_rx
             (
                 .aresetn            (~sys_reset),
                 .aclk               (sys_clk250),
@@ -508,7 +510,7 @@ module kv260_imx219
                 .INIT_PARAM_FILL        (10'd0                  ),
                 .INIT_PARAM_TIMEOUT     (32'h00010000           )
             )
-        i_video_format_regularizer
+        u_video_format_regularizer
             (
                 .aclken                 (1'b1                   ),
                 .s_axi4s                (axi4s_csi2.s           ),
@@ -540,7 +542,7 @@ module kv260_imx219
                 .WB_ADR_WIDTH       (10),
                 .WB_DAT_WIDTH       (WB_DAT_WIDTH)
             )
-        i_video_raw_to_rgb
+        u_video_raw_to_rgb
             (
                 .aresetn            (axi4s_cam_aresetn),
                 .aclk               (axi4s_cam_aclk),
@@ -641,6 +643,22 @@ module kv260_imx219
 
 
     // DMA write
+    jelly3_axi4s_if
+            #(
+                .DATA_BITS  (32)
+            )
+        axi4s_wdma
+            (
+                .aresetn    (axi4s_cam_aresetn),
+                .aclk       (axi4s_cam_aclk   )
+            );
+
+    assign axi4s_wdma.tuser  = axi4s_fmtr.tuser ;
+    assign axi4s_wdma.tlast  = axi4s_fmtr.tlast ;
+    assign axi4s_wdma.tdata  = 32'(axi4s_fmtr.tdata);
+    assign axi4s_wdma.tvalid = axi4s_fmtr.tvalid;
+    assign axi4s_fmtr.tready = axi4s_wdma.tready;
+
     jelly3_dma_video_write
             #(
                 .AXI4L_ASYNC            (1                      ),
@@ -682,10 +700,10 @@ module kv260_imx219
             (
                 .endian                 (1'b0                   ),
 
-                .s_axi4s                (axi4s_fmtr.s           ),
+                .s_axi4s                (axi4s_wdma.s           ),
                 .m_axi4                 (axi4_mem0.mw           ),
 
-                .s_axi4l                (axi4l_dec[DEC_VWDMA].s ),
+                .s_axi4l                (axi4l_dec[DEC_WDMA].s  ),
                 .out_irq                (                       ),
                 
                 .buffer_request         (                       ),

@@ -27,6 +27,7 @@ module jelly3_dma_stream_write
 
             // write port(AXI4-Stream)
             parameter   bit                             AXI4S_ASYNC          = 1,
+            parameter   bit                             AXI4S_VIDEO          = 0,
             parameter   bit                             AXI4S_USE_STRB       = 0,
             parameter   bit                             AXI4S_USE_FIRST      = 0,
             parameter   bit                             AXI4S_USE_LAST       = 0,
@@ -670,6 +671,18 @@ module jelly3_dma_stream_write
 //    localparam AXI4_DATA_SIZE = $clog2(m_axi4.DATA_BITS/8);
     localparam AXI4_DATA_SIZE = $clog2(m_axi4.STRB_BITS);
 
+    logic   [N-1:0]     s_wfirst;
+    logic   [N-1:0]     s_wlast ;
+    if ( N >= 2 && AXI4S_VIDEO ) begin
+        assign s_wfirst = N'({s_axi4s.tuser[0], 1'b0});
+        assign s_wlast  = N'({1'b0, s_axi4s.tlast});
+    end
+    else begin
+        assign s_wfirst = '0;
+        assign s_wlast  = '0;
+    end
+
+
     jelly2_axi4_write_nd
             #(
                 .N                      (N                          ),
@@ -766,7 +779,7 @@ module jelly3_dma_stream_write
                 
                 .s_awresetn             (s_axi4l.aresetn            ),
                 .s_awclk                (s_axi4l.aclk               ),
-                .s_awaddr               (reg_awaddr                 ),
+                .s_awaddr               (m_axi4.ADDR_BITS'(reg_awaddr)),
                 .s_awlen_max            (reg_shadow_awlen_max       ),
                 .s_awstep               (s_awstep[N-1:0]            ),
                 .s_awlen                (s_awlen [N-1:0]            ),
@@ -777,8 +790,8 @@ module jelly3_dma_stream_write
                 .s_wclk                 (s_axi4s.aclk               ),
                 .s_wdata                (s_axi4s.tdata              ),
                 .s_wstrb                (s_axi4s.tstrb              ),
-                .s_wfirst               ('0                         ),
-                .s_wlast                (N'(s_axi4s.tlast)          ),
+                .s_wfirst               (s_wfirst                   ),
+                .s_wlast                (s_wlast                    ),
                 .s_wvalid               (s_axi4s.tvalid             ),
                 .s_wready               (s_axi4s.tready             ),
                 
