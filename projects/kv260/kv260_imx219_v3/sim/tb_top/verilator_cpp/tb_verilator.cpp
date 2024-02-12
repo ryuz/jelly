@@ -77,14 +77,14 @@ int main(int argc, char** argv)
     mng->AddNode(axi4l);
 
 
-    const int X_NUM = 640;
-    const int Y_NUM = 480;
+    int X_NUM = top->img_width;
+    int Y_NUM = top->img_height;
     
-    const int reg_gid    = (0xa0000000);
-    const int reg_fmtr   = (0xa0100000);
-    const int reg_demos  = (0xa0120000);
-    const int reg_colmat = (0xa0120800);
-    const int reg_wdma   = (0xa0210000);
+    const std::uint64_t reg_gpio   = 0xa0000000;
+    const std::uint64_t reg_fmtr   = 0xa0100000;
+    const std::uint64_t reg_demos  = 0xa0120000;
+    const std::uint64_t reg_colmat = 0xa0120800;
+    const std::uint64_t reg_wdma   = 0xa0210000;
         
     axi4l->Wait(1000);
     axi4l->Display("start");
@@ -104,6 +104,9 @@ int main(int argc, char** argv)
     int SIM_IMG_WIDTH = 128;
     int SIM_IMG_HEIGHT = 64;
 
+    axi4l->Display("cam enable");
+    axi4l->ExecWrite(reg_gpio + 8 * 2     , 1 , 0xff);
+
     axi4l->Wait(1000);
     axi4l->Display("enable");
     axi4l->ExecWrite(reg_fmtr + 8 * REG_VIDEO_FMTREG_PARAM_WIDTH     , SIM_IMG_WIDTH , 0xff);
@@ -114,6 +117,7 @@ int main(int argc, char** argv)
     axi4l->ExecWrite(reg_fmtr + 8 * REG_VIDEO_FMTREG_CTL_CONTROL     , 1             , 0xff);
     axi4l->ExecRead (reg_fmtr + 8 * REG_VIDEO_FMTREG_CTL_STATUS     );
 
+    
     axi4l->Display("set write DMA");
     axi4l->ExecRead (reg_wdma + 8 * REG_VDMA_WRITE_CORE_ID         );
     axi4l->ExecWrite(reg_wdma + 8 * REG_VDMA_WRITE_PARAM_ADDR      , 0x0000a00                     , 0xff);
@@ -122,10 +126,26 @@ int main(int argc, char** argv)
     axi4l->ExecWrite(reg_wdma + 8 * REG_VDMA_WRITE_PARAM_V_SIZE    , SIM_IMG_HEIGHT-1              , 0xff);
     axi4l->ExecWrite(reg_wdma + 8 * REG_VDMA_WRITE_PARAM_FRAME_STEP, SIM_IMG_HEIGHT*SIM_IMG_WIDTH*4, 0xff);
     axi4l->ExecWrite(reg_wdma + 8 * REG_VDMA_WRITE_PARAM_F_SIZE    , 1-1                           , 0xff);
-    axi4l->ExecWrite(reg_wdma + 8 * REG_VDMA_WRITE_CTL_CONTROL     , 3                             , 0xff);  // update & enable
 
-    axi4l->Wait(1000);
+    axi4l->Display("oneshot");
+    axi4l->ExecWrite(reg_wdma + 8 * REG_VDMA_WRITE_CTL_CONTROL     , 7                             , 0xff);  // update & enable
+    while (axi4l->ExecRead(reg_wdma + 8 * REG_VDMA_WRITE_CTL_STATUS) != 0x00000000) {
+        axi4l->Wait(1000);
+        mng->Run(1000);
+    }
+    axi4l->Wait(10000);
     
+    axi4l->Display("oneshot");
+    axi4l->ExecWrite(reg_wdma + 8 * REG_VDMA_WRITE_CTL_CONTROL     , 7                             , 0xff);  // update & enable
+    while (axi4l->ExecRead(reg_wdma + 8 * REG_VDMA_WRITE_CTL_STATUS) != 0x00000000) {
+        axi4l->Wait(1000);
+        mng->Run(1000);
+    }
+    axi4l->Wait(10000);
+    axi4l->ExecWrite(reg_wdma + 8 * REG_VDMA_WRITE_CTL_CONTROL     , 3                             , 0xff);  // update & enable
+    axi4l->Wait(100000);
+    axi4l->ExecWrite(reg_wdma + 8 * REG_VDMA_WRITE_CTL_CONTROL     , 0                             , 0xff);  // update & enable
+
 
     mng->Run(1000000);
     

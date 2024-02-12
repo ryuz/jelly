@@ -25,7 +25,9 @@ interface jelly3_axi4s_if
         parameter   int     KEEP_BITS = DATA_BITS / BYTE_BITS,
         parameter   int     ID_BITS   = 8,
         parameter   int     DEST_BITS = 4,
-        parameter   int     USER_BITS = 1
+        parameter   int     USER_BITS = 1,
+
+        parameter           DEBUG     = "false"
     )
     (
         input   var logic   aresetn,
@@ -33,15 +35,15 @@ interface jelly3_axi4s_if
     );
 
     // signals
-    logic   [DATA_BITS-1:0]     tdata;
-    logic   [STRB_BITS-1:0]     tstrb;
-    logic   [STRB_BITS-1:0]     tkeep;
-    logic                       tlast;
-    logic   [ID_BITS-1:0]       tid;
-    logic   [DEST_BITS-1:0]     tdest;
-    logic   [USER_BITS-1:0]     tuser;
-    logic                       tvalid;
-    logic                       tready;
+    (* MARK_DEBUG=DEBUG *)  logic   [DATA_BITS-1:0]     tdata;
+                            logic   [STRB_BITS-1:0]     tstrb;
+                            logic   [STRB_BITS-1:0]     tkeep;
+                            logic                       tlast;
+                            logic   [ID_BITS-1:0]       tid;
+                            logic   [DEST_BITS-1:0]     tdest;
+    (* MARK_DEBUG=DEBUG *)  logic   [USER_BITS-1:0]     tuser;
+    (* MARK_DEBUG=DEBUG *)  logic                       tvalid;
+    (* MARK_DEBUG=DEBUG *)  logic                       tready;
 
     modport m
         (
