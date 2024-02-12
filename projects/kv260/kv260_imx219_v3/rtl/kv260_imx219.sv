@@ -10,7 +10,8 @@ module kv260_imx219
             parameter   int     WIDTH_BITS  = 16,
             parameter   int     HEIGHT_BITS = 16,
             parameter   int     IMG_WIDTH   = 3280 / 2,
-            parameter   int     IMG_HEIGHT  = 2464 / 2
+            parameter   int     IMG_HEIGHT  = 2464 / 2,
+            parameter           DEBUG       = "true"
         )
         (
             input   var logic           cam_clk_p,
@@ -204,7 +205,7 @@ module kv260_imx219
             );
     
     // address map
-    assign {axi4l_dec[DEC_GPIO].addr_base, axi4l_dec[DEC_GPIO].addr_high} = {40'ha000_0000, 40'ha000_0000};
+    assign {axi4l_dec[DEC_GPIO].addr_base, axi4l_dec[DEC_GPIO].addr_high} = {40'ha000_0000, 40'ha000_ffff};
     assign {axi4l_dec[DEC_FMTR].addr_base, axi4l_dec[DEC_FMTR].addr_high} = {40'ha010_0000, 40'ha010_ffff};
     assign {axi4l_dec[DEC_WDMA].addr_base, axi4l_dec[DEC_WDMA].addr_high} = {40'ha021_0000, 40'ha021_ffff};
 
@@ -250,7 +251,7 @@ module kv260_imx219
             if ( axi4l_dec[DEC_GPIO].awvalid && axi4l_dec[DEC_GPIO].awready 
                     && axi4l_dec[DEC_GPIO].wvalid && axi4l_dec[DEC_GPIO].wready
                     && axi4l_dec[DEC_GPIO].wstrb[0] ) begin
-                case ( axi4l_dec[DEC_GPIO].awaddr[3:0] )
+                case ( axi4l_dec[DEC_GPIO].awaddr[5:3] )
                 1: reg_sw_reset   <= 1'(axi4l_dec[DEC_GPIO].wdata[0]);
                 2: reg_cam_enable <= 1'(axi4l_dec[DEC_GPIO].wdata[0]);
                 default:;
@@ -264,7 +265,7 @@ module kv260_imx219
                 axi4l_dec[DEC_GPIO].rvalid <= 1'b0;
             end
             if ( axi4l_dec[DEC_GPIO].arvalid && axi4l_dec[DEC_GPIO].arready ) begin
-                case ( axi4l_dec[DEC_GPIO].awaddr[3:0] )
+                case ( axi4l_dec[DEC_GPIO].awaddr[5:3] )
                 0: axi4l_dec[DEC_GPIO].rdata  <= axi4l_dec[DEC_GPIO].DATA_BITS'(32'h01234567)     ;
                 1: axi4l_dec[DEC_GPIO].rdata  <= axi4l_dec[DEC_GPIO].DATA_BITS'(reg_sw_reset)     ;
                 2: axi4l_dec[DEC_GPIO].rdata  <= axi4l_dec[DEC_GPIO].DATA_BITS'(reg_cam_enable)   ;
@@ -432,7 +433,8 @@ module kv260_imx219
 
     jelly3_axi4s_if
             #(
-                .DATA_BITS  (10)
+                .DATA_BITS  (10     ),
+                .DEBUG      (DEBUG  )
             )
         axi4s_csi2
             (
@@ -491,7 +493,8 @@ module kv260_imx219
 
     jelly3_axi4s_if
             #(
-                .DATA_BITS  (10                     )
+                .DATA_BITS  (10                     ),
+                .DEBUG      (DEBUG                  )
             )
         axi4s_fmtr
             (
@@ -642,10 +645,40 @@ module kv260_imx219
     */
 
 
+    // FIFO
+    jelly3_axi4s_if
+            #(
+                .DATA_BITS  (10             )
+            )
+        axi4s_fifo
+            (
+                .aresetn    (axi4s_cam_aresetn),
+                .aclk       (axi4s_cam_aclk   )
+            );
+    
+    jelly3_axi4s_fifo
+            #(
+                .ASYNC          (0          ),
+                .PTR_BITS       (9          ),
+                .RAM_TYPE       ("block"    ),
+                .LOW_DEALY      (0          ),
+                .DOUT_REGS      (1          ),
+                .S_REGS         (1          ),
+                .M_REGS         (1          )
+            )
+        u_axi4s_fifo
+            (
+                .s_axi4s        (axi4s_fmtr),
+                .m_axi4s        (axi4s_fifo),
+                .s_free_count   (),
+                .m_data_count   ()
+            );
+
     // DMA write
     jelly3_axi4s_if
             #(
-                .DATA_BITS  (32)
+                .DATA_BITS  (32     ),
+                .DEBUG      (DEBUG  )
             )
         axi4s_wdma
             (
@@ -653,11 +686,11 @@ module kv260_imx219
                 .aclk       (axi4s_cam_aclk   )
             );
 
-    assign axi4s_wdma.tuser  = axi4s_fmtr.tuser ;
-    assign axi4s_wdma.tlast  = axi4s_fmtr.tlast ;
-    assign axi4s_wdma.tdata  = 32'(axi4s_fmtr.tdata);
-    assign axi4s_wdma.tvalid = axi4s_fmtr.tvalid;
-    assign axi4s_fmtr.tready = axi4s_wdma.tready;
+    assign axi4s_wdma.tuser  = axi4s_fifo.tuser ;
+    assign axi4s_wdma.tlast  = axi4s_fifo.tlast ;
+    assign axi4s_wdma.tdata  = 32'(axi4s_fifo.tdata);
+    assign axi4s_wdma.tvalid = axi4s_fifo.tvalid;
+    assign axi4s_fifo.tready = axi4s_wdma.tready;
 
     jelly3_dma_video_write
             #(

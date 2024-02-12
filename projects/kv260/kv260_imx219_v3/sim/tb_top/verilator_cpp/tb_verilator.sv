@@ -30,7 +30,10 @@ module tb_verilator
             output  logic   [63:0]  s_axi4l_peri_rdata      ,
             output  logic   [1:0]   s_axi4l_peri_rresp      ,
             output  logic           s_axi4l_peri_rvalid     ,
-            input   logic           s_axi4l_peri_rready   
+            input   logic           s_axi4l_peri_rready     ,
+
+            output  logic   [31:0]  img_width               ,
+            output  logic   [31:0]  img_height              
         );
     
 
@@ -108,19 +111,35 @@ module tb_verilator
     assign i_axi4s_src.tready = u_top.u_mipi_csi2_rx.axi4s_tready;
 
 
+
+//    localparam FILE_NAME  = "../../../../../../data/images/windowswallpaper/Penguins_640x480_bayer10.pgm";
+//    localparam FILE_IMG_WIDTH  = 640;
+//    localparam FILE_IMG_HEIGHT = 480;
+//    localparam DATA_WIDTH = 10;
+
+    localparam FILE_NAME  = "../Mandrill_128x128.pgm";
+//  localparam FILE_NAME  = "";
+    localparam FILE_IMG_WIDTH  = 128;
+    localparam FILE_IMG_HEIGHT = 128;
+    localparam DATA_WIDTH = 10;
+
     localparam  SIM_IMG_WIDTH  = 128;//256;
     localparam  SIM_IMG_HEIGHT = 64; //256;
+    assign img_width  = SIM_IMG_WIDTH;
+    assign img_height = SIM_IMG_HEIGHT;
 
     // master
     jelly3_model_axi4s_m
             #(
+                .COMPONENTS         (1),
+                .DATA_BITS          (10),
                 .IMG_WIDTH          (SIM_IMG_WIDTH),
                 .IMG_HEIGHT         (SIM_IMG_HEIGHT),
-                .H_BLANK            (64),
-                .V_BLANK            (32),
-                .FILE_NAME          (),//"../Mandrill_256x256.ppm"),
-                .FILE_IMG_WIDTH     (256),
-                .FILE_IMG_HEIGHT    (256),
+                .H_BLANK            (64),//(64),
+                .V_BLANK            (32),//(32),
+                .FILE_NAME          (FILE_NAME),//"../Mandrill_256x256.ppm"),
+                .FILE_IMG_WIDTH     (FILE_IMG_WIDTH ),
+                .FILE_IMG_HEIGHT    (FILE_IMG_HEIGHT),
                 .BUSY_RATE          (0),
                 .RANDOM_SEED        (0)
             )
@@ -135,6 +154,73 @@ module tb_verilator
                 .out_y              (               ),
                 .out_f              (               )
             );
+
+    jelly2_axi4s_slave_model
+            #(
+                .COMPONENTS         (1  ),
+                .DATA_WIDTH         (8  ),
+                .INIT_FRAME_NUM     (0  ),
+                .X_WIDTH            (32 ),
+                .Y_WIDTH            (32 ),
+                .F_WIDTH            (32 ),
+                .FORMAT             ("P2"   ),
+                .FILE_NAME          ("output/csi2_"    ),
+                .FILE_EXT           (".pgm" ),
+                .SEQUENTIAL_FILE    (1  ),
+                .ENDIAN             (0  ),
+                .BUSY_RATE          (0  ),
+                .RANDOM_SEED        (0  )
+            )
+        u_axi4s_slave_model_csi2
+            (
+                .aresetn            (u_top.axi4s_csi2.aresetn    ),
+                .aclk               (u_top.axi4s_csi2.aclk       ),
+                .aclken             (1'b1                        ), 
+
+                .param_width        (SIM_IMG_WIDTH  ),
+                .param_height       (SIM_IMG_HEIGHT ),
+                .frame_num          (),
+
+                .s_axi4s_tuser      (u_top.axi4s_csi2.tuser         ),
+                .s_axi4s_tlast      (u_top.axi4s_csi2.tlast         ),
+                .s_axi4s_tdata      (8'(u_top.axi4s_csi2.tdata)         ),
+                .s_axi4s_tvalid     (u_top.axi4s_csi2.tvalid & u_top.axi4s_csi2.tready),
+                .s_axi4s_tready     ()
+            );
+    
+    jelly2_axi4s_slave_model
+            #(
+                .COMPONENTS         (1  ),
+                .DATA_WIDTH         (8  ),
+                .INIT_FRAME_NUM     (0  ),
+                .X_WIDTH            (32 ),
+                .Y_WIDTH            (32 ),
+                .F_WIDTH            (32 ),
+                .FORMAT             ("P2"   ),
+                .FILE_NAME          ("output/wdma_"    ),
+                .FILE_EXT           (".pgm" ),
+                .SEQUENTIAL_FILE    (1  ),
+                .ENDIAN             (0  ),
+                .BUSY_RATE          (0  ),
+                .RANDOM_SEED        (0  )
+            )
+        u_axi4s_slave_model_wdma
+            (
+                .aresetn            (u_top.axi4s_wdma.aresetn    ),
+                .aclk               (u_top.axi4s_wdma.aclk       ),
+                .aclken             (1'b1                       ), 
+
+                .param_width        (SIM_IMG_WIDTH  ),
+                .param_height       (SIM_IMG_HEIGHT ),
+                .frame_num          (),
+
+                .s_axi4s_tuser      (u_top.axi4s_wdma.tuser         ),
+                .s_axi4s_tlast      (u_top.axi4s_wdma.tlast         ),
+                .s_axi4s_tdata      (8'(u_top.axi4s_wdma.tdata)         ),
+                .s_axi4s_tvalid     (u_top.axi4s_wdma.tvalid & u_top.axi4s_wdma.tready),
+                .s_axi4s_tready     ()
+            );
+    
 
 
     // -----------------------------
