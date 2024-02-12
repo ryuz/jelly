@@ -15,7 +15,7 @@ module jelly3_dma_stream_write
         #(
             // 基本設定
             parameter   int                             N                   = 2,
-            parameter   int                             AWADDR_BITS         = 32,
+            parameter   int                             AWADDR_BITS         = 49,
 
             parameter   int                             AXI4S_BYTE_BITS     = 8,
             parameter   int                             AXI4S_DATA_BITS     = 32,

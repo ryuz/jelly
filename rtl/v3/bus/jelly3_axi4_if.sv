@@ -178,8 +178,8 @@ interface jelly3_axi4_if
             output  arregion    ,
             output  aruser      ,
             output  arvalid     ,
-
             input   arready     ,
+
             input   rid         ,
             input   rdata       ,
             input   rresp       ,
@@ -235,9 +235,9 @@ interface jelly3_axi4_if
             input   arqos       ,
             input   arregion    ,
             input   aruser      ,
-            output  arvalid     ,
-
+            input   arvalid     ,
             output  arready     ,
+
             output  rid         ,
             output  rdata       ,
             output  rresp       ,
@@ -290,6 +290,7 @@ interface jelly3_axi4_if
 
             input   aresetn     ,
             input   aclk        ,
+
             output  arid        ,
             output  araddr      ,
             output  arlen       ,
@@ -302,8 +303,8 @@ interface jelly3_axi4_if
             output  arregion    ,
             output  aruser      ,
             output  arvalid     ,
-
             input   arready     ,
+
             input   rid         ,
             input   rdata       ,
             input   rresp       ,
@@ -368,9 +369,9 @@ interface jelly3_axi4_if
             input   arqos       ,
             input   arregion    ,
             input   aruser      ,
-            output  arvalid     ,
-
+            input   arvalid     ,
             output  arready     ,
+
             output  rid         ,
             output  rdata       ,
             output  rresp       ,

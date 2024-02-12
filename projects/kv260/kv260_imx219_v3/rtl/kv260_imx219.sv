@@ -696,7 +696,7 @@ module kv260_imx219
             #(
                 .AXI4L_ASYNC            (1                      ),
                 .AXI4S_ASYNC            (1                      ),
-                
+                .ADDR_BITS              (AXI4_MEM_ADDR_BITS     ),
                 .INDEX_BITS             (1                      ),
                 .SIZE_OFFSET            (1'b1                   ),
                 .H_SIZE_BITS            (14                     ),

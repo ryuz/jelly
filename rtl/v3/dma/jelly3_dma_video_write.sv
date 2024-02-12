@@ -22,7 +22,7 @@ module jelly3_dma_video_write
             parameter   bit                             AXI4S_ASYNC          = 1,
             
             // AXI4 Memory
-            parameter   int                             ADDR_BITS            = 32,
+            parameter   int                             ADDR_BITS            = 49,
             parameter   int                             AXI4_AWID            = 0,
             parameter   bit     [0:0]                   AXI4_AWLOCK          = 1'b0,
             parameter   bit     [3:0]                   AXI4_AWCACHE         = 4'b0001,
