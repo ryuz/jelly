@@ -40,7 +40,23 @@ int main(int argc, char *argv[])
     int     bayer_phase = 0;
     int     fmtsel      = 0;
     int     view_scale  = 4;
-    
+
+    // 720p
+    pixel_clock = 91000000.0;
+    binning     = true;
+    width       = 1280;
+    height      = 720;
+    aoi_x       = -1;
+    aoi_y       = -1;
+    flip_h      = false;
+    flip_v      = false;
+    frame_rate  = 60;
+    exposure    = 20;
+    a_gain      = 20;
+    d_gain      = 0;
+    bayer_phase = 0;
+    view_scale  = 2;
+
     for ( int i = 1; i < argc; ++i ) {
         if ( strcmp(argv[i], "1000fps") == 0 ) {
             pixel_clock = 139200000.0;
@@ -171,7 +187,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    auto reg_gid    = uio_acc.GetAccessor(0x00000000);
+    auto reg_gpio   = uio_acc.GetAccessor(0x00000000);
     auto reg_fmtr   = uio_acc.GetAccessor(0x00100000);
 //  auto reg_prmup  = uio_acc.GetAccessor(0x00011000);
     auto reg_demos  = uio_acc.GetAccessor(0x00120000);
@@ -181,14 +197,13 @@ int main(int argc, char *argv[])
     
 #if 1
     std::cout << "CORE ID" << std::endl;
-    std::cout << std::hex << reg_gid.ReadReg(0) << std::endl;
-    std::cout << std::hex << uio_acc.ReadReg(0) << std::endl;
+    std::cout << std::hex << reg_gpio.ReadReg(0) << std::endl;
     std::cout << std::hex << reg_fmtr.ReadReg(0) << std::endl;
-    std::cout << std::hex << reg_demos.ReadReg(0) << std::endl;
-    std::cout << std::hex << reg_colmat.ReadReg(0) << std::endl;
+//  std::cout << std::hex << reg_demos.ReadReg(0) << std::endl;
+//  std::cout << std::hex << reg_colmat.ReadReg(0) << std::endl;
     std::cout << std::hex << reg_wdma.ReadReg(0) << std::endl;
 #endif
-    
+
     // mmap udmabuf
     jelly::UdmabufAccessor udmabuf_acc("udmabuf-jelly-vram0");
     if ( !udmabuf_acc.IsMapped() ) {
@@ -198,14 +213,14 @@ int main(int argc, char *argv[])
 
     auto dmabuf_phys_adr = udmabuf_acc.GetPhysAddr();
     auto dmabuf_mem_size = udmabuf_acc.GetSize();
-//  std::cout << "udmabuf0 phys addr : 0x" << std::hex << dmabuf_phys_adr << std::endl;
-//  std::cout << "udmabuf0 size      : " << std::dec << dmabuf_mem_size << std::endl;
+    std::cout << "udmabuf0 phys addr : 0x" << std::hex << dmabuf_phys_adr << std::endl;
+    std::cout << "udmabuf0 size      : " << std::dec << dmabuf_mem_size << std::endl;
 
     jelly::VideoDmaControl vdmaw(reg_wdma, 4, 4, true);
 
 
     // カメラON
-    uio_acc.WriteReg(2, 1);
+    reg_gpio.WriteReg(2, 1);
     usleep(500000);
 
     // IMX219 I2C control
@@ -252,7 +267,11 @@ int main(int argc, char *argv[])
     cv::createTrackbar("d_gain",   "img", &d_gain, 24);
     cv::createTrackbar("bayer" ,   "img", &bayer_phase, 3);
     cv::createTrackbar("fmtsel",   "img", &fmtsel, 3);
-    
+
+    vdmaw.SetBufferAddr(dmabuf_phys_adr);
+    vdmaw.SetImageSize(width, height);
+    vdmaw.Start();
+
     int     key;
     while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
         if ( g_signal ) { break; }
@@ -268,7 +287,7 @@ int main(int argc, char *argv[])
         reg_sel.WriteReg(0, fmtsel);
 
         // キャプチャ
-        vdmaw.Oneshot(dmabuf_phys_adr, width, height, frame_num);
+//      vdmaw.Oneshot(dmabuf_phys_adr, width, height, frame_num);
         cv::Mat img;
         if ( fmtsel == 3 ) {
             img = cv::Mat(height*frame_num, width, CV_32S);
@@ -348,9 +367,9 @@ int main(int argc, char *argv[])
 
     std::cout << "close device" << std::endl;
 
-    // DMA停止
+    // DMA 停止
     vdmaw.Stop();
-    
+
     // 取り込み停止
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL, 0x00);
     usleep(100000);
@@ -358,7 +377,11 @@ int main(int argc, char *argv[])
     // close
     imx219.Stop();
     imx219.Close();
-    
+
+    // カメラOFF
+    reg_gpio.WriteReg(2, 0);
+    usleep(100000);
+
     return 0;
 }
 
