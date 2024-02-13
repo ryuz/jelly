@@ -338,8 +338,8 @@ module jelly3_dma_stream_write
 
     regadr_t  regadr_write;
     regadr_t  regadr_read;
-    assign regadr_write = regadr_t'(s_axi4l.awaddr / s_axi4l.STRB_BITS);
-    assign regadr_read  = regadr_t'(s_axi4l.araddr / s_axi4l.STRB_BITS);
+    assign regadr_write = regadr_t'(s_axi4l.awaddr / s_axi4l.ADDR_BITS'(s_axi4l.STRB_BITS));
+    assign regadr_read  = regadr_t'(s_axi4l.araddr / s_axi4l.ADDR_BITS'(s_axi4l.STRB_BITS));
 
     always_ff @(posedge s_axi4l.aclk ) begin
         if ( ~s_axi4l.aresetn ) begin

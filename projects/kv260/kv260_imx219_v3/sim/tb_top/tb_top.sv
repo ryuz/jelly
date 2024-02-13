@@ -184,7 +184,6 @@ module tb_top();
 
     assign axi4l_peri.awready = u_top.u_design_1.axi4l_peri_awready ;
     assign axi4l_peri.wready  = u_top.u_design_1.axi4l_peri_wready  ;
-    assign axi4l_peri.bready  = u_top.u_design_1.axi4l_peri_bready  ;
     assign axi4l_peri.bresp   = u_top.u_design_1.axi4l_peri_bresp   ;
     assign axi4l_peri.bvalid  = u_top.u_design_1.axi4l_peri_bvalid  ;
     assign axi4l_peri.arready = u_top.u_design_1.axi4l_peri_arready ;
@@ -288,33 +287,43 @@ module tb_top();
         u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_CTL_CONTROL     , 7                             , 8'hff);  // update & enable
         rdata = 1;
         while ( rdata != 0 ) begin
+            #10000
             u_axi4l.read_reg (ADR_WDMA, `REG_VIDEO_FMTREG_CTL_STATUS, rdata);
         end
         #100000
 
         $display("oneshot");
-        u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_CTL_CONTROL     , 7                             , 8'hff);  // update & enable
+        u_axi4l.write_reg(ADR_WDMA, int'(`REG_VDMA_WRITE_CTL_CONTROL)     , 7                             , 8'hff);  // update & enable
         rdata = 1;
         while ( rdata != 0 ) begin
+            #10000
             u_axi4l.read_reg (ADR_WDMA, `REG_VIDEO_FMTREG_CTL_STATUS, rdata);
         end
         #100000
 
         $display("start");
-        u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_CTL_CONTROL     , 3                             , 8'hff);  // update & enable
- 
+        u_axi4l.write_reg(ADR_WDMA, int'(`REG_VDMA_WRITE_CTL_CONTROL)     , 3                             , 8'hff);  // update & enable
+        
+        /*
+        // ストレステスト
         for ( int i = 0; i < 10; i++ ) begin
             #100000
             force u_top.u_design_1.aw_busy = 1'b1;
-            #20000
+            #200
             force u_top.u_design_1.aw_busy = 1'b0;
 
             #30000
             force u_top.u_design_1.w_busy = 1'b1;
-            #20000
+            #200
             force u_top.u_design_1.w_busy = 1'b0;
         end
+        */
+       
         #1000000
+        $display("stop");
+        u_axi4l.write_reg(ADR_WDMA, int'(`REG_VDMA_WRITE_CTL_CONTROL)     , 0                             , 8'hff);  // update & enable
+        #1000
+
         $finish();
  
 

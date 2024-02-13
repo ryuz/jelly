@@ -179,7 +179,7 @@ module jelly3_dma_video_write
                 .INIT_WDETECT_FIRST     (INIT_DETECT_FIRST      ),
                 .INIT_WDETECT_LAST      (INIT_DETECT_LAST       ),
                 .INIT_WPADDING_EN       (INIT_PADDING_EN        ),
-                .INIT_WPADDING_DATA     (INIT_PADDING_DATA      ),
+                .INIT_WPADDING_DATA     (s_axi4s.DATA_BITS'(INIT_PADDING_DATA)),
                 .INIT_WPADDING_STRB     (INIT_PADDING_STRB      ),
                 
                 .CORE_ID                (CORE_ID                ),

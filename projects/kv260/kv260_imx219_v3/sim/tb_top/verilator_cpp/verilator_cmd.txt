@@ -2,14 +2,15 @@
 #--public
 #--threads 2
 
-#--assert
+--assert
 
 -D__VERILATOR__
+-D__SIMULATION__
 
 #-Wno-WIDTH
 #-Wno-UNSIGNED
 #-Wno-PINMISSING
--Wno-UNOPTFLAT
+#-Wno-UNOPTFLAT
 #-Wno-UNOPTTHREADS
 #-Wno-LITENDIAN
 #-Wno-STMTDLY
@@ -19,9 +20,9 @@
 #-Wno-SELRANGE
 #-Wno-WIDTHCONCAT
 #-Wno-MULTITOP
--Wno-WIDTHEXPAND
+#-Wno-WIDTHEXPAND
 #-Wno-MULTIDRIVEN
-#-Wno-fatal
+-Wno-fatal
 
 -y ../../stub
 -y ../../../rtl
