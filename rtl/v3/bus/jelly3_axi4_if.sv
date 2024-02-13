@@ -47,10 +47,12 @@ interface jelly3_axi4_if
         parameter   int     ARUSER_BITS    = USER_REQ_BITS,
         parameter   int     RUSER_BITS     = USER_DATA_BITS + USER_RESP_BITS,
 
-        parameter   int     ISSUE_LIMIT_AW = 65535,
-        parameter   int     ISSUE_LIMIT_W  = 65535,
-        parameter   int     ISSUE_LIMIT_AR = 65535,
-        parameter   int     ISSUE_LIMIT_R  = 65535
+        parameter   int     LIMIT_AW = 255,
+        parameter   int     LIMIT_W  = 255,
+        parameter   int     LIMIT_WC = 1023,
+        parameter   int     LIMIT_AR = 255,
+        parameter   int     LIMIT_R  = 255,
+        parameter   int     LIMIT_RC = 1023
     )
     (
         input   var logic   aresetn,
@@ -586,41 +588,72 @@ end
 `ifdef __SIMULATION__
     int         issue_aw;
     int         issue_w;
+    int         issue_wlast;
+    int         issue_b;
     int         issue_ar;
     int         issue_r;
-    int         que_awlen [];
+    int         issue_rlast;
+    int         issue_awlen;
+    int         issue_arlen;
+    assign issue_aw    = awvalid && awready         ? 1 : 0;
+    assign issue_w     = wvalid  && wready          ? 1 : 0;
+    assign issue_wlast = wvalid  && wready && wlast ? 1 : 0;
+    assign issue_b     = bvalid  && bready          ? 1 : 0;
+    assign issue_ar    = arvalid && arready         ? 1 : 0;
+    assign issue_r     = rvalid  && rready          ? 1 : 0;
+    assign issue_rlast = rvalid  && rready && rlast ? 1 : 0;
+    assign issue_awlen = issue_aw != 0 ? int'(awlen) + 1 : 0;
+    assign issue_arlen = issue_ar != 0 ? int'(arlen) + 1 : 0;
+
+    int         count_aw;
+    int         count_w;
+    int         count_wc;
+    int         count_ar;
+    int         count_r;
+    int         count_rc;
+
     always_ff @(posedge aclk) begin
         if ( ~aresetn ) begin
-            issue_aw     <= 0;
-            issue_w      <= 0;
-            issue_ar     <= 0;
-            issue_r      <= 0;
+            count_aw     <= 0;
+            count_w      <= 0;
+            count_wc     <= 0;
+            count_ar     <= 0;
+            count_r      <= 0;
         end
         else begin
-            if ( awvalid && awready ) begin issue_aw <= issue_aw + 1; que_awlen.push_back(awlen); end
-            if ( wvalid  && wready  ) begin issue_w  <= issue_w  + 1; end
-            if ( bvalid  && bready  ) begin issue_aw <= issue_aw - 1; issue_w <= issue_w - que_awlen.pop_front(); end
-            if ( arvalid && arready ) begin issue_ar <= issue_ar + 1; issue_r <= issue_r + arlen; end
-            if ( rvalid  && rready && rlast ) begin issue_ar <= issue_ar - 1; end
-            if ( rvalid  && rready  ) begin issue_r  <= issue_r - 1; end
+            count_aw <= count_aw + issue_aw    - issue_b        ;
+            count_w  <= count_w  + issue_wlast - issue_b        ;
+            count_wc <= count_wc + issue_w     - issue_awlen    ;
+            count_ar <= count_ar + issue_ar    - issue_rlast    ;
+            count_rc <= count_rc + issue_arlen - issue_r        ;
 
-            assert ( issue_aw >= 0 && issue_w >=0 ) else begin
-                $error("ERROR: %m: illegal bvalid issue");
+            assert ( count_aw >= 0 ) else begin
+                $error("ERROR: %m: illegal bvalid issue (aw)");
             end
-            assert ( issue_ar >= 0 && issue_r >=0 ) else begin
-                $error("ERROR: %m: illegal rvalid issue");
+            assert ( count_w >= 0 ) else begin
+                $error("ERROR: %m: illegal bvalid issue (w)");
             end
-            assert ( issue_aw <= ISSUE_LIMIT_AW ) else begin
+            assert ( count_wc >= -LIMIT_WC && count_wc <= LIMIT_WC ) else begin
+                $error("ERROR: %m: wvalid overflow");
+            end
+            assert ( count_ar >= 0 ) else begin
+                $error("ERROR: %m: illegal rvalid issue (ar)");
+            end
+            assert ( count_rc >= 0 ) else begin
+                $error("ERROR: %m: illegal rvalid issue (arlen)");
+            end
+
+            assert ( count_aw <= LIMIT_AW ) else begin
                 $error("ERROR: %m: aw  channel overflow");
             end
-            assert ( issue_w <= ISSUE_LIMIT_W ) else begin
+            assert ( count_w <= LIMIT_W ) else begin
                 $error("ERROR: %m: w channel overflow");
             end
-            assert ( issue_ar <= ISSUE_LIMIT_AR ) else begin
+            assert ( count_ar <= LIMIT_AR ) else begin
                 $error("ERROR: %m: ar channel overflow");
             end
-            assert ( issue_r <= ISSUE_LIMIT_R ) else begin
-                $error("ERROR: %m: ar channel overflow");
+            assert ( count_rc <= LIMIT_RC ) else begin
+                $error("ERROR: %m: r channel overflow");
             end
         end
     end
