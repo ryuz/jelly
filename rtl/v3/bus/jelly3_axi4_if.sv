@@ -49,7 +49,8 @@ interface jelly3_axi4_if
 
         parameter   int     ISSUE_LIMIT_AW = 65535,
         parameter   int     ISSUE_LIMIT_W  = 65535,
-        parameter   int     ISSUE_LIMIT_AR = 65535
+        parameter   int     ISSUE_LIMIT_AR = 65535,
+        parameter   int     ISSUE_LIMIT_R  = 65535
     )
     (
         input   var logic   aresetn,
@@ -586,21 +587,28 @@ end
     int         issue_aw;
     int         issue_w;
     int         issue_ar;
+    int         issue_r;
+    int         que_awlen [];
     always_ff @(posedge aclk) begin
         if ( ~aresetn ) begin
             issue_aw     <= 0;
             issue_w      <= 0;
             issue_ar     <= 0;
+            issue_r      <= 0;
         end
         else begin
-            if ( awvalid && awready ) begin issue_aw <= issue_aw + 1 + int'(awlen); end
+            if ( awvalid && awready ) begin issue_aw <= issue_aw + 1; que_awlen.push_back(awlen); end
             if ( wvalid  && wready  ) begin issue_w  <= issue_w  + 1; end
-            if ( bvalid  && bready  ) begin issue_aw <= issue_aw - 1; issue_w <= issue_w - 1; end
-            if ( arvalid && arready ) begin issue_ar <= issue_ar + 1; end
-            if ( rvalid  && rready  ) begin issue_ar <= issue_ar - 1 + int'(arlen); end
+            if ( bvalid  && bready  ) begin issue_aw <= issue_aw - 1; issue_w <= issue_w - que_awlen.pop_front(); end
+            if ( arvalid && arready ) begin issue_ar <= issue_ar + 1; issue_r <= issue_r + arlen; end
+            if ( rvalid  && rready && rlast ) begin issue_ar <= issue_ar - 1; end
+            if ( rvalid  && rready  ) begin issue_r  <= issue_r - 1; end
 
             assert ( issue_aw >= 0 && issue_w >=0 ) else begin
                 $error("ERROR: %m: illegal bvalid issue");
+            end
+            assert ( issue_ar >= 0 && issue_r >=0 ) else begin
+                $error("ERROR: %m: illegal rvalid issue");
             end
             assert ( issue_aw <= ISSUE_LIMIT_AW ) else begin
                 $error("ERROR: %m: aw  channel overflow");
@@ -609,6 +617,9 @@ end
                 $error("ERROR: %m: w channel overflow");
             end
             assert ( issue_ar <= ISSUE_LIMIT_AR ) else begin
+                $error("ERROR: %m: ar channel overflow");
+            end
+            assert ( issue_r <= ISSUE_LIMIT_R ) else begin
                 $error("ERROR: %m: ar channel overflow");
             end
         end
