@@ -146,7 +146,7 @@ module jelly3_dma_video_write
                 .AXI4S_VIDEO            (1'b1                   ),
                 .AXI4S_USE_STRB         (1'b0                   ),
                 .AXI4S_USE_FIRST        (1'b0                   ),
-                .AXI4S_USE_LAST         (1'b0                   ),
+                .AXI4S_USE_LAST         (1'b1                   ),
 
                 .AXI4_AWID              (AXI4_AWID              ),
                 .AXI4_AWLOCK            (AXI4_AWLOCK            ),

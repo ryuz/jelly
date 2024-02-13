@@ -668,12 +668,13 @@ module jelly3_dma_stream_write
     logic                           s_bvalid;
     logic                           s_bready;
     
-//    localparam AXI4_DATA_SIZE = $clog2(m_axi4.DATA_BITS/8);
     localparam AXI4_DATA_SIZE = $clog2(m_axi4.STRB_BITS);
+
+    localparam bit USE_WFIRST = (N >= 2 && AXI4S_VIDEO);
 
     logic   [N-1:0]     s_wfirst;
     logic   [N-1:0]     s_wlast ;
-    if ( N >= 2 && AXI4S_VIDEO ) begin
+    if ( USE_WFIRST ) begin
         assign s_wfirst = N'({s_axi4s.tuser[0], 1'b0});
         assign s_wlast  = N'({1'b0, s_axi4s.tlast});
     end
@@ -699,7 +700,7 @@ module jelly3_dma_stream_write
                 .WDETECTOR_ENABLE       (WDETECTOR_ENABLE           ),
 
                 .HAS_WSTRB              (AXI4S_USE_STRB             ),
-                .HAS_WFIRST             (1'b0                       ),
+                .HAS_WFIRST             (USE_WFIRST                 ),
                 .HAS_WLAST              (AXI4S_USE_LAST             ),
 
                 .AXI4_ID_WIDTH          (m_axi4.ID_BITS             ),
@@ -802,8 +803,8 @@ module jelly3_dma_stream_write
                 .wpadding_data          (reg_wpadding_data          ),
                 .wpadding_strb          (reg_wpadding_strb          ),
                 
-                .s_bresetn              (s_axi4s.aresetn            ),
-                .s_bclk                 (s_axi4s.aclk               ),
+                .s_bresetn              (s_axi4l.aresetn            ),
+                .s_bclk                 (s_axi4l.aclk               ),
                 .s_bfirst               (s_bfirst                   ),
                 .s_blast                (s_blast                    ),
                 .s_bvalid               (s_bvalid                   ),
@@ -835,7 +836,7 @@ module jelly3_dma_stream_write
             );
     
     assign s_bready = 1'b1;
-    
+
     assign sig_end   = s_bvalid & s_bready & s_blast[N-1];
     
     
