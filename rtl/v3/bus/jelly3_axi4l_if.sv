@@ -18,9 +18,9 @@ interface jelly3_axi4l_if
         parameter   int                         STRB_BITS = DATA_BITS / BYTE_BITS,
         parameter   int                         PROT_BITS = 3,
         parameter   int                         RESP_BITS = 2,
-        parameter   int                         ISSUE_LIMIT_AW = 1,
-        parameter   int                         ISSUE_LIMIT_W  = 1,
-        parameter   int                         ISSUE_LIMIT_AR = 1
+        parameter   int                         LIMIT_AW  = 1,
+        parameter   int                         LIMIT_W   = 1,
+        parameter   int                         LIMIT_AR  = 1
     )
     (
         input   var logic   aresetn,
@@ -215,30 +215,39 @@ ASSERT_RVALID_STABLE : assert property(prop_rvalid_stable );
 `ifdef __SIMULATION__
     int         issue_aw;
     int         issue_w;
+    int         issue_b;
     int         issue_ar;
+    int         issue_r;
+    assign issue_aw    = awvalid && awready ? 1 : 0;
+    assign issue_w     = wvalid  && wready  ? 1 : 0;
+    assign issue_b     = bvalid  && bready  ? 1 : 0;
+    assign issue_ar    = arvalid && arready ? 1 : 0;
+    assign issue_r     = rvalid  && rready  ? 1 : 0;
+    
+    int         count_aw;
+    int         count_w;
+    int         count_ar;
     always_ff @(posedge aclk) begin
         if ( ~aresetn ) begin
-            issue_aw     <= 0;
-            issue_w      <= 0;
-            issue_ar     <= 0;
+            count_aw <= 0;
+            count_w  <= 0;
+            count_ar <= 0;
         end
         else begin
-            if ( awvalid && awready ) begin issue_aw <= issue_aw + 1; end
-            if ( wvalid  && wready  ) begin issue_w  <= issue_w  + 1; end
-            if ( bvalid  && bready  ) begin issue_aw <= issue_aw - 1; issue_w <= issue_w - 1; end
-            if ( arvalid && arready ) begin issue_ar <= issue_ar + 1; end
-            if ( rvalid  && rready  ) begin issue_ar <= issue_ar - 1; end
+            count_aw <= count_aw + issue_aw - issue_b;
+            count_w  <= count_w  + issue_w  - issue_b;
+            count_ar <= count_ar + issue_ar - issue_r;
 
-            assert ( issue_aw >= 0 && issue_w >=0 ) else begin
+            assert ( count_aw >= 0 && count_w >=0 ) else begin
                 $error("ERROR: %m: illegal bvalid issue");
             end
-            assert ( issue_aw <= ISSUE_LIMIT_AW ) else begin
+            assert ( count_aw <= LIMIT_AW ) else begin
                 $error("ERROR: %m: aw  channel overflow");
             end
-            assert ( issue_w <= ISSUE_LIMIT_W ) else begin
+            assert ( count_w <= LIMIT_W ) else begin
                 $error("ERROR: %m: w channel overflow");
             end
-            assert ( issue_ar <= ISSUE_LIMIT_AR ) else begin
+            assert ( count_ar <= LIMIT_AR ) else begin
                 $error("ERROR: %m: ar channel overflow");
             end
         end
