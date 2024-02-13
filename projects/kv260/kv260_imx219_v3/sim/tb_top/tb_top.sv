@@ -75,11 +75,11 @@ module tb_top();
     always_comb force u_top.u_design_1.clk200 = clk200;
     always_comb force u_top.u_design_1.clk250 = clk250;
 
-    always_comb force u_top.u_design_1.m_axi4l_peri_aresetn = ~reset;
-    always_comb force u_top.u_design_1.m_axi4l_peri_aclk    = clk250;
+//    always_comb force u_top.u_design_1.m_axi4l_peri_aresetn = ~reset;
+//    always_comb force u_top.u_design_1.m_axi4l_peri_aclk    = clk250;
 
-    always_comb force u_top.u_design_1.s_axi4_mem_aresetn = ~reset;
-    always_comb force u_top.u_design_1.s_axi4_mem_aclk    = clk250;
+//    always_comb force u_top.u_design_1.s_axi4_mem_aresetn = ~reset;
+//    always_comb force u_top.u_design_1.s_axi4_mem_aclk    = clk250;
     
 
     // -----------------------------
@@ -283,7 +283,40 @@ module tb_top();
         u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_PARAM_V_SIZE    , SIM_IMG_HEIGHT-1              , 8'hff);
         u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_PARAM_FRAME_STEP, SIM_IMG_HEIGHT*SIM_IMG_WIDTH*4, 8'hff);
         u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_PARAM_F_SIZE    , 1-1                           , 8'hff);
+
+        $display("oneshot");
+        u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_CTL_CONTROL     , 7                             , 8'hff);  // update & enable
+        rdata = 1;
+        while ( rdata != 0 ) begin
+            u_axi4l.read_reg (ADR_WDMA, `REG_VIDEO_FMTREG_CTL_STATUS, rdata);
+        end
+        #100000
+
+        $display("oneshot");
+        u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_CTL_CONTROL     , 7                             , 8'hff);  // update & enable
+        rdata = 1;
+        while ( rdata != 0 ) begin
+            u_axi4l.read_reg (ADR_WDMA, `REG_VIDEO_FMTREG_CTL_STATUS, rdata);
+        end
+        #100000
+
+        $display("start");
         u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_CTL_CONTROL     , 3                             , 8'hff);  // update & enable
+ 
+        for ( int i = 0; i < 10; i++ ) begin
+            #100000
+            force u_top.u_design_1.aw_busy = 1'b1;
+            #20000
+            force u_top.u_design_1.aw_busy = 1'b0;
+
+            #30000
+            force u_top.u_design_1.w_busy = 1'b1;
+            #20000
+            force u_top.u_design_1.w_busy = 1'b0;
+        end
+        #1000000
+        $finish();
+ 
 
         /*
         $display("start");

@@ -263,7 +263,7 @@ module design_1
     assign out_clk250 = clk250;
 
     assign axi4l_peri_aresetn = ~reset;
-    assign axi4l_peri_aclk    = clk250;
+    assign axi4l_peri_aclk    = clk100; // clk250;
 
     assign axi4l_peri_awready = m_axi4l_peri_awready ;
     assign axi4l_peri_wready  = m_axi4l_peri_wready  ;
@@ -274,6 +274,8 @@ module design_1
     assign axi4l_peri_rresp   = m_axi4l_peri_rresp   ;
     assign axi4l_peri_rvalid  = m_axi4l_peri_rvalid  ;
 
+    assign m_axi4l_peri_aresetn = axi4l_peri_aresetn;
+    assign m_axi4l_peri_aclk    = axi4l_peri_aclk   ;
     assign m_axi4l_peri_awaddr  = axi4l_peri_awaddr ;
     assign m_axi4l_peri_awprot  = axi4l_peri_awprot ;
     assign m_axi4l_peri_awvalid = axi4l_peri_awvalid;
@@ -288,6 +290,39 @@ module design_1
 
 
 
+    // memory
+    assign s_axi4_mem_aresetn = ~reset;
+    assign s_axi4_mem_aclk    = clk250;
+
+    wire    axi4_mem0_awvalid_tmp;
+    wire    axi4_mem0_awready_tmp;
+    wire    axi4_mem0_wvalid_tmp;
+    wire    axi4_mem0_wready_tmp;
+
+    reg     aw_busy = 1'b0;
+    reg     w_busy = 1'b0;
+    reg     reg_aw_busy;
+    reg     reg_w_busy;
+    always @(posedge s_axi4_mem_aclk) begin
+        if ( ~s_axi4_mem_aresetn ) begin
+            reg_aw_busy <= 1'b0;
+            reg_w_busy <= 1'b0;
+        end
+        else begin
+            if ( !axi4_mem0_awvalid_tmp || axi4_mem0_awready_tmp ) begin
+                reg_aw_busy <= aw_busy;
+            end
+            if ( !axi4_mem0_wvalid_tmp || axi4_mem0_wready_tmp ) begin
+                reg_w_busy <= w_busy;
+            end
+        end
+    end
+
+    assign axi4_mem0_awvalid_tmp = s_axi4_mem0_awvalid && ~reg_aw_busy;
+    assign s_axi4_mem0_awready   = axi4_mem0_awready_tmp && ~reg_aw_busy;
+
+    assign axi4_mem0_wvalid_tmp = s_axi4_mem0_wvalid && ~reg_w_busy;
+    assign s_axi4_mem0_wready   = axi4_mem0_wready_tmp && ~reg_w_busy;
 
     assign fan_en = 1'b0;
     
@@ -299,18 +334,18 @@ module design_1
                 .MEM_WIDTH              (17),
                 .WRITE_LOG_FILE         ("axi4_write.txt"),
                 .READ_LOG_FILE          (""),
-                .AW_DELAY               (20),
+                .AW_DELAY               (100),
                 .AR_DELAY               (20),
                 .AW_FIFO_PTR_WIDTH      (4),
                 .W_FIFO_PTR_WIDTH       (4),
                 .B_FIFO_PTR_WIDTH       (4),
                 .AR_FIFO_PTR_WIDTH      (4),
                 .R_FIFO_PTR_WIDTH       (4),
-                .AW_BUSY_RATE           (0),
-                .W_BUSY_RATE            (0),
-                .B_BUSY_RATE            (0),
-                .AR_BUSY_RATE           (0),
-                .R_BUSY_RATE            (0)
+                .AW_BUSY_RATE           (50),
+                .W_BUSY_RATE            (50),
+                .B_BUSY_RATE            (50),
+                .AR_BUSY_RATE           (50),
+                .R_BUSY_RATE            (50)
             )
         i_axi4_slave_model
             (
@@ -327,13 +362,13 @@ module design_1
                 .s_axi4_awcache         (s_axi4_mem0_awcache),
                 .s_axi4_awprot          (s_axi4_mem0_awprot),
                 .s_axi4_awqos           (s_axi4_mem0_awqos),
-                .s_axi4_awvalid         (s_axi4_mem0_awvalid),
-                .s_axi4_awready         (s_axi4_mem0_awready),
+                .s_axi4_awvalid         (axi4_mem0_awvalid_tmp),
+                .s_axi4_awready         (axi4_mem0_awready_tmp),
                 .s_axi4_wdata           (s_axi4_mem0_wdata),
                 .s_axi4_wstrb           (s_axi4_mem0_wstrb),
                 .s_axi4_wlast           (s_axi4_mem0_wlast),
-                .s_axi4_wvalid          (s_axi4_mem0_wvalid),
-                .s_axi4_wready          (s_axi4_mem0_wready),
+                .s_axi4_wvalid          (axi4_mem0_wvalid_tmp),
+                .s_axi4_wready          (axi4_mem0_wready_tmp),
                 .s_axi4_bid             (s_axi4_mem0_bid),
                 .s_axi4_bresp           (s_axi4_mem0_bresp),
                 .s_axi4_bvalid          (s_axi4_mem0_bvalid),

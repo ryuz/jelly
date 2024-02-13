@@ -76,11 +76,10 @@ module tb_verilator
     always_comb force u_top.u_design_1.clk200 = clk200;
     always_comb force u_top.u_design_1.clk250 = clk250;
 
-    always_comb force u_top.u_design_1.m_axi4l_peri_aresetn = ~reset;
-    always_comb force u_top.u_design_1.m_axi4l_peri_aclk    = clk250;
-
-    always_comb force u_top.u_design_1.s_axi4_mem_aresetn = ~reset;
-    always_comb force u_top.u_design_1.s_axi4_mem_aclk    = clk250;
+//    always_comb force u_top.u_design_1.m_axi4l_peri_aresetn = ~reset;
+//    always_comb force u_top.u_design_1.m_axi4l_peri_aclk    = clk250;
+//    always_comb force u_top.u_design_1.s_axi4_mem_aresetn = ~reset;
+//    always_comb force u_top.u_design_1.s_axi4_mem_aclk    = clk250;
     
 
     // -----------------------------
