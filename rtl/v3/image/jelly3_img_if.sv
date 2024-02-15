@@ -12,14 +12,15 @@
 
 interface jelly3_img_if
         #(
-            parameter   bit     USE_USER  = 0   ,
-            parameter   bit     USE_DE    = 1   ,
-            parameter   bit     USE_VALID = 1   ,
+            parameter   bit     USE_USER  = 0                       ,
+            parameter   bit     USE_DE    = 1                       ,
+            parameter   bit     USE_VALID = 1                       ,
 
-            parameter   int     USER_BITS = 32  ,
-            parameter   int     DATA_BITS = 32  ,
-            parameter   int     UNIT_BITS = DATA_BITS,
-            parameter   int     DE_BITS   = DATA_BITS / UNIT_BITS
+            parameter   int     DATA_BITS = 32                      ,
+            parameter   int     UNIT_BITS = DATA_BITS               ,
+            parameter   int     DE_BITS   = DATA_BITS / UNIT_BITS   ,
+            parameter   int     USER_BITS = 1                       ,
+            parameter   type    user_t    = logic [USER_BITS-1:0]
         )
         (
             input   var logic   reset   ,
@@ -34,9 +35,9 @@ interface jelly3_img_if
     logic                       col_last    ;
     logic   [DE_BITS-1:0]       de          ;
     logic   [DATA_BITS-1:0]     data        ;
-    logic   [USER_BITS-1:0]     user        ;
+    user_t                      user        ;
     logic                       valid       ;
-
+    
     modport m
         (
             input   reset       ,

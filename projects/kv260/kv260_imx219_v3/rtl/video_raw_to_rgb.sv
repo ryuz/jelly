@@ -14,135 +14,87 @@
 
 module video_raw_to_rgb
         #(
-            parameter   WB_ADR_WIDTH  = 10,
-            parameter   WB_DAT_WIDTH  = 32,
-            parameter   WB_SEL_WIDTH  = (WB_DAT_WIDTH / 8),
-            
-            parameter   DATA_WIDTH    = 10,
-            
-            parameter   X_WIDTH       = 13,
-            parameter   Y_WIDTH       = 12,
-            
-            parameter   TUSER_WIDTH   = 1,
-            parameter   S_TDATA_WIDTH = DATA_WIDTH,
-            parameter   M_TDATA_WIDTH = 4*DATA_WIDTH,
-            
-            parameter   DEVICE        = "RTL"
+            parameter   int     WIDTH_BITS  = 10    ,
+            parameter   int     HEIGHT_BITS = 9     ,
+            parameter   type    width_t     = logic [WIDTH_BITS-1:0],
+            parameter   type    height_t    = logic [HEIGHT_BITS-1:0],
+            parameter           DEVICE      = "RTL" 
         )
         (
-            input   wire                        aresetn,
-            input   wire                        aclk,
-            
-            input   wire                        in_update_req,
+            input   var logic           aclken, 
+            input   var logic           in_update_req,
+            input   var width_t         param_width,
+            input   var height_t        param_height,
 
-            input   wire    [X_WIDTH-1:0]       param_width,
-            input   wire    [Y_WIDTH-1:0]       param_height,
+            jelly3_axi4s_if.s           s_axi4s,
+            jelly3_axi4s_if.m           m_axi4s
 
-            input   wire    [TUSER_WIDTH-1:0]   s_axi4s_tuser,
-            input   wire                        s_axi4s_tlast,
-            input   wire    [S_TDATA_WIDTH-1:0] s_axi4s_tdata,
-            input   wire                        s_axi4s_tvalid,
-            output  wire                        s_axi4s_tready,
-            
-            output  wire    [TUSER_WIDTH-1:0]   m_axi4s_tuser,
-            output  wire                        m_axi4s_tlast,
-            output  wire    [M_TDATA_WIDTH-1:0] m_axi4s_tdata,
-            output  wire                        m_axi4s_tvalid,
-            input   wire                        m_axi4s_tready,
-
-            input   wire                        s_wb_rst_i,
-            input   wire                        s_wb_clk_i,
-            input   wire    [WB_ADR_WIDTH-1:0]  s_wb_adr_i,
-            input   wire    [WB_DAT_WIDTH-1:0]  s_wb_dat_i,
-            output  wire    [WB_DAT_WIDTH-1:0]  s_wb_dat_o,
-            input   wire                        s_wb_we_i,
-            input   wire    [WB_SEL_WIDTH-1:0]  s_wb_sel_i,
-            input   wire                        s_wb_stb_i,
-            output  wire                        s_wb_ack_o
+//            jelly3_axi4l_if.s           s_axi4l
         );
     
+    logic           reset ;
+    logic           clk   ;
+    logic           cke   ;
+    assign  reset = ~s_axi4s.aresetn;
+    assign  clk   = s_axi4s.aclk;
     
-    wire                                reset = ~aresetn;
-    wire                                clk   = aclk;
-    wire                                cke;
-    
-    wire                                img_src_row_first;
-    wire                                img_src_row_last;
-    wire                                img_src_col_first;
-    wire                                img_src_col_last;
-    wire                                img_src_de;
-    wire    [TUSER_WIDTH-1:0]           img_src_user;
-    wire    [S_TDATA_WIDTH-1:0]         img_src_data;
-    wire                                img_src_valid;
-    
-    wire                                img_sink_row_first;
-    wire                                img_sink_row_last;
-    wire                                img_sink_col_first;
-    wire                                img_sink_col_last;
-    wire                                img_sink_de;
-    wire    [TUSER_WIDTH-1:0]           img_sink_user;
-    wire    [M_TDATA_WIDTH-1:0]         img_sink_data;
-    wire                                img_sink_valid;
-    
-    // img
-    jelly2_axi4s_img
+
+    jelly3_img_if
             #(
-                .SIZE_AUTO              (0),
-                .TUSER_WIDTH            (TUSER_WIDTH),
-                .S_TDATA_WIDTH          (S_TDATA_WIDTH),
-                .M_TDATA_WIDTH          (M_TDATA_WIDTH),
-                .IMG_X_WIDTH            (X_WIDTH),
-                .IMG_Y_WIDTH            (Y_WIDTH),
-                .BLANK_Y_WIDTH          (4),
-                .WITH_DE                (1),
-                .WITH_VALID             (1),
-                .IMG_CKE_BUFG           (0)
-            )   
-        i_axi4s_img 
-            (   
-                .aresetn                (aresetn),
-                .aclk                   (aclk),
-                .aclken                 (1'b1),
-
-                .param_img_width        (param_width),
-                .param_img_height       (param_height),
-                .param_blank_height     (4'd5),
-                
-                .s_axi4s_tdata          (s_axi4s_tdata),
-                .s_axi4s_tlast          (s_axi4s_tlast),
-                .s_axi4s_tuser          (s_axi4s_tuser),
-                .s_axi4s_tvalid         (s_axi4s_tvalid),
-                .s_axi4s_tready         (s_axi4s_tready),
-                
-                .m_axi4s_tdata          (m_axi4s_tdata),
-                .m_axi4s_tlast          (m_axi4s_tlast),
-                .m_axi4s_tuser          (m_axi4s_tuser),
-                .m_axi4s_tvalid         (m_axi4s_tvalid),
-                .m_axi4s_tready         (m_axi4s_tready),
-
-
-                .img_cke                (cke),
-                
-                .m_img_src_row_first    (img_src_row_first),
-                .m_img_src_row_last     (img_src_row_last),
-                .m_img_src_col_first    (img_src_col_first),
-                .m_img_src_col_last     (img_src_col_last),
-                .m_img_src_de           (img_src_de),
-                .m_img_src_user         (img_src_user),
-                .m_img_src_data         (img_src_data),
-                .m_img_src_valid        (img_src_valid),
-                
-                .s_img_sink_row_first   (img_sink_row_first),
-                .s_img_sink_row_last    (img_sink_row_last),
-                .s_img_sink_col_first   (img_sink_col_first),
-                .s_img_sink_col_last    (img_sink_col_last),
-                .s_img_sink_user        (img_sink_user),
-                .s_img_sink_de          (img_sink_de),
-                .s_img_sink_data        (img_sink_data),
-                .s_img_sink_valid       (img_sink_valid)
+                .DATA_BITS  (s_axi4s.DATA_BITS)
+            )
+        img_src
+            (
+                .reset      (reset  ),
+                .clk        (clk    ),
+                .cke        (cke    )
             );
 
+   jelly3_img_if
+            #(
+                .DATA_BITS  (m_axi4s.DATA_BITS)
+            )
+        img_sink
+            (
+                .reset      (reset  ),
+                .clk        (clk    ),
+                .cke        (cke    )
+            );
     
+
+    jelly3_axi4s_img
+            #(
+                .WIDTH_BITS     ($bits(param_width) ),
+                .HEIGHT_BITS    ($bits(param_height)),
+                .BLANK_BITS     (4                  ),
+                .CKE_BUFG       (0                  ) 
+            )
+        i_axi4s_img
+            (
+                .cke            (aclken             ),
+
+                .param_width    (param_width        ),
+                .param_height   (param_height       ),
+                .param_blank    (4'd5               ),
+                .s_axi4s        (s_axi4s            ),
+                .m_axi4s        (m_axi4s            ),
+
+                .img_cke        (cke                ),
+                .m_img          (img_src.m          ),
+                .s_img          (img_sink.s         )
+        );
+    
+
+    assign img_sink.row_first   = img_src.row_first;
+    assign img_sink.row_last    = img_src.row_last ;
+    assign img_sink.col_first   = img_src.col_first;
+    assign img_sink.col_last    = img_src.col_last ;
+    assign img_sink.de          = img_src.de       ;
+    assign img_sink.data        = img_src.data     ;
+    assign img_sink.user        = img_src.user     ;
+    assign img_sink.valid       = img_src.valid    ;
+
+    /*
     // demosaic
     wire                                img_demos_row_first;
     wire                                img_demos_row_last;
@@ -303,7 +255,7 @@ module video_raw_to_rgb
     assign s_wb_ack_o      = wb_demos_stb_i  ? wb_demos_ack_o  :
                              wb_colmat_stb_i ? wb_colmat_ack_o :
                              s_wb_stb_i;
-    
+    */
     
 endmodule
 

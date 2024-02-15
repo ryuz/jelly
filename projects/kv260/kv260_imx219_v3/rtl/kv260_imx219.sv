@@ -523,6 +523,39 @@ module kv260_imx219
                 .out_param_height       (fmtr_param_height      )
             );
     
+
+
+    // 現像
+   jelly3_axi4s_if
+            #(
+                .DATA_BITS  (10                 )
+            )
+        axi4s_rgb
+            (
+                .aresetn    (axi4s_cam_aresetn  ),
+                .aclk       (axi4s_cam_aclk     )
+            );
+    
+    video_raw_to_rgb
+            #(
+                .WIDTH_BITS     (WIDTH_BITS         ),
+                .HEIGHT_BITS    (HEIGHT_BITS        ),
+                .DEVICE         ("RTL"              )
+            )
+        i_video_raw_to_rgb
+            (
+                .aclken         (1'b1               ), 
+                .in_update_req  (1'b1               ),
+                .param_width    (fmtr_param_width   ),
+                .param_height   (fmtr_param_height  ),
+
+                .s_axi4s        (axi4s_fmtr.s       ),
+                .m_axi4s        (axi4s_rgb.m        )
+
+//              .s_axi4l        ()
+            );
+
+
     /*
     // 現像
     logic   [0:0]               axi4s_rgb_tuser;
@@ -668,8 +701,8 @@ module kv260_imx219
             )
         u_axi4s_fifo
             (
-                .s_axi4s        (axi4s_fmtr),
-                .m_axi4s        (axi4s_fifo),
+                .s_axi4s        (axi4s_rgb.s),
+                .m_axi4s        (axi4s_fifo.m),
                 .s_free_count   (),
                 .m_data_count   ()
             );

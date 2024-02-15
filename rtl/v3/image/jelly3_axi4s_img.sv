@@ -14,25 +14,27 @@
 
 module jelly3_axi4s_img
         #(
-            parameter   int                         TUSER_BITS  = 1                 ,
-            parameter   int                         WIDTH_BITS  = 10                ,
-            parameter   int                         HEIGHT_BITS = 9                 ,
-            parameter   int                         BLANK_BITS  = HEIGHT_BITS       ,
-            parameter   bit                         CKE_BUFG    = 0            
+            parameter   int     WIDTH_BITS  = 10                        ,
+            parameter   int     HEIGHT_BITS = 9                         ,
+            parameter   int     BLANK_BITS  = HEIGHT_BITS               ,
+            parameter   type    width_t     = logic [WIDTH_BITS-1:0]    ,
+            parameter   type    height_t    = logic [HEIGHT_BITS-1:0]   ,
+            parameter   type    blank_t     = logic [BLANK_BITS-1:0]    ,
+            parameter   bit     CKE_BUFG    = 0            
         )
         (
-            input   var logic                       cke,
+            input   var logic       cke,
 
-            input   var logic   [WIDTH_BITS-1:0]    param_width,
-            input   var logic   [HEIGHT_BITS-1:0]   param_height,
-            input   var logic   [BLANK_BITS-1:0]    param_blank,
+            input   var width_t     param_width,
+            input   var height_t    param_height,
+            input   var blank_t     param_blank,
 
-            jelly3_axi4s_if.s                       s_axi4s,
-            jelly3_axi4s_if.m                       m_axi4s,
+            jelly3_axi4s_if.s       s_axi4s,
+            jelly3_axi4s_if.m       m_axi4s,
 
-            output  var logic                       img_cke,
-            jelly3_img_if.m                         m_img,
-            jelly3_img_if.s                         s_img
+            output  var logic       img_cke,
+            jelly3_img_if.m         m_img,
+            jelly3_img_if.s         s_img
         );
     
 
