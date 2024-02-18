@@ -48,6 +48,7 @@ module jelly3_img_demosaic_acpi
     // -------------------------------------
 
     // type
+    localparam type axi4l_addr_t = logic [$bits(s_axi4l.awaddr)-1:0];
     localparam type axi4l_data_t = logic [$bits(s_axi4l.wdata)-1:0];
     localparam type axi4l_strb_t = logic [$bits(s_axi4l.wstrb)-1:0];
 
@@ -102,8 +103,8 @@ module jelly3_img_demosaic_acpi
     // registers control
     regadr_t  regadr_write;
     regadr_t  regadr_read;
-    assign regadr_write = regadr_t'(s_axi4l.awaddr / $bits(axi4l_strb_t));
-    assign regadr_read  = regadr_t'(s_axi4l.araddr / $bits(axi4l_strb_t));
+    assign regadr_write = regadr_t'(s_axi4l.awaddr / axi4l_addr_t'($bits(axi4l_strb_t)));
+    assign regadr_read  = regadr_t'(s_axi4l.araddr / axi4l_addr_t'($bits(axi4l_strb_t)));
 
     always_ff @(posedge s_axi4l.aclk) begin
         if ( ~s_axi4l.aresetn ) begin

@@ -56,3 +56,5 @@ coverage:
 	verilator_coverage --annotate annotated coverage.dat
 
 
+../../../../../../data/images/windowswallpaper/Penguins_640x480_bayer10.pgm:
+	make -C ../../../../../../data/images/windowswallpaper Penguins_640x480_bayer10.pgm

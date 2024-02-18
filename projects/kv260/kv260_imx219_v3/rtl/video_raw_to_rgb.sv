@@ -84,7 +84,7 @@ module video_raw_to_rgb
                 .s_img          (img_sink.s         )
         );
     
-
+    /*
     assign img_sink.row_first   = img_src.row_first;
     assign img_sink.row_last    = img_src.row_last ;
     assign img_sink.col_first   = img_src.col_first;
@@ -93,6 +93,7 @@ module video_raw_to_rgb
     assign img_sink.data        = img_src.data     ;
     assign img_sink.user        = img_src.user     ;
     assign img_sink.valid       = img_src.valid    ;
+    */
 
     // demosaic
     jelly3_img_if
@@ -108,7 +109,7 @@ module video_raw_to_rgb
     
     jelly3_img_demosaic_acpi
             #(
-                .DATA_BITS          (m_axi4s.DATA_BITS),
+                .DATA_BITS          (s_axi4s.DATA_BITS),
                 .MAX_COLS           (4096       ),
                 .RAM_TYPE           ("block"    ),
                 .INIT_PARAM_PHASE   (2'b00      )
@@ -121,6 +122,15 @@ module video_raw_to_rgb
                 .s_axi4l            (s_axi4l        )
             );
     
+    assign img_sink.row_first   = img_demos.row_first;
+    assign img_sink.row_last    = img_demos.row_last ;
+    assign img_sink.col_first   = img_demos.col_first;
+    assign img_sink.col_last    = img_demos.col_last ;
+    assign img_sink.de          = img_demos.de       ;
+    assign img_sink.data        = img_demos.data     ;
+    assign img_sink.user        = img_demos.user     ;
+    assign img_sink.valid       = img_demos.valid    ;
+
 
     /*
     wire    [WB_DAT_WIDTH-1:0]          wb_colmat_dat_o;

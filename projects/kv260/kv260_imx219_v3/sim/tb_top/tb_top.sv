@@ -86,13 +86,19 @@ module tb_top();
     //  Video input
     // -----------------------------
 
+    localparam FILE_NAME       = "../../../../../../data/images/windowswallpaper/Penguins_640x480_bayer10.pgm";
+    localparam FILE_IMG_WIDTH  = 640;
+    localparam FILE_IMG_HEIGHT = 480;
+
+    localparam DATA_WIDTH      = 10;
+
     logic   axi4s_src_aresetn;
     logic   axi4s_src_aclk;
 
     jelly3_axi4s_if
             #(
-                .USER_BITS      (1),
-                .DATA_BITS      (10)
+                .USER_BITS      (1          ),
+                .DATA_BITS      (DATA_WIDTH )
             )
         i_axi4s_src
             (
@@ -116,15 +122,15 @@ module tb_top();
     // master
     jelly3_model_axi4s_m
             #(
-                .IMG_WIDTH          (SIM_IMG_WIDTH),
-                .IMG_HEIGHT         (SIM_IMG_HEIGHT),
-                .H_BLANK            (64),
-                .V_BLANK            (32),
-                .FILE_NAME          (),//"../Mandrill_256x256.ppm"),
-                .FILE_IMG_WIDTH     (256),
-                .FILE_IMG_HEIGHT    (256),
-                .BUSY_RATE          (0),
-                .RANDOM_SEED        (0)
+                .IMG_WIDTH          (SIM_IMG_WIDTH  ),
+                .IMG_HEIGHT         (SIM_IMG_HEIGHT ),
+                .H_BLANK            (64             ),
+                .V_BLANK            (32             ),
+                .FILE_NAME          (FILE_NAME      ),
+                .FILE_IMG_WIDTH     (FILE_IMG_WIDTH ),
+                .FILE_IMG_HEIGHT    (FILE_IMG_HEIGHT),
+                .BUSY_RATE          (0              ),
+                .RANDOM_SEED        (0              )
             )
         u_model_axi4s_m
             (

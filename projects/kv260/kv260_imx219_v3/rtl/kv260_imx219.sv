@@ -530,7 +530,7 @@ module kv260_imx219
     // 現像
    jelly3_axi4s_if
             #(
-                .DATA_BITS  (10                 )
+                .DATA_BITS  (4*10               )
             )
         axi4s_rgb
             (
@@ -683,7 +683,7 @@ module kv260_imx219
     // FIFO
     jelly3_axi4s_if
             #(
-                .DATA_BITS  (10             )
+                .DATA_BITS  (10*4             )
             )
         axi4s_fifo
             (
@@ -723,7 +723,11 @@ module kv260_imx219
 
     assign axi4s_wdma.tuser  = axi4s_fifo.tuser ;
     assign axi4s_wdma.tlast  = axi4s_fifo.tlast ;
-    assign axi4s_wdma.tdata  = 32'(axi4s_fifo.tdata);
+//  assign axi4s_wdma.tdata  = 32'(axi4s_fifo.tdata);
+    assign axi4s_wdma.tdata[8*0 +: 8] = axi4s_fifo.tdata[10*0+2 +: 8];
+    assign axi4s_wdma.tdata[8*1 +: 8] = axi4s_fifo.tdata[10*1+2 +: 8];
+    assign axi4s_wdma.tdata[8*2 +: 8] = axi4s_fifo.tdata[10*2+2 +: 8];
+    assign axi4s_wdma.tdata[8*3 +: 8] = axi4s_fifo.tdata[10*3+2 +: 8];
     assign axi4s_wdma.tvalid = axi4s_fifo.tvalid;
     assign axi4s_fifo.tready = axi4s_wdma.tready;
 
