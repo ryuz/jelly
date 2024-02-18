@@ -419,17 +419,32 @@
 /* ---------------------------------- */
 
 /* Black Level Correction */
-#define REG_IMG_BLC_CORE_ID                     0x00
-#define REG_IMG_BLC_CORE_VERSION                0x01
-#define REG_IMG_BLC_CTL_CONTROL                 0x04
-#define REG_IMG_BLC_CTL_STATUS                  0x05
-#define REG_IMG_BLC_CTL_INDEX                   0x07
-#define REG_IMG_BLC_PARAM_PHASE                 0x08
-#define REG_IMG_BLC_PARAM_OFFSET0               0x0c
-#define REG_IMG_BLC_PARAM_OFFSET1               0x0d
-#define REG_IMG_BLC_PARAM_OFFSET2               0x0e
-#define REG_IMG_BLC_PARAM_OFFSET3               0x0f
-#define REG_IMG_BLC_CURRENT_PHASE               0x18
+#define REG_IMG_BAYER_BLC_CORE_ID               0x00
+#define REG_IMG_BAYER_BLC_CORE_VERSION          0x01
+#define REG_IMG_BAYER_BLC_CTL_CONTROL           0x04
+#define REG_IMG_BAYER_BLC_CTL_STATUS            0x05
+#define REG_IMG_BAYER_BLC_CTL_INDEX             0x07
+#define REG_IMG_BAYER_BLC_PARAM_PHASE           0x08
+#define REG_IMG_BAYER_BLC_PARAM_OFFSET0         0x10
+#define REG_IMG_BAYER_BLC_PARAM_OFFSET1         0x11
+#define REG_IMG_BAYER_BLC_PARAM_OFFSET2         0x12
+#define REG_IMG_BAYER_BLC_PARAM_OFFSET3         0x13
+
+/* White Balance */
+#define REG_IMG_BAYER_WB_CORE_ID                0x00
+#define REG_IMG_BAYER_WB_CORE_VERSION           0x01
+#define REG_IMG_BAYER_WB_CTL_CONTROL            0x04
+#define REG_IMG_BAYER_WB_CTL_STATUS             0x05
+#define REG_IMG_BAYER_WB_CTL_INDEX              0x07
+#define REG_IMG_BAYER_WB_PARAM_PHASE            0x08
+#define REG_IMG_BAYER_WB_PARAM_OFFSET0          0x10
+#define REG_IMG_BAYER_WB_PARAM_OFFSET1          0x11
+#define REG_IMG_BAYER_WB_PARAM_OFFSET2          0x12
+#define REG_IMG_BAYER_WB_PARAM_OFFSET3          0x13
+#define REG_IMG_BAYER_WB_PARAM_COEFF0           0x14
+#define REG_IMG_BAYER_WB_PARAM_COEFF1           0x15
+#define REG_IMG_BAYER_WB_PARAM_COEFF2           0x16
+#define REG_IMG_BAYER_WB_PARAM_COEFF3           0x17
 
 /* Demosaic */
 #define REG_IMG_DEMOSAIC_CORE_ID                0x00
