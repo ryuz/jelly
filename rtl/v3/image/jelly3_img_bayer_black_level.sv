@@ -65,11 +65,10 @@ module jelly3_img_bayer_black_level
     localparam  regadr_t REGADR_CTL_STATUS    = regadr_t'('h05);
     localparam  regadr_t REGADR_CTL_INDEX     = regadr_t'('h07);
     localparam  regadr_t REGADR_PARAM_PHASE   = regadr_t'('h08);
-    localparam  regadr_t REGADR_PARAM_OFFSET0 = regadr_t'('h0c);
-    localparam  regadr_t REGADR_PARAM_OFFSET1 = regadr_t'('h0d);
-    localparam  regadr_t REGADR_PARAM_OFFSET2 = regadr_t'('h0e);
-    localparam  regadr_t REGADR_PARAM_OFFSET3 = regadr_t'('h0f);
-    localparam  regadr_t REGADR_CURRENT_PHASE = regadr_t'('h18);
+    localparam  regadr_t REGADR_PARAM_OFFSET0 = regadr_t'('h10);
+    localparam  regadr_t REGADR_PARAM_OFFSET1 = regadr_t'('h11);
+    localparam  regadr_t REGADR_PARAM_OFFSET2 = regadr_t'('h12);
+    localparam  regadr_t REGADR_PARAM_OFFSET3 = regadr_t'('h13);
     
     // registers
     logic       [1:0]   reg_ctl_control;    // bit[0]:enable, bit[1]:update
@@ -120,8 +119,12 @@ module jelly3_img_bayer_black_level
 
     always_ff @(posedge s_axi4l.aclk) begin
         if ( ~s_axi4l.aresetn ) begin
-            reg_ctl_control <= INIT_CTL_CONTROL;
-            reg_param_phase <= INIT_PARAM_PHASE;
+            reg_ctl_control     <= INIT_CTL_CONTROL;
+            reg_param_phase     <= INIT_PARAM_PHASE;
+            reg_param_offset[0] <= INIT_PARAM_OFFSET0;
+            reg_param_offset[1] <= INIT_PARAM_OFFSET1;
+            reg_param_offset[2] <= INIT_PARAM_OFFSET2;
+            reg_param_offset[3] <= INIT_PARAM_OFFSET3;
 
             s_axi4l.bvalid <= 1'b0;
             s_axi4l.rdata  <= 'x;
@@ -166,7 +169,6 @@ module jelly3_img_bayer_black_level
                 REGADR_PARAM_OFFSET1:  s_axi4l.rdata <= axi4l_data_t'(reg_param_offset[1]);
                 REGADR_PARAM_OFFSET2:  s_axi4l.rdata <= axi4l_data_t'(reg_param_offset[2]);
                 REGADR_PARAM_OFFSET3:  s_axi4l.rdata <= axi4l_data_t'(reg_param_offset[3]);
-                REGADR_CURRENT_PHASE:  s_axi4l.rdata <= axi4l_data_t'(core_param_phase   );   // debug use only
                 default: ;
                 endcase
             end
@@ -212,8 +214,12 @@ module jelly3_img_bayer_black_level
         if ( s_img.reset ) begin
             reg_update_req   <= 1'b0;
             
-            core_ctl_control <= 1'b0;
-            core_param_phase <= INIT_PARAM_PHASE;
+            core_ctl_control     <= 1'b0;
+            core_param_phase     <= INIT_PARAM_PHASE;
+            core_param_offset[0] <= INIT_PARAM_OFFSET0;
+            core_param_offset[1] <= INIT_PARAM_OFFSET1;
+            core_param_offset[2] <= INIT_PARAM_OFFSET2;
+            core_param_offset[3] <= INIT_PARAM_OFFSET3;
         end
         else begin
             if ( in_update_req ) begin
