@@ -48,7 +48,7 @@ module jelly3_img_demosaic_acpi_g_core
                 .RAM_TYPE           (RAM_TYPE           ),
                 .BORDER_MODE        ("REFLECT_101"      )
             )
-        i_img_blk_buffer
+        u_img_blk_buffer
             (
                 .reset              (s_img.reset        ),
                 .clk                (s_img.clk          ),
@@ -82,7 +82,7 @@ module jelly3_img_demosaic_acpi_g_core
                 .DATA_BITS          (DATA_BITS  ),
                 .data_t             (data_t     )
             )
-        i_img_demosaic_acpi_g_calc
+        u_img_demosaic_acpi_g_calc
             (
                 .reset              (s_img.reset),
                 .clk                (s_img.clk  ),
@@ -105,7 +105,7 @@ module jelly3_img_demosaic_acpi_g_core
                 .LATENCY            (7                  ),
                 .USE_VALID          (m_img.USE_VALID    )
             )
-        i_img_delay
+        u_img_delay
             (
                 .reset              (m_img.reset        ),
                 .clk                (m_img.clk          ),

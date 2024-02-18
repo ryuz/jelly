@@ -69,7 +69,7 @@ module video_raw_to_rgb
                 .BLANK_BITS     (4                  ),
                 .CKE_BUFG       (0                  ) 
             )
-        i_axi4s_img
+        u_axi4s_img
             (
                 .cke            (aclken             ),
 
@@ -113,7 +113,7 @@ module video_raw_to_rgb
                 .RAM_TYPE           ("block"    ),
                 .INIT_PARAM_PHASE   (2'b00      )
             )
-        i_img_demosaic_acpi
+        u_img_demosaic_acpi
             (
                 .in_update_req      (in_update_req  ),
                 .s_img              (img_src.s      ),

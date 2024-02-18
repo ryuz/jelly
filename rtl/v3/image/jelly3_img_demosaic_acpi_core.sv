@@ -58,21 +58,12 @@ module jelly3_img_demosaic_acpi_core
     
     
     // R,B
-    jelly3_img_if
-            #(
-                .DATA_BITS      ($bits(data_t)*2),
-                .USER_BITS      ($bits(user_t)  )
-            )
-         img_rb
-            (
-                .reset          (s_img.reset    ),
-                .clk            (s_img.clk      ),
-                .cke            (s_img.cke      )
-            );
-
     jelly3_img_demosaic_acpi_rb_core
             #(
-                .DATA_BITS      ($bits(data_t)*2)
+                .DATA_BITS      (DATA_BITS      ),
+                .data_t         (data_t         ),
+                .MAX_COLS       (MAX_COLS       ),
+                .RAM_TYPE       (RAM_TYPE       )
             )
         u_img_demosaic_acpi_rb_core
             (
@@ -81,7 +72,17 @@ module jelly3_img_demosaic_acpi_core
                 .m_img          (m_img          )
             );
     
-    
+    // assertion
+    initial begin
+        sva_data_bits   : assert ( $bits(data_t) == s_img.DATA_BITS ) else $warning("$bits(data_t) != s_img.DATA_BITS");
+        sva_m_data_bits : assert ( m_img.DATA_BITS == s_img.DATA_BITS * 4) else $warning("m_img.DATA_BITS != s_img.DATA_BITS * 4");
+    end
+    always_comb begin
+        sva_connect_reset : assert (m_img.reset === s_img.reset);
+        sva_connect_clk   : assert (m_img.clk   === s_img.clk  );
+        sva_connect_cke   : assert (m_img.cke   === s_img.cke  );
+    end
+
 endmodule
 
 

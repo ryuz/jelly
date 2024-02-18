@@ -544,7 +544,7 @@ module kv260_imx219
                 .HEIGHT_BITS    (HEIGHT_BITS        ),
                 .DEVICE         ("RTL"              )
             )
-        i_video_raw_to_rgb
+        u_video_raw_to_rgb
             (
                 .aclken         (1'b1               ), 
                 .in_update_req  (1'b1               ),

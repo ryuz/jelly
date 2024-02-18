@@ -172,7 +172,7 @@ module jelly3_img_demosaic_acpi
             #(
                 .INDEX_WIDTH    ($bits(index_t))
             )
-        i_param_update_slave
+        u_param_update_slave
             (
                 .reset          (s_img.reset),
                 .clk            (s_img.clk  ),
@@ -186,7 +186,7 @@ module jelly3_img_demosaic_acpi
             );
     
     // wait for frame start to update parameters
-    reg                 reg_update_req;
+    logic       reg_update_req;
     always_ff @(posedge s_img.clk) begin
         if ( s_img.reset ) begin
             reg_update_req   <= 1'b0;
