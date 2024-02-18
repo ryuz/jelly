@@ -46,7 +46,6 @@ module jelly3_img_bayer_black_level_core
 
     
     phase_t             reg_param_phase ;
-    offset_t    [3:0]   reg_param_offset;
 
     phase_t     st0_phase       ;
     logic       st0_row_first   ;
@@ -79,7 +78,6 @@ module jelly3_img_bayer_black_level_core
     always_ff @(posedge s_img.clk) begin
         if ( s_img.reset ) begin
             reg_param_phase  <= 'x;
-            reg_param_offset <= 'x;
 
             st0_phase     <= 'x;
             st0_row_first <= 'x;
@@ -115,7 +113,6 @@ module jelly3_img_bayer_black_level_core
             if ( s_img.valid && s_img.col_first ) begin
                 if ( s_img.row_first ) begin
                     reg_param_phase  <= param_phase;
-                    reg_param_offset <= param_offset;
                     st0_phase        <= param_phase;
                 end
                 else begin
@@ -142,7 +139,7 @@ module jelly3_img_bayer_black_level_core
             st1_user      <= st1_user       ;
             st1_valid     <= st1_valid      ;
             if ( enable ) begin
-                st1_data      <= st1_data - calc_t'(reg_param_offset[st0_phase]);
+                st1_data      <= st1_data - calc_t'(param_offset[st0_phase]);
             end
 
             // stage2
