@@ -41,8 +41,8 @@ module jelly3_img_demosaic_acpi_rb_calc
     localparam type data_sign_t = logic signed [$bits(data_t):0];
     localparam DATA_SIGNED = data_sign_t'(data_t'(data_sign_t'(-1))) == data_sign_t'(-1);
 
-    localparam calc_t   MAX_VALUE = DATA_SIGNED ? calc_t'({1'b0, {($bits(data_t)-1){1'b1}}}) : calc_t'({1'b0, {$bits(data_t){1'b1}}});
-    localparam calc_t   MIN_VALUE = DATA_SIGNED ? calc_t'({1'b1, {($bits(data_t)-1){1'b0}}}) : calc_t'({1'b0, {$bits(data_t){1'b0}}});
+    localparam calc_t   MAX_VALUE = DATA_SIGNED ? calc_t'($signed({1'b0, {($bits(data_t)-1){1'b1}}})) : calc_t'({1'b0, {$bits(data_t){1'b1}}});
+    localparam calc_t   MIN_VALUE = DATA_SIGNED ? calc_t'($signed({1'b1, {($bits(data_t)-1){1'b0}}})) : calc_t'({1'b0, {$bits(data_t){1'b0}}});
     
     function calc_t  abs(input calc_t a);
         return a >= 0 ? a : -a;
