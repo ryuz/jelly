@@ -14,18 +14,24 @@
 
 module jelly3_video_format_regularizer
         #(
-            parameter   type            width_t         = logic [15:0]  ,
-            parameter   type            height_t        = logic [15:0]  ,
-            parameter   type            index_t         = logic [0:0]   ,
-            parameter   type            frame_timer_t   = logic [31:0]  ,
-            parameter   type            timer_t         = logic [31:0]  ,
-            parameter   type            regadr_t        = logic [7:0]   ,
+            parameter   int             WIDTH_BITS       = 16                           ,
+            parameter   type            width_t          = logic [WIDTH_BITS-1:0]       ,
+            parameter   int             HEIGHT_BITS      = 16                           ,
+            parameter   type            height_t         = logic [HEIGHT_BITS-1:0]      ,
+            parameter   int             INDEX_BITS       = 1                            ,
+            parameter   type            index_t          = logic [INDEX_BITS-1:0]       ,
+            parameter   int             FRAME_TIMER_BITS = 32                           ,
+            parameter   type            frame_timer_t    = logic [FRAME_TIMER_BITS-1:0] ,
+            parameter   int             TIMER_BITS       = 32                           ,
+            parameter   type            timer_t          = logic [TIMER_BITS-1:0]       ,
+            parameter   int             REGADR_BITS      = 8                            ,
+            parameter   type            regadr_t         = logic [REGADR_BITS-1:0]      ,
 
-            parameter   bit             S_REGS          = 1,
-            parameter   bit             M_REGS          = 1,
+            parameter   bit             S_REGS           = 1,
+            parameter   bit             M_REGS           = 1,
 
-            parameter                   CORE_ID         = 32'h527a_1220,
-            parameter                   CORE_VERSION    = 32'h0001_0000,
+            parameter                   CORE_ID          = 32'h527a_1220,
+            parameter                   CORE_VERSION     = 32'h0001_0000,
 
             parameter   bit     [1:0]   INIT_CTL_CONTROL      = 2'b00,
             parameter   bit             INIT_CTL_SKIP         = 1,

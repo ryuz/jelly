@@ -27,9 +27,9 @@ module video_raw_to_rgb
             input   var height_t        param_height,
 
             jelly3_axi4s_if.s           s_axi4s,
-            jelly3_axi4s_if.m           m_axi4s
+            jelly3_axi4s_if.m           m_axi4s,
 
-//            jelly3_axi4l_if.s           s_axi4l
+            jelly3_axi4l_if.s           s_axi4l
         );
     
     logic           reset ;
@@ -94,77 +94,35 @@ module video_raw_to_rgb
     assign img_sink.user        = img_src.user     ;
     assign img_sink.valid       = img_src.valid    ;
 
-    /*
     // demosaic
-    wire                                img_demos_row_first;
-    wire                                img_demos_row_last;
-    wire                                img_demos_col_first;
-    wire                                img_demos_col_last;
-    wire                                img_demos_de;
-    wire    [TUSER_WIDTH-1:0]           img_demos_user;
-    wire    [DATA_WIDTH-1:0]            img_demos_raw;
-    wire    [DATA_WIDTH-1:0]            img_demos_r;
-    wire    [DATA_WIDTH-1:0]            img_demos_g;
-    wire    [DATA_WIDTH-1:0]            img_demos_b;
-    wire                                img_demos_valid;
-    
-    wire    [WB_DAT_WIDTH-1:0]          wb_demos_dat_o;
-    wire                                wb_demos_stb_i;
-    wire                                wb_demos_ack_o;
-    
-    jelly2_img_demosaic_acpi
+    jelly3_img_if
             #(
-                .USER_WIDTH             (TUSER_WIDTH),
-                .DATA_WIDTH             (DATA_WIDTH),
-                .MAX_COLS               (4096),
-                .RAM_TYPE               ("block"),
-                
-                .WB_ADR_WIDTH           (6),
-                .WB_DAT_WIDTH           (WB_DAT_WIDTH),
-                
-                .INIT_PARAM_PHASE       (2'b00)
+                .DATA_BITS      (img_src.DATA_BITS*4)
+            )
+         img_demos
+            (
+                .reset          (img_src.reset    ),
+                .clk            (img_src.clk      ),
+                .cke            (img_src.cke      )
+            );
+    
+    jelly3_img_demosaic_acpi
+            #(
+                .DATA_BITS          (m_axi4s.DATA_BITS),
+                .MAX_COLS           (4096       ),
+                .RAM_TYPE           ("block"    ),
+                .INIT_PARAM_PHASE   (2'b00      )
             )
         i_img_demosaic_acpi
             (
-                .reset                  (reset),
-                .clk                    (clk),
-                .cke                    (cke),
-                
-                .in_update_req          (in_update_req),
-                
-                .s_wb_rst_i             (s_wb_rst_i),
-                .s_wb_clk_i             (s_wb_clk_i),
-                .s_wb_adr_i             (s_wb_adr_i[5:0]),
-                .s_wb_dat_i             (s_wb_dat_i),
-                .s_wb_dat_o             (wb_demos_dat_o),
-                .s_wb_we_i              (s_wb_we_i),
-                .s_wb_sel_i             (s_wb_sel_i),
-                .s_wb_stb_i             (wb_demos_stb_i),
-                .s_wb_ack_o             (wb_demos_ack_o),
-                
-                .s_img_row_first        (img_src_row_first),
-                .s_img_row_last         (img_src_row_last),
-                .s_img_col_first        (img_src_col_first),
-                .s_img_col_last         (img_src_col_last),
-                .s_img_de               (img_src_de),
-                .s_img_user             (img_src_user),
-                .s_img_raw              (img_src_data),
-                .s_img_valid            (img_src_valid),
-                
-                .m_img_row_first        (img_demos_row_first),
-                .m_img_row_last         (img_demos_row_last),
-                .m_img_col_first        (img_demos_col_first),
-                .m_img_col_last         (img_demos_col_last),
-                .m_img_de               (img_demos_de),
-                .m_img_user             (img_demos_user),
-                .m_img_raw              (img_demos_raw),
-                .m_img_r                (img_demos_r),
-                .m_img_g                (img_demos_g),
-                .m_img_b                (img_demos_b),
-                .m_img_valid            (img_demos_valid)
+                .in_update_req      (in_update_req  ),
+                .s_img              (img_src.s      ),
+                .m_img              (img_demos.m    ),
+                .s_axi4l            (s_axi4l        )
             );
     
-    
+
+    /*
     wire    [WB_DAT_WIDTH-1:0]          wb_colmat_dat_o;
     wire                                wb_colmat_stb_i;
     wire                                wb_colmat_ack_o;

@@ -189,9 +189,10 @@ module kv260_imx219
 
     localparam DEC_GPIO  = 0;
     localparam DEC_FMTR  = 1;
-    localparam DEC_WDMA = 2;
+    localparam DEC_RGB   = 2;
+    localparam DEC_WDMA  = 3;
 
-    localparam DEC_NUM   = 3;
+    localparam DEC_NUM   = 4;
 
     jelly3_axi4l_if
             #(
@@ -207,6 +208,7 @@ module kv260_imx219
     // address map
     assign {axi4l_dec[DEC_GPIO].addr_base, axi4l_dec[DEC_GPIO].addr_high} = {40'ha000_0000, 40'ha000_ffff};
     assign {axi4l_dec[DEC_FMTR].addr_base, axi4l_dec[DEC_FMTR].addr_high} = {40'ha010_0000, 40'ha010_ffff};
+    assign {axi4l_dec[DEC_RGB ].addr_base, axi4l_dec[DEC_RGB ].addr_high} = {40'ha012_0000, 40'ha012_ffff};
     assign {axi4l_dec[DEC_WDMA].addr_base, axi4l_dec[DEC_WDMA].addr_high} = {40'ha021_0000, 40'ha021_ffff};
 
 //    assign wb_gid_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h000);   // 0x80000000-0x8000ffff
@@ -550,9 +552,9 @@ module kv260_imx219
                 .param_height   (fmtr_param_height  ),
 
                 .s_axi4s        (axi4s_fmtr.s       ),
-                .m_axi4s        (axi4s_rgb.m        )
+                .m_axi4s        (axi4s_rgb.m        ),
 
-//              .s_axi4l        ()
+                .s_axi4l        (axi4l_dec[DEC_RGB].s)
             );
 
 
