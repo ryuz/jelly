@@ -84,7 +84,7 @@ int main(int argc, char** argv)
 
     const std::uint64_t reg_gpio   = 0xa0000000;
     const std::uint64_t reg_fmtr   = 0xa0100000;
-    const std::uint64_t reg_blc    = 0xa0121000;
+    const std::uint64_t reg_wb     = 0xa0121000;
     const std::uint64_t reg_demos  = 0xa0122000;
     const std::uint64_t reg_colmat = 0xa0124000;
     const std::uint64_t reg_wdma   = 0xa0210000;
@@ -113,12 +113,20 @@ int main(int argc, char** argv)
 
     axi4l->Wait(1000);
     axi4l->Display("BlackLevel");
-    axi4l->ExecWrite(reg_blc + bw * REG_IMG_BLC_PARAM_PHASE       , bayer_phase, 0xff);
-    axi4l->ExecWrite(reg_blc + bw * REG_IMG_BLC_PARAM_OFFSET0     ,  66, 0xff);
-    axi4l->ExecWrite(reg_blc + bw * REG_IMG_BLC_PARAM_OFFSET1     ,  66, 0xff);
-    axi4l->ExecWrite(reg_blc + bw * REG_IMG_BLC_PARAM_OFFSET2     ,  66, 0xff);
-    axi4l->ExecWrite(reg_blc + bw * REG_IMG_BLC_PARAM_OFFSET3     ,  66, 0xff);
-    axi4l->ExecWrite(reg_blc + bw * REG_IMG_BLC_CTL_CONTROL       ,   3, 0xff);
+    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_PHASE  , bayer_phase, 0xff);
+    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_OFFSET0,    66, 0xff);
+    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_OFFSET1,    66, 0xff);
+    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_OFFSET2,    66, 0xff);
+    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_OFFSET3,    66, 0xff);
+    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_COEFF3 ,  4620/4, 0xff);
+    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_COEFF2 ,  4096/4, 0xff);
+    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_COEFF1 , 10428/4, 0xff);
+    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_COEFF0 ,  4096/4, 0xff);
+//    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_COEFF0 ,  4096, 0xff);
+//    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_COEFF1 ,  4096, 0xff);
+//    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_COEFF2 ,  4096, 0xff);
+//    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_COEFF3 ,  4096, 0xff);
+    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_CTL_CONTROL  ,     3, 0xff);
 
     axi4l->Display("demos");
     axi4l->ExecWrite(reg_demos + bw * REG_IMG_DEMOSAIC_PARAM_PHASE, bayer_phase, 0xff);

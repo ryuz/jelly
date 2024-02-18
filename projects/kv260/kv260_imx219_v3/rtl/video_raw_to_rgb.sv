@@ -37,7 +37,7 @@ module video_raw_to_rgb
     //  Address decoder
     // ----------------------------------------
 
-    localparam DEC_BLC   = 0;
+    localparam DEC_WB    = 0;
     localparam DEC_DEMOS = 1;
 
     localparam DEC_NUM   = 2;
@@ -54,7 +54,7 @@ module video_raw_to_rgb
             );
     
     // address map
-    assign {axi4l_dec[DEC_BLC  ].addr_base, axi4l_dec[DEC_BLC  ].addr_high} = {40'ha012_1000, 40'ha012_1fff};
+    assign {axi4l_dec[DEC_WB   ].addr_base, axi4l_dec[DEC_WB   ].addr_high} = {40'ha012_1000, 40'ha012_1fff};
     assign {axi4l_dec[DEC_DEMOS].addr_base, axi4l_dec[DEC_DEMOS].addr_high} = {40'ha012_2000, 40'ha012_2fff};
 
     jelly3_axi4l_addr_decoder
@@ -156,12 +156,14 @@ module video_raw_to_rgb
                 .cke        (cke    )
             );
 
-    jelly3_img_bayer_black_level
+    jelly3_img_bayer_white_balance
             #(
                 .S_DATA_BITS        (img_src.DATA_BITS      ),
                 .M_DATA_BITS        (DATA_BITS              ),
                 .m_data_t           (data_t                 ),
                 .OFFSET_BITS        (img_src.DATA_BITS      ),
+                .COEFF_BITS         (16                     ),
+                .COEFF_Q            (12                     ),
                 .INIT_CTL_CONTROL   (2'b01                  ),
                 .INIT_PARAM_PHASE   (2'b00                  ),
                 .INIT_PARAM_OFFSET0 ('0                     ),
@@ -169,13 +171,13 @@ module video_raw_to_rgb
                 .INIT_PARAM_OFFSET2 ('0                     ),
                 .INIT_PARAM_OFFSET3 ('0                     ) 
             )
-        u_img_bayer_black_level
+        u_img_bayer_white_balance
             (
                 
                 .in_update_req      (in_update_req          ),
                 .s_img              (img_src.s              ),
                 .m_img              (img_blc.m              ),
-                .s_axi4l            (axi4l_dec[DEC_BLC].s   )
+                .s_axi4l            (axi4l_dec[DEC_WB].s   )
             );
     
 
