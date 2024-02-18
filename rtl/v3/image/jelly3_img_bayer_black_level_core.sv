@@ -130,16 +130,16 @@ module jelly3_img_bayer_black_level_core
             st0_valid     <= s_img.valid            ;
 
             // stage1
-            st1_row_first <= st1_row_first  ;
-            st1_row_last  <= st1_row_last   ;
-            st1_col_first <= st1_col_first  ;
-            st1_col_last  <= st1_col_last   ;
-            st1_data      <= st1_data       ;
-            st1_de        <= st1_de         ;
-            st1_user      <= st1_user       ;
-            st1_valid     <= st1_valid      ;
+            st1_row_first <= st0_row_first  ;
+            st1_row_last  <= st0_row_last   ;
+            st1_col_first <= st0_col_first  ;
+            st1_col_last  <= st0_col_last   ;
+            st1_data      <= st0_data       ;
+            st1_de        <= st0_de         ;
+            st1_user      <= st0_user       ;
+            st1_valid     <= st0_valid      ;
             if ( enable ) begin
-                st1_data      <= st1_data - calc_t'(param_offset[st0_phase]);
+                st1_data      <= st0_data - calc_t'(param_offset[st0_phase]);
             end
 
             // stage2
