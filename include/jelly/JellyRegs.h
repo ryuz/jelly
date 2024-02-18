@@ -418,6 +418,19 @@
 /*  Image processing                  */
 /* ---------------------------------- */
 
+/* Black Level Correction */
+#define REG_IMG_BLC_CORE_ID                     0x00
+#define REG_IMG_BLC_CORE_VERSION                0x01
+#define REG_IMG_BLC_CTL_CONTROL                 0x04
+#define REG_IMG_BLC_CTL_STATUS                  0x05
+#define REG_IMG_BLC_CTL_INDEX                   0x07
+#define REG_IMG_BLC_PARAM_PHASE                 0x08
+#define REG_IMG_BLC_PARAM_OFFSET0               0x0c
+#define REG_IMG_BLC_PARAM_OFFSET1               0x0d
+#define REG_IMG_BLC_PARAM_OFFSET2               0x0e
+#define REG_IMG_BLC_PARAM_OFFSET3               0x0f
+#define REG_IMG_BLC_CURRENT_PHASE               0x18
+
 /* Demosaic */
 #define REG_IMG_DEMOSAIC_CORE_ID                0x00
 #define REG_IMG_DEMOSAIC_CORE_VERSION           0x01
