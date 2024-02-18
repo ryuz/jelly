@@ -42,6 +42,7 @@ clean:
 distclean: clean
 	rm -f *.fst *.vcd
 	rm -f *.ppm *.pgm
+	rm -f output/*.ppm output/*.pgm
 	rm -f axi*.txt
 	rm -f coverage.dat
 	rm -fr annotated

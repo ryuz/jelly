@@ -186,13 +186,13 @@ module video_raw_to_rgb
 
     jelly3_img_if
             #(
-                .DATA_BITS      (img_src.DATA_BITS*4)
+                .DATA_BITS      (DATA_BITS*4    )
             )
          img_demos
             (
-                .reset          (img_src.reset    ),
-                .clk            (img_src.clk      ),
-                .cke            (img_src.cke      )
+                .reset          (img_src.reset  ),
+                .clk            (img_src.clk    ),
+                .cke            (img_src.cke    )
             );
     
     jelly3_img_demosaic_acpi
@@ -211,14 +211,56 @@ module video_raw_to_rgb
                 .s_axi4l            (axi4l_dec[DEC_DEMOS].s )
             );
     
-    assign img_sink.row_first   = img_demos.row_first;
-    assign img_sink.row_last    = img_demos.row_last ;
-    assign img_sink.col_first   = img_demos.col_first;
-    assign img_sink.col_last    = img_demos.col_last ;
-    assign img_sink.de          = img_demos.de       ;
-    assign img_sink.data        = img_demos.data     ;
-    assign img_sink.user        = img_demos.user     ;
-    assign img_sink.valid       = img_demos.valid    ;
+//   assign img_sink.row_first   = img_demos.row_first;
+//   assign img_sink.row_last    = img_demos.row_last ;
+//   assign img_sink.col_first   = img_demos.col_first;
+//   assign img_sink.col_last    = img_demos.col_last ;
+//   assign img_sink.de          = img_demos.de       ;
+//   assign img_sink.data        = img_demos.data     ;
+//   assign img_sink.user        = img_demos.user     ;
+//   assign img_sink.valid       = img_demos.valid    ;
+
+
+    // -------------------------------------
+    //  clamp
+    // -------------------------------------
+
+    jelly3_img_if
+            #(
+                .DATA_BITS      (img_sink.DATA_BITS)
+            )
+         img_clamp
+            (
+                .reset          (img_src.reset    ),
+                .clk            (img_src.clk      ),
+                .cke            (img_src.cke      )
+            );
+
+    jelly3_img_clamp_core
+            #(
+                .N              (4                  ),
+                .s_data_t       (data_t             ),
+                .M_DATA_BITS    (img_src.DATA_BITS  ),
+                .calc_t         (data_t             )
+            )
+        u_img_clamp_core
+            (
+                .enable         (1'b1               ),
+                .min_value      (11'd0              ),
+                .max_value      (11'd1023           ),
+                .s_img          (img_demos.s        ),
+                .m_img          (img_clamp.m        )
+            );
+
+    assign img_sink.row_first   = img_clamp.row_first;
+    assign img_sink.row_last    = img_clamp.row_last ;
+    assign img_sink.col_first   = img_clamp.col_first;
+    assign img_sink.col_last    = img_clamp.col_last ;
+    assign img_sink.de          = img_clamp.de       ;
+    assign img_sink.data        = img_clamp.data     ;
+    assign img_sink.user        = img_clamp.user     ;
+    assign img_sink.valid       = img_clamp.valid    ;
+
 
 
     /*

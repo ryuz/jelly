@@ -79,53 +79,71 @@ int main(int argc, char** argv)
 
     int X_NUM = top->img_width;
     int Y_NUM = top->img_height;
-    
+
+    const std::uint64_t bw = 8;
+
     const std::uint64_t reg_gpio   = 0xa0000000;
     const std::uint64_t reg_fmtr   = 0xa0100000;
-    const std::uint64_t reg_demos  = 0xa0120000;
-    const std::uint64_t reg_colmat = 0xa0120800;
+    const std::uint64_t reg_blc    = 0xa0121000;
+    const std::uint64_t reg_demos  = 0xa0122000;
+    const std::uint64_t reg_colmat = 0xa0124000;
     const std::uint64_t reg_wdma   = 0xa0210000;
         
     axi4l->Wait(1000);
     axi4l->Display("start");
-    axi4l->ExecRead(reg_fmtr + 8 * REG_VIDEO_FMTREG_CORE_ID          );
-    axi4l->ExecRead(reg_fmtr + 8 * REG_VIDEO_FMTREG_CORE_VERSION     );
-    axi4l->ExecRead(reg_fmtr + 8 * REG_VIDEO_FMTREG_CTL_CONTROL      );
-    axi4l->ExecRead(reg_fmtr + 8 * REG_VIDEO_FMTREG_CTL_STATUS       );
-    axi4l->ExecRead(reg_fmtr + 8 * REG_VIDEO_FMTREG_CTL_INDEX        );
-    axi4l->ExecRead(reg_fmtr + 8 * REG_VIDEO_FMTREG_CTL_SKIP         );
-    axi4l->ExecRead(reg_fmtr + 8 * REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN );
-    axi4l->ExecRead(reg_fmtr + 8 * REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT  );
-    axi4l->ExecRead(reg_fmtr + 8 * REG_VIDEO_FMTREG_PARAM_WIDTH      );
-    axi4l->ExecRead(reg_fmtr + 8 * REG_VIDEO_FMTREG_PARAM_HEIGHT     );
-    axi4l->ExecRead(reg_fmtr + 8 * REG_VIDEO_FMTREG_PARAM_FILL       );
-    axi4l->ExecRead(reg_fmtr + 8 * REG_VIDEO_FMTREG_PARAM_TIMEOUT    );
+    axi4l->ExecRead(reg_fmtr + bw * REG_VIDEO_FMTREG_CORE_ID          );
+    axi4l->ExecRead(reg_fmtr + bw * REG_VIDEO_FMTREG_CORE_VERSION     );
+    axi4l->ExecRead(reg_fmtr + bw * REG_VIDEO_FMTREG_CTL_CONTROL      );
+    axi4l->ExecRead(reg_fmtr + bw * REG_VIDEO_FMTREG_CTL_STATUS       );
+    axi4l->ExecRead(reg_fmtr + bw * REG_VIDEO_FMTREG_CTL_INDEX        );
+    axi4l->ExecRead(reg_fmtr + bw * REG_VIDEO_FMTREG_CTL_SKIP         );
+    axi4l->ExecRead(reg_fmtr + bw * REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN );
+    axi4l->ExecRead(reg_fmtr + bw * REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT  );
+    axi4l->ExecRead(reg_fmtr + bw * REG_VIDEO_FMTREG_PARAM_WIDTH      );
+    axi4l->ExecRead(reg_fmtr + bw * REG_VIDEO_FMTREG_PARAM_HEIGHT     );
+    axi4l->ExecRead(reg_fmtr + bw * REG_VIDEO_FMTREG_PARAM_FILL       );
+    axi4l->ExecRead(reg_fmtr + bw * REG_VIDEO_FMTREG_PARAM_TIMEOUT    );
 
     int SIM_IMG_WIDTH  = top->img_width;  // 128;
     int SIM_IMG_HEIGHT = top->img_height; // 64;
+    int bayer_phase = 3;
 
     axi4l->Display("cam enable");
     axi4l->ExecWrite(reg_gpio + 8 * 2     , 1 , 0xff);
 
     axi4l->Wait(1000);
+    axi4l->Display("BlackLevel");
+    axi4l->ExecWrite(reg_blc + bw * REG_IMG_BLC_PARAM_PHASE       , bayer_phase, 0xff);
+    axi4l->ExecWrite(reg_blc + bw * REG_IMG_BLC_PARAM_OFFSET0     ,  66, 0xff);
+    axi4l->ExecWrite(reg_blc + bw * REG_IMG_BLC_PARAM_OFFSET1     ,  66, 0xff);
+    axi4l->ExecWrite(reg_blc + bw * REG_IMG_BLC_PARAM_OFFSET2     ,  66, 0xff);
+    axi4l->ExecWrite(reg_blc + bw * REG_IMG_BLC_PARAM_OFFSET3     ,  66, 0xff);
+    axi4l->ExecWrite(reg_blc + bw * REG_IMG_BLC_CTL_CONTROL       ,   3, 0xff);
+
+    axi4l->Display("demos");
+    axi4l->ExecWrite(reg_demos + bw * REG_IMG_DEMOSAIC_PARAM_PHASE, bayer_phase, 0xff);
+    axi4l->ExecWrite(reg_demos + bw * REG_IMG_DEMOSAIC_CTL_CONTROL, 3, 0xff);
+
+
+    axi4l->Wait(1000);
     axi4l->Display("enable");
-    axi4l->ExecWrite(reg_fmtr + 8 * REG_VIDEO_FMTREG_PARAM_WIDTH     , SIM_IMG_WIDTH , 0xff);
-    axi4l->ExecWrite(reg_fmtr + 8 * REG_VIDEO_FMTREG_PARAM_HEIGHT    , SIM_IMG_HEIGHT, 0xff);
-//  axi4l->ExecWrite(reg_fmtr + 8 * REG_VIDEO_FMTREG_PARAM_TIMEOUT   , 1000          , 0xff);
-//  axi4l->ExecWrite(reg_fmtr + 8 * REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT , 100000        , 0xff);
-    axi4l->ExecWrite(reg_fmtr + 8 * REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN, 1             , 0xff);
-    axi4l->ExecWrite(reg_fmtr + 8 * REG_VIDEO_FMTREG_CTL_CONTROL     , 1             , 0xff);
-    axi4l->ExecRead (reg_fmtr + 8 * REG_VIDEO_FMTREG_CTL_STATUS     );
+    axi4l->ExecWrite(reg_fmtr + bw * REG_VIDEO_FMTREG_PARAM_WIDTH     , SIM_IMG_WIDTH , 0xff);
+    axi4l->ExecWrite(reg_fmtr + bw * REG_VIDEO_FMTREG_PARAM_HEIGHT    , SIM_IMG_HEIGHT, 0xff);
+//  axi4l->ExecWrite(reg_fmtr + bw * REG_VIDEO_FMTREG_PARAM_TIMEOUT   , 1000          , 0xff);
+//  axi4l->ExecWrite(reg_fmtr + bw * REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT , 100000        , 0xff);
+    axi4l->ExecWrite(reg_fmtr + bw * REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN, 1             , 0xff);
+    axi4l->ExecWrite(reg_fmtr + bw * REG_VIDEO_FMTREG_CTL_CONTROL     , 1             , 0xff);
+    axi4l->ExecRead (reg_fmtr + bw * REG_VIDEO_FMTREG_CTL_STATUS     );
 
     
     axi4l->Display("set write DMA");
-    axi4l->ExecRead (reg_wdma + 8 * REG_VDMA_WRITE_CORE_ID         );
-    axi4l->ExecWrite(reg_wdma + 8 * REG_VDMA_WRITE_PARAM_ADDR      , 0x0000a00                     , 0xff);
-    axi4l->ExecWrite(reg_wdma + 8 * REG_VDMA_WRITE_PARAM_LINE_STEP , SIM_IMG_WIDTH*4               , 0xff);
-    axi4l->ExecWrite(reg_wdma + 8 * REG_VDMA_WRITE_PARAM_H_SIZE    , SIM_IMG_WIDTH-1               , 0xff);
-    axi4l->ExecWrite(reg_wdma + 8 * REG_VDMA_WRITE_PARAM_V_SIZE    , SIM_IMG_HEIGHT-1              , 0xff);
-    axi4l->ExecWrite(reg_wdma + 8 * REG_VDMA_WRITE_PARAM_FRAME_STEP, SIM_IMG_HEIGHT*SIM_IMG_WIDTH*4, 0xff);
-    axi4l->ExecWrite(reg_wdma + 8 * REG_VDMA_WRITE_PARAM_F_SIZE    , 1-1                           , 0xff);
+    axi4l->ExecRead (reg_wdma + bw * REG_VDMA_WRITE_CORE_ID         );
+    axi4l->ExecWrite(reg_wdma + bw * REG_VDMA_WRITE_PARAM_ADDR      , 0x0000a00                     , 0xff);
+    axi4l->ExecWrite(reg_wdma + bw * REG_VDMA_WRITE_PARAM_LINE_STEP , SIM_IMG_WIDTH*4               , 0xff);
+    axi4l->ExecWrite(reg_wdma + bw * REG_VDMA_WRITE_PARAM_H_SIZE    , SIM_IMG_WIDTH-1               , 0xff);
+    axi4l->ExecWrite(reg_wdma + bw * REG_VDMA_WRITE_PARAM_V_SIZE    , SIM_IMG_HEIGHT-1              , 0xff);
+    axi4l->ExecWrite(reg_wdma + bw * REG_VDMA_WRITE_PARAM_FRAME_STEP, SIM_IMG_HEIGHT*SIM_IMG_WIDTH*4, 0xff);
+    axi4l->ExecWrite(reg_wdma + bw * REG_VDMA_WRITE_PARAM_F_SIZE    , 1-1                           , 0xff);
 
     /*
     axi4l->Display("oneshot");
