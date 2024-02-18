@@ -21,7 +21,7 @@ module jelly3_img_bayer_white_balance
             parameter   type            m_data_t           = logic signed [M_DATA_BITS-1:0],
             parameter   int             OFFSET_BITS        = S_DATA_BITS                   ,
             parameter   type            offset_t           = logic [OFFSET_BITS-1:0]       ,
-            parameter   int             COEFF_BITS         = S_DATA_BITS + 1               ,
+            parameter   int             COEFF_BITS         = S_DATA_BITS + 4               ,
             parameter   int             COEFF_Q            = S_DATA_BITS                   ,
             parameter   type            coeff_t            = logic [COEFF_BITS-1:0]        ,
             localparam  type            phase_t            = logic [1:0]                   ,
@@ -166,10 +166,10 @@ module jelly3_img_bayer_white_balance
                 REGADR_PARAM_OFFSET1: reg_param_offset[1] <= offset_t'(write_mask(axi4l_data_t'(reg_param_offset[1]), s_axi4l.wdata, s_axi4l.wstrb));
                 REGADR_PARAM_OFFSET2: reg_param_offset[2] <= offset_t'(write_mask(axi4l_data_t'(reg_param_offset[2]), s_axi4l.wdata, s_axi4l.wstrb));
                 REGADR_PARAM_OFFSET3: reg_param_offset[3] <= offset_t'(write_mask(axi4l_data_t'(reg_param_offset[3]), s_axi4l.wdata, s_axi4l.wstrb));
-                REGADR_PARAM_COEFF0:  reg_param_coeff[0]  <= offset_t'(write_mask(axi4l_data_t'(reg_param_coeff[0] ), s_axi4l.wdata, s_axi4l.wstrb));
-                REGADR_PARAM_COEFF1:  reg_param_coeff[1]  <= offset_t'(write_mask(axi4l_data_t'(reg_param_coeff[1] ), s_axi4l.wdata, s_axi4l.wstrb));
-                REGADR_PARAM_COEFF2:  reg_param_coeff[2]  <= offset_t'(write_mask(axi4l_data_t'(reg_param_coeff[2] ), s_axi4l.wdata, s_axi4l.wstrb));
-                REGADR_PARAM_COEFF3:  reg_param_coeff[3]  <= offset_t'(write_mask(axi4l_data_t'(reg_param_coeff[3] ), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_PARAM_COEFF0:  reg_param_coeff[0]  <=  coeff_t'(write_mask(axi4l_data_t'(reg_param_coeff[0] ), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_PARAM_COEFF1:  reg_param_coeff[1]  <=  coeff_t'(write_mask(axi4l_data_t'(reg_param_coeff[1] ), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_PARAM_COEFF2:  reg_param_coeff[2]  <=  coeff_t'(write_mask(axi4l_data_t'(reg_param_coeff[2] ), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_PARAM_COEFF3:  reg_param_coeff[3]  <=  coeff_t'(write_mask(axi4l_data_t'(reg_param_coeff[3] ), s_axi4l.wdata, s_axi4l.wstrb));
                 default: ;
                 endcase
                 s_axi4l.bvalid <= 1'b1;
