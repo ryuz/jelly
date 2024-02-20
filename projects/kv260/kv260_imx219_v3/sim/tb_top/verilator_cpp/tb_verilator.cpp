@@ -106,32 +106,41 @@ int main(int argc, char** argv)
 
     int SIM_IMG_WIDTH  = top->img_width;  // 128;
     int SIM_IMG_HEIGHT = top->img_height; // 64;
+    
+    // 0 : RGGB
+    // 1 : GRBG
+    // 2 : GBRG
+    // 3 : BGGR
     int bayer_phase = 3;
+
 
     axi4l->Display("cam enable");
     axi4l->ExecWrite(reg_gpio + 8 * 2     , 1 , 0xff);
 
     axi4l->Wait(1000);
-    axi4l->Display("BlackLevel");
+    
+    axi4l->Display("White Balance");
+    // Black Level Correction
+    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_OFFSET0,    66, 0xff); // R 
+    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_OFFSET1,    66, 0xff); // G
+    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_OFFSET2,    66, 0xff); // G
+    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_OFFSET3,    66, 0xff); // B
+
+    // White Balance
+    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_COEFF0 ,  4620, 0xff); // R
+    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_COEFF1 ,  4096, 0xff); // G
+    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_COEFF2 ,  4096, 0xff); // G
+    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_COEFF3 , 10428, 0xff); // B
+
+    // enable
     axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_PHASE  , bayer_phase, 0xff);
-    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_OFFSET0,    66, 0xff);
-    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_OFFSET1,    66, 0xff);
-    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_OFFSET2,    66, 0xff);
-    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_OFFSET3,    66, 0xff);
-    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_COEFF3 ,  4620/4, 0xff);
-    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_COEFF2 ,  4096/4, 0xff);
-    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_COEFF1 , 10428/4, 0xff);
-    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_COEFF0 ,  4096/4, 0xff);
-//    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_COEFF0 ,  4096, 0xff);
-//    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_COEFF1 ,  4096, 0xff);
-//    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_COEFF2 ,  4096, 0xff);
-//    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_COEFF3 ,  4096, 0xff);
     axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_CTL_CONTROL  ,     3, 0xff);
+
 
     axi4l->Display("demos");
     axi4l->ExecWrite(reg_demos + bw * REG_IMG_DEMOSAIC_PARAM_PHASE, bayer_phase, 0xff);
     axi4l->ExecWrite(reg_demos + bw * REG_IMG_DEMOSAIC_CTL_CONTROL, 3, 0xff);
-
+    
 
     axi4l->Wait(1000);
     axi4l->Display("enable");

@@ -110,6 +110,7 @@ module tb_verilator
     assign i_axi4s_src.tready = u_top.u_mipi_csi2_rx.axi4s_tready;
 
 
+    localparam DATA_WIDTH      = 10;
 
 //    localparam FILE_NAME       = "../../../../../../data/images/windowswallpaper/Penguins_640x480_bayer10.pgm";
 //    localparam FILE_IMG_WIDTH  = 640;
@@ -118,11 +119,10 @@ module tb_verilator
     localparam FILE_IMG_WIDTH  = 820;
     localparam FILE_IMG_HEIGHT = 616;
 
-    localparam DATA_WIDTH      = 10;
-
-
-    localparam  SIM_IMG_WIDTH  = 640;//128;//256;
-    localparam  SIM_IMG_HEIGHT = 480;//64; //256;
+//    localparam SIM_IMG_WIDTH  = 640/2;//128;//256;
+//    localparam SIM_IMG_HEIGHT = 480/2;//64; //256;
+    localparam SIM_IMG_WIDTH  = 820;//640;//128;//256;
+    localparam SIM_IMG_HEIGHT = 616;//480;//64; //256;
     assign img_width  = SIM_IMG_WIDTH;
     assign img_height = SIM_IMG_HEIGHT;
 
@@ -219,6 +219,35 @@ module tb_verilator
                 .s_axi4s_tready     ()
             );
     
+
+
+
+    jelly2_img_slave_model
+            #(
+                .COMPONENTS         (1              ),
+                .DATA_WIDTH         (11             ),
+                .FORMAT             ("P2"           ),
+                .FILE_NAME          ("output/wb_"   ),
+                .FILE_EXT           (".pgm"         ),
+                .SEQUENTIAL_FILE    (1              ),
+                .ENDIAN             (0              )
+            )
+        u_img_slave_model
+            (
+                .reset              (u_top.u_video_raw_to_rgb.img_wb.reset      ),
+                .clk                (u_top.u_video_raw_to_rgb.img_wb.clk        ),
+                .cke                (u_top.u_video_raw_to_rgb.img_wb.cke        ),
+                .param_width        (SIM_IMG_WIDTH),
+                .param_height       (SIM_IMG_HEIGHT),
+                .frame_num          (),
+                .s_img_row_first    (u_top.u_video_raw_to_rgb.img_wb.row_first  ),
+                .s_img_row_last     (u_top.u_video_raw_to_rgb.img_wb.row_last   ),
+                .s_img_col_first    (u_top.u_video_raw_to_rgb.img_wb.col_first  ),
+                .s_img_col_last     (u_top.u_video_raw_to_rgb.img_wb.col_last   ),
+                .s_img_de           (u_top.u_video_raw_to_rgb.img_wb.de         ),
+                .s_img_data         (u_top.u_video_raw_to_rgb.img_wb.data       ),
+                .s_img_valid        (u_top.u_video_raw_to_rgb.img_wb.valid      )
+            );
 
 
     // -----------------------------

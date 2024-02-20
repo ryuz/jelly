@@ -86,11 +86,18 @@ module tb_top();
     //  Video input
     // -----------------------------
 
-    localparam FILE_NAME       = "../../../../../../data/images/windowswallpaper/Penguins_640x480_bayer10.pgm";
-    localparam FILE_IMG_WIDTH  = 640;
-    localparam FILE_IMG_HEIGHT = 480;
-
     localparam DATA_WIDTH      = 10;
+
+//    localparam FILE_NAME       = "../../../../../../data/images/windowswallpaper/Penguins_640x480_bayer10.pgm";
+//    localparam FILE_IMG_WIDTH  = 640;
+//    localparam FILE_IMG_HEIGHT = 480;
+    localparam FILE_NAME       = "../../imx219_820x616_raw10.pgm";
+    localparam FILE_IMG_WIDTH  = 820;
+    localparam FILE_IMG_HEIGHT = 616;
+
+    localparam SIM_IMG_WIDTH  = 640/2;//128;//256;
+    localparam SIM_IMG_HEIGHT = 480/2;//64; //256;
+
 
     logic   axi4s_src_aresetn;
     logic   axi4s_src_aclk;
@@ -115,13 +122,11 @@ module tb_top();
     always_comb force u_top.u_mipi_csi2_rx.axi4s_tvalid = i_axi4s_src.tvalid;
     assign i_axi4s_src.tready = u_top.u_mipi_csi2_rx.axi4s_tready;
 
-
-    localparam  SIM_IMG_WIDTH  = 128;//256;
-    localparam  SIM_IMG_HEIGHT = 64; //256;
-
     // master
     jelly3_model_axi4s_m
             #(
+                .COMPONENTS         (1              ),
+                .DATA_BITS          (DATA_WIDTH     ),
                 .IMG_WIDTH          (SIM_IMG_WIDTH  ),
                 .IMG_HEIGHT         (SIM_IMG_HEIGHT ),
                 .H_BLANK            (64             ),
@@ -145,6 +150,72 @@ module tb_top();
             );
 
 
+    jelly2_axi4s_slave_model
+            #(
+                .COMPONENTS         (1  ),
+                .DATA_WIDTH         (10 ),
+                .INIT_FRAME_NUM     (0  ),
+                .X_WIDTH            (32 ),
+                .Y_WIDTH            (32 ),
+                .F_WIDTH            (32 ),
+                .FORMAT             ("P2"   ),
+                .FILE_NAME          ("output/csi2_"    ),
+                .FILE_EXT           (".pgm" ),
+                .SEQUENTIAL_FILE    (1  ),
+                .ENDIAN             (0  ),
+                .BUSY_RATE          (0  ),
+                .RANDOM_SEED        (0  )
+            )
+        u_axi4s_slave_model_csi2
+            (
+                .aresetn            (u_top.axi4s_csi2.aresetn    ),
+                .aclk               (u_top.axi4s_csi2.aclk       ),
+                .aclken             (1'b1                        ), 
+
+                .param_width        (SIM_IMG_WIDTH  ),
+                .param_height       (SIM_IMG_HEIGHT ),
+                .frame_num          (),
+
+                .s_axi4s_tuser      (u_top.axi4s_csi2.tuser         ),
+                .s_axi4s_tlast      (u_top.axi4s_csi2.tlast         ),
+                .s_axi4s_tdata      (10'(u_top.axi4s_csi2.tdata)         ),
+                .s_axi4s_tvalid     (u_top.axi4s_csi2.tvalid & u_top.axi4s_csi2.tready),
+                .s_axi4s_tready     ()
+            );
+    
+    jelly2_axi4s_slave_model
+            #(
+                .COMPONENTS         (3  ),
+                .DATA_WIDTH         (8  ),
+                .INIT_FRAME_NUM     (0  ),
+                .X_WIDTH            (32 ),
+                .Y_WIDTH            (32 ),
+                .F_WIDTH            (32 ),
+                .FORMAT             ("P3"   ),
+                .FILE_NAME          ("output/wdma_"    ),
+                .FILE_EXT           (".ppm" ),
+                .SEQUENTIAL_FILE    (1  ),
+                .ENDIAN             (0  ),
+                .BUSY_RATE          (0  ),
+                .RANDOM_SEED        (0  )
+            )
+        u_axi4s_slave_model_wdma
+            (
+                .aresetn            (u_top.axi4s_wdma.aresetn    ),
+                .aclk               (u_top.axi4s_wdma.aclk       ),
+                .aclken             (1'b1                       ), 
+
+                .param_width        (SIM_IMG_WIDTH  ),
+                .param_height       (SIM_IMG_HEIGHT ),
+                .frame_num          (),
+
+                .s_axi4s_tuser      (u_top.axi4s_wdma.tuser         ),
+                .s_axi4s_tlast      (u_top.axi4s_wdma.tlast         ),
+                .s_axi4s_tdata      (24'(u_top.axi4s_wdma.tdata)         ),
+                .s_axi4s_tvalid     (u_top.axi4s_wdma.tvalid & u_top.axi4s_wdma.tready),
+                .s_axi4s_tready     ()
+            );
+    
     // -----------------------------
     //  Peripheral Bus
     // -----------------------------
@@ -220,9 +291,13 @@ module tb_top();
     localparam type axi4l_addr_t = logic [axi4l_peri.ADDR_BITS-1:0];
     localparam type axi4l_data_t = logic [axi4l_peri.DATA_BITS-1:0];
 
-    localparam  axi4l_addr_t    ADR_GPIO = axi4l_addr_t'(40'ha000_0000);
-    localparam  axi4l_addr_t    ADR_FMTR = axi4l_addr_t'(40'ha010_0000);
-    localparam  axi4l_addr_t    ADR_WDMA = axi4l_addr_t'(40'ha021_0000);
+    localparam  axi4l_addr_t    ADR_GPIO   = axi4l_addr_t'(40'ha000_0000);
+    localparam  axi4l_addr_t    ADR_FMTR   = axi4l_addr_t'(40'ha010_0000);
+    localparam  axi4l_addr_t    ADR_WDMA   = axi4l_addr_t'(40'ha021_0000);
+    localparam  axi4l_addr_t    ADR_WB     = axi4l_addr_t'(40'ha012_1000);
+    localparam  axi4l_addr_t    ADR_DEMOS  = axi4l_addr_t'(40'ha012_2000);
+    localparam  axi4l_addr_t    ADR_COLMAT = axi4l_addr_t'(40'ha012_4000);
+
 
     /*
     localparam  axi4l_addr_t    ADR_CORE_ID            = axi4l_addr_t'('h00) * (axi4l_peri.DATA_BITS/8);
@@ -252,6 +327,8 @@ module tb_top();
                 .m_axi4l        (axi4l_peri.m)
             );
 
+    int bayer_phase = 3;
+
     initial begin
         axi4l_data_t    rdata;
         
@@ -269,6 +346,27 @@ module tb_top();
         u_axi4l.read_reg(ADR_FMTR, `REG_VIDEO_FMTREG_PARAM_HEIGHT,     rdata);
         u_axi4l.read_reg(ADR_FMTR, `REG_VIDEO_FMTREG_PARAM_FILL,       rdata);
         u_axi4l.read_reg(ADR_FMTR, `REG_VIDEO_FMTREG_PARAM_TIMEOUT,    rdata);
+
+        $display("BlackLevel");
+        u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_PHASE  , bayer_phase,  8'hff);
+        u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_OFFSET0,    66, 8'hff);
+        u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_OFFSET1,    66, 8'hff);
+        u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_OFFSET2,    66, 8'hff);
+        u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_OFFSET3,    66, 8'hff);
+        u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_COEFF3 ,  4620, 8'hff);
+        u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_COEFF2 ,  4096, 8'hff);
+        u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_COEFF1 , 10428, 8'hff);
+        u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_COEFF0 ,  4096, 8'hff);
+    //  u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_COEFF0 ,  4096, 8'hff);
+    //  u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_COEFF1 ,  4096, 8'hff);
+    //  u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_COEFF2 ,  4096, 8'hff);
+    //  u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_COEFF3 ,  4096, 8'hff);
+        u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_CTL_CONTROL  ,     3, 8'hff);
+
+        $display("demos");
+        u_axi4l.write_reg(ADR_DEMOS, `REG_IMG_DEMOSAIC_PARAM_PHASE, bayer_phase,  8'hff);
+        u_axi4l.write_reg(ADR_DEMOS, `REG_IMG_DEMOSAIC_CTL_CONTROL, 3,  8'hff);
+
 
         #(RATE100*100);
         $display("enable");
@@ -289,6 +387,7 @@ module tb_top();
         u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_PARAM_FRAME_STEP, SIM_IMG_HEIGHT*SIM_IMG_WIDTH*4, 8'hff);
         u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_PARAM_F_SIZE    , 1-1                           , 8'hff);
 
+        /*
         $display("oneshot");
         u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_CTL_CONTROL     , 7                             , 8'hff);  // update & enable
         rdata = 1;
@@ -306,7 +405,8 @@ module tb_top();
             u_axi4l.read_reg (ADR_WDMA, `REG_VIDEO_FMTREG_CTL_STATUS, rdata);
         end
         #100000
-
+        */
+        
         $display("start");
         u_axi4l.write_reg(ADR_WDMA, int'(`REG_VDMA_WRITE_CTL_CONTROL)     , 3                             , 8'hff);  // update & enable
         
@@ -325,7 +425,7 @@ module tb_top();
         end
         */
        
-        #1000000
+        #10000000
         $display("stop");
         u_axi4l.write_reg(ADR_WDMA, int'(`REG_VDMA_WRITE_CTL_CONTROL)     , 0                             , 8'hff);  // update & enable
         #1000
