@@ -149,7 +149,7 @@ module video_raw_to_rgb
             #(
                 .DATA_BITS  (DATA_BITS)
             )
-        img_blc
+        img_wb
             (
                 .reset      (reset  ),
                 .clk        (clk    ),
@@ -176,8 +176,8 @@ module video_raw_to_rgb
                 
                 .in_update_req      (in_update_req          ),
                 .s_img              (img_src.s              ),
-                .m_img              (img_blc.m              ),
-                .s_axi4l            (axi4l_dec[DEC_WB].s   )
+                .m_img              (img_wb.m               ),
+                .s_axi4l            (axi4l_dec[DEC_WB].s    )
             );
     
 
@@ -208,7 +208,7 @@ module video_raw_to_rgb
         u_img_demosaic_acpi
             (
                 .in_update_req      (in_update_req          ),
-                .s_img              (img_blc.s              ),
+                .s_img              (img_wb.s               ),
                 .m_img              (img_demos.m            ),
                 .s_axi4l            (axi4l_dec[DEC_DEMOS].s )
             );
