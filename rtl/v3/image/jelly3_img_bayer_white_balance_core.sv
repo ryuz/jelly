@@ -57,7 +57,6 @@ module jelly3_img_bayer_white_balance_core
         return calc_t'(v);
     endfunction
 
-    phase_t     st0_phase       ;
     logic       st0_row_first   ;
     logic       st0_row_last    ;
     logic       st0_col_first   ;
@@ -77,6 +76,7 @@ module jelly3_img_bayer_white_balance_core
     user_t      st1_user        ;
     logic       st1_valid       ;
 
+    coeff_t     st2_coeff       ;
     logic       st2_row_first   ;
     logic       st2_row_last    ;
     logic       st2_col_first   ;
@@ -95,9 +95,17 @@ module jelly3_img_bayer_white_balance_core
     user_t      st3_user        ;
     logic       st3_valid       ;
 
+    logic       st4_row_first   ;
+    logic       st4_row_last    ;
+    logic       st4_col_first   ;
+    logic       st4_col_last    ;
+    de_t        st4_de          ;
+    calc_t      st4_data        ;
+    user_t      st4_user        ;
+    logic       st4_valid       ;
+
     always_ff @(posedge s_img.clk) begin
         if ( s_img.reset ) begin
-            st0_phase     <= 'x;
             st0_row_first <= 'x;
             st0_row_last  <= 'x;
             st0_col_first <= 'x;
@@ -117,6 +125,7 @@ module jelly3_img_bayer_white_balance_core
             st1_user      <= 'x;
             st1_valid     <= 1'b0;
 
+            st2_coeff     <= 'x;
             st2_row_first <= 'x;
             st2_row_last  <= 'x;
             st2_col_first <= 'x;
@@ -134,19 +143,18 @@ module jelly3_img_bayer_white_balance_core
             st3_data      <= 'x;
             st3_user      <= 'x;
             st3_valid     <= 1'b0;
+
+            st4_row_first <= 'x;
+            st4_row_last  <= 'x;
+            st4_col_first <= 'x;
+            st4_col_last  <= 'x;
+            st4_de        <= 'x;
+            st4_data      <= 'x;
+            st4_user      <= 'x;
+            st4_valid     <= 1'b0;
         end
         else if ( s_img.cke ) begin
-            // stage0
-            st0_phase[0] <= ~st0_phase[0];
-            if ( s_img.valid && s_img.col_first ) begin
-                if ( s_img.row_first ) begin
-                    st0_phase    <= param_phase;
-                end
-                else begin
-                    st0_phase[0] <= param_phase[0];
-                    st0_phase[1] <= ~st0_phase[1];
-                end
-            end
+            // stage0 (wait for parameter update)
             st0_row_first <= s_img.row_first        ;
             st0_row_last  <= s_img.row_last         ;
             st0_col_first <= s_img.col_first        ;
@@ -157,20 +165,27 @@ module jelly3_img_bayer_white_balance_core
             st0_valid     <= s_img.valid            ;
 
             // stage1
-            st1_phase     <= st0_phase      ;
+            st1_phase[0] <= ~st1_phase[0];
+            if ( st0_valid && st0_col_first ) begin
+                if ( st0_row_first ) begin
+                    st1_phase    <= param_phase;
+                end
+                else begin
+                    st1_phase[0] <= param_phase[0];
+                    st1_phase[1] <= ~st1_phase[1];
+                end
+            end
             st1_row_first <= st0_row_first  ;
             st1_row_last  <= st0_row_last   ;
             st1_col_first <= st0_col_first  ;
             st1_col_last  <= st0_col_last   ;
-            st1_data      <= st0_data       ;
             st1_de        <= st0_de         ;
+            st1_data      <= st0_data       ;
             st1_user      <= st0_user       ;
             st1_valid     <= st0_valid      ;
-            if ( enable ) begin
-                st1_data <= st0_data - calc_t'(param_offset[st0_phase]);
-            end
 
-            // stage2           
+            // stage2
+            st2_coeff     <= coeff_t'(1 << COEFF_Q);
             st2_row_first <= st1_row_first  ;
             st2_row_last  <= st1_row_last   ;
             st2_col_first <= st1_col_first  ;
@@ -180,7 +195,8 @@ module jelly3_img_bayer_white_balance_core
             st2_user      <= st1_user       ;
             st2_valid     <= st1_valid      ;
             if ( enable ) begin
-                st2_data <= calc_mul(st1_data, param_coeff[st1_phase]);
+                st2_coeff <= param_coeff[st1_phase];
+                st2_data  <= st1_data - calc_t'(param_offset[st1_phase]);
             end
 
             // stage3
@@ -192,19 +208,30 @@ module jelly3_img_bayer_white_balance_core
             st3_de        <= st2_de         ;
             st3_user      <= st2_user       ;
             st3_valid     <= st2_valid      ;
-            if ( st2_data < MIN_VALUE ) st3_data <= MIN_VALUE;
-            if ( st2_data > MAX_VALUE ) st3_data <= MAX_VALUE;
+            st3_data <= calc_mul(st2_data, st2_coeff);
+
+            // stage4
+            st4_row_first <= st3_row_first  ;
+            st4_row_last  <= st3_row_last   ;
+            st4_col_first <= st3_col_first  ;
+            st4_col_last  <= st3_col_last   ;
+            st4_data      <= st3_data       ;
+            st4_de        <= st3_de         ;
+            st4_user      <= st3_user       ;
+            st4_valid     <= st3_valid      ;
+            if ( st3_data < MIN_VALUE ) st4_data <= MIN_VALUE;
+            if ( st3_data > MAX_VALUE ) st4_data <= MAX_VALUE;
         end
     end
 
-    assign m_img.row_first = st3_row_first          ;
-    assign m_img.row_last  = st3_row_last           ;
-    assign m_img.col_first = st3_col_first          ;
-    assign m_img.col_last  = st3_col_last           ;
-    assign m_img.de        = st3_de                 ;
-    assign m_img.data      = m_data_t'(st3_data)    ;
-    assign m_img.user      = st3_user               ;
-    assign m_img.valid     = st3_valid              ;
+    assign m_img.row_first = st4_row_first          ;
+    assign m_img.row_last  = st4_row_last           ;
+    assign m_img.col_first = st4_col_first          ;
+    assign m_img.col_last  = st4_col_last           ;
+    assign m_img.de        = st4_de                 ;
+    assign m_img.data      = m_data_t'(st4_data)    ;
+    assign m_img.user      = st4_user               ;
+    assign m_img.valid     = st4_valid              ;
 
 endmodule
 
