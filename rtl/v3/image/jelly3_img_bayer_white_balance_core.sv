@@ -43,17 +43,17 @@ module jelly3_img_bayer_white_balance_core
 
     localparam  int     CALC_BITS = (($bits(s_data_t) > $bits(m_data_t)) ? $bits(s_data_t)+1 : $bits(m_data_t)+1) + (COEFF_BITS - COEFF_Q);
     localparam  type    calc_t    = logic  signed  [CALC_BITS-1:0];
-    localparam  bit     SIGNED    = calc_t'(s_data_t'(calc_t'(-1))) == calc_t'(-1);
 
-    localparam calc_t   MAX_VALUE = SIGNED ? calc_t'({1'b0, {($bits(m_data_t)-1){1'b1}}}) : calc_t'({1'b0, {$bits(m_data_t){1'b1}}});
-    localparam calc_t   MIN_VALUE = SIGNED ? calc_t'({1'b1, {($bits(m_data_t)-1){1'b0}}}) : calc_t'({1'b0, {$bits(m_data_t){1'b0}}});
+    localparam  bit     SIGNED    = calc_t'(m_data_t'(calc_t'(-1))) == calc_t'(-1);
+    localparam calc_t   MAX_VALUE = SIGNED ? calc_t'($signed({1'b0, {($bits(m_data_t)-1){1'b1}}})) : calc_t'({1'b0, {$bits(m_data_t){1'b1}}});
+    localparam calc_t   MIN_VALUE = SIGNED ? calc_t'($signed({1'b1, {($bits(m_data_t)-1){1'b0}}})) : calc_t'({1'b0, {$bits(m_data_t){1'b0}}});
 
     localparam int      MUL_BITS = $bits(s_data_t) + $bits(coeff_t) + 1;
     localparam type     mul_t    = logic signed [MUL_BITS-1:0];
     function automatic calc_t calc_mul(input calc_t data, input coeff_t coeff);
         automatic mul_t   v;
         v = mul_t'(data) * mul_t'(coeff);
-        v = v >> COEFF_Q;
+        v = v >>> COEFF_Q;
         return calc_t'(v);
     endfunction
 
