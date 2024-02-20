@@ -408,6 +408,34 @@
 /*  Image processing                  */
 /* ---------------------------------- */
 
+/* Black Level Correction */
+`define REG_IMG_BAYER_BLC_CORE_ID               'h00
+`define REG_IMG_BAYER_BLC_CORE_VERSION          'h01
+`define REG_IMG_BAYER_BLC_CTL_CONTROL           'h04
+`define REG_IMG_BAYER_BLC_CTL_STATUS            'h05
+`define REG_IMG_BAYER_BLC_CTL_INDEX             'h07
+`define REG_IMG_BAYER_BLC_PARAM_PHASE           'h08
+`define REG_IMG_BAYER_BLC_PARAM_OFFSET0         'h10
+`define REG_IMG_BAYER_BLC_PARAM_OFFSET1         'h11
+`define REG_IMG_BAYER_BLC_PARAM_OFFSET2         'h12
+`define REG_IMG_BAYER_BLC_PARAM_OFFSET3         'h13
+
+/* White Balance */
+`define REG_IMG_BAYER_WB_CORE_ID                'h00
+`define REG_IMG_BAYER_WB_CORE_VERSION           'h01
+`define REG_IMG_BAYER_WB_CTL_CONTROL            'h04
+`define REG_IMG_BAYER_WB_CTL_STATUS             'h05
+`define REG_IMG_BAYER_WB_CTL_INDEX              'h07
+`define REG_IMG_BAYER_WB_PARAM_PHASE            'h08
+`define REG_IMG_BAYER_WB_PARAM_OFFSET0          'h10
+`define REG_IMG_BAYER_WB_PARAM_OFFSET1          'h11
+`define REG_IMG_BAYER_WB_PARAM_OFFSET2          'h12
+`define REG_IMG_BAYER_WB_PARAM_OFFSET3          'h13
+`define REG_IMG_BAYER_WB_PARAM_COEFF0           'h14
+`define REG_IMG_BAYER_WB_PARAM_COEFF1           'h15
+`define REG_IMG_BAYER_WB_PARAM_COEFF2           'h16
+`define REG_IMG_BAYER_WB_PARAM_COEFF3           'h17
+
 /* Demosaic */
 `define REG_IMG_DEMOSAIC_CORE_ID                'h00
 `define REG_IMG_DEMOSAIC_CORE_VERSION           'h01
