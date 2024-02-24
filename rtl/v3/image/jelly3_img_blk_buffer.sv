@@ -10,7 +10,7 @@
 `timescale 1ns / 1ps
 
 
-module jelly2_img_blk_buffer
+module jelly3_img_blk_buffer
         #(
             parameter   int                         M            = 3            ,   // block width
             parameter   int                         N            = 3            ,   // block height
