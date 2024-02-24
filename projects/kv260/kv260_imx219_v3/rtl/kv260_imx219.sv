@@ -234,8 +234,9 @@ module kv260_imx219
     //  GPIO
     // ----------------------------------------
     
-    logic   reg_sw_reset;
-    logic   reg_cam_enable;
+    logic           reg_sw_reset;
+    logic           reg_cam_enable;
+    logic   [2:0]   reg_fmt_select;
     always_ff @(posedge axi4l_dec[DEC_GPIO].aclk) begin
         if ( ~axi4l_dec[DEC_GPIO].aresetn ) begin
             axi4l_dec[DEC_GPIO].bvalid <= 1'b0;
@@ -244,6 +245,7 @@ module kv260_imx219
 
             reg_sw_reset   <= 1'b0;
             reg_cam_enable <= 1'b0;
+            reg_fmt_select <= '0;
         end
         else begin
             // write
@@ -256,6 +258,7 @@ module kv260_imx219
                 case ( axi4l_dec[DEC_GPIO].awaddr[5:3] )
                 1: reg_sw_reset   <= 1'(axi4l_dec[DEC_GPIO].wdata[0]);
                 2: reg_cam_enable <= 1'(axi4l_dec[DEC_GPIO].wdata[0]);
+                3: reg_fmt_select <= 3'(axi4l_dec[DEC_GPIO].wdata[0]);
                 default:;
                 endcase
                 axi4l_dec[DEC_GPIO].bvalid <= 1'b1;
@@ -271,6 +274,7 @@ module kv260_imx219
                 0: axi4l_dec[DEC_GPIO].rdata  <= axi4l_dec[DEC_GPIO].DATA_BITS'(32'h01234567)     ;
                 1: axi4l_dec[DEC_GPIO].rdata  <= axi4l_dec[DEC_GPIO].DATA_BITS'(reg_sw_reset)     ;
                 2: axi4l_dec[DEC_GPIO].rdata  <= axi4l_dec[DEC_GPIO].DATA_BITS'(reg_cam_enable)   ;
+                3: axi4l_dec[DEC_GPIO].rdata  <= axi4l_dec[DEC_GPIO].DATA_BITS'(reg_fmt_select)   ;
                 default:;
                 endcase
                 axi4l_dec[DEC_GPIO].rvalid <= 1'b1;
@@ -721,13 +725,54 @@ module kv260_imx219
                 .aclk       (axi4s_cam_aclk   )
             );
 
+    always_comb begin
+        axi4s_wdma.tdata = '0;
+        case ( reg_fmt_select )
+        3'd0: // 8bit BGRx
+            begin
+                axi4s_wdma.tdata[8*0 +: 8] = axi4s_fifo.tdata[10*0+2 +: 8]; // B
+                axi4s_wdma.tdata[8*1 +: 8] = axi4s_fifo.tdata[10*1+2 +: 8]; // G
+                axi4s_wdma.tdata[8*2 +: 8] = axi4s_fifo.tdata[10*2+2 +: 8]; // R
+                axi4s_wdma.tdata[8*3 +: 8] = axi4s_fifo.tdata[10*3+2 +: 8]; // Raw
+            end
+        3'd1: // 8bit RGBx
+            begin
+                axi4s_wdma.tdata[8*0 +: 8] = axi4s_fifo.tdata[10*2+2 +: 8]; // R
+                axi4s_wdma.tdata[8*1 +: 8] = axi4s_fifo.tdata[10*1+2 +: 8]; // G
+                axi4s_wdma.tdata[8*2 +: 8] = axi4s_fifo.tdata[10*0+2 +: 8]; // B
+                axi4s_wdma.tdata[8*3 +: 8] = axi4s_fifo.tdata[10*3+2 +: 8]; // Raw
+            end
+        3'd2: // 10bit Raw
+            begin
+                axi4s_wdma.tdata[9:0] = axi4s_fifo.tdata[39:30]; // Raw 10bit
+            end
+        3'd3: // 16bit Raw
+            begin
+                axi4s_wdma.tdata[15:0] = {axi4s_fifo.tdata[39:30], axi4s_fifo.tdata[39:34]}; // Raw 16bit
+            end
+        3'd4: // 32bit B10G10R10
+            begin
+                axi4s_wdma.tdata[10*0 +: 10] = axi4s_fifo.tdata[10*0 +: 10]; // B
+                axi4s_wdma.tdata[10*1 +: 10] = axi4s_fifo.tdata[10*1 +: 10]; // G
+                axi4s_wdma.tdata[10*2 +: 10] = axi4s_fifo.tdata[10*2 +: 10]; // R
+            end
+        3'd5: // 32bit R10G10B10
+            begin
+                axi4s_wdma.tdata[10*0 +: 10] = axi4s_fifo.tdata[10*2 +: 10]; // R
+                axi4s_wdma.tdata[10*1 +: 10] = axi4s_fifo.tdata[10*1 +: 10]; // G
+                axi4s_wdma.tdata[10*2 +: 10] = axi4s_fifo.tdata[10*0 +: 10]; // B
+            end
+        default: ;
+        endcase
+    end
+
     assign axi4s_wdma.tuser  = axi4s_fifo.tuser ;
     assign axi4s_wdma.tlast  = axi4s_fifo.tlast ;
 //  assign axi4s_wdma.tdata  = 32'(axi4s_fifo.tdata);
-    assign axi4s_wdma.tdata[8*0 +: 8] = axi4s_fifo.tdata[10*0+2 +: 8];
-    assign axi4s_wdma.tdata[8*1 +: 8] = axi4s_fifo.tdata[10*1+2 +: 8];
-    assign axi4s_wdma.tdata[8*2 +: 8] = axi4s_fifo.tdata[10*2+2 +: 8];
-    assign axi4s_wdma.tdata[8*3 +: 8] = axi4s_fifo.tdata[10*3+2 +: 8];
+//  assign axi4s_wdma.tdata[8*0 +: 8] = axi4s_fifo.tdata[10*0+2 +: 8];
+//  assign axi4s_wdma.tdata[8*1 +: 8] = axi4s_fifo.tdata[10*1+2 +: 8];
+//  assign axi4s_wdma.tdata[8*2 +: 8] = axi4s_fifo.tdata[10*2+2 +: 8];
+//  assign axi4s_wdma.tdata[8*3 +: 8] = axi4s_fifo.tdata[10*3+2 +: 8];
     assign axi4s_wdma.tvalid = axi4s_fifo.tvalid;
     assign axi4s_fifo.tready = axi4s_wdma.tready;
 

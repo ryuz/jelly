@@ -79,10 +79,11 @@ module video_raw_to_rgb
     assign  reset = ~s_axi4s.aresetn;
     assign  clk   = s_axi4s.aclk;
     
+    localparam int SRC_DATA_BITS = s_axi4s.DATA_BITS;
 
     jelly3_img_if
             #(
-                .DATA_BITS  (s_axi4s.DATA_BITS)
+                .DATA_BITS  (SRC_DATA_BITS)
             )
         img_src
             (
@@ -142,7 +143,7 @@ module video_raw_to_rgb
     // -------------------------------------
 
     // 現像用データサイズ
-    localparam  int     DATA_BITS = img_src.DATA_BITS + 1;
+    localparam  int     DATA_BITS = SRC_DATA_BITS + 1;
     localparam  type    data_t    = logic signed [DATA_BITS-1:0];
 
     jelly3_img_if
@@ -158,10 +159,10 @@ module video_raw_to_rgb
 
     jelly3_img_bayer_white_balance
             #(
-                .S_DATA_BITS        (img_src.DATA_BITS      ),
+                .S_DATA_BITS        (SRC_DATA_BITS          ),
                 .M_DATA_BITS        (DATA_BITS              ),
                 .m_data_t           (data_t                 ),
-                .OFFSET_BITS        (img_src.DATA_BITS      ),
+                .OFFSET_BITS        (SRC_DATA_BITS          ),
                 .COEFF_BITS         (16                     ),
                 .COEFF_Q            (12                     ),
                 .INIT_CTL_CONTROL   (2'b01                  ),
