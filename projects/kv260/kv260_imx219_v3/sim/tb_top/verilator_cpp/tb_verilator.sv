@@ -198,7 +198,7 @@ module tb_verilator
                 .FILE_NAME          ("output/wdma_"    ),
                 .FILE_EXT           (".ppm" ),
                 .SEQUENTIAL_FILE    (1  ),
-                .ENDIAN             (0  ),
+                .ENDIAN             (1  ), // BGR -> RGB
                 .BUSY_RATE          (0  ),
                 .RANDOM_SEED        (0  )
             )

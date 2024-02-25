@@ -69,13 +69,13 @@ build: $(BIT_FILE) check_log
 
 .PHONY : bit_scp
 bit_scp: $(BIT_FILE)
-	scp $(BIT_FILE) $(BOARD_ADDRESS):$(BOARD_WORK_DIR)/projects/$(BOARD_NAME)/$(PROJECT_NAME)/app
+	scp $(BIT_FILE) $(BOARD_ADDRESS):$(BOARD_WORK_DIR)/projects/$(BOARD_NAME)/$(PROJECT_NAME)_v3/app
 
 .PHONY : bit_cp
 bit_cp: $(BIT_FILE)
 	cp $(BIT_FILE) ../../app
 
-$(PRJ_NAME).xpr: $(SOURCES) $(CONSTRAINS) $(IP_CORES) $(BD_SCRIPTS) Makefile
+$(PRJ_NAME).xpr: $(SOURCES) $(CONSTRAINS) $(IP_CORES) $(BD_SCRIPTS)
 	rm -f $(PRJ_NAME).xpr
 	vivado -m64 -mode batch -source $(TOP_DIR)/scripts/vivado_create_project.tcl
 

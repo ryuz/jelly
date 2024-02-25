@@ -100,7 +100,7 @@ module jelly3_img_demosaic_acpi_rb_core
                 .out_g              (acpi_g     ),
                 .out_b              (acpi_b     )
             );
-    assign m_img.data = {acpi_raw, acpi_b, acpi_g, acpi_r};
+    assign m_img.data = {acpi_raw, acpi_r, acpi_g, acpi_b};
     
     jelly2_img_delay
             #(
