@@ -16,7 +16,7 @@
 #include "jelly/GpioAccessor.h"
 #include "jelly/VideoDmaControl.h"
 
-
+void write_pgm(const char* filename, cv::Mat img, int depth=4095);
 
 static  volatile    bool    g_signal = false;
 void signal_handler(int signo) {
@@ -71,6 +71,22 @@ int main(int argc, char *argv[])
             exposure    = 1;
             a_gain      = 20;
             d_gain      = 10;
+            bayer_phase = 0;
+            view_scale  = 1;
+        }
+        else if ( strcmp(argv[i], "vga") == 0 ) {
+            pixel_clock = 91000000.0;
+            binning     = true;
+            width       = 640;
+            height      = 480;
+            aoi_x       = -1;
+            aoi_y       = -1;
+            flip_h      = false;
+            flip_v      = false;
+            frame_rate  = 60;
+            exposure    = 20;
+            a_gain      = 20;
+            d_gain      = 0;
             bayer_phase = 0;
             view_scale  = 1;
         }
@@ -190,9 +206,10 @@ int main(int argc, char *argv[])
     auto reg_gpio   = uio_acc.GetAccessor(0x00000000);
     auto reg_fmtr   = uio_acc.GetAccessor(0x00100000);
 //  auto reg_prmup  = uio_acc.GetAccessor(0x00011000);
-    auto reg_demos  = uio_acc.GetAccessor(0x00120000);
+    auto reg_wb     = uio_acc.GetAccessor(0x00121000);
+    auto reg_demos  = uio_acc.GetAccessor(0x00122000);
     auto reg_colmat = uio_acc.GetAccessor(0x00120800);
-    auto reg_sel    = uio_acc.GetAccessor(0x00130000);
+//  auto reg_sel    = uio_acc.GetAccessor(0x00130000);
     auto reg_wdma   = uio_acc.GetAccessor(0x00210000);
     
 #if 1
@@ -266,11 +283,21 @@ int main(int argc, char *argv[])
     cv::createTrackbar("a_gain",   "img", &a_gain, 20);
     cv::createTrackbar("d_gain",   "img", &d_gain, 24);
     cv::createTrackbar("bayer" ,   "img", &bayer_phase, 3);
-    cv::createTrackbar("fmtsel",   "img", &fmtsel, 3);
+    cv::createTrackbar("fmtsel",   "img", &fmtsel, 5);
 
     vdmaw.SetBufferAddr(dmabuf_phys_adr);
     vdmaw.SetImageSize(width, height);
-    vdmaw.Start();
+//  vdmaw.Start();
+
+    // White Balance
+    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_OFFSET0,    66); // black level R 
+    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_OFFSET1,    66); // black level G
+    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_OFFSET2,    66); // black level G
+    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_OFFSET3,    66); // black level B
+    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_COEFF0 ,  4620); // white balance R
+    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_COEFF1 ,  4096); // white balance G
+    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_COEFF2 ,  4096); // white balance G
+    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_COEFF3 , 10428); // white balance B
 
     int     key;
     while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
@@ -284,25 +311,32 @@ int main(int argc, char *argv[])
         imx219.SetFlip(flip_h, flip_v);
         reg_demos.WriteReg(REG_IMG_DEMOSAIC_PARAM_PHASE, bayer_phase);
         reg_demos.WriteReg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3);  // update & enable
-        reg_sel.WriteReg(0, fmtsel);
+        reg_gpio.WriteReg(3, fmtsel);
 
         // キャプチャ
-//      vdmaw.Oneshot(dmabuf_phys_adr, width, height, frame_num);
+        vdmaw.Oneshot(dmabuf_phys_adr, width, height, frame_num);
         cv::Mat img;
-        if ( fmtsel == 3 ) {
-            img = cv::Mat(height*frame_num, width, CV_32S);
-            udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4 * frame_num);
-            cv::Mat img_u16;
-            img.convertTo(img_u16, CV_16U, 65535.0/2147483647.0);
-//          cv::Mat img_col;
-//          cv::cvtColor(img_u16, img_col, CV_BayerBG2BGR);
-            img = img_u16;
-        }
-        else {
+        switch ( fmtsel ) {
+        case 0: // BGRx
+        case 1: // RGBx
             img = cv::Mat(height*frame_num, width, CV_8UC4);
             udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4 * frame_num);
-        }
+            break;
 
+        case 2: // Raw10bit
+        case 3: // Raw16bit
+            img = cv::Mat(height*frame_num, width, CV_32S);
+            udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4 * frame_num);
+            img.convertTo(img, CV_16U);
+//          cv::Mat img_col;
+//          cv::cvtColor(img, img_col, CV_BayerBG2BGR);
+            break;
+
+        default:
+            img = cv::Mat(height*frame_num, width, CV_8UC4);
+            udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4 * frame_num);
+            break;
+        }
 
         // 表示
         view_scale = std::max(1, view_scale);
@@ -337,13 +371,25 @@ int main(int argc, char *argv[])
         case 's':  imx219.SetAoiPosition(imx219.GetAoiX() + 4, imx219.GetAoiY());    break;
 
         case 'd':   // image dump
-            if ( fmtsel == 3 ) {
+            switch ( fmtsel ) {
+            case 0:
+            case 1:
+                cv::imwrite("img_dump.png", img);
+                break;
+
+            case 2:
+                cv::imwrite("img_dump_raw10.png", img);
+                write_pgm("img_dump_raw10.pgm", img, 4095);
+                break;
+
+            case 3:
                 cv::imwrite("img_dump_raw.png", img);
-            }
-            else {
-                cv::Mat imgRgb;
-                cv::cvtColor(img, imgRgb, cv::COLOR_BGRA2BGR);
-                cv::imwrite("img_dump.png", imgRgb);
+                write_pgm("img_dump_raw.pgm", img, 4095);
+                break;
+
+            default:
+                cv::imwrite("img_dump_x.png", img);
+                break;
             }
             break;
 
@@ -386,6 +432,18 @@ int main(int argc, char *argv[])
 }
 
 
-
+void write_pgm(const char* filename, cv::Mat img, int depth)
+{
+    FILE* fp = fopen(filename, "wb");
+    if ( fp ) {
+        fprintf(fp, "P2\n%d %d\n%d\n", img.cols, img.rows, depth);
+        for ( int y = 0; y < img.rows; ++y ) {
+            for ( int x = 0; x < img.cols; ++x ) {
+                fprintf(fp, "%d\n", img.at<uint16_t>(y, x));
+            }
+        }
+        fclose(fp);
+    }
+}
 
 // end of file
