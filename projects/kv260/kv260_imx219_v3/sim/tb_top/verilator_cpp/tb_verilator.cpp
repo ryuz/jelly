@@ -111,7 +111,7 @@ int main(int argc, char** argv)
     // 1 : GRBG
     // 2 : GBRG
     // 3 : BGGR
-    int bayer_phase = 3;
+    int bayer_phase = 0;
 
 
     axi4l->Display("cam enable");

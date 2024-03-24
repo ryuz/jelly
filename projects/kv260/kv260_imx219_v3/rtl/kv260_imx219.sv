@@ -256,9 +256,9 @@ module kv260_imx219
                     && axi4l_dec[DEC_GPIO].wvalid && axi4l_dec[DEC_GPIO].wready
                     && axi4l_dec[DEC_GPIO].wstrb[0] ) begin
                 case ( axi4l_dec[DEC_GPIO].awaddr[5:3] )
-                1: reg_sw_reset   <= 1'(axi4l_dec[DEC_GPIO].wdata[0]);
-                2: reg_cam_enable <= 1'(axi4l_dec[DEC_GPIO].wdata[0]);
-                3: reg_fmt_select <= 3'(axi4l_dec[DEC_GPIO].wdata[0]);
+                1: reg_sw_reset   <= 1'(axi4l_dec[DEC_GPIO].wdata);
+                2: reg_cam_enable <= 1'(axi4l_dec[DEC_GPIO].wdata);
+                3: reg_fmt_select <= 3'(axi4l_dec[DEC_GPIO].wdata);
                 default:;
                 endcase
                 axi4l_dec[DEC_GPIO].bvalid <= 1'b1;
