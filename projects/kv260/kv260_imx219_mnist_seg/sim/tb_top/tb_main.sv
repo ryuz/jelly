@@ -11,8 +11,8 @@
 
 module tb_main
         #(
-            parameter   X_NUM = 320, //640,   // 3280 / 2,
-            parameter   Y_NUM = 240, // 132,   // 2464 / 2
+            parameter   X_NUM = 640,   // 3280 / 2,
+            parameter   Y_NUM = 480,   // 2464 / 2
 
             parameter   WB_ADR_WIDTH = 37,
             parameter   WB_DAT_WIDTH = 64,
@@ -41,11 +41,14 @@ module tb_main
 //  localparam FILE_X_NUM = 640;
 //  localparam FILE_Y_NUM = 132;
 
-    localparam FILE_NAME  = "../../../../../../data/images/windowswallpaper/Chrysanthemum_320x240_bayer10.pgm";
-    localparam FILE_X_NUM = 320;
-    localparam FILE_Y_NUM = 240;
+//  localparam FILE_NAME  = "../../../../../../data/images/windowswallpaper/Penguins_640x480_bayer10.pgm";
+    localparam FILE_NAME  = "../../mnist_test_640x480.pgm";
+    localparam FILE_X_NUM = 640;
+    localparam FILE_Y_NUM = 480;
+    localparam DATA_WIDTH = 10;
 
 
+    // cycle counter
     wire    clk = clk100;
 
     int     sym_cycle = 0;
@@ -53,7 +56,6 @@ module tb_main
         sym_cycle <= sym_cycle + 1;
     end
 
-    localparam  DATA_WIDTH = 10;
     
     // -----------------------------------------
     //  top
@@ -64,31 +66,40 @@ module tb_main
                 .X_NUM          (X_NUM),
                 .Y_NUM          (Y_NUM)
             )
-        u_top
+        i_top
             (
+                .fan_en         (),
+                
                 .cam_clk_p      (),
                 .cam_clk_n      (),
                 .cam_data_p     (),
-                .cam_data_n     ()
+                .cam_data_n     (),
+                
+                .cam_enable     (),
+                .cam_scl        (),
+                .cam_sda        (),
+
+                .pmod           ()
             );
+    
+    
+    
+    always_comb force i_top.i_design_1.reset  = reset;
+    always_comb force i_top.i_design_1.clk100 = clk100;
+    always_comb force i_top.i_design_1.clk200 = clk200;
+    always_comb force i_top.i_design_1.clk250 = clk250;
+
+    always_comb force i_top.i_design_1.wb_peri_adr_i = s_wb_peri_adr_i;
+    always_comb force i_top.i_design_1.wb_peri_dat_i = s_wb_peri_dat_i;
+    always_comb force i_top.i_design_1.wb_peri_sel_i = s_wb_peri_sel_i;
+    always_comb force i_top.i_design_1.wb_peri_we_i  = s_wb_peri_we_i;
+    always_comb force i_top.i_design_1.wb_peri_stb_i = s_wb_peri_stb_i;
+
+    assign s_wb_peri_dat_o = i_top.i_design_1.wb_peri_dat_o;
+    assign s_wb_peri_ack_o = i_top.i_design_1.wb_peri_ack_o;
+    
 
     
-    always_comb force u_top.u_design_1.reset  = reset;
-    always_comb force u_top.u_design_1.clk100 = clk100;
-    always_comb force u_top.u_design_1.clk200 = clk200;
-    always_comb force u_top.u_design_1.clk250 = clk250;
-
-    always_comb force u_top.u_design_1.wb_peri_adr_i = s_wb_peri_adr_i;
-    always_comb force u_top.u_design_1.wb_peri_dat_i = s_wb_peri_dat_i;
-    always_comb force u_top.u_design_1.wb_peri_sel_i = s_wb_peri_sel_i;
-    always_comb force u_top.u_design_1.wb_peri_we_i  = s_wb_peri_we_i;
-    always_comb force u_top.u_design_1.wb_peri_stb_i = s_wb_peri_stb_i;
-
-    assign s_wb_peri_dat_o = u_top.u_design_1.wb_peri_dat_o;
-    assign s_wb_peri_ack_o = u_top.u_design_1.wb_peri_ack_o;
-
-
-
     // -----------------------------------------
     //  video input
     // -----------------------------------------
@@ -102,21 +113,24 @@ module tb_main
     logic                       axi4s_src_tvalid;
     logic                       axi4s_src_tready;
 
-    assign axi4s_cam_aresetn = u_top.axi4s_cam_aresetn;
-    assign axi4s_cam_aclk    = u_top.axi4s_cam_aclk;
-    assign axi4s_src_tready  = u_top.axi4s_csi2_tready;
+    
+    assign axi4s_cam_aresetn = i_top.axi4s_cam_aresetn;
+    assign axi4s_cam_aclk    = i_top.axi4s_cam_aclk;
+    assign axi4s_src_tready  = i_top.axi4s_csi2_tready;
 
     // force を verilator の為に毎回実行する
-`ifdef __VERILATOR__
-    always_comb begin
-`else
-    initial begin
-`endif
-        force u_top.axi4s_csi2_tuser  = axi4s_src_tuser;
-        force u_top.axi4s_csi2_tlast  = axi4s_src_tlast;
-        force u_top.axi4s_csi2_tdata  = axi4s_src_tdata;
-        force u_top.axi4s_csi2_tvalid = axi4s_src_tvalid;
-    end
+    always_comb force   i_top.i_mipi_csi2_rx.axi4s_tuser  = axi4s_src_tuser;
+    always_comb force   i_top.i_mipi_csi2_rx.axi4s_tlast  = axi4s_src_tlast;
+    always_comb force   i_top.i_mipi_csi2_rx.axi4s_tdata  = axi4s_src_tdata;
+    always_comb force   i_top.i_mipi_csi2_rx.axi4s_tvalid = axi4s_src_tvalid;
+    
+ //   assign axi4s_cam_aresetn = i_top.i_mipi_csi2_rx.axi4s_aresetn;
+ //   assign axi4s_cam_aclk    = i_top.i_mipi_csi2_rx.axi4s_aclk;
+ //   assign axi4s_src_tready  = i_top.i_mipi_csi2_rx.axi4s_tready;
+ //   always_comb force   i_top.i_mipi_csi2_rx.axi4s_tuser  = axi4s_src_tuser    ;
+ //   always_comb force   i_top.i_mipi_csi2_rx.axi4s_tlast  = axi4s_src_tlast    ;   
+ //   always_comb force   i_top.i_mipi_csi2_rx.axi4s_tdata  = axi4s_src_tdata    ;
+ //   always_comb force   i_top.i_mipi_csi2_rx.axi4s_tvalid = axi4s_src_tvalid   ;
 
     jelly2_axi4s_master_model
             #(
@@ -162,29 +176,29 @@ module tb_main
     //  dump output
     // -----------------------------------------
 
-    wire    [0:0]               axi4s_img_tuser;
-    wire                        axi4s_img_tlast;
-    wire    [31:0]              axi4s_img_tdata;
-    wire                        axi4s_img_tvalid;
-    wire                        axi4s_img_tready;
-    assign axi4s_img_tuser  = u_top.axi4s_rgb_tuser;
-    assign axi4s_img_tlast  = u_top.axi4s_rgb_tlast;
-    assign axi4s_img_tdata  = u_top.axi4s_rgb_tdata;
-    assign axi4s_img_tvalid = u_top.axi4s_rgb_tvalid;
-    assign axi4s_img_tready = u_top.axi4s_rgb_tready;
-  
+    wire    [0:0]                   axi4s_rgb_tuser;
+    wire                            axi4s_rgb_tlast;
+    wire    [3:0][DATA_WIDTH-1:0]   axi4s_rgb_tdata;
+    wire                            axi4s_rgb_tvalid;
+    wire                            axi4s_rgb_tready;
+    assign axi4s_rgb_tuser  = i_top.axi4s_rgb_tuser;
+    assign axi4s_rgb_tlast  = i_top.axi4s_rgb_tlast;
+    assign axi4s_rgb_tdata  = i_top.axi4s_rgb_tdata;
+    assign axi4s_rgb_tvalid = i_top.axi4s_rgb_tvalid;
+    assign axi4s_rgb_tready = i_top.axi4s_rgb_tready;
+    
     jelly2_axi4s_slave_model
             #(
                 .COMPONENTS         (3),
-                .DATA_WIDTH         (8),
+                .DATA_WIDTH         (DATA_WIDTH),
                 .INIT_FRAME_NUM     (0),
                 .FORMAT             ("P3"),
-                .FILE_NAME          ("img_"),
+                .FILE_NAME          ("rgb_"),
                 .FILE_EXT           (".ppm"),
                 .SEQUENTIAL_FILE    (1),
-                .ENDIAN             (0)
+                .ENDIAN             (1) // BGR
             )
-        i_axi4s_slave_model
+        i_axi4s_slave_model_rgb
             (
                 .aresetn            (axi4s_cam_aresetn),
                 .aclk               (axi4s_cam_aclk),
@@ -194,13 +208,42 @@ module tb_main
                 .param_height       (Y_NUM),
                 .frame_num          (),
                 
-                .s_axi4s_tuser      (axi4s_img_tuser),
-                .s_axi4s_tlast      (axi4s_img_tlast),
-                .s_axi4s_tdata      (axi4s_img_tdata[23:0]),
-                .s_axi4s_tvalid     (axi4s_img_tvalid & axi4s_img_tready),
+                .s_axi4s_tuser      (axi4s_rgb_tuser),
+                .s_axi4s_tlast      (axi4s_rgb_tlast),
+                .s_axi4s_tdata      (axi4s_rgb_tdata[2:0]),
+                .s_axi4s_tvalid     (axi4s_rgb_tvalid & axi4s_rgb_tready),
                 .s_axi4s_tready     ()
             );
 
+    jelly2_axi4s_slave_model
+            #(
+                .COMPONENTS         (1),
+                .DATA_WIDTH         (DATA_WIDTH),
+                .INIT_FRAME_NUM     (0),
+                .FORMAT             ("P2"),
+                .FILE_NAME          ("gray_"),
+                .FILE_EXT           (".pgm"),
+                .SEQUENTIAL_FILE    (1)
+            )
+        i_axi4s_slave_model_gray
+            (
+                .aresetn            (axi4s_cam_aresetn),
+                .aclk               (axi4s_cam_aclk),
+                .aclken             (1'b1),
+
+                .param_width        (X_NUM),
+                .param_height       (Y_NUM),
+                .frame_num          (),
+                
+                .s_axi4s_tuser      (axi4s_rgb_tuser),
+                .s_axi4s_tlast      (axi4s_rgb_tlast),
+                .s_axi4s_tdata      (axi4s_rgb_tdata[3]),
+                .s_axi4s_tvalid     (axi4s_rgb_tvalid & axi4s_rgb_tready),
+                .s_axi4s_tready     ()
+            );
+
+
+    /*
     // -----------------------------------------
     //  image
     // -----------------------------------------
@@ -213,11 +256,11 @@ module tb_main
     //  RGB image
     // -----------------------------------------
 
-    always_comb img_reset = u_top.u_video_raw_to_rgb.reset;
-    always_comb img_clk   = u_top.u_video_raw_to_rgb.clk;
-    always_comb img_cke   = u_top.u_video_raw_to_rgb.cke;
+    always_comb img_reset = i_top.i_image_processing.reset;
+    always_comb img_clk   = i_top.i_image_processing.clk;
+    always_comb img_cke   = i_top.i_image_processing.cke;
 
-/*
+
     logic                               img_rgb_row_first;
     logic                               img_rgb_row_last;
     logic                               img_rgb_col_first;
@@ -228,15 +271,15 @@ module tb_main
     logic   [DATA_WIDTH-1:0]            img_rgb_b;
     logic                               img_rgb_valid;
 
-    always_comb img_rgb_row_first = u_top.i_image_processing.img_colmat_row_first;
-    always_comb img_rgb_row_last  = u_top.i_image_processing.img_colmat_row_last;
-    always_comb img_rgb_col_first = u_top.i_image_processing.img_colmat_col_first;
-    always_comb img_rgb_col_last  = u_top.i_image_processing.img_colmat_col_last;
-    always_comb img_rgb_de        = u_top.i_image_processing.img_colmat_de;
-    always_comb img_rgb_r         = u_top.i_image_processing.img_colmat_r;
-    always_comb img_rgb_g         = u_top.i_image_processing.img_colmat_g;
-    always_comb img_rgb_b         = u_top.i_image_processing.img_colmat_b;
-    always_comb img_rgb_valid     = u_top.i_image_processing.img_colmat_valid;
+    always_comb img_rgb_row_first = i_top.i_image_processing.img_colmat_row_first;
+    always_comb img_rgb_row_last  = i_top.i_image_processing.img_colmat_row_last;
+    always_comb img_rgb_col_first = i_top.i_image_processing.img_colmat_col_first;
+    always_comb img_rgb_col_last  = i_top.i_image_processing.img_colmat_col_last;
+    always_comb img_rgb_de        = i_top.i_image_processing.img_colmat_de;
+    always_comb img_rgb_r         = i_top.i_image_processing.img_colmat_r;
+    always_comb img_rgb_g         = i_top.i_image_processing.img_colmat_g;
+    always_comb img_rgb_b         = i_top.i_image_processing.img_colmat_b;
+    always_comb img_rgb_valid     = i_top.i_image_processing.img_colmat_valid;
     
     jelly2_img_slave_model
             #(
@@ -285,15 +328,15 @@ module tb_main
     logic   [DATA_WIDTH-1:0]            img_gauss_b;
     logic                               img_gauss_valid;
 
-    always_comb img_gauss_row_first = u_top.i_image_processing.img_gauss_row_first;
-    always_comb img_gauss_row_last  = u_top.i_image_processing.img_gauss_row_last;
-    always_comb img_gauss_col_first = u_top.i_image_processing.img_gauss_col_first;
-    always_comb img_gauss_col_last  = u_top.i_image_processing.img_gauss_col_last;
-    always_comb img_gauss_de        = u_top.i_image_processing.img_gauss_de;
-    always_comb img_gauss_r         = u_top.i_image_processing.img_gauss_r;
-    always_comb img_gauss_g         = u_top.i_image_processing.img_gauss_g;
-    always_comb img_gauss_b         = u_top.i_image_processing.img_gauss_b;
-    always_comb img_gauss_valid     = u_top.i_image_processing.img_gauss_valid;
+    always_comb img_gauss_row_first = i_top.i_image_processing.img_gauss_row_first;
+    always_comb img_gauss_row_last  = i_top.i_image_processing.img_gauss_row_last;
+    always_comb img_gauss_col_first = i_top.i_image_processing.img_gauss_col_first;
+    always_comb img_gauss_col_last  = i_top.i_image_processing.img_gauss_col_last;
+    always_comb img_gauss_de        = i_top.i_image_processing.img_gauss_de;
+    always_comb img_gauss_r         = i_top.i_image_processing.img_gauss_r;
+    always_comb img_gauss_g         = i_top.i_image_processing.img_gauss_g;
+    always_comb img_gauss_b         = i_top.i_image_processing.img_gauss_b;
+    always_comb img_gauss_valid     = i_top.i_image_processing.img_gauss_valid;
     
     jelly2_img_slave_model
             #(
@@ -343,16 +386,16 @@ module tb_main
     logic   [DATA_WIDTH-1:0]            img_hsv_v;
     logic                               img_hsv_valid;
 
-    always_comb img_hsv_row_first = u_top.i_image_processing.img_hsv_row_first;
-    always_comb img_hsv_row_last  = u_top.i_image_processing.img_hsv_row_last;
-    always_comb img_hsv_col_first = u_top.i_image_processing.img_hsv_col_first;
-    always_comb img_hsv_col_last  = u_top.i_image_processing.img_hsv_col_last;
-    always_comb img_hsv_de        = u_top.i_image_processing.img_hsv_de;
-    always_comb img_hsv_raw       = u_top.i_image_processing.img_hsv_raw;
-    always_comb img_hsv_h         = u_top.i_image_processing.img_hsv_h;
-    always_comb img_hsv_s         = u_top.i_image_processing.img_hsv_s;
-    always_comb img_hsv_v         = u_top.i_image_processing.img_hsv_v;
-    always_comb img_hsv_valid     = u_top.i_image_processing.img_hsv_valid;
+    always_comb img_hsv_row_first = i_top.i_image_processing.img_hsv_row_first;
+    always_comb img_hsv_row_last  = i_top.i_image_processing.img_hsv_row_last;
+    always_comb img_hsv_col_first = i_top.i_image_processing.img_hsv_col_first;
+    always_comb img_hsv_col_last  = i_top.i_image_processing.img_hsv_col_last;
+    always_comb img_hsv_de        = i_top.i_image_processing.img_hsv_de;
+    always_comb img_hsv_raw       = i_top.i_image_processing.img_hsv_raw;
+    always_comb img_hsv_h         = i_top.i_image_processing.img_hsv_h;
+    always_comb img_hsv_s         = i_top.i_image_processing.img_hsv_s;
+    always_comb img_hsv_v         = i_top.i_image_processing.img_hsv_v;
+    always_comb img_hsv_valid     = i_top.i_image_processing.img_hsv_valid;
   
     jelly2_img_slave_model
             #(
@@ -400,13 +443,13 @@ module tb_main
     logic   [0:0]                       img_bin_data;
     logic                               img_bin_valid;
 
-    always_comb img_bin_row_first = u_top.i_image_processing.img_bin_row_first;
-    always_comb img_bin_row_last  = u_top.i_image_processing.img_bin_row_last;
-    always_comb img_bin_col_first = u_top.i_image_processing.img_bin_col_first;
-    always_comb img_bin_col_last  = u_top.i_image_processing.img_bin_col_last;
-    always_comb img_bin_de        = u_top.i_image_processing.img_bin_de;
-    always_comb img_bin_data      = u_top.i_image_processing.img_bin_data;
-    always_comb img_bin_valid     = u_top.i_image_processing.img_bin_valid;
+    always_comb img_bin_row_first = i_top.i_image_processing.img_bin_row_first;
+    always_comb img_bin_row_last  = i_top.i_image_processing.img_bin_row_last;
+    always_comb img_bin_col_first = i_top.i_image_processing.img_bin_col_first;
+    always_comb img_bin_col_last  = i_top.i_image_processing.img_bin_col_last;
+    always_comb img_bin_de        = i_top.i_image_processing.img_bin_de;
+    always_comb img_bin_data      = i_top.i_image_processing.img_bin_data;
+    always_comb img_bin_valid     = i_top.i_image_processing.img_bin_valid;
   
     jelly2_img_slave_model
             #(
@@ -440,7 +483,7 @@ module tb_main
                 .s_img_data         (img_bin_data),
                 .s_img_valid        (img_bin_valid)
             );
-*/
+    */
 
 endmodule
 

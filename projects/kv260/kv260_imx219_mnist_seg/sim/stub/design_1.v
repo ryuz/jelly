@@ -1,15 +1,9 @@
 
 `timescale 1 ns / 1 ps
 
-
 module design_1
    (
     fan_en,
-    dp_live_video_in_pixel1,
-    dp_video_out_hsync,
-    dp_video_out_vsync,
-    dp_video_ref_clk,
-    dp_video_ref_reset,
     i2c_scl_i,
     i2c_scl_o,
     i2c_scl_t,
@@ -80,53 +74,9 @@ module design_1
     s_axi4_mem0_wready,
     s_axi4_mem0_wstrb,
     s_axi4_mem0_wvalid,
-    s_axi4_mem1_araddr,
-    s_axi4_mem1_arburst,
-    s_axi4_mem1_arcache,
-    s_axi4_mem1_arid,
-    s_axi4_mem1_arlen,
-    s_axi4_mem1_arlock,
-    s_axi4_mem1_arprot,
-    s_axi4_mem1_arqos,
-    s_axi4_mem1_arready,
-    s_axi4_mem1_arsize,
-    s_axi4_mem1_aruser,
-    s_axi4_mem1_arvalid,
-    s_axi4_mem1_awaddr,
-    s_axi4_mem1_awburst,
-    s_axi4_mem1_awcache,
-    s_axi4_mem1_awid,
-    s_axi4_mem1_awlen,
-    s_axi4_mem1_awlock,
-    s_axi4_mem1_awprot,
-    s_axi4_mem1_awqos,
-    s_axi4_mem1_awready,
-    s_axi4_mem1_awsize,
-    s_axi4_mem1_awuser,
-    s_axi4_mem1_awvalid,
-    s_axi4_mem1_bid,
-    s_axi4_mem1_bready,
-    s_axi4_mem1_bresp,
-    s_axi4_mem1_bvalid,
-    s_axi4_mem1_rdata,
-    s_axi4_mem1_rid,
-    s_axi4_mem1_rlast,
-    s_axi4_mem1_rready,
-    s_axi4_mem1_rresp,
-    s_axi4_mem1_rvalid,
-    s_axi4_mem1_wdata,
-    s_axi4_mem1_wlast,
-    s_axi4_mem1_wready,
-    s_axi4_mem1_wstrb,
-    s_axi4_mem1_wvalid,
     s_axi4_mem_aclk,
     s_axi4_mem_aresetn);
   output fan_en;
-  input [35:0]dp_live_video_in_pixel1;
-  output dp_video_out_hsync;
-  output dp_video_out_vsync;
-  output dp_video_ref_clk;
-  output [0:0]dp_video_ref_reset;
   input i2c_scl_i;
   output i2c_scl_o;
   output i2c_scl_t;
@@ -197,54 +147,10 @@ module design_1
   output s_axi4_mem0_wready;
   input [15:0]s_axi4_mem0_wstrb;
   input s_axi4_mem0_wvalid;
-  input [48:0]s_axi4_mem1_araddr;
-  input [1:0]s_axi4_mem1_arburst;
-  input [3:0]s_axi4_mem1_arcache;
-  input [5:0]s_axi4_mem1_arid;
-  input [7:0]s_axi4_mem1_arlen;
-  input s_axi4_mem1_arlock;
-  input [2:0]s_axi4_mem1_arprot;
-  input [3:0]s_axi4_mem1_arqos;
-  output s_axi4_mem1_arready;
-  input [2:0]s_axi4_mem1_arsize;
-  input s_axi4_mem1_aruser;
-  input s_axi4_mem1_arvalid;
-  input [48:0]s_axi4_mem1_awaddr;
-  input [1:0]s_axi4_mem1_awburst;
-  input [3:0]s_axi4_mem1_awcache;
-  input [5:0]s_axi4_mem1_awid;
-  input [7:0]s_axi4_mem1_awlen;
-  input s_axi4_mem1_awlock;
-  input [2:0]s_axi4_mem1_awprot;
-  input [3:0]s_axi4_mem1_awqos;
-  output s_axi4_mem1_awready;
-  input [2:0]s_axi4_mem1_awsize;
-  input s_axi4_mem1_awuser;
-  input s_axi4_mem1_awvalid;
-  output [5:0]s_axi4_mem1_bid;
-  input s_axi4_mem1_bready;
-  output [1:0]s_axi4_mem1_bresp;
-  output s_axi4_mem1_bvalid;
-  output [127:0]s_axi4_mem1_rdata;
-  output [5:0]s_axi4_mem1_rid;
-  output s_axi4_mem1_rlast;
-  input s_axi4_mem1_rready;
-  output [1:0]s_axi4_mem1_rresp;
-  output s_axi4_mem1_rvalid;
-  input [127:0]s_axi4_mem1_wdata;
-  input s_axi4_mem1_wlast;
-  output s_axi4_mem1_wready;
-  input [15:0]s_axi4_mem1_wstrb;
-  input s_axi4_mem1_wvalid;
   output s_axi4_mem_aclk;
   output [0:0]s_axi4_mem_aresetn;
 
   wire fan_en;
-  wire [35:0]dp_live_video_in_pixel1;
-  wire dp_video_out_hsync;
-  wire dp_video_out_vsync;
-  wire dp_video_ref_clk;
-  wire [0:0]dp_video_ref_reset;
   wire i2c_scl_i;
   wire i2c_scl_io;
   wire i2c_scl_o;
@@ -317,49 +223,11 @@ module design_1
   wire s_axi4_mem0_wready;
   wire [15:0]s_axi4_mem0_wstrb;
   wire s_axi4_mem0_wvalid;
-  wire [48:0]s_axi4_mem1_araddr;
-  wire [1:0]s_axi4_mem1_arburst;
-  wire [3:0]s_axi4_mem1_arcache;
-  wire [5:0]s_axi4_mem1_arid;
-  wire [7:0]s_axi4_mem1_arlen;
-  wire s_axi4_mem1_arlock;
-  wire [2:0]s_axi4_mem1_arprot;
-  wire [3:0]s_axi4_mem1_arqos;
-  wire s_axi4_mem1_arready;
-  wire [2:0]s_axi4_mem1_arsize;
-  wire s_axi4_mem1_aruser;
-  wire s_axi4_mem1_arvalid;
-  wire [48:0]s_axi4_mem1_awaddr;
-  wire [1:0]s_axi4_mem1_awburst;
-  wire [3:0]s_axi4_mem1_awcache;
-  wire [5:0]s_axi4_mem1_awid;
-  wire [7:0]s_axi4_mem1_awlen;
-  wire s_axi4_mem1_awlock;
-  wire [2:0]s_axi4_mem1_awprot;
-  wire [3:0]s_axi4_mem1_awqos;
-  wire s_axi4_mem1_awready;
-  wire [2:0]s_axi4_mem1_awsize;
-  wire s_axi4_mem1_awuser;
-  wire s_axi4_mem1_awvalid;
-  wire [5:0]s_axi4_mem1_bid;
-  wire s_axi4_mem1_bready;
-  wire [1:0]s_axi4_mem1_bresp;
-  wire s_axi4_mem1_bvalid;
-  wire [127:0]s_axi4_mem1_rdata;
-  wire [5:0]s_axi4_mem1_rid;
-  wire s_axi4_mem1_rlast;
-  wire s_axi4_mem1_rready;
-  wire [1:0]s_axi4_mem1_rresp;
-  wire s_axi4_mem1_rvalid;
-  wire [127:0]s_axi4_mem1_wdata;
-  wire s_axi4_mem1_wlast;
-  wire s_axi4_mem1_wready;
-  wire [15:0]s_axi4_mem1_wstrb;
-  wire s_axi4_mem1_wvalid;
   wire s_axi4_mem_aclk;
   wire [0:0]s_axi4_mem_aresetn;
 
-  
+    assign fan_en = 1'b0;
+
     // テストベンチから force する前提
     reg             reset           /*verilator public_flat*/;
     reg             clk100          /*verilator public_flat*/;
@@ -373,7 +241,7 @@ module design_1
     reg             wb_peri_we_i    /*verilator public_flat*/;
     reg             wb_peri_stb_i   /*verilator public_flat*/;
     reg             wb_peri_ack_o   /*verilator public_flat*/;
-
+    
     assign out_reset             = reset;
     assign out_clk100            = clk100;
     assign out_clk200            = clk200;
@@ -420,16 +288,15 @@ module design_1
                 .m_axi4l_rvalid         (m_axi4l_peri_rvalid),
                 .m_axi4l_rready         (m_axi4l_peri_rready)
             );
-
-
+    
     jelly2_axi4_slave_model
             #(
                 .AXI_ID_WIDTH           (6),
                 .AXI_ADDR_WIDTH         (49),
                 .AXI_DATA_SIZE          (4),
                 .MEM_WIDTH              (17),
-                .WRITE_LOG_FILE         ("axi4_mem0_write.txt"),
-                .READ_LOG_FILE          ("axi4_mem0_read.txt"),
+                .WRITE_LOG_FILE         ("axi4_write.txt"),
+                .READ_LOG_FILE          (""),
                 .AW_DELAY               (20),
                 .AR_DELAY               (20),
                 .AW_FIFO_PTR_WIDTH      (4),
@@ -443,7 +310,7 @@ module design_1
                 .AR_BUSY_RATE           (0),
                 .R_BUSY_RATE            (0)
             )
-        i_axi4_slave_model_0
+        i_axi4_slave_model
             (
                 .aresetn                (s_axi4_mem_aresetn),
                 .aclk                   (s_axi4_mem_aclk),
@@ -487,71 +354,6 @@ module design_1
                 .s_axi4_rvalid          (s_axi4_mem0_rvalid),
                 .s_axi4_rready          (s_axi4_mem0_rready)
         );
-
-    jelly2_axi4_slave_model
-            #(
-                .AXI_ID_WIDTH           (6),
-                .AXI_ADDR_WIDTH         (49),
-                .AXI_DATA_SIZE          (4),
-                .MEM_WIDTH              (17),
-                .WRITE_LOG_FILE         ("axi4_mem1_write.txt"),
-                .READ_LOG_FILE          ("axi4_mem1_read.txt"),
-                .AW_DELAY               (20),
-                .AR_DELAY               (20),
-                .AW_FIFO_PTR_WIDTH      (4),
-                .W_FIFO_PTR_WIDTH       (4),
-                .B_FIFO_PTR_WIDTH       (4),
-                .AR_FIFO_PTR_WIDTH      (4),
-                .R_FIFO_PTR_WIDTH       (4),
-                .AW_BUSY_RATE           (0),
-                .W_BUSY_RATE            (0),
-                .B_BUSY_RATE            (0),
-                .AR_BUSY_RATE           (0),
-                .R_BUSY_RATE            (0)
-            )
-        i_axi4_slave_model_1
-            (
-                .aresetn                (s_axi4_mem_aresetn),
-                .aclk                   (s_axi4_mem_aclk),
-                .aclken                 (1'b1),
-                
-                .s_axi4_awid            (s_axi4_mem1_awid),
-                .s_axi4_awaddr          (s_axi4_mem1_awaddr),
-                .s_axi4_awlen           (s_axi4_mem1_awlen),
-                .s_axi4_awsize          (s_axi4_mem1_awsize),
-                .s_axi4_awburst         (s_axi4_mem1_awburst),
-                .s_axi4_awlock          (s_axi4_mem1_awlock),
-                .s_axi4_awcache         (s_axi4_mem1_awcache),
-                .s_axi4_awprot          (s_axi4_mem1_awprot),
-                .s_axi4_awqos           (s_axi4_mem1_awqos),
-                .s_axi4_awvalid         (s_axi4_mem1_awvalid),
-                .s_axi4_awready         (s_axi4_mem1_awready),
-                .s_axi4_wdata           (s_axi4_mem1_wdata),
-                .s_axi4_wstrb           (s_axi4_mem1_wstrb),
-                .s_axi4_wlast           (s_axi4_mem1_wlast),
-                .s_axi4_wvalid          (s_axi4_mem1_wvalid),
-                .s_axi4_wready          (s_axi4_mem1_wready),
-                .s_axi4_bid             (s_axi4_mem1_bid),
-                .s_axi4_bresp           (s_axi4_mem1_bresp),
-                .s_axi4_bvalid          (s_axi4_mem1_bvalid),
-                .s_axi4_bready          (s_axi4_mem1_bready),
-                .s_axi4_arid            (s_axi4_mem1_arid),
-                .s_axi4_araddr          (s_axi4_mem1_araddr),
-                .s_axi4_arlen           (s_axi4_mem1_arlen),
-                .s_axi4_arsize          (s_axi4_mem1_arsize),
-                .s_axi4_arburst         (s_axi4_mem1_arburst),
-                .s_axi4_arlock          (s_axi4_mem1_arlock),
-                .s_axi4_arcache         (s_axi4_mem1_arcache),
-                .s_axi4_arprot          (s_axi4_mem1_arprot),
-                .s_axi4_arqos           (s_axi4_mem1_arqos),
-                .s_axi4_arvalid         (s_axi4_mem1_arvalid),
-                .s_axi4_arready         (s_axi4_mem1_arready),
-                .s_axi4_rid             (s_axi4_mem1_rid),
-                .s_axi4_rdata           (s_axi4_mem1_rdata),
-                .s_axi4_rresp           (s_axi4_mem1_rresp),
-                .s_axi4_rlast           (s_axi4_mem1_rlast),
-                .s_axi4_rvalid          (s_axi4_mem1_rvalid),
-                .s_axi4_rready          (s_axi4_mem1_rready)
-        );
-
+        
+        
 endmodule

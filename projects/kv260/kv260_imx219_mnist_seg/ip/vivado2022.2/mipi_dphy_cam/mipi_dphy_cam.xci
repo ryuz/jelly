@@ -3,7 +3,7 @@
   "ip_inst": {
     "xci_name": "mipi_dphy_cam",
     "component_reference": "xilinx.com:ip:mipi_dphy:4.3",
-    "ip_revision": "8",
+    "ip_revision": "5",
     "gen_directory": ".",
     "parameters": {
       "component_parameters": {
@@ -183,11 +183,9 @@
         "C_RCVE_DESKEW_SEQ": [ { "value": "false", "resolve_type": "user", "format": "bool", "usage": "all" } ],
         "C_RCVE_ALT_DESKEW_SEQ": [ { "value": "false", "resolve_type": "user", "format": "bool", "usage": "all" } ],
         "C_VERSAL": [ { "value": "0", "resolve_type": "user", "format": "long", "usage": "all" } ],
-        "C_EN_CNTS_BYTE_CLK": [ { "value": "false", "resolve_type": "user", "format": "bool", "usage": "all" } ],
-        "C_EXT_MMCM": [ { "value": "0", "resolve_type": "user", "enabled": false, "usage": "all" } ]
+        "C_EN_CNTS_BYTE_CLK": [ { "value": "false", "resolve_type": "user", "format": "bool", "usage": "all" } ]
       },
       "model_parameters": {
-        "C_EXT_MMCM": [ { "value": "false", "resolve_type": "generated", "format": "bool", "usage": "all" } ],
         "C_S50_LOGIC": [ { "value": "0", "resolve_type": "generated", "format": "long", "usage": "all" } ],
         "C_TX_RIU_WR_GAP": [ { "value": "18", "resolve_type": "generated", "format": "long", "usage": "all" } ],
         "C_EN_DCTS_LOGIC": [ { "value": "0", "resolve_type": "generated", "format": "long", "usage": "all" } ],
@@ -309,12 +307,12 @@
       },
       "runtime_parameters": {
         "IPCONTEXT": [ { "value": "IP_Flow" } ],
-        "IPREVISION": [ { "value": "8" } ],
+        "IPREVISION": [ { "value": "5" } ],
         "MANAGED": [ { "value": "TRUE" } ],
         "OUTPUTDIR": [ { "value": "." } ],
         "SELECTEDSIMMODEL": [ { "value": "" } ],
         "SHAREDDIR": [ { "value": "." } ],
-        "SWVERSION": [ { "value": "2023.2" } ],
+        "SWVERSION": [ { "value": "2022.2" } ],
         "SYNTHESISFLOW": [ { "value": "OUT_OF_CONTEXT" } ]
       }
     },
