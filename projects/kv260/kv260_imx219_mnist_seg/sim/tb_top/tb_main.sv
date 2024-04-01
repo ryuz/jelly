@@ -243,6 +243,165 @@ module tb_main
             );
 
 
+    logic   [0:0]                   axi4s_mnist_tuser;
+    logic                           axi4s_mnist_tlast;
+    logic   [23:0]                  axi4s_mnist_trgb;
+    logic   [10:0]                  axi4s_mnist_tclass;
+    logic                           axi4s_mnist_tvalid;
+    logic                           axi4s_mnist_tready;
+
+    assign axi4s_mnist_tuser  = i_top.axi4s_mnist_tuser;
+    assign axi4s_mnist_tlast  = i_top.axi4s_mnist_tlast;
+    assign axi4s_mnist_trgb   = i_top.axi4s_mnist_trgb;
+    assign axi4s_mnist_tclass = i_top.axi4s_mnist_tclass;
+    assign axi4s_mnist_tvalid = i_top.axi4s_mnist_tvalid;
+    assign axi4s_mnist_tready = i_top.axi4s_mnist_tready;
+
+    jelly2_axi4s_slave_model
+            #(
+                .COMPONENTS         (3),
+                .DATA_WIDTH         (8),
+                .INIT_FRAME_NUM     (0),
+                .FORMAT             ("P3"),
+                .FILE_NAME          ("mnist_rgb_"),
+                .FILE_EXT           (".ppm"),
+                .SEQUENTIAL_FILE    (1),
+                .ENDIAN             (1) // BGR
+            )
+        i_axi4s_slave_model_mnist_rgb
+            (
+                .aresetn            (axi4s_cam_aresetn),
+                .aclk               (axi4s_cam_aclk),
+                .aclken             (1'b1),
+
+                .param_width        (X_NUM),
+                .param_height       (Y_NUM),
+                .frame_num          (),
+                
+                .s_axi4s_tuser      (axi4s_mnist_tuser),
+                .s_axi4s_tlast      (axi4s_mnist_tlast),
+                .s_axi4s_tdata      (axi4s_mnist_trgb),
+                .s_axi4s_tvalid     (axi4s_mnist_tvalid & axi4s_mnist_tready),
+                .s_axi4s_tready     ()
+            );
+
+    for ( genvar i = 0; i < 10; ++i ) begin
+        jelly2_axi4s_slave_model
+                #(
+                    .COMPONENTS         (1),
+                    .DATA_WIDTH         (8),
+                    .INIT_FRAME_NUM     (0),
+                    .FORMAT             ("P2"),
+                    .FILE_NAME          ({"mnist", ("0" + i), "_"}),
+                    .FILE_EXT           (".pgm"),
+                    .SEQUENTIAL_FILE    (1),
+                    .ENDIAN             (1) // BGR
+                )
+            i_axi4s_slave_model_mnist_0
+                (
+                    .aresetn            (axi4s_cam_aresetn),
+                    .aclk               (axi4s_cam_aclk),
+                    .aclken             (1'b1),
+
+                    .param_width        (X_NUM),
+                    .param_height       (Y_NUM),
+                    .frame_num          (),
+                    
+                    .s_axi4s_tuser      (axi4s_mnist_tuser),
+                    .s_axi4s_tlast      (axi4s_mnist_tlast),
+                    .s_axi4s_tdata      ({8{axi4s_mnist_tclass[i]}}),
+                    .s_axi4s_tvalid     (axi4s_mnist_tvalid & axi4s_mnist_tready),
+                    .s_axi4s_tready     ()
+                );
+    end
+
+    /*
+    jelly2_axi4s_slave_model
+            #(
+                .COMPONENTS         (1),
+                .DATA_WIDTH         (8),
+                .INIT_FRAME_NUM     (0),
+                .FORMAT             ("P2"),
+                .FILE_NAME          ("mnist1_"),
+                .FILE_EXT           (".pgm"),
+                .SEQUENTIAL_FILE    (1),
+                .ENDIAN             (1) // BGR
+            )
+        i_axi4s_slave_model_mnist_1
+            (
+                .aresetn            (axi4s_cam_aresetn),
+                .aclk               (axi4s_cam_aclk),
+                .aclken             (1'b1),
+
+                .param_width        (X_NUM),
+                .param_height       (Y_NUM),
+                .frame_num          (),
+                
+                .s_axi4s_tuser      (axi4s_mnist_tuser),
+                .s_axi4s_tlast      (axi4s_mnist_tlast),
+                .s_axi4s_tdata      ({8{axi4s_mnist_tclass[1]}}),
+                .s_axi4s_tvalid     (axi4s_mnist_tvalid & axi4s_mnist_tready),
+                .s_axi4s_tready     ()
+            );
+
+    jelly2_axi4s_slave_model
+            #(
+                .COMPONENTS         (1),
+                .DATA_WIDTH         (8),
+                .INIT_FRAME_NUM     (0),
+                .FORMAT             ("P2"),
+                .FILE_NAME          ("mnist2_"),
+                .FILE_EXT           (".pgm"),
+                .SEQUENTIAL_FILE    (1),
+                .ENDIAN             (1) // BGR
+            )
+        i_axi4s_slave_model_mnist_2
+            (
+                .aresetn            (axi4s_cam_aresetn),
+                .aclk               (axi4s_cam_aclk),
+                .aclken             (1'b1),
+
+                .param_width        (X_NUM),
+                .param_height       (Y_NUM),
+                .frame_num          (),
+                
+                .s_axi4s_tuser      (axi4s_mnist_tuser),
+                .s_axi4s_tlast      (axi4s_mnist_tlast),
+                .s_axi4s_tdata      ({8{axi4s_mnist_tclass[2]}}),
+                .s_axi4s_tvalid     (axi4s_mnist_tvalid & axi4s_mnist_tready),
+                .s_axi4s_tready     ()
+            );
+
+    jelly2_axi4s_slave_model
+            #(
+                .COMPONENTS         (1),
+                .DATA_WIDTH         (8),
+                .INIT_FRAME_NUM     (0),
+                .FORMAT             ("P2"),
+                .FILE_NAME          ("mnist3_"),
+                .FILE_EXT           (".pgm"),
+                .SEQUENTIAL_FILE    (1),
+                .ENDIAN             (1) // BGR
+            )
+        i_axi4s_slave_model_mnist_3
+            (
+                .aresetn            (axi4s_cam_aresetn),
+                .aclk               (axi4s_cam_aclk),
+                .aclken             (1'b1),
+
+                .param_width        (X_NUM),
+                .param_height       (Y_NUM),
+                .frame_num          (),
+                
+                .s_axi4s_tuser      (axi4s_mnist_tuser),
+                .s_axi4s_tlast      (axi4s_mnist_tlast),
+                .s_axi4s_tdata      ({8{axi4s_mnist_tclass[3]}}),
+                .s_axi4s_tvalid     (axi4s_mnist_tvalid & axi4s_mnist_tready),
+                .s_axi4s_tready     ()
+            );
+    */
+
+
     /*
     // -----------------------------------------
     //  image

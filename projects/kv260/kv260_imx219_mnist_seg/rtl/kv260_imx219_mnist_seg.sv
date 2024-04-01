@@ -632,72 +632,6 @@ module kv260_imx219_mnist_seg
             );
     
 
-    // 出力切り替え
-    /*
-    logic   [0:0]               axi4s_sel_tuser;
-    logic                       axi4s_sel_tlast;
-    logic   [31:0]              axi4s_sel_tdata;
-    logic                       axi4s_sel_tvalid;
-    logic                       axi4s_sel_tready;
-    
-    logic   [1:0]               reg_sel_fmt;
-
-    logic   [WB_DAT_WIDTH-1:0]  wb_sel_dat_o;
-    logic                       wb_sel_stb_i;
-    logic                       wb_sel_ack_o;
-    always_ff @(posedge wb_peri_clk_i) begin
-        if ( wb_peri_rst_i ) begin
-            reg_sel_fmt <= '0;
-        end
-        else begin
-            if ( wb_sel_stb_i && wb_peri_we_i ) begin
-                reg_sel_fmt <= wb_peri_dat_i[1:0];
-            end
-        end
-    end
-    assign wb_sel_dat_o = WB_DAT_WIDTH'(reg_sel_fmt);
-    assign wb_sel_ack_o = wb_sel_stb_i;
-
-    assign axi4s_sel_tuser  = axi4s_rgb_tuser ;
-    assign axi4s_sel_tlast  = axi4s_rgb_tlast ;
-    assign axi4s_sel_tvalid = axi4s_rgb_tvalid;
-    assign axi4s_rgb_tready = axi4s_sel_tready;
-
-    always_comb begin
-        case ( reg_sel_fmt )
-        2'b00: begin // ARGB
-                axi4s_sel_tdata = {
-                    axi4s_rgb_tdata[39:32],
-                    axi4s_rgb_tdata[29:22],
-                    axi4s_rgb_tdata[19:12],
-                    axi4s_rgb_tdata[ 9: 2]
-                };
-            end
-        2'b01: begin // RGB10bit
-                axi4s_sel_tdata = {
-                    2'b00,
-                    axi4s_rgb_tdata[29:0]
-                };
-            end
-        2'b10: begin // RAW S32
-            axi4s_sel_tdata = {
-                22'd0,
-                axi4s_rgb_tdata[39:30]
-            };
-        end
-        2'b11: begin // RAW S32
-            axi4s_sel_tdata = {
-                1'b0,
-                axi4s_rgb_tdata[39:30],
-                axi4s_rgb_tdata[39:30],
-                axi4s_rgb_tdata[39:30],
-                axi4s_rgb_tdata[39]
-            };
-        end
-        endcase
-    end
-    */
-
     // binary modulation
     logic   [0:0]               axi4s_bin_tuser;
     logic                       axi4s_bin_tlast;
@@ -778,7 +712,7 @@ module kv260_imx219_mnist_seg
                 
                 .param_blank_num    (8'd30),
                 
-                .s_axi4s_tuser      ({axi4s_mnist_trgb, axi4s_bin_tuser}),
+                .s_axi4s_tuser      ({axi4s_bin_trgb, axi4s_bin_tuser}),
                 .s_axi4s_tlast      (axi4s_bin_tlast),
                 .s_axi4s_tdata      (axi4s_bin_tbinary),
                 .s_axi4s_tvalid     (axi4s_bin_tvalid),
@@ -790,9 +724,6 @@ module kv260_imx219_mnist_seg
                 .m_axi4s_tvalid     (axi4s_mnist_tvalid),
                 .m_axi4s_tready     (axi4s_mnist_tready)
             );
-
-    assign axi4s_mnist_tready = 1'b1;
-
 
 
     // DMA write
@@ -900,103 +831,6 @@ module kv260_imx219_mnist_seg
                 .m_axi4_bready          (axi4_mem0_bready)
             );
 
-
-
-    /*
-    wire    [WB_DAT_WIDTH-1:0]  wb_mnist_dat_o;
-    wire                        wb_mnist_stb_i;
-    wire                        wb_mnist_ack_o;
-    
-    video_mnist_seg
-            #(
-                .IMG_Y_NUM              (Y_NUM),
-                .IMG_Y_WIDTH            (12),
-                .TUSER_WIDTH            (24+1),
-                .WB_ADR_WIDTH           (10),
-                .WB_DAT_WIDTH           (WB_DAT_WIDTH)
-            )
-        i_video_mnist_seg
-            (
-                .aresetn                (axi4s_cam_aresetn),
-                .aclk                   (axi4s_cam_aclk),
-                
-                .s_axi4s_tuser          ({axi4s_bin_trgb[23:0], axi4s_bin_tuser}),
-                .s_axi4s_tlast          (axi4s_bin_tlast),
-                .s_axi4s_tdata          (axi4s_bin_tbinary),
-                .s_axi4s_tvalid         (axi4s_bin_tvalid),
-                .s_axi4s_tready         (axi4s_bin_tready),
-                
-                .m_axi4s_tuser          ({axi4s_mnist_trgb, axi4s_mnist_tuser}),
-                .m_axi4s_tlast          (axi4s_mnist_tlast),
-                .m_axi4s_tnumber        (axi4s_mnist_tnumber),
-                .m_axi4s_tcount         (axi4s_mnist_tcount),
-                .m_axi4s_tvalid         (axi4s_mnist_tvalid),
-                .m_axi4s_tready         (axi4s_mnist_tready),
-                
-                .s_wb_rst_i             (wb_peri_rst_i),
-                .s_wb_clk_i             (wb_peri_clk_i),
-                .s_wb_adr_i             (wb_peri_adr_i[9:0]),
-                .s_wb_dat_o             (wb_mnist_dat_o),
-                .s_wb_dat_i             (wb_peri_dat_i),
-                .s_wb_we_i              (wb_peri_we_i),
-                .s_wb_sel_i             (wb_peri_sel_i),
-                .s_wb_stb_i             (wb_mnist_stb_i),
-                .s_wb_ack_o             (wb_mnist_ack_o)
-            );
-    */
-    
-    /*
-    // 結果で着色
-    wire    [0:0]               axi4s_mcol_tuser;
-    wire                        axi4s_mcol_tlast;
-    wire    [31:0]              axi4s_mcol_tdata;
-    wire                        axi4s_mcol_tvalid;
-    wire                        axi4s_mcol_tready;
-    
-    wire    [WB_DAT_WIDTH-1:0]  wb_mcol_dat_o;
-    wire                        wb_mcol_stb_i;
-    wire                        wb_mcol_ack_o;
-    
-    video_mnist_seg_color
-            #(
-                .DATA_WIDTH         (8),
-                .TUSER_WIDTH        (1),
-                .INIT_PARAM_MODE    (3'b111),
-                .INIT_PARAM_TH      (1)
-            )
-        i_video_mnist_seg_color
-            (
-                .aresetn                (axi4s_cam_aresetn),
-                .aclk                   (axi4s_cam_aclk),
-                
-                .s_axi4s_tuser          (axi4s_mnist_tuser),
-                .s_axi4s_tlast          (axi4s_mnist_tlast),
-                .s_axi4s_tnumber        (axi4s_mnist_tnumber),
-                .s_axi4s_tcount         (axi4s_mnist_tcount),
-                .s_axi4s_tdata          ({8'd0, axi4s_mnist_trgb}),
-                .s_axi4s_tbinary        (0),
-                .s_axi4s_tdetection     (1'b1),
-                .s_axi4s_tvalid         (axi4s_mnist_tvalid),
-                .s_axi4s_tready         (axi4s_mnist_tready),
-                
-                .m_axi4s_tuser          (axi4s_mcol_tuser),
-                .m_axi4s_tlast          (axi4s_mcol_tlast),
-                .m_axi4s_tdata          (axi4s_mcol_tdata),
-                .m_axi4s_tvalid         (axi4s_mcol_tvalid),
-                .m_axi4s_tready         (axi4s_mcol_tready),
-                
-                .s_wb_rst_i             (wb_peri_rst_i),
-                .s_wb_clk_i             (wb_peri_clk_i),
-                .s_wb_adr_i             (wb_peri_adr_i[7:0]),
-                .s_wb_dat_o             (wb_mcol_dat_o),
-                .s_wb_dat_i             (wb_peri_dat_i),
-                .s_wb_we_i              (wb_peri_we_i),
-                .s_wb_sel_i             (wb_peri_sel_i),
-                .s_wb_stb_i             (wb_mcol_stb_i),
-                .s_wb_ack_o             (wb_mcol_ack_o)
-            );
-//  assign axi4s_mcol_tdata[31:24] = 0;
-    */
 
     
     // read は未使用
