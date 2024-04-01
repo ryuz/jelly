@@ -1,9 +1,7 @@
 
-TARGET    = kv260_imx219_display_port.out
-DT_NAME   = kv260_imx219_display_port
-BIT_NAME  = kv260_imx219_display_port
-
-RUN_OPT  ?=
+TARGET    = kv260_imx219_mnist_seg.out
+DT_NAME   = kv260_imx219_mnist_seg
+BIT_NAME  = kv260_imx219_mnist_seg
 
 DTS_FILE  = $(DT_NAME).dts
 DTBO_FILE = $(DT_NAME).dtbo
@@ -15,8 +13,10 @@ BIN_FILE  = $(BIT_FILE).bin
 FIRMWARE_PATH = /lib/firmware
 DEVTREE_PATH  = /configfs/device-tree
 
-CFLAGS  += -Wall -g -O0 `pkg-config --cflags opencv4` -I../../../../include
+CFLAGS  += -Wall -g -O2 `pkg-config --cflags opencv4` -I../../../../include
 LDFLAGS += -g  `pkg-config --libs opencv4`
+
+RUN_OPT ?=
 
 OBJS = main.o
 
@@ -32,12 +32,9 @@ clean:
 run: $(TARGET) load
 	./$(TARGET) $(RUN_OPT)
 
-.PHONY: run_server
-run_server: load
-	python3 flask_sample.py
 
 $(TARGET): $(OBJS)
-	g++ -o $(TARGET) $(OBJS) $(LDFLAGS) 
+	g++ -o $(TARGET) $(OBJS) $(LDFLAGS)
 
 %.o : %.cpp
 	g++ $(CFLAGS) -c $< -o $@
@@ -72,9 +69,9 @@ load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
 	sudo cp $(BIN_FILE) $(FIRMWARE_PATH)
 	sudo cp $(DTBO_FILE) $(FIRMWARE_PATH)
 	sudo sh -c "echo 0 > /sys/class/fpga_manager/fpga0/flags"
-	sudo mkdir -p $(DEVTREE_PATH)/overlays/full
+	sudo mkdir $(DEVTREE_PATH)/overlays/full
 	sudo sh -c "echo -n $(DTBO_FILE) > /configfs/device-tree/overlays/full/path"
-	sleep 2
+	sleep 1
 	cat $(DEVTREE_PATH)/overlays/full/status
 	sudo rm /lib/firmware/$(DTBO_FILE)
 	sudo rm /lib/firmware/$(BIN_FILE)
@@ -92,8 +89,7 @@ unload:
 .PHONY: load2
 load2: $(DTBO_FILE) $(BIN_FILE)
 	sudo fpgautil -R
-	sudo fpgautil -b $(BIT_FILE) -o udmabuf.dtbo
-#	sudo fpgautil -b $(BIT_FILE)
+	sudo fpgautil -b $(BIT_FILE) -o $(DTBO_FILE)
 
 .PHONY: unload2
 unload2:
