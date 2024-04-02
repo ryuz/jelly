@@ -7,13 +7,14 @@ set project_directory .
 # set project environments
 set project_name $env(PRJ_NAME)
 set top_module   $env(TOP_MODULE)
-set board_part   $env(BOARD_PART)
-set device_part  $env(DEVICE_PART)
-set sources      [split $env(SOURCES) " "]
-set ip_cores     [split $env(IP_CORES) " "]
-set bd_scripts   [split $env(BD_SCRIPTS) " "]
-set hls_ip       [split $env(HLS_IP) " "]
-set constrains   [split $env(CONSTRAINS) " "]
+set board_part  [expr {[info exists env(BOARD_PART) ] ? $env(BOARD_PART)  : ""}]
+set device_part [expr {[info exists env(DEVICE_PART)] ? $env(DEVICE_PART) : ""}]
+set sources     [expr {[info exists env(SOURCES)    ] ? [split $env(SOURCES)    " "] : {}}]
+set defines     [expr {[info exists env(DEFINES)    ] ? [split $env(DEFINES)    " "] : {}}]
+set ip_cores    [expr {[info exists env(IP_CORES)   ] ? [split $env(IP_CORES)   " "] : {}}]
+set bd_scripts  [expr {[info exists env(BD_SCRIPTS) ] ? [split $env(BD_SCRIPTS) " "] : {}}]
+set hls_ip      [expr {[info exists env(HLS_IP)     ] ? [split $env(HLS_IP)     " "] : {}}]
+set constrains  [expr {[info exists env(CONSTRAINS) ] ? [split $env(CONSTRAINS) " "] : {}}]
 
 
 # add borad repository path
@@ -125,6 +126,20 @@ foreach fname $constrains {
 
 # set top module
 set_property top $top_module [current_fileset]
+
+# synth_args_more
+set synth_args_more ""
+
+# defines
+foreach define $defines {
+  append synth_args_more "-verilog_define " $define " "
+}
+
+# add option
+set synth_args_more [string trim $synth_args_more]
+if {[string equal $synth_args_more ""] == 0} {
+  set_property -name {STEPS.SYNTH_DESIGN.ARGS.MORE OPTIONS} -value $synth_args_more -objects [get_runs synth_1]
+}
 
 # create block design
 foreach fname $bd_scripts {
