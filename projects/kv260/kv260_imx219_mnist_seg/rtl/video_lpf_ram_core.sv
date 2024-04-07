@@ -36,6 +36,9 @@ module video_lpf_ram_core
     logic                               cke         ;
     assign cke = m_axi4s_tready || !m_axi4s_tvalid;
 
+    assign s_axi4s_tready = cke;
+    
+
     localparam type mut_t = logic [DATA_WIDTH*2:0];
 
     logic   [DATA_WIDTH:0]      param_alpha1;
@@ -52,7 +55,9 @@ module video_lpf_ram_core
                 .ADDR_WIDTH     (ADDR_WIDTH ),
                 .DATA_WIDTH     (TDATA_WIDTH),
                 .RAM_TYPE       ("ultra"    ),
-                .DOUT_REGS      (1          )
+                .DOUT_REGS      (1          ),
+                .FILLMEM        (1          ),
+                .FILLMEM_DATA   (0          )
             )
         u_ram_simple_dualport
             (
@@ -90,7 +95,7 @@ module video_lpf_ram_core
     logic   [TUSER_WIDTH-1:0]           st3_tuser   ;
     logic                               st3_tlast   ;
     logic   [NUM-1:0][DATA_WIDTH-1:0]   st3_tdata   ;
-    logic   [NUM-1:0][DATA_WIDTH-1:0]   st3_rdata   ;
+//  logic   [NUM-1:0][DATA_WIDTH-1:0]   st3_rdata   ;
     logic                               st3_tvalid  ;
 
     logic   [ADDR_WIDTH-1:0]            st4_addr    ;
@@ -104,7 +109,6 @@ module video_lpf_ram_core
     logic   [TUSER_WIDTH-1:0]           st5_tuser   ;
     logic                               st5_tlast   ;
     logic   [NUM-1:0][DATA_WIDTH-1:0]   st5_tdata   ;
-    logic   [NUM-1:0][DATA_WIDTH-1:0]   st5_rdata   ;
     logic                               st5_tvalid  ;
 
     always_ff @(posedge aclk) begin
@@ -153,7 +157,7 @@ module video_lpf_ram_core
             st3_tuser <=  st2_tuser;
             st3_tlast <=  st2_tlast;
             st3_tdata <=  st2_tdata;
-            st3_rdata <=  rd_dout;
+//          st3_rdata <=  rd_dout;
 
             // stage4
             st4_addr  <=  st3_addr;
@@ -161,7 +165,7 @@ module video_lpf_ram_core
             st4_tlast <=  st3_tlast;
             for ( int i = 0; i < NUM; i = i + 1 ) begin
                 st4_tdata[i] <=  DATA_WIDTH'((mut_t'(st3_tdata[i]) * mut_t'(param_alpha1)) >> DATA_WIDTH);
-                st4_rdata[i] <=  DATA_WIDTH'((mut_t'(st3_rdata[i]) * mut_t'(param_alpha)) >> DATA_WIDTH);
+                st4_rdata[i] <=  DATA_WIDTH'((mut_t'(rd_dout  [i]) * mut_t'(param_alpha )) >> DATA_WIDTH);
             end
 
             // stage5

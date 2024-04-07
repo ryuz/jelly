@@ -694,6 +694,13 @@ module kv260_imx219_mnist_seg
     logic                               axi4s_mnist_tvalid;
     logic                               axi4s_mnist_tready;
 
+    logic   [10:0][7:0]                 axi4s_mnist_tclass_u8;
+    always_comb begin
+        for ( int i = 0; i < 11; i++ ) begin
+            axi4s_mnist_tclass_u8[i] = {8{axi4s_mnist_tclass[i]}};
+        end
+    end
+
     mnist_seg
             #(
                 .TUSER_WIDTH        (24 + 1),
@@ -725,6 +732,91 @@ module kv260_imx219_mnist_seg
                 .m_axi4s_tready     (axi4s_mnist_tready)
             );
 
+    // LowPass-filter
+    logic   [0:0]               axi4s_lpf_tuser;
+    logic                       axi4s_lpf_tlast;
+    logic   [2:0][7:0]          axi4s_lpf_trgb;
+    logic   [10:0][7:0]         axi4s_lpf_tclass;
+    logic                       axi4s_lpf_tvalid;
+    logic                       axi4s_lpf_tready;
+    
+    logic   [WB_DAT_WIDTH-1:0]  wb_lpf_dat_o;
+    logic                       wb_lpf_stb_i;
+    logic                       wb_lpf_ack_o;
+
+    video_lpf_ram
+            #(
+                .NUM                    (11 + 3             ),
+                .DATA_WIDTH             (8                  ),
+                .ADDR_WIDTH             (17                 ),
+                .TUSER_WIDTH            (1                  ),
+                .WB_ADR_WIDTH           (8                  ),
+                .WB_DAT_WIDTH           (WB_DAT_WIDTH       ),
+                .INIT_PARAM_ALPHA       (8'h0               )
+            )
+        u_video_lpf_ram
+            (
+                .aresetn                (axi4s_cam_aresetn  ),
+                .aclk                   (axi4s_cam_aclk     ),
+
+                .s_wb_rst_i             (wb_peri_rst_i      ),
+                .s_wb_clk_i             (wb_peri_clk_i      ),
+                .s_wb_adr_i             (wb_peri_adr_i[7:0] ),
+                .s_wb_dat_o             (wb_lpf_dat_o       ),
+                .s_wb_dat_i             (wb_peri_dat_i      ),
+                .s_wb_we_i              (wb_peri_we_i       ),
+                .s_wb_sel_i             (wb_peri_sel_i      ),
+                .s_wb_stb_i             (wb_lpf_stb_i       ),
+                .s_wb_ack_o             (wb_lpf_ack_o       ),
+
+                .s_axi4s_tuser          (axi4s_mnist_tuser  ),
+                .s_axi4s_tlast          (axi4s_mnist_tlast  ),
+                .s_axi4s_tdata          ({axi4s_mnist_tclass_u8, axi4s_mnist_trgb}),
+                .s_axi4s_tvalid         (axi4s_mnist_tvalid ),
+                .s_axi4s_tready         (axi4s_mnist_tready ),
+                
+                .m_axi4s_tuser          (axi4s_lpf_tuser    ),
+                .m_axi4s_tlast          (axi4s_lpf_tlast    ),
+                .m_axi4s_tdata          ({axi4s_lpf_tclass, axi4s_lpf_trgb}),
+                .m_axi4s_tvalid         (axi4s_lpf_tvalid   ),
+                .m_axi4s_tready         (axi4s_lpf_tready   )
+            );
+    
+
+    logic   [0:0]               axi4s_max_tuser;
+    logic                       axi4s_max_tlast;
+    logic   [2:0][7:0]          axi4s_max_trgb;
+    logic   [7:0]               axi4s_max_targmax;
+    logic                       axi4s_max_tvalid;
+    logic                       axi4s_max_tready;
+
+    video_argmax
+            #(
+                .CLASS_NUM              (11                 ),
+                .CLASS_WIDTH            (8                  ),
+                .ARGMAX_WIDTH           (8                  ),
+                .TDATA_WIDTH            (24                 ),
+                .TUSER_WIDTH            (1                  )
+            )
+        u_video_argmax
+            (
+                .aresetn                (axi4s_cam_aresetn  ),
+                .aclk                   (axi4s_cam_aclk     ),
+
+                .s_axi4s_tuser          (axi4s_lpf_tuser    ),
+                .s_axi4s_tlast          (axi4s_lpf_tlast    ),
+                .s_axi4s_tdata          (axi4s_lpf_trgb     ),
+                .s_axi4s_tclass         (axi4s_lpf_tclass   ),
+                .s_axi4s_tvalid         (axi4s_lpf_tvalid   ),
+                .s_axi4s_tready         (axi4s_lpf_tready   ),
+
+                .m_axi4s_tuser          (axi4s_max_tuser    ),
+                .m_axi4s_tlast          (axi4s_max_tlast    ),
+                .m_axi4s_tdata          (axi4s_max_trgb     ),
+                .m_axi4s_targmax        (axi4s_max_targmax  ),
+                .m_axi4s_tvalid         (axi4s_max_tvalid   ),
+                .m_axi4s_tready         (axi4s_max_tready   )
+            );
 
     // DMA write
     logic   [WB_DAT_WIDTH-1:0]  wb_vdmaw_dat_o;
@@ -800,11 +892,11 @@ module kv260_imx219_mnist_seg
                 
                 .s_axi4s_aresetn        (axi4s_cam_aresetn),
                 .s_axi4s_aclk           (axi4s_cam_aclk),
-                .s_axi4s_tuser          (axi4s_mnist_tuser),
-                .s_axi4s_tlast          (axi4s_mnist_tlast),
-                .s_axi4s_tdata          ({axi4s_mnist_tclass[7:0], axi4s_mnist_trgb}),
-                .s_axi4s_tvalid         (axi4s_mnist_tvalid),
-                .s_axi4s_tready         (axi4s_mnist_tready),
+                .s_axi4s_tuser          (axi4s_max_tuser),
+                .s_axi4s_tlast          (axi4s_max_tlast),
+                .s_axi4s_tdata          ({axi4s_max_targmax, axi4s_max_trgb}),
+                .s_axi4s_tvalid         (axi4s_max_tvalid),
+                .s_axi4s_tready         ( axi4s_max_tready),
                 
                 .m_aresetn              (axi4_mem_aresetn),
                 .m_aclk                 (axi4_mem_aclk),
@@ -830,7 +922,6 @@ module kv260_imx219_mnist_seg
                 .m_axi4_bvalid          (axi4_mem0_bvalid),
                 .m_axi4_bready          (axi4_mem0_bready)
             );
-
 
     
     // read は未使用

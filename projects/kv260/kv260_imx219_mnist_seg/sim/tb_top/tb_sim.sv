@@ -20,8 +20,14 @@ module tb_sim();
     end
     
     
-    parameter   X_NUM = 640;   // 3280 / 2;
-    parameter   Y_NUM = 480;   // 2464 / 2;
+//  parameter   X_NUM = 3280 / 2;
+//  parameter   Y_NUM = 2464 / 2;
+//  parameter   X_NUM = 640;   // 3280 / 2;
+//  parameter   Y_NUM = 480;   // 2464 / 2;
+//  parameter   X_NUM = 640;
+//  parameter   Y_NUM = 132;
+    parameter   X_NUM = 28*3;
+    parameter   Y_NUM = 28*3;
 
 
     // ---------------------------------
@@ -182,8 +188,9 @@ module tb_sim();
     localparam  ADR_GID    = WB_ADR_WIDTH'(32'h00000000) >> 3;
     localparam  ADR_FMTR   = WB_ADR_WIDTH'(32'h00100000) >> 3;
     localparam  ADR_DEMOS  = WB_ADR_WIDTH'(32'h00120000) >> 3;
-    localparam  ADR_COLMAT = WB_ADR_WIDTH'(32'h00120200) >> 3;
+    localparam  ADR_COLMAT = WB_ADR_WIDTH'(32'h00120800) >> 3;
     localparam  ADR_VDMAW  = WB_ADR_WIDTH'(32'h00210000) >> 3;
+    localparam  ADR_BIN    = WB_ADR_WIDTH'(32'h00300000) >> 3;
 
 `include "jelly/JellyRegs.vh"
     
@@ -201,6 +208,15 @@ module tb_sim();
         wb_read (ADR_DEMOS + WB_ADR_WIDTH'(`REG_IMG_DEMOSAIC_CORE_ID    ));
         wb_write(ADR_DEMOS + WB_ADR_WIDTH'(`REG_IMG_DEMOSAIC_PARAM_PHASE),     0, 8'hff);
         wb_write(ADR_DEMOS + WB_ADR_WIDTH'(`REG_IMG_DEMOSAIC_CTL_CONTROL), 64'h3, 8'hff);
+
+`define REG_BIN_PARAM_END           8'h04
+`define REG_BIN_PARAM_INV           8'h05
+`define REG_BIN_TBL(x)              (8'h40 +(x))
+
+        wb_write(ADR_BIN + `REG_BIN_PARAM_END, 3, 8'hff);
+        wb_write(ADR_BIN + `REG_BIN_TBL(0), 64'h10, 8'hff);
+        wb_write(ADR_BIN + `REG_BIN_TBL(1), 64'h20, 8'hff);
+        wb_write(ADR_BIN + `REG_BIN_TBL(2), 64'h30, 8'hff);
 
         $display("set write DMA");
         wb_read (ADR_VDMAW + WB_ADR_WIDTH'(`REG_VDMA_WRITE_CORE_ID       ));
