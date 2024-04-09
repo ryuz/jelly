@@ -17,6 +17,13 @@
 #include "jelly/VideoDmaControl.h"
 
 
+#define REG_BIN_PARAM_END           0x04
+#define REG_BIN_PARAM_INV           0x05
+#define REG_BIN_TBL(x)              (0x40 +(x))
+
+#define REG_LPF_PARAM_ALPHA         0x08
+
+
 
 static  volatile    bool    g_signal = false;
 void signal_handler(int signo) {
@@ -38,6 +45,7 @@ int main(int argc, char *argv[])
     int     a_gain      = 20;
     int     d_gain      = 10;
     int     bayer_phase = 0;
+    int     lpf         = 0;
     int     view_scale  = 1;
 
     for ( int i = 1; i < argc; ++i ) {
@@ -177,7 +185,9 @@ int main(int argc, char *argv[])
     auto reg_colmat = uio_acc.GetAccessor(0x00120800);
 //  auto reg_sel    = uio_acc.GetAccessor(0x00130000);
     auto reg_wdma   = uio_acc.GetAccessor(0x00210000);
-    
+    auto reg_bin    = uio_acc.GetAccessor(0x00300000);
+    auto reg_lpf    = uio_acc.GetAccessor(0x00320000);
+
 #if 1
     std::cout << "CORE ID" << std::endl;
     std::cout << std::hex << reg_gid.ReadReg(0) << std::endl;
@@ -230,6 +240,13 @@ int main(int argc, char *argv[])
         std::cout << "udmabuf size error" << std::endl;
     }
 
+
+    reg_bin.WriteReg(REG_BIN_PARAM_END, 3);
+    reg_bin.WriteReg(REG_BIN_TBL(0), 0x10);
+    reg_bin.WriteReg(REG_BIN_TBL(1), 0x20);
+    reg_bin.WriteReg(REG_BIN_TBL(2), 0x30);
+    reg_bin.WriteReg(REG_BIN_TBL(3), 0x40);
+
     // video input start
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN,  1);
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT,   10000000);
@@ -241,19 +258,35 @@ int main(int argc, char *argv[])
     usleep(100000);
 
     cv::imshow("img", cv::Mat::zeros(480, 640, CV_8UC3));
-    cv::createTrackbar("scale",    "img", &view_scale, 4);
+    cv::createTrackbar("scale",    "img", nullptr, 4);
     cv::setTrackbarMin("scale",    "img", 1);
-    cv::createTrackbar("fps",      "img", &frame_rate, 1000);
+    cv::setTrackbarPos("scale",    "img", view_scale);
+    cv::createTrackbar("fps",      "img", nullptr, 1000);
     cv::setTrackbarMin("fps",      "img", 5);
-    cv::createTrackbar("exposure", "img", &exposure, 1000);
+    cv::setTrackbarPos("fps",      "img", frame_rate);
+    cv::createTrackbar("exposure", "img", nullptr, 1000);
     cv::setTrackbarMin("exposure", "img", 1);
-    cv::createTrackbar("a_gain",   "img", &a_gain, 20);
-    cv::createTrackbar("d_gain",   "img", &d_gain, 24);
-    cv::createTrackbar("bayer" ,   "img", &bayer_phase, 3);
+    cv::setTrackbarPos("exposure", "img", exposure);
+    cv::createTrackbar("a_gain",   "img", nullptr, 20);
+    cv::setTrackbarPos("a_gain",   "img", a_gain);
+    cv::createTrackbar("d_gain",   "img", nullptr, 24);
+    cv::setTrackbarPos("d_gain",   "img", d_gain);
+    cv::createTrackbar("bayer" ,   "img", nullptr, 3);
+    cv::setTrackbarPos("bayer",    "img", bayer_phase);
+    cv::createTrackbar("lpf" ,     "img", nullptr, 255);
+    cv::setTrackbarPos("lpf",      "img", lpf);
     
     int     key;
     while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
         if ( g_signal ) { break; }
+
+        view_scale  = cv::getTrackbarPos("scale",    "img");
+        frame_rate  = cv::getTrackbarPos("fps",      "img");
+        exposure    = cv::getTrackbarPos("exposure", "img");
+        a_gain      = cv::getTrackbarPos("a_gain",   "img");
+        d_gain      = cv::getTrackbarPos("d_gain",   "img");
+        bayer_phase = cv::getTrackbarPos("bayer" ,   "img");
+        lpf         = cv::getTrackbarPos("lpf",      "img");
 
         // 設定
         imx219.SetFrameRate(frame_rate);
@@ -263,6 +296,7 @@ int main(int argc, char *argv[])
         imx219.SetFlip(flip_h, flip_v);
         reg_demos.WriteReg(REG_IMG_DEMOSAIC_PARAM_PHASE, bayer_phase);
         reg_demos.WriteReg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3);  // update & enable
+        reg_lpf.WriteReg(REG_LPF_PARAM_ALPHA, lpf);
 
         // キャプチャ
         vdmaw.Oneshot(dmabuf_phys_adr, width, height, frame_num);
@@ -273,7 +307,7 @@ int main(int argc, char *argv[])
         // プレーン分解
         std::vector<cv::Mat> planes;
         cv::split(img, planes);
-        cv::imshow("planes0", planes[0]);
+        cv::imshow("planes0", planes[3]);
 
         // 表示
         view_scale = std::max(1, view_scale);
