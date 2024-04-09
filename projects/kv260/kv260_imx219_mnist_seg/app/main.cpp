@@ -258,6 +258,19 @@ int main(int argc, char *argv[])
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL,       0x03);
     usleep(100000);
 
+    cv::Scalar colmap[10] = {
+        cv::Scalar(0x00, 0x00, 0x00),  // 黒
+        cv::Scalar(0x00, 0x00, 0x80),  // 茶
+        cv::Scalar(0x00, 0x00, 0xff),  // 赤
+        cv::Scalar(0x4c, 0xb7, 0xff),  // 橙
+        cv::Scalar(0x00, 0xff, 0xff),  // 黄
+        cv::Scalar(0x00, 0x80, 0x00),  // 緑
+        cv::Scalar(0xff, 0x00, 0x00),  // 青
+        cv::Scalar(0x80, 0x00, 0x80),  // 紫
+        cv::Scalar(0x80, 0x80, 0x80),  // 灰
+        cv::Scalar(0xff, 0xff, 0xff)   // 白
+    };
+
     cv::imshow("img", cv::Mat::zeros(480, 640, CV_8UC3));
     cv::createTrackbar("scale",    "img", nullptr, 4);
     cv::setTrackbarMin("scale",    "img", 1);
@@ -339,13 +352,17 @@ int main(int argc, char *argv[])
         cv::split(img, planes);
         cv::imshow("planes0", planes[3]);
 
+        cv::Mat view_cls;
+        cv::cvtColor(img, view_cls, cv::COLOR_BGRA2BGR);
         cv::Mat cls = planes[3];
-        for ( int i = 0; i < 11; ++i ) {
+        for ( int i = 0; i < 10; ++i ) {
             cv::Mat mask = (cls == i);
-            cv::Mat cls_view = cv::Mat::zeros(cls.size(), CV_8UC1);
-            cls_view.setTo(255, mask);
-            cv::imshow("cls" + std::to_string(i), cls_view);
+//          cv::Mat cls_view = cv::Mat::zeros(cls.size(), CV_8UC1);
+//          cls_view.setTo(255, mask);
+//          cv::imshow("cls" + std::to_string(i), cls_view);
+            view_cls.setTo(colmap[i], mask);
         }
+        cv::imshow("view_cls", view_cls);
 
         // 表示
         view_scale = std::max(1, view_scale);
