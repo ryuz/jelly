@@ -64,9 +64,10 @@ int main(int argc, char** argv)
     auto wb = jsim::WishboneMasterNode_Create(wishbone_signals);
     mng->AddNode(wb);
 
-
-    const int X_NUM = 640;
-    const int Y_NUM = 480;
+//    const int X_NUM = 640;
+//    const int Y_NUM = 480;
+    const int X_NUM = top->img_x_num; // 640;
+    const int Y_NUM = top->img_y_num; // 480;
     
     const int reg_gid    = (0x00000000 >> 3);
     const int reg_fmtr   = (0x00100000 >> 3);
